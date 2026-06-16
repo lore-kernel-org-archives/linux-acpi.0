@@ -1,91 +1,122 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
+Received: from smtpbguseast3.qq.com (smtpbguseast3.qq.com [54.243.244.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED7E0423141;
-	Tue, 16 Jun 2026 09:31:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 658863AC0C7;
+	Tue, 16 Jun 2026 09:36:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.243.244.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781602302; cv=none; b=DvYpLoYqUwmZtYs0u+aTKhW7yM1FZdK0PKQi1x7uYvtj28823YzlpPuWtDB0QkzTyyJnOfs1O+VKI/Hq0CxWy9FIPrWn250T9HbOhQTR0ujpP+ccLvKDDRgSK2jbJX/eYLErtVgaPpK+4ecPLPfz1FrbmSsHhBb25zfAqGwDltY=
+	t=1781602623; cv=none; b=ScM1Fzj3PMp//TnvPMbDCsAX/Dq+Ij8BIxCDBG86+c5FmKMO4lnphP3cSuS3lHRpZkqBTkVAKR4TchSJjBF+WWkMq3+pT0B6+YEYajbm5CpD7mpCcNo2eIC0JPYrhDd2vcHrwgEWTNvTDkTPlcbVfe1l1oFDnCFsM/jahcpBXDE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781602302; c=relaxed/simple;
-	bh=py9/2Zt7xQMpoKBn11UstNzWxI/Y0GlDPMChdS5fpsM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=AT9yHU/1KPZxw4HyFOcSbZzX1mtOCk71CGFigIfg0D4zXGHMmFU2sUfJj+fRjVeLkv1EpswOVPa3kG/1FPy/qLahPK1hygrEudkNfZkuaRfQpfikiZ4scG2Z1pDka+nubxaD0PJzWtAvqG8kue/S0Y5VcYuUWcUeX1SOAIlI+T8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=DBEOQ9xD; arc=none smtp.client-ip=192.198.163.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1781602623; c=relaxed/simple;
+	bh=AR1C/GHiKRFRUuWmhCHJ+Zkybp92L264FBKGlZv8Bvw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=iOSJMPttaRu+qhrSSRxp2LEDCT2FOizHgnJz1g3L6wgZEwjo3excIvtQfEEFKbPbH9pn460rpTBJRAFsF59ow3h87i6sDM7pAxGhao5lwwsfDjDmT9jNYCzlS9Q4gPXQ54b4BSleRTgpMI35lIZXPkOYE0tPJVpSN+cDI9v7UuE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=SYC9Ra0D; arc=none smtp.client-ip=54.243.244.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=uniontech.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DBEOQ9xD"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1781602301; x=1813138301;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=py9/2Zt7xQMpoKBn11UstNzWxI/Y0GlDPMChdS5fpsM=;
-  b=DBEOQ9xD3hQVoAsENbAh4L8z+IBtavjph6f59S0h27MPVv+W0IBAzmur
-   Qs4E7HhvqcmN6eU6EZ2Jal4tmzERdkNv+GJ5QD0OUrI7zSHjx3mzIvDVJ
-   hVbNVXTx15RtTtJguc8bSrzkXsDEIUDHugpd+5OJQrV+SO4P7L6lmM5Gv
-   n0g5ttDOpgxXM7vESILirovuVXu+OTAMRWMq6aziT12pe8WPod2n3qM8E
-   uu9GbqIte3rkBwAKKrhFy02aK2znK+EdCupb6lGo5dJ8dT8iMxi2NPpuD
-   iqRwctRvlMBPyhgyybP6uO+XT3dA52oUbXFEqE0QQp3atvLMYMzAMQana
-   Q==;
-X-CSE-ConnectionGUID: EyPOgSqAT3mkwYeDRTYr3w==
-X-CSE-MsgGUID: h4t8i+q5QbO6gvQhhDPo7A==
-X-IronPort-AV: E=McAfee;i="6800,10657,11818"; a="84926607"
-X-IronPort-AV: E=Sophos;i="6.24,208,1774335600"; 
-   d="scan'208";a="84926607"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jun 2026 02:31:36 -0700
-X-CSE-ConnectionGUID: oc00Q5OST/+TXJv3J8cyrg==
-X-CSE-MsgGUID: berIJJJwRh+0Ez0I+zn04w==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,208,1774335600"; 
-   d="scan'208";a="246606999"
-Received: from amilburn-desk.amilburn-desk (HELO localhost) ([10.245.244.153])
-  by orviesa006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jun 2026 02:31:31 -0700
-Date: Tue, 16 Jun 2026 12:31:28 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Marco Scardovi <scardracs@disroot.org>
-Cc: Mika Westerberg <westeri@kernel.org>, Linus Walleij <linusw@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Mario Limonciello <mario.limonciello@amd.com>,
-	linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] gpiolib: acpi: Add quirk for ASUS ROG Strix G614 series
-Message-ID: <ajEX8L63vAhhndv7@ashevche-desk.local>
-References: <20260616090824.5967-1-scardracs@disroot.org>
+	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="SYC9Ra0D"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uniontech.com;
+	s=onoh2408; t=1781602599;
+	bh=OIWdUbroiUcSgHTxDk9ni/4jfm7teNqFGGNKpMxbVlw=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version;
+	b=SYC9Ra0DV0FzRLCP+eDUrnPNvLdYt5Qf0R5gAvcHn6Qn7hP751/LmTA+XYliSJQ6r
+	 +EfF6D+xs/yaz0iRSuZC/18bqyH+uQ1MPoqop8tn6lL6XRUlZTqdoJuwKZumDn2vxA
+	 l94nAoH0W3uDSecbdo/rv1AL7qKeDA6bu/uqhk0E=
+X-QQ-mid: esmtpsz19t1781602584tfb0cb970
+X-QQ-Originating-IP: oTJIl7CUlHt0DRNABXrWKZr1kjYbtUYqgObyDKJe/ag=
+Received: from PEN202512010004 ( [113.57.152.160])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Tue, 16 Jun 2026 17:36:23 +0800 (CST)
+X-QQ-SSF: 0000000000000000000000000000000
+X-QQ-GoodBg: 1
+X-BIZMAIL-ID: 9025222703028823009
+EX-QQ-RecipientCnt: 5
+From: raoxu <raoxu@uniontech.com>
+To: rafael@kernel.org
+Cc: lenb@kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	raoxu@uniontech.com
+Subject: [PATCH] ACPI: IPMI: Fix inverted interface check in ipmi_bmc_gone()
+Date: Tue, 16 Jun 2026 17:36:21 +0800
+Message-ID: <B486593E06E6F6E0+20260616093621.1039943-1-raoxu@uniontech.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260616090824.5967-1-scardracs@disroot.org>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+Content-Transfer-Encoding: 8bit
+X-QQ-SENDSIZE: 520
+Feedback-ID: esmtpsz:uniontech.com:qybglogicsvrgz:qybglogicsvrgz6b-0
+X-QQ-XMAILINFO: M12MFmiBLnnlYoiLgeWhm3fU0iED+u48DYvrIKw2G8ONkeFcrNPZAllT
+	u8cw/jLq0ZI3wgUdvRSImwk86J2LujD0cCQ1uwbg+j01vBXHrm0Y/LGp0rR7p+7yfzI5duA
+	ESLWLHNStwKO84gVANOFbrCgWRgo7yAPyeNi8Bn9van8vIf3LVp8S5yElDH+nr34NB5JHva
+	ohoWJlOU1gDdJU+MHPXVnIK53/VvFkA1NpgabEm2QdWvuodPjwPV3Diqy2VZN/WWv101hmb
+	JBN7OphZM90g6+dmYSz683aQi9smdCdypMm9jgRJ5IAHI+DiZcF6TQFLIWGb8EU4sG7BaDK
+	C3MM87cpHepIaWXF6mqcrByTsbXunwBBxpMlVRC8be3dMyxkKRb2uGirMLRdW0Ip7dlO2J9
+	5TrRgUi5EpvpLXWgzJoJVZ7jSqXj2zIoc9XJZdg0f5+ny0KEMRkkfdxRWe9vgyzrlnlf0UG
+	b1bAonVpKe6oA8Bjzf085+9H76t9mndCJ904m9cfmf5SUfqokhlo0YDhQwGyRFmaGgEWCY0
+	LKvReP2U20vRmSzcNpgS4y2qqDAGUqWbLGyfz4qKhiW44Bg2tPhIZApNuRoek9XdtMfGkdb
+	gWxnGCa6DFdEX8eyfNKHFqPb0oUZciFhbyHHjRnbY9oIyhlwxvbr0CQehczAiEZZyQO2htq
+	LUehUlD1VUeRtQRxrjZdpcJq5TeQpRHO/aCPsLX/rW1smLmpZvYQVHzDJ9JqWMddZ6R1VLN
+	gIH+vfgU6II2r07IFPXb9PkRaWZzC/O07qm1FxF3EZtND5jbN+zCMXBetjW7NQx9zwyR8nN
+	ZpUPSG0RrDxKMA6e7JQsZVjcZKYKrj5y2ymvIdTfIs/AFwigtePsWnBHzdGxvzPtP6iD5ib
+	OmEHGrw/0cuhwMa9wTyMg+BBmP60S+8UcPeXDWoVo0VduEgdShRbq9y+4xUiDWIEGahe9Gc
+	MK0PvXmIbA01PV1TLe/476M+Sji6/k/N1qYGm8PWQboDd9joGzbm1zvp8jKnO6PAxdVmBhR
+	+3JQ0kBD12fPiTQoZ5ahEoE60OwvQcV9VW1YEOl+XZcR/4TzOc2RuH9zPWLFs=
+X-QQ-XMRINFO: Mp0Kj//9VHAxzExpfF+O8yhSrljjwrznVg==
+X-QQ-RECHKSPAM: 0
 
-On Tue, Jun 16, 2026 at 11:08:24AM +0200, Marco Scardovi wrote:
-> The ASUS ROG Strix G16 G614 series laptops experience a long boot delay of
-> approximately 36 seconds. This happens because the system firmware triggers
-> a slow/hanging ActiveBoth GPIO interrupt handler at boot time.
+From: Xu Rao <raoxu@uniontech.com>
 
-'slow'? Did you mean 'low'?
+Before commit a1a69b297e47 ("ACPI / IPMI: Fix race caused by the
+unprotected ACPI IPMI user"), ipmi_bmc_gone() skipped entries whose
+interface number did not match the SMI being removed, then killed the
+matching entry:
 
-> Even though commit 3bb62e3f99a5 ("gpiolib: acpi: Only trigger ActiveBoth
-> interrupts on boot") restricted boot-time execution to ActiveBoth edge
-> events, the problematic interrupt on these laptops is configured as
-> ActiveBoth. Consequently, the handler is still executed at boot and
-> the boot process stalls.
-> 
-> Fix the delay by adding a DMI quirk to disable edge event execution at
-> boot for the ASUS ROG Strix G16 G614 family.
+	if (ipmi_device->ipmi_ifnum != iface)
+		continue;
 
-What is this interrupt for? Touchpad?
+	__ipmi_dev_kill(ipmi_device);
 
--- 
-With Best Regards,
-Andy Shevchenko
+That commit folded the removal block into the existing non-match test
+while converting the object lifetime handling, but left the comparison
+unchanged. The old != meant "continue past this entry"; after the
+refactor it meant "kill this entry".
 
+As a result, a single ACPI IPMI interface is never removed when its SMI
+disappears. If multiple interfaces are tracked, the first interface
+whose number differs from iface is removed instead, while the interface
+that actually disappeared remains on driver_data.ipmi_devices. The
+stale entry is not marked dead and can continue to be selected for ACPI
+IPMI transactions. It can also prevent the same ACPI handle from being
+registered again.
+
+Change the comparison to == so ipmi_bmc_gone() removes exactly the
+interface reported as gone by the SMI watcher. This restores the
+pre-a1a69b297e47 behavior and is the correct interface matching logic.
+
+Fixes: a1a69b297e47 ("ACPI / IPMI: Fix race caused by the unprotected ACPI IPMI user")
+Signed-off-by: Xu Rao <raoxu@uniontech.com>
+---
+ drivers/acpi/acpi_ipmi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
+index 8f1aeae8b72e..038b502224cc 100644
+--- a/drivers/acpi/acpi_ipmi.c
++++ b/drivers/acpi/acpi_ipmi.c
+@@ -490,7 +490,7 @@ static void ipmi_bmc_gone(int iface)
+ 	mutex_lock(&driver_data.ipmi_lock);
+ 	list_for_each_entry_safe(iter, temp,
+ 				 &driver_data.ipmi_devices, head) {
+-		if (iter->ipmi_ifnum != iface) {
++		if (iter->ipmi_ifnum == iface) {
+ 			ipmi_device = iter;
+ 			__ipmi_dev_kill(iter);
+ 			break;
+--
+2.50.1
 
