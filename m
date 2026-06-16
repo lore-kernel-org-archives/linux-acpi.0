@@ -1,89 +1,80 @@
-Received: from canpmsgout05.his.huawei.com (canpmsgout05.his.huawei.com [113.46.200.220])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from cstnet.cn (smtp81.cstnet.cn [159.226.251.81])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E07353749F4;
-	Tue, 16 Jun 2026 13:12:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.220
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A980B2E7376;
+	Tue, 16 Jun 2026 13:51:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.81
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781615577; cv=none; b=Hvwi8gnW8J7ZriM8KpndguTj68rI27L4+f3tP5o15titW05Q+HJE6dqK0EEGtZW61ld0SpzY4qbhD+PKTppq+EDG4qvOHIRtXsAqMP3P5LVcMD5XbqALNhxZtPGBmN7VbdLna0hOpCQiYqmrPCNYOLj2q7gwp8x0QpLBygJq4Iw=
+	t=1781617908; cv=none; b=HPjIkwrh45rpWjTqxwQ95Gf2wpCbIuvNilxq7YDRH8uoH66zIVtiFE8HoNyoY/q0CRFeTKWJggY4JCfrE4rq/mmLHS3WERwuxkg/EnWtYJnYR99g/PDxD1WUFRQ7HCaFhOfK3UtGS/+pRzn/N8f6xaGRXwl9raFLxKqfODC2YC4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781615577; c=relaxed/simple;
-	bh=2YMS1TPdKj8YZTAzLmxweixUsQJT5reuFUutt0QorUs=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=TFjki6QJrykaBY4G6hIVZGPGQZgINn4PPAkFSSHKAgDjPmnSFswCcQERHE97pN4yZBWDX7ipCdu/u5d7i4v3Cg/V3fnYpKAoDCD/qVWYjb3nxL18S0MVc80rW1CY0kYuH78C6VsWGBgTmQWGXTVR4m82xpHcM1W1n5WUZsMl920=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=os/ptCz2; arc=none smtp.client-ip=113.46.200.220
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="os/ptCz2"
-dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=9E0DuBf96JZkkmK5Hg++NskVSILbsCcyEZOXqhBthHU=;
-	b=os/ptCz2VFlDM8YHnUy1o9aLibmW0ZIaOUjlp4LDeF21B0lCQck4WzMmPjMlGKODqmUqY7eQ/
-	wa0jx8iA8p7Z1K7eQioXtEEpGwyp23Pz3BIpmAohk5ibtG/Ky8abGIXMX4NCTT4ppx05VSEexwp
-	btkXIa6Rccro3Dp3pmTlyKE=
-Received: from mail.maildlp.com (unknown [172.19.162.197])
-	by canpmsgout05.his.huawei.com (SkyGuard) with ESMTPS id 4gfnHg0bwwz12LF5;
-	Tue, 16 Jun 2026 21:03:59 +0800 (CST)
-Received: from kwepemo100005.china.huawei.com (unknown [7.202.195.212])
-	by mail.maildlp.com (Postfix) with ESMTPS id 9441540569;
-	Tue, 16 Jun 2026 21:12:50 +0800 (CST)
-Received: from [10.67.121.59] (10.67.121.59) by kwepemo100005.china.huawei.com
- (7.202.195.212) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Tue, 16 Jun
- 2026 21:12:49 +0800
-Message-ID: <a2483bf9-0a78-43df-ae03-b017bc72c380@huawei.com>
-Date: Tue, 16 Jun 2026 21:12:46 +0800
+	s=arc-20240116; t=1781617908; c=relaxed/simple;
+	bh=3Wz1PCliwYcCTRIvD8S86PCDArvvozT9rug80vxUBCw=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=iLLU3AKv+z9rLFN8KtI8PvZG2z409O84Dy5mWf2ioLEH42fnXLDmH3orTerpM9FscR4XukKr6GfZLk/o24oJkORXokuHTx17H2jZ4/fIWjdzEdbT9S3XavmN/+Jts32c/mI5+EmTTcPSXRQPzB11fzFL0ieEcbUt+MsFEMin1j8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.81
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
+Received: from [127.0.0.2] (unknown [36.110.52.2])
+	by APP-03 (Coremail) with SMTP id rQCowAA3VdzjVDFqj0rvFA--.12812S2;
+	Tue, 16 Jun 2026 21:51:31 +0800 (CST)
+From: Vivian Wang <wangruikang@iscas.ac.cn>
+Subject: [PATCH 0/2] riscv: acpi: Enable ARCH_HAS_ACPI_TABLE_UPGRADE
+Date: Tue, 16 Jun 2026 21:51:30 +0800
+Message-Id: <20260616-riscv-acpi-table-upgrade-v1-0-45902d2dedf9@iscas.ac.cn>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH][v2] ACPI: processor_idle: Mark LPI enter functions as
- __cpuidle
-To: lirongqing <lirongqing@baidu.com>, "Rafael J . Wysocki"
-	<rafael@kernel.org>, Len Brown <lenb@kernel.org>, Sunil V L
-	<sunilvl@ventanamicro.com>, Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt
-	<palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti
-	<alex@ghiti.fr>, Sudeep Holla <Sudeep.Holla@arm.com>,
-	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-riscv@lists.infradead.org>
-References: <20260616072617.2272-1-lirongqing@baidu.com>
-From: "lihuisong (C)" <lihuisong@huawei.com>
-In-Reply-To: <20260616072617.2272-1-lirongqing@baidu.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemo100005.china.huawei.com (7.202.195.212)
+X-B4-Tracking: v=1; b=H4sIAOJUMWoC/y2N3QqCQBBGX0XmuglXcCNfJQx2x9Em8m92lUB89
+ 7bs8sD5zrdBYBUOUGUbKK8SZBwSmFMG9HBDxyhNYijywubWWFQJtKKjSTA6/2Jcpk5dw9j6ku2
+ VSt9aC2k+Kbfy/qVv9cFh8U+m+O39DeV5SZ/x0MC7wEhj30ussvVyNqhk7tsO9b5/AF6pKbCrA
+ AAA
+X-Change-ID: 20260616-riscv-acpi-table-upgrade-fb5e69c5bf66
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+ Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
+ Alexandre Ghiti <alex@ghiti.fr>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-riscv@lists.infradead.org, Vivian Wang <wangruikang@iscas.ac.cn>
+X-Mailer: b4 0.15.2
+X-CM-TRANSID:rQCowAA3VdzjVDFqj0rvFA--.12812S2
+X-Coremail-Antispam: 1UD129KBjDUn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7v73
+	VFW2AGmfu7bjvjm3AaLaJ3UjIYCTnIWjp_UUUY27AC8VAFwI0_Gr0_Xr1l1xkIjI8I6I8E
+	6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AEw4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28Cjx
+	kF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2IY67AKxVW8JVW5JwA2z4x0Y4vE2Ix0cI8I
+	cVCY1x0267AKxVW8JVWxJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aV
+	CY1x0267AKxVW0oVCq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAq
+	x4xG6I80ewAv7VC0I7IYx2IY67AKxVWUXVWUAwAv7VC2z280aVAFwI0_Cr1j6rxdMcvjeV
+	CFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1l
+	42xK82IYc2Ij64vIr41l4c8EcI0Ec7CjxVAaw2AFwI0_Jw0_GFyl4I8I3I0E4IkC6x0Yz7
+	v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF
+	1VAY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIx
+	AIcVC0I7IYx2IY6xkF7I0E14v26r1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI
+	42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r1j6r4UYxBIdaVFxh
+	VjvjDU0xZFpf9x0JjbTmhUUUUU=
+X-CM-SenderInfo: pzdqw2pxlnt03j6l2u1dvotugofq/
 
+I did end up using this for something, so this is probably also useful
+for others.
 
-On 6/16/2026 3:26 PM, lirongqing wrote:
-> From: Li RongQing <lirongqing@baidu.com>
->
-> When function tracing or Kprobes is enabled, entering an ACPI Low
-> Power Idle (LPI) state triggers the following RCU splat:
->
->    RCU not on for: acpi_idle_lpi_enter+0x4/0xd8
->    WARNING: CPU: 8 PID: 0 at include/linux/trace_recursion.h:162 function_trace_call+0x1e8/0x228
->
-> The acpi_idle_lpi_enter() function is invoked within the cpuidle
-> path after RCU has already been disabled for the current local CPU.
-> Consequently, ftrace's function_trace_call() expects RCU to be
-> actively watching before recording trace data, emitting a warning
-> if it is not.
->
-> Fix this by annotating acpi_idle_lpi_enter(), the generic __weak
-> stub, and the RISC-V implementation of acpi_processor_ffh_lpi_enter()
-> with __cpuidle. This moves these functions into the '.cpuidle.text'
-> section, implicitly disabling ftrace instrumentation (notrace) along
-> this sensitive path and preventing trace-induced RCU warnings during
-> idle entry.
->
-> Fixes: a36a7fecfe60 ("ACPI / processor_idle: Add support for Low Power Idle(LPI) states")
-> Signed-off-by: Li RongQing <lirongqing@baidu.com>
-> ---
-LGTM,
-Acked-by: lihuisong@huawei.com
+---
+Vivian Wang (2):
+      ACPI: tables: Add missing #include <asm/fixmap.h>
+      riscv: acpi: Enable ARCH_HAS_ACPI_TABLE_UPGRADE
+
+ arch/riscv/Kconfig            | 1 +
+ arch/riscv/include/asm/acpi.h | 2 ++
+ arch/riscv/kernel/acpi.c      | 5 +++++
+ arch/riscv/kernel/setup.c     | 2 ++
+ drivers/acpi/tables.c         | 1 +
+ 5 files changed, 11 insertions(+)
+---
+base-commit: 254f49634ee16a731174d2ae34bc50bd5f45e731
+change-id: 20260616-riscv-acpi-table-upgrade-fb5e69c5bf66
+
+Best regards,
+--  
+Vivian "dramforever" Wang
+
