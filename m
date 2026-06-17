@@ -1,41 +1,40 @@
 Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5FA03955FF;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A60B0407CC8;
 	Wed, 17 Jun 2026 13:33:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781703236; cv=none; b=UYBG5u7WvcikWSdmdRszdVhHs6cNMaHVbwn9iP06SZh///SmxU/LNN07gfamw2d0gNpie6y+1Dy7RWKOWmjwy9a8Oa9xfqSGXVKySJ6XKjNN0Nr21jhxMXlwqRafwMZOTE5TnsR17OA8JRe6XHpYBjZcFmftGa4P0KIUX6Spb0E=
+	t=1781703237; cv=none; b=P+9oGzjw75xyC/jdXbhFdA14f1LqAjze3AMFafk92FCpCMVcl9Hv8xBGiUrdAL7pjhdL3poPrDUB+MOVKlrb33itrVm/gEGz+hlpSsWcPwsJu88VyTg28uJBCxrQNlwZLdLWJ2jdqiRSsF41mmKg5BOBeHQh86LMH4w9vULlOWc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781703236; c=relaxed/simple;
-	bh=IMYiUdETKsd9vslxX1nGBukt/xidhhV6uxKeG22G+Dg=;
+	s=arc-20240116; t=1781703237; c=relaxed/simple;
+	bh=DCcwS/Af0/gCwvOSwGbr70DNuzjaSOMbXeG1pza3/9A=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=qbVnY8PM0A97s0qDAW7V6Rhpu8L5eMaDjxeLd1RA/F6+6nIo7ADA2SHGwiKTijp1ev2e1K1Th+DIOg2F+IrC30/u4GAf+29PALRJF1W9Pp7iCfJBVS0NZOXO1XDknoxJdnPwyibbnJUsyzo47zFkiT5dDqLlLxnC2lcD+TcfcFw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=N5eefuhL; arc=none smtp.client-ip=82.195.75.108
+	 In-Reply-To:To:Cc; b=Q8n4tt6mWF0oqwV/c7W3ZwADp1euzJV3MxMS/c9i03CikXJ5RtCbHwn9GjYODc1mJAaivp3p9q6yollGWItON1p4axypeGUYwaRKbXzbElz/IIG46i84InzX9v26DzRoEl6CpFZFi6mDUgOD3RMnqGLoi/mVYVNuLcamll1fg1k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=kl+w8DmB; arc=none smtp.client-ip=82.195.75.108
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debian.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="N5eefuhL"
+	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="kl+w8DmB"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
 	s=smtpauto.stravinsky; h=X-Debian-User:Cc:To:In-Reply-To:References:
 	Message-Id:Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:
 	From:Reply-To:Content-ID:Content-Description;
-	bh=/0WbWUM0YqRig6pLzRsihGyxNEeNAVR9TczamDwMF/4=; b=N5eefuhLpBajkaaJT+OSbqc0iY
-	FGiQA+H2djSY6ZSYwleP88Pnp/zWXFUqA9uPPlN8bFYoIOgy7T+yP8kP5usWgViz2P9NBQpheOMHz
-	5fq2j0wPRSyqq3eWw8lduMrADGY64KocjwBIdVOM1QGxzHkdoeQITkdY+4SvmO5yUpC4F9zhgDAW1
-	HHvsFOks2nkksVP2qyZZQgw6ODo8ayLTjwfm7ZzKdQqrVkUW1JvajqDMO89g5jvIdkN1+FpuCJ0yT
-	b1FR3SEFZISFKb3tu4z7XxfFJ2X3RqbVdtKnGJ+CfuaqWTK3sR89rg1c2x8U4NZMsMzQWwe0+b330
-	TW3pZDTg==;
+	bh=SlTP4v2bni27T+dN93Gnu5TExfReIwH1JsMfVrv7mfM=; b=kl+w8DmBKc4wQhjE7PZ3ca0tgu
+	J/sxm4NzcJ8Bm6zSz2NFpOXIsaydQ32wMDMTDYbmgSASLUX40RMK0J/ZtXFQbv/NbAHiZr8o2ScnK
+	3WJo5Hkl+ZqmShN1lQwI//Yfl9xgdV9mX8Ui7TJhg5kAJvganCx7yr0OHvbcIIpqexpJyyVXXGh1t
+	/EjKsyMmiGuRaffcFC63apK4Eb7AxHGPrKKuGlX9L+wDmmcuMKgTfODyIXsDvMUEH7qB4TtICXgm0
+	ooyhUuaCO869KfHnETOi0Xy6DfKnGoc8w5GuEc7EtXPyFff9kFk2uYR3KeJX3813am+7di5+ODDcu
+	iN/olMMA==;
 Received: from authenticated-user
 	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
 	(Exim 4.96)
 	(envelope-from <leitao@debian.org>)
-	id 1wZqOf-00EeVC-0g;
-	Wed, 17 Jun 2026 13:33:37 +0000
+	id 1wZqOk-00EeVE-1T;
+	Wed, 17 Jun 2026 13:33:42 +0000
 From: Breno Leitao <leitao@debian.org>
-Date: Wed, 17 Jun 2026 06:32:47 -0700
-Subject: [PATCH 1/2] ACPI: APEI: GHES: fix severity namespace in
- ghes_log_hwerr()
+Date: Wed, 17 Jun 2026 06:32:48 -0700
+Subject: [PATCH 2/2] vmcore_info: track fatal hardware errors
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -44,7 +43,7 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260617-hwerr-v1-1-ff131cd6203c@debian.org>
+Message-Id: <20260617-hwerr-v1-2-ff131cd6203c@debian.org>
 References: <20260617-hwerr-v1-0-ff131cd6203c@debian.org>
 In-Reply-To: <20260617-hwerr-v1-0-ff131cd6203c@debian.org>
 To: "Rafael J. Wysocki" <rafael@kernel.org>, 
@@ -60,52 +59,67 @@ Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
  riel@surriel.com, caggio@meta.com, kexec@lists.infradead.org, 
  Breno Leitao <leitao@debian.org>, kernel-team@meta.com
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1116; i=leitao@debian.org;
- h=from:subject:message-id; bh=IMYiUdETKsd9vslxX1nGBukt/xidhhV6uxKeG22G+Dg=;
- b=owEBbQKS/ZANAwAIATWjk5/8eHdtAcsmYgBqMqIkNxoJNOROjiYczzba3ljNP3lHQN4V+VJtB
- 2jP68tv2fWJAjMEAAEIAB0WIQSshTmm6PRnAspKQ5s1o5Of/Hh3bQUCajKiJAAKCRA1o5Of/Hh3
- bebPD/0eyRiXYwI/eZz4VMGjbfYJbyIgQN4p41SffpyWjB2Uy9Uug7GKQyxzLWDaoERwM2IqYCz
- IbOnZ8ELzd32K0SFa+0D8MJt9h310hHlI3xn2ZftujlO9/z2AO6Akj5WQeZ9h0c7wrk0k1XCkfX
- ESjJUwpTzSSiiJlC3HbEf8wE+hu3qPN1IxtN4neHzj2axlajMq5518d56OoDruWAkV1G0Z5OUPK
- bbhy05BQevI+/Ob9pdZxcu4cvcrJl1GeSVfVorF7nzKRSVDP16/BSaK+3Dh0OrZTYIr2AufGM2j
- XdyoWwJA9CLkX70o50v9C21cXGzK/o3hrcSTfALh50MOcefeUM2/uPHFZtPCZBlPuWVXa1vmC2Y
- zAM/1NdYWwwsBCT8+nwe0vG/2Yms3lbF0yc6JQA9xgPL4iA+1tfeUZC82UuvR7EhV271dcEorx6
- GZDoT5F9dLPv3vf1/gFJ45wIbp0dcT7sP1Bgb4Mqc0sZaddjeukuEOrFcNXlreSj1buOYg3v/6E
- CKevbY7m90llzDduAa0yUeF2Aa5EP9QA1ZsG5NX/gmoEfeCLovyfLNyOitIjGKkTk2pz5KrCZ/Z
- YKS+gV0f+kI/sJas1cDCGsSOJuxHq6EAIBumbcw3K2rW7L8ZL7NlscjL1XoZCykATpxN2W2AjV7
- hXCI+yJlyoA4xow==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1404; i=leitao@debian.org;
+ h=from:subject:message-id; bh=DCcwS/Af0/gCwvOSwGbr70DNuzjaSOMbXeG1pza3/9A=;
+ b=owEBbQKS/ZANAwAIATWjk5/8eHdtAcsmYgBqMqIkHd3YyPVlkIneRAlRDF0MNSBVdeDObpXEj
+ 5pGdayCaROJAjMEAAEIAB0WIQSshTmm6PRnAspKQ5s1o5Of/Hh3bQUCajKiJAAKCRA1o5Of/Hh3
+ bZQoD/474ejbOPMswWEZKvzjO5yiWKb7EtubDsMelEZDSF2C+kjeJQdIQhd1xwvjtuI3tPVVvSk
+ jOKouxMf7XcYmbcXXLzmyP6lyYiOh9sQM7zSpwP/OLksDhsDZA4btJivk4yVqfbSf/2qCmR/wUz
+ vfcp9kDDzYunhKjcdRF9lvV2BBWdeC0kHA5jtczl4fzE4ZFkQqq0t5Lkj+iCCxEpT+GyH4447zS
+ 4GLmqCmyJQS8EAqOuaUQe0ZXANh0QniWjuj/v8RBnwlCXKE7oFbC3+OAP3PfulU0Qo+VAcAXW5y
+ vHOkicdeRGVFqhmZQS+i0x4P0yryhPe55IPzQ4542vPNNv+mpIynY/n+2pgFsMiWu/Y/sJWBpwr
+ RnHFSISfFR7Go7jjfkODBFQEC7+eAjBl9r17drmAIQlUrmOD5E0U+uKuTSYd93XvonH+1pY8E6T
+ oYzoQaiCJVU9O0xTN4GWhm7CBlfgITd9jBKWojCUlphPOwUIewnyLeTdcvHkPEpxks9L5GvzI/n
+ td4Qn31FS+qC0QNmak9d6jOkVVyZcPtMKpfaYd20FW/Te/bIIcbsyQxNhsdi5jKrCX4+QiVEtwT
+ T4dJJjTovGiEHQMfYwUWfWR4JHS8V+cKF3rYwu+gshXGk4wLIXnmx9m+cO17mUXF3bu6BQhOZDq
+ ru8b7DMx1P8Gsfg==
 X-Developer-Key: i=leitao@debian.org; a=openpgp;
  fpr=AC8539A6E8F46702CA4A439B35A3939FFC78776D
 X-Debian-User: leitao
 
-ghes_log_hwerr() receives a GHES_SEV_* value from ghes_severity() but
-tests it against CPER_SEV_RECOVERABLE.  GHES_SEV_RECOVERABLE is 2 while
-CPER_SEV_RECOVERABLE is 0, so every recoverable error is dropped and
-only GHES_SEV_NO slips through; nothing useful is recorded through the
-APEI/GHES path, which is the only one arm64 has.
+Fatal (panic-severity) hardware errors reported through APEI/GHES are
+the ones most likely to have caused a crash, but hwerr_data did not
+record them.  Add a HWERR_FATAL bucket and bump it from
+ghes_log_hwerr() when a GHES_SEV_PANIC error is seen, so crash tooling
+can tell from the vmcore that a fatal hardware error preceded the
+crash.
 
-Compare against GHES_SEV_RECOVERABLE so recoverable hardware errors are
-tracked as intended.
+Tools reading hwerr_data gain one entry (HWERR_FATAL).
 
-Fixes: 918e1507cff9 ("vmcoreinfo: track and log recoverable hardware errors")
 Signed-off-by: Breno Leitao <leitao@debian.org>
 ---
- drivers/acpi/apei/ghes.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/apei/ghes.c    | 5 +++++
+ include/uapi/linux/vmcore.h | 1 +
+ 2 files changed, 6 insertions(+)
 
 diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 3236a3ce79d6b..f0f9f1529e7aa 100644
+index f0f9f1529e7aa..5a9e16bdca2b6 100644
 --- a/drivers/acpi/apei/ghes.c
 +++ b/drivers/acpi/apei/ghes.c
-@@ -877,7 +877,7 @@ EXPORT_SYMBOL_NS_GPL(cxl_cper_kfifo_get, "CXL");
+@@ -877,6 +877,11 @@ EXPORT_SYMBOL_NS_GPL(cxl_cper_kfifo_get, "CXL");
  
  static void ghes_log_hwerr(int sev, guid_t *sec_type)
  {
--	if (sev != CPER_SEV_RECOVERABLE)
-+	if (sev != GHES_SEV_RECOVERABLE)
++	if (sev == GHES_SEV_PANIC) {
++		hwerr_log_error_type(HWERR_FATAL);
++		return;
++	}
++
+ 	if (sev != GHES_SEV_RECOVERABLE)
  		return;
  
- 	if (guid_equal(sec_type, &CPER_SEC_PROC_ARM) ||
+diff --git a/include/uapi/linux/vmcore.h b/include/uapi/linux/vmcore.h
+index 2ba89fafa518a..c774b037603e2 100644
+--- a/include/uapi/linux/vmcore.h
++++ b/include/uapi/linux/vmcore.h
+@@ -21,6 +21,7 @@ enum hwerr_error_type {
+ 	HWERR_RECOV_PCI,
+ 	HWERR_RECOV_CXL,
+ 	HWERR_RECOV_OTHERS,
++	HWERR_FATAL,		/* fatal hardware errors */
+ 	HWERR_RECOV_MAX,
+ };
+ 
 
 -- 
 2.53.0-Meta
