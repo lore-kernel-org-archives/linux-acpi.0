@@ -1,54 +1,71 @@
-Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
+Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1809837DEA8;
-	Wed, 17 Jun 2026 18:53:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A8B4378D7B
+	for <linux-acpi@vger.kernel.org>; Wed, 17 Jun 2026 19:26:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781722428; cv=none; b=jLWCgdsxtXP168GB90fOcgv+sG/viRiowCd8ddfr42H2U+9FnW+G/ROu38WOagEIOp+YZL0rdYPkt76cfCoHYt1jM8T0GrhjvpJ8JWp4AmHFQ9mSaSkPsSWovTI9Bst2KVX/2O7JId2pvVnMDrVkWZkpQHsxlRZIbM2xgYK0Ye0=
+	t=1781724385; cv=none; b=TJ6Bk66V7qSVt25pDNz+sUHJd+gFi2lK8zoHPMtHBFMoNq9ImAkhbBq7PGsduByp78B4aZ0ww5CsV42Z3kgDljVaiF13i2vAJWrZukEq3sX6zVEIEIYPTwOCDDEyJRiI0xLz7Ibhe0ixbrJTaQP6/+8DMPrwG9wuIQYxqsa30C0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781722428; c=relaxed/simple;
-	bh=C9Kc5u3uGWG4kXI65SLZH2WnV7LUNytQqC6LL1av7AI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=OvSSaNcAstd/w6NdvFgxG1xIQ0ui1Ad/1QL3IQGsq4tQsvi7uKjkcwDg9sfmQRnDuTUKzSthl+A8kAo7eESWHMWlXdr0zOCCXkmhWGYlYzXcue8X8AbkJTqJh10GiCqAORTIs46YPr4wZWiyRrFjOWfaos9gb/aFoAXlQEIStrA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=N8YTvgo1; arc=none smtp.client-ip=178.21.23.139
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
+	s=arc-20240116; t=1781724385; c=relaxed/simple;
+	bh=BnJsZ3WPeYkFpre/Cn9M9pKYLILCB8cVCrvC3ptA2xU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=mQ8SJxhxeUQBhbR44BddCrmOwrUjFDEAxnGE1GAumwou9P3blqXLjY5MyhCV/1gz0mhpl780XFaK+nG8JIX0BuV56XnZORzviuRowEJWnytCR67NmZxWRLG9dmTqH5+s8cyOfrBnZroqxp3ePM1dY1nQ7YoIOys32lf8AroCE3E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=keXioTKe; arc=none smtp.client-ip=209.85.216.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="N8YTvgo1"
-Received: from mail01.disroot.lan (localhost [127.0.0.1])
-	by disroot.org (Postfix) with ESMTP id B948527832;
-	Wed, 17 Jun 2026 20:53:39 +0200 (CEST)
-X-Virus-Scanned: SPAM Filter at disroot.org
-Received: from layka.disroot.org ([127.0.0.1])
- by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
- id d-6ZjoQM8fI9; Wed, 17 Jun 2026 20:53:35 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
-	t=1781722415; bh=C9Kc5u3uGWG4kXI65SLZH2WnV7LUNytQqC6LL1av7AI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=N8YTvgo1Mdq4rjCz5ny5ONyfiesCtK9nU6gtIB9MfLm1hxMk6bwQjvJuvcGofDlMM
-	 xJBjSOdySbJ3iYZCo+Hk3lOXBgrKuGzy6H68P6RcUIR/GiJkNy69DQbDEJQ46pzgk6
-	 Z9hOy29klX6Q3rvAYIvXhiBEMkQFNAOxvuaobraRhehkWRkaQgxKrfVTbO8P7oPYco
-	 c5mfaoNkEIvQeQs4lZuqQ1Mk/dPjvUASlRzeQQ1XBRRf8CfYyw6fFobVE5abcB84VR
-	 /tSCY7diH+qat3L76ndvVvdYC803YGKLst7F07IbX9kpAxW1IBpy32CTy7WgO6XSLK
-	 wz+m3HbpxajHw==
-From: Marco Scardovi <scardracs@disroot.org>
-To: bnatikar@amd.com
-Cc: andriy.shevchenko@linux.intel.com,
-	brgl@kernel.org,
-	linusw@kernel.org,
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="keXioTKe"
+Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-36b9d265355so52358a91.2
+        for <linux-acpi@vger.kernel.org>; Wed, 17 Jun 2026 12:26:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1781724384; x=1782329184; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=yk/1s0jRwJ/lH49h6qFUiwiCHB6wHO1/Mh9K9iHW+No=;
+        b=keXioTKeSXwyvHSRiqEZGALNk5GNi95ahC7GilG4zzXgJ8AlkFuGQhzymcKsDTgCb8
+         n2fvXoJfdEaoza0plhENgcgmA+GbAi8ObU9PDVyga+Le5+nBm3t4woygCsR7Tvrgzhms
+         6bAuBYdBEUJP/wcSVwuJCv4yOIi1WwnPBT6E69y4gDC6A9mFx7WeXFbboP5XbSFzog5V
+         Z6hTthK2J1NDn/FLte7Bfl+dQbyfxZifzi5O9MxDoxGxTT/FttlQw0Xva8li2hZfBgBS
+         Ce9eZ1Bx+3hfUnZBguiDiEw/LcyU9ajooMnZU6TIHPB60++wG3lGGtScNrb3RZwwOg1f
+         vsDw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1781724384; x=1782329184;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=yk/1s0jRwJ/lH49h6qFUiwiCHB6wHO1/Mh9K9iHW+No=;
+        b=Hfccnms/Y2p4y4nvSlHpSpIvnD+kOPpiwS5MO8yXd5YDPA86w+I6msNaIQOX4+Oq0F
+         rhsk7mNzuTcWcbzdj3K9o2PBYIR4Zrw81/ThgPe6702+enAciQnbe/vKh2Rfd0wlPVui
+         O5wmFxb5q0W0QDhIIybKRSP6sCVPL9MbNTFb2J0/aVmQwjwc2ruAFydnJG0g8dTonsYl
+         o8gTnWQsUegFkFbXc+Z/rlBh30a7BWH/YsHJ4XuYgTYWoPSzsNH9amps08cSC5M35BOq
+         qqITx/lp9hO094+zX6kg5QHVNRIQW+hfeH39s4FZ/d+MrHMMdv5YPszZTVjU359CG1CW
+         gKaA==
+X-Forwarded-Encrypted: i=1; AFNElJ9/ngUlsRiFdKQLA+x31CUtsUIr4rqsR+qCLNnuXbdNFBjBNRYttNn4t3xBrQqPVkeH1Rbs9LpFiBcW@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywl+Yj+kA/1IDgcE17YyYAOys0XQJXK06kS6wjLDOEbGtKZPO/Y
+	CrE1LaTmH1HmegupAlg1S2VyGkEJNO+ALRq6kLZU/v1ngXC9puIz694s
+X-Gm-Gg: AfdE7ckOTd/LiTZ+vaipstqwB4Lt6YG5bkTIQspMuLmokLfn4VtYK5Djgy4Lec0qNen
+	XLYGp2+WjeGhs1zyV5HsNnvYBYiIMZtK+qHXgZ5zywQySf5KrOyGc9um6N3HKRGXEvVIzgWgTwu
+	RKS87UdKF9vyKCJ8wrN3o9qjsB5o18sKhq7NmFUcAtfFw1hV+yH8UYcW8ck1wOHeqSgc2jnAytX
+	Faw1U95SloKTozPEl8BAC9ZGyMMuiOj6ilmanvvsRUOfdKt7jHyuR3BJQxncTKay1ibmzEg1EC3
+	PVC7JcVWT7tOGOelS9+U/A1tRCtrfT4BkegGeG1qNKA7yQbWJQNl1YzqK64qoLxTsl6vKGrw4u2
+	NPMeW/qW9+X0umutmE0uG3emp3sXTmiAfb7k7fwg8KnAi2sCvQjG/R4HgOqI7WMAoIg12KN93sx
+	xE+EnDNcFiBjE=
+X-Received: by 2002:a17:90b:2ec5:b0:36b:b9c7:35fb with SMTP id 98e67ed59e1d1-37c9366f513mr5378031a91.14.1781724383884;
+        Wed, 17 Jun 2026 12:26:23 -0700 (PDT)
+Received: from TarotClub ([117.242.109.68])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-37c522c3a41sm7000994a91.17.2026.06.17.12.26.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 17 Jun 2026 12:26:23 -0700 (PDT)
+From: Abhijeeth Babu <babu.jeeth@gmail.com>
+To: Mika Westerberg <westeri@kernel.org>,
+	Andi Shyti <andi.shyti@kernel.org>
+Cc: linux-i2c@vger.kernel.org,
 	linux-acpi@vger.kernel.org,
-	linux-gpio@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	mario.limonciello@amd.com,
-	scardracs@disroot.org,
-	westeri@kernel.org
-Subject: [PATCH v2 1/1] gpiolib: acpi: Add quirk for ASUS ROG Strix G16 G614 series
-Date: Wed, 17 Jun 2026 20:50:13 +0200
-Message-ID: <20260617185318.11237-2-scardracs@disroot.org>
-In-Reply-To: <20260617185318.11237-1-scardracs@disroot.org>
-References: <221cd70d-70f9-4d01-8e8c-b4a5b347b8b9@amd.com>
- <20260617185318.11237-1-scardracs@disroot.org>
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] i2c: acpi: Force ELAN1300 touchpads to 100 kHz
+Date: Thu, 18 Jun 2026 00:56:11 +0530
+Message-ID: <20260617192611.125513-1-babu.jeeth@gmail.com>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -57,61 +74,43 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-ASUS ROG Strix G16 G614 series laptops experience a long boot delay of
-approximately 36 seconds.
+The ELAN1300 touchpad with HID ID 04F3:3104 on the ASUS VivoBook
+X513UA_KM513UA exhibits severe pointer jumps and erratic movement when
+the I2C bus operates at 400 kHz.
 
-On these laptops, the firmware leaves the touchpad's ActiveBoth GPIO
-line asserted (logic low) at boot. Per the boot-time initial-state logic,
-an ActiveBoth interrupt found low is replayed once to sync its initial state,
-which calls the handler synchronously in the probe path. On these laptops
-that interrupt handler is slow/hanging, so the synchronous call blocks for
-~36s and stalls boot.
+The system DSDT describes the touchpad using an I2cSerialBusV2 resource
+with a speed of 0x00061A80, corresponding to 400 kHz, on the
+AMDI0010:03 controller.
 
-The touchpad itself is driven by the i2c-hid driver using a standard
-GpioInt() resource defined in the touchpad device's _CRS method. The ACPI
-event handler on pin 21 is distinct from this and is not required for the
-touchpad's initialization or runtime operation.
+At this speed, libinput repeatedly reports:
 
-Commit 3bb62e3f99a5 ("gpiolib: acpi: Only trigger ActiveBoth interrupts
-on boot") restricted the boot-time replay to ActiveBoth interrupts that are
-asserted (low). The pin on ASUS ROG Strix G16 G614 series laptops meets
-exactly that condition, which is why it still triggers.
+kernel bug: Touch jump detected and discarded
 
-Fix the delay by adding a DMI quirk to set no_edge_events_on_boot to true
-for the ASUS ROG Strix G16 G614 family. This prevents the boot-time
-trigger of this ACPI event handler without affecting the touchpad driver
-or disabling the handler for post-boot events.
+Add ELAN1300 to i2c_acpi_force_100khz_device_ids so that it operates at
+100 kHz.
 
-Assisted-by: Antigravity:gemini-3.5-flash
-Signed-off-by: Marco Scardovi <scardracs@disroot.org>
+Before the change, nine touch-jump events were recorded, with additional
+messages suppressed by libinput's rate limiter. With the bus forced to
+100 kHz, no touch-jump events have been observed and the touchpad operates
+normally.
+
+The affected system uses BIOS X513UA.319 dated 2023-05-09.
+
+Signed-off-by: Abhijeeth Babu <babu.jeeth@gmail.com>
 ---
- drivers/gpio/gpiolib-acpi-quirks.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/i2c/i2c-core-acpi.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/gpio/gpiolib-acpi-quirks.c b/drivers/gpio/gpiolib-acpi-quirks.c
-index a0116f004975..3cd4cd27808a 100644
---- a/drivers/gpio/gpiolib-acpi-quirks.c
-+++ b/drivers/gpio/gpiolib-acpi-quirks.c
-@@ -392,6 +392,21 @@ static const struct dmi_system_id gpiolib_acpi_quirks[] __initconst = {
- 			.ignore_wake = "VEN_0488:00@355",
- 		},
- 	},
-+	{
-+		/*
-+		 * ASUS ROG Strix G16 G614 series laptops experience a long boot
-+		 * delay (approx. 36 seconds) because the touchpad's ActiveBoth
-+		 * GPIO interrupt handler (TP_ATTN#) stalls/hangs during boot
-+		 * initialization.
-+		 */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "ROG Strix G16 G614"),
-+		},
-+		.driver_data = &(struct acpi_gpiolib_dmi_quirk) {
-+			.no_edge_events_on_boot = true,
-+		},
-+	},
- 	{} /* Terminating entry */
+diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+index e5fddacae..763743d5d 100644
+--- a/drivers/i2c/i2c-core-acpi.c
++++ b/drivers/i2c/i2c-core-acpi.c
+@@ -376,6 +376,7 @@ static const struct acpi_device_id i2c_acpi_force_100khz_device_ids[] = {
+ 	{ "DLL0945", 0 },
+ 	{ "ELAN0678", 0 },
+ 	{ "ELAN06FA", 0 },
++	{ "ELAN1300", 0 },
+ 	{}
  };
  
 -- 
