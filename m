@@ -1,96 +1,202 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from BYAPR05CU005.outbound.protection.outlook.com (mail-westusazon11010029.outbound.protection.outlook.com [52.101.85.29])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FC603B1B3
-	for <linux-acpi@vger.kernel.org>; Wed, 17 Jun 2026 18:31:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781721077; cv=none; b=h+snYITdLfLqcLWBmvoCL7+kYBAfFRLZgm6Xu6K6H+hrtaxK8U8CJ83sKeW5e8TlRu6qnAYcDXHEy+77c2bjHhnGTmfqO8u9muy/KrtG1necJA6UcuWgn+UCoGIxBw5JqZXPiTlqfLADeNyWa5E6MKOW6QKQh44EQho7c3041x8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781721077; c=relaxed/simple;
-	bh=+rIJjRhimxdHwQcJdlXLtKKzUjrPBLDTqjWuBVxBysg=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=RY/NPU9j6cRitorhP0t9312EoVKm/623hXkWwqZxZoi8ALzDQdxBAfotNyxysRNc5tn0WqN7ROqu3qlWmVidyHp40IaAcSl5dwByPKTmw7ksqlbYUDf4sJz1/fPe9IfMz4YXnB+I1jMWnObuyvcf9mWn0QqJl0iBZAW6y/2NNP4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=R7Bw2iXZ; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67A0F37FF56;
+	Wed, 17 Jun 2026 18:34:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.85.29
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1781721268; cv=fail; b=V66UigS0S4ZIEGO+UcrK7LElxzSxJxlc0Ig6SrGp7Ag926R2GCZjr7SFh8L+MlF0CqLDD/xRcpNUiUWxuHVe/knffSZkXbinE46OMESF8vnFPcPenHDo/+F+4qONwvJVjeDUkjuve+9Zbapyxzhb5RVm1WaIBugC6Hc06zn40MA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1781721268; c=relaxed/simple;
+	bh=4csoN+DBfroo0pj0L03u4tisV7PfoXOrS5QjtPdJ6tA=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=O4hTNyEw2D9DRuCTjBwP0+hW2hIF4P8F8Ivc08YQ11O5XWIAKCoNsEHdi7ukmz/ZwEiRGYkq54twrHM2iZQgRjTamw2SRbGG7TCaw1C67wEENlg265k9zCFKk/pls8G6TDHOmjG/zLxIbn/u1Jgax+jt+AS9XXEDkTxt8JQSgiI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=PCl2K19b; arc=fail smtp.client-ip=52.101.85.29
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="R7Bw2iXZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05FDE1F00A3F
-	for <linux-acpi@vger.kernel.org>; Wed, 17 Jun 2026 18:31:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781721076;
-	bh=mJGoVxUE8DzCW85pwKZ2iXF+Km2oJiQidAen57cABQk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=R7Bw2iXZv/krDPykWM/QOVLvHhuSX+P8VRMfVKP+SexXSHN8krs938vx2iaj+xnh2
-	 cTLhvFXBRSd7OD7yYR6K0KZB5i6MTO2IKMhMS18LchljPRo+Z2ztYtkPHQ3kEUSxPv
-	 hTI09HR8MyGlfqVvssRfS1d49SScvkOHsBc1MB6hr27a4VGKfo9Y34BlHY6OW8U816
-	 YMLJA+nkpDbcicE9bVIvEArvrjvwXM6GTtTxJ7/1cEzIIENJCEuG5giW3zsK3KJavL
-	 Yb1agskZRz0y+rXRcelSiq+Ov6e/3E3gm6PHANG+DveCxm/7AfhYa+HOMRAbE7mc9H
-	 K49FR3ILFCs/Q==
-Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-5ad4b60f6d5so93652e87.2
-        for <linux-acpi@vger.kernel.org>; Wed, 17 Jun 2026 11:31:15 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ9gyy3H4YAnML3C0uNA96BKVv1K/pBIfagAk1371xrpi1J1nYFzwkEt82b38o1QQPntEZot4+22W8NW@vger.kernel.org
-X-Gm-Message-State: AOJu0YyMcrkbTGnOQlfcDYXZGoxvhWkll5R4ZeiWzb7rj7oywsC94zuJ
-	XPIW0tvegas3J3wjNk0sYNdxdaqdaBlglkSMSTBHnOQtXan9fQ+UtBHOKS9TeVgnm5rmlLCt9kQ
-	2GIdj7DfUxAwHXDkSIBQ5QQhN4NlXTkM=
-X-Received: by 2002:a05:6512:12c8:b0:5aa:8562:2a7c with SMTP id
- 2adb3069b0e04-5ad46ff6163mr1678961e87.31.1781721074501; Wed, 17 Jun 2026
- 11:31:14 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="PCl2K19b"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=bGOoOaScIlTZBP/e0WW8Ulc+6Leqsg7wEIc9PtqQN9k0JWf0lDehascufo0dXUSkW/xA10CFrFztLIbJX3KUu0PnEzLNv6FQ4ubQ6tLhy+3/eVNRsUOmWEzfyPCUUAnjiZIPdZOEeCmqW0JNHTH7Kjtx6XJ9UnQxCB5Fp2sCzYoOd5UnXYEEawI6/hndOLjzEVLRuwcjr7hghO2KgbvWZxP6p+eAcJIe3uKftzfPeeA/idpfTA8R27kUaPq1v/3xYscCT7T413NmoCc+UlbRWXXnxBvhPMwwDLoW8ohGNS1kAn3s4f6LduFqh97tgpICG/UWBQyj3rIm3VXCvsSAkw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=BOJv9MKAC2Hg6Q/BVIlGFIHH/Lt05XjRfw6/pWSoEeQ=;
+ b=ZBFpVnIS0XqQy7uxd9uxtDRAjZsExEzd6S5yCCQEPHdCptya/dlZPJeWinogMDaajv67RrKp/ur+ZHfpxcW16m2OmI+q1eFMqH0b70S1u0MK7TrlG1iv9sIyrd8QiAak98JSrvssyOhWU/udpRQ526JShIBwdgNVEVT2y3EZ/zAWmN4Vg8jnaQd/4zHlawTJ5v0b9tLCj0Wpp05Y+wOJNTP4iou+WuIoYhHq0sWv/AFDIiS1DvF8hUhMBlO54Yw8H8hOvzKtnIZARiEj6UYZSBstJNES45XTfmaKaJscrs9R9av7LciUIwaJKhJiI6Q+x2RzHxKzCzxUxCpjdLAAnw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=BOJv9MKAC2Hg6Q/BVIlGFIHH/Lt05XjRfw6/pWSoEeQ=;
+ b=PCl2K19bNnhPSHPNrbSgfKiJRpcaU7S94I0RxIlBnvIvsfOXq/bkq+QTwyhW0I6Bp2MVmpvo6Xp0wWr7T1XyXdRLEKRoI+D5rJi9/n58G12gldmocEnIqFoudTes8Ck2spv+xuzjG0rSZ7eoe8puFELJNds6O4nLrGPnxRj8O/Q=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from BN9PR12MB5033.namprd12.prod.outlook.com (2603:10b6:408:132::14)
+ by CH3PR12MB8330.namprd12.prod.outlook.com (2603:10b6:610:12c::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.139.11; Wed, 17 Jun
+ 2026 18:34:21 +0000
+Received: from BN9PR12MB5033.namprd12.prod.outlook.com
+ ([fe80::e820:1d91:3692:1637]) by BN9PR12MB5033.namprd12.prod.outlook.com
+ ([fe80::e820:1d91:3692:1637%4]) with mapi id 15.21.0139.009; Wed, 17 Jun 2026
+ 18:34:21 +0000
+Message-ID: <221cd70d-70f9-4d01-8e8c-b4a5b347b8b9@amd.com>
+Date: Thu, 18 Jun 2026 00:04:14 +0530
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] gpiolib: acpi: Add quirk for ASUS ROG Strix G614 series
+To: Marco Scardovi <scardracs@disroot.org>,
+ Mika Westerberg <westeri@kernel.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>
+Cc: Mario Limonciello <mario.limonciello@amd.com>,
+ linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+References: <20260616090824.5967-1-scardracs@disroot.org>
+Content-Language: en-US
+From: Basavaraj Natikar <bnatikar@amd.com>
+In-Reply-To: <20260616090824.5967-1-scardracs@disroot.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: MA5P287CA0355.INDP287.PROD.OUTLOOK.COM
+ (2603:1096:a01:219::15) To BN9PR12MB5033.namprd12.prod.outlook.com
+ (2603:10b6:408:132::14)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260617075633.534689-1-trenn@suse.de> <20260617092448.538721-1-trenn@suse.de>
-In-Reply-To: <20260617092448.538721-1-trenn@suse.de>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Wed, 17 Jun 2026 20:31:02 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0hOZs3TMgdCc+cfK_TVbmDj6z=PTYcDmdqtrZWhHOHG+w@mail.gmail.com>
-X-Gm-Features: AVVi8CeyzrtDEvan0YOCem7k_z4rlg9z_MR3fu_Fz1QnY-ZKSQEJEf2UUbn7zlU
-Message-ID: <CAJZ5v0hOZs3TMgdCc+cfK_TVbmDj6z=PTYcDmdqtrZWhHOHG+w@mail.gmail.com>
-Subject: Re: [PATCH] Revert "ACPICA: Replace strncpy() with strscpy_pad() in acpi_ut_safe_strncpy()"
-To: Thomas Renninger <trenn@suse.de>
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, 
-	Len Brown <lenb@kernel.org>, Jiri Slaby <jirislaby@kernel.org>, Kees Cook <kees@kernel.org>, 
-	Thomas Renninger <trenn@suse.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN9PR12MB5033:EE_|CH3PR12MB8330:EE_
+X-MS-Office365-Filtering-Correlation-Id: 715ceb46-9ed6-4aee-cc00-08decc9f0bdd
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|23010399003|376014|366016|56012099006|11063799006|6133799003|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	xlM5LF3/B9togqHGl2iY30a833g6DBB/nLbPlEYEbWdFJXT+Z4AL0GpKUsPXG3rqWWTSezoT780yvEobLGQMfk0NF5u84e8ds/60w5pybINTdfMeXEODeXU3B08XgKkRbJzF/j0R393is0CYU1oZuI50w76z/5CFTG2pqI19BuJhRWIj0sbMkE6U0cSD28+RjRzmb0YdAVik1ISZzoevZvrLS7jT7ROpgXiqIxMlzuEomvDncduaUrGrD5pthB0V0grKlhdGda7wkOq54pgHAt4eIbOFA3vYQ+V29907xAkiJ5aM7vsUGkfBC1P+pXPjG/nNoyZ25+lSid8Lid8PzrebP1Lt/q1McAY9jZRix9WuFt+vlFz7+GMyS7UHr2gUi8o5LIZifO1sjRJ3X9WuJQdZkEQrnQVKMiyCOnWoO2xRMKIYJ8ickXIUN8gLqpIIH4q9jGq4d8fKTIZTr+NqKc8YUVWtN3+spqODhX6oYXVkIXJel63UIpdXnZc7nTBjasDTD2Kyux1/KX4w6/pVwH++NPIVjhbV7St91fHDz26X4p5PAbytZfcH9bvo7q5CZXNxolra5p+aQmbg/9xu54fbPldkvs1fgKJf3dhBYQk6JdozgO18/5ODRG8uOFicV3uqfNnYHzOae3CJcyQTeuGA2RxiJ5NlaJJKuuq5SPB4wV00r3RudKU5Qd3wJflt
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN9PR12MB5033.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(23010399003)(376014)(366016)(56012099006)(11063799006)(6133799003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?UWVmQjFFNFZGTjVrcTgzVFdWT3ZPczFlS2I2ZGRsMGxzenRaVmFYNzVJUHVD?=
+ =?utf-8?B?RGh5SWgwUTB0MHJidEhKdFlRN2ZLWHRhSldOZncrR2tub0c5aXpMR0tqS3JM?=
+ =?utf-8?B?VTZvUmNRUFlKN1Y2NnU1MHJBaTJqZC9adjhzaEU1ZzZ2V3NNQW81RXRyQUNS?=
+ =?utf-8?B?bTZuVGFjczJGWXo0TVlkdHlTeDRuWkp6UXhLMGp4YWxwa05iU1MvNk1UdkNv?=
+ =?utf-8?B?OEtZQzgzYXJ6R0VXUTc2MmJYY0JXWmYxRE96c0paZU02YUJoM2h1NFlLVW9Y?=
+ =?utf-8?B?MEpPUWE1VVVQUmZjTitjaUUydlZCa2Z4NjlTUFQyK2hxV2xQRUZnaEdqWDQ2?=
+ =?utf-8?B?MjhHWE1vSGNTbEVtK2tsSC8vWE1HaWV5Q0hkUlFUd2F1QW80bkE2NjZHQ2Vj?=
+ =?utf-8?B?ZUkxYW9QTFYrUXRZVVJ1MU56VVFiOTRoUXNDdmlVcGl1VjJINDlXTEQ5amQz?=
+ =?utf-8?B?cFo1Z0lIUXJ2SnJkSzJtTThSa3g1Yzg2a2EyWFlBUUVlcktKbjFtS3dSRzRm?=
+ =?utf-8?B?WklFVktJWkdmZnYwVzN1UlBLMWpwRTFUS2FhRExuWWF2ZkRiRXFpdElYSWJF?=
+ =?utf-8?B?aWNHbi92aERtYzlZd2lVMzdlMjJyUlhGbkF3VnU4Q2Q0S1FlbklMWUV3R3c3?=
+ =?utf-8?B?UHM1TkZtUTh1YUVXWXo3eW1uQlFrLzNBdWtqOU1oOHU5S3c5ZWZ4NldjOG5q?=
+ =?utf-8?B?OCtNQlpmNXVwa0pxVW83aEY5bWJWQ3VCNDZkUmo0b1g0b2N2WTdCQTVKYnpE?=
+ =?utf-8?B?dGR2MTFjSjd1dDNwZ1NiL3hPMk01bVhqSHlmbi8xUzMvMlVoY0hKN3NUajlh?=
+ =?utf-8?B?Z1Q3aVFzRVF1WEQrc0M3cC9VbnRQdk5hMmdNOHFRL3VNcUt1ejVmcVhZMDZJ?=
+ =?utf-8?B?TisyRlViOGtWbjZ4YUptd0tZRTlVRmV1QUN0ZlpJM3JtOTl5c2lINDEvZC95?=
+ =?utf-8?B?UjBDVGQyMCtTbUF4ZmkrSzY1ck5CbTIrOUZCZGRYVnd5UDZSRkhlSjdRam1E?=
+ =?utf-8?B?c3l2QXUrVmdEYTM2bEFBS3ZPOHl1WURSUkkvb2pqTmZwMmN3WWhBc1FRa2Iw?=
+ =?utf-8?B?Ung3dVp2dktkYmozVkNRZHgyWENOWGJobHJ2ZENIajMvWkRhazdKUUh1OTNs?=
+ =?utf-8?B?djhsNFZtQjN1eVN1UytNZU5hVlJnRnlSVWpUUkpzM0ljbklrTVRMUldZUVRo?=
+ =?utf-8?B?eDZVd1lOWEE3c1dMWEpMWEoxQlY5QlRPcHlqOGtlamtiMDRXOFpwckx3TDVR?=
+ =?utf-8?B?WU82dFF2V28vekNsNFFjeloweFpBN0VPRTk0bURHWGV1RCt2N0ZqTkFobVB3?=
+ =?utf-8?B?SUpNZUpOeWt2dXN1bitLWWhUaEpWdDhiTVVGSURsYU5lbExOZVdsQjJlRVYy?=
+ =?utf-8?B?U0I4NFBBbURLcmU3KzRHbkV4MFBEQzgySGkvOVFNWHBEUE5ydnUrMzEvK21X?=
+ =?utf-8?B?YXplVHQ2S3I3YTFmNFc3Vi9UVjlFNDNaYTlXOURXbmhGYjRwaHNkTVZOMThi?=
+ =?utf-8?B?Mm9ZSmQ0K1hsMjlXdVVSdDJxSi9uUE16YXFHU3R6ZjRyeGhtL3V5RXdQRHdp?=
+ =?utf-8?B?c053VVAyQ1pmRW1GYng0eUFHeStXcURKWitpaHptdnl1NzM2OEZiQ1hybDNM?=
+ =?utf-8?B?aUVyMUtrWEZ1cm9NQldTd3AraEVPdm02VmJQOGd0ZVFyZURScFRTU2xNZjJm?=
+ =?utf-8?B?SW04ZWUvOWNKYW40ZVRBREpEZnJPTGppRWlpQUkyUC9VbklIQnJ0Y3Vuekdn?=
+ =?utf-8?B?N0s5TFNPem83bzNwR29VQTFkSDlCSW5HcFhDRDgyUjNERGR1ek03R25IdU5M?=
+ =?utf-8?B?ZzRVUWJsSlpKVDEyM3BFSWRFemNzckdqcXhzdDlWVFhYT1FvZnZlK0U1TmdP?=
+ =?utf-8?B?VzNVcUJ3WDBYLzRNTHVObnpCNmZGYmZSYVVxVzBVYm1xMHpQOVlGRXpBNTJQ?=
+ =?utf-8?B?eVRncDFGdk5ES0RUUUlXL09aRGVydkw3MWcwVjAyTC9TbGNDNCtoc2Nic3Ev?=
+ =?utf-8?B?anlGSTZCdmNmY2JRZWZSeGd6VmZnSEcrVUNGWkJqQnVTOTVjQXVqUFFhbjBp?=
+ =?utf-8?B?N0czNmhtbFVnenZCWnFJRG5STWZtOU8rTk1WZ0ZST0J2b0c4amJLR1RVZ2h4?=
+ =?utf-8?B?NFZUeCtxa09KOGVQZEwwd2JFazhIM1k4cTQwMlE2KzlyZ3JtekJ6Ri9RZFdT?=
+ =?utf-8?B?aUNLZlFtdi9TUUsvaTl6a3lqSC96SnlUbFBLN0w5eXlMSUFxRmU2blE2c2Js?=
+ =?utf-8?B?bGROWElSU3RKbTRuMVlQUzV3dTBFNmducVhJNnRWaUd1K3A1SE8vNVZDd0tK?=
+ =?utf-8?B?V0pkRG1EVDNZdnRJeTZYT0x0WmhRZ282eEZUV1NRaDNmUER6OXAvdz09?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 715ceb46-9ed6-4aee-cc00-08decc9f0bdd
+X-MS-Exchange-CrossTenant-AuthSource: BN9PR12MB5033.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Jun 2026 18:34:21.3166
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: r59c+cDIe1G07XCp0pOv+2S3LjOicEV7JWNGQ/XQB6fA97glJTx3elGZctByY7UNj3A5IIaAFMiTH6oEFybUQw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB8330
 
-On Wed, Jun 17, 2026 at 11:25=E2=80=AFAM Thomas Renninger <trenn@suse.de> w=
-rote:
+hi,
+
+On 6/16/2026 2:38 PM, Marco Scardovi wrote:
+> The ASUS ROG Strix G16 G614 series laptops experience a long boot delay of
+> approximately 36 seconds. This happens because the system firmware triggers
+> a slow/hanging ActiveBoth GPIO interrupt handler at boot time.
 >
-> This reverts commit 97f7d3f9c9acb70d4eef7bcdef3218823d142733.
+> Even though commit 3bb62e3f99a5 ("gpiolib: acpi: Only trigger ActiveBoth
+> interrupts on boot") restricted boot-time execution to ActiveBoth edge
+> events, the problematic interrupt on these laptops is configured as
+> ActiveBoth. Consequently, the handler is still executed at boot and
+> the boot process stalls.
 >
-> acpica has it's own safe strncpy function: acpi_ut_safe_strncpy
-> and must not use kernel's strscpy_pad.
+> Fix the delay by adding a DMI quirk to disable edge event execution at
+> boot for the ASUS ROG Strix G16 G614 family.
+
+Could you reword the commit message to explain the actual mechanism?
+Something like:
+
+On ASUS ROG Strix G16 G614 series laptops, the firmware leaves this
+ActiveBoth GPIO line asserted (logic low) at boot. Per the boot-time
+initial-state logic, an ActiveBoth interrupt found low is replayed
+once to sync its initial state, which calls the handler synchronously
+in the probe path. On these laptops that interrupt handler is slow/hanging,
+so the synchronous call blocks for ~36 s and stalls boot.
+
+It's also worth noting that commit 3bb62e3f99a5 already restricts the
+boot-time replay to ActiveBoth interrupts that are asserted (low) — the pin
+on ASUS ROG Strix G16 G614 series laptops meets exactly that condition,
+which is why it still triggers. Disabling edge_events_on_boot via the
+DMI quirk is therefore the right workaround for these laptops.
+
+Thanks,
+--
+Basavaraj
+
 >
-> Closes: https://lore.kernel.org/all/79e9e913-0fb1-4110-804b-c3b5d0edafe4@=
-kernel.org
-> Reported-and-tested-by: Jiri Slaby <jirislaby@kernel.org>
-> Signed-off-by: Thomas Renninger <trenn@suse.com>
-
-Applied as 7.2-rc material, but I wrote a new changelog for it.
-
-Thanks!
-
+> Assisted-by: Antigravity:gemini-3.5-flash
+> Signed-off-by: Marco Scardovi <scardracs@disroot.org>
 > ---
->  drivers/acpi/acpica/utnonansi.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+>   drivers/gpio/gpiolib-acpi-quirks.c | 14 ++++++++++++++
+>   1 file changed, 14 insertions(+)
 >
-> diff --git a/drivers/acpi/acpica/utnonansi.c b/drivers/acpi/acpica/utnona=
-nsi.c
-> index 3a7952be6545..ff0802ace19b 100644
-> --- a/drivers/acpi/acpica/utnonansi.c
-> +++ b/drivers/acpi/acpica/utnonansi.c
-> @@ -168,7 +168,8 @@ void acpi_ut_safe_strncpy(char *dest, char *source, a=
-cpi_size dest_size)
->  {
->         /* Always terminate destination string */
->
-> -       strscpy_pad(dest, source, dest_size);
-> +       strncpy(dest, source, dest_size);
-> +       dest[dest_size - 1] =3D 0;
->  }
->
->  #endif
-> --
+> diff --git a/drivers/gpio/gpiolib-acpi-quirks.c b/drivers/gpio/gpiolib-acpi-quirks.c
+> index a0116f004975..fa0f03bd51af 100644
+> --- a/drivers/gpio/gpiolib-acpi-quirks.c
+> +++ b/drivers/gpio/gpiolib-acpi-quirks.c
+> @@ -392,6 +392,20 @@ static const struct dmi_system_id gpiolib_acpi_quirks[] __initconst = {
+>   			.ignore_wake = "VEN_0488:00@355",
+>   		},
+>   	},
+> +	{
+> +		/*
+> +		 * ASUS ROG Strix G614 series laptops experience a long boot
+> +		 * delay (approx. 36 seconds) due to a slow/hanging ActiveBoth
+> +		 * GPIO interrupt handler executing at boot.
+> +		 */
+> +		.matches = {
+> +			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+> +			DMI_MATCH(DMI_PRODUCT_NAME, "ROG Strix G16 G614"),
+> +		},
+> +		.driver_data = &(struct acpi_gpiolib_dmi_quirk) {
+> +			.no_edge_events_on_boot = true,
+> +		},
+> +	},
+>   	{} /* Terminating entry */
+>   };
+>   
+
