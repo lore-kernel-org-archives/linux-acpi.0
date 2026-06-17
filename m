@@ -1,85 +1,102 @@
-Received: from cstnet.cn (smtp81.cstnet.cn [159.226.251.81])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C031340401;
-	Tue, 16 Jun 2026 13:51:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.81
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16B8D390233
+	for <linux-acpi@vger.kernel.org>; Wed, 17 Jun 2026 06:14:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781617909; cv=none; b=mwZ23BRZ8n68WqYuc3Xd+F0PcH0tn4r0rGE48xwjwWOKTkwzHqoRgTC88RFTCStq2Sid1ajCZBbiAD6T/fQraG/5XnrOv5bJ4biyOH5THPFCLLwdTDem/mm7iBlR3ivOjAgGfR8bSt1xd9U/TYrmtKWE8wG0g87CDyRhrnsjwfU=
+	t=1781676859; cv=none; b=SG+o6sgmHvuYYVVbVj3vpadEy8ArGlP1T/h+8NVQ9WTiIeSBwsMeDOGsrdRBZnTicCU/YnrqGr45OjaELNPf48dKfEwKlBsiFGC1slKVswRRpCielfPgjIAGPN4Y3//p7xjHdQOImEs4ADFBJt9mEdjC7u4VxN/1MNod9zc0/jA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781617909; c=relaxed/simple;
-	bh=NXfjp3cWkRoAObJMa2EMTcl3f113Bb0wPQfQUwt1xBs=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=Fi5MGsIqI2fwuMow8KKZXFwnnURGiItPwtdHYs2JPsMfpjvHObtUxVomx6uAPdy5W9J97r7EfhRnMJbbFKX+BLTw5PCUG5RV9Zo+kARt3CuXTcmyQx6536x93tgr4Eds2tcdxw6C4lZOsykfLNzNVRBpzAzBGSZHFx6lCMnw3kc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.81
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from [127.0.0.2] (unknown [36.110.52.2])
-	by APP-03 (Coremail) with SMTP id rQCowAA3VdzjVDFqj0rvFA--.12812S3;
-	Tue, 16 Jun 2026 21:51:31 +0800 (CST)
-From: Vivian Wang <wangruikang@iscas.ac.cn>
-Date: Tue, 16 Jun 2026 21:51:31 +0800
-Subject: [PATCH 1/2] ACPI: tables: Add missing #include <asm/fixmap.h>
+	s=arc-20240116; t=1781676859; c=relaxed/simple;
+	bh=MRoLxQm4C/hKvJxLeAzrHxdKytkzuCHv4hSP4eNk2mA=;
+	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=HcZNgQ/PpOTC4CgO30STr9KJHV7r5uD+qbnHUIcMFLNgQiu0vT1v78vIk+tYfUZe/AtqGCZZQwD0LKqC9etokh49tWI3ApLEIQ/vGvcwt6IFUZLlWQBeERsf4KcpxdPmHVdvXSkW/Ta9XKHozz3Sqm2IUB5ZmYegF/Fh92Fjaws=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=leVxuQVn; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="leVxuQVn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D340E1F00A3A
+	for <linux-acpi@vger.kernel.org>; Wed, 17 Jun 2026 06:14:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1781676857;
+	bh=MRoLxQm4C/hKvJxLeAzrHxdKytkzuCHv4hSP4eNk2mA=;
+	h=From:In-Reply-To:References:Date:Subject:To:Cc;
+	b=leVxuQVnVgmbIpJ3IC61vXGoDtph1LyF33XiQD3pm9htibl9P7Wm/T6unhvp5bSrA
+	 Rd2tPT8oA49BUBDM+m6GEP51ZkgFh1eXT2s6AhQvGW+ui6mwzvjqmpp6/bpTVTCHFr
+	 1ZenIT+l1eLea27JizSMOx5JxzHv5J+QKJVtl/vsVE8+qdKxWTFjT+F+sLxoWb56Iu
+	 sTROE164fxWqkUl0akkZm4boLjlfpF1rEpPCMzY/UdDbVyrS4kSIU5p+EK2S1btoYD
+	 cQ8daTX1kmsuT6DRxfeEc4nc7uu+ojRonmcSFOsFhMur8/rFx4Tr92W8wrCeVH33we
+	 dvC6UoPsCknyg==
+Received: by mail-lj1-f171.google.com with SMTP id 38308e7fff4ca-39940cb1ba0so34012891fa.2
+        for <linux-acpi@vger.kernel.org>; Tue, 16 Jun 2026 23:14:17 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ+FGoMwl0agHBB67KuGeUuqVDKL3HBZZUDEGlJKe2eHXgYLO0XjHbbHV0zqEKWFZlZmFSO029jzlv6m@vger.kernel.org
+X-Gm-Message-State: AOJu0YyQi4fudZCN7R/tbz8a+RouyO37Xw0cNKwTKlnLqkxEk+c0S2y3
+	yF+VLT72flXsEcz+O9Be/BbP4/+smpUO+AaexY7OLOKHBuXQlJZHFpElrcbyVYYDxwT2C0avevS
+	RIlusHRfkGsukfhM0d7GIkDiJOMbrFeHWfaPkVoc6YQ==
+X-Received: by 2002:a05:651c:1473:b0:393:82e9:fb63 with SMTP id
+ 38308e7fff4ca-39969b151b4mr5047091fa.1.1781676856531; Tue, 16 Jun 2026
+ 23:14:16 -0700 (PDT)
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Wed, 17 Jun 2026 01:14:15 -0500
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Wed, 17 Jun 2026 01:14:15 -0500
+From: Bartosz Golaszewski <brgl@kernel.org>
+In-Reply-To: <20260616114855.GD2990@black.igk.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260616-riscv-acpi-table-upgrade-v1-1-45902d2dedf9@iscas.ac.cn>
-References: <20260616-riscv-acpi-table-upgrade-v1-0-45902d2dedf9@iscas.ac.cn>
-In-Reply-To: <20260616-riscv-acpi-table-upgrade-v1-0-45902d2dedf9@iscas.ac.cn>
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
- Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
- Alexandre Ghiti <alex@ghiti.fr>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-riscv@lists.infradead.org, Vivian Wang <wangruikang@iscas.ac.cn>
-X-Mailer: b4 0.15.2
-X-CM-TRANSID:rQCowAA3VdzjVDFqj0rvFA--.12812S3
-X-Coremail-Antispam: 1UD129KBjvdXoWrury5Zr1xZr13uFWDGw18Grg_yoW3Jrb_C3
-	W7Xr4S9ryjkw48t3WftFZxZFyqkrykXwn5uF1vqw1ay3WkAryfGa1kX3W8Za1UuFyrKFn8
-	u3WDt3s7Cr43GjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUIcSsGvfJTRUUUbkAFF20E14v26ryj6rWUM7CY07I20VC2zVCF04k26cxKx2IYs7xG
-	6rWj6s0DM7CIcVAFz4kK6r1j6r18M28IrcIa0xkI8VA2jI8067AKxVWUGwA2048vs2IY02
-	0Ec7CjxVAFwI0_JFI_Gr1l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xv
-	wVC0I7IYx2IY67AKxVW8JVW5JwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwA2z4
-	x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oVCq3wAS0I0E
-	0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67
-	AKxVWUXVWUAwAv7VC2z280aVAFwI0_Cr1j6rxdMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG
-	0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1lc7CjxVAaw2AFwI0_Jw0_GFyl42
-	xK82IYc2Ij64vIr41l4c8EcI0Ec7CjxVAaw2AFwI0_Jw0_GFyl4I8I3I0E4IkC6x0Yz7v_
-	Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1V
-	AY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAI
-	cVC0I7IYx2IY6xkF7I0E14v26r4j6F4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42
-	IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIev
-	Ja73UjIFyTuYvjfUwfOzDUUUU
-X-CM-SenderInfo: pzdqw2pxlnt03j6l2u1dvotugofq/
+References: <20260610154204.110379-1-scardracs@disroot.org>
+ <20260612085257.GY2990@black.igk.intel.com> <CAMRc=Mcv7SWVYA6rNZo+-tYx_ohOdedkewLZOa=X1Eei=1fTzA@mail.gmail.com>
+ <ajEkvstS6RgRTATK@ashevche-desk.local> <CAMRc=MeKdP46ohf=hJQRo=afe8WhTQ5yo+Zu3f34h-E4BiuSmQ@mail.gmail.com>
+ <ajEzQDcuDAG_mHaS@ashevche-desk.local> <20260616114855.GD2990@black.igk.intel.com>
+Date: Wed, 17 Jun 2026 01:14:15 -0500
+X-Gmail-Original-Message-ID: <CAMRc=Md4OjbixE5a9YkOg3aNp36RZa3hZGgmX2rb2OuYUsNBYw@mail.gmail.com>
+X-Gm-Features: AVVi8CfsbBnjBZ9tKWB2AULgkrPL2-mlbSKNf-rKa89AfGWtbqu7HhbzUUJavJo
+Message-ID: <CAMRc=Md4OjbixE5a9YkOg3aNp36RZa3hZGgmX2rb2OuYUsNBYw@mail.gmail.com>
+Subject: Re: [PATCH v6 0/2] gpiolib: acpi: Add robust bounds-checking and safe
+ address handling
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Bartosz Golaszewski <brgl@kernel.org>, Mika Westerberg <westeri@kernel.org>, Linus Walleij <linusw@kernel.org>, 
+	linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Marco Scardovi <scardracs@disroot.org>
+Content-Type: text/plain; charset="UTF-8"
 
-drivers/acpi/tables.c uses NR_FIX_BTMAPS without including
-<asm/fixmap.h>. This isn't a problem for existing archs, but would be
-when ARCH_HAS_ACPI_TABLE_UPGRADE is enabled for RISC-V. Add the missing
-include.
+On Tue, 16 Jun 2026 13:48:55 +0200, Mika Westerberg
+<mika.westerberg@linux.intel.com> said:
+> On Tue, Jun 16, 2026 at 02:28:00PM +0300, Andy Shevchenko wrote:
+>> On Tue, Jun 16, 2026 at 06:42:34AM -0400, Bartosz Golaszewski wrote:
+>> > On Tue, 16 Jun 2026 12:26:06 +0200, Andy Shevchenko
+>> > <andriy.shevchenko@linux.intel.com> said:
+>> > > On Tue, Jun 16, 2026 at 02:54:02AM -0700, Bartosz Golaszewski wrote:
+>> > >> On Fri, 12 Jun 2026 10:52:57 +0200, Mika Westerberg
+>> > >> <mika.westerberg@linux.intel.com> said:
+>> > >> > On Wed, Jun 10, 2026 at 05:42:02PM +0200, Marco Scardovi wrote:
+>> > >> >>
+>> > >> >> The series adds explicit bounds checking for GPIO pin accesses and
+>> > >> >> ensures safe handling of ACPI addresses in OperationRegion handlers,
+>> > >> >> without referring to truncation or wrap-around behavior, which does
+>> > >> >> not apply.
+>> > >> >
+>> > >> > I'm fine with these now.
+>> > >> >
+>> > >> > For both,
+>> > >> >
+>> > >> > Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>> > >>
+>> > >> Andy, Mika: do you want me to queue these directly for v7.2?
+>> > >
+>> > > I believe there is no hurry, but I have no objections if you pull it in.
+>> >
+>> > Your call, if you thknk these should wait until v7.3, I'll leave them for now.
+>>
+>> For the full consensus we need Mika's opinion :-)
+>
+> If we can get these for v7.2-rc2+ or so that would be good enough IMHO.
+>
 
-Signed-off-by: Vivian Wang <wangruikang@iscas.ac.cn>
----
- drivers/acpi/tables.c | 1 +
- 1 file changed, 1 insertion(+)
+Then let me just queue them now then.
 
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 4286e4af1092..eb93c060426f 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -22,6 +22,7 @@
- #include <linux/initrd.h>
- #include <linux/security.h>
- #include <linux/kmemleak.h>
-+#include <asm/fixmap.h>
- #include "internal.h"
- 
- #ifdef CONFIG_ACPI_CUSTOM_DSDT
-
--- 
-2.54.0
-
+Bart
