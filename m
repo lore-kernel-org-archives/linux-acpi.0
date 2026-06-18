@@ -1,115 +1,201 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11010001.outbound.protection.outlook.com [52.101.56.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21C8419DF55;
-	Thu, 18 Jun 2026 12:06:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781784406; cv=none; b=F2L/AB/WRuB4950zcwN9WzPLNHxUixT724j5UPGVjQR04wE4gORgYgPeXEeMXN0conMncDorUkUXnyYa3T8vYGVPxb7uDxKC/GWGGcNGYghuSrOpCk+G1imCaqXEsre7o7BqI0qzdzr9m8ml9hSmw76xTVcw+GZ5Zz+5wKB03+Y=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781784406; c=relaxed/simple;
-	bh=ua/U8rgIQUTzIdUKXD1x8a8V9EImN1MtrWoNXBhBjp4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LaGLUPr4eJZ+YeN0SNFeweP2toUumn98T0OmzhwxBZkXzDvLQB4ovjlmGgCDh6QhNQAFfBstLuhbUCgnnIOnCua+WXKnytw8btz9mZk6D0nhPWw07nqPki1N4tmYOpP/RCB7rKceutix8Nas4hGKxtNTeIrhmpVVFumQHEFcLUU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=j7XoHkJI; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0EB6175A69;
+	Thu, 18 Jun 2026 13:16:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.56.1
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1781788606; cv=fail; b=SS3k25YwCYCB0XhBzfQpPfelyyiP5AwXktMlsTTybflUemfBdQR/UfA4DZg+5EmpxauGyTGabWzIP8aQQpgHQ5JR1lA+l2h+ckIZKSWpsbwpaElEwAV2JD5wEajZtsJC+iA8fUjflrCCYcLhXcZ2PjOvCEtrhHArWY30R+NbyTY=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1781788606; c=relaxed/simple;
+	bh=mQpfIQocXBQKipVorHnLvA89vOmtCIA63Z1oytTyjns=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=TQiWwAWtOwmNz+9dZvTbTk/fx4+Y23uO8Jv0BAvDHenT9dM0XSeLIWhhRxSU1Cw2UM9rZjvlrTCj8m+ltfjIJJ0ycVDd1Xck2m9KlRDjgd6RVNaui/0/yzS+q7CWrD90S/P0V6gSuTOnao4le8DCJolXrl2P99fgXB2IdwO4fnI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=Cra2GhXN; arc=fail smtp.client-ip=52.101.56.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="j7XoHkJI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90AF61F000E9;
-	Thu, 18 Jun 2026 12:06:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781784404;
-	bh=02pPgy3R3u6bNFx58bM3gMUsbpaFPn3tW5zDHhPtHkk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=j7XoHkJIqtRHCLMForHBos68VBpFOn/NI7rJwStieKXc6c6uWyfSLO3AmKtH8gQCS
-	 dENnQZDvx272ZHm8+YVcMLr6q6kopZif0P3/ui6ujn7fVScDhIuDbfyTzveo3DPK8Z
-	 7SBLWbcZNYa0WKl2TQhWMHSSiTOapM0RXc3NMYXD+wyIzolO//QoJQ1a0yUMN/YddT
-	 IiPM47WTScZYR/7rv2UgVVEXZOz8VnXtmxYxMlzbq+jGCiE2NssreYHQoHtqP7QMzB
-	 JiiaFkfVT36Di7sFqZvnOmLH7ocTLXoPmTm47HBSqhNhVw1x9ko8sUjLW/Qqug24It
-	 aD1eb7xoWagiQ==
-Date: Thu, 18 Jun 2026 13:06:41 +0100
-From: Sudeep Holla <sudeep.holla@kernel.org>
-To: "lihuisong (C)" <lihuisong@huawei.com>
-Cc: Jassi Brar <jassisinghbrar@gmail.com>,
-	Cristian Marussi <cristian.marussi@arm.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] mailbox: pcc: Notify clients on polled completion
-Message-ID: <20260618-discreet-sparkling-dragon-7df7b2@sudeepholla>
-References: <20260612170225.1063902-1-sudeep.holla@kernel.org>
- <4e2d023b-c651-4a80-ba14-3c66cd209214@huawei.com>
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="Cra2GhXN"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=uC2t+DrVlrymq3Cbc6XLu6IcKScun8XhejsOyCYYXNElfvwSvRg/vqbWrVCaTjUdkIPFL6oWhTjjoxJMEDQWQijsQyHlEZNPg+K0HsTyTQ8u8DZODUcpO990gzYGwwkghW90WW3XjIoSzDr7rS5GUKQzGYCTuH/O0EyHDkmQ9DrIw0BbItIpfawI88p1zkANG8EYWu20B/7xlJqczdr8DENmQg6tVG7wf7qkkvNIBDAYVmlN7Qyqn+8cB5e4+UHenR/Zgkffxez7vBb9DTnggPTsPtfMOZysEuhJyf6J8UzXN8xpNM+Cw7nvPDMbieAM+hW1pnq6cz6geJSWPAnibg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=d0FMa9vDO5R4EwU0ZsyrgCtHICD5i+0Kn+F4T9p3ZHY=;
+ b=msZR0WfTTlCxeaUnRAEtUyQFD6xur1dz7A4UiVf9YFmZm7PffWimhTF4aS8tDEov5yIw4irVRoN4PMu3zVvmWnNwQgz+bfCpUgc+hoWpGXjxfxGTrDm9gKcrEs9E4+1WcsuLk0F+IQxA+7639zPIsoCYN0kh9mg0PtzOXk1I2GnkyLUIfRfk5H1weNxPyWxzD9qifQ8+Ng2Yp00lQ8viIV9JIJ7y4l8gGzDY9S+NotRhrN5VAnMJuHYb8MP4S5QKvzt0oy4RFEFwZFFyc1AfLKrnrJeVTbq0sLmh6s9yBjXaau4rJO1XQufihDSJUzdh+cc6Qgai2bN8GiKcyGJpiA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=d0FMa9vDO5R4EwU0ZsyrgCtHICD5i+0Kn+F4T9p3ZHY=;
+ b=Cra2GhXNPYg0T6bnE6XUdInYrDEnVhRB3fm/MsAliPSe9sgnhU95hIhWZQ5AB3hi09lSBsW/Kkweo/8TLiBI+/+MU7L4ytQdgZYz5kSEwyxOHghrM2ABMwltGat9hi3kfcHl6umpjtJUSKle3EGJ2Pvu91P+a9v112PSIUI8GQ0=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from DM4PR12MB5040.namprd12.prod.outlook.com (2603:10b6:5:38b::19)
+ by SN7PR12MB6957.namprd12.prod.outlook.com (2603:10b6:806:263::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.139.13; Thu, 18 Jun
+ 2026 13:16:40 +0000
+Received: from DM4PR12MB5040.namprd12.prod.outlook.com
+ ([fe80::94f:c77d:ded2:28be]) by DM4PR12MB5040.namprd12.prod.outlook.com
+ ([fe80::94f:c77d:ded2:28be%6]) with mapi id 15.21.0139.011; Thu, 18 Jun 2026
+ 13:16:40 +0000
+Message-ID: <b259a3a3-0440-4da6-a3bb-d840f5242ce2@amd.com>
+Date: Thu, 18 Jun 2026 18:46:28 +0530
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 0/1] gpiolib: acpi: Add quirk for ASUS ROG Strix G16
+ G614 series
+To: Marco Scardovi <scardracs@disroot.org>, w_armin@gmx.de
+Cc: andriy.shevchenko@linux.intel.com, brgl@kernel.org, linusw@kernel.org,
+ linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org,
+ linux-kernel@vger.kernel.org, mario.limonciello@amd.com, westeri@kernel.org
+References: <0e6ea9d5-68ac-4d18-b40a-25e70216b288@gmx.de>
+ <20260617231428.96076-1-scardracs@disroot.org>
+Content-Language: en-US
+From: Basavaraj Natikar <bnatikar@amd.com>
+In-Reply-To: <20260617231428.96076-1-scardracs@disroot.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: MA1PR01CA0145.INDPRD01.PROD.OUTLOOK.COM
+ (2603:1096:a00:71::15) To DM4PR12MB5040.namprd12.prod.outlook.com
+ (2603:10b6:5:38b::19)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4e2d023b-c651-4a80-ba14-3c66cd209214@huawei.com>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DM4PR12MB5040:EE_|SN7PR12MB6957:EE_
+X-MS-Office365-Filtering-Correlation-Id: deb88c81-ff19-417a-4dd1-08decd3bd593
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|1800799024|23010399003|366016|4143699003|11063799006|4133799003|3023799007|56012099006|6133799003|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	gFtsY4dSd28dq2LJCQmLeC0ZE5XTZ3rAiZco7DM+pmQjGtFfswRQ9EoG3odeo0xkFX23NJwPHmySqohET+Zvq39dWiJCnRCBX9EPWxoLiAXZ3rg+2FlH2SzmZ6qvPBxqyrWrHpItPswBDrWUuI3RY3D95RFn/Nxrq6uuLQbElL80uiBa0Ba9tHDiUzIlG3lGEpY6wUXlRz6GqDPcWh+s1ZVuYxwcyMmhRobvJbhsqVlrwqLpf5vppRs7CdAqship82XDwwpcH+Ypb4MC7UpN/8eL5VvJ+ShPl6m3Oycd8KlHO7zPpSzUSiLZDELItRH4IuagNiuChBvh3dQXfmcCzUnm9l2Bz8BFMXsmwXobU3wOHbD3PAjG8RM+l3KEco3LrrlbrxzrloeX0vRuB3KWnKvuppCS3N72hIqn7BYUX7IHv4sh+tdicSiuBWgTwgvxZcR7OTJZjlcuojeqTpEUpmGVKYmPolvF2/LThCJDibfgmvrXGFLqwvo4L8dw2XURnK9sQsoBNj5dXHiVPV/wV9ZU/ts1wyeZ51SOo/EDN5K1PwN20ITpQcTbTM6yz5URKp9NMTs7Glh/6V0JjoD6UbUBu+6YGI3TxEWqRsv8W2xab1w3/5+6x4mXMppLOyJG3dZnV3ZXjpr+P+yNcKbHwA==
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR12MB5040.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(23010399003)(366016)(4143699003)(11063799006)(4133799003)(3023799007)(56012099006)(6133799003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?OGxOL0FEYmRZVm10bHBBVm00OXY1K3U0UEIxQ2NpYmI4SlZ1eGJNbHlqWE1R?=
+ =?utf-8?B?SG9JQnAwYVBGbUVSZHNXL09sNUIxTS8rOVFrd05NV3ExcjNraU94WHA4Y3BV?=
+ =?utf-8?B?WFM2MElqOTB5TW5lY2xhK3ZSR1htYy8xYloyVmxtM3MranQzR0p1dGxLRkRC?=
+ =?utf-8?B?S1FYOStsV0doMlpGSjRXYTZiTGNPQ0RyUmFic1ZrZWpvcVkrclFCWnVIS05M?=
+ =?utf-8?B?b0ZseHp2S2NhN3pzaXQ1ckRiYnNObzVQd3Fqemh4WXl6ZDVtMGV0d0J1ckM1?=
+ =?utf-8?B?Tlp3WXI2aGdlZWJnR1FMbFdBZGVOa3BIcUxsU1lKTVY5clB4MXFCQ2o4dGd2?=
+ =?utf-8?B?Wkh5MXVpblBXS2JFaWR4N0dkWjdGZVlYTkVCSzY1bmRBcSt2T0lPOU9OcEhJ?=
+ =?utf-8?B?RnQ5Qk1CVzdZWHpFOUhBQk5iUGZEOG1HNmZrTHJGcWE2YjdEdzhtbTllODVN?=
+ =?utf-8?B?NFp6dXI5M3kzZk5MQ2VmNjhtV3BURmJBNFBWaWZVZ1ZMRkhjUXJ5aGRZbnNI?=
+ =?utf-8?B?cEFaZXZkNjlSa1UvTUx1LzdQZm1XQ0huekNVaUh5OERBTXJMOWgxMitrN1R6?=
+ =?utf-8?B?UW5tRzkyOHBMbDlUSWxTSG5MVWtadk5QTEdyOU1BQzJ5REhhMWx1MVlHcnRr?=
+ =?utf-8?B?UkRWWWNybnhhNE41TStMKzFNRFZSQmVXWTNCenJYQVRzMS9MZksvYWZqOGZT?=
+ =?utf-8?B?V0s3eWtjUkowbGpGMElHZ2ZQOUNDa0FRYW9jaCt5eVZXNi94eksyUW54TmZS?=
+ =?utf-8?B?Z21mYzZUb0NQdWJVWXhpenFtUU5ZeXF6dGFjd3RjT2ZXTlZZMGh0REtldzhl?=
+ =?utf-8?B?WkFkbytQSW5mWmRsYmcrWjBoc2d0N0pzckxoWHltWkFLc0VMaGxyRklkRGFB?=
+ =?utf-8?B?NU1yVC9XOGU2S1lOQkttY3BNZWREM1ZiYXNDTXFIYysvaVpEaUZOZ0RmM2JE?=
+ =?utf-8?B?cVZKMTdKa0pUcCtCVCs0QjVaUzQ5eTZ2MGFTelArWjNvbU1hZHc4UFRwVjht?=
+ =?utf-8?B?ZHltaEphKzByQW0wK0FNcDhyWm5SUHZxZU56WGVENEJtbHEvaE55TFVyVVFy?=
+ =?utf-8?B?WmRwcG92aHR1My94NlpYK3dDd0E2MFF3QlkyMXFvN3prVkxseWVoOUVNVTRs?=
+ =?utf-8?B?Y1J5N2RCYmFBVFEzSTFOd1ZNbmF0KytLWjUxMHV3K1FudW1OOTBpYmNaMVQv?=
+ =?utf-8?B?MC8rQW1oQTFJa3NpaXlQMWhFRWYxRFY4Y01QYlUzREl2YjRHa2xsb1IvNy9S?=
+ =?utf-8?B?bWRpVE5mdlIvTmpGYkRtbCsrWVVUQkw1L0tzdDIrTG9SZlBKV2xjdVBGb0dY?=
+ =?utf-8?B?dlE0VWdiMms2a2Q1UVpmTkcxblNINTMxM2RaT25qZWsvT1llOGhpYW84bUpz?=
+ =?utf-8?B?eDZpdEJNS0hpRHovTkFyK1lJSmltelcrMXdOdkUwVkVZT1lEaTgySkZZVGVN?=
+ =?utf-8?B?ZXJIUFFkaXNTTUs5cHJUVDE3MVZiNmpsdUhrWHk0TXhGdFBRZHZRN1FZV204?=
+ =?utf-8?B?WVNEY1FKUnhscHRTVEJ0dHp5VmxNdnRwcldFVEFLZ1V1UlhqeWVZVEtyVWpR?=
+ =?utf-8?B?eTdWZzNibXFkL0FmNURER3Q0TnVyTXdub1ZEREYxS1VZTVFzbE8weE95OGky?=
+ =?utf-8?B?VVkzeVlOblE5ZmRPaG1FSGFRbDAvQm1VL21SVlBYTlJxR3ZtMjlRTG9NaHZV?=
+ =?utf-8?B?VjU0dXd6bG1SUTVIYWlLVk1CYy9RU3ozMnVjaUxXMXlaTHlPT3J3dlorbXBk?=
+ =?utf-8?B?T3pRR2MvKzNlakVSV1RZcjJhTmxleEVPTno1QWU4c01KZVh4Tm1aMmRmT3FH?=
+ =?utf-8?B?ZGVQTU5RbkRCNDRkbmk2NmhQa2tHVDl1OU9NOGJHQUNCVjJmWDNETnlJQ0Mz?=
+ =?utf-8?B?U3lxSlVZc2Q5ckhPeTQ0Z3N1YVJSQVRuTk9kZll6ZVRWTGR5YVZsaExEbXJW?=
+ =?utf-8?B?RitaMlA4V3gyREMxeUYvN2xRc25Nay9STmdOYmZDMDdFdHhmdkNzOTdVSHhh?=
+ =?utf-8?B?UW9kNFAydTZqVEd5ZGhNd2R6V3E3K0ZCOTB4Y2VjWFBERE5qMTltNkJYWW5p?=
+ =?utf-8?B?c0F1RzJoUzcxZzA5ZnV6RUp2ZFhOTG4venU3YTJkV2haRERLZG12WFRiNXBn?=
+ =?utf-8?B?OUNoSW0wNTZPUlJaNzNzZjdmd0lxa1l1NUowa3ZJdHlnRm5neW4wbHlpVjFV?=
+ =?utf-8?B?SzZRcFYxV2FURWVIaXpuYS9kQTFOd0d4S3NRZ3E3d3Q2NjJEV3V6ZVo5MEFt?=
+ =?utf-8?B?dC8yaC9uNVRvU2k0TCt2YTN0aVZxOCtaMTFnbGtwcWVJd1JlcXlNSW91Ni9O?=
+ =?utf-8?B?anM3dDRrVmpReEhOZ0NVSnV1endmTDB3OXl1NFRKRWRCaGxvemNEQT09?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: deb88c81-ff19-417a-4dd1-08decd3bd593
+X-MS-Exchange-CrossTenant-AuthSource: DM4PR12MB5040.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Jun 2026 13:16:40.5319
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: x2r/jgsl1hDpVbDYDtsq33/uhZ1QIX7XQK4LdQ4dj9E8b5xXRashvLZRvqmM7USVW0G7SXKqNvdmWoAmasE36g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB6957
 
-On Thu, Jun 18, 2026 at 10:04:12AM +0800, lihuisong (C) wrote:
-> Hi Sudeep,
-> 
-> On 6/13/2026 1:02 AM, Sudeep Holla wrote:
-> > PCC channels without a platform interrupt rely on the mailbox
-> > polling path to detect command completion.
-> > 
-> > That path currently only reports transmit completion to the mailbox
-> > core, so clients that wait for their receive callback do not get
-> > notified when the command completes.
-> > 
-> > Call mbox_chan_received_data() when polling observes completion on a
-> > channel without a platform IRQ, matching the interrupt-driven
-> > completion path.
-> > 
-> > Reported-by: Cristian Marussi <cristian.marussi@arm.com>
-> > Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
-> > ---
-> >   drivers/mailbox/pcc.c | 7 ++++++-
-> >   1 file changed, 6 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-> > index 636879ae1db7..7c9451ab4527 100644
-> > --- a/drivers/mailbox/pcc.c
-> > +++ b/drivers/mailbox/pcc.c
-> > @@ -447,9 +447,14 @@ static int pcc_send_data(struct mbox_chan *chan, void *data)
-> >   static bool pcc_last_tx_done(struct mbox_chan *chan)
-> >   {
-> > +	bool ret;
-> >   	struct pcc_chan_info *pchan = chan->con_priv;
-> > -	return pcc_mbox_cmd_complete_check(pchan);
-> > +	ret = pcc_mbox_cmd_complete_check(pchan);
-> > +	if (ret && !pchan->plat_irq)
-> > +		mbox_chan_received_data(chan, NULL);
-> > +
-> > +	return ret;
-> >   }
-> The mailbox_controller.h said that .last_tx_done() is used only if
-> txdone_poll:=true && txdone_irq:=false.
-> How about add a verification at the begining of this function? like "if
-> (chan->txdone_method != MBOX_TXDONE_BY_POLL) return false;"
-> And then call mbox_chan_received_data() directly if command completed.
-> 
+hi
 
-Thanks, it does makes sense to me. I will have look.
 
-> This patch is ok to me if has above changes.
-> Acked-by: lihuisong@huawei.com
-> 
-> 
-> But pcc mbox controller can no longer work in MBOX_TXDONE_BY_ACK after your
-> commit:
-> 3349f800609e (mailbox: pcc: Set txdone_irq/txdone_poll based on PCCT flags).
-> This may lead to above client drivers fail to send mailbox command, like
-> cppc_acpi,hisi_uncore_freq and kunpeng_hccs.
-> Because these client driver knows tx_done(knows_txdone: true), work on this
-> mode and need to call mbox_client_txdone.
-> Do you have some idea for this?
+On 6/18/2026 4:44 AM, Marco Scardovi wrote:
+> [You don't often get email from scardracs@disroot.org. Learn why this is important at https://aka.ms/LearnAboutSenderIdentification ]
+>
+> Hi Armin,
+>
+> On Wed, Jun 17, 2026 at 10:33 PM, Armin Wolf wrote:
+>> could you share the output of "acpidump" on your device? I suspect that Asus
+>> uses a _DSM control method to tell Windows to invert the polarity inside the
+>> ActiveBoth check.
+>>
+> I have extracted and decompiled the ACPI tables (DSDT and SSDTs) from acpidump.
+> You can find the raw acpidump.out and the decompiled ASL tables in the
+> following Google Drive folder:
+> https://drive.google.com/drive/folders/1aTqLAnUhrTsPdpA8tfOFyRopG3P3DGnc?usp=drive_link
+>
+> As far as I can see/understand there is no _DSM method defined under the
+> GPIO controller device (AMDI0030) or the \_SB.GPIO scope.
+>
+> Under the _AEI method (defined in SSDT9 line 188-193), pin 21 (0x15) and
+> pin 24 (0x18) are defined as:
+>
+> GpioInt (Edge, ActiveBoth, ExclusiveAndWake, PullNone, 0x0000,
+>      "\\_SB.GPIO", 0x00, ResourceConsumer, ,
+>      )
+>      {
+>          0x0015 // Pin 21 (Touchpad attention line)
+>      }
+>
+> When triggered, they evaluate the _EVT method which calls:
+> Case (0x15)
+> {
+>      \_SB.PCI0.SBRG.HNC0 (0x15, Zero)
+> }
+>
+> Since Arg1 is Zero, HNC0 executes the Else branch, invoking M009 and ATKM/ADTM,
+> which stalls synchronously for ~36 seconds when executed during the probe path at
+> boot time.
 
-I wonder if we can ask the platform to avoid generating interrupts in those
-case by setting/clearing "Notify on completion" in shmem. Do you think that
-would work ?
+I traced the _EVT for pin 21 through the dumps:
 
--- 
-Regards,
-Sudeep
+_EVT(0x15) → \_SB.PCI0.SBRG.HNC0(0x15, Zero). With Arg1==0 it takes the Else branch:
+M009(), then Notify(^^GPP0.PEGP, 0x81) "Information Change" to the dGPU, then
+ATKM(0xC0)/ADTM().
+
+So this _AEI event is dGPU/graphics‑related (it notifies PEGP), not the touchpad —
+the earlier "touchpad" characterization is incorrect. The touchpad
+(TPD0, _HID "ASUE1416", _CID "PNP0C50") has its own GpioInt() in its _CRS on a
+different line (pin 0x08, Level/ActiveLow).
+
+The ~36 s stall is consistent with these synchronous MMIO reads + dGPU notify
+\running in the boot probe path while the GPU isn't ready
+(no explicit Sleep in the path; a trace_method_name on HNC0/M049 would
+confirm the exact blocking access).
+Either way, running this AML synchronously at boot is the firmware issue
+the no_edge_events_on_boot quirk works around.
+
+Could you update the commit message accordingly — in particular, drop the
+"touchpad" wording, since pin 21's _AEI event is the dGPU notify path, not the touchpad?
+
+Thanks,
+--
+Basavaraj
+
+> Thanks,
+> Marco
+
