@@ -1,108 +1,103 @@
-Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 111FF3C10AD
-	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2026 17:46:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EBC029D26E
+	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2026 18:20:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781891199; cv=none; b=jEuL3rMYHE2MjhcYAbSDadi/zR/pd93O9DQbvrJMnqGlCwMy8Uh5G9YVdqs+tCqYsT1V6VYwW3ugbk0kNyzOwaHgLKExqZzXsqE4sk3WnbHbXKRrSHilO6bkRSb4YKhwrImd58sIWw7u50z+w9UArv7uo58sxP4ZkEq3xxjAncs=
+	t=1781893233; cv=none; b=inwMDdhilqRjFFpJNrm7inkFYsnxnevdnp8EZG7Rrq5GhtnDspUxpMw2CQhn7AZobxZRDnlpljgo76rA8DwIIhSoCAAUemUyO8EGri2J8lMI9QSb2KYCM552XZLL95TbTYqA2R54Vm6qgosuwCvIOtOBaGVpvBzZSOUfjqOWoOM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781891199; c=relaxed/simple;
-	bh=H7f14CYwNP46ECpdeY80MJ+vB0wytZ/WUeIVEgw1f+A=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=i03CR3On5I/ZkA6/3i2SAz9R3o4ucFB7SoDG9zMnrlrLILXZ4ABhHp6tjTEddVY0rPqEwMc8ryQywODt1aRmK34/UIwSi5jr4FkC0VE889PyRYlRIO6kCP0i3141ax2RQQtjbOBRXH8csdR14/t6pYTOr0hEXZ8xdfhCp0GSFD8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=R/eQFjIG; arc=none smtp.client-ip=209.85.128.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1781893233; c=relaxed/simple;
+	bh=1nx4sRIu5Fni1Iy0Wkwz6+dhHE/NzD7BGmrXCGMaXTs=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=JCuHRYLD4bcIv3h6QqZoQx3X3Lg43pj6bjO2PCgSilnj6JbkKi/6T+729W7XKldSeXHoi2r/dsyB6tRdl8iTHRijDYta0JKjYV0c18UhQuTdZ9+vR0//zpkk+fyrQYyV0kcfmtTLrkMnIGG4OV+XxEjNGcadQIUeXKj9yR4rkdM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=leQ2Qv7m; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="R/eQFjIG"
-Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-4923139e940so14114805e9.3
-        for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2026 10:46:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1781891196; x=1782495996; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=H7f14CYwNP46ECpdeY80MJ+vB0wytZ/WUeIVEgw1f+A=;
-        b=R/eQFjIGJOmwIPpGAgwCpcPD7gX90JNhp63BcLpbxsSmEfYWhC23L8ze/2dfcH9zMN
-         KJIGipk/2pZUHiSDNn6As+WfrOIekJ+SNEGKEK6+YnM6mX47b5wMXv77XGvIN1zaqIWw
-         WGUekG7wyIg7AfKUrV/HQ+VswK4gC7W4UgCknjghxhb12acvDOKqh1Ffi8QHWyUMbCnw
-         mPg6vw/nkHpOJLF1wurbV8ZZPiOmTu3Stw0F5Rlyf4fUFBZ9e5RULvZG9K0yzI3mlkSA
-         57owJPUssf1JYAjTUpI8kqH+VJ+GYZbxgzEgDoQWenMso/gtj/Kbh6nISmYtAn3pGASU
-         WqZQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1781891196; x=1782495996;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :sender:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=H7f14CYwNP46ECpdeY80MJ+vB0wytZ/WUeIVEgw1f+A=;
-        b=j8/W49N/GpO6XPQpA8OWx2HJ1Sj47N9U6jI5vbl37JDmFeNFp17tfkV+5sGjYowiq/
-         rK/vKpisYtTJDXThsrWo05oRRw2wDVStb9XjnTa64rpebPzevfh1tI0sagiYGo8Ehmsb
-         hb4rjUgJCLWy9Ipd8o0pIlz9q6QzwM7eEYxIsH0hGYfK7RkXtKLOm/4Nrk0aPTNmDYNs
-         ATzczFuX0UxUT0HCcqbD8/wJbke5dmD9TF+wpLXx1CACq7bXqn2WuJryP/ZoPA1sEEtc
-         K/sxO73WJ6viwvDxCYlkBdUT7ph/9xkWZzTLf6p2IFO5xs8e1tHeaR1y7zboL/vLRgSU
-         Qj2A==
-X-Forwarded-Encrypted: i=1; AFNElJ9LpLTQxTFIFmQUf/tULU6rwwTd64PMNd8KbmyhltiUUYhWYCsDqD3hSlyrHChwu+OTJb/je6zU94sr@vger.kernel.org
-X-Gm-Message-State: AOJu0YyOcWraTEGDVG3moLFibxf7AjE7LgTKrIsCNyOrXDcImwSilB4V
-	+rXbaBiVpPjLHLnjKdk2gvyQSVR1P/8uPzXMbeuLHU+E/FnVC/JCFPhD
-X-Gm-Gg: AfdE7cl28NfIPrtajjSIn7cHCdyk0qnhm2hjnNdarbzamXDIbMoENcvuUVNgBuwcJOI
-	wK2p1woJv/PAxNvZO3x18mVbIxDT4jtxGEwIYxZvLuePhByduzREDQSsDisG3isV2V1yRk6bu2/
-	tvv56EvnaNzB3WwPw7WsCtB8hHzzW4cCklTyePaJyy9X/kv00Lhyyn/l/BbY7EoGD02UZT2SsOF
-	6YJ0LaZczaEjE2dwn39LBWX3vsErql/NOeyOt2/DJ89VX4oFyPLiLa7RQnZeuzlDVzDMTO8EVUd
-	P7nd8eqDkXs8BcdMVeH561LvFToGziE3znpPnyAyzV28Nq8jPMh5rdtLA3fdATJo912TuP4S6Da
-	TSD2UT+DZ+NFxuFZC92HP/ZL1QQhgFmk/fobITdTSYadtKfOsYS6d6YuCxmEkdUuHWtmNj5nTEa
-	MKRbSABRQA/Wt00App+lKCotzVbFDwHzxWeJKzVTJxKV9utABfwUpcyrydySy54YcCHNGIUBSHo
-	N0p1Ds=
-X-Received: by 2002:a05:600c:a15:b0:492:39b6:5a30 with SMTP id 5b1f17b1804b1-49242591d5dmr53790795e9.35.1781891196410;
-        Fri, 19 Jun 2026 10:46:36 -0700 (PDT)
-Received: from [10.128.11.42] (195-23-151-163.net.novis.pt. [195.23.151.163])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49249238bfbsm1569755e9.5.2026.06.19.10.46.34
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 19 Jun 2026 10:46:36 -0700 (PDT)
-Sender: Julian Braha <julian.braha@gmail.com>
-Message-ID: <84dabe49-8405-4213-8b73-433cf736ded9@gmail.com>
-Date: Fri, 19 Jun 2026 18:46:34 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="leQ2Qv7m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 408D41F000E9
+	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2026 18:20:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1781893232;
+	bh=/R58nQtB2XBavzU/Z4xCtwlNmIx+i+BxDLgStnJ6yT0=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=leQ2Qv7mTY1EHCh/R0UfHLNmjAQfPWex0PW42u6rkdyZXiE/cVG/+ab2eikcICAAD
+	 g3Mpek+eyN2b/+YlNoqljF6ZzRd+WdUrQxFy59PwNYGoO+fwGKAVU7Dm3rYxSghidl
+	 OCgY1daVg6iu8ARhUdLOHXdC9RxEHNmVjsI9LfuGQDedsdN3H1LcWc0Br5AA/uxkuz
+	 YUzWlEAnCjw1mIY8ZdGzMEMP/6LyhW2UrbcMHAf2/E+f4it3DNrkcpB+W3QbZQe1wQ
+	 iD+3OJbi4rVMlV8bwgKISMt6p0R+t+bSx3LNR0HQNEQOZNtk8PwPZBH8mFn0pJG279
+	 syOF3lPP8AUXA==
+Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-399389dae7fso24498661fa.0
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2026 11:20:32 -0700 (PDT)
+X-Gm-Message-State: AOJu0YzquynltGn8LROXcpYw67GZXa7aUVA96t1YDVLB4GauXUKUbkVq
+	QhjO5AFzyVLyDuFfv6gyXEYJtiQTkFKHtDkMvIfFHZ9esZGV842XMf3qdY2xCWvcTzIZYJNPMUd
+	YGixmcVG5D621d5vjkQIwT7Of+p7HpLI=
+X-Received: by 2002:a2e:bea6:0:b0:38e:8c66:c02e with SMTP id
+ 38308e7fff4ca-3998b700344mr12723251fa.4.1781893230726; Fri, 19 Jun 2026
+ 11:20:30 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 07/10] ACPI: APEI: introduce GHES helper
-To: Ahmed Tiba <ahmed.tiba@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>,
- Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
- Hanjun Guo <guohanjun@huawei.com>, Mauro Carvalho Chehab
- <mchehab@kernel.org>, Shuai Xue <xueshuai@linux.alibaba.com>,
- Len Brown <lenb@kernel.org>, Saket Dumbre <saket.dumbre@intel.com>,
- Davidlohr Bueso <dave@stgolabs.net>, Jonathan Cameron <jic23@kernel.org>,
- Dave Jiang <dave.jiang@intel.com>,
- Alison Schofield <alison.schofield@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
- Dan Williams <djbw@kernel.org>, Rob Herring <robh@kernel.org>,
- Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
- <conor+dt@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
- Shuah Khan <skhan@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev, linux-cxl@vger.kernel.org,
- devicetree@vger.kernel.org, linux-edac@vger.kernel.org,
- linux-doc@vger.kernel.org, Dmitry.Lamerov@arm.com
-References: <20260617-topics-ahmtib01-ras_ffh_arm_internal_review-v6-0-91f725174aa0@arm.com>
- <20260617-topics-ahmtib01-ras_ffh_arm_internal_review-v6-7-91f725174aa0@arm.com>
- <58f7163f-2fce-41e9-bc35-d1d8e6f4a298@gmail.com>
- <81dd6d0d-427f-49ae-9573-fbe84dc2185a@arm.com>
-Content-Language: en-US
-From: Julian Braha <julianbraha@gmail.com>
-In-Reply-To: <81dd6d0d-427f-49ae-9573-fbe84dc2185a@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20260611142518.77343-1-zenghui.yu@linux.dev>
+In-Reply-To: <20260611142518.77343-1-zenghui.yu@linux.dev>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Fri, 19 Jun 2026 20:20:18 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gP9RmQ-gfSu949=g3yMJFBZ2MbKcVGxrS0CkfUfmJJbA@mail.gmail.com>
+X-Gm-Features: AVVi8CfDhncgfTrY1rWBLEhzBiyJCe7gu--NbYPBtENkuM9i4VFHHhI53YCqc0o
+Message-ID: <CAJZ5v0gP9RmQ-gfSu949=g3yMJFBZ2MbKcVGxrS0CkfUfmJJbA@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: sysfs: Fix path of module parameters in comments
+To: Zenghui Yu <zenghui.yu@linux.dev>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	rafael@kernel.org, lenb@kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 6/19/26 16:45, Ahmed Tiba wrote:
-> GHES_CPER_HELPERS is intended for both the ACPI GHES path and the DT
-> firmware-first provider, so I do not want to tie it to ACPI.
+On Thu, Jun 11, 2026 at 4:25=E2=80=AFPM Zenghui Yu <zenghui.yu@linux.dev> w=
+rote:
+>
+> The correct path of module parameters should be
+> /sys/module/acpi/parameters/xxx. Fix them.
+>
+> Signed-off-by: Zenghui Yu <zenghui.yu@linux.dev>
+> ---
+>  drivers/acpi/sysfs.c | 14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+> index a625de3c3c8b..908cc5c7e643 100644
+> --- a/drivers/acpi/sysfs.c
+> +++ b/drivers/acpi/sysfs.c
+> @@ -17,12 +17,12 @@
+>  #ifdef CONFIG_ACPI_DEBUG
+>  /*
+>   * ACPI debug sysfs I/F, including:
+> - * /sys/modules/acpi/parameters/debug_layer
+> - * /sys/modules/acpi/parameters/debug_level
+> - * /sys/modules/acpi/parameters/trace_method_name
+> - * /sys/modules/acpi/parameters/trace_state
+> - * /sys/modules/acpi/parameters/trace_debug_layer
+> - * /sys/modules/acpi/parameters/trace_debug_level
+> + * /sys/module/acpi/parameters/debug_layer
+> + * /sys/module/acpi/parameters/debug_level
+> + * /sys/module/acpi/parameters/trace_method_name
+> + * /sys/module/acpi/parameters/trace_state
+> + * /sys/module/acpi/parameters/trace_debug_layer
+> + * /sys/module/acpi/parameters/trace_debug_level
+>   */
+>
+>  struct acpi_dlayer {
+> @@ -269,7 +269,7 @@ module_param_call(trace_state, param_set_trace_state,=
+ param_get_trace_state,
+>  #endif /* CONFIG_ACPI_DEBUG */
+>
+>
+> -/* /sys/modules/acpi/parameters/aml_debug_output */
+> +/* /sys/module/acpi/parameters/aml_debug_output */
+>
+>  module_param_named(aml_debug_output, acpi_gbl_enable_aml_debug_object,
+>                    byte, 0644);
+> --
 
-So what's the plan to fix the build error when ACPI is disabled:
-https://lore.kernel.org/all/0f131ee4-d335-45d2-b6ae-49c18df1353b@gmail.com/
-
-- Julian Braha
+Applied as 7.2-rc material, thanks!
