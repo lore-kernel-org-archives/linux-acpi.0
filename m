@@ -1,103 +1,117 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EBC029D26E
-	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2026 18:20:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B60A22C15BE
+	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2026 18:23:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781893233; cv=none; b=inwMDdhilqRjFFpJNrm7inkFYsnxnevdnp8EZG7Rrq5GhtnDspUxpMw2CQhn7AZobxZRDnlpljgo76rA8DwIIhSoCAAUemUyO8EGri2J8lMI9QSb2KYCM552XZLL95TbTYqA2R54Vm6qgosuwCvIOtOBaGVpvBzZSOUfjqOWoOM=
+	t=1781893398; cv=none; b=cAHL09o6Pkj8EgaigEwzEuVUTfw2Lwy37cS19fmtNtIZXWnJaxX5lKysByqFCi6svLsf324VSNIq9r0RtR4Lt4y00d9UMYrOrnybH9QhoWmqQeqB2V5rM87Wo7v0V5uLkWpdaM+WzGCrPhDnqjvRJhBMC1qR6+syhGXCLUIUr88=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781893233; c=relaxed/simple;
-	bh=1nx4sRIu5Fni1Iy0Wkwz6+dhHE/NzD7BGmrXCGMaXTs=;
+	s=arc-20240116; t=1781893398; c=relaxed/simple;
+	bh=ldhuD1LStPTm96nrgZudUL/Q0HT0KpdgIDlEUGRp8qc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=JCuHRYLD4bcIv3h6QqZoQx3X3Lg43pj6bjO2PCgSilnj6JbkKi/6T+729W7XKldSeXHoi2r/dsyB6tRdl8iTHRijDYta0JKjYV0c18UhQuTdZ9+vR0//zpkk+fyrQYyV0kcfmtTLrkMnIGG4OV+XxEjNGcadQIUeXKj9yR4rkdM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=leQ2Qv7m; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=nkNNSwnU5UtFLHNNR3eB6NegfmFnB51tmkOy7lQTJYUWSwczjRA1C3bCWTirBvTv0C8OnALYrOxaYvIMWS/PMwTwJySVOvdiyWY+YrYZ1Sfc9AG0K8HBrdFHBM6aYWXnUgwMaYU0vNDied28G804oRcc6WACpjxj18wv2qURzBg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nw5hkh7/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="leQ2Qv7m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 408D41F000E9
-	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2026 18:20:32 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nw5hkh7/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60DAD1F00A3A
+	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2026 18:23:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781893232;
-	bh=/R58nQtB2XBavzU/Z4xCtwlNmIx+i+BxDLgStnJ6yT0=;
+	s=k20260515; t=1781893397;
+	bh=P4wCKhd1ybUPnLdDKeMkDo34FIUsXf4ZWzzGHTxFllc=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=leQ2Qv7mTY1EHCh/R0UfHLNmjAQfPWex0PW42u6rkdyZXiE/cVG/+ab2eikcICAAD
-	 g3Mpek+eyN2b/+YlNoqljF6ZzRd+WdUrQxFy59PwNYGoO+fwGKAVU7Dm3rYxSghidl
-	 OCgY1daVg6iu8ARhUdLOHXdC9RxEHNmVjsI9LfuGQDedsdN3H1LcWc0Br5AA/uxkuz
-	 YUzWlEAnCjw1mIY8ZdGzMEMP/6LyhW2UrbcMHAf2/E+f4it3DNrkcpB+W3QbZQe1wQ
-	 iD+3OJbi4rVMlV8bwgKISMt6p0R+t+bSx3LNR0HQNEQOZNtk8PwPZBH8mFn0pJG279
-	 syOF3lPP8AUXA==
-Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-399389dae7fso24498661fa.0
-        for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2026 11:20:32 -0700 (PDT)
-X-Gm-Message-State: AOJu0YzquynltGn8LROXcpYw67GZXa7aUVA96t1YDVLB4GauXUKUbkVq
-	QhjO5AFzyVLyDuFfv6gyXEYJtiQTkFKHtDkMvIfFHZ9esZGV842XMf3qdY2xCWvcTzIZYJNPMUd
-	YGixmcVG5D621d5vjkQIwT7Of+p7HpLI=
-X-Received: by 2002:a2e:bea6:0:b0:38e:8c66:c02e with SMTP id
- 38308e7fff4ca-3998b700344mr12723251fa.4.1781893230726; Fri, 19 Jun 2026
- 11:20:30 -0700 (PDT)
+	b=nw5hkh7/hHtjK4v7j4IGav0YSb2vWWZ9R0iDm3xWlaBuCDoaEbyKku7CYfnbCNh6P
+	 UiWaBjyteVdzjTE64WOgvGslkKmcyBeYCSbknilNhIX/AMAGvXsaiRm/7bKPTOFK+h
+	 3R0Y/AqS/V1ZjBbqRwyrkoDpHjug64s91kZG04+Zg0MiKJw95VkjhlP0dWQT6xSVj9
+	 JFyq9uF+Q3hv1orelXwTrE2071jZXaFZYEImnIt1m4eMglOTi44vj9sSb3UbgyxzOK
+	 mJZWzeUumAcmTdFbk7JddVj5HHAVSC9zIxpyJ6HRCRLVB1HzUsJfgYdNcsl2npUFFP
+	 DCUEq/YN1o/0A==
+Received: by mail-lf1-f46.google.com with SMTP id 2adb3069b0e04-5ad578c49afso1061062e87.3
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2026 11:23:17 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ9Zi7kAZ1oWMMEU2+xKE9tKt9TyEqsbeR/dDB9A3cissIr9e0OoAqJJs95YkKJ2GrOqlPyd+gkPguhh@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz3CDXLmk+VrsndPDiFXyo9L7TLqmysEFpyiy5zObcc8987D5LR
+	w/C5GcJQ84qANy7BsiDiQcp2tMM74uDOkW9m3qmQVGBAlDYQcvy4ymdTA4Acju8Q0qirakL+wDi
+	3Tu3x6qID4UwgnPmFiA+zc3lBS9MUt0k=
+X-Received: by 2002:a05:6512:24d4:b0:5aa:8824:156a with SMTP id
+ 2adb3069b0e04-5ad562cefc4mr1120477e87.46.1781893395866; Fri, 19 Jun 2026
+ 11:23:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260611142518.77343-1-zenghui.yu@linux.dev>
-In-Reply-To: <20260611142518.77343-1-zenghui.yu@linux.dev>
+References: <20260617090555.2648709-1-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20260617090555.2648709-1-andriy.shevchenko@linux.intel.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 19 Jun 2026 20:20:18 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gP9RmQ-gfSu949=g3yMJFBZ2MbKcVGxrS0CkfUfmJJbA@mail.gmail.com>
-X-Gm-Features: AVVi8CfDhncgfTrY1rWBLEhzBiyJCe7gu--NbYPBtENkuM9i4VFHHhI53YCqc0o
-Message-ID: <CAJZ5v0gP9RmQ-gfSu949=g3yMJFBZ2MbKcVGxrS0CkfUfmJJbA@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: sysfs: Fix path of module parameters in comments
-To: Zenghui Yu <zenghui.yu@linux.dev>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	rafael@kernel.org, lenb@kernel.org
+Date: Fri, 19 Jun 2026 20:23:02 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0haSE7HarM+1c3PDKqBvEVcjw97umkRcZqzqNtqOzU_zg@mail.gmail.com>
+X-Gm-Features: AVVi8CeMVYH3lji2juD_1-mDEcQLMCXGYQl_ShLHSQA0ccVOLcrH5fb-Q3rxUtQ
+Message-ID: <CAJZ5v0haSE7HarM+1c3PDKqBvEVcjw97umkRcZqzqNtqOzU_zg@mail.gmail.com>
+Subject: Re: [PATCH v1 1/1] ACPI: resource: Amend kernel-doc style
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Len Brown <lenb@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jun 11, 2026 at 4:25=E2=80=AFPM Zenghui Yu <zenghui.yu@linux.dev> w=
-rote:
+On Wed, Jun 17, 2026 at 11:06=E2=80=AFAM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
 >
-> The correct path of module parameters should be
-> /sys/module/acpi/parameters/xxx. Fix them.
+> The functions are referred as func() in the kernel-doc. The % (percent)
+> character makes the rendering for constants as described in the respectiv=
+e
+> documentation. Amend all these.
 >
-> Signed-off-by: Zenghui Yu <zenghui.yu@linux.dev>
+> Fixes: 8e345c991c8c ("ACPI: Centralized processing of ACPI device resourc=
+es")
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 > ---
->  drivers/acpi/sysfs.c | 14 +++++++-------
->  1 file changed, 7 insertions(+), 7 deletions(-)
+>  drivers/acpi/resource.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 >
-> diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-> index a625de3c3c8b..908cc5c7e643 100644
-> --- a/drivers/acpi/sysfs.c
-> +++ b/drivers/acpi/sysfs.c
-> @@ -17,12 +17,12 @@
->  #ifdef CONFIG_ACPI_DEBUG
->  /*
->   * ACPI debug sysfs I/F, including:
-> - * /sys/modules/acpi/parameters/debug_layer
-> - * /sys/modules/acpi/parameters/debug_level
-> - * /sys/modules/acpi/parameters/trace_method_name
-> - * /sys/modules/acpi/parameters/trace_state
-> - * /sys/modules/acpi/parameters/trace_debug_layer
-> - * /sys/modules/acpi/parameters/trace_debug_level
-> + * /sys/module/acpi/parameters/debug_layer
-> + * /sys/module/acpi/parameters/debug_level
-> + * /sys/module/acpi/parameters/trace_method_name
-> + * /sys/module/acpi/parameters/trace_state
-> + * /sys/module/acpi/parameters/trace_debug_layer
-> + * /sys/module/acpi/parameters/trace_debug_level
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index bc8050d8a6f5..56df4599d360 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -871,7 +871,7 @@ bool acpi_dev_resource_interrupt(struct acpi_resource=
+ *ares, int index,
+>  EXPORT_SYMBOL_GPL(acpi_dev_resource_interrupt);
+>
+>  /**
+> - * acpi_dev_free_resource_list - Free resource from %acpi_dev_get_resour=
+ces().
+> + * acpi_dev_free_resource_list - Free resource from acpi_dev_get_resourc=
+es().
+>   * @list: The head of the resource list to free.
 >   */
->
->  struct acpi_dlayer {
-> @@ -269,7 +269,7 @@ module_param_call(trace_state, param_set_trace_state,=
- param_get_trace_state,
->  #endif /* CONFIG_ACPI_DEBUG */
->
->
-> -/* /sys/modules/acpi/parameters/aml_debug_output */
-> +/* /sys/module/acpi/parameters/aml_debug_output */
->
->  module_param_named(aml_debug_output, acpi_gbl_enable_aml_debug_object,
->                    byte, 0644);
+>  void acpi_dev_free_resource_list(struct list_head *list)
+> @@ -991,7 +991,7 @@ static int __acpi_dev_get_resources(struct acpi_devic=
+e *adev,
+>   *
+>   * The resultant struct resource objects are put on the list pointed to =
+by
+>   * @list, that must be empty initially, as members of struct resource_en=
+try
+> - * objects.  Callers of this routine should use %acpi_dev_free_resource_=
+list() to
+> + * objects.  Callers of this routine should use acpi_dev_free_resource_l=
+ist() to
+>   * free that list.
+>   *
+>   * The number of resources in the output list is returned on success, an=
+ error
+> @@ -1032,7 +1032,7 @@ static int is_memory(struct acpi_resource *ares, vo=
+id *not_used)
+>   * The resultant struct resource objects are put on the list pointed to
+>   * by @list, that must be empty initially, as members of struct
+>   * resource_entry objects.  Callers of this routine should use
+> - * %acpi_dev_free_resource_list() to free that list.
+> + * acpi_dev_free_resource_list() to free that list.
+>   *
+>   * The number of resources in the output list is returned on success,
+>   * an error code reflecting the error condition is returned otherwise.
 > --
 
 Applied as 7.2-rc material, thanks!
