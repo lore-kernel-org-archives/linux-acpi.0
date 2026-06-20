@@ -1,109 +1,116 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24B39374A00;
-	Sat, 20 Jun 2026 06:52:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E37835E926;
+	Sat, 20 Jun 2026 07:20:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781938355; cv=none; b=tZkcoLBMYr44Zryoct5TtDWlHA7GCoxblA4asyOkeJPHZ/NUKQ4GUuluCJHwGTsjd/Fa3ESzYYFhl6T/URW0qfY5sXVb1w44PigssJ6/deInl/0MdC/hwgkW3f7gdJ39OOgJY/pceWoXtDT4Qdkr/REIJ4lqpuhP4JG/5AZflKE=
+	t=1781940028; cv=none; b=ny7KNfRwT/OemN1TT/6Yp1k5P3JBKs9dRvsv037wOqxJVtCABLXx6NTnZ10Fter6GllYrWCSifbPEhK+DlEnZ8KflvHaHeQJ4DVyfQZqP9YPEtEubkQM7y2iCZONpESGFDkEeIhMFLJkuDq8FreCu7LhSrJfzhS4g6c1aPmKL3E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781938355; c=relaxed/simple;
-	bh=rw+LPnWaKArLuvicHtNdXrulX5vE0qdcS856Yxu/JEQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=end2yitofYKUBPygrZbFgs8SWtW+rjBlTD+K1r7hFUsXM5rL2TYX+nPXiLJ4NdXj1YOwbkHm/MjmEjmD6KWTosHFccyV0tJHBmB2Hc2BTYNRYbZBuQ0BKybB7jBeA8nO43uRL6acb9oz87t9uZh40BCRUETnABvg8NTpFkw09/s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=eIY8XxC5; arc=none smtp.client-ip=198.175.65.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1781940028; c=relaxed/simple;
+	bh=QCQt9mNtQvyeDQReQMYSx54L47W4JdD5cbAVwN6KTh4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=dS++FOG1TfeKPkxsqn0AEOJ4L5tpeDXhz9bmv65ouTt9/7m+kyfNxWeGvUHD2pzG5wXlnwmf09IxT+k7yFwpag0HOMcTuzUcbdpTqvyRmFFPbJl68lbKNdU7keyxguan4fK+M93MvQmiGcqA9MXQewYykEVv5fBk1zeDEhCeV34=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=JlR6HBIf; arc=none smtp.client-ip=178.21.23.139
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="eIY8XxC5"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1781938353; x=1813474353;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=rw+LPnWaKArLuvicHtNdXrulX5vE0qdcS856Yxu/JEQ=;
-  b=eIY8XxC5x/s8inTTpKhKtVmDdQNyKtASXxLBZ2mspD1Xsw5oKfhs7JTF
-   AqvqPvqec3tjMV2+iZh7BRF5VT5wcdhOQxTvi6HV79Z8t5yo4GanHXC1c
-   a7z+DHgwP0hieXMChrcDkaM6q17VUtOUlaYl3p5Om+PDcYVUIVLPekwRM
-   lI3El+QojDmCTSc8mKq3Qda+yLBuFKbIs5vcGFH/sSasqNtChBLBOqz71
-   Z5u+IpP/mwkRnub7F6rMXgPiUIuqJgFGVkqFVAZpOCyUuxThWHQZqkund
-   ZF+fPgLLPXpBklBU7JsHQh1uhKkeb0baYfxD1A0DuXUj1ITr6Vdu4gbk3
-   w==;
-X-CSE-ConnectionGUID: ZKiDiFH7R5+3pL2zzPjZTw==
-X-CSE-MsgGUID: 774AQQeERlqq2OflSXITOQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11822"; a="93873288"
-X-IronPort-AV: E=Sophos;i="6.24,214,1774335600"; 
-   d="scan'208";a="93873288"
-Received: from fmviesa001.fm.intel.com ([10.60.135.141])
-  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jun 2026 23:52:33 -0700
-X-CSE-ConnectionGUID: xlOlVF2+QOyxcAyyzRRPng==
-X-CSE-MsgGUID: Qo+nH3ZmSp++z000wUK41A==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,214,1774335600"; 
-   d="scan'208";a="272847588"
-Received: from vpanait-mobl.ger.corp.intel.com (HELO localhost) ([10.245.245.0])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jun 2026 23:52:30 -0700
-Date: Sat, 20 Jun 2026 09:52:27 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Marco Scardovi <scardracs@disroot.org>
+	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="JlR6HBIf"
+Received: from mail01.disroot.lan (localhost [127.0.0.1])
+	by disroot.org (Postfix) with ESMTP id DB622270A7;
+	Sat, 20 Jun 2026 09:20:22 +0200 (CEST)
+X-Virus-Scanned: SPAM Filter at disroot.org
+Received: from layka.disroot.org ([127.0.0.1])
+ by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
+ id WfBnjkLbgRwL; Sat, 20 Jun 2026 09:20:22 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
+	t=1781940022; bh=QCQt9mNtQvyeDQReQMYSx54L47W4JdD5cbAVwN6KTh4=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=JlR6HBIf0nC/e9mXkanLmeJ2FbSfToK0CT+TIJekJtqC8Pk8v5TYchotHv1NotIsL
+	 9nVvSNqJakfytIMS1VxkXGiFBWFepo9npf9K3UFEKmq1RYSkt394M1tQbfBaumcvXP
+	 QPoO8hfomO3QvvMTp2qNEaPjbDa0DygtPxOeyhoXY15NtxlxDyHBDm9HXb0MkPtK5D
+	 gcEA+C26dDzuV+nKev33k5EhJzgHHFd/skmpeHHSjpjMWKFlbaF0N7myF4tfQx7pRy
+	 kS4t4JefEWK3CEWC0c+uCfOnEPBFMrGlXtiatPHU8shaMP6YD7JlE4lSZjV+m4L8ll
+	 3b3+5RQuH7aVg==
+From: Marco Scardovi <scardracs@disroot.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Basavaraj Natikar <bnatikar@amd.com>, w_armin@gmx.de, brgl@kernel.org,
-	linusw@kernel.org, linux-acpi@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
-	mario.limonciello@amd.com, westeri@kernel.org
-Subject: Re: [PATCH v2 0/1] gpiolib: acpi: Add quirk for ASUS ROG Strix G16
- G614 series
-Message-ID: <ajY4q8o4wXvGMSZj@ashevche-desk.local>
-References: <0e6ea9d5-68ac-4d18-b40a-25e70216b288@gmx.de>
- <_tDfR2zvSRyshOH99j8NCA@disroot.org>
- <9643455e-f4ce-4496-bcdf-1122420c18eb@amd.com>
- <P9sY7IKaQumFwq7UGDqIPA@disroot.org>
+ linusw@kernel.org, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org,
+ linux-kernel@vger.kernel.org, mario.limonciello@amd.com, westeri@kernel.org
+Subject:
+ Re: [PATCH v2 0/1] gpiolib: acpi: Add quirk for ASUS ROG Strix G16 G614
+ series
+Date: Sat, 20 Jun 2026 09:20:08 +0200
+Message-ID: <JL9AWbK0SzeIHPRy6K6QhA@disroot.org>
+In-Reply-To: <ajY4q8o4wXvGMSZj@ashevche-desk.local>
+References:
+ <0e6ea9d5-68ac-4d18-b40a-25e70216b288@gmx.de>
+ <P9sY7IKaQumFwq7UGDqIPA@disroot.org> <ajY4q8o4wXvGMSZj@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <P9sY7IKaQumFwq7UGDqIPA@disroot.org>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
 
-On Fri, Jun 19, 2026 at 12:28:49PM +0200, Marco Scardovi wrote:
-> In data venerdì 19 giugno 2026 12:17:17 Ora legale dell’Europa centrale, Basavaraj Natikar ha scritto:
-> > On 6/18/2026 11:37 PM, Marco Scardovi wrote:
-> > > In data giovedì 18 giugno 2026 20:01:40 Ora legale dell’Europa centrale, Andy Shevchenko ha scritto:
-> > >> On Thu, Jun 18, 2026 at 06:59:15PM +0200, Marco Scardovi wrote:
-> > >>> On Thu, Jun 18, 2026 at 16:35:37 CEST, Andy Shevchenko wrote:
-> > >>>> On Thu, Jun 18, 2026 at 06:46:28PM +0530, Basavaraj Natikar wrote:
-> > >>>>> On 6/18/2026 4:44 AM, Marco Scardovi wrote:
-> > >>>>>> On Wed, Jun 17, 2026 at 10:33 PM, Armin Wolf wrote:
+In data sabato 20 giugno 2026 08:52:27 Ora legale dell=E2=80=99Europa centr=
+ale, Andy Shevchenko ha scritto:
+> On Fri, Jun 19, 2026 at 12:28:49PM +0200, Marco Scardovi wrote:
+> > In data venerd=C3=AC 19 giugno 2026 12:17:17 Ora legale dell=E2=80=99Eu=
+ropa centrale, Basavaraj Natikar ha scritto:
+> > > On 6/18/2026 11:37 PM, Marco Scardovi wrote:
+> > > > In data gioved=C3=AC 18 giugno 2026 20:01:40 Ora legale dell=E2=80=
+=99Europa centrale, Andy Shevchenko ha scritto:
+> > > >> On Thu, Jun 18, 2026 at 06:59:15PM +0200, Marco Scardovi wrote:
+> > > >>> On Thu, Jun 18, 2026 at 16:35:37 CEST, Andy Shevchenko wrote:
+> > > >>>> On Thu, Jun 18, 2026 at 06:46:28PM +0530, Basavaraj Natikar wrot=
+e:
+> > > >>>>> On 6/18/2026 4:44 AM, Marco Scardovi wrote:
+> > > >>>>>> On Wed, Jun 17, 2026 at 10:33 PM, Armin Wolf wrote:
+>=20
+> ...
+>=20
+> > > I also checked the BIOS 316 ACPI dump =E2=80=94 the stalling path is =
+byte=E2=80=91for=E2=80=91byte identical
+> > > to 315, so the AML is unchanged and it'll still stall if pin 21 boots=
+ low.
+> > >=20
+> > > On the OEM side, I'm connecting internally with our AMD contact for A=
+SUS to report
+> > > this behavior and follow up on a firmware fix.
+> >=20
+> > Thank you. Does that mean that my patch will not be required anymore?
+> > If that's the case you can consider it as null. I don't mind having the=
+ boot
+> > flag added until it's completely fixed on ASUS' side. BTW I have the su=
+spect
+> > that my model is not the only one with the long boot bug on ASUS [1] [2]
+> > but actually the only one who came up with an actual patch on the kerne=
+l.
+>=20
+> I believe your patch is still needed. Not every model might get a BIOS up=
+date,
+> and no guarantee that everybody who possesses the problematic platforms
+> actually *will* update the BIOS. But it's AMD's call. I will happily acce=
+pt
+> the changes acknowledged by AMD.
+>
+Uhm, right. Not everyone are crazy over updating everything.
 
-...
+As soon as I have a complete response from AMD and Asus I'll proceed
+with a proper patch.
 
-> > I also checked the BIOS 316 ACPI dump — the stalling path is byte‑for‑byte identical
-> > to 315, so the AML is unchanged and it'll still stall if pin 21 boots low.
-> > 
-> > On the OEM side, I'm connecting internally with our AMD contact for ASUS to report
-> > this behavior and follow up on a firmware fix.
-> 
-> Thank you. Does that mean that my patch will not be required anymore?
-> If that's the case you can consider it as null. I don't mind having the boot
-> flag added until it's completely fixed on ASUS' side. BTW I have the suspect
-> that my model is not the only one with the long boot bug on ASUS [1] [2]
-> but actually the only one who came up with an actual patch on the kernel.
+=46or now, thank you all for checking it out and giving your time for feedb=
+ack.
+>=20
+> > [1] https://bbs.archlinux.org/viewtopic.php?id=3D307251
+> > [2] https://rog-forum.asus.com/t5/rog-strix-series/linux-boot-is-very-s=
+low-at-this-moment/td-p/1138746
+>=20
+>=20
 
-I believe your patch is still needed. Not every model might get a BIOS update,
-and no guarantee that everybody who possesses the problematic platforms
-actually *will* update the BIOS. But it's AMD's call. I will happily accept
-the changes acknowledged by AMD.
 
-> [1] https://bbs.archlinux.org/viewtopic.php?id=307251
-> [2] https://rog-forum.asus.com/t5/rog-strix-series/linux-boot-is-very-slow-at-this-moment/td-p/1138746
-
--- 
-With Best Regards,
-Andy Shevchenko
 
 
