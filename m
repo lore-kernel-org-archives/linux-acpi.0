@@ -1,111 +1,109 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 403B1341ADF
-	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2026 19:00:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24B39374A00;
+	Sat, 20 Jun 2026 06:52:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1781895605; cv=none; b=dBUftOZpI9qulo8s/h3XIvZCh8gu4X1itSDc4YeG6DCm9UUshB1dACbU39KNfREMEot0HA9zofrmDmKwy5ME1j0D9Zw5xDvuJnH3pVjZCwBeSf9aM0dcwlubicA2kL+gqdhrC10tpwmsd37JH/zRT+O2nZF6VtE7G3Np2exvmko=
+	t=1781938355; cv=none; b=tZkcoLBMYr44Zryoct5TtDWlHA7GCoxblA4asyOkeJPHZ/NUKQ4GUuluCJHwGTsjd/Fa3ESzYYFhl6T/URW0qfY5sXVb1w44PigssJ6/deInl/0MdC/hwgkW3f7gdJ39OOgJY/pceWoXtDT4Qdkr/REIJ4lqpuhP4JG/5AZflKE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1781895605; c=relaxed/simple;
-	bh=6lbTjPJj1mlFQkEh2k1V0gQyG1siH55KgOyarCteob8=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Sljgkt9wQg8YglViZF1niHMw8+AT6jmz+tyN4FMu0J7W6JlW2FpQ5QdpGO2fo+/moPV/eNBYjCybvVaFbvpXzdPHW1N2lLKvopmZaE697/XKVIemBc5zaZ+a+MivMpYF4g6u/E/2JYa0XGU7rwjbpfh9aSGOD0YPBEegfhKT7A0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MhcoStmm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1781938355; c=relaxed/simple;
+	bh=rw+LPnWaKArLuvicHtNdXrulX5vE0qdcS856Yxu/JEQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=end2yitofYKUBPygrZbFgs8SWtW+rjBlTD+K1r7hFUsXM5rL2TYX+nPXiLJ4NdXj1YOwbkHm/MjmEjmD6KWTosHFccyV0tJHBmB2Hc2BTYNRYbZBuQ0BKybB7jBeA8nO43uRL6acb9oz87t9uZh40BCRUETnABvg8NTpFkw09/s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=eIY8XxC5; arc=none smtp.client-ip=198.175.65.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MhcoStmm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0CD61F000E9
-	for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2026 19:00:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1781895604;
-	bh=ecESCBb9ykxvGL+Ny240sodwdBlP/vfs2O7nf6We+So=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=MhcoStmmp7T/IV5IxCW52gLbz04orVVUJ3cm2IZJZ8iMq26CptFOiVrEwlLure+HJ
-	 egBby6soN8aGrTEYHdHDJ85cHq/p692YOQ1ezDeX4uO0/Awyzzrq0dvhUZpm7VMfyI
-	 qmOxnGVIiovhU5jQYVLusKROSLDGwarnqjd8pWFmQTik8JG3W0Ftw3bCz/mYAK6sgE
-	 czYSEJLMMQD/JIHc1zHW4n+tHC6VaxomOSeMV6DBJWb79ip6GyDJWYapHlMRpz4GZp
-	 ebUKZZmYH1ZxQl0tmTQBhJ3Uv/3j2ic9TiRYbBLlxcZXUk3fRA0b01CiAoQtktKhez
-	 xdYRfcSRIAe+A==
-Received: by mail-lj1-f176.google.com with SMTP id 38308e7fff4ca-39977ab0562so24702271fa.1
-        for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2026 12:00:03 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AFNElJ9ELa641m5pKaiOAf9jJqByNE4jCjMHVOcV6w3Xo6/fEN8S5KD08Ul3vJdnzz1qPhSqBjdZEmDxI22Z@vger.kernel.org
-X-Gm-Message-State: AOJu0YyhBuhnA1uVzkSbYH+/5T7ml9FapB0XghTPZpcUZLjiLIWeVIif
-	7X4ahivWRCxlejwkpvOB/0JQUo/8WPhmtYHNfCnreSsMQsZe2FweMJ0lsgGVkc/ConVuZOGToSz
-	306wqyX3e5KgXSVvDGaXIHmoWPa1hjNM=
-X-Received: by 2002:a05:651c:985:b0:399:87c9:4571 with SMTP id
- 38308e7fff4ca-3998be8a538mr13692801fa.16.1781895602247; Fri, 19 Jun 2026
- 12:00:02 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="eIY8XxC5"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1781938353; x=1813474353;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=rw+LPnWaKArLuvicHtNdXrulX5vE0qdcS856Yxu/JEQ=;
+  b=eIY8XxC5x/s8inTTpKhKtVmDdQNyKtASXxLBZ2mspD1Xsw5oKfhs7JTF
+   AqvqPvqec3tjMV2+iZh7BRF5VT5wcdhOQxTvi6HV79Z8t5yo4GanHXC1c
+   a7z+DHgwP0hieXMChrcDkaM6q17VUtOUlaYl3p5Om+PDcYVUIVLPekwRM
+   lI3El+QojDmCTSc8mKq3Qda+yLBuFKbIs5vcGFH/sSasqNtChBLBOqz71
+   Z5u+IpP/mwkRnub7F6rMXgPiUIuqJgFGVkqFVAZpOCyUuxThWHQZqkund
+   ZF+fPgLLPXpBklBU7JsHQh1uhKkeb0baYfxD1A0DuXUj1ITr6Vdu4gbk3
+   w==;
+X-CSE-ConnectionGUID: ZKiDiFH7R5+3pL2zzPjZTw==
+X-CSE-MsgGUID: 774AQQeERlqq2OflSXITOQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11822"; a="93873288"
+X-IronPort-AV: E=Sophos;i="6.24,214,1774335600"; 
+   d="scan'208";a="93873288"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jun 2026 23:52:33 -0700
+X-CSE-ConnectionGUID: xlOlVF2+QOyxcAyyzRRPng==
+X-CSE-MsgGUID: Qo+nH3ZmSp++z000wUK41A==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,214,1774335600"; 
+   d="scan'208";a="272847588"
+Received: from vpanait-mobl.ger.corp.intel.com (HELO localhost) ([10.245.245.0])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jun 2026 23:52:30 -0700
+Date: Sat, 20 Jun 2026 09:52:27 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Marco Scardovi <scardracs@disroot.org>
+Cc: Basavaraj Natikar <bnatikar@amd.com>, w_armin@gmx.de, brgl@kernel.org,
+	linusw@kernel.org, linux-acpi@vger.kernel.org,
+	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org,
+	mario.limonciello@amd.com, westeri@kernel.org
+Subject: Re: [PATCH v2 0/1] gpiolib: acpi: Add quirk for ASUS ROG Strix G16
+ G614 series
+Message-ID: <ajY4q8o4wXvGMSZj@ashevche-desk.local>
+References: <0e6ea9d5-68ac-4d18-b40a-25e70216b288@gmx.de>
+ <_tDfR2zvSRyshOH99j8NCA@disroot.org>
+ <9643455e-f4ce-4496-bcdf-1122420c18eb@amd.com>
+ <P9sY7IKaQumFwq7UGDqIPA@disroot.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <B486593E06E6F6E0+20260616093621.1039943-1-raoxu@uniontech.com>
-In-Reply-To: <B486593E06E6F6E0+20260616093621.1039943-1-raoxu@uniontech.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 19 Jun 2026 20:59:49 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0hVqgzwcO8hh=i=5K8zW2HyiCy1E1oL2tuYnqS2w5-T8w@mail.gmail.com>
-X-Gm-Features: AVVi8CfvWGMsHg7fz1aNc3XPiDD34af6PT5KshdYatT1YdihLXG93R8n6wCtkp4
-Message-ID: <CAJZ5v0hVqgzwcO8hh=i=5K8zW2HyiCy1E1oL2tuYnqS2w5-T8w@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: IPMI: Fix inverted interface check in ipmi_bmc_gone()
-To: raoxu <raoxu@uniontech.com>
-Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <P9sY7IKaQumFwq7UGDqIPA@disroot.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Tue, Jun 16, 2026 at 11:36=E2=80=AFAM raoxu <raoxu@uniontech.com> wrote:
->
-> From: Xu Rao <raoxu@uniontech.com>
->
-> Before commit a1a69b297e47 ("ACPI / IPMI: Fix race caused by the
-> unprotected ACPI IPMI user"), ipmi_bmc_gone() skipped entries whose
-> interface number did not match the SMI being removed, then killed the
-> matching entry:
->
->         if (ipmi_device->ipmi_ifnum !=3D iface)
->                 continue;
->
->         __ipmi_dev_kill(ipmi_device);
->
-> That commit folded the removal block into the existing non-match test
-> while converting the object lifetime handling, but left the comparison
-> unchanged. The old !=3D meant "continue past this entry"; after the
-> refactor it meant "kill this entry".
->
-> As a result, a single ACPI IPMI interface is never removed when its SMI
-> disappears. If multiple interfaces are tracked, the first interface
-> whose number differs from iface is removed instead, while the interface
-> that actually disappeared remains on driver_data.ipmi_devices. The
-> stale entry is not marked dead and can continue to be selected for ACPI
-> IPMI transactions. It can also prevent the same ACPI handle from being
-> registered again.
->
-> Change the comparison to =3D=3D so ipmi_bmc_gone() removes exactly the
-> interface reported as gone by the SMI watcher. This restores the
-> pre-a1a69b297e47 behavior and is the correct interface matching logic.
->
-> Fixes: a1a69b297e47 ("ACPI / IPMI: Fix race caused by the unprotected ACP=
-I IPMI user")
-> Signed-off-by: Xu Rao <raoxu@uniontech.com>
-> ---
->  drivers/acpi/acpi_ipmi.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
-> index 8f1aeae8b72e..038b502224cc 100644
-> --- a/drivers/acpi/acpi_ipmi.c
-> +++ b/drivers/acpi/acpi_ipmi.c
-> @@ -490,7 +490,7 @@ static void ipmi_bmc_gone(int iface)
->         mutex_lock(&driver_data.ipmi_lock);
->         list_for_each_entry_safe(iter, temp,
->                                  &driver_data.ipmi_devices, head) {
-> -               if (iter->ipmi_ifnum !=3D iface) {
-> +               if (iter->ipmi_ifnum =3D=3D iface) {
->                         ipmi_device =3D iter;
->                         __ipmi_dev_kill(iter);
->                         break;
-> --
+On Fri, Jun 19, 2026 at 12:28:49PM +0200, Marco Scardovi wrote:
+> In data venerdì 19 giugno 2026 12:17:17 Ora legale dell’Europa centrale, Basavaraj Natikar ha scritto:
+> > On 6/18/2026 11:37 PM, Marco Scardovi wrote:
+> > > In data giovedì 18 giugno 2026 20:01:40 Ora legale dell’Europa centrale, Andy Shevchenko ha scritto:
+> > >> On Thu, Jun 18, 2026 at 06:59:15PM +0200, Marco Scardovi wrote:
+> > >>> On Thu, Jun 18, 2026 at 16:35:37 CEST, Andy Shevchenko wrote:
+> > >>>> On Thu, Jun 18, 2026 at 06:46:28PM +0530, Basavaraj Natikar wrote:
+> > >>>>> On 6/18/2026 4:44 AM, Marco Scardovi wrote:
+> > >>>>>> On Wed, Jun 17, 2026 at 10:33 PM, Armin Wolf wrote:
 
-Applied as 7.2-rc material, thanks!
+...
+
+> > I also checked the BIOS 316 ACPI dump — the stalling path is byte‑for‑byte identical
+> > to 315, so the AML is unchanged and it'll still stall if pin 21 boots low.
+> > 
+> > On the OEM side, I'm connecting internally with our AMD contact for ASUS to report
+> > this behavior and follow up on a firmware fix.
+> 
+> Thank you. Does that mean that my patch will not be required anymore?
+> If that's the case you can consider it as null. I don't mind having the boot
+> flag added until it's completely fixed on ASUS' side. BTW I have the suspect
+> that my model is not the only one with the long boot bug on ASUS [1] [2]
+> but actually the only one who came up with an actual patch on the kernel.
+
+I believe your patch is still needed. Not every model might get a BIOS update,
+and no guarantee that everybody who possesses the problematic platforms
+actually *will* update the BIOS. But it's AMD's call. I will happily accept
+the changes acknowledged by AMD.
+
+> [1] https://bbs.archlinux.org/viewtopic.php?id=307251
+> [2] https://rog-forum.asus.com/t5/rog-strix-series/linux-boot-is-very-slow-at-this-moment/td-p/1138746
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
