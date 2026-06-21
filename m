@@ -1,119 +1,107 @@
-Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD23340D56B;
-	Sun, 21 Jun 2026 12:39:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB3EF8C1F
+	for <linux-acpi@vger.kernel.org>; Sun, 21 Jun 2026 17:38:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782045552; cv=none; b=KQ2o7037ocuS7VUVr8kUru+hgbzrHcW7mH538S4WPq2hl4MDjTAAV2ZFBQcwsbl/gMq197DioPXu7SgRQDB2X1ozZJfJ+cJrFCqye6Eqxzq5EGXoKfj+5++cL+iKoS0odv3hy1EYk+0mx629uQIlGEultDwapoGFKhKRaJemKI8=
+	t=1782063505; cv=none; b=ocFea+fkcCpybpARzHI25jZ7YTMJS61qG/MVpTl0a7vNNfRF/HvwBwJwqIiAEhLx16QVd7p9+G0zOHf+fhZdu51XOkB2mxxyheeJUt2CAxubAGPaqKuy05Tc5xoFvZsfsGINWYEjeb25cZy9+5TNUMkPR+184+Pg9i7iCbeiGsw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782045552; c=relaxed/simple;
-	bh=wO/wqBaGzCbPEM7XzEA25MLv7E/PJvPT1TgaIhbUgjE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=XFrHypOuZO/z7PjhQ6eQ8IBf1jc/WsrsFZzsbOwzqOT36P/BdOWK+KfvTQB8o68PkmBElB23SCXVRN5GEyFELS68BriNLzqUqZ+0/aAw/YI/ikxeyO3PAJ/eEtfcZF3NQeqZDAelnifV/fNWpK49wpWxReVhrwNmCEAi3pNJScw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=lSH+HY6y; arc=none smtp.client-ip=178.21.23.139
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
+	s=arc-20240116; t=1782063505; c=relaxed/simple;
+	bh=CVrH3ArWZCXYYrWC5R7+1hZYClkFwd1IM6noMmbMeE0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=C+HejmhePoAThkGA8lq1bxE08K538AJzFp+QKW+2F9tJKsppjZtBZgKKtaSyEUcA4t5FtCaagampuyMkNv2WmF1qAHKmMTJKIfNdLhsRs0ZH0OJEDJuKMt6PMvyy3IUEtQICWoqqZ0eXZsoo8uhT3aquSBpZ0APG03pW1mBtSm8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iDRQy9xz; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="lSH+HY6y"
-Received: from mail01.disroot.lan (localhost [127.0.0.1])
-	by disroot.org (Postfix) with ESMTP id 1AAB227231;
-	Sun, 21 Jun 2026 14:39:09 +0200 (CEST)
-X-Virus-Scanned: SPAM Filter at disroot.org
-Received: from layka.disroot.org ([127.0.0.1])
- by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
- id SXCwvyOMEILR; Sun, 21 Jun 2026 14:39:08 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
-	t=1782045548; bh=wO/wqBaGzCbPEM7XzEA25MLv7E/PJvPT1TgaIhbUgjE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=lSH+HY6ydtbP+tfRmGoQF0/5WubN39Oveg2Ee26cJRfmmh30RmfDvy9sOXHYd+kXu
-	 GZ8Xn/bXzCmfxVeR6jU8lwSa1J/7N37FO1UcXb/XRSbCM48KYfNZKoTRBUUbG3bpBK
-	 mVeZSeOuRkGEVyYhvFUh/fic0N/Rcpqm9EGhc7BPfcmoMQKvEkf94pspKIVhECbJjy
-	 /k+EVooAoNeWyMvBZZTmyRcl+/N1Kx0inzBcJj8Th8OpWy+PED8DTswdU/YNB6TchA
-	 cuk3GT5jCATwInJ0yuoVUs1x1VhgSDUmGzEVzeKQlze2qFZz635z+PwVgeZvBQj7Zd
-	 DRMqCAtCJM76g==
-From: Marco Scardovi <scardracs@disroot.org>
-To: bnatikar@amd.com, Armin Wolf <W_Armin@gmx.de>,
- Hans de Goede <johannes.goede@oss.qualcomm.com>
-Cc: andriy.shevchenko@linux.intel.com, brgl@kernel.org, linusw@kernel.org,
- linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org,
- linux-kernel@vger.kernel.org, mario.limonciello@amd.com, westeri@kernel.org
-Subject:
- Re: [PATCH v2 0/1] gpiolib: acpi: Add quirk for ASUS ROG Strix G16 G614
- series
-Date: Sun, 21 Jun 2026 14:38:55 +0200
-Message-ID: <plMjpdo0SVyLgmZrd9JENQ@disroot.org>
-In-Reply-To: <9237988a-2f5a-4c4e-8586-12899957bfea@oss.qualcomm.com>
-References:
- <221cd70d-70f9-4d01-8e8c-b4a5b347b8b9@amd.com>
- <20260617185318.11237-1-scardracs@disroot.org>
- <9237988a-2f5a-4c4e-8586-12899957bfea@oss.qualcomm.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iDRQy9xz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49EBA1F000E9
+	for <linux-acpi@vger.kernel.org>; Sun, 21 Jun 2026 17:38:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782063503;
+	bh=vSTODsmBvCcAFzWG9WY21HHvHiVQBo+gCdj3T6p/YV8=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=iDRQy9xzcGEqR5EaSLN2elcgE5Xciqw823VFtdksEtperkqvctIUmXScj1srnsvve
+	 La836i6HXpNxD61ypg1P3kX9ku3NulKkzrmz4MevV31/cCza6qz6XOgyANf7D8xhj5
+	 nVcFVtH80ho1bsgOqssTCX8FkcZ/XgTgxRwdXkNtLbZngkVwq7o0oAAzwJHm9/+Llk
+	 EvzbROtXCaevwIgvUh7lkRcM5eyJykk/nJKsNnwn2M8t8BvM4CdLOhKG6v5+faoOvV
+	 E1g5H1cTEia9RUWEvy3ESlb/hUpsnKOGzjPH8j3ODudDQToFwZ6j00vVvSdIk5Hswp
+	 /KQ8YZXuTfz6g==
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5aa6792e7b8so4110935e87.1
+        for <linux-acpi@vger.kernel.org>; Sun, 21 Jun 2026 10:38:23 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ8S/mWskemmA3NU8xy9igGQCKzbFPA8EsNT/yx8JKvIJ2uxn3mU4fJzA5T3bgfeY9nVYM703UowfFvu@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz5ZVuRj7a0Gs/ks1VcL5XNOysYyDifwEonC9mLMge2iXkiWJfo
+	OHyWpx5vl+IT1sIad4VbUkHgNMMuU8OwLWCRgyoUlHoa+pkoPfit1zjKH5r5i8Ke6ZBCjbsQds0
+	vH7Yh32kiwFI0cYJYJt2qZk9uvg/1R4I=
+X-Received: by 2002:a05:6512:250c:b0:5ad:5620:ba65 with SMTP id
+ 2adb3069b0e04-5ad562d1b58mr3401943e87.50.1782063501815; Sun, 21 Jun 2026
+ 10:38:21 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+References: <20260617075633.534689-1-trenn@suse.de> <20260617092448.538721-1-trenn@suse.de>
+ <CAJZ5v0hOZs3TMgdCc+cfK_TVbmDj6z=PTYcDmdqtrZWhHOHG+w@mail.gmail.com>
+In-Reply-To: <CAJZ5v0hOZs3TMgdCc+cfK_TVbmDj6z=PTYcDmdqtrZWhHOHG+w@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Sun, 21 Jun 2026 19:38:06 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0i5G00LX9a5+DiH=RfTEmCK39ZUhxk3pwTzimuc4==Ckg@mail.gmail.com>
+X-Gm-Features: AVVi8CcIfyLzA2PA4X6N-b49I_Vbg7bV_vwbHE9eZnR9UlKFb2hneuuV-m0fMkk
+Message-ID: <CAJZ5v0i5G00LX9a5+DiH=RfTEmCK39ZUhxk3pwTzimuc4==Ckg@mail.gmail.com>
+Subject: Re: [PATCH] Revert "ACPICA: Replace strncpy() with strscpy_pad() in acpi_ut_safe_strncpy()"
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, 
+	Jiri Slaby <jirislaby@kernel.org>, Kees Cook <kees@kernel.org>, 
+	Thomas Renninger <trenn@suse.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="utf-8"
 
-In data domenica 21 giugno 2026 13:00:22 Ora legale dell=E2=80=99Europa cen=
-trale, Hans de Goede ha scritto:
-> Hi Marco,
->=20
-> On 17-Jun-26 20:50, Marco Scardovi wrote:
-> > Hi Basavaraj,
-> >=20
-> > Thank you for your review: this is the v2 with the rewording as request=
-ed.
-> >=20
-> > Changes in v2:
-> > - Reworded the commit message and the code comment to explain the actual
-> >   boot-time replay mechanism as suggested by Basavaraj.
-> > - Explicitly noted that the touchpad itself is driven by i2c-hid and fu=
-nctions
-> >   normally, and that the ACPI event handler is preserved for post-boot =
-events.
-> > - Rebased against linux-next-20260616
-> >=20
-> > Marco Scardovi (1):
-> >   gpiolib: acpi: Add quirk for ASUS ROG Strix G16 G614 series
->=20
-> Have you tried adding this patch to your kernel instead of adding a quirk=
-? :
->=20
-> https://lore.kernel.org/linux-gpio/20260429025247.1372984-1-mario.limonci=
-ello@amd.com/
->=20
-Yes, in fact it used to work [1]. My suspect is that when updating the BIOS
-from 310 to 315 something flipped, making it not working again.
-It's my own speculation so please don't take it as a matter of fact.
-
-[1] https://lore.kernel.org/linux-gpio/a42767b8-7a0c-4202-9132-be8fa65baabc=
-@gmail.com/
+On Wed, Jun 17, 2026 at 8:31=E2=80=AFPM Rafael J. Wysocki <rafael@kernel.or=
+g> wrote:
 >
-> This modifies the code which does an initial sync of edge-run ACPI GPIO
-> interrupt event handlers to match Windows and to skip it in certain
-> circumstances.
->=20
-> If that does not help, we should wait for Armin to get a chance to check
-> your DSDT to see if the magic _DSM which inverts the polarity check for
-> the initial sync run is there.
->=20
-> By matching what Windows this we can hopefully fix this for a whole bunch
-> of devices rather then having to rely on per model quirks.
+> On Wed, Jun 17, 2026 at 11:25=E2=80=AFAM Thomas Renninger <trenn@suse.de>=
+ wrote:
+> >
+> > This reverts commit 97f7d3f9c9acb70d4eef7bcdef3218823d142733.
+> >
+> > acpica has it's own safe strncpy function: acpi_ut_safe_strncpy
+> > and must not use kernel's strscpy_pad.
+> >
+> > Closes: https://lore.kernel.org/all/79e9e913-0fb1-4110-804b-c3b5d0edafe=
+4@kernel.org
+> > Reported-and-tested-by: Jiri Slaby <jirislaby@kernel.org>
+> > Signed-off-by: Thomas Renninger <trenn@suse.com>
 >
-It would be very helpful as I noticed all these ASUS laptops in G614 family
-ha the same problem as mine [2].
+> Applied as 7.2-rc material, but I wrote a new changelog for it.
 
-[2] https://github.com/OpenGamingCollective/asusctl/issues/115
->=20
-> Regards,
->=20
-> Hans
->=20
-Thank you all for looking into it,
+And dropped because of
 
-Marco
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?=
+id=3D1a3746ccbb0a97bed3c06ccde6b880013b1dddc1
 
+The acpidump build breakage will need to be addressed in a different way.
 
+I'll take care of this next week unless someone beats me to it.
+
+> > ---
+> >  drivers/acpi/acpica/utnonansi.c | 3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/acpi/acpica/utnonansi.c b/drivers/acpi/acpica/utno=
+nansi.c
+> > index 3a7952be6545..ff0802ace19b 100644
+> > --- a/drivers/acpi/acpica/utnonansi.c
+> > +++ b/drivers/acpi/acpica/utnonansi.c
+> > @@ -168,7 +168,8 @@ void acpi_ut_safe_strncpy(char *dest, char *source,=
+ acpi_size dest_size)
+> >  {
+> >         /* Always terminate destination string */
+> >
+> > -       strscpy_pad(dest, source, dest_size);
+> > +       strncpy(dest, source, dest_size);
+> > +       dest[dest_size - 1] =3D 0;
+> >  }
+> >
+> >  #endif
+> > --
