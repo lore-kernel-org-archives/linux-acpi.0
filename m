@@ -1,203 +1,124 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from canpmsgout09.his.huawei.com (canpmsgout09.his.huawei.com [113.46.200.224])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32D3437187F
-	for <linux-acpi@vger.kernel.org>; Mon, 22 Jun 2026 12:01:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 100313ACF14;
+	Mon, 22 Jun 2026 12:54:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.224
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782129694; cv=none; b=aLvVl7FA/+zCe/os5WXs0gVDWC6AatZ/QczbguoGPrR4WOJMLPYyB7Po3vuXJjA4eEg+bDiCS8j+jYO99pYFdLUH/SeLYssau1minrBW/H89TnkvxhofyYyjSGf6DdfeldvQAWigqlNqhzITVfHMJ+0SJpT2uGdW4LJR4t7REMY=
+	t=1782132887; cv=none; b=Kum7JnBERlk1pnd4AFV10pj99AVsdZsOoQb8sWtBUCSvLd5DKfdcDmVvx6q9cGYeqIN3Re/K/ExEPmWjV44X393EmocvyFDLJfBygYPalg8NIKTixTITv1ARP/0YEC9IYi20TLJoqkbYUH9hfaFgwnuU6vhVltX0mIWP+6jaa/0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782129694; c=relaxed/simple;
-	bh=w06c/yEjW3DUOtwyWrE0AS+OGg0r41Ows2FCMuTL+dk=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=pWNHvHB+cgrNB12JMYHdPUPOuGB5sxjcZmXOVQLS316ylA0pp5x8bbNdeWXCd6nQmpsn7IwqrCk3rb+AZA1weGAwa6rCyNuUCKgqVX2s6LzH0Av2SNIfinCEwbLIIvNuIVWn4RMnfGzD9dP4EMipFLRsw8SsQxuJzS4BtxxhrO4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=cp1cLAx2; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=hGSa7Ow0; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=cp1cLAx2; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=hGSa7Ow0; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1782132887; c=relaxed/simple;
+	bh=Qov/TeJAY2qs/pJKuDIwjuhAloqKE8Pa0H5oeT1bljw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=jbCadPkUrJGq39JRyaLDJwxQkB2WbrCycv6LFuu4jwCAcrqE+rNAi98tF2jMGjQxpeqLJo5nC42WI6Gycfbqpgp1a7eePXFfAn2CM61mk8udOV6GzhGYi1v4PMwbkRgnP5kUzs54gojzmSqDpgJoWD7Z/nA7i+lvwJSK8PoHcr4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=PDTTbdYi; arc=none smtp.client-ip=113.46.200.224
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="cp1cLAx2";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="hGSa7Ow0";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="cp1cLAx2";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="hGSa7Ow0"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 7A22F75A1E;
-	Mon, 22 Jun 2026 12:01:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1782129691; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=RLYrrlUTwElRkEosQhItc0YYK/0FTyGYN4Ess53CiUo=;
-	b=cp1cLAx2OgGlqJpkCvTFbV9hShgjUS1USyXNPKWjE9EF7eFqI2TKnoIw12eOsVIq5SZmkw
-	iBiwt5qg1shHveiDmVJqHZW/qXUok5flIEkYME6Bb+CrJnrLFNviTXJMkSMD8onf6GmH+W
-	DJdgsslTkldsZcpgbk3Hpjf95SUkAXw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1782129691;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=RLYrrlUTwElRkEosQhItc0YYK/0FTyGYN4Ess53CiUo=;
-	b=hGSa7Ow03F0nhFECiIY2e8SuStbXo2rEFkkOWALHE/hHy3eppXQDKc2WugzX7K4iODiN5v
-	+QeBukr4IJLUYyAA==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=cp1cLAx2;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=hGSa7Ow0
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1782129691; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=RLYrrlUTwElRkEosQhItc0YYK/0FTyGYN4Ess53CiUo=;
-	b=cp1cLAx2OgGlqJpkCvTFbV9hShgjUS1USyXNPKWjE9EF7eFqI2TKnoIw12eOsVIq5SZmkw
-	iBiwt5qg1shHveiDmVJqHZW/qXUok5flIEkYME6Bb+CrJnrLFNviTXJMkSMD8onf6GmH+W
-	DJdgsslTkldsZcpgbk3Hpjf95SUkAXw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1782129691;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=RLYrrlUTwElRkEosQhItc0YYK/0FTyGYN4Ess53CiUo=;
-	b=hGSa7Ow03F0nhFECiIY2e8SuStbXo2rEFkkOWALHE/hHy3eppXQDKc2WugzX7K4iODiN5v
-	+QeBukr4IJLUYyAA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 57E88779A8;
-	Mon, 22 Jun 2026 12:01:31 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id hdpEFBskOWr4TAAAD6G6ig
-	(envelope-from <trenn@suse.de>); Mon, 22 Jun 2026 12:01:31 +0000
-From: Thomas Renninger <trenn@suse.de>
-To: "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, Jiri Slaby <jirislaby@kernel.org>,
- Kees Cook <kees@kernel.org>
-Subject:
- Re: [PATCH] Revert "ACPICA: Replace strncpy() with strscpy_pad() in
- acpi_ut_safe_strncpy()"
-Date: Mon, 22 Jun 2026 14:01:30 +0200
-Message-ID: <2799887.obQ9GjlxrE@laptop.fritz.box>
-Organization: SUSE Software Solutions Germany GmbH
-In-Reply-To:
- <CAJZ5v0i5G00LX9a5+DiH=RfTEmCK39ZUhxk3pwTzimuc4==Ckg@mail.gmail.com>
-References:
- <20260617075633.534689-1-trenn@suse.de>
- <CAJZ5v0hOZs3TMgdCc+cfK_TVbmDj6z=PTYcDmdqtrZWhHOHG+w@mail.gmail.com>
- <CAJZ5v0i5G00LX9a5+DiH=RfTEmCK39ZUhxk3pwTzimuc4==Ckg@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="PDTTbdYi"
+dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=RPsjY9X3WwTmHEKdKzWKkesWdJbdWQlB+SGvvehahUI=;
+	b=PDTTbdYiMoautpLJ2EdvTQjamSF/YFIlTOno4A5GiZPPLA/JCURqnEOOm+duKjJqi6CgOhxq9
+	8Va1YVO2IjabMJHfTuTei3qMvRV+FDnQT3aT730B5j9ULAhEoOi5+xw1ravVe+FX5WMknqIzBMC
+	DV5LV2LlPVKBJKtc+KjdDhg=
+Received: from mail.maildlp.com (unknown [172.19.162.92])
+	by canpmsgout09.his.huawei.com (SkyGuard) with ESMTPS id 4gkSbk24stz1cyPw;
+	Mon, 22 Jun 2026 20:45:38 +0800 (CST)
+Received: from kwepemo100005.china.huawei.com (unknown [7.202.195.212])
+	by mail.maildlp.com (Postfix) with ESMTPS id 1103C40565;
+	Mon, 22 Jun 2026 20:54:41 +0800 (CST)
+Received: from [10.67.121.59] (10.67.121.59) by kwepemo100005.china.huawei.com
+ (7.202.195.212) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Mon, 22 Jun
+ 2026 20:54:40 +0800
+Message-ID: <196596c8-967b-4ad5-812a-f9b3a12cf150@huawei.com>
+Date: Mon, 22 Jun 2026 20:54:39 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart2778970.sy0gbHreEd";
- micalg="pgp-sha256"; protocol="application/pgp-signature"
-X-Rspamd-Action: no action
-X-Rspamd-Queue-Id: 7A22F75A1E
-X-Spam-Flag: NO
-X-Spam-Score: -6.61
-X-Spam-Level: 
-X-Spamd-Result: default: False [-6.61 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	SIGNED_PGP(-2.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	MIME_GOOD(-0.20)[multipart/signed,text/plain];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MX_GOOD(-0.01)[];
-	TO_DN_SOME(0.00)[];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	MIME_TRACE(0.00)[0:+,1:+,2:~];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	ARC_NA(0.00)[];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	HAS_ORG_HEADER(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_FIVE(0.00)[5];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	RCVD_COUNT_TWO(0.00)[2];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	DKIM_TRACE(0.00)[suse.de:+];
-	MISSING_XM_UA(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.de:email,suse.de:dkim,suse.com:email]
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-
---nextPart2778970.sy0gbHreEd
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="utf-8"; protected-headers="v1"
-From: Thomas Renninger <trenn@suse.de>
-Date: Mon, 22 Jun 2026 14:01:30 +0200
-Message-ID: <2799887.obQ9GjlxrE@laptop.fritz.box>
-Organization: SUSE Software Solutions Germany GmbH
-MIME-Version: 1.0
-
-On Sonntag, 21. Juni 2026 19:38:06 Mitteleurop=C3=A4ische Sommerzeit Rafael=
- J.=20
-Wysocki wrote:
-> On Wed, Jun 17, 2026 at 8:31=E2=80=AFPM Rafael J. Wysocki <rafael@kernel.=
-org> wrote:
-> > On Wed, Jun 17, 2026 at 11:25=E2=80=AFAM Thomas Renninger <trenn@suse.d=
-e> wrote:
-> > > This reverts commit 97f7d3f9c9acb70d4eef7bcdef3218823d142733.
-> > >=20
-> > > acpica has it's own safe strncpy function: acpi_ut_safe_strncpy
-> > > and must not use kernel's strscpy_pad.
-> > >=20
-> > > Closes:
-> > > https://lore.kernel.org/all/79e9e913-0fb1-4110-804b-c3b5d0edafe4@kern=
-el
-> > > .org Reported-and-tested-by: Jiri Slaby <jirislaby@kernel.org>
-> > > Signed-off-by: Thomas Renninger <trenn@suse.com>
-> >=20
-> > Applied as 7.2-rc material, but I wrote a new changelog for it.
->=20
-> And dropped because of
->=20
-> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit=
-/?i
-> d=3D1a3746ccbb0a97bed3c06ccde6b880013b1dddc1
->=20
-> The acpidump build breakage will need to be addressed in a different way.
->=20
-> I'll take care of this next week unless someone beats me to it.
-
-In case you agree with, you might want to take this one:
-https://github.com/acpica/acpica/pull/1203/changes
-
-Robert seem to have retired (his mail came back)? Please advise if one (I)=
-=20
-still have to add/push someone so that this all gets synced from acpica dow=
-n=20
-to the kernel.
-
-Thanks,
-
-        Thomas
-
---nextPart2778970.sy0gbHreEd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEo0EXulPW3gW/5bAoTxjWwdl3vVUFAmo5JBoACgkQTxjWwdl3
-vVU/xggAnEbYZ8P85burDtzt3K69koNRmKodu1v9RQGUt+a/h96M4Ux2CqYXy1iS
-LfafStg0I3/Ig3RSI/Bxwh5ry70XW/4ta/+1lxzlRFcaH0nx13XeGdeJJKTabalb
-jCJjbxLaf35iK63AIKqd2gNL/cfxkYsw7cblXyj0I2PFGAgcZ15NrMbuMsOudVCf
-KkRiRm8ktAc+aNG6YlTh1GyI0jwMAynt7UcEEDvB5Vf9OgrJ+xJwqcuojKlt7oup
-acZaCJr2asToodl6BG/Uf2awxFSVTN/c33f07YF1rywLKaofbRpwFtKkZGdrOopv
-OBtezkY8xFIEH6mdGGiTbTJx0hvCzA==
-=LZEc
------END PGP SIGNATURE-----
-
---nextPart2778970.sy0gbHreEd--
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] mailbox: pcc: Notify clients on polled completion
+To: Sudeep Holla <sudeep.holla@kernel.org>
+CC: Jassi Brar <jassisinghbrar@gmail.com>, Cristian Marussi
+	<cristian.marussi@arm.com>, <linux-acpi@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+References: <20260612170225.1063902-1-sudeep.holla@kernel.org>
+ <4e2d023b-c651-4a80-ba14-3c66cd209214@huawei.com>
+ <20260618-discreet-sparkling-dragon-7df7b2@sudeepholla>
+From: "lihuisong (C)" <lihuisong@huawei.com>
+In-Reply-To: <20260618-discreet-sparkling-dragon-7df7b2@sudeepholla>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
+ kwepemo100005.china.huawei.com (7.202.195.212)
 
 
-
+On 6/18/2026 8:06 PM, Sudeep Holla wrote:
+> On Thu, Jun 18, 2026 at 10:04:12AM +0800, lihuisong (C) wrote:
+>> Hi Sudeep,
+>>
+>> On 6/13/2026 1:02 AM, Sudeep Holla wrote:
+>>> PCC channels without a platform interrupt rely on the mailbox
+>>> polling path to detect command completion.
+>>>
+>>> That path currently only reports transmit completion to the mailbox
+>>> core, so clients that wait for their receive callback do not get
+>>> notified when the command completes.
+>>>
+>>> Call mbox_chan_received_data() when polling observes completion on a
+>>> channel without a platform IRQ, matching the interrupt-driven
+>>> completion path.
+>>>
+>>> Reported-by: Cristian Marussi <cristian.marussi@arm.com>
+>>> Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
+>>> ---
+>>>    drivers/mailbox/pcc.c | 7 ++++++-
+>>>    1 file changed, 6 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+>>> index 636879ae1db7..7c9451ab4527 100644
+>>> --- a/drivers/mailbox/pcc.c
+>>> +++ b/drivers/mailbox/pcc.c
+>>> @@ -447,9 +447,14 @@ static int pcc_send_data(struct mbox_chan *chan, void *data)
+>>>    static bool pcc_last_tx_done(struct mbox_chan *chan)
+>>>    {
+>>> +	bool ret;
+>>>    	struct pcc_chan_info *pchan = chan->con_priv;
+>>> -	return pcc_mbox_cmd_complete_check(pchan);
+>>> +	ret = pcc_mbox_cmd_complete_check(pchan);
+>>> +	if (ret && !pchan->plat_irq)
+>>> +		mbox_chan_received_data(chan, NULL);
+>>> +
+>>> +	return ret;
+>>>    }
+>> The mailbox_controller.h said that .last_tx_done() is used only if
+>> txdone_poll:=true && txdone_irq:=false.
+>> How about add a verification at the begining of this function? like "if
+>> (chan->txdone_method != MBOX_TXDONE_BY_POLL) return false;"
+>> And then call mbox_chan_received_data() directly if command completed.
+>>
+> Thanks, it does makes sense to me. I will have look.
+>
+>> This patch is ok to me if has above changes.
+>> Acked-by: lihuisong@huawei.com
+>>
+>>
+>> But pcc mbox controller can no longer work in MBOX_TXDONE_BY_ACK after your
+>> commit:
+>> 3349f800609e (mailbox: pcc: Set txdone_irq/txdone_poll based on PCCT flags).
+>> This may lead to above client drivers fail to send mailbox command, like
+>> cppc_acpi,hisi_uncore_freq and kunpeng_hccs.
+>> Because these client driver knows tx_done(knows_txdone: true), work on this
+>> mode and need to call mbox_client_txdone.
+>> Do you have some idea for this?
+> I wonder if we can ask the platform to avoid generating interrupts in those
+> case by setting/clearing "Notify on completion" in shmem. Do you think that
+> would work ?
+These drivers didn't work on interrupt mode.
+They poll the complete status of command.
+>
