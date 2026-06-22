@@ -1,124 +1,191 @@
-Received: from canpmsgout09.his.huawei.com (canpmsgout09.his.huawei.com [113.46.200.224])
+Received: from MRWPR03CU001.outbound.protection.outlook.com (mail-francesouthazon11011058.outbound.protection.outlook.com [40.107.130.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 100313ACF14;
-	Mon, 22 Jun 2026 12:54:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.224
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782132887; cv=none; b=Kum7JnBERlk1pnd4AFV10pj99AVsdZsOoQb8sWtBUCSvLd5DKfdcDmVvx6q9cGYeqIN3Re/K/ExEPmWjV44X393EmocvyFDLJfBygYPalg8NIKTixTITv1ARP/0YEC9IYi20TLJoqkbYUH9hfaFgwnuU6vhVltX0mIWP+6jaa/0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782132887; c=relaxed/simple;
-	bh=Qov/TeJAY2qs/pJKuDIwjuhAloqKE8Pa0H5oeT1bljw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=jbCadPkUrJGq39JRyaLDJwxQkB2WbrCycv6LFuu4jwCAcrqE+rNAi98tF2jMGjQxpeqLJo5nC42WI6Gycfbqpgp1a7eePXFfAn2CM61mk8udOV6GzhGYi1v4PMwbkRgnP5kUzs54gojzmSqDpgJoWD7Z/nA7i+lvwJSK8PoHcr4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=PDTTbdYi; arc=none smtp.client-ip=113.46.200.224
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 401AF1A681E;
+	Mon, 22 Jun 2026 14:30:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.130.58
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1782138640; cv=fail; b=QaX2OmsFOx42G+zqa7PCTMXFEPY3iGIn9XkPIykTOr3MBPTO1oVZwrQv6gwXJJGyW6D3SIGtZ4afgYwWLTAVmaKShgv++W7oX7vziOVPpqpaPmCcMOI1OEf9jtzXR3Mhs8ZLQUX6yMeRq7kGUXw5CbJvXGWHwjVnixihK9xW5M4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1782138640; c=relaxed/simple;
+	bh=o0n5t5MXVYrBfYMGgAcaP6fExsALJXrw+ZgOLUmH8KY=;
+	h=From:Subject:Date:Message-Id:Content-Type:To:Cc:MIME-Version; b=GEhRBLY5gYbiuTW14Wp5fTStfkN/dIRgY/9Ji+ECNvOaeMvNq9hhsGT0LI1HCQWWU5WQ7k70fUX+oAvxq+o39Kpy4hV8JBssumPaI1qwGEFuqDszSI66imG94fXVpHqKseKINxZwla0LBy7YjjPF1Ze4fxaLeoMPMtDTPSDWKvc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.nxp.com; spf=pass smtp.mailfrom=oss.nxp.com; dkim=pass (2048-bit key) header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.b=uxLOmU/g; arc=fail smtp.client-ip=40.107.130.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.nxp.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.nxp.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="PDTTbdYi"
-dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=RPsjY9X3WwTmHEKdKzWKkesWdJbdWQlB+SGvvehahUI=;
-	b=PDTTbdYiMoautpLJ2EdvTQjamSF/YFIlTOno4A5GiZPPLA/JCURqnEOOm+duKjJqi6CgOhxq9
-	8Va1YVO2IjabMJHfTuTei3qMvRV+FDnQT3aT730B5j9ULAhEoOi5+xw1ravVe+FX5WMknqIzBMC
-	DV5LV2LlPVKBJKtc+KjdDhg=
-Received: from mail.maildlp.com (unknown [172.19.162.92])
-	by canpmsgout09.his.huawei.com (SkyGuard) with ESMTPS id 4gkSbk24stz1cyPw;
-	Mon, 22 Jun 2026 20:45:38 +0800 (CST)
-Received: from kwepemo100005.china.huawei.com (unknown [7.202.195.212])
-	by mail.maildlp.com (Postfix) with ESMTPS id 1103C40565;
-	Mon, 22 Jun 2026 20:54:41 +0800 (CST)
-Received: from [10.67.121.59] (10.67.121.59) by kwepemo100005.china.huawei.com
- (7.202.195.212) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Mon, 22 Jun
- 2026 20:54:40 +0800
-Message-ID: <196596c8-967b-4ad5-812a-f9b3a12cf150@huawei.com>
-Date: Mon, 22 Jun 2026 20:54:39 +0800
+	dkim=pass (2048-bit key) header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.b="uxLOmU/g"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=u0+owfQOBJ7q1KgMN0cdD+b1Hpf0+Mrkxx3Alal99Cl4rLnxCVlJk0FvOIfAz99WUCZavUDPQAE+eJCSsIcn/lUj3iozcZ/zGrd5ThLTLlsh8wtQjPb/LM30/8uzTbuWcUmLenh+3YOvtVSP11z74tTCIbyy8eAM6QxJCfBTlOTWJOhXmp1LrwdIbPmfFk8uG4aYY/9H9s4ve6jiAZDPWn065B2yuhneahuRLpznuZX9xBSIzxNUyjRTWCedi/hNsxTxHL/o5IlM1Xh4NFRse/konPaNYaRthkCD0jyIMrroUHmn6T8ZN4cyyYrjIBUWWj+cswQAPksXBAoa1tnm/g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Z2ZXRNfX9yaOgVUBEaEfSEv6mrZPWfmfCUtLnARN6Ko=;
+ b=COCUDtLemR7wCkLcFvGOhRUBuGq0RUfMoY3nwL2zCHASyZuXmfyRQ9PSi4l4hUdu1NDA0kvZIiz5HLbr1EQYrTJ/An8kOWAtrT90q3rYon5y9yvgzQqKS4Aqroc33uJlzytvLzZZs0coPsLbVUc3sWXILD+4MFd2+tq23zbe5SObEYNGlhzwJ46SMowjTQG+9An/z528AhMBv2dSl/m7Rzxwzy/e7WuoryXgu2zGZZQMqeCdtyszHh3ShMjoYNWRkiaoDVzk+1OV/sUzIHCHrDttjA8zebA3dhwwIl6WYju9yeT0e4ZDlIMSB8iGqTNqleZdcpClGRjisqz3PnojVA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=oss.nxp.com; dmarc=pass action=none header.from=oss.nxp.com;
+ dkim=pass header.d=oss.nxp.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=NXP1.onmicrosoft.com;
+ s=selector1-NXP1-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Z2ZXRNfX9yaOgVUBEaEfSEv6mrZPWfmfCUtLnARN6Ko=;
+ b=uxLOmU/gvIXsQx8UjHRkfYvPdyHrVfbpU+7N/M6Dp20/wO8liNrQwK5zIGA1tAoZ8OlKkcyrfH+ys0KLs2++QbjcRfddK7qB19vRNWP0tZVoNx2Ig364NZMgZhcCun8FSSJtXsRI1RCXR4YEvKXwjm+Ox2suifKgwODKJG5cKb0EDe+W/IeLUVu6ALoTcetXBMo5i9CpIs7SJsRKBG0PtadR1rsdig5f6J/ChVXhzGPBsoywUscfwP6fhzRM4jQCNfnC9qvi391wY5OWrO5ZbsjP2Xz5xNWxmAgyQhrWJz6Xo3IvBc1gz8aAOUogdmjUCddHAece7BDDTC+XjhNQhA==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=oss.nxp.com;
+Received: from GV2PR04MB11799.eurprd04.prod.outlook.com (2603:10a6:150:2cf::9)
+ by VI0PR04MB12304.eurprd04.prod.outlook.com (2603:10a6:800:304::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.92.18; Mon, 22 Jun
+ 2026 14:30:35 +0000
+Received: from GV2PR04MB11799.eurprd04.prod.outlook.com
+ ([fe80::2146:83a2:5329:b7c]) by GV2PR04MB11799.eurprd04.prod.outlook.com
+ ([fe80::2146:83a2:5329:b7c%6]) with mapi id 15.21.0139.018; Mon, 22 Jun 2026
+ 14:30:34 +0000
+From: Frank.Li@oss.nxp.com
+Subject: [PATCH 0/4] media: add and use
+ fwnode_graph_for_each_endpoint_scoped()
+Date: Mon, 22 Jun 2026 10:30:10 -0400
+Message-Id: <20260622-fw_scoped-v1-0-a37d0aac0a68@nxp.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAPJGOWoC/yXMTQqAIBBA4avErBNUykVXiQjTqaZFhdMfSHfPa
+ vnB40VgDIQMVRYh4EFMy5yg8gzcaOcBBflk0FIbabQU/dmyW1b0ovS2M0VRKmkVpH4N2NP1ver
+ mN+/dhG57B3DfD94gNIFtAAAA
+X-Change-ID: 20260620-fw_scoped-5dab644510a1
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+ Daniel Scally <djrscally@gmail.com>, 
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+ Sakari Ailus <sakari.ailus@linux.intel.com>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ "Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
+ Mauro Carvalho Chehab <mchehab@kernel.org>, 
+ Dafna Hirschfeld <dafna@fastmail.com>, 
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>, 
+ Heiko Stuebner <heiko@sntech.de>, 
+ Bryan O'Donoghue <bryan.odonoghue@linaro.org>, 
+ Vladimir Zapolskiy <vladimir.zapolskiy@linaro.org>, 
+ Loic Poulain <loic.poulain@oss.qualcomm.com>
+Cc: driver-core@lists.linux.dev, linux-acpi@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, linux-media@vger.kernel.org, 
+ linux-rockchip@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+ linux-arm-msm@vger.kernel.org, imx@lists.linux.dev, 
+ Guoniu Zhou <guoniu.zhou@nxp.com>, Frank Li <Frank.Li@nxp.com>
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1782138630; l=1362;
+ i=Frank.Li@nxp.com; s=20240130; h=from:subject:message-id;
+ bh=o0n5t5MXVYrBfYMGgAcaP6fExsALJXrw+ZgOLUmH8KY=;
+ b=eToJbjj+TRgfjnXfQiIoZC/Mj3JzY4tpc6ykLIrFIKEDKfLX7P0eZ40tU1Ua+F2AAFhk0zpsQ
+ SRbW5dtAWecD7s0M1Hkk+Wo+eDzTSAatz1artBp2iRe6gzKih1tD1HE
+X-Developer-Key: i=Frank.Li@nxp.com; a=ed25519;
+ pk=I0L1sDUfPxpAkRvPKy7MdauTuSENRq+DnA+G4qcS94Q=
+X-ClientProxiedBy: SA0PR11CA0113.namprd11.prod.outlook.com
+ (2603:10b6:806:d1::28) To GV2PR04MB11799.eurprd04.prod.outlook.com
+ (2603:10a6:150:2cf::9)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] mailbox: pcc: Notify clients on polled completion
-To: Sudeep Holla <sudeep.holla@kernel.org>
-CC: Jassi Brar <jassisinghbrar@gmail.com>, Cristian Marussi
-	<cristian.marussi@arm.com>, <linux-acpi@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
-References: <20260612170225.1063902-1-sudeep.holla@kernel.org>
- <4e2d023b-c651-4a80-ba14-3c66cd209214@huawei.com>
- <20260618-discreet-sparkling-dragon-7df7b2@sudeepholla>
-From: "lihuisong (C)" <lihuisong@huawei.com>
-In-Reply-To: <20260618-discreet-sparkling-dragon-7df7b2@sudeepholla>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
- kwepemo100005.china.huawei.com (7.202.195.212)
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: GV2PR04MB11799:EE_|VI0PR04MB12304:EE_
+X-MS-Office365-Filtering-Correlation-Id: 405d701b-e857-4eb8-19b3-08ded06ad240
+X-LD-Processed: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+ BCL:0;ARA:13230040|19092799006|366016|23010399003|1800799024|376014|7416014|921020|11063799006|56012099006|18002099003;
+X-Microsoft-Antispam-Message-Info:
+ VZP/jHyEARBZx7uS0yr55HchgzWNujDORZh4yTDuVLJMuItRUOhT4I1sz6HNRI4UTG1v0GthWKfa4xIKp7ISNCY4IS8fDc/MZ6TZyETJ+RhsTE0Z1pZq6I7l5tbCGSNKrudC+rD4gTEjfE/kKA+hQeRSgiYjrLkV388ZgQvsoNlwZS6uFx83huOYCUfHl/W5OR8xHw/i7nEyfBpjP8NEj9PEKyEkaCuWrwg4J0qwq8kOFJJQBUUXqRNG9m1SWmiB30RkkEdd2JCOJIlalZvTsRoofyXTNeHFuTCVgGcS92ImNNXJxpU01BCQfBKp/fWdBX9XrpGGWP/t0mpyEwe8Ty+1KpXOTs3p+qoZpMEanYXbKyH8pg13yv1yqU6QzG3ELGM1yYYzJFJXzEB4vFZbL21eP3A7tf/qS11wlLVI/i2e42LqdxMIEZD1jikiY2wLkKOQJsMV53+ZQ2ntN0stAQNZ7TvN/9v5FlaOjbxD3fOartYrbueILepzr+EwWhPN7BxZSx4tsldfjXt/kwD9g4TF0oEUBDLGS2eDPupNlC/IDJwwkNCZXq4xVB2GCY3kOOy/RZMagonTvdXt1BE11kDYbPinuAB6CDK0upAuO5ZG6g0Xa9OCPX+IG7uxkotGAtpXn2ILHyJXWmINQ51OMeaYuN9kzUpvANfxWMWA5u/YqHCeFims9ZXQUKTinRvj8r/8eNvFrU5UWV9LGWew3g==
+X-Forefront-Antispam-Report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:GV2PR04MB11799.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(19092799006)(366016)(23010399003)(1800799024)(376014)(7416014)(921020)(11063799006)(56012099006)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+ =?utf-8?B?eHZzT01ZekVSWW1SQ0UzNzQ5SEtuRGROWVJPaVI0NklkMSsvTlV6aCsvZEwy?=
+ =?utf-8?B?dDRKVUExaWF4c3crTDJ0VEJVODNlRktOT3ZiNUFTRzJ5MjhIWE5seTcxZmFG?=
+ =?utf-8?B?SlhpY2FFbUJJTmlwcktDaSt4NmQ2cjZtVHI0cGVLa2lCUWdrVk5FMytjUVpP?=
+ =?utf-8?B?Zy9EVDBBMDZnSHdPTjJmYk4vbVBaNjhxdTRDQnRhbWFYajZyUjc2Ly96dTdR?=
+ =?utf-8?B?UnAyYmpwdk50NlVFSGFpV2s4YTU3bG1ia2hYaVQ4SU5Fem1wNHh6OGF5aFlQ?=
+ =?utf-8?B?MnpjcTEzdWEwTEx0WXpSaDJOcXJsSURscUUrelI1eDdOajRPUkQ3VjF5dC9T?=
+ =?utf-8?B?MmxWb21lYmo2cnJYNG4vM3luemUxVzh5dHhURzdLOE5yaFFaQWgxREVGWWJN?=
+ =?utf-8?B?MENrOG9aTmV1VUcxZXAxMGxWR3UxQ3lzS1JtQ08rcUZzbUdRQ1Z1a2NsL3dF?=
+ =?utf-8?B?dmJBYlVWRkRNOFU5RkZyZ0RvSmZIRTg2a0Q1Y1QwZzR4R2p6T3cwV2hCeldy?=
+ =?utf-8?B?c1pSRVNJVzloSW9wL2RrNmZMVXB5by8waWFxTjgyWWV4ZGhqUitBVnpZdUtp?=
+ =?utf-8?B?SjhlNnZOZm1HUmM2ME53OXFlRUtTeG9OdS9jQ0ZTM2VFbUxyQncwM0xoYVZk?=
+ =?utf-8?B?QXd5WUdvSXlYWUZtcUJ6VHJVMHRPQmZpUE9HMUFNaU9ES05HaGw4Yms5NXFX?=
+ =?utf-8?B?aEJYTzZlVDlCM1JLMUpxL1UvaElEMjE1QmNERzNHK0VDV1BzOHJ6Z0hZWGlG?=
+ =?utf-8?B?M3h3VitrbW52QU85TU5ZQW9zY0xpOEd0MFhjaGZXUS9XdjVIRUNCUDJiZ1Zy?=
+ =?utf-8?B?dXppZ2Vqbi83U0Q1Yi9oRm1yWjN1NDBjamlzbzZhWlhpR0tYZHljWHk4d3Fa?=
+ =?utf-8?B?cjByR1ZJekd2akJxMkN3TGd6WnpVdkhPT0FueHFhTUI4bStvYld4emFnQy9x?=
+ =?utf-8?B?czBnWmlQOEdLY1hlUHNLVjlSYXJ2a2krNGJsS3dEQjJxTWtjVzdxc3ZKNXB1?=
+ =?utf-8?B?MXVUZFRJeVI5N3Rta2R2clFYWjlNTStLSVBpVThZSU5IQ3FTMEttS1E2T3hF?=
+ =?utf-8?B?SDlJOTkxMDIrWE9uZXNiY1hOWWhNS255OFJ5c3BYVThGcHE4MkpYdXA3bEZv?=
+ =?utf-8?B?aktVK25OWDdySXVXdkNETFVJWDRiOXk2bmM5bHBBckRLUUtSZFYxSlkzV3dL?=
+ =?utf-8?B?N3V6NTVwSUxmLzNTZXlpNGsydlg5c2JlV2NGK3M5SnNONlptMTlFblQ3SGho?=
+ =?utf-8?B?WS9WdjNWeHV1RmNRUzloZnFiS3ZoQUp1YXk1M3BZaGI5TmZVeS9nMDk1NXZq?=
+ =?utf-8?B?NUg1b0hJZ3d2dlkzNGJxTGUzYkVXM0xjcGpjNnBLOGJIVXhlUXhBSEhSaFAx?=
+ =?utf-8?B?SUxnMXpLUjBKS0dtNFRTaWM2ZXUxSzdncjJrUmEvTlZrNEw1S0dCQjBsRmxP?=
+ =?utf-8?B?bHFyMzlyZGFacXltTlF0NWxNRWxQQWNkSWpxZGtWTnpRZjdHZE1seEJzNWJm?=
+ =?utf-8?B?WGxjYUVHcC9GZS9LUXRlcGYySzFjVnpiTUZNR1BSUHdHcFlSLzJLV01JdUh0?=
+ =?utf-8?B?ZkQwUUZlUlBhemhUeEhNUW1zUTU4QzQ5Y2R6NHdmRitNaTRyQ0E5REdQaEJr?=
+ =?utf-8?B?d3hDUjdrRUhrTXI2aXNCdnYrN0V0SnJ5L0hUZXNMdW8wQnBnYkxLbGJXQVpS?=
+ =?utf-8?B?S29henpBZll1K0M4N0JIOWVhUHZoWUhFdzZmNnMxdkU1eElMbUlaMHp6Z3J1?=
+ =?utf-8?B?Y3ZUais0aGNZRGQ3RVFwWUxwNVAwQUJhV3IrNzY4NWlJT3lzYUtUZm10Y3VN?=
+ =?utf-8?B?OW13eW5nUVdEbEFROUtHRnllcnRwcmJCYWRyUGNVWGRZdU5Yb3RtMC94a2JC?=
+ =?utf-8?B?UmRHQ0ZwMy9aaUFOZGRiUmxwWkFrRzFHNHpRNkQ1VHQ4aDFyLzl3VGlBV0xI?=
+ =?utf-8?B?L0R4ZnpBWHV4UmVVaFpwalZyZzJwbkJTSXNXUkVSUTVGV1VDdWV0Z1FhaHh3?=
+ =?utf-8?B?MklMcWtkS0l4S1ZhM0psV21Ha2MzU3Npb3F5NUlNcFd4NTJnZWY2SHhXSlhR?=
+ =?utf-8?B?OFMzYnRMRlZtR2REdjBCR2JUTWtmRm1aSWE2bVVPNUlUZTlGWnZzLzJuNDJq?=
+ =?utf-8?B?S2E3VGRjZGVnZFd0Uy9WcGlRWXlqdW1yYW4zOFdlR1UzYmlNY1FYc0p5QTA0?=
+ =?utf-8?B?dlc4WUdwYXJzTlMyY1ByOEhjK3p0YnhwaVd1akYzOU53cnhVSml0SXdNZGQ2?=
+ =?utf-8?B?WHFIU2NTcXNpWWIrOWQ0RUJBRy9TNms5dGxUaFZCOW0xQVR0YWFFdklFVmJ5?=
+ =?utf-8?B?S3ZOMnEzL281bVJ5Q0lFUnJ2U1dtbUJxdjkvSk9SRzhtVHMwTHJuNzk2NzB4?=
+ =?utf-8?Q?v5aO24msCiXmGVtc=3D?=
+X-OriginatorOrg: oss.nxp.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 405d701b-e857-4eb8-19b3-08ded06ad240
+X-MS-Exchange-CrossTenant-AuthSource: GV2PR04MB11799.eurprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Jun 2026 14:30:34.8087
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: aiNVLTbwwp+j5Iw/WZgeGLPsnKbSCMwnN7SkG9C2+UK70jPQgQ+XBxxWH7Zdopto2WCBfaCoJxYzm1GjBkDJxDr7bOWOF6R8G48TfPQpoOg899ffVZGg//tJBuORw05D
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI0PR04MB12304
 
+Add new helper macro fwnode_graph_for_each_endpoint_scoped() and use it
+simplify media code.
 
-On 6/18/2026 8:06 PM, Sudeep Holla wrote:
-> On Thu, Jun 18, 2026 at 10:04:12AM +0800, lihuisong (C) wrote:
->> Hi Sudeep,
->>
->> On 6/13/2026 1:02 AM, Sudeep Holla wrote:
->>> PCC channels without a platform interrupt rely on the mailbox
->>> polling path to detect command completion.
->>>
->>> That path currently only reports transmit completion to the mailbox
->>> core, so clients that wait for their receive callback do not get
->>> notified when the command completes.
->>>
->>> Call mbox_chan_received_data() when polling observes completion on a
->>> channel without a platform IRQ, matching the interrupt-driven
->>> completion path.
->>>
->>> Reported-by: Cristian Marussi <cristian.marussi@arm.com>
->>> Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
->>> ---
->>>    drivers/mailbox/pcc.c | 7 ++++++-
->>>    1 file changed, 6 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
->>> index 636879ae1db7..7c9451ab4527 100644
->>> --- a/drivers/mailbox/pcc.c
->>> +++ b/drivers/mailbox/pcc.c
->>> @@ -447,9 +447,14 @@ static int pcc_send_data(struct mbox_chan *chan, void *data)
->>>    static bool pcc_last_tx_done(struct mbox_chan *chan)
->>>    {
->>> +	bool ret;
->>>    	struct pcc_chan_info *pchan = chan->con_priv;
->>> -	return pcc_mbox_cmd_complete_check(pchan);
->>> +	ret = pcc_mbox_cmd_complete_check(pchan);
->>> +	if (ret && !pchan->plat_irq)
->>> +		mbox_chan_received_data(chan, NULL);
->>> +
->>> +	return ret;
->>>    }
->> The mailbox_controller.h said that .last_tx_done() is used only if
->> txdone_poll:=true && txdone_irq:=false.
->> How about add a verification at the begining of this function? like "if
->> (chan->txdone_method != MBOX_TXDONE_BY_POLL) return false;"
->> And then call mbox_chan_received_data() directly if command completed.
->>
-> Thanks, it does makes sense to me. I will have look.
->
->> This patch is ok to me if has above changes.
->> Acked-by: lihuisong@huawei.com
->>
->>
->> But pcc mbox controller can no longer work in MBOX_TXDONE_BY_ACK after your
->> commit:
->> 3349f800609e (mailbox: pcc: Set txdone_irq/txdone_poll based on PCCT flags).
->> This may lead to above client drivers fail to send mailbox command, like
->> cppc_acpi,hisi_uncore_freq and kunpeng_hccs.
->> Because these client driver knows tx_done(knows_txdone: true), work on this
->> mode and need to call mbox_client_txdone.
->> Do you have some idea for this?
-> I wonder if we can ask the platform to avoid generating interrupts in those
-> case by setting/clearing "Notify on completion" in shmem. Do you think that
-> would work ?
-These drivers didn't work on interrupt mode.
-They poll the complete status of command.
->
+Typical example should qualcomm's driver (camss.c), the v4l2_mc.c and
+rkisp1-dev.c only silience improvement.
+
+Anyways, *_for_each_*_scoped() already use widely and make code clean.
+
+Build test only.
+
+Sakari Ailus:
+	when I try to improve the patch
+"Add common helper library for 1-to-1 subdev registration", I found need
+camss.c pattern, so I create this small improvement firstly.
+
+Signed-off-by: Frank Li <Frank.Li@nxp.com>
+---
+Frank Li (4):
+      device property: Introduce fwnode_graph_for_each_endpoint_scoped()
+      media: mc: use fwnode_graph_for_each_endpoint_scoped() to simpilfy code
+      media: rkisp1: use fwnode_graph_for_each_endpoint_scoped() to simplify code
+      media: qcom: camss: use fwnode_graph_for_each_endpoint_scoped() to simpifly code
+
+ drivers/media/platform/qcom/camss/camss.c           | 17 +++++------------
+ drivers/media/platform/rockchip/rkisp1/rkisp1-dev.c |  4 +---
+ drivers/media/v4l2-core/v4l2-mc.c                   |  5 +----
+ include/linux/property.h                            |  5 +++++
+ 4 files changed, 12 insertions(+), 19 deletions(-)
+---
+base-commit: 3ce97bd3c4f18608335e709c24d6a40e7036cab8
+change-id: 20260620-fw_scoped-5dab644510a1
+
+Best regards,
+--  
+Frank Li <Frank.Li@nxp.com>
+
