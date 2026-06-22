@@ -1,140 +1,203 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3BF2359A68;
-	Mon, 22 Jun 2026 09:49:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32D3437187F
+	for <linux-acpi@vger.kernel.org>; Mon, 22 Jun 2026 12:01:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782121754; cv=none; b=tYE/cxLhGjlag92HqZ1BSV+ocuw+w8WyOhLhEqiSeQ8KgHcsLIGuZ8rS/zb1D1MEWo47cmAZ0pxKqGbrwI1dTQTfPAP7Pa/ZGiQGZ6Gyd3E0VjjwD3sTeAovSvtvplYiVF1Yx7FqB+f+rpXaHHFtmbM4pTkv3oa1fF68vU1VASQ=
+	t=1782129694; cv=none; b=aLvVl7FA/+zCe/os5WXs0gVDWC6AatZ/QczbguoGPrR4WOJMLPYyB7Po3vuXJjA4eEg+bDiCS8j+jYO99pYFdLUH/SeLYssau1minrBW/H89TnkvxhofyYyjSGf6DdfeldvQAWigqlNqhzITVfHMJ+0SJpT2uGdW4LJR4t7REMY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782121754; c=relaxed/simple;
-	bh=MB67wjo11zSyIcV/A0s8gJHujpIPJgHYQedDt2GBch0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WhjQKuGXiP78ZDvATdkK5UvuAF2IB+T3vKIFfed0jGCLzKQw0M/DytF+xPKxFMTlxE8JxuSvPhQtwSGjON7QJ/s6vFGeb3lvZd1fvc+nFG5/TnrHnkDd91aU3b9iBkSvcR7APUp7yR5b6fS+4jU76nLDBKOklZL64Ifs2jHJaL4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ro+wwemI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782129694; c=relaxed/simple;
+	bh=w06c/yEjW3DUOtwyWrE0AS+OGg0r41Ows2FCMuTL+dk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=pWNHvHB+cgrNB12JMYHdPUPOuGB5sxjcZmXOVQLS316ylA0pp5x8bbNdeWXCd6nQmpsn7IwqrCk3rb+AZA1weGAwa6rCyNuUCKgqVX2s6LzH0Av2SNIfinCEwbLIIvNuIVWn4RMnfGzD9dP4EMipFLRsw8SsQxuJzS4BtxxhrO4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=cp1cLAx2; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=hGSa7Ow0; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=cp1cLAx2; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=hGSa7Ow0; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ro+wwemI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69E281F00A3A;
-	Mon, 22 Jun 2026 09:49:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782121753;
-	bh=jiUK4zqlgPufMf5KeLuWGqbjOdMtUleMUc6fesqkDDY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Ro+wwemIX5Rnl9nAhj+phv88wYwnNld218ormKKPUv87BSnNLRpu9D4ciAcUA/9aV
-	 kV4TvSmy+7jhFDP2oTR+Exc2QVRYoubH/yPD+VaTIMWT8VS/+p61VDFEaJPz++o8ne
-	 kE9+3EKuoxURhelikJG9QDtIfxSkA0IT0eQUNH3RkoSTQU2Zt2RTfro5W1PVopTbiG
-	 o41jD0WHJSDAZsV0Qj/arNHOdzJ2xoX9m2yvWfcQ8esxEH4ixQZ71B46G1ovm8h7h/
-	 jVkEtJYrAXXnNEVq2SI1M44qgHwVIrCtuDv1A8wENZIgx2URMumPdgLlDT6YI543Sf
-	 g4qAHZKxjQLsg==
-Date: Mon, 22 Jun 2026 11:49:07 +0200
-From: Lorenzo Pieralisi <lpieralisi@kernel.org>
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: Will Deacon <will@kernel.org>, Yu Peng <pengyu@kylinos.cn>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	linux-arm-kernel@lists.infradead.org,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org,
-	linux-kernel@vger.kernel.org, sudeep.holla@kernel.org
-Subject: Re: [RFC] arm64: early_ioremap fails to map ACPI MADT on 64K pages
-Message-ID: <ajkFE6TmwW6B/huP@lpieralisi>
-References: <20260617060110.2846851-1-pengyu@kylinos.cn>
- <ajVVfnGIq_6zt2jC@willie-the-truck>
- <3cceb66d-4496-1a46-60ab-f43b0669fb71@huawei.com>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="cp1cLAx2";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="hGSa7Ow0";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="cp1cLAx2";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="hGSa7Ow0"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 7A22F75A1E;
+	Mon, 22 Jun 2026 12:01:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1782129691; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=RLYrrlUTwElRkEosQhItc0YYK/0FTyGYN4Ess53CiUo=;
+	b=cp1cLAx2OgGlqJpkCvTFbV9hShgjUS1USyXNPKWjE9EF7eFqI2TKnoIw12eOsVIq5SZmkw
+	iBiwt5qg1shHveiDmVJqHZW/qXUok5flIEkYME6Bb+CrJnrLFNviTXJMkSMD8onf6GmH+W
+	DJdgsslTkldsZcpgbk3Hpjf95SUkAXw=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1782129691;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=RLYrrlUTwElRkEosQhItc0YYK/0FTyGYN4Ess53CiUo=;
+	b=hGSa7Ow03F0nhFECiIY2e8SuStbXo2rEFkkOWALHE/hHy3eppXQDKc2WugzX7K4iODiN5v
+	+QeBukr4IJLUYyAA==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=cp1cLAx2;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=hGSa7Ow0
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1782129691; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=RLYrrlUTwElRkEosQhItc0YYK/0FTyGYN4Ess53CiUo=;
+	b=cp1cLAx2OgGlqJpkCvTFbV9hShgjUS1USyXNPKWjE9EF7eFqI2TKnoIw12eOsVIq5SZmkw
+	iBiwt5qg1shHveiDmVJqHZW/qXUok5flIEkYME6Bb+CrJnrLFNviTXJMkSMD8onf6GmH+W
+	DJdgsslTkldsZcpgbk3Hpjf95SUkAXw=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1782129691;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=RLYrrlUTwElRkEosQhItc0YYK/0FTyGYN4Ess53CiUo=;
+	b=hGSa7Ow03F0nhFECiIY2e8SuStbXo2rEFkkOWALHE/hHy3eppXQDKc2WugzX7K4iODiN5v
+	+QeBukr4IJLUYyAA==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 57E88779A8;
+	Mon, 22 Jun 2026 12:01:31 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id hdpEFBskOWr4TAAAD6G6ig
+	(envelope-from <trenn@suse.de>); Mon, 22 Jun 2026 12:01:31 +0000
+From: Thomas Renninger <trenn@suse.de>
+To: "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Jiri Slaby <jirislaby@kernel.org>,
+ Kees Cook <kees@kernel.org>
+Subject:
+ Re: [PATCH] Revert "ACPICA: Replace strncpy() with strscpy_pad() in
+ acpi_ut_safe_strncpy()"
+Date: Mon, 22 Jun 2026 14:01:30 +0200
+Message-ID: <2799887.obQ9GjlxrE@laptop.fritz.box>
+Organization: SUSE Software Solutions Germany GmbH
+In-Reply-To:
+ <CAJZ5v0i5G00LX9a5+DiH=RfTEmCK39ZUhxk3pwTzimuc4==Ckg@mail.gmail.com>
+References:
+ <20260617075633.534689-1-trenn@suse.de>
+ <CAJZ5v0hOZs3TMgdCc+cfK_TVbmDj6z=PTYcDmdqtrZWhHOHG+w@mail.gmail.com>
+ <CAJZ5v0i5G00LX9a5+DiH=RfTEmCK39ZUhxk3pwTzimuc4==Ckg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3cceb66d-4496-1a46-60ab-f43b0669fb71@huawei.com>
+Content-Type: multipart/signed; boundary="nextPart2778970.sy0gbHreEd";
+ micalg="pgp-sha256"; protocol="application/pgp-signature"
+X-Rspamd-Action: no action
+X-Rspamd-Queue-Id: 7A22F75A1E
+X-Spam-Flag: NO
+X-Spam-Score: -6.61
+X-Spam-Level: 
+X-Spamd-Result: default: False [-6.61 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	SIGNED_PGP(-2.00)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	MIME_GOOD(-0.20)[multipart/signed,text/plain];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MX_GOOD(-0.01)[];
+	TO_DN_SOME(0.00)[];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	MIME_TRACE(0.00)[0:+,1:+,2:~];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	ARC_NA(0.00)[];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	HAS_ORG_HEADER(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	RCPT_COUNT_FIVE(0.00)[5];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	RCVD_COUNT_TWO(0.00)[2];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	DKIM_TRACE(0.00)[suse.de:+];
+	MISSING_XM_UA(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.de:email,suse.de:dkim,suse.com:email]
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
 
-On Mon, Jun 22, 2026 at 04:55:29PM +0800, Hanjun Guo wrote:
-> On 2026/6/19 22:43, Will Deacon wrote:
-> > +arm64 ACPI maintainers
-> > 
-> > On Wed, Jun 17, 2026 at 02:01:10PM +0800, Yu Peng wrote:
-> > > I hit an early boot failure on an arm64 system built with 64K pages while
-> > > parsing the ACPI MADT.
-> > > 
-> > > The failing system reports:
-> > > 
-> > >    PAGE_SIZE: 64K
-> > >    MADT physical address: 0x5a7ae018
-> > >    MADT length: 0x32094
-> > 
-> > The MADT isn't even 4k aligned, so why does the page size matter in this
-> > case?
-> > 
-> > > The failure happens when acpi_table_parse_madt() calls into early_memremap()
-> > > via __acpi_map_table(). The MADT itself is smaller than 256K, but its
-> > > placement causes the early mapping to require 5 64K pages:
-> > > 
-> > >    offset within 64K page = 0x5a7ae018 & 0xffff = 0xe018
-> > >    mapped range           = PAGE_ALIGN(0xe018 + 0x32094)
-> > >                           = PAGE_ALIGN(0x400ac)
-> > >                           = 0x50000
-> > >    nrpages                = 0x50000 / 0x10000 = 5
-> > > 
-> > > On arm64, NR_FIX_BTMAPS is currently derived from a 256K per-slot budget:
-> > > 
-> > >    #define NR_FIX_BTMAPS        (SZ_256K / PAGE_SIZE)
-> > > 
-> > > So for 64K pages, NR_FIX_BTMAPS is 4. The mapping therefore fails the
-> > > early_ioremap() check:
-> > > 
-> > >    if (WARN_ON(nrpages > NR_FIX_BTMAPS))
-> > >            return NULL;
-> > > 
-> > > After that, MADT parsing fails and the boot continues with symptoms such as:
-> > > 
-> > >    ACPI: APIC not present
-> > >    missing boot CPU MPIDR, not enabling secondaries
-> > >    Kernel panic - not syncing: No interrupt controller found.
-> > > 
-> > > A firmware change can avoid this by placing MADT so that:
-> > > 
-> > >    (madt_phys & 0xffff) + madt_length <= SZ_256K
-> > > 
-> > > However, I do not think ACPI requires such placement, so this looks like a
-> > > kernel-side robustness issue as well, especially on large arm64 systems where
-> > > MADT can grow with CPU topology.
-> > > 
-> > > One possible kernel-side change is to increase the boot-time mapping budget for
-> > > CONFIG_ARM64_64K_PAGES, for example using a 512K per-slot budget only in that
-> > > configuration. I do not think this should be applied unconditionally to all
-> > > page sizes, since the arm64 early fixmap code expects the boot-ioremap range
-> > > to stay within one PMD.
-> > > 
-> > > Has anyone seen similar failures on arm64 64K systems?
+--nextPart2778970.sy0gbHreEd
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"; protected-headers="v1"
+From: Thomas Renninger <trenn@suse.de>
+Date: Mon, 22 Jun 2026 14:01:30 +0200
+Message-ID: <2799887.obQ9GjlxrE@laptop.fritz.box>
+Organization: SUSE Software Solutions Germany GmbH
+MIME-Version: 1.0
 
-First bug report I am aware of, perhaps this was papered over in FW,
-MADT parsing failure is the first thing you would notice in bootstrapping
-an ACPI system (FADT is not that big).
+On Sonntag, 21. Juni 2026 19:38:06 Mitteleurop=C3=A4ische Sommerzeit Rafael=
+ J.=20
+Wysocki wrote:
+> On Wed, Jun 17, 2026 at 8:31=E2=80=AFPM Rafael J. Wysocki <rafael@kernel.=
+org> wrote:
+> > On Wed, Jun 17, 2026 at 11:25=E2=80=AFAM Thomas Renninger <trenn@suse.d=
+e> wrote:
+> > > This reverts commit 97f7d3f9c9acb70d4eef7bcdef3218823d142733.
+> > >=20
+> > > acpica has it's own safe strncpy function: acpi_ut_safe_strncpy
+> > > and must not use kernel's strscpy_pad.
+> > >=20
+> > > Closes:
+> > > https://lore.kernel.org/all/79e9e913-0fb1-4110-804b-c3b5d0edafe4@kern=
+el
+> > > .org Reported-and-tested-by: Jiri Slaby <jirislaby@kernel.org>
+> > > Signed-off-by: Thomas Renninger <trenn@suse.com>
+> >=20
+> > Applied as 7.2-rc material, but I wrote a new changelog for it.
+>=20
+> And dropped because of
+>=20
+> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit=
+/?i
+> d=3D1a3746ccbb0a97bed3c06ccde6b880013b1dddc1
+>=20
+> The acpidump build breakage will need to be addressed in a different way.
+>=20
+> I'll take care of this next week unless someone beats me to it.
 
-> > > 
-> > > Would maintainers prefer treating this as a firmware layout issue, or would
-> > > increasing the early_ioremap budget for 64K pages be acceptable?
-> > 
-> > It think it boils down to what ACPI says about the alignment of the MADT.
-> 
-> I checked the ACPI spec and it didn't require the alignment for ACPI
-> tables, but in UEFI spec, it says (for aarch64):
-> 
-> ACPI Tables loaded at boot time can be contained in memory of type
-> EfiACPIReclaimMemory (recommended) or EfiACPIMemoryNVS.
-> 
-> EFI memory descriptors of type EfiACPIReclaimMemory and EfiACPIMemoryNVS
-> must be aligned on a 4 KiB boundary and must be a multiple of 4 KiB in
-> size.
-> 
-> It only requires EfiACPIReclaimMemory type to be 4K aligned, not
-> for each ACPI table, because ACPI tables can be packed into the
-> allocated EfiACPIReclaimMemory type, correct me if I'm wrong!
+In case you agree with, you might want to take this one:
+https://github.com/acpica/acpica/pull/1203/changes
 
-I am afraid you are not wrong - we can't blame firmware (yet), this
-has to be addressed.
+Robert seem to have retired (his mail came back)? Please advise if one (I)=
+=20
+still have to add/push someone so that this all gets synced from acpica dow=
+n=20
+to the kernel.
 
-Lorenzo
+Thanks,
+
+        Thomas
+
+--nextPart2778970.sy0gbHreEd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEo0EXulPW3gW/5bAoTxjWwdl3vVUFAmo5JBoACgkQTxjWwdl3
+vVU/xggAnEbYZ8P85burDtzt3K69koNRmKodu1v9RQGUt+a/h96M4Ux2CqYXy1iS
+LfafStg0I3/Ig3RSI/Bxwh5ry70XW/4ta/+1lxzlRFcaH0nx13XeGdeJJKTabalb
+jCJjbxLaf35iK63AIKqd2gNL/cfxkYsw7cblXyj0I2PFGAgcZ15NrMbuMsOudVCf
+KkRiRm8ktAc+aNG6YlTh1GyI0jwMAynt7UcEEDvB5Vf9OgrJ+xJwqcuojKlt7oup
+acZaCJr2asToodl6BG/Uf2awxFSVTN/c33f07YF1rywLKaofbRpwFtKkZGdrOopv
+OBtezkY8xFIEH6mdGGiTbTJx0hvCzA==
+=LZEc
+-----END PGP SIGNATURE-----
+
+--nextPart2778970.sy0gbHreEd--
+
+
+
