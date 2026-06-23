@@ -1,83 +1,83 @@
 Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE1793659F9
-	for <linux-acpi@vger.kernel.org>; Tue, 23 Jun 2026 14:52:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FF053D6472
+	for <linux-acpi@vger.kernel.org>; Tue, 23 Jun 2026 14:52:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782226360; cv=none; b=AKzKvKOqeDytzGSPUy1iT+MRjyUe6mFPAhWC+4Nxz5dahTA0DZY4TXJXsjxi6f9oiOvP419ZR5I+61gxh774jpgSrT50ZQeTKwH22XybUWR7nuQ1inRtuJesWQrq1XaeHdGFDc9RdJROo3owUA+K4LfBN+apgSKntJBcLn/E7ms=
+	t=1782226361; cv=none; b=uY1gN5mGJymDt0MAmiSczfTwuzCAeGzkn9RmtGTsCaOCrTyOD7Nhh2YChBVoGtfXl4h0n6OIVvOv/DOmbZMAllTDRXEpzjyk8oOasTOKcA/Ny4hfq+NTcgGAqenWzYAVYDUZNVjSs/y9HMoHvKXp34XDzlChLLwahHDFoyFKKfQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782226360; c=relaxed/simple;
-	bh=gs/hzEwhAJ+r7pTjkeMeBtJvWM1dkzXQiQwCXPXmifw=;
+	s=arc-20240116; t=1782226361; c=relaxed/simple;
+	bh=CADuPPHBFTGamZXiLDVwfcLPxeezA49Zbw+re0HVbOI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=DA22ImX/E96NeojjDJDdMJDg4Zrfiaovh5sCWzN9p5e5o9SYfKOoDruyy+RYpxHdwq6WyULq6Brm6NsMpRhohwcr7M4V6i6CFMm+i2Lj3tGLMurKvAgwPgDPfG/Elywgb0RY92Rqg1s1bvlDFTQDcubziYc/0TPdMHL566BrL5k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=SepkRtGD; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=ZL+byM1J; arc=none smtp.client-ip=205.220.180.131
+	 MIME-Version; b=RS1Hj6WUSfALxPZEKVUQ8V6ek3hpeLBNbRhKh9SCJC7k+FB8aVJ7NJiH5kGZLa/3ojz9DQ0TXghyTuterPTlnA+6GQTrIQRXx2Qhm00s0iUM/JUZiJLaewmWt5eflz12+lAZ5Jsg9ubtUhze2Y3znYI2aH9lI/3m07MNJP/gIlk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=HLwOCHlm; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=aCkni6Wo; arc=none smtp.client-ip=205.220.180.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="SepkRtGD";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="ZL+byM1J"
-Received: from pps.filterd (m0279873.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 65NBZ9KE030875
-	for <linux-acpi@vger.kernel.org>; Tue, 23 Jun 2026 14:52:37 GMT
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="HLwOCHlm";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="aCkni6Wo"
+Received: from pps.filterd (m0279871.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 65NDG4nw273254
+	for <linux-acpi@vger.kernel.org>; Tue, 23 Jun 2026 14:52:39 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
 	cc:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=qcppdkim1; bh=KGi2wSuhgMr
-	bNgIYWEFeuPYzY4mJULYGKSBHEKbMvdI=; b=SepkRtGDsmdMlBIxRFG+aBuiFna
-	olP8tlOWHqeedM4SJohjMVZ8onn509o9SK0GVISm1xwkiS5+RkZOmB3LG5v4ie/1
-	D5U0DPdUTFMpkm28EsfuU/rpl2moeHfJ7DDyLu97M35hPD0CNRkZjyHitupEXGDN
-	pVUF2x1m4bsVYeHKJ8d76AOI8h1AxMGAwR0H6EURR7tWNbydMaaDP/wCmQPLd2yb
-	FM22AG2H8aEOUvQ1yPTd/oc+ezMm2tXHufDMbcLwwbTBIhhy2m9sBO3t2HWmmLqk
-	uzoMtuiByL5a5ljU1m0K3f12iHROOWRe865J8zo1CoHZDr+S/VmVhqehq8w==
+	:mime-version:references:subject:to; s=qcppdkim1; bh=B0ZrDubUMv3
+	UsfDfx0OoaWw1HQVC6S6Wq7xyx/eBxqU=; b=HLwOCHlmT0pbctt3AL2B4KECHEQ
+	z96FH19Yupn/8HcDB6GeB3eXnyFaMGwi6N8bB5k6xClW5CECYyF/NQMH3JIkVlR1
+	gzfkY9lCq7iv6eAQx9hlCNbJCoh/guJmGx64+vcKzJAch5gd/htA0lGUhbz63F4S
+	ZO6BOPNCU+9/e5COQ0IiG7f53GfeVmwvB0Nfx1jRxDMOBQeLw32KZD6br02NS168
+	0dqWIIMC1kD/YC148Oaagg/wO0Cc/3rokwys9bXWAHhh7RB2UwodpiPskui3dcG9
+	lnfZNV0SlH3tF8NZAt9ghefIOvEJRHBoTxbqFT0H8piATX1wvn/SLH1yNDA==
 Received: from mail-ua1-f71.google.com (mail-ua1-f71.google.com [209.85.222.71])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4eyqe69chj-1
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4eytvh0f7j-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Tue, 23 Jun 2026 14:52:37 +0000 (GMT)
-Received: by mail-ua1-f71.google.com with SMTP id a1e0cc1a2514c-96388871d70so5802485241.2
-        for <linux-acpi@vger.kernel.org>; Tue, 23 Jun 2026 07:52:37 -0700 (PDT)
+	for <linux-acpi@vger.kernel.org>; Tue, 23 Jun 2026 14:52:39 +0000 (GMT)
+Received: by mail-ua1-f71.google.com with SMTP id a1e0cc1a2514c-967109471dfso3350081241.2
+        for <linux-acpi@vger.kernel.org>; Tue, 23 Jun 2026 07:52:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1782226357; x=1782831157; darn=vger.kernel.org;
+        d=oss.qualcomm.com; s=google; t=1782226359; x=1782831159; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=KGi2wSuhgMrbNgIYWEFeuPYzY4mJULYGKSBHEKbMvdI=;
-        b=ZL+byM1JECDRM2AgtDD87pFTsJ6Z7EJVIlD8OF0gbHGD5Uoo2RprE4xvaeQ0tqp1J+
-         vdFj6boW4UqWaauSZrA/xcaoTMOxrMuthGNyLYJhASGy4lT+v1/sZ9aEFVMfS04ABrbo
-         asLLnmhNj5bgFesRyNsbyfO+hA6fp1gcnTsePoMlN9iFA0oSdDNIbFRyR5IvLNfAqG5t
-         f6xeu4rSZtSQ4AzvML4k0kTwutuSv6tL1hhrGFW4zpwKYWLh+9JYfVIuWjrs5GhnimkX
-         06IRZTOSl9HttSR4RF5rZfBS+yAQY+iDrPdIfzsKaHRf5bkQcly6wo8CTzrp0EXd+R2g
-         lidQ==
+        bh=B0ZrDubUMv3UsfDfx0OoaWw1HQVC6S6Wq7xyx/eBxqU=;
+        b=aCkni6Wowpnyv70PEFDJ0DioLdG/4w5YDT1kGSYVPqtocTORXrfN785nwRVlTxEvGv
+         jXCuSRlPCeLPOhfJNYPIdvOowa/rvcyGwNKIm093qh7b2pV+0eozVIMoXX4oBFFv7qi5
+         bcU+zO4yFWI3v6fzPRlrsdagx0fL5LR+nyCM5IqJKBM7VAum+un9BeXBeXyHfJyBHRyJ
+         RSPOxj1rjR6355DKkV4WYCb/4JwcDnwtVIaOTXcVyTb3D7COsCg54WKQiSlztMKZlKmh
+         974WalAUSgvZBK60xl8B5YOmn8ZwAifv4NqxoL+F2NAqvR15usvCR65q26YSiUjA98gm
+         cBSQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782226357; x=1782831157;
+        d=1e100.net; s=20251104; t=1782226359; x=1782831159;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=KGi2wSuhgMrbNgIYWEFeuPYzY4mJULYGKSBHEKbMvdI=;
-        b=dvjEnrbECc2+nVi2kDFTJWJRZJFFwqInZpjwsInq8ai6jygFbiETWs4v+n70BM2uWr
-         ztIjddPrzexl7Z0Wf68+HjEuhUW7mBXLedp7icWeULuzjUD7SfNP5ZP6Ezj9FkFINFoG
-         MDK7RY+mZ6phFu0SRu9opLMoJzNFWZpy/Kk0UuD7IfGyucGuaFV+zPc/6sN8/Pt/jsw3
-         1JmxjpJO1hONlljYUTYE29pRWm+7FKcOp94J1ypU4z7D7hFrb+okwdArHNEV7RpJmYdp
-         UUZXEd20/MVpvTVVryDmVbo7PT1UvwJ19JJDFjD3dmP/L9tiRU3/8oSwq2S5x1Yv06jp
-         iOtg==
-X-Forwarded-Encrypted: i=1; AFNElJ/NhhudguO7iRrY+ulS77/9YpkhNpinE548Qs5WJcfWCuLxPF9bPhMyFoLzhQnUmO1GriA2b76Y8+j5@vger.kernel.org
-X-Gm-Message-State: AOJu0YxxiHRfXCBleHFraUxfIGuH5stbUOas/FLr03MYV1LLOOQxl9Bd
-	JtmNJxDJL8sOTCLYVBT2fAZxdatN6FUh2xsT6493dTmXInJEqBkZ1QQZTRTk2bIBFfElfLdlTkZ
-	SPp9+VyhSs/GcbHhXaq9VPtNGigyv5iHOMfbMGYzxexfijVXQqFHOxeF4sTVUqf0v
-X-Gm-Gg: AfdE7ck0G1diF+WRYwKQi/fSIqz7a3iRPfdl5S7YW5pg0YY+P+lWiG163W8gjstfUfF
-	w8hcvezXPDas6YM5EFJHI6nvJNwovuZMuqRdbBcu0Wex2k0ak31/G42ryllsWE33vKuTjcDVeo1
-	C338ozrwhtX1PGB0KqUPBllBZfN3bG2ofR+oLYMWycUrxBsAzHJ7AMoygvjNSB8Jg4wcp+A866s
-	z3o0Tc3YohEnj7/6yeZSfwFmDIQWq09537WH9vX8Q94K7E7yWTnxnwmXl4DtKPArD40wjUdkpd4
-	3nZyD2/VSg8Okrmlz50y+GlSBuMzElXy7WQNN+UP8PjSWEBDtN8nrV+MkIhdKfDmn9tFs5oEeQw
-	9WDCf4e2+ZOAH7VsxsY9TB/2j/OtgL6CoCaLV/ohs6wlKh418jJA75YJ/MWI8t1tfqBFIC/kcK7
-	M8U69mZrwGtYQMFyzRRuau9JacQA==
-X-Received: by 2002:a05:6102:3710:b0:6f0:3999:b378 with SMTP id ada2fe7eead31-72a1f0bbe0fmr11192248137.13.1782226356884;
-        Tue, 23 Jun 2026 07:52:36 -0700 (PDT)
-X-Received: by 2002:a05:6102:3710:b0:6f0:3999:b378 with SMTP id ada2fe7eead31-72a1f0bbe0fmr11192215137.13.1782226356415;
-        Tue, 23 Jun 2026 07:52:36 -0700 (PDT)
+        bh=B0ZrDubUMv3UsfDfx0OoaWw1HQVC6S6Wq7xyx/eBxqU=;
+        b=HektlUh3FsVTtWDeka2RQu+daQxWZbhJjUplKw8L0YbuhCZXdj4CAW9AmzNHsf/7Y1
+         z0TJrfu+X3++1sSPs1yH2IOL71HRv5tHGmSCf2oA2U0L/oyXijwX6IGNCw2CycKdbbWM
+         U/25JE3AUXLrg4F6R8eyHcB43L9bfggL0nU8mEROr5BaYHoaWpr0uZ4V6RokzcrfbyoU
+         FsvyVj/X1QVV4ysa+/v8CME6p359v34lDFinlXMvIB0zOxo3cvn+CTDxl3EIkGokBztN
+         /sy0HJZKFJB83vxGrNvl8vfJ/5W3oXAh5S/JssrN0n+d/GvzBLeWfT+JwvJJO+LCSejI
+         Tj5g==
+X-Forwarded-Encrypted: i=1; AFNElJ8T7WrYtediOL20r1hEbRENS04iGOJXjHbYTE3Iml17JOGhMQlxn0T5QOcD+/+02+0R30Z4w61qfaLP@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzzn3oOjqp/a7T501K2WoDBQSWYtGgW9NYaFJSlFmN0pD4lcyaB
+	whcbhv/336NrGU0JOeYwUY4xyVnO11vy4GRV07pGzVAZYitTIcSjCrLHHh0JyoJsQcTSfGFR78A
+	FYAMgOLfp+LuUKPGuYxlxfYC37AAZFxK5Me3TNNs0BSWJxiH60h6FqAh2lyfZdYVG
+X-Gm-Gg: AfdE7cmh/wPzCHq1Ze0NVLanXIaqkpiDTj76dkXbs5cd33NZYTBPgV5VFD3veMcCVCg
+	89bEP1H1PYeGgsnE98ZuSYQcPTwXztTXRJ43DVcYtSwbxEA0TpL/U5Ju6D+eGl6UipLdrAT/e+L
+	PvsAQnI61PwZl1FZSO0SXF6hLkY3/g9s6HE4K/2qVTT/Aax8blSVrHkoSUxIcxwT3C5mRD+x391
+	v2gmBNUO1PFCJ1O8RoqBQgWstMlFwTF+jKm0cz8wKXoRUFt1K704xHO4S9lPfFqBI1/5tFOO6cn
+	mhZX6En9rq1YYzcdcCc0IYx5ebWXOBdPvAm2QB7T7UkP85cP+3ea0vrd+nxIqsdY3pnyrNUhYEP
+	LjJjF4FzBWI7yq4o6zFlx8FGtnxcZ02JHRNQYhgbyYEEQVVQ1+KTw1DzH6Tflt3HLfbk11+OaCv
+	g8ZdXYpQNae9EUTNEVyXEl+pNl7Q==
+X-Received: by 2002:a05:6102:685d:b0:72b:a25a:60bb with SMTP id ada2fe7eead31-72ba25a669fmr6040802137.10.1782226358865;
+        Tue, 23 Jun 2026 07:52:38 -0700 (PDT)
+X-Received: by 2002:a05:6102:685d:b0:72b:a25a:60bb with SMTP id ada2fe7eead31-72ba25a669fmr6040778137.10.1782226358197;
+        Tue, 23 Jun 2026 07:52:38 -0700 (PDT)
 Received: from shalem (2001-1c00-0c32-7800-5bfa-a036-83f0-f9ec.cable.dynamic.v6.ziggo.nl. [2001:1c00:c32:7800:5bfa:a036:83f0:f9ec])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c0c60aca46csm534042666b.36.2026.06.23.07.52.35
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c0c60aca46csm534042666b.36.2026.06.23.07.52.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 23 Jun 2026 07:52:35 -0700 (PDT)
+        Tue, 23 Jun 2026 07:52:36 -0700 (PDT)
 From: Hans de Goede <johannes.goede@oss.qualcomm.com>
 To: "Rafael J . Wysocki" <rafael@kernel.org>,
         Bjorn Andersson <andersson@kernel.org>,
@@ -89,9 +89,9 @@ Cc: Hans de Goede <johannes.goede@oss.qualcomm.com>,
         Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
         Abel Vesa <abel.vesa@oss.qualcomm.com>, linux-arm-msm@vger.kernel.org,
         devicetree@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: [RFC 05/12] ACPI: glue: Implement setting secondary-fwnode for DT-ACPI hybrid mode
-Date: Tue, 23 Jun 2026 16:52:18 +0200
-Message-ID: <20260623145225.143218-6-johannes.goede@oss.qualcomm.com>
+Subject: [RFC 06/12] ACPI: scan: Retry acpi_device_notify() in DT-ACPI hybrid mode
+Date: Tue, 23 Jun 2026 16:52:19 +0200
+Message-ID: <20260623145225.143218-7-johannes.goede@oss.qualcomm.com>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260623145225.143218-1-johannes.goede@oss.qualcomm.com>
 References: <20260623145225.143218-1-johannes.goede@oss.qualcomm.com>
@@ -102,201 +102,109 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Proofpoint-GUID: G8AyTRXU1PFe5qA8PAg9Sq0Ent-j6NOb
-X-Proofpoint-ORIG-GUID: G8AyTRXU1PFe5qA8PAg9Sq0Ent-j6NOb
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNjIzMDEyMiBTYWx0ZWRfX3sB+NxEyQQZA
- 8OR3Pc3COGQWLFUVwWGd9fGxDH9uztBfvCvBu++q/XonCUz+xYUV2zMpyBVgJi3Y2t6LgLIYGNV
- P4Iqyg4gdOiJGAA04veNvuYNFgjLD+g=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNjIzMDEyMiBTYWx0ZWRfX4jk7Uu21yrH2
- hTToaHH0YMv3Dyi0AZZrKeWCDRczuPDwkOhJ5cto/JyKWRf0YRx3klgx+aOdz2K9xzDUXfOW25H
- KrahwCI1RkI272gw3RwsPHGBbNbtWRXk7fWd+PSckA7I5DlfKv/t0BAP7LBp6clC87JSWzuLo2+
- zYiSBPWhUZLHi92PM5+bX0R+C1QqAcqmYs8hvCnS7Rp+EQrfTZ1TcwZrzYleH/Vhd6l4zRL78EZ
- HltBc+EwuZi/zvlElQMAR6Daia+0uwYTresT4fpPKKJzROHRB7B5SgMFkVBXSVb2lm0o8QHkhp/
- L+AQxDgi5bixV5960gkFsIuFDkrLSFFR5jj8BePQxrt2S3C2tAZGXRxI0fx6Ik9IiFva5bmYsdA
- c7b2rXcrmHjJk/4Ve0jHu6LH8llG3go9RkKXslkv32yKSwO5EE22kWTesHWpO13BemaamI6S4w9
- vcFuhzGiYPDraLqNp/A==
-X-Authority-Analysis: v=2.4 cv=OeKoyBTY c=1 sm=1 tr=0 ts=6a3a9db5 cx=c_pps
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNjIzMDEyMiBTYWx0ZWRfXyI8PwCaI+3ej
+ co1jtmlFG33CTfZQKEBoXe9c5uYNYyGhwaXIAnDM7Hado8ee7Pd1tvcwow2i/fzA0NEDTZbK0ph
+ 1c014FjCJS/OMVYmC17ke+Vr7mTYf4h1DwWPBXXJNmqHhEVSICUJjmphmsVzPz9bo9TghXuRyoL
+ s7p/lXouqiUyyQcX7T/xbwjc3gNeIWlTvL8okyRj98NNB+fTFvMc8g4IH7HSU3ijpgPrYR5Vf3J
+ 1mBPjfRon4iafKCzcRM3l7U++FQ2EXTwuGiv6SnjTNFebH2G3V/lXo7qdSbOuAJp0hkQPX8ib7j
+ zfuuRLtbmkj8iL7gJjpSxqWQLhvdK97pKMDro1BXr51fSZfGbWui6wW0PKVu1oK7ENg2Vkddzwk
+ ZxYH+mlMLoKLrGfpSTTNYhg2WjiBgWsjjptziYUcxU1+8Y0sClqeCNpZbnVa8jf4PaYN0cj1tnb
+ T0yD9jInWsBlDtdG4Gw==
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNjIzMDEyMiBTYWx0ZWRfXz0MQZNQYj59s
+ 3V+Pdbbt21tNl0Gt1UN2mZrQ4WIL4WTr3zbFglCAYYsz/0Z1w9+3BpyJ7wSK3iekU+nlZFn+y3j
+ ogqrlPfCfmXSTjR4Dzfs6zfPzmAgXnY=
+X-Proofpoint-GUID: eJOaqajZ2ViDO7HcSoBPbnc9KPTVPdBi
+X-Authority-Analysis: v=2.4 cv=AJDhMgPs c=1 sm=1 tr=0 ts=6a3a9db7 cx=c_pps
  a=KB4UBwrhAZV1kjiGHFQexw==:117 a=xqWC_Br6kY4A:10 a=FelO9ux0wxsA:10
  a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=rJkE3RaqiGZ5pbrm-msn:22 a=EUspDBNiAAAA:8 a=SqAYOdU-xvaNvrLwBAEA:9
+ a=3WHJM1ZQz_JShphwDgj5:22 a=EUspDBNiAAAA:8 a=wPdX0GlK9JqYqbOWQHgA:9
  a=o1xkdb1NAhiiM49bd1HK:22
+X-Proofpoint-ORIG-GUID: eJOaqajZ2ViDO7HcSoBPbnc9KPTVPdBi
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.125,FMLib:17.12.100.49
  definitions=2026-06-23_03,2026-06-23_01,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- phishscore=0 impostorscore=0 spamscore=0 malwarescore=0 adultscore=0
- suspectscore=0 clxscore=1015 priorityscore=1501 lowpriorityscore=0
- bulkscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
- adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
- definitions=main-2606230122
+ lowpriorityscore=0 adultscore=0 impostorscore=0 clxscore=1015 phishscore=0
+ malwarescore=0 suspectscore=0 bulkscore=0 priorityscore=1501 spamscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2606230122
 
-In DT-ACPI hybrid mode devices are instantiated from device tree and
-a device's primary firmware-node will normally be an of fwnode.
+of_platform_default_populate_init creates DT platform devices from
+an arch_initcall(), so before acpi_scan_init() runs this causing
+acpi_device_notify() to be unable to honor "acpi-path" properties
+in DT-ACPI hybrid mode.
 
-Add support to the ACPI glue code to check the new "acpi-path" DT property
-and when this is set lookup the handle for the specified path and set
-the secondary-fwnode of the device to point to the handle's ACPI fwnode.
+Re-call acpi_device_notify() at the end of scanning ACPI devices to
+fix this up.
 
-Also create a firmware_node and physical_node links/entries as normal.
+Note this relies on the driver which may use the bound ACPI fwnode
+to only register after subsys_initcall(acpi_init) has run.
 
-When e.g. an "acpi-path" property is specified for e.g. an i2c-adapter
-then the normal ACPI i2c-client enumeration will happen for any ACPI
-fwnodes with an I2CSerialBus resource pointing to the i2c-adapter, these
-ACPI instantiated i2c_clients will have an ACPI fwnode as primary fwnode.
-The normal acpi_device_notify[_remove]() paths will be used for these.
+TODO: It is probably better to add an acpi_platform_device_pre_probe()
+function and call that from drivers/base/platform.c:platform_probe() and
+dot the setting of the secondary fwnode for platform-devices with
+an "acpi-path" property there. Basically moving the "if (acpi_dt_hybrid)"
+block in acpi_device_notify() to a new acpi_platform_device_pre_probe().
 
 Signed-off-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
 ---
- drivers/acpi/glue.c | 70 ++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 60 insertions(+), 10 deletions(-)
+ drivers/acpi/scan.c | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index b1776809279d..fef450d5cb7d 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -225,6 +225,15 @@ static void acpi_physnode_link_name(char *buf, unsigned int node_id)
- 		strcpy(buf, PHYSICAL_NODE_STRING);
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 4836286968e8..b305c03e8504 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -21,6 +21,7 @@
+ #include <linux/dmi.h>
+ #include <linux/dma-map-ops.h>
+ #include <linux/platform_data/x86/apple.h>
++#include <linux/platform_device.h>
+ #include <linux/pgtable.h>
+ #include <linux/crc32.h>
+ #include <linux/dma-direct.h>
+@@ -2818,6 +2819,22 @@ static void __init acpi_get_spcr_uart_addr(void)
+ 	acpi_put_table((struct acpi_table_header *)spcr_ptr);
  }
  
-+/* Like ACPI_COMPANION_SET() but set secondary fwnode if primary is an of_node */
-+static void acpi_companion_set_any(struct device *dev, struct acpi_device *adev)
++static int acpi_scan_retry_of_acpi_binding(struct device *dev, void *data)
 +{
-+	if (is_of_node(dev->fwnode))
-+		set_secondary_fwnode(dev, adev ? acpi_fwnode_handle(adev) : NULL);
-+	else
-+		set_primary_fwnode(dev, adev ? acpi_fwnode_handle(adev) : NULL);
++	struct fwnode_handle *fwnode = dev_fwnode(dev);
++	const char *acpi_path;
++
++	/* Check primary fwnode is OF and secondary fwnode is not yet ACPI */
++	if (!is_of_node(fwnode) || is_acpi_device_node(fwnode->secondary))
++		return 0;
++
++	/* If there is an "acpi-path" property retry binding ACPI fwnode */
++	if (of_property_read_string(dev->of_node, "acpi-path", &acpi_path) == 0)
++		acpi_device_notify(dev);
++
++	return 0;
 +}
 +
- int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
- {
- 	struct acpi_device_physical_node *physical_node, *pn;
-@@ -233,12 +242,12 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
- 	unsigned int node_id;
- 	int retval = -EINVAL;
+ static bool acpi_scan_initialized;
  
--	if (has_acpi_companion(dev)) {
-+	if (is_acpi_device_node_any(dev->fwnode)) {
- 		if (acpi_dev) {
- 			dev_warn(dev, "ACPI companion already set\n");
- 			return -EINVAL;
- 		} else {
--			acpi_dev = ACPI_COMPANION(dev);
-+			acpi_dev = to_acpi_device_node_any(dev->fwnode);
- 		}
- 	}
- 	if (!acpi_dev)
-@@ -267,7 +276,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
+ void __init acpi_scan_init(void)
+@@ -2881,6 +2898,18 @@ void __init acpi_scan_init(void)
+ 	if (!acpi_gbl_reduced_hardware)
+ 		acpi_bus_scan_fixed();
  
- 			dev_warn(dev, "Already associated with ACPI node\n");
- 			kfree(physical_node);
--			if (ACPI_COMPANION(dev) != acpi_dev)
-+			if (to_acpi_device_node_any(dev->fwnode) != acpi_dev)
- 				goto err;
- 
- 			put_device(dev);
-@@ -285,8 +294,8 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
- 	list_add(&physical_node->node, physnode_list);
- 	acpi_dev->physical_node_count++;
- 
--	if (!has_acpi_companion(dev))
--		ACPI_COMPANION_SET(dev, acpi_dev);
-+	if (!is_acpi_device_node_any(dev->fwnode))
-+		acpi_companion_set_any(dev, acpi_dev);
- 
- 	acpi_physnode_link_name(physical_node_name, node_id);
- 	retval = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
-@@ -303,13 +312,14 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
- 
- 	mutex_unlock(&acpi_dev->physical_node_lock);
- 
--	if (acpi_dev->wakeup.flags.valid)
-+	/* Don't set wakeup flag for devices where ACPI fwnode is secondary */
-+	if (acpi_dev->wakeup.flags.valid && has_acpi_companion(dev))
- 		device_set_wakeup_capable(dev, true);
- 
- 	return 0;
- 
-  err:
--	ACPI_COMPANION_SET(dev, NULL);
-+	acpi_companion_set_any(dev, NULL);
- 	put_device(dev);
- 	acpi_dev_put(acpi_dev);
- 	return retval;
-@@ -318,7 +328,7 @@ EXPORT_SYMBOL_GPL(acpi_bind_one);
- 
- int acpi_unbind_one(struct device *dev)
- {
--	struct acpi_device *acpi_dev = ACPI_COMPANION(dev);
-+	struct acpi_device *acpi_dev = to_acpi_device_node_any(dev->fwnode);
- 	struct acpi_device_physical_node *entry;
- 
- 	if (!acpi_dev)
-@@ -336,7 +346,7 @@ int acpi_unbind_one(struct device *dev)
- 			acpi_physnode_link_name(physnode_name, entry->node_id);
- 			sysfs_remove_link(&acpi_dev->dev.kobj, physnode_name);
- 			sysfs_remove_link(&dev->kobj, "firmware_node");
--			ACPI_COMPANION_SET(dev, NULL);
-+			acpi_companion_set_any(dev, NULL);
- 			/* Drop references taken by acpi_bind_one(). */
- 			put_device(dev);
- 			acpi_dev_put(acpi_dev);
-@@ -354,6 +364,40 @@ void acpi_device_notify(struct device *dev)
- 	struct acpi_device *adev;
- 	int ret;
- 
-+	if (acpi_dt_hybrid && is_of_node(dev->fwnode)) {
-+		const char *acpi_path;
-+		acpi_status status;
-+		acpi_handle handle;
++	/*
++	 * of_platform_default_populate_init creates DT platform devices from
++	 * an arch_initcall(), so before acpi_scan_init() runs this causing
++	 * acpi_device_notify() to be unable to honor "acpi-path" properties
++	 * in DT-ACPI hybrid mode. Re-call acpi_device_notify() to fix this up.
++	 * Note this relies on the driver which may use the bound ACPI fwnode
++	 * to only register after subsys_initcall(acpi_init) has run.
++	 */
++	if (acpi_dt_hybrid)
++		bus_for_each_dev(&platform_bus_type, NULL, NULL,
++				 acpi_scan_retry_of_acpi_binding);
 +
-+		ret = of_property_read_string(dev->of_node, "acpi-path", &acpi_path);
-+		if (ret)
-+			return;
-+
-+		status = acpi_get_handle(NULL, acpi_path, &handle);
-+		if (ACPI_FAILURE(status))
-+			goto err_hybrid;
-+
-+		adev = acpi_fetch_acpi_dev(handle);
-+		if (!adev)
-+			goto err_hybrid;
-+
-+		/*
-+		 * set_secondary_fwnode() + pass NULL to make this work for
-+		 * child devices which share the fwnode with their parent.
-+		 */
-+		set_secondary_fwnode(dev, acpi_fwnode_handle(adev));
-+		ret = acpi_bind_one(dev, NULL);
-+		if (ret)
-+			goto err_hybrid;
-+
-+		/* TODO change to dev_dbg() when DT-ACPI hybrid support is stable */
-+		dev_info(dev, "Set secondary fwnode to acpi-path '%s'\n", acpi_path);
-+		return;
-+err_hybrid:
-+		dev_warn(dev, "Failed to set ACPI fwnode for acpi-path '%s'\n", acpi_path);
-+		return;
-+	}
-+
- 	ret = acpi_bind_one(dev, NULL);
- 	if (ret) {
- 		struct acpi_bus_type *type = acpi_get_bus_type(dev);
-@@ -400,8 +444,14 @@ void acpi_device_notify(struct device *dev)
+ 	acpi_turn_off_unused_power_resources();
  
- void acpi_device_notify_remove(struct device *dev)
- {
--	struct acpi_device *adev = ACPI_COMPANION(dev);
-+	struct acpi_device *adev;
- 
-+	if (acpi_dt_hybrid && is_of_node(dev->fwnode)) {
-+		acpi_unbind_one(dev);
-+		return;
-+	}
-+
-+	adev = ACPI_COMPANION(dev);
- 	if (!adev)
- 		return;
- 
+ 	acpi_scan_initialized = true;
 -- 
 2.54.0
 
