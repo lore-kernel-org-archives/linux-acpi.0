@@ -1,102 +1,120 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35E83370AE6;
-	Tue, 23 Jun 2026 10:17:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29E2D370AF3
+	for <linux-acpi@vger.kernel.org>; Tue, 23 Jun 2026 10:50:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782209872; cv=none; b=FwFjJYRoeGsPei/03nk3HXdrwguBvSilpr/mvszQeilm48/euCqanR8CadubxzWsaEt7fdc0TDyJQW7jSF2m9O7uYKi14nqLnf8vRY3k9/tNkjtKVEL0nY33t2FUfsEEyWGRYk19fq7vZ4wbCguudYHKyYuCGWgzC1by4TOciuA=
+	t=1782211808; cv=none; b=GQHeBYCTQ7xjDKYsWO4bZRFN4keUgcCrVuQg4W4HI8kNydWdhbxYgfGCMTFGiJlDmepmMrACI+LTiGktbd4lL45wr1fswPn74Q/XCp8UN6P0LaHBRetxZachPvrar5BQcKdYnvxKyaOgX7qv6hZlmCH8/5atScnA3r+/aev6PjI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782209872; c=relaxed/simple;
-	bh=yKxWuSxIg6MtigXJlkd4YV7IcsGj0BsCefuviCtPryY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OLtbUYMDipCPlxSYog5b9H3UcYQM2pyfK0b7kZcIhBQ48VX+vgVfvyRRHcBhG/yeWKM/b9m+57Pnvhybc+RUnbs5U3RiTmG+NHzHJ00qahE/8iMUbCEnoSDY97gL5serNYckUCsMKF9nMpZ7dlBYUCmm7UsUxZ87XQ2IdMY4zPs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Lxzl24QX; arc=none smtp.client-ip=198.175.65.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1782211808; c=relaxed/simple;
+	bh=3BmKNyG8Id8m/mrBAzgNxDhu6gPysgpKz5KpmqDL954=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=HjpTJT+M1WB7q37RZuegMM3TVe3YHmV3eZL9vL1V97MJZGmOZjmlLeZRibISUMFOo0gdd4Dx3gd1hizLUFeYRPbNSvx8EI08ROjMZSCFa1Kk9xlh5dqsA39NGfIJB6xYZpg0wUbpdX7B4ejhPoIoTOmQkGZ1XQDafGrapBfM8uc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OGyC84vR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Lxzl24QX"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1782209871; x=1813745871;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=yKxWuSxIg6MtigXJlkd4YV7IcsGj0BsCefuviCtPryY=;
-  b=Lxzl24QXfsyQ6eVEgxwHFye3D3nWWz1jhcW45ygFHdSs17Mce/YTlLx1
-   6GuDpsNWd0s7TR9yh4Mz7P/wc1Jq/RMcqwPDQL3hgrFdwA9A2m6hJlXsw
-   zbiTBvosTGRbR3syTgmGMeFDZAmCd25zk8JfvTrJkwONRHPHEA1HN9oK4
-   m0xSVDG/OXrL/Lgm4to3KkpRNLLXTjJ+BaUyOURq+5zGdcGMa+vacO7uE
-   LYcJnX8Ke4oR2BBSokQWKDRdgay3r1OXZBpGS+B/gHkBk9nOxDXNQT3SD
-   d5S/VJQ+7R9Pbh36yrgtKdCKnEw5Z0LBIbPpgViGdYi1lgRWX4byocenJ
-   g==;
-X-CSE-ConnectionGUID: ZTz3ywX4T46JCTOTQL5mnA==
-X-CSE-MsgGUID: jh2CW4bxSN6SUwhiJe6yxA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11825"; a="105741655"
-X-IronPort-AV: E=Sophos;i="6.24,220,1774335600"; 
-   d="scan'208";a="105741655"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jun 2026 03:17:49 -0700
-X-CSE-ConnectionGUID: G7sg3GILRvyFR4uiszCSKg==
-X-CSE-MsgGUID: QsrhBqDFTai4ya99CyYq3Q==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,220,1774335600"; 
-   d="scan'208";a="249341451"
-Received: from klitkey1-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.7])
-  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jun 2026 03:17:44 -0700
-Date: Tue, 23 Jun 2026 13:17:41 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Frank.Li@oss.nxp.com
-Cc: Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Dafna Hirschfeld <dafna@fastmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Heiko Stuebner <heiko@sntech.de>,
-	Bryan O'Donoghue <bryan.odonoghue@linaro.org>,
-	Vladimir Zapolskiy <vladimir.zapolskiy@linaro.org>,
-	Loic Poulain <loic.poulain@oss.qualcomm.com>,
-	driver-core@lists.linux.dev, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-rockchip@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-	imx@lists.linux.dev, Guoniu Zhou <guoniu.zhou@nxp.com>,
-	Frank Li <Frank.Li@nxp.com>
-Subject: Re: [PATCH 0/4] media: add and use
- fwnode_graph_for_each_endpoint_scoped()
-Message-ID: <ajpdRUZhmn1fDXDx@ashevche-desk.local>
-References: <20260622-fw_scoped-v1-0-a37d0aac0a68@nxp.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OGyC84vR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2F8E1F000E9
+	for <linux-acpi@vger.kernel.org>; Tue, 23 Jun 2026 10:50:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782211806;
+	bh=Y9whw2scq8Z+yRwla/O764FtKys/ISm9e03PqEPnDmk=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=OGyC84vRfbzHpkx/cCrEpuikj1B9n4fMUqjGTxMQJg4/ABgrwwNCj8Cp8R0qo61Bj
+	 HrVKQDlbG8Z2W4/6ZEZRWM6/3bzyo9Y2brmY349Cd8SXm5IAoohmKSTj/qu3l67Bht
+	 lcO4RBLI7f2F/Obv0rzdkTuAVnWSf+sIqYshsLJ2nIch0dV2lYc1mcpRmvv6xZfzCH
+	 d0eM7slDWfznh4zHBIt3VEPPlt7oRtfuaut0evn0ITHS7zh0pay5udWcQjAlluSlDa
+	 rI0O/DQMiQMD2iUPJqF45gRJqVjpTb9EogqqD0bqJesyxntoNJj6fZHBASr7W7a2gN
+	 SHYelX1sQ+5iQ==
+Received: by mail-lf1-f54.google.com with SMTP id 2adb3069b0e04-5ad578c49afso3590207e87.3
+        for <linux-acpi@vger.kernel.org>; Tue, 23 Jun 2026 03:50:06 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ9rU8lpJIEBJ5z4kZtqlaxWTFG+edZE9j4vurr5H51XkWQV6Nm5ouJ4V7nEP/tvah8k2yYeMb5RY7KW@vger.kernel.org
+X-Gm-Message-State: AOJu0YwOa6jO5Glq/5e1HS4o6eT38z8FsHo0N3EsDQuPuL7ilvXrHC4I
+	KF3hfp/XjcRdmHc+nT8uPC76bfgJkqYG9q+taT+kl1cF12WLAtJZT6w/SB8fKflLl1gas3i8eT/
+	u5QbRW+qAA/82DpwJMD3g0kRtdhWD32Y=
+X-Received: by 2002:a05:6512:2c07:b0:5aa:7aba:2a5f with SMTP id
+ 2adb3069b0e04-5ae350ff73dmr530900e87.6.1782211805314; Tue, 23 Jun 2026
+ 03:50:05 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260622-fw_scoped-v1-0-a37d0aac0a68@nxp.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+References: <12923581.O9o76ZdvQC@rafael.j.wysocki> <d9379a5b-0b82-4df1-a034-03f82bb0e3da@kernel.org>
+In-Reply-To: <d9379a5b-0b82-4df1-a034-03f82bb0e3da@kernel.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Tue, 23 Jun 2026 12:49:51 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jgZ+scDMCBxHwXtOLeJHkiZdZhbG5_R5b06HeVapnS0g@mail.gmail.com>
+X-Gm-Features: AVVi8CdSVgxZ_-n9mf0VXUX29a5ygnb-kUCXF0Ywg-oPzPx-N85k4NrIAQxsSqU
+Message-ID: <CAJZ5v0jgZ+scDMCBxHwXtOLeJHkiZdZhbG5_R5b06HeVapnS0g@mail.gmail.com>
+Subject: Re: [PATCH v1] ACPICA: Unbreak tools build after switching over to strscpy_pad()
+To: Jiri Slaby <jirislaby@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
+	Thomas Renninger <trenn@suse.com>, LKML <linux-kernel@vger.kernel.org>, 
+	Saket Dumbre <saket.dumbre@intel.com>, Kees Cook <kees@kernel.org>, 
+	"Chmielewski, Pawel" <pawel.chmielewski@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jun 22, 2026 at 10:30:10AM -0400, Frank.Li@oss.nxp.com wrote:
-> Add new helper macro fwnode_graph_for_each_endpoint_scoped() and use it
-> simplify media code.
-> 
-> Typical example should qualcomm's driver (camss.c), the v4l2_mc.c and
-> rkisp1-dev.c only silience improvement.
-> 
-> Anyways, *_for_each_*_scoped() already use widely and make code clean.
+On Tue, Jun 23, 2026 at 6:02=E2=80=AFAM Jiri Slaby <jirislaby@kernel.org> w=
+rote:
+>
+> On 22. 06. 26, 20:23, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > Commit 97f7d3f9c9ac ("ACPICA: Replace strncpy() with strscpy_pad() in
+> > acpi_ut_safe_strncpy()") switched over the ACPICA code in the kernel to
+> > using strscpy_pad() instead of a combination of strncpy() and manual
+> > NUL-termination of the destination string, but it overlooked the fact
+> > that tools also use the code in question and strscpy_pad() is not
+> > defined in those builds.
+> >
+> > Address that by using the original ACPICA code in non-kernel builds.
+> >
+> > Fixes: 97f7d3f9c9ac ("ACPICA: Replace strncpy() with strscpy_pad() in a=
+cpi_ut_safe_strncpy()")
+> > Reported-by: Jiri Slaby <jirislaby@kernel.org>
+> > Closes: https://lore.kernel.org/all/79e9e913-0fb1-4110-804b-c3b5d0edafe=
+4@kernel
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >   drivers/acpi/acpica/utnonansi.c |   10 ++++++++++
+> >   1 file changed, 9 insertions(+)
+> >
+> > --- a/drivers/acpi/acpica/utnonansi.c
+> > +++ b/drivers/acpi/acpica/utnonansi.c
+> > @@ -168,7 +168,17 @@ void acpi_ut_safe_strncpy(char *dest, ch
+>
+> Hmm, how could this become 17, provided you are adding 9 lines to 7
+> lines? Fixed to 16 and applied -- testing.
 
-LGTM,
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-for patches 2, 3, and 4.
-Patch 1 has individual comments.
+Yeah, I manually updated the comment and forgot to refresh the patch
+afterward.  Sorry.
 
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+> >   {
+> >       /* Always terminate destination string */
+> >
+> > +#ifdef __KERNEL__
+> >       strscpy_pad(dest, source, dest_size);
+> > +#else
+> > +     /*
+> > +      * strscpy_pad() is not defined in ACPICA tools builds, so use st=
+rncpy()
+> > +      * and directly NUL-terminate the destination string in that case=
+.
+> > +      */
+> > +     strncpy(dest, source, dest_size);
+> > +     dest[dest_size - 1] =3D 0;
+> > +#endif
+> >   }
+> >
+> >   #endif
+> >
+> >
+> >
+>
+>
+> --
+> js
+> suse labs
