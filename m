@@ -1,216 +1,324 @@
-Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC75731E845;
-	Wed, 24 Jun 2026 06:40:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02C0C397E81;
+	Wed, 24 Jun 2026 07:23:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782283203; cv=none; b=bBQR2+lBt2Bui4/uTulkn0G/d4tX6AbAJcudlyNTcsLu93/36LGa+7U1voE2Hx6+D9Ipw8wsETHxDmdT1mhG08i0bkdWADQKVps0uZKrMhti0LN6xlyT48j6iy5GfuXnRUYN4zWyBgFTc7WNP2hcW10G0DXnc9OjEwzbvgfxX2Q=
+	t=1782285804; cv=none; b=ULo55SuJefhtnGJ2E1jAUPBASWqJEvKOQ/xmo3dUy+KKcXHw/B8KX0swPdUyvqLC5QWILatsafNKYyYG9ICues115ts11NLm3N0HkZIp+pAsW/ChpMYhgPL0LYIEPYO/MTO08V98L1NvHEPEkg4iFXfZF8+TlSXFmaF5GC7IHlY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782283203; c=relaxed/simple;
-	bh=xTX7me2nqh4h7Ws7VEnBGKQ9aXmCho285a1wRkIigYg=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=XUdtum+EP7zAPdLHtRqhG2zi+fIIrggkr07kC0bG3uIhFplNhvYqppMtaAvJQIbPlpxR+MduJuyuFl9ZRZ9U5UgqHjyg0q5wuNwHAVMFpLuYJnJvCg5mzwuwT4uGq63sH8k1fXhPXspfApGVzpUzkeYkQN1IWr2XOPqIionmR5o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from [127.0.0.2] (unknown [36.110.52.2])
-	by APP-01 (Coremail) with SMTP id qwCowAAHpc2reztqrv78Ag--.26700S2;
-	Wed, 24 Jun 2026 14:39:40 +0800 (CST)
-From: Vivian Wang <wangruikang@iscas.ac.cn>
-Date: Wed, 24 Jun 2026 14:38:16 +0800
-Subject: [PATCH 6.12.y/6.18.y] ACPI: scan: Use async schedule function in
- acpi_scan_clear_dep_fn()
+	s=arc-20240116; t=1782285804; c=relaxed/simple;
+	bh=xLxwgvoXGRC3iTr0jRuckGQyYFRwBYzzErgK26oOaKQ=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=ZAsZrW3aekebjKSl8ZS733z/cHpXc+sDcuvUCzXabaGPBJp9IVDDOKu0i2hUwK/vXI9pZkk60hPaVRssZQ2JswF+vpJ0bDKl/P5QLRbV7GPWU8VFtQQ98Ubb6yIF7psyNqw6g1DwoheM8rf+J3IdSrX5HhH7fO2c8OzjzGzD+Ws=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Ly+37W75; arc=none smtp.client-ip=198.175.65.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Ly+37W75"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1782285801; x=1813821801;
+  h=date:from:to:cc:subject:message-id;
+  bh=xLxwgvoXGRC3iTr0jRuckGQyYFRwBYzzErgK26oOaKQ=;
+  b=Ly+37W75gMWZXAhUBplZxjZ4g0N9SCPkpkM6rOEk3GtQhMEmDdWB2a4H
+   JNTq0nMIiIrd9G9L2mCRxJzBu6URBUvBQH9RDpO0jnfgzEDq0wovMTBwi
+   e0l2MjNRdpQhOxwG+R4l0sUZxEncVo3v5WQ4837D7Y0f2uqAqhBq8bpzE
+   hhZrE6zEBWz1cNG05+N6tCH6z9WZchQZ4LQUDP/RJDInz9uFrDPag4mOa
+   gwEn6a9sOaTNZSKnICCPRUPAQSoUpom96JnN7+TEI+W6ikEiFSEOQlsfg
+   U3V7XcgAgMjacuiNuAC3E16D3iZCx9pa200GKOhMYypqAaYOGPyYk1pHa
+   Q==;
+X-CSE-ConnectionGUID: t4ziph32QG6GFgG0y92LAQ==
+X-CSE-MsgGUID: tUK5UbbqSAKV9+J3NfvDEg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11826"; a="86943292"
+X-IronPort-AV: E=Sophos;i="6.24,222,1774335600"; 
+   d="scan'208";a="86943292"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jun 2026 00:23:03 -0700
+X-CSE-ConnectionGUID: 9hNHnwIpRSKxJZIUUwdyow==
+X-CSE-MsgGUID: mz3IZqGgTCGTLRd+OR/6+A==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,222,1774335600"; 
+   d="scan'208";a="273452402"
+Received: from lkp-server02.sh.intel.com (HELO ea128546eb3d) ([10.239.97.151])
+  by fmviesa002.fm.intel.com with ESMTP; 24 Jun 2026 00:23:02 -0700
+Received: from kbuild by ea128546eb3d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wcHwm-000000003CL-3FmC;
+	Wed, 24 Jun 2026 07:22:57 +0000
+Date: Wed, 24 Jun 2026 15:22:14 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ ee41842fdfd5e0869c3be2637461b2d47775e9e6
+Message-ID: <202606241503.6TDDFpar-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260624-acpi-dependency-thing-v1-1-ec0d99e5bf0f@iscas.ac.cn>
-X-B4-Tracking: v=1; b=H4sIAFd7O2oC/yXMQQrCMBBG4auUWTuQhFCLVxEX7eS3HRdjSKoop
- Xc36vJbvLdRRVFUOnUbFTy16t0a/KEjWUabwZqaKbjQuz5EHiUrJ2RYgsmb10Vt5smHwUd3jDI
- kam0uuOrr9z1f/q6P6QZZvzPa9w/HX0z7eQAAAA==
-X-Change-ID: 20260624-acpi-dependency-thing-b12814074c8d
-To: stable@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
- Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
- Alexandre Ghiti <alex@ghiti.fr>, linux-acpi@vger.kernel.org, 
- linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, 
- Yicong Yang <yang.yicong@picoheart.com>, 
- "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, 
- Vivian Wang <wangruikang@iscas.ac.cn>
-X-Mailer: b4 0.15.2
-X-CM-TRANSID:qwCowAAHpc2reztqrv78Ag--.26700S2
-X-Coremail-Antispam: 1UD129KBjvJXoW3JF4fZF47CFy7CrW7tr1kZrb_yoW7trW8pF
-	Wa9a47tr4kJw48Cr1xZw4fZr1SgrWUZ347tr43Jw1F9an8ur9FvFW7tr4UZr98CrWvka17
-	ZF4qqay8GFWqvr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUU9214x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26F1j6w1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
-	JVWxJr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Gc
-	CE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E
-	2Ix0cI8IcVAFwI0_JF0_Jw1lYx0Ex4A2jsIE14v26r4UJVWxJr1lOx8S6xCaFVCjc4AY6r
-	1j6r4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwACI402YVCY1x02
-	628vn2kIc2xKxwCY1x0262kKe7AKxVWUtVW8ZwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4
-	IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1r
-	MI8E67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVWUJV
-	WUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr0_Cr1lIxAIcVCF04k26cxKx2IYs7xG6r1j
-	6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr0_Gr1UYx
-	BIdaVFxhVjvjDU0xZFpf9x0JUJWrAUUUUU=
-X-CM-SenderInfo: pzdqw2pxlnt03j6l2u1dvotugofq/
 
-From: Yicong Yang <yang.yicong@picoheart.com>
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: ee41842fdfd5e0869c3be2637461b2d47775e9e6  Merge branch 'experimental/acpi-driver-work' into bleeding-edge
 
-[ Upstream commit 7cf28b3797a81b616bb7eb3e90cf131afc452919 ]
+elapsed time: 837m
 
-The device object rescan in acpi_scan_clear_dep_fn() is scheduled on a
-system workqueue which is not guaranteed to be finished before entering
-userspace. This may cause some key devices to be missing when userspace
-init task tries to find them. Two issues observed on RISCV platforms:
+configs tested: 247
+configs skipped: 3
 
- - Kernel panic due to userspace init cannot have an opened
-   console.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-   The console device scanning is queued by acpi_scan_clear_dep_queue()
-   and not finished by the time userspace init process running, thus by
-   the time userspace init runs, no console is present.
+tested configs:
+alpha                             allnoconfig    gcc-16.1.0
+alpha                            allyesconfig    gcc-16.1.0
+alpha                               defconfig    gcc-16.1.0
+arc                              allmodconfig    clang-23
+arc                              allmodconfig    gcc-16.1.0
+arc                               allnoconfig    gcc-16.1.0
+arc                              allyesconfig    clang-23
+arc                              allyesconfig    gcc-16.1.0
+arc                                 defconfig    gcc-16.1.0
+arc                            randconfig-001    gcc-8.5.0
+arc                   randconfig-001-20260624    gcc-15.2.0
+arc                   randconfig-001-20260624    gcc-9.5.0
+arc                            randconfig-002    gcc-8.5.0
+arc                   randconfig-002-20260624    gcc-15.2.0
+arm                               allnoconfig    clang-17
+arm                               allnoconfig    gcc-16.1.0
+arm                              allyesconfig    clang-23
+arm                              allyesconfig    gcc-16.1.0
+arm                                 defconfig    gcc-16.1.0
+arm                            randconfig-001    gcc-16.1.0
+arm                   randconfig-001-20260624    clang-19
+arm                   randconfig-001-20260624    gcc-15.2.0
+arm                            randconfig-002    gcc-15.2.0
+arm                   randconfig-002-20260624    gcc-15.2.0
+arm                   randconfig-002-20260624    gcc-8.5.0
+arm                            randconfig-003    clang-23
+arm                   randconfig-003-20260624    gcc-15.2.0
+arm                            randconfig-004    gcc-13.4.0
+arm                   randconfig-004-20260624    clang-17
+arm                   randconfig-004-20260624    gcc-15.2.0
+arm64                            allmodconfig    clang-23
+arm64                             allnoconfig    gcc-16.1.0
+arm64                               defconfig    gcc-16.1.0
+arm64                 randconfig-001-20260624    clang-21
+arm64                 randconfig-002-20260624    clang-21
+arm64                 randconfig-002-20260624    gcc-15.2.0
+arm64                 randconfig-003-20260624    clang-21
+arm64                 randconfig-003-20260624    clang-23
+arm64                 randconfig-004-20260624    clang-21
+arm64                 randconfig-004-20260624    clang-23
+csky                             allmodconfig    gcc-16.1.0
+csky                              allnoconfig    gcc-16.1.0
+csky                                defconfig    gcc-16.1.0
+csky                  randconfig-001-20260624    clang-21
+csky                  randconfig-001-20260624    gcc-16.1.0
+csky                  randconfig-002-20260624    clang-21
+csky                  randconfig-002-20260624    gcc-9.5.0
+hexagon                          allmodconfig    clang-23
+hexagon                          allmodconfig    gcc-16.1.0
+hexagon                           allnoconfig    clang-23
+hexagon                           allnoconfig    gcc-16.1.0
+hexagon                             defconfig    gcc-16.1.0
+hexagon               randconfig-001-20260624    gcc-9.5.0
+hexagon               randconfig-002-20260624    gcc-9.5.0
+i386                             allmodconfig    gcc-14
+i386                              allnoconfig    gcc-14
+i386                              allnoconfig    gcc-16.1.0
+i386                             allyesconfig    gcc-14
+i386                 buildonly-randconfig-001    gcc-12
+i386        buildonly-randconfig-001-20260624    gcc-12
+i386        buildonly-randconfig-001-20260624    gcc-14
+i386                 buildonly-randconfig-002    gcc-12
+i386        buildonly-randconfig-002-20260624    gcc-12
+i386        buildonly-randconfig-002-20260624    gcc-14
+i386                 buildonly-randconfig-003    gcc-12
+i386        buildonly-randconfig-003-20260624    gcc-12
+i386                 buildonly-randconfig-004    gcc-12
+i386        buildonly-randconfig-004-20260624    gcc-12
+i386        buildonly-randconfig-004-20260624    gcc-14
+i386                 buildonly-randconfig-005    gcc-12
+i386        buildonly-randconfig-005-20260624    gcc-12
+i386        buildonly-randconfig-005-20260624    gcc-14
+i386                 buildonly-randconfig-006    gcc-12
+i386        buildonly-randconfig-006-20260624    gcc-12
+i386        buildonly-randconfig-006-20260624    gcc-14
+i386                                defconfig    gcc-16.1.0
+i386                           randconfig-001    clang-22
+i386                  randconfig-001-20260624    clang-22
+i386                           randconfig-002    clang-22
+i386                  randconfig-002-20260624    clang-22
+i386                           randconfig-003    clang-22
+i386                  randconfig-003-20260624    clang-22
+i386                           randconfig-004    clang-22
+i386                  randconfig-004-20260624    clang-22
+i386                           randconfig-005    clang-22
+i386                  randconfig-005-20260624    clang-22
+i386                           randconfig-006    clang-22
+i386                  randconfig-006-20260624    clang-22
+i386                           randconfig-007    clang-22
+i386                  randconfig-007-20260624    clang-22
+i386                  randconfig-011-20260624    clang-22
+i386                  randconfig-012-20260624    clang-22
+i386                  randconfig-013-20260624    clang-22
+i386                  randconfig-014-20260624    clang-22
+i386                  randconfig-015-20260624    clang-22
+i386                  randconfig-016-20260624    clang-22
+i386                  randconfig-017-20260624    clang-22
+loongarch                        allmodconfig    clang-19
+loongarch                        allmodconfig    clang-23
+loongarch                         allnoconfig    clang-20
+loongarch                         allnoconfig    gcc-16.1.0
+loongarch                           defconfig    clang-23
+loongarch             randconfig-001-20260624    gcc-9.5.0
+loongarch             randconfig-002-20260624    gcc-9.5.0
+m68k                             allmodconfig    gcc-16.1.0
+m68k                              allnoconfig    gcc-16.1.0
+m68k                             allyesconfig    clang-23
+m68k                             allyesconfig    gcc-16.1.0
+m68k                                defconfig    clang-23
+m68k                                defconfig    gcc-16.1.0
+m68k                        stmark2_defconfig    gcc-16.1.0
+m68k                          sun3x_defconfig    gcc-16.1.0
+microblaze                        allnoconfig    gcc-16.1.0
+microblaze                       allyesconfig    gcc-16.1.0
+microblaze                          defconfig    clang-23
+microblaze                          defconfig    gcc-16.1.0
+mips                             allmodconfig    gcc-16.1.0
+mips                              allnoconfig    gcc-16.1.0
+mips                             allyesconfig    gcc-16.1.0
+nios2                            allmodconfig    clang-20
+nios2                            allmodconfig    gcc-11.5.0
+nios2                             allnoconfig    clang-23
+nios2                             allnoconfig    gcc-11.5.0
+nios2                               defconfig    clang-23
+nios2                               defconfig    gcc-11.5.0
+nios2                 randconfig-001-20260624    gcc-9.5.0
+nios2                 randconfig-002-20260624    gcc-9.5.0
+openrisc                         allmodconfig    clang-20
+openrisc                         allmodconfig    gcc-16.1.0
+openrisc                          allnoconfig    clang-23
+openrisc                          allnoconfig    gcc-16.1.0
+openrisc                            defconfig    gcc-16.1.0
+parisc                           allmodconfig    gcc-16.1.0
+parisc                            allnoconfig    clang-23
+parisc                            allnoconfig    gcc-16.1.0
+parisc                           allyesconfig    clang-17
+parisc                           allyesconfig    gcc-16.1.0
+parisc                              defconfig    gcc-16.1.0
+parisc                randconfig-001-20260624    gcc-16.1.0
+parisc                randconfig-002-20260624    gcc-16.1.0
+parisc64                            defconfig    clang-23
+parisc64                            defconfig    gcc-16.1.0
+powerpc                          allmodconfig    gcc-16.1.0
+powerpc                           allnoconfig    clang-23
+powerpc                           allnoconfig    gcc-16.1.0
+powerpc                     asp8347_defconfig    clang-23
+powerpc                        fsp2_defconfig    gcc-16.1.0
+powerpc               randconfig-001-20260624    gcc-16.1.0
+powerpc               randconfig-002-20260624    gcc-16.1.0
+powerpc64             randconfig-001-20260624    gcc-16.1.0
+powerpc64             randconfig-002-20260624    gcc-16.1.0
+riscv                            allmodconfig    clang-23
+riscv                             allnoconfig    clang-23
+riscv                             allnoconfig    gcc-16.1.0
+riscv                            allyesconfig    clang-23
+riscv                               defconfig    clang-23
+riscv                               defconfig    gcc-16.1.0
+riscv                 randconfig-001-20260624    clang-18
+riscv                 randconfig-002-20260624    clang-18
+s390                             allmodconfig    clang-17
+s390                             allmodconfig    clang-23
+s390                              allnoconfig    clang-23
+s390                             allyesconfig    gcc-16.1.0
+s390                                defconfig    clang-18
+s390                                defconfig    gcc-16.1.0
+s390                  randconfig-001-20260624    clang-18
+s390                  randconfig-002-20260624    clang-18
+sh                               allmodconfig    gcc-16.1.0
+sh                                allnoconfig    clang-23
+sh                                allnoconfig    gcc-16.1.0
+sh                               allyesconfig    clang-17
+sh                               allyesconfig    gcc-16.1.0
+sh                                  defconfig    gcc-14
+sh                                  defconfig    gcc-16.1.0
+sh                    randconfig-001-20260624    clang-18
+sh                    randconfig-002-20260624    clang-18
+sparc                             allnoconfig    clang-23
+sparc                             allnoconfig    gcc-16.1.0
+sparc                               defconfig    gcc-16.1.0
+sparc                 randconfig-001-20260624    gcc-14.3.0
+sparc                 randconfig-002-20260624    gcc-14.3.0
+sparc                       sparc32_defconfig    gcc-16.1.0
+sparc64                          allmodconfig    clang-20
+sparc64                             defconfig    clang-23
+sparc64                             defconfig    gcc-14
+sparc64               randconfig-001-20260624    gcc-14.3.0
+sparc64               randconfig-002-20260624    gcc-14.3.0
+um                               allmodconfig    clang-17
+um                                allnoconfig    clang-17
+um                                allnoconfig    clang-23
+um                               allyesconfig    gcc-14
+um                               allyesconfig    gcc-16.1.0
+um                                  defconfig    clang-23
+um                                  defconfig    gcc-14
+um                             i386_defconfig    gcc-14
+um                    randconfig-001-20260624    gcc-14.3.0
+um                    randconfig-002-20260624    gcc-14.3.0
+um                           x86_64_defconfig    clang-23
+um                           x86_64_defconfig    gcc-14
+x86_64                           allmodconfig    clang-22
+x86_64                            allnoconfig    clang-22
+x86_64                            allnoconfig    clang-23
+x86_64                           allyesconfig    clang-22
+x86_64      buildonly-randconfig-001-20260624    clang-22
+x86_64      buildonly-randconfig-002-20260624    clang-22
+x86_64      buildonly-randconfig-003-20260624    clang-22
+x86_64      buildonly-randconfig-004-20260624    clang-22
+x86_64      buildonly-randconfig-005-20260624    clang-22
+x86_64      buildonly-randconfig-006-20260624    clang-22
+x86_64                              defconfig    gcc-14
+x86_64                                  kexec    clang-22
+x86_64                randconfig-001-20260624    clang-22
+x86_64                randconfig-002-20260624    clang-22
+x86_64                randconfig-003-20260624    clang-22
+x86_64                randconfig-004-20260624    clang-22
+x86_64                randconfig-004-20260624    gcc-14
+x86_64                randconfig-005-20260624    clang-22
+x86_64                randconfig-006-20260624    clang-22
+x86_64                randconfig-006-20260624    gcc-14
+x86_64                randconfig-011-20260624    gcc-14
+x86_64                randconfig-012-20260624    gcc-14
+x86_64                randconfig-013-20260624    gcc-14
+x86_64                randconfig-014-20260624    gcc-14
+x86_64                randconfig-015-20260624    gcc-14
+x86_64                randconfig-016-20260624    gcc-14
+x86_64                randconfig-071-20260624    gcc-14
+x86_64                randconfig-072-20260624    clang-22
+x86_64                randconfig-072-20260624    gcc-14
+x86_64                randconfig-073-20260624    gcc-14
+x86_64                randconfig-074-20260624    clang-22
+x86_64                randconfig-074-20260624    gcc-14
+x86_64                randconfig-075-20260624    gcc-14
+x86_64                randconfig-076-20260624    clang-22
+x86_64                randconfig-076-20260624    gcc-14
+x86_64                               rhel-9.4    clang-22
+x86_64                           rhel-9.4-bpf    gcc-14
+x86_64                          rhel-9.4-func    clang-22
+x86_64                    rhel-9.4-kselftests    clang-22
+x86_64                         rhel-9.4-kunit    gcc-14
+x86_64                           rhel-9.4-ltp    gcc-14
+x86_64                          rhel-9.4-rust    clang-22
+xtensa                            allnoconfig    clang-23
+xtensa                            allnoconfig    gcc-16.1.0
+xtensa                           allyesconfig    clang-20
+xtensa                           allyesconfig    gcc-16.1.0
+xtensa                randconfig-001-20260624    gcc-14.3.0
+xtensa                randconfig-002-20260624    gcc-14.3.0
 
- - Entering rescue shell due to the lack of root devices (PCIe nvme in
-   our case).
-
-   Same reason as above, the PCIe host bridge scanning is queued on
-   a system workqueue and finished after init process runs.
-
-The reason is because both devices (console, PCIe host bridge) depend on
-riscv-aplic irqchip to serve their interrupts (console's wired interrupt
-and PCI's INTx interrupts). In order to keep the dependency, these
-devices are scanned and created after initializing riscv-aplic. The
-riscv-aplic is initialized in device_initcall() and a device scan work
-is queued via acpi_scan_clear_dep_queue(), which is close to the time
-userspace init process is run. Since system_dfl_wq is used in
-acpi_scan_clear_dep_queue() with no synchronization, the issues will
-happen if userspace init runs before these devices are ready.
-
-The solution is to wait for the queued work to complete before entering
-userspace init. One possible way would be to use a dedicated workqueue
-instead of system_dfl_wq, and explicitly flush it somewhere in the
-initcall stage before entering userspace. Another way is to use
-async_schedule_dev_nocall() for scanning these devices. It's designed
-for asynchronous initialization and will work in the same way as before
-because it's using a dedicated unbound workqueue as well, but the kernel
-init code calls async_synchronize_full() right before entering userspace
-init which will wait for the work to complete.
-
-Compared to a dedicated workqueue, the second approach is simpler
-because the async schedule framework takes care of all of the details.
-The ACPI code only needs to focus on its job. A dedicated workqueue for
-this could also be redundant because some platforms don't need
-acpi_scan_clear_dep_queue() for their device scanning.
-
-Signed-off-by: Yicong Yang <yang.yicong@picoheart.com>
-[ rjw: Subject adjustment, changelog edits ]
-Link: https://patch.msgid.link/20260128132848.93638-1-yang.yicong@picoheart.com
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-[ Vivian: Adjust system_dfl_wq -> system_unbound_wq in removed lines ]
-Signed-off-by: Vivian Wang <wangruikang@iscas.ac.cn>
----
-Hi stable team,
-
-This fixes a problem on 6.12.y and 6.18.y with RISC-V platform with AIA
-interrupts and ACPI firmware, where devices that uses interrupt lines on
-the APLIC interrupt controller can be probed so late that userspace can
-start without crucial devices such as the console.
-
-This avoids some very head-scratching timing-dependent userspace boot
-problems.
-
-Please consider applying to 6.12.y (for e.g. Debian Trixie) and 6.18.y
-(LTS). Thanks.
----
- drivers/acpi/scan.c | 41 +++++++++++++++--------------------------
- 1 file changed, 15 insertions(+), 26 deletions(-)
-
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 50f60da6cf27..16704c2a730c 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -5,6 +5,7 @@
- 
- #define pr_fmt(fmt) "ACPI: " fmt
- 
-+#include <linux/async.h>
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/slab.h>
-@@ -2360,46 +2361,34 @@ static int acpi_dev_get_next_consumer_dev_cb(struct acpi_dep_data *dep, void *da
- 	return 0;
- }
- 
--struct acpi_scan_clear_dep_work {
--	struct work_struct work;
--	struct acpi_device *adev;
--};
--
--static void acpi_scan_clear_dep_fn(struct work_struct *work)
-+static void acpi_scan_clear_dep_fn(void *dev, async_cookie_t cookie)
- {
--	struct acpi_scan_clear_dep_work *cdw;
--
--	cdw = container_of(work, struct acpi_scan_clear_dep_work, work);
-+	struct acpi_device *adev = to_acpi_device(dev);
- 
- 	acpi_scan_lock_acquire();
--	acpi_bus_attach(cdw->adev, (void *)true);
-+	acpi_bus_attach(adev, (void *)true);
- 	acpi_scan_lock_release();
- 
--	acpi_dev_put(cdw->adev);
--	kfree(cdw);
-+	acpi_dev_put(adev);
- }
- 
- static bool acpi_scan_clear_dep_queue(struct acpi_device *adev)
- {
--	struct acpi_scan_clear_dep_work *cdw;
--
- 	if (adev->dep_unmet)
- 		return false;
- 
--	cdw = kmalloc(sizeof(*cdw), GFP_KERNEL);
--	if (!cdw)
--		return false;
--
--	cdw->adev = adev;
--	INIT_WORK(&cdw->work, acpi_scan_clear_dep_fn);
- 	/*
--	 * Since the work function may block on the lock until the entire
--	 * initial enumeration of devices is complete, put it into the unbound
--	 * workqueue.
-+	 * Async schedule the deferred acpi_scan_clear_dep_fn() since:
-+	 * - acpi_bus_attach() needs to hold acpi_scan_lock which cannot
-+	 *   be acquired under acpi_dep_list_lock (held here)
-+	 * - the deferred work at boot stage is ensured to be finished
-+	 *   before userspace init task by the async_synchronize_full()
-+	 *   barrier
-+	 *
-+	 * Use _nocall variant since it'll return on failure instead of
-+	 * run the function synchronously.
- 	 */
--	queue_work(system_unbound_wq, &cdw->work);
--
--	return true;
-+	return async_schedule_dev_nocall(acpi_scan_clear_dep_fn, &adev->dev);
- }
- 
- static void acpi_scan_delete_dep_data(struct acpi_dep_data *dep)
-
----
-base-commit: 275d294b2b24abcd65452198551cd8a5b8d4f775
-change-id: 20260624-acpi-dependency-thing-b12814074c8d
-
-Best regards,
---  
-Vivian "dramforever" Wang
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
