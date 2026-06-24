@@ -1,113 +1,150 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D13B0285C8B
-	for <linux-acpi@vger.kernel.org>; Wed, 24 Jun 2026 13:11:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7C432A1BF
+	for <linux-acpi@vger.kernel.org>; Wed, 24 Jun 2026 13:18:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782306674; cv=none; b=ADHYHk+XKiuXmHkM1qSYxK1Tu/fcSk02V7qrvmT3JjFNJMDFR/VMa4A4Te32lGk8eBZYIgs66OjX4X5NYz+y0mg6xf+14WlpFX15fKV53u6Zlns+Fq9HT4jDrkdG1jJ6GjjXS9Z4/k3iimWt2wawXZOicMj/HvXQUtw7XbZ/aCE=
+	t=1782307090; cv=none; b=nomF9LFVZRIWmXWJUnnWNXhPSjgMQkniFlZh2LbvS6I04EOzGwB0+dSgPsZCxqUK6ojaE0YzfCb7GHDSPTHzWTHnFQuaOCPMNe/EO869au9nzYSHpL9uZuFqufdnT3QYBVCkEMnkyOVuadUDgBnHmla1Ruvg3NhSTeMQ5juC9EA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782306674; c=relaxed/simple;
-	bh=C0J0XusKZIElcWXark7K9bjk8b6SMi2f9px70iFNhAY=;
+	s=arc-20240116; t=1782307090; c=relaxed/simple;
+	bh=WtUzF+kKa00RFVwSgcsiFZm79bWbkbrHEkU0/c/TpkQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=K/QJwD3wzb6NNAzwRUi0giQpWLQ3c1JO2GO+76gFxQRaEDkCCqsH6y+2Gdawdmgg/bwQahGaZruCIzbTuMzwaRna24qHZpQ1OtC484dZfsAp5sc/9bbwTiDAvwalrOJrtStK3TDnAdLxxalPYDKoeeDIWz0qiYVZe8JxmVflssE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HY/pSNyz; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=fGnNo7O1T/nYUJX2SVRWJ759p+dCY9gVzooMcrlDnSL89mUXOOT9nQ/UQD+meQOBWJYlbIGn2xRu1jDXpEYTtkx4rIbkpV9UPoY0PON9Mrlns7zvns60WVmwJEHZFHyhrXhW1iaQWzKtphCu50+cXz63EtCm21Tdy9KaE+33WaY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aSRG5boF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HY/pSNyz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D8711F00A3A
-	for <linux-acpi@vger.kernel.org>; Wed, 24 Jun 2026 13:11:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aSRG5boF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C02291F00ADB
+	for <linux-acpi@vger.kernel.org>; Wed, 24 Jun 2026 13:18:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782306672;
-	bh=xsgq3ScHDNFwRFdc+fgrt/khXDJ1hKIt3mrYBveO0tA=;
+	s=k20260515; t=1782307089;
+	bh=1rD5RzOkXDXTz9zhYe01XrnuO4Sm8PLmcsetrRyq0j8=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=HY/pSNyzG2rPelY1ZgX7FXA1J85TB8lBb3lJe12XuK2LAldcVRc63vh3iL+WsIlJH
-	 sy4UIcpt3jh4ch1xEiJK7Al+XPMMuvaPNso5/UumlV58vZHagfTeLD813SlGa02ER9
-	 suB9nE+9jjhCulcV4E0YSaJaWuCWW1nUr0CIDexE+zlVbfHoIsLFr65a2cNBcbNHd4
-	 foAkPQxNqKDdmNYnNIb546bnBkRi4dpLUnJ6xvHsG2Gan3p1APtPlp8uSzW0Nl9+0x
-	 0DLwHFqLOgU8eBaP967bJOrMv64toddjZKto6w+h3qIt9Ld1EnSuF96h9C1HMVQn/u
-	 TPltg28RKCgag==
-Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-5ad49da7123so922452e87.0
-        for <linux-acpi@vger.kernel.org>; Wed, 24 Jun 2026 06:11:12 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+Rqsrgkj5okY9626UXwIwd+XVd7DArbxU6NACnsoHeajV7NLWPSElddP1Zj+cv2J2+n033OqVThRZXyK@vger.kernel.org
-X-Gm-Message-State: AOJu0YzFiIfB9k15Spd8uQbKIUEFOotqVCU+q5VCIXHkbsSa/kaD9IEC
-	hqk9GBtnbH0oYshXWjMcUlTlqkFEkQCeDujyPp0hCq9FmtCv6TTKL6D67OlrvyEA/t3if6Ia7D5
-	OjKyCHoci+2iRhE4EOEXDMFH2EPAz24E=
-X-Received: by 2002:a05:6512:3133:b0:5ad:57dd:1efd with SMTP id
- 2adb3069b0e04-5ad69592157mr1527380e87.8.1782306671107; Wed, 24 Jun 2026
- 06:11:11 -0700 (PDT)
+	b=aSRG5boFF576nEz0BFVHWB/dOFlcQf9QVXwZa8b/TuCHY/GCsJg0oXEzamnf+M1jD
+	 iWweLgCfIuv7+t92aGHdHzUEJodKOmEpyuFXD41pmEh3xQ74VYXezX7D84gARjfcCG
+	 GPM9/RN0CtJrSBW489pyuaRBCRQg3kP8H3pMxcxtTekTrXuMlXogbZEo7GK4WNemGt
+	 lPusITMN4VULnX3RKGVfC5y2+JndNWAMGdGgqPOTp+eBs3DiWpKo/GsQfLtajH/0oV
+	 F1p0s26/BVXCw+9TTsdSp/RvuRmKWG6/fTR0CRFenFdxPOFRiqKcCDgE4RRKn+uQyU
+	 qSgftL9j1CLVA==
+Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-39977ab0562so9383461fa.1
+        for <linux-acpi@vger.kernel.org>; Wed, 24 Jun 2026 06:18:09 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RropFtQCkIOsr62NIv+v3LCGwvsiujUNq9jweuKxOWQh5KLBgSLgfYuWPZFMzm7MAkyemxYFJyQ/2y2@vger.kernel.org
+X-Gm-Message-State: AOJu0YwT6444dNZeA7XvVE1dOMaJeXa9XqJaCtm3w65ysB5VZWDH1lZf
+	ARda1geIpsZzAPESWyasUB0O5FqW3gtcIVN3v5q/iAY4ULjkIDoGE0mqRSbELDZDqBKJbguQc8N
+	q2rccxD28hA5SBtrM0cBawB8UaBdJx6A=
+X-Received: by 2002:ac2:5981:0:b0:5aa:64cb:9594 with SMTP id
+ 2adb3069b0e04-5ae9d57862cmr636267e87.15.1782307088192; Wed, 24 Jun 2026
+ 06:18:08 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260617135518.1100698-1-ben.dooks@codethink.co.uk> <CAJZ5v0ji5ps3+-+MJtN-g_k_B3UEQDry9XF6ZUEVD8nyrc-fpw@mail.gmail.com>
-In-Reply-To: <CAJZ5v0ji5ps3+-+MJtN-g_k_B3UEQDry9XF6ZUEVD8nyrc-fpw@mail.gmail.com>
+References: <20260616072617.2272-1-lirongqing@baidu.com> <CAJZ5v0j3Wnn3exbji-6PzwjCnOCJDe_pUJU9R25Bhvh1ZE3E5A@mail.gmail.com>
+ <731d81865e444be8a9bc07dd121975f3@baidu.com>
+In-Reply-To: <731d81865e444be8a9bc07dd121975f3@baidu.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Wed, 24 Jun 2026 15:10:55 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0g=0ShZDS_fcs41hVSbpQDft=UQNornRMQMJEXD8kcMmQ@mail.gmail.com>
-X-Gm-Features: AVVi8CfjCm3jjEyAczn4cZQxg4DE-4rCA44JsvYaF7lNAaDcQhjxwZbiKIcLjC4
-Message-ID: <CAJZ5v0g=0ShZDS_fcs41hVSbpQDft=UQNornRMQMJEXD8kcMmQ@mail.gmail.com>
-Subject: Re: [PATCH] PNP: make pnp_eisa_id_to_string() take __be32 id
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Ben Dooks <ben.dooks@codethink.co.uk>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
+Date: Wed, 24 Jun 2026 15:17:51 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gpdX-V9rwtE6AC9GiwVpjf=xexZCQEA+Z3CwevemUcWQ@mail.gmail.com>
+X-Gm-Features: AVVi8CcGimQDx9OVfVo-peErRJmnfIUZDklsSTkoyAy4wC0g8y2nBYj2kxSLXJ8
+Message-ID: <CAJZ5v0gpdX-V9rwtE6AC9GiwVpjf=xexZCQEA+Z3CwevemUcWQ@mail.gmail.com>
+Subject: =?UTF-8?B?UmU6IFvlpJbpg6jpgq7ku7ZdIFJlOiBbUEFUQ0hdW3YyXSBBQ1BJOiBwcm9jZXNzb3JfaQ==?=
+	=?UTF-8?B?ZGxlOiBNYXJrIExQSSBlbnRlciBmdW5jdGlvbnMgYXMgX19jcHVpZGxl?=
+To: "Li,Rongqing" <lirongqing@baidu.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Sunil V L <sunilvl@ventanamicro.com>, 
+	Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou <aou@eecs.berkeley.edu>, 
+	Alexandre Ghiti <alex@ghiti.fr>, Sudeep Holla <Sudeep.Holla@arm.com>, 
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
+	"linux-riscv@lists.infradead.org" <linux-riscv@lists.infradead.org>, Huisong Li <lihuisong@huawei.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jun 23, 2026 at 4:50=E2=80=AFPM Rafael J. Wysocki <rafael@kernel.or=
-g> wrote:
+On Wed, Jun 24, 2026 at 3:51=E2=80=AFAM Li,Rongqing <lirongqing@baidu.com> =
+wrote:
 >
-> On Wed, Jun 17, 2026 at 3:55=E2=80=AFPM Ben Dooks <ben.dooks@codethink.co=
-.uk> wrote:
+> > > The acpi_idle_lpi_enter() function is invoked within the cpuidle path
+> > > after RCU has already been disabled for the current local CPU.
+> > > Consequently, ftrace's function_trace_call() expects RCU to be
+> > > actively watching before recording trace data, emitting a warning if
+> > > it is not.
+> > >
+> > > Fix this by annotating acpi_idle_lpi_enter(), the generic __weak stub=
+,
+> > > and the RISC-V implementation of acpi_processor_ffh_lpi_enter() with
+> > > __cpuidle. This moves these functions into the '.cpuidle.text'
+> > > section, implicitly disabling ftrace instrumentation (notrace) along
+> > > this sensitive path and preventing trace-induced RCU warnings during
+> > > idle entry.
+> > >
+> > > Fixes: a36a7fecfe60 ("ACPI / processor_idle: Add support for Low Powe=
+r
+> > > Idle(LPI) states")
+> > > Signed-off-by: Li RongQing <lirongqing@baidu.com>
+> > > ---
+> > > Diff with v1: add __cpuidle to acpi_processor_ffh_lpi_enter
+> > >
+> > >  drivers/acpi/processor_idle.c | 4 ++--  drivers/acpi/riscv/cpuidle.c
+> > > | 2 +-
+> > >  2 files changed, 3 insertions(+), 3 deletions(-)
+> > >
+> > > diff --git a/drivers/acpi/processor_idle.c
+> > > b/drivers/acpi/processor_idle.c index 390ab5f..4482cf2 100644
+> > > --- a/drivers/acpi/processor_idle.c
+> > > +++ b/drivers/acpi/processor_idle.c
+> > > @@ -1143,7 +1143,7 @@ static int acpi_processor_get_lpi_info(struct
+> > acpi_processor *pr)
+> > >         return 0;
+> > >  }
+> > >
+> > > -int __weak acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi)
+> > > +int __weak __cpuidle acpi_processor_ffh_lpi_enter(struct
+> > > +acpi_lpi_state *lpi)
+> > >  {
+> > >         return -ENODEV;
+> > >  }
+> > > @@ -1156,7 +1156,7 @@ int __weak acpi_processor_ffh_lpi_enter(struct
+> > acpi_lpi_state *lpi)
+> > >   *
+> > >   * Return: 0 for success or negative value for error
+> > >   */
+> > > -static int acpi_idle_lpi_enter(struct cpuidle_device *dev,
+> > > +static int __cpuidle acpi_idle_lpi_enter(struct cpuidle_device *dev,
+> > >                                struct cpuidle_driver *drv, int index)
+> > > {
+> > >         struct acpi_processor *pr;
+> > > diff --git a/drivers/acpi/riscv/cpuidle.c
+> > > b/drivers/acpi/riscv/cpuidle.c index 624f9bb..c76dbab 100644
+> > > --- a/drivers/acpi/riscv/cpuidle.c
+> > > +++ b/drivers/acpi/riscv/cpuidle.c
+> > > @@ -66,7 +66,7 @@ int acpi_processor_ffh_lpi_probe(unsigned int cpu)
+> > >         return acpi_cpu_init_idle(cpu);  }
+> > >
+> > > -int acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi)
+> > > +int __cpuidle acpi_processor_ffh_lpi_enter(struct acpi_lpi_state
+> > > +*lpi)
+> > >  {
+> > >         u32 state =3D lpi->address;
+> > >
+> > > --
 > >
-> > The pnp_eisa_id_to_string() should take a __be32 id as it
-> > passes it immediately to be32_to_cpu(). Change the type
-> > of this to fix the following sparse warning:
+> > Sashiko says that this change may not be sufficient to fully address th=
+e issue
 > >
-> > drivers/pnp/support.c:42:14: warning: cast to restricted __be32
+> > https://sashiko.dev/#/patchset/20260616072617.2272-1-lirongqing%40baidu
+> > .com
 > >
-> > Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
-> > ---
-> >  drivers/pnp/base.h    | 2 +-
-> >  drivers/pnp/support.c | 4 ++--
-> >  2 files changed, 3 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/drivers/pnp/base.h b/drivers/pnp/base.h
-> > index b342570d0236..7b666b6ac40e 100644
-> > --- a/drivers/pnp/base.h
-> > +++ b/drivers/pnp/base.h
-> > @@ -11,7 +11,7 @@ extern const struct bus_type pnp_bus_type;
-> >  int pnp_register_protocol(struct pnp_protocol *protocol);
-> >
-> >  #define PNP_EISA_ID_MASK 0x7fffffff
-> > -void pnp_eisa_id_to_string(u32 id, char *str);
-> > +void pnp_eisa_id_to_string(__be32 id, char *str);
-> >  struct pnp_dev *pnp_alloc_dev(struct pnp_protocol *, int id,
-> >                               const char *pnpid);
-> >  struct pnp_card *pnp_alloc_card(struct pnp_protocol *, int id, char *p=
-npid);
-> > diff --git a/drivers/pnp/support.c b/drivers/pnp/support.c
-> > index f6c866851769..07c9844680ac 100644
-> > --- a/drivers/pnp/support.c
-> > +++ b/drivers/pnp/support.c
-> > @@ -37,9 +37,9 @@ EXPORT_SYMBOL(pnp_is_active);
-> >   * Functionally similar to acpi_ex_eisa_id_to_string(), but that's
-> >   * buried in the ACPI CA, and we can't depend on it being present.
-> >   */
-> > -void pnp_eisa_id_to_string(u32 id, char *str)
-> > +void pnp_eisa_id_to_string(__be32 _id, char *str)
-> >  {
-> > -       id =3D be32_to_cpu(id);
-> > +       u32 id =3D be32_to_cpu(_id);
-> >
-> >         /*
-> >          * According to the specs, the first three characters are five-=
-bit
-> > --
+> > and that appears to be a valid concern.
 >
-> Applied as 7.2-rc material, thanks!
+> Should this fix be placed in a separate patch? CPU_PM_CPU_IDLE_ENTER_PARA=
+M
+> is also invoked by sbi_cpuidle_enter_state, which is itself already annot=
+ated with __cpuidle,
+> so this appears to be a pre-existing issue in the RISC-V tree. It would b=
+e more appropriate
+> to have RISC-V experts to fix it independently.
 
-And dropped because it causes sparse to complain:
+OK, fair enough.
 
-https://lore.kernel.org/linux-acpi/202606241828.hRy0jZOE-lkp@intel.com/
+Applied as 7.2-rc material, thanks!
