@@ -1,90 +1,106 @@
-Received: from va-2-18.ptr.blmpb.com (va-2-18.ptr.blmpb.com [209.127.231.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2BAF39B955
-	for <linux-acpi@vger.kernel.org>; Thu, 25 Jun 2026 09:47:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.127.231.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A291E367288;
+	Thu, 25 Jun 2026 10:18:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782380841; cv=none; b=mwlF0y2zeiqBczgizup5HlymeR2AR3Ydb6fbZMK6r2vHycxCX7dmPaeLvtQOKQxDCORq6jK7DaHTLz3VtY4uo7ZxtRsweLjHF2kYUFhZl7Me+pFyGkDiU+0Vs/VAnrrbej6EidEBkzQUlrQjAfMHKWFw7WgGWuwSecBaOwyJzCo=
+	t=1782382714; cv=none; b=S/x8XF6kOslmIcKL7m5lLtheQE72uAHWC04IgSPN8Yl0+qI3QwXHjlwo5rS7y+bA2mUHLWYl4evQhTJ5zSGfQyCBw//2fg0xigWtZpJjvQZ16YMaEw21jZdY/xyBVz6FV3AJVl9LebSMLtm1kkzVrnMqlYktKpKBsECttKsNp+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782380841; c=relaxed/simple;
-	bh=V+NNFTvdjSE782bh+GE6YrmR8t6bUHzukiewGvYp+Dg=;
-	h=To:Mime-Version:Subject:Date:Message-Id:Cc:From:Content-Type; b=o1fxeBnnn9LilUhgJ4qhxXNkZv+CEL/a5moQtnCO/HsarRvSep+sQapbBLTst3bJsuxKV8AChD+2SmwTsCjKOgDA1pyxMbAsG1CDRH/EtlmG1Va4VQ9bI/W5orInXlD5CjON/1MjZeyFEvKWcOCAVB6C4dyxd6AIBxDRJZB3BEg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=picoheart.com; spf=pass smtp.mailfrom=picoheart.com; dkim=pass (2048-bit key) header.d=picoheart.com header.i=@picoheart.com header.b=xUxiG5aD; arc=none smtp.client-ip=209.127.231.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=picoheart.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=picoheart.com
+	s=arc-20240116; t=1782382714; c=relaxed/simple;
+	bh=WAUJTHo/ePsI3XGecVaXtCkNMTdhtQ/0OceaynIiV0Q=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=KmWHpodvrpj++0DNpXTbLs76gMJi7UXBSSIJbPVNQHUctSrpaAYZeNNmoLOMLgSYRIywkHutY9bBI4yDqeOlS1nS9PyJbuZA+xAzFNXuX0bhKIgimxUmZXCCAwFp6Z9ZSaPSC9lANU6+Lnx1jwEoeyWdZPEJFI3PYqLiCGe3BB4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WCKOTXxo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=picoheart.com header.i=@picoheart.com header.b="xUxiG5aD"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
- s=feishu2604151535; d=picoheart.com; t=1782380828; h=from:subject:
- mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
- mime-version:in-reply-to:message-id;
- bh=u9Vr69DUWtU2GtQSnZ4vT3lQafTb6BSSmbeeV1i8VZw=;
- b=xUxiG5aDDwYXzKivlqpuTDaL0kxec5F9rmNI5p664NrEvEyZTqoEO4op5U/GMWLbm5QZ8w
- 29Nkazb4pkiuEg2hXifN7X/2kib98la15RGdsbt0tDm1/M20gAkTuUnPyRC1KAWji+Qg9d
- 2imf3iZ7zqt3BOIODppoDMw041fjAhwDxcmVpEAEW6oTejaJS8hKdMSR4rTKjB/jg/xtio
- J49Duxgxl8h3gW0FSvyjnr6Za/5SSEvOrK6wbPSwHSfonrinC+0iZTRYSL6cTZta6Ch9zc
- OFF71Zw/y0ygDFf6+sN8mkdXi8wpYUkPQtZiMsKXq7DOC5uYlQSe0TU0cD4isw==
-To: <sunilvl@ventanamicro.com>, <rafael@kernel.org>, 
-	<linux-riscv@lists.infradead.org>, <linux-acpi@vger.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WCKOTXxo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCBFC1F000E9;
+	Thu, 25 Jun 2026 10:18:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782382713;
+	bh=876w6/eCJ7SqQjvBg+24X9YaPylLm+XwVJRbUT/ujFE=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=WCKOTXxoE+VrXtG9KXYW/qhRQY79owu2ICWOcQ/WdQeroSUEHc2tt8XK4xhPpbSyo
+	 FIIv/OIC6JHbDjfIXiZPH5+1CYdx6ElIoNWbpWLjfzt2VZwXiavuB9xJxWVetbIU8k
+	 oy6JrlKyqSiCbA9xCnXpQfXM2IFrqZsNevOo6tpmeP3KKKJds2tVKQE6LOB6NqNkY7
+	 /byH5hy+ETHqoI1lQLQFdLVXc5plrA+l50IaatIR88qHN9XPM1ZK3pd746PBz9W2Pe
+	 eccdwWPsFd5ETqL5bg1/8vmraRW2kIfomJLR13VXHzCaMaHQbHDy5VT9U2PVwyXv+S
+	 6Ko0MlCI14ObQ==
+Message-ID: <68cdb639-4ab7-44bb-a9b7-3ef6e463c1b3@kernel.org>
+Date: Thu, 25 Jun 2026 12:18:28 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-X-Mailer: git-send-email 2.50.1
-X-Lms-Return-Path: <lba+26a3cf91a+142777+vger.kernel.org+yang.yicong@picoheart.com>
-Content-Transfer-Encoding: 7bit
-X-Original-From: Yicong Yang <yang.yicong@picoheart.com>
-Subject: [PATCH] ACPI: RIMT: Only defer the IOMMU configuration in init stage
-Date: Thu, 25 Jun 2026 17:47:02 +0800
-Message-Id: <20260625094702.11558-1-yang.yicong@picoheart.com>
-Received: from G9WYR9K0VW.bytedance.net ([58.250.106.117]) by smtp.feishu.cn with ESMTPS; Thu, 25 Jun 2026 17:47:05 +0800
-Cc: <lenb@kernel.org>, <pjw@kernel.org>, <palmer@dabbelt.com>, 
-	<aou@eecs.berkeley.edu>, <geshijian@picoheart.com>, 
-	<jialilv@picoheart.com>, <yang.yicong@picoheart.com>
-From: "Yicong Yang" <yang.yicong@picoheart.com>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC 00/12] RFC: Devicetree-ACPI hybrid mode
+To: Hans de Goede <johannes.goede@oss.qualcomm.com>,
+ "Rafael J . Wysocki" <rafael@kernel.org>,
+ Bjorn Andersson <andersson@kernel.org>,
+ Konrad Dybcio <konradybcio@kernel.org>
+Cc: Srinivas Kandagatla <srini@kernel.org>,
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, Dmitry Baryshkov
+ <lumag@kernel.org>,
+ Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+ Abel Vesa <abel.vesa@oss.qualcomm.com>, linux-arm-msm@vger.kernel.org,
+ devicetree@vger.kernel.org, linux-acpi@vger.kernel.org
+References: <20260623145225.143218-1-johannes.goede@oss.qualcomm.com>
+Content-Language: en-US
+From: Konrad Dybcio <konradybcio@kernel.org>
+In-Reply-To: <20260623145225.143218-1-johannes.goede@oss.qualcomm.com>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-The IOMMU configuration will be deferred if the IOMMU driver
-isn't probed by the time. Make this deferral only in the
-initialization stage with driver_deferred_probe_check_state().
-Otherwise the devices depends on IOMMU will be deferred forever
-in case the IOMMU device probe failed or it doesn't appear in
-the ACPI namespace.
+On 6/23/26 4:52 PM, Hans de Goede wrote:
+> Hi All,
+> 
+> Currently as soon as the kernel boots with a populated DT provided then
+> the arch/arm64 code sets acpi_disabled=1 and the complete ACPI subsystem
+> gets disabled. On WoA Snapdragon laptops where the factory Windows OS
+> actually boots using these tables this is not necessarily desirable.
+> 
+> It might still be interesting to at least parse the ACPI tables and make
+> the ACPI fwnodes available for device-drivers to use. I call this DT-ACPI
+> hybrid mode.
+> 
+> This mainly is an experiment for now and possibly a method for accelerating
+> the ongoing effort to run Linux on currently available Snapdragon laptops.
 
-Signed-off-by: Yicong Yang <yang.yicong@picoheart.com>
----
- drivers/acpi/riscv/rimt.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+I like the part where the ACPI tables are parsed and are visible to
+Linux (so that the user can e.g. do acpidump even though DT is in use,
+since the tables are in memory anyway)
 
-diff --git a/drivers/acpi/riscv/rimt.c b/drivers/acpi/riscv/rimt.c
-index 906282b0e63c..e4538fa6c2c8 100644
---- a/drivers/acpi/riscv/rimt.c
-+++ b/drivers/acpi/riscv/rimt.c
-@@ -9,6 +9,7 @@
- 
- #include <linux/acpi.h>
- #include <linux/acpi_rimt.h>
-+#include <linux/device/driver.h>
- #include <linux/iommu.h>
- #include <linux/list.h>
- #include <linux/pci.h>
-@@ -257,11 +258,11 @@ static int rimt_iommu_xlate(struct device *dev, struct acpi_rimt_node *node, u32
- 	rimt_fwnode = rimt_get_fwnode(node);
- 
- 	/*
--	 * The IOMMU drivers may not be probed yet.
--	 * Defer the IOMMU configuration
-+	 * The IOMMU drivers may not be probed yet. Defer the IOMMU
-+	 * configuration if it's still in initialization stage.
- 	 */
- 	if (!rimt_fwnode)
--		return -EPROBE_DEFER;
-+		return driver_deferred_probe_check_state(dev);
- 
- 	/*
- 	 * EPROBE_DEFER ensures IOMMU is probed before the devices that
--- 
-2.50.1 (Apple Git-155)
+I think the 'hybrid enumeration path' is a cool technical experiment,
+which lets the user skip _some parts_ of writing a device tree, but
+the benefits are too minor - we can only make use of this for devices
+that already have ACPI support in Linux and whose nodes fit within the
+"describe the actual hw and how it's wired up, not the functions it
+exposes" model (because on Windows that all ends up being hijacked by
+the PEP driver or something similar in the chain).
+This is natural for DT, but not so much for ACPI
+
+The hid-over-i2c example you gave looks useful on the surface, but
+if the user already has to have the knowledge and skills to grab and
+decompile the tables, assess the right path for the device and still
+have to put it in the DT (which again, they would have had to create
+at this point) after all, they may as well take the 40 extra seconds
+as a single-time cost to fill in the i2c address and interrupt source
+to create a valid/full DT node.
+
+The path lookup mechanisms relies on the paths remaining stable,
+which I would assume should be the case, but I wouldn't bet money
+on it _always_ being the case.
+
+To put it simply, I don't think we should spend time on trying to
+forcefully make the incomplete (actually incomplete, since Windows
+today loads ACPI fragments sourced from Windows Update at runtime
+and relies on many drivers having hardcoded data) DSDTs be any
+useful, because in their current form, we would need to rely on
+quasi-boardfiles for most things anyway.
+
+If we need to provide the firmware description (DT) externally
+anyway, let's just stick to that alone.
+
+Konrad
