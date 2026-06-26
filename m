@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1363137C910;
-	Fri, 26 Jun 2026 14:33:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABBA03F8715;
+	Fri, 26 Jun 2026 14:44:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782484435; cv=none; b=hFwMdBzfrT1I91tpUWzX+emcW0NTIp5UKyJK4siv/hjM/c522KogWgMrKzIoXV9ppF+KgdPnOQBpQygB3UZJwCNin5G8XjAyg0M5ms5BzE51wzW2a04JYOXRDTzbeH7RGiOJyOVZ1i8KlhH7vPH0FY+QAVncUKj7f5p5AuM9KLE=
+	t=1782485044; cv=none; b=MTLhIqzQnu7Dk9ueaUV3tWgLaI7Ckc5uoh6RMHPvxZqByeihqn+fSlcWxrSPm8GtlIsbdKK48it8/W6HlRsCdAu1h+0aebA6MpB0VloVS2ohUe6y29bLAbzPmfz4C38CVGHesl45cqIIfvpbj+pM/bvE0TNMSUBoloMEYzANt8I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782484435; c=relaxed/simple;
-	bh=NqfACnz2t+zOVA2tuFmiayVrUDbhu5OGqN+rIrYyF+E=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=nbBOafezwCxzJPVpDGsiV2ODQ5dnKMrdi28on9Z7MxqI8OzfsfPLUwh1Ok0gAaK7AM/NUn634xb90AXh+7NcbcJnOTqB4kENnDDN0+dcxiW5SBLNCCroBb++euXeAJcqZugZKOz2AnbT8ab5zrA3trwyO/Uay7/xDu3WHdK+5tU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kR7G670S; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782485044; c=relaxed/simple;
+	bh=t6+19co4wT+sR4HBKB1X6BEjvDKnU+F5CYbIIpRkYHo=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
+	 In-Reply-To:Content-Type; b=r2/rFjZjnPK6szMRAhe4hmwHrUkyyyKfsdDMljsuLTNCWXl75ohf+pxG/LMkcCoMIuZp727ZPxi2czeixI1emqcQhB0dqRX7r5XWMZXq3nMyI/97KcR/thkto3lWg32d9GijD/Ezvy1ac7bUfLQ7mpQnWP1YMmpbtF4w2/NCjKQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MccSHJSg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kR7G670S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE4751F000E9;
-	Fri, 26 Jun 2026 14:33:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MccSHJSg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3153E1F000E9;
+	Fri, 26 Jun 2026 14:44:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782484433;
-	bh=nr1+olveQQc4q70Gwdp75TQ73UljPDFD7Qs6pi1LWiM=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=kR7G670Scq9B+9we1PGLwzkEnigxCjxV7fEJQ68Kv/UpqbfsqlBVwozPF969srkdy
-	 6bk6hKHw+WhKx0kiel30G68P3eqn5U/cJbVRpJqsftBl05NhAIt6pQA34mo789+8Oq
-	 ZUqGhFX+lV+Sy7D073M40eP3rQlrlOyJpJ2qHMU5RRGg9+5nspy9rlMMcuhfzeY2mP
-	 xcxngCLDOvIdU82X3SzUB0hbkNOX8mIej4W0Zav7i5j70dnzEWcv4oM8Zno6Qpabs2
-	 jXwixxP3bXFGLextAYtpHWt1eE9RLDw/0RfAszqku6UyUeZSyKXyeZNCd3jt7+cR1r
-	 9/WasLA3vjkzg==
-Message-ID: <04b4f1b0-4d8f-41eb-9b6f-d90b88aec2ff@kernel.org>
-Date: Fri, 26 Jun 2026 15:33:49 +0100
+	s=k20260515; t=1782485043;
+	bh=B4c6ILvGNvGsDJ3Rcq7xHv7I77cDvZeU88xDp65H8Ow=;
+	h=Date:Subject:From:To:Cc:Reply-To:References:In-Reply-To;
+	b=MccSHJSggSyVFtJWDvS/ObpLXL2icYa2/IsVO79CpZc0H6zOPLa+EAEkDXF7e1wm0
+	 /zIciGcJz4Y2YhQPkNS5gKo83hs/ZWjGjdx/Nszj+nZ3C5wTIlO+hy1DApGDbJGPmw
+	 CRZLBTAU0hKzyWpeWXecxuZXT/K+F/6zQTxsJ14DUpCDlObpkS/jtMB4j0y18nPS/5
+	 LZ1vhKyWWAA3Eo35lpS6y3A/egU1kZe6EA4mOqajgolNH3ja5e4W5E1S5XuqpV1eSs
+	 3jthgWhd/CWju1B2XDqJvEeM2ypCag4NZFVlzl9BJeJ04vuHuq/mAQPfkJvEFn2IEk
+	 CO1pbvT4gdF9g==
+Message-ID: <b5283758-bf75-4906-b821-d6bd7a81e3cd@kernel.org>
+Date: Fri, 26 Jun 2026 15:43:59 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -36,6 +36,7 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Subject: Re: [RFC 00/12] RFC: Devicetree-ACPI hybrid mode
+From: Bryan O'Donoghue <bod@kernel.org>
 To: Hans de Goede <johannes.goede@oss.qualcomm.com>,
  "Rafael J . Wysocki" <rafael@kernel.org>,
  Bjorn Andersson <andersson@kernel.org>,
@@ -46,9 +47,11 @@ Cc: Srinivas Kandagatla <srini@kernel.org>,
  Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
  Abel Vesa <abel.vesa@oss.qualcomm.com>, linux-arm-msm@vger.kernel.org,
  devicetree@vger.kernel.org, linux-acpi@vger.kernel.org
+Reply-To: Bryan O'Donoghue <bod@kernel.org>
 References: <pskkNka1-QtLVb1tcyyUSjNNeMAWUUOLyvn0XSpq55AyeqXnEjOWDCXF1pWVAufJEya52NTx6ZCXz5dMHcMlyQ==@protonmail.internalid>
  <20260623145225.143218-1-johannes.goede@oss.qualcomm.com>
-From: Bryan O'Donoghue <bod@kernel.org>
+ <asD5eIxx2ppKOwrwsxHV3d3olpLk5MF9C3Upf_lVo_MWzsiSilQZ2obgX-IAL0Zmv_Pxd3d1zyBV2tSH4ramsw==@protonmail.internalid>
+ <04b4f1b0-4d8f-41eb-9b6f-d90b88aec2ff@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=bod@kernel.org; keydata=
  xsFNBGRJNSgBEADD7Vm2ZFa+v+JGJ2QYTJqQAkqis/uOHkhdFNXqpBarVBd47QU/DMNU5Rxg
@@ -93,40 +96,64 @@ Autocrypt: addr=bod@kernel.org; keydata=
  LKSGEglMpiX07M1AotgvylN5C8fjbouoK+/RAMsXkk8jba6rPfuuXPaDjCyyKn6zSVHETnHW
  3AJbgVY50T8STpnxayBQvWbCvu+6NOEjXCbyaOJig+5l0zlGN9XHjdANXC5HnwmyaGRL9YDq
  Jh2nVXVJDincOdQRdKcJjYLqaOAoWrYWSDi1iZGspHBTDrnOvfMQzzHY
-In-Reply-To: <20260623145225.143218-1-johannes.goede@oss.qualcomm.com>
+In-Reply-To: <04b4f1b0-4d8f-41eb-9b6f-d90b88aec2ff@kernel.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 23/06/2026 15:52, Hans de Goede wrote:
-> Comments, thoughts ?
+On 26/06/2026 15:33, Bryan O'Donoghue wrote:
+> On 23/06/2026 15:52, Hans de Goede wrote:
+>> Comments, thoughts ?
+> 
+> Throw out DT and just do this...
+> 
+> One thing I like about this approach TBH is that you don't do the easy
+> thing of presuming to push the hard work into the bootloader - thus
+> creating a dependency on bootloader.
+> 
+> We've had _alot_ of problems doing DT selectivity to get OSes installed
+> on arm64 laptops. You mentioned I2C-HID devices and EC controllers which
+> I agree are a good and obvious targets.
+> 
+> I don't think this can replace a full and complete DT but, then I don't
+> think that should be the objective.
+> 
+> Much like installing cursed OSes like Windows on "normal" laptops or x86
+> machines, you'd expect to boot in ACPI mode have enough of the OS
+> running to install more of the OS - which I think _can_ be a viable
+> objective with an ACPI-DT translator.
+> 
+> Sadly OpenBSD could boot all the way to console on the Qcom laptops
+> where Linux could not - because ACPI support was better there.
+> 
+> And, we have Nvidia laptops coming too, Windows laptops which will parse
+> ACPI tables to boot.
+> 
+> There's almost no upside in having ACPI data and not trying to make
+> maximal use of it, especially if you don't have a DT supplied by
+> antecedent boot stages.
+> 
+> ---
+> bod
+> 
 
-Throw out DT and just do this...
+I'm going to agree with myself some more on the boot story.
 
-One thing I like about this approach TBH is that you don't do the easy 
-thing of presuming to push the hard work into the bootloader - thus 
-creating a dependency on bootloader.
+If you can boot Linux _at_all_ and dump out ACPI tables from the booted 
+system you are way further along than not being able to boot without a 
+"real" DT.
 
-We've had _alot_ of problems doing DT selectivity to get OSes installed 
-on arm64 laptops. You mentioned I2C-HID devices and EC controllers which 
-I agree are a good and obvious targets.
+Again, bootloaders have had to be educated on how to make that DT 
+selection - a problem that isn't well solved or converged on - and even 
+if such an agreed method were present, exactly 100% useless to you 
+without the DT to go with it.
 
-I don't think this can replace a full and complete DT but, then I don't 
-think that should be the objective.
+As a Linux user I don't expect everything to work, especially so on 
+aarch64 but, if I can get to a boot console with a screen and keyboard - 
+I have scope to play in a way I otherwise don't - parsing DSDT from 
+Windows and walking backwards to DT.
 
-Much like installing cursed OSes like Windows on "normal" laptops or x86 
-machines, you'd expect to boot in ACPI mode have enough of the OS 
-running to install more of the OS - which I think _can_ be a viable 
-objective with an ACPI-DT translator.
-
-Sadly OpenBSD could boot all the way to console on the Qcom laptops 
-where Linux could not - because ACPI support was better there.
-
-And, we have Nvidia laptops coming too, Windows laptops which will parse 
-ACPI tables to boot.
-
-There's almost no upside in having ACPI data and not trying to make 
-maximal use of it, especially if you don't have a DT supplied by 
-antecedent boot stages.
+DT _should_ be the landing zone of course but, ACPI-DT hybrid to "just 
+boot" seems like an obvious yes to me.
 
 ---
 bod
