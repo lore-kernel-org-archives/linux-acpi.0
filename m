@@ -1,88 +1,112 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 922BA36B05E;
-	Fri, 26 Jun 2026 19:06:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A2D317C220
+	for <linux-acpi@vger.kernel.org>; Fri, 26 Jun 2026 20:14:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782500821; cv=none; b=J7QYWqPPGumQTy3tBu0LM/SBdaOXqnFXhKHHKQK/IFP3mZh+ajX7e4glbvJICbxJl8UQ7aj0WmSh7Gk5JM6DwexPW+wRPOaJLJNHrulF3ei10hz5YzmqvqhpH7kowm6xMsHGshw4wRVifkHjAXLxu0At63ARUFBR2jKfLkNkqjs=
+	t=1782504851; cv=none; b=Zap7QNGLicJHJPHsrpAfxNobbWS7XLfQoENQ2NLPZr0O0omnn40+mbctyfCpnKEAke89weYjzQQwLgvMOpDbn4hhO35Lts+IjZLJ18LeelFytHDKehbmjerMzGMJv+oP+pmY75cyA3Ri78WRdMJZeDOgxRtbX8I1XNGWGFPY7xc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782500821; c=relaxed/simple;
-	bh=xAacMYXIouJKTQ7pGKcC+MEECBrb8bU72FKEZyjpbtE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ZU8Jfb3hLsig0zJNimWpqETZC8N3cuAoe3x5iLOihYyKoHtfC8zJmz8uhbGLbSFlOCDXv07men8AfiVMhodcOSBKpmxeG+aYEesv2rms84FwZO+ab7lPcrVcdSrzmqGobRulcejI2hEOS1r8Jaa0ET/1tph34Cpk+KdL80VwNfs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WbSog2+K; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782504851; c=relaxed/simple;
+	bh=ub1rJsYjCUfWZbpz+fdEyhZesTUIsLwSS17waNUOJFA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=dW+QfoG9v4KwmRFNoYV6+YgNFgGcmknt/kr4trw3BKm71CmRh/P+tIKZjDcu2fxStn3B24na7G9mMIq+0JhrItevhJNXOUZLUhYuuXcKNCOIPEiAJllV12sXtg15ljCAA8iXr6FEA8b960gP1vfIOvdyK93VDmVBzt3rA+SIxcw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NsCHqiiZ; arc=none smtp.client-ip=209.85.214.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WbSog2+K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CFB31F000E9;
-	Fri, 26 Jun 2026 19:06:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782500819;
-	bh=rV/AouYgSj7yEVZG31xqjZXnK1Nr28W7HxlGH34po/8=;
-	h=From:To:Cc:Subject:Date;
-	b=WbSog2+KFyAkZ0afLp+CiUtd6C0vEjq+lLOqrM7Gbhm+rKd+XHybW/5ETkNbPiVe9
-	 a6OMHyRkesONAA9SwYskmnwufrDzjmTEzM4CLqxJ/DD36nnj3p0ewu3ixsZ/6DBsaa
-	 PKMN4iVJFDBOVsVmftdRHqHjuthqsM8ehAXh/+LKCjYo77XMECridtJWkNzQobjiQv
-	 03jb4RrIYPn2VDWlOQFiLemlPAaOud5+X4jBglQWGQHx2Kz6qk/RIAvp0sbs7uFOOC
-	 olCDUy2LLWMjbF2FdvoBlm6lAuL3/60tKzh5Lwjae1E5HXyJ6jIe53qprqJXOsDh9s
-	 bn/wOGTCmyuXQ==
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-To: Linux PM mailing list <linux-pm@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
- "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
- Vincent Guittot <vincent.guittot@linaro.org>,
- Lukasz Luba <Lukasz.Luba@arm.com>, Saravana Kannan <saravanak@google.com>,
- Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
- Ricardo Neri <ricardo.neri@intel.com>,
- Daniel Lezcano <daniel.lezcano@kernel.org>,
- Ulf Hansson <ulf.hansson@oss.qualcomm.com>,
- Christian Loehle <christian.loehle@arm.com>,
- Hans de Goede <hansg@kernel.org>, Sudeep Holla <sudeep.holla@arm.com>
-Subject: [CfP] LPC 2026: Power Management and Thermal Control Micro-Conference
-Date: Fri, 26 Jun 2026 21:06:53 +0200
-Message-ID: <2279717.irdbgypaU6@rafael.j.wysocki>
-Organization: Linux Kernel Development
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NsCHqiiZ"
+Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-2c6c57c5bcfso15268605ad.1
+        for <linux-acpi@vger.kernel.org>; Fri, 26 Jun 2026 13:14:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1782504849; x=1783109649; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=2F4Y1yCJTmWoAxT+0o/PcRIpQzTLR5O2f+f5Ok21rXY=;
+        b=NsCHqiiZAnnLnYwNZ3iA/0OKDzQwBkuRqvPHHRowlyRuiECvqNm2/sPw2CRqWlLzud
+         rUgHn1qYkkuieRGrMdsB0Ods/f8zNYxhjvoRDX+/HAQi+4qTcPuwqN5kgHz3GBKju0NO
+         Kux2O6/FGJxUeMiV90ZmT1eMRc3+JAuL2u7Rs=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782504849; x=1783109649;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=2F4Y1yCJTmWoAxT+0o/PcRIpQzTLR5O2f+f5Ok21rXY=;
+        b=MrxbWZF/hIeH/geIIJZUDbqX1ApkbpHCmzAZ/a5CEdYpEOoQrI6pBL18kxZW+5g3ll
+         O7Fw7u4eFEpqJyc92e+T1d9xz9Uw7EMxSMMSujqxXfHE8IQLj96f4lAWF4eAFzI8Odx1
+         bz/qtXEQlRNNN42FtcFBxNnCl5TIak7pGe3XU2CfhXZOFGzVZ++gvCKc2JXgU6RiAQYo
+         /gqI/6itGkBY8WZ5G1IhDAZ3vrr3lSeKg9eer4eRohoZcPzg7HdV9+Cz8LlTs6h+4Mn7
+         yXuEH/EwyEA+S2RtYxOyVJelt5ZADmBeYeBogpe3RE3ADmA0ZfDYAjPFTmZoQvVLnnbU
+         SVFg==
+X-Gm-Message-State: AOJu0YzPyLrE1/wiO1dxXKcumia92ETLHbx3tvzBMLz5HEbwNgeE8UQk
+	KR6WdvqTbqWD7f0SM9IIJXhzQE/ZLQr7KDd8ArRp5xFR4UMyoX8VgRSNitTWCN+N4XQ3m/+GkdI
+	ALvIX
+X-Gm-Gg: AfdE7cn9u8moTLXYNYSeF5bP8dSOt1A1cp5ieZJdArze7sgy7jvYgzb1Ak6XGW7ipEh
+	Y1tC5zovvOWct7PoU8oDEMd/txpJNeCaqNDgWd4Txck9DuNkkdp8VNiuM6X3oayMjVcrAsvqI4u
+	G2v3UfxRTyAWKm9Q9SZbfwd/LNSdwOCFYyAo/gfcmJ3eJW52iHE135PdcrYnpWXO/a1BJzEQx7o
+	hXGxHqV4LhBBQX75fxLOGSnonXq0TtXAwJiIAoTHA0yznwYqbkIEm2VAxIaRt2XZL8tAQCpR4PI
+	UUdjGu8j9/CFKZ+fR8DilRRCj6VqhZ26f+UJopIgpeXHh5vK+LWbJDlvJLLSMe39sltf9YzWXZy
+	TQ+oPWvxC2xLIcSnRM4/4hm63bBveRPQEk3uNczA2Y8PbxyQ13lwICZvwDZECFq5UvrMr25amz2
+	YjDwU35vXKZDq+zPVWXclTXBJVbkI+4aujrLny+2SO2bAaqNXWve2Li2UhHObBW8sx8A==
+X-Received: by 2002:a17:902:f642:b0:2c8:218d:4374 with SMTP id d9443c01a7336-2c8218d44dbmr30512715ad.26.1782504848706;
+        Fri, 26 Jun 2026 13:14:08 -0700 (PDT)
+Received: from mail-pf1-f172.google.com (mail-pf1-f172.google.com. [209.85.210.172])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2c8248a0794sm13659195ad.26.2026.06.26.13.14.07
+        for <linux-acpi@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 26 Jun 2026 13:14:08 -0700 (PDT)
+Received: by mail-pf1-f172.google.com with SMTP id d2e1a72fcca58-8423f236418so676760b3a.1
+        for <linux-acpi@vger.kernel.org>; Fri, 26 Jun 2026 13:14:07 -0700 (PDT)
+X-Received: by 2002:a05:6a00:1bc6:b0:842:5c90:736b with SMTP id
+ d2e1a72fcca58-845b3b8e325mr8466942b3a.29.1782504847416; Fri, 26 Jun 2026
+ 13:14:07 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+References: <CAJZ5v0juZ6YJVALVEi1s_O0qgcr_o880TJbRHXWsd-Drb-sUXQ@mail.gmail.com>
+In-Reply-To: <CAJZ5v0juZ6YJVALVEi1s_O0qgcr_o880TJbRHXWsd-Drb-sUXQ@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Fri, 26 Jun 2026 13:13:46 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wjS6CuKne+v6t3J=ppXTJj7dwRE0FiuXjT_O_wBiW0yVw@mail.gmail.com>
+X-Gm-Features: AVVi8CfFw2XgHmHaPns9ZxnG8dwQnTbmgexO32t8DbAm-v2T5HHx0LUFCS4Hwrg
+Message-ID: <CAHk-=wjS6CuKne+v6t3J=ppXTJj7dwRE0FiuXjT_O_wBiW0yVw@mail.gmail.com>
+Subject: Re: [GIT PULL] ACPI support fixes and cleanups for 7.2-rc1
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 
-Hi Everyone,
+On Fri, 26 Jun 2026 at 10:54, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>
+>  - Unbreak ACPICA tools builds after switching over to using
+>    strscpy_pad() that is kernel-specific (Rafael Wysocki)
 
-A Power Management and Thermal Control session will be held during this
-year=E2=80=99s LPC, as has been the case for the past few years, and it is =
-open
-for topic submissions.  The submission deadline is August 7th (for all
-LPC micro-conferences), but if you submit a topic by July 10th, you will
-be eligible for conference pre-registration (please see the LPC web site
-at https://lpc.events for details).
+Ugh, honestly, this is disgusting.
 
-The Power Management and Thermal Control micro-conference covers all
-things related to managing power and heat. Among other topics, we care
-about thermal control infrastructure, CPU and device power-management
-mechanisms, energy models, power capping, and power distribution. In
-particular, we are interested in improving and extending thermal control
-support in the Linux kernel and in utilizing the energy-saving features
-of modern hardware.
+I've pulled this, but this file is not in some kind of "tools"
+directory, so the fact that it then also gets compiled in user space
+should be treated as a user space problem.
 
-The overall goal is to facilitate cross-framework and cross-platform
-discussions that help improve energy-awareness and thermal control in
-Linux.
+I had to really scratch my head how it's even build by user space at
+all, and it's due to absolutely disgusting code in
 
-To submit a topic for this micro-conference, go to the LPC2026 CfP page
-at https://lpc.events/event/20/abstracts/, scroll down to the bottom and
-click on the "Submit new abstract" button.  When the submission window
-opens, select "Power Management and Thermal Control MC" in the "Track"
-field.
+    tools/power/acpi/tools/acpidump/Makefile
 
-Please note that topics should not be about work that has already been=20
-completed, as is the case for LPC topics in general.
+that uses a vpath thing to find that C file for that tool build.
 
-Thank you!
+That's just crazy.
 
+But the fix is *still* not to add horrendous "let's use strncpy() when
+not built for the kernel" in code that looks and acts like kernel
+code. None of the other acpica code does that.
 
+How about just adding a trivial strncpy_pad() to
+<acpi/platform/acenv.h> or something. A place that already knows about
+the whole "I'm building the app side" now.
 
+Hmm?
 
+             Linus
