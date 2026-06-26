@@ -1,88 +1,132 @@
-Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78E533BB66C;
-	Fri, 26 Jun 2026 09:56:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1363137C910;
+	Fri, 26 Jun 2026 14:33:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782467809; cv=none; b=LxeS7WnxAdK+zT8DgpyAXsdji+4KSUKUB5EYT2CrKCJVfn82JE3yB7r6qTGlKvzR8jZrBvBLOMixqrc8pIGtX1BGphkZWg8XjsY4gSfbRrNuAxuI87w8tFh04ftOnNob9eNuo1DQpZvhTfP5WiT5RYWjkp2e/13mkJgXdtdaGlo=
+	t=1782484435; cv=none; b=hFwMdBzfrT1I91tpUWzX+emcW0NTIp5UKyJK4siv/hjM/c522KogWgMrKzIoXV9ppF+KgdPnOQBpQygB3UZJwCNin5G8XjAyg0M5ms5BzE51wzW2a04JYOXRDTzbeH7RGiOJyOVZ1i8KlhH7vPH0FY+QAVncUKj7f5p5AuM9KLE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782467809; c=relaxed/simple;
-	bh=RE0qhOfkQ7ruenyzlEj7Bxrp/hmm+5LmZjxXe8hCEhM=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=kpMRKAgAM/ylzHvkmQ3f+h7yztj2Me8J71HG3ZqWuFwG48F8Dp9QcpTKCUiFA3oFRXpb9VFk8CJ2yVM75shG9K150obigW/zjsA5V9ar4IlY0PoWCyUgvyFKeOqBS39Al7raReUuL1i+xgtDVuFbe+gnZ7wswo2j2st8pKiZMWs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=YTvn0uMW; arc=none smtp.client-ip=82.195.75.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debian.org
+	s=arc-20240116; t=1782484435; c=relaxed/simple;
+	bh=NqfACnz2t+zOVA2tuFmiayVrUDbhu5OGqN+rIrYyF+E=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=nbBOafezwCxzJPVpDGsiV2ODQ5dnKMrdi28on9Z7MxqI8OzfsfPLUwh1Ok0gAaK7AM/NUn634xb90AXh+7NcbcJnOTqB4kENnDDN0+dcxiW5SBLNCCroBb++euXeAJcqZugZKOz2AnbT8ab5zrA3trwyO/Uay7/xDu3WHdK+5tU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kR7G670S; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="YTvn0uMW"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
-	s=smtpauto.stravinsky; h=X-Debian-User:Content-Type:MIME-Version:Message-ID:
-	Subject:Cc:To:From:Date:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:In-Reply-To:References;
-	bh=PRjTLPlPgo4RP++aNKoyqSFzF5p07vlm/FWH4+ncEtw=; b=YTvn0uMWt750zGg234gGUAVN7X
-	LWkp3LeykRqkJumToA5aojtkKJSYnrjisD72fARWxKnZaPAJo6g3mnuO1DveLBo7hiNmf/KK7GYSb
-	dj+3REQZHHnhx3RzLlznr8PdcGeYv3Bl0nET1BrUnoFNLUu3Xqz4rQLGfsZXNWrJIMZA4sYF03/AZ
-	VuY2wx6XtWua6K/LoSD/iz4eG6xMLIVACguZDf0wU4ram5A739/cZKMcEN7axoOt/6oqgBDNATGwa
-	D3pCB318HoLQwcmGabF4HWG4WvIKIxLmD9DuLX4Ujt2CLKI4T7W3C7wJs9yi8kXsRBshtRu/Jd0YP
-	IPgzfzjg==;
-Received: from authenticated-user
-	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-	(Exim 4.96)
-	(envelope-from <leitao@debian.org>)
-	id 1wd3Ie-003t3h-3C;
-	Fri, 26 Jun 2026 09:56:41 +0000
-Date: Fri, 26 Jun 2026 02:56:34 -0700
-From: Breno Leitao <leitao@debian.org>
-To: linux-acpi@vger.kernel.org, linux-hwmon@vger.kernel.org, 
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, kernel-team@meta.com, linux-mm@kvack.org
-Cc: Breno Leitao <leitao@debian.org>, kerneljasonxing@gmail.com, 
-	iipeace5@gmail.com, gavinguo@igalia.com, linux@jordanrome.com, amscanne@meta.com, 
-	sj@kernel.org, gpiccoli@igalia.com, Daniel Gomez <da.gomez@kernel.org>, 
-	mfo@igalia.com, platform-driver-x86@vger.kernel.org, 
-	acpica-devel@lists.linux.dev
-Subject: [ANNOUNCEMENT] LPC 2026: System Monitoring and Observability
- Microconference
-Message-ID: <aj5KJEIsTl6IK0nX@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kR7G670S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE4751F000E9;
+	Fri, 26 Jun 2026 14:33:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782484433;
+	bh=nr1+olveQQc4q70Gwdp75TQ73UljPDFD7Qs6pi1LWiM=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=kR7G670Scq9B+9we1PGLwzkEnigxCjxV7fEJQ68Kv/UpqbfsqlBVwozPF969srkdy
+	 6bk6hKHw+WhKx0kiel30G68P3eqn5U/cJbVRpJqsftBl05NhAIt6pQA34mo789+8Oq
+	 ZUqGhFX+lV+Sy7D073M40eP3rQlrlOyJpJ2qHMU5RRGg9+5nspy9rlMMcuhfzeY2mP
+	 xcxngCLDOvIdU82X3SzUB0hbkNOX8mIej4W0Zav7i5j70dnzEWcv4oM8Zno6Qpabs2
+	 jXwixxP3bXFGLextAYtpHWt1eE9RLDw/0RfAszqku6UyUeZSyKXyeZNCd3jt7+cR1r
+	 9/WasLA3vjkzg==
+Message-ID: <04b4f1b0-4d8f-41eb-9b6f-d90b88aec2ff@kernel.org>
+Date: Fri, 26 Jun 2026 15:33:49 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-X-Debian-User: leitao
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC 00/12] RFC: Devicetree-ACPI hybrid mode
+To: Hans de Goede <johannes.goede@oss.qualcomm.com>,
+ "Rafael J . Wysocki" <rafael@kernel.org>,
+ Bjorn Andersson <andersson@kernel.org>,
+ Konrad Dybcio <konradybcio@kernel.org>
+Cc: Srinivas Kandagatla <srini@kernel.org>,
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, Dmitry Baryshkov
+ <lumag@kernel.org>,
+ Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+ Abel Vesa <abel.vesa@oss.qualcomm.com>, linux-arm-msm@vger.kernel.org,
+ devicetree@vger.kernel.org, linux-acpi@vger.kernel.org
+References: <pskkNka1-QtLVb1tcyyUSjNNeMAWUUOLyvn0XSpq55AyeqXnEjOWDCXF1pWVAufJEya52NTx6ZCXz5dMHcMlyQ==@protonmail.internalid>
+ <20260623145225.143218-1-johannes.goede@oss.qualcomm.com>
+From: Bryan O'Donoghue <bod@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=bod@kernel.org; keydata=
+ xsFNBGRJNSgBEADD7Vm2ZFa+v+JGJ2QYTJqQAkqis/uOHkhdFNXqpBarVBd47QU/DMNU5Rxg
+ jedMQEmHoeDbJ6UOpjbrUQ63c5sgG1JbroHJJctwsEI75OOlekMuebEbjIJBLfgENGwPBMHv
+ piv5TgCWr0VgYaXfp2eh2LINFywzqj823HiDPibQAXDrjzvF1ogksi/6cQZs8d4if8YQkLOr
+ YISFouG+eR0nN1I7mUfIddXOWu6lJeTyqbWVurv58k2ekIXKaOC9ixLHFbcfYV0hOgRaTwQC
+ B8CYF9nfqZla19iItfsN9QxN+ZdQjcRoYipp6HPCMfJlKH7GfaFcW93LKc4DKJ2lVL+pg/OQ
+ lythZbjRPY492NG9kZ65aYstCs90uhMUEVVPuGUw7wBEku+6IEwZfrbMVKeWzLlPyM4Hv9hM
+ 8ktxSmxWsPTPqpBC8eyeAQLalMELAyVcZlkaCtEcbj7w4l/JkYz+4l37obG8ZD+B34udBUUz
+ MsAJ8foDFrBh2MOFA3hxD6G90D23mmWsri7pnKA2tZs92aQX7Ee+FbCyg6g5ln62Sq83ZDbf
+ 53DdBs55EVpBadeInWmXhzCHPQx06H+CwTEjShTYIaMmBfrewvYUDKvFTC5iKQhAEUgt6i94
+ JsbG7NoeqcxkUMcBOEUQ3uCQG1D70ugspgXc0wd3Rimiq6535wARAQABzSFCcnlhbiBPJ0Rv
+ bm9naHVlIDxib2RAa2VybmVsLm9yZz7CwZEEEwEIADsWIQTmk/sqq6Nt4Rerb7QicTuzoY3I
+ OgUCZ+R+mwIbAwULCQgHAgIiAgYVCgkICwIEFgIDAQIeBwIXgAAKCRAicTuzoY3IOimUD/94
+ BwVEJX31JRe2sxbB/e1w2p8x1bxvTw5AeIzpV3ox7coJg1bSU2mnGuj1V4o0Yxf/3zmcJzCN
+ VfVjwRF8Ii3GnC7uUXk2t+87piQfKTyJAYQABhZUKgoVJbjJq/S+C3XCKIyBA+EiezoUsgsA
+ jTzwU+FzV7zVWIXFPJNtBERLwboE9w9U3KjAExOa1kSY8eLrsg6kOwlOHWy5UsQqYOjrS96M
+ mzm2xuc1+RCjrndAyYhCnrOKvJ67HsPnBeJCjw7ImGD/U1GchwYbX8o3DO3JNHm3qfC86ZqX
+ 2sCouENg4OzgPTtLKUrueM6xsu6KMM7gj17vxsiR3KQEoJnnMB8D1xtBofN3mFZE0wD9M24m
+ 8yGunZbtntMCUHzIrlJgAPwKWKuGOYtA8UgMTFkccnUJtQrg9KotKtEF/FuftG9zLG9XEkt4
+ 5ZdNgbSoLWgelu3T47mbOJ8LHhiLaCWP7yrovtVAvLUQ1BsiA42u8ECrFCFvQj9nrejE/ICv
+ kP+uqcKtdDvP9HrIGycF1WZyfZLp0RvopKW92FLvI4I1QFWJ+wenk6+LGyJ5bzlrWzevjxmf
+ nHcXE6sJBHrE7eijlbbImDAi3uLYN8Nd9Dm11IDAy4GAIQxSiQn0yblDhPiyGtchy80EVkCm
+ g9k17Wol+2E2mC4DKgVdCkyUtTRSLgsJCs7BTQRkSTUoARAAuTnmWHBS6izRcEE93ajpzI7h
+ dgQO4U3IRvOEsvIKR5NGcNEs0ngGebwsZ/lVULjN4vYU0LleqVhPBidNXUoZCN3A0F0Z2Ov8
+ NZdef+2EhQPBVWxFO7JBzhe8Z3ALj+wFtlg8akJjBzU56azW/iJzAobqHVrudzKoO2b1/CMg
+ VbiAQ+RXjgfN5kY/HqYDU7mw+hXuUV9PbtX1L8xqQQac95oM9rHzKHHpiVwxTeJnGQsa+THi
+ Kze+YET3rCoGHMvOQEJhdrucTv5FpAakKdkOFNel9FFckLRKEuWgCzhpFsjQ7xbirQgFUxG9
+ vlk1+q4hMRGNyEqoD6svYEeqbiUSd0oPUJeioiC3rNMRCNHLVrfZ2J6SCPkxfda08uzSdDQU
+ 1/YPjOh8ZtQDMu7WctZ3XO288Z1gyBR49V7fbFs2w4sQxG+h/enlxqP7fdw1mjUlZjU5huCJ
+ ielS0oEaIpmUpkugli7x4WhwLnhK2EbSoz7nLBC0y+ALUOdMlz/Y1l9xRt+bkDhpmf4O4IcI
+ MxgZ0QMLq8rHDkGaEbsgZZHQPS58T0XE3IP30Q9SNxsruCMXtd2hYtBssf/wohc6JVsTtMg2
+ VYTPDPIFNZFSXupEJB7jlqpDWJ8ooJfJRLBatbjT5+mVQaMYB7Hs/t+zWYWaJKHyc8O6WLEC
+ NUV5Tdt5EkkAEQEAAcLBdgQYAQoAIBYhBOaT+yqro23hF6tvtCJxO7Ohjcg6BQJkSTUoAhsM
+ AAoJECJxO7Ohjcg6LuIQALnXt36OUuK43wqw6UYt0cnN6EbUqJHApAF5eNFn0jCCB2XELjSz
+ JKJwuNAweowBdabiBniJ+501WIW+ewEsz1uby5fUQjZuCEsIkuaIluyfUFPb73qrQyAGuusd
+ 7teA4WT+/jUku9g7lX5sVoRCrKQPkd16f6Bzfztyqyjcn43/X5yQI+wlboQ6HuKe/3I3yiOx
+ OgmCHzOawpC9PvhEcKj79RLM3Zz5Ts5AuHpRX70Jz8Be76LwVFLp5Msx3S24ZTU1lBo2uiJ3
+ xSkay2lTpyVWRPx9vgcwzxGguOPJQJwsQeLb7wpoJMPpD3ERoaRii7Q7hvmxklpZjhKYWB3d
+ t6nQ497Ek9loCrp3MIjRCSDN5xEGffiHks9yTeGMUQwO4tX8RE04uOJPkUY7uCFzFqN6/qey
+ X3oFfPgkULMdiHofPAL1OskZSTzGPSfTYRE46NCJw8yoZBQ/oOyWeqaUQbK0wmW/g81wm8p7
+ LKSGEglMpiX07M1AotgvylN5C8fjbouoK+/RAMsXkk8jba6rPfuuXPaDjCyyKn6zSVHETnHW
+ 3AJbgVY50T8STpnxayBQvWbCvu+6NOEjXCbyaOJig+5l0zlGN9XHjdANXC5HnwmyaGRL9YDq
+ Jh2nVXVJDincOdQRdKcJjYLqaOAoWrYWSDi1iZGspHBTDrnOvfMQzzHY
+In-Reply-To: <20260623145225.143218-1-johannes.goede@oss.qualcomm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-We are pleased to announce the Call for Proposals (CFP) for another
-edition of  System Monitoring and Observability Microconference, this
-time at the 2026 Linux Plumbers Conference (LPC), taking place in
-Prague, Czechia, from Oct 5-7, 2026.
+On 23/06/2026 15:52, Hans de Goede wrote:
+> Comments, thoughts ?
 
-  https://lpc.events/event/20/sessions/262/
+Throw out DT and just do this...
 
-This microconference provides a valuable forum for key engineering areas
-such as:
+One thing I like about this approach TBH is that you don't do the easy 
+thing of presuming to push the hard work into the bootloader - thus 
+creating a dependency on bootloader.
 
-   - Kernel Health and Runtime Monitoring
-   - Hardware Integration and Error Detection
-   - Correlation of Issues (crashes, stalls, bugs)
-   - Virtualization Stack Monitoring
-   - Memory Management Monitoring and Observability
-   - Anomaly Detection Algorithms for System Behavior
-   - Automated Analysis, Remediation and post mortem analyzes
+We've had _alot_ of problems doing DT selectivity to get OSes installed 
+on arm64 laptops. You mentioned I2C-HID devices and EC controllers which 
+I agree are a good and obvious targets.
 
-The purpose of each talk is to share challenges and discuss potential
-improvements. Sessions will last 20 to 30 minutes and aim to encourage
-brainstorming and open dialogue about ongoing issues rather than
-delivering immediate solutions.
+I don't think this can replace a full and complete DT but, then I don't 
+think that should be the objective.
 
-The conference acts as both a knowledge-sharing platform and a strategic
-venue for guiding the future of kernel technologies to better meet the
-demands of large-scale infrastructure.
+Much like installing cursed OSes like Windows on "normal" laptops or x86 
+machines, you'd expect to boot in ACPI mode have enough of the OS 
+running to install more of the OS - which I think _can_ be a viable 
+objective with an ACPI-DT translator.
 
-We invite you to submit your proposals here:
-	https://lpc.events/event/20/abstracts/
+Sadly OpenBSD could boot all the way to console on the Qcom laptops 
+where Linux could not - because ACPI support was better there.
 
-Please select track "Linux System Monitoring and Observability MC"
+And, we have Nvidia laptops coming too, Windows laptops which will parse 
+ACPI tables to boot.
+
+There's almost no upside in having ACPI data and not trying to make 
+maximal use of it, especially if you don't have a DT supplied by 
+antecedent boot stages.
+
+---
+bod
