@@ -1,119 +1,88 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1764F3998A6
-	for <linux-acpi@vger.kernel.org>; Fri, 26 Jun 2026 17:54:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 922BA36B05E;
+	Fri, 26 Jun 2026 19:06:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782496462; cv=none; b=i5gVDEHLHHLaxkwueQWXPR6/j5xsXOENuB6OeIVzerWUcqnSlP1a32Fnet4ZLuqQrNi7uC3MiC7kF3Odhcw18Nrp1+mOdZCMFnp2k2Y34Uvupj05qoHvcEGslfSKGQZ4g5iD5UxHuFLLynWAnmOVit3rpnFlGM8KK+zwm+F0XQE=
+	t=1782500821; cv=none; b=J7QYWqPPGumQTy3tBu0LM/SBdaOXqnFXhKHHKQK/IFP3mZh+ajX7e4glbvJICbxJl8UQ7aj0WmSh7Gk5JM6DwexPW+wRPOaJLJNHrulF3ei10hz5YzmqvqhpH7kowm6xMsHGshw4wRVifkHjAXLxu0At63ARUFBR2jKfLkNkqjs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782496462; c=relaxed/simple;
-	bh=Ht5mz5iY/NG0SVoMITIipCLXayAlGaDGHJdBjuk5Ok4=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=idXaJ7Lwex5BfQ3RPdnxCWZUdtcHw6Cx1PByq8mph6qMP09xWlsgNGRjJKFzlZPVQ0kqasszkgBp9XkNTPWRkDphbgwDI0xmLu2aQpCCwZsxgUJLP8/rOdk5+YWASrDJMrILMcmMhaYHFz6CWD8/EqYCpd0FRQiXB/b27Bp8JGY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZoSd9gtr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782500821; c=relaxed/simple;
+	bh=xAacMYXIouJKTQ7pGKcC+MEECBrb8bU72FKEZyjpbtE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ZU8Jfb3hLsig0zJNimWpqETZC8N3cuAoe3x5iLOihYyKoHtfC8zJmz8uhbGLbSFlOCDXv07men8AfiVMhodcOSBKpmxeG+aYEesv2rms84FwZO+ab7lPcrVcdSrzmqGobRulcejI2hEOS1r8Jaa0ET/1tph34Cpk+KdL80VwNfs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WbSog2+K; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZoSd9gtr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDD221F00A3E
-	for <linux-acpi@vger.kernel.org>; Fri, 26 Jun 2026 17:54:20 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WbSog2+K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CFB31F000E9;
+	Fri, 26 Jun 2026 19:06:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782496460;
-	bh=x/SgCR+HaHhSO+yqoBtBQASbMYmwZy/53Q9iajJvgow=;
-	h=From:Date:Subject:To:Cc;
-	b=ZoSd9gtryT2rHhEakGI2yt6KE6wZSK9kpA4fU7vnVwu381W36dbzT/7gjm7E4rJJs
-	 HjhVGPtK7LUKoq6nvfhFOKrA5RB/YJSAzuULzmXOs90zMOwz64LR/LrviY+pJBF6UE
-	 uRCVd1M8ta++PZBjdj3cKZ5n3lpgRQPoMjF1mrkAzr8sozyaeiDUTBiuaxwgPU8wx+
-	 zci66hijyK3lkg/nKFDxIeTIBB61++TvrjtCtxr+1UM6AiJmzLn6/d8Cpl6DRK3Xyx
-	 cnAKa/0E87J85hDLtFr3DaSqK0zKhRtAqSPDvQuT00T88IM+3QOHvB40Q/RLMxIh3a
-	 utpgkCduUiZVA==
-Received: by mail-vk1-f172.google.com with SMTP id 71dfb90a1353d-5bc22d9977cso1070918e0c.0
-        for <linux-acpi@vger.kernel.org>; Fri, 26 Jun 2026 10:54:20 -0700 (PDT)
-X-Gm-Message-State: AOJu0YwOma2mYgpwnvFr3gs7YjYjmMHIsJFTwhJlNdD/iELD74ip1VMI
-	yNyVI8XveYAqdtUamPeanoByqm4zVauG3NbJfNV6XbbfExLuTT/wzSU7MLy3K1efhprVdeUXh+d
-	4ogwtIVmKi4cPh00TrlTdq475lTFHNr0=
-X-Received: by 2002:a05:6122:551:b0:56f:22ad:f5c9 with SMTP id
- 71dfb90a1353d-5bd69c4a4a2mr3947907e0c.2.1782496460087; Fri, 26 Jun 2026
- 10:54:20 -0700 (PDT)
+	s=k20260515; t=1782500819;
+	bh=rV/AouYgSj7yEVZG31xqjZXnK1Nr28W7HxlGH34po/8=;
+	h=From:To:Cc:Subject:Date;
+	b=WbSog2+KFyAkZ0afLp+CiUtd6C0vEjq+lLOqrM7Gbhm+rKd+XHybW/5ETkNbPiVe9
+	 a6OMHyRkesONAA9SwYskmnwufrDzjmTEzM4CLqxJ/DD36nnj3p0ewu3ixsZ/6DBsaa
+	 PKMN4iVJFDBOVsVmftdRHqHjuthqsM8ehAXh/+LKCjYo77XMECridtJWkNzQobjiQv
+	 03jb4RrIYPn2VDWlOQFiLemlPAaOud5+X4jBglQWGQHx2Kz6qk/RIAvp0sbs7uFOOC
+	 olCDUy2LLWMjbF2FdvoBlm6lAuL3/60tKzh5Lwjae1E5HXyJ6jIe53qprqJXOsDh9s
+	 bn/wOGTCmyuXQ==
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+To: Linux PM mailing list <linux-pm@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+ "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+ Vincent Guittot <vincent.guittot@linaro.org>,
+ Lukasz Luba <Lukasz.Luba@arm.com>, Saravana Kannan <saravanak@google.com>,
+ Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+ Ricardo Neri <ricardo.neri@intel.com>,
+ Daniel Lezcano <daniel.lezcano@kernel.org>,
+ Ulf Hansson <ulf.hansson@oss.qualcomm.com>,
+ Christian Loehle <christian.loehle@arm.com>,
+ Hans de Goede <hansg@kernel.org>, Sudeep Holla <sudeep.holla@arm.com>
+Subject: [CfP] LPC 2026: Power Management and Thermal Control Micro-Conference
+Date: Fri, 26 Jun 2026 21:06:53 +0200
+Message-ID: <2279717.irdbgypaU6@rafael.j.wysocki>
+Organization: Linux Kernel Development
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 26 Jun 2026 19:54:06 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0juZ6YJVALVEi1s_O0qgcr_o880TJbRHXWsd-Drb-sUXQ@mail.gmail.com>
-X-Gm-Features: AVVi8CfAO1jyVAGmDFNyo5xG30shivNUG5b6heAKo8R0i3NRQiSjQ-YsEda-PAs
-Message-ID: <CAJZ5v0juZ6YJVALVEi1s_O0qgcr_o880TJbRHXWsd-Drb-sUXQ@mail.gmail.com>
-Subject: [GIT PULL] ACPI support fixes and cleanups for 7.2-rc1
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
+Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain; charset="UTF-8"
 
-Hi Linus,
+Hi Everyone,
 
-Please pull from the tag
+A Power Management and Thermal Control session will be held during this
+year=E2=80=99s LPC, as has been the case for the past few years, and it is =
+open
+for topic submissions.  The submission deadline is August 7th (for all
+LPC micro-conferences), but if you submit a topic by July 10th, you will
+be eligible for conference pre-registration (please see the LPC web site
+at https://lpc.events for details).
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-7.2-rc1-2
+The Power Management and Thermal Control micro-conference covers all
+things related to managing power and heat. Among other topics, we care
+about thermal control infrastructure, CPU and device power-management
+mechanisms, energy models, power capping, and power distribution. In
+particular, we are interested in improving and extending thermal control
+support in the Linux kernel and in utilizing the energy-saving features
+of modern hardware.
 
-with top-most commit cf1e70d021343d33728e54a6227607925c8d5419
+The overall goal is to facilitate cross-framework and cross-platform
+discussions that help improve energy-awareness and thermal control in
+Linux.
 
- Merge branches 'acpi-sysfs', 'acpi-resource', 'acpi-driver' and
-'acpi-processor'
+To submit a topic for this micro-conference, go to the LPC2026 CfP page
+at https://lpc.events/event/20/abstracts/, scroll down to the bottom and
+click on the "Submit new abstract" button.  When the submission window
+opens, select "Power Management and Thermal Control MC" in the "Track"
+field.
 
-on top of commit eed451031f6ac098ca04ebdd63d34e083ba2d6f6
+Please note that topics should not be about work that has already been=20
+completed, as is the case for LPC topics in general.
 
- Merge tag 'acpi-7.2-rc1' of
-gitolite.kernel.org:pub/scm/linux/kernel/git/rafael/linux-pm
-
-to receive fixes and cleanups related to ACPI support for 7.2-rc1.
-
-These fix assorted issues and do cleanups in the ACPI support code,
-which includes a fix for tools build breakage related to strncpy()
-removal:
-
- - Unbreak ACPICA tools builds after switching over to using
-   strscpy_pad() that is kernel-specific (Rafael Wysocki)
-
- - Fix module parameter file paths in comments in the ACPI code managing
-   the general sysfs attributes (Zenghui Yu)
-
- - Update kerneldoc comments in the ACPI resource management code to
-   follow the common style (Andy Shevchenko)
-
- - Fix inverted interface check in ipmi_bmc_gone() that may cause ACPI
-   IPMI interfaces to be mishandled (Xu Rao)
-
- - Add __cpuidle annotation to idle state management functions related
-   to ACPI _LPI to avoid trace-induced RCU warnings (Li RongQing)
-
-Thanks!
+Thank you!
 
 
----------------
 
-Andy Shevchenko (1):
-      ACPI: resource: Amend kernel-doc style
 
-Li RongQing (1):
-      ACPI: processor_idle: Mark LPI enter functions as __cpuidle
-
-Rafael J. Wysocki (1):
-      ACPICA: Unbreak tools build after switching over to strscpy_pad()
-
-Xu Rao (1):
-      ACPI: IPMI: Fix inverted interface check in ipmi_bmc_gone()
-
-Zenghui Yu (1):
-      ACPI: sysfs: Fix path of module parameters in comments
-
----------------
-
- drivers/acpi/acpi_ipmi.c        |  2 +-
- drivers/acpi/acpica/utnonansi.c |  9 +++++++++
- drivers/acpi/processor_idle.c   |  4 ++--
- drivers/acpi/resource.c         |  6 +++---
- drivers/acpi/riscv/cpuidle.c    |  2 +-
- drivers/acpi/sysfs.c            | 14 +++++++-------
- 6 files changed, 23 insertions(+), 14 deletions(-)
