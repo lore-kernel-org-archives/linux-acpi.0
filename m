@@ -1,167 +1,256 @@
-Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
+Received: from canpmsgout06.his.huawei.com (canpmsgout06.his.huawei.com [113.46.200.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 961D93B1009
-	for <linux-acpi@vger.kernel.org>; Fri, 26 Jun 2026 20:57:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91DC37083C;
+	Sat, 27 Jun 2026 10:50:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782507475; cv=none; b=O1xlKVpsnffk4O7KBd9Mzt6dznFI+u9PiW0wEoQji5JojL/CVHQdfX15tvUIoyh0xGzwDEDg29Fkkfp0ulxwgg4QDVLDzHwdPQA1gPR+pKDPc2DITXP97KIB95sa5yQjpRLZFLoiIcU2rWB0VaSuY9Y3ry39ZvJn+yLbwQD7gl0=
+	t=1782557434; cv=none; b=X0dYvU+9AM7FlgbjgjCtGDyA05pNQBI3hN2owAEM9aoLqwNzRlfuVHaWojCjeFroAydDh2Sk/1P3StW3ocDvaa1Z0A+64gad6ZCSd3442EIffcUZQy4JStnV1QAz3bRqV8KhT5B8fYxiuVN5sxD/7eSdp1JttN5HTaFW2bWfd3Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782507475; c=relaxed/simple;
-	bh=1Mlqdx0yALmjRxStf7R8xHxhf5GtiIJdHJ/PGKKoFS0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UeqjlmDI4DaIknU/zvhi9+7B2BAShkY1itltjPhui+w3+F88c7YOfE103VXMTlIQp3gkg8ZdlSgRwKAHzK0Ilz/ett6Xm50ua660nY1H537zImp77ZfKlzl9uRC9f3a9sNQ6+4jFnPwTaSHBIdmpujejFmWCV43EOfI1Z//XpI0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=j2Xcs9rH; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=CaQAi7O0; arc=none smtp.client-ip=205.220.180.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	s=arc-20240116; t=1782557434; c=relaxed/simple;
+	bh=teLWA7fD3BY3HhSk12vE+C4UiwHnCe4ozvp/dk03j5w=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=uPgNWF9F/uR9RBBDKU5urUEy3kv/EEmFK7sUjFEkg/tT5ysGDe5WmgUv11IZsIOt8JoDnu0g5IBnTtzKbqg9lAigFPvuJEq9q666ee98UZtwoVYowNVLSa8Y9IXKfCl3B1cUKLZtC6XRPS4lTbceW6XeOXtd/sO6l3iKU79Q1h4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=bcXLIK+n; arc=none smtp.client-ip=113.46.200.221
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="j2Xcs9rH";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="CaQAi7O0"
-Received: from pps.filterd (m0279873.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 65QJ8d9f2174622
-	for <linux-acpi@vger.kernel.org>; Fri, 26 Jun 2026 20:57:52 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=qcppdkim1; bh=yd7du5bvNXW9tUAU2kTjwJsr
-	b2hTJirrDWb8BV4Ma7c=; b=j2Xcs9rH5ijerF/VZLQstRSueiY1yoyk0h05sPev
-	MSHTJ9Lk5WDThq/f+Q55ViUkCvHrZ1gSFVddqPTyD/VBehY43Xi/D7d+LCoq6dwG
-	dWA6KkwIDLJkyhfQcDEJyC4IM9pX8Yz2EF6EkMsnsjmXDka+iP7dybiWFt1rjU+h
-	J8QFvdUdQYZVub2fvKeQLwTpDY5iRx+SMriiq1u4dUoIupdoLWJgYPNbYiTWCHqi
-	g+zD9iOFlbk7GnUvhQSqoT67qSzYoHKmx/AH4QTC5MkKw/OEk4Sd6cadcFVQ3q94
-	RWTB+9p96rpqGFkxNjzQA4nx61b0P1iLhyBZ4y1ImeRJpQ==
-Received: from mail-qk1-f200.google.com (mail-qk1-f200.google.com [209.85.222.200])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4f1nggjq96-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Fri, 26 Jun 2026 20:57:52 +0000 (GMT)
-Received: by mail-qk1-f200.google.com with SMTP id af79cd13be357-921ed86ddeaso300476385a.3
-        for <linux-acpi@vger.kernel.org>; Fri, 26 Jun 2026 13:57:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1782507472; x=1783112272; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=yd7du5bvNXW9tUAU2kTjwJsrb2hTJirrDWb8BV4Ma7c=;
-        b=CaQAi7O0pJRlDy2DxBfFupchhfmCZ/1nnLmPYxGU5d1SC3DApgZkiS+fRJ5R3SVGG7
-         w4a1nZtnDPNPk3a9Fn665leMsRxScPEtzrDe8H1NDTvPkaLDMXEa7TuJ2YFIVEIYVxf6
-         3nNkVsgfMgBBQJecAssyuDXNjzW7G2fpyLOuHUs6nPp/noeppMORv26aRjCJajaR2yNc
-         xOVsUy59OlXbkuvcJ7AMYbzz/cKKgnGfl7lJKLJnFlMRGc9ozq7q9zoHiwQONP51Yyyp
-         CUJD2CsKcmACR5IeofbvfBlkJ0reTG8dYlC4wtA+GKtp0j/Rvwg4wnL746jiu+lNrFFA
-         uyoA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782507472; x=1783112272;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=yd7du5bvNXW9tUAU2kTjwJsrb2hTJirrDWb8BV4Ma7c=;
-        b=qk2+IZSCQsnYLgE+SxuqvwuZMLQkJG9/dzxWQS+aaWk7wNe7pD89slTMV8YyUgrWvO
-         08igKKznN1YxkToNmpPL8rh1jatFqmXLlEkCTVnWhsxxamXkHv09PSisFGHcU8q64q62
-         ozhE0ORYFKYk30UMPM3P7cQk3mY9f5z6YHFaEO4iE6aJOeHlS6HwAnY/J0XtfwAuUytE
-         dxG5TY2Izcn4enjpR0nzCB2kIBXJC9tsn92jjhbQvzP0FeH6mitYvjqYoyAKrGpHvB/b
-         lmlZMvM3B25Wd+hU7bUWqsVYLl7SRegwyAQNqSb1yZ34P4rP4LvYA4nR71A6JCczM8SU
-         BUlQ==
-X-Forwarded-Encrypted: i=1; AFNElJ8WaNm0w5JgjwgPx0xl1/IdmsogPf4Bf43cQHNDxhtyLnUxDG+4Jn751q7NR04fwbukVMeC7BuZ/QFp@vger.kernel.org
-X-Gm-Message-State: AOJu0YyfZs0php5YxfmUM5wi8TdiNa9cfGWdja6l4/Z+Eb7H6rDdNZCQ
-	D9oGD8Y20IG1hjM7a9fouemrmodgqX/WGFhrvPBVHWBJia7inW5qxiGcVBMjDXZ+QNbQ5Tsbx1R
-	MN5+GBcUyNb6izkIC08taTDVP3sf7flOLVMlGjJ2hCziXv7y85t2M5AHxWyuS8ox0
-X-Gm-Gg: AfdE7clOjruJWxqoivV6AHTeMfKgs+qGAAIRlezhircGzyBh824JFFq9c47KgAG177Z
-	Ub8c0QWAh/rYHzC7knPNzt89Hu9Zqra+6SHGVshuvOq/0qLmiQzZHklbhRVcVKFy55UgwrzoJki
-	K1LpMO8weyv/T+B6PhMKfkmJJ7+4k3Vvpbx6rDt7nz6uFJ/ZYPgGOANsUalHfHh8kdpMBecUEV1
-	Wfll+cQNTjq2k3gr/hoE6prNsB/2mvXEI3HCKV7/JG2EmyU9jWycnPwaUupAMBZAsT0usGGO++F
-	clS7o4iRFYkdzOeMV7AR79EdrNwbyvfM2/GdO/gPlOs4/ot13J5YdAu9J7mXxc5fZ/To6twT0X+
-	2eUl9rTDRyBNuErsY9z76u3aL3+5RP83KjUm+EXYwmFjzr2sVrT5xR77KN86sBBudMBJzGOtfUS
-	sPV5jupU3dafkRLKoN80zGXmkU
-X-Received: by 2002:a05:620a:6302:10b0:92a:9d2b:1ccf with SMTP id af79cd13be357-92a9d2b265dmr434981285a.36.1782507471864;
-        Fri, 26 Jun 2026 13:57:51 -0700 (PDT)
-X-Received: by 2002:a05:620a:6302:10b0:92a:9d2b:1ccf with SMTP id af79cd13be357-92a9d2b265dmr434978985a.36.1782507471408;
-        Fri, 26 Jun 2026 13:57:51 -0700 (PDT)
-Received: from umbar.lan (2001-14ba-a073-af00-264b-feff-fe8b-be8a.rev.dnainternet.fi. [2001:14ba:a073:af00:264b:feff:fe8b:be8a])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5ad69585a76sm3638337e87.74.2026.06.26.13.57.48
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 26 Jun 2026 13:57:50 -0700 (PDT)
-Date: Fri, 26 Jun 2026 23:57:47 +0300
-From: Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>
-To: Sudeep Holla <sudeep.holla@kernel.org>
-Cc: Hans de Goede <johannes.goede@oss.qualcomm.com>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Bjorn Andersson <andersson@kernel.org>,
-        Konrad Dybcio <konradybcio@kernel.org>,
-        Srinivas Kandagatla <srini@kernel.org>,
-        Krzysztof Kozlowski <krzk+dt@kernel.org>,
-        Dmitry Baryshkov <lumag@kernel.org>,
-        Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
-        Abel Vesa <abel.vesa@oss.qualcomm.com>, linux-arm-msm@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [RFC 00/12] RFC: Devicetree-ACPI hybrid mode
-Message-ID: <obvpvyx3kmzcdc5nxmx4inlpiqugjxdgzfzmdxzfqqy4qqwt7l@y2zyrtso6yk4>
-References: <20260623145225.143218-1-johannes.goede@oss.qualcomm.com>
- <20260626-friendly-ammonite-of-holiness-aabefb@sudeepholla>
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="bcXLIK+n"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=OOmOdm/5pMdvH57Crg3mglFWQt1WB+2zbQrn3R/PVdc=;
+	b=bcXLIK+nqOCUumVPmwwe9I+dxGQE0a7Sd+sVJY69IZ4+erymjBiN7OVH6ly7gjvnMntjVflMD
+	UsJgW33O844DIC1PxbZ6NFlodZRbkJydtRYnCzVhcpUexfmuB4qxDf0Iv0MEKWULQpq3kZ8yXeO
+	ur1lurGOtSCY90m80uVEYG0=
+Received: from mail.maildlp.com (unknown [172.19.162.144])
+	by canpmsgout06.his.huawei.com (SkyGuard) with ESMTPS id 4gnTc06JRszRhVt;
+	Sat, 27 Jun 2026 18:41:20 +0800 (CST)
+Received: from kwepemr200004.china.huawei.com (unknown [7.202.195.241])
+	by mail.maildlp.com (Postfix) with ESMTPS id CD9A540538;
+	Sat, 27 Jun 2026 18:50:26 +0800 (CST)
+Received: from [10.67.121.62] (10.67.121.62) by kwepemr200004.china.huawei.com
+ (7.202.195.241) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Sat, 27 Jun
+ 2026 18:50:25 +0800
+Message-ID: <317d33d5-8279-4aa8-84b7-6ae1976636ac@huawei.com>
+Date: Sat, 27 Jun 2026 18:50:24 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260626-friendly-ammonite-of-holiness-aabefb@sudeepholla>
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNjI2MDE3MyBTYWx0ZWRfX/sv+UalgBJGs
- KC3mADmCby1ERTTbn+i3j6rXQAFZmewAAdJ0ol7K1vBsdG7JNiawuVc6w7dZ4QYxt8u+C1ccBy7
- XhnKzwZpCWNZ+IjfltOZLSvvXLa7OxdYsdC1U98F2Bputyl73oNDGtJh7ap0j1t2J7EwELjhG4+
- cmGetnbtIdr6IdgnR2HwwWZOAWutLEYlSReAcuECymX3JF3d9TNS3zmwTpEqpb/QXJNLw2kBZdx
- vtUyWQ15dulJAXIXBf128WPsG1Gha+nAwXOoZI43AuNr0UEvlMCTonWwZXRSJ4uSPjl/OwA+nkl
- JyPZekeyxVNydtXmzSJ+OKujAz2oRCt0chZWlXst1d9u7T6MiIlTYIPHX8LWUVhqUHNa2b8HkRq
- TNZcdsV0t8vZ5sEZUDU4hXYeAmyHf4Z4nCSykiMeN+3Xmv35b0tj/5bUctCkWONfRl6kOYCiZ3X
- 6tqgkKneJR7m+asHMog==
-X-Authority-Analysis: v=2.4 cv=KNlqylFo c=1 sm=1 tr=0 ts=6a3ee7d0 cx=c_pps
- a=hnmNkyzTK/kJ09Xio7VxxA==:117 a=xqWC_Br6kY4A:10 a=kj9zAlcOel0A:10
- a=FelO9ux0wxsA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=u7WPNUs3qKkmUXheDGA7:22 a=rJkE3RaqiGZ5pbrm-msn:22 a=NEAV23lmAAAA:8
- a=Fl7lxUCT7PhOQckEiWcA:9 a=CjuIK1q_8ugA:10 a=PEH46H7Ffwr30OY-TuGO:22
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNjI2MDE3MyBTYWx0ZWRfX9RCQA0GjqbDm
- XV/BGqdjvJk7Jhqwkk1xWdZRKCSdqOXiuHXHO8x3IAl4y+oIFbNVRDn+FhHstdBr/Tfn/XHaBlR
- MoYtnf8zijPh76BUu1THu4Y+oUt0wwY=
-X-Proofpoint-ORIG-GUID: uoAppqXvxs3cUydii7ScD9erJaW3WKMw
-X-Proofpoint-GUID: uoAppqXvxs3cUydii7ScD9erJaW3WKMw
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.125,FMLib:17.12.100.49
- definitions=2026-06-26_05,2026-06-26_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- impostorscore=0 bulkscore=0 malwarescore=0 spamscore=0 adultscore=0
- suspectscore=0 lowpriorityscore=0 priorityscore=1501 phishscore=0
- clxscore=1015 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
- definitions=main-2606260173
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 0/2] CPPC: reduce FFH feedback-counter sampling skew on
+ arm64
+To: Will Deacon <will@kernel.org>
+CC: <catalin.marinas@arm.com>, <rafael@kernel.org>, <lenb@kernel.org>,
+	<robert.moore@intel.com>, <beata.michalska@arm.com>,
+	<zhenglifeng1@huawei.com>, <zhanjie9@hisilicon.com>, <sumitg@nvidia.com>,
+	<cuiyunhui@bytedance.com>, <linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<acpica-devel@lists.linux.dev>, <linuxarm@huawei.com>,
+	<jonathan.cameron@huawei.com>, <prime.zeng@hisilicon.com>,
+	<wanghuiqiang@huawei.com>, <xuwei5@huawei.com>, <lihuisong@huawei.com>,
+	<yubowen8@huawei.com>, <wangzhi12@huawei.com>, <ionela.voinescu@arm.com>,
+	<jeremy.linton@arm.com>
+References: <20260410094145.4132082-1-zhangpengjie2@huawei.com>
+ <aa1284c1-ea26-48ca-a7d7-022027c8228a@huawei.com>
+ <agw_1IYaY4zeobZE@willie-the-truck>
+ <443104e2-ba6e-454e-8469-909f35817a99@huawei.com>
+From: Pengjie Zhang <zhangpengjie2@huawei.com>
+In-Reply-To: <443104e2-ba6e-454e-8469-909f35817a99@huawei.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
+ kwepemr200004.china.huawei.com (7.202.195.241)
 
-On Fri, Jun 26, 2026 at 04:52:41PM +0100, Sudeep Holla wrote:
-> On Tue, Jun 23, 2026 at 04:52:13PM +0200, Hans de Goede wrote:
-> > Hi All,
-> > 
-> > Currently as soon as the kernel boots with a populated DT provided then
-> > the arch/arm64 code sets acpi_disabled=1 and the complete ACPI subsystem
-> > gets disabled. On WoA Snapdragon laptops where the factory Windows OS
-> > actually boots using these tables this is not necessarily desirable.
-> > 
-> 
-> I am bit lost reading the very first statement here.
-> 
-> Who is populating DT and why ? It seems that is the source of the problem.
-> 
-> If windows can boot with ACPI tables, why is it causing issues for the
-> Linux kernel, any specifics?
 
-Windows uses a separate beast called PEP, which nobody wanted to
-implement for these platforms up to now. You can find a lot of ACPI
-dumps for these devices at [1].
+On 5/20/2026 10:55 AM, Pengjie Zhang wrote:
+>
+> On 5/19/2026 6:47 PM, Will Deacon wrote:
+>> On Thu, Apr 30, 2026 at 06:00:44PM +0800, zhangpengjie (A) wrote:
+>>> Hi all,
+>>>
+>>> Gentle ping on this thread. It has been a while since I posted it.
+>>>
+>>> Could someone please take a look when you have time? If there is 
+>>> anything
+>>> I should revise or any additional information needed, I'd be happy to
+>>> update it.
+>> It's hard to find active folks who have contributed meaningfully to the
+>> cppc_acpi driver... I've added Ionella and Jeremy, in case they can take
+>> a look.
+>>
+>> Will
+> Thanks Will, and thanks for adding Ionela and Jeremy.
+>
+> While waiting for further comments, I would like to add some
+> test data to make the effect of this series clearer.
+>
+> On the test platform, the maximum frequency reported by the platform
+> is 2300000. I sampled cpuinfo_cur_freq before and after applying this 
+> series.
+>
+> Before applying the series, the samples showed visible transient 
+> outliers.
+>  The minimum value was 2154583 and the maximum value was 2491071.
+> There were 8 samples above 2400000 and 8 samples below 2200000.
+> The largest value exceeded the platform maximum by about 8.3%.
+>
+> After applying the series, the samples became much more stable.
+> The minimum value was 2290243 and the maximum value was 2306310.
+> There were no samples above 2400000 and no samples below 2200000.
+> The largest value exceeded the platform maximum by only about 0.27%.
+>
+> A summary of the 96 samples is:
+>
+>                     before          after
+> min              2154583         2290243
+> max              2491071         2306310
+> range             336488           16067
+> average          2298436.4       2298479.4
+> stddev             55184.1          2868.2
+> samples > 2300000  26 / 96         16 / 96
+> samples > 2400000   8 / 96          0 / 96
+> samples < 2200000   8 / 96          0 / 96
+>
+> So this series does not try to clamp the value to the platform maximum.
+>  Instead, it reduces the sampling skew between the delivered and 
+> reference
+> feedback counters. The remaining small deviation around 2300000 is
+>  much smaller than the previous transient spikes.
+>
+> One concern that may come up is that an FFH read may cause an idle
+> target CPU to be woken, depending on the platform/vendor implementation.
+> However, that behavior is not introduced by this series. It is already 
+> part
+> of how FFH counter reads are implemented on such platforms. This series
+> only changes the sampling form for the FFH feedback counters: when both
+> delivered and reference counters are FFH counters, read them together
+> instead of issuing two separate FFH reads.
+>
+> If the target CPU has to be involved for an FFH read, doing one paired
+> read should be no worse than doing two separate reads, and it also
+> narrows the sampling window between the two counters.
+>
+> If there is any concern about the generic hook or the arm64 
+> implementation,
+> I would be happy to revise it.
+>
+> The raw data is as follows:
+> before:
+> 2303809 2294827 2300000 2293643 2290740 2300000 2297228 2296082
+> 2301707 2295354 2296601 2303163 2296766 2296543 2295412 2298394
+> 2297387 2300000 2308274 2301882 2297752 2418568 2491071 2300000
+> 2183264 2296238 2434731 2296721 2439777 2302159 2301773 2298226
+> 2300000 2305936 2301133 2297511 2300000 2300000 2294408 2298494
+> 2295011 2302721 2295955 2301505 2298064 2297419 2298933 2189595
+> 2298058 2296046 2300000 2301449 2414908 2296559 2305251 2166666
+> 2296626 2173303 2300000 2298806 2411389 2301822 2297291 2300000
+> 2423831 2297902 2300000 2435730 2302433 2295353 2298898 2296043
+> 2321868 2294907 2300000 2157841 2296052 2206530 2300000 2297811
+> 2297920 2294382 2297767 2157230 2302564 2298504 2296822 2300000
+> 2296868 2294866 2154583 2290888 2302542 2292549 2300000 2184259
+>
+> after:
+> 2303738 2296153 2298087 2295607 2301373 2298076 2300000 2295081
+> 2297788 2300000 2300000 2295238 2301449 2300000 2298488 2297911
+> 2301477 2298507 2294976 2296852 2293689 2294077 2293887 2292619
+> 2300000 2300000 2298072 2300000 2291943 2300000 2295370 2300000
+> 2301873 2304645 2300000 2296766 2300000 2300000 2290243 2297954
+> 2297183 2306310 2300000 2296889 2300000 2303800 2301970 2296888
+> 2300000 2301354 2300000 2298405 2298202 2296767 2298663 2302522
+> 2297821 2302471 2300000 2303233 2298226 2298698 2300000 2297291
+> 2296470 2300000 2298398 2300000 2295681 2300000 2300000 2296344
+> 2300000 2296008 2302375 2297977 2298447 2296519 2295565 2294866
+> 2297945 2300000 2294978 2303595 2300000 2300000 2294930 2301096
+> 2296271 2296086 2294482 2300000 2294843 2300000 2296803 2295708
 
-> IOW why is DT populated which creates the problem you are trying to address
-> here.
+To follow up on the test data and address any potential questions about
+why the patched frequency doesn't clamp exactly to 2300000, I would like
+to share a breakdown of the instruction-level overhead that explains this
+minor jitter.
 
-Most of the laptops resemble other Qualcomm platforms, which use DT for
-hardware description. In some cases, it is the same platform being used
-for both mobile, IoT and laptops. It was more or less natural to reuse
-existing support.
+Even when pairing the reads in this series, cpu_read_constcnt() and
+cpu_read_corecnt() still have intrinsic function call and execution
+overheads. A simplified execution trace looks like this:
 
-[1] https://github.com/aarch64-laptops/build/tree/master/misc
+cpu_read_constcnt:
+bl
+mrs constcnt    <-- T_const (Read timestamp)
+str
+ret
 
--- 
-With best wishes
-Dmitry
+cpu_read_corecnt:
+bl
+mrs corecnt     <-- T_core  (Read timestamp)
+str
+ret
+
+Let δ (delta) be the delay between the two reads in core cycles,
+such that δ = T_core - T_const.
+
+For two consecutive samples:
+Sample 1: constcnt = A1, corecnt = B1 (with delay δ1)
+Sample 2: constcnt = A2, corecnt = B2 (with delay δ2)
+
+If we substitute these into the frequency calculation:
+freq = (B2 - B1) / (A2 - A1) * cntfrq
+
+We get:
+freq = Real_Freq + [ (δ2 - δ1) / (A2 - A1) ] * cntfrq
+
+The error term is entirely dictated by (δ2 - δ1). On modern superscalar,
+out-of-order architectures like ARM64, even identical instruction sequences
+  experience microarchitectural jitter. Because of this, δ1 may not
+be equal to δ2.
+
+On our test platform, the maximum observed difference for (δ2 - δ1) is
+roughly 40 cycles. Over a typical 2us sampling window (plus the FFH
+function call overhead), this translates to a maximum theoretical error of
+< 10MHz, which is less than 1%.
+
+>>> On 4/10/2026 5:41 PM, Pengjie Zhang wrote:
+>>>> The legacy CPPC feedback-counter path reads the delivered and 
+>>>> reference
+>>>> performance counters separately.
+>>>>
+>>>> On arm64 systems using AMU-backed CPPC FFH counters, each FFH read is
+>>>> served through a cross-CPU counter read helper. Reading the counters
+>>>> separately therefore widens the sampling window between them and can
+>>>> skew the delivered/reference ratio used by cpuinfo_cur_freq. Under 
+>>>> heavy
+>>>> load, the skew is observable as transient values that may exceed the
+>>>> platform maximum, as discussed in [1] and [2].
+>>>>
+>>>> This series adds a small generic hook for architectures that can 
+>>>> obtain
+>>>> both FFH feedback counters in one operation, while preserving the
+>>>> existing per-register read path as the fallback.
+>>>>
+>>>> Patch 1 adds the generic CPPC hook and uses it from 
+>>>> cppc_get_perf_ctrs().
+>>>> Patch 2 implements the hook on arm64 by sampling both AMU counters 
+>>>> in a
+>>>> single operation on the target CPU.
+>>>>
+>>>> [1] 
+>>>> https://lore.kernel.org/all/20231025093847.3740104-4-zengheng4@huawei.com/
+>>>> [2] 
+>>>> https://lore.kernel.org/all/20231212072617.14756-1-lihuisong@huawei.com/ 
+>>>>
+>>>>
+>>>> Signed-off-by: Pengjie Zhang <zhangpengjie2@huawei.com>
+>>>>
+>>>> Pengjie Zhang (2):
+>>>>     ACPI: CPPC: add paired FFH feedback-counter read hook
+>>>>     arm64: topology: read CPPC FFH feedback counters in one operation
+>>>>
+>>>>    arch/arm64/kernel/topology.c | 75 
+>>>> ++++++++++++++++++++++++++++++++----
+>>>>    drivers/acpi/cppc_acpi.c     | 58 +++++++++++++++++++++++++---
+>>>>    include/acpi/cppc_acpi.h     |  7 ++++
+>>>>    3 files changed, 127 insertions(+), 13 deletions(-)
+>>>>
