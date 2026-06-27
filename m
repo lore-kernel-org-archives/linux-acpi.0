@@ -1,34 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1042F18C008;
-	Sat, 27 Jun 2026 16:39:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E7C33195FD;
+	Sat, 27 Jun 2026 16:39:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782578356; cv=none; b=SdjTzavyw1zNU6Ti6QAHfFslxtoLF498zQPOXswR3JNH/E6dPVZJL7Lkz7sUKGAFxawJc4iIL4OzLcQFg1mWQIH5xcmcFig1VTJbymJdY3tDeOehEid40rwwrXxsP2NbAGhkrGaSYXQ7i7bA0lTF/JsQMDc8BHKtug2otG4xUrI=
+	t=1782578357; cv=none; b=Wv0cOeg2oe0dn2N87L7VvX7Z+dlKI+htycprTuni0XDN/dLhy0FJozE+Di8NF7Y+g3z8mKJkFxkorC8RvTrj/iobdXUk3DJm/fLK8WzQktEi9AuO/RkFl6GjmqLaR/PHRKwA7JPOIYr0R9zLw5ov7FhHbJH7bZxgKTYj2repFSk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782578356; c=relaxed/simple;
-	bh=QIfCDzoFcP+viA9sNVbr8JyKd1jzefbZ8eYnjRmqDz0=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=pG6lbTU18vP14ZCHFrlAPoFV/zaopholi2gLzd3h0iTTNdfzNL+sf/5c6g8yhTFqlrcjjPKdsEgZNSXkExezmEKfQJqFVYJnT1J/xLfcE96seqA+6CsmlLCIzQ49TDY8wtHnKwxYSwwBUmwG3MBdFgSHqZdrDs1lLBKdm3dcOXU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nGolq32N; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782578357; c=relaxed/simple;
+	bh=5NNuYjBO/Gb7RKz/z6fCnsmR/IAKVxP5jFnnBzT2Ong=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=t7aTLhG0V43+8juhI9SVXINj3MoxRjFIk8acz6n+Yok9xjfGc1xhjLI13G02s+1n3OUQByPmsawSLoYPrsAzzgKa1afZWhZ86M4EthT+l1mtqEd9nY3LspLNv1I0K6ypGcQCun3lY9Sb8QzvL6bs/9Ea9n9okCDCSYQKTLyWIpg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Nvro3t8/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nGolq32N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCBA41F000E9;
-	Sat, 27 Jun 2026 16:39:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Nvro3t8/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43F121F00A3A;
+	Sat, 27 Jun 2026 16:39:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782578354;
-	bh=0BvNz0Ie4ab9gUSU7DwohbxEkLHnqx5EoFweh6YnSuo=;
-	h=From:Subject:Date:To:Cc;
-	b=nGolq32NZIg+jDQ28qdhVJOFT6FZnrdd68Ti4ERPfT26SUixh68xokGRdaAVeXAUm
-	 hvHJvhv5eUMSBd/rUDIrEdeEaxwiGkvkfKtJ3b4xeFUJbuuvXkm9rtxe5mDWD2Itik
-	 uwuSYOhl4azbiPwI5MLX3ZcL46VGFzA7Vdo5gH9Nd4OBiq3mv8rj+Nl18Cus+9zXLL
-	 fIlvL8YiLoxfYvK0OnQg4f5FiHLUGof67at3B1VvG1IK0DWk49uAfZHMD1fWG91Wzt
-	 9CGMKBa2cTK8983swDNFftN4v8OLxxYzh6P8z1PTe7bJK+zJebU3aRdeOCWUKV0ui2
-	 07efK7LBpoxOg==
+	s=k20260515; t=1782578356;
+	bh=5tNKaAqHxt5BsClRBPY4p9Q6x/WHrC3Qloehr5fl1LY=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc;
+	b=Nvro3t8/S5UwqjZPwTaZZYB1TpZfpP55IF610ZpX8ZIusm53C3UBKi2xvD6BclDsJ
+	 +6oGSL0UWrahhptR7maAyuzOHcXkALBBsmJHPXWh5hd444Uon0b/0j13gCmMG65vYA
+	 QVOl0MOsQxjSBuBFOCwfZkm6sUeEYQfAHHmgcPwcC+Q2m/+aX2F1A7oXEt8xFjGMit
+	 NyBc6rSKLDX639BIzTPwIoU5PK7WRN0oaOrW7IPeU5WkmiHUSs7kpcgHVieWNvFfc4
+	 5pOycj9nDQhjyT4iiKj9tNlQ+1P2+QHAAjRY6OgsGv81Wyb9qRmGX6y+6rcGKFJz92
+	 HvHuAGlh/NWAg==
 From: Sudeep Holla <sudeep.holla@kernel.org>
-Subject: [PATCH 0/6] ACPI/PCC: Preserve platform-populated PCC signatures
-Date: Sat, 27 Jun 2026 17:37:28 +0100
-Message-Id: <20260627-acpi_pcc_signature-v1-0-c1b7268d4fdc@kernel.org>
+Date: Sat, 27 Jun 2026 17:37:29 +0100
+Subject: [PATCH 1/6] mailbox: pcc: Validate shared memory signature on
+ request
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -37,63 +38,95 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAEv8P2oC/yXMQQqDMBBA0avIrA2kEZLiVYpIMh11uoghY0QQ7
- 960Lt/i/xOEMpNA35yQaWfhNVY82gZw8XEmxe9qMNpYbY1THhOPCXEUnqPfSiblgtNB267D5wQ
- 1TJkmPv7T13BbSvgQbr8TXNcXrGtV9nYAAAA=
-X-Change-ID: 20260627-acpi_pcc_signature-7b70b0633c8f
+Message-Id: <20260627-acpi_pcc_signature-v1-1-c1b7268d4fdc@kernel.org>
+References: <20260627-acpi_pcc_signature-v1-0-c1b7268d4fdc@kernel.org>
+In-Reply-To: <20260627-acpi_pcc_signature-v1-0-c1b7268d4fdc@kernel.org>
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: Sudeep Holla <sudeep.holla@kernel.org>, 
  "Rafael J. Wysocki" <rafael@kernel.org>, 
- Jassi Brar <jassisinghbrar@gmail.com>, Huisong Li <lihuisong@huawei.com>, 
- Guenter Roeck <linux@roeck-us.net>, linux-hwmon@vger.kernel.org, 
- Andi Shyti <andi.shyti@kernel.org>, linux-i2c@vger.kernel.org, 
- MyungJoo Ham <myungjoo.ham@samsung.com>, 
- Kyungmin Park <kyungmin.park@samsung.com>, 
- Chanwoo Choi <cw00.choi@samsung.com>, linux-pm@vger.kernel.org
+ Jassi Brar <jassisinghbrar@gmail.com>, Huisong Li <lihuisong@huawei.com>
 X-Mailer: b4 0.15.2
 
-ACPI PCC shared memory layouts reserve the first dword for the PCC
-signature. ACPI specification defines the signature as 0x50434300 ORed
-with the PCC subspace ID, and ACPI 6.6 clarify that the signature is
-populated by the platform and verified by OSPM.
+ACPI defines the PCC shared memory signature as the bitwise OR of
+0x50434300 and the PCC subspace ID. The signature is located at byte
+offset 0 for the generic, extended and reduced PCC shared memory region
+layouts.
 
-This series centralizes PCC shared memory signature validation in the PCC
-mailbox controller and stops PCC users from rewriting the signature before
-each command. Clients that previously copied complete local PCC headers
-now update only the mutable command/status/flags/length/payload fields.
+Validate the signature when a client requests a PCC mailbox channel, after
+mapping the shared memory and before binding the mailbox client. This
+keeps PCC shared memory validation in the PCC mailbox controller instead
+of duplicating it in individual clients.
 
-The final patch also fixes the PCC OperationRegion handler. ACPI defines
-a PCC OperationRegion as the shared memory fields that follow the PCC
-signature, with the OperationRegion length covering only those fields. The
-handler is updated to copy to/from the region after the signature and to
-reject regions that do not fit there.
+ACPI 6.6 added clarification that the signature is populated by the
+platform and verified by OSPM.
 
-All patches can go independently as there is no strict dependency between
-them and posted together for the complete context.
-
+Cc: Jassi Brar <jassisinghbrar@gmail.com>
+Cc: Huisong Li <lihuisong@huawei.com>
 Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
 ---
-Sudeep Holla (6):
-      mailbox: pcc: Validate shared memory signature on request
-      hwmon: xgene: Stop writing PCC shared memory signature
-      i2c: xgene-slimpro: Stop writing PCC shared memory signature
-      devfreq: hisi_uncore: Preserve PCC shared memory signature
-      soc: hisilicon: kunpeng_hccs: Preserve PCC signatures
-      ACPI: PCC: Preserve shared memory signature in OpRegion handler
+ drivers/mailbox/pcc.c | 38 +++++++++++++++++++++++++++++++++-----
+ 1 file changed, 33 insertions(+), 5 deletions(-)
 
- drivers/acpi/acpi_pcc.c                | 20 ++++++++++++++----
- drivers/devfreq/hisi_uncore_freq.c     | 15 +++++++-------
- drivers/hwmon/xgene-hwmon.c            |  4 ----
- drivers/i2c/busses/i2c-xgene-slimpro.c |  3 ---
- drivers/mailbox/pcc.c                  | 38 +++++++++++++++++++++++++++++-----
- drivers/soc/hisilicon/kunpeng_hccs.c   | 24 ++++++++-------------
- 6 files changed, 65 insertions(+), 39 deletions(-)
----
-base-commit: 5a66900afbd6b2a063eebad35294038a654de2b0
-change-id: 20260627-acpi_pcc_signature-7b70b0633c8f
-
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index 636879ae1db7..6fbc17d41774 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -345,6 +345,28 @@ static irqreturn_t pcc_mbox_irq(int irq, void *p)
+ 	return IRQ_HANDLED;
+ }
+ 
++static int pcc_mbox_validate_signature(struct pcc_mbox_chan *pcc_mchan,
++				       int subspace_id)
++{
++	u32 expected_signature = PCC_SIGNATURE | subspace_id;
++	u32 signature;
++
++	if (pcc_mchan->shmem_size < sizeof(signature)) {
++		pr_err("PCC subspace %d shared memory is too small\n",
++		       subspace_id);
++		return -EINVAL;
++	}
++
++	signature = ioread32(pcc_mchan->shmem);
++	if (signature != expected_signature) {
++		pr_err("PCC subspace %d has invalid signature: %#x expected %#x\n",
++		       subspace_id, signature, expected_signature);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ /**
+  * pcc_mbox_request_channel - PCC clients call this function to
+  *		request a pointer to their PCC subspace, from which they
+@@ -381,14 +403,20 @@ pcc_mbox_request_channel(struct mbox_client *cl, int subspace_id)
+ 	if (!pcc_mchan->shmem)
+ 		return ERR_PTR(-ENXIO);
+ 
++	rc = pcc_mbox_validate_signature(pcc_mchan, subspace_id);
++	if (rc)
++		goto err_unmap_shmem;
++
+ 	rc = mbox_bind_client(chan, cl);
+-	if (rc) {
+-		iounmap(pcc_mchan->shmem);
+-		pcc_mchan->shmem = NULL;
+-		return ERR_PTR(rc);
+-	}
++	if (rc)
++		goto err_unmap_shmem;
+ 
+ 	return pcc_mchan;
++
++err_unmap_shmem:
++	iounmap(pcc_mchan->shmem);
++	pcc_mchan->shmem = NULL;
++	return ERR_PTR(rc);
+ }
+ EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
+ 
 
 -- 
-Regards,
-Sudeep
+2.43.0
 
