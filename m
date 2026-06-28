@@ -1,225 +1,150 @@
-Received: from mail-vs1-f49.google.com (mail-vs1-f49.google.com [209.85.217.49])
+Received: from mail-pf1-f177.google.com (mail-pf1-f177.google.com [209.85.210.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 119773168EE
-	for <linux-acpi@vger.kernel.org>; Sat, 27 Jun 2026 17:49:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED7183A48C2
+	for <linux-acpi@vger.kernel.org>; Sun, 28 Jun 2026 13:58:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782582571; cv=none; b=fe3uH/KvGV0fMYFsMr66A/bnoiIW4a08Te/i5qesVgH/5Li0+sveBwQKtGyyMhEVaL1IRjteYkVV+FBs4ajgmew9X5MRYVNTHq2RyTzN5L+ieOqv7eRR5ufimJms9JhMd5hcy4SLHB3ZV7y0KhA2t2aoLtq1uDFO38z48t1RiYI=
+	t=1782655123; cv=none; b=pH+vMTuHzmWxhtgzeIHI1odNPSt3jj3UIn1+/GgEvN6b+OJfb4xuf0RDO00Fur77JwH6LP7z9NWDpldTs0WJDpFZ+jSqQmWLk7dcnbYiDT7pMq/Az2sDjm3jBYc8L5L99jnlLNL0OjW6ILa//gA/o5Dv/nJ/r5iKpno1vJxXjxE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782582571; c=relaxed/simple;
-	bh=YA+1i/UnBYMi612cEFEOy+3MzER+Xfj7iA6l8jGXb4M=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uqBWml+sZkZLyg3tgy3QWUrv+O87pvRvuZ80rDtczf5Wgo6yto2O9I/3FkFj/I+vhxgFODDK2NfOTzrlCZA2Jf6Ma0Q2cxq0emG7r4fRbVPkP/4UBoQKuhzsPUWPYpC5apcJmHKqjk27WwGuY+hwyQUVSRZrQ70/uoTpSELuNvI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=D+APVrVB; arc=none smtp.client-ip=209.85.217.49
+	s=arc-20240116; t=1782655123; c=relaxed/simple;
+	bh=i43OM9QKvL5rNvINUoEKawD34vomI+7S+PPoUhnrPZo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=E9tCxwaYC2GIQmeqvUCSFtMd8jcxm4vTkC10IigAFot0k5Jgh1prP1iBdAz1ydpR1h4zvcslEl4xZRscYqDHn5fw9zEI60bn5fdzdoz3oUut0u3UQmugqw6iGwYIgOiuA5EsqS1V90Uc8WwAhsrvNLukG1FSfhVCsyv0JhNZxio=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=p+1ITpIQ; arc=none smtp.client-ip=209.85.210.177
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="D+APVrVB"
-Received: by mail-vs1-f49.google.com with SMTP id ada2fe7eead31-73720e58dafso243860137.1
-        for <linux-acpi@vger.kernel.org>; Sat, 27 Jun 2026 10:49:29 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="p+1ITpIQ"
+Received: by mail-pf1-f177.google.com with SMTP id d2e1a72fcca58-8471013fac2so168589b3a.1
+        for <linux-acpi@vger.kernel.org>; Sun, 28 Jun 2026 06:58:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1782582569; x=1783187369; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=+uflCN5dEoFADXWjqBtV9JZXNhAeBkbLG/4dD0z7b4I=;
-        b=D+APVrVB7sDaioieVdmISDPXpLFAuW6Z8ACka+jIwp7ns0TQdWs5MEy+Z/dxvn8VAa
-         e29T4yf7lV++S7Zg1KPGSJLqvjfqzUAvUEu7tSGmqaCsQogJoe9MO5ZfM/HH/GhY8ux0
-         YW6ZINIMDlm8qugBnJpjrCnTOHTSXKlAPJF11MzR2txP/MrDTMvFDy0oCu+HsC/1rWic
-         5RnQmKwAXJpxLkTmgZLfBFUKtZnCgcM2yM4bDprDEVL6jHCMPi1e3zAqIe9XmKpm9HEA
-         GY5jXZXmdNMNEJwgCkWWPPLSrpsmhX+cbfcTpaZTE+Q/IJm4Gxe+tsxjkBwBxlPFhi9j
-         4y8Q==
+        d=gmail.com; s=20251104; t=1782655120; x=1783259920; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Ij65SijD3TAjZdNPDp/lCaocyGnY8KRthDqQSOYaHw0=;
+        b=p+1ITpIQWMweFy6fAXQu2g6Z/FvcJEy3AJmFIq4BtQfnxwsTVI/YJoRhx/Hu/nVJir
+         poM7a0nI4LvoovBFflmrBGzPY7cdL72nSLUfAmXilAJkLxfyNMZyGd49X43Dr3REywiW
+         qJNj8X3BysnH966yb0zlieAK9j6jIyv26zvc7guSK44mVcGsWLEj9gbkp8mANm44A1Mr
+         RGfHlemujsq6QaHWPLwKzPfH3uD9NZLM5VBjauzWx3GPaiaRIwjly0HYZ0VzRaKLyrV4
+         /AauR7NnYanU+wvhdJcnCeaUhB7HOJGGe7jjRNo27i2wlcMtlJncz7DBViHGqyqOHapq
+         Tjsw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782582569; x=1783187369;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=+uflCN5dEoFADXWjqBtV9JZXNhAeBkbLG/4dD0z7b4I=;
-        b=BsyN8Wxg2IiZTAI1coYlH6InX+kN/qWL1aSQuI7FLO1dZx0OmQdXaYemBOIcosyD1N
-         XEVJfRV0sp5cQayQJNz2/6nqM4ChuYHuSA0Z8UuS54JcSqKm0LkDtWJ3rmyNI6T6j7Hc
-         XXG/MHV+zvuojSI4meoIlVMv3AL5NlCktgwVmZNJRRZHEilXAz1oIAsdlpHC98zP+LFa
-         ik4fE52ScG8B1tuCGHsnGeN3oWQR1zHRpeW5suqjuzvQtFOJ0j3rsv5cLEcqmIHcJQNO
-         LMNrb8P726nffz57UrBigejTHQ2U3EKOtF5L33BYadRO0pKA7AOE6FiAbwgoAMn6jNhz
-         U2gw==
-X-Forwarded-Encrypted: i=1; AHgh+RrZATDKBO0wwJYEfmyX9+3udnrCrnn0m0mTy8kmCgGf+4r7ufPep4tF36L21NxQ004quG2fCQyjKZJT@vger.kernel.org
-X-Gm-Message-State: AOJu0YxoBdLlfmoOdS55lXOS0UWmr/I1pSzSCggz+DHy3i2oh7MKR3eq
-	YNGaMUVHFvvcqqQm3bieZbFHJ7PW8+sQpm7+Z/Yqk18sTc030EYdsx1Q
-X-Gm-Gg: AfdE7cl1g4+j8uEs83teofYXLUUps+N+lk7ZIXRmrRyarKldc2KmpB0jw519qMrr0Eh
-	HTp8DwdL7uah8wb/MNEZyaedxI84H3EYsXvmzYZNyPc2BczVYsJv+pZjhYhIHVLOezvQEp97Vz9
-	6usfrzbK7sIGqddD9cIJKO5xjjojyiR8ALHIls7b3oicoBQ3/wBcdqCkgVbkZbXLC1iEViu/4LF
-	zQtknFnJ+Uma6Dz+JdJYWW+jX6Se2o8v48PEesfcp1hDJjzuj7KHf0Ec4B64KV8jkbjR41K33O3
-	gv7yEFzIGmpCAsXBLNMqXLvnz5v5q9PJb7NAT2pYfk4dqe4HNgVG6G0tYyGHhAbCcPEG95w04Qg
-	ntFHui5gQpUhnh8T5Dumc9pAcPmr3B9Tx/JBOsT61H39JIZIzzoteFm1LcaUCXr9EQZRnpXzZGN
-	GUfAsSF5u+YIE0luA39M6S78zQbw661rBxporqXA8O3RNu
-X-Received: by 2002:a05:6102:440f:b0:730:db02:1d08 with SMTP id ada2fe7eead31-73434452fd5mr5471882137.10.1782582569056;
-        Sat, 27 Jun 2026 10:49:29 -0700 (PDT)
-Received: from localhost (d-24-145-72-22.fl.cpe.atlanticbb.net. [24.145.72.22])
-        by smtp.gmail.com with ESMTPSA id a1e0cc1a2514c-96916e5b10dsm2811280241.4.2026.06.27.10.49.28
+        d=1e100.net; s=20251104; t=1782655120; x=1783259920;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Ij65SijD3TAjZdNPDp/lCaocyGnY8KRthDqQSOYaHw0=;
+        b=p06pCp0Z8l0J95g9DMlJDMzu6Bk34fpZyb7lcZgPX9jqSqQrS0x5YmSVpL7UjnhGrP
+         BlvrxEnZK9Z2/cayxAIlUuJjxytp/gbmOYmWo93COukDkjA+sB2xrOtBnDln2X6mDWRx
+         kYdy2LcZzp41HEg5tAGXgMnWvdmZxZOn/cedmz01jASkn2skBjhvowvzDqUjyhxxV3sx
+         qruWUDph6Tx8MnQ6c242HgQEN+dQkPm79ylnwn/9BLsc5rN/yzSZsIEq4uFNee1oNmg1
+         E68iJfFU918q2rrUdKbnf9SSN9QXKDzCyDzuXkCHNMLyPXcSJn2Qcy+HFPSZBDVI501E
+         026w==
+X-Forwarded-Encrypted: i=1; AFNElJ8GakMq6PAaqDkp0Dod+0/SvF/25535CZt6NbZCf3sEnb2gQGZ32iDVBTyRQ3qR4NQ1CidM4o6/88Xw@vger.kernel.org
+X-Gm-Message-State: AOJu0YxQZlJjh5ePQwWrn7diGqrpLeMATjrqmZWBWXPmpMC98fAf7d3t
+	fs4BBmIWPspzwdxsuRi+YCjUNe5F9S3Mbvg2ZednmkdW0nBUtyjJ6QC4
+X-Gm-Gg: AfdE7ckRGLiDSymlidQYWAOK/ymiJb9WHfKjeSJCO3aapiU5vaFgsEDLeLdTufcXN9T
+	qUf2FATM9BXwIhQJrAY6p7sZ2U26mbp3Vg9QKiuGg0M5JIEiNC4TjVSiiA0AwcLt0VNLUgTg9Fl
+	txKm8pLDtyKDB4tcXGd5bFeAkXxsRW5/lUAJtQ5ovqDo25FvxHOK847MWrRii+RDL9sLROdDLAj
+	k333p0KhuFiD4F42ruf1d7j6uFGkhOcTPLv0pA81k+Q7Pf7zxcjKZTZzjjb3saiF28viSb5YSLj
+	jSqzY5gNp0MnT1/Oemm/xtx71/nRfJw4fRU2MtH36gu52KcyuZ2K5n3lGgzmN57JXl9pohLTRHR
+	WVTi57VbDwVWOjj0RdpS02+/hFhE77VfhKMon8CNm7UNen/B4lzwHKCQiuxtaMLOaGYkwogBxR7
+	s3heMuHFs=
+X-Received: by 2002:a05:6a00:3e03:b0:845:d1fe:9cd0 with SMTP id d2e1a72fcca58-845d1fea7c0mr6017737b3a.0.1782655120131;
+        Sun, 28 Jun 2026 06:58:40 -0700 (PDT)
+Received: from ubuntu.. ([110.9.142.4])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-845a40d23d7sm10041108b3a.30.2026.06.28.06.58.35
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 27 Jun 2026 10:49:28 -0700 (PDT)
-From: Yury Norov <yury.norov@gmail.com>
-X-Google-Original-From: Yury Norov <ynorov@nvidia.com>
-Date: Sat, 27 Jun 2026 13:49:27 -0400
-To: David Laight <david.laight.linux@gmail.com>
-Cc: Robin Murphy <robin.murphy@arm.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-	Russell King <linux@armlinux.org.uk>, Frank Li <Frank.Li@nxp.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Pengutronix Kernel Team <kernel@pengutronix.de>,
-	Fabio Estevam <festevam@gmail.com>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	"Christophe Leroy (CS GROUP)" <chleroy@kernel.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Arnaldo Carvalho de Melo <acme@kernel.org>,
-	Namhyung Kim <namhyung@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-	Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>,
-	Adrian Hunter <adrian.hunter@intel.com>,
-	James Clark <james.clark@linaro.org>,
-	Thomas Gleixner <tglx@kernel.org>, Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Sun, 28 Jun 2026 06:58:39 -0700 (PDT)
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Andy Lutomirski <luto@kernel.org>,
+	Borislav Petkov <bp@alien8.de>,
 	Danilo Krummrich <dakr@kernel.org>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	MyungJoo Ham <myungjoo.ham@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Heiko Stuebner <heiko@sntech.de>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Xu Yilun <yilun.xu@intel.com>, Tom Rix <trix@redhat.com>,
-	Moritz Fischer <mdf@kernel.org>,
-	Yicong Yang <yangyicong@hisilicon.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
-	Dan Williams <djbw@kernel.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Shuai Xue <xueshuai@linux.alibaba.com>,
-	Will Deacon <will@kernel.org>,
-	Jiucheng Xu <jiucheng.xu@amlogic.com>,
-	Neil Armstrong <neil.armstrong@linaro.org>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Jerome Brunet <jbrunet@baylibre.com>,
-	Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-	Jing Zhang <renyu.zj@linux.alibaba.com>,
-	Xu Yang <xu.yang_2@nxp.com>, Linu Cherian <lcherian@marvell.com>,
-	Gowthami Thiagarajan <gthiagarajan@marvell.com>,
-	Ji Sheng Teoh <jisheng.teoh@starfivetech.com>,
-	Khuong Dinh <khuong@os.amperecomputing.com>,
-	Daniel Lezcano <daniel.lezcano@kernel.org>,
-	Zhang Rui <rui.zhang@intel.com>, Lukasz Luba <lukasz.luba@arm.com>,
-	Yury Norov <yury.norov@gmail.com>, Kees Cook <kees@kernel.org>,
-	Thomas =?iso-8859-1?Q?Wei=DFschuh?= <thomas.weissschuh@linutronix.de>,
-	Aboorva Devarajan <aboorvad@linux.ibm.com>,
-	"Ritesh Harjani (IBM)" <ritesh.list@gmail.com>,
-	Ilkka Koskinen <ilkka@os.amperecomputing.com>,
-	Besar Wicaksono <bwicaksono@nvidia.com>, Ma Ke <make24@iscas.ac.cn>,
-	Chengwen Feng <fengchengwen@huawei.com>,
-	linux-arm-kernel@lists.infradead.org, imx@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-perf-users@vger.kernel.org, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-pm@vger.kernel.org,
-	linux-rockchip@lists.infradead.org, linux-fpga@vger.kernel.org,
-	linux-rdma@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-pci@vger.kernel.org, linux-amlogic@lists.infradead.org,
-	linux-cxl@vger.kernel.org, linux-arm-msm@vger.kernel.org
-Subject: Re: [PATCH 13/16] perf: Use sysfs_emit() for cpumask show callbacks
-Message-ID: <akANJ-AT7nHpRMq-@yury>
-References: <20260528183625.870813-1-ynorov@nvidia.com>
- <20260528183625.870813-14-ynorov@nvidia.com>
- <7e980b99-1e4e-408b-8ebd-4d28116e7ad5@arm.com>
- <20260529130619.12f24264@pumpkin>
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Huacai Chen <chenhuacai@kernel.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Mike Rapoport <rppt@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Rob Herring <robh@kernel.org>,
+	Saravana Kannan <saravanak@kernel.org>,
+	Thomas Gleixner <tglx@kernel.org>
+Cc: Sang-Heon Jeon <ekffu200098@gmail.com>,
+	devicetree@vger.kernel.org,
+	driver-core@lists.linux.dev,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	Len Brown <lenb@kernel.org>,
+	linux-acpi@vger.kernel.org,
+	linux-mm@kvack.org,
+	loongarch@lists.linux.dev,
+	WANG Xuerui <kernel@xen0n.name>,
+	x86@kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 0/9] treewide, numa_memblks: remove redundant work during NUMA init
+Date: Sun, 28 Jun 2026 22:58:14 +0900
+Message-ID: <20260628135828.1393120-1-ekffu200098@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260529130619.12f24264@pumpkin>
+Content-Transfer-Encoding: 8bit
 
-On Fri, May 29, 2026 at 01:06:19PM +0100, David Laight wrote:
-> On Fri, 29 May 2026 12:05:08 +0100
-> Robin Murphy <robin.murphy@arm.com> wrote:
-> 
-> > On 2026-05-28 7:36 pm, Yury Norov wrote:
-> > > These callbacks are sysfs show paths.
-> > > 
-> > > Use sysfs_emit() and cpumask_pr_args() to emit the masks.
-> > > 
-> > > This prepares for removing cpumap_print_to_pagebuf().  
-> > 
-> > TBH, looking at this diff I think it only shows the value of having a 
-> > helper to abstract the boilerplate...
-> > 
-> > I'm not sure I agree with the argument of removing something entirely 
-> > just because it may occasionally be misused, but could we at least have 
-> > something like:
-> > 
-> > #define sysfs_emit_cpumask(buf, mask) \
-> > 	sysfs_emit((buf), "%*pbl\n", cpumask_pr_args(mask))
-> >
-> > to save the mess in all the many places where the current 
-> > cpumap_print_to_pagebuf() usage _is_ entirely appropriate?
+Every existing numa_add_memblk() caller passes a valid node id and
+separately marks that node in numa_nodes_parsed with node_set(). In
+addition, numa_nodemask_from_meminfo() recomputes the same "nodes that own
+memory" set from numa_meminfo, which numa_nodes_parsed already contains.
 
-This way you have to add 2 wrappers:
+This redundancy implicitly depends on the callers' node_set(). So, before
+removing the redundancy, make numa_add_memblk() set the node in
+numa_nodes_parsed explicitly. Then remove the per-caller node_set() and
+numa_nodemask_from_meminfo().
 
- #define sysfs_emit_cpulist(buf, mask) \
- 	sysfs_emit((buf), "%*pbl\n", cpumask_pr_args(mask))
+Also, since the generic numa_register_meminfo() already sets
+node_possible_map to numa_nodes_parsed, remove the duplicate assignment in
+arch_numa's numa_register_nodes().
 
- and
+Patch 1 adds the node_set() to numa_add_memblk() itself, so every memblk's
+node is set in numa_nodes_parsed on add.
 
- #define sysfs_emit_cpumask(buf, mask) \
- 	sysfs_emit((buf), "%*pb\n", cpumask_pr_args(mask))
+Patches 2-6 depend on patch 1 and remove the redundant per-caller node_set()
+from all callers.
 
-There are people who complain even about DIV_ROUND_UP(), how hard it is
-to keep all that helpers in memory, and all that things.
+Patch 7 removes both numa_nodemask_from_meminfo() call sites and the unused
+function itself.
 
-https://lore.kernel.org/all/20260304124805.GB2277644@noisy.programming.kicks-ass.net/
+Patch 8 removes the duplicate node_possible_map assignment in arch_numa.
 
-Disagree about DIV_ROUND_UP() (because yeah, I'm bad in math), but
-this sysfs_emit_cpumask() is a complete syntax redundancy.
+Patch 9 is a minor cleanup, using the existing numa_add_reserved_memblk()
+wrapper in numa_cleanup_meminfo().
 
-Once we have it, people will do this type of things:
+No functional change.
 
-        tmp = kmalloc(PAGE_SIZE);
-        sysfs_emit_cpumask(tmp, mask);
-        sysfs_emit(buf, "my prefix: %s\n", tmp);
-        kfree(tmp);
+Sang-Heon Jeon (9):
+  mm: numa_memblks: set numa_nodes_parsed in numa_add_memblk()
+  ACPI: NUMA: remove redundant numa_nodes_parsed node_set()
+  of/numa: remove redundant numa_nodes_parsed node_set()
+  x86/numa: remove redundant numa_nodes_parsed node_set()
+  arch_numa: remove redundant numa_nodes_parsed node_set()
+  LoongArch: remove redundant numa_nodes_parsed node_set()
+  mm: numa_memblks: remove redundant numa_nodemask_from_meminfo()
+  arch_numa: remove redundant node_possible_map assignment
+  mm: numa_memblks: use numa_add_reserved_memblk() in
+    numa_cleanup_meminfo()
 
-Patch #1 in this series is one example. My series that removes
-bitmap_print_to_pagebuf() will give you more:
+ arch/loongarch/kernel/numa.c |  1 -
+ arch/x86/mm/amdtopology.c    |  1 -
+ arch/x86/mm/numa.c           |  1 -
+ drivers/acpi/numa/srat.c     |  2 --
+ drivers/base/arch_numa.c     |  4 ----
+ drivers/of/of_numa.c         |  5 +----
+ mm/numa_memblks.c            | 41 +++++++++++++++---------------------
+ 7 files changed, 18 insertions(+), 37 deletions(-)
 
-https://lore.kernel.org/all/20260303200842.124996-2-ynorov@nvidia.com/
+-- 
+2.43.0
 
-It doesn't mean that *you* will misuse the API. It means that *I* will
-have to inspect the codebase for that type of bugs periodically.
-
-So, the overall state is simple: we've got well-established
-printf()-like functions that people know and understand, and we also
-have exotic APIs here and there with a non-standard interface and a
-clear potential to misuse. In this case, they have historical roots,
-but now we don't need them.
-
-> That has the advantage of letting you change how it is done (again)
-> without having to find all the callers.
-
-You mean things like silencing the prints or adding a prefix?
-
-If you believe that perf subsystem would benefit from it - that's
-OK. Just please keep it local. The kernel globally doesn't need to
-'change how it is done' beyond the lib/vsprintf.  The kernel really
-needs people to use something that the other people are familiar with.
-
-Thanks,
-Yury
