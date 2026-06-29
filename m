@@ -1,52 +1,51 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD2B441169A;
-	Mon, 29 Jun 2026 15:42:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F7A043C07D;
+	Mon, 29 Jun 2026 15:49:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782747753; cv=none; b=nh/s3GkIs3g0x7i/NyS+Eoyc9aPMNYE09vxIbF1UXQnlvZFmDcEXrm/S1gXqYk05rDyptnHjiwdtZFF8xZXEJWtQ/dPFhonDwW12dBRBJY6pAXcIj3AN6dyFvpoKoC1t18EndLiiDiOTvC4LZWkLqg++X+N8bPmUlGUMzhwGWCI=
+	t=1782748154; cv=none; b=RTm6o9wokvPeE3rDQDYXQEKeoh9CX7fYiRl72CKBOEcWEXtzF/l57zxAtzGMhz3zkozt4wpwULPM79IO71goTGAcV4km8Utybt4iJ7wizCkKpPFM+SPQsxZS/KxmCqwmb1eKK4FGnjk1PKGY6+g69MWen0psV8BpZJwriYnlNe8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782747753; c=relaxed/simple;
-	bh=ysWvzBMEdR3mUroLwDVNAsSve67+hNkhz+NHSicxT08=;
+	s=arc-20240116; t=1782748154; c=relaxed/simple;
+	bh=Ag/eJAqyGGN2jk5s2m6mqJmP8X5lDT8ty8B5rzYFAzk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bN9R7hy2HnTqLEzCmu+/knO+CQyHZFzB4IMsMWIY0fikaHvBAbK0XoN0G6vZ7nYB2qahdP7s1W8q0Ct9G/Xibj31BzTW780n6uxjbO3TKnIPpeY4L9+FOAYrs3NX4ar5gH+UNPivWYOjlcbgKbIweELvQbNhq4tXLGod2nPSvT4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=LKLXyRqH; arc=none smtp.client-ip=192.198.163.13
+	 Content-Type:Content-Disposition:In-Reply-To; b=p44q5eyIcsqR8aZRAHZmvm5q9lJXnSf+pYhKp8Tp6FrpxxrWrshLpijFW1WK9p8gtabP3Xyb1DskWgmk0jH/8+I/V1/h5MoQ+ORrS+Ja6Dr1nIsftIMazvUuWpGfnFGFryS2UqPYrG5SoPlm/A+CbqWeDs8cZI/9dO1s8N1oGp8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=d7uv2OAu; arc=none smtp.client-ip=198.175.65.12
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="LKLXyRqH"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="d7uv2OAu"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1782747752; x=1814283752;
+  t=1782748154; x=1814284154;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=ysWvzBMEdR3mUroLwDVNAsSve67+hNkhz+NHSicxT08=;
-  b=LKLXyRqHqZgbmdSWNgvAmyChc7YWH1zy7KPlACa58mifMhBiMhmEfVnd
-   MYLTKis6HNxVCtGuMAXM3JjVd4Q1ZrznodjmzNqaflhZWAUr5YZ1Mbm+C
-   1CZKAcrpt6emsaxoZAe79X+9urDmEkmrltlz5Xhb1Jv5QjcjkeXNO3GyR
-   VQ+wBicQQk0N5DJCC9Wtmwc3eZDldiR1hrR/ar+zlEI+COSnvLTGAtSke
-   0TYolkLtWRMWV+JDr5fVfiyLH3paMvtOxmGiubDKi2pIwtWHk4WSszKYV
-   zUEWaPkyRAQvE2hx0OSfCBxE5XG6DxsbSgLlqw1I06M+WGyWBnzSFFcTc
-   Q==;
-X-CSE-ConnectionGUID: 9XUy9+jFQgmO4OJUNfTX4A==
-X-CSE-MsgGUID: 9qXJ4kzVQLyv3vIipvFujw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11832"; a="85988838"
+  bh=Ag/eJAqyGGN2jk5s2m6mqJmP8X5lDT8ty8B5rzYFAzk=;
+  b=d7uv2OAu/LeiGU5p0gqNl3IXGjEOrvbE0mSjNSnLkKzK1eqTc72oERxB
+   kn4idgf+MqIsKi4QEsFc7LoKhq5vX08HcrP2SDUUgtIMk2AxHkM1w3cne
+   oQ4P1R5BqbKfJwmHcFtUZqX1ED7pIwWC5VXMgDcMPkDiD6UH+R2fMjYKF
+   Uea5M0Fe08Nc3YnBvICEeYcFzu+zkxMEPEYVuiGV02B6dKWerNs0HeC08
+   v+loXKxuH8tiKWfWZIbiUgsFa6xuFN70fWNNEtnJ12nw2o6rh6uU+aeRZ
+   7QpY5YSqfwjLCMej7eNlcYDvHVeOUrkOeeWVdbpOxmo9Eg1t1Rn/guvCK
+   w==;
+X-CSE-ConnectionGUID: q+4NgxrITQKIGNM1DLQGNQ==
+X-CSE-MsgGUID: 3x1S+t/rQimB8er04oY43Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11832"; a="94934703"
 X-IronPort-AV: E=Sophos;i="6.24,232,1774335600"; 
-   d="scan'208";a="85988838"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2026 08:42:31 -0700
-X-CSE-ConnectionGUID: bh/olGCDTnWxrxhKDnJA9A==
-X-CSE-MsgGUID: Nm0odYGcTBy5w+oQuhtAug==
+   d="scan'208";a="94934703"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2026 08:49:13 -0700
+X-CSE-ConnectionGUID: O3ZfXutsRSmdIJ7hbEEtqg==
+X-CSE-MsgGUID: wti4M/4/SgWgrQDz+5m2yA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.24,232,1774335600"; 
-   d="scan'208";a="252140130"
+   d="scan'208";a="249364328"
 Received: from kniemiec-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.207])
-  by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2026 08:42:26 -0700
-Date: Mon, 29 Jun 2026 18:42:24 +0300
+  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2026 08:49:09 -0700
+Date: Mon, 29 Jun 2026 18:49:06 +0300
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
-	Herve Codina <herve.codina@bootlin.com>
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>,
 	David Gow <david@davidgow.net>, Rae Moar <raemoar63@gmail.com>,
 	Daniel Scally <djrscally@gmail.com>,
@@ -61,10 +60,10 @@ Cc: Brendan Higgins <brendan.higgins@linux.dev>,
 	linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
 	kunit-dev@googlegroups.com, linux-acpi@vger.kernel.org,
 	driver-core@lists.linux.dev, linux-gpio@vger.kernel.org
-Subject: Re: [PATCH 2/5] software node: add fw_devlink support
-Message-ID: <akKSYKH2vyXMVcox@ashevche-desk.local>
+Subject: Re: [PATCH 3/5] software node: add kunit tests for fw_devlink support
+Message-ID: <akKT8q5TjkMkZkmB@ashevche-desk.local>
 References: <20260629-swnode-fw-devlink-v1-0-b90058b41839@oss.qualcomm.com>
- <20260629-swnode-fw-devlink-v1-2-b90058b41839@oss.qualcomm.com>
+ <20260629-swnode-fw-devlink-v1-3-b90058b41839@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -73,105 +72,199 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260629-swnode-fw-devlink-v1-2-b90058b41839@oss.qualcomm.com>
+In-Reply-To: <20260629-swnode-fw-devlink-v1-3-b90058b41839@oss.qualcomm.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
  krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-+Cc: Herve, to just ask the situation with one series that adds nice helper.
-
-On Mon, Jun 29, 2026 at 12:52:07PM +0200, Bartosz Golaszewski wrote:
-> Software nodes can be used to describe supplier-consumer relationships
-> between devices they represent using reference property entries. Unlike
-> for OF-nodes, driver core cannot yet use these references to create a
-> probe order that avoids needless probe deferrals on missing providers.
+On Mon, Jun 29, 2026 at 12:52:08PM +0200, Bartosz Golaszewski wrote:
+> Add a kunit test suite for fw_devlink support for software nodes.
 > 
-> Implement software_node_add_links() modelled on of_fwnode_add_links().
-> For every DEV_PROP_REF property we resolve each referenced supplier and
-> create an fwnode link from the node to it. The driver core later promotes
-> these to device links and defers the consumer until the suppliers are
-> ready.
-> 
-> There's no allowlist like the one DT needs - devicetree phandles appear
-> in plenty of non-supplier contexts, but a software node only carries a
-> reference property when its author explicitly points at another node, so
-> we treat every reference as an intentional supplier dependency and link
-> all of them. Graph "remote-endpoint" references are skipped for now: they
-> go 2-ways between endpoint nodes and would create graph cycles without
-> the port-parent lifting DT does via get_con_dev(). References to
-> suppliers that aren't registered yet and self-references are ignored.
-> 
-> fw_devlink resolves the supplier device through fwnode->dev but the core
-> only records the owning device on the primary fwnode. When the software
-> node is a device's secondary fwnode, mirror the device pointer onto it in
-> software_node_notify() so the consumer can actually find the supplier
-> instead of deferring forever.
-> 
-> While at it: purge the fwnode links in software_node_release() now that
-> software nodes can own them.
+> Most cases call add_links() directly and inspect the resulting fwnode
+> supplier/consumer lists: a single reference, multiple references, a
+> reference to an unregistered node, a "remote-endpoint" reference and a
+> reference array. The last case is end-to-end - it registers real consumer
+> and supplier platform devices together with their drivers, adds the
+> consumer first and checks that fw_devlink defers its probe until the
+> supplier has been bound.
 
 ...
 
-> +static int software_node_add_links(struct fwnode_handle *fwnode)
+> ---
+>  drivers/base/test/Kconfig               |   5 +
+>  drivers/base/test/Makefile              |   3 +
+>  drivers/base/test/swnode-devlink-test.c | 336 ++++++++++++++++++++++++++++++++
+
++ MAINTAINERS.
+
+...
+
+
+>  CFLAGS_property-entry-test.o += $(DISABLE_STRUCTLEAK_PLUGIN)
+> +
+> +obj-$(CONFIG_DRIVER_SWNODE_KUNIT_TEST) += swnode-devlink-test.o
+> +CFLAGS_swnode-devlink-test.o += $(DISABLE_STRUCTLEAK_PLUGIN)
+
+Is it the case for this?
+
+...
+
+> +#include <linux/device.h>
+> +#include <linux/fwnode.h>
+
++ list.h
+
+> +#include <linux/platform_device.h>
+> +#include <linux/property.h>
+> +#include <linux/types.h>
+> +#include <linux/wait.h>
+
+...
+
+> +static int swnode_count_suppliers(struct fwnode_handle *fwnode)
 > +{
-> +	const struct software_node_ref_args *ref, *ref_array;
-> +	struct swnode *swnode = to_swnode(fwnode);
-> +	const struct property_entry *prop;
-> +	struct fwnode_handle *refnode;
-> +	unsigned int count, i;
+> +	struct fwnode_link *link;
+> +	int ret = 0;
 
-'i' is local to the loop.
+Why signed? Also it's not 'ret' semantically it's 'count'.
 
-> +	if (!swnode || !swnode->node->properties)
-> +		return 0;
-> +
 > +	/*
-> +	 * Unlike Device Tree, where phandles appear in many non-supplier
-> +	 * contexts and a curated allowlist is required, a software node only
-> +	 * carries a DEV_PROP_REF property when the author explicitly describes
-> +	 * a reference to another node. Every such reference is therefore an
-> +	 * intentional supplier dependency, so we create fwnode links for all
-> +	 * of them.
+> +	 * The suppliers and consumers lists should typically only be accessed
+> +	 * with the fwnode_link_lock taken but it's private to the driver core.
+> +	 *
+> +	 * These are tests and at this point nobody should be modifying them so
+> +	 * let's just access the list.
 > +	 */
-> +	for (prop = swnode->node->properties; prop->name; prop++) {
-> +		if (prop->type != DEV_PROP_REF || prop->is_inline)
-> +			continue;
+> +	list_for_each_entry(link, &fwnode->suppliers, c_hook)
+> +		ret++;
 > +
-> +		/*
-> +		 * TODO: Graph "remote-endpoint" references go both ways
-> +		 * between endpoint child nodes and would create endpoint
-> +		 * cycles. Let's leave it out for now until we have potential
-> +		 * users.
-> +		 */
-> +		if (!strcmp(prop->name, "remote-endpoint"))
-> +			continue;
-> +
-> +		ref_array = prop->pointer;
-> +		count = prop->length / sizeof(*ref_array);
+> +	return ret;
+> +}
 
-Seems we are going to have more of a such, perhaps make a helper for counting
-(which will do that division beneath).
+...
 
-> +		for (i = 0; i < count; i++) {
+> +/* A single reference creates exactly one supplier link, on both list ends. */
+> +static void swnode_devlink_test_single_ref(struct kunit *test)
+> +{
+> +	static const struct software_node supp_swnode = {
+> +		.name = "swnode-devlink-test-supplier"
 
-		for (unsigned int i = 0; i < count; i++) {
+Keep trailing comma.
+
+> +	};
 
 > +
 
-Redundant blank line?
+Redundant blank line.
 
-> +			if (ref->swnode)
-> +				refnode = software_node_fwnode(ref->swnode);
-> +			else if (ref->fwnode)
-> +				refnode = ref->fwnode;
-> +			else
-> +				continue;
+> +	struct fwnode_handle *cons_fwnode, *supp_fwnode;
+> +	int ret;
 > +
-> +			/* Supplier not registered yet, or self-reference. */
-> +			if (!refnode || refnode == &swnode->fwnode)
-> +				continue;
+> +	const struct property_entry props[] = {
+> +		PROPERTY_ENTRY_REF("supplier", &supp_swnode),
+> +		{ }
+> +	};
 > +
-> +			fwnode_link_add(&swnode->fwnode, refnode, 0);
-> +		}
+> +	supp_fwnode = kunit_software_node_register(test, &supp_swnode);
+> +	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, supp_fwnode);
+> +
+> +	cons_fwnode = kunit_fwnode_create_software_node(test, props, NULL);
+> +	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cons_fwnode);
+> +
+> +	ret = fwnode_call_int_op(cons_fwnode, add_links);
+> +	KUNIT_EXPECT_EQ(test, ret, 0);
+> +
+> +	KUNIT_EXPECT_EQ(test, swnode_count_suppliers(cons_fwnode), 1);
+> +	KUNIT_EXPECT_TRUE(test, swnode_has_link(cons_fwnode, supp_fwnode));
+> +}
+
+...
+
+> +/* Multiple distinct references create multiple supplier links. */
+> +static void swnode_devlink_test_multiple_refs(struct kunit *test)
+> +{
+> +	static const struct software_node supp1_swnode = {
+> +		.name = "swnode-devlink-test-supplier-1"
+
+Keep comma.
+
+> +	};
+> +	static const struct software_node supp2_swnode = {
+> +		.name = "swnode-devlink-test-supplier-2"
+
+Ditto.
+
+> +	};
+> +	static const struct software_node *supp_nodes[] = {
+> +		&supp1_swnode, &supp2_swnode, NULL
+
+Here it's fine.
+
+> +	};
+
+> +
+
+Redundant blank line.
+
+> +	const struct property_entry props[] = {
+> +		PROPERTY_ENTRY_REF("foo", &supp1_swnode),
+> +		PROPERTY_ENTRY_REF("bar", &supp2_swnode),
+> +		{ }
+> +	};
+> +
+> +	struct fwnode_handle *fwnode;
+> +	int ret;
+> +
+> +	ret = kunit_software_node_register_node_group(test, supp_nodes);
+> +	KUNIT_ASSERT_EQ(test, ret, 0);
+> +
+> +	fwnode = kunit_fwnode_create_software_node(test, props, NULL);
+> +	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, fwnode);
+> +
+> +	ret = fwnode_call_int_op(fwnode, add_links);
+> +	KUNIT_EXPECT_EQ(test, ret, 0);
+> +
+> +	KUNIT_EXPECT_EQ(test, swnode_count_suppliers(fwnode), 2);
+> +	KUNIT_EXPECT_TRUE(test, swnode_has_link(fwnode, software_node_fwnode(&supp1_swnode)));
+> +	KUNIT_EXPECT_TRUE(test, swnode_has_link(fwnode, software_node_fwnode(&supp2_swnode)));
+> +}
+
+...
+
+> +static void swnode_devlink_test_unregistered_ref(struct kunit *test)
+
+Same comments as per above.
+
+...
+
+> +static void swnode_devlink_test_remote_endpoint_excluded(struct kunit *test)
+
+Ditto.
+
+...
+
+> +static void swnode_devlink_test_ref_array(struct kunit *test)
+
+Ditto.
+
+...
+
+> +#define SWNODE_DEVLINK_TEST_TIMEOUT_MS	2000
+
+(2 * MSEC_PER_SEC) ?
+(will require time.h).
+
+...
+
+> +static int swnode_test_record_probe(struct platform_device *pdev)
+> +{
+> +	struct swnode_test_probe_order *order = platform_get_drvdata(pdev);
+> +
+> +	if (order && order->count < ARRAY_SIZE(order->probed)) {
+
++ array_size.h
+
+> +		order->probed[order->count++] = dev_name(&pdev->dev);
+> +		wake_up_interruptible(&order->wq);
 > +	}
 > +
 > +	return 0;
@@ -179,40 +272,22 @@ Redundant blank line?
 
 ...
 
-> +	/*
-> +	 * When the software node is the device's secondary firmware node, the
-> +	 * core only records the owning device on the primary fwnode (see
-> +	 * device_add()). fw_devlink resolves a supplier device through
-> +	 * fwnode->dev, so without this a consumer referencing the software
-> +	 * node could never find the supplier device and would defer forever.
-> +	 * Make fwnode.dev point to its owner in that case.
+> +static void swnode_devlink_test_probe_order(struct kunit *test)
 
-The below seems more balanced in terms of line lengths.
+As per above comments.
 
-	 * When the software node is the device's secondary firmware node,
-	 * the core only records the owning device on the primary fwnode
-	 * (see device_add()). fw_devlink resolves a supplier device through
-	 * fwnode->dev, so without this a consumer referencing the software
-	 * node could never find the supplier device and would defer forever.
-	 * Make fwnode.dev point to its owner in that case.
+...
 
-> +	 */
-> +	if (dev_fwnode(dev) != &swnode->fwnode && !swnode->fwnode.dev)
-> +		swnode->fwnode.dev = dev;
+> +static struct kunit_suite swnode_test_suite = {
+> +	.name = "software-node-links",
+> +	.test_cases = swnode_test_cases,
+> +};
 
-Doesn't Herve's patch(es) add some helpers for this?
-https://lore.kernel.org/lkml/20260511155930.34604-2-herve.codina@bootlin.com/
+> +
 
-Ah, still not applied :-( Perhaps it can be applied as just part that brings
-fw_devlink_set_device()?
+Redundant blank line.
 
-> +	/*
-> +	 * Drop the device pointer mirrored onto a secondary software node in
-> +	 * software_node_notify(). For a primary software node the core owns
-> +	 * fwnode->dev and clears it in device_del().
-> +	 */
-> +	if (dev_fwnode(dev) != &swnode->fwnode && swnode->fwnode.dev == dev)
-> +		swnode->fwnode.dev = NULL;
+> +kunit_test_suite(swnode_test_suite);
 
 -- 
 With Best Regards,
