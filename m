@@ -1,63 +1,66 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE85D277C96;
-	Mon, 29 Jun 2026 17:33:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3461A35E95C;
+	Mon, 29 Jun 2026 17:36:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782754387; cv=none; b=ZEUSrDzjQhUrjqLXGtp9blifCdRFvJQu+J2rL2rOU771qnrotS6HEP1XDx4ob0w70V5OMyOTl/6wqaCy15f10rnxbCjeUtHkXBDEQ0hVfnQASHa12XCVWgai9W+5fT9OAqKOf2Uocm/jMzISdoaYjb4MJvxfzuzScAMg0JWqxD8=
+	t=1782754603; cv=none; b=mFakMg5ABTi5q3gblVehDph1Q+0WT3zS0esptkOl9IYdKP0JOD6/VOQkQeSdD9wKELGKK+rygEM1hcTfD05/0Il9g5WTmw4wotJDII1zhg9OnaexjP/3UiPSKiMj/3BjK59gwV3O7/ayGKCbys45KtcVkUzY8b+p1ErrPwjAE/k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782754387; c=relaxed/simple;
-	bh=iGG6LjmcJg7EV2b9L3OkZvJWUfrUU9Yg2AnJoMPe9ao=;
+	s=arc-20240116; t=1782754603; c=relaxed/simple;
+	bh=uULf8Fw4shY92kL1nYHScaoVpSRpERDCQQhHxA+XxtU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BAyNGTx3s5b5219EbIZTEB3PIfqxCvJ5RJu6SHdTcqz7gm9WnrqHqodpKdjapXjMS1Szcld/yq94P28jnQ8jL60/xuaQXdOYxYKWshnIHA0RntYfcrGI5y9CljXm6coz4fmuspjqxYXCI29tJ6i8zCC/g75NOZ7R5PR0Oee4zjA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BIMHEG/X; arc=none smtp.client-ip=198.175.65.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=KcfCJksoGvr+yaM/Tu8eQTzWTXUVyM2RKAFgHs8QvBDWIou61iYPb5pKvuvUQsr3r2jnoEqiRT38uPJ8PzlEPBAZbCdVVwb57FUTCZiu4Ejme01QyKKvqJO6JU5fZAmZkZdcczqJLKwdLQz798bxs5ShiqFNwrb3IxHmU7qbVFc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KjaI50+g; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BIMHEG/X"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1782754386; x=1814290386;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=iGG6LjmcJg7EV2b9L3OkZvJWUfrUU9Yg2AnJoMPe9ao=;
-  b=BIMHEG/X7m/NWbZw3YRrWXoUdDKSU4oV7neb1jtE48Pl8GQ1VL0R5d3I
-   FRXwtsfnH97BsnfNkfVUxkqloehdd4wYhdgNJwc4caRaVFMH3cbzmIPcj
-   KeonfhMhKCWXib9u+mfg8ALEpuWCNVL1OJGJo7olWEXsSK4ZTgRDfAbmZ
-   Bf1lrpqLo+6dzImonHbQPjlT3QUT5/WoaKmFDDJpxK/FXjQqt3YdVsMwK
-   IqHWA1128ZACEeVh32jQe+93krk57ZYFfFU69nKUZqSc/xEpIHMCNxNZd
-   DJNHblnE9BH1qIBHgf6wCu56dDDcDJHY6kBr28S6L8F/5e6k+92GKHEPV
-   Q==;
-X-CSE-ConnectionGUID: pPiLzcPvR5utpo03IHXYUw==
-X-CSE-MsgGUID: GUZX1rQ9QyGogA148gGLVw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11832"; a="83229242"
-X-IronPort-AV: E=Sophos;i="6.24,232,1774335600"; 
-   d="scan'208";a="83229242"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2026 10:33:06 -0700
-X-CSE-ConnectionGUID: j4AWA8VXQjajdGIeFcHQbg==
-X-CSE-MsgGUID: IgwRqUTTSoyHRgKuk7x4Ew==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,232,1774335600"; 
-   d="scan'208";a="255622735"
-Received: from kniemiec-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.207])
-  by ORVIESA003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2026 10:33:03 -0700
-Date: Mon, 29 Jun 2026 20:33:00 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Peter Shier <pshier@google.com>
-Cc: Danilo Krummrich <dakr@kernel.org>, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>, stable@vger.kernel.org
-Subject: Re: [PATCH v1 1/1] device property: Allow secondary lookup in
- fwnode_get_next_child_node()
-Message-ID: <akKsTJ83RDKyCJ_c@ashevche-desk.local>
-References: <20260210135822.47335-1-andriy.shevchenko@linux.intel.com>
- <DGLVIO9YF9PK.1WM118M9OSS0N@kernel.org>
- <CACwOFJSz63A9d=EZrapJs=zKeSzWVogtz8F=9SDwVfb5i7vviw@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KjaI50+g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 620E31F000E9;
+	Mon, 29 Jun 2026 17:36:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782754601;
+	bh=Ck52aVERa/dSK9EW2phIhpiajUjsHvNg/KF8jAj4tKg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=KjaI50+gv3cmFnwRjqe6vTKfy49cDAY23fDmMF3N9T/0Io5q/qT0Q0F2n+Gv1EWzk
+	 GOIm5WnE+sogMZ6SOs6TV9DkwIpebLa+2JgRbXc4BqMd1ieftFthZcvUZEdkoAbIyF
+	 iCKEbj2tJIVRZgPqaF1Axib5kH6LONGp5AdMT8RovzBryMJSQXwma2rQytxsxJ7/XT
+	 +zns84KvzucCrgsGo1h6+jn6PWZTU3nUUnizHk6V5hX891lQRZB3UPhPm9K34CAWai
+	 gixob5Cg7h5dd44cQ98s+DsEdSITlckacEJqhfYJShwirdeuiz4hAjbV9CANlQ+E6b
+	 2g92MUpvRF56g==
+Date: Mon, 29 Jun 2026 10:36:40 -0700
+From: Oliver Upton <oupton@kernel.org>
+To: Leonardo Bras <leo.bras@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>, Marc Zyngier <maz@kernel.org>,
+	Joey Gouly <joey.gouly@arm.com>,
+	Steffen Eiden <seiden@linux.ibm.com>,
+	Suzuki K Poulose <suzuki.poulose@arm.com>,
+	Zenghui Yu <yuzenghui@huawei.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>, Saket Dumbre <saket.dumbre@intel.com>,
+	Paolo Bonzini <pbonzini@redhat.com>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Chengwen Feng <fengchengwen@huawei.com>,
+	Kees Cook <kees@kernel.org>,
+	=?utf-8?Q?Miko=C5=82aj?= Lenczewski <miko.lenczewski@arm.com>,
+	James Morse <james.morse@arm.com>, Zeng Heng <zengheng4@huawei.com>,
+	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
+	Thomas Huth <thuth@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+	Yeoreum Yun <yeoreum.yun@arm.com>, Mark Brown <broonie@kernel.org>,
+	Kevin Brodsky <kevin.brodsky@arm.com>,
+	James Clark <james.clark@linaro.org>, Fuad Tabba <tabba@google.com>,
+	Raghavendra Rao Ananta <rananta@google.com>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Sascha Bischoff <Sascha.Bischoff@arm.com>,
+	Anshuman Khandual <anshuman.khandual@arm.com>,
+	Tian Zheng <zhengtian10@huawei.com>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	kvmarm@lists.linux.dev, linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev, kvm@vger.kernel.org
+Subject: Re: [PATCH v2 06/13] KVM: arm64: dirty_bit: Add base FEAT_HACDBS
+ cleaning routine
+Message-ID: <akKtKH8O5hngLenm@kernel.org>
+References: <20260629111820.1873540-1-leo.bras@arm.com>
+ <20260629111820.1873540-7-leo.bras@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -66,29 +69,136 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CACwOFJSz63A9d=EZrapJs=zKeSzWVogtz8F=9SDwVfb5i7vviw@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+In-Reply-To: <20260629111820.1873540-7-leo.bras@arm.com>
 
-On Mon, May 18, 2026 at 06:16:05PM -0700, Peter Shier wrote:
-> On Tue Feb 10, 2026 at 2:58 PM CET, Andy Shevchenko wrote:
-> > When device_get_child_node_count() got split to the fwnode and device
-> > respective APIs, the fwnode didn't inherit the ability to traverse over
-> > the secondary fwnode. Hence any user, that switches from device to fwnode
-> > API misses this feature. In particular, this was revealed by the commit
-> > 1490cbb9dbfd ("device property: Split fwnode_get_child_node_count()")
-> > that effectively broke the GPIO enumeration on Intel Galileo boards.
-> > Fix this by moving the secondary lookup from device to fwnode API.
+On Mon, Jun 29, 2026 at 12:17:54PM +0100, Leonardo Bras wrote:
+> Introduce the basic cleaning routine that is going to be used for both
+> dirty-bitmap and dirty-ring routines.
 > 
-> I am not familiar with this code at all but from a sashiko AI review I
-> found the following comments.
-> Does this need to be addressed?
+> It sets the required registers with the input buffer, and wait for
+> HACDBSIRQ to happen, which means either the task is done, or there was some
+> error during processing.
+> 
+> It is ran with preemption disabled, as a task being scheduled in could
+> change the translation registers used by HACDBS and end up corrupting the
+> current dirty-bit tracking and the sched-in task's S2 pagetables.
+> 
+> Signed-off-by: Leonardo Bras <leo.bras@arm.com>
+> ---
+>  arch/arm64/kvm/dirty_bit.c | 81 ++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 81 insertions(+)
+> 
+> diff --git a/arch/arm64/kvm/dirty_bit.c b/arch/arm64/kvm/dirty_bit.c
+> index 789da8712b1b..e4283828b780 100644
+> --- a/arch/arm64/kvm/dirty_bit.c
+> +++ b/arch/arm64/kvm/dirty_bit.c
+> @@ -1,36 +1,117 @@
+>  // SPDX-License-Identifier: GPL-2.0-only
+>  /*
+>   * Copyright (C) 2026 ARM Ltd.
+>   * Author: Leonardo Bras <leo.bras@arm.com>
+>   */
+>  
+>  #include <asm/kvm_dirty_bit.h>
+> +#include <asm/kvm_mmu.h>
+>  #include <linux/kconfig.h>
+>  #include <linux/acpi.h>
+>  
+>  DEFINE_PER_CPU(struct hacdbs, hacdbs_pcp) = {
+>  	.status = HACDBS_OFF,
+>  	.size = 0,
+>  };
+>  
+>  /* HDBSS entry field definitions */
+>  #define HDBSS_ENTRY_VALID BIT(0)
+>  #define HDBSS_ENTRY_TTWL_SHIFT (1)
+>  #define HDBSS_ENTRY_TTWL_MASK (GENMASK(3, 1))
+>  #define HDBSS_ENTRY_TTWL(x) \
+>  	(((x) << HDBSS_ENTRY_TTWL_SHIFT) & HDBSS_ENTRY_TTWL_MASK)
+>  #define HDBSS_ENTRY_TTWL_RESV HDBSS_ENTRY_TTWL(-4)
+>  #define HDBSS_ENTRY_IPA GENMASK_ULL(55, 12)
+>  
+>  static __ro_after_init int hacdbsirq = -1;
+>  
+> +static void hacdbs_start(u64 *hw_entries, int size)
+> +{
+> +	u64 br;
+> +	/* Each entry is 8 bytes */
+> +	int size_b = size * sizeof(hw_entries[0]);
+> +	int size_p2 = max(roundup_pow_of_two(size_b), PAGE_SIZE);
+> +
+> +	/* If not using the full size of the array, put a stop entry at the end */
+> +	if (size_b < size_p2)
+> +		hw_entries[size] = HDBSS_ENTRY_VALID | HDBSS_ENTRY_TTWL_RESV;
+> +
+> +	sysreg_clear_set_s(SYS_HACDBSCONS_EL2,
+> +			   HACDBSCONS_EL2_ERR_REASON | HACDBSCONS_EL2_INDEX, 0);
+> +
+> +	br = (virt_to_phys(hw_entries) & HACDBSBR_EL2_BADDR_MASK) |
+> +	     FIELD_PREP(HACDBSBR_EL2_SZ, ilog2(size_p2) - 12) |
+> +	     FIELD_PREP(HACDBSBR_EL2_EN, 1);
+> +
+> +	this_cpu_write(hacdbs_pcp.status, HACDBS_RUNNING);
+> +	this_cpu_write(hacdbs_pcp.size, size);
+> +	write_sysreg_s(br, SYS_HACDBSBR_EL2);
+> +	isb();
+> +}
+> +
+> +static int hacdbs_stop(void)
+> +{
+> +	write_sysreg_s(0, SYS_HACDBSBR_EL2);
+> +	isb();
+> +
+> +	if (this_cpu_read(hacdbs_pcp.status) == HACDBS_ERROR) {
+> +		/* In case of error, HACDBSCONS_EL2.INDEX should point the faulty entry */
+> +		u64 cons = read_sysreg_s(SYS_HACDBSCONS_EL2);
+> +		int idx = FIELD_GET(HACDBSCONS_EL2_INDEX, cons);
+> +
+> +		this_cpu_write(hacdbs_pcp.status, HACDBS_IDLE);
+> +
+> +		return idx;
+> +	}
+> +
+> +	return this_cpu_read(hacdbs_pcp.size);
+> +}
+> +
+> +/*
+> + * Clears dirty-bits for an array of pages (hw_entries) using HACDBS
+> + * Returns the number of items cleaned from the array. If returns value < size,
+> + *	there was an error in the processing.
+> + */
+> +static int dirty_bit_clear(struct kvm *kvm, u64 *hw_entries, int size)
+> +{
+> +	u64 hcr_el2;
+> +	int ret;
+> +
+> +	preempt_disable();
+> +
+> +	hcr_el2 = read_sysreg(HCR_EL2);
+> +	write_sysreg(hcr_el2 | HCR_EL2_VM, HCR_EL2);
 
-Isn't this series about:
-https://lore.kernel.org/r/20260611203537.1786399-1-andriy.shevchenko@linux.intel.com
+sysreg_clear_set_hcr(). I'm pretty sure all the speculative AT errata
+depend on HCR_EL2.VM being set _after_ the stage-2 MMU has been loaded.
 
--- 
-With Best Regards,
-Andy Shevchenko
+> +	__load_stage2(&kvm->arch.mmu);
 
+Pretty sure you need an ISB here to ensure loading the MMU is ordered
+with enabling HACDBS.
 
+> +	hacdbs_start(hw_entries, size);
+> +
+> +	do {
+> +		wfi();
+> +	} while (this_cpu_read(hacdbs_pcp.status) == HACDBS_RUNNING);
+
+This is exactly why I said you should just poll hardware instead. It is
+entirely possible that the IRQ arrives before you WFI.
+
+> +	ret = hacdbs_stop();
+> +
+> +	write_sysreg(hcr_el2, HCR_EL2);
+
+write_sysreg_hcr()
+
+Thanks,
+Oliver
