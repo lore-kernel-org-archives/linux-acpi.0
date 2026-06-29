@@ -1,73 +1,130 @@
-Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 155CC429825;
-	Mon, 29 Jun 2026 16:02:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2DBD276049;
+	Mon, 29 Jun 2026 17:22:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782748961; cv=none; b=bGuX7ON8vK/xEAGtmIoa36pE2+9iOujI1H5Gb/nthBX5ld+W1ofkz9cKs0vZ71kAKBe1heY1CrtgLdwKRjPDxFLxhI+1niF+92cHSvI+4n4jlRJgx9WNDL2asafVASiQ0xY7Jyu8uPeWKVK2Shn8rbW58sDv2UZY1k027WwPedg=
+	t=1782753735; cv=none; b=HlC28yNYkJAiuHA6//WOC6LmBleBXhcpdaurEkW5SitM2vHqQwc4ZVxDRPZf55Ts6rnrxEjwl129cuRLSMatatH7iBi+P6l8ckHSq4nFFOIbrFGJ8zafjOSOrUfaWHQPRufUDHk2pdHAVUDeDXybwEDD92ZJ0P5iW1e8OhPzxGw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782748961; c=relaxed/simple;
-	bh=CmkyM0gKnkXc7iOZ4KWexJ+DOScGYYrexahA8IDf0Eo=;
+	s=arc-20240116; t=1782753735; c=relaxed/simple;
+	bh=M0DeJ2sFGocMw0PyGSHvELWdraexiP68myqBLJQNHFM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=r0ovo2lacbHeLpXibrktlEFUyyDKft6/rAa8ZpbM0BuYvBx3J3qfhYLzfGnBkGVS674awKKWuNXBDk1GIR7mpb8I5EUNryspj+G597CPEWGn6Gn3W4P1t/4byTt4t2qcCG4K/NP8dqbFlEuUvTuH+oP+x+bqDb3CyqITzlRI1Qs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=emMkk9rT; arc=none smtp.client-ip=82.195.75.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debian.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=m16Th1tTagZCDQpNLCtohoDhbTlbgLeRFLajAKsnmJM+K3FvpPctcLkgFIimFb1ceA2msOPQ3RkesWeQU5l9U4/Q38/8Q9SJavQEzwXtIOA2SlZzhwJCGTU7IHTgLZ3jgLPT8wr2RJ7gR/eOFoSmQ8FLTPYi1uoMJbV68hswb0E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Gbqz5hrO; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="emMkk9rT"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
-	s=smtpauto.stravinsky; h=X-Debian-User:In-Reply-To:Content-Transfer-Encoding:
-	Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:
-	Reply-To:Content-ID:Content-Description;
-	bh=CmkyM0gKnkXc7iOZ4KWexJ+DOScGYYrexahA8IDf0Eo=; b=emMkk9rTbhnNhghgE55MfwVz3a
-	r0n4XukSrz5gDKUzziYlr1RfQA2R2dAn7mnImS/buUGFiUCN4qn4QfbxvGrVO+o3jP2thPY66Eb6C
-	fvINpG7/9AURgL5pREtz09JyNaEEG+8roTTsviLeilkdUsiSrOxsNwLX6rrR+zwdoP5Wlw+zJ5Lwc
-	WcUte29QZmowNvkZ0ZS0LyY1bRmeSH/agZmXCqDm+ff9UyozEamDw3Zq+bkTi2meMF+CEJli5ZAQ+
-	+hYQi2OnG7ynaoJoLLawpinKqgXUhpSTo2ADampGAKV97aHrEfNe9qBg/F6rLoJgAVo6/J4uVz8/F
-	DLO7uaQA==;
-Received: from authenticated-user
-	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-	(Exim 4.96)
-	(envelope-from <leitao@debian.org>)
-	id 1weER2-006P44-1N;
-	Mon, 29 Jun 2026 16:02:12 +0000
-Date: Mon, 29 Jun 2026 09:02:06 -0700
-From: Breno Leitao <leitao@debian.org>
-To: "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, 
-	Hanjun Guo <guohanjun@huawei.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, 
-	Shuai Xue <xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>, 
-	Andrew Morton <akpm@linux-foundation.org>, Baoquan He <baoquan.he@linux.dev>, 
-	Mike Rapoport <rppt@kernel.org>, Pasha Tatashin <pasha.tatashin@soleen.com>, 
-	Pratyush Yadav <pratyush@kernel.org>, Dave Young <ruirui.yang@linux.dev>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	riel@surriel.com, caggio@meta.com, kexec@lists.infradead.org, kernel-team@meta.com
-Subject: Re: [PATCH 0/2] vmcoreinfo: GHES: track fatal hardware errors
-Message-ID: <akKWJQNiX5MGJLl6@gmail.com>
-References: <20260617-hwerr-v1-0-ff131cd6203c@debian.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Gbqz5hrO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 089DE1F000E9;
+	Mon, 29 Jun 2026 17:22:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782753734;
+	bh=MJcyRBCuDpTSk1/d5SQB/+Lx7UTikZcZTrFMFGtoOvg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Gbqz5hrO7fBgXQ2j8893haOH/rdMwMKj41c+b2V2Z0Uo3rrpysIT0kZCrTydl+GhZ
+	 145+yOuR91ka9e4QPcbrDM+idcikLa659R1gY+j1y1uS1dDmSNW8dXSuWr1B6lJkLL
+	 kAVrQppzIlhrGfDSiz2YNzptozjTEwWYYr7/tGdGPBs/fxoBW7Z+Ez2QfbLbdgFA9J
+	 ZykRMu6xyVfadkTOBtnK2AY5uTFemwfRyG7jHE0ykI9P7deLIn4g7Y8h2uLHtledv/
+	 lYvsaYxpKEGUe1vN5bOzExuP7k+IByZyCirBWzi7Zgz/NYHbLJhuUP/9cojUeTzoae
+	 wQB/XIUGPvRiQ==
+Date: Mon, 29 Jun 2026 10:22:12 -0700
+From: Oliver Upton <oupton@kernel.org>
+To: Leonardo Bras <leo.bras@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>, Marc Zyngier <maz@kernel.org>,
+	Joey Gouly <joey.gouly@arm.com>,
+	Steffen Eiden <seiden@linux.ibm.com>,
+	Suzuki K Poulose <suzuki.poulose@arm.com>,
+	Zenghui Yu <yuzenghui@huawei.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>, Saket Dumbre <saket.dumbre@intel.com>,
+	Paolo Bonzini <pbonzini@redhat.com>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Chengwen Feng <fengchengwen@huawei.com>,
+	Kees Cook <kees@kernel.org>,
+	=?utf-8?Q?Miko=C5=82aj?= Lenczewski <miko.lenczewski@arm.com>,
+	James Morse <james.morse@arm.com>, Zeng Heng <zengheng4@huawei.com>,
+	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
+	Thomas Huth <thuth@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+	Yeoreum Yun <yeoreum.yun@arm.com>, Mark Brown <broonie@kernel.org>,
+	Kevin Brodsky <kevin.brodsky@arm.com>,
+	James Clark <james.clark@linaro.org>, Fuad Tabba <tabba@google.com>,
+	Raghavendra Rao Ananta <rananta@google.com>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Sascha Bischoff <Sascha.Bischoff@arm.com>,
+	Anshuman Khandual <anshuman.khandual@arm.com>,
+	Tian Zheng <zhengtian10@huawei.com>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	kvmarm@lists.linux.dev, linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev, kvm@vger.kernel.org
+Subject: Re: [PATCH v2 05/13] KVM: arm64: Detect (via ACPI) and initialize
+ HACDBSIRQ
+Message-ID: <akKpxDulRN7zDrgM@kernel.org>
+References: <20260629111820.1873540-1-leo.bras@arm.com>
+ <20260629111820.1873540-6-leo.bras@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260617-hwerr-v1-0-ff131cd6203c@debian.org>
-X-Debian-User: leitao
+In-Reply-To: <20260629111820.1873540-6-leo.bras@arm.com>
 
-On Wed, Jun 17, 2026 at 06:32:46AM -0700, Breno Leitao wrote:
-> Hardware errors reported through APEI/GHES are recorded in the kernel's
-> hwerr_data array so that crash tooling can tell from the vmcore whether a
-> hardware error preceded a crash.
+On Mon, Jun 29, 2026 at 12:17:53PM +0100, Leonardo Bras wrote:
+> Find via ACPI [1] the Id for HACDBSIRQ, initialize it as a per-cpu IRQ
+> and make sure any cpu able to run virtualization has it active.
+> 
+> Introduce a per-cpu structure used by the HACDBSIRQ handler to keep track
+> of entries size and the status of HACDBS. Size is used to detect end of
+> processing in case the number of entries being processed is different of
+> the supported entries size.
+> 
+> Status may look easily replaceable by checking HACDBS registers now, but
+> will make the OFF/IDLE detection easier in next patches.
+> 
+> Signed-off-by: Leonardo Bras <leo.bras@arm.com>
+> 
+> [1] https://github.com/tianocore/edk2/issues/12409
 
-This Hardware error tracking "thing" is currently in an awkward
-location—it doesn't belong in RAS and has minimal connection to vmcore
-info.
+Reference the ACPI specification instead please. Any link you want to
+include in a changelog should use the Link: footer, the linkage to the
+inline citation will be obvious.
 
-Following Baoquan's earlier suggestion, I'll refactor this as a standalone
-driver, which should make the code organization clearer and more maintainable.
+If we need to initialize the IRQ I'd really like to see device tree
+bindings for HACDBSIRQ as well. Pretty much any system us plebs can get
+our hands on is gonna be DT anyway.
 
-https://lore.kernel.org/all/aYvi4Y_HNqk_u1-v@fedora/
+> +static irqreturn_t hacdbsirq_handler(int irq, void *pcpu)
+> +{
+> +	u64 cons = read_sysreg_s(SYS_HACDBSCONS_EL2);
+> +	unsigned long err = FIELD_GET(HACDBSCONS_EL2_ERR_REASON, cons);
+> +
+> +	switch (err) {
+> +	case HACDBSCONS_EL2_ERR_REASON_NOF:
+> +		this_cpu_write(hacdbs_pcp.status, HACDBS_IDLE);
+> +		break;
+> +	case HACDBSCONS_EL2_ERR_REASON_IPAHACF:
+> +		/* When size not a power of two >= 4k, exit with reserved TTLW */
+> +		int index = FIELD_GET(HACDBSCONS_EL2_INDEX, cons);
+> +
+> +		if (index >= this_cpu_read(hacdbs_pcp.size)) {
+> +			this_cpu_write(hacdbs_pcp.status, HACDBS_IDLE);
+> +			break;
+> +		}
+> +		fallthrough;
+> +	case HACDBSCONS_EL2_ERR_REASON_STRUCTF:
+> +	case HACDBSCONS_EL2_ERR_REASON_IPAF:
+> +		this_cpu_write(hacdbs_pcp.status, HACDBS_ERROR);
+> +		break;
+> +	}
+> +
+> +	return IRQ_HANDLED;
+> +}
+
+I have a pretty extreme distaste for creating a state machine between
+the callsite and the IRQ handler. The callsite should poll HACDBS for
+completion. The thread has nothing better to do anyway.
+
+Thanks,
+Oliver
