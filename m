@@ -1,66 +1,60 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3461A35E95C;
-	Mon, 29 Jun 2026 17:36:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52773315D23;
+	Mon, 29 Jun 2026 17:46:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782754603; cv=none; b=mFakMg5ABTi5q3gblVehDph1Q+0WT3zS0esptkOl9IYdKP0JOD6/VOQkQeSdD9wKELGKK+rygEM1hcTfD05/0Il9g5WTmw4wotJDII1zhg9OnaexjP/3UiPSKiMj/3BjK59gwV3O7/ayGKCbys45KtcVkUzY8b+p1ErrPwjAE/k=
+	t=1782755169; cv=none; b=JUEK/XXkPmNcb1lnpvC2mbfDEBb85NW31i8ChtoHItji0xVW1KRYOyHcgSpYNLSwWMJ+OoV8BoufaJT+yF7XpqpV3lDu2l5aTo70bwRHB5lLi/b4wyOVH0e6PeEcuMbR4JIz413TSMxVM5WlgxiNHWlpwOcBpsPB79MejdQlBm0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782754603; c=relaxed/simple;
-	bh=uULf8Fw4shY92kL1nYHScaoVpSRpERDCQQhHxA+XxtU=;
+	s=arc-20240116; t=1782755169; c=relaxed/simple;
+	bh=+fVep1oaw10FmngY3yJgEadhXu7Kjk9Ol4Nu80XY4rY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=KcfCJksoGvr+yaM/Tu8eQTzWTXUVyM2RKAFgHs8QvBDWIou61iYPb5pKvuvUQsr3r2jnoEqiRT38uPJ8PzlEPBAZbCdVVwb57FUTCZiu4Ejme01QyKKvqJO6JU5fZAmZkZdcczqJLKwdLQz798bxs5ShiqFNwrb3IxHmU7qbVFc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KjaI50+g; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=QIcB0JWP+99dYZV/4yaBnNBQ9n4jA4KhWlUkd7iolcNODrbpD9VvfGndKiKKvVuTwPO4loPvWjEgGyeMtPOAM3RP8PwrAIeJCewMxNhkqWXEzzJ42iHNQzn38zsYzyGCazxI/cBJYBNAL+eKXo3NabTy7T+VFmCoeioC60RyAUw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=E6ljByvJ; arc=none smtp.client-ip=198.175.65.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KjaI50+g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 620E31F000E9;
-	Mon, 29 Jun 2026 17:36:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782754601;
-	bh=Ck52aVERa/dSK9EW2phIhpiajUjsHvNg/KF8jAj4tKg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=KjaI50+gv3cmFnwRjqe6vTKfy49cDAY23fDmMF3N9T/0Io5q/qT0Q0F2n+Gv1EWzk
-	 GOIm5WnE+sogMZ6SOs6TV9DkwIpebLa+2JgRbXc4BqMd1ieftFthZcvUZEdkoAbIyF
-	 iCKEbj2tJIVRZgPqaF1Axib5kH6LONGp5AdMT8RovzBryMJSQXwma2rQytxsxJ7/XT
-	 +zns84KvzucCrgsGo1h6+jn6PWZTU3nUUnizHk6V5hX891lQRZB3UPhPm9K34CAWai
-	 gixob5Cg7h5dd44cQ98s+DsEdSITlckacEJqhfYJShwirdeuiz4hAjbV9CANlQ+E6b
-	 2g92MUpvRF56g==
-Date: Mon, 29 Jun 2026 10:36:40 -0700
-From: Oliver Upton <oupton@kernel.org>
-To: Leonardo Bras <leo.bras@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>, Marc Zyngier <maz@kernel.org>,
-	Joey Gouly <joey.gouly@arm.com>,
-	Steffen Eiden <seiden@linux.ibm.com>,
-	Suzuki K Poulose <suzuki.poulose@arm.com>,
-	Zenghui Yu <yuzenghui@huawei.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Saket Dumbre <saket.dumbre@intel.com>,
-	Paolo Bonzini <pbonzini@redhat.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Chengwen Feng <fengchengwen@huawei.com>,
-	Kees Cook <kees@kernel.org>,
-	=?utf-8?Q?Miko=C5=82aj?= Lenczewski <miko.lenczewski@arm.com>,
-	James Morse <james.morse@arm.com>, Zeng Heng <zengheng4@huawei.com>,
-	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
-	Thomas Huth <thuth@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
-	Yeoreum Yun <yeoreum.yun@arm.com>, Mark Brown <broonie@kernel.org>,
-	Kevin Brodsky <kevin.brodsky@arm.com>,
-	James Clark <james.clark@linaro.org>, Fuad Tabba <tabba@google.com>,
-	Raghavendra Rao Ananta <rananta@google.com>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Sascha Bischoff <Sascha.Bischoff@arm.com>,
-	Anshuman Khandual <anshuman.khandual@arm.com>,
-	Tian Zheng <zhengtian10@huawei.com>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	kvmarm@lists.linux.dev, linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev, kvm@vger.kernel.org
-Subject: Re: [PATCH v2 06/13] KVM: arm64: dirty_bit: Add base FEAT_HACDBS
- cleaning routine
-Message-ID: <akKtKH8O5hngLenm@kernel.org>
-References: <20260629111820.1873540-1-leo.bras@arm.com>
- <20260629111820.1873540-7-leo.bras@arm.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="E6ljByvJ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1782755169; x=1814291169;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=+fVep1oaw10FmngY3yJgEadhXu7Kjk9Ol4Nu80XY4rY=;
+  b=E6ljByvJvSpo2et13pi03TVc/7K2hhowkzcdr4Khbg36718VhacZE3Hk
+   j0CRqcx5q+buTyZ+DOct0Od2WVQWfzu/M35RjTrt14nq6bZj/1FD8h+G1
+   tf8bpqTlKMse19sc07Q5O4yhnKr8ZQDV8Mv0cg9G5+glomHWzWynhckuO
+   BM3lBB4+SQ27r0fhtJvMlCUCapbq0aN8ZxANHg2oGLOfmwxW5LLYzAapl
+   /JmQ1FSkdHV6Ei72F1zhtkvGM9eQXiadaNfz6dwT4/vwlsUEkO0kfbWHP
+   V54olv6XS8znpHmJO7k5+l9/hoUfBPjwN6lQ9eORZZgIhwOxYZmfwsS9Y
+   w==;
+X-CSE-ConnectionGUID: X90IEqDVQHShWnlAU1oiqg==
+X-CSE-MsgGUID: BKj4b1gCSO6KUFzdHmRGxw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11832"; a="83231498"
+X-IronPort-AV: E=Sophos;i="6.24,232,1774335600"; 
+   d="scan'208";a="83231498"
+Received: from orviesa003.jf.intel.com ([10.64.159.143])
+  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2026 10:46:08 -0700
+X-CSE-ConnectionGUID: OyraD0aAT0Gu1j9fYo9gbA==
+X-CSE-MsgGUID: 0T6lZFEkTVmSDrmFqaaaoA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,232,1774335600"; 
+   d="scan'208";a="255626633"
+Received: from kniemiec-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.207])
+  by ORVIESA003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2026 10:46:05 -0700
+Date: Mon, 29 Jun 2026 20:46:02 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: mike.isely@cobaltdigital.com, Bartosz Golaszewski <brgl@kernel.org>
+Cc: Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Mike Isely <isely@pobox.com>, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] software node: Only the managing device can
+ unreference managed software node
+Message-ID: <akKvWmZ2KqOs6da6@ashevche-desk.local>
+References: <20260303211348.2414465-1-mike.isely@cobaltdigital.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -69,136 +63,147 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260629111820.1873540-7-leo.bras@arm.com>
+In-Reply-To: <20260303211348.2414465-1-mike.isely@cobaltdigital.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Mon, Jun 29, 2026 at 12:17:54PM +0100, Leonardo Bras wrote:
-> Introduce the basic cleaning routine that is going to be used for both
-> dirty-bitmap and dirty-ring routines.
+On Tue, Mar 03, 2026 at 03:13:47PM -0600, mike.isely@cobaltdigital.com wrote:
+
++Cc: Bart (I believe you will be interested in this case).
+
+> Explanation here is lengthy because the problem is subtle.
 > 
-> It sets the required registers with the input buffer, and wait for
-> HACDBSIRQ to happen, which means either the task is done, or there was some
-> error during processing.
+> A scenario exists where device_create_managed_software_node() is used
+> to create an swnode instance that will be implicitly shared to a child
+> device despite best intentions not to permit such sharing (per the
+> comment in device_create_managed_software_node()).  I encountered this
+> with the sfp kernel module when it was instantiated with properties
+> via a call to platform_device_register_full() - it will create hwmon
+> child devices which get all property references.  Unfortunately with
+> just a "managed" boolean in struct swnode handling this, then
+> kobject_put() gets called for the managed aspect when the child device
+> goes away instead of the parent.  This leads to premature freeing of
+> the swnode structure, followed by use-after-free problems, heap
+> corruption, and generally chaos / crashes / misbehavior in the kernel.
 > 
-> It is ran with preemption disabled, as a task being scheduled in could
-> change the translation registers used by HACDBS and end up corrupting the
-> current dirty-bit tracking and the sched-in task's S2 pagetables.
+> This commit changes that boolean into a pointer to the actual managing
+> struct device, which is then checked against the struct device
+> instance that is actually going away (via the usual call back into
+> software_node_notify_remove()).  Thus the child device removal is
+> ignored as it should, and we only do the kobject_put() when the actual
+> managing struct device instance goes away.  We effectively carry a
+> little bit more information now so that we can be sure to clean up
+> only when the correct struct device instance is actually going away.
 > 
-> Signed-off-by: Leonardo Bras <leo.bras@arm.com>
+> Note that while we are now keeping a pointer to a struct device here,
+> this is safe to do because the pointer itself only stays in use while
+> the pointed-to device remains valid.  (So no need to be concerned
+> about additional reference counting.)
+> 
+> Here's a succinct, generic sequence that spells out the steps which
+> lead to trouble:
+> 
+>   1. Somebody creates a struct device instance.
+> 
+>   2. Somebody calls device_create_managed_software_node() associating
+>   it with that struct device instance.  This causes two kobject
+>   references to be counted against the swnode instance (one for the
+>   struct device and one because the managed flag was set).  refcount=2
+> 
+>   3. Some time later, a child struct device is created and the
+>   properties of the parent are shared with the child.  This causes
+>   another kobject reference to be counted against the swnode instance.
+>   refcount=3
+> 
+>   4. Some time later, that child struct device instance goes
+>   away (perhaps due to a hotplug removal).  During the tear-down,
+>   software_node_notify_remove() notices that the managed field of the
+>   swnode instance is set, so TWO kobject references are removed
+>   instead of the single reference created by the previous step.
+>   refcount=1
+> 
+>   5. Repeat step 3.  refcount=2
+> 
+>   6. Repeat step 4.  refcount=0
+> 
+>   7. Now the kobject reference count inside the swnode instance has
+>   dropped to zero and so the swnode instance is released.  Notice that
+>   the parent device is still holding a physical reference, now
+>   pointing into freed memory.  Chaos likely follows.  If lucky, a NULL
+>   pointer kernel oops is the result.
+> 
+> The patch fixes this by causing step 4 to only do the second reference
+> decrement if the device being torn down is the same one that
+> established the managing relationship in the first place.  Then
+> everything stays balanced.
+> 
+> I confirmed this exact sequence of behavior in the context of the sfp
+> kernel module with appropriate printk debug trace added, when
+> instantiated with platform_device_register_full() with properties
+> provided.  While that's may be hard for to reproduce without sfp
+> hardware, anything else which performs those steps should produce
+> similar results.
+> 
+> Note that because platform_device_register_full() will implicitly
+> employ a managed swnode instance any time it is passed properties in
+> its pdevinfo argument, then by implication anyone calling
+> platform_device_register_full() in that manner - which happens in
+> multiple other places in the kernel - is at risk for the same issue.
+> 
+> Signed-off-by: Mike Isely <mike.isely@cobaltdigital.com>
+> Signed-off-by: Mike Isely <isely@pobox.com>
 > ---
->  arch/arm64/kvm/dirty_bit.c | 81 ++++++++++++++++++++++++++++++++++++++
->  1 file changed, 81 insertions(+)
+>  drivers/base/swnode.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 > 
-> diff --git a/arch/arm64/kvm/dirty_bit.c b/arch/arm64/kvm/dirty_bit.c
-> index 789da8712b1b..e4283828b780 100644
-> --- a/arch/arm64/kvm/dirty_bit.c
-> +++ b/arch/arm64/kvm/dirty_bit.c
-> @@ -1,36 +1,117 @@
->  // SPDX-License-Identifier: GPL-2.0-only
->  /*
->   * Copyright (C) 2026 ARM Ltd.
->   * Author: Leonardo Bras <leo.bras@arm.com>
->   */
+> diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+> index 53b3f0061ad12..18a903a35197c 100644
+> --- a/drivers/base/swnode.c
+> +++ b/drivers/base/swnode.c
+> @@ -36,8 +36,8 @@ struct swnode {
+>  	struct list_head children;
+>  	struct swnode *parent;
 >  
->  #include <asm/kvm_dirty_bit.h>
-> +#include <asm/kvm_mmu.h>
->  #include <linux/kconfig.h>
->  #include <linux/acpi.h>
->  
->  DEFINE_PER_CPU(struct hacdbs, hacdbs_pcp) = {
->  	.status = HACDBS_OFF,
->  	.size = 0,
+> +	struct device *managing_dev;
+>  	unsigned int allocated:1;
+> -	unsigned int managed:1;
 >  };
 >  
->  /* HDBSS entry field definitions */
->  #define HDBSS_ENTRY_VALID BIT(0)
->  #define HDBSS_ENTRY_TTWL_SHIFT (1)
->  #define HDBSS_ENTRY_TTWL_MASK (GENMASK(3, 1))
->  #define HDBSS_ENTRY_TTWL(x) \
->  	(((x) << HDBSS_ENTRY_TTWL_SHIFT) & HDBSS_ENTRY_TTWL_MASK)
->  #define HDBSS_ENTRY_TTWL_RESV HDBSS_ENTRY_TTWL(-4)
->  #define HDBSS_ENTRY_IPA GENMASK_ULL(55, 12)
+>  static DEFINE_IDA(swnode_root_ids);
+> @@ -1060,7 +1060,7 @@ int device_create_managed_software_node(struct device *dev,
+>  	if (IS_ERR(fwnode))
+>  		return PTR_ERR(fwnode);
 >  
->  static __ro_after_init int hacdbsirq = -1;
+> -	to_swnode(fwnode)->managed = true;
+> +	to_swnode(fwnode)->managing_dev = dev;
+>  	set_secondary_fwnode(dev, fwnode);
 >  
-> +static void hacdbs_start(u64 *hw_entries, int size)
-> +{
-> +	u64 br;
-> +	/* Each entry is 8 bytes */
-> +	int size_b = size * sizeof(hw_entries[0]);
-> +	int size_p2 = max(roundup_pow_of_two(size_b), PAGE_SIZE);
-> +
-> +	/* If not using the full size of the array, put a stop entry at the end */
-> +	if (size_b < size_p2)
-> +		hw_entries[size] = HDBSS_ENTRY_VALID | HDBSS_ENTRY_TTWL_RESV;
-> +
-> +	sysreg_clear_set_s(SYS_HACDBSCONS_EL2,
-> +			   HACDBSCONS_EL2_ERR_REASON | HACDBSCONS_EL2_INDEX, 0);
-> +
-> +	br = (virt_to_phys(hw_entries) & HACDBSBR_EL2_BADDR_MASK) |
-> +	     FIELD_PREP(HACDBSBR_EL2_SZ, ilog2(size_p2) - 12) |
-> +	     FIELD_PREP(HACDBSBR_EL2_EN, 1);
-> +
-> +	this_cpu_write(hacdbs_pcp.status, HACDBS_RUNNING);
-> +	this_cpu_write(hacdbs_pcp.size, size);
-> +	write_sysreg_s(br, SYS_HACDBSBR_EL2);
-> +	isb();
-> +}
-> +
-> +static int hacdbs_stop(void)
-> +{
-> +	write_sysreg_s(0, SYS_HACDBSBR_EL2);
-> +	isb();
-> +
-> +	if (this_cpu_read(hacdbs_pcp.status) == HACDBS_ERROR) {
-> +		/* In case of error, HACDBSCONS_EL2.INDEX should point the faulty entry */
-> +		u64 cons = read_sysreg_s(SYS_HACDBSCONS_EL2);
-> +		int idx = FIELD_GET(HACDBSCONS_EL2_INDEX, cons);
-> +
-> +		this_cpu_write(hacdbs_pcp.status, HACDBS_IDLE);
-> +
-> +		return idx;
-> +	}
-> +
-> +	return this_cpu_read(hacdbs_pcp.size);
-> +}
-> +
-> +/*
-> + * Clears dirty-bits for an array of pages (hw_entries) using HACDBS
-> + * Returns the number of items cleaned from the array. If returns value < size,
-> + *	there was an error in the processing.
-> + */
-> +static int dirty_bit_clear(struct kvm *kvm, u64 *hw_entries, int size)
-> +{
-> +	u64 hcr_el2;
-> +	int ret;
-> +
-> +	preempt_disable();
-> +
-> +	hcr_el2 = read_sysreg(HCR_EL2);
-> +	write_sysreg(hcr_el2 | HCR_EL2_VM, HCR_EL2);
+>  	if (device_is_registered(dev))
+> @@ -1104,7 +1104,7 @@ void software_node_notify_remove(struct device *dev)
+>  	sysfs_remove_link(&dev->kobj, "software_node");
+>  	kobject_put(&swnode->kobj);
+>  
+> -	if (swnode->managed) {
+> +	if (swnode->managing_dev == dev) {
+>  		set_secondary_fwnode(dev, NULL);
+>  		kobject_put(&swnode->kobj);
+>  	}
+> -- 
+> 2.47.3
+> 
+> ---
+> 
+> Correct issue in drivers/base/swnode.c that can lead to use-after-free
+> due to kobject reference counting error, which itself is due to
+> incorrect behavior with the "managed" struct swnode flag in
+> circumstances involving child struct device instances where the parent
+> struct device is managing a struct swnode.
+> 
+> Use-after-free in this case leads to likely kernel heap corruption, so
+> any manner of chaos can result, if left unaddressed.
 
-sysreg_clear_set_hcr(). I'm pretty sure all the speculative AT errata
-depend on HCR_EL2.VM being set _after_ the stage-2 MMU has been loaded.
+-- 
+With Best Regards,
+Andy Shevchenko
 
-> +	__load_stage2(&kvm->arch.mmu);
 
-Pretty sure you need an ISB here to ensure loading the MMU is ordered
-with enabling HACDBS.
-
-> +	hacdbs_start(hw_entries, size);
-> +
-> +	do {
-> +		wfi();
-> +	} while (this_cpu_read(hacdbs_pcp.status) == HACDBS_RUNNING);
-
-This is exactly why I said you should just poll hardware instead. It is
-entirely possible that the IRQ arrives before you WFI.
-
-> +	ret = hacdbs_stop();
-> +
-> +	write_sysreg(hcr_el2, HCR_EL2);
-
-write_sysreg_hcr()
-
-Thanks,
-Oliver
