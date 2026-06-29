@@ -1,239 +1,419 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5694940D585;
-	Mon, 29 Jun 2026 02:27:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F40BD2BDC13
+	for <linux-acpi@vger.kernel.org>; Mon, 29 Jun 2026 06:05:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782700067; cv=none; b=am6GM+iscwpaLIfsgeALgB5HuaNQwZ6+aMItN8NUi9M8/YBVoxEzsqCuNAxfi871ol89lewgCoAEKfPHG7s+CQ/RN05mA32i9VhtaioU/P1AW60Enw5pWqQVSYSL2C1paVL6A3zuANVHSdlEQnQzYjNTO9Ge8DzqbW/5+E0d+fg=
+	t=1782713137; cv=none; b=FsaFC/REfTQqtFavk2AHledo/9BaSIkXJQd5ExDvbz7aR23JuPRVwUXdJh+xms29v6nGM+CFXNWEoXcCSOZVUi+a14WITCjIssIrLS5+qVF6y9lJjarBhpvBxwwsL8+iTByl4dlqfJl6WXFP4XLEeFOqrlOnZYls781ZDVh38F0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782700067; c=relaxed/simple;
-	bh=MzOn116bCikcpWyGXfXSG+0J+ylTVaP0Vccky3qEfaQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=e4oAC32Ng09A4ahbb4JMHb4HJczMQRQSx4rAL5KOA/ckcjUF2SW/0lwE7fgfPTpgY0YIOubUQ15cf6R4kgfwmZIECJEUWoQ4rugEgi4yNcpz1SkiH2RsWCxSWAOKKmenVvTnHfzqDIr3sHtMjYvzYfkaOPxrInFtl/xVNO+RHHs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fpV1MKa6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782713137; c=relaxed/simple;
+	bh=DarU8t3M1Fz7v5BFTrpcbT6v8AODn3pnviXSxdolNEQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=G6ukrdVf7zsGi0WtTRoTluicoS95h8Ev5/l8uoFj6KHP0W256B/2/ZKEzfeo/utzSyUrjKIwWU2KzLOG/7BF/oSaM9AMMthcOqVClUgrSVkIVr1NQqbMjvQ8DlNN5HQOMlW0YzOCwAAbwgLAVKga/Et5mEJ3wFfCZ4CoBn7AT7I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (1024-bit key) header.d=suse.com header.i=@suse.com header.b=rQOhue7e; dkim=pass (1024-bit key) header.d=suse.com header.i=@suse.com header.b=rQOhue7e; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fpV1MKa6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B2F21F000E9;
-	Mon, 29 Jun 2026 02:27:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782700066;
-	bh=R+L59wpa0lFCCdTpCWDpJ9Lgn8eL+gBxZH1T0tyvv/A=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=fpV1MKa6HJkk05UVfXfd8GUCKgfvaNaKfk+G7+I0JfeGnCI6ianYcMtkIQLcPugXE
-	 Ck2526icMz+UyA8GTxRd+qO28JiGlVtWM6yvpT2mMfIe5Nj4TqnFI6bng8Kw9rgvmW
-	 aiZOCHGa3QnwT73MynQVaevy6tNEmOyApH3TbezKoRlVeBxhESsc+g03lAcZ5nmdzX
-	 ptQx6BgVN9jOBtovXjOj2Znoxabv1k5VJTa8TgwiWKbdQ9rmtsD7L+VeNYRhktKixI
-	 vn0Hs5Jtv/8/V725Llsvvd+xh+36CBNcmXcSl0l5xFosw6/ddDjDackl0me2N6+4H0
-	 08+UWgdXkO6ug==
-Date: Sun, 28 Jun 2026 21:27:30 -0500
-From: Bjorn Andersson <andersson@kernel.org>
-To: Hans de Goede <johannes.goede@oss.qualcomm.com>
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>, 
-	Konrad Dybcio <konradybcio@kernel.org>, Srinivas Kandagatla <srini@kernel.org>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Dmitry Baryshkov <lumag@kernel.org>, 
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, Abel Vesa <abel.vesa@oss.qualcomm.com>, 
-	linux-arm-msm@vger.kernel.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [RFC 00/12] RFC: Devicetree-ACPI hybrid mode
-Message-ID: <akHTOUvHXooq7ykT@baldur>
-References: <20260623145225.143218-1-johannes.goede@oss.qualcomm.com>
+	dkim=pass (1024-bit key) header.d=suse.com header.i=@suse.com header.b="rQOhue7e";
+	dkim=pass (1024-bit key) header.d=suse.com header.i=@suse.com header.b="rQOhue7e"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 7B3FE75D0F;
+	Mon, 29 Jun 2026 06:05:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+	t=1782713132; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=ucXwQadpGPBgriEK86cLgPUeZrADzv4dSH5gZLBm9SU=;
+	b=rQOhue7eG1RqOZRWiTw8jbCuylMHgYcRVVXmqtOaxabAsUR6H290EGbG1g90SBE8kfAqwf
+	xu2wV5hF+XiJ5Gzn226V2je0ZU54Dy6cNLbgR6f3rixfzMkKJrxVD78cfU42kZcGy4TTPt
+	MteQ3NP7j5ZUp3ss3go9PMVdq5ajvlo=
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.com header.s=susede1 header.b=rQOhue7e
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+	t=1782713132; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=ucXwQadpGPBgriEK86cLgPUeZrADzv4dSH5gZLBm9SU=;
+	b=rQOhue7eG1RqOZRWiTw8jbCuylMHgYcRVVXmqtOaxabAsUR6H290EGbG1g90SBE8kfAqwf
+	xu2wV5hF+XiJ5Gzn226V2je0ZU54Dy6cNLbgR6f3rixfzMkKJrxVD78cfU42kZcGy4TTPt
+	MteQ3NP7j5ZUp3ss3go9PMVdq5ajvlo=
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 0872E779A8;
+	Mon, 29 Jun 2026 06:05:30 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id JTiaACoLQmotEQAAD6G6ig
+	(envelope-from <jgross@suse.com>); Mon, 29 Jun 2026 06:05:30 +0000
+From: Juergen Gross <jgross@suse.com>
+To: linux-kernel@vger.kernel.org,
+	linux-pm@vger.kernel.org,
+	linux-edac@vger.kernel.org,
+	x86@kernel.org,
+	linux-acpi@vger.kernel.org,
+	kvm@vger.kernel.org,
+	linux-coco@lists.linux.dev,
+	linux-pci@vger.kernel.org,
+	virtualization@lists.linux.dev,
+	linux-ide@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	linux-fbdev@vger.kernel.org,
+	linux-crypto@vger.kernel.org,
+	linux-gpio@vger.kernel.org,
+	linux-hyperv@vger.kernel.org,
+	linux-hwmon@vger.kernel.org,
+	linux-perf-users@vger.kernel.org,
+	linux-mtd@lists.infradead.org,
+	platform-driver-x86@vger.kernel.org
+Cc: Juergen Gross <jgross@suse.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Daniel Lezcano <daniel.lezcano@kernel.org>,
+	Zhang Rui <rui.zhang@intel.com>,
+	Lukasz Luba <lukasz.luba@arm.com>,
+	Jason Baron <jbaron@akamai.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Tony Luck <tony.luck@intel.com>,
+	Yazen Ghannam <yazen.ghannam@amd.com>,
+	Len Brown <lenb@kernel.org>,
+	Pavel Machek <pavel@kernel.org>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	Sean Christopherson <seanjc@google.com>,
+	Paolo Bonzini <pbonzini@redhat.com>,
+	Kiryl Shutsemau <kas@kernel.org>,
+	Rick Edgecombe <rick.p.edgecombe@intel.com>,
+	Pu Wen <puwen@hygon.cn>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Ajay Kaher <ajay.kaher@broadcom.com>,
+	Alexey Makhalov <alexey.makhalov@broadcom.com>,
+	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>,
+	Viresh Kumar <viresh.kumar@linaro.org>,
+	Reinette Chatre <reinette.chatre@intel.com>,
+	Dave Martin <Dave.Martin@arm.com>,
+	James Morse <james.morse@arm.com>,
+	Babu Moger <babu.moger@amd.com>,
+	Tony W Wang-oc <TonyWWang-oc@zhaoxin.com>,
+	Damien Le Moal <dlemoal@kernel.org>,
+	Niklas Cassel <cassel@kernel.org>,
+	David Airlie <airlied@redhat.com>,
+	Helge Deller <deller@gmx.de>,
+	linux-geode@lists.infradead.org,
+	Olivia Mackall <olivia@selenic.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	Linus Walleij <linusw@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"K. Y. Srinivasan" <kys@microsoft.com>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>,
+	Dexuan Cui <decui@microsoft.com>,
+	Long Li <longli@microsoft.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Arnaldo Carvalho de Melo <acme@kernel.org>,
+	Namhyung Kim <namhyung@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+	Jiri Olsa <jolsa@kernel.org>,
+	Ian Rogers <irogers@google.com>,
+	Adrian Hunter <adrian.hunter@intel.com>,
+	James Clark <james.clark@linaro.org>,
+	Josh Poimboeuf <jpoimboe@kernel.org>,
+	Pawan Gupta <pawan.kumar.gupta@linux.intel.com>,
+	Vitaly Kuznetsov <vkuznets@redhat.com>,
+	Andy Lutomirski <luto@kernel.org>,
+	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+	Huang Rui <ray.huang@amd.com>,
+	Mario Limonciello <mario.limonciello@amd.com>,
+	Perry Yuan <perry.yuan@amd.com>,
+	K Prateek Nayak <kprateek.nayak@amd.com>,
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
+	Artem Bityutskiy <dedekind1@gmail.com>,
+	Miquel Raynal <miquel.raynal@bootlin.com>,
+	Richard Weinberger <richard@nod.at>,
+	Vignesh Raghavendra <vigneshr@ti.com>,
+	Ashok Raj <ashok.raj.linux@gmail.com>,
+	Hans de Goede <hansg@kernel.org>,
+	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Rajneesh Bhardwaj <irenic.rajneesh@gmail.com>,
+	David E Box <david.e.box@intel.com>,
+	xen-devel@lists.xenproject.org
+Subject: [PATCH 00/32] x86/msr: Drop 32-bit MSR interfaces
+Date: Mon, 29 Jun 2026 08:04:51 +0200
+Message-ID: <20260629060526.3638272-1-jgross@suse.com>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260623145225.143218-1-johannes.goede@oss.qualcomm.com>
+Content-Transfer-Encoding: 8bit
+X-Rspamd-Action: no action
+X-Rspamd-Queue-Id: 7B3FE75D0F
+X-Spam-Flag: NO
+X-Spam-Score: -1.51
+X-Spam-Level: 
+X-Spamd-Result: default: False [-1.51 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	SUSPICIOUS_RECIPS(1.50)[];
+	MID_CONTAINS_FROM(1.00)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_MISSING_CHARSET(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.com:s=susede1];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	DKIM_SIGNED(0.00)[suse.com:s=susede1];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	TO_DN_SOME(0.00)[];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	FREEMAIL_CC(0.00)[suse.com,kernel.org,intel.com,arm.com,akamai.com,alien8.de,amd.com,redhat.com,linux.intel.com,zytor.com,google.com,hygon.cn,broadcom.com,linaro.org,zhaoxin.com,gmx.de,lists.infradead.org,selenic.com,gondor.apana.org.au,arndb.de,linuxfoundation.org,microsoft.com,roeck-us.net,infradead.org,oracle.com,gmail.com,bootlin.com,nod.at,ti.com,lists.xenproject.org];
+	DKIM_TRACE(0.00)[suse.com:+];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	RCVD_COUNT_TWO(0.00)[2];
+	TO_MATCH_ENVRCPT_SOME(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received,2a07:de40:b281:104:10:150:64:97:from];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	R_RATELIMIT(0.00)[to_ip_from(RLw7a7tks1xijzu4pa8t4mi4c3)];
+	RCPT_COUNT_GT_50(0.00)[96];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	TAGGED_RCPT(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.com:mid,suse.com:dkim]
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
 
-On Tue, Jun 23, 2026 at 04:52:13PM +0200, Hans de Goede wrote:
-> Hi All,
-> 
-> Currently as soon as the kernel boots with a populated DT provided then
-> the arch/arm64 code sets acpi_disabled=1 and the complete ACPI subsystem
-> gets disabled. On WoA Snapdragon laptops where the factory Windows OS
-> actually boots using these tables this is not necessarily desirable.
-> 
-> It might still be interesting to at least parse the ACPI tables and make
-> the ACPI fwnodes available for device-drivers to use. I call this DT-ACPI
-> hybrid mode.
-> 
-> This mainly is an experiment for now and possibly a method for accelerating
-> the ongoing effort to run Linux on currently available Snapdragon laptops.
-> 
-> On current laptops Linux cannot boot using ACPI due to some information
-> missing from the ACPI tables. People are working on changing this so that
-> for future WoA Snapdragon laptops Linux can boot using ACPI only without
-> requiring Devicetree.
-> 
-> 
-> There are a couple of scenarios where DT-ACPI hybrid mode is useful:
-> 
-> a) This leads to a populated /sys/firmware/acpi/tables allowing one to run
-> acpidump, which is useful to grab info from the ACPI tables when e.g.
-> creating a DT for a new laptop model.
+For accessing the MSR registers on the local CPU, there are 2 types of
+interfaces: the "modern" 64-bit ones (rdmsrq() etc.) and the 32-bit
+ones (rdmsr() etc.) which are using the upper and lower 32-bit halves
+of the 64-bit wide MSR register values.
 
-This depends on the laptop in question sufficiently following the
-reference design, such that you actually have a good enough base DT to
-find those i2c-hid devices...
+The 32-bit interfaces are not optimal for 3 reasons:
 
-E.g. on the Glymur-based Asus Zenbook A14 that I recently brought up,
-keyboard sits on a previously unused I2C bus - something I wouldn't know
-without first acpidumping.
+- They are based on primitives using 64-bit sized values anyway.
 
-> As a bonus /sys/firmware/acpi/bgrt
-> is also populated allowing the boot-splash to show the vendor logo.
-> 
-> b) It might be useful for device-drivers to be able to access ACPI data
-> for the device even when running in DT mode. E.g. Srini Kandagatla first
-> got me thinking about this because he wants to use the ACPI MIPI SDCA
-> tables for audio codec routing when booting Linux on Windows Qualcomm X2
-> (Glymur) laptops.
-> 
+- Modern x86 CPUs have added support for MSR access instructions using
+  an immediate value instead of a register for addressing the MSR,
+  while the value is in a 64-bit register.
 
-As I argued during last year's Plumbers, I'm strongly against this, for
-anything but prototyping/experimentation.
+- rdmsr() is a macro storing the upper and lower 32-bit halves in
+  variables specified as macro parameters. This is obscuring variable
+  assignment through a macro. Additionally rdmsrq() is mimicking this
+  pattern by being a macro, too, with the target variable specified as
+  a parameter as well.
 
-Specifically something like the MIPI SDCA tables, are we going to define
-an ABI across DT/ACPI such that we now require the hybrid system in
-order to build a Glymur-based DT-based product?
+For those reasons drop the 32-bit interfaces for accessing the x86 MSR
+registers completely and only use the 64-bit variants.
 
-> c) It is also possible to go truely hybrid and use ACPI to instantiate
-> some of the kernel device objects representing the hardware. For example
-> the last patch in this RFC series switches to using ACPI instantiation for
-> the I2C clients for the keyboard and touchpad on the Snapdragon X1E Lenovo
-> ThinkPad T14s gen 6.
-> 
+This allows to switch all "high-level" MSR access macros to inline
+functions in the end.
 
-Which introduces the very shortcomings that are a key part of why we
-don't just run off ACPI in the first place today.
+This series will be used as the base for further reorganisation of the
+MSR access functions, especially for completely inlining the MSR
+access instructions even with paravirtualization being active.
 
-> d) This may help identify shortcomings in the current ACPI tables which
-> need to be fixed to allow future laptop generations to use ACPI only.
-> 
+Note that most patches of this series are independent from each other.
+Only the patches removing a specific interface (patches 7, 15, 26 and
+30) and the last two patches of the series depend on all previous
+patches.
 
-This is worth looking further at.
+Based on kernel 7.2-rc1, tested with and without parvirtualization
+active, compile tested for x86 with 64- and 32-bit allyes and allno
+configs.
 
-> 
-> Upstreaming of these patches (to upstream or not to upstream?).
-> 
-> 1. The first couple of patches in this series mainly implement a) + b) from
-> above. This seems like something genuinely useful to have; and except for
-> missing DT-bindings for hybrid mode this seems mostly ready to go upstream.
-> 
-> 2. I see c) as a way to slowly evolve support for current Snapdragon laptops
-> to use more and more info from ACPI and get closer to a point where we only
-> need a single DT describing the SoC and any info related to laptop model
-> specific bits outside of the SoC can be read from the ACPI tables.
-> 
-> As mentioned above work is being done to have Linux boot on future laptop
-> generations using ACPI only, so all this applies to currently available
-> Snapdragon laptop generations only.
-> 
-> The question is what to do wrt upstreaming patches necessary for c) though
-> (patches 7-12) are we going to allow new Devicetree files for not yet
-> supported laptop models to partially rely on ACPI?
-> 
-> The current demo ACPI usage in this RFC series just instantiates I2C-HID
-> devices from ACPI. More interesting would be to hookup the embedded
-> controller (EC) handling in the ACPI tables instead of having to write
-> a special EC driver for each laptop model separately. For the EC parts
-> I believe that it might be worthwhile to implement c).
-> 
+Juergen Gross (32):
+  thermal/intel: Stop using 32-bit MSR interfaces
+  powercap: Stop using 32-bit MSR interfaces
+  edac: Stop using 32-bit MSR interfaces
+  acpi: Stop using 32-bit MSR interfaces
+  x86/mtrr: Stop using 32-bit MSR interfaces
+  x86/msr: Stop using 32-bit MSR interfaces in lib/msr-smp.c
+  x86/msr: Remove wrmsr_safe()
+  x86/mce: Stop using 32-bit MSR interfaces
+  KVM/x86: Stop using 32-bit MSR interfaces
+  x86/hygon: Stop using 32-bit MSR interfaces
+  x86/pci: Stop using 32-bit MSR interfaces
+  x86/amd: Stop using 32-bit MSR interfaces
+  x86/featctl: Stop using 32-bit MSR interfaces
+  x86/tsc: Stop using 32-bit MSR interfaces
+  x86/msr: Remove rdmsr_safe()
+  cpufreq: Stop using 32-bit MSR interfaces
+  x86/resctrl: Stop using 32-bit MSR interfaces
+  x86/apic: Stop using 32-bit MSR interfaces
+  x86/cpu: Stop using 32-bit MSR interfaces
+  drivers/ata: Stop using 32-bit MSR interfaces
+  agp/nvidia: Stop using 32-bit MSR interfaces
+  fbdev/geode: Stop using 32-bit MSR interfaces
+  hw_random/via-rng: Stop using 32-bit MSR interfaces
+  drivers/gpio: Stop using 32-bit MSR interfaces
+  drivers/misc: Stop using 32-bit MSR interfaces
+  x86/msr: Remove wrmsr()
+  x86/hyperv: Stop using 32-bit MSR interfaces
+  x86/olpc: Stop using 32-bit MSR interfaces
+  hwmon: Stop using 32-bit MSR interfaces
+  x86/msr: Remove rdmsr()
+  treewide: convert rdmsrq() from a macro to an inline function
+  x86/msr: Simplify some rdmsrq() use cases
 
-Wiring up the EC is the one use case that I can think of where the
-hybrid mode would be really interesting, as a hack around the need to
-write custom device drivers for each one.
+ arch/x86/coco/sev/core.c                      |  2 +-
+ arch/x86/events/amd/brs.c                     |  4 +-
+ arch/x86/events/amd/core.c                    |  8 +-
+ arch/x86/events/amd/ibs.c                     | 18 ++--
+ arch/x86/events/amd/lbr.c                     | 16 +--
+ arch/x86/events/amd/power.c                   |  8 +-
+ arch/x86/events/amd/uncore.c                  |  4 +-
+ arch/x86/events/core.c                        | 20 ++--
+ arch/x86/events/intel/core.c                  | 14 +--
+ arch/x86/events/intel/cstate.c                |  5 +-
+ arch/x86/events/intel/ds.c                    |  2 +-
+ arch/x86/events/intel/knc.c                   | 10 +-
+ arch/x86/events/intel/lbr.c                   | 25 ++---
+ arch/x86/events/intel/p4.c                    |  6 +-
+ arch/x86/events/intel/p6.c                    |  4 +-
+ arch/x86/events/intel/pt.c                    | 12 +--
+ arch/x86/events/intel/uncore.c                |  6 +-
+ arch/x86/events/intel/uncore_nhmex.c          |  4 +-
+ arch/x86/events/intel/uncore_snb.c            |  2 +-
+ arch/x86/events/intel/uncore_snbep.c          |  6 +-
+ arch/x86/events/msr.c                         |  2 +-
+ arch/x86/events/perf_event.h                  |  6 +-
+ arch/x86/events/rapl.c                        |  6 +-
+ arch/x86/events/zhaoxin/core.c                | 10 +-
+ arch/x86/hyperv/hv_apic.c                     | 17 ++--
+ arch/x86/hyperv/hv_init.c                     | 26 ++---
+ arch/x86/hyperv/hv_spinlock.c                 |  2 +-
+ arch/x86/include/asm/apic.h                   |  7 +-
+ arch/x86/include/asm/debugreg.h               |  6 +-
+ arch/x86/include/asm/fsgsbase.h               |  2 +-
+ arch/x86/include/asm/kvm_host.h               |  5 +-
+ arch/x86/include/asm/msr.h                    | 39 +-------
+ arch/x86/include/asm/paravirt.h               | 26 +----
+ arch/x86/include/asm/resctrl.h                |  5 +-
+ arch/x86/kernel/acpi/sleep.c                  | 20 ++--
+ arch/x86/kernel/apic/apic.c                   | 45 ++++-----
+ arch/x86/kernel/apic/apic_numachip.c          |  6 +-
+ arch/x86/kernel/cet.c                         |  2 +-
+ arch/x86/kernel/cpu/amd.c                     | 42 ++++----
+ arch/x86/kernel/cpu/aperfmperf.c              |  8 +-
+ arch/x86/kernel/cpu/bugs.c                    | 12 +--
+ arch/x86/kernel/cpu/bus_lock.c                |  8 +-
+ arch/x86/kernel/cpu/centaur.c                 | 35 +++----
+ arch/x86/kernel/cpu/common.c                  | 22 +++--
+ arch/x86/kernel/cpu/feat_ctl.c                | 27 +++---
+ arch/x86/kernel/cpu/hygon.c                   |  9 +-
+ arch/x86/kernel/cpu/intel.c                   | 12 +--
+ arch/x86/kernel/cpu/intel_epb.c               |  4 +-
+ arch/x86/kernel/cpu/mce/amd.c                 | 89 ++++++++---------
+ arch/x86/kernel/cpu/mce/core.c                | 10 +-
+ arch/x86/kernel/cpu/mce/inject.c              |  2 +-
+ arch/x86/kernel/cpu/mce/intel.c               | 18 ++--
+ arch/x86/kernel/cpu/mce/p5.c                  | 16 +--
+ arch/x86/kernel/cpu/mce/winchip.c             | 10 +-
+ arch/x86/kernel/cpu/microcode/intel.c         |  2 +-
+ arch/x86/kernel/cpu/mshyperv.c                |  6 +-
+ arch/x86/kernel/cpu/mtrr/amd.c                | 36 ++++---
+ arch/x86/kernel/cpu/mtrr/centaur.c            | 18 ++--
+ arch/x86/kernel/cpu/mtrr/cleanup.c            | 18 ++--
+ arch/x86/kernel/cpu/mtrr/generic.c            | 97 ++++++++++---------
+ arch/x86/kernel/cpu/mtrr/mtrr.c               |  4 +-
+ arch/x86/kernel/cpu/resctrl/core.c            |  9 +-
+ arch/x86/kernel/cpu/resctrl/monitor.c         | 27 +++---
+ arch/x86/kernel/cpu/resctrl/pseudo_lock.c     | 12 +--
+ arch/x86/kernel/cpu/resctrl/rdtgroup.c        |  2 +-
+ arch/x86/kernel/cpu/topology.c                |  2 +-
+ arch/x86/kernel/cpu/topology_amd.c            |  4 +-
+ arch/x86/kernel/cpu/transmeta.c               |  9 +-
+ arch/x86/kernel/cpu/tsx.c                     | 10 +-
+ arch/x86/kernel/cpu/umwait.c                  |  2 +-
+ arch/x86/kernel/cpu/zhaoxin.c                 | 12 +--
+ arch/x86/kernel/fpu/core.c                    |  2 +-
+ arch/x86/kernel/hpet.c                        |  2 +-
+ arch/x86/kernel/kvm.c                         |  2 +-
+ arch/x86/kernel/mmconf-fam10h_64.c            |  6 +-
+ arch/x86/kernel/process.c                     |  4 +-
+ arch/x86/kernel/process_64.c                  | 14 +--
+ arch/x86/kernel/shstk.c                       |  8 +-
+ arch/x86/kernel/traps.c                       |  4 +-
+ arch/x86/kernel/tsc.c                         |  8 +-
+ arch/x86/kernel/tsc_msr.c                     | 15 +--
+ arch/x86/kernel/tsc_sync.c                    |  6 +-
+ arch/x86/kvm/svm/pmu.c                        |  4 +-
+ arch/x86/kvm/svm/svm.c                        |  4 +-
+ arch/x86/kvm/vmx/nested.c                     |  4 +-
+ arch/x86/kvm/vmx/pmu_intel.c                  |  8 +-
+ arch/x86/kvm/vmx/sgx.c                        |  6 +-
+ arch/x86/kvm/vmx/vmx.c                        | 54 ++++++-----
+ arch/x86/kvm/x86.c                            | 12 +--
+ arch/x86/lib/insn-eval.c                      |  6 +-
+ arch/x86/lib/msr-smp.c                        |  8 +-
+ arch/x86/mm/pat/memtype.c                     |  2 +-
+ arch/x86/pci/amd_bus.c                        |  8 +-
+ arch/x86/pci/mmconfig-shared.c                |  8 +-
+ arch/x86/platform/olpc/olpc-xo1-rtc.c         |  6 +-
+ arch/x86/platform/olpc/olpc-xo1-sci.c         | 11 ++-
+ arch/x86/power/cpu.c                          | 10 +-
+ arch/x86/realmode/init.c                      |  2 +-
+ arch/x86/virt/hw.c                            |  8 +-
+ arch/x86/virt/svm/sev.c                       | 18 ++--
+ arch/x86/virt/vmx/tdx/tdx.c                   |  8 +-
+ arch/x86/xen/suspend.c                        |  2 +-
+ drivers/acpi/processor_perflib.c              | 11 ++-
+ drivers/acpi/processor_throttling.c           | 14 +--
+ drivers/ata/pata_cs5535.c                     | 20 ++--
+ drivers/ata/pata_cs5536.c                     | 17 ++--
+ drivers/char/agp/nvidia-agp.c                 | 32 +++---
+ drivers/char/hw_random/via-rng.c              | 29 +++---
+ drivers/cpufreq/acpi-cpufreq.c                | 24 ++---
+ drivers/cpufreq/amd-pstate.c                  |  4 +-
+ drivers/cpufreq/e_powersaver.c                | 52 +++++-----
+ drivers/cpufreq/intel_pstate.c                | 30 +++---
+ drivers/cpufreq/longhaul.c                    | 23 ++---
+ drivers/cpufreq/longrun.c                     | 78 ++++++++-------
+ drivers/cpufreq/powernow-k6.c                 | 12 +--
+ drivers/cpufreq/powernow-k7.c                 | 10 +-
+ drivers/cpufreq/powernow-k8.c                 | 67 ++++++-------
+ drivers/cpufreq/speedstep-centrino.c          | 16 +--
+ drivers/cpufreq/speedstep-lib.c               | 63 ++++++------
+ drivers/edac/amd64_edac.c                     |  6 +-
+ drivers/edac/ie31200_edac.c                   | 10 +-
+ drivers/edac/mce_amd.c                        |  8 +-
+ drivers/gpio/gpio-cs5535.c                    | 10 +-
+ drivers/hv/mshv_vtl_main.c                    |  2 +-
+ drivers/hwmon/hwmon-vid.c                     | 11 ++-
+ drivers/idle/intel_idle.c                     | 26 ++---
+ drivers/misc/cs5535-mfgpt.c                   | 33 +++----
+ drivers/mtd/nand/raw/cs553x_nand.c            |  6 +-
+ drivers/platform/x86/intel/ifs/load.c         | 10 +-
+ drivers/platform/x86/intel/ifs/runtest.c      |  8 +-
+ drivers/platform/x86/intel/pmc/cnp.c          |  2 +-
+ .../intel/speed_select_if/isst_if_mbox_msr.c  |  6 +-
+ .../intel/speed_select_if/isst_tpmi_core.c    |  2 +-
+ drivers/platform/x86/intel_ips.c              | 20 ++--
+ drivers/powercap/intel_rapl_common.c          | 20 ++--
+ drivers/powercap/intel_rapl_msr.c             |  2 +-
+ drivers/thermal/intel/intel_hfi.c             |  8 +-
+ drivers/thermal/intel/intel_tcc.c             | 10 +-
+ drivers/thermal/intel/therm_throt.c           | 74 +++++++-------
+ drivers/thermal/intel/x86_pkg_temp_thermal.c  | 32 +++---
+ drivers/video/fbdev/geode/display_gx.c        |  8 +-
+ drivers/video/fbdev/geode/gxfb_core.c         |  2 +-
+ drivers/video/fbdev/geode/lxfb_ops.c          | 50 +++++-----
+ drivers/video/fbdev/geode/suspend_gx.c        | 24 ++---
+ drivers/video/fbdev/geode/video_gx.c          |  8 +-
+ include/linux/cs5535.h                        | 10 +-
+ 146 files changed, 1044 insertions(+), 1128 deletions(-)
 
-> This new DT-ACPI hybrid mode works as follows:
-> 
-> 1. A new global ACPI subsys flag called acpi_dt_hybrid is introduced which
-> can be set to 1 combined with acpi_disabled=1. When this is done, then
-> despite acpi_disabled being set the ACPI tables will still get parsed and
-> /sys/firmware/acpi (tables) and /sys/bus/acpi/devices (fwnodes) will still
-> get populated. No devices will be instantiated, no fwnodes will get
-> attached to any other (e.g. PCI, USB) devices and no other actions will
-> be taken.
-> 
-> 2. Add acpi=hybrid kernel-commandline option to the arch/arm64 code.
-> TODO: Add a DT-binding for selecting hybrid mode from Devicetree.
-> 
-> 3. drivers/acpi/glue.c changes to support devices with an of_node as
-> primary fwnode having a "acpi-path" string property and when present look
-> up the ACPI fwnode for that path, e.g. "\\_SB.GIO0", "\\_SB.I2C1" and
-> set that fwnode as secondary node.
-> 
-> 4. pinctrl-msm changes to map special WoA ACPI table virtual GPIO numbers
-> for PDC pins back to regular TLMM GPIO numbers.
-> 
-> 5. Tiny drivers/i2c/i2c-core-acpi.c change to make it instantiate ACPI
-> described I2C clients under a DT instantiated I2C adapter if that
-> adapter has an ACPI secondary fwnode.
-> 
-> With this I can drop the DT description of the ThinkPad T14s gen 6
-> keyboard and touchpad and instead have these be instantiated by ACPI,
-> as shown in patch 12/12.
-> 
-> Comments, thoughts ?
-> 
+-- 
+2.54.0
 
-I love the experimentation!
-
-Regards,
-Bjorn
-
-> Regards,
-> 
-> Hans
-> 
-> 
-> Hans de Goede (12):
->   ACPI: Introduce DT-ACPI hybrid mode
->   arm64: acpi: Cleanup acpi=[on|off|force] handling
->   arm64: acpi: add acpi=hybrid support
->   ACPI: Add helpers for dealing with ACPI fwnode as secondary fwnode
->   ACPI: glue: Implement setting secondary-fwnode for DT-ACPI hybrid mode
->   ACPI: scan: Retry acpi_device_notify() in DT-ACPI hybrid mode
->   ACPI: Make device_match_acpi_handle() also check the secondary fwnode
->   irqchip/gic-v3: Always call acpi_set_irq_model()
->   pinctrl: qcom: Add support for WoA ACPI tables virtual TLMM pin
->     numbers
->   i2c: acpi: Also register ACPI i2c_clients for adapters with a
->     secondary ACPI fwnode
->   i2c: qcom-geni: Fall back to i2c_acpi_find_bus_speed()
->   arm64: dts: qcom: x1e78100-thinkpad-t14s: Move keyb and touchpad to
->     ACPI enumeration
-> 
->  .../qcom/x1e78100-lenovo-thinkpad-t14s.dtsi   |  61 +-----
->  arch/arm64/include/asm/acpi.h                 |   1 +
->  arch/arm64/kernel/acpi.c                      |  47 +++--
->  arch/loongarch/include/asm/acpi.h             |   1 +
->  arch/riscv/include/asm/acpi.h                 |   3 +-
->  arch/x86/include/asm/acpi.h                   |   1 +
->  drivers/acpi/acpi_apd.c                       |   3 +
->  drivers/acpi/acpi_memhotplug.c                |   3 +
->  drivers/acpi/acpi_processor.c                 |   3 +
->  drivers/acpi/arm64/init.c                     |   2 +
->  drivers/acpi/bus.c                            |   6 +-
->  drivers/acpi/glue.c                           |  70 ++++++-
->  drivers/acpi/property.c                       |  13 ++
->  drivers/acpi/scan.c                           |  33 +++
->  drivers/acpi/tables.c                         |   4 +-
->  drivers/base/core.c                           |   4 +-
->  drivers/firmware/efi/efi-bgrt.c               |   2 +-
->  drivers/i2c/busses/i2c-qcom-geni.c            |  10 +-
->  drivers/i2c/i2c-core-acpi.c                   |   8 +-
->  drivers/irqchip/irq-gic-v3.c                  |  29 ++-
->  drivers/pinctrl/qcom/Makefile                 |   4 +-
->  drivers/pinctrl/qcom/pinctrl-msm-acpi.c       | 196 ++++++++++++++++++
->  drivers/pinctrl/qcom/pinctrl-msm.c            |  47 ++++-
->  drivers/pinctrl/qcom/pinctrl-msm.h            |  35 ++++
->  include/acpi/acpi_bus.h                       |  16 ++
->  include/linux/acpi.h                          |  10 +
->  26 files changed, 502 insertions(+), 110 deletions(-)
->  create mode 100644 drivers/pinctrl/qcom/pinctrl-msm-acpi.c
-> 
-> -- 
-> 2.54.0
-> 
