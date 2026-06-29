@@ -1,66 +1,63 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2DBD276049;
-	Mon, 29 Jun 2026 17:22:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE85D277C96;
+	Mon, 29 Jun 2026 17:33:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782753735; cv=none; b=HlC28yNYkJAiuHA6//WOC6LmBleBXhcpdaurEkW5SitM2vHqQwc4ZVxDRPZf55Ts6rnrxEjwl129cuRLSMatatH7iBi+P6l8ckHSq4nFFOIbrFGJ8zafjOSOrUfaWHQPRufUDHk2pdHAVUDeDXybwEDD92ZJ0P5iW1e8OhPzxGw=
+	t=1782754387; cv=none; b=ZEUSrDzjQhUrjqLXGtp9blifCdRFvJQu+J2rL2rOU771qnrotS6HEP1XDx4ob0w70V5OMyOTl/6wqaCy15f10rnxbCjeUtHkXBDEQ0hVfnQASHa12XCVWgai9W+5fT9OAqKOf2Uocm/jMzISdoaYjb4MJvxfzuzScAMg0JWqxD8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782753735; c=relaxed/simple;
-	bh=M0DeJ2sFGocMw0PyGSHvELWdraexiP68myqBLJQNHFM=;
+	s=arc-20240116; t=1782754387; c=relaxed/simple;
+	bh=iGG6LjmcJg7EV2b9L3OkZvJWUfrUU9Yg2AnJoMPe9ao=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=m16Th1tTagZCDQpNLCtohoDhbTlbgLeRFLajAKsnmJM+K3FvpPctcLkgFIimFb1ceA2msOPQ3RkesWeQU5l9U4/Q38/8Q9SJavQEzwXtIOA2SlZzhwJCGTU7IHTgLZ3jgLPT8wr2RJ7gR/eOFoSmQ8FLTPYi1uoMJbV68hswb0E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Gbqz5hrO; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=BAyNGTx3s5b5219EbIZTEB3PIfqxCvJ5RJu6SHdTcqz7gm9WnrqHqodpKdjapXjMS1Szcld/yq94P28jnQ8jL60/xuaQXdOYxYKWshnIHA0RntYfcrGI5y9CljXm6coz4fmuspjqxYXCI29tJ6i8zCC/g75NOZ7R5PR0Oee4zjA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BIMHEG/X; arc=none smtp.client-ip=198.175.65.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Gbqz5hrO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 089DE1F000E9;
-	Mon, 29 Jun 2026 17:22:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782753734;
-	bh=MJcyRBCuDpTSk1/d5SQB/+Lx7UTikZcZTrFMFGtoOvg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Gbqz5hrO7fBgXQ2j8893haOH/rdMwMKj41c+b2V2Z0Uo3rrpysIT0kZCrTydl+GhZ
-	 145+yOuR91ka9e4QPcbrDM+idcikLa659R1gY+j1y1uS1dDmSNW8dXSuWr1B6lJkLL
-	 kAVrQppzIlhrGfDSiz2YNzptozjTEwWYYr7/tGdGPBs/fxoBW7Z+Ez2QfbLbdgFA9J
-	 ZykRMu6xyVfadkTOBtnK2AY5uTFemwfRyG7jHE0ykI9P7deLIn4g7Y8h2uLHtledv/
-	 lYvsaYxpKEGUe1vN5bOzExuP7k+IByZyCirBWzi7Zgz/NYHbLJhuUP/9cojUeTzoae
-	 wQB/XIUGPvRiQ==
-Date: Mon, 29 Jun 2026 10:22:12 -0700
-From: Oliver Upton <oupton@kernel.org>
-To: Leonardo Bras <leo.bras@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>, Marc Zyngier <maz@kernel.org>,
-	Joey Gouly <joey.gouly@arm.com>,
-	Steffen Eiden <seiden@linux.ibm.com>,
-	Suzuki K Poulose <suzuki.poulose@arm.com>,
-	Zenghui Yu <yuzenghui@huawei.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Saket Dumbre <saket.dumbre@intel.com>,
-	Paolo Bonzini <pbonzini@redhat.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Chengwen Feng <fengchengwen@huawei.com>,
-	Kees Cook <kees@kernel.org>,
-	=?utf-8?Q?Miko=C5=82aj?= Lenczewski <miko.lenczewski@arm.com>,
-	James Morse <james.morse@arm.com>, Zeng Heng <zengheng4@huawei.com>,
-	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
-	Thomas Huth <thuth@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
-	Yeoreum Yun <yeoreum.yun@arm.com>, Mark Brown <broonie@kernel.org>,
-	Kevin Brodsky <kevin.brodsky@arm.com>,
-	James Clark <james.clark@linaro.org>, Fuad Tabba <tabba@google.com>,
-	Raghavendra Rao Ananta <rananta@google.com>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Sascha Bischoff <Sascha.Bischoff@arm.com>,
-	Anshuman Khandual <anshuman.khandual@arm.com>,
-	Tian Zheng <zhengtian10@huawei.com>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	kvmarm@lists.linux.dev, linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev, kvm@vger.kernel.org
-Subject: Re: [PATCH v2 05/13] KVM: arm64: Detect (via ACPI) and initialize
- HACDBSIRQ
-Message-ID: <akKpxDulRN7zDrgM@kernel.org>
-References: <20260629111820.1873540-1-leo.bras@arm.com>
- <20260629111820.1873540-6-leo.bras@arm.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BIMHEG/X"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1782754386; x=1814290386;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=iGG6LjmcJg7EV2b9L3OkZvJWUfrUU9Yg2AnJoMPe9ao=;
+  b=BIMHEG/X7m/NWbZw3YRrWXoUdDKSU4oV7neb1jtE48Pl8GQ1VL0R5d3I
+   FRXwtsfnH97BsnfNkfVUxkqloehdd4wYhdgNJwc4caRaVFMH3cbzmIPcj
+   KeonfhMhKCWXib9u+mfg8ALEpuWCNVL1OJGJo7olWEXsSK4ZTgRDfAbmZ
+   Bf1lrpqLo+6dzImonHbQPjlT3QUT5/WoaKmFDDJpxK/FXjQqt3YdVsMwK
+   IqHWA1128ZACEeVh32jQe+93krk57ZYFfFU69nKUZqSc/xEpIHMCNxNZd
+   DJNHblnE9BH1qIBHgf6wCu56dDDcDJHY6kBr28S6L8F/5e6k+92GKHEPV
+   Q==;
+X-CSE-ConnectionGUID: pPiLzcPvR5utpo03IHXYUw==
+X-CSE-MsgGUID: GUZX1rQ9QyGogA148gGLVw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11832"; a="83229242"
+X-IronPort-AV: E=Sophos;i="6.24,232,1774335600"; 
+   d="scan'208";a="83229242"
+Received: from orviesa003.jf.intel.com ([10.64.159.143])
+  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2026 10:33:06 -0700
+X-CSE-ConnectionGUID: j4AWA8VXQjajdGIeFcHQbg==
+X-CSE-MsgGUID: IgwRqUTTSoyHRgKuk7x4Ew==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,232,1774335600"; 
+   d="scan'208";a="255622735"
+Received: from kniemiec-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.207])
+  by ORVIESA003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2026 10:33:03 -0700
+Date: Mon, 29 Jun 2026 20:33:00 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Peter Shier <pshier@google.com>
+Cc: Danilo Krummrich <dakr@kernel.org>, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>, stable@vger.kernel.org
+Subject: Re: [PATCH v1 1/1] device property: Allow secondary lookup in
+ fwnode_get_next_child_node()
+Message-ID: <akKsTJ83RDKyCJ_c@ashevche-desk.local>
+References: <20260210135822.47335-1-andriy.shevchenko@linux.intel.com>
+ <DGLVIO9YF9PK.1WM118M9OSS0N@kernel.org>
+ <CACwOFJSz63A9d=EZrapJs=zKeSzWVogtz8F=9SDwVfb5i7vviw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -69,62 +66,29 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260629111820.1873540-6-leo.bras@arm.com>
+In-Reply-To: <CACwOFJSz63A9d=EZrapJs=zKeSzWVogtz8F=9SDwVfb5i7vviw@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Mon, Jun 29, 2026 at 12:17:53PM +0100, Leonardo Bras wrote:
-> Find via ACPI [1] the Id for HACDBSIRQ, initialize it as a per-cpu IRQ
-> and make sure any cpu able to run virtualization has it active.
+On Mon, May 18, 2026 at 06:16:05PM -0700, Peter Shier wrote:
+> On Tue Feb 10, 2026 at 2:58 PM CET, Andy Shevchenko wrote:
+> > When device_get_child_node_count() got split to the fwnode and device
+> > respective APIs, the fwnode didn't inherit the ability to traverse over
+> > the secondary fwnode. Hence any user, that switches from device to fwnode
+> > API misses this feature. In particular, this was revealed by the commit
+> > 1490cbb9dbfd ("device property: Split fwnode_get_child_node_count()")
+> > that effectively broke the GPIO enumeration on Intel Galileo boards.
+> > Fix this by moving the secondary lookup from device to fwnode API.
 > 
-> Introduce a per-cpu structure used by the HACDBSIRQ handler to keep track
-> of entries size and the status of HACDBS. Size is used to detect end of
-> processing in case the number of entries being processed is different of
-> the supported entries size.
-> 
-> Status may look easily replaceable by checking HACDBS registers now, but
-> will make the OFF/IDLE detection easier in next patches.
-> 
-> Signed-off-by: Leonardo Bras <leo.bras@arm.com>
-> 
-> [1] https://github.com/tianocore/edk2/issues/12409
+> I am not familiar with this code at all but from a sashiko AI review I
+> found the following comments.
+> Does this need to be addressed?
 
-Reference the ACPI specification instead please. Any link you want to
-include in a changelog should use the Link: footer, the linkage to the
-inline citation will be obvious.
+Isn't this series about:
+https://lore.kernel.org/r/20260611203537.1786399-1-andriy.shevchenko@linux.intel.com
 
-If we need to initialize the IRQ I'd really like to see device tree
-bindings for HACDBSIRQ as well. Pretty much any system us plebs can get
-our hands on is gonna be DT anyway.
+-- 
+With Best Regards,
+Andy Shevchenko
 
-> +static irqreturn_t hacdbsirq_handler(int irq, void *pcpu)
-> +{
-> +	u64 cons = read_sysreg_s(SYS_HACDBSCONS_EL2);
-> +	unsigned long err = FIELD_GET(HACDBSCONS_EL2_ERR_REASON, cons);
-> +
-> +	switch (err) {
-> +	case HACDBSCONS_EL2_ERR_REASON_NOF:
-> +		this_cpu_write(hacdbs_pcp.status, HACDBS_IDLE);
-> +		break;
-> +	case HACDBSCONS_EL2_ERR_REASON_IPAHACF:
-> +		/* When size not a power of two >= 4k, exit with reserved TTLW */
-> +		int index = FIELD_GET(HACDBSCONS_EL2_INDEX, cons);
-> +
-> +		if (index >= this_cpu_read(hacdbs_pcp.size)) {
-> +			this_cpu_write(hacdbs_pcp.status, HACDBS_IDLE);
-> +			break;
-> +		}
-> +		fallthrough;
-> +	case HACDBSCONS_EL2_ERR_REASON_STRUCTF:
-> +	case HACDBSCONS_EL2_ERR_REASON_IPAF:
-> +		this_cpu_write(hacdbs_pcp.status, HACDBS_ERROR);
-> +		break;
-> +	}
-> +
-> +	return IRQ_HANDLED;
-> +}
 
-I have a pretty extreme distaste for creating a state machine between
-the callsite and the IRQ handler. The callsite should poll HACDBS for
-completion. The thread has nothing better to do anyway.
-
-Thanks,
-Oliver
