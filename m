@@ -1,101 +1,81 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 970013451A6;
-	Tue, 30 Jun 2026 16:18:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1A6A2D837C;
+	Tue, 30 Jun 2026 17:00:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782836300; cv=none; b=dVjGQKxfL+uqAGmdp9w3ugvMHYxSBDMfZB9iuNT4JR9cFykYbqWkDnmV1HaZWsb500F66swIERVhoeavA70j/Y+SKZ03f05C3vfPOlBq/53kCoI+5eqTjQQrfl4Gux7xKhz3NccRw8qesb6K248d1Z9DOX6vllcKPt911Au7lxc=
+	t=1782838855; cv=none; b=a5lBbX89mn2Khx5xsO4OnAmB2TK+BPwT9+/9icdH5WFpqLfvr7/Kk7Xeh1c6sbaKKhBDjvkH5PcP6cOhdp2EUkOW1ZEndBqrzC2zcPeg4feZWrom6V0aZfOHcCWQJJilLgkZnfWZJehLEp9zZx0pJQ2QUViO8qn9lbQu7zuehz0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782836300; c=relaxed/simple;
-	bh=5ZTUtTYrWNugkzAoI9xi1TOefxCcgmeJKi4qT/lZ76I=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=rpTaYx62Easue/wL8jtOWKf+HBpbAx07ke4ccNKnTUePfOv/Yxm6vTjyHeZVDs7qIDWfsXq+T/NrX0sfAKuJovU0e7s02AL7+Rrtbzhf3KrcV1IqMxHUNxMsafMDvecrtT8vzH/bwpsVI2LP6FAeOxtuAAtKm7Otfj2PXKikVOc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=XxbZ3NK8; arc=none smtp.client-ip=192.198.163.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1782838855; c=relaxed/simple;
+	bh=80ZF9ktzme3dHtQ+FRS6xVF/5lD+9DYskzTzHvjq84c=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=BzYKwboRdXQDmP1ZnxBcdXiMQzeaANrBP8sv6OvREh5liJV7Z5/ASEy3foDJU2gM+6zfkwxQIm6u4zyYAJ1y177qfgWNp8e21PTHO+u8aFhMG1N6hj+OyunMeH+DFcJTiz/UEBy4LDB4DYb2ndeTMQTtwFi7ug6HqakX/jj6qQk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=E3LBMfXd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="XxbZ3NK8"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1782836295; x=1814372295;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=5ZTUtTYrWNugkzAoI9xi1TOefxCcgmeJKi4qT/lZ76I=;
-  b=XxbZ3NK8FEQM3sQIp4ZkJfMzVmSoO4LRe/xTS3dSM//82wi4rus9451W
-   LVeUASVoHmj3bO2Um9qyHZeadOpsMo88+hUnG7FKh5bowv3z9/MG1JYVJ
-   kjYWeVensGIIe61tS61JzouQDcGM49r67WuPDIk5+BwuemCCSoy3KL/k4
-   BwkYOyFL7slYLFKbVIAxBpgN5bPmVFHyFG+oouy+NojOxOo9O+57Ab86m
-   yoZuX60CfyrVjZCu9BOqZHbHcsBor5p09/Qu9Adjbi0etAWPs6s72GCaF
-   5Q7x/MvKpoBWDWzKJ+5tSD7eLdOeZYwLGT9ZIcO+vgapUWNJgslfQDzdv
-   Q==;
-X-CSE-ConnectionGUID: UBg3CM0yQLa3X9aTFfDb9Q==
-X-CSE-MsgGUID: PavQsTxqS7ytzAW46hanrQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11833"; a="82544492"
-X-IronPort-AV: E=Sophos;i="6.24,234,1774335600"; 
-   d="scan'208";a="82544492"
-Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jun 2026 09:18:14 -0700
-X-CSE-ConnectionGUID: OObtITKbR7y1N2wiRRvaRw==
-X-CSE-MsgGUID: wmfycMl8Tk6M+1KfIWHlbQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,234,1774335600"; 
-   d="scan'208";a="257223215"
-Received: from dnelso2-mobl.amr.corp.intel.com (HELO [10.125.109.254]) ([10.125.109.254])
-  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jun 2026 09:18:13 -0700
-Message-ID: <a21cc48d-b676-4477-810f-889620a36712@intel.com>
-Date: Tue, 30 Jun 2026 09:18:12 -0700
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="E3LBMfXd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E1571F000E9;
+	Tue, 30 Jun 2026 17:00:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782838854;
+	bh=LJZUc/LPxt4hmacYCfiJlkWHR6rwA2I/k/EPyXnwNlc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=E3LBMfXdSOjlbvNGPKr/jWF0mRVQxuC0hO/p0inIbn7B/Do4J3qTn/zHxjvbuUkkG
+	 FgA1q7AWtcAxduI6b/wuX/jQ9FzMrTkB8w15uzfaorK0IFx9Z8U7kLZse6uBPzSyV9
+	 zCZ4AY5/F3zN/rnLLxb+ZCWdMuiqFNKBbAwgsHxcRr/zHS9etXXTJB3sd3wa61Vxtc
+	 P7yub/09U/29F/uHOTAG6gAr8gYG2K1+YacmXaYdo5b3Oggrcm83rr3LgEv8/l+FPg
+	 l7val0WPiRxuoWdumpaExcc1iZPA0swPVpCxMC7S5rpgwig0/F9FFTRe2+0NLub0kP
+	 2IG8Za2rTBzOw==
+Date: Tue, 30 Jun 2026 18:00:51 +0100
+From: Sudeep Holla <sudeep.holla@kernel.org>
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Sudeep Holla <sudeep.holla@kernel.org>
+Subject: Re: [PATCH 6/6] ACPI: PCC: Preserve shared memory signature in
+ OpRegion handler
+Message-ID: <20260630-thankful-organic-foxhound-a991a0@sudeepholla>
+References: <20260627-acpi_pcc_signature-v1-0-c1b7268d4fdc@kernel.org>
+ <20260627-acpi_pcc_signature-v1-6-c1b7268d4fdc@kernel.org>
+ <CAJZ5v0j5RtaadVjTLm7rghNiz_9b4_Rs4PPQZgAinud7tssgEA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v1 1/1] acpi/hmat: preserve hmat_adist_nb notifier
- block
-To: alejandro.lucero-palau@amd.com, linux-cxl@vger.kernel.org,
- linux-acpi@vger.kernel.org, rafael@kernel.org
-Cc: Alejandro Lucero <alucerop@amd.com>
-References: <20260630143507.30193-1-alejandro.lucero-palau@amd.com>
- <20260630143507.30193-2-alejandro.lucero-palau@amd.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20260630143507.30193-2-alejandro.lucero-palau@amd.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJZ5v0j5RtaadVjTLm7rghNiz_9b4_Rs4PPQZgAinud7tssgEA@mail.gmail.com>
 
-
-
-On 6/30/26 7:35 AM, alejandro.lucero-palau@amd.com wrote:
-> From: Alejandro Lucero <alucerop@amd.com>
+On Tue, Jun 30, 2026 at 02:33:08PM +0200, Rafael J. Wysocki (Intel) wrote:
+> On Sat, Jun 27, 2026 at 6:39 PM Sudeep Holla <sudeep.holla@kernel.org> wrote:
+> >
+> > ACPI defines a PCC OperationRegion as the shared memory fields that
+> > follow the PCC signature. The OperationRegion length is likewise the
+> > total size of the fields that succeed the signature in shared memory.
+> >
+> > ACPI 6.6 adds clarification that the PCC shared memory signature is
+> > populated by the platform and verified by OSPM.
+> >
+> > The PCC address space handler currently copies the OperationRegion
+> > buffer to and from the start of the PCC shared memory region. That can
+> > overwrite or expose the signature at byte offset 0, and it also misses
+> > the last 4 bytes of the actual PCC OperationRegion data.
+> >
+> > Offset OperationRegion copies by the size of the signature and reject
+> > regions that do not fit in the shared memory after that signature.
+> >
+> > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> > Fixes: 77e2a04745ff ("ACPI: PCC: Implement OperationRegion handler for the PCC Type 3 subtype")
+> > Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
 > 
-> Remove __meminitdata from hmat_adist_nb declaration preserving it even
-> when CONFIG_MEMORY_HOTPLUG is not set. Otherwise further notifier
-> registrations using register_mt_adistance_algorithm() will find a
-> notifier chain likely corrupted. This is the case when a CXL Type2
-> driver will load after kernel initialization and a CXL region created from
-> its committed HDM decoders registers an mt_adistance_algorithm notifier.
+> Does this depend on anything else in the series or is it independent?
 > 
-> Signed-off-by: Alejandro Lucero <alucerop@amd.com>
-> ---
->  drivers/acpi/numa/hmat.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
-> index 9792dc394756..3006789ae31f 100644
-> --- a/drivers/acpi/numa/hmat.c
-> +++ b/drivers/acpi/numa/hmat.c
-> @@ -995,7 +995,7 @@ static int hmat_calculate_adistance(struct notifier_block *self,
->  	return NOTIFY_STOP;
->  }
->  
-> -static struct notifier_block hmat_adist_nb __meminitdata = {
-> +static struct notifier_block hmat_adist_nb = {
 
-Maybe do something similar to __init_or_acpilib in include/linux/acpi.h?
+It is independent. This just fixes the issue of including the signature in
+the opregion data. It can go independently as all other patches as well.
 
->  	.notifier_call = hmat_calculate_adistance,
->  	.priority = 100,
->  };
-
+-- 
+Regards,
+Sudeep
