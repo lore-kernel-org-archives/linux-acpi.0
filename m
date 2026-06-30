@@ -1,151 +1,178 @@
-Received: from mail-lf1-f41.google.com (mail-lf1-f41.google.com [209.85.167.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12EC343C055
-	for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 14:49:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.41
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782830981; cv=pass; b=V7/SgJTm/thytGfu7MfGIy/zyB5elnMW6yj5T8Zoi52a3xbiZfpUOGjyPyxf58gWnDNeqhyy6JwbsvbPMbNUy2ZM29F8KnHhceT0Ab2lgaFVrCain7ft/VK08kabzkjxg96LC2fjRH4YN0joJdRMoG3fsezpT59V2SbRLQUpisA=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782830981; c=relaxed/simple;
-	bh=R2RLlWKV31uw1vmm0eE8g4HAQBST/y2tQNtzmoB595w=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=IDIxP2O9WTSuKRC6lvhBA6HBUUUPTNwFjDo6S5y5sBknZtPFy4c2GIHdKWpS5pW3Gf655Tr80BjUZW9wZs6U9ZuAk1UTHBdXF54EprFGMtCExdfHl+UGVEBbRU6Y6wH/h3qd4JI5ahQBVOrS9HX8BfqiT+31aP3r05h/KVLXhK0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eguBgHH2; arc=pass smtp.client-ip=209.85.167.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 61E5143C07E;
+	Tue, 30 Jun 2026 14:50:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1782831032; cv=none; b=nIkBvCvdRAAIzCHGqqGp2vdrRbCecpE0HdJ04NpsJC5Mtm+s4MCTYuNa0rxTWtKt3f5gVr1bvUb02pp2MNmi22IB5nX6YZss6hCiW57h+OIbpXFjeif5Fzf/JOAOnzcDGAKuF1pB2YYO+hjslrIFaq0ZXgdKyX0VEYOBDm3iQDM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1782831032; c=relaxed/simple;
+	bh=FmGcRpgqVH1Jyet3amoELywEs1aHDjFjiXmR4Ai9K98=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type:Content-Disposition; b=cbU1dpXLN0so3U/t5neY0zKJuRZ75QjCyH5K7LX6H6SIbQ2enZHPWkt6LqRIYpiFHfDdBV9ND8GFrVUmIXnwGkx0XDbaYo7ngBQhylCnt0yUDyOJgzifgqRrxnWP9tnERqsDKbLR/iZ6cSLTCXXRgQryxxUTFlq0k2OmKfdVq/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=DEus4bOr; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eguBgHH2"
-Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5aeb6d00883so1756840e87.1
-        for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 07:49:39 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1782830978; cv=none;
-        d=google.com; s=arc-20260327;
-        b=aNDGTjr+AqerbMqW4seNE3yqPzpaQ4FQI4y+KF7tXniI64anJa07eP1AHocoWKQ1Na
-         P7TYADU/wtK76TaGJnLfdxeiq2HRn1LvFgaYpL+rsehW0dwgAalJp5cu8w96dVSHEUKT
-         6Hwt89YGRp9hmnaVpYNIuMpME7Yve4LoLCfSXnR/qg3dMsqXL7ML2A0P8f3+ojbmEauY
-         EdeBru15Bm4b6kIvzWUN0hx79RY37rSlu1V6RVTeF+SJsiZ51pkLGNkNAXI09j6qRVwK
-         h392FszrBFBHIg7mB6Q6MpdWAvTYfjq7lOS5RbhxiY9EzVreUY+caPlLdzuY5lWc6nyR
-         OTQA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=BAHFXtMiFS3SQCPXfcc6nAkzBIK1JQ7gQg2BRXU7Bfc=;
-        fh=2GNmo26rVcVp3ZmyeTOnnaRnIhQ04GSZRyHCvatabck=;
-        b=BU2iRnM9t6jtRquv2edUn4gS8NCL+KpFGmzz9aYwo0X/86MTZfdsPLMEJNsvwczpgn
-         /QGTGkJY2H6Fzih/eWqOkk8WRjEU1l0NfDE0DDzl6CEZFlhging3f0PemhvWTH+aCQ04
-         u84kS9ye9fik9v9NqILl7rrUIwJO20mg9R8Fvx9nIBKJcnjLR08jcNkfSkA5CUmYOGCf
-         l6g4kbzofwFeKRCrSFWJWUNt2ruybncuV0ktSQBoej7XifkIrWcSSa9HDz2HH+TUlQKe
-         g7K7rZdk3ag3Slj8IAU8vdMsIwNs8RDoR5ssOWpChYlfoFzdtU/eAyKEs3urP6HmYt5c
-         BuCw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1782830978; x=1783435778; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=BAHFXtMiFS3SQCPXfcc6nAkzBIK1JQ7gQg2BRXU7Bfc=;
-        b=eguBgHH2CoPRAyRaOi3uiaGSli4ODNgt+uvPY+h/SIbi3UUzw5fgIYyM6JQzztjeNV
-         3JlZ/ToxMazHgtcSpYy6Wanx8ZqhDUqqumustyQxJN+22k7vxLd4LMYm7+P0yLfn8pQ9
-         JmK4CXxkJxFZX5JST3Z2ucXmDLXruN8OwppFZNOl6Ue/Rze31PgrmjMVcdVChqaVzkn3
-         9z6twiYp4Zo1H82GIHWlqKbcTI38vd2yEWEiZYcXIzue3/HMx3mwR50ZIJUVf2D/Y4gU
-         v2SGLfGE48Xhlw6IlpE/3my5ZFDfLd1udwdgHT/iCfuo1uBXsQroYQOJpyClQUxBsTNu
-         CwgQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782830978; x=1783435778;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=BAHFXtMiFS3SQCPXfcc6nAkzBIK1JQ7gQg2BRXU7Bfc=;
-        b=dNTp2TpzrfJSJjqTmD5t+/GWA5QREDWZ9ggsOPHM2N4QHHmW6zZDa8VtSy/qugWOrC
-         3VIwrkF6q91tPcWFRa6bpxcwgCCfyfqRjFvSLcmD9MK8UYOdQJ2yROKGBEugSqKCad+F
-         Q3+7+5yQMFSqnEY69sH6Pz36f00nuuRKlQThaYVMhVsU6EGYk/3Tks7JL92GkxWwAnId
-         PGHxKHlhcCfdi/5ZPvc6nSc9W1r93NZWYfDopFjs9a8xKlw7wZZTTA7er3uDHiuLIFY7
-         xVHroN4SDvqx6UfX1q7rfyrU7Bvc1+Disa5TVDZebiCBGZwuMjJdaP1jghbL6rSLblo0
-         o/JQ==
-X-Gm-Message-State: AOJu0Yylhg2Zg5RfUjz1GUAMAhnoXaO+YOv/XXCQBaA1gZDCe7lB6NbZ
-	AD34PorfQtEvJdgDq3230RZ4BJT+wUjhGArrCNW2fD5EnULoynjSDolpSvPQedG5VwHfkiBuCyM
-	UnmP1L975dBoPeW8czstZZqjkngH3BBc=
-X-Gm-Gg: AfdE7ckvkKCAFF114kRyvjj9vx6/SFzXTcSaDLfY6uL3IWUUt+39SW2nHpbT2r9oCeF
-	SNlh4xFaoKb6fyf2mV8VhbcTEmJMFOJErrrO0TaShIY3pe2JzIJpnRq6kZUatc60jAwvnJFMV+C
-	OPiLLWTa27T1h3BA851gKHI4yTvOr8tY/kTVPYWh1BeONWRIM++m8i84crncZK0L6uvxfjABKyu
-	Coyu0jN/wfpRwh24xiwjSJGPdWao70NEIElq4i/HzwjfYvBNYxJrZ7hx26fKHkaXKU/LJc7tq1z
-	b2gBvN0j4aPTFt3wsZcB/vnP6O6yyfWXCUw45U8bfyoLrtIdwT2Yqf5I+EUvhK+vHe9PEueNaSm
-	6wB1l0NZBGe0FxLLKpjMU
-X-Received: by 2002:a05:6512:640e:b0:5ae:b6cf:2869 with SMTP id
- 2adb3069b0e04-5aebdb9485emr981524e87.23.1782830977995; Tue, 30 Jun 2026
- 07:49:37 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="DEus4bOr"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 44C282ED2;
+	Tue, 30 Jun 2026 07:50:24 -0700 (PDT)
+Received: from LeoBrasDK.cambridge.arm.com (LeoBrasDK.cambridge.arm.com [10.2.212.21])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A158A3F85F;
+	Tue, 30 Jun 2026 07:50:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1782831028; bh=FmGcRpgqVH1Jyet3amoELywEs1aHDjFjiXmR4Ai9K98=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=DEus4bOrMtPLgrSAGt0EtnVJSrPt183sUxeCw5swqIK7G/W+bDiUNlIa/ENsn1q9S
+	 Ix+mwplKNj5DpeBcrAHKKzV8K/1MCOx6g4fV2IBjAXx7Kuo0F4lJTHOlnrbbqtsCKY
+	 2dyl9M0CURgvFIFZVqY/6Inv2dcOymDf4jQSKr4o=
+From: Leonardo Bras <leo.bras@arm.com>
+To: Oliver Upton <oupton@kernel.org>
+Cc: Leonardo Bras <leo.bras@arm.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Marc Zyngier <maz@kernel.org>,
+	Joey Gouly <joey.gouly@arm.com>,
+	Steffen Eiden <seiden@linux.ibm.com>,
+	Suzuki K Poulose <suzuki.poulose@arm.com>,
+	Zenghui Yu <yuzenghui@huawei.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Saket Dumbre <saket.dumbre@intel.com>,
+	Paolo Bonzini <pbonzini@redhat.com>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Chengwen Feng <fengchengwen@huawei.com>,
+	Kees Cook <kees@kernel.org>,
+	=?utf-8?Q?Miko=C5=82aj?= Lenczewski <miko.lenczewski@arm.com>,
+	James Morse <james.morse@arm.com>,
+	Zeng Heng <zengheng4@huawei.com>,
+	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
+	Thomas Huth <thuth@redhat.com>,
+	Ryan Roberts <ryan.roberts@arm.com>,
+	Yeoreum Yun <yeoreum.yun@arm.com>,
+	Mark Brown <broonie@kernel.org>,
+	Kevin Brodsky <kevin.brodsky@arm.com>,
+	James Clark <james.clark@linaro.org>,
+	Fuad Tabba <tabba@google.com>,
+	Raghavendra Rao Ananta <rananta@google.com>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Sascha Bischoff <Sascha.Bischoff@arm.com>,
+	Anshuman Khandual <anshuman.khandual@arm.com>,
+	Tian Zheng <zhengtian10@huawei.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	kvmarm@lists.linux.dev,
+	linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev,
+	kvm@vger.kernel.org
+Subject: Re: [PATCH v2 05/13] KVM: arm64: Detect (via ACPI) and initialize HACDBSIRQ
+Date: Tue, 30 Jun 2026 15:50:17 +0100
+Message-ID: <akPXqZQBKET1SyvN@LeoBrasDK>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <akKpxDulRN7zDrgM@kernel.org>
+References: <20260629111820.1873540-1-leo.bras@arm.com> <20260629111820.1873540-6-leo.bras@arm.com> <akKpxDulRN7zDrgM@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <aj5KJEIsTl6IK0nX@gmail.com>
-In-Reply-To: <aj5KJEIsTl6IK0nX@gmail.com>
-From: Jason Xing <kerneljasonxing@gmail.com>
-Date: Tue, 30 Jun 2026 22:49:00 +0800
-X-Gm-Features: AVVi8CeNolHc0bWFWi94se6V_El3cArCALeJfgf0e7sVp8JXgJSa3XDzBUrtcNM
-Message-ID: <CAL+tcoA6=_paEdqWaY7-VHdBeAxEFeMCfTECAEGv3C6ZqFUNSw@mail.gmail.com>
-Subject: Re: [ANNOUNCEMENT] LPC 2026: System Monitoring and Observability Microconference
-To: Breno Leitao <leitao@debian.org>
-Cc: linux-acpi@vger.kernel.org, linux-hwmon@vger.kernel.org, 
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, kernel-team@meta.com, 
-	linux-mm@kvack.org, iipeace5@gmail.com, gavinguo@igalia.com, 
-	linux@jordanrome.com, amscanne@meta.com, sj@kernel.org, gpiccoli@igalia.com, 
-	Daniel Gomez <da.gomez@kernel.org>, mfo@igalia.com, platform-driver-x86@vger.kernel.org, 
-	acpica-devel@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-On Fri, Jun 26, 2026 at 5:56=E2=80=AFPM Breno Leitao <leitao@debian.org> wr=
-ote:
->
-> We are pleased to announce the Call for Proposals (CFP) for another
-> edition of  System Monitoring and Observability Microconference, this
-> time at the 2026 Linux Plumbers Conference (LPC), taking place in
-> Prague, Czechia, from Oct 5-7, 2026.
->
->   https://lpc.events/event/20/sessions/262/
->
-> This microconference provides a valuable forum for key engineering areas
-> such as:
->
->    - Kernel Health and Runtime Monitoring
->    - Hardware Integration and Error Detection
->    - Correlation of Issues (crashes, stalls, bugs)
->    - Virtualization Stack Monitoring
->    - Memory Management Monitoring and Observability
->    - Anomaly Detection Algorithms for System Behavior
->    - Automated Analysis, Remediation and post mortem analyzes
->
-> The purpose of each talk is to share challenges and discuss potential
-> improvements. Sessions will last 20 to 30 minutes and aim to encourage
-> brainstorming and open dialogue about ongoing issues rather than
-> delivering immediate solutions.
->
-> The conference acts as both a knowledge-sharing platform and a strategic
-> venue for guiding the future of kernel technologies to better meet the
-> demands of large-scale infrastructure.
->
-> We invite you to submit your proposals here:
->         https://lpc.events/event/20/abstracts/
->
-> Please select track "Linux System Monitoring and Observability MC"
+On Mon, Jun 29, 2026 at 10:22:12AM -0700, Oliver Upton wrote:
+> On Mon, Jun 29, 2026 at 12:17:53PM +0100, Leonardo Bras wrote:
+> > Find via ACPI [1] the Id for HACDBSIRQ, initialize it as a per-cpu IRQ
+> > and make sure any cpu able to run virtualization has it active.
+> > 
+> > Introduce a per-cpu structure used by the HACDBSIRQ handler to keep track
+> > of entries size and the status of HACDBS. Size is used to detect end of
+> > processing in case the number of entries being processed is different of
+> > the supported entries size.
+> > 
+> > Status may look easily replaceable by checking HACDBS registers now, but
+> > will make the OFF/IDLE detection easier in next patches.
+> > 
+> > Signed-off-by: Leonardo Bras <leo.bras@arm.com>
+> > 
+> > [1] https://github.com/tianocore/edk2/issues/12409
+> 
+> Reference the ACPI specification instead please.
 
-A kind reminder: at the bottom of the page [1], please click the
-'Submit new abstract' button so that you will be able to quickly
-submit a new proposal. (Admittedly, it's a bit easy to miss the entry
-especially for the newcomers)
+It's not accepted yet, unfortunately. I commented that into the cover 
+letter, but forgot to add it here.
 
-If you have any questions/suggestions/problems, please do not hesitate
-to contact Breno or me.
+> Any link you want to
+> include in a changelog should use the Link: footer, the linkage to the
+> inline citation will be obvious.
 
-Again, proposals are greatly appreciated :)
+Sure, will remember that in the future.
 
-[1]: https://lpc.events/event/20/abstracts/
+> 
+> If we need to initialize the IRQ I'd really like to see device tree
+> bindings for HACDBSIRQ as well. Pretty much any system us plebs can get
+> our hands on is gonna be DT anyway.
 
-Thanks,
-Jason
+Agree. I started out with ACPI because that's what the main target is, as 
+dirty-logging is focused in Live Migration, which is usually more 
+appreciated in the server space, which generally uses ACPI.
+
+I spoke to some people, and I could not hear of anyone releasing a product 
+based in DT that would implement this yet, so I postponed the DT 
+enablement.
+
+> 
+> > +static irqreturn_t hacdbsirq_handler(int irq, void *pcpu)
+> > +{
+> > +	u64 cons = read_sysreg_s(SYS_HACDBSCONS_EL2);
+> > +	unsigned long err = FIELD_GET(HACDBSCONS_EL2_ERR_REASON, cons);
+> > +
+> > +	switch (err) {
+> > +	case HACDBSCONS_EL2_ERR_REASON_NOF:
+> > +		this_cpu_write(hacdbs_pcp.status, HACDBS_IDLE);
+> > +		break;
+> > +	case HACDBSCONS_EL2_ERR_REASON_IPAHACF:
+> > +		/* When size not a power of two >= 4k, exit with reserved TTLW */
+> > +		int index = FIELD_GET(HACDBSCONS_EL2_INDEX, cons);
+> > +
+> > +		if (index >= this_cpu_read(hacdbs_pcp.size)) {
+> > +			this_cpu_write(hacdbs_pcp.status, HACDBS_IDLE);
+> > +			break;
+> > +		}
+> > +		fallthrough;
+> > +	case HACDBSCONS_EL2_ERR_REASON_STRUCTF:
+> > +	case HACDBSCONS_EL2_ERR_REASON_IPAF:
+> > +		this_cpu_write(hacdbs_pcp.status, HACDBS_ERROR);
+> > +		break;
+> > +	}
+> > +
+> > +	return IRQ_HANDLED;
+> > +}
+> 
+> I have a pretty extreme distaste for creating a state machine between
+> the callsite and the IRQ handler. The callsite should poll HACDBS for
+> completion. The thread has nothing better to do anyway.
+
+Well, there is one argument it could just wait and save some energy, but I 
+agree it is not relevant in server space. The main reason I did this is 
+because I am planning on later doing an improved version of this that would 
+clean the dirty-bit *while* running the guest, and having the IRQ is needed 
+for exiting guest so we can notify userspace the cleaning is done. So I 
+laid the HACDBSIRQ infra here so we don't have both polling and IRQ options 
+happening. 
+
+That idea would require us to add new API (a return value for 'cleaned'), 
+and also a new flag for the clean ioctl. We also need the VMM to 
+implement that, but then we get a proper cpu usage of cleaning time.
+
+I wanted to start with a backwards compatible version, and do the above 
+idea once I put my hands in hardware that implements HACDBS, so I can 
+properly measure how much performance we get on above strategy.
+
+What do you think?
+
+Thanks!
+Leo
+
+  
