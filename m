@@ -1,225 +1,153 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 662FA2D592D
-	for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 12:30:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8495015B135
+	for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 12:33:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782822620; cv=none; b=mNpsW0K2soVsf+a34l6dQnx+/1NH4zAsNJfg0+0wdteAn3/17lNxUhjiZb7Nf54TWKND/OJNeKGiRQacf5Vcfz6D/Ph4vf1TNqe5DGmipZWjFW1LA42+w2DIankfb4ZEhNDGdOLL/1FbFHEP5svzuP5CVs6YObouGzVvyTYC9iE=
+	t=1782822805; cv=none; b=Ll2AfLD3oWi0UFloCQPSDgkFX5wfa57cPPeOMgpLkl5g74vPjBHGbFU35GOWDObSlhat7SFxMTKSLnqewJN8NxqtutuJaeR8l/HA+IaRJxPFUe7pa6RYmhjgmhjRrffxdvGCM7KRfKSKuQehsT56kaisZutR8EUwekJSZmIVM88=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782822620; c=relaxed/simple;
-	bh=hfXqEewk93D+FUsbaofsNn0qomDopXQdfOzQlurkq7o=;
+	s=arc-20240116; t=1782822805; c=relaxed/simple;
+	bh=9wNLEI+iMVleXl7q7uPKgvFOzElU5dKByOwpWV4y5Nk=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Veh8wnTRTf1banJW6U9gB0CRhhFxvs51NbXNg/z2uAAFHhFnmr5pjkbLpoTI+10H7w+5kglGkPNoJbhWsEFY7Z2Ggy+g4ZIHEdQGGAEbfOxXm3aRt99du/0qXN/mJ58cfkLIVid46bqb7t0V1oYPRocW/8aqS1PKL+ZyQuMHxVY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kmg3siW6; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=q/p0ev58mCxHEiT68hLW4/I8zgBIkCz4FWdkkJR37BSQWBaWpMAd18jmwG4Cmps6voXTGM44/BRCvp4wrPIYWG40s74lysaOwCEueBdtGTxW+sy7b5jAXme4TuAbpQi18EJOIhvRTcnPwoDeJZ8+W6EXs68+/3kEOgj3ShNsbGA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YJSHULi4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kmg3siW6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D8211F00A3D
-	for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 12:30:18 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YJSHULi4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DCC61F00A3A
+	for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 12:33:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782822618;
-	bh=9hQC8Wii73PuGExlNBe2LNpXMvG2fDQ4U9dsJbeQgOI=;
+	s=k20260515; t=1782822803;
+	bh=y4l/ItTQhtVzgs8BjuU395yo6q+E0W4sD6kjTOjFSaQ=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=kmg3siW6U2d+O4kZoft69jjTTkb4RR7Zumef+GKFriWZO3jfnNeYrKTd33ob2TCql
-	 UzZ+Roeo54yeRwf9qhKXAkwTC59Sgz9BSub5vudcKI3JQKmdIxt+j+jMNs/OcSwRCo
-	 ND+xFW5Qg+B7yHKfewZHB3bpZ7ZPpfgLqK6pj8fWb9uuPLCansph8hgE/YXXEP46H0
-	 ipQNAdvAXoBnECioyibd8iXfTqMLWpRxytnfRTEV23D9dip8yVFRz2d9Zrf+eEFRkg
-	 g9y+FAw/YtGOaTjalMogjhkpUkqpd7/NrOZXOQD1SQhTsvWtrLX9H0z8N7N2lr5XnJ
-	 V2ZNlrCgIls9w==
-Received: by mail-lj1-f171.google.com with SMTP id 38308e7fff4ca-39b26e2ad5eso2761781fa.0
-        for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 05:30:18 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RrfBKN5xmIadAZe5QHs4DETq3IPlfoLTFcG9SKFG/by6aqUuE6ynoFj4bBm2oLfoLlTglkFOSGC6Iue@vger.kernel.org
-X-Gm-Message-State: AOJu0YyLICsw5641MhaZ2njAAgJhxoPQm5QUijdzQVy//3OpY+4Sl3DM
-	jMlYmNdk+daO98HgFRTpbmYzcrRJt9RhVrkWvNAyzVAz4ff6cvPI5kVJoTWev/TnSwRKF/l7O0L
-	1ZymBL69JijIwIFVH4B0XCvFLeLj1FFU=
-X-Received: by 2002:a05:6512:1593:b0:5ae:aaba:ad28 with SMTP id
- 2adb3069b0e04-5aebdb9b8b0mr1009924e87.18.1782822616554; Tue, 30 Jun 2026
- 05:30:16 -0700 (PDT)
+	b=YJSHULi4GC6KXHl11tCz7r42IH76Qdolyf/ViCJgu0+5/ThqTZf85bPAKPCtz7OcF
+	 lyurf+hl8daoYZmxiGOHBF4dBEOpCOLhUUChaqJ6432Y54nPoBYhpvP5IS7sfuN7I5
+	 PfdySQZNZIF4f+D8aN1UGktCn1yrAUMH9V1kVD30rE2ljmswdPy4cqMhaK/nUpUSfI
+	 FAv8eA208UPpK6dRoW4Va4eb/cCDj86voKWsKeyCePIfk+txxCe2wQL9JfdxAkxoiH
+	 /CO2mvZU0M7hRaBKj5kjmSQDZrolGs5Cq4gD0D/U93pm8rpKxnCh3UbvNiTZrUuDpz
+	 V3SPe1BnDXiQA==
+Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-5aeb2df5cc1so2122930e87.3
+        for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 05:33:23 -0700 (PDT)
+X-Gm-Message-State: AOJu0Yxc9ZZ2bzdQBYAcFzbVEmnsVNuFrFba9wrp7e0IvBgDp9wPfWUK
+	NMxUbalEs5lik0bKOqZ1y2ixRehezuFn8W4udYvs/UFNfaLjSPwLcD9MJrWgMuPg+T7B+cCWd7l
+	Mt7u5zCR6CXKaQB9oLtCV+Nt9MLKDcas=
+X-Received: by 2002:a05:6512:3b9e:b0:5ae:b0a8:7d73 with SMTP id
+ 2adb3069b0e04-5aec10d13ebmr137621e87.64.1782822801648; Tue, 30 Jun 2026
+ 05:33:21 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260629060526.3638272-1-jgross@suse.com> <20260629060526.3638272-5-jgross@suse.com>
-In-Reply-To: <20260629060526.3638272-5-jgross@suse.com>
+References: <20260627-acpi_pcc_signature-v1-0-c1b7268d4fdc@kernel.org> <20260627-acpi_pcc_signature-v1-6-c1b7268d4fdc@kernel.org>
+In-Reply-To: <20260627-acpi_pcc_signature-v1-6-c1b7268d4fdc@kernel.org>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 30 Jun 2026 14:30:03 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0itUVZ6=GCbRomkMiesy5uhZVWWjsUbqFqsZTyNeCBAbQ@mail.gmail.com>
-X-Gm-Features: AVVi8CcZ-j7ZEcr0YN-CV6kjjpEG6COZMEpi7vzFNh0Cr5CIdXZ0IOyveije_5E
-Message-ID: <CAJZ5v0itUVZ6=GCbRomkMiesy5uhZVWWjsUbqFqsZTyNeCBAbQ@mail.gmail.com>
-Subject: Re: [PATCH 04/32] acpi: Stop using 32-bit MSR interfaces
-To: Juergen Gross <jgross@suse.com>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-pm@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
-	Pavel Machek <pavel@kernel.org>, Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
-	Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, 
-	"H. Peter Anvin" <hpa@zytor.com>
+Date: Tue, 30 Jun 2026 14:33:08 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0j5RtaadVjTLm7rghNiz_9b4_Rs4PPQZgAinud7tssgEA@mail.gmail.com>
+X-Gm-Features: AVVi8CfGfb0xWQBROsz_cDgWR2p9nMI6GsLFxFQ3ACKQ4JP75mMLEFOg7mdWpMc
+Message-ID: <CAJZ5v0j5RtaadVjTLm7rghNiz_9b4_Rs4PPQZgAinud7tssgEA@mail.gmail.com>
+Subject: Re: [PATCH 6/6] ACPI: PCC: Preserve shared memory signature in
+ OpRegion handler
+To: Sudeep Holla <sudeep.holla@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	"Rafael J. Wysocki" <rafael@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jun 29, 2026 at 8:05=E2=80=AFAM Juergen Gross <jgross@suse.com> wro=
-te:
+On Sat, Jun 27, 2026 at 6:39=E2=80=AFPM Sudeep Holla <sudeep.holla@kernel.o=
+rg> wrote:
 >
-> The 32-bit MSR interfaces rdmsr(), wrmsr(), rdmsr_safe() and
-> wrmsr_safe() are planned to be removed. Use the related 64-bit variants
-> instead.
+> ACPI defines a PCC OperationRegion as the shared memory fields that
+> follow the PCC signature. The OperationRegion length is likewise the
+> total size of the fields that succeed the signature in shared memory.
 >
-> In processor_throttling.c drop needless initializers.
+> ACPI 6.6 adds clarification that the PCC shared memory signature is
+> populated by the platform and verified by OSPM.
 >
-> Signed-off-by: Juergen Gross <jgross@suse.com>
+> The PCC address space handler currently copies the OperationRegion
+> buffer to and from the start of the PCC shared memory region. That can
+> overwrite or expose the signature at byte offset 0, and it also misses
+> the last 4 bytes of the actual PCC OperationRegion data.
+>
+> Offset OperationRegion copies by the size of the signature and reject
+> regions that do not fit in the shared memory after that signature.
+>
+> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> Fixes: 77e2a04745ff ("ACPI: PCC: Implement OperationRegion handler for th=
+e PCC Type 3 subtype")
+> Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
 
-LGTM overall.
-
-Do you want me to pick it up or do you prefer to route it along with
-the rest of the series?
+Does this depend on anything else in the series or is it independent?
 
 > ---
->  arch/x86/kernel/acpi/sleep.c        | 20 ++++++++------------
->  drivers/acpi/processor_perflib.c    | 11 ++++++-----
->  drivers/acpi/processor_throttling.c | 14 ++------------
->  3 files changed, 16 insertions(+), 29 deletions(-)
+>  drivers/acpi/acpi_pcc.c | 20 ++++++++++++++++----
+>  1 file changed, 16 insertions(+), 4 deletions(-)
 >
-> diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
-> index 91fa262f0e30..8dfe98784bf9 100644
-> --- a/arch/x86/kernel/acpi/sleep.c
-> +++ b/arch/x86/kernel/acpi/sleep.c
-> @@ -61,6 +61,7 @@ int x86_acpi_suspend_lowlevel(void)
->  {
->         struct wakeup_header *header =3D
->                 (struct wakeup_header *) __va(real_mode_header->wakeup_he=
-ader);
-> +       struct msr val;
->
->         if (header->signature !=3D WAKEUP_HEADER_SIGNATURE) {
->                 printk(KERN_ERR "wakeup header does not match\n");
-> @@ -82,13 +83,10 @@ int x86_acpi_suspend_lowlevel(void)
->          * with 2-MB L2 Cache and Intel=C2=AE Processor A100 and A110 on =
-90
->          * nm process with 512-KB L2 Cache Specification Update".
->          */
-> -       if (!rdmsr_safe(MSR_EFER,
-> -                       &header->pmode_efer_low,
-> -                       &header->pmode_efer_high) &&
-> -           !wrmsr_safe(MSR_EFER,
-> -                       header->pmode_efer_low,
-> -                       header->pmode_efer_high))
-> +       if (!rdmsrq_safe(MSR_EFER, &val.q) && !wrmsrq_safe(MSR_EFER, val.=
-q))
->                 header->pmode_behavior |=3D (1 << WAKEUP_BEHAVIOR_RESTORE=
-_EFER);
-> +       header->pmode_efer_low =3D val.l;
-> +       header->pmode_efer_high =3D val.h;
->  #endif /* !CONFIG_64BIT */
->
->         header->pmode_cr0 =3D read_cr0();
-> @@ -96,14 +94,12 @@ int x86_acpi_suspend_lowlevel(void)
->                 header->pmode_cr4 =3D __read_cr4();
->                 header->pmode_behavior |=3D (1 << WAKEUP_BEHAVIOR_RESTORE=
-_CR4);
->         }
-> -       if (!rdmsr_safe(MSR_IA32_MISC_ENABLE,
-> -                       &header->pmode_misc_en_low,
-> -                       &header->pmode_misc_en_high) &&
-> -           !wrmsr_safe(MSR_IA32_MISC_ENABLE,
-> -                       header->pmode_misc_en_low,
-> -                       header->pmode_misc_en_high))
-> +       if (!rdmsrq_safe(MSR_IA32_MISC_ENABLE, &val.q) &&
-> +           !wrmsrq_safe(MSR_IA32_MISC_ENABLE, val.q))
->                 header->pmode_behavior |=3D
->                         (1 << WAKEUP_BEHAVIOR_RESTORE_MISC_ENABLE);
-> +       header->pmode_misc_en_low =3D val.l;
-> +       header->pmode_misc_en_high =3D val.h;
->         header->realmode_flags =3D acpi_realmode_flags;
->         header->real_magic =3D 0x12345678;
->
-> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_pe=
-rflib.c
-> index fdf55c285c9a..9e25d6124efd 100644
-> --- a/drivers/acpi/processor_perflib.c
-> +++ b/drivers/acpi/processor_perflib.c
-> @@ -287,7 +287,8 @@ static int acpi_processor_get_performance_control(str=
-uct acpi_processor *pr)
+> diff --git a/drivers/acpi/acpi_pcc.c b/drivers/acpi/acpi_pcc.c
+> index 438c67189511..9881c9ee293d 100644
+> --- a/drivers/acpi/acpi_pcc.c
+> +++ b/drivers/acpi/acpi_pcc.c
+> @@ -28,6 +28,7 @@
+>   * to PCC commands
 >   */
->  static void amd_fixup_frequency(struct acpi_processor_px *px, int i)
->  {
-> -       u32 hi, lo, fid, did;
-> +       struct msr val;
-> +       u32 fid, did;
->         int index =3D px->control & 0x00000007;
+>  #define PCC_CMD_WAIT_RETRIES_NUM       500ULL
+> +#define PCC_SIGNATURE_SIZE             sizeof(u32)
 >
->         if (boot_cpu_data.x86_vendor !=3D X86_VENDOR_AMD)
-> @@ -295,16 +296,16 @@ static void amd_fixup_frequency(struct acpi_process=
-or_px *px, int i)
->
->         if ((boot_cpu_data.x86 =3D=3D 0x10 && boot_cpu_data.x86_model < 1=
-0) ||
->             boot_cpu_data.x86 =3D=3D 0x11) {
-> -               rdmsr(MSR_AMD_PSTATE_DEF_BASE + index, lo, hi);
-> +               rdmsrq(MSR_AMD_PSTATE_DEF_BASE + index, val.q);
->                 /*
->                  * MSR C001_0064+:
->                  * Bit 63: PstateEn. Read-write. If set, the P-state is v=
-alid.
->                  */
-> -               if (!(hi & BIT(31)))
-> +               if (!(val.h & BIT(31)))
->                         return;
->
-> -               fid =3D lo & 0x3f;
-> -               did =3D (lo >> 6) & 7;
-> +               fid =3D val.l & 0x3f;
-> +               did =3D (val.l >> 6) & 7;
->                 if (boot_cpu_data.x86 =3D=3D 0x10)
->                         px->core_frequency =3D (100 * (fid + 0x10)) >> di=
-d;
->                 else
-> diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor=
-_throttling.c
-> index c0f92b93747d..d1605e0ab61f 100644
-> --- a/drivers/acpi/processor_throttling.c
-> +++ b/drivers/acpi/processor_throttling.c
-> @@ -698,20 +698,13 @@ static int acpi_processor_get_throttling_fadt(struc=
-t acpi_processor *pr)
->  #ifdef CONFIG_X86
->  static int acpi_throttling_rdmsr(u64 *value)
->  {
-> -       u64 msr_high, msr_low;
-> -       u64 msr =3D 0;
->         int ret =3D -1;
->
->         if ((this_cpu_read(cpu_info.x86_vendor) !=3D X86_VENDOR_INTEL) ||
->                 !this_cpu_has(X86_FEATURE_ACPI)) {
->                 pr_err("HARDWARE addr space,NOT supported yet\n");
->         } else {
-> -               msr_low =3D 0;
-> -               msr_high =3D 0;
-> -               rdmsr_safe(MSR_IA32_THERM_CONTROL,
-> -                       (u32 *)&msr_low, (u32 *) &msr_high);
-> -               msr =3D (msr_high << 32) | msr_low;
-> -               *value =3D (u64) msr;
-> +               rdmsrq_safe(MSR_IA32_THERM_CONTROL, value);
->                 ret =3D 0;
+>  struct pcc_data {
+>         struct pcc_mbox_chan *pcc_chan;
+> @@ -74,6 +75,14 @@ acpi_pcc_address_space_setup(acpi_handle region_handle=
+, u32 function,
 >         }
->         return ret;
-> @@ -720,15 +713,12 @@ static int acpi_throttling_rdmsr(u64 *value)
->  static int acpi_throttling_wrmsr(u64 value)
->  {
->         int ret =3D -1;
-> -       u64 msr;
 >
->         if ((this_cpu_read(cpu_info.x86_vendor) !=3D X86_VENDOR_INTEL) ||
->                 !this_cpu_has(X86_FEATURE_ACPI)) {
->                 pr_err("HARDWARE addr space,NOT supported yet\n");
->         } else {
-> -               msr =3D value;
-> -               wrmsr_safe(MSR_IA32_THERM_CONTROL,
-> -                       msr & 0xffffffff, msr >> 32);
-> +               wrmsrq_safe(MSR_IA32_THERM_CONTROL, value);
->                 ret =3D 0;
->         }
->         return ret;
+>         pcc_chan =3D data->pcc_chan;
+> +       if (pcc_chan->shmem_size < PCC_SIGNATURE_SIZE ||
+> +           ctx->length > pcc_chan->shmem_size - PCC_SIGNATURE_SIZE) {
+> +               pr_err("PCC channel-%d shared memory is too small.\n",
+> +                      ctx->subspace_id);
+> +               ret =3D AE_AML_REGION_LIMIT;
+> +               goto err_free_channel;
+> +       }
+> +
+>         if (!pcc_chan->mchan->mbox->txdone_irq) {
+>                 pr_err("This channel-%d does not support interrupt.\n",
+>                        ctx->subspace_id);
+> @@ -97,14 +106,17 @@ acpi_pcc_address_space_handler(u32 function, acpi_ph=
+ysical_address addr,
+>                                u32 bits, acpi_integer *value,
+>                                void *handler_context, void *region_contex=
+t)
+>  {
+> -       int ret;
+>         struct pcc_data *data =3D region_context;
+> +       void __iomem *pcc_opregion;
+>         u64 usecs_lat;
+> +       int ret;
+> +
+> +       pcc_opregion =3D data->pcc_chan->shmem + PCC_SIGNATURE_SIZE;
+>
+>         reinit_completion(&data->done);
+>
+> -       /* Write to Shared Memory */
+> -       memcpy_toio(data->pcc_chan->shmem, (void *)value, data->ctx.lengt=
+h);
+> +       /* Write to the PCC OperationRegion after the shared memory signa=
+ture. */
+> +       memcpy_toio(pcc_opregion, (void *)value, data->ctx.length);
+>
+>         ret =3D mbox_send_message(data->pcc_chan->mchan, NULL);
+>         if (ret < 0)
+> @@ -125,7 +137,7 @@ acpi_pcc_address_space_handler(u32 function, acpi_phy=
+sical_address addr,
+>
+>         mbox_chan_txdone(data->pcc_chan->mchan, ret);
+>
+> -       memcpy_fromio(value, data->pcc_chan->shmem, data->ctx.length);
+> +       memcpy_fromio(value, pcc_opregion, data->ctx.length);
+>
+>         return AE_OK;
+>  }
+>
 > --
-> 2.54.0
->
+> 2.43.0
 >
