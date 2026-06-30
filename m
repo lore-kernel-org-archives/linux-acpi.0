@@ -1,186 +1,148 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A959F2F8E98;
-	Tue, 30 Jun 2026 17:19:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mail-pl1-f202.google.com (mail-pl1-f202.google.com [209.85.214.202])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42CDE272816
+	for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 18:59:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.202
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782839958; cv=none; b=qqNDl3tX7XMfbPZ5xWNvGz4qQD28bdnRh6f8QuwMWsdjkjIx9+opeeGUHWwcnQfTOFjhT2otG0jdFIAjK3aR42+Ig1s0jgRXvJ7fUAiAr1CGbvrDqwXSTIT7Pcmm/ftKAPyDnSEkPnBkYB/j3HDhkWfta+nPch2kr5Bd/E5qFYU=
+	t=1782845945; cv=none; b=mCLd1okb2844muMM35qbuWgimcHnmmeS36E6iHeYkGtk2jmLDBGQg40PaQPsxnKgQYAIi+U/C2ev9pXqP7XvOtrihHr77E56+rdMB/xMwlW9h2WJWR4sRFPYsZ3fBNWEmwavVVbwBEDe+wA7wXzHNmaf0jdo3U+lRh2JCmVEEEo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782839958; c=relaxed/simple;
-	bh=aazyiOP5gAY0bGpQA8a3lTuATbta7rr4eQjJ8XAQf3Q=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type:Content-Disposition; b=dy9LfsiUXQWsjFULXEew5KP5BAWMSPkqFdPaPBSFqEAyQkuF92lGQrVWyA+WMsWfuCxeFOhSVr2CxmS21eV0vo52rkMiAYXCcmrxieL0mOomnKOIG02p27SVcitNAF29c5NSmjoeARnYvxbvVOwMWuTTJSd+VXrQ85aPhmF4g6Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=Jjk8ATcJ; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1782845945; c=relaxed/simple;
+	bh=XGgg+xXUmnlRvAbgTK542VK34Jp1hfwPb9Na535wrug=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=BMgWJglRA2H8XklqDXZCgzUUOV5xVUKDCI5E6GVnaQD2VTNJ3baj3+QZZn9LWxXAJMNt49e4GOWvaSqiBvUJfkP5/BbwHOtFw06KidyUHcN78ikvxMdvihQH+vVma72ZADIEluClco1ocakZF2tvQoXqJYBouVscdQqiLMs4f+A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--seanjc.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=I/3WEowT; arc=none smtp.client-ip=209.85.214.202
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--seanjc.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="Jjk8ATcJ"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 80366302A;
-	Tue, 30 Jun 2026 10:19:11 -0700 (PDT)
-Received: from LeoBrasDK.cambridge.arm.com (LeoBrasDK.cambridge.arm.com [10.2.212.21])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id DA8F93F66F;
-	Tue, 30 Jun 2026 10:19:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1782839955; bh=aazyiOP5gAY0bGpQA8a3lTuATbta7rr4eQjJ8XAQf3Q=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Jjk8ATcJ/w4lQ2tQuYzbPDUWPKAvdrvCuZPd0MuwQFPa6Xl1hy6DH++N0pV1P9m+f
-	 5d9nE7JFlgLUZGnzlF8YRqgMBaujBQ//Vn3nB1O3zYaLLmzdB9Xpmkf6rnW9sTJYG9
-	 Hp+DDsFHjmc1R83uBUDzYElhivgIw5vK3F9ZanQg=
-From: Leonardo Bras <leo.bras@arm.com>
-To: Oliver Upton <oupton@kernel.org>
-Cc: Leonardo Bras <leo.bras@arm.com>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	Marc Zyngier <maz@kernel.org>,
-	Joey Gouly <joey.gouly@arm.com>,
-	Steffen Eiden <seiden@linux.ibm.com>,
-	Suzuki K Poulose <suzuki.poulose@arm.com>,
-	Zenghui Yu <yuzenghui@huawei.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Saket Dumbre <saket.dumbre@intel.com>,
-	Paolo Bonzini <pbonzini@redhat.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Chengwen Feng <fengchengwen@huawei.com>,
-	Kees Cook <kees@kernel.org>,
-	=?utf-8?Q?Miko=C5=82aj?= Lenczewski <miko.lenczewski@arm.com>,
-	James Morse <james.morse@arm.com>,
-	Zeng Heng <zengheng4@huawei.com>,
-	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
-	Thomas Huth <thuth@redhat.com>,
-	Ryan Roberts <ryan.roberts@arm.com>,
-	Yeoreum Yun <yeoreum.yun@arm.com>,
-	Mark Brown <broonie@kernel.org>,
-	Kevin Brodsky <kevin.brodsky@arm.com>,
-	James Clark <james.clark@linaro.org>,
-	Fuad Tabba <tabba@google.com>,
-	Raghavendra Rao Ananta <rananta@google.com>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Sascha Bischoff <Sascha.Bischoff@arm.com>,
-	Anshuman Khandual <anshuman.khandual@arm.com>,
-	Tian Zheng <zhengtian10@huawei.com>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	kvmarm@lists.linux.dev,
-	linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev,
-	kvm@vger.kernel.org
-Subject: Re: [PATCH v2 05/13] KVM: arm64: Detect (via ACPI) and initialize HACDBSIRQ
-Date: Tue, 30 Jun 2026 18:19:08 +0100
-Message-ID: <akP6jAargbR5jUUu@LeoBrasDK>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <akPoyAGX5_ankwWD@kernel.org>
-References: <20260629111820.1873540-1-leo.bras@arm.com> <20260629111820.1873540-6-leo.bras@arm.com> <akKpxDulRN7zDrgM@kernel.org> <akPXqZQBKET1SyvN@LeoBrasDK> <akPoyAGX5_ankwWD@kernel.org>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="I/3WEowT"
+Received: by mail-pl1-f202.google.com with SMTP id d9443c01a7336-2c80be91ea3so72927185ad.1
+        for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 11:59:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1782845943; x=1783450743; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=e+HRXjFGgcPzOleYtd12nce6K890KkClpjKYcrzynFs=;
+        b=I/3WEowTJRiihaVlRhDqzwj+YFRhy3c6bZt1KMXwh9x+om89q3OC+JV0rMtABHuHPF
+         qKTGPEF+LctDdirA+uM3nYkHMtqx7fzxbKIo7F/ANMmPr47Kwsrrnm8E9Yb1Y2eCZ8WT
+         pb40zvGu2vMFonNzF5uChbhNUm+4Abp0wLfh+8tBFirSreUkERpYPrulspJkbT2ABs3t
+         54e3TQ4JLV7EMB4ti1zVIN8Zf+GguCJY/CTwPz2Vs6GJbsvvrBWQB+i8mbiTIY3WqJ2b
+         z/S25V9ZGlAtRn3L2wb//Dbu0OlwWKm5mOpsVZXv+wJ2t9RD6W6vx1WOb8AUFiiio86v
+         g6uQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1782845943; x=1783450743;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=e+HRXjFGgcPzOleYtd12nce6K890KkClpjKYcrzynFs=;
+        b=SiEpmATEcscBjgf2nMrf6V+yurCwXwM4r+3RmmckDjiKr7N5Pstbayt7Okrz6jnatr
+         NfQguscoE2Hvek1f0nPkBQ7F8rhkrCcFEdNDp34VHqPQKuKyclPacBQizgyRAuaYbZFV
+         47u2aYa9y785l7U8467INkwRHLmJM+gg5BGbr6t8kU7U6p0BLeUZOsFQ4dUybSX1gXDO
+         7TcEZLGp4mzqGBT264thuIdAMUEdqdQvUn4OTnueprpVn2rJNXvliS2aZyAhYiVEYEyp
+         0od0ivuldhDMGk4TnQDmoAtFdYHQrjI3fdyBKv/y/4HOnM+jUARkWkYtuNnVBhAMeFHv
+         cFnQ==
+X-Forwarded-Encrypted: i=1; AHgh+RqDAxh8j3jNppD9Inwo50Hh6JUw0TAMPAI1MHacb5eV7iAXJ1DCgGbhnaN059I2nPs9xGhTAsjhW6h2@vger.kernel.org
+X-Gm-Message-State: AOJu0YyabF0af402jey6vGHY1MDLEm3i6BuiT8YItpd7vtmxRMhpYh6V
+	FG4QuVfJwe4B7nFuumR6dCb3R19BJpiu3KDfa8Qs3MvSSxn1XnipdBzacKE9TbtbdRlj7kI5rQn
+	XmJSjLg==
+X-Received: from plbko12.prod.google.com ([2002:a17:903:7cc:b0:2c6:9f66:d581])
+ (user=seanjc job=prod-delivery.src-stubby-dispatcher) by 2002:a17:903:acd:b0:2c9:c517:d075
+ with SMTP id d9443c01a7336-2ca5a581ab5mr15124165ad.15.1782845942348; Tue, 30
+ Jun 2026 11:59:02 -0700 (PDT)
+Date: Tue, 30 Jun 2026 11:59:01 -0700
+In-Reply-To: <akJUz0kYkEBdLSZ3@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+References: <20260629060526.3638272-1-jgross@suse.com> <d7c1db52-529a-43cc-ac7d-38b52627e8bc@app.fastmail.com>
+ <c1608c48-13c2-4290-826b-28b5ca51eaf7@suse.com> <7332feff-2649-496c-8e49-b0a19eb54a32@app.fastmail.com>
+ <akJUz0kYkEBdLSZ3@gmail.com>
+Message-ID: <akQR9YMtMHReJTfB@google.com>
+Subject: Re: [PATCH 00/32] x86/msr: Drop 32-bit MSR interfaces
+From: Sean Christopherson <seanjc@google.com>
+To: Ingo Molnar <mingo@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Juergen Gross <jgross@suse.com>, linux-kernel@vger.kernel.org, 
+	linux-pm@vger.kernel.org, 
+	"linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, x86@kernel.org, linux-acpi@vger.kernel.org, 
+	kvm@vger.kernel.org, linux-coco@lists.linux.dev, linux-pci@vger.kernel.org, 
+	virtualization@lists.linux.dev, linux-ide@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org, 
+	linux-crypto@vger.kernel.org, 
+	"open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, linux-hyperv@vger.kernel.org, 
+	linux-hwmon@vger.kernel.org, linux-perf-users@vger.kernel.org, 
+	linux-mtd@lists.infradead.org, platform-driver-x86@vger.kernel.org, 
+	"Rafael J . Wysocki" <rafael@kernel.org>, Daniel Lezcano <daniel.lezcano@kernel.org>, 
+	Zhang Rui <rui.zhang@intel.com>, "lukasz.luba@arm.com" <lukasz.luba@arm.com>, 
+	Jason Baron <jbaron@akamai.com>, Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>, 
+	Yazen Ghannam <yazen.ghannam@amd.com>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@kernel.org>, 
+	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, 
+	Paolo Bonzini <pbonzini@redhat.com>, "Kirill A. Shutemov" <kas@kernel.org>, 
+	Rick Edgecombe <rick.p.edgecombe@intel.com>, Pu Wen <puwen@hygon.cn>, 
+	Bjorn Helgaas <bhelgaas@google.com>, Ajay Kaher <ajay.kaher@broadcom.com>, 
+	Alexey Makhalov <alexey.makhalov@broadcom.com>, 
+	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, 
+	Viresh Kumar <viresh.kumar@linaro.org>, Reinette Chatre <reinette.chatre@intel.com>, 
+	Dave Martin <Dave.Martin@arm.com>, James Morse <james.morse@arm.com>, 
+	Babu Moger <babu.moger@amd.com>, Tony W Wang-oc <TonyWWang-oc@zhaoxin.com>, 
+	Damien Le Moal <dlemoal@kernel.org>, Niklas Cassel <cassel@kernel.org>, Dave Airlie <airlied@redhat.com>, 
+	Helge Deller <deller@gmx.de>, linux-geode@lists.infradead.org, 
+	Olivia Mackall <olivia@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, 
+	Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, 
+	Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>, 
+	Dexuan Cui <decui@microsoft.com>, Long Li <longli@microsoft.com>, 
+	Guenter Roeck <linux@roeck-us.net>, Peter Zijlstra <peterz@infradead.org>, 
+	Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
+	Mark Rutland <mark.rutland@arm.com>, 
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@kernel.org>, 
+	Ian Rogers <irogers@google.com>, Adrian Hunter <adrian.hunter@intel.com>, 
+	James Clark <james.clark@linaro.org>, Josh Poimboeuf <jpoimboe@kernel.org>, 
+	Pawan Gupta <pawan.kumar.gupta@linux.intel.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, 
+	Andy Lutomirski <luto@kernel.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, 
+	Huang Rui <ray.huang@amd.com>, Mario Limonciello <mario.limonciello@amd.com>, 
+	Perry Yuan <perry.yuan@amd.com>, K Prateek Nayak <kprateek.nayak@amd.com>, 
+	"srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, 
+	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, Artem Bityutskiy <dedekind1@gmail.com>, 
+	Miquel Raynal <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>, 
+	Vignesh Raghavendra <vigneshr@ti.com>, Ashok Raj <ashok.raj.linux@gmail.com>, 
+	Hans de Goede <hansg@kernel.org>, 
+	"Ilpo =?utf-8?B?SsOkcnZpbmVu?=" <ilpo.jarvinen@linux.intel.com>, 
+	Rajneesh Bhardwaj <irenic.rajneesh@gmail.com>, David E Box <david.e.box@intel.com>, 
+	xen-devel@lists.xenproject.org
+Content-Type: text/plain; charset="us-ascii"
 
-On Tue, Jun 30, 2026 at 09:03:20AM -0700, Oliver Upton wrote:
-> On Tue, Jun 30, 2026 at 03:50:17PM +0100, Leonardo Bras wrote:
-> > On Mon, Jun 29, 2026 at 10:22:12AM -0700, Oliver Upton wrote:
-> > > If we need to initialize the IRQ I'd really like to see device tree
-> > > bindings for HACDBSIRQ as well. Pretty much any system us plebs can get
-> > > our hands on is gonna be DT anyway.
+On Mon, Jun 29, 2026, Ingo Molnar wrote:
+> * Arnd Bergmann <arnd@arndb.de> wrote:
+> 
+> > >>> Note that most patches of this series are independent from each other.
+> > >>> Only the patches removing a specific interface (patches 7, 15, 26 and
+> > >>> 30) and the last two patches of the series depend on all previous
+> > >>> patches.
+> > >> 
+> > >> It looks like you are touching most files twice or more here, to
+> > >> first convert from rdmsr to rdmsrq and then to change the
+> > >> two-argument rdmsrq() macro to a single-argument inline. If you
+> > >> introduce the inline version of rdmsrq() first, you should be
+> > >> able to skip the second step (patch 31) as they could be able
+> > >> to coexist.
+> > >
+> > > I've discussed how to structure the series with Ingo Molnar before [1]. The
+> > > current approach was his preference.
 > > 
-> > Agree. I started out with ACPI because that's what the main target is, as 
-> > dirty-logging is focused in Live Migration, which is usually more 
-> > appreciated in the server space, which generally uses ACPI.
-> > 
-> > I spoke to some people, and I could not hear of anyone releasing a product 
-> > based in DT that would implement this yet, so I postponed the DT 
-> > enablement.
+> > Ok.
 > 
-> Nested virt is always a good example. In some distant future KVM could
-> expose FEAT_HACDBS to the L1 hypervisor, and the VMM may be using DT
-> instead of ACPI (like kvmtool).
-
-Oh, good point.
-
+> Note that the individual patches are IMO significantly easier to review
+> through the actual 32-bit => 64-bit variable assignment changes done
+> in isolation (which sometimes include minor cleanups), while
+> the Coccinelle semantic patch:
 > 
-> > > 
-> > > > +static irqreturn_t hacdbsirq_handler(int irq, void *pcpu)
-> > > > +{
-> > > > +	u64 cons = read_sysreg_s(SYS_HACDBSCONS_EL2);
-> > > > +	unsigned long err = FIELD_GET(HACDBSCONS_EL2_ERR_REASON, cons);
-> > > > +
-> > > > +	switch (err) {
-> > > > +	case HACDBSCONS_EL2_ERR_REASON_NOF:
-> > > > +		this_cpu_write(hacdbs_pcp.status, HACDBS_IDLE);
-> > > > +		break;
-> > > > +	case HACDBSCONS_EL2_ERR_REASON_IPAHACF:
-> > > > +		/* When size not a power of two >= 4k, exit with reserved TTLW */
-> > > > +		int index = FIELD_GET(HACDBSCONS_EL2_INDEX, cons);
-> > > > +
-> > > > +		if (index >= this_cpu_read(hacdbs_pcp.size)) {
-> > > > +			this_cpu_write(hacdbs_pcp.status, HACDBS_IDLE);
-> > > > +			break;
-> > > > +		}
-> > > > +		fallthrough;
-> > > > +	case HACDBSCONS_EL2_ERR_REASON_STRUCTF:
-> > > > +	case HACDBSCONS_EL2_ERR_REASON_IPAF:
-> > > > +		this_cpu_write(hacdbs_pcp.status, HACDBS_ERROR);
-> > > > +		break;
-> > > > +	}
-> > > > +
-> > > > +	return IRQ_HANDLED;
-> > > > +}
-> > > 
-> > > I have a pretty extreme distaste for creating a state machine between
-> > > the callsite and the IRQ handler. The callsite should poll HACDBS for
-> > > completion. The thread has nothing better to do anyway.
-> > 
-> > Well, there is one argument it could just wait and save some energy, but I 
-> > agree it is not relevant in server space.
+>    { a(b,c) => c = a(b) }
 > 
-> I wouldn't suggest polling in a tight loop :) I'd say use something like
-> __mdelay() to get the core into a low-power state w/o using a naked WFI.
-> In fact, that already uses WFxT under the hood.
+> which changes both the function signature and the order of terms as
+> well, is just a single add-on treewide patch.
 
-Awesome!
-
-> 
-> > The main reason I did this is 
-> > because I am planning on later doing an improved version of this that would 
-> > clean the dirty-bit *while* running the guest, and having the IRQ is needed 
-> > for exiting guest so we can notify userspace the cleaning is done. So I 
-> > laid the HACDBSIRQ infra here so we don't have both polling and IRQ options 
-> > happening. 
-> > 
-> > That idea would require us to add new API (a return value for 'cleaned'), 
-> > and also a new flag for the clean ioctl. We also need the VMM to 
-> > implement that, but then we get a proper cpu usage of cleaning time.
-> >
-> > I wanted to start with a backwards compatible version, and do the above 
-> > idea once I put my hands in hardware that implements HACDBS, so I can 
-> > properly measure how much performance we get on above strategy.
-> > 
-> > What do you think?
-> 
-> Yeah, I'd want to see some extremely compelling performance numbers for
-> this approach before considering it, alongside the necessary VMM patches
-> to actually activate it.
-> 
-> Seems likely to me that the VMM will want the background thread back
-> ASAP that calls the clean ioctl so you'll need to work out how to cope
-> with idle vCPUs in that case.
-
-Fair point, HACDBS should be disabled if the vcpu gets scheduled-out, so we 
-would need to be sure the vcpus stay scheduled, or the cleaning may take 
-too long.
-
-> 
-> Even still, with this hypothetical approach I'd expect KVM to inspect
-> the HACDBS state on every exit. The IRQ is just a convenient kick back
-> out to the main KVM_RUN loop.
-
-Got it. Will use the HACDBSCONS register instead to get that info on 
-stopping.
-
-Thanks!
-Leo
+Is the plan for subsystem maintainers to pick up the relevant patches, and then
+do the treewide change one release cycle later?
