@@ -1,96 +1,118 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B07D13FD139
-	for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 10:55:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 544C64071E2;
+	Tue, 30 Jun 2026 10:56:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782816924; cv=none; b=YciWZJvu/G7p14QmfLaKvohVT+rs6x+UZ3h+McBZu7KuTOn5Y2Dh9dUmKXx1gLKFmRTYxli4WAkq7uXTrdp5GhyUKS9BOuZFfHbZ+wX/jgwp4Fr/0k/SJ9zB6EJ47f5LAmB9OGJa3OZnjM3DlbqCEPB/dJ01FzODm0Ezx60kr+M=
+	t=1782816964; cv=none; b=LFhjnhgJ8pNDFxm+ytY2/c32NkaYW9VcEjl1hRN2VF8tqUlI3PYAdttE+yUjUXBKX2nvxhQSBF85kscTZ03YFoLDsHLUQ23mnXxEEMmCkwUpzC/5bYiSJRZmAH0ieAosaBpOVYA37MiDTV+MgKy0pggTeeR2cA/NhUgCXhJ8C14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782816924; c=relaxed/simple;
-	bh=qSUtpQyBjxZ2D2uiJLh9kaqj5j88aU8VMGZNXW+BBOc=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=UEgow8MMn9+bCaak4DhXi7Pzc5jR5nzxsb1+Ln4ay2LNCsWkcmO7mWxSBhZ0NwNqyKMqDgPanVtaZQS90IqEz1QrgsLwLvzdjeHt18BM6EK22/mjMcVJNoz0l03K6nI5AioeDkpvXOuRNxJn2NaSQoOYAECmjLzA/i5pnd1S6CU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=a4sK+8R1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782816964; c=relaxed/simple;
+	bh=nH2FPVZuqwa+vwMtZvdqudzPlttvyZ5wsFDag/z2n0w=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=uS7gLoGqqR0xtecUUF5ENgSU0UxBx3PrllQctkUxC6xKITZeiAT481Yj8PVlt7+pDor8Cnaq9pz3nl/yZHFvpBKSrPp23z41iv0PKbjwatIpf/4hqwX/t8x9vK4oghmpblw8Iqf7yFV/IzSi2g9PSzyFHNEEv0XG3mrVb6N35bY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=L/OxEb3e; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="a4sK+8R1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41FD71F00AC4
-	for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 10:55:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="L/OxEb3e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0C3B1F000E9;
+	Tue, 30 Jun 2026 10:56:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782816921;
-	bh=QS02Y4ZTkCaY+8KNH+aFUHWmz4C6FfgfF/SB6ePyOlU=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=a4sK+8R1ugLnIFAsbH0lz8AUe7kRH/N+y63uSUgrKVXOkND+PCeWRv4/rDdnx5VZ+
-	 HEAYjfubry0IAxUVqH2gtygSX54hRtbd/gji/L+InYJsudr4Mq4+w3C/W5mBNbGXx4
-	 O2MNTIAnfTm5czNImtNraZW8xQckJeYL1T0zG7bKSDuNCJOq/ctejSZHbwXJIqGslK
-	 WRjP4Fgozdg17w9FwGA/HUZGQgBnsWcPGAdsV4Ey491dOrvLqSomra9Ra4V4mHcEC5
-	 7fIMRI53Jkdc6trZxUuojgL6mR2wNEErxGEK/kNeaeCG6Mw0YBLSt0Wi/WKsA/T4KK
-	 tY1hYwLOS2ZSw==
-Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-39b1026e171so20673881fa.1
-        for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 03:55:21 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+Rpuyw9Q3vtmUPf9des7EcEutOIQEXvmKem4dRleVh9JKFhZlnen7V2Lh0JXECcgfBwsUVUkdmMIOMRu@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy2dDBa8pM+WDbdrMXWzwNigLuROXmFxeiU8Mq1GLjHulToKri+
-	qO+cevFfF5Y+ynu2iGuHVE5eLXbb4S7F7vdlruoD/X1iuuxXwjRUiTIKUKDmdyh6kRzcfxyIHtm
-	c3O+cS3j8iRpvgI32+pO/UhUDGalgCfo=
-X-Received: by 2002:a05:651c:41d1:b0:399:b07e:daa7 with SMTP id
- 38308e7fff4ca-39b1df87889mr5327631fa.24.1782816919764; Tue, 30 Jun 2026
- 03:55:19 -0700 (PDT)
+	s=k20260515; t=1782816962;
+	bh=x+ErKDJZBnJk0BN/YgBPDVpN7NT+yJFm0+JSzLOIJy4=;
+	h=From:Date:Subject:To:Cc;
+	b=L/OxEb3etSRt/QAorUEF8M3kq8Zwkbm7HMFlEI2d6mzVGkMbHR0sFH75EsQmAmaux
+	 6HPuU5YzbcWqYttygaAoio8rinz8q1jcrjnHF50OVgSed9T1i0b0WKonTJM5+fZPUt
+	 Sl8uBXBQfzNO1kBTNdg9tgtpHJNS58xnsAnVIR59ULzPCL6wXRsXW8s46erGhxcN44
+	 naBlPCWRlgBfF1P50VgW4HDrSEuK+bB9lnTHDXX9tlIfLaOPYRa5tb4C9kBjl7mAdK
+	 mDDIVlDwEQa+ZdNU+jadPiewbEbHvObwvqw05zUDsxivMCDf5Q4tjL8VeSqNi3a+wy
+	 /GiIQeOm1KFfQ==
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Date: Tue, 30 Jun 2026 13:55:58 +0300
+Subject: [PATCH] ACPI: NVS: replace __get_free_page() with kmalloc()
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260603-gic-v5-acpi-iwb-probe-deferral-v2-0-23ffa16b6ebb@kernel.org>
- <20260603-gic-v5-acpi-iwb-probe-deferral-v2-6-23ffa16b6ebb@kernel.org>
- <CAJZ5v0ibZKfzJwGyUb92-K1N9C_ab0QujpAKCrvMdyygquS1Vw@mail.gmail.com> <akOfu2EIQq3CJgqw@lpieralisi>
-In-Reply-To: <akOfu2EIQq3CJgqw@lpieralisi>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 30 Jun 2026 12:55:05 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0hUUz0TPKEdn5Z-4My2R59YeJPenU6ksF6Y6mvXoxQsSw@mail.gmail.com>
-X-Gm-Features: AVVi8CckYFzmEyQcHXV6OSl_5EYAouUcgCGftnfBtVwhGCqpemZWNGkMfRNVdZQ
-Message-ID: <CAJZ5v0hUUz0TPKEdn5Z-4My2R59YeJPenU6ksF6Y6mvXoxQsSw@mail.gmail.com>
-Subject: Re: [PATCH v2 6/6] irqchip/gic-v5: Enable GICv5 IWB ACPI probe
- ordering detection
-To: Lorenzo Pieralisi <lpieralisi@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
-	Sunil V L <sunilvl@ventanamicro.com>, Marc Zyngier <maz@kernel.org>, 
-	Thomas Gleixner <tglx@kernel.org>, Huacai Chen <chenhuacai@kernel.org>, 
-	Anup Patel <anup@brainfault.org>, Hanjun Guo <guohanjun@huawei.com>, 
-	Sudeep Holla <sudeep.holla@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, 
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260630-b4-acpi-v1-1-a9f59c04d221@kernel.org>
+X-B4-Tracking: v=1; b=H4sIAL2gQ2oC/yXMwQrCMBAE0F8pe3YhiSXU/krxsJuudnuIJasil
+ P67iR7fMDM7mBQVg7HbochbTR+5wp86SAvlu6DO1RBciC6GHrlHSpui8344zyRy4Qi1vRW56ef
+ 3NF3/thevkp5t3hpMJsiFclpa1AjH8QWGA02cggAAAA==
+X-Change-ID: 20260624-b4-acpi-01183daee9b6
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>, linux-acpi@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, linux-mm@kvack.org
+X-Mailer: b4 0.15.2
 
-On Tue, Jun 30, 2026 at 12:51=E2=80=AFPM Lorenzo Pieralisi
-<lpieralisi@kernel.org> wrote:
->
-> On Mon, Jun 08, 2026 at 07:18:15PM +0200, Rafael J. Wysocki wrote:
->
-> [...]
->
-> > > +#ifdef CONFIG_ACPI
-> > > +       if (has_acpi_companion(&pdev->dev))
-> > > +               acpi_dev_clear_dependencies(ACPI_COMPANION(&pdev->dev=
-));
-> > > +#endif
-> >
-> > I would rather add a wrapper for this, along with an empty stub for
-> > the !CONFIG_ACPI case.
->
-> #ifdef CONFIG_ACPI
-> static inline void acpi_device_clear_dep(struct device *dev)
-> {
->         if (has_acpi_companion(dev))
->                 acpi_dev_clear_dependencies(ACPI_COMPANION(dev));
->
-> }
-> #else
-> static inline void acpi_device_clear_dep(struct device *dev) {}
-> #endif
->
-> Something like that ?
+suspend_nvs_alloc() allocates shadow pages for saving and restoring
+ACPI Non-Volatile Storage regions across suspend/resume.
 
-Yup.
+These buffers can be allocated with kmalloc() as there's nothing special
+about them to go directly to the page allocator.
+
+kmalloc() provides a better API that does not require ugly casts and
+kfree() does not need to know the size of the freed object.
+
+Performance difference between kmalloc() and __get_free_pages() is not
+measurable as both allocators take an object/page from a per-CPU list for
+fast path allocations.
+
+For the slow path the performance is anyway determined by the amount of
+reclaim involved rather than by what allocator is used.
+
+Replace use of __get_free_page() with kmalloc() and free_page() with
+kfree().
+
+Link: https://lore.kernel.org/all/635405e4-9423-4a25-a6e7-e03c8ea0bcbe@redhat.com
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+---
+This is a (tiny) part of larger work of replacing page allocator calls
+with kmalloc:
+
+My initial intention a few month ago was to remove ugly casts [1], but then
+willy pointed out that Linus objected to something like this [2] and it
+looks like more than a decade old technical debt.
+
+[1] https://lore.kernel.org/all/20251018093002.3660549-1-rppt@kernel.org/
+[2] https://lore.kernel.org/all/CA+55aFwp4iy4rtX2gE2WjBGFL=NxMVnoFeHqYa2j1dYOMMGqxg@mail.gmail.com/ 
+
+Also in git:
+https://git.kernel.org/pub/scm/linux/kernel/git/rppt/linux.git gfp-to-kmalloc/acpi
+---
+ drivers/acpi/nvs.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/nvs.c b/drivers/acpi/nvs.c
+index 6eaad7dd0241..12aee4102696 100644
+--- a/drivers/acpi/nvs.c
++++ b/drivers/acpi/nvs.c
+@@ -133,7 +133,7 @@ void suspend_nvs_free(void)
+ 
+ 	list_for_each_entry(entry, &nvs_list, node)
+ 		if (entry->data) {
+-			free_page((unsigned long)entry->data);
++			kfree(entry->data);
+ 			entry->data = NULL;
+ 			if (entry->kaddr) {
+ 				if (entry->unmap) {
+@@ -156,7 +156,7 @@ int suspend_nvs_alloc(void)
+ 	struct nvs_page *entry;
+ 
+ 	list_for_each_entry(entry, &nvs_list, node) {
+-		entry->data = (void *)__get_free_page(GFP_KERNEL);
++		entry->data = kmalloc(PAGE_SIZE, GFP_KERNEL);
+ 		if (!entry->data) {
+ 			suspend_nvs_free();
+ 			return -ENOMEM;
+
+---
+base-commit: dc59e4fea9d83f03bad6bddf3fa2e52491777482
+change-id: 20260624-b4-acpi-01183daee9b6
+
+Best regards,
+--  
+Sincerely yours,
+Mike.
+
