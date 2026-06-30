@@ -1,213 +1,225 @@
-Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11012019.outbound.protection.outlook.com [40.107.200.19])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0068440863B;
-	Tue, 30 Jun 2026 12:09:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.200.19
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782821379; cv=fail; b=k5Oo9PuLRR1effnTgL53LAAAYX7KOyUVATFagyU0ZdHRmlws3S5XC2Q1uIvhsR7KxjiQcgZ1juK+zbsgVGiMc/zh+12HbR+2bOWoMelkXRZ/ycbZrbV/AtjENImXQaKCJo/BJZnkFkoyznpGf8pLaWP2SSpJbri18+d/r3+ZrJU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782821379; c=relaxed/simple;
-	bh=0FYg0iS9PYs/oC7/gSwCBUjOlXd/2s6wHA34zCYKcx8=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=VnV+xMaA75SyZH8fMDBgZnh/lPTl9i05Vbibti+BiIUbRXKJUCxdl5daN6S/AY+bUo0ivOlzEQdtm8sDRldKIcQsrE+ZlBzRCmhTLip9Zvc459pEW/RPpSaCGHerZEq8fp8MdTsTjBgx29BZVuD25ah3fcHM5RLVBVcg5YlXrZg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=fQ6et/Rl; arc=fail smtp.client-ip=40.107.200.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 662FA2D592D
+	for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 12:30:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1782822620; cv=none; b=mNpsW0K2soVsf+a34l6dQnx+/1NH4zAsNJfg0+0wdteAn3/17lNxUhjiZb7Nf54TWKND/OJNeKGiRQacf5Vcfz6D/Ph4vf1TNqe5DGmipZWjFW1LA42+w2DIankfb4ZEhNDGdOLL/1FbFHEP5svzuP5CVs6YObouGzVvyTYC9iE=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1782822620; c=relaxed/simple;
+	bh=hfXqEewk93D+FUsbaofsNn0qomDopXQdfOzQlurkq7o=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Veh8wnTRTf1banJW6U9gB0CRhhFxvs51NbXNg/z2uAAFHhFnmr5pjkbLpoTI+10H7w+5kglGkPNoJbhWsEFY7Z2Ggy+g4ZIHEdQGGAEbfOxXm3aRt99du/0qXN/mJ58cfkLIVid46bqb7t0V1oYPRocW/8aqS1PKL+ZyQuMHxVY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kmg3siW6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="fQ6et/Rl"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=mmm8wyG+mhtb+pez88hD7I62wzgwSGNoHsq06oOndaaMVarbIoGJ3sNElFtuqcAjhP9zU0eXk7huYfdGXXFiDo+6yVUfcGZk4nSgZAL+lpVYhocWkdGJIzuvGAKMUGO8kB6JPmHmjXOcuWJGnsK+YfIGncoEgqVUHG6Oi9zHX4t2/iQIm0UTju+JoiB9/1CpeXbSq+8KwOEbmoN4cXU5fNekkvpYOyMcMw/YQi04fOPVdB0JyxzCkkQwv6mYZ4RFopNUVkIHWHNttLz4A4T5uNkbX4EmNW0YZB10rEUkVcKlEbPbODvQoPGS2SFDRnXzRVgPXN4xwZKBo8eB0mCTYw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=WoZ9p1j9Uc1k4M2iiZs2YNn+MPIqgBBLH+5SceAxMT8=;
- b=ujJ3YPcMAGU7ymQDkQq+jWNbRAYs8amR8JA388A4t1q+kKAbtZ6tioXm1mlc/1P8rR9bjelT47P1NsqCm7aXVEXPoDaAWQut/158SmgYpBdzjr8LIM7FgB6P97xFcPPIltGm65n/pWayGj7l2c6Se/LNTjGc2uw/40AsyJFc/VWgKmjMXFUYmWotronjBajI5Y8xzqaBZPiRBdr9x8xhTMLcv6TurrSxr2wdmCbfny6GyDzO2UxVlx37/oZp7paqs0rxy3Vw+Qvp1mv2CxPgRExoxgsYPgl7Lu1U+x7YXzFlSwR1lFZTZMu289NmH8/+heNioCHNXMyzQ5IFez3XZg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=WoZ9p1j9Uc1k4M2iiZs2YNn+MPIqgBBLH+5SceAxMT8=;
- b=fQ6et/Rl40LNU2HsFB9NVK8P6s2PA43bj2WmMMKZKjgmn8N1HFlh4S9SJ0+nBzARa84IkG4RF5FraOb5oAM/o7xc8pdsuhOxRwIBhB+XfrECVPHg3ngURUlACf3vfDeIDz4heB5N61mcOHglQWLbqgqsnlvCrFSGm1bDqPp2oD+IZ2JilNJInAxQ2P8oqW51EEWYgbH7vqSt//lV1UeXJkuBPv0T7sz3Bvgm1wQ1u80WFtjdCyU+zQCIPk8W4Iau1nroi7vGcbvn+hm09YkDWrGMOqRBzNNSfJGu+aHN+g3ebLdwZYm8vadeDgfpJD0+QqykMsyJnRwZXkhhX7vtBQ==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from SJ1PR12MB6051.namprd12.prod.outlook.com (2603:10b6:a03:48a::18)
- by SA1PR12MB8699.namprd12.prod.outlook.com (2603:10b6:806:389::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.159.19; Tue, 30 Jun
- 2026 12:09:31 +0000
-Received: from SJ1PR12MB6051.namprd12.prod.outlook.com
- ([fe80::96e1:b300:7b78:d3a9]) by SJ1PR12MB6051.namprd12.prod.outlook.com
- ([fe80::96e1:b300:7b78:d3a9%4]) with mapi id 15.21.0181.008; Tue, 30 Jun 2026
- 12:09:31 +0000
-Message-ID: <00da7fd4-68a4-4a92-b4a1-600b5a2b72f4@nvidia.com>
-Date: Tue, 30 Jun 2026 13:09:20 +0100
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 12/17] arm64: dts: nvidia: Add EL2 virtual timer
- interrupt
-To: Marc Zyngier <maz@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
- "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
- <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland
- <mark.rutland@arm.com>, Daniel Lezcano <daniel.lezcano@kernel.org>,
- Thomas Gleixner <tglx@kernel.org>, Rob Herring <robh@kernel.org>,
- Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley
- <conor+dt@kernel.org>, Chen-Yu Tsai <wens@kernel.org>,
- Jernej Skrabec <jernej.skrabec@gmail.com>,
- Samuel Holland <samuel@sholland.org>,
- Neil Armstrong <neil.armstrong@linaro.org>,
- Kevin Hilman <khilman@baylibre.com>, Jerome Brunet <jbrunet@baylibre.com>,
- Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
- Ge Gordon <gordon.ge@bst.ai>,
- BST Linux Kernel Upstream Group <bst-upstream@bstai.top>,
- Jesper Nilsson <jesper.nilsson@axis.com>,
- Lars Persson <lars.persson@axis.com>, Alim Akhtar <alim.akhtar@samsung.com>,
- Ivaylo Ivanov <ivo.ivanov.ivanov1@gmail.com>, Frank Li <Frank.Li@nxp.com>,
- Sascha Hauer <s.hauer@pengutronix.de>,
- Pengutronix Kernel Team <kernel@pengutronix.de>,
- Fabio Estevam <festevam@gmail.com>, Dinh Nguyen <dinguyen@kernel.org>,
- Matthias Brugger <matthias.bgg@gmail.com>,
- AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
- Thierry Reding <thierry.reding@kernel.org>,
- Bjorn Andersson <andersson@kernel.org>,
- Konrad Dybcio <konradybcio@kernel.org>, =?UTF-8?Q?Andreas_F=C3=A4rber?=
- <afaerber@suse.de>, =?UTF-8?B?WXUtQ2h1biBMaW4gW+ael+elkOWQm10=?=
- <eleanor.lin@realtek.com>, Heiko Stuebner <heiko@sntech.de>,
- Shawn Lin <shawn.lin@rock-chips.com>, Orson Zhai <orsonzhai@gmail.com>,
- Baolin Wang <baolin.wang@linux.alibaba.com>,
- Michal Simek <michal.simek@amd.com>
-References: <20260523140242.586031-1-maz@kernel.org>
- <20260523140242.586031-13-maz@kernel.org>
- <3c714ae3-8f62-4785-9f61-ba9899fd70d8@nvidia.com>
- <86wlvgpacz.wl-maz@kernel.org>
-From: Jon Hunter <jonathanh@nvidia.com>
-Content-Language: en-US
-In-Reply-To: <86wlvgpacz.wl-maz@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: LO4P123CA0572.GBRP123.PROD.OUTLOOK.COM
- (2603:10a6:600:276::22) To SJ1PR12MB6051.namprd12.prod.outlook.com
- (2603:10b6:a03:48a::18)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kmg3siW6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D8211F00A3D
+	for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 12:30:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782822618;
+	bh=9hQC8Wii73PuGExlNBe2LNpXMvG2fDQ4U9dsJbeQgOI=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=kmg3siW6U2d+O4kZoft69jjTTkb4RR7Zumef+GKFriWZO3jfnNeYrKTd33ob2TCql
+	 UzZ+Roeo54yeRwf9qhKXAkwTC59Sgz9BSub5vudcKI3JQKmdIxt+j+jMNs/OcSwRCo
+	 ND+xFW5Qg+B7yHKfewZHB3bpZ7ZPpfgLqK6pj8fWb9uuPLCansph8hgE/YXXEP46H0
+	 ipQNAdvAXoBnECioyibd8iXfTqMLWpRxytnfRTEV23D9dip8yVFRz2d9Zrf+eEFRkg
+	 g9y+FAw/YtGOaTjalMogjhkpUkqpd7/NrOZXOQD1SQhTsvWtrLX9H0z8N7N2lr5XnJ
+	 V2ZNlrCgIls9w==
+Received: by mail-lj1-f171.google.com with SMTP id 38308e7fff4ca-39b26e2ad5eso2761781fa.0
+        for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 05:30:18 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RrfBKN5xmIadAZe5QHs4DETq3IPlfoLTFcG9SKFG/by6aqUuE6ynoFj4bBm2oLfoLlTglkFOSGC6Iue@vger.kernel.org
+X-Gm-Message-State: AOJu0YyLICsw5641MhaZ2njAAgJhxoPQm5QUijdzQVy//3OpY+4Sl3DM
+	jMlYmNdk+daO98HgFRTpbmYzcrRJt9RhVrkWvNAyzVAz4ff6cvPI5kVJoTWev/TnSwRKF/l7O0L
+	1ZymBL69JijIwIFVH4B0XCvFLeLj1FFU=
+X-Received: by 2002:a05:6512:1593:b0:5ae:aaba:ad28 with SMTP id
+ 2adb3069b0e04-5aebdb9b8b0mr1009924e87.18.1782822616554; Tue, 30 Jun 2026
+ 05:30:16 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ1PR12MB6051:EE_|SA1PR12MB8699:EE_
-X-MS-Office365-Filtering-Correlation-Id: 8baa65b2-3042-4a88-0a94-08ded6a070e9
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|23010399003|7416014|376014|1800799024|22082099003|18002099003|56012099006|4143699003|11063799006;
-X-Microsoft-Antispam-Message-Info:
-	ENXOA7ci6QXEXHVdlkUE6pulKhSqmpI3MHTCRazR8sOa9vViGTuNu38w7TPQQlJD/XcxAGFq2C2pdev8Va6qf+PyPI10ccwr+9NuT3lH1ilFRFedalxyX8pmmkfxC2oNcCjtdTiCv0SKyPdHOHPKtUfrwsRqweJbNCtYH7qRLhWMyrXNyy7RzDWVE8K8lnJEn/4ef+i+WaN5tsQohd6FxQVyfKuQ0fo0HjYnUlloz+O0PoZWolBBhWzYYtqIO3Gtu2CS+N1yTXqL5VsygoTuj6sssMypmlU8L6qOMfsJUo95ODAhNSyXe6b+fpnzsj2jcEcr2uskcwj2M+HoLP7vFm9d+/VYh7JRsQ4vHttmvAyRUgggcOJeDYKTfPjg4dAi1cwmBWEqMckXwzFlQtTHHzJeaKljpgFCbAPkyVNawFmpu2pnV5fyQ5WaS8jHg2NYjkn841YP990uBlJ2b953ghjeTnASl1+BxxlUYJjzuYomOVdNgGKgzV8dj0OSqDMtfY8LKPcv/3MLySEpCLzSXjGdrIZXbDyfCVSSJpewfCLv1IlHbsP4T7lqJlnUQ5DDlf8fdtojI8UIlmXPwmURZCmzVitBxW2pe40goxpST/ZXP7FHwfwURni7565MVr5Y0D334igdGfxWnbOr6Kk3quZNKL/2XKIPOpAA37zKm4c=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ1PR12MB6051.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(23010399003)(7416014)(376014)(1800799024)(22082099003)(18002099003)(56012099006)(4143699003)(11063799006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?OEkvYUx1c0tiNzFhd3RDbWtJc05JWVovRHpHLzFKYUE3YkdXY3NqNGFLZSs1?=
- =?utf-8?B?NnpIN0pKUFhWSm12YVBQT0hRMFJtRHo5VU1qQ3EzK3VzR0EvZEptUEsxWHBq?=
- =?utf-8?B?K0pIRzhJZmlIZi9vNmt6UzA2bkFSMlI3cjF3bWVBUEl0eGVVdllXSGlvNVBh?=
- =?utf-8?B?RkRnRm81cE91VE5jN2FSUUY1YXd1WGprc2dURkMwTXUzTUlMZjU1Vm5hSDNu?=
- =?utf-8?B?N0M1dHFaVFNpQXdGSG8xWkw1TGpyc3BzYUV5M0Y5ckYxazdiek5aN3RYd05n?=
- =?utf-8?B?L3Bzc2xJNmk5SU5IN2c1UXNQUlFUSmtnZEhWb2FnMk1mK1d1NW9iQUQzTEF1?=
- =?utf-8?B?d0V2VXJrMXR1UHAzb2ZKT2kzazIveUs2cXlFU1NRYjF4UXQ0eVBoSkYwN3la?=
- =?utf-8?B?V0gvcFJNaU43NWVVU1hkenRWd2ZKZ1lTbjlWM3NHRWs4OHhxMlRKS3ZIZ2w4?=
- =?utf-8?B?Ni9PNEp5THpTRUg1MXFVUWFyb3hvWWJnd3FvTjVCbGE1dlZMWEdFZGFKcHdt?=
- =?utf-8?B?QnJFclNHd09MZlYvY2xVZWFDZ3NCSitDMm1ydTV0NjhpcHNmMmhFTnkvT0hl?=
- =?utf-8?B?TEIvUFJWbmVjVFV2bGsxREFKT2tmdENmenRPSkk3QXFiTU1ITk1jZ09UNi8v?=
- =?utf-8?B?SmhBeEc4UUVBK2p3bUw3QXpFUWxYTk1MTlRTQ1BCdTBQMHZQWi84OG1oL0pF?=
- =?utf-8?B?SHlQTDBrbnU4aWVza0k1T2xvNnBHTTJZOUgwTDdzME84MnNFVlVIRmZpQ2RN?=
- =?utf-8?B?bGJEd2FBTXlZeWFzS1puTjlHN3lMUFBoRGM5MUpGYTZPa01xM2swK1VTTnlR?=
- =?utf-8?B?dlZSdHdTSHZIeEpQeDNiZ1VhQklVbmFDSEVleUNQODQzZERESHdZOHU5VGh1?=
- =?utf-8?B?c2hCcTFvNDNERzk2RWdWZ0M2SGc1UmdBdGJUalZjT01hL0RUWnNua0g3YmxN?=
- =?utf-8?B?anhBQWQ5RnFDYStmSjhOMTlndXZrM0swM3dPUU9nNjBJVGRuamdFc3h6VDAx?=
- =?utf-8?B?T20rczVqcGg4RS9XREdueUtGOXRITE9zcFkwSTkyanZDK0FRTlZ6Q2RBV0x1?=
- =?utf-8?B?VmVzRVRheWphTkdzVm9NVnRpS3JxY2ZYOG9PaDE4elFVZEFrZmlEb0JxUE1V?=
- =?utf-8?B?R0JnL0hhWlJzTmgrdGlGd1ViTzU2dkZNUHVBRUg1R05qK0Mvcm5JZjlublpr?=
- =?utf-8?B?MW1qN3Y0bGtRR3hHbFdoUGV1NGE0UjBBNVNpcjFsbXVORWJ1Rk5wMmxBUDNs?=
- =?utf-8?B?OXZLWjlpVFNldzA4ejlaMFpFaWozeFZxckp0aHVmdzV6azkwcnpyalJxam9a?=
- =?utf-8?B?cWF3dlBPWUVrQ1l1SWVYbGdQeVpNeVVpR01SN2p2VW8vR3FZMElBMEFUQ1Yv?=
- =?utf-8?B?b09RZmFGdG5iK3VoQ2RwTVhQdkdEMU9HRkRvay9yTDc3b3ZNazJHVXpseC9H?=
- =?utf-8?B?SEs5cUVwekpyRWJ5c2s5WkI0V0poT1BSVXR2UWxqbCtSMWxpK3FFQUpPT3ZK?=
- =?utf-8?B?SzJTR0k4dll5YnJDQUpoS1NLT1RlZm4ySnVMWURIUHhwQWo5YXhYekNEdzg3?=
- =?utf-8?B?RWQ2OTBBYUZlQThEMXlMbStLYjYrZ2lSRlNQcU9XdVI0QjkrVG9wOS9admlj?=
- =?utf-8?B?eVNDOUJVZStaUjJpTitQVlMxQ1hudit4NTFvVjRLc0Z5OXh1MGlMNEFFM2tD?=
- =?utf-8?B?bE5nclJ5YUNQK1pyMi9GUnN4QUlNUHE3U3Z1YkxnL0ZkMDVkUnpxME5iTVhV?=
- =?utf-8?B?VEVGT1lKT0hlTnJxbCtYUzg1QWwrY1pHU2s1a01Nc284a2dmLzFrRndNQVhk?=
- =?utf-8?B?RFBhVEMrdG1mVjBHOVAxTUVOYkRFZmpWdzFOZzNXZTBJZ3AzOEQyU0R1YnNr?=
- =?utf-8?B?VjVjbnlJbXdoN3llcFozSmQyRjlJaGN0L0JMU3Z4WXpXdHlIOWVEVk1Hb0RS?=
- =?utf-8?B?OERTMjYwWFhxazZaREhOWWY4VzhuU0pCSnJzTFgrVFM4enI1Uk1YdHlCaHJ0?=
- =?utf-8?B?OWZaazVLd3h6TlhDbU96d0VPWnNmRmtPSUxaVHdYcENycnBNeGhWR1AyMlF3?=
- =?utf-8?B?L3pYSmw5YTFoc2JOT1FYSGlqVnpEZFJMWVRTeDV5NDVMQWtYMG1Od3NjMXVj?=
- =?utf-8?B?MTRFanFENmxRZDNnVlJVazExWXY5NnJQMlJCUEptNERxeGVqSElPa3VsWk5R?=
- =?utf-8?B?cmFubGFTUVdpOGF0UjFIWDRibVd1NmZiekl6MFRXcGc2SmRZMjBZN29PUXF1?=
- =?utf-8?B?L1lDN3laR1pUL0QzMHJObnArakJiTzFmanlNWUVlL1hDaVBhWTNlUjZORitl?=
- =?utf-8?B?aXcyWmpGMHRHUGV0WXRlYmNIN2x1bUpkSnVyZThwUzdqemR6MnpRQT09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8baa65b2-3042-4a88-0a94-08ded6a070e9
-X-MS-Exchange-CrossTenant-AuthSource: SJ1PR12MB6051.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Jun 2026 12:09:31.5417
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: jkRtO/qkz7kZoO6E8FSkHx5lqbVdLVu1KUjxK0O+t5vwB8sTovvRtnCiwlJF4WnuprV5OxYbw9D6DaWCERAnHg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR12MB8699
+References: <20260629060526.3638272-1-jgross@suse.com> <20260629060526.3638272-5-jgross@suse.com>
+In-Reply-To: <20260629060526.3638272-5-jgross@suse.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Tue, 30 Jun 2026 14:30:03 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0itUVZ6=GCbRomkMiesy5uhZVWWjsUbqFqsZTyNeCBAbQ@mail.gmail.com>
+X-Gm-Features: AVVi8CcZ-j7ZEcr0YN-CV6kjjpEG6COZMEpi7vzFNh0Cr5CIdXZ0IOyveije_5E
+Message-ID: <CAJZ5v0itUVZ6=GCbRomkMiesy5uhZVWWjsUbqFqsZTyNeCBAbQ@mail.gmail.com>
+Subject: Re: [PATCH 04/32] acpi: Stop using 32-bit MSR interfaces
+To: Juergen Gross <jgross@suse.com>
+Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-pm@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Pavel Machek <pavel@kernel.org>, Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
+	Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, 
+	"H. Peter Anvin" <hpa@zytor.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Marc,
+On Mon, Jun 29, 2026 at 8:05=E2=80=AFAM Juergen Gross <jgross@suse.com> wro=
+te:
+>
+> The 32-bit MSR interfaces rdmsr(), wrmsr(), rdmsr_safe() and
+> wrmsr_safe() are planned to be removed. Use the related 64-bit variants
+> instead.
+>
+> In processor_throttling.c drop needless initializers.
+>
+> Signed-off-by: Juergen Gross <jgross@suse.com>
 
-On 30/06/2026 11:54, Marc Zyngier wrote:
+LGTM overall.
 
-...
+Do you want me to pick it up or do you prefer to route it along with
+the rest of the series?
 
->> Sorry for the delay. I gave this a test because I observed the warning
->> that was added on the Tegra194 and Tegra234 platforms. This change
->> fixes the warning for Tegra234, but on Tegra194 the platforms I tested
->> hang on boot. It appears to be similar to the issue that Marek saw on
->> his platforms and so I am wondering if Tegra194 also doesn't have this
->> wired up?
-> 
-> I think you are in a better position than me to find out. It also
-> could be a firmware issue not making the PPI a Group-1 interrupt, and
-> therefore not allow Linux to configure the interrupt.
-
-Yes absolutely. I will see what I can find out.
-
->> Was there any resolution to the issue reported by Marek?
->>
->> FYI, the Tegra194 SoC has the 'NVIDIA Carmel ARM v8.2' CPUs [0].
-> 
-> There is no resolution so far. Florian was going to check what the
-> deal is with the Broadcom-related systems, but hasn't come back with
-> an answer yet.
-> 
-> The possibilities are as follows:
-> 
-> - remove the interrupt for the EL2 virtual timer and live with the
->    warning
-> 
-> - add a patch such as [1], which should document the reason why this
->    is now working (and fallback to the EL2 physical timer)
-> 
-> I'm happy either way, as long as we know exactly what we are dealing
-> with on each affected platform.
-
-I would like to get the warning fixed for Tegra234. Do you want to split 
-that part out of your patch and then I can test and we can at least fix 
-for that device while I see whats up with Tegra194?
-
-Jon
-
--- 
-nvpublic
-
+> ---
+>  arch/x86/kernel/acpi/sleep.c        | 20 ++++++++------------
+>  drivers/acpi/processor_perflib.c    | 11 ++++++-----
+>  drivers/acpi/processor_throttling.c | 14 ++------------
+>  3 files changed, 16 insertions(+), 29 deletions(-)
+>
+> diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
+> index 91fa262f0e30..8dfe98784bf9 100644
+> --- a/arch/x86/kernel/acpi/sleep.c
+> +++ b/arch/x86/kernel/acpi/sleep.c
+> @@ -61,6 +61,7 @@ int x86_acpi_suspend_lowlevel(void)
+>  {
+>         struct wakeup_header *header =3D
+>                 (struct wakeup_header *) __va(real_mode_header->wakeup_he=
+ader);
+> +       struct msr val;
+>
+>         if (header->signature !=3D WAKEUP_HEADER_SIGNATURE) {
+>                 printk(KERN_ERR "wakeup header does not match\n");
+> @@ -82,13 +83,10 @@ int x86_acpi_suspend_lowlevel(void)
+>          * with 2-MB L2 Cache and Intel=C2=AE Processor A100 and A110 on =
+90
+>          * nm process with 512-KB L2 Cache Specification Update".
+>          */
+> -       if (!rdmsr_safe(MSR_EFER,
+> -                       &header->pmode_efer_low,
+> -                       &header->pmode_efer_high) &&
+> -           !wrmsr_safe(MSR_EFER,
+> -                       header->pmode_efer_low,
+> -                       header->pmode_efer_high))
+> +       if (!rdmsrq_safe(MSR_EFER, &val.q) && !wrmsrq_safe(MSR_EFER, val.=
+q))
+>                 header->pmode_behavior |=3D (1 << WAKEUP_BEHAVIOR_RESTORE=
+_EFER);
+> +       header->pmode_efer_low =3D val.l;
+> +       header->pmode_efer_high =3D val.h;
+>  #endif /* !CONFIG_64BIT */
+>
+>         header->pmode_cr0 =3D read_cr0();
+> @@ -96,14 +94,12 @@ int x86_acpi_suspend_lowlevel(void)
+>                 header->pmode_cr4 =3D __read_cr4();
+>                 header->pmode_behavior |=3D (1 << WAKEUP_BEHAVIOR_RESTORE=
+_CR4);
+>         }
+> -       if (!rdmsr_safe(MSR_IA32_MISC_ENABLE,
+> -                       &header->pmode_misc_en_low,
+> -                       &header->pmode_misc_en_high) &&
+> -           !wrmsr_safe(MSR_IA32_MISC_ENABLE,
+> -                       header->pmode_misc_en_low,
+> -                       header->pmode_misc_en_high))
+> +       if (!rdmsrq_safe(MSR_IA32_MISC_ENABLE, &val.q) &&
+> +           !wrmsrq_safe(MSR_IA32_MISC_ENABLE, val.q))
+>                 header->pmode_behavior |=3D
+>                         (1 << WAKEUP_BEHAVIOR_RESTORE_MISC_ENABLE);
+> +       header->pmode_misc_en_low =3D val.l;
+> +       header->pmode_misc_en_high =3D val.h;
+>         header->realmode_flags =3D acpi_realmode_flags;
+>         header->real_magic =3D 0x12345678;
+>
+> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_pe=
+rflib.c
+> index fdf55c285c9a..9e25d6124efd 100644
+> --- a/drivers/acpi/processor_perflib.c
+> +++ b/drivers/acpi/processor_perflib.c
+> @@ -287,7 +287,8 @@ static int acpi_processor_get_performance_control(str=
+uct acpi_processor *pr)
+>   */
+>  static void amd_fixup_frequency(struct acpi_processor_px *px, int i)
+>  {
+> -       u32 hi, lo, fid, did;
+> +       struct msr val;
+> +       u32 fid, did;
+>         int index =3D px->control & 0x00000007;
+>
+>         if (boot_cpu_data.x86_vendor !=3D X86_VENDOR_AMD)
+> @@ -295,16 +296,16 @@ static void amd_fixup_frequency(struct acpi_process=
+or_px *px, int i)
+>
+>         if ((boot_cpu_data.x86 =3D=3D 0x10 && boot_cpu_data.x86_model < 1=
+0) ||
+>             boot_cpu_data.x86 =3D=3D 0x11) {
+> -               rdmsr(MSR_AMD_PSTATE_DEF_BASE + index, lo, hi);
+> +               rdmsrq(MSR_AMD_PSTATE_DEF_BASE + index, val.q);
+>                 /*
+>                  * MSR C001_0064+:
+>                  * Bit 63: PstateEn. Read-write. If set, the P-state is v=
+alid.
+>                  */
+> -               if (!(hi & BIT(31)))
+> +               if (!(val.h & BIT(31)))
+>                         return;
+>
+> -               fid =3D lo & 0x3f;
+> -               did =3D (lo >> 6) & 7;
+> +               fid =3D val.l & 0x3f;
+> +               did =3D (val.l >> 6) & 7;
+>                 if (boot_cpu_data.x86 =3D=3D 0x10)
+>                         px->core_frequency =3D (100 * (fid + 0x10)) >> di=
+d;
+>                 else
+> diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor=
+_throttling.c
+> index c0f92b93747d..d1605e0ab61f 100644
+> --- a/drivers/acpi/processor_throttling.c
+> +++ b/drivers/acpi/processor_throttling.c
+> @@ -698,20 +698,13 @@ static int acpi_processor_get_throttling_fadt(struc=
+t acpi_processor *pr)
+>  #ifdef CONFIG_X86
+>  static int acpi_throttling_rdmsr(u64 *value)
+>  {
+> -       u64 msr_high, msr_low;
+> -       u64 msr =3D 0;
+>         int ret =3D -1;
+>
+>         if ((this_cpu_read(cpu_info.x86_vendor) !=3D X86_VENDOR_INTEL) ||
+>                 !this_cpu_has(X86_FEATURE_ACPI)) {
+>                 pr_err("HARDWARE addr space,NOT supported yet\n");
+>         } else {
+> -               msr_low =3D 0;
+> -               msr_high =3D 0;
+> -               rdmsr_safe(MSR_IA32_THERM_CONTROL,
+> -                       (u32 *)&msr_low, (u32 *) &msr_high);
+> -               msr =3D (msr_high << 32) | msr_low;
+> -               *value =3D (u64) msr;
+> +               rdmsrq_safe(MSR_IA32_THERM_CONTROL, value);
+>                 ret =3D 0;
+>         }
+>         return ret;
+> @@ -720,15 +713,12 @@ static int acpi_throttling_rdmsr(u64 *value)
+>  static int acpi_throttling_wrmsr(u64 value)
+>  {
+>         int ret =3D -1;
+> -       u64 msr;
+>
+>         if ((this_cpu_read(cpu_info.x86_vendor) !=3D X86_VENDOR_INTEL) ||
+>                 !this_cpu_has(X86_FEATURE_ACPI)) {
+>                 pr_err("HARDWARE addr space,NOT supported yet\n");
+>         } else {
+> -               msr =3D value;
+> -               wrmsr_safe(MSR_IA32_THERM_CONTROL,
+> -                       msr & 0xffffffff, msr >> 32);
+> +               wrmsrq_safe(MSR_IA32_THERM_CONTROL, value);
+>                 ret =3D 0;
+>         }
+>         return ret;
+> --
+> 2.54.0
+>
+>
