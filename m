@@ -1,148 +1,127 @@
-Received: from mail-pl1-f202.google.com (mail-pl1-f202.google.com [209.85.214.202])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42CDE272816
-	for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 18:59:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.202
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EB0B3DEAFB;
+	Tue, 30 Jun 2026 19:06:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782845945; cv=none; b=mCLd1okb2844muMM35qbuWgimcHnmmeS36E6iHeYkGtk2jmLDBGQg40PaQPsxnKgQYAIi+U/C2ev9pXqP7XvOtrihHr77E56+rdMB/xMwlW9h2WJWR4sRFPYsZ3fBNWEmwavVVbwBEDe+wA7wXzHNmaf0jdo3U+lRh2JCmVEEEo=
+	t=1782846415; cv=none; b=TuFwVCjfjFP+b2XHQhRJxuWVfxFrAhx2YTtllS6N89uP//f9eFYJPYEoKWlajnW2/t/ixGP12+MWlSXShp7a4KDGxZh5tlVptKIxVwZHydDxdgzc2StMm/CgFntYmppx+ImsWb649bOrDrrqnJoRT9gi1tK9hXhCc06awQlaLaM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782845945; c=relaxed/simple;
-	bh=XGgg+xXUmnlRvAbgTK542VK34Jp1hfwPb9Na535wrug=;
-	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=BMgWJglRA2H8XklqDXZCgzUUOV5xVUKDCI5E6GVnaQD2VTNJ3baj3+QZZn9LWxXAJMNt49e4GOWvaSqiBvUJfkP5/BbwHOtFw06KidyUHcN78ikvxMdvihQH+vVma72ZADIEluClco1ocakZF2tvQoXqJYBouVscdQqiLMs4f+A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--seanjc.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=I/3WEowT; arc=none smtp.client-ip=209.85.214.202
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--seanjc.bounces.google.com
+	s=arc-20240116; t=1782846415; c=relaxed/simple;
+	bh=eH8z233B8fiqG+G4DTda5LWEIBJmPQrwo++4S94eLLY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=kFIGJ/9jRQYJn7DOwpgsyw5rto0ugkkhzMg02vDzMoG4oaDSbD0lfHb08NIbPv34FTeMSAGtsrw7KuD40e5CaVBP/1zF9wW9jF7rpFaG7S2+CTpJXwoXpbY7LdN2wspmL0JoXnR4+SlFW+ZaE4k9Dd0XPlzOpE97arKPdY5IDK4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Vez6WZId; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="I/3WEowT"
-Received: by mail-pl1-f202.google.com with SMTP id d9443c01a7336-2c80be91ea3so72927185ad.1
-        for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2026 11:59:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1782845943; x=1783450743; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=e+HRXjFGgcPzOleYtd12nce6K890KkClpjKYcrzynFs=;
-        b=I/3WEowTJRiihaVlRhDqzwj+YFRhy3c6bZt1KMXwh9x+om89q3OC+JV0rMtABHuHPF
-         qKTGPEF+LctDdirA+uM3nYkHMtqx7fzxbKIo7F/ANMmPr47Kwsrrnm8E9Yb1Y2eCZ8WT
-         pb40zvGu2vMFonNzF5uChbhNUm+4Abp0wLfh+8tBFirSreUkERpYPrulspJkbT2ABs3t
-         54e3TQ4JLV7EMB4ti1zVIN8Zf+GguCJY/CTwPz2Vs6GJbsvvrBWQB+i8mbiTIY3WqJ2b
-         z/S25V9ZGlAtRn3L2wb//Dbu0OlwWKm5mOpsVZXv+wJ2t9RD6W6vx1WOb8AUFiiio86v
-         g6uQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782845943; x=1783450743;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=e+HRXjFGgcPzOleYtd12nce6K890KkClpjKYcrzynFs=;
-        b=SiEpmATEcscBjgf2nMrf6V+yurCwXwM4r+3RmmckDjiKr7N5Pstbayt7Okrz6jnatr
-         NfQguscoE2Hvek1f0nPkBQ7F8rhkrCcFEdNDp34VHqPQKuKyclPacBQizgyRAuaYbZFV
-         47u2aYa9y785l7U8467INkwRHLmJM+gg5BGbr6t8kU7U6p0BLeUZOsFQ4dUybSX1gXDO
-         7TcEZLGp4mzqGBT264thuIdAMUEdqdQvUn4OTnueprpVn2rJNXvliS2aZyAhYiVEYEyp
-         0od0ivuldhDMGk4TnQDmoAtFdYHQrjI3fdyBKv/y/4HOnM+jUARkWkYtuNnVBhAMeFHv
-         cFnQ==
-X-Forwarded-Encrypted: i=1; AHgh+RqDAxh8j3jNppD9Inwo50Hh6JUw0TAMPAI1MHacb5eV7iAXJ1DCgGbhnaN059I2nPs9xGhTAsjhW6h2@vger.kernel.org
-X-Gm-Message-State: AOJu0YyabF0af402jey6vGHY1MDLEm3i6BuiT8YItpd7vtmxRMhpYh6V
-	FG4QuVfJwe4B7nFuumR6dCb3R19BJpiu3KDfa8Qs3MvSSxn1XnipdBzacKE9TbtbdRlj7kI5rQn
-	XmJSjLg==
-X-Received: from plbko12.prod.google.com ([2002:a17:903:7cc:b0:2c6:9f66:d581])
- (user=seanjc job=prod-delivery.src-stubby-dispatcher) by 2002:a17:903:acd:b0:2c9:c517:d075
- with SMTP id d9443c01a7336-2ca5a581ab5mr15124165ad.15.1782845942348; Tue, 30
- Jun 2026 11:59:02 -0700 (PDT)
-Date: Tue, 30 Jun 2026 11:59:01 -0700
-In-Reply-To: <akJUz0kYkEBdLSZ3@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Vez6WZId"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EFA81F00A3A;
+	Tue, 30 Jun 2026 19:06:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782846411;
+	bh=78nmj35MJpTYomr+d5kVLOz9zHKnBfeYnuTEJWKrcq0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Vez6WZIdrP+D1qdx0lVOHuMp529mOYXTgxnyttOVMyVcgYtli9Y2qQEvUke0+1SZD
+	 zdWtIoU15DilOZtDzWQDjjNbcbldA5ixvjv6TDKNL+m35AfGngVzsoYXxZaBRIEoEb
+	 hlPZI8vPlRTeHZBXVDFz7yhcQA1rIlSGa909tExWCaM1PwpsQ3kHWIeC03R6vo1gsX
+	 axv/N4ZjZokMcublGhG5KtecarYcKJfDA9ZYxYBwZ8/4o38fm5YG50CW7SE1x4uMoZ
+	 0tgQJX3qmolw5C70WHqHyK3B5BIJHGqJFCo2vRa1NvLqeZHOn8clLnuW7/2j+l4X5a
+	 J/YkT4MwSzK7g==
+Date: Tue, 30 Jun 2026 12:06:50 -0700
+From: Oliver Upton <oupton@kernel.org>
+To: Leonardo Bras <leo.bras@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>, Marc Zyngier <maz@kernel.org>,
+	Joey Gouly <joey.gouly@arm.com>,
+	Steffen Eiden <seiden@linux.ibm.com>,
+	Suzuki K Poulose <suzuki.poulose@arm.com>,
+	Zenghui Yu <yuzenghui@huawei.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>, Saket Dumbre <saket.dumbre@intel.com>,
+	Paolo Bonzini <pbonzini@redhat.com>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Chengwen Feng <fengchengwen@huawei.com>,
+	Kees Cook <kees@kernel.org>,
+	=?utf-8?Q?Miko=C5=82aj?= Lenczewski <miko.lenczewski@arm.com>,
+	James Morse <james.morse@arm.com>, Zeng Heng <zengheng4@huawei.com>,
+	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
+	Thomas Huth <thuth@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
+	Yeoreum Yun <yeoreum.yun@arm.com>, Mark Brown <broonie@kernel.org>,
+	Kevin Brodsky <kevin.brodsky@arm.com>,
+	James Clark <james.clark@linaro.org>, Fuad Tabba <tabba@google.com>,
+	Raghavendra Rao Ananta <rananta@google.com>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Sascha Bischoff <Sascha.Bischoff@arm.com>,
+	Anshuman Khandual <anshuman.khandual@arm.com>,
+	Tian Zheng <zhengtian10@huawei.com>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	kvmarm@lists.linux.dev, linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev, kvm@vger.kernel.org
+Subject: Re: [PATCH v2 06/13] KVM: arm64: dirty_bit: Add base FEAT_HACDBS
+ cleaning routine
+Message-ID: <akQTypBfpdqSMhm_@kernel.org>
+References: <20260629111820.1873540-1-leo.bras@arm.com>
+ <20260629111820.1873540-7-leo.bras@arm.com>
+ <akKtKH8O5hngLenm@kernel.org>
+ <akPZ2bnh3k6ZZgYx@LeoBrasDK>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-References: <20260629060526.3638272-1-jgross@suse.com> <d7c1db52-529a-43cc-ac7d-38b52627e8bc@app.fastmail.com>
- <c1608c48-13c2-4290-826b-28b5ca51eaf7@suse.com> <7332feff-2649-496c-8e49-b0a19eb54a32@app.fastmail.com>
- <akJUz0kYkEBdLSZ3@gmail.com>
-Message-ID: <akQR9YMtMHReJTfB@google.com>
-Subject: Re: [PATCH 00/32] x86/msr: Drop 32-bit MSR interfaces
-From: Sean Christopherson <seanjc@google.com>
-To: Ingo Molnar <mingo@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Juergen Gross <jgross@suse.com>, linux-kernel@vger.kernel.org, 
-	linux-pm@vger.kernel.org, 
-	"linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, x86@kernel.org, linux-acpi@vger.kernel.org, 
-	kvm@vger.kernel.org, linux-coco@lists.linux.dev, linux-pci@vger.kernel.org, 
-	virtualization@lists.linux.dev, linux-ide@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org, 
-	linux-crypto@vger.kernel.org, 
-	"open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, linux-hyperv@vger.kernel.org, 
-	linux-hwmon@vger.kernel.org, linux-perf-users@vger.kernel.org, 
-	linux-mtd@lists.infradead.org, platform-driver-x86@vger.kernel.org, 
-	"Rafael J . Wysocki" <rafael@kernel.org>, Daniel Lezcano <daniel.lezcano@kernel.org>, 
-	Zhang Rui <rui.zhang@intel.com>, "lukasz.luba@arm.com" <lukasz.luba@arm.com>, 
-	Jason Baron <jbaron@akamai.com>, Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>, 
-	Yazen Ghannam <yazen.ghannam@amd.com>, Len Brown <lenb@kernel.org>, Pavel Machek <pavel@kernel.org>, 
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, 
-	Paolo Bonzini <pbonzini@redhat.com>, "Kirill A. Shutemov" <kas@kernel.org>, 
-	Rick Edgecombe <rick.p.edgecombe@intel.com>, Pu Wen <puwen@hygon.cn>, 
-	Bjorn Helgaas <bhelgaas@google.com>, Ajay Kaher <ajay.kaher@broadcom.com>, 
-	Alexey Makhalov <alexey.makhalov@broadcom.com>, 
-	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, 
-	Viresh Kumar <viresh.kumar@linaro.org>, Reinette Chatre <reinette.chatre@intel.com>, 
-	Dave Martin <Dave.Martin@arm.com>, James Morse <james.morse@arm.com>, 
-	Babu Moger <babu.moger@amd.com>, Tony W Wang-oc <TonyWWang-oc@zhaoxin.com>, 
-	Damien Le Moal <dlemoal@kernel.org>, Niklas Cassel <cassel@kernel.org>, Dave Airlie <airlied@redhat.com>, 
-	Helge Deller <deller@gmx.de>, linux-geode@lists.infradead.org, 
-	Olivia Mackall <olivia@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, 
-	Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, 
-	Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>, 
-	Dexuan Cui <decui@microsoft.com>, Long Li <longli@microsoft.com>, 
-	Guenter Roeck <linux@roeck-us.net>, Peter Zijlstra <peterz@infradead.org>, 
-	Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim <namhyung@kernel.org>, 
-	Mark Rutland <mark.rutland@arm.com>, 
-	Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@kernel.org>, 
-	Ian Rogers <irogers@google.com>, Adrian Hunter <adrian.hunter@intel.com>, 
-	James Clark <james.clark@linaro.org>, Josh Poimboeuf <jpoimboe@kernel.org>, 
-	Pawan Gupta <pawan.kumar.gupta@linux.intel.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, 
-	Andy Lutomirski <luto@kernel.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, 
-	Huang Rui <ray.huang@amd.com>, Mario Limonciello <mario.limonciello@amd.com>, 
-	Perry Yuan <perry.yuan@amd.com>, K Prateek Nayak <kprateek.nayak@amd.com>, 
-	"srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, 
-	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, Artem Bityutskiy <dedekind1@gmail.com>, 
-	Miquel Raynal <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>, 
-	Vignesh Raghavendra <vigneshr@ti.com>, Ashok Raj <ashok.raj.linux@gmail.com>, 
-	Hans de Goede <hansg@kernel.org>, 
-	"Ilpo =?utf-8?B?SsOkcnZpbmVu?=" <ilpo.jarvinen@linux.intel.com>, 
-	Rajneesh Bhardwaj <irenic.rajneesh@gmail.com>, David E Box <david.e.box@intel.com>, 
-	xen-devel@lists.xenproject.org
-Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <akPZ2bnh3k6ZZgYx@LeoBrasDK>
 
-On Mon, Jun 29, 2026, Ingo Molnar wrote:
-> * Arnd Bergmann <arnd@arndb.de> wrote:
-> 
-> > >>> Note that most patches of this series are independent from each other.
-> > >>> Only the patches removing a specific interface (patches 7, 15, 26 and
-> > >>> 30) and the last two patches of the series depend on all previous
-> > >>> patches.
-> > >> 
-> > >> It looks like you are touching most files twice or more here, to
-> > >> first convert from rdmsr to rdmsrq and then to change the
-> > >> two-argument rdmsrq() macro to a single-argument inline. If you
-> > >> introduce the inline version of rdmsrq() first, you should be
-> > >> able to skip the second step (patch 31) as they could be able
-> > >> to coexist.
-> > >
-> > > I've discussed how to structure the series with Ingo Molnar before [1]. The
-> > > current approach was his preference.
+On Tue, Jun 30, 2026 at 03:59:38PM +0100, Leonardo Bras wrote:
+> > > +	hcr_el2 = read_sysreg(HCR_EL2);
+> > > +	write_sysreg(hcr_el2 | HCR_EL2_VM, HCR_EL2);
 > > 
-> > Ok.
+> > sysreg_clear_set_hcr(). I'm pretty sure all the speculative AT errata
+> > depend on HCR_EL2.VM being set _after_ the stage-2 MMU has been loaded.
+> > 
 > 
-> Note that the individual patches are IMO significantly easier to review
-> through the actual 32-bit => 64-bit variable assignment changes done
-> in isolation (which sometimes include minor cleanups), while
-> the Coccinelle semantic patch:
-> 
->    { a(b,c) => c = a(b) }
-> 
-> which changes both the function signature and the order of terms as
-> well, is just a single add-on treewide patch.
+> So, move this to after __load_stage2()?
+> ok
 
-Is the plan for subsystem maintainers to pick up the relevant patches, and then
-do the treewide change one release cycle later?
+Yes.
+
+> > > +	__load_stage2(&kvm->arch.mmu);
+> > 
+> > Pretty sure you need an ISB here to ensure loading the MMU is ordered
+> > with enabling HACDBS.
+> >
+> 
+> does not __load_stage2() have an isb() here?
+> In any case, will add an isb() after sysreg_clear_set_hcr(), which should 
+> come after __load_stage2() IIUC.
+
+No, __load_stage2() inserts an ISB only for hardware subject to the
+speculative AT errata. If an implementation has broken AT and HACDBS in
+the future then it gets an additional ISB. Oh well.
+
+> > > +	hacdbs_start(hw_entries, size);
+> > > +
+> > > +	do {
+> > > +		wfi();
+> > > +	} while (this_cpu_read(hacdbs_pcp.status) == HACDBS_RUNNING);
+> > 
+> > This is exactly why I said you should just poll hardware instead. It is
+> > entirely possible that the IRQ arrives before you WFI.
+> 
+> It should be fine with WFIT, though, right?
+
+Sure, but we shouldn't assume a functional WFxT even if we have HACDBS.
+Just rely on pre-existing kernel infrastructure to do the thing you want
+to.
+
+> I understand the reason in pooling, and even done some workaround in 
+> pooling for getting this to run in the model. 
+> 
+> Based on the previous reply, do you think I should only use polling for 
+> now, and implement the IRQ later?
+
+Yes.
+
+Thanks,
+Oliver
