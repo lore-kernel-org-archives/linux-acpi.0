@@ -1,90 +1,202 @@
-Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB8BF194AE6;
-	Tue, 30 Jun 2026 06:17:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.171.202.116
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8E31D39E19A;
+	Tue, 30 Jun 2026 07:35:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782800234; cv=none; b=qkpQQAwQYPIFgZL+Ui3j4QP+nC42LvmiCFi25IdkMy/lqJs/K+RKDNvWOBJu5kB8yMNylEAMziWxVVvyN8Cj2yb/aFuyLz1xktW13jDMK/PxBVySoBsoaHwCD//2vRuzcYC+MKQSlaQYiszGMdXEYk/DndrWBEc+dVjDwsljHUo=
+	t=1782804923; cv=none; b=ArXfJ2VD69zaqWju2fOg/Ct/rdASxGUnL4at0rXC17kuUu4ahQCamt+JYHnvwPLEV/0UynGu81pAkexBZxkNQe1uoNy3iytZwA341L8Vi85ZxH2J9di0s+Jptwo59HxlmvwhOl01oY9IuoVmhayLxjB4+wrohNYjtRy87qT10tU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782800234; c=relaxed/simple;
-	bh=jz2k2iwFrmYI3ZTUmJ0Z1YTYakjlnqOufzRyadR5KZE=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Jd0unXas9T5TdWBahokBPZpn4FFSD3grfyFZON/c1V+CffU9dnw+ob2WPlcfA+mwRSIR6Qu+wB9oO4Mtrg97tbigFVA9psaMxkMKXTKNutmqB0iOHvgp7cvxVpvfBiVhKSfEghb7kChs3H3Pr1TjSMSMwemPMjT5uw/qBe8PNzg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=XwtMK7zr; arc=none smtp.client-ip=185.171.202.116
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1782804923; c=relaxed/simple;
+	bh=0taVGT1m4jf8+Bd5/fvY49UWd51JJF0GPZjMsn5vOUw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=rwilp8s5gZS8ef5pWndAyuadDWnltg0rbE7XEttJwkaelL2+vkB6TGpmzDV+zin75/K6A0jIqUbOw3k35LamstOvbMjxtey8eUGNGpSlpV2fAd/mBO1faGenzz9TaGxnZ1n/tVsS/ZbFs7sCEtBuNJOiKxE6PKXKeKS+q8G+xBI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=oLTfMik4; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="XwtMK7zr"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-04.galae.net (Postfix) with ESMTPS id 8E10CC51472;
-	Tue, 30 Jun 2026 06:17:21 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 3163860233;
-	Tue, 30 Jun 2026 06:17:03 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 44F7A106F1BFC;
-	Tue, 30 Jun 2026 08:16:40 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1782800207; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=x6tJh5JyOoEZq/6xhRs/YNQm1w4SzweRFfhO2imvZJk=;
-	b=XwtMK7zrCeSFLHpRcwZy/qjEcOO72V+i5zT3jGUjqrhewBddhMq6SHRPegeA+Hgb8XN7OC
-	dMs8NohO/cdJHvRGEblaLU/RC3Md87YXwEKVkTb/V7L1UcxmpsE//KRzc3UWp5DT5DXc70
-	3Wwq1iwq0xX8Q6Nxd1XGhNfwApqqOQQEUklmto/Vr9CbphamwBJkz+89Bjrg7P7eBYcnUt
-	aTZgphCexSMW3/yocbgpalK1IRVCUWlmC+5Th45fLoVZveAkhHm6J57DeyhyZfxexdyFl8
-	F46V9u5ADO2jNaZHywR7gVehz1jE1Ec2bu6wRtM6viRMg6vl4hzMF/I+u7z9cw==
-Date: Tue, 30 Jun 2026 08:16:39 +0200
-From: Herve Codina <herve.codina@bootlin.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, Brendan
- Higgins <brendan.higgins@linux.dev>, David Gow <david@davidgow.net>, Rae
- Moar <raemoar63@gmail.com>, Daniel Scally <djrscally@gmail.com>, Heikki
- Krogerus <heikki.krogerus@linux.intel.com>, Sakari Ailus
- <sakari.ailus@linux.intel.com>, Bartosz Golaszewski <brgl@kernel.org>, Greg
- Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki"
- <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, Linus Walleij
- <linusw@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>,
- linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
- kunit-dev@googlegroups.com, linux-acpi@vger.kernel.org,
- driver-core@lists.linux.dev, linux-gpio@vger.kernel.org
-Subject: Re: [PATCH 2/5] software node: add fw_devlink support
-Message-ID: <20260630081639.04476d4b@bootlin.com>
-In-Reply-To: <akKSYKH2vyXMVcox@ashevche-desk.local>
-References: <20260629-swnode-fw-devlink-v1-0-b90058b41839@oss.qualcomm.com>
-	<20260629-swnode-fw-devlink-v1-2-b90058b41839@oss.qualcomm.com>
-	<akKSYKH2vyXMVcox@ashevche-desk.local>
-Organization: Bootlin
-X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-redhat-linux-gnu)
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="oLTfMik4"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1EBDC22D9;
+	Tue, 30 Jun 2026 00:35:10 -0700 (PDT)
+Received: from arm.com (usa-sjc-imap-foss1.foss.arm.com [10.121.207.14])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 4483F3F836;
+	Tue, 30 Jun 2026 00:35:08 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1782804914; bh=0taVGT1m4jf8+Bd5/fvY49UWd51JJF0GPZjMsn5vOUw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=oLTfMik4Sv9mAkGsjjAf+7Vw1YD65vPjYpiOO3eGivwLAIwZEOqZbFzuzd+SthVgY
+	 4DZsFldgSMW0BIm8uAG1typFraDU8wUL2m8mY3apZUbABO0JI7DWl03d1yxkjK4JVY
+	 KxYC9wZpnXlleUIJyHY1t/26eMymZHQbTBDKcMw4=
+Date: Tue, 30 Jun 2026 09:34:59 +0200
+From: Beata Michalska <beata.michalska@arm.com>
+To: Pengjie Zhang <zhangpengjie2@huawei.com>
+Cc: catalin.marinas@arm.com, will@kernel.org, rafael@kernel.org,
+	lenb@kernel.org, robert.moore@intel.com, zhenglifeng1@huawei.com,
+	zhanjie9@hisilicon.com, sumitg@nvidia.com, cuiyunhui@bytedance.com,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
+	linuxarm@huawei.com, jonathan.cameron@huawei.com,
+	prime.zeng@hisilicon.com, wanghuiqiang@huawei.com,
+	xuwei5@huawei.com, lihuisong@huawei.com, yubowen8@huawei.com,
+	wangzhi12@huawei.com
+Subject: Re: [PATCH 2/2] arm64: topology: read CPPC FFH feedback counters in
+ one operation
+Message-ID: <akNxo5HzHARnrCT1@arm.com>
+References: <20260410094145.4132082-1-zhangpengjie2@huawei.com>
+ <20260410094145.4132082-3-zhangpengjie2@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Last-TLS-Session-Version: TLSv1.3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260410094145.4132082-3-zhangpengjie2@huawei.com>
 
-Hi All,
-
-On Mon, 29 Jun 2026 18:42:24 +0300
-Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
-
-> +Cc: Herve, to just ask the situation with one series that adds nice helper.
->
-...
- 
+On Fri, Apr 10, 2026 at 05:41:45PM +0800, Pengjie Zhang wrote:
+> arm64 implements CPPC FFH feedback-counter reads using AMU counters.
+> Because those counters must be sampled on the target CPU, reading the
+> delivered and reference counters separately widens the observation window
+> between them.
 > 
-> Doesn't Herve's patch(es) add some helpers for this?
-> https://lore.kernel.org/lkml/20260511155930.34604-2-herve.codina@bootlin.com/
+> Implement the paired FFH feedback-counter read hook on arm64 and sample
+> both AMU counters together before decoding the requested CPC register
+> values.
 > 
-> Ah, still not applied :-( Perhaps it can be applied as just part that brings
-> fw_devlink_set_device()?
+> Also factor the FFH bitfield extraction logic into a helper and reuse
+> it from the existing single-counter FFH read path.
+> 
+> Signed-off-by: Pengjie Zhang <zhangpengjie2@huawei.com>
+> ---
+>  arch/arm64/kernel/topology.c | 75 ++++++++++++++++++++++++++++++++----
+>  1 file changed, 67 insertions(+), 8 deletions(-)
+> 
+> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+> index b32f13358fbb..b90a767b2a1f 100644
+> --- a/arch/arm64/kernel/topology.c
+> +++ b/arch/arm64/kernel/topology.c
+> @@ -50,6 +50,16 @@ struct amu_cntr_sample {
+>  	unsigned long	last_scale_update;
+>  };
+>  
+> +struct amu_ffh_ctrs {
+> +	u64 corecnt;
+> +	u64 constcnt;
+> +};
+> +
+> +enum cpc_ffh_ctr_id {
+> +	CPC_FFH_CTR_CORE  = 0x0,
+> +	CPC_FFH_CTR_CONST = 0x1,
+> +};
+> +
+Those should probably go under the #ifdef CONFIG_ACPI_CPPC_LIB section.
+>  static DEFINE_PER_CPU_SHARED_ALIGNED(struct amu_cntr_sample, cpu_amu_samples);
+>  
+>  void update_freq_counters_refs(void)
+> @@ -397,7 +407,7 @@ static void cpu_read_constcnt(void *val)
+>  }
+>  
+>  static inline
+> -int counters_read_on_cpu(int cpu, smp_call_func_t func, u64 *val)
+> +int counters_read_on_cpu(int cpu, smp_call_func_t func, void *val)
+>  {
+>  	/*
+>  	 * Abort call on counterless CPU.
+> @@ -447,24 +457,73 @@ bool cpc_ffh_supported(void)
+>  	return true;
+>  }
+>  
+> +static void amu_read_core_const_ctrs(void *val)
+> +{
+> +	struct amu_ffh_ctrs *ctrs = val;
+> +
+> +	cpu_read_constcnt(&ctrs->constcnt);
+> +	cpu_read_corecnt(&ctrs->corecnt);
+> +}
+> +
+> +static u64 cpc_ffh_extract_bits(const struct cpc_reg *reg, u64 val)
+> +{
+> +	val &= GENMASK_ULL(reg->bit_offset + reg->bit_width - 1,
+> +			   reg->bit_offset);
+> +	val >>= reg->bit_offset;
+> +
+> +	return val;
+> +}
+> +
+> +static bool cpc_ffh_ctr_value(const struct cpc_reg *reg,
+> +			      const struct amu_ffh_ctrs *ctrs, u64 *val)
+> +{
+> +	switch ((u64)reg->address) {
+> +	case CPC_FFH_CTR_CORE:
+> +		*val = ctrs->corecnt;
+> +		break;
+> +	case CPC_FFH_CTR_CONST:
+> +		*val = ctrs->constcnt;
+> +		break;
+> +	default:
+> +		return false;
+> +	}
+> +
+> +	*val = cpc_ffh_extract_bits(reg, *val);
+> +	return true;
+> +}
+> +
+> +int cpc_read_ffh_fb_ctrs(int cpu, struct cpc_reg *reg1, u64 *val1,
+> +			 struct cpc_reg *reg2, u64 *val2)
+> +{
+> +	struct amu_ffh_ctrs ctrs;
+> +	int ret;
+> +
+> +	ret = counters_read_on_cpu(cpu, amu_read_core_const_ctrs, &ctrs);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (!cpc_ffh_ctr_value(reg1, &ctrs, val1) ||
+> +	    !cpc_ffh_ctr_value(reg2, &ctrs, val2))
+> +		return -EOPNOTSUPP;
+Right, so there might be an issues with that:
+If you return EOPNOTSUPP here, that would trigger reading the registers again,
+this time one by one. Is that intentional ?
+Also counters_read_on_cpu might also return EOPNOTSUPP, in which case trying
+again to read the counters is pointless.
 
-Yes, still not applied.
+I'm not entirely sure I understand the condition itself though.
+This will fail if either of the requested registers in not really expected.
+And that should probably be verified upfront ?
 
-I plan to send a new iteration of the series rebased on v7.2-rc1 and I Hope
-it will be applied in this cycle.
 
-Best regards,
-Hervé
+---
+BR
+Beata
+> +
+> +	return 0;
+> +}
+> +
+>  int cpc_read_ffh(int cpu, struct cpc_reg *reg, u64 *val)
+>  {
+>  	int ret = -EOPNOTSUPP;
+>  
+>  	switch ((u64)reg->address) {
+> -	case 0x0:
+> +	case CPC_FFH_CTR_CORE:
+>  		ret = counters_read_on_cpu(cpu, cpu_read_corecnt, val);
+>  		break;
+> -	case 0x1:
+> +	case CPC_FFH_CTR_CONST:
+>  		ret = counters_read_on_cpu(cpu, cpu_read_constcnt, val);
+>  		break;
+>  	}
+>  
+> -	if (!ret) {
+> -		*val &= GENMASK_ULL(reg->bit_offset + reg->bit_width - 1,
+> -				    reg->bit_offset);
+> -		*val >>= reg->bit_offset;
+> -	}
+> +	if (!ret)
+> +		*val = cpc_ffh_extract_bits(reg, *val);
+>  
+>  	return ret;
+>  }
+> -- 
+> 2.33.0
+> 
