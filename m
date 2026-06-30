@@ -1,163 +1,101 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 415BE3ECBD9;
-	Tue, 30 Jun 2026 16:03:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 970013451A6;
+	Tue, 30 Jun 2026 16:18:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782835405; cv=none; b=bYV7sVYoiEVkZ41y8rImsQ9otzqU1eY3xF28do4q7RWN1Rd/jZ89CHwmcIw3dc3J3FUxeSmr3qT+jUAzUTLu7jGXnMikmlPD4wKvz7GOzuZ6hMw7GAV8iaykInS6M96BNkGk3XtH+1HzNWvHCQN2WTvITJCqAaXpfInXlQOzh5M=
+	t=1782836300; cv=none; b=dVjGQKxfL+uqAGmdp9w3ugvMHYxSBDMfZB9iuNT4JR9cFykYbqWkDnmV1HaZWsb500F66swIERVhoeavA70j/Y+SKZ03f05C3vfPOlBq/53kCoI+5eqTjQQrfl4Gux7xKhz3NccRw8qesb6K248d1Z9DOX6vllcKPt911Au7lxc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782835405; c=relaxed/simple;
-	bh=ABuThJyR8wyeoG94qcZrGY4E3LiVrg4Ii6UTcMv76jg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aO7GrbqqN3a7h2occ9mI0fJJIUMMgoB/rF3yc42kpVCOd4uB8fA1EbPMAZK/IQV8TMgpzpbR+UN3Xk3uDaubr3qneYmCBjSF23ShN8Ea+HiJuTWlMDQX3CWBChURrAl/Mcv6eLLOK7uN3L5JIEAc8891rpMiw3sNMSLglqp3mpA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QVWIo26A; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782836300; c=relaxed/simple;
+	bh=5ZTUtTYrWNugkzAoI9xi1TOefxCcgmeJKi4qT/lZ76I=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=rpTaYx62Easue/wL8jtOWKf+HBpbAx07ke4ccNKnTUePfOv/Yxm6vTjyHeZVDs7qIDWfsXq+T/NrX0sfAKuJovU0e7s02AL7+Rrtbzhf3KrcV1IqMxHUNxMsafMDvecrtT8vzH/bwpsVI2LP6FAeOxtuAAtKm7Otfj2PXKikVOc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=XxbZ3NK8; arc=none smtp.client-ip=192.198.163.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QVWIo26A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB2431F000E9;
-	Tue, 30 Jun 2026 16:03:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782835402;
-	bh=5orsAk4mxkk0xAiwGeSLhKn5054x2lo0gntH314gJng=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=QVWIo26AMO7GP6c94JvYh/Y7RzmhCi07mxsA6UYNrJbFnIynTHhPa0jmUuQSrg8QL
-	 Hbzo3P8h/Riz1MauTUCNiy9zCP8H1OiRPBun55CjzObt8N3SYJv1appZ++ltSy8T8c
-	 8Ubj0ttWvKMGw8Qmyr91ofP4GGc2WRW5qnMmVyBsf+b9Pw7eW79+bjWaGuqH0N4FYq
-	 mn5xRtyDidGKpUKiLbZpcUA6ouvS2lxYQ6AosYDPrnOnB+h31btCpOIs3DVTYHfPl/
-	 pXgeHKU+FtWHm++YApJL9TmkDQVdpctUyqUeXEXUfG6wY6O1dS3va+gW/hheUHWrV3
-	 1sNwAqk1ECFAQ==
-Date: Tue, 30 Jun 2026 09:03:20 -0700
-From: Oliver Upton <oupton@kernel.org>
-To: Leonardo Bras <leo.bras@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>, Marc Zyngier <maz@kernel.org>,
-	Joey Gouly <joey.gouly@arm.com>,
-	Steffen Eiden <seiden@linux.ibm.com>,
-	Suzuki K Poulose <suzuki.poulose@arm.com>,
-	Zenghui Yu <yuzenghui@huawei.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Saket Dumbre <saket.dumbre@intel.com>,
-	Paolo Bonzini <pbonzini@redhat.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Chengwen Feng <fengchengwen@huawei.com>,
-	Kees Cook <kees@kernel.org>,
-	=?utf-8?Q?Miko=C5=82aj?= Lenczewski <miko.lenczewski@arm.com>,
-	James Morse <james.morse@arm.com>, Zeng Heng <zengheng4@huawei.com>,
-	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
-	Thomas Huth <thuth@redhat.com>, Ryan Roberts <ryan.roberts@arm.com>,
-	Yeoreum Yun <yeoreum.yun@arm.com>, Mark Brown <broonie@kernel.org>,
-	Kevin Brodsky <kevin.brodsky@arm.com>,
-	James Clark <james.clark@linaro.org>, Fuad Tabba <tabba@google.com>,
-	Raghavendra Rao Ananta <rananta@google.com>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Sascha Bischoff <Sascha.Bischoff@arm.com>,
-	Anshuman Khandual <anshuman.khandual@arm.com>,
-	Tian Zheng <zhengtian10@huawei.com>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	kvmarm@lists.linux.dev, linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev, kvm@vger.kernel.org
-Subject: Re: [PATCH v2 05/13] KVM: arm64: Detect (via ACPI) and initialize
- HACDBSIRQ
-Message-ID: <akPoyAGX5_ankwWD@kernel.org>
-References: <20260629111820.1873540-1-leo.bras@arm.com>
- <20260629111820.1873540-6-leo.bras@arm.com>
- <akKpxDulRN7zDrgM@kernel.org>
- <akPXqZQBKET1SyvN@LeoBrasDK>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="XxbZ3NK8"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1782836295; x=1814372295;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=5ZTUtTYrWNugkzAoI9xi1TOefxCcgmeJKi4qT/lZ76I=;
+  b=XxbZ3NK8FEQM3sQIp4ZkJfMzVmSoO4LRe/xTS3dSM//82wi4rus9451W
+   LVeUASVoHmj3bO2Um9qyHZeadOpsMo88+hUnG7FKh5bowv3z9/MG1JYVJ
+   kjYWeVensGIIe61tS61JzouQDcGM49r67WuPDIk5+BwuemCCSoy3KL/k4
+   BwkYOyFL7slYLFKbVIAxBpgN5bPmVFHyFG+oouy+NojOxOo9O+57Ab86m
+   yoZuX60CfyrVjZCu9BOqZHbHcsBor5p09/Qu9Adjbi0etAWPs6s72GCaF
+   5Q7x/MvKpoBWDWzKJ+5tSD7eLdOeZYwLGT9ZIcO+vgapUWNJgslfQDzdv
+   Q==;
+X-CSE-ConnectionGUID: UBg3CM0yQLa3X9aTFfDb9Q==
+X-CSE-MsgGUID: PavQsTxqS7ytzAW46hanrQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11833"; a="82544492"
+X-IronPort-AV: E=Sophos;i="6.24,234,1774335600"; 
+   d="scan'208";a="82544492"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jun 2026 09:18:14 -0700
+X-CSE-ConnectionGUID: OObtITKbR7y1N2wiRRvaRw==
+X-CSE-MsgGUID: wmfycMl8Tk6M+1KfIWHlbQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,234,1774335600"; 
+   d="scan'208";a="257223215"
+Received: from dnelso2-mobl.amr.corp.intel.com (HELO [10.125.109.254]) ([10.125.109.254])
+  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jun 2026 09:18:13 -0700
+Message-ID: <a21cc48d-b676-4477-810f-889620a36712@intel.com>
+Date: Tue, 30 Jun 2026 09:18:12 -0700
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <akPXqZQBKET1SyvN@LeoBrasDK>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH v1 1/1] acpi/hmat: preserve hmat_adist_nb notifier
+ block
+To: alejandro.lucero-palau@amd.com, linux-cxl@vger.kernel.org,
+ linux-acpi@vger.kernel.org, rafael@kernel.org
+Cc: Alejandro Lucero <alucerop@amd.com>
+References: <20260630143507.30193-1-alejandro.lucero-palau@amd.com>
+ <20260630143507.30193-2-alejandro.lucero-palau@amd.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20260630143507.30193-2-alejandro.lucero-palau@amd.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Tue, Jun 30, 2026 at 03:50:17PM +0100, Leonardo Bras wrote:
-> On Mon, Jun 29, 2026 at 10:22:12AM -0700, Oliver Upton wrote:
-> > If we need to initialize the IRQ I'd really like to see device tree
-> > bindings for HACDBSIRQ as well. Pretty much any system us plebs can get
-> > our hands on is gonna be DT anyway.
+
+
+On 6/30/26 7:35 AM, alejandro.lucero-palau@amd.com wrote:
+> From: Alejandro Lucero <alucerop@amd.com>
 > 
-> Agree. I started out with ACPI because that's what the main target is, as 
-> dirty-logging is focused in Live Migration, which is usually more 
-> appreciated in the server space, which generally uses ACPI.
+> Remove __meminitdata from hmat_adist_nb declaration preserving it even
+> when CONFIG_MEMORY_HOTPLUG is not set. Otherwise further notifier
+> registrations using register_mt_adistance_algorithm() will find a
+> notifier chain likely corrupted. This is the case when a CXL Type2
+> driver will load after kernel initialization and a CXL region created from
+> its committed HDM decoders registers an mt_adistance_algorithm notifier.
 > 
-> I spoke to some people, and I could not hear of anyone releasing a product 
-> based in DT that would implement this yet, so I postponed the DT 
-> enablement.
-
-Nested virt is always a good example. In some distant future KVM could
-expose FEAT_HACDBS to the L1 hypervisor, and the VMM may be using DT
-instead of ACPI (like kvmtool).
-
-> > 
-> > > +static irqreturn_t hacdbsirq_handler(int irq, void *pcpu)
-> > > +{
-> > > +	u64 cons = read_sysreg_s(SYS_HACDBSCONS_EL2);
-> > > +	unsigned long err = FIELD_GET(HACDBSCONS_EL2_ERR_REASON, cons);
-> > > +
-> > > +	switch (err) {
-> > > +	case HACDBSCONS_EL2_ERR_REASON_NOF:
-> > > +		this_cpu_write(hacdbs_pcp.status, HACDBS_IDLE);
-> > > +		break;
-> > > +	case HACDBSCONS_EL2_ERR_REASON_IPAHACF:
-> > > +		/* When size not a power of two >= 4k, exit with reserved TTLW */
-> > > +		int index = FIELD_GET(HACDBSCONS_EL2_INDEX, cons);
-> > > +
-> > > +		if (index >= this_cpu_read(hacdbs_pcp.size)) {
-> > > +			this_cpu_write(hacdbs_pcp.status, HACDBS_IDLE);
-> > > +			break;
-> > > +		}
-> > > +		fallthrough;
-> > > +	case HACDBSCONS_EL2_ERR_REASON_STRUCTF:
-> > > +	case HACDBSCONS_EL2_ERR_REASON_IPAF:
-> > > +		this_cpu_write(hacdbs_pcp.status, HACDBS_ERROR);
-> > > +		break;
-> > > +	}
-> > > +
-> > > +	return IRQ_HANDLED;
-> > > +}
-> > 
-> > I have a pretty extreme distaste for creating a state machine between
-> > the callsite and the IRQ handler. The callsite should poll HACDBS for
-> > completion. The thread has nothing better to do anyway.
+> Signed-off-by: Alejandro Lucero <alucerop@amd.com>
+> ---
+>  drivers/acpi/numa/hmat.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> Well, there is one argument it could just wait and save some energy, but I 
-> agree it is not relevant in server space.
+> diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
+> index 9792dc394756..3006789ae31f 100644
+> --- a/drivers/acpi/numa/hmat.c
+> +++ b/drivers/acpi/numa/hmat.c
+> @@ -995,7 +995,7 @@ static int hmat_calculate_adistance(struct notifier_block *self,
+>  	return NOTIFY_STOP;
+>  }
+>  
+> -static struct notifier_block hmat_adist_nb __meminitdata = {
+> +static struct notifier_block hmat_adist_nb = {
 
-I wouldn't suggest polling in a tight loop :) I'd say use something like
-__mdelay() to get the core into a low-power state w/o using a naked WFI.
-In fact, that already uses WFxT under the hood.
+Maybe do something similar to __init_or_acpilib in include/linux/acpi.h?
 
-> The main reason I did this is 
-> because I am planning on later doing an improved version of this that would 
-> clean the dirty-bit *while* running the guest, and having the IRQ is needed 
-> for exiting guest so we can notify userspace the cleaning is done. So I 
-> laid the HACDBSIRQ infra here so we don't have both polling and IRQ options 
-> happening. 
-> 
-> That idea would require us to add new API (a return value for 'cleaned'), 
-> and also a new flag for the clean ioctl. We also need the VMM to 
-> implement that, but then we get a proper cpu usage of cleaning time.
->
-> I wanted to start with a backwards compatible version, and do the above 
-> idea once I put my hands in hardware that implements HACDBS, so I can 
-> properly measure how much performance we get on above strategy.
-> 
-> What do you think?
+>  	.notifier_call = hmat_calculate_adistance,
+>  	.priority = 100,
+>  };
 
-Yeah, I'd want to see some extremely compelling performance numbers for
-this approach before considering it, alongside the necessary VMM patches
-to actually activate it.
-
-Seems likely to me that the VMM will want the background thread back
-ASAP that calls the clean ioctl so you'll need to work out how to cope
-with idle vCPUs in that case.
-
-Even still, with this hypothetical approach I'd expect KVM to inspect
-the HACDBS state on every exit. The IRQ is just a convenient kick back
-out to the main KVM_RUN loop.
-
-Thanks,
-Oliver
