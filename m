@@ -1,118 +1,79 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 544C64071E2;
-	Tue, 30 Jun 2026 10:56:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FB3C3FFACC;
+	Tue, 30 Jun 2026 11:38:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782816964; cv=none; b=LFhjnhgJ8pNDFxm+ytY2/c32NkaYW9VcEjl1hRN2VF8tqUlI3PYAdttE+yUjUXBKX2nvxhQSBF85kscTZ03YFoLDsHLUQ23mnXxEEMmCkwUpzC/5bYiSJRZmAH0ieAosaBpOVYA37MiDTV+MgKy0pggTeeR2cA/NhUgCXhJ8C14=
+	t=1782819538; cv=none; b=b8oK+cRJyc6EzSgOZmtpPjXQRqGIS9PZx/s36b0j+lNEgKjT44RpYS5UOjJxYaWntZ1eQNBhAYQ9AhW7Dfsr+P0qJfxNabop0aK+TItm6VB3JEbwh8kst06t9z+RwCm8URm+fYjku2XfVXqmM3mgS2ydKa4qLm4RJAC9sJwzMAI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782816964; c=relaxed/simple;
-	bh=nH2FPVZuqwa+vwMtZvdqudzPlttvyZ5wsFDag/z2n0w=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=uS7gLoGqqR0xtecUUF5ENgSU0UxBx3PrllQctkUxC6xKITZeiAT481Yj8PVlt7+pDor8Cnaq9pz3nl/yZHFvpBKSrPp23z41iv0PKbjwatIpf/4hqwX/t8x9vK4oghmpblw8Iqf7yFV/IzSi2g9PSzyFHNEEv0XG3mrVb6N35bY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=L/OxEb3e; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782819538; c=relaxed/simple;
+	bh=Sz2uinVuwSHndPQ4KZgNtJjPZT0iz2BaJMxIyuCZfRg=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=u1If2fkcrWsy5AQs6+zq1idk0xzbYAlUiAdFPvezpeOH9UEBLiHUA79P8wvgUYm/NfjyjDnNIQ61Jdr0T8VQ6P5/Q4qNRzMuOcoENVwTwvlaHrUjpqVVfQl7VzsCkbmRcu1cHuDRCfRBUBX6YtadZwwxNAEPceLhShpirUcT6S0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mqZ+J78w; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="L/OxEb3e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0C3B1F000E9;
-	Tue, 30 Jun 2026 10:56:00 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mqZ+J78w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66B661F000E9;
+	Tue, 30 Jun 2026 11:38:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782816962;
-	bh=x+ErKDJZBnJk0BN/YgBPDVpN7NT+yJFm0+JSzLOIJy4=;
-	h=From:Date:Subject:To:Cc;
-	b=L/OxEb3etSRt/QAorUEF8M3kq8Zwkbm7HMFlEI2d6mzVGkMbHR0sFH75EsQmAmaux
-	 6HPuU5YzbcWqYttygaAoio8rinz8q1jcrjnHF50OVgSed9T1i0b0WKonTJM5+fZPUt
-	 Sl8uBXBQfzNO1kBTNdg9tgtpHJNS58xnsAnVIR59ULzPCL6wXRsXW8s46erGhxcN44
-	 naBlPCWRlgBfF1P50VgW4HDrSEuK+bB9lnTHDXX9tlIfLaOPYRa5tb4C9kBjl7mAdK
-	 mDDIVlDwEQa+ZdNU+jadPiewbEbHvObwvqw05zUDsxivMCDf5Q4tjL8VeSqNi3a+wy
-	 /GiIQeOm1KFfQ==
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Date: Tue, 30 Jun 2026 13:55:58 +0300
-Subject: [PATCH] ACPI: NVS: replace __get_free_page() with kmalloc()
+	s=k20260515; t=1782819537;
+	bh=Sz2uinVuwSHndPQ4KZgNtJjPZT0iz2BaJMxIyuCZfRg=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=mqZ+J78wyuBuqhjKVOwXYg5JEd4j7EcpdEzJRVl6Z5A5aUxLfhQNAgm8jrmmu1e/D
+	 5s4thqtO4ypG60u58r6dRkJ78NhOOi0UpLsVFr0/dZAwd2wmclcaugXNUj4N1b2NeQ
+	 MLAJQqfrY4Sa5oGIryDbkmrooiG77FsWjDF6T6EhANdSfj90GnEMBtfq6lY9HAWKzM
+	 vEL2S/NNFIiwl3VtxKbtj+IOqvpIy8QT6TOeYOOsk0oA70tl1lm6js78/2D2+qKWTC
+	 mXd4EGRR3sHie+HrNejjaO3atCDIM1svP4NenLh7pSFMA4J8QYbNqTpDHnKSizhzMF
+	 apCN5N+so9p1g==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+ Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+ Linux PM <linux-pm@vger.kernel.org>
+Subject: Re: [GIT PULL] ACPI support fixes and cleanups for 7.2-rc1
+Date: Tue, 30 Jun 2026 13:38:54 +0200
+Message-ID: <6023934.DvuYhMxLoT@rafael.j.wysocki>
+Organization: Linux Kernel Development
+In-Reply-To: <12935226.O9o76ZdvQC@rafael.j.wysocki>
+References:
+ <CAJZ5v0juZ6YJVALVEi1s_O0qgcr_o880TJbRHXWsd-Drb-sUXQ@mail.gmail.com>
+ <CAJZ5v0jQyELy6Zyqn-ngTmVG7Gj+CFMtL_t7qDEQjWSjgcLCmQ@mail.gmail.com>
+ <12935226.O9o76ZdvQC@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260630-b4-acpi-v1-1-a9f59c04d221@kernel.org>
-X-B4-Tracking: v=1; b=H4sIAL2gQ2oC/yXMwQrCMBAE0F8pe3YhiSXU/krxsJuudnuIJasil
- P67iR7fMDM7mBQVg7HbochbTR+5wp86SAvlu6DO1RBciC6GHrlHSpui8344zyRy4Qi1vRW56ef
- 3NF3/thevkp5t3hpMJsiFclpa1AjH8QWGA02cggAAAA==
-X-Change-ID: 20260624-b4-acpi-01183daee9b6
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>, linux-acpi@vger.kernel.org, 
- linux-kernel@vger.kernel.org, linux-mm@kvack.org
-X-Mailer: b4 0.15.2
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
 
-suspend_nvs_alloc() allocates shadow pages for saving and restoring
-ACPI Non-Volatile Storage regions across suspend/resume.
+On Monday, June 29, 2026 3:15:12 PM CEST Rafael J. Wysocki wrote:
+> On Monday, June 29, 2026 2:22:51 PM CEST Rafael J. Wysocki (Intel) wrote:
+> > On Fri, Jun 26, 2026 at 10:14=E2=80=AFPM Linus Torvalds
+> > <torvalds@linux-foundation.org> wrote:
+> > >
+> > > On Fri, 26 Jun 2026 at 10:54, Rafael J. Wysocki <rafael@kernel.org> w=
+rote:
+> > >=20
+> > > How about just adding a trivial strncpy_pad() to
+> > > <acpi/platform/acenv.h> or something. A place that already knows about
+> > > the whole "I'm building the app side" now.
+> > >
+> > > Hmm?
+> >=20
+> > Something like that or define acpi_ut_safe_strncpy() as an alias for
+> > strncpy_pad() when that's available.
+> >=20
+> > I'll figure this out.
 
-These buffers can be allocated with kmalloc() as there's nothing special
-about them to go directly to the page allocator.
+Interestingly enough, the ACPICA tools don't even call acpi_ut_safe_strncpy=
+(),
+so if it is defined as an strncpy_pad() alias, the original definition of it
+can be dropped entirely.
 
-kmalloc() provides a better API that does not require ugly casts and
-kfree() does not need to know the size of the freed object.
+I'm going to make this change.
 
-Performance difference between kmalloc() and __get_free_pages() is not
-measurable as both allocators take an object/page from a per-CPU list for
-fast path allocations.
 
-For the slow path the performance is anyway determined by the amount of
-reclaim involved rather than by what allocator is used.
-
-Replace use of __get_free_page() with kmalloc() and free_page() with
-kfree().
-
-Link: https://lore.kernel.org/all/635405e4-9423-4a25-a6e7-e03c8ea0bcbe@redhat.com
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
----
-This is a (tiny) part of larger work of replacing page allocator calls
-with kmalloc:
-
-My initial intention a few month ago was to remove ugly casts [1], but then
-willy pointed out that Linus objected to something like this [2] and it
-looks like more than a decade old technical debt.
-
-[1] https://lore.kernel.org/all/20251018093002.3660549-1-rppt@kernel.org/
-[2] https://lore.kernel.org/all/CA+55aFwp4iy4rtX2gE2WjBGFL=NxMVnoFeHqYa2j1dYOMMGqxg@mail.gmail.com/ 
-
-Also in git:
-https://git.kernel.org/pub/scm/linux/kernel/git/rppt/linux.git gfp-to-kmalloc/acpi
----
- drivers/acpi/nvs.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/nvs.c b/drivers/acpi/nvs.c
-index 6eaad7dd0241..12aee4102696 100644
---- a/drivers/acpi/nvs.c
-+++ b/drivers/acpi/nvs.c
-@@ -133,7 +133,7 @@ void suspend_nvs_free(void)
- 
- 	list_for_each_entry(entry, &nvs_list, node)
- 		if (entry->data) {
--			free_page((unsigned long)entry->data);
-+			kfree(entry->data);
- 			entry->data = NULL;
- 			if (entry->kaddr) {
- 				if (entry->unmap) {
-@@ -156,7 +156,7 @@ int suspend_nvs_alloc(void)
- 	struct nvs_page *entry;
- 
- 	list_for_each_entry(entry, &nvs_list, node) {
--		entry->data = (void *)__get_free_page(GFP_KERNEL);
-+		entry->data = kmalloc(PAGE_SIZE, GFP_KERNEL);
- 		if (!entry->data) {
- 			suspend_nvs_free();
- 			return -ENOMEM;
-
----
-base-commit: dc59e4fea9d83f03bad6bddf3fa2e52491777482
-change-id: 20260624-b4-acpi-01183daee9b6
-
-Best regards,
---  
-Sincerely yours,
-Mike.
 
