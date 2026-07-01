@@ -1,146 +1,161 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B040B2264A8;
-	Wed,  1 Jul 2026 10:48:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from canpmsgout07.his.huawei.com (canpmsgout07.his.huawei.com [113.46.200.222])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1531E3655D6;
+	Wed,  1 Jul 2026 10:56:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.222
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782902882; cv=none; b=IoYEvDO7L4E9ReqTbcph4+vvr1s9R05dnb5TZydist+AO1PlVXpfUfolZK8GLfMiw9VZH20b95jBCu0h+NDcmKC3JR67PJnsZNIxEkejavw3tQHoygeEIvvfXmxwawTCkXcWpsKmRcUgSeLcwHIQltFn7CulsOKtdjw+gE11jr0=
+	t=1782903397; cv=none; b=rXf32vDcSgY1QPXskS8LBOb9G8B6lgSoZdSfOEr2Yd7K22/+UZ4HC6Fw0z/FDvMX7m/10JEh5GyMuS6lcEpiu5SaEO0wgiQBfLrNqGd2XcL8sHNPq9XbbM5q08fHxoCXFgK6bSp36DuIoMaYNm2NJ6I+ZUlJ6rLZjVIpwqQgHrg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782902882; c=relaxed/simple;
-	bh=k9oLV4IW1kmjddOXs4xgFjCS/8na5VnlDFUVzIfikXo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type:Content-Disposition; b=K2gzFOsMWV2CbigTGJgjhO3+G5D+FXBFjkL/WH6X7Aqlm2eBTgGaRYh5iw0SZLGKsaKAQijesEr3bQSQWheuJsmzSeSft/F9T3Nju66wTtnBg2zHTWBK2hyNRO8/yFl7Q08AgCz1AqAiLuq4ZOCDW7H4ZK3r7I0siXXEOYAbLzo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=tnOzSRO0; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1782903397; c=relaxed/simple;
+	bh=Xz/M/oVmgC4iT6gqXAlX1ebS7dOHQ7COAPgOuecCk18=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=A3UXG0Ay2zt9gv4PB0YFD0QY8kIO7HNCkeOtXQslXGAjSifW+qrtFqdJEWsRZcNBcKLV1kU8FuYX2dEfENnNOOo0K+4/Yw2qS2w6dN0AapwBnfoxlQFFvfzOENXV/SvPYPpu07Sh8SKg10JtdcBu5n7eOK8rauczunnmVIXU56I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=jVAQhVdn; arc=none smtp.client-ip=113.46.200.222
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="tnOzSRO0"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 9C24C2247;
-	Wed,  1 Jul 2026 03:47:55 -0700 (PDT)
-Received: from LeoBrasDK.cambridge.arm.com (LeoBrasDK.cambridge.arm.com [10.2.212.21])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id F1B5C3F85F;
-	Wed,  1 Jul 2026 03:47:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1782902880; bh=k9oLV4IW1kmjddOXs4xgFjCS/8na5VnlDFUVzIfikXo=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=tnOzSRO03HoN3OjxZOBM4zT7QZXKnXvBpvE2UHcg5FHEnAP6Uw1P9kZGjvy4/BHWl
-	 XsLX53rt40c/3Y76DfQ8exxQAa8Zn6lDLlVABiIFTtnUSxB2BpHI8pwOpELG0RrwoS
-	 cJEkgFFdJuQwSs9X0ULTp+Zo7HMVTGwI3C0PQz4s=
-From: Leonardo Bras <leo.bras@arm.com>
-To: Oliver Upton <oupton@kernel.org>
-Cc: Leonardo Bras <leo.bras@arm.com>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	Marc Zyngier <maz@kernel.org>,
-	Joey Gouly <joey.gouly@arm.com>,
-	Steffen Eiden <seiden@linux.ibm.com>,
-	Suzuki K Poulose <suzuki.poulose@arm.com>,
-	Zenghui Yu <yuzenghui@huawei.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Saket Dumbre <saket.dumbre@intel.com>,
-	Paolo Bonzini <pbonzini@redhat.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Chengwen Feng <fengchengwen@huawei.com>,
-	Kees Cook <kees@kernel.org>,
-	=?utf-8?Q?Miko=C5=82aj?= Lenczewski <miko.lenczewski@arm.com>,
-	James Morse <james.morse@arm.com>,
-	Zeng Heng <zengheng4@huawei.com>,
-	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
-	Thomas Huth <thuth@redhat.com>,
-	Ryan Roberts <ryan.roberts@arm.com>,
-	Yeoreum Yun <yeoreum.yun@arm.com>,
-	Mark Brown <broonie@kernel.org>,
-	Kevin Brodsky <kevin.brodsky@arm.com>,
-	James Clark <james.clark@linaro.org>,
-	Fuad Tabba <tabba@google.com>,
-	Raghavendra Rao Ananta <rananta@google.com>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Sascha Bischoff <Sascha.Bischoff@arm.com>,
-	Anshuman Khandual <anshuman.khandual@arm.com>,
-	Tian Zheng <zhengtian10@huawei.com>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	kvmarm@lists.linux.dev,
-	linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev,
-	kvm@vger.kernel.org
-Subject: Re: [PATCH v2 06/13] KVM: arm64: dirty_bit: Add base FEAT_HACDBS cleaning routine
-Date: Wed,  1 Jul 2026 11:47:52 +0100
-Message-ID: <akTwWArtOWJ--fi4@LeoBrasDK>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <akQTypBfpdqSMhm_@kernel.org>
-References: <20260629111820.1873540-1-leo.bras@arm.com> <20260629111820.1873540-7-leo.bras@arm.com> <akKtKH8O5hngLenm@kernel.org> <akPZ2bnh3k6ZZgYx@LeoBrasDK> <akQTypBfpdqSMhm_@kernel.org>
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="jVAQhVdn"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=R0xQROUgY3USVrZRoxRpR+tcCXdEqbd2n35d9Jl/Ms0=;
+	b=jVAQhVdn0fHFYNTsr5P+ASorHGa/BtzV9+gxe/BkYOLGPco0c9rweTFqgy/qXPpempwPWyWHr
+	F3PkbOSoRe8/QPVVUV6xRowpdATn8In4hR/uQhdDoBiQ0HK75ZYsS/s6mG2wExYbdcIh+slIjk2
+	1hFBzayGRAtpXyQKBWbaE9k=
+Received: from mail.maildlp.com (unknown [172.19.162.92])
+	by canpmsgout07.his.huawei.com (SkyGuard) with ESMTPS id 4gqxXz5shGzLmBl;
+	Wed,  1 Jul 2026 18:47:15 +0800 (CST)
+Received: from kwepemr200004.china.huawei.com (unknown [7.202.195.241])
+	by mail.maildlp.com (Postfix) with ESMTPS id 896B340565;
+	Wed,  1 Jul 2026 18:56:25 +0800 (CST)
+Received: from [10.67.121.62] (10.67.121.62) by kwepemr200004.china.huawei.com
+ (7.202.195.241) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Wed, 1 Jul
+ 2026 18:56:24 +0800
+Message-ID: <737355ec-7e0c-434b-b41d-201d08d1d020@huawei.com>
+Date: Wed, 1 Jul 2026 18:56:23 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 2/2] arm64: topology: read CPPC FFH feedback counters in
+ one operation
+To: Sumit Gupta <sumitg@nvidia.com>, <catalin.marinas@arm.com>,
+	<will@kernel.org>, <rafael@kernel.org>, <lenb@kernel.org>,
+	<robert.moore@intel.com>, <beata.michalska@arm.com>,
+	<zhenglifeng1@huawei.com>, <zhanjie9@hisilicon.com>,
+	<cuiyunhui@bytedance.com>
+CC: <linux-arm-kernel@lists.infradead.org>, <linux-kernel@vger.kernel.org>,
+	<linux-acpi@vger.kernel.org>, <acpica-devel@lists.linux.dev>,
+	<linuxarm@huawei.com>, <jonathan.cameron@huawei.com>,
+	<prime.zeng@hisilicon.com>, <wanghuiqiang@huawei.com>, <xuwei5@huawei.com>,
+	<lihuisong@huawei.com>, <yubowen8@huawei.com>, <wangzhi12@huawei.com>,
+	"linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+References: <20260410094145.4132082-1-zhangpengjie2@huawei.com>
+ <20260410094145.4132082-3-zhangpengjie2@huawei.com>
+ <56a1e8bf-41b1-40cf-a943-79cce84a774e@nvidia.com>
+From: Pengjie Zhang <zhangpengjie2@huawei.com>
+In-Reply-To: <56a1e8bf-41b1-40cf-a943-79cce84a774e@nvidia.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
+ kwepemr200004.china.huawei.com (7.202.195.241)
 
-On Tue, Jun 30, 2026 at 12:06:50PM -0700, Oliver Upton wrote:
-> On Tue, Jun 30, 2026 at 03:59:38PM +0100, Leonardo Bras wrote:
-> > > > +	hcr_el2 = read_sysreg(HCR_EL2);
-> > > > +	write_sysreg(hcr_el2 | HCR_EL2_VM, HCR_EL2);
-> > > 
-> > > sysreg_clear_set_hcr(). I'm pretty sure all the speculative AT errata
-> > > depend on HCR_EL2.VM being set _after_ the stage-2 MMU has been loaded.
-> > > 
-> > 
-> > So, move this to after __load_stage2()?
-> > ok
-> 
-> Yes.
-> 
-> > > > +	__load_stage2(&kvm->arch.mmu);
-> > > 
-> > > Pretty sure you need an ISB here to ensure loading the MMU is ordered
-> > > with enabling HACDBS.
-> > >
-> > 
-> > does not __load_stage2() have an isb() here?
-> > In any case, will add an isb() after sysreg_clear_set_hcr(), which should 
-> > come after __load_stage2() IIUC.
-> 
-> No, __load_stage2() inserts an ISB only for hardware subject to the
-> speculative AT errata. If an implementation has broken AT and HACDBS in
-> the future then it gets an additional ISB. Oh well.
+
+On 6/29/2026 11:27 PM, Sumit Gupta wrote:
 >
+> On 10/04/26 15:11, Pengjie Zhang wrote:
+>> External email: Use caution opening links or attachments
+>>
+>>
+>> arm64 implements CPPC FFH feedback-counter reads using AMU counters.
+>> Because those counters must be sampled on the target CPU, reading the
+>> delivered and reference counters separately widens the observation 
+>> window
+>> between them.
+>>
+>> Implement the paired FFH feedback-counter read hook on arm64 and sample
+>> both AMU counters together before decoding the requested CPC register
+>> values.
+>>
+>> Also factor the FFH bitfield extraction logic into a helper and reuse
+>> it from the existing single-counter FFH read path.
+>>
+>> Signed-off-by: Pengjie Zhang <zhangpengjie2@huawei.com>
+>> ---
+>>   arch/arm64/kernel/topology.c | 75 ++++++++++++++++++++++++++++++++----
+>>   1 file changed, 67 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+>> index b32f13358fbb..b90a767b2a1f 100644
+>> --- a/arch/arm64/kernel/topology.c
+>> +++ b/arch/arm64/kernel/topology.c
+>> @@ -50,6 +50,16 @@ struct amu_cntr_sample {
+>>          unsigned long   last_scale_update;
+>>   };
+>>
+>> +struct amu_ffh_ctrs {
+>> +       u64 corecnt;
+>> +       u64 constcnt;
+>> +};
+>> +
+>> +enum cpc_ffh_ctr_id {
+>> +       CPC_FFH_CTR_CORE  = 0x0,
+>> +       CPC_FFH_CTR_CONST = 0x1,
+>> +};
+>> +
+>>   static DEFINE_PER_CPU_SHARED_ALIGNED(struct amu_cntr_sample, 
+>> cpu_amu_samples);
+>>
+>>   void update_freq_counters_refs(void)
+>> @@ -397,7 +407,7 @@ static void cpu_read_constcnt(void *val)
+>>   }
+>>
+>>   static inline
+>> -int counters_read_on_cpu(int cpu, smp_call_func_t func, u64 *val)
+>> +int counters_read_on_cpu(int cpu, smp_call_func_t func, void *val)
+>>   {
+>>          /*
+>>           * Abort call on counterless CPU.
+>> @@ -447,24 +457,73 @@ bool cpc_ffh_supported(void)
+>>          return true;
+>>   }
+>>
+>> +static void amu_read_core_const_ctrs(void *val)
+>> +{
+>> +       struct amu_ffh_ctrs *ctrs = val;
+>> +
+>> +       cpu_read_constcnt(&ctrs->constcnt);
+>> +       cpu_read_corecnt(&ctrs->corecnt);
+>> +}
+>
+> Any reason to flip the order?
+> Harmless as they are read back to back, but better to add a comment
+> if it's intentional.
+>
+> Thanks,
+> Sumit
+> ....
+>
+Hi Sumit，
 
-Makes sense.
- 
-> > > > +	hacdbs_start(hw_entries, size);
-> > > > +
-> > > > +	do {
-> > > > +		wfi();
-> > > > +	} while (this_cpu_read(hacdbs_pcp.status) == HACDBS_RUNNING);
-> > > 
-> > > This is exactly why I said you should just poll hardware instead. It is
-> > > entirely possible that the IRQ arrives before you WFI.
-> > 
-> > It should be fine with WFIT, though, right?
-> 
-> Sure, but we shouldn't assume a functional WFxT even if we have HACDBS.
-> Just rely on pre-existing kernel infrastructure to do the thing you want
-> to.
+Thanks for taking the time to review and test.
+The cpu_read_constcnt() function includes the conditional check
+this_cpu_has_cap(ARM64_WORKAROUND_2457168), which incurs a latency of
+6–12 nanoseconds on the our platform.
+If cpu_read_corecnt() is called prior to cpu_read_constcnt(), it will
+widen the sampling interval between the corecnt and constcnt counter
+readings. To address this, we have adjusted the call order:
+cpu_read_constcnt() is executed first, followed by cpu_read_corecnt().
+I will add comments later.
 
-Got it.
+Thanks,
+   Pengjie
 
-> 
-> > I understand the reason in pooling, and even done some workaround in 
-> > pooling for getting this to run in the model. 
-> > 
-> > Based on the previous reply, do you think I should only use polling for 
-> > now, and implement the IRQ later?
-> 
-> Yes.
-> 
 
-Will do, then.
-
-Thanks!
-Leo
-
+>
+>
