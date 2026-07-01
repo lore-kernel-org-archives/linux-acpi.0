@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FE80396B73;
-	Wed,  1 Jul 2026 19:17:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 808243D9DD0;
+	Wed,  1 Jul 2026 19:17:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782933463; cv=none; b=MkPDOkLfAsju5GQG67enzjGgmWFweUqMXcpJdFY9qsGlTlk5e+8CslDGEVC/bUXZz2GuNo9LfXf/hzDi83OiM3Zucm6+6dD4ebkrR4vX8x9OTKeKoK5C15yW1/aQ2lPZRSxcDmYYNtxtcBX+mZSKXTpco7Ynp0O4NGKKl/Bf1Jw=
+	t=1782933467; cv=none; b=Yqf94mTWe+X0uT/RO8+H27oxdUvy06kxWSONZaUkf6GFkcQB8bbvnYFdxkZ9hbEkuk3qFj2cZk3Jh6JydMjqNbno7fssPromgF1VIqktI2ab3mjTL+pMs84XZ+AIsqQfiXnzt4aWT2OmHvM7jwMNbz1268DePiANGdHO8lFUX5U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782933463; c=relaxed/simple;
-	bh=8hlsNJwLVmwEfCaaR0JCgSj1BvL63EIf3rbMPpEQvk4=;
+	s=arc-20240116; t=1782933467; c=relaxed/simple;
+	bh=2POs9KHxIDbm6kiT467kxhW/3gcu/rgiFW+Vt4+ZgQY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=EupzXsiej+mo0PJ80ZOL7F1eEiL3wC4vwS5oJTqthXI/OCbq6YQHZ2Znyzag+4XKznaXCACKnuy77EP0Vo5HwMmMw3q+SrkB8gdnUFAt4BaE8QKAIdeao0d0NLHb7DHRLTr+rUx733cVTo4XRlbctGLkh6y2DzdDnpcpan8//OU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QjOT8onH; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=rx38hJCL0G3lJnLBQ6i6X1bPL+AxnVIIpLrVVsuQFakyfeI/rnRPpbMmfK8JXhh+cX1ofYf/krMkO9crxMQS74UCZqAJhBVx9JVjZ9dR5w24yZJug3aHq1dKo9Mo+zmqk1MgPSjSea/ZEnSORqXD2BSIE+n0l2iPdT3my+e8pxA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=knOAwnHY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QjOT8onH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3E531F000E9;
-	Wed,  1 Jul 2026 19:17:39 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="knOAwnHY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E3D81F000E9;
+	Wed,  1 Jul 2026 19:17:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782933461;
-	bh=MjDTQx6jwARKGIYrveomBgrbdeElkKOcbcwnV3sjYEg=;
+	s=k20260515; t=1782933465;
+	bh=jwA4IGHGgeTLnB0KjsyYGuaWviUHIH9aoSDSxq+WbYA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=QjOT8onHsyGo7Tb/vUziYeHLHQFgGRpE82ed8PSz8/QMLKZXxYSdoYnFC7GzpHlKP
-	 Ke1TQSLLlHMCLRmLftUrdZcPmd2hvhwVt3wvP+Yn4QViPd0R9siU5VxQFQ7wsc5X0+
-	 xFPFofP8d6H8HKczJndj7LainM7MyrMYUHl6ub5e8iGRf0NLOYDIsLi7P+SJCIAqYb
-	 Q+Z2j5pizowNlNclW7bljMA4tdFT2TGPW9dDpZUwOb9um2hR0zI/Pv1QO/5RXqwI9X
-	 RE3u6ddrXF0UeJxHn537uY78qnw8r3HTdn2asnDN+MIrNrzyzyIMJsrvUtp0tIPo6F
-	 Rh65X9+lb8vMg==
+	b=knOAwnHYK1cnr9RnsaUIaRNJVOZk/PHI7frW1ILR90WsqFU1e7VPwsbsc4kJFL+Hv
+	 vq6w/JVB8petR33zRLDsoe235HQF1rheWMItw91+Mej/ZqjLdZWwmXM5pg8xoAOety
+	 rGFIKpIYxYAtDlL6RygfDaWNbDcmUPMb4WIxgajFDIWY1KYuGtl2IFX6cgkgvMpWmN
+	 x31AWQZvaXDjJbrLN2Xdp6muZVgJF/I2sGtGXB/PSVfwM3lWe/ps0wcb6s9RC/tkZa
+	 A0jMeyoYou3vTJqsaNHEpharErtz/7dku2RO6TAvp7gGKzGgxq31E3Bqyp51eCJ9FB
+	 jSPgVsywgrn+w==
 From: "Rafael J.  Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: Danilo Krummrich <dakr@kernel.org>,
@@ -36,10 +36,9 @@ Cc: Danilo Krummrich <dakr@kernel.org>,
  Linux Documentation <linux-doc@vger.kernel.org>,
  Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
  driver-core@lists.linux.dev
-Subject:
- [PATCH v1 2/2] ACPI: scan: Set power.no_pm for all struct acpi_device objects
-Date: Wed, 01 Jul 2026 21:17:28 +0200
-Message-ID: <2436882.ElGaqSPkdT@rafael.j.wysocki>
+Subject: [PATCH v1 1/2] 1/2] ACPI: bus: Eliminate struct acpi_driver
+Date: Wed, 01 Jul 2026 21:16:39 +0200
+Message-ID: <5132944.31r3eYUQgx@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <6027395.DvuYhMxLoT@rafael.j.wysocki>
 References: <6027395.DvuYhMxLoT@rafael.j.wysocki>
@@ -54,27 +53,454 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Now that drivers do not bind to ACPI device objects, there is no reason
-for them to be included directly in power management in any way, so set
-power.no_pm for all of them.
+Now that struct acpi_driver has no more users, eliminate it along with
+all of the code related to it.
+
+Also remove the file added by commit b8c8a8ea18ad ("ACPI: Documentation:
+driver-api: Disapprove of using ACPI drivers") because it will not be
+necessary any more after eliminating struct acpi_driver from the code.
+
+No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/scan.c | 1 +
- 1 file changed, 1 insertion(+)
+ .../driver-api/acpi/acpi-drivers.rst          |  80 ----------
+ Documentation/driver-api/acpi/index.rst       |   1 -
+ drivers/acpi/bus.c                            | 138 +-----------------
+ drivers/acpi/power.c                          |   1 -
+ drivers/acpi/scan.c                           |  16 +-
+ include/acpi/acpi_bus.h                       |  50 +------
+ 6 files changed, 5 insertions(+), 281 deletions(-)
+ delete mode 100644 Documentation/driver-api/acpi/acpi-drivers.rst
 
+diff --git a/Documentation/driver-api/acpi/acpi-drivers.rst b/Documentation/driver-api/acpi/acpi-drivers.rst
+deleted file mode 100644
+index 376b6d8a678c..000000000000
+--- a/Documentation/driver-api/acpi/acpi-drivers.rst
++++ /dev/null
+@@ -1,80 +0,0 @@
+-.. SPDX-License-Identifier: GPL-2.0
+-.. include:: <isonum.txt>
+-
+-=========================================
+-Why using ACPI drivers is not a good idea
+-=========================================
+-
+-:Copyright: |copy| 2026, Intel Corporation
+-
+-:Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+-
+-Even though binding drivers directly to struct acpi_device objects, also
+-referred to as "ACPI device nodes", allows basic functionality to be provided
+-at least in some cases, there are problems with it, related to general
+-consistency, sysfs layout, power management operation ordering, and code
+-cleanliness.
+-
+-First of all, ACPI device nodes represent firmware entities rather than
+-hardware and in many cases they provide auxiliary information on devices
+-enumerated independently (like PCI devices or CPUs).  It is therefore generally
+-questionable to assign resources to them because the entities represented by
+-them do not decode addresses in the memory or I/O address spaces and do not
+-generate interrupts or similar (all of that is done by hardware).
+-
+-Second, as a general rule, a struct acpi_device can only be a parent of another
+-struct acpi_device.  If that is not the case, the location of the child device
+-in the device hierarchy is at least confusing and it may not be straightforward
+-to identify the piece of hardware providing functionality represented by it.
+-However, binding a driver directly to an ACPI device node may cause that to
+-happen if the given driver registers input devices or wakeup sources under it,
+-for example.
+-
+-Next, using system suspend and resume callbacks directly on ACPI device nodes
+-is also questionable because it may cause ordering problems to appear.  Namely,
+-ACPI device nodes are registered before enumerating hardware corresponding to
+-them and they land on the PM list in front of the majority of other device
+-objects.  Consequently, the execution ordering of their PM callbacks may be
+-different from what is generally expected.  Also, in general, dependencies
+-returned by _DEP objects do not affect ACPI device nodes themselves, but the
+-"physical" devices associated with them, which potentially is one more source
+-of inconsistency related to treating ACPI device nodes as "real" device
+-representation.
+-
+-All of the above means that binding drivers to ACPI device nodes should
+-generally be avoided and so struct acpi_driver objects should not be used.
+-
+-Moreover, a device ID is necessary to bind a driver directly to an ACPI device
+-node, but device IDs are not generally associated with all of them.  Some of
+-them contain alternative information allowing the corresponding pieces of
+-hardware to be identified, for example represented by an _ADR object return
+-value, and device IDs are not used in those cases.  In consequence, confusingly
+-enough, binding an ACPI driver to an ACPI device node may even be impossible.
+-
+-When that happens, the piece of hardware corresponding to the given ACPI device
+-node is represented by another device object, like a struct pci_dev, and the
+-ACPI device node is the "ACPI companion" of that device, accessible through its
+-fwnode pointer used by the ACPI_COMPANION() macro.  The ACPI companion holds
+-additional information on the device configuration and possibly some "recipes"
+-on device manipulation in the form of AML (ACPI Machine Language) bytecode
+-provided by the platform firmware.  Thus the role of the ACPI device node is
+-similar to the role of a struct device_node on a system where Device Tree is
+-used for platform description.
+-
+-For consistency, this approach has been extended to the cases in which ACPI
+-device IDs are used.  Namely, in those cases, an additional device object is
+-created to represent the piece of hardware corresponding to a given ACPI device
+-node.  By default, it is a platform device, but it may also be a PNP device, a
+-CPU device, or another type of device, depending on what the given piece of
+-hardware actually is.  There are even cases in which multiple devices are
+-"backed" or "accompanied" by one ACPI device node (e.g. ACPI device nodes
+-corresponding to GPUs that may provide firmware interfaces for backlight
+-brightness control in addition to GPU configuration information).
+-
+-This means that it really should never be necessary to bind a driver directly to
+-an ACPI device node because there is a "proper" device object representing the
+-corresponding piece of hardware that can be bound to by a "proper" driver using
+-the given ACPI device node as the device's ACPI companion.  Thus, in principle,
+-there is no reason to use ACPI drivers and if they all were replaced with other
+-driver types (for example, platform drivers), some code could be dropped and
+-some complexity would go away.
+diff --git a/Documentation/driver-api/acpi/index.rst b/Documentation/driver-api/acpi/index.rst
+index 2b10d83f9994..ace0008e54c2 100644
+--- a/Documentation/driver-api/acpi/index.rst
++++ b/Documentation/driver-api/acpi/index.rst
+@@ -7,4 +7,3 @@ ACPI Support
+ 
+    linuxized-acpica
+    scan_handlers
+-   acpi-drivers
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index a30a904f6535..fae79cdd3610 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -620,41 +620,6 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
+ 	acpi_evaluate_ost(handle, type, ACPI_OST_SC_NON_SPECIFIC_FAILURE, NULL);
+ }
+ 
+-static void acpi_notify_device(acpi_handle handle, u32 event, void *data)
+-{
+-	struct acpi_device *device = data;
+-	struct acpi_driver *acpi_drv = to_acpi_driver(device->dev.driver);
+-
+-	acpi_drv->ops.notify(device, event);
+-}
+-
+-static int acpi_device_install_notify_handler(struct acpi_device *device,
+-					      struct acpi_driver *acpi_drv)
+-{
+-	u32 type = acpi_drv->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS ?
+-				ACPI_ALL_NOTIFY : ACPI_DEVICE_NOTIFY;
+-	acpi_status status;
+-
+-	status = acpi_install_notify_handler(device->handle, type,
+-					     acpi_notify_device, device);
+-	if (ACPI_FAILURE(status))
+-		return -EINVAL;
+-
+-	return 0;
+-}
+-
+-static void acpi_device_remove_notify_handler(struct acpi_device *device,
+-					      struct acpi_driver *acpi_drv)
+-{
+-	u32 type = acpi_drv->flags & ACPI_DRIVER_ALL_NOTIFY_EVENTS ?
+-				ACPI_ALL_NOTIFY : ACPI_DEVICE_NOTIFY;
+-
+-	acpi_remove_notify_handler(device->handle, type,
+-				   acpi_notify_device);
+-
+-	acpi_os_wait_events_complete();
+-}
+-
+ int acpi_dev_install_notify_handler(struct acpi_device *adev,
+ 				    u32 handler_type,
+ 				    acpi_notify_handler handler, void *context)
+@@ -1121,57 +1086,13 @@ bool acpi_driver_match_device(struct device *dev,
+ }
+ EXPORT_SYMBOL_GPL(acpi_driver_match_device);
+ 
+-/* --------------------------------------------------------------------------
+-                              ACPI Driver Management
+-   -------------------------------------------------------------------------- */
+-
+-/**
+- * __acpi_bus_register_driver - register a driver with the ACPI bus
+- * @driver: driver being registered
+- * @owner: owning module/driver
+- *
+- * Registers a driver with the ACPI bus.  Searches the namespace for all
+- * devices that match the driver's criteria and binds.  Returns zero for
+- * success or a negative error status for failure.
+- */
+-int __acpi_bus_register_driver(struct acpi_driver *driver, struct module *owner)
+-{
+-	if (acpi_disabled)
+-		return -ENODEV;
+-	driver->drv.name = driver->name;
+-	driver->drv.bus = &acpi_bus_type;
+-	driver->drv.owner = owner;
+-
+-	return driver_register(&driver->drv);
+-}
+-
+-EXPORT_SYMBOL(__acpi_bus_register_driver);
+-
+-/**
+- * acpi_bus_unregister_driver - unregisters a driver with the ACPI bus
+- * @driver: driver to unregister
+- *
+- * Unregisters a driver with the ACPI bus.  Searches the namespace for all
+- * devices that match the driver's criteria and unbinds.
+- */
+-void acpi_bus_unregister_driver(struct acpi_driver *driver)
+-{
+-	driver_unregister(&driver->drv);
+-}
+-
+-EXPORT_SYMBOL(acpi_bus_unregister_driver);
+-
+ /* --------------------------------------------------------------------------
+                               ACPI Bus operations
+    -------------------------------------------------------------------------- */
+ 
+ static int acpi_bus_match(struct device *dev, const struct device_driver *drv)
+ {
+-	struct acpi_device *acpi_dev = to_acpi_device(dev);
+-	const struct acpi_driver *acpi_drv = to_acpi_driver(drv);
+-
+-	return acpi_dev->flags.match_driver
+-		&& !acpi_match_device_ids(acpi_dev, acpi_drv->ids);
++	return 0;
+ }
+ 
+ static int acpi_device_uevent(const struct device *dev, struct kobj_uevent_env *env)
+@@ -1179,66 +1100,9 @@ static int acpi_device_uevent(const struct device *dev, struct kobj_uevent_env *
+ 	return __acpi_device_uevent_modalias(to_acpi_device(dev), env);
+ }
+ 
+-static int acpi_device_probe(struct device *dev)
+-{
+-	struct acpi_device *acpi_dev = to_acpi_device(dev);
+-	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
+-	int ret;
+-
+-	if (acpi_dev->handler && !acpi_is_pnp_device(acpi_dev))
+-		return -EINVAL;
+-
+-	if (!acpi_drv->ops.add)
+-		return -ENOSYS;
+-
+-	ret = acpi_drv->ops.add(acpi_dev);
+-	if (ret) {
+-		acpi_dev->driver_data = NULL;
+-		return ret;
+-	}
+-
+-	pr_debug("Driver [%s] successfully bound to device [%s]\n",
+-		 acpi_drv->name, acpi_dev->pnp.bus_id);
+-
+-	if (acpi_drv->ops.notify) {
+-		ret = acpi_device_install_notify_handler(acpi_dev, acpi_drv);
+-		if (ret) {
+-			if (acpi_drv->ops.remove)
+-				acpi_drv->ops.remove(acpi_dev);
+-
+-			acpi_dev->driver_data = NULL;
+-			return ret;
+-		}
+-	}
+-
+-	pr_debug("Found driver [%s] for device [%s]\n", acpi_drv->name,
+-		 acpi_dev->pnp.bus_id);
+-
+-	get_device(dev);
+-	return 0;
+-}
+-
+-static void acpi_device_remove(struct device *dev)
+-{
+-	struct acpi_device *acpi_dev = to_acpi_device(dev);
+-	struct acpi_driver *acpi_drv = to_acpi_driver(dev->driver);
+-
+-	if (acpi_drv->ops.notify)
+-		acpi_device_remove_notify_handler(acpi_dev, acpi_drv);
+-
+-	if (acpi_drv->ops.remove)
+-		acpi_drv->ops.remove(acpi_dev);
+-
+-	acpi_dev->driver_data = NULL;
+-
+-	put_device(dev);
+-}
+-
+ const struct bus_type acpi_bus_type = {
+ 	.name		= "acpi",
+ 	.match		= acpi_bus_match,
+-	.probe		= acpi_device_probe,
+-	.remove		= acpi_device_remove,
+ 	.uevent		= acpi_device_uevent,
+ };
+ 
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index d4131c184be8..23a4e207a01e 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -954,7 +954,6 @@ struct acpi_device *acpi_add_power_resource(acpi_handle handle)
+ 	INIT_LIST_HEAD(&resource->list_node);
+ 	INIT_LIST_HEAD(&resource->dependents);
+ 	device->power.state = ACPI_STATE_UNKNOWN;
+-	device->flags.match_driver = true;
+ 
+ 	/* Evaluate the object to get the system level and resource order. */
+ 	status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
 diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index ee24c65d43ed..8515e1892643 100644
+index 9a7ac2eb9ce0..ee24c65d43ed 100644
 --- a/drivers/acpi/scan.c
 +++ b/drivers/acpi/scan.c
-@@ -1811,6 +1811,7 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
- 	device->dev.release = release;
- 	device->dev.bus = &acpi_bus_type;
- 	device->dev.groups = acpi_groups;
-+	device_set_pm_not_required(&device->dev);
- 	fwnode_init(&device->fwnode, &acpi_device_fwnode_ops);
- 	acpi_set_device_status(device, ACPI_STA_DEFAULT);
- 	acpi_device_get_busid(device);
+@@ -273,13 +273,9 @@ static int acpi_scan_check_and_detach(struct acpi_device *adev, void *p)
+ 		}
+ 	}
+ 
+-	adev->flags.match_driver = false;
+-	if (handler) {
+-		if (handler->detach)
+-			handler->detach(adev);
+-	} else {
+-		device_release_driver(&adev->dev);
+-	}
++	if (handler && handler->detach)
++		handler->detach(adev);
++
+ 	/*
+ 	 * Most likely, the device is going away, so put it into D3cold before
+ 	 * that.
+@@ -1821,7 +1817,6 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
+ 	acpi_set_pnp_ids(handle, &device->pnp, type);
+ 	acpi_init_properties(device);
+ 	acpi_bus_get_flags(device);
+-	device->flags.match_driver = false;
+ 	device->flags.initialized = true;
+ 	device->flags.enumeration_by_parent =
+ 		acpi_device_enumeration_by_parent(device);
+@@ -2375,16 +2370,11 @@ static int acpi_bus_attach(struct acpi_device *device, void *first_pass)
+ 	if (ret < 0)
+ 		return 0;
+ 
+-	device->flags.match_driver = true;
+ 	if (ret > 0 && !device->flags.enumeration_by_parent) {
+ 		acpi_device_set_enumerated(device);
+ 		goto ok;
+ 	}
+ 
+-	ret = device_attach(&device->dev);
+-	if (ret < 0)
+-		return 0;
+-
+ 	if (device->pnp.type.platform_id || device->pnp.type.backlight ||
+ 	    device->flags.enumeration_by_parent)
+ 		acpi_default_enumeration(device);
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 714d111d8053..7b8051baed75 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -108,7 +108,6 @@ enum acpi_bus_device_type {
+ 	ACPI_BUS_DEVICE_TYPE_COUNT
+ };
+ 
+-struct acpi_driver;
+ struct acpi_device;
+ 
+ /*
+@@ -158,32 +157,6 @@ struct acpi_hotplug_context {
+ 	acpi_hp_fixup fixup;
+ };
+ 
+-/*
+- * ACPI Driver
+- * -----------
+- */
+-
+-typedef int (*acpi_op_add) (struct acpi_device * device);
+-typedef void (*acpi_op_remove) (struct acpi_device *device);
+-typedef void (*acpi_op_notify) (struct acpi_device * device, u32 event);
+-
+-struct acpi_device_ops {
+-	acpi_op_add add;
+-	acpi_op_remove remove;
+-	acpi_op_notify notify;
+-};
+-
+-#define ACPI_DRIVER_ALL_NOTIFY_EVENTS	0x1	/* system AND device events */
+-
+-struct acpi_driver {
+-	char name[80];
+-	char class[80];
+-	const struct acpi_device_id *ids; /* Supported Hardware IDs */
+-	unsigned int flags;
+-	struct acpi_device_ops ops;
+-	struct device_driver drv;
+-};
+-
+ /*
+  * ACPI Device
+  * -----------
+@@ -211,7 +184,6 @@ struct acpi_device_flags {
+ 	u32 removable:1;
+ 	u32 ejectable:1;
+ 	u32 power_manageable:1;
+-	u32 match_driver:1;
+ 	u32 initialized:1;
+ 	u32 visited:1;
+ 	u32 hotplug_notify:1;
+@@ -221,7 +193,7 @@ struct acpi_device_flags {
+ 	u32 cca_seen:1;
+ 	u32 enumeration_by_parent:1;
+ 	u32 honor_deps:1;
+-	u32 reserved:18;
++	u32 reserved:19;
+ };
+ 
+ /* File System */
+@@ -570,7 +542,6 @@ static inline void *acpi_driver_data(struct acpi_device *d)
+ }
+ 
+ #define to_acpi_device(d)	container_of(d, struct acpi_device, dev)
+-#define to_acpi_driver(d)	container_of_const(d, struct acpi_driver, drv)
+ 
+ static inline struct acpi_device *acpi_dev_parent(struct acpi_device *adev)
+ {
+@@ -676,13 +647,6 @@ void acpi_scan_lock_release(void);
+ void acpi_lock_hp_context(void);
+ void acpi_unlock_hp_context(void);
+ int acpi_scan_add_handler(struct acpi_scan_handler *handler);
+-/*
+- * use a macro to avoid include chaining to get THIS_MODULE
+- */
+-#define acpi_bus_register_driver(drv) \
+-	__acpi_bus_register_driver(drv, THIS_MODULE)
+-int __acpi_bus_register_driver(struct acpi_driver *driver, struct module *owner);
+-void acpi_bus_unregister_driver(struct acpi_driver *driver);
+ int acpi_bus_scan(acpi_handle handle);
+ void acpi_bus_trim(struct acpi_device *start);
+ acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
+@@ -696,18 +660,6 @@ static inline bool acpi_device_enumerated(struct acpi_device *adev)
+ 	return adev && adev->flags.initialized && adev->flags.visited;
+ }
+ 
+-/**
+- * module_acpi_driver(acpi_driver) - Helper macro for registering an ACPI driver
+- * @__acpi_driver: acpi_driver struct
+- *
+- * Helper macro for ACPI drivers which do not do anything special in module
+- * init/exit. This eliminates a lot of boilerplate. Each module may only
+- * use this macro once, and calling it replaces module_init() and module_exit()
+- */
+-#define module_acpi_driver(__acpi_driver) \
+-	module_driver(__acpi_driver, acpi_bus_register_driver, \
+-		      acpi_bus_unregister_driver)
+-
+ /*
+  * Bind physical devices with ACPI devices
+  */
 -- 
 2.51.0
 
