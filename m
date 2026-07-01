@@ -1,108 +1,146 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FE094279E4
-	for <linux-acpi@vger.kernel.org>; Wed,  1 Jul 2026 10:44:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B040B2264A8;
+	Wed,  1 Jul 2026 10:48:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782902685; cv=none; b=hbi7i2hK8WtzASOj/SGkcFRoKZslcYxHRhTcRzuWhRGsi2BkTokZ7mZ4uhcG7VyyImrKckCC2f3nprKj/popck2NIh+9wI5AqGI6PVC+/usSlXK0php9nIvgiC8wrM0ax5/gAC0sPkiAaypFmyV5ylq8ikxLhUJc14GDa076c3w=
+	t=1782902882; cv=none; b=IoYEvDO7L4E9ReqTbcph4+vvr1s9R05dnb5TZydist+AO1PlVXpfUfolZK8GLfMiw9VZH20b95jBCu0h+NDcmKC3JR67PJnsZNIxEkejavw3tQHoygeEIvvfXmxwawTCkXcWpsKmRcUgSeLcwHIQltFn7CulsOKtdjw+gE11jr0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782902685; c=relaxed/simple;
-	bh=d8vOtDWf/G+A4CI0gplhbWylGOZ5jmHWGpd6A9V+58A=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Ds4ebSfEr0ZFoDEmMRGufCzF/NvTbc+Q0xXFUtOrmUew2BndLPRiEJupklfQ+7ECw2RaB40m5HbdG5wHCIrt8HNjxe9Db2yXEuBCwfYGnfWYJ4Tvy9tuu6Wy3aPbl9dJ+n3BNgY5eDuNNCo39wQAVhHeNMFXGCXhaaUYdEMyW/g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CZjcsozA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782902882; c=relaxed/simple;
+	bh=k9oLV4IW1kmjddOXs4xgFjCS/8na5VnlDFUVzIfikXo=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type:Content-Disposition; b=K2gzFOsMWV2CbigTGJgjhO3+G5D+FXBFjkL/WH6X7Aqlm2eBTgGaRYh5iw0SZLGKsaKAQijesEr3bQSQWheuJsmzSeSft/F9T3Nju66wTtnBg2zHTWBK2hyNRO8/yFl7Q08AgCz1AqAiLuq4ZOCDW7H4ZK3r7I0siXXEOYAbLzo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=tnOzSRO0; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CZjcsozA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F17BE1F00A3A
-	for <linux-acpi@vger.kernel.org>; Wed,  1 Jul 2026 10:44:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782902684;
-	bh=d8vOtDWf/G+A4CI0gplhbWylGOZ5jmHWGpd6A9V+58A=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=CZjcsozA1auu1cKLuU4vYLASY5XHfgufNGQqu22nUjiDnCFEBHU4ZWkSAsveY/ywe
-	 jodz7shAIi9sf5/+dp8EykWoy5aimnC1XsOSEtfu5Ajh2+AbNi/W8e7VCX01bU3W8A
-	 Wr/69eCcloSaX6F1ykBa5ZhBZre/UhKgWSE70xiT6DXPpY6J/fPyJpAmZxmuWrx3Qp
-	 tsBB161FhCrPQCXU4RyPZJYy9PgHV8lPZ+2whAaACuzQhu4ec3nrOYRuWovg0jql2+
-	 8+0zbuno2UKJsNWJrghVtHVPJ4+2fMb6d8JhF1UrSPlAT8s1qQVa42/2lJr3Ubuf3A
-	 kMVPgHsIhk0xA==
-Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5aeb18fe7ceso301435e87.0
-        for <linux-acpi@vger.kernel.org>; Wed, 01 Jul 2026 03:44:43 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RoH38zH08gye89vS9BoFnnzmES8+QYCV8BT7tsCKtyFzsdyLecrcUf9mRTEl7EwV553Xc3yL4yVArQ7@vger.kernel.org
-X-Gm-Message-State: AOJu0YyWp15uMemFu6J2sUy1uAWh6ZUnTy39hlmeeTBazwSUG/qzu1LH
-	4izQiGfCOKEhs0wxkAIHNwCN/dLedcjW3FzdIAQl1L/t+68Oi85e3+h7kSrP6+k8h4jsJVjZDo+
-	Sjz0GAs61kPLO6s84+e5DTzbjJHAOrgg=
-X-Received: by 2002:a05:6512:611:20b0:5ad:518a:61dd with SMTP id
- 2adb3069b0e04-5aec68b8313mr185765e87.46.1782902682481; Wed, 01 Jul 2026
- 03:44:42 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="tnOzSRO0"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 9C24C2247;
+	Wed,  1 Jul 2026 03:47:55 -0700 (PDT)
+Received: from LeoBrasDK.cambridge.arm.com (LeoBrasDK.cambridge.arm.com [10.2.212.21])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id F1B5C3F85F;
+	Wed,  1 Jul 2026 03:47:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1782902880; bh=k9oLV4IW1kmjddOXs4xgFjCS/8na5VnlDFUVzIfikXo=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=tnOzSRO03HoN3OjxZOBM4zT7QZXKnXvBpvE2UHcg5FHEnAP6Uw1P9kZGjvy4/BHWl
+	 XsLX53rt40c/3Y76DfQ8exxQAa8Zn6lDLlVABiIFTtnUSxB2BpHI8pwOpELG0RrwoS
+	 cJEkgFFdJuQwSs9X0ULTp+Zo7HMVTGwI3C0PQz4s=
+From: Leonardo Bras <leo.bras@arm.com>
+To: Oliver Upton <oupton@kernel.org>
+Cc: Leonardo Bras <leo.bras@arm.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Marc Zyngier <maz@kernel.org>,
+	Joey Gouly <joey.gouly@arm.com>,
+	Steffen Eiden <seiden@linux.ibm.com>,
+	Suzuki K Poulose <suzuki.poulose@arm.com>,
+	Zenghui Yu <yuzenghui@huawei.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Saket Dumbre <saket.dumbre@intel.com>,
+	Paolo Bonzini <pbonzini@redhat.com>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Chengwen Feng <fengchengwen@huawei.com>,
+	Kees Cook <kees@kernel.org>,
+	=?utf-8?Q?Miko=C5=82aj?= Lenczewski <miko.lenczewski@arm.com>,
+	James Morse <james.morse@arm.com>,
+	Zeng Heng <zengheng4@huawei.com>,
+	mrigendrachaubey <mrigendra.chaubey@gmail.com>,
+	Thomas Huth <thuth@redhat.com>,
+	Ryan Roberts <ryan.roberts@arm.com>,
+	Yeoreum Yun <yeoreum.yun@arm.com>,
+	Mark Brown <broonie@kernel.org>,
+	Kevin Brodsky <kevin.brodsky@arm.com>,
+	James Clark <james.clark@linaro.org>,
+	Fuad Tabba <tabba@google.com>,
+	Raghavendra Rao Ananta <rananta@google.com>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Sascha Bischoff <Sascha.Bischoff@arm.com>,
+	Anshuman Khandual <anshuman.khandual@arm.com>,
+	Tian Zheng <zhengtian10@huawei.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	kvmarm@lists.linux.dev,
+	linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev,
+	kvm@vger.kernel.org
+Subject: Re: [PATCH v2 06/13] KVM: arm64: dirty_bit: Add base FEAT_HACDBS cleaning routine
+Date: Wed,  1 Jul 2026 11:47:52 +0100
+Message-ID: <akTwWArtOWJ--fi4@LeoBrasDK>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <akQTypBfpdqSMhm_@kernel.org>
+References: <20260629111820.1873540-1-leo.bras@arm.com> <20260629111820.1873540-7-leo.bras@arm.com> <akKtKH8O5hngLenm@kernel.org> <akPZ2bnh3k6ZZgYx@LeoBrasDK> <akQTypBfpdqSMhm_@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260627-acpi_pcc_signature-v1-0-c1b7268d4fdc@kernel.org>
- <20260627-acpi_pcc_signature-v1-6-c1b7268d4fdc@kernel.org>
- <CAJZ5v0j5RtaadVjTLm7rghNiz_9b4_Rs4PPQZgAinud7tssgEA@mail.gmail.com> <20260630-thankful-organic-foxhound-a991a0@sudeepholla>
-In-Reply-To: <20260630-thankful-organic-foxhound-a991a0@sudeepholla>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 1 Jul 2026 12:44:30 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gt5OsgUHXDyt1D=090ZMoxWg_s+Cwjs-M5AkC8e806ig@mail.gmail.com>
-X-Gm-Features: AVVi8CfrEh6m4dza9S4j4yAOEy1WgZ-x_Sp0y1aLiD4zDZ8ZDFGYA9XtHT5lYpk
-Message-ID: <CAJZ5v0gt5OsgUHXDyt1D=090ZMoxWg_s+Cwjs-M5AkC8e806ig@mail.gmail.com>
-Subject: Re: [PATCH 6/6] ACPI: PCC: Preserve shared memory signature in
- OpRegion handler
-To: Sudeep Holla <sudeep.holla@kernel.org>
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-On Tue, Jun 30, 2026 at 7:00=E2=80=AFPM Sudeep Holla <sudeep.holla@kernel.o=
-rg> wrote:
+On Tue, Jun 30, 2026 at 12:06:50PM -0700, Oliver Upton wrote:
+> On Tue, Jun 30, 2026 at 03:59:38PM +0100, Leonardo Bras wrote:
+> > > > +	hcr_el2 = read_sysreg(HCR_EL2);
+> > > > +	write_sysreg(hcr_el2 | HCR_EL2_VM, HCR_EL2);
+> > > 
+> > > sysreg_clear_set_hcr(). I'm pretty sure all the speculative AT errata
+> > > depend on HCR_EL2.VM being set _after_ the stage-2 MMU has been loaded.
+> > > 
+> > 
+> > So, move this to after __load_stage2()?
+> > ok
+> 
+> Yes.
+> 
+> > > > +	__load_stage2(&kvm->arch.mmu);
+> > > 
+> > > Pretty sure you need an ISB here to ensure loading the MMU is ordered
+> > > with enabling HACDBS.
+> > >
+> > 
+> > does not __load_stage2() have an isb() here?
+> > In any case, will add an isb() after sysreg_clear_set_hcr(), which should 
+> > come after __load_stage2() IIUC.
+> 
+> No, __load_stage2() inserts an ISB only for hardware subject to the
+> speculative AT errata. If an implementation has broken AT and HACDBS in
+> the future then it gets an additional ISB. Oh well.
 >
-> On Tue, Jun 30, 2026 at 02:33:08PM +0200, Rafael J. Wysocki (Intel) wrote=
-:
-> > On Sat, Jun 27, 2026 at 6:39=E2=80=AFPM Sudeep Holla <sudeep.holla@kern=
-el.org> wrote:
-> > >
-> > > ACPI defines a PCC OperationRegion as the shared memory fields that
-> > > follow the PCC signature. The OperationRegion length is likewise the
-> > > total size of the fields that succeed the signature in shared memory.
-> > >
-> > > ACPI 6.6 adds clarification that the PCC shared memory signature is
-> > > populated by the platform and verified by OSPM.
-> > >
-> > > The PCC address space handler currently copies the OperationRegion
-> > > buffer to and from the start of the PCC shared memory region. That ca=
-n
-> > > overwrite or expose the signature at byte offset 0, and it also misse=
-s
-> > > the last 4 bytes of the actual PCC OperationRegion data.
-> > >
-> > > Offset OperationRegion copies by the size of the signature and reject
-> > > regions that do not fit in the shared memory after that signature.
-> > >
-> > > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> > > Fixes: 77e2a04745ff ("ACPI: PCC: Implement OperationRegion handler fo=
-r the PCC Type 3 subtype")
-> > > Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
-> >
-> > Does this depend on anything else in the series or is it independent?
-> >
->
-> It is independent. This just fixes the issue of including the signature i=
-n
-> the opregion data. It can go independently as all other patches as well.
 
-So I've looked at Sashiko's feedback on this change:
+Makes sense.
+ 
+> > > > +	hacdbs_start(hw_entries, size);
+> > > > +
+> > > > +	do {
+> > > > +		wfi();
+> > > > +	} while (this_cpu_read(hacdbs_pcp.status) == HACDBS_RUNNING);
+> > > 
+> > > This is exactly why I said you should just poll hardware instead. It is
+> > > entirely possible that the IRQ arrives before you WFI.
+> > 
+> > It should be fine with WFIT, though, right?
+> 
+> Sure, but we shouldn't assume a functional WFxT even if we have HACDBS.
+> Just rely on pre-existing kernel infrastructure to do the thing you want
+> to.
 
-https://sashiko.dev/#/patchset/20260627-acpi_pcc_signature-v1-0-c1b7268d4fd=
-c%40kernel.org
+Got it.
 
-and I'm a bit worried.
+> 
+> > I understand the reason in pooling, and even done some workaround in 
+> > pooling for getting this to run in the model. 
+> > 
+> > Based on the previous reply, do you think I should only use polling for 
+> > now, and implement the IRQ later?
+> 
+> Yes.
+> 
 
-Of course, the preexisting issues found by it will need to be
-addressed separately, but what about firmware released before the
-clarification in ACPI 6.6 and the possible misalignment issue
-mentioned by it?
+Will do, then.
+
+Thanks!
+Leo
+
