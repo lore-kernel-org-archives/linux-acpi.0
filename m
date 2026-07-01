@@ -1,120 +1,166 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E8F634DB6D;
-	Wed,  1 Jul 2026 14:39:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97CD334BA5B
+	for <linux-acpi@vger.kernel.org>; Wed,  1 Jul 2026 14:39:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782916777; cv=none; b=TwStYRzdzUcjd/wPKmdzkBPrzkzTcGkHAg1wpLKje0RaItlPkGtlkIx/DZ00K4Zo7XlRqr2FDNe+CUFVF0odbmY+5lAgLX6FhpZtXnzVyP+iyqS1B0Rj7XoACT//TIyTumJvbMrjUSR7yd7nWQk0VTtF+dIdR3yw7sqNNmOn+1M=
+	t=1782916785; cv=none; b=bbxsmaq8O0YWErGurnzvSl/dywZ8iHnZ18sW/YCdAOVv64BO+VY/JnZ+OD9/im/wqdUvkNLydkKyyoswgCTzoFyy0AdNqqB/XlMbWNeLVnE/4aw8U9oWj08O1KJ/j7CGAP/0VaEGgHOtZAXxMdXMdVRefUOReHZDVOMUvI18O8c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782916777; c=relaxed/simple;
-	bh=dhrl+dqJBuE61pxWAMxJ63hZiz+3t/c6O+D5yjhWPGI=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=nWtGuTWijeXTcf3OLt7LmXvbdBEGFnTZKNNZi38yneQQM1r85FUl17B7EbbtQ4OVROLmAahHO0kdY7f5ENX8PuOmIMou6gpYizuLV5w2g+t5lF/S4n5u3UsflC4f5tKdSQbEktPvQa4cLg8zECkEGyM+6VQUePkgKwtpdeSX0Ak=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Tri4RibR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782916785; c=relaxed/simple;
+	bh=ZDATG7GU7GQJM6/CQV2vAKL7C2dz3SKM6yDRL5kkOnI=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=N/aCjsMkHq+551GGUCSWwwSa6EGEuWfISng4VdcYl8zSLzKUeQKL+VElxG/uMNqpVxEXOei8ZpxW3k0ie3lOv2Q+456eqcWwH5dwabFBZGo+uuO3KNKzvKLFXNuD3/WOZr5wS0mCtxhswXcLpUpNHBod4XmQQ5AjPUz8Xsl2UDY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VmzioyS0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Tri4RibR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 541911F00A3A;
-	Wed,  1 Jul 2026 14:39:32 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VmzioyS0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F2781F00ACA
+	for <linux-acpi@vger.kernel.org>; Wed,  1 Jul 2026 14:39:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782916776;
-	bh=FHnEU2cWOeE/SJ4pLk0OaaCpWkfm5he3fR+uDqxMHpc=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=Tri4RibRz0rLKkiWQesj5+TrZ6WsxzeDDot/YI3M3DllgoPNtve0GXXGg8PS/m1w7
-	 vvBDak1fhDDs/gyPkCZcitAw4CtNzZROVpxo4gx0US9/EL8kho1LPZzfNzpVgxiro0
-	 YOTCj8M27QpL12yLzs7FGQ3rDmAF2ya14DxrsurPzXm19c/ALt165N9WPFgNx36aRq
-	 IeWFE1IoreijSyodjAM9JUzhIuKRMdn0mgC71Hj2gv6ooW0b2SlHVU306F4Ml+0/Tc
-	 8ebETIEjMryVQR2ku0pJpaSh0d3ftfeJJkudzUJCaf/34BfoZLwnwsyT0mrwNQT+8d
-	 /JvUfYedZ8CfA==
-From: Lorenzo Pieralisi <lpieralisi@kernel.org>
-Date: Wed, 01 Jul 2026 16:38:55 +0200
-Subject: [PATCH v3 7/7] irqchip/gic-v5: Enable GICv5 IWB ACPI probe
- ordering detection
+	s=k20260515; t=1782916784;
+	bh=s7GDv4Qeq43vga0eQ+4FLDcxAgod6j01lWFHsftaTvA=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=VmzioyS0/nBLPX13eze/j+6WXBsF3QTGoRnd8wt/uaFiVbvt0djRkgaH77f0wUlKO
+	 bAng3FfuDXhf/y1ihFlJo160EJzIAmDl3pE6GWjxlZlAd1QnOdZ6P3UWaeF1yawpXE
+	 6TMi6gRyeO2ljCYVuSPFK7nmqo5bMjQ2wGqrX0cUkr7LGK2cQedJDZhRbgC/6nLg8E
+	 n08Pf1M1TbmdE4w5patGgCfTbw61JSM1ASPAPsxZhp9XwZrX0EMhU4oO1UkaTkd6T9
+	 Csx+AY07pmP1RHnDoLt1GfnoNuNFOa4vqYUrzxHEmNjZveK+fb3HfZzKfbiKk3omKv
+	 odAULRoAkbwlA==
+Received: by mail-vk1-f172.google.com with SMTP id 71dfb90a1353d-59d07df448bso292067e0c.0
+        for <linux-acpi@vger.kernel.org>; Wed, 01 Jul 2026 07:39:44 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+Rq0AgkvJJ1sWwnmrhrasG5T+gmxkvny15sC2dvy4ZY6m7zUy05lnRjfsHhHigi7YUchwKhxPvV9udTe@vger.kernel.org
+X-Gm-Message-State: AOJu0YxCppdgVpAKdOYEpbN4uyLX1Kw6OYvOHPwrg3W8uYsP2tayCPDb
+	hRzQkpZ0bopJBqqS22DH4KF2514g7i2zhlFrb7dHsda+i+knVKY8Zol9hL+VKUuifDH1DhlrBRB
+	T07/XFENr3SncLjMfflVvSWYboo0Nivc=
+X-Received: by 2002:a05:6122:658b:b0:5bb:d0ab:5ed3 with SMTP id
+ 71dfb90a1353d-5bddf516f62mr879319e0c.1.1782916783791; Wed, 01 Jul 2026
+ 07:39:43 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260701-gic-v5-acpi-iwb-probe-deferral-v3-7-c5562cf0fe29@kernel.org>
-References: <20260701-gic-v5-acpi-iwb-probe-deferral-v3-0-c5562cf0fe29@kernel.org>
-In-Reply-To: <20260701-gic-v5-acpi-iwb-probe-deferral-v3-0-c5562cf0fe29@kernel.org>
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
- Sunil V L <sunilvl@ventanamicro.com>, Marc Zyngier <maz@kernel.org>, 
- Thomas Gleixner <tglx@kernel.org>, Huacai Chen <chenhuacai@kernel.org>, 
- Anup Patel <anup@brainfault.org>, Hanjun Guo <guohanjun@huawei.com>, 
- Sudeep Holla <sudeep.holla@kernel.org>, 
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>
-Cc: linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, 
- linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
- loongarch@lists.linux.dev, Lorenzo Pieralisi <lpieralisi@kernel.org>, 
- "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-X-Mailer: b4 0.15.2
+References: <20260627-acpi_pcc_signature-v1-0-c1b7268d4fdc@kernel.org>
+ <20260627-acpi_pcc_signature-v1-6-c1b7268d4fdc@kernel.org>
+ <CAJZ5v0j5RtaadVjTLm7rghNiz_9b4_Rs4PPQZgAinud7tssgEA@mail.gmail.com>
+ <20260630-thankful-organic-foxhound-a991a0@sudeepholla> <CAJZ5v0gt5OsgUHXDyt1D=090ZMoxWg_s+Cwjs-M5AkC8e806ig@mail.gmail.com>
+ <20260701-hopeful-cuddly-bobcat-6a8cf6@sudeepholla> <20260701-predictable-dragon-of-emphasis-50e5dc@sudeepholla>
+In-Reply-To: <20260701-predictable-dragon-of-emphasis-50e5dc@sudeepholla>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Wed, 1 Jul 2026 16:39:19 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0h0kwgEXYudh=YwTcpfYzX+1wiF9sbeYzOjcbVEiV=mqQ@mail.gmail.com>
+X-Gm-Features: AVVi8CecZlU3TW4lCD7KHvxtPmImj9zBrNFmxXUCEbWw0R6Y6XH-4SpV7G124hE
+Message-ID: <CAJZ5v0h0kwgEXYudh=YwTcpfYzX+1wiF9sbeYzOjcbVEiV=mqQ@mail.gmail.com>
+Subject: Re: [PATCH 6/6] ACPI: PCC: Preserve shared memory signature in
+ OpRegion handler
+To: Sudeep Holla <sudeep.holla@kernel.org>
+Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Register an ACPI hook in the ACPI interrupt management code for GICv5 to
-retrieve the ACPI interrupt controller handle (if any) of the controller
-handling a specific GSI, by updating the acpi_set_irq_model() call with
-the gic_v5_get_gsi_handle() function pointer parameter.
+On Wed, Jul 1, 2026 at 4:13=E2=80=AFPM Sudeep Holla <sudeep.holla@kernel.or=
+g> wrote:
+>
+> On Wed, Jul 01, 2026 at 02:34:10PM +0100, Sudeep Holla wrote:
+> > On Wed, Jul 01, 2026 at 12:44:30PM +0200, Rafael J. Wysocki (Intel) wro=
+te:
+> > > On Tue, Jun 30, 2026 at 7:00=E2=80=AFPM Sudeep Holla <sudeep.holla@ke=
+rnel.org> wrote:
+> > > >
+> > > > On Tue, Jun 30, 2026 at 02:33:08PM +0200, Rafael J. Wysocki (Intel)=
+ wrote:
+> > > > > On Sat, Jun 27, 2026 at 6:39=E2=80=AFPM Sudeep Holla <sudeep.holl=
+a@kernel.org> wrote:
+> > > > > >
+> > > > > > ACPI defines a PCC OperationRegion as the shared memory fields =
+that
+> > > > > > follow the PCC signature. The OperationRegion length is likewis=
+e the
+> > > > > > total size of the fields that succeed the signature in shared m=
+emory.
+> > > > > >
+> > > > > > ACPI 6.6 adds clarification that the PCC shared memory signatur=
+e is
+> > > > > > populated by the platform and verified by OSPM.
+> > > > > >
+> > > > > > The PCC address space handler currently copies the OperationReg=
+ion
+> > > > > > buffer to and from the start of the PCC shared memory region. T=
+hat can
+> > > > > > overwrite or expose the signature at byte offset 0, and it also=
+ misses
+> > > > > > the last 4 bytes of the actual PCC OperationRegion data.
+> > > > > >
+> > > > > > Offset OperationRegion copies by the size of the signature and =
+reject
+> > > > > > regions that do not fit in the shared memory after that signatu=
+re.
+> > > > > >
+> > > > > > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> > > > > > Fixes: 77e2a04745ff ("ACPI: PCC: Implement OperationRegion hand=
+ler for the PCC Type 3 subtype")
+> > > > > > Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
+> > > > >
+> > > > > Does this depend on anything else in the series or is it independ=
+ent?
+> > > > >
+> > > >
+> > > > It is independent. This just fixes the issue of including the signa=
+ture in
+> > > > the opregion data. It can go independently as all other patches as =
+well.
+> > >
+> > > So I've looked at Sashiko's feedback on this change:
+> > >
+> > > https://sashiko.dev/#/patchset/20260627-acpi_pcc_signature-v1-0-c1b72=
+68d4fdc%40kernel.org
+> > >
+> > > and I'm a bit worried.
+> > >
+> > > Of course, the preexisting issues found by it will need to be
+> > > addressed separately, but what about firmware released before the
+> > > clarification in ACPI 6.6 and the possible misalignment issue
+> > > mentioned by it?
+> >
+> > I haven't analysed all the report from Sashiko yet. But unlike other pa=
+tches
+> > in the series, this one is not strictly to validate the signature.
+> >
+> > Even before v6.6, the PCC Opregion didn't include the signature which i=
+s
+> > at offset 0. The code always started copying to/from offset 0 missing t=
+he
+> > last 32-bit field(word). Since v6.3 when PCC Opregion was added we have
+> > this in the specification:
+> >
+> >   | <section> Declaring message fields within a PCC OperationRegion
+> >   |
+> >   | For all PCC subspace types, the PCC Operation Region pertains to th=
+e
+> >   | region of PCC subspace that succeeds the PCC signature.
+> >
+> > So, this patch addresses that issue of wrong starting offset used by th=
+is
+> > driver.
+> >
+> > Other patches I agree, it is more likely we just need to warn and not
+> > reject absence of wrong PCC signatures.
+> >
+> > I will take a look at the other issues reported by Sashiko soon.
+> >
+>
+> Forgot to add that let us wait at-least until I go through the report
+> understand and conclude it is not fatal/critical before we can merge this=
+.
+> Indeed a quick read concerned as much that I would like to spend time
+> analysing it carefully.
 
-gicv5_get_gsi_handle() allows ACPI core to detect the ACPI handle
-of the controller that manages a specific GSI interrupt.
+OK
 
-Update the IWB driver to clear device dependencies in ACPI core once the
-IWB driver has probed.
-
-Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
-Cc: Thomas Gleixner <tglx@kernel.org>
-Cc: Marc Zyngier <maz@kernel.org>
----
- drivers/irqchip/irq-gic-v5-iwb.c |  2 ++
- drivers/irqchip/irq-gic-v5.c     | 11 ++++++++++-
- 2 files changed, 12 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/irqchip/irq-gic-v5-iwb.c b/drivers/irqchip/irq-gic-v5-iwb.c
-index 9103feb70ce8..2546fc74dd99 100644
---- a/drivers/irqchip/irq-gic-v5-iwb.c
-+++ b/drivers/irqchip/irq-gic-v5-iwb.c
-@@ -269,6 +269,8 @@ static int gicv5_iwb_device_probe(struct platform_device *pdev)
- 	if (IS_ERR(iwb_node))
- 		return PTR_ERR(iwb_node);
- 
-+	acpi_device_clear_dep(&pdev->dev);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/irqchip/irq-gic-v5.c b/drivers/irqchip/irq-gic-v5.c
-index 7ea39cb19f75..5dcf404ab4c8 100644
---- a/drivers/irqchip/irq-gic-v5.c
-+++ b/drivers/irqchip/irq-gic-v5.c
-@@ -1231,6 +1231,14 @@ static struct fwnode_handle *gic_v5_get_gsi_domain_id(u32 gsi)
- 	return gsi_domain_handle;
- }
- 
-+static acpi_handle gic_v5_get_gsi_handle(u32 gsi)
-+{
-+	if (FIELD_GET(GICV5_GSI_IC_TYPE, gsi) == GICV5_GSI_IWB_TYPE)
-+		return iort_iwb_handle(FIELD_GET(GICV5_GSI_IWB_FRAME_ID, gsi));
-+
-+	return NULL;
-+}
-+
- static int __init gic_acpi_init(union acpi_subtable_headers *header, const unsigned long end)
- {
- 	struct acpi_madt_gicv5_irs *irs = (struct acpi_madt_gicv5_irs *)header;
-@@ -1251,7 +1259,8 @@ static int __init gic_acpi_init(union acpi_subtable_headers *header, const unsig
- 	if (ret)
- 		goto out_irs;
- 
--	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC_V5, gic_v5_get_gsi_domain_id, NULL);
-+	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC_V5, gic_v5_get_gsi_domain_id,
-+			   gic_v5_get_gsi_handle);
- 
- 	return 0;
- 
-
--- 
-2.34.1
-
+I think that it would be good to update the changelog of the $subject
+patch to clarify that the bug fixed by it is with respect to the
+original definition in ACPI 6.3 and not with respect to the ACPI 6.6
+clarification, so there is no legacy firmware that might be affected
+by it.
