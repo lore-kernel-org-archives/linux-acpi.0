@@ -1,31 +1,31 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id C75533AF66F;
-	Thu,  2 Jul 2026 16:23:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C2A23417369;
+	Thu,  2 Jul 2026 16:23:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783009423; cv=none; b=XyBK6a28u49OOZsHf3C+SWMInIwdlpBF75z1dTmZQP33o/bA9p239AO7h3x6EHrf5qWe10cucPHrUR9JR0Dpov+7HG0liw8SFpacc+nGPlOqJ7yPcqqeH4bcWRMAWFtZ7e/mJ5cwntqVf8ZgzTi02p16URR8AVj+ezdecBytalE=
+	t=1783009430; cv=none; b=CREQLX6mDe/ShYrDHuVbhaj2mkW3FDkHGem8AWo7KvYPLGuuPEOGxiH0Df0pd7q4Y4RDm85QAIruFfbGFbVCeoVRyAyDu3uaBvtt8Bz5G2QhURrfUQdPQpawxmtg8RuF5qjlQ8COY82Q1Eg5FvyW/UgvPStgXGtbcOg7zLf1ZnE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783009423; c=relaxed/simple;
-	bh=ZOi+S59YJ0B3TKXiKIEFBZs1J/FXmsi//zO+8bJPX7Y=;
+	s=arc-20240116; t=1783009430; c=relaxed/simple;
+	bh=5kM2E5EL2sy+Q/cFrQVCcEt0RIOVlylbhrO0aXa3F6s=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=FptsE3RFiDsM3kUuprq4019psyMb/0lMEgbuXNaTdwIGhpL3mGO6uxuTXJsvHj6tXSU5lZzS42YrGvEnI/do/LCa+ISUh9zavqPNCK5Rx6s9q7LQJdqW9GSot08GzycYu73uotZkMjtt8zjqsobZV+DEBIemYok+xy3H0fAx3v0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=bG4sXIzr; arc=none smtp.client-ip=217.140.110.172
+	 MIME-Version; b=ufGygnVm+FhCP2dgdAwKfEAzZOcSWG04rWIDmVtPoPc28dBEnaZwy/JUkXj9WV6WpbVmqFrK/sFhnFQJ/jCRQB5f3U0EyZAY8WJqjkDFsRH2genO/FjSs5J/70MNuJ/jF2HIGDRNwfB9YsBG3Jaycr04OirOEjYi6kP6RfQvNvw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=EUlq4wBC; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="bG4sXIzr"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="EUlq4wBC"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 492B135C7;
-	Thu,  2 Jul 2026 09:23:33 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 67EBC1570;
+	Thu,  2 Jul 2026 09:23:37 -0700 (PDT)
 Received: from e142021.fritz.box (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id E37353F673;
-	Thu,  2 Jul 2026 09:23:33 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 0E7743F673;
+	Thu,  2 Jul 2026 09:23:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1783009417; bh=ZOi+S59YJ0B3TKXiKIEFBZs1J/FXmsi//zO+8bJPX7Y=;
+	t=1783009421; bh=5kM2E5EL2sy+Q/cFrQVCcEt0RIOVlylbhrO0aXa3F6s=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=bG4sXIzrIOoKahUcxII7Dou310sac30oJl7cq96iXQIqGuc7HpZLDmN4Zqm3kOrMj
-	 G5b5mxAp5W7k7NvDPYR7rz5AooC3pxXiTTzPXluf5cpFGzaL9s+xOLs/2AIkb3nLTt
-	 Q0J0/tCI82jX9N2aneHZSBZt6NwBaOEMSk6T2tOM=
+	b=EUlq4wBCNh5xne02yqI2ZkXKUPzF1E8FMBd/QsC+9ePwyxPzWbHN5tEqzUo6SaaNA
+	 ionehk7J/RnazgD/BsguUyKl/Pkwe8yG0UbgW48NtRT1KwMJpjxsOlAg3BlxpQUBIq
+	 xQ8WxkG1NdTOuSEnatfz3wH3ElaK7vUTHyhgSqmw=
 From: Andre Przywara <andre.przywara@arm.com>
 To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
 	Hanjun Guo <guohanjun@huawei.com>,
@@ -47,9 +47,9 @@ Cc: Jonathan Cameron <jic23@kernel.org>,
 	linux-acpi@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 14/15] arm_mpam: prevent MPAM-Fb accesses inside IRQ handler
-Date: Thu,  2 Jul 2026 18:22:28 +0200
-Message-ID: <20260702162229.4008659-15-andre.przywara@arm.com>
+Subject: [PATCH v2 15/15] arm_mpam: detect and enable MPAM-Fb PCC support
+Date: Thu,  2 Jul 2026 18:22:29 +0200
+Message-ID: <20260702162229.4008659-16-andre.przywara@arm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260702162229.4008659-1-andre.przywara@arm.com>
 References: <20260702162229.4008659-1-andre.przywara@arm.com>
@@ -61,84 +61,206 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-When an MPAM MSC gets into an error condition, it can trigger an error
-IRQ. We cannot really do much about those errors, but we at least query
-and log the error, then disable MPAM functionality.
+The Arm MPAM-Fb specification [1] describes a protocol to access MSC
+registers through a firmware interface. This requires a shared memory
+region to hold the message, and a mailbox to trigger the access.
+For ACPI this is wrapped as a PCC channel, described using existing
+ACPI abstractions.
 
-This error report relies on reading the MSC's error status register
-(ESR) in the IRQ handler, which is not possible for MPAM-Fb based
-MSC accesses, since they involve mailbox routines that might sleep.
-The same is true for clearing the interrupt at the source, which
-requires MSC access.
+Add code to parse those PCC table descriptions associated with an MSC,
+and store the parsed information in the MSC struct.
+There can be multiple PCC channels, and each channel can serve multiple
+MSCs, so we need to keep track of the channel usage, using a list and
+a refcount.
+This will be used by the MPAM-Fb access wrapper code.
 
-For simplicity just skip the ESR read when the MSC is not using direct
-MMIO accesses, and just ignore the pending interrupts. We will wrap up
-MPAM functionality regardless, knowing the exact error value will not
-change that.
+[1] https://developer.arm.com/documentation/den0144/latest
 
 Signed-off-by: Andre Przywara <andre.przywara@arm.com>
 ---
- drivers/resctrl/mpam_devices.c | 35 +++++++++++++++++++---------------
- 1 file changed, 20 insertions(+), 15 deletions(-)
+ drivers/acpi/arm64/mpam.c      |   2 +
+ drivers/resctrl/mpam_devices.c | 113 ++++++++++++++++++++++++++++++++-
+ 2 files changed, 113 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/acpi/arm64/mpam.c b/drivers/acpi/arm64/mpam.c
+index 84963a20c3e7..64bc84bb2029 100644
+--- a/drivers/acpi/arm64/mpam.c
++++ b/drivers/acpi/arm64/mpam.c
+@@ -256,6 +256,8 @@ static struct platform_device * __init acpi_mpam_parse_msc(struct acpi_mpam_msc_
+ 	} else if (iface == MPAM_IFACE_PCC) {
+ 		props[next_prop++] = PROPERTY_ENTRY_U32("pcc-channel",
+ 							tbl_msc->base_address);
++		props[next_prop++] = PROPERTY_ENTRY_U32("msc-id",
++							tbl_msc->identifier);
+ 	}
+ 
+ 	acpi_mpam_parse_irqs(pdev, tbl_msc, res, &next_res);
 diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-index b858ff389bff..4a088e6cd235 100644
+index 4a088e6cd235..35214520bfd4 100644
 --- a/drivers/resctrl/mpam_devices.c
 +++ b/drivers/resctrl/mpam_devices.c
-@@ -2639,7 +2639,7 @@ static int mpam_disable_msc_ecr(void *_msc)
+@@ -19,6 +19,7 @@
+ #include <linux/irqdesc.h>
+ #include <linux/list.h>
+ #include <linux/lockdep.h>
++#include <linux/mailbox_client.h>
+ #include <linux/mutex.h>
+ #include <linux/platform_device.h>
+ #include <linux/printk.h>
+@@ -27,6 +28,9 @@
+ #include <linux/types.h>
+ #include <linux/workqueue.h>
  
- static irqreturn_t __mpam_irq_handler(int irq, struct mpam_msc *msc)
- {
--	u64 reg;
-+	u64 reg = 0;
- 	u16 partid;
- 	u8 errcode, pmg, ris;
++#include <acpi/pcc.h>
++#include <acpi/acpi_io.h>
++
+ #include "mpam_internal.h"
+ #include "mpam_fb.h"
  
-@@ -2648,25 +2648,30 @@ static irqreturn_t __mpam_irq_handler(int irq, struct mpam_msc *msc)
- 					   &msc->accessibility)))
- 		return IRQ_NONE;
+@@ -50,6 +54,88 @@ static LIST_HEAD(mpam_all_msc);
  
--	mpam_msc_read_esr(msc, &reg);
-+	/* MPAM-Fb MSC accesses cannot be done in atomic context. */
-+	if (msc->iface == MPAM_IFACE_MMIO) {
-+		mpam_msc_read_esr(msc, &reg);
+ struct srcu_struct mpam_srcu;
  
--	errcode = FIELD_GET(MPAMF_ESR_ERRCODE, reg);
--	if (!errcode)
--		return IRQ_NONE;
-+		errcode = FIELD_GET(MPAMF_ESR_ERRCODE, reg);
-+		if (!errcode)
-+			return IRQ_NONE;
- 
--	/* Clear level triggered irq */
--	mpam_msc_clear_esr(msc);
-+		/* Clear level triggered irq */
-+		mpam_msc_clear_esr(msc);
- 
--	partid = FIELD_GET(MPAMF_ESR_PARTID_MON, reg);
--	pmg = FIELD_GET(MPAMF_ESR_PMG, reg);
--	ris = FIELD_GET(MPAMF_ESR_RIS, reg);
-+		partid = FIELD_GET(MPAMF_ESR_PARTID_MON, reg);
-+		pmg = FIELD_GET(MPAMF_ESR_PMG, reg);
-+		ris = FIELD_GET(MPAMF_ESR_RIS, reg);
- 
--	pr_err_ratelimited("error irq from msc:%u '%s', partid:%u, pmg: %u, ris: %u\n",
--			   msc->id, mpam_errcode_names[errcode], partid, pmg,
--			   ris);
-+		pr_err_ratelimited("error irq from msc:%u '%s', partid:%u, pmg: %u, ris: %u\n",
-+				   msc->id, mpam_errcode_names[errcode], partid,
-+				   pmg, ris);
- 
--	/* Disable this interrupt. */
--	mpam_disable_msc_ecr(msc);
-+		/* Disable this interrupt. */
-+		mpam_disable_msc_ecr(msc);
-+	} else {
-+		pr_err_ratelimited("unknown error irq from msc:%u\n", msc->id);
++/* PCC channels might be serving multiple MSCs, so keep a refcounted list. */
++static DEFINE_MUTEX(pcc_chan_list_lock);
++static LIST_HEAD(pcc_chan_list);
++
++static void mpam_pcc_rx_callback(struct mbox_client *cl, void *msg)
++{
++	/* TODO: wake up tasks blocked on this MSC's PCC channel */
++}
++
++static struct mpam_pcc_chan *mpam_pcc_chan_get(struct device *dev,
++					       int subspace_id)
++{
++	struct mpam_pcc_chan *cur;
++
++	mutex_lock(&pcc_chan_list_lock);
++
++	list_for_each_entry(cur, &pcc_chan_list, pcc_chans) {
++		if (cur->subspace_id == subspace_id) {
++			cur->refcount++;
++			mutex_unlock(&pcc_chan_list_lock);
++
++			return cur;
++		}
 +	}
++
++	cur = kzalloc_obj(*cur);
++	if (!cur) {
++		mutex_unlock(&pcc_chan_list_lock);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	cur->pcc_cl.dev = dev;
++	cur->pcc_cl.rx_callback = mpam_pcc_rx_callback;
++	cur->pcc_cl.tx_block = true;
++	cur->pcc_cl.tx_tout = 1000; /* 1s */
++
++	cur->pcc_chan = pcc_mbox_request_channel(&cur->pcc_cl, subspace_id);
++	if (IS_ERR(cur->pcc_chan)) {
++		long err = PTR_ERR(cur->pcc_chan);
++
++		kfree(cur);
++		mutex_unlock(&pcc_chan_list_lock);
++		return ERR_PTR(err);
++	}
++
++	mutex_init(&cur->pcc_chan_lock);
++	cur->subspace_id = subspace_id;
++	cur->refcount = 1;
++
++	list_add_tail(&cur->pcc_chans, &pcc_chan_list);
++
++	mutex_unlock(&pcc_chan_list_lock);
++
++	return cur;
++}
++
++static int mpam_pcc_chan_put(struct mpam_pcc_chan *pcc_chan)
++{
++	struct mpam_pcc_chan *cur, *tmp;
++
++	if (!pcc_chan)
++		return 0;
++
++	mutex_lock(&pcc_chan_list_lock);
++
++	list_for_each_entry_safe(cur, tmp, &pcc_chan_list, pcc_chans) {
++		if (cur == pcc_chan) {
++			if (!--cur->refcount) {
++				pcc_mbox_free_channel(cur->pcc_chan);
++				list_del(&pcc_chan->pcc_chans);
++				kfree(cur);
++			}
++			mutex_unlock(&pcc_chan_list_lock);
++			return 0;
++		}
++	}
++
++	mutex_unlock(&pcc_chan_list_lock);
++
++	return -ENOENT;
++}
++
+ /*
+  * Number of MSCs that have been probed. Once all MSCs have been probed MPAM
+  * can be enabled.
+@@ -2202,6 +2288,8 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
+ {
+ 	struct mpam_msc *msc = platform_get_drvdata(pdev);
  
- 	/* Are we racing with the thread disabling MPAM? */
- 	if (!mpam_is_enabled())
++	mpam_pcc_chan_put(msc->pcc_chan);
++
+ 	mutex_lock(&mpam_list_lock);
+ 	mpam_msc_destroy(msc);
+ 	mutex_unlock(&mpam_list_lock);
+@@ -2212,7 +2300,7 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
+ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
+ {
+ 	int err;
+-	u32 tmp;
++	u32 pcc_subspace_id;
+ 	struct mpam_msc *msc;
+ 	struct resource *msc_res;
+ 	struct device *dev = &pdev->dev;
+@@ -2257,7 +2345,8 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
+ 	if (err)
+ 		return ERR_PTR(err);
+ 
+-	if (device_property_read_u32(&pdev->dev, "pcc-channel", &tmp))
++	if (device_property_read_u32(&pdev->dev, "pcc-channel",
++				     &pcc_subspace_id))
+ 		msc->iface = MPAM_IFACE_MMIO;
+ 	else
+ 		msc->iface = MPAM_IFACE_PCC;
+@@ -2273,6 +2362,26 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
+ 		}
+ 		msc->mapped_hwpage_sz = msc_res->end - msc_res->start;
+ 		msc->mapped_hwpage = io;
++	} else if (msc->iface == MPAM_IFACE_PCC) {
++		u32 msc_id;
++
++		if (device_property_read_u32(&pdev->dev, "msc-id", &msc_id)) {
++			pr_err("missing MPAM-Fb MSC identifier\n");
++			return ERR_PTR(-EINVAL);
++		}
++		msc->mpam_fb_msc_id = msc_id;
++
++		msc->pcc_chan = mpam_pcc_chan_get(&pdev->dev, pcc_subspace_id);
++		if (IS_ERR(msc->pcc_chan)) {
++			pr_err("Failed to request MSC PCC channel\n");
++			return (void *)msc->pcc_chan;
++		}
++
++		if (msc->pcc_chan->pcc_chan->shmem_size < MPAM_FB_MAX_MSG_SIZE) {
++			pr_err("MPAM-Fb PCC channel size too small.\n");
++			mpam_pcc_chan_put(msc->pcc_chan);
++			return ERR_PTR(-ENOMEM);
++		}
+ 	} else {
+ 		return ERR_PTR(-EINVAL);
+ 	}
 -- 
 2.43.0
 
