@@ -1,157 +1,86 @@
-Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E9563EDE5E;
-	Thu,  2 Jul 2026 11:24:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.171.202.116
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BB0D263C7F
+	for <linux-acpi@vger.kernel.org>; Thu,  2 Jul 2026 11:32:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782991449; cv=none; b=Qos6Gl87XQmOIkxAC62XM9hnvzayNhnWI++uoBgZqDHIREW3YXdrbrYK05d0p+u+Yfh5h7UTsgUtTYXgacq0LppPZvxQo5SWzRo8ojcDWF6SlUn2t4FQZfsHEHEAMh1VPRB8Eo8+4rPlMlDedpHaXKRxk/lPeFpBSSF55gSSo0o=
+	t=1782991927; cv=none; b=Js+Ij+8A+zNpgJJa/bmuz+pGsahIfWekV/ehypRqogCOKKePbltR1aifQ+/V/TcJVzq1ik8mMhxlh0ho2h1+aFVQ+5k8SP6YdJ9pBtK+24ng6KrM+/pHtGbmfpTlmClEpvzKQyG0FEspBBQWFzSBgloHAk+8Ae7DzJzOQBlxyoU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782991449; c=relaxed/simple;
-	bh=qkoV9s2y6x4yNdhq0hTzUvepfbsJFBQynC64lFxnuaw=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Rus/Hn6a37lSDZnwUkroGeQCCRLKDSFut0f+CbxXggWgNitPeQHlUIuJ79YBeXmtX1QGiL5bAc0UUNcI+p/HkoP1itAVZPgMXOHpVNUjfqJu9we9Wq40jbushQuAnHZy54TL2+X/Ago5l6JOC3mKz7qxsY+U+hP8oh8wLAZpnv8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=gRKPHQdn; arc=none smtp.client-ip=185.171.202.116
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1782991927; c=relaxed/simple;
+	bh=TxQCtqjtAk2iQqQD7O6uKHlwflcfM75/SGEiXcjbbI0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=bVPcwBt/r7gK0cEPJnUhInzcX31y4FZsLqHaV0v7d83J9Fegi0q9WHOjiwt1tKc+jmdL2l8WwC6tlzyAm2XNLDBhD2LOkm4RNqPyiV4RL8xFmCD7i2ztxiCsvSsshI2PGGKP5ug4MtKMVgXiwTmfSFtIV+5cm5glD1dazXgWyjE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XUbn8wYj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="gRKPHQdn"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-04.galae.net (Postfix) with ESMTPS id 6457AC4FED8;
-	Thu,  2 Jul 2026 11:24:15 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id C2EE85FF03;
-	Thu,  2 Jul 2026 11:24:03 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id EEBBF104C9625;
-	Thu,  2 Jul 2026 13:23:49 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1782991441; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=UhZPL9qBPAYg4jDprXnZJkURUAU98LtK2IDx/RRjPVY=;
-	b=gRKPHQdndkfSqFS49JzsIHQw2aOVyEHrPo49N6M5vahEK4abVvfiNdgAcQZ85BqTYrDYa7
-	bgLIWbFxIEkSIFB0swC6iE9XJv8Ex/UNCwCUK2VH602vIVMKlgsgkVCB0kMkLUyVlXGAwh
-	WrlKxRi9YwfmHOoRW6XGCBIo2DbY76dKZcM2qU5WCc/tgL8G73urX+4WNs4mRzBaqFyTms
-	wzbg1YIUbmzkq/tLQjIDWEDm3GV8tSD7knUa16eYfGis9bnzsGsQnl51p65DzPCBQGMT2K
-	5finRL11wVel1S/u3qrLN6S4dAT3WZZiydzHKCLvRx/mUD38ag2hi2cYxOCn9w==
-Date: Thu, 2 Jul 2026 13:23:48 +0200
-From: Herve Codina <herve.codina@bootlin.com>
-To: Richard Cheng <icheng@nvidia.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, Rob Herring <robh@kernel.org>, Saravana
- Kannan <saravanak@kernel.org>, Greg Kroah-Hartman
- <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>,
- Danilo Krummrich <dakr@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
- David Rhodes <david.rhodes@cirrus.com>, Richard Fitzgerald
- <rf@opensource.cirrus.com>, Charles Keepax <ckeepax@opensource.cirrus.com>,
- Linus Walleij <linusw@kernel.org>, Len Brown <lenb@kernel.org>, Andy
- Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally
- <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>, Davidlohr Bueso
- <dave@stgolabs.net>, Jonathan Cameron <jic23@kernel.org>, Dave Jiang
- <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Dan Williams <djbw@kernel.org>,
- Ira Weiny <iweiny@kernel.org>, Li Ming <ming.li@zohomail.com>, Lizhi Hou
- <lizhi.hou@amd.com>, driver-core@lists.linux.dev,
- linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
- linux-sound@vger.kernel.org, patches@opensource.cirrus.com,
- linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-cxl@vger.kernel.org, Allan Nielsen <allan.nielsen@microchip.com>,
- Horatiu Vultur <horatiu.vultur@microchip.com>, Daniel Machon
- <daniel.machon@microchip.com>, Steen Hegelund
- <steen.hegelund@microchip.com>, Luca Ceresoli <luca.ceresoli@bootlin.com>,
- Thomas Petazzoni <thomas.petazzoni@bootlin.com>, stable@vger.kernel.org
-Subject: Re: [PATCH v8 7/8] PCI: of: Set fwnode device of newly created PCI
- device nodes
-Message-ID: <20260702132348.034264b6@bootlin.com>
-In-Reply-To: <akXg4G4ksietvkwE@MWDK4CY14F>
-References: <20260630102804.413563-1-herve.codina@bootlin.com>
-	<20260630102804.413563-8-herve.codina@bootlin.com>
-	<akXg4G4ksietvkwE@MWDK4CY14F>
-Organization: Bootlin
-X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-redhat-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XUbn8wYj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E792E1F00ACF
+	for <linux-acpi@vger.kernel.org>; Thu,  2 Jul 2026 11:32:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782991925;
+	bh=TxQCtqjtAk2iQqQD7O6uKHlwflcfM75/SGEiXcjbbI0=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=XUbn8wYjcbFq3YuGEIAkjj+cxW3RoKyHvCBLm7FrowkVoQWmsezKMFntmVRriW0Dv
+	 Bmn3JOAf0ClmyXsdxe3ZYXNQfFGE9gVQx8N38QQzEvmwOSUoMrR1hVtw+4lgyLMjv9
+	 7LAWIaWtgGDMZnnMlJZJJ0tVAR6wh2fmQelm7x/QFwtBuxUHoxnq9Zvn0ROTNLV02z
+	 3yvqDPAN/YLi4tHC8aZ6+DN/RSpyl/0eLXv7DjJa7lAvMU3FaUXJkJWxF2pf6GaUIX
+	 6w/+t1kyHfcJ0hHuRCaNOvk6Frr1GRRiKzIIAC8up5IXaAYlRGr6Xv9nnj7E8MOIVb
+	 FPyjOZFGbgpgA==
+Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5aeb89359a3so1362128e87.3
+        for <linux-acpi@vger.kernel.org>; Thu, 02 Jul 2026 04:32:05 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RpW7yzUBNdDjwKBmddKp/GCis/dNKdF2O75cjN9fUoB8PGhannS+ss7R6CjPl/QPpjC7ktlZgnWkoWp@vger.kernel.org
+X-Gm-Message-State: AOJu0YwSzdqpFfYUKsOVJiLqewxCOxhAXuflnJ0dUanAdOvoAsHceYWU
+	ny/uFHzGybaxQpMXgEdqrU6J57XlwRS2dkh3syagFJQRCIFM2hFcfMy8lGYYjHodIJ4/34LQSFY
+	qnBt52qWjarW9LUorNMFF68fNnHZFJVs=
+X-Received: by 2002:a05:6512:2511:b0:5ae:ba92:f43b with SMTP id
+ 2adb3069b0e04-5aec80689d2mr1445491e87.52.1782991924360; Thu, 02 Jul 2026
+ 04:32:04 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Last-TLS-Session-Version: TLSv1.3
+References: <6027395.DvuYhMxLoT@rafael.j.wysocki> <akYsRl024Ll80oye@ashevche-desk.local>
+In-Reply-To: <akYsRl024Ll80oye@ashevche-desk.local>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Thu, 2 Jul 2026 13:31:50 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hszyrY+GLz0Q1HcNgMua056xuw8Uxf_O63OmyObPtkXw@mail.gmail.com>
+X-Gm-Features: AVVi8CcB1CehQxSaZBKpjLXdEZ66xS6KSnQB6qAqVEVmAqLCZyXITmn8Rg4ltiQ
+Message-ID: <CAJZ5v0hszyrY+GLz0Q1HcNgMua056xuw8Uxf_O63OmyObPtkXw@mail.gmail.com>
+Subject: Re: [PATCH v1 0/2] ACPI: bus: Remove struct acpi_driver from the kernel
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Hans de Goede <hansg@kernel.org>, =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+	LKML <linux-kernel@vger.kernel.org>, 
+	Linux Documentation <linux-doc@vger.kernel.org>, driver-core@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Richard,
+On Thu, Jul 2, 2026 at 11:15=E2=80=AFAM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Wed, Jul 01, 2026 at 09:15:27PM +0200, Rafael J. Wysocki (Intel) wrote=
+:
+> > Hi All,
+> >
+> > After converting all of the drivers using the struct acpi_driver interf=
+ace to
+> > proper platform drivers, that interface can be dropped now, which is do=
+ne in
+> > this series (patch [1/2]).
+>
+> What a nice result!
+>
+> > Additionally, the no_pm flag is set for all struct acpi_device object s=
+ince
+> > they are not going to be directly involved in any kind of power managem=
+ent
+> > now (that is, they will not have PM-aware drivers and they will not be
+> > included in PM domains).
+>
+> I am in favour of this cleanup!
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On Thu, 2 Jul 2026 12:02:35 +0800
-Richard Cheng <icheng@nvidia.com> wrote:
-
-> > @@ -709,6 +709,13 @@ void of_pci_make_dev_node(struct pci_dev *pdev)
-> >  	if (ret)
-> >  		goto out_free_node;
-> >  
-> > +	/*
-> > +	 * Set the fwnode device in order to have fw_devlink creating links
-> > +	 * pointing to this PCI device instead of walking up to the PCI host
-> > +	 * bridge.
-> > +	 */
-> > +	fw_devlink_set_device(&np->fwnode, &pdev->dev);
-> > +
-> >  	ret = of_changeset_apply(cset);
-> >  	if (ret)
-> >  		goto out_free_node;
-> > -- 
-> > 2.54.0
-> > 
-> >  
-> 
-> Hi Herve,
-> 
-> I wonder if this part has some issue, it sets np->fwnode.dev = &pdev->dev,
-> but I don't see am matching clear on removal path, I doubt the back-pointer
-> can outlive the pci_dev.
-> 
-> device_del() do the check
-> """
-> if (dev->fwnode && dev->fwnode->dev == dev)
->     fw_devlink_set_device(dev->fwnode, NULL);
-> """
-> 
-> On removal, pci_stop_dev() calls of_pci_remove_node() before pci_destroy_dev()
-> calls device_del(), and of_pci_remove_node() -> device_remove_of_node() has already NULLed pdev->dev.fwnode by then, so the "dev->fwnode" guard is false, and
-> of_pci_remove_node() itself never clears np->fwnode.dev
-> 
-> If something holds an extra ref on np past removal, e.g. a DT overlay applied via configfs that pins np through its gragment targets,
-> np survives, the pci_dev is freed, and np->fwnode.dev dnalges into freed memory.
-> Then fw_devlink walker that resolve it via get_dev_from_fwnode() -> get_device() would hit a use-after-free .
-> 
-> I think of_pci_remove_node() should cleaer the back-pointer it set,
-> before dropping the node's ref, e.g.
-> 
-> """
-> np = pci_device_to_OF_node(pdev);
-> if (!np || !of_node_check_flag(np, OF_DYNAMIC))
->     return;
-> 
-> fw_devlink_set_device(&np->fwnode, NULL);
-> device_remove_of_node(&pdev->dev);
-> of_changeset_revert(np->data);
-> """
-> 
-> Does that make sense to you ?
-> 
-
-Thanks for pointed out this issue.
-
-I am not sure that the scenario you proposed using configfs which can lead
-to the use-after-free is relevant but anyway this use-after-free is possible.
-
-The fwnode->dev is set by of_pci_make_dev_node() and so it is consistent 
-to unset it (set to NULL) in of_pci_remove_node().
-
-I will update this patch to add the fw_devlink_set_device(&np->fwnode, NULL);
-call in the next iteration.
-
-Also I will had a new patch in the next iteration to perform same operation
-for PCI root bridge. Same kind of code path, and so same issue but with
-of_pci_make_host_bridge_node() and of_pci_remove_host_bridge_node().
-
-Best regards,
-Hervé
+Thank you!
