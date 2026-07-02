@@ -1,93 +1,135 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0979D2DFA2F
-	for <linux-acpi@vger.kernel.org>; Thu,  2 Jul 2026 11:33:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2D3247CC69;
+	Thu,  2 Jul 2026 12:19:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782992008; cv=none; b=exUXr/C91bIoXglllHP05TxHjYTT5+s+a/UYCI9KVMFuPWgs2XfqKdSHobxRKJ8r7JeZ7cjhKTuRxD40PDDx4en3/wEGymUewqZ1P6L3Q15qpo0Kp+y6A2KJ1HtlINR5c0c3Rhrt+VLZ5Mb3XE2gQo1wu62xdqywHce15l9xxdg=
+	t=1782994766; cv=none; b=o0glvQqJtoOGX3WRelpeDgzvz1i69tjYxvyZ28GiW5Anb8GOhxZgPa8PASk/QKIB5gwykC4ll5q3Ytj4S2EIUL30qk0vsvjlMgebHXy41rlugtK9HZ3ldjRFnGioUPiEvD39Bcl1EytiEG6BI7mVYu+8KuLZEfzS+Bziy3HDlI8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782992008; c=relaxed/simple;
-	bh=VYSg/77Q+SdFkeWNkEOec2SdlPXuI9PWG8pKMZl+j3M=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=QDCnPnyOAJ5ZzILaRuyi0AGCuiJbHKOtAntK/PxjuV7TV6P4mmLamW4x0I9qxc2vaeqYQVa7a6Im3qTzniTDYxiTBBa1t8YFljVYywJr5Y94jJoy1TPu4gVTdmZxjh7fhP7Mkr24Z4sEOErOebSIVjnnvveRQjl4ytzsRc1QJMg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bANe73gA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782994766; c=relaxed/simple;
+	bh=xJqhSBb+jDfSTAt4v2CBOJtHb9k/pH3XjmE7x8zTYf0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=JVE18xSLEidBe9Cat6KhwU8Q4ND0cAWhFVKEoFfbqM70m/7ML/SzDuVunz13zmzcu89OfLl1vbzREMns9lq7f98idcENwNeuwLNpRA/181+vmDgqSZSeKGE9AWMnLIPqDnMS8XZ7bfioA8aKIzfEednZD0XfHVYu5clc17e4c50=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UzJLmE+d; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bANe73gA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D27721F0155A
-	for <linux-acpi@vger.kernel.org>; Thu,  2 Jul 2026 11:33:26 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UzJLmE+d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C40531F000E9;
+	Thu,  2 Jul 2026 12:19:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782992006;
-	bh=VYSg/77Q+SdFkeWNkEOec2SdlPXuI9PWG8pKMZl+j3M=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=bANe73gATYsjh3KMjUnPeUOezJIRqax3aenDmhJvfz+AVmEtiDAQcJMwc+0zRQfAP
-	 54EGC9DvNucCMXfBA08DawBY8wcwSEX+8YtrTC0gFv2AU3b7cTHuKBylsfr04bqDG9
-	 G2ag+7g3MWPfVs932t379t2WON9YK9tyxATxEssb3/RjLgSSj2kEAbjuFDB7aIk7zI
-	 p7WfdIme1dp7su1YLbQQOkG1qZtHinUs/VBlNqL0RBIm1k/1EhoBv3dPv9wnSzq9NK
-	 7LMaYDjEAn0u3664ev2jJwhzpQtnx/ZBqSIfNGATXzNosO3ZqazBVmfrUQKWQ3EIJh
-	 PR9CmYuNHpoRg==
-Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5aeb2df5cc1so1446242e87.3
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Jul 2026 04:33:26 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RqimNdGRQC8x08gnyR/tr496u65evE7b0WAoc8GnAFXAbLQgnpg+vSx76OPXA9/g7gbFfz6y3aln1pE@vger.kernel.org
-X-Gm-Message-State: AOJu0YzD1JMRp/Enq58tk/GHdPIbsyZsNZNChfvjx7HcuDhjqqc2Sved
-	ZVY5kvT94a9+QXnIdxnKOqBuIGHJiClIUGrdbvDWecmTRoCVRqTxX1w6nfm12zLA44NZauYuYAQ
-	z+//EYlitwmnMx+Eb9CCSP2F3SVLe0+o=
-X-Received: by 2002:a05:6512:4cd:b0:5ae:b792:7f21 with SMTP id
- 2adb3069b0e04-5aec68b78ffmr838445e87.33.1782992005260; Thu, 02 Jul 2026
- 04:33:25 -0700 (PDT)
+	s=k20260515; t=1782994764;
+	bh=lfLtMWf+BFQEw4fSsvcro34I6pGXvppcn+EFKF/CaSs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=UzJLmE+d/HEk7p4wikkLKuYCkqPkilhoZDJKsozz8Etuw+dIZT/LvyZGC1PVaR2gu
+	 Nxt+hso+JcTDB41PxKbWu+7pa59oGspwp0qZqJQH+b1kan+hI1mp9wXVv2Fzm9qK3A
+	 1eGdOBBV0zdOEn8dXkaosk3lJ9GeGF1o3bbzwnVVV+F3bCFUfdMrBGX8EMQU8eN20p
+	 2Pgps9DDw6UP6mgB0NeToOskNEmRkvxu88NXT48p5BSaLRp8pxeJ9QRjZLzEbZb3T0
+	 4Ozin5mzTptAQES3L1i+2hHSL30p9ubXSqRaOuk/gDiRp1hZ3iWIdDzEX1sioQcuJn
+	 Twgrv5XGSdBAQ==
+Date: Thu, 2 Jul 2026 13:19:21 +0100
+From: Sudeep Holla <sudeep.holla@kernel.org>
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Sudeep Holla <sudeep.holla@kernel.org>
+Subject: Re: [PATCH 6/6] ACPI: PCC: Preserve shared memory signature in
+ OpRegion handler
+Message-ID: <20260702-sexy-jasmine-bulldog-1392b0@sudeepholla>
+References: <20260627-acpi_pcc_signature-v1-0-c1b7268d4fdc@kernel.org>
+ <20260627-acpi_pcc_signature-v1-6-c1b7268d4fdc@kernel.org>
+ <CAJZ5v0j5RtaadVjTLm7rghNiz_9b4_Rs4PPQZgAinud7tssgEA@mail.gmail.com>
+ <20260630-thankful-organic-foxhound-a991a0@sudeepholla>
+ <CAJZ5v0gt5OsgUHXDyt1D=090ZMoxWg_s+Cwjs-M5AkC8e806ig@mail.gmail.com>
+ <20260701-hopeful-cuddly-bobcat-6a8cf6@sudeepholla>
+ <20260701-predictable-dragon-of-emphasis-50e5dc@sudeepholla>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260629060526.3638272-1-jgross@suse.com> <20260629060526.3638272-5-jgross@suse.com>
- <CAJZ5v0itUVZ6=GCbRomkMiesy5uhZVWWjsUbqFqsZTyNeCBAbQ@mail.gmail.com> <akYskLix-iNOAbCM@gmail.com>
-In-Reply-To: <akYskLix-iNOAbCM@gmail.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Thu, 2 Jul 2026 13:33:08 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0hZN2SsX1uVfDuVzV=7UoHsNbhe8DUaFCaVsd-ceLvZWg@mail.gmail.com>
-X-Gm-Features: AVVi8CfMpB7NssFif4b5GLRbtyknf5VfY5RNjQktihRoZDbdR6kB2YT4BQb_uxI
-Message-ID: <CAJZ5v0hZN2SsX1uVfDuVzV=7UoHsNbhe8DUaFCaVsd-ceLvZWg@mail.gmail.com>
-Subject: Re: [PATCH 04/32] acpi: Stop using 32-bit MSR interfaces
-To: Ingo Molnar <mingo@kernel.org>
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Juergen Gross <jgross@suse.com>, linux-kernel@vger.kernel.org, 
-	x86@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	Len Brown <lenb@kernel.org>, Pavel Machek <pavel@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260701-predictable-dragon-of-emphasis-50e5dc@sudeepholla>
 
-On Thu, Jul 2, 2026 at 11:17=E2=80=AFAM Ingo Molnar <mingo@kernel.org> wrot=
-e:
->
->
-> * Rafael J. Wysocki (Intel) <rafael@kernel.org> wrote:
->
-> > On Mon, Jun 29, 2026 at 8:05=E2=80=AFAM Juergen Gross <jgross@suse.com>=
- wrote:
-> > >
-> > > The 32-bit MSR interfaces rdmsr(), wrmsr(), rdmsr_safe() and
-> > > wrmsr_safe() are planned to be removed. Use the related 64-bit varian=
-ts
-> > > instead.
-> > >
-> > > In processor_throttling.c drop needless initializers.
-> > >
-> > > Signed-off-by: Juergen Gross <jgross@suse.com>
-> >
-> > LGTM overall.
-> >
-> > Do you want me to pick it up or do you prefer to route it along with
-> > the rest of the series?
->
-> I'd like to keep this series together if you don't mind, so that
-> followup changes can be done more easily.
+On Wed, Jul 01, 2026 at 03:13:42PM +0100, Sudeep Holla wrote:
+> On Wed, Jul 01, 2026 at 02:34:10PM +0100, Sudeep Holla wrote:
+> > On Wed, Jul 01, 2026 at 12:44:30PM +0200, Rafael J. Wysocki (Intel) wrote:
+> > > On Tue, Jun 30, 2026 at 7:00 PM Sudeep Holla <sudeep.holla@kernel.org> wrote:
+> > > >
+> > > > On Tue, Jun 30, 2026 at 02:33:08PM +0200, Rafael J. Wysocki (Intel) wrote:
+> > > > > On Sat, Jun 27, 2026 at 6:39 PM Sudeep Holla <sudeep.holla@kernel.org> wrote:
+> > > > > >
+> > > > > > ACPI defines a PCC OperationRegion as the shared memory fields that
+> > > > > > follow the PCC signature. The OperationRegion length is likewise the
+> > > > > > total size of the fields that succeed the signature in shared memory.
+> > > > > >
+> > > > > > ACPI 6.6 adds clarification that the PCC shared memory signature is
+> > > > > > populated by the platform and verified by OSPM.
+> > > > > >
+> > > > > > The PCC address space handler currently copies the OperationRegion
+> > > > > > buffer to and from the start of the PCC shared memory region. That can
+> > > > > > overwrite or expose the signature at byte offset 0, and it also misses
+> > > > > > the last 4 bytes of the actual PCC OperationRegion data.
+> > > > > >
+> > > > > > Offset OperationRegion copies by the size of the signature and reject
+> > > > > > regions that do not fit in the shared memory after that signature.
+> > > > > >
+> > > > > > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> > > > > > Fixes: 77e2a04745ff ("ACPI: PCC: Implement OperationRegion handler for the PCC Type 3 subtype")
+> > > > > > Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
+> > > > >
+> > > > > Does this depend on anything else in the series or is it independent?
+> > > > >
+> > > >
+> > > > It is independent. This just fixes the issue of including the signature in
+> > > > the opregion data. It can go independently as all other patches as well.
+> > > 
+> > > So I've looked at Sashiko's feedback on this change:
+> > > 
+> > > https://sashiko.dev/#/patchset/20260627-acpi_pcc_signature-v1-0-c1b7268d4fdc%40kernel.org
+> > > 
+> > > and I'm a bit worried.
+> > > 
+> > > Of course, the preexisting issues found by it will need to be
+> > > addressed separately, but what about firmware released before the
+> > > clarification in ACPI 6.6 and the possible misalignment issue
+> > > mentioned by it?
+> > 
+> > I haven't analysed all the report from Sashiko yet. But unlike other patches
+> > in the series, this one is not strictly to validate the signature.
+> > 
+> > Even before v6.6, the PCC Opregion didn't include the signature which is
+> > at offset 0. The code always started copying to/from offset 0 missing the
+> > last 32-bit field(word). Since v6.3 when PCC Opregion was added we have
+> > this in the specification:
+> > 
+> >   | <section> Declaring message fields within a PCC OperationRegion
+> >   |
+> >   | For all PCC subspace types, the PCC Operation Region pertains to the
+> >   | region of PCC subspace that succeeds the PCC signature.
+> > 
+> > So, this patch addresses that issue of wrong starting offset used by this
+> > driver.
+> > 
+> > Other patches I agree, it is more likely we just need to warn and not
+> > reject absence of wrong PCC signatures.
+> > 
+> > I will take a look at the other issues reported by Sashiko soon.
+> > 
+> 
+> Forgot to add that let us wait at-least until I go through the report
+> understand and conclude it is not fatal/critical before we can merge this.
+> Indeed a quick read concerned as much that I would like to spend time
+> analysing it carefully.
+> 
 
-Sure.
+Looking at the comments and digging ACPICA in more detail, I found the issue
+exist there as well and that is the reason why we hadn't observed it in the
+kernel. I will first post the fix for that and follow up here.
 
-I will be assuming that tip will be taking care of this change going forwar=
-d.
+Thanks.
 
-Thanks!
+-- 
+Regards,
+Sudeep
