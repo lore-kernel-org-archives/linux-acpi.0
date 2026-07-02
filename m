@@ -1,88 +1,93 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41F143803C1;
-	Thu,  2 Jul 2026 22:06:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B39E34844C;
+	Thu,  2 Jul 2026 23:04:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783029997; cv=none; b=pcDEfJQN48hS9ILCAl+9xqcQEDTzPRT27+BpIiF/8DRFpgaYJBL0hGMQ/bR33Ki8eOK1Jrio1Y866X73rd8m+tbo2M0q097WwUuyYbaLaO2Crh0QqF4//Q3s6GIRCG1WCWKR0TXRsjkACTqp21tdBOW7Mrw3DBZtyHJNDIZaK14=
+	t=1783033457; cv=none; b=B4+rhr3/wbv5BKzApC+ZI8sdhQAy8CaBbwOGCbyV0vqgnLT9dAYxCVlnbycUKuYKRSeGH9KthrT9HD+KImeEVkGzpTb66J/AQgJMteQ9f+XWwABEWwwObpCD9/utypyu8dtc2gM7LsH6nJHvYg2lJzs6UFzloz5zOEHTlyg80ho=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783029997; c=relaxed/simple;
-	bh=7BFTQqUsF+0HMVaf2cevWXQX0/QTm5p8jpvKJXrcOyo=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=diOYVMdkB8jkh5DiutXW8Rjl/xe2DY99nAXDm8O+j/4472iOFD0wfsvJdsnaWp9btrBvbB/4CDckvQjaixOQ0HkHs01wgWoIlNOxgyluFQyHEmzijL1Pyo/r8jIVke5UTsmqVGwIZgwrTJmAGN5/byx7tHTu7hNyrKtYlKoeCS8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cK9zRKfi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783033457; c=relaxed/simple;
+	bh=EYEsuiiHwcDZ0vxkQ9+K4ECvaRQaNKVj2ASUFUUKMW4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=AaCcpnEFFA45aY2Mnkn8GYYPHutQ1ukY8xpt3o9NIvzO4olND8A15OkhFud7SOG2Klr2q4gf5u3g0fJwt6bjKvlLRYqEWFtPGJBJB9mP3nTiwzOQ4uoQlVvBSQb8dzIDeLz8MI1Lv0dx8vHtwJtRKzBaCu9t2ns9Gpn9P7fEtsw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=e6MH4MXh; arc=none smtp.client-ip=65.109.113.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cK9zRKfi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BE261F000E9;
-	Thu,  2 Jul 2026 22:06:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783029995;
-	bh=YldsX4jd43WV/T8rAwXpohEVIXGZKBg+iIO76IWhHgg=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date;
-	b=cK9zRKfiNgfb/IUYGmo852wkMiLnq/YT1uclaSTYPnDMXbex3yqtaPlzzd0FAQOWA
-	 1wEFUj1egPxGnZmpJaZ4NPj9JYxQgVarGRmQD11ECpIMdf1yQtmn+ZNByWmS9yLgcH
-	 YAmnPA/T7SYjxVXHQ2jGkZYP1QEJjJG651E5szZ1FXfh/WoY3Gr420wzTu5FPZ79vO
-	 dHF1W/3xepkveX1vq/C4WYggwqUymat17wMy4cRux0LBT1RfvBFwGA4hAW24M0sj74
-	 iY2fTTNKPTVh9kC0BL0BmOY9ds6jgm9QMcd90hJRRuBC5jzc1VcyoCtqZfx0dbRoU3
-	 TZSeIE2MzN2MA==
-From: Thomas Gleixner <tglx@kernel.org>
-To: Borislav Petkov <bp@alien8.de>, Vishal Badole <Vishal.Badole@amd.com>,
- dave.hansen@linux.intel.com
-Cc: mingo@redhat.com, x86@kernel.org, hpa@zytor.com, rafael@kernel.org,
- lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
- peterz@infradead.org, tony.luck@intel.com, chang.seok.bae@intel.com,
- wei.w.wang@hotmail.com
+	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="e6MH4MXh"
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id 2B69640E01CE;
+	Thu,  2 Jul 2026 23:04:05 +0000 (UTC)
+X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
+Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
+	header.d=alien8.de
+Received: from mail.alien8.de ([127.0.0.1])
+	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP id 4Ol7s9FKvBF9; Thu,  2 Jul 2026 23:03:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
+	t=1783033435; bh=fdKL0FEG6Gpj1fGVCDj7e23AAN55G66gRVnQURKxz5M=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=e6MH4MXh1ReBBzajIqk2URavbTtdhx9Pi3Tkl25t/nDi50K1qLkNnaWtcrQxAQUlC
+	 h5Fn64qcMdO+yXL6Ymafdn5aDzUQyNS/Lk4181fFNhTF0HEiWxm/E7O+F/4XbG3rHy
+	 +QSUGiSgtpNsUXavdI/Stf6+vrzAQW8RP0dawzW91QyEXBuGGK+NmLZgBpznzu1t0b
+	 F2+9Jbn5UUvALkG36+9a9OnhHkYM5hxaH7VrgWiU4/Yds7HDpCmGxaFFxpedYmYTcp
+	 reTsTn8dhJG2zaXFyQjF4NZHH0dsQDcrb7gse35gFLmUh3elk4U23x8dhX5YonFGUD
+	 CeUKXySBkeHtCVaiZN76/lxugTGTcbY9MOkqluMwt1iEscP9aYvcA3OCh/nwlnakCw
+	 ZDpkOMTgcxUUgqxkcV4CGx7B99nVvHoeHpeDN/CqkQRPhPgIDx5oxg/b+4SDtr+ziZ
+	 HuRP2Y35GeV1bK3zyMUkEBfpL4pCino0Wb9ZTildzPIeVCjAwk4pV2zlA/P3Q4mnxI
+	 evmjh4xkiqRke3riYkMSXpGrEGZdy6QzbKBE9Nv2wc2WQiOwcmuwU9DoIU6cUoJfA7
+	 0OshTWkbw5bozO4wN4bbMqmgI/IHg/Ye6kDbSMcyJm9eFNV85qdd1KPS1zkmBdRCsA
+	 bjEgl6rKKPmS3QzwM+1gAwAU=
+Received: from stx.tnic (unknown [IPv6:2600:1700:38ca:c00::1a])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
+	(No client certificate requested)
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 9315D40E0140;
+	Thu,  2 Jul 2026 23:03:40 +0000 (UTC)
+Date: Thu, 2 Jul 2026 16:03:37 -0700
+From: Borislav Petkov <bp@alien8.de>
+To: Thomas Gleixner <tglx@kernel.org>
+Cc: Vishal Badole <Vishal.Badole@amd.com>, dave.hansen@linux.intel.com,
+	mingo@redhat.com, x86@kernel.org, hpa@zytor.com, rafael@kernel.org,
+	lenb@kernel.org, linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org, peterz@infradead.org,
+	tony.luck@intel.com, chang.seok.bae@intel.com,
+	wei.w.wang@hotmail.com
 Subject: Re: [PATCH 1/2] x86/topology: Name the AMD core-type values
-In-Reply-To: <20260702002704.GGakWwWMHxbRnSsfiO@fat_crate.local>
+Message-ID: <20260702230337.GAakbuSfEOuD2K-d0I@fat_crate.local>
 References: <20260629094349.533301-1-Vishal.Badole@amd.com>
  <20260629094349.533301-2-Vishal.Badole@amd.com>
  <20260702002704.GGakWwWMHxbRnSsfiO@fat_crate.local>
-Date: Fri, 03 Jul 2026 00:06:32 +0200
-Message-ID: <8733y1nj13.ffs@fw13>
+ <8733y1nj13.ffs@fw13>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <8733y1nj13.ffs@fw13>
 
-On Wed, Jul 01 2026 at 17:27, Borislav Petkov wrote:
-> On Mon, Jun 29, 2026 at 03:13:48PM +0530, Vishal Badole wrote:
-> And it does make sense to me - x86_match_vendor_cpu_type() is supposed to
-> receive the *hardware* defined CPU type - not the generic ones. And I think
-> that was a mistake because the value 0 on AMD means a performance core type
-> but in the kernel we called it X86_CPU_TYPE_ANY. Which is also not surprising
-> - all our ANY types are 0.
->
-> Now, one fix would be if we define X86_CPU_TYPE_ANY as 0xff and hope that
-> Intel will never define it.
->
-> On AMD that value is guaranteed to be invalid because the core type field is
-> only 4 bits.
->
-> But it can happen that one vendor's core type field can match another core
-> type of the other vendor. Which would mean that we cannot use X86_VENDOR_ANY
-> in any of the match_id tables when using a core type.
->
-> Or, we do the proper fix and we map all vendor core types to the kernel's,
-> vendor-agnostic TOPO_CPU_TYPE_* enums and then we're all good - we'd only need
-> to convert the vendor ones to the generic ones on comparison but we do that
-> anyway.
+On Fri, Jul 03, 2026 at 12:06:32AM +0200, Thomas Gleixner wrote:
+> Just do the mapping to vendor-agnostic types _once_ when you enumerate the CPU
+> and store that information in the per CPU data.
+> 
+> Then you can do proper vendor agnostic matching against that and define
+> the TYPE_ANY value as you want without ever colliding with vendor
+> muck.
+> 
+> As a bonus get_topology_cpu_type() goes away too as the translation has
+> been done already.
 
-Just do the mapping to vendor-agnostic types _once_ when you enumerate the CPU
-and store that information in the per CPU data.
+Yeah, we should've done it from the very beginning this way. Lemme hack it up
+and see how it looks like.
 
-Then you can do proper vendor agnostic matching against that and define
-the TYPE_ANY value as you want without ever colliding with vendor
-muck.
+Thanks for the cool idea.
 
-As a bonus get_topology_cpu_type() goes away too as the translation has
-been done already.
+-- 
+Regards/Gruss,
+    Boris.
 
-Thanks,
-
-        tglx
-
-
+https://people.kernel.org/tglx/notes-about-netiquette
