@@ -1,39 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 819493403FC;
-	Thu,  2 Jul 2026 21:25:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16BFF27442;
+	Thu,  2 Jul 2026 21:47:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783027551; cv=none; b=A5nxhSEQo+FWY8eNbTgh46vI9aEIXGzW+b7omENP0cKsaQnfn9nNZDEgyJAFW4nKQxD0zp+/CJK17e4A5+NCtuEr3lrwhcZa45MoyV4BfbRbgiKxYWawXwsFoDCzduiPnqiJOixJLLz6WVFt8eYZBGQGDlEqXxviMYReFH2EP94=
+	t=1783028840; cv=none; b=O3C0Qqx+NBdN6vk8q8hR3EDDFCHiKoK+K6Hd+i0SDQzV+JFCnsC/2HN8HN8dsqPFUvlJKC/uUVrBZlUrUZbTy0pODnaWyIewfZWoANTXXmfJu6u0yY2+aIG7fEu5TBqnYN8xtv1/jF5kL9YUHAmE9XFM2+XfYdxbhFDdrXFTWSU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783027551; c=relaxed/simple;
-	bh=oR8jQeV7RBOT9ft1eT0K0scldA7kVpX2ThX5+iUA0FM=;
+	s=arc-20240116; t=1783028840; c=relaxed/simple;
+	bh=FYV60LN0lVcnsFnDpc3HPJqq6bxJbxKbEpYUV36mZUw=;
 	h=Date:Message-ID:From:To:Cc:Subject:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=mP6gP/LUrkfKRI9jHPscIenDIWkjhTkwSKn1tbQi160VSItSLx1tnz8FfKgcm+5CKHY271q6SQW0oUyHaos7fiSAEoW5BQzIviZ7G9S3PgXLoBr1zNRz1ehMp4yuJdimoH2w/6tk8eQF4EECuIUG8AEYUWUHameunVbay29UbyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZYsp0k4V; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=JSf3LWWwIL51QsfaXY4oMwfJ4SO+sXKmlP4O2bQRtE+8jfKBdfXi/ua7R1XAoSKzJHdslohgtySm1zrxH8Rvdp4BqAVMJY4bJZNU7kSGL4RVCnoPZpO8IJw+V4E7OKj553ewyPIO+6OpN6zGMaQjCZDlQJHC2dGehn+HqhlU7pg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eJvkElSc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZYsp0k4V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 184D91F000E9;
-	Thu,  2 Jul 2026 21:25:50 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eJvkElSc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E44621F000E9;
+	Thu,  2 Jul 2026 21:47:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783027550;
-	bh=o2YLLUSdPgZxZ+qMmhQjPi0zw0gGJ6LyLSY1j/SWtzE=;
+	s=k20260515; t=1783028838;
+	bh=wYlRXCVJKrTzkh2SOQCVT+3zpW7jFoZSEU7DdtLsx1U=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=ZYsp0k4VZBiQCsL/hB7G/7j4LkXv2lS9x5BtNp9e6p6cwONDrTNqZOqsUipd8UQZZ
-	 qHvZCN3jVZHqqeVonmyj9FxBbR3UHuyR8oEGZmjo/jMWviGYiiqo22OOEDeKnG2/rp
-	 F/MXuvtaKix6RugXWn4HszwCp9caPnUh6vQE2EmnFLdENPRQ+rjTq/zQVeVjfWEulh
-	 KVpQWz5lXU09zeOV/9Rk8A3fFv8EeuiafSd45yU4AlSA6OPIh4O13bInqF01ao1tuo
-	 NOFJ13Uvdg+73zWlkKCU/Sev/GC6LYUh08QI9f3WXW7Xt7TU89+6t62fXMR8QfYwHQ
-	 qx365FVVN1XAg==
+	b=eJvkElSckzELQhQLTv2Ehk/8G2ILjzx0SDpnn9TgfvZLosndBY0GfJFQepuRKwazh
+	 SosWlzjBePlEbBTgT9/Jg/mzcBDXWSR1XmREQAG7w1WPffgdQ0Dg9g4TuX/DBdPFU/
+	 wcBMvNk7YoTjof08DNuF/pqZki7N3cGE5vOnM/qbn1nzW5GPr80FOW38Vu1hc/xEeo
+	 iVFXEMYD27tSpR1bCYXSwxWcAEihvYXChO0Ei01M1HPJIWNcpUg/7tp/UCI8eKTCbF
+	 yLCzad17BoziCVNZUVc/9BoI+w4aRBPuXsDalpbEwN3c52u46TG//xGWQLVbC89IqQ
+	 spcEKsgrAd3mQ==
 Received: from sofa.misterjones.org ([185.219.108.64] helo=lobster-girl.misterjones.org)
 	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <maz@kernel.org>)
-	id 1wfOup-00000000v60-33nF;
-	Thu, 02 Jul 2026 21:25:47 +0000
-Date: Thu, 02 Jul 2026 22:27:35 +0100
-Message-ID: <87jyrd6q0o.wl-maz@kernel.org>
+	id 1wfPFc-00000000vHl-3yIO;
+	Thu, 02 Jul 2026 21:47:17 +0000
+Date: Thu, 02 Jul 2026 22:49:05 +0100
+Message-ID: <87ik6x6p0u.wl-maz@kernel.org>
 From: Marc Zyngier <maz@kernel.org>
 To: Lorenzo Pieralisi <lpieralisi@kernel.org>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
@@ -52,10 +52,10 @@ Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
 	linux-arm-kernel@lists.infradead.org,
 	loongarch@lists.linux.dev,
 	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH v3 1/7] ACPI: Add acpi_device_clear_dep() helper function
-In-Reply-To: <20260701-gic-v5-acpi-iwb-probe-deferral-v3-1-c5562cf0fe29@kernel.org>
+Subject: Re: [PATCH v3 7/7] irqchip/gic-v5: Enable GICv5 IWB ACPI probe ordering detection
+In-Reply-To: <20260701-gic-v5-acpi-iwb-probe-deferral-v3-7-c5562cf0fe29@kernel.org>
 References: <20260701-gic-v5-acpi-iwb-probe-deferral-v3-0-c5562cf0fe29@kernel.org>
-	<20260701-gic-v5-acpi-iwb-probe-deferral-v3-1-c5562cf0fe29@kernel.org>
+	<20260701-gic-v5-acpi-iwb-probe-deferral-v3-7-c5562cf0fe29@kernel.org>
 User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI-EPG/1.14.7 (Harue)
  FLIM-LB/1.14.9 (=?UTF-8?B?R29qxY0=?=) APEL-LB/10.8 EasyPG/1.0.0 Emacs/30.1
  (aarch64-unknown-linux-gnu) MULE/6.0 (HANACHIRUSATO)
@@ -71,40 +71,29 @@ X-SA-Exim-Rcpt-To: lpieralisi@kernel.org, rafael@kernel.org, lenb@kernel.org, su
 X-SA-Exim-Mail-From: maz@kernel.org
 X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
 
-On Wed, 01 Jul 2026 15:38:49 +0100,
+On Wed, 01 Jul 2026 15:38:55 +0100,
 Lorenzo Pieralisi <lpieralisi@kernel.org> wrote:
 > 
-> Code clearing device dependencies in ACPI in drivers through
+> Register an ACPI hook in the ACPI interrupt management code for GICv5 to
+> retrieve the ACPI interrupt controller handle (if any) of the controller
+> handling a specific GSI, by updating the acpi_set_irq_model() call with
+> the gic_v5_get_gsi_handle() function pointer parameter.
 > 
-> acpi_dev_clear_dependencies()
+> gicv5_get_gsi_handle() allows ACPI core to detect the ACPI handle
+> of the controller that manages a specific GSI interrupt.
 > 
-> requires annoying ifdeffery to make sure it is compiled out on
-> !CONFIG_ACPI configurations.
-> 
-> Implement a wrapper function to clear device dependencies that can be used
-> in device drivers without conditional compilation.
+> Update the IWB driver to clear device dependencies in ACPI core once the
+> IWB driver has probed.
 > 
 > Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
-> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> Cc: Thomas Gleixner <tglx@kernel.org>
+> Cc: Marc Zyngier <maz@kernel.org>
 > ---
->  include/linux/acpi.h | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 10d6c6c11bdf..4f950f5386d7 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -94,6 +94,12 @@ static inline void acpi_preset_companion(struct device *dev,
->  	ACPI_COMPANION_SET(dev, acpi_find_child_device(parent, addr, false));
->  }
->  
-> +static inline void acpi_device_clear_dep(struct device *dev)
+>  drivers/irqchip/irq-gic-v5-iwb.c |  2 ++
+>  drivers/irqchip/irq-gic-v5.c     | 11 ++++++++++-
+>  2 files changed, 12 insertions(+), 1 deletion(-)
 
-uber nit: "clear_dep" is singular, while "clear_dependencies" is
-obviously plural. acpi_device_clear_deps() would look slightly
-clearer.
-
-That's my useless comment of the evening.
+Acked-by: Marc Zyngier <maz@kernel.org>
 
 	M.
 
