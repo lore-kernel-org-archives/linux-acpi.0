@@ -1,363 +1,100 @@
-Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1850B3CC7DB
-	for <linux-acpi@vger.kernel.org>; Thu,  2 Jul 2026 11:03:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52D943C7DE1;
+	Thu,  2 Jul 2026 11:09:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782990238; cv=none; b=Zmki9YGEYSzru1cCP35duI+MA8lG/+jOzZ+1nUK24YsZI3x1JoZGNw4St25VToHWzhHPSoykLMemD0dDFCKp/capfkUcfNCKSpg29J4Q27hgqMLasjRuHczudCAOtq6hwkzhiRxZ175Lk/pv+df1y1IsxKWul0/+XyKqhxU0wKo=
+	t=1782990562; cv=none; b=BgpEGF+jZrFXTh4dXxo9dssBDYvNYW5bQuBE7nEYsFtotvrXVQJBvZ8yl5Vvipjl06+W9YDU9OisiRQfMvmgcE+Sw1gtCs+YDcDy4Qkzsna+8/ytG4IRA8627uQsxOrppDMLxDPLJAmS4GiDTGnPChGFQmWued9MUDFTBtzNvWg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782990238; c=relaxed/simple;
-	bh=rLAZ6xjWSh4dBeXXx+Zm/8773z7w6ApW8uj4atG+Tbg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=g+fBU2rENI9HDBg1pw8E97oUqcpFXXvjvekSoLDIRDLJeosFsHf6hfzLinMXj5zDJx3cZ0gPINsFW1S2qYjIJaHP/zq3DLO7vT/3zqaf+UZ8sA5WtNjDDNISzz/b5VvjwJEkbeKRylph998QxzG1nY0AFcahCkn8o+LETO8wOIA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=fFwMSklP; arc=none smtp.client-ip=209.85.218.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	s=arc-20240116; t=1782990562; c=relaxed/simple;
+	bh=7qRG6+K6X0dNRACwZKja+sVhu1BbFMotfd0j+/WKOnw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=qv2Dv3k5fTCavwXK7+WPLUGzsektgbfCydwwOSOnjH5xLcBxRE45RqQG9qzZWDaYVlx/qwaiQCZOuhrl15TUL2Q1pUysWqRM6Z6to5gBS1FoSvQZz9ocZ6owpSkg9nCd1QxWVtFLF8aBW5MNMozozptvmCjgRttMoMWmse1CtVs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=c1RGPcRV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="fFwMSklP"
-Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-c0e124d2a21so208666266b.2
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Jul 2026 04:03:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1782990234; x=1783595034; darn=vger.kernel.org;
-        h=in-reply-to:autocrypt:from:content-language:references:cc:to
-         :subject:user-agent:mime-version:date:message-id:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=rLAZ6xjWSh4dBeXXx+Zm/8773z7w6ApW8uj4atG+Tbg=;
-        b=fFwMSklPk0K45f82cZkspN0XsW8ZtBuWJzhUe4xeCi24fLDRim2r9FMLcrAW2l2CRM
-         UmlK6M0QWT7XvyQM/cn09ziJXQjKd7ZsumWeSiaRRghFwEa6iOLf1yJ/AXt1ONpPEH3I
-         KstDJ1gUUMIVlpa1BSWwcRPDispmLW++j7GzDeNBM6Esg0RlzD91LniADw/G/qIAFALv
-         5Ozakp1uvbCNhx8DAcYIFY1YWcxmzb1yeuo2otcJDZDjAwK521FQlFsZEFHVi4khWsNy
-         Oyh76J9OzTaslFSKJKGQviWPawMCyN/bFcSJ46DTuzX0G+GuGgn652CKn2uSHsI7EPtQ
-         rl1A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1782990234; x=1783595034;
-        h=in-reply-to:autocrypt:from:content-language:references:cc:to
-         :subject:user-agent:mime-version:date:message-id:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=rLAZ6xjWSh4dBeXXx+Zm/8773z7w6ApW8uj4atG+Tbg=;
-        b=hvxB0E/KIUOVoKs36d49Qb9boYA4TYu7W1HQMgHveNTVxUNMBDBmKUykZoZN9CCkOj
-         FFhU3r24BJ/G8ymGEYbO8sywcuCJXKmj0bNen5wHXBuRZq4Pl7uOSmgY5J8qkjAf0+Nq
-         OtI8M02PT+YMC3/cuTV0j/ulHTIqyMh52ttyhTVwLI27r4rkmnbx3XTtO3a+jWoP+ARn
-         OXlvEC5VV6QV8rZ05aRE4Mzl4zaCUy4r8uZMo3u7uz3GzTl+T84oYAZaFuUCxKDoeqvC
-         /pEgDh1g6ucg1A/AIPFINlzCREvvjLi5OnhAwoJqg3Qm6l8wwizNUfbwa7hnkbf4xDSu
-         fd3w==
-X-Forwarded-Encrypted: i=1; AHgh+Rp20dvDNd61a19uxOPEs4vevCfii0Zv0s18s/9E0w8V9IyYtKgclfH7LyDa+og7wixxezzcTk+QhT7C@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxx+rGQhyl5B8js7osim+4/GkeLaaSevmxGiYSH2aeKiwCA9nDc
-	H68TLHAafSy7731mySc7L8kp96uG+xQ4KdNiNIiJzzquLDCklGfXe7CYAOWbm3+H9Fc=
-X-Gm-Gg: AfdE7cmHA4thsxm2yNuSDCUTLqhzJXgw4LTRkXVYRJBpNLdzKNYlGjmWrVYUP0kcgRF
-	f/EOlyWjTDL7OHpsNoCRTuakQkxY7i5Lsh42Ct2Ki4Xsq8hwMDHSYL9ZOfNhY2a78mDsL640Bfz
-	B8NqdVciObpL6jXWLGDw7At/LP9iXScliBWp4Be8xfmfH4uXFcwLOhh3V7jTzvzaVltLHEWh/tk
-	J2a8ftk2QevPFZGfxYNLK3+b0dSRhcCcpJGbH/8AJ9NxQ8r0wykznawj8+uJo37TDAnah8lPrCJ
-	Iib3OVjLlGvGVo7m9Xv2MN6YKQwvCkNysdMkHoYQLgHj+UsENcjBmi40LLwFNfoK7WACuhgHbr6
-	C/RW1uDvfwnRwTPVIA1z2fG4t9tJUPZm93sp0h+ZwGWSg6m98T3imyM6ZxZ1qDcIzE5K59r7KUP
-	/nrsSu43pm0m9mTjjNRD6WBdR5fCTZLYKcF1aFBL8gpE4GXQNgnxjvgd+6c9OsFnIkRfP2ItMJh
-	EgThqPvs2kcFRdSf8gJd8I9AHWZMDBmg233ZS8JIvk=
-X-Received: by 2002:a17:907:e14b:10b0:c12:3143:864f with SMTP id a640c23a62f3a-c12ae47556cmr180127966b.2.1782990234377;
-        Thu, 02 Jul 2026 04:03:54 -0700 (PDT)
-Received: from ?IPV6:2a00:12d0:af5d:ad01:5d3f:14e6:9bcb:5112? (2a00-12d0-af5d-ad01-5d3f-14e6-9bcb-5112.ip.tng.de. [2a00:12d0:af5d:ad01:5d3f:14e6:9bcb:5112])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-698acf25f4dsm809220a12.8.2026.07.02.04.03.52
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 02 Jul 2026 04:03:53 -0700 (PDT)
-Message-ID: <99228803-b8b7-47a3-b77c-6fdf3b785730@suse.com>
-Date: Thu, 2 Jul 2026 13:03:52 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="c1RGPcRV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C04F31F000E9;
+	Thu,  2 Jul 2026 11:09:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1782990560;
+	bh=WNu+kvsuLssp3Vf5MRt2fyVL+Kj30QkUvpulkiVPbKI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=c1RGPcRVZDTUzx+5ZOWBET2EzXxK5SZJxndVk1Td3gIrtLa/797DSLHLnB7JbtpqP
+	 7INq1GJa/XzkiG8YXhZGgFEdx473b3nn7EFtpsILfb8MVnXkRpZVhuLG0Jxqg4o7S4
+	 grJ7vQtu+4aBIztbW9KDz8GYhT2X2PMSxJivbWjWecvZrlFs2eJzo8s3qWXqhd4IG2
+	 BSEE/wBeqDkXI3Y/Ey58866xrA+IxZVw1Vm3PMbtACSlvkcbLX6j+x8gKEzLt6t+9c
+	 B45bYzZN3B87tyUnYvDlYc+b9zbrOmRn3+eTkVMEeLD/3EzVmyPFqaUSXEMsRASuto
+	 LcTCWZrY5+SHw==
+Date: Thu, 2 Jul 2026 14:09:06 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: Gregory Price <gourry@gourry.net>
+Cc: linux-mm@kvack.org, x86@kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev, kernel-team@meta.com, corbet@lwn.net,
+	skhan@linuxfoundation.org, dave.hansen@linux.intel.com,
+	luto@kernel.org, peterz@infradead.org, tglx@kernel.org,
+	mingo@redhat.com, bp@alien8.de, hpa@zytor.com, rafael@kernel.org,
+	lenb@kernel.org, gregkh@linuxfoundation.org, dakr@kernel.org,
+	akpm@linux-foundation.org, rdunlap@infradead.org,
+	feng.tang@linux.alibaba.com, dapeng1.mi@linux.intel.com,
+	elver@google.com, kuba@kernel.org, ebiggers@kernel.org,
+	lirongqing@baidu.com, paulmck@kernel.org, dave.jiang@intel.com,
+	jic23@kernel.org, xueshuai@linux.alibaba.com, kai.huang@intel.com
+Subject: Re: [RFC PATCH 1/3] mm/numa: add exclusive node pool and
+ numa=standby boot parameter
+Message-ID: <akZG0sb1pXFZQQqA@kernel.org>
+References: <20260610014517.253609-1-gourry@gourry.net>
+ <20260610014517.253609-2-gourry@gourry.net>
+ <aip5IWmxg9CWg8hQ@kernel.org>
+ <airAUSrNjbSEwuti@gourry-fedora-PF4VCD3F>
+ <ai5vj_RjSxl_FLu-@kernel.org>
+ <ajq2A9GUOBWjzYM6@gourry-fedora-PF4VCD3F>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 00/32] x86/msr: Drop 32-bit MSR interfaces
-To: Ingo Molnar <mingo@kernel.org>, Sean Christopherson <seanjc@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
- linux-pm@vger.kernel.org,
- "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, x86@kernel.org,
- linux-acpi@vger.kernel.org, kvm@vger.kernel.org, linux-coco@lists.linux.dev,
- linux-pci@vger.kernel.org, virtualization@lists.linux.dev,
- linux-ide@vger.kernel.org, dri-devel@lists.freedesktop.org,
- linux-fbdev@vger.kernel.org, linux-crypto@vger.kernel.org,
- "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
- linux-hyperv@vger.kernel.org, linux-hwmon@vger.kernel.org,
- linux-perf-users@vger.kernel.org, linux-mtd@lists.infradead.org,
- platform-driver-x86@vger.kernel.org, "Rafael J . Wysocki"
- <rafael@kernel.org>, Daniel Lezcano <daniel.lezcano@kernel.org>,
- Zhang Rui <rui.zhang@intel.com>, "lukasz.luba@arm.com"
- <lukasz.luba@arm.com>, Jason Baron <jbaron@akamai.com>,
- Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>,
- Yazen Ghannam <yazen.ghannam@amd.com>, Len Brown <lenb@kernel.org>,
- Pavel Machek <pavel@kernel.org>, Thomas Gleixner <tglx@kernel.org>,
- Ingo Molnar <mingo@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>,
- "H. Peter Anvin" <hpa@zytor.com>, Paolo Bonzini <pbonzini@redhat.com>,
- "Kirill A. Shutemov" <kas@kernel.org>,
- Rick Edgecombe <rick.p.edgecombe@intel.com>, Pu Wen <puwen@hygon.cn>,
- Bjorn Helgaas <bhelgaas@google.com>, Ajay Kaher <ajay.kaher@broadcom.com>,
- Alexey Makhalov <alexey.makhalov@broadcom.com>,
- Broadcom internal kernel review list
- <bcm-kernel-feedback-list@broadcom.com>,
- Viresh Kumar <viresh.kumar@linaro.org>,
- Reinette Chatre <reinette.chatre@intel.com>,
- Dave Martin <Dave.Martin@arm.com>, James Morse <james.morse@arm.com>,
- Babu Moger <babu.moger@amd.com>, Tony W Wang-oc <TonyWWang-oc@zhaoxin.com>,
- Damien Le Moal <dlemoal@kernel.org>, Niklas Cassel <cassel@kernel.org>,
- Dave Airlie <airlied@redhat.com>, Helge Deller <deller@gmx.de>,
- linux-geode@lists.infradead.org, Olivia Mackall <olivia@selenic.com>,
- Herbert Xu <herbert@gondor.apana.org.au>, Linus Walleij <linusw@kernel.org>,
- Bartosz Golaszewski <brgl@kernel.org>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- "K. Y. Srinivasan" <kys@microsoft.com>,
- Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>,
- Dexuan Cui <decui@microsoft.com>, Long Li <longli@microsoft.com>,
- Guenter Roeck <linux@roeck-us.net>, Peter Zijlstra <peterz@infradead.org>,
- Arnaldo Carvalho de Melo <acme@kernel.org>,
- Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
- Alexander Shishkin <alexander.shishkin@linux.intel.com>,
- Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>,
- Adrian Hunter <adrian.hunter@intel.com>, James Clark
- <james.clark@linaro.org>, Josh Poimboeuf <jpoimboe@kernel.org>,
- Pawan Gupta <pawan.kumar.gupta@linux.intel.com>,
- Vitaly Kuznetsov <vkuznets@redhat.com>, Andy Lutomirski <luto@kernel.org>,
- Boris Ostrovsky <boris.ostrovsky@oracle.com>, Huang Rui <ray.huang@amd.com>,
- Mario Limonciello <mario.limonciello@amd.com>,
- Perry Yuan <perry.yuan@amd.com>, K Prateek Nayak <kprateek.nayak@amd.com>,
- "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>,
- Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
- Artem Bityutskiy <dedekind1@gmail.com>,
- Miquel Raynal <miquel.raynal@bootlin.com>,
- Richard Weinberger <richard@nod.at>, Vignesh Raghavendra <vigneshr@ti.com>,
- Ashok Raj <ashok.raj.linux@gmail.com>, Hans de Goede <hansg@kernel.org>,
- =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
- Rajneesh Bhardwaj <irenic.rajneesh@gmail.com>,
- David E Box <david.e.box@intel.com>, xen-devel@lists.xenproject.org
-References: <20260629060526.3638272-1-jgross@suse.com>
- <d7c1db52-529a-43cc-ac7d-38b52627e8bc@app.fastmail.com>
- <c1608c48-13c2-4290-826b-28b5ca51eaf7@suse.com>
- <7332feff-2649-496c-8e49-b0a19eb54a32@app.fastmail.com>
- <akJUz0kYkEBdLSZ3@gmail.com> <akQR9YMtMHReJTfB@google.com>
- <akY4U0jUZm4HOGZ_@gmail.com>
-Content-Language: en-US
-From: Juergen Gross <jgross@suse.com>
-Autocrypt: addr=jgross@suse.com; keydata=
- xsBNBFOMcBYBCACgGjqjoGvbEouQZw/ToiBg9W98AlM2QHV+iNHsEs7kxWhKMjrioyspZKOB
- ycWxw3ie3j9uvg9EOB3aN4xiTv4qbnGiTr3oJhkB1gsb6ToJQZ8uxGq2kaV2KL9650I1SJve
- dYm8Of8Zd621lSmoKOwlNClALZNew72NjJLEzTalU1OdT7/i1TXkH09XSSI8mEQ/ouNcMvIJ
- NwQpd369y9bfIhWUiVXEK7MlRgUG6MvIj6Y3Am/BBLUVbDa4+gmzDC9ezlZkTZG2t14zWPvx
- XP3FAp2pkW0xqG7/377qptDmrk42GlSKN4z76ELnLxussxc7I2hx18NUcbP8+uty4bMxABEB
- AAHNH0p1ZXJnZW4gR3Jvc3MgPGpncm9zc0BzdXNlLmNvbT7CwHkEEwECACMFAlOMcK8CGwMH
- CwkIBwMCAQYVCAIJCgsEFgIDAQIeAQIXgAAKCRCw3p3WKL8TL8eZB/9G0juS/kDY9LhEXseh
- mE9U+iA1VsLhgDqVbsOtZ/S14LRFHczNd/Lqkn7souCSoyWsBs3/wO+OjPvxf7m+Ef+sMtr0
- G5lCWEWa9wa0IXx5HRPW/ScL+e4AVUbL7rurYMfwCzco+7TfjhMEOkC+va5gzi1KrErgNRHH
- kg3PhlnRY0Udyqx++UYkAsN4TQuEhNN32MvN0Np3WlBJOgKcuXpIElmMM5f1BBzJSKBkW0Jc
- Wy3h2Wy912vHKpPV/Xv7ZwVJ27v7KcuZcErtptDevAljxJtE7aJG6WiBzm+v9EswyWxwMCIO
- RoVBYuiocc51872tRGywc03xaQydB+9R7BHPzsBNBFOMcBYBCADLMfoA44MwGOB9YT1V4KCy
- vAfd7E0BTfaAurbG+Olacciz3yd09QOmejFZC6AnoykydyvTFLAWYcSCdISMr88COmmCbJzn
- sHAogjexXiif6ANUUlHpjxlHCCcELmZUzomNDnEOTxZFeWMTFF9Rf2k2F0Tl4E5kmsNGgtSa
- aMO0rNZoOEiD/7UfPP3dfh8JCQ1VtUUsQtT1sxos8Eb/HmriJhnaTZ7Hp3jtgTVkV0ybpgFg
- w6WMaRkrBh17mV0z2ajjmabB7SJxcouSkR0hcpNl4oM74d2/VqoW4BxxxOD1FcNCObCELfIS
- auZx+XT6s+CE7Qi/c44ibBMR7hyjdzWbABEBAAHCwF8EGAECAAkFAlOMcBYCGwwACgkQsN6d
- 1ii/Ey9D+Af/WFr3q+bg/8v5tCknCtn92d5lyYTBNt7xgWzDZX8G6/pngzKyWfedArllp0Pn
- fgIXtMNV+3t8Li1Tg843EXkP7+2+CQ98MB8XvvPLYAfW8nNDV85TyVgWlldNcgdv7nn1Sq8g
- HwB2BHdIAkYce3hEoDQXt/mKlgEGsLpzJcnLKimtPXQQy9TxUaLBe9PInPd+Ohix0XOlY+Uk
- QFEx50Ki3rSDl2Zt2tnkNYKUCvTJq7jvOlaPd6d/W0tZqpyy7KVay+K4aMobDsodB3dvEAs6
- ScCnh03dDAFgIq5nsB11j3KPKdVoPlfucX2c7kGNH+LUMbzqV6beIENfNexkOfxHfw==
-In-Reply-To: <akY4U0jUZm4HOGZ_@gmail.com>
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="------------WjZXb44KsATEDkDSufWy2bKk"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ajq2A9GUOBWjzYM6@gourry-fedora-PF4VCD3F>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---------------WjZXb44KsATEDkDSufWy2bKk
-Content-Type: multipart/mixed; boundary="------------o2fircZpb09tU1GMO2GxqgPd";
- protected-headers="v1"
-From: Juergen Gross <jgross@suse.com>
-To: Ingo Molnar <mingo@kernel.org>, Sean Christopherson <seanjc@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
- linux-pm@vger.kernel.org,
- "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, x86@kernel.org,
- linux-acpi@vger.kernel.org, kvm@vger.kernel.org, linux-coco@lists.linux.dev,
- linux-pci@vger.kernel.org, virtualization@lists.linux.dev,
- linux-ide@vger.kernel.org, dri-devel@lists.freedesktop.org,
- linux-fbdev@vger.kernel.org, linux-crypto@vger.kernel.org,
- "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>,
- linux-hyperv@vger.kernel.org, linux-hwmon@vger.kernel.org,
- linux-perf-users@vger.kernel.org, linux-mtd@lists.infradead.org,
- platform-driver-x86@vger.kernel.org, "Rafael J . Wysocki"
- <rafael@kernel.org>, Daniel Lezcano <daniel.lezcano@kernel.org>,
- Zhang Rui <rui.zhang@intel.com>, "lukasz.luba@arm.com"
- <lukasz.luba@arm.com>, Jason Baron <jbaron@akamai.com>,
- Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>,
- Yazen Ghannam <yazen.ghannam@amd.com>, Len Brown <lenb@kernel.org>,
- Pavel Machek <pavel@kernel.org>, Thomas Gleixner <tglx@kernel.org>,
- Ingo Molnar <mingo@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>,
- "H. Peter Anvin" <hpa@zytor.com>, Paolo Bonzini <pbonzini@redhat.com>,
- "Kirill A. Shutemov" <kas@kernel.org>,
- Rick Edgecombe <rick.p.edgecombe@intel.com>, Pu Wen <puwen@hygon.cn>,
- Bjorn Helgaas <bhelgaas@google.com>, Ajay Kaher <ajay.kaher@broadcom.com>,
- Alexey Makhalov <alexey.makhalov@broadcom.com>,
- Broadcom internal kernel review list
- <bcm-kernel-feedback-list@broadcom.com>,
- Viresh Kumar <viresh.kumar@linaro.org>,
- Reinette Chatre <reinette.chatre@intel.com>,
- Dave Martin <Dave.Martin@arm.com>, James Morse <james.morse@arm.com>,
- Babu Moger <babu.moger@amd.com>, Tony W Wang-oc <TonyWWang-oc@zhaoxin.com>,
- Damien Le Moal <dlemoal@kernel.org>, Niklas Cassel <cassel@kernel.org>,
- Dave Airlie <airlied@redhat.com>, Helge Deller <deller@gmx.de>,
- linux-geode@lists.infradead.org, Olivia Mackall <olivia@selenic.com>,
- Herbert Xu <herbert@gondor.apana.org.au>, Linus Walleij <linusw@kernel.org>,
- Bartosz Golaszewski <brgl@kernel.org>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- "K. Y. Srinivasan" <kys@microsoft.com>,
- Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>,
- Dexuan Cui <decui@microsoft.com>, Long Li <longli@microsoft.com>,
- Guenter Roeck <linux@roeck-us.net>, Peter Zijlstra <peterz@infradead.org>,
- Arnaldo Carvalho de Melo <acme@kernel.org>,
- Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
- Alexander Shishkin <alexander.shishkin@linux.intel.com>,
- Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>,
- Adrian Hunter <adrian.hunter@intel.com>, James Clark
- <james.clark@linaro.org>, Josh Poimboeuf <jpoimboe@kernel.org>,
- Pawan Gupta <pawan.kumar.gupta@linux.intel.com>,
- Vitaly Kuznetsov <vkuznets@redhat.com>, Andy Lutomirski <luto@kernel.org>,
- Boris Ostrovsky <boris.ostrovsky@oracle.com>, Huang Rui <ray.huang@amd.com>,
- Mario Limonciello <mario.limonciello@amd.com>,
- Perry Yuan <perry.yuan@amd.com>, K Prateek Nayak <kprateek.nayak@amd.com>,
- "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>,
- Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
- Artem Bityutskiy <dedekind1@gmail.com>,
- Miquel Raynal <miquel.raynal@bootlin.com>,
- Richard Weinberger <richard@nod.at>, Vignesh Raghavendra <vigneshr@ti.com>,
- Ashok Raj <ashok.raj.linux@gmail.com>, Hans de Goede <hansg@kernel.org>,
- =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
- Rajneesh Bhardwaj <irenic.rajneesh@gmail.com>,
- David E Box <david.e.box@intel.com>, xen-devel@lists.xenproject.org
-Message-ID: <99228803-b8b7-47a3-b77c-6fdf3b785730@suse.com>
-Subject: Re: [PATCH 00/32] x86/msr: Drop 32-bit MSR interfaces
-References: <20260629060526.3638272-1-jgross@suse.com>
- <d7c1db52-529a-43cc-ac7d-38b52627e8bc@app.fastmail.com>
- <c1608c48-13c2-4290-826b-28b5ca51eaf7@suse.com>
- <7332feff-2649-496c-8e49-b0a19eb54a32@app.fastmail.com>
- <akJUz0kYkEBdLSZ3@gmail.com> <akQR9YMtMHReJTfB@google.com>
- <akY4U0jUZm4HOGZ_@gmail.com>
-In-Reply-To: <akY4U0jUZm4HOGZ_@gmail.com>
+On Tue, Jun 23, 2026 at 12:36:19PM -0400, Gregory Price wrote:
+> On Sun, Jun 14, 2026 at 12:08:31PM +0300, Mike Rapoport wrote:
+> > On Thu, Jun 11, 2026 at 10:04:01AM -0400, Gregory Price wrote:
+> > > On Thu, Jun 11, 2026 at 12:00:17PM +0300, Mike Rapoport wrote:
+> >  
+> > > So really i think you're pointing out that futex_init() here probably
+> > > shouldn't be using num_possible_nodes?
+> > 
+> > I'd rather say that num_possible_nodes() with and without CXL (or other
+> > differentiated memory) has different semantics.
+> > Maybe we need to add a new primitive for possible differentiated nodes and
+> > keep num_possible_nodes() to mean "number of possible nodes with normal
+> > memory".
+> >  
+> 
+> We'd have to define "normal" here a little more discretely.
+> 
+> Normal = N_MEMORY at __init?
+> Normal = N_MEMORY in the future?
 
---------------o2fircZpb09tU1GMO2GxqgPd
-Content-Type: multipart/mixed; boundary="------------DvT8SfkPmJRmXAYHiBwk9gCF"
+Normal = not differentiated, no matter at __init or in the future.
+I.e. memory that kernel will use with existing allocation primitives.
 
---------------DvT8SfkPmJRmXAYHiBwk9gCF
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: base64
+> We also use the possible_nodes() mask to allocate per-node pgdat, so
+> the futex example is largely just another "hey look at this thing,
+> I wonder what other stuff is out there".
 
-T24gMDIuMDcuMjYgMTI6MDcsIEluZ28gTW9sbmFyIHdyb3RlOg0KPiANCj4gKiBTZWFuIENo
-cmlzdG9waGVyc29uIDxzZWFuamNAZ29vZ2xlLmNvbT4gd3JvdGU6DQo+IA0KPj4+IE5vdGUg
-dGhhdCB0aGUgaW5kaXZpZHVhbCBwYXRjaGVzIGFyZSBJTU8gc2lnbmlmaWNhbnRseSBlYXNp
-ZXIgdG8gcmV2aWV3DQo+Pj4gdGhyb3VnaCB0aGUgYWN0dWFsIDMyLWJpdCA9PiA2NC1iaXQg
-dmFyaWFibGUgYXNzaWdubWVudCBjaGFuZ2VzIGRvbmUNCj4+PiBpbiBpc29sYXRpb24gKHdo
-aWNoIHNvbWV0aW1lcyBpbmNsdWRlIG1pbm9yIGNsZWFudXBzKSwgd2hpbGUNCj4+PiB0aGUg
-Q29jY2luZWxsZSBzZW1hbnRpYyBwYXRjaDoNCj4+Pg0KPj4+ICAgICB7IGEoYixjKSA9PiBj
-ID0gYShiKSB9DQo+Pj4NCj4+PiB3aGljaCBjaGFuZ2VzIGJvdGggdGhlIGZ1bmN0aW9uIHNp
-Z25hdHVyZSBhbmQgdGhlIG9yZGVyIG9mIHRlcm1zIGFzDQo+Pj4gd2VsbCwgaXMganVzdCBh
-IHNpbmdsZSBhZGQtb24gdHJlZXdpZGUgcGF0Y2guDQo+Pg0KPj4gSXMgdGhlIHBsYW4gZm9y
-IHN1YnN5c3RlbSBtYWludGFpbmVycyB0byBwaWNrIHVwIHRoZSByZWxldmFudCBwYXRjaGVz
-LA0KPj4gYW5kIHRoZW4gZG8gdGhlIHRyZWV3aWRlIGNoYW5nZSBvbmUgcmVsZWFzZSBjeWNs
-ZSBsYXRlcj8NCj4gDQo+IEknbGwgdHJ5IHRvIGtlZXAgdGhlIHBhdGNoZXMgaW4gYSBzaW5n
-bGUgdHJlZSAodGlwOng4Ni9tc3IpDQo+IGluIHRoZSBob3BlIG9mIG5vdCBwcm9sb25naW5n
-IHRoZSBwYWluIHR3byBjeWNsZXMgLSBidXQgaXQncw0KPiBvZiBjb3Vyc2UgZmluZSBmb3Ig
-bWFpbnRhaW5lcnMgdG8gcGljayB1cCB0aGUgcGF0Y2hlcyB0b28NCj4gKG1vc3Qgb2YgdGhl
-bSBhcmUgc3RhbmRhbG9uZSksIHdlJ2xsIHNvcnQgaXQgYWxsIG91dCBpbiB0aGUgZW5kLg0K
-DQpJbmdvLCB3b3VsZCB5b3UgYmUgZmluZSB3aXRoIG1lIHBvc3RpbmcgcGF0Y2ggdXBkYXRl
-cyBqdXN0IGFzIHJlcGxpZXMgdG8gdGhlDQpvcmlnaW5hbCBwYXRjaCBlbWFpbHM/IFRoaXMg
-d291bGQgc3BlZWQgdGhpbmdzIHVwLCBhcyBJIHdvdWxkbid0IG5lZWQgdG8gd2FpdA0KZm9y
-IG1vcmUgcmV2aWV3IGlucHV0IG9mIGFsbCB0aGUgcGF0Y2hlcyBiZWZvcmUgc2VuZGluZyBv
-dXQgbmV3IHZlcnNpb25zLg0KDQpBcyB0aGUgcGF0Y2hlcyBhcmUgKG1vc3RseSkgc3RhbmRh
-bG9uZSwgdGhpcyBzaG91bGQgbm90IGNhdXNlIGFueSB3ZWlyZA0KcHJvYmxlbXMuDQoNClRo
-ZSBsYXN0IHR3byBwYXRjaGVzIG1pZ2h0IG5lZWQgdXBkYXRlcywgYnV0IHRob3NlIGNhbiBi
-ZSBhcHBsaWVkIG9ubHkgYWZ0ZXINCnRoZSByZXN0IGhhcyBiZWVuIGFjY2VwdGVkIGFueXdh
-eS4NCg0KDQpKdWVyZ2VuDQo=
---------------DvT8SfkPmJRmXAYHiBwk9gCF
-Content-Type: application/pgp-keys; name="OpenPGP_0xB0DE9DD628BF132F.asc"
-Content-Disposition: attachment; filename="OpenPGP_0xB0DE9DD628BF132F.asc"
-Content-Description: OpenPGP public key
-Content-Transfer-Encoding: quoted-printable
+Right, futex is only one example. My point is that with multiplication of
+possible and not populated nodes the possible_nodes() mask may not reflect
+adequately the limits its callers look for.
 
------BEGIN PGP PUBLIC KEY BLOCK-----
+And that maybe it's time to audit possible_nodes() callers.
+ 
+> ~Gregory
 
-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
-kt+z4drzFUyEjLM1vVvIMjkUoJs=3D
-=3DeeAB
------END PGP PUBLIC KEY BLOCK-----
-
---------------DvT8SfkPmJRmXAYHiBwk9gCF--
-
---------------o2fircZpb09tU1GMO2GxqgPd--
-
---------------WjZXb44KsATEDkDSufWy2bKk
-Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="OpenPGP_signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-wsB5BAABCAAjFiEEhRJncuj2BJSl0Jf3sN6d1ii/Ey8FAmpGRZgFAwAAAAAACgkQsN6d1ii/Ey9T
-iQf8D4c54BGRNKMRsSJiXSFxOPiUVfGXcsH7BLGSCIbavlNKB6PC4nfBVKfvlEHUsQk3Zy7dOXCt
-DjWUBhqMxb+QCJKNrUGKsdDFtl1Agihz8PaRzzF6LAJL86LHnhjy30FkyEoT+wE8pfL61qKpyusy
-xGc+xkkzm+tcDAwQDn9wTrmDKRaa/yWjrPX2idLQ/ATrKILtNW/Ci7tbKeltRSGhWV7aNEtyEUco
-wq6RU91rH9miz+a9ZWCRa/bc1FU0brdudBe2pkTiDua5vzSwUx4gBoLQ98BcHb+bKidB+OS3WYBa
-Qfoo0sr6Uryp6mf98UcyNgyPhA4rdUuo1iUvfsGhdg==
-=MZUf
------END PGP SIGNATURE-----
-
---------------WjZXb44KsATEDkDSufWy2bKk--
+-- 
+Sincerely yours,
+Mike.
