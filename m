@@ -1,86 +1,93 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BB0D263C7F
-	for <linux-acpi@vger.kernel.org>; Thu,  2 Jul 2026 11:32:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0979D2DFA2F
+	for <linux-acpi@vger.kernel.org>; Thu,  2 Jul 2026 11:33:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782991927; cv=none; b=Js+Ij+8A+zNpgJJa/bmuz+pGsahIfWekV/ehypRqogCOKKePbltR1aifQ+/V/TcJVzq1ik8mMhxlh0ho2h1+aFVQ+5k8SP6YdJ9pBtK+24ng6KrM+/pHtGbmfpTlmClEpvzKQyG0FEspBBQWFzSBgloHAk+8Ae7DzJzOQBlxyoU=
+	t=1782992008; cv=none; b=exUXr/C91bIoXglllHP05TxHjYTT5+s+a/UYCI9KVMFuPWgs2XfqKdSHobxRKJ8r7JeZ7cjhKTuRxD40PDDx4en3/wEGymUewqZ1P6L3Q15qpo0Kp+y6A2KJ1HtlINR5c0c3Rhrt+VLZ5Mb3XE2gQo1wu62xdqywHce15l9xxdg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782991927; c=relaxed/simple;
-	bh=TxQCtqjtAk2iQqQD7O6uKHlwflcfM75/SGEiXcjbbI0=;
+	s=arc-20240116; t=1782992008; c=relaxed/simple;
+	bh=VYSg/77Q+SdFkeWNkEOec2SdlPXuI9PWG8pKMZl+j3M=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=bVPcwBt/r7gK0cEPJnUhInzcX31y4FZsLqHaV0v7d83J9Fegi0q9WHOjiwt1tKc+jmdL2l8WwC6tlzyAm2XNLDBhD2LOkm4RNqPyiV4RL8xFmCD7i2ztxiCsvSsshI2PGGKP5ug4MtKMVgXiwTmfSFtIV+5cm5glD1dazXgWyjE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XUbn8wYj; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=QDCnPnyOAJ5ZzILaRuyi0AGCuiJbHKOtAntK/PxjuV7TV6P4mmLamW4x0I9qxc2vaeqYQVa7a6Im3qTzniTDYxiTBBa1t8YFljVYywJr5Y94jJoy1TPu4gVTdmZxjh7fhP7Mkr24Z4sEOErOebSIVjnnvveRQjl4ytzsRc1QJMg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bANe73gA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XUbn8wYj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E792E1F00ACF
-	for <linux-acpi@vger.kernel.org>; Thu,  2 Jul 2026 11:32:05 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bANe73gA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D27721F0155A
+	for <linux-acpi@vger.kernel.org>; Thu,  2 Jul 2026 11:33:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782991925;
-	bh=TxQCtqjtAk2iQqQD7O6uKHlwflcfM75/SGEiXcjbbI0=;
+	s=k20260515; t=1782992006;
+	bh=VYSg/77Q+SdFkeWNkEOec2SdlPXuI9PWG8pKMZl+j3M=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=XUbn8wYjcbFq3YuGEIAkjj+cxW3RoKyHvCBLm7FrowkVoQWmsezKMFntmVRriW0Dv
-	 Bmn3JOAf0ClmyXsdxe3ZYXNQfFGE9gVQx8N38QQzEvmwOSUoMrR1hVtw+4lgyLMjv9
-	 7LAWIaWtgGDMZnnMlJZJJ0tVAR6wh2fmQelm7x/QFwtBuxUHoxnq9Zvn0ROTNLV02z
-	 3yvqDPAN/YLi4tHC8aZ6+DN/RSpyl/0eLXv7DjJa7lAvMU3FaUXJkJWxF2pf6GaUIX
-	 6w/+t1kyHfcJ0hHuRCaNOvk6Frr1GRRiKzIIAC8up5IXaAYlRGr6Xv9nnj7E8MOIVb
-	 FPyjOZFGbgpgA==
-Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5aeb89359a3so1362128e87.3
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Jul 2026 04:32:05 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RpW7yzUBNdDjwKBmddKp/GCis/dNKdF2O75cjN9fUoB8PGhannS+ss7R6CjPl/QPpjC7ktlZgnWkoWp@vger.kernel.org
-X-Gm-Message-State: AOJu0YwSzdqpFfYUKsOVJiLqewxCOxhAXuflnJ0dUanAdOvoAsHceYWU
-	ny/uFHzGybaxQpMXgEdqrU6J57XlwRS2dkh3syagFJQRCIFM2hFcfMy8lGYYjHodIJ4/34LQSFY
-	qnBt52qWjarW9LUorNMFF68fNnHZFJVs=
-X-Received: by 2002:a05:6512:2511:b0:5ae:ba92:f43b with SMTP id
- 2adb3069b0e04-5aec80689d2mr1445491e87.52.1782991924360; Thu, 02 Jul 2026
- 04:32:04 -0700 (PDT)
+	b=bANe73gATYsjh3KMjUnPeUOezJIRqax3aenDmhJvfz+AVmEtiDAQcJMwc+0zRQfAP
+	 54EGC9DvNucCMXfBA08DawBY8wcwSEX+8YtrTC0gFv2AU3b7cTHuKBylsfr04bqDG9
+	 G2ag+7g3MWPfVs932t379t2WON9YK9tyxATxEssb3/RjLgSSj2kEAbjuFDB7aIk7zI
+	 p7WfdIme1dp7su1YLbQQOkG1qZtHinUs/VBlNqL0RBIm1k/1EhoBv3dPv9wnSzq9NK
+	 7LMaYDjEAn0u3664ev2jJwhzpQtnx/ZBqSIfNGATXzNosO3ZqazBVmfrUQKWQ3EIJh
+	 PR9CmYuNHpoRg==
+Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5aeb2df5cc1so1446242e87.3
+        for <linux-acpi@vger.kernel.org>; Thu, 02 Jul 2026 04:33:26 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RqimNdGRQC8x08gnyR/tr496u65evE7b0WAoc8GnAFXAbLQgnpg+vSx76OPXA9/g7gbFfz6y3aln1pE@vger.kernel.org
+X-Gm-Message-State: AOJu0YzD1JMRp/Enq58tk/GHdPIbsyZsNZNChfvjx7HcuDhjqqc2Sved
+	ZVY5kvT94a9+QXnIdxnKOqBuIGHJiClIUGrdbvDWecmTRoCVRqTxX1w6nfm12zLA44NZauYuYAQ
+	z+//EYlitwmnMx+Eb9CCSP2F3SVLe0+o=
+X-Received: by 2002:a05:6512:4cd:b0:5ae:b792:7f21 with SMTP id
+ 2adb3069b0e04-5aec68b78ffmr838445e87.33.1782992005260; Thu, 02 Jul 2026
+ 04:33:25 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <6027395.DvuYhMxLoT@rafael.j.wysocki> <akYsRl024Ll80oye@ashevche-desk.local>
-In-Reply-To: <akYsRl024Ll80oye@ashevche-desk.local>
+References: <20260629060526.3638272-1-jgross@suse.com> <20260629060526.3638272-5-jgross@suse.com>
+ <CAJZ5v0itUVZ6=GCbRomkMiesy5uhZVWWjsUbqFqsZTyNeCBAbQ@mail.gmail.com> <akYskLix-iNOAbCM@gmail.com>
+In-Reply-To: <akYskLix-iNOAbCM@gmail.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Thu, 2 Jul 2026 13:31:50 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0hszyrY+GLz0Q1HcNgMua056xuw8Uxf_O63OmyObPtkXw@mail.gmail.com>
-X-Gm-Features: AVVi8CcB1CehQxSaZBKpjLXdEZ66xS6KSnQB6qAqVEVmAqLCZyXITmn8Rg4ltiQ
-Message-ID: <CAJZ5v0hszyrY+GLz0Q1HcNgMua056xuw8Uxf_O63OmyObPtkXw@mail.gmail.com>
-Subject: Re: [PATCH v1 0/2] ACPI: bus: Remove struct acpi_driver from the kernel
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Hans de Goede <hansg@kernel.org>, =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
-	LKML <linux-kernel@vger.kernel.org>, 
-	Linux Documentation <linux-doc@vger.kernel.org>, driver-core@lists.linux.dev
+Date: Thu, 2 Jul 2026 13:33:08 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hZN2SsX1uVfDuVzV=7UoHsNbhe8DUaFCaVsd-ceLvZWg@mail.gmail.com>
+X-Gm-Features: AVVi8CfMpB7NssFif4b5GLRbtyknf5VfY5RNjQktihRoZDbdR6kB2YT4BQb_uxI
+Message-ID: <CAJZ5v0hZN2SsX1uVfDuVzV=7UoHsNbhe8DUaFCaVsd-ceLvZWg@mail.gmail.com>
+Subject: Re: [PATCH 04/32] acpi: Stop using 32-bit MSR interfaces
+To: Ingo Molnar <mingo@kernel.org>
+Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Juergen Gross <jgross@suse.com>, linux-kernel@vger.kernel.org, 
+	x86@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	Len Brown <lenb@kernel.org>, Pavel Machek <pavel@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jul 2, 2026 at 11:15=E2=80=AFAM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
+On Thu, Jul 2, 2026 at 11:17=E2=80=AFAM Ingo Molnar <mingo@kernel.org> wrot=
+e:
 >
-> On Wed, Jul 01, 2026 at 09:15:27PM +0200, Rafael J. Wysocki (Intel) wrote=
-:
-> > Hi All,
+>
+> * Rafael J. Wysocki (Intel) <rafael@kernel.org> wrote:
+>
+> > On Mon, Jun 29, 2026 at 8:05=E2=80=AFAM Juergen Gross <jgross@suse.com>=
+ wrote:
+> > >
+> > > The 32-bit MSR interfaces rdmsr(), wrmsr(), rdmsr_safe() and
+> > > wrmsr_safe() are planned to be removed. Use the related 64-bit varian=
+ts
+> > > instead.
+> > >
+> > > In processor_throttling.c drop needless initializers.
+> > >
+> > > Signed-off-by: Juergen Gross <jgross@suse.com>
 > >
-> > After converting all of the drivers using the struct acpi_driver interf=
-ace to
-> > proper platform drivers, that interface can be dropped now, which is do=
-ne in
-> > this series (patch [1/2]).
+> > LGTM overall.
+> >
+> > Do you want me to pick it up or do you prefer to route it along with
+> > the rest of the series?
 >
-> What a nice result!
->
-> > Additionally, the no_pm flag is set for all struct acpi_device object s=
-ince
-> > they are not going to be directly involved in any kind of power managem=
-ent
-> > now (that is, they will not have PM-aware drivers and they will not be
-> > included in PM domains).
->
-> I am in favour of this cleanup!
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> I'd like to keep this series together if you don't mind, so that
+> followup changes can be done more easily.
 
-Thank you!
+Sure.
+
+I will be assuming that tip will be taking care of this change going forwar=
+d.
+
+Thanks!
