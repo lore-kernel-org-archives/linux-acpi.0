@@ -1,78 +1,62 @@
-Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11012035.outbound.protection.outlook.com [40.107.200.35])
+Received: from CO1PR03CU002.outbound.protection.outlook.com (mail-westus2azon11010067.outbound.protection.outlook.com [52.101.46.67])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DD4D2DA76A;
-	Thu,  2 Jul 2026 04:02:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.200.35
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86FFB38B7A5;
+	Thu,  2 Jul 2026 07:20:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.46.67
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782964971; cv=fail; b=LqiXoaFWs9eaZMtEyd1lkyldtzQts2tDpxrhGUIkmFlzeCxmmUuQP5c9Z998xYTOimfFJ6n7y7J8hccTgybQvdHaUUi+Uy9H0BBzeReeyEvxClnHC7PgaJIgHouH/4TS14BWTGQ/pEOaQi+4+2tYoJsahKHLdoIkWIsmxTvRAaU=
+	t=1782976859; cv=fail; b=IJVZohtuqdKtJrxcraIrFcQKP6bJXhPUT7lJ1C3TRNKi5+aEid/Y3+x/xq+nCh6Nqmxh7Zs6bz5n81xgqQJUYjp/Va7BcA/uKYhuAqtSH/mHPdfqjEvt3LsgT3cVw+v+BlV6zijntQA/A8X7IE3WgCua1IIxexFGpSOJLn8xuIQ=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782964971; c=relaxed/simple;
-	bh=NNBgZAD9JGUC0N4kkgcuZQXl0wFkIHsGj5KUDDrcXJ8=;
+	s=arc-20240116; t=1782976859; c=relaxed/simple;
+	bh=uzU1BdNEhYevklcB+aT/cJwjDCJUL9WQZ3EapB+R4Is=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=pxX9n1mDSGO3DGv0XEZTQ034RZuPb63poNi4PHjkfHkxeMCCbBCaNbAVc9yPsXxj/7MtGL/jAMYU7mYSBePr5hMj9AK9MP+5v1BElg5MuLu+oRG1jwOOcF5m14kMtu2HyxmYHg+ImYK4siyEb1Vx73obDkWW9f/PAfeLI/9dgEI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Pn4PnbV3; arc=fail smtp.client-ip=40.107.200.35
+	 Content-Disposition:In-Reply-To:MIME-Version; b=WDp2prrGeOyfMfZOkq/pxTj7XVLjkX0SxrWpvUtdZfIXXF+TDgiaDFk9jNzDrrsfbAFbvaVnkyso7gj6hmfxGBZRtBVF1KYhMKYMX07EqX5NBYeuQYaMbBbYMILdIWzNPM9RG5UTe2UC2ZfJUjWvvYaV17jZDfh6NAZ3c3hyKl0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=qP59f4Vr; arc=fail smtp.client-ip=52.101.46.67
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Pn4PnbV3"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="qP59f4Vr"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=MEwcbsMfz2m/rNNQ7lWRXign30zf9lxYmow2ADDWU6MQu138F5/02w2WlhCa5IU7czNoRKh350k/MCjjB5MQCw/mvKOfchubyWy94M1LPj4ihF3riaJcZpp0EehVJa37uEG4m4QqReU3crwphK9OGMa5x/9oaz6+yvGMj68QNjEI0gu2eVtjmHMp1P1BqGBSGKbE/q4R0tvn9iyWcWh0WkZtlkg1Tvx0DIOyGmXxEJC0Q1U9U+PNvD5KgSRIogUkYpMPNQWXH7lHcXmefAASfXu3FSCrbLnlWABtURxhik9HMLsl9De7DTeBPabtHcQYpxOouSfZjf/fnuRsYn8fOQ==
+ b=awOBQ/EuvpHEK3JYTP6fJlvih6/TkBNFiwEHlEFzzmLyw9u3fLA5J12RwWA1fFYAIuZlXHvz9KSh6pX54RbeWt2isAo7q5TwyO1VATD1aqdj9j+yg9kbOvrPszMDOsJE4gd4GgLZ+euBk2arKwcG0TpLD2WTzMQotkWwSGcXQJwxCHa+bWrBM2WGkYfOEuxNc2dDpZE99VSuVc5UuV4pP4NAt07vU7sTshe/6iuTN/qLu82GEaAdZFA7egjOMmK28nJKOMHMRjdR6dPDFDLqkAhIwg6hdaNpGtSUjWp2oBf0GWJFyvPCZTGhOi5TORPEGe+op18NCMZH8JhFOx7WhQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=XnYMPMLxVD5w0BIBBWl6O8R+zbdq0fQFmNcLQmrPf30=;
- b=E1/+DOkElGpvj7U//dupbvSsk+oUbPrk/I1GLW5Qc751Nv79YCkp3+unicJtAdEwLKmEcRBnse22TpZYFT6r77i80fvN3olMUtR12Fyxsbn4B5PRJVSjVl/uAmT86cD7u7o1pTL71z4toD4eyafngSyQO1aWgzIMlBty6HU8+FwdBySJ17w5Lams6wRqnypJpY5fMPW8eCjY9pLsWzIdSwY1xk9gau4weVm0Ka6lFi+SqS8ZlCILvxQV1/5yvzjrN6lXVCbY1NXlVC9mbg/b1/lvjGGvC80GSEOFNNTK0mppDu+leYsK1J2bWBpF6ysxZccix7LGAnlmXfrCwOEV0A==
+ bh=f4Oej1ZO+LfsSqa+8Aa4NLe9vmQHcqB05ZPd4Bp3RXY=;
+ b=Di35dk0O7aWNO7UlxaZiJgPuU47M2URvcaf1XE2k8TR4bkHo0fa77kWk0ndr5PrC/f5mgiRmJuGMXkva0DMig+JUp9uJeqX7Y5wJ99kVfmnBsaGbTQOsmT2xBEwkv3kU0jm1oiOniueqX156KaywKfS9lg4ceZIDMM09OBUK6Wl+WD/pOaDfY0/c4/1XVpg6HBWUaQhiG/idhcrCpNGyWdH4SAnzHU82rNE4xMfulQkV00A1fAYwnQr4VMoUJAc79Y4wa8z02cj0JUQ6OreEllHj6TLqa5H61acK8qzitGl2BOMR4jDutaFQq79H6csp0lK+KLmhHVfaYGgoVlhs/g==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=XnYMPMLxVD5w0BIBBWl6O8R+zbdq0fQFmNcLQmrPf30=;
- b=Pn4PnbV3ErOLc8P46DlBYBW2jRfYqm0IQi/xs00WcOy/PIDUx89BYZp81rngWhBY+1BzE2/arWdVBijOzlhC6XOJiDof8AR1LM0P5h3HGFOWzeDKOGB9k9Cry9upl1WN9OxND+h+GGFa7FSwCAKX8wXkzw4ItImcnjwA1Yo4R1o9PE7jgBLE3lkvDfiYBmQQMsZcPpmFQAHtC6i/meTIURxuUz7mNg2JDqx1zsWhaDVjg4vWTZGX8+yM52idaMJ1VBim0O7kR3TkwGwM7JyeJDS1MABdjPwXHfup5+s35+Cl29yoT/epGz6//mWjkd++gc80ffP7lQC/y2Kc9FyXOg==
+ bh=f4Oej1ZO+LfsSqa+8Aa4NLe9vmQHcqB05ZPd4Bp3RXY=;
+ b=qP59f4Vrmqlh8vtlnQlJkPKCau1YIuOZ5TBhUH1gtKU+Rj6m3/vtW2K5igs68ZdXTQd04MpJEaYqy9tr6GI8TRXFYacUkTBpgePxd/Km1A11bR/f4BRSv9BUc9s4uVAxXENyZIhi4YqIZUQlE+rtuOttXU3v7u2LJOVtNZ+iC/xBW+uG/9CEgTaTvp5io7UcR/75YfKPAS6x0iRZjMhb907LfSsbclOg8npIbKCllCUhtHH7VdTCO07eALxN8gnzBxEupPeTLvikeelfy9nDWNZteltyfTHDHRhvl+wqHxZFfwrcnRTKSvyVmow5PcUd4l9jPTo3Nks+3bC/cr6O/w==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from BL0PR12MB2370.namprd12.prod.outlook.com (2603:10b6:207:47::27)
- by MW6PR12MB8999.namprd12.prod.outlook.com (2603:10b6:303:247::8) with
+ by CH3PR12MB7665.namprd12.prod.outlook.com (2603:10b6:610:14a::12) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.8; Thu, 2 Jul 2026
- 04:02:43 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.10; Thu, 2 Jul
+ 2026 07:20:53 +0000
 Received: from BL0PR12MB2370.namprd12.prod.outlook.com
  ([fe80::86cf:c3ec:2cf5:74c8]) by BL0PR12MB2370.namprd12.prod.outlook.com
  ([fe80::86cf:c3ec:2cf5:74c8%5]) with mapi id 15.21.0181.008; Thu, 2 Jul 2026
- 04:02:42 +0000
-Date: Thu, 2 Jul 2026 12:02:35 +0800
+ 07:20:53 +0000
+Date: Thu, 2 Jul 2026 15:20:47 +0800
 From: Richard Cheng <icheng@nvidia.com>
-To: Herve Codina <herve.codina@bootlin.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, Rob Herring <robh@kernel.org>, 
-	Saravana Kannan <saravanak@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
-	Bjorn Helgaas <bhelgaas@google.com>, David Rhodes <david.rhodes@cirrus.com>, 
-	Richard Fitzgerald <rf@opensource.cirrus.com>, Charles Keepax <ckeepax@opensource.cirrus.com>, 
-	Linus Walleij <linusw@kernel.org>, Len Brown <lenb@kernel.org>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Davidlohr Bueso <dave@stgolabs.net>, Jonathan Cameron <jic23@kernel.org>, 
-	Dave Jiang <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dan Williams <djbw@kernel.org>, Ira Weiny <iweiny@kernel.org>, 
-	Li Ming <ming.li@zohomail.com>, Lizhi Hou <lizhi.hou@amd.com>, driver-core@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, 
-	patches@opensource.cirrus.com, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-cxl@vger.kernel.org, Allan Nielsen <allan.nielsen@microchip.com>, 
-	Horatiu Vultur <horatiu.vultur@microchip.com>, Daniel Machon <daniel.machon@microchip.com>, 
-	Steen Hegelund <steen.hegelund@microchip.com>, Luca Ceresoli <luca.ceresoli@bootlin.com>, 
-	Thomas Petazzoni <thomas.petazzoni@bootlin.com>, stable@vger.kernel.org
-Subject: Re: [PATCH v8 7/8] PCI: of: Set fwnode device of newly created PCI
- device nodes
-Message-ID: <akXg4G4ksietvkwE@MWDK4CY14F>
-References: <20260630102804.413563-1-herve.codina@bootlin.com>
- <20260630102804.413563-8-herve.codina@bootlin.com>
+To: alejandro.lucero-palau@amd.com
+Cc: linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	rafael@kernel.org, Alejandro Lucero <alucerop@amd.com>
+Subject: Re: [RFC PATCH v1 1/1] acpi/hmat: preserve hmat_adist_nb notifier
+ block
+Message-ID: <akYPrcsz2tWl7ga4@MWDK4CY14F>
+References: <20260630143507.30193-1-alejandro.lucero-palau@amd.com>
+ <20260630143507.30193-2-alejandro.lucero-palau@amd.com>
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260630102804.413563-8-herve.codina@bootlin.com>
-X-ClientProxiedBy: SG2PR04CA0215.apcprd04.prod.outlook.com
- (2603:1096:4:187::14) To BL0PR12MB2370.namprd12.prod.outlook.com
+In-Reply-To: <20260630143507.30193-2-alejandro.lucero-palau@amd.com>
+X-ClientProxiedBy: TPYP295CA0004.TWNP295.PROD.OUTLOOK.COM
+ (2603:1096:7d0:9::13) To BL0PR12MB2370.namprd12.prod.outlook.com
  (2603:10b6:207:47::27)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -81,141 +65,104 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL0PR12MB2370:EE_|MW6PR12MB8999:EE_
-X-MS-Office365-Filtering-Correlation-Id: 022b915e-71af-4591-9dfc-08ded7eec3c9
+X-MS-TrafficTypeDiagnostic: BL0PR12MB2370:EE_|CH3PR12MB7665:EE_
+X-MS-Office365-Filtering-Correlation-Id: 77e605b0-a545-4883-0fe0-08ded80a72cd
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|376014|1800799024|23010399003|7416014|11063799006|5023799004|4143699003|56012099006|18002099003|22082099003;
+	BCL:0;ARA:13230040|366016|376014|23010399003|1800799024|56012099006|11063799006|4143699003|22082099003|18002099003|6133799003;
 X-Microsoft-Antispam-Message-Info:
-	Ojd/ur+7GwDsqAknVwjWog7FKeXMsJ/ynr8uztlhUUuUrnm9ICA0fz2+TtpNBB7LMN+2C6bZTvNnWdKM65bzQB0ztvZmp34d5RVCFZRImYhWkRhSuUpUql90DIEaPa0ssvi+q3urbVLLbu7J2Fw7hNMhrCBURXISZsalUS/kO7uYYuaHi8NjawPNyz2MKoBCTp2ftIl+92XZgtaedb28qRpwYdnAjk0abGux+3W4DAtk0kdNMXcIY1pWvBMT4T1D4ZWzX4t5Qw+XMPIwwmOvIbsjki6ON7CU/QAavA7fqsoOxxm9Wp5kCpFtzC6R6dLQNFQMiXmkMel4/SsFH0704++vgkRJwAUhBuD6kLyhqr21XV8NMOuCAJoiu4TTh8Ui8W2s1OLP8+ysttwPnZ6M6zn09sxFmgzxA8J0KpvOCiCY0tPPYa+vCrLJTM1icjxMAVlLO7rjlVT/G+H5XRi+5/k4y/boWdZYus5Xlxg9wFuQ/gLcHojpmC8VqzL0u8wjyxVW3nqUmPWKryEajecoW1RHpvEVm42WGuYisVgsyz80Cy2Lzp6rzrUeFw1MlN1emfFsjNXE9iF6zVcURWfrcky7xssU/P4hNaFNlTpdVlGtoS+39iESZnGouOfKLZfuUtF/W2EY7TGUYegL3g1yG4ar6IfUp0NqGMGEml7bMB8=
+	HnUDp5+nE5zjYPEiVt5AKF0Ltxs5KVNYYGmLOTADEiK6BF9Can4x/r0uR5WclNODO0n8ExAF+J7wpVBlOJ3ShrsIpoK3HwN6yL9xY9hJkc1TD2h1envfHfhIFxmbBZDKu6i/GxrZb2TxXeld+cDqJCtIHloe/cv1J4CRnLngY37y15o8NncwW3sXzJODZ8Q8eN+/zYHjVdnzVo019IqAwWBBizdljnTcRfUfpf/hm/TMGjWigqDAe37HQGicg2n5+W4z4RGLVVGB/SNKun/ZHGMf7OQEco2PWDwYa7GMCu6wwAHhZqrn6kae1JOUzjm375mMSBu4ZGwV1Tqbrioqzvi2hKzH83TkPFYQnZc9pPcH7jgZoTqifFAQPVNNTI/1fM2i1UtnWEevX3atqFPW2s7EC0vS3tbuBNbAOzki5vQsMD3yDvqr9xL1H+UhsJ8ONFwHq5QtJKbSGEc2WIevUeCdPHxwKFC7BZC0ylSDZbVTxiOiFGDQZtSnyYjYdeMkh6SWaCbXfmGyZYokO3P+brbqHUQ1modq4Z8PHv8mR/1U0hmTAITyXH6L/EZn2snrDk96Ka1USyH42SpQtqM1s8Wlyyohp025xlJ1gDMgQBZxmtVhAO5Pwq/iRaNahWXpjapQTUKVDicS/ruVYA80kZhwHT/30HcuRp5YMN7dEgM=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR12MB2370.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(23010399003)(7416014)(11063799006)(5023799004)(4143699003)(56012099006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR12MB2370.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(23010399003)(1800799024)(56012099006)(11063799006)(4143699003)(22082099003)(18002099003)(6133799003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?kSNzeRni+AiBBRWP/g9WOiTRHcLUiglVaET+qGzHQ73waoHVa/eWP+yhEzPg?=
- =?us-ascii?Q?1aVmmdkPCbHXIY7Bv3ov2YjR2yFYvAqNmDtx83nkVB+4ZT8oTuifUT7XkgIe?=
- =?us-ascii?Q?HD/E4Qeg3TwqkkUJ5eiAIDBgkYNNWnga+xKrk875EcDBxCg1ZxBLEB6Gle5X?=
- =?us-ascii?Q?mRTUriaABV5MarWFCFcYZ4XKZ03aclpEiJAmkC+5gHnmUsDC00G6KfjPZffN?=
- =?us-ascii?Q?kKYx5Xj67VOu6tAzNyz16m6o7NnQa2ro8VLhmpZLnWowOINCgJqe/RV2xrtW?=
- =?us-ascii?Q?rYErclGmze+ay74SMk7CImWup/fkBpnp6nc3E5+jlTPU8mVZ8Q6ChmQUTTUT?=
- =?us-ascii?Q?AdheOA9Jdz2NNn/JJwN8SA1oXyElg4xOgg0CuuZoIS34ufkbkhpAa1ixcS9z?=
- =?us-ascii?Q?VrB3xh4pGs/m7JkDN6csO6kM1vucIWHZuqcC42jotaaSLpEGvnhJcpqJ4x8g?=
- =?us-ascii?Q?XwCr4Os0DdyXAjm4SVApNHPRui8ujzGXF1sBF4PGI2mqkDajfX6dBOTq8zWu?=
- =?us-ascii?Q?fswcS2QZRNL7ELNGDnVOdt87S48QQdS/UpeK42HZhfzvKJSwoyvmOo6OwtT/?=
- =?us-ascii?Q?KBpDQBMQUhf7N/u2O5ZFpTs7MWy2bgYkEfEDVQW0h9Q3rBxdOVjMiECh/Khy?=
- =?us-ascii?Q?GS1/C52aVPrMc/e+BvhsJ5V4mr4GJQvoJtAMLhP2k0wtXSduAsOZyM2XEq5Z?=
- =?us-ascii?Q?rjypkRI8yzXnqhEKjmEKw3zt64+BNZU3HXdkGD5pfQLCJpSfNQ2EojOgJn7X?=
- =?us-ascii?Q?/2i0FgFh3KJdhL0BKQCo9yl1ZVTi07wi1GYe7v++3I4aOZtOVjjvKFRlFVP/?=
- =?us-ascii?Q?dp15FeFKwJhgANCipwA4trkCLM7b5JAOjIuIxNS2iIEn3WQcWKATCACVNUMR?=
- =?us-ascii?Q?O54M6I0LxdNMzwZb/nuohYnLiioNh7eT0P+kVjB9M5DiElDACVRdfg/DQS4m?=
- =?us-ascii?Q?mtK/xI1b7fLGeVnQm1Y2Zi8H8jgdXGtvrSEBTI+q1duP0r1fLRIASzx7q09T?=
- =?us-ascii?Q?deSoqoSTcWxC61O0U17b8UiujPyub4n1zlX4hqJCcdct2j1F5ubjvYTP08hU?=
- =?us-ascii?Q?t+70g1gfOg4twEcgq6nxH75iPk1l5WjKSC/bMgyZ2+J1HhX3qdFW7uYaAtEJ?=
- =?us-ascii?Q?1l+1L0ro57DDAaK8VZzur1HQpCjTD4+A+13EMsRjB/8XdqU/+KQzu7tFfw4V?=
- =?us-ascii?Q?RhOSDLwEx9iKb/UiuW758cXlW2pWfLbPCzCd/mCaU141iwX7e4qsAI4ARyyp?=
- =?us-ascii?Q?WhZjD+HSL4QYKk1UvhiFaJteRclBzXAZ1E484i2UmRn3/FvLfi/nFNAlZ6Ps?=
- =?us-ascii?Q?wWOlPcYLhMC+BuMZnlqiuqPcneFStSsvnMI2IkuN/oOeWhnL/nvkJ4i9/XUD?=
- =?us-ascii?Q?IyJY17rKDprfSC1I7fuzwgXRx43xpHpSG9Qw3F3ffNOwyRM5m65Xa/kWLFAp?=
- =?us-ascii?Q?t2kgVpkHjMg3mY1F5241fVqDbRRNk1R8pTKykr1cJ2fBgM/qKzE5RAfI7/GL?=
- =?us-ascii?Q?kvaTdWzcm5PpQEyFv/kYPV/ys7C+fgdUWkx0ZEKYspxK/srFuRT6hTYDm3np?=
- =?us-ascii?Q?prACrDuQ9ira+B7vL6JKE0Z8sPhUMLSn3SIYHIqejxA9hDjgNwVVvdCx+14g?=
- =?us-ascii?Q?Zue0WFKYMkwiLqSKQ/JmQaXN1LRADzmqvYZiZ6v9Yk1Id0uPAScLCxVDFosx?=
- =?us-ascii?Q?KnqpTPYkoL3LHOm7PtvRT/iDXhr7GWOAdZz+fgb0p2PCIOjy?=
+	=?us-ascii?Q?V/t+VX8fE6RNFg61buuhpPtrphokM1f5v5o/PgRLs1GVyPkhQ4w7R6NE8cX0?=
+ =?us-ascii?Q?vrsEEEl8+jmoa+emDfvmyyYsbZXD5+9rfXFCMhk8T76sastftW6kbNBPyK8V?=
+ =?us-ascii?Q?HU5pW64pV/Bd6FPEhK8fXAzNtmA8pke0eAKa3jM/LrFsq7LwpZj55u/DNm1Q?=
+ =?us-ascii?Q?4MtvMyG0IrL48/ozVBFFSBFOflg5PxPjKn+a3z8zWoqr7BPf3jTCXnW+MiOT?=
+ =?us-ascii?Q?EQAJeZWu3I8XCHSSM/TtO9I+aEvlRVSA+rvZabLJ3eJfrF2Boec65+QriAU+?=
+ =?us-ascii?Q?15/2KQsWH8DN2bDs4hz/NxsUC9+EUHtlor8XZW8vQVkMLq+pgjO/kbvYLzX4?=
+ =?us-ascii?Q?R5B4CLb56ZPqW2HhLhk4A2FM5MuvEOTlyHpwOLIgLFxGXwfMzDY19id5Bmge?=
+ =?us-ascii?Q?6FdT6ogsm9HEDKgeGF8Ot6vvEZHvGcbWEU/8X83slGVwTOtbAM1DL7Sd4eG3?=
+ =?us-ascii?Q?2EtCJfk8un8cD/PMSi18MVfzjy17bACL96/qtJ6n9LkX6a/KocJbtPE5eMny?=
+ =?us-ascii?Q?U0hxy8jM7J142pgfcJ4TjRS1kYf0cQL5Z+n/ogHVkwNKcbq9v6jLiolxB41j?=
+ =?us-ascii?Q?O54+CTLH+prqiK4HJPvBRj6L3X+dvXUvNEZu9INeZm4Ic4GHfit3vSsmxcn6?=
+ =?us-ascii?Q?AiwDzdFYOAUVCWAjjbCPghaoPhfNM64JmqkC0TRzH4tip8MAe6zbUDJlI7hY?=
+ =?us-ascii?Q?7MYt4YdcMwzxwNhcc+n5k5fEPsaBmxAybICha3WW2OFNNpPq4TTIxYESxYTL?=
+ =?us-ascii?Q?qd6qNRDn60qirAD4NtsAtrRx5W6AYMCgrsiMEwkN3b4Q+xkgFFalOxvhVd3d?=
+ =?us-ascii?Q?A+RFh7Bz5nyQSLGP4inQd67YoWqr/QlrzYAim/xl2dFh40nEkh4LJQNctaUt?=
+ =?us-ascii?Q?WX48w7TVixJpjhb63XgF5dGc9hgdUp0utcGryvGxi2aRNPt+BGh0dhlTGAkG?=
+ =?us-ascii?Q?KNhG1m+yoDD8FozGqo/iPvcFfMstcF0PNcN60DNxI3mFHelF3YAH0WFqmp+q?=
+ =?us-ascii?Q?uE8jyk3WXw8xpM42zOTWRMXtKDVuBJqalpmR59YMoo7oRqpT/XOxMIgbl0fH?=
+ =?us-ascii?Q?V+H4UNVaoBbZXile7yS2ATGn2/ZManiZiovCvGnx2zJxPIS1MmzLF74ihgpA?=
+ =?us-ascii?Q?38i2usaX8/JDFEwS4hB3kd+/cinUwXpNIdBK/Rj8OPK5Doz4Dt+JmYdnEyEG?=
+ =?us-ascii?Q?uPEXXYWxpLylyrqPG7BX9AExlqox3h1EF8q56PJ8XAd1UpY+IpSp1ZVJmrP0?=
+ =?us-ascii?Q?7fs3Rhb/U4WITqHciRPgpZz/KO4ZGlAbtXplW4JDiTwZSzpZONC5yigkz1pK?=
+ =?us-ascii?Q?7HTD3aQS1SZUGBWr8EwUu0vjQ4Ap7V8LEYUArqnfLadW4yWEFuvDWNYdCPg3?=
+ =?us-ascii?Q?JLK9UVTz6Uy6X2PlSXjpV78pVXK8IU6LYVt9InObSe46GLIMMHp8P8xCfmkT?=
+ =?us-ascii?Q?AcOyAaMRhpD4v4lFaE6A0d/UeYhGOh5F5KaGL7THjGD1reJDgs2sDmaiaOgf?=
+ =?us-ascii?Q?+sUXjjdIp37DsOb0Lb7lVSP4S8BdYv3WwNWEWhBNeL8+2DYM8NXkJYdEelFd?=
+ =?us-ascii?Q?4/xfI6xu6tWy6EZbRnHZpvInHa/52c+T9e7V2USzeoQXNYYG2M6TAZAvQonm?=
+ =?us-ascii?Q?hdRRZMjIsMOCxFPopR/Wo2qUX2OMEbU7ymO/EtlSveQyClLRotoBODlQyGCx?=
+ =?us-ascii?Q?+eJ8/sHWjKMJU0y8gH7DKFigyApXAzvrzq0/LGpeXX5jZ1vo?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 022b915e-71af-4591-9dfc-08ded7eec3c9
+X-MS-Exchange-CrossTenant-Network-Message-Id: 77e605b0-a545-4883-0fe0-08ded80a72cd
 X-MS-Exchange-CrossTenant-AuthSource: BL0PR12MB2370.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Jul 2026 04:02:42.5955
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Jul 2026 07:20:53.1867
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: fkZQjkdBLvgQyOxL5ev1CnndbaMTmkkAwnzyr5Uh32HoG20sQAmtWcI06uqqQ128RMY+yWT0cTPl3ZGXKHr49A==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW6PR12MB8999
+X-MS-Exchange-CrossTenant-UserPrincipalName: otiVQYtEt0jJqrMTuhmXyMskSRYp1RABkyXTGeaQH+BXaVdMhfc2c08FQypcljSLw6P6+8Y30cFg7z3LrZl9QA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB7665
 
-On Tue, Jun 30, 2026 at 12:28:01PM +0800, Herve Codina wrote:
-> Device-tree node can be created when CONFIG_PCI_DYNAMIC_OF_NODES. Those
-> nodes are created and filled based on PCI core information but the
-> fwnode device field is not set.
+On Tue, Jun 30, 2026 at 03:35:07PM +0800, alejandro.lucero-palau@amd.com wrote:
+> From: Alejandro Lucero <alucerop@amd.com>
 > 
-> When later an overlay is applied, this confuses fw_devlink. Indeed,
-> without any device attached to the node, fw_devlink considers that this
-> node will never become a device. When this node is pointed as a
-> supplier, devlink looks at its ancestors in order to find a node with a
-> device that could be used as the supplier.
+> Remove __meminitdata from hmat_adist_nb declaration preserving it even
+> when CONFIG_MEMORY_HOTPLUG is not set. Otherwise further notifier
+> registrations using register_mt_adistance_algorithm() will find a
+> notifier chain likely corrupted. This is the case when a CXL Type2
+> driver will load after kernel initialization and a CXL region created from
+> its committed HDM decoders registers an mt_adistance_algorithm notifier.
 > 
-> In the PCI use case, this leads to links that wrongly use the PCI root
-> bridge device as the supplier instead of the expected PCI device.
-> 
-> Setting the fwnode device to the device of the PCI device allows devlink
-> to use this device as a supplier and so, correct links are created.
-> 
-> Fixes: 407d1a51921e ("PCI: Create device tree node for bridge")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Herve Codina <herve.codina@bootlin.com>
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> Signed-off-by: Alejandro Lucero <alucerop@amd.com>
 > ---
->  drivers/pci/of.c | 7 +++++++
->  1 file changed, 7 insertions(+)
+>  drivers/acpi/numa/hmat.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/pci/of.c b/drivers/pci/of.c
-> index ee9eb384b377..eda14cefca5e 100644
-> --- a/drivers/pci/of.c
-> +++ b/drivers/pci/of.c
-> @@ -709,6 +709,13 @@ void of_pci_make_dev_node(struct pci_dev *pdev)
->  	if (ret)
->  		goto out_free_node;
+> diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
+> index 9792dc394756..3006789ae31f 100644
+> --- a/drivers/acpi/numa/hmat.c
+> +++ b/drivers/acpi/numa/hmat.c
+> @@ -995,7 +995,7 @@ static int hmat_calculate_adistance(struct notifier_block *self,
+>  	return NOTIFY_STOP;
+>  }
 >  
-> +	/*
-> +	 * Set the fwnode device in order to have fw_devlink creating links
-> +	 * pointing to this PCI device instead of walking up to the PCI host
-> +	 * bridge.
-> +	 */
-> +	fw_devlink_set_device(&np->fwnode, &pdev->dev);
-> +
->  	ret = of_changeset_apply(cset);
->  	if (ret)
->  		goto out_free_node;
+> -static struct notifier_block hmat_adist_nb __meminitdata = {
+> +static struct notifier_block hmat_adist_nb = {
+>  	.notifier_call = hmat_calculate_adistance,
+>  	.priority = 100,
+>  };
 > -- 
-> 2.54.0
+> 2.34.1
 > 
 >
 
-Hi Herve,
+I think this is not limited to CXL type 2 device.
+cxl_region_probe() already calls register_mt_adistance_algorithm(), and CXL_REGION
+depends only on SPARSEMEM, not MEMORY_HOTPLUG, so with NUMA=y, MEMORY_HOTPLUG=n, CXL_ACPI=y and CXL_REGION=y,
+any runtime CXL region probe walks the chain. I would suggest some tweak for commit message.
+Also adding Fixes: 3718c02dbd4c ("acpi, hmat: calculate abstract distance with HMAT")
 
-I wonder if this part has some issue, it sets np->fwnode.dev = &pdev->dev,
-but I don't see am matching clear on removal path, I doubt the back-pointer
-can outlive the pci_dev.
+And maybe keep unconditional removal rather than a consumer-keyed attribute.
+register_mt_adistance_algorithm() is callable by any runtime module,
+not just CXL, so a CONFIG_CXL_MEM-keyed condition would  still leave the hole
+for other callers.
 
-device_del() do the check
-"""
-if (dev->fwnode && dev->fwnode->dev == dev)
-    fw_devlink_set_device(dev->fwnode, NULL);
-"""
-
-On removal, pci_stop_dev() calls of_pci_remove_node() before pci_destroy_dev()
-calls device_del(), and of_pci_remove_node() -> device_remove_of_node() has already NULLed pdev->dev.fwnode by then, so the "dev->fwnode" guard is false, and
-of_pci_remove_node() itself never clears np->fwnode.dev
-
-If something holds an extra ref on np past removal, e.g. a DT overlay applied via configfs that pins np through its gragment targets,
-np survives, the pci_dev is freed, and np->fwnode.dev dnalges into freed memory.
-Then fw_devlink walker that resolve it via get_dev_from_fwnode() -> get_device() would hit a use-after-free .
-
-I think of_pci_remove_node() should cleaer the back-pointer it set,
-before dropping the node's ref, e.g.
-
-"""
-np = pci_device_to_OF_node(pdev);
-if (!np || !of_node_check_flag(np, OF_DYNAMIC))
-    return;
-
-fw_devlink_set_device(&np->fwnode, NULL);
-device_remove_of_node(&pdev->dev);
-of_changeset_revert(np->data);
-"""
-
-Does that make sense to you ?
+What do you think ?
 
 Best regards,
 Richard Cheng.
