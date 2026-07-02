@@ -1,135 +1,158 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from canpmsgout10.his.huawei.com (canpmsgout10.his.huawei.com [113.46.200.225])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2D3247CC69;
-	Thu,  2 Jul 2026 12:19:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B680480DE7;
+	Thu,  2 Jul 2026 12:50:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.225
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782994766; cv=none; b=o0glvQqJtoOGX3WRelpeDgzvz1i69tjYxvyZ28GiW5Anb8GOhxZgPa8PASk/QKIB5gwykC4ll5q3Ytj4S2EIUL30qk0vsvjlMgebHXy41rlugtK9HZ3ldjRFnGioUPiEvD39Bcl1EytiEG6BI7mVYu+8KuLZEfzS+Bziy3HDlI8=
+	t=1782996624; cv=none; b=LYsaPlzUJNpeiZCZ0XSfyF4jefUpHD8kjvObyq6E5G5QmVX71CARR3nG+f542aiAH61d6mIO2ZwPCgV6hBO1ZsD26z328xNFYoC5bE0IWw/wnMd7Xtbt+L2hSC+HzjbciwSq6bySCu4B9gGhKZ3/p6RANp5C/GOj4fDGzHZ3dTM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782994766; c=relaxed/simple;
-	bh=xJqhSBb+jDfSTAt4v2CBOJtHb9k/pH3XjmE7x8zTYf0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JVE18xSLEidBe9Cat6KhwU8Q4ND0cAWhFVKEoFfbqM70m/7ML/SzDuVunz13zmzcu89OfLl1vbzREMns9lq7f98idcENwNeuwLNpRA/181+vmDgqSZSeKGE9AWMnLIPqDnMS8XZ7bfioA8aKIzfEednZD0XfHVYu5clc17e4c50=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UzJLmE+d; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782996624; c=relaxed/simple;
+	bh=5vzS6NE9D+28kf5VM/3oPmc5JMLN1umtRQnRRLOjjwY=;
+	h=Subject:To:References:CC:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=H0RoWFD9C+izF170c57qE4KUGa9ydna+W1jjL1uLNWkUPnizjgxZ+1dhyuBvm5TmCBIKInfFVT+KzO3JyOE+78bIeCOQTakkFhNB+qC1VcQjBIc5k1tjo6G2g4aroYSmkwB5ZVRE3rDcHITcRxfPBqaDqVbUmezCSiN9eUf6aRY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=h-partners.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=NCDLYVbJ; arc=none smtp.client-ip=113.46.200.225
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=h-partners.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UzJLmE+d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C40531F000E9;
-	Thu,  2 Jul 2026 12:19:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782994764;
-	bh=lfLtMWf+BFQEw4fSsvcro34I6pGXvppcn+EFKF/CaSs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=UzJLmE+d/HEk7p4wikkLKuYCkqPkilhoZDJKsozz8Etuw+dIZT/LvyZGC1PVaR2gu
-	 Nxt+hso+JcTDB41PxKbWu+7pa59oGspwp0qZqJQH+b1kan+hI1mp9wXVv2Fzm9qK3A
-	 1eGdOBBV0zdOEn8dXkaosk3lJ9GeGF1o3bbzwnVVV+F3bCFUfdMrBGX8EMQU8eN20p
-	 2Pgps9DDw6UP6mgB0NeToOskNEmRkvxu88NXT48p5BSaLRp8pxeJ9QRjZLzEbZb3T0
-	 4Ozin5mzTptAQES3L1i+2hHSL30p9ubXSqRaOuk/gDiRp1hZ3iWIdDzEX1sioQcuJn
-	 Twgrv5XGSdBAQ==
-Date: Thu, 2 Jul 2026 13:19:21 +0100
-From: Sudeep Holla <sudeep.holla@kernel.org>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Sudeep Holla <sudeep.holla@kernel.org>
-Subject: Re: [PATCH 6/6] ACPI: PCC: Preserve shared memory signature in
- OpRegion handler
-Message-ID: <20260702-sexy-jasmine-bulldog-1392b0@sudeepholla>
-References: <20260627-acpi_pcc_signature-v1-0-c1b7268d4fdc@kernel.org>
- <20260627-acpi_pcc_signature-v1-6-c1b7268d4fdc@kernel.org>
- <CAJZ5v0j5RtaadVjTLm7rghNiz_9b4_Rs4PPQZgAinud7tssgEA@mail.gmail.com>
- <20260630-thankful-organic-foxhound-a991a0@sudeepholla>
- <CAJZ5v0gt5OsgUHXDyt1D=090ZMoxWg_s+Cwjs-M5AkC8e806ig@mail.gmail.com>
- <20260701-hopeful-cuddly-bobcat-6a8cf6@sudeepholla>
- <20260701-predictable-dragon-of-emphasis-50e5dc@sudeepholla>
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="NCDLYVbJ"
+dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=d6fRqvgPlh2fHF2qAn1bAcg/KN5fo9O47FW0UNaksO4=;
+	b=NCDLYVbJjQOkQQTwOw8WnZ2cu5ZnhOtXWphnjf1AhZhYjX8kZyCHEcB+StIa9iN1nDfc2Yd1b
+	0natyLA5aFdfvflOKRWMKVuPCjacsy443DTTvQx50SiPAvxuu/OHSMbKeuv3cOMvWeH+aTj0iYn
+	77urF6PiXNf2pZhzgf+6Iw0=
+Received: from mail.maildlp.com (unknown [172.19.163.200])
+	by canpmsgout10.his.huawei.com (SkyGuard) with ESMTPS id 4grc1x6TFLz1K96n;
+	Thu,  2 Jul 2026 20:41:09 +0800 (CST)
+Received: from kwepemo100013.china.huawei.com (unknown [7.202.195.244])
+	by mail.maildlp.com (Postfix) with ESMTPS id 153BD40578;
+	Thu,  2 Jul 2026 20:50:19 +0800 (CST)
+Received: from [10.67.120.218] (10.67.120.218) by
+ kwepemo100013.china.huawei.com (7.202.195.244) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.36; Thu, 2 Jul 2026 20:50:18 +0800
+Subject: Re: [PATCH v2] ACPI: APEI: Handle repeated SEA error storms
+To: <rafael@kernel.org>, <tony.luck@intel.com>, <guohanjun@huawei.com>,
+	<mchehab@kernel.org>, <xueshuai@linux.alibaba.com>, <jarkko@kernel.org>,
+	<yazen.ghannam@amd.com>, <jane.chu@oracle.com>, <lenb@kernel.org>,
+	<linmiaohe@huawei.com>
+References: <20260527082707.2013499-1-hejunhao3@h-partners.com>
+CC: Junhao He <hejunhao3@h-partners.com>, <bp@alien8.de>,
+	<linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>, <linux-edac@vger.kernel.org>,
+	<tanxiaofei@huawei.com>, <liuyonglong@huawei.com>, <mawupeng1@huawei.com>
+From: hejunhao <hejunhao3@h-partners.com>
+Message-ID: <6ebea989-81c7-6237-1a31-8d6975796680@h-partners.com>
+Date: Thu, 2 Jul 2026 20:50:17 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101
+ Thunderbird/45.7.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260701-predictable-dragon-of-emphasis-50e5dc@sudeepholla>
+In-Reply-To: <20260527082707.2013499-1-hejunhao3@h-partners.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
+ kwepemo100013.china.huawei.com (7.202.195.244)
 
-On Wed, Jul 01, 2026 at 03:13:42PM +0100, Sudeep Holla wrote:
-> On Wed, Jul 01, 2026 at 02:34:10PM +0100, Sudeep Holla wrote:
-> > On Wed, Jul 01, 2026 at 12:44:30PM +0200, Rafael J. Wysocki (Intel) wrote:
-> > > On Tue, Jun 30, 2026 at 7:00 PM Sudeep Holla <sudeep.holla@kernel.org> wrote:
-> > > >
-> > > > On Tue, Jun 30, 2026 at 02:33:08PM +0200, Rafael J. Wysocki (Intel) wrote:
-> > > > > On Sat, Jun 27, 2026 at 6:39 PM Sudeep Holla <sudeep.holla@kernel.org> wrote:
-> > > > > >
-> > > > > > ACPI defines a PCC OperationRegion as the shared memory fields that
-> > > > > > follow the PCC signature. The OperationRegion length is likewise the
-> > > > > > total size of the fields that succeed the signature in shared memory.
-> > > > > >
-> > > > > > ACPI 6.6 adds clarification that the PCC shared memory signature is
-> > > > > > populated by the platform and verified by OSPM.
-> > > > > >
-> > > > > > The PCC address space handler currently copies the OperationRegion
-> > > > > > buffer to and from the start of the PCC shared memory region. That can
-> > > > > > overwrite or expose the signature at byte offset 0, and it also misses
-> > > > > > the last 4 bytes of the actual PCC OperationRegion data.
-> > > > > >
-> > > > > > Offset OperationRegion copies by the size of the signature and reject
-> > > > > > regions that do not fit in the shared memory after that signature.
-> > > > > >
-> > > > > > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> > > > > > Fixes: 77e2a04745ff ("ACPI: PCC: Implement OperationRegion handler for the PCC Type 3 subtype")
-> > > > > > Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
-> > > > >
-> > > > > Does this depend on anything else in the series or is it independent?
-> > > > >
-> > > >
-> > > > It is independent. This just fixes the issue of including the signature in
-> > > > the opregion data. It can go independently as all other patches as well.
-> > > 
-> > > So I've looked at Sashiko's feedback on this change:
-> > > 
-> > > https://sashiko.dev/#/patchset/20260627-acpi_pcc_signature-v1-0-c1b7268d4fdc%40kernel.org
-> > > 
-> > > and I'm a bit worried.
-> > > 
-> > > Of course, the preexisting issues found by it will need to be
-> > > addressed separately, but what about firmware released before the
-> > > clarification in ACPI 6.6 and the possible misalignment issue
-> > > mentioned by it?
-> > 
-> > I haven't analysed all the report from Sashiko yet. But unlike other patches
-> > in the series, this one is not strictly to validate the signature.
-> > 
-> > Even before v6.6, the PCC Opregion didn't include the signature which is
-> > at offset 0. The code always started copying to/from offset 0 missing the
-> > last 32-bit field(word). Since v6.3 when PCC Opregion was added we have
-> > this in the specification:
-> > 
-> >   | <section> Declaring message fields within a PCC OperationRegion
-> >   |
-> >   | For all PCC subspace types, the PCC Operation Region pertains to the
-> >   | region of PCC subspace that succeeds the PCC signature.
-> > 
-> > So, this patch addresses that issue of wrong starting offset used by this
-> > driver.
-> > 
-> > Other patches I agree, it is more likely we just need to warn and not
-> > reject absence of wrong PCC signatures.
-> > 
-> > I will take a look at the other issues reported by Sashiko soon.
-> > 
-> 
-> Forgot to add that let us wait at-least until I go through the report
-> understand and conclude it is not fatal/critical before we can merge this.
-> Indeed a quick read concerned as much that I would like to spend time
-> analysing it carefully.
-> 
+Gentle ping for this one, and it's ready.
 
-Looking at the comments and digging ACPICA in more detail, I found the issue
-exist there as well and that is the reason why we hadn't observed it in the
-kernel. I will first post the fix for that and follow up here.
+Best regards,
 
-Thanks.
 
--- 
-Regards,
-Sudeep
+On 2026/5/27 16:27, Junhao He wrote:
+> When hardware memory corruption occurs and a user process accesses the
+> corrupted page, the CPU triggers a Synchronous External Abort (SEA).
+> The kernel invokes do_sea() to handle the exception, which calls
+> memory_failure() to handle the faulty page.
+>
+> Scenario 1: Memory Error Interrupt First, then SEA
+> The page is already poisoned by the memory error interrupt path. The
+> subsequent SEA handler sends a SIGBUS to the task, which accesses the
+> poisoned page. This flow is correct.
+>
+> Scenario 2: SEA first, then memory error interrupt (problematic scenario)
+> If a user task directly accesses corrupted memory through a PFNMAP-style
+> mapping (e.g., devmem), the page may still be in the free-buddy state when
+> SEA is handled. In this case, memory_failure() will poison the page without
+> invoking kill_accessing_process(), and then takes the free-buddy recovery
+> path.
+>
+> After the CPU returns to the task context, the task re-enters the SEA
+> handler due to the same access. However, ghes_estatus_cached() suppresses
+> all subsequent entries during the 10-second window, preventing
+> ghes_do_proc() from being called. This suppression blocks the
+> MF_ACTION_REQUIRED-based SIGBUS delivery, causing the kernel to fail to
+> kill the task immediately. Consequently, the process keeps re-entering
+> the SEA handler, leading to an SEA storm. Later, the memory error
+> interrupt path also cannot kill the task, leaving the system stuck in
+> this repeated loop.
+>
+> The following error logs are explained using the devmem process:
+>   NOTICE:  SEA Handle
+>   [Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 9
+>   [Hardware Error]: event severity: recoverable
+>   [Hardware Error]:   section_type: ARM processor error
+>   [Hardware Error]:    physical fault address: 0x0000001000093c00
+>   [T54990] Memory failure: 0x1000093: recovery action for free buddy page: Recovered
+>   [ T9955] EDAC MC0: 1 UE Multi-bit ECC on unknown memory
+>            (page:0x1000093 offset:0xc00 grain:1 - APEI location: ...)
+>   NOTICE:  SEA Handle
+>   NOTICE:  SEA Handle
+>   ...
+>   ...        ---> SEA storm
+>   ...
+>   NOTICE:  SEA Handle
+>   [ T9955] Memory failure: 0x1000093: already hardware poisoned
+>   ghes_print_estatus: 1 callbacks suppressed
+>   [Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 9
+>   [Hardware Error]: event severity: recoverable
+>   [Hardware Error]:   section_type: ARM processor error
+>   [Hardware Error]:    physical fault address: 0x0000001000093c00
+>   [T54990] Memory failure: 0x1000093: already hardware poisoned
+>   [T54990] 0x1000093: Sending SIGBUS to devmem:54990 due to hardware memory corruption
+>
+> To resolve this, return an error when encountering the same SEA again.
+> The subsequent SEA handler invocation uses arm64_notify_die() to send a
+> SIGBUS signal to the task, which terminates the process and prevents it
+> from re-entering the handler loop.
+>
+> Signed-off-by: Junhao He <hejunhao3@h-partners.com>
+> ---
+>  drivers/acpi/apei/ghes.c | 10 +++++++++-
+>  1 file changed, 9 insertions(+), 1 deletion(-)
+>
+> Changes in V2:
+> 1. update the commit message per suggestion from Xueshuai
+> 2. Add a check to only return failure on the ghes_notify_sea() path,
+>    avoiding impact on other NMI-type GHES handlers.
+> Link to V1 - https://lore.kernel.org/all/20251030071321.2763224-1-hejunhao3@h-partners.com/
+>
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 3236a3ce79d6..787664740150 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -1383,8 +1383,16 @@ static int ghes_in_nmi_queue_one_entry(struct ghes *ghes,
+>  	ghes_clear_estatus(ghes, &tmp_header, buf_paddr, fixmap_idx);
+>  
+>  	/* This error has been reported before, don't process it again. */
+> -	if (ghes_estatus_cached(estatus))
+> +	if (ghes_estatus_cached(estatus)) {
+> +		/*
+> +		 * Return failure on duplicate SEA entries so that the
+> +		 * subsequent SEA handler invocation sends a SIGBUS signal to
+> +		 * the task to prevent it from re-entering the handler loop.
+> +		 */
+> +		if (is_hest_sync_notify(ghes))
+> +			rc = -ECANCELED;
+>  		goto no_work;
+> +	}
+>  
+>  	llist_add(&estatus_node->llnode, &ghes_estatus_llist);
+>  
+
