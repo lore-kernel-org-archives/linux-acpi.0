@@ -1,31 +1,31 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E34FF331EB6;
-	Thu,  2 Jul 2026 16:23:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 126AF3368BF;
+	Thu,  2 Jul 2026 16:23:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783009402; cv=none; b=Pr0BOiP1UnY9TLafKNlEIteWq3/6BUf9/mrepy9/EZqL2PK4sm9e7eM389GciEgMJcnruh9cVw4uyo/q0x6JYHVXZH4Goqv57SI3mAp5PFldaXPCdaXpGAafDMfnk3NIw+hJE1AfVd4ywp4P0dl+lL1/vUyazsjJAZpwwpBO0Eo=
+	t=1783009406; cv=none; b=upP+y3/SQY/8upd6fhFa+6sGDUU6zKixeE4PL/ot2pj3GRn/5A1xliasAY0t8fqqrGHj0mL1pcac8P30xgSDY5NCENNeTOalJz9N/9P3dwv9JqthpfiMrDlIWAFtkg4fJ9gmyDEKi0eO6fWEjRr9im01J887vrMURbb9/4u5cXg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783009402; c=relaxed/simple;
-	bh=dZiEdTB3o3jmleqxpeAia+GhpwalEnJMVJVBkq1ZCrg=;
+	s=arc-20240116; t=1783009406; c=relaxed/simple;
+	bh=9Q8M4dh01UPtpyHvFv79Im34gbIlo71L2ciEJRwb+I4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=TCQC6oUq8R1JogLanMtug2lc1az/757xtKb3hVREKQ/3loA8heIKcT6q7sMAytDW8mVeSLaXOguBo3P4l0fQFCjhBk0FrsfShoPiLRNAE8SDPHe4Sn6Fv7tfJjDrDqDuhYcYu4luzv6cVtcfd23CgMDYY6U6NOI4ZF7gZ7fy8eA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=CWcqo4cx; arc=none smtp.client-ip=217.140.110.172
+	 MIME-Version; b=nq95Y/ik/mzyK+clUP55zDzQGT5XGi+b3Jcrp2XFKoI7LwyMLHL81gmmsOLUgQACPorFepmuXcMveJO2+loqsRAA6uNv5dKBqoL3h67mqbj7+rCts//A+JGP/J/PEahrRVuOXk+Q7sDbk+OYgKwlG/mi/VxUCRNVuyR2Vo1fAv8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=HtMNRiG/; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="CWcqo4cx"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="HtMNRiG/"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 71F7B1570;
-	Thu,  2 Jul 2026 09:23:12 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id BD8EF35C7;
+	Thu,  2 Jul 2026 09:23:16 -0700 (PDT)
 Received: from e142021.fritz.box (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 176763F673;
-	Thu,  2 Jul 2026 09:23:12 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 37CCA3F673;
+	Thu,  2 Jul 2026 09:23:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1783009396; bh=dZiEdTB3o3jmleqxpeAia+GhpwalEnJMVJVBkq1ZCrg=;
+	t=1783009401; bh=9Q8M4dh01UPtpyHvFv79Im34gbIlo71L2ciEJRwb+I4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=CWcqo4cxGEbVuGYj7aD8wtSREfr+jF4ESUoTevZGei2zVKlcJk56SQGWqC+XG/qVp
-	 fCrBzDe0ArxDGnxLZpZRtSlHBC+oMrShCTWuryS6HH/HF1aRgKU/3cyb25Y45R1M5q
-	 DsNO/f/tJ2AvwzOphAio891wbvXS1a3KbUEgoiGg=
+	b=HtMNRiG/AN7/8Mqdtj3jorULBOaRDB0FhpTr4gIP6seVYOpExsUSX1DQHOP8RM2ya
+	 2U9ZMMG6i65E9yPrlwiZS0cZqkMCEkPzkTOecdmzLpRWmLMF0C1Hn5K0NowsvZTBzi
+	 w2ktbj3JSxI/CbWFMkubr13GyIXUhv2qXCzB4Vcg=
 From: Andre Przywara <andre.przywara@arm.com>
 To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
 	Hanjun Guo <guohanjun@huawei.com>,
@@ -47,9 +47,9 @@ Cc: Jonathan Cameron <jic23@kernel.org>,
 	linux-acpi@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 09/15] arm_mpam: propagate MSC write errors for ESR and part_sel wrappers
-Date: Thu,  2 Jul 2026 18:22:23 +0200
-Message-ID: <20260702162229.4008659-10-andre.przywara@arm.com>
+Subject: [PATCH v2 10/15] arm_mpam: propagate MSC write errors for hardware probe functions
+Date: Thu,  2 Jul 2026 18:22:24 +0200
+Message-ID: <20260702162229.4008659-11-andre.przywara@arm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260702162229.4008659-1-andre.przywara@arm.com>
 References: <20260702162229.4008659-1-andre.przywara@arm.com>
@@ -61,72 +61,81 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Allow the wrapper functions for part_sel and ESR accesses to return an
+Allow the MSC write accesses in the hardware probe functions to return an
 error, and propagate write errors from the lower level up.
 
 Signed-off-by: Andre Przywara <andre.przywara@arm.com>
 ---
- drivers/resctrl/mpam_devices.c | 23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ drivers/resctrl/mpam_devices.c | 29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-index a7adc75a079c..23a5deb290b3 100644
+index 23a5deb290b3..f3558d248c38 100644
 --- a/drivers/resctrl/mpam_devices.c
 +++ b/drivers/resctrl/mpam_devices.c
-@@ -284,12 +284,13 @@ static int mpam_msc_clear_esr(struct mpam_msc *msc)
- 	 * lower half prevent hardware from updating either half of the
- 	 * register.
- 	 */
--	if (msc->has_extd_esr)
--		__mpam_write_reg(msc, MPAMF_ESR + 4, 0);
--
--	__mpam_write_reg(msc, MPAMF_ESR, 0);
-+	if (msc->has_extd_esr) {
-+		ret = __mpam_write_reg(msc, MPAMF_ESR + 4, 0);
-+		if (ret)
-+			return ret;
-+	}
+@@ -792,24 +792,30 @@ static bool mpam_ris_hw_probe_csu_nrdy(struct mpam_msc_ris *ris)
  
--	return 0;
-+	return __mpam_write_reg(msc, MPAMF_ESR, 0);
- }
+ 	mon_sel = FIELD_PREP(MSMON_CFG_MON_SEL_MON_SEL, 0) |
+ 		  FIELD_PREP(MSMON_CFG_MON_SEL_RIS, ris->ris_idx);
+-	mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel);
++	if (mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel))
++		return false;
  
- static int mpam_msc_read_esr(struct mpam_msc *msc, u64 *res)
-@@ -312,28 +313,28 @@ static int mpam_msc_read_esr(struct mpam_msc *msc, u64 *res)
- 	return 0;
- }
+ 	/* Hardware might ignore nrdy if it's not enabled */
+ 	ctl_val = MSMON_CFG_CSU_CTL_TYPE_CSU;
+ 	ctl_val |= MSMON_CFG_x_CTL_MATCH_PARTID;
+ 	ctl_val |= MSMON_CFG_x_CTL_MATCH_PMG;
+ 	ctl_val |= MSMON_CFG_x_CTL_EN;
+-	mpam_write_monsel_reg(msc, CFG_CSU_FLT, 0);
+-	mpam_write_monsel_reg(msc, CFG_CSU_CTL, ctl_val);
++	if (mpam_write_monsel_reg(msc, CFG_CSU_FLT, 0))
++		return false;
++	if (mpam_write_monsel_reg(msc, CFG_CSU_CTL, ctl_val))
++		return false;
  
--static void __mpam_part_sel_raw(u32 partsel, struct mpam_msc *msc)
-+static int __mpam_part_sel_raw(u32 partsel, struct mpam_msc *msc)
- {
- 	lockdep_assert_held(&msc->part_sel_lock);
+-	_mpam_write_monsel_reg(msc, MSMON_CSU, MSMON___NRDY);
++	if (_mpam_write_monsel_reg(msc, MSMON_CSU, MSMON___NRDY))
++		return false;
+ 	if (_mpam_read_monsel_reg(msc, MSMON_CSU, &now))
+ 		return false;
+ 	can_set = now & MSMON___NRDY;
  
--	mpam_write_partsel_reg(msc, PART_SEL, partsel);
-+	return mpam_write_partsel_reg(msc, PART_SEL, partsel);
- }
+-	_mpam_write_monsel_reg(msc, MSMON_CSU, 0);
++	if (_mpam_write_monsel_reg(msc, MSMON_CSU, 0))
++		return false;
+ 	/* Configuration change to try and coax hardware into setting nrdy */
+-	mpam_write_monsel_reg(msc, CFG_CSU_FLT, 0x1);
++	if (mpam_write_monsel_reg(msc, CFG_CSU_FLT, 0x1))
++		return false;
+ 	if (_mpam_read_monsel_reg(msc, MSMON_CSU, &now))
+ 		return false;
+ 	can_clear = !(now & MSMON___NRDY);
+@@ -1052,8 +1058,9 @@ static int mpam_msc_hw_probe(struct mpam_msc *msc)
  
--static void __mpam_part_sel(u8 ris_idx, u16 partid, struct mpam_msc *msc)
-+static int __mpam_part_sel(u8 ris_idx, u16 partid, struct mpam_msc *msc)
- {
- 	u32 partsel = FIELD_PREP(MPAMCFG_PART_SEL_RIS, ris_idx) |
- 		      FIELD_PREP(MPAMCFG_PART_SEL_PARTID_SEL, partid);
+ 	for (ris_idx = 0; ris_idx <= msc->ris_max; ris_idx++) {
+ 		mutex_lock(&msc->part_sel_lock);
+-		__mpam_part_sel(ris_idx, 0, msc);
+-		ret = mpam_msc_read_idr(msc, &idr);
++		ret = __mpam_part_sel(ris_idx, 0, msc);
++		if (!ret)
++			ret = mpam_msc_read_idr(msc, &idr);
+ 		mutex_unlock(&msc->part_sel_lock);
+ 		if (ret)
+ 			return ret;
+@@ -1072,9 +1079,11 @@ static int mpam_msc_hw_probe(struct mpam_msc *msc)
+ 		ris->idr = idr;
  
--	__mpam_part_sel_raw(partsel, msc);
-+	return __mpam_part_sel_raw(partsel, msc);
- }
- 
--static void __mpam_intpart_sel(u8 ris_idx, u16 intpartid, struct mpam_msc *msc)
-+static int __mpam_intpart_sel(u8 ris_idx, u16 intpartid, struct mpam_msc *msc)
- {
- 	u32 partsel = FIELD_PREP(MPAMCFG_PART_SEL_RIS, ris_idx) |
- 		      FIELD_PREP(MPAMCFG_PART_SEL_PARTID_SEL, intpartid) |
- 		      MPAMCFG_PART_SEL_INTERNAL;
- 
--	__mpam_part_sel_raw(partsel, msc);
-+	return __mpam_part_sel_raw(partsel, msc);
- }
- 
- int mpam_register_requestor(u16 partid_max, u8 pmg_max)
+ 		mutex_lock(&msc->part_sel_lock);
+-		__mpam_part_sel(ris_idx, 0, msc);
+-		ret = mpam_ris_hw_probe(ris);
++		ret = __mpam_part_sel(ris_idx, 0, msc);
++		if (!ret)
++			ret = mpam_ris_hw_probe(ris);
+ 		mutex_unlock(&msc->part_sel_lock);
++
+ 		if (ret)
+ 			return ret;
+ 	}
 -- 
 2.43.0
 
