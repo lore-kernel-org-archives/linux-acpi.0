@@ -1,101 +1,72 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16BFF27442;
-	Thu,  2 Jul 2026 21:47:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17A2E38E8A0;
+	Thu,  2 Jul 2026 21:55:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783028840; cv=none; b=O3C0Qqx+NBdN6vk8q8hR3EDDFCHiKoK+K6Hd+i0SDQzV+JFCnsC/2HN8HN8dsqPFUvlJKC/uUVrBZlUrUZbTy0pODnaWyIewfZWoANTXXmfJu6u0yY2+aIG7fEu5TBqnYN8xtv1/jF5kL9YUHAmE9XFM2+XfYdxbhFDdrXFTWSU=
+	t=1783029350; cv=none; b=IA47KfRYkYOmq5AriCq4nQFKD4onnymHz9654hPszkAmwuEoLytAOooQ1VFyFNpDe+x2X4c4sVPfW0h2Y6OvjIF7RvQMr9pALyEhxDkBYrpeJMox/ra/eYIiLWYxBY6O1NLNwR7tpGa3H4IGt6SCSa2WDn/wD+PKsRsdsmtndTo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783028840; c=relaxed/simple;
-	bh=FYV60LN0lVcnsFnDpc3HPJqq6bxJbxKbEpYUV36mZUw=;
-	h=Date:Message-ID:From:To:Cc:Subject:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=JSf3LWWwIL51QsfaXY4oMwfJ4SO+sXKmlP4O2bQRtE+8jfKBdfXi/ua7R1XAoSKzJHdslohgtySm1zrxH8Rvdp4BqAVMJY4bJZNU7kSGL4RVCnoPZpO8IJw+V4E7OKj553ewyPIO+6OpN6zGMaQjCZDlQJHC2dGehn+HqhlU7pg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eJvkElSc; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783029350; c=relaxed/simple;
+	bh=0zspmW8x8NfjgzmHrmSB3UmdTwxqu95F7yMgPebeJrQ=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=ZDEjMdHrzbsfdQl0a+d9S5ivIk00go8mXQVShb5ayTzX6NkNyAkvh+Ar643DkEpnBIypJZYyieYZTalWCRFPIc0EmZbTnaaaJcP1OcB8Am7WchxBcfKJyR2/XVgzasZ9iANuN8tGd0VeI5+0RTK97oIbCg7QeRUF1z5flWefJIk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IRpbLabe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eJvkElSc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E44621F000E9;
-	Thu,  2 Jul 2026 21:47:18 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IRpbLabe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04A441F000E9;
+	Thu,  2 Jul 2026 21:55:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783028838;
-	bh=wYlRXCVJKrTzkh2SOQCVT+3zpW7jFoZSEU7DdtLsx1U=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=eJvkElSckzELQhQLTv2Ehk/8G2ILjzx0SDpnn9TgfvZLosndBY0GfJFQepuRKwazh
-	 SosWlzjBePlEbBTgT9/Jg/mzcBDXWSR1XmREQAG7w1WPffgdQ0Dg9g4TuX/DBdPFU/
-	 wcBMvNk7YoTjof08DNuF/pqZki7N3cGE5vOnM/qbn1nzW5GPr80FOW38Vu1hc/xEeo
-	 iVFXEMYD27tSpR1bCYXSwxWcAEihvYXChO0Ei01M1HPJIWNcpUg/7tp/UCI8eKTCbF
-	 yLCzad17BoziCVNZUVc/9BoI+w4aRBPuXsDalpbEwN3c52u46TG//xGWQLVbC89IqQ
-	 spcEKsgrAd3mQ==
-Received: from sofa.misterjones.org ([185.219.108.64] helo=lobster-girl.misterjones.org)
-	by disco-boy.misterjones.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <maz@kernel.org>)
-	id 1wfPFc-00000000vHl-3yIO;
-	Thu, 02 Jul 2026 21:47:17 +0000
-Date: Thu, 02 Jul 2026 22:49:05 +0100
-Message-ID: <87ik6x6p0u.wl-maz@kernel.org>
-From: Marc Zyngier <maz@kernel.org>
-To: Lorenzo Pieralisi <lpieralisi@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Sunil V L <sunilvl@ventanamicro.com>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	Anup Patel <anup@brainfault.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	linux-riscv@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	loongarch@lists.linux.dev,
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH v3 7/7] irqchip/gic-v5: Enable GICv5 IWB ACPI probe ordering detection
+	s=k20260515; t=1783029348;
+	bh=0zspmW8x8NfjgzmHrmSB3UmdTwxqu95F7yMgPebeJrQ=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date;
+	b=IRpbLabeERee8weUM/6T6duN87T+iRNfQNmjbVOUNAbrYchScx26hK5uaWGIEbgKP
+	 FtzvAZNZdQTDNno7w7T+d8BcIxpx5Z6h5wq6aBFkmPvMSgIXOn+CaTszZrHiv6rePW
+	 UMpwWSvzlzpdNr6WgmoXtENZzT62dzVwN2HTgf3c6q1BpZAmCTrGyQ+q1IWZRdqW47
+	 oIeuRQqDC8EXM+GZxdSZyC7z5an3PE/M9GIQohgu0qZoYri3KBHLv/cSyXbQ/Dso8x
+	 YteZfZzoHWSLNoB7RkFy2XsZUWUS8GNsmR4UQJKkOWV5vhcJPslu2vwVP7hQO8WbUV
+	 Evp8yulMsGgBA==
+From: Thomas Gleixner <tglx@kernel.org>
+To: Lorenzo Pieralisi <lpieralisi@kernel.org>, "Rafael J. Wysocki"
+ <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Sunil V L
+ <sunilvl@ventanamicro.com>, Marc Zyngier <maz@kernel.org>, Huacai Chen
+ <chenhuacai@kernel.org>, Anup Patel <anup@brainfault.org>, Hanjun Guo
+ <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>, Catalin
+ Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>
+Cc: linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
+ linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ loongarch@lists.linux.dev, Lorenzo Pieralisi <lpieralisi@kernel.org>,
+ "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [PATCH v3 7/7] irqchip/gic-v5: Enable GICv5 IWB ACPI probe
+ ordering detection
 In-Reply-To: <20260701-gic-v5-acpi-iwb-probe-deferral-v3-7-c5562cf0fe29@kernel.org>
 References: <20260701-gic-v5-acpi-iwb-probe-deferral-v3-0-c5562cf0fe29@kernel.org>
-	<20260701-gic-v5-acpi-iwb-probe-deferral-v3-7-c5562cf0fe29@kernel.org>
-User-Agent: Wanderlust/2.15.9 (Almost Unreal) SEMI-EPG/1.14.7 (Harue)
- FLIM-LB/1.14.9 (=?UTF-8?B?R29qxY0=?=) APEL-LB/10.8 EasyPG/1.0.0 Emacs/30.1
- (aarch64-unknown-linux-gnu) MULE/6.0 (HANACHIRUSATO)
+ <20260701-gic-v5-acpi-iwb-probe-deferral-v3-7-c5562cf0fe29@kernel.org>
+Date: Thu, 02 Jul 2026 23:55:45 +0200
+Message-ID: <878q7tnjj2.ffs@fw13>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
-Content-Type: text/plain; charset=US-ASCII
-X-SA-Exim-Connect-IP: 185.219.108.64
-X-SA-Exim-Rcpt-To: lpieralisi@kernel.org, rafael@kernel.org, lenb@kernel.org, sunilvl@ventanamicro.com, tglx@kernel.org, chenhuacai@kernel.org, anup@brainfault.org, guohanjun@huawei.com, sudeep.holla@kernel.org, catalin.marinas@arm.com, will@kernel.org, linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev, rafael.j.wysocki@intel.com
-X-SA-Exim-Mail-From: maz@kernel.org
-X-SA-Exim-Scanned: No (on disco-boy.misterjones.org); SAEximRunCond expanded to false
+MIME-Version: 1.0
+Content-Type: text/plain
 
-On Wed, 01 Jul 2026 15:38:55 +0100,
-Lorenzo Pieralisi <lpieralisi@kernel.org> wrote:
-> 
+On Wed, Jul 01 2026 at 16:38, Lorenzo Pieralisi wrote:
 > Register an ACPI hook in the ACPI interrupt management code for GICv5 to
 > retrieve the ACPI interrupt controller handle (if any) of the controller
 > handling a specific GSI, by updating the acpi_set_irq_model() call with
 > the gic_v5_get_gsi_handle() function pointer parameter.
-> 
+>
 > gicv5_get_gsi_handle() allows ACPI core to detect the ACPI handle
 > of the controller that manages a specific GSI interrupt.
-> 
+>
 > Update the IWB driver to clear device dependencies in ACPI core once the
 > IWB driver has probed.
-> 
+>
 > Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
 > Cc: Thomas Gleixner <tglx@kernel.org>
-> Cc: Marc Zyngier <maz@kernel.org>
-> ---
->  drivers/irqchip/irq-gic-v5-iwb.c |  2 ++
->  drivers/irqchip/irq-gic-v5.c     | 11 ++++++++++-
->  2 files changed, 12 insertions(+), 1 deletion(-)
 
-Acked-by: Marc Zyngier <maz@kernel.org>
+Assuming this goes through the ACPI tree:
 
-	M.
-
--- 
-Jazz isn't dead. It just smells funny.
+Acked-by: Thomas Gleixner <tglx@kernel.org>
