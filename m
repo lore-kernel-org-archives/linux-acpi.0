@@ -1,100 +1,157 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52D943C7DE1;
-	Thu,  2 Jul 2026 11:09:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E9563EDE5E;
+	Thu,  2 Jul 2026 11:24:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.171.202.116
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782990562; cv=none; b=BgpEGF+jZrFXTh4dXxo9dssBDYvNYW5bQuBE7nEYsFtotvrXVQJBvZ8yl5Vvipjl06+W9YDU9OisiRQfMvmgcE+Sw1gtCs+YDcDy4Qkzsna+8/ytG4IRA8627uQsxOrppDMLxDPLJAmS4GiDTGnPChGFQmWued9MUDFTBtzNvWg=
+	t=1782991449; cv=none; b=Qos6Gl87XQmOIkxAC62XM9hnvzayNhnWI++uoBgZqDHIREW3YXdrbrYK05d0p+u+Yfh5h7UTsgUtTYXgacq0LppPZvxQo5SWzRo8ojcDWF6SlUn2t4FQZfsHEHEAMh1VPRB8Eo8+4rPlMlDedpHaXKRxk/lPeFpBSSF55gSSo0o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782990562; c=relaxed/simple;
-	bh=7qRG6+K6X0dNRACwZKja+sVhu1BbFMotfd0j+/WKOnw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qv2Dv3k5fTCavwXK7+WPLUGzsektgbfCydwwOSOnjH5xLcBxRE45RqQG9qzZWDaYVlx/qwaiQCZOuhrl15TUL2Q1pUysWqRM6Z6to5gBS1FoSvQZz9ocZ6owpSkg9nCd1QxWVtFLF8aBW5MNMozozptvmCjgRttMoMWmse1CtVs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=c1RGPcRV; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782991449; c=relaxed/simple;
+	bh=qkoV9s2y6x4yNdhq0hTzUvepfbsJFBQynC64lFxnuaw=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Rus/Hn6a37lSDZnwUkroGeQCCRLKDSFut0f+CbxXggWgNitPeQHlUIuJ79YBeXmtX1QGiL5bAc0UUNcI+p/HkoP1itAVZPgMXOHpVNUjfqJu9we9Wq40jbushQuAnHZy54TL2+X/Ago5l6JOC3mKz7qxsY+U+hP8oh8wLAZpnv8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=gRKPHQdn; arc=none smtp.client-ip=185.171.202.116
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="c1RGPcRV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C04F31F000E9;
-	Thu,  2 Jul 2026 11:09:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782990560;
-	bh=WNu+kvsuLssp3Vf5MRt2fyVL+Kj30QkUvpulkiVPbKI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=c1RGPcRVZDTUzx+5ZOWBET2EzXxK5SZJxndVk1Td3gIrtLa/797DSLHLnB7JbtpqP
-	 7INq1GJa/XzkiG8YXhZGgFEdx473b3nn7EFtpsILfb8MVnXkRpZVhuLG0Jxqg4o7S4
-	 grJ7vQtu+4aBIztbW9KDz8GYhT2X2PMSxJivbWjWecvZrlFs2eJzo8s3qWXqhd4IG2
-	 BSEE/wBeqDkXI3Y/Ey58866xrA+IxZVw1Vm3PMbtACSlvkcbLX6j+x8gKEzLt6t+9c
-	 B45bYzZN3B87tyUnYvDlYc+b9zbrOmRn3+eTkVMEeLD/3EzVmyPFqaUSXEMsRASuto
-	 LcTCWZrY5+SHw==
-Date: Thu, 2 Jul 2026 14:09:06 +0300
-From: Mike Rapoport <rppt@kernel.org>
-To: Gregory Price <gourry@gourry.net>
-Cc: linux-mm@kvack.org, x86@kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, kernel-team@meta.com, corbet@lwn.net,
-	skhan@linuxfoundation.org, dave.hansen@linux.intel.com,
-	luto@kernel.org, peterz@infradead.org, tglx@kernel.org,
-	mingo@redhat.com, bp@alien8.de, hpa@zytor.com, rafael@kernel.org,
-	lenb@kernel.org, gregkh@linuxfoundation.org, dakr@kernel.org,
-	akpm@linux-foundation.org, rdunlap@infradead.org,
-	feng.tang@linux.alibaba.com, dapeng1.mi@linux.intel.com,
-	elver@google.com, kuba@kernel.org, ebiggers@kernel.org,
-	lirongqing@baidu.com, paulmck@kernel.org, dave.jiang@intel.com,
-	jic23@kernel.org, xueshuai@linux.alibaba.com, kai.huang@intel.com
-Subject: Re: [RFC PATCH 1/3] mm/numa: add exclusive node pool and
- numa=standby boot parameter
-Message-ID: <akZG0sb1pXFZQQqA@kernel.org>
-References: <20260610014517.253609-1-gourry@gourry.net>
- <20260610014517.253609-2-gourry@gourry.net>
- <aip5IWmxg9CWg8hQ@kernel.org>
- <airAUSrNjbSEwuti@gourry-fedora-PF4VCD3F>
- <ai5vj_RjSxl_FLu-@kernel.org>
- <ajq2A9GUOBWjzYM6@gourry-fedora-PF4VCD3F>
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="gRKPHQdn"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-04.galae.net (Postfix) with ESMTPS id 6457AC4FED8;
+	Thu,  2 Jul 2026 11:24:15 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id C2EE85FF03;
+	Thu,  2 Jul 2026 11:24:03 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id EEBBF104C9625;
+	Thu,  2 Jul 2026 13:23:49 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1782991441; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=UhZPL9qBPAYg4jDprXnZJkURUAU98LtK2IDx/RRjPVY=;
+	b=gRKPHQdndkfSqFS49JzsIHQw2aOVyEHrPo49N6M5vahEK4abVvfiNdgAcQZ85BqTYrDYa7
+	bgLIWbFxIEkSIFB0swC6iE9XJv8Ex/UNCwCUK2VH602vIVMKlgsgkVCB0kMkLUyVlXGAwh
+	WrlKxRi9YwfmHOoRW6XGCBIo2DbY76dKZcM2qU5WCc/tgL8G73urX+4WNs4mRzBaqFyTms
+	wzbg1YIUbmzkq/tLQjIDWEDm3GV8tSD7knUa16eYfGis9bnzsGsQnl51p65DzPCBQGMT2K
+	5finRL11wVel1S/u3qrLN6S4dAT3WZZiydzHKCLvRx/mUD38ag2hi2cYxOCn9w==
+Date: Thu, 2 Jul 2026 13:23:48 +0200
+From: Herve Codina <herve.codina@bootlin.com>
+To: Richard Cheng <icheng@nvidia.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, Rob Herring <robh@kernel.org>, Saravana
+ Kannan <saravanak@kernel.org>, Greg Kroah-Hartman
+ <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>,
+ Danilo Krummrich <dakr@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
+ David Rhodes <david.rhodes@cirrus.com>, Richard Fitzgerald
+ <rf@opensource.cirrus.com>, Charles Keepax <ckeepax@opensource.cirrus.com>,
+ Linus Walleij <linusw@kernel.org>, Len Brown <lenb@kernel.org>, Andy
+ Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally
+ <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>, Davidlohr Bueso
+ <dave@stgolabs.net>, Jonathan Cameron <jic23@kernel.org>, Dave Jiang
+ <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Dan Williams <djbw@kernel.org>,
+ Ira Weiny <iweiny@kernel.org>, Li Ming <ming.li@zohomail.com>, Lizhi Hou
+ <lizhi.hou@amd.com>, driver-core@lists.linux.dev,
+ linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
+ linux-sound@vger.kernel.org, patches@opensource.cirrus.com,
+ linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-cxl@vger.kernel.org, Allan Nielsen <allan.nielsen@microchip.com>,
+ Horatiu Vultur <horatiu.vultur@microchip.com>, Daniel Machon
+ <daniel.machon@microchip.com>, Steen Hegelund
+ <steen.hegelund@microchip.com>, Luca Ceresoli <luca.ceresoli@bootlin.com>,
+ Thomas Petazzoni <thomas.petazzoni@bootlin.com>, stable@vger.kernel.org
+Subject: Re: [PATCH v8 7/8] PCI: of: Set fwnode device of newly created PCI
+ device nodes
+Message-ID: <20260702132348.034264b6@bootlin.com>
+In-Reply-To: <akXg4G4ksietvkwE@MWDK4CY14F>
+References: <20260630102804.413563-1-herve.codina@bootlin.com>
+	<20260630102804.413563-8-herve.codina@bootlin.com>
+	<akXg4G4ksietvkwE@MWDK4CY14F>
+Organization: Bootlin
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-redhat-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ajq2A9GUOBWjzYM6@gourry-fedora-PF4VCD3F>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Last-TLS-Session-Version: TLSv1.3
 
-On Tue, Jun 23, 2026 at 12:36:19PM -0400, Gregory Price wrote:
-> On Sun, Jun 14, 2026 at 12:08:31PM +0300, Mike Rapoport wrote:
-> > On Thu, Jun 11, 2026 at 10:04:01AM -0400, Gregory Price wrote:
-> > > On Thu, Jun 11, 2026 at 12:00:17PM +0300, Mike Rapoport wrote:
+Hi Richard,
+
+On Thu, 2 Jul 2026 12:02:35 +0800
+Richard Cheng <icheng@nvidia.com> wrote:
+
+> > @@ -709,6 +709,13 @@ void of_pci_make_dev_node(struct pci_dev *pdev)
+> >  	if (ret)
+> >  		goto out_free_node;
 > >  
-> > > So really i think you're pointing out that futex_init() here probably
-> > > shouldn't be using num_possible_nodes?
+> > +	/*
+> > +	 * Set the fwnode device in order to have fw_devlink creating links
+> > +	 * pointing to this PCI device instead of walking up to the PCI host
+> > +	 * bridge.
+> > +	 */
+> > +	fw_devlink_set_device(&np->fwnode, &pdev->dev);
+> > +
+> >  	ret = of_changeset_apply(cset);
+> >  	if (ret)
+> >  		goto out_free_node;
+> > -- 
+> > 2.54.0
 > > 
-> > I'd rather say that num_possible_nodes() with and without CXL (or other
-> > differentiated memory) has different semantics.
-> > Maybe we need to add a new primitive for possible differentiated nodes and
-> > keep num_possible_nodes() to mean "number of possible nodes with normal
-> > memory".
 > >  
 > 
-> We'd have to define "normal" here a little more discretely.
+> Hi Herve,
 > 
-> Normal = N_MEMORY at __init?
-> Normal = N_MEMORY in the future?
+> I wonder if this part has some issue, it sets np->fwnode.dev = &pdev->dev,
+> but I don't see am matching clear on removal path, I doubt the back-pointer
+> can outlive the pci_dev.
+> 
+> device_del() do the check
+> """
+> if (dev->fwnode && dev->fwnode->dev == dev)
+>     fw_devlink_set_device(dev->fwnode, NULL);
+> """
+> 
+> On removal, pci_stop_dev() calls of_pci_remove_node() before pci_destroy_dev()
+> calls device_del(), and of_pci_remove_node() -> device_remove_of_node() has already NULLed pdev->dev.fwnode by then, so the "dev->fwnode" guard is false, and
+> of_pci_remove_node() itself never clears np->fwnode.dev
+> 
+> If something holds an extra ref on np past removal, e.g. a DT overlay applied via configfs that pins np through its gragment targets,
+> np survives, the pci_dev is freed, and np->fwnode.dev dnalges into freed memory.
+> Then fw_devlink walker that resolve it via get_dev_from_fwnode() -> get_device() would hit a use-after-free .
+> 
+> I think of_pci_remove_node() should cleaer the back-pointer it set,
+> before dropping the node's ref, e.g.
+> 
+> """
+> np = pci_device_to_OF_node(pdev);
+> if (!np || !of_node_check_flag(np, OF_DYNAMIC))
+>     return;
+> 
+> fw_devlink_set_device(&np->fwnode, NULL);
+> device_remove_of_node(&pdev->dev);
+> of_changeset_revert(np->data);
+> """
+> 
+> Does that make sense to you ?
+> 
 
-Normal = not differentiated, no matter at __init or in the future.
-I.e. memory that kernel will use with existing allocation primitives.
+Thanks for pointed out this issue.
 
-> We also use the possible_nodes() mask to allocate per-node pgdat, so
-> the futex example is largely just another "hey look at this thing,
-> I wonder what other stuff is out there".
+I am not sure that the scenario you proposed using configfs which can lead
+to the use-after-free is relevant but anyway this use-after-free is possible.
 
-Right, futex is only one example. My point is that with multiplication of
-possible and not populated nodes the possible_nodes() mask may not reflect
-adequately the limits its callers look for.
+The fwnode->dev is set by of_pci_make_dev_node() and so it is consistent 
+to unset it (set to NULL) in of_pci_remove_node().
 
-And that maybe it's time to audit possible_nodes() callers.
- 
-> ~Gregory
+I will update this patch to add the fw_devlink_set_device(&np->fwnode, NULL);
+call in the next iteration.
 
--- 
-Sincerely yours,
-Mike.
+Also I will had a new patch in the next iteration to perform same operation
+for PCI root bridge. Same kind of code path, and so same issue but with
+of_pci_make_host_bridge_node() and of_pci_remove_host_bridge_node().
+
+Best regards,
+Hervé
