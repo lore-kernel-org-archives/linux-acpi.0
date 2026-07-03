@@ -1,270 +1,245 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E9028374A02;
-	Fri,  3 Jul 2026 11:00:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 600B13B4EBD
+	for <linux-acpi@vger.kernel.org>; Fri,  3 Jul 2026 11:03:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783076428; cv=none; b=B0r11IDZiGxehiz1Ojec/RM9BNzfTIIwzQ5LYDl8zTqUp40EyPxgQ9z5VfGiJ5tW111XZovbtCfKscREXp06HB8snHP6ZUGXzu4tF3AuEjWB31uWHQ6YSpm8fsINEFztzvV1qwAvuL83q3Se4ehvgUU1GeTjPQANY20h210NabY=
+	t=1783076621; cv=none; b=T6zMpV1p+R1mHJLw7fHbdeXU7MDhouspb1e6AkpaMNHXknQHzADluKTDOzx08mWvwNP6RidopHgb1kJj012wlZflHoLdzGHVIvRoaZmFRczdT5t29EFeXhr0mSvyCAqP/0Na5G2QBWC+zHHJTWc1p+VafVwg+QZ1qRYoo+oz+xo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783076428; c=relaxed/simple;
-	bh=TpNebW1IXxWV1WsrEiC7MO62rtKGGX2oDgnqi85/x8I=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Uc/dgC4+B4k2dfsK4kawuyEcsjKbpNgBJtNC37V1KhPkGFpLVrALslzOV93KYtRanIk3zimCgUFOPWcygUl/rzC+BkosCOy5aeTRfzrfifx62VNcGSlvV9vCtow7zQw4hp0aRE0vg5ndLErbvirPlL5fzr8qVpj2kBa+p+OImlo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=dOCCj/XU; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1783076621; c=relaxed/simple;
+	bh=ogikdSS5fM83wdUgSIeNaSuxlx1astWtdx5wvQV6XaE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=q4NPt3iwzUliQwh7OpDWM18zcX09HPy7wx+YHTIdRHfehdiaee1d08H8lWcdFNBiXSJSAi6rKSFjMLwfisW9dnfu6ws75ruZzzMPH6PAJVzup6gPJJwd3bQj8vYpflo6ZV3v7S9agywUM/q9NOglswum++FMhXLu4KARobrz/8I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=Lj4Fc1UX; arc=none smtp.client-ip=209.85.214.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="dOCCj/XU"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C4DC51F91;
-	Fri,  3 Jul 2026 04:00:20 -0700 (PDT)
-Received: from [10.211.55.3] (unknown [10.57.73.238])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id CCB783F905;
-	Fri,  3 Jul 2026 04:00:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1783076425; bh=TpNebW1IXxWV1WsrEiC7MO62rtKGGX2oDgnqi85/x8I=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=dOCCj/XU4ctKn5NSATSM9AP3fvCPqWPFiZn66W/WdHUClbEBWk2d0vqo/OfvZzUpG
-	 o+64VDXywSQhyHUJ9JhBSzK+eqzibXBnPzPHSeitahq/AyM5g92dfFT2aSnFHL+RQb
-	 LR8h26NkkBsI4yqd9uh2vHe8XAQOnX012DHNNQis=
-Message-ID: <df2e5828-5666-463e-84f9-ca1e69955690@arm.com>
-Date: Fri, 3 Jul 2026 12:00:20 +0100
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="Lj4Fc1UX"
+Received: by mail-pl1-f182.google.com with SMTP id d9443c01a7336-2caed617615so626545ad.3
+        for <linux-acpi@vger.kernel.org>; Fri, 03 Jul 2026 04:03:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1783076617; x=1783681417; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Sqs/izjUXlQxLzNznfrFoz35GSBVfbHOxBq9DzMVAxY=;
+        b=Lj4Fc1UXcZsNnouZKNz4bKaDbqFcV0qn6QPXZMZBUhOoK8fe/TjN4OH83yvYkFYKqM
+         lLZrxRUtvhPl1pN151CDGuLpWonXJz/Ux8uFw8K2A28rYNPDyKDOFqmkl6XyU+Z9sEQb
+         qvxvxr4A+/1WjNpOsEPgd1gwVE64bZnNE6cG0=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783076617; x=1783681417;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Sqs/izjUXlQxLzNznfrFoz35GSBVfbHOxBq9DzMVAxY=;
+        b=XVJOtsj+ulinUpZ8jiPXDsxlnTdCwdZLSJ4BwUq+ZGsE9PRNctUNMV9vfVcIRPI8bT
+         GENkziCm6Mqhl0NoBboLzyTWs7TIquKeJrvHJnHvfRA69Hk0XdAdQcughHvxsmMbE/cp
+         XZqKigg9YtZ3N9i3r0hBtWBbRb8NaW/pXDAkh+XtWlGZxkdOBd4WtPzUmTxp2Ayi2eh7
+         Q9X01990pMTi9JTDEYceYVU/5KiwFEpPyAkhwkfpTeC1tDzAXysDdw4ekQ7ZvRjeJkqX
+         VZyB7iZvhSA5XDdLrNZt95ZxAoY34YEvjLyNYrdgcTQ8T6liunfO9xRuJSLapIGMSVpJ
+         SGtQ==
+X-Forwarded-Encrypted: i=1; AHgh+RoLMIGZzggMyd11EsEkgl1T/PS0Dzs1Ug+PJpWjSCdVjtZ36wcB9XycN/SLq7wZt91L4kkjD8+QwqUf@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxuni9PicIuPxF7MAStlUOXbnrrUvRIhaBUW0Dn1moM6JYp+5Ni
+	ABf0sWycMB6vjv0FgB+UQjmtlI8Wajai66yrOWlrRJzXUtlXG2v5lXb/DOYH6KmUaQ==
+X-Gm-Gg: AfdE7ckSDsb6zhi51R/1n4SlE6lB5lMJHzl102/HSnnuoYIjBaH2O4TmvFDIbatv+6A
+	SLkVeOJjWrUprq1v/kQc4IoGihLXR6EKocAfbAdp1VMhOutXEMXW+xAo34ZYjsvB1xs5xLnqoBH
+	s/ti5tML338k+eZQ7Obz4RBU1m98pUs8Pvv5sXTf0ddfqNeUMc88e/9XLeIYgI/IOKzUCG8TAlY
+	fRfqzZy8w6d+hKuxVtX5lynSGPoRLozs54cWDKRjL5W7ErEsl/3qRdFXOMsMyhFfy0g/572ayKf
+	ClboGGLM4T8xgklGRk2XuD1vnU396MzcblF52N+4x9HwbTmQPKOX5QFVtfDvYZGeUKtJcIc7oOf
+	qrtHlxb8Yzq+gs3BMqgMHJ8GfQgrMtVKS1yPoV3ZKS2tyQmfYMgBnn8itnPaTUFebBGPXBLv6Ef
+	GeWxvTfzX9G3kbH8A8IUHn84Ze/JPIvRMy+3uX27LEZQ90rRIgQzjLleMcFDSf3XOpE1fZew==
+X-Received: by 2002:a17:902:e54c:b0:2ca:d818:61e5 with SMTP id d9443c01a7336-2cad818638cmr21373785ad.26.1783076617402;
+        Fri, 03 Jul 2026 04:03:37 -0700 (PDT)
+Received: from wenstp920.tpe.corp.google.com ([2a00:79e0:201d:8:7bc5:6c83:76cd:cbd6])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cad6f25e15sm7785315ad.13.2026.07.03.04.03.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 03 Jul 2026 04:03:35 -0700 (PDT)
+From: Chen-Yu Tsai <wenst@chromium.org>
+To: Bartosz Golaszewski <brgl@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+Cc: Chen-Yu Tsai <wenst@chromium.org>,
+	linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev,
+	linux-pm@vger.kernel.org,
+	linux-usb@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	linux-mediatek@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	Manivannan Sadhasivam <mani@kernel.org>,
+	Alan Stern <stern@rowland.harvard.edu>
+Subject: [PATCH v3 00/13] arm64: mediatek: Add M.2 E-key slot on Chromebooks
+Date: Fri,  3 Jul 2026 19:03:01 +0800
+Message-ID: <20260703110317.1283411-1-wenst@chromium.org>
+X-Mailer: git-send-email 2.55.0.rc0.799.gd6f94ed593-goog
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Thunderbird Daily
-Subject: Re: [PATCH v2 15/15] arm_mpam: detect and enable MPAM-Fb PCC support
-To: Andre Przywara <andre.przywara@arm.com>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
- <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- James Morse <james.morse@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
-Cc: Jonathan Cameron <jic23@kernel.org>,
- Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
- Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
- Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
- Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-References: <20260702162229.4008659-1-andre.przywara@arm.com>
- <20260702162229.4008659-16-andre.przywara@arm.com>
-Content-Language: en-US
-From: Ben Horgan <ben.horgan@arm.com>
-In-Reply-To: <20260702162229.4008659-16-andre.przywara@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-Hi Andre,
+Hi everyone,
 
-On 7/2/26 17:22, Andre Przywara wrote:
-> The Arm MPAM-Fb specification [1] describes a protocol to access MSC
-> registers through a firmware interface. This requires a shared memory
-> region to hold the message, and a mailbox to trigger the access.
-> For ACPI this is wrapped as a PCC channel, described using existing
-> ACPI abstractions.
-> 
-> Add code to parse those PCC table descriptions associated with an MSC,
-> and store the parsed information in the MSC struct.
-> There can be multiple PCC channels, and each channel can serve multiple
-> MSCs, so we need to keep track of the channel usage, using a list and
-> a refcount.
-> This will be used by the MPAM-Fb access wrapper code.
-> 
-> [1] https://developer.arm.com/documentation/den0144/latest
-> 
-> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
-> ---
->  drivers/acpi/arm64/mpam.c      |   2 +
->  drivers/resctrl/mpam_devices.c | 113 ++++++++++++++++++++++++++++++++-
->  2 files changed, 113 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/mpam.c b/drivers/acpi/arm64/mpam.c
-> index 84963a20c3e7..64bc84bb2029 100644
-> --- a/drivers/acpi/arm64/mpam.c
-> +++ b/drivers/acpi/arm64/mpam.c
-> @@ -256,6 +256,8 @@ static struct platform_device * __init acpi_mpam_parse_msc(struct acpi_mpam_msc_
->  	} else if (iface == MPAM_IFACE_PCC) {
->  		props[next_prop++] = PROPERTY_ENTRY_U32("pcc-channel",
->  							tbl_msc->base_address);
-> +		props[next_prop++] = PROPERTY_ENTRY_U32("msc-id",
-> +							tbl_msc->identifier);
->  	}
->  
->  	acpi_mpam_parse_irqs(pdev, tbl_msc, res, &next_res);
-> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-> index 4a088e6cd235..35214520bfd4 100644
-> --- a/drivers/resctrl/mpam_devices.c
-> +++ b/drivers/resctrl/mpam_devices.c
-> @@ -19,6 +19,7 @@
->  #include <linux/irqdesc.h>
->  #include <linux/list.h>
->  #include <linux/lockdep.h>
-> +#include <linux/mailbox_client.h>
->  #include <linux/mutex.h>
->  #include <linux/platform_device.h>
->  #include <linux/printk.h>
-> @@ -27,6 +28,9 @@
->  #include <linux/types.h>
->  #include <linux/workqueue.h>
->  
-> +#include <acpi/pcc.h>
-> +#include <acpi/acpi_io.h>
-> +
->  #include "mpam_internal.h"
->  #include "mpam_fb.h"
->  
-> @@ -50,6 +54,88 @@ static LIST_HEAD(mpam_all_msc);
->  
->  struct srcu_struct mpam_srcu;
->  
-> +/* PCC channels might be serving multiple MSCs, so keep a refcounted list. */
-> +static DEFINE_MUTEX(pcc_chan_list_lock);
-> +static LIST_HEAD(pcc_chan_list);
-> +
-> +static void mpam_pcc_rx_callback(struct mbox_client *cl, void *msg)
-> +{
-> +	/* TODO: wake up tasks blocked on this MSC's PCC channel */
-> +}
-> +
-> +static struct mpam_pcc_chan *mpam_pcc_chan_get(struct device *dev,
-> +					       int subspace_id)
-> +{
-> +	struct mpam_pcc_chan *cur;
-> +
-> +	mutex_lock(&pcc_chan_list_lock);
-> +
-> +	list_for_each_entry(cur, &pcc_chan_list, pcc_chans) {
-> +		if (cur->subspace_id == subspace_id) {
-> +			cur->refcount++;
-> +			mutex_unlock(&pcc_chan_list_lock);
-> +
-> +			return cur;
-> +		}
-> +	}
-> +
-> +	cur = kzalloc_obj(*cur);
-> +	if (!cur) {
-> +		mutex_unlock(&pcc_chan_list_lock);
-> +		return ERR_PTR(-ENOMEM);
-> +	}
-> +
-> +	cur->pcc_cl.dev = dev;
-> +	cur->pcc_cl.rx_callback = mpam_pcc_rx_callback;
-> +	cur->pcc_cl.tx_block = true;
-> +	cur->pcc_cl.tx_tout = 1000; /* 1s */
-> +
-> +	cur->pcc_chan = pcc_mbox_request_channel(&cur->pcc_cl, subspace_id);
-> +	if (IS_ERR(cur->pcc_chan)) {
-> +		long err = PTR_ERR(cur->pcc_chan);
-> +
-> +		kfree(cur);
-> +		mutex_unlock(&pcc_chan_list_lock);
-> +		return ERR_PTR(err);
-> +	}
-> +
-> +	mutex_init(&cur->pcc_chan_lock);
-> +	cur->subspace_id = subspace_id;
-> +	cur->refcount = 1;
-> +
-> +	list_add_tail(&cur->pcc_chans, &pcc_chan_list);
-> +
-> +	mutex_unlock(&pcc_chan_list_lock);
-> +
-> +	return cur;
-> +}
-> +
-> +static int mpam_pcc_chan_put(struct mpam_pcc_chan *pcc_chan)
-> +{
-> +	struct mpam_pcc_chan *cur, *tmp;
-> +
-> +	if (!pcc_chan)
-> +		return 0;
-> +
-> +	mutex_lock(&pcc_chan_list_lock);
-> +
-> +	list_for_each_entry_safe(cur, tmp, &pcc_chan_list, pcc_chans) {
-> +		if (cur == pcc_chan) {
-> +			if (!--cur->refcount) {
-> +				pcc_mbox_free_channel(cur->pcc_chan);
-> +				list_del(&pcc_chan->pcc_chans);
-> +				kfree(cur);
-> +			}
-> +			mutex_unlock(&pcc_chan_list_lock);
-> +			return 0;
-> +		}
-> +	}
-> +
-> +	mutex_unlock(&pcc_chan_list_lock);
-> +
-> +	return -ENOENT;
-> +}
-> +
->  /*
->   * Number of MSCs that have been probed. Once all MSCs have been probed MPAM
->   * can be enabled.
-> @@ -2202,6 +2288,8 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
->  {
->  	struct mpam_msc *msc = platform_get_drvdata(pdev);
->  
-> +	mpam_pcc_chan_put(msc->pcc_chan);
-> +
->  	mutex_lock(&mpam_list_lock);
->  	mpam_msc_destroy(msc);
->  	mutex_unlock(&mpam_list_lock);
-> @@ -2212,7 +2300,7 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
->  static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
->  {
->  	int err;
-> -	u32 tmp;
-> +	u32 pcc_subspace_id;
->  	struct mpam_msc *msc;
->  	struct resource *msc_res;
->  	struct device *dev = &pdev->dev;
-> @@ -2257,7 +2345,8 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
->  	if (err)
->  		return ERR_PTR(err);
->  
-> -	if (device_property_read_u32(&pdev->dev, "pcc-channel", &tmp))
-> +	if (device_property_read_u32(&pdev->dev, "pcc-channel",
-> +				     &pcc_subspace_id))
->  		msc->iface = MPAM_IFACE_MMIO;
->  	else
->  		msc->iface = MPAM_IFACE_PCC;
-> @@ -2273,6 +2362,26 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
->  		}
->  		msc->mapped_hwpage_sz = msc_res->end - msc_res->start;
->  		msc->mapped_hwpage = io;
-> +	} else if (msc->iface == MPAM_IFACE_PCC) {
-> +		u32 msc_id;
-> +
-> +		if (device_property_read_u32(&pdev->dev, "msc-id", &msc_id)) {
-> +			pr_err("missing MPAM-Fb MSC identifier\n");
-> +			return ERR_PTR(-EINVAL);
-> +		}
-> +		msc->mpam_fb_msc_id = msc_id;
-> +
-> +		msc->pcc_chan = mpam_pcc_chan_get(&pdev->dev, pcc_subspace_id);
-> +		if (IS_ERR(msc->pcc_chan)) {
-> +			pr_err("Failed to request MSC PCC channel\n");
-> +			return (void *)msc->pcc_chan;
-> +		}
-> +
-> +		if (msc->pcc_chan->pcc_chan->shmem_size < MPAM_FB_MAX_MSG_SIZE) {
-> +			pr_err("MPAM-Fb PCC channel size too small.\n");
-> +			mpam_pcc_chan_put(msc->pcc_chan);
-> +			return ERR_PTR(-ENOMEM);
-> +		}
+This is v3 of my attempt at integrating the power sequencing API into
+the USB core to support the USB connection on M.2 E-key slots. M.2
+E-key was enabled in v7.1-rc1 with just PCIe and UART supported [1].
 
-I think we need a version check here just in case a MPAM-Fb 2.x is released.
+Major changes since v2:
+- Removed changes for MT8192 Asurada family: one of the device is
+  shipped with RTL8822CE-VR, which is PCIe + UART and needs more work.
+- Removed changes for USB A ports: VBUS one the type A ports on
+  Chromebooks are not directly controllable from the OS and VBUS is
+  modeled as always on. As such the changes I made don't actually
+  change how the system works.
+- Added new pwrseq_power_is_on() function
+- Make new pwrseq integration effectively OF only by not assigning the
+  port fwnode if the hub's fwnode is an ACPI node
+- Added patch to convert remaining instances of directly setting/clearing
+  USB_PORT_FEAT_POWER to usb_hub_set_port_power()
+- Power sequencing state removed again in favor of state tracking by
+  pwrseq subsystem
+- Power sequencing descriptor again separately requested for HS and SS
+  ports
+- Dropped pwrseq_power_off() call before pwrseq_put(); the latter calls
+  the former implicitly if the power state was left on
+- Squashed DT binding revert and addition into one patch
 
-Thanks,
+- Link to v2:
+  https://lore.kernel.org/all/20260610084053.2059858-1-wenst@chromium.org/
 
-Ben
 
->  	} else {
->  		return ERR_PTR(-EINVAL);
->  	}
+Major changes since v1:
+- No longer adding the "index" parameter the power sequencing API
+- Switched from OF graph to fwnode graph APIs
+- Tie "port@" node to usb_port device, and use this device as consumer
+  to acquire power sequencing descriptor
+- Power sequencing descriptor now only tied to USB 2.0 port to avoid
+  double reference
+- Power sequencing state tracking added
+- Link to v1
+  https://lore.kernel.org/all/20260515090149.3169406-1-wenst@chromium.org/
+
+The series is based on next-20260702.
+
+
+Patch 1 and 2 add new fwnode graph helpers. These are used by the patch
+5 and 8, respectively.
+
+Patch 3 adds a new pwrseq_power_is_on() for a power sequencer consumer
+to query the current request state. Note that this is not the _actual_
+state.
+
+Patch 4 reworks the USB hub driver to return the actual error code from
+hub_configure() in hub_probe(). This is needed in the next patch to
+correctly return -EPROBE_DEFER returned by pwrseq_get() in patch 9.
+
+Patch 5 makes the USB port device associated with a "port@" fwnode if
+available. This depends on patch 1.
+
+Patch 6 changes usb_port_is_power_on() so that |struct usb_port*| is
+passed in instead of |struct usb_hub*|. This patch does not change any
+functionality.
+
+Patch 8 lets the USB hub driver look for power sequencers for each port.
+Currently this only works for M.2 E-key connections, but it could be
+extended to cover other cases. It should also make port reset via turning
+off the port VBUS work, even when VBUS is not directly controlled by the
+hub. This depends on patch 2 and 3 for the new helpers.
+
+Patch 9 reverts an incorrectly modeled OF graph connection for the
+MediaTek XHCI controller and adds a proper representation.
+
+Patch 10 adds matching pwrseq consumer by "port@" node to the M.2 slot
+driver. This is only used for the USB target, but there is no attempt
+to differentiate the connection type. The driver simply tries matching
+the "port@" node first, then falling back to the port parent or device's
+node.
+
+Patch 11 reworks the power sequencing targets for the E-key connector in
+the pcie-m2 driver to add targets for USB and SDIO. The former is used
+later on in this series.
+
+Patches 12 and 13 enable the M.2 E-key slots (or slot-like integration)
+found on MT8195 and MT8188 MediaTek-based Chromebooks. 
+
+
+This series unfortunately spans multiple trees. The way I see it:
+
+  - Patch 1 and 2 go through the driver core, and an immutable tag is
+    provided to be merged together with the USB patches.
+
+  - Patch 3 gets an ack from Bartosz, and goes through the USB tree.
+
+  - Patch 4 through 9 (all the USB related ones) go through the USB
+    tree, along with the dependencies above.
+
+  - Patch 10 and 11 go through the power sequencing tree.
+
+  - Patch 12 and 13 (device tree only) go through the soc tree via the
+    mediatek tree.
+
+Some of us discussed v1 at Embedded Recipes, and I believe Bartosz, Mani
+and I agree on this approach. The debate is likely going to be on
+whether this should be integrated into the USB core or not. I believe it
+should, so that the power sequencing timing is tied to the USB port
+being brought up. I do have a fallback option of just enabling the USB
+power sequencing target inside the M.2 slot driver if a valid OF graph
+connection is seen. But this is less desired for the reason given above.
+
+Please have a look and share your thoughts.
+
+
+Thanks
+ChenYu
+
+
+[1] https://lore.kernel.org/all/20260326-pci-m2-e-v7-0-43324a7866e6@oss.qualcomm.com/
+
+Chen-Yu Tsai (13):
+  device property: Add fwnode_graph_get_port_by_id()
+  device property: Add fwnode_graph_get_next_port_endpoint()
+  power: sequencing: Add pwrseq_power_is_on()
+  usb: hub: Return actual error from hub_configure() in hub_probe()
+  usb: hub: Associate port@ fwnode with USB port device
+  usb: hub: Pass |struct usb_port*| to usb_port_is_power_on()
+  usb: hub: Use usb_hub_set_port_power() to control port power
+    everywhere
+  usb: hub: Power on connected M.2 E-key connectors with power
+    sequencing API
+  dt-bindings: usb: mediatek,mtk-xhci: Switch to ports for USB
+    connections
+  power: sequencing: pcie-m2: support matching on remote "port" node
+  power: sequencing: pcie-m2: Add usb and sdio targets for E-key
+    connector
+  arm64: dts: mediatek: mt8195-cherry: Add M.2 E-key slot
+  arm64: dts: mediatek: mt8188-geralt: Add WiFi/BT as M.2 E-key slot
+
+ .../bindings/usb/mediatek,mtk-xhci.yaml       | 17 +++-
+ .../boot/dts/mediatek/mt8188-geralt.dtsi      | 92 ++++++++++++++++++-
+ .../boot/dts/mediatek/mt8195-cherry.dtsi      | 73 ++++++++++++++-
+ drivers/base/property.c                       | 47 ++++++++++
+ drivers/power/sequencing/core.c               | 18 ++++
+ drivers/power/sequencing/pwrseq-pcie-m2.c     | 52 ++++++++---
+ drivers/usb/Kconfig                           |  1 +
+ drivers/usb/core/hub.c                        | 78 +++++++++++-----
+ drivers/usb/core/hub.h                        | 12 ++-
+ drivers/usb/core/port.c                       | 62 ++++++++++++-
+ include/linux/property.h                      |  3 +
+ include/linux/pwrseq/consumer.h               |  1 +
+ 12 files changed, 401 insertions(+), 55 deletions(-)
+
+-- 
+2.55.0.rc0.799.gd6f94ed593-goog
 
