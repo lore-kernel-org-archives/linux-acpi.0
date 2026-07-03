@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD2D63B4432;
-	Fri,  3 Jul 2026 11:38:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6D333C9EEC;
+	Fri,  3 Jul 2026 11:38:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783078712; cv=none; b=r2JZN71CpRHkIFT04N86hUgZGfT1E4iCFg6ffHnn7vD+2eYJOtQs0N/jUIsuzR5Hck/twee7ydwYN+2sO+8PPHpJmstgoybjf4y74ekmgkGqlC2FLG4vO7j/mPqOFypMF3Xcvvktq7YEEUZx21WuWOdAATdEpLKQM7fCCKE0mHs=
+	t=1783078716; cv=none; b=oeZbD4Kk7TsQs4P1dAdnpNP9Fdx+X87YSae1Wd/v4spdgVyG+VlQa0pVtLLCYkIS+oFxnAnzuah+sGBLC8JQwhsvM/4rpJDi6ny+hMP+mDRxj0xaTJN+DRAxiOKHpb1+KhmyyDUw9GqQ/TC8KwsUYuozPASCQxRplCoB/4u0BjE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783078712; c=relaxed/simple;
-	bh=sskW3GxG3TYqv1SxlRbNJJRAaPQ/QmKvCB4a18vMiho=;
+	s=arc-20240116; t=1783078716; c=relaxed/simple;
+	bh=bh625QtwTHIFC2meghTY25UUtbM1xUieSFYJxvVa7Jc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=j7d35Vp96GKiFAbbo6nzsR2JRVOGmXvP66DoAIuYLIhl7jTNlUMURY3SoYjr7G5SI/KsAXCyQDg52bpwVr+UK41trUhpAHK049H4JLXbNsuxKGN4XhRoQ3btNASityHhV2bhNR2Tx0iECnsjERc0k3XJGPVskfOXWBggFGd8vgI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=T7ivX7h+; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=Q9tYQ52wL9U8Zc3jNCs2MNv+K9sHQkSzAdwVxdU64/dlRdaBYHNcvQh4TvcyqjgwUrYV/TommohdrpEpb79VpCT8M/ceHDSxH+CDYA82CJybXvHILKIgZnJr4XtQvzf4hV3aupXhkBcH+NZPmLB7cSQLXx+3p9V8a7fZYN7DaZ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Fokw3ELw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="T7ivX7h+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 363C21F000E9;
-	Fri,  3 Jul 2026 11:38:26 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Fokw3ELw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E79761F00A3A;
+	Fri,  3 Jul 2026 11:38:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783078709;
-	bh=mkiVFcgZvUd4BDFRVF8wOGpqr8F8scW3yxPiFEmfJS8=;
+	s=k20260515; t=1783078713;
+	bh=7fUQv41Tphj9cWLIFwsF14kOIUUgab4THGgL2EqOjsw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=T7ivX7h+7G49nwBsJhChQutXBYJc5lAdsRUQY3L8NzO0spnj9CEMnxcjvPkVhVjmn
-	 vk7bJII4/a81aS754NNLQxjPny/kIBedPwFo8eYoBSjSFxFgnShoN1fIveH08wMmfJ
-	 Z2n8iXbUP1g7rsp157szpm6ImGnr09nT1zqUmHWZ+tS1Td0GBlatAVsXRbAgNI6WVA
-	 gbEi9XyF+Qtyz8KrLo2Rrh5iflMlU9043LUWHYDTtZinTe1kkQxC5LZqLjljhtE2Su
-	 WxkQdyHd3pY+LOsjFIjw019Uojk7RUulwKRi3YCr3M2yOoEM5wTyzGM8V7ebZmb7Cr
-	 t3BUlQEITLMYA==
+	b=Fokw3ELwngHR5opLjwVnQoNGmnz+oio6bImvdhfm6NXtA45jtrZ5z9l794uGIw/Zm
+	 w0GgP1+eBOaW5YvEsAaxcfXI8kUNNVhy0gxk3MpBZhqsGGrQZROjNpR4O+hWyrIx42
+	 tXyQX+RncP7Yw44Uh+wc7pHf4oA6X2G9ZXvvMt2c18ZPhSla0uY65YgLINBGUFIbPJ
+	 eONYy3dP3x5tzpknijP2cHKlmUIgeQ21JLVA+965UKe0J1wiClDm3hrtnuJMhnKsWP
+	 +BWZa5qGsX+HrVVC9/dfT+uS9NaeIydT2xiJMxUI1EVfuS9omvRVVj1CKOeRUY3BIg
+	 hPkw2xFei1g6w==
 From: "Rafael J.  Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
  platform-driver-x86@vger.kernel.org
@@ -40,10 +40,10 @@ Cc: LKML <linux-kernel@vger.kernel.org>,
  Kenneth Chan <kenneth.t.chan@gmail.com>, Mattia Dongili <malattia@linux.it>,
  Azael Avalos <coproscefalo@gmail.com>
 Subject:
- [PATCH v1 10/10] platform/x86: xo15-ebook: Stop setting
- acpi_device_name/class()
-Date: Fri, 03 Jul 2026 13:37:57 +0200
-Message-ID: <2731795.Lt9SDvczpP@rafael.j.wysocki>
+ [PATCH v1 09/10] platform/x86: toshiba_haps: Do not use uninitialized
+ device_class
+Date: Fri, 03 Jul 2026 13:36:23 +0200
+Message-ID: <1987644.CQOukoFCf9@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <5135166.31r3eYUQgx@rafael.j.wysocki>
 References: <5135166.31r3eYUQgx@rafael.j.wysocki>
@@ -58,55 +58,35 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-The driver sets acpi_device_class() which is never read afterward, so
-make it stop doing that and drop the two symbols defined specifically
-for this purpose.
+The pnp.device_class string in the ACPI companion of the platform
+device used for binding the driver is never initialized, so passing
+it to acpi_bus_generate_netlink_event() is effectively equivalent to
+passing an empty string literal to that function.
 
-Likewise, acpi_device_name() set by the driver is only used for input
-class device name initialization and the "EBook Switch" string literal
-may as well be used directly for that, so make the driver do so and
-stop setting acpi_device_name(), which allows the symbol defined
-specifically for this purpose to be dropped.
+Accordingly, make the driver do the latter instead of doing the former.
 
 No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/platform/x86/xo15-ebook.c | 8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ drivers/platform/x86/toshiba_haps.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/platform/x86/xo15-ebook.c b/drivers/platform/x86/xo15-ebook.c
-index e40e385c52bd..4c3185e2ceec 100644
---- a/drivers/platform/x86/xo15-ebook.c
-+++ b/drivers/platform/x86/xo15-ebook.c
-@@ -19,13 +19,10 @@
+diff --git a/drivers/platform/x86/toshiba_haps.c b/drivers/platform/x86/toshiba_haps.c
+index 8d12241924df..c6633b74029f 100644
+--- a/drivers/platform/x86/toshiba_haps.c
++++ b/drivers/platform/x86/toshiba_haps.c
+@@ -136,9 +136,7 @@ static void toshiba_haps_notify(acpi_handle handle, u32 event, void *data)
  
- #define MODULE_NAME "xo15-ebook"
+ 	pr_debug("Received event: 0x%x\n", event);
  
--#define XO15_EBOOK_CLASS		MODULE_NAME
- #define XO15_EBOOK_TYPE_UNKNOWN	0x00
- #define XO15_EBOOK_NOTIFY_STATUS	0x80
+-	acpi_bus_generate_netlink_event(device->pnp.device_class,
+-					dev_name(&device->dev),
+-					event, 0);
++	acpi_bus_generate_netlink_event("", dev_name(&device->dev), event, 0);
+ }
  
--#define XO15_EBOOK_SUBCLASS		"ebook"
- #define XO15_EBOOK_HID			"XO15EBK"
--#define XO15_EBOOK_DEVICE_NAME		"EBook Switch"
- 
- MODULE_DESCRIPTION("OLPC XO-1.5 ebook switch driver");
- MODULE_LICENSE("GPL");
-@@ -105,12 +102,9 @@ static int ebook_switch_probe(struct platform_device *pdev)
- 	if (!id)
- 		return dev_err_probe(dev, -ENODEV, "Unsupported hid\n");
- 
--	strscpy(acpi_device_name(device), XO15_EBOOK_DEVICE_NAME);
--	strscpy(acpi_device_class(device), XO15_EBOOK_CLASS "/" XO15_EBOOK_SUBCLASS);
--
- 	snprintf(button->phys, sizeof(button->phys), "%s/button/input0", id->id);
- 
--	input->name = acpi_device_name(device);
-+	input->name = "EBook Switch";
- 	input->phys = button->phys;
- 	input->id.bustype = BUS_HOST;
- 
+ static void toshiba_haps_remove(struct platform_device *pdev)
 -- 
 2.51.0
 
