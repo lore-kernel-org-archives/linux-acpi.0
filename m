@@ -1,72 +1,69 @@
-Received: from mail-qv1-f48.google.com (mail-qv1-f48.google.com [209.85.219.48])
+Received: from mail-qv1-f46.google.com (mail-qv1-f46.google.com [209.85.219.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9BAF3191CE
-	for <linux-acpi@vger.kernel.org>; Thu,  2 Jul 2026 23:26:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36C7331B131
+	for <linux-acpi@vger.kernel.org>; Fri,  3 Jul 2026 03:36:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783034763; cv=none; b=bBkBvaJ0Rk+pV7Lmq4GcGMLldc4CIgLN0L2vCLlSa+aXt7Cjb6HQvwsP2S9NquhJChTlxDnn3xjM4Iw50RaOucrlHgePTYWez8mp/3wUB4m5dvcYvEEq5iJAyhH5rDMTFfo0g0zYGEUkICCz7PPFGfuIvEiKxp8jLB/QDP1Qxuw=
+	t=1783049779; cv=none; b=sq/e8zUbHfx/CkxnOxy8qvTK6JuqoQHDFcPQlRQTOVW0+LVjCKxmZVyPKTCuK29Zc7F5ou7k59xKk665i4l6Yx12yKWRpxBx9HXTcP0xGz4WaVyLuSdvkEZ1O5VKO4plirH/5jdnF6MSDORcJ87nbIxvQlqb1A20ukXKMCgs8lk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783034763; c=relaxed/simple;
-	bh=2fBn9uQ13xUI3bkdLW+iPy5SLta9Dh1FDmBU6YUf75g=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=tsd8VvGXLjavla+u289gzluzvR/eylMNOXgkGaJ8MNyM/3MwFmJ7TP+4k+744Kl/fQo6y8Ck8XL+o5N9hp2QjfEYEatUqzXKR8Jxk6GDMq4vIWC8Vt9g1fwT9aLJswtduPU8DCFBcRH7KWcTp/h32JejmDJux5h4UgiM/1j+y8Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cADm+N4s; arc=none smtp.client-ip=209.85.219.48
+	s=arc-20240116; t=1783049779; c=relaxed/simple;
+	bh=wN3lEVyKOMHyjDD6acY7nyX/t554l+VvLqmIJ4eBF6s=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qBXccjYgrbJcOtKqWSjrSs20b3bcgT1XLgnLlF1vH9ksW3dScYEWRc2gCUacY7G4MAk5uD5hTuA3YkDMtWqOVX+BPe1D0+9H4tYfMqNHcjnZixAJWj1J2Er4wCyxeVDpFa7eWVoWUwf2fhrfXRoc1/jogBTgk/J0MP6iLfIVW5Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AHT44WUp; arc=none smtp.client-ip=209.85.219.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cADm+N4s"
-Received: by mail-qv1-f48.google.com with SMTP id 6a1803df08f44-8f23e851626so19255786d6.3
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Jul 2026 16:26:01 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AHT44WUp"
+Received: by mail-qv1-f46.google.com with SMTP id 6a1803df08f44-8eabb1a9378so585546d6.1
+        for <linux-acpi@vger.kernel.org>; Thu, 02 Jul 2026 20:36:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1783034761; x=1783639561; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1783049768; x=1783654568; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=TVks+nr0O6BL6qphy8ec4fsdEnx8+iHy3YuzoqMy53U=;
-        b=cADm+N4sssv/Iv+unF0C0cVHNqFXlkC/62RK5LGXmpGBCj7aM2aHjfbpInkFmmEBLF
-         lyadreuWs5iTBYZ6EzHhnlYMsYrNaoHP/LAB1qxCL1H71mwE7UwMsMg9DiFI/XWf63vT
-         innchTSr8wnUZMxpz9NKLFAcBa3J8OsvAN8ihEl8fieoUe08ARkgo+ejwOt56EN7PnEa
-         x9+zAz/izTGzbItJ21myw2Xzbp7SQgjNvhAkI84VwIXNpxvGVQZ4E96jYtndF3SFgams
-         7rqAO6SdhrPcQSy2kowbav2CerdLRsndsmKw57/GthF+j3Au8KXvCmTCuy4ltveGVyWw
-         1vdg==
+        bh=bPgdxMTOh9PJ/MITH4rM9z6UY/LwynPrTFaYmN69gIQ=;
+        b=AHT44WUp/crhBOO+FQNO1gOovi5rhVVdA5ajXYSASBTHlVyIY2wCIdptwkh9T1xKM/
+         3lUPiSRNMWixEvtz83yRFHV2V87VZFWlfXuKsA3/qnYWCcx+r/6LKA1VZgWuj4di7JMG
+         KIfH4m9w2Ty3pY9UtLizYs5MS4g3sI+fV5KQDEvUsszkaO0UT2ToOUsJmBBiMOfF59Wm
+         LOncyA7LPl5bk8zvitaUrUdvYS5HIWZMqPwjKS1VTCwScesfeNAPTUcVpptBSv4zLbr8
+         rh3Ils8QBpE1F0GNQ6DMa8PEWsyGzL442S1Ak7zJi88wpaMjAbQP5H6KFpx51tjcJksc
+         0Rzg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783034761; x=1783639561;
+        d=1e100.net; s=20251104; t=1783049768; x=1783654568;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=TVks+nr0O6BL6qphy8ec4fsdEnx8+iHy3YuzoqMy53U=;
-        b=bgVKyU5IAxrF+FhwPZD+Nv7Vw+o4HkpPt7l7pUh9LonzQmOHUDRdFlhDLQ4pVq7e3j
-         nEqJxKNTHfFXGxtPI8jC1ze6UY7kZrI3cA7Din1/rVY1hK6q4xB1APTl6gxvWuujh+lz
-         xHq6AP6wdGVuDSOpiXFTr5VYN1Gj8YorppcHkpl6fLjRxIPyo0mfFmUdt9XaxxsN/hX8
-         0sa2fd2WdcOl7ZW+gU3q4oZ4TjMc5JZMx9gBPIWHWokU5E39uxlKLidA3rPhRhhEV3P6
-         zhAMNRLmRpaE3ZlxECwO5zghJycTra6E27IecD5QM0Q1qY8Snzmv2HOzKaS8P3cM460H
-         7sig==
-X-Forwarded-Encrypted: i=1; AHgh+RpkzQJFx5UR7MpgNsEJqm4g9U6ug4R1eFLq2U5IohFgR+qcC8FdHRvvyCebcxOJMJ+0JittbZGQpfBC@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy91QwgdA+xJ4xygTO8KX0t9jI6xCWgcJtzs1a2xGVFZS0nR8g8
-	7IX6uphITgzsmd0FeYGl7LwgXhCtM6C8ny3VbSpEqAR7KJqdoVqisqRf
-X-Gm-Gg: AfdE7clOf5bB+6g7AlXN5Hf8G3ttzGm0NnGfeW2NixDSu1Hgr1GocH5asvpzm2LZ3ro
-	kCTkKFW86mCQPNH4rjlFasrvGg3FUiozLoYlMVeDd4fbx+CITOWmgtebgprVUjjfo29W0DKchbT
-	lsEf4mg+I8ggmFlg8V7Eb4R7cTKCthG+icemCg4/Mbpr6DfvXhJvJYjtelzKpDeumpE6CmAkh7y
-	T+CVA6O/IwxBeg5NnyAUtcsB9d3Z9JGDhq4j3BljqZuzPcYH0MztPfHfb2RjMNeCK+nNFGo/oDr
-	FQ0DM5tCyOyGk+Y2h+Xq5GOb3UV2utAg/bsJN0UmweVnUF4zleiCThNHp3/k1sYTpRGhw2yGyzo
-	qBAmaK3x6kgy0jxwU4Ye3KAQbxi6gjTUiuYlWMotzIU6jHtveqdrjyanPicgxrjmATL5mOtLtJu
-	2tKyhq7n+yMsqpqIWafAcRrrMUlGnWwmFqdHUKmnrrheAuh6NXb6tqsP/zn80Qunsg8AOzkhDPk
-	q88eHxa8PZ0WBefkRTRBaz9IQ==
-X-Received: by 2002:ad4:448a:0:b0:8f0:f35c:23ae with SMTP id 6a1803df08f44-8f3c90f3805mr79103196d6.29.1783034759655;
-        Thu, 02 Jul 2026 16:25:59 -0700 (PDT)
+        bh=bPgdxMTOh9PJ/MITH4rM9z6UY/LwynPrTFaYmN69gIQ=;
+        b=Z/+srGL/3ClxjvpZ/pr0c67iYpOgYSOCYYwugpEhlZRTDJPybCuZW8lRwP8exKWcA+
+         4HuAzodltAuD7kZJF21uEhL9w/1/76MjCrSuWVoSC11LJj5lN8P1m9oztAHBrjanKIU5
+         yAMMeYss2FhLCzLQsAT6+I+4eMqs8+e1Ka0rqnMxRoG3wYeD0/CX+Hxx/MDnjtGVWhi4
+         Y6I7XZ6OYTS8GZhpUa+7IcQhCfyaF7Ftr9RDNWCh32bpM4uWfxrkXQksFXLkk4feCbEB
+         MfzCu6Bj2+F0Ywzz2K83ZafZ8g08bYXjxWM5eawkuGjP3A4ziUKoYbVaalvLzLmxFdtG
+         KuPw==
+X-Gm-Message-State: AOJu0YwR9TnZOjO5YzWIC4iaxEzSE/GVRPe49ixvFTMpg1fswlNw+iyM
+	SukhDEnZ4x1tr0c2rDmG2nHk8v9q7t2S+oy4ZnUE1SCrKGtUSUx82mXnz4fKm5JnKzE=
+X-Gm-Gg: AfdE7ckZ2yxQBFdUc3QeLYnse/oDA6oiDuBrXy+ub5kJN+O+fjb64rotiQogd7LFRLZ
+	O2ce/zU9oelOZAOw5yB5wTd6hwJuFAJQz7WqXuEgJooXQ5rXueHrFaELQEX1z4iWoIwes2WSK/Z
+	T/v37FR/pMtw1wxSOa1sDufK5i0ORLxJdbxvHRK16NgxEIVT2Pbx+6YhZDiWDGGKKib0pGo47LA
+	qvgQPzzEWL3BIupdyvfFAFS90JhNgRmHVNS5EsNvpibUXSZmgiqlnqCo2iabCg16GQBqKCeGQ+i
+	3IDbNCGZdsGyRt3UQiw1GJHtc+3F29BSCYH4c930woC4Itw/pNftdAkQjJ0mirNH6PsDN2KKAgl
+	LkghLL0uTiySgW2uhg6x0Z/aOApcHiseJVBJ71j8SJmPsNM3/Tl3JBwB0m2sD+q/Bs2Sygd4x/t
+	VV6XsFURQvqTfz3ZJG8BghCv+ksAWQpc3q7wJUbF2GsbHpsBAp7WSWBDW1WbmhTU5rQuOjjz8Ia
+	mqJOQl7/bjrLCk=
+X-Received: by 2002:a05:6214:4841:b0:8cc:de2:3b5d with SMTP id 6a1803df08f44-8f3c789bc75mr102073386d6.16.1783049767890;
+        Thu, 02 Jul 2026 20:36:07 -0700 (PDT)
 Received: from i4-gl-tmk5904.ad.psu.edu ([130.203.156.186])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8f471815818sm39392936d6.31.2026.07.02.16.25.58
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8f46e27d533sm43682316d6.8.2026.07.02.20.36.07
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 02 Jul 2026 16:25:59 -0700 (PDT)
+        Thu, 02 Jul 2026 20:36:07 -0700 (PDT)
 From: Yuho Choi <dbgh9129@gmail.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>
-Cc: Toshi Kani <toshi.kani@hp.com>,
-	linux-acpi@vger.kernel.org,
+To: "Rafael J . Wysocki" <rafael@kernel.org>
+Cc: linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Yuho Choi <dbgh9129@gmail.com>
-Subject: [PATCH v1] ACPI: sysfs: Fix hotplug kobject cleanup on failure
-Date: Thu,  2 Jul 2026 19:25:55 -0400
-Message-ID: <20260702232555.96539-1-dbgh9129@gmail.com>
+Subject: [PATCH v1] PNP: Fix card device cleanup on registration failure
+Date: Thu,  2 Jul 2026 23:36:03 -0400
+Message-ID: <20260703033603.114931-1-dbgh9129@gmail.com>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -76,44 +73,41 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-acpi_sysfs_init() creates the ACPI hotplug kobject and the force_remove
-sysfs file before creating the pm_profile file. If force_remove creation
-fails, the hotplug kobject is left behind. If pm_profile creation fails,
-both force_remove and the hotplug kobject are left behind.
+pnp_add_card() ignores __pnp_add_device() failures. If device_register()
+fails there, the device is removed from the global and protocol lists, but
+remains on the card list and its device reference is not dropped.
 
-Add the missing unwind paths so the partial hotplug sysfs state is
-removed before returning an error.
+Remove the failed device from the card list and call put_device() before
+continuing with the remaining card devices.
 
-Fixes: 683058e315f0 ("ACPI / hotplug: Use device offline/online for graceful hot-removal")
 Signed-off-by: Yuho Choi <dbgh9129@gmail.com>
 ---
- drivers/acpi/sysfs.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ drivers/pnp/card.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 908cc5c7e643..0b642ba1a526 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -1037,8 +1037,18 @@ int __init acpi_sysfs_init(void)
+diff --git a/drivers/pnp/card.c b/drivers/pnp/card.c
+index 87f5af454751..df5e3d3cbf6c 100644
+--- a/drivers/pnp/card.c
++++ b/drivers/pnp/card.c
+@@ -254,9 +254,16 @@ int pnp_add_card(struct pnp_card *card)
+ 	/* we wait until now to add devices in order to ensure the drivers
+ 	 * will be able to use all of the related devices on the card
+ 	 * without waiting an unreasonable length of time */
+-	list_for_each(pos, &card->devices) {
++	list_for_each_safe(pos, temp, &card->devices) {
+ 		struct pnp_dev *dev = card_to_pnp_dev(pos);
+-		__pnp_add_device(dev);
++		error = __pnp_add_device(dev);
++		if (error) {
++			mutex_lock(&pnp_lock);
++			list_del(&dev->card_list);
++			dev->card = NULL;
++			mutex_unlock(&pnp_lock);
++			put_device(&dev->dev);
++		}
+ 	}
  
- 	result = sysfs_create_file(hotplug_kobj, &force_remove_attr.attr);
- 	if (result)
--		return result;
-+		goto err_hotplug;
- 
- 	result = sysfs_create_file(acpi_kobj, &pm_profile_attr.attr);
-+	if (result)
-+		goto err_force_remove;
-+
-+	return 0;
-+
-+err_force_remove:
-+	sysfs_remove_file(hotplug_kobj, &force_remove_attr.attr);
-+err_hotplug:
-+	kobject_put(hotplug_kobj);
-+	hotplug_kobj = NULL;
- 	return result;
- }
+ 	/* match with card drivers */
 -- 
 2.43.0
 
