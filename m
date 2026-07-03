@@ -1,94 +1,131 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yx1-f47.google.com (mail-yx1-f47.google.com [74.125.224.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EFB93D090E
-	for <linux-acpi@vger.kernel.org>; Fri,  3 Jul 2026 12:15:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783080928; cv=none; b=nmQ9XgSMGnAWiZmFuuCfueZIIdq3kZCxkQ6gp2NyvCtetYeHrYRDIRYKZxyPqZ3/AKc0+giGKKXX4eAq2ZV+IIqxCkCFOt4in1QE53uYdoECYFOcsPw6OeLDC6rHziHiwLhugpWSgPlW5V6Qg7/OptC+FGH0XbF9BBVMUOOCfbE=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783080928; c=relaxed/simple;
-	bh=esVxq2/OWGQEO5v/or2bpMCVebSBPE0Jx5cUfcfX+QA=;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E27EF3D093C
+	for <linux-acpi@vger.kernel.org>; Fri,  3 Jul 2026 12:17:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.47
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783081053; cv=pass; b=BWwddjEAtUE6wFF672wG3YxC9DxUdTfjYz0vlWi6mo9jtTRitmAxUG1megpFewYYKUnMnRXEbabl/keu7FKnZGxd/R8JpNSqJQa5huCc6EQr54Lusb7NXN7l1gr6Psjx4b6yZE49ejIsPKNOKOh5TrOo5Q9oGbvJHsbZlTKa1n0=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783081053; c=relaxed/simple;
+	bh=wKIP/2g7MTxmMgVnWjjRdFjs9hik6bQNvbKXHobNWdc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=S/Bk0+cmLf/wUwVwJOnJ4Q82gpMI60N6WN/vDV49DOWqv1VldNVDMqEX+PEJdjl9oCPIbtW/E89jl6eZngO34JDOufqUeg9hKG/NdYLSNQ05wRafTnNT05g9MgCEdoHgJ8jO3+UNR+e+O6A3ruj+jvSGJbGVSWS+rD0PgT/kElA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CNG22d/h; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=CfYz5ajsFrmvU3GJo4VoABHj5z7eSiUk6zSy8ZFhirCPK7/V01DTTTpQAvJVMf9weBFQ3JinWTPEeJ/rft3ZFTg+9mFbHsWGIGTtDFb7AL1wzmHYx0FGtRLaFIFS3WCpa17f7hGcXC6nBQXVcQYr+YBj4TjLablGQc3wqv/WLk4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=La4rLw5G; arc=pass smtp.client-ip=74.125.224.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CNG22d/h"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F4421F00ADE
-	for <linux-acpi@vger.kernel.org>; Fri,  3 Jul 2026 12:15:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783080927;
-	bh=esVxq2/OWGQEO5v/or2bpMCVebSBPE0Jx5cUfcfX+QA=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=CNG22d/h7hJqhCM3iXYnMZVt/aUK0YaAZl8qrtB74WHSZMIeDc/xhrgcHiJc8HCwG
-	 csQ7yTHluapAg35IcpfcsCEewH7q0H+ZQCbd+Ve+SmQ433UfE+OlyRM41Sb2eZPwQB
-	 E6b0w3/U0fd7uAYtDQBUJkyfm3sqrb3Ppqc0ewKTYM3pfc5ZaskMC58l81LtbHtO0d
-	 23BT1L3HeKt3KPWOcIwMHwpzHZD1ZYEZUFYPGzcv/+gPACNE1IQ3fExeDLqw22PER/
-	 BMi9wAzBUWbn1Oiub+YJCRUl0oLwv+hNv554cz9S3OyEmY3uhvsuVan/b9wkGGCZyp
-	 MStbOe2yz1DHg==
-Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5aebf9a509eso541611e87.3
-        for <linux-acpi@vger.kernel.org>; Fri, 03 Jul 2026 05:15:27 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RqZBej4By5nJ69PatiEmS6t+pPGzemAJOTUg2Rd7WKTeBbSSQABYFqQD4Ua7oudegn88sjPElkp58Ir@vger.kernel.org
-X-Gm-Message-State: AOJu0YwSAj1DGVsevJp+QxiHfDm2lwGP3zVLr4Wh639FZ5jA7gsjASOM
-	MWeecCtrrRWRaUY2gPc9FP/NnDAzXRmWLPAG/dFKtRPAVn6hfRls+1coIzqz3RhicRtQvwxNjmy
-	Z7mOsp9f+SuolNk/3QrLDk1NG1BPPovI=
-X-Received: by 2002:a05:6512:154a:b0:5ae:b730:5235 with SMTP id
- 2adb3069b0e04-5aec8025dd1mr1953613e87.18.1783080925532; Fri, 03 Jul 2026
- 05:15:25 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="La4rLw5G"
+Received: by mail-yx1-f47.google.com with SMTP id 956f58d0204a3-664cb440f9eso588907d50.1
+        for <linux-acpi@vger.kernel.org>; Fri, 03 Jul 2026 05:17:31 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1783081051; cv=none;
+        d=google.com; s=arc-20260327;
+        b=nsV4pHLPuVtkDIM2zDNWSMMNeRuDwyl//kvaNSpnk0mT//R5KiPt8mJAwUJ//htHkl
+         HfRTPCPgCHT/wmbawZZV1cRBDi5ykw8wTVMPeAqAb/ddLT869vbWUl7lZSYjPANbLL70
+         9lb3Al1Euv7B7XzzY9hBo1ZzruKsS4cttKDL82M6vCIqS8qjjCUyWBL6ZGmxlkq0RG4J
+         OpX6K/W50PBo56WAR4mkDcY9v/YDe9s/+RoEwe5QI9C7gMTTFc8u9eItjBAGNNpsn3pE
+         HNtSRiSTTq7s6dC+UkeYXb3XTbUcWhhPNUqyUYr2N8guhijU2ygEW6b+2D+VZRL9wYmR
+         tZ2Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=wKIP/2g7MTxmMgVnWjjRdFjs9hik6bQNvbKXHobNWdc=;
+        fh=JH/umvhcNPNtZ3GPQCsMWyO8nHrLbAZzHpp+BIN5qGs=;
+        b=ElBQloMB9KYen+j1d7kBOak5vA//J1V2ZJ/jHfc0K+qE6m/AWq2KoZCbXaCBnXBPQo
+         RflVxFfi0ZhZnIaEFJabdqq8X/PQ3YYo2bCKqcuW0xF7ASRuWESdXdaVfD4ZbRx7xTKA
+         g+O7HW17PPMRKV8tpUtIJknvsMEoGEL3gSht8nTSiilCn1R6XWkuf2REe/GRHu6BwNyW
+         0XugqI2T4fGUeKZmxNkodvZZf6pK0M2lv5xRp8XwCfPdldElvZ1W4T37g8TcfrrhSFxG
+         MTgpRLUZ0HfZfAD2CdhVdlSkffIABymfTLbondWhhgPCb84y03cXxPpn1A13ncB0NcIJ
+         BGhg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1783081051; x=1783685851; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=wKIP/2g7MTxmMgVnWjjRdFjs9hik6bQNvbKXHobNWdc=;
+        b=La4rLw5Gf5gqClv10KJUzRgbRZWpkKExtGoirU0CX9a9jrQYpre1JYB5m/lZqJPlf0
+         3cYEc+cCqrXzelFvrandfTJ1HTW1qcjS4V28uWSp/W6eKpaaI5WeEngCHPnPmiZ1hWWd
+         iGuEVo1TxLdpP8k9+6p9LSymgO+vPjFK4hGRk=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783081051; x=1783685851;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=wKIP/2g7MTxmMgVnWjjRdFjs9hik6bQNvbKXHobNWdc=;
+        b=EUZb5Ot5wCVEKDqN+KyvH2LLqfqZbCRbLFuey4DSfI4gswuEzJhHbJyFS6ndQF82l7
+         RzVlxXOm1wjEQS89cASgPUOKGQ9grIgxpNOku2t/Nfh9VSPkAi1xh597d/7dfMIv9FtM
+         UkALMyM/qPajesucBMlnfKwe9nNm5U0QNkXcsDrl40ojAyXnTzkFKeSRiHgE8C/Y3mSU
+         8NtOaNOitzmXca9YyFY52xhLRJ3PYWxp1OWj6GPp4gCJ2ziFHwpvykL5iIuve6Yy+J4e
+         cCFpmfaikyj0yaXi5KEgX9VAYjHptDeEp26vCWtx4X3vJk7zO0v6k6oiQS5AiK/7xKb3
+         pmLw==
+X-Gm-Message-State: AOJu0YyjugfPhKnxse+7REBeHuqnqqbSbUHquEZGUyarzU0MoLr50ZGu
+	nvm0sdR3c+oX7bBuZrRNS8bIsyLcIJ7zzvxzPmWBjZs0PX08ASvWb2RZ2JJ6Og5ZndwVrDVyiMo
+	xd6r10fkbj2oQ7ZsifrKGCQN29h8c5Y/B5Ul9iB/W
+X-Gm-Gg: AfdE7cnkLg/B1VWvx6RZ1hUsKmYpXmCj+ieepQLnpydOM7A24R27oUOl4deCPYWmqK4
+	qOIqsDiFz4v3EsWu9vrSV5UfWZupEm49k48SqkEshVEWPhvKHRzVqPUUTs1/yNbIFH9a3iUv/4p
+	YtRh93RPXp1iiNnQlREdIlbly2FvxH594sXfKDyCePGH2cQNch13iN4ARDvWmZSHSg/4y2B7YvW
+	Az8eAaM2MeeovQAzTgDI3Gf9wWNlPPQ70fVA1nFuGuQXsihlWfqZBZr6LnfSC8/BQkIwC7vQrfE
+	IT9NbBI1WqXvgIhLMtGnZOtgwPg=
+X-Received: by 2002:a05:690e:bcd:b0:664:ae03:524e with SMTP id
+ 956f58d0204a3-6652195244emr9486423d50.6.1783081050982; Fri, 03 Jul 2026
+ 05:17:30 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <5135166.31r3eYUQgx@rafael.j.wysocki> <akemrOqzWtcDVqey@ashevche-desk.local>
-In-Reply-To: <akemrOqzWtcDVqey@ashevche-desk.local>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 3 Jul 2026 14:15:13 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0isEvOx_UWCb9bpV0FQac+Dg7rmrjEtoYUH9hLyBgSP_A@mail.gmail.com>
-X-Gm-Features: AVVi8CcCyhZbaTM8aEfP_CDJwOvx85hepSQO51lwkon72qAjQwO3MM1G7tZy8pE
-Message-ID: <CAJZ5v0isEvOx_UWCb9bpV0FQac+Dg7rmrjEtoYUH9hLyBgSP_A@mail.gmail.com>
-Subject: Re: [PATCH v1 00/10] platform/x86: Stop using acpi_device_name/class()
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
-	platform-driver-x86@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, 
-	Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>, 
-	Corentin Chary <corentin.chary@gmail.com>, "Luke D. Jones" <luke@ljones.dev>, 
-	Denis Benato <denis.benato@linux.dev>, Jonathan Woithe <jwoithe@just42.net>, 
-	Robert Gerlach <khnz@gmx.de>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Mark Pearson <mpearson-lenovo@squebb.ca>, 
-	"Derek J. Clark" <derekjohn.clark@gmail.com>, Kenneth Chan <kenneth.t.chan@gmail.com>, 
-	Mattia Dongili <malattia@linux.it>, Azael Avalos <coproscefalo@gmail.com>
+References: <20260703110317.1283411-1-wenst@chromium.org> <20260703110317.1283411-4-wenst@chromium.org>
+ <CAMRc=MfPC=Jm6RFkCYG6vsYQiWHxBeNq0L59rwahF_6Fu2Ledw@mail.gmail.com>
+In-Reply-To: <CAMRc=MfPC=Jm6RFkCYG6vsYQiWHxBeNq0L59rwahF_6Fu2Ledw@mail.gmail.com>
+From: Chen-Yu Tsai <wenst@chromium.org>
+Date: Fri, 3 Jul 2026 20:17:19 +0800
+X-Gm-Features: AVVi8CdRG77FVnl6YqrCOnoh5pU554e35My8Xh7iayyOJ32J-OMwjYcWxPxxPu4
+Message-ID: <CAGXv+5HMVaERvte8YJDJ0fq0zoMvO7-7caAGQhsAB-9sUHoGtQ@mail.gmail.com>
+Subject: Re: [PATCH v3 03/13] power: sequencing: Add pwrseq_power_is_on()
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
+	linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org, 
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	Manivannan Sadhasivam <mani@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 3, 2026 at 2:10=E2=80=AFPM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
+On Fri, Jul 3, 2026 at 8:07=E2=80=AFPM Bartosz Golaszewski <brgl@kernel.org=
+> wrote:
 >
-> On Fri, Jul 03, 2026 at 01:15:01PM +0200, Rafael J. Wysocki wrote:
-> > Hi All,
+> On Fri, 3 Jul 2026 13:03:04 +0200, Chen-Yu Tsai <wenst@chromium.org> said=
+:
+> > The power sequencing consumer API already does power on state tracking
+> > internally. Expose the state to consumers through pwrseq_power_is_on()
+> > so that they don't have to reimplement it locally.
 > >
-> > There are two fields in struct acpi_device_pnp, device_name and device_=
-class,
-> > that were supposed to be populated and used by device drivers, but they=
- have
-> > never been used consistently and some drivers just populate them and do=
-n't
-> > access them later, and some drivers use them uninitialized.
-> >
-> > All of that is confusing and messy, so the drivers for core ACPI device=
-s
-> > have been updated to stop using those fields which are now slated for
-> > removal, but they are still accessed in some places.
-> >
-> > This series updates platform x86 drivers accessing those fields to stop
-> > doing that.
 >
-> In most of the patches you have double space in your name in From.
+> They wouldn't be able to do it as the field is private to pwrseq core any=
+way.
 
-Do you mean the From header in the patch body or the From header in
-the SMTP headers?
+Which is why a helper is added? Note this is returning the requested state
+on the consumer side, not the actual state.
 
-> Can we have some consistency here? Or is it deliberate (in which case I'm=
- wondering why)?
+> In what situation would consumers need this? Typically you know what stat=
+e the
+> handle is in if you control it.
 
-Not deliberate, probably an e-mail client mess-up.
+Mostly just to avoid extra tracking in the USB port device. For the hub's
+port power feature flag, the hub driver actually queries the hub for the
+current state; no in-kernel tracking is involved, i.e. the consumer doesn't
+actually know what state it is currently in.
+
+
+ChenYu
