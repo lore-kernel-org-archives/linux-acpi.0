@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E68E43C416B;
-	Fri,  3 Jul 2026 11:38:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB57A3C4B93;
+	Fri,  3 Jul 2026 11:38:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783078724; cv=none; b=hBUUOrOO0t5r2gMhHVn7WFnCl+pxBgWLIHcbt0WIjytsF8wtWxW9aVUHAowvs1KFHt8qpz4lM4JnyJvMBRMw2J4N8faRdb+r9JO1HJWajSAlzr2uOBhe/IknPcRa+UxirfgAG/PBVwDPR1BC5482oun/vToUZxqcJhCRLdi12mQ=
+	t=1783078729; cv=none; b=Djv1Ol+t8ncvJZ4KdlHJMpqu1xv32D+nS7qmLgY4lj1XYgoCd1OaHNrf8YYVDOQx2yiZbEcN8T8qznWX6/0Q8h7fAkxAUVbXfObWpAizHObm9WmVMBufejrjc2mqMpw7dMQfQWXZUMI79+tVFZXgEUh9ao0oPJ7Q/J4ozyHET38=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783078724; c=relaxed/simple;
-	bh=vdEWfp2W8zZYyy/5gOlAsLbYvMNnsVT7/VzoXV4pU7I=;
+	s=arc-20240116; t=1783078729; c=relaxed/simple;
+	bh=JHzkAwTMIE4wy6pT6pSWGsdsxLQjr3L8P8SNn9QXRi8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Kf3L92M2OdvmoDWsRqpeEtNBo/VRNO5IaSeSJY9OC5XAojsXyORwz4LRYGkEQV3q4IVLtblOJxk9cQsbTwrurVs/A8LhXpwgFje6cOuEh096tCzC1/QZvOEzk2GG6HbCSyZGDFjotttak/MGBFaMrBzaMSj7rFD5m6j0uWV2B/M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dtSS9Rz8; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=hn1VckDLOnatGMUczvVMD2LR6l+zIzUX2gvZpkcMCVP95rfdFx/5r9p4VBW9cwM3nE0voxLsZ14d+be+hvL1NI2r3feRfEYNzFYMXJkS+CMbogQGL7mqTh9gXlPoYI41+uwv1dtGz6ssxntcOoenY0KjXyzAikUFaN0PT0CQ1cw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kOukbu1R; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dtSS9Rz8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 938AE1F000E9;
-	Fri,  3 Jul 2026 11:38:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kOukbu1R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F2C31F000E9;
+	Fri,  3 Jul 2026 11:38:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783078723;
-	bh=+1g0a/oI7q8NS+FNjuOV9wiQn/4kU8SwMtrcV+zt1SQ=;
+	s=k20260515; t=1783078728;
+	bh=7TDYlU/zLWyRnZ0/k89b2NxMS6tSRpsOYAXYgFKlsAY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=dtSS9Rz8gBgjAVMTv168NynWaVTbZRlaa8mBtSceXVM7o5F4rTc+YC9QnGAVPqhil
-	 w33d3JvxAK+Gzd54Fq5kV4ZjTjcu45JFBDcTuGNO/hRqE1fTM4beLqnf+BnLO6HJ4f
-	 OVz/I5FHMLeSJWKsUvTl7Vi6fYK0DwpSlNBJgR9PpK7/LbZWwVUDxB5XtkkIdExfPd
-	 QLjKZ/ql4MjkUk0GNwhE9wQb2VqA/FubNcOydC0TIysMsZuSXw8oQZqqelKZKqGNJY
-	 tb9ghVVhgwjHHKLs+s+yHbJvgub84SkzQTy0Z38ntGeolJEMDhSF8QkLgiNWX2bc93
-	 H/D1JhGfxIJMw==
-From: "Rafael J.  Wysocki" <rafael@kernel.org>
+	b=kOukbu1RgC2TMA1HUOS5maoeiVQsn7zNKR3Or4f0FdnaWjNVRDnEXB6wWd2Vpk9Bj
+	 oJIWCHD/7VfPnMM/GVNarZKCXvBgGGNzYojch1uuvXTogyG0C+McpLXjkln7muFrS0
+	 taaoYR3wfykNdLDxKhxbBmtzXE8LycaLi2NtOkv8VmYe5pg2cDeczBJAn8UUPDyNrf
+	 Cy8Bqd3B7RoQjg8FDMcCDsM3bVUhfJU+rLAqNVPZwt0u1h2Xu9hfkVgpGaqTIg0d2Q
+	 d8EAsz5Ob/JQPHEvjfY1WNlvpsdA6S4n0cZt3OZkMkxNxoDhGdIjE5vrAHRnDVezkv
+	 zxF/H84c1hWiA==
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
  platform-driver-x86@vger.kernel.org
 Cc: LKML <linux-kernel@vger.kernel.org>,
@@ -40,9 +40,10 @@ Cc: LKML <linux-kernel@vger.kernel.org>,
  Kenneth Chan <kenneth.t.chan@gmail.com>, Mattia Dongili <malattia@linux.it>,
  Azael Avalos <coproscefalo@gmail.com>
 Subject:
- [PATCH v1 07/10] platform/x86: sony-laptop: Stop setting acpi_device_class()
-Date: Fri, 03 Jul 2026 13:32:31 +0200
-Message-ID: <9664323.CDJkKcVGEf@rafael.j.wysocki>
+ [PATCH v1 06/10] platform/x86: panasonic-laptop: Stop setting
+ acpi_device_name/class()
+Date: Fri, 03 Jul 2026 13:30:56 +0200
+Message-ID: <3979672.kQq0lBPeGt@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <5135166.31r3eYUQgx@rafael.j.wysocki>
 References: <5135166.31r3eYUQgx@rafael.j.wysocki>
@@ -57,48 +58,39 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Since acpi_device_class() set by the driver is only used for generating
-ACPI netlink events and the "sony/hotkey" string literal may as well be
-used directly for this purpose, make the driver do so and stop setting
-acpi_device_class() in it.
+The driver sets acpi_device_name() and acpi_device_class() which are
+never read afterward, so make it stop doing that and drop the symbols
+defined specifically for this purpose.
 
 No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/platform/x86/sony-laptop.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/platform/x86/panasonic-laptop.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index 67370967df6f..0bf4d3054e37 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -1264,7 +1264,7 @@ static void sony_nc_notify(acpi_handle ah, u32 event, void *data)
- 		ev_type = HOTKEY;
- 		sony_laptop_report_input_event(real_ev);
- 	}
--	acpi_bus_generate_netlink_event(sony_nc_acpi_device->pnp.device_class,
-+	acpi_bus_generate_netlink_event("sony/hotkey",
- 			dev_name(&sony_nc_acpi_device->dev), ev_type, real_ev);
- }
+diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform/x86/panasonic-laptop.c
+index 719add753cb3..3effb11c4153 100644
+--- a/drivers/platform/x86/panasonic-laptop.c
++++ b/drivers/platform/x86/panasonic-laptop.c
+@@ -159,8 +159,6 @@ MODULE_LICENSE("GPL");
+ #define ECO_MODE_ON		0x80
  
-@@ -3157,8 +3157,6 @@ static int sony_nc_probe(struct platform_device *pdev)
- 		return -ENODEV;
+ #define ACPI_PCC_DRIVER_NAME	"Panasonic Laptop Support"
+-#define ACPI_PCC_DEVICE_NAME	"Hotkey"
+-#define ACPI_PCC_CLASS		"pcc"
  
- 	sony_nc_acpi_device = device;
--	strscpy(acpi_device_class(device), "sony/hotkey");
--
- 	sony_nc_acpi_handle = device->handle;
+ #define ACPI_PCC_INPUT_PHYS	"panasonic/hkey0"
  
- 	/* read device status */
-@@ -4523,7 +4521,6 @@ static int sony_pic_probe(struct platform_device *pdev)
- 		return -ENODEV;
+@@ -1017,8 +1015,6 @@ static int acpi_pcc_hotkey_probe(struct platform_device *pdev)
+ 	pcc->device = device;
+ 	pcc->handle = device->handle;
+ 	device->driver_data = pcc;
+-	strscpy(acpi_device_name(device), ACPI_PCC_DEVICE_NAME);
+-	strscpy(acpi_device_class(device), ACPI_PCC_CLASS);
  
- 	spic_dev.acpi_dev = device;
--	strscpy(acpi_device_class(device), "sony/hotkey");
- 	sony_pic_detect_device_type(&spic_dev);
- 	mutex_init(&spic_dev.lock);
- 
+ 	result = acpi_pcc_init_input(pcc);
+ 	if (result) {
 -- 
 2.51.0
 
