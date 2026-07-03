@@ -1,71 +1,151 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8FC43C8716;
-	Fri,  3 Jul 2026 11:39:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C57083CD8B0
+	for <linux-acpi@vger.kernel.org>; Fri,  3 Jul 2026 12:04:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783078758; cv=none; b=llQ82NBNqrN/RhNC0ydMGNdVGhLaUK+NEggXbzEqqVlP0DWqyh9LpXRJS+YQOwnouBTiGTD0EikhxDDsSaIIETz14naUtHsovogttgr59L1DkDDfSmfVig/AHPEKUzqlDaYxMHoJuh+iLi+GWEgc/wh8Gyco8Kznlb8BWVxo/PI=
+	t=1783080297; cv=none; b=lyocAr9Bv3rPiHtXmJLyuZVLiyrEX8V+2GuWtX98QgRK3cw56fvUtNGaMBziVsbT1XrSgbSg3lAgqahA856fLVqNINnMJcE1mSFD0pgizca6/FStziSJiWoVNY31TNy272fUP+tfgddpQc4666horE5pRSFmBnjS9B2k+gFcwdk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783078758; c=relaxed/simple;
-	bh=pf5V9wP6Ld6uqFA8mlK1Kv6cIbJp0Hg5jSt/Lxi68iY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=P0ydOpt8qBpp3fwvH77MX+IGWUYKQrFfj2F416g/8fQ7JsKf1wCciK451PNWdCUGQN1yXMsogOAwoYJdLgO+eJBhTyqymeCn30s099Y2XzFbzZiGcVm9ffKC69mQ57gP7TKSNdf3VxI7vsExGjoXyHGCV5CjAXjlvOU1To76xpk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RJFeBBD9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783080297; c=relaxed/simple;
+	bh=56Siyovl6VI/xXaoNR4iTACjQL+X7tU79OlaOV6Kjeg=;
+	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=CbZ4hEtnjsOtHXdvru1uXokMmvbo/4r9OYf4CPZbQuIiXSDRaE8NDFDttgZMNTjs7SBEIaeP6PwwskIGqdtc1VgoxLK3UkmTHjDJ4TlDH5q0m+tGp1gVGcp9T+0/l7JplrU8Cuc2puF9TQfxcC/ReSZVjSCNG7ATJPpNohFpyeo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=R43BrsCk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RJFeBBD9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D1B31F000E9;
-	Fri,  3 Jul 2026 11:39:14 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="R43BrsCk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A80E21F01559
+	for <linux-acpi@vger.kernel.org>; Fri,  3 Jul 2026 12:04:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783078757;
-	bh=pf5V9wP6Ld6uqFA8mlK1Kv6cIbJp0Hg5jSt/Lxi68iY=;
-	h=From:To:Cc:Subject:Date;
-	b=RJFeBBD98qjzTKUhe1GOw5uNvcKYy9xyzfRiJoEQHrSTUoes8h+6RZcIWSPGg3YcG
-	 JHe410ie5NBRFX2zXowTprcvNeKMnQwHIPzuHIjPqhRz54KqHDTqwHARgw097OcW7D
-	 PcGEmv8ZzkH3ljKwCNQjM7zoDTEYKXbU+a8stkyxBjist9pQNzyonvRRFFC4j+SHiz
-	 GEo+20ujQtoBkBjl0GZRpkXZp65VZTPCL6adOlUn6PubQV9yy0G069UNc6J+LxMHJo
-	 9Jzf5tu9jIqeJl2MjjY5f2PgO5otm9nr8o2tVgqIqNQbZ6hvw+zr78gobfUI4z0E1U
-	 SHkyGugkwmMUQ==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
- platform-driver-x86@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>,
- Linux ACPI <linux-acpi@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Corentin Chary <corentin.chary@gmail.com>, "Luke D. Jones" <luke@ljones.dev>,
- Denis Benato <denis.benato@linux.dev>, Jonathan Woithe <jwoithe@just42.net>,
- Robert Gerlach <khnz@gmx.de>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>,
- Mark Pearson <mpearson-lenovo@squebb.ca>,
- "Derek J. Clark" <derekjohn.clark@gmail.com>,
- Kenneth Chan <kenneth.t.chan@gmail.com>, Mattia Dongili <malattia@linux.it>,
- Azael Avalos <coproscefalo@gmail.com>
-Subject: [PATCH v1 00/10] platform/x86: Stop using acpi_device_name/class()
-Date: Fri, 03 Jul 2026 13:15:01 +0200
-Message-ID: <5135166.31r3eYUQgx@rafael.j.wysocki>
-Organization: Linux Kernel Development
+	s=k20260515; t=1783080296;
+	bh=lYt6V9Jnqt8R/CJJl+keIMNvwfnVSgPAem6i+B/iGB0=;
+	h=From:In-Reply-To:References:Date:Subject:To:Cc;
+	b=R43BrsCkCyKD/cc1XKL6zqzw3XTY2TUpQl7n0q5JuLJdVZNi18xkae1IcOWb2pmP2
+	 illl8oyL+0cRX0a1cWPr+392XOPXDshG8txXXgvS94Pp4A+9wQYLOQOlDuarGUYpNa
+	 JJfDmLgE6juRr8ofDcXTnOfq2Z9ENufPlYGG+yOG/Imcaimd0ivaN3esJXMdFhYPFQ
+	 Bexmo1mq6eIpDnf3bjJSY/SnYCDQOQxQEIeP3Qte3g+4Mh/Byg7UCDdPPnWPgQA3wM
+	 A4JVLQ0D5sW6yI4X5kTy2RCb8QmLJC/zsYvs7mMibj9jUM++lMCCkhqezmnfaIVnt/
+	 F5x0ONb5FeqHA==
+Received: by mail-lj1-f179.google.com with SMTP id 38308e7fff4ca-39669bcaadfso5121271fa.0
+        for <linux-acpi@vger.kernel.org>; Fri, 03 Jul 2026 05:04:56 -0700 (PDT)
+X-Gm-Message-State: AOJu0YwaIWsHQeb3KO4l9PDos7o+H+RBy8IQGXLr6NVN8IDpFAIA/b/i
+	gJ5nesuJMb17FS2BaoHzcUbdmjLUu2E3NmCd3DXzKZbos1dkKrlwAnvwEaM0fDfBaHPcaL242qJ
+	5c2Al8D9AdHtkdKe7LacUeDrjbcjy/QPD/J/0ZNqXXw==
+X-Received: by 2002:a2e:beaa:0:b0:39b:32b3:b31f with SMTP id
+ 38308e7fff4ca-39b36dbe62amr23176871fa.5.1783080295099; Fri, 03 Jul 2026
+ 05:04:55 -0700 (PDT)
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Fri, 3 Jul 2026 07:04:53 -0500
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Fri, 3 Jul 2026 07:04:53 -0500
+From: Bartosz Golaszewski <brgl@kernel.org>
+In-Reply-To: <20260703110317.1283411-3-wenst@chromium.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+References: <20260703110317.1283411-1-wenst@chromium.org> <20260703110317.1283411-3-wenst@chromium.org>
+Date: Fri, 3 Jul 2026 07:04:53 -0500
+X-Gmail-Original-Message-ID: <CAMRc=Mc7TzwLS1Kbyd9OwXPJcHk-39kxgfagxxCCbKYK8QG0Vg@mail.gmail.com>
+X-Gm-Features: AVVi8CfmsSUQO2IQlOpABcTwLAPK-fQZLHJJwpMHDg07kXLzC1jeLanLhSp6ZO4
+Message-ID: <CAMRc=Mc7TzwLS1Kbyd9OwXPJcHk-39kxgfagxxCCbKYK8QG0Vg@mail.gmail.com>
+Subject: Re: [PATCH v3 02/13] device property: Add fwnode_graph_get_next_port_endpoint()
+To: Chen-Yu Tsai <wenst@chromium.org>
+Cc: linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
+	linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org, 
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	Manivannan Sadhasivam <mani@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, 
+	Bartosz Golaszewski <brgl@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
 Content-Type: text/plain; charset="UTF-8"
 
-Hi All,
+On Fri, 3 Jul 2026 13:03:03 +0200, Chen-Yu Tsai <wenst@chromium.org> said:
+> Due to design constraints of the power sequencing API, the consumer
+> must first be sure that the other side is actually a provider, or it
+> will continually get -EPROBE_DEFER when requesting the power
+> sequencing descriptor.
+>
+> In the upcoming USB power sequencing integration, the USB hub driver
+> first needs to check whether a graph connection exists, and whether
+> the other side of the connection is a supported connector type. The
+> USB port is tied to a "port" firmware node, and this new helper will
+> be used to get the endpoint under the known "port" firmware node.
+>
+> Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
+> ---
+> Changes since v2:
+> - Dropped unused |ep| variable
+> - Rewrote as do {} while()
+> - Dropped WARN() use
+> ---
+>  drivers/base/property.c  | 25 +++++++++++++++++++++++++
+>  include/linux/property.h |  2 ++
+>  2 files changed, 27 insertions(+)
+>
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 3e3e19ef66a9..7e7ad3635806 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -1099,6 +1099,31 @@ int fwnode_irq_get_byname(const struct fwnode_handle *fwnode, const char *name)
+>  }
+>  EXPORT_SYMBOL(fwnode_irq_get_byname);
+>
+> +/**
+> + * fwnode_graph_get_next_port_endpoint - Get next endpoint firmware node in port
+> + * @port: Pointer to the target port firmware node
+> + * @prev: Previous endpoint node or %NULL to get the first
+> + *
+> + * The caller is responsible for calling fwnode_handle_put() on the returned
+> + * fwnode pointer. Note that this function also puts a reference to @prev
+> + * unconditionally.
+> + *
+> + * Return: an endpoint firmware node pointer or %NULL if no more endpoints
 
-There are two fields in struct acpi_device_pnp, device_name and device_class,
-that were supposed to be populated and used by device drivers, but they have
-never been used consistently and some drivers just populate them and don't
-access them later, and some drivers use them uninitialized.
+I think the correct keyword is Returns: followed by a newline.
 
-All of that is confusing and messy, so the drivers for core ACPI devices
-have been updated to stop using those fields which are now slated for
-removal, but they are still accessed in some places.
+> + * are available.
+> + */
+> +struct fwnode_handle *fwnode_graph_get_next_port_endpoint(const struct fwnode_handle *port,
+> +							  struct fwnode_handle *prev)
+> +{
+> +	do {
+> +		prev = fwnode_get_next_child_node(port, prev);
+> +		if (fwnode_name_eq(prev, "endpoint"))
+> +			break;
+> +	} while (prev);
+> +
+> +	return prev;
+> +}
+> +EXPORT_SYMBOL_GPL(fwnode_graph_get_next_port_endpoint);
+> +
+>  /**
+>   * fwnode_graph_get_next_endpoint - Get next endpoint firmware node
+>   * @fwnode: Pointer to the parent firmware node
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index e04901c0bd8f..931e703393cb 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -506,6 +506,8 @@ int fwnode_get_phy_mode(const struct fwnode_handle *fwnode);
+>  void __iomem *fwnode_iomap(struct fwnode_handle *fwnode, int index);
+>
+>  struct fwnode_handle *fwnode_graph_get_port_by_id(struct fwnode_handle *fwnode, u32 id);
+> +struct fwnode_handle *fwnode_graph_get_next_port_endpoint(
+> +	const struct fwnode_handle *port, struct fwnode_handle *prev);
+>  struct fwnode_handle *fwnode_graph_get_next_endpoint(
+>  	const struct fwnode_handle *fwnode, struct fwnode_handle *prev);
+>  struct fwnode_handle *
+> --
+> 2.55.0.rc0.799.gd6f94ed593-goog
+>
+>
 
-This series updates platform x86 drivers accessing those fields to stop
-doing that.
-
-Thanks!
-
-
-
+Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
