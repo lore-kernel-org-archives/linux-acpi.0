@@ -1,169 +1,108 @@
-Received: from fhigh-a1-smtp.messagingengine.com (fhigh-a1-smtp.messagingengine.com [103.168.172.152])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44F1F3D093C;
-	Fri,  3 Jul 2026 12:19:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.152
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E90E03CF213;
+	Fri,  3 Jul 2026 12:19:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783081147; cv=none; b=KjYY5AqeYPi+CItLxqnhSKMTo0BcCxar4vFZZQzUqJGUjL7T2/rrmq3avJPCy4VlM4PmbRZGtxWY/0LQUiXOfT//Xn0Ji2eMTWCdZxgpsou7uKz93DYz6BkwTsPPGS7irz3pvSCg1WHAV0FEJ3iKExg5LbrQN/Mg/wZNQLIO03Y=
+	t=1783081182; cv=none; b=kUC4q1TvKuDF8+oooUpUtjU9semDCy2tTl64x72mIWSocDZGbjNUnJo0xHt03Bph8wQ2S40lzJ2dLYft8Rdyk8KMmuyzEFzkuM4Ce1zfFhVp717BRscH872QnxysfEvh6ThgsPbKQKOnmY+uMRtYDSpJBkION+8OLR64zGUXpCg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783081147; c=relaxed/simple;
-	bh=12YlXocD6vwGtLm7pWmY+UOrOE22PEGR03PpYQCuas8=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=Pqn5AWPHleZqumM24hVzYuDSzxz2Xi1GeqxBqd77FFzehRHkqrIyIytn9+46Ygs7u9VHFJzZnW8aHUIWMPDYgneQCJ9oW1RcX6XKFkmlw/IyWIHmMVRYSPmwbyP/uQZOWcMJPX4sp0mJMKEmbS2KiuVqYAcvaQAD8AoFMHhAfAI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=squebb.ca; spf=pass smtp.mailfrom=squebb.ca; dkim=pass (2048-bit key) header.d=squebb.ca header.i=@squebb.ca header.b=JZC/GuCV; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=kwZiR96q; arc=none smtp.client-ip=103.168.172.152
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=squebb.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=squebb.ca
+	s=arc-20240116; t=1783081182; c=relaxed/simple;
+	bh=Vy3aKBXE39XYVmw6NGgUx2/6br2VXnQLBXLQjr80EfA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=J1JDlY5f8uaduER/nqZIaxwUzJJBACrxFzrJLK9GsiKmTMaNW21G6w+SHWA6E/KjSXyRtYUjW6NdK0UWe//mpc1Cpdz2QrSrMxQsmNS1EG79u/Aoxv1pHyR4SSjkaRevYZqZGfnOqCsgw2+1dqOaBDjlSgG3v8y+HXFsIfRBjbA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=X6SfdXxj; arc=none smtp.client-ip=198.175.65.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=squebb.ca header.i=@squebb.ca header.b="JZC/GuCV";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="kwZiR96q"
-Received: from phl-compute-02.internal (phl-compute-02.internal [10.202.2.42])
-	by mailfhigh.phl.internal (Postfix) with ESMTP id 559A414000BB;
-	Fri,  3 Jul 2026 08:19:04 -0400 (EDT)
-Received: from phl-imap-08 ([10.202.2.84])
-  by phl-compute-02.internal (MEProxy); Fri, 03 Jul 2026 08:19:04 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=squebb.ca; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm3; t=1783081144;
-	 x=1783167544; bh=2L4znT/R1HXo95o/f9BGeTnIQ6jE7mQJd3UaZND8lQo=; b=
-	JZC/GuCVlTG3pDv8ia/5arSP3aIMT+bMGA1s31uRgjPgFIxnXmFHqkK/1yFI6xDM
-	AXtk5UpHBhIK53G2kPi89W0iBmfS9aOQZyceJno19qRq8HnQ6QddSwVUzPQMBg+s
-	mZ7IXG7OLf3UnjX3BZSd49ALsCgGkdkO9Cji4018iWIwuDVDcF0IMdGmyNEi65Yd
-	s0UqNBtVLdgDnLwIqz6C4natTcA5/HuY9+YBeQaSpzekcmmEELl8cGj4rW7OIlo3
-	FmYXR8UDfY0klcZv9/Q7LSIGp1pJkb2FY+CgSENzMyx0Jd8p4fJ5VWr8h377nyHY
-	SbbtPKsdzWe+aJ+sfhPYbw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1783081144; x=
-	1783167544; bh=2L4znT/R1HXo95o/f9BGeTnIQ6jE7mQJd3UaZND8lQo=; b=k
-	wZiR96qWvXq9WyZhRHgJdtvRLb7BvLiQSvFPr2f8mL9kVw0IGIcBfJEGOWHUNCGZ
-	HrzROZjChq8zjO8vS/lyv8oMD8VI5OVZ/ARYcpCvLV+uxifKX73Jl5ap7bVgc8fo
-	sbEjzcbl0EVZIpnl0LKLttbh56cTynHfhXS/+u9Wj3xhOZ9ZXSi6hzW1EVXGot8P
-	Rgz80LXBqnSRREyBhpt6WAbXSKuJUXQkwEO+1Q7/w5KFryz39gPUFDMbCzxYr2Pm
-	Wqt1FLNx3yPNBowqL0UFmsYyPpt05aQDacIU1V2kG95Zi+CI9/U9X3++ph4PTScY
-	zgq6Bw2gkDWCEA/9ns1AA==
-X-ME-Sender: <xms:tqhHakSS3BMyaSL9-PJqT9_ZmOr7TqP1jx0rIw_7_NTHlFWwsASZgg>
-    <xme:tqhHaskykkqKH1JfPIWWq_8ijtUn8_PFLGQwfIKymCCgVcAvMBqb4_XVAT18xv-8A
-    AvJPG5QA_AKWKlKUQo-sQSa7z99SNk66-lGFFOYeL8xRuUfuivggQ>
-X-ME-Proxy-Cause: dmFkZTGfBWPTO9NEMiWR5NWTf2oMv9G+s5CCu0Nt/ZL56jR0AM6sowOSaXS/sxhaUZq3Cb
-    qvwcSo5UW/3ohcySTJ44vHXWonknhPSqoxYY+mYhIN/3OD7jBClIPraQswu+nA75vL1z41
-    Rlc4QQ0kYdfzQpYRoIBL05cEvpV/w/NatwdzoJw6CnzoVZxXuuvxRClG8iTid2fzxL4rpp
-    G1sPZ2sFDr+XP288R+UFxRL7Ejwv6BACWPLOR/1Wo6+abEkh1x2F84buhHoa+4YBHpTj0i
-    sqpfQtZBE2rYkx7S7qiuxtYfbjAkGMcte4yMPvz0zeFS2cc4poZShKjFwGVYvhtNQcXKp/
-    docDjObd03BjZWfwJNOtgF/sMo1sMJQLNvtNDIgret6fw/YBJ+kbqDB3bjb4+1Cw8sObeF
-    +BmzqU48O18Fw23xoPX/ic4h/paMowDywYT5USFAmRJCYnj+KcWbc/dZp2r4UYA4Coa81I
-    XS59jEjfuP/DiTyHvq+/DjHwIqnlMiAazE3IZY40PD8zJYus9eF/Jv6UbuBL6XBapjb0yw
-    rV4PxALYHKerAR7QkHRTrBNrdYWTkpI+gWmEtlrfn7bScHzcPALNNjuQcouWnCDD6qIWtr
-    QPMpj+ZBn9waWXmct0vuxyyRN4NaGnJA7+6k0Y++qiEEWBVdm8ixMuP1tMVA
-X-ME-Proxy: <xmx:tqhHai2iin20r47wjPmXHoIVlLWrq8cc1_vojK4F8NeMYd7pXO8Gdg>
-    <xmx:tqhHat0WYCaXYcYQJPcmtVqvJ0DXcqbX9Bg61FNFXOVi40xA4rRGpA>
-    <xmx:tqhHaplpz6_KqH3vdsosoh3_vPMCT7YTExEDVMzFWBpVgXV7plR9AQ>
-    <xmx:tqhHamMDVp2GJEl5Kmk1vcAYXevyp4ZL7FYqOENC04RwIpqfqrREZg>
-    <xmx:uKhHah2oGQPomM86V2uDi2BLvSoihURcu3anzQbT3e2RycmcGrMunxDl>
-Feedback-ID: ibe194615:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 9BCF02CE0072; Fri,  3 Jul 2026 08:19:02 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="X6SfdXxj"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1783081181; x=1814617181;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=Vy3aKBXE39XYVmw6NGgUx2/6br2VXnQLBXLQjr80EfA=;
+  b=X6SfdXxjJQ4/opUDefZbxViTl63eV34M1+DNNv7DXknjCEMpr8bnk5It
+   Ckb2QxkItIlx8uxrbNqDPjto7HFi57RI9rakNvZwpah3RCoi6mvt0OWZ9
+   WyMgOpwHoeVcSTlYxDnKwzW0MwIQ+tGI8KLo8evCjrDHWZZRQTCIbP5yb
+   AG65Aza4i6SgUDKHL0PTzhmULvEj8sjxEemidHnnv+8rVCd/u6KeQIK5V
+   uKvlDDEvhwnS81FyvSG12DYxgsihh1lRcurQUqL69Dh0viaFulez8dK+P
+   3q//YPydoRF4COhNYr0vfs/LJJJ1ZGVFnWyLhkleWbW6ahzrWQH8zOmMu
+   A==;
+X-CSE-ConnectionGUID: mG7O7HFORuC887l8pgWmXg==
+X-CSE-MsgGUID: hti21FMpTAagM21Ae80UyA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11835"; a="95341269"
+X-IronPort-AV: E=Sophos;i="6.25,145,1779174000"; 
+   d="scan'208";a="95341269"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jul 2026 05:19:40 -0700
+X-CSE-ConnectionGUID: h2QoBVbqR6uWJQHZCZdq6g==
+X-CSE-MsgGUID: iajW1dCgQPazovXbSw5TBw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,145,1779174000"; 
+   d="scan'208";a="257993745"
+Received: from carterle-desk.ger.corp.intel.com (HELO localhost) ([10.245.245.80])
+  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jul 2026 05:19:35 -0700
+Date: Fri, 3 Jul 2026 15:19:32 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	platform-driver-x86@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	Linux ACPI <linux-acpi@vger.kernel.org>,
+	Hans de Goede <hansg@kernel.org>,
+	Corentin Chary <corentin.chary@gmail.com>,
+	"Luke D. Jones" <luke@ljones.dev>,
+	Denis Benato <denis.benato@linux.dev>,
+	Jonathan Woithe <jwoithe@just42.net>, Robert Gerlach <khnz@gmx.de>,
+	Henrique de Moraes Holschuh <hmh@hmh.eng.br>,
+	Mark Pearson <mpearson-lenovo@squebb.ca>,
+	"Derek J. Clark" <derekjohn.clark@gmail.com>,
+	Kenneth Chan <kenneth.t.chan@gmail.com>,
+	Mattia Dongili <malattia@linux.it>,
+	Azael Avalos <coproscefalo@gmail.com>
+Subject: Re: [PATCH v1 00/10] platform/x86: Stop using
+ acpi_device_name/class()
+Message-ID: <akeo1CfX1ayQPPew@ashevche-desk.local>
+References: <5135166.31r3eYUQgx@rafael.j.wysocki>
+ <akemrOqzWtcDVqey@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: APtYGyCKnsow
-Date: Fri, 03 Jul 2026 08:18:42 -0400
-From: "Mark Pearson" <mpearson-lenovo@squebb.ca>
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
- =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
- "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
- "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
- "Hans de Goede" <hansg@kernel.org>,
- "Andy Shevchenko" <andriy.shevchenko@linux.intel.com>,
- "Corentin Chary" <corentin.chary@gmail.com>,
- "Luke D . Jones" <luke@ljones.dev>, "Denis Benato" <denis.benato@linux.dev>,
- "Jonathan Woithe" <jwoithe@just42.net>, "Robert Gerlach" <khnz@gmx.de>,
- "Henrique de Moraes Holschuh" <hmh@hmh.eng.br>,
- "Derek J . Clark" <derekjohn.clark@gmail.com>,
- "Kenneth Chan" <kenneth.t.chan@gmail.com>,
- "Mattia Dongili" <malattia@linux.it>, "Azael Avalos" <coproscefalo@gmail.com>
-Message-Id: <c88257d0-1302-4d7b-a6ac-91281a48d7c5@app.fastmail.com>
-In-Reply-To: <23182921.EfDdHjke4D@rafael.j.wysocki>
-References: <5135166.31r3eYUQgx@rafael.j.wysocki>
- <23182921.EfDdHjke4D@rafael.j.wysocki>
-Subject: Re: [PATCH v1 05/10] platform/x86: thinkpad_acpi: Stop setting
- acpi_device_class()
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <akemrOqzWtcDVqey@ashevche-desk.local>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
+
+On Fri, Jul 03, 2026 at 03:10:26PM +0300, Andy Shevchenko wrote:
+> On Fri, Jul 03, 2026 at 01:15:01PM +0200, Rafael J. Wysocki wrote:
+> > Hi All,
+> > 
+> > There are two fields in struct acpi_device_pnp, device_name and device_class,
+> > that were supposed to be populated and used by device drivers, but they have
+> > never been used consistently and some drivers just populate them and don't
+> > access them later, and some drivers use them uninitialized.
+> > 
+> > All of that is confusing and messy, so the drivers for core ACPI devices
+> > have been updated to stop using those fields which are now slated for
+> > removal, but they are still accessed in some places.
+> > 
+> > This series updates platform x86 drivers accessing those fields to stop
+> > doing that.
+> 
+> In most of the patches you have double space in your name in From. Can we have
+> some consistency here? Or is it deliberate (in which case I'm wondering why)?
+
+I looked into all patches and I see them good.
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+(with preferably used same From field across the patches).
+
+-- 
+With Best Regards,
+Andy Shevchenko
 
 
-
-On Fri, Jul 3, 2026, at 7:30 AM, Rafael J.  Wysocki wrote:
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
->
-> To facilitate the removal of device_class from struct acpi_device_pnp
-> in the future, make the driver store the device class string used for
-> generating ACPI netlink events in a new device_class field in struct
-> ibm_struct.
->
-> No intentional functional impact.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/platform/x86/lenovo/thinkpad_acpi.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/platform/x86/lenovo/thinkpad_acpi.c 
-> b/drivers/platform/x86/lenovo/thinkpad_acpi.c
-> index 445e1403308e..f614b2701d48 100644
-> --- a/drivers/platform/x86/lenovo/thinkpad_acpi.c
-> +++ b/drivers/platform/x86/lenovo/thinkpad_acpi.c
-> @@ -309,6 +309,7 @@ struct tp_acpi_drv_struct {
-> 
->  struct ibm_struct {
->  	char *name;
-> +	acpi_device_class device_class;
-> 
->  	int (*read) (struct seq_file *);
->  	int (*write) (char *);
-> @@ -838,9 +839,8 @@ static int __init setup_acpi_notify(struct ibm_struct *ibm)
->  	}
-> 
->  	ibm->acpi->device->driver_data = ibm;
-> -	scnprintf(acpi_device_class(ibm->acpi->device),
-> -		  sizeof(acpi_device_class(ibm->acpi->device)),
-> -		  "%s/%s", TPACPI_ACPI_EVENT_PREFIX, ibm->name);
-> +	scnprintf(ibm->device_class, sizeof(ibm->device_class), "%s/%s",
-> +		  TPACPI_ACPI_EVENT_PREFIX, ibm->name);
-> 
->  	status = acpi_install_notify_handler(*ibm->acpi->handle,
->  			ibm->acpi->type, dispatch_acpi_notify, ibm);
-> @@ -3869,7 +3869,7 @@ static void hotkey_notify(struct ibm_struct *ibm, 
-> u32 event)
->  		pr_err("unknown HKEY notification event %d\n", event);
->  		/* forward it to userspace, maybe it knows how to handle it */
->  		acpi_bus_generate_netlink_event(
-> -					ibm->acpi->device->pnp.device_class,
-> +					ibm->device_class,
->  					dev_name(&ibm->acpi->device->dev),
->  					event, 0);
->  		return;
-> @@ -3949,7 +3949,7 @@ static void hotkey_notify(struct ibm_struct *ibm, 
-> u32 event)
->  		/* netlink events */
->  		if (send_acpi_ev) {
->  			acpi_bus_generate_netlink_event(
-> -					ibm->acpi->device->pnp.device_class,
-> +					ibm->device_class,
->  					dev_name(&ibm->acpi->device->dev),
->  					event, hkey);
->  		}
-> -- 
-> 2.51.0
-
-Looks good to me.
-Reviewed-by: Mark Pearson <mpearson-lenovo@squebb.ca>
