@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79AFC38E8A0;
-	Fri,  3 Jul 2026 11:38:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C25C3C3456;
+	Fri,  3 Jul 2026 11:39:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783078739; cv=none; b=oFSWX+F/J/ZS+tdsg+vrDV6s2NyQWPNMgqk9cZy12b0NkppblJ2QhHsoXX3L6mEPoP9gNxGsV1Acr3gAXeo0lQ3gySfNgZ5iU7W2BH+1Xd22J52+ovCZc5l+wSTklAmImmCNcaDsTyuMTRZJkGqMhSRgJoKMIvXwGIc7dbg7h24=
+	t=1783078744; cv=none; b=qW9xD0qyuvV6PTdW70Ly7CIrwF2PpBzkYXay4rJwEhgplfetzqjT9620gS2jpuuWpZuj3Vhj77Lc8RB/DAD5AKIKcWNZbMXvAr9WwxQtap8JhE2h+84KvMDzh7xQY/3DqPkwpxVRlveiYuMzOYzOigi4sGyipo/89L4kQ2LYGQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783078739; c=relaxed/simple;
-	bh=a5Qpc9DVimR/8kcSPVCsLVjfVGfJlg5KZjN6/fwdFdA=;
+	s=arc-20240116; t=1783078744; c=relaxed/simple;
+	bh=24nHoMeDnM+SI1pgPp8ZRR8O6Xsi9MD3ngM2Irq61nM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=TYGUusf3KFCAdJEi5wq1hUQ2e1QUmn5YyBYDWZlrbL6WG9WZn5QoYSjPDrhLTRJtqU21n282mhJIlC2NBolN+ySNAjeK9b4IvFZ9MBYRwKF055cPc/tbh0Tho28Kzgd4OGif5xA8BENCz2z6/6+YO+U8ISoMIvhFI5wZEFvVogo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=heRxJECA; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=T594s96enO9r+5zQSHo82wWPEekgrFdWR1u51SYbFWzH+6m1kvUhvpwFuK2nErxKFdhsCvo8x9C8nOUq51J2nLiiPsaOEI/9c9VKlTGHbjerJy38BKe1xEDjV+2zmavq94mLyFNZ4oTMs1YyWfQ4naUmmoGxCyw7f7dU+XYudtc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YkBw8nvG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="heRxJECA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3939B1F000E9;
-	Fri,  3 Jul 2026 11:38:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YkBw8nvG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D8441F000E9;
+	Fri,  3 Jul 2026 11:38:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783078738;
-	bh=LaqcQM23O9VJnJeccqtlldxfRZe/a0ieEx374T6ST60=;
+	s=k20260515; t=1783078743;
+	bh=4/m3rEKA3k6NSZLpTDcyUpVh3VOoXQBgioiPrw6lREY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=heRxJECAorOsaSV63jssGcYgnjFL2doZMoz8R4XQXUYcj7cmvD/N/B6kOmyPoE2SF
-	 b+t0S1ta8q3N3SaFMsjZrEoUXbWGz+TCgfDr1nYa0OJZ59mY2TpKNHgs8lOtkN6TEH
-	 MUEqEKhGIfmRPuW3dNne23OVAGUBRFcvj/Go8e4YW6an1e91rF8Jtsvgb2dfV7oJWA
-	 BAvZDx9z8xuGJzcZ8o3sU+V+JT8YMCZuR9XAb/lhuNNvqRtdMdrStQR8/0S+aPxVv5
-	 fUNqvXCih4nOiG2mYmxV0dIYTCobH9nHKZZ39Un16iPFC8QUSbdgfoO0ZBkoj/MTUX
-	 3LFBIe+85sUnA==
+	b=YkBw8nvGqNKvCdnNBIeQ0V63bFWv7j1mUtXVKZySvZLlEyqeBuazIbCLayFKzeTez
+	 7flEE9L9AysiHmLzBL+0eO5n82HCz8O93UGchjCBWo54i5zkRy1j15o0AMFRQQJaRn
+	 wsrCzB9w8Qweq8jv5sdJHNrHFOUXra6we5qqbQjHwnWHpXuvTkRG/Ihy1FnhnxAuAP
+	 /3ryPxvVBkMdslSDOYD+/r5/E9XeGLrZU/l21eThcCH9aKiIqzZC69whFUlB07LMpK
+	 peu8RdIgO2Uf+S2ugUTgljb5M635S88ax2oDNdGnPafVVksixse2N9TEZXiHaSP7SJ
+	 pf/YM5WMmEF6g==
 From: "Rafael J.  Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
  platform-driver-x86@vger.kernel.org
@@ -40,10 +40,10 @@ Cc: LKML <linux-kernel@vger.kernel.org>,
  Kenneth Chan <kenneth.t.chan@gmail.com>, Mattia Dongili <malattia@linux.it>,
  Azael Avalos <coproscefalo@gmail.com>
 Subject:
- [PATCH v1 04/10] platform/x86: fujitsu-tablet: Stop setting
+ [PATCH v1 03/10] platform/x86: fujitsu-laptop: Stop setting
  acpi_device_name/class()
-Date: Fri, 03 Jul 2026 13:28:41 +0200
-Message-ID: <2378407.iZASKD2KPV@rafael.j.wysocki>
+Date: Fri, 03 Jul 2026 13:23:31 +0200
+Message-ID: <3441919.aeNJFYEL58@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <5135166.31r3eYUQgx@rafael.j.wysocki>
 References: <5135166.31r3eYUQgx@rafael.j.wysocki>
@@ -58,63 +58,90 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-The driver sets acpi_device_class() which is never read afterward,
-so make it stop doing that and drop the symbol defined specifically
-for this purpose.
+The driver sets acpi_device_name() that are only used for printing
+messages and initializing input class device names.  Since
+ACPI_FUJITSU_BL_DEVICE_NAME and ACPI_FUJITSU_LAPTOP_DEVICE_NAME can
+be used directly in all of those cases, make the driver do so and
+stop setting acpi_device_name() in it.
 
-For consistency, also make it stop setting acpi_device_name() and add
-a name field to the "fujitsu" structure for storing the name string
-used during input class device initialization.
-
-While at it, use scnprintf() instead of snprintf() for populating the
-name and phys fields of the "fujitsu" structure.
+Likewise, acpi_device_class() set by the driver are never read
+afterward, so make the driver stop setting it and drop the symbol
+defined specifically for this purpose.
 
 No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/platform/x86/fujitsu-tablet.c | 13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ drivers/platform/x86/fujitsu-laptop.c | 18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/platform/x86/fujitsu-tablet.c b/drivers/platform/x86/fujitsu-tablet.c
-index 2f8c1b89cbca..386ad3aaace8 100644
---- a/drivers/platform/x86/fujitsu-tablet.c
-+++ b/drivers/platform/x86/fujitsu-tablet.c
-@@ -22,8 +22,6 @@
+diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
+index 54d0b9cec4d3..ea543deef68f 100644
+--- a/drivers/platform/x86/fujitsu-laptop.c
++++ b/drivers/platform/x86/fujitsu-laptop.c
+@@ -56,7 +56,6 @@
  
- #define MODULENAME "fujitsu-tablet"
+ #define FUJITSU_LCD_N_LEVELS		8
  
--#define ACPI_FUJITSU_CLASS "fujitsu"
+-#define ACPI_FUJITSU_CLASS		"fujitsu"
+ #define ACPI_FUJITSU_BL_HID		"FUJ02B1"
+ #define ACPI_FUJITSU_BL_DRIVER_NAME	"Fujitsu laptop FUJ02B1 ACPI brightness driver"
+ #define ACPI_FUJITSU_BL_DEVICE_NAME	"Fujitsu FUJ02B1"
+@@ -466,7 +465,7 @@ static int acpi_fujitsu_bl_input_setup(struct device *dev)
+ 	snprintf(priv->phys, sizeof(priv->phys), "%s/video/input0",
+ 		 acpi_device_hid(device));
+ 
+-	priv->input->name = acpi_device_name(device);
++	priv->input->name = ACPI_FUJITSU_BL_DEVICE_NAME;
+ 	priv->input->phys = priv->phys;
+ 	priv->input->id.bustype = BUS_HOST;
+ 	priv->input->id.product = 0x06;
+@@ -546,13 +545,11 @@ static int acpi_fujitsu_bl_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	fujitsu_bl = priv;
+-	strscpy(acpi_device_name(device), ACPI_FUJITSU_BL_DEVICE_NAME);
+-	strscpy(acpi_device_class(device), ACPI_FUJITSU_CLASS);
+ 
+ 	platform_set_drvdata(pdev, priv);
+ 
+-	pr_info("ACPI: %s [%s]\n",
+-		acpi_device_name(device), acpi_device_bid(device));
++	pr_info("ACPI: %s [%s]\n", ACPI_FUJITSU_BL_DEVICE_NAME,
++		acpi_device_bid(device));
+ 
+ 	if (get_max_brightness(&pdev->dev) <= 0)
+ 		priv->max_brightness = FUJITSU_LCD_N_LEVELS;
+@@ -681,7 +678,7 @@ static int acpi_fujitsu_laptop_input_setup(struct device *dev)
+ 	snprintf(priv->phys, sizeof(priv->phys), "%s/input0",
+ 		 acpi_device_hid(device));
+ 
+-	priv->input->name = acpi_device_name(device);
++	priv->input->name = ACPI_FUJITSU_LAPTOP_DEVICE_NAME;
+ 	priv->input->phys = priv->phys;
+ 	priv->input->id.bustype = BUS_HOST;
+ 
+@@ -1012,9 +1009,6 @@ static int acpi_fujitsu_laptop_probe(struct platform_device *pdev)
+ 	WARN_ONCE(fext, "More than one FUJ02E3 ACPI device was found.  Driver may not work as intended.");
+ 	fext = &pdev->dev;
+ 
+-	strscpy(acpi_device_name(device), ACPI_FUJITSU_LAPTOP_DEVICE_NAME);
+-	strscpy(acpi_device_class(device), ACPI_FUJITSU_CLASS);
 -
- #define INVERT_TABLET_MODE_BIT      0x01
- #define INVERT_DOCK_STATE_BIT       0x02
- #define FORCE_TABLET_MODE_IF_UNDOCK 0x04
-@@ -160,6 +158,7 @@ static struct {
- 	struct fujitsu_config config;
- 	unsigned long prev_keymask;
+ 	platform_set_drvdata(pdev, priv);
  
-+	char name[17];
- 	char phys[21];
+ 	/* kfifo */
+@@ -1024,8 +1018,8 @@ static int acpi_fujitsu_laptop_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
  
- 	int irq;
-@@ -458,14 +457,10 @@ static int acpi_fujitsu_probe(struct platform_device *pdev)
- 	if (ACPI_FAILURE(status) || !fujitsu.irq || !fujitsu.io_base)
- 		return -ENODEV;
+-	pr_info("ACPI: %s [%s]\n",
+-		acpi_device_name(device), acpi_device_bid(device));
++	pr_info("ACPI: %s [%s]\n", ACPI_FUJITSU_LAPTOP_DEVICE_NAME,
++		acpi_device_bid(device));
  
--	sprintf(acpi_device_name(adev), "Fujitsu %s", acpi_device_hid(adev));
--	sprintf(acpi_device_class(adev), "%s", ACPI_FUJITSU_CLASS);
--
--	snprintf(fujitsu.phys, sizeof(fujitsu.phys),
--			"%s/input0", acpi_device_hid(adev));
-+	scnprintf(fujitsu.name, sizeof(fujitsu.name), "Fujitsu %s", acpi_device_hid(adev));
-+	scnprintf(fujitsu.phys, sizeof(fujitsu.phys), "%s/input0", acpi_device_hid(adev));
- 
--	error = input_fujitsu_setup(&pdev->dev,
--		acpi_device_name(adev), fujitsu.phys);
-+	error = input_fujitsu_setup(&pdev->dev, fujitsu.name, fujitsu.phys);
- 	if (error)
- 		return error;
- 
+ 	while (call_fext_func(fext, FUNC_BUTTONS, 0x1, 0x0, 0x0) != 0 &&
+ 	       i++ < MAX_HOTKEY_RINGBUFFER_SIZE)
 -- 
 2.51.0
 
