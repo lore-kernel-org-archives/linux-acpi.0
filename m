@@ -1,137 +1,155 @@
-Received: from mail-yx1-f52.google.com (mail-yx1-f52.google.com [74.125.224.52])
+Received: from server.atrad.com.au (server.atrad.com.au [150.101.241.2])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5975A3D6CA0
-	for <linux-acpi@vger.kernel.org>; Fri,  3 Jul 2026 13:20:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.52
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783084817; cv=pass; b=F2jSDkkxK2OVwYsCJdzXqAmIK9IjJR27AeTYT88wIEVvdNyin7dZzqvL5W/3YGqKZMMqNKke4hDQ09+QG9/asPEdlMHX++VWrcG9eftM2qf7dxdeBYI7o51sfYSvEMpbWjneUvtmgralpObKy1y+UcDB9rBz97bA/jquzga9l50=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783084817; c=relaxed/simple;
-	bh=BQD5gv36YoN9ZGBbl8CZ1ceMTLNRoJhvy7PP72AjYTM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=pJLfb/VIBqaBK4JN8/pNbe8Qr0Z4ZpUkP61l1vM7MKWja7rvNL4L++fG9jgw9m6AyVuGqdFoqCSeaQ1xnDfQrK1ktv1O9SmFX6Ph7ffrWtRSj0osjfUvtw8alX1oR1iJb/OF3AI/T2X48F+HI4lmQ9ZgyVDH87PLw1gqOk4fuUU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=grWpVETA; arc=pass smtp.client-ip=74.125.224.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="grWpVETA"
-Received: by mail-yx1-f52.google.com with SMTP id 956f58d0204a3-664b3831a20so757185d50.3
-        for <linux-acpi@vger.kernel.org>; Fri, 03 Jul 2026 06:20:15 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1783084814; cv=none;
-        d=google.com; s=arc-20260327;
-        b=NWvm0rBFdNdvlDEDc3O4yBnRk+AhBZLglW0jtbiTQ9406Joo8LyGPPdXUl/+mahAWf
-         o9DR66w5yhGOceM17zb6Utz16tirAd9N2UMAos+mTw+LaNy2MVqIvi/X2ME6/llzhyKq
-         wBz3uMgvEVxdNQW1dZytZbWZR2iSSe5iA12RyiGs93m7jMf50n54TjeNofpVJNDDv+69
-         ZeInPSG2koop++/o28Uab6CLq4yKGjWNzfR2oJI+pK9Qp1s4d+NdJZiswNLWjtNVX4+z
-         Jo8x4uWbpUaOd1wpY0gECRTSQxFsIh+4GQVZJYpwoUnNjG8HWsmcMoWLDiBPP8h+wCy9
-         zRzg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=BQD5gv36YoN9ZGBbl8CZ1ceMTLNRoJhvy7PP72AjYTM=;
-        fh=JH/umvhcNPNtZ3GPQCsMWyO8nHrLbAZzHpp+BIN5qGs=;
-        b=o3rCKlofeVJ5x5mg+bBI2M2NOLiv2XdkmqbTMz7r4N4tdK+FwBMn9r8gqeIcAC3tp0
-         29LPZH5yZ2pJhPmX486i7zdXRBS6huMWwcNww9p2Innhn9Fa29Wfyh6XZSQcyIusm509
-         q2j6GLy2OS9rStvYjx5PEn9ZCgYEj9L8KytTRhGYgDdngwlEG90U7DL3lgvtz68FJXXR
-         6TRcPSFx1rUX6ikpknNCKxG0Nmr6fCdxwuCMG2nuApK9qMQDIppzUGawC1ksGwp+gvrx
-         aqaCLQTCTWaUrY4XvGZ6ux+EarqBb9T3i2/K/jPeVlVIzq0Ju5DDvCkkCr1z9m0F24rW
-         tJJQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1783084814; x=1783689614; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=BQD5gv36YoN9ZGBbl8CZ1ceMTLNRoJhvy7PP72AjYTM=;
-        b=grWpVETAw3jDMmUy3XPnUGOjR8BcA4jyfVk14MFE953+F1914LoGY5rwA3Ge8NZuIE
-         7GcRD4+VXwKna3rqHOPliBMs5HWA4GJVOYeQwRl48oHFyGMaDoiBQQ4jxnh2KgTL19Mu
-         DTB/K71gdvc4rjOGt/blrp0IXyUNL2x51yQPs=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783084814; x=1783689614;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=BQD5gv36YoN9ZGBbl8CZ1ceMTLNRoJhvy7PP72AjYTM=;
-        b=HLs8tVlxBDZp7llMnLNk8ZLz8/25Gk3CzI4UyB6aaF5kKJ21KbdKK+VsFZ4BehIbnk
-         veqwEAhhTlSSbvdYc3h9Dyw1kJIaCYB6AhIanDP0r+4qFL96FG9nsEPXcCXb6s8EEifS
-         34uaLryJg09CJCHAXcS9+roliu4nidJfAKnkCHByMc7G7eDA/Ec17lkd/WVb4OZbOCQ3
-         bDJ5orHXfFQ15/xsk+OcIg0+m+hnH6c496sMhJPVbtswSCb7oY/SXjxF0tBEGAdqoG/z
-         xt4CEZU3jx6GUp7BcIOdKRM7xQ5JvSK4FP9IJwsxew+u/2p8pjZSW8WPf2uC/lhLlxnt
-         39WA==
-X-Gm-Message-State: AOJu0YwF8M+KsXalhKbSIeIHJy7PQ/6q9hz6vi9Y1Erc7jkL/GZuhAQt
-	T5uGq0wq1J4FYPXJH4Ljrgzgwzb5sZo3HKLHpackh6JEt+56tZvQ19D07OtTVeWZq5/DUY9lVnH
-	vrkoaDvA9Jl36p2uhvquOr+htJATQl/ZrCDuFdvOE
-X-Gm-Gg: AfdE7cnR72TNDP9QGiwY3mZu/BjT3snMmegMn8G+so2lX3doz9NIZZJ4T8uQ5yU3ayo
-	aMlEgj0NifU1gZeg5DHDylGEtG1IIG4Jics2XcGkmAnQUyMjZNDeIrQO60urxC4wal3GFeMth1M
-	eVp0vNiV485pV0RPhgQ8wY/Grl6BRoPmPjFJwewBpJldZrcdc2gB8sRzjy3/OPVxKVXKavyTbvq
-	A1Sin770lnjq7/KuPEEkeWmOQd2PdOWZ2DMaPXxB9SJCjmuL0NlXJEcUSX7enhz9eZ8JEV9A766
-	nlRrueGF7MnAY90PwSK+xTzVmGQ=
-X-Received: by 2002:a05:690e:418a:b0:664:ae6a:e9a5 with SMTP id
- 956f58d0204a3-66521d54781mr9923763d50.75.1783084814296; Fri, 03 Jul 2026
- 06:20:14 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B670D3D091D;
+	Fri,  3 Jul 2026 13:22:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.101.241.2
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783084935; cv=none; b=P+xkXUUuuYprd2aLgUVKVpr8ZpEnKsdzYyz1YTAnqTwO2zKnLVU7sx7D0oEx6LzG5uJSVOetP7QRJ2RCo/L5XgBpr292lkgMcX/GQF8NynYp9M4ZNspp69kMoop3CGYbClEpa178uqu8j+V2qzw56W2laXfyJJe9w1dnlRQyTXI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783084935; c=relaxed/simple;
+	bh=C9nNNNWEecneKAhgPEE/LVOIeRzDwZEtYSWUsvgwpJU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=fBT9z0HchTBjRgD4TmznFY/RJYRzRExaS3+yZnX2cdEfBqZIWD2PCtA1r1Y2IuHoK8FJb3gmFifBWWcMJR+9RDk4j9/AmltvkOutyGOCubNPPm05EgFc3bgKyIMhFaogIJAwLzPA7ZGvrBp83ZLv1h578N1RLYXE6BCJlRiGg10=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=just42.net; spf=pass smtp.mailfrom=just42.net; arc=none smtp.client-ip=150.101.241.2
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=just42.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=just42.net
+Received: from marvin.atrad.com.au (marvin.atrad.com.au [192.168.0.2])
+	by server.atrad.com.au (8.18.1/8.18.1) with ESMTPS id 663D8nYn003882
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO);
+	Fri, 3 Jul 2026 22:38:50 +0930
+Date: Fri, 3 Jul 2026 22:38:49 +0930
+From: Jonathan Woithe <jwoithe@just42.net>
+To: "Rafael J.  Wysocki" <rafael@kernel.org>
+Cc: Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+        platform-driver-x86@vger.kernel.org,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux ACPI <linux-acpi@vger.kernel.org>,
+        Hans de Goede <hansg@kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Corentin Chary <corentin.chary@gmail.com>,
+        "Luke D. Jones" <luke@ljones.dev>,
+        Denis Benato <denis.benato@linux.dev>, Robert Gerlach <khnz@gmx.de>,
+        Henrique de Moraes Holschuh <hmh@hmh.eng.br>,
+        Mark Pearson <mpearson-lenovo@squebb.ca>,
+        "Derek J. Clark" <derekjohn.clark@gmail.com>,
+        Kenneth Chan <kenneth.t.chan@gmail.com>,
+        Mattia Dongili <malattia@linux.it>,
+        Azael Avalos <coproscefalo@gmail.com>
+Subject: Re: [PATCH v1 03/10] platform/x86: fujitsu-laptop: Stop setting
+ acpi_device_name/class()
+Message-ID: <ake0YZM6W0f/Jqn3@marvin.atrad.com.au>
+References: <5135166.31r3eYUQgx@rafael.j.wysocki>
+ <3441919.aeNJFYEL58@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260703110317.1283411-1-wenst@chromium.org> <20260703110317.1283411-9-wenst@chromium.org>
- <CAMRc=MdMhr6qAnAtUePbuBbsH=3MzRC+BrL5GssbNTwGjp_ayA@mail.gmail.com>
- <CAGXv+5GHFnMj3qr5BcpLCQk25rWYOgnMKUX079ScELs4uqEdVg@mail.gmail.com> <CAMRc=Mdoj204dTwVMeqFwsVt3f4JJUJtk93VL2hDgh7+C60eqw@mail.gmail.com>
-In-Reply-To: <CAMRc=Mdoj204dTwVMeqFwsVt3f4JJUJtk93VL2hDgh7+C60eqw@mail.gmail.com>
-From: Chen-Yu Tsai <wenst@chromium.org>
-Date: Fri, 3 Jul 2026 21:20:03 +0800
-X-Gm-Features: AVVi8Ccxmi-jSFxGKDTUuToCDHyjKIoBrT_lajnjop8tp06Df09KPZI8Is_qoIU
-Message-ID: <CAGXv+5GH3navtUC-V--dJOEjqiDtOauXf_TKxzdQ_T+bK_v9gA@mail.gmail.com>
-Subject: Re: [PATCH v3 08/13] usb: hub: Power on connected M.2 E-key
- connectors with power sequencing API
-To: Bartosz Golaszewski <brgl@kernel.org>
-Cc: linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, 
-	devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org, 
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
-	Manivannan Sadhasivam <mani@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Matthias Brugger <matthias.bgg@gmail.com>, 
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3441919.aeNJFYEL58@rafael.j.wysocki>
+X-MIMEDefang-action: accept
+X-Scanned-By: MIMEDefang 2.86 on 192.168.0.1
 
-On Fri, Jul 3, 2026 at 9:16=E2=80=AFPM Bartosz Golaszewski <brgl@kernel.org=
-> wrote:
->
-> On Fri, 3 Jul 2026 14:58:56 +0200, Chen-Yu Tsai <wenst@chromium.org> said=
-:
-> > On Fri, Jul 3, 2026 at 8:41=E2=80=AFPM Bartosz Golaszewski <brgl@kernel=
-.org> wrote:
-> >>
-> >> So this is only needed to not have to track the state in a separate fi=
-eld?
-> >
-> > Correct. Reading the field is not the problem. Updating it is, as the
-> > fields are packed bitfields, and Sashiko suggested that locking would
-> > be needed, though it may have been for the peer port, which has since
-> > been removed.
-> >
->
-> I'm not sure if it is. The user controlls the handle. We could argue, it'=
-s up
-> to them to provide synchroniztion. We only assign the target and pwrseq f=
-ields
-> once in pwrseq_match_device() and only change the powered_on field later =
-with
-> pwrseq_power_on/off(). Unless the user does something weird, we should be
-> alright. Maybe a small note in the kernel doc would be in order.
+On Fri, Jul 03, 2026 at 01:23:31PM +0200, Rafael J.  Wysocki wrote:
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> 
+> The driver sets acpi_device_name() that are only used for printing
+> messages and initializing input class device names.  Since
+> ACPI_FUJITSU_BL_DEVICE_NAME and ACPI_FUJITSU_LAPTOP_DEVICE_NAME can
+> be used directly in all of those cases, make the driver do so and
+> stop setting acpi_device_name() in it.
+> 
+> Likewise, acpi_device_class() set by the driver are never read
+> afterward, so make the driver stop setting it and drop the symbol
+> defined specifically for this purpose.
+> 
+> No intentional functional impact.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I was refering to the status bitfields in |struct usb_port|. As you already
-explained I think the pwrseq stuff is fine.
+Looks good to me for fujitsu-laptop.
+
+Acked-by: Jonathan Woithe <jwoithe@just42.net>
 
 
-ChenYu
+> ---
+>  drivers/platform/x86/fujitsu-laptop.c | 18 ++++++------------
+>  1 file changed, 6 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
+> index 54d0b9cec4d3..ea543deef68f 100644
+> --- a/drivers/platform/x86/fujitsu-laptop.c
+> +++ b/drivers/platform/x86/fujitsu-laptop.c
+> @@ -56,7 +56,6 @@
+>  
+>  #define FUJITSU_LCD_N_LEVELS		8
+>  
+> -#define ACPI_FUJITSU_CLASS		"fujitsu"
+>  #define ACPI_FUJITSU_BL_HID		"FUJ02B1"
+>  #define ACPI_FUJITSU_BL_DRIVER_NAME	"Fujitsu laptop FUJ02B1 ACPI brightness driver"
+>  #define ACPI_FUJITSU_BL_DEVICE_NAME	"Fujitsu FUJ02B1"
+> @@ -466,7 +465,7 @@ static int acpi_fujitsu_bl_input_setup(struct device *dev)
+>  	snprintf(priv->phys, sizeof(priv->phys), "%s/video/input0",
+>  		 acpi_device_hid(device));
+>  
+> -	priv->input->name = acpi_device_name(device);
+> +	priv->input->name = ACPI_FUJITSU_BL_DEVICE_NAME;
+>  	priv->input->phys = priv->phys;
+>  	priv->input->id.bustype = BUS_HOST;
+>  	priv->input->id.product = 0x06;
+> @@ -546,13 +545,11 @@ static int acpi_fujitsu_bl_probe(struct platform_device *pdev)
+>  		return -ENOMEM;
+>  
+>  	fujitsu_bl = priv;
+> -	strscpy(acpi_device_name(device), ACPI_FUJITSU_BL_DEVICE_NAME);
+> -	strscpy(acpi_device_class(device), ACPI_FUJITSU_CLASS);
+>  
+>  	platform_set_drvdata(pdev, priv);
+>  
+> -	pr_info("ACPI: %s [%s]\n",
+> -		acpi_device_name(device), acpi_device_bid(device));
+> +	pr_info("ACPI: %s [%s]\n", ACPI_FUJITSU_BL_DEVICE_NAME,
+> +		acpi_device_bid(device));
+>  
+>  	if (get_max_brightness(&pdev->dev) <= 0)
+>  		priv->max_brightness = FUJITSU_LCD_N_LEVELS;
+> @@ -681,7 +678,7 @@ static int acpi_fujitsu_laptop_input_setup(struct device *dev)
+>  	snprintf(priv->phys, sizeof(priv->phys), "%s/input0",
+>  		 acpi_device_hid(device));
+>  
+> -	priv->input->name = acpi_device_name(device);
+> +	priv->input->name = ACPI_FUJITSU_LAPTOP_DEVICE_NAME;
+>  	priv->input->phys = priv->phys;
+>  	priv->input->id.bustype = BUS_HOST;
+>  
+> @@ -1012,9 +1009,6 @@ static int acpi_fujitsu_laptop_probe(struct platform_device *pdev)
+>  	WARN_ONCE(fext, "More than one FUJ02E3 ACPI device was found.  Driver may not work as intended.");
+>  	fext = &pdev->dev;
+>  
+> -	strscpy(acpi_device_name(device), ACPI_FUJITSU_LAPTOP_DEVICE_NAME);
+> -	strscpy(acpi_device_class(device), ACPI_FUJITSU_CLASS);
+> -
+>  	platform_set_drvdata(pdev, priv);
+>  
+>  	/* kfifo */
+> @@ -1024,8 +1018,8 @@ static int acpi_fujitsu_laptop_probe(struct platform_device *pdev)
+>  	if (ret)
+>  		return ret;
+>  
+> -	pr_info("ACPI: %s [%s]\n",
+> -		acpi_device_name(device), acpi_device_bid(device));
+> +	pr_info("ACPI: %s [%s]\n", ACPI_FUJITSU_LAPTOP_DEVICE_NAME,
+> +		acpi_device_bid(device));
+>  
+>  	while (call_fext_func(fext, FUNC_BUTTONS, 0x1, 0x0, 0x0) != 0 &&
+>  	       i++ < MAX_HOTKEY_RINGBUFFER_SIZE)
+> -- 
+> 2.51.0
+> 
+> 
+> 
+
+-- 
