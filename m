@@ -1,155 +1,131 @@
-Received: from server.atrad.com.au (server.atrad.com.au [150.101.241.2])
+Received: from mail-yx1-f47.google.com (mail-yx1-f47.google.com [74.125.224.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B670D3D091D;
-	Fri,  3 Jul 2026 13:22:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.101.241.2
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783084935; cv=none; b=P+xkXUUuuYprd2aLgUVKVpr8ZpEnKsdzYyz1YTAnqTwO2zKnLVU7sx7D0oEx6LzG5uJSVOetP7QRJ2RCo/L5XgBpr292lkgMcX/GQF8NynYp9M4ZNspp69kMoop3CGYbClEpa178uqu8j+V2qzw56W2laXfyJJe9w1dnlRQyTXI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783084935; c=relaxed/simple;
-	bh=C9nNNNWEecneKAhgPEE/LVOIeRzDwZEtYSWUsvgwpJU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fBT9z0HchTBjRgD4TmznFY/RJYRzRExaS3+yZnX2cdEfBqZIWD2PCtA1r1Y2IuHoK8FJb3gmFifBWWcMJR+9RDk4j9/AmltvkOutyGOCubNPPm05EgFc3bgKyIMhFaogIJAwLzPA7ZGvrBp83ZLv1h578N1RLYXE6BCJlRiGg10=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=just42.net; spf=pass smtp.mailfrom=just42.net; arc=none smtp.client-ip=150.101.241.2
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=just42.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=just42.net
-Received: from marvin.atrad.com.au (marvin.atrad.com.au [192.168.0.2])
-	by server.atrad.com.au (8.18.1/8.18.1) with ESMTPS id 663D8nYn003882
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO);
-	Fri, 3 Jul 2026 22:38:50 +0930
-Date: Fri, 3 Jul 2026 22:38:49 +0930
-From: Jonathan Woithe <jwoithe@just42.net>
-To: "Rafael J.  Wysocki" <rafael@kernel.org>
-Cc: Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-        platform-driver-x86@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux ACPI <linux-acpi@vger.kernel.org>,
-        Hans de Goede <hansg@kernel.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Corentin Chary <corentin.chary@gmail.com>,
-        "Luke D. Jones" <luke@ljones.dev>,
-        Denis Benato <denis.benato@linux.dev>, Robert Gerlach <khnz@gmx.de>,
-        Henrique de Moraes Holschuh <hmh@hmh.eng.br>,
-        Mark Pearson <mpearson-lenovo@squebb.ca>,
-        "Derek J. Clark" <derekjohn.clark@gmail.com>,
-        Kenneth Chan <kenneth.t.chan@gmail.com>,
-        Mattia Dongili <malattia@linux.it>,
-        Azael Avalos <coproscefalo@gmail.com>
-Subject: Re: [PATCH v1 03/10] platform/x86: fujitsu-laptop: Stop setting
- acpi_device_name/class()
-Message-ID: <ake0YZM6W0f/Jqn3@marvin.atrad.com.au>
-References: <5135166.31r3eYUQgx@rafael.j.wysocki>
- <3441919.aeNJFYEL58@rafael.j.wysocki>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4817C3D7D8D
+	for <linux-acpi@vger.kernel.org>; Fri,  3 Jul 2026 13:26:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.47
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783085170; cv=pass; b=og0JSFkcjOi+NX5KxdogsMQVoOFPcjNsShPZqSc2FkgQkbRlRK75GkKmSAnOcLAjBIHv2ih/l7UpAI2fdPWc6snHlpSpFQch+qrmYLyIeU2OTZ+jedUi6Yz+YWjlLcoOLCR1vPmXjDu1cSBvOwx2B6cSgKKZw6xo3BmlM+GPg6Y=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783085170; c=relaxed/simple;
+	bh=P4zhLhFMp7O4gmnRm5uDgMPugvo8rGAGH9W/oNg9Rsc=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=q95s6ja7ZB8SGSx92IAmZQ8IxUr0zeVNHdIV+2huIhAVXRm8XmS2g2E8VPLHNHtbANJnQZXyHzm8JNaeu0Xwby6HpgdyGaXV0EwwFsMCQej15prXiGMziEN1/XUudZeOwJWF6C7p0gOaLwL/KgALhI3Ebe/yurFeYqsngxAsvNE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=KJrt8HfN; arc=pass smtp.client-ip=74.125.224.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="KJrt8HfN"
+Received: by mail-yx1-f47.google.com with SMTP id 956f58d0204a3-66628618509so777624d50.2
+        for <linux-acpi@vger.kernel.org>; Fri, 03 Jul 2026 06:26:08 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1783085167; cv=none;
+        d=google.com; s=arc-20260327;
+        b=jGlhas5UZatDScqRd9kxRd3oCRzaatKAhrRpR/gHK5d0R0bfFB+rU4Xw/iEC/nKeLH
+         Fl50vXHPW7KNalmOdMTtcuI3zc8eW8kiTD1bwU4uLTO+iLZP5ROUrbW+sWOZdwpTj2jy
+         BbpTreBk/7oQaSYcbuck6C+cIUjOAppe2gKA4cVwKwyq+FaZbO09SJtxngcQPp2x1HBH
+         igeUyB5z8YSAO/7OJ9vS89qZuMDZPCAoeB1axubICRhP+Hqis/NWs74mY5eSW2yZQlWC
+         OEABw+NDBZeuZrUPyOmKd/Rtf8n71OI5XzGhrUzcWVKP/98tr8+cO7si+p4mFLh5kABo
+         PEVg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=P4zhLhFMp7O4gmnRm5uDgMPugvo8rGAGH9W/oNg9Rsc=;
+        fh=CRHpO8pqaoexb2/kuLe0guZ0hzP39RzTzBmxvrS8jsM=;
+        b=Vpr1SC84jWtXJU/K18eVLQW48/tLbRBof42/lJQbFIdSBSGZFPELv+Pyv+JmLsMR4h
+         V5wpPzVOw8BT82lPG1vw7oeB5l8r2neAdXB7lKd1Zmqej/cs0n7gSZeBjJIE4XdnIcT+
+         vofJHBWP38TvRV+Xt6c87UgANG/BwPqxDSVBCsi0hMTvvEey86X1BKA5QMP8KT8haPD3
+         racFNji+lz0aDWWBEDct4MmCPgzqaC04yiSJtjZPJYSBmMpZddSqjbXdEIAXq4FHkBLS
+         wXoGkXVV0g0yWqDHwHQUueuewIt53n+tPR/r4Zwb1Vhm6ouO3lD2HMUodQU4u0VNE+cU
+         1v1w==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1783085167; x=1783689967; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=P4zhLhFMp7O4gmnRm5uDgMPugvo8rGAGH9W/oNg9Rsc=;
+        b=KJrt8HfNHAIjRwl1rngsaRwQF/9FG/CBUQfLIs6l/S0TOIfaVompOtGsf8X3bPYz2D
+         RpHkamXeIR2v+GJi9wvXvM4EG3fqa1ExPuTLfmCtACLkWQ1SQRgq8Jnf8+Y6no5X9ShD
+         3ZnIRWkysCQxSmaWU1XoTY7M6QhPv0auFgUNY=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783085167; x=1783689967;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=P4zhLhFMp7O4gmnRm5uDgMPugvo8rGAGH9W/oNg9Rsc=;
+        b=UNRLxXrwSSz8+cy0DE+Xf76qEnx1xF7x5J+D+kyiDGwZHVW/Qi2rrjocwFWxt/XxLB
+         F76JFK03uDDhq1FdcSEEroV7YB+B3OC22GJM8YWGcCu8jAYuM6A56Pqy22JMGQNaRJoO
+         +sudOX2cqKjb714zabMDNS3/q/MQSUOi9q1REZMrLEX2istGeZux05dk0qOyEj/X788R
+         GTlDqgLVpVlzVX8ZAkXDkycoSSdd9UO4SaKZ/XviSVr/hx5ZcfbPG3+NSTHVZ+QYzLjK
+         Kapnhikskp68csIj6rH1QfWllctT1AOUYP9UY5IgdDFKvfj/cSe2nxCx3SdnJkE29o35
+         ne/g==
+X-Forwarded-Encrypted: i=1; AHgh+Ro9LfOKb9FjwarRQHvttq84pDeH860eJ0WRYMrBbUnyle5MHc4WrSxWqDWYiCWsFqCSlrLuQehFKjdx@vger.kernel.org
+X-Gm-Message-State: AOJu0YzGrmy/egow+b3LZF6qmixLwng9g0+T4TlqVDBiZNfT/JEXzTKr
+	QBVUERcPQdhuQl/dfFo5++8y5C58kPwexOvoLRKcwyh1k277vlaA7qyclTrtEn8UFpRVhv2tHBl
+	a2IxGHdX5JQGQBnGGN0GGD/wNMkb/zl+Nife0xEsF
+X-Gm-Gg: AfdE7cncNBdGLeQIgMCMyk1RuOiongMuGk5B6WFvQjYzD+uLdCVvCqlDuh1MOwew2tx
+	tE0vpqf+23BmmuSfPFFZ2aKPtdDuI7DvrZGYHnwGL5xZNu04iurFIBEiprffOaKfe3ukHBPxKPI
+	gyGYT0rwi0oNXXR8zJUQfi47bvOcaoWHjPHKyDXFxKZMejIDUzXMBBC5z/PjOB/yjurbTtdz6um
+	dcR4MwKaRdd1pe/UT1Ivt2trSnhqoI/Ir0PI08uwEb4iUPXkQ2Cw7FpDEFkxVrS4T80UCgNKquf
+	byjYQDkWXE2st80w1naO1GmUTacTMTkIObqktA==
+X-Received: by 2002:a05:690e:480f:b0:664:fc22:36cd with SMTP id
+ 956f58d0204a3-66521ad34dcmr7426372d50.43.1783085167252; Fri, 03 Jul 2026
+ 06:26:07 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3441919.aeNJFYEL58@rafael.j.wysocki>
-X-MIMEDefang-action: accept
-X-Scanned-By: MIMEDefang 2.86 on 192.168.0.1
+References: <20260703110317.1283411-1-wenst@chromium.org> <20260703110317.1283411-6-wenst@chromium.org>
+ <akeyxn390mVmYo83@ashevche-desk.local>
+In-Reply-To: <akeyxn390mVmYo83@ashevche-desk.local>
+From: Chen-Yu Tsai <wenst@chromium.org>
+Date: Fri, 3 Jul 2026 21:25:56 +0800
+X-Gm-Features: AVVi8CePOG6OpnrlSpGFhkpL2GOtwCFUk_NB8IIc5qFTOLO5i-BW3OK69XKCfdo
+Message-ID: <CAGXv+5G3ETTGbgjWJCbQjn9yvRamx4GHPxjWPgmy_aXWUxm0iQ@mail.gmail.com>
+Subject: Re: [PATCH v3 05/13] usb: hub: Associate port@ fwnode with USB port device
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Bartosz Golaszewski <brgl@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-pm@vger.kernel.org, 
+	linux-usb@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-mediatek@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+	linux-kernel@vger.kernel.org, Manivannan Sadhasivam <mani@kernel.org>, 
+	Alan Stern <stern@rowland.harvard.edu>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 03, 2026 at 01:23:31PM +0200, Rafael J.  Wysocki wrote:
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> 
-> The driver sets acpi_device_name() that are only used for printing
-> messages and initializing input class device names.  Since
-> ACPI_FUJITSU_BL_DEVICE_NAME and ACPI_FUJITSU_LAPTOP_DEVICE_NAME can
-> be used directly in all of those cases, make the driver do so and
-> stop setting acpi_device_name() in it.
-> 
-> Likewise, acpi_device_class() set by the driver are never read
-> afterward, so make the driver stop setting it and drop the symbol
-> defined specifically for this purpose.
-> 
-> No intentional functional impact.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Fri, Jul 3, 2026 at 9:02=E2=80=AFPM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Fri, Jul 03, 2026 at 07:03:06PM +0800, Chen-Yu Tsai wrote:
+> > When a USB hub port is connected to a connector in a firmware node
+> > graph, the port itself has a node in the graph.
+> >
+> > Associate the port's firmware node with the USB port's device,
+> > usb_port::dev. This is used in later changes for the M.2 slot power
+> > sequencing provider to match against the requesting port.
+> >
+> > To avoid potential conflicts with ACPI firmware nodes and then causing
+> > power management issues, only assign the firmware node if the hub's
+> > firmware node is not an ACPI firmware node.
+>
+> Now I'm more confident that it does not mess up with ACPI case.
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Looks good to me for fujitsu-laptop.
+Thank you and Bartosz for the reviews.
 
-Acked-by: Jonathan Woithe <jwoithe@just42.net>
+FTR Sashiko pointed out that this is likely leaking a fwnode reference.
+I will add a fwnode_handle_put() call to usb_hub_remove_port_device()
+in the next version.
 
 
-> ---
->  drivers/platform/x86/fujitsu-laptop.c | 18 ++++++------------
->  1 file changed, 6 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
-> index 54d0b9cec4d3..ea543deef68f 100644
-> --- a/drivers/platform/x86/fujitsu-laptop.c
-> +++ b/drivers/platform/x86/fujitsu-laptop.c
-> @@ -56,7 +56,6 @@
->  
->  #define FUJITSU_LCD_N_LEVELS		8
->  
-> -#define ACPI_FUJITSU_CLASS		"fujitsu"
->  #define ACPI_FUJITSU_BL_HID		"FUJ02B1"
->  #define ACPI_FUJITSU_BL_DRIVER_NAME	"Fujitsu laptop FUJ02B1 ACPI brightness driver"
->  #define ACPI_FUJITSU_BL_DEVICE_NAME	"Fujitsu FUJ02B1"
-> @@ -466,7 +465,7 @@ static int acpi_fujitsu_bl_input_setup(struct device *dev)
->  	snprintf(priv->phys, sizeof(priv->phys), "%s/video/input0",
->  		 acpi_device_hid(device));
->  
-> -	priv->input->name = acpi_device_name(device);
-> +	priv->input->name = ACPI_FUJITSU_BL_DEVICE_NAME;
->  	priv->input->phys = priv->phys;
->  	priv->input->id.bustype = BUS_HOST;
->  	priv->input->id.product = 0x06;
-> @@ -546,13 +545,11 @@ static int acpi_fujitsu_bl_probe(struct platform_device *pdev)
->  		return -ENOMEM;
->  
->  	fujitsu_bl = priv;
-> -	strscpy(acpi_device_name(device), ACPI_FUJITSU_BL_DEVICE_NAME);
-> -	strscpy(acpi_device_class(device), ACPI_FUJITSU_CLASS);
->  
->  	platform_set_drvdata(pdev, priv);
->  
-> -	pr_info("ACPI: %s [%s]\n",
-> -		acpi_device_name(device), acpi_device_bid(device));
-> +	pr_info("ACPI: %s [%s]\n", ACPI_FUJITSU_BL_DEVICE_NAME,
-> +		acpi_device_bid(device));
->  
->  	if (get_max_brightness(&pdev->dev) <= 0)
->  		priv->max_brightness = FUJITSU_LCD_N_LEVELS;
-> @@ -681,7 +678,7 @@ static int acpi_fujitsu_laptop_input_setup(struct device *dev)
->  	snprintf(priv->phys, sizeof(priv->phys), "%s/input0",
->  		 acpi_device_hid(device));
->  
-> -	priv->input->name = acpi_device_name(device);
-> +	priv->input->name = ACPI_FUJITSU_LAPTOP_DEVICE_NAME;
->  	priv->input->phys = priv->phys;
->  	priv->input->id.bustype = BUS_HOST;
->  
-> @@ -1012,9 +1009,6 @@ static int acpi_fujitsu_laptop_probe(struct platform_device *pdev)
->  	WARN_ONCE(fext, "More than one FUJ02E3 ACPI device was found.  Driver may not work as intended.");
->  	fext = &pdev->dev;
->  
-> -	strscpy(acpi_device_name(device), ACPI_FUJITSU_LAPTOP_DEVICE_NAME);
-> -	strscpy(acpi_device_class(device), ACPI_FUJITSU_CLASS);
-> -
->  	platform_set_drvdata(pdev, priv);
->  
->  	/* kfifo */
-> @@ -1024,8 +1018,8 @@ static int acpi_fujitsu_laptop_probe(struct platform_device *pdev)
->  	if (ret)
->  		return ret;
->  
-> -	pr_info("ACPI: %s [%s]\n",
-> -		acpi_device_name(device), acpi_device_bid(device));
-> +	pr_info("ACPI: %s [%s]\n", ACPI_FUJITSU_LAPTOP_DEVICE_NAME,
-> +		acpi_device_bid(device));
->  
->  	while (call_fext_func(fext, FUNC_BUTTONS, 0x1, 0x0, 0x0) != 0 &&
->  	       i++ < MAX_HOTKEY_RINGBUFFER_SIZE)
-> -- 
-> 2.51.0
-> 
-> 
-> 
-
--- 
+ChenYu
