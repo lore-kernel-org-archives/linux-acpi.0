@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A676D38E8A0;
-	Fri,  3 Jul 2026 11:38:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79AFC38E8A0;
+	Fri,  3 Jul 2026 11:38:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783078734; cv=none; b=RxMHd5USj2r88kVKGBvocBW1PEk/dWPzu8eN/9X4t7UDEm99vNmhjeBWuAQTZyeBc+4KZsu1yYWQYCpP+jEtNb7jDnRCyuyAdrSPtvdARX/z1zShFHmiHDPF4BbiPDUb0aTlwVEZxshwgoapkWEQOLirFI70zDnQe8hUSWswmco=
+	t=1783078739; cv=none; b=oFSWX+F/J/ZS+tdsg+vrDV6s2NyQWPNMgqk9cZy12b0NkppblJ2QhHsoXX3L6mEPoP9gNxGsV1Acr3gAXeo0lQ3gySfNgZ5iU7W2BH+1Xd22J52+ovCZc5l+wSTklAmImmCNcaDsTyuMTRZJkGqMhSRgJoKMIvXwGIc7dbg7h24=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783078734; c=relaxed/simple;
-	bh=ffY4N6iLgbxfnm55JLKkXlEZCBBBJIENWoC1U1o4LIg=;
+	s=arc-20240116; t=1783078739; c=relaxed/simple;
+	bh=a5Qpc9DVimR/8kcSPVCsLVjfVGfJlg5KZjN6/fwdFdA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=eDGxfIidcgl7x97nFTqF5ZdLqF9JxfaM+GIm9KeUvMaDbf2RKph4mJOz2jdGyMA5FjlSTGqzVeLBaropQpd3jez/8a4EHqqG50Tp96+pSqMSDCFJPmDMGsh/cppDLxmv0cOZJO8NrW6mTEmCZzzg3O10kWkrBjktRwHU6u3UL/s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hQmcrkvT; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=TYGUusf3KFCAdJEi5wq1hUQ2e1QUmn5YyBYDWZlrbL6WG9WZn5QoYSjPDrhLTRJtqU21n282mhJIlC2NBolN+ySNAjeK9b4IvFZ9MBYRwKF055cPc/tbh0Tho28Kzgd4OGif5xA8BENCz2z6/6+YO+U8ISoMIvhFI5wZEFvVogo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=heRxJECA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hQmcrkvT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5326E1F000E9;
-	Fri,  3 Jul 2026 11:38:50 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="heRxJECA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3939B1F000E9;
+	Fri,  3 Jul 2026 11:38:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783078733;
-	bh=IJFfte6+tCEfx+eo8/28AZzmGGDzDaHYwir6QRpTcFA=;
+	s=k20260515; t=1783078738;
+	bh=LaqcQM23O9VJnJeccqtlldxfRZe/a0ieEx374T6ST60=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=hQmcrkvTih28rTAEEoGk3L/KwMLXRSoUeQj6fYIW2D4UNA6ItV/wdd9jwz3T1dFOJ
-	 J00/r12dR+/zfxA8Nxf2OLsRIrQQTieZeXicXUEqYPwOr9V52z9BciMnrONJ3FzFp7
-	 qErOPbc7cfvAsFIMSZdQnT0ycaCIVDbe4Ad/GSgeAOT99tuqnk3dQQP6ReXWXWyFAT
-	 rxqfZ94JdkmmyvKYlTc9ZeWCd2Z5zjX1tU2Wn5t3FJ7mKJlFd/kf9XUEAE4mG748/5
-	 LSHirE7NrE1rV8q3DL8EH3sN4UOV87vRnOlj3088pYnnym+8t0WVqyQSuUwNDc25d7
-	 eykFRRUKk494A==
+	b=heRxJECAorOsaSV63jssGcYgnjFL2doZMoz8R4XQXUYcj7cmvD/N/B6kOmyPoE2SF
+	 b+t0S1ta8q3N3SaFMsjZrEoUXbWGz+TCgfDr1nYa0OJZ59mY2TpKNHgs8lOtkN6TEH
+	 MUEqEKhGIfmRPuW3dNne23OVAGUBRFcvj/Go8e4YW6an1e91rF8Jtsvgb2dfV7oJWA
+	 BAvZDx9z8xuGJzcZ8o3sU+V+JT8YMCZuR9XAb/lhuNNvqRtdMdrStQR8/0S+aPxVv5
+	 fUNqvXCih4nOiG2mYmxV0dIYTCobH9nHKZZ39Un16iPFC8QUSbdgfoO0ZBkoj/MTUX
+	 3LFBIe+85sUnA==
 From: "Rafael J.  Wysocki" <rafael@kernel.org>
 To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
  platform-driver-x86@vger.kernel.org
@@ -40,10 +40,10 @@ Cc: LKML <linux-kernel@vger.kernel.org>,
  Kenneth Chan <kenneth.t.chan@gmail.com>, Mattia Dongili <malattia@linux.it>,
  Azael Avalos <coproscefalo@gmail.com>
 Subject:
- [PATCH v1 05/10] platform/x86: thinkpad_acpi: Stop setting
- acpi_device_class()
-Date: Fri, 03 Jul 2026 13:30:00 +0200
-Message-ID: <23182921.EfDdHjke4D@rafael.j.wysocki>
+ [PATCH v1 04/10] platform/x86: fujitsu-tablet: Stop setting
+ acpi_device_name/class()
+Date: Fri, 03 Jul 2026 13:28:41 +0200
+Message-ID: <2378407.iZASKD2KPV@rafael.j.wysocki>
 Organization: Linux Kernel Development
 In-Reply-To: <5135166.31r3eYUQgx@rafael.j.wysocki>
 References: <5135166.31r3eYUQgx@rafael.j.wysocki>
@@ -58,60 +58,63 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-To facilitate the removal of device_class from struct acpi_device_pnp
-in the future, make the driver store the device class string used for
-generating ACPI netlink events in a new device_class field in struct
-ibm_struct.
+The driver sets acpi_device_class() which is never read afterward,
+so make it stop doing that and drop the symbol defined specifically
+for this purpose.
+
+For consistency, also make it stop setting acpi_device_name() and add
+a name field to the "fujitsu" structure for storing the name string
+used during input class device initialization.
+
+While at it, use scnprintf() instead of snprintf() for populating the
+name and phys fields of the "fujitsu" structure.
 
 No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/platform/x86/lenovo/thinkpad_acpi.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/platform/x86/fujitsu-tablet.c | 13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/platform/x86/lenovo/thinkpad_acpi.c b/drivers/platform/x86/lenovo/thinkpad_acpi.c
-index 445e1403308e..f614b2701d48 100644
---- a/drivers/platform/x86/lenovo/thinkpad_acpi.c
-+++ b/drivers/platform/x86/lenovo/thinkpad_acpi.c
-@@ -309,6 +309,7 @@ struct tp_acpi_drv_struct {
+diff --git a/drivers/platform/x86/fujitsu-tablet.c b/drivers/platform/x86/fujitsu-tablet.c
+index 2f8c1b89cbca..386ad3aaace8 100644
+--- a/drivers/platform/x86/fujitsu-tablet.c
++++ b/drivers/platform/x86/fujitsu-tablet.c
+@@ -22,8 +22,6 @@
  
- struct ibm_struct {
- 	char *name;
-+	acpi_device_class device_class;
+ #define MODULENAME "fujitsu-tablet"
  
- 	int (*read) (struct seq_file *);
- 	int (*write) (char *);
-@@ -838,9 +839,8 @@ static int __init setup_acpi_notify(struct ibm_struct *ibm)
- 	}
+-#define ACPI_FUJITSU_CLASS "fujitsu"
+-
+ #define INVERT_TABLET_MODE_BIT      0x01
+ #define INVERT_DOCK_STATE_BIT       0x02
+ #define FORCE_TABLET_MODE_IF_UNDOCK 0x04
+@@ -160,6 +158,7 @@ static struct {
+ 	struct fujitsu_config config;
+ 	unsigned long prev_keymask;
  
- 	ibm->acpi->device->driver_data = ibm;
--	scnprintf(acpi_device_class(ibm->acpi->device),
--		  sizeof(acpi_device_class(ibm->acpi->device)),
--		  "%s/%s", TPACPI_ACPI_EVENT_PREFIX, ibm->name);
-+	scnprintf(ibm->device_class, sizeof(ibm->device_class), "%s/%s",
-+		  TPACPI_ACPI_EVENT_PREFIX, ibm->name);
++	char name[17];
+ 	char phys[21];
  
- 	status = acpi_install_notify_handler(*ibm->acpi->handle,
- 			ibm->acpi->type, dispatch_acpi_notify, ibm);
-@@ -3869,7 +3869,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 		pr_err("unknown HKEY notification event %d\n", event);
- 		/* forward it to userspace, maybe it knows how to handle it */
- 		acpi_bus_generate_netlink_event(
--					ibm->acpi->device->pnp.device_class,
-+					ibm->device_class,
- 					dev_name(&ibm->acpi->device->dev),
- 					event, 0);
- 		return;
-@@ -3949,7 +3949,7 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 		/* netlink events */
- 		if (send_acpi_ev) {
- 			acpi_bus_generate_netlink_event(
--					ibm->acpi->device->pnp.device_class,
-+					ibm->device_class,
- 					dev_name(&ibm->acpi->device->dev),
- 					event, hkey);
- 		}
+ 	int irq;
+@@ -458,14 +457,10 @@ static int acpi_fujitsu_probe(struct platform_device *pdev)
+ 	if (ACPI_FAILURE(status) || !fujitsu.irq || !fujitsu.io_base)
+ 		return -ENODEV;
+ 
+-	sprintf(acpi_device_name(adev), "Fujitsu %s", acpi_device_hid(adev));
+-	sprintf(acpi_device_class(adev), "%s", ACPI_FUJITSU_CLASS);
+-
+-	snprintf(fujitsu.phys, sizeof(fujitsu.phys),
+-			"%s/input0", acpi_device_hid(adev));
++	scnprintf(fujitsu.name, sizeof(fujitsu.name), "Fujitsu %s", acpi_device_hid(adev));
++	scnprintf(fujitsu.phys, sizeof(fujitsu.phys), "%s/input0", acpi_device_hid(adev));
+ 
+-	error = input_fujitsu_setup(&pdev->dev,
+-		acpi_device_name(adev), fujitsu.phys);
++	error = input_fujitsu_setup(&pdev->dev, fujitsu.name, fujitsu.phys);
+ 	if (error)
+ 		return error;
+ 
 -- 
 2.51.0
 
