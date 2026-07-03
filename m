@@ -1,60 +1,60 @@
-Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
+Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4DEC3C3C1C
-	for <linux-acpi@vger.kernel.org>; Fri,  3 Jul 2026 11:04:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26B403C2BB3
+	for <linux-acpi@vger.kernel.org>; Fri,  3 Jul 2026 11:04:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783076649; cv=none; b=FgrUJZ5LJBy1dMuKfFjIRVTfvOmZYjxH++VZzjWqmrKlpvivsLLEmw8MepksyOCR6uRCVUbt8rOWBGoI1UzbGnTiMepmvK4xcWB4CkT/okmYgiVATA8TpYzaOHIMdVkyc5k0I3lZOyrDI8/8eFZZZOMG6FAczRAi/oXvzXlUDSA=
+	t=1783076650; cv=none; b=m2HBasM8pGThf0fMHTEwSrLFMvIoVc4B3UT34qZnE63wSEOc3WsnX5lWamUsTy+8cnRGyUyG6N4ZVLBeVAO+IQA+Uj5/GT2fMpA83GVwLWSpKvfcf2hSINrcY8rxPkwLMLcj1MnD6tTTRh7HhNLDRt2c6AU6Uy5shnKDyxsgp94=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783076649; c=relaxed/simple;
-	bh=Ehair4xlEOEVG9n56g7F/U1Ctqv22xVg25JWee2T8eM=;
+	s=arc-20240116; t=1783076650; c=relaxed/simple;
+	bh=kfKxqCT0AnFtztM5LFloMbjAp374Nxm9lZYgvpDSr08=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=faoDLDEze5ob6vqMkk5pkvUDiT4RdwTEUo6vZ2o1JsuXVI3pVnr55CwF1UXV3TMAOvLs0QbLpq3VYFic1xq9d7OMnkFSrxZeKrIFENtPMdo7uzZNDZc2rZgyC4ItHIj8Vr2PdQsKTt3jgKW5wkr1++GZzQEY9TTbqTw/ApXmqtQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=aFXd5Ru4; arc=none smtp.client-ip=209.85.214.171
+	 MIME-Version; b=DKTi23sAEiPQINihUkNPqSXk2RrVH09eEflYPKyPGvCmNoAjP/vt6wSqrPK9LVpayv1zPIdZlQUN9BQRtuunW5UywOSnELYUEfDRVuBqYjfxPHlObS9tAZ/5DpeyURknF0VUBLkf+smVmRShWd+OHdnLpT8qUYB8125De9xFx4E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=O+y53hif; arc=none smtp.client-ip=209.85.214.169
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="aFXd5Ru4"
-Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-2ca265d6ca1so4871565ad.1
-        for <linux-acpi@vger.kernel.org>; Fri, 03 Jul 2026 04:04:05 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="O+y53hif"
+Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-2c9bd2f8bf7so16664905ad.1
+        for <linux-acpi@vger.kernel.org>; Fri, 03 Jul 2026 04:04:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1783076643; x=1783681443; darn=vger.kernel.org;
+        d=chromium.org; s=google; t=1783076647; x=1783681447; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=MmjAmBgdOsKJbX+6/19rw/i6brSOy5m1SV+UDGvM0u0=;
-        b=aFXd5Ru4nZwNJCWfXd5nfuzcw3QEFtuUZS2I7Be8I168yxum4q/Sk06c2vfFJ1lNFQ
-         c8cjde3EnvehXuu4ftLvcHqxlH722JTH5F9O2KXYkr80hn7ZmYw+PMti3tlXpXdYPxX1
-         OZnhovcWxCWrz/1MtnXyVc40F/wUoXCi1MTzw=
+        bh=KWC74RHfH35yZoE+4T5JHX8GhXugEkV5aHendXMIUrQ=;
+        b=O+y53hifkvRjzCdB1Ewt4af9ZOm9SggDwvEJcCMPVVHKv1yp8Gbw+cRAFQico/sdvB
+         hNaBm97fEzqrTz3tgnzTaz88hYMd3i0/OXT6/quW1A71tbzXOy7TiyxZx934zPiQhWHA
+         mGEHwld6RTwBIzuxi4JDKIsosRAdGgEZg21LA=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783076643; x=1783681443;
+        d=1e100.net; s=20251104; t=1783076647; x=1783681447;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=MmjAmBgdOsKJbX+6/19rw/i6brSOy5m1SV+UDGvM0u0=;
-        b=c92EYwDbiHocOyD2jJCotj20AHBvsWXiWUbea1GqfJB2q8L/u0dWx8XoUnV5p4DLZm
-         peZYCIRuOeMrKuqoumxvOXf9FuPVYBTDffBcywFSoT/DlVcx9dNltnlv0oTzshSNVEfx
-         1HexDWrv+4jHuwo8FYaduNBNvXHYYLQYgOBpC/gaG2VEZ1M+2VahPHEgUsReWBuZFVyY
-         zxXWZ+/iS4zQbxdvxmNpJ7eblrT4CguSFokdbGxoiVjLow7PuG/DNQKiUhHBa/3e7w2U
-         bPc0jZWjK0vdKWf5V0yRxzZySk1z6oM0rl/ur1h53RmX/G1Q/lrOQ7/4QDXqoWeyvbj6
-         5NlQ==
-X-Forwarded-Encrypted: i=1; AHgh+RomDsyi1+A0RplnpURCWTBoWP6DUfCTK2SaWE9fopnF/JDVMPryfzKKvE7bML5Li164i1NfQi/odKPx@vger.kernel.org
-X-Gm-Message-State: AOJu0YwK1WM3Hx8h0OzoMGMFkThFJ07mkvXwwaxKZvTjhax1AjsOh+d5
-	5kY6+vY+RPfndfUYkSWDsLqWuq/0hS0RB+M12i5SR3eF9Yha0NCw/7GOmz+0v4vpPQ==
-X-Gm-Gg: AfdE7cnoj57c2bjJqMtETne82jlaz0SzW+bfFBMHxznDNW2MyhxMT2Kz0/H0bK2+iFy
-	eNQ6vtbhR6zOo8tlmd9r5JT9us0TuhOYrK9BVxAgin61lMzOPaEV6QfNnBnDlOiPtHOsrTwDf15
-	QPqL45QTgsGgE2JlOVghp7CNYZNCm4sh2i1rm/yQ9VE8LEq+h/J2I2zNcBX5yRZyvsqQ+kYyUA+
-	DsvNoVnJg7YHeLJtzgCvPbakp7qxgkfPSOQVDIxFmM/ArvLeLQpq38+oO3zgNQxd+kSMPnMyRzC
-	wmG8kYgBJ+paiLWtstJfkZtGfl7Gq023sOBxLSQPsNDMtEaoLHVr7SbiW7lafcoCsUwqVmxeKD6
-	svvONxN1oxtvfrggRcwSphPKNq0WA/ScsNw2D3/VucdFkahlJAoZyRy4WQJppGzhlfSBB/3SUk+
-	LihtZTt6U1XXmEyuoPGyTorufGnxIJZ8k9JSwb7cligkn1ct+pGmwH8A3TG4SjksN8JNcEcA==
-X-Received: by 2002:a17:902:dac9:b0:2c9:b90b:8448 with SMTP id d9443c01a7336-2cacb1c1486mr42131975ad.27.1783076643387;
-        Fri, 03 Jul 2026 04:04:03 -0700 (PDT)
+        bh=KWC74RHfH35yZoE+4T5JHX8GhXugEkV5aHendXMIUrQ=;
+        b=P08E9uQ7IyG5mSYYm/X9jbrSudc5xxTXJyTls6FyPeMjGmcn56MBObZn9PmFJ2g8aq
+         X1fcQT7k7nX/3yoWikXXZY5YFjLTyYtknI0BARw9e1HDUosl9U3wc+QQp0vvf9W1SP6R
+         AzLALnXdPJ/AgzufO8kSfVKAYaG86NYZ6+Da8+U7Nj2IDe2/JmIUuAP97U89IoOj2kTE
+         FhzroXpCYPqIgLvTe45Nc0AH/Hcv2ffhG5WbsD2q4X9SS6S0srBiVfCLtAslcVg4Q379
+         F+IM3/O/DpDiSglNXEWXdrtFW73dkcGwfkvr8YyNI0OpXkYukBdCYV+h7SeJN7E5Qy4E
+         T2OQ==
+X-Forwarded-Encrypted: i=1; AHgh+RqFRFjc7m0iFJ0VCR9Pnl1k+3yFqg50LFyD5iCmytR8dS+t7+VB4ymdZWa6p0ixIa4gErDI7tmIzZDw@vger.kernel.org
+X-Gm-Message-State: AOJu0YxqKSvVPVod+HNd276XWtsL/6nekVcQshZoGc/MtXUKEyEjxIpF
+	HxdjeJCs3h3OtoUHK8RYfDrgVyOnoe9qgSXFPxJN9iZJlvcT5LHX282MkHJFk0cv6Q==
+X-Gm-Gg: AfdE7ckyAPOLIaCF0NOS2OcZs9R8UCFrU2s8o2H0VCLUjc/p6TZIe2T/0cwNFWx3EQ4
+	ZGzf8g58c2gO2i+Q0kPUzcPhwtwaeB1D3qnqSsQ0btQNbkRk+4Z9KjJvUWl6YEsnqImoa0sXJKA
+	QC5WQGAfx5jDt/JTmL0Aj8Q7Ubu6VDx1Zy53pORpyOEcF47s1tVz+lojz2e2QMbbzdhop4tLFNn
+	/q0uT528uwfknk/U+rLrHwzVzFOTE7myEL9opbWLTnDaR/hZbxlmW+KtLmhcv/05laJsbb6hHQR
+	lJ32q1kBMSBLchAPb4qfViNsSIxeoGiuVCqvrHitpG2Yx/4ef4OqpdD7IKfyU0t/ERBIb4vP/Jx
+	C255J+ctJeE+0qPMLe/LwEejsIAVLGJf1sw8ZrUbCkwezuwteePj2lPFMyuWRv6ssLQRei8Ah1l
+	WmkGu1DcSY+7QaENEBjfrB7o7ov//RRHHhnSM1iQMpE3XhCr3fCrlctP4fhJVIf/EordM8pQ==
+X-Received: by 2002:a17:903:3b88:b0:2c9:d27b:af11 with SMTP id d9443c01a7336-2cacacc3ccamr39740205ad.11.1783076647262;
+        Fri, 03 Jul 2026 04:04:07 -0700 (PDT)
 Received: from wenstp920.tpe.corp.google.com ([2a00:79e0:201d:8:7bc5:6c83:76cd:cbd6])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cad6f25e15sm7785315ad.13.2026.07.03.04.03.59
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2cad6f25e15sm7785315ad.13.2026.07.03.04.04.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 03 Jul 2026 04:04:02 -0700 (PDT)
+        Fri, 03 Jul 2026 04:04:06 -0700 (PDT)
 From: Chen-Yu Tsai <wenst@chromium.org>
 To: Bartosz Golaszewski <brgl@kernel.org>,
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -79,11 +79,10 @@ Cc: Chen-Yu Tsai <wenst@chromium.org>,
 	linux-arm-kernel@lists.infradead.org,
 	linux-kernel@vger.kernel.org,
 	Manivannan Sadhasivam <mani@kernel.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Subject: [PATCH v3 06/13] usb: hub: Pass |struct usb_port*| to usb_port_is_power_on()
-Date: Fri,  3 Jul 2026 19:03:07 +0800
-Message-ID: <20260703110317.1283411-7-wenst@chromium.org>
+	Alan Stern <stern@rowland.harvard.edu>
+Subject: [PATCH v3 07/13] usb: hub: Use usb_hub_set_port_power() to control port power everywhere
+Date: Fri,  3 Jul 2026 19:03:08 +0800
+Message-ID: <20260703110317.1283411-8-wenst@chromium.org>
 X-Mailer: git-send-email 2.55.0.rc0.799.gd6f94ed593-goog
 In-Reply-To: <20260703110317.1283411-1-wenst@chromium.org>
 References: <20260703110317.1283411-1-wenst@chromium.org>
@@ -95,104 +94,48 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-usb_port_is_power_on() currently takes |struct usb_hub*|, but only needs
-it to tell if the hub/port is SuperSpeed or not.
+There are still some instances in the USB hub driver where port power is
+directly controlled by toggling the USB_PORT_FEAT_POWER feature flag.
 
-In a subsequent change, usb_port_is_power_on() needs access to a pwrseq
-state tracking field in |struct usb_port|. Either structure can be used
-to identify whether a port/hub is SuperSpeed or not, as the field in
-|struct usb_port| is inherited from the hub:
+Switch these instances over to usb_hub_set_port_power() so that only one
+unified function to do this exists. This makes adding external power
+control with the power sequencing API easier and consistently applied.
 
-    port->is_superspeed = hub_is_superspeed(hub)
-
-Replace usb_port_is_power_on()'s |struct usb_hub*| parameter with
-|struct usb_port*| so a subsequent change can use it.
-
-Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
 ---
- drivers/usb/core/hub.c  | 11 ++++++-----
- drivers/usb/core/hub.h  |  2 +-
- drivers/usb/core/port.c |  2 +-
- 3 files changed, 8 insertions(+), 7 deletions(-)
+Changes since v2:
+- New patch
+---
+ drivers/usb/core/hub.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index fe10d72ef39d..da0a4cc8e15a 100644
+index da0a4cc8e15a..8ae97e8c26aa 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -3240,11 +3240,11 @@ static bool hub_port_stop_enumerate(struct usb_hub *hub, int port1, int retries)
+@@ -975,11 +975,8 @@ static void hub_power_on(struct usb_hub *hub, bool do_delay)
+ 		dev_dbg(hub->intfdev, "trying to enable port power on "
+ 				"non-switchable hub\n");
+ 	for (port1 = 1; port1 <= hub->hdev->maxchild; port1++)
+-		if (test_bit(port1, hub->power_bits))
+-			set_port_feature(hub->hdev, port1, USB_PORT_FEAT_POWER);
+-		else
+-			usb_clear_port_feature(hub->hdev, port1,
+-						USB_PORT_FEAT_POWER);
++		usb_hub_set_port_power(hub->hdev, hub, port1,
++				       test_bit(port1, hub->power_bits));
+ 	if (do_delay)
+ 		msleep(hub_power_on_good_delay(hub));
  }
- 
- /* Check if a port is power on */
--int usb_port_is_power_on(struct usb_hub *hub, unsigned int portstatus)
-+int usb_port_is_power_on(struct usb_port *port, unsigned int portstatus)
- {
- 	int ret = 0;
- 
--	if (hub_is_superspeed(hub->hdev)) {
-+	if (port->is_superspeed) {
- 		if (portstatus & USB_SS_PORT_STAT_POWER)
- 			ret = 1;
- 	} else {
-@@ -3306,7 +3306,7 @@ static int check_port_resume_type(struct usb_device *udev,
- 	}
- 	/* Is the device still present? */
- 	else if (status || port_is_suspended(hub, portstatus) ||
--			!usb_port_is_power_on(hub, portstatus)) {
-+			!usb_port_is_power_on(port_dev, portstatus)) {
- 		if (status >= 0)
- 			status = -ENODEV;
- 	} else if (!(portstatus & USB_PORT_STAT_CONNECTION)) {
-@@ -3748,12 +3748,13 @@ static int wait_for_connected(struct usb_device *udev,
- 		struct usb_hub *hub, int port1,
- 		u16 *portchange, u16 *portstatus)
- {
-+	struct usb_port *port_dev = hub->ports[port1 - 1];
- 	int status = 0, delay_ms = 0;
- 
- 	while (delay_ms < 2000) {
- 		if (status || *portstatus & USB_PORT_STAT_CONNECTION)
- 			break;
--		if (!usb_port_is_power_on(hub, *portstatus)) {
-+		if (!usb_port_is_power_on(port_dev, *portstatus)) {
- 			status = -ENODEV;
- 			break;
- 		}
-@@ -5449,7 +5450,7 @@ static void hub_port_connect(struct usb_hub *hub, int port1, u16 portstatus,
- 		 * but only if the port isn't owned by someone else.
- 		 */
+@@ -5452,7 +5449,7 @@ static void hub_port_connect(struct usb_hub *hub, int port1, u16 portstatus,
  		if (hub_is_port_power_switchable(hub)
--				&& !usb_port_is_power_on(hub, portstatus)
-+				&& !usb_port_is_power_on(port_dev, portstatus)
+ 				&& !usb_port_is_power_on(port_dev, portstatus)
  				&& !port_dev->port_owner)
- 			set_port_feature(hdev, port1, USB_PORT_FEAT_POWER);
+-			set_port_feature(hdev, port1, USB_PORT_FEAT_POWER);
++			usb_hub_set_port_power(hdev, hub, port1, true);
  
-diff --git a/drivers/usb/core/hub.h b/drivers/usb/core/hub.h
-index 9ebc5ef54a32..b65d9192379d 100644
---- a/drivers/usb/core/hub.h
-+++ b/drivers/usb/core/hub.h
-@@ -138,7 +138,7 @@ extern int usb_clear_port_feature(struct usb_device *hdev,
- 		int port1, int feature);
- extern int usb_hub_port_status(struct usb_hub *hub, int port1,
- 		u16 *status, u16 *change);
--extern int usb_port_is_power_on(struct usb_hub *hub, unsigned int portstatus);
-+extern int usb_port_is_power_on(struct usb_port *port, unsigned int portstatus);
- 
- static inline bool hub_is_port_power_switchable(struct usb_hub *hub)
- {
-diff --git a/drivers/usb/core/port.c b/drivers/usb/core/port.c
-index 1088776ef750..77dbf51f1760 100644
---- a/drivers/usb/core/port.c
-+++ b/drivers/usb/core/port.c
-@@ -98,7 +98,7 @@ static ssize_t disable_show(struct device *dev,
- 	}
- 
- 	usb_hub_port_status(hub, port1, &portstatus, &unused);
--	disabled = !usb_port_is_power_on(hub, portstatus);
-+	disabled = !usb_port_is_power_on(port_dev, portstatus);
- 
-  out_hdev_lock:
- 	usb_unlock_device(hdev);
+ 		if (portstatus & USB_PORT_STAT_ENABLE)
+ 			goto done;
 -- 
 2.55.0.rc0.799.gd6f94ed593-goog
 
