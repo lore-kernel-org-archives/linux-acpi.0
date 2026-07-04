@@ -1,172 +1,355 @@
-Received: from OSPPR02CU001.outbound.protection.outlook.com (mail-norwayeastazolkn19013078.outbound.protection.outlook.com [52.103.51.78])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C947E256C8B;
-	Sat,  4 Jul 2026 21:28:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.103.51.78
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783200539; cv=fail; b=iC4XHTdSkJFRb0/tL/Y0VmM/930S6JDkb+Bgsv5gD3AOGh8672dL5Of4Icgb+SFIgT5fsOB8D1TbKAzv2+NPTqpLYpx/MbudmTeyPnDdllEXY+aaaFwyF9QqBdT0Po1NYlrfqt3adUykbfuk3+p+nPYcRP/YhcR8Kh6hBTSG6Rc=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783200539; c=relaxed/simple;
-	bh=fLbodXc3CCRxVD4TbDalMat8pAAcF/sGSgAr9w3gGMM=;
-	h=From:To:Subject:Date:Message-ID:Content-Type:MIME-Version; b=fy4NEacFYPytPwNZEdeDNaThcTWkRUAKhbxAlfBACar1BEWT0r3djxsIKoDabGln1nher6aWVT3IwT4SrpwDko9fTzzLhij7x/E4WGBAvxAVwKPdRwrapVVyoNBpW4hY/fFDEaadd2zay/5nu6cQOESAe4ahrpw3M/Qf1/iUO3Y=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=outlook.de; spf=pass smtp.mailfrom=outlook.de; dkim=fail (0-bit key) header.d=OUTLOOK.DE header.i=@OUTLOOK.DE header.b=FmLt44db reason="key not found in DNS"; arc=fail smtp.client-ip=52.103.51.78
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=outlook.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=outlook.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 291F1381EB5
+	for <linux-acpi@vger.kernel.org>; Sat,  4 Jul 2026 22:08:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.42
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783202902; cv=none; b=B/WjyCkRhj6Sr79kNRL+rjymM8bH5VRuDP7/59S86e5ZQSRqzOIJ8m7iUh5bjlM2YSdSDFlHLCsX/HpwuK1S8zsXgJbRn34EGCOkkZ1/QPMDauJmc/oA46LRjnqDudGp22U7osIyXkdWPBj9JgRP4pTfU8xD13pFhQ91q410/WE=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783202902; c=relaxed/simple;
+	bh=O1OYbZBFLxebnG1oEjyhK1uL6Nl+OODLeyV1tAbyox8=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=r8bhQLrfxJTGVuVNMDY2ijCcnMY8RctT8eq3lseSj3E9+1M89LQ+8wUrH6Oj3+Xihl6Fcuso6i4K/qBewzhDIvdYPpmEVJedyrm96Wb4YF2dtSn5wlDBwy558Rcw0o7048GeTa8OkUsEZxJxGDKzG88Awm6GaX6EBSmQiNPEzIs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TdPacTQm; arc=none smtp.client-ip=209.85.221.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=OUTLOOK.DE header.i=@OUTLOOK.DE header.b="FmLt44db"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=H8ppG5blFrW6lR+PchyJC40HgVtG3pSCnsPf/4IlR6Rf7IQr5odjEABQnoDCatm7JlxJNpAVVi7K4PrhwdLanKy0PhVBfoZj7Iu1n9TptfHxFcoNv8OYFCUc9TsQ4eNvbnP3c69Dup+ybKdwNfmmO5KA86T/IgNodN3dOoJkgYq/OcEByEGixUyhpFqHpHeKm2h1Nj2mN2xFewTofCNXBGiUdFZKIds9TsJDqQyYqwf7Rsa21D13h5ykJ4ieayWN1UYGpVmIvZOK2DUEMkdVyTxw3S1vhErd1Kg4dtR508Y+9XLRznsspNjFdlq6C8yI5XtCw5s+WzYwj4V9Q98bfg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=fLbodXc3CCRxVD4TbDalMat8pAAcF/sGSgAr9w3gGMM=;
- b=VVGDgUZY7TW4KEZz+p9Ir0qwDzCBLWxtb8MjUkl3sIQWLOoFcCDGqWENCTfJ2a2VxT9zcsHmLMVvc7eEcUiWVpf69fCfbuqZ2fCh6la1Vv7Q06yrZz0KMdU/x/8X8sP7NAvZrJPicW7S1bdKRm/o5VuIEMTwTY272yHeFrEPSdYrTHJheX5wFF9/lKp3WFeNHQXJ0ZJFuFoOeOCFltgCDbrJhu58nIX/Ckt1rbv6QDZ3aMAI7TiEcFNFBqttGcs/ZeELRgX5WVLRMOaC0pjC31kCILHYmE+FVUN8uh8In1yNI3VwwO77KlxN/8phwNvMdPWjK288rZ0QPdtYVtcCtw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
- dkim=none; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=OUTLOOK.DE;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=fLbodXc3CCRxVD4TbDalMat8pAAcF/sGSgAr9w3gGMM=;
- b=FmLt44dbq6L9s6teCaFgGQuAbppSSohPY4tOLw3S63UJb7hrWUkO6EmUrhXSfakiHl9C5dOz0Uyj/pTvNZZLZLk/QbB/eLO2V0YHLVqrlpbR/KNPtfvyGfLdEF7AJg4cpxAtMp0HeyyiA6jRs9mzyBmuUfCPNNqQUruCnZUT7p+HLHuCPa2MJekK/Jyr1w1IJRePxLBmjZTs0k+NH+TRPCe/WlA+QvPUqG5gbgSIwAvhzTEWv5coTZouEnHnr32i0Zi17F3RwdIFlE3JvfDNpnAWPVVd47JW/ZeWk3ySIbcyDEzdJ2hARCdWcKAbbp0JkQZB6Zh7wG+4lHzTTGphAw==
-Received: from AM9P193MB1588.EURP193.PROD.OUTLOOK.COM (2603:10a6:20b:30f::11)
- by DBAP193MB1146.EURP193.PROD.OUTLOOK.COM (2603:10a6:10:1c7::12) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.12; Sat, 4 Jul
- 2026 21:28:55 +0000
-Received: from AM9P193MB1588.EURP193.PROD.OUTLOOK.COM
- ([fe80::824d:c236:f55b:4ed8]) by AM9P193MB1588.EURP193.PROD.OUTLOOK.COM
- ([fe80::824d:c236:f55b:4ed8%5]) with mapi id 15.21.0181.011; Sat, 4 Jul 2026
- 21:28:54 +0000
-From: golne tree <lrepper@outlook.de>
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Regression: ACPI battery status incorrectly reported as Not charging
- after bb1256e0ddc7
-Thread-Topic: Regression: ACPI battery status incorrectly reported as Not
- charging after bb1256e0ddc7
-Thread-Index: AQHdC/t3g5nS2nd2RECA9ast3d8N2Q==
-Date: Sat, 4 Jul 2026 21:28:54 +0000
-Message-ID:
- <AM9P193MB1588F78FCA2083745CEDD8C3D0F32@AM9P193MB1588.EURP193.PROD.OUTLOOK.COM>
-Accept-Language: de-DE, en-US
-Content-Language: de-DE
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-msip_labels:
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: AM9P193MB1588:EE_|DBAP193MB1146:EE_
-x-ms-office365-filtering-correlation-id: 6f204039-0cbb-488f-dca1-08deda134022
-x-microsoft-antispam:
- BCL:0;ARA:14566002|19110799012|8060799015|51005399006|8062599012|31061999003|15080799012|15030799006|9112599006|2604031081799003|6050399003|40105399003|3430499035|3420499032|102099032|3412199025|440099028;
-x-microsoft-antispam-message-info:
- =?iso-8859-1?Q?oOtN5xbyJTRJvkiqfFsw4PhbNwZ2dXC55/o+bLrWwyf/KPjkcaHaUriizo?=
- =?iso-8859-1?Q?y2CVFWtHIuMy8pjd9J2pt3/D8ra4Ae+nZckz7Sy+LrpqKxYyb3QbwV5qV+?=
- =?iso-8859-1?Q?U0IefgxocMThibyQMHbDiGhFomGBRS4pM02DjGq/+VudXAkgbMuuShdqes?=
- =?iso-8859-1?Q?vl637xVbyjBZZTyzvjD+g3xgnYv0CyujvvTQFo8eCl12R1oldOP1z5sLnz?=
- =?iso-8859-1?Q?quUer/tfsOvHtO67yGtKgGJ8Jrn6cZx6ODhgHKUItEFck9Kyuhc7gabKK4?=
- =?iso-8859-1?Q?q9Fn7ZnfKwbilQVnkbziWlUEoT0PsdcS0KxnTVwKQjgxS7aG9E1LxjsfG9?=
- =?iso-8859-1?Q?KLGIAT/dfI3n+Zs0f0SRdZevd1ZYgSwtuPMp9VyfVJiCJs7hy6mBfMQ+c3?=
- =?iso-8859-1?Q?f+yfSoHPhvKfmEl9dGs3JO+2exUmT9jUoWeOfgTeM6OtnHNqgDfg8zyNTH?=
- =?iso-8859-1?Q?a7k6zd76HtbUyF/YWv07ImTJ7zahhtFlsHx3O9HpEJj3whufOp7/t5NTVR?=
- =?iso-8859-1?Q?5VvO51H4KDMKH8Q2Jacv9klozDjI/Zns8QrazKZaPtqX4AYBj+tIUsBQtC?=
- =?iso-8859-1?Q?cz/AYscLFrOSjuLHoTubNwbAlkQF+7m5OXPzP52LjxOru5xmVwMOgx4bzk?=
- =?iso-8859-1?Q?eCnGpgCkqSUMGM/w77RidmzLIQzu4aSKcg8FNhS3lLxmCl1QKMen5CGrh5?=
- =?iso-8859-1?Q?fcJ4OqVLJG5UFkaW3RHrRurXJNysyn+LjBxaNTkesCLX4OQJAJeIGRTuWV?=
- =?iso-8859-1?Q?FUVAH1HGDysblzCd5QgNP7kEWo/RNcXiE76HvClzVPStYrAZXO2i8tRhoe?=
- =?iso-8859-1?Q?rNYf1IhRGkdgDe7bUZV3l6FjkXLQ0g0kAU4QbFUnqo8PP0XqyVC/sSEF+s?=
- =?iso-8859-1?Q?xGoojLZ6HIzOlNqDeAk7Bx7yfaTnbfhk+8/wOgHplU1PYwG58qrIEFxXDs?=
- =?iso-8859-1?Q?XTMnaoZVg0mOjfwuTApFZtQgvOQrEIPQsCPnItAUsMfKpDoq1q2VHiZipG?=
- =?iso-8859-1?Q?+lSG66tI0CR5+4c6nHM8k+nW2jCcncW0qBgvUZBSHytEd3AxgbHUSbCo6n?=
- =?iso-8859-1?Q?Dw=3D=3D?=
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?iso-8859-1?Q?Vc2z4f9kG8rkUoV9uH6IbNr/br5BQz+3jbDJvYwuTcI/u1JiW7fyS0sQZk?=
- =?iso-8859-1?Q?qwH3+RX8bSU4FfY6+XkXiNYH7pMtquLEe5xiWAGK3sUsdypY9fBHEKPx6J?=
- =?iso-8859-1?Q?/fNbKE/bqzSpvGnB1/krLg4S+8J0XPhoax+4MuYhZDili1qb7/SKzr2tY3?=
- =?iso-8859-1?Q?byFRbiUyTkzKJedNTuAwyHgLXIvSpKBXKhapVO1htK1sjeebmP6cDEUKsz?=
- =?iso-8859-1?Q?marwNWlklEnjcG8dbu9pNU5Ug5GIQ+I6u1SSGGvq4Fc4FW9XMQ10FjXe+z?=
- =?iso-8859-1?Q?OVD/mrqF2GrA1F5pCfOWh5HYKo5OZUNqNggjj0+A1H8dI8f9czevvR6QTz?=
- =?iso-8859-1?Q?DEYnx0xUBlE0as2y9BhpfEVL3kVnWW2OsXhhZDphNMnKIpgqaFFXVHmfGp?=
- =?iso-8859-1?Q?teQ8Psh1uPMovlGg0dwDLucgNIDb37QHt3TnFn26nLVPxb3NnaeCELg/df?=
- =?iso-8859-1?Q?6op0duoP3NJJxz5CMLvXTYiuNk5C7QfNLSBrbhnGfHuXHNqvVatqWlZP3G?=
- =?iso-8859-1?Q?sL5nKTse3H0GA2IGPvFDnyNyt+Wl/JPQs+NnYD/cAW0+dbMbhEZu6hF16o?=
- =?iso-8859-1?Q?qE11mX7DxS/CXXC1A+3WK1gjIIb4VvNySncL95vXhI1k94ZyIccLidt/iy?=
- =?iso-8859-1?Q?6+Nsm+HZhXrvaDwLa+bOvy33knhrevNShdKmupMR2raCDS9ylx/nL/vNtZ?=
- =?iso-8859-1?Q?CahhrezQN+VG/lO7PQ7JwyWLZGPVU+7dOuCEFI8SLoM5Ik0RMrRHbtrUnc?=
- =?iso-8859-1?Q?IVKTIXEno8LpjXMzL+SYT2gDV4zkefH/wrpzbX/C9bjsjKVVVxnKoE1OA2?=
- =?iso-8859-1?Q?zoVmpGHrUGqMixrxxps3eXV83s/xPtxYU30CeFMZyj4gy0Rx4apZfOzz48?=
- =?iso-8859-1?Q?csfedrc4yieUDfhBY5fzfYYbw2pJMdgwAHqqJOqSku0OqtgPFMMaN/WUrE?=
- =?iso-8859-1?Q?iaXgdrXbljEQXUrLWoCwI7vqwqbTlURDFzcg4t8SnmYgzzJ9oqftkCpYOs?=
- =?iso-8859-1?Q?MREq4k9zHBY13wTBBzzji3tjKHNvnp37RA/UVaDOCBvLLC9AyLCn4DWJIZ?=
- =?iso-8859-1?Q?4NxF69BNWqO6mtJC1DAM54FTIYkGskZvIFW5slqeHUo9MGIgx/sNc8gBQ/?=
- =?iso-8859-1?Q?Q8Qh79jOh+/GAgV9zClhTgD7/i5plf/9DbS+rz97+D/fRC14tCp3qhjJxg?=
- =?iso-8859-1?Q?9STGQc72v4pNUAYqYi2xzRBcJw+ezkUaLsErMvzoNMHH3RNwB4xMsxs1K3?=
- =?iso-8859-1?Q?R8FvPCJt464CJywW2lQ5QkYJnp7HRMaMkSCImWasOFWDDovyz53/VP8OxG?=
- =?iso-8859-1?Q?grnl6eiP9hkW8QSNiG9KBd/KPol11qLdikqH+8Gxpi1v21CtNb5xA2kZx6?=
- =?iso-8859-1?Q?BfWbA3dh1obLCY43mIxoKu0A+ewXXCy0MC49+WSrY5asxoPC1bIaF3dKz5?=
- =?iso-8859-1?Q?rehkWnoN+nTkB/euYki/4HqEyIqGi3gdOcww9b+EfJcWgLVDRHXTICzMzL?=
- =?iso-8859-1?Q?U=3D?=
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TdPacTQm"
+Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-47c2b362ee2so329087f8f.1
+        for <linux-acpi@vger.kernel.org>; Sat, 04 Jul 2026 15:08:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1783202899; x=1783807699; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=xpPUq9y1IeHXyjjjlr7/H6y5/V+mpreOLVS8riuUpgE=;
+        b=TdPacTQmO2AP0vrmmM/kDbg3B68WcFVYa1UX1H1dWIxrJF7ITxv55hdyPpd/MbO5Ho
+         pFm03qZ3G7fSJE3Qvr1kePomi/ludSgPm39/N5vHOKyQWbRdYBZ3bbcBWqf0n8hPYX98
+         nsEvKDObs2okhu6LP2TNa3PAkEt28/HYM2enauGZTWW1LrlHPq8O9gQ92+BvcH23cPjX
+         6zlxcM8KYfPp7ZBO3pqgCHZAguGxynRtaqA0EI43yEFaheUjqy4K56FxfPvGAG3d9kLz
+         5UkVk/GCwvDhyTZhICYdWm9TxdA8D8GGlzLWuWjzazxHuU5KRnLN4555lp7wRPcTZtyI
+         AqZA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783202899; x=1783807699;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=xpPUq9y1IeHXyjjjlr7/H6y5/V+mpreOLVS8riuUpgE=;
+        b=fO8Y+BiC29KpY17W7VHPiY0IUNv1KX6fZP81ALp0U4PRF83Y8d3uvDBccdyWv/VVzL
+         lhE14vtC0OHkT1jvLpRthZJUm5NlSvMr70k75yhNmVFoD6iMIqAI+BscxlMcrL0syWmV
+         KtI0bzA/SLRXCZ00NoopAuTdRXKYDJ3/JADxGgu0/czXKgEwxZcbyPXTcLCag6+oWHuP
+         F436UziQQ06DBSsrRqKfjowYtTtzIUopqL5PImRbtF1Yk0L5sX0pi/MuwPboF3eGpFtu
+         pFSD2op7UFF3EI6A/XPmkGYDYkdg4wvSvGaY07dUfpR/NEQFPQacd/3GYvi8fF8TeY5T
+         /3XQ==
+X-Forwarded-Encrypted: i=1; AHgh+RqaxluJb4lySyX5StsrxoEXVI7C3V5ODrBm2AtOkLqOn8Pf3o5mHQCMP49X/iV1VOB84mF0iKomJ0Tq@vger.kernel.org
+X-Gm-Message-State: AOJu0YyMZJMq6vOpKiqgjPrgAzsJPALjHS+gMIz4RLJhi1OzaighNQa/
+	xYuZTrvNGaP1UAKbcQj15F5F8LKuxrj+J7HVo1UVyoTlUDK3VsIOVwaF
+X-Gm-Gg: AfdE7clxFghO78eDrp92Fl/FoR54nQv4zj8n8sJRVF4/rh19LgIw/ZdDEE76gEH9EVb
+	URx7u24dUwX/DdPVwrZoBicM4E+VI/vaGapocDdKB7GyZat7Z7dKXvBJrypscFXPGfGPGlFi+MF
+	/3Q0drwd62dXteFUXBqf3dMeBd/GOf2M7OvWzmzOiTuonukcWAnMFuHM/08lw2upjQXDc+BlI1b
+	f/O7Hy6lzUvEmScVkAN7BsT/FXXndH7+eH3dd5Qz4ENryOJMTxOK0CFYvLor6E5ejdB5Br6jAsl
+	Srazm5sVFQOBo5Xm+FxJSUbCOv3Q1cUKRPInUTu4kwZ2MVKFt9W8lVl0/U94U2WnyNfFC65i34z
+	/OIWVHl1Y7Vz2fjVb3vHpGls9lhz2bFfvE1MjJ3mqXR+X0F2JEURN6rp8ssQVG1d+V4tM2loYfm
+	S7f3SOtZQkwmTXoTUnlycFxww9dOPPnhAdtsnIWqx8uIk05KVVAz2Ds45RGdCpwTqBiBlnDie+U
+	sKB0lR7BwbPq6ztWy8NJw==
+X-Received: by 2002:a05:6000:41ee:b0:475:3a97:8e2c with SMTP id ffacd0b85a97d-47aaa60d33amr5411933f8f.16.1783202899351;
+        Sat, 04 Jul 2026 15:08:19 -0700 (PDT)
+Received: from localhost.localdomain (stev-08-b2-v4wan-169520-cust2225.vm32.cable.virginm.net. [81.98.232.178])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47aa0960816sm10478477f8f.29.2026.07.04.15.08.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 04 Jul 2026 15:08:18 -0700 (PDT)
+From: shijujose2008@gmail.com
+To: rafael@kernel.org,
+	bp@alien8.de,
+	akpm@linux-foundation.org,
+	rppt@kernel.org,
+	dferguson@amperecomputing.com,
+	linux-edac@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-doc@vger.kernel.org,
+	tony.luck@intel.com,
+	lenb@kernel.org,
+	leo.duran@amd.com,
+	Yazen.Ghannam@amd.com,
+	mchehab@kernel.org
+Cc: jic23@kernel.org,
+	linuxarm@huawei.com,
+	rientjes@google.com,
+	jiaqiyan@google.com,
+	Jon.Grimm@amd.com,
+	dave.hansen@linux.intel.com,
+	naoya.horiguchi@nec.com,
+	james.morse@arm.com,
+	jthoughton@google.com,
+	somasundaram.a@hpe.com,
+	erdemaktas@google.com,
+	pgonda@google.com,
+	duenwen@google.com,
+	gthelen@google.com,
+	wschwartz@amperecomputing.com,
+	wbs@os.amperecomputing.com,
+	nifan.cxl@gmail.com,
+	tanxiaofei@huawei.com,
+	prime.zeng@hisilicon.com,
+	roberto.sassu@huawei.com,
+	kangkang.shen@futurewei.com,
+	wanghuiqiang@huawei.com,
+	shijujose2008@gmail.com
+Subject: [PATCH v20 0/2] ACPI: Add support for ACPI RAS2 feature table
+Date: Sat,  4 Jul 2026 23:07:43 +0100
+Message-Id: <20260704220745.110773-1-shijujose2008@gmail.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: sct-15-20-9412-4-msonline-outlook-b2714.templateTenant
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: AM9P193MB1588.EURP193.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg: 00000000-0000-0000-0000-000000000000
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6f204039-0cbb-488f-dca1-08deda134022
-X-MS-Exchange-CrossTenant-originalarrivaltime: 04 Jul 2026 21:28:54.7880
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
-X-MS-Exchange-CrossTenant-rms-persistedconsumerorg: 00000000-0000-0000-0000-000000000000
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DBAP193MB1146
+Content-Transfer-Encoding: 8bit
 
-Dear ACPI maintainers,=0A=
-I would like to report a regression caused by commit:=0A=
-bb1256e0ddc7 ("ACPI: battery: fix incorrect charging status when current is=
- zero")=0A=
-The commit fixes a real issue on Huawei laptops, but it appears to introduc=
-e a regression on my system.=0A=
-Hardware:=0A=
-Manufacturer: Default string=0A=
-Product: Default string=0A=
-Laptop: Denver NID-14106SSDDE=0A=
-Kernel: 7.0.11-1-cachyos=0A=
-The same issue is also present with the unmodified Fedora Workstation kerne=
-l.=0A=
-Observed behavior:=0A=
-When the AC adapter is connected, the battery is actually charging. The bat=
-tery percentage continuously increases (for example from 81% to 84%).=0A=
-However, the kernel reports:=0A=
-POWER_SUPPLY_STATUS=3DNot charging=0A=
-POWER_SUPPLY_POWER_NOW=3D0=0A=
-Relevant values from /sys/class/power_supply/BAT0/uevent:=0A=
-POWER_SUPPLY_STATUS=3DNot charging=0A=
-POWER_SUPPLY_POWER_NOW=3D0=0A=
-POWER_SUPPLY_VOLTAGE_NOW=3D7400000=0A=
-POWER_SUPPLY_ENERGY_NOW=3D24760000=0A=
-POWER_SUPPLY_CAPACITY=3D84=0A=
-The battery does not provide current_now, and DMI information is unfortunat=
-ely only:=0A=
-system-manufacturer: Default string=0A=
-system-product-name: Default string=0A=
-Looking at commit bb1256e0ddc7, the following logic was introduced:=0A=
-if (battery->rate_now !=3D ACPI_BATTERY_VALUE_UNKNOWN &&=0A=
- =A0 =A0battery->rate_now =3D=3D 0)=0A=
- =A0 =A0 =A0 =A0status =3D POWER_SUPPLY_STATUS_NOT_CHARGING;=0A=
-On my system, rate_now=A0is always reported as zero even while the battery =
-is clearly charging. As a result, userspace always receives Not charging, a=
-lthough the battery level continues to increase.=0A=
-This suggests that some firmware reports an incorrect rate_now=A0value whil=
-e still charging, making the new heuristic unsuitable for all systems.=0A=
-Please let me know if you need additional information (acpidump, DSDT, debu=
-g logs, etc.). I would be happy to provide them.=0A=
-Thank you for your time.=0A=
-Best regards,=0A=
-Goldi Tree=
+From: Shiju Jose <shijujose2008@gmail.com>
+
+Add support for ACPI RAS2 feature table (RAS2) defined in the
+ACPI 6.5 specification, section 5.2.21 and RAS2 HW based memory
+scrubbing feature.
+
+ACPI RAS2 patches were part of the EDAC series [1].
+
+The code is based on linux.git v7.2-rc1 [2].
+
+1. https://lore.kernel.org/linux-cxl/20250212143654.1893-1-shiju.jose@huawei.com/
+2. https://github.com/torvalds/linux.git
+
+Changes
+=======
+v19 -> v20:
+1. Added possible fixes for gemini AI reported issues shared by Borislav. Thanks.
+   https://sashiko.dev/#/patchset/20260408172850.183-1-shiju.jose%40huawei.com
+   Unfortunately could not get a local sashiko review setup to verify the fixes
+   before posting patches.
+
+v18 -> v19:
+1. Fixed gemini tool reported issues sent by Borislav. Thanks.
+https://sashiko.dev/#/patchset/20260325165714.294-1-shiju.jose%40huawei.com
+ - Replace with iowriteX() and ioreadX() for reading fields in RAS2 shared memory
+   tables throughout patches considering big-endian architectures. 
+ - In ras2_send_pcc_cmd(), add extra check for non-zero last_mpar_reset,
+   changed time_delta to s64, add lockdep_assert_held().
+ - In register_pcc_channel(), handled case of pcc_chan->latency is 0
+   and fixed timeout of 0 to readw_relaxed_poll_timeout().
+ - Fixed double free case When auxiliary_device_add() fails, the driver calls
+   auxiliary_device_uninit(&ras2_ctx->adev).
+ - In parse_ras2_table(), add check to verify table length is large enough to contain the
+   num_pcc_descs elements it iterates over.
+ - Add some missing cases to acquire pcc_lock, such as ras2_hw_scrub_read_addr()
+   and ras2_hw_scrub_read_size(). 
+ - Removed clearing base and size in ras2_scrub_monitor_thread() when demand scrubbing
+   has finished, to avoid clearing the user set values, though chances are very little.
+ - Add new field set_scrub_cycle to ras2_ctx to avoid user set value is being cleared when
+   ras2_update_patrol_scrub_params_cache() is being called. 
+ - In ras2_hw_scrub_set_enabled_od(), redesigned to avoid prematurely restart the background scrub
+   due to race condition in ras2_scrub_monitor_thread(). 
+ - rename ras2_probe() to ras2_mem_drv_probe()
+ - add ras2_mem_drv_remove() and call kthread_stop() to stop the ras2_scrub_monitor_thread().
+   However unregistering the EDAC device which registered in the ras2_mem_drv_probe() will
+   automatically happen in the EDAC via the devm_add_action_or_reset() in edac_dev_register(),
+   edac_dev_unreg() and edac_dev_release().
+   
+v17 -> v18:
+1. Fixed few AI tool reported issues shared by Borislav. Thanks.
+https://lore.kernel.org/all/20260312165247.GSabLvX5DjzhDtmyuh@fat_crate.local/
+2. Re-add support for user setting scrub address range for Daniel's 
+   reply in v16, which was removed in v13 because of request to simplify the code and
+   with the expectation that the firmware will do the full node demand scrubbing and
+    may enable these attributes later in the follow-up patches.
+   https://lore.kernel.org/all/df5fe0ed-3483-4ac5-8096-447e4e560816@os.amperecomputing.com/
+
+v16 -> v17:
+1. Merged all changes suggested by Borislav.
+https://lore.kernel.org/all/20260126171552.GJaXehSJp33nFnpvVd@fat_crate.local/
+2. Changes for Borislav's feedback "Add remove_aux_device() which unwinds everything
+   add_aux_device() does for all those devices".
+
+v15 -> v16:
+Attempt to modify throughout the code and logs for the below comments from Borislav.
+Thanks for the comments.
+https://lore.kernel.org/all/20251125073627.GLaSVce7hBqGH1a3ni@fat_crate.local/
+https://lore.kernel.org/all/20251231131512.GBaVUh4NSWqvr2xhbM@fat_crate.local/
+https://lore.kernel.org/all/20260119111701.GBaW4Sres045xnfkpz@fat_crate.local/
+
+v14 -> v15:
+1. Incorporated new changes suggested by Borislav on v13.
+   https://lore.kernel.org/all/20251231131512.GBaVUh4NSWqvr2xhbM@fat_crate.local/
+   
+2. Rebase to v6.19-rc5.
+
+v13 -> v14:
+1. Modifications for changes wanted by Borislav.
+   https://lore.kernel.org/all/20251125073627.GLaSVce7hBqGH1a3ni@fat_crate.local/
+
+2. Changes for the comments from Randy Dunlap 
+   https://lore.kernel.org/all/4807417b-a8f7-47a3-b38a-94ea7bdbf775@infradead.org/
+   https://lore.kernel.org/all/af7b6cdc-c0a7-4896-ba6b-6bb933898d37@infradead.org/
+   https://lore.kernel.org/all/26083ba9-1979-4d14-8465-3f54f2f96d23@infradead.org/
+   
+v12 -> v13:
+1. Fixed some bugs reported and changes wanted by Borislav.
+   https://lore.kernel.org/all/20250910192707.GAaMHRCxWx37XitN3t@fat_crate.local/ 
+
+2. Tried modifying the patch header as commented by Borislav.
+
+3. Fixed a bug reported by Yazen.
+   https://lore.kernel.org/all/20250909162434.GB11602@yaz-khff2.amd.com/
+
+4. Changed setting 'Requested Address Range' for GET_PATROL_PARAMETERS
+   command to meet the requirements from Daniel for Ampere Computing
+   platform. 
+   https://lore.kernel.org/all/7a211c5c-174c-438b-9a98-fd47b057ea4a@os.amperecomputing.com/
+
+5. In RAS2 driver, removed support for scrub control attributes 'addr' and
+   'size' for the time being with the expectation that a firmware will do
+   the full node demand scrubbing and may enable these attributes in the
+   future.
+   
+6. Add 'enable_demand' attribute to the EDAC scrub interface to start/stop
+   the demand scrub, which is used for the RAS2 demand scrub control.
+
+v11 -> v12:
+1. Modified logic for finding the lowest contiguous phy memory addr range for
+NUMA domain using node_start_pfn() and node_spanned_pages() according to the
+feedback from Mike Rapoport in v11.
+https://lore.kernel.org/all/aKsIlFTkBsAF5sqD@kernel.org/
+
+2. Rebase to 6.17-rc4.
+
+v10 -> v11:
+1. Simplified code by removing workarounds previously added to support
+   non-compliant case of single PCC channel shared across all proximity
+   domains (which is no longer required). 
+   https://lore.kernel.org/all/f5b28977-0b80-4c39-929b-cf02ab1efb97@os.amperecomputing.com/
+
+2. Fix for the comments from Borislav (Thanks).
+   https://lore.kernel.org/all/20250811152805.GQaJoMBecC4DSDtTAu@fat_crate.local/
+
+3. Rebase to 6.17-rc1.
+
+v9 -> v10:
+1. Use pcc_chan->shmem instead of 
+   acpi_os_ioremap(pcc_chan->shmem_base_addr,...) as it was
+   acpi_os_ioremap internally by the PCC driver to pcc_chan->shmem.
+   
+2. Changes required for the Ampere Computing system where uses a single
+   PCC channel for RAS2 memory features across all NUMA domains. Based on the
+   requirements from by Daniel on V9
+   https://lore.kernel.org/all/547ed8fb-d6b7-4b6b-a38b-bf13223971b1@os.amperecomputing.com/
+   and discussion with Jonathan.
+2.1 Add node_to_range lookup facility to numa_memblks. This is to retrieve the lowest
+    physical continuous memory range of the memory associated with a NUMA domain.
+2.2. Set requested addr range to the memory region's base addr and size
+   while send RAS2 cmd GET_PATROL_PARAMETER 
+   in functions ras2_update_patrol_scrub_params_cache() &
+   ras2_get_patrol_scrub_running().
+2.3. Split struct ras2_mem_ctx into struct ras2_mem_ctx_hdr and struct ras2_pxm_domain
+   to support cases, uses a single PCC channel for RAS2 scrubbers across all NUMA
+   domains and PCC channel per RAS2 scrub instance. Provided ACPI spec define single
+   memory scrub per NUMA domain.
+2.4. EDAC feature sysfs folder for RAS2 changed from "acpi_ras_memX" to  "acpi_ras_mem_idX"
+   because memory scrub instances across all NUMA domains would present under
+   "acpi_ras_mem_id0" when a system uses a single PCC channel for RAS2 scrubbers across
+   all NUMA domains etc.
+2.5. Removed Acked-by: Rafael from patch [2], because of the several above changes from v9.
+
+v8 -> v9:
+1. Added following changes for feedback from Yazen.
+ 1.1 In ras2_check_pcc_chan(..) function
+    - u32 variables moved to the same line.
+    - Updated error log for readw_relaxed_poll_timeout()
+    - Added error log for if (status & PCC_STATUS_ERROR), error condition.
+    - Removed an impossible condition check.
+  1.2. Added guard for ras2_pc_list_lock in ras2_get_pcc_subspace().
+        
+2. Rebased to linux.git v6.16-rc2 [2].
+
+v7 -> v8:
+1. Rebased to linux.git v6.16-rc1 [2].
+
+v6 -> v7:
+1. Fix for the issue reported by Daniel,
+   In ras2_check_pcc_chan(), add read, clear and check RAS2 set_cap_status outside
+   if (status & PCC_STATUS_ERROR) check. 
+   https://lore.kernel.org/all/51bcb52c-4132-4daf-8903-29b121c485a1@os.amperecomputing.com/
+
+v5 -> v6:
+1. Fix for the issue reported by Daniel, in start scrubbing with correct addr and size
+   after firmware return INVALID DATA error for scrub request with invalid addr or size.
+   https://lore.kernel.org/all/8cdf7885-31b3-4308-8a7c-f4e427486429@os.amperecomputing.com/
+   
+v4 -> v5:
+1. Fix for the build warnings reported by kernel test robot.
+   https://patchwork.kernel.org/project/linux-edac/patch/20250423163511.1412-3-shiju.jose@huawei.com/
+2. Removed patch "ACPI: ACPI 6.5: RAS2: Rename RAS2 table structure and field names"
+   from the series as the patch was merged to linux-pm.git : branch linux-next
+3. Rebased to ras.git: edac-for-next branch merged with linux-pm.git : linux-next branch.
+      
+v3 -> v4:
+1.  Changes for feedbacks from Yazen on v3.
+    https://lore.kernel.org/all/20250415210504.GA854098@yaz-khff2.amd.com/
+
+v2 -> v3:
+1. Rename RAS2 table structure and field names in 
+   include/acpi/actbl2.h limited to only necessary
+   for RAS2 scrub feature.
+2. Changes for feedbacks from Jonathan on v2.
+3. Daniel reported a known behaviour: when readback 'size' attribute after
+   setting in, returns 0 before starting scrubbing via 'addr' attribute.
+   Changes added to fix this.
+4. Daniel reported that firmware cannot update status of demand scrubbing
+   via the 'Actual Address Range (OUTPUT)', thus add workaround in the
+   kernel to update sysfs 'addr' attribute with the status of demand
+   scrubbing.
+5. Optimized logic in ras2_check_pcc_chan() function
+   (patch - ACPI:RAS2: Add ACPI RAS2 driver).
+6. Add PCC channel lock to struct ras2_pcc_subspace and change
+   lock in ras2_mem_ctx as a pointer to pcc channel lock to make sure
+   writing to PCC subspace shared memory is protected from race conditions.
+   
+v1 -> v2:
+1.  Changes for feedbacks from Borislav.
+    - Shorten ACPI RAS2 structures and variables names.
+    - Shorten some of the other variables in the RAS2 drivers.
+    - Fixed few CamelCases.
+
+2.  Changes for feedbacks from Yazen.
+    - Added newline after number of '}' and return statements.
+    - Changed return type for "ras2_add_aux_device() to 'int'.
+    - Deleted a duplication of acpi_get_table("RAS2",...) in the ras2_acpi_parse_table().
+    - Add "FW_WARN" to few error logs in the ras2_acpi_parse_table().
+    - Rename ras2_acpi_init() to acpi_ras2_init() and modified to call acpi_ras2_init()
+      function from the acpi_init().
+    - Moved scrub related variables from the struct ras2_mem_ctx from  patch
+      "ACPI:RAS2: Add ACPI RAS2 driver" to "ras: mem: Add memory ACPI RAS2 driver".
+
+Shiju Jose (2):
+  ACPI:RAS2: Add driver for the ACPI RAS2 feature table
+  ras: mem: Add ACPI RAS2 memory driver
+
+ Documentation/ABI/testing/sysfs-edac-scrub |  14 +-
+ Documentation/edac/scrub.rst               |  70 +++
+ drivers/acpi/Kconfig                       |  11 +
+ drivers/acpi/Makefile                      |   1 +
+ drivers/acpi/bus.c                         |   3 +
+ drivers/acpi/ras2.c                        | 509 +++++++++++++++++++
+ drivers/edac/scrub.c                       |  12 +
+ drivers/ras/Kconfig                        |  13 +
+ drivers/ras/Makefile                       |   1 +
+ drivers/ras/acpi_ras2.c                    | 562 +++++++++++++++++++++
+ include/acpi/ras2.h                        |  86 ++++
+ include/linux/edac.h                       |   4 +
+ 12 files changed, 1281 insertions(+), 5 deletions(-)
+ create mode 100644 drivers/acpi/ras2.c
+ create mode 100644 drivers/ras/acpi_ras2.c
+ create mode 100644 include/acpi/ras2.h
+
+-- 
+2.25.1
+
