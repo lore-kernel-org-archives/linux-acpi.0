@@ -1,63 +1,63 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C13E2377EBF;
-	Sat,  4 Jul 2026 17:24:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A2AB372EF5;
+	Sat,  4 Jul 2026 19:04:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783185872; cv=none; b=MdhI3cz5Ki4x9qARX2eTNn8o3k2ktw1hkgdd07kZVriug0YfkIv/XCWoEFT9Q4JAPTmb1v/GFB0/X5le5p+Z0E9R/01RGCKFVf5WgviZKHOfzTzdaYippD7rIaM8S3Z8gMi1pnuLW6Ju0p6HEjgoelqgdKxCSAHblEJYb4VOyHs=
+	t=1783191901; cv=none; b=Zw+WKEzKAHY20LOB1R7V7eSGe4oeOXb8ZdwSqgCJjE5iTjeQOXY7dvb0jgmzeqRh0ujnpOwgSeEPErZtHwbii0z8qY0/xyyffRE9SV1Z0iB67pyyb9q9LPoSGKjHIeCKyu2/KYpNi5vpomL1yj87SN8fpm63Kq5WaJFbciaoVgk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783185872; c=relaxed/simple;
-	bh=bwJgzEjDtCiFYLEBeDIfh4X6nAtb+oau958LGiGYgO4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=nAY0ZoyjJk+cg1edsed98mL41MWP+fK+TX39EdSxn3eh6QFBgcr6L1zDXMmBOEJmIib+niDTH+RLc0Lgh9ZfjaLlIUOZtAIURh3tVmpCtAoHku+Fjzh1W4VytCr/xDGbvDmwYnPNZ4sWz0twx+U5801XvH49D3wV3TPS6JvVGOA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=CbNG1xlV; arc=none smtp.client-ip=198.175.65.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1783191901; c=relaxed/simple;
+	bh=NxgWlRo1WekT/E7VOaafBTlkXH3NCkoFD5s+Dn450f4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=bBfMX23C2CP3rrxnus3yjLd8W7IPrdWEA5xT6PllkpdEd9sstzbSEzLUs5pw+F1N/99DW+4WKqO9V/iUisoJ1lzXuPTwSxhP/B76joYwi6QPG7OOqkr1XgOzC4f/gSHt2zhD3bh3QdyWnMln+C66oPY2liMkjlumAx2nlx4YSMQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MG2Wb5Ob; arc=none smtp.client-ip=192.198.163.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="CbNG1xlV"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MG2Wb5Ob"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1783185871; x=1814721871;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=bwJgzEjDtCiFYLEBeDIfh4X6nAtb+oau958LGiGYgO4=;
-  b=CbNG1xlVm9uOc7svsgKsWKJA6i/pJfwLxjfC2QcSoQSdsJn6j0vJxvEr
-   j9Puq/fBQJ4bWYIw5BIRqDn4WE2inzsNL1IJp1zcAZKcBMqfStkSZZmGw
-   1xEbM4vGh3vM0SYZ5RhkNf2nrK+52+LLwTxGqhMUOqrVdFBnIP6SSGLUK
-   jlKuW40Przq2ZrGDP4D9WOfx35TFT4AUbXFadmdtVjn7CRmeLujcjv3kw
-   ukrIdZArSapuhZUYo+p0Qi7PbGC6NNI8xYE3BMXw5j/YAhdz4jkAfglhb
-   RA03BPH1JydPgDxLbO0BeVeqRkDWjnx0nxDQk30O0QoL25sclZbninw/n
-   g==;
-X-CSE-ConnectionGUID: ZhuEyJ8JTZ2qqroQckM5Xg==
-X-CSE-MsgGUID: Rt6IwC6KQ4ChnWpWtKXXDg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11837"; a="101308168"
-X-IronPort-AV: E=Sophos;i="6.25,147,1779174000"; 
-   d="scan'208";a="101308168"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jul 2026 10:24:30 -0700
-X-CSE-ConnectionGUID: xnaQ0srgQg6clww9XUhblA==
-X-CSE-MsgGUID: oWrLnH+ERbWeFU20URqSeA==
+  t=1783191899; x=1814727899;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=NxgWlRo1WekT/E7VOaafBTlkXH3NCkoFD5s+Dn450f4=;
+  b=MG2Wb5ObW6kogeo456/6MmkWr6DesJv7l9ZdNhexwxjrxkcXxZHP4aBh
+   7WRiXrntvOpXVw4TrgyzcR2oYQ6YozbEwOL7ksYDi68UFbdGpbKH0nvMy
+   iwF4TjX7FR01Xy7INIQjypP0lTUM5DKNEJrWqiAp34WNzqFIehOu5SkQg
+   pNbp4dZutw6t9Rx//IP+NfMhnsOEKGe8uQUWDBZ7TzkzCtIHkYX7L+Lha
+   745mYdkKtt4BT5s7Y9vju8a0TPa+oB/6VROQ0mYgj/3eZdryGOg8z11cl
+   8+y9y6LiEK1GPYD3GUB9i4E+C80jGSDhu+XbDeIPqfC93/3Se/L6eTTt/
+   A==;
+X-CSE-ConnectionGUID: G6flq9FHQSiN1EIxzdChhg==
+X-CSE-MsgGUID: i0c84W4YRnu4jnJ77S+xZA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11837"; a="82995092"
+X-IronPort-AV: E=Sophos;i="6.25,148,1779174000"; 
+   d="scan'208";a="82995092"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jul 2026 12:04:58 -0700
+X-CSE-ConnectionGUID: YbbpujWFTXaPMsm8myaHnA==
+X-CSE-MsgGUID: 8fNguPQPQ+29FmLrBHu6+w==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,147,1779174000"; 
-   d="scan'208";a="250677835"
-Received: from intel-nuc8i7beh.iind.intel.com ([10.223.163.6])
-  by fmviesa008.fm.intel.com with ESMTP; 04 Jul 2026 10:24:27 -0700
-From: Arun T <arun.t@intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
+X-IronPort-AV: E=Sophos;i="6.25,148,1779174000"; 
+   d="scan'208";a="257232737"
+Received: from slindbla-desk.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.245.245.246])
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jul 2026 12:04:55 -0700
+Received: from kekkonen.localdomain (localhost [IPv6:::1])
+	by kekkonen.fi.intel.com (Postfix) with SMTP id B146B120DF0;
+	Sat, 04 Jul 2026 22:04:33 +0300 (EEST)
+Date: Sat, 4 Jul 2026 22:04:33 +0300
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Arun T <arun.t@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
 	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Miguel Vadillo <miguel.vadillo@intel.com>
-Cc: Len Brown <lenb@kernel.org>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Mehdi Djait <mehdi.djait@intel.com>,
-	linux-acpi@vger.kernel.org,
-	linux-media@vger.kernel.org,
+	Miguel Vadillo <miguel.vadillo@intel.com>,
+	Len Brown <lenb@kernel.org>, Mehdi Djait <mehdi.djait@intel.com>,
+	linux-acpi@vger.kernel.org, linux-media@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 4/4] media: i2c: cvs: Add NVL ACPI ID
-Date: Sat,  4 Jul 2026 22:48:55 +0530
-Message-ID: <20260704171855.1462214-5-arun.t@intel.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260704171855.1462214-1-arun.t@intel.com>
+Subject: Re: [PATCH v2 0/4] Add NVL CVS/IPU8 camera support
+Message-ID: <aklZQdKb2NxkzrYe@kekkonen.localdomain>
 References: <20260704171855.1462214-1-arun.t@intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -65,28 +65,25 @@ List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260704171855.1462214-1-arun.t@intel.com>
 
-Add INTC10FA to the CVS ACPI match table so the driver can bind to
-CVS devices exposed on NVL platforms.
+Hi Arun,
 
-Signed-off-by: Arun T <arun.t@intel.com>
----
- drivers/media/i2c/cvs/core.c | 1 +
- 1 file changed, 1 insertion(+)
+On Sat, Jul 04, 2026 at 10:48:51PM +0530, Arun T wrote:
+> This series adds NVL CVS support to the ACPI dependency handling,
+> the IPU bridge, and the CVS driver. It also adds the IPU8 PCI device
+> ID needed for the CVS driver to bind on NVL camera hardware.
+> 
+> Changes in v2:
+> - Add a cover letter for the multi-patch series.
+> - Add Reviewed-by from Sakari Ailus to patch 1.
 
-diff --git a/drivers/media/i2c/cvs/core.c b/drivers/media/i2c/cvs/core.c
-index 8270d93f1abe..7486815b16bd 100644
---- a/drivers/media/i2c/cvs/core.c
-+++ b/drivers/media/i2c/cvs/core.c
-@@ -965,6 +965,7 @@ static const struct acpi_device_id intel_cvs_acpi_match[] = {
- 	{ "INTC10DE" }, /* LNL */
- 	{ "INTC10E0" }, /* ARL */
- 	{ "INTC10E1" }, /* PTL */
-+	{ "INTC10FA" }, /* NVL */
- 	{ }
- };
- MODULE_DEVICE_TABLE(acpi, intel_cvs_acpi_match);
+There's no need to send further versions of these patches; patches 2--4 are
+already in my tree.
+
 -- 
-2.43.0
+Regards,
 
+Sakari Ailus
