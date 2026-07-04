@@ -1,62 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD7782F7EE0;
-	Fri,  3 Jul 2026 20:37:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32132433E84;
+	Sat,  4 Jul 2026 02:02:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783111054; cv=none; b=B84pk0O95BAKXYyIsCRtU0X338xVf+VKM24saJ9D7U87q8IO6AnNHQ9X9pa+9rW/oMak+6lVMMeMjzCnfcdXamTquigRw9LrPEH1zyOfRYtr8YUqbsHOzItDByNERpgMP76LDe+6Fs4TLODb8+1pPl+kqdvmYHVd/iVQMK1P2BQ=
+	t=1783130559; cv=none; b=B5+tOcPCYT4FYHyzbVkAklcRLzvKA6ixbaAtJDiEZ8aTYX+HYHHsL0hNaXU3D8zEnFtEAyVFlDY5c85dvv8tMKa6A+IimC/uq8LXD3sIlBTvwM5Ya2hAM25iZL7KcHMUAW+6JAs1oueUbkhpqFgBRbQX5m0WV8RmiPrWlHYdCU0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783111054; c=relaxed/simple;
-	bh=GcriZEc4U0XXe7dXq2fvsZPm3rKmmAhSx/ItBsf5aK4=;
-	h=Mime-Version:Content-Type:Date:Message-Id:From:Subject:Cc:To:
-	 References:In-Reply-To; b=RyiYxhNRnGSlr0SLsPayEQIvCQkELhciQtM34aQM9GvvW4HuyP6/aboiWiZZFQCOO30Yg4pc7iYaCG0SmTAFFXDQRPM/xtw/C1O7Oax09O03DRYa20sb2t/F+HQvChYSWr1njPna4dkk1nZWu3L5QyRiJtL+ynRmkw/dQWWUXzo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=V6+ceFAM; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783130559; c=relaxed/simple;
+	bh=gbpUTi+7WEyD++tmgeuPE4SSMG0UFDEv0H9sfn7lEP0=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=HQ0YgwZrFaXUTqAWGxXPjQDvPOWtMZ7Zy1zhvdSwjNfg/TRNYYvB7EgYsfLzjho1jZgGp27lC4HmCNW1rFQEwggpVkmDAjinpWs6vDlvlPYTbHsjNmS33dHbXlf91FCt8t2TcgFK5s2odRSi+c5Ogq6g4VKL1DOqgNC5a8IRnPI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Hl3Z3oDb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="V6+ceFAM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5DBC1F000E9;
-	Fri,  3 Jul 2026 20:37:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Hl3Z3oDb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1925A1F000E9;
+	Sat,  4 Jul 2026 02:02:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783111053;
-	bh=i//NHTkbfprJa6ZWAaOnkiICtSIwQ8o4UKQkkx8svt0=;
-	h=Date:From:Subject:Cc:To:References:In-Reply-To;
-	b=V6+ceFAMTfg20u/FFhrV1wNN5T/acbnPfh+cBr/9QVbQC2/7HwAMK9Lr4opvb8HRJ
-	 avvPgWn+SXUqvGHLgx3X5FyQ3MS/vUFReOzi8jL9toVQctdZGRKUrt6PW27ap/dBiq
-	 tygpRfwZKH2D7wyKdoe29NE0ah8Yl7CQR+hUoNiBVTHAuk3aEo9q6hS0xhPNvxm/1r
-	 qqy57phw77CLJQIXWWWLwdoaRRKQRq5x+GoLVb/r6BbmnP2DUilr6kppwUEnd8RO6C
-	 vcZ7c73VBRt2kcQNDkIDL7aUgjGtni6JlHVsKf9KTdky3qEpHxFLZa4rRxBSRZcfTW
-	 SqGKIHm6TOejw==
+	s=k20260515; t=1783130558;
+	bh=F6YXY5ifagrtssEjmUOiS6kqzKMijWpgVl4dwKrslN8=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc;
+	b=Hl3Z3oDbLfA4+Gv+zyCOfp5+fBiKWQaadnW3SBCZpueo26PkxPwGkMcbMA5Oqr+0N
+	 12KFyekZLZEBtgHNJWSbwmuJXfgLnWVSTkRlqNNgY+SO2+LvmDrFaJuKQQK5UnWplO
+	 gkGdi2jG6j214Ah6EOIlQxWxznMYsv68IDrJJKy7mfjqL5bW+6pGvrEQEHTSM/3P+O
+	 S1Qq5IwQSsRvfkGMMh1V/iovE6XmqTihWi+gkamzpK/B+JAUcCtr3xfsJCG0MsLOTg
+	 vCdJz8WUOjFoH0/aQ5bgdcTjK5vO7ThcYiEYnx4+a8B0BXMXytUWz3znECpQAGD3TO
+	 wHl+eVYau+87A==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 56A6A3939F31;
+	Sat,  4 Jul 2026 02:02:21 +0000 (UTC)
+Subject: Re: [GIT PULL] ACPI support fixes for 7.2-rc2
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <CAJZ5v0ic0MROqd3-CEKvVpFPf9MPDoYHW+VU3cL2_Dwi37DJLg@mail.gmail.com>
+References: <CAJZ5v0ic0MROqd3-CEKvVpFPf9MPDoYHW+VU3cL2_Dwi37DJLg@mail.gmail.com>
+X-PR-Tracked-List-Id: <linux-pm.vger.kernel.org>
+X-PR-Tracked-Message-Id: <CAJZ5v0ic0MROqd3-CEKvVpFPf9MPDoYHW+VU3cL2_Dwi37DJLg@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-7.2-rc2
+X-PR-Tracked-Commit-Id: 973772c7cf647cf4da6badd86c484f9b350eea18
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: e6174e9b38e766cdfcfed41ffd8be35c504a9963
+Message-Id: <178313053997.3392227.6353834032264243253.pr-tracker-bot@kernel.org>
+Date: Sat, 04 Jul 2026 02:02:19 +0000
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Fri, 03 Jul 2026 22:37:30 +0200
-Message-Id: <DJP8443BNCPE.D67486LKL0E2@kernel.org>
-From: "Danilo Krummrich" <dakr@kernel.org>
-Subject: Re: [PATCH v1 2/2] ACPI: scan: Set power.no_pm for all struct
- acpi_device objects
-Cc: "Linux ACPI" <linux-acpi@vger.kernel.org>, "Greg Kroah-Hartman"
- <gregkh@linuxfoundation.org>, "Hans de Goede" <hansg@kernel.org>,
- =?utf-8?q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, "LKML"
- <linux-kernel@vger.kernel.org>, "Linux Documentation"
- <linux-doc@vger.kernel.org>, "Andy Shevchenko"
- <andriy.shevchenko@linux.intel.com>, <driver-core@lists.linux.dev>
-To: "Rafael J.  Wysocki" <rafael@kernel.org>
-References: <6027395.DvuYhMxLoT@rafael.j.wysocki>
- <2436882.ElGaqSPkdT@rafael.j.wysocki>
-In-Reply-To: <2436882.ElGaqSPkdT@rafael.j.wysocki>
 
-On Wed Jul 1, 2026 at 9:17 PM CEST, Rafael J.  Wysocki wrote:
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
->
-> Now that drivers do not bind to ACPI device objects, there is no reason
-> for them to be included directly in power management in any way, so set
-> power.no_pm for all of them.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+The pull request you sent on Fri, 3 Jul 2026 20:46:57 +0200:
 
-Reviewed-by: Danilo Krummrich <dakr@kernel.org>
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-7.2-rc2
+
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/e6174e9b38e766cdfcfed41ffd8be35c504a9963
+
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
