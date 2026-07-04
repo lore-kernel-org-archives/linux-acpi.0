@@ -1,63 +1,99 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32132433E84;
-	Sat,  4 Jul 2026 02:02:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7EBC39B495;
+	Sat,  4 Jul 2026 08:26:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783130559; cv=none; b=B5+tOcPCYT4FYHyzbVkAklcRLzvKA6ixbaAtJDiEZ8aTYX+HYHHsL0hNaXU3D8zEnFtEAyVFlDY5c85dvv8tMKa6A+IimC/uq8LXD3sIlBTvwM5Ya2hAM25iZL7KcHMUAW+6JAs1oueUbkhpqFgBRbQX5m0WV8RmiPrWlHYdCU0=
+	t=1783153584; cv=none; b=OBYdXTpwanoTaf2EA3zQbfh6n4HUeQGKmIq6sHyADl0TdEq9Z8yvw3EKWW+Au+c+rqtxo9kadmeLYZpaBsBMZZukds0eAdkEaP0rv6RDefZ2E7+gWGNHHi4DnIJEzujbdfmiAiCHvOMdRJACkY7VmZxYEw01OOKSCO4oLsuS/XU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783130559; c=relaxed/simple;
-	bh=gbpUTi+7WEyD++tmgeuPE4SSMG0UFDEv0H9sfn7lEP0=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=HQ0YgwZrFaXUTqAWGxXPjQDvPOWtMZ7Zy1zhvdSwjNfg/TRNYYvB7EgYsfLzjho1jZgGp27lC4HmCNW1rFQEwggpVkmDAjinpWs6vDlvlPYTbHsjNmS33dHbXlf91FCt8t2TcgFK5s2odRSi+c5Ogq6g4VKL1DOqgNC5a8IRnPI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Hl3Z3oDb; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783153584; c=relaxed/simple;
+	bh=3TeTu1c65p//hAl/acEkiXvKi70nGAQHRtmMzw+0Za8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=t2IAGNKLXa+A+5XXbwI/6xI+OVGYeG68QYvhE+xuBUNR7AtSxoYCF75UXyVquei3CBxz1wfsN2OWcrE/6WOBFtYYmAVAzrljyg9hEsY6jPsSwFIP9nRrA6JtksEuu80qiKE8PiBdxMFjE20t9536b0I362/4b4y5Xzp8DrdE8I4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FiZWi3XP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Hl3Z3oDb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1925A1F000E9;
-	Sat,  4 Jul 2026 02:02:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FiZWi3XP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8A811F00A3A;
+	Sat,  4 Jul 2026 08:26:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783130558;
-	bh=F6YXY5ifagrtssEjmUOiS6kqzKMijWpgVl4dwKrslN8=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc;
-	b=Hl3Z3oDbLfA4+Gv+zyCOfp5+fBiKWQaadnW3SBCZpueo26PkxPwGkMcbMA5Oqr+0N
-	 12KFyekZLZEBtgHNJWSbwmuJXfgLnWVSTkRlqNNgY+SO2+LvmDrFaJuKQQK5UnWplO
-	 gkGdi2jG6j214Ah6EOIlQxWxznMYsv68IDrJJKy7mfjqL5bW+6pGvrEQEHTSM/3P+O
-	 S1Qq5IwQSsRvfkGMMh1V/iovE6XmqTihWi+gkamzpK/B+JAUcCtr3xfsJCG0MsLOTg
-	 vCdJz8WUOjFoH0/aQ5bgdcTjK5vO7ThcYiEYnx4+a8B0BXMXytUWz3znECpQAGD3TO
-	 wHl+eVYau+87A==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 56A6A3939F31;
-	Sat,  4 Jul 2026 02:02:21 +0000 (UTC)
-Subject: Re: [GIT PULL] ACPI support fixes for 7.2-rc2
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0ic0MROqd3-CEKvVpFPf9MPDoYHW+VU3cL2_Dwi37DJLg@mail.gmail.com>
-References: <CAJZ5v0ic0MROqd3-CEKvVpFPf9MPDoYHW+VU3cL2_Dwi37DJLg@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-pm.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0ic0MROqd3-CEKvVpFPf9MPDoYHW+VU3cL2_Dwi37DJLg@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-7.2-rc2
-X-PR-Tracked-Commit-Id: 973772c7cf647cf4da6badd86c484f9b350eea18
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: e6174e9b38e766cdfcfed41ffd8be35c504a9963
-Message-Id: <178313053997.3392227.6353834032264243253.pr-tracker-bot@kernel.org>
-Date: Sat, 04 Jul 2026 02:02:19 +0000
+	s=k20260515; t=1783153575;
+	bh=sAbsP7fA1JbHaXOTRwhW76KYquSFRmAAWWtSRo9SlJc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=FiZWi3XPZoqa6eplwqwPpbWAh3yU6Sv6z3QWLoH8sbvCMu4407KK0BNeuT/NcRrDL
+	 vuPuXc2fW0mIkD1KTl1LkMln1RDnHAhidkRNK61NjF9EShlnxKSMS4qovFa/9dsbiU
+	 kllOgypCEOtF486AMiP+0BgeLP6b1l2pIlLS/nOjkJqeuQ0b3rWEqzAhNWe123hFHO
+	 vfdY7QKGLdO7E//2x4gxXJ2KFn0YLgPMPTcxBr+9PbjTsfuHuCpax8eRFGzj9BJ2HG
+	 O+1hfdSMme/i91YRtFOKFVrDwUIpEm7Xy7GWLWE6XttVU2bdonET9gbQRa+F/WyqkC
+	 bTw0Q1S9lx9hw==
+Date: Sat, 4 Jul 2026 10:26:09 +0200
+From: Ingo Molnar <mingo@kernel.org>
 To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Juergen Gross <jgross@suse.com>, linux-kernel@vger.kernel.org,
+	x86@kernel.org, linux-pm@vger.kernel.org,
+	linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>,
+	Pavel Machek <pavel@kernel.org>, Thomas Gleixner <tglx@kernel.org>,
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	"H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH 04/32] acpi: Stop using 32-bit MSR interfaces
+Message-ID: <akjDoZnJsZNxE1tg@gmail.com>
+References: <20260629060526.3638272-1-jgross@suse.com>
+ <20260629060526.3638272-5-jgross@suse.com>
+ <CAJZ5v0itUVZ6=GCbRomkMiesy5uhZVWWjsUbqFqsZTyNeCBAbQ@mail.gmail.com>
+ <akYskLix-iNOAbCM@gmail.com>
+ <CAJZ5v0hZN2SsX1uVfDuVzV=7UoHsNbhe8DUaFCaVsd-ceLvZWg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJZ5v0hZN2SsX1uVfDuVzV=7UoHsNbhe8DUaFCaVsd-ceLvZWg@mail.gmail.com>
 
-The pull request you sent on Fri, 3 Jul 2026 20:46:57 +0200:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-7.2-rc2
+* Rafael J. Wysocki (Intel) <rafael@kernel.org> wrote:
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/e6174e9b38e766cdfcfed41ffd8be35c504a9963
+> On Thu, Jul 2, 2026 at 11:17 AM Ingo Molnar <mingo@kernel.org> wrote:
+> >
+> >
+> > * Rafael J. Wysocki (Intel) <rafael@kernel.org> wrote:
+> >
+> > > On Mon, Jun 29, 2026 at 8:05 AM Juergen Gross <jgross@suse.com> wrote:
+> > > >
+> > > > The 32-bit MSR interfaces rdmsr(), wrmsr(), rdmsr_safe() and
+> > > > wrmsr_safe() are planned to be removed. Use the related 64-bit variants
+> > > > instead.
+> > > >
+> > > > In processor_throttling.c drop needless initializers.
+> > > >
+> > > > Signed-off-by: Juergen Gross <jgross@suse.com>
+> > >
+> > > LGTM overall.
+> > >
+> > > Do you want me to pick it up or do you prefer to route it along with
+> > > the rest of the series?
+> >
+> > I'd like to keep this series together if you don't mind, so that
+> > followup changes can be done more easily.
+> 
+> Sure.
+> 
+> I will be assuming that tip will be taking care of this change going forward.
 
 Thank you!
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Can I also add your Acked-by to these two patches:
+
+  [PATCH 01/32] thermal/intel: Stop using 32-bit MSR interfaces
+  [PATCH 02/32] powercap: Stop using 32-bit MSR interfaces
+
+? They both look fine to me.
+
+Thanks,
+
+	Ingo
+
