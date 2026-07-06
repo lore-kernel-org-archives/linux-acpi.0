@@ -1,37 +1,36 @@
 Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
 	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C659A37998A;
-	Mon,  6 Jul 2026 09:32:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EA5442A160;
+	Mon,  6 Jul 2026 09:38:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783330333; cv=none; b=XjNc8Pa2I03NAiiEe94roZO0tdQMY5blwXsT12Ri1QkuGERFNV86QSccB2AfB/3FTPTEkwr/CEwC2ThpQEUc8c55SfIzbIab0MqjHozYrk12CimgYoNA22jEFGEc0YwBxirp6DSY2Fc3j1J44Yc19BMuD/sjh5/ILpOkUsCMvNw=
+	t=1783330704; cv=none; b=broF3lp4dmiLWQCtniD/tNxCBie7HRTd9v5bNoDmgc+BY8B5oiAin2VqOgGey4BOPo4ucLWBDrUZ7ygUiHi75Cs3Y5QMmdPuMViIxlkvxNzdoaPD3BYXMMA2dfvNkqwnKJEWTwC38Ys8wdjpbTr0dcg+/nFJ+LMgQl+i1yA5j0o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783330333; c=relaxed/simple;
-	bh=+L4ORZ4Zpp8HV0T4gb1K9aNQOb6ke3VqBkqmVRRpUcI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bIVIJBMNr5oHblVbAmB4Tm0xgyUoY1gHtVndwOeFMOdPGpYqTmzyeODdZ2Q1tBWex7NAaDkUb6L1+BzTsZ5zX12e8I75ysjy6uUBIGqGR+PM627WTWElUkT8QLP0vcqOK3klOPbbNW65GgGHGu5qgRO7c/tbIUmyV/FSCMR/vzU=
+	s=arc-20240116; t=1783330704; c=relaxed/simple;
+	bh=AkgYxjUC4GndVwhKvwexqKpIWOdC6wvQhtp0vH7diwg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=sRojDYQA0JAnXgzGcxgPez/IKW0+N8lHbt7F2p0CdVYVEJRNMogLXHu1+47pbBt6zi2yxyQCA8js3R1rKXi4JM1KM1iF7QSU5lLhNwLo+mG1KII7lTZmO810tXpLXkdOQTjIKqzvRpAIrX9Mk9dqPcU6FvK5nJQCQfytc7GSMrc=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.21
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
 Received: from localhost.localdomain (unknown [111.196.245.140])
-	by APP-01 (Coremail) with SMTP id qwCowAAHqtIPdktqJ37xBA--.35586S2;
-	Mon, 06 Jul 2026 17:32:00 +0800 (CST)
+	by APP-01 (Coremail) with SMTP id qwCowACnQMmFd0tq06jxBA--.1377S2;
+	Mon, 06 Jul 2026 17:38:13 +0800 (CST)
 From: Pengpeng Hou <pengpeng@iscas.ac.cn>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Lorenzo Pieralisi <lpieralisi@kernel.org>
 Cc: Pengpeng Hou <pengpeng@iscas.ac.cn>,
-	Tony Luck <tony.luck@intel.com>,
-	Borislav Petkov <bp@alien8.de>,
 	Hanjun Guo <guohanjun@huawei.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Shuai Xue <xueshuai@linux.alibaba.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Ard Biesheuvel <ardb@kernel.org>,
-	Morduan Zang <zhangdandan@uniontech.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
 	linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH] efi: cper: validate processor section item bounds
-Date: Mon,  6 Jul 2026 17:31:58 +0800
-Message-ID: <20260706093158.80364-1-pengpeng@iscas.ac.cn>
+Subject: [PATCH] ACPI: APMT: validate node bounds before device registration
+Date: Mon,  6 Jul 2026 17:38:11 +0800
+Message-ID: <20260706093811.81850-1-pengpeng@iscas.ac.cn>
 X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -40,10 +39,10 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:qwCowAAHqtIPdktqJ37xBA--.35586S2
-X-Coremail-Antispam: 1UD129KBjvJXoW3Gr4UXryUKr4fuF1kuw1DGFg_yoWxJry7pa
-	13Kr1UJw48Kw1rJwn3ArWjva43K395XFWUK3srua4fCwnxAa4kGFZ8KFW09r13Gry8Xrya
-	qa9rtayDGFykAr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+X-CM-TRANSID:qwCowACnQMmFd0tq06jxBA--.1377S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7Cr43Cw4rGF4UCF4xAryxXwb_yoW8Cr1DpF
+	W2gay5trWDKr4xWwsavw4rZ3y3Aa1IyrW7KrWDG3yqg3Z8Kry7GFyFyFyjv3W8JFZ7Jw4a
+	qF45tFyUGFWUAF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
 	9KBjDU0xBIdaVrnRJUUU9I14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
 	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
 	1l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
@@ -59,163 +58,60 @@ X-Coremail-Antispam: 1UD129KBjvJXoW3Gr4UXryUKr4fuF1kuw1DGFg_yoWxJry7pa
 	IYCTnIWIevJa73UjIFyTuYvjfU5byZUUUUU
 X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
 
-CPER processor error sections contain counted arrays after the fixed
-section header. The ARM path receives the section length, but it read
-each context header size before proving that a full context header
-remains. The IA32/X64 path received only the payload pointer, so it
-could not bound its error information and context walks against the
-section payload.
+The APMT parser walks variable-length nodes from the ACPI table and
+passes each node pointer to the platform device that is later consumed by
+the Arm Coresight PMU driver. The loop only checked that the node start
+was before the table end before reading the full struct acpi_apmt_node and
+advancing by node->length.
 
-Pass the IA32/X64 payload length into the printer and track the
-remaining bytes while walking variable records. Also make the ARM path
-prove that a context header remains before reading its variable size
-field.
+Validate the fixed node body and the declared node length before using the
+node. This keeps malformed short nodes from being consumed locally or
+propagated to the runtime PMU driver as platform data.
 
 Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
 ---
- drivers/firmware/efi/cper-arm.c | 10 ++++++++--
- drivers/firmware/efi/cper-x86.c | 32 ++++++++++++++++++++++++++++++--
- drivers/firmware/efi/cper.c     |  3 ++-
- include/linux/cper.h            |  3 ++-
- 4 files changed, 42 insertions(+), 6 deletions(-)
+ drivers/acpi/arm64/apmt.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/drivers/firmware/efi/cper-arm.c b/drivers/firmware/efi/cper-arm.c
-index b21cb1232d82..75a32f3a31a0 100644
---- a/drivers/firmware/efi/cper-arm.c
-+++ b/drivers/firmware/efi/cper-arm.c
-@@ -313,10 +313,16 @@ void cper_print_proc_arm(const char *pfx,
- 	ctx_info = (struct cper_arm_ctx_info *)err_info;
- 	max_ctx_type = ARRAY_SIZE(arm_reg_ctx_strs) - 1;
- 	for (i = 0; i < proc->context_info_num; i++) {
--		int size = ALIGN(sizeof(*ctx_info) + ctx_info->size, 16);
-+		int size;
+diff --git a/drivers/acpi/arm64/apmt.c b/drivers/acpi/arm64/apmt.c
+index bb010f6164e5..5f341fa86fab 100644
+--- a/drivers/acpi/arm64/apmt.c
++++ b/drivers/acpi/arm64/apmt.c
+@@ -23,6 +23,21 @@
+ /* Root pointer to the mapped APMT table */
+ static struct acpi_table_header *apmt_table;
  
- 		printk("%sContext info structure %d:\n", pfx, i);
--		if (len < size) {
-+		if (len < sizeof(*ctx_info)) {
-+			pr_warn("%ssection length is too small\n", newpfx);
-+			pr_warn("%sfirmware-generated error record is incorrect\n", pfx);
-+			return;
-+		}
-+		size = ALIGN(sizeof(*ctx_info) + ctx_info->size, 16);
-+		if (size > len) {
- 			printk("%ssection length is too small\n", newpfx);
- 			printk("%sfirmware-generated error record is incorrect\n", pfx);
- 			return;
-diff --git a/drivers/firmware/efi/cper-x86.c b/drivers/firmware/efi/cper-x86.c
-index 3949d7b5e808..77621a5677da 100644
---- a/drivers/firmware/efi/cper-x86.c
-+++ b/drivers/firmware/efi/cper-x86.c
-@@ -3,6 +3,7 @@
- 
- #include <linux/cper.h>
- #include <linux/acpi.h>
-+#include <linux/printk.h>
- 
- /*
-  * We don't need a "CPER_IA" prefix since these are all locally defined.
-@@ -254,17 +255,26 @@ static void print_err_info(const char *pfx, u8 err_type, u64 check)
- 	}
- }
- 
--void cper_print_proc_ia(const char *pfx, const struct cper_sec_proc_ia *proc)
-+void cper_print_proc_ia(const char *pfx, const struct cper_sec_proc_ia *proc,
-+			u32 length)
- {
- 	int i;
-+	u32 len;
- 	struct cper_ia_err_info *err_info;
- 	struct cper_ia_proc_ctx *ctx_info;
- 	char newpfx[64], infopfx[64];
- 	u8 err_type;
- 
-+	if (length < sizeof(*proc)) {
-+		pr_warn("%ssection length is too small\n", pfx);
-+		pr_warn("%sfirmware-generated error record is incorrect\n", pfx);
-+		return;
-+	}
++static bool __init apmt_node_valid(struct acpi_table_apmt *apmt, u64 offset,
++				   u64 end)
++{
++	struct acpi_apmt_node *node;
 +
- 	if (proc->validation_bits & VALID_LAPIC_ID)
- 		printk("%sLocal APIC_ID: 0x%llx\n", pfx, proc->lapic_id);
++	if (offset > end || end - offset < sizeof(*node))
++		return false;
++
++	node = ACPI_ADD_PTR(struct acpi_apmt_node, apmt, offset);
++	if (node->length < sizeof(*node))
++		return false;
++
++	return node->length <= end - offset;
++}
++
+ static int __init apmt_init_resources(struct resource *res,
+ 				      struct acpi_apmt_node *node)
+ {
+@@ -129,8 +144,13 @@ static int __init apmt_init_platform_devices(void)
+ 	apmt = (struct acpi_table_apmt *)apmt_table;
+ 	offset = sizeof(*apmt);
+ 	end = apmt->header.length;
++	if (end < sizeof(*apmt))
++		return -EINVAL;
  
-+	len = length - sizeof(*proc);
- 	if (proc->validation_bits & VALID_CPUID_INFO) {
- 		printk("%sCPUID Info:\n", pfx);
- 		print_hex_dump(pfx, "", DUMP_PREFIX_OFFSET, 16, 4, proc->cpuid,
-@@ -276,6 +286,11 @@ void cper_print_proc_ia(const char *pfx, const struct cper_sec_proc_ia *proc)
- 	err_info = (struct cper_ia_err_info *)(proc + 1);
- 	for (i = 0; i < VALID_PROC_ERR_INFO_NUM(proc->validation_bits); i++) {
- 		printk("%sError Information Structure %d:\n", pfx, i);
-+		if (len < sizeof(*err_info)) {
-+			pr_warn("%ssection length is too small\n", newpfx);
-+			pr_warn("%sfirmware-generated error record is incorrect\n", pfx);
-+			return;
-+		}
- 
- 		err_type = cper_get_err_type(&err_info->err_type);
- 		printk("%sError Structure Type: %s\n", newpfx,
-@@ -321,14 +336,26 @@ void cper_print_proc_ia(const char *pfx, const struct cper_sec_proc_ia *proc)
- 		}
- 
- 		err_info++;
-+		len -= sizeof(*err_info);
- 	}
- 
- 	ctx_info = (struct cper_ia_proc_ctx *)err_info;
- 	for (i = 0; i < VALID_PROC_CXT_INFO_NUM(proc->validation_bits); i++) {
--		int size = ALIGN(sizeof(*ctx_info) + ctx_info->reg_arr_size, 16);
-+		int size;
- 		int groupsize = 4;
- 
- 		printk("%sContext Information Structure %d:\n", pfx, i);
-+		if (len < sizeof(*ctx_info)) {
-+			pr_warn("%ssection length is too small\n", newpfx);
-+			pr_warn("%sfirmware-generated error record is incorrect\n", pfx);
-+			return;
-+		}
-+		size = ALIGN(sizeof(*ctx_info) + ctx_info->reg_arr_size, 16);
-+		if (size > len) {
-+			pr_warn("%ssection length is too small\n", newpfx);
-+			pr_warn("%sfirmware-generated error record is incorrect\n", pfx);
-+			return;
-+		}
- 
- 		printk("%sRegister Context Type: %s\n", newpfx,
- 		       ctx_info->reg_ctx_type < ARRAY_SIZE(ia_reg_ctx_strs) ?
-@@ -357,5 +384,6 @@ void cper_print_proc_ia(const char *pfx, const struct cper_sec_proc_ia *proc)
- 		}
- 
- 		ctx_info = (struct cper_ia_proc_ctx *)((long)ctx_info + size);
-+		len -= size;
- 	}
- }
-diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-index 06b4fdb59917..87e65377a15d 100644
---- a/drivers/firmware/efi/cper.c
-+++ b/drivers/firmware/efi/cper.c
-@@ -675,7 +675,8 @@ cper_estatus_print_section(const char *pfx, struct acpi_hest_generic_data *gdata
- 
- 		printk("%ssection_type: IA32/X64 processor error\n", newpfx);
- 		if (gdata->error_data_length >= sizeof(*ia_err))
--			cper_print_proc_ia(newpfx, ia_err);
-+			cper_print_proc_ia(newpfx, ia_err,
-+					   gdata->error_data_length);
- 		else
- 			goto err_section_too_small;
- #endif
-diff --git a/include/linux/cper.h b/include/linux/cper.h
-index 440b35e459e5..a2fa9376f6c0 100644
---- a/include/linux/cper.h
-+++ b/include/linux/cper.h
-@@ -598,7 +598,8 @@ void cper_print_proc_arm(const char *pfx,
- 			 const struct cper_sec_proc_arm *proc,
- 			 u32 length);
- void cper_print_proc_ia(const char *pfx,
--			const struct cper_sec_proc_ia *proc);
-+			const struct cper_sec_proc_ia *proc,
-+			u32 length);
- int cper_mem_err_location(struct cper_mem_err_compact *mem, char *msg);
- int cper_dimm_err_location(struct cper_mem_err_compact *mem, char *msg);
+ 	while (offset < end) {
++		if (!apmt_node_valid(apmt, offset, end))
++			return -EINVAL;
++
+ 		apmt_node = ACPI_ADD_PTR(struct acpi_apmt_node, apmt,
+ 				 offset);
  
 -- 
 2.43.0
