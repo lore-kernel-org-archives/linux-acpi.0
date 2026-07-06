@@ -1,83 +1,222 @@
-Received: from canpmsgout08.his.huawei.com (canpmsgout08.his.huawei.com [113.46.200.223])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F44F4189D4
-	for <linux-acpi@vger.kernel.org>; Mon,  6 Jul 2026 09:15:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.223
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C659A37998A;
+	Mon,  6 Jul 2026 09:32:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783329337; cv=none; b=nxbtYPSHbbaTs2xBZKmDkTpwi8Q4mEvUioXPpM2zmlxCXy35OzsrR3GpoYcik4oyfn4lP9gzkVVHD7/jyA/t9/PSL+GRAsT5n2PiGBONkUYrDMtKx7cFpay18KLkkDg4f2a9raOVkOt4ZB/cLT4ZhijUJjiRgx1sIjTX7F8PMu0=
+	t=1783330333; cv=none; b=XjNc8Pa2I03NAiiEe94roZO0tdQMY5blwXsT12Ri1QkuGERFNV86QSccB2AfB/3FTPTEkwr/CEwC2ThpQEUc8c55SfIzbIab0MqjHozYrk12CimgYoNA22jEFGEc0YwBxirp6DSY2Fc3j1J44Yc19BMuD/sjh5/ILpOkUsCMvNw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783329337; c=relaxed/simple;
-	bh=rCRwPw588Br8aVy9nVo4y7fd5ip1+kmS99ZYNLghsBg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=dWYmS0QUx/3td9jhYzLJ7/iW29htCAnNfyeD9NBYQD07L/HieEbzrq5t1q2vCoMgDkaPgz4nc66JFhW3jzUBD+0pRG5FhO2J1uXCMu0UXimyjzQ4S7EPZpe2eQPME1PiRlV3f/rty/QzxazsZQrEhdYicgUAccCd9jnHkZV5xPo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=HtqSeenj; arc=none smtp.client-ip=113.46.200.223
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="HtqSeenj"
-dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=GNdQvWOx1ZJgK0lSnqpExTuQatv86MLlbe82lrAmD9A=;
-	b=HtqSeenjY9Tv3CScmqfMZhTxp2DZ6G6HjGqyPk9fKg0kjCrffvSlEipeMJzrdNtd++4xxrO6M
-	bRsL2iozS0qlEHtUgVmPuetTaQlKscU0LyOxXtRw8d0cW6B2l4my80fHOB6ZQMGkCbOfm8FANzH
-	YYiJ9CIFQacMzaCpamRchfk=
-Received: from mail.maildlp.com (unknown [172.19.162.92])
-	by canpmsgout08.his.huawei.com (SkyGuard) with ESMTPS id 4gtz3w2VlnzmVZr;
-	Mon,  6 Jul 2026 17:06:04 +0800 (CST)
-Received: from kwepemo100005.china.huawei.com (unknown [7.202.195.212])
-	by mail.maildlp.com (Postfix) with ESMTPS id 526E240565;
-	Mon,  6 Jul 2026 17:15:17 +0800 (CST)
-Received: from [10.67.121.59] (10.67.121.59) by kwepemo100005.china.huawei.com
- (7.202.195.212) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Mon, 6 Jul
- 2026 17:15:16 +0800
-Message-ID: <42b67228-ccbd-4272-8ffb-af5fbf6c2083@huawei.com>
-Date: Mon, 6 Jul 2026 17:15:15 +0800
+	s=arc-20240116; t=1783330333; c=relaxed/simple;
+	bh=+L4ORZ4Zpp8HV0T4gb1K9aNQOb6ke3VqBkqmVRRpUcI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bIVIJBMNr5oHblVbAmB4Tm0xgyUoY1gHtVndwOeFMOdPGpYqTmzyeODdZ2Q1tBWex7NAaDkUb6L1+BzTsZ5zX12e8I75ysjy6uUBIGqGR+PM627WTWElUkT8QLP0vcqOK3klOPbbNW65GgGHGu5qgRO7c/tbIUmyV/FSCMR/vzU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
+Received: from localhost.localdomain (unknown [111.196.245.140])
+	by APP-01 (Coremail) with SMTP id qwCowAAHqtIPdktqJ37xBA--.35586S2;
+	Mon, 06 Jul 2026 17:32:00 +0800 (CST)
+From: Pengpeng Hou <pengpeng@iscas.ac.cn>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Pengpeng Hou <pengpeng@iscas.ac.cn>,
+	Tony Luck <tony.luck@intel.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Shuai Xue <xueshuai@linux.alibaba.com>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Ard Biesheuvel <ardb@kernel.org>,
+	Morduan Zang <zhangdandan@uniontech.com>,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] efi: cper: validate processor section item bounds
+Date: Mon,  6 Jul 2026 17:31:58 +0800
+Message-ID: <20260706093158.80364-1-pengpeng@iscas.ac.cn>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 4/6] devfreq: hisi_uncore: Preserve PCC shared memory
- signature
-To: Sudeep Holla <sudeep.holla@kernel.org>
-CC: "Rafael J. Wysocki" <rafael@kernel.org>, MyungJoo Ham
-	<myungjoo.ham@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>,
-	Chanwoo Choi <cw00.choi@samsung.com>, <linux-acpi@vger.kernel.org>,
-	<lihuisong@huawei.com>
-References: <20260627-acpi_pcc_signature-v1-0-c1b7268d4fdc@kernel.org>
- <20260627-acpi_pcc_signature-v1-4-c1b7268d4fdc@kernel.org>
- <20260702-nondescript-scrupulous-dalmatian-da23be@sudeepholla>
-From: "lihuisong (C)" <lihuisong@huawei.com>
-In-Reply-To: <20260702-nondescript-scrupulous-dalmatian-da23be@sudeepholla>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
- kwepemo100005.china.huawei.com (7.202.195.212)
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:qwCowAAHqtIPdktqJ37xBA--.35586S2
+X-Coremail-Antispam: 1UD129KBjvJXoW3Gr4UXryUKr4fuF1kuw1DGFg_yoWxJry7pa
+	13Kr1UJw48Kw1rJwn3ArWjva43K395XFWUK3srua4fCwnxAa4kGFZ8KFW09r13Gry8Xrya
+	qa9rtayDGFykAr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUU9I14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+	1l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
+	JVWxJr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Gc
+	CE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E
+	2Ix0cI8IcVAFwI0_Jw0_WrylYx0Ex4A2jsIE14v26r4j6F4UMcvjeVCFs4IE7xkEbVWUJV
+	W8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1lFIxGxcIEc7CjxVA2
+	Y2ka0xkIwI1lc7CjxVAaw2AFwI0_Jw0_GFyl42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x
+	0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2
+	zVAF1VAY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Gr0_Xr
+	1lIxAIcVC0I7IYx2IY6xkF7I0E14v26r4UJVWxJr1lIxAIcVCF04k26cxKx2IYs7xG6r1j
+	6r1xMIIF0xvEx4A2jsIE14v26r4j6F4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr1j6F4UJb
+	IYCTnIWIevJa73UjIFyTuYvjfU5byZUUUUU
+X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
 
+CPER processor error sections contain counted arrays after the fixed
+section header. The ARM path receives the section length, but it read
+each context header size before proving that a full context header
+remains. The IA32/X64 path received only the payload pointer, so it
+could not bound its error information and context walks against the
+section payload.
 
-On 7/2/2026 6:25 PM, Sudeep Holla wrote:
-> On Sat, Jun 27, 2026 at 05:37:32PM +0100, Sudeep Holla wrote:
->> ACPI specification defines the generic PCC shared memory signature as
->> the PCC base signature ORed with the subspace ID.
->>
->> ACPI 6.6 added clarification that the signature is populated by the
->> platform and verified by OSPM.
->>
->> The PCC mailbox controller now validates the signature when the channel
->> is requested. Stop copying a complete local PCC header into shared
->> memory and write only the command, status and payload fields, leaving
->> the platform-populated signature intact.
->>
-> Based on the discussions in 1/6, I assume 4/6 and 5/6 doesn't work well
-> for Hisilicon platforms. So I will drop them. I will just post 1/6 reducing
-> it to a warning.
-Thanks for reducing error level.
-We will test them to make sure if these driver work well after removing 
-the signature filling.
-Then will update these code in driver if it's ok.
->
+Pass the IA32/X64 payload length into the printer and track the
+remaining bytes while walking variable records. Also make the ARM path
+prove that a context header remains before reading its variable size
+field.
+
+Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
+---
+ drivers/firmware/efi/cper-arm.c | 10 ++++++++--
+ drivers/firmware/efi/cper-x86.c | 32 ++++++++++++++++++++++++++++++--
+ drivers/firmware/efi/cper.c     |  3 ++-
+ include/linux/cper.h            |  3 ++-
+ 4 files changed, 42 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/firmware/efi/cper-arm.c b/drivers/firmware/efi/cper-arm.c
+index b21cb1232d82..75a32f3a31a0 100644
+--- a/drivers/firmware/efi/cper-arm.c
++++ b/drivers/firmware/efi/cper-arm.c
+@@ -313,10 +313,16 @@ void cper_print_proc_arm(const char *pfx,
+ 	ctx_info = (struct cper_arm_ctx_info *)err_info;
+ 	max_ctx_type = ARRAY_SIZE(arm_reg_ctx_strs) - 1;
+ 	for (i = 0; i < proc->context_info_num; i++) {
+-		int size = ALIGN(sizeof(*ctx_info) + ctx_info->size, 16);
++		int size;
+ 
+ 		printk("%sContext info structure %d:\n", pfx, i);
+-		if (len < size) {
++		if (len < sizeof(*ctx_info)) {
++			pr_warn("%ssection length is too small\n", newpfx);
++			pr_warn("%sfirmware-generated error record is incorrect\n", pfx);
++			return;
++		}
++		size = ALIGN(sizeof(*ctx_info) + ctx_info->size, 16);
++		if (size > len) {
+ 			printk("%ssection length is too small\n", newpfx);
+ 			printk("%sfirmware-generated error record is incorrect\n", pfx);
+ 			return;
+diff --git a/drivers/firmware/efi/cper-x86.c b/drivers/firmware/efi/cper-x86.c
+index 3949d7b5e808..77621a5677da 100644
+--- a/drivers/firmware/efi/cper-x86.c
++++ b/drivers/firmware/efi/cper-x86.c
+@@ -3,6 +3,7 @@
+ 
+ #include <linux/cper.h>
+ #include <linux/acpi.h>
++#include <linux/printk.h>
+ 
+ /*
+  * We don't need a "CPER_IA" prefix since these are all locally defined.
+@@ -254,17 +255,26 @@ static void print_err_info(const char *pfx, u8 err_type, u64 check)
+ 	}
+ }
+ 
+-void cper_print_proc_ia(const char *pfx, const struct cper_sec_proc_ia *proc)
++void cper_print_proc_ia(const char *pfx, const struct cper_sec_proc_ia *proc,
++			u32 length)
+ {
+ 	int i;
++	u32 len;
+ 	struct cper_ia_err_info *err_info;
+ 	struct cper_ia_proc_ctx *ctx_info;
+ 	char newpfx[64], infopfx[64];
+ 	u8 err_type;
+ 
++	if (length < sizeof(*proc)) {
++		pr_warn("%ssection length is too small\n", pfx);
++		pr_warn("%sfirmware-generated error record is incorrect\n", pfx);
++		return;
++	}
++
+ 	if (proc->validation_bits & VALID_LAPIC_ID)
+ 		printk("%sLocal APIC_ID: 0x%llx\n", pfx, proc->lapic_id);
+ 
++	len = length - sizeof(*proc);
+ 	if (proc->validation_bits & VALID_CPUID_INFO) {
+ 		printk("%sCPUID Info:\n", pfx);
+ 		print_hex_dump(pfx, "", DUMP_PREFIX_OFFSET, 16, 4, proc->cpuid,
+@@ -276,6 +286,11 @@ void cper_print_proc_ia(const char *pfx, const struct cper_sec_proc_ia *proc)
+ 	err_info = (struct cper_ia_err_info *)(proc + 1);
+ 	for (i = 0; i < VALID_PROC_ERR_INFO_NUM(proc->validation_bits); i++) {
+ 		printk("%sError Information Structure %d:\n", pfx, i);
++		if (len < sizeof(*err_info)) {
++			pr_warn("%ssection length is too small\n", newpfx);
++			pr_warn("%sfirmware-generated error record is incorrect\n", pfx);
++			return;
++		}
+ 
+ 		err_type = cper_get_err_type(&err_info->err_type);
+ 		printk("%sError Structure Type: %s\n", newpfx,
+@@ -321,14 +336,26 @@ void cper_print_proc_ia(const char *pfx, const struct cper_sec_proc_ia *proc)
+ 		}
+ 
+ 		err_info++;
++		len -= sizeof(*err_info);
+ 	}
+ 
+ 	ctx_info = (struct cper_ia_proc_ctx *)err_info;
+ 	for (i = 0; i < VALID_PROC_CXT_INFO_NUM(proc->validation_bits); i++) {
+-		int size = ALIGN(sizeof(*ctx_info) + ctx_info->reg_arr_size, 16);
++		int size;
+ 		int groupsize = 4;
+ 
+ 		printk("%sContext Information Structure %d:\n", pfx, i);
++		if (len < sizeof(*ctx_info)) {
++			pr_warn("%ssection length is too small\n", newpfx);
++			pr_warn("%sfirmware-generated error record is incorrect\n", pfx);
++			return;
++		}
++		size = ALIGN(sizeof(*ctx_info) + ctx_info->reg_arr_size, 16);
++		if (size > len) {
++			pr_warn("%ssection length is too small\n", newpfx);
++			pr_warn("%sfirmware-generated error record is incorrect\n", pfx);
++			return;
++		}
+ 
+ 		printk("%sRegister Context Type: %s\n", newpfx,
+ 		       ctx_info->reg_ctx_type < ARRAY_SIZE(ia_reg_ctx_strs) ?
+@@ -357,5 +384,6 @@ void cper_print_proc_ia(const char *pfx, const struct cper_sec_proc_ia *proc)
+ 		}
+ 
+ 		ctx_info = (struct cper_ia_proc_ctx *)((long)ctx_info + size);
++		len -= size;
+ 	}
+ }
+diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
+index 06b4fdb59917..87e65377a15d 100644
+--- a/drivers/firmware/efi/cper.c
++++ b/drivers/firmware/efi/cper.c
+@@ -675,7 +675,8 @@ cper_estatus_print_section(const char *pfx, struct acpi_hest_generic_data *gdata
+ 
+ 		printk("%ssection_type: IA32/X64 processor error\n", newpfx);
+ 		if (gdata->error_data_length >= sizeof(*ia_err))
+-			cper_print_proc_ia(newpfx, ia_err);
++			cper_print_proc_ia(newpfx, ia_err,
++					   gdata->error_data_length);
+ 		else
+ 			goto err_section_too_small;
+ #endif
+diff --git a/include/linux/cper.h b/include/linux/cper.h
+index 440b35e459e5..a2fa9376f6c0 100644
+--- a/include/linux/cper.h
++++ b/include/linux/cper.h
+@@ -598,7 +598,8 @@ void cper_print_proc_arm(const char *pfx,
+ 			 const struct cper_sec_proc_arm *proc,
+ 			 u32 length);
+ void cper_print_proc_ia(const char *pfx,
+-			const struct cper_sec_proc_ia *proc);
++			const struct cper_sec_proc_ia *proc,
++			u32 length);
+ int cper_mem_err_location(struct cper_mem_err_compact *mem, char *msg);
+ int cper_dimm_err_location(struct cper_mem_err_compact *mem, char *msg);
+ 
+-- 
+2.43.0
+
