@@ -1,286 +1,185 @@
-Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-yx1-f45.google.com (mail-yx1-f45.google.com [74.125.224.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF35F40910E;
-	Mon,  6 Jul 2026 09:46:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783331197; cv=none; b=TtH7PvCkLcEbLgX7c/s/z0Y4xzdkjstVMtmUCCzfLf4B47661mQ/iHOCcIvooRHWV6QD8T1krR11Bnol/Gy8t1T0E9cOjY/zAZhBGMnm6QSfJGiTgikGhOY9oTvNAyaWkx2ocZa/ON8j0FnV1rnV75odyGbdUWAItY3J8Q69wJI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783331197; c=relaxed/simple;
-	bh=ao0mAJF1fBeEXg2bTZVWP9KSAeybMX8ZEJsGrZRoTiw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=e9O2gggfAR+AafSH1cfndclbTHlCEy1D4KEJKL+QrGLGSD8JBVT8xhVWHXveJjUWxxeuHrWNBh2uN62y5YAGhSKDkak2XRkyTmFI+cHTT0kSQZnoJnGX0CtYIg4zRhgKRHL6IttqQK2VbTY3qmBBj4XD4EU9Ne5pvt3k9435n2k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from localhost.localdomain (unknown [111.196.245.140])
-	by APP-01 (Coremail) with SMTP id qwCowABX9c1teUtqVN3xBA--.1422S2;
-	Mon, 06 Jul 2026 17:46:21 +0800 (CST)
-From: Pengpeng Hou <pengpeng@iscas.ac.cn>
-To: Sunil V L <sunilvl@ventanamicro.com>
-Cc: Pengpeng Hou <pengpeng@iscas.ac.cn>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Paul Walmsley <pjw@kernel.org>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Albert Ou <aou@eecs.berkeley.edu>,
-	Alexandre Ghiti <alex@ghiti.fr>,
-	linux-acpi@vger.kernel.org,
-	linux-riscv@lists.infradead.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] ACPI: RHCT: validate node reference bounds
-Date: Mon,  6 Jul 2026 17:46:19 +0800
-Message-ID: <20260706094619.83121-1-pengpeng@iscas.ac.cn>
-X-Mailer: git-send-email 2.50.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80A113F0773
+	for <linux-acpi@vger.kernel.org>; Mon,  6 Jul 2026 11:08:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.45
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783336102; cv=pass; b=Z+LdMUwePYGoy0PgYXkl9nq5DBMms0h0D+GXt/57QhFS3fjxGm0GHxTIKVHc0dtu8jcQfqstfanji0KWSFqnar/N58t0OjhdV07FfVtBHl5R86zXrzFREIq/umtME1wyn6Dl2pDrRPcBOXzb8qNunqVjxN2ry7zQT7z7fIfZFLg=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783336102; c=relaxed/simple;
+	bh=4F/mamksgE6M36asyjHLz+r3WuYlAy4EjSD04V58GmU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=qkadgPpFOslO06UEN8Nv2svMW0HSiZ9HVyVzAnJhQOo06X+sCZevQujYJSenZDvxPcSFYYyXUyRZJvwi77x1+FBFmJZF/CNBMpFqBUo/TvKs+ogX0E9sgCt2tNUOlX7vJ9g8+OJyT9IH+JsvgA0PsgiSZyksNsB4oj86TiuK6EA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=VK26Hj31; arc=pass smtp.client-ip=74.125.224.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="VK26Hj31"
+Received: by mail-yx1-f45.google.com with SMTP id 956f58d0204a3-664ce3000e6so2247322d50.0
+        for <linux-acpi@vger.kernel.org>; Mon, 06 Jul 2026 04:08:20 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1783336099; cv=none;
+        d=google.com; s=arc-20260327;
+        b=LOA4fAEU7eKMGSke7ybDVeoNrnNsc8QLtpQRRhFPN9ECk5zABNhJk+QiXfBtxIgxq5
+         PaUfxlkVR5fpdFruldOicFyTVa89QohRKmjRV2L8ax2bi4b8s2E5TSIiKUkzPmOZGq8o
+         16zV0MPqJCskya13tNp5uAw4Ztof34gcR796WmhPCYfD1HYRMGRckIU0pvdMX2aSG+VU
+         mbye9+iGDQpnQ6CECtSP8FMscHlO1CTEDGqlTFfF2XD4KAwwlrqnEJK3aNO6BngW7vRV
+         AZfERWv9LgRveF2h62TNqcizcXYq4x+9Z43ij2f5V/+WU8qrWDJLl6OoQ1vOGX72X99/
+         7w9g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=SIs5mr1YlXuHrRAWD0Cvvhp1KPf82E28pNtyAHr0i7A=;
+        fh=8+EWSAQfy11nZgpN4+OYDc/LGHhjK5vsaNxYtq1XyDQ=;
+        b=h1i2f2OAnAAyAVlcO3LDrbi5b9xSDXlVFTUkjDOUDSPy7woPYb1E6vtIo65fsLqjZB
+         e63lwfN6WWd99fx2fIKNhgqmAEDPnTh6kfGdOB2MWJkPeaH6YC5GqmvLG3Kn9mD/We2f
+         2t20CM9DbVZNFZ83WQSm7lzELbu43r1WUEYyvRIK/wfY8YuflwXikWYD0+4vGpT9pYQd
+         pS6gTjCtXb1NivP9O592I53V9laWCG0mXUrajvg8IQgHlX3QXRiQude0NOGoazD5i/Wl
+         qXj5p1J6//acT+R5ZQk7i4r7PxGaAuHoGd76PDne/z5CBLMcU0eAz8A/N2EPcmoVkjXI
+         X+5g==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1783336099; x=1783940899; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=SIs5mr1YlXuHrRAWD0Cvvhp1KPf82E28pNtyAHr0i7A=;
+        b=VK26Hj31UayrVs/4ulgCbhVpWYBWmOwQVZ1cZulYxavWOit5dV5tCoKEG/g9vtbHcq
+         jhq50FZ57MBVX950hnpmnOE0FU+iWtFgnmz5tmrHk7jVAY81/sx7woV1a6TxIltEifKE
+         kYm0CCbgjBlkFhMAdJOKvmmF1T8y4EHhE9Dcc=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783336099; x=1783940899;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=SIs5mr1YlXuHrRAWD0Cvvhp1KPf82E28pNtyAHr0i7A=;
+        b=TWk8ud7q+KzLgKZ1YRdC3dVnqCWu2CXKeebIEnUdZ2OXVYNIcaB2WF+FDpG+z3uKO/
+         75zaULXqcv3aEdqm1kBCEwrv0+NFzBqyY9b6xFOX9vc1sklL/FT8Pab4Oy3XMyxOFP3p
+         qY6z5TDu2AmuIyeYFjt0oFZqB6TXmoqpUy3xOuib3K+MYXqFdlnCb11bDPipn+qo1Uyx
+         7w/iCsTR9WiJTyj0kiHoYOyealwuIncyxwhDyao1RdSmVfUkLjA/srmWrEQusKrCEog6
+         vyUY2rJgt1nkvRy7Y2bSfBS6AfklfSiLfQgoJIu6XDncc6XXG9QH2WTBSDdjepicwygE
+         p0fw==
+X-Forwarded-Encrypted: i=1; AHgh+RqoAXgTPfXhSJw5ZjviK0oeNr03KfZ7yozDDzzrIcW4HTf98I11oX9CFNV7p2vAIDHhoU//wm1jeSWH@vger.kernel.org
+X-Gm-Message-State: AOJu0YytYVAwNaSEVinl/d5DUWuxt9ya51iy9EP4Oi+8+bno6Q3soHmC
+	dDApapVtggbeCc2Rj+lHnBJ4EfHxL7XPVw08nkQBk9kCmOHQfZ2kN16r2ZQWtxbyfN09c4ddmwO
+	XB9+Ir3tsqlHyGoMe8jwFGxM4QHHsbvJFRSdmHtFf
+X-Gm-Gg: AfdE7cmkS1nd7CR/QpGAepDlT0ZoCWbozl8HO8O0bvlWJKms7L5O2CDKhE4YcqFJBdb
+	m49iQy1F0TLDIhgHGDIBXBSOffLAbCbJkUimm9xrG1JS6loVIUa8483l89JzKWks/YWA/oCqAAu
+	h7ELYMmMFFtxM5M/KTiMmtySxyxJXuaT8EsdNEij7BWABoRRq8xAY3+I8pXsmf0Yiw5nPVnxiB6
+	9YIlUx8IQbHacD85nXsqs0lWXMp8CvmqzAFCmkrSFh2gHJ4IjbZ+MINeUl2CxK27vwkHu7G8m0w
+	2akmKduWxvbnq4XAsv+3Gn9NGB8=
+X-Received: by 2002:a53:d016:0:b0:664:c436:e525 with SMTP id
+ 956f58d0204a3-6677fd49ec4mr103596d50.58.1783336099517; Mon, 06 Jul 2026
+ 04:08:19 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:qwCowABX9c1teUtqVN3xBA--.1422S2
-X-Coremail-Antispam: 1UD129KBjvJXoW3JryUGry7Jr1xJr1rWF1xKrg_yoW3Wr1DpF
-	4S9345Aan8Jw1fWr1Iqa1ru3y3X340vF4UXFZ3Gayqyr1vk3WUKF4jk3429F15tF4vgw4x
-	Zr4DtFyDGF48ArUanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUU9I14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26F1j6w1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
-	JVWxJr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Gc
-	CE3s1le2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E
-	2Ix0cI8IcVAFwI0_Jw0_WrylYx0Ex4A2jsIE14v26r4j6F4UMcvjeVCFs4IE7xkEbVWUJV
-	W8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1lFIxGxcIEc7CjxVA2
-	Y2ka0xkIwI1lc7CjxVAaw2AFwI0_Jw0_GFyl42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x
-	0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2
-	zVAF1VAY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Gr0_Xr
-	1lIxAIcVC0I7IYx2IY6xkF7I0E14v26r4UJVWxJr1lIxAIcVCF04k26cxKx2IYs7xG6r1j
-	6r1xMIIF0xvEx4A2jsIE14v26r4j6F4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr1j6F4UJb
-	IYCTnIWIevJa73UjIFyTuYvjfU5byZUUUUU
-X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
+References: <20260703110317.1283411-1-wenst@chromium.org> <20260703110317.1283411-7-wenst@chromium.org>
+ <ake09vk4fEv1D9QC@ashevche-desk.local> <CAGXv+5GNucSXrhL=YxarSJHD2ezzYDK3EovFu-zy012KgZ+ZBg@mail.gmail.com>
+ <ake6FNy83LLtCs3b@ashevche-desk.local>
+In-Reply-To: <ake6FNy83LLtCs3b@ashevche-desk.local>
+From: Chen-Yu Tsai <wenst@chromium.org>
+Date: Mon, 6 Jul 2026 19:08:07 +0800
+X-Gm-Features: AVVi8CcaHXwr5vK-Mk50Hl5ytWXCTbNUaYqO2byI6p2Q5_6clKTL9yyyDNsH5MY
+Message-ID: <CAGXv+5EgpizA3Pc8ScNuChPhvFKWd5F6dxB-wT4-7EwabE-9dQ@mail.gmail.com>
+Subject: Re: [PATCH v3 06/13] usb: hub: Pass |struct usb_port*| to usb_port_is_power_on()
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Bartosz Golaszewski <brgl@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-pm@vger.kernel.org, 
+	linux-usb@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-mediatek@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+	linux-kernel@vger.kernel.org, Manivannan Sadhasivam <mani@kernel.org>, 
+	Alan Stern <stern@rowland.harvard.edu>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-RHCT hart-info nodes carry offset arrays that reference other
-nodes in the same firmware table.  Validate the current node,
-the hart-info offset array, and each referenced ISA or CMO node
-before reading type-specific fields.
+On Fri, Jul 3, 2026 at 9:33=E2=80=AFPM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Fri, Jul 03, 2026 at 09:17:16PM +0800, Chen-Yu Tsai wrote:
+> > On Fri, Jul 3, 2026 at 9:11=E2=80=AFPM Andy Shevchenko
+> > <andriy.shevchenko@linux.intel.com> wrote:
+> > >
+> > > On Fri, Jul 03, 2026 at 07:03:07PM +0800, Chen-Yu Tsai wrote:
+> > > > usb_port_is_power_on() currently takes |struct usb_hub*|, but only =
+needs
+> > > > it to tell if the hub/port is SuperSpeed or not.
+> > > >
+> > > > In a subsequent change, usb_port_is_power_on() needs access to a pw=
+rseq
+> > > > state tracking field in |struct usb_port|. Either structure can be =
+used
+> > > > to identify whether a port/hub is SuperSpeed or not, as the field i=
+n
+> > > > |struct usb_port| is inherited from the hub:
+> > > >
+> > > >     port->is_superspeed =3D hub_is_superspeed(hub)
+> > > >
+> > > > Replace usb_port_is_power_on()'s |struct usb_hub*| parameter with
+> > > > |struct usb_port*| so a subsequent change can use it.
+> > >
+> > > At a brief look this will be the only function that takes usb_port
+> > > instead of usb_hub in the entire hub.h (I don't count container_of()
+> > > as a function). With that being said I would rather see it to be move=
+d
+> > > to port.c altogether (yes, it's more invasive change, but looks more
+> > > consistent).  I would even dare to move struct usb_port (and containe=
+r_of()
+> > > accompanied with that) and this function to port.h. This might requir=
+e
+> > > a separate patch, though.
+> >
+> > I agree with the reasoning, especially given the function name. However
+> > I wonder if it would cause problems given the linking order. I'll give
+> > it a try nevertheless and report back.
+>
+> Thanks!
+>
+> In case it won't fly (but I still think it's better to split), can you at=
+ least
+> group usb_port APIs and struct? Means moving the proto closer to that str=
+uct
+> usb_port followed by container_of().
 
-The ISA string path also checks that the advertised string range
-is present before returning it to the RISC-V ISA parser.
+Looks like it works out fine. port.o is linked in after hub.o, so moving
+the function from the latter to the former doesn't cause issues. One might
+even say that it is the correct thing to do.
 
-Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
----
- drivers/acpi/riscv/rhct.c | 146 +++++++++++++++++++++++++++++++++-----
- 1 file changed, 128 insertions(+), 18 deletions(-)
+> > > Perhaps something like: 1) "move struct usb_port and associated APIs =
+to port.h";
+> > > 2) "...this patch...".
 
-diff --git a/drivers/acpi/riscv/rhct.c b/drivers/acpi/riscv/rhct.c
-index 8f3f38c64a88..bb8f8d4ab137 100644
---- a/drivers/acpi/riscv/rhct.c
-+++ b/drivers/acpi/riscv/rhct.c
-@@ -9,6 +9,94 @@
- 
- #include <linux/acpi.h>
- #include <linux/bits.h>
-+#include <linux/overflow.h>
-+#include <linux/string.h>
-+
-+static bool rhct_node_valid(struct acpi_table_rhct *rhct,
-+			    struct acpi_rhct_node_header *node)
-+{
-+	struct acpi_rhct_node_header *end;
-+	size_t remaining;
-+
-+	end = ACPI_ADD_PTR(struct acpi_rhct_node_header, rhct,
-+			   rhct->header.length);
-+	if (node >= end)
-+		return false;
-+
-+	remaining = (char *)end - (char *)node;
-+	if (remaining < sizeof(*node) ||
-+	    node->length < sizeof(*node) ||
-+	    node->length > remaining) {
-+		pr_err(FW_BUG "Invalid RHCT node length\n");
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+static struct acpi_rhct_node_header *rhct_node_from_offset(struct acpi_table_rhct *rhct,
-+							   u32 offset)
-+{
-+	struct acpi_rhct_node_header *node;
-+
-+	if (offset > rhct->header.length)
-+		return NULL;
-+
-+	node = ACPI_ADD_PTR(struct acpi_rhct_node_header, rhct, offset);
-+	return rhct_node_valid(rhct, node) ? node : NULL;
-+}
-+
-+static bool rhct_node_has_data(struct acpi_rhct_node_header *node,
-+			       size_t data_size)
-+{
-+	if (node->length < sizeof(*node) + data_size) {
-+		pr_err(FW_BUG "Truncated RHCT node type %u\n", node->type);
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+static bool rhct_hart_info_valid(struct acpi_rhct_node_header *node)
-+{
-+	struct acpi_rhct_hart_info *hart_info;
-+	size_t offsets_size;
-+
-+	if (!rhct_node_has_data(node, sizeof(*hart_info)))
-+		return false;
-+
-+	hart_info = ACPI_ADD_PTR(struct acpi_rhct_hart_info, node,
-+				 sizeof(*node));
-+	if (check_mul_overflow(hart_info->num_offsets, sizeof(u32),
-+			       &offsets_size) ||
-+	    offsets_size > node->length - sizeof(*node) -
-+			   sizeof(*hart_info)) {
-+		pr_err(FW_BUG "Invalid RHCT hart-info offset array\n");
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+static bool rhct_isa_string_valid(struct acpi_rhct_node_header *node)
-+{
-+	struct acpi_rhct_isa_string *isa_node;
-+	size_t remaining;
-+
-+	if (!rhct_node_has_data(node, sizeof(*isa_node)))
-+		return false;
-+
-+	isa_node = ACPI_ADD_PTR(struct acpi_rhct_isa_string, node,
-+				sizeof(*node));
-+	remaining = node->length - sizeof(*node) - sizeof(*isa_node);
-+	if (isa_node->isa_length > remaining ||
-+	    !memchr(isa_node->isa, '\0', isa_node->isa_length)) {
-+		pr_err(FW_BUG "Invalid RHCT ISA string\n");
-+		return false;
-+	}
-+
-+	return true;
-+}
- 
- static struct acpi_table_rhct *acpi_get_rhct(void)
- {
-@@ -38,8 +126,6 @@ static struct acpi_table_rhct *acpi_get_rhct(void)
- int acpi_get_riscv_isa(struct acpi_table_header *table, unsigned int cpu, const char **isa)
- {
- 	struct acpi_rhct_node_header *node, *ref_node, *end;
--	u32 size_hdr = sizeof(struct acpi_rhct_node_header);
--	u32 size_hartinfo = sizeof(struct acpi_rhct_hart_info);
- 	struct acpi_rhct_hart_info *hart_info;
- 	struct acpi_rhct_isa_string *isa_node;
- 	struct acpi_table_rhct *rhct;
-@@ -66,18 +152,32 @@ int acpi_get_riscv_isa(struct acpi_table_header *table, unsigned int cpu, const
- 	for (node = ACPI_ADD_PTR(struct acpi_rhct_node_header, rhct, rhct->node_offset);
- 	     node < end;
- 	     node = ACPI_ADD_PTR(struct acpi_rhct_node_header, node, node->length)) {
-+		if (!rhct_node_valid(rhct, node))
-+			return -EINVAL;
-+
- 		if (node->type == ACPI_RHCT_NODE_TYPE_HART_INFO) {
--			hart_info = ACPI_ADD_PTR(struct acpi_rhct_hart_info, node, size_hdr);
--			hart_info_node_offset = ACPI_ADD_PTR(u32, hart_info, size_hartinfo);
-+			if (!rhct_hart_info_valid(node))
-+				return -EINVAL;
-+
-+			hart_info = ACPI_ADD_PTR(struct acpi_rhct_hart_info, node,
-+						 sizeof(*node));
-+			hart_info_node_offset = ACPI_ADD_PTR(u32, hart_info,
-+							     sizeof(*hart_info));
- 			if (acpi_cpu_id != hart_info->uid)
- 				continue;
- 
- 			for (int i = 0; i < hart_info->num_offsets; i++) {
--				ref_node = ACPI_ADD_PTR(struct acpi_rhct_node_header,
--							rhct, hart_info_node_offset[i]);
-+				ref_node = rhct_node_from_offset(rhct,
-+								 hart_info_node_offset[i]);
-+				if (!ref_node)
-+					return -EINVAL;
-+
- 				if (ref_node->type == ACPI_RHCT_NODE_TYPE_ISA_STRING) {
-+					if (!rhct_isa_string_valid(ref_node))
-+						return -EINVAL;
-+
- 					isa_node = ACPI_ADD_PTR(struct acpi_rhct_isa_string,
--								ref_node, size_hdr);
-+								ref_node, sizeof(*ref_node));
- 					*isa = isa_node->isa;
- 					return 0;
- 				}
-@@ -89,22 +189,32 @@ int acpi_get_riscv_isa(struct acpi_table_header *table, unsigned int cpu, const
- }
- 
- static void acpi_parse_hart_info_cmo_node(struct acpi_table_rhct *rhct,
--					  struct acpi_rhct_hart_info *hart_info,
-+					  struct acpi_rhct_node_header *node,
- 					  u32 *cbom_size, u32 *cboz_size, u32 *cbop_size)
- {
--	u32 size_hartinfo = sizeof(struct acpi_rhct_hart_info);
--	u32 size_hdr = sizeof(struct acpi_rhct_node_header);
- 	struct acpi_rhct_node_header *ref_node;
-+	struct acpi_rhct_hart_info *hart_info;
- 	struct acpi_rhct_cmo_node *cmo_node;
- 	u32 *hart_info_node_offset;
- 
--	hart_info_node_offset = ACPI_ADD_PTR(u32, hart_info, size_hartinfo);
-+	if (!rhct_hart_info_valid(node))
-+		return;
-+
-+	hart_info = ACPI_ADD_PTR(struct acpi_rhct_hart_info, node,
-+				 sizeof(*node));
-+	hart_info_node_offset = ACPI_ADD_PTR(u32, hart_info,
-+					     sizeof(*hart_info));
- 	for (int i = 0; i < hart_info->num_offsets; i++) {
--		ref_node = ACPI_ADD_PTR(struct acpi_rhct_node_header,
--					rhct, hart_info_node_offset[i]);
-+		ref_node = rhct_node_from_offset(rhct, hart_info_node_offset[i]);
-+		if (!ref_node)
-+			return;
-+
- 		if (ref_node->type == ACPI_RHCT_NODE_TYPE_CMO) {
-+			if (!rhct_node_has_data(ref_node, sizeof(*cmo_node)))
-+				return;
-+
- 			cmo_node = ACPI_ADD_PTR(struct acpi_rhct_cmo_node,
--						ref_node, size_hdr);
-+						ref_node, sizeof(*ref_node));
- 			if (cbom_size && cmo_node->cbom_size <= 30) {
- 				if (!*cbom_size)
- 					*cbom_size = BIT(cmo_node->cbom_size);
-@@ -137,9 +247,7 @@ static void acpi_parse_hart_info_cmo_node(struct acpi_table_rhct *rhct,
- void acpi_get_cbo_block_size(struct acpi_table_header *table, u32 *cbom_size,
- 			     u32 *cboz_size, u32 *cbop_size)
- {
--	u32 size_hdr = sizeof(struct acpi_rhct_node_header);
- 	struct acpi_rhct_node_header *node, *end;
--	struct acpi_rhct_hart_info *hart_info;
- 	struct acpi_table_rhct *rhct;
- 
- 	if (acpi_disabled)
-@@ -166,9 +274,11 @@ void acpi_get_cbo_block_size(struct acpi_table_header *table, u32 *cbom_size,
- 	for (node = ACPI_ADD_PTR(struct acpi_rhct_node_header, rhct, rhct->node_offset);
- 	     node < end;
- 	     node = ACPI_ADD_PTR(struct acpi_rhct_node_header, node, node->length)) {
-+		if (!rhct_node_valid(rhct, node))
-+			return;
-+
- 		if (node->type == ACPI_RHCT_NODE_TYPE_HART_INFO) {
--			hart_info = ACPI_ADD_PTR(struct acpi_rhct_hart_info, node, size_hdr);
--			acpi_parse_hart_info_cmo_node(rhct, hart_info, cbom_size,
-+			acpi_parse_hart_info_cmo_node(rhct, node, cbom_size,
- 						      cboz_size, cbop_size);
- 		}
- 	}
--- 
-2.43.0
+There are still some left in hub.c:
 
+static void usb_lock_port(struct usb_port *port_dev)
+static void usb_unlock_port(struct usb_port *port_dev)
+static void port_over_current_notify(struct usb_port *port_dev)
+static void hub_usb3_port_prepare_disable(struct usb_hub *hub,
+                                          struct usb_port *port_dev)
+
+These are used only in hub.c and moving them probably makes things
+messier?
+
+OOTH, the following bits are in port.c but declared in hub.h:
+
+int usb_hub_create_port_device(struct usb_hub *hub,
+         int port1);
+void usb_hub_remove_port_device(struct usb_hub *hub,
+         int port1);
+
+Any preferences for these while we're reorganizing the code?
+
+
+ChenYu
