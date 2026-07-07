@@ -1,46 +1,46 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ED7C3C3448
-	for <linux-acpi@vger.kernel.org>; Tue,  7 Jul 2026 07:25:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F09C3ACA71
+	for <linux-acpi@vger.kernel.org>; Tue,  7 Jul 2026 07:27:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783409157; cv=none; b=BXDRlkp1vD1jMhXlYj3U07aHPf2TAc3rClBufPgQGhSp7FAs3BZeBYwoy0dHAwDLH836lZQ44/s8EiBDQZh9nE/6LUINEgShnKati2gPfYQP7Wvmea9dR1qsWTrGubTaPVdsNbgjxXqQ1afmUJrJLJ4+xLEpZFNZruQ3/+Fdlr8=
+	t=1783409231; cv=none; b=J50zIJh8T4ehRVril3EFuGlocXY+G3RzR706Av/eyb3BgxP+COzTeSjcPU9l0PMq+ef/B4J6kmUiy0zySrWbKD12afAe127yVnBiyKIgE7OIApQXWXMAVmsPqu+fQNC46nmixeV5dWNdpAWVxTLcVosLytowiIzA0VOZpStjdwA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783409157; c=relaxed/simple;
-	bh=ueAyYCOfMV4Ufdfx9AVyTK2lGxrTrZnsndPc9ULF9iA=;
+	s=arc-20240116; t=1783409231; c=relaxed/simple;
+	bh=bW4Lcl+ROSBNPUrB8CNA2HrOrOhdvNO7Bz253DXWnn4=;
 	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=hbReFPmC/Td8TGwy+Rmb+0Z7e6by5XiQUu6hhQk0WVkl0B/MRlgKWOX5rOzaG+jVRVsxF0IEyEgSxV5xxp9oDYEfH6udUoVMz4AejMxHefi1feLsIuE8jRONhulFufYNPwIVhNZdrj3CUKuLeYM2OMuDf2nsChqXOaLC7rofppw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KVG+WXqv; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=jgAUA/XKO3+iE5FTXZPi+yF71N4/H9Xqjrt+E+SUugQzYF3kWxHbTIX0Lf3hA+oAX8g8/8kVgKFZ7aHZxrD2hAxOqR8TV/ZH4xIJ+5n/PgwL9UR0A7+g95iINRmMVt6smOFWsGnHeU7HhH8RUcHf599sML4l34yzodd3mkQ+GWA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cETGzNHt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KVG+WXqv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59D871F00ACA
-	for <linux-acpi@vger.kernel.org>; Tue,  7 Jul 2026 07:25:43 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cETGzNHt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 131CF1F00A3A
+	for <linux-acpi@vger.kernel.org>; Tue,  7 Jul 2026 07:27:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783409143;
-	bh=AnulwQxL/OQLIVkhwLjzK1QzJkTrEXXoW+88TePiaq0=;
+	s=k20260515; t=1783409224;
+	bh=ZrZGOwP5B01XzisV/2lSakcRQu+bfQOZKRCHG+hKN8M=;
 	h=From:In-Reply-To:References:Date:Subject:To:Cc;
-	b=KVG+WXqvcbO7hG7Q1AstC/2M56pHAnPnTD7Ve5taqbqOI+cKMaAn5axppsoKSdqUx
-	 9n4w2P48rGxOPsB2HdaB3m0QQzE9QLb9Jgo7e9dQW+QB3cR4baddKyJQj45elGnP+P
-	 TRqdzFO50HALyt+CFYZ/C6K3X3GIc5hVs/pOTgXawH4a0uCVlSy0fVUNiPfbEpxPUy
-	 2U5G7kZXZ+anDdGlaXc0gYoWfSLkxeyCOIYlAH/U5Lh3i44JllUrRXsSzesGZziKGf
-	 DqZ8nvRykwAtIXYq5l3lLAr2kTg25mubLLVQhT9IcS/MXenCdAruVTiyJ2xrkDOTl4
-	 QUB/MHwpn6rKg==
-Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-39b22d0e488so40301091fa.3
-        for <linux-acpi@vger.kernel.org>; Tue, 07 Jul 2026 00:25:43 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RoeTQewgZInEFLvrMwLZA+NoM8c4UnsSkEg0LcVF2Rf0HkqamgiYq01EPPF7znZyKDuU+mVbJQQ7BAH@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz5YKzrF/0/pek6NPW227OM4B5U1cArY5VPh4zqjfzFdy1Ig2qG
-	T1WjZp9MXugFTCfomaVg+o22pDAIl/FHq8yz9kHwVBvYusiH4ehR6tmhj1AC6NgRsJb0Hc2jtK7
-	hvamByoD2mxs3BBoJ6bqmwZgLFRT8kJCFYzL9lIr2dA==
-X-Received: by 2002:a2e:be06:0:b0:39c:650d:2f63 with SMTP id
- 38308e7fff4ca-39c650d3187mr5799031fa.1.1783409142106; Tue, 07 Jul 2026
- 00:25:42 -0700 (PDT)
+	b=cETGzNHthxtLXPaqaAF548RD9GSQTCvlXyuY+TRanmCcB/GUqkZqjv0e4gGXJetsM
+	 u0RnwRIICdUz+KWrglcwQrOA8vMeBP2zA4X+4B5u5ykXhPzgusn6FXBWYlFjqakHSh
+	 ce0XKPZdHnXvpBYj6dJI0z8LaAy+5Gs5KyRSkmeP2sNNeu1qpa9BWjgZZB88kj4caK
+	 qLhODutEBjPR51JpQkX1Mj4bb3t4wLUphv/UjUZZnueBLSawz6BodI7LBbKvIf3koW
+	 Wj/fE3dAFrL5JKaT7keQcLEwB28GqVidWmFMm21hQoJjpH3uOERqjKqxXxL3oZs/3e
+	 iGOiCRT5z04QQ==
+Received: by mail-lj1-f181.google.com with SMTP id 38308e7fff4ca-3995e22ef81so3156711fa.1
+        for <linux-acpi@vger.kernel.org>; Tue, 07 Jul 2026 00:27:03 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RrgkOnBimJKfP0KAl3+FHVS2suRrqPZiOwCo9N4FtHoNORZdQkHbfYE76RPAXMdQGCF++zUO7o98nxM@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzz+naLh8AaeL8IVwUkQTUqFQS6EK6JPMSOmIwFs59MAcF49YUN
+	bnYd16Q7BqWOwSLLPd5+1d+c0Ikg8tOy0unaUt0OBnozfoibZdfBiZG8gKS+C3armQwcaJH+tv3
+	xD/M8fnNCmISMb/r/G+cRaIE4qrSbmqJ5BtVDZZgZyQ==
+X-Received: by 2002:a05:651c:1a0a:b0:396:ade7:4153 with SMTP id
+ 38308e7fff4ca-39c697222ebmr4269631fa.0.1783409222850; Tue, 07 Jul 2026
+ 00:27:02 -0700 (PDT)
 Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Tue, 7 Jul 2026 00:25:39 -0700
+ HTTPREST; Tue, 7 Jul 2026 00:27:01 -0700
 Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Tue, 7 Jul 2026 00:25:39 -0700
+ HTTPREST; Tue, 7 Jul 2026 00:27:00 -0700
 From: Bartosz Golaszewski <brgl@kernel.org>
-In-Reply-To: <akwLg6XiA6eJblH2@ashevche-desk.local>
+In-Reply-To: <akwKlx2uTtHXI7zT@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -48,14 +48,14 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20260629-swnode-fw-devlink-v1-0-b90058b41839@oss.qualcomm.com>
- <20260629-swnode-fw-devlink-v1-5-b90058b41839@oss.qualcomm.com>
- <akKWGNpGmHjWYdfX@ashevche-desk.local> <CAMRc=Md1K_ZfO7pUANNhCkwEpmF6nX-Wo=AeuiO57hjKLtWDWg@mail.gmail.com>
- <akwLg6XiA6eJblH2@ashevche-desk.local>
-Date: Tue, 7 Jul 2026 00:25:39 -0700
-X-Gmail-Original-Message-ID: <CAMRc=MfQV8nsqjH1xkZ-rriNMdpdvXjGghkfBrkfxUdu7QCF2w@mail.gmail.com>
-X-Gm-Features: AVVi8Cd4zSiR6iCjegfG7uEMuMQeaCzvQIzA0WpvDnFiM-et0cbjWnQALsxKsUg
-Message-ID: <CAMRc=MfQV8nsqjH1xkZ-rriNMdpdvXjGghkfBrkfxUdu7QCF2w@mail.gmail.com>
-Subject: Re: [PATCH 5/5] gpio: kunit: add test cases verifying swnode devlink support
+ <20260629-swnode-fw-devlink-v1-3-b90058b41839@oss.qualcomm.com>
+ <akKT8q5TjkMkZkmB@ashevche-desk.local> <CAMRc=Me4oJG47C2LOzRvagbEtAWKqbzmQ_R2VG4rt6zd1-QE5Q@mail.gmail.com>
+ <akwKlx2uTtHXI7zT@ashevche-desk.local>
+Date: Tue, 7 Jul 2026 00:27:00 -0700
+X-Gmail-Original-Message-ID: <CAMRc=MdNfnaz0e2P32d_jWdsvtW1-zNF9ddUx092K3TUgzB7Jw@mail.gmail.com>
+X-Gm-Features: AVVi8Cem5ut2dgsOwY3Bh_PHkM564EYcgUEVcmUCNMvQrUrYuAW0mstnDj5h-8k
+Message-ID: <CAMRc=MdNfnaz0e2P32d_jWdsvtW1-zNF9ddUx092K3TUgzB7Jw@mail.gmail.com>
+Subject: Re: [PATCH 3/5] software node: add kunit tests for fw_devlink support
 To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>, David Gow <david@davidgow.net>, 
 	Rae Moar <raemoar63@gmail.com>, Daniel Scally <djrscally@gmail.com>, 
@@ -71,39 +71,35 @@ Cc: Brendan Higgins <brendan.higgins@linux.dev>, David Gow <david@davidgow.net>,
 	Bartosz Golaszewski <brgl@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 
-On Mon, 6 Jul 2026 22:09:39 +0200, Andy Shevchenko
+On Mon, 6 Jul 2026 22:05:43 +0200, Andy Shevchenko
 <andriy.shevchenko@linux.intel.com> said:
-> On Mon, Jul 06, 2026 at 08:32:28AM -0400, Bartosz Golaszewski wrote:
->> On Mon, 29 Jun 2026 17:58:16 +0200, Andy Shevchenko
+> On Mon, Jul 06, 2026 at 07:42:36AM -0400, Bartosz Golaszewski wrote:
+>> On Mon, 29 Jun 2026 17:49:06 +0200, Andy Shevchenko
 >> <andriy.shevchenko@linux.intel.com> said:
->> > On Mon, Jun 29, 2026 at 12:52:10PM +0200, Bartosz Golaszewski wrote:
+>> > On Mon, Jun 29, 2026 at 12:52:08PM +0200, Bartosz Golaszewski wrote:
 >
 > ...
 >
->> >> +static int gpio_probe_defer_consumer_probe(struct platform_device *pdev)
->> >> +{
->> >> +	struct device *dev = &pdev->dev;
->> >> +	struct gpio_probe_defer_pdata *pdata = dev_get_platdata(dev);
->> >> +	struct gpio_desc *desc;
+>> >> +	static const struct software_node supp_swnode = {
+>> >> +		.name = "swnode-devlink-test-supplier"
 >> >
->> >> +	pdata->probe_count++;
+>> > Keep trailing comma.
 >> >
->> > Even in case of error?
+>> >> +	};
+>> >
+>> >> +
+>> >
+>> > Redundant blank line.
+>> >
 >>
->> We're counting how many times we *enter* probe, so yes, I think it's right.
+>> I actually leave a blank line between static, const and regular local variable
+>> blocks for readability.
 >
-> Perhaps a (short) comment on top of this line?
->
-> 	/* Count probes independently on being successful or unsuccessful */
->
-> --
-> With Best Regards,
-> Andy Shevchenko
->
->
+> As far as I know this is against the style.
 >
 
-I mean: sure, I can, but it already says probe_count, not probe_ok_count. IMO
-it's overkill but I don't want to bikeshed over a comment.
+I don't think the docs mention this particular situation - correct me if I'm
+wrong. Since I wrote it, I'll likely maintain this file and my personal
+preference is to keep the newlines. I hope it's fine.
 
 Bart
