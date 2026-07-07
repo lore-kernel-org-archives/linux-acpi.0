@@ -1,130 +1,94 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from out30-113.freemail.mail.aliyun.com (out30-113.freemail.mail.aliyun.com [115.124.30.113])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 102363DF011
-	for <linux-acpi@vger.kernel.org>; Tue,  7 Jul 2026 11:18:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC1F03FD121;
+	Tue,  7 Jul 2026 12:13:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.113
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783423095; cv=none; b=tJWn758P3YKwJXura/uF+FjqZzk0v6yWXd0yEuEpDih3i92ZeZia6lSKzlfpWmzUXROQO0tXhhW0LDVyWP4J39u/i7L//IxOL8Bs3gCMbjP/qDPKHZi2nm93JNPpqn63ICM+0mpT7nLBLPe2wK9JPeZLxMf3jLWYCNAV/DsFgP8=
+	t=1783426395; cv=none; b=SS1pXqI0+ZFjtplKGzgCKkjJ/YwovJzitbtLbUMfUDwxNg4XdJ/pTBUzq0GmEu0ZM7DKWdcPBiMvWR5rS7xgMgNbUuokte4/M59Gb4mHjme75w/AvR0cpar69NyUN9kMlDdvHEo2nsJhMCSOty1PSa73MztgufjN6yQnz0eVgLA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783423095; c=relaxed/simple;
-	bh=NOdz3nMifEjSm7c4pE4HSutRvb0Ohw1dNuMlCenv8wY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=InG2xLVPrjDvDHr4L6V19LrAQMXHbz4/dq79C/XaGo+3gNCXt++A/u1VCZpc7u19xmnEVYYN7xr5YYbNUkqQvnCx3OKEfjObuSSij73BtuShNPlNWdx8mX2jeYWUE+1Dk/Z6GhXwQcc99h/B24EK3XBhjQ4F47gbFpbvLX94OaQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QdooZGY1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783426395; c=relaxed/simple;
+	bh=iM/ITSzEjuuTnsAsuu2IRTw4GsnoxQTq+5wqGHC7Z5M=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YB2R/z9XWh8XAeSuSLXEuvZB9VwgzKk2/TuIbBOl5obrlPr0x1LL+l0rh9BsL1Q9PqtJZSyjyl2Q+FtSQUOY8nFL0VeZHi6Jot8AZInHzoqRa+vjSSkyHX5lOtZdjHpn+E72H/0ei4eCvZTk7cAxXb+s/FBeHbbbw5bqEB1hi2I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=LVr/OK96; arc=none smtp.client-ip=115.124.30.113
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QdooZGY1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDE891F00A3D
-	for <linux-acpi@vger.kernel.org>; Tue,  7 Jul 2026 11:18:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783423093;
-	bh=RE1DwalSGn6K9yfNR7G1p6eC6N8qMZtqcg7LH+d7xgs=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=QdooZGY1vBtLROt3ptkfJJxYJBBbBSmo1lJYmYYJH4evPMWyXil0R/u2E3Zwz0z7Q
-	 s7FU9e3t13YfnhV+vjOnuzynoTK4X5JYpF77qy1rHrlnAcQpeMOhVhEJGVW5agIDQe
-	 RuOXXDQ0+mzdCB2mArinNEwSdKv+NKcYW1WRqJqOxY733DRrOLFmACRm+VGQkCNE9O
-	 rimu7iLZDm7rVokpi/clkNxHVGnbDjRRWnbh4zOFD6qOhOkZ8vbfW5SdtDKERL6c4j
-	 NcPZ8uC9kaWDxN96nnQxi3PvPGBN/W7lkZizwXKAbdqkvqywlT/WGtH/kYy4y2U9BK
-	 gG1wdkXzAxI0w==
-Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-5aebc8cb5bcso2696322e87.2
-        for <linux-acpi@vger.kernel.org>; Tue, 07 Jul 2026 04:18:13 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+Ro5+H/xEl3FZR+9Iuq6KQ9lwE4Hp7JeFtcfd+sZWByQ89s1t2lpmVVc00Gl4I+7Jm3fEavEb4Hm6s9N@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywn6kWk4JPpxtx+W5la02LwAm5u4tQh/zaMC7N7Tuo/mG30UDWl
-	wHhH+iDfWKUYN0mnnp9iYDktcN9cJGLrNRNQW79m6fa3DUgF7EmIEN56zusUD2HQEcdiilIppK4
-	lKLdfxyn/177Hk32JYHIm09B+rWcnTng=
-X-Received: by 2002:a05:6512:1502:10b0:5ae:b57f:eee8 with SMTP id
- 2adb3069b0e04-5b007bfa837mr881391e87.3.1783423092201; Tue, 07 Jul 2026
- 04:18:12 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="LVr/OK96"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1783426384; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=ZazC41qgP28ya/4IG3D9ZyNZ1aQYNlbRht3eBUU3JMQ=;
+	b=LVr/OK96W4/77kZq6MbsuiFiQ1R3fEqSuS54MgqETMfP3ShDgBCfAf3yXkY3F200/NY5M25MaiV+HrYocZIhPFsAdT0PqIjPPTJblqfCL1hbe+HRtU8P9Vb6hTOqtOiPAtk2p6gulxByeRN5pP5iH3Whz0YyCtPO4cbFVpiyrDw=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R181e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045133197;MF=cp0613@linux.alibaba.com;NM=1;PH=DS;RN=11;SR=0;TI=SMTPD_---0X6dZr4z_1783426379;
+Received: from DESKTOP-S9E58SO.localdomain(mailfrom:cp0613@linux.alibaba.com fp:SMTPD_---0X6dZr4z_1783426379 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Tue, 07 Jul 2026 20:13:03 +0800
+From: Chen Pei <cp0613@linux.alibaba.com>
+To: dave.jiang@intel.com,
+	alison.schofield@intel.com,
+	bhelgaas@google.com,
+	rafael@kernel.org,
+	lenb@kernel.org,
+	guoren@kernel.org
+Cc: linux-pci@vger.kernel.org,
+	linux-cxl@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Sashiko AI review <sashiko-bot@kernel.org>
+Subject: [PATCH] ACPI: PCI: Clear driver_data on all error paths in acpi_pci_root_add()
+Date: Tue,  7 Jul 2026 20:12:58 +0800
+Message-ID: <20260707121258.11640-1-cp0613@linux.alibaba.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <AM9P193MB158895CFE0DDFA62FCD1DA5ED0F22@AM9P193MB1588.EURP193.PROD.OUTLOOK.COM>
-In-Reply-To: <AM9P193MB158895CFE0DDFA62FCD1DA5ED0F22@AM9P193MB1588.EURP193.PROD.OUTLOOK.COM>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 7 Jul 2026 13:17:59 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0h47_XU74PtF2nOrNDfjBoyOLvicv72+sdfRm91P+DfCw@mail.gmail.com>
-X-Gm-Features: AVVi8Cfd6RQnNH6BgzaYN_BJAt0bzVDrVgMq3Y8FfnLOY0l0wlCzsUptC-21p_I
-Message-ID: <CAJZ5v0h47_XU74PtF2nOrNDfjBoyOLvicv72+sdfRm91P+DfCw@mail.gmail.com>
-Subject: Re: Regression: ACPI battery status incorrectly reported as Not
- charging after bb1256e0ddc7
-To: golne tree <lrepper@outlook.de>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Sun, Jul 5, 2026 at 11:28=E2=80=AFAM golne tree <lrepper@outlook.de> wro=
-te:
->
-> Dear ACPI maintainers,
->
-> I would like to report a regression caused by commit:
->
-> bb1256e0ddc7 ("ACPI: battery: fix incorrect charging status when current =
-is zero")
->
-> The commit fixes a real issue on Huawei laptops, but it appears to introd=
-uce a regression on my system.
->
-> Hardware:
->
-> Manufacturer: Default string
-> Product: Default string
-> Laptop: Denver NID-14106SSDDE
-> Kernel: 7.0.11-1-cachyos
-> The same issue is also present with the unmodified Fedora Workstation ker=
-nel.
->
-> Observed behavior:
->
-> When the AC adapter is connected, the battery is actually charging. The b=
-attery percentage increases
->
-> However, the kernel reports:
->
-> POWER_SUPPLY_STATUS=3DNot charging
-> POWER_SUPPLY_POWER_NOW=3D0
->
-> Relevant values from /sys/class/power_supply/BAT0/uevent:
->
-> POWER_SUPPLY_STATUS=3DNot charging
-> POWER_SUPPLY_POWER_NOW=3D0
-> POWER_SUPPLY_VOLTAGE_NOW=3D7400000
-> POWER_SUPPLY_ENERGY_NOW=3D24760000
-> POWER_SUPPLY_CAPACITY=3D84
->
-> The battery does not provide current_now, and DMI information is unfortun=
-ately only:
->
-> system-manufacturer: Default string
-> system-product-name: Default string
->
-> Looking at commit bb1256e0ddc7, the following logic was introduced:
->
-> if (battery->rate_now !=3D ACPI_BATTERY_VALUE_UNKNOWN &&
->     battery->rate_now =3D=3D 0)
->         status =3D POWER_SUPPLY_STATUS_NOT_CHARGING;
->
-> On my system, rate_now is always reported as zero even while the battery =
-is clearly charging. As a result, userspace always receives Not charging, a=
-lthough the battery level continues to increase.
->
-> This suggests that some firmware reports an incorrect rate_now value whil=
-e still charging, making the new heuristic unsuitable for all systems.
->
-> Please let me know if you need additional information (acpidump, DSDT, de=
-bug logs, etc.). I would be happy to provide them.
->
-> Thank you for your time.
+acpi_pci_root_add() assigns the freshly allocated root to
+device->driver_data before dmar_device_add() and pci_acpi_scan_root().
+Both failure paths reach the end: label where root is kfree()'d, but
+only the pci_acpi_scan_root() path clears driver_data first.
 
-Here's a patch for you to try and let me know if it makes any difference:
+When dmar_device_add() fails during a hot-add, root is freed while
+device->driver_data still points at it.  The ACPI core does not clear
+driver_data on attach failure, so a later acpi_pci_find_root() call
+may dereference this dangling pointer.
 
-https://lore.kernel.org/linux-acpi/6283544.lOV4Wx5bFT@rafael.j.wysocki/
+Move the NULL assignment to the shared end: label so every error path
+clears driver_data before freeing root.
 
-Note that if you don't report back, I have no reason to make any
-changes to address this problem.
+Fixes: db89b4f0dbab ("ACPI: catch calls of acpi_driver_data on pointer of wrong type")
+Reported-by: Sashiko AI review <sashiko-bot@kernel.org>
+Link: https://sashiko.dev/#/patchset/20260526025118.38935-1-cp0613@linux.alibaba.com
+Signed-off-by: Chen Pei <cp0613@linux.alibaba.com>
+---
+ drivers/acpi/pci_root.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks!
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 4c06c3ffd0cb..f6cddd11075c 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -725,7 +725,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 		dev_err(&device->dev,
+ 			"Bus %04x:%02x not present in PCI namespace\n",
+ 			root->segment, (unsigned int)root->secondary.start);
+-		device->driver_data = NULL;
+ 		result = -ENODEV;
+ 		goto remove_dmar;
+ 	}
+@@ -765,6 +764,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	if (hotadd)
+ 		dmar_device_remove(handle);
+ end:
++	device->driver_data = NULL;
+ 	kfree(root);
+ 	return result;
+ }
+-- 
+2.50.1
+
