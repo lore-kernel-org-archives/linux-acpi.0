@@ -1,238 +1,206 @@
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yx1-f49.google.com (mail-yx1-f49.google.com [74.125.224.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F503188713
-	for <linux-acpi@vger.kernel.org>; Tue,  7 Jul 2026 03:47:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783396040; cv=none; b=MKCSEREgK5229hZ5/7vjY8MCT0HoCGvXlG1Cpo7otJvrbe7F6+ptTeNBS0/ulJn9FVCHHmoikOTbX3ngZFb+2f6zaI2oO/6GAGG9vnIChNkoSmNRp8Ubio5KrKhh5AKIxLkiggpahFqH76ICkdPl/+pkqZzeLdyShAuD/GFEhMs=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783396040; c=relaxed/simple;
-	bh=8FuvXj43qEW9pkubgws9NtoRYm37MvdVD99ryLk9c34=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=k6yf+TiFHLEAuG/JRIFKWUISxOxSjb7zWZ+JOGFH02c5QwYl3Cp1zBEjKAPU3g2T9EL/HCsrw0lEP42AUvOsp66/RVq7watgCcjejO9wf7jE8tQJCx5cux5N8XsS0Gv9JfqptA2Z2fBDW9zkCKaL03HBgI2O3ZGHYk8QqfHKgfY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=PCsuMmqq; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=eFk6N1c9; arc=none smtp.client-ip=205.220.168.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31F4A30FC33
+	for <linux-acpi@vger.kernel.org>; Tue,  7 Jul 2026 04:29:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.49
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783398558; cv=pass; b=kX+zDU+8ac2VSLG3fvxpMFxR+Ks7amof1SNfAownzQbG3QT+hyZkmwmXeQo+V6reWahisBXyQN1Jfy+XFsyxwy0CshX4pNzwyII/iCB4P683UEwmCj3Vup0q8MHX40JiYBNyMc3QGyAkhr8iyU9DZqZ+uCDwAlb9koisAGpH9nY=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783398558; c=relaxed/simple;
+	bh=PSqME/IPugtczex5NRAm1XmhU5y/+03GI6oS0AsEg0c=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Tgkfs2m94W2qpyxhpIVA7lm3N9ifpJgNLm/Q1Kk75tCZewv5sqywbtmuhwZuLNbz9USddX+CMaIs6b2ZFyGwpeKt3fhBprJevt+4K1g5nD92bX/QA5EY4pJ+LaqRlelHwUw+XqwJsky/aZ+p8jL+i0ZjvhOeLRrL0jxhkOqBsX0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=S52CYQCo; arc=pass smtp.client-ip=74.125.224.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="PCsuMmqq";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="eFk6N1c9"
-Received: from pps.filterd (m0279862.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 666KEAHc1504914
-	for <linux-acpi@vger.kernel.org>; Tue, 7 Jul 2026 03:47:18 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=qcppdkim1; bh=10l19KTCxqSqYBdgxJawtbug
-	fIDCCKBH6sLy1qfvrv8=; b=PCsuMmqq4w6H8IKL4WBNW/wOKcccb1RfrTXGgngs
-	i5Y4KjftEt1aheYFGe6WM5ujcx2y7DfRXzChlPcTs/rMe+X41JrJJDSGaXnaGNax
-	3u3W9HUrrCcLI7mAwkfsMu+clPpxiVxzWQA1VcpAvxuqOCFl00nz4qRvqHu9Klf2
-	9genqowRTUZGoDrS3anzJJT0dxsryrsR9gjmaxjJkxWxTuwPFTj7N3WBBePYelWL
-	94Fhk1NOQlkLLalHLZXlmeNpurVQ9oW8dv/ZIAXDTb4ckf0hysc8GuX47/qJvt+E
-	eq6aWDlZRXzSaVyEyuR5hId7u36XyYQUZALUUckKBtNjtw==
-Received: from mail-pg1-f197.google.com (mail-pg1-f197.google.com [209.85.215.197])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4f8a98kux7-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Tue, 07 Jul 2026 03:47:18 +0000 (GMT)
-Received: by mail-pg1-f197.google.com with SMTP id 41be03b00d2f7-c88d7a75507so6186827a12.1
-        for <linux-acpi@vger.kernel.org>; Mon, 06 Jul 2026 20:47:18 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="S52CYQCo"
+Received: by mail-yx1-f49.google.com with SMTP id 956f58d0204a3-664dd23829eso3376203d50.3
+        for <linux-acpi@vger.kernel.org>; Mon, 06 Jul 2026 21:29:17 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1783398556; cv=none;
+        d=google.com; s=arc-20260327;
+        b=RD0JcwyBJHG/AeGfgGX9o6HdpnZejOGl+hhSvELObEaQma4iImyFbfV2KmRek3g0dO
+         cdjh8xMCcUtfY2DNUiH4vkasBDKc4W0u02wj+06ekVMEn5f+7ELS13H875DNhO+qKvJ6
+         /MyQK6jmLzIgB9qTKdUwJDzOYh/qR20vqjPJROnnJM4tPBd3mjsLMSt+xTqfmc165vDn
+         ECh5/k4ZrQgD4ItjVjcsevysy4skrjouvPRKXlweMyEPMDzG02Ftu3HPKQHKUiPvSQ68
+         3XkYjSXcgXlS7IsX0ohIpe6OnNHTg7+XhwPqNe97+M+p9QA9REGaCGi2yjDP/nEJeIfX
+         QV2Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=1bHz8pIdj5qCHMVmE3ZgrvqBvuIVwQ8F/DhCqlx20Pk=;
+        fh=IJq74g5PsEA3KAsa5uydQlCVi+mjzARp2ldjInq4tho=;
+        b=DmALTuTuwWKaWiX66CqtjaP6TLAh/14LUu8TQn0MEcYm0EycTAs2PREd88VhcI+KY0
+         /wATKFKsXCmmMTtzjGg90beABeXrMyl1v3TtP9cFGlI5wD5nlAVH0ADtRrpYBTc0+EZN
+         gDYhRlUnKX6f3fM84f/btZCaHMcJBEQRaE8GkLt5+UmkKB6922Rtf64+V0srzzZ12zax
+         IMN7xuMOiIqW263CDypIZF+AfVIYe7AnzLvWzcF60vT6GDyddp7v3tuxf3VjWEfMHSD6
+         8FimGpbLdG1yFvBTnP1w82ahJK0cCfuZ07V1GdbEiZZ2Aj/pB4r47bGZCgY2Uf4bDH28
+         rSIA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1783396038; x=1784000838; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=10l19KTCxqSqYBdgxJawtbugfIDCCKBH6sLy1qfvrv8=;
-        b=eFk6N1c9mnpEYKAkCZNDJL86dhhYaai/4z8DzqcluC3FYyfnRkSuHruXo3ypaSDGDL
-         Y/FTPyYY4mKrzR5MAIvdwl5yPuzkO22ATTAuFyy1++/pncvCt0B1s7EO6q+t3Q8q7Yli
-         xnvYv8MnNegnqFELRR3FUWG5eOKQ273Db2dj8ecirFGTxaA+dNuzKHRSweTD8jXdGjqN
-         O3y6RP7MQJ5hBYdMbLoUoi8vgXkbHoGrdallxL5iL/iq0NCLbWPHm+ZfB4a3OpYnDigR
-         V0IKbE40sRQesixOdusMwIXz7fYD8Dv0Bx17YsIaXd73Lm6onRA2ZU5dX761SALPwX/W
-         Kb3w==
+        d=chromium.org; s=google; t=1783398556; x=1784003356; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=1bHz8pIdj5qCHMVmE3ZgrvqBvuIVwQ8F/DhCqlx20Pk=;
+        b=S52CYQCotEH8dw3N4wHAkEvIGgiFgLyj8Ojw0yloH6rv4EsRH1/NXDuhCfIZEpAiQC
+         ZRYNEp+gcPgEJMfIdlVEIu9mqaDJk7q0OIhMYpdFIXVGCSlfBkfekpao1lwjYzmcipib
+         J35lfe6nc1sAxtwhNAT9CNHR1/iO9PltWiY1A=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783396038; x=1784000838;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=10l19KTCxqSqYBdgxJawtbugfIDCCKBH6sLy1qfvrv8=;
-        b=MyzmbY6vC+l4nNV4R8JFYjawp+/z0rbpli9SULora8vHyMs0Gb74IZfETk0KUcTFfc
-         rTj3pfSJWIfcWNMiI5Gpe/F/0nWNSL+957DV8fCEcay1x/1F2C7Gxn50k/QQKnadnvrz
-         Z8TaIUvZbU/FGWUlCvx+GwXHHnL+tM6OqYPUIXIM8SZyBrt9OCwlvejTGe9ybqRWndL2
-         qhAd/EOxrmo01VmYMcs0XDDwbTs0UO2HiUSeg8Fqli/mzMGC5FqsVo8lP4QfnnYH4z3P
-         LM4NT3T3QEHiB1G59fTY2rPbC+thzxi3UTVTxtL7dJLsp9w7mXbtrZU2d68unmbc3kPF
-         BPZQ==
-X-Forwarded-Encrypted: i=1; AHgh+RqdxEt3AN2R/js7ofAAz9cCwHRZya3tV65kCt8WfbCMpMHH70uFAZs10Hpb/FLHaLpbLYUEyxZBzskl@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywvwmff1NKm4ybbFXkrfQt6er/q8mj0PkzIxVVwwMF0jLo1k1U6
-	QZFj+AEWlREp9at3jXh2Oxbzd/v1Myej//tXzequ3Zvz9EJI2czpAoEC9iz6wstpit7eyrUrWSi
-	6kL8xek0uionBEA0k6/HeH870BNmtW5dMxqfxlCtrRCfzZL0dADQnR1XVhKWK0A3r
-X-Gm-Gg: AfdE7clBdwQvfNVjOJkGTrFH8FqwEfco538SCoIVOCe4a7aUMEoEPxFzmKF+tzAWSDP
-	KOsoGHyMOfcHiBhUnVpq/S628LOSFUC/UA1eAr17mFRnOQiNiTEOOYzL8gdLTK18VKA2IJ30YrU
-	j6sHrEA34RAlm+8bs96dQKDceg62/ly60E5DRHq6g/lejC1R9HOWQw+QRwToaPzLuR2hXqSKoZ8
-	0iQX6INb778zhQrd0jQ9IvN2sQo/8ttGBdHrqVdRd1ZePCJUJpg2e/vxG/MdmZnKpdq++812qUv
-	3ztXGpDm55r9sUk340hnDV/CeK08b3N1Kinz77zboaqzrdjRibNrR3WU657OAWnp+g6UeX8dHrV
-	O02amqK4BGcvArF3gxdO4cXtD0LJJVrv8O+Jok5uEhiUeWZ3vd5K5pM2oh+aT
-X-Received: by 2002:a05:6a21:6497:b0:3bf:b9de:854d with SMTP id adf61e73a8af0-3c08edf0234mr4305535637.23.1783396037824;
-        Mon, 06 Jul 2026 20:47:17 -0700 (PDT)
-X-Received: by 2002:a05:6a21:6497:b0:3bf:b9de:854d with SMTP id adf61e73a8af0-3c08edf0234mr4305480637.23.1783396037283;
-        Mon, 06 Jul 2026 20:47:17 -0700 (PDT)
-Received: from hu-ashoraj-lv.qualcomm.com (Global_NAT1.qualcomm.com. [129.46.96.20])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-13b6593c76dsm2875802c88.3.2026.07.06.20.47.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 06 Jul 2026 20:47:16 -0700 (PDT)
-Date: Mon, 6 Jul 2026 20:47:14 -0700
-From: Ashok Raj <ashok.raj@oss.qualcomm.com>
-To: shijujose2008@gmail.com
-Cc: rafael@kernel.org, bp@alien8.de, akpm@linux-foundation.org,
-        rppt@kernel.org, dferguson@amperecomputing.com,
-        linux-edac@vger.kernel.org, linux-acpi@vger.kernel.org,
-        linux-mm@kvack.org, linux-doc@vger.kernel.org, tony.luck@intel.com,
-        lenb@kernel.org, leo.duran@amd.com, Yazen.Ghannam@amd.com,
-        mchehab@kernel.org, jic23@kernel.org, linuxarm@huawei.com,
-        rientjes@google.com, jiaqiyan@google.com, Jon.Grimm@amd.com,
-        dave.hansen@linux.intel.com, naoya.horiguchi@nec.com,
-        james.morse@arm.com, jthoughton@google.com, somasundaram.a@hpe.com,
-        erdemaktas@google.com, pgonda@google.com, duenwen@google.com,
-        gthelen@google.com, wschwartz@amperecomputing.com,
-        wbs@os.amperecomputing.com, nifan.cxl@gmail.com, tanxiaofei@huawei.com,
-        prime.zeng@hisilicon.com, roberto.sassu@huawei.com,
-        kangkang.shen@futurewei.com, wanghuiqiang@huawei.com,
-        Ashok Raj <ashok.raj@oss.qualcomm.com>
-Subject: Re: [PATCH v21 1/2] ACPI:RAS2: Add driver for the ACPI RAS2 feature
- table
-Message-ID: <akx2wqr3ULcmpCmc@hu-ashoraj-lv.qualcomm.com>
-References: <20260706000338.362421-1-shijujose2008@gmail.com>
- <20260706000338.362421-2-shijujose2008@gmail.com>
+        d=1e100.net; s=20251104; t=1783398556; x=1784003356;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=1bHz8pIdj5qCHMVmE3ZgrvqBvuIVwQ8F/DhCqlx20Pk=;
+        b=oxZ4ExcfQ8wJicYr1R9zEYiMUKwOvelHGwOznwzmVysZCb1JkDp7c0K5RBuNsu/YUk
+         lSXd+/INKzIUobzCa4ttUNVd06K3Y5JisREKxBIrJn0B0kwK1H8f4JS1Aka+DXzDhRkM
+         9cTSw5APWdMHYgQ5Ky8t369/X2hsClntU32eKOKj77whGoLaqttgxpK8d9bNVzE8jvNC
+         DgwjE6ejK8zY7EkomuMPcqjbQqR3jWMs8PIwUw30HBhlUtBYY/atE22LyR/ladhMLEpz
+         jpi0S+7vtkNKlktcb3q+fQyMRXSYl4xLsUac39Czeth9xleM0bu7EUAUwqReKiXX9f58
+         eqsQ==
+X-Forwarded-Encrypted: i=1; AHgh+RqcuTvj8MuKe0NrlnXEvItV3QOtro/LiyARQsnc/YZYH1YRCRp1kIR4NjanEoN4mYaiCjuBgTPHKIdZ@vger.kernel.org
+X-Gm-Message-State: AOJu0YzOxHzGxqOEXsp9Ra7kGzyrgQ/2k4EkfyTAduHrz1FLA6aXVjpB
+	iTTSLxkM8VAle+yaoLX6PrOGPcG7JkZb+B6p5Q23lOWcTODvsAQxQbufiak7C51NVlSaam5bcxw
+	YhiBu3ygBHmxE9mACEXHDxz7qP3aypberRf0+7z9D
+X-Gm-Gg: AfdE7cnt8wiXSXbb0OoEIu+a2W3v/lCHoaRTu+uSl7xkvMZ2LTWPtWaP3vf4FZD41MV
+	oQsamLmhgKV8BTvs9YOqvKumoVYLeeV7SgEVN8P7h6ZA7y16LUY5k712em+UVRNSY6Ko8ka4ALZ
+	XcQLqJ+FNL5QiNngIYRUCPNTp318C4HgbNcz2M8cOTuAJmb93Z56hLoGsoQaAxBjDiqeINmzkzX
+	WyIvm3sUVeQ6I4jAPHYgdOC/asCvcnCciF0MH4x8+4E5qRm6uis/qWM8ipgewxKS2hAenmLGXhS
+	9MXOBsZKZutc9NV+Cj1q1Ajw218bnGH4GbMiBw==
+X-Received: by 2002:a05:690e:4549:10b0:662:b6fc:ab84 with SMTP id
+ 956f58d0204a3-6677fa2ea7bmr2174279d50.17.1783398556262; Mon, 06 Jul 2026
+ 21:29:16 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260706000338.362421-2-shijujose2008@gmail.com>
-X-Authority-Analysis: v=2.4 cv=SpigLvO0 c=1 sm=1 tr=0 ts=6a4c76c6 cx=c_pps
- a=rz3CxIlbcmazkYymdCej/Q==:117 a=ouPCqIW2jiPt+lZRy3xVPw==:17
- a=IkcTkHD0fZMA:10 a=RAioF0-LDSMA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=_K5XuSEh1TEqbUxoQ0s3:22
- a=pGLkceISAAAA:8 a=EUspDBNiAAAA:8 a=Go8T6LQju8gDQlRwKi4A:9 a=QEXdDO2ut3YA:10
- a=bFCP_H2QrGi7Okbo017w:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzA3MDAzMSBTYWx0ZWRfXy3WCz5fr0zTH
- vLIbKAqh23R4b2zCmtV69qdGtwgRTOqGk6jM9cQ5M/FQ2XkWxdx4YgMjYk/ltQKg+nAh1gxFlwp
- OLFponR5neLxdTTmoFXygbN5JZCsIsg3ZvWjE+spC6Ai7s8LlTO4kJcQdUoN1VWFuklO9joON5u
- 5Gwvjfbq/+SPLf6p1+UeogULXX3s4VjDxF7jydH70s07xuPuDoBUizly8Vd46h9tEf3ewz9HLt1
- sQv9NDiN/R2g0olWFgW80xHQQaud2WTfFKa2b1tpu4XvVYXgm6lrhNPV6RvQHcyo1lzC0bA0kIu
- ZvXCO1FUeTUwAC8fgMjs0QDqD5IG8M6di8+/cmtD7KXRKvaXUyDJJ6EnEqPyzpnO854UKRdqUvS
- oG4R9EbPul1tDTbxibaoCJnoiruV0nr5keXzaNYwmeQF1CYkXtCAoxqXrSQ4bcIVqRbA8Jc/PQW
- GncM+hb4a4MxRGDElCw==
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzA3MDAzMSBTYWx0ZWRfX+h03ruOasYSH
- kNrBg69YC3tQdurMm6fGONQDU8yj1N95i083PwCm0zoySsXsgO/gWG8Mv2+mkLdOBKYsqVTNk0S
- a7AGeryWa1+ZYYsAI8Ryidyn6KTJ4Mw=
-X-Proofpoint-GUID: lJRxLPgETBQdRenoi7Ix7I54tMMXiKY6
-X-Proofpoint-ORIG-GUID: lJRxLPgETBQdRenoi7Ix7I54tMMXiKY6
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-07-06_03,2026-07-06_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- malwarescore=0 priorityscore=1501 spamscore=0 clxscore=1011 phishscore=0
- bulkscore=0 adultscore=0 suspectscore=0 impostorscore=0 lowpriorityscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607070031
+References: <20260703110317.1283411-1-wenst@chromium.org> <20260703110317.1283411-7-wenst@chromium.org>
+ <ake09vk4fEv1D9QC@ashevche-desk.local> <CAGXv+5GNucSXrhL=YxarSJHD2ezzYDK3EovFu-zy012KgZ+ZBg@mail.gmail.com>
+ <ake6FNy83LLtCs3b@ashevche-desk.local> <CAGXv+5EgpizA3Pc8ScNuChPhvFKWd5F6dxB-wT4-7EwabE-9dQ@mail.gmail.com>
+ <akvRMcGnUPxE3sxR@ashevche-desk.local>
+In-Reply-To: <akvRMcGnUPxE3sxR@ashevche-desk.local>
+From: Chen-Yu Tsai <wenst@chromium.org>
+Date: Tue, 7 Jul 2026 12:29:05 +0800
+X-Gm-Features: AVVi8CeDQS-P0cN7_fGlNwSI_p7eUQN2BPzLo_iMICLRCJ8sboVGUDAVuWI9R6g
+Message-ID: <CAGXv+5EqsDbzTg9eDMGK3Ph6Pe3_uDoSrjVL4q23cy6jZCk2tw@mail.gmail.com>
+Subject: Re: [PATCH v3 06/13] usb: hub: Pass |struct usb_port*| to usb_port_is_power_on()
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Bartosz Golaszewski <brgl@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-pm@vger.kernel.org, 
+	linux-usb@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-mediatek@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+	linux-kernel@vger.kernel.org, Manivannan Sadhasivam <mani@kernel.org>, 
+	Alan Stern <stern@rowland.harvard.edu>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Shiju
+On Tue, Jul 7, 2026 at 12:01=E2=80=AFAM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Mon, Jul 06, 2026 at 07:08:07PM +0800, Chen-Yu Tsai wrote:
+> > On Fri, Jul 3, 2026 at 9:33=E2=80=AFPM Andy Shevchenko
+> > <andriy.shevchenko@linux.intel.com> wrote:
+> > > On Fri, Jul 03, 2026 at 09:17:16PM +0800, Chen-Yu Tsai wrote:
+> > > > On Fri, Jul 3, 2026 at 9:11=E2=80=AFPM Andy Shevchenko
+> > > > <andriy.shevchenko@linux.intel.com> wrote:
+> > > > > On Fri, Jul 03, 2026 at 07:03:07PM +0800, Chen-Yu Tsai wrote:
+>
+> ...
+>
+> > > > > At a brief look this will be the only function that takes usb_por=
+t
+> > > > > instead of usb_hub in the entire hub.h (I don't count container_o=
+f()
+> > > > > as a function). With that being said I would rather see it to be =
+moved
+> > > > > to port.c altogether (yes, it's more invasive change, but looks m=
+ore
+> > > > > consistent).  I would even dare to move struct usb_port (and cont=
+ainer_of()
+> > > > > accompanied with that) and this function to port.h. This might re=
+quire
+> > > > > a separate patch, though.
+> > > >
+> > > > I agree with the reasoning, especially given the function name. How=
+ever
+> > > > I wonder if it would cause problems given the linking order. I'll g=
+ive
+> > > > it a try nevertheless and report back.
+> > >
+> > > Thanks!
+> > >
+> > > In case it won't fly (but I still think it's better to split), can yo=
+u at least
+> > > group usb_port APIs and struct? Means moving the proto closer to that=
+ struct
+> > > usb_port followed by container_of().
+> >
+> > Looks like it works out fine. port.o is linked in after hub.o, so movin=
+g
+> > the function from the latter to the former doesn't cause issues. One mi=
+ght
+> > even say that it is the correct thing to do.
+>
+> That's what I say! :-)
+>
+> > > > > Perhaps something like: 1) "move struct usb_port and associated A=
+PIs to port.h";
+> > > > > 2) "...this patch...".
+> >
+> > There are still some left in hub.c:
+> >
+> > static void usb_lock_port(struct usb_port *port_dev)
+> > static void usb_unlock_port(struct usb_port *port_dev)
 
-Thanks!
+These are only used internally in hub.c as a wrapper for the port mutex.
 
-On Mon, Jul 06, 2026 at 01:03:37AM +0100, shijujose2008@gmail.com wrote:
-> From: Shiju Jose <shijujose2008@gmail.com>
-> 
+> > static void port_over_current_notify(struct usb_port *port_dev)
 
-[snip]
+This is only used by the hub's overcurrent event handler.
 
-> +static int register_pcc_channel(struct ras2_mem_ctx *ras2_ctx, int pcc_id)
-> +{
-> +	struct pcc_mbox_chan *pcc_chan;
-> +	struct ras2_sspcc *sspcc;
-> +
-> +	if (pcc_id < 0)
-> +		return -EINVAL;
-> +
-> +	sspcc = ras2_sspcc_get(pcc_id);
-> +	if (sspcc) {
-> +		ras2_ctx->sspcc		= sspcc;
-> +		ras2_ctx->comm_addr	= sspcc->comm_addr;
-> +		ras2_ctx->dev		=
-> +			sspcc->pcc_chan->mchan->mbox->dev;
-> +		ras2_ctx->pcc_lock	= &sspcc->pcc_lock;
-> +		return 0;
-> +	}
-> +
-> +	sspcc = kzalloc(sizeof(*sspcc), GFP_KERNEL);
-> +	if (!sspcc)
-> +		return -ENOMEM;
-> +
-> +	pcc_chan = pcc_mbox_request_channel(&sspcc->mbox_client, pcc_id);
-> +	if (IS_ERR(pcc_chan)) {
-> +		kfree(sspcc);
-> +		return PTR_ERR(pcc_chan);
-> +	}
-> +
-> +	if (!pcc_chan->shmem) {
-> +		pcc_mbox_free_channel(pcc_chan);
-> +		kfree(sspcc);
-> +		return -EINVAL;
-> +	}
-> +
-> +	sspcc->pcc_id		= pcc_id;
-> +	sspcc->pcc_chan		= pcc_chan;
-> +	sspcc->comm_addr	= pcc_chan->shmem;
-> +	if (pcc_chan->latency)
-> +		sspcc->deadline_us = PCC_NUM_RETRIES * pcc_chan->latency;
-> +	else
-> +		sspcc->deadline_us = PCC_NUM_RETRIES * PCC_CHNL_DEFAULT_LATENCY;
-> +	sspcc->pcc_mrtt		= pcc_chan->min_turnaround_time;
-> +	sspcc->pcc_mpar		= pcc_chan->max_access_rate;
-> +	sspcc->mbox_client.knows_txdone	= true;
-> +
+> > static void hub_usb3_port_prepare_disable(struct usb_hub *hub,
+> >                                           struct usb_port *port_dev)
+>
+> This one takes hub as well.
+>
+> > These are used only in hub.c and moving them probably makes things
+> > messier?
+>
+> Perhaps better naming to each (kinda moving to usb hub namespace)?
+>
+> > OOTH, the following bits are in port.c but declared in hub.h:
+> >
+> > int usb_hub_create_port_device(struct usb_hub *hub,
+> >          int port1);
+> > void usb_hub_remove_port_device(struct usb_hub *hub,
+> >          int port1);
+> >
+> > Any preferences for these while we're reorganizing the code?
+>
+> These ones would be good to be in hub.c if there is no circular dependenc=
+ies or
+> alike.
 
-  Probably a minor nit .. 
+Those two, along with all the static functions they call, ends up being
+half of port.c. That doesn't help the size of hub.c, which is already
+over 6000 lines. I think I'll leave this one as is.
 
-  sspcc is published on the global ras2_sspcc list (with a live kref)
-  via list_add() before sspcc->pcc_lock is initialized a few lines
-  later via mutex_init().
+Both this part and the remaining bits in hub.c I mentioned above are
+outside the scope of this series. We can discuss whether they really
+need to be moved or renamed.
 
-  Once list_add() runs, ras2_sspcc_get() can find this sspcc and hand
-  out a pointer to it (kref_get_unless_zero() succeeds since kref_init()
-  already ran). A caller doing so before mutex_init() executes would
-  end up with ras2_ctx->pcc_lock pointing at an uninitialized mutex.
 
-  Currently harmless because the only caller, parse_ras2_table(), walks
-  PCC descriptors strictly sequentially, so no second register_pcc_channel()
-  call for the same pcc_id can land inside the window. But it's relying on
-  that being true rather than the code enforcing it.
-
-  Should we initialize the mutex before publishing the object, e.g.:
-
-        mutex_init(&sspcc->pcc_lock);
-
-> +	kref_init(&sspcc->kref);
-> +
-> +	mutex_lock(&ras2_pcc_list_lock);
-> +	list_add(&sspcc->elem, &ras2_sspcc);
-> +	mutex_unlock(&ras2_pcc_list_lock);
-> +
-> +	ras2_ctx->sspcc		= sspcc;
-> +	ras2_ctx->comm_addr	= sspcc->comm_addr;
-> +	ras2_ctx->dev		= pcc_chan->mchan->mbox->dev;
-> +
-
-> +	mutex_init(&sspcc->pcc_lock); <---------------------
-
-> +	ras2_ctx->pcc_lock	= &sspcc->pcc_lock;
-> +
-> +	return 0;
-> +}
-
-Otherwise 
-
-Reviewed-by: Ashok Raj <ashok.raj@oss.qualcomm.com>
-
-Cheers,
-Ashok
+Thanks
+ChenYu
