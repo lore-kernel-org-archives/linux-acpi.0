@@ -1,42 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC3C2372661;
-	Tue,  7 Jul 2026 11:12:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CBDD13DDAA;
+	Tue,  7 Jul 2026 11:14:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783422763; cv=none; b=H53zrN7hbAasb8+ME8/QLhoyfQVFrNhVXx0vCVqjFP/taJb4As4d5c5EE0mVM3+fiTTuzeip8dnZY3UJNFiCnb7rXFz+u9Tdua9sEAUuUkgZLi4bl6c1qal/Z39+Z7Nne01oHipfmI5Dl+f8WAykN9JxbHBRbnEQ1exQYHj9clg=
+	t=1783422878; cv=none; b=jDbOzDPR5Oi/9G0rwkm9J3QwgXMedgz3CGJACZd8raBs3TmQ7nbBiSisifS6Oy56C7QFPpDIKV2BIl77x82XfW89TMRNkDoT236Jx4BVNxLqlHAirn3RPu5pny+mv8rl4ic1YgSwL7wzeoOg2OJxTyi5ouLW2/VLb3mrdX/guDg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783422763; c=relaxed/simple;
-	bh=3E+FfDZekyWexjqd33VIDTatlPwxH3hlxzLBG1ppbzs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Cm4h8WuV4rtdVT8XO751d86SPqKqs0Wh4BWNkrh+Duzp37hTa7M5ENbsHg+oi10GwV36JJMrll4L1uCOvkCcFngmL8umoD9zApJNE5FIutX/fa1EAwa6qJUJ/zwzMzdYGPlF5FjPelH2dLknYkIzuhtdBB/48oMZikI8GeudClc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=A8OMVCVI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783422878; c=relaxed/simple;
+	bh=YPXUmDeS/hV67v0jjJTsDIiDBBPlUMQmUWVvsmHel9k=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=AaCWXs9jDOx/6D2ZcUTrSZE80gnA0Gr/F5lOflPEaLwcZMZ/iexdavp5Aa+MPl6eOIlJN0plGPkM1QkKyGaxEfKDKyAbxQvCF802VBLsy9DVlRcASIIB4T+RTd//6f2gt3cLzYwvdAI5D6CduKC7tw3jWsi5yyxSjEy4LtSr4Og=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=guG6hS9a; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="A8OMVCVI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77F111F00A3A;
-	Tue,  7 Jul 2026 11:12:37 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="guG6hS9a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8CA81F000E9;
+	Tue,  7 Jul 2026 11:14:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783422759;
-	bh=pyvhNuRWC45cC/GsxP7LT3Pbqsqw0s7MbBgV7p5Lw6I=;
+	s=k20260515; t=1783422876;
+	bh=IZJglc593nYe2vPbX3HO9idEx12Y/SfrZkHPTFijlZM=;
 	h=From:To:Cc:Subject:Date;
-	b=A8OMVCVIufsat+nLnqVjAGKap0VJ6V50dHh/KlnalbxucKsi79i8QkahNxint3bRw
-	 XcoSSitElqi24sqN4D1a3l0KZHKl9INLntN4dl6lh/DflcfZiaqZdHcpbEGQ1fWIy0
-	 ZZOvmW7t56AqhA27auJ7as8dtQcFV+hyUywJF5WueqOglI62wPx4vWZ+MzxaHfjNGd
-	 hyyVb2o4b5Mxm2nVjwj8H5ma5ewKw4Lo8c4bMgT16UVtdZEudi7vFbrkgbaG22SMr3
-	 UBZQbPiUBNlUBrtmA+9uoccplWd9vhbCQhv71dq4W1OdpHswkav783vyLxtcPlKuvs
-	 jJZGidzP26Obg==
+	b=guG6hS9arG1zHkAHud0v0S7+AQvwzC/TrBiRgbmASyUx6xlyPyLmbz2nIFKDRclOo
+	 jcI/PSECqD38XJijD0moDpFfRm1zGMovwM69H+ZKWfGbH4J0XEwbrYum5Jg+yOIJid
+	 ZVYiASw3sz9WfujmtgTyHVi6kRpXxV+KxeNF5dwdDKG+PpwYUbpa/rjdcy5rt1Zs6Q
+	 GYY5et9uAFEKF2cIrCOgU4eeS8V1GzDteg3vOzPik9MdDjnXi8/zxT52YcJTeP6kkr
+	 vlNGrUvC/I5YjZ1OeX4d1GMhs7j+hhVc+aGKoVlpNu6CtxeJzqNjT47U954IpB9K9l
+	 /D/mqN/Qgfiug==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
- platform-driver-x86@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Hans de Goede <hansg@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>,
- LKML <linux-kernel@vger.kernel.org>, Chen Yu <yu.c.chen@intel.com>,
- Maximilian Luz <luzmaximilian@gmail.com>
-Subject:
- [PATCH v2] platform/surface: surfacepro3_button: Stop setting
- acpi_device_name()
-Date: Tue, 07 Jul 2026 13:12:35 +0200
-Message-ID: <12927239.O9o76ZdvQC@rafael.j.wysocki>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: golne tree <lrepper@outlook.de>, LKML <linux-kernel@vger.kernel.org>,
+ Linux PM <linux-pm@vger.kernel.org>,
+ Ata =?utf-8?B?xLBsaGFuIEvDtmt0w7xyaw==?= <atailhan2006@gmail.com>
+Subject: [PATCH v1] ACPI: battery: Adjust charging status validation check
+Date: Tue, 07 Jul 2026 13:14:33 +0200
+Message-ID: <6283544.lOV4Wx5bFT@rafael.j.wysocki>
 Organization: Linux Kernel Development - Intel
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -47,69 +43,92 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: [PATCH v1] platform/surface: surfacepro3_button: Stop setting acpi_device_name()
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-The driver sets acpi_device_name() to initialize an input class device
-name initialization and print a message on probe success, but the input
-class device name can be set directly to the "Surface Pro 3/4 Buttons"
-string literal and used for printing the message.
+Commit bb1256e0ddc7 ("ACPI: battery: fix incorrect charging status when
+current is zero") added a charge rate check to validate the "charging"
+status of the battery, but that check is reported to cause some systems
+to misbehave [1].  Namely, it causes the "not charging" status to be
+reported on them while the battery is in fact charging (and they were
+correctly reporting the "charging" status in that case previously).
 
-Make the driver do so, stop setting acpi_device_name() in it and drop
-the symbol specifically defined for this purpose.
+To address that, check if the battery is full in addition to checking
+the charge rate when the "charging" status is reported by the platform
+firmware and only change it to "not charging" if the battery is full and
+its charge rate is zero.
 
-No intentional functional impact.
-
-This will facilitate the removal of device_name from struct
-acpi_device_pnp in the future.
-
+Fixes: bb1256e0ddc7 ("ACPI: battery: fix incorrect charging status when current is zero")
+Link: https://lore.kernel.org/linux-acpi/AM9P193MB158895CFE0DDFA62FCD1DA5ED0F22@AM9P193MB1588.EURP193.PROD.OUTLOOK.COM/ [1]
+Reported-by: golne tree <lrepper@outlook.de>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Reviewed-by: Chen Yu <yu.c.chen@intel.com>
 ---
+ drivers/acpi/battery.c |   38 ++++++++++++++++++++------------------
+ 1 file changed, 20 insertions(+), 18 deletions(-)
 
-v1 -> v2:
-   * Use input->name for printing the final message in
-     surface_button_probe() (Andy)
-   * Add R-by from Yu
-
----
- drivers/platform/surface/surfacepro3_button.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
-
---- a/drivers/platform/surface/surfacepro3_button.c
-+++ b/drivers/platform/surface/surfacepro3_button.c
-@@ -20,7 +20,6 @@
- #define SURFACE_PRO3_BUTTON_HID		"MSHW0028"
- #define SURFACE_PRO4_BUTTON_HID		"MSHW0040"
- #define SURFACE_BUTTON_OBJ_NAME		"VGBI"
--#define SURFACE_BUTTON_DEVICE_NAME	"Surface Pro 3/4 Buttons"
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -150,27 +150,28 @@ static int acpi_battery_technology(struc
  
- #define MSHW0040_DSM_REVISION		0x01
- #define MSHW0040_DSM_GET_OMPR		0x02	// get OEM Platform Revision
-@@ -212,11 +211,10 @@ static int surface_button_probe(struct p
- 		goto err_free_button;
- 	}
+ static int acpi_battery_get_state(struct acpi_battery *battery);
  
--	strscpy(acpi_device_name(device), SURFACE_BUTTON_DEVICE_NAME);
- 	snprintf(button->phys, sizeof(button->phys), "%s/buttons",
- 		 acpi_device_hid(device));
+-static int acpi_battery_is_charged(struct acpi_battery *battery)
++static bool acpi_battery_is_full(struct acpi_battery *battery)
+ {
+-	/* charging, discharging, critical low or charge limited */
+-	if (battery->state != 0)
+-		return 0;
+-
+ 	/* battery not reporting charge */
+ 	if (battery->capacity_now == ACPI_BATTERY_VALUE_UNKNOWN ||
+ 	    battery->capacity_now == 0)
+-		return 0;
++		return false;
  
--	input->name = acpi_device_name(device);
-+	input->name = "Surface Pro 3/4 Buttons";
- 	input->phys = button->phys;
- 	input->id.bustype = BUS_HOST;
- 	input->dev.parent = &pdev->dev;
-@@ -239,8 +237,8 @@ static int surface_button_probe(struct p
- 		goto err_free_button;
- 	}
+ 	/* good batteries update full_charge as the batteries degrade */
+-	if (battery->full_charge_capacity == battery->capacity_now)
+-		return 1;
++	if (battery->full_charge_capacity <= battery->capacity_now)
++		return true;
  
--	dev_info(&pdev->dev, "%s [%s]\n", acpi_device_name(device),
--		 acpi_device_bid(device));
-+	dev_info(&pdev->dev, "%s [%s]\n", input->name, acpi_device_bid(device));
+ 	/* fallback to using design values for broken batteries */
+-	if (battery->design_capacity <= battery->capacity_now)
+-		return 1;
++	return battery->design_capacity <= battery->capacity_now;
++}
+ 
+-	/* we don't do any sort of metric based on percentages */
+-	return 0;
++static int acpi_battery_is_charged(struct acpi_battery *battery)
++{
++	/* charging, discharging, critical low or charge limited */
++	if (battery->state != 0)
++		return 0;
 +
- 	return 0;
++	return acpi_battery_is_full(battery);
+ }
  
-  err_free_input:
+ static bool acpi_battery_is_degraded(struct acpi_battery *battery)
+@@ -211,13 +212,14 @@ static int acpi_battery_get_property(str
+ 		if (battery->state & ACPI_BATTERY_STATE_DISCHARGING)
+ 			val->intval = acpi_battery_handle_discharging(battery);
+ 		else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
+-			/* Validate the status by checking the current. */
+-			if (battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN &&
+-			    battery->rate_now == 0) {
+-				/* On charge but no current (0W/0mA). */
+-				val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
+-			} else {
++			/* Check the rate and capacity to validate the status. */
++			if (!acpi_battery_is_full(battery) ||
++			    (battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN &&
++			     battery->rate_now > 0)) {
+ 				val->intval = POWER_SUPPLY_STATUS_CHARGING;
++			} else {
++				/* Full and zero rate. */
++				val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
+ 			}
+ 		else if (battery->state & ACPI_BATTERY_STATE_CHARGE_LIMITING)
+ 			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
 
 
 
