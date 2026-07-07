@@ -1,139 +1,118 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
+Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCAF31A6823;
-	Tue,  7 Jul 2026 17:52:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55821306D3F;
+	Tue,  7 Jul 2026 18:35:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783446770; cv=none; b=CEDlkYvRNeFzFx9w+eNaoebarT4z1wbDpNdUqSQLkZK/hKsVWT16+zpLnGz7A2u6uvYWJJGK9k+aT+GU+/Q8G36xHcOkykhdEC7884gE2MIkYm8sg5Z0hYO8uFXdUleTSbGBGY/B9QwveuucKllgnqSc1Es2QozH9jMu4sHFrwM=
+	t=1783449359; cv=none; b=V3whXcqr7s4c294pMf/vyw9Lm7KKHIyplC7Saz+94l0O1OTSNNE6oYh+HkG8Wb8zryWqDfAc9ovOvBgs277qhvF8WUg20rgXIVxKiTif2umkuTBZ0d7KRfWIeAVG6gsfd1wmChQOIAIFbaPZ/7/WF+LL1otKOIkJvFkGxKovpck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783446770; c=relaxed/simple;
-	bh=1h0GjdZgYvvXWeVjtn91wifN191ALxykCY1UGdW9Brc=;
+	s=arc-20240116; t=1783449359; c=relaxed/simple;
+	bh=BDpLDQ7jUxEOvLkZsys35mNRQRxhC+Q50fjweTLjYIY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Vdyu0DfSgGZmVk9p6DtRsqWW6Vma6eD79htG9mfVH0NqBvdOz82UJUYf5kkZA2//Vr/g8H9UrHF+cVxEuTkX5Ib9//MoqdvwPLa12tAbG9si7KFOHZ7LDdZ1IO01l4tp6mSKvACx0HSLiAmBG1+3BxLwzuusNkkcq+mIfdESXuw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jFFAk+0Y; arc=none smtp.client-ip=192.198.163.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=OORPLfcLnzqINulmVpXbRQgb15abCWWFaITwns+0V0zRHsL92AyddqnmR5ObohYjqhIVEOch1ZT9OiDpaB9FGvrXO9Nsr7waRDH7bpv+sZSYbaGtBjrGsR+xe2FOYteZ6HA5SePB0Kh0zd2VJ0OQsqDlcPDbbRgKYhrNjbOLEAA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=fail (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=gTc6FoWa reason="signature verification failed"; arc=none smtp.client-ip=65.109.113.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jFFAk+0Y"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1783446769; x=1814982769;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=1h0GjdZgYvvXWeVjtn91wifN191ALxykCY1UGdW9Brc=;
-  b=jFFAk+0Yjc8SvdR9+Ke8nKT1yLKbA0RIIFhcW+Q0CVUCbjA6FnvQAkmZ
-   7qhI06OpkN6hRPyfu/eVa1xAqRZXG5IwiaY9uXQc1hGPTqoVCRFKD6+f9
-   YvjhD9WWlO8jnwZvcB2HkL1zo58ofBJ+ptRwrqIaXHDCQ7VVypJj100rx
-   d6XNUq7wKSmtngrZc0K5uB3uW3R/NA0zfTtHHuv7IgZPPIBkiYxhERlWf
-   +7YcLr+sfWLl2UPWSs2FAeE4jJtbGUvEAgezHTdOjFA1ql8y5zXDo9GlA
-   Md3U47uMTkhkPxFIMS31xRI5X5rs5jAIgKkmMvN7vlEtrRJ+kax2nBxJ8
-   g==;
-X-CSE-ConnectionGUID: Zaj8C6zsTCGwUu8TFKHs+g==
-X-CSE-MsgGUID: yrfN70+GQpSd2WvmkoKM5Q==
-X-IronPort-AV: E=McAfee;i="6800,10657,11840"; a="109645918"
-X-IronPort-AV: E=Sophos;i="6.25,153,1779174000"; 
-   d="scan'208";a="109645918"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jul 2026 10:52:48 -0700
-X-CSE-ConnectionGUID: nO4gsqrNT/yfRtvYWwRXaQ==
-X-CSE-MsgGUID: 6Rntm+nHQo24/gfR27b7Mg==
-X-ExtLoop1: 1
-Received: from guptapa-desk.jf.intel.com (HELO desk) ([10.165.239.46])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jul 2026 10:52:48 -0700
-Date: Tue, 7 Jul 2026 10:52:40 -0700
-From: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
-To: Borislav Petkov <bp@alien8.de>
-Cc: Thomas Gleixner <tglx@kernel.org>, dave.hansen@linux.intel.com, 
-	Vishal Badole <Vishal.Badole@amd.com>, mingo@redhat.com, x86@kernel.org, hpa@zytor.com, 
-	rafael@kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, peterz@infradead.org, tony.luck@intel.com, 
-	chang.seok.bae@intel.com, wei.w.wang@hotmail.com
-Subject: Re: [PATCH 1/2] x86/topology: Name the AMD core-type values
-Message-ID: <74ekieyxpcriutn35o54ejeoccx4xpmhyg2s7uzgiirsxtitws@5e3mwksftvy6>
-References: <20260629094349.533301-1-Vishal.Badole@amd.com>
- <20260629094349.533301-2-Vishal.Badole@amd.com>
- <20260702002704.GGakWwWMHxbRnSsfiO@fat_crate.local>
- <8733y1nj13.ffs@fw13>
- <20260702230337.GAakbuSfEOuD2K-d0I@fat_crate.local>
- <20260703193222.GFakgORjvxwnZTPRnI@fat_crate.local>
- <5mqpi7ar6dnd7cyxf3wsuwbfj5nl3day5iyzi7zt64wztjbxyt@5mrkexqow4sc>
- <20260707004713.GEakxMkRkAky4_hanw@fat_crate.local>
+	dkim=fail reason="signature verification failed" (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="gTc6FoWa"
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id C575B40E0140;
+	Tue,  7 Jul 2026 18:35:53 +0000 (UTC)
+X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
+Authentication-Results: mail.alien8.de (amavisd-new); dkim=fail (4096-bit key)
+	reason="fail (body has been altered)" header.d=alien8.de
+Received: from mail.alien8.de ([127.0.0.1])
+	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP id YwzEzrF91RIy; Tue,  7 Jul 2026 18:35:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
+	t=1783449343; bh=ua4u1LuUlezN8j6xu2WIJg9JtcJ7b4ThrEAFlNhjKjo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=gTc6FoWaXOvHrcV7b24WqFshXfsrcHIgdZ87MOaPfogiTPw5w20YhQgy/iwJWZUKh
+	 7yTEG9SSMwC7UT6G4waoaf4D71z4dRJdOy2a1WowEV5tYoCmuSwYdL7ssMglGvQyy7
+	 8ALdrILLDVaX9LtEELvuDM1B1cCxDVsztC9DMAI483AzO7/84fyH7mZswHc+VVyM0M
+	 qgfJ5ZNRxGiNzZmhkLm5Bz6I1ivFExeO6Q4+073FfymSMDZy1lK59poyzR9o8v+DNs
+	 sc+r0HZLDcVk5/joZ8DLmKToROIqCn5umWnhW0+/OJG7aNstYug+GexLfXnGggWEcg
+	 JRoV3XZ6r1+kHRoXFxnJA+09g5McuH6DvyuQbK6Yu26eWilxO+fIImgnJDLpoXBfZ6
+	 DFWUzpXId+BxhGag8reTRp7vgLsROnQqym6A2s6ed5lmCZG8k7KejZ0xrQhjXpiJqC
+	 m9YgG31jwT4MBqaxZoBM6seQMMHWR236PM/rHbyz8R3BDO7nKediqpFlJ2BJH/4M2t
+	 AzYN5ZLOnGNYcyFFnfOOKroAHnspB9gmLU3/Op5NCJ9Z1hd4Z1q8ldCmsA6F0fl+Zm
+	 2TuhXQ1T5kVT5y3xXFTE1skK/c/beFypQjmfNPX0eXJKqTOP0//9mTx5hZ+Ler4pxN
+	 3BHds+4jjjrob0FIDCu9VWw0=
+Received: from stx.tnic (unknown [IPv6:2600:1700:38ca:c00::42])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
+	(No client certificate requested)
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id C725A40E00DC;
+	Tue,  7 Jul 2026 18:35:20 +0000 (UTC)
+Date: Tue, 7 Jul 2026 11:35:17 -0700
+From: Borislav Petkov <bp@alien8.de>
+To: Breno Leitao <leitao@debian.org>
+Cc: Tony Luck <tony.luck@intel.com>, Thomas Gleixner <tglx@kernel.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Shuai Xue <xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>,
+	Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
+	Oliver O'Halloran <oohall@gmail.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Breno Leitao <leitao@kernel.org>, linux-kernel@vger.kernel.org,
+	linux-edac@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org,
+	kernel-team@meta.com
+Subject: Re: [PATCH RFC] RAS: hwerr_tracking: move recoverable hardware error
+ tracking out of vmcoreinfo
+Message-ID: <20260707183517.GCak1G5TKyF1ggs8WW@fat_crate.local>
+References: <20260707-hwerr-ras-v1-1-4aea4a79d085@debian.org>
+ <20260707160247.GBak0jJwNxVHlvzijD@fat_crate.local>
+ <ak0sGAX_NWMyeofC@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260707004713.GEakxMkRkAky4_hanw@fat_crate.local>
+In-Reply-To: <ak0sGAX_NWMyeofC@gmail.com>
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jul 06, 2026 at 05:47:13PM -0700, Borislav Petkov wrote:
-> On Mon, Jul 06, 2026 at 11:29:07AM -0700, Pawan Gupta wrote:
-> > >  /**
-> > >   * x86_match_cpu - match current CPU against an array of x86_cpu_ids
-> > >   * @match: Pointer to array of x86_cpu_ids. Last entry terminated with
-> > > @@ -81,7 +53,7 @@ const struct x86_cpu_id *x86_match_cpu(const struct x86_cpu_id *match)
-> > >  			continue;
-> > >  		if (m->feature != X86_FEATURE_ANY && !cpu_has(c, m->feature))
-> > >  			continue;
-> > > -		if (!x86_match_vendor_cpu_type(c, m))
-> > > +		if (m->type != X86_CPU_TYPE_ANY && c->topo.cpu_type != m->type)
-> > 
-> > ... matching a hybrid CPU to any cpu_type.
-> 
-> I don't know what you mean here.
+On Tue, Jul 07, 2026 at 09:53:34AM -0700, Breno Leitao wrote:
+> The current vmcoreinfo implementation defaults to enabled, so I wanted =
+to
+> preserve that behavior to avoid silently removing symbols that existing
+> tools may depend on. Would you prefer a different default?
 
-Vulnerability enumeration is done on the BSP, for a hybrid system with BSP
-as a performance-core, a vulnerability that only affects efficiency-cores
-would not be enumerated. So, x86_match_cpu() currently returns a match for
-any cpu-type on a hybrid system.
+You do know Linus' stance on enabling things by default which are not
+ubiquitous, right?
 
-> enum x86_topology_cpu_type {
->    /* X86_CPU_TYPE_ANY */
->    TOPO_CPU_TYPE_ANY = 0,
->    TOPO_CPU_TYPE_PERFORMANCE,
->    TOPO_CPU_TYPE_EFFICIENCY,
->    TOPO_CPU_TYPE_UNKNOWN,
-> };
-> 
-> These are the Linux-specific CPU types and all vendor CPU types will be mapped
-> to them. I hope 255 are enough.
+Logging hw errors in vmcore is really necessary to be enabled everywhere?
 
-255 should be more than enough, but it doesn't take resolve the problem of
-matching a hybrid CPU to any cpu_type.
+> I agree the sysfs exposure duplicates existing infrastructure, points
+> taken. However, tracking fatal hardware errors provides value at crash
+> analysis time=E2=80=94it lets us quickly determine whether a fatal hard=
+ware
+> error occurred during the kernel's lifetime, which is useful for
+> root-cause attribution.
 
-Apart from struct cpuinfo_x86 for each CPU, we have separate boot_cpu_data
-for BSP. One possible solution is to set cpu_type to TOPO_CPU_TYPE_ANY in
-BSP specific struct for hybrid systems.
+Yes, that's why you put it in vmcore. You can't read sysfs if you encount=
+er
+a fatal hw error.
 
-For more accurate matching, x86_topology_cpu_type could be a u32 with
-bit-fields for each CPU type. And boot_cpu_data can have:
+> For this, would you like to keep it in vmcore info (as of today), or
+> move to RAS subsystem?
 
-  boot_cpu_data.topo.cpu_type = (TOPO_CPU_TYPE_PERFORMANCE | TOPO_CPU_TYPE_EFFICIENCY | ...)
+You mean, would I like to pay attention to more patches than now?
 
-on a hybrid system. Problem with this approach is, unless secondary CPUs
-are brought up, BSP will not know what all cpu-types are present in the
-system. Also with bit-fields, possible cpu-types are further limited.
+Not really - I can barely manage as it is.
 
-To circumvent this problem, current implementation matches a hybrid CPU
-with any cpu_type.
+:-)
 
-> > Also, I think now cpu_vuln_blacklist[] needs TOPO_CPU_TYPE_EFFICIENCY
-> > instead of ATOM.
-> > 
-> >   VULNBL_INTEL_TYPE(INTEL_ALDERLAKE,                   ATOM,      RFDS | VMSCAPE),
-> >   VULNBL_INTEL_STEPS(INTEL_ALDERLAKE,          X86_STEP_MAX,      VMSCAPE),
-> >   VULNBL_INTEL_STEPS(INTEL_ALDERLAKE_L,        X86_STEP_MAX,      RFDS | VMSCAPE),
-> >   VULNBL_INTEL_TYPE(INTEL_RAPTORLAKE,                  ATOM,      RFDS | VMSCAPE),
-> 
-> Ack, right, ATOM == EFFICIENCY in Intel-speak, so I'd need to convert those.
-> 
-> Thx.
-> 
-> -- 
-> Regards/Gruss,
->     Boris.
-> 
-> https://people.kernel.org/tglx/notes-about-netiquette
+--=20
+Regards/Gruss,
+    Boris.
+
+https://people.kernel.org/tglx/notes-about-netiquette
