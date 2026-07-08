@@ -1,74 +1,163 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E3BC3264E7;
-	Tue,  7 Jul 2026 23:24:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D93A73AD516;
+	Wed,  8 Jul 2026 01:43:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783466649; cv=none; b=jBi6iKWqMlmvsOONcug0HxXVK0wQpzCQjV/N5J2sf0fDvdkqzoGBMUsub6zzkHTp2OIh5At21JSf8rNY/YjBx0mPOEAHdk8kZxDCRaeCpzBzuC7en6Luv8FcbPDwBnIco7yDaegPc+2O2DZcjkXPG5YCVvwlWNQmA/SUg4WdLf0=
+	t=1783474987; cv=none; b=rZFhzKP6maKLmbDSuEQqtiaop+8/wJgkBybp5eTVNIN+SE4sYsTneMgKZOy5jQ558/VlUB/XYhDNSrs/BfsvEDfe5IhkA1itwe9Uhr9vnLmuK88V7KGCbvhjc6cHgD1sikoQa/M3CxT0acHGK2OtVEVVqkpcvE57yXSBMqenSfo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783466649; c=relaxed/simple;
-	bh=A9iZKRhqcedwjEg+TAejDinCGbkAUfY5mz4rNVQhPR8=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=XnIGr6T9CWGHwKmGTCCcOVzH78FCO0AOEm4ZrNW5P3L5AZ30+jk77IEZu9HAzPutOQuDSAnlVZg6IyKaXDTl6hWByY5sa6YqGTktQLNxSre8nDZIBINU0LbOIDuudhdec7o/U6vVlOVIZ5Q34AWkx/RHlDjfZNy5ONY9TS6FDs8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RJPtN3Qg; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783474987; c=relaxed/simple;
+	bh=o5sm/K9wcF6RwXPf5G6qhLxB7jDXq+R96eprh4tGwfM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=dDKiOjtPVDiE02XIRy2d0MoOh86qqUPlkNW6HNiol+6Rit83aRN2NjwnM6oyxs2mTJ+mRFp7nV4CMK6R9c2KyV+DXfXrkYTJqOzrLjtIH+QIBee1NPGgMtwi3QRH/U2PAQeC9FQWYC2y1VvefZu45cYEgN5P3oP8JF8fGjl7v6w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=Zsyx5RMQ; arc=none smtp.client-ip=115.124.30.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RJPtN3Qg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAF0F1F000E9;
-	Tue,  7 Jul 2026 23:24:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783466648;
-	bh=A9iZKRhqcedwjEg+TAejDinCGbkAUfY5mz4rNVQhPR8=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date;
-	b=RJPtN3QgMoMoN35g8fczYMlVnsJDN4tjEDSW/K60KSdbwD2VAoAN5ueRjEbn/N2hX
-	 8h+Rxvn4ZI8YUHYzy8XPOti+YrnIY+MLusDKETYUWRqzL3dVbbvwBY9rbnE+y+HVZU
-	 lrCaZR0sqHFJjODKoysXLOv5J0rno+TjXflgJ6cAVfy1cmHPQH2ecSaCXjQAbyjNCN
-	 Ld4mCC7K2ycKP6oelw6NAHMwT9hWTUXpeo9hgXuUSYaxlX737wFgwuL5F5STE2Jom3
-	 bZLfZ4UU+RxZoVB5adE0d992IBjIuqnrelosFeUZd7EfDWnb2XMAVZG7EhPQI5aBjH
-	 8ib5tEt3QRg0Q==
-From: Thomas Gleixner <tglx@kernel.org>
-To: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
-Cc: Borislav Petkov <bp@alien8.de>, dave.hansen@linux.intel.com, Vishal
- Badole <Vishal.Badole@amd.com>, mingo@redhat.com, x86@kernel.org,
- hpa@zytor.com, rafael@kernel.org, lenb@kernel.org,
- linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
- peterz@infradead.org, tony.luck@intel.com, chang.seok.bae@intel.com,
- wei.w.wang@hotmail.com
-Subject: Re: [PATCH 1/2] x86/topology: Name the AMD core-type values
-In-Reply-To: <o6lnfms2uw5xpx54bqmc72zbtdblya6bknkx5g6di5s6g3ovjf@gybebdp6p7dm>
-References: <20260629094349.533301-1-Vishal.Badole@amd.com>
- <20260629094349.533301-2-Vishal.Badole@amd.com>
- <20260702002704.GGakWwWMHxbRnSsfiO@fat_crate.local> <8733y1nj13.ffs@fw13>
- <20260702230337.GAakbuSfEOuD2K-d0I@fat_crate.local>
- <20260703193222.GFakgORjvxwnZTPRnI@fat_crate.local>
- <5mqpi7ar6dnd7cyxf3wsuwbfj5nl3day5iyzi7zt64wztjbxyt@5mrkexqow4sc>
- <20260707004713.GEakxMkRkAky4_hanw@fat_crate.local>
- <74ekieyxpcriutn35o54ejeoccx4xpmhyg2s7uzgiirsxtitws@5e3mwksftvy6>
- <87wlv6sin7.ffs@fw13>
- <o6lnfms2uw5xpx54bqmc72zbtdblya6bknkx5g6di5s6g3ovjf@gybebdp6p7dm>
-Date: Wed, 08 Jul 2026 01:24:05 +0200
-Message-ID: <87fr1us7sa.ffs@fw13>
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="Zsyx5RMQ"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1783474981; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=9Dd0yo6CrKwB47yF27tbjHU5QXAXcxL+TJZdWwmiNyk=;
+	b=Zsyx5RMQ5UpLEZ2pxkV+ayPvZPvztfSSqCTkAfFB6g4B1olNJfQCo0zzan7TVzQ+FQlUjRXm9e6/UnLXnvkcJG7anvr48ALice2TK9BFM/+GL8rzrLHq5rDI8mohs5/YVS11UEZ8p/yUFBCGK8vwP+ZDVwE8o8W1Cf0TNEO8M9Y=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R481e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045133197;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=18;SR=0;TI=SMTPD_---0X6fqE44_1783474978;
+Received: from 30.246.161.237(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0X6fqE44_1783474978 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Wed, 08 Jul 2026 09:43:00 +0800
+Message-ID: <3f77c23d-5f04-4617-99f9-b08b1740cc21@linux.alibaba.com>
+Date: Wed, 8 Jul 2026 09:42:58 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2] ACPI: APEI: Handle repeated SEA error storms
+To: hejunhao <hejunhao3@h-partners.com>, rafael@kernel.org,
+ tony.luck@intel.com, guohanjun@huawei.com, mchehab@kernel.org,
+ jarkko@kernel.org, yazen.ghannam@amd.com, jane.chu@oracle.com,
+ lenb@kernel.org, linmiaohe@huawei.com, Borislav Petkov <bp@alien8.de>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-kernel@vger.kernel.org, linux-edac@vger.kernel.org,
+ tanxiaofei@huawei.com, liuyonglong@huawei.com, mawupeng1@huawei.com
+References: <20260527082707.2013499-1-hejunhao3@h-partners.com>
+ <6ebea989-81c7-6237-1a31-8d6975796680@h-partners.com>
+From: Shuai Xue <xueshuai@linux.alibaba.com>
+In-Reply-To: <6ebea989-81c7-6237-1a31-8d6975796680@h-partners.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Tue, Jul 07 2026 at 13:46, Pawan Gupta wrote:
-> On Tue, Jul 07, 2026 at 09:29:32PM +0200, Thomas Gleixner wrote:
->> Just because it is convenient does not make it more correct. If you need
->> to enable mitigations on hybrid systems, then explicitely check for the
->> hybrid property.
->
-> Right, I was convoluting 2 different goals. Vulnerability enumeration
-> should explicitly check for hybrid.
->
-> Currently, only RFDS needs to check for hybrid. It is probably not worth
-> creating a new mechanism for cpu_type check for vulnerability enumeration.
-> Below should work with current set of CPUs. Please let me know if there is
-> a better way to handle this:
++ Tony, and BP,
 
-If that's the only case to handle, then sure that open coded check is
-fine.
+On 7/2/26 8:50 PM, hejunhao wrote:
+> Gentle ping for this one, and it's ready.
+> 
+> Best regards,
+> 
+> 
+> On 2026/5/27 16:27, Junhao He wrote:
+>> When hardware memory corruption occurs and a user process accesses the
+>> corrupted page, the CPU triggers a Synchronous External Abort (SEA).
+>> The kernel invokes do_sea() to handle the exception, which calls
+>> memory_failure() to handle the faulty page.
+>>
+>> Scenario 1: Memory Error Interrupt First, then SEA
+>> The page is already poisoned by the memory error interrupt path. The
+>> subsequent SEA handler sends a SIGBUS to the task, which accesses the
+>> poisoned page. This flow is correct.
+>>
+>> Scenario 2: SEA first, then memory error interrupt (problematic scenario)
+>> If a user task directly accesses corrupted memory through a PFNMAP-style
+>> mapping (e.g., devmem), the page may still be in the free-buddy state when
+>> SEA is handled. In this case, memory_failure() will poison the page without
+>> invoking kill_accessing_process(), and then takes the free-buddy recovery
+>> path.
+>>
+>> After the CPU returns to the task context, the task re-enters the SEA
+>> handler due to the same access. However, ghes_estatus_cached() suppresses
+>> all subsequent entries during the 10-second window, preventing
+>> ghes_do_proc() from being called. This suppression blocks the
+>> MF_ACTION_REQUIRED-based SIGBUS delivery, causing the kernel to fail to
+>> kill the task immediately. Consequently, the process keeps re-entering
+>> the SEA handler, leading to an SEA storm. Later, the memory error
+>> interrupt path also cannot kill the task, leaving the system stuck in
+>> this repeated loop.
+>>
+>> The following error logs are explained using the devmem process:
+>>    NOTICE:  SEA Handle
+>>    [Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 9
+>>    [Hardware Error]: event severity: recoverable
+>>    [Hardware Error]:   section_type: ARM processor error
+>>    [Hardware Error]:    physical fault address: 0x0000001000093c00
+>>    [T54990] Memory failure: 0x1000093: recovery action for free buddy page: Recovered
+>>    [ T9955] EDAC MC0: 1 UE Multi-bit ECC on unknown memory
+>>             (page:0x1000093 offset:0xc00 grain:1 - APEI location: ...)
+>>    NOTICE:  SEA Handle
+>>    NOTICE:  SEA Handle
+>>    ...
+>>    ...        ---> SEA storm
+>>    ...
+>>    NOTICE:  SEA Handle
+>>    [ T9955] Memory failure: 0x1000093: already hardware poisoned
+>>    ghes_print_estatus: 1 callbacks suppressed
+>>    [Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 9
+>>    [Hardware Error]: event severity: recoverable
+>>    [Hardware Error]:   section_type: ARM processor error
+>>    [Hardware Error]:    physical fault address: 0x0000001000093c00
+>>    [T54990] Memory failure: 0x1000093: already hardware poisoned
+>>    [T54990] 0x1000093: Sending SIGBUS to devmem:54990 due to hardware memory corruption
+>>
+>> To resolve this, return an error when encountering the same SEA again.
+>> The subsequent SEA handler invocation uses arm64_notify_die() to send a
+>> SIGBUS signal to the task, which terminates the process and prevents it
+>> from re-entering the handler loop.
+>>
+>> Signed-off-by: Junhao He <hejunhao3@h-partners.com>
+>> ---
+>>   drivers/acpi/apei/ghes.c | 10 +++++++++-
+>>   1 file changed, 9 insertions(+), 1 deletion(-)
+>>
+>> Changes in V2:
+>> 1. update the commit message per suggestion from Xueshuai
+>> 2. Add a check to only return failure on the ghes_notify_sea() path,
+>>     avoiding impact on other NMI-type GHES handlers.
+>> Link to V1 - https://lore.kernel.org/all/20251030071321.2763224-1-hejunhao3@h-partners.com/
+>>
+>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+>> index 3236a3ce79d6..787664740150 100644
+>> --- a/drivers/acpi/apei/ghes.c
+>> +++ b/drivers/acpi/apei/ghes.c
+>> @@ -1383,8 +1383,16 @@ static int ghes_in_nmi_queue_one_entry(struct ghes *ghes,
+>>   	ghes_clear_estatus(ghes, &tmp_header, buf_paddr, fixmap_idx);
+>>   
+>>   	/* This error has been reported before, don't process it again. */
+>> -	if (ghes_estatus_cached(estatus))
+>> +	if (ghes_estatus_cached(estatus)) {
+>> +		/*
+>> +		 * Return failure on duplicate SEA entries so that the
+>> +		 * subsequent SEA handler invocation sends a SIGBUS signal to
+>> +		 * the task to prevent it from re-entering the handler loop.
+>> +		 */
+>> +		if (is_hest_sync_notify(ghes))
+>> +			rc = -ECANCELED;
+>>   		goto no_work;
+>> +	}
+>>   
+>>   	llist_add(&estatus_node->llnode, &ghes_estatus_llist);
+>>   
+
+Hello Tony, BP,
+
+Could you please take a look at this patch?
+
+Since `ghes_in_nmi_queue_one_entry()` is a common path for both ARM64
+and x86, an Ack from the x86 side would be appreciated.
+
+For ARM part, look good to me.
+
+Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com>
+
+Thanks.
+Shuai
