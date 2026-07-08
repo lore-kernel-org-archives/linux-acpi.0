@@ -1,138 +1,101 @@
-Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj2-f4.google.com (mail-pj2-f4.google.com [74.125.227.132])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8576375F6C;
-	Wed,  8 Jul 2026 02:42:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E8673B9931
+	for <linux-acpi@vger.kernel.org>; Wed,  8 Jul 2026 02:49:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.132
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783478529; cv=none; b=MRX3wWTvS5pruvAKP+6GhMq8JUjIT2Rpn2NJaib4TXiMbgvqwc8XF2H+6wLoH+d3YSzEHhX310ffT8oVN8xGjooGbaWe8Q8iWFlCtrL/VGXEsdNIJDprsqsuCc0xh/7dvt5bdDdL7u+ToUXp22P4LnYoqJMCpPTHmmFVyylvx6A=
+	t=1783478960; cv=none; b=sTXiUkv35UNJtrn3iC5cFEvQp/raMbMvhE09Vg8Ayc5RsNr0EdaRn0m62FpNVdxJB2EOCSwPaF+u0O9UKCjVYX3X0yAkRCIuvhe/7FxVI+O0PFUQokZgVgdv84axk9ggXgfybWsNw9VXuIZXBOzthosiivX3HDLiilvJ/KBHMEg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783478529; c=relaxed/simple;
-	bh=kkRt6IRLDiIp2g3XjrX6hjlZN+MfG6oSxTDsYbnzZrI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dsIXS9jp61TLLfNn8Kdq9Hk0nq3oW6a002vq9DmZdjRDw/9bgjCEhFZ7kYD625a1qB3DhYY6yoMoeetiYStYD6iq8xb0hlB+TXpFrN3BdgnFWHiPKiCVDTwhLGVo1RXJbjZcg6PHlLxCSNAvFPBgapUOBHQqMJzZ3m4Fqbtwzu0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=Ws9sWML2; arc=none smtp.client-ip=65.109.113.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="Ws9sWML2"
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id 42DA040E016E;
-	Wed,  8 Jul 2026 02:42:04 +0000 (UTC)
-X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
-Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
-	header.d=alien8.de
-Received: from mail.alien8.de ([127.0.0.1])
-	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id 41QuxmgCLtQY; Wed,  8 Jul 2026 02:41:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
-	t=1783478514; bh=9hXBvMjTwymyUvCvSreGUZBFX4rEGzicOQzp4XIztm0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Ws9sWML2zHDjcRXq0gCKTHLTcpqkKpbWB58VTH7TYqpHIKYRh7zLWxewIBrAbo82m
-	 JpoTT06YX+xY8kuGrnuWxKPbUmItAsXpDugALD739OogDX6yY8pgO4dy/Qr4loP/9p
-	 wyMhfFNn8XdspQDR/XXKtGu4P2uhRIuPX3fdKps6n0IPlivofaz8IhenKZeyBWTD+e
-	 +Q1nBWYaBEa6KU6Fp3wgY4urFwq2nO/7yNqY2D1c0KE+Q6WSkykyXG/uoLpXYbxTIS
-	 S5ttEB7RBVwYfGErb/BNX3HsM5zznneqS2+oXaPjOjWwLLbDctOJORErWHZwxK4UvR
-	 FKtlhqR/fQylyLuqzSqUG3cmSX68eqoRrOEeZ0QJsVUXv+eKBcnLGn+cfOfgYmK39J
-	 rWqs2eif5nHOupvyBUKaY5TZDdHAD9bTd6KjM7FFgi1ahferVcPki26i3YoNfgQhuW
-	 NyOoqKyLNRc4M93I7OJhBNwHfovX3TAarQttuLuJ0CtLhpMTXUIaLNtwULNuybRz/N
-	 qwa8+yXoulZsdi+3xzuTWHeI3UyGDC1wiBM3enb5DZ9sG/CPA3u+S90RfBkfdWlpoc
-	 /Ttd3Wxhcbg6Suot/dOOupv1++p3zuYpUa2vTKLgb2XNljhDdIcRhoc7ceGiX8eoUf
-	 eleB4cOJdWATBzvDKHkbtILo=
-Received: from stx.tnic (unknown [IPv6:2600:1700:38ca:c00::42])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
-	(No client certificate requested)
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 79EA240E0163;
-	Wed,  8 Jul 2026 02:41:34 +0000 (UTC)
-Date: Tue, 7 Jul 2026 19:41:31 -0700
-From: Borislav Petkov <bp@alien8.de>
-To: Ruidong Tian <tianruidong@linux.alibaba.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Umang Chheda <umang.chheda@oss.qualcomm.com>,
-	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-edac@vger.kernel.org,
-	zhuo.song@linux.alibaba.com, oliver.yang@linux.alibaba.com
-Subject: Re: [PATCH v7 00/16] Support Armv8 RAS Extensions for Kernel-first
- error handling
-Message-ID: <20260708024131.GCak242z-9YE2xL6q0@fat_crate.local>
-References: <20260602071540.3711528-1-tianruidong@linux.alibaba.com>
+	s=arc-20240116; t=1783478960; c=relaxed/simple;
+	bh=9kNqTwStaQbpsnPsaUKdWQ5RRg2AMjRoY3gcvAOrCtE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jJszwAPkQJ+T5TX/qxMfYTxJlkZ+nIwbk4cQRtRhaIbrQ+PkLNkpK5Rtfjk4Bvexx028a3Lo7x8YbF1ENWzDpOqK+tCHlFqSgfdcvQSCmc1D9VPSX8wT+71KBlckdjeOfHgj4At5Nc4AkeIO1UIYkc0otMHunASYsvlbg9WopIk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=74.125.227.132
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-pj2-f4.google.com with SMTP id d9443c01a7336-2cabe9335f1so1555805ad.0
+        for <linux-acpi@vger.kernel.org>; Tue, 07 Jul 2026 19:49:18 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783478958; x=1784083758;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=z3Et2l0jTe8v2tHjcu+3b3zxs6Brl8fMVpxofs6B4U4=;
+        b=NLKQ0wFYcOOZi5ce6S9uGZI/fljWYr0S5/DkwA9juvU9No91R3rFIRC0Mq/UdWnBqU
+         tcOwHdTIaQh6Ru+eK7UOWIJg4JZfLz1Qg32nsu3EskwyY5BujH6T53Vfwm5wEZR3d0GB
+         EAsUpX5jsdvEJA3x0OR0+WE1cPdQWAqwT90HFyXNav0K/D362G7y+oZoqHZPhjCevguu
+         3m8EUMo8IFao7JDNReMwICE0uzDKFxm41n9IxE9odquOUFVk9xlTq704b8KfuJUQ5aWL
+         PVxCc3FmTGA9ekryX4e6vSb0HAO5EaKF8cNjkvk1/dswog2tLNA6eudobducSBkmW2bG
+         2hjA==
+X-Forwarded-Encrypted: i=1; AHgh+Rol3L8di2OthH+XV+redjQEUIeE1jwh4PNtlfsjPZ448OLBIwA6eP/pi6xIBYrTlZsxvHy3en7QZomK@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxs7/Zav/QdpJz3z0alYCc3x65zXunYfKAiZBflvKZNrdFJjBa1
+	A3/JEkGtWmpdJuYKjMfLTaM8Q12jLSWk+/wCJ2AXHcyYEdrLPaRoBtGeWx1aXwa0/0iTUQ==
+X-Gm-Gg: AfdE7cl38u6UDGqt0froJFi0XevRgRH1iqcwMLptkhlwHoh2J4Al9vFIH+iaKQhiFXp
+	u6n8N+MF+6YVkeEWXvdvxmT7OiMiloMfJUJhq+Fq2tpYHO9CS/hN3X18K8fALyuUYYD5We9I6ip
+	iOfYmPFta0QQP5KI28oQo/ZLDnO087kngJLz3v68cFXRjSpVcKyx1F4vkxadWviQOCHfjv3DbGz
+	RRaPxunRKReQOmpd/PuqAFzN6kkmZ7gWDtv59xdbMo4Xb36kVAqZ7ah+gGk/2sfceq0+uyuNLeF
+	dMIFXZmCCuGUl4q3VNHvAeqaXaE/5FOrIB/8rEcxekPWGn42xh8fblbAXpKaJImEtXzoVxLpDjk
+	yXDj48WsxiUkffuIgvdYgs+QzjzvbV61G/tQTtclUzE5Ug2iOrVkySY7+muEQSWI8fjQRZyhNyp
+	+KkqQQ0mC/GGa5fLbwo2my7XzrMJWoLrTfLg==
+X-Received: by 2002:a05:6a20:918d:b0:3b3:e05:7fc4 with SMTP id adf61e73a8af0-3c0bca52d15mr451793637.30.1783478957573;
+        Tue, 07 Jul 2026 19:49:17 -0700 (PDT)
+Received: from kylin-XiaoXinPro-16-AHP9.. ([116.128.244.171])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-ca5b3c1f77fsm1680032a12.32.2026.07.07.19.49.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 07 Jul 2026 19:49:17 -0700 (PDT)
+From: Xueqin Luo <luoxueqin@kylinos.cn>
+To: rafael@kernel.org,
+	lenb@kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Xueqin Luo <luoxueqin@kylinos.cn>
+Subject: [PATCH] ACPI: TAD: Use devm_pm_runtime_set_active_enabled()
+Date: Wed,  8 Jul 2026 10:49:02 +0800
+Message-ID: <20260708024902.70806-1-luoxueqin@kylinos.cn>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260602071540.3711528-1-tianruidong@linux.alibaba.com>
+Content-Transfer-Encoding: 8bit
 
-Just some superficial notes on this before we delve deep...
+Replace pm_runtime_set_active() and pm_runtime_enable() with
+devm_pm_runtime_set_active_enabled(), which also handles runtime PM
+cleanup on driver remove.  Drop the redundant pm_runtime_disable() call
+from acpi_tad_remove() accordingly.
 
-On Tue, Jun 02, 2026 at 03:15:23PM +0800, Ruidong Tian wrote:
->  Documentation/ABI/testing/debugfs-arm64-ras |   87 ++
->  MAINTAINERS                                 |   11 +
->  arch/arm64/include/asm/ras.h                |   99 ++
->  drivers/acpi/arm64/Kconfig                  |   10 +
->  drivers/acpi/arm64/Makefile                 |    1 +
->  drivers/acpi/arm64/aest.c                   |  423 ++++++++
->  drivers/ras/Kconfig                         |    1 +
->  drivers/ras/Makefile                        |    1 +
->  drivers/ras/arm64/Kconfig                   |   16 +
->  drivers/ras/arm64/Makefile                  |    9 +
->  drivers/ras/arm64/ras-cmn.c                 |  479 +++++++++
->  drivers/ras/arm64/ras-core.c                | 1026 +++++++++++++++++++
->  drivers/ras/arm64/ras-inject.c              |  130 +++
->  drivers/ras/arm64/ras-storm.c               |  198 ++++
->  drivers/ras/arm64/ras-sysfs.c               |  319 ++++++
->  drivers/ras/arm64/ras.h                     |  374 +++++++
->  drivers/ras/debugfs.c                       |    3 +-
->  drivers/ras/ras.c                           |    3 +
->  include/linux/acpi_aest.h                   |   36 +
->  include/linux/cpuhotplug.h                  |    1 +
->  include/linux/ras.h                         |   10 +
->  include/ras/ras_event.h                     |   79 ++
->  22 files changed, 3315 insertions(+), 1 deletion(-)
->  create mode 100644 Documentation/ABI/testing/debugfs-arm64-ras
->  create mode 100644 arch/arm64/include/asm/ras.h
->  create mode 100644 drivers/acpi/arm64/aest.c
->  create mode 100644 drivers/ras/arm64/Kconfig
->  create mode 100644 drivers/ras/arm64/Makefile
->  create mode 100644 drivers/ras/arm64/ras-cmn.c
->  create mode 100644 drivers/ras/arm64/ras-core.c
->  create mode 100644 drivers/ras/arm64/ras-inject.c
->  create mode 100644 drivers/ras/arm64/ras-storm.c
->  create mode 100644 drivers/ras/arm64/ras-sysfs.c
+Signed-off-by: Xueqin Luo <luoxueqin@kylinos.cn>
+---
+ drivers/acpi/acpi_tad.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-People have got to start naming their files properly. I see this everywhere in
-the tree: there's "ras" in your path and then you add a "ras-" before each .c
-file name.
-
-Do not do that.
-
-But this is not that important - what's more important is exporting generic
-interfaces which are ARM64-specific. Like in patch 11. That can't work.
-
-But that's still not that important - what is even more important is who from
-ARM is going to review and maintain this? I can take a look at the generic
-bits so that the RAS stuff coexists fine in drivers/ras/ but I'd need an ARM
-person to take care of this.
-
-There are enough on Cc so let's see if anyone moves.
-
-Thx.
-
+diff --git a/drivers/acpi/acpi_tad.c b/drivers/acpi/acpi_tad.c
+index fc43df083738..51f8d1b9a8fb 100644
+--- a/drivers/acpi/acpi_tad.c
++++ b/drivers/acpi/acpi_tad.c
+@@ -809,7 +809,6 @@ static void acpi_tad_remove(void *data)
+ 	}
+ 
+ 	pm_runtime_suspend(dev);
+-	pm_runtime_disable(dev);
+ }
+ 
+ static int acpi_tad_probe(struct platform_device *pdev)
+@@ -866,8 +865,10 @@ static int acpi_tad_probe(struct platform_device *pdev)
+ 	 * The platform bus type probe callback tells the ACPI PM domain to
+ 	 * power up the device, so set the runtime PM status of it to "active".
+ 	 */
+-	pm_runtime_set_active(dev);
+-	pm_runtime_enable(dev);
++	ret = devm_pm_runtime_set_active_enabled(dev);
++	if (ret)
++		return ret;
++
+ 	pm_runtime_suspend(dev);
+ 
+ 	/*
 -- 
-Regards/Gruss,
-    Boris.
+2.43.0
 
-https://people.kernel.org/tglx/notes-about-netiquette
