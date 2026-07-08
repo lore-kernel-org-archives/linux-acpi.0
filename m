@@ -1,52 +1,55 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F8493EF673
-	for <linux-acpi@vger.kernel.org>; Wed,  8 Jul 2026 07:07:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B40C73ED3BF
+	for <linux-acpi@vger.kernel.org>; Wed,  8 Jul 2026 07:07:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783494446; cv=none; b=KEk8JqnAiDsb7LYZCWz4yc+V46Jwi8p8zlnM07lyUVH0Ftkgop89cgVYYY4DZHkxYtVVfpOHSq2kp/0Wsj69k4XDQVKJ2jAA7lAaYobnUT1zqW7676K+7fs+QoZ39VwqZMRczy9uJJ7MBPAjITbG4pRBQXENcAJ5ea+mf2fFCYk=
+	t=1783494500; cv=none; b=O2Te7iSw1XRB3YnxkTOsZCUo3MrqDy0tNli8llBmzOj1lW2da1TDBY/LsJ/qMU9+9hV1Ts6h207pss16u/JNUYLmbvroHSMt6qH8PUNX29Wb+gyp5RcoUVl6hek6Y6K83hVebCNYxf4ac2/b7vNiMDC9grX84PXCQgL2FrTpgIM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783494446; c=relaxed/simple;
+	s=arc-20240116; t=1783494500; c=relaxed/simple;
 	bh=dmo/JOIl9EZbvk+FriZDVg4oB+HUW5SDVZpf0ay89Fk=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=GxGKdPBAr5Okhpx3fSOLL/rwOZNJfkN7OGo6/qi81BiQQqv5Tjvek7DIDR170hTJcuHpGOmDtSeRT31eph9U1/+MPAGv4+MWcxDBCnKICrve5dDd4YyHAxtxtu550vRyE/Q8p9Tb8qixbNtlBTvxppW6uJ3D5Om+hapS3q21ZMg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=AgPRjXvb; arc=none smtp.client-ip=170.10.133.124
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=uYkeCOprBE79Zt0pqQGSJ6iGiNNzKK4aB/MccE3QI0OqUnU6X93E2cWb/4RSyVzhHaSCX8nuChUGBm8fvxgnAL6gM/H19OuHKUgY7mmE8rFxLi3vs/cgC2YWp4w2QAPC5401+RqOjZ9OXuMcldgLMhP2e2FoK2Gw3qgamH3mAiM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=dpfAFne5; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="AgPRjXvb"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="dpfAFne5"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1783494432;
+	s=mimecast20190719; t=1783494473;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding;
 	bh=tIdt7kuXG6JzI/0FPYNWoiUqZ9++YAn8mQFdRDP13LM=;
-	b=AgPRjXvbk2U6cI97RATyB7VVoDiZ5Z+ONUMRImQ+DwPh0hAJOAu0VV8BeW4BxUGrJa8Swf
-	Y/xiBfh2ZdgCr854mIYJlv4eN6Y7C3CdlrEToSu4ePf85ohLUoFQ97H7aWkIynHiX936Yx
-	QOsLhNxE/PODzFIv5QpxZ9gm4hP7U90=
+	b=dpfAFne5p/0LHb9qcnZZ/Y2AbuUdSRDXyBnEgTPuNXaLS6B2OHTMkaTKUPOy/ASD4ch8PE
+	rqwTaxoiYj+wZBwjDIVOF1FUuDvgV6p6n5MoGxE5kIyX0kBIBKmh/RXLh/pPCmxrQWBa1e
+	EJnsYQ/OV7UpffwYohv7ZuZVQjpIjlY=
 Received: from mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com
  (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
  relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-658-cj23KAcdMGCN7gEP8bMs5A-1; Wed,
- 08 Jul 2026 03:07:10 -0400
-X-MC-Unique: cj23KAcdMGCN7gEP8bMs5A-1
-X-Mimecast-MFC-AGG-ID: cj23KAcdMGCN7gEP8bMs5A_1783494430
-Received: from mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.17])
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-572-SPlN2H7mNJqN-Pku1_NVHw-1; Wed,
+ 08 Jul 2026 03:07:48 -0400
+X-MC-Unique: SPlN2H7mNJqN-Pku1_NVHw-1
+X-Mimecast-MFC-AGG-ID: SPlN2H7mNJqN-Pku1_NVHw_1783494467
+Received: from mx-prod-int-10.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-10.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.95])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id E1DA4180120E;
-	Wed,  8 Jul 2026 07:07:09 +0000 (UTC)
+	by mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 05119180047F;
+	Wed,  8 Jul 2026 07:07:47 +0000 (UTC)
 Received: from fedora.redhat.com (unknown [10.67.32.168])
-	by mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id C60041955F7B;
-	Wed,  8 Jul 2026 07:07:07 +0000 (UTC)
+	by mx-prod-int-10.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 4D73A175F;
+	Wed,  8 Jul 2026 07:07:42 +0000 (UTC)
 From: Kate Hsuan <hpa@redhat.com>
-To: hpa@redhat.com
+To: Mark Pearson <mpearson-lenovo@squebb.ca>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
+	linux-kernel@vger.kernel.org,
+	Kate Hsuan <hpa@redhat.com>
 Subject: [PATCH] acpi: battery: Sanitise model_number by dropping unprintable characters
-Date: Wed,  8 Jul 2026 15:07:01 +0800
-Message-ID: <20260708070701.577925-1-hpa@redhat.com>
+Date: Wed,  8 Jul 2026 15:07:32 +0800
+Message-ID: <20260708070732.578046-1-hpa@redhat.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -55,7 +58,7 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.0 on 10.30.177.17
+X-Scanned-By: MIMEDefang 3.6 on 10.30.177.95
 
 The battery Embedded Controller (EC) may return the model name with
 trailing unprintable or non-ASCII characters. For example, on some systems:
