@@ -1,59 +1,57 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63DDD4A13A0;
-	Wed,  8 Jul 2026 14:34:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BFFE15FA81;
+	Wed,  8 Jul 2026 14:39:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783521255; cv=none; b=RUvm2FZ8SFOck/pva8AzBQYag49B19Eu0E6SJtfP+UPPXqPifSZ6pP2R7h/iXbQXdllHUMuFJDtxCZAtGsDg/QmD6nUP4lvg1LvDhMjCnjJVi9QOP72Vb9eO1zeQpuab1zidYrkdOt/IvGPgiy5c/zFJGp0/FOHX08+9PGm3H/4=
+	t=1783521570; cv=none; b=CN9nmH4e4w1cqB6Q8SFgEiZWWX67MvbDa0md+lKkbNUrctQQeZgZ41/PtFVZRofPpMvTuSWEVGraacJ5U32dvhP24HtuQe9DPXxjk4uEOOocrNN3ioF/HhgkGVrtz6yVMk5Lr3gEaBt4LYFKnTZQYXMl/Hrqrpn++JDPOIhtKmU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783521255; c=relaxed/simple;
-	bh=D+twBn5tTFEiRsPqJZL9Fk9iw0iYQWHKiZm+7uDf668=;
+	s=arc-20240116; t=1783521570; c=relaxed/simple;
+	bh=Brc88gt06M3A3ZZnh0TyP1FN4NWFmV5F1JYreY0byKo=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hwpfGvK0xCKqQJDACMvzke0iwB6TGd/arP6+DTPwOXanyTXSfF9NO7Cst7/2TbQh7L+0SKxPBNQ/MAllGfrKqawmdkcOWmweFEeyYmp544yPZu6Un+4KYDTmKSjZ8td1HBh0xzTDfyuRD+cdn2xIdWWiKTwHVLx9JuGitKvvYMI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=fol0BllK; arc=none smtp.client-ip=198.175.65.12
+	 Content-Type:Content-Disposition:In-Reply-To; b=KG/o2inJsavhJDhvq4xtnkJLGCsdT1g1CDUYXS10ujFRoaYOGulXEwnnyxfcp5jXP/zlQ43fUFL94+2nivGXI8F5VXUbYSoWP9cfP57T167/vYh1ykdtou+7ymi+P3AUQuJs7nUXYj+w7WnhXZXynQUig8BZrRM03/eSw4+RVOc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=GygFFSLn; arc=none smtp.client-ip=198.175.65.14
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="fol0BllK"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="GygFFSLn"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1783521254; x=1815057254;
+  t=1783521569; x=1815057569;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=D+twBn5tTFEiRsPqJZL9Fk9iw0iYQWHKiZm+7uDf668=;
-  b=fol0BllKjEI6yw+B9fPxDV7tNfNthjwAKaN9WDfNoMPQ+cx7uAsWZO6q
-   BkEQXd83an4qudSWup7xCgMNWgPreKXXVe7/PyDzniJZklYW+fO0l6g3Y
-   ikY/khTP+QgXLrF1wZmdCmuxOa2bq/Mcexh0RwutJd4o3maPUW8WdUnEa
-   2JqIJ8A1+2bRfRcpoz7rxT79I/Iiv8YR8hGnpmUya9y2H+TUza/6tCzXT
-   5o/9NWgSqrJC4kP1eD63R/t1NP7N2J/wMbMc4sD89Zfznz/JBo3NA0TGm
-   yUxjVer4voDxjo9i4fNsBBEQPFw8iDh2OmkvAX9HJfuusIzBFzJGVdm4O
-   w==;
-X-CSE-ConnectionGUID: R5GuCHONTy+JbrK6H2/+jA==
-X-CSE-MsgGUID: pNcdxftPRfaB1jQXE/1qiw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11841"; a="95701141"
+  bh=Brc88gt06M3A3ZZnh0TyP1FN4NWFmV5F1JYreY0byKo=;
+  b=GygFFSLnLc8318UF88skYyv28uSLYfxxTEc0no4nUC5W0GoCodUSWczk
+   W8xoewHhBsBm1RuqRamDkZ6MBOAcBFVANGL84xwxQzZ+gYICBtKD0DNDp
+   lgY7ehNNbzzpxLxb87oe//tiMjwe3y3D/Tn/Yam4kgGsJEvJxylN6+MK8
+   Oz3y1NLIBF8kYz63GRM6dcybXJhBTccQgNM09VZeh7TaGeAbgGHwO0B8W
+   ftzKGEHAsoBaz6ghiyq6PvvkLN0ytSdLZwYCAZ73B8hXrfOmTF6KAyvJN
+   aRjBL6gtbMki3nJWZALr8xqpHDDIM1FnEGK4a7u48jghDB4jMQIfgUsGk
+   g==;
+X-CSE-ConnectionGUID: ntX0PqQoQ7eCSeleAVQ6KA==
+X-CSE-MsgGUID: S4EVFR8STZea8fdumqJaYw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11841"; a="88098073"
 X-IronPort-AV: E=Sophos;i="6.25,153,1779174000"; 
-   d="scan'208";a="95701141"
-Received: from fmviesa001.fm.intel.com ([10.60.135.141])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jul 2026 07:34:13 -0700
-X-CSE-ConnectionGUID: cnCkGHCzSd2y5rb12IF2qA==
-X-CSE-MsgGUID: v0y3ccFETsOwfzKo+waDMg==
+   d="scan'208";a="88098073"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jul 2026 07:39:29 -0700
+X-CSE-ConnectionGUID: nZyuZqF2R2yP0ulT8twUVw==
+X-CSE-MsgGUID: 16dC0Uz3QHqiH4BnmEMOhg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.25,153,1779174000"; 
-   d="scan'208";a="278691715"
+   d="scan'208";a="258605698"
 Received: from klitkey1-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.100])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jul 2026 07:34:11 -0700
-Date: Wed, 8 Jul 2026 17:34:09 +0300
+  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jul 2026 07:39:28 -0700
+Date: Wed, 8 Jul 2026 17:39:25 +0300
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
-	Juergen Gross <jgross@suse.com>,
-	Stefano Stabellini <sstabellini@kernel.org>,
-	Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
+	Bjorn Helgaas <helgaas@kernel.org>,
 	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v1] ACPI: PAD: xen: Stop setting acpi_device_name/class()
-Message-ID: <ak5f4YQ8zJE1YIdP@ashevche-desk.local>
-References: <2384190.iZASKD2KPV@rafael.j.wysocki>
+Subject: Re: [PATCH v1] PNP: ACPI: Stop using acpi_device_name()
+Message-ID: <ak5hHUpQsFyn04N9@ashevche-desk.local>
+References: <23191780.EfDdHjke4D@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -62,22 +60,37 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <2384190.iZASKD2KPV@rafael.j.wysocki>
+In-Reply-To: <23191780.EfDdHjke4D@rafael.j.wysocki>
 Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
  krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Mon, Jul 06, 2026 at 02:42:20PM +0200, Rafael J. Wysocki wrote:
+On Mon, Jul 06, 2026 at 02:43:32PM +0200, Rafael J. Wysocki wrote:
 
-> The driver sets acpi_device_name() and acpi_device_class() which are
-> never read afterward, so make it stop doing that and drop the symbols
-> defined specifically for this purpose.
+> Since acpi_device_name() checked by pnpacpi_add_device() is never
+> populated, its length is always zero and the codition checking it
+> is always false.
+> 
+> Accordingly, drop that condition and use acpi_device_bid(device) for
+> setting dev->name in pnpacpi_add_device() unconditionally.
 > 
 > No intentional functional impact.
 > 
-> This will facilitate the removal of device_name and device_class from
-> struct acpi_device_pnp in the future.
+> This will facilitate the removal of device_name from struct
+> acpi_device_pnp in the future.
 
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+
+...
+
+> -	if (strlen(acpi_device_name(device)))
+> -		strscpy(dev->name, acpi_device_name(device), sizeof(dev->name));
+> -	else
+> -		strscpy(dev->name, acpi_device_bid(device), sizeof(dev->name));
+> +	strscpy(dev->name, acpi_device_bid(device), sizeof(dev->name));
+
+'dev' here is of struct pnp_dev, so this is the way to fill it.
+(I was first confused, but after looking into the full context
+ everything becomes clear.)
 
 -- 
 With Best Regards,
