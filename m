@@ -1,276 +1,167 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BC194071C4
-	for <linux-acpi@vger.kernel.org>; Thu,  9 Jul 2026 09:58:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 059293803CC;
+	Thu,  9 Jul 2026 10:03:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783591137; cv=none; b=hVmRP6vcS2YGzxVtTzLbj5JXD/VtL3lFvVs1ctRfAFLXPa+rutQfL/u4LRvIDTyxJTKM4agREt6J1Vx/wr6iyqcIGIUUTcJXMuo4WE13nrrAWoU5tocEyyXRt2TGkRqRxdO6BuZkT+TUQTM5l2+nC28/E8Ks09Q32SjmrxXDXPU=
+	t=1783591390; cv=none; b=CLOb1y8Kcas7gAmzePMbTsxs/c8d1BBKLtg7B8zmoAetmt04yARONI02tX2yNd8IneXfhhIltDOFRnp0Ir6fERd+2MAIiB4r83kzCjsR3y/UjGfAczgUn+LAmVRCE4wPMU7/lTEImsdoo/gHPB91iEOSLupSPIWjjJpbt8WlMJA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783591137; c=relaxed/simple;
-	bh=YJyU75cpPuviW3DeoVCtVsycwY35EMz4CrOCdWp2v74=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=uyHFsbWjfsSfO78nL1wR3oSl8ngrDQAPwryZNfKPmi8Nu6yPxE0otlcD7kX72B8CjATYITVYeB8SzpSZYLvPhQdCXyDNlb4nDZ3remTQBqhvsIsEzmJypsp+njNg0CQJZVucQCwSRcQBWUQP1cIaKX8wVHjdBu0ZN9w/SPRYdkw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=duGC+b1l; arc=none smtp.client-ip=209.85.214.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+	s=arc-20240116; t=1783591390; c=relaxed/simple;
+	bh=ecLtVnEwb3NP4soxChOKajrwfO3Sl/4YUqD3QznhpYs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Nu2H+aEabcaLAkSpw5kRaJNMCkhpi92kLLNXQwQRjS0BDhKIzD/fRK2Or2DRdChR9NPd097mRKpvPrs1YB8ilFfi6OyPuoEX/FvbC0XMBYBhbJVxuOWjnd2VETx5ff6w+mXiYr56T+7GYYfuCM/Zldg+S9RvWb4OVjuc0i7SHuw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=ooBPQon+; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="duGC+b1l"
-Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-2cace91f112so16718795ad.0
-        for <linux-acpi@vger.kernel.org>; Thu, 09 Jul 2026 02:58:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1783591134; x=1784195934; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=fzcA9TG2yqej8iZO6JRem4wjlVQiv9Z5qdYjer6rUOE=;
-        b=duGC+b1lCSUBsIj+Lrl58uUbKvyNqEmJEHzggWi7cnrIDYhx2gfTtMhAB04S323Bps
-         7k9gOcRuXFCosb0j/sRW/Avu873p0kQtbbPMPjYqHbguvhme0pwXhlOOxEA1ZMruEMmW
-         z87/c7x9QbIEIC4ihvyYqLuBTYJVwZb6nHzkc=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783591134; x=1784195934;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=fzcA9TG2yqej8iZO6JRem4wjlVQiv9Z5qdYjer6rUOE=;
-        b=E46mzqa+4eRd9RLanyU+hbW2tQA2ageFSyEXiZmWXItruYsvWYX2w1MgU2gi6psjlM
-         +zvys3EuE7c6vRovAB28xWKrPiIRqLSb9GmcmTLTMJdXWDRH5zXILkkQfUt5kcIH2NkA
-         OzRLnLCCG3YHJ286fH5bUnhll2G9EQuUTq3njirJRiTuAa5uK2/7pLxuVLzBQX/asPVj
-         d9nxrLPYk5TTepWIdqFdrvcPJONiH2dSNUrq5zZkLvoULIzxekbWbxeHxKz912TJ62jk
-         84HlEut3ienQNhwqp1siRJxl//f+esjubDTQFAsY9VMVPJXN/fV6UJx+LpQlk/uOmQpi
-         DBhg==
-X-Forwarded-Encrypted: i=1; AHgh+Rp2V25FFRjcqmQe8pCLDIHsiaMhseeYTb90nH2kEjmxojsuYAZ8lWsy/v/LZfIUX755Lx3pV6tx+eKO@vger.kernel.org
-X-Gm-Message-State: AOJu0YwBs5WBwuViR+H4xu9pPP1Hu0Ttz1DGHu9Iv5lDMCXZtKPc6kub
-	bwYXnn5QKGqOd9WKrUoJWmtOjPblMq3Sj8tWR95PVpJRxPTGzqLOPY78yDpkB3Xk9A==
-X-Gm-Gg: AfdE7ck4jA/BEKxYWego5DdyOnVGMQpqSNYx7/JI8Z6ubIpJjGB2vjFhLo2I9qluJQs
-	b8RorK2RDt+Cq5pByV7SwDcaPRugYfrDvVy3p4ayvV9pV8xC3//9k5hsMorU/jemLh3eEi1mwEO
-	JVPhggViDOSKJxg5cqibDFtg4Kbnuh2HyimMLisD7a4JABLgg0fzbf3KGGxCQ3DJOsSBVuC9ZiT
-	AIVvdje56sIbWfDqR7EK5TfP/H4Ppbn+BHe14GhkfPSlEuX3l3dYoUhv3FxkfHKjUTQAVsiKL0t
-	sysx2etDJf9WE7XikN8/+mRsTdLoQMD5X5TH0m6jV5CWVz+YK4sfQ7qx24rcQ1SFITtSrSwyT89
-	Bp7+gzu5Szo0GcoBxvXamEzuOs0rv2OcXBsWaFjRFL6Orc3Ptc0iCobVbgh7LbwlKwNmMqpTdER
-	XdoTp15iaxw7mgtBiYQLfX+9im8KjvomiFcIY1S82X7vaKxPXoPh3WCbulyxfiPtgoAfVw4Q==
-X-Received: by 2002:a17:903:184:b0:2c0:a555:80d6 with SMTP id d9443c01a7336-2ccea384cc7mr68024015ad.2.1783591134472;
-        Thu, 09 Jul 2026 02:58:54 -0700 (PDT)
-Received: from wenstp920.tpe.corp.google.com ([2a00:79e0:201d:8:bd09:6ddb:180a:69c5])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ccc9d5bd2fsm41082155ad.78.2026.07.09.02.58.48
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 09 Jul 2026 02:58:54 -0700 (PDT)
-From: Chen-Yu Tsai <wenst@chromium.org>
-To: Bartosz Golaszewski <brgl@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: Chen-Yu Tsai <wenst@chromium.org>,
-	linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev,
-	linux-pm@vger.kernel.org,
-	linux-usb@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	linux-mediatek@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	Manivannan Sadhasivam <mani@kernel.org>,
-	Alan Stern <stern@rowland.harvard.edu>
-Subject: [PATCH v4 14/14] arm64: dts: mediatek: mt8188-geralt: Add WiFi/BT as M.2 E-key slot
-Date: Thu,  9 Jul 2026 17:57:19 +0800
-Message-ID: <20260709095726.704448-15-wenst@chromium.org>
-X-Mailer: git-send-email 2.55.0.795.g602f6c329a-goog
-In-Reply-To: <20260709095726.704448-1-wenst@chromium.org>
-References: <20260709095726.704448-1-wenst@chromium.org>
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="ooBPQon+"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id EF0F9357C;
+	Thu,  9 Jul 2026 03:03:03 -0700 (PDT)
+Received: from [10.41.150.148] (e142021.arm.com [10.41.150.148])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 287803F7B4;
+	Thu,  9 Jul 2026 03:03:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1783591388; bh=ecLtVnEwb3NP4soxChOKajrwfO3Sl/4YUqD3QznhpYs=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=ooBPQon+vGBTV5jo+7tu6X1T4i29xOLgqNL8HUdyjPh8ZLWLNeyLIf9Qqw0Y7Eu3n
+	 DeIaW22GaUUVClAfamohQb2ua55C9PHP1MNQI0jTLbY94ROaSSX/1UduhoDv3AXCRu
+	 lU+hs0CyEiS/cnSueZDDsOLCwj2BH/tNUK3yt8hE=
+Message-ID: <9498c202-ed82-49ae-b960-df44b53596e6@arm.com>
+Date: Thu, 9 Jul 2026 12:03:03 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 07/15] arm_mpam: propagate MSC read errors for state
+ saving functions
+To: Ben Horgan <ben.horgan@arm.com>, Lorenzo Pieralisi
+ <lpieralisi@kernel.org>, Hanjun Guo <guohanjun@huawei.com>,
+ Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ James Morse <james.morse@arm.com>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+ Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+ Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+ Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
+ Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20260702162229.4008659-1-andre.przywara@arm.com>
+ <20260702162229.4008659-8-andre.przywara@arm.com>
+ <fa9440a9-cfbe-4eef-a255-a4aed196640e@arm.com>
+Content-Language: en-GB
+From: Andre Przywara <andre.przywara@arm.com>
+In-Reply-To: <fa9440a9-cfbe-4eef-a255-a4aed196640e@arm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-The MT8188 Geralt design features a chip-on-board WiFi/BT solution. This
-is a M.2 E-key WiFi/BT board layout directly inserted into the mainboard
-design. The connections to the rest of the board are almost the same as
-if it were a separate M.2 card. The only addition is the PMU_EN pin on
-the chip; on M.2 cards this would be tied to the primary power source.
+Hi,
 
-Model the chip-on-board WiFi/BT solution as a M.2 E-key slot with PCIe,
-USB and auxiliary signals. The PMU_EN pin, which enables the internal
-power controls and regulators, is modeled as a regulator fed by the
-pp3300_wlan regulator. Since power sequencing is now correctly modeled
-using the M.2 E-key slot, drop the "regulator-always-on" property one
-pp3300_wlan regulator. Also drop the comment in xhci2 saying "MT7921's
-power is controlled by PCIe".
+On 7/1/26 22:19, Ben Horgan wrote:
+> Hi Andre,
+> 
+> On 7/2/26 17:22, Andre Przywara wrote:
+>> Allow the mpam_save_mbwu_state() function to return an error, and
+>> propagate read errors from the lower level up.
+>>
+>> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+>> ---
+>>   drivers/resctrl/mpam_devices.c | 47 +++++++++++++++++++++-------------
+>>   1 file changed, 29 insertions(+), 18 deletions(-)
+>>
+>> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
+>> index d18c7be86aaa..c50ca0e4f426 100644
+>> --- a/drivers/resctrl/mpam_devices.c
+>> +++ b/drivers/resctrl/mpam_devices.c
+>> @@ -1773,6 +1773,7 @@ static int mpam_save_mbwu_state(void *arg)
+>>   {
+>>   	int i;
+>>   	u64 val;
+>> +	int ret;
+>>   	struct mon_cfg *cfg;
+>>   	u32 cur_flt, cur_ctl, mon_sel;
+>>   	struct mpam_msc_ris *ris = arg;
+>> @@ -1789,31 +1790,41 @@ static int mpam_save_mbwu_state(void *arg)
+>>   		mon_sel = FIELD_PREP(MSMON_CFG_MON_SEL_MON_SEL, i) |
+>>   			  FIELD_PREP(MSMON_CFG_MON_SEL_RIS, ris->ris_idx);
+>>   		mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel);
+>> -		mpam_read_monsel_reg(msc, CFG_MBWU_FLT, &cur_flt);
+>> -		mpam_read_monsel_reg(msc, CFG_MBWU_CTL, &cur_ctl);
+>> -		mpam_write_monsel_reg(msc, CFG_MBWU_CTL, 0);
+>> +		ret = mpam_read_monsel_reg(msc, CFG_MBWU_FLT, &cur_flt);
+>> +		if (!ret)
+>> +			ret = mpam_read_monsel_reg(msc, CFG_MBWU_CTL, &cur_ctl);
+>> +		if (!ret)
+>> +			mpam_write_monsel_reg(msc, CFG_MBWU_CTL, 0);
+>>   
+>> -		if (mpam_ris_has_mbwu_long_counter(ris)) {
+>> -			val = mpam_msc_read_mbwu_l(msc);
+>> -			mpam_msc_zero_mbwu_l(msc);
+>> -		} else {
+>> -			u32 val32;
+>> +		if (!ret) {
+>> +			if (mpam_ris_has_mbwu_long_counter(ris)) {
+>> +				val = mpam_msc_read_mbwu_l(msc);
+>> +				mpam_msc_zero_mbwu_l(msc);
+>> +			} else {
+>> +				u32 val32;
+>>   
+>> -			mpam_read_monsel_reg(msc, MBWU, &val32);
+>> -			val = val32;
+>> -			mpam_write_monsel_reg(msc, MBWU, 0);
+>> +				ret = mpam_read_monsel_reg(msc, MBWU, &val32);
+>> +				if (!ret) {
+>> +					val = val32;
+>> +					mpam_write_monsel_reg(msc, MBWU, 0);
+>> +				}
+>> +			}
+>>   		}
+>>   
+>> -		cfg->mon = i;
+>> -		cfg->pmg = FIELD_GET(MSMON_CFG_x_FLT_PMG, cur_flt);
+>> -		cfg->match_pmg = FIELD_GET(MSMON_CFG_x_CTL_MATCH_PMG, cur_ctl);
+>> -		cfg->partid = FIELD_GET(MSMON_CFG_x_FLT_PARTID, cur_flt);
+>> -		mbwu_state->correction += val;
+>> -		mbwu_state->enabled = FIELD_GET(MSMON_CFG_x_CTL_EN, cur_ctl);
+>> +		if (!ret && val != MSMON___L_NRDY) {
+>> +			cfg->mon = i;
+>> +			cfg->pmg = FIELD_GET(MSMON_CFG_x_FLT_PMG, cur_flt);
+>> +			cfg->match_pmg = FIELD_GET(MSMON_CFG_x_CTL_MATCH_PMG, cur_ctl);
+>> +			cfg->partid = FIELD_GET(MSMON_CFG_x_FLT_PARTID, cur_flt);
+>> +			mbwu_state->correction += val;
+>> +			mbwu_state->enabled = FIELD_GET(MSMON_CFG_x_CTL_EN, cur_ctl);
+>> +		}
+>>   		mpam_mon_sel_unlock(msc);
+>> +		if (ret)
+>> +			break;
+> 
+> There is a lot of if(!ret) in this loop. Does it not end up cleaner to
+> add an out_unlock label after the loop and jump to that in the failure
+> cases?
 
-Also drop the voltage range on the pp3300_wlan regulator. This
-"regulator" is just a load switch and does not provide any regulation.
+Yeah, I changed it, I guess the diff looks better. Not entirely sure 
+it's cleaner, there is now this little bitter taste of a global unlock 
+where the current lock/unlock pair is *inside* the loop. Feel free to 
+have a look and comment on an eventual v3 post.
 
-Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
----
-Changes since v2:
-- Drop default GPIO output state from kill pins pinconfig
----
- .../boot/dts/mediatek/mt8188-geralt.dtsi      | 92 ++++++++++++++++++-
- 1 file changed, 88 insertions(+), 4 deletions(-)
+Cheers,
+Andre
 
-diff --git a/arch/arm64/boot/dts/mediatek/mt8188-geralt.dtsi b/arch/arm64/boot/dts/mediatek/mt8188-geralt.dtsi
-index dee946309121..73b5c0fdeae6 100644
---- a/arch/arm64/boot/dts/mediatek/mt8188-geralt.dtsi
-+++ b/arch/arm64/boot/dts/mediatek/mt8188-geralt.dtsi
-@@ -88,13 +88,11 @@ pp3300_z1: regulator-pp3300-z1 {
- 	pp3300_wlan: regulator-pp3300-wlan {
- 		compatible = "regulator-fixed";
- 		regulator-name = "pp3300_wlan";
--		regulator-always-on;
--		regulator-min-microvolt = <3300000>;
--		regulator-max-microvolt = <3300000>;
- 		enable-active-high;
- 		gpio = <&pio 12 GPIO_ACTIVE_HIGH>;
- 		pinctrl-0 = <&wlan_en>;
- 		pinctrl-names = "default";
-+		/* load switch */
- 		vin-supply = <&pp3300_z1>;
- 	};
- 
-@@ -161,6 +159,17 @@ ppvar_mipi_disp_avee: regulator-ppvar-mipi-disp-avee {
- 		vin-supply = <&pp5000_z1>;
- 	};
- 
-+	/* PMU_EN pin controls internal regulators and power sequence */
-+	wlan_pmu: regulator-wlan-pmu {
-+		compatible = "regulator-fixed";
-+		regulator-name = "wlan-pmu";
-+		enable-active-high;
-+		gpio = <&pio 145 GPIO_ACTIVE_HIGH>;
-+		pinctrl-0 = <&wlan_pmu_en>;
-+		pinctrl-names = "default";
-+		vin-supply = <&pp3300_wlan>;
-+	};
-+
- 	reserved_memory: reserved-memory {
- 		#address-cells = <2>;
- 		#size-cells = <2>;
-@@ -195,6 +204,39 @@ adsp_dma_mem: memory@61000000 {
- 			no-map;
- 		};
- 	};
-+
-+	wifi-bt-connector {
-+		compatible = "pcie-m2-e-connector";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&m2_e_key_kill_pins>;
-+		vpcie1v8-supply = <&mt6359_vcn18_ldo_reg>;
-+		vpcie3v3-supply = <&wlan_pmu>;
-+		w-disable1-gpios = <&pio 13 GPIO_ACTIVE_LOW>;
-+		w-disable2-gpios = <&pio 14 GPIO_ACTIVE_LOW>;
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			/* PCIe for WiFi */
-+			port@0 {
-+				reg = <0>;
-+
-+				wifi_ep: endpoint {
-+					remote-endpoint = <&pcie_ep>;
-+				};
-+			};
-+
-+			/* USB for Bluetooth */
-+			port@2 {
-+				reg = <2>;
-+
-+				bt_ep: endpoint {
-+					remote-endpoint = <&usb2_ep>;
-+				};
-+			};
-+		};
-+	};
- };
- 
- &adsp {
-@@ -659,6 +701,22 @@ &pcie {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pcie_pins>;
- 	status = "okay";
-+
-+	pcie@0 {
-+		compatible = "pciclass,0604";
-+		reg = <0 0 0 0 0>;
-+		device_type = "pci";
-+		num-lanes = <1>;
-+		#address-cells = <3>;
-+		#size-cells = <2>;
-+		ranges;
-+
-+		port {
-+			pcie_ep: endpoint {
-+				remote-endpoint = <&wifi_ep>;
-+			};
-+		};
-+	};
- };
- 
- &pciephy {
-@@ -1002,6 +1060,13 @@ pins-bus {
- 		};
- 	};
- 
-+	m2_e_key_kill_pins: m2-e-key-kill-pins {
-+		pins-kill {
-+			pinmux = <PINMUX_GPIO13__FUNC_B_GPIO13>,
-+				 <PINMUX_GPIO14__FUNC_B_GPIO14>;
-+		};
-+	};
-+
- 	mipi_disp_avdd_en: mipi-disp-avdd-en-pins {
- 		pins-en-ppvar-mipi-disp {
- 			pinmux = <PINMUX_GPIO3__FUNC_B_GPIO3>;
-@@ -1174,6 +1239,13 @@ pins-bus {
- 		};
- 	};
- 
-+	wlan_pmu_en: wlan-pmu-en-pins {
-+		pins-wlan-pmu-en {
-+			pinmux = <PINMUX_GPIO145__FUNC_B_GPIO145>;
-+			output-low;
-+		};
-+	};
-+
- 	wlan_en: wlan-en-pins {
- 		pins-en-pp3300-wlan {
- 			pinmux = <PINMUX_GPIO12__FUNC_B_GPIO12>;
-@@ -1417,10 +1489,22 @@ vdosys1_ep_ext: endpoint@1 {
- };
- 
- &xhci2 {
--	/* no power supply since MT7921's power is controlled by PCIe */
- 	/* MT7921's USB BT has issues with USB2 LPM */
- 	usb2-lpm-disable;
- 	status = "okay";
-+
-+	ports {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			usb2_ep: endpoint {
-+				remote-endpoint = <&bt_ep>;
-+			};
-+		};
-+	};
- };
- 
- #include <arm/cros-ec-keyboard.dtsi>
--- 
-2.55.0.795.g602f6c329a-goog
+> 
+> Thanks,
+> 
+> Ben
+> 
+>>   	}
+>>   
+>> -	return 0;
+>> +	return ret;
+>>   }
+>>   
+>>   /*
+> 
 
