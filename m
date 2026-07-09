@@ -1,388 +1,370 @@
-Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012057.outbound.protection.outlook.com [40.93.195.57])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f52.google.com (mail-wr1-f52.google.com [209.85.221.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3CAD39EB47;
-	Thu,  9 Jul 2026 17:01:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.57
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783616521; cv=fail; b=kgcyUZ+fX+8cXORHs1+SQn/qAzRcGNK9CpWjmZExFcF6WhIYLHuC7MVWku+OMsHGKwJcUyYzM2OzaIbbVvm4sCJK2QF/RmuFw1PuMEZHtxWy0iIlRChIVECG5Lo07ZF+XgpUJayBgBqreK571jaY/umkiFp+LT+P9z8VcDuZoRg=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783616521; c=relaxed/simple;
-	bh=HxULmvHkeWcJUBY6uWFBFKoUVmQPxrB4PlDnbqD9a/g=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=n1tHOql48yR78piiLBCaEgR+hm/QmWKHiCPt+V0unEu+ossVk4V8tFR39UA5SrNP72pQIfNM5ZA056pW8OlCHseJ3+R7noRgQIO3WF5u5OIaJNnFr62TlP4eAl7/vO47JNkvw739qbOBeZ7ZpcB8juyIqB25qFgaKXtafkgz+xs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=kOn27i0O; arc=fail smtp.client-ip=40.93.195.57
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 910DB33711D
+	for <linux-acpi@vger.kernel.org>; Thu,  9 Jul 2026 21:08:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.52
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783631287; cv=none; b=KaV3aHu+xH0f7lyJDa+mpW0C83K3eWRcGVOFdFNdo532pgzaExO2XXuZcfzR9yO/voXA/VxwjmxRoFffxSRr5frVdR9iErh4FIl/ylRDujVGbf+TF3cJsPZrWfQdDKY1XDudSpqoYptxbx4qLRuSJB1AGG3p18i33AabIHL4n4s=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783631287; c=relaxed/simple;
+	bh=D3NzhrLQpxYLcQUivD0IOgNQTO1+zSuN4mh1Eba1HgA=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=JDHrruEWOaIJzj6ZM/ZzsE3OkGOur8QE+MyEZWGlpxFvln9CwIJicr0+tyjQC3cbXErZ5bmeV+n2Vds6NIB0lP6T4vgHKSaDNEDDJZVAevMgK6eic+LtLC10wsKdjLHSIlkM3ySAtpf5i2l6qN1xO+KJQAS2C3OX8oFql3nDgxA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=HK/hErE8; arc=none smtp.client-ip=209.85.221.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="kOn27i0O"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=fHiDzsFZh1EaJwubQ3ZXTe2JArN3WgcW4w0h1azhgnlIacSDoyAQWGZhFzAbPE9nNdIyFgdLI5kfxU0nW7Mt0RFmlOO63KiPolFdJ+Y/zZMy+bS71aotm4voGRMJULlmMpwXt0tpNHcpLKPsoOk1ZR47430jhAeFEkO8XQ/xva9KLV/HH0JFhN1SWP1TdrRiBDZmXLT4atoHjrWuJHvIbCHGVrrGcp45+FDtWI8TWheDtW2yYwlT6efu2iQuTXUJ8K+7W/z9S77yl2F5/vmGexB54BJrZmLhckizW5p6D7kzbbKliMHB6NbwIfsyDwpTpjha2DLVqv1APC9KvCmPnQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=AAhZhAU4VETGsc8zRPkGfZM9HW6FPFp+DAr+snQFQqQ=;
- b=QAny+PmVvbm86FK9gy9ILtYquKEibzNEq3CDC7C/dvtQ9iKt1hBm75PsXJqyTCln+P5Zry373Xp7u6l3QMQR98Nt7WKK9JVib66kKPKJUcGuEI1Qf6hbIRHXsmaiQI7VKuwe4STcyDyeHudo8v5XDMxlndZVPdcWus/mK1BOwTTypnPqChkPE6tp0v/N6HxU/nBAr4oDfrntmutjdMylTJNr1PSZa50F3T99KDR1hNd1DjiagWo1Ifi4/HyIQR8Xtq/BTvCoUJLmN3rRoNRYhRbYeAxlzlqzyRbt9nBjekBdTn7nQQdK2OtEcQQfTF3K+IupfvtPR95WzBbDNLRCRw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=AAhZhAU4VETGsc8zRPkGfZM9HW6FPFp+DAr+snQFQqQ=;
- b=kOn27i0O2tbuGxaXI8i+fhDIcSlT5WaDnNeFpHWp/sBFlKeebnCQXelVvv+EH0afbIhmLdlqJFmEJsKI1ULRPiYUXuGQ7BODr2rtZs/mDOVOJ5OCKnh2l3wOUNwDh5vGSfMsE9XF+Bjlb+dKIp3ypa4PF44nd+pqeEijsweVAojC+rO5/NAJvgF0Z2jTuDW8QUhbzA9QdM7uIam3RItS4jqlQu3KHF8w5KDr7apeayWBT3GpyROSjq4Ph2TwCoIvSCC+DPNdeshNgdryCyNqO1lvSly85ZkhI5AbpNgh/fXCRT/nPkY+U2clvqFHDIQOyoeW0S5UGG1K1XJLP1AVDg==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from BN9PR12MB5179.namprd12.prod.outlook.com (2603:10b6:408:11c::18)
- by SA3PR12MB9132.namprd12.prod.outlook.com (2603:10b6:806:394::16) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.10; Thu, 9 Jul
- 2026 17:01:47 +0000
-Received: from BN9PR12MB5179.namprd12.prod.outlook.com
- ([fe80::cf08:f59b:d016:c95f]) by BN9PR12MB5179.namprd12.prod.outlook.com
- ([fe80::cf08:f59b:d016:c95f%4]) with mapi id 15.21.0181.014; Thu, 9 Jul 2026
- 17:01:47 +0000
-Message-ID: <d2f0a0ee-44f8-47a1-9a6b-2cb9edc77699@nvidia.com>
-Date: Thu, 9 Jul 2026 22:31:36 +0530
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5] ACPI: CPPC: Add ospm_nominal_perf support
-To: Pierre Gondois <pierre.gondois@arm.com>, rafael@kernel.org,
- viresh.kumar@linaro.org, lenb@kernel.org, zhenglifeng1@huawei.com,
- zhanjie9@hisilicon.com, linux-pm@vger.kernel.org,
- acpica-devel@lists.linux.dev
-Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
- ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com,
- bbasu@nvidia.com, mario.limonciello@amd.com, linux-kernel@vger.kernel.org,
- saket.dumbre@intel.com, linux-acpi@vger.kernel.org, sumitg@nvidia.com
-References: <20260615185934.2383514-1-sumitg@nvidia.com>
- <b665ecdd-31c3-4663-8f1b-d734ef0c630b@arm.com>
-Content-Language: en-US
-From: Sumit Gupta <sumitg@nvidia.com>
-In-Reply-To: <b665ecdd-31c3-4663-8f1b-d734ef0c630b@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: PN3PR01CA0086.INDPRD01.PROD.OUTLOOK.COM
- (2603:1096:c01:9a::8) To BN9PR12MB5179.namprd12.prod.outlook.com
- (2603:10b6:408:11c::18)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HK/hErE8"
+Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-4758b2a9e2aso209946f8f.2
+        for <linux-acpi@vger.kernel.org>; Thu, 09 Jul 2026 14:08:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1783631284; x=1784236084; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=V0KVGZRCHe3lhMIcIGEFuk1MRndt1TvP4zvcKQxYCUs=;
+        b=HK/hErE80z2HLa9+h9D6DnVFd3Ym2GGdUrmzTkOpRW7DbEGHQ1OCR0Ih1PbfR/TGg+
+         whyK6/ycJmhWd9nzDPuRKzUY5JmUlOsAPElMMVixR+zl5xVDwcFIRtDwLeqTa7NWf2b0
+         Kp6PaQv7McEC9y6TgKyz19hg8dkibADbfvN//gMVw+nYxmeYYe7MnCu1lbANiDzLRf9O
+         OGOwScWjiltRup1lnc4f3GPIrYg/+Zd7Zm/Sh/K4yKlxJZUXCC3/igxu+hk7788oNeaZ
+         b536BfRd9OQjMZpBCHvQtrY9eXdLkz6OMRRCu0LJsVPOf/Ft9j+nywzjJg5cB6gNGoyX
+         GlOA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783631284; x=1784236084;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=V0KVGZRCHe3lhMIcIGEFuk1MRndt1TvP4zvcKQxYCUs=;
+        b=c34n1Xbid3Lm7BIeWb9LKT79eroUChYBkktZ7anEg6zkzsQw+IkT+cWRHVEI5gKfiP
+         6l/jMqjeCRho6xQ0IxZSZ486AmhobuZ/Sj+OvSuuTvw7HHiodSwy5GDRyCCvOa/ssAqB
+         IYNoXYKec/KkGmldi0+U3ahpCjc3WYHydZSyu5ju2bukf1/5T9tpVWDx+SaLZkTuOAh3
+         lmyvZ7DBagpiCLkoD/Aypj5jOwtYN/ZYbI2GGarXUWMG4FTJciArgDYYmHw5C2d+FmBK
+         lhqDoXWGyD3gWX2i19vBz/B6f0cr/IplhBEHf2R3gbJck9Avo15Friwklgqn3+6tc7EJ
+         LGPA==
+X-Forwarded-Encrypted: i=1; AHgh+RprHSzV/q8GRskiRlblllcaqBq0hn6S4tobAWrxqggPvgHET9zCX7numYJ3Sg8o1JKMjKg3hPxNdi0g@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz5L/agmwNvB3+RQQP1Hx5+OzobGsRZPbaF/mEq7RXrLOkFGiiI
+	HKjcbho25UA2ZXJqxCsS76xwiH8l3V4YpMDvZ7OCkOcUQ705OTDgB8mG
+X-Gm-Gg: AfdE7cnaksGWpzn8zSvxXR652n++AC5AgliMhhYqJGiGcmSjC3K5DBdraAsEmUJR68U
+	/TD6KJa6BZz8GDAklGYv+h6C0fwuKXpIXavW1nRg09G7p7/KxJapm+Bqn/X3QW2aP05Sj62zr5S
+	IECc3KsuwWXFwt19zDbvz8JiFZo/H3CSgviWV1dROsKsdlc5tbsj2zHnYKm7+asGtm4kEGgM3Pr
+	hlLXWgPuOMhT5qb5gdOG9T0QESShO+FJp2uirpTWni0sT7wN5ecr/LxEQfl2xWpWBmk5ga4grEI
+	Ipx93eEx1OU0D5f9RHdvjERFSts+0hGW3kjkWqJ8n4/qpqdnnsCEzJZh0wNOy/3RC8BkvU3gaKv
+	hngBE4aF14Vh68uSIQ2JpomfptLTso0GrnvN6bKvJocVBBcUrro9DOMg4vmpkLfZ/PEIv3WfxS0
+	Pwp3BFuNi5nys0U6E9sMSMpfFX4xBIiGm6mGCmOPoBpYKeevziiaXbmkSsJCvd82k8tMWhKJk62
+	T/w3QYNG3NMmbuRn124YQ==
+X-Received: by 2002:a05:6000:230d:b0:474:8aad:2e0 with SMTP id ffacd0b85a97d-47df071c082mr9354691f8f.9.1783631283658;
+        Thu, 09 Jul 2026 14:08:03 -0700 (PDT)
+Received: from localhost.localdomain (stev-08-b2-v4wan-169520-cust2225.vm32.cable.virginm.net. [81.98.232.178])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-47a9e4d8410sm55607342f8f.15.2026.07.09.14.08.01
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 09 Jul 2026 14:08:02 -0700 (PDT)
+From: shijujose2008@gmail.com
+To: rafael@kernel.org,
+	bp@alien8.de,
+	akpm@linux-foundation.org,
+	rppt@kernel.org,
+	dferguson@amperecomputing.com,
+	linux-edac@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-doc@vger.kernel.org,
+	tony.luck@intel.com,
+	lenb@kernel.org,
+	Yazen.Ghannam@amd.com,
+	mchehab@kernel.org,
+	ashok.raj@oss.qualcomm.com
+Cc: jic23@kernel.org,
+	linuxarm@huawei.com,
+	rientjes@google.com,
+	jiaqiyan@google.com,
+	Jon.Grimm@amd.com,
+	dave.hansen@linux.intel.com,
+	naoya.horiguchi@nec.com,
+	james.morse@arm.com,
+	jthoughton@google.com,
+	somasundaram.a@hpe.com,
+	erdemaktas@google.com,
+	pgonda@google.com,
+	duenwen@google.com,
+	gthelen@google.com,
+	wschwartz@amperecomputing.com,
+	wbs@os.amperecomputing.com,
+	nifan.cxl@gmail.com,
+	tanxiaofei@huawei.com,
+	prime.zeng@hisilicon.com,
+	roberto.sassu@huawei.com,
+	kangkang.shen@futurewei.com,
+	wanghuiqiang@huawei.com,
+	shijujose2008@gmail.com
+Subject: [PATCH v22 0/2] ACPI: Add support for ACPI RAS2 feature table
+Date: Thu,  9 Jul 2026 22:07:48 +0100
+Message-Id: <20260709210750.424659-1-shijujose2008@gmail.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN9PR12MB5179:EE_|SA3PR12MB9132:EE_
-X-MS-Office365-Filtering-Correlation-Id: 4d190338-45eb-437e-7376-08dedddbc27a
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|366016|376014|23010399003|7416014|22082099003|18002099003|6133799003|4143699003|56012099006|11063799006;
-X-Microsoft-Antispam-Message-Info:
-	CHAWdalmjDWoFII3We04wfNa1bsyrKViAjojdbP9Nf8uBIhxkOSMGtu43PLSlXdjIKP1MK/KM/FZNlEOOw848KCZrQsfehCad/ZkiULNG19rGp8JZBvozcGSripn0PL4jGSmF+4WxU4a+TOwKrK5KiKwB6WM5vYaWbBpkoa5Lg7tMwU8cgpVh2VcPxELXKQmk3QcYL8zosWaXO73p2DUy8TbJ18qfBfNRG4J0EkHEP0pfNcaxO4VaS5zcqNyrKsJULOTv9UBu1FMW7r+/G7YSXPB50kSA0qTxm/J+zpC6LhIA30sQt572AqRyWjerFHpeP9N1Rs0AesVbYl9JshPN5/VzLwvd5TqoxLCrPRNfxU5eFZ8XrIC6CJrzkFiF13jKIz8q2J0q011NIzZR/XRNo/8uwSgoqmvsePcNHil0ASnMYRQXqMt+SmyTkNSU/5zs2LaPOCkn1skGRoiskGZBwveBjedmN4Arvr/LQuc5kLmaUhDrUoWUnacsTq632KndVtJATliSwl9zoGWaj0/ctlJ8MKyPebfdi97M93U/xxASMjGbmia0Y8ctcSVsVHuLIJP05iDQG3BoX4lE0Flj/Omqxl1BUu/Y+Aw20GXq6ncXelyELaGa51RPhFGSo6tZwpft6h6sUvElEvDTj+KJWQ+9/cjL97ylX0mHZj/+68=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN9PR12MB5179.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(23010399003)(7416014)(22082099003)(18002099003)(6133799003)(4143699003)(56012099006)(11063799006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?UkJpQUlnWVRKajNnTnc1RDJBSC8xNVFId0hUQW1VVVdiMDRCZWFOWDlGdU56?=
- =?utf-8?B?SUx2RGExdHp1RGNxSTVEYiswQnd5aHZyUEJ5WUFyTGZqSC8rLzJVSDZxM0p2?=
- =?utf-8?B?T3dScWYwTE4yTXdVcjhDd3cvbmZPbkNrNmRyWm4rWkhVMjhnVS9TK3pDUk0z?=
- =?utf-8?B?aVJPanRJY2U1RWMzaW9DS1Y5S2ROTWh2a2tKT3N6N2tTLzBaK1dSdThRYmk3?=
- =?utf-8?B?U1lkSE8zTDdnNFJaZ254bitnbnR4VFUwR0FXajBBYVEzTU9ESWhsWURLMGpi?=
- =?utf-8?B?QWhsdjJzcEdPWGcwclg5RmZTYVdONHM3cUNtTE5wR01VeGpIRjZ4QW1NdDVH?=
- =?utf-8?B?U2hvaG9tR0xZT25TK2UwaStpTUhtWjA3QytOVG5jSWl6QURaYWI3bGltVVp3?=
- =?utf-8?B?N3NPemUzY2Z3MWczMFI2SFNPZGl2aGl6TXpqaC9Sb0Nha1BkY3J2akhWZ0pF?=
- =?utf-8?B?VVBXaXpmZ2JUMTFQQmtCOHk3YkRBSFpCYlVtRExXUnovTm56UVFYdFpVZkU2?=
- =?utf-8?B?d3Nvdjh4VkpBQnJvN1NHc2xtMWFlU1lDOVE5OTZFN3RlRi83SHlvSlJxVHBa?=
- =?utf-8?B?dlVhSElKSEJTaVd0STBCM2k3R2hDL1V5cGc5cWdRandSMmd3ZGFaN0RkYnlq?=
- =?utf-8?B?cmFvS0FpVXpOMkdIMUV0NysxanZ4NHlFaktJZ0Uxd2k4T1RFMzlHaVQ4RmQx?=
- =?utf-8?B?Ni9obzFXUzNHTnVyYU9NYWRkdUhVdVh0R2dtY3UzRzA5dlhYRzJCZnRYN2F6?=
- =?utf-8?B?R09YOGlKMmdPeUpvVFJjdFBBWVR3MWczOVMrbXFmaWhjSFhpSjhiWHNRQWxE?=
- =?utf-8?B?ZzlCUGFXTXEwMyt1bDdvOGJPOTl1TzQzbUtZVGRvY2FEWkdqSkd5UDhDR1ZS?=
- =?utf-8?B?Njh2b3RKTHM0R0Q3a2dsWThqdUJWUDJWbmdCQlpEZ1JYcE12N2loK0pXUHpm?=
- =?utf-8?B?UkRKU09kcEkxRWt6RmtaNVU5bHlzWngvYnZITEFleFExSmQvNzc2M2w1SnJM?=
- =?utf-8?B?UUhxV3JFTzl2OEptQWc5WWxYcFNFckExczZ2OWdxYVRBU3pkVitvd3g1QmlN?=
- =?utf-8?B?NnE2VExBVGpyTGRFNTdsc0RCSlNzSXM4U0tVVlBKazMzcVBIUmM0Uk5NVlVQ?=
- =?utf-8?B?dWF4dUFNeXZxNEZIeGRKVG1VMUZVbmNUVHZzV2hhbVExOHRJL2JwcDZoL3hN?=
- =?utf-8?B?RDUxVG9mZTRYMFNRdVh2aXNNSUxhTnUrZ3dqK0RLU2pYZnU3NTBOT1NCUmtw?=
- =?utf-8?B?T0wzek5FelJycXB2N1gwWE5Qc3BTM0dFNzVHcUNJRUl3b1RFVXJ1Y3REVWhO?=
- =?utf-8?B?cVpPR3NMbnRVQ29sWXc1MUN0YkZuUitVVmxMcXIzcDYxbzVtNTMvVWxjOUI4?=
- =?utf-8?B?dHhaSVN6N2k1Vy9HRXFUZUZ4NDZVMEZqdHN1SkVyK1RZU29ERzdCOGNWbWlY?=
- =?utf-8?B?amNCNWhSdVN0R2VwcGRVdTVESzh4Q1lMMnRzdzlCdVcwUFlIYXI2eXpxSUVz?=
- =?utf-8?B?QjBiNE85bTNrOGhnRUQ1NHE3WkxkYlhRRzEyRGhteFN0TFoyUUlZUWxhNVdX?=
- =?utf-8?B?WlQwUmJpTGxwMjVWVURLS2hmK1NvSmtjVlY4K3p0WTdQcXBvS2lwU1NyRnF0?=
- =?utf-8?B?Q2Y5ZWtvbTFXcmtkeks4R2FRZzd4ek13UzdpY25sUS9Ebi9WcnRSRzR3NDBY?=
- =?utf-8?B?TnphQ0VpcjEzeGk3cXB3bDRLTlFtcUw4T1BrcWwvTWUrZTVPcUxyNVlNMjNW?=
- =?utf-8?B?VkZhck5VYTJJTWpkWVhMTXhkYmtSSnVBUE5xYnZQT0xEeFhRT3IwWUlOeU9E?=
- =?utf-8?B?dkc1bEdISUFlR25ERzZMTWYxczFMRjBRUDg2Z2FsZUQ4M1d0OHVMemdaakll?=
- =?utf-8?B?cHV4YkJBUEphTjQ1OWV0S1AvS0M2OHpVS1VvakRPVThrcFBvQnh5Wmh3YWlM?=
- =?utf-8?B?RlRUVUdPMGZBSEtVZmU0M1BEZmtITTA3TTVjbnh5SWdDVWxLQ01pRG9wVTJK?=
- =?utf-8?B?Q3lYYzdFU2RrL0ltcWFQQXVhbFFBTnBnMWRYelhiVWJhZ0E0ay9FS3BYektI?=
- =?utf-8?B?dzQyMXljdUdyQmZBaG5kNHZRRTFVVGE2eVVMaVJPTTQycFlwUkY0TFkxTXo1?=
- =?utf-8?B?Um5HdERTUGFyRTZjc2wwWGx6bWpNWjBJVW1kazhDQWNiWjE0WGxEQmgwUXc5?=
- =?utf-8?B?VDZ0dmlsQUJMU2ZXcHV6K0ltR05VMTVvUlB6RkdwWVpvZnVqNDlqTDB2NEN6?=
- =?utf-8?B?bzFWV0tJbVFCRGdOZWJHcmxkak9KT0VyallwSXlSVjM5MzRTYnlCeHNrM3Uw?=
- =?utf-8?B?M0tUMXQ3ZkE1bG5yb0t3bjcwUVoreWI5dlB5YUVTOWppcU9oemkrZz09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4d190338-45eb-437e-7376-08dedddbc27a
-X-MS-Exchange-CrossTenant-AuthSource: BN9PR12MB5179.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Jul 2026 17:01:47.0359
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: MOmZYxR4spbpmw/bLR90ZhX400hArzteez26TcU57Ei7UdUdDlbhB4keZTILk02h/q7IRLvxwrmal/kx9TnUzA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA3PR12MB9132
+Content-Transfer-Encoding: 8bit
+
+From: Shiju Jose <shijujose2008@gmail.com>
+
+Add support for ACPI RAS2 feature table (RAS2) defined in the
+ACPI 6.5 specification, section 5.2.21 and RAS2 HW based memory
+scrubbing feature.
+
+ACPI RAS2 patches were part of the EDAC series [1].
+
+The code is based on linux.git v7.2-rc2 [2].
+
+1. https://lore.kernel.org/linux-cxl/20250212143654.1893-1-shiju.jose@huawei.com/
+2. https://github.com/torvalds/linux.git
+
+Changes
+=======
+v21 -> v22:
+1. Fixed following issue with mutex_init for pcc_lock reported by Ashok Raj. Thanks.
+https://lore.kernel.org/all/akx2wqr3ULcmpCmc@hu-ashoraj-lv.qualcomm.com/
+
+2. Added fix for some of the gemini AI reported issues and added comments for the
+rest of the issues.
+https://sashiko.dev/#/patchset/20260706000338.362421-1-shijujose2008%40gmail.com
+
+3. Rebased to v7.2-rc2. 
+
+v20 -> v21:
+1. Added fixes for gemini AI reported issues shared by Borislav. Thanks.
+https://sashiko.dev/#/patchset/20260704220745.110773-1-shijujose2008%40gmail.com
+
+v19 -> v20:
+1. Added possible fixes for gemini AI reported issues shared by Borislav. Thanks.
+   https://sashiko.dev/#/patchset/20260408172850.183-1-shiju.jose%40huawei.com
+   Unfortunately could not get a local sashiko review setup to verify the fixes
+   before posting patches.
+
+v18 -> v19:
+1. Fixed gemini tool reported issues sent by Borislav. Thanks.
+https://sashiko.dev/#/patchset/20260325165714.294-1-shiju.jose%40huawei.com
+ - Replace with iowriteX() and ioreadX() for reading fields in RAS2 shared memory
+   tables throughout patches considering big-endian architectures. 
+ - In ras2_send_pcc_cmd(), add extra check for non-zero last_mpar_reset,
+   changed time_delta to s64, add lockdep_assert_held().
+ - In register_pcc_channel(), handled case of pcc_chan->latency is 0
+   and fixed timeout of 0 to readw_relaxed_poll_timeout().
+ - Fixed double free case When auxiliary_device_add() fails, the driver calls
+   auxiliary_device_uninit(&ras2_ctx->adev).
+ - In parse_ras2_table(), add check to verify table length is large enough to contain the
+   num_pcc_descs elements it iterates over.
+ - Add some missing cases to acquire pcc_lock, such as ras2_hw_scrub_read_addr()
+   and ras2_hw_scrub_read_size(). 
+ - Removed clearing base and size in ras2_scrub_monitor_thread() when demand scrubbing
+   has finished, to avoid clearing the user set values, though chances are very little.
+ - Add new field set_scrub_cycle to ras2_ctx to avoid user set value is being cleared when
+   ras2_update_patrol_scrub_params_cache() is being called. 
+ - In ras2_hw_scrub_set_enabled_od(), redesigned to avoid prematurely restart the background scrub
+   due to race condition in ras2_scrub_monitor_thread(). 
+ - rename ras2_probe() to ras2_mem_drv_probe()
+ - add ras2_mem_drv_remove() and call kthread_stop() to stop the ras2_scrub_monitor_thread().
+   However unregistering the EDAC device which registered in the ras2_mem_drv_probe() will
+   automatically happen in the EDAC via the devm_add_action_or_reset() in edac_dev_register(),
+   edac_dev_unreg() and edac_dev_release().
+   
+v17 -> v18:
+1. Fixed few AI tool reported issues shared by Borislav. Thanks.
+https://lore.kernel.org/all/20260312165247.GSabLvX5DjzhDtmyuh@fat_crate.local/
+2. Re-add support for user setting scrub address range for Daniel's 
+   reply in v16, which was removed in v13 because of request to simplify the code and
+   with the expectation that the firmware will do the full node demand scrubbing and
+    may enable these attributes later in the follow-up patches.
+   https://lore.kernel.org/all/df5fe0ed-3483-4ac5-8096-447e4e560816@os.amperecomputing.com/
+
+v16 -> v17:
+1. Merged all changes suggested by Borislav.
+https://lore.kernel.org/all/20260126171552.GJaXehSJp33nFnpvVd@fat_crate.local/
+2. Changes for Borislav's feedback "Add remove_aux_device() which unwinds everything
+   add_aux_device() does for all those devices".
+
+v15 -> v16:
+Attempt to modify throughout the code and logs for the below comments from Borislav.
+Thanks for the comments.
+https://lore.kernel.org/all/20251125073627.GLaSVce7hBqGH1a3ni@fat_crate.local/
+https://lore.kernel.org/all/20251231131512.GBaVUh4NSWqvr2xhbM@fat_crate.local/
+https://lore.kernel.org/all/20260119111701.GBaW4Sres045xnfkpz@fat_crate.local/
+
+v14 -> v15:
+1. Incorporated new changes suggested by Borislav on v13.
+   https://lore.kernel.org/all/20251231131512.GBaVUh4NSWqvr2xhbM@fat_crate.local/
+   
+2. Rebase to v6.19-rc5.
+
+v13 -> v14:
+1. Modifications for changes wanted by Borislav.
+   https://lore.kernel.org/all/20251125073627.GLaSVce7hBqGH1a3ni@fat_crate.local/
+
+2. Changes for the comments from Randy Dunlap 
+   https://lore.kernel.org/all/4807417b-a8f7-47a3-b38a-94ea7bdbf775@infradead.org/
+   https://lore.kernel.org/all/af7b6cdc-c0a7-4896-ba6b-6bb933898d37@infradead.org/
+   https://lore.kernel.org/all/26083ba9-1979-4d14-8465-3f54f2f96d23@infradead.org/
+   
+v12 -> v13:
+1. Fixed some bugs reported and changes wanted by Borislav.
+   https://lore.kernel.org/all/20250910192707.GAaMHRCxWx37XitN3t@fat_crate.local/ 
+
+2. Tried modifying the patch header as commented by Borislav.
+
+3. Fixed a bug reported by Yazen.
+   https://lore.kernel.org/all/20250909162434.GB11602@yaz-khff2.amd.com/
+
+4. Changed setting 'Requested Address Range' for GET_PATROL_PARAMETERS
+   command to meet the requirements from Daniel for Ampere Computing
+   platform. 
+   https://lore.kernel.org/all/7a211c5c-174c-438b-9a98-fd47b057ea4a@os.amperecomputing.com/
+
+5. In RAS2 driver, removed support for scrub control attributes 'addr' and
+   'size' for the time being with the expectation that a firmware will do
+   the full node demand scrubbing and may enable these attributes in the
+   future.
+   
+6. Add 'enable_demand' attribute to the EDAC scrub interface to start/stop
+   the demand scrub, which is used for the RAS2 demand scrub control.
+
+v11 -> v12:
+1. Modified logic for finding the lowest contiguous phy memory addr range for
+NUMA domain using node_start_pfn() and node_spanned_pages() according to the
+feedback from Mike Rapoport in v11.
+https://lore.kernel.org/all/aKsIlFTkBsAF5sqD@kernel.org/
+
+2. Rebase to 6.17-rc4.
+
+v10 -> v11:
+1. Simplified code by removing workarounds previously added to support
+   non-compliant case of single PCC channel shared across all proximity
+   domains (which is no longer required). 
+   https://lore.kernel.org/all/f5b28977-0b80-4c39-929b-cf02ab1efb97@os.amperecomputing.com/
+
+2. Fix for the comments from Borislav (Thanks).
+   https://lore.kernel.org/all/20250811152805.GQaJoMBecC4DSDtTAu@fat_crate.local/
+
+3. Rebase to 6.17-rc1.
+
+v9 -> v10:
+1. Use pcc_chan->shmem instead of 
+   acpi_os_ioremap(pcc_chan->shmem_base_addr,...) as it was
+   acpi_os_ioremap internally by the PCC driver to pcc_chan->shmem.
+   
+2. Changes required for the Ampere Computing system where uses a single
+   PCC channel for RAS2 memory features across all NUMA domains. Based on the
+   requirements from by Daniel on V9
+   https://lore.kernel.org/all/547ed8fb-d6b7-4b6b-a38b-bf13223971b1@os.amperecomputing.com/
+   and discussion with Jonathan.
+2.1 Add node_to_range lookup facility to numa_memblks. This is to retrieve the lowest
+    physical continuous memory range of the memory associated with a NUMA domain.
+2.2. Set requested addr range to the memory region's base addr and size
+   while send RAS2 cmd GET_PATROL_PARAMETER 
+   in functions ras2_update_patrol_scrub_params_cache() &
+   ras2_get_patrol_scrub_running().
+2.3. Split struct ras2_mem_ctx into struct ras2_mem_ctx_hdr and struct ras2_pxm_domain
+   to support cases, uses a single PCC channel for RAS2 scrubbers across all NUMA
+   domains and PCC channel per RAS2 scrub instance. Provided ACPI spec define single
+   memory scrub per NUMA domain.
+2.4. EDAC feature sysfs folder for RAS2 changed from "acpi_ras_memX" to  "acpi_ras_mem_idX"
+   because memory scrub instances across all NUMA domains would present under
+   "acpi_ras_mem_id0" when a system uses a single PCC channel for RAS2 scrubbers across
+   all NUMA domains etc.
+2.5. Removed Acked-by: Rafael from patch [2], because of the several above changes from v9.
+
+v8 -> v9:
+1. Added following changes for feedback from Yazen.
+ 1.1 In ras2_check_pcc_chan(..) function
+    - u32 variables moved to the same line.
+    - Updated error log for readw_relaxed_poll_timeout()
+    - Added error log for if (status & PCC_STATUS_ERROR), error condition.
+    - Removed an impossible condition check.
+  1.2. Added guard for ras2_pc_list_lock in ras2_get_pcc_subspace().
+        
+2. Rebased to linux.git v6.16-rc2 [2].
+
+v7 -> v8:
+1. Rebased to linux.git v6.16-rc1 [2].
+
+v6 -> v7:
+1. Fix for the issue reported by Daniel,
+   In ras2_check_pcc_chan(), add read, clear and check RAS2 set_cap_status outside
+   if (status & PCC_STATUS_ERROR) check. 
+   https://lore.kernel.org/all/51bcb52c-4132-4daf-8903-29b121c485a1@os.amperecomputing.com/
+
+v5 -> v6:
+1. Fix for the issue reported by Daniel, in start scrubbing with correct addr and size
+   after firmware return INVALID DATA error for scrub request with invalid addr or size.
+   https://lore.kernel.org/all/8cdf7885-31b3-4308-8a7c-f4e427486429@os.amperecomputing.com/
+   
+v4 -> v5:
+1. Fix for the build warnings reported by kernel test robot.
+   https://patchwork.kernel.org/project/linux-edac/patch/20250423163511.1412-3-shiju.jose@huawei.com/
+2. Removed patch "ACPI: ACPI 6.5: RAS2: Rename RAS2 table structure and field names"
+   from the series as the patch was merged to linux-pm.git : branch linux-next
+3. Rebased to ras.git: edac-for-next branch merged with linux-pm.git : linux-next branch.
+      
+v3 -> v4:
+1.  Changes for feedbacks from Yazen on v3.
+    https://lore.kernel.org/all/20250415210504.GA854098@yaz-khff2.amd.com/
+
+v2 -> v3:
+1. Rename RAS2 table structure and field names in 
+   include/acpi/actbl2.h limited to only necessary
+   for RAS2 scrub feature.
+2. Changes for feedbacks from Jonathan on v2.
+3. Daniel reported a known behaviour: when readback 'size' attribute after
+   setting in, returns 0 before starting scrubbing via 'addr' attribute.
+   Changes added to fix this.
+4. Daniel reported that firmware cannot update status of demand scrubbing
+   via the 'Actual Address Range (OUTPUT)', thus add workaround in the
+   kernel to update sysfs 'addr' attribute with the status of demand
+   scrubbing.
+5. Optimized logic in ras2_check_pcc_chan() function
+   (patch - ACPI:RAS2: Add ACPI RAS2 driver).
+6. Add PCC channel lock to struct ras2_pcc_subspace and change
+   lock in ras2_mem_ctx as a pointer to pcc channel lock to make sure
+   writing to PCC subspace shared memory is protected from race conditions.
+   
+v1 -> v2:
+1.  Changes for feedbacks from Borislav.
+    - Shorten ACPI RAS2 structures and variables names.
+    - Shorten some of the other variables in the RAS2 drivers.
+    - Fixed few CamelCases.
+
+2.  Changes for feedbacks from Yazen.
+    - Added newline after number of '}' and return statements.
+    - Changed return type for "ras2_add_aux_device() to 'int'.
+    - Deleted a duplication of acpi_get_table("RAS2",...) in the ras2_acpi_parse_table().
+    - Add "FW_WARN" to few error logs in the ras2_acpi_parse_table().
+    - Rename ras2_acpi_init() to acpi_ras2_init() and modified to call acpi_ras2_init()
+      function from the acpi_init().
+    - Moved scrub related variables from the struct ras2_mem_ctx from  patch
+      "ACPI:RAS2: Add ACPI RAS2 driver" to "ras: mem: Add memory ACPI RAS2 driver".
 
 
-On 01/07/26 21:53, Pierre Gondois wrote:
-> External email: Use caution opening links or attachments
->
->
-> Hello Sumit,
->
-> On 6/15/26 20:59, Sumit Gupta wrote:
->> Expose the OSPM Nominal Performance register (ACPI 6.6, Section
->> 8.4.6.1.2.6), which conveys the desired nominal performance level
->> at which the platform may run. Unlike the existing read-only
->> Nominal Performance register, it is writable and lets OSPM
->> request a lower nominal level than the platform-reported nominal.
->> The platform classifies performance above this level as boosted
->> and below as throttled for its power/thermal decisions.
->>
->> It is exposed as a per-policy cpufreq sysfs attribute in kHz, to
->> match the cpufreq sysfs unit convention:
->>
->>    /sys/devices/system/cpu/cpufreq/policyN/ospm_nominal_freq
->>
->> The attribute is documented in
->> Documentation/ABI/testing/sysfs-devices-system-cpu.
->>
->> Writes are converted to perf via cppc_khz_to_perf(), validated
->> against [Lowest Performance, Nominal Performance], and applied to
->> every CPU in policy->cpus.
->>
->> On read, the current register value is returned, or
->> "<unsupported>" if the platform does not implement the register.
->>
->> Signed-off-by: Sumit Gupta<sumitg@nvidia.com>
->> ---
->> Patch 1 of the v4 series ("ACPI: CPPC: Add support for CPPC v4") is
->> already applied, so this contains only patch 2.
->>
->> Changes in v5:
->> - Add cppc_get_ospm_nominal_perf() to read the register directly.
->> - Drop the cppc_cpudata cache variables ospm_nominal_perf/_set.
->> - Show_ospm_nominal_freq() returns register value or "<unsupported>".
->> - Register rollback reads the register too.
->> - Move range check into the sysfs store from 
->> cppc_set_ospm_nominal_perf()
->> - ABI doc: update read description and add a task-migration note.
->>
->> v4:https://lore.kernel.org/lkml/20260527194626.185286-1-sumitg@nvidia.com/ 
->>
->> v3:https://lore.kernel.org/lkml/20260514194822.1841748-1-sumitg@nvidia.com/ 
->>
->> v2:https://lore.kernel.org/lkml/20260430142430.755437-1-sumitg@nvidia.com/ 
->>
->> v1:https://lore.kernel.org/lkml/20260427051823.280419-1-sumitg@nvidia.com/ 
->>
->>
->>   .../ABI/testing/sysfs-devices-system-cpu      | 26 ++++++++
->>   drivers/acpi/cppc_acpi.c                      | 32 +++++++++
->>   drivers/cpufreq/cppc_cpufreq.c                | 65 +++++++++++++++++++
->>   include/acpi/cppc_acpi.h                      | 10 +++
->>   4 files changed, 133 insertions(+)
->>
->> diff --git a/Documentation/ABI/testing/sysfs-devices-system-cpu 
->> b/Documentation/ABI/testing/sysfs-devices-system-cpu
->> index 82d10d556cc8..a8d592c08823 100644
->> --- a/Documentation/ABI/testing/sysfs-devices-system-cpu
->> +++ b/Documentation/ABI/testing/sysfs-devices-system-cpu
->> @@ -346,6 +346,32 @@ Description:     Performance Limited
->>
->>               This file is only present if the cppc-cpufreq driver is 
->> in use.
->>
->> +What: /sys/devices/system/cpu/cpuX/cpufreq/ospm_nominal_freq
->> +Date:                May 2026
->> +Contact:     linux-pm@vger.kernel.org
->> +Description: OSPM Nominal Performance (kHz)
->> +
->> +             OSPM uses this attribute to request a nominal performance
->> +             level lower than the platform-reported nominal. The
->> +             platform treats performance above this level as boost
->> +             and below as throttle for power and thermal decisions.
->> +
->> +             Read returns the current value in kHz, or "<unsupported>"
->> +             if the platform does not implement the register. Write a
->> +             kHz value in the range [lowest_freq, nominal_freq].
->> +
->> +             Note that tasks may be migrated from one CPU to another
->> +             by the scheduler's load-balancing algorithm, and if
->> +             different OSPM Nominal Performance values are set for
->> +             those CPUs (through different cpufreq policies), that may
->> +             lead to undesirable outcomes. To avoid such issues it is
->> +             better to set the same value across all policies, or to
->> +             pin every task potentially sensitive to it to a specific
->> +             CPU.
->> +
->> +             This file is only present if the cppc-cpufreq driver is
->> +             in use.
->> +
->>   What: /sys/devices/system/cpu/cpu*/cache/index3/cache_disable_{0,1}
->>   Date:               August 2008
->>   KernelVersion:      2.6.27
->> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
->> index 9f572f481241..1fcc22a10b4c 100644
->> --- a/drivers/acpi/cppc_acpi.c
->> +++ b/drivers/acpi/cppc_acpi.c
->> @@ -1685,6 +1685,38 @@ int cppc_set_epp(int cpu, u64 epp_val)
->>   }
->>   EXPORT_SYMBOL_GPL(cppc_set_epp);
->>
->> +/**
->> + * cppc_set_ospm_nominal_perf() - Write OSPM Nominal Performance 
->> register.
->> + * @cpu: CPU on which to write register.
->> + * @ospm_nominal_perf: Value to write to the OSPM Nominal 
->> Performance register.
->> + *
->> + * OSPM Nominal Performance conveys the desired nominal performance 
->> level
->> + * at which the platform may run. Per ACPI 6.6, s8.4.6.1.2.6, the value
->> + * must lie within [Lowest Performance, Nominal Performance] and may be
->> + * set independently of Minimum, Maximum and Desired performance. The
->> + * caller is responsible for validating the range.
->> + *
->> + * Return: 0 on success or negative error code.
->> + */
->> +int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf)
->> +{
->> +     return cppc_set_reg_val(cpu, OSPM_NOMINAL_PERF, 
->> ospm_nominal_perf);
->> +}
->> +EXPORT_SYMBOL_GPL(cppc_set_ospm_nominal_perf);
->> +
->> +/**
->> + * cppc_get_ospm_nominal_perf() - Read OSPM Nominal Performance 
->> register.
->> + * @cpu: CPU from which to read register.
->> + * @ospm_nominal_perf: Pointer to store the OSPM Nominal Performance 
->> value.
->> + *
->> + * Return: 0 on success or negative error code.
->> + */
->> +int cppc_get_ospm_nominal_perf(int cpu, u64 *ospm_nominal_perf)
->> +{
->> +     return cppc_get_reg_val(cpu, OSPM_NOMINAL_PERF, 
->> ospm_nominal_perf);
->> +}
->> +EXPORT_SYMBOL_GPL(cppc_get_ospm_nominal_perf);
->> +
->>   /**
->>    * cppc_get_auto_act_window() - Read autonomous activity window 
->> register.
->>    * @cpu: CPU from which to read register.
->> diff --git a/drivers/cpufreq/cppc_cpufreq.c 
->> b/drivers/cpufreq/cppc_cpufreq.c
->> index f6cea0c54dd9..d160ceced7d9 100644
->> --- a/drivers/cpufreq/cppc_cpufreq.c
->> +++ b/drivers/cpufreq/cppc_cpufreq.c
->> @@ -1011,11 +1011,75 @@ static int cppc_get_perf_limited_filtered(int 
->> cpu, u64 *perf_limited)
->>   CPPC_CPUFREQ_ATTR_RW_U64(perf_limited, cppc_get_perf_limited_filtered,
->>                        cppc_set_perf_limited)
->>
->> +static ssize_t show_ospm_nominal_freq(struct cpufreq_policy *policy, 
->> char *buf)
->> +{
->> +     struct cppc_cpudata *cpu_data = policy->driver_data;
->> +     u64 perf;
->> +     int ret;
->> +
->> +     ret = cppc_get_ospm_nominal_perf(policy->cpu, &perf);
->> +     if (ret == -EOPNOTSUPP)
->> +             return sysfs_emit(buf, "<unsupported>\n");
->> +     if (ret)
->> +             return ret;
->> +
->> +     return sysfs_emit(buf, "%u\n",
->> + cppc_perf_to_khz(&cpu_data->perf_caps, perf));
->> +}
->> +
->> +static ssize_t store_ospm_nominal_freq(struct cpufreq_policy *policy,
->> +                                    const char *buf, size_t count)
->> +{
->> +     struct cppc_cpudata *cpu_data = policy->driver_data;
->> +     unsigned int sib, freq_khz, failing_cpu = 0;
->> +     u64 prev_perf;
->> +     u32 perf;
->> +     int ret;
->> +
->> +     ret = kstrtouint(buf, 0, &freq_khz);
->> +     if (ret)
->> +             return ret;
->> +
->> +     perf = cppc_khz_to_perf(&cpu_data->perf_caps, freq_khz);
->> +     if (perf < cpu_data->perf_caps.lowest_perf ||
->> +         perf > cpu_data->perf_caps.nominal_perf)
->> +             return -EINVAL;
->> +
->
-> Sorry I didn't notice in v3, but this function is the only
-> one setting the registers for all CPUs in the policy.
->
-> In v2, the interface was per-CPU. The main issue with that
-> is that we need a mechanism to aggregate values of CPUs
-> in the same policy.
->
-> In v3/v4/v5, the interface was per-policy, but the
-> ospm_nominal_freq was set for all CPUs CPPC regs individually.
-> If we do that, the sequence:
-> - unplug a CPU from a policy
-> - set ospm_nominal_freq for the policy
-> - hotplug back the CPU
-> might cause inconsistencies in the CPPC regs.
->
-> Maybe it is better to continue with the assumption that all
-> CPUs in the same policy have the same interface ? This
-> assumption seems to be made for auto_sel and other regs.
->
-> If this makes sense, would it be possible to:
-> - add such check and warn if it is not the case
+Shiju Jose (2):
+  ACPI:RAS2: Add driver for the ACPI RAS2 feature table
+  ras: mem: Add ACPI RAS2 memory driver
 
-Will send the mismatch check for the SHARED_TYPE_ANY case as a
-separate patch, as it is a pre-existing issue.
+ Documentation/ABI/testing/sysfs-edac-scrub |  14 +-
+ Documentation/edac/scrub.rst               |  70 +++
+ drivers/acpi/Kconfig                       |  11 +
+ drivers/acpi/Makefile                      |   1 +
+ drivers/acpi/bus.c                         |   3 +
+ drivers/acpi/ras2.c                        | 502 +++++++++++++++++
+ drivers/edac/scrub.c                       |  12 +
+ drivers/ras/Kconfig                        |  13 +
+ drivers/ras/Makefile                       |   1 +
+ drivers/ras/acpi_ras2.c                    | 603 +++++++++++++++++++++
+ include/acpi/ras2.h                        |  86 +++
+ include/linux/edac.h                       |   4 +
+ 12 files changed, 1315 insertions(+), 5 deletions(-)
+ create mode 100644 drivers/acpi/ras2.c
+ create mode 100644 drivers/ras/acpi_ras2.c
+ create mode 100644 include/acpi/ras2.h
 
-
-> - set the ospm_nominal_freq value only for policy->cpu
-> (and remove the rollback mechanism) 
-
-Yes, will write only policy->cpu and drop the rollback assuming a
-shared register.
-
-
->
-> When updating the ospm_nominal_freq, we should also:
-> - update policy->cpuinfo.max_freq if boost=0
-> - refresh the freq. limits
-> - set policy->boost_supported if it is not already the case
->
-> Also, update cppc_cpufreq_set_boost() should rely on
-> ospm_nominal_freq instead of caps->nominal_perf as a reference.
->
-> Please let me know if this is ok
->
-> Regards,
->
-> Pierre
-
-Agreed. I will add an "effective nominal" (ospm_nominal_freq when set,
-else caps->nominal_perf) and use it everywhere. Also will clear
-boost_supported when it is raised back to highest_perf.
-
-Thanks,
-Sumit
-
+-- 
+2.25.1
 
