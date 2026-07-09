@@ -1,34 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 417133E47B;
-	Thu,  9 Jul 2026 08:41:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73B3E3FA5D9;
+	Thu,  9 Jul 2026 08:41:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783586476; cv=none; b=LBJeWiJZyvbu4QVw+guorO9aPhHRVmSQGROUl+vxwyF/YD4ZXuYUdDh7KcOs3ve82kmz03vDHDDwrFkrLKHgQVSQm3J/6YX7Iw6Cd08evW9rQmUaXh1YDyS017TAZSJ4PR63auE74EcGchdeIUdBlKuphmEsNGucr5+ScWi3fok=
+	t=1783586483; cv=none; b=s4bqYj/Utkg1mXQlvAsiZ9VsvkTk85W/75ITP1TAIGJPEWfU6lmg6vUZEB9v0szI+UKN/QgBYh9lguchRuHRg+r9n2m3fdLr0EHctTQb8d3/W2ROB17JgBh/UuBP8bXg2M2o7JdWsWLDqZFsDGUZbsMrNPJENZ6oRQShkUjk6Jg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783586476; c=relaxed/simple;
-	bh=HqAQMU2fOBK40xbc7kCcYJsFl1etRS+WXPSntXNOXDY=;
+	s=arc-20240116; t=1783586483; c=relaxed/simple;
+	bh=d1ALCS5u5DmcuGqIZfcZRRjKZAzyTSGX8CcIQ1eNj0Y=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=Sue12Twld+p4Q5Xf4esYpEZUBFnN3jMPqH/idZwKvaSleQLhBUOQNytcOSzWMxxI6sBabwetsad8wEge7aGRantbD8GuyRZ5d13r8xVWVpdAJbJoGsIsfloKSs74YNTegZQAqfwchUBMWevJA2lAAESnsx52CHXay/Q1rx5J8Jg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WtkY6cm9; arc=none smtp.client-ip=100.103.45.18
+	 In-Reply-To:To:Cc; b=QdvMgdqFAFKRh6WXoz4xeg9AhpJwaV5ehR5WWbBAxIQhK4wMN5P+6Mj3wGqdJPnuc9YHES8k2ufxULKOOgx9G2Hd4rgJd5yPXvHP+abtOI1sfAfg6hB3NaGxDLdMo9MDU7hqptCA25Be7W2CRTGsEc9D761s2Bq9b4siBBQvdpQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OT/7goZf; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WtkY6cm9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0DE51F00A3A;
-	Thu,  9 Jul 2026 08:41:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OT/7goZf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30B781F00A3D;
+	Thu,  9 Jul 2026 08:41:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783586466;
-	bh=paEgN7uylb3MjPzYxx4sYj/GW05ur0v9WVl+yqk3VkI=;
+	s=k20260515; t=1783586471;
+	bh=Aezc9O//egGLmPy5XC3coGY0bf/LgusaY72KiGQRYwM=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=WtkY6cm9kiy4LRdViNMmkPIhGIpEM52jaswuUuBxHI1evkMr+fUwjNdSQccQvdOhT
-	 I8o3n3cqfR5iDuCEkzJivOAl5rdyLPCd+BxmcmXPF6EoNhYirGXhUtYzg2YhVn6kdo
-	 77pElt2iimKvwXnopkeGrGtQqCl0sh4A5YYpmnIwyJHiNRUUV/pRanj024b7jfjY1f
-	 gJgxKgFtxkL4Z0K4Yb32YE6E2VluCfKS99AyAKMag0LN/A3BR//12bFD/DGvBEJnxy
-	 o/ZOuE+c8I7RdDAtgzMCrt06IEhMEbsifYH7rZa+ouzWb+cyzqdyIM4LmGMDoivoqF
-	 n923u8GPLOgdg==
+	b=OT/7goZfnm7eVSTrmS3tf6H7PigGIlK+kWidCC1zlr7aF6+cjX6yC4wVCRtcco5sP
+	 yeg5Z/OorVQcvsNSH9z73nPKRiIsTSmh8jAEI2n4RjMA6gKyuSW6iYGnHsLcG6SPiF
+	 FYVHnfgq8FBU+qQF7QmolxjuwYPzgLvTzWforT5+AMslth+RELacxuJdM5U9pHPjIw
+	 Ymt/I/crUh1yM0jqHb8NFYOOBh7XX+JqwoS7N3GSmenuVzkQjwyXAPm5BYwM7mAxck
+	 scOBDPQ2LJKpLzYJbBdt44tuDzEM+161sAUhDhpC3ROYu92G86K4pwq+n8+jluehRY
+	 ZovQ12E2nbuhw==
 From: Lorenzo Pieralisi <lpieralisi@kernel.org>
-Date: Thu, 09 Jul 2026 10:40:11 +0200
-Subject: [PATCH v4 1/7] ACPI: Add acpi_device_clear_deps() helper function
+Date: Thu, 09 Jul 2026 10:40:12 +0200
+Subject: [PATCH v4 2/7] ACPI: RISC-V: Fix riscv_acpi_irq_get_dep() loop
+ termination
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -37,7 +38,7 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260709-gic-v5-acpi-iwb-probe-deferral-v4-1-48dae790f871@kernel.org>
+Message-Id: <20260709-gic-v5-acpi-iwb-probe-deferral-v4-2-48dae790f871@kernel.org>
 References: <20260709-gic-v5-acpi-iwb-probe-deferral-v4-0-48dae790f871@kernel.org>
 In-Reply-To: <20260709-gic-v5-acpi-iwb-probe-deferral-v4-0-48dae790f871@kernel.org>
 To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
@@ -49,51 +50,67 @@ To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
 Cc: linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, 
  linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
  loongarch@lists.linux.dev, Lorenzo Pieralisi <lpieralisi@kernel.org>, 
- "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+ "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, 
+ Sunil V L <sunilvl@oss.qualcomm.com>
 X-Mailer: b4 0.15.2
 
-Code clearing device dependencies in ACPI in drivers through
+In riscv_acpi_add_irq_dep() the main loop condition would currently stop
+the loop if an interrupt descriptor contains an interrupt for which the
+respective GSI handle is NULL, which is not correct because subsequent
+interrupts in the interrupt descriptor might still have a GSI dependency
+that must not be skipped.
 
-acpi_dev_clear_dependencies()
+Rework riscv_acpi_add_irq_dep() and the riscv_acpi_irq_get_dep() call chain
+to fix it - by not forcing the loop to stop in order to guarantee
+dependency detection for all the interrupt entries in the CRS descriptor.
 
-requires annoying ifdeffery to make sure it is compiled out on
-!CONFIG_ACPI configurations.
-
-Implement a wrapper function to clear device dependencies that can be used
-in device drivers without conditional compilation.
-
+Fixes: 1b173cc4bfcd ("ACPI: RISC-V: Implement function to add implicit dependencies")
 Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Tested-by: Sunil V L <sunilvl@oss.qualcomm.com>
+Reviewed-by: Sunil V L <sunilvl@oss.qualcomm.com>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Sunil V L <sunilvl@ventanamicro.com>
 ---
- include/linux/acpi.h | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/acpi/riscv/irq.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 10d6c6c11bdf..3d7a49523135 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -94,6 +94,12 @@ static inline void acpi_preset_companion(struct device *dev,
- 	ACPI_COMPANION_SET(dev, acpi_find_child_device(parent, addr, false));
+diff --git a/drivers/acpi/riscv/irq.c b/drivers/acpi/riscv/irq.c
+index 9b88d0993e88..cd83c3035cf6 100644
+--- a/drivers/acpi/riscv/irq.c
++++ b/drivers/acpi/riscv/irq.c
+@@ -299,6 +299,7 @@ static acpi_status riscv_acpi_irq_get_parent(struct acpi_resource *ares, void *c
+ 			return AE_OK;
+ 
+ 		ctx->handle = riscv_acpi_get_gsi_handle(eirq->interrupts[ctx->index]);
++		ctx->rc = 0;
+ 		return AE_CTRL_TERMINATE;
+ 	}
+ 
+@@ -314,10 +315,8 @@ static int riscv_acpi_irq_get_dep(acpi_handle handle, unsigned int index, acpi_h
+ 
+ 	acpi_walk_resources(handle, METHOD_NAME__CRS, riscv_acpi_irq_get_parent, &ctx);
+ 	*gsi_handle = ctx.handle;
+-	if (*gsi_handle)
+-		return 1;
+ 
+-	return 0;
++	return ctx.rc;
  }
  
-+static inline void acpi_device_clear_deps(struct device *dev)
-+{
-+	if (has_acpi_companion(dev))
-+		acpi_dev_clear_dependencies(ACPI_COMPANION(dev));
-+}
-+
- static inline const char *acpi_dev_name(struct acpi_device *adev)
- {
- 	return dev_name(&adev->dev);
-@@ -908,6 +914,8 @@ static inline void acpi_preset_companion(struct device *dev,
- {
- }
+ static u32 riscv_acpi_add_prt_dep(acpi_handle handle)
+@@ -381,8 +380,11 @@ static u32 riscv_acpi_add_irq_dep(acpi_handle handle)
+ 	int i;
  
-+static inline void acpi_device_clear_deps(struct device *dev) {}
+ 	for (i = 0;
+-	     riscv_acpi_irq_get_dep(handle, i, &gsi_handle);
++	     !riscv_acpi_irq_get_dep(handle, i, &gsi_handle);
+ 	     i++) {
++		if (!gsi_handle)
++			continue;
 +
- static inline const char *acpi_dev_name(struct acpi_device *adev)
- {
- 	return NULL;
+ 		dep_devices.count = 1;
+ 		dep_devices.handles = kzalloc_objs(*dep_devices.handles, 1);
+ 		if (!dep_devices.handles) {
 
 -- 
 2.34.1
