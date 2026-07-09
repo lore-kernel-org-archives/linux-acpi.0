@@ -1,283 +1,152 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A1B2D21638D;
-	Thu,  9 Jul 2026 09:42:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mail-wm1-f46.google.com (mail-wm1-f46.google.com [209.85.128.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3E061F91E3
+	for <linux-acpi@vger.kernel.org>; Thu,  9 Jul 2026 09:49:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783590133; cv=none; b=R05LQp7ViIwmKY0omBMVOvzwfAAUzWvTyjwHY7RG1RInoH/HFqR9xUOl6ZGUihAaxi12wlxlYuX/snOba7IoGvNjmydkrdzcZd62jDRa1LnDr7c6CZ7nJ493ZiphBV+eP11MVqWa2X7zwgEpzx5PeTt6JcDJWGNLphD11HWSprM=
+	t=1783590597; cv=none; b=a2jxqpQWB7gvFePsLNATN4XLpsTmhJjfIf4umdOlFPyFSB2HoUvERLup5xK/IGU9lrh4w+vB3il1oMx2QLx3zjtj5ujjZMq4rpSsmPp1z1Lv2pDMmqi2IlmChZkT+/wSBSFtdJ4shJl4vruZwXa3aj2gKhVAeuEmBfkGA5Qhw2Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783590133; c=relaxed/simple;
-	bh=cBftvfYKfjyrhkBoYN/QBxyh1X9llmuITuh/+JJ4C4w=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=qXxfEEuqh1ubyhDGHXzmfz12cgkGghvnYw2tVfF3CoW+2d1GIzHfCmAumHkRavnYrk1BPQFFYjQfXGJVoTfwdSQ55bNVjJL7tNLzGMrqdGsZiQPwteb9EgClakidMlUgYhk/e03K61vZUbmjCZibQ8PSCZf4657mPjd9YMmUWT4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=WiH6vkn6; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1783590597; c=relaxed/simple;
+	bh=jTFvyUggpn9b7ir5dJXF/0vV6aESSqllkJsE1EJX8x0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=b88w0ArCqXd3sNuDt+uQsGp94fyhZLObMA3ysFVmnwn4nNUojv/JCW66H47k9Weyl972sKcVCAP4/BRi3fYVQxPrxRNmfzQlhzmMGlwC37Y4be/p18aiJyGCKErmeQM34xrt98+2xjmk76IdTAaHKOspNQEQdK9p8eI/2ikgKks=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=PovcRIVX; arc=none smtp.client-ip=209.85.128.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="WiH6vkn6"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 9DF6C357B;
-	Thu,  9 Jul 2026 02:42:06 -0700 (PDT)
-Received: from [10.2.212.8] (e134344.arm.com [10.2.212.8])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 4E6243FDE2;
-	Thu,  9 Jul 2026 02:42:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1783590130; bh=cBftvfYKfjyrhkBoYN/QBxyh1X9llmuITuh/+JJ4C4w=;
-	h=Date:Subject:From:To:Cc:References:In-Reply-To:From;
-	b=WiH6vkn6b7SXPDUKa1/hnnKeDU9DHSXIplaQy9IF6i2hz3+c58RQvK4xJoM0DzH8V
-	 q2E56Y8XKozu7W3HaDr4ra6yOBmnPjIzStuOEBte0ZGXgDX6zJLPmt5FbNtaXaPAMc
-	 sAZRfMk0qTjRqvSLd/S8JSnOVk0R2VTm/vAAmhdw=
-Message-ID: <299507de-b8f0-4d2f-8845-5266ce495eb1@arm.com>
-Date: Thu, 9 Jul 2026 10:42:06 +0100
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="PovcRIVX"
+Received: by mail-wm1-f46.google.com with SMTP id 5b1f17b1804b1-493b61b52b6so15647485e9.1
+        for <linux-acpi@vger.kernel.org>; Thu, 09 Jul 2026 02:49:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1783590589; x=1784195389; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=MXemn+RWgfgniHXL+Z+iccp115cwF5wMpUS4nNjdkFs=;
+        b=PovcRIVXEPSF/FJeQlxhlzoXjqZOrbs3CiE5bUYuum/kokSouOcrfuWzkJz+QZ+EEU
+         bXZutBCPHghMPuDpORpgqEkhwf9ItYai/C2Wls7hXpV8JBACI0ISAzSZohMkmVLXApNn
+         fZlxwp5LQbRlt1W9WkBqq04596J259cyQGkTEsx5D5ai1Vpe/8NCZrLqgzS5soekf8Zd
+         N1CUWCeoaHYptaJl5ecJ1ZzDp9e7jZkz7Z27dZDIG4LQ8N1cI1J5HRitdDR0mFAuAiJK
+         tCK2hnhPLuoPo29pU3Y3TxhIiW33KldSOjrnaQ78LbO8JgLXI4Yv8EB+9OvmBldN7dCE
+         StRA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783590589; x=1784195389;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=MXemn+RWgfgniHXL+Z+iccp115cwF5wMpUS4nNjdkFs=;
+        b=N6JMWd4EJm0fhD0p910HCh+8VP85Ft2bUYLh1bSDTUQ0+qQM4O5WQeNFDOkxE9rkgP
+         MO4sk0sdWUVL3T0rQu5EtxybQaW0yklFbp+d2fqtlu7jtVipjrg/Rlr+msrnedBC+9jI
+         sPeZsq14m2p7A+EulWA9qYtp2dRC+gkRCIkGlDCxJBX6m6rpbGp5pjAK2jKWx9OihIlP
+         usefmZySh/XujBzJDegiTdKxpex3qGvNXRUXoCK3zOCUZlghOXnaFaJ4PwTYIdYRtEFg
+         38KpraAvWyPrFhqQq72KpAasv3+CBM5d2tJtruYHqhONhsm3pNOw75DMOs8CUBe7UWyW
+         MuEA==
+X-Forwarded-Encrypted: i=1; AHgh+RpYaoCZpfJIR99zJxKwvzS0cmiw+rklID/deMktmCcgV6QMbrQq38BUZgYOHAarDzwhdwvwFtN6vniT@vger.kernel.org
+X-Gm-Message-State: AOJu0YxResO2U0NqFej9gJn+mRy2fovWNQ007hejCwaB5DrtOZN1A/oy
+	HxKq6Q9JAFdm1VeY8yOkdtIdjcqwZUgfGyVN1yGlGs+LkwcL6ceF9s21VIfOnobN+fE=
+X-Gm-Gg: AfdE7clTAYaJpSP8VXKCazeGJiQw0l/W6kNXunyCevh9KsAdzNeUYu+OlGZYHGlZ6X2
+	2vgEdz9plevAvYeaYKwIyhbYkna0noYdqsY11qwYTzqdJYRRUN6UqUE3vWrGZekqHxwOeI3K0+/
+	l955TbP2s5lb78uyx6Ula1f2WLQQEiQVXK5EKb3xctR4e/ROJMIzzFJJQzUQDESe3D5oL5yWn5o
+	+2YFV7W7iKKr44ym4s2DU229srSE/qpigxHcqKia/N9wpo8U94YPtVidcaWDSFPGNdfTrBP/Ag2
+	z5WIv0vvXuGwRo962bdX93XXVT1xxlefLRy1mUyhlgEGrfHldMSSTB6syCRb/yvCiJ0hQ1abaBg
+	l++X2HUdgkpXFIy/jxviDG/znu2qdet7D+sG7ey/YfqXsgrmfLuag63Kl+2BDXAhdcXhZ9C+Ehd
+	H1BVLjXNEFDzZ5UxZwPou9EyYP54CP4aEccw==
+X-Received: by 2002:a05:600c:c1d7:20b0:490:9782:3eb8 with SMTP id 5b1f17b1804b1-493e68c3535mr47652155e9.25.1783590588957;
+        Thu, 09 Jul 2026 02:49:48 -0700 (PDT)
+Received: from [192.168.42.79] (nat2.prg.suse.com. [195.250.132.146])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-493eb6d53absm47837275e9.6.2026.07.09.02.49.46
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 09 Jul 2026 02:49:48 -0700 (PDT)
+Message-ID: <3e2ae6e8-41ad-45f0-a885-131a5711c276@suse.com>
+Date: Thu, 9 Jul 2026 11:49:45 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Thunderbird Daily
-Subject: Re: [PATCH v2 15/15] arm_mpam: detect and enable MPAM-Fb PCC support
-From: Ben Horgan <ben.horgan@arm.com>
-To: Andre Przywara <andre.przywara@arm.com>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
- <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- James Morse <james.morse@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
-Cc: Jonathan Cameron <jic23@kernel.org>,
- Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
- Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
- Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
- Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-References: <20260702162229.4008659-1-andre.przywara@arm.com>
- <20260702162229.4008659-16-andre.przywara@arm.com>
- <df2e5828-5666-463e-84f9-ca1e69955690@arm.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/2] umh, treewide: Explicitly include linux/umh.h where
+ needed
+To: =?UTF-8?Q?Michal_Koutn=C3=BD?= <mkoutny@suse.com>
+Cc: Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
+ Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+ Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+ "H. Peter Anvin" <hpa@zytor.com>,
+ Philipp Reisner <philipp.reisner@linbit.com>,
+ Lars Ellenberg <lars.ellenberg@linbit.com>,
+ =?UTF-8?Q?Christoph_B=C3=B6hmwalder?= <christoph.boehmwalder@linbit.com>,
+ Jens Axboe <axboe@kernel.dk>, Johan Hovold <johan@kernel.org>,
+ Alex Elder <elder@kernel.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>,
+ Michal Januszewski <spock@gentoo.org>, Helge Deller <deller@gmx.de>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ Trond Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>,
+ Chuck Lever <cel@kernel.org>, Jeff Layton <jlayton@kernel.org>,
+ NeilBrown <neil@brown.name>, Olga Kornievskaia <okorniev@redhat.com>,
+ Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>,
+ Mark Fasheh <mark@fasheh.com>, Joel Becker <jlbec@evilplan.org>,
+ Joseph Qi <joseph.qi@linux.alibaba.com>, Tejun Heo <tj@kernel.org>,
+ Johannes Weiner <hannes@cmpxchg.org>, Luis Chamberlain <mcgrof@kernel.org>,
+ Daniel Gomez <da.gomez@kernel.org>, Sami Tolvanen <samitolvanen@google.com>,
+ Aaron Tomlin <atomlin@atomlin.com>, Pavel Machek <pavel@kernel.org>,
+ Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>,
+ Danilo Krummrich <dakr@kernel.org>, Nikolay Aleksandrov
+ <razor@blackwall.org>, Ido Schimmel <idosch@nvidia.com>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Simon Horman <horms@kernel.org>, David Howells <dhowells@redhat.com>,
+ Jarkko Sakkinen <jarkko@kernel.org>, Paul Moore <paul@paul-moore.com>,
+ James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>,
+ Kentaro Takeda <takedakn@nttdata.co.jp>,
+ Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>,
+ linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org,
+ drbd-dev@lists.linux.dev, linux-block@vger.kernel.org,
+ greybus-dev@lists.linaro.org, linuxppc-dev@lists.ozlabs.org,
+ linux-acpi@vger.kernel.org, linux-fbdev@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linux-fsdevel@vger.kernel.org,
+ linux-nfs@vger.kernel.org, ocfs2-devel@lists.linux.dev,
+ cgroups@vger.kernel.org, linux-modules@vger.kernel.org,
+ linux-pm@vger.kernel.org, driver-core@lists.linux.dev,
+ bridge@lists.linux.dev, netdev@vger.kernel.org, keyrings@vger.kernel.org,
+ linux-security-module@vger.kernel.org
+References: <20260708154510.6794-1-petr.pavlu@suse.com>
+ <20260708154510.6794-2-petr.pavlu@suse.com>
+ <ak6STbqZd-Q-c56v@localhost.localdomain>
 Content-Language: en-US
-In-Reply-To: <df2e5828-5666-463e-84f9-ca1e69955690@arm.com>
+From: Petr Pavlu <petr.pavlu@suse.com>
+In-Reply-To: <ak6STbqZd-Q-c56v@localhost.localdomain>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-Hi Andre,
-
-On 7/3/26 12:00, Ben Horgan wrote:
-> Hi Andre,
+On 7/8/26 8:13 PM, Michal Koutný wrote:
+> Hi Petr.
 > 
-> On 7/2/26 17:22, Andre Przywara wrote:
->> The Arm MPAM-Fb specification [1] describes a protocol to access MSC
->> registers through a firmware interface. This requires a shared memory
->> region to hold the message, and a mailbox to trigger the access.
->> For ACPI this is wrapped as a PCC channel, described using existing
->> ACPI abstractions.
->>
->> Add code to parse those PCC table descriptions associated with an MSC,
->> and store the parsed information in the MSC struct.
->> There can be multiple PCC channels, and each channel can serve multiple
->> MSCs, so we need to keep track of the channel usage, using a list and
->> a refcount.
->> This will be used by the MPAM-Fb access wrapper code.
->>
->> [1] https://developer.arm.com/documentation/den0144/latest
->>
->> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
->> ---
->>  drivers/acpi/arm64/mpam.c      |   2 +
->>  drivers/resctrl/mpam_devices.c | 113 ++++++++++++++++++++++++++++++++-
->>  2 files changed, 113 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/acpi/arm64/mpam.c b/drivers/acpi/arm64/mpam.c
->> index 84963a20c3e7..64bc84bb2029 100644
->> --- a/drivers/acpi/arm64/mpam.c
->> +++ b/drivers/acpi/arm64/mpam.c
->> @@ -256,6 +256,8 @@ static struct platform_device * __init acpi_mpam_parse_msc(struct acpi_mpam_msc_
->>  	} else if (iface == MPAM_IFACE_PCC) {
->>  		props[next_prop++] = PROPERTY_ENTRY_U32("pcc-channel",
->>  							tbl_msc->base_address);
->> +		props[next_prop++] = PROPERTY_ENTRY_U32("msc-id",
->> +							tbl_msc->identifier);
+> On Wed, Jul 08, 2026 at 05:44:29PM +0200, Petr Pavlu <petr.pavlu@suse.com> wrote:
+>> diff --git a/kernel/cgroup/cgroup-v1.c b/kernel/cgroup/cgroup-v1.c
+>> index a4337c9b5287..60eb994c32ae 100644
+>> --- a/kernel/cgroup/cgroup-v1.c
+>> +++ b/kernel/cgroup/cgroup-v1.c
+>> @@ -16,6 +16,7 @@
+>>  #include <linux/pid_namespace.h>
+>>  #include <linux/cgroupstats.h>
+>>  #include <linux/fs_parser.h>
+>> +#include <linux/umh.h>
+>>  
+>>  #include <trace/events/cgroup.h>
+> 
+> There is kmod.h in here too but it's unnecessary, no module lazy loading
+> in this code.
 
-I expect it's easier if changes in this file are a separate patch Just
-to help bring this to the attention of the ACPI/arm64 maintainers.
+You're right. I'll remove the kmod.h include from
+kernel/cgroup/cgroup-v1.c. I went through all the files again and it
+seems this was the only place I missed.
 
+-- 
 Thanks,
-
-Ben
-
->>  	}
->>  
->>  	acpi_mpam_parse_irqs(pdev, tbl_msc, res, &next_res);
->> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
->> index 4a088e6cd235..35214520bfd4 100644
->> --- a/drivers/resctrl/mpam_devices.c
->> +++ b/drivers/resctrl/mpam_devices.c
->> @@ -19,6 +19,7 @@
->>  #include <linux/irqdesc.h>
->>  #include <linux/list.h>
->>  #include <linux/lockdep.h>
->> +#include <linux/mailbox_client.h>
->>  #include <linux/mutex.h>
->>  #include <linux/platform_device.h>
->>  #include <linux/printk.h>
->> @@ -27,6 +28,9 @@
->>  #include <linux/types.h>
->>  #include <linux/workqueue.h>
->>  
->> +#include <acpi/pcc.h>
->> +#include <acpi/acpi_io.h>
->> +
->>  #include "mpam_internal.h"
->>  #include "mpam_fb.h"
->>  
->> @@ -50,6 +54,88 @@ static LIST_HEAD(mpam_all_msc);
->>  
->>  struct srcu_struct mpam_srcu;
->>  
->> +/* PCC channels might be serving multiple MSCs, so keep a refcounted list. */
->> +static DEFINE_MUTEX(pcc_chan_list_lock);
->> +static LIST_HEAD(pcc_chan_list);
->> +
->> +static void mpam_pcc_rx_callback(struct mbox_client *cl, void *msg)
->> +{
->> +	/* TODO: wake up tasks blocked on this MSC's PCC channel */
->> +}
->> +
->> +static struct mpam_pcc_chan *mpam_pcc_chan_get(struct device *dev,
->> +					       int subspace_id)
->> +{
->> +	struct mpam_pcc_chan *cur;
->> +
->> +	mutex_lock(&pcc_chan_list_lock);
->> +
->> +	list_for_each_entry(cur, &pcc_chan_list, pcc_chans) {
->> +		if (cur->subspace_id == subspace_id) {
->> +			cur->refcount++;
->> +			mutex_unlock(&pcc_chan_list_lock);
->> +
->> +			return cur;
->> +		}
->> +	}
->> +
->> +	cur = kzalloc_obj(*cur);
->> +	if (!cur) {
->> +		mutex_unlock(&pcc_chan_list_lock);
->> +		return ERR_PTR(-ENOMEM);
->> +	}
->> +
->> +	cur->pcc_cl.dev = dev;
->> +	cur->pcc_cl.rx_callback = mpam_pcc_rx_callback;
->> +	cur->pcc_cl.tx_block = true;
->> +	cur->pcc_cl.tx_tout = 1000; /* 1s */
->> +
->> +	cur->pcc_chan = pcc_mbox_request_channel(&cur->pcc_cl, subspace_id);
->> +	if (IS_ERR(cur->pcc_chan)) {
->> +		long err = PTR_ERR(cur->pcc_chan);
->> +
->> +		kfree(cur);
->> +		mutex_unlock(&pcc_chan_list_lock);
->> +		return ERR_PTR(err);
->> +	}
->> +
->> +	mutex_init(&cur->pcc_chan_lock);
->> +	cur->subspace_id = subspace_id;
->> +	cur->refcount = 1;
->> +
->> +	list_add_tail(&cur->pcc_chans, &pcc_chan_list);
->> +
->> +	mutex_unlock(&pcc_chan_list_lock);
->> +
->> +	return cur;
->> +}
->> +
->> +static int mpam_pcc_chan_put(struct mpam_pcc_chan *pcc_chan)
->> +{
->> +	struct mpam_pcc_chan *cur, *tmp;
->> +
->> +	if (!pcc_chan)
->> +		return 0;
->> +
->> +	mutex_lock(&pcc_chan_list_lock);
->> +
->> +	list_for_each_entry_safe(cur, tmp, &pcc_chan_list, pcc_chans) {
->> +		if (cur == pcc_chan) {
->> +			if (!--cur->refcount) {
->> +				pcc_mbox_free_channel(cur->pcc_chan);
->> +				list_del(&pcc_chan->pcc_chans);
->> +				kfree(cur);
->> +			}
->> +			mutex_unlock(&pcc_chan_list_lock);
->> +			return 0;
->> +		}
->> +	}
->> +
->> +	mutex_unlock(&pcc_chan_list_lock);
->> +
->> +	return -ENOENT;
->> +}
->> +
->>  /*
->>   * Number of MSCs that have been probed. Once all MSCs have been probed MPAM
->>   * can be enabled.
->> @@ -2202,6 +2288,8 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
->>  {
->>  	struct mpam_msc *msc = platform_get_drvdata(pdev);
->>  
->> +	mpam_pcc_chan_put(msc->pcc_chan);
->> +
->>  	mutex_lock(&mpam_list_lock);
->>  	mpam_msc_destroy(msc);
->>  	mutex_unlock(&mpam_list_lock);
->> @@ -2212,7 +2300,7 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
->>  static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
->>  {
->>  	int err;
->> -	u32 tmp;
->> +	u32 pcc_subspace_id;
->>  	struct mpam_msc *msc;
->>  	struct resource *msc_res;
->>  	struct device *dev = &pdev->dev;
->> @@ -2257,7 +2345,8 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
->>  	if (err)
->>  		return ERR_PTR(err);
->>  
->> -	if (device_property_read_u32(&pdev->dev, "pcc-channel", &tmp))
->> +	if (device_property_read_u32(&pdev->dev, "pcc-channel",
->> +				     &pcc_subspace_id))
->>  		msc->iface = MPAM_IFACE_MMIO;
->>  	else
->>  		msc->iface = MPAM_IFACE_PCC;
->> @@ -2273,6 +2362,26 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
->>  		}
->>  		msc->mapped_hwpage_sz = msc_res->end - msc_res->start;
->>  		msc->mapped_hwpage = io;
->> +	} else if (msc->iface == MPAM_IFACE_PCC) {
->> +		u32 msc_id;
->> +
->> +		if (device_property_read_u32(&pdev->dev, "msc-id", &msc_id)) {
->> +			pr_err("missing MPAM-Fb MSC identifier\n");
->> +			return ERR_PTR(-EINVAL);
->> +		}
->> +		msc->mpam_fb_msc_id = msc_id;
->> +
->> +		msc->pcc_chan = mpam_pcc_chan_get(&pdev->dev, pcc_subspace_id);
->> +		if (IS_ERR(msc->pcc_chan)) {
->> +			pr_err("Failed to request MSC PCC channel\n");
->> +			return (void *)msc->pcc_chan;
->> +		}
->> +
->> +		if (msc->pcc_chan->pcc_chan->shmem_size < MPAM_FB_MAX_MSG_SIZE) {
->> +			pr_err("MPAM-Fb PCC channel size too small.\n");
->> +			mpam_pcc_chan_put(msc->pcc_chan);
->> +			return ERR_PTR(-ENOMEM);
->> +		}
-> 
-> I think we need a version check here just in case a MPAM-Fb 2.x is released.
-> 
-> Thanks,
-> 
-> Ben
-> 
->>  	} else {
->>  		return ERR_PTR(-EINVAL);
->>  	}
-> 
-
+Petr
