@@ -1,202 +1,222 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.15.15])
+Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11011060.outbound.protection.outlook.com [40.107.208.60])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CC453E5EF8;
-	Wed,  8 Jul 2026 20:03:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.15
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783541009; cv=none; b=VMmGhWJaeR8HxwLwFF/iFlnaVUBnhuzyKHM6ll95cN1Pko5WFCHW00MAeg099ySKFBK+2lqpuntGAZZYsBQrgA9EnuxSdJAlrhFkDmrKh8AcYKxFRyDerpz/AXpZrX+iQbx4uiS+AhnqloLPyNzS/PPtMB1ov+r3ckj5johtdns=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783541009; c=relaxed/simple;
-	bh=lQZ1VL5UXQOVqeoMXllH6Ymm1as9ffvgph7H4WgbKVQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=iiwPM1TNxKh8P7K5C0MLgkfArWQnRi48w6g4qm1bgTAUor5Jd3RONFFDnjGc1C54tXFifzOFrBCdoJt3KTYUzwXN0aU3rLR8V6TrW+Qae2i0QoOItJ1ZNjyObnjhbytVzTPOqBAdsXD+cnbgHzE9sPw21bJpdBXdTvCnY8ZYBOA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b=Oh5n9jkR; arc=none smtp.client-ip=212.227.15.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21FF2156661;
+	Thu,  9 Jul 2026 01:37:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.208.60
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783561059; cv=fail; b=mVbpsYAKeClpCxZUCVaJwufJVP8JJVsJj0LceYjuzsQfgExibcdplrKNXX7w+JDS1b+TwgKF6f7H9lI5je9fc6c09DGwnALRhORsWezMbh3GqvvvpYBGQ7wtAyQzOol7JW+cDbZW4So3wVZt6q83yua/n0XLJEIwrxrxUhSyZgU=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783561059; c=relaxed/simple;
+	bh=VcqTYqmDg3yAj9VNspiaNGXJ5HwN8CCyAbnpHUVrK20=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=fURAveHE3qYllaFZ2COiJOGgExRzfLNTjjAqmYjhM1XiKswSR+BNlcDOW8zTuwnW3mXHAY+doMo8Kf8XFInryuppuLq9S6Idx/M11kCRp8kSMxImlVNtokxKKtVDL9Veq29KTAitiFL4zEW2kqlB30RQSm5MdzNBykM85HHA1x8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=peYdKFfn; arc=fail smtp.client-ip=40.107.208.60
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b="Oh5n9jkR"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1783540994; x=1784145794; i=w_armin@gmx.de;
-	bh=q5X/MRTaHLCbQt+WKq7xq0q6VawSFVGKZP4WU7vKtP0=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:To:Cc:
-	 References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:cc:content-transfer-encoding:
-	 content-type:date:from:message-id:mime-version:reply-to:subject:
-	 to;
-	b=Oh5n9jkRXdfj1z3Rv5S5BUlztYmMeUqBc0QpQQq4DZMhAFu2ToHU8GQGTC3ua2pd
-	 KhYkaetihnCSl2Pyw1MHduLusNYC9lxpkkDE9EP11pcy/1xJDRkSCiBMctEanpoWA
-	 T8UnDAp+lM0Q3kjH446iwT8g8nJDFReksxjvkbjRR1sYLboY6h8u3+FUB+iUUuhLn
-	 /zBAi1EggxnfcRR3TpY1OlLPEYc4z88CtRgQQPA4X0ISzaH6tDzIq9Tu3zeXVDNgZ
-	 Hb5l6GTpVQXMeBWdyIgFoDQml1JxkUOA2/t/2DG83TDKJJcHTLmoYqFXvsUN0wG53
-	 selRLi4pEeN5stIs3w==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from client.hidden.invalid by mail.gmx.net (mrgmx005
- [212.227.17.190]) with ESMTPSA (Nemesis) id 1N0FxV-1x27oT04iV-011yag; Wed, 08
- Jul 2026 22:03:14 +0200
-Message-ID: <f035da8c-4de6-4985-9401-1dd74a730dff@gmx.de>
-Date: Wed, 8 Jul 2026 22:03:13 +0200
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="peYdKFfn"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=IOTAklXsXXoHECvN4U33ASgf9qM1ndp2P/cFyGo9Ogp7leWwJFqoxm3a/Qko73JUz8syWYZaO5LAv82Jq/t0+SuirGmft1A+FgsCPXLZC+nMW+b6o53WTGlD6uH+XEfrBMs63UN7KSs2NsPfLejVKw9GaWYpyZr6rMu3iI3qcvM0a1A9wPwDPMGy4TGUqvps2VTvrILzwqs+4vgg2AMtD+HVJNpQZM2pQnAQy8CSqgwSRfIZFbBVx2kf+oyC1QI2vJZiuY3rkUv3PHlP0RSEDwxdDKVQPSF3eKuCJvih2SyF4fV/AUY3/H2P92WPrAYZkzA9Lag9VrYkLMib/ZuRug==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=yIKP6jzJ3JrPaf5eV4qE0Rnp9Z/fozK8QndHDTsjHWc=;
+ b=cBvTWeDbgOjOzeNV7nd57Ph3PVLdiV9EBfvYF4U0VUX2NHWKDVBGcZh48j4IJ29A1FHH/dDdy3roh7cX1bAVkXNOP9NyfYSlnTMaRAblQI6kwo9ffGkhxBT1XoDj6xWZ1LT8hMlf4dz/ySmQyMcPw2chQUwH8XB9TO6QItIZ6eLcKB1CXZj2YYSlvC1Bf8fVjCDWW6ZW3cFaNK2N886l8jazoeRwlw8jw1Pp6U8Oqfq05T9vkeB1iOegkSLqKRsix+8jt6qztRQWSiA1QRLw/NhBIFzxbGfBwG1SoIEJjAYuRrkx9/e0a8jBIaNaorFLTUZzAMMMs8hwf7aM6Q7vmQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=yIKP6jzJ3JrPaf5eV4qE0Rnp9Z/fozK8QndHDTsjHWc=;
+ b=peYdKFfnyDfsOnQnfa9q9lzbAYKA7eNwqM4gAKzGq6v22R/iNMgPdFWpmzK8dPN4m5yQNiH54M9+BuuIlkPNJf/DYGrULuTGar8CYOGVSLS0BRnBq0Sh1QytbOcDJJW6zzp7tPQEQDBxwC3Q5fMzQsiSuglVK8OvQRafciGB/wFe1aTfU8t6sDq9vUSFKBsm34Ell2oF2czvwvG+isARqDRTsbDbcPB7RK4p3JRcliXKjSUZEeJIxVRXEsFEVZcEzYEjU4TFjqf0RikfPIYc9q2EmCgoJY9dullsqMt9fZpz2/5Ym0do7ZKH8hqL1591BVsgEmguptfzTid5O7Np0Q==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from BL0PR12MB2370.namprd12.prod.outlook.com (2603:10b6:207:47::27)
+ by SJ2PR12MB8953.namprd12.prod.outlook.com (2603:10b6:a03:544::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.181.15; Thu, 9 Jul
+ 2026 01:37:34 +0000
+Received: from BL0PR12MB2370.namprd12.prod.outlook.com
+ ([fe80::86cf:c3ec:2cf5:74c8]) by BL0PR12MB2370.namprd12.prod.outlook.com
+ ([fe80::86cf:c3ec:2cf5:74c8%5]) with mapi id 15.21.0181.014; Thu, 9 Jul 2026
+ 01:37:34 +0000
+Date: Thu, 9 Jul 2026 09:37:25 +0800
+From: Richard Cheng <icheng@nvidia.com>
+To: Alejandro Lucero Palau <alucerop@amd.com>
+Cc: alejandro.lucero-palau@amd.com, linux-cxl@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, rafael@kernel.org
+Subject: Re: [RFC PATCH v1 1/1] acpi/hmat: preserve hmat_adist_nb notifier
+ block
+Message-ID: <ak74Kzuf6g9z9pOr@MWDK4CY14F>
+References: <20260630143507.30193-1-alejandro.lucero-palau@amd.com>
+ <20260630143507.30193-2-alejandro.lucero-palau@amd.com>
+ <akYPrcsz2tWl7ga4@MWDK4CY14F>
+ <c88a09b4-6478-4c68-87f0-485dc6634af2@amd.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c88a09b4-6478-4c68-87f0-485dc6634af2@amd.com>
+X-ClientProxiedBy: KUZPR06CA0014.apcprd06.prod.outlook.com
+ (2603:1096:d10:30::10) To BL0PR12MB2370.namprd12.prod.outlook.com
+ (2603:10b6:207:47::27)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1] ACPI: fan: Use devm_acpi_install_notify_handler()
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
- Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
-References: <2866967.mvXUDI8C0e@rafael.j.wysocki>
-Content-Language: en-US
-From: Armin Wolf <W_Armin@gmx.de>
-In-Reply-To: <2866967.mvXUDI8C0e@rafael.j.wysocki>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:7bxARe5lRfNj6OUTN31P+1HFm24nTv5VTK/QfOx7rP/0XjKuzYA
- 7++IBxifTjRU2y/7ktGUOQJksOT9IZQZqUjo+ZVyXBUSuz2FssmkEt8GRvLs7NoNyKQImth
- QSyu4mKVLWrw5zPGMzJkgYCejvloS6uFV7qTGQ1Bb/8GVCshGTYm2fd9ls1DRmK31EqdVH4
- OjCBPSn3Lq9FIjlXzNpwA==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:p5MZcZVQvPw=;U/l9axy9kp1hCZdUR5VOAcLBRd6
- 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
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL0PR12MB2370:EE_|SJ2PR12MB8953:EE_
+X-MS-Office365-Filtering-Correlation-Id: 77f03d47-3950-4afe-0593-08dedd5aa62d
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|366016|376014|23010399003|1800799024|6133799003|4143699003|11063799006|56012099006|5023799004|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	sJhHaITcudI+m6WKtQw4RH2Ni9E+I0AskRJ65HaF/hV5HlwHaTJGnM/gzfg2eY6xl06fQgS1mlYTA+Da0N+ET12hHsON62dq0s5K9ofifaTPvkqCi7Uu30Y/0L21zUau49zsdkob1ThvEbWM+hSZD4EV7laopMBbLhaGCMe1gWUi7GeoU3e6UtuVpcyARTGIhOAVJ896tuoYKSASVju1iuWaRRDVgH4Nn9LkbUaOHR0ik1R/y43ptgjKvvTG1qg0yLxBGNTfzMqnVoT0adVDlikuDfnDzVOXw2iOmgeX4gHW6sCDHhF++RHIMjVLcMFQNqKBfBTB45kUVJh9A8D91MRD9ShEBN6xdxlTfjbBNaFgAaS6X7IWsKPZzX/KhUYmJeY/dPXsI5CRCGAqeFYa9KXNc9VNmTyABBhBkGk8tI1vi7JX8LZ3jrcjdp/6p9fV2yCnrnjnM39JD25EQXX5F/3k5aGyBRxfDhj70N9olCR3xxuVFAFn87456pmAI8onsnS5zRCLPpvnIXJxjy+U4DEBv6WHmDs64z82FEsF0Ph8MEMzcN4vchhLI9zcoR1gaH1V7+mrpm8cG6OyLh7bpV3/KRqen1WPb2iiBaY2UtYaYpHGevti4r0uSugc4uphSIo0p2Q+XpoQgkOe+yzlaJGNqWUsNjjACZLSXQzKjRs=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR12MB2370.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(23010399003)(1800799024)(6133799003)(4143699003)(11063799006)(56012099006)(5023799004)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?paDvBSd8Xi+vIK2lvNFDacP3JhhGC6ZTaSh7cP6skoIEtiojziJ+NJ6Jqeat?=
+ =?us-ascii?Q?JXzpPmIlsLMZm6FiwupnbL7J8In+LDdANAMSM/YlsBNFl62R0CWkFoK8eZSF?=
+ =?us-ascii?Q?Q8JueI1N8UWNj2ut4BflpkgH725UnmX0Y7Tj4Xh9za7kl7zmSc2AbUHeTEDa?=
+ =?us-ascii?Q?CYSDUSGJW3TPnmDXTnznXW695YF7KkdP3c0un/l1g/4qRQyhWv8NcaQ88ve3?=
+ =?us-ascii?Q?buhvcDVyVeqJe2IzUldFO9Cd4Q+QLd/IThGdJ42JqY0Xru3nOJ7Ek/UpNe9P?=
+ =?us-ascii?Q?Zdd2D57D776hY2jnm1kMdYSpCHQgEqUH6MFFbq/eQW8LjmnGhq840Gye3aXL?=
+ =?us-ascii?Q?aQ1+qlE8PjT2y0XQclr1Z9R3QnKUKRyKRJHHqc1qCeh5ltC+IRKYHWFO0G8i?=
+ =?us-ascii?Q?IdRFCg//2+hN/ppIRVBik0WYhR35AzbuY4C9wttZGX+Y5XPvyXDfcm8Nf+GM?=
+ =?us-ascii?Q?yztkcQaGzdHBoAi6U6Ii7uvJYOGbAt5Y8xf/fH4sVLDXN27t0PI+ZB+77cxa?=
+ =?us-ascii?Q?z9Id189vahM79nuPZWiiXDGWd2kC212eU41gu/xh1WKvvOrRg0brV38HZ62Y?=
+ =?us-ascii?Q?H7LMCpoA9cJxf2drAgIQogNJqD5ycBhmqgsJ3rdaoyvyl37gr9PBPk2bGaCW?=
+ =?us-ascii?Q?AC1P8R5SqJedx24tVc6neQxbt/h71imnbVlpdNjXDiva9bn+on8p62eVHsk1?=
+ =?us-ascii?Q?dz1dfbk/TuVXA7HeYFIoDBwRGJsgNlxabtwH6M4zIP8km3in9+AqYMS3HceL?=
+ =?us-ascii?Q?78CcVl/60y7MVDLybV0ZzzudKoYHzZsiYkOx04348Z+g7kLdU6eOJkiUIwoy?=
+ =?us-ascii?Q?+1zmwejc8d5stOdQkvKHjYZWTzZtg5fnpHhC0SkP+HU05XrLNqy/AjIWlOlq?=
+ =?us-ascii?Q?YSNHEnw3Oj9tYIbfUFAy+Wh+WwXTKTUzuTB4ERxzq/uhsGd5LpuSP0qKQ0Ow?=
+ =?us-ascii?Q?J0yMpLRMMIa14UNO4yxjJZ1I+qridKVb8ukXJbbDDs6ceuEDo3GFx5LRL5Gp?=
+ =?us-ascii?Q?dkUuj7LnPYHAFdzPIOrU4nPcHM1lroyAU5zE4R+XtyCPsWGhSWY9naUWw2St?=
+ =?us-ascii?Q?8Ffcr1A6BqQZtmzcQNnoB3A/LV/oc0VvtQ7GRZhFMHwdeJAlPNie5ce5xbfw?=
+ =?us-ascii?Q?Dq1lMKCoAviYKsgPFxxFWWwVEQKQXXC7ppWptZm+QPzuyG9cczlOoScgu5tQ?=
+ =?us-ascii?Q?WZMwgZJA8a/CtyCaTJpN19g39Fn/a/keia3SJQvZ0KHVlgCKagQ00QU1PnV+?=
+ =?us-ascii?Q?9CZBNlRUPRqJpRYEW4xexPxoQ8CjyFTFno33R/KFuK6gLwU+lXfWTcfH0zy1?=
+ =?us-ascii?Q?ryX9027dFc2h8jP633RG/Hbczjeyx6s7aB8TK1WhSzMU2HFjsZ5xlOe0QJGf?=
+ =?us-ascii?Q?ePfr9/bC8Qm0hBu3xfnzPf7rMwN2WFqUEsSnyfJ1LA4t65OkjuGBI81+4nE4?=
+ =?us-ascii?Q?WvFKS6550YJhkERaqsxsKuUzfs+k/4A7n/aoBldmsLYu4SzLWxxybpj9sD98?=
+ =?us-ascii?Q?kCpfukiZue/dglWGDG65HK/wUvCUQY/mJ+DkUsVVJCMMoWwwo2iqHNa1AUKM?=
+ =?us-ascii?Q?AYR4kv5qOovmov6S/M7LMKB6ZmVOmILp7SHoHOy605tXLw7lFFZolBVRZIRm?=
+ =?us-ascii?Q?5gHP72HsEhmzEwVmNB3Nhj66oUhCc0zzHK8LQt72qLY5I6DosRKwtzd94iUm?=
+ =?us-ascii?Q?FhS6D7Q8pPf2kRN8X4JfkmWesr7nfU5p+C0eCl1SC+vBY05A?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 77f03d47-3950-4afe-0593-08dedd5aa62d
+X-MS-Exchange-CrossTenant-AuthSource: BL0PR12MB2370.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Jul 2026 01:37:34.2002
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: fdIp1V/ksXDp54oz0BIZ59xm38PO4gOlNKC0dnn6sxgiSrHziIafcaAJjyNIDEP6yyjsorievof7RzUy3UIcLw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR12MB8953
 
-Am 08.07.26 um 20:35 schrieb Rafael J. Wysocki:
+On Mon, Jul 06, 2026 at 07:57:09AM +0800, Alejandro Lucero Palau wrote:
+> 
+> On 7/2/26 08:20, Richard Cheng wrote:
+> > On Tue, Jun 30, 2026 at 03:35:07PM +0800, alejandro.lucero-palau@amd.com wrote:
+> > > From: Alejandro Lucero <alucerop@amd.com>
+> > > 
+> > > Remove __meminitdata from hmat_adist_nb declaration preserving it even
+> > > when CONFIG_MEMORY_HOTPLUG is not set. Otherwise further notifier
+> > > registrations using register_mt_adistance_algorithm() will find a
+> > > notifier chain likely corrupted. This is the case when a CXL Type2
+> > > driver will load after kernel initialization and a CXL region created from
+> > > its committed HDM decoders registers an mt_adistance_algorithm notifier.
+> > > 
+> > > Signed-off-by: Alejandro Lucero <alucerop@amd.com>
+> > > ---
+> > >   drivers/acpi/numa/hmat.c | 2 +-
+> > >   1 file changed, 1 insertion(+), 1 deletion(-)
+> > > 
+> > > diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
+> > > index 9792dc394756..3006789ae31f 100644
+> > > --- a/drivers/acpi/numa/hmat.c
+> > > +++ b/drivers/acpi/numa/hmat.c
+> > > @@ -995,7 +995,7 @@ static int hmat_calculate_adistance(struct notifier_block *self,
+> > >   	return NOTIFY_STOP;
+> > >   }
+> > > -static struct notifier_block hmat_adist_nb __meminitdata = {
+> > > +static struct notifier_block hmat_adist_nb = {
+> > >   	.notifier_call = hmat_calculate_adistance,
+> > >   	.priority = 100,
+> > >   };
+> > > -- 
+> > > 2.34.1
+> > > 
+> > > 
+> > I think this is not limited to CXL type 2 device.
+> > cxl_region_probe() already calls register_mt_adistance_algorithm(), and CXL_REGION
+> > depends only on SPARSEMEM, not MEMORY_HOTPLUG, so with NUMA=y, MEMORY_HOTPLUG=n, CXL_ACPI=y and CXL_REGION=y,
+> > any runtime CXL region probe walks the chain. I would suggest some tweak for commit message.
+> > Also adding Fixes: 3718c02dbd4c ("acpi, hmat: calculate abstract distance with HMAT")
+> 
+> 
+> I think you are right. I did say it was not affecting Type3 because I was
+> assuming only Type3 regions created during CXL core initialization and
+> cxl_mem "active" before after-initialization kernel memory release. I will
+> add what you suggest.
+> 
+> 
+> > 
+> > And maybe keep unconditional removal rather than a consumer-keyed attribute.
+> > register_mt_adistance_algorithm() is callable by any runtime module,
+> > not just CXL, so a CONFIG_CXL_MEM-keyed condition would  still leave the hole
+> > for other callers.
+> 
+> 
+> Not sure what you mean here. The way I understand your comment leads to
+> contradictions ...
+> 
+> 
+> "keep unconditional removal" suggest to me unregistering hmat_adist_nb but
+> "keep" confuses me as it is not unregister now only memory released based on
+> __meminitdata ... but maybe you mean exactly what I did and avoid any change
+> to __meminitdata declaration based on a config attribute, what is what Dave
+> is suggesting to explore.
+> 
+> 
+> Please, could you clarify this?
+>
 
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
->
-> Replace the custom open-coded devres-based management of an ACPI notify
-> handler with devm_acpi_install_notify_handler().
->
-> No intentional functional impact.
+Sorry for the ambiguity, and yes, the last reading is what I meant.
+I mean your patch's removal of the "__meminitdata", not unregistering
+the notifier.
+I think it would be better not to replace it with a conditional macro.
 
-Reviewed-by: Armin Wolf <W_Armin@gmx.de>
+To be more clear about what I understand,
+1. with MEMORY_HOTPLUG=n, "__meminitdata == __initdata", so hmat_adist_nb
+   lives in ".init.data"
+2. hmat_init() registers it, the mt_adistance_algorithms chain will hold a pointer to it, nothing ever unregister it.
+3. When boot finishes, free_initmem() discards all ".init.data". The chain still points at that freed memory.
+4. Any later register_mt_adistance_algorithm() call walks the chain and deref that stale pointer , causing use-after-free
 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->   drivers/acpi/fan_core.c |   25 ++++---------------------
->   1 file changed, 4 insertions(+), 21 deletions(-)
->
-> --- a/drivers/acpi/fan_core.c
-> +++ b/drivers/acpi/fan_core.c
-> @@ -489,26 +489,6 @@ static void acpi_fan_notify_handler(acpi
->   	}
->   }
->  =20
-> -static void acpi_fan_notify_remove(void *data)
-> -{
-> -	struct acpi_fan *fan =3D data;
-> -
-> -	acpi_remove_notify_handler(fan->handle, ACPI_DEVICE_NOTIFY, acpi_fan_n=
-otify_handler);
-> -}
-> -
-> -static int devm_acpi_fan_notify_init(struct device *dev)
-> -{
-> -	struct acpi_fan *fan =3D dev_get_drvdata(dev);
-> -	acpi_status status;
-> -
-> -	status =3D acpi_install_notify_handler(fan->handle, ACPI_DEVICE_NOTIFY=
-,
-> -					     acpi_fan_notify_handler, dev);
-> -	if (ACPI_FAILURE(status))
-> -		return -EIO;
-> -
-> -	return devm_add_action_or_reset(dev, acpi_fan_notify_remove, fan);
-> -}
-> -
->   static int acpi_fan_probe(struct platform_device *pdev)
->   {
->   	int result =3D 0;
-> @@ -556,7 +536,10 @@ static int acpi_fan_probe(struct platfor
->   		if (result)
->   			return result;
->  =20
-> -		result =3D devm_acpi_fan_notify_init(&pdev->dev);
-> +		result =3D devm_acpi_install_notify_handler(&pdev->dev,
-> +							  ACPI_DEVICE_NOTIFY,
-> +							  acpi_fan_notify_handler,
-> +							  &pdev->dev);
->   		if (result)
->   			return result;
->  =20
->
->
->
+Note that, register_mt_adistance_algorithm() is an exported API, so any module
+loaded at runtime can trigger it, not only CXL. Dropping __meminitdata
+unconditionally closes the use-after-free for all caller, and the cost is just
+one notifier_block staying resident.
+
+Hope this clarify my point.
+
+Best regards,
+Richard Cheng.
+ 
+> Thank you,
+> 
+> Alejandro.
+> 
+> 
+> > 
+> > What do you think ?
+> > 
+> > Best regards,
+> > Richard Cheng.
