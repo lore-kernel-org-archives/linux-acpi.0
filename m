@@ -1,76 +1,314 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C09FE4219F6;
-	Thu,  9 Jul 2026 12:24:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 370D816CD33;
+	Thu,  9 Jul 2026 12:47:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783599855; cv=none; b=jnV3iXHPnUPNX/9OqoPrLJFTjrE5S3D0voRrQgNcNQxIviequUKxVW4tA3YyTeNkExsUap+Ugf55lKESNIs5pLedmjFSTFYjJsqRfGBgleO61+KAiOuWGlMHjubOWAn4NTqedEwtGNpneGPszeuRNvhVme89Pdj8w8J4sve73Hs=
+	t=1783601231; cv=none; b=Y5nYsD7l4Aj5ttq4EFMYsgahIGY3wKWDasQPB03gOfrEOrUuOTdAYaZyOV5PEIq2Ry9W/YWlWT2spvmQ1M7qhhsz04j2/7eOv2hIR4bk9awdWmNvk8gKO+puZys7AYGmEnC12HxcYdaKx+RT3eyI9vPQGftfscLIk9lyiFtxrMk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783599855; c=relaxed/simple;
-	bh=5z/e/UC0S3lKS6QDGR1l9aicIuft4tIPn4m1W/ytd6w=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=YdpI5/HNcbbNy9jzxWHrTRJe+owf2lGwJieaZlG75u7eS/mQuhO5lSHXK2koVVLDOmDP+mf11i72dGnuWjOBRrpSCxohKxt6y0Li9yPRqPmED86jK1wUAgbUB3vjOD2/33IRFSqxAJVFLINUAI5a5MDgSFzAvdGEU7qUzB4I7FU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=csBBvSH+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783601231; c=relaxed/simple;
+	bh=RqPj0YFbKDhB3/wDfgSffnHt5nSjMkbEFxO3ngqPlws=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=isFsIR0igDYJhyvse/oLBw53l1nJ44fXNH3UzWWeBYNzm76DdWZDmcCbWIsfO2eLQYDjB1XOUuPdlE9sJ1zE6/S2ygUJxQgD8ee+1vuEa1pqj1rBppwcpDh4T0kZnb1PKcmvh+joJdi60qG/6jMkR6G+iXFhBrDcgdNWORsoUj8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HKmohhnV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="csBBvSH+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BD981F000E9;
-	Thu,  9 Jul 2026 12:24:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HKmohhnV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A8BE1F000E9;
+	Thu,  9 Jul 2026 12:47:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783599853;
-	bh=nsBdVe+BPLqfbUkni7bW8fIt0BKBwJcT2qc4fGpTEwY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=csBBvSH+dKe/dyH6flzkB+8Hz6wqFEcqmXbhfJAin3fucFxRL5Q41YHasReVJn4HE
-	 MB8iQeThCNabeXcrQF7su4N3l5I+ZKx74OgQZYw6xlKF3jHVrWFdOtKTv3wcIOPP8B
-	 QcqrejlWJ6BoFj613BkBkTYAZip1n2kHUexvEDLJY6l+LYgCl/LaVvwAMKsz7NGT72
-	 KUtd7+MgVe3WXNt0QnI0+ZkkJiKo3SE/4HgNhJWJUIofj9Ngl9A5RtbkcavuibCTVG
-	 BYVSkcTFdJeqB2X/lhbm1vEcC4xsK1mV79U8Y/YrDBzaWrQUTPTT3kcN/0oBvu4yIa
-	 GD46egwjs1ELw==
-Date: Thu, 9 Jul 2026 13:24:10 +0100
-From: Sudeep Holla <sudeep.holla@kernel.org>
-To: Huisong Li <lihuisong@huawei.com>
-Cc: jassisinghbrar@gmail.com, linux-kernel@vger.kernel.org,
-	Sudeep Holla <sudeep.holla@kernel.org>, linux-acpi@vger.kernel.org,
-	linuxarm@huawei.com, zhanjie9@hisilicon.com
-Subject: Re: [PATCH v2] mailbox: pcc: Fix command timeout due to missed
- interrupt
-Message-ID: <20260709-thick-quirky-dog-edfcf1@sudeepholla>
-References: <20260709114115.3113315-1-lihuisong@huawei.com>
+	s=k20260515; t=1783601229;
+	bh=JbG2h3jnj+vL2iClUiJRiVWBkQ8rDIjnoaLh6YzF+PU=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=HKmohhnVoeYtd/ucxqYVFIdmXo7eOha8ZJU97i0Fphtuu7wvFR64p9UFYcI7z5GID
+	 Tl1LF13Kbu04owzuZFNUbgZbK4mPh86DdtYKQHLUSAxwtUP3n866e711lUkULW2rkn
+	 +QntM4OH03np8nsbTB8tx3VJYuYN/zqhDb1FJB/KIJwAWiQ4b6T2wo7h1LQkU+PQGc
+	 Vdvi/NHY6yt34XTdn2pJ3bjPrypmYHcTQfCQ+FcXiaNX6b7zVEIlY9QsjrpDG1TIbE
+	 SxGMLxxqEZo0DRSjiz1PsYq3mkhhvH5SHfgWYgtR+NFB3785KwX2wEhumtYRgeI62E
+	 +To19x6meCHCQ==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux PM <linux-pm@vger.kernel.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
+ Sudeep Holla <Sudeep.Holla@arm.com>
+Subject: [PATCH v1 17/17] intel_idle: Add ACPI _LPI support
+Date: Thu, 09 Jul 2026 14:44:23 +0200
+Message-ID: <2280567.Icojqenx9y@rafael.j.wysocki>
+Organization: Linux Kernel Development - Intel
+In-Reply-To: <4746278.LvFx2qVVIh@rafael.j.wysocki>
+References: <4746278.LvFx2qVVIh@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260709114115.3113315-1-lihuisong@huawei.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-On Thu, Jul 09, 2026 at 07:41:15PM +0800, Huisong Li wrote:
-> PCC command execution can time out when a fast platform completes a
-> transaction and signals the platform interrupt before pcc_send_data()
-> marks the channel as in use. For shared platform interrupts, the type 3
-> handler uses chan_in_use to decide whether the interrupt belongs to the
-> channel. If it observes false, it ignores the completion and the caller
-> waits until timeout.
-> 
-> Publish chan_in_use before ringing the doorbell. Use WRITE_ONCE() for
-> the lockless flag update and READ_ONCE() in the interrupt handler when
-> filtering shared interrupts. The following ordered MMIO accessor used for
-> the doorbell keeps the earlier store visible before the platform is
-> notified.
-> 
-> Clear chan_in_use with WRITE_ONCE() when completing the transaction,
-> matching the lockless flag protocol used by the interrupt and send paths.
-> 
-> Fixes: 3db174e478cb ("mailbox: pcc: Support shared interrupt for multiple subspaces")
-> Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
-> Signed-off-by: Huisong Li <lihuisong@huawei.com>
-> Reviewed-by: Sudeep Holla <sudeep.holla@kernel.org>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Sorry if I gave mixed feedback, you can't have both my signoff and reviewed-by
-at the same time. You need to drop one of them.
+Allow intel_idle to use idle states information coming from ACPI _LPI
+objects by making it call acpi_processor_extract_lpi_info() and, if
+that is successful, using the list of idle states produced by that
+function instead of the one coming from acpi_processor_evaluate_cst().
 
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/idle/intel_idle.c | 160 ++++++++++++++++++++++++++++++++------
+ 1 file changed, 138 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
+index fedaa8142121..bcc2725769c5 100644
+--- a/drivers/idle/intel_idle.c
++++ b/drivers/idle/intel_idle.c
+@@ -1779,6 +1779,7 @@ module_param_named(no_native, no_native, bool, 0444);
+ MODULE_PARM_DESC(no_native, "Ignore cpu specific (native) idle states in lieu of ACPI idle states");
+ 
+ static struct acpi_processor_power acpi_state_table __initdata;
++static bool acpi_lpi_available __initdata;
+ 
+ /**
+  * intel_idle_cst_usable - Check if the _CST information can be used.
+@@ -1803,18 +1804,37 @@ static bool __init intel_idle_cst_usable(void)
+ 	return true;
+ }
+ 
+-static bool __init intel_idle_acpi_cst_extract(void)
++static bool __init intel_idle_acpi_extract_lpi_cstates(void)
+ {
+ 	unsigned int cpu;
+ 
+-	if (no_acpi) {
+-		pr_debug("Not allowed to use ACPI _CST\n");
+-		return false;
++	for_each_possible_cpu(cpu) {
++		struct acpi_processor *pr;
++
++		pr = per_cpu(processors, cpu);
++		if (!pr)
++			continue;
++
++		if (acpi_processor_extract_lpi_info(pr->handle,
++						    &acpi_state_table, true))
++			continue;
++
++		acpi_lpi_available = true;
++		return true;
+ 	}
+ 
++	pr_debug("No ACPI _LPI idle states\n");
++	return false;
++}
++
++static bool __init intel_idle_acpi_extract_cst_cstates(void)
++{
++	unsigned int cpu;
++
+ 	for_each_possible_cpu(cpu) {
+-		struct acpi_processor *pr = per_cpu(processors, cpu);
++		struct acpi_processor *pr;
+ 
++		pr = per_cpu(processors, cpu);
+ 		if (!pr)
+ 			continue;
+ 
+@@ -1826,14 +1846,36 @@ static bool __init intel_idle_acpi_cst_extract(void)
+ 		if (!intel_idle_cst_usable())
+ 			continue;
+ 
+-		if (!acpi_processor_claim_cst_control())
+-			break;
++		return true;
++	}
++
++	pr_debug("ACPI _CST not found or not usable\n");
++	return false;
++}
+ 
++static bool __init intel_idle_acpi_extract_cstates(void)
++{
++	if (intel_idle_acpi_extract_lpi_cstates())
++		return true;
++
++	if (intel_idle_acpi_extract_cst_cstates())
+ 		return true;
++
++	return false;
++}
++
++static bool __init intel_idle_acpi_probe(void)
++{
++	if (no_acpi) {
++		pr_debug("Not allowed to use ACPI for C-states extraction\n");
++		return false;
+ 	}
+ 
++	if (intel_idle_acpi_extract_cstates() &&
++	    acpi_processor_claim_cst_control())
++		return true;
++
+ 	acpi_state_table.count = 0;
+-	pr_debug("ACPI _CST not found or not usable\n");
+ 	return false;
+ }
+ 
+@@ -1847,7 +1889,53 @@ static void __init intel_idle_complete_state_init(struct cpuidle_state *state)
+ 	state->enter_s2idle = intel_idle_s2idle;
+ }
+ 
+-static void __init intel_idle_init_cstates_acpi(struct cpuidle_driver *drv)
++static void __init intel_idle_init_cstates_acpi_lpi(struct cpuidle_driver *drv)
++{
++	int index;
++
++	for (index = 0; index < acpi_state_table.count; index++) {
++		struct acpi_lpi_state *lpi_state;
++		struct cpuidle_state *state;
++
++		if (intel_idle_max_cstate_reached(index))
++			break;
++
++		lpi_state = &acpi_state_table.lpi_states[index];
++
++		state = &drv->states[drv->state_count++];
++
++		scnprintf(state->name, CPUIDLE_NAME_LEN, "C%d_LPI", index + 1);
++		strscpy(state->desc, lpi_state->desc, CPUIDLE_DESC_LEN);
++		state->exit_latency = lpi_state->wake_latency;
++		state->target_residency = lpi_state->min_residency;
++		state->flags = MWAIT2flg(lpi_state->address);
++		/*
++		 * Assume that entering any of the idle states extracted from
++		 * _LPI except for the first two will cause the TLB to be
++		 * flushed and let the core call leave_mm() for them upfront
++		 * to avoid unnecessary wakeups due to TLB shootdowns.
++		 */
++		if (index > 1)
++			state->flags |= CPUIDLE_FLAG_TLB_FLUSHED;
++
++		if (disabled_states_mask & BIT(index + 1))
++			state->flags |= CPUIDLE_FLAG_OFF;
++
++		intel_idle_complete_state_init(state);
++
++		pr_info("%s: MWAIT hint 0x%x\n", state->name, flg2MWAIT(state->flags));
++	}
++
++	/*
++	 * Assume the first idle state in the table to be C1 and if any deeper
++	 * idle states are exposed while X86_FEATURE_NONSTOP_TSC is unset, mark
++	 * the TSC as unstable.
++	 */
++	if (index > 1 && !boot_cpu_has(X86_FEATURE_NONSTOP_TSC))
++		mark_tsc_unstable("TSC halts in idle");
++}
++
++static void __init intel_idle_init_cstates_acpi_cst(struct cpuidle_driver *drv)
+ {
+ 	int cstate, limit = min_t(int, CPUIDLE_STATE_MAX, acpi_state_table.count);
+ 
+@@ -1896,6 +1984,14 @@ static void __init intel_idle_init_cstates_acpi(struct cpuidle_driver *drv)
+ 	}
+ }
+ 
++static void __init intel_idle_init_cstates_acpi(struct cpuidle_driver *drv)
++{
++	if (acpi_lpi_available)
++		intel_idle_init_cstates_acpi_lpi(drv);
++	else
++		intel_idle_init_cstates_acpi_cst(drv);
++}
++
+ static bool __init intel_idle_acpi_hint_match(unsigned int flags, u32 acpi_hint,
+ 					      u32 table_hint)
+ {
+@@ -1906,18 +2002,23 @@ static bool __init intel_idle_acpi_hint_match(unsigned int flags, u32 acpi_hint,
+ 	return acpi_hint == table_hint;
+ }
+ 
+-static bool __init intel_idle_off_by_default(unsigned int flags, u32 mwait_hint)
++static bool __init intel_idle_off_by_default_lpi(unsigned int flags, u32 mwait_hint)
+ {
+-	int cstate, limit;
++	int index;
+ 
+-	/*
+-	 * If there are no _CST C-states, do not disable any C-states by
+-	 * default.
+-	 */
+-	if (!acpi_state_table.count)
+-		return false;
++	for (index = 0; index < acpi_state_table.count; index++) {
++		u32 acpi_hint = acpi_state_table.lpi_states[index].address;
++
++		if (intel_idle_acpi_hint_match(flags, acpi_hint, mwait_hint))
++			return false;
++	}
++	return true;
++}
++
++static bool __init intel_idle_off_by_default_cst(unsigned int flags, u32 mwait_hint)
++{
++	int cstate, limit = min_t(int, CPUIDLE_STATE_MAX, acpi_state_table.count);
+ 
+-	limit = min_t(int, CPUIDLE_STATE_MAX, acpi_state_table.count);
+ 	/*
+ 	 * If limit > 0, intel_idle_cst_usable() has returned 'true', so all of
+ 	 * the interesting states are ACPI_CSTATE_FFH.
+@@ -1931,6 +2032,21 @@ static bool __init intel_idle_off_by_default(unsigned int flags, u32 mwait_hint)
+ 	return true;
+ }
+ 
++static bool __init intel_idle_off_by_default(unsigned int flags, u32 mwait_hint)
++{
++	/*
++	 * If there is no C-states information in the ACPI tables, do not
++	 * disable any C-states by default.
++	 */
++	if (!acpi_state_table.count)
++		return false;
++
++	if (acpi_lpi_available)
++		return intel_idle_off_by_default_lpi(flags, mwait_hint);
++
++	return intel_idle_off_by_default_cst(flags, mwait_hint);
++}
++
+ static inline bool ignore_native(void)
+ {
+ 	return no_native && !no_acpi;
+@@ -1938,7 +2054,7 @@ static inline bool ignore_native(void)
+ #else /* !CONFIG_ACPI_PROCESSOR_CSTATE */
+ #define force_use_acpi	(false)
+ 
+-static inline bool intel_idle_acpi_cst_extract(void) { return false; }
++static inline bool intel_idle_acpi_probe(void) { return false; }
+ static inline void intel_idle_init_cstates_acpi(struct cpuidle_driver *drv) { }
+ static inline bool intel_idle_off_by_default(unsigned int flags, u32 mwait_hint)
+ {
+@@ -2750,7 +2866,7 @@ static int __init intel_idle_init(void)
+ 	if (icpu) {
+ 		if (icpu->state_table)
+ 			cpuidle_state_table = icpu->state_table;
+-		else if (!intel_idle_acpi_cst_extract())
++		else if (!intel_idle_acpi_probe())
+ 			return -ENODEV;
+ 
+ 		auto_demotion_disable_flags = icpu->auto_demotion_disable_flags;
+@@ -2759,8 +2875,8 @@ static int __init intel_idle_init(void)
+ 		if (icpu->c1_demotion_supported)
+ 			c1_demotion_supported = true;
+ 		if (icpu->use_acpi || force_use_acpi)
+-			intel_idle_acpi_cst_extract();
+-	} else if (!intel_idle_acpi_cst_extract()) {
++			intel_idle_acpi_probe();
++	} else if (!intel_idle_acpi_probe()) {
+ 		return -ENODEV;
+ 	}
+ 
 -- 
-Regards,
-Sudeep
+2.51.0
+
+
+
+
