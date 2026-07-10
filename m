@@ -1,196 +1,230 @@
-Received: from mail-lf1-f42.google.com (mail-lf1-f42.google.com [209.85.167.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 261573EF0D0
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 08:24:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.42
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783671881; cv=pass; b=Td58UWcqmB60WuuGR4eHTBm+4OWFsTqQrNvNnqlpVROVoTLU2CvzEVt+YrwZW5tWzpnxFB+iez2KFP5dMRjoVo0NQ+Dd2MwO5cwUZ7B/XWvPe0U3DK+pUi2+ikzkh62bLV/4LUUw0FWhCdlI02A1mbPZi5hpAUGPvT5xJM1YC3Q=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783671881; c=relaxed/simple;
-	bh=HFRxqkTILC1gTa2YZXlrdLlbvcZEhSZmE8LdUsNk7Z4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=khx+8jJBu9j2nGjanIDEvOBtsjB2pMRl4EEgvq+8+VDAGtpOUjUXbmnHuFbPOEk9ykuEklfoSJ+b8dUHU8brkWZ5FbWU/o6n+Y57Foy4f3nZD53MMROoetWH604Z8HoXaHLxxvuHQ0rKt6YKl8SIBpOu0CYoosYo5dgT8iRTWA4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EKesCdPA; arc=pass smtp.client-ip=209.85.167.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3AA3015C14F;
+	Fri, 10 Jul 2026 09:10:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783674649; cv=none; b=kLM4pt3+ZU9J9DkYCNUD4IuIgQ/46q/EEO/1Indf+5zdwCykcSY5G9zr6WM+dL75de0xyx5yIcJClvo7K0P3W+4sZQ71RYhdO91XX+T0mqjQdQ0SAQj9RhQON0VZElMbjDV7/TTDiqZybLS4d2s73mS2MstOXwfdqPDiDYq8T6w=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783674649; c=relaxed/simple;
+	bh=tuoLyvlOHXB9mesLRzz5sRHL2smGtaXCkV71zVJ9dBs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=UHU3X3hmeBQPrX5SadWya11z0jN+K0Ou9zd0YNzVl/w5xZJWpt1HU3r9EUYeujggyWmILBK+mv/desTu132w73QQ/NjAwYguokWeeCuHid3Km4uCD5/+VGl/3Ebo81mRviV96XZ0fU7l3ac3vEPHbJ3YQUNa/JpLOFDBeSVf7Ss=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=XjTzAOUb; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EKesCdPA"
-Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-5aeae350e0aso768113e87.1
-        for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 01:24:39 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1783671878; cv=none;
-        d=google.com; s=arc-20260327;
-        b=o3Z8J3g1gmseDlYFk06FJ+rFqsrpZr440ji2WZX5XSq5f9YZkyMB7r3rwzdb24hGEd
-         jDQYs2MDIxT/YqypbFPUexak+zkFvNdKlxSt6Z9GnSbCxqFnB8HV9tzZkMwJjgdRLirL
-         YTY1xe3+yoblvhNirKthUa00Sr1QZEQw57sABCcpZKSVFe5+yQJ6yox31/FqUB8zAJX+
-         8D8IdtOiwRG2PKPEytkrUEtHDfSNJGEzYxTC67HMD6ufC4jFOASbCm5/WGZ80TcPUQLp
-         +/e+HJhkFGDjTQerHa+FqrALypXoGu0ly9rCAYpxuIGP+D5v9OFHpfWHSdGPPlmSJO2A
-         +ucg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=xgYmC/leQRqXDMOV+U09FDj6ipD6P/O6AkutlI1vKbo=;
-        fh=WURvFtK24b6OBXQPzvcb8UTHxC0N7XXrffzMicH6vp4=;
-        b=LIBxgz93Zei4wWQSyU55QYhsPKdQbPLR2/IFEdbJrvNx1qKRcNsPr7PXXQmfeSwOZZ
-         p0dvCWBbmGygFerSN3A8zc0Bfyj0i8h7ACs1A8fGM6VD+0Gl+jsaAfxHSO171tj3PhR8
-         5kDG3VxKOZ4DuNlB2RpGYBzjHwxz19nroYpGoWgSL4oNQqY5YJaMjzTONLvJd3SCUmOe
-         9pYD0soDKucdqCmurpNeQevRPzYqHjbQVt6e9SdMikFBNLin6Jm9Z9sxLOUdxUXRk2y+
-         JBeUSiQDVYzHoCkaym8dfAELgc/05lQMkzY1nYrzKhlbKkp2mNcVpO6HSd0PEDT6qjmh
-         ocMA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1783671878; x=1784276678; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=xgYmC/leQRqXDMOV+U09FDj6ipD6P/O6AkutlI1vKbo=;
-        b=EKesCdPAaMSxBGa+Xno06lngrxbiLCTdATP428lvNntbiY755dAR6BHmFvSYvgwUkr
-         uoFg/ys7wUCRTUDg/I3mHpjI3Z8XSqiuvtsDwhI7nh+U47GfldTg+NMDp3hESwMTyA0+
-         YhExn4R2R+HzuH7DXG6L6hdXeC8HwDXoSgI5sdMtiQH1CYeR2oLfUWjmpJp0MBe2cBPk
-         G94W7hLekDfsABMqCfr24vdzorD1BjB2sGXqUUw7ICGA5WQxIWd6dXpATZGEzTKqN5/8
-         /Z4MCeTClPzZAoDQDE09tyPsXr2C2nr97vEK/+HA0G9eMFRzke2LdUtsuCh7bWPOv7Ix
-         A4mw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783671878; x=1784276678;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=xgYmC/leQRqXDMOV+U09FDj6ipD6P/O6AkutlI1vKbo=;
-        b=EiBfjPYn1ErUnF/s4rQLNev/KRIgEIvZP9SkFQcW8UkssF2gbsV9Ksc6ZBsLo0vCt4
-         fTiA5obHShhftGVH/E9ww2Rk4dYa/pC5Zs2pDTVbK1dO+B59sRsPF5r1PqkSg2qEjUMF
-         W/4xvUSjrRhSjo5uqNLic2klAHhthTWkuG1/y/4TZ4Jz7H9B5waHeYbbfOf0Q/gC3/OW
-         Kmwbqu7ZHwaJiF8A08ht6wMiJmwS4ITzmG/jg7votLgG7/C31+8yLlzs6t0YzdFdMZS0
-         uuO3I9h++hg6/h8MXcZKfl8eIZvUAMexB/uQ7AnlQEYErjdJpPR8WdceoNKrV5INohe0
-         g4PA==
-X-Forwarded-Encrypted: i=1; AHgh+RooH18Pk+0dW/BA1MPko3GNP6+7QDyJYJ84w1pyJplHGiptQmSDGSGnOTmevsAurDYBXVLVvIWT0zUO@vger.kernel.org
-X-Gm-Message-State: AOJu0YzMavO7fp3HRzShsHTRDLKdwN+atgW/sYSmHzJOwY8dW+wO1/BW
-	T/W3lVTgoyxUxua3zOQ54M0QJ/7VMvywmrK73K53350IcFaezg2J4Qv9X986EdJWVkEA5vs4/MC
-	lRGvI3/v0N1uH0AWu1Q90a10A+2uRITk=
-X-Gm-Gg: AfdE7cmww+sI/XxKz0PIqmg+chU2blCtSnvYj8ioa/0Sb/tLJc87rsTEioolBValKYW
-	385BePBgkqAFZRLB8KxO9kZFOgVXzncA4OF1Lljux+3H1naksp35dict/VKcqHz0yAoGZU8VmYb
-	PWGkAcJPC/qkvwOWTzpQwdij1wgWssvX5Ym/mirbz3u8bpxCnpQruDz9wG0RG1c+2Uwr6RDbRrX
-	GBhZzdbFkRVhiMfl1H+4y7hAEZWjaH/ZxW5CQ2YDXJPuq94Dt+9cZc8+h8Mskzc3Us7H0az9VTt
-	GKAB
-X-Received: by 2002:a05:6512:4507:b0:5ae:b764:3ba5 with SMTP id
- 2adb3069b0e04-5b01147fbadmr2335281e87.64.1783671877994; Fri, 10 Jul 2026
- 01:24:37 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="XjTzAOUb"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 0A8F01BC0;
+	Fri, 10 Jul 2026 02:10:36 -0700 (PDT)
+Received: from [10.211.55.3] (unknown [10.57.84.35])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id B77213FD88;
+	Fri, 10 Jul 2026 02:10:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1783674640; bh=tuoLyvlOHXB9mesLRzz5sRHL2smGtaXCkV71zVJ9dBs=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=XjTzAOUbMfeN0UXcbLPR+UnqBN+Kf6/XIaYbVAzDCu6yN4qQXGGG+MnUILLTDwkEV
+	 N7TwoaU7599w+czNNl22psp4BkAFPGgk+JOAOsRBNDsxm5YGDOjcfN9Xi5mS/CWjbU
+	 yfy+Uzz0yarQgqPCvDmgGdnU0EYDYsk/o3oUqDT0=
+Message-ID: <d8425af0-130e-4a27-8a56-b25a5c6e1d5c@arm.com>
+Date: Fri, 10 Jul 2026 10:10:24 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260709021504.465792-1-vishnuocv@gmail.com> <239c8162-e1e6-4b49-8292-35547c5a525c@liuxiaozhen.dev>
-In-Reply-To: <239c8162-e1e6-4b49-8292-35547c5a525c@liuxiaozhen.dev>
-From: Vishnu Sankar <vishnuocv@gmail.com>
-Date: Fri, 10 Jul 2026 17:24:00 +0900
-X-Gm-Features: AVVi8CdJHOTuRUbVyX9EDCsmYkHyncA5b_--6_5gEe0H34M3a0_AcbJco12MIH4
-Message-ID: <CABxCQKtAYt7heT8a+GknA_4n+znA3+-=eRzuuky1RTLO+KNK0A@mail.gmail.com>
-Subject: Re: [PATCH v4] platform/x86: thinkpad_acpi: Add USB-C Security (USCS) support
-To: oliver@liuxiaozhen.dev
-Cc: platform-driver-x86@vger.kernel.org, mark.pearson@lenovo.com, 
-	linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, 
-	vsankar@lenovo.com, mpearson-lenovo@squebb.ca
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Thunderbird Daily
+Subject: Re: [PATCH v2 14/15] arm_mpam: prevent MPAM-Fb accesses inside IRQ
+ handler
+To: Andre Przywara <andre.przywara@arm.com>,
+ Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
+ <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ James Morse <james.morse@arm.com>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+ Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+ Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+ Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
+ Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20260702162229.4008659-1-andre.przywara@arm.com>
+ <20260702162229.4008659-15-andre.przywara@arm.com>
+ <f418f531-bc0b-4bff-a96f-121034c6c693@arm.com>
+ <00e8ba98-735d-4c78-9056-3032036183e7@arm.com>
+ <7f929d11-d9ee-4a30-a3ea-7a535111b35e@arm.com>
+ <4af7ba69-96b6-4847-80d0-ed8c91ec55b8@arm.com>
+Content-Language: en-US
+From: Ben Horgan <ben.horgan@arm.com>
+In-Reply-To: <4af7ba69-96b6-4847-80d0-ed8c91ec55b8@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Hi Oliver,
+Hi Andre,
 
-Thank you for testing and reporting this.
+On 7/10/26 08:31, Andre Przywara wrote:
+> Hi,
+> 
+> On 7/9/26 15:27, Ben Horgan wrote:
+>> Hi Andre,
+>>
+>> On 7/9/26 13:06, Andre Przywara wrote:
+>>> Hi,
+>>>
+>>> On 7/3/26 12:54, Ben Horgan wrote:
+>>>> Hi Andre,
+>>>>
+>>>> On 7/2/26 17:22, Andre Przywara wrote:
+>>>>> When an MPAM MSC gets into an error condition, it can trigger an error
+>>>>> IRQ. We cannot really do much about those errors, but we at least
+>>>>> query
+>>>>> and log the error, then disable MPAM functionality.
+>>>>>
+>>>>> This error report relies on reading the MSC's error status register
+>>>>> (ESR) in the IRQ handler, which is not possible for MPAM-Fb based
+>>>>> MSC accesses, since they involve mailbox routines that might sleep.
+>>>>> The same is true for clearing the interrupt at the source, which
+>>>>> requires MSC access.
+>>>>>
+>>>>> For simplicity just skip the ESR read when the MSC is not using direct
+>>>>> MMIO accesses, and just ignore the pending interrupts. We will wrap up
+>>>>> MPAM functionality regardless, knowing the exact error value will not
+>>>>> change that.
+>>>>>
+>>>>> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+>>>>> ---
+>>>>>    drivers/resctrl/mpam_devices.c | 35 ++++++++++++++++++
+>>>>> +---------------
+>>>>>    1 file changed, 20 insertions(+), 15 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/
+>>>>> mpam_devices.c
+>>>>> index b858ff389bff..4a088e6cd235 100644
+>>>>> --- a/drivers/resctrl/mpam_devices.c
+>>>>> +++ b/drivers/resctrl/mpam_devices.c
+>>>>> @@ -2639,7 +2639,7 @@ static int mpam_disable_msc_ecr(void *_msc)
+>>>>>      static irqreturn_t __mpam_irq_handler(int irq, struct mpam_msc
+>>>>> *msc)
+>>>>>    {
+>>>>> -    u64 reg;
+>>>>> +    u64 reg = 0;
+>>>>>        u16 partid;
+>>>>>        u8 errcode, pmg, ris;
+>>>>>    @@ -2648,25 +2648,30 @@ static irqreturn_t __mpam_irq_handler(int
+>>>>> irq, struct mpam_msc *msc)
+>>>>>                           &msc->accessibility)))
+>>>>>            return IRQ_NONE;
+>>>>>    -    mpam_msc_read_esr(msc, &reg);
+>>>>> +    /* MPAM-Fb MSC accesses cannot be done in atomic context. */
+>>>>> +    if (msc->iface == MPAM_IFACE_MMIO) {
+>>>>> +        mpam_msc_read_esr(msc, &reg);
+>>>>>    -    errcode = FIELD_GET(MPAMF_ESR_ERRCODE, reg);
+>>>>> -    if (!errcode)
+>>>>> -        return IRQ_NONE;
+>>>>> +        errcode = FIELD_GET(MPAMF_ESR_ERRCODE, reg);
+>>>>> +        if (!errcode)
+>>>>> +            return IRQ_NONE;
+>>>>>    -    /* Clear level triggered irq */
+>>>>> -    mpam_msc_clear_esr(msc);
+>>>>> +        /* Clear level triggered irq */
+>>>>> +        mpam_msc_clear_esr(msc);
+>>>>>    -    partid = FIELD_GET(MPAMF_ESR_PARTID_MON, reg);
+>>>>> -    pmg = FIELD_GET(MPAMF_ESR_PMG, reg);
+>>>>> -    ris = FIELD_GET(MPAMF_ESR_RIS, reg);
+>>>>> +        partid = FIELD_GET(MPAMF_ESR_PARTID_MON, reg);
+>>>>> +        pmg = FIELD_GET(MPAMF_ESR_PMG, reg);
+>>>>> +        ris = FIELD_GET(MPAMF_ESR_RIS, reg);
+>>>>>    -    pr_err_ratelimited("error irq from msc:%u '%s', partid:%u,
+>>>>> pmg: %u, ris: %u\n",
+>>>>> -               msc->id, mpam_errcode_names[errcode], partid, pmg,
+>>>>> -               ris);
+>>>>> +        pr_err_ratelimited("error irq from msc:%u '%s', partid:%u,
+>>>>> pmg: %u, ris: %u\n",
+>>>>> +                   msc->id, mpam_errcode_names[errcode], partid,
+>>>>> +                   pmg, ris);
+>>>>>    -    /* Disable this interrupt. */
+>>>>> -    mpam_disable_msc_ecr(msc);
+>>>>> +        /* Disable this interrupt. */
+>>>>> +        mpam_disable_msc_ecr(msc);
+>>>>
+>>>> As an error interrupt is final can we just disable the IRQ?
+>>>
+>>> Doing that should be covered by mpam_unregister_irqs() as part of the
+>>> mpam_broken_work, shouldn't it? Or do you want to do it earlier?
+>>
+>>
+>> I think leaving it to mpam_broken_work risks having the hard irq handler
+>> run again and again once we get an error interrupt. I'm just looking at
+>> the code today but I think this is analogous to using IRQF_ONESHOT to
+>> mask the interrupt until the threaded handler is finished.
+> 
+> Maybe, but masking and disabling are not the same thing, and ONESHOT
+> most probably takes care of any imbalances. Whereas when we just disable
+> the IRQ here on some occasions, without telling anyone, it may leave it
+> in a weird state?
 
-On systems where the USCS ACPI method does not exist, acpi_evalf()
-returns AE_NOT_FOUND which maps to -EIO rather than -ENODEV. This
-causes tpacpi_usbc_security_init() to propagate the error and
-thinkpad_acpi fails to probe entirely.
+Ok, that could be problematic.
 
-Apologies for missing this =E2=80=94 I only tested on a system that has the
-USCS method present.
+> 
+>>
+>>>
+>>>> Is it
+>>>> useful? I see there is a function disable_irq_no_sync().
+>>>
+>>> If we want to do it earlier, the _nosync variant sounds promising,
+>>> although the comment talks about it being nested, so I guess it would
+>>> need to be balanced? Which might be tricky here, since I guess the IRQ
+>>> would be disabled again in mpam_unregister_irqs()?
+>>
+>> mpam_unregister_irqs() disables the interrupt by clearing the msc enable
+>> in mpam_disable_msc_ecr() rather than disabling by irq. I don't see how
+>> this would cause a problem. Or does free_percpu_irq() or devm_free_irq()
+>> do something incompatible?
+> 
+> According to the description of free_irq(), it does disable the IRQ when
+> no user is left. I'd assume it does this via the same mechanism we are
+> trying to use, which would cause an imbalance?
 
-I believe the fix is to check for USCS method presence before
-attempting to call it, using acpi_has_method() which is already used
-elsewhere in the driver for the same purpose:
+Can we get around this by using a ONESHOT threaded interrupt and just
+using the threaded part to do mpam_disable_msc_ecr() and queue the
+mpam_broken_work?
 
-  static int tpacpi_usbc_security_init(struct ibm_init_struct *iibm)
-  {
-      int err;
+Thanks,
 
-      if (!acpi_has_method(hkey_handle, "USCS"))
-          return -ENODEV;
+Ben
 
-      err =3D usbc_security_query(&tp_features.usbc_security_enabled);
-      if (err =3D=3D -ENODEV)
-          return -ENODEV;
-      if (err)
-          return err;
+> 
+> Cheers,
+> Andre
+> 
+>>>
+>>>>> +    } else {
+>>>>> +        pr_err_ratelimited("unknown error irq from msc:%u\n", msc-
+>>>>> >id);
+>>>>
+>>>> Should we report by irq number?
+>>>> As MSC may share interrupts we don't know which MSC caused the error
+>>>> irq
+>>>> at this point. On MMIO platforms we read the ESR to establish this.
+>>>
+>>> I see what you mean, though I am not sure if the user would be able to
+>>> make sense of any interrupt number? I would put it in anyway, more
+>>> information doesn't hurt.
+>>>
+>>> Cheers,
+>>> Andre
+>>>
+>>>> Thanks,
+>>>>
+>>>> Ben
+>>>>
+>>>>> +    }
+>>>>>          /* Are we racing with the thread disabling MPAM? */
+>>>>>        if (!mpam_is_enabled())
+>>>>
+>>>
+>>
+> 
 
-      tp_features.usbc_security_supported =3D true;
-      return 0;
-  }
-
-I am expecting this change to fix the issue (not yet tested).
-
-Ilpo,
-since this is already in your tree, please let me know if you would
-like me to send a fixup patch or if you prefer to handle it directly
-or if you prefer a v5 with this addressed.
-
-Sorry for the inconvenience caused.
-
-Thanks and regards,
-
-Vishnu
-
-On Fri, Jul 10, 2026 at 4:52=E2=80=AFPM Oliver Lin <oliver@liuxiaozhen.dev>=
- wrote:
->
-> Hi Vishnu,
->
-> I tested v4 on a Lenovo ThinkPad P15 Gen 1.
->
-> System:
->    - Lenovo ThinkPad P15 Gen 1
->    - BIOS: N30ET47W (1.30)
->    - Kernel: 7.2.0-rc2 + this patch
->
-> I checked the BIOS setup and could not find any USB-C Security (USCS)
-> option.
->
-> During boot, I get:
->
->
-> ```
->
->    thinkpad_acpi: acpi_evalf(USCS, dd, ...) failed: AE_NOT_FOUND
->    thinkpad_acpi: required events 0x00720000 not enabled!
->    thinkpad_acpi: probe with driver thinkpad_acpi failed with error -5
->    thinkpad_acpi: unable to register main platform driver
->
-> ```
->
->
-> As a result, thinkpad_acpi fails to probe and
-> /sys/devices/platform/thinkpad_acpi/ is not created.
->
-> It looks like systems without the USCS ACPI method may fail to load
-> thinkpad_acpi with this patch applied.
->
-> Please let me know if you would like me to provide the full dmesg log or
->
-> test a revised version.
->
->
-> If needed, I can also test on a ThinkPad P50s.
->
->
-> Thanks,
-> Oliver Lin
-
-
-
---=20
-
-Regards,
-
-      Vishnu Sankar
