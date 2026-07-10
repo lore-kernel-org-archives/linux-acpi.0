@@ -1,85 +1,85 @@
 Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D94DF3254B3
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 18:22:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F4263537DE
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 18:31:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783707726; cv=none; b=r87Nn5IiuXtRBdbLaccY6cqVfz79vX59FJGJIUuAagSG2wr3J4kAbwSGjmywIKYFfgcx5ZhZBnyWe0Uc36lb9UxVFk74cW7VJ3pVIglWZgYDkovYQu3//f4iEHibqs62S0CjZHMYN5fQRM4aSueu3KM1bdqdqcZ2ts6Nohs9tcY=
+	t=1783708294; cv=none; b=UZV4dMPzpeipYGG0dpUEewutdK+I/NOu51vfpG3Xq1OrhrqYPVxUlWCMijmVZjyUEHICHxy0NEtIz7DxDm7JMPKul2gxCDlKnnSC4dCMMhOS2mmg+c3gYf/aoFo90o4nYMm/S26Hz4dV1mqUnW+6bfNRrQYzLjF70fz51srkSZ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783707726; c=relaxed/simple;
-	bh=cFuUZYwm+ytzPaDMmKj7V3L1voXoBSzcy1/+PMu9EGs=;
+	s=arc-20240116; t=1783708294; c=relaxed/simple;
+	bh=fN4asx3uvotIsmPgpFyUVzMB/u1bFWe+wqxkFvCH47s=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Gin/oAoItzVRtB1g8+8b7zwm4nzxT+kschxurTaemCryF0FpczJ1U/I72VPxzarIWkMNNTVXXiKIFafTlT/f5sqqgxVYqcBkbJO+4nGzgxp7Aq7kOqXBrLGgleBQ7BAHjG+RflwTAAsuIJHmai6GuN+AWdI9iN2VtzsXCoDG8rI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=Jt9Car9A; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=d57r1vvs; arc=none smtp.client-ip=205.220.168.131
+	 MIME-Version:Content-Type; b=KMSC+Mh9YwMVnt88FKw1+2nMj3OfBB/Wo8dTlfRXR/nZdSVxwwbCLTDFNTOBkGyv6wljvh28+2047+DKhJszehhmElez94tqZ2ksY5+cV8C+AmIcLKWmtI9mqAK6D8+bo4JHrv4pcURLNaqPJYcDYrGoHW9umS+8A3KGOSvKjFQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=HqqklVdD; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=jt3A6lY8; arc=none smtp.client-ip=205.220.168.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="Jt9Car9A";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="d57r1vvs"
-Received: from pps.filterd (m0279866.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66AH47Bi1308346
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 18:22:04 GMT
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="HqqklVdD";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="jt3A6lY8"
+Received: from pps.filterd (m0279863.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66AH3c4N1453059
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 18:31:33 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
 	cc:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	Zp3AkSb7kz6GKD3cr/eSusRHkHnQftat49AwvvVk17c=; b=Jt9Car9ArCHFFtvH
-	+qZq2mY2PacEFBIKMPX5bjlqvFazBPjBEJVijdnnw+joPCLvckjVg0Cqghel9MH5
-	mvdjwHTbWV641nYGrkptZT50oU/tuOQa6xNJsD2e0IQXFFATD1h7+9HUgGEchgKv
-	9Idg+7LgHqyl/t2TiOZ39/So/ROZj0Bw8bXZY7+ibpwduQSL3dKfXh88zbH8y0Ut
-	hLwoF2MN3UvKr4btzt7b19NmEb00vVPHgdk6KLlgp1G3BHKAzcr+5GzSsGS03eQ/
-	IQBTnQnQ1pkC0hjHyJGrwTEE8XE//dV4c17JYcZM40Z1uvZbNehTc69QcOwQJjW/
-	ENSTgA==
-Received: from mail-pj1-f69.google.com (mail-pj1-f69.google.com [209.85.216.69])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fax5dhxty-1
+	wghtXrmA4tuz0gT7trc8nR/4s0EnIKsAEKP7KeyovOI=; b=HqqklVdD+5EcfmZD
+	2b5Ipg0WJdkrZejWB+KijN8C1tb1DdbsoeFLxEUajqWw0yX8zryzGHUqXuHsL9Yf
+	J7KmO1EfCNCFOwCeSB0NKDEGFBNRBl4p/n6KWQqTZj7zyjeUGwrUTOw953WmfrMc
+	C8DPnTvjWJ9RHzX9sHdd9+7NritgVVnls6/EctOIFEV3fwWSrcskllX+obV8UvE5
+	pTiWTSukYzem/mFz6uRSVfNiC65deXWzdzOo7ffsSZKdCuGRmgDir+GU1cpCHr5d
+	YkpfByxd6uPQT81vJcvqSV4QMEp+PoYYZ7qSmokfPMQJjyDs2kBdBUjLvw7iD3wH
+	gVsbKg==
+Received: from mail-pg1-f199.google.com (mail-pg1-f199.google.com [209.85.215.199])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fb3xn0h2n-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 18:22:04 +0000 (GMT)
-Received: by mail-pj1-f69.google.com with SMTP id 98e67ed59e1d1-381ed6616f7so1909127a91.1
-        for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 11:22:03 -0700 (PDT)
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 18:31:32 +0000 (GMT)
+Received: by mail-pg1-f199.google.com with SMTP id 41be03b00d2f7-c88ab059052so1201451a12.1
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 11:31:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1783707723; x=1784312523; darn=vger.kernel.org;
+        d=oss.qualcomm.com; s=google; t=1783708292; x=1784313092; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:mime-version:organization
          :references:in-reply-to:message-id:subject:cc:to:from:date:from:to
          :cc:subject:date:message-id:reply-to:content-type;
-        bh=Zp3AkSb7kz6GKD3cr/eSusRHkHnQftat49AwvvVk17c=;
-        b=d57r1vvsvIYtHpgUV8+Ik6XSQ7AgetWSyB7gHdKi2yDNpFRH05ucvN3Gd/3JpGfeOp
-         jGupqrou34Jzgt1lXdRyYC6iRdTW0aMRAskEPKxdzJTHDSKVALea5yB0qKQv0b1+FEAv
-         hd0d9djYZYpVHHR1YRgzsVXIdEInVm6BY9GC4nlRzv4F17CiWcBAwjTegYXcl85+9OKJ
-         ljH7OlxWTyR/RYOytYg543TSrxppHPA6OrZnIdR2XvCDi5qvpJBYeahMLQZdxknxME7e
-         njM/zZ0V+nfoctqqInx6O/oMz9MYUrUKGhbxREhIhKPjpVXYF3za2EEBaPGTkG41ln6R
-         CK7g==
+        bh=wghtXrmA4tuz0gT7trc8nR/4s0EnIKsAEKP7KeyovOI=;
+        b=jt3A6lY81wIhWCyb+Y0fAla2mGxWYnYkCgxUMFOZFkq0xV3l7fRghln6T770ak3qUO
+         FVrQtg0oI5OYmFMt7IcOhPFi6IFIZhpOwuyXb3eMumjF+NWJU/CEzesArKOtTw6krmHi
+         QJ4RSEnkHffy1nxK0RRpDVNbqZXB3OhBBHzK9ARu4AFWlnYOD+3JT9mOEa4fpYnitGum
+         /FXilO6LeuktbPO1sUxZzPuMhJRZcwo7rtTxMEU842GxmGlqy7Ll7kGFcmNEa7btzmo7
+         2LUoEa9kEMO4ovxqq4ohZtVYmtItTmiQgBbdydo2hsMnkPvOtJ1P+x0APm0DJa1XQagY
+         Je2A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783707723; x=1784312523;
+        d=1e100.net; s=20251104; t=1783708292; x=1784313092;
         h=content-transfer-encoding:content-type:mime-version:organization
          :references:in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=Zp3AkSb7kz6GKD3cr/eSusRHkHnQftat49AwvvVk17c=;
-        b=ZoV7xf2s2k+Wakr+kyJ6MvSUZkBIyDiAzIsYI47JHyp3xPFXf3e5KlK3OB/7iogbKi
-         ZNN/YEnHbXyDxqbPavADZDMejBFLoMeQchgMOW/s5TDUAQ8Rjppr7gCh6WZmQdjs8zxv
-         ywxhNheON1cbdEuuSjsptVdwuWWfgpfsI/vUzE1d/zFuLSWiyf9SN778Oe7Sx2IByUAF
-         kYzaN1azw4cAXsHXQTL6KuR3o4MA98OyDlA7he/covZfufxDS10EXdsngCTh+YgoGs8n
-         mO0IO/x5p0IOElfB/YtqN25xdrSB/6C+7U8iDQAPkCLwhG/NHG5NAX/4BE44bJjULk9b
-         YD+w==
-X-Forwarded-Encrypted: i=1; AHgh+Rpc1558/rMvBwrCsNKiY23hLotjUP0H+kDOGnwoxbmQWlPilKJE4TvGDjazlXCIbPvXirNyeXmhm+FL@vger.kernel.org
-X-Gm-Message-State: AOJu0YxZPSRM1qLUA+9Qagr3WQJIPAwDlrVdfR2Bddn2gJhMQSTDOfgV
-	lfzA6auzQYQJuDt5pNae690st0mLCIhTt9XiJccvSrNrFzZvVn/0VlM9wNR2yaG1AxHYCVdSx/J
-	PrYsmJxBuK9I6eDLO89gF32i1QXvfaYCJI/XsXiLFef3IWXi+WjdGzW7+trZZmEVp
-X-Gm-Gg: AfdE7ckl58Dffh/eA+tIkWU1nV/WFUWs4ug6J0addRx2zMmTYa7adysnhusyUHowSpT
-	bJXz+35RJBzfjZm80UU2AweLrDwGjZ49QxYme/ImepbF7fcMSZgVc45zbdCERTqkbc6MBPImKVM
-	SBnQkogH3a7MAYu01NmLDJa6QzgbhWKajDapRlJcOpA6xez0z62HO7jPWcFiNWFf+1C5305ew+3
-	4MIRnS10ZzoHJyUZmAr8TF6g3V4BKWp73m/I9liKvgMEZk/RXjWobcvjUncI+dyAcXEmzSCaS20
-	vd+iQjVqVbPCI/3DNRHldNMzUZwfltwZ7t79KRXtNEAUilwqVLc2nFsB9ps8h+sO4WTE/mImVAp
-	TeFWn5u8O/FB+Wg26ip68chz6T3KeATBBTBnP
-X-Received: by 2002:a17:90b:4c8f:b0:36a:5d1f:7b6 with SMTP id 98e67ed59e1d1-38dc75d1ef9mr95678a91.2.1783707723255;
-        Fri, 10 Jul 2026 11:22:03 -0700 (PDT)
-X-Received: by 2002:a17:90b:4c8f:b0:36a:5d1f:7b6 with SMTP id 98e67ed59e1d1-38dc75d1ef9mr95627a91.2.1783707722569;
-        Fri, 10 Jul 2026 11:22:02 -0700 (PDT)
+        bh=wghtXrmA4tuz0gT7trc8nR/4s0EnIKsAEKP7KeyovOI=;
+        b=lP4peANGZzzAt9EA3kg0f0h5zieZzTEMC8v8PdNib7vwWd4gvNUaeyU8Qw9Vg8xcFH
+         pJ5TWqFe+7QRSmyrkGxMepfvh28wDxIxq7CNbpow+94erlYC1AvUlSxWre1ntfbkKQKp
+         DHId68NylASFtPM3oRivlD1YBHMcJHaGZY+z5Cj6//XyYOEv18aKHegmBYc52XRkiRTj
+         +sLYUqU91RMkIVSrR5JUK1f21WP6jFp02de3zTneReP+HquoaL5G8jsJ1ORrW3aOtHwc
+         7zlORfdC3QQD6Zh0ylPZYDnpC58mNN+1ULWKuJkW5T8XeWbHFsyRlx742tcblyc1Kgfl
+         ub5g==
+X-Forwarded-Encrypted: i=1; AHgh+Rqer4u5jGTQlvlU57zegp7U6M7Ikyz7pK+BsQ1CJ6/z3b2hLh64IcXZnBGTctW4OHtbVH03iX/srZEH@vger.kernel.org
+X-Gm-Message-State: AOJu0YyIyAj5EHKB98Ig/dAJFLsPS+0brRGqr67pgYGDosJ/NsWVDgIb
+	P6yRvuvY261ycXZVOtGZmRoHkpqUCeo6dH1ge0k999R1Owbl5ig/8d0pWIFlbQpRyeau/angAhi
+	uZlGe9IuWlpL8BFMbfPQ7rL+i7iI+qcz36nW9RlhfBGrG+CC23sDTU5uBLZwLTZQ8
+X-Gm-Gg: AfdE7ckfjLH45yVLN+PQy+ADr9EHcmvdPNTleD/SSNr64i62hIR3Nb+cqU1A9tbIT/Y
+	uyZhLUTvuMv1SXKPqr9c157M8p1gUg2LIwDlM1KbaS0Gr2IaJouagUpiqt7xTTVzpSyfzCVws1Q
+	mmKUH7LiNZCyoabzg5w+W7lop5ix9I6zGbq1YQhxOB/a/bSZJm7DmaR7jA+6hHceswywWkIxIAu
+	vEtgu0ivoHe5W8ls0qqFDxN0UUmwrpKqLKeP5+CzETk+nT5/veMXjslw9fatj+2/4Mp5DmiPD3u
+	YQGnv5Py9FFRtIMu5DA/nt0d0YAHfRGFLWur1ux9ryHim8yvNiiTj4YalpmJF6DgOZCuhhLM1Pg
+	AZY5ev1xpFc/mF3QAgqgzKK1IEuSxcD1bEUE+
+X-Received: by 2002:a05:6a20:3ca5:b0:3bf:a517:cdcd with SMTP id adf61e73a8af0-3c0f091831emr6662589637.12.1783708291948;
+        Fri, 10 Jul 2026 11:31:31 -0700 (PDT)
+X-Received: by 2002:a05:6a20:3ca5:b0:3bf:a517:cdcd with SMTP id adf61e73a8af0-3c0f091831emr6662533637.12.1783708291336;
+        Fri, 10 Jul 2026 11:31:31 -0700 (PDT)
 Received: from localhost ([50.35.46.84])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3117483dec6sm44025766eec.11.2026.07.10.11.22.00
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3118ee6080dsm27861010eec.17.2026.07.10.11.31.29
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 10 Jul 2026 11:22:02 -0700 (PDT)
-Date: Fri, 10 Jul 2026 11:21:58 -0700
+        Fri, 10 Jul 2026 11:31:30 -0700 (PDT)
+Date: Fri, 10 Jul 2026 11:31:25 -0700
 From: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
 To: Andre Przywara <andre.przywara@arm.com>
 Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
@@ -106,12 +106,12 @@ Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
         Niyas Sait
  <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 02/16] arm_mpam: propagate MSC read errors for
- wrapper functions
-Message-ID: <20260710112158.0000490d@oss.qualcomm.com>
-In-Reply-To: <20260710144520.917375-3-andre.przywara@arm.com>
+Subject: Re: [PATCH v3 03/16] arm_mpam: propagate MSC read errors for
+ hw_probe functions
+Message-ID: <20260710113125.00005752@oss.qualcomm.com>
+In-Reply-To: <20260710144520.917375-4-andre.przywara@arm.com>
 References: <20260710144520.917375-1-andre.przywara@arm.com>
-	<20260710144520.917375-3-andre.przywara@arm.com>
+	<20260710144520.917375-4-andre.przywara@arm.com>
 Organization: Qualcomm
 X-Mailer: Claws Mail 4.4.0 (GTK 3.24.51; x86_64-w64-mingw32)
 Precedence: bulk
@@ -121,163 +121,144 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzEwMDE4NCBTYWx0ZWRfXz4KOhJ2z0nJ/
- DrKS160JPzA7Zajp47SYp15fvirJGrxxnzn1R++gS+HIrLz5uTj6f0o5j3/LzQGG1OV+CqpmPSt
- 2QA9Mkm4JjQ5Sim/rXQLz1Y4YX/dIr0=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzEwMDE4NCBTYWx0ZWRfX5hg+Xnnl+zNb
- AcN8BPhla2n5rljz3RNEXF0uhI8uuvGUK4s2WTRzNFlvkEPL5RGK707oaYg/7l+m36qmtrIjFZj
- pzUrWaK8FDBsYs+Ba54Lm609UFrWzuKTE1zqzlnhBQwnTEC4JHnRTQsFdziw+WX5wKjPYYSPidC
- +lRsKzmcClJ3Qq/BuOFuuqibmssLvxEdFUC2RRxuL2GxCdfqu0TyJFEkBTPi5eqZewc4WukaQr/
- GkEWu6VK9IISoAywaQxNojemq+q9pwnRFJxzU0c7nMQOY9ikvOtN3Dk7sDr8EQkBgTDsRgkDe6R
- fRtp5RAIXh65ni2jOr+j1hCw8inze0tqXzi2f0NcXHwlmVutUX8M7ReW8GUpHf16n6PoV7BtpPO
- 8t267M4+NNY45eEa2z8xmD8I7dHr42Yl2+JWc/EDz/4Xav30AnweUucOge8BYff9/kuLEQbyhT3
- ShSATuzh7f0l8GIFMEQ==
-X-Proofpoint-GUID: Ri3Gu2dOih9WTFzr8Ws07AGOtWHxoc5f
-X-Proofpoint-ORIG-GUID: Ri3Gu2dOih9WTFzr8Ws07AGOtWHxoc5f
-X-Authority-Analysis: v=2.4 cv=M/x97Sws c=1 sm=1 tr=0 ts=6a51384c cx=c_pps
- a=vVfyC5vLCtgYJKYeQD43oA==:117 a=qC1CW/w66vtJz1P9yTJxNA==:17
+Content-Transfer-Encoding: 7bit
+X-Authority-Analysis: v=2.4 cv=JJYLdcKb c=1 sm=1 tr=0 ts=6a513a84 cx=c_pps
+ a=Oh5Dbbf/trHjhBongsHeRQ==:117 a=qC1CW/w66vtJz1P9yTJxNA==:17
  a=kj9zAlcOel0A:10 a=RAioF0-LDSMA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=YMgV9FUhrdKAYTUUvYB2:22
- a=7CQSdrXTAAAA:8 a=499MpapIjUE8vGAJtSoA:9 a=CjuIK1q_8ugA:10
- a=rl5im9kqc5Lf4LNbBjHf:22 a=a-qgeE7W1pNrGK8U0ZQC:22
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=yOCtJkima9RkubShWh1s:22
+ a=7CQSdrXTAAAA:8 a=sM7ngZJOnra7i-ukzE4A:9 a=CjuIK1q_8ugA:10
+ a=_Vgx9l1VpLgwpw_dHYaR:22 a=a-qgeE7W1pNrGK8U0ZQC:22
+X-Proofpoint-ORIG-GUID: q1vPAsC7c3Ufni5-tzp0S_E8Ygu5TEkS
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzEwMDE4NSBTYWx0ZWRfXw8nudL9g/roE
+ dFgN+MspQF6yn/dhUQFB6exz3xPTsaEHpWF4esFEPiSCps61QZ0Oti8q29a2nTBn+bDvuttwgKX
+ qjXtowCsmNQ8gcgNn+Un/PuYEcVKstg=
+X-Proofpoint-GUID: q1vPAsC7c3Ufni5-tzp0S_E8Ygu5TEkS
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzEwMDE4NSBTYWx0ZWRfX4BQS2lUqJrzU
+ mVlg8d+NSLNBkYz21OzhHx1441N+jruc8BxHqVZ4VccnrHtrpBhr4Z+8gxa0uNclpoQjs5zRhJx
+ J/lVBCszrBfpDPVhxdysE3pqdY+R1CrTXngnQu6oFtSjHZtejUu7urI+Oo1VThgVY8GYvUNZSTT
+ te1F9RRDEdvY54mQUNw3lFCJC9tC9inC2v7AgWE3RMIvMQ1lQIxM7/jT7vQscVwIk053zMpxq/x
+ 7gNTSXeAxtWW2jLhHZ3cNOgvcbUA1AOIF2G6VjWkbuKCEPW2VMX86QLDY2pRcSxnTCHvZSrW/Ai
+ wcCEGoQxPWB+me0dkjUKi0Z5UKe7mrh9E7InzJJUGqymYjbId5azjVfUtBo71+AqIBLHDs/Zdgb
+ jEVmwg1pC4Q7lnKobgRPLxADIjLO5v/pMtEdKuBmzS5JGfBYgTsVNVBaiKVlhHhuMWtF1qYTXSH
+ SBXuyp1Umt+4DAW7BxQ==
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
  definitions=2026-07-10_05,2026-07-10_01,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- lowpriorityscore=0 adultscore=0 bulkscore=0 malwarescore=0 suspectscore=0
- phishscore=0 spamscore=0 clxscore=1015 priorityscore=1501 impostorscore=0
+ suspectscore=0 malwarescore=0 clxscore=1015 adultscore=0 lowpriorityscore=0
+ bulkscore=0 priorityscore=1501 impostorscore=0 spamscore=0 phishscore=0
  classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607100184
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607100185
 
-On Fri, 10 Jul 2026 16:45:06 +0200
+On Fri, 10 Jul 2026 16:45:07 +0200
 Andre Przywara <andre.przywara@arm.com> wrote:
 
-> Allow the wrapper functions for IDR and ESR accesses to return an
+> Allow the functions probing for MSC hardware and features to return an
 > error, and propagate read errors from the lower level up.
->=20
+> 
 > Signed-off-by: Andre Przywara <andre.przywara@arm.com>
 Hi Andre,
 
-Just a few superficial code style comments.
+A few suggestions to use some newer kernel 'toys' to simplify this
+code.
 
 Thanks,
 
 Jonathan
 
 > ---
->  drivers/resctrl/mpam_devices.c | 53 ++++++++++++++++++++++++----------
->  1 file changed, 38 insertions(+), 15 deletions(-)
->=20
-> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_device=
-s.c
-> index df14b4513382..8fd2c38c821c 100644
+>  drivers/resctrl/mpam_devices.c | 70 ++++++++++++++++++++++++----------
+>  1 file changed, 50 insertions(+), 20 deletions(-)
+> 
+> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
+> index 8fd2c38c821c..b1bd047da203 100644
 > --- a/drivers/resctrl/mpam_devices.c
 > +++ b/drivers/resctrl/mpam_devices.c
-> @@ -247,27 +247,38 @@ static bool mpam_msc_check_aidr(struct mpam_msc *ms=
-c)
->  	return true;
->  }
-> =20
-> -static u64 mpam_msc_read_idr(struct mpam_msc *msc)
-> +static int mpam_msc_read_idr(struct mpam_msc *msc, u64 *res)
+> @@ -785,7 +785,7 @@ static void mpam_enable_quirks(struct mpam_msc *msc)
+>  static bool mpam_ris_hw_probe_csu_nrdy(struct mpam_msc_ris *ris)
 >  {
->  	u32 idr_high =3D 0, idr_low;
-> +	int ret;
-> =20
->  	lockdep_assert_held(&msc->part_sel_lock);
-> =20
-> -	mpam_read_partsel_reg(msc, IDR, &idr_low);
-> +	ret =3D mpam_read_partsel_reg(msc, IDR, &idr_low);
-> +	if (ret)
-> +		return ret;
+>  	u32 now, mon_sel, ctl_val;
+> -	bool can_set, can_clear;
+> +	bool can_set, can_clear, ret = false;
+
+I know the surrounding code does this, but it is helpful to general readability to
+not mix declarations with assignments from those that don't. I'd just
+use an extra line for ret.
+
+>  	struct mpam_msc *msc = ris->vmsc->msc;
+>  
+>  	if (WARN_ON_ONCE(!mpam_mon_sel_lock(msc)))
+> @@ -804,20 +804,26 @@ static bool mpam_ris_hw_probe_csu_nrdy(struct mpam_msc_ris *ris)
+>  	mpam_write_monsel_reg(msc, CFG_CSU_CTL, ctl_val);
+>  
+>  	_mpam_write_monsel_reg(msc, MSMON_CSU, MSMON___NRDY);
+> -	_mpam_read_monsel_reg(msc, MSMON_CSU, &now);
+> +	if (_mpam_read_monsel_reg(msc, MSMON_CSU, &now))
+> +		goto out_unlock;
+>  	can_set = now & MSMON___NRDY;
+>  
+>  	_mpam_write_monsel_reg(msc, MSMON_CSU, 0);
+>  	/* Configuration change to try and coax hardware into setting nrdy */
+>  	mpam_write_monsel_reg(msc, CFG_CSU_FLT, 0x1);
+> -	_mpam_read_monsel_reg(msc, MSMON_CSU, &now);
+> +	if (_mpam_read_monsel_reg(msc, MSMON_CSU, &now))
+> +		goto out_unlock;
+>  	can_clear = !(now & MSMON___NRDY);
 > +
->  	if (FIELD_GET(MPAMF_IDR_EXT, idr_low))
-> -		mpam_read_partsel_reg(msc, IDR + 4, &idr_high);
-> +		ret =3D mpam_read_partsel_reg(msc, IDR + 4, &idr_high);
-> +	if (ret)
-> +		return ret;
+> +	ret = !can_set || !can_clear;
 
-=46rom a readability point of view, I'd indent the if (ret) as well
-given that will then make it visually clear the check only applies
-when the if is taken.
+This is less readable than it could be. I'd be tempted to split good and bad paths.
 
-	if (FIELD_GET()) {
-		ret =3D mpam_read_partsel_reg(msc, IDR + 4 &idr_high);
+Or better yet, now we have ACQUIRE() and ACQUIRE_ERR() can we use the cleanup.h
+magic to do auto cleanup of mpam_mon_sel_unlock()?  Then the error paths can
+become direct returns. I haven't read the rest of the mpam code for a few months, but
+it might be much more generally useful given we now have a bunch more reasons
+to return early.
+
+> +
+> +out_unlock:
+>  	mpam_mon_sel_unlock(msc);
+>  
+> -	return (!can_set || !can_clear);
+> +	return ret;
+>  }
+>  
+>  
+>  static int mpam_msc_hw_probe(struct mpam_msc *msc)
+>  {
+> +	int ret;
+>  	u64 idr;
+>  	u16 partid_max;
+>  	u8 ris_idx, pmg_max;
+> @@ -1016,10 +1040,12 @@ static int mpam_msc_hw_probe(struct mpam_msc *msc)
+>  
+>  	/* Grab an IDR value to find out how many RIS there are */
+>  	mutex_lock(&msc->part_sel_lock);
+> -	mpam_msc_read_idr(msc, &idr);
+> -	mpam_read_partsel_reg(msc, IIDR, &msc->iidr);
+> -
+> +	ret = mpam_msc_read_idr(msc, &idr);
+> +	if (!ret)
+> +		ret = mpam_read_partsel_reg(msc, IIDR, &msc->iidr);
+>  	mutex_unlock(&msc->part_sel_lock);
+
+This is a classic pattern where cleanup.h magic can give a more readable
+result with all error conditions easy to spot as each can be fully
+handled on its own.
+
+	scoped_guard(mutex, &msc->part_sel_lock) {
+		ret = mapm_msc_read_idr(msc, &idr);
+		if (ret)
+			return ret;
+
+		ret = mpam_read_partsel_reg(msc, IIDR, &msc->iidr);
 		if (ret)
 			return ret;
 	}
 
-> +
-> +	*res =3D ((u64)idr_high << 32) | idr_low;
-> =20
-> -	return ((u64)idr_high << 32) | idr_low;
-> +	return 0;
->  }
-> =20
-> -static void mpam_msc_clear_esr(struct mpam_msc *msc)
-> +static int mpam_msc_clear_esr(struct mpam_msc *msc)
->  {
->  	u32 esr_low;
-> +	int ret;
-> =20
-> -	__mpam_read_reg(msc, MPAMF_ESR, &esr_low);
-> +	ret =3D __mpam_read_reg(msc, MPAMF_ESR, &esr_low);
+	mpam_enable_quirks(msc);
 > +	if (ret)
 > +		return ret;
-> =20
->  	if (!esr_low)
-> -		return;
-> +		return 0;
-> =20
->  	/*
->  	 * Clearing the high/low bits of MPAMF_ESR can not be atomic.
-> @@ -277,18 +288,30 @@ static void mpam_msc_clear_esr(struct mpam_msc *msc)
->  	 */
->  	if (msc->has_extd_esr)
->  		__mpam_write_reg(msc, MPAMF_ESR + 4, 0);
-> +
-
-Might be valid, but to me that smells like an unrelated cleanup
-that shouldn't really be in a patch doing more meaningful work.  Perhaps
-makes sense when you circle back to do writes.  BTW, I'm not sure
-there is real benefit in separate patches doing reads from those doing writ=
-es!
-Mind you I haven't read all the way through yet, so maybe I'm missing some
-subtlety.
-
->  	__mpam_write_reg(msc, MPAMF_ESR, 0);
-> +
-> +	return 0;
->  }
-> =20
-> -static u64 mpam_msc_read_esr(struct mpam_msc *msc)
-> +static int mpam_msc_read_esr(struct mpam_msc *msc, u64 *res)
->  {
->  	u32 esr_high =3D 0, esr_low;
-> +	int ret;
-> =20
-> -	__mpam_read_reg(msc, MPAMF_ESR, &esr_low);
-> -	if (msc->has_extd_esr)
-> -		__mpam_read_reg(msc, MPAMF_ESR + 4, &esr_high);
-> +	ret =3D __mpam_read_reg(msc, MPAMF_ESR, &esr_low);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (msc->has_extd_esr) {
-> +		ret =3D __mpam_read_reg(msc, MPAMF_ESR + 4, &esr_high);
-> +		if (ret)
-> +			return ret;
-
-So this is the style I suggest above. Good, but check for consistency.
-It may feel like a really small thing (and it is :) but keeping code
-very consistent helps a surprising amount when it comes to readability.
-
-> +	}
-> +
-> +	*res =3D ((u64)esr_high << 32) | esr_low;
-> =20
-> -	return ((u64)esr_high << 32) | esr_low;
-> +	return 0;
->  }
-
+>  
+>  	mpam_enable_quirks(msc);
+>  
