@@ -1,213 +1,208 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED0663BF67E
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 07:03:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=170.10.133.124
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783666998; cv=pass; b=OGeTw8i/N1+G4AOFNaBn5vShg5ORyDcxIb18naBF9mU+MRmiL6pNBvZ98IugAMC+HfrcAsE8188Z3l2zjeUlt/MVxGugG2M3YUv1Yjb+ktvpD4+vJQ3XSIIUzYSWVNYR5yZuyLtczSr4Xze+vJK50BOLJ/G5xn6Wk7uRrCtCXLU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783666998; c=relaxed/simple;
-	bh=jeYBpsVZRu4opwsHOZ92QeIQLJ1kAcNu2rw6khHCYZQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=G+amAvggxkQWNRRGsWoqzrt7QfYaQSH92lkrV2AfusAbXN/3E+2Gw1/Z7+eYMGdXaOHf5T54yHvY1095pvw/V08D+ug36aOfhOqGd5gB/eIsrxjGfWSFf+XT9wcyUz6OkxGSrqdu/JeKXtAQsGuBIgJ5TgLqFNm+LtmGsDlGNn4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=hD9W9EcE; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=Q6QHNCrQ; arc=pass smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 67CC2319859;
+	Fri, 10 Jul 2026 07:31:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783668679; cv=none; b=QvscV3v28CfhA3G+dyDVQWLdw4s3yiOFlsBoABUMechsiRJNyrJBAsSTScxlemc2GW2Bu/8wtEqvP3lGXz9yI6HZewwLmFTtNd8ZfVNkdOS9ySNgD7eXcwkQ2EK/1f5Gt4MTURbSX8UKvNli+mc6YBto4lBN6iWkjIxI0EJPMnU=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783668679; c=relaxed/simple;
+	bh=UNNR39sZdTpOENOsrtvb06j8sNgyUX7Y/cLFYnh6mVs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Yv5RMFFUQyRx7JIIP88tvt03W4gRyWWkMl7gqdVsfi9Hv+cUWGqrfqDZfpurne1SIHDl5S/biI6Kbj2wkcsxJhgddtq5vhQi7ZN9AuaoghLRb0aS9mLLplcql9KKlQBi1xDATcA7sTppICe4vkrEUUEfLytEh5TS+1O6fSjyJis=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=pfZYo5o3; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="hD9W9EcE";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="Q6QHNCrQ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1783666994;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=0R936VrXsHB3d70aM67rjnLtxGIXy7cm58R9eKWt5eA=;
-	b=hD9W9EcE1Q98C8KPDDd6x0cEpq4TFEDTQwWwm5vhnFzRSbaRf/p9jHEvhldnPPgsBlGsKo
-	NrTDw1u8AcsNgKvhb2moXKOckFslNTU2OhEii6RJHZxqCUA/d1pFmzS+TgMvAv1vSvbywb
-	QDvGnPOWHpQk287DhBS3s2PnC/79EXY=
-Received: from mail-oi1-f199.google.com (mail-oi1-f199.google.com
- [209.85.167.199]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-658-WLd85eqpN5WCy2llMg0rEQ-1; Fri, 10 Jul 2026 03:03:12 -0400
-X-MC-Unique: WLd85eqpN5WCy2llMg0rEQ-1
-X-Mimecast-MFC-AGG-ID: WLd85eqpN5WCy2llMg0rEQ_1783666992
-Received: by mail-oi1-f199.google.com with SMTP id 5614622812f47-485ebc5706cso2517092b6e.0
-        for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 00:03:12 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1783666992; cv=none;
-        d=google.com; s=arc-20260327;
-        b=rw30790lIY22Ku9CPBpyW+X/KepNNjLK4WU7UosTBuuSqGP7urrX4HPJpwmunO5Czr
-         X/pxgz7KB3SQ3jp19YvJKIt4t3zjgkL06V1CcKEEj7kaxesanr7fTVFPWHqGGPwdJ4No
-         Whfh+n1c6JHoFSwhoTI1ZbYw9X6Z9RIgSzbpIeMdxl+x5MmCfOLisAG4zy8tyMSRlTPD
-         73s7KTqOto5HfUKnu5nu9YR55SUZo4SEzU1yXjMYXy0Uwg4OUrxxGhsFLcY5X6hWQNW9
-         eSfppUhF4SRLiXllTqY2ndACPmHf8f0BTuDQqdIxtN2JPxG5ekKgYHCTrnL/8T7k8L8L
-         N6hw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=0R936VrXsHB3d70aM67rjnLtxGIXy7cm58R9eKWt5eA=;
-        fh=eI+cwCaaPCEdWr3HjkmNieFhYatcj+yohogCgAW5PRU=;
-        b=GFlU5Y7d7AR7DO6rg2osR5kYoea1D4/Dn7I4/sQ769eG8dhR9VL/5+P/8uU+SzsWYW
-         EU6SsqVjPwXpcSWHWmtzo82+wlYWbBFFewvhk48A4kjZ62+lR7zLRPcXOSa1uoQPL6se
-         j1vb3zN5e+QuJu7Lnttdj51yvkBRdTyPNW+Nv3S1btOrNNyxZkARVXwMfieWR47XFFIm
-         uG/4mw+uqUHd6/G//rQhZBaAdHH7WYDP9gJqh2GCeH20AaX1TggS0NMl26kLD/3eRzaz
-         NouGUAGQjYPm17pKsdzHnrStZ207vWlb0aRy2oK2RgUJDmGyzNLIJKYzfIVd5SLu7C/2
-         WtLg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1783666992; x=1784271792; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=0R936VrXsHB3d70aM67rjnLtxGIXy7cm58R9eKWt5eA=;
-        b=Q6QHNCrQP0KjKO0S5HOidElRLq9NJbzMCTgx1L0iRNh+uVx7bKpFgueCWFIDHSGHLQ
-         fjpgH2RyzGuVqgEwAXI4IfwzmbQsDpbhD6stbuekTTyTt6z6LXE0xL5RfekX754Uxn9F
-         DEpBAyEjNOQzl1qtUKHxYJbrQFxN2DU3996A+V/dzYKztgdVShFIZ9DuHcMuLDYaELzQ
-         0V9/Lq2tNiWiw9b2WbDdu8ZCoWJ9WL4uKVMGeJkz6J+1HbJBIRd3KEIevqS4F5oGgsbm
-         sVIz1uzjMzjCeK8vZU53salV5nVN1C6AiXYjviFqNTKIutIoYCQC4EfczezweiZ6AQNr
-         DKBQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783666992; x=1784271792;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=0R936VrXsHB3d70aM67rjnLtxGIXy7cm58R9eKWt5eA=;
-        b=BqeCs1Y/9uE7fNH2FNC/B1wq9foCq2t1jkRPm+LjuUYs43QoIvhHcG+QqMrq42c8+/
-         4IfGcc7QDgFF1lQTn+IThx7myJksIN96clcnv0KXQSSkh6z0e+GondvyZmU96kqv0hgO
-         ReZpIrlmWwXy5NbsbSsl65fhMuG+mrG1Rv22D2CS8Nzu+RBONamA75STLk/KvXVjKYtQ
-         KoKs2vQzJRQQgAVCd5lsgpVn65iXWQIr+43fIQqBtjSVU9uR/UCX1CcSQL3MFVDuG592
-         I0TS0a95EUNDuuUmT1NvWmzs6pD2rbBP4uQVobIVKuGytvZtRS0zet7CWbEY+/xd6Mbs
-         /2gg==
-X-Forwarded-Encrypted: i=1; AFNElJ/WkmptpMW79JfuKbAy389llhWXU040wwCx5SWfxXfWgPZ8jEtu3e9AdEuCAxu/EvWiqD9HndFO43GX@vger.kernel.org
-X-Gm-Message-State: AOJu0YzHCDdVImwDYVU/zL4Rt6FXBzC+6rLd+CtMEXKv1U+qljviSxm4
-	caOHDVT3tOKHLJOZyJU6PNxBur1JWWVQTW6EQ7G4SkPFdf7mzkrbMZIPjnyyZlAwDisQQUV7Tbq
-	J9RjOvWY8szPS86d0dMHxprx5oGBMwxccRGlVByK3INn0aw6RbbcPAsg2jvixScSFPC15SiHycd
-	jQ7hSy0FfBBTtSfJjONxNYToa0J7LDlSrztm/6UQ==
-X-Gm-Gg: AfdE7ckAAEsfxtljPThnZKR9w7/D/pIWThbabYKNDK09bYOhp9toVNRWWh0gLZEZEvm
-	UyfLmw8qhyuCumACQda8KYKFknDE34kmWMnEGmjXyjLN8EhYXTB9Ai9hHeZqYZCMr4Nnp1tUHqg
-	fkLqbbckqwWr8jJ8yqs1C7Fu8Tk4pikNMU3/y3N6eN3QjukjNzwZtWHu2EfQdfbQpzrtRr
-X-Received: by 2002:a05:6808:192a:b0:496:10af:ee45 with SMTP id 5614622812f47-4a40f0bcce5mr2088364b6e.31.1783666991914;
-        Fri, 10 Jul 2026 00:03:11 -0700 (PDT)
-X-Received: by 2002:a05:6808:192a:b0:496:10af:ee45 with SMTP id
- 5614622812f47-4a40f0bcce5mr2088343b6e.31.1783666991441; Fri, 10 Jul 2026
- 00:03:11 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="pfZYo5o3"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1E2421E4D;
+	Fri, 10 Jul 2026 00:31:12 -0700 (PDT)
+Received: from [10.41.150.148] (e142021.arm.com [10.41.150.148])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 44F233F85F;
+	Fri, 10 Jul 2026 00:31:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1783668676; bh=UNNR39sZdTpOENOsrtvb06j8sNgyUX7Y/cLFYnh6mVs=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=pfZYo5o3NBUfDn3n4YqZy63CJ23H1V1+kVSIq1nEbpw0GfyU8u9wtYQvBZizS+2uf
+	 jHgL8SOorsldL3VphMDmUEJ34yiL2V2OCzFklDa1yFseTgFDq46xSSnK+wN4Dus/Zd
+	 FqseqwFBzRYcR/EJqeA8UCWBmBkFGycRSQedA90M=
+Message-ID: <4af7ba69-96b6-4847-80d0-ed8c91ec55b8@arm.com>
+Date: Fri, 10 Jul 2026 09:31:11 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260708070732.578046-1-hpa@redhat.com> <CAJZ5v0i5YG9v4kiYoD_-n_33FjX506uZgstJo+=BSA0KPZ_6mw@mail.gmail.com>
-In-Reply-To: <CAJZ5v0i5YG9v4kiYoD_-n_33FjX506uZgstJo+=BSA0KPZ_6mw@mail.gmail.com>
-From: Kate Hsuan <hpa@redhat.com>
-Date: Fri, 10 Jul 2026 15:02:58 +0800
-X-Gm-Features: AVVi8CfKq4wb6Wdk5j_IR9K_vwqUqGSHjPs33NQ-diqdQ5B88JoKRfj5EGxBOBQ
-Message-ID: <CAEth8oGjXrhy5dNiNnAB_s8NdFHjATthEkCRy9fniKMkxamJTw@mail.gmail.com>
-Subject: Re: [PATCH] acpi: battery: Sanitise model_number by dropping
- unprintable characters
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: Mark Pearson <mpearson-lenovo@squebb.ca>, Len Brown <lenb@kernel.org>, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 14/15] arm_mpam: prevent MPAM-Fb accesses inside IRQ
+ handler
+To: Ben Horgan <ben.horgan@arm.com>, Lorenzo Pieralisi
+ <lpieralisi@kernel.org>, Hanjun Guo <guohanjun@huawei.com>,
+ Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ James Morse <james.morse@arm.com>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+ Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+ Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+ Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
+ Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20260702162229.4008659-1-andre.przywara@arm.com>
+ <20260702162229.4008659-15-andre.przywara@arm.com>
+ <f418f531-bc0b-4bff-a96f-121034c6c693@arm.com>
+ <00e8ba98-735d-4c78-9056-3032036183e7@arm.com>
+ <7f929d11-d9ee-4a30-a3ea-7a535111b35e@arm.com>
+Content-Language: en-GB
+From: Andre Przywara <andre.przywara@arm.com>
+In-Reply-To: <7f929d11-d9ee-4a30-a3ea-7a535111b35e@arm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-Hi Rafael,
+Hi,
 
-Thank you for the review.
+On 7/9/26 15:27, Ben Horgan wrote:
+> Hi Andre,
+> 
+> On 7/9/26 13:06, Andre Przywara wrote:
+>> Hi,
+>>
+>> On 7/3/26 12:54, Ben Horgan wrote:
+>>> Hi Andre,
+>>>
+>>> On 7/2/26 17:22, Andre Przywara wrote:
+>>>> When an MPAM MSC gets into an error condition, it can trigger an error
+>>>> IRQ. We cannot really do much about those errors, but we at least query
+>>>> and log the error, then disable MPAM functionality.
+>>>>
+>>>> This error report relies on reading the MSC's error status register
+>>>> (ESR) in the IRQ handler, which is not possible for MPAM-Fb based
+>>>> MSC accesses, since they involve mailbox routines that might sleep.
+>>>> The same is true for clearing the interrupt at the source, which
+>>>> requires MSC access.
+>>>>
+>>>> For simplicity just skip the ESR read when the MSC is not using direct
+>>>> MMIO accesses, and just ignore the pending interrupts. We will wrap up
+>>>> MPAM functionality regardless, knowing the exact error value will not
+>>>> change that.
+>>>>
+>>>> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+>>>> ---
+>>>>    drivers/resctrl/mpam_devices.c | 35 +++++++++++++++++++---------------
+>>>>    1 file changed, 20 insertions(+), 15 deletions(-)
+>>>>
+>>>> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/
+>>>> mpam_devices.c
+>>>> index b858ff389bff..4a088e6cd235 100644
+>>>> --- a/drivers/resctrl/mpam_devices.c
+>>>> +++ b/drivers/resctrl/mpam_devices.c
+>>>> @@ -2639,7 +2639,7 @@ static int mpam_disable_msc_ecr(void *_msc)
+>>>>      static irqreturn_t __mpam_irq_handler(int irq, struct mpam_msc *msc)
+>>>>    {
+>>>> -    u64 reg;
+>>>> +    u64 reg = 0;
+>>>>        u16 partid;
+>>>>        u8 errcode, pmg, ris;
+>>>>    @@ -2648,25 +2648,30 @@ static irqreturn_t __mpam_irq_handler(int
+>>>> irq, struct mpam_msc *msc)
+>>>>                           &msc->accessibility)))
+>>>>            return IRQ_NONE;
+>>>>    -    mpam_msc_read_esr(msc, &reg);
+>>>> +    /* MPAM-Fb MSC accesses cannot be done in atomic context. */
+>>>> +    if (msc->iface == MPAM_IFACE_MMIO) {
+>>>> +        mpam_msc_read_esr(msc, &reg);
+>>>>    -    errcode = FIELD_GET(MPAMF_ESR_ERRCODE, reg);
+>>>> -    if (!errcode)
+>>>> -        return IRQ_NONE;
+>>>> +        errcode = FIELD_GET(MPAMF_ESR_ERRCODE, reg);
+>>>> +        if (!errcode)
+>>>> +            return IRQ_NONE;
+>>>>    -    /* Clear level triggered irq */
+>>>> -    mpam_msc_clear_esr(msc);
+>>>> +        /* Clear level triggered irq */
+>>>> +        mpam_msc_clear_esr(msc);
+>>>>    -    partid = FIELD_GET(MPAMF_ESR_PARTID_MON, reg);
+>>>> -    pmg = FIELD_GET(MPAMF_ESR_PMG, reg);
+>>>> -    ris = FIELD_GET(MPAMF_ESR_RIS, reg);
+>>>> +        partid = FIELD_GET(MPAMF_ESR_PARTID_MON, reg);
+>>>> +        pmg = FIELD_GET(MPAMF_ESR_PMG, reg);
+>>>> +        ris = FIELD_GET(MPAMF_ESR_RIS, reg);
+>>>>    -    pr_err_ratelimited("error irq from msc:%u '%s', partid:%u,
+>>>> pmg: %u, ris: %u\n",
+>>>> -               msc->id, mpam_errcode_names[errcode], partid, pmg,
+>>>> -               ris);
+>>>> +        pr_err_ratelimited("error irq from msc:%u '%s', partid:%u,
+>>>> pmg: %u, ris: %u\n",
+>>>> +                   msc->id, mpam_errcode_names[errcode], partid,
+>>>> +                   pmg, ris);
+>>>>    -    /* Disable this interrupt. */
+>>>> -    mpam_disable_msc_ecr(msc);
+>>>> +        /* Disable this interrupt. */
+>>>> +        mpam_disable_msc_ecr(msc);
+>>>
+>>> As an error interrupt is final can we just disable the IRQ?
+>>
+>> Doing that should be covered by mpam_unregister_irqs() as part of the
+>> mpam_broken_work, shouldn't it? Or do you want to do it earlier?
+> 
+> 
+> I think leaving it to mpam_broken_work risks having the hard irq handler
+> run again and again once we get an error interrupt. I'm just looking at
+> the code today but I think this is analogous to using IRQF_ONESHOT to
+> mask the interrupt until the threaded handler is finished.
 
-On Thu, Jul 9, 2026 at 9:38=E2=80=AFPM Rafael J. Wysocki (Intel)
-<rafael@kernel.org> wrote:
->
-> On Wed, Jul 8, 2026 at 9:07=E2=80=AFAM Kate Hsuan <hpa@redhat.com> wrote:
-> >
-> > The battery Embedded Controller (EC) may return the model name with
-> > trailing unprintable or non-ASCII characters. For example, on some syst=
-ems:
-> >
-> > $ cat /sys/class/power_supply/BAT0/model_name
-> > LNV-5B10W51864=EF=BF=BD=EF=BF=BD
->
-> If they are just trailing and not in the middle of the string, you
-> could just find the first one and overwrite it with a NUL character.
->
-> Rewriting the entire string is overkill in that case.
+Maybe, but masking and disabling are not the same thing, and ONESHOT 
+most probably takes care of any imbalances. Whereas when we just disable 
+the IRQ here on some occasions, without telling anyone, it may leave it 
+in a weird state?
 
-You are right. I'll find the first unprintable character and replace
-it with a NUL and break the loop.
+> 
+>>
+>>> Is it
+>>> useful? I see there is a function disable_irq_no_sync().
+>>
+>> If we want to do it earlier, the _nosync variant sounds promising,
+>> although the comment talks about it being nested, so I guess it would
+>> need to be balanced? Which might be tricky here, since I guess the IRQ
+>> would be disabled again in mpam_unregister_irqs()?
+> 
+> mpam_unregister_irqs() disables the interrupt by clearing the msc enable
+> in mpam_disable_msc_ecr() rather than disabling by irq. I don't see how
+> this would cause a problem. Or does free_percpu_irq() or devm_free_irq()
+> do something incompatible?
 
->
-> > Strip these unprintable characters to ensure the model_name attribute
-> > contains a valid string. If left intact, these malformed strings preven=
-t
-> > udev rules and hwdb from matching the attribute correctly.
-> >
-> > Link: https://gitlab.freedesktop.org/upower/upower/-/work_items/345
-> >
-> > Signed-off-by: Kate Hsuan <hpa@redhat.com>
-> > ---
-> >  drivers/acpi/battery.c | 19 +++++++++++++++++++
-> >  1 file changed, 19 insertions(+)
-> >
-> > diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> > index f5e0eb299610..dea0c3cc5160 100644
-> > --- a/drivers/acpi/battery.c
-> > +++ b/drivers/acpi/battery.c
-> > @@ -10,6 +10,7 @@
-> >
-> >  #define pr_fmt(fmt) "ACPI: battery: " fmt
-> >
-> > +#include <linux/ctype.h>
-> >  #include <linux/delay.h>
-> >  #include <linux/dmi.h>
-> >  #include <linux/jiffies.h>
-> > @@ -194,6 +195,21 @@ static int acpi_battery_handle_discharging(struct =
-acpi_battery *battery)
-> >         return POWER_SUPPLY_STATUS_DISCHARGING;
-> >  }
-> >
-> > +static void acpi_battery_remove_special_chars(char *str)
-> > +{
-> > +       char *out =3D str;
-> > +       unsigned int i =3D 0;
-> > +
->
-> And I would use a for () loop below anyway.
-Okay
+According to the description of free_irq(), it does disable the IRQ when 
+no user is left. I'd assume it does this via the same mechanism we are 
+trying to use, which would cause an imbalance?
 
+Cheers,
+Andre
 
->
-> > +       while (*str && i < MAX_STRING_LENGTH) {
-> > +               unsigned char c =3D *str++;
-> > +
-> > +               if (isascii(c) && isprint(c))
-> > +                       *out++ =3D c;
-> > +               i++;
-> > +       }
-> > +       *out =3D '\0';
-> > +}
-> > +
-> >  static int acpi_battery_get_property(struct power_supply *psy,
-> >                                      enum power_supply_property psp,
-> >                                      union power_supply_propval *val)
-> > @@ -524,6 +540,9 @@ static int extract_battery_info(const int use_bix,
-> >             battery->capacity_now > battery->full_charge_capacity)
-> >                 battery->capacity_now =3D battery->full_charge_capacity=
-;
-> >
-> > +       if (!result)
-> > +               acpi_battery_remove_special_chars(battery->model_number=
-);
-> > +
-> >         return result;
-> >  }
-> >
->
-
-
---=20
-BR,
-Kate
+>>
+>>>> +    } else {
+>>>> +        pr_err_ratelimited("unknown error irq from msc:%u\n", msc->id);
+>>>
+>>> Should we report by irq number?
+>>> As MSC may share interrupts we don't know which MSC caused the error irq
+>>> at this point. On MMIO platforms we read the ESR to establish this.
+>>
+>> I see what you mean, though I am not sure if the user would be able to
+>> make sense of any interrupt number? I would put it in anyway, more
+>> information doesn't hurt.
+>>
+>> Cheers,
+>> Andre
+>>
+>>> Thanks,
+>>>
+>>> Ben
+>>>
+>>>> +    }
+>>>>          /* Are we racing with the thread disabling MPAM? */
+>>>>        if (!mpam_is_enabled())
+>>>
+>>
+> 
 
