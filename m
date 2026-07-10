@@ -1,92 +1,213 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE143373C1A;
-	Fri, 10 Jul 2026 05:31:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783661473; cv=none; b=pzCCZZhpo6gaNyQx0qcsOJrNfSEZY3KOK2qaSkg++ofDCE1KwfKWXRPYGsfakMt5ZkgXlkD/8lKaZT6/IBy9vQoFwkPfyn0+U48xmRsrX9fDHWOwIXPoABzl2cwW3/6MOWgUrix8CgMAvw+/wFeNiHXlQMIjc33tlK2C0nufMzM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783661473; c=relaxed/simple;
-	bh=l64JcjzWCpSBdRWQ5UQ77z22/husDJbhXILYRBfevxg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uil7ZyQR+Iu3n1fFi4FeK9gSvz89pPlgTwKmxoz4diYsI+vziob+wu9jlMfJtvsRZcBQqlU0L/8SseQK0flzR6bzjMisrd/OBvXpXdsNAZQRofakxbhNB5Ekdc9ZN8wwjRKsZmRt9kS20eb5MhwAMz2PJqq0St2xC8w+u312w6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=M48KARnE; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED0663BF67E
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 07:03:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=170.10.133.124
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1783666998; cv=pass; b=OGeTw8i/N1+G4AOFNaBn5vShg5ORyDcxIb18naBF9mU+MRmiL6pNBvZ98IugAMC+HfrcAsE8188Z3l2zjeUlt/MVxGugG2M3YUv1Yjb+ktvpD4+vJQ3XSIIUzYSWVNYR5yZuyLtczSr4Xze+vJK50BOLJ/G5xn6Wk7uRrCtCXLU=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1783666998; c=relaxed/simple;
+	bh=jeYBpsVZRu4opwsHOZ92QeIQLJ1kAcNu2rw6khHCYZQ=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=G+amAvggxkQWNRRGsWoqzrt7QfYaQSH92lkrV2AfusAbXN/3E+2Gw1/Z7+eYMGdXaOHf5T54yHvY1095pvw/V08D+ug36aOfhOqGd5gB/eIsrxjGfWSFf+XT9wcyUz6OkxGSrqdu/JeKXtAQsGuBIgJ5TgLqFNm+LtmGsDlGNn4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=hD9W9EcE; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=Q6QHNCrQ; arc=pass smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="M48KARnE"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
-	Content-ID:Content-Description:In-Reply-To:References;
-	bh=n+w8axshVAu6c1a5VUZtVU0qgvR+7v+S6dNFZ+LAmUs=; b=M48KARnE+IQDuByHhqcRsuStTJ
-	uaoOZGJqBBTEHSfLhRcgZWNAAWRTrt96ZDkLyuckTlox0YbOs7xPfoDqzxMDK6rFMuynGR66wd00Y
-	eXATv3QpStXCvgVzftfwFEFFqb8ekxvAq2907tfVyxMFqdkHhfvcnH9FeV8Wf2p9bAM4C/8zV+L4j
-	b5fO2Rvp0UUfS5yZ54WjIcXvbHZbB84x7J+AYoemznsMNPihDDzLeOm4NIYy+sKts/LheijO9jEuC
-	IhDo2/tFdDjpKmLDPw7nOpDRFoaezGkEfUjsGgXl4+l57dNPZ60XIFLqotMFKacQOMoeK9Le22c+n
-	1mh5f+kg==;
-Received: from [50.53.43.113] (helo=bombadil.infradead.org)
-	by bombadil.infradead.org with esmtpsa (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wi3pK-00000004CbL-38e5;
-	Fri, 10 Jul 2026 05:31:06 +0000
-From: Randy Dunlap <rdunlap@infradead.org>
-To: linux-kernel@vger.kernel.org
-Cc: Randy Dunlap <rdunlap@infradead.org>,
-	"chunzhi.lin" <linchunzhi0@gmail.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	netdev@vger.kernel.org,
-	Russell King <linux@armlinux.org.uk>,
-	linux-acpi@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>
-Subject: [PATCH] docs: ACPI: DSD: motorcomm: fix docs build error
-Date: Thu,  9 Jul 2026 22:31:06 -0700
-Message-ID: <20260710053106.730399-1-rdunlap@infradead.org>
-X-Mailer: git-send-email 2.54.0
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="hD9W9EcE";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="Q6QHNCrQ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1783666994;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=0R936VrXsHB3d70aM67rjnLtxGIXy7cm58R9eKWt5eA=;
+	b=hD9W9EcE1Q98C8KPDDd6x0cEpq4TFEDTQwWwm5vhnFzRSbaRf/p9jHEvhldnPPgsBlGsKo
+	NrTDw1u8AcsNgKvhb2moXKOckFslNTU2OhEii6RJHZxqCUA/d1pFmzS+TgMvAv1vSvbywb
+	QDvGnPOWHpQk287DhBS3s2PnC/79EXY=
+Received: from mail-oi1-f199.google.com (mail-oi1-f199.google.com
+ [209.85.167.199]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-658-WLd85eqpN5WCy2llMg0rEQ-1; Fri, 10 Jul 2026 03:03:12 -0400
+X-MC-Unique: WLd85eqpN5WCy2llMg0rEQ-1
+X-Mimecast-MFC-AGG-ID: WLd85eqpN5WCy2llMg0rEQ_1783666992
+Received: by mail-oi1-f199.google.com with SMTP id 5614622812f47-485ebc5706cso2517092b6e.0
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 00:03:12 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1783666992; cv=none;
+        d=google.com; s=arc-20260327;
+        b=rw30790lIY22Ku9CPBpyW+X/KepNNjLK4WU7UosTBuuSqGP7urrX4HPJpwmunO5Czr
+         X/pxgz7KB3SQ3jp19YvJKIt4t3zjgkL06V1CcKEEj7kaxesanr7fTVFPWHqGGPwdJ4No
+         Whfh+n1c6JHoFSwhoTI1ZbYw9X6Z9RIgSzbpIeMdxl+x5MmCfOLisAG4zy8tyMSRlTPD
+         73s7KTqOto5HfUKnu5nu9YR55SUZo4SEzU1yXjMYXy0Uwg4OUrxxGhsFLcY5X6hWQNW9
+         eSfppUhF4SRLiXllTqY2ndACPmHf8f0BTuDQqdIxtN2JPxG5ekKgYHCTrnL/8T7k8L8L
+         N6hw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=0R936VrXsHB3d70aM67rjnLtxGIXy7cm58R9eKWt5eA=;
+        fh=eI+cwCaaPCEdWr3HjkmNieFhYatcj+yohogCgAW5PRU=;
+        b=GFlU5Y7d7AR7DO6rg2osR5kYoea1D4/Dn7I4/sQ769eG8dhR9VL/5+P/8uU+SzsWYW
+         EU6SsqVjPwXpcSWHWmtzo82+wlYWbBFFewvhk48A4kjZ62+lR7zLRPcXOSa1uoQPL6se
+         j1vb3zN5e+QuJu7Lnttdj51yvkBRdTyPNW+Nv3S1btOrNNyxZkARVXwMfieWR47XFFIm
+         uG/4mw+uqUHd6/G//rQhZBaAdHH7WYDP9gJqh2GCeH20AaX1TggS0NMl26kLD/3eRzaz
+         NouGUAGQjYPm17pKsdzHnrStZ207vWlb0aRy2oK2RgUJDmGyzNLIJKYzfIVd5SLu7C/2
+         WtLg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=redhat.com; s=google; t=1783666992; x=1784271792; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=0R936VrXsHB3d70aM67rjnLtxGIXy7cm58R9eKWt5eA=;
+        b=Q6QHNCrQP0KjKO0S5HOidElRLq9NJbzMCTgx1L0iRNh+uVx7bKpFgueCWFIDHSGHLQ
+         fjpgH2RyzGuVqgEwAXI4IfwzmbQsDpbhD6stbuekTTyTt6z6LXE0xL5RfekX754Uxn9F
+         DEpBAyEjNOQzl1qtUKHxYJbrQFxN2DU3996A+V/dzYKztgdVShFIZ9DuHcMuLDYaELzQ
+         0V9/Lq2tNiWiw9b2WbDdu8ZCoWJ9WL4uKVMGeJkz6J+1HbJBIRd3KEIevqS4F5oGgsbm
+         sVIz1uzjMzjCeK8vZU53salV5nVN1C6AiXYjviFqNTKIutIoYCQC4EfczezweiZ6AQNr
+         DKBQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783666992; x=1784271792;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=0R936VrXsHB3d70aM67rjnLtxGIXy7cm58R9eKWt5eA=;
+        b=BqeCs1Y/9uE7fNH2FNC/B1wq9foCq2t1jkRPm+LjuUYs43QoIvhHcG+QqMrq42c8+/
+         4IfGcc7QDgFF1lQTn+IThx7myJksIN96clcnv0KXQSSkh6z0e+GondvyZmU96kqv0hgO
+         ReZpIrlmWwXy5NbsbSsl65fhMuG+mrG1Rv22D2CS8Nzu+RBONamA75STLk/KvXVjKYtQ
+         KoKs2vQzJRQQgAVCd5lsgpVn65iXWQIr+43fIQqBtjSVU9uR/UCX1CcSQL3MFVDuG592
+         I0TS0a95EUNDuuUmT1NvWmzs6pD2rbBP4uQVobIVKuGytvZtRS0zet7CWbEY+/xd6Mbs
+         /2gg==
+X-Forwarded-Encrypted: i=1; AFNElJ/WkmptpMW79JfuKbAy389llhWXU040wwCx5SWfxXfWgPZ8jEtu3e9AdEuCAxu/EvWiqD9HndFO43GX@vger.kernel.org
+X-Gm-Message-State: AOJu0YzHCDdVImwDYVU/zL4Rt6FXBzC+6rLd+CtMEXKv1U+qljviSxm4
+	caOHDVT3tOKHLJOZyJU6PNxBur1JWWVQTW6EQ7G4SkPFdf7mzkrbMZIPjnyyZlAwDisQQUV7Tbq
+	J9RjOvWY8szPS86d0dMHxprx5oGBMwxccRGlVByK3INn0aw6RbbcPAsg2jvixScSFPC15SiHycd
+	jQ7hSy0FfBBTtSfJjONxNYToa0J7LDlSrztm/6UQ==
+X-Gm-Gg: AfdE7ckAAEsfxtljPThnZKR9w7/D/pIWThbabYKNDK09bYOhp9toVNRWWh0gLZEZEvm
+	UyfLmw8qhyuCumACQda8KYKFknDE34kmWMnEGmjXyjLN8EhYXTB9Ai9hHeZqYZCMr4Nnp1tUHqg
+	fkLqbbckqwWr8jJ8yqs1C7Fu8Tk4pikNMU3/y3N6eN3QjukjNzwZtWHu2EfQdfbQpzrtRr
+X-Received: by 2002:a05:6808:192a:b0:496:10af:ee45 with SMTP id 5614622812f47-4a40f0bcce5mr2088364b6e.31.1783666991914;
+        Fri, 10 Jul 2026 00:03:11 -0700 (PDT)
+X-Received: by 2002:a05:6808:192a:b0:496:10af:ee45 with SMTP id
+ 5614622812f47-4a40f0bcce5mr2088343b6e.31.1783666991441; Fri, 10 Jul 2026
+ 00:03:11 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260708070732.578046-1-hpa@redhat.com> <CAJZ5v0i5YG9v4kiYoD_-n_33FjX506uZgstJo+=BSA0KPZ_6mw@mail.gmail.com>
+In-Reply-To: <CAJZ5v0i5YG9v4kiYoD_-n_33FjX506uZgstJo+=BSA0KPZ_6mw@mail.gmail.com>
+From: Kate Hsuan <hpa@redhat.com>
+Date: Fri, 10 Jul 2026 15:02:58 +0800
+X-Gm-Features: AVVi8CfKq4wb6Wdk5j_IR9K_vwqUqGSHjPs33NQ-diqdQ5B88JoKRfj5EGxBOBQ
+Message-ID: <CAEth8oGjXrhy5dNiNnAB_s8NdFHjATthEkCRy9fniKMkxamJTw@mail.gmail.com>
+Subject: Re: [PATCH] acpi: battery: Sanitise model_number by dropping
+ unprintable characters
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: Mark Pearson <mpearson-lenovo@squebb.ca>, Len Brown <lenb@kernel.org>, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Separate the title with commas (since they are all run togethe in the
-produced output) and add a blank line before the descriptive text to
-avoid a docs build error:
+Hi Rafael,
 
-Documentation/firmware-guide/acpi/dsd/motorcomm-yt8xxx-phy.rst:70: ERROR: Unexpected indentation. [docutils]
+Thank you for the review.
 
-Fixes: 28f431eac1e5 ("docs: acpi: dsd: add Motorcomm yt8xxx PHY properties")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
----
-Cc: chunzhi.lin <linchunzhi0@gmail.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: netdev@vger.kernel.org
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: linux-acpi@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Simon Horman <horms@kernel.org>
+On Thu, Jul 9, 2026 at 9:38=E2=80=AFPM Rafael J. Wysocki (Intel)
+<rafael@kernel.org> wrote:
+>
+> On Wed, Jul 8, 2026 at 9:07=E2=80=AFAM Kate Hsuan <hpa@redhat.com> wrote:
+> >
+> > The battery Embedded Controller (EC) may return the model name with
+> > trailing unprintable or non-ASCII characters. For example, on some syst=
+ems:
+> >
+> > $ cat /sys/class/power_supply/BAT0/model_name
+> > LNV-5B10W51864=EF=BF=BD=EF=BF=BD
+>
+> If they are just trailing and not in the middle of the string, you
+> could just find the first one and overwrite it with a NUL character.
+>
+> Rewriting the entire string is overkill in that case.
 
- Documentation/firmware-guide/acpi/dsd/motorcomm-yt8xxx-phy.rst |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+You are right. I'll find the first unprintable character and replace
+it with a NUL and break the loop.
 
---- linext-2026-0708.orig/Documentation/firmware-guide/acpi/dsd/motorcomm-yt8xxx-phy.rst
-+++ linext-2026-0708/Documentation/firmware-guide/acpi/dsd/motorcomm-yt8xxx-phy.rst
-@@ -64,9 +64,10 @@ defaults as [motorcomm-yt8xxx]_.
-   Enables adjustments related to ``motorcomm,tx-clk-*-inverted`` usage; see
-   [motorcomm-yt8xxx]_.
- 
--``motorcomm,tx-clk-10-inverted`` (boolean, optional)
--``motorcomm,tx-clk-100-inverted`` (boolean, optional)
-+``motorcomm,tx-clk-10-inverted`` (boolean, optional),
-+``motorcomm,tx-clk-100-inverted`` (boolean, optional),
- ``motorcomm,tx-clk-1000-inverted`` (boolean, optional)
-+
-   Per-speed TX clock inversion options; see [motorcomm-yt8xxx]_.
- 
- ASL example (illustrative)
+>
+> > Strip these unprintable characters to ensure the model_name attribute
+> > contains a valid string. If left intact, these malformed strings preven=
+t
+> > udev rules and hwdb from matching the attribute correctly.
+> >
+> > Link: https://gitlab.freedesktop.org/upower/upower/-/work_items/345
+> >
+> > Signed-off-by: Kate Hsuan <hpa@redhat.com>
+> > ---
+> >  drivers/acpi/battery.c | 19 +++++++++++++++++++
+> >  1 file changed, 19 insertions(+)
+> >
+> > diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> > index f5e0eb299610..dea0c3cc5160 100644
+> > --- a/drivers/acpi/battery.c
+> > +++ b/drivers/acpi/battery.c
+> > @@ -10,6 +10,7 @@
+> >
+> >  #define pr_fmt(fmt) "ACPI: battery: " fmt
+> >
+> > +#include <linux/ctype.h>
+> >  #include <linux/delay.h>
+> >  #include <linux/dmi.h>
+> >  #include <linux/jiffies.h>
+> > @@ -194,6 +195,21 @@ static int acpi_battery_handle_discharging(struct =
+acpi_battery *battery)
+> >         return POWER_SUPPLY_STATUS_DISCHARGING;
+> >  }
+> >
+> > +static void acpi_battery_remove_special_chars(char *str)
+> > +{
+> > +       char *out =3D str;
+> > +       unsigned int i =3D 0;
+> > +
+>
+> And I would use a for () loop below anyway.
+Okay
+
+
+>
+> > +       while (*str && i < MAX_STRING_LENGTH) {
+> > +               unsigned char c =3D *str++;
+> > +
+> > +               if (isascii(c) && isprint(c))
+> > +                       *out++ =3D c;
+> > +               i++;
+> > +       }
+> > +       *out =3D '\0';
+> > +}
+> > +
+> >  static int acpi_battery_get_property(struct power_supply *psy,
+> >                                      enum power_supply_property psp,
+> >                                      union power_supply_propval *val)
+> > @@ -524,6 +540,9 @@ static int extract_battery_info(const int use_bix,
+> >             battery->capacity_now > battery->full_charge_capacity)
+> >                 battery->capacity_now =3D battery->full_charge_capacity=
+;
+> >
+> > +       if (!result)
+> > +               acpi_battery_remove_special_chars(battery->model_number=
+);
+> > +
+> >         return result;
+> >  }
+> >
+>
+
+
+--=20
+BR,
+Kate
+
