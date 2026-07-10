@@ -1,31 +1,31 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id BA5DB42B310;
-	Fri, 10 Jul 2026 14:45:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0450242E00B;
+	Fri, 10 Jul 2026 14:45:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783694757; cv=none; b=eu48ySKSeFTGFU8Pyi07nOZupVPUvc51PA9dK0gRehsRr/PoYQYwqje8qXYTbS2qm8sKJU1KnoGnohC7TKVZNrBV+iYQt29F213K2fMeSBqtKy412bWtGb0P5hkNg9MxFdfxmGvOzBhG3O8o6RwHyBSRHrTFkzD3DK1Ep/f0d5I=
+	t=1783694763; cv=none; b=g/Jf+3gjDAoeaPNdnaTsub1drafI2k0609wiVC8xGkssXmaXEOwTXY29rf633a+TkbrH5jYoo5gGn7DpOtpfqFlq9hMJr464mRkT725Ys8fbC0yPY4CmxeEQGQq8zZtu+FQtfwp+op6HB06f0i1QIp/H2BZrAwd4CuG26u20Buc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783694757; c=relaxed/simple;
-	bh=BPxv+t0VViUKFXPtmOsQP33qwPps3qePapUb2dPAJr0=;
+	s=arc-20240116; t=1783694763; c=relaxed/simple;
+	bh=LtzgxM6qOWpziK1YO1CIa7BsMHy549pWpqPWc8ykDbc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=I68BdHxw+rZHpgpcL7QpmyiT2lEhAGxBjanIxu8aera86NPB/oQYoAFrf8UtQFO0AfRAiQvVTZSMCwBP6m8vDouYUMo7pOAyo1zl8Pt8z2xg7YxdMXLd+IDn8Ka7HHdP7TAzdJugHkCmvP1Bmr2xRUHqCUAfRmC6pAd4LG3yEiY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=S7qa2+Og; arc=none smtp.client-ip=217.140.110.172
+	 MIME-Version; b=rzDSIMoPYCWLezbSUdoWuzPwW3TTlct3dXHsaZOdIpuafofPIyKAwE86WP3zDW0C3jv7QlRNZKkNYS2Gel62V/+I/oeLECEHriK7hnoy3P+1W1Wv5/KJwxzoJHErAtGemR+NpDVDj0Ef73tmt8GB9a2CLubgnf+C90lsFav/dds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=BCzW7xgs; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="S7qa2+Og"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="BCzW7xgs"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id A1DAB1BC0;
-	Fri, 10 Jul 2026 07:45:47 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 035571E7D;
+	Fri, 10 Jul 2026 07:45:52 -0700 (PDT)
 Received: from e142021.munich.arm.com (e142021.arm.com [10.41.150.148])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 0761F3F7B4;
-	Fri, 10 Jul 2026 07:45:47 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 5A57A3F7B4;
+	Fri, 10 Jul 2026 07:45:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1783694751; bh=BPxv+t0VViUKFXPtmOsQP33qwPps3qePapUb2dPAJr0=;
+	t=1783694756; bh=LtzgxM6qOWpziK1YO1CIa7BsMHy549pWpqPWc8ykDbc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=S7qa2+Ogvysj8BsMs9OFRbo9CovDtBvEitSK2ZR+SR6T3p8miSzjCZB1j/IGnTjMv
-	 aH0SjpzcY3Hpk6ZMP7tk8n3/UL4MCgKYgleoNX+WUio34SLyl8Q7UUPBiAo5vBy4qL
-	 QdQyeAh+NUGVGvd1V68PQ30MDZw4LMYnUTJIeT08=
+	b=BCzW7xgswr7TO5SXyFGV8R5x6zC6Q8mWHK9UpTDCmU1+aD70CWYDzA6eiKV9hMHDt
+	 P7N3ec9IKfuqZSd6BGOPJokMFoAgUvBj7ZAxxyvurQmnfNpWd2IgkRlL4nAf12Z22q
+	 +ZaIrK/xEB6BgMHLmC+LQ2+xJ5lxARfAzKkPFkQU=
 From: Andre Przywara <andre.przywara@arm.com>
 To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
 	Hanjun Guo <guohanjun@huawei.com>,
@@ -47,9 +47,9 @@ Cc: Jonathan Cameron <jic23@kernel.org>,
 	linux-acpi@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v3 05/16] arm_mpam: propagate MSC read errors for msmon helpers
-Date: Fri, 10 Jul 2026 16:45:09 +0200
-Message-ID: <20260710144520.917375-6-andre.przywara@arm.com>
+Subject: [PATCH v3 06/16] arm_mpam: propagate MSC read errors for __ris_msmon_read()
+Date: Fri, 10 Jul 2026 16:45:10 +0200
+Message-ID: <20260710144520.917375-7-andre.przywara@arm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260710144520.917375-1-andre.przywara@arm.com>
 References: <20260710144520.917375-1-andre.przywara@arm.com>
@@ -61,56 +61,86 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Allow the helper functions for msmon accesses to return an error, and
-propagate read errors from the lower level up.
+Allow the function for RIS accesses to return an error, and propagate
+read errors from the lower level up.
 
 Signed-off-by: Andre Przywara <andre.przywara@arm.com>
 ---
- drivers/resctrl/mpam_devices.c | 18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ drivers/resctrl/mpam_devices.c | 23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-index 3b6f9e552a9f..041fca018e68 100644
+index 041fca018e68..84a8715464be 100644
 --- a/drivers/resctrl/mpam_devices.c
 +++ b/drivers/resctrl/mpam_devices.c
-@@ -1201,25 +1201,31 @@ static void gen_msmon_ctl_flt_vals(struct mon_read *m, u32 *ctl_val,
- 	}
+@@ -1297,6 +1297,10 @@ static u64 mpam_msmon_overflow_val(enum mpam_device_features type,
+ 	return overflow_val;
  }
  
--static void read_msmon_ctl_flt_vals(struct mon_read *m, u32 *ctl_val,
--				    u32 *flt_val)
-+static int read_msmon_ctl_flt_vals(struct mon_read *m, u32 *ctl_val,
-+				   u32 *flt_val)
++/*
++ * This function might be called via smp_call_function_any(), so propagate
++ * errors inside the arg struct.
++ */
+ static void __ris_msmon_read(void *arg)
  {
- 	struct mpam_msc *msc = m->ris->vmsc->msc;
-+	int ret;
+ 	u64 now;
+@@ -1339,7 +1343,9 @@ static void __ris_msmon_read(void *arg)
+ 	 * Read the existing configuration to avoid re-writing the same values.
+ 	 * This saves waiting for 'nrdy' on subsequent reads.
+ 	 */
+-	read_msmon_ctl_flt_vals(m, &cur_ctl, &cur_flt);
++	ret = read_msmon_ctl_flt_vals(m, &cur_ctl, &cur_flt);
++	if (ret)
++		goto out_unlock;
+ 
+ 	if (mpam_feat_msmon_mbwu_31counter == m->type)
+ 		overflow = cur_ctl & MSMON_CFG_x_CTL_OFLOW_STATUS;
+@@ -1364,7 +1370,9 @@ static void __ris_msmon_read(void *arg)
  
  	switch (m->type) {
  	case mpam_feat_msmon_csu:
--		mpam_read_monsel_reg(msc, CFG_CSU_CTL, ctl_val);
--		mpam_read_monsel_reg(msc, CFG_CSU_FLT, flt_val);
-+		ret = mpam_read_monsel_reg(msc, CFG_CSU_CTL, ctl_val);
-+		if (!ret)
-+			ret = mpam_read_monsel_reg(msc, CFG_CSU_FLT, flt_val);
- 		break;
- 	case mpam_feat_msmon_mbwu_31counter:
- 	case mpam_feat_msmon_mbwu_44counter:
- 	case mpam_feat_msmon_mbwu_63counter:
--		mpam_read_monsel_reg(msc, CFG_MBWU_CTL, ctl_val);
--		mpam_read_monsel_reg(msc, CFG_MBWU_FLT, flt_val);
-+		ret = mpam_read_monsel_reg(msc, CFG_MBWU_CTL, ctl_val);
-+		if (!ret)
-+			ret = mpam_read_monsel_reg(msc, CFG_MBWU_FLT, flt_val);
- 		break;
- 	default:
- 		pr_warn("Unexpected monitor type %d\n", m->type);
-+		return -EINVAL;
+-		mpam_read_monsel_reg(msc, CSU, &now32);
++		ret = mpam_read_monsel_reg(msc, CSU, &now32);
++		if (ret)
++			goto out_unlock;
+ 		nrdy = now32 & MSMON___NRDY;
+ 		now = FIELD_GET(MSMON___VALUE, now32);
+ 
+@@ -1385,7 +1393,9 @@ static void __ris_msmon_read(void *arg)
+ 			else
+ 				now = FIELD_GET(MSMON___L_VALUE, now);
+ 		} else {
+-			mpam_read_monsel_reg(msc, MBWU, &now32);
++			ret = mpam_read_monsel_reg(msc, MBWU, &now32);
++			if (ret)
++				goto out_unlock;
+ 			nrdy = now32 & MSMON___NRDY;
+ 			now = FIELD_GET(MSMON___VALUE, now32);
+ 		}
+@@ -1748,6 +1758,7 @@ static int mpam_restore_mbwu_state(void *_ris)
+ {
+ 	int i;
+ 	u64 val;
++	int ret = 0;
+ 	struct mon_read mwbu_arg;
+ 	struct mpam_msc_ris *ris = _ris;
+ 	struct mpam_class *class = ris->vmsc->comp->class;
+@@ -1760,10 +1771,14 @@ static int mpam_restore_mbwu_state(void *_ris)
+ 			mwbu_arg.val = &val;
+ 
+ 			__ris_msmon_read(&mwbu_arg);
++			if (mwbu_arg.err) {
++				ret = mwbu_arg.err;
++				break;
++			}
+ 		}
  	}
-+
+ 
+-	return 0;
 +	return ret;
  }
  
- /* Remove values set by the hardware to prevent apparent mismatches. */
+ /* Call with MSC cfg_lock held */
 -- 
 2.43.0
 
