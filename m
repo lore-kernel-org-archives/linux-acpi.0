@@ -1,85 +1,85 @@
 Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4311237C0F6
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 18:49:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE81E25B08A
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 18:57:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783709346; cv=none; b=mWxGrJqFfiJtyehp/XK5XkjAG1oGUa6JgmAJt9oYzHx7EkQCJMeZpJs6I7iPuhQMS35BKB0+fnD6k0PBxrpWU+wWOh1b0giJvWpQNpsv1EBovlmiXxuqlkjW8bwdLLVeKyvP9cBoaHEYOqa7E04HhoS/jP89POsPdIWoXBZtVBc=
+	t=1783709830; cv=none; b=mMgyn7ZvjlZvZ0ybpBhAsWU8fjTNEv7H+ZpWHS+DnirjL+ilzm89syLRBF2zO9dmlVd0V2bd+pagkLPnr9lwYOHU9WFuR/b6sagT4LP4oteJh0KkloKbLJ0oSHiX1zSDD9E0txg+CHlKnq8vd/UWYXNgR47ygBDUzlV8J9/I80I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783709346; c=relaxed/simple;
-	bh=E8wcVnSLIw/E0nvCX4sBW0uvspXfiv3BgUShxKOeQd8=;
+	s=arc-20240116; t=1783709830; c=relaxed/simple;
+	bh=kDvThbzp+hWJ+w9OoNvnOO2Ynuu5PrfxHYDZ4tnceUg=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=mOa+Rzm1LBkpEAHQltcjHjgCzVFCjQA2oj3uv0s35H7gAnAiJSvH+u5gs3l71gvLl+dYuQtPVgn3ih3Z2u27BLopJ+8NcUuwDO5LNFoH3iCM5bFM3S4Ame1CdJPrl6sqGxqHOovTISKEZOXdtcML4c3mahcGuQLXE362no+kvBk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=KFStoFOE; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=a0m7ChoI; arc=none smtp.client-ip=205.220.180.131
+	 MIME-Version:Content-Type; b=u3oAzJKKBx0RUbpPCX6tcbWLw8ni++iF0rn/cDEmJuY62Ox2oUr2e6fF6kTCBvvP4ortDDkJ67J6jyWd6VaFUQAvQPzgH8VFe6wuVSYqSpzDejkRmXTnHj26vq9AMb9nOJf2GKsb5IHAJHtmocvQaUzBy6++mOcbMbUUV+xY5Go=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=osvB0wjH; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=DiLYn2r/; arc=none smtp.client-ip=205.220.180.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="KFStoFOE";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="a0m7ChoI"
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="osvB0wjH";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="DiLYn2r/"
 Received: from pps.filterd (m0279868.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66AH43VW1400639
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 18:49:03 GMT
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66AH3wTh1400462
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 18:57:08 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
 	cc:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	0Ss9oAhVsJIGIgV741scL9PWQQaX3OT8OnIGzEUK6To=; b=KFStoFOEL5/meHet
-	eMjesuOr55KGrdbwXnsmgYk2tN+eR2tLXO+SmKQpB06g1ee6iYOTIBqs3A+uLDKs
-	jR07lo44K4lu7VO+3aqrg85AEsPsKk/Ob8Gn5M30ekwrN+l3sKqDvfywMvruzMTw
-	oneSgcr0gy0xhw4p/CXGAAxJS/smftIXS6+NDo5H7qEEDg+LAHRcc6avMRpMzQ+d
-	A0R3ErXvEvsDy9BYjA9o0bbKAXaNoPHe24ZmxlrXsgKnDz2ATA2aokUxOZlPO2G5
-	cuw45vAO8HN4nj2BzemCi0VFTypfc2xKzHZayqgy3ZC9LYlDEH03AlJMoWDGIFkv
-	LvPm9g==
-Received: from mail-pj1-f72.google.com (mail-pj1-f72.google.com [209.85.216.72])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4faxyg9u7k-1
+	NUwraeVAIbOxkgowZVXW9RaxpXRVvqBvyF4xRm9fCHw=; b=osvB0wjHZUONx161
+	Nq48eHZ6D4AUiNb2uhT52YWljU0x7kVtjYOYjpyA2u/n+MsE3jYXNI0CFIGY98ma
+	BE+sCzOITKbv9QenjKzkRh7DCL6J/zPZslVnQWwjAtGHYc3rpSq9SH48AvqxXMpQ
+	11mXmMjawdsuVu4PE7lJzN2JYIki1KAO0an3JADdVS5TB/MU36ZqVoOWwYOk5y54
+	ZrNM/ot3apCY95JUAlycMwaiewe/G+pCr/cXYzHQbkYjGhRr4Gfs3Yp2Ehl0+yiZ
+	UH36qmmFdk85RlykTMGZ5qE6e6eC9sXBK4cwK4jktuQJDqoI5zeWiUgFzTzk60/c
+	HdYBTg==
+Received: from mail-pg1-f197.google.com (mail-pg1-f197.google.com [209.85.215.197])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4faxyg9v0n-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 18:49:03 +0000 (GMT)
-Received: by mail-pj1-f72.google.com with SMTP id 98e67ed59e1d1-3811ae55313so1235970a91.3
-        for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 11:49:02 -0700 (PDT)
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 18:57:07 +0000 (GMT)
+Received: by mail-pg1-f197.google.com with SMTP id 41be03b00d2f7-cab048cdb3eso108456a12.0
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 11:57:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1783709342; x=1784314142; darn=vger.kernel.org;
+        d=oss.qualcomm.com; s=google; t=1783709822; x=1784314622; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:mime-version:organization
          :references:in-reply-to:message-id:subject:cc:to:from:date:from:to
          :cc:subject:date:message-id:reply-to:content-type;
-        bh=0Ss9oAhVsJIGIgV741scL9PWQQaX3OT8OnIGzEUK6To=;
-        b=a0m7ChoIuoWOCcNDGmFlnzJyZtVn7Ow3wHIXW0y9fnhUUZ+pWz9voO2P/PJ1bJlD61
-         rgh8fHSP+MzDAAFiP6b+OhUo6fLyCUNm3YVY0caf1m4qf22S8Xm6WyUxZi5aqmjXKsBd
-         QHLZgSEq3Km/H3UCvfK7z7yE7Fy70rjTUrS4AlJRmJULsMcp+fdMrJ9ZftuBREtJ4wL0
-         4sZ7Xdnc6xOa53qVeApm97WwYt2bbMxw9SICt8jiV9q+MjzGpjYmQ7HoZvZ1x4NmxnWB
-         Zo7ka6dRHIuTB9MTLVjMydohWjUV8L8mQySQGcjib1EWQ3KXRydVew9mjpIYluA+LIRU
-         DZ3w==
+        bh=NUwraeVAIbOxkgowZVXW9RaxpXRVvqBvyF4xRm9fCHw=;
+        b=DiLYn2r/dNJSijWLr4CD84nN03T2CFpyaDZ8Y49WkK9H8NUs6ARrnqWm8Fb0toUY5a
+         IGvnUHsD5OkBvBaiqDIP+CgNTrE9rUU2p6LqfdC0qGcT6XOpezI0W/VWeqkM1lc+2p8R
+         RjURz7g3qsujRr+BlPUVd2gBRtwDlruTHlNND9QFUIsKNGRbr0LQ52jOpyqKPSS98ff2
+         APINU+Fx3Wpqac1LwMKjuGUHQhWGeZTcead1o+dIP+Ve5KaqQ0oL0A5GYsPyeYNmmKXt
+         f3TLE7HlUW1+h43lMABCaohtc6dyo4HShfKLHYGxTP675nqioEqNdd/M7otlnwprTEci
+         Qt/Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783709342; x=1784314142;
+        d=1e100.net; s=20251104; t=1783709822; x=1784314622;
         h=content-transfer-encoding:content-type:mime-version:organization
          :references:in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=0Ss9oAhVsJIGIgV741scL9PWQQaX3OT8OnIGzEUK6To=;
-        b=CpnsdaQJF+FdPlldb2mWGXDXKXkAboV4qj/+MFzLB583Ob7q9lSSBVcfQN5PvjK5RB
-         zu4iVuVTwyMrzNi+F9ExY9+iR722wRiX/b7Gr8HfMUi1gLMY11IryMhAhVD3g1eJyeUK
-         H1Zy+27f5YsLh3D1QZK2CplEkBj5fv1z9tV+Xlw374MZa1l2Ix6hrwYXQTMFI372MJAi
-         CWYNv1T1nB4tEUsPlx9bxukpjMbh9zZo7PJ2sspu1Xgp7d+PlAHa8W/PiU7evzvQChim
-         +80Wc4aAeNLuZ69Bl3d8UNzp+S2II18RYjEOtkmYvKhK/fVSnW/qzVUA9wZMRw6hxext
-         9VSA==
-X-Forwarded-Encrypted: i=1; AHgh+RowctD10K1nRTeQlKA+I4ubvZm3iOvL1BVQs/tf5oXSWaKy4UWbI/EmoTN9crQcwWRU092ojWwpZUWx@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz7xGy/zIfi7mf4AYX1+JZKWVo9uj7D4bw0YuJOL0uOrmDx4pLM
-	ZdH+nWhH8oNUf4hyK/ndo+bqhFd39LRKg+t2N1qQIg8i2qDo4A28+sa4/nTzxy0VJVTPoWh3It2
-	8qoHHS50TOi6/MNHWhtCK1fBfcqUswV95Xf7FhiJ6RDhlmRKfr4pokKZWm0V/lM3O
-X-Gm-Gg: AfdE7cnvFIVupF0qaiPiUGfng9qrRyflVT4lrzk75j2isAW0v8wnDVnttzhRLkI8juO
-	XGnYsnW3ng/yeae1YSvFTS/RFAf9Tcbpp1dpFTMfpAHDeltWeH87L5umBDGLD/UPH8oK+fjLIqB
-	8uAyu8Xgod21uo6XgmX1Moas26zaF3UP/uF75eHr/S5Pesa+w5Wj8BBWPo/BrPcri8Kep3aPxqy
-	lygTUKvCzpp8pn+KOFb1vjNpVSL5wREyUQJ4clSDWNDUSDZ71BscScs65VEmdMsT8r61ACmlDUU
-	L7gnlOR+6co2n8w0kaKgYXRRGjE7wfKwiP1ohgfnKu2JIuPfPkUYVeMCGdycJ02PLTPivULAwZ9
-	MMUjHBeRqABOhY4yNfCIR87aQ7cCPgUOnKiBE
-X-Received: by 2002:a17:90b:2e8f:b0:380:8b14:d8e1 with SMTP id 98e67ed59e1d1-38dc7b3f8ccmr143455a91.24.1783709342089;
-        Fri, 10 Jul 2026 11:49:02 -0700 (PDT)
-X-Received: by 2002:a17:90b:2e8f:b0:380:8b14:d8e1 with SMTP id 98e67ed59e1d1-38dc7b3f8ccmr143416a91.24.1783709341636;
-        Fri, 10 Jul 2026 11:49:01 -0700 (PDT)
+        bh=NUwraeVAIbOxkgowZVXW9RaxpXRVvqBvyF4xRm9fCHw=;
+        b=rqfnhyFSZbnMOpEWiM9/MLenKmpjNjZxlgi3OGTKV9hQ13rSe2Ir4+RcMTa+VfGirW
+         MRT9YwVW/xGIQTlIBP9BYtcgfPeKn/UZhmHnAkJX5CsLftY/A5A9eVHZbWxsdG4LyMZ7
+         edUkfxyhup5EHFa6zZRINSFTE8rGITqEGstk97zO5HV5qleQZlukqXVLJRRibFT/1Lir
+         k8ktpbcq+Bunccy/zP9Z3jTcTvaQqAGUSOv1mQEJUiWdB+c4+Hb/CIt4CX9VZg3Cn/Hj
+         AEkfjE9wIO8DLUTDGYJ742F91BKV6K7BZW0tOoquwoIevPTX/kVHqApLVbtowaVBj4rg
+         eCKA==
+X-Forwarded-Encrypted: i=1; AHgh+Ron04yTqXV8xmIUZALkijdCTMa9hhlJRiXd10VmIV+akIPHrfb/2J/1CtlErYgVLeBtkdLyv7MRJuh+@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywj6ip1VS7G5EQPab0E83yPS/kXa4yCpfW54RQqTQUb0XahddzL
+	Ir35GJ6MjUcbb57N+9Fb41iHLtsyk2oteDNb3T+khnnL9KOy0U5ZoF0wxPN9+AmqU9KF0+zlTV9
+	+Ln2REYSOYgYWJZkCmXFNviMAhyZlBENtX3fXVCA8/nh3sZCBv0x7C2hwnCQXaaYi
+X-Gm-Gg: AfdE7cmGlWY2DMSFsUAQKsE8r8OgrD7NOZxpW0zWIJDLInSR1Kd6xqUk+fqQsD2a6R3
+	Li6baDNJFzJ9FrAynDAvIj3EJovryRyuTFLmsxnCwFcyxVNe+C5aGwQvX0mgAZH6pqOI0eKfvy0
+	5plxPDezzYQ2mcErqZnQqChinB6NwfSjUvmg4U5zlszx0WDPAKhYGyqTeSq8ELVZ4ZNSWccO3qL
+	da2TnwrjVOcoEngabntvkxV2kOSolRWTTYcJ3YiNMlHaCQgpjaNQqCkTwfck593E/lvzLEpZsrK
+	NDGDpO681gjcuywmPO+F2/G2wbhoRZxMCB/cWzZ7h5EK4VwC+boyH5eGuY7GaAn6JM+Qpf0jign
+	jso28lUsUem0+TniE9Hk37FdRCyWCS2Uc8fwT
+X-Received: by 2002:a05:6a20:c998:b0:3c0:9c1a:893f with SMTP id adf61e73a8af0-3c110f7f555mr201823637.71.1783709822001;
+        Fri, 10 Jul 2026 11:57:02 -0700 (PDT)
+X-Received: by 2002:a05:6a20:c998:b0:3c0:9c1a:893f with SMTP id adf61e73a8af0-3c110f7f555mr201789637.71.1783709821554;
+        Fri, 10 Jul 2026 11:57:01 -0700 (PDT)
 Received: from localhost ([50.35.46.84])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-31174839f89sm43384913eec.10.2026.07.10.11.48.59
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-311747f5975sm40499805eec.4.2026.07.10.11.56.59
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 10 Jul 2026 11:49:01 -0700 (PDT)
-Date: Fri, 10 Jul 2026 11:48:56 -0700
+        Fri, 10 Jul 2026 11:57:00 -0700 (PDT)
+Date: Fri, 10 Jul 2026 11:56:56 -0700
 From: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
 To: Andre Przywara <andre.przywara@arm.com>
 Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
@@ -106,12 +106,12 @@ Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
         Niyas Sait
  <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 06/16] arm_mpam: propagate MSC read errors for
- __ris_msmon_read()
-Message-ID: <20260710114856.00000ab5@oss.qualcomm.com>
-In-Reply-To: <20260710144520.917375-7-andre.przywara@arm.com>
+Subject: Re: [PATCH v3 07/16] arm_mpam: __ris_msmon_read(): get rid of nrdy
+ special handling
+Message-ID: <20260710115656.00001345@oss.qualcomm.com>
+In-Reply-To: <20260710144520.917375-8-andre.przywara@arm.com>
 References: <20260710144520.917375-1-andre.przywara@arm.com>
-	<20260710144520.917375-7-andre.przywara@arm.com>
+	<20260710144520.917375-8-andre.przywara@arm.com>
 Organization: Qualcomm
 X-Mailer: Claws Mail 4.4.0 (GTK 3.24.51; x86_64-w64-mingw32)
 Precedence: bulk
@@ -122,25 +122,25 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-X-Proofpoint-ORIG-GUID: AqnjY2A3AbiOzfj9WOWEVnyTxOLHz_1X
-X-Authority-Analysis: v=2.4 cv=PLg/P/qC c=1 sm=1 tr=0 ts=6a513e9f cx=c_pps
- a=RP+M6JBNLl+fLTcSJhASfg==:117 a=qC1CW/w66vtJz1P9yTJxNA==:17
+X-Proofpoint-ORIG-GUID: sGxYjI3Pqot_fMxkpZ4I4rTkT8Lb06QD
+X-Authority-Analysis: v=2.4 cv=PLg/P/qC c=1 sm=1 tr=0 ts=6a514083 cx=c_pps
+ a=rz3CxIlbcmazkYymdCej/Q==:117 a=qC1CW/w66vtJz1P9yTJxNA==:17
  a=kj9zAlcOel0A:10 a=RAioF0-LDSMA:10 a=s4-Qcg_JpJYA:10
  a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=ZpdpYltYx_vBUK5n70dp:22
- a=7CQSdrXTAAAA:8 a=P_KzPmMKhQUQMaRR1ykA:9 a=CjuIK1q_8ugA:10
- a=iS9zxrgQBfv6-_F4QbHw:22 a=a-qgeE7W1pNrGK8U0ZQC:22
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzEwMDE4OSBTYWx0ZWRfX8oaF1HaXraaP
- uQOnDuKcvGQ/5UcrLANpHkEGheuWex3HsTjT9b7MHVCNMjbOB1P6YL9p35clUtiteQYS79NYrUz
- drU4S/SpUeIhZrpsycsHWxqV31OhaGc=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzEwMDE4OSBTYWx0ZWRfX9oaCn5Kx8sgv
- 9JIttMrPQVmVbfwJqyWbj+nrrPsriXW8nWFulhPRiWvorm7pXc0hLSanwJSOD9mFfrSq5v/YACq
- A/V5y8tkQToM9eRlk/xdAej2rqa7WNq04wiOSvK4ISobf2tFkJzjj01mfqNxedXwoh5BzKcpiN7
- RGZ2BFI5HBGKw6HNfFCVDBVRV6GsLtYlE1eHMHrZnRMxakcoj/mztp3Of1Ei3oTDLvCfBQaL8zg
- LZ0SoCLYEPrAznCHyvTCR8fj61dFWzKA2BgMWZ2O8mnGCWTW+MgElXNA+lVgCmqLQEBZLyHNJe9
- xEY4/IcJ1FQB8pNTBJ+u7hsaLdKAAXgU3MYcLtdi+hiET+83RzhreiHjRmYwXwHCs7fAf6JcdmJ
- de36sU1ol/oGCUgIQ6Z8puJlVoYm7fiylzTV9ZGG+CHq3G1vsNFjgfzv/VEGFUI5INePSYpf1g3
- W4ofyzOKa8lzQR4rZBg==
-X-Proofpoint-GUID: AqnjY2A3AbiOzfj9WOWEVnyTxOLHz_1X
+ a=7CQSdrXTAAAA:8 a=TeALGT1HamTeR9oYe0QA:9 a=CjuIK1q_8ugA:10
+ a=bFCP_H2QrGi7Okbo017w:22 a=a-qgeE7W1pNrGK8U0ZQC:22
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzEwMDE4OSBTYWx0ZWRfXwBR+dGEIjK/Q
+ 0YmQ09YdGKf71cYShenyRGnU+O47bQz4g4jrG3UTMEE72Fo0t4rPL+m0CVKCwgi1zl4yhzclSyO
+ bCyAVZI+QzSadinW30sUPd82iiPhBcM=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzEwMDE4OSBTYWx0ZWRfX1cbmKt0JSoum
+ 7WeZgBJQDxya2osVHAKa0v1er6lN6XGtqJb5XmQZmdtJ8wlznl3A5tgr8auEmwSZcPOt9MmZ9lt
+ 4B5j+4YkbrnCrmCe3uulKxWF+4sugZQnwfC5ug9RhE0yIxPmAwsnfekpig7nDkjxfAwjsKxVsFh
+ r2pKuQaXVVeBy87/S/ilbmPBDq/tDW0WcnJvlJAAFZLelo4qFahNhPJjufiAngvoveBftFnBc6+
+ pSfx1yz0P2YCKbRG+e4rXH54HlIZJPWhu1tDBtDO4id+/BmJtXpBTdkg004o+6QFHK2qjtsVlrI
+ BPqROix/bFFjBG0xMNrscgxqazOVijY7gradUXLpm5p8QYD9WFJmkSeI3E+MpE08POf9Byz4gxf
+ jjEhBJsNOmiWkAW4wJs38x1lvVrU+ONbG5+fC5gltikmzfi3ObsF3fESOpyMqHBBoiZygx9lZfu
+ ge6Oms/Dhh/uMhz3BAQ==
+X-Proofpoint-GUID: sGxYjI3Pqot_fMxkpZ4I4rTkT8Lb06QD
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
  definitions=2026-07-10_05,2026-07-10_01,2025-10-01_01
@@ -151,99 +151,135 @@ X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
  adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
  definitions=main-2607100189
 
-On Fri, 10 Jul 2026 16:45:10 +0200
+On Fri, 10 Jul 2026 16:45:11 +0200
 Andre Przywara <andre.przywara@arm.com> wrote:
 
-> Allow the function for RIS accesses to return an error, and propagate
-> read errors from the lower level up.
+> Although so far MSC accesses couldn't fail, there is one special
+> condition that would create an error: when the MBWU counter wouldn't be
+> able to read a stable value, we were setting bit 63 to mark this value
+> as unstable, and return this as an error later.
+> Now since the functions can return a proper error value, we can get rid of
+> this kludge and use the return value directly.
+> 
+> Remove the "nrdy" error flag variable, and assign -EBUSY to "ret" to handle
+> this case.
 > 
 > Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+Hi Andre
+
+I'm still fussing about code flow and style :(
+
+Obviously none of this is that important, but it does help make
+the code more maintainable in the long run.
+
+Jonathan
+
 > ---
->  drivers/resctrl/mpam_devices.c | 23 +++++++++++++++++++----
->  1 file changed, 19 insertions(+), 4 deletions(-)
+>  drivers/resctrl/mpam_devices.c | 38 +++++++++++++++-------------------
+>  1 file changed, 17 insertions(+), 21 deletions(-)
 > 
 > diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-> index 041fca018e68..84a8715464be 100644
+> index 84a8715464be..530ac0fe97b5 100644
 > --- a/drivers/resctrl/mpam_devices.c
 > +++ b/drivers/resctrl/mpam_devices.c
-> @@ -1297,6 +1297,10 @@ static u64 mpam_msmon_overflow_val(enum mpam_device_features type,
->  	return overflow_val;
->  }
->  
-> +/*
-> + * This function might be called via smp_call_function_any(), so propagate
-> + * errors inside the arg struct.
-> + */
->  static void __ris_msmon_read(void *arg)
->  {
+> @@ -1306,7 +1306,6 @@ static void __ris_msmon_read(void *arg)
 >  	u64 now;
-
-Similar comments on ACQUIRE() making things easier here.
-Note I'd introduce it as a trivial precursor patch before the rest of
-this rework.
-
-
-> @@ -1339,7 +1343,9 @@ static void __ris_msmon_read(void *arg)
->  	 * Read the existing configuration to avoid re-writing the same values.
->  	 * This saves waiting for 'nrdy' on subsequent reads.
->  	 */
-> -	read_msmon_ctl_flt_vals(m, &cur_ctl, &cur_flt);
-> +	ret = read_msmon_ctl_flt_vals(m, &cur_ctl, &cur_flt);
-> +	if (ret)
-> +		goto out_unlock;
->  
->  	if (mpam_feat_msmon_mbwu_31counter == m->type)
->  		overflow = cur_ctl & MSMON_CFG_x_CTL_OFLOW_STATUS;
-> @@ -1364,7 +1370,9 @@ static void __ris_msmon_read(void *arg)
->  
+>  	int ret;
+>  	u32 now32;
+> -	bool nrdy = false;
+>  	bool config_mismatch;
+>  	bool overflow = false;
+>  	struct mon_read *m = arg;
+> @@ -1371,14 +1370,18 @@ static void __ris_msmon_read(void *arg)
 >  	switch (m->type) {
 >  	case mpam_feat_msmon_csu:
-> -		mpam_read_monsel_reg(msc, CSU, &now32);
-> +		ret = mpam_read_monsel_reg(msc, CSU, &now32);
-> +		if (ret)
-> +			goto out_unlock;
->  		nrdy = now32 & MSMON___NRDY;
->  		now = FIELD_GET(MSMON___VALUE, now32);
+>  		ret = mpam_read_monsel_reg(msc, CSU, &now32);
+> +		if (!ret) {
+> +			if ((now32 & MSMON___NRDY))
+> +				ret = -EBUSY;
+> +
+> +			if (mpam_has_quirk(IGNORE_CSU_NRDY, msc) &&
+> +			    m->waited_timeout)
+> +				ret = 0;
+Whilst it is from existing code, this pattern of set and error then clear it
+is less than ideal.  Maybe
+
+			if ((now32 & MSMON___NRDY) &&
+			    !(mpam_has_quirk(IGNORE_CS_NRDY, MSC && m->waited_timeout))
+				ret = -EBUSY;
+
+is clearer as that odd intermediate state of ret never happens.
+
+> +		}
+>  		if (ret)
+>  			goto out_unlock;
+> -		nrdy = now32 & MSMON___NRDY;
+> -		now = FIELD_GET(MSMON___VALUE, now32);
+> -
+> -		if (mpam_has_quirk(IGNORE_CSU_NRDY, msc) && m->waited_timeout)
+> -			nrdy = false;
 >  
-> @@ -1385,7 +1393,9 @@ static void __ris_msmon_read(void *arg)
->  			else
+> +		now = FIELD_GET(MSMON___VALUE, now32);
+>  		break;
+>  	case mpam_feat_msmon_mbwu_31counter:
+>  	case mpam_feat_msmon_mbwu_44counter:
+> @@ -1394,9 +1397,11 @@ static void __ris_msmon_read(void *arg)
 >  				now = FIELD_GET(MSMON___L_VALUE, now);
 >  		} else {
-> -			mpam_read_monsel_reg(msc, MBWU, &now32);
-> +			ret = mpam_read_monsel_reg(msc, MBWU, &now32);
-> +			if (ret)
-> +				goto out_unlock;
->  			nrdy = now32 & MSMON___NRDY;
+>  			ret = mpam_read_monsel_reg(msc, MBWU, &now32);
+> +			if (!ret && (now32 & MSMON___NRDY))
+> +				ret = -EBUSY;
+>  			if (ret)
+>  				goto out_unlock;
+> -			nrdy = now32 & MSMON___NRDY;
+> +
 >  			now = FIELD_GET(MSMON___VALUE, now32);
 >  		}
-> @@ -1748,6 +1758,7 @@ static int mpam_restore_mbwu_state(void *_ris)
->  {
->  	int i;
->  	u64 val;
-> +	int ret = 0;
->  	struct mon_read mwbu_arg;
->  	struct mpam_msc_ris *ris = _ris;
->  	struct mpam_class *class = ris->vmsc->comp->class;
-> @@ -1760,10 +1771,14 @@ static int mpam_restore_mbwu_state(void *_ris)
->  			mwbu_arg.val = &val;
 >  
->  			__ris_msmon_read(&mwbu_arg);
-> +			if (mwbu_arg.err) {
-> +				ret = mwbu_arg.err;
-return here.  It's consistent with some of the existing code and
-general makes things more readable.
-
-Obviously ignore any comments like this if they are about code
-which will change later making the comment wrong!
-
-> +				break;
-> +			}
->  		}
+> @@ -1404,9 +1409,6 @@ static void __ris_msmon_read(void *arg)
+>  		    m->type != mpam_feat_msmon_mbwu_63counter)
+>  			now *= 64;
+>  
+> -		if (nrdy)
+> -			break;
+> -
+>  		mbwu_state = &ris->mbwu_state[ctx->mon];
+>  
+>  		if (overflow)
+> @@ -1419,22 +1421,16 @@ static void __ris_msmon_read(void *arg)
+>  		now += mbwu_state->correction;
+>  		break;
+>  	default:
+> -		m->err = -EINVAL;
+> +		ret = -EINVAL;
 >  	}
+> -	mpam_mon_sel_unlock(msc);
+> -
+> -	if (nrdy)
+> -		m->err = -EBUSY;
+> -
+> -	if (!m->err)
+> -		*m->val += now;
+> -
+> -	return;
 >  
-> -	return 0;
-> +	return ret;
+>  out_unlock:
+>  	mpam_mon_sel_unlock(msc);
+>  
+> -	m->err = ret;
+> +	if (ret)
+> +		m->err = ret;
+> +	else
+> +		*m->val += now;
+
+If you do the earlier suggestion of ACQUIRE() this all get simpler, but if you do keep
+this, then burn a line or two of code to make it obvious what is error and what isn't.
+
+	if (ret) {
+		m->err = ret;
+		return;
+	}
+
+	*m->val += now;
 >  }
->  
->  /* Call with MSC cfg_lock held */
 
