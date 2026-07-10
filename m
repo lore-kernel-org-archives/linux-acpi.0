@@ -1,341 +1,152 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B542B386C0C;
-	Fri, 10 Jul 2026 20:35:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id E82DF3BB680;
+	Fri, 10 Jul 2026 21:40:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783715753; cv=none; b=bSZR+i7sQvg3SBHypNIZtofG0oh1i1/iVq/mmfy9A4ImSiGoweR8bkc3BYn4qt6zKhbEfdUKJFgGykdaj7SP3kLcLIXVHwFNH6LIylLUat7AHlr4kVtbp6bRk5LUFin5yxv/QTmSOdSlCtdX94kd1TIFewFYtJUcCX1NhseERfo=
+	t=1783719647; cv=none; b=kQZ0GcrpxNdd1H/dzHjvaFY/MJLXgXpqEAK710QyJDyIUOSzve/Q03DkN6xixbgj+cSfV64kKwC3kRd8dVdUeNwtbQLo0bd7Yw2z2iIG53/TVpW4vJttXVhMDhzHBkQRAL3l04hIN5Sb5GCKIgAi8bvFbFTtg5/IKmB9HNVn8ck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783715753; c=relaxed/simple;
-	bh=DjrKcLDRDZrO7E5J1X7XpKrm3UTWLPutt1MD6Bth3N4=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To; b=EpB60GcqavZ3PC/yLHfP9wDmzo383wDME/WT+0Dx8jnhCnZnZWL/6QPNQ0Bt+Fu9+Q6jSShEwcntWbBlzkswBj25jBDtXjl5dStvlEJG5xcAtA25iSa6oIO4GVwFbH7DdkG3sUCHFeli6F80NP73hmHGzHlkdxON72kSIHLk01U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EIUJZeVB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783719647; c=relaxed/simple;
+	bh=BaNahvn2h3Vv8JzR4dyMjs4FnPXEyIdEigSNsI7/27g=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Eh4ps1Vwjc1Jg467L7zLOsCItHalq10MmOXiBv2EYetOF38sI/QO4zojF/0BV+hIGiyieICjztSAm1KKOi1UcppVfOOTiGibYdnmYgX+PuJMe9twG0xcwj9anvnztRjEvkmTpqwmPPiSiP23Dr0BlOgJ9doYqjFMgUe8DFoZ2uY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=lwYt9NCo; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EIUJZeVB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F0D01F000E9;
-	Fri, 10 Jul 2026 20:35:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783715751;
-	bh=HeTUxy/TjLlBcQhUPrCj068Skd26U8xRhPY9J+8AKso=;
-	h=Date:From:To:Cc:Subject:In-Reply-To;
-	b=EIUJZeVBfo+vl1lUNoSPNryYCSm3D9wqwOcYCOL5kOTtE3l25HyXvqF3gA7TQ+J4L
-	 yKIn4iUuRGfqfaqNTmussxPbjcnazrVXNvJFZ65fkkFpRQ/ud92t5F10vB3132TSW/
-	 opsDxyV3bP4HLIrYft7FgiHF0AzD8IAwqW1LzEUhEIMJikfXjeeH6SiCDfZgRzSvss
-	 9Sn3QB+UtLzlBYhrD8ymYlG1jjlxr2UAV3KG9T8qVog0y4NY98IH4Zzt/T/3/NIpxG
-	 C8jbYEkACVgeTzo1PMi/ukCwYdi3rryu/U6ROLfvqan9CdTDJ4rBU73hAkaBSCuPRs
-	 3L6E9q3T2OzdA==
-Date: Fri, 10 Jul 2026 15:35:50 -0500
-From: Bjorn Helgaas <helgaas@kernel.org>
-To: Breno Leitao <leitao@debian.org>
-Cc: Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Shuai Xue <xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>,
-	Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
-	Oliver O'Halloran <oohall@gmail.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Breno Leitao <leitao@kernel.org>, linux-kernel@vger.kernel.org,
-	linux-edac@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org,
-	kernel-team@meta.com
-Subject: Re: [PATCH RFC] RAS: hwerr_tracking: move recoverable hardware error
- tracking out of vmcoreinfo
-Message-ID: <20260710203550.GA994216@bhelgaas>
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="lwYt9NCo"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6CC8616A3;
+	Fri, 10 Jul 2026 14:40:39 -0700 (PDT)
+Received: from [10.20.1.47] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id B2C0C3F99C;
+	Fri, 10 Jul 2026 14:40:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1783719643; bh=BaNahvn2h3Vv8JzR4dyMjs4FnPXEyIdEigSNsI7/27g=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=lwYt9NCo+PKUMG6PhHT/mBAiSGNqqBXfRE4XSJC/QJnLmxTaBbxYvbdNli8CivxI0
+	 Uh23DQAT9P4A78gQp01gbOkjI1ZHTp4KCN0ipb9krLlcnXP33VtZPqIi1+sec3pGOa
+	 taRRhQTeqy41TAGmAl4RpyuBQIeYHpWZeyLDASBs=
+Message-ID: <6b2845cf-e7ba-4588-b65a-c52f8ea40237@arm.com>
+Date: Fri, 10 Jul 2026 23:40:39 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260707-hwerr-ras-v1-1-4aea4a79d085@debian.org>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 01/16] arm_mpam: let low level MSC read accessors
+ return an error
+To: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
+ Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu
+ <fenghuay@nvidia.com>, Jonathan Cameron <jic23@kernel.org>,
+ Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+ Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+ Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
+ Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20260710144520.917375-1-andre.przywara@arm.com>
+ <20260710144520.917375-2-andre.przywara@arm.com>
+ <20260710111159.00001367@oss.qualcomm.com>
+Content-Language: en-GB
+From: Andre Przywara <andre.przywara@arm.com>
+In-Reply-To: <20260710111159.00001367@oss.qualcomm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Tue, Jul 07, 2026 at 07:02:34AM -0700, Breno Leitao wrote:
-> The recoverable hardware error tracking (hwerr_log_error_type() and the
-> hwerr_data[] counters) was added under vmcoreinfo, but it uses none of the
-> vmcoreinfo note machinery: hwerr_data[] is a plain global array that crash
-> tools read from the vmcore by symbol, like any other global.  Functionally
-> it is RAS code, fed only by the hardware error paths (x86 MCE, APEI GHES
-> and PCIe AER).
-> 
-> I wanted to expand it, and Baoquan suggested moving it away from vmcore
-> info, which makes sense. [1]
-> 
-> Move the implementation to drivers/ras/hwerr_tracking.c and the
-> declaration (with its no-op stub) to <linux/ras.h>.  Give it a dedicated
-> CONFIG_RAS_HWERR (bool, under RAS, default y) rather than riding
-> CONFIG_VMCORE_INFO, so it is a first-class RAS feature that can be turned
-> off on its own.  The producers now reach hwerr_log_error_type() through
-> <linux/ras.h>: x86 MCE and APEI GHES already include it, so drop their
-> <linux/vmcore_info.h> include; PCIe AER switches its include from
-> <linux/vmcore_info.h> to <linux/ras.h>.
-> 
-> enum hwerr_error_type stays in <uapi/linux/vmcore.h> as it has been part
-> of the UAPI since the feature shipped; <linux/ras.h> includes it from
-> there.
-> 
-> hwerr_data[] keeps its name and layout, so existing crash/drgn recipes
-> keep working.  The config gate moves from CONFIG_VMCORE_INFO to
-> CONFIG_RAS_HWERR (default y).
-> 
-> Link: https://lore.kernel.org/all/aYvi4Y_HNqk_u1-v@fedora/ [1]
-> Signed-off-by: Breno Leitao <leitao@debian.org>
-> ---
-> Once we move it outside of vmcore info, I am planning to add new
-> features that are in the limbo now, given they don't belong to vmcore
-> info, such as:
-> 
-> Track fatal hardware errors
-> 	https://lore.kernel.org/all/20260617-hwerr-v1-0-ff131cd6203c@debian.org/
-> 
-> Expose hardware error recovery statistics via sysfs
-> 	https://lore.kernel.org/all/20260202-vmcoreinfo_sysfs-v2-0-8f3b5308b894@debian.org/
-> ---
->  MAINTAINERS                    |  7 +++++++
->  arch/x86/kernel/cpu/mce/core.c |  1 -
->  drivers/acpi/apei/ghes.c       |  1 -
->  drivers/pci/pcie/aer.c         |  2 +-
+Hi Jonathan,
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com> # drivers/pci
+many thanks for the time you spent on this - though it wasn't 
+particularly pretty, I guess.
 
->  drivers/ras/Kconfig            | 12 ++++++++++++
->  drivers/ras/Makefile           |  1 +
->  drivers/ras/hwerr_tracking.c   | 35 +++++++++++++++++++++++++++++++++++
->  include/linux/ras.h            |  7 +++++++
->  include/linux/vmcore_info.h    |  7 -------
->  kernel/vmcore_info.c           | 21 ---------------------
->  10 files changed, 63 insertions(+), 31 deletions(-)
+This is just a quick reply, unfortunately (well...) I will be on 
+holidays next week, so cannot reply in detail now.
+
+On 7/10/26 20:11, Jonathan Cameron wrote:
+> On Fri, 10 Jul 2026 16:45:05 +0200
+> Andre Przywara <andre.przywara@arm.com> wrote:
 > 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 1705eb823dd00..356a51032e4b0 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -22539,6 +22539,13 @@ L:	linux-edac@vger.kernel.org
->  S:	Maintained
->  F:	drivers/ras/amd/fmpm.c
->  
-> +RAS RECOVERABLE HARDWARE ERROR TRACKING
-> +M:	Breno Leitao <leitao@kernel.org>
-> +L:	linux-edac@vger.kernel.org
-> +S:	Maintained
-> +F:	Documentation/driver-api/hw-recoverable-errors.rst
-> +F:	drivers/ras/hwerr_tracking.c
-> +
->  RASPBERRY PI PISP BACK END
->  M:	Jacopo Mondi <jacopo.mondi@ideasonboard.com>
->  R:	Raspberry Pi Kernel Maintenance <kernel-list@raspberrypi.com>
-> diff --git a/arch/x86/kernel/cpu/mce/core.c b/arch/x86/kernel/cpu/mce/core.c
-> index 9bba1e2f03af7..58f1d7a601883 100644
-> --- a/arch/x86/kernel/cpu/mce/core.c
-> +++ b/arch/x86/kernel/cpu/mce/core.c
-> @@ -45,7 +45,6 @@
->  #include <linux/task_work.h>
->  #include <linux/hardirq.h>
->  #include <linux/kexec.h>
-> -#include <linux/vmcore_info.h>
->  
->  #include <asm/fred.h>
->  #include <asm/cpu_device_id.h>
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 3236a3ce79d6b..4b6666bc19c77 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -45,7 +45,6 @@
->  #include <linux/uuid.h>
->  #include <linux/ras.h>
->  #include <linux/task_work.h>
-> -#include <linux/vmcore_info.h>
->  
->  #include <acpi/actbl1.h>
->  #include <acpi/ghes.h>
-> diff --git a/drivers/pci/pcie/aer.c b/drivers/pci/pcie/aer.c
-> index c4fd9c0b2a548..00cdca26a5114 100644
-> --- a/drivers/pci/pcie/aer.c
-> +++ b/drivers/pci/pcie/aer.c
-> @@ -30,7 +30,7 @@
->  #include <linux/kfifo.h>
->  #include <linux/ratelimit.h>
->  #include <linux/slab.h>
-> -#include <linux/vmcore_info.h>
-> +#include <linux/ras.h>
->  #include <acpi/apei.h>
->  #include <acpi/ghes.h>
->  #include <ras/ras_event.h>
-> diff --git a/drivers/ras/Kconfig b/drivers/ras/Kconfig
-> index fc4f4bb94a4c6..241642679c1f1 100644
-> --- a/drivers/ras/Kconfig
-> +++ b/drivers/ras/Kconfig
-> @@ -34,6 +34,18 @@ if RAS
->  source "arch/x86/ras/Kconfig"
->  source "drivers/ras/amd/atl/Kconfig"
->  
-> +config RAS_HWERR
-> +	bool "Track hardware errors for crash analysis"
-> +	default y
-> +	help
-> +	  Record the count and timestamp of the most recent recoverable
-> +	  hardware error for each source (CPU, memory, PCI, CXL, ...).  The
-> +	  data is written at runtime and read post-mortem from a vmcore by
-> +	  tools such as crash or drgn, to correlate recoverable errors with a
-> +	  later panic.
-> +
-> +	  If unsure, say Y.
-> +
->  config RAS_FMPM
->  	tristate "FRU Memory Poison Manager"
->  	default m
-> diff --git a/drivers/ras/Makefile b/drivers/ras/Makefile
-> index 11f95d59d3972..4217bee75d910 100644
-> --- a/drivers/ras/Makefile
-> +++ b/drivers/ras/Makefile
-> @@ -1,5 +1,6 @@
->  # SPDX-License-Identifier: GPL-2.0-only
->  obj-$(CONFIG_RAS)	+= ras.o
-> +obj-$(CONFIG_RAS_HWERR)	+= hwerr_tracking.o
->  obj-$(CONFIG_DEBUG_FS)	+= debugfs.o
->  obj-$(CONFIG_RAS_CEC)	+= cec.o
->  
-> diff --git a/drivers/ras/hwerr_tracking.c b/drivers/ras/hwerr_tracking.c
-> new file mode 100644
-> index 0000000000000..847c01fb24d55
-> --- /dev/null
-> +++ b/drivers/ras/hwerr_tracking.c
-> @@ -0,0 +1,35 @@
-> +// SPDX-License-Identifier: GPL-2.0-only
-> +/*
-> + * Track recoverable hardware errors (visible to the OS but not fatal) so that
-> + * crash tools like crash/drgn can read the count and timestamp of the last
-> + * occurrence from a vmcore and correlate them with a subsequent panic.
-> + *
-> + * Copyright (c) 2026 Meta Platforms, Inc. and affiliates
-> + * Copyright (c) 2026 Breno Leitao <leitao@kernel.org>
-> + */
-> +
-> +#include <linux/atomic.h>
-> +#include <linux/export.h>
-> +#include <linux/ras.h>
-> +#include <linux/timekeeping.h>
-> +
-> +struct hwerr_info {
-> +	atomic_t count;
-> +	time64_t timestamp;
-> +};
-> +
-> +/*
-> + * Keep hwerr_data[] at global scope so it stays accessible from the vmcore
-> + * (via crash/drgn) even when Link Time Optimization (LTO) is enabled.
-> + */
-> +struct hwerr_info hwerr_data[HWERR_RECOV_MAX];
-> +
-> +void hwerr_log_error_type(enum hwerr_error_type src)
-> +{
-> +	if (src < 0 || src >= HWERR_RECOV_MAX)
-> +		return;
-> +
-> +	atomic_inc(&hwerr_data[src].count);
-> +	WRITE_ONCE(hwerr_data[src].timestamp, ktime_get_real_seconds());
-> +}
-> +EXPORT_SYMBOL_GPL(hwerr_log_error_type);
-> diff --git a/include/linux/ras.h b/include/linux/ras.h
-> index 468941bfe855f..1019183c00342 100644
-> --- a/include/linux/ras.h
-> +++ b/include/linux/ras.h
-> @@ -5,6 +5,7 @@
->  #include <asm/errno.h>
->  #include <linux/uuid.h>
->  #include <linux/cper.h>
-> +#include <uapi/linux/vmcore.h>
->  
->  #ifdef CONFIG_DEBUG_FS
->  int ras_userspace_consumers(void);
-> @@ -35,6 +36,12 @@ static inline void
->  log_arm_hw_error(struct cper_sec_proc_arm *err, const u8 sev) { return; }
->  #endif
->  
-> +#ifdef CONFIG_RAS_HWERR
-> +void hwerr_log_error_type(enum hwerr_error_type src);
-> +#else
-> +static inline void hwerr_log_error_type(enum hwerr_error_type src) { }
-> +#endif
-> +
->  struct atl_err {
->  	u64 addr;
->  	u64 ipid;
-> diff --git a/include/linux/vmcore_info.h b/include/linux/vmcore_info.h
-> index e71518caacdfc..fb6f29b7202e3 100644
-> --- a/include/linux/vmcore_info.h
-> +++ b/include/linux/vmcore_info.h
-> @@ -5,7 +5,6 @@
->  #include <linux/linkage.h>
->  #include <linux/elfcore.h>
->  #include <linux/elf.h>
-> -#include <uapi/linux/vmcore.h>
->  
->  #define CRASH_CORE_NOTE_HEAD_BYTES ALIGN(sizeof(struct elf_note), 4)
->  #define CRASH_CORE_NOTE_NAME_BYTES ALIGN(sizeof(NN_PRSTATUS), 4)
-> @@ -79,10 +78,4 @@ Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
->  			  void *data, size_t data_len);
->  void final_note(Elf_Word *buf);
->  
-> -#ifdef CONFIG_VMCORE_INFO
-> -void hwerr_log_error_type(enum hwerr_error_type src);
-> -#else
-> -static inline void hwerr_log_error_type(enum hwerr_error_type src) {};
-> -#endif
-> -
->  #endif /* LINUX_VMCORE_INFO_H */
-> diff --git a/kernel/vmcore_info.c b/kernel/vmcore_info.c
-> index 8614430ca212a..5c288796bdbf5 100644
-> --- a/kernel/vmcore_info.c
-> +++ b/kernel/vmcore_info.c
-> @@ -29,17 +29,6 @@ u32 *vmcoreinfo_note;
->  /* trusted vmcoreinfo, e.g. we can make a copy in the crash memory */
->  static unsigned char *vmcoreinfo_data_safecopy;
->  
-> -struct hwerr_info {
-> -	atomic_t count;
-> -	time64_t timestamp;
-> -};
-> -
-> -/*
-> - * The hwerr_data[] array is declared with global scope so that it remains
-> - * accessible to vmcoreinfo even when Link Time Optimization (LTO) is enabled.
-> - */
-> -struct hwerr_info hwerr_data[HWERR_RECOV_MAX];
-> -
->  Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
->  			  void *data, size_t data_len)
->  {
-> @@ -127,16 +116,6 @@ phys_addr_t __weak paddr_vmcoreinfo_note(void)
->  }
->  EXPORT_SYMBOL(paddr_vmcoreinfo_note);
->  
-> -void hwerr_log_error_type(enum hwerr_error_type src)
-> -{
-> -	if (src < 0 || src >= HWERR_RECOV_MAX)
-> -		return;
-> -
-> -	atomic_inc(&hwerr_data[src].count);
-> -	WRITE_ONCE(hwerr_data[src].timestamp, ktime_get_real_seconds());
-> -}
-> -EXPORT_SYMBOL_GPL(hwerr_log_error_type);
-> -
->  static int __init crash_save_vmcoreinfo_init(void)
->  {
->  	int order;
+>> The upcoming MPAM-Fb support does not use MMIO primitives to access an
+>> MSC, but employs a shared-memory/doorbell based firmware protocol.
+>> Its complexity means that is must be able to handle errors, whereas we
+>> always assume an MSC access succeeds today.
+>>
+>> Change the __mpam_read_reg() low level accessor function to return the
+>> requested data through a pointer, and return an error code instead.
+>> At the moment this is always 0, but this will change with alternative
+>> MSC access methods.
+>> Change all users of those MSC read wrappers to comply with the new
+>> prototype, though at the moment without propagating any errors.
+>>
+>> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
 > 
-> ---
-> base-commit: 3d5670d672ae08b8c534b7beed6f57c8b44e7b43
-> change-id: 20260629-hwerr-ras-e26664926c58
+> Why do it in this order? It seems like it is a path for some code churn
+> from patch to path.
+
+Well, this is pain however you do this - as you figured. And I knew this 
+before, that's why I avoided this in v1, but then found we have to bite 
+the bullet at some point anyway, so we could as well just do it now.
+
+So I did the change in one go, and the diff was completely unreadable 
+and even more so unreviewable. Then I figured to start with the actual 
+root cause: the low level accessors, to show the motivation, then split 
+the rest up in reasonably small chunks. And with the unavoidable 
+dependencies, this led to the structure you see, with the added churn of 
+requested changes and refactors between v2 and v3.
+
+> If you started at the outermost calls and
+> worked in adding error handling at each layer, you wouldn't end up with
+> the change here to add the parameter, then the same lines changed again
+> to stash the new return value. Those lines would change just once.
+> Maybe I'm wrong though and it ends up even messier.
+
+Well, I guess there are a few ways to do this, but I doubt there is a 
+really great one. And as you can imagine, there is little fun in trying 
+a number of them, then comparing them. Doing this the first time was 
+already painful. So I thought to just pick one approach and see what 
+people say - I guess this was the wrong approach then :-(
+
+> Or as you suggest, maybe just squash the patches, which will also
+> remove the churn.
 > 
-> Best regards,
-> --  
-> Breno Leitao <leitao@debian.org>
+> Jonathan
 > 
+>> @@ -226,10 +230,11 @@ static inline void _mpam_write_monsel_reg(struct mpam_msc *msc, u16 reg, u32 val
+>>   
+>>   static bool mpam_msc_check_aidr(struct mpam_msc *msc)
+>>   {
+>> -	u32 aidr = __mpam_read_reg(msc, MPAMF_AIDR);
+>> -	u32 major = FIELD_GET(MPAMF_AIDR_ARCH_MAJOR_REV, aidr);
+>> -	u32 minor = FIELD_GET(MPAMF_AIDR_ARCH_MINOR_REV, aidr);
+>> +	u32 aidr, major, minor;
+>>   
+>> +	__mpam_read_reg(msc, MPAMF_AIDR, &aidr);
+> 
+> This will need updating to handle the error.  If you were to instead do
+> the patches in the opposite order. So add return value to the outer
+> most calls that is always 0 then work your way in it should end up
+> as a fair bit less code churn.
+
+But is it really better to review? You later say code lines are cheap, 
+I'd say commits are cheap as well, but reviews are not. The idea was to 
+allow separate, contained reviews, without forcing people to sit through 
+all of this in one go - which you apparently did, so my condolences.
+So yes, it's not the best to touch lines several times, but do we really 
+care so much? Is it just about git blame?
+
+Cheers,
+Andre
+
+> That update is in a later patch.
+> 
+>> +	major = FIELD_GET(MPAMF_AIDR_ARCH_MAJOR_REV, aidr);
+>> +	minor = FIELD_GET(MPAMF_AIDR_ARCH_MINOR_REV, aidr);
+>>   	/*
+>>   	 * v0.0 and >v2.x aren't supported, but anything else should be backward
+>>   	 * compatible to v0.1 or v1.0.
+
