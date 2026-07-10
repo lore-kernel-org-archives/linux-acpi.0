@@ -1,121 +1,225 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D13553C4B9A
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 12:51:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 20ACF19DF4F;
+	Fri, 10 Jul 2026 13:36:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783687921; cv=none; b=RBzCVcKk4rF9pISRzSqkL/uFPa1VM7SUZyfZh5PQBHwaR2gtpjtXp4jv0Gh52Z2Pex83LrGCMW/uh8bO+LfbvWWahJ+xnpBiS/BX2t43LayNnsfGTYo0NnvwpHrrCLdMgMUYxsFRfO5hALIRa2dmZZOshzcaRm82f4c5/fIr+sg=
+	t=1783690563; cv=none; b=M6+o2vXrn4QZ//MqfjnO6zGSj85+B1FGOYgMVGiqasYWQW4iDkcIBV1my/ZqLe43S8L5SpbsKMSGTwqA7inTY6i8e9066ebx8rj5K6RksgX8vl/aqY03syOyZ+VwyYeGO5MxV5eQNwHtHFbTYjyedmmz0Rs2CKilVjC25WG5FRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783687921; c=relaxed/simple;
-	bh=BBoDEhRUurM8TgH473tCzhjdD8EcVZAN75nPP8HB6i8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=dz6PNB5TPIMM3aqeJPvqXb6XLMmd1cZtnT1DmfsFcLtfBIjg+/NsZlNBwhOt/idPw3pYO198/B3u+5k9NcXScKC47/etF8Rm3dC8QX0g8Nqf8ysg6pKxeGO+vvxbRqaRoNf/HNm2KuB9tiJFQz0tFXkt4iFYjIByYUeL2ppbhGQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=OYBett47; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1783690563; c=relaxed/simple;
+	bh=O6yfiHmVjh++kj3mIFoELPTa5h6lT7CwpxKruuuvLMs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Onlg8YiHRdqmMulI0Xf97VyozQNSx/DZ/SF33d2ZWj9F7ls3vWng4ocX/bUxz+K9AohTtqkcwVRjqigIov4Hm00ZA3g68G5xnUqupUtXEyUWVkLifZWIVG+TK6s7L5MotBwGqalG6b7R5hDJRaRwcmAGZ1yY4WCcY9LXZRGZsZI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=GOhfvWkt; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="OYBett47"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1783687918;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=O812endyR1ginYJsJ1zWhua4+/4DYcvmWCdmrFT/HHM=;
-	b=OYBett47Mtjk1LjO0BgQYjegpvRkhAmXfFB6SWv2+cx/sBo5OzPnO3knKtG/AYng+Wmen+
-	ikEGsk/DrdLti6gZuUixgpwjxH3CUxyo7mRzqhYJtmOdyjM47NTz1gLr2NHjRPXpCRniea
-	vnPyWLj4bQHPdi/8IaNeVGyc+fLkDj0=
-Received: from mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-663-kYVJvR_kPoiySUHev5N3Mw-1; Fri,
- 10 Jul 2026 08:51:55 -0400
-X-MC-Unique: kYVJvR_kPoiySUHev5N3Mw-1
-X-Mimecast-MFC-AGG-ID: kYVJvR_kPoiySUHev5N3Mw_1783687914
-Received: from mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.93])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 878291800267;
-	Fri, 10 Jul 2026 12:51:54 +0000 (UTC)
-Received: from fedora.redhat.com (unknown [10.67.32.22])
-	by mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 418C9180029C;
-	Fri, 10 Jul 2026 12:51:50 +0000 (UTC)
-From: Kate Hsuan <hpa@redhat.com>
-To: Mark Pearson <mpearson-lenovo@squebb.ca>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Kate Hsuan <hpa@redhat.com>
-Subject: [PATCH v2] acpi: battery: Sanitise model_number by dropping unprintable characters
-Date: Fri, 10 Jul 2026 20:51:22 +0800
-Message-ID: <20260710125122.1621877-1-hpa@redhat.com>
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="GOhfvWkt"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 39421176A;
+	Fri, 10 Jul 2026 06:35:56 -0700 (PDT)
+Received: from arm.com (usa-sjc-imap-foss1.foss.arm.com [10.121.207.14])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id B1F2B3F66F;
+	Fri, 10 Jul 2026 06:35:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1783690560; bh=O6yfiHmVjh++kj3mIFoELPTa5h6lT7CwpxKruuuvLMs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=GOhfvWktQwk8Z6pT+9xg9fGgKpYRyGuz87RGFGcQRsoQU9yRQL/g8kW4uoBdmwIMj
+	 9BcXC/cGWW13telbDkMt7/LPm4bToQIOMAo/WnFLixmG8wuOriEbn36MPX6ezToN8f
+	 Gj4d3NcjYxIlNJ9i6dP1Kwu/VH91CgYwwxQ52VKk=
+Date: Fri, 10 Jul 2026 15:35:48 +0200
+From: Beata Michalska <beata.michalska@arm.com>
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: Pengjie Zhang <zhangpengjie2@huawei.com>, catalin.marinas@arm.com,
+	will@kernel.org, rafael@kernel.org, lenb@kernel.org,
+	saket.dumbre@intel.com, zhenglifeng1@huawei.com, sumitg@nvidia.com,
+	zhanjie9@hisilicon.com, geert+renesas@glider.be,
+	cuiyunhui@bytedance.com, vanshikonda@os.amperecomputing.com,
+	ionela.voinescu@arm.com, viresh.kumar@linaro.org,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
+	linuxarm@huawei.com, prime.zeng@hisilicon.com,
+	wanghuiqiang@huawei.com, xuwei5@huawei.com, lihuisong@huawei.com,
+	yubowen8@huawei.com, wangzhi12@huawei.com
+Subject: Re: [PATCH v2 2/2] arm64: topology: read CPPC FFH feedback counters
+ in one operation
+Message-ID: <alD1NDEpHHLZtf9g@arm.com>
+References: <20260708082818.808041-1-zhangpengjie2@huawei.com>
+ <20260708082818.808041-3-zhangpengjie2@huawei.com>
+ <fcf60ce5-7e8c-431d-aea9-218da5445fb5@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.93
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <fcf60ce5-7e8c-431d-aea9-218da5445fb5@arm.com>
 
-The battery Embedded Controller (EC) may return the model name with
-trailing unprintable or non-ASCII characters. For example, on some systems:
+On Thu, Jul 09, 2026 at 01:11:13AM -0500, Jeremy Linton wrote:
+> Hi,
+> 
+> On 7/8/26 3:28 AM, Pengjie Zhang wrote:
+> > arm64 implements CPPC FFH feedback-counter reads using AMU counters.
+> > Because those counters must be sampled on the target CPU, reading the
+> > delivered and reference counters separately widens the observation window
+> > between them.
+> > 
+> > Implement the paired FFH feedback-counter read hook on arm64 and sample
+> > both AMU counters together before decoding the requested CPC register
+> > values.
+> > 
+> > Also factor the FFH bitfield extraction logic into a helper and reuse
+> > it from the existing single-counter FFH read path.
+> > 
+> > Tested-by: Sumit Gupta <sumitg@nvidia.com>
+> > Reviewed-by: Sumit Gupta <sumitg@nvidia.com>
+> > Tested-by: Vanshidhar Konda <vanshikonda@os.amperecomputing.com>
+> > Reviewed-by: Vanshidhar Konda <vanshikonda@os.amperecomputing.com>
+> > Signed-off-by: Pengjie Zhang <zhangpengjie2@huawei.com>
+> > ---
+> >   arch/arm64/kernel/topology.c | 92 ++++++++++++++++++++++++++++++++----
+> >   1 file changed, 84 insertions(+), 8 deletions(-)
+> > 
+> > diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+> > index b32f13358fbb..d28438f8b83f 100644
+> > --- a/arch/arm64/kernel/topology.c
+> > +++ b/arch/arm64/kernel/topology.c
+> > @@ -373,6 +373,16 @@ core_initcall(init_amu_fie);
+> >   #ifdef CONFIG_ACPI_CPPC_LIB
+> >   #include <acpi/cppc_acpi.h>
+> > +struct amu_ffh_ctrs {
+> > +	u64 corecnt;
+> > +	u64 constcnt;
+> > +};
+> > +
+> > +enum cpc_ffh_ctr_id {
+> > +	CPC_FFH_CTR_CORE  = 0x0,
+> > +	CPC_FFH_CTR_CONST = 0x1,
+> > +};
+> > +
+> >   static void cpu_read_corecnt(void *val)
+> >   {
+> >   	/*
+> > @@ -397,7 +407,7 @@ static void cpu_read_constcnt(void *val)
+> >   }
+> >   static inline
+> > -int counters_read_on_cpu(int cpu, smp_call_func_t func, u64 *val)
+> > +int counters_read_on_cpu(int cpu, smp_call_func_t func, void *val)
+> >   {
+> >   	/*
+> >   	 * Abort call on counterless CPU.
+> > @@ -447,24 +457,90 @@ bool cpc_ffh_supported(void)
+> >   	return true;
+> >   }
+> > +static void amu_read_core_const_ctrs(void *val)
+> > +{
+> > +	struct amu_ffh_ctrs *ctrs = val;
+> > +
+> > +	/*
+> > +	 * cpu_read_constcnt() incurs slight latency due to the
+> > +	 * ARM64_WORKAROUND_2457168 check. Read it first to minimize
+> > +	 * the sampling skew between the const and core counters.
+> > +	 */
+> > +	cpu_read_constcnt(&ctrs->constcnt);
+> > +	cpu_read_corecnt(&ctrs->corecnt);
+> > +}
+> > +
+> > +static u64 cpc_ffh_extract_bits(const struct cpc_reg *reg, u64 val)
+> > +{
+> > +	val &= GENMASK_ULL(reg->bit_offset + reg->bit_width - 1,
+> > +			   reg->bit_offset);
+> > +	val >>= reg->bit_offset;
+> > +
+> > +	return val;
+> > +}
+> > +
+> > +static void cpc_ffh_ctr_value(const struct cpc_reg *reg,
+> > +			      const struct amu_ffh_ctrs *ctrs, u64 *val)
+> > +{
+> > +	switch ((u64)reg->address) {
+> > +	case CPC_FFH_CTR_CORE:
+> > +		*val = ctrs->corecnt;
+> > +		break;
+> > +	case CPC_FFH_CTR_CONST:
+> > +		*val = ctrs->constcnt;
+> > +		break;
+> > +	}
+> > +
+> > +	*val = cpc_ffh_extract_bits(reg, *val);
+> > +}
+> > +
+> > +static bool is_amu_ctr_reg(const struct cpc_reg *reg)
+> > +{
+> > +	return reg->address == CPC_FFH_CTR_CORE ||
+> > +		reg->address == CPC_FFH_CTR_CONST;
+> > +}
+> > +
+> > +int cpc_read_ffh_fb_ctrs(int cpu, struct cpc_reg *reg1, u64 *val1,
+> > +			 struct cpc_reg *reg2, u64 *val2)
+> > +{
+> > +	struct amu_ffh_ctrs ctrs;
+> > +	int ret;
+> > +
+> > +	if (!is_amu_ctr_reg(reg1) || !is_amu_ctr_reg(reg2))
+> > +		return -EINVAL;
+> > +
+> > +	ret = counters_read_on_cpu(cpu, amu_read_core_const_ctrs, &ctrs);
+> > +	if (ret) {
+> > +		/*
+> > +		 * If AMU is unsupported (-EOPNOTSUPP), translate the error
+> > +		 * to -ENODEV. This explicitly tells the generic CPPC layer
+> > +		 * to abort immediately and avoid falling back to pointless
+> > +		 * single-counter reads.
+> > +		 */
+> > +		return ret == -EOPNOTSUPP ? -ENODEV : ret;
+> > +	}
+> > +
+> > +	cpc_ffh_ctr_value(reg1, &ctrs, val1);
+> > +	cpc_ffh_ctr_value(reg2, &ctrs, val2);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> >   int cpc_read_ffh(int cpu, struct cpc_reg *reg, u64 *val)
+> >   {
+> >   	int ret = -EOPNOTSUPP;
+> >   	switch ((u64)reg->address) {
+> > -	case 0x0:
+> > +	case CPC_FFH_CTR_CORE:
+> >   		ret = counters_read_on_cpu(cpu, cpu_read_corecnt, val);
+> >   		break;
+> > -	case 0x1:
+> > +	case CPC_FFH_CTR_CONST:
+> >   		ret = counters_read_on_cpu(cpu, cpu_read_constcnt, val);
+> >   		break;
+> >   	}
+> > -	if (!ret) {
+> > -		*val &= GENMASK_ULL(reg->bit_offset + reg->bit_width - 1,
+> > -				    reg->bit_offset);
+> > -		*val >>= reg->bit_offset;
+> > -	}
+> > +	if (!ret)
+> > +		*val = cpc_ffh_extract_bits(reg, *val);
+> >   	return ret;
+> >   }
+> 
+> 
+> So, more a nitpik that only applies if this set gets respun, but:
+> 
+> I don't think this FFH counter logic belongs in the arm64 topology.c file,
+> its not really topology related.
 
-$ cat /sys/class/power_supply/BAT0/model_name
-LNV-5B10W51864��
+I agree. Those bits should be moved.
+That said, I think it would be best to land this first,
+as it addresses a rather long-standing issue.
+We can do the cleanup later. If needed, I'd pick it up soon'ish.
 
-If a non-ASCII or an unprintable character is found, it will be replaced
-with '\0' to ensure the model_number is a valid string. If left intact,
-the malformed string prevents udev rules and hwdb working correctly.
-
-Link: https://gitlab.freedesktop.org/upower/upower/-/work_items/345
-
-Signed-off-by: Kate Hsuan <hpa@redhat.com>
 ---
- drivers/acpi/battery.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
-
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index f5e0eb299610..4409fb95b988 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -10,6 +10,7 @@
- 
- #define pr_fmt(fmt) "ACPI: battery: " fmt
- 
-+#include <linux/ctype.h>
- #include <linux/delay.h>
- #include <linux/dmi.h>
- #include <linux/jiffies.h>
-@@ -483,6 +484,15 @@ static int acpi_battery_get_status(struct acpi_battery *battery)
- 	return 0;
- }
- 
-+static void acpi_battery_clean_unprintable_chars(char *str, size_t length)
-+{
-+	for (unsigned int i = 0; i < length; i++) {
-+		if (!isascii(str[i]) || !isprint(str[i])) {
-+			str[i] = '\0';
-+			break;
-+		}
-+	}
-+}
- 
- static int extract_battery_info(const int use_bix,
- 			 struct acpi_battery *battery,
-@@ -524,6 +534,10 @@ static int extract_battery_info(const int use_bix,
- 	    battery->capacity_now > battery->full_charge_capacity)
- 		battery->capacity_now = battery->full_charge_capacity;
- 
-+	if (!result)
-+		acpi_battery_clean_unprintable_chars(battery->model_number,
-+					ARRAY_SIZE(battery->model_number));
-+
- 	return result;
- }
- 
--- 
-2.55.0
-
+BR
+Beata
+> 
+> 
+> 
+> 
+> 
