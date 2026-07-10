@@ -1,85 +1,85 @@
 Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EB38381B06
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 19:01:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8605436C580
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 19:02:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783710065; cv=none; b=M99Cp1j6uxkRrUfR/1avR+lkofipJqGYuownLOtjByEXzlMuTuEuB1UNOVoxOgSgG03PLAHxFcyg2e60Wfw1TgNv8PMDxy/Yn3qrbEpzrUjJ9CJrnTzH5+bQ3pB7BkkjODiaeJoWiVJAJqqExy0OXfl4j9icRqpePltF6KdTjG4=
+	t=1783710167; cv=none; b=Ttqq7os/qsKQODoV5Qkmf6lPDvUb8QBYD10hmysycqZCOidh0OEdCNThKqigWbNypOMfGETpnzzyTHVF12mmi8w5LXQnUJIxitNKXYcCvAvifnhYBbPSqECAP32He9YPFATxz7jCYavjr6P9sSW73lVVzjFV3rRF9kSNxIOhbhE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783710065; c=relaxed/simple;
-	bh=c4pCxOSWNeyw9OA8quiOrInnSaw3jSzff/igS4xfCds=;
+	s=arc-20240116; t=1783710167; c=relaxed/simple;
+	bh=1T9gokRYZBM92qfmp7viGGj5kqC68GaJKggSj3xg8dk=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=IgtKLUCsakwDqX7E629vHunF+fTX9XJ0WOADhaOmfNsU4F5d+VtvxqZjgs5A8M4x6tg1VvHc8TemC1NTkZwQ7PPKtjIA2DxacQfgMmsseaTbY9CuIbhE0BRY0kH8nBLh4XrUfNhQVEdNeVS/yZY1//xwiSkoT8T/1W56b8dp3bk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=a4Su2zZc; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=Z39dhjmy; arc=none smtp.client-ip=205.220.180.131
+	 MIME-Version:Content-Type; b=HH1mvZekj3Fp9XTghsSwiR5I4gOMyJHnphJt4Yhc2kkPx6l6l+iDghFX/kDa3KRbG+KKz4dQlVxVjxDgm7RxGzrzseXw9LIjY7x+HKU5YlBSJVF2Xh8qHcBOn48r/bjTJTca7UYJAiM4ZXV41aEQ7wH+F/EwPFwdIt045QbZFxo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=Q8n8HNXA; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=F8fhhfSL; arc=none smtp.client-ip=205.220.180.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="a4Su2zZc";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="Z39dhjmy"
-Received: from pps.filterd (m0279869.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66AIXEN71649859
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 19:01:01 GMT
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="Q8n8HNXA";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="F8fhhfSL"
+Received: from pps.filterd (m0279868.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66AH3s0l1400425
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 19:02:45 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
 	cc:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	YUtnHG+BK9mkHTRK8KTulqBVc1mAgv0yZV42NgWuxko=; b=a4Su2zZcxKIbqtgu
-	aVHcnGkUDhSYar4MzEDxWyLSpS4NWE2+g19EsgwmsWhLsUSsL7m32MHRiPAu2D4T
-	sh86omXAqfp2ygLRoPNKcshw78PRkN3VggrXmpCky4LK2DvWKMrOtO57bKf3yy5C
-	P4JHRNYGir07WoH8+7K8jNhorx/pZg9tn8O/onZuUmwfMyvFAOY9CkdEwpNL97mm
-	FjkO3f1OKUSSN1p/04dREr4xSSsn0RjJhOD6QtRy4RDn10EdfAR8zdpAsCLMK/6T
-	lc7X9nPNe15L572kbznEUYbeJ/MKziD+v0xpbtaFEvhFJVAE69rs0AXF811cECa1
-	hOp/yA==
-Received: from mail-pj1-f72.google.com (mail-pj1-f72.google.com [209.85.216.72])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fb649r39j-1
+	HbI/3Z6Uv0qa6+qosAFvTVjIg/YJF+zx3k1VAkMd4hg=; b=Q8n8HNXAtl5a0NYs
+	2v4L3coJYaWCmb3rNaffYnsPrg8b5U6HwUG5pUPuGcB1SSNPhjXCJWCa+R4/tFCO
+	MTsAX2/z5YD4rp9dy83CApG+ynJsS+i/g6h73mSeJqnt0u3CLq5TESPQ0BxLcCt+
+	QtKdnKuUZ7DieQORjRT7B2v1b/eH3RlgClJQD4kDLY7PcMnT+aZFtY+vA0aSLxVL
+	BIQ6nlWCSTdWKn1/9x2tvttdvlVhvZUiqNDLXJhKAkXboNN8u5FeSM/K+Vs9n2xd
+	+SrzadYrMMJroREaEELQsse17gT27CtHmbak6hSMuq2GApcwflptMPdy/5wldEY+
+	/PCXLw==
+Received: from mail-pf1-f200.google.com (mail-pf1-f200.google.com [209.85.210.200])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4faxyg9vwu-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 19:01:00 +0000 (GMT)
-Received: by mail-pj1-f72.google.com with SMTP id 98e67ed59e1d1-380a638fb5bso1478158a91.0
-        for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 12:01:00 -0700 (PDT)
+	for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 19:02:45 +0000 (GMT)
+Received: by mail-pf1-f200.google.com with SMTP id d2e1a72fcca58-8482b95574dso1328413b3a.1
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 12:02:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1783710060; x=1784314860; darn=vger.kernel.org;
+        d=oss.qualcomm.com; s=google; t=1783710164; x=1784314964; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:mime-version:organization
          :references:in-reply-to:message-id:subject:cc:to:from:date:from:to
          :cc:subject:date:message-id:reply-to:content-type;
-        bh=YUtnHG+BK9mkHTRK8KTulqBVc1mAgv0yZV42NgWuxko=;
-        b=Z39dhjmym8vqHrctv5qe16ug29QVXNMkirQ3v+OVADlecechJg3LITj31B68OQeZJL
-         ZxfZpiVKuY1i1IawHQGwNf4bqUyJ60bmeWEqyJ5TSyfKJFWCLTK6JOdLCFNKKTZ3NNYX
-         vi2Fkhw/zXIpgPWkFXnUktdQSrTQQe9qqVV3pR5Pk5ZjwVp+Sb4OyN5FvmwZT53hufFB
-         wyWJW9l1mkvH/rU2aM6N7sSKSRDswe3nZ7qepheu9JBKwRvhHSq42eAmSkym8ogsQd4Z
-         1dl3003bLruQTPXgyi8NZmiB1/2JMsSjWbdROmNMygQ/5ZRlxSu4/uM7Zm3os4Sq/0pj
-         +//Q==
+        bh=HbI/3Z6Uv0qa6+qosAFvTVjIg/YJF+zx3k1VAkMd4hg=;
+        b=F8fhhfSLi3Bgohjr+uenqjjlaJRc3udsmvmr/U+uH+/3x6tH650SGTFaf3JB49Jz1X
+         TNnBbitFooJyskE5ID0n86Iria2hGQ8q3bwkdPzjqjGW3h7mlv5pU1YB44c6ffnTIDW6
+         KPY9D9CzKq9YoY/SAttXowlPB5xMs+Lx2P+K0NtBenKER3RFO9CpFovdK0bIOQCYtseq
+         JYNeqMXGmEekHGa2PXadIojM3MOx4M3Js26xK29W17t9s4P59jDU91l6WqMwijueN9Bd
+         /zIZJNUMc9XyJkSwHvvTackgvOuS1WIb/ZNu9DLnbe8eIc0ZZG4oRitlPoKCBhaegGuo
+         WlpQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783710060; x=1784314860;
+        d=1e100.net; s=20251104; t=1783710164; x=1784314964;
         h=content-transfer-encoding:content-type:mime-version:organization
          :references:in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=YUtnHG+BK9mkHTRK8KTulqBVc1mAgv0yZV42NgWuxko=;
-        b=KdADfDpAkpmPaya+1zGRSba0cdpaK/AVxNmWXyebOyNwf3khMXsSCOjUuY8bRZ8f+W
-         lbLUWVOUKlDOv+Fg2ya8bLIM8kV4WVkJGvA6KzK0/6DTpaIizCMIfrUJJhLMetICe1dO
-         nXa7Nv9/0sd5ekRVkPNZ8hF4V/f6AA/euEFJfLuIlEliQG+qNb1Njkujic9u+B0GRD9E
-         D54vumRNAvY1Vll6sxsNQH4pDiosJI7BEcahvMXvnWECBk2ih7enlh7RyRKVRh1xnJTz
-         rU0fsgwS7NWGuUk9MJ0AbELgPiXF4ljcZJHOMsCA0tSEprnUnrqyi5VrxsLPGDtnHhd0
-         ViFQ==
-X-Forwarded-Encrypted: i=1; AHgh+RqSQkyzb2LC2wn3CFu+dz9OOqlYlyw3GGytYj0YOlNKEhOuLthRSkx7AY2iuMY/XnGA90bVnAMLbVRu@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyn7v2XHZqkKax7HfqAN8LOF2myMZdJ854aD74dU7Z+4bLhN/Z+
-	XJg4XAESjyld9pboesn5af/Z8KpTx9ZpgknrDxmtWj/9Suq0zkLrn0nIQ9JFhv89Ws+8ewXtLZs
-	k372KQzk72ffPEjLWok3z3zfIFxGWY1OyzLlkdrrOYat+sw1Wsdw2PyxQmhLKsh6M
-X-Gm-Gg: AfdE7cmZb8n+Dhf8O+38lsWKFJz/oExHPUUbg/vVxUGCwMlTloQgWEYWgMgmRWxSgjx
-	gKNsut/tkkLzXgsIvUzM11oj8wmq3P6h+hGeF5AvLZ+aScI7rzpZcft2Q0xnn/Q9vo8gXePNngX
-	oNpmm5u+AdqLAI1+Z5n4K4fKYjnrtMAVaHzGNr9T13rhge7t45d2hxH603+eoGhhge15ES4zDxu
-	OZr0ws6bZzhkBodMdjicn9aTX6Pt+fH9nFkpvt9dtLk4bh2qzk8OJ3uMBoEJo0mXJgGia4Gyzrk
-	iqx/a9E9go/iM4GU7HL0VMPFjL98Z781Xph9dlltzfii3q1NQzSSYO74nqqSNXv+uxRN8YBjrcX
-	zswzue1FiOmLxFdxINEav8VdHMCKszyUZ28+O
-X-Received: by 2002:a17:90b:1b06:b0:381:dd0:94e6 with SMTP id 98e67ed59e1d1-38dc7777d42mr196167a91.22.1783710059579;
-        Fri, 10 Jul 2026 12:00:59 -0700 (PDT)
-X-Received: by 2002:a17:90b:1b06:b0:381:dd0:94e6 with SMTP id 98e67ed59e1d1-38dc7777d42mr196123a91.22.1783710059153;
-        Fri, 10 Jul 2026 12:00:59 -0700 (PDT)
+        bh=HbI/3Z6Uv0qa6+qosAFvTVjIg/YJF+zx3k1VAkMd4hg=;
+        b=Ew2W4g/oaYB3JDUgBZ40xzrgcaCCXNkSz0Wn610WlD5BAZf1DLE4TvsqSqGcS6+VqF
+         +DwR44BQx2T4qSxsXRvPC1mKsN1IATPupjXMxcJhSz1EXHXTQENxDEbQcyKXtv4e5WgE
+         OOYOkeqz699TvN/Z489C1SMvAcZZbklE/n/3ROIgfN70yUnWkUiy9chcddwlneSs7EDU
+         eZpAq+27euMR47bArT1eLKNZx6HlVjpZQF4JZHvHHr8EuWDeW2mlCL7GOvov+n7AkUiW
+         Q0cAtjFigad6BLEiJfwLAzXFcdS2vBH03MZRCGfFMmxnldRni7IJ0dVrNKgxsHRVX9Gk
+         DGMQ==
+X-Forwarded-Encrypted: i=1; AHgh+Rp/9tH4s5s03r1Av1smprRHPKjLs5k1fJEokzAhripVVRzQgFv+7V3wRpdeZuL01oBMbOxkfKGyrXAp@vger.kernel.org
+X-Gm-Message-State: AOJu0YykhViKbQdjw8jK2PaA0dEmguwVrzcAMLg7sqjsOUt2ttpQ7RWI
+	/Ek8LxxQGxX80t4csySTnfh5tlpnAqrug4/5bjRPT4GsScZNAOm3L9myQWZhYbe+FuexTkILWv1
+	DsCMdz9yp/6ECF724vT7p/LoX6tN82pBeEVAF9uajDBjunyAo9po6abner6VjaJWj
+X-Gm-Gg: AfdE7cnxPhcT73lvWkMibQ6xcoG3aCIyjl+vWMgzdNG2qV8gC03JatFdfp+LjunpBK3
+	TijjKh3ipD90jpclJyxRbBUMBatB29+t157hdecdLnVfir9Pq/jz0IC2MTysSpMcflnZdVSD0vO
+	GYrLDVjEEfT8fO4BGSp4KmxnCqL8CRAcSNemEVmJ4KgBvhGIw9XYz4a4exBDfhoz060tIkeqNT8
+	lmeAvvWddznKGrxzdaKZV+/vyWcX06SUVsNhTCcPzFik5E/xaW+gGgrb3B6Ivafx45UW5on5/Oh
+	rFMaccc6U2hCUl5Q1RUk6TonlFbndML55HRFKK7uPC5GMvs2gHO7d3dZ4lK7U+vlnmVLz13oTh+
+	S116AZbr71y5AbHEucJyHa/Qr3zzbNPDZOGVm
+X-Received: by 2002:a05:6a20:9f8c:b0:3c0:9c19:659c with SMTP id adf61e73a8af0-3c110b7ba39mr273338637.68.1783710164233;
+        Fri, 10 Jul 2026 12:02:44 -0700 (PDT)
+X-Received: by 2002:a05:6a20:9f8c:b0:3c0:9c19:659c with SMTP id adf61e73a8af0-3c110b7ba39mr273287637.68.1783710163656;
+        Fri, 10 Jul 2026 12:02:43 -0700 (PDT)
 Received: from localhost ([50.35.46.84])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3117483dec6sm44214111eec.11.2026.07.10.12.00.57
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-13b659d8da9sm78063641c88.14.2026.07.10.12.02.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 10 Jul 2026 12:00:58 -0700 (PDT)
-Date: Fri, 10 Jul 2026 12:00:54 -0700
+        Fri, 10 Jul 2026 12:02:43 -0700 (PDT)
+Date: Fri, 10 Jul 2026 12:02:39 -0700
 From: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
 To: Andre Przywara <andre.przywara@arm.com>
 Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
@@ -106,12 +106,12 @@ Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
         Niyas Sait
  <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 08/16] arm_mpam: propagate MSC read errors for state
- saving functions
-Message-ID: <20260710120054.000035dc@oss.qualcomm.com>
-In-Reply-To: <20260710144520.917375-9-andre.przywara@arm.com>
+Subject: Re: [PATCH v3 09/16] arm_mpam: let low level MSC write accessors
+ return an error
+Message-ID: <20260710120239.00002f99@oss.qualcomm.com>
+In-Reply-To: <20260710144520.917375-10-andre.przywara@arm.com>
 References: <20260710144520.917375-1-andre.przywara@arm.com>
-	<20260710144520.917375-9-andre.przywara@arm.com>
+	<20260710144520.917375-10-andre.przywara@arm.com>
 Organization: Qualcomm
 X-Mailer: Claws Mail 4.4.0 (GTK 3.24.51; x86_64-w64-mingw32)
 Precedence: bulk
@@ -122,124 +122,104 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-X-Proofpoint-ORIG-GUID: ZGpBOxsRtZUCErlac3FaN-zNbtuoHQrZ
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzEwMDE5MCBTYWx0ZWRfX2cSY1Q4zQwU0
- fa+vFZlx/NQRQTPU2WTA2DlUcU+ULRY9DMhllHNj8UDO7brkuPvIVLsHbtrczv2TwObvmh49Dz1
- 1RbYv8d7EUJsC5rPq2PROGEG2RxOST9T3GHtS4rUdTtLPx599tfai/TpSypdOTDF07MpQHPBKjB
- taAUo6P+BGnUvO9F6DLX07DskvkEDjqM8Aghd6+VoH53A/r6ebtPrzINWZ5BhaxpuFJeD1igKYL
- tjVAmNatxMQ70zwBExGDzoS1NhY+JSDyHXTBNf7ZVqdN/oXVpkLL/tV2En2RGj2Z6faqmFr0ofW
- jGdgVEFxrAsYXO/8InUf/C05FB5ZzFi1wkNuoAqM5PQiIpuW+a3NgOnBkFA+OTvZCdr/hsHAXKV
- pmYqN250AneT6cV8I/pwUcJjqBOhk/zcXBLQhHHDqqWB1im85tN8XbdF1rS7A1OAA95CMzHSrzH
- gRVtW2L15nBXSwcuWPg==
-X-Proofpoint-GUID: ZGpBOxsRtZUCErlac3FaN-zNbtuoHQrZ
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzEwMDE5MCBTYWx0ZWRfX2okBiohhDWCD
- 6EPH4z+7D+fQech/kDkEXYvWn3GH0G1pMxZB5MiinIoR6Mx2yJJZZf0zJXMuMYAp2xPkBSN9CX7
- L0Od8+JW9DIQ0aH5o88/7uvWD9JPHtQ=
-X-Authority-Analysis: v=2.4 cv=VZfH+lp9 c=1 sm=1 tr=0 ts=6a51416c cx=c_pps
- a=RP+M6JBNLl+fLTcSJhASfg==:117 a=qC1CW/w66vtJz1P9yTJxNA==:17
+X-Proofpoint-ORIG-GUID: Q6L3A0mlX1WuJulqm-t6JLl9aGcMJud4
+X-Authority-Analysis: v=2.4 cv=PLg/P/qC c=1 sm=1 tr=0 ts=6a5141d5 cx=c_pps
+ a=mDZGXZTwRPZaeRUbqKGCBw==:117 a=qC1CW/w66vtJz1P9yTJxNA==:17
  a=kj9zAlcOel0A:10 a=RAioF0-LDSMA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=_glEPmIy2e8OvE2BGh3C:22
- a=7CQSdrXTAAAA:8 a=rMF2o8FrK2TGcKdZMuAA:9 a=CjuIK1q_8ugA:10
- a=iS9zxrgQBfv6-_F4QbHw:22 a=a-qgeE7W1pNrGK8U0ZQC:22
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=ZpdpYltYx_vBUK5n70dp:22
+ a=7CQSdrXTAAAA:8 a=LvQbmhgH5lkxUdBqBIQA:9 a=CjuIK1q_8ugA:10
+ a=zc0IvFSfCIW2DFIPzwfm:22 a=a-qgeE7W1pNrGK8U0ZQC:22
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzEwMDE5MCBTYWx0ZWRfX02mClrRGeE6p
+ 2xoqj7BPN1w3IFFTXDgwu/F7hIvpKrQ2AjTtF4WWEnfcv8Oe63thAM9kyLHmI43+h9yaeJxdTCA
+ PBMKgvUzGMOS9KvNIyVlpbnqpayikvY=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzEwMDE5MCBTYWx0ZWRfX5p7KPrM9yhTn
+ l8yyUN8dvACf5h4mREL1bZcdepJqh+BGT4fQZZthVAxOStnqyuY1hRpzcx4T95844xlOCpwUPCS
+ kueEv3dDSjErLjkxPgPLIAnavYeNNToOleArxjDUra+Yjk3CLndjb0DpIM4pelUUKaAgxK6pIhi
+ GLRfxuSQekDpX5oRvIA9eZF+B0wO9WDA2OrKMfsmUDyM5BmB76pN2GNJVqOD8jcCoU5Ev6103Lg
+ T6/7fcZzfqVwSre86XaNT0PWwUlXkQd+QIEAXiIUcYozsP42SFPXvqd8kZ2Eqhr45x16CtMfuG6
+ n+6q5BeFb522fQlHGVimvXUluJ8putxsJxfRasOxkdEXBS4jWThat7lYF3kuld00aB5Nfbl1gGn
+ NV+IdUd1CVEDNowmwDrgm2NGI7tHnaF9tInsQOz/C5kWAynof3SN86WY/7eiLRCEXopZDw6mB8E
+ HhB+drB/iGvN3ipatww==
+X-Proofpoint-GUID: Q6L3A0mlX1WuJulqm-t6JLl9aGcMJud4
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
  definitions=2026-07-10_05,2026-07-10_01,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- clxscore=1015 malwarescore=0 spamscore=0 suspectscore=0 bulkscore=0
- impostorscore=0 phishscore=0 adultscore=0 priorityscore=1501
- lowpriorityscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
+ lowpriorityscore=0 phishscore=0 suspectscore=0 clxscore=1015
+ priorityscore=1501 impostorscore=0 malwarescore=0 adultscore=0 bulkscore=0
+ spamscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
+ adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
  definitions=main-2607100190
 
-On Fri, 10 Jul 2026 16:45:12 +0200
+On Fri, 10 Jul 2026 16:45:13 +0200
 Andre Przywara <andre.przywara@arm.com> wrote:
 
-> Allow the mpam_save_mbwu_state() function to return an error, and
-> propagate read errors from the lower level up.
-
-I'm not following why propagating errors is related to the
-if (val != MSMON___L_NRDY)
-as nothing in this patch is changing val.
-
+> The upcoming MPAM-Fb support does not use MMIO primitives to access an
+> MSC, but employs a shared-memory/doorbell based firmware protocol.
+> Its complexity means that is must be able to handle errors, whereas we
+> always assume an MSC access succeeds today.
+> 
+> Change the __mpam_write_reg() low level accessor function to return an
+> error code. At the moment this is always 0, but this will change with
+> alternative MSC access methods.
+> 
+> Also change some low level wrappers to propagate the error.
 > 
 > Signed-off-by: Andre Przywara <andre.przywara@arm.com>
-> ---
->  drivers/resctrl/mpam_devices.c | 30 +++++++++++++++++++-----------
->  1 file changed, 19 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-> index 530ac0fe97b5..b2ecaba29fcc 100644
-> --- a/drivers/resctrl/mpam_devices.c
-> +++ b/drivers/resctrl/mpam_devices.c
-> @@ -1782,7 +1782,7 @@ static int mpam_save_mbwu_state(void *arg)
->  {
->  	int i;
->  	u64 val;
-> -	int ret = 0;
-> +	int ret;
->  	struct mon_cfg *cfg;
->  	u32 cur_flt, cur_ctl, mon_sel;
->  	struct mpam_msc_ris *ris = arg;
-> @@ -1799,8 +1799,12 @@ static int mpam_save_mbwu_state(void *arg)
->  		mon_sel = FIELD_PREP(MSMON_CFG_MON_SEL_MON_SEL, i) |
->  			  FIELD_PREP(MSMON_CFG_MON_SEL_RIS, ris->ris_idx);
->  		mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel);
-> -		mpam_read_monsel_reg(msc, CFG_MBWU_FLT, &cur_flt);
-> -		mpam_read_monsel_reg(msc, CFG_MBWU_CTL, &cur_ctl);
-> +		ret = mpam_read_monsel_reg(msc, CFG_MBWU_FLT, &cur_flt);
-> +		if (ret)
-> +			goto out_unlock;
-> +		ret = mpam_read_monsel_reg(msc, CFG_MBWU_CTL, &cur_ctl);
-> +		if (ret)
-> +			goto out_unlock;
->  		mpam_write_monsel_reg(msc, CFG_MBWU_CTL, 0);
->  
->  		if (mpam_ris_has_mbwu_long_counter(ris)) {
-> @@ -1811,20 +1815,24 @@ static int mpam_save_mbwu_state(void *arg)
->  		} else {
->  			u32 val32;
->  
-> -			mpam_read_monsel_reg(msc, MBWU, &val32);
-> +			ret = mpam_read_monsel_reg(msc, MBWU, &val32);
-> +			if (ret)
-> +				goto out_unlock;
-> +
->  			val = val32;
->  			mpam_write_monsel_reg(msc, MBWU, 0);
->  		}
->  
-> -		cfg->mon = i;
-> -		cfg->pmg = FIELD_GET(MSMON_CFG_x_FLT_PMG, cur_flt);
-> -		cfg->match_pmg = FIELD_GET(MSMON_CFG_x_CTL_MATCH_PMG, cur_ctl);
-> -		cfg->partid = FIELD_GET(MSMON_CFG_x_FLT_PARTID, cur_flt);
-> -		mbwu_state->correction += val;
-> -		mbwu_state->enabled = FIELD_GET(MSMON_CFG_x_CTL_EN, cur_ctl);
-> +		if (val != MSMON___L_NRDY) {
+I mentioned earlier that to me a split of read vs write into different
+series of patches is making things more complex than they might be.
+They are same 'sort' of change so I'd do them together.
 
-with ACQUIRE() you can just do
-		if (val == MS_MON__L_NRDY)
-			return;
+Then a reviewer can quickly see if all new sources of error are
+covered.
 
-and leave the rest where it was.
-However I don't actually see what this has to do wiht the main purpose of the
-patch to propagate errors. Perhaps a bit more detail in the commit message.
-
-Thanks,
+Thanks (and sorry I didn't look at v2!)
 
 Jonathan
 
-
-> +			cfg->mon = i;
-> +			cfg->pmg = FIELD_GET(MSMON_CFG_x_FLT_PMG, cur_flt);
-> +			cfg->match_pmg = FIELD_GET(MSMON_CFG_x_CTL_MATCH_PMG, cur_ctl);
-> +			cfg->partid = FIELD_GET(MSMON_CFG_x_FLT_PARTID, cur_flt);
-> +			mbwu_state->correction += val;
-> +			mbwu_state->enabled = FIELD_GET(MSMON_CFG_x_CTL_EN, cur_ctl);
-> +		}
->  		mpam_mon_sel_unlock(msc);
->  	}
-> -
->  	return 0;
+> ---
+>  drivers/resctrl/mpam_devices.c | 12 +++++++-----
+>  1 file changed, 7 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
+> index b2ecaba29fcc..f1e40ce24f5a 100644
+> --- a/drivers/resctrl/mpam_devices.c
+> +++ b/drivers/resctrl/mpam_devices.c
+> @@ -195,18 +195,20 @@ static inline int _mpam_read_partsel_reg(struct mpam_msc *msc, u16 reg,
 >  
->  out_unlock:
+>  #define mpam_read_partsel_reg(msc, reg, res) _mpam_read_partsel_reg(msc, MPAMF_##reg, res)
+>  
+> -static void __mpam_write_reg(struct mpam_msc *msc, u16 reg, u32 val)
+> +static int __mpam_write_reg(struct mpam_msc *msc, u16 reg, u32 val)
+>  {
+>  	WARN_ON_ONCE(reg + sizeof(u32) > msc->mapped_hwpage_sz);
+>  	WARN_ON_ONCE(!cpumask_test_cpu(smp_processor_id(), &msc->accessibility));
+>  
+>  	writel_relaxed(val, msc->mapped_hwpage + reg);
+> +
+> +	return 0;
+>  }
+>  
+> -static inline void _mpam_write_partsel_reg(struct mpam_msc *msc, u16 reg, u32 val)
+> +static inline int _mpam_write_partsel_reg(struct mpam_msc *msc, u16 reg, u32 val)
+>  {
+>  	lockdep_assert_held_once(&msc->part_sel_lock);
+> -	__mpam_write_reg(msc, reg, val);
+> +	return __mpam_write_reg(msc, reg, val);
+>  }
+>  
+>  #define mpam_write_partsel_reg(msc, reg, val)  _mpam_write_partsel_reg(msc, MPAMCFG_##reg, val)
+> @@ -220,10 +222,10 @@ static inline int _mpam_read_monsel_reg(struct mpam_msc *msc, u16 reg,
+>  
+>  #define mpam_read_monsel_reg(msc, reg, res) _mpam_read_monsel_reg(msc, MSMON_##reg, res)
+>  
+> -static inline void _mpam_write_monsel_reg(struct mpam_msc *msc, u16 reg, u32 val)
+> +static inline int _mpam_write_monsel_reg(struct mpam_msc *msc, u16 reg, u32 val)
+>  {
+>  	mpam_mon_sel_lock_held(msc);
+> -	__mpam_write_reg(msc, reg, val);
+> +	return __mpam_write_reg(msc, reg, val);
+>  }
+>  
+>  #define mpam_write_monsel_reg(msc, reg, val)   _mpam_write_monsel_reg(msc, MSMON_##reg, val)
 
