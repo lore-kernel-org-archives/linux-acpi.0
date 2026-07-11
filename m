@@ -1,114 +1,242 @@
-Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from sphereful.davidgow.net (sphereful.davidgow.net [203.29.242.92])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CED9E2264C0
-	for <linux-acpi@vger.kernel.org>; Sat, 11 Jul 2026 06:23:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3686F372B57;
+	Sat, 11 Jul 2026 07:54:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.29.242.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783751034; cv=none; b=n6oGHMLH4Q7lSCkUoo3hmE8/Ae+uD3lGUgrIrS01bkOSEhOskzNTOL5wfbWXTwOVtz4SQDMnw6lR4OWhj/3QmfRKNa/ysEXmgMbkXeQBowUA7yJUDkDJ18VDKOiE7MXBNKc40SpQ2wZzmaOQQk/tD6hJhB+8yI8HdPOuZ2m+nrg=
+	t=1783756500; cv=none; b=M4v/QxJuH3bnOHm7AhA43oxzNq0DHzXi87GWMu71i0fpUpu6G5cT0/0KwUAsmDFrgXhbU5yieT7amVBKZxBXApExNywMkOfd8F+GwOLrUmRKlmY0P0gfD9ErLTpv/TgJupu1XkhsL7QcNvwLJhe56dmC9s3qeZJdb98WkwxfOHU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783751034; c=relaxed/simple;
-	bh=S1/0jwBMfcPVFdbh/v4avu7b0dUuZhaQPjurjiCKQkw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FpvigsihrhMKPMvvrCCs/jz4hSK9Yd1MjH4Ieq/iRY6IUc2Q/j/7D9qqgVaRJkrodBeoSLpmmTKhid3zcXqja542LqCjelOMwfDIGQW/kZnvLPDhB4yFaZ4NFfZJQYvYgjF1L4gMHW3hdZi1ap3wHk0FCdHKBYs4WOMu95pqKB0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lalTUBvC; arc=none smtp.client-ip=209.85.214.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lalTUBvC"
-Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-2cabc0a1ab6so20527745ad.0
-        for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2026 23:23:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1783751032; x=1784355832; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=XkRstM7R8Vg66nTgVC4msTuOth2Fa5G6vugexDMuMcA=;
-        b=lalTUBvCpgJXpjePq6VrYiX4K7GeSyr5xJrnLcyrftAaoxj4o4snesDObypzSN4zB+
-         6Ad0dTJ4z/cKf9bWp43rSIu7yyRnFlsxIbCTV+7i/fQoNWuHrDomimb+2kOvjaT1rNJE
-         /U54QYHyIvLeowSE559oSSUi9ZReCVVLyVC/n0R+nWnUdqAVch0VRqWhQNv9RXvRq6tT
-         jr3jLIsgNaTi/S9obogJtSyo751uvUfI0QYtE8wVn5sKlJmko7qfcYK38S4a5gErEEdj
-         CwiyfTIJO/K0xugMDVVHIkn/rUD++JJWJu9TsLYS8EIf9hSKp6hvXWVw8BaE8hToEYFD
-         GPqA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1783751032; x=1784355832;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=XkRstM7R8Vg66nTgVC4msTuOth2Fa5G6vugexDMuMcA=;
-        b=B0Cf1EgnjhMTI+u/pc+D+eIzyR1SCc/K9tPARmC+JVtjY2HHVogmM7wp+nEpS9WtgT
-         wOdflaqL/WmMASurMdkA+PgG4eFmmO3Ajjaxb3xP282i8XnrNmwdc6nYe4TFRrqCNaIL
-         mTOBBYjQZpMRa7N7AVTvTHs5LUEcsIX0PeP7HaoQpUvoOtcdZ4Cyg7rXDAGJRQZy3mF1
-         fJqgwA5y0dcTHJKxVeASVu49np5wKxylm6sP/EBanyuQylhYLp6DYbeHOqsMYXYFsdcR
-         bzP4SyI+q/XkEbgaS9myuOeaxvCt9iHrgacg2vQcWVVolR+LbLmVFB6am4dSfcl3h8qJ
-         4Q9w==
-X-Forwarded-Encrypted: i=1; AHgh+RqMTgUXhOMjBZiSIFq5clPIS3ewDj4fUJsL6dqbSxRGrdFughNLTBs6weP4+LKW0L0maVoA2zZJo6KF@vger.kernel.org
-X-Gm-Message-State: AOJu0YydaF1SkXc9LUTiC8++aujb8JZoLqGpyBvOHOS+jWhIdOfG743v
-	AMcodPTyMsNFh5WQJARQ3SAPfV2qec80x88Bo/W5EhU00+yPOZqXtbfX
-X-Gm-Gg: AfdE7cnwFvpoVQnmgPvDS5rwn/Z4KPdQkQrDOg54Nc8w3cujCy6ut8kQNb4eAIdDZHL
-	3GImbxdh4aLodLxao1oT+foqv4ks9g0R6FksKvb5tYCnDhaAlaWLTgAUznAiwqldpjpIrKArVG6
-	tkA9yCMVYljy93nSFGELpdXgW1igRbac/4PtApzDWP2Lj+MnIbDXJQZ9rZLFCKZDhljggjLcyRO
-	1weeGTsfsPniGgwkj62RRL661R/wnEXOWdXDy7/WVWKTrcQHw+MN3QXARSepjYmENwRat79pPQJ
-	vMFt8IiGsS2hm4XL08kvBeqEkdjW96f8FFagd6XHI0SXqWClLgGjkvCTVvhAx6dJWlGD/VfiHSG
-	hcbQoZz+gVpBJe9M0Z6Il1M5mCVajwfe5+T9BYk+ORQxm1gGJqJluETEbjDVJqAb7C19l7PstWa
-	wB2Gw45HC/wytz41Ql7oKvQOZEaP2u4ca/LVGh9Jg=
-X-Received: by 2002:a05:6a21:d83:b0:3c1:fbf:1e2e with SMTP id adf61e73a8af0-3c110a12318mr1877132637.10.1783751032179;
-        Fri, 10 Jul 2026 23:23:52 -0700 (PDT)
-Received: from c12-ThinkPad-X1-Carbon-Gen-12 ([2400:2410:5f2b:700:a02c:24ed:3127:342c])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-ca79aff904dsm4103117a12.6.2026.07.10.23.23.50
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 10 Jul 2026 23:23:51 -0700 (PDT)
-From: Vishnu Sankar <vishnuocv@gmail.com>
-To: ilpo.jarvinen@linux.intel.com,
-	hansg@kernel.org,
-	oliver@email.com
-Cc: platform-driver-x86@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	ibm-acpi-devel@lists.sourceforge.net,
-	mpearson-lenovo@squebb.ca,
-	vsankar@lenovo.com,
-	Vishnu Sankar <vishnuocv@gmail.com>
-Subject: [PATCH] platform/x86: thinkpad_acpi: Fix USB-C Security probe failure on unsupported platforms
-Date: Sat, 11 Jul 2026 15:22:49 +0900
-Message-ID: <20260711062249.503264-1-vishnuocv@gmail.com>
-X-Mailer: git-send-email 2.51.0
+	s=arc-20240116; t=1783756500; c=relaxed/simple;
+	bh=AVt5pKjQRYHCQxOiuhK3gxGkUjA/wr75dbeCZ6A0VwA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=P/Ce4cP6+gHML69R9f3+ouwlSykuii9s3ofdCnBlmNNpyiT0pvbwyavCgX6DtfAOGNtAiFTcZpLqRaK9QQ+9ks6KnGF9ESdizYtjOP3r1sHNxhh1XxGsTHaaknjTrVTUzW5VRR5yWU72xkH9M/eDR9ZhW2Otr6pkqm0pnkjoq78=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=davidgow.net; spf=pass smtp.mailfrom=davidgow.net; arc=none smtp.client-ip=203.29.242.92
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=davidgow.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=davidgow.net
+Received: by sphereful.davidgow.net (Postfix, from userid 119)
+	id 8A00A1EA71D; Sat, 11 Jul 2026 15:54:50 +0800 (AWST)
+X-Spam-Level: 
+Received: from [IPV6:2001:8003:8810:ea00::41b] (unknown [IPv6:2001:8003:8810:ea00::41b])
+	by sphereful.davidgow.net (Postfix) with ESMTPSA id 936081EA6CA;
+	Sat, 11 Jul 2026 15:54:46 +0800 (AWST)
+Message-ID: <21eb8388-df9b-4c53-8de9-5ed103892fec@davidgow.net>
+Date: Sat, 11 Jul 2026 15:54:43 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 1/5] kunit: provide a set of fwnode-oriented helpers
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+ Brendan Higgins <brendan.higgins@linux.dev>, Rae Moar <raemoar63@gmail.com>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Daniel Scally <djrscally@gmail.com>,
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>,
+ Bartosz Golaszewski <brgl@kernel.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>,
+ Linus Walleij <linusw@kernel.org>,
+ Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
+ kunit-dev@googlegroups.com, linux-acpi@vger.kernel.org,
+ driver-core@lists.linux.dev, linux-gpio@vger.kernel.org
+References: <20260710-swnode-fw-devlink-v3-0-993f31874e40@oss.qualcomm.com>
+ <20260710-swnode-fw-devlink-v3-1-993f31874e40@oss.qualcomm.com>
+Content-Language: en-US
+From: David Gow <david@davidgow.net>
+In-Reply-To: <20260710-swnode-fw-devlink-v3-1-993f31874e40@oss.qualcomm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-On systems where the USCS ACPI method is absent, acpi_evalf() returns
-AE_NOT_FOUND which maps to -EIO. This caused tpacpi_usbc_security_init()
-to propagate the error and thinkpad_acpi failed to probe entirely on
-unsupported platforms.
+Le 10/07/2026 à 21:51, Bartosz Golaszewski a écrit :
+> Provide three new kunit-managed helpers for test cases that need to
+> register/create dynamic software nodes.
+> 
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> ---
 
-Fix this by checking for USCS method presence with acpi_has_method() before
-attempting to call it, returning -ENODEV immediately if absent.
-This follows the same pattern used by other subdrivers in thinkpad_acpi.c.
+Thanks: these look good to me. I'm assuming they'll head in with the 
+rest of the series, rather than separately via the kselftest/kunit tree.
 
-Fixes: 67e8d1e9cacd ("platform/x86: thinkpad_acpi: Add USB-C Security (USCS) support")
-Reported-by: Oliver Lin <oliver@email.com>
-Closes: https://lore.kernel.org/platform-driver-x86/239c8162-e1e6-4b49-8292-35547c5a525c@liuxiaozhen.dev/
-Signed-off-by: Vishnu Sankar <vishnuocv@gmail.com>
----
- drivers/platform/x86/lenovo/thinkpad_acpi.c | 3 +++
- 1 file changed, 3 insertions(+)
+Reviewed-by: David Gow <david@davidgow.net>
 
-diff --git a/drivers/platform/x86/lenovo/thinkpad_acpi.c b/drivers/platform/x86/lenovo/thinkpad_acpi.c
-index 91db4c8eeac2..85ed506516f0 100644
---- a/drivers/platform/x86/lenovo/thinkpad_acpi.c
-+++ b/drivers/platform/x86/lenovo/thinkpad_acpi.c
-@@ -11368,6 +11368,9 @@ static int tpacpi_usbc_security_init(struct ibm_init_struct *iibm)
- {
- 	int err;
- 
-+	if (!acpi_has_method(hkey_handle, "USCS"))
-+		return -ENODEV;
-+
- 	err = usbc_security_query(&tp_features.usbc_security_enabled);
- 	if (err == -ENODEV)
- 		return 0;
--- 
-2.51.0
+Cheers,
+-- David
+
+>   include/kunit/fwnode.h |  26 +++++++++++
+>   lib/kunit/Makefile     |   1 +
+>   lib/kunit/fwnode.c     | 116 +++++++++++++++++++++++++++++++++++++++++++++++++
+>   3 files changed, 143 insertions(+)
+> 
+> diff --git a/include/kunit/fwnode.h b/include/kunit/fwnode.h
+> new file mode 100644
+> index 0000000000000000000000000000000000000000..239bc71eb5072ccead0beb51fc0882bab69c6877
+> --- /dev/null
+> +++ b/include/kunit/fwnode.h
+> @@ -0,0 +1,26 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +/*
+> + * KUnit resource management helpers for firmware nodes.
+> + *
+> + * Copyright (C) Qualcomm Technologies, Inc. and/or its subsidiaries
+> + */
+> +
+> +#ifndef _KUNIT_FWNODE_H
+> +#define _KUNIT_FWNODE_H
+> +
+> +struct kunit;
+> +struct fwnode_handle;
+> +struct property_entry;
+> +struct software_node;
+> +
+> +struct fwnode_handle *
+> +kunit_fwnode_create_software_node(struct kunit *test,
+> +				  const struct property_entry *properties,
+> +				  const struct fwnode_handle *parent);
+> +struct fwnode_handle *
+> +kunit_software_node_register(struct kunit *test,
+> +			     const struct software_node *node);
+> +int kunit_software_node_register_node_group(struct kunit *test,
+> +					    const struct software_node *const *nodes);
+> +
+> +#endif /* _KUNIT_FWNODE_H */
+> diff --git a/lib/kunit/Makefile b/lib/kunit/Makefile
+> index 2e8a6b71a2ab07a738964a7ef0f442fd53e085b1..204e02b10eba1030c6d511991fe2f6271de64603 100644
+> --- a/lib/kunit/Makefile
+> +++ b/lib/kunit/Makefile
+> @@ -11,6 +11,7 @@ kunit-objs +=				test.o \
+>   					attributes.o \
+>   					device.o \
+>   					platform.o \
+> +					fwnode.o \
+>   					bug.o
+>   
+>   ifeq ($(CONFIG_KUNIT_DEBUGFS),y)
+> diff --git a/lib/kunit/fwnode.c b/lib/kunit/fwnode.c
+> new file mode 100644
+> index 0000000000000000000000000000000000000000..332490f07fae78e0fbf2930f9c80da0cc7dce028
+> --- /dev/null
+> +++ b/lib/kunit/fwnode.c
+> @@ -0,0 +1,116 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * Copyright (C) Qualcomm Technologies, Inc. and/or its subsidiaries
+> + */
+> +
+> +#include <kunit/fwnode.h>
+> +#include <kunit/test.h>
+> +
+> +#include <linux/fwnode.h>
+> +#include <linux/property.h>
+> +
+> +KUNIT_DEFINE_ACTION_WRAPPER(fwnode_remove_software_node_wrapper,
+> +			    fwnode_remove_software_node,
+> +			    struct fwnode_handle *);
+> +
+> +/**
+> + * kunit_fwnode_create_software_node() - Create a kunit-managed software node
+> + * @test: Test context
+> + * @properties: Properties to use to create the new software node
+> + * @parent: Parent of this software node
+> + *
+> + * Create a test-managed software node and return its firmware node handle.
+> + * The software node is removed after the test case completes.
+> + *
+> + * Returns:
+> + * Firmware node handle of the newly created software node or IS_ERR() on
+> + * failure.
+> + */
+> +struct fwnode_handle *
+> +kunit_fwnode_create_software_node(struct kunit *test,
+> +				  const struct property_entry *properties,
+> +				  const struct fwnode_handle *parent)
+> +{
+> +	struct fwnode_handle *fwnode;
+> +	int ret;
+> +
+> +	fwnode = fwnode_create_software_node(properties, parent);
+> +	if (IS_ERR(fwnode))
+> +		return fwnode;
+> +
+> +	ret = kunit_add_action_or_reset(test, fwnode_remove_software_node_wrapper,
+> +					fwnode);
+> +	if (ret)
+> +		return ERR_PTR(ret);
+> +
+> +	return fwnode;
+> +}
+> +EXPORT_SYMBOL_GPL(kunit_fwnode_create_software_node);
+> +
+> +KUNIT_DEFINE_ACTION_WRAPPER(software_node_unregister_wrapper,
+> +			    software_node_unregister,
+> +			    const struct software_node *);
+> +
+> +/**
+> + * kunit_software_node_register() - Register a kunit-managed software node
+> + * @test: Test context
+> + * @swnode: Software node to register
+> + *
+> + * Register a test-managed software node and return its firmware node handle.
+> + * The software node is unregistered after the test case completes.
+> + *
+> + * Returns:
+> + * Firmware node handle of the registered software node or IS_ERR() on failure.
+> + */
+> +struct fwnode_handle *
+> +kunit_software_node_register(struct kunit *test,
+> +			     const struct software_node *swnode)
+> +{
+> +	struct fwnode_handle *fwnode;
+> +	int ret;
+> +
+> +	ret = software_node_register(swnode);
+> +	if (ret)
+> +		return ERR_PTR(ret);
+> +
+> +	fwnode = software_node_fwnode(swnode);
+> +	if (WARN_ON(!fwnode))
+> +		return ERR_PTR(-ENOENT);
+> +
+> +	ret = kunit_add_action_or_reset(test, software_node_unregister_wrapper,
+> +					(void *)swnode);
+> +	if (ret)
+> +		return ERR_PTR(ret);
+> +
+> +	return fwnode;
+> +}
+> +EXPORT_SYMBOL_GPL(kunit_software_node_register);
+> +
+> +KUNIT_DEFINE_ACTION_WRAPPER(software_node_unregister_node_group_wrapper,
+> +			    software_node_unregister_node_group,
+> +			    const struct software_node *const *);
+> +
+> +/**
+> + * kunit_software_node_register_node_group() - Register a kunit-managed software node group
+> + * @test: Test context
+> + * @nodes: Software node group to register
+> + *
+> + * Register a test-managed software node group. The nodes are unregistered
+> + * after the test case completes.
+> + *
+> + * Returns:
+> + * 0 on success, negative error number on failure.
+> + */
+> +int kunit_software_node_register_node_group(struct kunit *test,
+> +					    const struct software_node *const *nodes)
+> +{
+> +	int ret;
+> +
+> +	ret = software_node_register_node_group(nodes);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return kunit_add_action_or_reset(test, software_node_unregister_node_group_wrapper,
+> +					 (void *)nodes);
+> +}
+> +EXPORT_SYMBOL_GPL(kunit_software_node_register_node_group);
+> 
 
