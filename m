@@ -1,165 +1,129 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 517471A239A;
-	Sun, 12 Jul 2026 16:59:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8795437A820
+	for <linux-acpi@vger.kernel.org>; Sun, 12 Jul 2026 22:21:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783875551; cv=none; b=ElcNqiuAHm+iNRM5xxsn46J/mIgtECp/bMaHdC/ff8+GkuCdPyxNtEquNuyUxl3va7+1v7Rz620r3dydJqJzihSnXFwL2t7XaopO9NndUaxyupxBe1jgQL/KKZ/LmFV8shqAbgzXfepubMAjkhG15rbiVHrgmjLRjK5RkUR3AwE=
+	t=1783894890; cv=none; b=t1M6yL2Mp+LcCXy7Rtcglyv1Z+07xCoV6Zkd2bAS6BlzzedTUvKaDx7osHUJ1hPali2ryx04SlxOpXMXYd4yyv26HcqMDM0TB8d9gIo82u6juUOvLNblnJPfU81gexPBym+uJh2ytnNjolBD2mbYAJahC7foR+gLMRat9+olyAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783875551; c=relaxed/simple;
-	bh=mSp7DKzuJHsvVxwokX8VtjfogrcPbIQ5e7AR3Y3BA7E=;
-	h=Mime-Version:Content-Type:Date:Message-Id:Subject:Cc:To:From:
-	 References:In-Reply-To; b=ZhCg6gYZ94Myk1353wtaoLBKleFou4YjyrmBxEW4Llxim1Y5jDzKAeorPThWWnmUU3qmM0I0dhStTKer1G3XiU9LLxlg4gr/8mUVtX257O6Ob5ocSe/LCFKjIJDbLz+K6w+kZYFd+Zx4ez0CNtEmSi6VPTpY8bfwg2vbw6kIs7I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jf3Nb94H; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1783894890; c=relaxed/simple;
+	bh=yXFkHL5kLy0YmcSeIBWJ/pJv7FWST/0rD1sn/vpnnlo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=S+c/fnzh2OhYubO5jDISMNt/almudaFcm+0oIo4octF6lEZS2uL2Z8cU1VJeJkmOnpvdoMdhDZaRsORVOgVKKsWPJimJJ91JUu3V2AvtpXNQGSowzjgF7XOxRiJHMAPoYuLRN1X36YOkdBUY6QVpV7gzXCB3yvbbAAvR26FOseI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com; spf=pass smtp.mailfrom=baylibre.com; dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b=es9ZEdAx; arc=none smtp.client-ip=209.85.128.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jf3Nb94H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CE911F000E9;
-	Sun, 12 Jul 2026 16:59:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783875549;
-	bh=e1dmvE3Tlm+yvRV2mRiPOlbKn5bOWrgkA2i+qs4+eRI=;
-	h=Date:Subject:Cc:To:From:References:In-Reply-To;
-	b=jf3Nb94HJ4+X2dF/jEl7zUQEbDNo6GB9Tq03LorRZdwonP0lHMsBmz3Fv6fCRsLCV
-	 IDeCKkR6U0e7lufP/J2n4TC8Mqx+Wm8uN+PyESWtp5vhrevY03vekUe5ycBqJeI7n0
-	 waLcZlBx0eTHEafLCAI1lDs2aFxujINJhszYa+rOE5gRmPwREiSCymY3xYbGcWSEVU
-	 KJ70Isq7mj0rqrnyI/2FxiZ9pRbSvUhhz+pRGn0MVbEitS+O7PekvZGFR03ywwkgZk
-	 kybT94jnuKTVL1MXyJPj+6xV4H4QKn6Uv8w2rBiJW/6FH/GawOB0+r2hqUh65yADft
-	 P/Cza+VB4TBuA==
+	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.b="es9ZEdAx"
+Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-490cf322ed0so17879855e9.1
+        for <linux-acpi@vger.kernel.org>; Sun, 12 Jul 2026 15:21:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=baylibre.com; s=google; t=1783894887; x=1784499687; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=yXFkHL5kLy0YmcSeIBWJ/pJv7FWST/0rD1sn/vpnnlo=;
+        b=es9ZEdAxIcbFw1bX0rbFbs/J+Hem6iEGnVb3ZzpzC6RcVxDjUV+idFAKIpsFC46Bym
+         A/NJGC+TpeGR9uTk1yl0cZhka+XaPP+4x/WdCcJiokP/wRe4i2mas4FhcRYPtdH8QVJs
+         V7GDZ0OS1F8cBp81RmUxJEsc6UpLwZQSLvhpd8E6dy5KxXeOLZdyAJolQRvZNyEKSW1w
+         RUbJsV7SWWKR71oOuu7yIRX91gqaRGW3imRr91cViZbhhGPRcJgN1gZRoli/a8HMzAwq
+         AeDHppeB6kJ4VXUsBKiopTipGR5RjYeWx6PPQPAXjR4DpMD4kr80exOPMvKiY3ehJRdP
+         Y6/g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783894887; x=1784499687;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=yXFkHL5kLy0YmcSeIBWJ/pJv7FWST/0rD1sn/vpnnlo=;
+        b=VRqq05dwMV1Xk2iVjWCrdSKK5k+CrvjA/0Lhjo23/hit+QGH+1AGQarM69uxZ/y0Fh
+         QNN/UVW2SXTrJDDkW68X9Pj8kmqR2NzJIBVLR08OLhgiTHfM/R02YUUm76xAeURjvwfv
+         ofX8182whPEulMkhI78/yias5LkHZxunD5QrfBFGyM39ypG6YVeCQg+2E248RIbE/WVh
+         Zwei4X7wCqh1gotx1Tjx/EfQpxuYnydrf4k8O1jVvxTwuoiRIcsHad7KqV+iuuBQuMgo
+         2GubVzzcvYroroCdQ1kpfwX+JuGsxXCrJcvW2OCk6Lmyddq4BmUOnW1zNnU5BzpwLK93
+         Btfw==
+X-Forwarded-Encrypted: i=1; AHgh+Rof51eQBDLbAGqYUTjeIK7lgMBZZ5v52PIfEB8I+Z1/9OAoBL+uLTnsJFSyUfThI1QiUui/zTEDXgj8@vger.kernel.org
+X-Gm-Message-State: AOJu0Yys+7RIk4qGmicXF6jJLqY33DlCTHwGx0zO3ZfDciMEA5PFbaJM
+	3bHKS1w2AI610VV0ugPFuieiQLy+O2J3FEU4SJI4bjn5tM/M0npOv/pJMu0RE0KvWuI=
+X-Gm-Gg: AfdE7cm7oUwSJOofEq2uBmSG5Ph1lfSu0j+vIqVvoUVTFO0rCdcA2xLMbTzun+snDOJ
+	ARscrl/uHSlNJf8flWibqdF+J+5o2FMKYn990EvTO7UbTpiYEbiKkiw88UFizen4O2FZgjLH7IS
+	lSvFN00HC+/PGODngDhfFvdVj0Ghrjxb8AIAUJxrdbn3zTWg/OT7rKB3fURWDZcMLe7yOTAxnaD
+	FQUUk/g1fWQzpN1rSau72mRBSX5RnGbbo5r7ineXNXSFkMNGehWC1eRVyI7QhDBy8k5j5ZI9idW
+	SlIo7kaM31JsbUFzWify8N04inFlXr9+fM3TcF6aTTcXp8hX8RG39ThjLsIpFazCckrZISonNt8
+	+lDsAhU9y8me9shley9N8P0WuAc6AmnwbGCgmhKKEYDzNNGOVSD/8v2VQzV9OLfJRQ/AUD5NT+X
+	7MJLu0YWivBDpdrXU8xw==
+X-Received: by 2002:a05:600c:3543:b0:493:f6c1:2f09 with SMTP id 5b1f17b1804b1-493f87dc753mr64927015e9.6.1783894886966;
+        Sun, 12 Jul 2026 15:21:26 -0700 (PDT)
+Received: from localhost ([2a02:8071:56d1:2de0:1d24:d58d:2b65:c291])
+        by smtp.gmail.com with UTF8SMTPSA id 5b1f17b1804b1-493eb742a49sm296924145e9.12.2026.07.12.15.21.25
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 12 Jul 2026 15:21:26 -0700 (PDT)
+Date: Mon, 13 Jul 2026 00:21:24 +0200
+From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@baylibre.com>
+To: Ahmed Tiba <ahmed.tiba@arm.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, 
+	Hanjun Guo <guohanjun@huawei.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, 
+	Shuai Xue <xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>, 
+	Saket Dumbre <saket.dumbre@intel.com>, Davidlohr Bueso <dave@stgolabs.net>, 
+	Jonathan Cameron <jic23@kernel.org>, Dave Jiang <dave.jiang@intel.com>, 
+	Alison Schofield <alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dan Williams <djbw@kernel.org>, Ira Weiny <iweiny@kernel.org>, Li Ming <ming.li@zohomail.com>, 
+	Mahesh J Salgaonkar <mahesh@linux.ibm.com>, Oliver O'Halloran <oohall@gmail.com>, 
+	Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, 
+	linux-cxl@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-edac@vger.kernel.org, linux-doc@vger.kernel.org, 
+	Dmitry.Lamerov@arm.com
+Subject: Re: [PATCH v7 10/10] RAS: add firmware-first CPER provider
+Message-ID: <alQTUuwze5ZjGabk@monoceros>
+References: <20260708-topics-ahmtib01-ras_ffh_arm_internal_review-v7-0-8b3a85216cef@arm.com>
+ <20260708-topics-ahmtib01-ras_ffh_arm_internal_review-v7-10-8b3a85216cef@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Sun, 12 Jul 2026 18:59:04 +0200
-Message-Id: <DJWR3RYAWYAI.LQC41HSN2I94@kernel.org>
-Subject: Re: [PATCH v3 0/5] software node: provide support for fw_devlink
-Cc: "Brendan Higgins" <brendan.higgins@linux.dev>, "David Gow"
- <david@davidgow.net>, "Rae Moar" <raemoar63@gmail.com>, "Andy Shevchenko"
- <andriy.shevchenko@linux.intel.com>, "Daniel Scally" <djrscally@gmail.com>,
- "Heikki Krogerus" <heikki.krogerus@linux.intel.com>, "Sakari Ailus"
- <sakari.ailus@linux.intel.com>, "Bartosz Golaszewski" <brgl@kernel.org>,
- "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>, "Rafael J. Wysocki"
- <rafael@kernel.org>, "Linus Walleij" <linusw@kernel.org>, "Dmitry Torokhov"
- <dmitry.torokhov@gmail.com>, <linux-kernel@vger.kernel.org>,
- <linux-kselftest@vger.kernel.org>, <kunit-dev@googlegroups.com>,
- <linux-acpi@vger.kernel.org>, <driver-core@lists.linux.dev>,
- <linux-gpio@vger.kernel.org>
-To: "Bartosz Golaszewski" <bartosz.golaszewski@oss.qualcomm.com>
-From: "Danilo Krummrich" <dakr@kernel.org>
-References: <20260710-swnode-fw-devlink-v3-0-993f31874e40@oss.qualcomm.com>
-In-Reply-To: <20260710-swnode-fw-devlink-v3-0-993f31874e40@oss.qualcomm.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="o63zw6szpf3k5nqs"
+Content-Disposition: inline
+In-Reply-To: <20260708-topics-ahmtib01-ras_ffh_arm_internal_review-v7-10-8b3a85216cef@arm.com>
 
-On Fri Jul 10, 2026 at 3:51 PM CEST, Bartosz Golaszewski wrote:
-> Bartosz Golaszewski (5):
->       kunit: provide a set of fwnode-oriented helpers
->       software node: add fw_devlink support
->       software node: add kunit tests for fw_devlink support
->       MAINTAINERS: add myself as reviewer of software node support
->       gpio: kunit: add test cases verifying swnode devlink support
 
-Overall looks good, but I think the two issues pointed out by Sashiko are v=
-alid.
-In addition, I also found a memory leak in the gpiolib kunit test:
+--o63zw6szpf3k5nqs
+Content-Type: text/plain; protected-headers=v1; charset=us-ascii
+Content-Disposition: inline
+Subject: Re: [PATCH v7 10/10] RAS: add firmware-first CPER provider
+MIME-Version: 1.0
 
-	unreferenced object 0xffff88810296b2c0 (size 32):
-	  comm "kunit_try_catch", pid 1096, jiffies 4294694235
-	  hex dump (first 32 bytes):
-	    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	    66 6f 6f 00 00 00 00 00 00 00 00 00 00 00 00 00  foo.............
-	  backtrace (crc a62f59c2):
-	    __kmalloc_noprof+0x216/0x510
-	    desc_set_label+0x46/0xc0
-	    gpiod_request_commit+0xd5/0x140
-	    gpiod_request+0x49/0x170
-	    gpiod_find_and_request+0x2be/0x520
-	    gpiod_get_index+0x56/0x70
-	    devm_gpiod_get+0x1b/0x90
-	    0xffffffffc0401ff8
-	    platform_probe+0x58/0x90
-	    really_probe+0x1bc/0x490
-	    __driver_probe_device+0xa2/0x140
-	    driver_probe_device+0x1e/0x110
-	    __device_attach_driver+0xc2/0x140
-	    bus_for_each_drv+0x117/0x170
-	    __device_attach+0xd5/0x1c0
-	    device_initial_probe+0x34/0x50
+Hello Ahmed,
 
-I came up with the following diff to resolve those issues.
+On Wed, Jul 08, 2026 at 02:59:09PM +0100, Ahmed Tiba wrote:
+> +#include <linux/mod_devicetable.h>
 
-diff --git a/drivers/base/test/swnode-devlink-test.c b/drivers/base/test/sw=
-node-devlink-test.c
-index 6f59f13214fc..143b9c4047a0 100644
---- a/drivers/base/test/swnode-devlink-test.c
-+++ b/drivers/base/test/swnode-devlink-test.c
-@@ -17,6 +17,10 @@
- #include <kunit/platform_device.h>
- #include <kunit/test.h>
+Please don't add new users for this header file. Only use those
+<linux/device-id/*.h> that you actually need (if any).
 
-+KUNIT_DEFINE_ACTION_WRAPPER(device_remove_software_node_wrapper,
-+                           device_remove_software_node,
-+                           struct device *);
-+
- static int swnode_count_suppliers(struct fwnode_handle *fwnode)
- {
-        struct fwnode_link *link;
-@@ -294,6 +298,9 @@ static void swnode_devlink_test_probe_order(struct kuni=
-t *test)
+Thanks
+Uwe
 
-        ret =3D device_add_software_node(&supplier->dev, &supplier_swnode);
-        KUNIT_ASSERT_EQ(test, ret, 0);
-+       ret =3D kunit_add_action_or_reset(test, device_remove_software_node=
-_wrapper,
-+                                       &supplier->dev);
-+       KUNIT_ASSERT_EQ(test, ret, 0);
-        ret =3D device_create_managed_software_node(&consumer->dev,
-                                                  consumer_props, NULL);
-        KUNIT_ASSERT_EQ(test, ret, 0);
-@@ -313,8 +320,6 @@ static void swnode_devlink_test_probe_order(struct kuni=
-t *test)
+--o63zw6szpf3k5nqs
+Content-Type: application/pgp-signature; name="signature.asc"
 
-        /* Tear down the consumer (and its device link) before the supplier=
-. */
-        kunit_platform_device_unregister(test, consumer);
--
--       device_remove_software_node(&supplier->dev);
- }
+-----BEGIN PGP SIGNATURE-----
 
- static struct kunit_case swnode_test_cases[] =3D {
-diff --git a/drivers/gpio/gpiolib-kunit.c b/drivers/gpio/gpiolib-kunit.c
-index ad961cf97aee..7798f8a8e602 100644
---- a/drivers/gpio/gpiolib-kunit.c
-+++ b/drivers/gpio/gpiolib-kunit.c
-@@ -449,6 +449,9 @@ static void gpio_swnode_probe_defer_on_unregistered(str=
-uct kunit *test)
+iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmpUE2IACgkQj4D7WH0S
+/k5Aagf+IcCM3MbiQFXq44EFdGthF9zwEU47GU8P9/gSXah2GXOz59WKWZqRlJgo
+j4mZ9uRbJqwLqZ7OtPIZj1IyEY9Bmeix2uL7sJuVUBcZ2qRaX3OxW/xi8zEaH0fi
+1DgPWPB5MHOhvc5d5JJAeoqaV3TCXNxNEF8uvyiaGJWFIr7oGvWZVJCPTmjbqVt8
+vzyFYzCac+qNGAzM6F6FhjNsegEgpsSAP2XIIruYv2+iPpHWzMbx+LpknKOq8Rws
+N/Cmj3SBH5ULfApKqkL4QqeHk6RnfAclAjr/EdYS7nE6L5Bdot9DOOil56IDxCps
+pX4u0VGI9OqUoeIeIDXaS9GJsG261A==
+=Eag/
+-----END PGP SIGNATURE-----
 
-        pdata =3D dev_get_platdata(&cons->dev);
-        KUNIT_ASSERT_EQ(test, pdata->gpio_err, 0);
-+
-+       /* Tear down the consumer before the provider to free the GPIO. */
-+       kunit_platform_device_unregister(test, cons);
- }
-
- static int gpio_swnode_probe_order_test_init(struct kunit *test)
-@@ -614,9 +617,17 @@ static struct kunit_case gpio_unbind_with_consumers_te=
-sts[] =3D {
-        { }
- };
-
-+static int gpio_unbind_test_init(struct kunit *test)
-+{
-+       device_link_wait_removal();
-+
-+       return 0;
-+}
-+
- static struct kunit_suite gpio_unbind_with_consumers_test_suite =3D {
-        .name =3D "gpio-unbind-with-consumers",
-        .test_cases =3D gpio_unbind_with_consumers_tests,
-+       .init =3D gpio_unbind_test_init,
- };
-
- kunit_test_suites(
+--o63zw6szpf3k5nqs--
