@@ -1,42 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17BA3422552;
-	Mon, 13 Jul 2026 13:23:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 708DB40FD99;
+	Mon, 13 Jul 2026 13:30:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783949034; cv=none; b=CFW3+3+QdD3qw8KsVQ0d2HHtgQSiqQ/0bswrLEpYXTvJuWEOBhOZaO2dY0CAl7nSl6sPr2wiuXR9KE0V1+cypqVGtGsSY2o6J+yEMxxBN/6RFhJZgNiZSU3T9Kz14N66V9QZZ2LnEg1vf9EYrzNLCcGGdBmQvjOQPtnX+YWN+lc=
+	t=1783949445; cv=none; b=TDUvzFIvYRANb/kO8e1iRF6G2wTHd62erZo5NEn6O5b8FahxOJrMpLYZ2/nOA5/H7R+y8a1Lj6MvQv4D29Cjbqs0x8FlJy/PRryep0GYqZBZOOfrcE22kfzhMOsf8pMVeGKKqSrIwHaKMOe68mKFndcUcFffx9EE5tfPchyiFA0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783949034; c=relaxed/simple;
-	bh=056eOz/k5VBRiA76rXy9WLW+TRu86FA9xsYttVqFx9o=;
+	s=arc-20240116; t=1783949445; c=relaxed/simple;
+	bh=5VI0L1GhB7ATzIBRuzGxK3SLhvrBErjEQz15xL1Y4C8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cu/BLxcBleqcsjwaX99GEwCRZvovxHrvOU0EhnDxPl4PEvD7ZTyQ29EE4lJpqZoLYVUK5NoCs5kTWjROGoiI+0vqPHrBLjV6HfTXqOJJKMnQ+9CuRrmzdnp7w9OjcBzJdt9nokRQdQaBzxZPhaq7r9olOkIZtjbAR9kxPs4yeXc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=K6jaqcbz; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=TwPadp/dTDSRquQNndwtAL41OBvq7e7pP/O/ncrcPCQdBWm0B2CQtP1WygGEYNqAq91ht/0DmnzDFYJYwRBp1PMb9ijjBRdrSsqj2GNJ9YJyjbf+cmseU9DKzDgKtqn26dqMwsh83QH7JaFiwoXTIwDdge9SB0NGMC839vUhOwE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H62ARIwG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="K6jaqcbz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 007901F000E9;
-	Mon, 13 Jul 2026 13:23:51 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H62ARIwG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CF2B1F000E9;
+	Mon, 13 Jul 2026 13:30:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1783949032;
-	bh=ZSMEE1nB2ScVoEokNvwIEkHnNb+xGxBB5l9/2VUhvyI=;
+	s=k20260515; t=1783949444;
+	bh=0Cj+0CNtMf4fXMNU8zsoiMRR3yODObqVqvsAD0wI+/U=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=K6jaqcbzmYReHSbxJqLXA5fxL4ypD57TpHDnTqYQzYutL0XLQgI+kuOtII+6ZxMzy
-	 1fcTOyskJI0D40mm2Ks0+58fmqaC49WKxHsgoQ9DSc4CBUfymkNDB/d5FTZfnc3Tc5
-	 bhNSog2HqziC7cRlYhmvQ3p7sgiHtx8JRQEp4ifJz46TA5M7Yb/OegLFTx1r9Tmhed
-	 742othwIeVao7tl2pg4EtiHJ5zY0l3ujRxXII6MERy54Cje7nkGYeLqR0sygITu1un
-	 uBQNIRGPB5w5ZRmGgxY2z7VjykasLMEbzAoV0qL6sD16xIHWPi5U/Bk3/BMJaH0shw
-	 gLuEz9TGxoA1Q==
-Date: Mon, 13 Jul 2026 14:23:49 +0100
+	b=H62ARIwG537MZqACbQf6/sgOOpM5SUbskv1HfVf3wm3+/9pggscDTV1R+JfI0T7/O
+	 v4eF8RPnKMjzj8VWr5vS1U/IPiO+TtWbxjfsEvMppeVRz496kqb5sDXxp+nyrE2/n/
+	 gqxevqtDSbHPpsMuNs78XHZiuwRYCYsgErcq2WTquCE3cPxpJfgkkbVhyKoAGuwkjG
+	 545D86EPvsYE0QFUwt8diXRaIWpZuZK9fg4zcRPgeRldNUSmGl2+KBKz3NCnE6JdJy
+	 OuuMSm+Kzq9LmkRjNV2LOV5NYDIHL7EPAOz+YUWO1tTtnquIXboUqHNlMe3yVOvV+b
+	 I1f9NkZ+3eG6A==
+Date: Mon, 13 Jul 2026 14:30:41 +0100
 From: Sudeep Holla <sudeep.holla@kernel.org>
 To: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Linux PM <linux-pm@vger.kernel.org>,
 	Sudeep Holla <sudeep.holla@kernel.org>,
 	Linux ACPI <linux-acpi@vger.kernel.org>
-Subject: Re: [PATCH v1 12/17] ACPI: processor: idle: Introduce
- too_many_states() for _LPI
-Message-ID: <20260713-adept-quiet-giraffe-ca9af4@sudeepholla>
+Subject: Re: [PATCH v1 14/17] ACPI: processor: idle: Relocate
+ acpi_processor_extract_lpi_info()
+Message-ID: <20260713-awesome-excellent-wrasse-eece2f@sudeepholla>
 References: <4746278.LvFx2qVVIh@rafael.j.wysocki>
- <1964818.CQOukoFCf9@rafael.j.wysocki>
+ <2277662.Mh6RI2rZIc@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -45,18 +45,22 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1964818.CQOukoFCf9@rafael.j.wysocki>
+In-Reply-To: <2277662.Mh6RI2rZIc@rafael.j.wysocki>
 
-On Thu, Jul 09, 2026 at 02:39:49PM +0200, Rafael J. Wysocki wrote:
+On Thu, Jul 09, 2026 at 02:41:36PM +0200, Rafael J. Wysocki wrote:
 > From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 > 
-> To reduce code duplication, introduce a function called too_many_states()
-> that will check if the total number of _LPI states for a given CPU is
-> too large and print a message in that case.
+> In preparation for adding ACPI _LPI support to the intel_idle driver,
+> move acpi_processor_extract_lpi_info() along with some static functions
+> used by it to the acpi_processor.c file containing the non-modular part
+> of the ACPI processor driver, so it can be called by external non-modular
+> code like intel_idle.
 > 
-> Use that function in flatten_lpi_states() and acpi_processor_get_lpi_info().
+> However, export it to modules in the ACPI_PROCESSOR_IDLE import
+> namespace so that the modular part of the ACPI processor driver
+> can still invoke it.
 > 
-> No functional impact beyond reducing dynamic debug flexibility.
+> No intentional functional impact.
 > 
 
 Reviewed-by: Sudeep Holla <sudeep.holla@kernel.org>
