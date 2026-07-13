@@ -1,166 +1,198 @@
-Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11022105.outbound.protection.outlook.com [52.101.43.105])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yx1-f42.google.com (mail-yx1-f42.google.com [74.125.224.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6087B235C01;
-	Mon, 13 Jul 2026 06:32:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.43.105
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB25E382397
+	for <linux-acpi@vger.kernel.org>; Mon, 13 Jul 2026 06:41:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.42
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1783924355; cv=fail; b=VEwWtr/IHJOJ5jl1jb26meZWtlpUXyHmbSkfnrHGP3cg5HJd6z9ZXckQMDWqITgJ+MCWRc/8x36rBX0d+YrlzSvHULIfu28IwYFj6q6MEfMV3OG0UaIkYL5JQVGFRf/HkzsAoUID1hj12/7D0hwd8p3eefUt+RqxkaWAs8vbryI=
+	t=1783924871; cv=pass; b=lFPL+P29VPNcxN4R5GXBRts5w82ILeK1qiRw+kI70tv7kbW5xFilUznstg++0V+ZehD8cZH6tEYYgFrsQDjtVjeX6SJUfe4kp7gpK9YZ9eVjyLf2s/gqodX7GbzpO1/SLloChm2c6t5GaYu4JUNGDbZaGgKwIbVCAXYpkYNarSs=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1783924355; c=relaxed/simple;
-	bh=Av0/cf6tAxMXw87OnO9rbBFzALlUXY70XSEbSx7cZro=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 Content-Type:MIME-Version; b=CsXTPlDmtQs8ZFOmYQfVxcBI6qKjieCTS0u8mnfzG4nQgoJBix3HFqXMJsgaPX8BxWvBnvzE2StV86e8KH0egOkThkxnfN0BLfqRjVe10guE5fTuPUDbOQClxEHvfZ3swnrXdAykus4AOK7jKjB6nBXOR70iXbfg189RiPlOtHU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=os.amperecomputing.com; spf=pass smtp.mailfrom=os.amperecomputing.com; dkim=pass (1024-bit key) header.d=os.amperecomputing.com header.i=@os.amperecomputing.com header.b=V8MeOUrl; arc=fail smtp.client-ip=52.101.43.105
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=os.amperecomputing.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=os.amperecomputing.com
+	s=arc-20240116; t=1783924871; c=relaxed/simple;
+	bh=SoNHDrWROasgfui4FF2PQ43gjyBa3I1JHB7dBso0fYU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=b82g2zLOrX2Q5D+bAPWQ6UWohZCKNkfrwXO6mJHLvkAPstPyMuF6uYzSSObbdzm1eTo8htTCVIQNNALu7Ina58R7JfyoEbEFceWSK/5DQzmxPyrz3lC/YEvoLkpZV3Z60vUUkIxvrxwspWiYdTknxqpNwag6b7nqNnFLCdbhLxE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=dp5fV1eQ; arc=pass smtp.client-ip=74.125.224.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=os.amperecomputing.com header.i=@os.amperecomputing.com header.b="V8MeOUrl"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=v0umY8Mi7W4Uw5MDbD08ehYf8f3pkYZbC47tQDcqhpFjADTsAChAmcORnJpc7s6oB4hJilQCMT2JG4iEeSVGP2nmeakTN38KcsqMN0FGoK6CJ6GmFb2nd+puua6G/zxaan2f2wWctREl9BZp6aHGtny75JHPOrTFRL9mckgG9X3hFun8D6jaTQJD6Zwdc/mpZ39clugFfa1QS8zAZRjaiygAdQJYFIjj3lz+YT2J7nQsWJC9tJXRQs3oz3Mi/vViK7sbnmXoaqt+s1FEqklL17pgEGFWvv/LFl03XlbzkmQ7BZhsDrXUxhrAmFdHlbPUIrfpAvJrge2MY5ft/3eolw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=SJqaPCcbkzv4JeAey4EMzEq/+Wg5I6SDgEMrWl+zh+I=;
- b=P5uJgo746bBCvDNiFQLj0tGRi++bQdextkkVkApsoKhroc10jV+MhzlLNmglnzAgWQQTQpLUmDUMna+/CZLFyuVOp8TQ6sjQMC/ngIAKotZRlSEGerk+EALfR4o7PAAPieDJShNuXpCPru+O2VBxk8y+XbE5G8d9lf2J4asz50v6eUpYdL2Fh9cwFGAiRkMlscIpbUnLVaN3ZrVz6Du4ESz7jMe8I6M92hPgFxztFcgBxsA75X+VyFNtZTUyiiCTfwrfxsV2BfFo951dA3fqkxwNZNsYUGkEhaCCPHAmDIqRsjvDcdrPjmhICyD8xc6ySIjhUAW4e3sbcp+XkmcldQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=os.amperecomputing.com; dmarc=pass action=none
- header.from=os.amperecomputing.com; dkim=pass
- header.d=os.amperecomputing.com; arc=none
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="dp5fV1eQ"
+Received: by mail-yx1-f42.google.com with SMTP id 956f58d0204a3-667f07e2ae0so38617d50.3
+        for <linux-acpi@vger.kernel.org>; Sun, 12 Jul 2026 23:41:08 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1783924868; cv=none;
+        d=google.com; s=arc-20260327;
+        b=YdrrzAdBenwYARj2q+jEOrrk+yIoKciLQoNAuOf6S/iVLaAyNe0iLxKlU5oVszEIda
+         J0sIwJetqGPMyn6XTaH7gMuDuD6npbFD9dlkq0sM2WWulkyV0MbT2jU/vFj0/MLJ/a1a
+         LLNk9FOa4zcelGatSC0mkX/IRkORkFEGRoddWzCU07wtjLgKc07KejS8GGR5YgSU7+Z/
+         Fgy+JY9Fbd0xqWrzh4/GKj6/5H+J47UcLxwzh4ryVXkSs9wpCXIiPwoILd1FexM4IKfw
+         FW5Dsshj/o9sALREFfdevc3cjH5se79sIF7d0qqg6DTtKRYAvQqrCklbBTV082HCyxhN
+         GMwQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=ALHFFl4QIG5q5cwsXiSsf9xTcJ7Y7YxsHiqneCAHa/Y=;
+        fh=3HVJ+6VeBbhCqPw6ZhGJryxTtWwlgW/iXTpEMkhFkxI=;
+        b=NZB99dddfMoJrsKKafWcj9An/iMwvwTUf7IGXTPC1s/g8CU8SPGe9nfqtEH59m3kBx
+         /BMZvQRFTqk4ewiOgq7bvMtoyNA8rzwAQz6JnUdTpsrE1A/5ba5uXOnKJgpRO0DRN7w/
+         6uItZn/+YjoL29nKe9q/yzbHj3FNmZ4nLvho3EBGkvE6Sa/zH09x6P4GkvWS/D+A0Ilc
+         NuaIhBIzaVeWpT8BKkFrQN/5zhzc1s4IOSBX9O8+FCwAQGVgEKCdFUPBsw7PFLCKsNBc
+         nfsVFMG1emLNqYLnCkEHeBVZVIu+MZQGE5RmOi219VtIPUFnBa9a2Gt9w1hS6wn3JGHA
+         y7Sg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=os.amperecomputing.com; s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=SJqaPCcbkzv4JeAey4EMzEq/+Wg5I6SDgEMrWl+zh+I=;
- b=V8MeOUrlIvMHd26gHRtUi/yoRvgpVED7UPDTua//+Tb/BwiSBR6tg7ijcr+Klobi5h9A2poTrkbnypYXWAZF3OtyBeuhuuJCZoLkN8B1iL3zP441eWP34UVWhNbEuVZI9KCE4OcBLsJ8rlblXoyGkU3QCvJGES4wbYs62QpwiIQ=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=os.amperecomputing.com;
-Received: from MN2PR01MB5615.prod.exchangelabs.com (2603:10b6:208:11c::29) by
- SJ2PR01MB7956.prod.exchangelabs.com (2603:10b6:a03:4cf::18) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.181.22; Mon, 13 Jul 2026 06:32:29 +0000
-Received: from MN2PR01MB5615.prod.exchangelabs.com
- ([fe80::996f:e4f2:dbd8:120e]) by MN2PR01MB5615.prod.exchangelabs.com
- ([fe80::996f:e4f2:dbd8:120e%4]) with mapi id 15.21.0202.018; Mon, 13 Jul 2026
- 06:32:28 +0000
-Date: Sun, 12 Jul 2026 23:32:24 -0700 (PDT)
-From: Ilkka Koskinen <ilkka@os.amperecomputing.com>
-To: Robin Murphy <robin.murphy@arm.com>
-cc: will@kernel.org, mark.rutland@arm.com, catalin.marinas@arm.com, 
-    ilkka@os.amperecomputing.com, bwicaksono@nvidia.com, 
-    linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-    linux-perf-users@vger.kernel.org
-Subject: Re: [PATCH 4/4] perf/arm_cspmu: Make IRQ more optional
-In-Reply-To: <fb2cab05c714f24f703b242c8f8b8e9e4df938f8.1783605641.git.robin.murphy@arm.com>
-Message-ID: <ba54ce98-f1f5-2144-2f94-b27d3cd90df9@os.amperecomputing.com>
-References: <cover.1783605641.git.robin.murphy@arm.com> <fb2cab05c714f24f703b242c8f8b8e9e4df938f8.1783605641.git.robin.murphy@arm.com>
-Content-Type: text/plain; format=flowed; charset=US-ASCII
-X-ClientProxiedBy: MW4PR03CA0152.namprd03.prod.outlook.com
- (2603:10b6:303:8d::7) To MN2PR01MB5615.prod.exchangelabs.com
- (2603:10b6:208:11c::29)
+        d=chromium.org; s=google; t=1783924868; x=1784529668; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=ALHFFl4QIG5q5cwsXiSsf9xTcJ7Y7YxsHiqneCAHa/Y=;
+        b=dp5fV1eQzI+Q9ABLpMoytSwVqvJkNnm2q+8k2+hUF9hHSoTetIdx8MaKR92N+gi9S7
+         Kx7MDUrv2AEYWY1uVHPwlc3LFMd1lwKnjDoiReY9JfjSvl2GMjvxVMFaEZr0v14r1lfw
+         b1XdoUkbRVAIP9uqCn18sKtv4fqDOJRWOinkc=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1783924868; x=1784529668;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=ALHFFl4QIG5q5cwsXiSsf9xTcJ7Y7YxsHiqneCAHa/Y=;
+        b=V+yAC9h9mIEDiRCc38sbezzACMFIh6CKPkJFjSkgUPHF/OYyZ90TfwILmPZfbd51Bj
+         DuWk7lFTOQ93wxlkPXIiMl/PWSiVRH5u239H48FFpZklFTppmMjkCRAgWPzOW/6B2xnU
+         a9QT65TRHF5Lx6C6KOnH/nbzGtfZwut5G4/BrcJJPgFWLn+yPNE6qNgiXxWF15Hu4Nm/
+         yPntZXE1e2ZsQ9MxUXzA+2Ts0E2OoCEojSd+Tt9UNXiSFTyy5bfXo4b4gplUJ6wvFP4Y
+         rGshsKI5OTHlrNdGVHrqSWmL7xdiXmLAsJwXDFkYg2tmyrVaf7si/uafXFjB1PU80B9G
+         aHDA==
+X-Forwarded-Encrypted: i=1; AHgh+Rq3mULcjsi2MvipL5DfQYi89ANu9BB30nB6yuo0j5kWrzy4ylXH0MNk6mUKaeFd0iuM/ErKxC3tXLrD@vger.kernel.org
+X-Gm-Message-State: AOJu0YzjvHsr85mSY05NWngkqbO/iHQj39Xz+slu1rfhCTlcRy477LcN
+	OaTVPU8TKNrVW9u63HL7W5gcl02hj5DEgLLoySm5IH7WTDioKWqaGH3rWyunBHQ/e8cqH5g2gsO
+	Ww461MJqy0hbINSm9/ms2Qr3ljyPNSWZcvaUUIjJ9
+X-Gm-Gg: AfdE7cmSkVKGTFA6X09xTsv3jqgdBiAjD445C2bs0a88gnkEHHLQYCKPmR+scwqRUdx
+	KjXBkyZkxqnljnyB64vlaqJWZz/ndTMJuCQMaQqiERh5FckqXHsuSrCO1c22VYUeeDxipqVK6se
+	I24T0m5P8nFzl7f5YNkvnrzOCTMmUUme1KGbngUqpnKiVOkFa+jvqRxoZy8hUB8dsFW3GIh58pK
+	q+NAch9B9UN+Rxvf8u/sQ1ManqOfQ/ECvRvRJVZOfrpGmrMWb68pVDuETvIqaWRp0Vh9L46f+YK
+	o0NkUCB4DzLcdhyH+LTFMz/f+GeN/+ZmmtIt
+X-Received: by 2002:a05:690e:138f:b0:667:db66:eb59 with SMTP id
+ 956f58d0204a3-667db66f471mr5286970d50.22.1783924867897; Sun, 12 Jul 2026
+ 23:41:07 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MN2PR01MB5615:EE_|SJ2PR01MB7956:EE_
-X-MS-Office365-Filtering-Correlation-Id: 2bcb3b90-d1d1-4a68-fa06-08dee0a88294
-X-MS-Exchange-AtpMessageProperties: SA
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|366016|23010399003|1800799024|18002099003|22082099003|11063799006|56012099006|4143699003|55112099003;
-X-Microsoft-Antispam-Message-Info:
-	1PfaIS5M20fq1rcphyQyzW1HDoreqXw0CT8cnNkDIcmSvYHB4eiQuO+ZaG/xDPuuLzemHWmHD+vKkEPVneIJ6gzRURoR1P2F2pXmkuv56FbgT2szg003+xkZGJUs5HXeJS1797n/G1mnOUFCo5Le0eXWmHI89p43MY9wiWorObIrcnTG54N0oNUwUic0qQLwkfYeKliFyh3o94AzgHoM93FGS7F/noh7HW+SPGlOjDwJmf8jpVdu3Ywnsd0bsJGt5ZJP0SA8SpPuaHWCy5L9rMYDWhBIIOQuA49tUEfBpU2qiknDzYJS41MJcNwbcRCr8wfqUsKNRgTurlQOGYU8kkqdaY31UjV60y7VCNWoYfA1zsVEG2dDvfHHmkQhWcr37dN3AwkqngiVlVTVtfx0GoKoTQGQ4Y9PvWBCHUWNDF/IPdHb6KmucSSx61Y1+q3pcvDKTVszjy+EjkXs9rJGVDBv/FfBVhZAWrItxLIZvn/+M/Arsls9hRxyF/QjaNgqJctCagZ9VSFRLl4/AxUaGW9HqKNIxNwglkIw8Zr+szkeHlP5z2/F5k6OBO70XSjr1I4seDmT3JvkbGRHhFtFKzZPcxBsR6izX4vLClU4xU2Wn8sXWtvAHxpug/7Svyo/5Bk2uop+h+1/d2eBfZuzpvtoRq+en7ctoUGH/Hya0PY=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR01MB5615.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(23010399003)(1800799024)(18002099003)(22082099003)(11063799006)(56012099006)(4143699003)(55112099003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?xJQvEgvsHx5ez9fsnE+zHw/BTIjtrLzfvr7WY/XE2Fb4xasFnZ6g2mnapLRR?=
- =?us-ascii?Q?MM7VFQ7Rm0tenWOC/czITvYy1omyK06oOwQwrLui5pYI9w8V8uIQL0AOd0tu?=
- =?us-ascii?Q?UILwP1mxxtTZ7tAsls7wGOHgwRaAywnrcVFIHYuZRysMJS/s7yJxDPfNyXVk?=
- =?us-ascii?Q?WHFOo5c1K6ZIoWeD3DkYv81mEUDujXP8hxY1wniSqUOR/PBapsSs8ns1+xOt?=
- =?us-ascii?Q?PiLDbeVptgWXSGUO0BzE4wTjTJUHhX/GqHu4vRoWRWEuzFwRKu8ZlhWpV7oW?=
- =?us-ascii?Q?8DI8K2Ux/XZyuqFOM1Wlw6S4FfV6KfaXsEXZjOkGvZEzGjoxv/jK2ZM6vMHj?=
- =?us-ascii?Q?HRXTLzdLtJbdsXabUEOWZR/mTU6s2yFIr7D25uFVUoXrsP5duTOWfjqonI30?=
- =?us-ascii?Q?kxp0WuCJvyqbtohVW3DggaCBAfs8WoI/5oTq9LflfLvEEXM7dcfAYabLAyPU?=
- =?us-ascii?Q?qdqYRELqqeIlbfpUi3HVFYJGtAT7QlnvfUs9NOBsCEVFfgLcvjb/Qx6liAp1?=
- =?us-ascii?Q?+7LXE69j3/b2XYOytDPdk4xvkLdpXPLUqE9nLLz5VCW61sXfOfFKSoil8oF4?=
- =?us-ascii?Q?vECDnq/Rak4Cbbi2hbqtc7a4mRB1AC8XJYXsYrPnQF91kvamom6puVVWwSjd?=
- =?us-ascii?Q?/Ln437VFsaR+TUMBk2rPSZWohTGab2Codph7P69FvkRvnaKTSZIj5D0Tv56M?=
- =?us-ascii?Q?AMwodavbITLlUeKra2KOnlpq/2cqJoZn1Oojtwso55md3fBP6xXLe+8pGekE?=
- =?us-ascii?Q?V8a8LrtS5Tp1Dkwlk/t4K4w5+EAdPlojAS6iy18QyKlGuPLE5BLfCmPJhzgq?=
- =?us-ascii?Q?N3aY5Q1nXJ0ABX/bVbweysmLrWLy3b/NsE7k0CtfpzxSR0EniFqnfXPTEPno?=
- =?us-ascii?Q?MNl2MPRh8AJe0NjQ5qZwHo1dFuQqFSsFPoYtOFt2zg1pbnC2XfWj8joJ3mDU?=
- =?us-ascii?Q?lOCDcv+X1/jSpkY/SMn5yzX1ZC4AHrOpuQFMjVobkzJKI5pph2oK7OZZNB7w?=
- =?us-ascii?Q?kILYYQRmAsRK1TYn/kUGtvuTrTm6QrJgFBDTwF/FuN8CMqUGQ1dQLVVrZux9?=
- =?us-ascii?Q?Cqf19Rvu/ACOlBus1mtkJhLwOSU+x19rI189ygaI2zQz15T6Lz7PpvLeEd6+?=
- =?us-ascii?Q?gb1GzDgB8bO0eyxRGThtCX6XcE8KJERGOqBO31uoFU2G2qhDDlWOHATz2ngR?=
- =?us-ascii?Q?pLaKijrm5M4Ez40EKsEhfnx8arx/657IBm/LWcCeUXEdilujcTJi1WIM4Ivr?=
- =?us-ascii?Q?1JmbiBggqi7raQz7lTOBG7miuR/paZkrrzcm00ZykOfX07Tc32VAeYbdc1UK?=
- =?us-ascii?Q?soY6MjfzCs1S9YlRXXR7eEhRsoKPxYJHZL+ZqptEof4f3GKUnWhDLMiCezFA?=
- =?us-ascii?Q?Qr2ZKDl+d8uI4sa3sALGGJw8STvVhvFlgba2w6L5ALryVh1ksFszBpGtEX+D?=
- =?us-ascii?Q?SlcYIm9lLzTFqdOoqJ/wKbgxOPCeRtRZctxaNLPDv+SzlamcUe3pB22q5Rjj?=
- =?us-ascii?Q?TCI320xarWLFQq8uNbpr8tPQ+WswpwYvmqEbvOPBJ+K0O6TfVqAQ7mNo2LWm?=
- =?us-ascii?Q?VpdR5tDvnxO1ItlxcP1qXqM5DjWol3x+WXv+XxTCLXKbHdMGikKSJcIvPX50?=
- =?us-ascii?Q?7yH8gHFMzIV6gc20rWt6VY4Ft1lzIzGlJQL6OCZc9OvJEB9IlxE0nAAHfQAw?=
- =?us-ascii?Q?eUsHlHI7blEfw2ckl6t+FVGexhzy7RS6ypowsFp4I/DkXNHn89RtZmpx9Imk?=
- =?us-ascii?Q?ts5IBFmb3wSAJf6bhxfMrJeQVK4k9VY=3D?=
-X-OriginatorOrg: os.amperecomputing.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2bcb3b90-d1d1-4a68-fa06-08dee0a88294
-X-MS-Exchange-CrossTenant-AuthSource: MN2PR01MB5615.prod.exchangelabs.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Jul 2026 06:32:28.7518
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3bc2b170-fd94-476d-b0ce-4229bdc904a7
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 2zIOhD+ziXtyn2sheladzL8FRKda0dU87i3KuvJENNu05sp1t94wC1DnKBZ/ZCsBkSwXpfnuw0XdAd6osVPbjLJxW1ESIoM+GfYyRoOD2bztYtXY1835T835ae47Bvx6
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR01MB7956
+References: <20260709095726.704448-1-wenst@chromium.org> <20260709095726.704448-6-wenst@chromium.org>
+ <2026071025-diffused-jersey-0d94@gregkh>
+In-Reply-To: <2026071025-diffused-jersey-0d94@gregkh>
+From: Chen-Yu Tsai <wenst@chromium.org>
+Date: Mon, 13 Jul 2026 14:40:56 +0800
+X-Gm-Features: AVVi8CffSvw8dKrdOHbSnASMEsx0puSGrR918doi02cLaaF9gK20T18TFDW9zpc
+Message-ID: <CAGXv+5EyJ3WewkWfEy=XNA=VoU4Fuhi2K6evkvFanWhVe8J=ag@mail.gmail.com>
+Subject: Re: [PATCH v4 05/14] usb: hub: Associate port@ fwnode with USB port device
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Bartosz Golaszewski <brgl@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-pm@vger.kernel.org, 
+	linux-usb@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-mediatek@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+	linux-kernel@vger.kernel.org, Manivannan Sadhasivam <mani@kernel.org>, 
+	Alan Stern <stern@rowland.harvard.edu>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-
-
-On Thu, 9 Jul 2026, Robin Murphy wrote:
-
-> If we have 64-bit counters, we can reasonably assume we'll never have to
-> handle an overflow before the end of the universe (since we're a system
-> PMU with no sampling). Thus even if firmware does specify an IRQ, we can
-> still continue in the event of being unable to request it. This can help
-> systems where IRQs cannot be claimed exclusively, or are broken in other
-> ways.
+On Fri, Jul 10, 2026 at 8:08=E2=80=AFPM Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
 >
-> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+> On Thu, Jul 09, 2026 at 05:57:10PM +0800, Chen-Yu Tsai wrote:
+> > When a USB hub port is connected to a connector in a firmware node
+> > graph, the port itself has a node in the graph.
+> >
+> > Associate the port's firmware node with the USB port's device,
+> > usb_port::dev. This is used in later changes for the M.2 slot power
+> > sequencing provider to match against the requesting port.
+> >
+> > To avoid potential conflicts with ACPI firmware nodes and then causing
+> > power management issues, only assign the firmware node if the hub's
+> > firmware node is not an ACPI firmware node.
+> >
+> > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> > Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
+> > ---
+> > Changes since v3:
+> > - Added missing fwnode_handle_put()
+> >
+> > Changes since v2:
+> > - Skip assignment if hub firmware node is ACPI node
+> > ---
+> >  drivers/usb/core/port.c | 14 ++++++++++++++
+> >  1 file changed, 14 insertions(+)
+> >
+> > diff --git a/drivers/usb/core/port.c b/drivers/usb/core/port.c
+> > index b1364f0c384c..e8fb2acd77be 100644
+> > --- a/drivers/usb/core/port.c
+> > +++ b/drivers/usb/core/port.c
+> > @@ -7,6 +7,7 @@
+> >   * Author: Lan Tianyu <tianyu.lan@intel.com>
+> >   */
+> >
+> > +#include <linux/acpi.h>
+> >  #include <linux/kstrtox.h>
+> >  #include <linux/slab.h>
+> >  #include <linux/string_choices.h>
+> > @@ -358,6 +359,11 @@ static void usb_port_device_release(struct device =
+*dev)
+> >  {
+> >       struct usb_port *port_dev =3D to_usb_port(dev);
+> >
+> > +     /*
+> > +      * At this point ACPI nodes and swnodes have been removed by
+> > +      * device_platform_notify_remove() in device_del().
+> > +      */
+> > +     fwnode_handle_put(dev_fwnode(dev));
+> >       kfree(port_dev->req);
+> >       kfree(port_dev);
+> >  }
+> > @@ -780,6 +786,13 @@ int usb_hub_create_port_device(struct usb_hub *hub=
+, int port1)
+> >       port_dev->dev.driver =3D &usb_port_driver;
+> >       dev_set_name(&port_dev->dev, "%s-port%d", dev_name(&hub->hdev->de=
+v),
+> >                       port1);
+> > +     /*
+> > +      * ACPI FW nodes are associated later when device_register() happ=
+ens.
+> > +      * Skip assigning one here to avoid potential conflicts.
+> > +      */
+> > +     if (!is_acpi_node(dev_fwnode(&hdev->dev)))
+> > +             device_set_node(&port_dev->dev,
+> > +                             fwnode_graph_get_port_by_id(dev_fwnode(&h=
+dev->dev), port1));
+> >       mutex_init(&port_dev->status_lock);
+> >       retval =3D device_register(&port_dev->dev);
+> >       if (retval) {
+> > @@ -852,6 +865,7 @@ int usb_hub_create_port_device(struct usb_hub *hub,=
+ int port1)
+> >
+> >  void usb_hub_remove_port_device(struct usb_hub *hub, int port1)
+> >  {
+> > +     struct usb_device *hdev =3D hub->hdev;
+> >       struct usb_port *port_dev =3D hub->ports[port1 - 1];
+> >       struct usb_port *peer;
+>
+> Is this last variable addition not needed here?  It's not used.
 
-Looks good to me,
+Indeed it is not used. It was left over from me figuring out how to release
+the fwnode handle. Will drop it in the next version.
 
-Reviewed-by: Ilkka Koskinen <ilkka@os.amperecomputing.com>
+I still have some other comments to cover. And I want to go through the
+code one more time to check Sashiko's concerns on the main patch
+"usb: hub: Power on connected M.2 E-key connectors with power sequencing AP=
+I".
 
-Cheers, Ilkka
 
-> ---
-> drivers/perf/arm_cspmu/arm_cspmu.c | 7 +++++--
-> 1 file changed, 5 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/perf/arm_cspmu/arm_cspmu.c b/drivers/perf/arm_cspmu/arm_cspmu.c
-> index 0b26a1588eba..4ba47bccc99c 100644
-> --- a/drivers/perf/arm_cspmu/arm_cspmu.c
-> +++ b/drivers/perf/arm_cspmu/arm_cspmu.c
-> @@ -1257,8 +1257,11 @@ static int arm_cspmu_device_probe(struct platform_device *pdev)
-> 		return ret;
->
-> 	ret = arm_cspmu_request_irq(cspmu);
-> -	if (ret)
-> -		return ret;
-> +	if (ret) {
-> +		if (counter_size(cspmu) < 64)
-> +			return ret;
-> +		dev_info(cspmu->dev, "Continuing without IRQ\n");
-> +	}
->
-> 	ret = arm_cspmu_get_cpus(cspmu);
-> 	if (ret)
-> -- 
-> 2.54.0.dirty
->
->
+ChenYu
