@@ -1,76 +1,33 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DECD1417BC3;
-	Tue, 14 Jul 2026 18:59:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82167423E8F;
+	Tue, 14 Jul 2026 23:18:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784055575; cv=none; b=pzg4+qQTKVhYvGKSTb5J7QHjhptA83rhq3oRAM7d58v2UeLqhpsUXW8FwG2PSWq5GUMPHQzgpu6SKck9qbFKyWRO5Mbci+wgMW8bD4cMYKONhUT7NLJuRHJaHVnbSawBD30KmPr1OurqlJS4ygCHIlrBcXDRrZ5EHK4Xci8UFMA=
+	t=1784071129; cv=none; b=MgNOVk7JSeE+X7g5FBOFtPhBHRvebB23hGDJF2rUc2+JgypsJpE2FOHm1yN3JaQ8WirHAIveztBNeIC4eA7aet/1pb0RB46/SXKZDWXSo7zs0Th0N0PuDh9X2V0gyhlvR8ZCjiw4HWOuVRH6kMH7ApUyc6qvKmxbUbZKOJKj6QA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784055575; c=relaxed/simple;
-	bh=TNlTj//NIMpflYGIzQSPMAJhiNVdgNLM6YBeijAZQz4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=lKvTFlD5xyKgQasI+xJmRPkpfV05dScanJ41c33leTBI4YwtFrTSvGl/iYwufRmC4jiqk3g+XfoB1/boWxEYbK5pV/1wqK55AB98cG3dMJEfR3nTjB0DK/O40Ti+Xuqy3mPbLZdHvpbGgEc86IErgwqtC8/rjtUabTAMjPM7xsQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=NgXs5/CK; arc=none smtp.client-ip=198.175.65.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="NgXs5/CK"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1784055574; x=1815591574;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=TNlTj//NIMpflYGIzQSPMAJhiNVdgNLM6YBeijAZQz4=;
-  b=NgXs5/CKkHuEhIKpZoTazj/p9lT6JT7yAurKZH6lVDBWaI/hWUywy+75
-   VZXhQLhCeDNWE5d5a15Xv3Whs8Ewak/Z6PfsqMo80DPH5wX0yR9uhNL5L
-   VkjFqMFWGUZT2gya6UUYwFPvR3Uqzb5lsD87o9ytJDkVorDBo+DesRtqf
-   RXbyRj7wLS1ZIYytUKrfWS58LTRJDbaXoTQ7bqYSpLE/QYmyojmtaMBdI
-   TvzH/8kgxNa1QLOKfDjBlGdr8dQMdtzQFh57qEAo94ymjpsAJkhg6bpKn
-   ALD1F1lr24vpKJohZFPYn21XnALIor4ZyfR4pFn5pbSUD6iNDfMzq2WLq
-   w==;
-X-CSE-ConnectionGUID: Lx9dPJ+yQye397OVWjJuLA==
-X-CSE-MsgGUID: yfshb9YASyiaB36BNZpqsw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11847"; a="88364961"
-X-IronPort-AV: E=Sophos;i="6.25,164,1779174000"; 
-   d="scan'208";a="88364961"
-Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2026 11:59:33 -0700
-X-CSE-ConnectionGUID: nYgkZIYlRISwlO15WMs79w==
-X-CSE-MsgGUID: oaEfJaAOQgiaJrBYaa9/qQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,164,1779174000"; 
-   d="scan'208";a="256597178"
-Received: from black.igk.intel.com ([10.91.253.5])
-  by orviesa009.jf.intel.com with ESMTP; 14 Jul 2026 11:59:29 -0700
-Received: by black.igk.intel.com (Postfix, from userid 1003)
-	id 14F1C9E; Tue, 14 Jul 2026 20:59:24 +0200 (CEST)
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	"Mario Limonciello (AMD)" <superm1@kernel.org>,
-	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-i2c@vger.kernel.org,
-	linux-pci@vger.kernel.org,
-	platform-driver-x86@vger.kernel.org,
-	ibm-acpi-devel@lists.sourceforge.net
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Mika Westerberg <westeri@kernel.org>,
-	Andi Shyti <andi.shyti@kernel.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Henrique de Moraes Holschuh <hmh@hmh.eng.br>,
-	Mark Pearson <mpearson-lenovo@squebb.ca>,
-	"Derek J. Clark" <derekjohn.clark@gmail.com>,
-	Hans de Goede <hansg@kernel.org>
-Subject: [PATCH v2 5/6] PCI/VGA: Convert to use acpi_dev_is_video_device() helper
-Date: Tue, 14 Jul 2026 20:53:44 +0200
-Message-ID: <20260714185915.865396-6-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.50.1
-In-Reply-To: <20260714185915.865396-1-andriy.shevchenko@linux.intel.com>
-References: <20260714185915.865396-1-andriy.shevchenko@linux.intel.com>
+	s=arc-20240116; t=1784071129; c=relaxed/simple;
+	bh=NuSi7QGAjGX4QsfcR6RUnoXa01j2x6wSUpxiCRCDZXM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MFYy0huFQjxG6HYoeOokhU9OZqCYQu1Md/Cq9RZuASvzGJgeWWcOgPyFNmb1xyvW9DiJQome9/tF3JdwsQLdnK5w7CWQx6AvaTyxL9X/MpMpqOC/6PlYdgfj04bC7RBO8Ur0Q41g2r7N0X98fmAA+sSU2XIcESjioxpkANIvmgg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36E671F000E9;
+	Tue, 14 Jul 2026 23:18:47 +0000 (UTC)
+From: Dave Jiang <dave.jiang@intel.com>
+To: linux-acpi@vger.kernel.org,
+	linux-cxl@vger.kernel.org
+Cc: rafael@kernel.org,
+	tony.luck@intel.com,
+	bp@alien8.de,
+	guohanjun@huawei.com,
+	mchehab@kernel.org,
+	xueshuai@linux.alibaba.com,
+	terry.bowman@amd.com,
+	Ben Cheatham <benjamin.cheatham@amd.com>
+Subject: [PATCH v2 0/7] ACPI: APEI: GHES: Collection of fixes for issues reported by sashiko
+Date: Tue, 14 Jul 2026 16:18:28 -0700
+Message-ID: <20260714231835.303081-1-dave.jiang@intel.com>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -79,28 +36,53 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Replace open coded variant of acpi_dev_is_video_device() helper.
+A collection of fixes for pre-existing issues reported by sashiko-bot while
+reviewing patches.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/pci/vgaarb.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+1/7: Bound the CXL event record copy to the firmware section length.
+2/7: Validate the CXL protocol error section length before the RAS cap copy.
+3/7: Avoid populating software AER metadata from the raw hardware buffer.
+4/7: Validate the PCIe error section length before payload access.
+5/7: Fix the CONFIG_ACPI_APEI_PCIEAER guard typo in extlog.c.
+6/7: Defer CXL protocol error handling to avoid a lock inversion.
+7/7: Validate the memory error section length before payload access.
 
-diff --git a/drivers/pci/vgaarb.c b/drivers/pci/vgaarb.c
-index c360eee11dd9..3de05aee7859 100644
---- a/drivers/pci/vgaarb.c
-+++ b/drivers/pci/vgaarb.c
-@@ -575,9 +575,7 @@ static bool vga_is_firmware_default(struct pci_dev *pdev)
- static bool vga_arb_integrated_gpu(struct device *dev)
- {
- #if defined(CONFIG_ACPI)
--	struct acpi_device *adev = ACPI_COMPANION(dev);
--
--	return adev && !strcmp(acpi_device_hid(adev), ACPI_VIDEO_HID);
-+	return acpi_dev_is_video_device(ACPI_COMPANION(dev));
- #else
- 	return false;
- #endif
+v1: https://lore.kernel.org/linux-cxl/20260709162807.1957783-1-dave.jiang@intel.com/
+
+Changes since v1:
+- Dropped v1 1/4 "ACPI: APEI: GHES: Use spin_lock_irqsave() for CXL CPER
+  work locks". Terry Bowman has a more comprehensive version of this that
+  he will post.
+- Reordered the series so the two patches that harden extlog_print_pcie()
+  land before the CONFIG_ACPI_APEI_PCIEAER typo fix that activates that
+  code path, avoiding a bisection window where the path is live but
+  unhardened.
+- Grew the series from 4 to 7 patches, adding four fixes for the
+  additional pre-existing issues Sashiko flagged on the v1 posting.
+
+Dave Jiang (7):
+  ACPI: APEI: GHES: Bound CXL event record copy to the firmware section
+    length
+  ACPI: APEI: GHES: Validate CXL protocol error section length before
+    RAS cap copy
+  ACPI: extlog: Avoid populating software AER metadata from raw hardware
+    buffer
+  ACPI: extlog: Validate PCIe error section length before payload access
+  ACPI: extlog: Fix CONFIG_ACPI_APEI_PCIEAER guard typo
+  ACPI: extlog: Defer CXL protocol error handling to avoid lock
+    inversion
+  ACPI: APEI: GHES: Validate memory error section length before payload
+    access
+
+ drivers/acpi/acpi_extlog.c       | 40 ++++++++++++++------------------
+ drivers/acpi/apei/ghes.c         | 35 +++++++++++++++++++++-------
+ drivers/acpi/apei/ghes_helpers.c | 22 +++++++++++++++++-
+ include/acpi/ghes.h              |  4 ++++
+ include/cxl/event.h              |  4 ++--
+ 5 files changed, 71 insertions(+), 34 deletions(-)
+
+
+base-commit: a13c140cc289c0b7b3770bce5b3ad42ab35074aa
 -- 
-2.50.1
+2.55.0
 
