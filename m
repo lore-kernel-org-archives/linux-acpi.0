@@ -1,344 +1,212 @@
-Received: from relay.yourmailgateway.de (relay.yourmailgateway.de [46.38.247.119])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81B4646AEDF;
-	Tue, 14 Jul 2026 13:38:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.38.247.119
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784036304; cv=none; b=TJOFY5l3iZMXmPoFgMazvAHFF8/ksgfQ9NiuJ/E0IffPyEfr+1DBAbpNVe8WwNU7kFI8/P9tNw0rYLp9UZUom4GCuUjfxrYFRF6G+F6QbdxZYOJl9Xx2ictN/Z5Ov6a6rbF4YheE2/ltIfHwQ7zbG1rqCiSvp70VMJ5VTYFkJ4c=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784036304; c=relaxed/simple;
-	bh=lbOwyUuDW44faROuDg1y6sB8kA7MZIgcZOM12uyOyXs=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=ExSaDpkGt+A9mWIvjPO67UzMIfzQKtpEa2MIJB8TLiy2ZaLE8XdcuXsRd7cMffguW1Xocy9U5/GIdKMfC4ZJJ5cW9qr+8Zz+JzYqzpIj0SZ90sl3QxYFHabzfHNhyVgv0iMe/4XiJG6o1CMcXGMK26AZ6XTriHxm4SWBpSpm5R8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=leemhuis.info; spf=pass smtp.mailfrom=leemhuis.info; dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b=SmeP1fvP; arc=none smtp.client-ip=46.38.247.119
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=leemhuis.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=leemhuis.info
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1945C2FD69A;
+	Tue, 14 Jul 2026 17:33:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.7
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784050409; cv=fail; b=Av5SqZopTbuL9PgQCK/Bi5TenxKldbprnZELGuABYdvzQrwWL8kRgLNJtB/Y/zXMT20FiuI8YJvGGJBlkrndDT692j42vOuE9PaAUJRYVswob7AJizmFWz44kWAEjlD+i3uOkFO/caA6Aw9h8mjkSBELc6IPQChoHyr5LzmX2tc=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784050409; c=relaxed/simple;
+	bh=6N75w8KslXg94doSw+tUujYMSRh8zi5MTtvDHND0Pqs=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=ix1ep4ydc7xPWTUmk5bZrnd7Heaxo8aQUFpeSoTVRnpStLiRKGL7Jt+jCa7e0WrpZ/vUawsbVSjFYMYqHeBXmhLQR+3CumkpoxecK2iYcpCOJMqFNHGPPjPuBKzrjdVDf+Rn6vUS8QK+poloG8nP/wuKEgDoUBh8GdiuSJn29QI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=nDl1pzGJ; arc=fail smtp.client-ip=192.198.163.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b="SmeP1fvP"
-Received: from mors-relay-8404.netcup.net (localhost [127.0.0.1])
-	by mors-relay-8404.netcup.net (Postfix) with ESMTPS id 4h00jq0xQkz8B3P;
-	Tue, 14 Jul 2026 15:37:51 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=leemhuis.info;
-	s=key2; t=1784036271;
-	bh=lbOwyUuDW44faROuDg1y6sB8kA7MZIgcZOM12uyOyXs=;
-	h=Date:Subject:To:References:From:In-Reply-To:From;
-	b=SmeP1fvPfCJj9PCyZugqhweLV++CpVrnRhCnUXyK4TX+8Bg0vcIXc2uR24usc7hWg
-	 +RHPf5jODVzppTEEsztc5lPpsyt4d/pOMwmb20pLeLojf4Wo4lbORg3CmVypnthpA0
-	 DK/tkWIetEtAHeaJ5o6Wi7J6QioHURIv+Ys1sMNAG0O9y2msU0fA0KybsLndV9DvVG
-	 FYecA1ewXBZy0CUCg1OnjOKiKpwVH4HJIpZGFlYmEmDruFY3R1By642Q6voG4vw5PA
-	 Vns3AhekEIpAPuhr16gkcIwUKN6xAIzHv4dxjZXj3lM0vKATFpO4zsQFT22ews+fC2
-	 E1f+aiYmqVn3Q==
-Received: from policy01-mors.netcup.net (unknown [46.38.225.35])
-	by mors-relay-8404.netcup.net (Postfix) with ESMTPS id 4h00jq0DHPz4xtt;
-	Tue, 14 Jul 2026 15:37:51 +0200 (CEST)
-X-Virus-Scanned: Debian amavisd-new at policy01-mors.netcup.net
-X-Spam-Flag: NO
-X-Spam-Score: -2.898
-X-Spam-Level: 
-Received: from mxe9fb.netcup.net (unknown [10.243.12.53])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by policy01-mors.netcup.net (Postfix) with ESMTPS id 4h00jn2FxCz8sbj;
-	Tue, 14 Jul 2026 15:37:49 +0200 (CEST)
-Received: from [IPV6:2a02:8108:8984:1d00:a0cf:1912:4be:477f] (unknown [IPv6:2a02:8108:8984:1d00:a0cf:1912:4be:477f])
-	by mxe9fb.netcup.net (Postfix) with ESMTPSA id 73ED16010D;
-	Tue, 14 Jul 2026 15:37:48 +0200 (CEST)
-Authentication-Results: mxe9fb;
-        spf=pass (sender IP is 2a02:8108:8984:1d00:a0cf:1912:4be:477f) smtp.mailfrom=regressions@leemhuis.info smtp.helo=[IPV6:2a02:8108:8984:1d00:a0cf:1912:4be:477f]
-Received-SPF: pass (mxe9fb: connection is authenticated)
-Message-ID: <5bd01cc0-4aef-4805-9508-3b57ecc70344@leemhuis.info>
-Date: Tue, 14 Jul 2026 15:37:48 +0200
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="nDl1pzGJ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1784050408; x=1815586408;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=6N75w8KslXg94doSw+tUujYMSRh8zi5MTtvDHND0Pqs=;
+  b=nDl1pzGJ2ipKZU47OfsEwa1PhXwdpcuaDrBku+AT849AdHBV6mbr0mHk
+   fvppfrhuqmkKGNdXva89vgZu7MAaZzn1M3n6aejbnyPPfodNPS9T06vX9
+   hgftbR34S1sALL0ogXiJyDh7LBbTSXQo6/i7bwgaW74a53DZwuyZ2m53x
+   NJsYLM97JqL7VgiV1V4CpP+bASnsqs0sFJ2dWx+2hpAR05LLwHcqlRGAz
+   bsl4yOacva58Mr/rvCpeKEUWCCztmGOvKaOkza+H29RaCroKm5LS3Fy39
+   2LM+J4g8aJ+8lIL0bnQ0DXP7leYqlpXJhOVjjrVXMdJ8ZLmlKk3uohhsU
+   A==;
+X-CSE-ConnectionGUID: FX7dTWP1RaC3gdPAI78oMQ==
+X-CSE-MsgGUID: HUNwbmExQFmtguG2FtX+oA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11846"; a="110226486"
+X-IronPort-AV: E=Sophos;i="6.25,164,1779174000"; 
+   d="scan'208";a="110226486"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2026 10:33:27 -0700
+X-CSE-ConnectionGUID: SRE9yiMtQNODCySXu1wKQg==
+X-CSE-MsgGUID: SJigcQYDSJuWpQOpqimcbg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,164,1779174000"; 
+   d="scan'208";a="280346283"
+Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
+  by fmviesa001.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2026 10:33:26 -0700
+Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.43; Tue, 14 Jul 2026 10:33:26 -0700
+Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.43 via Frontend Transport; Tue, 14 Jul 2026 10:33:26 -0700
+Received: from CY3PR05CU001.outbound.protection.outlook.com (40.93.201.69) by
+ edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.43; Tue, 14 Jul 2026 10:33:23 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=W9OH7hePkpZEJnDeJrRkNm1L4vEfPFHd8C0/5QmNle6INIgvA1opsPGcZxTIcdvAhLoKEv56aMNO5UYCUJBOfcia8/Rxv2rP0PWhiLYZhzbZQw9NVHAGGdNopDQ1rFtPjU/8q8P0/FMhOXxCFawfhIpc6hFhBh4xaj75egDciOK0UqP9joDg4xJFQll9CFARtL4jllEl0luFIOm0hz/wdlqAPAQ+qQ9jGunzRNEF5iLpQTfGLNz9R1nmiK2XIazoRPqHZrJJ7tRKmzOpkXqVK8V/UTjoEWV29LmHMYpdeCpGg8d53Ecu27xg03A4Zj0EFrgbKmtWQpwAejnv57j9Og==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=NyFjH9pbj4qEw5r84X6oHo9fGBQXHkz39hJhqEHpYb0=;
+ b=kS+TeeROxK/f5wtATbs2eEwLiga1KSK3Js9GEZzcq/eej1ga315yPxuxg5Fnzu6VuhHX81n1IAiWp/GGQSPWJUKn6X/QLQSMaBfZvsRFJqmLdoVi11POIxwFwib5QV1x0hhsOOugAfDDQxqgZApP5/WnpHXQ4dteKJjH4YJeOrd5fGQzSU80stDtaBm7/PTn0ll3l7bJ7Ew74EOK09XKL1XH54MDu7yfUqTR2YzkP7NBM/x89TExdwWWUipWuKrlHFBdvj9gVBT0kEiY+DXCrJkMH9VNXUmgRNplof/giKfOcYCc2DrodXl0av7/qqQoIZzzT/tGrRHPQEhcCIo2wg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
+ by CY8PR11MB6842.namprd11.prod.outlook.com (2603:10b6:930:61::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.202.18; Tue, 14 Jul
+ 2026 17:33:19 +0000
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::a195:49d4:38c5:3891]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::a195:49d4:38c5:3891%4]) with mapi id 15.21.0223.008; Tue, 14 Jul 2026
+ 17:33:19 +0000
+Date: Tue, 14 Jul 2026 10:33:06 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Ahmed Tiba <ahmed.tiba@arm.com>
+CC: "Rafael J. Wysocki" <rafael@kernel.org>, Tony Luck <tony.luck@intel.com>,
+	Borislav Petkov <bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>, "Mauro
+ Carvalho Chehab" <mchehab@kernel.org>, Shuai Xue
+	<xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>, Saket Dumbre
+	<saket.dumbre@intel.com>, "Davidlohr Bueso" <dave@stgolabs.net>, Jonathan
+ Cameron <jic23@kernel.org>, Dave Jiang <dave.jiang@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, Dan Williams <djbw@kernel.org>, Ira Weiny
+	<iweiny@kernel.org>, Li Ming <ming.li@zohomail.com>, Mahesh J Salgaonkar
+	<mahesh@linux.ibm.com>, "Oliver O'Halloran" <oohall@gmail.com>, Bjorn Helgaas
+	<bhelgaas@google.com>, "Rob Herring" <robh@kernel.org>, Krzysztof Kozlowski
+	<krzk+dt@kernel.org>, "Conor Dooley" <conor+dt@kernel.org>, Jonathan Corbet
+	<corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>,
+	<linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<acpica-devel@lists.linux.dev>, <linux-cxl@vger.kernel.org>,
+	<linuxppc-dev@lists.ozlabs.org>, <linux-pci@vger.kernel.org>,
+	<devicetree@vger.kernel.org>, <linux-edac@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <Dmitry.Lamerov@arm.com>
+Subject: Re: [PATCH v7 06/10] ACPI: APEI: GHES: move CXL CPER helpers
+Message-ID: <alZy0nxgM1kekZiG@aschofie-mobl2.lan>
+References: <20260708-topics-ahmtib01-ras_ffh_arm_internal_review-v7-0-8b3a85216cef@arm.com>
+ <20260708-topics-ahmtib01-ras_ffh_arm_internal_review-v7-6-8b3a85216cef@arm.com>
+ <alWi5hvXYT0-ZPyV@aschofie-mobl2.lan>
+ <e77d0367-ab24-4b6d-beaa-034dd793cef6@arm.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <e77d0367-ab24-4b6d-beaa-034dd793cef6@arm.com>
+X-ClientProxiedBy: SJ0PR03CA0161.namprd03.prod.outlook.com
+ (2603:10b6:a03:338::16) To DS4PPF0BAC23327.namprd11.prod.outlook.com
+ (2603:10b6:f:fc02::9)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2] USB: hub: call ACPI _PRR reset during port power-cycle
- on enumeration failure
-To: "Chia-Lin Kao (AceLan)" <acelan.kao@canonical.com>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- "Rafael J. Wysocki" <rafael@kernel.org>,
- Alan Stern <stern@rowland.harvard.edu>,
- Mathias Nyman <mathias.nyman@linux.intel.com>,
- Mika Westerberg <mika.westerberg@linux.intel.com>,
- Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
- linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org,
- Linux kernel regressions list <regressions@lists.linux.dev>
-References: <20260706080117.3754550-1-acelan.kao@canonical.com>
- <a2bf1966-d6a7-4871-b553-51d81ac10597@leemhuis.info>
- <alWq9GI8c4e4PCRD@acelan-Precision-5480>
-From: Thorsten Leemhuis <regressions@leemhuis.info>
-Content-Language: de-DE, en-US
-In-Reply-To: <alWq9GI8c4e4PCRD@acelan-Precision-5480>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-PPP-Message-ID: 
- <178403626893.2934893.12171439083457132937@mxe9fb.netcup.net>
-X-NC-CID: LZ89qh/5g4nZUGzUcWEedTl+MJ41kv31w4jxHMGK2fONsoQGx5Q=
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|CY8PR11MB6842:EE_
+X-MS-Office365-Filtering-Correlation-Id: 70e765b7-76e3-4a25-bd0e-08dee1cdfeaf
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|23010399003|376014|7416014|366016|1800799024|56012099006|18002099003|22082099003|5023799004|4143699003|11063799006;
+X-Microsoft-Antispam-Message-Info: fZ/owh1fLzkB3u9aGe/4Cw0WklFdr7uhOgIle2aT1nnC3/R8IhuMKoC5j4vrBe7PzeVAPZb2A3C/xqP0o1g0ESt+zuYYa5QMnbYHFW4AEgb9+0ShOqKgjLOQ4HxvmADIbnbUjilkbtwwCM2KRmmiQ8Cbr1ETjFvUl0XNm7aCI9w2q18yG9O4bVvijv/ixNHqA3xDUXl6ovzjftwYtP9GCsic4XW+/S8COzPKT9QSMNlsiH5CyRc6ycBlb1OOJkU0sjuTh2g5RYTIDzECxdWM/Dhw2HtFYtevleMsMsQ0BDxTBDXCHKYvVvTed9XZgnFce1AoWZRU/QmhY1EsWdRr4XTXIGSBRk7jd0HJJs3keAMbqEucNhgtpRkj5XdNTQkPtCUZSIwmEDYo6BqNtan88SWr/HCGUHlMplFlH6yrXWS+MU//fTOUSbqkuxWfLil9mETGdkY4wBycwXmV9Wi491jpc2h4BTbJgBVXw7Z/YbXilOgcOlHf+jIB3164YquyL0A5I0fqpQ50f1yosz21H79dVIiq73bIBiMWvxQii1exlqZr9oDMqrRLEy89TnbiQRuAFBgA5PqeTlm4xXAXtgGhkeuaA6FpGFTEnWT00/rwwYoMrjp6dLEfePbpJr7aHT8kh/6SAMTkBQFouIrD1pLIYJ6qAm06+o+Ni+Xn14M=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(376014)(7416014)(366016)(1800799024)(56012099006)(18002099003)(22082099003)(5023799004)(4143699003)(11063799006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?9Qax60OOdABYTSGDJy86EfJdZiB76qcRBIR2tIBGr2yLCG9L1/4pcr7bt0dk?=
+ =?us-ascii?Q?/RmOan5JBpWedFTGStlbCwmxdCxisls5a0e1oDJcKJ2+iCC7mo7IOpSLwORD?=
+ =?us-ascii?Q?MVwn4hj8zYeNb7SNpFLpdDmiaTv1ZhlrvySyhhMRsS8ZRtvICxC3g8iAH0CS?=
+ =?us-ascii?Q?EwGLg6GxMDqGLkDwG7cdquuiyAgQTbNQMxrTdWqv0UQlsajGESc+S1UL/sVJ?=
+ =?us-ascii?Q?6hnKKhWZwua7/S9ZUZalS1yFNTIcxwDE6V+fJrKImHi5VAyFybxLOzvco3FU?=
+ =?us-ascii?Q?0A5NZsctg8JJqHztQjyWBdjARheL8NvvOvZQm92ziZ+ZilfYnySAy2aOYKOP?=
+ =?us-ascii?Q?ZlixHbGwU76Jo99pmwD0AoRefWF6JyMf93oVAF7Fd8D5nwxVNMRROqydQia8?=
+ =?us-ascii?Q?L7mYg/lnHpBjkO442Z6pEAr7QuuncATqvBGB5RTScYMqCwcrt3utX7/x0+/P?=
+ =?us-ascii?Q?ZcN1rWNgFjcULmlAAWmUS1qW/lXKfHerciSiZQ5urBHm+NXBD7HMzaZUQWSn?=
+ =?us-ascii?Q?kqrA+vrOoPDNDisJ89CIa1oi3kSy2zfzNEMDr7hOLOkQo1RSRzBQXV1nEAFl?=
+ =?us-ascii?Q?GYx86uY0CGZSMmFj30e7zs3QndMPo1uLlbWm/i3xzZaiWaesISdnZg/0+7iH?=
+ =?us-ascii?Q?EBQjDveUTgaE/dz89ssoB7fcmljN/Vn+BwW03r/wSw+I2gmJzVxMZZd2hVw1?=
+ =?us-ascii?Q?9yLtTAEnVD/N0gtXdFl8ja9N5TLrsDtKG6PWRVOsjGnq3oGZS0Mo61Mg4BBv?=
+ =?us-ascii?Q?IraDJkul3KTZ+2e3CAhLIX6J1I1gipHHxPelRBabZSRYdO/PHnzjW1VDQuQF?=
+ =?us-ascii?Q?P3vwrbOqrVk6mlzqOsdd10/j80ShKlBRrKow2GLj/7dCu6meOdOg6gVRTqQM?=
+ =?us-ascii?Q?eol/aT2P2BHrtYR0B4+Z9gZMKA1JD9kTdUUzbQ0B6gAVe+ifoSC/pY/9YLOK?=
+ =?us-ascii?Q?X0MTu14hzk0V/FehFvW6p2x9rSWPdC+lpN7u3jK/qhT8cn4L36hNB5WO4LZZ?=
+ =?us-ascii?Q?nMRNybbaOzRtpgXyTpmwgLF33vwokaFib7uER29TbCafIGSkbulJjRDXQRw/?=
+ =?us-ascii?Q?qbcc1wUBt3CiOKzgdJOxLdDlS5GRZGJdjxAI518YPS3/Iv7xeTb4UaFBaAbr?=
+ =?us-ascii?Q?9BuNAMw3ySBSfqp9WA7sgo1FrdIUgLGan2bFYwQiSURkbo9bg6/kUrzEHVpc?=
+ =?us-ascii?Q?jvcVgJQhO/Ew93xBRwiHuqwtO7O/y+6jwx/FGzBZNgitA/n0uIT0JXNkzSIM?=
+ =?us-ascii?Q?9tY9wdbdcc2Oqgv6b3jxgIq/iRTuVvaH75O9NLb4DO2LFOy+I7KDv562E2Ja?=
+ =?us-ascii?Q?oQzvO+MTB+oEKHxnNfpJsgKrK7r4MkS0R0Ucatn5Mbf6E2zPRBBVdAfujWH8?=
+ =?us-ascii?Q?ZrwzaM9mfyf+486H2OlZa9rpwS1WMz+yL0WTUQkJRAkjqHHVMXvKcpvS4NQ8?=
+ =?us-ascii?Q?blhRXK1yXIB7IWP19p1CZFWplXdb2DBVgpKCuLtRaoMLXquYGjWz6dogwXoX?=
+ =?us-ascii?Q?ynQE3+KW+YFl9SXvE3M64EKXH+/gXNcWCdic1K2PFuWtja0RSu5nQ0YBrXQK?=
+ =?us-ascii?Q?ytSMQ7/C5jgPBQH2U1Xzpeo9g2C0pPh3WuxsACUDR2hNF+kxWoUREcjTg54p?=
+ =?us-ascii?Q?zpUR9LqH1gognt0y2FcrNcZ66NfDOJTaOq/SKTbAmLlfvD3KgjriU+cwsq3L?=
+ =?us-ascii?Q?HMJqsWB7aleXl8Le+3vn5MUBZOUE3eHsk37wKl7U+OwDha8foEbeXFcThqCR?=
+ =?us-ascii?Q?Oi+6dqbZIJuMAwq9sAAq96FOXNThB+E=3D?=
+X-Exchange-RoutingPolicyChecked: os+fQqIL1vu+vPaCMaqEiSv+fhCdQCiumRKNKhCfDx8FLfy13YQoMViG/hvlAhsFPimqYyBa44kFUU3bXCS+C1n2yeEwxkXyhN4TKjaqz54/ckFv3Ptx0wHV4CwTEamZgyORZICKQEvyd8dZzI6rsdoSbGQ1DwTR3w3RzPXWZlbYQ7u14NmbU/wHcLNthW8ddqPLOG5DUCha5uu4rlFuug0+6mOxNvWFM1AAD24HD0Kqk+Uzr+zCw8kvIOSqiKwsd3GAMQ1c9+HfMnV5U31G6yeirsL6XaVAzpNdj4A73usse2zNZDt4BGpAlML67f/Q3+LKSFkFJZvJChZXe9G+og==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 70e765b7-76e3-4a25-bd0e-08dee1cdfeaf
+X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Jul 2026 17:33:19.2598
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: b7m3YrmM5CsXlLCHcgr8Z1fghFkBP9H1g6BEonJxcnPPYaH2exyUo2cB+V2kBczZVuT1QtRwcncZm71ryBbKwEonYd4AttEX2V32PSXs0Z8=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR11MB6842
+X-OriginatorOrg: intel.com
 
-On 7/14/26 05:41, Chia-Lin Kao (AceLan) wrote:
-> On Mon, Jul 13, 2026 at 05:02:09PM +0200, Thorsten Leemhuis wrote:
->> On 7/6/26 10:01, Chia-Lin Kao (AceLan) wrote:
->>> Some USB-connected devices (e.g. MT7925 Bluetooth on Dell laptops) expose
->>> their hardware reset line via an ACPI Power Resource for Reset (_PRR)
->>> rather than relying solely on VBUS cycling for recovery.  When the reset
->>> GPIO gets stuck low the device stops responding on USB; a VBUS power-cycle
->>> alone cannot recover it because the chip remains in reset regardless of
->>> VBUS state.
+On Tue, Jul 14, 2026 at 10:27:01AM +0100, Ahmed Tiba wrote:
+> On 14/07/2026 03:45, Alison Schofield wrote:
+> > On Wed, Jul 08, 2026 at 02:59:05PM +0100, Ahmed Tiba wrote:
+> > > Move the CXL CPER handling paths out of ghes.c and into ghes_cper.c so the
+> > > helpers can be reused. The code is moved as-is, with the public
+> > > prototypes updated so GHES keeps calling into the new translation unit.
+> > > 
+> > > While moving this code, also add CXL CPER section length checks and use
+> > > spinlock_irqsave() in CXL register/unregister paths for locking
+> > > consistency.
+> > 
+> > NAK on moving and changing in the same patch, and esp in a patch
+> > whose subject only says MOVE.
+> Hi Alison,
 > 
->> Not my area of expertise, so handle this mail with care and forgive if
->> I'm the following question is stupid:
->>
->> Is this fixing a regression, e.g. some problem caused or maybe suddenly
->> exposed by a recent change?
->
-> This could be treated as a regression, but this issue is a little bit
-> complex.
-
-Many thx for your explanation, this helps a lot. And yeah, it's somewhat
-tricky. But from what I see this looks a whole lot like a regression due
-to one aspect you mentioned:
-
-> 1. There is a new firmware for the Mediatek MT7925 BT chip.
-> 2. There is an updated driver
-
-Updated in-kernel driver I assume. Please correct me if I'm wrong.
-
-> for the Mediatek MT7925 BT chip which is
-> not compatible with the old firmware.
-
-Why is that? Do you by chance know which change caused this? I'm asking,
-because according to
-https://docs.kernel.org/driver-api/firmware/firmware-usage-guidelines.html
-states tat users "should not have to install newer firmware files to
-keep their hardware working" (for example when switching to a newer
-kernel version and hence its newer drivers). So the driver should
-continue to work even with the older firmware.
-
-Of course the driver therefore needs to notice that the firmware upload
-failed and that it's using the old firmware. Is it maybe that a check
-for that needs to be added?
-
-Or am I missing something/got something wrong somewhere along the lines
-here?
-
-Ciao, Thorsten
-
-> If we reboot the system with the new driver and the old firmware, then
-> the issue occurs.
+> I understand the concern.
 > 
-> The issue is that we update both firmware and driver and do a warm
-> reboot. The BT firmware won't reload with a warm reboot, and then
-> encounter the BT device gone issue. Do other warm reboots do not help.
+> I kept those changes in 06/10 because they address pre-existing issues
+> reported specifically against this patch by Sashiko, and I wanted to avoid
+> carrying known defects forward in the series. I did this following Boris'
+> feedback to address review-reported issues in-series rather than carry them
+> forward unchanged.
 > 
-> It requires a power cycle to force the BT firmware to reload. And
-> after the power cycle, we won't encounter the issue anymore.
->>
->> It doesn't contain a Fixes: tag, so doesn't look like it. I'm asking
->> nevertheless, as I have seen one[1] (and IIRC at least one, likely two)
->> other report along the lines of "remains in reset regardless of VBUS
->> state.":
->> https://lore.kernel.org/all/20260629-btmtk-ryzen-remote-wakeup-v1-1-1d2f1cee6d22@rong.moe/
-> That could be another issue.
+> I can also add a dedicated "Sashiko findings addressed" section and update
+> the commit description to state clearly that this patch is not pure move.
 > 
->>
->> And I have seen a user in a fedora-kernel chatroom that also had a
->> problem that sounded similar. All with Mediatek wifi.
->>
->> Ciao, Thorsten
->>
->>> Add usb_acpi_port_prr_reset() in usb-acpi.c that, given a hub device and
->>> one-based port number, looks up the port's ACPI companion handle, evaluates
->>> _PRR to obtain the power-resource reference, and then calls _RST on that
->>> reference to toggle the reset line.  The function is a no-op if the port
->>> has no ACPI handle or no _PRR method, so it is safe to call unconditionally
->>> for every port.
->>>
->>> Wire it into hub_port_connect() during the mid-retry VBUS power-cycle
->>> (at (PORT_INIT_TRIES-1)/2 iterations), calling usb_acpi_port_prr_reset()
->>> *after* VBUS goes off and *before* VBUS comes back on.  The ordering is
->>> critical: on the tested hardware the ACPI _RST method (MBTR._RST) drives
->>> BT_RST low for 200 ms then high again.  If _RST is called after VBUS is
->>> already restored the GPIO pulse races with device enumeration starting on
->>> the live bus; the device begins asserting USB signals while still held in
->>> reset and enumeration fails.  Performing the reset while the port is
->>> de-powered ensures the GPIO pulse completes fully before the device is
->>> given power and time to initialise.
->>>
->>> After VBUS is restored, add an msleep(100) conditional on _PRR._RST having
->>> succeeded.  USB 2.0 spec §7.1.7.3 (Fig. 7-29) mandates a minimum of 100 ms
->>> between VBUS power-on and the first reset signalling for power settling.
->>> On root hubs, hub_power_on_good_delay() returns bPwrOn2PwrGood * 2 with
->>> no minimum floor; on the tested xHCI root hub bPwrOn2PwrGood = 10, yielding
->>> only 20 ms — well below the spec minimum.  (External hubs already enforce
->>> a 100 ms minimum via hub_power_on_good_delay().)  When _PRR._RST has been
->>> exercised the device must also complete its full power-on sequence (GPIO
->>> de-assertion, internal oscillator start, firmware load) before USB
->>> enumeration begins.  The 100 ms sleep enforces the spec minimum and gives
->>> the device adequate settling time.
->>>
->>> Tested on a Dell laptop with MT7925 Bluetooth (idVendor=0489,
->>> idProduct=e139) whose BT_RST GPIO was stuck low.  With this fix the
->>> device recovers autonomously at boot without requiring a G3
->>> (mechanical power-off) cycle.  The relevant dmesg sequence:
->>>
->>>   [    1.448491] usb 3-10: new high-speed USB device number 4 using xhci_hcd
->>>   [    6.813942] usb 3-10: device descriptor read/64, error -110
->>>   [   22.685978] usb 3-10: device descriptor read/64, error -110
->>>   [   22.901715] usb 3-10: new high-speed USB device number 5 using xhci_hcd
->>>   [   28.317963] usb 3-10: device descriptor read/64, error -110
->>>   [   44.189949] usb 3-10: device descriptor read/64, error -110
->>>   [   44.294065] usb usb3-port10: attempt power cycle
->>>   [   44.872709] usb 3-10: new high-speed USB device number 6 using xhci_hcd
->>>   [   44.888293] usb 3-10: New USB device found, idVendor=0489, idProduct=e139, bcdDevice= 1.00
->>>   [   44.888318] usb 3-10: Manufacturer: MediaTek Inc.
->>>
->>> Signed-off-by: Chia-Lin Kao (AceLan) <acelan.kao@canonical.com>
->>> ---
->>> v1 -> v2:
->>> - Cc the ACPI maintainer and linux-acpi so the _PRR/_RST usage can be
->>>   reviewed by the subsystem owners, and trimmed the recipient list to
->>>   the people/lists actually relevant to this change (per Greg's request).
->>> - Tighten the _PRR package check from "count < 1" to "count != 1" so the
->>>   single-element invariant mandated by ACPI 6.4 §7.3.26 is explicit,
->>>   matching the existing in-tree _PRR/_RST users (btintel.c,
->>>   iwlwifi .../pcie/gen1_2/trans.c).  No functional change: only the
->>>   first (and only) element is ever used.
->>>
->>> [v1] https://lore.kernel.org/lkml/20260326011708.1128840-1-acelan.kao@canonical.com
->>> ---
->>>  drivers/usb/core/hub.c      | 14 ++++++++
->>>  drivers/usb/core/usb-acpi.c | 68 +++++++++++++++++++++++++++++++++++++
->>>  drivers/usb/core/usb.h      |  3 ++
->>>  3 files changed, 85 insertions(+)
->>>
->>> diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
->>> index 24960ba9caa9..1740e96f73cc 100644
->>> --- a/drivers/usb/core/hub.c
->>> +++ b/drivers/usb/core/hub.c
->>> @@ -5603,11 +5603,25 @@ static void hub_port_connect(struct usb_hub *hub, int port1, u16 portstatus,
->>>
->>>  		/* When halfway through our retry count, power-cycle the port */
->>>  		if (i == (PORT_INIT_TRIES - 1) / 2) {
->>> +			int prr_reset;
->>> +
->>>  			dev_info(&port_dev->dev, "attempt power cycle\n");
->>>  			usb_hub_set_port_power(hdev, hub, port1, false);
->>>  			msleep(2 * hub_power_on_good_delay(hub));
->>> +			prr_reset = usb_acpi_port_prr_reset(hdev, port1);
->>>  			usb_hub_set_port_power(hdev, hub, port1, true);
->>>  			msleep(hub_power_on_good_delay(hub));
->>> +			/*
->>> +			 * USB 2.0 spec §7.1.7.3 requires at least 100 ms
->>> +			 * between VBUS power-on and the first reset for power
->>> +			 * settling.  hub_power_on_good_delay() on an xHCI root
->>> +			 * hub returns bPwrOn2PwrGood * 2 with no minimum floor,
->>> +			 * which can be as little as 20 ms.  When _PRR _RST was
->>> +			 * also exercised the device must complete its power-on
->>> +			 * sequence before enumeration; enforce the spec minimum.
->>> +			 */
->>> +			if (prr_reset == 0)
->>> +				msleep(100);
->>>  		}
->>>  	}
->>>  	if (hub->hdev->parent ||
->>> diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
->>> index 489dbdc96f94..bb1b5e8cdc15 100644
->>> --- a/drivers/usb/core/usb-acpi.c
->>> +++ b/drivers/usb/core/usb-acpi.c
->>> @@ -142,6 +142,74 @@ int usb_acpi_set_power_state(struct usb_device *hdev, int index, bool enable)
->>>  }
->>>  EXPORT_SYMBOL_GPL(usb_acpi_set_power_state);
->>>
->>> +/**
->>> + * usb_acpi_port_prr_reset - issue an ACPI _PRR reset on a hub port
->>> + * @hdev: USB device belonging to the usb hub
->>> + * @port1: port number (one-based)
->>> + *
->>> + * Some devices expose their hardware reset line via an ACPI Power Resource for
->>> + * Reset (_PRR).  When such a device fails to enumerate (e.g. because the reset
->>> + * GPIO is stuck low), the USB power-cycle alone is not enough; the firmware
->>> + * reset path must also be exercised.
->>> + *
->>> + * This function evaluates _PRR on the port's ACPI companion to obtain the
->>> + * power-resource reference and then calls _RST on that resource to toggle the
->>> + * reset line.  It is intended to be called alongside the mid-retry VBUS
->>> + * power-cycle already performed by hub_port_connect().
->>> + *
->>> + * Returns 0 on success, -ENODEV if the port has no ACPI handle or no _PRR
->>> + * method, or a negative error code on failure.
->>> + */
->>> +int usb_acpi_port_prr_reset(struct usb_device *hdev, int port1)
->>> +{
->>> +	acpi_handle port_handle;
->>> +	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
->>> +	union acpi_object *pkg, *ref;
->>> +	acpi_status status;
->>> +	int ret = 0;
->>> +
->>> +	port_handle = usb_get_hub_port_acpi_handle(hdev, port1);
->>> +	if (!port_handle)
->>> +		return -ENODEV;
->>> +
->>> +	if (!acpi_has_method(port_handle, "_PRR"))
->>> +		return -ENODEV;
->>> +
->>> +	status = acpi_evaluate_object(port_handle, "_PRR", NULL, &buffer);
->>> +	if (ACPI_FAILURE(status)) {
->>> +		dev_dbg(&hdev->dev, "port%d: _PRR evaluation failed: %s\n",
->>> +			port1, acpi_format_exception(status));
->>> +		return -ENODEV;
->>> +	}
->>> +
->>> +	pkg = buffer.pointer;
->>> +	if (!pkg || pkg->type != ACPI_TYPE_PACKAGE || pkg->package.count != 1) {
->>> +		dev_dbg(&hdev->dev, "port%d: _PRR returned unexpected object\n",
->>> +			port1);
->>> +		ret = -EINVAL;
->>> +		goto out;
->>> +	}
->>> +
->>> +	ref = &pkg->package.elements[0];
->>> +	if (ref->type != ACPI_TYPE_LOCAL_REFERENCE || !ref->reference.handle) {
->>> +		dev_dbg(&hdev->dev, "port%d: _PRR element is not a reference\n",
->>> +			port1);
->>> +		ret = -EINVAL;
->>> +		goto out;
->>> +	}
->>> +
->>> +	status = acpi_evaluate_object(ref->reference.handle, "_RST", NULL, NULL);
->>> +	if (ACPI_FAILURE(status)) {
->>> +		dev_dbg(&hdev->dev, "port%d: _RST evaluation failed: %s\n",
->>> +			port1, acpi_format_exception(status));
->>> +		ret = -EIO;
->>> +	}
->>> +
->>> +out:
->>> +	kfree(buffer.pointer);
->>> +	return ret;
->>> +}
->>> +
->>>  /**
->>>   * usb_acpi_add_usb4_devlink - add device link to USB4 Host Interface for tunneled USB3 devices
->>>   *
->>> diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
->>> index a9b37aeb515b..4d3dc3bd881b 100644
->>> --- a/drivers/usb/core/usb.h
->>> +++ b/drivers/usb/core/usb.h
->>> @@ -211,7 +211,10 @@ extern int usb_acpi_register(void);
->>>  extern void usb_acpi_unregister(void);
->>>  extern acpi_handle usb_get_hub_port_acpi_handle(struct usb_device *hdev,
->>>  	int port1);
->>> +extern int usb_acpi_port_prr_reset(struct usb_device *hdev, int port1);
->>>  #else
->>>  static inline int usb_acpi_register(void) { return 0; };
->>>  static inline void usb_acpi_unregister(void) { };
->>> +static inline int usb_acpi_port_prr_reset(struct usb_device *hdev,
->>> +					  int port1) { return -ENODEV; }
->>>  #endif
->>
+> Please advise your preferred way to address Sashiko findings per patch in
+> this series.
 
+I think you can address the Sashiko pre-exists in series without
+them being hidden in a move patch.
+
+To be strictly like Boris seems to be asking (fixes first), do:
+
+	add CXL CPER section length checks
+	use spinlock_irqsave() in CXL (un-)register paths
+	move CXL CPER helpers
+
+-- Alison
+
+
+> 
+> Thanks,
+> Ahmed
