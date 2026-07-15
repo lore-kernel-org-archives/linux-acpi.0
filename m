@@ -1,458 +1,116 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 961143AD51E;
-	Wed, 15 Jul 2026 16:17:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0EDC3AD539
+	for <linux-acpi@vger.kernel.org>; Wed, 15 Jul 2026 16:34:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784132240; cv=none; b=gud1xEL/iGIL9EoZMPSsT0LmuWRLhYv8VZ4guai+6qVoiT8AVI0IplwjXblmjbDequF+2wS/GWPz4eOO8Nr79iieVJyORa+afSEwq49JM6IWjhjwAkf8rwdyttSq1b5OhOCTTzzzLzIsdUXItAKpgyFJ+vKPiZPONnezfMGIi/U=
+	t=1784133247; cv=none; b=eniaLYeKVD/D+aYpQoJjd4IMfp1Ou/30IaEb5Zk2GoGGU+bbzKtPxwUOqPUb61VOW/jm08K/efOYHs74caP+IByEMYYG1f29T3lCnhIE6qV6ryqw/nq7jkwF+eFH5End9gIXJ0DjEanCcGJNph6+jI47nmqq5nN1LB1ejm4dxDk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784132240; c=relaxed/simple;
-	bh=sMY32WXJZWijagD28X9c8fKHu1FSscoztSFXPWy79lY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=O+3iaoI/du6NK+OYkcBGHZc3nu6VEKwaqR60EaPK9m8mI/0w7jUHKhhBBFrNtSvxc+Zt5oapQl4J4BAAQk1ou9XGKUV+NdFi3oDMuAZcb9qXdBfQzQcb7ZLjWRc7xpcLgVvBjO5+Ljnm53cuIQX0NJ51h0nYZLDzsMWVoF+xGww=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=bnhC2nWh; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1784133247; c=relaxed/simple;
+	bh=NpYmbrmfdrmPUFKsPZmLJwfRC+dUO5fG60UVVcO1A04=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=ZixbG13fZdN8nFknmo428RqtRwIB3MfbTQ0NPqg5yyXwV3b8/SGDBDs7Jp5NYWhsLLau/JmwMPWaCbZMpdmLiS6998/TyTJz4FxqnwB4M2AeAVnDwst47afiCQZjMq/Fiicpp6/omUzTAYee7gT7qtafiUfvbq4o9zZgtRcUcR8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MFr03Yg3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="bnhC2nWh"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 272991477;
-	Wed, 15 Jul 2026 09:17:11 -0700 (PDT)
-Received: from [10.2.212.8] (e134344.arm.com [10.2.212.8])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 167BD3F7B4;
-	Wed, 15 Jul 2026 09:17:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1784132235; bh=sMY32WXJZWijagD28X9c8fKHu1FSscoztSFXPWy79lY=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=bnhC2nWh1S47ZYxVI9JQd01XaWCIkEELnJiqw1qgToed+e7a44YR4iiEOxvE5P1xH
-	 WACWS9hNlPrrD1ftVq6NKVuZvyvkBOePOCUCWOUS4t621r714DGOio+E9rXngZ+54g
-	 MOLtHvysRhrzGo+O2K6UvL4mx5SUNk6DfES6E6Wc=
-Message-ID: <2947c85a-572d-41f9-a45f-0b9691a98276@arm.com>
-Date: Wed, 15 Jul 2026 17:17:11 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MFr03Yg3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B101B1F00A3F
+	for <linux-acpi@vger.kernel.org>; Wed, 15 Jul 2026 16:34:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784133245;
+	bh=N7fxcLRSwAxJq3vMIXHgQRExbA5AtPqLuC8UuRkLZAw=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=MFr03Yg3mcm/edAwncChryyMtWEO/eQbtply2K8lE+iNRKT7pHUPsrfayKoKaGBwf
+	 /GqlWIaMz73+HUwEYHjovKP85p57p7la174ktn3FCB1RkoWUoIel42oEIEsFs28QXN
+	 W7ZX9k7d0ZwtqXg0sovTeVpgLs0gZF2lt3mWZqH4QYOdLybqGEbRXyqrPdGuGNYulH
+	 EtAY84+aeoWF3/Re38F/v8EtPWjOQ8eVkvkd9q62hM8VX/fgOQbqePyLutY3rZ9IBh
+	 AdGjKQwWJ0n58FnqMlP7Nww1PQ+NZdoM+Cx17JTdFZTCmenzah20dLdoGJzj/5vEYh
+	 tiF85zMeJ1NcA==
+Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5b00d083818so791708e87.1
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Jul 2026 09:34:05 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RqucjE00vdPxSPW/5687p0QIQLl2UJIM6sDTMMCjtAAm3sJSTQ5iPm6t4chywHKEWB1EyZPw9Qpes1p@vger.kernel.org
+X-Gm-Message-State: AOJu0YytQNJKxvU6IX2SXQ14s2uTUfBHHaVbTUSSgW4sVRzyQCBvnh1p
+	x/9IesH6P3OwOI8SPwzRuJloc3un+Uc5hgauTDeqDXr5RBrNtsAA6M6XlxbBH2MNv+1kw1/yndY
+	9l1J66ZPZOxUFZtD5jHkQdWJavXnmXAw=
+X-Received: by 2002:a05:6512:24d1:b0:5b0:227d:cef9 with SMTP id
+ 2adb3069b0e04-5b1c0f78eacmr12879e87.3.1784133244080; Wed, 15 Jul 2026
+ 09:34:04 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Thunderbird Daily
-Subject: Re: [PATCH v3 14/16] arm_mpam: add MPAM-Fb MSC firmware access
- support
-To: Andre Przywara <andre.przywara@arm.com>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
- <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- James Morse <james.morse@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
-Cc: Jonathan Cameron <jic23@kernel.org>,
- Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
- Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
- Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
- Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-References: <20260710144520.917375-1-andre.przywara@arm.com>
- <20260710144520.917375-15-andre.przywara@arm.com>
-Content-Language: en-US
-From: Ben Horgan <ben.horgan@arm.com>
-In-Reply-To: <20260710144520.917375-15-andre.przywara@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <5115219.31r3eYUQgx@rafael.j.wysocki> <1961532.tdWV9SEqCh@rafael.j.wysocki>
+ <aletkRwD7QKDJE5y@ashevche-desk.local>
+In-Reply-To: <aletkRwD7QKDJE5y@ashevche-desk.local>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Wed, 15 Jul 2026 18:33:51 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0iAJZ6zAexDiF8bGbTwuxQFPRV0+k820DQK62UN1J2Nsg@mail.gmail.com>
+X-Gm-Features: AUfX_mz58pU9e7d40LYELHmc12cYAdeCWxuMe3Vae59FKIlCSNMgxynGyoVckn0
+Message-ID: <CAJZ5v0iAJZ6zAexDiF8bGbTwuxQFPRV0+k820DQK62UN1J2Nsg@mail.gmail.com>
+Subject: Re: [PATCH v1 2/4] ACPI: PCI: Introduce acpi_dev_get_pci_dev()
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
+	Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
+	Bjorn Helgaas <helgaas@kernel.org>, Hans de Goede <hansg@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Andre,
+On Wed, Jul 15, 2026 at 5:56=E2=80=AFPM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Wed, Jul 15, 2026 at 05:16:19PM +0200, Rafael J. Wysocki wrote:
+>
+> > Some acpi_get_pci_dev() callers already have a struct ACPI device for
+> > which they want to get the struct pci_dev pointer of the associated
+> > PCI device, so they don't need to look for one.
+> >
+> > For this reason, add acpi_dev_get_pci_dev() that will get a PCI device
+> > for a given ACPI one (if possible) and turn acpi_get_pci_dev() into
+> > a static inline helper passing the acpi_fetch_acpi_dev() return value
+> > directly to acpi_dev_get_pci_dev().
+>
+> ...
+>
+> >  /**
+> > - * acpi_get_pci_dev - convert ACPI CA handle to struct pci_dev
+> > - * @handle: the handle in question
+> > + * acpi_dev_get_pci_dev - Get a struct pci_dev for a given ACPI device
+> > + * @adev: Target ACPI device.
+> >   *
+> > - * Given an ACPI CA handle, the desired PCI device is located in the
+> > - * list of PCI devices.
+> > + * Get the first PCI device associated with @adev, if present, and bum=
+p up its
+>
+> What is the meaning of the "first PCI device" in terms of ACPI specificat=
+ion (and
+> implementation in the Linux kernel)? I think it's impossible case to have=
+ more
+> than one object to be a companion to a PCI device. Am I wrong?
 
-On 7/10/26 15:45, Andre Przywara wrote:
-> The Arm MPAM Firmware-backed (Fb) Profile document[1] describes an
-> alternative way of accessing the "Memory System Components" (MSC) in an
-> MPAM enabled system.
-> Normally the MSCs are MMIO mapped, but in some implementations this
-> might not be possible (MSC located outside of the local socket, MSC
-> mapped secure-only) or desirable (direct MMIO access too slow or needs
-> to be mediated through a control processor). MPAM-fb standardises a
-> protocol to abstract MSC accesses, building on the SCMI protocol.
-> 
-> Add functions that do an MSC read or write access by redirecting the
-> request through a firmware interface. For now this done via an ACPI
-> PCC shared memory and mailbox combination.
-> 
-> Since the protocol used is only a small subset of the full SCMI spec,
-> and the SCMI protocol has no full ACPI support anyway, open-code the
-> SCMI message generation and handshake, for just the fields we need.
-> 
-> [1] https://developer.arm.com/documentation/den0144/latest
-> 
-> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
-> ---
->  drivers/resctrl/Makefile        |   2 +-
->  drivers/resctrl/mpam_devices.c  |  26 +++-
->  drivers/resctrl/mpam_fb.c       | 208 ++++++++++++++++++++++++++++++++
->  drivers/resctrl/mpam_internal.h |  20 +++
->  include/linux/arm_mpam.h        |   2 +-
->  5 files changed, 251 insertions(+), 7 deletions(-)
->  create mode 100644 drivers/resctrl/mpam_fb.c
-> 
-> diff --git a/drivers/resctrl/Makefile b/drivers/resctrl/Makefile
-> index 4f6d0e81f9b8..097c036724e9 100644
-> --- a/drivers/resctrl/Makefile
-> +++ b/drivers/resctrl/Makefile
-> @@ -1,5 +1,5 @@
->  obj-$(CONFIG_ARM64_MPAM_DRIVER)			+= mpam.o
-> -mpam-y						+= mpam_devices.o
-> +mpam-y						+= mpam_devices.o mpam_fb.o
->  mpam-$(CONFIG_ARM64_MPAM_RESCTRL_FS)		+= mpam_resctrl.o
->  
->  ccflags-$(CONFIG_ARM64_MPAM_DRIVER_DEBUG)	+= -DDEBUG
-> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-> index ca73029654b6..4d3e642486d4 100644
-> --- a/drivers/resctrl/mpam_devices.c
-> +++ b/drivers/resctrl/mpam_devices.c
-> @@ -181,6 +181,9 @@ static int __mpam_read_reg(struct mpam_msc *msc, u16 reg, u32 *res)
->  {
->  	WARN_ON_ONCE(!cpumask_test_cpu(smp_processor_id(), &msc->accessibility));
->  
-> +	if (msc->iface == MPAM_IFACE_PCC)
-> +		return mpam_fb_send_read_request(msc, reg, res);
-> +
->  	*res = readl_relaxed(msc->mapped_hwpage + reg);
->  
->  	return 0;
-> @@ -197,9 +200,12 @@ static inline int _mpam_read_partsel_reg(struct mpam_msc *msc, u16 reg,
->  
->  static int __mpam_write_reg(struct mpam_msc *msc, u16 reg, u32 val)
->  {
-> -	WARN_ON_ONCE(reg + sizeof(u32) > msc->mapped_hwpage_sz);
->  	WARN_ON_ONCE(!cpumask_test_cpu(smp_processor_id(), &msc->accessibility));
->  
-> +	if (msc->iface == MPAM_IFACE_PCC)
-> +		return mpam_fb_send_write_request(msc, reg, val);
-> +
-> +	WARN_ON_ONCE(reg + sizeof(u32) > msc->mapped_hwpage_sz);
->  	writel_relaxed(val, msc->mapped_hwpage + reg);
->  
->  	return 0;
-> @@ -1133,7 +1139,8 @@ static int mpam_msc_read_mbwu_l(struct mpam_msc *msc, u64 *res)
->  
->  	mpam_mon_sel_lock_held(msc);
->  
-> -	WARN_ON_ONCE((MSMON_MBWU_L + sizeof(u64)) > msc->mapped_hwpage_sz);
-> +	if (msc->iface == MPAM_IFACE_MMIO)
-> +		WARN_ON_ONCE((MSMON_MBWU_L + sizeof(u64)) > msc->mapped_hwpage_sz);
->  	WARN_ON_ONCE(!cpumask_test_cpu(smp_processor_id(), &msc->accessibility));
->  
->  	ret = __mpam_read_reg(msc, MSMON_MBWU_L + 4, &mbwu_l_high2);
-> @@ -1481,9 +1488,15 @@ static int _msmon_read(struct mpam_component *comp, struct mon_read *arg)
->  					 srcu_read_lock_held(&mpam_srcu)) {
->  			arg->ris = ris;
->  
-> -			err = smp_call_function_any(&msc->accessibility,
-> -						    __ris_msmon_read, arg,
-> -						    true);
-> +			if (msc->iface == MPAM_IFACE_MMIO) {
-> +				err = smp_call_function_any(&msc->accessibility,
-> +							    __ris_msmon_read,
-> +							    arg, true);
-> +			} else {
-> +				__ris_msmon_read(arg);
-> +				err = 0;
-> +			}
-> +
->  			if (!err && arg->err)
->  				err = arg->err;
->  
-> @@ -1922,6 +1935,9 @@ static int mpam_get_msc_preferred_cpu(struct mpam_msc *msc)
->  
->  static int mpam_touch_msc(struct mpam_msc *msc, int (*fn)(void *a), void *arg)
->  {
-> +	if (msc->iface != MPAM_IFACE_MMIO)
-> +		return fn(arg);
-> +
->  	lockdep_assert_irqs_enabled();
->  	lockdep_assert_cpus_held();
->  	WARN_ON_ONCE(!srcu_read_lock_held((&mpam_srcu)));
-> diff --git a/drivers/resctrl/mpam_fb.c b/drivers/resctrl/mpam_fb.c
-> new file mode 100644
-> index 000000000000..7d7409910f28
-> --- /dev/null
-> +++ b/drivers/resctrl/mpam_fb.c
-> @@ -0,0 +1,208 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +// Copyright (C) 2024 Arm Ltd.
-> +
-> +#include <linux/arm_mpam.h>
-> +#include <linux/cleanup.h>
-> +#include <linux/device.h>
-> +#include <linux/errno.h>
-> +#include <linux/gfp.h>
-> +#include <linux/list.h>
-> +#include <linux/mailbox_client.h>
-> +#include <linux/mutex.h>
-> +#include <linux/of.h>
-> +#include <linux/of_platform.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/printk.h>
-> +#include <linux/processor.h>
-> +#include <linux/slab.h>
-> +#include <linux/spinlock.h>
-> +#include <linux/types.h>
-> +
-> +#include <acpi/pcc.h>
-> +
-> +#include <asm/mpam.h>
-> +
-> +#include "mpam_internal.h"
-> +
-> +#define MPAM_FB_PROTOCOL_ID	0x1a
-> +#define MPAM_PROTOCOL_VERSION	0x0
-> +#define MPAM_MSC_ATTRIBUTES_CMD	0x3
-> +#define MPAM_MSC_READ_CMD	0x4
-> +#define MPAM_MSC_WRITE_CMD	0x5
-> +
-> +#define MPAM_FB_ERR_SUCCESS		 0
-> +#define MPAM_FB_ERR_NOT_SUPPORTED	-1
-> +#define MPAM_FB_ERR_INVALID_PARAMETERS	-2
-> +#define MPAM_FB_ERR_DENIED		-3
-> +#define MPAM_FB_ERR_NOT_FOUND		-4
-> +#define MPAM_FB_ERR_OUT_OF_RANGE	-5
-> +#define MPAM_FB_ERR_BUSY		-6
-> +#define MPAM_FB_ERR_COMMS_ERROR		-7
-> +#define MPAM_FB_ERR_GENERIC_ERROR	-8
-> +#define MPAM_FB_ERR_HW_ERROR		-9
-> +#define MPAM_FB_ERR_PROTOCOL_ERROR	-10
-> +#define MPAM_FB_ERR_IN_USE		-11
-> +
-> +#define MPAM_MSC_PROT_ID_MASK	GENMASK(17, 10)
-> +#define MPAM_MSC_TOKEN_MASK	GENMASK(27, 18)
-> +
-> +struct mpam_fb_access_payload {
-> +	u32 msc_id;
-> +	u32 flags;
-> +	u32 reg_offset;
-> +	u32 value;
-> +} __packed;
-> +
-> +#define PCC_CHAN_FLAGS_IRQ	BIT(0)
-> +#define MPAM_VERSION_MSG_SIZE	(PCC_TYPE3_MSG_PAYLOAD_OFS)
-> +#define MPAM_READ_MSG_SIZE	(PCC_TYPE3_MSG_PAYLOAD_OFS + 3 * sizeof(u32))
-> +#define MPAM_WRITE_MSG_SIZE	(PCC_TYPE3_MSG_PAYLOAD_OFS + 4 * sizeof(u32))
-> +
-> +static atomic_t mpam_fb_token = ATOMIC_INIT(0);
-> +
-> +static int mpam_fb_build_version_message(unsigned int token,
-> +					 void __iomem *msg_buf)
-> +{
-> +	struct acpi_pcct_ext_pcc_shared_memory *pcc_shmem = msg_buf;
-> +
-> +	writel_relaxed(0, &pcc_shmem->flags);
-> +	writel_relaxed(MPAM_VERSION_MSG_SIZE, &pcc_shmem->length);
-> +	writel_relaxed(MPAM_PROTOCOL_VERSION |
-> +		       FIELD_PREP(MPAM_MSC_TOKEN_MASK, token) |
-> +		       FIELD_PREP(MPAM_MSC_PROT_ID_MASK, MPAM_FB_PROTOCOL_ID),
-> +		       &pcc_shmem->command);
-> +
-> +	return MPAM_VERSION_MSG_SIZE;
-> +}
-> +
-> +static int mpam_fb_build_read_message(int msc_id, int reg, unsigned int token,
-> +				      void __iomem *msg_buf)
-> +{
-> +	struct acpi_pcct_ext_pcc_shared_memory *pcc_shmem = msg_buf;
-> +	struct mpam_fb_access_payload *payload = msg_buf + sizeof(*pcc_shmem);
-> +
-> +	writel_relaxed(0, &pcc_shmem->flags);
-> +	writel_relaxed(MPAM_READ_MSG_SIZE, &pcc_shmem->length);
-> +	writel_relaxed(MPAM_MSC_READ_CMD |
-> +		       FIELD_PREP(MPAM_MSC_TOKEN_MASK, token) |
-> +		       FIELD_PREP(MPAM_MSC_PROT_ID_MASK, MPAM_FB_PROTOCOL_ID),
-> +		       &pcc_shmem->command);
-> +
-> +	writel_relaxed(msc_id, &payload->msc_id);
-> +	writel_relaxed(0, &payload->flags);
-> +	writel_relaxed(reg, &payload->reg_offset);
-> +
-> +	return MPAM_READ_MSG_SIZE;
-> +}
-> +
-> +static int mpam_fb_build_write_message(int msc_id, int reg, u32 val,
-> +				       unsigned int token,
-> +				       void __iomem *msg_buf)
-> +{
-> +	struct acpi_pcct_ext_pcc_shared_memory *pcc_shmem = msg_buf;
-> +	struct mpam_fb_access_payload *payload = msg_buf + sizeof(*pcc_shmem);
-> +
-> +	writel_relaxed(0, &pcc_shmem->flags);
-> +	writel_relaxed(MPAM_WRITE_MSG_SIZE, &pcc_shmem->length);
-> +	writel_relaxed(MPAM_MSC_WRITE_CMD |
-> +		       FIELD_PREP(MPAM_MSC_TOKEN_MASK, token) |
-> +		       FIELD_PREP(MPAM_MSC_PROT_ID_MASK, MPAM_FB_PROTOCOL_ID),
-> +		       &pcc_shmem->command);
-> +
-> +	writel_relaxed(msc_id, &payload->msc_id);
-> +	writel_relaxed(0, &payload->flags);
-> +	writel_relaxed(reg, &payload->reg_offset);
-> +	writel_relaxed(val, &payload->value);
-> +
-> +	return MPAM_WRITE_MSG_SIZE;
-> +}
-> +
-> +static int mpam_fb_send_request(struct mpam_pcc_chan *pcc_chan, u32 msc_id,
-> +				u16 reg, u32 *result, int mpam_fb_command)
-> +{
-> +	unsigned int token = atomic_inc_return(&mpam_fb_token);
-> +	struct acpi_pcct_ext_pcc_shared_memory *pcc_shmem;
-> +	struct pcc_mbox_chan *chan;
-> +	void __iomem *payload_ofs;
-> +	u32 status;
-> +	int ret;
-> +
-> +	if (!pcc_chan)
-> +		return -ENODEV;
-> +
-> +	chan = pcc_chan->pcc_chan;
-> +
-> +	guard(mutex)(&pcc_chan->pcc_chan_lock);
-> +
-> +	switch (mpam_fb_command) {
-> +	case MPAM_MSC_WRITE_CMD:
-> +		ret = mpam_fb_build_write_message(msc_id, reg, *result,
-> +						  token, chan->shmem);
-> +		break;
-> +	case MPAM_MSC_READ_CMD:
-> +		ret = mpam_fb_build_read_message(msc_id, reg,
-> +						 token, chan->shmem);
-> +		break;
-> +	case MPAM_PROTOCOL_VERSION:
-> +		ret = mpam_fb_build_version_message(token, chan->shmem);
-> +		break;
-> +	}
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = mbox_send_message(chan->mchan, NULL);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	pcc_shmem = chan->shmem;
-> +	payload_ofs = chan->shmem + sizeof(*pcc_shmem);
-> +	status = readl(&pcc_shmem->command);
-> +	if (FIELD_GET(MPAM_MSC_TOKEN_MASK, status) != token)
-> +		return -ETIMEDOUT;
-> +
-> +	ret = readl(payload_ofs + 0x0);
-> +	if (ret < 0) {
-> +		switch (ret) {
-> +		case MPAM_FB_ERR_NOT_SUPPORTED:
-> +			return -EOPNOTSUPP;
-> +		case MPAM_FB_ERR_INVALID_PARAMETERS:
-> +			return -EINVAL;
-> +		case MPAM_FB_ERR_NOT_FOUND:
-> +			return -ENOENT;
-> +		case MPAM_FB_ERR_OUT_OF_RANGE:
-> +			return -ERANGE;
+The ACPI specification is kind of agnostic to that.
 
-Does it make sense to have individual translations for any of the other errors? Which one do you
-think is most likely?
+In the kernel, there can be multiple physical devices associated with
+one ACPI device object, but I agree that every PCI device has at most
+one ACPI companion.
 
-Thanks,
+I'll drop the word "first" from this comment.
 
-Ben
-
-> +		default:
-> +			return -EINVAL;
-> +		}
-> +	}
-> +
-> +	if (mpam_fb_command != MPAM_MSC_WRITE_CMD)
-> +		*result = readl(payload_ofs + 0x4);
-> +
-> +	return 0;
-> +}
-> +
-> +int mpam_fb_send_read_request(struct mpam_msc *msc, u16 reg, u32 *result)
-> +{
-> +	return mpam_fb_send_request(msc->pcc_chan, msc->mpam_fb_msc_id,
-> +				    reg, result, MPAM_MSC_READ_CMD);
-> +}
-> +
-> +int mpam_fb_send_write_request(struct mpam_msc *msc, u16 reg, u32 value)
-> +{
-> +	return mpam_fb_send_request(msc->pcc_chan, msc->mpam_fb_msc_id,
-> +				    reg, &value, MPAM_MSC_WRITE_CMD);
-> +}
-> +
-> +int mpam_fb_get_protocol_version(struct mpam_msc *msc)
-> +{
-> +	u32 version;
-> +	int ret;
-> +
-> +	ret = mpam_fb_send_request(msc->pcc_chan, 0,
-> +				   0, &version, MPAM_PROTOCOL_VERSION);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return version;
-> +}
-> diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
-> index 7b6e0df904f8..c3c4ddb4a561 100644
-> --- a/drivers/resctrl/mpam_internal.h
-> +++ b/drivers/resctrl/mpam_internal.h
-> @@ -11,6 +11,7 @@
->  #include <linux/io.h>
->  #include <linux/jump_label.h>
->  #include <linux/llist.h>
-> +#include <linux/mailbox_client.h>
->  #include <linux/mutex.h>
->  #include <linux/resctrl.h>
->  #include <linux/spinlock.h>
-> @@ -57,6 +58,15 @@ struct mpam_garbage {
->  	struct platform_device	*pdev;
->  };
->  
-> +struct mpam_pcc_chan {
-> +	struct list_head	pcc_chans;
-> +	struct mbox_client	pcc_cl;
-> +	struct pcc_mbox_chan	*pcc_chan;
-> +	struct mutex		pcc_chan_lock; /* only one message at a time */
-> +	int			subspace_id;
-> +	int			refcount;
-> +};
-> +
->  struct mpam_msc {
->  	/* member of mpam_all_msc */
->  	struct list_head	all_msc_list;
-> @@ -66,6 +76,8 @@ struct mpam_msc {
->  
->  	/* Not modified after mpam_is_enabled() becomes true */
->  	enum mpam_msc_iface	iface;
-> +	struct mpam_pcc_chan	*pcc_chan;
-> +	int			mpam_fb_msc_id;	/* in its own name space */
->  	u32			nrdy_usec;
->  	cpumask_t		accessibility;
->  	bool			has_extd_esr;
-> @@ -501,6 +513,14 @@ static inline void mpam_resctrl_offline_cpu(unsigned int cpu) { }
->  static inline void mpam_resctrl_teardown_class(struct mpam_class *class) { }
->  #endif /* CONFIG_RESCTRL_FS */
->  
-> +/* MPAM-Fb Firmware-backed protocol wrappers */
-> +int mpam_fb_send_read_request(struct mpam_msc *msc, u16 reg, u32 *result);
-> +int mpam_fb_send_write_request(struct mpam_msc *msc, u16 reg, u32 value);
-> +int mpam_fb_get_protocol_version(struct mpam_msc *msc);
-> +
-> +#define PCC_TYPE3_MSG_PAYLOAD_OFS	0x10
-> +#define MPAM_FB_MAX_MSG_SIZE	(PCC_TYPE3_MSG_PAYLOAD_OFS + 4 * sizeof(u32))
-> +
->  /*
->   * MPAM MSCs have the following register layout. See:
->   * Arm Memory System Resource Partitioning and Monitoring (MPAM) System
-> diff --git a/include/linux/arm_mpam.h b/include/linux/arm_mpam.h
-> index f92a36187a52..002f56e15362 100644
-> --- a/include/linux/arm_mpam.h
-> +++ b/include/linux/arm_mpam.h
-> @@ -12,7 +12,7 @@ struct mpam_msc;
->  
->  enum mpam_msc_iface {
->  	MPAM_IFACE_MMIO,	/* a real MPAM MSC */
-> -	MPAM_IFACE_PCC,		/* a fake MPAM MSC */
-> +	MPAM_IFACE_PCC,		/* using the MPAM-Fb firmware redirection */
->  };
->  
->  enum mpam_class_types {
-
+> > + * reference counter.
+> >   *
+> > - * If the device is found, its reference count is increased and this
+> > - * function returns a pointer to its data structure.  The caller must
+> > - * decrement the reference count by calling pci_dev_put().
+> > - * If no device is found, %NULL is returned.
+> > + * Callers are responsible for dropping the PCI device reference obtai=
+ned by
+> > + * this function.
+> > + *
+> > + * Return: The struct pci_dev pointer of a reference-counted PCI devic=
+e on
+> > + * success or NULL on failure.
+> >   */
+>
+> --
