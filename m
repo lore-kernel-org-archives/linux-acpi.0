@@ -1,160 +1,119 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3D12A47F2F2;
-	Wed, 15 Jul 2026 15:16:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5668C40EBA9;
+	Wed, 15 Jul 2026 15:22:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784128618; cv=none; b=SUjuUpf894IbNdydg0kFtApOxYwNRm/X5onDI9Q5xRsmCYU+mOtCDCU27HPcFa+9pLqe4Mui4HKKp68MrH3eTcrb2jMmff5w+R2ggdG872OY7++YRS+q2bkJQTZGWsi3n3v4C85PRzJbETBkyiu3u9chcq3uX5fDmU8gd/j5L5U=
+	t=1784128925; cv=none; b=DBzY+QM1wUx77LYVyTD8NaOw6GZoe3w4gTjMc2w/9U3zgLgy4VB4FK7qAGQAreKM073ENnFyDw43oR4pgM8CF4J7Qgc5j6bBrcBv/64RdIbZUZYS+UANJence6qBN5zXz6M3ZWBK3ajDc80eChUruL3akFXte/uQhL3yO0vE/Qw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784128618; c=relaxed/simple;
-	bh=Elyu2hBbLCzVOZv+VKUbmy1slaLvbqNRvF6FD7GR/d8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=dSy40BAbUO3U4t8MKhvXqV+qgpSwKaSNOzNlcplAbbgoTpONtQ4nZZL1Xwv1qNmaFwdwnN1EoRMe4wVpsdRhiQq0RrBpEVqnbbjskg2546YVwD66CpTKbvkKX26X1PNOrNYTwX6teQFnpJVAqyM0/6SmNuNY5KYrYP6dpXr0yAc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=VU2ekDC/; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1784128925; c=relaxed/simple;
+	bh=jm1yCrsLvBaRMPeKGtagOtNxLYscLBgr7paRV7Mqbps=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=CoVUAYBvLc/uhmqMEkiBqCHn+QjeZZv5QuKvaQ/xP8JCBXAJqGNFkpTakGO7gP1d5xXIi7pziopZ/8yE5TjXcj+uEI8zfcznKJv6QnLzcJ485XP4D1RaC5LH5kE+5cZHHl7lpdslnoXtzhgVJcHXCYgk9DmZkbRy9U8C+w/obXw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nresTu2F; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="VU2ekDC/"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 53C141477;
-	Wed, 15 Jul 2026 08:16:52 -0700 (PDT)
-Received: from [10.2.212.8] (e134344.arm.com [10.2.212.8])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id E28683F905;
-	Wed, 15 Jul 2026 08:16:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1784128616; bh=Elyu2hBbLCzVOZv+VKUbmy1slaLvbqNRvF6FD7GR/d8=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=VU2ekDC/Y1ZZJYP6uA7vaTByi5nq5SBTz7aEz0edcZG04Pj6nSi/pa52RUTM4FHZy
-	 4aUseb9LXATvNNOm0yFrXdUOSxsMmbaC0HMjkElsGB9jd6H3Pk+0lS0RUL6lAJ90Eb
-	 NeTyNiUv4dyw614l8r+3X19xrAMkFsS+1j4b/zyk=
-Message-ID: <42eff7e7-695c-4e2a-aae2-8abd1b92f615@arm.com>
-Date: Wed, 15 Jul 2026 16:16:52 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nresTu2F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF95F1F00A3A;
+	Wed, 15 Jul 2026 15:22:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784128923;
+	bh=qAFKoc8VBeYH5evWWoVFgDTqDzDGUM8zZbPAwX9yeQk=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=nresTu2F5MHBRIPdl7GnD12DQFdi0qo0JvM7w/WQpBOnygvqSv/54BCINXAcHKXwK
+	 TYfkVQNZ9MdehQ+kvNhfSCq9N2IB4s1YBMddwwtXzOGHv47mXxQKGaz2uFPBrbxzSM
+	 0VIFKbY0pid9GtqAmol4UJhp1xMRGrRhNlSHxRKQl8uoPKWiJPFJ1FtE7gWwEMFb91
+	 6jvqRgiJ8/uujud56hizwiIBBylOpzByY4KCkuK5fHz0Jxjr2YB5z6GUDWKYLZAzE3
+	 Sn7R9AdLwruLuA89b7yFasvNRnoL+Wq24yn7bUI7lHW/KTKNBdYLMEbeugWRv+S+zC
+	 8GXq3zup4LXyg==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Linux PCI <linux-pci@vger.kernel.org>,
+ LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Hans de Goede <hansg@kernel.org>
+Subject:
+ [PATCH v1 4/4] ACPI: video: Use acpi_dev_get_pci_dev() instead of
+ acpi_get_pci_dev()
+Date: Wed, 15 Jul 2026 17:21:23 +0200
+Message-ID: <8706171.T7Z3S40VBb@rafael.j.wysocki>
+Organization: Linux Kernel Development - Intel
+In-Reply-To: <5115219.31r3eYUQgx@rafael.j.wysocki>
+References: <5115219.31r3eYUQgx@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Thunderbird Daily
-Subject: Re: [PATCH v3 13/16] arm_mpam: prepare mon_sel locking for MPAM-Fb
-To: Andre Przywara <andre.przywara@arm.com>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
- <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- James Morse <james.morse@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
-Cc: Jonathan Cameron <jic23@kernel.org>,
- Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
- Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
- Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
- Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-References: <20260710144520.917375-1-andre.przywara@arm.com>
- <20260710144520.917375-14-andre.przywara@arm.com>
-Content-Language: en-US
-From: Ben Horgan <ben.horgan@arm.com>
-In-Reply-To: <20260710144520.917375-14-andre.przywara@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Andre,
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-On 7/10/26 15:45, Andre Przywara wrote:
-> The MSC MON_SEL register needs to be accessed from hardirq for the overflow
-> interrupt, and when taking an IPI to access these registers on platforms
-> where MSC are not accesible from every CPU. This makes an irqsave
-> spinlock the obvious lock to protect these registers. On systems with SCMI
-> mailboxes it must be able to sleep, meaning a mutex must be used. The
-> SCMI platforms can't support an overflow interrupt.
-> Clearly these two can't exist for one MSC at the same time.
+In acpi_video_bus_check() and find_video(), simply replace
+acpi_get_pci_dev() with acpi_dev_get_pci_dev() that can be used
+in both places because the ACPI device needed to do the lookup is
+available.
 
-Is an MPAM-Fb platform using overflow interrupts definitely not possible? I would have thought that
-as long as things were fast enough that threaded interrupts could be used. I do agree that it would
-make things harder and the increased latency may make it unworkable.
-> 
-> Change the mon_sel locking wrapper function to only use a spinlock when
-> the MSC is accessed directly via MMIO. In case of MPAM-Fb, we use a
-> mutex, but only if we are in a sleepable context. If that's not the
-> case, we return an error. This should not happen, as MPAM-Fb by design
-> does not require an MSC access to happen from a specific CPU, so there
-> is no need for any IPIs or preemption disabling to satisfy CPU
-> constraints. 
+In acpi_video_dev_register_backlight(), instead of doing a parent ACPI
+handle lookup based on the handle of an ACPI device that is already
+available, pass that ACPI device to acpi_dev_parent() which is much
+more straightforward and pass the return value of the latter directly
+to acpi_dev_get_pci_dev() to get the PCI device associated with it.
+That allows local variable acpi_parent to be eliminated.
 
-It'd be good to mention that on the rare occasion that all cpus are no_hz_full and resctrl does the
-monitor read via IPI that we already bail out early.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpi_video.c   |   11 ++++-------
+ drivers/acpi/video_detect.c |    2 +-
+ 2 files changed, 5 insertions(+), 8 deletions(-)
 
-Thanks,
+--- a/drivers/acpi/acpi_video.c
++++ b/drivers/acpi/acpi_video.c
+@@ -1048,7 +1048,7 @@ static int acpi_video_bus_check(struct a
+ 	if (!video)
+ 		return -EINVAL;
+ 
+-	dev = acpi_get_pci_dev(video->device->handle);
++	dev = acpi_dev_get_pci_dev(video->device);
+ 	if (!dev)
+ 		return -ENODEV;
+ 	pci_dev_put(dev);
+@@ -1702,7 +1702,6 @@ static void acpi_video_dev_register_back
+ {
+ 	struct backlight_properties props;
+ 	struct pci_dev *pdev;
+-	acpi_handle acpi_parent;
+ 	struct device *parent = NULL;
+ 	int result;
+ 	static int count;
+@@ -1717,11 +1716,9 @@ static void acpi_video_dev_register_back
+ 		return;
+ 	count++;
+ 
+-	if (ACPI_SUCCESS(acpi_get_parent(device->dev->handle, &acpi_parent))) {
+-		pdev = acpi_get_pci_dev(acpi_parent);
+-		if (pdev)
+-			parent = &pdev->dev;
+-	}
++	pdev = acpi_dev_get_pci_dev(acpi_dev_parent(device->dev));
++	if (pdev)
++		parent = &pdev->dev;
+ 
+ 	memset(&props, 0, sizeof(struct backlight_properties));
+ 	props.type = BACKLIGHT_FIRMWARE;
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -73,7 +73,7 @@ find_video(acpi_handle handle, u32 lvl,
+ 	};
+ 
+ 	if (acpi_dev && !acpi_match_device_ids(acpi_dev, video_ids)) {
+-		dev = acpi_get_pci_dev(handle);
++		dev = acpi_dev_get_pci_dev(acpi_dev);
+ 		if (!dev)
+ 			return AE_OK;
+ 		pci_dev_put(dev);
 
-Ben
 
-And since overflow interrupts are not supported at the moment
-> anyway, we also wouldn't meet the other case.
-> 
-> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
-> ---
->  drivers/resctrl/mpam_internal.h | 28 +++++++++++++++++++++++-----
->  1 file changed, 23 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
-> index 04d1a59f02af..7b6e0df904f8 100644
-> --- a/drivers/resctrl/mpam_internal.h
-> +++ b/drivers/resctrl/mpam_internal.h
-> @@ -126,6 +126,7 @@ struct mpam_msc {
->  	 */
->  	raw_spinlock_t		_mon_sel_lock;
->  	unsigned long		_mon_sel_flags;
-> +	struct mutex		mon_sel_mutex;
->  
->  	void __iomem		*mapped_hwpage;
->  	size_t			mapped_hwpage_sz;
-> @@ -139,27 +140,44 @@ struct mpam_msc {
->  /* Returning false here means accesses to mon_sel must fail and report an error. */
->  static inline bool __must_check mpam_mon_sel_lock(struct mpam_msc *msc)
->  {
-> -	/* Locking will require updating to support a firmware backed interface */
-> -	if (WARN_ON_ONCE(msc->iface != MPAM_IFACE_MMIO))
-> +	if (msc->iface == MPAM_IFACE_MMIO) {
-> +		raw_spin_lock_irqsave(&msc->_mon_sel_lock, msc->_mon_sel_flags);
-> +
-> +		return true;
-> +	}
-> +
-> +	if (!preemptible())
->  		return false;
->  
-> -	raw_spin_lock_irqsave(&msc->_mon_sel_lock, msc->_mon_sel_flags);
-> +	mutex_lock(&msc->mon_sel_mutex);
-> +
->  	return true;
->  }
->  
->  static inline void mpam_mon_sel_unlock(struct mpam_msc *msc)
->  {
-> -	raw_spin_unlock_irqrestore(&msc->_mon_sel_lock, msc->_mon_sel_flags);
-> +	if (msc->iface == MPAM_IFACE_MMIO) {
-> +		raw_spin_unlock_irqrestore(&msc->_mon_sel_lock,
-> +					   msc->_mon_sel_flags);
-> +
-> +		return;
-> +	}
-> +
-> +	mutex_unlock(&msc->mon_sel_mutex);
->  }
->  
->  static inline void mpam_mon_sel_lock_held(struct mpam_msc *msc)
->  {
-> -	lockdep_assert_held_once(&msc->_mon_sel_lock);
-> +	if (msc->iface == MPAM_IFACE_MMIO)
-> +		lockdep_assert_held_once(&msc->_mon_sel_lock);
-> +	else
-> +		lockdep_assert_held_once(&msc->mon_sel_mutex);
->  }
->  
->  static inline void mpam_mon_sel_lock_init(struct mpam_msc *msc)
->  {
->  	raw_spin_lock_init(&msc->_mon_sel_lock);
-> +	mutex_init(&msc->mon_sel_mutex);
->  }
->  
->  /* Bits for mpam features bitmaps */
 
