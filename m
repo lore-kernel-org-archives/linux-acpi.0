@@ -1,91 +1,84 @@
-Received: from trager.us (trager.us [52.5.81.116])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37EE112D1F1;
-	Wed, 15 Jul 2026 19:52:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.5.81.116
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 825E43CF1FE;
+	Wed, 15 Jul 2026 21:28:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784145163; cv=none; b=GH8Pkq5I0JoGyUgWHfQVRG8QQvc+PFPOzvi0ED2gLfQX6BaqKInJsQoUm/DIw/OHh5wsXWPPkrrx0BXqxt1hNkrDBIe+hfQba13NdEmAzytQ+QKRCAvBvl1G7wPFLhVJzQ+U19GgCHpjlUm0N0QPrg4wfu0G/vSeZJFNSX9H9jY=
+	t=1784150925; cv=none; b=BnSrkJztLUnKtuP4q/Zqbga8HCrJh+EewuJ7ijCOJcI7KGBm4bNiAZHi2d/kZ+EFcMbNOMfnfjKF+Du4xhw6wMR9Z6Jfs/5x91rM+OM7VXLJO8TEMpvZdS/NwPTLliOY6quDH+BcIm5Plkm9xqrSsMSL4H86PI/0WFo0GkovqVY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784145163; c=relaxed/simple;
-	bh=36/Aqi3Aq4FcrIEaR6ebxxaIu6OMO3oT3qoBypqoO0k=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=URMNHzVw4l8bptZMJ5bdnXNDn5KJljnODfj30tBUR91UvcgzFVP01qKGcKzSnuY9SZbYrjiP+t3S10fbByMgfQH0yW9+S8m6QHlsZ6pq6Co10M7M47ujrryFWz9mPKXugKMh+MyslAyk0AtAIEP0xAHFs/yV9Q4v5yZ5qFKwtPA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=trager.us; spf=pass smtp.mailfrom=trager.us; arc=none smtp.client-ip=52.5.81.116
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=trager.us
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=trager.us
-Received: from c-73-254-161-40.hsd1.wa.comcast.net ([73.254.161.40] helo=[192.168.1.226])
-	by trager.us with esmtpsa (TLSv1.3:TLS_AES_128_GCM_SHA256:128)
-	(Exim 4.92.3)
-	(envelope-from <lee@trager.us>)
-	id 1wk5ee-0008Vc-Ky; Wed, 15 Jul 2026 19:52:28 +0000
-Message-ID: <673b79c0-d2e6-44a6-a1a8-a2ff92f2ff53@trager.us>
-Date: Wed, 15 Jul 2026 12:52:20 -0700
+	s=arc-20240116; t=1784150925; c=relaxed/simple;
+	bh=s3Ge4+fSFCDwtgFoKa8ImetG2itv/ZDt3XeSWSuI/Mg=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=HN/is+n5KoZTdqsSUsfhWZKZpPY4Wf2okN/1Ey0zxoEey2SDSPsQwx9d+nfOVjO/otljs1Pf5LHA0vxhlzUc74lkPyUHAWeZ5xyyzyRDz8xe5U2aK+25g4I/7ep2IK/y+pM06mW5ih8nYa87uuxUmyNUWWsxWsxHy0IWAhrMQvM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DNzy/ypj; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DNzy/ypj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 679C81F000E9;
+	Wed, 15 Jul 2026 21:28:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784150924;
+	bh=shaHQ4Lz/IBXQgGLMQHW0qqVCSHZvCrD9EU2rqp1+t4=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=DNzy/ypjuooC/fSIYQfKn1PDOjjnJ7+Mqz3fnbqeHq0mJ0rkwr0tlv9t/4PX5Wj4s
+	 esWIt3wuzSuok/NXiSaDuqf9Qj+lsgJlWG46ykdzAD+a0M+Rt3faK9mYmupCnqDmWU
+	 dSx7WBK4kSL0VQ4S63XKMJR/sHTzdSifWeLJE+dbke9xd9sgp6/EbHmhiNN42pazNC
+	 Z84UE/u8fu2fY0IOYNbrrrdgVf7rDN3hxNg4jtLpQSHp9uwJ3y5n8A1soksA6zFqdw
+	 k9zXUAVyaxqCjCkftA7vOw4NQfQpzKKMSSVG4b11Iy82Di55SvL4bkjzxuf4KxDbGo
+	 0wEnJTivqqEng==
+From: Danilo Krummrich <dakr@kernel.org>
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>,
+	David Gow <david@davidgow.net>,
+	Rae Moar <raemoar63@gmail.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Linus Walleij <linusw@kernel.org>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-kernel@vger.kernel.org,
+	linux-kselftest@vger.kernel.org,
+	kunit-dev@googlegroups.com,
+	linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev,
+	linux-gpio@vger.kernel.org
+Subject: Re: (subset) [PATCH v4 0/5] software node: provide support for fw_devlink
+Date: Wed, 15 Jul 2026 23:28:30 +0200
+Message-ID: <20260715212830.3077100-1-dakr@kernel.org>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260713-swnode-fw-devlink-v4-0-d4f2dee27ad9@oss.qualcomm.com>
+References: <20260713-swnode-fw-devlink-v4-0-d4f2dee27ad9@oss.qualcomm.com>
+X-Patch-Reply: applied
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 06/16] arm_mpam: propagate MSC read errors for
- __ris_msmon_read()
-To: Andre Przywara <andre.przywara@arm.com>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
- <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
-Cc: Jonathan Cameron <jic23@kernel.org>,
- Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
- Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
- Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
- Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-References: <20260710144520.917375-1-andre.przywara@arm.com>
- <20260710144520.917375-7-andre.przywara@arm.com>
-Content-Language: en-US
-From: Lee Trager <lee@trager.us>
-In-Reply-To: <20260710144520.917375-7-andre.przywara@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On 7/10/26 7:45 AM, Andre Przywara wrote:
+On Mon, 13 Jul 2026 13:14:43 +0200, Bartosz Golaszewski wrote:
+> [PATCH v4 0/5] software node: provide support for fw_devlink
 
-> @@ -1748,6 +1758,7 @@ static int mpam_restore_mbwu_state(void *_ris)
->   {
->   	int i;
->   	u64 val;
-> +	int ret = 0;
->   	struct mon_read mwbu_arg;
->   	struct mpam_msc_ris *ris = _ris;
->   	struct mpam_class *class = ris->vmsc->comp->class;
-> @@ -1760,10 +1771,14 @@ static int mpam_restore_mbwu_state(void *_ris)
->   			mwbu_arg.val = &val;
->   
->   			__ris_msmon_read(&mwbu_arg);
-> +			if (mwbu_arg.err) {
-> +				ret = mwbu_arg.err;
-> +				break;
-> +			}
->   		}
->   	}
->   
-> -	return 0;
-> +	return ret;
->   }
->   
->   /* Call with MSC cfg_lock held */
+Applied, thanks!
 
+  Branch: topic/swnode
+  Tree:   git://git.kernel.org/pub/scm/linux/kernel/git/driver-core/driver-core.git
 
-mwbu_arg is never initialized and __ris_msmon_read() only writes ->err 
-on failure. If on a successful read mwb_arg.err tests stack garbage it 
-can spuriously break ot of the loop, leaving the remaining monitors 
-unrestored, and return a junk error code.
+[1/5] kunit: provide a set of fwnode-oriented helpers
+      commit: 9fdbdb528488
+[2/5] software node: add fw_devlink support
+      commit: 37e586675993
+[3/5] software node: add kunit tests for fw_devlink support
+      commit: eecba5978729
+[4/5] MAINTAINERS: add myself as reviewer of software node support
+      commit: 122630406245
 
-Setting `struct mon_read mwbu_arg = {};` matches what mpam_msmon_read() 
-already does. Additionally val should be initialized to 0 too. 
-__ris_msmon_reaD() does *m->val += now, and although the result is 
-discarded here, KMSAN would flag the uninitialized read.
-
+The patches are in the topic/swnode topic branch and will be merged into the
+corresponding target branch soon.
