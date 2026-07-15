@@ -1,199 +1,160 @@
-Received: from BL0PR03CU003.outbound.protection.outlook.com (mail-eastusazon11012013.outbound.protection.outlook.com [52.101.53.13])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C2E93451B5;
-	Wed, 15 Jul 2026 14:47:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.53.13
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784126831; cv=fail; b=YhnY7QyWbkxne9gTN+bVtLq1+88cbKDWjvkGVGEp8x44CSEGe+XMGnC+pTJo576VXZZeRaPPzUJSdINA5ZxqBAzUYgfFoGl1WbHRb9xgWoEQLgRXw142y5m4vOfolcs++Eyxh7S27gQTdxFOKn23PONHVlWjQGLzf3b2fH6RiT0=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784126831; c=relaxed/simple;
-	bh=LXXKu+arqesRgP4z7xxMD0cun8txrjc1FBg33NA+9lk=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=AtZUazAfucjPZM2oYkPK1httbxTrIriWMfMkPHJ9Qf8OrhLJBprl0pCPt3UAtmPUMLFLUE+Wpr1FAH229kkZrDtPQz+MBn7qQwu4MWDm3PYi0xOPGUEslIRkgbBYMivi5KaDrzR3yfLrcjXntbPU/xquI3217j9AyuI9gLKMRhk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=sY8qasVx; arc=fail smtp.client-ip=52.101.53.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3D12A47F2F2;
+	Wed, 15 Jul 2026 15:16:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784128618; cv=none; b=SUjuUpf894IbNdydg0kFtApOxYwNRm/X5onDI9Q5xRsmCYU+mOtCDCU27HPcFa+9pLqe4Mui4HKKp68MrH3eTcrb2jMmff5w+R2ggdG872OY7++YRS+q2bkJQTZGWsi3n3v4C85PRzJbETBkyiu3u9chcq3uX5fDmU8gd/j5L5U=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784128618; c=relaxed/simple;
+	bh=Elyu2hBbLCzVOZv+VKUbmy1slaLvbqNRvF6FD7GR/d8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=dSy40BAbUO3U4t8MKhvXqV+qgpSwKaSNOzNlcplAbbgoTpONtQ4nZZL1Xwv1qNmaFwdwnN1EoRMe4wVpsdRhiQq0RrBpEVqnbbjskg2546YVwD66CpTKbvkKX26X1PNOrNYTwX6teQFnpJVAqyM0/6SmNuNY5KYrYP6dpXr0yAc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=VU2ekDC/; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="sY8qasVx"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=A1nwzFTe3Sg/D6EzLMHIEU7KYs+3ARy+Q/8SDPZxfwcBSVIdFpT5DMwDYI+rx+ymXd/7LrSUTmCJOGjdzS5jxeh0PvJWh/kc8shAQYufke7hPAQQaN61H9SajQWKzlU9JZGELnCHPdmjn76Ya7NQ5JV2IfEE6IC06/2ClfaqEncmhnTovn+Mpjuq+w8Srs6cSFOl/dgcD3/LKUc5fzUhkOveB8jTs+DsdUhDY7cYFv1v7NWzgXEMU5h9vf+e+cbv04OC2CPW8US71va2ElMhv98p3RoOqSQvFWGJApTpIVLhjhPZ8CSZpIXOfnQp9UVy0p8EYeoOAgn4hpqT8Td9Fw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=GkOW/8pwcTFBmd2seS7c9RGsHzo2iaW1OeP11nvNv0I=;
- b=azDkfy4DP0gtGKYaogvvuoKmdnMxE/Eavhn52nYVvlKaO5+6lrqpp5sEEWl49+M51Zt4BN+tpdlP+xKB1jJtoPjPMCOAK4hHYTAy+ChObNdALbFfpbXL9SW6dGwldmsJEG0k+WS7u3PliKyQiMiOmW6uej2raUpimaGqYPg1AZuDkup8dEwNKiGwi0l0Vqfx++Vl4uDUwxIikV7OvD00l/cM65fNtqY0HnWjeEEUnLGSNvWG4KRHnUL10+I4dKqTHolxMfZgtXEFPoKnw2LmBZddaNLXvSIz+KJmIwG2wK8ZDq73EDCIlCdPzylvGr5hCYkiXhBWllc+92Jq4O6Wgg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=GkOW/8pwcTFBmd2seS7c9RGsHzo2iaW1OeP11nvNv0I=;
- b=sY8qasVxPcOedm8zwZ5PWozWZ9ARBq6ZAkp0zarZz1H9qjNlGcqNTa2XS0IMt5ETvcwKC38d/GXGU98jwo6m3ardrsfbfSjDnjrAGPg1uO7saZ7qxN7LCbJSFbpVkBGVdo8Zt2So7L1wJnWXOCeu/PxfFLFTZMYyS2De7V+eNmo=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from DM4PR12MB6254.namprd12.prod.outlook.com (2603:10b6:8:a5::17) by
- CY8PR12MB8194.namprd12.prod.outlook.com (2603:10b6:930:76::5) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.223.10; Wed, 15 Jul 2026 14:47:04 +0000
-Received: from DM4PR12MB6254.namprd12.prod.outlook.com
- ([fe80::8211:9b5a:99d2:ffa1]) by DM4PR12MB6254.namprd12.prod.outlook.com
- ([fe80::8211:9b5a:99d2:ffa1%6]) with mapi id 15.21.0223.008; Wed, 15 Jul 2026
- 14:47:04 +0000
-Message-ID: <686006af-a9cf-41e0-b245-e81a722b13f3@amd.com>
-Date: Wed, 15 Jul 2026 15:47:00 +0100
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v1 1/1] acpi/hmat: preserve hmat_adist_nb notifier
- block
-Content-Language: en-US
-To: Richard Cheng <icheng@nvidia.com>
-Cc: alejandro.lucero-palau@amd.com, linux-cxl@vger.kernel.org,
- linux-acpi@vger.kernel.org, rafael@kernel.org
-References: <20260630143507.30193-1-alejandro.lucero-palau@amd.com>
- <20260630143507.30193-2-alejandro.lucero-palau@amd.com>
- <akYPrcsz2tWl7ga4@MWDK4CY14F> <c88a09b4-6478-4c68-87f0-485dc6634af2@amd.com>
- <ak74Kzuf6g9z9pOr@MWDK4CY14F>
-From: Alejandro Lucero Palau <alucerop@amd.com>
-In-Reply-To: <ak74Kzuf6g9z9pOr@MWDK4CY14F>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: LO4P265CA0179.GBRP265.PROD.OUTLOOK.COM
- (2603:10a6:600:311::7) To DM4PR12MB6254.namprd12.prod.outlook.com
- (2603:10b6:8:a5::17)
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="VU2ekDC/"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 53C141477;
+	Wed, 15 Jul 2026 08:16:52 -0700 (PDT)
+Received: from [10.2.212.8] (e134344.arm.com [10.2.212.8])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id E28683F905;
+	Wed, 15 Jul 2026 08:16:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1784128616; bh=Elyu2hBbLCzVOZv+VKUbmy1slaLvbqNRvF6FD7GR/d8=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=VU2ekDC/Y1ZZJYP6uA7vaTByi5nq5SBTz7aEz0edcZG04Pj6nSi/pa52RUTM4FHZy
+	 4aUseb9LXATvNNOm0yFrXdUOSxsMmbaC0HMjkElsGB9jd6H3Pk+0lS0RUL6lAJ90Eb
+	 NeTyNiUv4dyw614l8r+3X19xrAMkFsS+1j4b/zyk=
+Message-ID: <42eff7e7-695c-4e2a-aae2-8abd1b92f615@arm.com>
+Date: Wed, 15 Jul 2026 16:16:52 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM4PR12MB6254:EE_|CY8PR12MB8194:EE_
-X-MS-Office365-Filtering-Correlation-Id: 7500ce90-9d8c-4a47-23f4-08dee27fef8e
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|23010399003|1800799024|366016|10067099003|22082099003|18002099003|6133799003|4143699003|5023799004|56012099006|11063799006;
-X-Microsoft-Antispam-Message-Info:
-	u7EmTkPTouD4/DCoMZt8yxaxv1ccyQ/HMDFb6vjHZK+ikL0ZEUop0sxhUruMvDZdT9TlUc/+ARU9HbVnac96rLVbWgrAM7qT2DuxmMQakRkRE7u6vsI0o1to4f5rMa+rAZc946cKsQMTfqxc9scwhCXv4UIBo337gErrOLI5ymn0fYaGZXTNf2hdU3XjH8nkqW7pmpv7YkDIpeILX7gk93tXjnYDB277PDTY7VSaYJEH5EBmKJiLBIz1aGkKmqqbNykHpxEvPEPbaNNQhPE155yf0kItykQf/7mQOFvGtR7gdhROnM0GkDn5NPZo0n3JQ+MKd96HZmgSlOtAhS3aSaXR7SUgSPN4mcUIHYV6QXhaqdM6zeiDz11Iov5ABBrKzrAHVLfMJohfi1jIwrxT5U5A+JJIfRn3u/kKIicSOScrXmPQacRJbtB96XV0ip97vEnRJ00mPHnufE/x3PpTudXMcoejwHUKP9JZocT3TYtyKZNQmD2wTIz3YL0z24FmkyzfVgI4TgRmtgKmkQUA9xFhivv8SupW1BhEayho3jUbTXTl/0+vd0bw386tymHEFRH0JWGNXZule2PeuccAbMuKGFFxPPORGrHdkO6mJWCDNl1fD9vb03QmJf8M4G1or/RovCO/U7NJybgYQf4BDJ6FPgQpRNraq2748sEha2k=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR12MB6254.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(23010399003)(1800799024)(366016)(10067099003)(22082099003)(18002099003)(6133799003)(4143699003)(5023799004)(56012099006)(11063799006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?Z1BCVmxJQkJwa3cwbkJPZEl4cklRU3VCb1oyZ3EzbjBtOXBScHJZNWZnZmxM?=
- =?utf-8?B?Y3VUOW8vY2lFb2JTWE94Z1dDdmg4YWVBeThFTktiTU9qV1JzaGtaLzVLNWh6?=
- =?utf-8?B?V3hReERJRDdyaFpqemhFdHZvek11RVZwTzhKUnVnRlRmK2J1VXFhcGVvQXdp?=
- =?utf-8?B?N3Z2YVRYTXhFbldPOXNtRGpwZjFLazBxSmhFZ042VzZUWnROeVEyZm15MDFk?=
- =?utf-8?B?OWtCVEc3WG5EekYzVkQ4RTFUa3h6cTBQV3N2Y29MZGJyYjhuUTIrbWZmTlhH?=
- =?utf-8?B?UWFlc1ZjMnIrOFZ3Qy9JdjZoR1p2VnpTbVRzSWFDL3NaNkdENldoQnc4YlYz?=
- =?utf-8?B?RnJpeUlnMFluY2N2M2pIaVNJNGtrdjlCTTFUVk4zTHNabHVSQzU5eWwzZlVy?=
- =?utf-8?B?Q01tRFN0dkJVbWk2VTRRVlRKRGw5QjVUUDhSM3p1bThMdERTeGl3V3FDQkFZ?=
- =?utf-8?B?WWJTamowNkNqeTRVNCtrYlhubUZ3NmRCd01WL1Rzd0xubGx3aGFEbWJTSGZK?=
- =?utf-8?B?NFZSdGRLc2RaZy9XVGJUZFBORWs3VGxTaXlaWDBlZklCUTRwQml2SkEyaUV0?=
- =?utf-8?B?UXNpdFNYYmY0OEZIdUpuK2NpM3BUQVQ5Qit5aEw2MjJucE0wOU5PTXRVVWJS?=
- =?utf-8?B?cWZGQzFXL1dDUFJjeTUwbVFFWTVteDVtL3hDN2lOUlVvN1k3SmRUdDg2QkF4?=
- =?utf-8?B?RXNjTlZ0L1Nva29UbzN2WHNxeDJWb1d3bjVGS1hWYWpnN01wYlVNRHREeUY3?=
- =?utf-8?B?OEhMUERCYXBlbkx3RmhtZzR4THNuVmRoNDcxa3JNWWQ1MnR3L2d1dTJhUEkx?=
- =?utf-8?B?SnprWkduMTg4VEJ0V25IdnZkMlExY0gyWS9KSFNqbWdTYkM0TkZuRENhV25x?=
- =?utf-8?B?QytqZEhlcUxOYlExYWZMdmZ3ajNkN1RqK0hmcDJ3RnMzYzNvMGFYSFJRS3Zs?=
- =?utf-8?B?Uno4YjZRcThLNWtKTUl5Q091VmUzRlN2Wk5hV0RDMDk0KzdYOTQxaDVNSmx2?=
- =?utf-8?B?bUZYRTA1VTN6R2RUWnhOSnMyS3dIcDRVYUpkSW11VCtYS054Z2pJSGhRVVNk?=
- =?utf-8?B?Y3Z6N2pxUFM3dDZtcjNrRzdoQW5VNm5ySmtOSElBR1ltUWpES2pGcDNuWEkx?=
- =?utf-8?B?VDhoeHlwcXFCeUtmSlU4eEIrNzFOYnlmVUZrSUVBWEV5R0Flem83TUgwYVIy?=
- =?utf-8?B?MXB1aFlIc2VxQzA1WUJzaXppNG9RRHR5aGMzdkV6WHNKWDNWVHVrT3BmNndy?=
- =?utf-8?B?REVFYUh5MjlSRG1obTJ5WG53dVZHQjV6cEF0MjdoeW83bmpxdUp1dnJnbkZT?=
- =?utf-8?B?aTJUa3Q2R0dBZ002eFZmbUtVZThaL1dWSDdNMngzYnBZNWhCYVFIY2xpeDBv?=
- =?utf-8?B?MTRRZVNzMnhwUEx4OUNrK1VLaGRNdWh3OXlXRFNNVE4wMlQ2OFBTU2lVVDdu?=
- =?utf-8?B?Szc0c0VQSFEzeG81aVN1TkZ6dlAxWlp5Y1pDYWJtMG9CQTJmbmo3bmh6ZFVo?=
- =?utf-8?B?R0d4V0hHaW9aYm1lTUo4Q0FoWDhEc1FycU1HVWpPbk85RmZLMXBkVWdXYXpZ?=
- =?utf-8?B?dzV3M0I4MVZRTGlCMHE3eVErYkhHTzIrN2tCM2plNXcvazlQNjY0RWNMT0VV?=
- =?utf-8?B?ZFpKenlVWThrVjczVXV2QUJCZDRVaWUvZENNR2hZNkhwMmJyMXRxaDBBNzdJ?=
- =?utf-8?B?OVlKWUxxUWRuU2lRZG5WUEtyc2NDcCs0N2MrN2NNZjJ1Z1F1U1VqYnVtR01p?=
- =?utf-8?B?N2xkSUlIbFlYbjNjR2tZemRLTmNVb2NmQ1ZFT014QVUxcVlCSUNtTGUwMUpN?=
- =?utf-8?B?V1l3Q2VFcE5XRDV1RDhoOFg3eG5sS1lTa0FmZXoybjBvbTJQdE56MEpoNkwz?=
- =?utf-8?B?OElMaGNiZ3FWUGxITllka0hPUGJhNEJYdkxpSnR3L1I0Y2hjM0JPVVVLcVRM?=
- =?utf-8?B?dGdKQjRxeHFSenVvOS9WaFk1VHFTOHZLNmk0MEZPY2plOEhmRENLcFNoVTRS?=
- =?utf-8?B?MTNoYTJvaTN4RWtTRDJlWmo4cTJuNXh6YitGcGRDMTk3S0xTNjBPbnBubVhq?=
- =?utf-8?B?a3BGWEpoSU8xYUNjekVTZTJ4L1BKalZoSXZld0NKd1Era2gzTzIvbENZa0ZE?=
- =?utf-8?B?NTVHMThWd0xGdmhHNWpsM2MzRlVDQXFNM0wwWWV3N0p0SHpvY0oxblRWNENL?=
- =?utf-8?B?WHVGSzhUa3BKNXQwZnhpNGJuZVc4NGxXVlNIaC93YXlkdHRUaTgyRmVVbGNv?=
- =?utf-8?B?alRid3E3SktPOHRRRjdyZ2FLYkpsdGxFWm9xaTF5SHlMQlN5Q2FkdWthZTFn?=
- =?utf-8?B?UlU3T1RocS9kREExT2c1eC81MnUvNDJDQ0ZzZHh5NGlxMThocHBvUT09?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7500ce90-9d8c-4a47-23f4-08dee27fef8e
-X-MS-Exchange-CrossTenant-AuthSource: DM4PR12MB6254.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Jul 2026 14:47:04.4159
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 88OVcCGhZCLRmNOn0uKGjAVh2HpfXGi9PqEtWdn8il1UEda515T4Iuuv2A26vSAr4ssxw5lhMQk1gfCR0V9Z1Q==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR12MB8194
+User-Agent: Thunderbird Daily
+Subject: Re: [PATCH v3 13/16] arm_mpam: prepare mon_sel locking for MPAM-Fb
+To: Andre Przywara <andre.przywara@arm.com>,
+ Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
+ <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ James Morse <james.morse@arm.com>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+ Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+ Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+ Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
+ Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20260710144520.917375-1-andre.przywara@arm.com>
+ <20260710144520.917375-14-andre.przywara@arm.com>
+Content-Language: en-US
+From: Ben Horgan <ben.horgan@arm.com>
+In-Reply-To: <20260710144520.917375-14-andre.przywara@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
+Hi Andre,
 
-On 7/9/26 02:37, Richard Cheng wrote:
-> On Mon, Jul 06, 2026 at 07:57:09AM +0800, Alejandro Lucero Palau wrote:
->> On 7/2/26 08:20, Richard Cheng wrote:
->>> On Tue, Jun 30, 2026 at 03:35:07PM +0800, alejandro.lucero-palau@amd.com wrote:
->>>> From: Alejandro Lucero <alucerop@amd.com>
->>>>
->>>> Remove __meminitdata from hmat_adist_nb declaration preserving it even
->>>> when CONFIG_MEMORY_HOTPLUG is not set. Otherwise further notifier
->>>> registrations using register_mt_adistance_algorithm() will find a
->>>> notifier chain likely corrupted. This is the case when a CXL Type2
->>>> driver will load after kernel initialization and a CXL region created from
->>>> its committed HDM decoders registers an mt_adistance_algorithm notifier.
->>>>
->>>> Signed-off-by: Alejandro Lucero <alucerop@amd.com>
+On 7/10/26 15:45, Andre Przywara wrote:
+> The MSC MON_SEL register needs to be accessed from hardirq for the overflow
+> interrupt, and when taking an IPI to access these registers on platforms
+> where MSC are not accesible from every CPU. This makes an irqsave
+> spinlock the obvious lock to protect these registers. On systems with SCMI
+> mailboxes it must be able to sleep, meaning a mutex must be used. The
+> SCMI platforms can't support an overflow interrupt.
+> Clearly these two can't exist for one MSC at the same time.
 
+Is an MPAM-Fb platform using overflow interrupts definitely not possible? I would have thought that
+as long as things were fast enough that threaded interrupts could be used. I do agree that it would
+make things harder and the increased latency may make it unworkable.
+> 
+> Change the mon_sel locking wrapper function to only use a spinlock when
+> the MSC is accessed directly via MMIO. In case of MPAM-Fb, we use a
+> mutex, but only if we are in a sleepable context. If that's not the
+> case, we return an error. This should not happen, as MPAM-Fb by design
+> does not require an MSC access to happen from a specific CPU, so there
+> is no need for any IPIs or preemption disabling to satisfy CPU
+> constraints. 
 
-<snip>
+It'd be good to mention that on the rare occasion that all cpus are no_hz_full and resctrl does the
+monitor read via IPI that we already bail out early.
 
+Thanks,
 
->>>>
->>>> Not sure what you mean here. The way I understand your comment leads to
->>>> contradictions ...
->>>>
->>>>
->>>> "keep unconditional removal" suggest to me unregistering hmat_adist_nb but
->>>> "keep" confuses me as it is not unregister now only memory released based on
->>>> __meminitdata ... but maybe you mean exactly what I did and avoid any change
->>>> to __meminitdata declaration based on a config attribute, what is what Dave
->>>> is suggesting to explore.
->>>>
->>>>
->>>> Please, could you clarify this?
->>>>
-> Sorry for the ambiguity, and yes, the last reading is what I meant.
-> I mean your patch's removal of the "__meminitdata", not unregistering
-> the notifier.
-> I think it would be better not to replace it with a conditional macro.
->
-> To be more clear about what I understand,
-> 1. with MEMORY_HOTPLUG=n, "__meminitdata == __initdata", so hmat_adist_nb
->     lives in ".init.data"
-> 2. hmat_init() registers it, the mt_adistance_algorithms chain will hold a pointer to it, nothing ever unregister it.
-> 3. When boot finishes, free_initmem() discards all ".init.data". The chain still points at that freed memory.
-> 4. Any later register_mt_adistance_algorithm() call walks the chain and deref that stale pointer , causing use-after-free
->
-> Note that, register_mt_adistance_algorithm() is an exported API, so any module
-> loaded at runtime can trigger it, not only CXL. Dropping __meminitdata
-> unconditionally closes the use-after-free for all caller, and the cost is just
-> one notifier_block staying resident.
->
-> Hope this clarify my point.
+Ben
 
-
-Hi Richard,
-
-
-Yes, this is clear now.
-
-
-I will send a v2 adding the Fixes tag and your point about the problem 
-not limited to MEMORY_HOTPLUG config.
-
-
-Thanks!
-
+And since overflow interrupts are not supported at the moment
+> anyway, we also wouldn't meet the other case.
+> 
+> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+> ---
+>  drivers/resctrl/mpam_internal.h | 28 +++++++++++++++++++++++-----
+>  1 file changed, 23 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
+> index 04d1a59f02af..7b6e0df904f8 100644
+> --- a/drivers/resctrl/mpam_internal.h
+> +++ b/drivers/resctrl/mpam_internal.h
+> @@ -126,6 +126,7 @@ struct mpam_msc {
+>  	 */
+>  	raw_spinlock_t		_mon_sel_lock;
+>  	unsigned long		_mon_sel_flags;
+> +	struct mutex		mon_sel_mutex;
+>  
+>  	void __iomem		*mapped_hwpage;
+>  	size_t			mapped_hwpage_sz;
+> @@ -139,27 +140,44 @@ struct mpam_msc {
+>  /* Returning false here means accesses to mon_sel must fail and report an error. */
+>  static inline bool __must_check mpam_mon_sel_lock(struct mpam_msc *msc)
+>  {
+> -	/* Locking will require updating to support a firmware backed interface */
+> -	if (WARN_ON_ONCE(msc->iface != MPAM_IFACE_MMIO))
+> +	if (msc->iface == MPAM_IFACE_MMIO) {
+> +		raw_spin_lock_irqsave(&msc->_mon_sel_lock, msc->_mon_sel_flags);
+> +
+> +		return true;
+> +	}
+> +
+> +	if (!preemptible())
+>  		return false;
+>  
+> -	raw_spin_lock_irqsave(&msc->_mon_sel_lock, msc->_mon_sel_flags);
+> +	mutex_lock(&msc->mon_sel_mutex);
+> +
+>  	return true;
+>  }
+>  
+>  static inline void mpam_mon_sel_unlock(struct mpam_msc *msc)
+>  {
+> -	raw_spin_unlock_irqrestore(&msc->_mon_sel_lock, msc->_mon_sel_flags);
+> +	if (msc->iface == MPAM_IFACE_MMIO) {
+> +		raw_spin_unlock_irqrestore(&msc->_mon_sel_lock,
+> +					   msc->_mon_sel_flags);
+> +
+> +		return;
+> +	}
+> +
+> +	mutex_unlock(&msc->mon_sel_mutex);
+>  }
+>  
+>  static inline void mpam_mon_sel_lock_held(struct mpam_msc *msc)
+>  {
+> -	lockdep_assert_held_once(&msc->_mon_sel_lock);
+> +	if (msc->iface == MPAM_IFACE_MMIO)
+> +		lockdep_assert_held_once(&msc->_mon_sel_lock);
+> +	else
+> +		lockdep_assert_held_once(&msc->mon_sel_mutex);
+>  }
+>  
+>  static inline void mpam_mon_sel_lock_init(struct mpam_msc *msc)
+>  {
+>  	raw_spin_lock_init(&msc->_mon_sel_lock);
+> +	mutex_init(&msc->mon_sel_mutex);
+>  }
+>  
+>  /* Bits for mpam features bitmaps */
 
