@@ -1,133 +1,113 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADF89430CC4;
-	Wed, 15 Jul 2026 09:31:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E8FE43786A
+	for <linux-acpi@vger.kernel.org>; Wed, 15 Jul 2026 12:10:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784107896; cv=none; b=KI+vxvz2aOQehz7IW8PsGv72F1wQHx20xahSulmIfsS/m+DNg/tKW6nrRtpRcmxuVBRO3YBquKCXxRgsrGUhKrAHMJTfjlSFSC4/F0fS2553nWfcb0rwe8NUjdDHNC/a27PfvlMaSDWUVPgQlIhApyJEgpjqQtZUrafdcN4bUJM=
+	t=1784117432; cv=none; b=BJjUL+VWl18uo1Zv8UuRYbO5XQXinBQV63Ol6DeZZNA5cZfNMShqAdi/l1ROGaF5RE8x6/HDNBLLpgzpcrRsTZl1yo6K13Tf6jEhGxIAQy+pHf05hHriCNj/Td3C149QwnsjgAhH1IUT2SiJXOg3rlEPQCWH82cyd83oIFTPjGE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784107896; c=relaxed/simple;
-	bh=k4Mxr2b2uXcaPiH3l9mMz8keQUEPR+TLeMo54YK8SQg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZjmNEcoIawaTeOVGwX+qRJ7LfyNDi9BGZTpvHvUO/UBO7uLybAC3T3pB5jmXw9lYaZLIYRuMHX8WkcXYlDnU7FQwdz+wnFQ6Ggofn4WOPyoSwOrZ78Sc7yL7+s+vGydbK+AQGM0VfGlr/Y72BIrkKx+Dv27Z0l2QTnIpnqx4wWQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JBT8cc0+; arc=none smtp.client-ip=192.198.163.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1784117432; c=relaxed/simple;
+	bh=PYNLDHGO6ov8H5x5qqX5IZL4rw+a3BqAyT9tBi7RhC4=;
+	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Xj9GRaIz886B8cmdU0qTgotQGx2ctkMlRna+Ru5KOzm0RUfq2oBNeRTSh3XcXv1Vz5zWPkzqM3Lz1J3j7nLUp118bA2YY5MHiFDsSKN2zcOV0+H9POyz29oWEZa9g+N4ZYFNzhxxgDa/+CQO9A/kRdjr6535UPdfyoLl24JBp8s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Q84hagRT; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JBT8cc0+"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1784107891; x=1815643891;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=k4Mxr2b2uXcaPiH3l9mMz8keQUEPR+TLeMo54YK8SQg=;
-  b=JBT8cc0+MGyymQ1W7X4DBNeNGOoVi0Uy81MBS3lOHht4S/rW+qqGYKal
-   ThJi5Lz1r1URxFHoTNrypsJOekCHyojgOCpDlYCucraEqf5fr8sFJ94NB
-   NFr0joiwasXM+Tsa2GHuvfUikbUC0Ayxn8c0fvN+DpIePAZGUKGOLF/UO
-   vKPINT02Ij/2zDhul5lJ37BwTPxFBNeIM6kAAhFQy5UgxDzqjB0dll7kW
-   Kc66BfTFxGuE0UixzGC8frXAKwFS7ZCqzzThsnB43Oj/7YFn8USXaB6zt
-   yqy9A3C1CR2q8ghdtIUaPHHKyzSZbHKJIRePtKLWXZKPHsTTss9OnT9jj
-   g==;
-X-CSE-ConnectionGUID: R3VZmNryRTiSxdQ2vGldmA==
-X-CSE-MsgGUID: qnZMFrhLSKKNWQljNgxr2w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11847"; a="84621796"
-X-IronPort-AV: E=Sophos;i="6.25,165,1779174000"; 
-   d="scan'208";a="84621796"
-Received: from orviesa010.jf.intel.com ([10.64.159.150])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jul 2026 02:31:27 -0700
-X-CSE-ConnectionGUID: C6gWwrZiQoSdjr4Qi+bgqQ==
-X-CSE-MsgGUID: rexS2BC5TTm8ipg2rVuMgA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,165,1779174000"; 
-   d="scan'208";a="255007837"
-Received: from mkosciow-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.129])
-  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jul 2026 02:31:22 -0700
-Date: Wed, 15 Jul 2026 12:31:19 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Chen-Yu Tsai <wenst@chromium.org>
-Cc: Bartosz Golaszewski <brgl@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Wei Deng <wei.deng@oss.qualcomm.com>, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-pm@vger.kernel.org,
-	linux-usb@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-mediatek@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	Manivannan Sadhasivam <mani@kernel.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Subject: Re: [PATCH v5 07/16] usb: core: Move struct usb_port and related
- APIs to port.h
-Message-ID: <aldTZ3ni4Uk3eTO8@ashevche-desk.local>
-References: <20260715085348.3457359-1-wenst@chromium.org>
- <20260715085348.3457359-8-wenst@chromium.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Q84hagRT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A639A1F01564
+	for <linux-acpi@vger.kernel.org>; Wed, 15 Jul 2026 12:10:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784117429;
+	bh=DMCjy06zEXDnbWum2gCuxx6nJG7pOKzGSJuwH+iOivg=;
+	h=From:In-Reply-To:References:Date:Subject:To:Cc;
+	b=Q84hagRT5mPR6Sg5DtuRlLw+qHQbfE0zv769VXXV9fdXQpiVBljonlJJa72YMpf7y
+	 iYZKdHDeOLn8CpItSXEjn1bhf/D4qCsfnSPEa7/PTcNChMqAhAqIRMVv6IPYnjTWNf
+	 f6fX48BpqcIK+ON+887Wu4FNF344byUQrM0B06tKW0vZac2Mc7MOJY+3WBJGIbOU+Y
+	 s+XfEqlz2dR3TJcJ/wfD5eHKBMjk+CX2g65Qv7jgY9vFpJ/lCvVHcRqKIqgqNj8AG2
+	 O0InDdM9pynSkxccpuvAM61EcsTe+9yFBOyTSh9Ps6BNkic3e+7+aR0leWcj1IPoJc
+	 1hyWYWU7Tv3Eg==
+Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5aeae771c49so6208437e87.3
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Jul 2026 05:10:29 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+Rp1VP3smbIajHE4DlBqWTsEpbpTiLgfA2HSqtlMG1C/GLfSlWFsIljrA182tlu1gU6btYD5raftko5N@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw5PRuFOWO3zFpP3k6BcqsFz8FaveMX12D0mf6wheWGd6RPtofX
+	3LnXlePtwi65wkuwyDCIYUyTfHb+USGbMBdtSg78unYTALcdV4qChLo+LRvHMG8mzJSauWOquou
+	gP3aw1iUVW+Iykl0+IHCuzaOgPThqFBVlUc+cwLslMg==
+X-Received: by 2002:a05:6512:2507:b0:5ae:bcf8:e7d0 with SMTP id
+ 2adb3069b0e04-5b15d7baf00mr578542e87.55.1784117428284; Wed, 15 Jul 2026
+ 05:10:28 -0700 (PDT)
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Wed, 15 Jul 2026 12:10:26 +0000
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Wed, 15 Jul 2026 12:10:26 +0000
+From: Bartosz Golaszewski <brgl@kernel.org>
+In-Reply-To: <aldS3qTympJuVXYj@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260715085348.3457359-8-wenst@chromium.org>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+References: <20260715085348.3457359-1-wenst@chromium.org> <20260715085348.3457359-4-wenst@chromium.org>
+ <aldS3qTympJuVXYj@ashevche-desk.local>
+Date: Wed, 15 Jul 2026 12:10:26 +0000
+X-Gmail-Original-Message-ID: <CAMRc=MfHmejks83bPfe3fKzAzFySGXk2GHMA9oZdMQj0f44eTA@mail.gmail.com>
+X-Gm-Features: AUfX_mxpntQH8Qnw3cJ2vX6VfUBu9N4HciM9BCR-9eipAChzpXbQ2rXlvYEnYl8
+Message-ID: <CAMRc=MfHmejks83bPfe3fKzAzFySGXk2GHMA9oZdMQj0f44eTA@mail.gmail.com>
+Subject: Re: [PATCH v5 03/16] power: sequencing: Add pwrseq_power_is_on()
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Bartosz Golaszewski <brgl@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, 
+	Wei Deng <wei.deng@oss.qualcomm.com>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-pm@vger.kernel.org, 
+	linux-usb@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-mediatek@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
+	linux-kernel@vger.kernel.org, Manivannan Sadhasivam <mani@kernel.org>, 
+	Alan Stern <stern@rowland.harvard.edu>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, Chen-Yu Tsai <wenst@chromium.org>
+Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Jul 15, 2026 at 04:53:37PM +0800, Chen-Yu Tsai wrote:
-> |struct usb_port| and its matching container_of() macro should live in
-> its own port.h, matching the split we have for .c files.
-> 
-> Move them as described. Also move usb_port_is_power_on(), since in the
-> next change its |struct usb_hub *| parameter will be changed to
-> |struct usb_port *|, and becomes a non-static function that only
-> references |struct usb_port|.
-> 
-> port.h is only included from hub.h, as a subsequent patch will directly
-> use fields from |struct usb_port| in a static inline helper in hub.h.
-> The USB internal headers don't have header guards to help with this.
-> 
-> Also drop 'extern' from the header declaration of usb_port_is_power_on().
-> This is not needed in modern C.
+On Wed, 15 Jul 2026 11:29:02 +0200, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> said:
+> On Wed, Jul 15, 2026 at 04:53:33PM +0800, Chen-Yu Tsai wrote:
+>> The power sequencing consumer API already does power on state tracking
+>> internally. Expose the state to consumers through pwrseq_power_is_on()
+>> so that they don't have to reimplement it locally.
+>
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+>
+> ...
+>
+>> +/**
+>> + * pwrseq_power_is_on() - Queries the last requested state of the power sequencer.
+>> + * @desc: Descriptor referencing the power sequencer.
+>> + *
+>> + * This returns the last requested state of the power sequencer.
+>> + *
+>> + * Returns:
+>> + * On success, 1 for on or desc is NULL (optional) and 0 for off;
+>> + * negative error number on failure.
+>
+> I would rephrase it a bit.
+>
+>  * On success, 1 for on and 0 for off; negative error number on failure.
+>  * If desc is NULL (means optional) return 1.
+>
+> And this rises a question: why 1? Shouldn't it be some "unknown" state?
+> (But since Bart Acked this, this doesn't prevent the patch to go, you
+>  got my tag above.)
+>
 
-...
+No, this is good feedback. Maybe we should prefer an enum like so:
 
-> +struct usb_port {
-> +	struct usb_device *child;
-> +	struct device dev;
-> +	struct usb_dev_state *port_owner;
-> +	struct usb_port *peer;
-> +	struct typec_connector *connector;
-> +	struct dev_pm_qos_request *req;
-> +	enum usb_port_connect_type connect_type;
-> +	enum usb_device_state state;
-> +	struct kernfs_node *state_kn;
-> +	usb_port_location_t location;
-> +	struct mutex status_lock;
-> +	u32 over_current_count;
-> +	u8 portnum;
-> +	u32 quirks;
-> +	unsigned int early_stop:1;
-> +	unsigned int ignore_event:1;
-> +	unsigned int is_superspeed:1;
-> +	unsigned int usb3_lpm_u1_permit:1;
-> +	unsigned int usb3_lpm_u2_permit:1;
-> +};
+enum pwrseq_state {
+	PWRSEQ_POWER_UNKNOWN,
+	PWRSEQ_POWER_ON,
+	PWRSEQ_POWER_OFF
+};
 
-A side note for the future development (no need to change anything here
-right now). It might be that the layout is suboptimal and `pahole` might
-propose a better one.
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+Bart
