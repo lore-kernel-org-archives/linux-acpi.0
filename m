@@ -1,98 +1,207 @@
-Received: from out30-98.freemail.mail.aliyun.com (out30-98.freemail.mail.aliyun.com [115.124.30.98])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFD3E23507B;
-	Wed, 15 Jul 2026 13:33:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.98
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3C76323507B;
+	Wed, 15 Jul 2026 13:35:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784122413; cv=none; b=QVs6tDkoCAvSOdW+2klEcyDXwIHI4TYfFvxLmvVQH97V4dj1urx8do3jUn3G1GJVkabvDHtgcHonFzKJDDgFEdy+CGqeaS0/TcSktdHNGtl26O71LUG0kyY1zuUP5vFuAqyMeEJgAWfvL51wVU9LOz9jkEFofq8BP/44EULOVac=
+	t=1784122509; cv=none; b=XdQE06dHIfBGh44Mox2A6UyRlwjoLXR/0e/NzgtY3bsFi2TtOrjo6jhdSZC7uMUi+p/UsV5/4X5plZfeMgpUha/Zx+7kcJNfX00CBk+JIQMVzkfu0H9/cXzgfbCKd36T28ihQFtTWcZ79gHH9AG2d+4IeTmCn4GwTxs5i/Yo8lg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784122413; c=relaxed/simple;
-	bh=yhK+gWds0kqmJMK8oYokhqCx2haI6WBmsi0ir4zS+eM=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=fTCwi6lbZSQC3Ul0XpbdjZ3Y/6Slh2P5U5Wnw2QwZ1zVceuKQ0cH+C+nP10cjp/5ENuZm9wXNks6OEXpdRi9CgxSTbNf68GPYrcbLGqUZ2ZbtPQL+MtmyKhRAktU3RktKOK3ezAFXPG2k/WTJ4RwSyEPRhiWXRq32xR00x3jKGM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=UkUElBTc; arc=none smtp.client-ip=115.124.30.98
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1784122509; c=relaxed/simple;
+	bh=uLHoCbNeYoAD6ga2+Gc3umZz0EJETiWvCIQnmkNiWh4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=lEsmplEPFxOW8EmapJRiqUx0zwzwgrxW9K+prniDwLRH4Kibxv9MBKi/Gg7Y0GY0YW/AvKx2Av0CzOYtfp33c9RqANBH0Gw7DkVGkBhyg2xoxm8AqLP/awevZXyWZ5raPq4FeWHi6HWVT0KaQlOVEu2TaQH15opOGIIneBYmeos=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=f+mgWwPS; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="UkUElBTc"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1784122404; h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type;
-	bh=JCr+B/B1w1jArutjB0fuPO9lz1kJ/HqQv993yIGFPyE=;
-	b=UkUElBTcTugk4OcYWdQ+ZxD5zVrSQ8dmRO6wTvR8NGtAKvg6qFSxp5N0MFOsi09xKg85cinwFtm7NCMgfwbKX+U5nyBTDLEIzMTa8PHlDLzexPlZX96pODEUqhpw5fZoGzI875Oi31qbBG1BQR5SzZTlkB8J5L+x/o1otBNTHb4=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R561e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045133197;MF=cp0613@linux.alibaba.com;NM=1;PH=DS;RN=11;SR=0;TI=SMTPD_---0X79XPtG_1784122400;
-Received: from DESKTOP-S9E58SO.localdomain(mailfrom:cp0613@linux.alibaba.com fp:SMTPD_---0X79XPtG_1784122400 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Wed, 15 Jul 2026 21:33:23 +0800
-From: Chen Pei <cp0613@linux.alibaba.com>
-To: dave.jiang@intel.com,
-	alison.schofield@intel.com,
-	bhelgaas@google.com,
-	rafael@kernel.org,
-	lenb@kernel.org,
-	guoren@kernel.org,
-	sashiko-reviews@lists.linux.dev
-Cc: linux-pci@vger.kernel.org,
-	linux-cxl@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] ACPI: PCI: Clear driver_data on all error paths in acpi_pci_root_add()
-Date: Wed, 15 Jul 2026 21:33:10 +0800
-Message-ID: <20260715133020.3282712-1-cp0613@linux.alibaba.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260707122549.C01DC1F00A3A@smtp.kernel.org>
-References: <20260707121258.11640-1-cp0613@linux.alibaba.com> <20260707122549.C01DC1F00A3A@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="f+mgWwPS"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 29CBA1477;
+	Wed, 15 Jul 2026 06:35:02 -0700 (PDT)
+Received: from [10.2.212.8] (e134344.arm.com [10.2.212.8])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id C0D923F915;
+	Wed, 15 Jul 2026 06:35:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1784122506; bh=uLHoCbNeYoAD6ga2+Gc3umZz0EJETiWvCIQnmkNiWh4=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=f+mgWwPSYRO7uOwEe/kBxC3xfoS1XKLO9Eb56aPYKQP7ZrTjvyHKVkGoo09YNdws9
+	 +9iBFCh7bsm53Qa/fNn7nsevXquVHGzNuvLqZUJ1Wx0hLGhttl82Dd6n6bJC3CyVgI
+	 CALnQwqFwKoz0510F7SZ/Ysy2NH7EfQNkw3P/qdo=
+Message-ID: <8dcafd5c-5ff8-4151-a68b-6d6b9c0c8b7c@arm.com>
+Date: Wed, 15 Jul 2026 14:35:02 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Thunderbird Daily
+Subject: Re: [PATCH v3 04/16] arm_mpam: propagate MSC read errors for
+ mpam_msc_read_mbwu_l()
+To: Andre Przywara <andre.przywara@arm.com>,
+ Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
+ <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ James Morse <james.morse@arm.com>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+ Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+ Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+ Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
+ Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20260710144520.917375-1-andre.przywara@arm.com>
+ <20260710144520.917375-5-andre.przywara@arm.com>
+Content-Language: en-US
+From: Ben Horgan <ben.horgan@arm.com>
+In-Reply-To: <20260710144520.917375-5-andre.przywara@arm.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 
-Thanks for the review.=0D
-=0D
-> Pre-existing issues:=0D
-> - [High] The acpi_pci_root_remove() function frees the acpi_pci_root=0D
->   object but fails to clear device->driver_data, leaving a dangling=0D
->   pointer.=0D
-=0D
-Agreed. acpi_pci_root_remove() calls kfree(root) without resetting=0D
-device->driver_data, which leaves exactly the same dangling pointer=0D
-this patch removes from the add() error paths. I'll fix it in v2 by=0D
-also clearing device->driver_data in acpi_pci_root_remove(), so the=0D
-add and remove paths leave driver_data consistent.=0D
-=0D
-> - [High] Lockless access to `device->driver_data` causes a TOCTOU=0D
->   Use-After-Free race during hot-add failure and hot-remove.=0D
-=0D
-I don't think this is reachable, so I'll leave the locking model=0D
-unchanged:=0D
-=0D
-- driver_data is published early (device->driver_data =3D root), but the=0D
-  PCI hierarchy below this root bridge is not created until=0D
-  pci_acpi_scan_root() and pci_bus_add_devices(), both of which run=0D
-  only on the success path, after the dmar_device_add() error goto.=0D
-  During the error window there are no child PCI devices yet, so an AER=0D
-  or CXL consumer under this bridge has no way to obtain the handle and=0D
-  call acpi_pci_find_root() against a half-initialized root.=0D
-=0D
-- The early publish of driver_data is pre-existing; this patch does not=0D
-  change it, it only makes the error-path cleanup consistent.=0D
-=0D
-- ACPI .add and .remove are serialized by acpi_scan_lock, so add cannot=0D
-  race remove.=0D
-=0D
-If there is a concrete caller that can reach acpi_pci_find_root() for=0D
-this handle during the add-failure window, I'm happy to revisit. Adding=0D
-RCU or locking to the find_root() fast path otherwise seems unwarranted=0D
-for this fix.=0D
-=0D
-I'll send a v2 with the acpi_pci_root_remove() fix.=0D
-=0D
-Thanks,=0D
-Pei=0D
-=0D
-=0D
+Hi Andre,
+
+On 7/10/26 15:45, Andre Przywara wrote:
+> Allow the mpam_msc_read_mbwu_l() function to return an error, and
+> propagate read errors from the lower level up.
+> So far we were using a special value to indicate the "unstable read"
+> condition, replace that with the actual Linux error code, since it's now
+> easy to do.
+> 
+> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+> ---
+>  drivers/resctrl/mpam_devices.c | 54 +++++++++++++++++++++++++---------
+>  1 file changed, 40 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
+> index b1bd047da203..3b6f9e552a9f 100644
+> --- a/drivers/resctrl/mpam_devices.c
+> +++ b/drivers/resctrl/mpam_devices.c
+> @@ -1112,8 +1112,9 @@ static bool mpam_ris_has_mbwu_long_counter(struct mpam_msc_ris *ris)
+>  		mpam_has_feature(mpam_feat_msmon_mbwu_44counter, &ris->props));
+>  }
+>  
+> -static u64 mpam_msc_read_mbwu_l(struct mpam_msc *msc)
+> +static int mpam_msc_read_mbwu_l(struct mpam_msc *msc, u64 *res)
+>  {
+> +	int ret;
+>  	int retry = 3;
+>  	u32 mbwu_l_low;
+>  	u32 mbwu_l_high1, mbwu_l_high2;
+> @@ -1123,20 +1124,30 @@ static u64 mpam_msc_read_mbwu_l(struct mpam_msc *msc)
+>  	WARN_ON_ONCE((MSMON_MBWU_L + sizeof(u64)) > msc->mapped_hwpage_sz);
+>  	WARN_ON_ONCE(!cpumask_test_cpu(smp_processor_id(), &msc->accessibility));
+>  
+> -	__mpam_read_reg(msc, MSMON_MBWU_L + 4, &mbwu_l_high2);
+> +	ret = __mpam_read_reg(msc, MSMON_MBWU_L + 4, &mbwu_l_high2);
+> +	if (ret)
+> +		return ret;
+> +
+>  	do {
+>  		mbwu_l_high1 = mbwu_l_high2;
+> -		__mpam_read_reg(msc, MSMON_MBWU_L, &mbwu_l_low);
+> -		__mpam_read_reg(msc, MSMON_MBWU_L + 4, &mbwu_l_high2);
+> +		ret = __mpam_read_reg(msc, MSMON_MBWU_L, &mbwu_l_low);
+> +		if (ret)
+> +			return ret;
+> +		ret = __mpam_read_reg(msc, MSMON_MBWU_L + 4, &mbwu_l_high2);
+> +		if (ret)
+> +			return ret;
+>  
+>  		retry--;
+>  	} while (mbwu_l_high1 != mbwu_l_high2 && retry > 0);
+>  
+> -	if (mbwu_l_high1 == mbwu_l_high2)
+> -		return ((u64)mbwu_l_high1 << 32) | mbwu_l_low;
+> +	if (mbwu_l_high1 == mbwu_l_high2) {
+> +		*res = ((u64)mbwu_l_high1 << 32) | mbwu_l_low;
+> +	} else {
+> +		pr_warn("Failed to read a stable value\n");
+> +		ret = -EBUSY;
+> +	}
+>  
+> -	pr_warn("Failed to read a stable value\n");
+> -	return MSMON___L_NRDY;
+> +	return ret;
+>  }
+>  
+>  static void mpam_msc_zero_mbwu_l(struct mpam_msc *msc)
+> @@ -1283,6 +1294,7 @@ static u64 mpam_msmon_overflow_val(enum mpam_device_features type,
+>  static void __ris_msmon_read(void *arg)
+>  {
+>  	u64 now;
+> +	int ret;
+>  	u32 now32;
+>  	bool nrdy = false;
+>  	bool config_mismatch;
+> @@ -1358,8 +1370,9 @@ static void __ris_msmon_read(void *arg)
+>  	case mpam_feat_msmon_mbwu_44counter:
+>  	case mpam_feat_msmon_mbwu_63counter:
+>  		if (m->type != mpam_feat_msmon_mbwu_31counter) {
+> -			now = mpam_msc_read_mbwu_l(msc);
+> -			nrdy = now & MSMON___L_NRDY;
+
+You've removed the software setting of MSMON__L_NRDY but the h/w may still set it.
+(The spec is somewhat confusing on this point but we shouldn't change our behaviour in this series
+anyway.)
+
+Thanks,
+
+Ben
+
+> +			ret = mpam_msc_read_mbwu_l(msc, &now);
+> +			if (ret)
+> +				goto out_unlock;
+>  
+>  			if (m->type == mpam_feat_msmon_mbwu_63counter)
+>  				now = FIELD_GET(MSMON___LWD_VALUE, now);
+> @@ -1397,10 +1410,15 @@ static void __ris_msmon_read(void *arg)
+>  	if (nrdy)
+>  		m->err = -EBUSY;
+>  
+> -	if (m->err)
+> -		return;
+> +	if (!m->err)
+> +		*m->val += now;
+> +
+> +	return;
+> +
+> +out_unlock:
+> +	mpam_mon_sel_unlock(msc);
+>  
+> -	*m->val += now;
+> +	m->err = ret;
+>  }
+>  
+>  static int _msmon_read(struct mpam_component *comp, struct mon_read *arg)
+> @@ -1747,6 +1765,7 @@ static int mpam_save_mbwu_state(void *arg)
+>  {
+>  	int i;
+>  	u64 val;
+> +	int ret = 0;
+>  	struct mon_cfg *cfg;
+>  	u32 cur_flt, cur_ctl, mon_sel;
+>  	struct mpam_msc_ris *ris = arg;
+> @@ -1768,7 +1787,9 @@ static int mpam_save_mbwu_state(void *arg)
+>  		mpam_write_monsel_reg(msc, CFG_MBWU_CTL, 0);
+>  
+>  		if (mpam_ris_has_mbwu_long_counter(ris)) {
+> -			val = mpam_msc_read_mbwu_l(msc);
+> +			ret = mpam_msc_read_mbwu_l(msc, &val);
+> +			if (ret)
+> +				goto out_unlock;
+>  			mpam_msc_zero_mbwu_l(msc);
+>  		} else {
+>  			u32 val32;
+> @@ -1788,6 +1809,11 @@ static int mpam_save_mbwu_state(void *arg)
+>  	}
+>  
+>  	return 0;
+> +
+> +out_unlock:
+> +	mpam_mon_sel_unlock(msc);
+> +
+> +	return ret;
+>  }
+>  
+>  /*
+
