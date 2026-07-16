@@ -1,222 +1,173 @@
-Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11021110.outbound.protection.outlook.com [40.107.208.110])
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.22])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 431D53BFAE2;
-	Thu, 16 Jul 2026 21:13:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.208.110
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784236421; cv=fail; b=W7393tNlnMQdCuOr9//N7RLuga4cCUK41Us8BXksHNQrv3FMG+xCo4iOKE+TxjNm3TGNISSNGFXW0wn95dYIAdW+jy42CDkhGeQKYkaNU7FEdusLtY2b3ndVNrThBwMRY7mCxV+TmhRNbIeXBV3qPAmBL295Bb3Sw/B1mvbhiaw=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784236421; c=relaxed/simple;
-	bh=4nIqia5mhLQzBTmaWkQGmnw6E47e7GcI3IqX2FVtM/4=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 Content-Type:MIME-Version; b=c7UIcklHQqcb/DeiKVl/FAW6NZHdQnoJJoF1mrr3C0MVpJY7vLHfgOedVPtzlOEyC+Di9ykUnN4WOYz8/ZpeAoE852wGGfp8CfWn8MPjBi+2q+3x1nEo+247VLichwXx2+4meN7MD/PLdP3u4Oku5Iu1OyAeK6TNIZc9udmIVEk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=os.amperecomputing.com; spf=pass smtp.mailfrom=os.amperecomputing.com; dkim=pass (1024-bit key) header.d=os.amperecomputing.com header.i=@os.amperecomputing.com header.b=k9251eDq; arc=fail smtp.client-ip=40.107.208.110
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=os.amperecomputing.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=os.amperecomputing.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24C54345CDA;
+	Thu, 16 Jul 2026 23:45:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.22
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784245552; cv=none; b=ixpD35R8HHSMgvnQR01saqlTO622hibHf6Ngzoe3U4mSA6J6u0lM+hWi0V1sxoCaUpzNuJUExGfNIk3a5EPGfG5vgYDSFXN/decccMJYscMW8JwgI7N2z5MrJu1xLqVdfWQrQ6n7imjs13OrEvPSxvYxFjO2oHVUmke7IvjrOao=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784245552; c=relaxed/simple;
+	bh=7dAcpxOSrUAVGwGuGp02j+DtdiuxGy02JSJTb1pdrCc=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=pgRzMaWXuYjBL5TkP21FQhHFZieSDgUH3YWn+6XWhqMuWB+wMlHImEhTwgQs/EFkWh3grxfK4R7Zi2eFMbpT+lsXgmGh1xdbCMOuANLV9jBxhFdku7tkHXMs8K40A0gX6p1lhFxHkt+wdZz3VyCFjteDkHhUvQgcypWLsEpDbNc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b=IVdbOjzO; arc=none smtp.client-ip=212.227.17.22
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=os.amperecomputing.com header.i=@os.amperecomputing.com header.b="k9251eDq"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=mbGFyEqUIW3q5pWwwc68Qm1mHuPUX1EManeJ4Xavp16WMi4F1ZROWt3TrX9aZcd3fWi2FoJjjj7C7tWBzMTShcqQhggjVa3ANyPZJfFamMhj57xqJKh92GgnbJfF8OxQdAiVRs7v9Yf4HhSyjrcEw7CA7VowtBsye2/FLwuYGNIibSp0xKkiFy+TJwhovh7D9HXw94pPaA5rUWpf8KveIcTGZjOKhcm7J6EwoH6bFjaq0Od9tWqNV7K3kjzxVmAWHC1/5bGkIx2Uihh5IcaWGCES+cVMzWbrDMl0qg3gVVFcU/cVe4cUGCek9uZI9y0E6/fbmSzvftOwazEHk7aQ0Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=XQhQndfAjCCW41vmT/buRxfVcInkS0CvR5/XJnbPAXc=;
- b=T3odd4UIauLQ1fwMnMfL3Fx2p5V+BbD7SvFPyFIu8QppMY1VuHVZ3KwyjnnHmprziusiBETtXjXMjwUUljwQFqpfiT+azSEWMZkBDKrqs01RO5lgfr88o1vKlwDsciX8btjXh/2Dm+BXTcVmEi7/ltAaKsyP/Bif9N4J9Ke+8rNectnyfNw+BYKHiThCK1SoC8YRCtZkm2339lAnK6jeKnU2OmFUH55ogHUHBWQWmWnAjF22rbjX5z+OGdSYg84dzymNSRnS4C6PE3VknN0IC+lxtli/UXFXnk8BDc95Q2B47HyW4bfJFzSzteZFw/v1Ho4S1MRclNyoXyNoIG+dbA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=os.amperecomputing.com; dmarc=pass action=none
- header.from=os.amperecomputing.com; dkim=pass
- header.d=os.amperecomputing.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=os.amperecomputing.com; s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=XQhQndfAjCCW41vmT/buRxfVcInkS0CvR5/XJnbPAXc=;
- b=k9251eDqK6w9nGNkUW/YxefZ9cq3OyC+y3NHuwGo94o3dBMBZTMFSznQn3ozT/gHP1F2/uwUAotF7TCRcUMyoa0TY4is3lAQqYwNhhFvES/BtNHON75wTiOudvjm4K1RqTZnSpKQQ21SvIQOsIck2FoofHBI+Ioy87Ew3jNk3pg=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=os.amperecomputing.com;
-Received: from MN2PR01MB5615.prod.exchangelabs.com (2603:10b6:208:11c::29) by
- DS3PR01MB994655.prod.exchangelabs.com (2603:10b6:8:38f::22) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.181.14; Thu, 16 Jul 2026 21:13:35 +0000
-Received: from MN2PR01MB5615.prod.exchangelabs.com
- ([fe80::996f:e4f2:dbd8:120e]) by MN2PR01MB5615.prod.exchangelabs.com
- ([fe80::996f:e4f2:dbd8:120e%4]) with mapi id 15.21.0223.011; Thu, 16 Jul 2026
- 21:13:34 +0000
-Date: Thu, 16 Jul 2026 14:13:30 -0700 (PDT)
-From: Ilkka Koskinen <ilkka@os.amperecomputing.com>
-To: Robin Murphy <robin.murphy@arm.com>
-cc: will@kernel.org, mark.rutland@arm.com, catalin.marinas@arm.com, 
-    ilkka@os.amperecomputing.com, bwicaksono@nvidia.com, 
-    linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-    linux-perf-users@vger.kernel.org
-Subject: Re: [PATCH v2 2/4] perf/arm_cspmu: Improve APMT-based PMU naming
-In-Reply-To: <8f260d150da4fd8acbe0a070033c9b9e045fced2.1784213435.git.robin.murphy@arm.com>
-Message-ID: <8954907b-9ec0-8a58-8cff-c7c3fc1f6aa6@os.amperecomputing.com>
-References: <cover.1784213435.git.robin.murphy@arm.com> <8f260d150da4fd8acbe0a070033c9b9e045fced2.1784213435.git.robin.murphy@arm.com>
-Content-Type: text/plain; format=flowed; charset=US-ASCII
-X-ClientProxiedBy: MW4PR03CA0225.namprd03.prod.outlook.com
- (2603:10b6:303:b9::20) To MN2PR01MB5615.prod.exchangelabs.com
- (2603:10b6:208:11c::29)
+	dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b="IVdbOjzO"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
+	s=s31663417; t=1784245548; x=1784850348; i=w_armin@gmx.de;
+	bh=1mJEEvm4FbiJHeJ6b+OnPJ/M4l9XDDZkezBn7mj51to=;
+	h=X-UI-Sender-Class:From:To:Cc:Subject:Date:Message-Id:In-Reply-To:
+	 References:MIME-Version:Content-Transfer-Encoding:cc:
+	 content-transfer-encoding:content-type:date:from:message-id:
+	 mime-version:reply-to:subject:to;
+	b=IVdbOjzOiMkuy6ohieq9cfzBfoTd3qjOjkJiVmY2y0oRlVrrSllK8shN7tasqwxO
+	 5Phm4mRLmz6PLchBMlZwbnJql+9dcATw+B8uOdmXgS2f+WC8xGei69c7LWsKGNiZe
+	 CwoSgcgPKfdcVNZ+T/Cb3qLmjFrVcRtATYKtwf7EDHdMw8MtfxZdSAeDPh5dCoxZl
+	 zj31E05e3y8fGGGNId9v60OMiSQUzPUqRhr66hxyGvW8eseFBFjkvI8sDFTzm45ej
+	 NJlGr52a5TiI5nezbS6EP9j0+xwlHc3FOvaqjK39Z7tG/46tS9UiGNR7P5vqkfunt
+	 4pts+tTO7+rf/FfQbQ==
+X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
+Received: from client.hidden.invalid by mail.gmx.net (mrgmx104
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1N6sn1-1x5j2x05zb-0153sa; Fri, 17
+ Jul 2026 01:45:48 +0200
+From: Armin Wolf <W_Armin@gmx.de>
+To: hansg@kernel.org,
+	ilpo.jarvinen@linux.intel.com
+Cc: platform-driver-x86@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux@weissschuh.net,
+	rafael@kernel.org,
+	lenb@kernel.org,
+	linux-acpi@vger.kernel.org
+Subject: [PATCH 1/3] platform/wmi: Remove dependency on CONFIG_X86
+Date: Fri, 17 Jul 2026 01:45:36 +0200
+Message-Id: <20260716234538.1303811-2-W_Armin@gmx.de>
+X-Mailer: git-send-email 2.39.5
+In-Reply-To: <20260716234538.1303811-1-W_Armin@gmx.de>
+References: <20260716234538.1303811-1-W_Armin@gmx.de>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MN2PR01MB5615:EE_|DS3PR01MB994655:EE_
-X-MS-Office365-Filtering-Correlation-Id: b39b5da0-17c6-4644-dd47-08dee37f1881
-X-MS-Exchange-AtpMessageProperties: SA
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|1800799024|366016|23010399003|18002099003|22082099003|10067099003|55112099003|56012099006|11063799006|4143699003;
-X-Microsoft-Antispam-Message-Info:
-	YeI23aHpgSh6FYjS0JIOgcmakKZBsPzbdvTQp9sdusFQrBbXWFI3JlvtP77kjxUvFltcjkF0+TiaqfM5B0Z4tIEddw+oCTrxqwbdNeXg69PfLtHwbVuWasj5nTbWD/kh51YvptJhWWICbZuo4irabSBrM+vNwF1sAW3MoTjGH5WM4ng64xk/3QgliMtOc2A6odiN6HGr9M0pEamu7apHEWOstUqu3SNH3k1ozuN6uxB2TVXrdTaz/TX2i8HEY4XHirtj+PQXQ5p0ldoaPPUzGA5dIZxRLDyLGAl/lOAyEGWbSXMf0VVNwmBk0cnNLj/5dzuNso9h1vYSliWW4u5uvyOHnBlvqo/4h1zC56nTJIuDikEwhJuJ1uOL2fduGD4bUK7xq3tgZK0jVF/kIdpczWpH9CTqYNN/C5Uegh20ZYzKvknPBslEH7vysQdjFlAh+plCk9ABQCNNQ2+BOueoPnugOy9zuuyxXGQRLk5rp48/CfDA1Ez8J83qsO1HZAUzOaCZDubxnoSYhcFxicMPF6DKoPikJvXq6NpqKJyS1bwZV0otOs0cvHazEN2/PZjg84QdQiYj0pDXBuLVbFyhKaPbVV0TaVjony5umdUUTVHvnTNgEb8dSU/sW4kP0P9R2RsnGZhwDXF7HaDVQxZORTqAYkIBLL/clRo2IayNr2U=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR01MB5615.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(366016)(23010399003)(18002099003)(22082099003)(10067099003)(55112099003)(56012099006)(11063799006)(4143699003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?cQ5q/qQkSoYrjBmP8eFRLm4fMi4xBrvEYBApwrWZ816w7/heU8uDbE7RBWwM?=
- =?us-ascii?Q?uftHt7/rilfXGWQlj+tkWteUCgWR+BFdYTZquoFJWim4y+MM0wnVBw8rlkf+?=
- =?us-ascii?Q?AwmByWaKzhj9k1NT+9zzxvbFiwjDfzij0UJukOO8fvjd3d5/x22M7vGngjAa?=
- =?us-ascii?Q?9IGfLMhtvKgwc82DjJcQc+PfF8vpL0ZoaoL9VkbRgGz8gL7jHXQHpKXmj12+?=
- =?us-ascii?Q?uz1kzSM++daC6NQW4siBwWk22DQicd07387jzSxbCZeN9QIGOg7w8aO73Sik?=
- =?us-ascii?Q?XV4pYGrPheiBkAon/o4r0GRt8urDdcgmwXld3k6+elFbVrdfzVbpBYRyOiKu?=
- =?us-ascii?Q?J0OzyWmo/E9lnLGikz+KXP8gXIVhkF87m3QsIm16PJa4v5p0j0ZCJusVAdcH?=
- =?us-ascii?Q?ijZ8Lv+dseMubewQ/p9BR8X98sbwWARC3UWRBtiBlNa78m3gRhsGZKWXWtsG?=
- =?us-ascii?Q?pt3n4EbHkF0GrNbqlx+vxzEthr6M/g4lxcZvgjwJhX9Wdo7eF6AHS/8RFXBu?=
- =?us-ascii?Q?QuLwiC0Op+nFLe/u/3CXO3DSklnlbfyug9u480KPR/dHUyNhWC10o/dsRvT0?=
- =?us-ascii?Q?ecTl8LJs8m97aiLcZbBtcFPFghrNwQ3kZX5opapgGysJh8oMCY+JeOA0vaVk?=
- =?us-ascii?Q?RRNjRMR/mI0m+bIL36xCL2pb1jQ8kC2RalXoJjqf7p0CHf0iSAy4JtpQBkeO?=
- =?us-ascii?Q?x91GJkd5D7TwN9OkX+38pCCaSlYpkhJuSPfR7OB8VKZbVCWMMCDYrJzsHygJ?=
- =?us-ascii?Q?NcFPeOGCx68/WREo1j9tsGDkHRfkL1rw1M+uVjt9tWz+f+nkiGX8+YuUD5Rd?=
- =?us-ascii?Q?YU/rtiMfpTvAfizx+Ebqn1WVqLGkcBC0WtZFeekROS0cMXesMKqjMxciL7mT?=
- =?us-ascii?Q?2FjnKGWi5E51OeIgcjymisH6d+VDRMCvczkfMzBTLVv+PB83QHBfjX5mpkHx?=
- =?us-ascii?Q?QaKEZGHLiTGT+wGnnCdhHY9tNawnPmwNFhn2co6j2oQn5GLEp46z8Odf5NFO?=
- =?us-ascii?Q?tLk8MR76tTBTd4LjEBb30uYrFKwoMVOWmFcN79cunQXr3fbo1GIjuoQA+Wca?=
- =?us-ascii?Q?RmLJ37+c3roG1zJqj2kmb1ul2qM9QJWUqEL7weFGGESrp8WSRShqlB79EFtA?=
- =?us-ascii?Q?YrbonDlfgNmEJsl+H9ijffNnnU+py3tj9CLfiAWmujVsPliQqGCSyZeA7wzf?=
- =?us-ascii?Q?IwSmt/I+Gm4BaLHJ8pMWWL8LMxUhARr5n6jIztAgFziSbqm6Lf5MbzZMqjXY?=
- =?us-ascii?Q?t2CAk8YmaVkAxUVNQBlNnG4CbpRfGxpUezLCi22i55yEhhTSJfsptxEMpFRo?=
- =?us-ascii?Q?JlCdvJBYJS5TtqW38+kxGlTDU0mJjp9y7r4Txhy2iGtmGqg8cN04mV9nmt4d?=
- =?us-ascii?Q?t+m95DvJvzljRsK/8uAN9DEYnhABPdZew1ZFI/nzjoyPVq+tYQvYM/zStZhW?=
- =?us-ascii?Q?3K81/MFT67qDq18L9Wa1FCioDkkumg8tzutBal4hfLPfK3ML0iCsm4awATO9?=
- =?us-ascii?Q?QylLr863Qbjm1o8J6KcA5CwQPhA22Szg1M6oEPzHLxNvk15MGCWl3cn+jkob?=
- =?us-ascii?Q?QpkgDwsZa4y4mvOrxAClwQxz+NaPGr5TX3qwdi9tHJSNkVs+F3dDaZ4xbzN+?=
- =?us-ascii?Q?P8tZKylHhsi1rCXFfh3SaprzmxdMuytTEXMMyJPvb8siqKZlgr8K9+t3ccCf?=
- =?us-ascii?Q?ARxCx4VJdeLqT3TXaV2z+9TZXADwfaTDIwDlRU2xrDCVodonC+3CKjcNGnYn?=
- =?us-ascii?Q?xJ2HizudMIi1rdFBXQrwGtygMkDAxrA=3D?=
-X-OriginatorOrg: os.amperecomputing.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: b39b5da0-17c6-4644-dd47-08dee37f1881
-X-MS-Exchange-CrossTenant-AuthSource: MN2PR01MB5615.prod.exchangelabs.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Jul 2026 21:13:34.8956
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3bc2b170-fd94-476d-b0ce-4229bdc904a7
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 39/Y6/pR00b0YJ6rdBmZKAoYWor/vkroJm/0ZPYsuGMqqdSF4pTS+0jhRpvB/ZIeAdEiPHgzVr/edRc6HfhEPvzOnSBoAyV/U2TiPqGXgU0AXEUQwJ4h3PB49XEtbCoy
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS3PR01MB994655
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:zKz4vvcXZRETbUo3vJfvsQVfsRKLVrkD2ForUyt0tPvMENb4ai4
+ lock3NXJlrAGfzBmBKagdpZaEtEl5bT/MuhLf9HJ6lcyZFCFWeYaqpceQPhdNZqU1EQfGd5
+ SPdcbVEUueMdtnmvT8C4qMUxB88yBiMktLny/Lel8d04bmKEeQrP02bgh+W+4uNBwB7OSc+
+ FeBFOQqc8d7oPgX/d0jzQ==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:acGHytyt/+A=;56cL2SN23qW6fDqPdui+0V6HLPO
+ taLa24qWqxH2zRf04bM95YzBOmxQCdSLF5xIY2aiSI1Y42Mjat/kexQcWTmj4q5JD0itmYMWi
+ 8c9lhKwO5cmcfWdEThhdiZxKWSm5TAxfEhZ6lpK6KQNvIkDaK06YyHEgMP8MlZy9/dZVot7UP
+ R6cwssdgvCh4YfvA/hYY0SXffqXSO8CRocwrZEiz/iMHqXCNOoLk1LJXD+zZmFstjemD1fw3a
+ fzTG50Rhj6pENyOp06Jdj+h61NYvaLsVsJyqF9RJw+0JEB43aNYqyKp2/ZmlJdFDBcLKTX9vb
+ gJyBHdv9SIYB0bdRl9vp7EECH626IiDFX3LpPG6Kx+L7lDMRg+vx4vHFzb9Df7E4cj+RG4ino
+ Cdj6XRFTlTOdRD8GsrtCW8OkR/Ed2nKcIE8IAQOvihiZaisAXTFOFEyEzolBzXga07fdGBOJX
+ kq6RGZ+8EPkBnTd2bX77xK3VksxPWMXH8GTDJ2CAh7k8XoBJYOEj6mWpq6vLpzC7ZZKlap5ZC
+ /HQehT8t1J28r0vAB3iIs4owzFId85BTCWs8XHAHhRiV/5Airmyf/8kl0YK0r1xT8mzp6YyBc
+ yuC8uj/bMqCqgIUhVvhMNn18bu4h3k3uZBqsgxsU+YAxDRZFsjNBa/0OpJ74rrfMgsoz7zpRV
+ CY9wZ0Ywpq7l2UeTKx+e8l/CO85G98cGBScTrZ9OikKPDncCSj+Or4aHQtm6USLUomZugeUgF
+ TXSBHhZU+XGVVVozaxH1/vzUwyjlws8zQJQ+n/QypARyjkzs3CldO0uk1Ww6rkboVCq6WOLKd
+ JgVEqa3OBNf+8dYFTE97nc+01Y1r2vRz0cfxMG5wgsNbjRlxVn48NdPjy/Lm+dV2hYFoh2+kJ
+ n/aZ8ZqSM1fB9Z4ITQJmQ27DIkxrZ6D7yGNORg45BVPhc0XLAYQHlr+yVJ2tSIqNr6SVDN21s
+ GdlYIe636240PrqpMSgV1153eUPmZ1o1F4E9c45pI5Y0yZQy96SkjyzYtkO2lSnxXf9kFlVAI
+ 7USVpVBjdG9s0iVDygOC4TcMe4FTCu/PCLGeVK1n9hsTn56rp65DT7if1ElJKbGOjaQIR6+F1
+ 4GkMz0Hdi5wRItY9OJygNzaznCLREOjpkrkBrBhMvneQewoifAci6uRCuRSkjX6ZR3d6JUEno
+ Bwate3aC4mykw+yrSipRJSrjnaeaxkd+KfNRoYMzCRHgR2eId+DgvJMn/xOuLpqODJ/lOrfRR
+ RFpPr22ZKcY/XCRahcf9o2qmzNlZd9HCbeornihxZe1AscbADuh9vbgAFneg+hqf1roMoispT
+ 0a9P6NAdOTYHgtKOrE2qjsCZs0A/lBxzoxr4NI4qhLKM6tTtY2Z8in+SodGVYDAYvor81dA5d
+ p4QHBIg444RtwDpeC/hMqw3cg49VLj+cLHNtTwMDuAo9ovPAkk4ixR6zCMIfUj+yEP2/tNfRl
+ YgcPF2W2XYKwiYw63CWy00Auy8tmr4p2m/mqhS+7poBdNacXnAtKT/1OIwgR4DtNeoWy83u3r
+ 1MOvNMjsN5schHIvAAYgpEgbsYNk3M+pw2pmn/SWNjU1ZBFIIQdNPWsWG0PKE9WP/oWvowzbS
+ lmVyHpDGFNfpfguuMHsk5z6uVh0NJhDes/hivJhEF6vjmc1vh9fgWcweT7c9XJMgxN9obX7t/
+ 17FtEs2+SqHG0gzPBLId0IRw/vunk8twgkJ6LFrmTP4/68ESgzfMhFdqT88A5sUDdj8TecaUt
+ uYUngQJNmF132FpQi9e3i3f6T0Zuw1zfjxWlrPvamMZHHU884HZ5VlB39bW5AWTxbqOoLPJyj
+ DcKn0PDhzIgLxVxvfIUQCqGqYroIfHb3lQiOKZRNRnpWikksGBUQvOIGkx974Lwsl+roAqkc/
+ zqDRB2DabcB0+G9JPySbMNbX3asGTX29XlmTgvDfBLnQxFimsw0YLO2h+2Ydhy6LsYDaJxN5K
+ uHqsfoZCB0B/zzE7PCgqyQpYelAsEevFiX11vxXug37QLIwfRWDVa/XswEoUGfMK2ppoOpmBY
+ bSsF22eiEytjIUR2eNtw+cI0Y8eTT6RU7aA3IOUrw6Hn5EpHOXHWayq5T9CPnHOeR0No4N1M3
+ NLISox2Z5G2l3nZfJNbw6dHIvZFWLdlHh69ivOEL/gzHqSW/aBsIfYRPh4vHdKn6JbcBvrYeQ
+ hW4qYcOhsVOhydO1Ql03dC8QxCsb3XEBEKVveCzCS9a5LO8ydA920aTbpWefV9sxM6CpUig6O
+ ikFz8BaGGqdYeRCzeHNd6iveXtIY3dX3/2oHAVFkAK4kb29sCwwAKs7VXnApaCcROiY4ZkZVE
+ AyVMpvX2rileZIzdczw4GtGhK0o+uXxYK8kf6fauASae8UrxiSVJoN0zQUymKEmfOJZrqo0Lq
+ GxG9PS4LNAzLVvZYFLnBs5eilsZjz3tT9JhaJz02AaCGRAhIiKOy/fGRtjiteiDe4Wql2bbJ5
+ IO5ZtawdC7LD/vTq6ujabmknWzoVZUIJ/TWms/4VOqZ5NL7GMPvCNQsa/sG7wNW8Z5UFXV2zf
+ pXbnMEpUwI42RQwW5/p9vFyBYD57bSlMS/UogqkaOWtwL5VOZSX7I1oVO4UXl1RB77E2g4RCR
+ MeDrb6GdIPm+T1/4LqyfAvLF87wcSovloRho4ZX2rRMSl99x47fn3FlrNOT+kVaSzYQo9+3ju
+ 59gJ3sBBedPW81pYCUlHoPSitIEx2z4Rb/1ZdnKr6RDZX3+mmw3rZ5sbj8N9G9lmpPfD55a5f
+ /ZOlGvPKFUrjFfdUL4obG3Z7ps1zgbz8I6STXGizv+UeItV0h9V70XdrB25JNxEgKP/KUAd1x
+ iBfhgFqZN5QG0nd1WXsIPXVh3I+NRMynBZ2z2C9AWgqKu19lOixXU558B2K8xEXMyJ0GCpPeN
+ PHePDzdYNUw+Id76iHXpMiq6R+CEVN9GBdpQc+tMfZ4n8yDCheeGz+7z9tugPePfK+Ywk4ZGm
+ swGS7hEgLNtXZF8q/N51nfG12HqnKm6dUvkdzUh2VT6Hwtew3O0fA233xGX1jmLdb4jzMmN35
+ ev4HYHWMA1i56XkrHsEtkZk2dsVJ9OpexNLEhKNsor8oNPwoNi6wAeV1OBGrcr5Fek+u5+5Gj
+ OW3QPQsAhnVzNtj5x2hAxV1JMPxYhJpIxM2EXZ/5Z+KYD5luRVzOJGpZv4T0dfsNL3xe+OZsE
+ zKvbiM73CmYOBRpD05/wvb0OQ1WjtAJewEtYETMwIAr6mcMTJPewEJXUxekLWeRTCp7seZuRE
+ bVc/1ryVZdcFazDPe1/ZYyhG1ibz5tIZV7CR9axlu2zhK2OUvDCRNr0Y+K6DFbpEmTyCS1sa/
+ xorLyJmW4EGyWb5ddty2EiiQOFfzLYl24mTWv+hHopQnJ9qTQgC800TnaK1eiGZ44UPX/L+u+
+ gESh0oh1rtgC895Twi48UgeeT+vYXRJZqZJc1ZZQv6jqok45qgnbq1rmH7pDoJDtGMgBxz1CH
+ wMjOd4D7B/yDKitCeo/HeGEiRxwU4GG/DGUWGAdBXxxaxzC+w5YGLTAzxI3ids1lg8JoyDSsr
+ D4s1c5cUYAK93+4cmfAp9HZbklLE5Xm/V/zWixxH9zpzJ1aZWwvPTcRs5t/stRFpZ5KKgJib0
+ 4prIP7zs6VsuZiZFl1PGY88wz/9qxueFjRHZflPN2VBFflLLWKSPHyWborBqKHRmsrTIUMIYl
+ MUE+uPCGN5Hpag8X0qE90V3jcpy3+D8aIqAXWu93VRVww6fgPNajSG4vlAns0QJnUA2qfKBwc
+ fXB5hhpAH6vs4qdvUF2M8dE2keTNP2M4M5H0Xb7mb4P1HyiONCS04UlbjvwiuJja+GznUclgF
+ r0lu0+NVVbki1dYHYySMb65bRo9NH5O+woIl0rEtc/NrkZ3fWloXJ0skIxIbvNN2APvE8oL4Y
+ ++20qQirIOu3V3R5eUTKjty7CfLbodr8MENym6YbqUk8XqKst4e1XGVt9dBISAEHsHHbVSELJ
+ 14Cia6D9EUdESjPKOjqco9YoARsryn/jsxgQhNjXTznDoxRnZJ09xoyCdeChLH5Irul9VW9UE
+ OqmMIhR7s05eZb9ce2lDCn6Pb0kpdUaw9xZKbgUwPQ3tTqR2P+LvRsuY4lv9AZ71T5Z/nXsRx
+ RaIiYxpu+euorcAskrTJC1LEYkjIY3ESqnvWoocYqwU/TPhAgP4evyBmJxmCMAnCcr7/CsSx1
+ oWd5FlGOhUBTcG37/we1bHrIdb8ASk8a3UEGgztHWk8M7U5OMtUoVfiKqU56tM/EEOsLbW5SM
+ mjVCQZeaq8Vam8+iT5+Y/Ui6meuruWmcTMk0NTf7eIq/WINN8uZBVYWct6CxuxSJzNIYKI45X
+ pylt+O2SVV9dOc0EO/Ar486Wv5UC88di8jJP+BGBkFqzbrbL5mIMJ0nQYTgABkcPZc9QRCYAj
+ j44txd0CynROr4VSRyyLL3mAIndJcySqZSbIh4utxO34kjm5JTFKosfh5eun00ELgqw6bf8BQ
+ KTLMWFenKE6saci+GoitHuKEtg7amKUNfrXh2Tx/cRD9XdpWE3gjQZdFpahxMC/VNgC8JuiUB
+ 5lgvBtIHfigQAtHiPZUtisGvB+0TOHXrUygGJngr3cKThvZqqLNj2CjtOEmhKxRy1t1xTyEfO
+ QHOkM/tyow2k0i17xs8p7MwxOlTWAIOXxi06p4RhtAiSYtNA2bW5rSSNFhSD2yQtbut03+/lh
+ ZmYwXtnEum3mbLOlIrgDSzvFUNrtMnhJzQnA2dDZehgJlwJo6J1rnQ3cBeg1QYTcxlFPyQ5t4
+ pt+A9PgkfwuOtUVKo39vJAc+9eQqYPbfQJ2d94hWy2ub0iwZIDtfRqnXGOFSAve0NqXSbh7gY
+ 5/dI6Si9Cwm1rkOSJVt3jTa4I/0nYiYfra6yI6kYv7SyFxUjlrKnH27xveEvONfWis4hB4xMf
+ ee+NPlKAcZyBchFRaEoGMIGUPWAkd1A0cWzG5wo3wvh2o7X0Bm1oZi44XEa9fjtNHD/MgRE2u
+ mm+hGU1nk5MG1YZyLpnuGEb8rMo8eVh5ixiWVpaONHY8sh3jouE7QfucCitVMWYcQmOb6lqeg
+ 5js2L1zYWKoJMEBD9J397FUqH2/ApFt3X7KguXBJNLJCEign1jAVIgEAM/ut+QYoxQV/SKk8R
+ 7bhL4i+0DBJtA/X3D6iEB4lVNPAMbUVLMW0X0E4ABMd1ubEfZPWs1nh/Otap57BYJC02bGi/a
+ WzDU4VCEWuGCQFE2MaLUoUhyR4y6+FJ7JA0/wJOJwTNF2vvSMTAkCLcpOwK6FkbSPYufZoQ1Z
+ xBx+8XXfZJkxhKO6ynyZKUYhiEPv2bebkKAQwDdYUNvpHMKtQ0zFd6aDS/gnBBD5HAOp5xFye
+ dmo8RJ1paww7E+RP/nqgA1IMkgYuJvce5BY+DXcZ8RuBG4cIFdK5mo0sf3Zv/QTg+2wcjPS0p
+ cEWqT14orH5eI0fJlOkIjuORErcxyb6X5/mtooxkytdXHakLxV1Yn06nlB4zXbtYlXW5DIHq0
+ qTwNvT+EprNc4KUDvrCFPByjN84VwZOBmt40ulQmcmnBrBIdp4SRm1iJYz3/DTATYTlR6jjtD
+ E7vUwO1SjAcCl6+JNMT1Anayf9dTh838EKOncZCQNyIKqmLpEiac4M9bpxLZHK5XGGWuedtRu
+ Tg3Mijw4oWtwHMk2v5S+0id4QOLn4yUYCvarcOYReo2Q70iRZ9CtDptdjTtx4uki74GXZHiQF
+ 1MSfLS/sNZBX439jzjSZ0noVebdLavZTSsCH13jCTHPOz4XrCsa1aKmnWLf7/F5JGCtjAQDeQ
+ =
 
+The aarch64-laptops project found out that some Windows-on-Arm
+notebooks contain WMI-ACPI mapping devices (PNP0C14) that work
+exactly like on x86. Remove the dependency on CONFIG_X86 to
+make it possible to build the ACPI-WMI driver on arm64.
 
+Link: https://lists.linaro.org/archives/list/aarch64-laptops@lists.linaro.=
+org/thread/U2IZENSIOOHZHGXVN7GM5HX5O3FD5KCF/
+Signed-off-by: Armin Wolf <W_Armin@gmx.de>
+=2D--
+ drivers/platform/wmi/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Thu, 16 Jul 2026, Robin Murphy wrote:
-> On ACPI systems, it has not actually been possible for userspace to
-> reliably tell which PMU corresponds to which APMT entry for types
-> other than "ACPI device" - the evidence trail only leads from the
-> arbitrarily-numbered PMU device to its arbitrarily-numbered parent
-> platform device that has no distinguishing features either.
->
-> While we've now improved the platform device creation to associate the
-> actual APMT unique ID, we may as well also tweak the PMU devices to
-> substitute the arbitrary number with a different arbitrary number that
-> might be more directly meaningful based on the APMT definitions.
->
-> We don't have an equivalent for Devicetree, but in that case the
-> platform devices are at least identifiable via their sysfs-visible
-> of_node.
->
-> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
->
-> ---
-> v2: Actually use the instance-based ID where different from node->id
+diff --git a/drivers/platform/wmi/Kconfig b/drivers/platform/wmi/Kconfig
+index d62f51ff3b7f..36934b5f0194 100644
+=2D-- a/drivers/platform/wmi/Kconfig
++++ b/drivers/platform/wmi/Kconfig
+@@ -5,7 +5,7 @@
+=20
+ menuconfig ACPI_WMI
+ 	tristate "ACPI-WMI support"
+-	depends on ACPI && X86
++	depends on ACPI
+ 	select NLS
+ 	help
+ 	  This option enables support for the ACPI-WMI driver core.
+=2D-=20
+2.39.5
 
-
-Looks good to me now,
-
-Reviewed-by: Ilkka Koskinen <ilkka@os.amperecomputing.com>
-
-Cheers, Ilkka
-
-> ---
-> drivers/perf/arm_cspmu/arm_cspmu.c | 35 +++++++++++++++++-------------
-> 1 file changed, 20 insertions(+), 15 deletions(-)
->
-> diff --git a/drivers/perf/arm_cspmu/arm_cspmu.c b/drivers/perf/arm_cspmu/arm_cspmu.c
-> index 80fb314d5135..8c2dda17d73e 100644
-> --- a/drivers/perf/arm_cspmu/arm_cspmu.c
-> +++ b/drivers/perf/arm_cspmu/arm_cspmu.c
-> @@ -250,38 +250,43 @@ static const char *arm_cspmu_get_name(const struct arm_cspmu *cspmu)
-> 	struct device *dev;
-> 	struct acpi_apmt_node *apmt_node;
-> 	u8 pmu_type;
-> -	char *name;
-> 	char acpi_hid_string[ACPI_ID_LEN] = { 0 };
-> -	static atomic_t pmu_idx[ACPI_APMT_NODE_TYPE_COUNT] = { 0 };
-> +	static atomic_t pmu_idx;
-> +	u32 id;
->
-> 	dev = cspmu->dev;
-> 	apmt_node = arm_cspmu_apmt_node(dev);
-> 	if (!apmt_node)
-> 		return devm_kasprintf(dev, GFP_KERNEL, PMUNAME "_%u",
-> -				      atomic_fetch_inc(&pmu_idx[0]));
-> +				      atomic_fetch_inc(&pmu_idx));
->
-> 	pmu_type = apmt_node->type;
-> -
-> -	if (pmu_type >= ACPI_APMT_NODE_TYPE_COUNT) {
-> +	switch (pmu_type) {
-> +	default:
-> 		dev_err(dev, "unsupported PMU type-%u\n", pmu_type);
-> 		return NULL;
-> -	}
-> -
-> -	if (pmu_type == ACPI_APMT_NODE_TYPE_ACPI) {
-> +	case ACPI_APMT_NODE_TYPE_ACPI:
-> 		memcpy(acpi_hid_string,
-> 			&apmt_node->inst_primary,
-> 			sizeof(apmt_node->inst_primary));
-> -		name = devm_kasprintf(dev, GFP_KERNEL, "%s_%s_%s_%u", PMUNAME,
-> +		return devm_kasprintf(dev, GFP_KERNEL, "%s_%s_%s_%u", PMUNAME,
-> 				      arm_cspmu_type_str[pmu_type],
-> 				      acpi_hid_string,
-> 				      apmt_node->inst_secondary);
-> -	} else {
-> -		name = devm_kasprintf(dev, GFP_KERNEL, "%s_%s_%d", PMUNAME,
-> -				      arm_cspmu_type_str[pmu_type],
-> -				      atomic_fetch_inc(&pmu_idx[pmu_type]));
-> -	}
-> +	case ACPI_APMT_NODE_TYPE_MC:
-> +		id = apmt_node->id;
-> +		break;
-> +	case ACPI_APMT_NODE_TYPE_SMMU:
-> +	case ACPI_APMT_NODE_TYPE_PCIE_ROOT:
-> +		id = apmt_node->inst_primary;
-> +		break;
-> +	case ACPI_APMT_NODE_TYPE_CACHE:
-> +		id = apmt_node->inst_secondary;
-> +		break;
-> +	};
->
-> -	return name;
-> +	return devm_kasprintf(dev, GFP_KERNEL, "%s_%s_%u", PMUNAME,
-> +			      arm_cspmu_type_str[pmu_type], id);
-> }
->
-> static ssize_t arm_cspmu_cpumask_show(struct device *dev,
-> -- 
-> 2.54.0.dirty
->
->
