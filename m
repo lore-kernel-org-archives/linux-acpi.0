@@ -1,179 +1,108 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC2293CF204
-	for <linux-acpi@vger.kernel.org>; Thu, 16 Jul 2026 08:14:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 99E0336A35E;
+	Thu, 16 Jul 2026 08:42:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784189684; cv=none; b=BjlU8C2gNV/Ogl0nAgofcsj49BnFj5LqePIjTy4umuxdJJ2JD1No5jTmKjcIBV3NqkBS9QO/GSYxbQZV6dfSRQVmEzYAusdWsu74C65qi/T5JGPVPFYYa48N9AFA8TRJ95MDsDJ5vk9xRobvf3PB1mbZVd5unE7R235b1HhnOvo=
+	t=1784191351; cv=none; b=SL0H4FaRJj6BbLvsBlsk9/DlRQvVaw0bRa2q+1HL1pbtqRcVdGkq1c9ITvGd+fusMBiFceSffxjILR3z7jX/lernybzaBcJVPE3mH9vciVDNz6VwiW5pA8CQx2j36jE35Gx9j/gOt0T32x1v+N/8QRnun6hbrU6fBt50DBAvKYE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784189684; c=relaxed/simple;
-	bh=NXTOoEEEs1TNjwS3eVeqIN1iuZ+ICzInI+C7HcEYipc=;
-	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=InUh7vWsRS/dOSMMP7AC06qZ0HIwislA/PGxuHgtqTDf5KpJePm9gv0agFFZF169FttN68Av+iVQOsDohO3RpaUUlr6NaDu/xhFhLgapP9cq8SshShbksB95WfxABxHcEDgFqaxHklMtBc32WnTdaCRAuqJK03RV1aIKoBo/4Fc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ILXJIECA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784191351; c=relaxed/simple;
+	bh=AkwPQwean6bJOLieEq5NCfM20lWebUz2uC3qETyOcvo=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=ZBvPGoaZmhfoWEDEeN2gScsFQBje7idLgEPZ4T2cVqEHAZnx52rEceV4+uHDLUtvmEmE/SWdJ40N/Ge3Bg+xw86/gEX1vSjVJZ2iAR9eFek6L4aDAkcD2WJ/fHxOeq4PhbOmKB4qZnrx+oiNzKlbWyDb6WxfJN+ghoZwH4KtG1g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=o11U1Etg; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ILXJIECA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EB831F00ACF
-	for <linux-acpi@vger.kernel.org>; Thu, 16 Jul 2026 08:14:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784189681;
-	bh=S6dzhBrZchW3iZvyn1hIvbsasMrCxNEsko6TeLvbddM=;
-	h=From:In-Reply-To:References:Date:Subject:To:Cc;
-	b=ILXJIECAsF50gCjzfPbo9WZ++uCuclPTHWsj/RRBjDVaQXiS3A7eKkrJVaM45nwRq
-	 vsR1AL39qNsL/TTa/+zhzhQr29o2VwZneXGkKEgx5yicEAaup/pXqZ68oTzSJneAyH
-	 a+FRUiiHHdUA7WHqKNVU/W60AN0scXOCedQyLqpc/HK4PgLeXxvTPVL1F0+L2EKQNX
-	 f4hTAs5bekpCWzp1JXckxrMcTSkYloomfCYNDgvEkzvxRIIhdGW7a4oZccDNG4fm3a
-	 JQ+dsMXn47utt2p1g69B6V/aJc5bjHuE9GewcW9IgwAZw4lT2SjDrlVI/EzTMYOlNM
-	 37zTJ6KOsRoOg==
-Received: by mail-lj1-f182.google.com with SMTP id 38308e7fff4ca-39d560a1dd4so13945341fa.1
-        for <linux-acpi@vger.kernel.org>; Thu, 16 Jul 2026 01:14:41 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RptfoAhIP5to26jrg1aQx+19pTsspaa3oUkzbo4FlsGl9JdrGEOUgD0Qb1yxYodjUAjvr0xE411cduV@vger.kernel.org
-X-Gm-Message-State: AOJu0YyamWIrMDhdRkDby7smII9ou9/n1Z05EcvUH9V9wzus++bvcpVq
-	PylsAudXyM+xmIIv9RjjpAi+BEmOSvFQvCjaTTdv7YehN7YEW6NO+Pkt8FdTqEI1hxTZK/gKi1Y
-	N8kLbMuJAygKE4Y5cKMgUlMvVXRid9M9wkTl/3p/ujg==
-X-Received: by 2002:a2e:bc82:0:b0:393:6934:6104 with SMTP id
- 38308e7fff4ca-39db6c2a16fmr12970681fa.19.1784189680282; Thu, 16 Jul 2026
- 01:14:40 -0700 (PDT)
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Thu, 16 Jul 2026 01:14:39 -0700
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Thu, 16 Jul 2026 01:14:39 -0700
-From: Bartosz Golaszewski <brgl@kernel.org>
-In-Reply-To: <CAGXv+5HGjGTrqqzJrpiQhLrCn3C6H20LXq3niPnoujQLOwgqPw@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="o11U1Etg"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id AF4C8339;
+	Thu, 16 Jul 2026 01:42:24 -0700 (PDT)
+Received: from [10.2.212.8] (e134344.arm.com [10.2.212.8])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id AE8D53F7B4;
+	Thu, 16 Jul 2026 01:42:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1784191348; bh=AkwPQwean6bJOLieEq5NCfM20lWebUz2uC3qETyOcvo=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=o11U1Etg0MT7MzmigGKzPHOk8/Abs4lqfkEwGaDptWAWhO9fFwb3ADmFvpv+YOJ93
+	 IxZn93adAI0GhCveDZb2RsxMijGjp2IDYkQiBxGcwyukDuocrB5nrROh9wxXhA6Bnz
+	 cdKNBUyYYPN6/mANS6tBUos752Aug+zr/kCtAg/c=
+Message-ID: <4e911af5-1604-4cf4-8a1d-1ec59bbb7939@arm.com>
+Date: Thu, 16 Jul 2026 09:42:23 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260715085348.3457359-1-wenst@chromium.org> <20260715085348.3457359-4-wenst@chromium.org>
- <aldS3qTympJuVXYj@ashevche-desk.local> <CAMRc=MfHmejks83bPfe3fKzAzFySGXk2GHMA9oZdMQj0f44eTA@mail.gmail.com>
- <CAGXv+5HGjGTrqqzJrpiQhLrCn3C6H20LXq3niPnoujQLOwgqPw@mail.gmail.com>
-Date: Thu, 16 Jul 2026 01:14:39 -0700
-X-Gmail-Original-Message-ID: <CAMRc=Mefxn81d0VUwmQgwFtffkL1=Er_1VQZCbC1Sa-Qph4t1w@mail.gmail.com>
-X-Gm-Features: AUfX_mxn6Bl7rEMqDoJ22rvXDaXvLC48Woi6Y6ypETbOrTpITKxwxCyFT1q8e60
-Message-ID: <CAMRc=Mefxn81d0VUwmQgwFtffkL1=Er_1VQZCbC1Sa-Qph4t1w@mail.gmail.com>
-Subject: Re: [PATCH v5 03/16] power: sequencing: Add pwrseq_power_is_on()
-To: Chen-Yu Tsai <wenst@chromium.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Daniel Scally <djrscally@gmail.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Matthias Brugger <matthias.bgg@gmail.com>, 
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, 
-	Wei Deng <wei.deng@oss.qualcomm.com>, linux-acpi@vger.kernel.org, 
-	driver-core@lists.linux.dev, linux-pm@vger.kernel.org, 
-	linux-usb@vger.kernel.org, devicetree@vger.kernel.org, 
-	linux-mediatek@lists.infradead.org, linux-arm-kernel@lists.infradead.org, 
-	linux-kernel@vger.kernel.org, Manivannan Sadhasivam <mani@kernel.org>, 
-	Alan Stern <stern@rowland.harvard.edu>, 
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
-	Bartosz Golaszewski <brgl@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Thunderbird Daily
+Subject: Re: [PATCH v3 06/16] arm_mpam: propagate MSC read errors for
+ __ris_msmon_read()
+To: Lee Trager <lee@trager.us>, Andre Przywara <andre.przywara@arm.com>,
+ Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
+ <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ James Morse <james.morse@arm.com>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+ Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+ Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+ Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
+ Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20260710144520.917375-1-andre.przywara@arm.com>
+ <20260710144520.917375-7-andre.przywara@arm.com>
+ <673b79c0-d2e6-44a6-a1a8-a2ff92f2ff53@trager.us>
+Content-Language: en-US
+From: Ben Horgan <ben.horgan@arm.com>
+In-Reply-To: <673b79c0-d2e6-44a6-a1a8-a2ff92f2ff53@trager.us>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Thu, 16 Jul 2026 06:59:01 +0200, Chen-Yu Tsai <wenst@chromium.org> said:
-> On Wed, Jul 15, 2026 at 8:10=E2=80=AFPM Bartosz Golaszewski <brgl@kernel.=
-org> wrote:
->>
->> On Wed, 15 Jul 2026 11:29:02 +0200, Andy Shevchenko
->> <andriy.shevchenko@linux.intel.com> said:
->> > On Wed, Jul 15, 2026 at 04:53:33PM +0800, Chen-Yu Tsai wrote:
->> >> The power sequencing consumer API already does power on state trackin=
-g
->> >> internally. Expose the state to consumers through pwrseq_power_is_on(=
-)
->> >> so that they don't have to reimplement it locally.
->> >
->> > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->> >
->> > ...
->> >
->> >> +/**
->> >> + * pwrseq_power_is_on() - Queries the last requested state of the po=
-wer sequencer.
->> >> + * @desc: Descriptor referencing the power sequencer.
->> >> + *
->> >> + * This returns the last requested state of the power sequencer.
->> >> + *
->> >> + * Returns:
->> >> + * On success, 1 for on or desc is NULL (optional) and 0 for off;
->> >> + * negative error number on failure.
->> >
->> > I would rephrase it a bit.
->> >
->> >  * On success, 1 for on and 0 for off; negative error number on failur=
-e.
->> >  * If desc is NULL (means optional) return 1.
->> >
->> > And this rises a question: why 1? Shouldn't it be some "unknown" state=
-?
->> > (But since Bart Acked this, this doesn't prevent the patch to go, you
->> >  got my tag above.)
->> >
->>
->> No, this is good feedback. Maybe we should prefer an enum like so:
->>
->> enum pwrseq_state {
->>         PWRSEQ_POWER_UNKNOWN,
->>         PWRSEQ_POWER_ON,
->>         PWRSEQ_POWER_OFF
->> };
->
-> Well I think the crux of it is whether the API considers the descriptor
-> optional. The power on/off functions suggest that is the case.
->
+Hi Lee,
 
-True. That may be an inconsistency of the API contract on my part. There's =
-no
-such thing as an optional variant of pwrseq_get() so perhaps pwrseq_power_o=
-n()
-and pwrseq_power_off() should be converted to returning -EINVAL on NULL
-descriptor.
+On 7/15/26 20:52, Lee Trager wrote:
+> On 7/10/26 7:45 AM, Andre Przywara wrote:
+> 
+>> @@ -1748,6 +1758,7 @@ static int mpam_restore_mbwu_state(void *_ris)
+>>   {
+>>       int i;
+>>       u64 val;
+>> +    int ret = 0;
+>>       struct mon_read mwbu_arg;
+>>       struct mpam_msc_ris *ris = _ris;
+>>       struct mpam_class *class = ris->vmsc->comp->class;
+>> @@ -1760,10 +1771,14 @@ static int mpam_restore_mbwu_state(void *_ris)
+>>               mwbu_arg.val = &val;
+>>                 __ris_msmon_read(&mwbu_arg);
+>> +            if (mwbu_arg.err) {
+>> +                ret = mwbu_arg.err;
+>> +                break;
+>> +            }
+>>           }
+>>       }
+>>   -    return 0;
+>> +    return ret;
+>>   }
+>>     /* Call with MSC cfg_lock held */
+> 
+> 
+> mwbu_arg is never initialized and __ris_msmon_read() only writes ->err on failure. If on a
+> successful read mwb_arg.err tests stack garbage it can spuriously break ot of the loop, leaving the
+> remaining monitors unrestored, and return a junk error code.
+> 
+> Setting `struct mon_read mwbu_arg = {};` matches what mpam_msmon_read() already does. Additionally
+> val should be initialized to 0 too. __ris_msmon_reaD() does *m->val += now, and although the result
+> is discarded here, KMSAN would flag the uninitialized read.
+> 
 
-> I modeled this on reset_control_status(). I believe the rationale is that
-> if the reset control or pwrseq is optional, then either there is some
-> other mechanism to deal with the reset (GPIO) or pwrseq (GPIO + regulator=
-),
-> or it's always on and operational.
->
-> In such cases and the rare case where one has to query the state, the
-> queries are possibly chained together and I think it makes sense to
-> assume the "operational" state as the fallback.
->
-> If this returns an enum, then I think the previous approach of returning
-> an error value for an invalid descriptor is better. One doesn't need to
-> learn a new set of return values.
->
-> I'm fine either way. I would just move the checks over to the consumer
-> side. But I think the principles guiding the overall API design is
-> something you need to provide:
->
->   - Is the descriptor optional? What should the action functions
->     (power on / off , or query status) return when NULL is given?
->   - Is the subsystem optional? Should the stub functions besides
->     pwrseq_get() return 0 instead of -ENOSYS?
->
-> Right now the API feels like the descriptor is optional but the
-> subsystem is not. One has to add IS_ENABLED(CONFIG_POWER_SEQUENCING)
-> around the consumer API to make it an optional feature.
->
+Thanks for the bug report.
 
-There's one more use-case where the power state trully can be *unknown*.
-Please look at the proposed new function from Loic[1]. Here we deal with
-targets over which linux has no direct power control even though it may sti=
-ll
-control some of its dependencies. This is where an UNKNOWN state may make
-sense.
+I have a proposed change here which aims to address this existing issue, [1]. Please could you check
+and confirm whether this fixes the problem.
 
-This is where I also floated an idea of renaming pwrseq_power_on/off() to
-pwrseq_vote_on/off() for better clarity of their purpose.
+[1] https://lore.kernel.org/lkml/20260710115546.29644-8-ben.horgan@arm.com/
 
 Thanks,
-Bartosz
 
-[1] https://lore.kernel.org/all/20260710-monza-wireless-v3-3-46253587af64@o=
-ss.qualcomm.com/
+Ben
