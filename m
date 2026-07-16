@@ -1,76 +1,75 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4F8741F7D4;
-	Thu, 16 Jul 2026 14:05:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1544E41A558;
+	Thu, 16 Jul 2026 14:56:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784210750; cv=none; b=r8RSNQdAcDKykf6iiKJmxxHSBOWBldBNsjrN4R2Bv/Rms4hY+mjs9Mw6XFf4i3V8W8ecjj1YMf22b5XRTuOo895bE3oXMX05el32qHjt7LDYphSpKUDH5Rd1jZvopstxuCd8DeI7h+HHeA6Pje/8u0J2cRp5G4yLZwP3JrKLauk=
+	t=1784213805; cv=none; b=IRvELvsQeFh5uN0V/2G7NS/yca7BISYTljeBDqJOZtpjK2hPEoJ7PiEfSsiDCobGk5UWpUKWrBtK9dAROC0yWR/Bi4Dp2Pi6NZyA/VKn6VHtRVjFHLE0OoTSgh30pMmX9eAaZDFJzrirCWw/MfFvo6hLbH8OJD4eYNBBbxQN2vk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784210750; c=relaxed/simple;
-	bh=l63rcMbv8glGYvwLJe9duT6ZRlcmMrWjvSYW3VeYnC0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=m0PJY0zW83QwVCSc5xgXOk3vZVxMw6Sgigidyg6oSGO8RoA4awJK8RKeoC6DHQq/RzQ+eaG3kmTlbUHWpBRcsfW7/Rot2ULtzD7z0vxvcly2Lf9U4HnqUqVHAui4Z2QEoYAojyOY3kBe+HeB9l/cAezyRAjDjvILzVAufBEmBDE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JNn6XgpV; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784213805; c=relaxed/simple;
+	bh=OeE48gTGuCZ9msSMA3TQXhBCtnD2xyz0+Yow4siGDBc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=EHXlP38Z8GdCXxGuGmj1RaV8jIr3UbfS4JYNHCId5utZqKBl+lFtt9fz3L3EwwkYVahILl2mI2MAkZsaWI81vHCOyta1K+SpHKhmmt1mAGek7blPLgFTVEgBf973ZLuQ1lUGxu6SsPigxnttLtq9Sw7WbSoBOFGG+6V+KmUkYts=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=bCHKgAz2; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JNn6XgpV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28BD41F00A3A;
-	Thu, 16 Jul 2026 14:05:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784210749;
-	bh=LXfGoC+Q6fH7VKtkDmjkzHAIJoXk/VEZG4n7L5/r2zw=;
-	h=From:To:Cc:Subject:Date;
-	b=JNn6XgpV5NWiMLrcPB9pFNtH1JTnC6vFCz53vB/EYVSvwNUkxOQ3yl87JYQeiNuP4
-	 k6jRGGIsPN361IZ7eW/b6dYlh5pe5Otsh8ReDKLBwyHYiaQPTJBpPRl1eYnwvHtg9r
-	 qWzCdVJvccegVD9UujQKPoNJrSfqfwkek4PvPc+6O4SgkWkgVxvytTEniCVYDiPPsj
-	 uAks4THfeBB/or7qA78CdehkcuzDIrAAV6qddpLsDvTImdvPRrEuKZk6aKL8+db6kA
-	 FVfnb2ujAVtHHiiu1CSJK2pKZnDUk33ZtPgZVT7ulSE9f23zBSiGqGcc9XWzcP9afB
-	 +OneZmv9OgpbQ==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux ACPI <linux-acpi@vger.kernel.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Linux PCI <linux-pci@vger.kernel.org>,
- LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>,
- Hans de Goede <hansg@kernel.org>
-Subject: [PATCH v2 0/4] ACPI: Add and use acpi_dev_get_pci_dev()
-Date: Thu, 16 Jul 2026 15:59:09 +0200
-Message-ID: <12935400.O9o76ZdvQC@rafael.j.wysocki>
-Organization: Linux Kernel Development - Intel
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="bCHKgAz2"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 0B0FD1476;
+	Thu, 16 Jul 2026 07:56:39 -0700 (PDT)
+Received: from e121345-lin.cambridge.arm.com (e121345-lin.cambridge.arm.com [10.2.212.23])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 30BC73F7B4;
+	Thu, 16 Jul 2026 07:56:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1784213803; bh=OeE48gTGuCZ9msSMA3TQXhBCtnD2xyz0+Yow4siGDBc=;
+	h=From:To:Cc:Subject:Date:From;
+	b=bCHKgAz2whfs/OnWepF/6oZB1IBTl5EJ9ez7x3w18MiQoABQ2qHF07EJBD6n3Xt2O
+	 gmw2B956fbMpystKqEEXtAtQ1Fzsomby82X+xtO/I+UxKBaEXVjgWpddhGsacH3TY0
+	 s5nS2P/Pa3fzr9IdwjV8LJsxrorbuNtf9UEbNDLg=
+From: Robin Murphy <robin.murphy@arm.com>
+To: will@kernel.org,
+	mark.rutland@arm.com,
+	catalin.marinas@arm.com
+Cc: ilkka@os.amperecomputing.com,
+	bwicaksono@nvidia.com,
+	linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-perf-users@vger.kernel.org
+Subject: [PATCH v2 0/4] perf/arm_cspmu: Miscellaneous improvements
+Date: Thu, 16 Jul 2026 15:56:33 +0100
+Message-ID: <cover.1784213435.git.robin.murphy@arm.com>
+X-Mailer: git-send-email 2.54.0.dirty
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Hi All,
+Hi all,
 
-This is an update of
+These are a few quality-of-life improvements for CoreSight PMU that
+I've accumulated based on things which have come up in practical usage.
+There's no real dependency between any of the individual patches, it
+just felt right to send them as a series.
 
-https://lore.kernel.org/linux-acpi/5115219.31r3eYUQgx@rafael.j.wysocki/
+v1: https://lore.kernel.org/linux-perf-users/cover.1783605641.git.robin.murphy@arm.com/
+v2: Fix valid nits from Sashiko review, add Ilkka's R-b.
 
-that is sent to address review comments from Andy.
-
-The original series description below still applies.
-
-This series is based on the observation that the majority of acpi_get_pci_dev()
-callers already know the ACPI device they want to look up the PCI device for
-and so they don't need to look up the ACPI device.  Accordingly, a function for
-PCI device lookup based on an ACPI device is introduced and used.
-
-The first patch is a simplification utilizing a mutex guard.
-
-The second patch introduces acpi_dev_get_pci_dev() and redefines
-acpi_get_pci_dev() as a static inline helper.
-
-The third patch moves a device_put() call in the ACPI video bus driver to
-a place after the device in question has been used.
-
-The last patch updates the ACPI video bus driver, which is the heaviest user
-of acpi_get_pci_dev(), to use acpi_dev_get_pci_dev() instead of it.
-
-Thanks!
+Thanks,
+Robin.
 
 
+Robin Murphy (4):
+  ACPI/APMT: Use stable device ID
+  perf/arm_cspmu: Improve APMT-based PMU naming
+  perf/arm_cspmu: Improve sub-module error reporting
+  perf/arm_cspmu: Make IRQ more optional
+
+ drivers/acpi/arm64/apmt.c          |  6 ++--
+ drivers/perf/arm_cspmu/arm_cspmu.c | 48 ++++++++++++++++++------------
+ 2 files changed, 33 insertions(+), 21 deletions(-)
+
+-- 
+2.54.0.dirty
 
