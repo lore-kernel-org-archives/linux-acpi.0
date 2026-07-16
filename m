@@ -1,108 +1,78 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 99E0336A35E;
-	Thu, 16 Jul 2026 08:42:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from canpmsgout01.his.huawei.com (canpmsgout01.his.huawei.com [113.46.200.216])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C19A12931DA;
+	Thu, 16 Jul 2026 09:05:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.216
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784191351; cv=none; b=SL0H4FaRJj6BbLvsBlsk9/DlRQvVaw0bRa2q+1HL1pbtqRcVdGkq1c9ITvGd+fusMBiFceSffxjILR3z7jX/lernybzaBcJVPE3mH9vciVDNz6VwiW5pA8CQx2j36jE35Gx9j/gOt0T32x1v+N/8QRnun6hbrU6fBt50DBAvKYE=
+	t=1784192735; cv=none; b=VYJBJC965vNqQXmzJj24QtEOJgxOieNDhnYZfygw3QbAtM72F5tfDqFiiEvFy1z1aMzmgwWCjql0S0337HRez1P1pBFAW8j+sGaBx6pR/gvkrEkjaATdGWI9eOBzO6P8k5yeKRwIMHGq9pHtY9Mqgk3Uabphg6Uw92mtwNhzp6U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784191351; c=relaxed/simple;
-	bh=AkwPQwean6bJOLieEq5NCfM20lWebUz2uC3qETyOcvo=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ZBvPGoaZmhfoWEDEeN2gScsFQBje7idLgEPZ4T2cVqEHAZnx52rEceV4+uHDLUtvmEmE/SWdJ40N/Ge3Bg+xw86/gEX1vSjVJZ2iAR9eFek6L4aDAkcD2WJ/fHxOeq4PhbOmKB4qZnrx+oiNzKlbWyDb6WxfJN+ghoZwH4KtG1g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=o11U1Etg; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1784192735; c=relaxed/simple;
+	bh=BIdnaqFxJgB4gOdwapGQqFcEwqudv1c0YFpxoJQ1NWo=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=i5NaTwWtPhnmrNsaKleRzmex1C7qWN0BZ8BRkaBvcVZzEm4dP+vXLcippRYHXHI0ndvWYkTumt5yE63EQ8sNoBRHLFaL3PZ3JtpQEIjfccMBvgnta3bVVKjpjHuafxTT2Hqvr0to8X5uAtOnojG+KuOhZppbD8gPWUaHKp7t+rI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=OW67Y7Td; arc=none smtp.client-ip=113.46.200.216
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="o11U1Etg"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id AF4C8339;
-	Thu, 16 Jul 2026 01:42:24 -0700 (PDT)
-Received: from [10.2.212.8] (e134344.arm.com [10.2.212.8])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id AE8D53F7B4;
-	Thu, 16 Jul 2026 01:42:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1784191348; bh=AkwPQwean6bJOLieEq5NCfM20lWebUz2uC3qETyOcvo=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=o11U1Etg0MT7MzmigGKzPHOk8/Abs4lqfkEwGaDptWAWhO9fFwb3ADmFvpv+YOJ93
-	 IxZn93adAI0GhCveDZb2RsxMijGjp2IDYkQiBxGcwyukDuocrB5nrROh9wxXhA6Bnz
-	 cdKNBUyYYPN6/mANS6tBUos752Aug+zr/kCtAg/c=
-Message-ID: <4e911af5-1604-4cf4-8a1d-1ec59bbb7939@arm.com>
-Date: Thu, 16 Jul 2026 09:42:23 +0100
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="OW67Y7Td"
+dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=BIdnaqFxJgB4gOdwapGQqFcEwqudv1c0YFpxoJQ1NWo=;
+	b=OW67Y7TdMzojKnga1CnCdlx686XEmdTotOCGExGG6ZopSRpkcS/ZJJ/JdR+IDK0fLSgundSXj
+	1dBp0VXRNi8VhtX4ny8o/bkoMdRQ7wIgwZoP7sJpxEJnnCGbQXMLMgykRarBLZtt/k1tnACl0O4
+	bCWjEkJNTOoJgM025ezVLyI=
+Received: from mail.maildlp.com (unknown [172.19.163.104])
+	by canpmsgout01.his.huawei.com (SkyGuard) with ESMTPS id 4h16Mz33s6z1T4HL;
+	Thu, 16 Jul 2026 16:56:15 +0800 (CST)
+Received: from kwepemo100005.china.huawei.com (unknown [7.202.195.212])
+	by mail.maildlp.com (Postfix) with ESMTPS id 75F144058C;
+	Thu, 16 Jul 2026 17:05:27 +0800 (CST)
+Received: from [10.67.121.59] (10.67.121.59) by kwepemo100005.china.huawei.com
+ (7.202.195.212) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Thu, 16 Jul
+ 2026 17:05:26 +0800
+Message-ID: <6d9f474d-1e7e-4aca-8a20-c9343010563b@huawei.com>
+Date: Thu, 16 Jul 2026 17:05:26 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Thunderbird Daily
-Subject: Re: [PATCH v3 06/16] arm_mpam: propagate MSC read errors for
- __ris_msmon_read()
-To: Lee Trager <lee@trager.us>, Andre Przywara <andre.przywara@arm.com>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
- <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- James Morse <james.morse@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
-Cc: Jonathan Cameron <jic23@kernel.org>,
- Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
- Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
- Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
- Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-References: <20260710144520.917375-1-andre.przywara@arm.com>
- <20260710144520.917375-7-andre.przywara@arm.com>
- <673b79c0-d2e6-44a6-a1a8-a2ff92f2ff53@trager.us>
-Content-Language: en-US
-From: Ben Horgan <ben.horgan@arm.com>
-In-Reply-To: <673b79c0-d2e6-44a6-a1a8-a2ff92f2ff53@trager.us>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v1 01/17] ACPI: processor: idle: Expand _LPI package
+ sanity checks
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Linux PM
+	<linux-pm@vger.kernel.org>
+CC: Linux ACPI <linux-acpi@vger.kernel.org>, Sudeep Holla
+	<Sudeep.Holla@arm.com>
+References: <4746278.LvFx2qVVIh@rafael.j.wysocki>
+ <5084143.GXAFRqVoOG@rafael.j.wysocki>
+From: "lihuisong (C)" <lihuisong@huawei.com>
+In-Reply-To: <5084143.GXAFRqVoOG@rafael.j.wysocki>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: kwepems200002.china.huawei.com (7.221.188.68) To
+ kwepemo100005.china.huawei.com (7.202.195.212)
 
-Hi Lee,
 
-On 7/15/26 20:52, Lee Trager wrote:
-> On 7/10/26 7:45 AM, Andre Przywara wrote:
-> 
->> @@ -1748,6 +1758,7 @@ static int mpam_restore_mbwu_state(void *_ris)
->>   {
->>       int i;
->>       u64 val;
->> +    int ret = 0;
->>       struct mon_read mwbu_arg;
->>       struct mpam_msc_ris *ris = _ris;
->>       struct mpam_class *class = ris->vmsc->comp->class;
->> @@ -1760,10 +1771,14 @@ static int mpam_restore_mbwu_state(void *_ris)
->>               mwbu_arg.val = &val;
->>                 __ris_msmon_read(&mwbu_arg);
->> +            if (mwbu_arg.err) {
->> +                ret = mwbu_arg.err;
->> +                break;
->> +            }
->>           }
->>       }
->>   -    return 0;
->> +    return ret;
->>   }
->>     /* Call with MSC cfg_lock held */
-> 
-> 
-> mwbu_arg is never initialized and __ris_msmon_read() only writes ->err on failure. If on a
-> successful read mwb_arg.err tests stack garbage it can spuriously break ot of the loop, leaving the
-> remaining monitors unrestored, and return a junk error code.
-> 
-> Setting `struct mon_read mwbu_arg = {};` matches what mpam_msmon_read() already does. Additionally
-> val should be initialized to 0 too. __ris_msmon_reaD() does *m->val += now, and although the result
-> is discarded here, KMSAN would flag the uninitialized read.
-> 
-
-Thanks for the bug report.
-
-I have a proposed change here which aims to address this existing issue, [1]. Please could you check
-and confirm whether this fixes the problem.
-
-[1] https://lore.kernel.org/lkml/20260710115546.29644-8-ben.horgan@arm.com/
-
-Thanks,
-
-Ben
+On 7/9/2026 8:30 PM, Rafael J. Wysocki wrote:
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+>
+> The _LPI package sanity checks in acpi_processor_evaluate_lpi() miss
+> a couple of things, so expand them by adding a buffer size check
+> before retrieving a struct acpi_power_register from it (and skip the
+> given state if the buffer is not large enough to hold a register
+> structure) and making the function avoid copying the state description
+> from the ACPI table if there are too few elements in the package
+> supposed to hold it.
+>
+> While at it, relocate and rephrase a comment about skipping _LPI state
+> package elements [7-8].
+>
+> Fixes: a36a7fecfe60 ("ACPI / processor_idle: Add support for Low Power Idle(LPI) states")
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+Acked-by: Huisong Li <lihuisong@huawei.com>
