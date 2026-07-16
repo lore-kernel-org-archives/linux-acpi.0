@@ -1,32 +1,32 @@
 Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9876143A7F0;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C926243B487;
 	Thu, 16 Jul 2026 17:09:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784221785; cv=none; b=MsYiywx45UWaZIKlSi+25WR5BVvcWgFuubNOoMukvzt/ycPxWeX89esDvHivBQaWbmKeaC6MixbqQUBgfqhilVwAGT6XnVIcV7z3k3ZoFF2HUCa54uhhE4oloZffK47dG96LnOJusQ/LTm3gxeWgTDFkr9VoQ60xBiR63YfEMS4=
+	t=1784221785; cv=none; b=m5aa4i95KdbILmryQmRE6CU0D5kXTn8M9KhNwOg4hKxznSl+6Jt3nEoxJWhmFq1y0cjME5CkKbEqR4JPzLd4z8Q7dH+d/PHffCu3muVjJ9TQ24jgpODH9384n2zMi5SBwh2u1276XEgSEqIuKA2LhvWC1OsTOqTrXaKqbV5VfgY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1784221785; c=relaxed/simple;
-	bh=E/neM9q45oFk5vumCuNs3BlrBpr2PnvuUZbONFwRIKg=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=Hs+G0iogwW81MvvMKVsjXBEhJSX5NttrD5OCu5+g/TuP9UTWjobIoB2BPPq56tZr6QGdoJWwPE/aAecX673C4bFtWi1GYvuT2x4Yg0JJYaucqxBWfasqWuUloTyPKfuqAleiCzUNSEJKEoSkmNxmB/4Polgr3tNkFN6OFOM6m9s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=Ni9G6ir7; arc=none smtp.client-ip=159.69.126.157
+	bh=GubTlQat6UlimM/bcLKvGJ1gJF4TTwUHaWco6h44H3Y=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=Iql6Rkzbu3tf700wA3j/5MvuL4hUMiubRy/0kQeNJHgJcM5P1gIC83DH5jGb6fgiUwqPgnlt5Mj1QA7xePuFJuxK5l15mzRzFZHxyEoGVUMVV1IZNcmdPhSjWnlTfLpk6GrZ2UrL1yvatBSwNTgN+sqzeHxwvevur0AXFP3uP3Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=jFoj39dy; arc=none smtp.client-ip=159.69.126.157
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="Ni9G6ir7"
+	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="jFoj39dy"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
 	s=mail; t=1784221779;
-	bh=E/neM9q45oFk5vumCuNs3BlrBpr2PnvuUZbONFwRIKg=;
-	h=From:Subject:Date:To:Cc:From;
-	b=Ni9G6ir7X07AFt8GUroRRtE9hkhAZNVOrzMQepnCFH2BcL030i+v9bC1kxvm2nAcT
-	 nBbfHbVv/hBI75X0GZYJLl9tKUrCqPmSJWW3FIN5WIibKGxUoM65IQK9N0kdBRsDF1
-	 ZIUvhnPTAVAJ1lFO1jm81GcoprxerHFvc3XjcNzY=
+	bh=GubTlQat6UlimM/bcLKvGJ1gJF4TTwUHaWco6h44H3Y=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
+	b=jFoj39dycLqDhiZ/HE2WOecxEDywP3bgZ4iV95iXaFEZtXShQqiGJ/bYsYnE1bDrv
+	 jnDT/1cUrvnKZWESVk/8Hv78qoynxiqOjE3Vj+hS6LUrgqZMA7WARjHgun+iXgt3Ju
+	 P/UuUQ1C8vqoZdk33gTnGDKE5+KxNts3SVqDC1yU=
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
-Subject: [PATCH 0/6] configfs: Allow the registration of const struct
- configfs_attribute
-Date: Thu, 16 Jul 2026 19:09:25 +0200
-Message-Id: <20260716-configfs-const-base-v1-0-c545a4053cb5@weissschuh.net>
+Date: Thu, 16 Jul 2026 19:09:27 +0200
+Subject: [PATCH 2/6] configfs: Constify is_visible/is_visible_bin in
+ configfs_group_operations
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -35,10 +35,9 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yXMyw5AMBCF4VeRWWtSl1Z4FbHQmjIWJR1EIt5ds
- Tvf4vwXMAZChia5IOBBTIuPyNIE7NT7EQUN0ZDLXMsq08Iu3tHo+B28CdMzCl0rZWRZKC0NxOc
- a0NH5VdvuN+9mRru9KbjvB7LL58h3AAAA
-X-Change-ID: 20260716-configfs-const-base-6955b043560b
+Message-Id: <20260716-configfs-const-base-v1-2-c545a4053cb5@weissschuh.net>
+References: <20260716-configfs-const-base-v1-0-c545a4053cb5@weissschuh.net>
+In-Reply-To: <20260716-configfs-const-base-v1-0-c545a4053cb5@weissschuh.net>
 To: Andreas Hindborg <a.hindborg@kernel.org>, 
  Breno Leitao <leitao@debian.org>, Miguel Ojeda <ojeda@kernel.org>, 
  Boqun Feng <boqun@kernel.org>, Gary Guo <gary@garyguo.net>, 
@@ -59,43 +58,87 @@ Cc: rust-for-linux@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-coco@lists.linux.dev, linux-acpi@vger.kernel.org, 
  =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1784221778; l=1356;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1784221778; l=3113;
  i=linux@weissschuh.net; s=20221212; h=from:subject:message-id;
- bh=E/neM9q45oFk5vumCuNs3BlrBpr2PnvuUZbONFwRIKg=;
- b=W8B1eCdzBPF+vX/iGW+KJHE8xAceDD1at4gcqjxGEzdBiqCIOPZrlc1rI1Witb3eC2twB400h
- B8v+ldzTTnpAVplEdwuXCfW7epvpRYTFvlvmL1bey309UhnH5QkbVcJ
+ bh=GubTlQat6UlimM/bcLKvGJ1gJF4TTwUHaWco6h44H3Y=;
+ b=+sEBU8Jt02gLhwZLB6K47bnC0/qyt/YKihbwKPC9VgN0n6o0EqABg+QnHDz6bwxVU5djJq9LB
+ Lxa3CssRiovA2VWJwM69q10UwWQTZRJqxtJX4gZMHRnfgZ89T5XaxTL
 X-Developer-Key: i=linux@weissschuh.net; a=ed25519;
  pk=KcycQgFPX2wGR5azS7RhpBqedglOZVgRPfdFSPB1LNw=
 
-The attribute structure defined in driver code never need to be
-modified. Allow them to be marked as const.
+These callbacks are never meant to modify their configfs_attribute
+structure. Enforce this in the type system.
+
+As there are only two implementers of these callbacks, adapt them right
+away, avoiding a phased transition.
 
 Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
 ---
-Thomas Weißschuh (6):
-      rust: configfs: remove mutability from some field initializers
-      configfs: Constify is_visible/is_visible_bin in configfs_group_operations
-      configfs: Treat attribute structures as const internally
-      configfs: Constify configfs_bin_attribute
-      configfs: Allow the registration of const struct configfs_attribute
-      samples: configfs: constify the configfs_attribute structures
+ drivers/gpu/drm/xe/xe_configfs.c | 4 ++--
+ drivers/virt/coco/guest/report.c | 4 ++--
+ include/linux/configfs.h         | 4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
- drivers/acpi/acpi_configfs.c       |  2 +-
- drivers/gpu/drm/xe/xe_configfs.c   |  4 +--
- drivers/virt/coco/guest/report.c   |  6 ++--
- fs/configfs/configfs_internal.h    | 10 +++---
- fs/configfs/dir.c                  | 10 +++---
- fs/configfs/file.c                 |  6 ++--
- fs/configfs/inode.c                |  2 +-
- include/linux/configfs.h           | 73 ++++++++++++++++++++------------------
- rust/kernel/configfs.rs            | 20 ++++++-----
- samples/configfs/configfs_sample.c | 16 ++++-----
- 10 files changed, 78 insertions(+), 71 deletions(-)
----
-base-commit: c8d07eca6270b3f41c0e528a470895f1bd42e2b7
-change-id: 20260716-configfs-const-base-6955b043560b
+diff --git a/drivers/gpu/drm/xe/xe_configfs.c b/drivers/gpu/drm/xe/xe_configfs.c
+index 32102600a148..a5f696e7b329 100644
+--- a/drivers/gpu/drm/xe/xe_configfs.c
++++ b/drivers/gpu/drm/xe/xe_configfs.c
+@@ -843,7 +843,7 @@ static struct configfs_item_operations xe_config_device_ops = {
+ };
+ 
+ static bool xe_config_device_is_visible(struct config_item *item,
+-					struct configfs_attribute *attr, int n)
++					const struct configfs_attribute *attr, int n)
+ {
+ 	struct xe_config_group_device *dev = to_xe_config_group_device(item);
+ 
+@@ -938,7 +938,7 @@ static struct configfs_attribute *xe_config_sriov_attrs[] = {
+ };
+ 
+ static bool xe_config_sriov_is_visible(struct config_item *item,
+-				       struct configfs_attribute *attr, int n)
++				       const struct configfs_attribute *attr, int n)
+ {
+ 	struct xe_config_group_device *dev = to_xe_config_group_device(item->ci_parent);
+ 
+diff --git a/drivers/virt/coco/guest/report.c b/drivers/virt/coco/guest/report.c
+index b254a1416286..96e89ddf4989 100644
+--- a/drivers/virt/coco/guest/report.c
++++ b/drivers/virt/coco/guest/report.c
+@@ -381,7 +381,7 @@ static struct configfs_item_operations tsm_report_item_ops = {
+ };
+ 
+ static bool tsm_report_is_visible(struct config_item *item,
+-				  struct configfs_attribute *attr, int n)
++				  const struct configfs_attribute *attr, int n)
+ {
+ 	guard(rwsem_read)(&tsm_rwsem);
+ 	if (!provider.ops)
+@@ -394,7 +394,7 @@ static bool tsm_report_is_visible(struct config_item *item,
+ }
+ 
+ static bool tsm_report_is_bin_visible(struct config_item *item,
+-				      struct configfs_bin_attribute *attr, int n)
++				      const struct configfs_bin_attribute *attr, int n)
+ {
+ 	guard(rwsem_read)(&tsm_rwsem);
+ 	if (!provider.ops)
+diff --git a/include/linux/configfs.h b/include/linux/configfs.h
+index ef65c75beeaa..5d3fc8822a1d 100644
+--- a/include/linux/configfs.h
++++ b/include/linux/configfs.h
+@@ -220,8 +220,8 @@ struct configfs_group_operations {
+ 	struct config_group *(*make_group)(struct config_group *group, const char *name);
+ 	void (*disconnect_notify)(struct config_group *group, struct config_item *item);
+ 	void (*drop_item)(struct config_group *group, struct config_item *item);
+-	bool (*is_visible)(struct config_item *item, struct configfs_attribute *attr, int n);
+-	bool (*is_bin_visible)(struct config_item *item, struct configfs_bin_attribute *attr,
++	bool (*is_visible)(struct config_item *item, const struct configfs_attribute *attr, int n);
++	bool (*is_bin_visible)(struct config_item *item, const struct configfs_bin_attribute *attr,
+ 			       int n);
+ };
+ 
 
-Best regards,
---  
-Thomas Weißschuh <linux@weissschuh.net>
+-- 
+2.55.0
 
