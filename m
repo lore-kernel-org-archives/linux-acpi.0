@@ -1,146 +1,151 @@
-Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
+Received: from BN8PR05CU002.outbound.protection.outlook.com (mail-eastus2azon11011022.outbound.protection.outlook.com [52.101.57.22])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C070443E07A;
-	Thu, 16 Jul 2026 17:09:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784221790; cv=none; b=XHkitvpSckPq/L8h/R/cr8SLnfPFd6kuqbqtha4v7sPhMCPU4KFxG4uP5xNfShsiUOy5jN1FZxCgpURvQia66x+h+BgLmu6s1g2rD8mHcm6dKdRHlmsQ8EEK2hbyvrEOYwcLylGeiEzNM2kTYyZZw32fKdGdf8ArEo0/+Vnuqgk=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784221790; c=relaxed/simple;
-	bh=rcnAPuhL8Z0tyvLmFviUdVzEcI4fwp6dRZrhwOTqVoA=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=r3JLTdE9WrjbwHRayGm07B8qIu13NkqRxnUXYoyAW1yoS7FiYtEwfEe8FNCu3vn3V3OCEP5TYhTvhsSedhpNXEA1rZPRaoMYe/xcEJ/bSxs5aYcmGtI0TAKOM33Esfc7DRMRojRcAQ04Fq+Z7w/kupN955wdNTAbtj1gD6S36lk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=nOETgqmV; arc=none smtp.client-ip=159.69.126.157
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E13B442464B;
+	Thu, 16 Jul 2026 17:13:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.57.22
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784222027; cv=fail; b=PDBRBnm0FGPz3+eP0elc1vRV6A70mKEvXuz0e43rphV4SDL/YDBbvKJwTNY1+yNNmomqHqaiS6y98dzKIq1mvlwU79wauVDakLA+oLWk8QmPdOy2oxGSks1C0DUZIkq1GrvqQBu8EhJSMyYCX+9p2BfmrgE9rbrmsF0OuUX+4xQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784222027; c=relaxed/simple;
+	bh=tI2pZ46MeuNMEi6jGUfRNzSF1knzEL7Gd3VNDQGVwM8=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=NI4Fp9I3l000IwiiJvsFKNaL2HKYGxaBA5A4K8kYwrTNne+WTBnalohUh9Nwj0Ozx8H0Rz2l9MYl9ic0Rl3ZLszL14xuSs2N+QgjlmbXRBqlzEoQGF2Hg5mVN1N2LDjyUS66TY281EBhQxoFklOxg1Y84wN4ODTAXLyaaTa7zEo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=g0otGVlp; arc=fail smtp.client-ip=52.101.57.22
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="nOETgqmV"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
-	s=mail; t=1784221779;
-	bh=rcnAPuhL8Z0tyvLmFviUdVzEcI4fwp6dRZrhwOTqVoA=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=nOETgqmVNkaIt9iGQH/1tiOMAegyFKlI3RwPiCCK4gjxBd9f8iI1S3JDe2PnVCaAz
-	 NxGs9kkQ3hD2UNPk26CSQb7Pv9r4aHe98FoTBCMfEUKzxP0P8pbkyv/7ki6/Mnn6kp
-	 +slMWZBB5W6VhRNNdOGlrg04PHNiCNFqUxeHUdxM=
-From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
-Date: Thu, 16 Jul 2026 19:09:30 +0200
-Subject: [PATCH 5/6] configfs: Allow the registration of const struct
- configfs_attribute
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="g0otGVlp"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=mjTsoFhvhtO2IhKTK8V88JrcWhHhMLp+sInnvYOqOiC7qeT8Lh/dX2nruss6pBx9S/WWp94E2SPuJ5zLbUUWLGsZtUlxPWWzD9R1wn2MjYPM13OSeprITtBk1qiF31F2MsurzoXV5OZsOnhG11B9DmmWcXIAY02Yxi7kf5LB1Fkoq6UzhBorc2zTeDS5kRvxeI+ZEJYrqQkmk5OoY2YtgohLcfnVTlVJ1iPnxmZqydzLyZHsPuNAF7HAyDGFB8A5IbX09ByHlsRkW5RjG96v5aqY37Tk5kcVP1gbENCvXU1aIbWppSv5Q8qUpn6tBbnAeCOxBuDLK4ll7odkUqzPVw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=9rvY48xg8emahi9xnLq8X1SeM2ZX94/bD6ipUvrjTvk=;
+ b=DzmY0Z/n/pU07YMHsBIsYINTBDMKGKbAyMsh/hW0dDxwVqdmBXyncw74vQbru6modAX47lM4W3yHGSRTa5GVBa4cqO606WS+oIZTE/RoxadT1ygFhcOzR5BmhXPLUnGKmilYEB7iOVYv02LWCzIo0tWw1fA4S7dZo9ktiTdAMmtloUK98Fdi5DCRl1ZCcgPEPnj2YjmYvbmeD2i7FRvjyyDYK9wK8G4Dcvu1qXtGEYYG/U5xmV8ov1EHogcxUaUMm5He+12SFNNz2W+9g5o3P73/4a7rLHilg59kNIrlgkP9pussPVWBXvQf+P/OO8Zk6guTfu1YjHKJcDInQYoZJg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=amd.com;
+ dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
+ header.from=amd.com; dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=9rvY48xg8emahi9xnLq8X1SeM2ZX94/bD6ipUvrjTvk=;
+ b=g0otGVlpcrbgHhQYtVFaGGCvbf87cWlQTbaQ5lxQw3uG8EZH5hoBiDaMWv+guRnJf/s/6zgqa+emx2oNrmm7jzaPX+GwwqEPZp18rHL+U7Bf+JOhsVy5vi0335m/JVYaxsGSO5w/aFjaMFXeu/HrgJv3zSieHmQxRKijW5CPMvI=
+Received: from DM6PR02CA0138.namprd02.prod.outlook.com (2603:10b6:5:1b4::40)
+ by DM6PR12MB4404.namprd12.prod.outlook.com (2603:10b6:5:2a7::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.223.12; Thu, 16 Jul
+ 2026 17:13:42 +0000
+Received: from CY4PEPF0000E9CE.namprd03.prod.outlook.com
+ (2603:10b6:5:1b4:cafe::99) by DM6PR02CA0138.outlook.office365.com
+ (2603:10b6:5:1b4::40) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.223.12 via Frontend Transport; Thu,
+ 16 Jul 2026 17:13:42 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
+Received: from satlexmb07.amd.com (165.204.84.17) by
+ CY4PEPF0000E9CE.mail.protection.outlook.com (10.167.241.133) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.245.5 via Frontend Transport; Thu, 16 Jul 2026 17:13:41 +0000
+Received: from satlexmb10.amd.com (10.181.42.219) by satlexmb07.amd.com
+ (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.41; Thu, 16 Jul
+ 2026 12:13:41 -0500
+Received: from satlexmb08.amd.com (10.181.42.217) by satlexmb10.amd.com
+ (10.181.42.219) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.41; Thu, 16 Jul
+ 2026 12:13:41 -0500
+Received: from galena-46a8.xcblab.xilinx.com (10.180.168.240) by
+ satlexmb08.amd.com (10.181.42.217) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.41 via Frontend Transport; Thu, 16 Jul 2026 12:13:40 -0500
+From: <alejandro.lucero-palau@amd.com>
+To: <linux-cxl@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<rafael@kernel.org>
+CC: Alejandro Lucero <alucerop@amd.com>
+Subject: [PATCH v2 0/1] Fix hmat_adist_nb for CXL
+Date: Thu, 16 Jul 2026 19:11:13 +0100
+Message-ID: <20260716181114.35962-1-alejandro.lucero-palau@amd.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20260716-configfs-const-base-v1-5-c545a4053cb5@weissschuh.net>
-References: <20260716-configfs-const-base-v1-0-c545a4053cb5@weissschuh.net>
-In-Reply-To: <20260716-configfs-const-base-v1-0-c545a4053cb5@weissschuh.net>
-To: Andreas Hindborg <a.hindborg@kernel.org>, 
- Breno Leitao <leitao@debian.org>, Miguel Ojeda <ojeda@kernel.org>, 
- Boqun Feng <boqun@kernel.org>, Gary Guo <gary@garyguo.net>, 
- =?utf-8?q?Bj=C3=B6rn_Roy_Baron?= <bjorn3_gh@protonmail.com>, 
- Benno Lossin <lossin@kernel.org>, Alice Ryhl <aliceryhl@google.com>, 
- Trevor Gross <tmgross@umich.edu>, Danilo Krummrich <dakr@kernel.org>, 
- Daniel Almeida <daniel.almeida@collabora.com>, 
- Tamir Duberstein <tamird@kernel.org>, 
- Alexandre Courbot <acourbot@nvidia.com>, 
- =?utf-8?q?Onur_=C3=96zkan?= <work@onurozkan.dev>, 
- Matthew Brost <matthew.brost@intel.com>, 
- =?utf-8?q?Thomas_Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>, 
- Rodrigo Vivi <rodrigo.vivi@intel.com>, David Airlie <airlied@gmail.com>, 
- Simona Vetter <simona@ffwll.ch>, Dan Williams <djbw@kernel.org>, 
- "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
-Cc: rust-for-linux@vger.kernel.org, linux-kernel@vger.kernel.org, 
- intel-xe@lists.freedesktop.org, dri-devel@lists.freedesktop.org, 
- linux-coco@lists.linux.dev, linux-acpi@vger.kernel.org, 
- =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1784221778; l=3319;
- i=linux@weissschuh.net; s=20221212; h=from:subject:message-id;
- bh=rcnAPuhL8Z0tyvLmFviUdVzEcI4fwp6dRZrhwOTqVoA=;
- b=BbbHbm8YNFPQUYzw2eaFmTWdJbpX3GvBgFeLEGXDxWxnIG1Z8xTzlkFqKvEUcuRAd6g3Rl8FE
- OjFsAUTLCitCBHywW3Vn0JL/8AcrsjEWHYxagQ+dWpIfIh2HzKbjiX+
-X-Developer-Key: i=linux@weissschuh.net; a=ed25519;
- pk=KcycQgFPX2wGR5azS7RhpBqedglOZVgRPfdFSPB1LNw=
+Content-Type: text/plain
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CY4PEPF0000E9CE:EE_|DM6PR12MB4404:EE_
+X-MS-Office365-Filtering-Correlation-Id: 90cd695c-465c-438e-bc3d-08dee35d95df
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|23010399003|82310400026|36860700016|1800799024|6133799003|11063799006|56012099006|10067099003|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	pb6gthOY0/dbLBNxQWETuwUSjm4p4Z1anDv8VxYWhLHYDldRJqnsnOHV+9pJOZ+b1+HW+jJ+a5mFijRe6KtP3WZ+4gfOwMIOID90X5Y2ba+WT+5jrmvMM4BOYEaDWIp532uIW5up+0soNc0y9ZLHTRGkaYRPXcoQC6NN8eTJ5xH8XYbhDuGiRx6+TJM2WKZ5tYf2vjBLtwgoO0E6lzyUc+CxxOKYwEOEnYRaxUdZOfGc3V7WC5hfJ02Qv/WuH/BTDIMz6Wo+kifQfnBnoTRHqs4+PltrGoY9uxIauAl46rtSAWDgWo2VMWUhHBvwagX/bb2PsPFYX7GQIseQdhjCILN6j4A2ZFwCr3m/6Sl3Ny5yYkVj9GSyHSNY469ZIIXFVPVClys9MCctjwqD+iFK4sq/SAdfvGuetbZ8lK7bDSa0C/jB6MRNk2UQBMJHSxE1a31Ftooe4/xfQ5elSxlQBpoDctXgrnuzI1VA98ZuErnvIFjWEqTnbXdy3RdJ+VKbXG5FbN8moX11UMFr6k7vdx9u+DVQn0sUyvmb7iCozpzTTG2KMU1Q6+oXYWUa2VdwOQxqSOSQ827bWjxZ2dx6SB4WtO6if/WNC4aw+y21p4dKUr+FdocLT0Mfra0716k13PecR0qYmHRSNd2N5M81on0hP5kdc6W9LYuMy62TWP3//ziLp7ZCCeFxrEHVvbUWLzc8g3JR8OS9f9b4yjYy/g==
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(23010399003)(82310400026)(36860700016)(1800799024)(6133799003)(11063799006)(56012099006)(10067099003)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	HuVGi3xRS/V9p6F4hvSOemWyueCuRZmFSIwevMXmnuMOqz43wjNE8M1s3WQx9Z5RQehWWLXOfdgiDp3OcDl9avE3uTRJI3rnnvhc23Sj0iOpXWoMzJhh9pFjB9a9B4T6STLeMI9zrdzidDdnYi1BWtYjISw+LMVHuCUHFqtuO3PzhE/99EsrL/eBiPS6j8owumb05F3OHQ2UedW41lhYBbi4FKlYUlAq0rEh8GnXuT+Y8e0yAh69JTfPj3aYTX9vnDlTjXGXRTOnHDUyAflBU7KjsWb1nAENFm7hkFxsbjUTYm3ygVz/9ks9b7RkGTFB6vUMnJ+fvMsKnVpiQvLghtZ6d5m9am1PcwMA+W4TSQnK3gCoumPP00p1tXeT6TGMe+6gJyGduSmX6Ls00Cu2AE4YfFdVNkYeIASF2FHwWxeXuhKEFfd/vsF/vuLPQc1m
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Jul 2026 17:13:41.8237
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 90cd695c-465c-438e-bc3d-08dee35d95df
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	CY4PEPF0000E9CE.namprd03.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4404
 
-The attribute structure defined in driver code never need to be
-modified. Allow them to be marked as const.
+From: Alejandro Lucero <alucerop@amd.com>
 
-As there are many drivers which use these attributes, prepare for a
-phased transition by using a union of const and non-const attributes.
+ v2:
+	- Add Fixes (Richarg Cheng)
+	- Change commit as fix for Type2/Type3 (Richar Cheng)
 
-After all drivers have been migrated to the const variant, the non-const
-one can be replaced by the const one and the transition machinery will
-be removed again.
+RFC
+===
+While working on adding CXL Type2 support I found a problem with
+register_mt_adistance_algorithm() which is used inside
+cxl_region_probe(). It turns out my kernel config had not
+CONFIG_MEMORY_HOTPLUG enabled leading to the hmat_adist_nb notifier
+block deleted after kernel initialization without doing any notifer
+block unregister, leaving the notifier chain unaware of this. A CXL
+Type2 driver can be load after kernel initialization and with a kernel
+not enabling memory hotplug, the notifier registration crashes if the
+released memory from hmat_adist_nb is reused.
 
-Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
----
- fs/configfs/dir.c        | 4 ++--
- include/linux/configfs.h | 5 ++++-
- rust/kernel/configfs.rs  | 8 ++++++--
- 3 files changed, 12 insertions(+), 5 deletions(-)
+I'm not sure but I do not think this can happen for Type3 devices
+because the related CXL driver is used only during kernel initialization
+if memory hotplug not enabled. Type2, aka CXL accelerator drivers, is
+coming and the problem will arise with certainty.
 
-diff --git a/fs/configfs/dir.c b/fs/configfs/dir.c
-index 9a5c2bc4065d..c2152288517c 100644
---- a/fs/configfs/dir.c
-+++ b/fs/configfs/dir.c
-@@ -632,8 +632,8 @@ static int populate_attrs(struct config_item *item)
- 
- 	ops = t->ct_group_ops;
- 
--	if (t->ct_attrs) {
--		for (i = 0; (attr = t->ct_attrs[i]) != NULL; i++) {
-+	if (t->ct_attrs_const) {
-+		for (i = 0; (attr = t->ct_attrs_const[i]) != NULL; i++) {
- 			if (ops && ops->is_visible && !ops->is_visible(item, attr, i))
- 				continue;
- 
-diff --git a/include/linux/configfs.h b/include/linux/configfs.h
-index eff2fb22ab70..5bead9173ec1 100644
---- a/include/linux/configfs.h
-+++ b/include/linux/configfs.h
-@@ -66,7 +66,10 @@ struct config_item_type {
- 	struct module				*ct_owner;
- 	const struct configfs_item_operations	*ct_item_ops;
- 	const struct configfs_group_operations	*ct_group_ops;
--	struct configfs_attribute		**ct_attrs;
-+	union {
-+		struct configfs_attribute		**ct_attrs;
-+		const struct configfs_attribute		*const *ct_attrs_const;
-+	};
- 	const struct configfs_bin_attribute	*const *ct_bin_attrs;
- };
- 
-diff --git a/rust/kernel/configfs.rs b/rust/kernel/configfs.rs
-index f99a6e376fa3..2ef9cce693b9 100644
---- a/rust/kernel/configfs.rs
-+++ b/rust/kernel/configfs.rs
-@@ -756,7 +756,9 @@ pub const fn new_with_child_ctor<const N: usize, Child>(
-                         ct_owner: owner.as_ptr(),
-                         ct_group_ops: GroupOperationsVTable::<Data, Child>::vtable_ptr(),
-                         ct_item_ops: ItemOperationsVTable::<$tpe, Data>::vtable_ptr(),
--                        ct_attrs: core::ptr::from_ref(attributes).cast_mut().cast(),
-+                        __bindgen_anon_1: bindings::config_item_type__bindgen_ty_1 {
-+                            ct_attrs_const: core::ptr::from_ref(attributes).cast(),
-+                        },
-                         ct_bin_attrs: core::ptr::null(),
-                     }),
-                     _p: PhantomData,
-@@ -773,7 +775,9 @@ pub const fn new<const N: usize>(
-                         ct_owner: owner.as_ptr(),
-                         ct_group_ops: core::ptr::null(),
-                         ct_item_ops: ItemOperationsVTable::<$tpe, Data>::vtable_ptr(),
--                        ct_attrs: core::ptr::from_ref(attributes).cast_mut().cast(),
-+                        __bindgen_anon_1: bindings::config_item_type__bindgen_ty_1 {
-+                            ct_attrs_const: core::ptr::from_ref(attributes).cast(),
-+                        },
-                         ct_bin_attrs: core::ptr::null(),
-                     }),
-                     _p: PhantomData,
+I have contemplated to modify how the identified __meminit and
+__meminitdat are defined in linux/init.h, extending the case for being
+empty definitions if CONFIG_CXL_MEM=y, but I think it makes sense to
+only avoid the use of __meminit for hmat_adist_nb.
 
+FWIW, a Type2 device should not require CONFIG_MEMORY_HOTPLUG and its
+memory is currently initialized by the BIOS. Maybe not having memory
+hotplug enabled is unusual and even more with CXL, so another option
+could be to enable memory hotplug if CXL mem is enabled.
+
+Alejandro Lucero (1):
+  acpi/hmat: preserve hmat_adist_nb notifier block
+
+ drivers/acpi/numa/hmat.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+
+base-commit: 8cd9520d35a6c38db6567e97dd93b1f11f185dc6
 -- 
-2.55.0
+2.34.1
 
