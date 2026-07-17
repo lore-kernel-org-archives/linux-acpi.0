@@ -1,178 +1,191 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.17.20])
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D13B3D9DAC;
-	Thu, 16 Jul 2026 23:45:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BB4CCA4E
+	for <linux-acpi@vger.kernel.org>; Fri, 17 Jul 2026 00:12:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784245555; cv=none; b=L3gsACiAJEwEpWKKon8it4OC5JqLbYEcAozw6WNBqkhPo0YoN0XNo+3LdEo4G4UCZUCC42mS3oJjEt8YC2zP5J82ggn1Q8CNrTOyNURNWkNdyy6lfADkP7XnbXpMt2Og9Ac7EJKeNYdk6yFnEpUJY/TkVIF3GF3tKhQpDDTzYjw=
+	t=1784247139; cv=none; b=XHsWl/WTty8aa/4AFHWkjp9p5hNe1SCjP+gN/MFCLdX2qpLn04NGOZucu90cob/2NgtWIXuoKmvt62NltdWPFHB+DRDYIS75snVo5LIVup5oqB3eoC/g9B+Hde8dyFFARr2S8oSRQP6f9ZsVFVLfH/XlN5V1Ng7+FlwD0yw2d7A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784245555; c=relaxed/simple;
-	bh=s8TYe5nzldhyA5fnj7fqcZhPu87HDXPkqLGtq22pJBs=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=RY9BTNBNpQ1R38VezbtXvWRLGye5dXV1W+lcW4x8YqtTHw3GohF+VglWCNph0yUY8z6rdX/2yDOam17nzf+4+L8O9pbinFbQjVIvvw/54nn8lMvgbLcLe1MAQqAqYFlHxF8Xr1KXn1UAqj0T1e3SLt65dH8W0gHavQ2+jQ+rAKA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b=RSy+uvlt; arc=none smtp.client-ip=212.227.17.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
+	s=arc-20240116; t=1784247139; c=relaxed/simple;
+	bh=/vgmyQkIOL2iV+iyAfRIfdtC4eSube7VTTsIgIQ7bB0=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=IGA9zpJLOrcMWhkuY0/27uD1IOLUYOiodfxJqEylA/YAoRaCHyypnOZ8UVO7I5FgGaBSfgLv5YtswLGypAzn4aPScn8J211jXnoAeJig9M93TfdqjXhjQkFPp6XUK3fEFw/UtN9K5bul3eANvWeLzB8tYEEnACm3HesYYmQs/Gw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=etx8nOte; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=Y8f0JnVn; arc=none smtp.client-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b="RSy+uvlt"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1784245547; x=1784850347; i=w_armin@gmx.de;
-	bh=PKXiaLaW3+Aba6I3ZQqmkedA4zKQ+T+LneQYnYvL5VU=;
-	h=X-UI-Sender-Class:From:To:Cc:Subject:Date:Message-Id:
-	 MIME-Version:Content-Transfer-Encoding:cc:
-	 content-transfer-encoding:content-type:date:from:message-id:
-	 mime-version:reply-to:subject:to;
-	b=RSy+uvltsWcjEfr2EABwA2boqnuxZ9PpO5m5hOkPGjLdL6A7yg4fz6KmvLw50sEa
-	 6EedysOvUpDtm39Ns8dK+FoSICu71d488h3gFqWQqPhknlaEPNz8KaGrcDTOBhoWr
-	 RPHUcKqf7iK1oDftN61UtEIGN3HtiyNGQU8dOEKkdvaMxn5VV4FVDjWzIS0B+Tac9
-	 q5SqnpPwVUx3U4nZwQs9pduPVylj11YE24O/P4qGZ1NtmdmwrVbj67xlrn0qQcDIM
-	 VZJQYe8byRleVlDD4Em8nVLvnjWGRB5iuwgJ30r1etrRLA+HztEnXqchFxWepsMFN
-	 Rse4EnhuA5aSZ1DsVA==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from client.hidden.invalid by mail.gmx.net (mrgmx104
- [212.227.17.168]) with ESMTPSA (Nemesis) id 1N1fii-1x8jiN1sjo-010udq; Fri, 17
- Jul 2026 01:45:47 +0200
-From: Armin Wolf <W_Armin@gmx.de>
-To: hansg@kernel.org,
-	ilpo.jarvinen@linux.intel.com
-Cc: platform-driver-x86@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux@weissschuh.net,
-	rafael@kernel.org,
-	lenb@kernel.org,
-	linux-acpi@vger.kernel.org
-Subject: [PATCH 0/3] platform/wmi: Add aarch64 support
-Date: Fri, 17 Jul 2026 01:45:35 +0200
-Message-Id: <20260716234538.1303811-1-W_Armin@gmx.de>
-X-Mailer: git-send-email 2.39.5
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="etx8nOte";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="Y8f0JnVn"
+Received: from pps.filterd (m0279865.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66GNINRZ188784
+	for <linux-acpi@vger.kernel.org>; Fri, 17 Jul 2026 00:12:17 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	HAu6FAZrz/0nPKw/nvzZjGq46uTuC6g/2xv9LMCM1sI=; b=etx8nOtefC7yx9k/
+	wcbgY5CWWROFa/aoyBhgrxlIeDoz2e4Dvp73L6PXFnzFXRe2NyxM1csusGqZB1Ib
+	uQvBBdt/Jt9nRPPJ3O7owtuA/Z3OzUs2c2H8lXRMnhJscqHpX3jXKF7zl4/0thsB
+	6ZlUwX43/3mx7vfSjMaXp9JIhrrVV7Ce6LvkSB9gQN6wOeNtGN9vjCiyx9Nlum2h
+	xUzcuuZW6YkQWEN32DisDNRXm7Ei0AMwh2eURNyksFAerjCBcwUzgMeemkx+FZ8g
+	EgUklHG9xptAn7JKDoE6kWzMd+BRGtY7lWrk+s+eukOYv2MJYinPZG162u5V0ZKo
+	cYX/Jg==
+Received: from mail-pl1-f197.google.com (mail-pl1-f197.google.com [209.85.214.197])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fetcf406r-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Fri, 17 Jul 2026 00:12:17 +0000 (GMT)
+Received: by mail-pl1-f197.google.com with SMTP id d9443c01a7336-2cec4226c70so96460155ad.1
+        for <linux-acpi@vger.kernel.org>; Thu, 16 Jul 2026 17:12:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1784247137; x=1784851937; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:organization
+         :references:in-reply-to:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=HAu6FAZrz/0nPKw/nvzZjGq46uTuC6g/2xv9LMCM1sI=;
+        b=Y8f0JnVn33nZPFneK98PSRYdMUGqsA+ocSj4XUW2afgNLBvlFAa6wQdghdly52NNgw
+         msJbrIwasr2VJ88QMBe76k8MvKcy63RIAmK7KV7YKuyEBcxugEgC8q6pf/C7nMeCXshO
+         XerDpcWQxl333z0eE0V2orRTvI23wHYvqBbKOjxz82AXKX9spU0F84sfs1BQTDZYxV3I
+         jxGCIEBSalo8ktKrMtpmRg5FVYBkP3TdI2Agdjiz0+TlLB6bk2M/WyHGz1ei+T2tS6cy
+         Ua6upbSWNnusxwvjs5siuzzPWed0fyfTD5pCuOjHysB5mzdzstZwBDwyMsnJWUUjQI1z
+         qv7g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784247137; x=1784851937;
+        h=content-transfer-encoding:content-type:mime-version:organization
+         :references:in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=HAu6FAZrz/0nPKw/nvzZjGq46uTuC6g/2xv9LMCM1sI=;
+        b=QTxvWwDiLj3Bwv2dHRQePRE9hoJqp4PaL0wLIi1h3a/SiHS+QIaeVI6e7zRJ9l2jLw
+         CPbUJY6psNrBjir7pYfSPAZhIvUX0miex1KBqQ9EriaenQH77XJV4qszgzx+YJu1SSqg
+         RnJjd2JARMbq9KjflAn+EIVZKnBJyQMzBfK1HAD5XjiMQhJYWeIEfjk80slAQ3R353Ud
+         w7U1ptllSMWxwXPv3WQmbr7ZVXeku4Srx2gJLzHG05I92UVmwyPx67O4BNT8VrVNUcIS
+         TX/D+RhflL+JSumnFGv7aWgaN8KMfGCcuTW9wn3PZMbIk0Yhwq/g+AXZ3LsRx6n5VsvI
+         CEsA==
+X-Forwarded-Encrypted: i=1; AHgh+RpPSJep7jdSW6UH5mQVQ43Z7mlLhR3sXJXMXq77hGlu4imgPjJH8J/7BGys9AlTmNncCPddAWbeUrQM@vger.kernel.org
+X-Gm-Message-State: AOJu0YwaptfNSypr9m8EwzI9Ev7r1VYdz+9ryCwEy8YATK8gOUqBGgDh
+	qLMOkLpZkADLvVU2dnVG2T0b1pp6JtGCmMLKgZX1sq41wbG2mZx9bHBCdAafn3R4r+dYTgnXVUL
+	H0v1YS0PqBnTLOU0dshN0u1sd7TVzgZuT+Y1ogksiiG+StLQe83aPg84tFyFaPdAA
+X-Gm-Gg: AfdE7cm7BlFOlbVG8yzczjZtha1V6/fZkeQjuoiaKiLGAZNeeGEXO9z18bf20xom0PM
+	8g4XdYdIm5qByVUDAAjdfS1Et1aDmsanctwUOU4rnHVG9nYaz2fdRw1v0Z5/3whn6TbY0TkfuHR
+	/ccEgtjXxXxxd1X0SJyzF1eSD9haLstAU/+MHJdiov0iYrovz+j16i0QxaebT6GifolMWjcGunS
+	FyV5wpoVp63bWCEzhPStuPluONEcel0eG02m6A0uFRBQ7MbBpcPTSe4afuwyAB4d8Tkxo5aahpI
+	ONDYSp+sGp2cEWMFsXgrmorhScoF+r6IwZcEMDcnuZl0l0dJAPSt9t7dp6syXASlmOj9+NhWYvU
+	uPLsybwp+olbciGAakAe1xajxDQ==
+X-Received: by 2002:a05:6a20:430f:b0:3c0:9c18:d5a4 with SMTP id adf61e73a8af0-3c3ad997edbmr163334637.65.1784247136987;
+        Thu, 16 Jul 2026 17:12:16 -0700 (PDT)
+X-Received: by 2002:a05:6a20:430f:b0:3c0:9c18:d5a4 with SMTP id adf61e73a8af0-3c3ad997edbmr163313637.65.1784247136490;
+        Thu, 16 Jul 2026 17:12:16 -0700 (PDT)
+Received: from localhost ([50.35.46.84])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-13cd42a155bsm14958468c88.7.2026.07.16.17.12.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 16 Jul 2026 17:12:16 -0700 (PDT)
+Date: Thu, 16 Jul 2026 17:12:13 -0700
+From: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+To: Robin Murphy <robin.murphy@arm.com>
+Cc: will@kernel.org, mark.rutland@arm.com, catalin.marinas@arm.com,
+        ilkka@os.amperecomputing.com, bwicaksono@nvidia.com,
+        linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-perf-users@vger.kernel.org
+Subject: Re: [PATCH v2 3/4] perf/arm_cspmu: Improve sub-module error
+ reporting
+Message-ID: <20260716171213.000026c7@oss.qualcomm.com>
+In-Reply-To: <256bcb4c8c98dc95bfdf295adb66b917545c919b.1784213435.git.robin.murphy@arm.com>
+References: <cover.1784213435.git.robin.murphy@arm.com>
+	<256bcb4c8c98dc95bfdf295adb66b917545c919b.1784213435.git.robin.murphy@arm.com>
+Organization: Qualcomm
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.51; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:UZfzpks7SW/NsmlYvZZjtYPjgFIhxxeLHVq6yJsFf2QYI9uyVYO
- yUC6pyme6s+wLTWQrJuqSlJ0p8b2T9MiLw99NDE8CxGxXmtINoy85XpxYpBgCkSUrB8Dnnn
- +j53rfKBA07QqVqVJnOAJ98JIElMw5TydpjDnTsEc6ZxZhZc1ytcO5HE4G7z0wNjfhdHSNK
- tyZn5NkXnH5IkD5Sme2KQ==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:zb4h+jhYit8=;vSA4Cx/f+oSBQVuXRcn98bH7DDt
- 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
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-ORIG-GUID: WuNylZGhcl_XsYE_fZiqnTsxkXq_HelK
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzE2MDI0MyBTYWx0ZWRfX2LRyoPwtT0kY
+ bhZezmJxT9Wr4gc3yeg8/LSI67n+OTRUiMOfcI62LwIPSHZEu7+AZQXQi6w6nz4+pZpOno/eckt
+ tBYndst56GRegjZfciPPwSVjG7ZodxJUUnTXHXM6G68+Gy8OA3JB3mRH2iiOJjmgteFkOJocMWp
+ PO+PWkgJB64MpHm447asAgMWO+/eUQIz/nGs6lSkfjhgiAhRkfn/LvKQQ97z2BRPkzAIOPgqMe9
+ +sFgA9RbTRLlthvsS4pHxqIWmsGB0prF9fWmAoFsqPSIrIJgt0ANW3wQOI2X5Z/xSNTBzRPk7/N
+ eWnJU/L4b1YOP69dpatFVRZn5kw2l4zsdC96Dk5Mj26+T0aEKY/JfNTa5sa+F3i8X+If6rt4enC
+ 3+SbCCiZ0UJD6ASCAoNq6VkqhevDrTLYrIeglSki9MZNVHiUqVw2csv6EeaDxC4TI/lS+BM1OLM
+ IEhznRpN8imFN15vTyw==
+X-Authority-Analysis: v=2.4 cv=f8R4wuyM c=1 sm=1 tr=0 ts=6a597361 cx=c_pps
+ a=cmESyDAEBpBGqyK7t0alAg==:117 a=qC1CW/w66vtJz1P9yTJxNA==:17
+ a=kj9zAlcOel0A:10 a=RAioF0-LDSMA:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=Um2Pa8k9VHT-vaBCBUpS:22
+ a=7CQSdrXTAAAA:8 a=vzhER2c_AAAA:8 a=orpSRISjaG3fHkWwNWwA:9 a=CjuIK1q_8ugA:10
+ a=1OuFwYUASf3TG4hYMiVC:22 a=a-qgeE7W1pNrGK8U0ZQC:22 a=0YTRHmU2iG2pZC6F1fw2:22
+X-Proofpoint-GUID: WuNylZGhcl_XsYE_fZiqnTsxkXq_HelK
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzE2MDI0MyBTYWx0ZWRfX2LnFogLwGgK7
+ fJQ6ycnA3VRNaMZJ2I2e1xqrxn/YEpiOdcQxRCusa15tAtZBJl50ksjIXzjUW3bH0TpqhsBvy3n
+ cNR4kob/NnOoTRdbY+JpErZu1MEa9S4=
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-07-16_08,2026-07-15_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ spamscore=0 clxscore=1015 impostorscore=0 priorityscore=1501 bulkscore=0
+ phishscore=0 suspectscore=0 lowpriorityscore=0 malwarescore=0 adultscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607160243
 
-The aarch64-laptops project found out that some Windows-on-Arm
-notebooks contain WMI-ACPI mapping devices (PNP0C14) that work
-exactly like on x86. Those devices however are currently not
-supported by the WMI driver core due to only supporting x86.
+On Thu, 16 Jul 2026 15:56:36 +0100
+Robin Murphy <robin.murphy@arm.com> wrote:
 
-The first patch removes this restriction and allows the WMI
-driver core to run on all architectures that support ACPI.
-The second patch updates the acpi-video driver to take advantage
-of the improved support for architectures other than x86, and
-the last patch enables the generic WMI BMOF driver to support
-aarch64 as well.
+> When waiting for a sub-module to register, we return a bare
+> -EPROBE_DEFER that ends up showing the end user:
+> 
+>   platform arm-cs-arch-pmu.1: deferred probe pending (no reason)
+> 
+> wherein it's not necessarily clear that they might need to take some
+> action to ensure the appropriate module is available to load. Let's use
+> dev_err_probe() here so we can show exactly what we're waiting for.
+> 
+> Similarly, in the case where something's gone horribly wrong with an
+> already-registered module, we can use dev_WARN() to standardise the
+> device/driver attribution rather than just open-coding "arm_cspmu".
+> 
+> Reviewed-by: Ilkka Koskinen <ilkka@os.amperecomputing.com>
+> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
 
-All patches have been tested on a ACPI-based aarch64 VM and
-work just fine.
+Hi Robin,
 
-Armin Wolf (3):
-  platform/wmi: Remove dependency on CONFIG_X86
-  ACPI: video: Remove CONFIG_X86 handling from nvidia_wmi_ec_supported()
-  platform/x86: wmi-bmof: Move to generic WMI code
+Maybe sprinkle some cleanup.h magic and use a guard(mutex)() and direct
+returns.  Simplifies this function that you are touching anyway.
 
- MAINTAINERS                                     |  2 +-
- drivers/acpi/Kconfig                            |  2 +-
- drivers/acpi/video_detect.c                     |  8 --------
- drivers/gpu/drm/amd/amdgpu/Kconfig              |  4 +---
- drivers/gpu/drm/gma500/Kconfig                  |  1 -
- drivers/gpu/drm/i915/Kconfig                    |  1 -
- drivers/gpu/drm/radeon/Kconfig                  |  4 +---
- drivers/gpu/drm/xe/Kconfig                      |  5 ++---
- drivers/platform/wmi/Kconfig                    | 14 +++++++++++++-
- drivers/platform/wmi/Makefile                   |  4 ++++
- drivers/platform/{x86/wmi-bmof.c =3D> wmi/bmof.c} |  0
- drivers/platform/x86/Kconfig                    | 12 ------------
- drivers/platform/x86/Makefile                   |  3 ---
- 13 files changed, 23 insertions(+), 37 deletions(-)
- rename drivers/platform/{x86/wmi-bmof.c =3D> wmi/bmof.c} (100%)
+Looking more broadly it'd either take a scoped_guard() or some refactoring
+if you want to go that way cross the file.
 
-=2D-=20
-2.39.5
+Jonathan
+
+> 
+> ---
+> v2: No change
+> ---
+>  drivers/perf/arm_cspmu/arm_cspmu.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/perf/arm_cspmu/arm_cspmu.c b/drivers/perf/arm_cspmu/arm_cspmu.c
+> index 8c2dda17d73e..caad9a36651d 100644
+> --- a/drivers/perf/arm_cspmu/arm_cspmu.c
+> +++ b/drivers/perf/arm_cspmu/arm_cspmu.c
+> @@ -437,13 +437,15 @@ static int arm_cspmu_init_impl_ops(struct arm_cspmu *cspmu)
+>  				if (ret)
+>  					module_put(match->module);
+>  			} else {
+> -				WARN(1, "arm_cspmu failed to get module: %s\n",
+> +				dev_WARN(cspmu->dev, "Failed to get module: %s\n",
+>  					match->module_name);
+>  				ret = -EINVAL;
+>  			}
+>  		} else {
+>  			request_module_nowait(match->module_name);
+> -			ret = -EPROBE_DEFER;
+> +			ret = dev_err_probe(cspmu->dev, -EPROBE_DEFER,
+> +					    "Waiting for module %s to load\n",
+> +					    match->module_name);
+>  		}
+>  
+>  		mutex_unlock(&arm_cspmu_lock);
 
