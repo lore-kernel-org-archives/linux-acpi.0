@@ -1,86 +1,128 @@
-Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40ECF27B32C;
-	Fri, 17 Jul 2026 15:35:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7F5A4318BA8;
+	Fri, 17 Jul 2026 16:16:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784302532; cv=none; b=aP69cQAUEdVN3oe4WLr4YisUgE2UvARuPts2RKOp9UaQRKmIAe1e5p3zrbfQBPKby2d04uriWMYeJmfzKlApnWzwvMos2P58PvSvdYtze7L+SFWk8fHFl0nqwOcmZeAIQRl7R6X7/njuvD2Fj+c/q8L8ICRwFV5sNXcOnTCr++c=
+	t=1784304981; cv=none; b=YT3nAQnMQ3QK4UueXgL468HzfuxL3HnPHlbeiX5x8e/0/TYePsbaHBHQwF8cD5TJJCiClrSnQGTpDFHZC0B8ft7v/HlBwetY4l4aLxVSXrt0kYRk1+F+YpKlLlYHivf1GA/9d6c532p8pK8cpv4bMS6iAsIqaJ3g5X4JLPYG9Nk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784302532; c=relaxed/simple;
-	bh=gXtoOXom+SZ6fQtLujthmE72o636wo7yJ2Varaquo7k=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dD9FKMk4oCh/iq91XKT+T+5eXQP0rdehWQk0LbFYWo4619Ux9zxZXj1kj6M51S8YvmoHpYzzPaG0RhKBLPIwuZLg/lglKogUiwqjZtTYDniEwcHAuxbC8o4LIJMzYGh8b4NGeex+6RdYkw/4azG0UdK0t7C+GMMgebd22zxk6ns=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=C7A3hx32; arc=none smtp.client-ip=159.69.126.157
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
+	s=arc-20240116; t=1784304981; c=relaxed/simple;
+	bh=w0Zi2BWh5dfpwiy/hOSW/MU5kOPYrXvW79sibZvRp7o=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=ABI4NHdG5LI9zuuiCAhr+5sA7feUqDH+irvJMP5wx6uekZs+kSvOE8Pcnh9IB6xKU/6XoTVrJUeK2xsXrBdB7IjY2ZkKh5vjBZFX686CHYFvsBnltTofcNXSAWZF9VHU6kFCjPQ0jVGE2QE/BZbvG3GAjN3QsCkiJoohuWRckOs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=WhaAS9rW; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="C7A3hx32"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
-	s=mail; t=1784302527;
-	bh=gXtoOXom+SZ6fQtLujthmE72o636wo7yJ2Varaquo7k=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=C7A3hx32jx895MFvzYe4hAelAzoV5JrxYVL5DhNvu226PRfs8EQMVKcO32Fi49mK9
-	 tGyECjWnZYRjaZD4Nz2T0lbWZlMiWVBTMpBzfOX6pAMH4c9VyX93D9RRVVUZVDAJfO
-	 rczg1jxOtPUk6bzpwTVQHSQJpUtGM37XrH0HxaAk=
-Date: Fri, 17 Jul 2026 17:35:27 +0200
-From: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <linux@weissschuh.net>
-To: Breno Leitao <leitao@debian.org>
-Cc: Andreas Hindborg <a.hindborg@kernel.org>, 
-	Miguel Ojeda <ojeda@kernel.org>, Boqun Feng <boqun@kernel.org>, Gary Guo <gary@garyguo.net>, 
-	=?utf-8?B?QmrDtnJu?= Roy Baron <bjorn3_gh@protonmail.com>, Benno Lossin <lossin@kernel.org>, 
-	Alice Ryhl <aliceryhl@google.com>, Trevor Gross <tmgross@umich.edu>, 
-	Danilo Krummrich <dakr@kernel.org>, Daniel Almeida <daniel.almeida@collabora.com>, 
-	Tamir Duberstein <tamird@kernel.org>, Alexandre Courbot <acourbot@nvidia.com>, 
-	Onur =?utf-8?B?w5Z6a2Fu?= <work@onurozkan.dev>, Matthew Brost <matthew.brost@intel.com>, 
-	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, 
-	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, Dan Williams <djbw@kernel.org>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, rust-for-linux@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, intel-xe@lists.freedesktop.org, dri-devel@lists.freedesktop.org, 
-	linux-coco@lists.linux.dev, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH 5/6] configfs: Allow the registration of const struct
- configfs_attribute
-Message-ID: <91f5e9dc-1ba0-4e20-9f1f-5100aaaf0a88@t-8ch.de>
-References: <20260716-configfs-const-base-v1-0-c545a4053cb5@weissschuh.net>
- <20260716-configfs-const-base-v1-5-c545a4053cb5@weissschuh.net>
- <alnrJJNb1hwDrAxI@gmail.com>
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="WhaAS9rW"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id A4FEA1476;
+	Fri, 17 Jul 2026 09:16:15 -0700 (PDT)
+Received: from [10.2.212.23] (e121345-lin.cambridge.arm.com [10.2.212.23])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 971193F905;
+	Fri, 17 Jul 2026 09:16:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1784304979; bh=w0Zi2BWh5dfpwiy/hOSW/MU5kOPYrXvW79sibZvRp7o=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=WhaAS9rWsloxlgUl+kgCy5WI/pibMFWNf2PDA9a4K1EjbZ2/EltFDFM0s4BMTk+UY
+	 eEX1EbCTHmD0dkZbQTmEO1dxoauio5NpiTONH9RTSYFyohj2UJuLGHL+G8zwcGMhDt
+	 D8gyXwjswL9P3HVbPlDGYr+Jtk1+wJjH2dJuY/cM=
+Message-ID: <aee1da04-3909-43d2-8cf0-82c9de323c0e@arm.com>
+Date: Fri, 17 Jul 2026 17:16:16 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <alnrJJNb1hwDrAxI@gmail.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 3/4] perf/arm_cspmu: Improve sub-module error reporting
+To: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+Cc: will@kernel.org, mark.rutland@arm.com, catalin.marinas@arm.com,
+ ilkka@os.amperecomputing.com, bwicaksono@nvidia.com,
+ linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-perf-users@vger.kernel.org
+References: <cover.1784213435.git.robin.murphy@arm.com>
+ <256bcb4c8c98dc95bfdf295adb66b917545c919b.1784213435.git.robin.murphy@arm.com>
+ <20260716171213.000026c7@oss.qualcomm.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Content-Language: en-GB
+In-Reply-To: <20260716171213.000026c7@oss.qualcomm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On 2026-07-17 01:43:36-0700, Breno Leitao wrote:
-> On Thu, Jul 16, 2026 at 07:09:30PM +0200, Thomas Weißschuh wrote:
-> > The attribute structure defined in driver code never need to be
-> > modified. Allow them to be marked as const.
-> > 
-> > As there are many drivers which use these attributes, prepare for a
-> > phased transition by using a union of const and non-const attributes.
+On 17/07/2026 1:12 am, Jonathan Cameron wrote:
+> On Thu, 16 Jul 2026 15:56:36 +0100
+> Robin Murphy <robin.murphy@arm.com> wrote:
 > 
-> How many drivers need to be migrated? Isn't this a mechanism move?
+>> When waiting for a sub-module to register, we return a bare
+>> -EPROBE_DEFER that ends up showing the end user:
+>>
+>>    platform arm-cs-arch-pmu.1: deferred probe pending (no reason)
+>>
+>> wherein it's not necessarily clear that they might need to take some
+>> action to ensure the appropriate module is available to load. Let's use
+>> dev_err_probe() here so we can show exactly what we're waiting for.
+>>
+>> Similarly, in the case where something's gone horribly wrong with an
+>> already-registered module, we can use dev_WARN() to standardise the
+>> device/driver attribution rather than just open-coding "arm_cspmu".
+>>
+>> Reviewed-by: Ilkka Koskinen <ilkka@os.amperecomputing.com>
+>> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+> 
+> Hi Robin,
+> 
+> Maybe sprinkle some cleanup.h magic and use a guard(mutex)() and direct
+> returns.  Simplifies this function that you are touching anyway.
+> 
+> Looking more broadly it'd either take a scoped_guard() or some refactoring
+> if you want to go that way cross the file.
 
-The actual constification of the attribute will happen with a central
-change to the CONFIGFS_ATTR* macros. But all users of the macro
-will need to be prepared to handle the constness.
+Heh, feel free to try some cosmetic refactoring if you fancy - for 
+starters, "if (!match) return 0" would save a whole needless level of 
+indentation here - but this patch is purely about a functional 
+improvement to the user-visible logging. I'd rather not tangle that up 
+in subjective non-functional changes.
 
-I have a branch with the full conversion here:
+(And to be brutally honest I'm not much of a fan of the cleanup.h stuff 
+anyway - maybe for complex nested resource acquisition, but it's not 
+like there are any gotos here, so for the sake of ~3 lines I'd 
+personally rather have locking that looks like locking...)
 
-https://git.kernel.org/pub/scm/linux/kernel/git/thomas.weissschuh/linux.git/log/?h=b4/configfs-const
+Thanks,
+Robin.
 
- 73 files changed, 241 insertions(+), 248 deletions(-)
+> 
+> Jonathan
+> 
+>>
+>> ---
+>> v2: No change
+>> ---
+>>   drivers/perf/arm_cspmu/arm_cspmu.c | 6 ++++--
+>>   1 file changed, 4 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/perf/arm_cspmu/arm_cspmu.c b/drivers/perf/arm_cspmu/arm_cspmu.c
+>> index 8c2dda17d73e..caad9a36651d 100644
+>> --- a/drivers/perf/arm_cspmu/arm_cspmu.c
+>> +++ b/drivers/perf/arm_cspmu/arm_cspmu.c
+>> @@ -437,13 +437,15 @@ static int arm_cspmu_init_impl_ops(struct arm_cspmu *cspmu)
+>>   				if (ret)
+>>   					module_put(match->module);
+>>   			} else {
+>> -				WARN(1, "arm_cspmu failed to get module: %s\n",
+>> +				dev_WARN(cspmu->dev, "Failed to get module: %s\n",
+>>   					match->module_name);
+>>   				ret = -EINVAL;
+>>   			}
+>>   		} else {
+>>   			request_module_nowait(match->module_name);
+>> -			ret = -EPROBE_DEFER;
+>> +			ret = dev_err_probe(cspmu->dev, -EPROBE_DEFER,
+>> +					    "Waiting for module %s to load\n",
+>> +					    match->module_name);
+>>   		}
+>>   
+>>   		mutex_unlock(&arm_cspmu_lock);
+> 
 
- Most driver changes are really trivial. But a few do more interesting
- things. My goal is to heavily reduce the amount of patches in this
- branch by merging patches to the same subsystem.
-
- The last four patches will be the finalization going again through
- the configfs tree.
-
-
- Thomas
