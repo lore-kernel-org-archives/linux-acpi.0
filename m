@@ -1,167 +1,142 @@
-Received: from canpmsgout04.his.huawei.com (canpmsgout04.his.huawei.com [113.46.200.219])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF20E2EEE73;
-	Fri, 17 Jul 2026 03:47:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.219
+Received: from mail.loongson.cn (mail.loongson.cn [114.242.206.163])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8C171379C2E;
+	Fri, 17 Jul 2026 06:44:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=114.242.206.163
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784260040; cv=none; b=i0LjhXh+7mAWVuiMZW1JEKv0GxHSIwqR8OMP2WwSQdRtRqGjLa3jlKlQ+7dulvRANoOILoTn61J/s8JRa19waQ9+c7fF+4dQlRHStCnpoVhcT/cPSHstNRhteFMoCbce8gjOZIiDqt6nNd2q4WW19B2qNrc+jM7UXHRhGxVMo9s=
+	t=1784270699; cv=none; b=SNO+5vYuaAcXX4w0dtjpma/kIqhxCiAGbm2U0GGHHZ5bWJaIJgddlsoODbf/P6rEt9dlZa8Bw2XDaLUVnGiKsJ5oxUtSpkHNECGg1lpRU43SC7pm92nsQm2RPTFNgBZypDAx5nzoY52yTe5d9kD6BN9U9C6LBI3evBhvsb3o5hg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784260040; c=relaxed/simple;
-	bh=kKZKJ9AC4A53wLLm5Sw+iKx+fKVtYYDEMRKAKJLGWV4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=N5eOSZjwEWzceXrzZ7MLkrYx8xtXYLIbfB2N2xEz+T6j/FAPcZPTlRmUWuIpAXyKPutnx7l7jFTxD+KEmNStpAZhu+11k8IFz9RJZjF8tvoKxaO5A29Pmb0FUi1nJrxnW1+qj3DhLRvdDbnZCg7FXIEMeqU5vGzxa9FaYkG7k+M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=DtzfQhJ8; arc=none smtp.client-ip=113.46.200.219
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="DtzfQhJ8"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=KZQXTxL73jFelG7oWtSz1Y/jy0CbZRaJ40WFqtj1IzY=;
-	b=DtzfQhJ8QztS58h4z7Uk8XnrcyopfBlleJAg8iFpya5xJ3uyfNrMTTbI5LrOhnefdhkTeTown
-	u8ZBu4Ng8wrz6PxTIxw0zjwduV8HPMxI/DCNqep7L5ywQIEmBN82RThJKup129Jv1HeunrkZf3R
-	mA4MmYpU+l72+w+oWjHLhCU=
-Received: from mail.maildlp.com (unknown [172.19.162.144])
-	by canpmsgout04.his.huawei.com (SkyGuard) with ESMTPS id 4h1bG82tXDz1prKd;
-	Fri, 17 Jul 2026 11:37:52 +0800 (CST)
-Received: from kwepemf100001.china.huawei.com (unknown [7.202.181.215])
-	by mail.maildlp.com (Postfix) with ESMTPS id D7AD640538;
-	Fri, 17 Jul 2026 11:47:13 +0800 (CST)
-Received: from [10.67.121.90] (10.67.121.90) by kwepemf100001.china.huawei.com
- (7.202.181.215) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Fri, 17 Jul
- 2026 11:47:12 +0800
-Message-ID: <31525db3-a7a6-48fa-bea9-5de28a4332c4@huawei.com>
-Date: Fri, 17 Jul 2026 11:47:12 +0800
+	s=arc-20240116; t=1784270699; c=relaxed/simple;
+	bh=7hRA0dProPOutyB2IiNvsAo+dWkQqnYN8bcnIHOQuo8=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=OCs2n99QrjIhsgNO69mjjz8/0it1yfP8gqVvI2Gj1nwG8TkINVeDJ59aDh4kjPPKjPwArbErwptU3/cpo4HcxDjeUOQNldd9zjigRaasrIOH4rgWOdHTUsvMInaST5A7Itdu3WC+t4haRb9OPVm6qO3Yz8ZuON/oC288dNIWw/Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=loongson.cn; spf=pass smtp.mailfrom=loongson.cn; arc=none smtp.client-ip=114.242.206.163
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=loongson.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=loongson.cn
+Received: from loongson.cn (unknown [10.2.5.213])
+	by gateway (Coremail) with SMTP id _____8Axz+tWz1lqKHYEAA--.17546S3;
+	Fri, 17 Jul 2026 14:44:38 +0800 (CST)
+Received: from localhost.localdomain (unknown [10.2.5.213])
+	by front1 (Coremail) with SMTP id qMiowJAxHsdMz1lqgcoPAA--.43739S3;
+	Fri, 17 Jul 2026 14:44:37 +0800 (CST)
+From: Bibo Mao <maobibo@loongson.cn>
+To: Huacai Chen <chenhuacai@kernel.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>,
+	Saket Dumbre <saket.dumbre@intel.com>,
+	linux-kernel@vger.kernel.org,
+	loongarch@lists.linux.dev,
+	linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev,
+	lixianglai@loongson.cn
+Subject: [PATCH v2 1/4] ACPI: LoongArch: Add acpi_arch_[late]_init()
+Date: Fri, 17 Jul 2026 14:37:10 +0800
+Message-Id: <20260717063713.3638059-2-maobibo@loongson.cn>
+X-Mailer: git-send-email 2.39.3
+In-Reply-To: <20260717063713.3638059-1-maobibo@loongson.cn>
+References: <20260717063713.3638059-1-maobibo@loongson.cn>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 2/3] ACPI: CPPC: Add u64 wrappers for the autonomous
- selection register
-To: Sumit Gupta <sumitg@nvidia.com>, <rafael@kernel.org>,
-	<viresh.kumar@linaro.org>, <pierre.gondois@arm.com>,
-	<ionela.voinescu@arm.com>, <zhanjie9@hisilicon.com>,
-	<saket.dumbre@intel.com>, <lenb@kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-pm@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<acpica-devel@lists.linux.dev>, <linux-tegra@vger.kernel.org>
-CC: <treding@nvidia.com>, <jonathanh@nvidia.com>, <vsethi@nvidia.com>,
-	<ksitaraman@nvidia.com>, <sanjayc@nvidia.com>, <mochs@nvidia.com>,
-	<bbasu@nvidia.com>
-References: <20260716153820.2007095-1-sumitg@nvidia.com>
- <20260716153820.2007095-3-sumitg@nvidia.com>
-From: "zhenglifeng (A)" <zhenglifeng1@huawei.com>
-In-Reply-To: <20260716153820.2007095-3-sumitg@nvidia.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
- kwepemf100001.china.huawei.com (7.202.181.215)
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:qMiowJAxHsdMz1lqgcoPAA--.43739S3
+X-CM-SenderInfo: xpdruxter6z05rqj20fqof0/
+X-Coremail-Antispam: 1Uk129KBjDUn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7KY7
+	ZEXasCq-sGcSsGvfJ3UbIjqfuFe4nvWSU5nxnvy29KBjDU0xBIdaVrnUUvcSsGvfC2Kfnx
+	nUUI43ZEXa7xR_UUUUUUUUU==
 
-On 7/16/2026 11:38 PM, Sumit Gupta wrote:
-> cppc_get_auto_sel()/cppc_set_auto_sel() use a bool, unlike the other
-> CPPC register get/set helpers which use a u64.
-> 
-> The next patch in this series saves and restores the OSPM-set registers
-> across CPU hotplug using a common table of get/set helpers typed as
-> int (*)(int, u64 *) and int (*)(int, u64), which the bool autonomous
-> selection helpers do not fit.
-> 
-> Add cppc_get_auto_sel_u64()/cppc_set_auto_sel_u64() wrappers with the u64
-> signature so the autonomous selection register fits alongside the others.
-> 
-> Suggested-by: Pierre Gondois <pierre.gondois@arm.com>
-> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
+LoongArch IOMMU scanning flow is similar with virtio-iommu,
+there is early init and late_init. In early init function, PCI
+ACS is enabled if there is IOMMU table, and late_init is called
+after PCI device scanning, where IOVT table scanning function is
+executed.
 
-If this is necessary, I think it is better to just change the input parameter
-of the original cppc_get/set_auto_sel() to u64.
+Here add acpi_arch_init() and acpi_arch_late_init() API on LoongArch,
+now they are both empty, In the future, IOVT table parsing will be
+added.
 
-> ---
->  drivers/acpi/cppc_acpi.c | 40 ++++++++++++++++++++++++++++++++++++++++
->  include/acpi/cppc_acpi.h | 10 ++++++++++
->  2 files changed, 50 insertions(+)
-> 
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index 9f572f481241..a7fec6c93178 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -1788,6 +1788,46 @@ int cppc_set_auto_sel(int cpu, bool enable)
->  }
->  EXPORT_SYMBOL_GPL(cppc_set_auto_sel);
->  
-> +/**
-> + * cppc_get_auto_sel_u64 - Read the autonomous selection register as a u64.
-> + * @cpu: CPU from which to read the register.
-> + * @val: Return address, set to 0 or 1.
-> + *
-> + * u64-typed wrapper around cppc_get_auto_sel() for callers that keep CPPC
-> + * register accessors in a common table.
-> + *
-> + * Return: 0 for success, -ERRNO otherwise.
-> + */
-> +int cppc_get_auto_sel_u64(int cpu, u64 *val)
-> +{
-> +	bool enable;
-> +	int ret;
-> +
-> +	ret = cppc_get_auto_sel(cpu, &enable);
-> +	if (ret)
-> +		return ret;
-> +
-> +	*val = enable;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(cppc_get_auto_sel_u64);
-> +
-> +/**
-> + * cppc_set_auto_sel_u64 - Write the autonomous selection register from a u64.
-> + * @cpu: CPU to which to write the register.
-> + * @val: Value to write, any non-zero value enables autonomous selection.
-> + *
-> + * u64-typed wrapper around cppc_set_auto_sel().
-> + *
-> + * Return: 0 for success, -ERRNO otherwise.
-> + */
-> +int cppc_set_auto_sel_u64(int cpu, u64 val)
-> +{
-> +	return cppc_set_auto_sel(cpu, !!val);
-> +}
-> +EXPORT_SYMBOL_GPL(cppc_set_auto_sel_u64);
-> +
->  /**
->   * cppc_set_enable - Set to enable CPPC on the processor by writing the
->   * Continuous Performance Control package EnableRegister field.
-> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-> index 8693890a7275..cd07e1e92bf4 100644
-> --- a/include/acpi/cppc_acpi.h
-> +++ b/include/acpi/cppc_acpi.h
-> @@ -184,6 +184,8 @@ extern int cppc_get_auto_act_window(int cpu, u64 *auto_act_window);
->  extern int cppc_set_auto_act_window(int cpu, u64 auto_act_window);
->  extern int cppc_get_auto_sel(int cpu, bool *enable);
->  extern int cppc_set_auto_sel(int cpu, bool enable);
-> +extern int cppc_get_auto_sel_u64(int cpu, u64 *val);
-> +extern int cppc_set_auto_sel_u64(int cpu, u64 val);
->  extern int cppc_get_perf_limited(int cpu, u64 *perf_limited);
->  extern int cppc_set_perf_limited(int cpu, u64 bits_to_clear);
->  extern int amd_get_highest_perf(unsigned int cpu, u32 *highest_perf);
-> @@ -282,6 +284,14 @@ static inline int cppc_set_auto_sel(int cpu, bool enable)
->  {
->  	return -EOPNOTSUPP;
->  }
-> +static inline int cppc_get_auto_sel_u64(int cpu, u64 *val)
-> +{
-> +	return -EOPNOTSUPP;
-> +}
-> +static inline int cppc_set_auto_sel_u64(int cpu, u64 val)
-> +{
-> +	return -EOPNOTSUPP;
-> +}
->  static inline int cppc_get_perf_limited(int cpu, u64 *perf_limited)
->  {
->  	return -EOPNOTSUPP;
+Signed-off-by: Bibo Mao <maobibo@loongson.cn>
+---
+ drivers/acpi/Makefile           |  2 +-
+ drivers/acpi/bus.c              |  2 ++
+ drivers/acpi/loongarch/Makefile |  2 ++
+ drivers/acpi/loongarch/init.c   | 11 +++++++++++
+ include/linux/acpi.h            |  1 +
+ 5 files changed, 17 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/acpi/loongarch/Makefile
+ create mode 100644 drivers/acpi/loongarch/init.c
+
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index d1b0affb844f..91584a3c1e01 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -131,6 +131,6 @@ obj-y				+= dptf/
+ obj-$(CONFIG_ARM64)		+= arm64/
+ 
+ obj-$(CONFIG_ACPI_VIOT)		+= viot.o
+-
++obj-$(CONFIG_LOONGARCH)		+= loongarch/
+ obj-$(CONFIG_RISCV)		+= riscv/
+ obj-$(CONFIG_X86)		+= x86/
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index a30a904f6535..5f6924b9e29d 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1571,6 +1571,7 @@ struct kobject *acpi_kobj;
+ EXPORT_SYMBOL_GPL(acpi_kobj);
+ 
+ void __weak __init acpi_arch_init(void) { }
++void __weak __init acpi_arch_late_init(void) { }
+ 
+ static int __init acpi_init(void)
+ {
+@@ -1609,6 +1610,7 @@ static int __init acpi_init(void)
+ 	acpi_wakeup_device_init();
+ 	acpi_debugger_init();
+ 	acpi_setup_sb_notify_handler();
++	acpi_arch_late_init();
+ 	acpi_viot_init();
+ 	return 0;
+ }
+diff --git a/drivers/acpi/loongarch/Makefile b/drivers/acpi/loongarch/Makefile
+new file mode 100644
+index 000000000000..d3764139dfaf
+--- /dev/null
++++ b/drivers/acpi/loongarch/Makefile
+@@ -0,0 +1,2 @@
++# SPDX-License-Identifier: GPL-2.0-only
++obj-y					+= init.o
+diff --git a/drivers/acpi/loongarch/init.c b/drivers/acpi/loongarch/init.c
+new file mode 100644
+index 000000000000..b11aa5c7d928
+--- /dev/null
++++ b/drivers/acpi/loongarch/init.c
+@@ -0,0 +1,11 @@
++// SPDX-License-Identifier: GPL-2.0-only
++
++#include <linux/acpi.h>
++
++void __init acpi_arch_init(void)
++{
++}
++
++void __init acpi_arch_late_init(void)
++{
++}
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 60ab50cb8930..c6a180341c2d 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1617,6 +1617,7 @@ static inline int acpi_pptt_get_cpumask_from_cache_id(u32 cache_id,
+ #endif
+ 
+ void acpi_arch_init(void);
++void acpi_arch_late_init(void);
+ 
+ #ifdef CONFIG_ACPI_PCC
+ void acpi_init_pcc(void);
+-- 
+2.39.3
 
