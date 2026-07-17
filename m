@@ -1,184 +1,137 @@
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+Received: from canpmsgout04.his.huawei.com (canpmsgout04.his.huawei.com [113.46.200.219])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 884D04A33
-	for <linux-acpi@vger.kernel.org>; Fri, 17 Jul 2026 00:20:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CEBE2045AD;
+	Fri, 17 Jul 2026 01:24:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.219
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784247620; cv=none; b=s/twdJR2XKL0gFQlaq5TKmUMWcQLOHVBrmCChMO0pmbMKX14yg5Lyrr+iT3X5iaxmS66TSAbBnhEC37D27Dv5+I6+T5lkxCbffLqBr7TfBKSUqOyO7WCb7iJy2N4hTmZL3iUJh/j38ofQxnLVBAv0ojdtZ+/Lxq3LJ7fCBQFB50=
+	t=1784251484; cv=none; b=HjKiC4xHJ6hKlez2QJg7hsYSicGi2TlUZujLGEi52kiC40bGGzuX4VuvGs70pJbxSOgab4nbxhjux012MRSL4M727aFJGnoF4sj+3OZtwP6bHiSduVZOqfALLP8yYiXPh+lp+AwMHZVSUoUErj2leVM0xuysZD+e1AbEdMnBavw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784247620; c=relaxed/simple;
-	bh=NMWxVa2O0pcZ7CXoIPYnrqJdQNRFng0555z8QlRrJ4o=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=WwlyQCYeAGS0zR3dh8ci9HVISdoGv+8sHUg8WEtIqat3gQRWl0eLZA3uHOGTJmZrSp4xsV5uuNV0Yr45JXyk5jWbX60tLz6CJJ+7KNgNKNbrn7Gr7ddZk/s01BA8Tpp+zC6wwdl5D8f7r8/2jSZ8JOT0Ml8zaMU6m9kDEJrtXQY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=L+UJimOi; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=FnZRmepj; arc=none smtp.client-ip=205.220.168.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	s=arc-20240116; t=1784251484; c=relaxed/simple;
+	bh=pHXNTKbXJTBG/BABfTPnzc62yMveXx2geBRWMXkLfsw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=pPvRpuID8JkVaHaRyMSDaEISzNWl8RlPZDWTqP9I1BKK3ZC7EPou/Ei86yiFLx/jjwgf69yV7Mu5dSA0GyfShjsk7tuSKAqLPAcOI7gGQSwK25L3pChJfnD+3mW4t2Fww5Qafx5u6/YLW92UGFAALWXkulIPhc0cWdoUaASsnlE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=kxGSgzcA; arc=none smtp.client-ip=113.46.200.219
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="L+UJimOi";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="FnZRmepj"
-Received: from pps.filterd (m0279867.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66GNIDjk1129056
-	for <linux-acpi@vger.kernel.org>; Fri, 17 Jul 2026 00:20:19 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	STYZA1LnYQTfXAhvgUb7SwcUx9+N7av2siYHawu2deQ=; b=L+UJimOirvI4UX8N
-	fMnQWaJnWdoIaUt62qHwO//4uA02oXHcUonCJMUIRtKI6115x1jdsFyTQ27bbkEK
-	Yl8ND3mOQJ5H6w30nQNdRqsQuoHCcy60KXI9bF4GUg33zJMeDeSwM56nrLNXxYA7
-	g4CAkL9i7kvAvPOU2nwiSdt6yH6gDy3hsDFwY6mF/lc3R3NQFaLMqAQ0mTbKsK42
-	ibUnbpVCCKSW9eczxSWe8QSQrPZWPMzQcB5JOsK1cnFZBxahvWM4swN2YB6OdPcE
-	H8VS0jYbLGgK3WZbcTByi/+Rss4T/v0PRMLcPCKl+3SFkbrNxlyQEY83QPe0FYrL
-	2fsTfA==
-Received: from mail-pj1-f69.google.com (mail-pj1-f69.google.com [209.85.216.69])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4ff3u6h958-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Fri, 17 Jul 2026 00:20:18 +0000 (GMT)
-Received: by mail-pj1-f69.google.com with SMTP id 98e67ed59e1d1-38dbe39ce62so1287948a91.0
-        for <linux-acpi@vger.kernel.org>; Thu, 16 Jul 2026 17:20:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1784247618; x=1784852418; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:organization
-         :references:in-reply-to:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to:content-type;
-        bh=STYZA1LnYQTfXAhvgUb7SwcUx9+N7av2siYHawu2deQ=;
-        b=FnZRmepjiClwNXLFamVnk+Ag2aoB4f14mFf7hezX8FKvzu7jLaiYVymYc2S0pJwUyK
-         pCsoUnWvrbLAjDBjeIXwxv4Tq/3zpYe6AcUJy6Iccey5rGQ/aLyL2ln2ntLynG5wotf2
-         R+Gezu5/wIeyL21RbLAOnvmFEpDN80XXlShiIyEt1Egx74FI3LUrPWeatDmgprRbdqXw
-         ccuApT13vw/J2aHXWK65iPqkaWFQNsoW75TVy7tQal2rZ1Ag033VzkSL6BEJ9GVGCwBJ
-         oHryMsGHTCqS7wUhaDqvPwF3/2X4ED6OySNIQhLJTGZINCGXS2MzOwVuyZ9qR4me5MdQ
-         bvTw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784247618; x=1784852418;
-        h=content-transfer-encoding:content-type:mime-version:organization
-         :references:in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=STYZA1LnYQTfXAhvgUb7SwcUx9+N7av2siYHawu2deQ=;
-        b=ZKOqAZIaDcRQKisZboMcJwj6ynWTD1Cs1GFZAXrQbXjz883b+TGvLlMet9KkXWMdi6
-         2BMbmDseNjjUv7F2Ctbpx9nKHbu1+BERdScT+0Dt28QUxqTOb4YnihYsb3EMv32d1i8n
-         AoFsjxcoagvDIVNICZN/OdBio2iUR9CBRZurjqQum9AQjj9D1UJq5zFdeKh4lcVSGxz5
-         9GfkENC9dg3GbLzPVIqzn7aNfHJMo7ji/jffEf7HVQn90AL1nby5dtgZovKgp54XPo8C
-         8VSk3vxRSeQnwJNMwYPbX1EEL4Vu72H4E+VIF6iZKpQm686ej/HIamjBlBxqMTn6fYpv
-         Fr9A==
-X-Forwarded-Encrypted: i=1; AHgh+Rqsr4uCpfgJnZ/4PJjArHDPUCCrZkvXGBwKglBUjCq9HdGZwwVT2GZxREUNkHxxnyexk5E1qdcXTQPb@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxm6ugUuBwRqRtDldvBNsu/c2fYsq76RnpaUr2cGmD4dlKerwzo
-	xLV6hHkweTIX9+svllXsCZIIEjh/wrkXsm3t8XON6b0png8fyM6cOj1U/ML7853ynyqR9F0cc+U
-	Z1wd/qtWMn0LtH1lhNpw5zzUiw8kFCErhie4XUMUvViX0kb1UY4GMrOEjhdd1esaU
-X-Gm-Gg: AfdE7cl8cTk//VsU5JiqKHM6/Jq+Fb52ttb1bu2aGWwz7sRl53rbe8xKUAFVeYLHXK8
-	9ymCPvRfJofEfbD8V0D1HHaGA1QyUdcskeOID8mkJmaumUPVaRwCvb/YPm8Dr+vJ2PzK2DGObyn
-	6KhjvbTWKSeixTlBYlr1ki8Hohw/eSK/LQ0s38WKhCWAjnCwVa+LPKYCfcg7Q4/S7Ox90O1xtKr
-	9OVo9F/Ar+YuEoRGr74pSeNNGajw6O81nLAgjwgO9pqlAY/8i9LyxEgrZt+wLgsXfv0AMQt/ylA
-	9+bnr1ztkWP4HTlQcWtzil9Ykkl+vz7DZFYLJyjAncr8cQ/UATpBo4kYopDetTm+zKd9D+E1jk5
-	JnDlEgc6ohMeg9vwo1/O5DVHE7Q==
-X-Received: by 2002:a17:90b:4a10:b0:35f:bb17:39f with SMTP id 98e67ed59e1d1-38e3d133ff8mr5060880a91.1.1784247618208;
-        Thu, 16 Jul 2026 17:20:18 -0700 (PDT)
-X-Received: by 2002:a17:90b:4a10:b0:35f:bb17:39f with SMTP id 98e67ed59e1d1-38e3d133ff8mr5060858a91.1.1784247617738;
-        Thu, 16 Jul 2026 17:20:17 -0700 (PDT)
-Received: from localhost ([50.35.46.84])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3142a1bbaf6sm495131eec.17.2026.07.16.17.20.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 16 Jul 2026 17:20:17 -0700 (PDT)
-Date: Thu, 16 Jul 2026 17:20:14 -0700
-From: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: alejandro.lucero-palau@amd.com, linux-cxl@vger.kernel.org,
-        linux-acpi@vger.kernel.org, rafael@kernel.org,
-        Alejandro Lucero
- <alucerop@amd.com>
-Subject: Re: [PATCH v2 1/1] acpi/hmat: preserve hmat_adist_nb notifier block
-Message-ID: <20260716172014.0000299c@oss.qualcomm.com>
-In-Reply-To: <4b146ef6-ffa1-4406-b625-85fe05ed4604@intel.com>
-References: <20260716181114.35962-1-alejandro.lucero-palau@amd.com>
-	<20260716181114.35962-2-alejandro.lucero-palau@amd.com>
-	<4b146ef6-ffa1-4406-b625-85fe05ed4604@intel.com>
-Organization: Qualcomm
-X-Mailer: Claws Mail 4.4.0 (GTK 3.24.51; x86_64-w64-mingw32)
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="kxGSgzcA"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=SXoeLzz0joNDaurArO4fsXPyADL0JdoAhkTv0ebLgpA=;
+	b=kxGSgzcAVEnTkZ+VJacFArpr5p48N0MwJrODTo7eCHO5onknMoIdiCpZMUJWcU9qEQPcFzM5Y
+	Y7GN6f8J9bQDIP1QPthCGJDk5Q9vsKoyHBRxYELelNm14X8cNdPVHbRQHF4rZHKGlEOnI2oC9et
+	utTFBzxExpve7QfWkUCyH6c=
+Received: from mail.maildlp.com (unknown [172.19.162.223])
+	by canpmsgout04.his.huawei.com (SkyGuard) with ESMTPS id 4h1X5T2dChz1prQs;
+	Fri, 17 Jul 2026 09:15:09 +0800 (CST)
+Received: from kwepemr200004.china.huawei.com (unknown [7.202.195.241])
+	by mail.maildlp.com (Postfix) with ESMTPS id BD1CB40577;
+	Fri, 17 Jul 2026 09:24:30 +0800 (CST)
+Received: from [10.67.121.62] (10.67.121.62) by kwepemr200004.china.huawei.com
+ (7.202.195.241) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Fri, 17 Jul
+ 2026 09:24:29 +0800
+Message-ID: <4d235a1b-41e1-4797-ad56-467d8d840b03@huawei.com>
+Date: Fri, 17 Jul 2026 09:24:29 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzE3MDAwMSBTYWx0ZWRfX59Erg32RoFpH
- HQo51Ev6apsQ/sB5E7f7OfsUtvHe/PjYUzuS3/L63UeA7B4wtak0lyAEB1h9mDlzOOHfmAgqWrH
- zfdyRMB8FFIuHPnEwMC3JF/1jeIHuFJVyOx/OE9HGw9M9kmGs1Yvnz7j5FBfTp1B8+a6KNNtGMq
- ZR3Y8+0Mq1rAQZsLM8Pz1aGANFaL/p/a87NesYd+Gzmtx50v5Lhz0ZCaUOptk9GDEqnMQ18foKz
- HFc3mgFwCWL9RLU47GfqbMPxQn12AyGHB8pouxBrMIC4N+zIz4THoU5qP89NzhS+0PYzBSlUbCZ
- 4sVmvlSladl2RF6ONJ5Pp9X4iGI4B/bMl1plf9IM0TYh/cwLhELspVZgfQGlOzGMfxhEILYER14
- WsOm/I4lgggMhCv930kxzo8WOY823vZMps2cbBQ6uhw1uU2Fn0qY4zELzRdh7J4o+gl++p9Su5M
- 8ScNJtWjAeUsHZfaGig==
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzE3MDAwMSBTYWx0ZWRfX+EVic3XRVJGF
- tJgOVolXFv/UwT5FCfAVyZtUClQFej/Gj6u45NIz2bjJWQNAWHo9Kjas8UrvjvedCbKMPUZEk5S
- ScukD3WMF0as4hzd5bxu7/HhiyKefOg=
-X-Authority-Analysis: v=2.4 cv=DYMnbPtW c=1 sm=1 tr=0 ts=6a597542 cx=c_pps
- a=vVfyC5vLCtgYJKYeQD43oA==:117 a=qC1CW/w66vtJz1P9yTJxNA==:17
- a=kj9zAlcOel0A:10 a=RAioF0-LDSMA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=eoimf2acIAo5FJnRuUoq:22
- a=QyXUC8HyAAAA:8 a=zd2uoN0lAAAA:8 a=EUspDBNiAAAA:8 a=pp6aupvQFOZKKrBwpXYA:9
- a=CjuIK1q_8ugA:10 a=rl5im9kqc5Lf4LNbBjHf:22
-X-Proofpoint-GUID: dr6KtX6RwxZWwthvtzi0DMMy2Tqn3s5t
-X-Proofpoint-ORIG-GUID: dr6KtX6RwxZWwthvtzi0DMMy2Tqn3s5t
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-07-16_08,2026-07-15_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- clxscore=1015 impostorscore=0 lowpriorityscore=0 bulkscore=0 phishscore=0
- adultscore=0 priorityscore=1501 spamscore=0 malwarescore=0 suspectscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607170001
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 0/2] CPPC: reduce FFH feedback-counter sampling skew on
+ arm64
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+CC: <catalin.marinas@arm.com>, <will@kernel.org>, <rafael@kernel.org>,
+	<lenb@kernel.org>, <saket.dumbre@intel.com>, <zhenglifeng1@huawei.com>,
+	<sumitg@nvidia.com>, <zhanjie9@hisilicon.com>, <geert+renesas@glider.be>,
+	<cuiyunhui@bytedance.com>, <vanshikonda@os.amperecomputing.com>,
+	<ionela.voinescu@arm.com>, <jeremy.linton@arm.com>,
+	<viresh.kumar@linaro.org>, <linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<acpica-devel@lists.linux.dev>, <linuxarm@huawei.com>,
+	<prime.zeng@hisilicon.com>, <wanghuiqiang@huawei.com>, <xuwei5@huawei.com>,
+	<lihuisong@huawei.com>, <yubowen8@huawei.com>, <wangzhi12@huawei.com>, Beata
+ Michalska <beata.michalska@arm.com>
+References: <20260708082818.808041-1-zhangpengjie2@huawei.com>
+ <alD2qU4FNoGvP7SN@arm.com>
+From: Pengjie Zhang <zhangpengjie2@huawei.com>
+In-Reply-To: <alD2qU4FNoGvP7SN@arm.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
+ kwepemr200004.china.huawei.com (7.202.195.241)
 
-On Thu, 16 Jul 2026 13:27:56 -0700
-Dave Jiang <dave.jiang@intel.com> wrote:
+Hi Rafael,
 
-> On 7/16/26 11:11 AM, alejandro.lucero-palau@amd.com wrote:
-> > From: Alejandro Lucero <alucerop@amd.com>
-> > 
-> > Remove __meminitdata from hmat_adist_nb declaration preserving it even
-> > when CONFIG_MEMORY_HOTPLUG is not set. Otherwise further notifier
-> > registrations using register_mt_adistance_algorithm() will find a
-> > notifier chain likely corrupted.
-> > 
-> > This is the case when cxl_region_probe() calls
-> > register_mt_adistance_algorithm() what can happen when CXL regions
-> > are dynamically created at any time from Type3 device(s) or when a Type2
-> > device is initialized at its driver probe.
-> > 
-> > Fixes: 3718c02dbd4c ("acpi, hmat: calculate abstract distance with HMAT")
-> > 
+Just a gentle ping on this patch. It has been a week and Beata has taken
+a look at it. Could you please let me know if you have any comments or
+concerns regarding this change?
 
-This will trip some of the checker scripts that run on various trees.
-No blank lines in a commit tag block. I guess who ever picks this up
-can tidy that up though rather than needing a v2.
+Thanks,
+     Pengjie
 
-> > Signed-off-by: Alejandro Lucero <alucerop@amd.com>  
-> 
-> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Seems sensible to me.
-
-Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-
-> 
-> 
-> > ---
-> >  drivers/acpi/numa/hmat.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
-> > index 9792dc394756..3006789ae31f 100644
-> > --- a/drivers/acpi/numa/hmat.c
-> > +++ b/drivers/acpi/numa/hmat.c
-> > @@ -995,7 +995,7 @@ static int hmat_calculate_adistance(struct notifier_block *self,
-> >  	return NOTIFY_STOP;
-> >  }
-> >  
-> > -static struct notifier_block hmat_adist_nb __meminitdata = {
-> > +static struct notifier_block hmat_adist_nb = {
-> >  	.notifier_call = hmat_calculate_adistance,
-> >  	.priority = 100,
-> >  };  
-> 
-> 
-
+On 7/10/2026 9:42 PM, Beata Michalska wrote:
+> Looks good to me, though I guess you might need an ack from Rafael (?)
+>
+> Thank you for the patches.
+>
+> ---
+> BR
+> Beata
+> On Wed, Jul 08, 2026 at 04:28:16PM +0800, Pengjie Zhang wrote:
+>> The legacy CPPC feedback-counter path reads the delivered and reference
+>> performance counters separately.
+>>
+>> On arm64 systems using AMU-backed CPPC FFH counters, each FFH read is
+>> served through a cross-CPU counter read helper. Reading the counters
+>> separately therefore widens the sampling window between them and can
+>> skew the delivered/reference ratio used by cpuinfo_cur_freq. Under heavy
+>> load, the skew is observable as transient values that may exceed the
+>> platform maximum, as discussed in [1] and [2].
+>>
+>> This series adds a small generic hook for architectures that can obtain
+>> both FFH feedback counters in one operation, while preserving the
+>> existing per-register read path as the fallback.
+>>
+>> Patch 1 adds the generic CPPC hook and uses it from cppc_get_perf_ctrs().
+>> Patch 2 implements the hook on arm64 by sampling both AMU counters in a
+>> single operation on the target CPU.
+>>
+>> For detailed test results and data demonstrating the observable skew and
+>> the improvements brought by this series, please refer to [3] and [4].
+>>
+>> [1] https://lore.kernel.org/all/20231025093847.3740104-4-zengheng4@huawei.com/
+>> [2] https://lore.kernel.org/all/20231212072617.14756-1-lihuisong@huawei.com/
+>> [3] https://lore.kernel.org/all/443104e2-ba6e-454e-8469-909f35817a99@huawei.com/
+>> [4] https://lore.kernel.org/all/317d33d5-8279-4aa8-84b7-6ae1976636ac@huawei.com/
+>>
+>> Tested-by: Sumit Gupta <sumitg@nvidia.com>
+>> Reviewed-by: Sumit Gupta <sumitg@nvidia.com>
+>> Tested-by: Vanshidhar Konda <vanshikonda@os.amperecomputing.com>
+>> Reviewed-by: Vanshidhar Konda <vanshikonda@os.amperecomputing.com>
+>> Signed-off-by: Pengjie Zhang <zhangpengjie2@huawei.com>
+>> ---
+>> Changes in v2:
+>> - Simplified the CPPC generic layer fallback logic to prevent pointless single-read retries.
+>> - Added upfront register validation in the arm64 hook to avoid unnecessary IPI overhead.
+>> - Explicitly flipped the -EOPNOTSUPP error to -ENODEV in the arm64 hook when AMU is unsupported, cleanly bypassing redundant CPPC generic fallbacks.
+>> - Addressed other kernel-doc and naming feedbacks from Beata.
+>> - Added Reviewed-by and Tested-by tags from Vanshidhar and Sumit
+>> - Link to v1: https://lore.kernel.org/all/20260410094145.4132082-1-zhangpengjie2@huawei.com/
+>>
+>> Pengjie Zhang (2):
+>>    ACPI: CPPC: add paired FFH feedback-counter read hook
+>>    arm64: topology: read CPPC FFH feedback counters in one operation
+>>
+>>   arch/arm64/kernel/topology.c | 92 ++++++++++++++++++++++++++++++++----
+>>   drivers/acpi/cppc_acpi.c     | 50 ++++++++++++++++++--
+>>   include/acpi/cppc_acpi.h     |  7 +++
+>>   3 files changed, 136 insertions(+), 13 deletions(-)
+>>
+>> -- 
+>> 2.33.0
+>>
