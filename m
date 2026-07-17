@@ -1,150 +1,167 @@
-Received: from canpmsgout07.his.huawei.com (canpmsgout07.his.huawei.com [113.46.200.222])
+Received: from canpmsgout04.his.huawei.com (canpmsgout04.his.huawei.com [113.46.200.219])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBE7A33FE09;
-	Fri, 17 Jul 2026 02:47:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.222
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF20E2EEE73;
+	Fri, 17 Jul 2026 03:47:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.219
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784256425; cv=none; b=MZXxcQtBxnqqSGtZop7dED2LB6DTNisRXFtWBzEmAx/PPzgpDSjnGOD6srb4L5BRU6hZFZKM5t++tmp+FJ4qPBZqOuDhReIxenBCfh7apk9sHYDTRfohY9+yTd+xZ0m0ytKy+xLMm4iFNk459gVeHHco7p/tedi46FN8iN9jX8o=
+	t=1784260040; cv=none; b=i0LjhXh+7mAWVuiMZW1JEKv0GxHSIwqR8OMP2WwSQdRtRqGjLa3jlKlQ+7dulvRANoOILoTn61J/s8JRa19waQ9+c7fF+4dQlRHStCnpoVhcT/cPSHstNRhteFMoCbce8gjOZIiDqt6nNd2q4WW19B2qNrc+jM7UXHRhGxVMo9s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784256425; c=relaxed/simple;
-	bh=ShnPJq0w4Lw/TFzFvC1q6W2dEMyyQCs9adQwQJ5ATxI=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=td3/C4+JiKmuDctH/HkeVr5KWfCzDavRhJ08rZUNW+XCtR6nONz8HTPaZEYyn2ql1P9dKLZNXmEtsrrqX/wXsDUOOPZlTeQiYF6NrWxrL6JFOsA9Tw2tAURvglkQmHGWSGhIwZ4Dp6DX8A6WJEc0EvLRAmAY5FqlP1hsxlbbRZI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=YRztWVmO; arc=none smtp.client-ip=113.46.200.222
+	s=arc-20240116; t=1784260040; c=relaxed/simple;
+	bh=kKZKJ9AC4A53wLLm5Sw+iKx+fKVtYYDEMRKAKJLGWV4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=N5eOSZjwEWzceXrzZ7MLkrYx8xtXYLIbfB2N2xEz+T6j/FAPcZPTlRmUWuIpAXyKPutnx7l7jFTxD+KEmNStpAZhu+11k8IFz9RJZjF8tvoKxaO5A29Pmb0FUi1nJrxnW1+qj3DhLRvdDbnZCg7FXIEMeqU5vGzxa9FaYkG7k+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=DtzfQhJ8; arc=none smtp.client-ip=113.46.200.219
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="YRztWVmO"
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="DtzfQhJ8"
 dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
 	c=relaxed/relaxed; q=dns/txt;
 	h=From;
-	bh=HprlmLQnZeTXTYVZls+0B6vKsVoZrXEBrxGuF4830oA=;
-	b=YRztWVmOOEYOrR0KylnttINVy3z2m4tPpBlMiaVPqawy3hb9JVvredwCTCA7ThjQ2NTdocgTc
-	syW7YoqIpFwyTKb9t2BYogcOBdr/hvDkiYU2EHYdtSL2i+M6rL0DkFTQaXMUkhLYkrtnpgKqvHK
-	dxx1ShWxGVkaTwjp/k6fvbk=
-Received: from mail.maildlp.com (unknown [172.19.163.127])
-	by canpmsgout07.his.huawei.com (SkyGuard) with ESMTPS id 4h1Ywb5GvpzLlY1;
-	Fri, 17 Jul 2026 10:37:35 +0800 (CST)
+	bh=KZQXTxL73jFelG7oWtSz1Y/jy0CbZRaJ40WFqtj1IzY=;
+	b=DtzfQhJ8QztS58h4z7Uk8XnrcyopfBlleJAg8iFpya5xJ3uyfNrMTTbI5LrOhnefdhkTeTown
+	u8ZBu4Ng8wrz6PxTIxw0zjwduV8HPMxI/DCNqep7L5ywQIEmBN82RThJKup129Jv1HeunrkZf3R
+	mA4MmYpU+l72+w+oWjHLhCU=
+Received: from mail.maildlp.com (unknown [172.19.162.144])
+	by canpmsgout04.his.huawei.com (SkyGuard) with ESMTPS id 4h1bG82tXDz1prKd;
+	Fri, 17 Jul 2026 11:37:52 +0800 (CST)
 Received: from kwepemf100001.china.huawei.com (unknown [7.202.181.215])
-	by mail.maildlp.com (Postfix) with ESMTPS id 25B17402AB;
-	Fri, 17 Jul 2026 10:46:55 +0800 (CST)
-Received: from localhost.localdomain (10.50.163.32) by
- kwepemf100001.china.huawei.com (7.202.181.215) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Fri, 17 Jul 2026 10:46:54 +0800
-From: Lifeng Zheng <zhenglifeng1@huawei.com>
-To: <rafael@kernel.org>, <viresh.kumar@linaro.org>, <saket.dumbre@intel.com>,
-	<lenb@kernel.org>, <zhanjie9@hisilicon.com>, <pierre.gondois@arm.com>,
-	<sumitg@nvidia.com>
-CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-pm@vger.kernel.org>, <acpica-devel@lists.linux.dev>,
-	<linuxarm@huawei.com>, <lihuisong@huawei.com>, <yubowen8@huawei.com>,
-	<zhangpengjie2@huawei.com>, <wangzhi12@huawei.com>,
-	<linhongye@h-partners.com>, <zhenglifeng1@huawei.com>
-Subject: [PATCH 5/8] ACPI: CPPC: Store optional flag in cpc_register_resource
-Date: Fri, 17 Jul 2026 10:44:59 +0800
-Message-ID: <20260717024502.3520445-6-zhenglifeng1@huawei.com>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20260717024502.3520445-1-zhenglifeng1@huawei.com>
-References: <20260717024502.3520445-1-zhenglifeng1@huawei.com>
+	by mail.maildlp.com (Postfix) with ESMTPS id D7AD640538;
+	Fri, 17 Jul 2026 11:47:13 +0800 (CST)
+Received: from [10.67.121.90] (10.67.121.90) by kwepemf100001.china.huawei.com
+ (7.202.181.215) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Fri, 17 Jul
+ 2026 11:47:12 +0800
+Message-ID: <31525db3-a7a6-48fa-bea9-5de28a4332c4@huawei.com>
+Date: Fri, 17 Jul 2026 11:47:12 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 2/3] ACPI: CPPC: Add u64 wrappers for the autonomous
+ selection register
+To: Sumit Gupta <sumitg@nvidia.com>, <rafael@kernel.org>,
+	<viresh.kumar@linaro.org>, <pierre.gondois@arm.com>,
+	<ionela.voinescu@arm.com>, <zhanjie9@hisilicon.com>,
+	<saket.dumbre@intel.com>, <lenb@kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-pm@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<acpica-devel@lists.linux.dev>, <linux-tegra@vger.kernel.org>
+CC: <treding@nvidia.com>, <jonathanh@nvidia.com>, <vsethi@nvidia.com>,
+	<ksitaraman@nvidia.com>, <sanjayc@nvidia.com>, <mochs@nvidia.com>,
+	<bbasu@nvidia.com>
+References: <20260716153820.2007095-1-sumitg@nvidia.com>
+ <20260716153820.2007095-3-sumitg@nvidia.com>
+From: "zhenglifeng (A)" <zhenglifeng1@huawei.com>
+In-Reply-To: <20260716153820.2007095-3-sumitg@nvidia.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
  kwepemf100001.china.huawei.com (7.202.181.215)
 
-The current optionality check uses a compile-time bitmask (REG_OPTIONAL)
-applied at call sites via IS_OPTIONAL_CPC_REG(reg_idx).  This requires
-every caller to know the register index, which will not work for registers
-accessed without a fixed index (e.g. entries inside Resource Priority
-sub-packages).
+On 7/16/2026 11:38 PM, Sumit Gupta wrote:
+> cppc_get_auto_sel()/cppc_set_auto_sel() use a bool, unlike the other
+> CPPC register get/set helpers which use a u64.
+> 
+> The next patch in this series saves and restores the OSPM-set registers
+> across CPU hotplug using a common table of get/set helpers typed as
+> int (*)(int, u64 *) and int (*)(int, u64), which the bool autonomous
+> selection helpers do not fit.
+> 
+> Add cppc_get_auto_sel_u64()/cppc_set_auto_sel_u64() wrappers with the u64
+> signature so the autonomous selection register fits alongside the others.
+> 
+> Suggested-by: Pierre Gondois <pierre.gondois@arm.com>
+> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
 
-Add a boolean 'optional' field to cpc_register_resource so that each
-register element carries its own optionality.  Populate the field during
-_CPC probe (for main registers) and parse_priority_regs() (for Resource
-Priority sub-packages), using the existing REG_OPTIONAL and
-RES_PRIO_OPTIONAL bitmasks respectively.
+If this is necessary, I think it is better to just change the input parameter
+of the original cppc_get/set_auto_sel() to u64.
 
-Replace the IS_OPTIONAL_CPC_REG() check in cppc_get_reg_val() with a
-direct test of reg->optional, and remove the IS_OPTIONAL_CPC_REG() macro.
-
-Signed-off-by: Lifeng Zheng <zhenglifeng1@huawei.com>
----
- drivers/acpi/cppc_acpi.c | 13 ++++++++-----
- include/acpi/cppc_acpi.h |  1 +
- 2 files changed, 9 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 32829bb822dd..3f1b61c984d4 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -143,11 +143,11 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
- #define REG_OPTIONAL (0x7FC7D0)
- 
- /*
-- * Use the index of the register in per-cpu cpc_regs[] to check if
-- * it's an optional one.
-+ * Each bit indicates the optionality of the register in resource
-+ * priority register descriptor with the corresponding index. 0 means
-+ * mandatory and 1 means optional.
-  */
--#define IS_OPTIONAL_CPC_REG(reg_idx) (REG_OPTIONAL & (1U << (reg_idx)))
--
-+#define RES_PRIO_OPTIONAL (0x6)
- /*
-  * Arbitrary Retries in case the remote processor is slow to respond
-  * to PCC commands. Keeping it high enough to cover emulators where
-@@ -850,6 +850,7 @@ static int parse_priority_regs(union acpi_object *cpc_obj,
- 
- 		reg_elements[0].type = ACPI_TYPE_PACKAGE;
- 		reg_elements[0].cpc_entry.package.count = resources_count;
-+		reg_elements[0].optional = RES_PRIO_OPTIONAL & 1U;
- 
- 		for (j = 0; j < reg_elements[0].cpc_entry.package.count; j++) {
- 			reg_elements[0].cpc_entry.package.elements[j].type = ACPI_TYPE_INTEGER;
-@@ -858,6 +859,7 @@ static int parse_priority_regs(union acpi_object *cpc_obj,
- 		}
- 
- 		for (j = 1; j < RESOURCE_PRIORITY_NUM; j++) {
-+			reg_elements[j].optional = RES_PRIO_OPTIONAL & (1U << j);
- 			ret = parse_cpc_element(&reg_desc_obj.package.elements[j], &reg_elements[j],
- 						pcc_subspace_id, cpu, RESOURCE_PRIORITY);
- 			if (ret)
-@@ -996,6 +998,7 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
- 	/* Iterate through remaining entries in _CPC */
- 	for (i = 2; i < num_ent; i++) {
- 		cpc_obj = &out_obj->package.elements[i];
-+		cpc_ptr->cpc_regs[i-2].optional = REG_OPTIONAL & (1U << (i-2));
- 
- 		/*
- 		 * Package-type entries are used for nested structures such as
-@@ -1415,7 +1418,7 @@ static int cppc_get_reg_val(int cpu, enum cppc_regs reg_idx, u64 *val)
- 
- 	reg = &cpc_desc->cpc_regs[reg_idx];
- 
--	if ((reg->type == ACPI_TYPE_INTEGER && IS_OPTIONAL_CPC_REG(reg_idx) &&
-+	if ((reg->type == ACPI_TYPE_INTEGER && reg->optional &&
- 	     !reg->cpc_entry.int_value) || (reg->type != ACPI_TYPE_INTEGER &&
- 	     IS_NULL_REG(&reg->cpc_entry.reg))) {
- 		pr_debug("CPC register is not supported\n");
-diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index 19f8a722654b..c0b8d52016cd 100644
---- a/include/acpi/cppc_acpi.h
-+++ b/include/acpi/cppc_acpi.h
-@@ -80,6 +80,7 @@ struct cpc_register_resource {
- 			struct cpc_register_resource *elements;
- 		} package;
- 	} cpc_entry;
-+	bool optional;
- };
- 
- /* Container to hold the CPC details for each CPU */
--- 
-2.33.0
+> ---
+>  drivers/acpi/cppc_acpi.c | 40 ++++++++++++++++++++++++++++++++++++++++
+>  include/acpi/cppc_acpi.h | 10 ++++++++++
+>  2 files changed, 50 insertions(+)
+> 
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 9f572f481241..a7fec6c93178 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -1788,6 +1788,46 @@ int cppc_set_auto_sel(int cpu, bool enable)
+>  }
+>  EXPORT_SYMBOL_GPL(cppc_set_auto_sel);
+>  
+> +/**
+> + * cppc_get_auto_sel_u64 - Read the autonomous selection register as a u64.
+> + * @cpu: CPU from which to read the register.
+> + * @val: Return address, set to 0 or 1.
+> + *
+> + * u64-typed wrapper around cppc_get_auto_sel() for callers that keep CPPC
+> + * register accessors in a common table.
+> + *
+> + * Return: 0 for success, -ERRNO otherwise.
+> + */
+> +int cppc_get_auto_sel_u64(int cpu, u64 *val)
+> +{
+> +	bool enable;
+> +	int ret;
+> +
+> +	ret = cppc_get_auto_sel(cpu, &enable);
+> +	if (ret)
+> +		return ret;
+> +
+> +	*val = enable;
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(cppc_get_auto_sel_u64);
+> +
+> +/**
+> + * cppc_set_auto_sel_u64 - Write the autonomous selection register from a u64.
+> + * @cpu: CPU to which to write the register.
+> + * @val: Value to write, any non-zero value enables autonomous selection.
+> + *
+> + * u64-typed wrapper around cppc_set_auto_sel().
+> + *
+> + * Return: 0 for success, -ERRNO otherwise.
+> + */
+> +int cppc_set_auto_sel_u64(int cpu, u64 val)
+> +{
+> +	return cppc_set_auto_sel(cpu, !!val);
+> +}
+> +EXPORT_SYMBOL_GPL(cppc_set_auto_sel_u64);
+> +
+>  /**
+>   * cppc_set_enable - Set to enable CPPC on the processor by writing the
+>   * Continuous Performance Control package EnableRegister field.
+> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+> index 8693890a7275..cd07e1e92bf4 100644
+> --- a/include/acpi/cppc_acpi.h
+> +++ b/include/acpi/cppc_acpi.h
+> @@ -184,6 +184,8 @@ extern int cppc_get_auto_act_window(int cpu, u64 *auto_act_window);
+>  extern int cppc_set_auto_act_window(int cpu, u64 auto_act_window);
+>  extern int cppc_get_auto_sel(int cpu, bool *enable);
+>  extern int cppc_set_auto_sel(int cpu, bool enable);
+> +extern int cppc_get_auto_sel_u64(int cpu, u64 *val);
+> +extern int cppc_set_auto_sel_u64(int cpu, u64 val);
+>  extern int cppc_get_perf_limited(int cpu, u64 *perf_limited);
+>  extern int cppc_set_perf_limited(int cpu, u64 bits_to_clear);
+>  extern int amd_get_highest_perf(unsigned int cpu, u32 *highest_perf);
+> @@ -282,6 +284,14 @@ static inline int cppc_set_auto_sel(int cpu, bool enable)
+>  {
+>  	return -EOPNOTSUPP;
+>  }
+> +static inline int cppc_get_auto_sel_u64(int cpu, u64 *val)
+> +{
+> +	return -EOPNOTSUPP;
+> +}
+> +static inline int cppc_set_auto_sel_u64(int cpu, u64 val)
+> +{
+> +	return -EOPNOTSUPP;
+> +}
+>  static inline int cppc_get_perf_limited(int cpu, u64 *perf_limited)
+>  {
+>  	return -EOPNOTSUPP;
 
