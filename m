@@ -1,88 +1,209 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12F7830D41D;
-	Fri, 17 Jul 2026 13:50:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB9CD42A7AE;
+	Fri, 17 Jul 2026 14:52:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784296202; cv=none; b=ld9Eoj3QXzzS1VBDNCQUeGJY2BVySs8Dtf6emnOTvSMo4lDdUqmtwhA/Tajo86W8aQDcS/DGPuJE4Lw1ydZpTr49DgEkxDLzRzQMz3VoFxtJhNTdlA/Drf4xjDUWkQx+c+j26RZ9GS49BSNhywGi3mQ6XHKyxyDstoj6ep/V0gc=
+	t=1784299940; cv=none; b=ItyC20RYrtirSsxS2Gs7S4l3eOh1qYRx97u1JlTSuVpahGh/h+4gHZfImEXWIWSHEFhLW5EkMKB48ujhJV3zWbIKsFCQ1JHCcl+xJUARoD/R8izD6VBRb0KOvsOxAdfi9ghAPpVtLk+JAwH36daXcBYq8Y6A6Oe/B24FF1rl/9s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784296202; c=relaxed/simple;
-	bh=kmDfF3yV5c+bsoLJV/of/MuvV5iPRqd3YMoF4otU7nw=;
-	h=Mime-Version:Content-Type:Date:Message-Id:To:From:Subject:Cc:
-	 References:In-Reply-To; b=VHdywwAPuZo6VQ8OvutIi+SmEWvbu3xQs1/+2U4a+3S1L1REYbaK5My6dFl59zLcleGQNcAHjoKYzzttZzD3OmvQw5mW21GGqOn0GeGK++D/aQslU6okiRQIZiSVNTv9txEsAduK4PBXF/yAWwRty8cPlQSw9kprfvRDOTl+aC4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BfZ3lCw5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784299940; c=relaxed/simple;
+	bh=eRZmsQ8X5qYPzvQZzYfhQuwFEKd8T7ZIpTRLmoMkOSk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=leDAvF2f5GnmgxR3KTIQ/TKvT5NwdLfMkI7y/7U4XIp6hOsctbG3Jx0zuvqt/BOs1WhbXQhr2oC50DrOjNM2te1VO8Zq5KqiIPEpx96+RA2hwF3hxFJuZ4PzFkhls8jv8bIywLJ/Tly+jckgVS6wu5VgvshFXj0EPIrqVwmV8NU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=vQcXVZBY; arc=none smtp.client-ip=185.246.84.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BfZ3lCw5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 263A81F000E9;
-	Fri, 17 Jul 2026 13:49:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784296200;
-	bh=P8RGWqk/z7JG1c6TNKuPoPbGcG6s/ejxJ/FFxp5MzYo=;
-	h=Date:To:From:Subject:Cc:References:In-Reply-To;
-	b=BfZ3lCw5ruLutg6KfGd+nm23HG2177Bq80ZdVrnjOM3trOrI7mKdzj3Zx18fmEO0H
-	 bQzbrNesDyjK8EO9Hh+IOS89vjUMG5bV9z2FQtIRNqAOpfjrwpWv3kSiF1mQY6194A
-	 y0FkPlMGqn0XaHgo3psjDm3qf8ja7cLMbGYbQfyaFaV7WvewiNso/uOGAo9E/9z+Wa
-	 jJ5CLrgci/Dgx8NIacXsFSSSxMKSUeNz/FPF2RE8mXujiv0X+ykdy+bR7mIoT4agCf
-	 Pm0zB/ousu2YQOhQ3Fw17cx4791T9PkUL6yPHNYImnVVdvO05zYRx6ebatcCR7O9lj
-	 irvm16DPyWt6g==
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="vQcXVZBY"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 94A131A1065;
+	Fri, 17 Jul 2026 14:52:10 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 5B50160361;
+	Fri, 17 Jul 2026 14:52:10 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 9404C11BD02F3;
+	Fri, 17 Jul 2026 16:51:53 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1784299928; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding; bh=LvBwywUXRjG57X2lVde2Y0RnPp/ie3h4+eL+fkqU4Mw=;
+	b=vQcXVZBYKBlalpow8Vz+D9916PWFnlZnQ1iBbofzIOFuwOpLQT8VMRZBTKMW5fh91rtpZV
+	hxoDk7ET3DvhSazJEWZLtFZc1cymyY9UYMRaeEG1cGjTeXbMZJgx5LfWEMpgNbMni6FN7R
+	F63F94RvLbtjFEK3HH2NPYLl9sBO01kJsuLoxSSAWvNB0K6rMsClSIv0cETLcq301MbqU/
+	pU9ljqeGv/VdMOaTj2k5LZxjrtjqwsHlBTGGnFcYOcg8DVK0dVavWIDlUjPhhLWPsmHL9X
+	+yYx056f0sV+O6moJvw7gGFRAKxQth6wyJYiEzN1P4IqUAkFqbPfd7G5Q66Cbw==
+From: Herve Codina <herve.codina@bootlin.com>
+To: Richard Cheng <icheng@nvidia.com>,
+	Andrew Lunn <andrew@lunn.ch>,
+	Rob Herring <robh@kernel.org>,
+	Saravana Kannan <saravanak@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	David Rhodes <david.rhodes@cirrus.com>,
+	Richard Fitzgerald <rf@opensource.cirrus.com>,
+	Charles Keepax <ckeepax@opensource.cirrus.com>,
+	Linus Walleij <linusw@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dan Williams <djbw@kernel.org>,
+	Ira Weiny <iweiny@kernel.org>,
+	Li Ming <ming.li@zohomail.com>,
+	Lizhi Hou <lizhi.hou@amd.com>,
+	Herve Codina <herve.codina@bootlin.com>
+Cc: driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	linux-pci@vger.kernel.org,
+	linux-sound@vger.kernel.org,
+	patches@opensource.cirrus.com,
+	linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-cxl@vger.kernel.org,
+	Allan Nielsen <allan.nielsen@microchip.com>,
+	Horatiu Vultur <horatiu.vultur@microchip.com>,
+	Daniel Machon <daniel.machon@microchip.com>,
+	Steen Hegelund <steen.hegelund@microchip.com>,
+	Luca Ceresoli <luca.ceresoli@bootlin.com>,
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Subject: [PATCH v10 00/10] lan966x pci device: Add support for SFPs, PCI part
+Date: Fri, 17 Jul 2026 16:51:35 +0200
+Message-ID: <20260717145147.823749-1-herve.codina@bootlin.com>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Date: Fri, 17 Jul 2026 15:49:55 +0200
-Message-Id: <DK0W7O5C7LYK.3BJOBTN337Q52@kernel.org>
-To: "Bartosz Golaszewski" <bartosz.golaszewski@oss.qualcomm.com>
-From: "Danilo Krummrich" <dakr@kernel.org>
-Subject: Re: (subset) [PATCH v4 0/5] software node: provide support for
- fw_devlink
-Cc: "Brendan Higgins" <brendan.higgins@linux.dev>, "David Gow"
- <david@davidgow.net>, "Rae Moar" <raemoar63@gmail.com>, "Andy Shevchenko"
- <andriy.shevchenko@linux.intel.com>, "Daniel Scally" <djrscally@gmail.com>,
- "Heikki Krogerus" <heikki.krogerus@linux.intel.com>, "Sakari Ailus"
- <sakari.ailus@linux.intel.com>, "Bartosz Golaszewski" <brgl@kernel.org>,
- "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>, "Rafael J . Wysocki"
- <rafael@kernel.org>, "Linus Walleij" <linusw@kernel.org>, "Dmitry Torokhov"
- <dmitry.torokhov@gmail.com>, <linux-kernel@vger.kernel.org>,
- <linux-kselftest@vger.kernel.org>, <kunit-dev@googlegroups.com>,
- <linux-acpi@vger.kernel.org>, <driver-core@lists.linux.dev>,
- <linux-gpio@vger.kernel.org>
-References: <20260713-swnode-fw-devlink-v4-0-d4f2dee27ad9@oss.qualcomm.com>
- <20260715212830.3077100-1-dakr@kernel.org>
- <DJZGR6NV2WK5.2ZRW7VZIRO3LD@kernel.org>
-In-Reply-To: <DJZGR6NV2WK5.2ZRW7VZIRO3LD@kernel.org>
+Content-Transfer-Encoding: 8bit
+X-Last-TLS-Session-Version: TLSv1.3
 
-On Wed Jul 15, 2026 at 11:30 PM CEST, Danilo Krummrich wrote:
-> On Wed Jul 15, 2026 at 11:28 PM CEST, Danilo Krummrich wrote:
->> On Mon, 13 Jul 2026 13:14:43 +0200, Bartosz Golaszewski wrote:
->>> [PATCH v4 0/5] software node: provide support for fw_devlink
->>
->> Applied, thanks!
->>
->>   Branch: topic/swnode
->>   Tree:   git://git.kernel.org/pub/scm/linux/kernel/git/driver-core/driv=
-er-core.git
->>
->> [1/5] kunit: provide a set of fwnode-oriented helpers
->>       commit: 9fdbdb528488
->> [2/5] software node: add fw_devlink support
->>       commit: 37e586675993
->> [3/5] software node: add kunit tests for fw_devlink support
->>       commit: eecba5978729
->> [4/5] MAINTAINERS: add myself as reviewer of software node support
->>       commit: 122630406245
->>
->> The patches are in the topic/swnode topic branch and will be merged into=
- the
->> corresponding target branch soon.
->
-> I will provide a signed tag once I have the 0-day result.
+Hi,
 
-https://git.kernel.org/pub/scm/linux/kernel/git/driver-core/driver-core.git=
-/tag/?h=3Dswnode-7.3-rc1
+Previously, I sent a big picture series adding support for SFP ports
+available on the LAN966x PCI device [0].
 
-The changes are also in driver-core-next now, thanks!
+In this series patches touch several parts and sub-system in the kernel.
+Reviews have be done and it makes sense to split the series and send
+parts separately.
+
+This current series is the extraction of patches related to issues in
+the PCI subsystem. It has to be seen as a continuation of the big
+picture series but related to this specific core part.
+
+Patches 1 to 6 introduce and use fw_devlink_set_device() in already
+existing code. No functional change but the introduction of the
+fw_devlink_set_device() wrapper.
+
+Patch 7 avoid a dangling pointer.
+
+Patches 8 and 9 fix fw_devlink issues specific to PCI and the
+device-tree nodes created during enumeration.
+
+Patch 10 adds a guards to prevent incorrect node removal.
+
+[0] https://lore.kernel.org/all/20260325143555.451852-1-herve.codina@bootlin.com/
+
+Best regards,
+Hervé
+
+Changes:
+
+v9 -> v10
+  v9: https://lore.kernel.org/all/20260708100302.517792-1-herve.codina@bootlin.com/
+
+  - Patches 1 to 6
+    No changes
+
+  - Patch 7
+    Clear fwnode->dev also on error path.
+
+  - Patch 8
+    Clear fwnode->dev also on error path.
+
+  - Patch 9
+    No changes
+
+  - Patch 10 (New patch in v10)
+    Guard against node removal with incorrect np->data.
+
+v8 -> v9
+  v8: https://lore.kernel.org/all/20260630102804.413563-1-herve.codina@bootlin.com/
+
+  - Patch 7 (new patch in v9)
+    Clear fwnode->dev during root bridge node removal (avoid a dangling
+    pointer).
+
+  - Patch 8 (patch 7 in v8)
+    Clear fwnode->dev during PCI device node removal.
+
+v7 -> v8
+  v7: https://lore.kernel.org/all/20260511155930.34604-1-herve.codina@bootlin.com/
+
+  Rebase on top of v7.2-rc1
+
+  - patches 4 and 5
+    Add 'Reviewed-by: Andy Shevchenko'
+
+  - Other Patches
+    No other changes
+
+v6 -> v7
+
+  Rebase on top of v7.1-rc1
+
+  - Patch 1
+     Add Cc stable. Needed for patches 11 and 12
+
+  - Patches 2 to 5
+    No changes
+
+  - Patch 6
+     Add Cc stable. Needed for patch 13
+     Add 'Acked-by: Bjorn Helgaas'
+
+  - Patch 7
+     Fix a typo in commit log
+     Add Fixes tag + Cc stable
+     Add 'Acked-by: Bjorn Helgaas'
+
+  - Patch 8
+     Add Fixes tag + Cc stable
+     Add 'Acked-by: Bjorn Helgaas'
+Older iterations:
+  Patches 6 to 13 in the big picture series
+  https://lore.kernel.org/all/20260325143555.451852-1-herve.codina@bootlin.com/
+
+Herve Codina (10):
+  driver core: fw_devlink: Introduce fw_devlink_set_device()
+  drivers: core: Use fw_devlink_set_device()
+  pinctrl: cs42l43: Use fw_devlink_set_device()
+  cxl/test: Use device_set_node()
+  cxl/test: Use fw_devlink_set_device()
+  PCI: of: Use fw_devlink_set_device()
+  PCI: of: Clear fwnode->dev during root bridge node removal and error
+    path
+  PCI: of: Set fwnode device of newly created PCI device nodes
+  PCI: of: Remove fwnode_dev_initialized() call for a PCI root bridge
+    node
+  PCI: of: Guard against node removal with incorrect np->data
+
+ drivers/base/core.c                      |  4 ++--
+ drivers/pci/of.c                         | 24 ++++++++++++++++++------
+ drivers/pinctrl/cirrus/pinctrl-cs42l43.c |  2 +-
+ include/linux/fwnode.h                   |  6 ++++++
+ tools/testing/cxl/test/cxl.c             |  4 ++--
+ 5 files changed, 29 insertions(+), 11 deletions(-)
+
+-- 
+2.55.0
+
