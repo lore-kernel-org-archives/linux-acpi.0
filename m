@@ -1,128 +1,131 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7F5A4318BA8;
-	Fri, 17 Jul 2026 16:16:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 933CE374758;
+	Fri, 17 Jul 2026 16:16:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784304981; cv=none; b=YT3nAQnMQ3QK4UueXgL468HzfuxL3HnPHlbeiX5x8e/0/TYePsbaHBHQwF8cD5TJJCiClrSnQGTpDFHZC0B8ft7v/HlBwetY4l4aLxVSXrt0kYRk1+F+YpKlLlYHivf1GA/9d6c532p8pK8cpv4bMS6iAsIqaJ3g5X4JLPYG9Nk=
+	t=1784305011; cv=none; b=EjOjr3B/m7aNG/Rpd9/agUkioUj53QclvEPmAeOWVVBavVh/GaPDChtil4iPQnOtJ9Ul+/rh6m7/OjqdCSju2EWqt1V3NsxdBIQ3XMl+OUDGPWS8ZQU44xgk/GgdpGLMNiUTt4mpHoMxUgH6ZVwM4m++PvPhkl7SnZNtONjJLpo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784304981; c=relaxed/simple;
-	bh=w0Zi2BWh5dfpwiy/hOSW/MU5kOPYrXvW79sibZvRp7o=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ABI4NHdG5LI9zuuiCAhr+5sA7feUqDH+irvJMP5wx6uekZs+kSvOE8Pcnh9IB6xKU/6XoTVrJUeK2xsXrBdB7IjY2ZkKh5vjBZFX686CHYFvsBnltTofcNXSAWZF9VHU6kFCjPQ0jVGE2QE/BZbvG3GAjN3QsCkiJoohuWRckOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=WhaAS9rW; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="WhaAS9rW"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id A4FEA1476;
-	Fri, 17 Jul 2026 09:16:15 -0700 (PDT)
-Received: from [10.2.212.23] (e121345-lin.cambridge.arm.com [10.2.212.23])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 971193F905;
-	Fri, 17 Jul 2026 09:16:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1784304979; bh=w0Zi2BWh5dfpwiy/hOSW/MU5kOPYrXvW79sibZvRp7o=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=WhaAS9rWsloxlgUl+kgCy5WI/pibMFWNf2PDA9a4K1EjbZ2/EltFDFM0s4BMTk+UY
-	 eEX1EbCTHmD0dkZbQTmEO1dxoauio5NpiTONH9RTSYFyohj2UJuLGHL+G8zwcGMhDt
-	 D8gyXwjswL9P3HVbPlDGYr+Jtk1+wJjH2dJuY/cM=
-Message-ID: <aee1da04-3909-43d2-8cf0-82c9de323c0e@arm.com>
-Date: Fri, 17 Jul 2026 17:16:16 +0100
+	s=arc-20240116; t=1784305011; c=relaxed/simple;
+	bh=+b2145aao+km/PoTmb9fEitW/PZselAMhY+GF+doBc4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jgC6xpx8ojfXth9qOFg+8RXA0yTb5+4wbg0ZBHZRxMq5qfrTbL+Gilcmug6LxBKcwuil9H7OeK9LEyU0/Z6FRqfdtkJuVUrFs2cHCSYS0dDXQQNelNRU310EtT4kNsvnpAbxNjwlLRJ6n4qewjfsvfFLzU56NIgq85W9CsqLka8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A2341F000E9;
+	Fri, 17 Jul 2026 16:16:50 +0000 (UTC)
+From: Dave Jiang <dave.jiang@intel.com>
+To: linux-acpi@vger.kernel.org,
+	linux-cxl@vger.kernel.org
+Cc: rafael@kernel.org,
+	tony.luck@intel.com,
+	bp@alien8.de,
+	guohanjun@huawei.com,
+	mchehab@kernel.org,
+	xueshuai@linux.alibaba.com,
+	terry.bowman@amd.com,
+	Ben Cheatham <benjamin.cheatham@amd.com>
+Subject: [PATCH v3 00/10] ACPI: APEI: GHES: Collection of fixes for issues reported by sashiko
+Date: Fri, 17 Jul 2026 09:16:37 -0700
+Message-ID: <20260717161647.1493259-1-dave.jiang@intel.com>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 3/4] perf/arm_cspmu: Improve sub-module error reporting
-To: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-Cc: will@kernel.org, mark.rutland@arm.com, catalin.marinas@arm.com,
- ilkka@os.amperecomputing.com, bwicaksono@nvidia.com,
- linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-perf-users@vger.kernel.org
-References: <cover.1784213435.git.robin.murphy@arm.com>
- <256bcb4c8c98dc95bfdf295adb66b917545c919b.1784213435.git.robin.murphy@arm.com>
- <20260716171213.000026c7@oss.qualcomm.com>
-From: Robin Murphy <robin.murphy@arm.com>
-Content-Language: en-GB
-In-Reply-To: <20260716171213.000026c7@oss.qualcomm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 17/07/2026 1:12 am, Jonathan Cameron wrote:
-> On Thu, 16 Jul 2026 15:56:36 +0100
-> Robin Murphy <robin.murphy@arm.com> wrote:
-> 
->> When waiting for a sub-module to register, we return a bare
->> -EPROBE_DEFER that ends up showing the end user:
->>
->>    platform arm-cs-arch-pmu.1: deferred probe pending (no reason)
->>
->> wherein it's not necessarily clear that they might need to take some
->> action to ensure the appropriate module is available to load. Let's use
->> dev_err_probe() here so we can show exactly what we're waiting for.
->>
->> Similarly, in the case where something's gone horribly wrong with an
->> already-registered module, we can use dev_WARN() to standardise the
->> device/driver attribution rather than just open-coding "arm_cspmu".
->>
->> Reviewed-by: Ilkka Koskinen <ilkka@os.amperecomputing.com>
->> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
-> 
-> Hi Robin,
-> 
-> Maybe sprinkle some cleanup.h magic and use a guard(mutex)() and direct
-> returns.  Simplifies this function that you are touching anyway.
-> 
-> Looking more broadly it'd either take a scoped_guard() or some refactoring
-> if you want to go that way cross the file.
+A collection of fixes for pre-existing issues reported by sashiko-bot while
+reviewing patches.
 
-Heh, feel free to try some cosmetic refactoring if you fancy - for 
-starters, "if (!match) return 0" would save a whole needless level of 
-indentation here - but this patch is purely about a functional 
-improvement to the user-visible logging. I'd rather not tangle that up 
-in subjective non-functional changes.
+The v1 posting fixed a first batch of these issues, and v2 grew the set as
+sashiko-bot's review surfaced more problems in the same CPER/extlog paths.
+sashiko-bot's review of v2 flagged yet more of the same class of bug in
+neighbouring code, so v3 adds those as well: an out-of-range section length
+that defeats cper_estatus_check(), the same unvalidated AER buffer handling
+in ghes_handle_aer() that was already fixed for extlog, and an unbounded
+walk of the extlog record.
 
-(And to be brutally honest I'm not much of a fan of the cleanup.h stuff 
-anyway - maybe for complex nested resource acquisition, but it's not 
-like there are any gotos here, so for the sake of ~3 lines I'd 
-personally rather have locking that looks like locking...)
+1/10:  Bound the CXL event record copy to the firmware section length.
+2/10:  Reject CPER records with an out-of-range error_data_length.
+3/10:  Validate the CXL protocol error section length before the RAS cap copy.
+4/10:  Avoid populating software AER metadata from the raw hardware buffer.
+5/10:  Validate the PCIe error section length before payload access.
+6/10:  Fix the CONFIG_ACPI_APEI_PCIEAER guard typo in extlog.c.
+7/10:  Defer CXL protocol error handling to avoid a lock inversion.
+8/10:  Validate the memory error section length before payload access.
+9/10:  Bound the AER info copy and sanitize software metadata in ghes.c.
+10/10: Validate the extlog record length before walking sections.
 
-Thanks,
-Robin.
+Note patch 2 touches drivers/firmware/efi/cper.c; it closes the length
+validation hole at the shared choke point that the per-section guards in the
+rest of the series rely on.
 
-> 
-> Jonathan
-> 
->>
->> ---
->> v2: No change
->> ---
->>   drivers/perf/arm_cspmu/arm_cspmu.c | 6 ++++--
->>   1 file changed, 4 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/perf/arm_cspmu/arm_cspmu.c b/drivers/perf/arm_cspmu/arm_cspmu.c
->> index 8c2dda17d73e..caad9a36651d 100644
->> --- a/drivers/perf/arm_cspmu/arm_cspmu.c
->> +++ b/drivers/perf/arm_cspmu/arm_cspmu.c
->> @@ -437,13 +437,15 @@ static int arm_cspmu_init_impl_ops(struct arm_cspmu *cspmu)
->>   				if (ret)
->>   					module_put(match->module);
->>   			} else {
->> -				WARN(1, "arm_cspmu failed to get module: %s\n",
->> +				dev_WARN(cspmu->dev, "Failed to get module: %s\n",
->>   					match->module_name);
->>   				ret = -EINVAL;
->>   			}
->>   		} else {
->>   			request_module_nowait(match->module_name);
->> -			ret = -EPROBE_DEFER;
->> +			ret = dev_err_probe(cspmu->dev, -EPROBE_DEFER,
->> +					    "Waiting for module %s to load\n",
->> +					    match->module_name);
->>   		}
->>   
->>   		mutex_unlock(&arm_cspmu_lock);
-> 
+sashiko-bot's review of v2 also flagged a few related issues that are not
+addressed here because they live in other subsystems.
+
+  - cxl_cper_print_prot_err() in drivers/firmware/efi/cper_cxl.c uses the
+    firmware-controlled dvsec_len without bounding it against the section
+    length.
+  - cxl_rch_get_aer_info() in drivers/cxl/core/ras_rch.c reads the RCH AER
+    capability from MMIO into a struct aer_capability_regs without clearing
+    the software-only header_len/flit fields, the same class of issue as
+    patches 4 and 9.
+
+v1: https://lore.kernel.org/linux-cxl/20260709162807.1957783-1-dave.jiang@intel.com/
+v2: https://lore.kernel.org/linux-cxl/20260714231835.303081-1-dave.jiang@intel.com/
+
+Changes since v2
+----------------
+- Dropped the standalone spin_lock_irqsave() change; it is a separate issue
+  being handled by Terry Bowman.
+- New patch 2: reject a section whose error_data_length is out of range in
+  cper_estatus_check(), closing the signed-int overflow that let a crafted
+  section bypass the check and defeat the per-caller size guards (sashiko).
+- New patch 9: apply the same AER buffer sanitization to ghes_handle_aer()
+  that patch 4 applies to extlog (sashiko).
+- New patch 10: bound the extlog record and run cper_estatus_check() before
+  walking its sections, which extlog did not do (sashiko).
+- Patch 8: move the memory error length check into ghes_do_proc() so the
+  report chain and arch reporter are covered too, and bound against the
+  older UEFI 2.1/2.2 layout rather than the full struct (sashiko).
+- Reordered so the extlog PCIe path is hardened, and the CXL protocol error
+  handling is deferred to the workqueue, before the typo fix that activates
+  that code.
+
+Changes since v1
+----------------
+- See the v2 posting for the full v1 -> v2 changelog.
+
+
+Dave Jiang (10):
+  ACPI: APEI: GHES: Bound CXL event record copy to the firmware section
+    length
+  efi/cper: Reject CPER records with an out-of-range error_data_length
+  ACPI: APEI: GHES: Validate CXL protocol error section length before
+    RAS cap copy
+  ACPI: extlog: Avoid populating software AER metadata from raw hardware
+    buffer
+  ACPI: extlog: Validate PCIe error section length before payload access
+  ACPI: extlog: Defer CXL protocol error handling to avoid lock
+    inversion
+  ACPI: extlog: Fix CONFIG_ACPI_APEI_PCIEAER guard typo
+  ACPI: APEI: GHES: Validate memory error section length before payload
+    access
+  ACPI: APEI: GHES: Bound AER info copy and sanitize software metadata
+  ACPI: extlog: Validate elog record length before walking sections
+
+ drivers/acpi/acpi_extlog.c       | 47 ++++++++++++-------------
+ drivers/acpi/apei/ghes.c         | 59 +++++++++++++++++++++++++-------
+ drivers/acpi/apei/ghes_helpers.c | 21 +++++++++++-
+ drivers/firmware/efi/cper.c      | 10 ++++++
+ include/acpi/ghes.h              |  4 +++
+ include/cxl/event.h              |  4 +--
+ 6 files changed, 106 insertions(+), 39 deletions(-)
+
+
+base-commit: a13c140cc289c0b7b3770bce5b3ad42ab35074aa
+-- 
+2.55.0
 
