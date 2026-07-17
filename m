@@ -1,143 +1,86 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF138430CD7;
-	Fri, 17 Jul 2026 14:53:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40ECF27B32C;
+	Fri, 17 Jul 2026 15:35:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784300005; cv=none; b=e+3GZCJ4Af/tg0lcLwDXK+xNfez/37bXgtFr4A31kY3YgTFDKiRkoZPbAFcWjT3OeWasszCaezu49O7kTrG7gP4HMxdztjeZsWQhWW3mA0HHI/820azq9Bb6mhTZyUtuu9C/tq5IUYFoGY+mCIMrrliOSrH1l98BlWeROWdMDbU=
+	t=1784302532; cv=none; b=aP69cQAUEdVN3oe4WLr4YisUgE2UvARuPts2RKOp9UaQRKmIAe1e5p3zrbfQBPKby2d04uriWMYeJmfzKlApnWzwvMos2P58PvSvdYtze7L+SFWk8fHFl0nqwOcmZeAIQRl7R6X7/njuvD2Fj+c/q8L8ICRwFV5sNXcOnTCr++c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784300005; c=relaxed/simple;
-	bh=V7UJIhHONa6PwjxaQPM/lB8FRDMH/CPmUpkAoTsUR5s=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=s/b6x8JsrTsoQWDjvWXf1tNDTCtFzwjQzIRR7RcHKak3qHTVzIwtm3qKrd6/rpDPiFRomnrEM/VHEaDjri0+d4uUKZrXx444EZOU+T75hgTa1MSSY6PwoZLjd7R3BLXgK78xfMKsQWTAbHweWpBvd93M3UKChqXcdMdZiLugKzo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=gv+t3KpE; arc=none smtp.client-ip=185.246.84.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1784302532; c=relaxed/simple;
+	bh=gXtoOXom+SZ6fQtLujthmE72o636wo7yJ2Varaquo7k=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=dD9FKMk4oCh/iq91XKT+T+5eXQP0rdehWQk0LbFYWo4619Ux9zxZXj1kj6M51S8YvmoHpYzzPaG0RhKBLPIwuZLg/lglKogUiwqjZtTYDniEwcHAuxbC8o4LIJMzYGh8b4NGeex+6RdYkw/4azG0UdK0t7C+GMMgebd22zxk6ns=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=C7A3hx32; arc=none smtp.client-ip=159.69.126.157
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="gv+t3KpE"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id C5F8A1A1065;
-	Fri, 17 Jul 2026 14:53:13 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 96C7160361;
-	Fri, 17 Jul 2026 14:53:13 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 473B111BD02F3;
-	Fri, 17 Jul 2026 16:53:04 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1784299991; h=from:subject:date:message-id:to:cc:mime-version:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=+9CnYiJau8FhyP1JC2OGvkUSIj/sOWL5/3RPGsZv/CE=;
-	b=gv+t3KpEI3R2Gs7Gk0luJ0opt4BhYBTkL7kim/VBsj7uOll+ubo8E0dPcSpJtpB2IQjfdx
-	hZgDnu+SWi9bSSs7iIvpEb8oQ8DEagzQr8eunj2e8YkjSf1RFswKUW4/Px2drur/G2Bh9W
-	p4ouBo8tHFH/QsMpNqGPkGz4kjQHIziiTSHxaUpxjUzQMWZnVFFIITEhLvVvJuOb2tpTEO
-	bSBBcJFzouSbB7M8SxOvO/PDpzrk3JT7lhHHi+jV5TZmGlsmUNqJ2Rz8dMTLyG1kK1YyLv
-	IsnIoDIWD9Oq3P9OCz40KC2avX+Sk/7FiACrFZjMxrQ2JrL976sK5SqZ9Mn/AQ==
-From: Herve Codina <herve.codina@bootlin.com>
-To: Richard Cheng <icheng@nvidia.com>,
-	Andrew Lunn <andrew@lunn.ch>,
-	Rob Herring <robh@kernel.org>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	David Rhodes <david.rhodes@cirrus.com>,
-	Richard Fitzgerald <rf@opensource.cirrus.com>,
-	Charles Keepax <ckeepax@opensource.cirrus.com>,
-	Linus Walleij <linusw@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dan Williams <djbw@kernel.org>,
-	Ira Weiny <iweiny@kernel.org>,
-	Li Ming <ming.li@zohomail.com>,
-	Lizhi Hou <lizhi.hou@amd.com>,
-	Herve Codina <herve.codina@bootlin.com>
-Cc: driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	linux-pci@vger.kernel.org,
-	linux-sound@vger.kernel.org,
-	patches@opensource.cirrus.com,
-	linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-cxl@vger.kernel.org,
-	Allan Nielsen <allan.nielsen@microchip.com>,
-	Horatiu Vultur <horatiu.vultur@microchip.com>,
-	Daniel Machon <daniel.machon@microchip.com>,
-	Steen Hegelund <steen.hegelund@microchip.com>,
-	Luca Ceresoli <luca.ceresoli@bootlin.com>,
-	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-	stable+noautosel@kernel.org
-Subject: [PATCH v10 10/10] PCI: of: Guard against node removal with incorrect np->data
-Date: Fri, 17 Jul 2026 16:51:45 +0200
-Message-ID: <20260717145147.823749-11-herve.codina@bootlin.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260717145147.823749-1-herve.codina@bootlin.com>
-References: <20260717145147.823749-1-herve.codina@bootlin.com>
+	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="C7A3hx32"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
+	s=mail; t=1784302527;
+	bh=gXtoOXom+SZ6fQtLujthmE72o636wo7yJ2Varaquo7k=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=C7A3hx32jx895MFvzYe4hAelAzoV5JrxYVL5DhNvu226PRfs8EQMVKcO32Fi49mK9
+	 tGyECjWnZYRjaZD4Nz2T0lbWZlMiWVBTMpBzfOX6pAMH4c9VyX93D9RRVVUZVDAJfO
+	 rczg1jxOtPUk6bzpwTVQHSQJpUtGM37XrH0HxaAk=
+Date: Fri, 17 Jul 2026 17:35:27 +0200
+From: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <linux@weissschuh.net>
+To: Breno Leitao <leitao@debian.org>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>, 
+	Miguel Ojeda <ojeda@kernel.org>, Boqun Feng <boqun@kernel.org>, Gary Guo <gary@garyguo.net>, 
+	=?utf-8?B?QmrDtnJu?= Roy Baron <bjorn3_gh@protonmail.com>, Benno Lossin <lossin@kernel.org>, 
+	Alice Ryhl <aliceryhl@google.com>, Trevor Gross <tmgross@umich.edu>, 
+	Danilo Krummrich <dakr@kernel.org>, Daniel Almeida <daniel.almeida@collabora.com>, 
+	Tamir Duberstein <tamird@kernel.org>, Alexandre Courbot <acourbot@nvidia.com>, 
+	Onur =?utf-8?B?w5Z6a2Fu?= <work@onurozkan.dev>, Matthew Brost <matthew.brost@intel.com>, 
+	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, 
+	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, Dan Williams <djbw@kernel.org>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, rust-for-linux@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, intel-xe@lists.freedesktop.org, dri-devel@lists.freedesktop.org, 
+	linux-coco@lists.linux.dev, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH 5/6] configfs: Allow the registration of const struct
+ configfs_attribute
+Message-ID: <91f5e9dc-1ba0-4e20-9f1f-5100aaaf0a88@t-8ch.de>
+References: <20260716-configfs-const-base-v1-0-c545a4053cb5@weissschuh.net>
+ <20260716-configfs-const-base-v1-5-c545a4053cb5@weissschuh.net>
+ <alnrJJNb1hwDrAxI@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-Last-TLS-Session-Version: TLSv1.3
+In-Reply-To: <alnrJJNb1hwDrAxI@gmail.com>
 
-of_pci_remove_node() and of_pci_remove_host_bridge_node() check
-whether the node is dynamic but not whether it has valid private data.
+On 2026-07-17 01:43:36-0700, Breno Leitao wrote:
+> On Thu, Jul 16, 2026 at 07:09:30PM +0200, Thomas Weißschuh wrote:
+> > The attribute structure defined in driver code never need to be
+> > modified. Allow them to be marked as const.
+> > 
+> > As there are many drivers which use these attributes, prepare for a
+> > phased transition by using a union of const and non-const attributes.
+> 
+> How many drivers need to be migrated? Isn't this a mechanism move?
 
-During the node creation, an OF changeset is used and this changeset is
-stored in np->data to be available for removal functions.
+The actual constification of the attribute will happen with a central
+change to the CONFIGFS_ATTR* macros. But all users of the macro
+will need to be prepared to handle the constness.
 
-If, for instance, a PCI host bridge is created using a device-tree
-overlay, the related node will have the dynamic flag set but np->data
-will be NULL. This leads to NULL pointer dereferences.
+I have a branch with the full conversion here:
 
-Further more, having a NULL np->data pointer means that the node has
-been created out of our PCI node creation process and so shouldn't be
-handled by our PCI node removal process.
+https://git.kernel.org/pub/scm/linux/kernel/git/thomas.weissschuh/linux.git/log/?h=b4/configfs-const
 
-Add a np->data check for NULL to bail out early of PCI node removal
-functions.
+ 73 files changed, 241 insertions(+), 248 deletions(-)
 
-Fixes: 407d1a51921e ("PCI: Create device tree node for bridge")
-Fixes: 1f340724419e ("PCI: of: Create device tree PCI host bridge node")
-Cc: <stable+noautosel@kernel.org> # Not triggered but 'This could be a problem...'
-Signed-off-by: Herve Codina <herve.codina@bootlin.com>
----
- drivers/pci/of.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Most driver changes are really trivial. But a few do more interesting
+ things. My goal is to heavily reduce the amount of patches in this
+ branch by merging patches to the same subsystem.
 
-diff --git a/drivers/pci/of.c b/drivers/pci/of.c
-index 28896f748e8d..9f35e1e07cdc 100644
---- a/drivers/pci/of.c
-+++ b/drivers/pci/of.c
-@@ -654,7 +654,7 @@ void of_pci_remove_node(struct pci_dev *pdev)
- 	struct device_node *np;
- 
- 	np = pci_device_to_OF_node(pdev);
--	if (!np || !of_node_check_flag(np, OF_DYNAMIC))
-+	if (!np || !of_node_check_flag(np, OF_DYNAMIC) || !np->data)
- 		return;
- 
- 	fw_devlink_set_device(&np->fwnode, NULL);
-@@ -750,7 +750,7 @@ void of_pci_remove_host_bridge_node(struct pci_host_bridge *bridge)
- 	struct device_node *np;
- 
- 	np = pci_bus_to_OF_node(bridge->bus);
--	if (!np || !of_node_check_flag(np, OF_DYNAMIC))
-+	if (!np || !of_node_check_flag(np, OF_DYNAMIC) || !np->data)
- 		return;
- 
- 	fw_devlink_set_device(&np->fwnode, NULL);
--- 
-2.55.0
+ The last four patches will be the finalization going again through
+ the configfs tree.
 
+
+ Thomas
