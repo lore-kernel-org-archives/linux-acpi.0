@@ -1,183 +1,236 @@
-Received: from TY3P286CU002.outbound.protection.outlook.com (mail-japaneastazon11010011.outbound.protection.outlook.com [52.101.229.11])
+Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazolkn19010019.outbound.protection.outlook.com [52.103.20.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A6DE1EB5FD;
-	Fri, 17 Jul 2026 12:01:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.229.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDE4F3FDC14;
+	Fri, 17 Jul 2026 13:26:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.103.20.19
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784289715; cv=fail; b=l6sVdL1j6Vzzf1CX73/slqVxnnesGrMfKw8tUoz6NzEiUNoeVveVtcU70DYC9/ZodI0cmHP96V1NOvOSGinmFkL4kmD/MeheXcvbVeFYJzpN3ycioWmZo/hB3VKz4OFaj9xiP6fp4avuH20jG6doVFdRQMi8K+Z8WrY8k8quqKk=
+	t=1784294802; cv=fail; b=Rv78xXrzO5B8x4alkrIBTQi96pLD+K9G50/HSvR/qqrbjFsHQncoRxy7S2eGMCDmNHpFGYGFfv4rkK7bWYpZAVim68Qq4rUuB8yu/gjDIPbHMRoUnTjUFj40RxZAMVwoOU0txVMIkjZoItolNlBB7boc4FWDx4tDqbhyO0lGvuo=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784289715; c=relaxed/simple;
-	bh=PGynGJIq1bGpzL1HgYNzpA8LMMGaStzOgJQkaeWU+MY=;
-	h=From:To:CC:Subject:Date:Message-ID:Content-Type:MIME-Version; b=jr0ibfltEnBRrOeEGe92Suw69sEUUk62ADIGGBXqC1PBeJmB8FO6PAJZnHM0gZvoc1cP7v5A3KWKvyXIlq/aitYKHDOpCt9SpcCZahpmDXP0S/2g62yFhSvJDAHBKGrXLqReptxUz+Z4Y9ApfMOxykIJj6Q5+h81M9UCMDuZjww=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nec.com; spf=pass smtp.mailfrom=nec.com; dkim=pass (2048-bit key) header.d=nec.com header.i=@nec.com header.b=tKgIyoAd; arc=fail smtp.client-ip=52.101.229.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nec.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nec.com
+	s=arc-20240116; t=1784294802; c=relaxed/simple;
+	bh=h0Y38/ZqTCH0LLdrkmV/MOUlAnMGujtGGcUDOELq4vI=;
+	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=TwN41G9VbAshWHYJeOv2U1COZJR6JwbWFHXtwUz4cDbGN2BzKEC1xGwzRGtFHyHpxzqEnVMBlgDhOrgtCs57wQN2OPoeCP+AJEUSABunxTcHUB+bbytNaLUFnx0H43/uwPdWuyMKyCv65+mdYHA2UHJvBWkx7oKY7Uu5tR8TkVg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=outlook.it; spf=pass smtp.mailfrom=outlook.it; dkim=pass (2048-bit key) header.d=OUTLOOK.IT header.i=@OUTLOOK.IT header.b=nOMcguKe; arc=fail smtp.client-ip=52.103.20.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=outlook.it
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=outlook.it
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nec.com header.i=@nec.com header.b="tKgIyoAd"
+	dkim=pass (2048-bit key) header.d=OUTLOOK.IT header.i=@OUTLOOK.IT header.b="nOMcguKe"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=wIsFUX5TymNhBlWLYkPyqm4llOGrktmYT49annvCaY2bsI714AkuU0ZiEibXZNffpPoK1B4BhYmoZh1GNCMdfYEvMw5To6VOWYnIRkbQPmVVi9KSMWHgFV3rxRQ26HUsrgaAQjsdTfkUhW6WMrR5ZeJaJGwS0VCgHT+z6gdMZZa7lAa2h6roFMhW2m9/1NBYQ6X2x5W6K5hs9XqdVmycqZdwAOqHcmmhNMOmiG0fH2j0+3OWdg+jlV66Zk0JJrfTSLKsSv+hzSSmXODKTXJBbr6OEwUJD3fVWezaDHAKb6GSiJ5SzRizylKZT0gI63wPVb7ISlI/9JrphBF7LRfLfA==
+ b=UYxrgAqGE4PgnxLDB8IbBEdOtWCG9wUk5J3cqHciL09IJuOvqlnyLivFVTRtbfXu3aVEv+kcVOX7ijxQxkk27NE+KyMgkwN/yNbBMw2PHLuNySxglfP4EoJKYYknaTTceEF16ESMLbn15Bdjm9HT7lFd+9kuBhQppK7iB7uZ1V0AMyF3GOmD+HEEzdoYdzete6IqjqBN07+KUNlIAXzQxI746nrYlobdjfXJjvubMGm7OvP6adzLo8R+bqtJ+OMQ+t2ed0BGsiRi1TBHyavjIsylTkJUIG1phtWjWu833A5fQDItjFln86ssuhuOnP2Da4XF+t2Er3HOxsuk1UTNjw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=PGynGJIq1bGpzL1HgYNzpA8LMMGaStzOgJQkaeWU+MY=;
- b=ytugpz0RfyDyne0+6OEiQOaQMoC5VSj2Du9hEiDkhH5GguTQUBE4wVzxLkfIcdJn/S515PBUwb3/hJd+x2BTcd5XjbM7SNo/YgygwPNEGES3wItwx/Nd5osbMrmV+jwpvRQNr1de8dsQ2659HT4k3tHlgDJgMjEbsniEr/a+Bs5JjYxTvGovJdJ69nj2OtT01rE3Ar3keD18gJO/4ExI1wZOjIFHjS2BNugAmgI9Geor/CvgrsEo6/y8Z3cc/+X/HD16ZAricD7mVUoko2DP/zGHxklyuQhXM5XorobC4jGYjvmcfqRgVQ+n046kfjVuDhVaJir+SNj4H4BZARP7iA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nec.com; dmarc=pass action=none header.from=nec.com; dkim=pass
- header.d=nec.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nec.com; s=selector2;
+ bh=zBcMDsGdn4wHwM+I31CYIl1xBdmF7IJMrtSTLDUVFfU=;
+ b=zCl9eZkVoBssUhvrOFJor+tmUS10TnVNDwzuzEHEFNi10fTNuKsIo9DnWg4Km4t6UMG1JeLG0CYzpregHTH723MF7K2d5CvPLp0sfi0Y+KRFE9aQPdIFACRynnAsgTQAgHR6StYX2whBjtItC7YvcHB2QoGYPCmqZ2xnQhOlhAhFVAg2fmbv6ztPwbvnDSQN6mxSE1OlRm/ORmc3lmOYodFGYoIuimchA42YNKTdsosD7BKjFgfdeEEiAnxlLkd5WB4FHmutu+C0/HEQKnA2Z2voNNVIpl7sVE+0r8UBctjKbAwci5zMaMZ/OaFEBNGiuJsKt10QQTG7hC1c+Y9Rjg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=OUTLOOK.IT;
+ s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=PGynGJIq1bGpzL1HgYNzpA8LMMGaStzOgJQkaeWU+MY=;
- b=tKgIyoAdN604rxx+ZUGULqQr2Kd4NKASby8txyES/E6xIG5Oza7FOBv7z0QdVLePfO5CLobzBCXQCCButuT3xwu+QY/0pxLFjhlOcPeuiZQuN8UmHuoFSnKXVJVvsQQllFFRSwPk8fOHBEPsFjJCFVN1C1u1iuf4E/vkUfhqJ/FAHMekT52wTJ7UJvmju/MN5NLDST+Xal9KfKVU+ngzENM89O+ZHGfmbs9RnBI3W1vS4SJBnV/I4SZQ/zXDfFqyjuidlIQmWMkaOZtTDqaDj+qWoxSGkC3ecWdsPx7JfaNqOPqCuG92CPLqfX1BmDKbdvdp58ljEyXXxw6KT5wcwQ==
-Received: from OS7PR01MB17384.jpnprd01.prod.outlook.com (2603:1096:604:43c::6)
- by TYRPR01MB13474.jpnprd01.prod.outlook.com (2603:1096:405:1cc::5) with
+ bh=zBcMDsGdn4wHwM+I31CYIl1xBdmF7IJMrtSTLDUVFfU=;
+ b=nOMcguKe/0DFqpffnl1vXYRGPcSuUEOaFXLz9pU0mLKDgQ5iQMAubPrXDTkAZYKNghYcpely2DcRDu/u7FjIPsxYdhCrVeTm5Ujm2kwZyA0ftoh67MMrAwlWSZEJMSQLK7ELKpf/qYVO+dEUdm7PNcYsA/i+Sxybuto6KyEy0PCpIAVEiiGHBvJtiPIs5fgX+JjKKFQkMomEpme8nNjzMgsscgxLdnmuFz47ZKPa74aLowhiP0Oc0J/7FkFFhsggQApfWG7mHNA/Ggr+Z46SPLPpRUvHrX6rZhrDpDi8wpCXnjG2GcqwBomtkMQtqBi8G4NlG1FLzIe5bD0Q3VW2mw==
+Received: from DS7PR19MB7724.namprd19.prod.outlook.com (2603:10b6:8:d9::20) by
+ IA3PR19MB8637.namprd19.prod.outlook.com (2603:10b6:208:526::15) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.223.12; Fri, 17 Jul
- 2026 12:01:50 +0000
-Received: from OS7PR01MB17384.jpnprd01.prod.outlook.com
- ([fe80::e19a:50c0:4d9c:1bb6]) by OS7PR01MB17384.jpnprd01.prod.outlook.com
- ([fe80::e19a:50c0:4d9c:1bb6%7]) with mapi id 15.21.0223.011; Fri, 17 Jul 2026
- 12:01:50 +0000
-From: =?utf-8?B?S09ORE8gS0FaVU1BKOi/keiXpOOAgOWSjOecnyk=?=
-	<kazuma-kondo@nec.com>
-To: "rafael@kernel.org" <rafael@kernel.org>, "lenb@kernel.org"
-	<lenb@kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>
-CC: "jonathan.cameron@huawei.com" <jonathan.cameron@huawei.com>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: [REGRESSION] ACPI: PCI: misleading _OSC failure message when _OSC is
- absent
-Thread-Topic: [REGRESSION] ACPI: PCI: misleading _OSC failure message when
- _OSC is absent
-Thread-Index: AQHdFeQMAS/v/uLN7UirAHJi05upjQ==
-Date: Fri, 17 Jul 2026 12:01:50 +0000
-Message-ID: <d0be949d-0e21-472e-a44b-cedb1dd8695d@nec.com>
-Accept-Language: ja-JP, en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nec.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: OS7PR01MB17384:EE_|TYRPR01MB13474:EE_
-x-ms-office365-filtering-correlation-id: b8a77851-affa-4b71-e614-08dee3fb2f62
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230040|366016|376014|23010399003|1800799024|18002099003|38070700021|11063799006|56012099006|10067099003;
-x-microsoft-antispam-message-info:
- CuauDpOhbnsMRePLrUQoNFVSVSD0kX+PAatkdkXjCDfp98mOSa60CSmgVbf6mlxyxsC6ZjY7eBTjE9sUrU3J44Cfjj4ZkQpwXMNm4nlO0ldBl9dtrJPh7p8QJGLf+CmYkk9Wkte5WOvZQ8vV61jWzyzvPfpVU6FsX2ls/7OJBA0rEre9tVI5haGobvAwBMHhAqUGa9wDslYHv5/HzJl0e1FBR51BNQ2jUq2Ck2s4LCYgk//9dRKSvsN78GrUqkDhTja9PfsGmfHdKhHBPxwUBPPEWB+CRa27vJuXFjsKWt78H/Zx5mNfgKdD2jlYAoTGeUJ2NHfCPw1Hzz+N5OgoPA+gxHh8L2CcWesFd7FTc3NeXonv0zcTuub+kqVSj5kF22vAvy3zevX4lSqM7rWO8tFv2AHEtnvOTRJRqwJiDUEe6R12EUU56bTdFZOvGaWjX2nkntpWFEa4C0pvdeD5t0SiWLDy3wYqhXUdbQABdnNVvDSuxpYafR/URN0iHSY+eXehUKARk3//BxnuB1bk3luyDqkCxklOwgu4WkymjOddocWy3AuLJIXqkXAQtbaRXzs/nxmRy5mdFa7XmX5YaBaeXzpVW2ZP4t69o+CHy0gNaR+u8QFHQdmAkK4+Sa9JwznGlXl5U82/zudiiVEozzFIacs/5Msu1WuQaVDTS+j/lMfsTULWh9MaBEJVE76WFRfFG+lWN7pCses7Fm12LT0N3JfBURxQLPFWXjRdVa4=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:OS7PR01MB17384.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(23010399003)(1800799024)(18002099003)(38070700021)(11063799006)(56012099006)(10067099003);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?utf-8?B?YW81UTJaZnlDMXRoc2E3dWZXT0VVN3gxM0xoNXRRTFFuaVBlSXkyRURQQ2Qz?=
- =?utf-8?B?R25Lb0E2bnp4RjNmdXlzZG5NWTlvQW10bEVOc2NnZ1dWWVNuZG1KNy9uNWRp?=
- =?utf-8?B?dlFVdDNuVzE4bHVLaVVVbEs5cjF5OFlCY1VqZ0QzMVduZjBwakZuVm5iTXZp?=
- =?utf-8?B?d2t4b0NVSEErWldFZCtkNEhxdDBjY3dwT29sL0xpejViNzVOQVY4aGFGeWJi?=
- =?utf-8?B?bGxiNWw5M3lIc1NrZHA5cmI2SnN2ZEdWLzJqT0JtalRKc1dzOE1ESnBTd1Rx?=
- =?utf-8?B?YnJnZ2lyaGJLa0FVTHBMZU1TTis2WTN0QnhnOEl0ZG5lYnpkN0J1a2xKcm8y?=
- =?utf-8?B?MGN5NU5lZTFMdE9mcU80eHFFNHRMZk5ZTzczQ1JBK3hvZGhlcm9WeWxNNWZk?=
- =?utf-8?B?eldsanArbW5BMGJiR3c0MG9VRmtPbWxUT2EzRXlCUzdrazNrTXNSZTVIRVlY?=
- =?utf-8?B?SjRISjdiMXQ2dU0rcWc1d0RwNFFMTTJseUhJU01vcVZoUDBrWUpZRVhpeXFj?=
- =?utf-8?B?NUovRzBPbmF0YjhNSmFmOW5taG5CVHFYc0dBYmF0NHJVNy9QVG5EVTRSaFlD?=
- =?utf-8?B?NVhpcFprZVhlWGxoUkQxaEVKdGhNK0o1V0l2VEM5Q3JTQ1FXV1QyTGlyamlU?=
- =?utf-8?B?WnorM280eFc3UWI0WE5xVkNud080aFA1SFdkcUtlSEhsZk9WalI5T0FnVWJw?=
- =?utf-8?B?WExwMitLVlQ4RnJMTUJZZTFqZm9iSmQ5ckE3bFNYOTlmci9WVW5yQmp5WjdX?=
- =?utf-8?B?bGhiNnNmZFFOM2g1OHNCVlB5Z3k5SWM0c0ZRbUhoRHViTmZyb3gvTExnczNC?=
- =?utf-8?B?Ym1YM0dBSENwZnRUZU9LREFaVjNZajVzN3pkSy8zZ2F3Sjc2THhqb09aaE5s?=
- =?utf-8?B?bzMrS25XeDFJa2J4aXFvUjh5YXJReXlUS014OU12MzhhMi82WURRY2JTV1ZZ?=
- =?utf-8?B?a0lLbDFJQVNDbnZBUUc0SnVuM3haV1JGZzQzcGc0bEdpYlYrS0crcFFCZ2Fm?=
- =?utf-8?B?R1l6ZVhzeXgyZEJ6Y2QveFpkY2tRNW9XalVNWXU4R041TEFtZkoyOXdocVk2?=
- =?utf-8?B?UUdVa25GV1lOa2hkZ3ZhaVBMcmRHb0FlNG1zMjI0aGxIZGMzM2FwczJhOGVl?=
- =?utf-8?B?RG1BTnBNdCtoM1UvbGFpSXcvbVhEU0JSOUgyTkZLeExSd054b0dqcktKZHcw?=
- =?utf-8?B?SWtGOW5INHVhemhhZVA4b0JVVFB0b2V4bng1bFhOcDl0aDdGeWJqQTNTTkdR?=
- =?utf-8?B?V3VDU2gzbWxXaStNYkpKUWMwK01lck9zUmVmbW5kNEVNbG9BalUwNnNpS2JN?=
- =?utf-8?B?em15Nk5RQWltTFFBVmhUaVlVckpPZllmN25meWIyaHArbUxsN2N2T212RUZi?=
- =?utf-8?B?MHdvZzdud2NkWWNVTUVRK1ZhMHVJVk1OL1I0VjFua0piWTJ4Umo5M3JYVXZ1?=
- =?utf-8?B?RlZwQkJuajNoTVpVUElzWmxQMm94M0VjWUlPeU1UNkJkamlRYVBraHQxakxS?=
- =?utf-8?B?THVZLzIvTktHRmxXSzgzN2ZwcHhwU1lGMk9jTjU5TlpTUUY3THp2K0prbnYv?=
- =?utf-8?B?eVo1b1RQR1NKUk1PR1RjZlkzekpaNThHS1ExNzBIZVpPNncyV1hENUZhaFhh?=
- =?utf-8?B?RUJKL3c4UlJqQjZPbCtDS2NEWWpObzNId0hNKzA5ZlJMeVFraFBxWXVsZnhj?=
- =?utf-8?B?OXljd08ydlkzZksvdU1FMFduR09tb2JkdWpSdFhTMldpZTUrZ1g3WjJOR3Bp?=
- =?utf-8?B?V0NicDQxZjJ4RHV1RFAvR2hjMXdoWXFHRldIK1hONGlJL09ZV3hvdEdoNS9E?=
- =?utf-8?B?LzRJQXg3MzlEV0NhZkFuNDNoVWJqY090TS9MRC9wN3ZFVE1kcmkzOUVFWkcv?=
- =?utf-8?B?eHN1cHMvb2dpZkhRTmdRQnRQZmV6QnY5R2RJbm5hNEpSWUVhcXRUTXBINE5l?=
- =?utf-8?B?N2VudUptNVI0eUErSlcyaUh0RS9HSDNPeVFnaHMvTjZscE52bWtJUDRvWEFq?=
- =?utf-8?B?WXZ6VnhPK1hzMlNnY3o1bFZIbGJZY3RPNkpxTjkrYnp0UXhSZVFIUENjNzRn?=
- =?utf-8?B?SmVMQXpoNm5aVkNrTDJ0cTJZaWFUUWZWZVRDRkdTWHFxcTRLaVdnTTNWRUln?=
- =?utf-8?B?bGVnanZidFlWdGFMWEVnM3FMeGVIYWFEbjA0R0dvdWNMU0Z5bU16SkhOcTZT?=
- =?utf-8?B?bnV4Q045VkQ4R0NpVjdZWVBteFExaCtBMjJYeVhCMzVwNHJiVExHME1xRXJu?=
- =?utf-8?B?YmNpS05VR3F3cTlwOWg0eCtRc2hjdDRXVFhTSFBNWlk5UHl3NkJRSmJCRzRH?=
- =?utf-8?B?aXd5bmVrU0NzaVNGakNjWW02cXhSZDNITXpsM3FVSDZaM2dqbWtFUT09?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <535B3A67D103C24C9B090679516630EB@jpnprd01.prod.outlook.com>
-Content-Transfer-Encoding: base64
+ 2026 13:26:34 +0000
+Received: from DS7PR19MB7724.namprd19.prod.outlook.com
+ ([fe80::70de:3c05:ac62:7f86]) by DS7PR19MB7724.namprd19.prod.outlook.com
+ ([fe80::70de:3c05:ac62:7f86%5]) with mapi id 15.21.0223.012; Fri, 17 Jul 2026
+ 13:26:34 +0000
+From: Marco Giunta <marco_giunta@outlook.it>
+To: tiwai@suse.com
+Cc: perex@perex.cz,
+	lgirdwood@gmail.com,
+	broonie@kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-sound@vger.kernel.org,
+	rafael@kernel.org,
+	lenb@kernel.org,
+	hansg@kernel.org,
+	ilpo.jarvinen@linux.intel.com,
+	linux-acpi@vger.kernel.org,
+	platform-driver-x86@vger.kernel.org,
+	wangweidong.a@awinic.com,
+	nadim@symbolic.software,
+	imitoy@imitoy.top,
+	munzirtaha@gmail.com,
+	yakov.till@gmail.com,
+	Marco Giunta <marco_giunta@outlook.it>
+Subject: [PATCH 0/8] ALSA: hda: Add AW88399 HDA side codec driver for Lenovo Legion
+Date: Fri, 17 Jul 2026 15:25:02 +0200
+Message-ID:
+ <DS7PR19MB77247D9AD698CF0FF37DB58BFCC62@DS7PR19MB7724.namprd19.prod.outlook.com>
+X-Mailer: git-send-email 2.55.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: MI0P293CA0013.ITAP293.PROD.OUTLOOK.COM
+ (2603:10a6:290:44::18) To DS7PR19MB7724.namprd19.prod.outlook.com
+ (2603:10b6:8:d9::20)
+X-Microsoft-Original-Message-ID:
+ <20260717132509.148321-2-marco_giunta@outlook.it>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: nec.com
+X-MS-Exchange-MessageSentRepresentingType: 1
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS7PR19MB7724:EE_|IA3PR19MB8637:EE_
+X-MS-Office365-Filtering-Correlation-Id: 2b762871-ba4e-428e-8d24-08dee4070537
+X-Microsoft-Antispam:
+	BCL:0;ARA:14566002|23021999003|39105399006|5040399003|5072599009|4140399003|12121999013|19110799012|22121099003|8060799015|41001999006|15080799012|24021099003|3412199025|440099028|4302099013|10035399007|41105399003|40105399003|3430499035|1602099012|1710799026;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?b/mSWUZ4Wbx9RnGsrvfUxwaK+Bp79jVmXjyJ9Pm59ThMsmrcdSYlCwKxV4wg?=
+ =?us-ascii?Q?oVU4hC5uD24MbqtTsmDCfcFd0no+jjxajwowxGejmJr0/gS0ucMIFKii7SeO?=
+ =?us-ascii?Q?tT7asS+Tsssx6bM1a1Sc/mcE+F8KyHNhupAur1CJJbbglIyFINBnIgkjVuX0?=
+ =?us-ascii?Q?woiOJOww6SLN7/TIVm9q0+nA5SJ+fLZ1q3d9MR3Mg6gZls00jBO6QbOhweo9?=
+ =?us-ascii?Q?OaUUetV3zdgCPec76pZsVIkdPoDh+1eMfCsOzLK9fknEIaFV1Be1XM8URGAH?=
+ =?us-ascii?Q?/pPGW2xege27qhL+QwqqtxyaXlvkGgGgEhVw+Ticvu/FFAoCX5Y5ZcW52DDu?=
+ =?us-ascii?Q?XexolMRXywP+OTfTXl+Rc9PlfcKjfDXAvv01ahTb7XoIDzsRCa7yTX5D+3zO?=
+ =?us-ascii?Q?Ljwwgrme138W6hfozRzzhJ+CtkOJOgODQXl9gNSIjc1D5l0Ozgz27qJmpCO6?=
+ =?us-ascii?Q?+FdbdlVidmIIYxRsDtDi7YqCRbjPApgsyhLeqES4iSGYI249QB9RikkTs2ps?=
+ =?us-ascii?Q?GiupS+Y5TeimjrYfRxydkEe9wDSTSML7StWavAl8R3cb3vuNM+ksqkKKMuyX?=
+ =?us-ascii?Q?SMcDhGdX7nqzYdkWld20caMcmWt7OnjkqRdZQ1WrBd4ETQ1GWc9Gmu3FnIKm?=
+ =?us-ascii?Q?xmjDOklPNaUQ3RaSH7fNvpPQdLqxvQW56qmnD51Okq+I15tfxdS+t64Brzhg?=
+ =?us-ascii?Q?qo8Nuvgx/r5ZDN5cNT8C8ZtPRFhmVBZ64R8ZNnj+Ero50qOF1tgsgs1JU3kD?=
+ =?us-ascii?Q?l4l5wNZaPRZ/VA5XdEpXYiFR8I5ZzFIFMs3DpHlczyffK6Atcj3viqaWyQzl?=
+ =?us-ascii?Q?peRuYCjn3Gu8tD48uZhJ8MJ98CyYMpwIFYhBLd+dtsLz7R4QO6xY+i6MTNGm?=
+ =?us-ascii?Q?vkQNPdBlLmv6BNK/BEbB8/pBEYUot6iRtd29ZPSKPTFBuUhzKfneHQ2ckv3h?=
+ =?us-ascii?Q?XQlu0WOPsKpFKJDlw9bPMQ/MOSRLYoVEcVxjDYsxtQz+JA6HnbPWu6wsY7cV?=
+ =?us-ascii?Q?bnK9aQfJjAReVdMMSHMeWczFp4ArFdhAlY8wbLFyuWXa4gZJmE1uSW0w16RS?=
+ =?us-ascii?Q?Hkxi7KVc/85+fprZAhFyDtuSP/GN2AafJNtxibfX+JSaMtYS+ZeTjKS+56XN?=
+ =?us-ascii?Q?GRuvGKEOylh2CchYV+o8YuizkeyK3kWsbZWefQXlCFpjgUsZjl8f0fsSFo3w?=
+ =?us-ascii?Q?B92oGR8euOBpzB1n?=
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?wItUPYKbREH6g5vd0CBt/qc82JRbtdehsCo4M62huWiQEoyYPMLCyQC7d6/w?=
+ =?us-ascii?Q?HyuNJfYk0D4G7FnGwgzlqyHv8kWLO6Gf29ma5pxTaxeJbO2QuD9iZmwmlfE8?=
+ =?us-ascii?Q?ylHIzEdgI8MLpC6hbk2uC6RbNxyIJ9Y5Z32cnocRDhiXoZY0eV2l2fW6duWl?=
+ =?us-ascii?Q?xrN2fcugLwk1gdrRmgH5KKWWNteh4A7v5415k7h2VdbTEs91YiHwo8yCqMrA?=
+ =?us-ascii?Q?KDQNbEe0iz/0LcWkzuPtGCl4JB74nVWGrZxcalsnMZcYJI+G07upIJ73wFap?=
+ =?us-ascii?Q?ZCZvT9/NEK3jWXGbWk+6FyGqiH1ddAeNKgn07b/BjfI7QL17aphpnjl+ZMnd?=
+ =?us-ascii?Q?bl8HJH5PHx6vA825BW0s3HyLXIN3xChG/0dduB7jFP95eVDHFbJP8wg0UKdE?=
+ =?us-ascii?Q?kfMJ3BmI91VKJ34jLxOkmOw21zMbVGBysN73NSneQ1lzBTX3Ws/cxsXzgB/e?=
+ =?us-ascii?Q?zKvHnhTxodJlhCThdIK/xQr+od1dILQuisXj4x9eiFzT9jSG7ICxNHGd8aKU?=
+ =?us-ascii?Q?Hyptkf90Vxsn971gSjVYmSp8ibuzE4MBQsDl9Krfu97vx71LcxljjSfuo95J?=
+ =?us-ascii?Q?xrw/XJu3lri+vt5FUPUbRPyaAu2rDACajgeuHwiKEXAg9xZhfMv3RtaX554l?=
+ =?us-ascii?Q?RIK0WPTA7Df4yMqxf+ZhWICKHSRIcuy0yB1RNwrUX02jslab+6+INxvP1O6p?=
+ =?us-ascii?Q?djKCCfET8J9oJ478RLp86NF0zFO8iO+CN1uOeqQZknBpDDzrSAtPgP45e2iS?=
+ =?us-ascii?Q?2fJ8yjQRp/Cb++9QknQF5Nfbpj1CIGiwspGsEWV/G7FNJVNjd2qSgOThbzvN?=
+ =?us-ascii?Q?eEsv2d6q7l/QOcvqypadEQY2sexT1GZY0ASFS46UVKXugSXuzWlsdjn9OSv9?=
+ =?us-ascii?Q?nJoIO+NuCcu3a5iSRg0tCKXsypSfG1l1odytbhZaBw+IzScYdGLjRxmtcKzP?=
+ =?us-ascii?Q?94iV+QVW3KBEoZQ1BtNlggv90Ldaa4eMgmsoJekH7xcCzsntiBZJTgRQaGGK?=
+ =?us-ascii?Q?bHuB2IihxHrWarCbgAaw9YiqSkcWL1cS13Fy04bLxF4jElID2kc0Ec41zv3l?=
+ =?us-ascii?Q?MmKxlSf6XBHJkyXkzPac9HGkb1FQSbUGKPQaYz8hhiZpKxKd5jcmaPPWPum2?=
+ =?us-ascii?Q?sshX5SS4O+LmkeuitcMYpQsW4A2QhFjgq4SxOlFFdl7mklsSkqyf3IrVI85r?=
+ =?us-ascii?Q?3kHZQB1B5choiyiFo6TJsi0jE1btJfjUv7UI1X/Fa0x/rDOcz3DSuoL6N9L7?=
+ =?us-ascii?Q?lUmEiF77oAvOvg0GzT4J8SUgFujjiDOe/Pdg5GB34kESa8l12zuhfX9HnkT/?=
+ =?us-ascii?Q?GdInGXMDlFdDLqABIGykkDIbmVeA4NtLPDuhJtnU4mJf812zFFH4jten1bF5?=
+ =?us-ascii?Q?ADMEUMe0Dwo9vb5e3iQTEsswZtah?=
+X-OriginatorOrg: sct-15-20-9412-4-msonline-outlook-990eb.templateTenant
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2b762871-ba4e-428e-8d24-08dee4070537
+X-MS-Exchange-CrossTenant-AuthSource: DS7PR19MB7724.namprd19.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: OS7PR01MB17384.jpnprd01.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: b8a77851-affa-4b71-e614-08dee3fb2f62
-X-MS-Exchange-CrossTenant-originalarrivaltime: 17 Jul 2026 12:01:50.3947
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Jul 2026 13:26:33.9659
  (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: e67df547-9d0d-4f4d-9161-51c6ed1f7d11
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: KDLzNaqjtHe+iqJOsW6vcdMZGyHq5xFT3BumnXfp9N6jSi2Dlxc3fRSXyFpm88il/dj+NVhvHftNMBqmsks4ng==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: TYRPR01MB13474
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
+X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg:
+	00000000-0000-0000-0000-000000000000
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA3PR19MB8637
 
-SGVsbG8sDQoNCkFmdGVyIDdkNzAzZGY3ZjRmNSAoIkFDUEk6IGJ1czogU3BsaXQgX09TQyBldmFs
-dWF0aW9uIG91dCBvZiBhY3BpX3J1bl9vc2MoKSIpLA0KQUVfTk9UX0ZPVU5EIGZyb20gYWNwaV9l
-dmFsdWF0ZV9vYmplY3QoKSBpcyBoYW5kbGVkIGFzIEFFX0VSUk9SIGluDQpuZWdvdGlhdGVfb3Nf
-Y29udHJvbCgpLg0KDQpJIGhhdmVuJ3QgeWV0IG9ic2VydmVkIGFueSBmdW5jdGlvbmFsIGlzc3Vl
-IHdpdGggdGhpcyBjaGFuZ2UsDQpidXQgSSBzdGFydGVkIHNlZWluZyB0aGUgZm9sbG93aW5nIG1p
-c2xlYWRpbmcgbWVzc2FnZXMgb24gbXkgSW50ZWwgc2VydmVyczoNCg0KICAgIGtlcm5lbDogQUNQ
-STogRW5hYmxlZCAyIEdQRXMgaW4gYmxvY2sgMDAgdG8gN0YNCiAgICBrZXJuZWw6IEFDUEk6IFBD
-SSBSb290IEJyaWRnZSBbVU5DMF0gKGRvbWFpbiAwMDAwIFtidXMgZmVdKQ0KICAgIGtlcm5lbDog
-YWNwaSBQTlAwQTAzOjAwOiBfT1NDOiBPUyBzdXBwb3J0cyBbRXh0ZW5kZWRDb25maWcgQVNQTSBD
-bG9ja1BNIFNlZ21lbnRzIE1TSSBFRFIgSFBYLVR5cGUzXQ0KICArIGtlcm5lbDogYWNwaSBQTlAw
-QTAzOjAwOiBfT1NDOiBPUyByZXF1ZXN0ZWQgW1BDSWVIb3RwbHVnIFNIUENIb3RwbHVnIFBNRSBB
-RVIgUENJZUNhcGFiaWxpdHkgTFRSIERQQ10NCiAgKyBrZXJuZWw6IGFjcGkgUE5QMEEwMzowMDog
-X09TQzogcGxhdGZvcm0gd2lsbGluZyB0byBncmFudCBbUENJZUhvdHBsdWcgU0hQQ0hvdHBsdWcg
-UE1FIEFFUiBQQ0llQ2FwYWJpbGl0eSBMVFIgRFBDXQ0KICArIGtlcm5lbDogYWNwaSBQTlAwQTAz
-OjAwOiBfT1NDOiBwbGF0Zm9ybSByZXRhaW5zIGNvbnRyb2wgb2YgUENJZSBmZWF0dXJlcyAoQUVf
-RVJST1IpDQogICAga2VybmVsOiBQQ0kgaG9zdCBicmlkZ2UgdG8gYnVzIDAwMDA6ZmUNCg0KQmVm
-b3JlIHRoZSBjb21taXQsIHRoZSBsb2cgd2FzOg0KDQogICAga2VybmVsOiBBQ1BJOiBFbmFibGVk
-IDIgR1BFcyBpbiBibG9jayAwMCB0byA3Rg0KICAgIGtlcm5lbDogQUNQSTogUENJIFJvb3QgQnJp
-ZGdlIFtVTkMwXSAoZG9tYWluIDAwMDAgW2J1cyBmZV0pDQogICAga2VybmVsOiBhY3BpIFBOUDBB
-MDM6MDA6IF9PU0M6IE9TIHN1cHBvcnRzIFtFeHRlbmRlZENvbmZpZyBBU1BNIENsb2NrUE0gU2Vn
-bWVudHMgTVNJIEVEUiBIUFgtVHlwZTNdDQogICAga2VybmVsOiBQQ0kgaG9zdCBicmlkZ2UgdG8g
-YnVzIDAwMDA6ZmUNCg0KIlVOQzAiIGlzIGFuIHVuY29yZSByb290IGJyaWRnZSBhbmQgZG9lcyBu
-b3QgZGVmaW5lIGFuIF9PU0MgbWV0aG9kIGluIHRoZSBBQ1BJDQpuYW1lc3BhY2Ugb24gbXkgc3lz
-dGVtcy4NCg0KUHJldmlvdXNseSwgd2hlbiBhY3BpX2V2YWx1YXRlX29iamVjdCgpIHdhcyBjYWxs
-ZWQgZm9yIFVOQzAuX09TQywgaXQgcmV0dXJuZWQNCkFFX05PVF9GT1VORCwgYW5kIHRoYXQgc3Rh
-dHVzIHdhcyBwcm9wYWdhdGVkIHRvIG5lZ290aWF0ZV9vc19jb250cm9sKCkuDQoNCk5vdywgaXQg
-YXBwZWFycyB0aGF0IGFjcGlfZXZhbF9vc2MoKS9hY3BpX3J1bl9vc2MoKSBubyBsb25nZXIgcHJl
-c2VydmUgdGhlDQpkaXN0aW5jdGlvbiBiZXR3ZWVuIEFFX05PVF9GT1VORCBhbmQgb3RoZXIgZXJy
-b3JzIGZyb20gYWNwaV9ldmFsdWF0ZV9vYmplY3QoKSwNCnNvIG5lZ290aWF0ZV9vc19jb250cm9s
-KCkgbm8gbG9uZ2VyIHJlY2VpdmVzIEFFX05PVF9GT1VORCBpbiB0aGlzIGNhc2UuDQoNClRoZSBj
-YWxsIGNoYWluIGxvb2tzIGxpa2UgdGhpcyBvbiBteSBzeXN0ZW06DQoNCm5lZ290aWF0ZV9vc19j
-b250cm9sKCkNCiAgYWNwaV9wY2lfb3NjX2NvbnRyb2xfc2V0KCkgICAgICAgW3JldHZhbCA9IEFF
-X0VSUk9SICAgIF0NCiAgICBhY3BpX3BjaV9xdWVyeV9vc2MgKCkgICAgICAgICAgW3JldHZhbCA9
-IEFFX0VSUk9SICAgIF0NCiAgICAgIGFjcGlfcGNpX3J1bl9vc2MoKSAgICAgICAgICAgW3JldHZh
-bCA9IEFFX0VSUk9SICAgIF0NCiAgICAgICAgYWNwaV9ydW5fb3NjKCkgICAgICAgICAgICAgW3Jl
-dHZhbCA9IEFFX0VSUk9SICAgIF0NCiAgICAgICAgICBhY3BpX2V2YWxfb3NjKCkgICAgICAgICAg
-W3JldHZhbCA9IC1FTk9EQVRBICAgIF0NCiAgICAgICAgICAgIGFjcGlfZXZhbHVhdGVfb2JqZWN0
-KCkgW3JldHZhbCA9IEFFX05PVF9GT1VORF0NCg0KQXMgYSByZXN1bHQsIG5lZ290aWF0ZV9vc19j
-b250cm9sKCkgbG9ncyBtZXNzYWdlcyBhcyBpZiB0aGUgT1MgaGFkIG5lZ290aWF0ZWQNCndpdGgg
-dGhlIHBsYXRmb3JtIHZpYSBfT1NDLCBldmVuIHRob3VnaCBfT1NDIGlzIGFic2VudCBhbmQgbm8g
-c3VjaCBuZWdvdGlhdGlvbg0KYWN0dWFsbHkgaGFwcGVucy4NCg0KSSdtIG5vdCB2ZXJ5IGZhbWls
-aWFyIHdpdGggdGhlIEFDUEkvUENJIGNvZGUsIHNvIEkgbWF5IGJlIG1pc3Npbmcgc29tZQ0KY29u
-dGV4dC4gSG93ZXZlciwgaWYgbXkgdW5kZXJzdGFuZGluZyBpcyBjb3JyZWN0LCB3b3VsZCBwcmVz
-ZXJ2aW5nDQpBRV9OT1RfRk9VTkQgaGVyZSAoZm9yIGV4YW1wbGUsIGhhdmluZyBhY3BpX2V2YWxf
-b3NjKCkvYWNwaV9ydW5fb3NjKCkgcmV0dXJuDQp0aGUgZXJyb3IgYXMtaXMpIGJlIHRoZSByaWdo
-dCBkaXJlY3Rpb24sIG9yIHNob3VsZCB0aGUgbWVzc2FnZSBoYW5kbGluZyBiZQ0KYWRqdXN0ZWQg
-aW5zdGVhZD8NCg0KSWYgdGhlcmUgaXMgYSBwcmVmZXJyZWQgZGlyZWN0aW9uIGZvciBmaXhpbmcg
-dGhpcywgSSB3b3VsZCBiZSBoYXBweSB0byB0cnkNCnB1dHRpbmcgdG9nZXRoZXIgYSBwYXRjaCBh
-bmQgdGVzdGluZyBpdCBvbiBteSBzeXN0ZW0uDQoNClRoYW5rcywNCkthenVtYQ==
+Several Lenovo Legion laptops (Pro 7i 16IAX10H, Y9000P IAX10,
+Pro 7 16AFR10H, R9000P ADR10) use AWINIC AW88399 smart amplifiers
+to drive their bass woofers, connected via I2C as side codecs
+to a Realtek ALC287 HDA codec.
+
+Without a driver for these amplifiers, only the tweeters produce
+sound, resulting in quiet and tinny audio.
+
+An ASoC driver for the AW88399 already exists in-tree
+(sound/soc/codecs/aw88399.c), contributed by AWINIC, but it targets
+ASoC topologies and cannot drive the chip when it sits behind an
+HDA controller. This series adds a proper HDA side codec driver,
+following the established pattern used by the CS35L41, CS35L56,
+and TAS2781 drivers.
+
+Patch 1 extracts the device-level functions from the existing ASoC
+driver into a shared library module (SND_SOC_AW88399_LIB) with a
+shared header at include/sound/aw88399.h, following the CS35L41
+precedent (SND_SOC_CS35L41_LIB / include/sound/cs35l41.h). This
+avoids a build-time dependency on the full ASoC codec module and
+ensures clean separation between the ASoC and HDA drivers.
+
+Patches 2 through 5 prepare the shared library for use on ACPI-based
+HDA systems: patch 2 extends channel assignment to work without
+Device Tree properties, patch 3 adds a per-instance flag to bypass
+an unreliable hardware status bit on certain boards, patch 4 adds
+a firmware reload flag so that the HDA driver can signal that DSP
+firmware needs to be re-uploaded after system sleep, and patch 5
+adds a channel setter so that the HDA driver can configure the
+amplifier without depending on ASoC-internal device headers.
+
+Patch 6 registers the AWINIC ACPI HID "AWDZ8399" with the ACPI scan
+ignore list and the serial-multi-instantiate driver for correct
+enumeration of the two amplifier instances.
+
+Patch 7 adds the HDA side codec driver itself, structured after the
+CS35L41 HDA driver: an I2C bus driver, and a core driver implementing
+HDA component binding, playback hooks, power management, and per-model
+quirk matching using ACPI subsystem ID.
+
+Patch 8 enables the driver on Lenovo Legion Pro models by adding
+the necessary Realtek ALC287 fixups (DAC rerouting for bass speaker
+volume control, internal microphone calibration) and AW88399 per-model
+quirks (I2C channel swap correction, BSTS status check bypass).
+
+NOTE ON FIRMWARE: This driver requires the firmware file
+aw88399_acf.bin, which uses the same format and request path as the
+existing ASoC driver. This firmware is not yet available in the
+linux-firmware repository. We intend to coordinate with the AWINIC
+maintainers (CC'd) to arrange its inclusion. In the meantime, users
+can extract the firmware from the Windows driver and place it in
+/lib/firmware/.
+
+This work builds on the initial driver development by Yakov Till
+("Lyapsus") and the bounty effort organized by Nadim Kobeissi:
+https://github.com/nadimkobeissi/16iax10h-linux-sound-saga
+
+Marco Giunta (8):
+  ASoC: aw88399: extract shared device library
+  ASoC: aw88399: derive channel from I2C address on ACPI systems
+  ASoC: aw88399: add per-instance BSTS status bypass flag
+  ASoC: aw88399: add firmware reload flag for resume
+  ASoC: aw88399: add channel setter for HDA side codec
+  ACPI/platform: add AWDZ8399 to serial-multi-instantiate
+  ALSA: hda/scodec: add AW88399 HDA side codec driver
+  ALSA: hda/realtek: enable AW88399 on Lenovo Legion Pro
+
+ drivers/acpi/scan.c                           |    1 +
+ .../platform/x86/serial-multi-instantiate.c   |   10 +
+ include/sound/aw88399.h                       |  621 ++++++++
+ sound/hda/codecs/realtek/alc269.c             |   50 +
+ sound/hda/codecs/side-codecs/Kconfig          |   18 +
+ sound/hda/codecs/side-codecs/Makefile         |    4 +
+ sound/hda/codecs/side-codecs/aw88399_hda.c    |  371 +++++
+ sound/hda/codecs/side-codecs/aw88399_hda.h    |   36 +
+ .../hda/codecs/side-codecs/aw88399_hda_i2c.c  |   54 +
+ sound/soc/codecs/Kconfig                      |    5 +
+ sound/soc/codecs/Makefile                     |    2 +
+ sound/soc/codecs/aw88399-lib.c                | 1411 +++++++++++++++++
+ sound/soc/codecs/aw88399.c                    | 1349 ----------------
+ sound/soc/codecs/aw88399.h                    |  582 +------
+ 14 files changed, 2585 insertions(+), 1929 deletions(-)
+ create mode 100644 include/sound/aw88399.h
+ create mode 100644 sound/hda/codecs/side-codecs/aw88399_hda.c
+ create mode 100644 sound/hda/codecs/side-codecs/aw88399_hda.h
+ create mode 100644 sound/hda/codecs/side-codecs/aw88399_hda_i2c.c
+ create mode 100644 sound/soc/codecs/aw88399-lib.c
+
+
+base-commit: f9be704f58bde47c5ea841d5e4a6e9a7459c1578
+-- 
+2.55.0
+
