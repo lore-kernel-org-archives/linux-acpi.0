@@ -1,128 +1,139 @@
-Received: from canpmsgout01.his.huawei.com (canpmsgout01.his.huawei.com [113.46.200.216])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14DD33D3D02;
-	Fri, 17 Jul 2026 06:46:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.216
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27A3D3BED46
+	for <linux-acpi@vger.kernel.org>; Fri, 17 Jul 2026 06:51:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784270777; cv=none; b=jw7AZRSgq7qRxt/V3s13EWJrJoBE+HHvrFf4qTfVandYrwcMAjOLNJ7V5r6fnwwDIfoZUSzakqnZBIziuHg9dUKRy66g9o+R2AFWiH5S6Y2p6qCgURHgVglc4tOs81Rnddbs88ex9dSwGKi9qMi3Oz9BzcmEDb9ibGPmr0SHbCI=
+	t=1784271095; cv=none; b=T0aMEUyqJcaXlaz8POpGvorRmyvnepAm+nmsOCs2thQuqQqAMZySpjTJKvkxpJgqIWqePrGt3UuMIRk4eefa7YhyTS/K0I1rRRQSi62diOca7qr5hQvXdsvkfhxEPauuL3mk/8E7Z9N3ZRiMb10rztoXwNsMuj5DanyaoDm+CLY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784270777; c=relaxed/simple;
-	bh=mWTrI58awMF6ODcljnNvZ2Rq9IfeCSWEdvrL1ftFW+8=;
-	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
-	 In-Reply-To:Content-Type; b=cfovSx7yNnSHw5PLiH8r4/VyTqhkA0utBqpOnEtb3pR+NjtODx/bwbB8JdXkpigqXM1oIBtpxzi2f1+g7oMC3dgFczcgISZZVjJqs5qJQiNWvRr7Gmkfrw2+230FYs3QITC6ZxunGugPz7DdGa35HncPaZByEdz0B0CVcIjQXZs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=WlhmqnPZ; arc=none smtp.client-ip=113.46.200.216
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1784271095; c=relaxed/simple;
+	bh=7xq9fQvIK8JbrQKj8Wal4O+kdlxA6Z5+MMhpLDIZrYY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=fFWcRuKA02+nQff3GRQN0I3taZmy1AoOkfgOzzZWbBxuDtpQN3R6I+6JOfMvnLFi1NWsL4RsJOF7aR6xacwDglEHm5EQ4Ke4xGlbW0F5QKSfmqoUDrCbeYy56AgE1Xxw7SNqJQhKOxa1YxAh2eN3Rh8za2BoZ2HYTyd5XFb/aOg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=UHos8aoL; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=VkXfHYFb; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=UHos8aoL; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=VkXfHYFb; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="WlhmqnPZ"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=ljn3xSFIpmzgYfAeTiaxeOvaiTYt3QuwvY9djnL8ins=;
-	b=WlhmqnPZsh63jvo26CQDWVtNRRhvNWtLqWeF9rp4b16t1wkqhJEYq79t8fgAIDUVdH4L1IOHp
-	IrDGMi3nhrJFIsmt2KNNa5jOUgk5rC4JXv7/tSiLGwRDoot7yx0qvAcH8ejjeNRnokGPeF+tiMS
-	iHiqIXMfm1Bk9Wzp5VZCXOU=
-Received: from mail.maildlp.com (unknown [172.19.162.144])
-	by canpmsgout01.his.huawei.com (SkyGuard) with ESMTPS id 4h1gDV6s15z1T4HL;
-	Fri, 17 Jul 2026 14:36:42 +0800 (CST)
-Received: from dggpemf500002.china.huawei.com (unknown [7.185.36.57])
-	by mail.maildlp.com (Postfix) with ESMTPS id 4BF8040538;
-	Fri, 17 Jul 2026 14:45:56 +0800 (CST)
-Received: from [10.174.179.24] (10.174.179.24) by
- dggpemf500002.china.huawei.com (7.185.36.57) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Fri, 17 Jul 2026 14:45:55 +0800
-Subject: Re: [PATCH] ACPI: APMT: validate node bounds before device
- registration
-To: Pengpeng Hou <pengpeng@iscas.ac.cn>, Lorenzo Pieralisi
-	<lpieralisi@kernel.org>
-CC: Sudeep Holla <sudeep.holla@kernel.org>, Catalin Marinas
-	<catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, "Rafael J. Wysocki"
-	<rafael@kernel.org>, Len Brown <lenb@kernel.org>,
-	<linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
-	<linux-kernel@vger.kernel.org>
-References: <20260706093811.81850-1-pengpeng@iscas.ac.cn>
-From: Hanjun Guo <guohanjun@huawei.com>
-Message-ID: <e79f67b2-939a-8884-dc76-80e8c5e7278f@huawei.com>
-Date: Fri, 17 Jul 2026 14:45:54 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
- Thunderbird/68.6.0
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="UHos8aoL";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="VkXfHYFb";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="UHos8aoL";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="VkXfHYFb"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 44FEB78D74;
+	Fri, 17 Jul 2026 06:51:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1784271092; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=eY1BXOUwZ7/Zl6hTKSj4cgWkD80XYLG5snipLR/bozs=;
+	b=UHos8aoLIyAy/njTxcalPhZn4GV096Dib89k6ZjuxbHJoGjCgnU6fFDYtYG4nUbFN0PI9r
+	lZZazdbuoKE3QXrlOdanbZIHda78LUNCtVh7f31vFrANYtbIrODVpme39mm8Ls1gYkgjsT
+	sbfg6SLXgApJ24Bh4CHgLVQKjf5SQow=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1784271092;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=eY1BXOUwZ7/Zl6hTKSj4cgWkD80XYLG5snipLR/bozs=;
+	b=VkXfHYFbht4V2jsaHpOvjER0I0lqE9nwySNSMndGqtskkFxUzo95USUM/r/yqV/f1Ml0Eh
+	3QYXqvnd9CAP15Ag==
+Authentication-Results: smtp-out1.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=UHos8aoL;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=VkXfHYFb
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1784271092; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=eY1BXOUwZ7/Zl6hTKSj4cgWkD80XYLG5snipLR/bozs=;
+	b=UHos8aoLIyAy/njTxcalPhZn4GV096Dib89k6ZjuxbHJoGjCgnU6fFDYtYG4nUbFN0PI9r
+	lZZazdbuoKE3QXrlOdanbZIHda78LUNCtVh7f31vFrANYtbIrODVpme39mm8Ls1gYkgjsT
+	sbfg6SLXgApJ24Bh4CHgLVQKjf5SQow=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1784271092;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=eY1BXOUwZ7/Zl6hTKSj4cgWkD80XYLG5snipLR/bozs=;
+	b=VkXfHYFbht4V2jsaHpOvjER0I0lqE9nwySNSMndGqtskkFxUzo95USUM/r/yqV/f1Ml0Eh
+	3QYXqvnd9CAP15Ag==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 289D9779AA;
+	Fri, 17 Jul 2026 06:51:32 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id fbu3CPTQWWoCYAAAD6G6ig
+	(envelope-from <trenn@suse.de>); Fri, 17 Jul 2026 06:51:32 +0000
+From: Thomas Renninger <trenn@suse.de>
+To: linux-acpi@vger.kernel.org
+Cc: Thomas Renninger <trenn@suse.de>,
+	Saket Dumbre <saket.dumbre@intel.com>
+Subject: [PATCH 0/2] Fix sysfs duplicate filename if multiple BERT tables exist
+Date: Fri, 17 Jul 2026 08:51:20 +0200
+Message-ID: <20260717065129.72924-1-trenn@suse.de>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20260706093811.81850-1-pengpeng@iscas.ac.cn>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
- dggpemf500002.china.huawei.com (7.185.36.57)
+Content-Transfer-Encoding: 8bit
+X-Rspamd-Action: no action
+X-Rspamd-Queue-Id: 44FEB78D74
+X-Spam-Flag: NO
+X-Spam-Score: -3.01
+X-Spam-Level: 
+X-Spamd-Result: default: False [-3.01 / 50.00];
+	BAYES_HAM(-3.00)[99.99%];
+	MID_CONTAINS_FROM(1.00)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_MISSING_CHARSET(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.com:url,suse.de:mid,suse.de:dkim];
+	ARC_NA(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	FROM_EQ_ENVFROM(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	RCVD_COUNT_TWO(0.00)[2];
+	RCVD_TLS_ALL(0.00)[];
+	RCPT_COUNT_THREE(0.00)[3];
+	DKIM_TRACE(0.00)[suse.de:+]
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
 
-Hi Pengpeng,
+Previously sent to linux-pm:
+V2: Do not use acpi_get_table, but pass both,
+    struct acpi_table_header *th, struct acpi_table_attr *table_attr
+    as function parameters.
 
-On 2026/7/6 17:38, Pengpeng Hou wrote:
-> The APMT parser walks variable-length nodes from the ACPI table and
-> passes each node pointer to the platform device that is later consumed by
-> the Arm Coresight PMU driver. The loop only checked that the node start
-> was before the table end before reading the full struct acpi_apmt_node and
-> advancing by node->length.
-> 
-> Validate the fixed node body and the declared node length before using the
-> node. This keeps malformed short nodes from being consumed locally or
-> propagated to the runtime PMU driver as platform data.
-> 
-> Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
-> ---
->   drivers/acpi/arm64/apmt.c | 20 ++++++++++++++++++++
->   1 file changed, 20 insertions(+)
-> 
-> diff --git a/drivers/acpi/arm64/apmt.c b/drivers/acpi/arm64/apmt.c
-> index bb010f6164e5..5f341fa86fab 100644
-> --- a/drivers/acpi/arm64/apmt.c
-> +++ b/drivers/acpi/arm64/apmt.c
-> @@ -23,6 +23,21 @@
->   /* Root pointer to the mapped APMT table */
->   static struct acpi_table_header *apmt_table;
->   
-> +static bool __init apmt_node_valid(struct acpi_table_apmt *apmt, u64 offset,
-> +				   u64 end)
-> +{
-> +	struct acpi_apmt_node *node;
-> +
-> +	if (offset > end || end - offset < sizeof(*node))
-> +		return false;
-> +
-> +	node = ACPI_ADD_PTR(struct acpi_apmt_node, apmt, offset);
-> +	if (node->length < sizeof(*node))
-> +		return false;
-> +
-> +	return node->length <= end - offset;
-> +}
-> +
->   static int __init apmt_init_resources(struct resource *res,
->   				      struct acpi_apmt_node *node)
->   {
-> @@ -129,8 +144,13 @@ static int __init apmt_init_platform_devices(void)
->   	apmt = (struct acpi_table_apmt *)apmt_table;
->   	offset = sizeof(*apmt);
->   	end = apmt->header.length;
-> +	if (end < sizeof(*apmt))
-> +		return -EINVAL;
+Cmp with:
+https://bugzilla.suse.com/show_bug.cgi?id=1270211
 
-This means the firmware reports the wrong length of the ACPI table, it's
-better to print FW_BUG here.
+dmesg | grep BERT
+ACPI: BERT 0x00000000DD695238 000030 (v01 AMD    AMD BERT 00000000      00000000)
+ACPI: BERT 0x00000000DD6955C8 000030 (v01 AMI    AMI.BERT 00000000 AMI. 00000000)
+ACPI: Reserving BERT table memory at [mem 0xdd695238-0xdd695267]
+ACPI: Reserving BERT table memory at [mem 0xdd6955c8-0xdd6955f7]
+sysfs: cannot create duplicate filename '/firmware/acpi/tables/data/BERT'
 
-It's a rare case because the APMT is not work at all if the length
-is less than size of the head.
 
->   
->   	while (offset < end) {
-> +		if (!apmt_node_valid(apmt, offset, end))
-> +			return -EINVAL;
-Do you have the real bad case? or can you trigger it?
+Thomas Renninger (2):
+  ACPI: Use correct region struct for BERT region size check
+  ACPI: Properly map BERT and CCEL acpi tables to their data tables
 
-Thanks
-Hanjun
+ drivers/acpi/sysfs.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+-- 
+2.55.0
+
