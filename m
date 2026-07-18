@@ -1,36 +1,36 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 855A6176FB1;
-	Sat, 18 Jul 2026 09:09:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7AC63859EB;
+	Sat, 18 Jul 2026 09:09:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784365750; cv=none; b=fudrgr0djinB3U1yctW8xmgJDqAbs7zptaJfE7u9zR9kH1md6wltgPK+RPGN8J0axZiY21rQlZFVRZbIjlYWb30gZZ43AKl3SbZmrohlWk7ylxkEC0FCPTkoUVo0plThQxsdNN3KIhfsFYUebkT4icEk97TGTuv7o9s+3ZCz8e0=
+	t=1784365768; cv=none; b=d5iLD6ll0W6tphlhAnwM4GEBcj6x2woYnRkYpDRqk678ooEYIw+ggc6LAlN2MGDxZ/xyjD0g5Cy7TRZGdPSG9kkpe62n0YytXIoxZBHxi56Qbu53f+VyLxyuU8f7aa5/i10Xtk5tJ/D9nq1i2H2xBIN/sw1kipRyY2nMvbT07vI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784365750; c=relaxed/simple;
-	bh=w0B24LlidNvGjNUgSt9LBZLrJj4A7Z4lVPoAEvy4veM=;
+	s=arc-20240116; t=1784365768; c=relaxed/simple;
+	bh=p8Z4GMU2x4GxmzO8uZ7XMM50qtFMaoMtGsyGYvbpsLs=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HPCfTSSrlvV8holBmhwjO1/HTGJm58knalu32W9fA+B1wg/ofeusakszICy+531Rab9hL2vrV8KOaPM/MjeTOc1gnCt0McStA+RxhDGN3N/N7kKSRE80ozEWDG6Ar/myZNA0CVq06QObD27CS8Xg3mhfWlUWyqN1BQ4s/5cibcM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=rQIb3hha; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=bPuJ2Vy+Pa7Gnpk361GAsjSqsS90sLKr7D1ZrOVztbl/rUryti4P2zxFCEyU8fO6uNOa3jh7nGOjunoMsf7cTZ4s16B9yOJxnFSaJCNzivf4UagE6jX8uT4yXcvyZmPmB5/tLkEPthL8Hrn7I4GmoJ6SWd4USEpGTOLlTev5RV8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=qn6YF3n6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="rQIb3hha"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97F681F000E9;
-	Sat, 18 Jul 2026 09:09:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="qn6YF3n6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E68791F000E9;
+	Sat, 18 Jul 2026 09:09:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
-	s=korg; t=1784365749;
-	bh=S8hK1lCrVVRcqazRAxEdm3QgRzdv3fDryM0evzBoxsQ=;
+	s=korg; t=1784365767;
+	bh=deBObRfaAZlVeGrdDjmjKZr8UCWh91pqaVJu8Mqww5E=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=rQIb3hha0bHd3dtQHSI3Isd/MEI1wkZVLCfryJlvat0HJcsn8dBOsTaOFyUBTQpiA
-	 PYAiDzS3HiZ5un4Yy0uTptivSEWEbF0aPfgb8XC+ahN97QdxoxiVqUl6cnazmIVSEY
-	 nhbpGsEmWiQ+KOz9z0MGNrWI8FQy9h/K5G4rop8k=
-Date: Sat, 18 Jul 2026 11:07:47 +0200
+	b=qn6YF3n66s/geZsssIpooFkOu1/p4SGLqlND5uWGZeRHpZRyzgfe9M4Vpqz2CXIpw
+	 vvy1XENDk52+G1PqueXF7bIRUeK2LgjzHZNcCLbgf5joXMedqkxEfqDn9bCMNbcLMy
+	 LWoAY7avQRX0b5bN/F19IufUm/KWBVkc2e24JVq4=
+Date: Sat, 18 Jul 2026 11:08:06 +0200
 From: Greg KH <gregkh@linuxfoundation.org>
 To: Metehan =?iso-8859-1?Q?G=FCnen?= <metehangnen@gmail.com>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
 	linux-gpio@vger.kernel.org
 Subject: Re: [PATCH 1/4] include/uapi/linux: add gxfp_ioctl.h for GXFP5130
  fingerprint sensor
-Message-ID: <2026071801-headdress-gab-348e@gregkh>
+Message-ID: <2026071855-booted-filth-ff9a@gregkh>
 References: <20260718081431.25456-1-metehangnen@gmail.com>
  <20260718081431.25456-2-metehangnen@gmail.com>
 Precedence: bulk
@@ -74,47 +74,6 @@ On Sat, Jul 18, 2026 at 11:14:28AM +0300, Metehan Günen wrote:
 > +#include <linux/ioctl.h>
 > +
 > +#define GXFP_IOCTL_MAGIC 'G'
-> +
-> +/*
-> + * 4-byte MP header + payload must fit GXFP_TX_BUFFER_SIZE(512).
-> + */
-> +#define GXFP_IOCTL_TX_PAYLOAD_MAX 508u
-> +
-> +/* Maximum protocol payload bytes exported via read(2) records. */
-> +#define GXFP_IOCTL_TAP_PAYLOAD_MAX (128u * 1024u)
-> +
-> +/*
-> + * Stream tap (read/poll) record header.
-> + * Followed by `len` bytes of protocol payload.
-> + */
-> +struct gxfp_tap_hdr {
-> +	__u32 len;       /* protocol payload bytes */
-> +	__u32 type;      /* MP type */
-> +	__u32 _rsvd0;
 
-C variables do not start with _, this isn't rust :)
+Why do you get to use "G" here?
 
-And are you checking this for 0?
-
-> +	__u64 ts_ns;     /* ktime_get_ns() */
-> +	__u8 head16[16]; /* first 16 bytes of payload */
-> +};
-> +
-> +/*
-> + * write(2) packet header.
-> + * Userspace writes: [gxfp_tx_pkt_hdr][payload bytes]
-> + */
-> +struct gxfp_tx_pkt_hdr {
-> +	__u8 mp_flags;
-> +	__u8 _pad0;
-
-Are you checking this for 0?
-
-> +	__u16 payload_len;
-> +	__u32 flags;
-
-No definition of what these flags are?
-
-thanks,
-
-greg k-h
