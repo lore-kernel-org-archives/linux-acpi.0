@@ -1,38 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7AC63859EB;
-	Sat, 18 Jul 2026 09:09:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1F293890F1;
+	Sat, 18 Jul 2026 09:11:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784365768; cv=none; b=d5iLD6ll0W6tphlhAnwM4GEBcj6x2woYnRkYpDRqk678ooEYIw+ggc6LAlN2MGDxZ/xyjD0g5Cy7TRZGdPSG9kkpe62n0YytXIoxZBHxi56Qbu53f+VyLxyuU8f7aa5/i10Xtk5tJ/D9nq1i2H2xBIN/sw1kipRyY2nMvbT07vI=
+	t=1784365866; cv=none; b=JqNad6Nc/oE9I+MKge1VXfx/39uMu3EHXjdBbSe52pMbX6U8dWO0S+hPVmBkuatjevdrsSRg7y/0kbEM/IJLOZx/L/JRsBIVBM+Tx9J5AtBoReh9sm3N6cCAR3ZEWc3jeiimhFjHjaOtLw79Zfit0NchoqpLmzmYjuZ8GmFBMrc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784365768; c=relaxed/simple;
-	bh=p8Z4GMU2x4GxmzO8uZ7XMM50qtFMaoMtGsyGYvbpsLs=;
+	s=arc-20240116; t=1784365866; c=relaxed/simple;
+	bh=rRCFx7q1d0wgIUYZNM4zKF138iKRlivg4jQ+nxmJ7m4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bPuJ2Vy+Pa7Gnpk361GAsjSqsS90sLKr7D1ZrOVztbl/rUryti4P2zxFCEyU8fO6uNOa3jh7nGOjunoMsf7cTZ4s16B9yOJxnFSaJCNzivf4UagE6jX8uT4yXcvyZmPmB5/tLkEPthL8Hrn7I4GmoJ6SWd4USEpGTOLlTev5RV8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=qn6YF3n6; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=izNKwGIY0MAzw0sjZB9rSfK2xKf1xRaLSYmw6js+zdJBl5W56Ja4iEMpguIKB7lCnZnVCb1OhNx53FzqJkg2+awxj0/zvUM1Zl60FVjbaov/UxdpWHQQOAVhi1/jgyd6GnAaVd+WD0sPjiE1eEzZdHVbTNfrzo0ek9/GuYzsePo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=rM/nqK5e; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="qn6YF3n6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E68791F000E9;
-	Sat, 18 Jul 2026 09:09:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="rM/nqK5e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 010C51F000E9;
+	Sat, 18 Jul 2026 09:11:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
-	s=korg; t=1784365767;
-	bh=deBObRfaAZlVeGrdDjmjKZr8UCWh91pqaVJu8Mqww5E=;
+	s=korg; t=1784365864;
+	bh=MB54kY+YOtgPpKDd9tqdT5q4K9aOdVhClJcGMDb23xM=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=qn6YF3n66s/geZsssIpooFkOu1/p4SGLqlND5uWGZeRHpZRyzgfe9M4Vpqz2CXIpw
-	 vvy1XENDk52+G1PqueXF7bIRUeK2LgjzHZNcCLbgf5joXMedqkxEfqDn9bCMNbcLMy
-	 LWoAY7avQRX0b5bN/F19IufUm/KWBVkc2e24JVq4=
-Date: Sat, 18 Jul 2026 11:08:06 +0200
+	b=rM/nqK5eD1itsD4bw4HDlhUYwZLo8igTl5h+TQ0nH9o3J9En6I8CvafO+HzbxLq7c
+	 smD/6Ukp+qZxmdW272f8YFZOnvIq8uC8WGvylVbbBrfVw9vPZ2AWkHbJJ9zV6s5EnA
+	 tzdQFxE1e7siLKudqJFmaUF8w3latPlBTfmuR4jQ=
+Date: Sat, 18 Jul 2026 11:09:43 +0200
 From: Greg KH <gregkh@linuxfoundation.org>
 To: Metehan =?iso-8859-1?Q?G=FCnen?= <metehangnen@gmail.com>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
 	linux-gpio@vger.kernel.org
-Subject: Re: [PATCH 1/4] include/uapi/linux: add gxfp_ioctl.h for GXFP5130
- fingerprint sensor
-Message-ID: <2026071855-booted-filth-ff9a@gregkh>
+Subject: Re: [PATCH 2/4] drivers/misc: add Goodix GXFP5130 eSPI fingerprint
+ sensor driver
+Message-ID: <2026071828-blunt-survivor-834f@gregkh>
 References: <20260718081431.25456-1-metehangnen@gmail.com>
- <20260718081431.25456-2-metehangnen@gmail.com>
+ <20260718081431.25456-3-metehangnen@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -42,38 +42,40 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260718081431.25456-2-metehangnen@gmail.com>
+In-Reply-To: <20260718081431.25456-3-metehangnen@gmail.com>
 
-On Sat, Jul 18, 2026 at 11:14:28AM +0300, Metehan Günen wrote:
-> Define the userspace ABI for the Goodix GXFP5130 eSPI fingerprint sensor
-> driver:
-> 
->  - struct gxfp_tap_hdr: header prepended to every read(2) record, carries
->    payload length, MP protocol type and a ktime_get_ns() timestamp.
->  - struct gxfp_tx_pkt_hdr: header that userspace prepends to write(2)
->    payloads so the driver can wrap them in the eSPI frame format.
->  - GXFP_IOCTL_FLUSH_RXQ: flush the kernel-side RX record queue.
-> 
-> Signed-off-by: Metehan Günen <metehangnen@gmail.com>
-> ---
->  include/uapi/linux/gxfp_ioctl.h | 43 +++++++++++++++++++++++++++++++++
->  1 file changed, 43 insertions(+)
->  create mode 100644 include/uapi/linux/gxfp_ioctl.h
-> 
-> diff --git a/include/uapi/linux/gxfp_ioctl.h b/include/uapi/linux/gxfp_ioctl.h
-> new file mode 100644
-> index 000000000..c9c6c2d48
-> --- /dev/null
-> +++ b/include/uapi/linux/gxfp_ioctl.h
-> @@ -0,0 +1,43 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +#ifndef __UAPI_GXFP_IOCTL_H
-> +#define __UAPI_GXFP_IOCTL_H
+On Sat, Jul 18, 2026 at 11:14:29AM +0300, Metehan Günen wrote:
+> --- a/drivers/misc/Kconfig
+> +++ b/drivers/misc/Kconfig
+> @@ -651,4 +651,6 @@ source "drivers/misc/mchp_pci1xxxx/Kconfig"
+>  source "drivers/misc/keba/Kconfig"
+>  source "drivers/misc/amd-sbi/Kconfig"
+>  source "drivers/misc/rp1/Kconfig"
+> +source "drivers/misc/gxfp5130/Kconfig"
 > +
-> +#include <linux/types.h>
-> +#include <linux/ioctl.h>
+
+Why add this extra line?
+
+>  endmenu
+> diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+> index fed47c767..e85c68aa1 100644
+> --- a/drivers/misc/Makefile
+> +++ b/drivers/misc/Makefile
+> @@ -74,3 +74,5 @@ obj-$(CONFIG_MCHP_LAN966X_PCI)	+= lan966x-pci.o
+>  obj-y				+= keba/
+>  obj-y				+= amd-sbi/
+>  obj-$(CONFIG_MISC_RP1)		+= rp1/
 > +
-> +#define GXFP_IOCTL_MAGIC 'G'
+> +obj-$(CONFIG_GXFP5130)		+= gxfp5130/
 
-Why do you get to use "G" here?
+Same here, why the extra line?
 
+> +	gxfp_trace_logf("cmd_timeout req=0x%02x expect=0x%02x tries=%u",
+> +		req->req_cmd, req->expect_cmd, req->tries ? req->tries : 1);
+
+Please do not roll your own tracing functions, use the in-kernel ones
+instead.
+
+thanks,
+
+greg k-h
