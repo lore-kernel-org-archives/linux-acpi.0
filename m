@@ -1,64 +1,97 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11E2B37F748;
-	Sun, 19 Jul 2026 11:12:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17AC8312832;
+	Sun, 19 Jul 2026 22:36:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784459533; cv=none; b=sLS7g40JSRlr4wEBjym5Aj5H14ZD5gYMa4WA6FykZDGc1cjxzRxxIMoh2SWehVOKBwZ/H0Q/BrWkUkvzIN20Q2RcAVZxF3j/z7iBV/+JKg6T9RYMtGQ6x7gkAwIjNOwx8jgjN1vVDNbi9ml3on/6zZZ8NRF10xpONz9hAarON4s=
+	t=1784500604; cv=none; b=L55EKcr5EMpjXO80tNAnKdTO0AjRDGVhhUBSYQq4V1vAjxSz3Qpf+2fBmD88NtGq+oCV+JstbBq3C54XzWnWBFrK9clYgGUSuf8L12gXLfwHqYwUypQoQ5guzy9njM+NxTx1uiD1xU0vZIpjLfB826GDZagDf6YOJN07wckjZhc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784459533; c=relaxed/simple;
-	bh=k6CIM3h4u3IW0sKeDMa17WuuqDBxdV965YXRTCD3yUw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=igjOzbYMn2uzSa6lyx5VDVz5HFV8wtciD15Fkqj/YKRzRGXg7PFPdJmXl0SmjKzU3r073cuAbdA+DKD01Fvpk8eHsWVBmXxf9G5btvBkPxyzjnDs6bm8iP+PmO7lbvdS5D5UxYLm0ZD7LFEmE0oIVYcTOPTJWj+57m0NCpTeg3c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=whYQVlam; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784500604; c=relaxed/simple;
+	bh=VHbE/VULGnnC27oMlT0uQ00sXlkAXX2rgn7w7mnbQ7o=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=AEoDquB5EdaMuGDm3FEhGRO4sWXdgCKdRO2EZ9wqrM8UDPHpqoc+XPsEMGAXiS39xqs+Mju0/3IFo+wdvZNJPUcDj1higBgkmqwa9PEDVkeyeSWogTly68n/R6bXtoze5HEY3cQSUhnB7gDdOeHlwxQLG7Oe/RB62Os48uvFlOs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=OH9P1E7y; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="whYQVlam"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43AD91F000E9;
-	Sun, 19 Jul 2026 11:12:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
-	s=korg; t=1784459531;
-	bh=Fssr1hC/wyohS7EgaFKOmAoGhQMtCZKMSS+sxtKouXc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=whYQVlam7ITPJhlnKiByCJE+l/bUgSjw/Iapy4ZIHDZL3ZonzhiSTJG49fK9aJcNO
-	 K4X3aAdaxcLZEZEq+3EVx7Z9IbKpTbjb3qU8BoyXqz+6sM8RnXUf4GByXystpmZBHy
-	 LaWpUT3P6912LSicfT75GO/KfMPjfMmAZuKw4xUA=
-Date: Sun, 19 Jul 2026 13:12:03 +0200
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Metehan =?iso-8859-1?Q?G=FCnen?= <metehangnen@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-gpio@vger.kernel.org
-Subject: Re: [PATCH 2/4] drivers/misc: add Goodix GXFP5130 eSPI fingerprint
- sensor driver
-Message-ID: <2026071938-referable-sharpness-700a@gregkh>
-References: <2026071828-blunt-survivor-834f@gregkh>
- <6a5cac9a.b39440a8.65068.2953@mx.google.com>
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="OH9P1E7y"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+	Content-ID:Content-Description:In-Reply-To:References;
+	bh=wSB52/WtP6HuuvG74+GyQCPYwOqQm+vAX5uv61MDy+s=; b=OH9P1E7y34TbuJvCuHd7jHk/jp
+	XVv4N5DD0sqPg657UfVb9KOTEPQhkWvxrHoQ5WdNCZ31Hoi1raiocY1eG9ohCpu+JhEdQ0X341nUs
+	Rp2Kt1p4j6iXTGEOR4DZ7GXTdfPFjvrc3trQGwh2ztZAUPaetsAIA3+Qf54/aXRzV4Q0hgl1dybfg
+	mi4fJ+iKmSBE1ZhoaihucD/TTkF9DlcoFDofHcZqC24SArpcF+5qTnF5/XCDU62jJpAJyC2flGkB5
+	/R9F4StuWCJKgoX8DhuVdzMMLvHASxQB3DQiWkyca/lvmbyTgqMYh7cM1t/VP/+6TAvsFIvcTF5jc
+	pM4NrqMg==;
+Received: from [50.53.43.113] (helo=bombadil.infradead.org)
+	by bombadil.infradead.org with esmtpsa (Exim 4.99.1 #2 (Red Hat Linux))
+	id 1wla7l-00000005RRr-3XF8;
+	Sun, 19 Jul 2026 22:36:42 +0000
+From: Randy Dunlap <rdunlap@infradead.org>
+To: linux-kernel@vger.kernel.org
+Cc: Randy Dunlap <rdunlap@infradead.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-acpi@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	driver-core@lists.linux.dev
+Subject: [PATCH] device property: add missing kernel-doc for property_entry
+Date: Sun, 19 Jul 2026 15:36:40 -0700
+Message-ID: <20260719223640.2864890-1-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <6a5cac9a.b39440a8.65068.2953@mx.google.com>
 
-On Sun, Jul 19, 2026 at 03:53:14AM -0700, Metehan Günen wrote:
-> On Sat, Jul 18, 2026 at 11:09:43AM +0200, Greg KH wrote:
-> > Why add this extra line?
-> > Same here, why the extra line?
-> 
-> Script artifact — the patch generation script added a spurious blank
-> line before both the source and obj entries. Will fix in v2.
-> 
-> > Please do not roll your own tracing functions, use the in-kernel ones
-> > instead.
-> 
-> Agreed. The entire gxfp_trace module will be removed in v2 and replaced
-> with dev_dbg() calls throughout, which integrate with the kernel's
-> dynamic debug infrastructure.
+Add kernel-doc for the missing fields in union value:
 
-Or you can use the normal traceing infrastructure if you really want
-trace log messages instead of dev_dbg() ones.  Your call.
+Warning: include/linux/property.h:406 struct member 'u8_data' not
+ described in 'property_entry'
+Warning: include/linux/property.h:406 struct member 'u16_data' not
+ described in 'property_entry'
+Warning: include/linux/property.h:406 struct member 'u32_data' not
+ described in 'property_entry'
+Warning: include/linux/property.h:406 struct member 'u64_data' not
+ described in 'property_entry'
+Warning: include/linux/property.h:406 struct member 'str' not described
+ in 'property_entry'
 
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+---
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Daniel Scally <djrscally@gmail.com>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: driver-core@lists.linux.dev
+
+ include/linux/property.h |    5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- linux-next-20260717.orig/include/linux/property.h
++++ linux-next-20260717/include/linux/property.h
+@@ -388,6 +388,11 @@ struct software_node_ref_args {
+  * @type: Type of the data in unions.
+  * @pointer: Pointer to the property when it is not stored inline.
+  * @value: Value of the property when it is stored inline.
++ * @u8_data: @value as an array of u8 numbers
++ * @u16_data: @value as an array of u16 numbers
++ * @u32_data: @value as an array of u32 numbers
++ * @u64_data: @value as an array of u64 numbers
++ * @str: @value as an array of char pointers
+  */
+ struct property_entry {
+ 	const char *name;
