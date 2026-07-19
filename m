@@ -1,38 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 824F93793AD;
-	Sun, 19 Jul 2026 11:10:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11E2B37F748;
+	Sun, 19 Jul 2026 11:12:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784459457; cv=none; b=kp2q8KlGu+5ETuZG7lVxbN30SQFzp5zpLb9zpxEAC+hs1QjHkFIYfiqVjIzhoTsMtFtQD4petKa5Ghd4hHEhfcBQtYSoxhPuHeemqtLHbc58q08hRnwcQF+/mLYad0ruNx9/lY8FXUYW1C5nAD9VEjFDNGpRNzFoQaEoAapLNYI=
+	t=1784459533; cv=none; b=sLS7g40JSRlr4wEBjym5Aj5H14ZD5gYMa4WA6FykZDGc1cjxzRxxIMoh2SWehVOKBwZ/H0Q/BrWkUkvzIN20Q2RcAVZxF3j/z7iBV/+JKg6T9RYMtGQ6x7gkAwIjNOwx8jgjN1vVDNbi9ml3on/6zZZ8NRF10xpONz9hAarON4s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784459457; c=relaxed/simple;
-	bh=mdke71YrFSWPTc8JbgXwOkl7igcZIZUJnHjD+N2sltE=;
+	s=arc-20240116; t=1784459533; c=relaxed/simple;
+	bh=k6CIM3h4u3IW0sKeDMa17WuuqDBxdV965YXRTCD3yUw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IfHiaKQxOh4JF+eyaozyuyPPiBSjdzcVSFwEXb5kw+brcg7/BwjfHeD/8F7zxf5RPDBv+tY9vz0HXm6EX1Ef5/OcdwfBQZjAcY064cC61Tk0JnMgWpf21miC/RjqUG3+yL6WXeka6jyhHNJic4IJjP9ajxtCYtXPBLMZperiarI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=AhnV5Fvq; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=igjOzbYMn2uzSa6lyx5VDVz5HFV8wtciD15Fkqj/YKRzRGXg7PFPdJmXl0SmjKzU3r073cuAbdA+DKD01Fvpk8eHsWVBmXxf9G5btvBkPxyzjnDs6bm8iP+PmO7lbvdS5D5UxYLm0ZD7LFEmE0oIVYcTOPTJWj+57m0NCpTeg3c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=whYQVlam; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="AhnV5Fvq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95B4F1F000E9;
-	Sun, 19 Jul 2026 11:10:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="whYQVlam"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43AD91F000E9;
+	Sun, 19 Jul 2026 11:12:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
-	s=korg; t=1784459456;
-	bh=HAA/fs+rG9K1gxuGkG6lGIZ5IoliVLNRaDMOmOzLaz4=;
+	s=korg; t=1784459531;
+	bh=Fssr1hC/wyohS7EgaFKOmAoGhQMtCZKMSS+sxtKouXc=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=AhnV5Fvq4/35ApNQzVYbWqmJNrUbCOEIGSPB/tN72JB7eDOdVsYyIDTqqMobfP5yC
-	 wa7DI+d0Us9KFaBr4KMRsnKQokvmZwOg/+4RPfWYeV+SyeWfErMjiCGha6jI5De/zb
-	 1/zQ9GVBJtEjb/W9NifEvW9Y3k9t2svaVhzk485I=
-Date: Sun, 19 Jul 2026 13:10:47 +0200
+	b=whYQVlam7ITPJhlnKiByCJE+l/bUgSjw/Iapy4ZIHDZL3ZonzhiSTJG49fK9aJcNO
+	 K4X3aAdaxcLZEZEq+3EVx7Z9IbKpTbjb3qU8BoyXqz+6sM8RnXUf4GByXystpmZBHy
+	 LaWpUT3P6912LSicfT75GO/KfMPjfMmAZuKw4xUA=
+Date: Sun, 19 Jul 2026 13:12:03 +0200
 From: Greg KH <gregkh@linuxfoundation.org>
 To: Metehan =?iso-8859-1?Q?G=FCnen?= <metehangnen@gmail.com>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
 	linux-gpio@vger.kernel.org
-Subject: Re: [PATCH 0/4] drivers/misc: add Goodix GXFP5130 eSPI fingerprint
+Subject: Re: [PATCH 2/4] drivers/misc: add Goodix GXFP5130 eSPI fingerprint
  sensor driver
-Message-ID: <2026071912-bunkbed-confined-cfe8@gregkh>
-References: <2026071842-timing-distress-ad5a@gregkh>
- <6a5cac92.b39440a8.65068.278c@mx.google.com>
+Message-ID: <2026071938-referable-sharpness-700a@gregkh>
+References: <2026071828-blunt-survivor-834f@gregkh>
+ <6a5cac9a.b39440a8.65068.2953@mx.google.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -42,29 +42,23 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <6a5cac92.b39440a8.65068.278c@mx.google.com>
+In-Reply-To: <6a5cac9a.b39440a8.65068.2953@mx.google.com>
 
-On Sun, Jul 19, 2026 at 03:53:06AM -0700, Metehan Günen wrote:
-> On Sat, Jul 18, 2026 at 11:05:30AM +0200, Greg KH wrote:
-> > Is that the "normal" user/kernel api for these types of sensors?  I
-> > thought we had a real api these days, and a vendor one was not generally
-> > a good idea as you are just exposing raw hardware design to userspace.
+On Sun, Jul 19, 2026 at 03:53:14AM -0700, Metehan Günen wrote:
+> On Sat, Jul 18, 2026 at 11:09:43AM +0200, Greg KH wrote:
+> > Why add this extra line?
+> > Same here, why the extra line?
 > 
-> The GXFP5130 communicates using a vendor-specific MP protocol over the
-> eSPI mailbox — it is not USB HID-compliant and does not expose a
-> standard fingerprint command set. The libfprint plugin that consumes
-> this device speaks the protocol directly and handles enrollment and
-> matching entirely in userspace, the same model used by other libfprint
-> char-device backends (e.g. goodix-55x4, elan-i2c).
+> Script artifact — the patch generation script added a spurious blank
+> line before both the source and obj entries. Will fix in v2.
 > 
-> I am open to alternative approaches. If there is a preferred kernel-side
-> abstraction for this class of device I should be targeting instead,
-> please point me to it and I will rework the driver accordingly.
+> > Please do not roll your own tracing functions, use the in-kernel ones
+> > instead.
+> 
+> Agreed. The entire gxfp_trace module will be removed in v2 and replaced
+> with dev_dbg() calls throughout, which integrate with the kernel's
+> dynamic debug infrastructure.
 
-Why does it have to be a kernel driver at all?  Can't you just talk to
-the device directly from userspace through the spi userspace api
-instead?
+Or you can use the normal traceing infrastructure if you really want
+trace log messages instead of dev_dbg() ones.  Your call.
 
-thanks,
-
-greg k-h
