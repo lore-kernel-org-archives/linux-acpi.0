@@ -1,121 +1,134 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F12B438F255;
-	Mon, 20 Jul 2026 19:29:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CACD25B0B7;
+	Mon, 20 Jul 2026 20:09:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784575785; cv=none; b=lvw2kvN5wc4k8UARAPWAT/u0uO442oVHIoJcqA0WP+VHfB/wSQacxOJ+rXNSAKBj26RmCv0Tpr6e2dw64dSgdai62yB2kmGPBb8JbPmeW455w+UDYq76LiA9KMRaZgN5/8utEyOiCVJtn4jYa6VH3gWO7PLF+IaJ98f6R9AWWFs=
+	t=1784578156; cv=none; b=JnNUIfECObB2zQjXawb5G4ybYfyQYM6Kk007HUNDq3k54f3+rWBwRPZ273OhH8OHmHmwm27bpDKJdKaNMTL1jNemqU+cPC647VO3l74JIclj+xrAouKl8RNcvesvfuTFRjQD1YIktVUFeVBG7hpezeyQcSw9kPGLorTHv/LsjKI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784575785; c=relaxed/simple;
-	bh=75mjon7dmPKbIW2yMRYGkFCgw9C+ZdhWHy5Z9fWxJXE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=G7ixQ3fc0bZvFpmzoQ/cRz1FXgBNgnsBsw7Aau0LSEKgRqRqevbLgPuAUs/JjZ8jDolrHs606wibqTPm0ulwuTDqEUyYsgRmW6PXBAGUXehOHBc8b+ysjxauoIMsR86Uwy1bVswgS93Sq4Tij5hqNGjx0MGvtXv8gk303wG3ooQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VtoXMF49; arc=none smtp.client-ip=198.175.65.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1784578156; c=relaxed/simple;
+	bh=sFOpv2kA+FwJCaEso+qENIiQ1hBBWw24vR/Se27HPGs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=iS3YmaX9o7HD+Ctt8qGOY/3fzK+Ik42QCzggcs62oO1B74AKE6v93tsokD/JwGhxbOChvt3xl6kvGDP9YEZqnFjz8m/Xhk8s4vWLHck2tiFmr6+8Uh0+EDjnI6j/41QRb7Gb5Bk1SL29/IlZcU8t7+CRTYJlseShSIr4kP6J7N8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Z5n7Yifc; arc=none smtp.client-ip=192.198.163.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VtoXMF49"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Z5n7Yifc"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1784575784; x=1816111784;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=75mjon7dmPKbIW2yMRYGkFCgw9C+ZdhWHy5Z9fWxJXE=;
-  b=VtoXMF49BBD2HejYajZf3d7dxQrfcUjvtrtJg7OPr0O/vT7LUK9fQPV+
-   kq1rlajrQ1nNSx8Npnkk6soLFjoLhOCEo7w1ND5vfpXK/i0DcqfIm9g+k
-   oq3fmkyA7Im09TTV3is48riNJxsCpm+yr01gHxKVlhXWJgULutdydLoJ4
-   +dTBGjg/RLHJysuk4rmOWvQRCU/i5vnUUnVEREAEjl5guCAAk/+85dWg1
-   MTHF/7vO9F/fWlPqtaWlSTNKeC5dXjPJ4csEaE+MsW2vy5b9P8HVCRgdn
-   XQWxp7s5G73j65zM0/HTBDvUHqUQPTpX39IQ/fhXtbdQsXhGGcbWYPejC
-   A==;
-X-CSE-ConnectionGUID: Zxw3eHF7TkOup2pPZFUTOw==
-X-CSE-MsgGUID: FQl9Yo0KT9KCBRojDoEP6w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11852"; a="107954618"
+  t=1784578154; x=1816114154;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=sFOpv2kA+FwJCaEso+qENIiQ1hBBWw24vR/Se27HPGs=;
+  b=Z5n7Yifc9MRSJfCaf4KJFBbPnSpcSJVx9Sm4jON3xqXHfXLddvpIHyzl
+   zaPLy4s3Sa95PzpFzfBn1I0Lle/VQKsvVyA4Hnv7yXWo1MZGG1cgbCh0M
+   wxbIt2VSLev3LHuD9eTDNHDJ9R5NTr3v/2uBbSEVubvDvOhf61bkP5vAd
+   3gc6z1gHJgiRz31BRVrODHPWXF1C7lsCHanM6SRRSw+/pcm2NCW78EwtT
+   oIcfB+xAUqUAXBonjMsW8Ebalb9YubnTTxvbOco6HA/ly9btrn1xE+q7Z
+   aBmO850bYORJxJ3GM0jo5oRXqRz1lHfb7e7llQsItkmi2ukZdu7R5GinV
+   w==;
+X-CSE-ConnectionGUID: WlBnzJB5SF6IcrzSWwILgg==
+X-CSE-MsgGUID: xVhOcZtiSdqafzyXiHFYFQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11852"; a="84298313"
 X-IronPort-AV: E=Sophos;i="6.25,175,1779174000"; 
-   d="scan'208";a="107954618"
+   d="scan'208";a="84298313"
 Received: from orviesa010.jf.intel.com ([10.64.159.150])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jul 2026 12:29:43 -0700
-X-CSE-ConnectionGUID: LMXVJUwoSXO+hRUPrxKatA==
-X-CSE-MsgGUID: fsZct4E1Tia0J4HUpjjJjg==
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jul 2026 13:09:13 -0700
+X-CSE-ConnectionGUID: H4x5cj83RbqFt5QQqpUxGA==
+X-CSE-MsgGUID: pA3maaPWTcelrKWA5o3qPg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.25,175,1779174000"; 
-   d="scan'208";a="256357632"
-Received: from conormcd-mobl2.ger.corp.intel.com (HELO localhost) ([10.245.244.175])
-  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jul 2026 12:29:41 -0700
-Date: Mon, 20 Jul 2026 22:29:38 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: linux-kernel@vger.kernel.org, Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-acpi@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>, driver-core@lists.linux.dev
-Subject: Re: [PATCH] device property: add missing kernel-doc for
- property_entry
-Message-ID: <al53IqzXBOJrm-lc@ashevche-desk.local>
-References: <20260719223640.2864890-1-rdunlap@infradead.org>
- <al4LwVQ8aLSlP-dk@ashevche-desk.local>
- <25e056d9-708b-4477-ac63-726e1a01fdd0@infradead.org>
+   d="scan'208";a="256365696"
+Received: from cooperst-gp83.amr.corp.intel.com (HELO [10.125.109.176]) ([10.125.109.176])
+  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jul 2026 13:09:10 -0700
+Message-ID: <9c371c59-c871-4988-83d7-2aa780d8e6c4@intel.com>
+Date: Mon, 20 Jul 2026 13:09:09 -0700
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <25e056d9-708b-4477-ac63-726e1a01fdd0@infradead.org>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v18 01/13] cxl/ras: Fix cxl_rch_get_aer_severity() wrong
+ severity register
+To: Terry Bowman <terry.bowman@amd.com>, Bjorn Helgaas <bhelgaas@google.com>,
+ Dan Williams <djbw@kernel.org>, Ira Weiny <iweiny@kernel.org>,
+ Jonathan Cameron <jic23@kernel.org>, Len Brown <lenb@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Robert Richter <rrichter@amd.com>
+Cc: linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org,
+ linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-pci@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ Alejandro Lucero <alucerop@amd.com>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Ankit Agrawal <ankita@nvidia.com>, Ard Biesheuvel <ardb@kernel.org>,
+ Ben Cheatham <Benjamin.Cheatham@amd.com>, Borislav Petkov <bp@alien8.de>,
+ Breno Leitao <leitao@debian.org>, Davidlohr Bueso <dave@stgolabs.net>,
+ "Fabio M . De Francesco" <fabio.m.de.francesco@linux.intel.com>,
+ Gregory Price <gourry@gourry.net>, Hanjun Guo <guohanjun@huawei.com>,
+ Jonathan Corbet <corbet@lwn.net>, Kees Cook <kees@kernel.org>,
+ Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>,
+ Li Ming <ming.li@zohomail.com>, Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
+ Mauro Carvalho Chehab <mchehab@kernel.org>,
+ Oliver O'Halloran <oohall@gmail.com>, Shiju Jose <shiju.jose@huawei.com>,
+ Shuah Khan <skhan@linuxfoundation.org>,
+ Shuai Xue <xueshuai@linux.alibaba.com>,
+ Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
+ Tony Luck <tony.luck@intel.com>, Vishal Verma <vishal.l.verma@intel.com>
+References: <20260717222706.3540281-1-terry.bowman@amd.com>
+ <20260717222706.3540281-2-terry.bowman@amd.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20260717222706.3540281-2-terry.bowman@amd.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Mon, Jul 20, 2026 at 08:30:59AM -0700, Randy Dunlap wrote:
-> On 7/20/26 4:51 AM, Andy Shevchenko wrote:
-> > On Sun, Jul 19, 2026 at 03:36:40PM -0700, Randy Dunlap wrote:
-> >> Add kernel-doc for the missing fields in union value:
-> >>
-> >> Warning: include/linux/property.h:406 struct member 'u8_data' not
-> >>  described in 'property_entry'
-> >> Warning: include/linux/property.h:406 struct member 'u16_data' not
-> >>  described in 'property_entry'
-> >> Warning: include/linux/property.h:406 struct member 'u32_data' not
-> >>  described in 'property_entry'
-> >> Warning: include/linux/property.h:406 struct member 'u64_data' not
-> >>  described in 'property_entry'
-> >> Warning: include/linux/property.h:406 struct member 'str' not described
-> >>  in 'property_entry'
 
-...
 
-> >>   * @pointer: Pointer to the property when it is not stored inline.
-> >>   * @value: Value of the property when it is stored inline.
-> > 
-> >> + * @u8_data: @value as an array of u8 numbers
-> >> + * @u16_data: @value as an array of u16 numbers
-> >> + * @u32_data: @value as an array of u32 numbers
-> >> + * @u64_data: @value as an array of u64 numbers
-> >> + * @str: @value as an array of char pointers
-> > 
-> > I think the proper fix is to add
-> > 
-> > 	/* private: internal representation of @value */
-> > 
-> >>   */
+On 7/17/26 3:26 PM, Terry Bowman wrote:
+> cxl_rch_get_aer_severity() classifies RCH Downstream Port uncorrectable
+> errors as fatal or non-fatal by ANDing uncorrectable status with
+> PCI_ERR_ROOT_FATAL_RCV. This is wrong because PCI_ERR_ROOT_FATAL_RCV is a
+> Root Error Status register bit (bit 6), not a severity bit. ANDing it
+> against uncorrectable status tests a reserved bit and produces incorrect
+> severity classification.
 > 
-> OK :)
+> Fix by ANDing the unmasked uncor_status against uncor_severity. Per
+> PCIe Base Spec r6.0 Section 7.8.4.4, each bit in the Uncorrectable
+> Error Severity register indicates whether the corresponding error is
+> fatal (1) or non-fatal (0).
+> 
+> Fixes: 6ac07883dbb5 ("cxl/pci: Add RCH downstream port error logging")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Terry Bowman <terry.bowman@amd.com>
 
-FWIW, while checking this, I found that kernel-doc seems missing the case as
-above, so the proper handling via @value.u8_data: and so on doesn't work
-because it's wrapped in anonymous union, and there is no such examples in the
-documentation.
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 
-In any case, those fields are indeed private (or in C++ terms more like
-"protected"). Hence my above suggestion is the way to go.
+This can be picked up ahead looks like?
 
--- 
-With Best Regards,
-Andy Shevchenko
-
+> 
+> ---
+> 
+> Changes in v17 -> v18:
+> - New patch.
+> ---
+>  drivers/cxl/core/ras_rch.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/cxl/core/ras_rch.c b/drivers/cxl/core/ras_rch.c
+> index 0a8b3b9b63884..44b335d560708 100644
+> --- a/drivers/cxl/core/ras_rch.c
+> +++ b/drivers/cxl/core/ras_rch.c
+> @@ -80,7 +80,8 @@ static bool cxl_rch_get_aer_severity(struct aer_capability_regs *aer_regs,
+>  				     int *severity)
+>  {
+>  	if (aer_regs->uncor_status & ~aer_regs->uncor_mask) {
+> -		if (aer_regs->uncor_status & PCI_ERR_ROOT_FATAL_RCV)
+> +		if ((aer_regs->uncor_status & ~aer_regs->uncor_mask) &
+> +		    aer_regs->uncor_severity)
+>  			*severity = AER_FATAL;
+>  		else
+>  			*severity = AER_NONFATAL;
 
