@@ -1,130 +1,143 @@
-Received: from canpmsgout07.his.huawei.com (canpmsgout07.his.huawei.com [113.46.200.222])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E6864156C1;
-	Mon, 20 Jul 2026 12:21:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.222
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B0F3431E6E
+	for <linux-acpi@vger.kernel.org>; Mon, 20 Jul 2026 14:58:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784550099; cv=none; b=LMfiQHKjljBmTiqSuGEOVyncIs2hFi2fehgnWexZkcomMcsbwL4s8DNmWn2xJdnr0IZdCRLNKtT0ebo75sO3zxyGWSgc1+4kbPZPhLQODuFDbWiOZvUx2qqc/AC26KXc3LS5XPMijX/GqlvMvx5Wd8dMLkhmYCVv7FYwxj68dFk=
+	t=1784559518; cv=none; b=lJ+vBMdGNhC2c36zN9HHm9vx2cjuQ5jeLGDOSr8N/DbPBNj19XPMNLNjjyN8qpSrHgWtB5DP9/bFUNMi1vtSiU5LSVgR0JVkswlU4w4Xn5MlhXeeYBDJJgLjfR427uLzjn92UUDftR5Mke37FR+0mLWmRPK4hucPFR1vmMHEPls=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784550099; c=relaxed/simple;
-	bh=pupM7zHhxmRKkXDERSwg26lBavfgxgiV96xC1dfu2YQ=;
-	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
-	 In-Reply-To:Content-Type; b=EZH4GidHuF1m7S8a+Zl0iwAICO6a9xwdvyqyWFzsUowqnQF+kTkLJ1pY/JIm18k9tuMVdyt6lrZXQ99FWnf7vnZ/omgNeaDJ4Kk+MyGPNwCmQwD2MJvPWGDAP97zezSqqClix2Je3VK1J2CBwENnmSkqTM3YwHYykAv5g2/5gfQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=pHxCe/KR; arc=none smtp.client-ip=113.46.200.222
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1784559518; c=relaxed/simple;
+	bh=l+BJP2dTlbI6R2M/a/gl69wwhg4/sSj0g/jxUAkKdPo=;
+	h=Mime-Version:Content-Type:Date:Message-Id:Cc:Subject:From:To:
+	 References:In-Reply-To; b=dOnu7tz6CPjwPj62HIM6LsP97ix2n8RM5R6NhKggQCHs7hyI5BLchCD30I2vYp/lqpcrPLhBO8NxiU4rfRnQLP9JQabFoU47PyiqmBHPIrZ5kx75gi0K0II5FnMUpt9tFM7ZUw0qooW1oa1/lrpj+bgSvighIZECt7dFZuWM3Ao=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=VxpvFeSO; arc=none smtp.client-ip=209.85.128.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="pHxCe/KR"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=md+ehhv4RmbeVMh7hCfCuHRpoXQtdqZOz6Z4RGL6RsU=;
-	b=pHxCe/KRndRds5iQXRh5b+G8mROUOdaNu7WSquLgqAEC//9v3BdvOznBJtULCxZ4c+YWW5sMr
-	XbGZnGGrBrSz67ApGdrc/Rky29RBkWy98nfYIYb5xJRPEZKe0/BgQF5LjQd9OoFAO6KxM23wTOn
-	zeQuXRBJSa9Q3oivWtVleMU=
-Received: from mail.maildlp.com (unknown [172.19.163.163])
-	by canpmsgout07.his.huawei.com (SkyGuard) with ESMTPS id 4h3fX93vdkzLlTV;
-	Mon, 20 Jul 2026 20:12:09 +0800 (CST)
-Received: from dggpemf500002.china.huawei.com (unknown [7.185.36.57])
-	by mail.maildlp.com (Postfix) with ESMTPS id 125474048B;
-	Mon, 20 Jul 2026 20:21:31 +0800 (CST)
-Received: from [10.174.179.24] (10.174.179.24) by
- dggpemf500002.china.huawei.com (7.185.36.57) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Mon, 20 Jul 2026 20:21:30 +0800
-Subject: Re: [PATCH v3 01/10] ACPI: APEI: GHES: Bound CXL event record copy to
- the firmware section length
-To: Dave Jiang <dave.jiang@intel.com>, <linux-acpi@vger.kernel.org>,
-	<linux-cxl@vger.kernel.org>
-CC: <rafael@kernel.org>, <tony.luck@intel.com>, <bp@alien8.de>,
-	<mchehab@kernel.org>, <xueshuai@linux.alibaba.com>, <terry.bowman@amd.com>,
-	<sashiko-bot@kernel.org>
-References: <20260717161647.1493259-1-dave.jiang@intel.com>
- <20260717161647.1493259-2-dave.jiang@intel.com>
-From: Hanjun Guo <guohanjun@huawei.com>
-Message-ID: <186d9c27-d4f3-f8f4-122b-041f847dc55c@huawei.com>
-Date: Mon, 20 Jul 2026 20:21:29 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
- Thunderbird/68.6.0
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="VxpvFeSO"
+Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-49556f97a9dso10861675e9.1
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Jul 2026 07:58:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1784559515; x=1785164315; darn=vger.kernel.org;
+        h=in-reply-to:references:to:from:subject:cc:message-id:date
+         :content-type:content-transfer-encoding:mime-version:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=3QcpbpbKJ+LK6Rusjs4UjDCzBYijN9Tg1ogvRHpP9po=;
+        b=VxpvFeSO+g5GMjAekTgqpfjInECmI0W8ep7yJe83Id2WxYN/VLvX6KwOkg8/jC2fQT
+         hlNcIctgOJ0BaBLPwxPtpAWGf3LkZNVxz8A2M5eg0o85voN45hg9xTGPUX8IKCSlWi04
+         9JdgfC7nAzjOGGnl3LZ5d2x9gVrWC94SlC7Vc6EE2QwfexDn2tMfWSXefSCg7D7BDcDg
+         sGN8omKQ1iWs3yUWZO7uLeKTD0NOoCyr9t/hwLBDCA1FmCFrkUh5VKdKc1F4NEpjrEFR
+         cWJ1//7p2XZoC+r/o+EJG48mDCpjNlnqVdscT200igWUzIWrP+T0eaewnMvNKOz/3pln
+         BWPw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784559515; x=1785164315;
+        h=in-reply-to:references:to:from:subject:cc:message-id:date
+         :content-type:content-transfer-encoding:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=3QcpbpbKJ+LK6Rusjs4UjDCzBYijN9Tg1ogvRHpP9po=;
+        b=SQ1Ps5EYvD/deahWYhVBEZVqqadBWavigvn40ka7egQFPuTf226hJf8iyfomK2+DzM
+         GQ2DYZ7PUP4sKA+EoFXgNRCFpEf/m4UaAprza3rPvbI9PJ7oqcEBBBaC+kGki9pbzOnU
+         u8YsgiWaTtskinwK3d+tB2mUapQDP++u/Ax50q5uZ5jIESwAIMhf3rcTBdcJVNAoH9YS
+         /TVulC1HDDG5kLcQDGEvuLgnZd2VsWYN6CLuRqu6glHqBmjdm75eeKEfFEACDbXj7hU5
+         2XI9TGejkYhx9qLVBx9sJMNRt02SBYWHacPmisiNGxGL6q0Pwp/smiVbC5Mk5Yw9kIvs
+         mQiQ==
+X-Forwarded-Encrypted: i=1; AHgh+RqqnW8iifYG82/QH3n39kNFj03KFtuhhAjJsnlmp/BcmmPtZTT1ANPtrvCYWWKnJ0meJihfOy2bEGDt@vger.kernel.org
+X-Gm-Message-State: AOJu0YyePmxoSgVEjWyKjHFHGer9dQ786mF1GE6OfqZzsDc4kwLCrw/I
+	k2wSRjL6JVIwuctWaNyLneMbvnDEqsea3J4yGhuccxn8gtnqn+DZqARI46bhiQ6ZcRo=
+X-Gm-Gg: AfdE7cn4jgAVHxCYkRULOwR7Hc3w8xWl+hp19AP76LU7S5/crCKgU0xeDjGS8WmKVYs
+	qME+cpsvvdTXOP+3MbKT8MmTrCdMmXQyx4jHeQUoB5vAgX21IeSFV7HhcF4WCDpboPqoAQzScU3
+	LfCe8ZHWR5C7kbhXQuFTILWCPCX+TR234PMfH+L+zSUI1fG/rMTp25iu9wrXAzYWxWIPTf51ww5
+	0pUvtkYvFSX7t6OIEHMsrHivhJvn3CweeNal2H0rLOCNn2jeAyq0MTJdQoY2wAoL9TiX3Xuqg6n
+	0voRWVy0iKPiSLdpOYt1cReMaGIDxoXzZdmFz4CGFz55vv/qSMeK8BcSEtqVI2zzSvdHARQu/wv
+	elYxOJIsSX2jY4JOWn88cV138XRAUSYZV1fWzV3fIQdBki6z5lTVZ0VxG/zgAfAsYZugzoVRDE2
+	ngwlBN8VJWphToMle8F2MLweyyu2fto6e7/PT5sPNw7QfedboxfnDE7OJsUr3fQTw/iC+Zov6zr
+	hBJQRo=
+X-Received: by 2002:a05:600c:1d18:b0:495:515a:dad9 with SMTP id 5b1f17b1804b1-495515adc7fmr115346585e9.37.1784559514625;
+        Mon, 20 Jul 2026 07:58:34 -0700 (PDT)
+Received: from localhost ([2a00:2381:fd67:101:3573:8c21:531b:8da6])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4954c841a0dsm244416185e9.5.2026.07.20.07.58.33
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 20 Jul 2026 07:58:34 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-In-Reply-To: <20260717161647.1493259-2-dave.jiang@intel.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
- dggpemf500002.china.huawei.com (7.185.36.57)
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Mon, 20 Jul 2026 15:58:33 +0100
+Message-Id: <DK3HJUUCG782.2AG5UUZ3TBQ4R@linaro.org>
+Cc: "Huisong Li" <lihuisong@huawei.com>, <linux-acpi@vger.kernel.org>,
+ <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 2/3] mailbox: pcc: Check shared memory signature on
+ request
+From: "Alexey Klimov" <alexey.klimov@linaro.org>
+To: "Sudeep Holla" <sudeep.holla@kernel.org>, "Jassi Brar"
+ <jassisinghbrar@gmail.com>
+X-Mailer: aerc 0.20.0
+References: <20260717075649.467172-1-sudeep.holla@kernel.org>
+ <20260717075649.467172-3-sudeep.holla@kernel.org>
+In-Reply-To: <20260717075649.467172-3-sudeep.holla@kernel.org>
 
-On 2026/7/18 0:16, Dave Jiang wrote:
-> sashiko-bot flagged a missing bounds check that allows an
-> out-of-bounds read of the firmware CPER section.
-> 
-> cxl_cper_post_event() copies a fixed sizeof(struct cxl_cper_event_rec)
-> out of the firmware CPER section without checking its length. Pass
-> gdata->error_data_length in and reject a section too small to hold the
-> record before the copy.
-> 
-> Reported-by: sashiko-bot@kernel.org
-> Link: https://sashiko.dev/#/patchset/20260617-topics-ahmtib01-ras_ffh_arm_internal_review-v6-0-91f725174aa0@arm.com?part=6
-> Fixes: 5e4a264bf8b5 ("acpi/ghes: Process CXL Component Events")
-> Assisted-by: Claude:claude-opus-4-8
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+On Fri Jul 17, 2026 at 8:56 AM BST, Sudeep Holla wrote:
+> ACPI 6.6 Tables 14.9 and 14.12 define the PCC shared memory
+> signature as the bitwise OR of 0x50434300 and the PCC subspace ID.
+> They also clarify that the signature is populated by the platform and
+> verified by OSPM. The signature is at byte offset 0 in the generic,
+> extended and reduced PCC shared memory layouts.
+>
+> Check the signature when a client requests a PCC mailbox channel,
+> after mapping shared memory and before binding the mailbox client.
+> This keeps the check in the PCC mailbox controller instead of
+> duplicating it in individual clients.
+>
+> Treat a signature mismatch as a warning rather than rejecting the
+> channel request. Making this newly added check fatal could break
+> existing systems whose firmware did not populate the signature
+> correctly even though PCC communication works. Continue to reject
+> shared memory that is too small to contain a signature because it
+> cannot be inspected safely.
+>
+> Cc: Jassi Brar <jassisinghbrar@gmail.com>
+> Cc: Huisong Li <lihuisong@huawei.com>
+> Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
 > ---
->   drivers/acpi/apei/ghes.c | 16 ++++++++++++----
->   1 file changed, 12 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 3236a3ce79d6..a752e152a5a0 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -815,10 +815,15 @@ static DEFINE_SPINLOCK(cxl_cper_work_lock);
->   struct work_struct *cxl_cper_work;
->   
->   static void cxl_cper_post_event(enum cxl_event_type event_type,
-> -				struct cxl_cper_event_rec *rec)
-> +				struct cxl_cper_event_rec *rec, u32 len)
->   {
->   	struct cxl_cper_work_data wd;
->   
-> +	if (len < sizeof(*rec)) {
-> +		pr_err(FW_WARN "CXL CPER section too small (%u)\n", len);
-> +		return;
-> +	}
+>  drivers/mailbox/pcc.c | 36 +++++++++++++++++++++++++++++++-----
 
-[...]
+[..]
 
+> +static int pcc_mbox_validate_signature(struct pcc_mbox_chan *pcc_mchan,
+> +				       int subspace_id)
+> +{
+> +	u32 expected_signature =3D PCC_SIGNATURE | subspace_id;
+> +	u32 signature;
 > +
->   	if (rec->hdr.length <= sizeof(rec->hdr) ||
->   	    rec->hdr.length > sizeof(*rec)) {
->   		pr_err(FW_WARN "CXL CPER Invalid section length (%u)\n",
-> @@ -949,15 +954,18 @@ static void ghes_do_proc(struct ghes *ghes,
->   		} else if (guid_equal(sec_type, &CPER_SEC_CXL_GEN_MEDIA_GUID)) {
->   			struct cxl_cper_event_rec *rec = acpi_hest_get_payload(gdata);
->   
-> -			cxl_cper_post_event(CXL_CPER_EVENT_GEN_MEDIA, rec);
-> +			cxl_cper_post_event(CXL_CPER_EVENT_GEN_MEDIA, rec,
-> +					    gdata->error_data_length);
->   		} else if (guid_equal(sec_type, &CPER_SEC_CXL_DRAM_GUID)) {
->   			struct cxl_cper_event_rec *rec = acpi_hest_get_payload(gdata);
->   
-> -			cxl_cper_post_event(CXL_CPER_EVENT_DRAM, rec);
-> +			cxl_cper_post_event(CXL_CPER_EVENT_DRAM, rec,
-> +					    gdata->error_data_length);
->   		} else if (guid_equal(sec_type, &CPER_SEC_CXL_MEM_MODULE_GUID)) {
->   			struct cxl_cper_event_rec *rec = acpi_hest_get_payload(gdata);
->   
-> -			cxl_cper_post_event(CXL_CPER_EVENT_MEM_MODULE, rec);
-> +			cxl_cper_post_event(CXL_CPER_EVENT_MEM_MODULE, rec,
-> +					    gdata->error_data_length);
+> +	if (pcc_mchan->shmem_size < sizeof(signature)) {
+> +		pr_err("PCC subspace %d shared memory is too small\n",
+> +		       subspace_id);
+> +		return -EINVAL;
+> +	}
+> +
+> +	signature =3D ioread32(pcc_mchan->shmem);
+> +	if (signature !=3D expected_signature)
+> +		pr_warn("PCC subspace %d invalid signature %#x expected %#x\n",
+> +			subspace_id, signature, expected_signature);
 
-There are multi places in this patch set doing the same thing, I was
-thinking if we can do the check in on place but we are facing different
-row error data, any good idea?
+IIRC signature comes from table, so I'd even add smth like
+"Potentially broken firmware: PCC subspace %d invalid signature %#x expecte=
+d %#x\n"
+or "PCC subspace %d invalid signature %#x expected %#x, broken firmware\n" =
+or
+similar to encourage reader/consumer of the message to report bugs to
+firmware provider :)
+Maybe it will be even fixed.
 
-Thanks
-Hanjun
+Anyhow, regardless of above:
+
+Reviewed-by: Alexey Klimov <alexey.klimov@linaro.org>
+
+Best regards,
+Alexey
