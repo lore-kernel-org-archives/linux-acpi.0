@@ -1,204 +1,139 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 716B4407CF1;
-	Mon, 20 Jul 2026 16:09:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C2CA4398F0;
+	Mon, 20 Jul 2026 16:15:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784563791; cv=none; b=BJJOizpw1zgZWI7Pp0o7My99yvcFj4vKvDHI+YkJQN7b9ApDZcGUw0Uz5fBxkxKu40Ok2Ulp4dyO/25M0MW9RSm1qwF/l/PptsMeF/PwI7mqqv3SSEeNNjgkfumpMS+gahwzHXB/wWy3tzrmDO+oNnKhqhcQ6V/J9EmqNtqV50M=
+	t=1784564139; cv=none; b=jPTcPDucPYMNyQg3HwqOENj1O9E1Tlm+CYAFtQ14xUyatGTV8PDqbFwTjNed/qZjv7Z4nrb2zwDPRocTnMR7UDDR5Yi3jYbOX1QyKitgILVYZtYxpM0xdFPrk1w6E+ZpFFjIFt94Z+N6gCbQt/qAQRKEOWCvN0cTAZ1ZoHDqnic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784563791; c=relaxed/simple;
-	bh=yvXv+B6C5mMRKtPdD4LgXr3iKG8fLqBieLv4GvXVvTw=;
+	s=arc-20240116; t=1784564139; c=relaxed/simple;
+	bh=ywUI8MUMW3jR7sOn7dHCleA5wuI2cUzVb2ZuGWxx2zk=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=W/uxMuFVjqJFOgZN63bVufYMLXL14iVAgEnVnOLkYk+/GKEx18GBQJ/7dWs5p0kZJ44k4guq6ho9/VAsUPprTAAjJBN2ZVbJr5l/E5x7S0oocv0AAZ1R2kmWP3VQGSzWmJWu5f1LkT0fgf0I580o6GXvVyu9yOBrKyU7A1px/PA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=RSlICMVF; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	 In-Reply-To:Content-Type; b=rx2854uKSSPjkohDc5hUQSprrEKIIrSfaCeYbSlzuAgc17tQo7n/Z/gt8uCkjt7dhFHFcZD7UUB3REhmQ3X83sp6/kTiKnj+1XQu3Jit7EdVlrJBapts78rhzVZ4SjGTgugsf/HSGMmClPNSulqlQ7KzfswSTHAdGF5/0Pb5JSA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=NFl1kdK0; arc=none smtp.client-ip=192.198.163.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="RSlICMVF"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 60E38143D;
-	Mon, 20 Jul 2026 09:09:40 -0700 (PDT)
-Received: from [10.2.212.8] (e134344.arm.com [10.2.212.8])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id E52773F99C;
-	Mon, 20 Jul 2026 09:09:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1784563784; bh=yvXv+B6C5mMRKtPdD4LgXr3iKG8fLqBieLv4GvXVvTw=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=RSlICMVFOZq6+UKwguMxISm6kr1W5kKXByO92v5b4CyjsTOZTfRKoq/MhaXdIu3GO
-	 Ob8WqyYQ7/bbqX44mBhLXCiOKqaADm61kGCxFCh2zzIvSO7WA5MuqpC/X4xvZUigKj
-	 01LTSLle11fb2QZShCCTNP12gcGB7WbmNRRRu30I=
-Message-ID: <778a9fc1-cc11-4d7f-b5a5-78a1740520a1@arm.com>
-Date: Mon, 20 Jul 2026 17:09:40 +0100
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="NFl1kdK0"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1784564116; x=1816100116;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=ywUI8MUMW3jR7sOn7dHCleA5wuI2cUzVb2ZuGWxx2zk=;
+  b=NFl1kdK0NoFQxyY4bge8N0jp5W0xn85g3YPwFFOi/TL9brV2qivA1SuB
+   WmLPukSiaZ422K7Cxq7nnQlhQtBA3GfvjzcV2NH6EbaT37QIVEHwb2moW
+   n+KZGjFHTbRvRfyDlrRqUy5aKdIGiRo4i/7vSL1NHF1VFejh4ImFt9DtD
+   IgfdGHpbgIRIIddxQLIZl+KsS9t12m19dyI1cT1Gg/+7iSNQagdjgWVb8
+   +78B2HlYyoLrL3oVSCWm4agFecAO8lgc95wS/dLo9MRkKQQGgUxeBP3Lx
+   oVkUVy/PxmYqfVaggTz+KD2f1VFTwQEhuMw0zEegW8XFz4PA2ioc31/df
+   A==;
+X-CSE-ConnectionGUID: uRkD2yVaTQyfFvzNa1AJBQ==
+X-CSE-MsgGUID: v4d1cTKzSvSaJ+ej+Vdyiw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11852"; a="95802576"
+X-IronPort-AV: E=Sophos;i="6.25,175,1779174000"; 
+   d="scan'208";a="95802576"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jul 2026 09:15:09 -0700
+X-CSE-ConnectionGUID: dClC3PdZRC2yLQPoUkFThg==
+X-CSE-MsgGUID: ISva/Tn5SXad+GeD2RnM+w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,175,1779174000"; 
+   d="scan'208";a="255716593"
+Received: from cooperst-gp83.amr.corp.intel.com (HELO [10.125.109.176]) ([10.125.109.176])
+  by orviesa006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jul 2026 09:15:09 -0700
+Message-ID: <a8646c38-b23f-4ca9-a521-e7afddd63356@intel.com>
+Date: Mon, 20 Jul 2026 09:15:08 -0700
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Thunderbird Daily
-Subject: Re: [PATCH v3 07/16] arm_mpam: __ris_msmon_read(): get rid of nrdy
- special handling
-To: Andre Przywara <andre.przywara@arm.com>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
- <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- James Morse <james.morse@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
-Cc: Jonathan Cameron <jic23@kernel.org>,
- Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
- Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
- Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
- Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-References: <20260710144520.917375-1-andre.przywara@arm.com>
- <20260710144520.917375-8-andre.przywara@arm.com>
- <b5f54fad-b7a0-4949-b78a-fe684eeb4d75@arm.com>
- <c2c995a2-6834-4210-a9ee-60f8983be135@arm.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 01/10] ACPI: APEI: GHES: Bound CXL event record copy to
+ the firmware section length
+To: Hanjun Guo <guohanjun@huawei.com>, linux-acpi@vger.kernel.org,
+ linux-cxl@vger.kernel.org
+Cc: rafael@kernel.org, tony.luck@intel.com, bp@alien8.de, mchehab@kernel.org,
+ xueshuai@linux.alibaba.com, terry.bowman@amd.com, sashiko-bot@kernel.org
+References: <20260717161647.1493259-1-dave.jiang@intel.com>
+ <20260717161647.1493259-2-dave.jiang@intel.com>
+ <186d9c27-d4f3-f8f4-122b-041f847dc55c@huawei.com>
 Content-Language: en-US
-From: Ben Horgan <ben.horgan@arm.com>
-In-Reply-To: <c2c995a2-6834-4210-a9ee-60f8983be135@arm.com>
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <186d9c27-d4f3-f8f4-122b-041f847dc55c@huawei.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Hi Andre,
-
-On 7/20/26 16:58, Andre Przywara wrote:
-> Hi Ben,
-> 
-> thanks for having a look!
-> 
-> On 7/15/26 15:39, Ben Horgan wrote:
->> Hi Andre,
->>
->> On 7/10/26 15:45, Andre Przywara wrote:
->>> Although so far MSC accesses couldn't fail, there is one special
->>> condition that would create an error: when the MBWU counter wouldn't be
->>> able to read a stable value, we were setting bit 63 to mark this value
->>> as unstable, and return this as an error later.
->>> Now since the functions can return a proper error value, we can get rid of
->>> this kludge and use the return value directly.
->>>
->>> Remove the "nrdy" error flag variable, and assign -EBUSY to "ret" to handle
->>> this case.
->>
->> I don't think we want this patch. The h/w can still return (as much as it ever could) and so we
->> still need to handle it even if we are no longer augmenting its meaning in software to also indicate
->> an unstable 64 bit value.
-> 
-> Mmh, not sure I understand your concern: to me it looks like nrdy is some kind of error flag, that
-> we used in absence of a proper error return value. Now we have "int ret;", so can use that directly?
-> But to me it looks like nothing really changes, or did I miss something?
-> 
-> I have no really strong opinion of this patch, it was more an pportunity to consolidate the crude
-> error handling in this function. I am happy to drop it, if you like, maybe we can revisit this later.
-
-What I was trying to say is that mpam_msc_read_mbwu_l() could previously return a value with bit 63,
-MSMON__L_NRDY set in two cases, one set by s/w and one set by h/w. Either when it reads that
-directly from the hardware or when it is set in the function to indicate an unstable value. The h/w
-case is the same for 31 bit counters too except in that case the h/w sets bit 31, MSMON_NRDY. Using
-'ret' to directly return -EBUSY for the s/w case where a stable value is not reached for 44 or 63
-bit counters doesn't mean that the h/w case won't happen.
 
 
-Thanks,
+On 7/20/26 5:21 AM, Hanjun Guo wrote:
+> On 2026/7/18 0:16, Dave Jiang wrote:
+>> sashiko-bot flagged a missing bounds check that allows an
+>> out-of-bounds read of the firmware CPER section.
+>>
+>> cxl_cper_post_event() copies a fixed sizeof(struct cxl_cper_event_rec)
+>> out of the firmware CPER section without checking its length. Pass
+>> gdata->error_data_length in and reject a section too small to hold the
+>> record before the copy.
+>>
+>> Reported-by: sashiko-bot@kernel.org
+>> Link: https://sashiko.dev/#/patchset/20260617-topics-ahmtib01-ras_ffh_arm_internal_review-v6-0-91f725174aa0@arm.com?part=6
+>> Fixes: 5e4a264bf8b5 ("acpi/ghes: Process CXL Component Events")
+>> Assisted-by: Claude:claude-opus-4-8
+>> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+>> ---
+>>   drivers/acpi/apei/ghes.c | 16 ++++++++++++----
+>>   1 file changed, 12 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+>> index 3236a3ce79d6..a752e152a5a0 100644
+>> --- a/drivers/acpi/apei/ghes.c
+>> +++ b/drivers/acpi/apei/ghes.c
+>> @@ -815,10 +815,15 @@ static DEFINE_SPINLOCK(cxl_cper_work_lock);
+>>   struct work_struct *cxl_cper_work;
+>>     static void cxl_cper_post_event(enum cxl_event_type event_type,
+>> -                struct cxl_cper_event_rec *rec)
+>> +                struct cxl_cper_event_rec *rec, u32 len)
+>>   {
+>>       struct cxl_cper_work_data wd;
+>>   +    if (len < sizeof(*rec)) {
+>> +        pr_err(FW_WARN "CXL CPER section too small (%u)\n", len);
+>> +        return;
+>> +    }
+> 
+> [...]
+> 
+>> +
+>>       if (rec->hdr.length <= sizeof(rec->hdr) ||
+>>           rec->hdr.length > sizeof(*rec)) {
+>>           pr_err(FW_WARN "CXL CPER Invalid section length (%u)\n",
+>> @@ -949,15 +954,18 @@ static void ghes_do_proc(struct ghes *ghes,
+>>           } else if (guid_equal(sec_type, &CPER_SEC_CXL_GEN_MEDIA_GUID)) {
+>>               struct cxl_cper_event_rec *rec = acpi_hest_get_payload(gdata);
+>>   -            cxl_cper_post_event(CXL_CPER_EVENT_GEN_MEDIA, rec);
+>> +            cxl_cper_post_event(CXL_CPER_EVENT_GEN_MEDIA, rec,
+>> +                        gdata->error_data_length);
+>>           } else if (guid_equal(sec_type, &CPER_SEC_CXL_DRAM_GUID)) {
+>>               struct cxl_cper_event_rec *rec = acpi_hest_get_payload(gdata);
+>>   -            cxl_cper_post_event(CXL_CPER_EVENT_DRAM, rec);
+>> +            cxl_cper_post_event(CXL_CPER_EVENT_DRAM, rec,
+>> +                        gdata->error_data_length);
+>>           } else if (guid_equal(sec_type, &CPER_SEC_CXL_MEM_MODULE_GUID)) {
+>>               struct cxl_cper_event_rec *rec = acpi_hest_get_payload(gdata);
+>>   -            cxl_cper_post_event(CXL_CPER_EVENT_MEM_MODULE, rec);
+>> +            cxl_cper_post_event(CXL_CPER_EVENT_MEM_MODULE, rec,
+>> +                        gdata->error_data_length);
+> 
+> There are multi places in this patch set doing the same thing, I was
+> thinking if we can do the check in on place but we are facing different
+> row error data, any good idea?
 
-Ben
+There's no easy single place to do this as the reason you stated.
 
 > 
-> Cheers,
-> Andre
-> 
->>
->> Thanks,
->>
->> Ben
->>
->>>
->>> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
->>> ---
->>>   drivers/resctrl/mpam_devices.c | 38 +++++++++++++++-------------------
->>>   1 file changed, 17 insertions(+), 21 deletions(-)
->>>
->>> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
->>> index 84a8715464be..530ac0fe97b5 100644
->>> --- a/drivers/resctrl/mpam_devices.c
->>> +++ b/drivers/resctrl/mpam_devices.c
->>> @@ -1306,7 +1306,6 @@ static void __ris_msmon_read(void *arg)
->>>       u64 now;
->>>       int ret;
->>>       u32 now32;
->>> -    bool nrdy = false;
->>>       bool config_mismatch;
->>>       bool overflow = false;
->>>       struct mon_read *m = arg;
->>> @@ -1371,14 +1370,18 @@ static void __ris_msmon_read(void *arg)
->>>       switch (m->type) {
->>>       case mpam_feat_msmon_csu:
->>>           ret = mpam_read_monsel_reg(msc, CSU, &now32);
->>> +        if (!ret) {
->>> +            if ((now32 & MSMON___NRDY))
->>> +                ret = -EBUSY;
->>> +
->>> +            if (mpam_has_quirk(IGNORE_CSU_NRDY, msc) &&
->>> +                m->waited_timeout)
->>> +                ret = 0;
->>> +        }
->>>           if (ret)
->>>               goto out_unlock;
->>> -        nrdy = now32 & MSMON___NRDY;
->>> -        now = FIELD_GET(MSMON___VALUE, now32);
->>> -
->>> -        if (mpam_has_quirk(IGNORE_CSU_NRDY, msc) && m->waited_timeout)
->>> -            nrdy = false;
->>>   +        now = FIELD_GET(MSMON___VALUE, now32);
->>>           break;
->>>       case mpam_feat_msmon_mbwu_31counter:
->>>       case mpam_feat_msmon_mbwu_44counter:
->>> @@ -1394,9 +1397,11 @@ static void __ris_msmon_read(void *arg)
->>>                   now = FIELD_GET(MSMON___L_VALUE, now);
->>>           } else {
->>>               ret = mpam_read_monsel_reg(msc, MBWU, &now32);
->>> +            if (!ret && (now32 & MSMON___NRDY))
->>> +                ret = -EBUSY;
->>>               if (ret)
->>>                   goto out_unlock;
->>> -            nrdy = now32 & MSMON___NRDY;
->>> +
->>>               now = FIELD_GET(MSMON___VALUE, now32);
->>>           }
->>>   @@ -1404,9 +1409,6 @@ static void __ris_msmon_read(void *arg)
->>>               m->type != mpam_feat_msmon_mbwu_63counter)
->>>               now *= 64;
->>>   -        if (nrdy)
->>> -            break;
->>> -
->>>           mbwu_state = &ris->mbwu_state[ctx->mon];
->>>             if (overflow)
->>> @@ -1419,22 +1421,16 @@ static void __ris_msmon_read(void *arg)
->>>           now += mbwu_state->correction;
->>>           break;
->>>       default:
->>> -        m->err = -EINVAL;
->>> +        ret = -EINVAL;
->>>       }
->>> -    mpam_mon_sel_unlock(msc);
->>> -
->>> -    if (nrdy)
->>> -        m->err = -EBUSY;
->>> -
->>> -    if (!m->err)
->>> -        *m->val += now;
->>> -
->>> -    return;
->>>     out_unlock:
->>>       mpam_mon_sel_unlock(msc);
->>>   -    m->err = ret;
->>> +    if (ret)
->>> +        m->err = ret;
->>> +    else
->>> +        *m->val += now;
->>>   }
->>>     static int _msmon_read(struct mpam_component *comp, struct mon_read *arg)
->>
-> 
+> Thanks
+> Hanjun
 
