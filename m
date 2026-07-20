@@ -1,49 +1,43 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17AC8312832;
-	Sun, 19 Jul 2026 22:36:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7C9C318EDC;
+	Mon, 20 Jul 2026 03:23:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784500604; cv=none; b=L55EKcr5EMpjXO80tNAnKdTO0AjRDGVhhUBSYQq4V1vAjxSz3Qpf+2fBmD88NtGq+oCV+JstbBq3C54XzWnWBFrK9clYgGUSuf8L12gXLfwHqYwUypQoQ5guzy9njM+NxTx1uiD1xU0vZIpjLfB826GDZagDf6YOJN07wckjZhc=
+	t=1784517824; cv=none; b=XsVkOzmfc+cRk0qdn5UOtY9VPdfLUe5Fux6ZyU29NpicsK5SqnMUDURWlLAeULWdT7cJi2j3J8lyRa1uHQ6pXtm4RXWSvbeuX+ShSiQrl/LnxQm3uLfbVZ2aV3yxe6Efv7i/AhPbs7oe6scfV3yGfom42lpku00ifXcbRL44H98=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784500604; c=relaxed/simple;
-	bh=VHbE/VULGnnC27oMlT0uQ00sXlkAXX2rgn7w7mnbQ7o=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=AEoDquB5EdaMuGDm3FEhGRO4sWXdgCKdRO2EZ9wqrM8UDPHpqoc+XPsEMGAXiS39xqs+Mju0/3IFo+wdvZNJPUcDj1higBgkmqwa9PEDVkeyeSWogTly68n/R6bXtoze5HEY3cQSUhnB7gDdOeHlwxQLG7Oe/RB62Os48uvFlOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=OH9P1E7y; arc=none smtp.client-ip=198.137.202.133
+	s=arc-20240116; t=1784517824; c=relaxed/simple;
+	bh=+flctwAfqXpB6nYYPVY8PllJxUHMP02tmGimHIdzWww=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=sNTMLro5mFUx1TjWFzXYIJx+/rQHBUv5rw8Fd5c4kOpQTryqb4CRhbA+iApYNwFr4o8nL/79SVTmWPimTPTKKC6Z8Nb6v1Suosug7xCsXREpPYLIDlYwKszoz7g26Ec/xV7cZMDG9gC3Haf9lvAttbeaHHh7a/QlawGaSxHuQ3Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=4DpaL1yj; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="OH9P1E7y"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="4DpaL1yj"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
 	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
 	Content-ID:Content-Description:In-Reply-To:References;
-	bh=wSB52/WtP6HuuvG74+GyQCPYwOqQm+vAX5uv61MDy+s=; b=OH9P1E7y34TbuJvCuHd7jHk/jp
-	XVv4N5DD0sqPg657UfVb9KOTEPQhkWvxrHoQ5WdNCZ31Hoi1raiocY1eG9ohCpu+JhEdQ0X341nUs
-	Rp2Kt1p4j6iXTGEOR4DZ7GXTdfPFjvrc3trQGwh2ztZAUPaetsAIA3+Qf54/aXRzV4Q0hgl1dybfg
-	mi4fJ+iKmSBE1ZhoaihucD/TTkF9DlcoFDofHcZqC24SArpcF+5qTnF5/XCDU62jJpAJyC2flGkB5
-	/R9F4StuWCJKgoX8DhuVdzMMLvHASxQB3DQiWkyca/lvmbyTgqMYh7cM1t/VP/+6TAvsFIvcTF5jc
-	pM4NrqMg==;
+	bh=Rr+zt7Yv4Rmhd8wKbYIAeTKCLGei6Bh2Rs4oZFppmQw=; b=4DpaL1yja7lI0YUPHwRJEh8zdC
+	//fu807hR0cleY3V4BHbUqHrcSfkRpig7jBY46bz5Rz/Xob8YOeYi6Ih9UTduomXytDQ6ej8IGRE/
+	Rgx/f7kH6QbCcaJ3WtmIPF5e91MacVEZ0gBJOFnWpjfEAcLi1ryh8z8UzMHo02UezGSs3Yi2xnDlZ
+	YAhu1Uonuf2Rr1qhvTGML6H03i56VHxzJyddL4szdLl6TDmwHAlNISJxo+wqIjCC+0VT/7HoMq/w7
+	SqHGcnn1izu0lwIX4WAXLkjtU7en/H1XIJ8HqOWjDZZneBO3MQ639354Faj+2Ivs9yPZhLGlTvqfh
+	JihvDEnw==;
 Received: from [50.53.43.113] (helo=bombadil.infradead.org)
 	by bombadil.infradead.org with esmtpsa (Exim 4.99.1 #2 (Red Hat Linux))
-	id 1wla7l-00000005RRr-3XF8;
-	Sun, 19 Jul 2026 22:36:42 +0000
+	id 1wlebV-00000005kwY-3PA0;
+	Mon, 20 Jul 2026 03:23:41 +0000
 From: Randy Dunlap <rdunlap@infradead.org>
 To: linux-kernel@vger.kernel.org
 Cc: Randy Dunlap <rdunlap@infradead.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-acpi@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	driver-core@lists.linux.dev
-Subject: [PATCH] device property: add missing kernel-doc for property_entry
-Date: Sun, 19 Jul 2026 15:36:40 -0700
-Message-ID: <20260719223640.2864890-1-rdunlap@infradead.org>
+	Len Brown <lenb@kernel.org>,
+	linux-acpi@vger.kernel.org
+Subject: [PATCH 1/3] ACPI: fan: Use correct function parameter name in kernel-doc
+Date: Sun, 19 Jul 2026 20:23:39 -0700
+Message-ID: <20260720032341.3087008-1-rdunlap@infradead.org>
 X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -53,45 +47,28 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add kernel-doc for the missing fields in union value:
+Fix kernel-doc warnings by using the correct function parameter name:
 
-Warning: include/linux/property.h:406 struct member 'u8_data' not
- described in 'property_entry'
-Warning: include/linux/property.h:406 struct member 'u16_data' not
- described in 'property_entry'
-Warning: include/linux/property.h:406 struct member 'u32_data' not
- described in 'property_entry'
-Warning: include/linux/property.h:406 struct member 'u64_data' not
- described in 'property_entry'
-Warning: include/linux/property.h:406 struct member 'str' not described
- in 'property_entry'
+Warning: ./drivers/acpi/fan.h:83 function parameter 'speed' not described in 'acpi_fan_speed_valid'
+Warning: ./drivers/acpi/fan.h:83 Excess function parameter 'speeed' description in 'acpi_fan_speed_valid'
 
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 ---
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Daniel Scally <djrscally@gmail.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: driver-core@lists.linux.dev
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
- include/linux/property.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/acpi/fan.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- linux-next-20260717.orig/include/linux/property.h
-+++ linux-next-20260717/include/linux/property.h
-@@ -388,6 +388,11 @@ struct software_node_ref_args {
-  * @type: Type of the data in unions.
-  * @pointer: Pointer to the property when it is not stored inline.
-  * @value: Value of the property when it is stored inline.
-+ * @u8_data: @value as an array of u8 numbers
-+ * @u16_data: @value as an array of u16 numbers
-+ * @u32_data: @value as an array of u32 numbers
-+ * @u64_data: @value as an array of u64 numbers
-+ * @str: @value as an array of char pointers
-  */
- struct property_entry {
- 	const char *name;
+--- linux-next-20260717.orig/drivers/acpi/fan.h
++++ linux-next-20260717/drivers/acpi/fan.h
+@@ -69,7 +69,7 @@ struct acpi_fan {
+ 
+ /**
+  * acpi_fan_speed_valid - Check if fan speed value is valid
+- * @speeed: Speed value returned by the ACPI firmware
++ * @speed: Speed value returned by the ACPI firmware
+  *
+  * Check if the fan speed value returned by the ACPI firmware is valid. This function is
+  * necessary as ACPI firmware implementations can return 0xFFFFFFFF to signal that the
