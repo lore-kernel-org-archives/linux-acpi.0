@@ -1,143 +1,97 @@
-Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B0F3431E6E
-	for <linux-acpi@vger.kernel.org>; Mon, 20 Jul 2026 14:58:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C73337A850;
+	Mon, 20 Jul 2026 15:31:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784559518; cv=none; b=lJ+vBMdGNhC2c36zN9HHm9vx2cjuQ5jeLGDOSr8N/DbPBNj19XPMNLNjjyN8qpSrHgWtB5DP9/bFUNMi1vtSiU5LSVgR0JVkswlU4w4Xn5MlhXeeYBDJJgLjfR427uLzjn92UUDftR5Mke37FR+0mLWmRPK4hucPFR1vmMHEPls=
+	t=1784561463; cv=none; b=NNSatsPDHSBhvz2Z0pPJ3Fv7ndlTWBSCqvsLulwBslL3kSWDkZujVt5H4QaNO7qdrxRHH/cHR4xlFM+usqvbE2rhhE3ru+4bq/4/pUDwWHL+esORWJbDZii/vi7LpW/yD+5GWJ6gQ3NqjiAHmqJc/rqTBI5T3blkes+cgunHwqE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784559518; c=relaxed/simple;
-	bh=l+BJP2dTlbI6R2M/a/gl69wwhg4/sSj0g/jxUAkKdPo=;
-	h=Mime-Version:Content-Type:Date:Message-Id:Cc:Subject:From:To:
-	 References:In-Reply-To; b=dOnu7tz6CPjwPj62HIM6LsP97ix2n8RM5R6NhKggQCHs7hyI5BLchCD30I2vYp/lqpcrPLhBO8NxiU4rfRnQLP9JQabFoU47PyiqmBHPIrZ5kx75gi0K0II5FnMUpt9tFM7ZUw0qooW1oa1/lrpj+bgSvighIZECt7dFZuWM3Ao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=VxpvFeSO; arc=none smtp.client-ip=209.85.128.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	s=arc-20240116; t=1784561463; c=relaxed/simple;
+	bh=1T/+fU4BOb18RNWaYZqrszIYLOLf0njFgGIRGnlW6Ko=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=p9D7y7u5XdmgQmbAvQt1Jjlgv4ucK2vqMvX/2Fynvov6Uh9NSI0fCvOLid9wQbUKsBBPRdFdE5Z8Nl6QiGxIEwmoOtPweHw9qN+uQR0M+EPaq1LaXol2FpokhDjKhz1m+tJloTtNLpY8C9QDT013dlD70j4xUjO1v4/s+IT+2QI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=tSZhNLyZ; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="VxpvFeSO"
-Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-49556f97a9dso10861675e9.1
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Jul 2026 07:58:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1784559515; x=1785164315; darn=vger.kernel.org;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-type:content-transfer-encoding:mime-version:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=3QcpbpbKJ+LK6Rusjs4UjDCzBYijN9Tg1ogvRHpP9po=;
-        b=VxpvFeSO+g5GMjAekTgqpfjInECmI0W8ep7yJe83Id2WxYN/VLvX6KwOkg8/jC2fQT
-         hlNcIctgOJ0BaBLPwxPtpAWGf3LkZNVxz8A2M5eg0o85voN45hg9xTGPUX8IKCSlWi04
-         9JdgfC7nAzjOGGnl3LZ5d2x9gVrWC94SlC7Vc6EE2QwfexDn2tMfWSXefSCg7D7BDcDg
-         sGN8omKQ1iWs3yUWZO7uLeKTD0NOoCyr9t/hwLBDCA1FmCFrkUh5VKdKc1F4NEpjrEFR
-         cWJ1//7p2XZoC+r/o+EJG48mDCpjNlnqVdscT200igWUzIWrP+T0eaewnMvNKOz/3pln
-         BWPw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784559515; x=1785164315;
-        h=in-reply-to:references:to:from:subject:cc:message-id:date
-         :content-type:content-transfer-encoding:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=3QcpbpbKJ+LK6Rusjs4UjDCzBYijN9Tg1ogvRHpP9po=;
-        b=SQ1Ps5EYvD/deahWYhVBEZVqqadBWavigvn40ka7egQFPuTf226hJf8iyfomK2+DzM
-         GQ2DYZ7PUP4sKA+EoFXgNRCFpEf/m4UaAprza3rPvbI9PJ7oqcEBBBaC+kGki9pbzOnU
-         u8YsgiWaTtskinwK3d+tB2mUapQDP++u/Ax50q5uZ5jIESwAIMhf3rcTBdcJVNAoH9YS
-         /TVulC1HDDG5kLcQDGEvuLgnZd2VsWYN6CLuRqu6glHqBmjdm75eeKEfFEACDbXj7hU5
-         2XI9TGejkYhx9qLVBx9sJMNRt02SBYWHacPmisiNGxGL6q0Pwp/smiVbC5Mk5Yw9kIvs
-         mQiQ==
-X-Forwarded-Encrypted: i=1; AHgh+RqqnW8iifYG82/QH3n39kNFj03KFtuhhAjJsnlmp/BcmmPtZTT1ANPtrvCYWWKnJ0meJihfOy2bEGDt@vger.kernel.org
-X-Gm-Message-State: AOJu0YyePmxoSgVEjWyKjHFHGer9dQ786mF1GE6OfqZzsDc4kwLCrw/I
-	k2wSRjL6JVIwuctWaNyLneMbvnDEqsea3J4yGhuccxn8gtnqn+DZqARI46bhiQ6ZcRo=
-X-Gm-Gg: AfdE7cn4jgAVHxCYkRULOwR7Hc3w8xWl+hp19AP76LU7S5/crCKgU0xeDjGS8WmKVYs
-	qME+cpsvvdTXOP+3MbKT8MmTrCdMmXQyx4jHeQUoB5vAgX21IeSFV7HhcF4WCDpboPqoAQzScU3
-	LfCe8ZHWR5C7kbhXQuFTILWCPCX+TR234PMfH+L+zSUI1fG/rMTp25iu9wrXAzYWxWIPTf51ww5
-	0pUvtkYvFSX7t6OIEHMsrHivhJvn3CweeNal2H0rLOCNn2jeAyq0MTJdQoY2wAoL9TiX3Xuqg6n
-	0voRWVy0iKPiSLdpOYt1cReMaGIDxoXzZdmFz4CGFz55vv/qSMeK8BcSEtqVI2zzSvdHARQu/wv
-	elYxOJIsSX2jY4JOWn88cV138XRAUSYZV1fWzV3fIQdBki6z5lTVZ0VxG/zgAfAsYZugzoVRDE2
-	ngwlBN8VJWphToMle8F2MLweyyu2fto6e7/PT5sPNw7QfedboxfnDE7OJsUr3fQTw/iC+Zov6zr
-	hBJQRo=
-X-Received: by 2002:a05:600c:1d18:b0:495:515a:dad9 with SMTP id 5b1f17b1804b1-495515adc7fmr115346585e9.37.1784559514625;
-        Mon, 20 Jul 2026 07:58:34 -0700 (PDT)
-Received: from localhost ([2a00:2381:fd67:101:3573:8c21:531b:8da6])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4954c841a0dsm244416185e9.5.2026.07.20.07.58.33
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 20 Jul 2026 07:58:34 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="tSZhNLyZ"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+	Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
+	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
+	bh=bc4NQoolZld0IsjePf8E8yoUuXGWRvYzJkp+/BpR1+E=; b=tSZhNLyZSLR0N16TD6j0J5Xsc7
+	bUF6ViVOXyVtq6y9WNjeK5D0EF86Yxfj1fC7BqJTZcNH8jPrYsbVBA0Ruxp8NyYlRAfH0qsRvmJW+
+	7ismpFu9fxJRpkjkRfWftz+LVKckjIGrIt6GDSMYB3BdolSa+M7n5Zt8P8yRB968CtOBmVdsP+2PP
+	iFN6Xhst/M4/tUVTRCNfZPqPZEjLevuCEB5Y2lk37ZGnqMzc/wItWSuAIdUxeAQEVfTom9P7vTe3/
+	a9KZUqlRsC/E9cuS+nTDsxttCKCDK8EFpFLjq942TuSSQDVj8KdlgS2Yc3nztKmTep9hX/gYnM1rf
+	zCYc4a+g==;
+Received: from [50.53.43.113] (helo=[192.168.254.34])
+	by bombadil.infradead.org with esmtpsa (Exim 4.99.1 #2 (Red Hat Linux))
+	id 1wlpxM-00000007CQ3-2FWv;
+	Mon, 20 Jul 2026 15:31:00 +0000
+Message-ID: <25e056d9-708b-4477-ac63-726e1a01fdd0@infradead.org>
+Date: Mon, 20 Jul 2026 08:30:59 -0700
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] device property: add missing kernel-doc for
+ property_entry
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, Daniel Scally <djrscally@gmail.com>,
+ Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>, linux-acpi@vger.kernel.org,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>,
+ driver-core@lists.linux.dev
+References: <20260719223640.2864890-1-rdunlap@infradead.org>
+ <al4LwVQ8aLSlP-dk@ashevche-desk.local>
+Content-Language: en-US
+From: Randy Dunlap <rdunlap@infradead.org>
+In-Reply-To: <al4LwVQ8aLSlP-dk@ashevche-desk.local>
 Content-Type: text/plain; charset=UTF-8
-Date: Mon, 20 Jul 2026 15:58:33 +0100
-Message-Id: <DK3HJUUCG782.2AG5UUZ3TBQ4R@linaro.org>
-Cc: "Huisong Li" <lihuisong@huawei.com>, <linux-acpi@vger.kernel.org>,
- <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 2/3] mailbox: pcc: Check shared memory signature on
- request
-From: "Alexey Klimov" <alexey.klimov@linaro.org>
-To: "Sudeep Holla" <sudeep.holla@kernel.org>, "Jassi Brar"
- <jassisinghbrar@gmail.com>
-X-Mailer: aerc 0.20.0
-References: <20260717075649.467172-1-sudeep.holla@kernel.org>
- <20260717075649.467172-3-sudeep.holla@kernel.org>
-In-Reply-To: <20260717075649.467172-3-sudeep.holla@kernel.org>
+Content-Transfer-Encoding: 7bit
 
-On Fri Jul 17, 2026 at 8:56 AM BST, Sudeep Holla wrote:
-> ACPI 6.6 Tables 14.9 and 14.12 define the PCC shared memory
-> signature as the bitwise OR of 0x50434300 and the PCC subspace ID.
-> They also clarify that the signature is populated by the platform and
-> verified by OSPM. The signature is at byte offset 0 in the generic,
-> extended and reduced PCC shared memory layouts.
->
-> Check the signature when a client requests a PCC mailbox channel,
-> after mapping shared memory and before binding the mailbox client.
-> This keeps the check in the PCC mailbox controller instead of
-> duplicating it in individual clients.
->
-> Treat a signature mismatch as a warning rather than rejecting the
-> channel request. Making this newly added check fatal could break
-> existing systems whose firmware did not populate the signature
-> correctly even though PCC communication works. Continue to reject
-> shared memory that is too small to contain a signature because it
-> cannot be inspected safely.
->
-> Cc: Jassi Brar <jassisinghbrar@gmail.com>
-> Cc: Huisong Li <lihuisong@huawei.com>
-> Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
-> ---
->  drivers/mailbox/pcc.c | 36 +++++++++++++++++++++++++++++++-----
 
-[..]
 
-> +static int pcc_mbox_validate_signature(struct pcc_mbox_chan *pcc_mchan,
-> +				       int subspace_id)
-> +{
-> +	u32 expected_signature =3D PCC_SIGNATURE | subspace_id;
-> +	u32 signature;
-> +
-> +	if (pcc_mchan->shmem_size < sizeof(signature)) {
-> +		pr_err("PCC subspace %d shared memory is too small\n",
-> +		       subspace_id);
-> +		return -EINVAL;
-> +	}
-> +
-> +	signature =3D ioread32(pcc_mchan->shmem);
-> +	if (signature !=3D expected_signature)
-> +		pr_warn("PCC subspace %d invalid signature %#x expected %#x\n",
-> +			subspace_id, signature, expected_signature);
+On 7/20/26 4:51 AM, Andy Shevchenko wrote:
+> On Sun, Jul 19, 2026 at 03:36:40PM -0700, Randy Dunlap wrote:
+>> Add kernel-doc for the missing fields in union value:
+>>
+>> Warning: include/linux/property.h:406 struct member 'u8_data' not
+>>  described in 'property_entry'
+>> Warning: include/linux/property.h:406 struct member 'u16_data' not
+>>  described in 'property_entry'
+>> Warning: include/linux/property.h:406 struct member 'u32_data' not
+>>  described in 'property_entry'
+>> Warning: include/linux/property.h:406 struct member 'u64_data' not
+>>  described in 'property_entry'
+>> Warning: include/linux/property.h:406 struct member 'str' not described
+>>  in 'property_entry'
+> 
+> ...
+> 
+>>   * @pointer: Pointer to the property when it is not stored inline.
+>>   * @value: Value of the property when it is stored inline.
+> 
+>> + * @u8_data: @value as an array of u8 numbers
+>> + * @u16_data: @value as an array of u16 numbers
+>> + * @u32_data: @value as an array of u32 numbers
+>> + * @u64_data: @value as an array of u64 numbers
+>> + * @str: @value as an array of char pointers
+> 
+> I think the proper fix is to add
+> 
+> 	/* private: internal representation of @value */
+> 
+>>   */
 
-IIRC signature comes from table, so I'd even add smth like
-"Potentially broken firmware: PCC subspace %d invalid signature %#x expecte=
-d %#x\n"
-or "PCC subspace %d invalid signature %#x expected %#x, broken firmware\n" =
-or
-similar to encourage reader/consumer of the message to report bugs to
-firmware provider :)
-Maybe it will be even fixed.
+OK :)
 
-Anyhow, regardless of above:
+-- 
+~Randy
 
-Reviewed-by: Alexey Klimov <alexey.klimov@linaro.org>
-
-Best regards,
-Alexey
