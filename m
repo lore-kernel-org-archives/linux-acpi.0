@@ -1,216 +1,169 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 468072367B8
-	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 12:37:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 970623A1B5
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 12:44:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784637433; cv=none; b=LynhRqzsPRrqy1VCklTAmsrqgDOvvE6SZKozJu5fXYjOsFZirEb3NFwJflD3GuBvQ76JXpItmb+SaWWVoRRUBhyvipUuwjchTbi2TSOngmimfuMmSTP8qTmiGKDiYQsoOaT9zlg8vqnY911M/6e9Pc8VdlUgh2MYJTJCKAM1YVE=
+	t=1784637889; cv=none; b=TZ/emaIEBJUsR8l59t3S0wMWhGS2bxXkN6xFzH7t5x85gBW/OcTNBQoY+63jV8ovWr9f0wiXPIvWmTRWoj7f3FavgOn7Hwu+jw18Eifqb89e7UXW3A8FVQlDCsZsptCxax0ez4E43whOueaxR9IFHMWNxkLavWA+WXv95O0p/2Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784637433; c=relaxed/simple;
-	bh=2N2bWLBziZWnTmUBq9OQWodjZU1YiHxGCakcilVhWcc=;
+	s=arc-20240116; t=1784637889; c=relaxed/simple;
+	bh=0s2L8Pwx8Vq4iLOteMCCbP3DqGBBFvQVkiq6pYs54pk=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=mP9InCyDMrTfEonG/uDuHY6v8Gt6Lx4tvNLa4RhyLqy+lDS1nwB+qCRasWfttGAWCKbQbZ/TAIRAUhC7UQA89F0sOWO1H/sOByesEc4imuiS3PleHnPJuDrk0xXFdamZPBtp+x1MpdSVeMbnZaZkrEuBHskomH9PZE9R5/r2xAA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VPhNWc/V; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=dPSPbegWlAnyCqJKX3hkKWiE77LIzJlBioQAUfOOMO/QpXmhFDcaXLrKpxD5z540RnEwKLzJZPlql34TrpuWNoxMwiiIb8248EITEB9s0xPqucrtjuxKoU9MiIZegNyM+/lSIY3Ko7C+mU4JVeQ7lxsCfzCMdDA5ayoCLb/tzsg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=inNq7At/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VPhNWc/V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00F971F00A3F
-	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 12:37:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="inNq7At/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E2A81F00A3E
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 12:44:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784637432;
-	bh=K6e9N94ZAOgU6TNlko5uvFwfIB/lZzewzichH04mlcw=;
+	s=k20260515; t=1784637888;
+	bh=LBd9zLTzns99cc89FHKDXmVlP0KCH8JsNrMPB2bRNrw=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=VPhNWc/VqgR4ulb+qJJnVPv1H2xyg1utYhSAxMFCr8S2Z65J7GQRQpSAtpR7gBJSH
-	 A2q7rvmf2WUoLy7nbb8zkk0MbEo+DCTRkWpEFZqiehH9ucdJq3UdPXt5Ltc8+/im1Q
-	 1Y84yhNWjL/5TWm+fMR0lUeB+hXQ62bDxGLsNSWoX4lxrCUbMkgNVZeDakryPNjn5G
-	 74mWWfj1S0Zypnxd/cRX/rziI3BI7UALo5+FNnmPVgKEsawbB/HeqGEK6CqOKiPU9o
-	 nuEafDAM137BCIfRTbIupCFZNfw2XaVuecoUMowJzH3kfimcNdGgkCn0y+lbaQxo7Q
-	 4oqsfwPYkjxfg==
-Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-5aeb8c19017so13888674e87.0
-        for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 05:37:11 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+Ror/+ER2FP3xZh2UofrJmHp8El1epgsQN7UnJmdWoVulvRo0Smei63n7tCW1AXjPcftSQcJ16LbEil5@vger.kernel.org
-X-Gm-Message-State: AOJu0YyO35BXo3YLYfp/PWLMxJKl5rnYYaiPR+gtKD0I4PTByDZ0rA3i
-	YQzXoUr/OpF7C+r8gYP0hX+lfsoBxMKc5njyioYCXQh7Jj9LJcPBKyE16UH8wH4VcyQBoFqdwCq
-	kNkkLAwyAWDB8BPv5uLRT5HuydoewyQ8=
-X-Received: by 2002:a05:6512:3408:b0:5b2:925d:6c6f with SMTP id
- 2adb3069b0e04-5b2925d6db3mr4927050e87.34.1784637430388; Tue, 21 Jul 2026
- 05:37:10 -0700 (PDT)
+	b=inNq7At/S/SfxypXEoiEKFFbmxQaNq83h//DI8KhlXqxTIv/LThrf7PJ0EPDASSPp
+	 Izn12od6LdARXXFS7mD86R3OnpAaRjsny0lMoOpowYExLONoSWNXfjFZfw/Run2XUP
+	 f4kUgk4pRJFZeS4UuLvFcWFRoNXx826Z9y5tVOUzsMzGo3PKD2v1vkKUSsfbu1F+Wj
+	 44Hi5u+Ql9FUQDVK1jhOL28QnqLEfHMegzl/JTGbihk3zgpJEhUlcK/sueu8pDURlV
+	 u9oDdWW1OvYq5HhzsIiolwypBRTfWLoGln9ZbhyDaV3pi3CIuoxw/sT6lyJa/5hQOy
+	 z/B6nnHBaNOmQ==
+Received: by mail-lj1-f179.google.com with SMTP id 38308e7fff4ca-39669bcaadfso94884231fa.0
+        for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 05:44:48 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RodilHZ0ojhJNKWftLCi+ozzjATuOhetJONwwFkwGrfcmm2KKF+6fg/gxbF1156qOOS4WiFuHdzx2T7@vger.kernel.org
+X-Gm-Message-State: AOJu0YzyBMi1CCEB9W3uawx7zdulVa3+XnqDojvmgCnhxMVVbmlYlaHt
+	amAE+2BrWwddlCVywlmaJNzzbBQus8s0hMYGhD2HHz27bvHIhHks6ERGkLxEI9KWkaJqA2mrkZM
+	l6kxZeNg+kBzDNeLsizHGmWDSWuJKzNs=
+X-Received: by 2002:a2e:7013:0:b0:39b:3082:cfe4 with SMTP id
+ 38308e7fff4ca-39eb2878426mr27216681fa.38.1784637886816; Tue, 21 Jul 2026
+ 05:44:46 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260706094141.82438-1-pengpeng@iscas.ac.cn>
-In-Reply-To: <20260706094141.82438-1-pengpeng@iscas.ac.cn>
+References: <20260706094504.82920-1-pengpeng@iscas.ac.cn>
+In-Reply-To: <20260706094504.82920-1-pengpeng@iscas.ac.cn>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 21 Jul 2026 14:36:51 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0hd-mDkE_PFUE6dOc0QKxEL0v+zNBdtgHf8+Bau1Vncpg@mail.gmail.com>
-X-Gm-Features: AUfX_myq2txhVH9wMy4GLufMhNfrCMmvFTEBPWhcaaEz218gSP_ZNbNG75ruJ9A
-Message-ID: <CAJZ5v0hd-mDkE_PFUE6dOc0QKxEL0v+zNBdtgHf8+Bau1Vncpg@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: FPDT: validate table and record lengths
+Date: Tue, 21 Jul 2026 14:44:26 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jnmFWnZ-j2M2gnP0vTj_zH=4o0wA-e=WTOEXhy92mPJw@mail.gmail.com>
+X-Gm-Features: AUfX_my_edY30MbTvwpOhdf_-yT6DNjELgSXrLz7LpFlxf5PX2T6zuWf48X2AhM
+Message-ID: <CAJZ5v0jnmFWnZ-j2M2gnP0vTj_zH=4o0wA-e=WTOEXhy92mPJw@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: PRMT: validate module handler bounds
 To: Pengpeng Hou <pengpeng@iscas.ac.cn>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
 	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jul 6, 2026 at 11:41=E2=80=AFAM Pengpeng Hou <pengpeng@iscas.ac.cn>=
+On Mon, Jul 6, 2026 at 11:45=E2=80=AFAM Pengpeng Hou <pengpeng@iscas.ac.cn>=
  wrote:
 >
-> FPDT records are supplied by firmware and are walked through
-> length fields stored in the table itself.
+> PRMT module entries carry handler array offsets and counts inside
+> firmware data.  Validate the current module length and handler
+> array bounds before allocating kernel-side handler storage or
+> walking the handler records.
 >
-> Check the main-table entry length before reading an entry, check
-> the mapped subtable length before remapping it, and check each
-> record length before saving a typed record pointer for sysfs.
->
-> This keeps malformed firmware records from being interpreted as
-> complete resume, suspend, or boot records when the current item
-> is shorter than the structure consumed by the driver.
+> This also rejects zero-handler modules, since the existing loop
+> expects at least one handler record before it starts copying
+> handler metadata.
 >
 > Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
 > ---
->  drivers/acpi/acpi_fpdt.c | 53 +++++++++++++++++++++++++++++++++++-----
->  1 file changed, 47 insertions(+), 6 deletions(-)
+>  drivers/acpi/prmt.c | 54 +++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 54 insertions(+)
 >
-> diff --git a/drivers/acpi/acpi_fpdt.c b/drivers/acpi/acpi_fpdt.c
-> index e75dd28d31a9..79191ed20f76 100644
-> --- a/drivers/acpi/acpi_fpdt.c
-> +++ b/drivers/acpi/acpi_fpdt.c
-> @@ -168,7 +168,7 @@ static int fpdt_process_subtable(u64 address, u32 sub=
-table_type)
->         struct fpdt_subtable_header *subtable_header;
->         struct fpdt_record_header *record_header;
->         char *signature =3D (subtable_type =3D=3D SUBTABLE_FBPT ? "FBPT" =
-: "S3PT");
-> -       u32 length, offset;
-> +       u32 length, offset, remaining;
->         int result;
+> diff --git a/drivers/acpi/prmt.c b/drivers/acpi/prmt.c
+> index 7f5851371e5f..e531f2cd724e 100644
+> --- a/drivers/acpi/prmt.c
+> +++ b/drivers/acpi/prmt.c
+> @@ -17,6 +17,7 @@
+>  #include <linux/kernel.h>
+>  #include <linux/efi.h>
+>  #include <linux/acpi.h>
+> +#include <linux/overflow.h>
+>  #include <linux/prmt.h>
+>  #include <asm/efi.h>
 >
->         if (!fpdt_address_valid(address)) {
-> @@ -182,10 +182,17 @@ static int fpdt_process_subtable(u64 address, u32 s=
-ubtable_type)
+> @@ -91,6 +92,56 @@ static u64 efi_pa_va_lookup(efi_guid_t *guid, u64 pa)
+>  #define get_first_handler(a) ((struct acpi_prmt_handler_info *) ((char *=
+) (a) + a->handler_info_offset))
+>  #define get_next_handler(a) ((struct acpi_prmt_handler_info *) (sizeof(s=
+truct acpi_prmt_handler_info) + (char *) a))
 >
->         if (strncmp((char *)&subtable_header->signature, signature, 4)) {
->                 pr_info(FW_BUG "subtable signature and type mismatch!\n")=
-;
-> +               acpi_os_unmap_memory(subtable_header, sizeof(*subtable_he=
-ader));
->                 return -EINVAL;
->         }
->
->         length =3D subtable_header->length;
-> +       if (length < sizeof(*subtable_header)) {
-> +               pr_err(FW_BUG "Invalid FPDT subtable length %u.\n", lengt=
-h);
-> +               acpi_os_unmap_memory(subtable_header, sizeof(*subtable_he=
-ader));
-> +               return -EINVAL;
+> +static bool __init prmt_module_info_valid(struct acpi_prmt_module_info *=
+module_info,
+> +                                         const unsigned long end)
+> +{
+> +       struct acpi_prmt_handler_info *handler_info;
+> +       unsigned long start =3D (unsigned long)module_info;
+> +       size_t handler_bytes;
+> +       size_t remaining;
+> +       int i;
+> +
+> +       if (start >=3D end)
+> +               return false;
+> +
+> +       remaining =3D end - start;
+> +       if (remaining < sizeof(*module_info) ||
+> +           module_info->length < sizeof(*module_info) ||
+> +           module_info->length > remaining) {
+> +               pr_err(FW_BUG "Invalid PRMT module length\n");
+> +               return false;
 > +       }
 > +
->         acpi_os_unmap_memory(subtable_header, sizeof(*subtable_header));
->
->         subtable_header =3D acpi_os_map_memory(address, length);
-> @@ -194,17 +201,29 @@ static int fpdt_process_subtable(u64 address, u32 s=
-ubtable_type)
->
->         offset =3D sizeof(*subtable_header);
->         while (offset < length) {
-> -               record_header =3D (void *)subtable_header + offset;
-> -               offset +=3D record_header->length;
-> +               remaining =3D length - offset;
-> +               if (remaining < sizeof(*record_header)) {
-> +                       pr_err(FW_BUG "Truncated FPDT record header.\n");
-> +                       result =3D -EINVAL;
-> +                       goto err;
-> +               }
->
-> -               if (!record_header->length) {
-> -                       pr_err(FW_BUG "Zero-length record found in FPTD.\=
-n");
-> +               record_header =3D (void *)subtable_header + offset;
-> +               if (record_header->length < sizeof(*record_header) ||
-> +                   record_header->length > remaining) {
-> +                       pr_err(FW_BUG "Invalid FPDT record length %u.\n",
-> +                              record_header->length);
->                         result =3D -EINVAL;
->                         goto err;
->                 }
-> +               offset +=3D record_header->length;
->
->                 switch (record_header->type) {
->                 case RECORD_S3_RESUME:
-> +                       if (record_header->length < sizeof(*record_resume=
-)) {
-> +                               result =3D -EINVAL;
-> +                               goto err;
-> +                       }
->                         if (subtable_type !=3D SUBTABLE_S3PT) {
->                                 pr_err(FW_BUG "Invalid record %d for subt=
-able %s\n",
->                                      record_header->type, signature);
-> @@ -221,6 +240,10 @@ static int fpdt_process_subtable(u64 address, u32 su=
-btable_type)
->                                 goto err;
->                         break;
->                 case RECORD_S3_SUSPEND:
-> +                       if (record_header->length < sizeof(*record_suspen=
-d)) {
-> +                               result =3D -EINVAL;
-> +                               goto err;
-> +                       }
->                         if (subtable_type !=3D SUBTABLE_S3PT) {
->                                 pr_err(FW_BUG "Invalid %d for subtable %s=
-\n",
->                                      record_header->type, signature);
-> @@ -236,6 +259,10 @@ static int fpdt_process_subtable(u64 address, u32 su=
-btable_type)
->                                 goto err;
->                         break;
->                 case RECORD_BOOT:
-> +                       if (record_header->length < sizeof(*record_boot))=
- {
-> +                               result =3D -EINVAL;
-> +                               goto err;
-> +                       }
->                         if (subtable_type !=3D SUBTABLE_FBPT) {
->                                 pr_err(FW_BUG "Invalid %d for subtable %s=
-\n",
->                                      record_header->type, signature);
-> @@ -317,7 +344,21 @@ static int __init acpi_init_fpdt(void)
->         }
->
->         while (offset < header->length) {
-> +               if (header->length - offset < sizeof(*subtable)) {
-> +                       pr_err(FW_BUG "Truncated FPDT subtable entry.\n")=
-;
-> +                       result =3D -EINVAL;
-> +                       goto err_subtable;
-> +               }
+> +       if (!module_info->handler_info_count) {
+> +               pr_err(FW_BUG "PRMT module has no handlers\n");
+> +               return false;
+> +       }
 > +
->                 subtable =3D (void *)header + offset;
-> +               if (subtable->length < sizeof(*subtable) ||
-> +                   subtable->length > header->length - offset) {
-> +                       pr_err(FW_BUG "Invalid FPDT subtable entry length=
- %u.\n",
-> +                              subtable->length);
-> +                       result =3D -EINVAL;
-> +                       goto err_subtable;
-> +               }
+> +       if (module_info->handler_info_offset < sizeof(*module_info) ||
+> +           module_info->handler_info_offset > module_info->length) {
+> +               pr_err(FW_BUG "Invalid PRMT handler offset\n");
+> +               return false;
+> +       }
 > +
->                 switch (subtable->type) {
->                 case SUBTABLE_FBPT:
->                 case SUBTABLE_S3PT:
-> @@ -330,7 +371,7 @@ static int __init acpi_init_fpdt(void)
->                         /* Other types are reserved in ACPI 6.4 spec. */
->                         break;
->                 }
-> -               offset +=3D sizeof(*subtable);
-> +               offset +=3D subtable->length;
->         }
->         return 0;
->  err_subtable:
-> --
+> +       if (check_mul_overflow(module_info->handler_info_count,
+> +                              sizeof(*handler_info), &handler_bytes) ||
+> +           handler_bytes > module_info->length -
+> +                           module_info->handler_info_offset) {
+> +               pr_err(FW_BUG "Invalid PRMT handler array\n");
+> +               return false;
+> +       }
+> +
+> +       handler_info =3D get_first_handler(module_info);
+> +       for (i =3D 0; i < module_info->handler_info_count; i++) {
+> +               if (handler_info[i].length < sizeof(*handler_info)) {
+> +                       pr_err(FW_BUG "Invalid PRMT handler length\n");
+> +                       return false;
+> +               }
+> +       }
 
-Applied as 7.3 material, thanks!
+Sashiko has a comment on this that looks valid to me:
+
+https://sashiko.dev/#/patchset/20260706094504.82920-1-pengpeng%40iscas.ac.c=
+n
+
+The validation should also take the case when there is too much data
+into account.
+
+> +
+> +       return true;
+> +}
+> +
+>  static int __init
+>  acpi_parse_prmt(union acpi_subtable_headers *header, const unsigned long=
+ end)
+>  {
+> @@ -105,6 +156,9 @@ acpi_parse_prmt(union acpi_subtable_headers *header, =
+const unsigned long end)
+>         void *temp_mmio;
+>
+>         module_info =3D (struct acpi_prmt_module_info *) header;
+> +       if (!prmt_module_info_valid(module_info, end))
+> +               return -EINVAL;
+> +
+>         module_info_size =3D struct_size(tm, handlers, module_info->handl=
+er_info_count);
+>         tm =3D kmalloc(module_info_size, GFP_KERNEL);
+>         if (!tm)
+> --
