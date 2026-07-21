@@ -1,75 +1,84 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A89F47010B
-	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 19:24:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 696C246F49A
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 19:28:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784661888; cv=none; b=kDmkde5T9hdhSLGGqfokOvBTKHwcfvAWurrMJzK8lWCMLbPVNek+poq8hG6aKY5DJlaFfgfZLLyNRBoqvAsI+D2zpi0BrvbONcn+GjAL3R+/u4iJ3XO3vadDQFAc2wbNya+tOIz6c/SXgIU939Ad0nb62xz5UWGj2CePEu/iyIo=
+	t=1784662143; cv=none; b=utOyBIxI2Uicorv3SPTDXGCbnOjvV2sT/uBxETCIIIOfTP72h+g4cpxbPyZ1rvL/VcPr0Yn2sauorHI2vZBR0fDZStmvP5DjVCLZWsBSmIN3JkyPSdpoLybOb0wxUed729fuG9mYBkP9dh4b+JDxlAH8MKctouZeUeMrX3rijxQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784661888; c=relaxed/simple;
-	bh=U4bsANnF6FFsT/CI/M0lFNQsXCMrqrEKcDPLj90J5uc=;
+	s=arc-20240116; t=1784662143; c=relaxed/simple;
+	bh=ACvjltgEpqbSP9ZceuIzPy9fJBiUl+tkbgu7EKRAvDo=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Ywa+1lMHSICrPAfdr2+g0xav4wXmu1kDlwjfcZHXlM19B1KWOytOda8HhlrTq0ryhzJsQ1Mll2z34M2dKixyrsimFAL/demETozEPmjCwG6FP5GAAATDfCioRPhjobVDyrKWkQHiyHUwlzKqIO+lkotbYRxHLUr9N1XyWlU+RH4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=U+UZxSXo; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=A1Ka6z0SRVLz2WzAtVkc6IYhoKDJBSqKe9KWi0SKUHHBM8EUfye5HG5HuGZBuTADmfuqSx8dmj7o0bUIoIpKizuPvE92i8gwTzhC4gtE4rmqeuAIG8Di/MGgAXPy0vs2cvI3CH/m2lF64ueI/h+2XLp9lvtFqXZKJnOuZ2w6oYE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YtUvO4L/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="U+UZxSXo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 193EB1F00A3F
-	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 19:24:47 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YtUvO4L/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A8431F00A3E
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 19:28:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784661887;
-	bh=QfAiFp7amZnjZhNNGCC8NrE+kHPeXbZO+yUHu/d3V8A=;
+	s=k20260515; t=1784662138;
+	bh=+wO7sHrpdTteU3Brt5qKC9yAAPgd4tp4zqCms16ybrE=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=U+UZxSXoXOPzOWhspHmS5PpA4w26nx8DkFwa02goTNXnWaKVpt0fZw3hUxFij1CIJ
-	 0yk+QXxjRKd6DJTp2OWe+BAck4VwBbV5H6b3sgM04sHcJrlyFizdcZTfD/wsiRrzlN
-	 Pqtt3Rz4Qbem34oq6Dk0n7+00LF0+MwcxRC+K9LMmc3Etg+ys5N3MAQHGj2OcdnVg6
-	 vVmgi/UheRc8XaUIwcrDWPNX4fAzLn5RyQdS+1eok/hjb1xNwj+t3yIl+JQSjxbQUo
-	 7mbRkrMYwi/wRu30czK3HgE+TDhrjfdIFziVWPhjUN1cxSsGjkSYUz+9tNWUd7oGIB
-	 aih6t8ULyjH3g==
-Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5b00d083818so4323669e87.1
-        for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 12:24:47 -0700 (PDT)
-X-Gm-Message-State: AOJu0Ywr4b3Ek+mlhzCyjf0sX1y7mlObrwFlfTNYq3+SqWRZGVJ0RvlR
-	1d8gE23+qXv9unYweTkeWFTA3dCiHf9yCjWhN+GNb6z9l8cGRRM0gLKPmIQn3rSEabpkHkaecIc
-	/3ZXqxTDRJI39nGYiDX0egpWwWI6FFsQ=
-X-Received: by 2002:a05:6512:3604:b0:5b1:4c14:9b21 with SMTP id
- 2adb3069b0e04-5b2a9d068c7mr101835e87.29.1784661885533; Tue, 21 Jul 2026
- 12:24:45 -0700 (PDT)
+	b=YtUvO4L/8HRU+09F4knrn6KcB7cnArCflwJL0LBhCwGV7glMs9c1GrMLAHjhDrQ6Z
+	 3dqMQ7ZgozBnOQsrGpU5j7FrcCvQvE/K9SZBjK2MJP9UM73gmpc+ff/PDE5aGlp1ha
+	 xNVol/OSAN+ps9nH7iyvL6RLMoAJcyBB1364hyXTWwFW5hAfQ0PObCtLdhmvPGvY8I
+	 FvN8/Pch+iF7+N1swI39fuj1bOotlOpeDZn/y7pmaihRMp7xZ3gmFA/YegI8kGUBLT
+	 A5/YG0ikFZ5+6vKv4H6/KzH70NKrJUBTLiQ67s90JjPiEKyvIjufhP/UY+llF0vjre
+	 9Fg+XIYgghTlA==
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5b15d5e986eso3577612e87.1
+        for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 12:28:58 -0700 (PDT)
+X-Gm-Message-State: AOJu0YylW6oWHSZyB7x0b/xEWIKlAdXxBuZcuwRSIOjjvkAJn4dutBQ4
+	SDoJp+vGKU5TIOwEq8wepskAIpesjKA+k/IwP4amKSezqDc5iEokUHtTZdQ8JQ74aEzpsT28wcx
+	crPFI+quIQhTg/6f+J02wY1YffbV+qvM=
+X-Received: by 2002:a05:6512:3dab:b0:5b0:17e7:67d0 with SMTP id
+ 2adb3069b0e04-5b28fad39f4mr4517292e87.62.1784662136588; Tue, 21 Jul 2026
+ 12:28:56 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260717170951.1782863-1-andriy.shevchenko@linux.intel.com> <f017b09c-e82d-4523-8c45-22bee90c79fd@gmx.de>
-In-Reply-To: <f017b09c-e82d-4523-8c45-22bee90c79fd@gmx.de>
+References: <20260717171635.1783543-1-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20260717171635.1783543-1-andriy.shevchenko@linux.intel.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 21 Jul 2026 21:24:32 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iMN4xy-DNm89A_-7aS551PRZZR0P-3FkHa5U8bsCX0JA@mail.gmail.com>
-X-Gm-Features: AUfX_mxQ4LtefwWAC46q5TkNMi9PZ7rqF95CVs9iRZsHLkICqi5dg2sngdh2qL8
-Message-ID: <CAJZ5v0iMN4xy-DNm89A_-7aS551PRZZR0P-3FkHa5U8bsCX0JA@mail.gmail.com>
-Subject: Re: [PATCH v1 0/2] ACPI: fan: Ad-hoc cleanups
-To: Armin Wolf <W_Armin@gmx.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Tue, 21 Jul 2026 21:28:43 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0ga2mZ_S0nO8Q-NSN7ZuF9qwhUZ2opxUX_2XGMdg9qFag@mail.gmail.com>
+X-Gm-Features: AUfX_mzydc3UWeDKdYi2wyHCHg60BRi_uT3lpOQOWTbMUbjmAo8RHZGACaFwxZs
+Message-ID: <CAJZ5v0ga2mZ_S0nO8Q-NSN7ZuF9qwhUZ2opxUX_2XGMdg9qFag@mail.gmail.com>
+Subject: Re: [PATCH v1 1/1] ACPI: NHLT: Remove always included kconfig.h
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, 
+	linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Len Brown <lenb@kernel.org>, Saket Dumbre <saket.dumbre@intel.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Jul 18, 2026 at 1:02=E2=80=AFAM Armin Wolf <W_Armin@gmx.de> wrote:
+On Fri, Jul 17, 2026 at 7:16=E2=80=AFPM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
 >
-> Am 17.07.26 um 19:08 schrieb Andy Shevchenko:
+> The inclusion of <linux/kconfig.h> is unneeded as it's guaranteed by
+> the build starting from the commit 2a11c8ea20bf ("kconfig: Introduce
+> IS_ENABLED(), IS_BUILTIN() and IS_MODULE()"). Remove it here.
 >
-> > The main purpose of my work is to clean up always included linux/kconfi=
-g.h.
-> > But there is room to improve the drivers/acpi/fan.h. Hence this small s=
-eries.
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  include/acpi/nhlt.h | 1 -
+>  1 file changed, 1 deletion(-)
 >
-> Reviewed-by: Armin Wolf <W_Armin@gmx.de>
+> diff --git a/include/acpi/nhlt.h b/include/acpi/nhlt.h
+> index 2108aa6d0207..370958d93706 100644
+> --- a/include/acpi/nhlt.h
+> +++ b/include/acpi/nhlt.h
+> @@ -10,7 +10,6 @@
+>  #define __ACPI_NHLT_H__
 >
-> >
-> > Andy Shevchenko (2):
-> >    ACPI: fan: Don't use "proxy" headers
-> >    ACPI: fan: Update ACPI fan IDs to follow modern style
-> >
-> >   drivers/acpi/fan.h | 25 +++++++++++++------------
-> >   1 file changed, 13 insertions(+), 12 deletions(-)
+>  #include <linux/acpi.h>
+> -#include <linux/kconfig.h>
+>  #include <linux/overflow.h>
+>  #include <linux/types.h>
+>
+> --
 
 Applied as 7.3 material, thanks!
