@@ -1,143 +1,183 @@
-Received: from SN4PR0501CU005.outbound.protection.outlook.com (mail-southcentralusazon11011008.outbound.protection.outlook.com [40.93.194.8])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 488E746D0A4;
-	Tue, 21 Jul 2026 18:26:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.194.8
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784658395; cv=fail; b=KJrPSbhWm1qfAA83zEnsEO/7ivKqXJqX8EQxoozOV07D/fvK6wsalXcupLiyxq173I3KmVA8Ana9mjIqNa8O+FM1JipF/tC+YxTg/LsmAUfMNTkHXNaX35crhtyJuGuCAZi9cZpJz+u3Bf3hL99BqzwOvSOgB+IXi59E9VOgM3M=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784658395; c=relaxed/simple;
-	bh=JGZRxkXmRhTi+lz3L7DahycgtvyRoMqiL+fS6bQZC5o=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=aKRLZAHvDkiyemNF1IiAFPcGWeMD4QP+TpswyROl/6S/34F2gjFpUaXFcNn3W04w8144Jn6cD+ypUd91Ks9hNPs6T05U4vaqAGbeXtMWTCGS/olkOo0xe4oFIQgG13A8iuNon5zPRLIiuQSXm2yQIjLTaaoLAjpYv2rUxKDKOvU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=tlb7nyYe; arc=fail smtp.client-ip=40.93.194.8
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D76946EC82
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 19:04:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784660676; cv=none; b=Yo5yYT2gTybX5U8WIS0PPYQkcY++CmzSh614WstaEzhla++y+eBPt9C2iefgv7Ygg4D8L8mhBiMs7hHnXyi6fsg0/u4KghoPOSh1d3n7Fy3/QWSFTnQxoHiFbDPSLcu0BK9A6p1rFl35R6imAp2Oln09iA+U7nkuBlW4mQ2+4pE=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784660676; c=relaxed/simple;
+	bh=XmrxWTkcjVspufkodyx+ge4eYe4VLMyPyPEm+0gNY1E=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=BhIlfmqcL3TCtOYUeGBwLNfPnnykzTHH33hHxPEj5+s+L7DSChMpUb0/KZFprfq2ZL5MJBrQNnLBO6765f9PZzMIDFK41zdP4CaxP45ZK4GfXG7FRZlhCeo+U1J0NyrcNLYFSNyhfazPMga6ZKdFujCAUyR6biYwsx7AZg5Gm20=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kU2ucBuS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="tlb7nyYe"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=sC9q1lyhgc6xSAUNZni/Kk8ssPWukgsQ+iA4fjroUPIPgCMT0bPDHVJ3H0KN7wfVMQ0n+kcRkVh+a4Xia+iIpNvPwh9p3sQverYsIKtYvCHmJGQE1LpHspKtOZadFOEdlu89yhz0trt/0XUXyd9SGlPsR+gL7fokEakF3DEdRAqC6jTk2j59HHy5fssrIPV028g+LOZz3VTFQf3ywMJgsa/ONG00XJNzIGC55PTUXjdPvKc83hzeY3SH9rhFdJcNWwXQ2Ob9LfWHaalHcdZ0uz0YsqefnwM5JVED43IQDSkOan5U+7qZARNz7IBeoMqNa6lczHIUyNZ50A5bixVfWA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=ED5cuYD9Sn6qvCZ6kD+K+Nl03TAnTRSJV8ztbMTkaCk=;
- b=sS+b7e1wOPbCiO9qUDeNHQjrqbYcbsGHGjyeVp6/Dm4QdItWVCJJyGY/LYXvsCRwYlskgUYbBe5tQcX995flxgQaaJ4CYKXZrgydy3pNKyOJ9wTzNv+2E4hhSNr1R1Fq/ijS+OI1neCRoZk6dStjZzJKhp6rClIVkOu20UkXIr09rzA3W2y2CXjOHBCvnLrD20+X3lXdfBiT46UMuuSwDLwMDQISx/Ckaxa1mFUKu+N2cLzpxRk7cZVMHmm7gmisHjTgIcZC2h8ge5sIbVEAz+irB/bzktkwu/hVCZft9EXMiVftePqCMQR6bD7z7ym1y18y3acY9paQC5sRlod43Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ED5cuYD9Sn6qvCZ6kD+K+Nl03TAnTRSJV8ztbMTkaCk=;
- b=tlb7nyYeG7FskCOb/iF8HWNbyptP59XlwoXZf2hq4yq/263QHjK7PIIpqN3UpgV3bpLlJ0yHvMuZ4STQtHchORVAiXODUxca/oK7kSbxw0aOASrEbppQsDU8oqqZUKOCokye3xQUEksXQ/bd5ir7sVBe2SBN/UirbZN1CS01iS3q92utdLAyHaGkS8suKe7d5Up0Z6bfLkGrVWEHJd7jCSq1x03FyfqYSs+BBr8ZE4vdJbeAN/S1qzlfXylScadweXGPsaHpfp34slgTwtcvQ7E+9wfoYa7m1hGh5O5rl6Am58u2IO1dkPkWVMIkoUwYbnzYsJvmvVjqWYl2jU2Uxg==
-Received: from CH2PR18CA0031.namprd18.prod.outlook.com (2603:10b6:610:55::11)
- by MN2PR12MB4343.namprd12.prod.outlook.com (2603:10b6:208:26f::9) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.223.18; Tue, 21 Jul
- 2026 18:26:26 +0000
-Received: from CH1PEPF0000AD7D.namprd04.prod.outlook.com
- (2603:10b6:610:55:cafe::45) by CH2PR18CA0031.outlook.office365.com
- (2603:10b6:610:55::11) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.223.18 via Frontend Transport; Tue,
- 21 Jul 2026 18:26:26 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- CH1PEPF0000AD7D.mail.protection.outlook.com (10.167.244.86) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.245.5 via Frontend Transport; Tue, 21 Jul 2026 18:26:26 +0000
-Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Tue, 21 Jul
- 2026 11:26:06 -0700
-Received: from 82875d6-lcedt.nvidia.com (10.126.231.37) by
- rnnvmail201.nvidia.com (10.129.68.8) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.20; Tue, 21 Jul 2026 11:26:04 -0700
-From: Nirmoy Das <nirmoyd@nvidia.com>
-To: <linux-acpi@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>, Nirmoy Das <nirmoyd@nvidia.com>,
-	<stable@vger.kernel.org>, Kees Cook <kees@kernel.org>, Tony Luck
-	<tony.luck@intel.com>, "Guilherme G. Piccoli" <gpiccoli@igalia.com>, "Rafael
- J. Wysocki" <rafael@kernel.org>, Borislav Petkov <bp@alien8.de>, Hanjun Guo
-	<guohanjun@huawei.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Shuai Xue
-	<xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>, Jeshua Smith
-	<jeshuas@nvidia.com>
-Subject: [PATCH] ACPI: APEI: Fix ERST timeout unit conversion
-Date: Tue, 21 Jul 2026 11:25:51 -0700
-Message-ID: <20260721182551.2434933-1-nirmoyd@nvidia.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kU2ucBuS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 653D91F01558
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 19:04:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784660675;
+	bh=3dioA8pf9XHWq9/2SVxSD3KAwITdY7k4nNvRgGtvA/Q=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=kU2ucBuSU1sHkOZMJsE52DPzCkyBf/i1Yy20edMov4yvyzGYP9z96ZE8s4y9yL0vu
+	 RzQD3o6SdalgXGK/xXN18Y/Xz8ie3Hn+NalHxdGsdWSX1eRBvu8JRk3prksZbiqfvr
+	 Z4FWrkd10jYLSbnYne/wCBnytgiT3UOZmYfsZolahVMhCLXaou4eCHyKd4nU4gCa2D
+	 vs9vTeaF4vFutlpWfrjlYQavLycEe2DJ7dCrauzpQhA3JsXMShOGULe/LBxcdQie6W
+	 6ZFhkFWk6oyggG/6h2HZlNV+G24PlLz13BWmVX7MBacksnzhdGmZTIHBw1k4ccrFFY
+	 uGf0sIcv0Jq6g==
+Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-5b0117d49dcso10782821e87.3
+        for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 12:04:35 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RrkfeFin7i1+A6RSbgpiQtccDFYv0yAyyG7kI7/v4xHB4mXX8aG7PjUsIBFR8vaTvXwqquEl7rUqfPz@vger.kernel.org
+X-Gm-Message-State: AOJu0YxbvoO6g7zw+iaTBjCRW/1LH1YKd2KN7eySVpnOgo1QsjDTU0L2
+	kF0hADqF69acg/j0gKCo4f/EZrf/3FP+xYZNhi/YJCG4bXkvYf1rUFbp2RIkh+r1yIcPG4VpRd6
+	lvQobIniRA2B681pTBH9r4RLVI7+dFz8=
+X-Received: by 2002:a05:6512:63ce:10b0:5b1:4c6f:92f9 with SMTP id
+ 2adb3069b0e04-5b28f864239mr2769254e87.20.1784660673659; Tue, 21 Jul 2026
+ 12:04:33 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
- rnnvmail201.nvidia.com (10.129.68.8)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH1PEPF0000AD7D:EE_|MN2PR12MB4343:EE_
-X-MS-Office365-Filtering-Correlation-Id: 00d43816-63f2-4b4a-60ad-08dee755939d
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|7416014|376014|82310400026|36860700016|1800799024|6133799003|11063799006|56012099006|10067099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	eWqblpuGI7NzmiWG1Df7j98tp4j6pTkGRjfHXf7WA/qr6U3wx4aMtev2xhQl11qr5rnXO7Z/Y+sD3k3UgfbeAZqQ7rfZv1tNECPJ41qW7Mx6/2dPLDjXZE3YxYBgOShMntcr/DZ/lBNTmL1W/xGId6hPHfjySTkK//Qyu1e0TPZtBHZxX7ef8xyO2qlpXIQV/cVWGCTSBGAMTvFbMpQ85R5N5HQdsUp0blqCCUPp1XnfdFb0sYa3Nz53t8IaoDHnUyIfGjy/FfnP2R54Fb2XB4Yj1pXP6Fr0qhQQxK4S36odK24OK+s3NNDIXMLu1IvbHkgCVA7a2rHLNH7pXztuALCotlfSd2HPtAq+pWFWzYMNG/DyVoNTntZTCWgBX7iz7bO7bZpLHUwzGGVkTCsdtsNUnpTwWjgZXI8sEtQrvSPcQumLvXm3i8HL3NsPR5jk6of2pASz+wDDzSGU2X3LNlRzYxo49pFubMeNkQH9OznawdkWDooRVGgx7Nppyn2RF8z96wQfvDEVUbTu5xo51dywurxtWWVN92cuLHx37XNfNzIIEkJknuEFels7+4Hvn2xkGltgaQM8TiT/VzVe0z6S524x4MxIvgiBEpqgwNp/sTZyqhucVc0ooMoEw7vIAhXHwRuGZAyN/DByApEjEhUh9+fpqiAOHpxdvybIpqBLyR8uo5D5gM2IfIrLAWEuDosapRJqNn/1HtX5cCqbxQ==
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(7416014)(376014)(82310400026)(36860700016)(1800799024)(6133799003)(11063799006)(56012099006)(10067099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	caXQjHkqFICAzV0fZQuEAhuDlY5Sttuy+tB13SS1jfLxCjB4beu/rQBVdcGdkKzDy/fgancDlAwkFV6KUyCzMiBDI+5Fou0Mm2qGyaDcGfvi2d3X7PrMdEZl2VbHx7zpi5YjOclsZhYBMnXxPMH7P4umuRYZpM0fvbbmLrT+xyEn3gBsUZfSeZz4IEAsqv4mV1NRTJX56JQQWpYECjj9e/MN1VbOOyeCm24UZ/IcB21/XpAh4lY+0izRgiuCti3W7V54wSC2uFdEZ+/RlQhjgYJ9A0XVPyUGDOZ+1Afk6EJ/pO877nYq66fcnNqcwfYYVrHqPcawyTNBqmM+G0hv4e9ea9eEfUQK8atX/dOLojmvYEQ9JvJtbsHlwpfiNZPIvv+6o4fisBtoWW2aFzPVTjSg4Uhpo+Rto7CbxrmcmaVQcVLR4mnnFyOw8Ln0tzi+
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jul 2026 18:26:26.6425
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 00d43816-63f2-4b4a-60ad-08dee755939d
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CH1PEPF0000AD7D.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB4343
+References: <20260717024502.3520445-1-zhenglifeng1@huawei.com> <20260717024502.3520445-2-zhenglifeng1@huawei.com>
+In-Reply-To: <20260717024502.3520445-2-zhenglifeng1@huawei.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Tue, 21 Jul 2026 21:04:21 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0ggjYqUe+J97=iSBQ5UzqLixQaXKXf=tNre2unPZOvUyQ@mail.gmail.com>
+X-Gm-Features: AUfX_mxafGdaDCgZYKegX2mf7sM8WihZClUjxldyeNLi8YDSRdv8TxjVkSFhHTs
+Message-ID: <CAJZ5v0ggjYqUe+J97=iSBQ5UzqLixQaXKXf=tNre2unPZOvUyQ@mail.gmail.com>
+Subject: Re: [PATCH 1/8] ACPI: CPPC: Prepare cpc_register_resource for
+ Package-type entries
+To: Lifeng Zheng <zhenglifeng1@huawei.com>
+Cc: rafael@kernel.org, viresh.kumar@linaro.org, saket.dumbre@intel.com, 
+	lenb@kernel.org, zhanjie9@hisilicon.com, pierre.gondois@arm.com, 
+	sumitg@nvidia.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-pm@vger.kernel.org, acpica-devel@lists.linux.dev, linuxarm@huawei.com, 
+	lihuisong@huawei.com, yubowen8@huawei.com, zhangpengjie2@huawei.com, 
+	wangzhi12@huawei.com, linhongye@h-partners.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The ACPI specification defines bits 63:32 returned by
-GET_EXECUTE_OPERATION_TIMINGS as the maximum execution time in
-microseconds. erst_get_timeout() instead multiplies the value by
-NSEC_PER_MSEC.
+On Fri, Jul 17, 2026 at 4:46=E2=80=AFAM Lifeng Zheng <zhenglifeng1@huawei.c=
+om> wrote:
+>
+> CPPC v4 (ACPI 6.6, Section 8.4.6.1.2.7) introduces the Resource
+> Priority entry, which is a Package of sub-packages rather than a
+> plain Integer or Buffer register.  The existing cpc_register_resource
+> union only accommodates Integer and Buffer (register descriptor)
+> fields.
+>
+> Add a Package variant to the cpc_entry union so that nested
+> structures such as RESOURCE_PRIORITY can store their element count
+> and a dynamically allocated array of child cpc_register_resource
+> descriptors.
+>
+> Update the CPC_SUPPORTED() macro to recognise Package-type entries
+> with a non-zero element count, and switch the unsupported-Package
+> fallback from a zero Integer to an empty Package (count =3D 0,
+> elements =3D NULL) so that CPC_SUPPORTED() correctly reports such
+> entries as unsupported.
+>
+> No functional change intended; the new Package fields are not yet
+> consumed by any caller.
+>
+> Signed-off-by: Lifeng Zheng <zhenglifeng1@huawei.com>
+> ---
+>  drivers/acpi/cppc_acpi.c | 19 +++++++++++++------
+>  include/acpi/cppc_acpi.h |  8 ++++++++
+>  2 files changed, 21 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 9f572f481241..d7e654f2a66c 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -124,10 +124,16 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_p=
+tr);
+>                                 (reg)->bit_offset =3D=3D 0 &&            =
+   \
+>                                 (reg)->access_width =3D=3D 0)
+>
+> -/* Evaluates to True if an optional cpc field is supported */
+> -#define CPC_SUPPORTED(cpc) ((cpc)->type =3D=3D ACPI_TYPE_INTEGER ?      =
+   \
+> -                               !!(cpc)->cpc_entry.int_value :          \
+> -                               !IS_NULL_REG(&(cpc)->cpc_entry.reg))
+> +/*
+> + * Evaluates to True if an optional cpc field is supported.
+> + * Integer: non-zero value; Buffer: non-NULL register; Package: non-empt=
+y.
+> + */
+> +#define CPC_SUPPORTED(cpc) (((cpc)->type =3D=3D ACPI_TYPE_INTEGER &&    =
+   \
+> +                            !!(cpc)->cpc_entry.int_value) ||           \
+> +                           ((cpc)->type =3D=3D ACPI_TYPE_BUFFER &&      =
+   \
+> +                            !IS_NULL_REG(&(cpc)->cpc_entry.reg)) ||    \
+> +                           ((cpc)->type =3D=3D ACPI_TYPE_PACKAGE &&     =
+   \
+> +                            (cpc)->cpc_entry.package.count !=3D 0))
 
-Use NSEC_PER_USEC to express the firmware-provided microsecond timeout
-in the nanosecond units expected by erst_timedout().
+My immediate concern regarding this change in particular is that it
+potentially causes invalid data structures to be used as "supported".
 
-Fixes: fac475aab70b ("ACPI: APEI: Use ERST timeout for slow devices")
-Cc: stable@vger.kernel.org
-Assisted-by: Codex:gpt-5.6-sol
-Signed-off-by: Nirmoy Das <nirmoyd@nvidia.com>
----
- drivers/acpi/apei/erst.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Suppose that some defective platform firmware supplies a package in a
+field that by the spec can only be a buffer and the length of that
+package is greater than zero.  The macro will produce 'true' then
+which is invalid.
 
-diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index bf65e34615314..15ab797641cfc 100644
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -108,7 +108,7 @@ static inline u64 erst_get_timeout(void)
- 
- 	if (erst_erange.attr & ERST_RANGE_SLOW) {
- 		timeout = ((erst_erange.timings & ERST_EXEC_TIMING_MAX_MASK) >>
--			ERST_EXEC_TIMING_MAX_SHIFT) * NSEC_PER_MSEC;
-+			ERST_EXEC_TIMING_MAX_SHIFT) * NSEC_PER_USEC;
- 		if (timeout < FIRMWARE_TIMEOUT)
- 			timeout = FIRMWARE_TIMEOUT;
- 	}
--- 
-2.43.0
+It looks like there should be three different macros like the above
+for the three different types of _CPC fields: the buffer/integer ones,
+the buffer-only ones and the single package field.
 
+And I'm not sure how much of a value there is in complicating the
+overall parsing of all fields just in order to be able to handle the
+last special one in a "generic" fashion.
+
+As this stands now, it is a "no" from me, sorry.
+
+>
+>  /*
+>   * Each bit indicates the optionality of the register in per-cpu
+> @@ -859,8 +865,9 @@ int acpi_cppc_processor_probe(struct acpi_processor *=
+pr)
+>                          * Mark the register as unsupported for now.
+>                          */
+>                         pr_debug("CPU:%d Resource Priority not supported\=
+n", pr->id);
+> -                       cpc_ptr->cpc_regs[i-2].type =3D ACPI_TYPE_INTEGER=
+;
+> -                       cpc_ptr->cpc_regs[i-2].cpc_entry.int_value =3D 0;
+> +                       cpc_ptr->cpc_regs[i-2].type =3D ACPI_TYPE_PACKAGE=
+;
+> +                       cpc_ptr->cpc_regs[i-2].cpc_entry.package.count =
+=3D 0;
+> +                       cpc_ptr->cpc_regs[i-2].cpc_entry.package.elements=
+ =3D NULL;
+>                 } else {
+>                         pr_debug("Invalid entry type (%d) in _CPC for CPU=
+:%d\n",
+>                                  i, pr->id);
+> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+> index 8693890a7275..1839582b80be 100644
+> --- a/include/acpi/cppc_acpi.h
+> +++ b/include/acpi/cppc_acpi.h
+> @@ -71,6 +71,14 @@ struct cpc_register_resource {
+>         union {
+>                 struct cpc_reg reg;
+>                 u64 int_value;
+> +               /*
+> +                * CPPC v4: nested Package (e.g. RESOURCE_PRIORITY),
+> +                * elements dynamically allocated
+> +                */
+> +               struct {
+> +                       u32 count;
+> +                       struct cpc_register_resource *elements;
+> +               } package;
+>         } cpc_entry;
+>  };
+>
+> --
+> 2.33.0
+>
