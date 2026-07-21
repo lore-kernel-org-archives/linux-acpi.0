@@ -1,159 +1,208 @@
-Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012053.outbound.protection.outlook.com [40.93.195.53])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66F5C31F99C;
-	Tue, 21 Jul 2026 15:45:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.53
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784648764; cv=fail; b=K/8g/TOyOJS+3u5uX1MYvMaqddfET/EziHSvrfiOMRyvFlUJfj8pait3hnLDIMl6+NtOZuhaArc0/d6exjqLWAiGVLhNk5B8wvonkWliEscPs6vazYFi3XOYR/8HV+BRZd4BB3MYbCjhV2LFLBZwyndjio++5b5C3NGBx9zH1j4=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784648764; c=relaxed/simple;
-	bh=pRX95jPAXtzqjd55QEM7pl9oAL7+eHMPZ076dODemOo=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=KcbAFBnSOwprqDO6Z2wa9OGvX4EYfHo8CGPrOrho4mIQAdt9o+4DnUiHLSnv4TEOppRRCkIpemI4OkA1h02n7PvWKk25aQyXmQxog7m+elOPwDY7lWXW3EDFnXQ725DfrAbRrenuigUC3ZIUTO7sjNeUmpPgRmy7jQKh6P18eXM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=ioGgyOdJ; arc=fail smtp.client-ip=40.93.195.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C32AC37702C;
+	Tue, 21 Jul 2026 16:57:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784653054; cv=none; b=IRbrN753ZjpCA6T7YfIGFgXQqlzhM5oKHGOyqgIberrgUUl4YTv4vlltVYk3W9KhvnSTSFf6XTNPRjaWXTKBRaW6zAnylOdo9vjQBdPKn/wja8udyl2TkweCLu2NpcFiXWAw6V40ZUDj2sAnuU2NuQ0w/B/8w933cqIvgPwNsQI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784653054; c=relaxed/simple;
+	bh=sRQJqlL3yg9NvL6hLUmUFuyccZ46xa1FqXuipZq20XU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=tTRpO6GWF+/Z3XcrqW+onXnT52z6NKBPGiP4H7dzptJoFU3FopcaD+clu1527ZbYhbqX4zrIl/31mvSBxJGJsQm7BMb8GgmXFZimXs0r6L4AHyXAGSI1Q4aA9ZXogWs8fogBAa7nEwOQuFH7ts0l0u3mV6JJg7rsv9dhVSAYmr0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=R1YuF8HN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="ioGgyOdJ"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=myvc+qrGJ/c00Ztg+/Hi2uKk9P/73lfFfGdh/WxI3KcBVJ8XOv+ICjwGJPuG/SpAmcwcjRBZeFsG0+CiUZXJuS0+XBLiCk3471/isSahr6vcJD87wWlc+jMFes/YmzQPExOf8APGZJN0rS/3tN8tSfy3rBa5LygRZ7YploF4oVj0DjppRP7pVKZWrNVsM0kxxduLvmlaMYw2RiXJYUxqI3s4cIyQCwnsKQkQdD8vV0gMCs6Tfv3ZEvt4QgC43goO6wVYJZLgEa2FPqCHe2o9pIM3H2OQfYJLNloeGB6lv/gA0enupOzcWRv5/hLQxMwCcXyUGKcM4oY2hLtOYzq0ww==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=iIPQbX+Ki0YmUoxL0n/peqkCwBEP4tPvgF/+NCd/pnU=;
- b=iM+wyZTILroGI/eQRTVSUfeDOQCQ8O6EFI7Hs6BhKZ98NX1AGddCpmX9pb8ugTPk77OmhiDt//bzd5U7txKLufFQjHAbTh4+xfEBayTuvz/Zj2rSxebS0aUmXeJ9kq2CJtLsswDYk0RxOnQz8X4zUW2FnpJooPHHJlh/jyaRNp65PMImR3MbtX7eEw44eRdDVi9gwOH+B8W0e1+ZG0BOvd7mRdu1USxCdIOkqouWWPclr4i9l6vtpem3n+DzCom2tpXUJBKoXtb4b4GlIEraXD4jL1hf1nrlg+4QypdKnKKf62OlE82ssxIMdKH05kY5XcV1UIZu+y1Ubdm8w+GHNA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=iIPQbX+Ki0YmUoxL0n/peqkCwBEP4tPvgF/+NCd/pnU=;
- b=ioGgyOdJhPW0wvG24IVuuXGt+XaC2zCMW9g3VGw4A9TNGVL+/sbcNYqWB939sOsUA+6TcoZhTp+7N6o+OGBG8lk3GyvST1nS+Djcrx2ckJSiMaHqSY16hCZLUK81JUJvQM0U0QzxwWk9BSpOYqX30rygj35XF9Vn023hBGhrw7E=
-Received: from SA0PR11CA0067.namprd11.prod.outlook.com (2603:10b6:806:d2::12)
- by PH0PR12MB7472.namprd12.prod.outlook.com (2603:10b6:510:1e9::9) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.245.10; Tue, 21 Jul
- 2026 15:45:50 +0000
-Received: from SA2PEPF00003AE5.namprd02.prod.outlook.com
- (2603:10b6:806:d2:cafe::68) by SA0PR11CA0067.outlook.office365.com
- (2603:10b6:806:d2::12) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.245.10 via Frontend Transport; Tue,
- 21 Jul 2026 15:45:50 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
-Received: from satlexmb07.amd.com (165.204.84.17) by
- SA2PEPF00003AE5.mail.protection.outlook.com (10.167.248.5) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.245.5 via Frontend Transport; Tue, 21 Jul 2026 15:45:49 +0000
-Received: from airavat.amd.com (10.180.168.240) by satlexmb07.amd.com
- (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.41; Tue, 21 Jul
- 2026 10:45:45 -0500
-From: Vishal Badole <Vishal.Badole@amd.com>
-To: <tglx@kernel.org>, <mingo@redhat.com>, <bp@alien8.de>,
-	<dave.hansen@linux.intel.com>, <x86@kernel.org>, <hpa@zytor.com>,
-	<rafael@kernel.org>, <lenb@kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<peterz@infradead.org>, <tony.luck@intel.com>, <chang.seok.bae@intel.com>,
-	<wei.w.wang@hotmail.com>, Vishal Badole <Vishal.Badole@amd.com>
-Subject: [PATCH v2 2/3] x86/topology: Name the AMD core-type values
-Date: Tue, 21 Jul 2026 21:15:13 +0530
-Message-ID: <20260721154514.2506972-3-Vishal.Badole@amd.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260721154514.2506972-1-Vishal.Badole@amd.com>
-References: <20260721154514.2506972-1-Vishal.Badole@amd.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="R1YuF8HN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 400481F000E9;
+	Tue, 21 Jul 2026 16:57:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784653052;
+	bh=+Yvz1VbNlr+9jCpw+hwc12v+ZMFgJIMsPEyA15hJE1c=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=R1YuF8HN/L+JYcvi+LWKIhjJAyttCWip5wZZoDbEwh9E++DtQG1FIANnZykXIl6v/
+	 noNBP0TsBtEsaXlFGk6eFh4KHeR9ogjv88IcYM1X9MpJinbJ6YSEHx6IyhOV8poNFJ
+	 3BBHJ2FK2aOohLgtAn1iPVAikwjkHamS+25wrcEh2NbgHH2M2IxYFWk85Je0pnIDQA
+	 59TdLS/N17xc33HmNG6EtcnvVRHg29/y/tTFOEu3Et0cuJ0UUpUKByHtaFcYefEp/k
+	 cZikFt3yp3OswMpyzrX6xOHVpM2GQCPCr9/VP5ARFD3IYil71uscMXOGQQ45Lfvwn8
+	 MrwZUpnoeparg==
+Date: Tue, 21 Jul 2026 17:57:26 +0100
+From: Mark Brown <broonie@kernel.org>
+To: Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc: Marco Giunta <marco_giunta@outlook.it>, tiwai@suse.com, perex@perex.cz,
+	lgirdwood@gmail.com, LKML <linux-kernel@vger.kernel.org>,
+	linux-sound@vger.kernel.org,
+	"Rafael J. Wysocki" <rafael@kernel.org>, lenb@kernel.org,
+	Hans de Goede <hansg@kernel.org>, linux-acpi@vger.kernel.org,
+	platform-driver-x86@vger.kernel.org, wangweidong.a@awinic.com,
+	nadim@symbolic.software, imitoy@imitoy.top, munzirtaha@gmail.com,
+	yakov.till@gmail.com
+Subject: Re: [PATCH 1/8] ASoC: aw88399: extract shared device library
+Message-ID: <dee6db83-7e09-4d72-91d7-c85ae1309550@sirena.org.uk>
+References: <DS7PR19MB77247D9AD698CF0FF37DB58BFCC62@DS7PR19MB7724.namprd19.prod.outlook.com>
+ <DS7PR19MB772415C485FAF74297673FD7FCC62@DS7PR19MB7724.namprd19.prod.outlook.com>
+ <68b8e29c-e7d4-ca19-2e40-ad3eade6d94d@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
- (10.181.42.216)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA2PEPF00003AE5:EE_|PH0PR12MB7472:EE_
-X-MS-Office365-Filtering-Correlation-Id: e972d1d3-9caa-4020-75c1-08dee73f2382
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|1800799024|32650700020|82310400026|36860700016|376014|7416014|11063799006|56012099006|10067099003|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	iKNg/Xe8B6OCqWtlru5cEaJSjoruvTqVmU8a9K3Z/ZwfNi9u+JLXiDy6oeiUwiMaY07ImdMITC++aK2YwR3Arb/NhUOR4e+Jhqlo+ts1Aa3pTISCRZ6IxP+bx0C1pnAs9rNMeeiEjQ/H/Kx55/NxRnSKTHhU3Vnkco7gXvMtT2yJAIke0AE+uJU8geke+CwSL49d8T1B/TpNi6CP3GfLgRY/ZJRiY8umdDbRT7ZoTW69cz8yqfbadg9oGzVTRVc+/Uf1klwemyT1kNrV0im74FF77kHIJFaBKQkGlvIQ0Bs+16iCSeHY/dYsJhSxhcgB0n7MsKBra+v17Mvl5fYdmjgWKxMGpazSnJr42+AO+mArL9ROGJcTzg+VrVBcJ1g8CYXAP94hcoD0MDFFZDIbVX61vgymZ/pAXE6XCL6w1NFAc0RJpcR2zTFjce/4UybnzFZod4pJJVsaHEG7csiz0CGK/k3PW3SNMbCmB085/rr4+s6dFDOpWF585RrrhT/fgMFdFAIxynW0wthRqa1CpSVisLt6YepJijWIefY24I0OCnpLxLTPYDbwnCoMxsG/VHsa9HBRSm4NClhi64dI9nuC0/xa6kcJTMaJiMGl2YbDLGCUbBHKUTPEG5n7y/qmaQTK82fNVAi1360MBfSkquO89fAVBcmiIq/l1EL7+Rupla1t/IvlwfbUcWEC75PcmN3c5J0ZXry45Pl3zrgSgQ==
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(32650700020)(82310400026)(36860700016)(376014)(7416014)(11063799006)(56012099006)(10067099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	BrwW/r9fElYtKtQoedF8Yyr6KNNWMH8qwExEWo079T7TkqCKgPIGHmuWNZXg3IjYA3CI0URIksg+J7WAIQIBrmFRekLWeOCrO/uqaOJKCrvuMcaEV2D9PjgT8LDOwxnJxjQmFGkdJfupxaBci2czB7AScIFGF3aLJ5gldC7AiaHyHCji2welQO46JabNPatoixN3cMjXWe4UHjvX6wkf+F8R6OH9jQB4SpU5cVqELWjf6iRGuKgTJ/xH80z7wyopzDzP2K9tsDxuRMr6Fr3GWDNFZJrmsqKfT4xjz4TQlfBl6nU70ZOab2QD4FgMGMxZW58w4/gBuO8+F9EY1gB42yKKWJzL19O1yFByTZKuUpxmDHk5ZHJRbQfOKCAfQ3UtGkH+SICsO6Y/Ch3QXcFnj3TbKLqLoJRyKCODSBhiz+p7Da7g0UiG9hCreD72CcWR
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jul 2026 15:45:49.7262
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: e972d1d3-9caa-4020-75c1-08dee73f2382
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	SA2PEPF00003AE5.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR12MB7472
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="FS0zc9MIoz7/weKh"
+Content-Disposition: inline
+In-Reply-To: <68b8e29c-e7d4-ca19-2e40-ad3eade6d94d@linux.intel.com>
+X-Cookie: Love America -- or give it back.
 
-Replace the bare 0/1 in get_topology_cpu_type() with named constants
-that mirror what the AMD APM publishes for CPUID Fn0x80000026
-EBX[31:28] (Extended CPU Topology, Core Type):
 
-  0 - Performance core
-  1 - Efficient core
-  2 - Low-power core (used by a follow-up)
+--FS0zc9MIoz7/weKh
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-No functional change.
+On Tue, Jul 21, 2026 at 06:21:04PM +0300, Ilpo J=E4rvinen wrote:
+> On Fri, 17 Jul 2026, Marco Giunta wrote:
+>=20
+> > Extract the device-level functions from aw88399.c into a new shared
+> > library module (aw88399-lib.c) with a shared header at
+> > include/sound/aw88399.h, following the pattern established by CS35L41
+> > (cs35l41-lib.c / include/sound/cs35l41.h) for chips that need both
+> > ASoC and HDA drivers.
+> >=20
+> > The shared header at include/sound/aw88399.h contains the register
+> > definitions, bit-field masks, hardware constants, device enums, the
+> > struct aw88399 definition, and the library function declarations.
+> > The ASoC-private header at sound/soc/codecs/aw88399.h is reduced to
+> > ASoC-specific definitions (PCM formats/rates, ALSA kcontrol helpers,
+> > calibration constants) and includes the shared header.
+> >=20
+> > The library contains the chip initialization, firmware loading,
+> > playback start/stop sequences, and all their internal dependencies
+> > (PLL checks, DSP management, volume control, calibration, CRC
+> > verification, etc.). The ASoC codec driver retains the ALSA controls,
+> > DAPM widgets, codec probe/remove, calibration service, and I2C bus
+> > driver registration.
+> >=20
+> > A new Kconfig symbol SND_SOC_AW88399_LIB is introduced.
+> > SND_SOC_AW88399 (the existing ASoC codec) selects it, ensuring no
+> > change for current users. The HDA side codec driver (introduced
+> > later in this series) selects the library without pulling in the
+> > full ASoC codec module. This avoids a build-time dependency on the
+> > full ASoC driver and follows the established pattern used by CS35L41
+> > (SND_SOC_CS35L41_LIB) for chips with both ASoC and HDA drivers.
+> >=20
+> > Some library functions (DSP control, volume setting, mute,
+> > calibration updates, profile management, and status helpers) are
+> > used internally by the library's start/stop sequences but are also
+> > called directly by the ASoC driver's remaining code.
+> > These are exported from the library so the ASoC module can access them.
+> >=20
+> > This is a pure code movement with no functional changes. The moved
+> > functions are identical to their originals in aw88399.c.
+> >=20
+> > Tested-by: Nadim Kobeissi <nadim@symbolic.software>
+> > Tested-by: Xia Yun'an <imitoy@imitoy.top>
+> > Tested-by: Munzir Taha <munzirtaha@gmail.com>
+> > Signed-off-by: Marco Giunta <marco_giunta@outlook.it>
+> > ---
+> >  include/sound/aw88399.h        |  618 ++++++++++++++
+> >  sound/soc/codecs/Kconfig       |    5 +
+> >  sound/soc/codecs/Makefile      |    2 +
+> >  sound/soc/codecs/aw88399-lib.c | 1381 ++++++++++++++++++++++++++++++++
+> >  sound/soc/codecs/aw88399.c     | 1349 -------------------------------
+> >  sound/soc/codecs/aw88399.h     |  582 +-------------
+> >  6 files changed, 2008 insertions(+), 1929 deletions(-)
+> >  create mode 100644 include/sound/aw88399.h
+> >  create mode 100644 sound/soc/codecs/aw88399-lib.c
+> >=20
+> > diff --git a/include/sound/aw88399.h b/include/sound/aw88399.h
+> > new file mode 100644
+> > index 000000000000..3a2153f0ee92
+> > --- /dev/null
+> > +++ b/include/sound/aw88399.h
+> > @@ -0,0 +1,618 @@
+> > +/* SPDX-License-Identifier: GPL-2.0-only
+> > + *
+> > + * linux/sound/aw88399.h --  Platform data for AW88399
+> > + *
+> > + * Copyright (c) 2023 AWINIC Technology CO., LTD
+> > + *
+> > + * Author: Weidong Wang <wangweidong.a@awinic.com>
+> > + */
+> > +
+> > +#ifndef __SOUND_AW88399_H
+> > +#define __SOUND_AW88399_H
+> > +
+> > +#include <linux/mutex.h>
+> > +#include <linux/workqueue.h>
+> > +
+> > +/* registers list */
+> > +#define AW88399_ID_REG			(0x00)
+> > +#define AW88399_SYSST_REG		(0x01)
+> > +#define AW88399_SYSINT_REG		(0x02)
+> > +#define AW88399_SYSINTM_REG		(0x03)
+> > +#define AW88399_SYSCTRL_REG		(0x04)
+> > +#define AW88399_SYSCTRL2_REG		(0x05)
+> > +#define AW88399_I2SCTRL1_REG		(0x06)
+> > +#define AW88399_I2SCTRL2_REG		(0x07)
+> > +#define AW88399_I2SCTRL3_REG		(0x08)
+> > +#define AW88399_DACCFG1_REG		(0x09)
+> > +#define AW88399_DACCFG2_REG		(0x0A)
+> > +#define AW88399_DACCFG3_REG		(0x0B)
+> > +#define AW88399_DACCFG4_REG		(0x0C)
+> > +#define AW88399_DACCFG5_REG		(0x0D)
+> > +#define AW88399_DACCFG6_REG		(0x0E)
+> > +#define AW88399_DACCFG7_REG		(0x0F)
+> > +#define AW88399_MPDCFG1_REG		(0x10)
+> > +#define AW88399_MPDCFG2_REG		(0x11)
+> > +#define AW88399_MPDCFG3_REG		(0x12)
+> > +#define AW88399_MPDCFG4_REG		(0x13)
+> > +#define AW88399_PWMCTRL1_REG		(0x14)
+> > +#define AW88399_PWMCTRL2_REG		(0x15)
+> > +#define AW88399_PWMCTRL3_REG		(0x16)
+> > +#define AW88399_I2SCFG1_REG		(0x17)
+> > +#define AW88399_DBGCTRL_REG		(0x18)
+> > +#define AW88399_HAGCST_REG		(0x20)
+> > +#define AW88399_VBAT_REG		(0x21)
+> > +#define AW88399_TEMP_REG		(0x22)
+> > +#define AW88399_PVDD_REG		(0x23)
+> > +#define AW88399_ISNDAT_REG		(0x24)
+> > +#define AW88399_VSNDAT_REG		(0x25)
+> > +#define AW88399_I2SINT_REG		(0x26)
+> > +#define AW88399_I2SCAPCNT_REG		(0x27)
+> > +#define AW88399_ANASTA1_REG		(0x28)
+> > +#define AW88399_ANASTA2_REG		(0x29)
+> > +#define AW88399_ANASTA3_REG		(0x2A)
+> > +#define AW88399_TESTDET_REG		(0x2B)
+> > +#define AW88399_DSMCFG1_REG		(0x30)
+> > +#define AW88399_DSMCFG2_REG		(0x31)
+> > +#define AW88399_DSMCFG3_REG		(0x32)
+> > +#define AW88399_DSMCFG4_REG		(0x33)
+> > +#define AW88399_DSMCFG5_REG		(0x34)
+> > +#define AW88399_DSMCFG6_REG		(0x35)
+> > +#define AW88399_DSMCFG7_REG		(0x36)
+> > +#define AW88399_DSMCFG8_REG		(0x37)
+> > +#define AW88399_TESTIN_REG		(0x38)
+> > +#define AW88399_TESTOUT_REG		(0x39)
 
-Suggested-by: Borislav Petkov (AMD) <bp@alien8.de>
-Signed-off-by: Vishal Badole <Vishal.Badole@amd.com>
----
- arch/x86/include/asm/topology.h       | 6 ++++++
- arch/x86/kernel/cpu/topology_common.c | 4 ++--
- 2 files changed, 8 insertions(+), 2 deletions(-)
+Please delete unneeded context from mails when replying.  Doing this
+makes it much easier to find your reply in the message, helping ensure
+it won't be missed by people scrolling through the irrelevant quoted
+material.
 
-diff --git a/arch/x86/include/asm/topology.h b/arch/x86/include/asm/topology.h
-index ef76ba674f1b..1825691af941 100644
---- a/arch/x86/include/asm/topology.h
-+++ b/arch/x86/include/asm/topology.h
-@@ -114,6 +114,12 @@ enum x86_topology_domains {
- 	TOPO_MAX_DOMAIN,
- };
- 
-+enum amd_cpu_type {
-+	AMD_CPU_TYPE_PERFORMANCE	= 0,
-+	AMD_CPU_TYPE_EFFICIENCY		= 1,
-+	AMD_CPU_TYPE_LOW_POWER		= 2,
-+};
-+
- struct x86_topology_system {
- 	unsigned int	dom_shifts[TOPO_MAX_DOMAIN];
- 	unsigned int	dom_size[TOPO_MAX_DOMAIN];
-diff --git a/arch/x86/kernel/cpu/topology_common.c b/arch/x86/kernel/cpu/topology_common.c
-index b9d025f3373a..71b6c33afe0b 100644
---- a/arch/x86/kernel/cpu/topology_common.c
-+++ b/arch/x86/kernel/cpu/topology_common.c
-@@ -42,8 +42,8 @@ enum x86_topology_cpu_type get_topology_cpu_type(struct cpuinfo_x86 *c)
- 	}
- 	if (c->x86_vendor == X86_VENDOR_AMD) {
- 		switch (c->topo.amd_type) {
--		case 0:	return TOPO_CPU_TYPE_PERFORMANCE;
--		case 1:	return TOPO_CPU_TYPE_EFFICIENCY;
-+		case AMD_CPU_TYPE_PERFORMANCE:	return TOPO_CPU_TYPE_PERFORMANCE;
-+		case AMD_CPU_TYPE_EFFICIENCY:	return TOPO_CPU_TYPE_EFFICIENCY;
- 		}
- 	}
- 
--- 
-2.34.1
+--FS0zc9MIoz7/weKh
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmpfpPYACgkQJNaLcl1U
+h9BxUQf/VY4NV9txVgbL/xVoZWTQK42ZZf9Bvx1/gYkSUOgdULWJQdxwa+QgvxY7
+AGmJ9518BfnupE9ijpZmJDNy8J8RyXkKliBf4Nt1eSdAiXLpIqqcskNh/fvgD7HH
+qMlxjYPBuX3KgVQXn2LuDQvHJDr6mjmP8lf86U3wwTCgkGzapn4NfrlAcKgkK48u
+izYF7tZtmv+leLA5hj0VR9H7UsjwxD94c7oloFljQ4ZoExSEFV6kPE4sICIX36EC
+kDMmxBqEq7rzBTp971Vvna6MRkfJe+T/LercTnpz7ul13U/4xyJhPOPoXIyZ36I1
+uQtyrHVOXSlvoJgNSG+3XSEbXChHbA==
+=FdbR
+-----END PGP SIGNATURE-----
+
+--FS0zc9MIoz7/weKh--
