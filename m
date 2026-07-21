@@ -1,143 +1,68 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECD933770B;
-	Tue, 21 Jul 2026 13:16:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E59B8360EE8
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 13:25:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784639798; cv=none; b=IYksEZf6BWySMQ8d7MAtQqvtVSERNfmz+b4xOEOLQ+Zg5dxFeTUh8C5qVcquzDMNgVXK9q70awrSV17lOliYDDUIcseGQ6w4j0RlDt561Yh9jea9Td9EMQT5pmKgRtGoYDBZhiX9PvQ4PHBv5vkmnhDfiT18aOcOTxAHnvyePoc=
+	t=1784640344; cv=none; b=FENyadIv1OSJOKRnQi0W7ZmAb6BNuCbujTjJSwKcIMGTOTTsOducNM22ey4MNeDKs1FYtDUUgGl/nLnWll9777kUdOveQ+xWtCfreHwODpx5XW80TZhtuWjxmgvG2ND1zLwUJwcnrzPBzqwDMSVfoJC1p7u+ddXmqm8nRuohnHM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784639798; c=relaxed/simple;
-	bh=jfQmwv+uoiwTByYfs4A18a+0dg2n1FcRj9Mr4XtxRP0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ftyYoeMd7xPu9bz/CQRSkxlTBEWytrECGb9v/wMN66aLg+hB3q79KcT4E9a5jKJdUKuizgzd2r9TE9mN6iYUOMk83d3cCwkXhJvXuCf3/kuApXxrNgNyupSHzzMoFXpaT4oCMrm8+p/h/QucrHZjDDhtm0yJ325wKcGYfsyz6P4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GqcoB5K+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784640344; c=relaxed/simple;
+	bh=hg3r3rHhdHBLluXAp0WXBWlTRUfEV4ZufSgvWF2Rk+o=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=OE/7c3uS+e82Q/vy49I97itYOfTJqd3G43RKBzfkamEMYtcasKSSy5x1mv77w213U4gplvRJOVF+sC+IK42v12siPTSwOLPw8quHjjf0owiAzx/KiUtLboqm4MYxTHzubj/qd8FU9ZKiWAUiu5/qrAN2FgwD1U/vdhSnpFaJxGE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TOlFZBze; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GqcoB5K+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5F711F000E9;
-	Tue, 21 Jul 2026 13:16:34 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TOlFZBze"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A675F1F00ACA
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 13:25:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784639796;
-	bh=Z68Uv69iIUzjwmFfcQ+y7UEZn87K8+QoBUzv/mYRziI=;
-	h=From:To:Cc:Subject:Date;
-	b=GqcoB5K+d0Fp51tE3iGG1jb8S5ZNc3p76mz3CVwJws5XJBf2ul6MzTLgw2J8J7E/A
-	 01H+BTZnDqAcSk3jMpsYghbc/GqrSpPayGyhGUQsJGDoiT2ELh4EulA7Uo7rKii1iW
-	 CctxxuetdSF/46nYAowZ+Tan2VknIuAQ3bO72YfxiVSXPyhZniEQw6m3BI6fP0PRa2
-	 x5aWFXzFBOLpyCR6G+LR8W2TWf3cMaMrJQQI1uIssnqWrZ88faTOx/aUJyjWE1+Ywx
-	 3U+7fJcXKbtSxJy4DWBux836Pfi3ywBva7OwOK4S4O8ONinjTZQ253u5oewycBMjQF
-	 Uy+1yzuYmN5gA==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: golne tree <lrepper@outlook.de>, LKML <linux-kernel@vger.kernel.org>,
- Linux PM <linux-pm@vger.kernel.org>,
- Ata =?utf-8?B?xLBsaGFuIEvDtmt0w7xyaw==?= <atailhan2006@gmail.com>
-Subject: [PATCH v2] ACPI: battery: Adjust charging status validation check
-Date: Tue, 21 Jul 2026 15:16:31 +0200
-Message-ID: <6286911.lOV4Wx5bFT@rafael.j.wysocki>
-Organization: Linux Kernel Development - Intel
+	s=k20260515; t=1784640342;
+	bh=hg3r3rHhdHBLluXAp0WXBWlTRUfEV4ZufSgvWF2Rk+o=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=TOlFZBzeG/KSQgbMDkfUvLuxtiU0E835Yth5rBlPgp2Qik1xmWL4lkBvv9rxQOdLx
+	 xmvElpnRhAvX/gbgj4n823msNyY5u/tSrX0AZ8gDb51kwp9tR4j8RWx2fVahqRWS/W
+	 UnmUKbTz/2bITrHhL1Ix9hkWyK1NmdymeUt5jj9OCrGZygfyHYGbACyGKACCQOzN3D
+	 7X2iB7jHZwFg+VTswHZ36VQ41/xf49GYJw83bJYhHn/OOpdKFUp2wgp/xgS0MFRLDu
+	 A+XmHWaw3Lv9UZOPmuY/51uhcoDSg9gLNpLCeFfSBkIK16tZsaBEpETld2sOsUycFN
+	 cZOs/Qi0zMgKQ==
+Received: by mail-lf1-f48.google.com with SMTP id 2adb3069b0e04-5b011edaf7dso9932391e87.2
+        for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 06:25:42 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RoOtbWG9oSpOsaxxEKAdjv4qpr9R7fGKVJQHq2+SCJbPnKby1P0VuK4O7Tj2BOHCbdCbnVSKF8eeP4a@vger.kernel.org
+X-Gm-Message-State: AOJu0YyWKqj/Lo/EXMd+4BOFbSSPg5YJvF4iAid0zX0Ouqs8rYTrf8Ss
+	Wch3Zj5+y71Ichz8IZUBG1FsPSHVrsldZyRIRG+pMq4oiCXGnF65X4IvzDCc4ECf/KQwxpaLfvd
+	I4J2HX0PuqtaLZ1twptPmjODgYBdmWTE=
+X-Received: by 2002:a05:6512:39c7:b0:5b2:a328:cdd5 with SMTP id
+ 2adb3069b0e04-5b2a328cef0mr1440639e87.49.1784640340999; Tue, 21 Jul 2026
+ 06:25:40 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+References: <20260710053106.730399-1-rdunlap@infradead.org> <532f6e46-ee9f-4170-8ec4-72374e761cb0@lunn.ch>
+In-Reply-To: <532f6e46-ee9f-4170-8ec4-72374e761cb0@lunn.ch>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Tue, 21 Jul 2026 15:25:27 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hAMdafpPD0KL-OkNqw+1D5BJDbDd=rWgCR9-NTkovGgQ@mail.gmail.com>
+X-Gm-Features: AUfX_mxXNh_iEn9L5HnP2L_qFMduzYLKmEhs93aMG1pc4wGHGSi8H6gqxV6ssxE
+Message-ID: <CAJZ5v0hAMdafpPD0KL-OkNqw+1D5BJDbDd=rWgCR9-NTkovGgQ@mail.gmail.com>
+Subject: Re: [PATCH] docs: ACPI: DSD: motorcomm: fix docs build error
+To: Andrew Lunn <andrew@lunn.ch>, Randy Dunlap <rdunlap@infradead.org>
+Cc: linux-kernel@vger.kernel.org, "chunzhi.lin" <linchunzhi0@gmail.com>, 
+	Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org, 
+	Russell King <linux@armlinux.org.uk>, linux-acpi@vger.kernel.org, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+	Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+On Fri, Jul 10, 2026 at 6:37=E2=80=AFPM Andrew Lunn <andrew@lunn.ch> wrote:
+>
+> On Thu, Jul 09, 2026 at 10:31:06PM -0700, Randy Dunlap wrote:
+> > Separate the title with commas (since they are all run togethe in the
+>
+> nitpick: together.
 
-Commit bb1256e0ddc7 ("ACPI: battery: fix incorrect charging status when
-current is zero") added a charge rate check to validate the "charging"
-status of the battery, but that check is reported to cause some systems
-to misbehave [1].  Namely, it causes the "not charging" status to be
-reported on them while the battery is in fact charging (and they were
-correctly reporting the "charging" status in that case previously).
-
-To address that, check if the battery is full in addition to checking
-the charge rate when the "charging" status is reported by the platform
-firmware and only change it to "not charging" if the battery is full and
-its charge rate is zero or it is unknown.
-
-Fixes: bb1256e0ddc7 ("ACPI: battery: fix incorrect charging status when current is zero")
-Reported-by: golne tree <lrepper@outlook.de>
-Tested-by: golne tree <lrepper@outlook.de>
-Closes: https://lore.kernel.org/linux-acpi/AM9P193MB158895CFE0DDFA62FCD1DA5ED0F22@AM9P193MB1588.EURP193.PROD.OUTLOOK.COM/ [1]
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
-v1 -> v2:
-   * Do not report batteries with unknown capacity as full (Sashiko)
-   * Adjust the changelog to say that the status is also changed to "not
-     charging" if the battery is full and its charge rate is unknown (Sashiko)
-
-@lrepper@outlook.de: It would be good to test this version too.
-
----
- drivers/acpi/battery.c |   36 +++++++++++++++++++-----------------
- 1 file changed, 19 insertions(+), 17 deletions(-)
-
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -150,27 +150,28 @@ static int acpi_battery_technology(struc
- 
- static int acpi_battery_get_state(struct acpi_battery *battery);
- 
--static int acpi_battery_is_charged(struct acpi_battery *battery)
-+static bool acpi_battery_is_full(struct acpi_battery *battery)
- {
--	/* charging, discharging, critical low or charge limited */
--	if (battery->state != 0)
--		return 0;
--
- 	/* battery not reporting charge */
- 	if (battery->capacity_now == ACPI_BATTERY_VALUE_UNKNOWN ||
- 	    battery->capacity_now == 0)
--		return 0;
-+		return false;
- 
- 	/* good batteries update full_charge as the batteries degrade */
- 	if (battery->full_charge_capacity == battery->capacity_now)
--		return 1;
-+		return true;
- 
- 	/* fallback to using design values for broken batteries */
--	if (battery->design_capacity <= battery->capacity_now)
--		return 1;
-+	return battery->design_capacity <= battery->capacity_now;
-+}
- 
--	/* we don't do any sort of metric based on percentages */
--	return 0;
-+static int acpi_battery_is_charged(struct acpi_battery *battery)
-+{
-+	/* charging, discharging, critical low or charge limited */
-+	if (battery->state != 0)
-+		return 0;
-+
-+	return acpi_battery_is_full(battery);
- }
- 
- static bool acpi_battery_is_degraded(struct acpi_battery *battery)
-@@ -211,13 +212,14 @@ static int acpi_battery_get_property(str
- 		if (battery->state & ACPI_BATTERY_STATE_DISCHARGING)
- 			val->intval = acpi_battery_handle_discharging(battery);
- 		else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
--			/* Validate the status by checking the current. */
--			if (battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN &&
--			    battery->rate_now == 0) {
--				/* On charge but no current (0W/0mA). */
--				val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
--			} else {
-+			/* Check the rate and capacity to validate the status. */
-+			if (!acpi_battery_is_full(battery) ||
-+			    (battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN &&
-+			     battery->rate_now > 0)) {
- 				val->intval = POWER_SUPPLY_STATUS_CHARGING;
-+			} else {
-+				/* Full and zero rate. */
-+				val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
- 			}
- 		else if (battery->state & ACPI_BATTERY_STATE_CHARGE_LIMITING)
- 			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
-
-
-
+Fixed up and applied as 7.3 material, thanks!
