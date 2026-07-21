@@ -1,172 +1,102 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from canpmsgout06.his.huawei.com (canpmsgout06.his.huawei.com [113.46.200.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3361A47ECC1
-	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 11:33:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 213143C0A14;
+	Tue, 21 Jul 2026 11:44:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784633614; cv=none; b=f5qpq5l+E9ShC2pxpd2H0jeK//9s0exL1bq80UkLTNslKCeJmgrgAQ2bIjF0uLsgvkoQKIYehNdFCuYthxk8xCDDn6ag+AVOZBiCiPybajKBO4xOd6xKmAe8X3ZUapuzFmcUvx5edWE/HU0YYwGeNi+DAZ+kKkdRKw4jP102PhQ=
+	t=1784634247; cv=none; b=MsIt5+/IuxDOGyQBw8CIR7zo3Ti5OZxD4/B8toRMc12PUu8xoL4CEf9M1vRPanNe+qe+b1GCrqEAa36au8b6Sc76D1MHBokcQGrjzRzYdI/aOb/JRXde7hQcR21XtbBp9qbgry/dfDIVd9eYrSJStvXYDYpIckHBursvN3iukKg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784633614; c=relaxed/simple;
-	bh=VM7uZt4h+ob0QAAXaxc53STfVYYtKFcP12rAjdHK7yU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=kYS5pDmq4vJUrM+/SJgWAhdlGg2GyaZfoJd5HrIJM6rcd3SJHKyWCgEPVhejw6+BeKdv1rsfRjuc5B72V63zcLpjEk4MMX/+8Af6fBaN7v6I3U032zLiwz/OTXAXTYUtZpNFD5uxiXZfICeLtwnwiRmiPCt/f2XUk4gyU1iEX3E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oOuchITk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784634247; c=relaxed/simple;
+	bh=cTmfMXnP4qp9z+00SWBVM3fFYrcq6YAhuwvrUhER9dg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=kxGs/S8C4G0+ZLDPhT1TN54w0s19YpcvyIwIk72t6qa1weLFpyZhiS7iNQhhiKU5lIYXixcFWPgVQo7NYLYi6YWyOl9GOmbcOFyCQj/HnVN5bDq1yWYSTnyNx+b2gtPUfyPH3kL9yNcpzpzpGKQpq30yMlwiigHuix+G15wibuQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=h-partners.com; dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b=VoXKOwTK; arc=none smtp.client-ip=113.46.200.221
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=h-partners.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oOuchITk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E48D01F00AC4
-	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 11:33:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784633602;
-	bh=a0wHmtmfVITct5QNAFts0xKDGDbiQtAyxU0Sg3FoZhg=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=oOuchITkqQPF/cbgZd30FfvBACgh8FBDR6XSZlFLKc6Z/bQFeeiH7HinfmleyRKAG
-	 SND0Ccbn7W9KoGtohk1a03M+EO93p4Pz4IWY2hOwnC5PbD5Pb3/QFSNJ8pqrwA10Lt
-	 rE7RaSCtj2O+WUxfb9BIj8VuqGGVtk6jJI+GY0uBnqliyc5LzQSKd7LEM1PWtcn0Ru
-	 2hLIAp9tJDoFyG3N+MaW13/8b611wVcPpqBV16OlK+n6XiU4g68yW538139Vgahk5/
-	 xr38rEPEHj+B/p5yBxNcSkORRkuibdG1+VO3UBQjD7GnHojBf2uMOOt9elYQTpMB8Q
-	 EDDsy83VHxMnA==
-Received: by mail-lj1-f169.google.com with SMTP id 38308e7fff4ca-39c9452244aso101320091fa.3
-        for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 04:33:22 -0700 (PDT)
-X-Gm-Message-State: AOJu0YxYX9oHyvAc1R/zuzxKovf9l/m5aRvPBC2uKTIN5B+IFqzOyzgI
-	WsAgVoxJDCEfBzY/WCleSZSFAx461veuVBPTqXizA3859cbglCsGB9vvwW448oVfYMgzHOoB3yV
-	eC2M4vOlSfEADR6jaXCSv9Drd1YBd1yc=
-X-Received: by 2002:a05:651c:543:b0:39e:ed52:cfdf with SMTP id
- 38308e7fff4ca-39eed52d138mr4118691fa.20.1784633601333; Tue, 21 Jul 2026
- 04:33:21 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=h-partners.com header.i=@h-partners.com header.b="VoXKOwTK"
+dkim-signature: v=1; a=rsa-sha256; d=h-partners.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=QMzY7Nnk9Lp8Hstc8hQjv8jo0R0nilYhCpc6NzV8NQw=;
+	b=VoXKOwTK52TOSyZpIpEKqIgEUHiV+m4wqW1zX3GmE7qjv5TAdkBiw0SUNBtXtFYiwLeIwDFSn
+	mLyA+JknAA5LfYaCQCSQEn2utWarowaBpf4KEOS9lXuOpFyqy0ZQhAOkmpShEV54U3fpOIq1WzN
+	EJKa84TsiiVYXzr8Z8BSjTM=
+Received: from mail.maildlp.com (unknown [172.19.163.104])
+	by canpmsgout06.his.huawei.com (SkyGuard) with ESMTPS id 4h4FfK3hlSzRhQm;
+	Tue, 21 Jul 2026 19:34:33 +0800 (CST)
+Received: from kwepemo100005.china.huawei.com (unknown [7.202.195.212])
+	by mail.maildlp.com (Postfix) with ESMTPS id 6B08A4058C;
+	Tue, 21 Jul 2026 19:43:54 +0800 (CST)
+Received: from [10.67.121.59] (10.67.121.59) by kwepemo100005.china.huawei.com
+ (7.202.195.212) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Tue, 21 Jul
+ 2026 19:43:53 +0800
+Message-ID: <b75fc80b-6d1c-44d9-986c-be2c0a6e7711@huawei.com>
+Date: Tue, 21 Jul 2026 19:43:53 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260717161647.1493259-1-dave.jiang@intel.com>
-In-Reply-To: <20260717161647.1493259-1-dave.jiang@intel.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 21 Jul 2026 13:33:02 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gLTkGLX_3PLBJYCfFS0_qFjHR+P4agvQQ-Usg4p5nUcA@mail.gmail.com>
-X-Gm-Features: AUfX_mxXX0k43KyjGbx2pRTLQhQ1ihnfZOjDDbcRsPM4PjZKQFrZ1rNYTgtxwpA
-Message-ID: <CAJZ5v0gLTkGLX_3PLBJYCfFS0_qFjHR+P4agvQQ-Usg4p5nUcA@mail.gmail.com>
-Subject: Re: [PATCH v3 00/10] ACPI: APEI: GHES: Collection of fixes for issues
- reported by sashiko
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org, rafael@kernel.org, 
-	tony.luck@intel.com, bp@alien8.de, guohanjun@huawei.com, mchehab@kernel.org, 
-	xueshuai@linux.alibaba.com, terry.bowman@amd.com, 
-	Ben Cheatham <benjamin.cheatham@amd.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 2/4] ACPI: PCC: Preserve shared memory signature in
+ OpRegion handler
+To: Sudeep Holla <sudeep.holla@kernel.org>, <linux-acpi@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+CC: <acpica-devel@lists.linux.dev>, "Rafael J . Wysocki" <rafael@kernel.org>,
+	Saket Dumbre <saket.dumbre@intel.com>, <lihuisong@huawei.com>
+References: <20260717081005.470013-1-sudeep.holla@kernel.org>
+ <20260717081005.470013-3-sudeep.holla@kernel.org>
+From: "lihuisong (C)" <lihuisong@huawei.com>
+In-Reply-To: <20260717081005.470013-3-sudeep.holla@kernel.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
+ kwepemo100005.china.huawei.com (7.202.195.212)
 
-On Fri, Jul 17, 2026 at 6:16=E2=80=AFPM Dave Jiang <dave.jiang@intel.com> w=
-rote:
->
-> A collection of fixes for pre-existing issues reported by sashiko-bot whi=
-le
-> reviewing patches.
->
-> The v1 posting fixed a first batch of these issues, and v2 grew the set a=
-s
-> sashiko-bot's review surfaced more problems in the same CPER/extlog paths=
-.
-> sashiko-bot's review of v2 flagged yet more of the same class of bug in
-> neighbouring code, so v3 adds those as well: an out-of-range section leng=
-th
-> that defeats cper_estatus_check(), the same unvalidated AER buffer handli=
-ng
-> in ghes_handle_aer() that was already fixed for extlog, and an unbounded
-> walk of the extlog record.
->
-> 1/10:  Bound the CXL event record copy to the firmware section length.
-> 2/10:  Reject CPER records with an out-of-range error_data_length.
-> 3/10:  Validate the CXL protocol error section length before the RAS cap =
-copy.
-> 4/10:  Avoid populating software AER metadata from the raw hardware buffe=
-r.
-> 5/10:  Validate the PCIe error section length before payload access.
-> 6/10:  Fix the CONFIG_ACPI_APEI_PCIEAER guard typo in extlog.c.
-> 7/10:  Defer CXL protocol error handling to avoid a lock inversion.
-> 8/10:  Validate the memory error section length before payload access.
-> 9/10:  Bound the AER info copy and sanitize software metadata in ghes.c.
-> 10/10: Validate the extlog record length before walking sections.
->
-> Note patch 2 touches drivers/firmware/efi/cper.c; it closes the length
-> validation hole at the shared choke point that the per-section guards in =
-the
-> rest of the series rely on.
->
-> sashiko-bot's review of v2 also flagged a few related issues that are not
-> addressed here because they live in other subsystems.
->
->   - cxl_cper_print_prot_err() in drivers/firmware/efi/cper_cxl.c uses the
->     firmware-controlled dvsec_len without bounding it against the section
->     length.
->   - cxl_rch_get_aer_info() in drivers/cxl/core/ras_rch.c reads the RCH AE=
-R
->     capability from MMIO into a struct aer_capability_regs without cleari=
-ng
->     the software-only header_len/flit fields, the same class of issue as
->     patches 4 and 9.
->
-> v1: https://lore.kernel.org/linux-cxl/20260709162807.1957783-1-dave.jiang=
-@intel.com/
-> v2: https://lore.kernel.org/linux-cxl/20260714231835.303081-1-dave.jiang@=
-intel.com/
->
-> Changes since v2
-> ----------------
-> - Dropped the standalone spin_lock_irqsave() change; it is a separate iss=
-ue
->   being handled by Terry Bowman.
-> - New patch 2: reject a section whose error_data_length is out of range i=
-n
->   cper_estatus_check(), closing the signed-int overflow that let a crafte=
-d
->   section bypass the check and defeat the per-caller size guards (sashiko=
-).
-> - New patch 9: apply the same AER buffer sanitization to ghes_handle_aer(=
-)
->   that patch 4 applies to extlog (sashiko).
-> - New patch 10: bound the extlog record and run cper_estatus_check() befo=
-re
->   walking its sections, which extlog did not do (sashiko).
-> - Patch 8: move the memory error length check into ghes_do_proc() so the
->   report chain and arch reporter are covered too, and bound against the
->   older UEFI 2.1/2.2 layout rather than the full struct (sashiko).
-> - Reordered so the extlog PCIe path is hardened, and the CXL protocol err=
-or
->   handling is deferred to the workqueue, before the typo fix that activat=
-es
->   that code.
->
-> Changes since v1
-> ----------------
-> - See the v2 posting for the full v1 -> v2 changelog.
->
->
-> Dave Jiang (10):
->   ACPI: APEI: GHES: Bound CXL event record copy to the firmware section
->     length
->   efi/cper: Reject CPER records with an out-of-range error_data_length
->   ACPI: APEI: GHES: Validate CXL protocol error section length before
->     RAS cap copy
->   ACPI: extlog: Avoid populating software AER metadata from raw hardware
->     buffer
->   ACPI: extlog: Validate PCIe error section length before payload access
->   ACPI: extlog: Defer CXL protocol error handling to avoid lock
->     inversion
->   ACPI: extlog: Fix CONFIG_ACPI_APEI_PCIEAER guard typo
->   ACPI: APEI: GHES: Validate memory error section length before payload
->     access
->   ACPI: APEI: GHES: Bound AER info copy and sanitize software metadata
->   ACPI: extlog: Validate elog record length before walking sections
->
->  drivers/acpi/acpi_extlog.c       | 47 ++++++++++++-------------
->  drivers/acpi/apei/ghes.c         | 59 +++++++++++++++++++++++++-------
->  drivers/acpi/apei/ghes_helpers.c | 21 +++++++++++-
->  drivers/firmware/efi/cper.c      | 10 ++++++
->  include/acpi/ghes.h              |  4 +++
->  include/cxl/event.h              |  4 +--
->  6 files changed, 106 insertions(+), 39 deletions(-)
 
-All of this looks reasonable to me, but it really is material for Tony
-to look at.
+On 7/17/2026 4:10 PM, Sudeep Holla wrote:
+> ACPI 6.3 introduced PCC OperationRegions. Section 5.5.2.4.7.3,
+> "Declaring message fields within a PCC OperationRegion", states that,
+> for all PCC subspace types, the PCC Operation Region pertains to the
+> region of PCC subspace that succeeds the PCC signature.
+>
+> The PCC address space handler currently copies the OperationRegion
+> buffer to and from the start of the PCC shared memory region. That can
+> overwrite or expose the signature at byte offset 0, and it also misses
+> the last 4 bytes of the actual PCC OperationRegion data.
+>
+> Offset OperationRegion copies by the size of the signature and reject
+> regions that do not fit in the shared memory after that signature. AML
+> that sizes the PCC OperationRegion to include the signature is not
+> conforming to the PCC OperationRegion definition.
+>
+> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> Fixes: 77e2a04745ff ("ACPI: PCC: Implement OperationRegion handler for the PCC Type 3 subtype")
+> Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
+> ---
+The below commit description said the PCC operationRegion contains the 
+signature field.
+"77e2a04745ff ("ACPI: PCC: Implement OperationRegion handler for the PCC 
+Type 3 subtype")"
+And I find that the definition of this OperationRegion in ACPI spec 6.3 
+is the same with spec 6.5 and 6.6.
+That is, the original implementation already didn't comply with ACPI spec.
+
+Patch 1/4 also requires the change of platform AML about PCC 
+OperationRegion.
+These modification may lead to the existed PCC OperationRegion method in 
+some drivers doesn't work.
+Because the platform AML still contains signature field in PCC 
+OperationRegion method.
+I don't know how many drivers in linux have used this method.
+IMO, we at least need to reclarify this usage change and provide a new 
+usage example in the commit log like the original commit did.
+
+Anyway, this patch also makes the driver more compliant with the 
+specifications.
+So I agree.
+Reviewed-by: Huisong Li <lihuisong@huawei.com>
