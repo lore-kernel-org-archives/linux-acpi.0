@@ -1,33 +1,33 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 315CF47AF67;
-	Tue, 21 Jul 2026 14:51:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 25A8C36680E;
+	Tue, 21 Jul 2026 14:54:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784645464; cv=none; b=phCmWv9TyX7uCvhYkysPa8GpLVORG7gGqoUJcsFvoTe8Vm8LnD7eXS0aj1kqez1fjRNEDGtymmeiiVHuO/9e+wxgxk76LjxDEWjCU3wRi3ESG0LsafOORr5D6EGQW9FemfrftPtYZI6zL8AU8++4niS23p9J5yJ4RzQE7HWlQi4=
+	t=1784645681; cv=none; b=dMqS2lf51AxFA+3Gxc8v9EBOEg6IzFOpA1rdn1BNwOSZ3EnOYg1YcY7wsMHrRZg5iAU4t/WpPS6bQBOC8PGh9Kk//3WWyV6BE69JYPsGm2HWGs1s+xwbo0dWFsYPOddMaJFSbJEiRjIyaoa1XMygNZHxylITcT4CW6dNZ/FAX0g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784645464; c=relaxed/simple;
-	bh=Vcis6t4xUy77hTPy7uY299+DZ2Az+Lpqnoisp68jgOU=;
+	s=arc-20240116; t=1784645681; c=relaxed/simple;
+	bh=MitdL30heQSAH7WS0YQpZljVY3sO1FWU+W23/+uIAe8=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=DNrSUJsApGbj8g1pddokSu08TXQEBYXp6x9GxtsEVhxD2a9lxJeZJV5jWRryCAUi2t9/kXSl1ThGL9RWF9vRYnB8+Jmpv4rJmfYY86nI0dJtuOnn9uFgjDhz8urOUtbvjtTsZT4jlIDzGxS2RJpWKxkMewlF/rshhnpmwXPQWhc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=QlXCWJTc; arc=none smtp.client-ip=217.140.110.172
+	 In-Reply-To:Content-Type; b=MqzzGZJCYHKD9BHswMH0evU/FFeGCJCm7mn/2wgtNDSI7ClO/bWIlTBdnO3XZ3Kxbg197wOQRha3dEIIR5vargprEaSxrtKDjbQOesoMz3sWo6Fc0Hsk8Vh9CKQSEJSJWN11cirLe36XZKaulw2m8O3xPPHbI6pkjBdHGgxy4jE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=BBWuskjt; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="QlXCWJTc"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="BBWuskjt"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 66B3D152B;
-	Tue, 21 Jul 2026 07:50:58 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E058D152B;
+	Tue, 21 Jul 2026 07:54:34 -0700 (PDT)
 Received: from [192.168.178.24] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id F0A1B3F86F;
-	Tue, 21 Jul 2026 07:50:58 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 251EF3F86F;
+	Tue, 21 Jul 2026 07:54:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1784645462; bh=Vcis6t4xUy77hTPy7uY299+DZ2Az+Lpqnoisp68jgOU=;
+	t=1784645679; bh=MitdL30heQSAH7WS0YQpZljVY3sO1FWU+W23/+uIAe8=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=QlXCWJTcqmg3GqQSmuLEHqq2bzT2gP4nc2CFnk0xn1Bxa18KQC7cbCKux+aQFLPZQ
-	 6Z+tZYD8xDpeLtXK/DnyZi5BWXWGsSNeQAVdrYPRk5qLtGp8UgYwJrMs5d9yQ3fZ6B
-	 ajSZ0TBYDiiBZjFIoH66E0UVyUJQmUXoHPwcnW3Q=
-Message-ID: <f287f45c-4eaa-44bc-9c2a-07767bd5085a@arm.com>
-Date: Tue, 21 Jul 2026 16:51:00 +0200
+	b=BBWuskjtszvLN5RjnQFmSXDBnb5rmM7GLCwJ9I/v92BznbOltddup6q68nKrSIduz
+	 0kAsQHVSgQ1UqICtuVfak65akUtXJ0GRTZ45qz8zI/YqWlnxrGfJZxmzXl66TMH3uJ
+	 PUpNBhzY/6DBQiViSY6vC9KLV0CKTrev1FKnnDg8=
+Message-ID: <b943d2e7-9f74-40f6-bbaa-84642ea785eb@arm.com>
+Date: Tue, 21 Jul 2026 16:54:38 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -36,8 +36,9 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Subject: Re: [PATCH v3 16/16] arm_mpam: detect and enable MPAM-Fb PCC support
-To: Lee Trager <lee@trager.us>, Lorenzo Pieralisi <lpieralisi@kernel.org>,
- Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+To: Niyas Sait <niyas.sait@arm.com>, Lorenzo Pieralisi
+ <lpieralisi@kernel.org>, Hanjun Guo <guohanjun@huawei.com>,
+ Sudeep Holla <sudeep.holla@kernel.org>,
  Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
  "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
  James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
@@ -46,50 +47,38 @@ Cc: Jonathan Cameron <jic23@kernel.org>,
  Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
  Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
  Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
- Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+ linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-kernel@vger.kernel.org
 References: <20260710144520.917375-1-andre.przywara@arm.com>
  <20260710144520.917375-17-andre.przywara@arm.com>
- <52dc486f-2ef2-4c57-b3fb-fb4c240a9198@trager.us_quarantine>
+ <9ac5f187-ff48-434b-a1c0-7f73b442083c@arm.com>
 Content-Language: en-GB
 From: Andre Przywara <andre.przywara@arm.com>
-In-Reply-To: <52dc486f-2ef2-4c57-b3fb-fb4c240a9198@trager.us_quarantine>
+In-Reply-To: <9ac5f187-ff48-434b-a1c0-7f73b442083c@arm.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-Hi Lee,
+Hi Niyas,
 
-On 7/15/26 18:08, Lee Trager wrote:
-> On 7/10/26 7:45 AM, Andre Przywara wrote:
+On 7/14/26 14:32, Niyas Sait wrote:
+> On 10/07/2026 15:45, Andre Przywara wrote:
+>> +    cur->pcc_cl.dev = dev;
+>> +    cur->pcc_cl.rx_callback = mpam_pcc_rx_callback;
+>> +    cur->pcc_cl.tx_block = true;
+>> +    cur->pcc_cl.tx_tout = 1000; /* 1s */
 > 
->> diff --git a/drivers/acpi/arm64/mpam.c b/drivers/acpi/arm64/mpam.c
->> index 84963a20c3e7..64bc84bb2029 100644
->> --- a/drivers/acpi/arm64/mpam.c
->> +++ b/drivers/acpi/arm64/mpam.c
->> @@ -256,6 +256,8 @@ static struct platform_device * __init 
->> acpi_mpam_parse_msc(struct acpi_mpam_msc_
->>       } else if (iface == MPAM_IFACE_PCC) {
->>           props[next_prop++] = PROPERTY_ENTRY_U32("pcc-channel",
->>                               tbl_msc->base_address);
->> +        props[next_prop++] = PROPERTY_ENTRY_U32("msc-id",
->> +                            tbl_msc->identifier);
->>       }
-> 
-> props is defined above as:
-> 
-> /* pcc, nrdy, affinity, and a sentinel */
-> 
-> struct property_entry props[4] = { 0 };
-> 
-> With the addition of the new property the array size needs to be 
-> increased to 5 and the comment updated
+> Should this timeout be based on nominal latency reported in PCC table 
+> instead of being hard coded to 1s here? May be some multiple of nominal 
+> latency reported
 
-Ouch, that's right. For now we are saved by the fact that the affinity 
-value is not used, so there is a free slot now. And there are checks in 
-place to avoid writing over the sentinel. But indeed the size needs to 
-be increased. Thanks for catching this!
+I originally thought that this would be handled by the PCC code, but 
+that just parses the value, and puts it in the pcc_mbox_chan struct. 
+Which we only get access to *after* we request the channel in the next 
+line here.
+But it's only mbox_send_message() that uses the value, so I think we can 
+populate that value later on still. And yeah, some multiple of the 
+nominal latency sounds reasonable.
 
 Cheers,
 Andre
-
 
