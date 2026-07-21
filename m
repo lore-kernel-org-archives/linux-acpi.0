@@ -1,148 +1,110 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56710367291;
-	Tue, 21 Jul 2026 15:22:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 74AF24E3778;
+	Tue, 21 Jul 2026 15:22:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784647350; cv=none; b=Y4YNwQ7llJaGQCACDkQVZHWpnTiHKyx51QRIzn83xpOn4euzTrk/YGAp2IDhU6b1oUUcAGKxh7U7IA/bj5H9CSEvE9AnRnX4mdHJG4qFXyXUmladhu6aT9HDVJflu7yshtUiPxNAoyjDZIX5eWeP1QEppDrsBOerGv3wiplOkpw=
+	t=1784647363; cv=none; b=bBySUmOUmlyhlKv/pou4+fSirB2cd3jCAjn9zIPrbIYkUyr9sBBx0i1BU58l3Orz5uVTjDx7ik8uM8wMCTgCcLu6vnEiK4bHyZBQTKIiVLFiwr+16z4dKu28xjWRqfcMrFCOBQyUkCOd8Qq5yBtEgyEtNoWf9xuN1vii4eMmeV4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784647350; c=relaxed/simple;
-	bh=qflAA0FTjvHJSlUr+jE5Thqagb5URzhem9CNsyj3U1U=;
-	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=U4OuHMMH0beMLKMH/MNiMabqTU7fWnMz8auwBavpmzBSZV6UHVXmCxHMHpJ3pcca4Cc8wbt58IlwPhgI81XDWyMQDT9yKceofnBpa63WXdb8UU+KM83lIRvPbW5qoalKD0tkGIV8nMzTudkER9FH7Y3cGTBD2EOm3jSxse0iKSc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=AFw2+TtC; arc=none smtp.client-ip=192.198.163.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1784647363; c=relaxed/simple;
+	bh=ebC/KIEEoNmoB2LEHpuG7uefGwo6M6AiHFPKN8Met2Q=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=YVsVeLo7bARv1VN8sNCBY5ZIQjhXGuHDCScRfLqQmn36M3Oa9n8t6Eg7mucdvcT1ZgbYxGzjAHZeJ5HjNnjhjIAgh9K0Zl7vL2iNbNGlifkAtyg5/WsDPL/Fz1ZRSS2m+vfVduYMPbulu4IJP2snO0ryijrNCp6GaUkVIGCjBME=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=Ycj3DZbj; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="AFw2+TtC"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1784647348; x=1816183348;
-  h=from:date:to:cc:subject:in-reply-to:message-id:
-   references:mime-version;
-  bh=qflAA0FTjvHJSlUr+jE5Thqagb5URzhem9CNsyj3U1U=;
-  b=AFw2+TtC9FZcwiJYHQafSAwxRNO6LpnSpzL13t5TW1rU7KO0D8j+44gK
-   7zWdzQwzoqfFh8Wo7lTHMqv1FtrvI14+ywYZ8qypna3D8Iy/5ZoJyJzBX
-   CBtb1YYGekQ3rN+KnqqijuwP+Rt/DXVo4S0jc6ciAhI1ZQHf1it0RsSCD
-   jaNAkCsv/LPQf5+51PdtaPiRtbQWIyquczhq+gdse5ZcjCw18wR0e3/d6
-   TRUpBG1wupOII4ShFioy1xuYizOXenFnTlf9tn5fa1cV4AFK2184kCU5X
-   ocrqYlD+sYWvVAdWMN2RfZ5V9f55HJ4GjUow20YRQeGMzpO6zwgBDgtVQ
-   Q==;
-X-CSE-ConnectionGUID: vBu9ieI+Rm2eCuxfPhx0ow==
-X-CSE-MsgGUID: Fcw3flzhRauzeUeaFLr/9Q==
-X-IronPort-AV: E=McAfee;i="6800,10657,11853"; a="95847560"
-X-IronPort-AV: E=Sophos;i="6.25,176,1779174000"; 
-   d="scan'208";a="95847560"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2026 08:22:27 -0700
-X-CSE-ConnectionGUID: oglzvjPaRuab58OifE8hDg==
-X-CSE-MsgGUID: YNaAMIsqR9GDtw2/nNyqzA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,176,1779174000"; 
-   d="scan'208";a="262079989"
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.47])
-  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2026 08:22:21 -0700
-From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Date: Tue, 21 Jul 2026 18:22:17 +0300 (EEST)
-To: Marco Giunta <marco_giunta@outlook.it>
-cc: tiwai@suse.com, perex@perex.cz, lgirdwood@gmail.com, broonie@kernel.org, 
-    LKML <linux-kernel@vger.kernel.org>, linux-sound@vger.kernel.org, 
-    "Rafael J. Wysocki" <rafael@kernel.org>, lenb@kernel.org, 
-    Hans de Goede <hansg@kernel.org>, linux-acpi@vger.kernel.org, 
-    platform-driver-x86@vger.kernel.org, wangweidong.a@awinic.com, 
-    nadim@symbolic.software, imitoy@imitoy.top, munzirtaha@gmail.com, 
-    yakov.till@gmail.com
-Subject: Re: [PATCH 6/8] ACPI/platform: add AWDZ8399 to
- serial-multi-instantiate
-In-Reply-To: <DS7PR19MB772444EB48828D8ED8EB3175FCC62@DS7PR19MB7724.namprd19.prod.outlook.com>
-Message-ID: <8b477bc9-f461-a242-2522-8ac87e2bb2e7@linux.intel.com>
-References: <DS7PR19MB77247D9AD698CF0FF37DB58BFCC62@DS7PR19MB7724.namprd19.prod.outlook.com> <DS7PR19MB772444EB48828D8ED8EB3175FCC62@DS7PR19MB7724.namprd19.prod.outlook.com>
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="Ycj3DZbj"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D90B4152B;
+	Tue, 21 Jul 2026 08:22:36 -0700 (PDT)
+Received: from [192.168.178.24] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id EB6B43F58B;
+	Tue, 21 Jul 2026 08:22:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1784647361; bh=ebC/KIEEoNmoB2LEHpuG7uefGwo6M6AiHFPKN8Met2Q=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=Ycj3DZbj847kTPAxwJhBzvfoukDVrAiT1VmAJT/yy9IzWzXwRYTIsSj3/Fw1zu8vr
+	 Fn4Qwmaz32lEQkRbF6XDJDv3iqDy6L7AvEZ7nUIYqU+g6pe+GiEanoDYmijTYfet/2
+	 resCUEeLHD+AIs0N73DPsB2jl539HR0JN0qUKxv0=
+Message-ID: <e00593bb-acc3-4e1d-967b-7102259d556b@arm.com>
+Date: Tue, 21 Jul 2026 17:22:39 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="8323328-1703166405-1784647337=:1265"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 13/16] arm_mpam: prepare mon_sel locking for MPAM-Fb
+To: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
+ Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu
+ <fenghuay@nvidia.com>, Jonathan Cameron <jic23@kernel.org>,
+ Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+ Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+ Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
+ Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20260710144520.917375-1-andre.przywara@arm.com>
+ <20260710144520.917375-14-andre.przywara@arm.com>
+ <20260710121433.00001ad6@oss.qualcomm.com>
+Content-Language: en-GB
+From: Andre Przywara <andre.przywara@arm.com>
+In-Reply-To: <20260710121433.00001ad6@oss.qualcomm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi,
 
---8323328-1703166405-1784647337=:1265
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+On 7/10/26 21:14, Jonathan Cameron wrote:
+> On Fri, 10 Jul 2026 16:45:17 +0200
+> Andre Przywara <andre.przywara@arm.com> wrote:
+> 
+>> The MSC MON_SEL register needs to be accessed from hardirq for the overflow
+>> interrupt, and when taking an IPI to access these registers on platforms
+>> where MSC are not accesible from every CPU. This makes an irqsave
+>> spinlock the obvious lock to protect these registers. On systems with SCMI
+>> mailboxes it must be able to sleep, meaning a mutex must be used. The
+>> SCMI platforms can't support an overflow interrupt.
+>> Clearly these two can't exist for one MSC at the same time.
+>>
+>> Change the mon_sel locking wrapper function to only use a spinlock when
+>> the MSC is accessed directly via MMIO. In case of MPAM-Fb, we use a
+>> mutex, but only if we are in a sleepable context. If that's not the
+>> case, we return an error. This should not happen, as MPAM-Fb by design
+>> does not require an MSC access to happen from a specific CPU, so there
+>> is no need for any IPIs or preemption disabling to satisfy CPU
+>> constraints. And since overflow interrupts are not supported at the moment
+>> anyway, we also wouldn't meet the other case.
+>>
+>> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+> 
+> I've not been paying attention to this topic, so I might come back
+> with some more feedback after I've had time to think about it a bit!
+> So trivial stuff only for now.
+> 
+>>   
+>>   static inline void mpam_mon_sel_lock_init(struct mpam_msc *msc)
+>>   {
+>>   	raw_spin_lock_init(&msc->_mon_sel_lock);
+>> +	mutex_init(&msc->mon_sel_mutex);
+> 
+> I'm not that fussed, but maybe add a call to mutex_destroy().
+> Most likely it'll never help catch anything in this code though..
 
-On Fri, 17 Jul 2026, Marco Giunta wrote:
+I figured I can follow the rest of the code and extract the dev pointer 
+from struct mpam_msc, then use devm_mutex_init().
 
-> Register the AWINIC AW88399 ACPI hardware ID "AWDZ8399" with the
-> serial-multi-instantiate driver and add it to the ACPI scan ignore
-> list so that the two I2C amplifier instances on Lenovo Legion laptops
-> are enumerated as separate I2C client devices rather than a single
-> ACPI platform device.
->=20
-> The SMI node creates two instances named "aw88399-hda" with
-> IRQ_RESOURCE_AUTO, matching the pattern used by CS35L41.
->=20
-> Tested-by: Nadim Kobeissi <nadim@symbolic.software>
-> Tested-by: Xia Yun'an <imitoy@imitoy.top>
-> Tested-by: Munzir Taha <munzirtaha@gmail.com>
-> Co-developed-by: Yakov Till <yakov.till@gmail.com>
-> Signed-off-by: Yakov Till <yakov.till@gmail.com>
-> Signed-off-by: Marco Giunta <marco_giunta@outlook.it>
-> ---
->  drivers/acpi/scan.c                             |  1 +
->  drivers/platform/x86/serial-multi-instantiate.c | 10 ++++++++++
->  2 files changed, 11 insertions(+)
->=20
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 9a7ac2eb9ce0..4f4552b1551b 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -1752,6 +1752,7 @@ static bool acpi_device_enumeration_by_parent(struc=
-t acpi_device *device)
->  =09 * by the drivers/platform/x86/serial-multi-instantiate.c driver, whi=
-ch
->  =09 * knows which client device id to use for each resource.
->  =09 */
-> +=09=09{"AWDZ8399", },
->  =09=09{"BSG1160", },
->  =09=09{"BSG2150", },
->  =09=09{"CSC3551", },
-> diff --git a/drivers/platform/x86/serial-multi-instantiate.c b/drivers/pl=
-atform/x86/serial-multi-instantiate.c
-> index 1a369334f9cb..3e89fcdd45f7 100644
-> --- a/drivers/platform/x86/serial-multi-instantiate.c
-> +++ b/drivers/platform/x86/serial-multi-instantiate.c
-> @@ -307,6 +307,15 @@ static void smi_remove(struct platform_device *pdev)
->  =09smi_devs_unregister(smi);
->  }
-> =20
-> +static const struct smi_node aw88399_hda =3D {
-> +=09.instances =3D {
-> +=09=09{ "aw88399-hda", IRQ_RESOURCE_AUTO, 0 },
-> +=09=09{ "aw88399-hda", IRQ_RESOURCE_AUTO, 0 },
-> +=09=09{}
-> +=09},
-> +=09.bus_type =3D SMI_AUTO_DETECT,
-> +};
-> +
->  static const struct smi_node bsg1160_data =3D {
->  =09.instances =3D {
->  =09=09{ "bmc150_accel", IRQ_RESOURCE_GPIO, 0 },
-> @@ -405,6 +414,7 @@ static const struct smi_node tas2781_hda =3D {
->   * drivers/acpi/scan.c: acpi_device_enumeration_by_parent().
->   */
->  static const struct acpi_device_id smi_acpi_ids[] =3D {
-> +=09{ "AWDZ8399", (unsigned long)&aw88399_hda },
->  =09{ "BSG1160", (unsigned long)&bsg1160_data },
->  =09{ "BSG2150", (unsigned long)&bsg2150_data },
->  =09{ "CSC3551", (unsigned long)&cs35l41_hda },
->=20
+Cheers,
+Andre
 
-Acked-by: Ilpo J=E4rvinen <ilpo.jarvinen@linux.intel.com>
+> 
+>>   }
+>>   
+>>   /* Bits for mpam features bitmaps */
+> 
 
---=20
- i.
-
---8323328-1703166405-1784647337=:1265--
