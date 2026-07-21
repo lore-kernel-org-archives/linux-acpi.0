@@ -1,209 +1,128 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 791F91A6807
-	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 12:18:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6D8525B090
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 12:24:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784636283; cv=none; b=jvgYgvExxuc7Q2C6qpryMdgElYDg3faYq8iczHwnap3nmSlNTNNZAyMylnf7Tfo5Xv7B0UZzGfGn8cNSJPqglapQxlUsULAblFO+oCSPeKQZi96uneln1euBoxZCqw2Yv3iYFii29a2K2X1iveE7/NVdElKYTVPU81NiMROiGLw=
+	t=1784636692; cv=none; b=s7pRjmL2rzJD0WNp8Sin9KjpbZk8E0Jw8sv/9CpT7zt1O7IvlSaaS2LjHnDrBQQ4O506S9rOhfngt5ZP3QMGWiL72w6q4Swe35Zdp8SA8SFsyHPAlIQh91IxtXmISmOw2vwwWVNRWCP4+qC7h4tEAu0WXI0JLW3+eNmFidn7Ltw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784636283; c=relaxed/simple;
-	bh=eYIHHwrdPqq6KBvWPj3snaQkgEgsoy1HbYGBc10094Y=;
+	s=arc-20240116; t=1784636692; c=relaxed/simple;
+	bh=xCj/uLjCyk5Vo1Yw/Oh8ZGfshGGCL1rxu6AN8vQSxHs=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=lLYBjacSrg+3c1TiizcL2NK41Y+2QEogqHej58AGfPqJwqTHqmfiahKnHPn7aXZ11vQoKVMzvxq9YBYIoRY+jD+hi6E72XrACwqUlZFQZyinB+BVVZxTFO6eTl14XIR76OzbpYPhIpsKfkKqinfVYETc6IW5vDa1yrVO3p9jVaU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PUtcA9S/; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=J9wjp3pU5QER7SVG6xijQJgFjXheDkHmkLqnxvTCqTfJ0FScbCk/jWx4YxfkCnNYyJeyEQSnsaqioni1VQfzpxet7e1wr086ZK4nISy4vWeyg3DswHWG850bVsnj/Xb5FWV2tOAu4I98Hp9Kki5yRykQbOcI/hkKknRgohPnrmA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=n36ZgD/J; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PUtcA9S/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 336D31F00A3E
-	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 12:18:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="n36ZgD/J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D8D71F00A3E
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 12:24:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784636282;
-	bh=7QZEPKLTpNwbB5JngCQVJO2bfUymmruYyPGkLEFAll4=;
+	s=k20260515; t=1784636691;
+	bh=KawtIA94ik5HxyTa/hmILJYqp75zatY9AOc1LY8FQ7E=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=PUtcA9S//mv1skOXlqKzBQGeWGc7FM7g7MRKrwLb3WDbNSa1W5GhmFJogpbz/qkbI
-	 gjuDuPMRnINeNgjFQlEK81tGmraWKFMfCuaLQwNHXDxqMkFLsXD0WEipmOA3CWivZ0
-	 Iq6uTNvluG7i9CQoYHwt5MeGTY1Ruex0X1mS9b00jRkM/FpJ4U9J9UTAZVpPxvs0cI
-	 iFCTTiZw1QODic7aKPEXD/MXjkjJTjt7eRixMFjztrpz9kgjiwngJxQHGSzAJ+WyXh
-	 +Zb4+Hb3zujgb4rJkrcj8QLh1+VjpUb2ghe4gBprDnKVy5wFPqvGGMQb6M4soVxuI6
-	 DVSvmcrVzjcDQ==
-Received: by mail-lf1-f54.google.com with SMTP id 2adb3069b0e04-5b01910b499so4169399e87.0
-        for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 05:18:02 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+Rq7S8r4+4GgCXwt1DAKIf9qNVgUVYjmn9aQT7omS4v9vq/l4XgKiCzp3fyvVPLk3/I3D+BrwNzjJLMC@vger.kernel.org
-X-Gm-Message-State: AOJu0YyciIUHk7W2VkcZkBPaO3dsRAihSohu7Yo1U9M+GP6njQxLPTwQ
-	tZVsuk+R/vXT5yiiqNxCJR9GE2Jon/as0+p2XF7vfMPkMlGsO0cyvnvbPdgr9OzovoTNRC5NJlW
-	OLDpMGfsfOiCJCyN2QJEbXCTEvYcE+xE=
-X-Received: by 2002:a05:6512:2349:b0:5ae:a4a4:b6ca with SMTP id
- 2adb3069b0e04-5b28ff880a4mr2711254e87.14.1784636280154; Tue, 21 Jul 2026
- 05:18:00 -0700 (PDT)
+	b=n36ZgD/J/DJ6W4imrSHq7VXXnh2lZMIAQwqQXHWaaq4ycfq35V1kvNKmekLH1lH2M
+	 6Kg54Ni1sO/GX4eqsHJtru0xmGfN++J/R8zMwwOo8lZq2uqMrvQ6Iuc9JCpVk87+Dw
+	 UJmBgDGMPalQEgEKCFmZhXxxgrMIGp1Nc/K8WQThm2NZdAKvgLWw9/KzspIBOMrNyl
+	 fGFm2qAQIDN7gFXBsBSDcncHP/zdrjZhXdnAo4Yglvln/dX4QpXPMSm5GsqngHfZ6W
+	 f8+3MtqJVyWYM1psEJiUakQat7o5xQ7tv8H+BNy0ew0qEk5eMnzf35nbgA3udQrebB
+	 uxtdfx0XelhxA==
+Received: by mail-lj1-f177.google.com with SMTP id 38308e7fff4ca-39c908d6cb6so100057291fa.1
+        for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 05:24:51 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+Ro6zsAM2oGhYnADkGtlFpnj1CGwzS6nhBiU853siq+v3UeCTcQSu2wrj4dXRUFiHMGwb6GThaMkfBq+@vger.kernel.org
+X-Gm-Message-State: AOJu0YxEo7k/JZfazH3ie4PBFfYfK9ob94Bh1A+QLSUaHXmDPPsPlnMt
+	T3QFxqk5bPhAchC39LI5/yWd5DJ2PjMqqy0Tk18x7Hbx8LCjTP3kIXPmbDevSZkQtKWhp9GXN+L
+	Xsnz72plXPqdJwsXFQI+rl8T46a8wasA=
+X-Received: by 2002:a2e:a99b:0:b0:39a:cfe7:d224 with SMTP id
+ 38308e7fff4ca-39eb287f10emr35824701fa.30.1784636689854; Tue, 21 Jul 2026
+ 05:24:49 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260708082818.808041-1-zhangpengjie2@huawei.com> <20260708082818.808041-2-zhangpengjie2@huawei.com>
-In-Reply-To: <20260708082818.808041-2-zhangpengjie2@huawei.com>
+References: <20260630-b4-acpi-v1-1-a9f59c04d221@kernel.org>
+In-Reply-To: <20260630-b4-acpi-v1-1-a9f59c04d221@kernel.org>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 21 Jul 2026 14:17:40 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gK6Eyt79NNUwiKhjTKyqGFyV+xd0qbXh=H9LKq-KPwCQ@mail.gmail.com>
-X-Gm-Features: AUfX_myA8teaH5y5c3TVDWKLB214sqkMZR3aAiSmyynhvTzz9QApTt5JZeUCam8
-Message-ID: <CAJZ5v0gK6Eyt79NNUwiKhjTKyqGFyV+xd0qbXh=H9LKq-KPwCQ@mail.gmail.com>
-Subject: Re: [PATCH v2 1/2] ACPI: CPPC: add paired FFH feedback-counter read hook
-To: Pengjie Zhang <zhangpengjie2@huawei.com>
-Cc: catalin.marinas@arm.com, will@kernel.org, rafael@kernel.org, 
-	lenb@kernel.org, saket.dumbre@intel.com, beata.michalska@arm.com, 
-	zhenglifeng1@huawei.com, sumitg@nvidia.com, zhanjie9@hisilicon.com, 
-	geert+renesas@glider.be, cuiyunhui@bytedance.com, 
-	vanshikonda@os.amperecomputing.com, ionela.voinescu@arm.com, 
-	jeremy.linton@arm.com, viresh.kumar@linaro.org, 
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, linuxarm@huawei.com, 
-	prime.zeng@hisilicon.com, wanghuiqiang@huawei.com, xuwei5@huawei.com, 
-	lihuisong@huawei.com, yubowen8@huawei.com, wangzhi12@huawei.com
+Date: Tue, 21 Jul 2026 14:24:30 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jaRjxMBxpjAxZiKUXqdZ9W-d7yNC=4ifwA87YUOrdxWA@mail.gmail.com>
+X-Gm-Features: AUfX_mxAK7A3TH3wQk93Zll9tA8OYKnbfa0WfFqey7JRWYnrWOXL32o-SJAaR6k
+Message-ID: <CAJZ5v0jaRjxMBxpjAxZiKUXqdZ9W-d7yNC=4ifwA87YUOrdxWA@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: NVS: replace __get_free_page() with kmalloc()
+To: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-mm@kvack.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jul 8, 2026 at 10:28=E2=80=AFAM Pengjie Zhang <zhangpengjie2@huawei=
-.com> wrote:
+On Tue, Jun 30, 2026 at 12:56=E2=80=AFPM Mike Rapoport (Microsoft)
+<rppt@kernel.org> wrote:
 >
-> cppc_get_perf_ctrs() reads the delivered and reference performance
-> counters one at a time.
+> suspend_nvs_alloc() allocates shadow pages for saving and restoring
+> ACPI Non-Volatile Storage regions across suspend/resume.
 >
-> Allow architectures to provide both FFH feedback counters in one
-> operation when that either narrows the sampling window or avoids extra
-> cross-CPU reads. Add a small FFH-specific hook for that case and fall
-> back to the existing per-register reads when unsupported.
+> These buffers can be allocated with kmalloc() as there's nothing special
+> about them to go directly to the page allocator.
 >
-> Tested-by: Sumit Gupta <sumitg@nvidia.com>
-> Reviewed-by: Sumit Gupta <sumitg@nvidia.com>
-> Tested-by: Vanshidhar Konda <vanshikonda@os.amperecomputing.com>
-> Reviewed-by: Vanshidhar Konda <vanshikonda@os.amperecomputing.com>
-> Signed-off-by: Pengjie Zhang <zhangpengjie2@huawei.com>
-
-This is fine with me, so
-
-Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
-
-and please route it along with the second patch in the series.
-
-Thanks!
-
+> kmalloc() provides a better API that does not require ugly casts and
+> kfree() does not need to know the size of the freed object.
+>
+> Performance difference between kmalloc() and __get_free_pages() is not
+> measurable as both allocators take an object/page from a per-CPU list for
+> fast path allocations.
+>
+> For the slow path the performance is anyway determined by the amount of
+> reclaim involved rather than by what allocator is used.
+>
+> Replace use of __get_free_page() with kmalloc() and free_page() with
+> kfree().
+>
+> Link: https://lore.kernel.org/all/635405e4-9423-4a25-a6e7-e03c8ea0bcbe@re=
+dhat.com
+> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 > ---
->  drivers/acpi/cppc_acpi.c | 50 ++++++++++++++++++++++++++++++++++++----
->  include/acpi/cppc_acpi.h |  7 ++++++
->  2 files changed, 52 insertions(+), 5 deletions(-)
+> This is a (tiny) part of larger work of replacing page allocator calls
+> with kmalloc:
 >
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index 9f572f481241..b6356476a46e 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -1004,6 +1004,22 @@ int __weak cpc_read_ffh(int cpunum, struct cpc_reg=
- *reg, u64 *val)
->         return -ENOTSUPP;
->  }
+> My initial intention a few month ago was to remove ugly casts [1], but th=
+en
+> willy pointed out that Linus objected to something like this [2] and it
+> looks like more than a decade old technical debt.
 >
-> +/**
-> + * cpc_read_ffh_fb_ctrs() - Read FFH feedback counters together
-> + * @cpunum:    Target CPU
-> + * @reg1:      first CPPC register information
-> + * @val1:      place holder for first return value
-> + * @reg2:      second CPPC register information
-> + * @val2:      place holder for second return value
-> + *
-> + * Return: 0 on success, error code otherwise
-> + */
-> +int __weak cpc_read_ffh_fb_ctrs(int cpunum, struct cpc_reg *reg1,
-> +                               u64 *val1, struct cpc_reg *reg2, u64 *val=
-2)
-> +{
-> +       return -EOPNOTSUPP;
-> +}
-> +
->  /**
->   * cpc_write_ffh() - Write FFH register
->   * @cpunum:    CPU number to write
-> @@ -1496,6 +1512,33 @@ bool cppc_perf_ctrs_in_pcc_cpu(unsigned int cpu)
->  }
->  EXPORT_SYMBOL_GPL(cppc_perf_ctrs_in_pcc_cpu);
+> [1] https://lore.kernel.org/all/20251018093002.3660549-1-rppt@kernel.org/
+> [2] https://lore.kernel.org/all/CA+55aFwp4iy4rtX2gE2WjBGFL=3DNxMVnoFeHqYa=
+2j1dYOMMGqxg@mail.gmail.com/
 >
-> +static int cppc_read_fb_ctrs(int cpunum,
-> +                            struct cpc_register_resource *delivered_reg,
-> +                            struct cpc_register_resource *reference_reg,
-> +                            u64 *delivered, u64 *reference)
-> +{
-> +       int ret;
-> +
-> +       /*
-> +        * For FFH feedback counters, try a paired read first to reduce
-> +        * sampling skew between delivered and reference counters. Fall
-> +        * back to the existing per-register reads if unsupported.
-> +        */
-> +       if (CPC_IN_FFH(delivered_reg) && CPC_IN_FFH(reference_reg)) {
-> +               ret =3D cpc_read_ffh_fb_ctrs(cpunum,
-> +                                       &delivered_reg->cpc_entry.reg, de=
-livered,
-> +                                       &reference_reg->cpc_entry.reg, re=
-ference);
-> +               if (ret !=3D -EOPNOTSUPP)
-> +                       return ret;
-> +       }
-> +
-> +       ret =3D cpc_read(cpunum, delivered_reg, delivered);
-> +       if (ret)
-> +               return ret;
-> +
-> +       return cpc_read(cpunum, reference_reg, reference);
-> +}
-> +
->  /**
->   * cppc_perf_ctrs_in_pcc - Check if any perf counters are in a PCC regio=
-n.
->   *
-> @@ -1561,11 +1604,8 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_per=
-f_fb_ctrs *perf_fb_ctrs)
->                 }
->         }
+> Also in git:
+> https://git.kernel.org/pub/scm/linux/kernel/git/rppt/linux.git gfp-to-kma=
+lloc/acpi
+> ---
+>  drivers/acpi/nvs.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >
-> -       ret =3D cpc_read(cpunum, delivered_reg, &delivered);
-> -       if (ret)
-> -               goto out_err;
-> -
-> -       ret =3D cpc_read(cpunum, reference_reg, &reference);
-> +       ret =3D cppc_read_fb_ctrs(cpunum, delivered_reg, reference_reg,
-> +                               &delivered, &reference);
->         if (ret)
->                 goto out_err;
+> diff --git a/drivers/acpi/nvs.c b/drivers/acpi/nvs.c
+> index 6eaad7dd0241..12aee4102696 100644
+> --- a/drivers/acpi/nvs.c
+> +++ b/drivers/acpi/nvs.c
+> @@ -133,7 +133,7 @@ void suspend_nvs_free(void)
 >
-> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-> index 8693890a7275..5acebe62feac 100644
-> --- a/include/acpi/cppc_acpi.h
-> +++ b/include/acpi/cppc_acpi.h
-> @@ -176,6 +176,8 @@ extern int cppc_get_transition_latency(int cpu);
->  extern bool cpc_ffh_supported(void);
->  extern bool cpc_supported_by_cpu(void);
->  extern int cpc_read_ffh(int cpunum, struct cpc_reg *reg, u64 *val);
-> +extern int cpc_read_ffh_fb_ctrs(int cpu, struct cpc_reg *reg1, u64 *val1=
-,
-> +                               struct cpc_reg *reg2, u64 *val2);
->  extern int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val);
->  extern int cppc_get_epp_perf(int cpunum, u64 *epp_perf);
->  extern int cppc_set_epp_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls=
-, bool enable);
-> @@ -250,6 +252,11 @@ static inline int cpc_read_ffh(int cpunum, struct cp=
-c_reg *reg, u64 *val)
->  {
->         return -EOPNOTSUPP;
->  }
-> +static inline int cpc_read_ffh_fb_ctrs(int cpu, struct cpc_reg *reg1, u6=
-4 *val1,
-> +                                      struct cpc_reg *reg2, u64 *val2)
-> +{
-> +       return -EOPNOTSUPP;
-> +}
->  static inline int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val=
-)
->  {
->         return -EOPNOTSUPP;
-> --
-> 2.33.0
+>         list_for_each_entry(entry, &nvs_list, node)
+>                 if (entry->data) {
+> -                       free_page((unsigned long)entry->data);
+> +                       kfree(entry->data);
+>                         entry->data =3D NULL;
+>                         if (entry->kaddr) {
+>                                 if (entry->unmap) {
+> @@ -156,7 +156,7 @@ int suspend_nvs_alloc(void)
+>         struct nvs_page *entry;
 >
+>         list_for_each_entry(entry, &nvs_list, node) {
+> -               entry->data =3D (void *)__get_free_page(GFP_KERNEL);
+> +               entry->data =3D kmalloc(PAGE_SIZE, GFP_KERNEL);
+>                 if (!entry->data) {
+>                         suspend_nvs_free();
+>                         return -ENOMEM;
+>
+> ---
+
+Applied as 7.3 material, thanks!
