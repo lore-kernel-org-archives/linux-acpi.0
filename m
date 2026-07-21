@@ -1,208 +1,143 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from SN4PR0501CU005.outbound.protection.outlook.com (mail-southcentralusazon11011008.outbound.protection.outlook.com [40.93.194.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C32AC37702C;
-	Tue, 21 Jul 2026 16:57:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784653054; cv=none; b=IRbrN753ZjpCA6T7YfIGFgXQqlzhM5oKHGOyqgIberrgUUl4YTv4vlltVYk3W9KhvnSTSFf6XTNPRjaWXTKBRaW6zAnylOdo9vjQBdPKn/wja8udyl2TkweCLu2NpcFiXWAw6V40ZUDj2sAnuU2NuQ0w/B/8w933cqIvgPwNsQI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784653054; c=relaxed/simple;
-	bh=sRQJqlL3yg9NvL6hLUmUFuyccZ46xa1FqXuipZq20XU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tTRpO6GWF+/Z3XcrqW+onXnT52z6NKBPGiP4H7dzptJoFU3FopcaD+clu1527ZbYhbqX4zrIl/31mvSBxJGJsQm7BMb8GgmXFZimXs0r6L4AHyXAGSI1Q4aA9ZXogWs8fogBAa7nEwOQuFH7ts0l0u3mV6JJg7rsv9dhVSAYmr0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=R1YuF8HN; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 488E746D0A4;
+	Tue, 21 Jul 2026 18:26:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.194.8
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784658395; cv=fail; b=KJrPSbhWm1qfAA83zEnsEO/7ivKqXJqX8EQxoozOV07D/fvK6wsalXcupLiyxq173I3KmVA8Ana9mjIqNa8O+FM1JipF/tC+YxTg/LsmAUfMNTkHXNaX35crhtyJuGuCAZi9cZpJz+u3Bf3hL99BqzwOvSOgB+IXi59E9VOgM3M=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784658395; c=relaxed/simple;
+	bh=JGZRxkXmRhTi+lz3L7DahycgtvyRoMqiL+fS6bQZC5o=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=aKRLZAHvDkiyemNF1IiAFPcGWeMD4QP+TpswyROl/6S/34F2gjFpUaXFcNn3W04w8144Jn6cD+ypUd91Ks9hNPs6T05U4vaqAGbeXtMWTCGS/olkOo0xe4oFIQgG13A8iuNon5zPRLIiuQSXm2yQIjLTaaoLAjpYv2rUxKDKOvU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=tlb7nyYe; arc=fail smtp.client-ip=40.93.194.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="R1YuF8HN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 400481F000E9;
-	Tue, 21 Jul 2026 16:57:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784653052;
-	bh=+Yvz1VbNlr+9jCpw+hwc12v+ZMFgJIMsPEyA15hJE1c=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=R1YuF8HN/L+JYcvi+LWKIhjJAyttCWip5wZZoDbEwh9E++DtQG1FIANnZykXIl6v/
-	 noNBP0TsBtEsaXlFGk6eFh4KHeR9ogjv88IcYM1X9MpJinbJ6YSEHx6IyhOV8poNFJ
-	 3BBHJ2FK2aOohLgtAn1iPVAikwjkHamS+25wrcEh2NbgHH2M2IxYFWk85Je0pnIDQA
-	 59TdLS/N17xc33HmNG6EtcnvVRHg29/y/tTFOEu3Et0cuJ0UUpUKByHtaFcYefEp/k
-	 cZikFt3yp3OswMpyzrX6xOHVpM2GQCPCr9/VP5ARFD3IYil71uscMXOGQQ45Lfvwn8
-	 MrwZUpnoeparg==
-Date: Tue, 21 Jul 2026 17:57:26 +0100
-From: Mark Brown <broonie@kernel.org>
-To: Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Cc: Marco Giunta <marco_giunta@outlook.it>, tiwai@suse.com, perex@perex.cz,
-	lgirdwood@gmail.com, LKML <linux-kernel@vger.kernel.org>,
-	linux-sound@vger.kernel.org,
-	"Rafael J. Wysocki" <rafael@kernel.org>, lenb@kernel.org,
-	Hans de Goede <hansg@kernel.org>, linux-acpi@vger.kernel.org,
-	platform-driver-x86@vger.kernel.org, wangweidong.a@awinic.com,
-	nadim@symbolic.software, imitoy@imitoy.top, munzirtaha@gmail.com,
-	yakov.till@gmail.com
-Subject: Re: [PATCH 1/8] ASoC: aw88399: extract shared device library
-Message-ID: <dee6db83-7e09-4d72-91d7-c85ae1309550@sirena.org.uk>
-References: <DS7PR19MB77247D9AD698CF0FF37DB58BFCC62@DS7PR19MB7724.namprd19.prod.outlook.com>
- <DS7PR19MB772415C485FAF74297673FD7FCC62@DS7PR19MB7724.namprd19.prod.outlook.com>
- <68b8e29c-e7d4-ca19-2e40-ad3eade6d94d@linux.intel.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="tlb7nyYe"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=sC9q1lyhgc6xSAUNZni/Kk8ssPWukgsQ+iA4fjroUPIPgCMT0bPDHVJ3H0KN7wfVMQ0n+kcRkVh+a4Xia+iIpNvPwh9p3sQverYsIKtYvCHmJGQE1LpHspKtOZadFOEdlu89yhz0trt/0XUXyd9SGlPsR+gL7fokEakF3DEdRAqC6jTk2j59HHy5fssrIPV028g+LOZz3VTFQf3ywMJgsa/ONG00XJNzIGC55PTUXjdPvKc83hzeY3SH9rhFdJcNWwXQ2Ob9LfWHaalHcdZ0uz0YsqefnwM5JVED43IQDSkOan5U+7qZARNz7IBeoMqNa6lczHIUyNZ50A5bixVfWA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ED5cuYD9Sn6qvCZ6kD+K+Nl03TAnTRSJV8ztbMTkaCk=;
+ b=sS+b7e1wOPbCiO9qUDeNHQjrqbYcbsGHGjyeVp6/Dm4QdItWVCJJyGY/LYXvsCRwYlskgUYbBe5tQcX995flxgQaaJ4CYKXZrgydy3pNKyOJ9wTzNv+2E4hhSNr1R1Fq/ijS+OI1neCRoZk6dStjZzJKhp6rClIVkOu20UkXIr09rzA3W2y2CXjOHBCvnLrD20+X3lXdfBiT46UMuuSwDLwMDQISx/Ckaxa1mFUKu+N2cLzpxRk7cZVMHmm7gmisHjTgIcZC2h8ge5sIbVEAz+irB/bzktkwu/hVCZft9EXMiVftePqCMQR6bD7z7ym1y18y3acY9paQC5sRlod43Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.160) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ED5cuYD9Sn6qvCZ6kD+K+Nl03TAnTRSJV8ztbMTkaCk=;
+ b=tlb7nyYeG7FskCOb/iF8HWNbyptP59XlwoXZf2hq4yq/263QHjK7PIIpqN3UpgV3bpLlJ0yHvMuZ4STQtHchORVAiXODUxca/oK7kSbxw0aOASrEbppQsDU8oqqZUKOCokye3xQUEksXQ/bd5ir7sVBe2SBN/UirbZN1CS01iS3q92utdLAyHaGkS8suKe7d5Up0Z6bfLkGrVWEHJd7jCSq1x03FyfqYSs+BBr8ZE4vdJbeAN/S1qzlfXylScadweXGPsaHpfp34slgTwtcvQ7E+9wfoYa7m1hGh5O5rl6Am58u2IO1dkPkWVMIkoUwYbnzYsJvmvVjqWYl2jU2Uxg==
+Received: from CH2PR18CA0031.namprd18.prod.outlook.com (2603:10b6:610:55::11)
+ by MN2PR12MB4343.namprd12.prod.outlook.com (2603:10b6:208:26f::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.223.18; Tue, 21 Jul
+ 2026 18:26:26 +0000
+Received: from CH1PEPF0000AD7D.namprd04.prod.outlook.com
+ (2603:10b6:610:55:cafe::45) by CH2PR18CA0031.outlook.office365.com
+ (2603:10b6:610:55::11) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.223.18 via Frontend Transport; Tue,
+ 21 Jul 2026 18:26:26 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ CH1PEPF0000AD7D.mail.protection.outlook.com (10.167.244.86) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.245.5 via Frontend Transport; Tue, 21 Jul 2026 18:26:26 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Tue, 21 Jul
+ 2026 11:26:06 -0700
+Received: from 82875d6-lcedt.nvidia.com (10.126.231.37) by
+ rnnvmail201.nvidia.com (10.129.68.8) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.20; Tue, 21 Jul 2026 11:26:04 -0700
+From: Nirmoy Das <nirmoyd@nvidia.com>
+To: <linux-acpi@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, Nirmoy Das <nirmoyd@nvidia.com>,
+	<stable@vger.kernel.org>, Kees Cook <kees@kernel.org>, Tony Luck
+	<tony.luck@intel.com>, "Guilherme G. Piccoli" <gpiccoli@igalia.com>, "Rafael
+ J. Wysocki" <rafael@kernel.org>, Borislav Petkov <bp@alien8.de>, Hanjun Guo
+	<guohanjun@huawei.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Shuai Xue
+	<xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>, Jeshua Smith
+	<jeshuas@nvidia.com>
+Subject: [PATCH] ACPI: APEI: Fix ERST timeout unit conversion
+Date: Tue, 21 Jul 2026 11:25:51 -0700
+Message-ID: <20260721182551.2434933-1-nirmoyd@nvidia.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="FS0zc9MIoz7/weKh"
-Content-Disposition: inline
-In-Reply-To: <68b8e29c-e7d4-ca19-2e40-ad3eade6d94d@linux.intel.com>
-X-Cookie: Love America -- or give it back.
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
+ rnnvmail201.nvidia.com (10.129.68.8)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CH1PEPF0000AD7D:EE_|MN2PR12MB4343:EE_
+X-MS-Office365-Filtering-Correlation-Id: 00d43816-63f2-4b4a-60ad-08dee755939d
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|7416014|376014|82310400026|36860700016|1800799024|6133799003|11063799006|56012099006|10067099003|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	eWqblpuGI7NzmiWG1Df7j98tp4j6pTkGRjfHXf7WA/qr6U3wx4aMtev2xhQl11qr5rnXO7Z/Y+sD3k3UgfbeAZqQ7rfZv1tNECPJ41qW7Mx6/2dPLDjXZE3YxYBgOShMntcr/DZ/lBNTmL1W/xGId6hPHfjySTkK//Qyu1e0TPZtBHZxX7ef8xyO2qlpXIQV/cVWGCTSBGAMTvFbMpQ85R5N5HQdsUp0blqCCUPp1XnfdFb0sYa3Nz53t8IaoDHnUyIfGjy/FfnP2R54Fb2XB4Yj1pXP6Fr0qhQQxK4S36odK24OK+s3NNDIXMLu1IvbHkgCVA7a2rHLNH7pXztuALCotlfSd2HPtAq+pWFWzYMNG/DyVoNTntZTCWgBX7iz7bO7bZpLHUwzGGVkTCsdtsNUnpTwWjgZXI8sEtQrvSPcQumLvXm3i8HL3NsPR5jk6of2pASz+wDDzSGU2X3LNlRzYxo49pFubMeNkQH9OznawdkWDooRVGgx7Nppyn2RF8z96wQfvDEVUbTu5xo51dywurxtWWVN92cuLHx37XNfNzIIEkJknuEFels7+4Hvn2xkGltgaQM8TiT/VzVe0z6S524x4MxIvgiBEpqgwNp/sTZyqhucVc0ooMoEw7vIAhXHwRuGZAyN/DByApEjEhUh9+fpqiAOHpxdvybIpqBLyR8uo5D5gM2IfIrLAWEuDosapRJqNn/1HtX5cCqbxQ==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(7416014)(376014)(82310400026)(36860700016)(1800799024)(6133799003)(11063799006)(56012099006)(10067099003)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	caXQjHkqFICAzV0fZQuEAhuDlY5Sttuy+tB13SS1jfLxCjB4beu/rQBVdcGdkKzDy/fgancDlAwkFV6KUyCzMiBDI+5Fou0Mm2qGyaDcGfvi2d3X7PrMdEZl2VbHx7zpi5YjOclsZhYBMnXxPMH7P4umuRYZpM0fvbbmLrT+xyEn3gBsUZfSeZz4IEAsqv4mV1NRTJX56JQQWpYECjj9e/MN1VbOOyeCm24UZ/IcB21/XpAh4lY+0izRgiuCti3W7V54wSC2uFdEZ+/RlQhjgYJ9A0XVPyUGDOZ+1Afk6EJ/pO877nYq66fcnNqcwfYYVrHqPcawyTNBqmM+G0hv4e9ea9eEfUQK8atX/dOLojmvYEQ9JvJtbsHlwpfiNZPIvv+6o4fisBtoWW2aFzPVTjSg4Uhpo+Rto7CbxrmcmaVQcVLR4mnnFyOw8Ln0tzi+
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jul 2026 18:26:26.6425
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 00d43816-63f2-4b4a-60ad-08dee755939d
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	CH1PEPF0000AD7D.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB4343
 
+The ACPI specification defines bits 63:32 returned by
+GET_EXECUTE_OPERATION_TIMINGS as the maximum execution time in
+microseconds. erst_get_timeout() instead multiplies the value by
+NSEC_PER_MSEC.
 
---FS0zc9MIoz7/weKh
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Use NSEC_PER_USEC to express the firmware-provided microsecond timeout
+in the nanosecond units expected by erst_timedout().
 
-On Tue, Jul 21, 2026 at 06:21:04PM +0300, Ilpo J=E4rvinen wrote:
-> On Fri, 17 Jul 2026, Marco Giunta wrote:
->=20
-> > Extract the device-level functions from aw88399.c into a new shared
-> > library module (aw88399-lib.c) with a shared header at
-> > include/sound/aw88399.h, following the pattern established by CS35L41
-> > (cs35l41-lib.c / include/sound/cs35l41.h) for chips that need both
-> > ASoC and HDA drivers.
-> >=20
-> > The shared header at include/sound/aw88399.h contains the register
-> > definitions, bit-field masks, hardware constants, device enums, the
-> > struct aw88399 definition, and the library function declarations.
-> > The ASoC-private header at sound/soc/codecs/aw88399.h is reduced to
-> > ASoC-specific definitions (PCM formats/rates, ALSA kcontrol helpers,
-> > calibration constants) and includes the shared header.
-> >=20
-> > The library contains the chip initialization, firmware loading,
-> > playback start/stop sequences, and all their internal dependencies
-> > (PLL checks, DSP management, volume control, calibration, CRC
-> > verification, etc.). The ASoC codec driver retains the ALSA controls,
-> > DAPM widgets, codec probe/remove, calibration service, and I2C bus
-> > driver registration.
-> >=20
-> > A new Kconfig symbol SND_SOC_AW88399_LIB is introduced.
-> > SND_SOC_AW88399 (the existing ASoC codec) selects it, ensuring no
-> > change for current users. The HDA side codec driver (introduced
-> > later in this series) selects the library without pulling in the
-> > full ASoC codec module. This avoids a build-time dependency on the
-> > full ASoC driver and follows the established pattern used by CS35L41
-> > (SND_SOC_CS35L41_LIB) for chips with both ASoC and HDA drivers.
-> >=20
-> > Some library functions (DSP control, volume setting, mute,
-> > calibration updates, profile management, and status helpers) are
-> > used internally by the library's start/stop sequences but are also
-> > called directly by the ASoC driver's remaining code.
-> > These are exported from the library so the ASoC module can access them.
-> >=20
-> > This is a pure code movement with no functional changes. The moved
-> > functions are identical to their originals in aw88399.c.
-> >=20
-> > Tested-by: Nadim Kobeissi <nadim@symbolic.software>
-> > Tested-by: Xia Yun'an <imitoy@imitoy.top>
-> > Tested-by: Munzir Taha <munzirtaha@gmail.com>
-> > Signed-off-by: Marco Giunta <marco_giunta@outlook.it>
-> > ---
-> >  include/sound/aw88399.h        |  618 ++++++++++++++
-> >  sound/soc/codecs/Kconfig       |    5 +
-> >  sound/soc/codecs/Makefile      |    2 +
-> >  sound/soc/codecs/aw88399-lib.c | 1381 ++++++++++++++++++++++++++++++++
-> >  sound/soc/codecs/aw88399.c     | 1349 -------------------------------
-> >  sound/soc/codecs/aw88399.h     |  582 +-------------
-> >  6 files changed, 2008 insertions(+), 1929 deletions(-)
-> >  create mode 100644 include/sound/aw88399.h
-> >  create mode 100644 sound/soc/codecs/aw88399-lib.c
-> >=20
-> > diff --git a/include/sound/aw88399.h b/include/sound/aw88399.h
-> > new file mode 100644
-> > index 000000000000..3a2153f0ee92
-> > --- /dev/null
-> > +++ b/include/sound/aw88399.h
-> > @@ -0,0 +1,618 @@
-> > +/* SPDX-License-Identifier: GPL-2.0-only
-> > + *
-> > + * linux/sound/aw88399.h --  Platform data for AW88399
-> > + *
-> > + * Copyright (c) 2023 AWINIC Technology CO., LTD
-> > + *
-> > + * Author: Weidong Wang <wangweidong.a@awinic.com>
-> > + */
-> > +
-> > +#ifndef __SOUND_AW88399_H
-> > +#define __SOUND_AW88399_H
-> > +
-> > +#include <linux/mutex.h>
-> > +#include <linux/workqueue.h>
-> > +
-> > +/* registers list */
-> > +#define AW88399_ID_REG			(0x00)
-> > +#define AW88399_SYSST_REG		(0x01)
-> > +#define AW88399_SYSINT_REG		(0x02)
-> > +#define AW88399_SYSINTM_REG		(0x03)
-> > +#define AW88399_SYSCTRL_REG		(0x04)
-> > +#define AW88399_SYSCTRL2_REG		(0x05)
-> > +#define AW88399_I2SCTRL1_REG		(0x06)
-> > +#define AW88399_I2SCTRL2_REG		(0x07)
-> > +#define AW88399_I2SCTRL3_REG		(0x08)
-> > +#define AW88399_DACCFG1_REG		(0x09)
-> > +#define AW88399_DACCFG2_REG		(0x0A)
-> > +#define AW88399_DACCFG3_REG		(0x0B)
-> > +#define AW88399_DACCFG4_REG		(0x0C)
-> > +#define AW88399_DACCFG5_REG		(0x0D)
-> > +#define AW88399_DACCFG6_REG		(0x0E)
-> > +#define AW88399_DACCFG7_REG		(0x0F)
-> > +#define AW88399_MPDCFG1_REG		(0x10)
-> > +#define AW88399_MPDCFG2_REG		(0x11)
-> > +#define AW88399_MPDCFG3_REG		(0x12)
-> > +#define AW88399_MPDCFG4_REG		(0x13)
-> > +#define AW88399_PWMCTRL1_REG		(0x14)
-> > +#define AW88399_PWMCTRL2_REG		(0x15)
-> > +#define AW88399_PWMCTRL3_REG		(0x16)
-> > +#define AW88399_I2SCFG1_REG		(0x17)
-> > +#define AW88399_DBGCTRL_REG		(0x18)
-> > +#define AW88399_HAGCST_REG		(0x20)
-> > +#define AW88399_VBAT_REG		(0x21)
-> > +#define AW88399_TEMP_REG		(0x22)
-> > +#define AW88399_PVDD_REG		(0x23)
-> > +#define AW88399_ISNDAT_REG		(0x24)
-> > +#define AW88399_VSNDAT_REG		(0x25)
-> > +#define AW88399_I2SINT_REG		(0x26)
-> > +#define AW88399_I2SCAPCNT_REG		(0x27)
-> > +#define AW88399_ANASTA1_REG		(0x28)
-> > +#define AW88399_ANASTA2_REG		(0x29)
-> > +#define AW88399_ANASTA3_REG		(0x2A)
-> > +#define AW88399_TESTDET_REG		(0x2B)
-> > +#define AW88399_DSMCFG1_REG		(0x30)
-> > +#define AW88399_DSMCFG2_REG		(0x31)
-> > +#define AW88399_DSMCFG3_REG		(0x32)
-> > +#define AW88399_DSMCFG4_REG		(0x33)
-> > +#define AW88399_DSMCFG5_REG		(0x34)
-> > +#define AW88399_DSMCFG6_REG		(0x35)
-> > +#define AW88399_DSMCFG7_REG		(0x36)
-> > +#define AW88399_DSMCFG8_REG		(0x37)
-> > +#define AW88399_TESTIN_REG		(0x38)
-> > +#define AW88399_TESTOUT_REG		(0x39)
+Fixes: fac475aab70b ("ACPI: APEI: Use ERST timeout for slow devices")
+Cc: stable@vger.kernel.org
+Assisted-by: Codex:gpt-5.6-sol
+Signed-off-by: Nirmoy Das <nirmoyd@nvidia.com>
+---
+ drivers/acpi/apei/erst.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Please delete unneeded context from mails when replying.  Doing this
-makes it much easier to find your reply in the message, helping ensure
-it won't be missed by people scrolling through the irrelevant quoted
-material.
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index bf65e34615314..15ab797641cfc 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -108,7 +108,7 @@ static inline u64 erst_get_timeout(void)
+ 
+ 	if (erst_erange.attr & ERST_RANGE_SLOW) {
+ 		timeout = ((erst_erange.timings & ERST_EXEC_TIMING_MAX_MASK) >>
+-			ERST_EXEC_TIMING_MAX_SHIFT) * NSEC_PER_MSEC;
++			ERST_EXEC_TIMING_MAX_SHIFT) * NSEC_PER_USEC;
+ 		if (timeout < FIRMWARE_TIMEOUT)
+ 			timeout = FIRMWARE_TIMEOUT;
+ 	}
+-- 
+2.43.0
 
---FS0zc9MIoz7/weKh
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmpfpPYACgkQJNaLcl1U
-h9BxUQf/VY4NV9txVgbL/xVoZWTQK42ZZf9Bvx1/gYkSUOgdULWJQdxwa+QgvxY7
-AGmJ9518BfnupE9ijpZmJDNy8J8RyXkKliBf4Nt1eSdAiXLpIqqcskNh/fvgD7HH
-qMlxjYPBuX3KgVQXn2LuDQvHJDr6mjmP8lf86U3wwTCgkGzapn4NfrlAcKgkK48u
-izYF7tZtmv+leLA5hj0VR9H7UsjwxD94c7oloFljQ4ZoExSEFV6kPE4sICIX36EC
-kDMmxBqEq7rzBTp971Vvna6MRkfJe+T/LercTnpz7ul13U/4xyJhPOPoXIyZ36I1
-uQtyrHVOXSlvoJgNSG+3XSEbXChHbA==
-=FdbR
------END PGP SIGNATURE-----
-
---FS0zc9MIoz7/weKh--
