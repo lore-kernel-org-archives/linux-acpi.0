@@ -1,148 +1,70 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CCE147B431;
-	Tue, 21 Jul 2026 10:19:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74AFB35A398
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 11:29:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784629188; cv=none; b=YCBayxRZM8ff96kGaM2M/t2szYBfP2H8CiC1wQTocUeSPHDZLY3/CkHLw6DGAV51+zEEaNKt0u/uNDrk0xdO862j1INrK7SFj0G0VHYebEtoec6sHGhJ4asoPaQHpfKSK4FqLP3HYhXagL3g1XwOcHy06FyqvEBxpe2lTKFvHQY=
+	t=1784633399; cv=none; b=QDTDrB7LUCihjflNRldn42rPOE097yDi33NrwyCb1objUhQXYSdrIffwfbnu6pTWIIQrsAL88VgVPdRAft14O/vptpVLnWyX9AvkwUUUqiipYdkpMlPiZ9tz8c4tDKSr890RihUKXKmqrYwmdraNb+byUrgLyILa88x/qbR24q4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784629188; c=relaxed/simple;
-	bh=F7PPeOpKbYFmNXZJaRImknjDFrLgvv/OQHLCHRkcXGA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FqES4OPFH5yaYWG9cYuKF9KqvyDUKRHZEY8rSRQkY3zo7zeBDJwuusvoBD3ILRPjaw+l95zzYUnFOZmU99Z66QUejX0cezk1MoTjvMhte+BgRMcqrBGAk21ezjPjIwDFmMKweidb6H/dLt98A2Gd8sYB0Tf1IJwhpeosJ4A0lMQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=NErrUrnb; arc=none smtp.client-ip=192.198.163.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1784633399; c=relaxed/simple;
+	bh=qDplgMgSB8GKiMH7AQ1XIe1zw8ZX4lnI0b0rHbUWBQA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=fL6sqmRcVIDcj1YYWZeTTolPBH9yw67F//ya7wLvnfKmFDVEXQdOPMDEM8RafWDK/I8HyBJqNHPeoSPvkvXLNsWrXAdz4lHDLlQQW/NlX/6TcGq/c1buxkiMDxN3m+lhrzvCOZDsgegpscHPlnfsyoCS8bNoYQOmk/9VWtYSz40=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lR4YZ/OX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="NErrUrnb"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1784629186; x=1816165186;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=F7PPeOpKbYFmNXZJaRImknjDFrLgvv/OQHLCHRkcXGA=;
-  b=NErrUrnbjatdw8zM4lZTZ/5v9YPCoES7Umsx0xBXUCqwwYZy0CyX22n0
-   wzRBH/tfNykwZMEV2VEUZgBCj/n5UVjEyz7oNtZPWW2sfQBvq3b7PzarI
-   Uz+AIBBhZH4w8fPyinkE1nGHEz3BJgqW8xjQ5rhNNhWDeVOE/JE/+qhqN
-   kTrqsSpIaI3FRW2OEHBq5/WZuXqqS6IJKtyWyznLUtEAJmfgRjd5kf1Y4
-   NlcV5H4BrrdjUj8zoaRq+Ftuw09PI5Deu1KA73O2p8QSgNCy5+7u7RlzK
-   Wbs0ufUr9xJnimKXzxzj7ribhYKUAxW+qgj62NiDFRClkl9QZ9uNlhSe5
-   w==;
-X-CSE-ConnectionGUID: QipOHEB5Qb6eH6Ul7Y9TaQ==
-X-CSE-MsgGUID: /KNiHUPvRW2VagIJbFoApw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11852"; a="89049335"
-X-IronPort-AV: E=Sophos;i="6.25,176,1779174000"; 
-   d="scan'208";a="89049335"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2026 03:19:46 -0700
-X-CSE-ConnectionGUID: xGIYhQvgTX23d/aVtYp7Mg==
-X-CSE-MsgGUID: b3v5AhudQHGxvG0SSyS61A==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,176,1779174000"; 
-   d="scan'208";a="255938275"
-Received: from ncintean-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.67])
-  by orviesa006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2026 03:19:40 -0700
-Date: Tue, 21 Jul 2026 13:19:38 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Chen-Yu Tsai <wenst@chromium.org>
-Cc: Bartosz Golaszewski <brgl@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
-	linux-pm@vger.kernel.org, linux-usb@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	Manivannan Sadhasivam <mani@kernel.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Subject: Re: [PATCH v6 10/16] usb: hub: Power on connected M.2 E-key
- connectors with power sequencing API
-Message-ID: <al9Hugh1LrCTn0du@ashevche-desk.local>
-References: <20260721065413.2306137-1-wenst@chromium.org>
- <20260721065413.2306137-11-wenst@chromium.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lR4YZ/OX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D5051F00ACF
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 11:29:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784633398;
+	bh=qDplgMgSB8GKiMH7AQ1XIe1zw8ZX4lnI0b0rHbUWBQA=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=lR4YZ/OXGBlZez/KWPQj8+p5ZUM6HPdysUb55fWx+Y6UV+vB0k3fWtN8g1+VfMVqR
+	 vrnPEpARseBNPvDLqQ68cGATQA0L3MUlJeZa5NdVmrn8CeeUOb0eTaYJpScfdd9E+E
+	 kjfq52A/mAL2PcaSMCZUoHEA8CTlGi/iL/hkJKr/0IMOypjkDTA6nmGIsIUGB7+3uh
+	 ViJ8eSJwtPoYZMs7XU2nduzV+SDWDm0ri1dhQgbM4sPkV/M7xblydQdDweJi24FjT0
+	 tVseN7wn8BWqVazSo/Cq1JhPVvGfqKXuGW+4S5Ku4IkPeednb2hmCsoO3wPvK35WWR
+	 MhZ80pVFU/QIA==
+Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-39dbe684115so35015711fa.1
+        for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 04:29:58 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RrEs2WOQIAQA8/iJzE0jh2BpskSazvLkWEa5PltKH7LCVHpaUWD7vcKRW9gMJ3CD7MR5AKxgrQ1StL2@vger.kernel.org
+X-Gm-Message-State: AOJu0YxNa/qxQMhEwkTv+88553uDGNVHs5HwzraAvm5DO8NQAjITCpji
+	kC0rIbnqxuGsypqaVbaeoHe5P4/+OCFIKqkXwZbGzcvb3ITuylnuKmXh7i5b9T+DyK6P3tcwxFo
+	vG/EbJ3N2aGSCgu8QtX/sBf77qZKcM2Y=
+X-Received: by 2002:ac2:51c9:0:b0:5b0:1433:13bd with SMTP id
+ 2adb3069b0e04-5b28a16682fmr4547358e87.9.1784633396583; Tue, 21 Jul 2026
+ 04:29:56 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260721065413.2306137-11-wenst@chromium.org>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+References: <20260616034410.70675-1-kaihengf@nvidia.com> <DK39G70DVR3S.UUEE4333DB9W@nvidia.com>
+In-Reply-To: <DK39G70DVR3S.UUEE4333DB9W@nvidia.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Tue, 21 Jul 2026 13:29:36 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0ggU82224fh1JRaNA6V6J9t=CiADCn0rmVqbPEezaY2hw@mail.gmail.com>
+X-Gm-Features: AUfX_myMqh3lKgqdOz6-2SclBm6oZVrgJxTPLlDhRovHhsc1tkgFV35wFO5GYns
+Message-ID: <CAJZ5v0ggU82224fh1JRaNA6V6J9t=CiADCn0rmVqbPEezaY2hw@mail.gmail.com>
+Subject: Re: [PATCH v2 0/4] ACPI: APEI: GHES: Add NVIDIA Vera CPER decoder and tests
+To: Kai-Heng Feng <kaihengf@nvidia.com>
+Cc: shuah@kernel.org, kees@kernel.org, julianbraha@gmail.com, 
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kselftest@vger.kernel.org, linux-hardening@vger.kernel.org, 
+	csoto@nvidia.com, mochs@nvidia.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 21, 2026 at 02:54:05PM +0800, Chen-Yu Tsai wrote:
-> The new M.2 E-key connector can have a USB connection. For the USB device
-> on this connector to work, its power must be enabled and the W_DISABLE2#
-> signal deasserted. The connector driver handles this and provides a
-> toggle over the power sequencing API.
-> 
-> This feature currently only supports a directly connected (no mux in
-> between) M.2 E-key connector. Existing USB connector types are not
-> covered. The USB A connector was recently added to the onboard devices
-> driver. USB B connectors have historically been managed by the USB
-> gadget or dual-role device controller drivers. USB C connectors are
-> handled by TCPM drivers.
-> 
-> The power sequencing API does not know whether a power sequence provider
-> is not needed or not available yet, so we only request it for connectors
-> that we know need it, which at this time is just the E-key connector.
-> 
-> On the USB side, the port firmware node (if present) is tied to the
-> usb_port device. This device is used to acquire the power sequencing
-> descriptor. This allows the provider to tell the different ports on one
-> hub apart.
-> 
-> This feature is not implemented in the onboard USB devices driver. The
-> power sequencing API expects the consumer device to make the request,
-> but there is no device node to instantiate a platform device to tie
-> the driver to. The connector is not a child node of the USB host or
-> hub, and the graph connection is from a USB port to the connector.
-> And the connector itself already has a driver.
-> 
-> Power sequencing is not directly enabled in the connector driver as
-> that would completely decouple the timing of it from the USB subsystem.
-> It would not be possible for the USB subsystem to toggle the power
-> for a power cycle or to disable the port.
-> 
-> Sashiko mentions possible use-after-free of hub->ports from the sysfs
-> callbacks. This is actually not possible, since the sysfs callbacks
-> acquire the hub device and its lock, and then check if it is in the
-> process of disconnect / removal. If it is, then the callbacks just
-> error out.
+On Mon, Jul 20, 2026 at 10:37=E2=80=AFAM Kai-Heng Feng <kaihengf@nvidia.com=
+> wrote:
+>
+> On Tue Jun 16, 2026 at 11:44 AM CST, Kai-Heng Feng wrote:
+>
+> A gentle ping...
 
-...
+You need a tag from at least one of the APEI reviewers listed in
+MAINTAINERS for this.
 
-> static inline bool hub_is_port_power_switchable(struct usb_hub *hub)
-
->  	if (!hub)
->  		return false;
->  	hcs = hub->descriptor->wHubCharacteristics;
-> -	return (le16_to_cpu(hcs) & HUB_CHAR_LPSM) < HUB_CHAR_NO_LPSM;
-> +	if ((le16_to_cpu(hcs) & HUB_CHAR_LPSM) < HUB_CHAR_NO_LPSM)
-> +		return true;
-
-> +	/* check for controllable external power sequencers */
-> +	for (unsigned int i = 0; i < hub->hdev->maxchild; i++)
-> +		if (hub->ports[i] && hub->ports[i]->pwrseq)
-> +			return true;
-
-Missing {}.
-
-> +	return false;
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+I'd suggest resending the series with CCs to those people.
