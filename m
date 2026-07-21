@@ -1,187 +1,172 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012041.outbound.protection.outlook.com [52.101.48.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1220346AA68;
-	Tue, 21 Jul 2026 15:36:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784648163; cv=none; b=SqQKZifEE7i5FiSOdsCsvLN+OYk3KFx8xoNf6SxI6gbQ8DSdmtLBBnNPTys5WDt3sJgyg1k1+bYsm3s1saluZ0TQSNsKSAJL6bFKa2wVpPHQc/6o2jy/aHQde0Lnpiva5tbK8sgfrU9Zr/USJIkUW20iU8Z4zQsIRgC2nCuofAQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784648163; c=relaxed/simple;
-	bh=LSOJidYWyJkfwzustefDfNuU8d4r8/kxHffPI6oNHtM=;
-	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=kOrjC4HULyf6OOCc3knsSZjyUcOPgsErZbDSkUGn9ps426hflkbGyI+SrWfxJWdoqynV3hrZp25vEv/oyUp2gbccVfOCclx5Cqcb+8D31dGcQyqSLPg8t9Yn9hhOBUf1vuFMGO3/ovpKRVOTcenhSIVYxLbWq7hOQRQRO/OI7u8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=aK4C3LbB; arc=none smtp.client-ip=198.175.65.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7B8B335555;
+	Tue, 21 Jul 2026 15:45:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.41
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784648751; cv=fail; b=n/8RbRqHc3jtanfxYDlg2fdLm4Win8nWYZdPfoyu8RbPXEpxuArnwXXJGiorzlYo4JeRjLUEDtNSZymV3I46MX+5/zAatU+siq3lBhq0WhCopDVF1pu+e5SIGeYNOHB9ql8sHDX8BY2/AlbMJ4E5Tx4N+gjeFBrS5H/g4Ben+to=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784648751; c=relaxed/simple;
+	bh=C8i5Y7St449LDGNJEJlPh1BRhByP42SeQZ/rv7tbe4Y=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=hU5zoqT9iDl1TjsHf5wcvFNnsNY+VanwTlnA47K+GLNl25TqaX0PzLKE5whxlJzFXf34RU2LFd6kMmSlW12PzSG7j6a141jVtbHNcFn5eBecums7cUp44nsR6+mSG+6SimdtNbuaf04XA7PC6zFj9JoKkG0L6i0CChXd1xuAhgk=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=pCvD410s; arc=fail smtp.client-ip=52.101.48.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="aK4C3LbB"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1784648162; x=1816184162;
-  h=from:date:to:cc:subject:in-reply-to:message-id:
-   references:mime-version;
-  bh=LSOJidYWyJkfwzustefDfNuU8d4r8/kxHffPI6oNHtM=;
-  b=aK4C3LbBE1Uas/FAoaKnBX+BeNDSy4XNeknEqzUxzAaUf41VQLu8FTxF
-   gohT2Kh9tsMbDQnyFPQZX7ids2pP59OeWNhXO84vYDQNya0TwO1FMgKnc
-   p73NrtYCwwVUvwKlottcn1hWzUVM3TpriwRNmD0uTig8v3ShH9JAns0hp
-   Hs4De1f2PKDkokpiQvuNrGS4mDjYGB5fIwCGd2nrXUQ6nJkBAoYTo9++N
-   JjKV7D/oSlaXT947hEsDeyMNB02xBZtWKOPYzlmi3lkc8WAx/cyx9rDXx
-   vh2majO52I45sotRlmljnATbtVv5ZChO8bXyvFg2vL/ZLNNA4e+hYzX2k
-   A==;
-X-CSE-ConnectionGUID: i6GmSVF4Rk2+3rhj5NuoWg==
-X-CSE-MsgGUID: Up+fKjRZT7eWLK4XQ8PSgA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11853"; a="95616500"
-X-IronPort-AV: E=Sophos;i="6.25,176,1779174000"; 
-   d="scan'208";a="95616500"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2026 08:36:01 -0700
-X-CSE-ConnectionGUID: 6251/zbFSjC0ACQL9qlmpA==
-X-CSE-MsgGUID: jr2Bkl1oQ1WvuRUIeSx+pA==
-X-ExtLoop1: 1
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.47])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2026 08:35:58 -0700
-From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Date: Tue, 21 Jul 2026 18:35:55 +0300 (EEST)
-To: Armin Wolf <W_Armin@gmx.de>
-cc: Hans de Goede <hansg@kernel.org>, platform-driver-x86@vger.kernel.org, 
-    LKML <linux-kernel@vger.kernel.org>, linux@weissschuh.net, 
-    "Rafael J. Wysocki" <rafael@kernel.org>, lenb@kernel.org, 
-    linux-acpi@vger.kernel.org
-Subject: Re: [PATCH 3/3] platform/x86: wmi-bmof: Move to generic WMI code
-In-Reply-To: <20260716234538.1303811-4-W_Armin@gmx.de>
-Message-ID: <7a059319-e1a9-e2c6-c750-7ee0c3ab3861@linux.intel.com>
-References: <20260716234538.1303811-1-W_Armin@gmx.de> <20260716234538.1303811-4-W_Armin@gmx.de>
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="pCvD410s"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=FoGncp1jJqXUr9jUw0OHnzleZS1ksRAPeneEp+rH67/5A+KQTfSRFtqi92AkP5Vru1Kz0aeiurvBb+xyWhHuWf9KQKM2WY+8Vh7hoIXolvQsSftgjki1by3NdIzcKi2hx6uhTtol9bcVoEgKZZ/VWd4q18IB50t0SPQeXnKzieS0PSSvUDqQcOTQ2RQnLxFHxtU987t+O860NwlwvegIwGTKsBfHS+GviLy9GcdDRVbzWKF6deetUZLEJvXJMCdKPHXSuyilHtBwHQ/uk3mYIz+hdiBlP6RSDPaNKjE0RKuFJGU05vklfK82d5KBG7Fg91sopRhvUtlazKPyTyYU4g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=rVD3XhY3cj0p55heWLt7RJMaUMYHUrqOu3maSJZle00=;
+ b=fYZQrMgSIfsFHD4ol1u4pYwkDGniSXrU13En7ekhpHSbiWrORxVrr3iOlafO8HfSG7L7wpA0L2RugQ3XykhrwWEU8fNm7DEe9cfVdHZbrbhA6KN7EZPYeoCYypocZ15KNoFNYTddeoVrnrxwtjaIxd5+55ztk4CznqwzWg0h74JwD68mZ3Pulsaun7vKeyWrjWixUZEFfbycuNF2OJ27OMraAiXD5U8tYAcggmuY/tOgj8gW8Qr/AWoDVmGwGwLSz4BE+scO+qWioNMk2zrZCL25tFmjQGJ/oXB1NhiHCgg6rDGwz6wVCJju7Ra3lxKpaTTjr6v6M7rzflpprSP03Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=rVD3XhY3cj0p55heWLt7RJMaUMYHUrqOu3maSJZle00=;
+ b=pCvD410scJbnfShjw2OcL+niUQ3Iy4eZ0AengZDk7C6sofnAfQaOnGKQXSZn+3l/9ymWul4BFfrQ9C/RxWaWytwEG7ZAGtu4vGrfDgwVAa3j8ZF1q1Bh0dh7UpRufrnqRx/gHJGPiWe7gEbK+SdqdPVp/WRD0wlMs5YVImIZDHY=
+Received: from SA0PR12CA0017.namprd12.prod.outlook.com (2603:10b6:806:6f::22)
+ by PH7PR12MB8053.namprd12.prod.outlook.com (2603:10b6:510:279::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.223.18; Tue, 21 Jul
+ 2026 15:45:44 +0000
+Received: from SA2PEPF00003AEB.namprd02.prod.outlook.com
+ (2603:10b6:806:6f:cafe::30) by SA0PR12CA0017.outlook.office365.com
+ (2603:10b6:806:6f::22) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.245.10 via Frontend Transport; Tue,
+ 21 Jul 2026 15:45:42 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
+Received: from satlexmb07.amd.com (165.204.84.17) by
+ SA2PEPF00003AEB.mail.protection.outlook.com (10.167.248.11) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.245.5 via Frontend Transport; Tue, 21 Jul 2026 15:45:41 +0000
+Received: from airavat.amd.com (10.180.168.240) by satlexmb07.amd.com
+ (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.41; Tue, 21 Jul
+ 2026 10:45:37 -0500
+From: Vishal Badole <Vishal.Badole@amd.com>
+To: <tglx@kernel.org>, <mingo@redhat.com>, <bp@alien8.de>,
+	<dave.hansen@linux.intel.com>, <x86@kernel.org>, <hpa@zytor.com>,
+	<rafael@kernel.org>, <lenb@kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<peterz@infradead.org>, <tony.luck@intel.com>, <chang.seok.bae@intel.com>,
+	<wei.w.wang@hotmail.com>, Vishal Badole <Vishal.Badole@amd.com>
+Subject: [PATCH v2 0/3] x86/topology: Add support for Low Power cpu_type
+Date: Tue, 21 Jul 2026 21:15:11 +0530
+Message-ID: <20260721154514.2506972-1-Vishal.Badole@amd.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="8323328-1463547634-1784648155=:1265"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
+ (10.181.42.216)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA2PEPF00003AEB:EE_|PH7PR12MB8053:EE_
+X-MS-Office365-Filtering-Correlation-Id: 32d4d9f2-2ea3-4343-5341-08dee73f1e9a
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|376014|7416014|36860700016|32650700020|1800799024|82310400026|11063799006|10067099003|5023799004|56012099006|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	hj5KMgN3j1v9ISy2UChVpTzobSnPlQZqjt3wsavkArZWKU03asmig3ov0iEhEcPJfmncr0VjexZ6R6U64OkFABOPlKayhA2Akfhibol/ZYbC/5kYruEBhboD0J8gOwm0F3w9Hfgm4H3WSDanUommKjwqIUC3vZM/VkKHECy6XFUBb53X4iDoKHjoXDG9A9FdJKedW13bqMQT0zUMBXMYcu/1wXvpGlXaKO/Y0FfjA4fHm3iMVvVH6Dc0oe2rVUblAZl0w36hK9dcU3nUOF6Wd3jpUDXssJJaKWXCVnp5zpssIL0bKjjc/KpeF9+BNp3RZ1aUcARwrgif7rhHLHFtSaOK68BYYzosUAUeHYD6daSGqs1/o/Zigtm88bz1BwRdTf686fupIdhaeXWZyaIAfz+Impn1eKe6ehBryzq+zmdZRP1N42WpwSAI6Lv0QCGtHI0EE3OzcHcspqyHPVgo3YPwzidtDylYpWbRde4whUbIj9WyIn8ua5Fu3FeHtDLFWuvtue18KjFX3VsfbEwmuuH4sHBUYsyQQS8Ww660M3QigdKxzzRUd0YT4keUr1g7ahUnFHw6TWU4QdYTpRJbDRX1gYJQyGPPuZ5vhbDX/72h0B2Jm/ZJRVJDCkB3/J/AOT5/8VDxJF6i/ditLUrZhcuSQlvupQf0TYTC51Q1JfmfNIyOK4KycifdoWJEY2cqEuLfq42paGyghXk5GQJMYQ==
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(23010399003)(376014)(7416014)(36860700016)(32650700020)(1800799024)(82310400026)(11063799006)(10067099003)(5023799004)(56012099006)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	zhmns1DIOPUtPpt84qJsHwWPZHe07ZdUr6pBqoB2KdQuLNMivvlZND2ke8YGN0mMNFKPxT9VJibbXd9ir2vLPissPO32sFr182pbOUDcLXTKn4uL4lrDCUgmbO4qAdKgodv8IkUsPmVUenwaVknR0NDLtm0rQVShvHhUQEIrCbpNS+7JjwvQKiJb3xuSIgySkiNglWR9/Rmzp6udgi6us2EUzIXdQLd3/o5cMMg6ykH2w/uzrQ9LMQIqZx4lbJtU+6J465DYcqxI7hhrhHsVH+SmD+lD46PoaLbdsvTSkkQ2t8Xg5GZu4Q0StroLMi10jHuQhr1hiKNkbsBZYhPcrxeRVHTB7/H423TRyOT+xhHwrrCKOXBi/aYAA8LAk80DRzF34JbTrZQ4nJ+KWp/p/vmGx2KrIWp0S9YqcO49V5N1OV7CFB4W2cbvQ/N9J4y5
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jul 2026 15:45:41.4908
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 32d4d9f2-2ea3-4343-5341-08dee73f1e9a
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	SA2PEPF00003AEB.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB8053
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+This series extends the x86 topology cpu_type classification to support
+a Low Power core type, in addition to the existing Performance and
+Efficiency types.
 
---8323328-1463547634-1784648155=:1265
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+AMD heterogeneous parts report the core type via CPUID Fn0x80000026
+EBX[31:28] (Extended CPU Topology, Core Type). Value 2 identifies a
+low-power core. Distinguishing it from a regular efficiency core
+matters for:
 
-On Fri, 17 Jul 2026, Armin Wolf wrote:
+  - user space exposure via /sys/kernel/debug/x86/topo/cpus/*, which
+    today reports cpu_type "unknown" for low-power cores
 
-> Some Windows-on-Arm notebooks contain embedded Binary MOF data,
-> accessible using the WMI-ACPI interface. Move the associated driver
-> to the generic WMI code to make it possible to build it on arm64.
-> Also rework the Kconfig help text a bit.
->=20
-> Link: https://lists.linaro.org/archives/list/aarch64-laptops@lists.linaro=
-=2Eorg/thread/U2IZENSIOOHZHGXVN7GM5HX5O3FD5KCF/
-> Signed-off-by: Armin Wolf <W_Armin@gmx.de>
-> ---
->  MAINTAINERS                                     |  2 +-
->  drivers/platform/wmi/Kconfig                    | 12 ++++++++++++
->  drivers/platform/wmi/Makefile                   |  4 ++++
->  drivers/platform/{x86/wmi-bmof.c =3D> wmi/bmof.c} |  0
->  drivers/platform/x86/Kconfig                    | 12 ------------
->  drivers/platform/x86/Makefile                   |  3 ---
->  6 files changed, 17 insertions(+), 16 deletions(-)
->  rename drivers/platform/{x86/wmi-bmof.c =3D> wmi/bmof.c} (100%)
->=20
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 3820b286f09f..bbae729a6012 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -29106,7 +29106,7 @@ L:=09platform-driver-x86@vger.kernel.org
->  S:=09Maintained
->  F:=09Documentation/ABI/stable/sysfs-platform-wmi-bmof
->  F:=09Documentation/wmi/devices/wmi-bmof.rst
-> -F:=09drivers/platform/x86/wmi-bmof.c
-> +F:=09drivers/platform/wmi/bmof.c
-> =20
->  WOLFSON MICROELECTRONICS DRIVERS
->  L:=09patches@opensource.cirrus.com
-> diff --git a/drivers/platform/wmi/Kconfig b/drivers/platform/wmi/Kconfig
-> index 36934b5f0194..11c221a58e04 100644
-> --- a/drivers/platform/wmi/Kconfig
-> +++ b/drivers/platform/wmi/Kconfig
-> @@ -34,4 +34,16 @@ config ACPI_WMI_LEGACY_DEVICE_NAMES
-> =20
->  source "drivers/platform/wmi/tests/Kconfig"
-> =20
-> +config WMI_BMOF
-> +=09tristate "WMI embedded Binary MOF driver"
-> +=09default ACPI_WMI
-> +=09help
-> +=09  Say Y here if you want to be able to read the firmware-embedded
-> +=09  WMI Binary MOF (Managed Object Format) data. Using this requires
-> +=09  userspace tools, see Documentation/wmi/devices/wmi-bmof.rst for
-> +=09  details.
-> +
-> +=09  To compile this driver as a module, choose M here: the module will
-> +=09  be called wmi-bmof.
-> +
->  endif # ACPI_WMI
-> diff --git a/drivers/platform/wmi/Makefile b/drivers/platform/wmi/Makefil=
-e
-> index 2feff94a5594..ee2f27ea20d1 100644
-> --- a/drivers/platform/wmi/Makefile
-> +++ b/drivers/platform/wmi/Makefile
-> @@ -9,3 +9,7 @@ obj-$(CONFIG_ACPI_WMI)=09+=3D wmi.o
-> =20
->  # Unit tests
->  obj-y=09=09=09+=3D tests/
-> +
-> +# Binary MOF driver
-> +wmi-bmof-y=09=09:=3D bmof.o
-> +obj-$(CONFIG_WMI_BMOF)=09+=3D wmi-bmof.o
-> diff --git a/drivers/platform/x86/wmi-bmof.c b/drivers/platform/wmi/bmof.=
-c
-> similarity index 100%
-> rename from drivers/platform/x86/wmi-bmof.c
-> rename to drivers/platform/wmi/bmof.c
-> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-> index 957034f39e4e..889979034391 100644
-> --- a/drivers/platform/x86/Kconfig
-> +++ b/drivers/platform/x86/Kconfig
-> @@ -16,18 +16,6 @@ menuconfig X86_PLATFORM_DEVICES
-> =20
->  if X86_PLATFORM_DEVICES
-> =20
-> -config WMI_BMOF
-> -=09tristate "WMI embedded Binary MOF driver"
-> -=09depends on ACPI_WMI
-> -=09default ACPI_WMI
-> -=09help
-> -=09  Say Y here if you want to be able to read a firmware-embedded
-> -=09  WMI Binary MOF (Managed Object Format) data. Using this requires
-> -=09  userspace tools and may be rather tedious.
-> -
-> -=09  To compile this driver as a module, choose M here: the module will
-> -=09  be called wmi-bmof.
-> -
->  config HUAWEI_WMI
->  =09tristate "Huawei WMI laptop extras driver"
->  =09depends on ACPI_BATTERY
-> diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefil=
-e
-> index 872ac3842391..94a5fe4075cb 100644
-> --- a/drivers/platform/x86/Makefile
-> +++ b/drivers/platform/x86/Makefile
-> @@ -4,9 +4,6 @@
->  # x86 Platform-Specific Drivers
->  #
-> =20
-> -# Windows Management Interface
-> -obj-$(CONFIG_WMI_BMOF)=09=09+=3D wmi-bmof.o
-> -
->  # WMI drivers
->  obj-$(CONFIG_HUAWEI_WMI)=09=09+=3D huawei-wmi.o
->  obj-$(CONFIG_MXM_WMI)=09=09=09+=3D mxm-wmi.o
->=20
+  - amd_get_boost_ratio_numerator(): on every
+    X86_FEATURE_AMD_HTR_CORES-capable AMD/Hygon part, low-power cores
+    must scale by amd_get_highest_perf() rather than the fixed
+    CPPC_HIGHEST_PERF_PERFORMANCE ceiling, matching the existing
+    efficiency-core path
 
-Reviewed-by: Ilpo J=E4rvinen <ilpo.jarvinen@linux.intel.com>
+During the v1 review, Sashiko flagged a pre-existing issue in how
+x86_match_cpu() handles vendor CPU types. v2 therefore starts with a
+preparatory patch from Borislav that switches matching to the kernel's
+vendor-agnostic TOPO_CPU_TYPE_* enum; see its commit message for
+details. The Low Power support is then added on top.
 
---=20
- i.
+The series is structured as:
 
---8323328-1463547634-1784648155=:1265--
+  1/3 Map the vendor (Intel/AMD) hardware core type to the
+      vendor-agnostic enum x86_topology_cpu_type at enumeration and
+      match against it. See the patch's commit message for details.
+
+  2/3 Replace the bare 0/1 in get_topology_cpu_type() with named
+      enum amd_cpu_type constants, mirroring the existing Intel side.
+      No functional change.
+
+  3/3 Add TOPO_CPU_TYPE_LOW_POWER, wire it through
+      get_topology_cpu_type(), get_topology_cpu_type_name() and the
+      switch in amd_get_boost_ratio_numerator() so allmodconfig builds
+      cleanly under -Werror=switch.
+
+Changes in v2:
+  - New preparatory patch 1/3 from Borislav Petkov switching
+    x86_match_cpu() to the vendor-agnostic TOPO_CPU_TYPE_* enum; see
+    its commit message for the rationale. (Thomas Gleixner,
+    Borislav Petkov)
+  - No change to the Low Power translation logic itself; patches 2/3
+    and 3/3 are the v1 patches rebased on top of the new 1/3.
+
+v1: https://lore.kernel.org/all/20260629094349.533301-1-Vishal.Badole@amd.com
+
+Borislav Petkov (AMD) (1):
+  x86/topo: Map vendor CPU types to generic Linux such types
+
+Vishal Badole (2):
+  x86/topology: Name the AMD core-type values
+  x86/topology: Add TOPO_CPU_TYPE_LOW_POWER
+
+ arch/x86/include/asm/processor.h      | 19 +++++++++++++----
+ arch/x86/include/asm/topology.h       |  9 ++++----
+ arch/x86/kernel/acpi/cppc.c           |  7 ++++---
+ arch/x86/kernel/cpu/match.c           | 30 +--------------------------
+ arch/x86/kernel/cpu/topology.h        |  1 +
+ arch/x86/kernel/cpu/topology_amd.c    |  6 ++++--
+ arch/x86/kernel/cpu/topology_common.c | 15 ++++++++++----
+ 7 files changed, 40 insertions(+), 47 deletions(-)
+
+-- 
+2.34.1
+
