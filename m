@@ -1,506 +1,356 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012015.outbound.protection.outlook.com [40.93.195.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48BF73B83E0
-	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 20:55:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784667306; cv=none; b=kTIzL4AA/098zOBS56qumMrssJrazomEZdyOPpmXiN5CTRVGHcI0JRGEd0ZZOF9WOrI33Zz3xImyqu/eZr2e6CwQU78pGK7GtWcRAb5F6MMAjHzH2VmSSoa1FE/kFnL9SeWhctR3BSOYbG2hc7564QoTxcGie2chkl3CNCkJq3M=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784667306; c=relaxed/simple;
-	bh=99l65B05EZqplQpkSt72g+qtTykwxDAbr3iqeY6JfnE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Rgh6AOd4jorT1WgrZwxzNyLLePTdvVUxj2rxhtnrM8ZtuuoQhDFWpPIh5O9CDwARyK9n9PBOwRWNhayhdQzDorxVw+tKZ/8HhFZHMSj+SAPNLzogEOtDSQnh2VAPhlZKoXOHu2/i489O2/eni0J1zE5odkvoJ9FIyKzOpQ3XgTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nFV3bwf2; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C87043FD34;
+	Tue, 21 Jul 2026 20:59:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.15
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784667583; cv=fail; b=gMA+e6tD994rjvBQn7WZEKMmmdSAJeupJtkbZ7gZ2B2zSrZ7GdhtPcK36tziqMhvMLywSmbalccbhj5FniSLwc4N1JBdHAUl29O77FI3Lyo3HEm1nOZuj86J2EbIwksssgfNWemdbRTAUO+yQkFETy11oYBGx7XjU91YdNFic4w=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784667583; c=relaxed/simple;
+	bh=TXUmmRQfelzIL+ILbR5TxNb4pxrXSXqqQGzHccTarJA=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=OXqDcmakV9QdbqrAMvc/y++Ne1r98+IuUuAIS7MZJLZRweNs3KE7T5n95ho0w8hYbYlDybXOjrxvk9kFTBt5ViZUuHrAy5BTBpkerAzJwaiIoJ586MNUC/OPqWXJHK68l4HgKBJwsBe9Qk8mucLWxHNbP3Ryf0EW//3hJsDcNp4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=xkaiAZ4M; arc=fail smtp.client-ip=40.93.195.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nFV3bwf2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB0271F00A3E
-	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 20:55:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784667305;
-	bh=PIPxUtOyMDw25ArbgXM8B4vuFeJIRYk0SsAFf4a28QQ=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=nFV3bwf2ObuOQcqpHmTFAXt7ctbjka9HrMxOHSut2MPfwS4X85o96UsSgBTtoNeFY
-	 QvWvVX0k4clAJgzBDFo7x/PiMSnmTSmVDWPjHvQLQZeKuu3bAYpoYxDQ7AjMmqXsB5
-	 Dvr6USIfA9799Rkk2rHB9Yc+Ajb8bAfJtE6ysOQwwJ18Rax/PRCe9i4espe0hEcO0Y
-	 huPmdKj8TraWPEJsVqNOKKZW80sLfCFS4tWFQxjv2Yl7/baZByqQaZgJ2u9aXOYW3h
-	 9wfUXhET1SBD18/JnTwuIVTnaSfvCWRDzrRBFf1UbixJ9wI4zeBpA0SjkgebQhufxR
-	 ZrVWWqI72y/Tg==
-Received: by mail-lf1-f54.google.com with SMTP id 2adb3069b0e04-5aea0fff535so9495132e87.3
-        for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 13:55:04 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RpYLJdPwtwuYvZ9YnxwVWsupuGo0a5w1c/69o2wyjl/mmBob1UaSThGYw2IJnMPyXDJq05RWvGdIV6Z@vger.kernel.org
-X-Gm-Message-State: AOJu0YwgqjKXJsxZW/8o38HfjxdGDyMpjZhzGpqjxgHE+xsd7GK+4RZ0
-	cGQupPUlpehINCN4t+DIfdNb01a7vLVvYsBwiyN0/tg/kCIUjE4SKjmKxtaVloVJIATK72MzRuO
-	ZCBl8M1VVUDauEBdFr9szXAM4XlXBUgs=
-X-Received: by 2002:a05:6512:65:b0:5b0:cce:d9e9 with SMTP id
- 2adb3069b0e04-5b28f874d01mr2697755e87.19.1784667303253; Tue, 21 Jul 2026
- 13:55:03 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="xkaiAZ4M"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=jvf65H8acdmx6b67UQwNQY3ZIJJyx+5YYmAoOmdy8/C5n3szi5dOAx3V66cF6cGpzW2v9gqVWLXtnM6F054xJExO+gEocQBWnBbdnbSiJaUOtv/LjW+f45RIiAc0LfwgYW5RK6Wi5xRFIM3t8GRH7nE3Wx5Ncem5UhZ5IV4Fi0QhEwVjEcJ56TfyOLTtRw4z2M+sPaYEXwvDLT1W+DzIaXbSuYC91mH2m3KXiJiR6ubgcTPPzrbFjsswSBaWPCGVNviDRmN0XL0v4kJgkLpgP21b3C14AZT1mXQYdyM0kkqwio6VFZdcR0JvGMseZsxgK6oZH71K//6KQOeTOMtJtg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=wB53e5x2wgeqj9sBbbnGjtfJi2sYLQhdyQHwQjlNJDo=;
+ b=bV94U9StCpU/39QcAILKU27CKhMV+NChLKnxiGFJH09g2LhJj83ikzmIpkFeq9NaQSnZoyRjCWhoOv2t/K14IvSp9fbaJ0kuKxCnJv33UcYRcuLHg4LN/gCJTi+i/1THQ/6nh38tn5yADaLQQfYoLIk4Ixc7h4sL8E5fuV7Yl03zWKxJmFYY8UKt8BwBpzcmWBZw/ibo8yyvTBtIndLcO4QNZcpRsUQFROZWAPhNHpLVlOWhddYxkywCPLuL2HHoH/Iplo8mzlHVI7HP9b2HTfXYTkypSIZxt3HjaWu0l/aoBG3/sTqX+HuWZyaBo3W3WHyyF0rqIMRLZ1vz7vZlKA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=wB53e5x2wgeqj9sBbbnGjtfJi2sYLQhdyQHwQjlNJDo=;
+ b=xkaiAZ4MytmHVxpk5bPjvfkm5Y63YxzEl7ICWv38MwG5vcyxwX1GIWy1EqzrbAEVy8J2j+Xb3m9H0VxUZepWB71klP31XqzxHqtaLC/U7BJDMeBn5MWqdsRqMltu/PdlFRPWLvYBpx02Ncmx6W/4BWWIDEomb45a/Odb2eeqT2Y=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from DS2PR12MB9749.namprd12.prod.outlook.com (2603:10b6:8:2b9::14)
+ by DS0PR12MB6485.namprd12.prod.outlook.com (2603:10b6:8:c6::9) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.223.18; Tue, 21 Jul 2026 20:59:35 +0000
+Received: from DS2PR12MB9749.namprd12.prod.outlook.com
+ ([fe80::ad8d:e59a:e61:4e9e]) by DS2PR12MB9749.namprd12.prod.outlook.com
+ ([fe80::ad8d:e59a:e61:4e9e%5]) with mapi id 15.21.0245.009; Tue, 21 Jul 2026
+ 20:59:33 +0000
+Message-ID: <d68019bc-dbd7-4990-9fee-d12276bee531@amd.com>
+Date: Tue, 21 Jul 2026 15:59:28 -0500
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v18 10/13] cxl: Add port and dport identifiers to CXL AER
+ trace events
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <djbw@kernel.org>,
+ Dave Jiang <dave.jiang@intel.com>, Ira Weiny <iweiny@kernel.org>,
+ Len Brown <lenb@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>,
+ Robert Richter <rrichter@amd.com>, linux-acpi@vger.kernel.org,
+ linux-cxl@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
+ linuxppc-dev@lists.ozlabs.org, Alejandro Lucero <alucerop@amd.com>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Ankit Agrawal <ankita@nvidia.com>, Ard Biesheuvel <ardb@kernel.org>,
+ Ben Cheatham <Benjamin.Cheatham@amd.com>, Borislav Petkov <bp@alien8.de>,
+ Breno Leitao <leitao@debian.org>, Davidlohr Bueso <dave@stgolabs.net>,
+ "Fabio M . De Francesco" <fabio.m.de.francesco@linux.intel.com>,
+ Gregory Price <gourry@gourry.net>, Hanjun Guo <guohanjun@huawei.com>,
+ Jonathan Corbet <corbet@lwn.net>, Kees Cook <kees@kernel.org>,
+ Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>,
+ Li Ming <ming.li@zohomail.com>, Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
+ Mauro Carvalho Chehab <mchehab@kernel.org>,
+ Oliver O'Halloran <oohall@gmail.com>, Shiju Jose <shiju.jose@huawei.com>,
+ Shuah Khan <skhan@linuxfoundation.org>,
+ Shuai Xue <xueshuai@linux.alibaba.com>,
+ Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
+ Tony Luck <tony.luck@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
+ linux-acpi@vger.kernel.org,
+ "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+ linux-doc@vger.kernel.org,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+ "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+References: <20260717222706.3540281-1-terry.bowman@amd.com>
+ <20260717222706.3540281-11-terry.bowman@amd.com>
+ <20260721010050.7b5654fb@jic23-huawei>
+Content-Language: en-US
+From: "Bowman, Terry" <terry.bowman@amd.com>
+In-Reply-To: <20260721010050.7b5654fb@jic23-huawei>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: CH5PR02CA0004.namprd02.prod.outlook.com
+ (2603:10b6:610:1ed::21) To DS2PR12MB9749.namprd12.prod.outlook.com
+ (2603:10b6:8:2b9::14)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260718-b4-acpi-battery-notification-v4-0-599c8ed1072f@rong.moe> <20260718-b4-acpi-battery-notification-v4-3-599c8ed1072f@rong.moe>
-In-Reply-To: <20260718-b4-acpi-battery-notification-v4-3-599c8ed1072f@rong.moe>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 21 Jul 2026 22:54:51 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0ijiG23QWjG9C9OfZSB5jxFTg42OwYRS6KVc=Voi2s42w@mail.gmail.com>
-X-Gm-Features: AUfX_mz7xqO5yaZ5ZuSnNYAtw_TcL47S6tOq8OoUINuyIcWjxhXLA9X8iqGrV2A
-Message-ID: <CAJZ5v0ijiG23QWjG9C9OfZSB5jxFTg42OwYRS6KVc=Voi2s42w@mail.gmail.com>
-Subject: Re: [PATCH v4 3/3] ACPI: battery: Protect all properties with a
- separated mutex
-To: Rong Zhang <i@rong.moe>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Avraham Hollander <anhollander516@gmail.com>, 
-	=?UTF-8?Q?Jeffrey_W=C3=A4lti?= <jeffrey@waelti.dev>, 
-	Rick <rickk1166@gmail.com>, Mark Pearson <mpearson-lenovo@squebb.ca>, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS2PR12MB9749:EE_|DS0PR12MB6485:EE_
+X-MS-Office365-Filtering-Correlation-Id: c6c70a75-7630-4aa8-d6c8-08dee76af73d
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|366016|1800799024|7416014|23010399003|376014|22082099003|18002099003|4143699003|3023799007|11063799006|56012099006|10067099003|6133799003;
+X-Microsoft-Antispam-Message-Info:
+	eZO2NDZAJ0+jUlWGgKyTYfr5NH+g8+Np5gzOtzSI4rMCV7I0d0PyGwbEGLJrp7QYHCgzm85VJXxaJxHSUzsiZI0CB4+0sGr3gI3O8Up88UNSnLMmtTd3ZVY7CcogBrAgpfGGzml9hxagEcQ10Dy5dvQRIHTTf2iDVj16+IQlZ08U7HaIiAC5aON2o8FHH9eIfmfyaBeFWFjJU47k81+1eKdwSz23BA6gQn+WPoM0ndrcAB/wsCnrZ9UYcFWTFCjSdIwyLsdoYZKZ8sv2GKhDxQ42L3jpy+TM5bqHOp9znGOPcFHTKHQgoroXSUTgwJVs+5oDFYzV6yqruuSAtf1mN7V7rA3P01JFX87OgYpUdKHDu9oti7RkYk6zqYwfDRNIqgClOprcbppsSa/NQ4doGYRhKTnmyKZgihteDb75yBRspPx0LrzPFPNttVFEVhK5MRytAASP2xnX43RD2p3Kz/Eb2ch2DAKA+sVFwUQbKGDiC2zdGaGIHbJRSHSJNx1T9zq0ANaVG9JPisbwITYT0VDdHT26hy9sALLFVqEIcU2M7kf8NEdTPUqvuvLYe6QzfYXIbwXX7DXUwDf7EaeFynSn2eVS7mQDlmZiePbgzMFUFIMA4C8yPxrdjbvfhf9mmLJhZ7YLDefnm4YxJlQqN8kO4F08o28GIcdmAjFvCEg=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS2PR12MB9749.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(7416014)(23010399003)(376014)(22082099003)(18002099003)(4143699003)(3023799007)(11063799006)(56012099006)(10067099003)(6133799003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?R1ByYlBYbHpXV1RZc1E2UTdqWCtDVk9LR3UzaFFwMWRvN243N3BYTUg5bHhM?=
+ =?utf-8?B?VnMrSk1wVVplbTl6WHZwVVNKbTRja1hBZEZFaTBXaXY3Yjhzc3VtaGRsV2Vx?=
+ =?utf-8?B?cEZPQmVIQWlVSXladS9DMjhXWFZkMDRtR0g1UzFNWDVQT0k0RXBWSlhjc1dW?=
+ =?utf-8?B?UnFnblhVL2QxWHY5MWJyanpTSGJCb1k3dkxHZms0Ulg5ZVRmY2prWXRLMHdr?=
+ =?utf-8?B?WlhaTlB4cE5lSWNGYm5oc2VYMFNoajB0NXBVT2NKdW0xSnJjcTlTVEp6MWh0?=
+ =?utf-8?B?U1FYRzNabVJNQXFJdXNwd0M0NEhMNElqSFVBdEpzaWdSV0pzcEpZMVBORERa?=
+ =?utf-8?B?Uy9xRTBCWW5FMnhMYUhCdXRLRTVpWVF5eG14aFo2TithUlMrS1dmVHFGbmxC?=
+ =?utf-8?B?aGR0RmxlQjNyTGNNRm9yNy82LzR2WTdQVG41ckxsT0k5bXhWNzRVVE5OcVlT?=
+ =?utf-8?B?YkZkYzlqL01yQ3M2K3Bxb2hZejIySitjQXJoVGg0bG85RktWWG1YaG5mcEV4?=
+ =?utf-8?B?NnhHUFdMRTBOM0tNbGVLZWN5ZjNSNzZjZEJqM25YSFNvTU5RUXI2djlvQTFF?=
+ =?utf-8?B?eFVmSzF0SWdrazlIakdnMFhIZmk0UkRaWU1QbzJLSG1pVVJLN2RsL3dwZGJp?=
+ =?utf-8?B?RCtkNHo3V2prZFJzZGNEay90NmxCMWNUZDhwMmFtakl2RTVJNEwzZlFiRXZp?=
+ =?utf-8?B?VzlibWFuZGE5aFBnc0syYkdVSkFvaWJIaExjeXByRG9paHZmcHF5Mlcrd2hx?=
+ =?utf-8?B?K1ZOWVJrZDNaTFQrTHFpQnZIVDZUcVdhT3ZpVm96cXcyeHhKVm1nUFVXZWkx?=
+ =?utf-8?B?MGFreEVDMG9mT1A4bGM5Wk1ZbHJoRDFjZzNyQ0NjMkV2RW1uR2tGYnMyVnRQ?=
+ =?utf-8?B?dFcwUFZBUTNhTnRJRUVIZWVlbTFZU3hKaXorUmU5WU8vaUhyMVh0ajV6UHVR?=
+ =?utf-8?B?WlVGQkc3VVlhRlVHOHl3dnhxYUtWWkhtYVdQOEZibnMwSEp2S0FBQ213S0VH?=
+ =?utf-8?B?TjlLbHd0SHlkc2NXK29YWWhoNnpjNXlZNGxaTmtGQTg0eUpOcUg3ell0MGRK?=
+ =?utf-8?B?Sk5LdGFsenFoZzljZWtScHVBVnArTndpVlU5MTFaYitJZ0NEVUN2MHdmV2Qr?=
+ =?utf-8?B?Mm82ckZpb3JXWlh6ZUFtZTd3K2NleDM0V285S1NRMWY3aDc4b0RNbnUyLzg5?=
+ =?utf-8?B?M1VHTkhhcE1TeTZ4MHRlaGdUUmcvQmZIQXJSQ2J5K1ROTXlEdHpWa0I4N3Qy?=
+ =?utf-8?B?bGVZOStLQXRydStlWjc3blAxVzU5NUI3S0p2Vm16VUd6ZmhTM1Vadjd2N2t2?=
+ =?utf-8?B?U0hXNy80ZTBsYklKTithN1VMNDhvL29rRUoraEJpZE9SMEJ3UlJTVTh3UUVN?=
+ =?utf-8?B?M0FlOHVRalZLMzViWUJPTWw1MVlPaGVFYU0zSDRZbzRhY0RocmYwL0ZBeGt2?=
+ =?utf-8?B?dzZuUWNrejRyM1E1YkZuNThIa1ArRGVSZ1c3R3NFVytPY2RQdDNiM2tFWG5n?=
+ =?utf-8?B?MURYQmxIMWZERlMreWhYU3dLYmFaSkxpZ2F0UkI0emx2MmQvNWpZV3V0enhm?=
+ =?utf-8?B?eUowa1orUkRDeC91dmRLUnpVdytwd0xjNUtXWS9UZ2xxejVmWTZVNVkzRGVG?=
+ =?utf-8?B?Y0NSRnJ3MFoxbmdXZFJYbitGbklRMndVUElRVHBJbnRrZjVWZDFBd3pyVFdI?=
+ =?utf-8?B?VHRwUmg2SmVCMTNvVWpBZjNiYkVZczJjNTVlbklJOW03VHR3NUJVOHB2UGFZ?=
+ =?utf-8?B?UU4vUnlUYVZwQWRXem15NFhJRmdHd1gvbGpPUm1JaGpUR2ZUOUVoNFZKNEMr?=
+ =?utf-8?B?UHBSZ2JCNUhya2NoWkwxUlFGTDRoUjk1d1I0WnRSTzdMZHJ5SHpwWVliRG96?=
+ =?utf-8?B?Q3U5RlJCVkU4ei9sQ1Avd3BjL1lDVXh3RkdvUEJpbmZlUWgzN2xsSG5MN04v?=
+ =?utf-8?B?dEZldUpQNlVIa3Bwa3hVTXNBdytLd3RFYW1aNE9IY2taTUw2VExTL2I1QjBj?=
+ =?utf-8?B?ZWxYSDFLKzJYL3BNWWhmcGFjTEZ5RHNpUW5jRlcvY3R5emdjOXEyVVJuQ29m?=
+ =?utf-8?B?S2p1MnVJRjJScEk5TWc3bVByTXNQMVNvYWM4ZWtSRWhYODZGQzJFN3NLQ3RT?=
+ =?utf-8?B?TEFHdFpiOWllWFZ3RzFsdEpRY1U4aXV0VFhEUjVqZlhFUnpoTmNVY1Z2Vnd3?=
+ =?utf-8?B?S0h6MldKbFhFd3Y2V2E1dTVYb2d0ZzE1eUZxeHZYMjJzdGozQy9EVE1Vajd0?=
+ =?utf-8?B?S2N5dWpYVVYrb0tsV1ZpaVdLZGtOZ1BhS3dneG9IL0RGajRjdC8xWmY2MXdJ?=
+ =?utf-8?Q?7PkAZY/zIliwjWlMPI?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: c6c70a75-7630-4aa8-d6c8-08dee76af73d
+X-MS-Exchange-CrossTenant-AuthSource: DS2PR12MB9749.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jul 2026 20:59:33.5067
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: US4SMnzXenJKUOE4D/ni4IznbEHNy0s+nj/NyGCKHkaviOM8qOxdCoHWMmQwuxKeDpMwsf1jIUb8W0S+Zq/PMg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB6485
 
-On Sat, Jul 18, 2026 at 1:11=E2=80=AFAM Rong Zhang <i@rong.moe> wrote:
->
-> The acpi_battery_get_property() callback calls acpi_battery_get_state()
-> without any lock held, which could lead to race conditions, e.g., when
-> multiple tasks read power supply properties simultaneously, or when
-> other callbacks are called during its execution.
->
-> Moreover, some devices' _BST method relies on a heavily shared ACPI
-> mutex which protects EC accesses, so it cannot tolerate too much
-> pressure or else other methods will time out. The lack of
-> synchronization sometimes nullifies the cache mechanism of
-> acpi_battery_get_state() when multiple processes read power supply
-> properties simultaneously, which usually happens after a uevent.
-> Normally, emitting a uevent implies that the cache must have been
-> refreshed due to power_supply_uevent() reading all properties, so the
-> mentioned processes should have seen cache hits. Unfortunately, these
-> fragile devices' power_supply_ext properties are somehow slow to read
-> after battery events, resulting in cache expiration before
-> power_supply_uevent() finishes. Hence, once the uevent reaches
-> userspace, the _BST method will be executed multiple times within a
-> short period due to userspace processes reading all properties again.
-> The coincidence causes lock starvation, resulting in a catastrophic
-> situation that a lot of ACPI methods fail to acquire the shared ACPI
-> mutex due to timeout and return garbage data thanks to the firmware's
-> poorly designed error paths.
->
-> The said "other synchronized methods" are protected by update_lock,
-> leaving acpi_battery_get_property() to be the last desynchronized code
-> path. Unfortunately, update_lock is not applicapable for
-> acpi_battery_get_property(), as it protects too many fields, far more
-> than necessary. What's worse, some code path could call or wait for
-> acpi_battery_get_property() while an outer functions holding
-> update_lock.
->
-> Therefore, introduce a mutex to protect all accesses to battery
-> properties, so that acpi_battery_get_property() can take the advantage
-> of the mutex and synchronize itself. The helper function
-> acpi_battery_handle_discharging() for quirky devices has to be inlined
-> due to the change, as the mutex must be unlocked before calling the
-> expensive power_supply_is_system_supplied() helper function.
->
-> Tested-by: Avraham Hollander <anhollander516@gmail.com>
-> Reported-by: Rick <rickk1166@gmail.com>
-> Closes: https://bugzilla.kernel.org/show_bug.cgi?id=3D221065
-> Signed-off-by: Rong Zhang <i@rong.moe>
+On 7/20/2026 7:00 PM, Jonathan Cameron wrote:
+> On Fri, 17 Jul 2026 17:27:03 -0500
+> Terry Bowman <terry.bowman@amd.com> wrote:
+> 
+>> From: Dan Williams <djbw@kernel.org>
+>>
+>> Pass struct cxl_port * and struct cxl_dport * to the cxl_aer_*
+>> trace events instead of a plain struct device * derived at the
+>> caller. The trace event helpers then derive the right strings for
+>> endpoints, switch ports, root ports, and RCH downstream ports
+>> consistently across the CPER and native AER paths.
+>>
+>> The unified cxl_aer_* events keep "memdev" as the legacy field
+>> (endpoint events populate it with the memdev name; non-endpoint
+>> events emit memdev="") and add new "port" and "dport" string fields
+>> populated for all CXL device classes. Updated userspace can key
+>> off "port" and "dport" without a parallel set of events.
+>>
+>> Remove the separate cxl_port_aer_uncorrectable_error and
+>> cxl_port_aer_correctable_error trace events. All CXL AER events now
+>> use the unified cxl_aer_* events with port and dport fields.
+>>
+>> Rework cxl_cper_handle_prot_err() to use find_cxl_port_by_dev() and
+>> the unified trace helpers, replacing the per-port-type branching and
+>> bus_find_device() memdev lookup.
+>>
+>> The TP_printk format string places "port=%s dport=%s" between
+>> "memdev=%s" and "host=%s", changing the text-mode field order from
+>> the pre-patch output. This does not affect consumers such as
+>> rasdaemon that use libtraceevent to parse fields by name rather than
+>> by fixed text position.
+>>
+>> For non-endpoint events (switch port, root port, RCH dport),
+>> "memdev" is empty and "port"/"dport" carry the topology information.
+>>
+>> The serial number is retrieved via pci_get_dsn() which performs live
+>> PCI configuration space reads. A following patch ("PCI: Cache PCI
+>> DSN into pci_dev->dsn during probe") replaces these with a cached
+>> serial number to avoid config space access in error handlers and panic
+>> paths.
+>>
+>> Below are examples of the different CXL devices' error trace logs
+>> after this patch:
+>>
+>>      ---------------------
+>>      | CXL RP - 0C:00.0  |
+>>      ---------------------
+>>                |
+>>      ---------------------
+>>      | CXL USP - 0D:00.0 |
+>>      ---------------------
+>>                |
+>>      --------------------
+>>      | CXL DSP - 0E:00.0 |
+>>      --------------------
+>>                |
+>>      ---------------------
+>>      | CXL EP - 0F:00.0  |
+>>      ---------------------
+>>
+>> Root Port:
+>> cxl_aer_correctable_error: memdev= port=port1 dport=0000:0c:00.0 \
+>>    host=pci0000:0c serial=0: status: 'Memory Data ECC Error'
+>>
+>> cxl_aer_uncorrectable_error: memdev= port=port1 dport=0000:0c:00.0 \
+>>    host=pci0000:0c serial=0: status: 'Cache Address Parity Error'  \
+>>    first_error: 'Cache Address Parity Error'
+>>
+>> Upstream Switch Port:
+>> cxl_aer_correctable_error: memdev= port=port2 dport= host=0000:0d:00.0 \
+>>    serial=0: status: 'Memory Data ECC Error'
+>>
+>> UCE NA - Upstream Switch Port UCE's are handled in the portdrv driver's
+>> PCI AER callbacks that are not CXL aware.
+>>
+>> Downstream Switch Port:
+>> cxl_aer_correctable_error: memdev= port=port2 dport=0000:0e:00.0 \
+>>    host=0000:0d:00.0 serial=0: status: 'Memory Data ECC Error'
+>>
+>> cxl_aer_uncorrectable_error: memdev= port=port2 dport=0000:0e:00.0 \
+>>    host=0000:0d:00.0 serial=0: status: 'Cache Address Parity Error' \
+>>    first_error: 'Cache Address Parity Error'
+>>
+>> Endpoint:
+>> cxl_aer_uncorrectable_error: memdev=mem1 port=endpoint4 dport= \
+>>    host=0000:0f:00.0 serial=0: status: 'Cache Address Parity Error' \
+>>    first_error: 'Cache Address Parity Error'
+>>
+>> cxl_aer_correctable_error: memdev=mem1 port=endpoint4 dport= host=0000:0f:00.0 \
+>>    serial=0: status: 'Memory Data ECC Error'
+>>
+>> Co-developed-by: Terry Bowman <terry.bowman@amd.com>
+>> Signed-off-by: Terry Bowman <terry.bowman@amd.com>
+>> Signed-off-by: Dan Williams <djbw@kernel.org>
+> 
+> One question inline about reference counts for the port.
+> 
+>>
+>> diff --git a/drivers/cxl/core/ras.c b/drivers/cxl/core/ras.c
+>> index d5dc2c22565da..acf40b2396c3b 100644
+>> --- a/drivers/cxl/core/ras.c
+>> +++ b/drivers/cxl/core/ras.c
+> ...
+>>  
+>> @@ -109,47 +77,34 @@ static struct cxl_port *find_cxl_port_by_dev(struct device *dev, struct cxl_dpor
+>>  
+>>  void cxl_cper_handle_prot_err(struct cxl_cper_prot_err_work_data *data)
+>>  {
+>> +	struct cxl_dport *dport;
+>>  	unsigned int devfn = PCI_DEVFN(data->prot_err.agent_addr.device,
+>>  				       data->prot_err.agent_addr.function);
+>> -	struct pci_dev *pdev __free(pci_dev_put) =
+>> -		pci_get_domain_bus_and_slot(data->prot_err.agent_addr.segment,
+>> -					    data->prot_err.agent_addr.bus,
+>> -					    devfn);
+>> -	struct cxl_memdev *cxlmd;
+>> -	int port_type;
+>> -
+>> -	if (!pdev)
+>> -		return;
+>> -
+>> -	port_type = pci_pcie_type(pdev);
+>> -	if (port_type == PCI_EXP_TYPE_ROOT_PORT ||
+>> -	    port_type == PCI_EXP_TYPE_DOWNSTREAM ||
+>> -	    port_type == PCI_EXP_TYPE_UPSTREAM) {
+>> -		if (data->severity == AER_CORRECTABLE)
+>> -			cxl_cper_trace_corr_port_prot_err(pdev, data->ras_cap);
+>> -		else
+>> -			cxl_cper_trace_uncorr_port_prot_err(pdev, data->ras_cap);
+>> -
+>> +	struct pci_dev *pdev __free(pci_dev_put) = pci_get_domain_bus_and_slot(
+>> +		data->prot_err.agent_addr.segment, data->prot_err.agent_addr.bus, devfn);
+>> +	if (!pdev) {
+>> +		pr_err_ratelimited("Failed to find CPER device in CXL topology\n");
+>>  		return;
+>>  	}
+>>  
+>> -	guard(device)(&pdev->dev);
+>> -	if (!pdev->dev.driver) {
+>> -		dev_warn_ratelimited(&pdev->dev,
+>> -				     "Device is unbound, abort CPER error handling\n");
+>> +	struct cxl_port *port __free(put_cxl_port) = find_cxl_port_by_dev(&pdev->dev, NULL);
+>> +	if (!port) {
+>> +		dev_err_ratelimited(&pdev->dev,
+>> +				    "Failed to find parent port device in CXL topology\n");
+>>  		return;
+>>  	}
+>>  
+>> -	struct device *mem_dev __free(put_device) = bus_find_device(
+>> -		&cxl_bus_type, NULL, pdev, match_memdev_by_parent);
+>> -	if (!mem_dev)
+>> -		return;
+>> +	guard(device)(&port->dev);
+> 
+> Don't we have a reference for this from find_cxl_port_by_dev()?
+> 
+> Superficially scope looks the same.
+> 
+> 
 
-I have queued up the other 2 patches in the series for 7.3, but this
-one is not quite ready IMV.
+I somehow missed this yesterday. Yes, find_cxl_port_by_dev() ref increments. 
 
-In the first place, it is not quite clear from the changelog what
-exactly the role of the new mutex is.
+>> +
+>> +	/* dport is NULL for Endpoint and Upstream Port devices */
+>> +	dport = cxl_find_dport_by_dev(port, &pdev->dev);
+>>  
+>> -	cxlmd = to_cxl_memdev(mem_dev);
+>>  	if (data->severity == AER_CORRECTABLE)
+>> -		cxl_cper_trace_corr_prot_err(cxlmd, data->ras_cap);
+>> +		cxl_cper_trace_corr_prot_err(port, dport, pci_get_dsn(pdev),
+>> +					     &data->ras_cap);
+>>  	else
+>> -		cxl_cper_trace_uncorr_prot_err(cxlmd, data->ras_cap);
+>> +		cxl_cper_trace_uncorr_prot_err(port, dport, pci_get_dsn(pdev),
+>> +					       &data->ras_cap);
+>>  }
+>>  EXPORT_SYMBOL_GPL(cxl_cper_handle_prot_err);
+>>  
+>> @@ -240,14 +195,14 @@ void cxl_do_recovery(struct pci_dev *pdev, struct cxl_port *port, struct cxl_dpo
+>>  		return;
+>>  	}
+>>  
+>> -	if (cxl_handle_ras(port, dport, ras_base))
+>> +	if (cxl_handle_ras(port, dport, ras_base, pci_get_dsn(pdev)))
+>>  		panic("CXL cachemem error");
+>>  
+>>  	dev_dbg(&pdev->dev,
+>>  		"CXL UCE signaled but no CXL RAS status bits set\n");
+>>  }
+>>  
+>> -void cxl_handle_cor_ras(struct cxl_port *port, struct cxl_dport *dport, void __iomem *ras_base)
+>> +void cxl_handle_cor_ras(struct cxl_port *port, struct cxl_dport *dport, void __iomem *ras_base, u64 serial)
+> That's over even the modern 100 char limit. Needs a line break.
+>>  {
+> 
 
-If there are any real race conditions it prevents from occurring, it
-would be good to give examples.
+Yup, I'll linewrap at 75-80. Thanks.
 
-Moreover, the exact mechanism of the _BST synchronization failure is
-unclear to me because in Linux all AML evaluation is synchronized by
-the namespace and interpreter mutexes.  If that is not sufficient, it
-would be good to explain why because as it stands, it is not clear
-whether or not the approach used in this patch is adequate.
+- Terry
 
-> ---
-> Changes in v3:
-> - Address Sashiko's concerns on my last-minute changes:
->   - Do not overwrite the initial value of `ret' in
->     acpi_battery_get_property()
->   - https://sashiko.dev/#/patchset/20260611-b4-acpi-battery-notification-=
-v2-0-4e8ed651a151%40rong.moe
->
-> Changes in v2:
-> - Address Sashiko's concerns:
->   - Use a separated mutex to protect all properties instead of reusing
->     update_lock
->   - https://sashiko.dev/#/patchset/20260527-b4-acpi-battery-notification-=
-v1-0-2303bed8ec0b%40rong.moe
-> - Dropped Tested-by due to massive rewrite
-> ---
->  drivers/acpi/battery.c | 147 +++++++++++++++++++++++++++++++++----------=
-------
->  1 file changed, 101 insertions(+), 46 deletions(-)
->
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index bd7fa93ff16f..3ad4acf3d44d 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -16,6 +16,7 @@
->  #include <linux/kernel.h>
->  #include <linux/kfifo.h>
->  #include <linux/list.h>
-> +#include <linux/lockdep.h>
->  #include <linux/module.h>
->  #include <linux/mutex.h>
->  #include <linux/platform_device.h>
-> @@ -104,6 +105,9 @@ struct acpi_battery {
->         struct delayed_work acpi_notif_dwork;
->         struct notifier_block pm_nb;
->         struct list_head list;
-> +       unsigned long flags;
-> +
-> +       struct mutex property_lock; /* Protects properties below. */
->         unsigned long update_time;
->         int revision;
->         int rate_now;
-> @@ -130,7 +134,6 @@ struct acpi_battery {
->         char oem_info[MAX_STRING_LENGTH];
->         int state;
->         int power_unit;
-> -       unsigned long flags;
->  };
->
->  #define to_acpi_battery(x) power_supply_get_drvdata(x)
-> @@ -187,20 +190,6 @@ static bool acpi_battery_is_degraded(struct acpi_bat=
-tery *battery)
->                 battery->full_charge_capacity < battery->design_capacity;
->  }
->
-> -static int acpi_battery_handle_discharging(struct acpi_battery *battery)
-> -{
-> -       /*
-> -        * Some devices wrongly report discharging if the battery's charg=
-e level
-> -        * was above the device's start charging threshold atm the AC ada=
-pter
-> -        * was plugged in and the device thus did not start a new charge =
-cycle.
-> -        */
-> -       if ((battery_ac_is_broken || power_supply_is_system_supplied()) &=
-&
-> -           battery->rate_now =3D=3D 0)
-> -               return POWER_SUPPLY_STATUS_NOT_CHARGING;
-> -
-> -       return POWER_SUPPLY_STATUS_DISCHARGING;
-> -}
-> -
->  static int acpi_battery_get_property(struct power_supply *psy,
->                                      enum power_supply_property psp,
->                                      union power_supply_propval *val)
-> @@ -208,15 +197,41 @@ static int acpi_battery_get_property(struct power_s=
-upply *psy,
->         int full_capacity =3D ACPI_BATTERY_VALUE_UNKNOWN, ret =3D 0;
->         struct acpi_battery *battery =3D to_acpi_battery(psy);
->
-> -       if (acpi_battery_present(battery)) {
-> -               /* run battery update only if it is present */
-> -               acpi_battery_get_state(battery);
-> -       } else if (psp !=3D POWER_SUPPLY_PROP_PRESENT)
-> -               return -ENODEV;
-> +       /* run battery update only if it is present */
-> +       if (!acpi_battery_present(battery)) {
-> +               switch (psp) {
-> +               case POWER_SUPPLY_PROP_PRESENT:
-> +                       val->intval =3D 0;
-> +                       return 0;
-> +               default:
-> +                       return -ENODEV;
-> +               }
-> +       }
-> +
-> +       mutex_lock(&battery->property_lock);
-> +
-> +       acpi_battery_get_state(battery);
-> +
->         switch (psp) {
->         case POWER_SUPPLY_PROP_STATUS:
-> +               /*
-> +                * Some devices wrongly report discharging if the battery=
-'s charge level
-> +                * was above the device's start charging threshold atm th=
-e AC adapter
-> +                * was plugged in and the device thus did not start a new=
- charge cycle.
-> +                */
->                 if (battery->state & ACPI_BATTERY_STATE_DISCHARGING)
-> -                       val->intval =3D acpi_battery_handle_discharging(b=
-attery);
-> +                       if (battery->rate_now !=3D 0) {
-> +                               val->intval =3D POWER_SUPPLY_STATUS_DISCH=
-ARGING;
-> +                       } else if (battery_ac_is_broken) {
-> +                               val->intval =3D POWER_SUPPLY_STATUS_NOT_C=
-HARGING;
-> +                       } else {
-> +                               mutex_unlock(&battery->property_lock);
-> +
-> +                               val->intval =3D power_supply_is_system_su=
-pplied()
-> +                                       ? POWER_SUPPLY_STATUS_NOT_CHARGIN=
-G
-> +                                       : POWER_SUPPLY_STATUS_DISCHARGING=
-;
-> +                               return 0;
-> +                       }
->                 else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
->                         /* Validate the status by checking the current. *=
-/
->                         if (battery->rate_now !=3D ACPI_BATTERY_VALUE_UNK=
-NOWN &&
-> @@ -318,6 +333,8 @@ static int acpi_battery_get_property(struct power_sup=
-ply *psy,
->         default:
->                 ret =3D -EINVAL;
->         }
-> +
-> +       mutex_unlock(&battery->property_lock);
->         return ret;
->  }
->
-> @@ -540,6 +557,8 @@ static int acpi_battery_get_info(struct acpi_battery =
-*battery)
->         int use_bix;
->         int result =3D -ENODEV;
->
-> +       lockdep_assert_held(&battery->property_lock);
-> +
->         if (!acpi_battery_present(battery))
->                 return 0;
->
-> @@ -579,6 +598,8 @@ static int acpi_battery_get_state(struct acpi_battery=
- *battery)
->         acpi_status status =3D 0;
->         struct acpi_buffer buffer =3D { ACPI_ALLOCATE_BUFFER, NULL };
->
-> +       lockdep_assert_held(&battery->property_lock);
-> +
->         if (!acpi_battery_present(battery))
->                 return 0;
->
-> @@ -632,6 +653,8 @@ static int acpi_battery_set_alarm(struct acpi_battery=
- *battery)
->  {
->         acpi_status status =3D 0;
->
-> +       lockdep_assert_held(&battery->property_lock);
-> +
->         if (!acpi_battery_present(battery) ||
->             !test_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags))
->                 return -ENODEV;
-> @@ -649,6 +672,8 @@ static int acpi_battery_set_alarm(struct acpi_battery=
- *battery)
->
->  static int acpi_battery_init_alarm(struct acpi_battery *battery)
->  {
-> +       lockdep_assert_held(&battery->property_lock);
-> +
->         /* See if alarms are supported, and if so, set default */
->         if (!acpi_has_method(battery->device->handle, "_BTP")) {
->                 clear_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags);
-> @@ -666,6 +691,8 @@ static ssize_t acpi_battery_alarm_show(struct device =
-*dev,
->  {
->         struct acpi_battery *battery =3D to_acpi_battery(dev_get_drvdata(=
-dev));
->
-> +       guard(mutex)(&battery->property_lock);
-> +
->         return sysfs_emit(buf, "%d\n", battery->alarm * 1000);
->  }
->
-> @@ -681,6 +708,8 @@ static ssize_t acpi_battery_alarm_store(struct device=
- *dev,
->         if (err)
->                 return err;
->
-> +       guard(mutex)(&battery->property_lock);
-> +
->         battery->alarm =3D x / 1000;
->         if (acpi_battery_present(battery))
->                 acpi_battery_set_alarm(battery);
-> @@ -865,12 +894,17 @@ static int sysfs_add_battery(struct acpi_battery *b=
-attery)
->                 .no_wakeup_source =3D true,
->         };
->         bool full_cap_broken =3D false;
-> +       int power_unit;
->
-> -       if (!ACPI_BATTERY_CAPACITY_VALID(battery->full_charge_capacity) &=
-&
-> -           !ACPI_BATTERY_CAPACITY_VALID(battery->design_capacity))
-> -               full_cap_broken =3D true;
-> +       scoped_guard(mutex, &battery->property_lock) {
-> +               power_unit =3D battery->power_unit;
->
-> -       if (battery->power_unit =3D=3D ACPI_BATTERY_POWER_UNIT_MA) {
-> +               if (!ACPI_BATTERY_CAPACITY_VALID(battery->full_charge_cap=
-acity) &&
-> +                   !ACPI_BATTERY_CAPACITY_VALID(battery->design_capacity=
-))
-> +                       full_cap_broken =3D true;
-> +       }
-> +
-> +       if (power_unit =3D=3D ACPI_BATTERY_POWER_UNIT_MA) {
->                 if (full_cap_broken) {
->                         battery->bat_desc.properties =3D
->                             charge_battery_full_cap_broken_props;
-> @@ -924,6 +958,9 @@ static void sysfs_remove_battery(struct acpi_battery =
-*battery)
->  static void find_battery(const struct dmi_header *dm, void *private)
->  {
->         struct acpi_battery *battery =3D (struct acpi_battery *)private;
-> +
-> +       lockdep_assert_held(&battery->property_lock);
-> +
->         /* Note: the hardcoded offsets below have been extracted from
->          * the source code of dmidecode.
->          */
-> @@ -955,6 +992,8 @@ static void find_battery(const struct dmi_header *dm,=
- void *private)
->   */
->  static void acpi_battery_quirks(struct acpi_battery *battery)
->  {
-> +       lockdep_assert_held(&battery->property_lock);
-> +
->         if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->fl=
-ags))
->                 return;
->
-> @@ -1007,30 +1046,38 @@ static void acpi_battery_quirks(struct acpi_batte=
-ry *battery)
->  static int acpi_battery_update(struct acpi_battery *battery, bool resume=
-)
->  {
->         int result =3D acpi_battery_get_status(battery);
-> +       bool wakeup;
->
->         if (result)
->                 return result;
->
->         if (!acpi_battery_present(battery)) {
->                 sysfs_remove_battery(battery);
-> -               battery->update_time =3D 0;
-> +               scoped_guard(mutex, &battery->property_lock)
-> +                       battery->update_time =3D 0;
->                 return 0;
->         }
->
->         if (resume)
->                 return 0;
->
-> -       if (!battery->update_time) {
-> -               result =3D acpi_battery_get_info(battery);
-> +       scoped_guard(mutex, &battery->property_lock) {
-> +               if (!battery->update_time) {
-> +                       result =3D acpi_battery_get_info(battery);
-> +                       if (result)
-> +                               return result;
-> +                       acpi_battery_init_alarm(battery);
-> +               }
-> +
-> +               result =3D acpi_battery_get_state(battery);
->                 if (result)
->                         return result;
-> -               acpi_battery_init_alarm(battery);
-> -       }
-> +               acpi_battery_quirks(battery);
->
-> -       result =3D acpi_battery_get_state(battery);
-> -       if (result)
-> -               return result;
-> -       acpi_battery_quirks(battery);
-> +               wakeup =3D ((battery->state & ACPI_BATTERY_STATE_CRITICAL=
-) ||
-> +                         (test_bit(ACPI_BATTERY_ALARM_PRESENT, &battery-=
->flags) &&
-> +                          (battery->capacity_now <=3D battery->alarm)));
-> +       }
->
->         if (!battery->bat) {
->                 result =3D sysfs_add_battery(battery);
-> @@ -1042,9 +1089,7 @@ static int acpi_battery_update(struct acpi_battery =
-*battery, bool resume)
->          * Wakeup the system if battery is critical low
->          * or lower than the alarm level
->          */
-> -       if ((battery->state & ACPI_BATTERY_STATE_CRITICAL) ||
-> -           (test_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags) &&
-> -            (battery->capacity_now <=3D battery->alarm)))
-> +       if (wakeup)
->                 acpi_pm_wakeup_event(battery->phys_dev);
->
->         return result;
-> @@ -1057,12 +1102,14 @@ static void acpi_battery_refresh(struct acpi_batt=
-ery *battery)
->         if (!battery->bat)
->                 return;
->
-> -       power_unit =3D battery->power_unit;
-> +       scoped_guard(mutex, &battery->property_lock) {
-> +               power_unit =3D battery->power_unit;
->
-> -       acpi_battery_get_info(battery);
-> +               acpi_battery_get_info(battery);
->
-> -       if (power_unit =3D=3D battery->power_unit)
-> -               return;
-> +               if (power_unit =3D=3D battery->power_unit)
-> +                       return;
-> +       }
->
->         /* The battery has changed its reporting units. */
->         sysfs_remove_battery(battery);
-> @@ -1154,17 +1201,21 @@ static int battery_notify(struct notifier_block *=
-nb,
->                 } else {
->                         int result;
->
-> -                       result =3D acpi_battery_get_info(battery);
-> -                       if (result)
-> -                               return result;
-> +                       scoped_guard(mutex, &battery->property_lock) {
-> +                               result =3D acpi_battery_get_info(battery)=
-;
-> +                               if (result)
-> +                                       return result;
-> +                       }
->
->                         result =3D sysfs_add_battery(battery);
->                         if (result)
->                                 return result;
->                 }
->
-> -               acpi_battery_init_alarm(battery);
-> -               acpi_battery_get_state(battery);
-> +               scoped_guard(mutex, &battery->property_lock) {
-> +                       acpi_battery_init_alarm(battery);
-> +                       acpi_battery_get_state(battery);
-> +               }
->         }
->
->         return 0;
-> @@ -1329,6 +1380,10 @@ static int acpi_battery_probe(struct platform_devi=
-ce *pdev)
->         if (result)
->                 return result;
->
-> +       result =3D devm_mutex_init(&pdev->dev, &battery->property_lock);
-> +       if (result)
-> +               return result;
-> +
->         if (acpi_has_method(battery->device->handle, "_BIX"))
->                 set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
->
->
-> --
-> 2.53.0
->
