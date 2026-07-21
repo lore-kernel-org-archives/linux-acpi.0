@@ -1,87 +1,128 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAC7B427A10
-	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 19:19:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8300546C4D9
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 19:20:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784661558; cv=none; b=uZyNH5hRbNqKqRUdxbEejuBxRSMAu15rmPDp8ikAN9qGxU7gplWVUDtV2PNKOs/fRWboXhzrd+NrufJGnLb+j3+DtOpZLo1eNV/9gO2W6/BSOOA/7W5Z6oWcBD4jECI28rwv3YR91mKmSGbBptw6KO99Konz56d/M6+Ps7JNQLA=
+	t=1784661630; cv=none; b=a3lgXV8JHHchtDQKZ1pDuioJJB3D4vWE8K9AtNQnDF3/Q2VfPHCw8u9gOXCRff5kXIqr2PXrWz8P09NXHXr6a7BsSlKyqLJVMQA9wvFwujLdctRoeU4SYdIZ8H/8Ogfnud1n6wBPIVrObLD6QlKP4XHqd0mgwTvlR1n9RF1YCps=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784661558; c=relaxed/simple;
-	bh=LfuLGMStzF1m2LVS6CuY3v+eMV9BmENzXspMTBzBiig=;
+	s=arc-20240116; t=1784661630; c=relaxed/simple;
+	bh=/Tlq+AwXEl3Bn6dm5NQihs1DVIqNYoTX7gTKZup2T+I=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=r2sYPfvwHYyAdILnbG1HMhd6cnLniRMRbJRt2oeMekAcDwRdck/Cq105J318ADxge62WtYJmrzkSk0E3aA0ZZMGc+PY8IjhhjXHV8EFJWjfpeTIfxodtRgFhitkdXoORIyfG2IOhjvZMK8EQgDIDqlgGty1e2Ax7/QFFeZttFq8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hlF85q/x; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=McSynDGeETlc2+gaBq06TmFcttwsKwhkFXwjmPsHqCYcPYy9D+u8a6U0Jlt3UYIk8e+LMurHpKibE0BK5AFvD1YOJ9xPT1ZHbZcAOiGgbHBuk/KzcuyM9XHggxkbz+s41gqET1HehaZRp/uqv96z/I5Gt1jz4oEp6iZpfIX/IuI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Sa4QVvys; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hlF85q/x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D30B01F00A3E
-	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 19:19:16 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Sa4QVvys"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A86B1F00A3D
+	for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 19:20:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784661556;
-	bh=W/BKvjdp/4/Dp9hX0nDJhIq57/XuC5OzN1k+wU0jfbM=;
+	s=k20260515; t=1784661629;
+	bh=/Tlq+AwXEl3Bn6dm5NQihs1DVIqNYoTX7gTKZup2T+I=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=hlF85q/xyaDlGk0BQd6FB/wDWUpU23W4ob5nVcVEvPc0eEiccu/77qxm/3sQbcqnq
-	 s4vDSMYoXqFHf3DaKlg483v1S2LChQ6O9StJVmRwAT6/yKVZBYuTmBw06eBAEp45HV
-	 I/Y9rE3vahFR4LaR+jW+52p1G2NK7957t9zehesYHFYzRNXbVeK2ZZBo9gkfe0H+ug
-	 AoGheTG3hm4LDAGVZhz4zY+upNxN0d2U8xT5Ij/1M5VQrzODrsSNPAb6VR/ryKDSQr
-	 zG6YlRkwYg7cUuLwWrX3rMHlzLsYg5ObJ5iBT/W+jz9W+6u9dKMr/Y//vgPjMdtl7x
-	 A9MK3y8dUFbUg==
-Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5b2aab18795so41240e87.2
-        for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 12:19:16 -0700 (PDT)
-X-Gm-Message-State: AOJu0Ywxeu5v7dIVvr1mZ+U3exTI3lG8xW7DSqK6MVCcPJe88VA10Ci2
-	f2yVs86gDIJoFtaovDzPERzOzq+uqckefpU3XWPHOw5uS9WSuR8gJldCEIJbbBLrTUBzgnZaGfN
-	vWPoYB5RkrgPvx0ZX9Xe0lAyC9TCer68=
-X-Received: by 2002:a05:6512:2312:b0:5b2:a344:2a8c with SMTP id
- 2adb3069b0e04-5b2a3442cb1mr1510978e87.30.1784661555295; Tue, 21 Jul 2026
- 12:19:15 -0700 (PDT)
+	b=Sa4QVvysWnI78facCK72zv5aRdXQu60ZiQ8YYRfC0ucTqsWb5j/PwKPVzG0OYMvyG
+	 yKbyPpHAYfYvV+jSp2Pny0qTI1ivSdwh7aroPJ6xR/nrPSf2fHOnLSIr8m3t8+JOxw
+	 P8LZHHAToL+H14WtgVFSMDt+qGvS6k5tz/GR+m5pDFxp7ZgWkUV+SIuOWOpuJm7ycM
+	 Lm3hg40viLJgpOGoMioLi40McwIH15lPMAtiKYngTq5yBFTC5XwjAleZIuRdqh0uoV
+	 YgUkk5QlkObjdUTsjum+MUEtArQQnrUBbBvU5Ps+PxNuJ7JU2cKqccLSRo67doA4J7
+	 c0uGp9B1/NtZg==
+Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-5aeb8c19017so14328827e87.0
+        for <linux-acpi@vger.kernel.org>; Tue, 21 Jul 2026 12:20:29 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RrZjJwKXBLPs6RazPsGw/6pxCRVV7BKUXF5g/tFGdLUYQoBbsC9Zsliqn7sTqBNfhkyOnqGVDFe5P5X@vger.kernel.org
+X-Gm-Message-State: AOJu0YzjdxWxXOqoN4vZsm9r6F+jyUvp/wwdhzsQaHKAfjp1tWNQF+td
+	6o3P1TM7H1YhcJYNvP6MIjyHaesL5UujpVGZQ7GvihTdK+UpYrTiKGtgEuhpH9EBQIymp/ltrwy
+	dtukv4Q3eUzBRJFg/BhVvpGXq+gr70sc=
+X-Received: by 2002:ac2:43b6:0:b0:5b0:20b0:9589 with SMTP id
+ 2adb3069b0e04-5b28f9ac1c6mr3048489e87.38.1784661627798; Tue, 21 Jul 2026
+ 12:20:27 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260717065129.72924-1-trenn@suse.de>
-In-Reply-To: <20260717065129.72924-1-trenn@suse.de>
+References: <20260717081005.470013-1-sudeep.holla@kernel.org>
+ <20260717081005.470013-3-sudeep.holla@kernel.org> <b75fc80b-6d1c-44d9-986c-be2c0a6e7711@huawei.com>
+ <20260721-honest-shiny-teal-da9d6d@sudeepholla>
+In-Reply-To: <20260721-honest-shiny-teal-da9d6d@sudeepholla>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 21 Jul 2026 21:19:03 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iqW3q0QOzsW6O3H1+ysOv5uKDGwMejJ4JCvi0RQb+how@mail.gmail.com>
-X-Gm-Features: AUfX_mxiLE3UCEZ4VPW_tAoS7lEW8rKtaLrwtIC-LY_tuyHa_Nt1Tiqr8M1sBBg
-Message-ID: <CAJZ5v0iqW3q0QOzsW6O3H1+ysOv5uKDGwMejJ4JCvi0RQb+how@mail.gmail.com>
-Subject: Re: [PATCH 0/2] Fix sysfs duplicate filename if multiple BERT tables exist
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi@vger.kernel.org, Saket Dumbre <saket.dumbre@intel.com>
+Date: Tue, 21 Jul 2026 21:20:15 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jAOA3iQB6htExJNAtLu5oVJB9nZGzh=0+uaerVwgHMxQ@mail.gmail.com>
+X-Gm-Features: AUfX_mxSpC_xdcI5_twiMHwGPOC3zkvoOHY131Ph4xSSNKgBgXNYH6V65y553Ew
+Message-ID: <CAJZ5v0jAOA3iQB6htExJNAtLu5oVJB9nZGzh=0+uaerVwgHMxQ@mail.gmail.com>
+Subject: Re: [PATCH 2/4] ACPI: PCC: Preserve shared memory signature in
+ OpRegion handler
+To: Sudeep Holla <sudeep.holla@kernel.org>
+Cc: "lihuisong (C)" <lihuisong@huawei.com>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, acpica-devel@lists.linux.dev, 
+	"Rafael J . Wysocki" <rafael@kernel.org>, Saket Dumbre <saket.dumbre@intel.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 17, 2026 at 8:51=E2=80=AFAM Thomas Renninger <trenn@suse.de> wr=
-ote:
+On Tue, Jul 21, 2026 at 2:27=E2=80=AFPM Sudeep Holla <sudeep.holla@kernel.o=
+rg> wrote:
 >
-> Previously sent to linux-pm:
-> V2: Do not use acpi_get_table, but pass both,
->     struct acpi_table_header *th, struct acpi_table_attr *table_attr
->     as function parameters.
+> On Tue, Jul 21, 2026 at 07:43:53PM +0800, lihuisong (C) wrote:
+> >
+> > On 7/17/2026 4:10 PM, Sudeep Holla wrote:
+> > > ACPI 6.3 introduced PCC OperationRegions. Section 5.5.2.4.7.3,
+> > > "Declaring message fields within a PCC OperationRegion", states that,
+> > > for all PCC subspace types, the PCC Operation Region pertains to the
+> > > region of PCC subspace that succeeds the PCC signature.
+> > >
+> > > The PCC address space handler currently copies the OperationRegion
+> > > buffer to and from the start of the PCC shared memory region. That ca=
+n
+> > > overwrite or expose the signature at byte offset 0, and it also misse=
+s
+> > > the last 4 bytes of the actual PCC OperationRegion data.
+> > >
+> > > Offset OperationRegion copies by the size of the signature and reject
+> > > regions that do not fit in the shared memory after that signature. AM=
+L
+> > > that sizes the PCC OperationRegion to include the signature is not
+> > > conforming to the PCC OperationRegion definition.
+> > >
+> > > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> > > Fixes: 77e2a04745ff ("ACPI: PCC: Implement OperationRegion handler fo=
+r the PCC Type 3 subtype")
+> > > Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
+> > > ---
+> > The below commit description said the PCC operationRegion contains the
+> > signature field.
+> > "77e2a04745ff ("ACPI: PCC: Implement OperationRegion handler for the PC=
+C
+> > Type 3 subtype")"
+> > And I find that the definition of this OperationRegion in ACPI spec 6.3=
+ is
+> > the same with spec 6.5 and 6.6.
+> > That is, the original implementation already didn't comply with ACPI sp=
+ec.
+> >
+> > Patch 1/4 also requires the change of platform AML about PCC
+> > OperationRegion.
+> > These modification may lead to the existed PCC OperationRegion method i=
+n
+> > some drivers doesn't work.
+> > Because the platform AML still contains signature field in PCC
+> > OperationRegion method.
+> > I don't know how many drivers in linux have used this method.
+> > IMO, we at least need to reclarify this usage change and provide a new =
+usage
+> > example in the commit log like the original commit did.
+> >
 >
-> Cmp with:
-> https://bugzilla.suse.com/show_bug.cgi?id=3D1270211
+> Good point, I didn't realise I had wrong example in the original commit.
+> I will add the example of correct usage in this change. Thanks for pointi=
+ng
+> it out.
 >
-> dmesg | grep BERT
-> ACPI: BERT 0x00000000DD695238 000030 (v01 AMD    AMD BERT 00000000      0=
-0000000)
-> ACPI: BERT 0x00000000DD6955C8 000030 (v01 AMI    AMI.BERT 00000000 AMI. 0=
-0000000)
-> ACPI: Reserving BERT table memory at [mem 0xdd695238-0xdd695267]
-> ACPI: Reserving BERT table memory at [mem 0xdd6955c8-0xdd6955f7]
-> sysfs: cannot create duplicate filename '/firmware/acpi/tables/data/BERT'
+> > Anyway, this patch also makes the driver more compliant with the
+> > specifications.
+> > So I agree.
+> > Reviewed-by: Huisong Li <lihuisong@huawei.com>
+> >
 >
->
-> Thomas Renninger (2):
->   ACPI: Use correct region struct for BERT region size check
->   ACPI: Properly map BERT and CCEL acpi tables to their data tables
->
->  drivers/acpi/sysfs.c | 11 ++++++-----
->  1 file changed, 6 insertions(+), 5 deletions(-)
->
-> --
+> Thanks again for all the review.
 
-Applied (with some modifications in subjects/changelogs) as 7.3
-material, thanks!
+I gather that there will be a v2 then.
