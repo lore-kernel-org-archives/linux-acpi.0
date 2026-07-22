@@ -1,259 +1,594 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
+Received: from sender4-op-o12.zoho.com (sender4-op-o12.zoho.com [136.143.188.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F4774399E3;
-	Wed, 22 Jul 2026 18:10:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784743810; cv=none; b=YdCybONjcnBVeMPhGhoHll/A/xHKf0AYxzpr3QKX5B1le4zJZ6EBC/FMPMtNnbmiyBHNfk/yCw0Cpoi2rkpPiI8FoHZfSCj394x1CYMJWv9IMNLU1ivVb98LjGbxEdwh6Z6ThV3cOAaRWnABVoLZZEwyC4jCL8XKHHlouAIG7xQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784743810; c=relaxed/simple;
-	bh=ffS3X3zEzTQTJwQcc2jPjnXZzV7nVOZ9UDD3rr4qp3E=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hq2VdnRabwKIo+0D6Q4GXgIe/aA7M5HG28/wrfPj1WL7cPF7l9tYLRiPrrFeqrp7eKEoh9ivNgXnuImOdz6tSLcV0zZ2wA+ATOuXX8oriWy3DKWqDFzfY6CVnoECg+EldNmoydfO/OHVDFmruwtAcC2tEISAObJgmPiphNqj9qM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Zmq+ZA5a; arc=none smtp.client-ip=198.175.65.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C88213126B2;
+	Wed, 22 Jul 2026 18:25:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.12
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784744731; cv=pass; b=lY4z1+YyHQ2a7KUyXitAzudbSaGy8V0AiRkV446Xf1ZENk2MjvUB4r5ac4TAN1dFElJfZrJfoXwAZYD2QVBHABFI4L5Xo33farFnGkGBoPP5CzWP/uls/adXcuGv8NSp1RbzconqrzZrXrXOpbSq44ncczTMClxlYfJdG4hHVB4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784744731; c=relaxed/simple;
+	bh=2cyLUo1rl5dM5/DS++MVVHRh9dG6K7xuiCIatM7/KrA=;
+	h=Message-ID:Subject:From:To:Cc:In-Reply-To:References:Content-Type:
+	 Date:MIME-Version; b=pqOKTVF+jbWEMy9I3EqgvOE+eWhcFZjCR3rVjwQ+4nv1yw1MjKnm1F+J+zshaeSoFtpj3GDnP9Yk7EYcg0PLnn0Kk7bTAuxx3/XG02I6+q3K9dSeyI24yVTcBPeQKb7uDII4OlZsoL1869LoqDCsK9KnTlvCd+Risc3+k0ZtHfQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=rong.moe; spf=pass smtp.mailfrom=rong.moe; dkim=pass (2048-bit key) header.d=rong.moe header.i=i@rong.moe header.b=Bmob3lkt; arc=pass smtp.client-ip=136.143.188.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=rong.moe
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rong.moe
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Zmq+ZA5a"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1784743809; x=1816279809;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=ffS3X3zEzTQTJwQcc2jPjnXZzV7nVOZ9UDD3rr4qp3E=;
-  b=Zmq+ZA5asKN4ULLqDcZUkn/K5FpA56uQUFUmfl8cTHSqN6tH8mBeEdHQ
-   EFMav52Oeh4JH94pFsT7yDcMSK3NaraDA9hYR/nk50cpz0bG68INLxFpp
-   AShHsVHC7K/LSqVBRF6ZpZB4oh/PV51NhsC9oYrSxTE/c+P9JSwCKrGE+
-   gyOdHNqVr4XosoILSf4v5s2ZY40JR3N1s6jRAKDZo4CalRzXSnV7opsRG
-   agUGE9ES+7ulk5AmSDmZ3HAlZ7EtoeAf69RU3gRBPcrPR4JeKoJQ6hicI
-   ju0xuaD6zekbsEjKQZhg9+12IefcCh+hQ2qaOCLDnNz8XhqiMvSfUXazx
-   A==;
-X-CSE-ConnectionGUID: ykTAOXOUS5+VtsDLlG8d6g==
-X-CSE-MsgGUID: zf+bRhCHRb2tylv/srSJVA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11854"; a="96527145"
-X-IronPort-AV: E=Sophos;i="6.25,178,1779174000"; 
-   d="scan'208";a="96527145"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jul 2026 11:10:08 -0700
-X-CSE-ConnectionGUID: MNb6Uw/VRSeDefLSLlzumA==
-X-CSE-MsgGUID: 7PuRvL3QTcuy19/qQ179iA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,178,1779174000"; 
-   d="scan'208";a="254775576"
-Received: from guptapa-desk.jf.intel.com (HELO desk) ([10.165.239.46])
-  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jul 2026 11:10:07 -0700
-Date: Wed, 22 Jul 2026 11:09:58 -0700
-From: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
-To: Borislav Petkov <bp@alien8.de>
-Cc: Thomas Gleixner <tglx@kernel.org>, dave.hansen@linux.intel.com, 
-	Vishal Badole <Vishal.Badole@amd.com>, mingo@redhat.com, x86@kernel.org, hpa@zytor.com, 
-	rafael@kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, peterz@infradead.org, tony.luck@intel.com, 
-	chang.seok.bae@intel.com, wei.w.wang@hotmail.com
-Subject: Re: [PATCH] x86/topo: Map vendor CPU types to generic Linux such
- types
-Message-ID: <6ff5asua7jywnn7ge4k37bu22artrkfgqybfdt747cm5ieiybo@bwkdi2bqlsm6>
-References: <8733y1nj13.ffs@fw13>
- <20260702230337.GAakbuSfEOuD2K-d0I@fat_crate.local>
- <20260703193222.GFakgORjvxwnZTPRnI@fat_crate.local>
- <5mqpi7ar6dnd7cyxf3wsuwbfj5nl3day5iyzi7zt64wztjbxyt@5mrkexqow4sc>
- <20260707004713.GEakxMkRkAky4_hanw@fat_crate.local>
- <74ekieyxpcriutn35o54ejeoccx4xpmhyg2s7uzgiirsxtitws@5e3mwksftvy6>
- <87wlv6sin7.ffs@fw13>
- <o6lnfms2uw5xpx54bqmc72zbtdblya6bknkx5g6di5s6g3ovjf@gybebdp6p7dm>
- <87fr1us7sa.ffs@fw13>
- <20260721031858.GEal7lIlYLnsf-aEPZ@fat_crate.local>
+	dkim=pass (2048-bit key) header.d=rong.moe header.i=i@rong.moe header.b="Bmob3lkt"
+ARC-Seal: i=1; a=rsa-sha256; t=1784744713; cv=none; 
+	d=zohomail.com; s=zohoarc; 
+	b=UTyWLCmGUvvrqoFmFn27kaN9FkiD0EpYHP8i80N9h8atptHawcLfcbvNYbp6BOAQmd7+KUI+IhUHPVwg+v+tG6OFG1MvzuWA9/tt6Af2SQFxTPBJVOYQAtVS9u/qqmawxmbTq7YOcUJBe7e23SbKTDjY0alHa3SzOwdiUheqsz4=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
+	t=1784744713; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=9DczhBpU8cvt4mmniVyhDcDTe8buY0lxzuJU64mkSRQ=; 
+	b=g3VJIc4/p6XjaIBNw0T7yLapCJCNq4RS/YcGPunEXQn9xk1l8Qe4RVysp4gdNQ7rJmh3JiGqd51aT8Cooq++pn6jqg5E7smJUjg4aXdglkqe6edJq0F9GayjidmIO58hbB5bqK9oxR/mESsEHG5GRmHLI27Soe51cDdrmFP8n1k=
+ARC-Authentication-Results: i=1; mx.zohomail.com;
+	dkim=pass  header.i=rong.moe;
+	spf=pass  smtp.mailfrom=i@rong.moe;
+	dmarc=pass header.from=<i@rong.moe>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1784744713;
+	s=zmail2048; d=rong.moe; i=i@rong.moe;
+	h=Message-ID:Subject:Subject:From:From:To:To:Cc:Cc:In-Reply-To:Content-Type:Content-Transfer-Encoding:Date:Date:MIME-Version:Message-Id:Reply-To;
+	bh=9DczhBpU8cvt4mmniVyhDcDTe8buY0lxzuJU64mkSRQ=;
+	b=Bmob3lktDAljvo5dQATvdnXHS+BOz0FtPJxS9pwwNDCDfsBG48n5Ny0Ef2V8OKM4
+	0RsY+PqnYSqF3GMu4TnbqW6Zx2ZHDIFJemhUKtBIz8xLOM6Rf79GoO6PuHo1bKA0uvi
+	7Bloy2XVyCDHlsG9q+BXIyiyR3v+zvIQZsJ5+Tnf1GdIdsDOPUwsNwnPSQCNsMonLuN
+	zwE4cOKuPaOjJue9xtj6uCQD6xs4HpW/Jhzx2DChS6ppLrfnFiMzhoAiGX87Lxkp9ab
+	A+Mm6Mjfsnl2O7SGq+x80il29EmamUKOxNkFdTmI4ogKz6Ezbfz8L/cjqMiuwcdtJQJ
+	KBuTDWgO0g==
+Received: by mx.zohomail.com with SMTPS id 1784744712272340.76908811260967;
+	Wed, 22 Jul 2026 11:25:12 -0700 (PDT)
+Message-ID: <9055f4665dfb170f7053f785c76e46dfe364fd87.camel@rong.moe>
+Subject: Re: [PATCH v4 3/3] ACPI: battery: Protect all properties with a
+ separated mutex
+From: Rong Zhang <i@rong.moe>
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki"	
+ <rafael.j.wysocki@intel.com>, Avraham Hollander <anhollander516@gmail.com>,
+  Jeffrey =?ISO-8859-1?Q?W=E4lti?=	 <jeffrey@waelti.dev>, Rick
+ <rickk1166@gmail.com>, Mark Pearson	 <mpearson-lenovo@squebb.ca>,
+ linux-acpi@vger.kernel.org, 	linux-kernel@vger.kernel.org
+In-Reply-To: <CAJZ5v0ijiG23QWjG9C9OfZSB5jxFTg42OwYRS6KVc=Voi2s42w@mail.gmail.com>
+References: 
+	<20260718-b4-acpi-battery-notification-v4-0-599c8ed1072f@rong.moe>
+	 <20260718-b4-acpi-battery-notification-v4-3-599c8ed1072f@rong.moe>
+	 <CAJZ5v0ijiG23QWjG9C9OfZSB5jxFTg42OwYRS6KVc=Voi2s42w@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Date: Thu, 23 Jul 2026 02:20:05 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260721031858.GEal7lIlYLnsf-aEPZ@fat_crate.local>
+User-Agent: Evolution 3.56.2-10 
+X-ZohoMailClient: External
 
-On Mon, Jul 20, 2026 at 08:18:58PM -0700, Borislav Petkov wrote:
-> On Wed, Jul 08, 2026 at 01:24:05AM +0200, Thomas Gleixner wrote:
-> > If that's the only case to handle, then sure that open coded check is
-> > fine.
-> 
-> This is ontop of tip:x86/cpu which already has Pawan's change that drops the
-> one Intel-specific CPU type use.
-> 
-> It boots here so... :-P
-> 
-> ---
-> From: "Borislav Petkov (AMD)" <bp@alien8.de>
-> Date: Thu, 2 Jul 2026 17:00:28 -0700
-> Subject: [PATCH] x86/topo: Map vendor CPU types to generic Linux such types
-> MIME-Version: 1.0
-> Content-Type: text/plain; charset=UTF-8
-> Content-Transfer-Encoding: 8bit
-> 
-> Sashiko reported¹ that a confusion could ensue if a vendor-specific CPU
-> type 0 (performance) gets attempted to be used in a x86_cpu_id match
-> table. The current logic treats 0 as the wildcard X86_CPU_TYPE_ANY and
-> such a thing would end up matching the wrong CPUs.
-> 
-> This is all backwards because we started using the vendor-specific CPU
-> type number instead of using a Linux-defined, generic CPU type which
-> is agnostic.
-> 
-> Convert the current logic to it before users start appearing.
-> 
->   ¹https://sashiko.dev/#/patchset/20260629094349.533301-1-Vishal.Badole%40amd.com
-> 
-> Signed-off-by: Borislav Petkov (AMD) <bp@alien8.de>
-> Link: https://lore.kernel.org/r/20260629094349.533301-2-Vishal.Badole@amd.com
-> ---
->  arch/x86/include/asm/processor.h      | 18 ++++++++++++----
->  arch/x86/include/asm/topology.h       |  7 -------
->  arch/x86/kernel/acpi/cppc.c           |  4 ++--
->  arch/x86/kernel/cpu/match.c           | 30 +--------------------------
->  arch/x86/kernel/cpu/topology.h        |  1 +
->  arch/x86/kernel/cpu/topology_amd.c    |  6 ++++--
->  arch/x86/kernel/cpu/topology_common.c |  8 +++++--
->  7 files changed, 28 insertions(+), 46 deletions(-)
-> 
-> diff --git a/arch/x86/include/asm/processor.h b/arch/x86/include/asm/processor.h
-> index 87b1d4c0727e..fc0350fe8f5e 100644
-> --- a/arch/x86/include/asm/processor.h
-> +++ b/arch/x86/include/asm/processor.h
-> @@ -68,9 +68,13 @@ extern u16 __read_mostly tlb_lld_2m;
->  extern u16 __read_mostly tlb_lld_4m;
->  extern u16 __read_mostly tlb_lld_1g;
->  
-> -/*
-> - * CPU type and hardware bug flags. Kept separately for each CPU.
-> - */
-> +enum x86_topology_cpu_type {
-> +	/* X86_CPU_TYPE_ANY */
-> +	TOPO_CPU_TYPE_ANY = 0,
+Hi Rafael,
 
-I don't really understand the purpose of TOPO_CPU_TYPE_ANY here. In the cpu
-matching infrastructure, X86_CPU_TYPE_ANY makes sense. Here I fail to
-understand how is TOPO_CPU_TYPE_ANY different from UNKNOWN? A table passed
-to x86_match_cpu() with X86_CPU_TYPE_ANY entry will match any CPU type
-including TOPO_CPU_TYPE_UNKNOWN.
+On Tue, 2026-07-21 at 22:54 +0200, Rafael J. Wysocki (Intel) wrote:
+> On Sat, Jul 18, 2026 at 1:11=E2=80=AFAM Rong Zhang <i@rong.moe> wrote:
+> >=20
+> > The acpi_battery_get_property() callback calls acpi_battery_get_state()
+> > without any lock held, which could lead to race conditions, e.g., when
+> > multiple tasks read power supply properties simultaneously, or when
+> > other callbacks are called during its execution.
+> >=20
+> > Moreover, some devices' _BST method relies on a heavily shared ACPI
+> > mutex which protects EC accesses, so it cannot tolerate too much
+> > pressure or else other methods will time out. The lack of
+> > synchronization sometimes nullifies the cache mechanism of
+> > acpi_battery_get_state() when multiple processes read power supply
+> > properties simultaneously, which usually happens after a uevent.
+> > Normally, emitting a uevent implies that the cache must have been
+> > refreshed due to power_supply_uevent() reading all properties, so the
+> > mentioned processes should have seen cache hits. Unfortunately, these
+> > fragile devices' power_supply_ext properties are somehow slow to read
+> > after battery events, resulting in cache expiration before
+> > power_supply_uevent() finishes. Hence, once the uevent reaches
+> > userspace, the _BST method will be executed multiple times within a
+> > short period due to userspace processes reading all properties again.
+> > The coincidence causes lock starvation, resulting in a catastrophic
+> > situation that a lot of ACPI methods fail to acquire the shared ACPI
+> > mutex due to timeout and return garbage data thanks to the firmware's
+> > poorly designed error paths.
+> >=20
+> > The said "other synchronized methods" are protected by update_lock,
+> > leaving acpi_battery_get_property() to be the last desynchronized code
+> > path. Unfortunately, update_lock is not applicapable for
+> > acpi_battery_get_property(), as it protects too many fields, far more
+> > than necessary. What's worse, some code path could call or wait for
+> > acpi_battery_get_property() while an outer functions holding
+> > update_lock.
+> >=20
+> > Therefore, introduce a mutex to protect all accesses to battery
+> > properties, so that acpi_battery_get_property() can take the advantage
+> > of the mutex and synchronize itself. The helper function
+> > acpi_battery_handle_discharging() for quirky devices has to be inlined
+> > due to the change, as the mutex must be unlocked before calling the
+> > expensive power_supply_is_system_supplied() helper function.
+> >=20
+> > Tested-by: Avraham Hollander <anhollander516@gmail.com>
+> > Reported-by: Rick <rickk1166@gmail.com>
+> > Closes: https://bugzilla.kernel.org/show_bug.cgi?id=3D221065
+> > Signed-off-by: Rong Zhang <i@rong.moe>
+>=20
+> I have queued up the other 2 patches in the series for 7.3,=C2=A0
+>=20
 
-> +	TOPO_CPU_TYPE_PERFORMANCE,
-> +	TOPO_CPU_TYPE_EFFICIENCY,
-> +	TOPO_CPU_TYPE_UNKNOWN,
-> +};
->  
->  struct cpuinfo_topology {
->  	// Real APIC ID read from the local APIC
-> @@ -104,7 +108,7 @@ struct cpuinfo_topology {
->  
->  	// Hardware defined CPU-type
->  	union {
-> -		u32		cpu_type;
-> +		u32		hw_cpu_type;
->  		struct {
->  			// CPUID.1A.EAX[23-0]
->  			u32	intel_native_model_id	:24;
-> @@ -119,8 +123,14 @@ struct cpuinfo_topology {
->  				amd_type		:4;
->  		};
->  	};
-> +
-> +	// Linux vendor-agnostic CPU type
-> +	enum x86_topology_cpu_type cpu_type;
->  };
->  
-> +/*
-> + * CPU type and hardware bug flags. Kept separately for each CPU.
-> + */
->  struct cpuinfo_x86 {
->  	union {
->  		/*
-> diff --git a/arch/x86/include/asm/topology.h b/arch/x86/include/asm/topology.h
-> index 8fb61d2465eb..ef76ba674f1b 100644
-> --- a/arch/x86/include/asm/topology.h
-> +++ b/arch/x86/include/asm/topology.h
-> @@ -114,12 +114,6 @@ enum x86_topology_domains {
->  	TOPO_MAX_DOMAIN,
->  };
->  
-> -enum x86_topology_cpu_type {
-> -	TOPO_CPU_TYPE_PERFORMANCE,
-> -	TOPO_CPU_TYPE_EFFICIENCY,
-> -	TOPO_CPU_TYPE_UNKNOWN,
-> -};
-...
->  /**
->   * x86_match_cpu - match current CPU against an array of x86_cpu_ids
->   * @match: Pointer to array of x86_cpu_ids. Last entry terminated with
-> @@ -81,7 +53,7 @@ const struct x86_cpu_id *x86_match_cpu(const struct x86_cpu_id *match)
->  			continue;
->  		if (m->feature != X86_FEATURE_ANY && !cpu_has(c, m->feature))
->  			continue;
-> -		if (!x86_match_vendor_cpu_type(c, m))
-> +		if (m->type != X86_CPU_TYPE_ANY && c->topo.cpu_type != m->type)
+Thanks a lot ;-)
 
-In line with what Thomas pointed that cpu_type is not a system property, I
-suggest matching cpu_type should be dropped from x86_match_cpu(). More so
-because it only uses boot_cpu_data and misses the other types of secondary
-CPUs. I feel it is not a reliable way to match CPU types. Thoughts?
+> but this
+> one is not quite ready IMV.
+>=20
+> In the first place, it is not quite clear from the changelog what
+> exactly the role of the new mutex is.
 
->  			continue;
->  		return m;
->  	}
-> diff --git a/arch/x86/kernel/cpu/topology.h b/arch/x86/kernel/cpu/topology.h
-> index 37326297f80c..74e02bacd854 100644
-> --- a/arch/x86/kernel/cpu/topology.h
-> +++ b/arch/x86/kernel/cpu/topology.h
-> @@ -22,6 +22,7 @@ void topology_set_dom(struct topo_scan *tscan, enum x86_topology_domains dom,
->  bool cpu_parse_topology_ext(struct topo_scan *tscan);
->  void cpu_parse_topology_amd(struct topo_scan *tscan);
->  void cpu_topology_fixup_amd(struct topo_scan *tscan);
-> +enum x86_topology_cpu_type get_topology_cpu_type(struct cpuinfo_x86 *c);
->  
->  static inline u32 topo_shift_apicid(u32 apicid, enum x86_topology_domains dom)
->  {
-> diff --git a/arch/x86/kernel/cpu/topology_amd.c b/arch/x86/kernel/cpu/topology_amd.c
-> index da080d732e10..c5a6944df86a 100644
-> --- a/arch/x86/kernel/cpu/topology_amd.c
-> +++ b/arch/x86/kernel/cpu/topology_amd.c
-> @@ -177,8 +177,10 @@ static void topoext_fixup(struct topo_scan *tscan)
->  
->  static void parse_topology_amd(struct topo_scan *tscan)
->  {
-> -	if (cpu_feature_enabled(X86_FEATURE_AMD_HTR_CORES))
-> -		tscan->c->topo.cpu_type = cpuid_ebx(0x80000026);
-> +	if (cpu_feature_enabled(X86_FEATURE_AMD_HTR_CORES)) {
+It aims to eliminate lock-free access to battery properties. Especially,
+synchronize the fragile update_time-based cache.
 
-Slightly unrelated to this patch, on AMD is it that hw_cpu_type only
-available on hybrid systems? On Intel ...
+I agreed that the changelog is somehow hard to read. I was struggling to
+summarize the debugging findings, and it turned out to be too
+complicated. I will explain them below.
 
-> +		tscan->c->topo.hw_cpu_type = cpuid_ebx(0x80000026);
-> +		tscan->c->topo.cpu_type    = get_topology_cpu_type(tscan->c);
-> +	}
->  
->  	/*
->  	 * Try to get SMT, CORE, TILE, and DIE shifts from extended
-> diff --git a/arch/x86/kernel/cpu/topology_common.c b/arch/x86/kernel/cpu/topology_common.c
-> index cf7513416b70..b9d025f3373a 100644
-> --- a/arch/x86/kernel/cpu/topology_common.c
-> +++ b/arch/x86/kernel/cpu/topology_common.c
-> @@ -168,8 +168,12 @@ static void parse_topology(struct topo_scan *tscan, bool early)
->  	case X86_VENDOR_INTEL:
->  		if (!IS_ENABLED(CONFIG_CPU_SUP_INTEL) || !cpu_parse_topology_ext(tscan))
->  			parse_legacy(tscan);
-> -		if (c->cpuid_level >= 0x1a)
-> -			c->topo.cpu_type = cpuid_eax(0x1a);
-> +
-> +		if (c->cpuid_level >= 0x1a) {
-> +			c->topo.hw_cpu_type = cpuid_eax(0x1a);
-> +			c->topo.cpu_type    = get_topology_cpu_type(c);
+>=20
+> If there are any real race conditions it prevents from occurring, it
+> would be good to give examples.
 
-... hw_cpu_type could be enumerated on non-hybrid parts.
+This pattern can be reliably reproduced on Rick's device. I had a
+detailed analysis to the sysrq stacktraces on his device, see
+https://bugzilla.kernel.org/show_bug.cgi?id=3D221065#c85
 
-> +		}
-> +
->  		break;
->  	}
->  }
+>=20
+> Moreover, the exact mechanism of the _BST synchronization failure is
+> unclear to me because in Linux all AML evaluation is synchronized by
+> the namespace and interpreter mutexes. =C2=A0
+>=20
+
+Well, _BST itself has no synchronization failure. It's always evaluated
+serialized. However, the frequency of its evaluation matters on buggy
+devices.
+
+> If that is not sufficient, it
+> would be good to explain why because as it stands, it is not clear
+> whether or not the approach used in this patch is adequate.
+
+The issue is about the synchronization failure of battery->update_time
+due to acpi_battery_get_property() calling acpi_battery_get_state()
+without any mutex held, which results in _BST being evaluated too
+frequently.
+
+The _BST method on buggy devices acquires an ACPI mutex called ECMT. As
+the name suggests, the mutex protects all sorts of EC stuff. The mutex
+is heavily used, but very fragile. It is prone to some sorts of lock
+starvation (or deadlock? I am unsure as I don't have a buggy device)
+once its acquired too frequently. Lock starvation causes mutex
+acquisition timeout in other methods, which is handled by the firmware
+poorly, and thus leads to catastrophic results.
+
+Once battery->update_time has expired, multiple get_property() requests
+originated from userspace will all have to try to evaluate the _BST
+method. The evaluation is indeed serialized, but still causing to much
+pressure on the mutex.
+
+The patch fixes the synchronization failure of the unfortunate
+combination of battery->update_time and acpi_battery_get_property(), and
+thus always ensures the 1000ms gap (i.e., cache_time).
+
+
+BTW, even not thinking about the buggy device, the race condition of
+property access still exists. Consider:
+
+		CPU0				CPU1
+acpi_battery_get_property()
+  acpi_battery_get_state()
+    [update_time expired]
+    extract_package()			acpi_battery_get_property()
+    battery->update_time =3D jiffies	  acpi_battery_get_state()
+					    [up to date]
+					  [read capacity_now]
+					return
+    [fix capacity_now due to quirk]
+    ...
+
+where CPU1 reads raw capacity_now before CPU0 fixes it to a meaningful
+value.
+
+Does my explanation make sense to you? If so, I will refine the
+changelog and resubmit the patch.
+
+Thanks,
+Rong
+
+>=20
+> > ---
+> > Changes in v3:
+> > - Address Sashiko's concerns on my last-minute changes:
+> >   - Do not overwrite the initial value of `ret' in
+> >     acpi_battery_get_property()
+> >   - https://sashiko.dev/#/patchset/20260611-b4-acpi-battery-notificatio=
+n-v2-0-4e8ed651a151%40rong.moe
+> >=20
+> > Changes in v2:
+> > - Address Sashiko's concerns:
+> >   - Use a separated mutex to protect all properties instead of reusing
+> >     update_lock
+> >   - https://sashiko.dev/#/patchset/20260527-b4-acpi-battery-notificatio=
+n-v1-0-2303bed8ec0b%40rong.moe
+> > - Dropped Tested-by due to massive rewrite
+> > ---
+> >  drivers/acpi/battery.c | 147 +++++++++++++++++++++++++++++++++--------=
+--------
+> >  1 file changed, 101 insertions(+), 46 deletions(-)
+> >=20
+> > diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> > index bd7fa93ff16f..3ad4acf3d44d 100644
+> > --- a/drivers/acpi/battery.c
+> > +++ b/drivers/acpi/battery.c
+> > @@ -16,6 +16,7 @@
+> >  #include <linux/kernel.h>
+> >  #include <linux/kfifo.h>
+> >  #include <linux/list.h>
+> > +#include <linux/lockdep.h>
+> >  #include <linux/module.h>
+> >  #include <linux/mutex.h>
+> >  #include <linux/platform_device.h>
+> > @@ -104,6 +105,9 @@ struct acpi_battery {
+> >         struct delayed_work acpi_notif_dwork;
+> >         struct notifier_block pm_nb;
+> >         struct list_head list;
+> > +       unsigned long flags;
+> > +
+> > +       struct mutex property_lock; /* Protects properties below. */
+> >         unsigned long update_time;
+> >         int revision;
+> >         int rate_now;
+> > @@ -130,7 +134,6 @@ struct acpi_battery {
+> >         char oem_info[MAX_STRING_LENGTH];
+> >         int state;
+> >         int power_unit;
+> > -       unsigned long flags;
+> >  };
+> >=20
+> >  #define to_acpi_battery(x) power_supply_get_drvdata(x)
+> > @@ -187,20 +190,6 @@ static bool acpi_battery_is_degraded(struct acpi_b=
+attery *battery)
+> >                 battery->full_charge_capacity < battery->design_capacit=
+y;
+> >  }
+> >=20
+> > -static int acpi_battery_handle_discharging(struct acpi_battery *batter=
+y)
+> > -{
+> > -       /*
+> > -        * Some devices wrongly report discharging if the battery's cha=
+rge level
+> > -        * was above the device's start charging threshold atm the AC a=
+dapter
+> > -        * was plugged in and the device thus did not start a new charg=
+e cycle.
+> > -        */
+> > -       if ((battery_ac_is_broken || power_supply_is_system_supplied())=
+ &&
+> > -           battery->rate_now =3D=3D 0)
+> > -               return POWER_SUPPLY_STATUS_NOT_CHARGING;
+> > -
+> > -       return POWER_SUPPLY_STATUS_DISCHARGING;
+> > -}
+> > -
+> >  static int acpi_battery_get_property(struct power_supply *psy,
+> >                                      enum power_supply_property psp,
+> >                                      union power_supply_propval *val)
+> > @@ -208,15 +197,41 @@ static int acpi_battery_get_property(struct power=
+_supply *psy,
+> >         int full_capacity =3D ACPI_BATTERY_VALUE_UNKNOWN, ret =3D 0;
+> >         struct acpi_battery *battery =3D to_acpi_battery(psy);
+> >=20
+> > -       if (acpi_battery_present(battery)) {
+> > -               /* run battery update only if it is present */
+> > -               acpi_battery_get_state(battery);
+> > -       } else if (psp !=3D POWER_SUPPLY_PROP_PRESENT)
+> > -               return -ENODEV;
+> > +       /* run battery update only if it is present */
+> > +       if (!acpi_battery_present(battery)) {
+> > +               switch (psp) {
+> > +               case POWER_SUPPLY_PROP_PRESENT:
+> > +                       val->intval =3D 0;
+> > +                       return 0;
+> > +               default:
+> > +                       return -ENODEV;
+> > +               }
+> > +       }
+> > +
+> > +       mutex_lock(&battery->property_lock);
+> > +
+> > +       acpi_battery_get_state(battery);
+> > +
+> >         switch (psp) {
+> >         case POWER_SUPPLY_PROP_STATUS:
+> > +               /*
+> > +                * Some devices wrongly report discharging if the batte=
+ry's charge level
+> > +                * was above the device's start charging threshold atm =
+the AC adapter
+> > +                * was plugged in and the device thus did not start a n=
+ew charge cycle.
+> > +                */
+> >                 if (battery->state & ACPI_BATTERY_STATE_DISCHARGING)
+> > -                       val->intval =3D acpi_battery_handle_discharging=
+(battery);
+> > +                       if (battery->rate_now !=3D 0) {
+> > +                               val->intval =3D POWER_SUPPLY_STATUS_DIS=
+CHARGING;
+> > +                       } else if (battery_ac_is_broken) {
+> > +                               val->intval =3D POWER_SUPPLY_STATUS_NOT=
+_CHARGING;
+> > +                       } else {
+> > +                               mutex_unlock(&battery->property_lock);
+> > +
+> > +                               val->intval =3D power_supply_is_system_=
+supplied()
+> > +                                       ? POWER_SUPPLY_STATUS_NOT_CHARG=
+ING
+> > +                                       : POWER_SUPPLY_STATUS_DISCHARGI=
+NG;
+> > +                               return 0;
+> > +                       }
+> >                 else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
+> >                         /* Validate the status by checking the current.=
+ */
+> >                         if (battery->rate_now !=3D ACPI_BATTERY_VALUE_U=
+NKNOWN &&
+> > @@ -318,6 +333,8 @@ static int acpi_battery_get_property(struct power_s=
+upply *psy,
+> >         default:
+> >                 ret =3D -EINVAL;
+> >         }
+> > +
+> > +       mutex_unlock(&battery->property_lock);
+> >         return ret;
+> >  }
+> >=20
+> > @@ -540,6 +557,8 @@ static int acpi_battery_get_info(struct acpi_batter=
+y *battery)
+> >         int use_bix;
+> >         int result =3D -ENODEV;
+> >=20
+> > +       lockdep_assert_held(&battery->property_lock);
+> > +
+> >         if (!acpi_battery_present(battery))
+> >                 return 0;
+> >=20
+> > @@ -579,6 +598,8 @@ static int acpi_battery_get_state(struct acpi_batte=
+ry *battery)
+> >         acpi_status status =3D 0;
+> >         struct acpi_buffer buffer =3D { ACPI_ALLOCATE_BUFFER, NULL };
+> >=20
+> > +       lockdep_assert_held(&battery->property_lock);
+> > +
+> >         if (!acpi_battery_present(battery))
+> >                 return 0;
+> >=20
+> > @@ -632,6 +653,8 @@ static int acpi_battery_set_alarm(struct acpi_batte=
+ry *battery)
+> >  {
+> >         acpi_status status =3D 0;
+> >=20
+> > +       lockdep_assert_held(&battery->property_lock);
+> > +
+> >         if (!acpi_battery_present(battery) ||
+> >             !test_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags))
+> >                 return -ENODEV;
+> > @@ -649,6 +672,8 @@ static int acpi_battery_set_alarm(struct acpi_batte=
+ry *battery)
+> >=20
+> >  static int acpi_battery_init_alarm(struct acpi_battery *battery)
+> >  {
+> > +       lockdep_assert_held(&battery->property_lock);
+> > +
+> >         /* See if alarms are supported, and if so, set default */
+> >         if (!acpi_has_method(battery->device->handle, "_BTP")) {
+> >                 clear_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags);
+> > @@ -666,6 +691,8 @@ static ssize_t acpi_battery_alarm_show(struct devic=
+e *dev,
+> >  {
+> >         struct acpi_battery *battery =3D to_acpi_battery(dev_get_drvdat=
+a(dev));
+> >=20
+> > +       guard(mutex)(&battery->property_lock);
+> > +
+> >         return sysfs_emit(buf, "%d\n", battery->alarm * 1000);
+> >  }
+> >=20
+> > @@ -681,6 +708,8 @@ static ssize_t acpi_battery_alarm_store(struct devi=
+ce *dev,
+> >         if (err)
+> >                 return err;
+> >=20
+> > +       guard(mutex)(&battery->property_lock);
+> > +
+> >         battery->alarm =3D x / 1000;
+> >         if (acpi_battery_present(battery))
+> >                 acpi_battery_set_alarm(battery);
+> > @@ -865,12 +894,17 @@ static int sysfs_add_battery(struct acpi_battery =
+*battery)
+> >                 .no_wakeup_source =3D true,
+> >         };
+> >         bool full_cap_broken =3D false;
+> > +       int power_unit;
+> >=20
+> > -       if (!ACPI_BATTERY_CAPACITY_VALID(battery->full_charge_capacity)=
+ &&
+> > -           !ACPI_BATTERY_CAPACITY_VALID(battery->design_capacity))
+> > -               full_cap_broken =3D true;
+> > +       scoped_guard(mutex, &battery->property_lock) {
+> > +               power_unit =3D battery->power_unit;
+> >=20
+> > -       if (battery->power_unit =3D=3D ACPI_BATTERY_POWER_UNIT_MA) {
+> > +               if (!ACPI_BATTERY_CAPACITY_VALID(battery->full_charge_c=
+apacity) &&
+> > +                   !ACPI_BATTERY_CAPACITY_VALID(battery->design_capaci=
+ty))
+> > +                       full_cap_broken =3D true;
+> > +       }
+> > +
+> > +       if (power_unit =3D=3D ACPI_BATTERY_POWER_UNIT_MA) {
+> >                 if (full_cap_broken) {
+> >                         battery->bat_desc.properties =3D
+> >                             charge_battery_full_cap_broken_props;
+> > @@ -924,6 +958,9 @@ static void sysfs_remove_battery(struct acpi_batter=
+y *battery)
+> >  static void find_battery(const struct dmi_header *dm, void *private)
+> >  {
+> >         struct acpi_battery *battery =3D (struct acpi_battery *)private=
+;
+> > +
+> > +       lockdep_assert_held(&battery->property_lock);
+> > +
+> >         /* Note: the hardcoded offsets below have been extracted from
+> >          * the source code of dmidecode.
+> >          */
+> > @@ -955,6 +992,8 @@ static void find_battery(const struct dmi_header *d=
+m, void *private)
+> >   */
+> >  static void acpi_battery_quirks(struct acpi_battery *battery)
+> >  {
+> > +       lockdep_assert_held(&battery->property_lock);
+> > +
+> >         if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->=
+flags))
+> >                 return;
+> >=20
+> > @@ -1007,30 +1046,38 @@ static void acpi_battery_quirks(struct acpi_bat=
+tery *battery)
+> >  static int acpi_battery_update(struct acpi_battery *battery, bool resu=
+me)
+> >  {
+> >         int result =3D acpi_battery_get_status(battery);
+> > +       bool wakeup;
+> >=20
+> >         if (result)
+> >                 return result;
+> >=20
+> >         if (!acpi_battery_present(battery)) {
+> >                 sysfs_remove_battery(battery);
+> > -               battery->update_time =3D 0;
+> > +               scoped_guard(mutex, &battery->property_lock)
+> > +                       battery->update_time =3D 0;
+> >                 return 0;
+> >         }
+> >=20
+> >         if (resume)
+> >                 return 0;
+> >=20
+> > -       if (!battery->update_time) {
+> > -               result =3D acpi_battery_get_info(battery);
+> > +       scoped_guard(mutex, &battery->property_lock) {
+> > +               if (!battery->update_time) {
+> > +                       result =3D acpi_battery_get_info(battery);
+> > +                       if (result)
+> > +                               return result;
+> > +                       acpi_battery_init_alarm(battery);
+> > +               }
+> > +
+> > +               result =3D acpi_battery_get_state(battery);
+> >                 if (result)
+> >                         return result;
+> > -               acpi_battery_init_alarm(battery);
+> > -       }
+> > +               acpi_battery_quirks(battery);
+> >=20
+> > -       result =3D acpi_battery_get_state(battery);
+> > -       if (result)
+> > -               return result;
+> > -       acpi_battery_quirks(battery);
+> > +               wakeup =3D ((battery->state & ACPI_BATTERY_STATE_CRITIC=
+AL) ||
+> > +                         (test_bit(ACPI_BATTERY_ALARM_PRESENT, &batter=
+y->flags) &&
+> > +                          (battery->capacity_now <=3D battery->alarm))=
+);
+> > +       }
+> >=20
+> >         if (!battery->bat) {
+> >                 result =3D sysfs_add_battery(battery);
+> > @@ -1042,9 +1089,7 @@ static int acpi_battery_update(struct acpi_batter=
+y *battery, bool resume)
+> >          * Wakeup the system if battery is critical low
+> >          * or lower than the alarm level
+> >          */
+> > -       if ((battery->state & ACPI_BATTERY_STATE_CRITICAL) ||
+> > -           (test_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags) &&
+> > -            (battery->capacity_now <=3D battery->alarm)))
+> > +       if (wakeup)
+> >                 acpi_pm_wakeup_event(battery->phys_dev);
+> >=20
+> >         return result;
+> > @@ -1057,12 +1102,14 @@ static void acpi_battery_refresh(struct acpi_ba=
+ttery *battery)
+> >         if (!battery->bat)
+> >                 return;
+> >=20
+> > -       power_unit =3D battery->power_unit;
+> > +       scoped_guard(mutex, &battery->property_lock) {
+> > +               power_unit =3D battery->power_unit;
+> >=20
+> > -       acpi_battery_get_info(battery);
+> > +               acpi_battery_get_info(battery);
+> >=20
+> > -       if (power_unit =3D=3D battery->power_unit)
+> > -               return;
+> > +               if (power_unit =3D=3D battery->power_unit)
+> > +                       return;
+> > +       }
+> >=20
+> >         /* The battery has changed its reporting units. */
+> >         sysfs_remove_battery(battery);
+> > @@ -1154,17 +1201,21 @@ static int battery_notify(struct notifier_block=
+ *nb,
+> >                 } else {
+> >                         int result;
+> >=20
+> > -                       result =3D acpi_battery_get_info(battery);
+> > -                       if (result)
+> > -                               return result;
+> > +                       scoped_guard(mutex, &battery->property_lock) {
+> > +                               result =3D acpi_battery_get_info(batter=
+y);
+> > +                               if (result)
+> > +                                       return result;
+> > +                       }
+> >=20
+> >                         result =3D sysfs_add_battery(battery);
+> >                         if (result)
+> >                                 return result;
+> >                 }
+> >=20
+> > -               acpi_battery_init_alarm(battery);
+> > -               acpi_battery_get_state(battery);
+> > +               scoped_guard(mutex, &battery->property_lock) {
+> > +                       acpi_battery_init_alarm(battery);
+> > +                       acpi_battery_get_state(battery);
+> > +               }
+> >         }
+> >=20
+> >         return 0;
+> > @@ -1329,6 +1380,10 @@ static int acpi_battery_probe(struct platform_de=
+vice *pdev)
+> >         if (result)
+> >                 return result;
+> >=20
+> > +       result =3D devm_mutex_init(&pdev->dev, &battery->property_lock)=
+;
+> > +       if (result)
+> > +               return result;
+> > +
+> >         if (acpi_has_method(battery->device->handle, "_BIX"))
+> >                 set_bit(ACPI_BATTERY_XINFO_PRESENT, &battery->flags);
+> >=20
+> >=20
+> > --
+> > 2.53.0
+> >=20
