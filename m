@@ -1,119 +1,204 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f173.google.com (mail-yw1-f173.google.com [209.85.128.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3321048123F;
-	Wed, 22 Jul 2026 08:47:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784710039; cv=none; b=Wo5shq2IHDpul4JfNUZY1CL/eVjlI/BlJ3nmwcjsGPZmHOyDsFDta6FZx1ImGWwlcKJSJhf5u63DbddQatWSkTGFl3iQn2gu+3lBPYNtdsfvAq+cgK9YGMzbHAKj3EjSZh268tmAOWp7lLXdCWpfl+ZdTIG8zDNPvK+XzDw9ers=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784710039; c=relaxed/simple;
-	bh=JL1IdaTIT0AHriy6OYKEoOpjLJ3xBJf0DYsSy3uyL+Y=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IQU2VRH3JZ2bIkh58IUtUw+Xe4h+PofzoBMToV7dBZB3sg2IcB8I7SMlJerpyyQSGnPVWV2Bh8bhh+5sgfBHtYzRa3BH7R1LpkFaYa5q98cbshlR43CCwn9sS2jsGvS/FKHUQbYnxfh6fS1Nt2URx/RwsMYVcsgnqy1ZvmB2454=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZINaTcSn; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48D2933859A
+	for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2026 09:01:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.173
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784710895; cv=pass; b=cc65luh+hocS60g9oVXMJUwASh0hkHeDutzMQ6pxHMn3qaFI+ld93JH4v/UEtuDe8nqLJqQef9dFVT5eGMx7wQyK45REmdlcLMm5uKsQ0vM7ND0U4+SzyNjH7Cr/3sus1AsznKdqA159cmb+9oRuzGSqgmWEfQS6fUj8R++NM0U=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784710895; c=relaxed/simple;
+	bh=kjMhhSUJeM58LyEBWOqNhoBXbBuuVqDLE8DYLHYzEqE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=VMwLMAOgpiLBsjQ2JJnvDkxlcBSnRNFM/2fkl2Fz2wzYkHavgVPlcocSUZjMs8Ukzuld8laGOyxB4uu8BQv/nw1EIJwPWu2rxnig889dfYaSdoeQxbLnvTFHomRDpO5ifFbBPk+FtCsIfxQsjb61Mw7jDxWlktR9wAxDTdBoaok=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=mXJbWsPe; arc=pass smtp.client-ip=209.85.128.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZINaTcSn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CB5C1F000E9;
-	Wed, 22 Jul 2026 08:47:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784710037;
-	bh=O2V9EqMp/L80uF/JnlqVNY323ovkEmjYXpt1l+MoU1c=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=ZINaTcSnhBGoFFgtM/fKCvVPtSDKxts+onhhcZBa+hs/RgS/q/l9OC9UsVIj1Ziir
-	 l2Ca1aSFUl6x5N0w/ld3cMLmnQ19Of7CcR57xTO0xZjUPl0zj+YBBdYCGD9Wn41nWL
-	 GrHf9EYQ5FpHGNbt7Yr2y5tb+1z0jbT1ae5gYlOAFjk3FtkjB90icJVmgEwunUs32i
-	 OUFRB97nBEKltExKMtUnCpBXp883nq17ANdC0o7GyaIL4DmHvP9KPVXgxxJ4KyKFZ9
-	 iHEx+vMQdYdbmNZtCO+GRqtdx6yin+8cOVAncQVKEStv+VseCUJezUtglU7In0fuZ7
-	 dOKZvPV+65gkQ==
-Date: Wed, 22 Jul 2026 09:47:14 +0100
-From: Sudeep Holla <sudeep.holla@kernel.org>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: "lihuisong (C)" <lihuisong@huawei.com>, linux-acpi@vger.kernel.org,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	linux-kernel@vger.kernel.org, acpica-devel@lists.linux.dev,
-	Saket Dumbre <saket.dumbre@intel.com>
-Subject: Re: [PATCH 2/4] ACPI: PCC: Preserve shared memory signature in
- OpRegion handler
-Message-ID: <20260722-accomplished-exceptional-gibbon-f06ba7@sudeepholla>
-References: <20260717081005.470013-1-sudeep.holla@kernel.org>
- <20260717081005.470013-3-sudeep.holla@kernel.org>
- <b75fc80b-6d1c-44d9-986c-be2c0a6e7711@huawei.com>
- <20260721-honest-shiny-teal-da9d6d@sudeepholla>
- <CAJZ5v0jAOA3iQB6htExJNAtLu5oVJB9nZGzh=0+uaerVwgHMxQ@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="mXJbWsPe"
+Received: by mail-yw1-f173.google.com with SMTP id 00721157ae682-81e69a2db34so74316987b3.0
+        for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2026 02:01:32 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1784710891; cv=none;
+        d=google.com; s=arc-20260327;
+        b=ZDOzHLSUbu+NQd4Xq/fpvaJxMSnSbJ6Gf4TK962jOd1iLA40zx8KAzDfNHM9zK/IcL
+         m29fVnuR/cyu+B+REUuAahWax7QlkuFvQh+hYqHzjBRQHzO/0IvkH8l2mfn4w2U1cllV
+         UGHphmv5ZNdf0HgE7A54Tz4Jss0LrcWea11G+IWArk0yMGAj7q/xhM/PdP4t7fhcB9w/
+         HfkJlVtIxE5YsM2hSFhgc/k2g4CoxzuECJQVgD3uCxSWYxPxo9iCvZ82ldyX1JE4/e0r
+         h2HenqM+zor+SXObIrKMUT0T2kOQUI80y2fftgmfpjE0fvVk561W7bUgmgckkE8CQ9LW
+         sJmw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=BVQ32j56Dr60NJMwmM+X8AwJaAcbdmT9panK+KSnLpY=;
+        fh=RVTNKcLszHkeAHYFpfeiyjfA7ItDSx1hjorJAZUR3DY=;
+        b=fxAzDM7HR6LVRbPxhmdnwfDnKpqjF3/bDth6agKbFfNQSlTyMzJqCsvXwYbUqoNQ5P
+         VUKvRGB7pOlbrl68PnXUpcwjSe3Mzf1Jg3+ks5DgNmtzp7SdLfCeemvqHvFEyT9VxFzV
+         OVpGk2aOiEf3l7Bd+zenRG62Dt2RauSgjmJGlrI+ayK+WyAasY2mMZSgiYQKOtkP8mAE
+         ZeeaCJr8KH2hVdyp4GWUG2WX/CsEhsILJS89m2uw3x0aQ2O1bsVw4J90+EVZKGavwOOB
+         er/1diZVc/57qMBEAGODH3ZPANt5GCSW79ymEtn5Eokv++862Y60hcYhFKZ6ormyu1/S
+         7SPw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1784710891; x=1785315691; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=BVQ32j56Dr60NJMwmM+X8AwJaAcbdmT9panK+KSnLpY=;
+        b=mXJbWsPeCO8FslQIu10GK72HjeWHi1GFyymj/tGTDhE5yi1vHwlRPV046PHgZ7VpF6
+         NEAxPt8ne/efXzlFDPF3d0AZKJ1AtDazYWogGUm5jeMFvwz4KLohfxv1cU7ZnMbv00OG
+         XoBwDO7yJNVGOswjqco0Vgsms2BhEWcHJ8IV8=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784710891; x=1785315691;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=BVQ32j56Dr60NJMwmM+X8AwJaAcbdmT9panK+KSnLpY=;
+        b=GhEjGJK9FNqZgfhH5zzAWTOFD2V8hXsgXAOjrdAHlx/WpEb13pNaZiAAtWW+pRBPYU
+         xP0P5GU31ur+N3dAqr+sNTSQrAWO3Di/VRI6lIdBvh4utoe118C29eXQZGVNQU5CziSi
+         UViB5UHwZWkqxaLaRhfXbP71anAntDEcxWLwPdbc977TcF34n5Cq7dJB6A8UTHDQ7Dz3
+         gAZuKVKphotyGcIs0uSagYGlHwfolfnsWbwTEX0ZUYOd20Ovfb1eLseRcXVD5e2CYHDp
+         eEfXYpSjus9u1ddQIuVaNUCSFkjJlK/9rcjDlXJZK9KsjDPekxuA9DirSwB6ggWfJIfw
+         eSYw==
+X-Gm-Message-State: AOJu0Yx+t1WgUzYXwSObH7k/e6moUnTctGUg52QbJbrNsRyiN6UrEHwH
+	kqkNp5dYzXZAN1xdmGtVYu8uuDsyfjrgWG2JVv+ve9uhYRPwoKw/60UnUNNZA/5jXcMeNvCOIL0
+	YOlf+B4GJLU1HKAVCM4IpH+eOvYNcZSruf1sT7kSQ
+X-Gm-Gg: AR+sD11nvyPZMkOCYoXpfTKUT67d0Hj0MZ+Gr2HdMDnwNG9DiuPBoUsivX84WHFR9aA
+	1fVsCzczuHNdAHJz2/s+WNdcGIvymqF3kvEjwGiMgcZ80USwT9pDh7EIZJdAtAj9tQABDd+F2WO
+	T5XRJNUKvxdiVuMAKzISREfgrE2T9jUBVYIuwGwvhEmSjOmxwOHc6nVzyXYwjLsK967HmpsK6Pd
+	2ucmQJWK2cwq/eyBH0N1DXJH0GDyU2BDSeUlME55qk5CyM6QU656BtyzK4Yn16wOzxmdAT6EdBT
+	JVHWKIg7/dc9n9YK
+X-Received: by 2002:a05:690c:e0c:b0:81e:6a1c:e30b with SMTP id
+ 00721157ae682-81ef28da7b0mr69266347b3.67.1784710891191; Wed, 22 Jul 2026
+ 02:01:31 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJZ5v0jAOA3iQB6htExJNAtLu5oVJB9nZGzh=0+uaerVwgHMxQ@mail.gmail.com>
+References: <20260721065413.2306137-1-wenst@chromium.org> <20260721065413.2306137-4-wenst@chromium.org>
+ <CAMRc=McsCRBxXMj0xC8H0cgdZZ=Z9_4u_DS9b2z0pLE0=gZr+g@mail.gmail.com>
+In-Reply-To: <CAMRc=McsCRBxXMj0xC8H0cgdZZ=Z9_4u_DS9b2z0pLE0=gZr+g@mail.gmail.com>
+From: Chen-Yu Tsai <wenst@chromium.org>
+Date: Wed, 22 Jul 2026 17:01:20 +0800
+X-Gm-Features: AUfX_mzymMOrnzz3ZSisQQjvbDECVUbqfaXF7TwtpwvIT3XYymwiPHVmpWvFgt8
+Message-ID: <CAGXv+5H_V+J0cvrYjMFdKAQVrPKxPdtimXMc+hwHenwxhb9mDQ@mail.gmail.com>
+Subject: Re: [PATCH v6 03/16] power: sequencing: Add pwrseq_power_is_on()
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
+	linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org, 
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	Manivannan Sadhasivam <mani@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 21, 2026 at 09:20:15PM +0200, Rafael J. Wysocki (Intel) wrote:
-> On Tue, Jul 21, 2026 at 2:27 PM Sudeep Holla <sudeep.holla@kernel.org> wrote:
+On Tue, Jul 21, 2026 at 5:08=E2=80=AFPM Bartosz Golaszewski <brgl@kernel.or=
+g> wrote:
+>
+> On Tue, 21 Jul 2026 08:53:58 +0200, Chen-Yu Tsai <wenst@chromium.org> sai=
+d:
+> > The power sequencing consumer API already does power on state tracking
+> > internally. Expose the state to consumers through pwrseq_power_is_on()
+> > so that they don't have to reimplement it locally.
 > >
-> > On Tue, Jul 21, 2026 at 07:43:53PM +0800, lihuisong (C) wrote:
-> > >
-> > > On 7/17/2026 4:10 PM, Sudeep Holla wrote:
-> > > > ACPI 6.3 introduced PCC OperationRegions. Section 5.5.2.4.7.3,
-> > > > "Declaring message fields within a PCC OperationRegion", states that,
-> > > > for all PCC subspace types, the PCC Operation Region pertains to the
-> > > > region of PCC subspace that succeeds the PCC signature.
-> > > >
-> > > > The PCC address space handler currently copies the OperationRegion
-> > > > buffer to and from the start of the PCC shared memory region. That can
-> > > > overwrite or expose the signature at byte offset 0, and it also misses
-> > > > the last 4 bytes of the actual PCC OperationRegion data.
-> > > >
-> > > > Offset OperationRegion copies by the size of the signature and reject
-> > > > regions that do not fit in the shared memory after that signature. AML
-> > > > that sizes the PCC OperationRegion to include the signature is not
-> > > > conforming to the PCC OperationRegion definition.
-> > > >
-> > > > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> > > > Fixes: 77e2a04745ff ("ACPI: PCC: Implement OperationRegion handler for the PCC Type 3 subtype")
-> > > > Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
-> > > > ---
-> > > The below commit description said the PCC operationRegion contains the
-> > > signature field.
-> > > "77e2a04745ff ("ACPI: PCC: Implement OperationRegion handler for the PCC
-> > > Type 3 subtype")"
-> > > And I find that the definition of this OperationRegion in ACPI spec 6.3 is
-> > > the same with spec 6.5 and 6.6.
-> > > That is, the original implementation already didn't comply with ACPI spec.
-> > >
-> > > Patch 1/4 also requires the change of platform AML about PCC
-> > > OperationRegion.
-> > > These modification may lead to the existed PCC OperationRegion method in
-> > > some drivers doesn't work.
-> > > Because the platform AML still contains signature field in PCC
-> > > OperationRegion method.
-> > > I don't know how many drivers in linux have used this method.
-> > > IMO, we at least need to reclarify this usage change and provide a new usage
-> > > example in the commit log like the original commit did.
-> > >
+> > Acked-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> > Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
+> > ---
+> > Changes since v5:
+> > - Reverted back to returning -EINVAL if descriptor is NULL
 > >
-> > Good point, I didn't realise I had wrong example in the original commit.
-> > I will add the example of correct usage in this change. Thanks for pointing
-> > it out.
+> > Changes since v4:
+> > - Make pwrseq_power_is_on() return 1 if descriptor is NULL, i.e. if
+> >   the descriptor is optional, matching the other pwrseq consumer APIs
 > >
-> > > Anyway, this patch also makes the driver more compliant with the
-> > > specifications.
-> > > So I agree.
-> > > Reviewed-by: Huisong Li <lihuisong@huawei.com>
-> > >
+> > Changes since v3:
+> > - Added missing stub function for !POWER_SEQUENCING
 > >
-> > Thanks again for all the review.
-> 
-> I gather that there will be a v2 then.
+> > Changes since v2:
+> > - New patch
+> >
+> > Needs to go in with "usb: hub: Power on connected M.2 E-key connectors"
+> > as it is a build time dependency. Bartosz wants the change on an
+> > immutable branch to pull into the pwrseq tree.
+> > ---
+> >  drivers/power/sequencing/core.c | 18 ++++++++++++++++++
+> >  include/linux/pwrseq/consumer.h |  6 ++++++
+> >  2 files changed, 24 insertions(+)
+> >
+> > diff --git a/drivers/power/sequencing/core.c b/drivers/power/sequencing=
+/core.c
+> > index 02f42da91598..72b96d36920e 100644
+> > --- a/drivers/power/sequencing/core.c
+> > +++ b/drivers/power/sequencing/core.c
+> > @@ -968,6 +968,24 @@ int pwrseq_power_off(struct pwrseq_desc *desc)
+> >  }
+> >  EXPORT_SYMBOL_GPL(pwrseq_power_off);
+> >
+> > +/**
+> > + * pwrseq_power_is_on() - Queries the last requested state of the powe=
+r sequencer.
+> > + * @desc: Descriptor referencing the power sequencer.
+> > + *
+> > + * This returns the last requested state of the power sequencer.
+> > + *
+> > + * Returns:
+> > + * On success, 1 for on and 0 for off; negative error number on failur=
+e.
+> > + */
+> > +int pwrseq_power_is_on(struct pwrseq_desc *desc)
+> > +{
+> > +     if (!desc)
+> > +             return -EINVAL;
+> > +
+> > +     return desc->powered_on;
+> > +}
+> > +EXPORT_SYMBOL_GPL(pwrseq_power_is_on);
+> > +
+>
+> Didn't we agree on introducing an enum to make it future-proof for when w=
+e
+> also pull in pwrseq_is_controllable() from Loic?
 
-Yes, just with the improved commit message giving illustration of AML code
-like the original commit that this change fixes. No change is the code as
-such.
+My bad. I misunderstood and thought it wasn't needed yet.
 
--- 
-Regards,
-Sudeep
+> I think this should work like so:
+>
+> enum {
+>         PWRSEQ_STATE_UNKNOWN,
+>         PWRSEQ_STATE_ON,
+>         PWRSEQ_STATE_OFF,
+> };
+>
+> int pwrseq_get_state(struct pwrseq_desc *desc)
+> {
+
+I think you still want this here?
+
+          if (!desc)
+                    return -EINVAL;
+
+
+>         /* Only once this is upstream. */
+>         if (!pwrseq_is_controllable(desc))
+>                 return PWRSEQ_STATE_UNKNOWN;
+>
+>         return desc->powred_on ? PWRSEQ_STATE_ON : PWRSEQ_STATE_OFF;
+> }
+>
+> Bart
+
+
+Thanks
+ChenYu
