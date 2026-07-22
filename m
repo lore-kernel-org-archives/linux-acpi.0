@@ -1,94 +1,139 @@
-Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
+Received: from relay.yourmailgateway.de (relay.yourmailgateway.de [188.68.63.102])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A67A2D47F4;
-	Wed, 22 Jul 2026 05:20:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C8922E285C
+	for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2026 05:26:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=188.68.63.102
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784697620; cv=none; b=T4TLAtGIRaJjYv8YsUnNOKXMN5vtLc4ciBp5cxS1ZAHPihpkWOs/bvp/8YeImnCDKr9W5R85ST4ZVonHKZ44SWnNirkLD/07VhKa+1aQ9eshDYG5RM70K8Gg6Nq4YzoNbDn+l90QgrYlSUzcVmvNeKb5M/B9jKmVqslDu+5zP6Y=
+	t=1784698008; cv=none; b=qOOeD+yFJaX9hGwFpAb1MDVx6GiX2jcIntwbH7qaibz0P+BGAtAM5m6aCzAt9YTxmfGMbdmnpkHCp/Mb1HTc09FW/ctwbnpH2EHRNr7mBT8MZeTIWkrHTOCX8u7RNvMFQdzlPUonydl92L133ItZqGt4TAb9OerMdrVu//W28wo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784697620; c=relaxed/simple;
-	bh=QKSdvxCXY4MCKGsRHEJB/WzaqnMN6w5dZ8jpJTinIPk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=M2uNzXBnKzxvoZVAfImEZ3LbdfJYu6kaf0EeNhLxvALBlLbPatZEhBSxJzCNrJoFf1MZ0+OPTzvyycruGhbrRDa/GcWel0xaBpf0TbAZpUTyxLNq2vfZEFbIB/2VmvsKYpJRM/FhILWWOifl39Oy6ttsjwm5eGdsqB9NJNltIvA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=eJ74/J1/; arc=none smtp.client-ip=65.109.113.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
+	s=arc-20240116; t=1784698008; c=relaxed/simple;
+	bh=NMst9Xf+v4STuaN1fx0zrwmvwT5Ra/WhR1fBpDJtJrU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:Cc:
+	 In-Reply-To:Content-Type; b=lSAK01phSdimdI9Xp7qqxBFjD/34DKE7HwjGGSpWf/KdfhcWQ4vxrbxNb67l52oRNcUn5WO//37W4cLhJdkglEe6Gshmoz3xsAdJp7cOgvxCOHbzda6pJZGn+vrtUL2QUCNoDzc/M8FYq3IZbYMe1gxgoWbyMbczqhEplLtvej8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=leemhuis.info; spf=pass smtp.mailfrom=leemhuis.info; dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b=WXsirBYH; arc=none smtp.client-ip=188.68.63.102
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=leemhuis.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=leemhuis.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="eJ74/J1/"
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id 4451740E00DC;
-	Wed, 22 Jul 2026 05:20:15 +0000 (UTC)
-X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
-Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
-	header.d=alien8.de
-Received: from mail.alien8.de ([127.0.0.1])
-	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id r3gHIk3Z3MOa; Wed, 22 Jul 2026 05:20:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
-	t=1784697604; bh=Cww537ASv8kzxMe1FGmK/V4GT98IxA5VfJnEBpkxoko=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=eJ74/J1/mMRLlE9IAuONfD56lNUVXzhb901qTTGENZwHDUVcGgizSAaYO8wZHAExL
-	 uVsJwZzSfKuJVlU/vEeiX1faUMYGtjP80CDZCEkdW0VHP9sgbFZ8/9r1/7tVg+2F6l
-	 a1xEzieGWlQp/toLSUHJ5fZaTujsj8rtcfw5cm2Jpzq98Y5xMf/Zz+7kaVZg+uKJin
-	 xRvfHcAnwTKFVlefasJd6TIa4frpo7LleJuPwugGmzgzYS5kSEzCM49oggSQLM9UmI
-	 a+XwuGSPT+saT5toOfAhBpmeuDZb9W65QB+biIvujG9fzKzp6M2yaZ33Uw52jdIyir
-	 8oSxzWtd6xfM0kVPr8c3ZNqwcw+i/Nmvs/IrfZb1KvAZ3QU8RYHLheIdibCSqasNNf
-	 rM42chfSS0cdoDEwkQPxocMOY7m6G2jFLflfMxos13KnszcoK/3Ol0CJJq/xRgPF3+
-	 nkzD4uYQW6VHYcQwoKCxGoJq+a6LWScYeLVcHWS+Xzq/bycwqwUj453r/7PW3qVZ5L
-	 o25TaVAd7fSwvTPLLNMPh9V9TMsO6cCbD8jv9f3tjQl1J1DcDJO/O1X2F1+gefUvb7
-	 sehjqYsRj4bC44uTZH4DOfADniqpy3TzT4dRs1PR3/3umimP4pzL6TGrYBSaZ9moQq
-	 8NVt+GVAlinVBUQ4zPTqVEh8=
-Received: from stx.tnic (unknown [IPv6:2600:1700:38ca:c00::2b])
+	dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b="WXsirBYH"
+Received: from mors-relay-2502.netcup.net (localhost [127.0.0.1])
+	by mors-relay-2502.netcup.net (Postfix) with ESMTPS id 4h4jRS2Gmzz6GtK;
+	Wed, 22 Jul 2026 07:26:44 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=leemhuis.info;
+	s=key2; t=1784698004;
+	bh=NMst9Xf+v4STuaN1fx0zrwmvwT5Ra/WhR1fBpDJtJrU=;
+	h=Date:Subject:To:References:From:Cc:In-Reply-To:From;
+	b=WXsirBYHvzpCwsOsgdZZu00+qIo4Lad4dPKOmw4ce7r73iNbEg3dNntH/aBp90uyZ
+	 VNLV7Asc9lJyX4L3iSaq2hPA3N1/Ncf5Bysnj7IbqPzbHz6h5BsSr8v/iaoLMLhVKo
+	 JSoCm8inAZYd0+8B1I7IQeY7ZZBDEfcPmCTUOfAoD4sCu/mBNzrrMv97dAEd1QJ5Tg
+	 KkRdiTkYnxhnVeAVhVoTFN03Korx1BjM7/hebhL8It3ETi635qM1ohmDQdbpT1nK5q
+	 fUC1PcV/cAZAVZbZi6xHiT0WnjSYwbmE1A9QhV/aRw0SF1TNZ+5UiFdz+OnPtTtUQX
+	 yMGsQpd/hDIiA==
+Received: from policy02-mors.netcup.net (unknown [46.38.225.35])
+	by mors-relay-2502.netcup.net (Postfix) with ESMTPS id 4h4jRS1Yczz4xQ8;
+	Wed, 22 Jul 2026 07:26:44 +0200 (CEST)
+Received: from mxe9fb.netcup.net (unknown [10.243.12.53])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id B81DD40E014C;
-	Wed, 22 Jul 2026 05:19:27 +0000 (UTC)
-Date: Tue, 21 Jul 2026 22:19:24 -0700
-From: Borislav Petkov <bp@alien8.de>
-To: shijujose2008@gmail.com
-Cc: rafael@kernel.org, akpm@linux-foundation.org, rppt@kernel.org,
-	dferguson@amperecomputing.com, linux-edac@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-mm@kvack.org,
-	linux-doc@vger.kernel.org, tony.luck@intel.com, lenb@kernel.org,
-	Yazen.Ghannam@amd.com, mchehab@kernel.org,
-	ashok.raj@oss.qualcomm.com, jic23@kernel.org, linuxarm@huawei.com,
-	rientjes@google.com, jiaqiyan@google.com, Jon.Grimm@amd.com,
-	dave.hansen@linux.intel.com, naoya.horiguchi@nec.com,
-	james.morse@arm.com, jthoughton@google.com, somasundaram.a@hpe.com,
-	erdemaktas@google.com, pgonda@google.com, duenwen@google.com,
-	gthelen@google.com, wschwartz@amperecomputing.com,
-	wbs@os.amperecomputing.com, nifan.cxl@gmail.com,
-	tanxiaofei@huawei.com, prime.zeng@hisilicon.com,
-	roberto.sassu@huawei.com, kangkang.shen@futurewei.com,
-	wanghuiqiang@huawei.com
-Subject: Re: [PATCH v22 0/2] ACPI: Add support for ACPI RAS2 feature table
-Message-ID: <20260722051924.GAamBS3KN1wWTbiMwt@fat_crate.local>
-References: <20260709210750.424659-1-shijujose2008@gmail.com>
+	by policy02-mors.netcup.net (Postfix) with ESMTPS id 4h4jRR5Kp6z8sch;
+	Wed, 22 Jul 2026 07:26:43 +0200 (CEST)
+Received: from [IPV6:2a02:8108:8984:1d00:a0cf:1912:4be:477f] (unknown [IPv6:2a02:8108:8984:1d00:a0cf:1912:4be:477f])
+	by mxe9fb.netcup.net (Postfix) with ESMTPSA id 28D5F5F9DD;
+	Wed, 22 Jul 2026 07:26:43 +0200 (CEST)
+Authentication-Results: mxe9fb;
+        spf=pass (sender IP is 2a02:8108:8984:1d00:a0cf:1912:4be:477f) smtp.mailfrom=regressions@leemhuis.info smtp.helo=[IPV6:2a02:8108:8984:1d00:a0cf:1912:4be:477f]
+Received-SPF: pass (mxe9fb: connection is authenticated)
+Message-ID: <cc383c33-d0ef-40fc-9c14-865a6d7f5d75@leemhuis.info>
+Date: Wed, 22 Jul 2026 07:26:42 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260709210750.424659-1-shijujose2008@gmail.com>
+User-Agent: Mozilla Thunderbird
+Subject: =?UTF-8?Q?Re=3A_Regression=3A_Backlight_control_broken_on_HP_Omen_1?=
+ =?UTF-8?B?NeKAkWF4MjQ2bmYgd2l0aCBrZXJuZWwgNy4wLjDigJEyOOKAkWdlbmVyaWM=?=
+To: harryblanc <garett26@gmail.com>, linux-acpi@vger.kernel.org
+References: <69a1eaf0-4a58-47d5-ad94-2af958f84841@gmail.com>
+From: Thorsten Leemhuis <regressions@leemhuis.info>
+Content-Language: de-DE, en-US
+Cc: Linux kernel regressions list <regressions@lists.linux.dev>
+In-Reply-To: <69a1eaf0-4a58-47d5-ad94-2af958f84841@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-PPP-Message-ID: 
+ <178469800339.4154715.10056306368639657873@mxe9fb.netcup.net>
+X-Rspamd-Server: rspamd-worker-8404
+X-Rspamd-Queue-Id: 28D5F5F9DD
+X-NC-CID: 4yt6E9FuGj5qqMzVe5B2ZOW6LexO7L8/pIRP+dYnst7UcvMt7n8=
 
-On Thu, Jul 09, 2026 at 10:07:48PM +0100, shijujose2008@gmail.com wrote:
-> From: Shiju Jose <shijujose2008@gmail.com>
+On 7/18/26 11:05, harryblanc wrote:
 > 
-> Add support for ACPI RAS2 feature table (RAS2) defined in the
-> ACPI 6.5 specification, section 5.2.21 and RAS2 HW based memory
-> scrubbing feature.
+> I would like to report a regression affecting backlight control on my HP
+> Omen laptop when using kernel 7.0.0‑28‑generic (Ubuntu 24.04 base, Linux
+> Mint 22.3 XFCE).
 
-https://sashiko.dev/#/patchset/20260709210750.424659-1-shijujose2008%40gmail.com
+Hi! Thx for your report. But this is a heavily patched vendor kernel and
+also a series that is EOL. Please test latest vanilla 7.2-rc or and
+report back. Ciao, Thorsten
+> Summary of the issue:
+> With kernel 7.0, the screen backlight is stuck at maximum brightness.
+> Brightness keys show the OSD and the slider moves, but the actual
+> backlight does not change.
+> With kernel 6.17, brightness works normally.
+> 
+> Hardware:
+> - HP Omen 15‑ax246nf
+> - Intel i5‑7300HQ
+> - Intel HD Graphics 630 (i915)
+> - Nvidia GTX 1050 Mobile (disabled via Optimus)
+> - Linux Mint 22.3 XFCE (Ubuntu 24.04 base)
+> 
+> Backlight controller:
+> /sys/class/backlight/ → intel_backlight
+> acpi_video0 is no longer present under kernel 7.0.
+> 
+> ACPI errors visible only with kernel 7.0:
+> ACPI BIOS Error (bug): Attempt to CreateField of length zero
+> ACPI Error: Aborting method \_SB.WMID.WQBK
+> ACPI BIOS Error (bug): AE_AML_BUFFER_LIMIT
+> ACPI Error: Aborting method \_SB.WMID.HWMC
+> ACPI: video: [Firmware Bug]: ACPI(PEGP) defines _DOD but not _DOS
+> 
+> Kernel version:
+> Linux 7.0.0-28-generic #28~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Wed Jul 1
+> 15:50:57 UTC 2024 x86_64 GNU/Linux
+> 
+> GPU information (inxi -Gxxx):
+> Device-1: Intel HD Graphics 630 driver: i915
+> Device-2: NVIDIA GTX 1050 Mobile driver: N/A (Optimus disabled)
+> Display: X11 driver: modesetting, iris
+> Monitor: eDP-1 1920x1080 LG Display
+> 
+> Hardware summary (lshw -short):
+> Intel(R) Core(TM) i5-7300HQ
+> HD Graphics 630
+> GeForce GTX 1050 Mobile (disabled)
+> 16 GiB DDR4
+> Samsung NVMe SSD + 1TB HDD
+> 
+> Expected behavior:
+> Backlight should be adjustable via intel_backlight or acpi_video0, as in
+> kernel 6.17.
+> 
+> Observed behavior:
+> Backlight remains at maximum brightness regardless of ACPI events or
+> brightness keys.
+> 
+> Steps to reproduce:
+> 1. Boot kernel 7.0.0‑28‑generic
+> 2. Attempt to change brightness
+> 3. Backlight does not change
+> 
+> This appears to be an ACPI/i915 regression introduced in kernel 7.0.
+> 
+> Thank you for your work.
+> 
 
-Thx.
-
--- 
-Regards/Gruss,
-    Boris.
-
-https://people.kernel.org/tglx/notes-about-netiquette
