@@ -1,40 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DA1A1DF736;
-	Wed, 22 Jul 2026 12:53:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9468B313547;
+	Wed, 22 Jul 2026 13:03:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784724820; cv=none; b=ScATEK5HBdOfh4u4lUJ8WeZeZzPMWIf4daWo16nY7O97hUGMxuqY2+bopUgCtnrNYH+TnalrRaLifLqCvuJdTR+iFe/qvSkMNiUpKyTE59BaV44CIJ9EBBYvFlfs91AoA3H4MBty/Sjf/d2FLKlPQVV8+K7LQI8uRsa/ZfkUzeA=
+	t=1784725410; cv=none; b=LuZHgxuNWf2r4PI7cKWDwzKiJNOFa3Sv7z8rkqu9oNA+sbcDUoWbz+OsZiC7zzHLJJoV6NgYvw4O3s5fW1+3rBi4Utly4UfUHpdraK9S/dDZVwEVHAiI5hlR58RuoW8ju/OzOcqAj/Utsb2sQx4K79vmraJW7ZFDGnHckNQXpZI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784724820; c=relaxed/simple;
-	bh=ycx5+RKtiUjTFBuLnnJqeFfaFVvwoSTZp2zPfYDiL90=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ngi6tTQ5T7bm89LTICz/WwOTnCMXFsPEyACbwzA6anJsTeEF65VTEhJNSXkj5hWahmlMM/iSB5BEP1J61qnEhy3ig0ShqcxossXdZFLTnhMJG5Hr+XYWK9JXveRKRKglPeH2dccQNFdmmRtKiO8zoR8MQmSY+SFzsoO2ZnYVM8Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=O7KymtW6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784725410; c=relaxed/simple;
+	bh=L0U+Sgxsb1knrJMt8CFcjxzdTksFyILXm1X9VTkvol0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=l69gYpXUQkorpmmi1V0uC7N+Fksi8qEz9jJ067DIeayZLO6N+jthKLSitUPN5vxoWNBHapsvjEX6Vd8nblOJrvl4BA6jp3LGkf8YYpxIwU3GefkUHy6rkmdSScoIaFAfCan5Exshki8XOspBDCNJP7I+zDf4TFD5T2bWdSEpGYo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=R1H/NcBq; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="O7KymtW6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60CD51F000E9;
-	Wed, 22 Jul 2026 12:53:34 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="R1H/NcBq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADB281F000E9;
+	Wed, 22 Jul 2026 13:03:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784724815;
-	bh=KuOY/nwET7kpTgEI3t8O9xiBb0RbvPVNv8KLvnHIM4U=;
-	h=From:To:Cc:Subject:Date;
-	b=O7KymtW6HIZpw3JklxdEinJZHPLhu00J+zxTFqY1KAOLVxubHa5caIb7cfnh4wn6P
-	 yYpCuNNrEXPh+qPQF/ci+a3YbEkkKJGhyN8bFZdK/3V8mycZM1tlSSTF0xfGsEWldE
-	 d3igpNbQBpD7Wup6kbZ4B2sKb31vb3Psl14eZ7xf5zj01pIE18oP28AjijsedzKitV
-	 g+eNidmM/KTSrqBu5+B+lHDzQ7qKjaB67TvQmSZISFgOIUuMPYRLl2qFwSgprL4wt6
-	 dPECbFzEUmAsxQYqTUgGO90kV2gntIzK8waOaQrb7amMzb3Rt//MgjI+e3dVQzpwtw
-	 53x5bqnZk9nwQ==
+	s=k20260515; t=1784725404;
+	bh=E23gUT0OB5m17CIhAx1OfFX3s/0BBfZUO3XE+ke+s/s=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=R1H/NcBqxACKDNu8i7xMAm8kepb0J9gpDkJzN3iBDddMn05BNUFfBbl8yhr31KpNG
+	 mTu1x11r7CP4rQLAHFPHavFSs4tc5th3Ekzyi/RmyFl8angPWp/dzs80HK3uM2PONZ
+	 wIWnrTDBxzQ/Pc6gbtcmNhUscMcIv3ypG23YbYf5ef/NDNhHcdLWczLX7mNmNNBdAk
+	 w8YDcnCiICGiFzHYc7gAaLtqyuzGQrTS5ShCKrpR5Z+zpVJFCxGT5UYvNMEewO9Fn1
+	 qU1M+X4WA1V8JqFYd7r9Vuj9aN1CD7CGnZ78QLCLc+T3YI/YUWu28yzuWr9GrThWyx
+	 wRCAs00cuhtEg==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux PM <linux-pm@vger.kernel.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
- Sudeep Holla <Sudeep.Holla@arm.com>
+To: Saverio Miroddi <saverio.pub2@gmail.com>
+Cc: Jonathan Cameron <jic23@kernel.org>, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, Saverio Miroddi <saverio.pub2@gmail.com>
 Subject:
- [PATCH v1][linux-next] intel_idle: Update documentation after adding ACPI
- _LPI support
-Date: Wed, 22 Jul 2026 14:53:31 +0200
-Message-ID: <12962673.O9o76ZdvQC@rafael.j.wysocki>
+ [PATCH v1] ACPI: bus: Avoid confusing complaints regarding missing _OSC
+ features
+Date: Wed, 22 Jul 2026 15:03:21 +0200
+Message-ID: <5143711.31r3eYUQgx@rafael.j.wysocki>
 Organization: Linux Kernel Development - Intel
+In-Reply-To: <20260721192914.1166891-1-saverio.pub2@gmail.com>
+References: <20260721192914.1166891-1-saverio.pub2@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -44,86 +47,129 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
+On Tuesday, July 21, 2026 9:29:14 PM CEST Saverio Miroddi wrote:
+> The ACPI specification defines OSC_CAPABILITIES_MASK_ERROR to mean that
+> firmware cleared capability bits requested by the operating system. Some
+> firmware sets this status during the control request while returning every
+> requested capability unchanged. On the affected system, the requested and
+> returned masks were both 0x006a7eff.
+> 
+> Commit e5322888e6bf ("ACPI: bus: Rework the handling of \_SB._OSC
+> platform features") made all control-response errors produce error-level
+> messages. Consequently, the inconsistent response above now claims that
+> features may be missing even though none were removed.
+> 
+> Track whether the response actually clears a requested bit and omit the
+> error-level messages only if OSC_CAPABILITIES_MASK_ERROR is the sole
+> error and no capability was cleared. Keep the dynamic-debug diagnostic and
+> leave the negotiated capability mask and all other error cases unchanged.
+> 
+> Fixes: e5322888e6bf ("ACPI: bus: Rework the handling of \_SB._OSC platform features")
+> Signed-off-by: Saverio Miroddi <saverio.pub2@gmail.com>
+> ---
+>  drivers/acpi/bus.c | 23 ++++++++++++++++-------
+>  1 file changed, 16 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index a30a904f6535..c13128cbc2f6 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -335,7 +335,8 @@ static int acpi_osc_handshake(acpi_handle handle, const char *uuid_str,
+>  		.length = bufsize * sizeof(u32),
+>  	};
+>  	struct acpi_buffer output;
+> -	u32 *retbuf, test;
+> +	u32 *retbuf, test, errors;
+> +	bool capabilities_masked = false;
+
+The existing test variable can be used for this just fine, no need to add more
+of them.
+
+>  	guid_t guid;
+>  	int ret, i;
+>  
+> @@ -395,16 +396,24 @@ static int acpi_osc_handshake(acpi_handle handle, const char *uuid_str,
+>  	 * Clear the feature bits in capbuf[] that have not been acknowledged.
+>  	 * After that, capbuf[] contains the resultant feature mask.
+>  	 */
+> -	for (i = OSC_QUERY_DWORD + 1; i < bufsize; i++)
+> +	for (i = OSC_QUERY_DWORD + 1; i < bufsize; i++) {
+> +		if (capbuf[i] & ~retbuf[i])
+> +			capabilities_masked = true;
+> +
+>  		capbuf[i] &= retbuf[i];
+> +	}
+>  
+> -	if (retbuf[OSC_QUERY_DWORD] & OSC_ERROR_MASK) {
+> +	errors = retbuf[OSC_QUERY_DWORD] & OSC_ERROR_MASK;
+> +	if (errors) {
+>  		/*
+> -		 * Complain about the unexpected errors and print diagnostic
+> -		 * information related to them.
+> +		 * Some firmware sets OSC_CAPABILITIES_MASK_ERROR without clearing
+> +		 * any requested capability.  Only complain if another error is
+> +		 * present or a capability was actually masked.
+>  		 */
+> -		acpi_handle_err(handle, "_OSC: errors while processing control request\n");
+> -		acpi_handle_err(handle, "_OSC: some features may be missing\n");
+> +		if (errors != OSC_CAPABILITIES_MASK_ERROR || capabilities_masked) {
+> +			acpi_handle_err(handle, "_OSC: errors while processing control request\n");
+> +			acpi_handle_err(handle, "_OSC: some features may be missing\n");
+> +		}
+>  		acpi_osc_error_check(handle, &guid, rev, &cap, retbuf);
+
+And here the debug output is not quite useful if the error is essentially
+ignored.
+
+>  	}
+
+So below is my version of this fix, please check it if works for you.
+
+Thanks!
+
+---
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: [PATCH] ACPI: bus: Avoid confusing complaints regarding missing _OSC features
 
-After adding ACPI _LPI support to intel_idle, update its admin-guide
-documentation to cover the changed behavior.
+The platform firmware on some platforms sets OSC_CAPABILITIES_MASK_ERROR
+in _OSC error bits even though it actually acknowledges all of the
+requested features which after commit e5322888e6bf ("ACPI: bus: Rework
+the handling of \_SB._OSC platform features") causes the kernel to
+complain unnecessarily.
 
+Avoid the confusing complaints by explicitly checking for that case
+in acpi_osc_handshake().
+
+Fixes: e5322888e6bf ("ACPI: bus: Rework the handling of \_SB._OSC platform features")
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- Documentation/admin-guide/pm/intel_idle.rst |   54 ++++++++++++++++------------
- 1 file changed, 31 insertions(+), 23 deletions(-)
+ drivers/acpi/bus.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/pm/intel_idle.rst
-+++ b/Documentation/admin-guide/pm/intel_idle.rst
-@@ -87,17 +87,22 @@ tables with any processor model recogniz
- `below <intel-idle-parameters_>`_.]
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -395,10 +395,18 @@ static int acpi_osc_handshake(acpi_handl
+ 	 * Clear the feature bits in capbuf[] that have not been acknowledged.
+ 	 * After that, capbuf[] contains the resultant feature mask.
+ 	 */
+-	for (i = OSC_QUERY_DWORD + 1; i < bufsize; i++)
++	for (i = OSC_QUERY_DWORD + 1, test = 0; i < bufsize; i++) {
++		test |= capbuf[i] & ~retbuf[i];
+ 		capbuf[i] &= retbuf[i];
++	}
  
- If the ACPI tables are going to be used for building the list of available idle
--states, ``intel_idle`` first looks for a ``_CST`` object under one of the ACPI
--objects corresponding to the CPUs in the system (refer to the ACPI specification
--[2]_ for the description of ``_CST`` and its output package).  Because the
--``CPUIdle`` subsystem expects that the list of idle states supplied by the
--driver will be suitable for all of the CPUs handled by it and ``intel_idle`` is
--registered as the ``CPUIdle`` driver for all of the CPUs in the system, the
--driver looks for the first ``_CST`` object returning at least one valid idle
--state description and such that all of the idle states included in its return
--package are of the FFH (Functional Fixed Hardware) type, which means that the
--``MWAIT`` instruction is expected to be used to tell the processor that it can
--enter one of them.  The return package of that ``_CST`` is then assumed to be
-+states, ``intel_idle`` will be looking for ``_LPI`` or ``_CST`` objects in them
-+(refer to the ACPI specification [2]_ for the definitions of the ``_LPI`` and
-+``_CST`` objects).  If ``_LPI`` is present under at least one of the ACPI
-+objects representing the CPUs in the system and ``_LPI`` processing produces a
-+non-empty list of valid idle states, it will be used.  Otherwise, ``_CST`` will
-+be used so long as it is present under at least one of the ACPI objects
-+representing the CPUs in the system and it returns a non-empty list of valid
-+idle states.  In either case, since the ``CPUIdle`` subsystem expects that the
-+list of idle states supplied by the driver will be suitable for all of the CPUs
-+handled by it and ``intel_idle`` is registered as the ``CPUIdle`` driver for all
-+of the CPUs in the system, ``intel_idle`` looks for the first CPU where the
-+ACPI-supplied list of idle states (coming from either ``_LPI`` or ``_CST``)
-+is not empty.  Moreover, all of the states in that list need to be of the FFH
-+(Functional Fixed Hardware) type, which means that the ``MWAIT`` instruction is
-+expected to be used to tell the processor that the given idle state may be
-+entered.  If that expectation is met, the list of idle states is assumed to be
- applicable to all of the other CPUs in the system and the idle state
- descriptions extracted from it are stored in a preliminary list of idle states
- coming from the ACPI tables.  [This step is skipped if ``intel_idle`` is
-@@ -129,18 +134,21 @@ If the given processor model is not reco
- supports ``MWAIT``, the preliminary list of idle states coming from the ACPI
- tables is used for building the final list that will be supplied to the
- ``CPUIdle`` core during driver registration.  For each idle state in that list,
--the description, ``MWAIT`` hint and exit latency are copied to the corresponding
--entry in the final list of idle states.  The name of the idle state represented
--by it (to be returned by the ``name`` idle state attribute in ``sysfs``) is
--"CX_ACPI", where X is the index of that idle state in the final list (note that
--the minimum value of X is 1, because 0 is reserved for the "polling" state), and
--its target residency is based on the exit latency value.  Specifically, for
--C1-type idle states the exit latency value is also used as the target residency
--(for compatibility with the majority of the "internal" tables of idle states for
--various processor models recognized by ``intel_idle``) and for the other idle
--state types (C2 and C3) the target residency value is 3 times the exit latency
--(again, that is because it reflects the target residency to exit latency ratio
--in the majority of cases for the processor models recognized by ``intel_idle``).
-+the description, ``MWAIT`` hint and exit (wake) latency are copied to the
-+corresponding entry in the final list of idle states.  If the preliminary list
-+of idle states has been obtained through ``_LPI`` processing, the minimum
-+residency parameter of the given idle state is taken as its target residency.
-+Otherwise, for C1-type idle states, the exit latency value is also used as the
-+target residency (for compatibility with the majority of the "internal" tables
-+of idle states for various processor models recognized by ``intel_idle``), and
-+for the other idle state types (C2 and C3) the target residency value is 3 times
-+the exit latency (again, that is because it reflects the target residency to
-+exit latency ratio in the majority of cases for the processor models recognized
-+by ``intel_idle``).  The name of the idle state (to be returned by the ``name``
-+idle state attribute in ``sysfs``) is either "Cx_LPI" (if it comes from ``_LPI``
-+processing) or "Cx_ACPI", where x is the index of that idle state in the final
-+list (note that the minimum value of x is 1, because 0 is reserved for the
-+"polling" state), and its target residency is based on the exit latency value.
- All of the idle states in the final list are enabled by default in this case.
- 
- 
+-	if (retbuf[OSC_QUERY_DWORD] & OSC_ERROR_MASK) {
++	/*
++	 * Some platforms set OSC_CAPABILITIES_MASK_ERROR even though they
++	 * acknowledge all of the requested features, so avoid complaining in
++	 * those cases unless any other error bits are also set.
++	 */
++	if ((retbuf[OSC_QUERY_DWORD] & OSC_ERROR_MASK) &&
++	    (test || retbuf[OSC_QUERY_DWORD] != OSC_CAPABILITIES_MASK_ERROR)) {
+ 		/*
+ 		 * Complain about the unexpected errors and print diagnostic
+ 		 * information related to them.
+
 
 
 
