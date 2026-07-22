@@ -1,107 +1,129 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A1C040F75B
-	for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2026 11:08:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DA1A1DF736;
+	Wed, 22 Jul 2026 12:53:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784718529; cv=none; b=U3B/jynbz54ZlM6Ev0kewIM5poyozsVaNWSxsV/dw1dbaECnBg6Bt+iVreJqURPMEN2WWEQ/EXrDsDci5+HG1FF6XvgZOfsRBhhu3uZRzjSY1Ct1bozBVguR0zMAANM2LH2BQuhAH6ZXl3Fa5gmZRXvyQrwCOSEWuOs0LzK3OLE=
+	t=1784724820; cv=none; b=ScATEK5HBdOfh4u4lUJ8WeZeZzPMWIf4daWo16nY7O97hUGMxuqY2+bopUgCtnrNYH+TnalrRaLifLqCvuJdTR+iFe/qvSkMNiUpKyTE59BaV44CIJ9EBBYvFlfs91AoA3H4MBty/Sjf/d2FLKlPQVV8+K7LQI8uRsa/ZfkUzeA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784718529; c=relaxed/simple;
-	bh=q9Vfp9+BUPgfM8McK/GKeoVJuJvwFGnq+DMLWcyhFRQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=i9EDLMuOeR4fN4t75cfvAaq7DPneLAPh/TTBezNxMx29eX66ak7Nmzu4j4LeeYQyvlNFJo0l0DCKGGAxWZJL7QH8iJC0V16e+/grekGZ2bIqC5jGNd/rUpqTs2keYsVhQxwnnnS+HbEQ3hYNrOqS0KLbcImq7CJs4ff9wbaUK1w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Bhwfcgye; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784724820; c=relaxed/simple;
+	bh=ycx5+RKtiUjTFBuLnnJqeFfaFVvwoSTZp2zPfYDiL90=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ngi6tTQ5T7bm89LTICz/WwOTnCMXFsPEyACbwzA6anJsTeEF65VTEhJNSXkj5hWahmlMM/iSB5BEP1J61qnEhy3ig0ShqcxossXdZFLTnhMJG5Hr+XYWK9JXveRKRKglPeH2dccQNFdmmRtKiO8zoR8MQmSY+SFzsoO2ZnYVM8Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=O7KymtW6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Bhwfcgye"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9ABA1F00A3D
-	for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2026 11:08:47 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="O7KymtW6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60CD51F000E9;
+	Wed, 22 Jul 2026 12:53:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784718527;
-	bh=q9Vfp9+BUPgfM8McK/GKeoVJuJvwFGnq+DMLWcyhFRQ=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=Bhwfcgye4giAFIOokonXOk8ofx24Okh1ApRyP8QzBjqKWN/jKRvPuP97WfXky1Js5
-	 61Ic/jhWSxf/k84OXvhWt5SIU76rS/b0RXVtZh9FQOhc8xzEgQdEPfUvYXmfBYkaTf
-	 9nEHoXLEFftos+Dma4ghCIUdHk3yyYAhqHzh1GWFfzByUqTTMzv07ofxl0N+2/2a8z
-	 O65PSbWvwb/ruJzoPMCMIC7bazmIy26pccwOdKtoVNvyXSi1cBa1M0rD/cVGJJ7PGC
-	 GMZScOxraSh1jxn7wYdA37xZYDvSSfR5ZqvXPec8Q6BKQS1ejKYvV2H3zQBmNAwx5+
-	 m3yvJedd9bs3A==
-Received: by mail-lj1-f177.google.com with SMTP id 38308e7fff4ca-39b3931e259so109283181fa.2
-        for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2026 04:08:47 -0700 (PDT)
-X-Gm-Message-State: AOJu0Yy8scBL8W8Sj5b7lqpURK+SnBGxCBcDw0svBSTmWFgSRhuurHUP
-	lrhWmwaZaNIpqtywrb43oOwdvegeMz+N1NdoiYY1L0G1A+YW5bntPuCfFSK+du3nw2ZXSmocVmW
-	XIOYI3dEZ3Sx4BxDLz6zSzciGdSRVA44=
-X-Received: by 2002:a05:6512:3f1a:b0:5ae:b99e:4c39 with SMTP id
- 2adb3069b0e04-5b28fac2266mr5856621e87.61.1784718526247; Wed, 22 Jul 2026
- 04:08:46 -0700 (PDT)
+	s=k20260515; t=1784724815;
+	bh=KuOY/nwET7kpTgEI3t8O9xiBb0RbvPVNv8KLvnHIM4U=;
+	h=From:To:Cc:Subject:Date;
+	b=O7KymtW6HIZpw3JklxdEinJZHPLhu00J+zxTFqY1KAOLVxubHa5caIb7cfnh4wn6P
+	 yYpCuNNrEXPh+qPQF/ci+a3YbEkkKJGhyN8bFZdK/3V8mycZM1tlSSTF0xfGsEWldE
+	 d3igpNbQBpD7Wup6kbZ4B2sKb31vb3Psl14eZ7xf5zj01pIE18oP28AjijsedzKitV
+	 g+eNidmM/KTSrqBu5+B+lHDzQ7qKjaB67TvQmSZISFgOIUuMPYRLl2qFwSgprL4wt6
+	 dPECbFzEUmAsxQYqTUgGO90kV2gntIzK8waOaQrb7amMzb3Rt//MgjI+e3dVQzpwtw
+	 53x5bqnZk9nwQ==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux PM <linux-pm@vger.kernel.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
+ Sudeep Holla <Sudeep.Holla@arm.com>
+Subject:
+ [PATCH v1][linux-next] intel_idle: Update documentation after adding ACPI
+ _LPI support
+Date: Wed, 22 Jul 2026 14:53:31 +0200
+Message-ID: <12962673.O9o76ZdvQC@rafael.j.wysocki>
+Organization: Linux Kernel Development - Intel
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <69a1eaf0-4a58-47d5-ad94-2af958f84841@gmail.com> <cc383c33-d0ef-40fc-9c14-865a6d7f5d75@leemhuis.info>
-In-Reply-To: <cc383c33-d0ef-40fc-9c14-865a6d7f5d75@leemhuis.info>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 22 Jul 2026 13:08:33 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iv0FpUN=QRWSwDT6zs5tP_n0jif1jMVdOb5AHMQGs-yQ@mail.gmail.com>
-X-Gm-Features: AUfX_mxrMFwyKjDfg9cxFfItcE_FULwSJ0DjeRl0pEylWNMudrviEz6jMynDFjk
-Message-ID: <CAJZ5v0iv0FpUN=QRWSwDT6zs5tP_n0jif1jMVdOb5AHMQGs-yQ@mail.gmail.com>
-Subject: =?UTF-8?Q?Re=3A_Regression=3A_Backlight_control_broken_on_HP_Omen_?=
-	=?UTF-8?Q?15=E2=80=91ax246nf_with_kernel_7=2E0=2E0=E2=80=9128=E2=80=91generic?=
-To: Thorsten Leemhuis <regressions@leemhuis.info>, harryblanc <garett26@gmail.com>
-Cc: linux-acpi@vger.kernel.org, 
-	Linux kernel regressions list <regressions@lists.linux.dev>
+Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jul 22, 2026 at 7:26=E2=80=AFAM Thorsten Leemhuis
-<regressions@leemhuis.info> wrote:
->
-> On 7/18/26 11:05, harryblanc wrote:
-> >
-> > I would like to report a regression affecting backlight control on my H=
-P
-> > Omen laptop when using kernel 7.0.0=E2=80=9128=E2=80=91generic (Ubuntu =
-24.04 base, Linux
-> > Mint 22.3 XFCE).
->
-> Hi! Thx for your report. But this is a heavily patched vendor kernel and
-> also a series that is EOL. Please test latest vanilla 7.2-rc or and
-> report back. Ciao, Thorsten
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-I was about to ask for that too, so thanks for mentioning it.
+After adding ACPI _LPI support to intel_idle, update its admin-guide
+documentation to cover the changed behavior.
 
-> > Summary of the issue:
-> > With kernel 7.0, the screen backlight is stuck at maximum brightness.
-> > Brightness keys show the OSD and the slider moves, but the actual
-> > backlight does not change.
-> > With kernel 6.17, brightness works normally.
-> >
-> > Hardware:
-> > - HP Omen 15=E2=80=91ax246nf
-> > - Intel i5=E2=80=917300HQ
-> > - Intel HD Graphics 630 (i915)
-> > - Nvidia GTX 1050 Mobile (disabled via Optimus)
-> > - Linux Mint 22.3 XFCE (Ubuntu 24.04 base)
-> >
-> > Backlight controller:
-> > /sys/class/backlight/ =E2=86=92 intel_backlight
-> > acpi_video0 is no longer present under kernel 7.0.
-> >
-> > ACPI errors visible only with kernel 7.0:
-> > ACPI BIOS Error (bug): Attempt to CreateField of length zero
-> > ACPI Error: Aborting method \_SB.WMID.WQBK
-> > ACPI BIOS Error (bug): AE_AML_BUFFER_LIMIT
-> > ACPI Error: Aborting method \_SB.WMID.HWMC
-> > ACPI: video: [Firmware Bug]: ACPI(PEGP) defines _DOD but not _DOS
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ Documentation/admin-guide/pm/intel_idle.rst |   54 ++++++++++++++++------------
+ 1 file changed, 31 insertions(+), 23 deletions(-)
 
-So it looks like 7.0 uses a different ACPI object as the video bus
-representation.
+--- a/Documentation/admin-guide/pm/intel_idle.rst
++++ b/Documentation/admin-guide/pm/intel_idle.rst
+@@ -87,17 +87,22 @@ tables with any processor model recogniz
+ `below <intel-idle-parameters_>`_.]
+ 
+ If the ACPI tables are going to be used for building the list of available idle
+-states, ``intel_idle`` first looks for a ``_CST`` object under one of the ACPI
+-objects corresponding to the CPUs in the system (refer to the ACPI specification
+-[2]_ for the description of ``_CST`` and its output package).  Because the
+-``CPUIdle`` subsystem expects that the list of idle states supplied by the
+-driver will be suitable for all of the CPUs handled by it and ``intel_idle`` is
+-registered as the ``CPUIdle`` driver for all of the CPUs in the system, the
+-driver looks for the first ``_CST`` object returning at least one valid idle
+-state description and such that all of the idle states included in its return
+-package are of the FFH (Functional Fixed Hardware) type, which means that the
+-``MWAIT`` instruction is expected to be used to tell the processor that it can
+-enter one of them.  The return package of that ``_CST`` is then assumed to be
++states, ``intel_idle`` will be looking for ``_LPI`` or ``_CST`` objects in them
++(refer to the ACPI specification [2]_ for the definitions of the ``_LPI`` and
++``_CST`` objects).  If ``_LPI`` is present under at least one of the ACPI
++objects representing the CPUs in the system and ``_LPI`` processing produces a
++non-empty list of valid idle states, it will be used.  Otherwise, ``_CST`` will
++be used so long as it is present under at least one of the ACPI objects
++representing the CPUs in the system and it returns a non-empty list of valid
++idle states.  In either case, since the ``CPUIdle`` subsystem expects that the
++list of idle states supplied by the driver will be suitable for all of the CPUs
++handled by it and ``intel_idle`` is registered as the ``CPUIdle`` driver for all
++of the CPUs in the system, ``intel_idle`` looks for the first CPU where the
++ACPI-supplied list of idle states (coming from either ``_LPI`` or ``_CST``)
++is not empty.  Moreover, all of the states in that list need to be of the FFH
++(Functional Fixed Hardware) type, which means that the ``MWAIT`` instruction is
++expected to be used to tell the processor that the given idle state may be
++entered.  If that expectation is met, the list of idle states is assumed to be
+ applicable to all of the other CPUs in the system and the idle state
+ descriptions extracted from it are stored in a preliminary list of idle states
+ coming from the ACPI tables.  [This step is skipped if ``intel_idle`` is
+@@ -129,18 +134,21 @@ If the given processor model is not reco
+ supports ``MWAIT``, the preliminary list of idle states coming from the ACPI
+ tables is used for building the final list that will be supplied to the
+ ``CPUIdle`` core during driver registration.  For each idle state in that list,
+-the description, ``MWAIT`` hint and exit latency are copied to the corresponding
+-entry in the final list of idle states.  The name of the idle state represented
+-by it (to be returned by the ``name`` idle state attribute in ``sysfs``) is
+-"CX_ACPI", where X is the index of that idle state in the final list (note that
+-the minimum value of X is 1, because 0 is reserved for the "polling" state), and
+-its target residency is based on the exit latency value.  Specifically, for
+-C1-type idle states the exit latency value is also used as the target residency
+-(for compatibility with the majority of the "internal" tables of idle states for
+-various processor models recognized by ``intel_idle``) and for the other idle
+-state types (C2 and C3) the target residency value is 3 times the exit latency
+-(again, that is because it reflects the target residency to exit latency ratio
+-in the majority of cases for the processor models recognized by ``intel_idle``).
++the description, ``MWAIT`` hint and exit (wake) latency are copied to the
++corresponding entry in the final list of idle states.  If the preliminary list
++of idle states has been obtained through ``_LPI`` processing, the minimum
++residency parameter of the given idle state is taken as its target residency.
++Otherwise, for C1-type idle states, the exit latency value is also used as the
++target residency (for compatibility with the majority of the "internal" tables
++of idle states for various processor models recognized by ``intel_idle``), and
++for the other idle state types (C2 and C3) the target residency value is 3 times
++the exit latency (again, that is because it reflects the target residency to
++exit latency ratio in the majority of cases for the processor models recognized
++by ``intel_idle``).  The name of the idle state (to be returned by the ``name``
++idle state attribute in ``sysfs``) is either "Cx_LPI" (if it comes from ``_LPI``
++processing) or "Cx_ACPI", where x is the index of that idle state in the final
++list (note that the minimum value of x is 1, because 0 is reserved for the
++"polling" state), and its target residency is based on the exit latency value.
+ All of the idle states in the final list are enabled by default in this case.
+ 
+ 
 
-Please send the output of "ls -l /sys/bus/auxiliary/devices/*/" from
-the failing kernel.
 
-If you are still able to boot the 6.17-based kernel on the affected
-machine, please send the output of "ls -l
-/sys/bus/acpi/drivers/video/" obtained while it is running.
+
