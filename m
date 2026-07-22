@@ -1,129 +1,107 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 884B14C6EF6;
-	Wed, 22 Jul 2026 10:19:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A1C040F75B
+	for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2026 11:08:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784715542; cv=none; b=Z2VTL+FdHpTjHNa2EG9ZIe2gYGy0QdX1XHspJUWcI/Ykranwxg9Olg+BDjdrw0xm9ol7B3EmAyarId9kqJ2/uCAEmW4GmtI2cNRTOfrXvYTlbMWm19YE80peYAuVU53uCWH1b6XRPFU4XCCbk4Q1yKGJYF1CwZV/QXqwR9uR4uI=
+	t=1784718529; cv=none; b=U3B/jynbz54ZlM6Ev0kewIM5poyozsVaNWSxsV/dw1dbaECnBg6Bt+iVreJqURPMEN2WWEQ/EXrDsDci5+HG1FF6XvgZOfsRBhhu3uZRzjSY1Ct1bozBVguR0zMAANM2LH2BQuhAH6ZXl3Fa5gmZRXvyQrwCOSEWuOs0LzK3OLE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784715542; c=relaxed/simple;
-	bh=6pQbfUf6qFxNFEfwCwxXQNTOh/NnINY/VwM1E/ShKZI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=XZefYJyx5Z8dy9gIMn+W1lnhvBiR/7mDtTDSG7kSw5xYVHypd9+dmGoZB3C3EvD3OwCajHOOrCA8HMnwbvHdYJzvc8wKZtp246bbfEiJ44HgMBO7DYBrRPSRqgxpVvMK7Xgt4jKky5xXxUaUn9L/sDaSsegszfFNnSziYvYYcpM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=DMls2/5G; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1784718529; c=relaxed/simple;
+	bh=q9Vfp9+BUPgfM8McK/GKeoVJuJvwFGnq+DMLWcyhFRQ=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=i9EDLMuOeR4fN4t75cfvAaq7DPneLAPh/TTBezNxMx29eX66ak7Nmzu4j4LeeYQyvlNFJo0l0DCKGGAxWZJL7QH8iJC0V16e+/grekGZ2bIqC5jGNd/rUpqTs2keYsVhQxwnnnS+HbEQ3hYNrOqS0KLbcImq7CJs4ff9wbaUK1w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Bhwfcgye; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="DMls2/5G"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 7495D1595;
-	Wed, 22 Jul 2026 03:18:56 -0700 (PDT)
-Received: from [10.1.39.91] (e127648.arm.com [10.1.39.91])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 10F653F58B;
-	Wed, 22 Jul 2026 03:18:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1784715540; bh=6pQbfUf6qFxNFEfwCwxXQNTOh/NnINY/VwM1E/ShKZI=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=DMls2/5GZfyNtx3+Cbrf0Ma+C24h/OJpaX1LQDFpVmUjvljjIzhpH2xCeUeqkQTWJ
-	 OUtFDUyppPxMhBTljVuo+I7A8uk5Np17mmd/EtjviZXoBZnOvF1paLfcj8kBv5ST5G
-	 zCvfjYJeh60FqYqo/0RjwpJLDepSJuQy8TStWhbw=
-Message-ID: <bc0ba136-7f40-4198-8b71-557de0babc0f@arm.com>
-Date: Wed, 22 Jul 2026 11:18:56 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Bhwfcgye"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9ABA1F00A3D
+	for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2026 11:08:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784718527;
+	bh=q9Vfp9+BUPgfM8McK/GKeoVJuJvwFGnq+DMLWcyhFRQ=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=Bhwfcgye4giAFIOokonXOk8ofx24Okh1ApRyP8QzBjqKWN/jKRvPuP97WfXky1Js5
+	 61Ic/jhWSxf/k84OXvhWt5SIU76rS/b0RXVtZh9FQOhc8xzEgQdEPfUvYXmfBYkaTf
+	 9nEHoXLEFftos+Dma4ghCIUdHk3yyYAhqHzh1GWFfzByUqTTMzv07ofxl0N+2/2a8z
+	 O65PSbWvwb/ruJzoPMCMIC7bazmIy26pccwOdKtoVNvyXSi1cBa1M0rD/cVGJJ7PGC
+	 GMZScOxraSh1jxn7wYdA37xZYDvSSfR5ZqvXPec8Q6BKQS1ejKYvV2H3zQBmNAwx5+
+	 m3yvJedd9bs3A==
+Received: by mail-lj1-f177.google.com with SMTP id 38308e7fff4ca-39b3931e259so109283181fa.2
+        for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2026 04:08:47 -0700 (PDT)
+X-Gm-Message-State: AOJu0Yy8scBL8W8Sj5b7lqpURK+SnBGxCBcDw0svBSTmWFgSRhuurHUP
+	lrhWmwaZaNIpqtywrb43oOwdvegeMz+N1NdoiYY1L0G1A+YW5bntPuCfFSK+du3nw2ZXSmocVmW
+	XIOYI3dEZ3Sx4BxDLz6zSzciGdSRVA44=
+X-Received: by 2002:a05:6512:3f1a:b0:5ae:b99e:4c39 with SMTP id
+ 2adb3069b0e04-5b28fac2266mr5856621e87.61.1784718526247; Wed, 22 Jul 2026
+ 04:08:46 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 1/3] cpufreq: CPPC: Keep the policy across CPU hotplug
-To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
- viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
- zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, saket.dumbre@intel.com,
- lenb@kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
- linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
- linux-tegra@vger.kernel.org
-Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
- ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
-References: <20260716153820.2007095-1-sumitg@nvidia.com>
- <20260716153820.2007095-2-sumitg@nvidia.com>
-Content-Language: en-US
-From: Christian Loehle <christian.loehle@arm.com>
-In-Reply-To: <20260716153820.2007095-2-sumitg@nvidia.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <69a1eaf0-4a58-47d5-ad94-2af958f84841@gmail.com> <cc383c33-d0ef-40fc-9c14-865a6d7f5d75@leemhuis.info>
+In-Reply-To: <cc383c33-d0ef-40fc-9c14-865a6d7f5d75@leemhuis.info>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Wed, 22 Jul 2026 13:08:33 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0iv0FpUN=QRWSwDT6zs5tP_n0jif1jMVdOb5AHMQGs-yQ@mail.gmail.com>
+X-Gm-Features: AUfX_mxrMFwyKjDfg9cxFfItcE_FULwSJ0DjeRl0pEylWNMudrviEz6jMynDFjk
+Message-ID: <CAJZ5v0iv0FpUN=QRWSwDT6zs5tP_n0jif1jMVdOb5AHMQGs-yQ@mail.gmail.com>
+Subject: =?UTF-8?Q?Re=3A_Regression=3A_Backlight_control_broken_on_HP_Omen_?=
+	=?UTF-8?Q?15=E2=80=91ax246nf_with_kernel_7=2E0=2E0=E2=80=9128=E2=80=91generic?=
+To: Thorsten Leemhuis <regressions@leemhuis.info>, harryblanc <garett26@gmail.com>
+Cc: linux-acpi@vger.kernel.org, 
+	Linux kernel regressions list <regressions@lists.linux.dev>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 7/16/26 16:38, Sumit Gupta wrote:
-> Without online()/offline() callbacks, the cpufreq core fully tears
-> down a policy during exit() when its last online CPU is offlined,
-> and rebuilds it during init() when it comes back.
-> 
-> Add lightweight online()/offline() callbacks so the core instead
-> keeps the policy live and reuses the driver's cpu_data across
-> CPU hotplug. This avoids re-reading the CPPC capabilities on every
-> offline/online, making CPU hotplug faster.
-> 
-> Re-enable CPPC from online(), as it may have been disabled while
-> the CPU was offline.
-> 
-> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
-> ---
->  drivers/cpufreq/cppc_cpufreq.c | 27 +++++++++++++++++++++++++++
->  1 file changed, 27 insertions(+)
-> 
-> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-> index f6cea0c54dd9..432c6a6288a7 100644
-> --- a/drivers/cpufreq/cppc_cpufreq.c
-> +++ b/drivers/cpufreq/cppc_cpufreq.c
-> @@ -722,6 +722,31 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
->  	return ret;
->  }
->  
-> +/*
-> + * With offline() defined, the cpufreq core keeps the policy alive when
-> + * a CPU is hotplugged out.
-> + */
-> +static int cppc_cpufreq_cpu_offline(struct cpufreq_policy *policy)
-> +{
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Re-enable CPPC when the policy's CPU comes back online, since the platform
-> + * may have disabled it while the CPU was offline.
-> + */
-> +static int cppc_cpufreq_cpu_online(struct cpufreq_policy *policy)
-> +{
-> +	unsigned int cpu = policy->cpu;
-> +	int ret;
-> +
-> +	ret = cppc_set_enable(cpu, true);
-> +	if (ret && ret != -EOPNOTSUPP)
-> +		pr_warn("Failed to re-enable CPPC for CPU%d (%d)\n", cpu, ret);
+On Wed, Jul 22, 2026 at 7:26=E2=80=AFAM Thorsten Leemhuis
+<regressions@leemhuis.info> wrote:
+>
+> On 7/18/26 11:05, harryblanc wrote:
+> >
+> > I would like to report a regression affecting backlight control on my H=
+P
+> > Omen laptop when using kernel 7.0.0=E2=80=9128=E2=80=91generic (Ubuntu =
+24.04 base, Linux
+> > Mint 22.3 XFCE).
+>
+> Hi! Thx for your report. But this is a heavily patched vendor kernel and
+> also a series that is EOL. Please test latest vanilla 7.2-rc or and
+> report back. Ciao, Thorsten
 
-Keeping the policy alive means cpu_data->perf_ctrls survives hotplug, but the callback does not
-reapply it. A governor restart does not guarantee an immediate target callback, so the controls
-may remain reset indefinitely.
+I was about to ask for that too, so thanks for mentioning it.
 
-I think the online path needs to restore a complete, current performance-control request before
-returning. MIN/MAX should be recomputed from the policy and the last requested DESIRED value
-clamped into that range.
+> > Summary of the issue:
+> > With kernel 7.0, the screen backlight is stuck at maximum brightness.
+> > Brightness keys show the OSD and the slider moves, but the actual
+> > backlight does not change.
+> > With kernel 6.17, brightness works normally.
+> >
+> > Hardware:
+> > - HP Omen 15=E2=80=91ax246nf
+> > - Intel i5=E2=80=917300HQ
+> > - Intel HD Graphics 630 (i915)
+> > - Nvidia GTX 1050 Mobile (disabled via Optimus)
+> > - Linux Mint 22.3 XFCE (Ubuntu 24.04 base)
+> >
+> > Backlight controller:
+> > /sys/class/backlight/ =E2=86=92 intel_backlight
+> > acpi_video0 is no longer present under kernel 7.0.
+> >
+> > ACPI errors visible only with kernel 7.0:
+> > ACPI BIOS Error (bug): Attempt to CreateField of length zero
+> > ACPI Error: Aborting method \_SB.WMID.WQBK
+> > ACPI BIOS Error (bug): AE_AML_BUFFER_LIMIT
+> > ACPI Error: Aborting method \_SB.WMID.HWMC
+> > ACPI: video: [Firmware Bug]: ACPI(PEGP) defines _DOD but not _DOS
 
-Also, what about suspend/resume?
+So it looks like 7.0 uses a different ACPI object as the video bus
+representation.
 
-> +
-> +	return 0;
-> +}
-> +
->  static void cppc_cpufreq_cpu_exit(struct cpufreq_policy *policy)
->  {
->  	struct cppc_cpudata *cpu_data = policy->driver_data;
-> @@ -1034,6 +1059,8 @@ static struct cpufreq_driver cppc_cpufreq_driver = {
->  	.fast_switch = cppc_cpufreq_fast_switch,
->  	.init = cppc_cpufreq_cpu_init,
->  	.exit = cppc_cpufreq_cpu_exit,
-> +	.online = cppc_cpufreq_cpu_online,
-> +	.offline = cppc_cpufreq_cpu_offline,
->  	.set_boost = cppc_cpufreq_set_boost,
->  	.attr = cppc_cpufreq_attr,
->  	.name = "cppc_cpufreq",
+Please send the output of "ls -l /sys/bus/auxiliary/devices/*/" from
+the failing kernel.
 
+If you are still able to boot the 6.17-based kernel on the affected
+machine, please send the output of "ls -l
+/sys/bus/acpi/drivers/video/" obtained while it is running.
