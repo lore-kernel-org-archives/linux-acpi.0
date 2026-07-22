@@ -1,121 +1,131 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5869447DD42;
-	Wed, 22 Jul 2026 09:38:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D60E4A2E17
+	for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2026 10:03:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784713131; cv=none; b=AXm5hANNEqaPwRtX3b7+3HnQhg0e63ipW6OYweNTvyBaNavin0/dGRdj1vc5SDQUHo0/otzAKqQHhTiiTtAWR/OPSdy0WeF4UiI7OBAX6JA9fst7NaIBkP9R6XR9rn07QyZDZ+7SXTGtudN+vxbTIROIxp0aPlLRP9y8BKHFGa8=
+	t=1784714598; cv=none; b=DQezlIxNV12QwAaUJC1ckXtNLcdL3Bq5cBbZBeTLyiC7sWPY0/UYQaLjvSrOr1cY/VeCaxNM/gCmWv/OrSf7kwovug03rm4naohSSvNSRtZDCJCDD3KNt6Cqc2TsdN3w/OLHHIKKkBSKbj2SgWMkeHOt7CWMo7tpk+c2TpTEDXE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784713131; c=relaxed/simple;
-	bh=9+5puAjZdwGp4Kyus6+xo36McxelBeom4xWvgQ/KYcA=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ZAAY5VlKbKR7LS+IqsgM8TpDuOZSkF/i97SH3MHQni0Q2x4l1Css9V3iUSGGffE7deU+esnz6zmXoBbf8FEb11O+ZkaDHhfW8JyYEottrILLUqr1fIjoJhN1Mpqo4PZ9NQc4yISTgW8/fJ/h9aYuwUlHGtX7/wXRQL5yUHF44sw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=oHIoBrlk; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1784714598; c=relaxed/simple;
+	bh=zoqfEescrEM4/AemE1soEzPnfcrpe9p3YE38rq4XzRQ=;
+	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=is1v65LXKkvH9r0EOFus707DAUs1lvkTn/vs5GhbpHmJjPEm0D7o4J6WUUZnMmvWzQgwMgp5Dayo0te947CrgJW1ywBf1E4SRNFMpiKsvuYbpFnXyJNTffNyeXmG6ouKjGnOgmv0eYWMUz4huFsQ33O2DhcJ64UikiaNd6GM2oo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aGMuUyLH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="oHIoBrlk"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 8C3F51691;
-	Wed, 22 Jul 2026 02:38:44 -0700 (PDT)
-Received: from e127648.cambridge.arm.com (e127648.arm.com [10.1.39.91])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id A32913F86F;
-	Wed, 22 Jul 2026 02:38:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1784713128; bh=9+5puAjZdwGp4Kyus6+xo36McxelBeom4xWvgQ/KYcA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=oHIoBrlkFLSP5I3dg+0Kwv6dkjRqUiWknXqNSz3LrNNvXekPLucVwRFkd+Nk4ZDFD
-	 f0gDENWATcCrabMHrC6UXy2Ypo27yA3KPvIuDjG9WT2fcLOM8RCMxMNT7qo/DGRwtf
-	 Wf3kHzt5kl3+Mi4/rCHLcBoz5rZPSdR5M84vuVb8=
-From: Christian Loehle <christian.loehle@arm.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
-	Viresh Kumar <viresh.kumar@linaro.org>
-Cc: linux-pm@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Len Brown <lenb@kernel.org>,
-	Jie Zhan <zhanjie9@hisilicon.com>,
-	Lifeng Zheng <zhenglifeng1@huawei.com>,
-	Pierre Gondois <pierre.gondois@arm.com>,
-	Sumit Gupta <sumitg@nvidia.com>,
-	Christian Loehle <christian.loehle@arm.com>,
-	stable@vger.kernel.org
-Subject: [PATCH 2/2] cpufreq: cppc: Sanitize lockless policy limit snapshots
-Date: Wed, 22 Jul 2026 10:38:25 +0100
-Message-Id: <20260722093825.1030594-3-christian.loehle@arm.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260722093825.1030594-1-christian.loehle@arm.com>
-References: <20260722093825.1030594-1-christian.loehle@arm.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aGMuUyLH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FB7E1F00ADB
+	for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2026 10:03:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784714594;
+	bh=v2nl4VWueEk9cKUhbw+kqvh7s/L/Uh+km+tAT2bP7fg=;
+	h=From:In-Reply-To:References:Date:Subject:To:Cc;
+	b=aGMuUyLHguxVRr1lFjeEqsXxI5a3BDv/DaaV4zoODVdfUElN6OPq6bkx5ATub1s7X
+	 NqCOBztx6noD+QfHAvSgTWe7vgJnIbtFqRfBncNwEd8MZhJAPkwQ6o1PmCErDh2eSF
+	 54ujH4MI/X8WrSdzSMvJdDCh0pZpi+hUqSU2T1bUPAGLbQO4yixldnti713LXPNkci
+	 YythZGNmbpNbSYX0SZ1YxdtUM26wau81e41aUGstklcHdYCONGNwfqBX6p8ICowp/6
+	 g9HicL6hWe6OdIC4YCD4+8eDDyuWsnOkh3GMzOh/RFUuABV1W9tcDEy8Izwff+b8ok
+	 dcHRMOjcvphAQ==
+Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5b2aab18795so599958e87.2
+        for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2026 03:03:14 -0700 (PDT)
+X-Gm-Message-State: AOJu0YyUNsIazX9EQyiPZ4GGKc9RrWbVAA/SfnVXgQ1YDf9gIliVAUPv
+	Uu9afCXNKLIy7dbWf9vHDWpYlRoA69Hzql0kBwJtsZZx5JAjSgsoFe90PCaeQ8mQ4rR+9s7YfPk
+	b5jpN549zw9p1I3o9gBJxAtsGzrqGXwuHKMLT6lzgPA==
+X-Received: by 2002:a05:6512:3185:b0:5ae:b2e3:fc24 with SMTP id
+ 2adb3069b0e04-5b28fabb0afmr5670333e87.60.1784714593132; Wed, 22 Jul 2026
+ 03:03:13 -0700 (PDT)
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Wed, 22 Jul 2026 03:03:08 -0700
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Wed, 22 Jul 2026 03:03:08 -0700
+From: Bartosz Golaszewski <brgl@kernel.org>
+In-Reply-To: <CAGXv+5H_V+J0cvrYjMFdKAQVrPKxPdtimXMc+hwHenwxhb9mDQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260721065413.2306137-1-wenst@chromium.org> <20260721065413.2306137-4-wenst@chromium.org>
+ <CAMRc=McsCRBxXMj0xC8H0cgdZZ=Z9_4u_DS9b2z0pLE0=gZr+g@mail.gmail.com> <CAGXv+5H_V+J0cvrYjMFdKAQVrPKxPdtimXMc+hwHenwxhb9mDQ@mail.gmail.com>
+Date: Wed, 22 Jul 2026 03:03:08 -0700
+X-Gmail-Original-Message-ID: <CAMRc=MfZ1Yk6OJaCGphTYToMVfe_UU4dhOGmGVCbwqBV9S-a2g@mail.gmail.com>
+X-Gm-Features: AUfX_mz93U1zn17dWP9tyqRdXvFYbDQgxlYVyw0vjRryfcxfP9O2fsTk4G3zrhY
+Message-ID: <CAMRc=MfZ1Yk6OJaCGphTYToMVfe_UU4dhOGmGVCbwqBV9S-a2g@mail.gmail.com>
+Subject: Re: [PATCH v6 03/16] power: sequencing: Add pwrseq_power_is_on()
+To: Chen-Yu Tsai <wenst@chromium.org>
+Cc: linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
+	linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org, 
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	Manivannan Sadhasivam <mani@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, 
+	Bartosz Golaszewski <brgl@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-cppc_cpufreq_update_perf_limits() reads policy->min and policy->max
-without holding the policy lock. The cpufreq core updates those fields
-with separate stores, so a reader can observe the old minimum together
-with the new maximum and construct MIN_PERF greater than MAX_PERF.
+On Wed, 22 Jul 2026 11:01:20 +0200, Chen-Yu Tsai <wenst@chromium.org> said:
+> On Tue, Jul 21, 2026 at 5:08=E2=80=AFPM Bartosz Golaszewski <brgl@kernel.=
+org> wrote:
+>>
+>> >
+>> > +/**
+>> > + * pwrseq_power_is_on() - Queries the last requested state of the pow=
+er sequencer.
+>> > + * @desc: Descriptor referencing the power sequencer.
+>> > + *
+>> > + * This returns the last requested state of the power sequencer.
+>> > + *
+>> > + * Returns:
+>> > + * On success, 1 for on and 0 for off; negative error number on failu=
+re.
+>> > + */
+>> > +int pwrseq_power_is_on(struct pwrseq_desc *desc)
+>> > +{
+>> > +     if (!desc)
+>> > +             return -EINVAL;
+>> > +
+>> > +     return desc->powered_on;
+>> > +}
+>> > +EXPORT_SYMBOL_GPL(pwrseq_power_is_on);
+>> > +
+>>
+>> Didn't we agree on introducing an enum to make it future-proof for when =
+we
+>> also pull in pwrseq_is_controllable() from Loic?
+>
+> My bad. I misunderstood and thought it wasn't needed yet.
 
-Read both fields once and, if the lockless snapshot is inconsistent,
-reduce the minimum to the observed maximum. This matches the conservative
-correction used by cpufreq_driver_resolve_freq() and ensures that CPPC
-never receives an inverted limit pair.
+It's not technically needed *yet* but since we know where we're going, it
+makes sense to be proactive.
 
-Fixes: ea3db45ae476 ("cpufreq: cppc: Update MIN_PERF/MAX_PERF in target callbacks")
-Cc: stable@vger.kernel.org
-Signed-off-by: Christian Loehle <christian.loehle@arm.com>
----
- drivers/cpufreq/cppc_cpufreq.c | 31 ++++++++++++++++++++++---------
- 1 file changed, 22 insertions(+), 9 deletions(-)
+>
+>> I think this should work like so:
+>>
+>> enum {
+>>         PWRSEQ_STATE_UNKNOWN,
+>>         PWRSEQ_STATE_ON,
+>>         PWRSEQ_STATE_OFF,
+>> };
+>>
+>> int pwrseq_get_state(struct pwrseq_desc *desc)
+>> {
+>
+> I think you still want this here?
+>
+>           if (!desc)
+>                     return -EINVAL;
+>
+>
 
-diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-index b943bf78d3f5..6fe0e972952a 100644
---- a/drivers/cpufreq/cppc_cpufreq.c
-+++ b/drivers/cpufreq/cppc_cpufreq.c
-@@ -290,19 +290,32 @@ static inline void cppc_freq_invariance_exit(void)
- }
- #endif /* CONFIG_ACPI_CPPC_CPUFREQ_FIE */
- 
--static void cppc_cpufreq_update_perf_limits(struct cppc_cpudata *cpu_data,
--					    struct cpufreq_policy *policy)
-+static void cppc_cpufreq_get_perf_limits(struct cppc_cpudata *cpu_data,
-+					 struct cpufreq_policy *policy,
-+					 u32 *min_perf, u32 *max_perf)
- {
- 	struct cppc_perf_caps *caps = &cpu_data->perf_caps;
--	u32 min_perf, max_perf;
-+	unsigned int min_freq, max_freq;
-+	u32 min, max;
-+
-+	min_freq = READ_ONCE(policy->min);
-+	max_freq = READ_ONCE(policy->max);
-+	if (unlikely(min_freq > max_freq))
-+		min_freq = max_freq;
-+
-+	min = cppc_khz_to_perf(caps, min_freq);
-+	max = cppc_khz_to_perf(caps, max_freq);
- 
--	min_perf = cppc_khz_to_perf(caps, policy->min);
--	max_perf = cppc_khz_to_perf(caps, policy->max);
-+	*min_perf = clamp_t(u32, min, caps->lowest_perf, caps->highest_perf);
-+	*max_perf = clamp_t(u32, max, caps->lowest_perf, caps->highest_perf);
-+}
- 
--	cpu_data->perf_ctrls.min_perf =
--		clamp_t(u32, min_perf, caps->lowest_perf, caps->highest_perf);
--	cpu_data->perf_ctrls.max_perf =
--		clamp_t(u32, max_perf, caps->lowest_perf, caps->highest_perf);
-+static void cppc_cpufreq_update_perf_limits(struct cppc_cpudata *cpu_data,
-+					    struct cpufreq_policy *policy)
-+{
-+	cppc_cpufreq_get_perf_limits(cpu_data, policy,
-+				     &cpu_data->perf_ctrls.min_perf,
-+				     &cpu_data->perf_ctrls.max_perf);
- }
- 
- static int cppc_cpufreq_set_target(struct cpufreq_policy *policy,
--- 
-2.34.1
+Yes.
 
+Bart
