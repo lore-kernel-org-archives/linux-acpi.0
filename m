@@ -1,172 +1,94 @@
-Received: from cstnet.cn (smtp25.cstnet.cn [159.226.251.25])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B6613EFD10;
-	Wed, 22 Jul 2026 04:18:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.25
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A67A2D47F4;
+	Wed, 22 Jul 2026 05:20:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784693907; cv=none; b=fnsiWrJokI7aQBVX4WTOV69Nv5Y9oErBdqeCZQDCG9dE5H9DneCA5g+QvvCjvRijIqJk6k5N2Ucmtw5Kb6lrc4/nBpNhSjJI8FEsSmbBw+RkYiKsyp7jmMM/164/DSAiD/I8L0lepHLIB5mI+ep6cp0Bd8ZwbE5/DTAoH1TFz0o=
+	t=1784697620; cv=none; b=T4TLAtGIRaJjYv8YsUnNOKXMN5vtLc4ciBp5cxS1ZAHPihpkWOs/bvp/8YeImnCDKr9W5R85ST4ZVonHKZ44SWnNirkLD/07VhKa+1aQ9eshDYG5RM70K8Gg6Nq4YzoNbDn+l90QgrYlSUzcVmvNeKb5M/B9jKmVqslDu+5zP6Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784693907; c=relaxed/simple;
-	bh=orKjr1q4HTe+iPvesztvSaXQcj6Xct3e1j/Uzr0AKFE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MybuZzuJmNeyzxDdB5Jcmct6STIpBPiBBYJwFX+4syuPZDQ9V02PSAt34sAG3zbc97PN/E5F4Q9Q+/v9CrSt1MEBcWGCdEmYdScuJSDxkTZHrsUPLPqQRIdlOzT74SF4zEqofBZ7dgxzFuxRoffYilVCKPRH7CaKdlmMe23bxfM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.25
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from localhost.localdomain (unknown [111.196.245.140])
-	by APP-05 (Coremail) with SMTP id zQCowABXiEKIRGBq6ze7AA--.34712S2;
-	Wed, 22 Jul 2026 12:18:16 +0800 (CST)
-From: Pengpeng Hou <pengpeng@iscas.ac.cn>
-To: Dan Williams <djbw@kernel.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Ira Weiny <iweiny@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	nvdimm@lists.linux.dev,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Pengpeng Hou <pengpeng@iscas.ac.cn>
-Subject: [PATCH] ACPI: NFIT: validate subtable extents before parsing
-Date: Wed, 22 Jul 2026 12:17:01 +0800
-Message-ID: <20260722041701.21078-1-pengpeng@iscas.ac.cn>
-X-Mailer: git-send-email 2.50.1
+	s=arc-20240116; t=1784697620; c=relaxed/simple;
+	bh=QKSdvxCXY4MCKGsRHEJB/WzaqnMN6w5dZ8jpJTinIPk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=M2uNzXBnKzxvoZVAfImEZ3LbdfJYu6kaf0EeNhLxvALBlLbPatZEhBSxJzCNrJoFf1MZ0+OPTzvyycruGhbrRDa/GcWel0xaBpf0TbAZpUTyxLNq2vfZEFbIB/2VmvsKYpJRM/FhILWWOifl39Oy6ttsjwm5eGdsqB9NJNltIvA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=eJ74/J1/; arc=none smtp.client-ip=65.109.113.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="eJ74/J1/"
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id 4451740E00DC;
+	Wed, 22 Jul 2026 05:20:15 +0000 (UTC)
+X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
+Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
+	header.d=alien8.de
+Received: from mail.alien8.de ([127.0.0.1])
+	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP id r3gHIk3Z3MOa; Wed, 22 Jul 2026 05:20:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
+	t=1784697604; bh=Cww537ASv8kzxMe1FGmK/V4GT98IxA5VfJnEBpkxoko=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=eJ74/J1/mMRLlE9IAuONfD56lNUVXzhb901qTTGENZwHDUVcGgizSAaYO8wZHAExL
+	 uVsJwZzSfKuJVlU/vEeiX1faUMYGtjP80CDZCEkdW0VHP9sgbFZ8/9r1/7tVg+2F6l
+	 a1xEzieGWlQp/toLSUHJ5fZaTujsj8rtcfw5cm2Jpzq98Y5xMf/Zz+7kaVZg+uKJin
+	 xRvfHcAnwTKFVlefasJd6TIa4frpo7LleJuPwugGmzgzYS5kSEzCM49oggSQLM9UmI
+	 a+XwuGSPT+saT5toOfAhBpmeuDZb9W65QB+biIvujG9fzKzp6M2yaZ33Uw52jdIyir
+	 8oSxzWtd6xfM0kVPr8c3ZNqwcw+i/Nmvs/IrfZb1KvAZ3QU8RYHLheIdibCSqasNNf
+	 rM42chfSS0cdoDEwkQPxocMOY7m6G2jFLflfMxos13KnszcoK/3Ol0CJJq/xRgPF3+
+	 nkzD4uYQW6VHYcQwoKCxGoJq+a6LWScYeLVcHWS+Xzq/bycwqwUj453r/7PW3qVZ5L
+	 o25TaVAd7fSwvTPLLNMPh9V9TMsO6cCbD8jv9f3tjQl1J1DcDJO/O1X2F1+gefUvb7
+	 sehjqYsRj4bC44uTZH4DOfADniqpy3TzT4dRs1PR3/3umimP4pzL6TGrYBSaZ9moQq
+	 8NVt+GVAlinVBUQ4zPTqVEh8=
+Received: from stx.tnic (unknown [IPv6:2600:1700:38ca:c00::2b])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
+	(No client certificate requested)
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id B81DD40E014C;
+	Wed, 22 Jul 2026 05:19:27 +0000 (UTC)
+Date: Tue, 21 Jul 2026 22:19:24 -0700
+From: Borislav Petkov <bp@alien8.de>
+To: shijujose2008@gmail.com
+Cc: rafael@kernel.org, akpm@linux-foundation.org, rppt@kernel.org,
+	dferguson@amperecomputing.com, linux-edac@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-mm@kvack.org,
+	linux-doc@vger.kernel.org, tony.luck@intel.com, lenb@kernel.org,
+	Yazen.Ghannam@amd.com, mchehab@kernel.org,
+	ashok.raj@oss.qualcomm.com, jic23@kernel.org, linuxarm@huawei.com,
+	rientjes@google.com, jiaqiyan@google.com, Jon.Grimm@amd.com,
+	dave.hansen@linux.intel.com, naoya.horiguchi@nec.com,
+	james.morse@arm.com, jthoughton@google.com, somasundaram.a@hpe.com,
+	erdemaktas@google.com, pgonda@google.com, duenwen@google.com,
+	gthelen@google.com, wschwartz@amperecomputing.com,
+	wbs@os.amperecomputing.com, nifan.cxl@gmail.com,
+	tanxiaofei@huawei.com, prime.zeng@hisilicon.com,
+	roberto.sassu@huawei.com, kangkang.shen@futurewei.com,
+	wanghuiqiang@huawei.com
+Subject: Re: [PATCH v22 0/2] ACPI: Add support for ACPI RAS2 feature table
+Message-ID: <20260722051924.GAamBS3KN1wWTbiMwt@fat_crate.local>
+References: <20260709210750.424659-1-shijujose2008@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:zQCowABXiEKIRGBq6ze7AA--.34712S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxCFWxKr43GF4rtrykKF47CFg_yoW5KF1rpF
-	48Ka43tws5Gr47tws3Jw4rtr15Aa9ayFy7XrW8G343Cw4fuw4UKF1rKa4Yqas8Jr93uw43
-	ZF4vya45CF4kZr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUU9S14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4U
-	JVWxJr1l84ACjcxK6I8E87Iv67AKxVWxJr0_GcWl84ACjcxK6I8E87Iv6xkF7I0E14v26F
-	4UJVW0owAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv
-	7VC0I7IYx2IY67AKxVWUtVWrXwAv7VC2z280aVAFwI0_Gr0_Cr1lOx8S6xCaFVCjc4AY6r
-	1j6r4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwACI402YVCY1x02
-	628vn2kIc2xKxwCY1x0262kKe7AKxVWUtVW8ZwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4
-	IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1r
-	MI8E67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVW8JV
-	W5JwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr1j6F4UJwCI42IY6xAIw20EY4v20xvaj40_
-	Jr0_JF4lIxAIcVC2z280aVAFwI0_Gr0_Cr1lIxAIcVC2z280aVCY1x0267AKxVW8Jr0_Cr
-	1UYxBIdaVFxhVjvjDU0xZFpf9x0JUDOz3UUUUU=
-X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260709210750.424659-1-shijujose2008@gmail.com>
 
-add_table() reads an NFIT subtable header after checking only that the
-cursor is before the end of the table. It then advances by the advertised
-subtable length without proving that either the header or the full
-subtable is present.
+On Thu, Jul 09, 2026 at 10:07:48PM +0100, shijujose2008@gmail.com wrote:
+> From: Shiju Jose <shijujose2008@gmail.com>
+> 
+> Add support for ACPI RAS2 feature table (RAS2) defined in the
+> ACPI 6.5 specification, section 5.2.21 and RAS2 HW based memory
+> scrubbing feature.
 
-The interleave and flush helpers also derive copy lengths from entry
-counts without ensuring those arrays fit in the current subtable.
+https://sashiko.dev/#/patchset/20260709210750.424659-1-shijujose2008%40gmail.com
 
-Validate the fixed header and advertised length before dispatch. Ensure
-the variable interleave and flush arrays fit their subtables, and prove the
-SPA flags and capabilities fields are present before reading them. Reject a
-capability index that cannot be represented by the 32-bit capability mask.
+Thx.
 
-Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
----
- drivers/acpi/nfit/core.c | 43 +++++++++++++++++++++++++++++++++++++------
- 1 file changed, 37 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index cb771d9cadb2a..711ab639cb147 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -705,6 +705,10 @@ int nfit_spa_type(struct acpi_nfit_system_address *spa)
- 
- static size_t sizeof_spa(struct acpi_nfit_system_address *spa)
- {
-+	if (spa->header.length <
-+	    offsetof(struct acpi_nfit_system_address, reserved))
-+		return 0;
-+
- 	if (spa->flags & ACPI_NFIT_LOCATION_COOKIE_VALID)
- 		return sizeof(*spa);
- 	return sizeof(*spa) - 8;
-@@ -868,9 +872,16 @@ static bool add_bdw(struct acpi_nfit_desc *acpi_desc,
- 
- static size_t sizeof_idt(struct acpi_nfit_interleave *idt)
- {
-+	size_t size;
-+
- 	if (idt->header.length < sizeof(*idt))
- 		return 0;
--	return sizeof(*idt) + sizeof(u32) * idt->line_count;
-+
-+	size = struct_size(idt, line_offset, idt->line_count);
-+	if (size > idt->header.length)
-+		return 0;
-+
-+	return size;
- }
- 
- static bool add_idt(struct acpi_nfit_desc *acpi_desc,
-@@ -907,9 +918,16 @@ static bool add_idt(struct acpi_nfit_desc *acpi_desc,
- 
- static size_t sizeof_flush(struct acpi_nfit_flush_address *flush)
- {
-+	size_t size;
-+
- 	if (flush->header.length < sizeof(*flush))
- 		return 0;
--	return struct_size(flush, hint_address, flush->hint_count);
-+
-+	size = struct_size(flush, hint_address, flush->hint_count);
-+	if (size > flush->header.length)
-+		return 0;
-+
-+	return size;
- }
- 
- static bool add_flush(struct acpi_nfit_desc *acpi_desc,
-@@ -951,7 +969,16 @@ static bool add_platform_cap(struct acpi_nfit_desc *acpi_desc,
- 	struct device *dev = acpi_desc->dev;
- 	u32 mask;
- 
--	mask = (1 << (pcap->highest_capability + 1)) - 1;
-+	if (pcap->header.length < sizeof(*pcap))
-+		return false;
-+	if (pcap->highest_capability > 31)
-+		return false;
-+
-+	if (pcap->highest_capability == 31)
-+		mask = U32_MAX;
-+	else
-+		mask = (1U << (pcap->highest_capability + 1)) - 1;
-+
- 	acpi_desc->platform_cap = pcap->capabilities & mask;
- 	dev_dbg(dev, "cap: %#x\n", acpi_desc->platform_cap);
- 	return true;
-@@ -963,14 +990,18 @@ static void *add_table(struct acpi_nfit_desc *acpi_desc,
- 	struct device *dev = acpi_desc->dev;
- 	struct acpi_nfit_header *hdr;
- 	void *err = ERR_PTR(-ENOMEM);
-+	size_t table_len;
- 
- 	if (table >= end)
- 		return NULL;
-+	table_len = end - table;
-+	if (table_len < sizeof(*hdr))
-+		return NULL;
- 
- 	hdr = table;
--	if (!hdr->length) {
--		dev_warn(dev, "found a zero length table '%d' parsing nfit\n",
--			hdr->type);
-+	if (hdr->length < sizeof(*hdr) || hdr->length > table_len) {
-+		dev_warn(dev, "invalid table length %u for type %u parsing nfit\n",
-+			 hdr->length, hdr->type);
- 		return NULL;
- 	}
- 
 -- 
-2.50.1 (Apple Git-155)
+Regards/Gruss,
+    Boris.
 
+https://people.kernel.org/tglx/notes-about-netiquette
