@@ -1,175 +1,91 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9468B313547;
-	Wed, 22 Jul 2026 13:03:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D3DD27F017
+	for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2026 13:12:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784725410; cv=none; b=LuZHgxuNWf2r4PI7cKWDwzKiJNOFa3Sv7z8rkqu9oNA+sbcDUoWbz+OsZiC7zzHLJJoV6NgYvw4O3s5fW1+3rBi4Utly4UfUHpdraK9S/dDZVwEVHAiI5hlR58RuoW8ju/OzOcqAj/Utsb2sQx4K79vmraJW7ZFDGnHckNQXpZI=
+	t=1784725965; cv=none; b=BxVM9R/OYY01JGBQr45i0mRUcI2NglcKMxrrzIcG+2H8NcWP6MfnN49clnnZcf6Y0Fa6AqeMtShqo2jnGR/HnElTfY8HI9srNfB9P/6C3wdbA9r0tFPSj2nbyTmBQ/0gQg3YIORr1qfWBDC9xZhgJP0nB1V1vM4ts9a15xeTENY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784725410; c=relaxed/simple;
-	bh=L0U+Sgxsb1knrJMt8CFcjxzdTksFyILXm1X9VTkvol0=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=l69gYpXUQkorpmmi1V0uC7N+Fksi8qEz9jJ067DIeayZLO6N+jthKLSitUPN5vxoWNBHapsvjEX6Vd8nblOJrvl4BA6jp3LGkf8YYpxIwU3GefkUHy6rkmdSScoIaFAfCan5Exshki8XOspBDCNJP7I+zDf4TFD5T2bWdSEpGYo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=R1H/NcBq; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784725965; c=relaxed/simple;
+	bh=LxPEUSvomf+1vqaYvpYxMjHdbT0dgeUXS2CQL0dqS8w=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=UdKDiz9HO6D9YPr3CDDbZDJPLHGCYrG1sVIcoEvwZBoAYXWBCittE8wT1EgLf+7kumPAhJQ21k6YLqaogQBr7+o+AMRjNOMO9JIBbcmuaiaQhwmEEEWUL5seuVkvxlWLmMzKGH8GWasZnMMvVoX4+Zn3WH4yCW+r4G9ASMSMqKU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Nou//EyN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="R1H/NcBq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADB281F000E9;
-	Wed, 22 Jul 2026 13:03:23 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Nou//EyN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED3AE1F00ACF
+	for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2026 13:12:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784725404;
-	bh=E23gUT0OB5m17CIhAx1OfFX3s/0BBfZUO3XE+ke+s/s=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=R1H/NcBqxACKDNu8i7xMAm8kepb0J9gpDkJzN3iBDddMn05BNUFfBbl8yhr31KpNG
-	 mTu1x11r7CP4rQLAHFPHavFSs4tc5th3Ekzyi/RmyFl8angPWp/dzs80HK3uM2PONZ
-	 wIWnrTDBxzQ/Pc6gbtcmNhUscMcIv3ypG23YbYf5ef/NDNhHcdLWczLX7mNmNNBdAk
-	 w8YDcnCiICGiFzHYc7gAaLtqyuzGQrTS5ShCKrpR5Z+zpVJFCxGT5UYvNMEewO9Fn1
-	 qU1M+X4WA1V8JqFYd7r9Vuj9aN1CD7CGnZ78QLCLc+T3YI/YUWu28yzuWr9GrThWyx
-	 wRCAs00cuhtEg==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Saverio Miroddi <saverio.pub2@gmail.com>
-Cc: Jonathan Cameron <jic23@kernel.org>, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org, Saverio Miroddi <saverio.pub2@gmail.com>
-Subject:
- [PATCH v1] ACPI: bus: Avoid confusing complaints regarding missing _OSC
- features
-Date: Wed, 22 Jul 2026 15:03:21 +0200
-Message-ID: <5143711.31r3eYUQgx@rafael.j.wysocki>
-Organization: Linux Kernel Development - Intel
-In-Reply-To: <20260721192914.1166891-1-saverio.pub2@gmail.com>
-References: <20260721192914.1166891-1-saverio.pub2@gmail.com>
+	s=k20260515; t=1784725964;
+	bh=1sV5F8g8B2FIbfA/eDA0WOQI97AyvvwazMkpvJft7Qk=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=Nou//EyNCO95XJwDTexEA4PSFdeZYxE5OXwH5Etb6TA308WYQApXBMwz/unOqeFwL
+	 p1DStUA13qSQQgHjtRinTKbmAqdxeKLvP7FjN9jLOzcQWga6xOqMEsC4+S0QRN6WMz
+	 hSu33rnjLrXARdRcuzszNQ4wJGUvVEQT8t9e20uJw+zrNx0BbLgE5LScNiXTXc2eew
+	 94hAhKfVhylZq5p1+Kn1oXtG+FgJaXFfnW9FJDCHB4SdIVraJFubRlGhF6urYURd2H
+	 JdNowD1tUlrQX9vJ05lDSNQTqXHWHLzpNNnXTOZWrHO6WaNYxzjConlgYwQWN6hMir
+	 BxU0W0m7lEMrw==
+Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5b0117d49dcso11487392e87.3
+        for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2026 06:12:43 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RoGqndZl0JHFhfUHgWEoZxK9lZ5yCJgJMothOU7xjfMqB3IIlNXzroqVOwP/w6vQP3y3Pnv8SU0gA0l@vger.kernel.org
+X-Gm-Message-State: AOJu0YxIFgF2jzl1jT3hg4qd+3LU9XYtjyXi3gHD/pBafZ30FjbBNkh+
+	8ThF2276yHw6rTwTLUli+1wpR2rVcog4FEFtc1dVV5z3OKKToo+JpXMuEGoP5iKHyqZTW6GvqNg
+	AdRzzHQE5Xx2c/Gx3Cv1NT6FghuI1TSg=
+X-Received: by 2002:a05:6512:ba0:b0:5a8:757b:80ee with SMTP id
+ 2adb3069b0e04-5b28f860f49mr5197295e87.17.1784725962282; Wed, 22 Jul 2026
+ 06:12:42 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+References: <20260722093825.1030594-1-christian.loehle@arm.com>
+In-Reply-To: <20260722093825.1030594-1-christian.loehle@arm.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Wed, 22 Jul 2026 15:12:30 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gXZ6dodT0-LYKdwx5m0oxWxY55WMe19=Z_p-Nn-4fdsw@mail.gmail.com>
+X-Gm-Features: AUfX_mzcwMSvEBJaBRqr7WmO9U_xWg0FaRIX5AZLPJIt-aKsQ7ocrTUogE-yh64
+Message-ID: <CAJZ5v0gXZ6dodT0-LYKdwx5m0oxWxY55WMe19=Z_p-Nn-4fdsw@mail.gmail.com>
+Subject: Re: [PATCH 0/2] ACPI/CPPC: make policy-limit updates safe
+To: Christian Loehle <christian.loehle@arm.com>
+Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, linux-pm@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	Len Brown <lenb@kernel.org>, Jie Zhan <zhanjie9@hisilicon.com>, 
+	Lifeng Zheng <zhenglifeng1@huawei.com>, Pierre Gondois <pierre.gondois@arm.com>, 
+	Sumit Gupta <sumitg@nvidia.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tuesday, July 21, 2026 9:29:14 PM CEST Saverio Miroddi wrote:
-> The ACPI specification defines OSC_CAPABILITIES_MASK_ERROR to mean that
-> firmware cleared capability bits requested by the operating system. Some
-> firmware sets this status during the control request while returning every
-> requested capability unchanged. On the affected system, the requested and
-> returned masks were both 0x006a7eff.
-> 
-> Commit e5322888e6bf ("ACPI: bus: Rework the handling of \_SB._OSC
-> platform features") made all control-response errors produce error-level
-> messages. Consequently, the inconsistent response above now claims that
-> features may be missing even though none were removed.
-> 
-> Track whether the response actually clears a requested bit and omit the
-> error-level messages only if OSC_CAPABILITIES_MASK_ERROR is the sole
-> error and no capability was cleared. Keep the dynamic-debug diagnostic and
-> leave the negotiated capability mask and all other error cases unchanged.
-> 
-> Fixes: e5322888e6bf ("ACPI: bus: Rework the handling of \_SB._OSC platform features")
-> Signed-off-by: Saverio Miroddi <saverio.pub2@gmail.com>
-> ---
->  drivers/acpi/bus.c | 23 ++++++++++++++++-------
->  1 file changed, 16 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index a30a904f6535..c13128cbc2f6 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -335,7 +335,8 @@ static int acpi_osc_handshake(acpi_handle handle, const char *uuid_str,
->  		.length = bufsize * sizeof(u32),
->  	};
->  	struct acpi_buffer output;
-> -	u32 *retbuf, test;
-> +	u32 *retbuf, test, errors;
-> +	bool capabilities_masked = false;
+On Wed, Jul 22, 2026 at 11:38=E2=80=AFAM Christian Loehle
+<christian.loehle@arm.com> wrote:
+>
+> Commit ea3db45ae476 ("cpufreq: cppc: Update MIN_PERF/MAX_PERF in target
+> callbacks") made cppc-cpufreq submit policy bounds from both target
+> callbacks. Two correctness issues remain in that path.
+>
+> ACPI permits the CPPC controls to use different address spaces. Fast
+> switching can consequently enter the sleeping PCC path when DESIRED_PERF
+> is directly accessible but MIN_PERF or MAX_PERF is PCC-backed. Fix it by
+> doing the simple thing and only allowing fast-switch when all controls
+> are directly accessible.
+>
+> The policy bounds are also read without the policy lock. Because the core
+> updates policy->min and policy->max separately, a lockless reader can for=
+m
+> an inverted pair. Patch 2 sanitizes that snapshot before converting it to
+> CPPC performance values.
+>
+> Christian Loehle (2):
+>   ACPI: CPPC: Check all controls for fast switching
+>   cpufreq: cppc: Sanitize lockless policy limit snapshots
+>
+>  drivers/acpi/cppc_acpi.c       | 22 +++++++++++++++++-----
+>  drivers/cpufreq/cppc_cpufreq.c | 33 +++++++++++++++++++++++----------
+>  include/acpi/cppc_acpi.h       |  5 +++--
+>  3 files changed, 43 insertions(+), 17 deletions(-)
+>
+> --
 
-The existing test variable can be used for this just fine, no need to add more
-of them.
-
->  	guid_t guid;
->  	int ret, i;
->  
-> @@ -395,16 +396,24 @@ static int acpi_osc_handshake(acpi_handle handle, const char *uuid_str,
->  	 * Clear the feature bits in capbuf[] that have not been acknowledged.
->  	 * After that, capbuf[] contains the resultant feature mask.
->  	 */
-> -	for (i = OSC_QUERY_DWORD + 1; i < bufsize; i++)
-> +	for (i = OSC_QUERY_DWORD + 1; i < bufsize; i++) {
-> +		if (capbuf[i] & ~retbuf[i])
-> +			capabilities_masked = true;
-> +
->  		capbuf[i] &= retbuf[i];
-> +	}
->  
-> -	if (retbuf[OSC_QUERY_DWORD] & OSC_ERROR_MASK) {
-> +	errors = retbuf[OSC_QUERY_DWORD] & OSC_ERROR_MASK;
-> +	if (errors) {
->  		/*
-> -		 * Complain about the unexpected errors and print diagnostic
-> -		 * information related to them.
-> +		 * Some firmware sets OSC_CAPABILITIES_MASK_ERROR without clearing
-> +		 * any requested capability.  Only complain if another error is
-> +		 * present or a capability was actually masked.
->  		 */
-> -		acpi_handle_err(handle, "_OSC: errors while processing control request\n");
-> -		acpi_handle_err(handle, "_OSC: some features may be missing\n");
-> +		if (errors != OSC_CAPABILITIES_MASK_ERROR || capabilities_masked) {
-> +			acpi_handle_err(handle, "_OSC: errors while processing control request\n");
-> +			acpi_handle_err(handle, "_OSC: some features may be missing\n");
-> +		}
->  		acpi_osc_error_check(handle, &guid, rev, &cap, retbuf);
-
-And here the debug output is not quite useful if the error is essentially
-ignored.
-
->  	}
-
-So below is my version of this fix, please check it if works for you.
-
-Thanks!
-
----
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: [PATCH] ACPI: bus: Avoid confusing complaints regarding missing _OSC features
-
-The platform firmware on some platforms sets OSC_CAPABILITIES_MASK_ERROR
-in _OSC error bits even though it actually acknowledges all of the
-requested features which after commit e5322888e6bf ("ACPI: bus: Rework
-the handling of \_SB._OSC platform features") causes the kernel to
-complain unnecessarily.
-
-Avoid the confusing complaints by explicitly checking for that case
-in acpi_osc_handshake().
-
-Fixes: e5322888e6bf ("ACPI: bus: Rework the handling of \_SB._OSC platform features")
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/bus.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -395,10 +395,18 @@ static int acpi_osc_handshake(acpi_handl
- 	 * Clear the feature bits in capbuf[] that have not been acknowledged.
- 	 * After that, capbuf[] contains the resultant feature mask.
- 	 */
--	for (i = OSC_QUERY_DWORD + 1; i < bufsize; i++)
-+	for (i = OSC_QUERY_DWORD + 1, test = 0; i < bufsize; i++) {
-+		test |= capbuf[i] & ~retbuf[i];
- 		capbuf[i] &= retbuf[i];
-+	}
- 
--	if (retbuf[OSC_QUERY_DWORD] & OSC_ERROR_MASK) {
-+	/*
-+	 * Some platforms set OSC_CAPABILITIES_MASK_ERROR even though they
-+	 * acknowledge all of the requested features, so avoid complaining in
-+	 * those cases unless any other error bits are also set.
-+	 */
-+	if ((retbuf[OSC_QUERY_DWORD] & OSC_ERROR_MASK) &&
-+	    (test || retbuf[OSC_QUERY_DWORD] != OSC_CAPABILITIES_MASK_ERROR)) {
- 		/*
- 		 * Complain about the unexpected errors and print diagnostic
- 		 * information related to them.
-
-
-
-
+Applied as 7.2-rc material, thanks!
