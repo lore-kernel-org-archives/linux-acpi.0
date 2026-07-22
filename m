@@ -1,41 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C4B2307AE3;
-	Wed, 22 Jul 2026 13:16:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20F0D33E37A;
+	Wed, 22 Jul 2026 13:16:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784726170; cv=none; b=lfYQtkSL++4j+mFonjWaxfsOKu0v5iGdp0hzMX9WPnAJ70Ft9aeBs2Qsikkw18RUf3ljaSwjZzBkbaz40aCJMmoensp7ZHLX12GUbX58/UT05qyzUh/tv3pDINLYGwoAyEibWGwZSS0ciSJZdFZNOPVMYDEicaZCsoJ/XRFs6Tc=
+	t=1784726172; cv=none; b=a7dgvcuTW+66TyBMkRqxbIm+Y5NO0mkJNdXZhx6LPNiX1sNlIa1swX0uc2TfjHfpsf5osP0EP3scuq9ObrqVRcIb83fPc+D2DcSgnrrTa2tUp8NEpYFukek3VeN4PiNPVgFSt0HIH6FDFBUZCKwTF2PD/xw+kL0k1Q7kt5K229s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784726170; c=relaxed/simple;
-	bh=Kvq8pBUXd3SBMsFtQJvupDCkQGaQzbTYejkgqHTe8cM=;
+	s=arc-20240116; t=1784726172; c=relaxed/simple;
+	bh=fULks90RtRceuUJcZ14mCt0FNHR9InBzFoqOp+OXWTc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=XIgXuG74UNT4Sh5IFPvza84XgomlE+imQr4YzybbVy2ZWkhiEEyc8hmF0K6YzNyIx1iPqCmXckVDi4g5iiKvIgthn3WoZ0DwgFhs6GE1V9KMcFwBXbGjp7DhC0K320PbTHcWTg/DnHOToK6Y6Kgx3PISLWjAqNZYj6tdDScFSuA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bFdFfvRN; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=PPr7ZOLYQTHBoQRa8lAJYwMXWp1ws8hOKvLVLysSRlzLLzki+P3xMSBbDfnUr/GUM5iA6jDAkDWLUhV1l637aCmxdTPwG1yq8bkIlrsX9Og2xYqHr/VA/NgGzNHh6ao0EbpVDZ9lwEUKI9gL3pyrw5zSbMt6ERqkUITWV5RBkmU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eVh7H7V9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bFdFfvRN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D4CA1F00A3E;
-	Wed, 22 Jul 2026 13:16:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eVh7H7V9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 432F81F00AC4;
+	Wed, 22 Jul 2026 13:16:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784726164;
-	bh=9jYqPRqPWJvx7ZI06P13taAbeaiEKCjE8/dqxPgQSMQ=;
+	s=k20260515; t=1784726169;
+	bh=zCyrRMfzhOIUjv0cKHPXUvAY98WsF24GT8xrQP9NKeA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=bFdFfvRNNd6u3G5CYOcSwlRx50icWAnYzWSUudwmZkD9LgAmJmaZC7eUQMW1GS6Fc
-	 8Ycr0CW2kzh7tnjP+nY6yOGSXYsXHNdDpKEwF1W0SnU0uBkymhA9LNXDJKIpYHtw1o
-	 m7/Dxh1uc00KDvYLdA9q9h82mAnhsOrCYeCoywVP5KrOAlly+oI/aMVt+qO8+CW6YE
-	 Krt9oe5w139VXsT77EgGSRHWvttB7m4D0jjVhZSJFv/4c0hpvqY+Jt+M1wJ7Lbo8pj
-	 B60R9QgcTfx2V6XvMubSKyUShZ43EHUQlSQb2NNlku9HRMfr+f366G9ju8Xm3MRllJ
-	 KpF80qIS/VYhA==
+	b=eVh7H7V9iPbDfbFGtYjlmm74GXpQO1La4DkB4RaE5O1kw8AreoBCrYcHvdxAryHPM
+	 Fw9Ez47HO09ghj73QK9P9ek1isTUeSjTE3u/UuQmaDhckoqofWX2LcUcsQ47pxLSVq
+	 MJVTQacgQEQnxnXiMKrjjQT71ISeX89Q5nC5DymSN+IR7hg17N021b5eNnQND0VP9j
+	 rQ8UeKyF5i+DyWE0UQcXpP8bu86M7KUV/MvM4KWxU1a8wxQ8DOoeDFoLB2NPYeGNvh
+	 gEc+Hbbz+gPd2GA101vDTItJLsK3zPpDWF207a7tzV6QTU4bk4ewGNs51YLE9WPcJ5
+	 LiGbTtyvPRT2g==
 From: Sudeep Holla <sudeep.holla@kernel.org>
 To: linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org
 Cc: Sudeep Holla <sudeep.holla@kernel.org>,
 	acpica-devel@lists.linux.dev,
 	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Saket Dumbre <saket.dumbre@intel.com>
-Subject: [PATCH v2 1/4] ACPICA: Fix PCC OperationRegion command offsets
-Date: Wed, 22 Jul 2026 14:15:50 +0100
-Message-ID: <20260722131553.2117835-2-sudeep.holla@kernel.org>
+	Saket Dumbre <saket.dumbre@intel.com>,
+	Huisong Li <lihuisong@huawei.com>
+Subject: [PATCH v2 4/4] ACPI: PCC: Cache OpRegion command timeout
+Date: Wed, 22 Jul 2026 14:15:53 +0100
+Message-ID: <20260722131553.2117835-5-sudeep.holla@kernel.org>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260722131553.2117835-1-sudeep.holla@kernel.org>
 References: <20260722131553.2117835-1-sudeep.holla@kernel.org>
@@ -47,50 +48,80 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-ACPI 6.3, section 5.5.2.4.7.3, states that the PCC Operation
-Region is associated with the region of shared memory that follows the
-PCC signature.
+The PCC OperationRegion handler computes the same command completion
+wait timeout each time it sends a command. The timeout is derived from
+static channel properties, so compute it once when the PCC channel is
+set up and store the millisecond value in the mailbox client timeout
+field.
 
-The generic and extended PCC shared memory layouts include the 4-byte
-signature at offset 0, so their raw shared memory COMMAND fields are at
-offsets 4 and 12 respectively. Since AML field offsets for the PCC
-OperationRegion are relative to the region after that signature, ACPICA
-must look for those COMMAND fields at OperationRegion offsets 0 and 8.
+Use the cached timeout when waiting for the OperationRegion command to
+complete. This keeps the timeout calculation in one place and avoids
+recomputing it for every command.
 
-Adjust the generic and master subspace command checks to use those
-OperationRegion-relative offsets. Otherwise writes to the COMMAND field
-can fail to invoke the PCC address space handler at the offset described
-by the PCC OperationRegion definition.
-
-Fixes: aa6ec56b574d ("ACPICA: ACPI 6.3: add PCC operation region support for AML interpreter")
+Reviewed-by: Huisong Li <lihuisong@huawei.com>
 Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
 ---
- drivers/acpi/acpica/exfield.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/acpi/acpi_pcc.c | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
-index 9a55524ed8f4..a7fac63938b3 100644
---- a/drivers/acpi/acpica/exfield.c
-+++ b/drivers/acpi/acpica/exfield.c
-@@ -45,12 +45,13 @@ static const u8 acpi_protocol_lengths[] = {
+diff --git a/drivers/acpi/acpi_pcc.c b/drivers/acpi/acpi_pcc.c
+index 57d13b25c1d6..345f233d77cd 100644
+--- a/drivers/acpi/acpi_pcc.c
++++ b/drivers/acpi/acpi_pcc.c
+@@ -50,10 +50,11 @@ static acpi_status
+ acpi_pcc_address_space_setup(acpi_handle region_handle, u32 function,
+ 			     void *handler_context,  void **region_context)
+ {
+-	struct pcc_data *data;
+ 	struct acpi_pcc_info *ctx = handler_context;
+ 	struct pcc_mbox_chan *pcc_chan;
++	struct pcc_data *data;
+ 	acpi_status ret;
++	u64 usecs_lat;
  
- /*
-  * The following macros determine a given offset is a COMD field.
-- * According to the specification, generic subspaces (types 0-2) contains a
-- * 2-byte COMD field at offset 4 and master subspaces (type 3) contains a 4-byte
-- * COMD field starting at offset 12.
-+ * According to the specification, the PCC OperationRegion begins after
-+ * the PCC signature. The raw shared memory COMD offsets of 4 for generic
-+ * subspaces (types 0-2) and 12 for master subspaces (type 3) therefore
-+ * appear at OperationRegion offsets 0 and 8.
-  */
--#define GENERIC_SUBSPACE_COMMAND(a)     (4 == a || a == 5)
--#define MASTER_SUBSPACE_COMMAND(a)      (12 <= a && a <= 15)
-+#define GENERIC_SUBSPACE_COMMAND(a)     ((a) < 2)
-+#define MASTER_SUBSPACE_COMMAND(a)      (((a) - 8) < 4)
+ 	if (function == ACPI_REGION_DEACTIVATE) {
+ 		data = *region_context;
+@@ -103,6 +104,16 @@ acpi_pcc_address_space_setup(acpi_handle region_handle, u32 function,
+ 		goto err_free_channel;
+ 	}
  
- /*******************************************************************************
-  *
++	/*
++	 * pcc_chan->latency is just a Nominal value. In reality the remote
++	 * processor could be much slower to reply. So add an arbitrary
++	 * amount of wait on top of Nominal.
++	 */
++	usecs_lat = PCC_CMD_WAIT_RETRIES_NUM * pcc_chan->latency;
++	data->cl.tx_tout = DIV_ROUND_UP_ULL(usecs_lat, 1000);
++	if (!data->cl.tx_tout)
++		data->cl.tx_tout = 1;
++
+ 	*region_context = data;
+ 	return AE_OK;
+ 
+@@ -121,7 +132,6 @@ acpi_pcc_address_space_handler(u32 function, acpi_physical_address addr,
+ {
+ 	struct pcc_data *data = region_context;
+ 	void __iomem *pcc_opregion;
+-	u64 usecs_lat;
+ 	int ret;
+ 
+ 	pcc_opregion = data->pcc_chan->shmem + PCC_SIGNATURE_SIZE;
+@@ -135,14 +145,8 @@ acpi_pcc_address_space_handler(u32 function, acpi_physical_address addr,
+ 	if (ret < 0)
+ 		return AE_ERROR;
+ 
+-	/*
+-	 * pcc_chan->latency is just a Nominal value. In reality the remote
+-	 * processor could be much slower to reply. So add an arbitrary
+-	 * amount of wait on top of Nominal.
+-	 */
+-	usecs_lat = PCC_CMD_WAIT_RETRIES_NUM * data->pcc_chan->latency;
+ 	ret = wait_for_completion_timeout(&data->done,
+-						usecs_to_jiffies(usecs_lat));
++					  msecs_to_jiffies(data->cl.tx_tout));
+ 	if (ret == 0) {
+ 		pr_err("PCC command executed timeout!\n");
+ 		return AE_TIME;
 -- 
 2.43.0
 
