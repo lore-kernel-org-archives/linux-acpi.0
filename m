@@ -1,95 +1,82 @@
-Received: from mail-m49210.qiye.163.com (mail-m49210.qiye.163.com [45.254.49.210])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C16AD18A6CF;
-	Wed, 22 Jul 2026 07:36:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.254.49.210
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E7DA481AA5;
+	Wed, 22 Jul 2026 08:45:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784705771; cv=none; b=RLXPoXLGlRlhG9xXn2HcH91ReCy5WXF9Nk/GUgW4ZjgiuCwW21IMD3UldFjsBEEQFtH+GYUM/NkuQF85wNa9CJD1OIitsUteixlGjv92NSG1zHMGkWZ8zjOdY1QwpZS2J4+59O1MRZnIEXWGrwMs4kpWPL8VFuWRoCjlg6O9oZ4=
+	t=1784709953; cv=none; b=MnZlQ8/7oiiuDLypW5S9p0JXt5LONNB47QK5JqICfynMsSyQqbETELFcih895Z031vNzY57eeK6gC9OmnEmvh/EnPYfBM9lfAZrUtrbdLwpV6ianDpFC9TIhr1gFII9LhAQD2khVT5G1pfV/CjRE58ngMKzbUJUR7zST/hJ7iko=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784705771; c=relaxed/simple;
-	bh=TLK1Rv1AmlTbINIklcoklmnRTZ4ZvCjAGAtyQka5Ay4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=RgRPqYANGyDVcmM1N2Yh7TL+0LME3Ddmk2K5+RZtj85FjE5SJSuXBLwKmsIHSLmpw3Os2bb7SlEzVoygD9eRrs3qrGehYew3EsViV8J4dsnm2CTYcJcJZKK2YX+T4G4hxlNkZNqRNn7txoc3ca5vFH2wv2t6tqu7sr+s9iHUyC4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hj-micro.com; spf=pass smtp.mailfrom=hj-micro.com; dkim=pass (1024-bit key) header.d=hj-micro.com header.i=@hj-micro.com header.b=NH3naXSF; arc=none smtp.client-ip=45.254.49.210
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hj-micro.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hj-micro.com
+	s=arc-20240116; t=1784709953; c=relaxed/simple;
+	bh=oNymRQHpPQ41yGbKILJPRbN2OTOIj39nT+vil4TB+Uc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=WHm2GOlsPUXgQllTMq86CQNURk19o/LljsDuFzr11Th/QX0/yyjWnB5Hd52l+FcZDjPbRUaKaRoJEgQHAldiULlyohPViFmUmxMLhSV28OIrZS4nqTXfvKsif68/z8pjFwohGGoptZqGnCJCTIvCLuQL9qqlZfzJP7M1kET9CAI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JnG44NP+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=hj-micro.com header.i=@hj-micro.com header.b="NH3naXSF"
-Received: from 1clarkelill.hj-micro.com (unknown [122.224.241.34])
-	by smtp.qiye.163.com (Hmail) with ESMTP id 472001f3d;
-	Wed, 22 Jul 2026 15:30:44 +0800 (GMT+08:00)
-From: "clarke.li" <clarke.li@hj-micro.com>
-To: andi.shyti@kernel.org,
-	andriy.shevchenko@linux.intel.com,
-	rafael@kernel.org,
-	jarkko.nikula@linux.intel.com,
-	jsd@semihalf.com,
-	lenb@kernel.org
-Cc: andy.xu@hj-micro.com,
-	linux-acpi@vger.kernel.org,
-	linux-i2c@vger.kernel.org,
-	peter.du@hj-micro.com,
-	clarke.li@hj-micro.com
-Subject: [PATCH v3] ACPI: APD: Add clock frequency for HJMC01 I2C controller
-Date: Wed, 22 Jul 2026 15:30:31 +0800
-Message-ID: <20260722073031.1078080-1-clarke.li@hj-micro.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <yha25jhjmd5qh4prwnyhqr2sfxvw7v2hzwhhv66twtx7ft4siz@fk3d4t2d73dj>
-References: <yha25jhjmd5qh4prwnyhqr2sfxvw7v2hzwhhv66twtx7ft4siz@fk3d4t2d73dj>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JnG44NP+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FCCD1F000E9;
+	Wed, 22 Jul 2026 08:45:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1784709951;
+	bh=e0h1z+7tWqs4BZ2exNi5sf3y25/tSU3PDuHluuN2ke0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=JnG44NP+PNxXAt+98ZuRcRmvEV5sxObiVmvj7fgDwQuBORR5Zm9tDg1xNIZqQp92P
+	 cL72xv9HFYPE8QxkNJG3Sn+w5LO4FtwzklPq2IdlRwzPBCJc1CGL1T8Pa3qyp1bbHO
+	 aMm4y/ICyKwMYgoSypT0nQRVdmMJ7S2aXQ7cehIwTpUi1GyJa7WFTwkhG4Xn11n5oQ
+	 S8qwYNMHBSIadi206k0bxAUtNYfxOLEDKgOhZkmaRdieSJaJNeoI7fInuLBVYt1pRr
+	 /p4kXhVOsAEyUbmZ+QdgIGWTpEYCEJAYoHG35BVchXl2bfBCa0IAAzqU3yQYKn6pka
+	 rO6dKsuszh+gg==
+Date: Wed, 22 Jul 2026 09:45:48 +0100
+From: Sudeep Holla <sudeep.holla@kernel.org>
+To: "lihuisong (C)" <lihuisong@huawei.com>
+Cc: acpica-devel@lists.linux.dev, "Rafael J . Wysocki" <rafael@kernel.org>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Saket Dumbre <saket.dumbre@intel.com>, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 3/4] ACPI: PCC: Free channel on OpRegion deactivation
+Message-ID: <20260722-advanced-economic-tench-aa8a08@sudeepholla>
+References: <20260717081005.470013-1-sudeep.holla@kernel.org>
+ <20260717081005.470013-4-sudeep.holla@kernel.org>
+ <fcedb818-fb09-4a0b-a916-d65f762e5905@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-HM-Tid: 0a9f88bbe95209d6kunm3d6ca45574ff2
-X-HM-MType: 1
-X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
-	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVlDHhhPVk4eGhkeQkMZH0IeH1YVFA
-	kWGhdVEwETFhoSFyQUDg9ZV1kYEgtZQVlKSUlVSUlPVUlPSlVIT1lXWRYaDxIVHRRZQVlPS0hVSk
-	tJT09PSFVKS0tVSkJLS1kG
-DKIM-Signature: a=rsa-sha256;
-	b=NH3naXSFaXBIzGRfddkOrgdPTg9lSUDJeZ1o0yzq+3S2ypChpKmAujiECJylIN8xbj1GBgJ9+hqygF7Mph4aK70DHiPKMJ+JqrhW5kid25ZwzLdEjMiuy4Zxv+Yg3jJTLL01h0WJ0YGvJen4SKxqF4Bd3u/jMZy7ztdQqkVjVCI=; s=default; c=relaxed/relaxed; d=hj-micro.com; v=1;
-	bh=ge/pmYth0IkVKjCzXp0bEbXzIs6tKqipYycsTpVSGP4=;
-	h=date:mime-version:subject:message-id:from;
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <fcedb818-fb09-4a0b-a916-d65f762e5905@huawei.com>
 
-From: Xiangyang Yu <hunter.yu@hj-micro.com>
+On Wed, Jul 22, 2026 at 09:15:40AM +0800, lihuisong (C) wrote:
+> 
+> On 7/17/2026 4:10 PM, Sudeep Holla wrote:
+> > ACPICA calls the address space setup callback with
+> > ACPI_REGION_DEACTIVATE when a PCC OperationRegion is torn down.
+> > 
+> > The PCC setup callback currently allocates a fresh pcc_data and requests
+> > the mailbox channel before looking at the function argument. If ACPICA
+> > deactivates a region, this can leave the existing region context and
+> > mailbox channel unreleased, and may also request a channel during
+> > teardown.
+> > 
+> > Handle ACPI_REGION_DEACTIVATE before allocation. Free the PCC mailbox
+> > channel, release the region context and clear the context pointer.
+> > 
+> > Fixes: 77e2a04745ff ("ACPI: PCC: Implement OperationRegion handler for the PCC Type 3 subtype")
+> > Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
+> > ---
+> How to trigger this region deactivate at runtime?
+> 
 
-I2C clock frequency for HJMC01 is 200MHz, define a new ACPI
-HID for it.
+I haven't tried it myself. I wasn't even aware of ACPI_REGION_DEACTIVATE
+until sashiko pointed it out and then did some digging in the code.
 
-Signed-off-by: Xiangyang Yu <hunter.yu@hj-micro.com>
-Signed-off-by: Hongnan Li <clarke.li@hj-micro.com>
----
- drivers/acpi/acpi_apd.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+> Overall looks good to me.
+> Reviewed-by: Huisong Li <lihuisong@huawei.com>
 
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index 008bd0552cb7..a193d8a6538e 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -192,6 +192,11 @@ static const struct apd_device_desc leca_i2c_desc = {
- 	.fixed_clk_rate = 250000000,
- };
+Thanks!
 
-+static const struct apd_device_desc hjmc_i2c_desc = {
-+	.setup = acpi_apd_setup,
-+	.fixed_clk_rate = 200000000,
-+};
-+
- #endif /* CONFIG_ARM64 */
-
- #endif
-@@ -264,6 +269,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
- 	{ "HISI0173", APD_ADDR(hip08_spi_desc) },
- 	{ "LECA0002", APD_ADDR(leca_spi_desc) },
- 	{ "LECA0003", APD_ADDR(leca_i2c_desc) },
-+	{ "HJMC3001", APD_ADDR(hjmc_i2c_desc) },
- 	{ "NXP0001", APD_ADDR(nxp_i2c_desc) },
- #endif
- 	{ }
---
-2.55.0
-
+-- 
+Regards,
+Sudeep
