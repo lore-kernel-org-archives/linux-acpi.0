@@ -1,168 +1,200 @@
-Received: from poodle.tulip.relay.mailchannels.net (poodle.tulip.relay.mailchannels.net [23.83.218.249])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE60747A87A;
-	Thu, 23 Jul 2026 15:47:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=23.83.218.249
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4B37244E667;
+	Thu, 23 Jul 2026 15:55:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784821638; cv=none; b=AEjEVAbTwOlWR70e78f1lrcDm3d0oN+Uxl0aPusZbTQYqnxhssRpP2gG0V/8R7td/1q2bIasThjR97oq8fkw+32J2LxQvfobfTGMzAqOXrScDk1CfQz10qvBBskmCkJBMsKsFHVjWtkc5mYSt189G4YsBKWUatYRRoyFX12KUnM=
+	t=1784822104; cv=none; b=bg7o1QIqkf0tKv9MVLvX5bFEehBb/PTDayj4Y0QmBURyUW9fHDVf06ro9jc90iuSa1t3o63pfjsuPKYbBR1Rxcc050FhxLLV05uvc9kFINpJGflC8vejt4cWvafBolopNEx503uRVGQk9CvDUShluvZk3VF24uAQx8VWxUc6hpM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784821638; c=relaxed/simple;
-	bh=TwbSIvH0/+GL3dDw8noOzAmzl5bt62XomrsEbBsOYiM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Oi1ZHO2d+DXOrtoOaG1KoWBAbrM/DofS7BgHOVmDURC40jU74B81FyqGCeJDzlGdCb13ic/LiYcX8SvpgCEDRI+9uQlMxl/fKkVhoLrEkQckd6MtPOE2b8SlAzvOP43m6MjxFtsnp3riu4yo/5czY7AS7+DwYULDTyyqPos6VFI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=younglogic.com; spf=pass smtp.mailfrom=younglogic.com; dkim=pass (2048-bit key) header.d=younglogic.com header.i=@younglogic.com header.b=CCaYcVTQ; arc=none smtp.client-ip=23.83.218.249
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=younglogic.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=younglogic.com
+	s=arc-20240116; t=1784822104; c=relaxed/simple;
+	bh=+JUD8bEyu5CuRUUbzQgW2C8blvrGcxqCXiio59X2jAo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=kAvTN70FXFrIkKoDal7pN7Tozwi4YDWCm2/WX9ZtHo3sP27scp+Aw2NjekTHwlrukJynR46rmbPM7cd88dZTuyqVceK6FkrcSM2PrRZCNnapk4BgNHd5WPOLXJAVk4A8NXj7EwQSEaoFZiLlDPX+bKXZo2kYE/fqcUSyfDf2UgI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=oV73lmb8; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=younglogic.com header.i=@younglogic.com header.b="CCaYcVTQ"
-X-Sender-Id: dreamhost|x-authsender|adam@younglogic.com
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id E7879624F5;
-	Thu, 23 Jul 2026 15:47:05 +0000 (UTC)
-Received: from pdx1-sub0-mail-a207.dreamhost.com (100-103-105-133.trex-nlb.outbound.svc.cluster.local [100.103.105.133])
-	(Authenticated sender: dreamhost)
-	by relay.mailchannels.net (Postfix) with ESMTPA id 758A1606C2;
-	Thu, 23 Jul 2026 15:47:05 +0000 (UTC)
-X-Sender-Id: dreamhost|x-authsender|adam@younglogic.com
-X-MC-Relay: Neutral
-X-MailChannels-SenderId: dreamhost|x-authsender|adam@younglogic.com
-X-MailChannels-Auth-Id: dreamhost
-X-Quick-Obese: 41508c4467c743f7_1784821625743_3878479006
-X-MC-Loop-Signature: 1784821625743:2888359346
-X-MC-Ingress-Time: 1784821625743
-Received: from pdx1-sub0-mail-a207.dreamhost.com (pop.dreamhost.com
- [64.90.62.162])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.103.105.133 (trex/8.0.2);
-	Thu, 23 Jul 2026 15:47:05 +0000
-Received: from [10.41.33.250] (unknown [150.195.203.17])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: adam@younglogic.com)
-	by pdx1-sub0-mail-a207.dreamhost.com (Postfix) with ESMTPSA id 4h5b8m3fzwz1RM;
-	Thu, 23 Jul 2026 08:47:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=younglogic.com;
-	s=dreamhost; t=1784821625;
-	bh=76hxiLWIU25rlfuIVGeyAULn6CNkZMFDrPVf3xTEBDQ=;
-	h=Date:Subject:To:Cc:From:Content-Type:Content-Transfer-Encoding;
-	b=CCaYcVTQ+CvkMuhUA+eKpq9zO1tl3PyIbLOBkPCB8ZXx4sPOViQHPD5qVvn1yuBjr
-	 6Hzg/vTk7fE88pSbDVkshfXz9ZiKh47sDJiatKxuuVKw/vTSBuffnCJLmXJgBQbgQB
-	 FzLqd1vEvUpb9Ydq7ccky83zHKC6LyTj8D5TRWWtULSZpMvDv9xjwBx9/HmK+F1vmP
-	 eYs+9BFstkg733nkpRIf1dg8d2ltMXGVdt02joZtXOaPCQorSyP33Tr9mTrLiA3YDb
-	 x4jbk/Wf6jyXK78+aEF2XzPUJ4xApDjHN8NSlZJj6u/gWrfQH1jwdPiZdVeTMP9wMo
-	 CXuJZ09dB5rqg==
-Message-ID: <204e42fd-4b2b-4f01-831e-1e9a05b857d0@younglogic.com>
-Date: Thu, 23 Jul 2026 11:47:03 -0400
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="oV73lmb8"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1B7A41477;
+	Thu, 23 Jul 2026 08:54:56 -0700 (PDT)
+Received: from e142021.fritz.box (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id D128A3F66F;
+	Thu, 23 Jul 2026 08:54:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1784822100; bh=+JUD8bEyu5CuRUUbzQgW2C8blvrGcxqCXiio59X2jAo=;
+	h=From:To:Cc:Subject:Date:From;
+	b=oV73lmb83PxbSoAJZoUr/8WKG+9xoA1ltUBlW2MNzoZoSUqzs9JKBtlSnyQ7xFjE3
+	 iFBEQZiSDketqzX6XvZWFA+01ZW4jQwPBnfbfvA//64OS9A5bw7sh1rzBxhX9EA5uc
+	 JS4DfXop7QZAKmoX44z064moBTmKESbEB322Xl/I=
+From: Andre Przywara <andre.przywara@arm.com>
+To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	James Morse <james.morse@arm.com>,
+	Ben Horgan <ben.horgan@arm.com>,
+	Reinette Chatre <reinette.chatre@intel.com>,
+	Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+	Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+	Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+	Trilok Soni <tsoni@quicinc.com>,
+	Srinivas Ramana <sramana@qti.qualcomm.com>,
+	Niyas Sait <niyas.sait@arm.com>,
+	Lee Trager <lee@trager.us>,
+	linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v4 00/10] arm_mpam: Add MPAM-Fb firmware support
+Date: Thu, 23 Jul 2026 17:54:44 +0200
+Message-ID: <20260723155454.1760823-1-andre.przywara@arm.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 2/3] mailbox: pcc: Check shared memory signature on
- request
-To: Sudeep Holla <sudeep.holla@kernel.org>,
- Jassi Brar <jassisinghbrar@gmail.com>, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Cc: Huisong Li <lihuisong@huawei.com>
-References: <20260717075649.467172-1-sudeep.holla@kernel.org>
- <20260717075649.467172-3-sudeep.holla@kernel.org>
-Content-Language: en-US
-From: Adam Young <adam@younglogic.com>
-In-Reply-To: <20260717075649.467172-3-sudeep.holla@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+
+Hi,
+
+this is version 4 of the MPAM-Fb code, for firmware based MSC accesses.
+Thanks to Jonathan's fearless review, a lot of the error handling has
+been improved, mostly courtesy of new kernel toys like scoped_guard and
+ACQUIRE(). Also the error handling pattern has been unified, to be
+consistent within this series, but also to match common kernel patterns.
+However I did not reorder the changes significantly, although some
+patches have been squashed to avoid touching a line multiple times.
+Also Ben, Niyas and Lee noticed bugs and other subtle issues, which have
+been fixed. On top of that, the "nrdy" handling optimisation has been
+dropped (for now).
+Find a changelog below. Based on v7.2-rc1.
+
+=======================
+The Arm MPAM specification defines Memory System Components (MSCs),
+which are devices that are programmed through an MMIO register frame. In
+some occasions this turned out to be too limiting: the MSC might be
+located behind a separate bus system (for instance inside an on-board
+controller), it might be mapped secure-only, or in a different processor
+socket without direct MMIO mapping. Also the MMIO access might be too slow
+or it would need to be filtered or otherwise access controlled. Finally
+there might be bugs in the MSC integration, which require a mediating
+firmware to be accessible.
+
+To accommodate all those different use cases, the MPAM-Fb specification
+[1] describes an alternative way to access MSCs. Accesses to an MSC
+would be wrapped in a message and communicated to the system using a
+shared-memory/mailbox system mostly mimicking the Arm SCMI spec.
+For ACPI systems, this would be abstracted through an ACPI PCC channel,
+which provides the shared-memory region and the mailbox trigger. We can
+lean on existing ACPI parsing code to register with these two
+subsystems, but cannot rely on the existing SCMI code in the kernel.
+This means we somewhat need to open code a very simplified SCMI handler,
+which just provides enough functionality for the very basic subset of
+SCMI that the MPAM-Fb spec requires.
+
+The first six patches rework all MSC access wrappers to propagate error
+information. Pure MMIO based MSC accesses would never fail, but the
+MPAM-Fb access can go wrong in multiple ways. The patches have been split
+up purely for reviewing reasons, if the number is a problem, we could as
+well squash them.
+Patch 7/10 solves a nasty problem: At the moment we protect stateful MSC
+register accesses (mon_sel) through a spinlock. Unfortunately the mailbox
+subsystem and the slow nature of the communication through this channel
+forbid MPAM-Fb access in atomic context. So this patch keeps using a
+spinlock for MMIO based accesses, but reverts to a mutex otherwise.
+We just deny taking the lock for MPAM-Fb in atomic context, ideally we
+wouldn't need that (no need to IPI another core when the MSC access does
+not need to be local to one particular core), or we simply deny that part
+of the functionality (access through perf).
+Patch 8/10 adds the code to redirect MSC accesses through the
+PCC shmem/mailbox system.
+Patch 9/10 avoids the error IRQ handler to do an MSC access when using
+MPAM_Fb, since those accesses cannot run in atomic context.
+The final patch 10/10 then adds the code to detect and store the PCC
+channel information from the ACPI tables, and eventually enables
+MPAM-Fb accesses.
+
+This would enable systems where some MSCs are not accessible via MMIO to
+use those components anyway.
+
+Please have a look and test!
+
+Cheers,
+Andre
+
+[1] https://developer.arm.com/documentation/den0144/latest
+
+Changes in v4:
+- unify error check patterns
+- use scoped_guard(mutex) and ACQUIRE to simplify error handling
+- use struct kref for PCC channel refcount
+- drop unused mailbox rx_callback function
+- increase size of props[] array to hold new msc_id property
+- set mailbox TX timeout based on ACPI MPAM table field
+- use devm_mutex_init() to allow automatic cleanup
+- avoid overwriting error value for arm,not-ready-us property read
+- prune MPAM-Fb protocol token to fit into bitmask inside register
+- check return value for AIDR read
+- use two separate MPAM-Fb protocol payload structs
+- prune header list for mpam_fb.c
+- drop "nrdy handled as an error" change
+- fix message size field in MPAM-Fb protocol shmem area
+- drop message size return from MPAM-Fb message build functions
+- bring back IRQ flag in MPAM-Fb protocol header
+
+Changes in v3:
+- drop inner/outer mon_sel lock patch, replace with simpler version
+- harmonise code patterns in error propagation changes
+- drop mon_sel lock before erroring out in mpam_ris_hw_probe_csu_nrdy()
+- refactor mpam_msc_read_mbwu_l() to return an error
+- drop special NRDY handling in __ris_msmon_read()
+- add IRQ numbers in error interrupt handler to help pinpoint failure
+- refactor MPAM-Fb message generation to accommodate more than read/write
+- check MPAM-Fb protocol version at probe time
+- drop mpam_fb.h header, merge into mpam_internal.h
+- translate MPAM-Fb error code in Linux codes where needed
+- clear IRQ flag bit in MPAM-Fb protocol header
+- drop unneeded endianness conversions when crafting MPAM-Fb message
+- use C struct to model MPAM-Fb message payload
+
+Changes in v2:
+- add patches to add error propagation to MSC access wrappers
+- drop former patch 1/5 (not needed)
+- drop lock in mpam_reprogram_msc(), to avoid double lock
+- add support for multiple MSCs per PCC channel
+- adjust SCMI protocol code to use a PCC subtype 3 channel
+- let PCC code handle the PCC channel negotiation (due to subtype 3)
+- drop SCMI names in shmem offsets, and use existing PCC type 3 struct
+- adjust shmem field offsets to match MPAM-Fb spec, not pure SCMI
+- prevent MPAM-Fb calls inside atomic smp_call_function_any() payload
+- skip all MSC accesses inside the IRQ handler when using MPAM-Fb
 
 
-On 7/17/26 03:56, Sudeep Holla wrote:
-> ACPI 6.6 Tables 14.9 and 14.12 define the PCC shared memory
-> signature as the bitwise OR of 0x50434300 and the PCC subspace ID.
-> They also clarify that the signature is populated by the platform and
-> verified by OSPM. The signature is at byte offset 0 in the generic,
-> extended and reduced PCC shared memory layouts.
->
-> Check the signature when a client requests a PCC mailbox channel,
-> after mapping shared memory and before binding the mailbox client.
-> This keeps the check in the PCC mailbox controller instead of
-> duplicating it in individual clients.
->
-> Treat a signature mismatch as a warning rather than rejecting the
-> channel request. Making this newly added check fatal could break
-> existing systems whose firmware did not populate the signature
-> correctly even though PCC communication works. Continue to reject
-> shared memory that is too small to contain a signature because it
-> cannot be inspected safely.
->
-> Cc: Jassi Brar <jassisinghbrar@gmail.com>
-> Cc: Huisong Li <lihuisong@huawei.com>
-> Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
-> ---
->   drivers/mailbox/pcc.c | 36 +++++++++++++++++++++++++++++++-----
->   1 file changed, 31 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-> index d96b8b54e77e..8dfa80b0a90f 100644
-> --- a/drivers/mailbox/pcc.c
-> +++ b/drivers/mailbox/pcc.c
-> @@ -345,6 +345,26 @@ static irqreturn_t pcc_mbox_irq(int irq, void *p)
->   	return IRQ_HANDLED;
->   }
->   
-> +static int pcc_mbox_validate_signature(struct pcc_mbox_chan *pcc_mchan,
-> +				       int subspace_id)
-> +{
-> +	u32 expected_signature = PCC_SIGNATURE | subspace_id;
-> +	u32 signature;
-> +
-> +	if (pcc_mchan->shmem_size < sizeof(signature)) {
-> +		pr_err("PCC subspace %d shared memory is too small\n",
-> +		       subspace_id);
-> +		return -EINVAL;
-> +	}
-> +
-> +	signature = ioread32(pcc_mchan->shmem);
-> +	if (signature != expected_signature)
-> +		pr_warn("PCC subspace %d invalid signature %#x expected %#x\n",
-> +			subspace_id, signature, expected_signature);
-> +
-> +	return 0;
-> +}
-> +
->   /**
->    * pcc_mbox_request_channel - PCC clients call this function to
->    *		request a pointer to their PCC subspace, from which they
-> @@ -381,14 +401,20 @@ pcc_mbox_request_channel(struct mbox_client *cl, int subspace_id)
->   	if (!pcc_mchan->shmem)
->   		return ERR_PTR(-ENXIO);
->   
-> +	rc = pcc_mbox_validate_signature(pcc_mchan, subspace_id);
-> +	if (rc)
-> +		goto err_unmap_shmem;
-> +
->   	rc = mbox_bind_client(chan, cl);
-> -	if (rc) {
-> -		iounmap(pcc_mchan->shmem);
-> -		pcc_mchan->shmem = NULL;
-> -		return ERR_PTR(rc);
-> -	}
-> +	if (rc)
-> +		goto err_unmap_shmem;
->   
->   	return pcc_mchan;
-> +
-> +err_unmap_shmem:
-> +	iounmap(pcc_mchan->shmem);
-> +	pcc_mchan->shmem = NULL;
-> +	return ERR_PTR(rc);
->   }
->   EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
->   
+Andre Przywara (10):
+  arm_mpam: let low level MSC accessors return an error
+  arm_mpam: propagate MSC access errors for hw_probe functions
+  arm_mpam: propagate MSC access errors for MBWU counters
+  arm_mpam: propagate MSC access errors for msmon helpers
+  arm_mpam: propagate MSC access errors for __ris_msmon_read()
+  arm_mpam: propagate MSC access errors for state saving function
+  arm_mpam: prepare mon_sel locking for MPAM-Fb
+  arm_mpam: add MPAM-Fb MSC firmware access support
+  arm_mpam: prevent MPAM-Fb accesses inside IRQ handler
+  arm_mpam: detect and enable MPAM-Fb PCC support
 
+ drivers/acpi/arm64/mpam.c       |   6 +-
+ drivers/resctrl/Makefile        |   2 +-
+ drivers/resctrl/mpam_devices.c  | 648 ++++++++++++++++++++++++--------
+ drivers/resctrl/mpam_fb.c       | 197 ++++++++++
+ drivers/resctrl/mpam_internal.h |  60 ++-
+ include/linux/arm_mpam.h        |   2 +-
+ 6 files changed, 739 insertions(+), 176 deletions(-)
+ create mode 100644 drivers/resctrl/mpam_fb.c
 
-Tested-by: Adam Young <admiyo@os.amperecomputing.com>
-
-
+-- 
+2.43.0
 
