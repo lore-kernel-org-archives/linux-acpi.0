@@ -1,293 +1,179 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9CC4B4DB569;
-	Thu, 23 Jul 2026 15:55:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784822140; cv=none; b=bWfBAwL6J0iGDcheN8UCAqpIQg7CiOKvro3D7dCqtGmdXSRuzfgqeu0iRUL0ulGcAR31n+sqRuP3dYWLe51yuATdD4J4guElbt2fOgeG70W/VB9J0MYI70rNpMJcU09RZM/AOxB09/LUGzcIVCLOdgZHAlulEDpaGl3cs4OVQQk=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784822140; c=relaxed/simple;
-	bh=puaj69qRzbjRL3t0MWqCptnRjoA/ON3kxaK9k+GBkkA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=OgktPIIIjqq+D6o0yABVgwzWgtTQlSZ/1o1yufdltnZw/NHx4EuqM3Fwe+mgT6cjLQQp5iMDfHWiyHai9sLfR8kJ0HMw2647NFvqUJEU2TjCZ7EgOsPmfzT4tx1Q4pm+ic8yTa1GkuJUn5QHjjrX/4XFeWZvf7LWfX76QZj6+HE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=pUP7XKFR; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11022092.outbound.protection.outlook.com [40.107.200.92])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9516484250;
+	Thu, 23 Jul 2026 15:58:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.200.92
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1784822290; cv=fail; b=XPgiQ3h3kUvofYEWBzmojEYYWhG33JSOfeS5iJJTdhsc/wy8qnYcYx26C/b5KDzW5OBk9TWblWvVrB0HOKzWdHQwwGCAo5XYxtIlxjXKiC++/M9scv9J+veLhu9uC+bsxlyNWHMJVTaAGGMlr0PnFGZvbJ8QqaNQ8uRiT0biX8Q=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1784822290; c=relaxed/simple;
+	bh=3PislCxkURYPFStoJUXLUqrk7CGRqM/uTxSr68dit14=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=NI1eiy2LKtMMrgTjZ1IHfCYopouFkV6fBtTefqQDDWs4/nc8vHMFOrmTWg8x1YeXOQ4+LVwHjae6HGQmkBmPjYQ0DCN3dAHx6ogOv6ZvKTdvv3BDuTWwJf569Q6Y1zOxxQ0CHLBhWpo1aWGk/v0XIpcxfcuqYySAABHWY3lSpjI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=amperemail.onmicrosoft.com; spf=pass smtp.mailfrom=os.amperecomputing.com; dkim=fail (0-bit key) header.d=amperemail.onmicrosoft.com header.i=@amperemail.onmicrosoft.com header.b=EeXaDoUA reason="key not found in DNS"; arc=fail smtp.client-ip=40.107.200.92
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=amperemail.onmicrosoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=os.amperecomputing.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="pUP7XKFR"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B73F8176B;
-	Thu, 23 Jul 2026 08:55:33 -0700 (PDT)
-Received: from e142021.fritz.box (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 835033F66F;
-	Thu, 23 Jul 2026 08:55:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1784822137; bh=puaj69qRzbjRL3t0MWqCptnRjoA/ON3kxaK9k+GBkkA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=pUP7XKFRrLDn8C8dPk9DCU40gz879qwLoGCmizOxxvW6YtGOLeuteHtRQcFSSgqrB
-	 ND1Y6yf4Un9h4f43NB/B+BNt1N6OREtQMkA95z+EftjBDaAAA+uAu3803qtaMXWhex
-	 oBVVAMMw/gYf4vqz8diu7A9nNjdQO5+MHK3IgY3A=
-From: Andre Przywara <andre.przywara@arm.com>
-To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	James Morse <james.morse@arm.com>,
-	Ben Horgan <ben.horgan@arm.com>,
-	Reinette Chatre <reinette.chatre@intel.com>,
-	Fenghua Yu <fenghuay@nvidia.com>
-Cc: Jonathan Cameron <jic23@kernel.org>,
-	Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
-	Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
-	Trilok Soni <tsoni@quicinc.com>,
-	Srinivas Ramana <sramana@qti.qualcomm.com>,
-	Niyas Sait <niyas.sait@arm.com>,
-	Lee Trager <lee@trager.us>,
-	linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v4 10/10] arm_mpam: detect and enable MPAM-Fb PCC support
-Date: Thu, 23 Jul 2026 17:54:54 +0200
-Message-ID: <20260723155454.1760823-11-andre.przywara@arm.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260723155454.1760823-1-andre.przywara@arm.com>
-References: <20260723155454.1760823-1-andre.przywara@arm.com>
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=amperemail.onmicrosoft.com header.i=@amperemail.onmicrosoft.com header.b="EeXaDoUA"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=x3Ykb/ABMj59HsmWJdIrAuKriJ5YhtdNCZ56unnpnCFiut2/AkCkZKlajHkJPDDHoW80CtvZsRswqgrOmbBMIEsK9xfMLeUeHFkJ1+l9K+9RLx6aiWQ0bVeNEzn1Clu+jvN7khwTVluONuGvvo3N7AAPNSStETyQIUdGTngxOds1t4Uz0BrdWCFF//N8IujgsCr7w8o+1EL0OBvs8lEAJlS7V7pw45QI8qnmJOPrLH8t2/JQD35lKVJSv0Hd9t+rlxSbMium37hhDaFIKej5o/sozwZstJCZlOIUK6mHlR7BWUp6FSe6m4didLq4A9hgovHO0zrIiJubFE6gJJNa1Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=8MdjDc16zmsyie+9GSjITdRukP8Q9TU9HRAK4RHO9zg=;
+ b=kePpx+DwVveKwWKi2Mf0mY5gmSsLOzBZkiHtgZv4D8YSCGEVYMvZAvIhbtnzACIDHqICZ9E34vFyTPf2L+tkSRLVAACWSQFDKBhCm2WIwmKDOX4GKbegy9j7DzIGp+7AB5cbVo/6v3fhPtchEbhd8D8EhW7BeZJws9q0ox+fRVLzMxYVbuW9rNifOHdmekJxtU03ukhcRULRyMuN3UHaMNBkk2rZGnxKAhKDRtlTUEDpFWxqYz63Z8msnb8DCXeIJ8VFxmyfZuB52AkWAPy0gtr3+Ryq5SeG/r8mD//ZDakUFQiJGvyGwqstnpwTQoYg5jA8mDrZW3KsnLMUV2llDw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=os.amperecomputing.com; dmarc=pass action=none
+ header.from=amperemail.onmicrosoft.com; dkim=pass
+ header.d=amperemail.onmicrosoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=amperemail.onmicrosoft.com; s=selector1-amperemail-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=8MdjDc16zmsyie+9GSjITdRukP8Q9TU9HRAK4RHO9zg=;
+ b=EeXaDoUAeZYbcQkC0U5GgHejitHfDzinQ7XSkm410k5coquM0i8Z1ZNmTLgQwQw0ODuub+UTBKhpRmAFnvgdBY6+muhlRxh8ZuDb6g0msirQOl8ORXFjoSjHgTyEM+LxlSe92n2ZsRAR0HW1IbUlTXuZYheBj7A8PR6ONY3dYcU=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amperemail.onmicrosoft.com;
+Received: from BN3PR01MB9212.prod.exchangelabs.com (2603:10b6:408:2cb::8) by
+ BN5PR01MB9125.prod.exchangelabs.com (2603:10b6:408:2a8::10) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.245.11; Thu, 23 Jul 2026 15:58:02 +0000
+Received: from BN3PR01MB9212.prod.exchangelabs.com
+ ([fe80::44f3:1050:dce8:1ea9]) by BN3PR01MB9212.prod.exchangelabs.com
+ ([fe80::44f3:1050:dce8:1ea9%6]) with mapi id 15.21.0245.009; Thu, 23 Jul 2026
+ 15:58:02 +0000
+Message-ID: <18d7ecb3-c0a1-4d10-9b26-1f287e2de4bb@amperemail.onmicrosoft.com>
+Date: Thu, 23 Jul 2026 11:57:58 -0400
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 3/3] mailbox: pcc: Fix command timeout due to missed
+ interrupt
+To: Sudeep Holla <sudeep.holla@kernel.org>,
+ Adam Young <admiyo@os.amperecomputing.com>
+Cc: jassisinghbrar@gmail.com, lihuisong@huawei.com,
+ linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20260717075649.467172-4-sudeep.holla@kernel.org>
+ <20260723031051.156890-1-admiyo@os.amperecomputing.com>
+ <20260723-mastodon-of-simple-criticism-2bdcc9@sudeepholla>
+Content-Language: en-US
+From: Adam Young <admiyo@amperemail.onmicrosoft.com>
+In-Reply-To: <20260723-mastodon-of-simple-criticism-2bdcc9@sudeepholla>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: CY5PR15CA0141.namprd15.prod.outlook.com
+ (2603:10b6:930:67::6) To BN3PR01MB9212.prod.exchangelabs.com
+ (2603:10b6:408:2cb::8)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN3PR01MB9212:EE_|BN5PR01MB9125:EE_
+X-MS-Office365-Filtering-Correlation-Id: b1a7439c-04f0-436d-8f45-08dee8d32ca6
+X-MS-Exchange-AtpMessageProperties: SA
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|10070799003|366016|376014|1800799024|23010399003|56012099006|11063799006|4143699003|10067099003|55112099003|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	mClebVYb39KQm2p52TZNoDtoLBTR3Ta6uQ/tulNrzOB+2i/mUFnEKKQKTj5QvuV3AMSIC+sVX+2is17l91jFg4P9vFZ/u0/AparpwRRMTkXPf4cXMeAqGVoohFWDGClA5hjK8Ya5BEj/YZ/jzK1erj1AFHkXWYwMSf3U1qMoB7BUNZHv0FD9W492v9LoTQKT8vORKLJA9mn3aYoy9Luez64BDT4+Q9PBfYjz7O56jnN6iSv23swPZ+2ahagHOw/CuLjkrzN/1laEmN6TFgm4nXiBYYPRR0iZsHSQgl9HN5Bp3ilDfLdeieEFIiOQIi7SIEm09LGLr/EHUm3lyKs3ZIZlPvTRt+AUQpsIJg2mLpwl4KGo+HhniU93+pAGJwOBTLDwdVAxeQ6aQkEOWxkOM9nkRKuzKLDV8diSLl81Ddv9oUbBUSZiNbqYGAb80wo9pvoB/qAVuC/MlhLBcDFbFj/mu0+zqIfZDl9WybAnmPqLzko3fyLLme6BVbB9ZTbFTEk+Xlzp2HNZQTH2JkENs29PpLkpLOd4MsTbWJ3l0bYhqwtNfSCg6gU59QEoLTDJD1uBf9R1snNK0RlfQBIVhPUQlyAxypX9P9e2/3yt11C3HYQnqVFdaQ1WbR8ivQYruHADo0hOwZU9I6knR3L3hb6L+cFBsKCC2IB1C2914jc=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN3PR01MB9212.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(13230040)(10070799003)(366016)(376014)(1800799024)(23010399003)(56012099006)(11063799006)(4143699003)(10067099003)(55112099003)(18002099003)(22082099003);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 2
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?NXFKMTJVVElKRmhMV1RmdWUwdXB0WDAvNkxPMFNLbWlBbUNJSnhDYktoSHR2?=
+ =?utf-8?B?eXh3QjFON2FtSEM3Qmk4b0VhZ21jbE5oVFJVcHRQd3RYSi9jd1RGMEJXR1M3?=
+ =?utf-8?B?UzNSTi91ZXRQY0R1QzVqTU1pc2V1Qy9lb0g1eDhqVCs5Y25YcW1sa0RZUGxH?=
+ =?utf-8?B?YWFHWE9jL1dpc1I0ZkJaWk01Q2t1TkJkbSt3WTZ6RnR4M2Z5ZHlFQXVyN21z?=
+ =?utf-8?B?NjlhYkpEQms3OTgyaEJFdldCU0RIbytLQnE3N20vUlNwRGdwZnpPSnMxcGZt?=
+ =?utf-8?B?a2NHc2syUnBBd044WWwxWG1kSnVaaU9tZEROSUNKZ3pBRE9TRW12d3IvbzJW?=
+ =?utf-8?B?TVhib1hhbXJOTzY4VEVwSkZhZFh6aStFNzZVY2c2ditKNjNOeWErZGFLbkFI?=
+ =?utf-8?B?cmI3SUR6M0tUUGpOSUZCSzI3eVVGWVNUR3FPVmlSaDlNRTVJOUdTU1dXaUsy?=
+ =?utf-8?B?V0tGZHJPVHl3QmMwbkVhOTQ4cFFkNjNYY0VZeGFtQ3dLU2xSWHdSMVF6WW9Z?=
+ =?utf-8?B?U01DallTZzdsMnZTcElaOEJVVm0wd0NZT3RXZXpDbjNHL2JGSEdDTFBtNlM2?=
+ =?utf-8?B?d0lDZlVqbjU0d05uZU1zQmFUQktEdTFBdEo3dlJaNVlIY1JRWW9ZZ3hrL0xZ?=
+ =?utf-8?B?VkhJWnBTcGJJbmxqMWlHenNDL1BJTm90bldIajNHekxyNWZIZ2tmSzl4UjFo?=
+ =?utf-8?B?WHZHUUx3RkppTi9NZWFQNjJIcTlFZndRdkZRQ3ppeVVoMjBpY09yMVdua0Zs?=
+ =?utf-8?B?WnVDc0tmNUZyS1dvT28yaGpWTjFXVWdMM3pJbWhZNWw1WmVmMGpaYVVtY0xS?=
+ =?utf-8?B?OTRhUkhSTHhodGNLM1VBc2R5UTFFRk9OcDVsU3k4K2hJelBnaGUyMXAzTkx5?=
+ =?utf-8?B?NWRLM2lNSGVLWVVTZXQyT0NoMVQ0eWk1dE9kcG54TmRDdFZPQkgyVGxrYzRl?=
+ =?utf-8?B?R01hVXhzYUx6MHB3a29FZUhyWEJnWHdoZW5TMXkvelZKODlyUnhEc1Jhb09X?=
+ =?utf-8?B?V0E2UDBwZzV4TkhoNG1qNEVuN2dlOHMwSDIraStSelE2WFpJS01DazBieHoy?=
+ =?utf-8?B?L3FKc3pDUDNKUnFqS2VKeUV0RWtFeVl6cUovM01xUmg3UHNDZUM1ZTJVQUs4?=
+ =?utf-8?B?RDhqQThGK21qR0tMaXpYbnhwL0kwOVZ4WWNpdThtb3FTUkRDd3JWQXcwMGZJ?=
+ =?utf-8?B?RU9tM0xKcDk5eCtURUFRUDRGSTFmNjhrOWpEa2ltYnV1U3FmUkI0T0VxMVM1?=
+ =?utf-8?B?VGJEd2tQeFQyUDkvT1dBMFQwWitJRkI5bkJ0QmhTZFFnamwraXh4YTcxRFZR?=
+ =?utf-8?B?dWo1YWl1U2NrSVRWTW04akRYb1dFMkJmbTgxajl6dUNmU01XczhUUGhEamN1?=
+ =?utf-8?B?K3o0Uy9uSVhxaDNLbk5PaDQrWHhNZVZpL2JIWldLOU5nVVgrK0tKUVRZVUZ4?=
+ =?utf-8?B?Ulhrd1Y5SkxOTUViSTBQOUhqVGtSaWdobTI2R0Q5KzdFcWtvYzhNRGx4RGho?=
+ =?utf-8?B?MDdyNFlrRWlHK3hqNTV4aHo5RFFnL3daSng1eEdVSlNVVkVISzcvbnBxd1NS?=
+ =?utf-8?B?VGxDOVgvaTBpeEdKa1RrT2hoMzFZZzZpZzlLN3cyQU91TjZHR3llcHNKbVIw?=
+ =?utf-8?B?QUsvc1RBa3QrM1ZJTmNRenBoTlBwbjZOYTJxZWN3NkNrcXV3b0ZqRGhzREU1?=
+ =?utf-8?B?ZjgvOEJGaVJUZEkrZVB2a2dySkcralJNMW1UOHVyWmorSG0xQVVCT2VaWHdp?=
+ =?utf-8?B?K3NTOXI5MnYwTmZOcGZCM1lnLzVGaUJBY3R1SUs4WndRRktPQXUvcURPUzhO?=
+ =?utf-8?B?VFd6VHpBaWN3NWRsckJFdUxkTVNxa3NuenNabDVSOHhTWERTcFEvZ1BueEdV?=
+ =?utf-8?B?UFBmWFY2cE81Z1lndTlKNjZ2M2hwY1BXTndSQlFrNVppYzNFM0NnQzlmZWM1?=
+ =?utf-8?B?K0ZjSjk3d1h4UFBDdk5FOEM5QUZVcDEvWHBvVXRjb3Zmdm9yQ3VyZXZaVi90?=
+ =?utf-8?B?U0thRlNwSlkxZjV5Qk5ybnJNNDQ0THppMDkyUnE5SVNhdENKUTNrZ0ZjVGVW?=
+ =?utf-8?B?SWFidS9pMS8wazFMSVU0Nmc0cFlicEVyb1J3OWk2dGZHQUo4VU04N0swZVF5?=
+ =?utf-8?B?SHVjbzJwYWlPTUMyOFF4akhKdGFJV3E5dXJhY0FPNjJPenlmek1laE5PYllq?=
+ =?utf-8?B?cUR4dFliVkdFdU16b29uWEMycHJSRmI0UkgxbGgzSVdxU1RHZ3VDbUhCREdM?=
+ =?utf-8?B?UHJrYmwrdXFmMUpOTiswaXFiUDR3RnErdStwYTBLM0w0aDBMOUs1UEVkdGlW?=
+ =?utf-8?B?cmNySXFKRXFYOGdyTzZ2RGFuU3lyd3IvRDJEc3RYUzdLZ0lqZXdEZlI4NEVI?=
+ =?utf-8?Q?t1mXSjfWxEJrhyq+3FqoHefzAoNhF06aiL6WNqmaDZsgE?=
+X-MS-Exchange-AntiSpam-MessageData-1:
+	cEcKHfZm3ZuWCZqbdRtLF0XUQLFtH7DUJbAsGSrLEygi5Mi7L/cQ2eee
+X-OriginatorOrg: amperemail.onmicrosoft.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: b1a7439c-04f0-436d-8f45-08dee8d32ca6
+X-MS-Exchange-CrossTenant-AuthSource: BN3PR01MB9212.prod.exchangelabs.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Jul 2026 15:58:02.0350
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3bc2b170-fd94-476d-b0ce-4229bdc904a7
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: x58GmSpwJV7oWOXslGNnhqxVn9otLjxuonGpyB1ar5LN3c3Q306lxoe3gx3xcD7+F+ajuAhPX7S2S33nTmNWOyb5W1CqXGg4n74xZaitBkky7yaaPMpxXyuRa3U7+rX2
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN5PR01MB9125
 
-The Arm MPAM-Fb specification [1] describes a protocol to access MSC
-registers through a firmware interface. This requires a shared memory
-region to hold the message, and a mailbox to trigger the access.
-For ACPI this is wrapped as a PCC channel, described using existing
-ACPI abstractions.
 
-Add code to parse those PCC table descriptions associated with an MSC,
-and store the parsed information in the MSC struct.
-There can be multiple PCC channels, and each channel can serve multiple
-MSCs, so we need to keep track of the channel usage, using a list and
-a refcount.
-This will be used by the MPAM-Fb access wrapper code.
+On 7/23/26 05:16, Sudeep Holla wrote:
+> On Wed, Jul 22, 2026 at 11:10:51PM -0400, Adam Young wrote:
+>>   
+>> +	/*
+>> +	 * Set chan_in_use before ringing the doorbell so a fast completion
+>> +	 * interrupt is not mistaken for a shared interrupt from another
+>> +	 * subspace. Use WRITE_ONCE() for the lockless flag update. The
+>> +	 * ordered MMIO accessor used to ring the doorbell keeps this store
+>> +	 * visible before the platform is notified.
+>> +	 */
+>> +	if (pchan->plat_irq > 0)
+>> +		WRITE_ONCE(pchan->chan_in_use, true);
+>>   	ret = pcc_chan_reg_read_modify_write(&pchan->db);
+>>   	if (!ret && pchan->plat_irq > 0)
+>> -		pchan->chan_in_use = true;
+>> +		WRITE_ONCE(pchan->chan_in_use, false);
+>>   
+>>   	return ret;
+>>   }
+>> -- 
+>> 2.43.0
+>> iAt the end of the above code,
+>>   WRITE_ONCE(pchan->chan_in_use, false);
+>>   should be
+>>   WRITE_ONCE(pchan->chan_in_use, true);
+>>
+>> In order to keep the original semantics.  The flag is cleared when the
+>> messages is ACKed, not here.  This version causes a hang.
+>>
+> Did you run and seeing hang or just code inspection. If latter, have you
+> considered that modified code sets it true before doorbell is rung and
+> set to false only if there is a failure to ring the doorbell ?
+>
+Yes, I saw the hang, and debugged to see this line semantically 
+different.  I changed it to true and things resumed working.  !ret is 0  
+so that happens in the success case.
 
-[1] https://developer.arm.com/documentation/den0144/latest
 
-Signed-off-by: Andre Przywara <andre.przywara@arm.com>
----
- drivers/acpi/arm64/mpam.c      |   6 +-
- drivers/resctrl/mpam_devices.c | 127 ++++++++++++++++++++++++++++++++-
- 2 files changed, 129 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/arm64/mpam.c b/drivers/acpi/arm64/mpam.c
-index 84963a20c3e7..ca9b8754ae5f 100644
---- a/drivers/acpi/arm64/mpam.c
-+++ b/drivers/acpi/arm64/mpam.c
-@@ -220,8 +220,8 @@ static struct platform_device * __init acpi_mpam_parse_msc(struct acpi_mpam_msc_
- 	struct platform_device *pdev __free(platform_device_put) =
- 		platform_device_alloc("mpam_msc", tbl_msc->identifier);
- 	int next_res = 0, next_prop = 0, err;
--	/* pcc, nrdy, affinity and a sentinel */
--	struct property_entry props[4] = { 0 };
-+	/* pcc, msc-id, nrdy, affinity and a sentinel */
-+	struct property_entry props[5] = { 0 };
- 	/* mmio, 2xirq, no sentinel. */
- 	struct resource res[3] = { 0 };
- 	struct acpi_device *companion;
-@@ -256,6 +256,8 @@ static struct platform_device * __init acpi_mpam_parse_msc(struct acpi_mpam_msc_
- 	} else if (iface == MPAM_IFACE_PCC) {
- 		props[next_prop++] = PROPERTY_ENTRY_U32("pcc-channel",
- 							tbl_msc->base_address);
-+		props[next_prop++] = PROPERTY_ENTRY_U32("msc-id",
-+							tbl_msc->identifier);
- 	}
- 
- 	acpi_mpam_parse_irqs(pdev, tbl_msc, res, &next_res);
-diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-index fea3161ffbe9..fc4b5f87fbe9 100644
---- a/drivers/resctrl/mpam_devices.c
-+++ b/drivers/resctrl/mpam_devices.c
-@@ -19,14 +19,19 @@
- #include <linux/irqdesc.h>
- #include <linux/list.h>
- #include <linux/lockdep.h>
-+#include <linux/mailbox_client.h>
- #include <linux/mutex.h>
- #include <linux/platform_device.h>
- #include <linux/printk.h>
-+#include <linux/property.h>
- #include <linux/srcu.h>
- #include <linux/spinlock.h>
- #include <linux/types.h>
- #include <linux/workqueue.h>
- 
-+#include <acpi/pcc.h>
-+#include <acpi/acpi_io.h>
-+
- #include "mpam_internal.h"
- 
- /* Values for the T241 errata workaround */
-@@ -49,6 +54,86 @@ static LIST_HEAD(mpam_all_msc);
- 
- struct srcu_struct mpam_srcu;
- 
-+/* PCC channels might be serving multiple MSCs, so keep a refcounted list. */
-+static DEFINE_MUTEX(pcc_chan_list_lock);
-+static LIST_HEAD(pcc_chan_list);
-+
-+static void mpam_pcc_chan_release(struct kref *ref)
-+{
-+	struct mpam_pcc_chan *cur = container_of(ref, struct mpam_pcc_chan,
-+						 refcount);
-+
-+	pcc_mbox_free_channel(cur->pcc_chan);
-+	list_del(&cur->pcc_chans);
-+	kfree(cur);
-+}
-+
-+static struct mpam_pcc_chan *mpam_pcc_chan_get(struct device *dev,
-+					       int subspace_id)
-+{
-+	struct mpam_pcc_chan *cur;
-+	int ret;
-+
-+	guard(mutex)(&pcc_chan_list_lock);
-+
-+	list_for_each_entry(cur, &pcc_chan_list, pcc_chans) {
-+		if (cur->subspace_id == subspace_id) {
-+			kref_get(&cur->refcount);
-+
-+			return cur;
-+		}
-+	}
-+
-+	cur = kzalloc_obj(*cur);
-+	if (!cur)
-+		return ERR_PTR(-ENOMEM);
-+
-+	cur->pcc_cl.dev = dev;
-+	cur->pcc_cl.tx_block = true;
-+
-+	cur->pcc_chan = pcc_mbox_request_channel(&cur->pcc_cl, subspace_id);
-+	if (IS_ERR(cur->pcc_chan)) {
-+		long err = PTR_ERR(cur->pcc_chan);
-+
-+		kfree(cur);
-+		return ERR_PTR(err);
-+	}
-+
-+	/* Timeout based on the "nominal latency" from the PCC ACPI table. */
-+	cur->pcc_cl.tx_tout = cur->pcc_chan->latency * 5;
-+
-+	ret = devm_mutex_init(dev, &cur->pcc_chan_lock);
-+	if (ret)
-+		return ERR_PTR(ret);
-+
-+	cur->subspace_id = subspace_id;
-+	kref_init(&cur->refcount);
-+
-+	list_add_tail(&cur->pcc_chans, &pcc_chan_list);
-+
-+	return cur;
-+}
-+
-+static int mpam_pcc_chan_put(struct mpam_pcc_chan *pcc_chan)
-+{
-+	struct mpam_pcc_chan *cur, *tmp;
-+
-+	if (!pcc_chan)
-+		return 0;
-+
-+	guard(mutex)(&pcc_chan_list_lock);
-+
-+	list_for_each_entry_safe(cur, tmp, &pcc_chan_list, pcc_chans) {
-+		if (cur == pcc_chan) {
-+			kref_put(&cur->refcount, mpam_pcc_chan_release);
-+
-+			return 0;
-+		}
-+	}
-+
-+	return -ENOENT;
-+}
-+
- /*
-  * Number of MSCs that have been probed. Once all MSCs have been probed MPAM
-  * can be enabled.
-@@ -2201,6 +2286,8 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
- {
- 	struct mpam_msc *msc = platform_get_drvdata(pdev);
- 
-+	mpam_pcc_chan_put(msc->pcc_chan);
-+
- 	mutex_lock(&mpam_list_lock);
- 	mpam_msc_destroy(msc);
- 	mutex_unlock(&mpam_list_lock);
-@@ -2211,7 +2298,7 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
- static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
- {
- 	int err;
--	u32 tmp;
-+	u32 pcc_subspace_id;
- 	struct mpam_msc *msc;
- 	struct resource *msc_res;
- 	struct device *dev = &pdev->dev;
-@@ -2259,7 +2346,8 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
- 	if (err)
- 		return ERR_PTR(err);
- 
--	if (device_property_read_u32(&pdev->dev, "pcc-channel", &tmp))
-+	if (device_property_read_u32(&pdev->dev, "pcc-channel",
-+				     &pcc_subspace_id))
- 		msc->iface = MPAM_IFACE_MMIO;
- 	else
- 		msc->iface = MPAM_IFACE_PCC;
-@@ -2275,6 +2363,41 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
- 		}
- 		msc->mapped_hwpage_sz = msc_res->end - msc_res->start;
- 		msc->mapped_hwpage = io;
-+	} else if (msc->iface == MPAM_IFACE_PCC) {
-+		u32 msc_id;
-+		int ret;
-+
-+		if (device_property_read_u32(&pdev->dev, "msc-id", &msc_id)) {
-+			pr_err("missing MPAM-Fb MSC identifier\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+		msc->mpam_fb_msc_id = msc_id;
-+
-+		msc->pcc_chan = mpam_pcc_chan_get(&pdev->dev, pcc_subspace_id);
-+		if (IS_ERR(msc->pcc_chan)) {
-+			pr_err("Failed to request MSC PCC channel\n");
-+			return ERR_CAST(msc->pcc_chan);
-+		}
-+
-+		if (msc->pcc_chan->pcc_chan->shmem_size < MPAM_FB_MAX_MSG_SIZE) {
-+			pr_err("MPAM-Fb PCC channel size too small.\n");
-+			mpam_pcc_chan_put(msc->pcc_chan);
-+			return ERR_PTR(-ENOMEM);
-+		}
-+		ret = mpam_fb_get_protocol_version(msc);
-+		if (ret < 0) {
-+			pr_err("Cannot query MPAM-Fb protocol version.\n");
-+			mpam_pcc_chan_put(msc->pcc_chan);
-+
-+			/* ret is an MPAM-Fb error code, return a Linux one. */
-+			return ERR_PTR(-EIO);
-+		}
-+		if ((ret >> 16) != 1) {
-+			pr_err("Incompatible MPAM-Fb protocol version %d.%d\n",
-+			       ret >> 16, ret & 0xffff);
-+			mpam_pcc_chan_put(msc->pcc_chan);
-+			return ERR_PTR(-EINVAL);
-+		}
- 	} else {
- 		return ERR_PTR(-EINVAL);
- 	}
--- 
-2.43.0
 
