@@ -1,40 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98F764D2EDC;
-	Thu, 23 Jul 2026 14:39:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9C972FE566;
+	Thu, 23 Jul 2026 14:39:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784817593; cv=none; b=CBJ8Tsje75RO49VB5Nc3Ecr4O1ZWChX/4eNdDmrP/QmCKmKOf2IH8AGg4ayK6G9wmsHkRZ1blFonyIcCsGOmiKskh7iByJ/WuMXUTMMs1ZjfaJMJYNWa89+jQWe0ldm55npU7Nvt5YxKj3uxkycPVrkoLf0kf/KwWNxifCOazuk=
+	t=1784817594; cv=none; b=erCkltm7wRSS/8iZ320rfwokOMsfSzBR0MPZuN8Q9BgtF6kFR8Y1TUsJAexh7g+KzWIGCuwSR/04nG4URaTAjOwIsBsEsraU8QG3gFIAiVp8gMVleFDwt937mrVrcdM1ypNhlBSELE3LDf8OLyQWS1Zl62INJNKB+bdxzphMF+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784817593; c=relaxed/simple;
-	bh=yAajlLG9sjulzqhK21I0O/LOhpPPCJvQO9xQPwEpc/w=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cpJKW0F+dmzLw9sBEEA8jItJokFmGnS4tro+6kzE+v+2lmxvK/o/XIJ3sFEgXk7mz28ESfRxJXQP0U0K8/sDYfPIyOpkZxcw0Bs4o1pbHvGtWJxfauZu/p3ppJgUnOIoLfYIeDjrOH73+RAzAl6fIi7gt/MeHRUd62YAQuOa0lU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=F8+Pj+eV; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784817594; c=relaxed/simple;
+	bh=AG2LRkto9w3xmViEcMhCZoTnCGM09ad2FMqFX/B0cvw=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=vCxFxQL4JxdrevpiXmQwyInXW7m7kIwtp4C7+l/dYzFVzwULlp9gPuZJCrnyUDSPLow0RfWCgngyzkoiZUErJK7OWY2nbNhSd6tKOO5Hf+BWZ677e8r7XIesdSn1LieHVl1XrHgjL6VawUKyBclnsVH7w1vH388bsLZAX55aQWg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oK0lRej+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="F8+Pj+eV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D01C1F00A3A;
-	Thu, 23 Jul 2026 14:39:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oK0lRej+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 541641F00A3E;
+	Thu, 23 Jul 2026 14:39:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784817582;
-	bh=t8JdxiTXKQPEJ2GqZOxZCKLPTI9feT9NT38oRkoWWTo=;
-	h=From:To:Cc:Subject:Date;
-	b=F8+Pj+eV5E6/A0PtaR4SzmgGln6TCZn3lSQ4/twU4ncENwQdZiGY8/82LrRKdj3xd
-	 iv/7boIkwJ+7JuFHt2di4F4NAzAu+hm5Wg8+HkN/jBLRgltEgfoVZ0KVfjuNOT714e
-	 Ygxnm/a7I0guLA1dicjSmWUfUxoeJIhWx9iuBCUGnsHrJK3MrWHKwVFjlrxNSPD0xk
-	 yhbSQ/PZtK8mAXdKwidiS1/bAv6CO03oJS4k2NLGYv5xizwOzHEceZMjOc2LE4kCeq
-	 2lo5wGAiGExcvTK02/Z9Zk07hmt7/44K4iVHAYziLiQY0H/4Fu85xLygO6wKpU3TL2
-	 mRvkG8fn9FtSw==
+	s=k20260515; t=1784817585;
+	bh=uO2/fVWZERlN2SXDU0pXLI74BtIAR6r36vIFkTbpHqE=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=oK0lRej+/t4FtbcfefotJI1JePHFiPDdIcJ7+pEw3RyI61FwAqL7TrFmApoI70rRb
+	 T3ajcu0U51cIVYmZQCxSvC2E9/3EtXhsxtlytfVVwmnFi2eiB58eZZcqrKYOvSAErG
+	 9tlg3Ii5w3EY4EAZhFX4by1RWhedF6PvT+h5WG9ErDH6sce0adg4EpCOF2ZYS5rPfQ
+	 EndPLZTfv4AMYOgJ4cSs+TZEMPg8JvhnRoc/sa6wtS52nihgjNEn6XSXgTqtDEpVRg
+	 qw1/Axl3FjRx5baFLo4B6bUMamzuhVjXGIvLoJgmiT94iIDVE6oL8M/JFsySO2IDax
+	 PeiUhvx4qVyjA==
 From: Sudeep Holla <sudeep.holla@kernel.org>
 To: Jassi Brar <jassisinghbrar@gmail.com>,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org
 Cc: Sudeep Holla <sudeep.holla@kernel.org>,
 	Huisong Li <lihuisong@huawei.com>
-Subject: [PATCH v2 0/3] mailbox: pcc: Improve completion handling and validation
-Date: Thu, 23 Jul 2026 15:39:25 +0100
-Message-ID: <20260723143928.2625970-1-sudeep.holla@kernel.org>
+Subject: [PATCH v2 2/3] mailbox: pcc: Check shared memory signature on request
+Date: Thu, 23 Jul 2026 15:39:27 +0100
+Message-ID: <20260723143928.2625970-3-sudeep.holla@kernel.org>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260723143928.2625970-1-sudeep.holla@kernel.org>
+References: <20260723143928.2625970-1-sudeep.holla@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -43,50 +46,88 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi Jassi,
+ACPI 6.6 Tables 14.9 and 14.12 define the PCC shared memory
+signature as the bitwise OR of 0x50434300 and the PCC subspace ID.
+They also clarify that the signature is populated by the platform and
+verified by OSPM. The signature is at byte offset 0 in the generic,
+extended and reduced PCC shared memory layouts.
 
-This series addresses three issues in the PCC mailbox controller which
-are on the list for a while and discussed/reviewed. Please pick them
-for v7.3 or let me know if you prefer pull request.
+Check the signature when a client requests a PCC mailbox channel,
+after mapping shared memory and before binding the mailbox client.
+This keeps the check in the PCC mailbox controller instead of
+duplicating it in individual clients.
 
-First, notify clients through their receive callback when a command
-completes through polling, matching the interrupt-driven completion
-path.
+Treat a signature mismatch as a warning rather than rejecting the
+channel request. Making this newly added check fatal could break
+existing systems whose firmware did not populate the signature
+correctly even though PCC communication works. Continue to reject
+shared memory that is too small to contain a signature because it
+cannot be inspected safely.
 
-Second, centralize PCC shared memory signature checking in the mailbox
-controller. Invalid signatures are reported without rejecting otherwise
-working firmware, while mappings too small to contain a signature remain
-fatal.
+Cc: Jassi Brar <jassisinghbrar@gmail.com>
+Cc: Huisong Li <lihuisong@huawei.com>
+Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
+---
+ drivers/mailbox/pcc.c | 36 +++++++++++++++++++++++++++++++-----
+ 1 file changed, 31 insertions(+), 5 deletions(-)
 
-Finally, fix a race where a fast platform can signal command completion
-before the channel is marked in use, causing a shared interrupt to be
-ignored and the command to time out. Publish the channel state before
-ringing the doorbell and use READ_ONCE()/WRITE_ONCE() for the lockless
-flag accesses.
-
-
-Regards,
-Sudeep
-
-Changes in v2:
-- Reworked to keep chan_in_use set after a successful doorbell write
-  and clear it only when the write fails.
-- Clarified that ordering is provided by the ordered I/O accessor,
-  covering both MMIO and port I/O doorbells.
-- Clarified the cross-CPU flag access and interrupt-side clearing
-  before the mailbox core can submit another transfer.
-- Link to v1: https://lore.kernel.org/all/20260717075649.467172-1-sudeep.holla@kernel.org
-
-Huisong Li (1):
-  mailbox: pcc: Fix command timeout due to missed interrupt
-
-Sudeep Holla (2):
-  mailbox: pcc: Notify clients on polled completion
-  mailbox: pcc: Check shared memory signature on request
-
- drivers/mailbox/pcc.c | 87 +++++++++++++++++++++++++++++++++----------
- 1 file changed, 67 insertions(+), 20 deletions(-)
-
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index d96b8b54e77e..8dfa80b0a90f 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -345,6 +345,26 @@ static irqreturn_t pcc_mbox_irq(int irq, void *p)
+ 	return IRQ_HANDLED;
+ }
+ 
++static int pcc_mbox_validate_signature(struct pcc_mbox_chan *pcc_mchan,
++				       int subspace_id)
++{
++	u32 expected_signature = PCC_SIGNATURE | subspace_id;
++	u32 signature;
++
++	if (pcc_mchan->shmem_size < sizeof(signature)) {
++		pr_err("PCC subspace %d shared memory is too small\n",
++		       subspace_id);
++		return -EINVAL;
++	}
++
++	signature = ioread32(pcc_mchan->shmem);
++	if (signature != expected_signature)
++		pr_warn("PCC subspace %d invalid signature %#x expected %#x\n",
++			subspace_id, signature, expected_signature);
++
++	return 0;
++}
++
+ /**
+  * pcc_mbox_request_channel - PCC clients call this function to
+  *		request a pointer to their PCC subspace, from which they
+@@ -381,14 +401,20 @@ pcc_mbox_request_channel(struct mbox_client *cl, int subspace_id)
+ 	if (!pcc_mchan->shmem)
+ 		return ERR_PTR(-ENXIO);
+ 
++	rc = pcc_mbox_validate_signature(pcc_mchan, subspace_id);
++	if (rc)
++		goto err_unmap_shmem;
++
+ 	rc = mbox_bind_client(chan, cl);
+-	if (rc) {
+-		iounmap(pcc_mchan->shmem);
+-		pcc_mchan->shmem = NULL;
+-		return ERR_PTR(rc);
+-	}
++	if (rc)
++		goto err_unmap_shmem;
+ 
+ 	return pcc_mchan;
++
++err_unmap_shmem:
++	iounmap(pcc_mchan->shmem);
++	pcc_mchan->shmem = NULL;
++	return ERR_PTR(rc);
+ }
+ EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
+ 
 -- 
 2.43.0
 
