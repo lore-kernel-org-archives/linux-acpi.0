@@ -1,131 +1,141 @@
-Received: from bee.birch.relay.mailchannels.net (bee.birch.relay.mailchannels.net [23.83.209.14])
+Received: from pdx-out-001.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-001.esa.us-west-2.outbound.mail-perimeter.amazon.com [44.245.243.92])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2959374185;
-	Thu, 23 Jul 2026 16:43:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=23.83.209.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A844D14883F;
+	Thu, 23 Jul 2026 17:53:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=44.245.243.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784824983; cv=none; b=kCP5vBKUw2eoVdD7dcqIOt8MiEfSUjg6p4CW7Wi/m+4bpxaK4wkaIqusFQl1aDI3KNtH1O9KiP8VdHW3UzCPI2FaaPoUXajqhgBNw8/uUvi8YemvmMO851zeuxlt6A33ypX5OA5ExMKkCMhzNvi7z/0ma1lS/DPrt+H3lrgPqKo=
+	t=1784829220; cv=none; b=GipYwANZIMFcauOSoMWjn2WzQR6N81UBePsQfnu7Ef3+V/oVdlisSrlGpivrwnbWbJFM+tpJgiwNHs455oYOzjijRlBIrg66gri0cBDkxzHkyZZfHikF5StD7+nJmu8rG7hAcEwZ5bbFaXmt7ldul3ocHZozuonyKke4LxBEfkM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784824983; c=relaxed/simple;
-	bh=67AtmENqfuFWE+oaKz0IndJv4+zl6bSESpVaMM36Sg8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=afyQNH9RIwGZ26ETI/5VvZY4mCtQNBrsScynHuRK3Hnuus5eBhKZtCiFrcXzh59Voc2KjOhXaN+ANqEU/ZybRvvnOv5SthTzKKfawTmKRCF27gT4BwoYGzcv1Q4Enq/IK7gpOCFnD87Y+rG995rG60VREpCpqSi+IXdf5NqFtAA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=younglogic.com; spf=pass smtp.mailfrom=younglogic.com; dkim=pass (2048-bit key) header.d=younglogic.com header.i=@younglogic.com header.b=I1NMzxSp; arc=none smtp.client-ip=23.83.209.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=younglogic.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=younglogic.com
+	s=arc-20240116; t=1784829220; c=relaxed/simple;
+	bh=uoZoVwOPdmdlUK8IwvU+L50ZgJrmKaIJlodOtkreFrc=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=GfmOh/0xXWSierIBZyHSlANwFsoUjGOZSkGMP0qDAeS0/RRhMsggVIXfdOYvulM2TvQhpSsWZ3Hd32hzCoMHSfRSrf1A95+ZvKd2+5HeZAUFxUdkXnbn4mKlhVWzQ+TpAcqP1f0ESbHtzxDO6dEoGrT8MtPIcmEuMO4PgL93Dlg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=dC6kr7E0; arc=none smtp.client-ip=44.245.243.92
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=younglogic.com header.i=@younglogic.com header.b="I1NMzxSp"
-X-Sender-Id: dreamhost|x-authsender|adam@younglogic.com
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 440DA8020CF;
-	Thu, 23 Jul 2026 16:03:49 +0000 (UTC)
-Received: from pdx1-sub0-mail-a207.dreamhost.com (100-104-242-227.trex-nlb.outbound.svc.cluster.local [100.104.242.227])
-	(Authenticated sender: dreamhost)
-	by relay.mailchannels.net (Postfix) with ESMTPA id 961E1801217;
-	Thu, 23 Jul 2026 16:03:48 +0000 (UTC)
-X-Sender-Id: dreamhost|x-authsender|adam@younglogic.com
-X-MC-Relay: Neutral
-X-MailChannels-SenderId: dreamhost|x-authsender|adam@younglogic.com
-X-MailChannels-Auth-Id: dreamhost
-X-Irritate-Towering: 6bd0abe008f3a9c0_1784822629115_985153538
-X-MC-Loop-Signature: 1784822629115:2110027179
-X-MC-Ingress-Time: 1784822629115
-Received: from pdx1-sub0-mail-a207.dreamhost.com (pop.dreamhost.com
- [64.90.62.162])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.104.242.227 (trex/8.0.2);
-	Thu, 23 Jul 2026 16:03:49 +0000
-Received: from [10.41.33.250] (den-mail-01.amperecomputing.com [150.195.203.17])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits))
-	(No client certificate requested)
-	(Authenticated sender: adam@younglogic.com)
-	by pdx1-sub0-mail-a207.dreamhost.com (Postfix) with ESMTPSA id 4h5bX33cBnz1F;
-	Thu, 23 Jul 2026 09:03:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=younglogic.com;
-	s=dreamhost; t=1784822628;
-	bh=unRrJiP3OlPcB4yOS3QOzCR8Ils30Vmt31Jcm0lMbEM=;
-	h=Date:Subject:To:Cc:From:Content-Type:Content-Transfer-Encoding;
-	b=I1NMzxSpV8CC00vLCdpPgeHIwckzPTYdnOfABBsHxYrC0AZh4t+v9JPT3KosfJisf
-	 GwS1rv6x5bw9gV4GvJErfA9Gy8oRWPuDX55uOBQeYV086VJqhvFyX31webzFzR8yMQ
-	 bqiacnCJF99AzpjNI0/MPV51wbyDJtH16eOX9tFeO5S0dWQfAJE9se+vEXfPvKfOR4
-	 16h6ZYbO7lolMXteqp60sE+EcG6cwl13fhtQa2GfHwvmyyWAj6HSKgliw2NbJFBjA2
-	 JW5yjZWpxPQrrmy+Pm7UNfTvvYPLGBfoTHZ6wPrj1xP7zBRRFDkWqi57h3KbdXLXz4
-	 bLrh7vUXJ+ERA==
-Message-ID: <713e5efc-b0e3-45ca-b05f-eec36c977e8b@younglogic.com>
-Date: Thu, 23 Jul 2026 12:03:45 -0400
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="dC6kr7E0"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
+  t=1784829219; x=1816365219;
+  h=from:to:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=VRR830S5Crc5qLMak5M08xcwDHqS7wix0djaEazdHfc=;
+  b=dC6kr7E0n/VMEE6xMPkyZeNAmTvIE6MJVjUKR/5Xc0suOaR31qgAi4gl
+   pd+eQZ9SyQROOgZdrqjRmMPWOJco0C5cfupPlnT7JqYEddw+MERIQAsqC
+   2QnM7S9x3D4q3ZHtbr4aApWwWHlE9L65S3zzj0uk9AXgBQE1loKqQ05uZ
+   /A1VOz7vOLm2iZzwqObYTnHseppTxF1vD7W3b6H+DhLWJI7loyCBpnktg
+   1YHQjWxMJpUsatzVjW8bzMklVkuPJ8W0G9DBGSD8zGAjCBNA0UWIVHILl
+   GAT7V7W6e3rn7V6Ixhw+wLhT8sgbysst5SbRRup/kXxLqpSg+PSJM0JZn
+   w==;
+X-CSE-ConnectionGUID: hQH62+quTTKqUPCe8dab8g==
+X-CSE-MsgGUID: 5eTgeY77QKWhwQVb6PB5Nw==
+X-IronPort-AV: E=Sophos;i="6.25,181,1779148800"; 
+   d="scan'208";a="23748203"
+Received: from ip-10-5-0-115.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.0.115])
+  by internal-pdx-out-001.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jul 2026 17:53:36 +0000
+Received: from EX19MTAUWA002.ant.amazon.com [205.251.233.234:5323]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.12.152:2525] with esmtp (Farcaster)
+ id 630eda6d-2947-4491-9f8d-3b91b305424a; Thu, 23 Jul 2026 17:53:36 +0000 (UTC)
+X-Farcaster-Flow-ID: 630eda6d-2947-4491-9f8d-3b91b305424a
+Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
+ EX19MTAUWA002.ant.amazon.com (10.250.64.202) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.43;
+ Thu, 23 Jul 2026 17:53:36 +0000
+Received: from dev-dsk-farbere-1a-46ecabed.eu-west-1.amazon.com
+ (172.19.116.181) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.43; Thu, 23 Jul 2026
+ 17:53:31 +0000
+From: Eliav Farber <farbere@amazon.com>
+To: <rafael@kernel.org>, <tony.luck@intel.com>, <bp@alien8.de>,
+	<guohanjun@huawei.com>, <mchehab@kernel.org>, <xueshuai@linux.alibaba.com>,
+	<lenb@kernel.org>, <laurent.pinchart@ideasonboard.com>, <linusw@kernel.org>,
+	<brgl@kernel.org>, <orsonzhai@gmail.com>, <baolin.wang@linux.alibaba.com>,
+	<zhang.lyra@gmail.com>, <jic23@kernel.org>, <dlechner@baylibre.com>,
+	<nuno.sa@analog.com>, <andy@kernel.org>, <dmitry.torokhov@gmail.com>,
+	<hansg@kernel.org>, <ilpo.jarvinen@linux.intel.com>, <W_Armin@gmx.de>,
+	<ukleinek@kernel.org>, <fabio.m.de.francesco@linux.intel.com>,
+	<kaihengf@nvidia.com>, <ankita@nvidia.com>, <leitao@debian.org>,
+	<farbere@amazon.com>, <jason@os.amperecomputing.com>, <pedro.pbg@usp.br>,
+	<paulmck@kernel.org>, <frederic@kernel.org>, <kees@kernel.org>,
+	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-gpio@vger.kernel.org>, <linux-pwm@vger.kernel.org>,
+	<linux-iio@vger.kernel.org>, <linux-input@vger.kernel.org>,
+	<platform-driver-x86@vger.kernel.org>
+Subject: [PATCH 00/12] notifier: add device-managed registration APIs and convert drivers
+Date: Thu, 23 Jul 2026 17:53:13 +0000
+Message-ID: <20260723175325.37397-1-farbere@amazon.com>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/3] mailbox: pcc: Notify clients on polled completion
-To: Sudeep Holla <sudeep.holla@kernel.org>,
- Jassi Brar <jassisinghbrar@gmail.com>, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Cc: Huisong Li <lihuisong@huawei.com>,
- Cristian Marussi <cristian.marussi@arm.com>
-References: <20260717075649.467172-1-sudeep.holla@kernel.org>
- <20260717075649.467172-2-sudeep.holla@kernel.org>
-Content-Language: en-US
-From: Adam Young <adam@younglogic.com>
-In-Reply-To: <20260717075649.467172-2-sudeep.holla@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: EX19D031UWC002.ant.amazon.com (10.13.139.212) To
+ EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
+Many drivers repeat the same boilerplate when registering notifiers with
+device lifetime:
 
-On 7/17/26 03:56, Sudeep Holla wrote:
-> PCC channels without a platform interrupt rely on the mailbox
-> polling path to detect command completion.
->
-> That path currently only reports transmit completion to the mailbox
-> core, so clients that wait for their receive callback do not get
-> notified when the command completes.
->
-> Call mbox_chan_received_data() when polling observes completion on a
-> channel without a platform IRQ, matching the interrupt-driven
-> completion path.
->
-> Reported-by: Cristian Marussi <cristian.marussi@arm.com>
-> Acked-by: Huisong Li <lihuisong@huawei.com>
-> Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
-> ---
->   drivers/mailbox/pcc.c | 10 +++++++++-
->   1 file changed, 9 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-> index 636879ae1db7..d96b8b54e77e 100644
-> --- a/drivers/mailbox/pcc.c
-> +++ b/drivers/mailbox/pcc.c
-> @@ -449,7 +449,15 @@ static bool pcc_last_tx_done(struct mbox_chan *chan)
->   {
->   	struct pcc_chan_info *pchan = chan->con_priv;
->   
-> -	return pcc_mbox_cmd_complete_check(pchan);
-> +	if (!(chan->txdone_method & MBOX_TXDONE_BY_POLL))
-> +		return false;
-> +
-> +	if (!pcc_mbox_cmd_complete_check(pchan))
-> +		return false;
-> +
-> +	mbox_chan_received_data(chan, NULL);
-> +
-> +	return true;
->   }
->   
->   /**
+  1. Register the notifier with *_notifier_chain_register()
+  2. Check for error
+  3. Register a devm action to unregister on teardown
+  4. Implement a per-driver static unregister callback
 
-My code doesn't poll, so I cannot really claim to have tested it, but it 
-does not break the existing IRQ based driver mechanism.
+This series adds devm_atomic_notifier_chain_register(),
+devm_blocking_notifier_chain_register(), and
+devm_raw_notifier_chain_register() that automatically unregister the
+notifier when the device is unbound, then converts 11 drivers to use
+them.
 
-I can claim to have read through the code and confirm that it is 
-comparable to what happens on the IRQ case:   It clears the cmd_complete 
-field and calls mbox_chan_received_data. However, it does not clear 
-pchan->chan_in_use = false; (Which should now be a WRITE_ONCE) and I 
-would like to confirm that is not an oversight before providing a 
-reviewed-by tag.
+Each conversion eliminates a per-driver unregister callback and the
+associated devm_add_action_or_reset() call, reducing code by ~15 lines
+per driver.
 
+The implementation follows the established devres pattern used by other
+device-managed kernel APIs.
+
+Checkpatch reports 6 CHECKs (0 errors, 0 warnings) on patch 1:
+- "extern prototypes should be avoided in .h files"
+- "Alignment should match open parenthesis"
+
+Both are intentional to match the existing coding style in notifier.h,
+where all declarations use 'extern' and tab-indented continuation lines.
+
+Eliav Farber (12):
+  notifier: add device-managed registration APIs
+  pwm: iqs620a: use devm_blocking_notifier_chain_register()
+  iio: light: iqs621-als: use devm_blocking_notifier_chain_register()
+  iio: position: iqs624: use devm_blocking_notifier_chain_register()
+  gpio: adp5585: use devm_blocking_notifier_chain_register()
+  platform/x86: bitland-mifs-wmi: use
+    devm_blocking_notifier_chain_register()
+  Input: adp5585: use devm_blocking_notifier_chain_register()
+  ACPI: APEI: GHES: use devm_blocking_notifier_chain_register()
+  platform/x86: uniwill-wmi: use devm_blocking_notifier_chain_register()
+  gpio: eic-sprd: use devm_atomic_notifier_chain_register()
+  gpio: gpiolib-kunit: use devm_blocking_notifier_chain_register()
+  reboot: use devm_blocking_notifier_chain_register()
+
+ drivers/acpi/apei/ghes.c                   |  15 +-
+ drivers/gpio/gpio-adp5585.c                |  20 +--
+ drivers/gpio/gpio-eic-sprd.c               |  17 +--
+ drivers/gpio/gpiolib-kunit.c               |  14 +-
+ drivers/iio/light/iqs621-als.c             |  24 +---
+ drivers/iio/position/iqs624-pos.c          |  24 +---
+ drivers/input/keyboard/adp5585-keys.c      |  18 +--
+ drivers/platform/x86/bitland-mifs-wmi.c    |  17 +--
+ drivers/platform/x86/uniwill/uniwill-wmi.c |  17 +--
+ drivers/pwm/pwm-iqs620a.c                  |  21 +--
+ include/linux/notifier.h                   |  10 ++
+ kernel/notifier.c                          | 151 +++++++++++++++++++++
+ kernel/reboot.c                            |  24 +---
+ 13 files changed, 191 insertions(+), 181 deletions(-)
+
+-- 
+2.47.3
 
