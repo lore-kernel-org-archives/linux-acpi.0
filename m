@@ -1,172 +1,166 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8001543CE7F;
-	Thu, 23 Jul 2026 13:29:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB8053630AF;
+	Thu, 23 Jul 2026 13:47:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784813362; cv=none; b=Lx5kRLUPUJPCBdy8haWgOE2PQgIM3Y8plaKRj7vpdBSFb9KV08JEb3dZQWKWJPCQZONXmaZ4Eo20wq1Q1gykxLEAbTChRyAsWROeCmqllIyG4oRnUgPCnBl/A16hz079nBMZOqVx9MzE19kdHjZ3BcfHJTvjvHett+/EVvdRfs4=
+	t=1784814435; cv=none; b=j8fwBink/SMblObeBVmGyImrhBzs9nHZNzng3EB2E8bOXV+f3qISI5Nkqo1Ix6B+v2+1n5vH539wc5Es/wnd3I/nR3hRfXQpTE6cj4AFSJiDVz5e7x35hyBf/D3cpuVsz5D47/2mWXKTirFACsE0rhF8inPh1C7o3XcA3CHte5I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784813362; c=relaxed/simple;
-	bh=DQG1i2GW6H8AWgAM7kLEoOBoOYPwYUL4X/QW+VEwna0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=jFpEpHj+AvWwByy1DIueKoV59BBUNIDMAuQpLotHOV+ZB+H5ILp3ZVvL0DC0dmyLSRgHCLCrZtCOX3vZ/VHCWQhzFznC/oSCFAi0st3PgZL4twJ+lQsC30rle0E04zwMimk26FM/oOIkzrXrCW3X0y7VCKZ7oWpxISzL/shYZoY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=eOw+eSlZ; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1784814435; c=relaxed/simple;
+	bh=TTOiuNpKd3ZCkUsJNnXQtcBfFIarUNgpz9bYK41z5To=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=joh7u196R+FLRvMD3K1Q9hPCGzyINAyfDmU6S/WWcL2t8h4A6G8t1XHGKm5iuPDRTgg4jklSojskmsZp4Gl6uvEJjp/RPnt6bHvZEIVMR1gBHoO1FIPumi1WsAKNs/p6G5+D37+8A6QjFSEuTx8R2wpZiaYyA/4BS2Pmrorym8c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QJfmqszm; arc=none smtp.client-ip=192.198.163.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="eOw+eSlZ"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 864211477;
-	Thu, 23 Jul 2026 06:29:10 -0700 (PDT)
-Received: from [192.168.178.24] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id B5CC13F66F;
-	Thu, 23 Jul 2026 06:29:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1784813354; bh=DQG1i2GW6H8AWgAM7kLEoOBoOYPwYUL4X/QW+VEwna0=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=eOw+eSlZVAp8Pyq+0Gb4H9EcKuCXSRO2hYrwGd96TmfJurhKDGMCroIQ4RfW/Yfac
-	 wMgdr61YNX6wf8VCQ7HWIExgCqG75bMKhrDd1+rVMWWcSiEWeu/TQPz9gwuET/DhO/
-	 LoeoFlvIZgIPE0fhnpaxfnam6XRMPBhDGRm6HvcQ=
-Message-ID: <e8e76253-f245-45e4-b2ff-d790edffea03@arm.com>
-Date: Thu, 23 Jul 2026 15:29:13 +0200
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QJfmqszm"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1784814433; x=1816350433;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=TTOiuNpKd3ZCkUsJNnXQtcBfFIarUNgpz9bYK41z5To=;
+  b=QJfmqszmoazUO4TQ/refWGwArlf6IJPRlRFK0xkl/SMmu/MyHpA1fZLZ
+   J6KPIMvKuZJnjTMRZLVYWn3jOKQ5pK+TMOYIwxcIdc6S9dx5KzUcF3jnB
+   wqi5GC2CTUQ3beFpsJRBvV4bWjww1EEzeJrKT1DJSfc3S8xjd8kGqPvpp
+   IRn7RJdwsNvCh/8IFDIHm0ALH9bw8Bm5K/BxscfpLH4n2C4PnUL5qtSEn
+   XNjaixnWuz22MwRdkgxhYbbn8u11KGwm7URWqPJgsnPiDPk+a6ae+ycYP
+   Z9X3jmZPOIlyVMItHNX/wwNl0sic+1pqbp1V9DvU1AbBYPRG2gvXH+KpY
+   A==;
+X-CSE-ConnectionGUID: hiYwjM9US0GVdBYAznH/3A==
+X-CSE-MsgGUID: +qWTSrdSR2Oep9xtgrq7uw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11854"; a="88008518"
+X-IronPort-AV: E=Sophos;i="6.25,180,1779174000"; 
+   d="scan'208";a="88008518"
+Received: from orviesa003.jf.intel.com ([10.64.159.143])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jul 2026 06:47:07 -0700
+X-CSE-ConnectionGUID: 5I8g06L0RzW2DP7JqA5g0A==
+X-CSE-MsgGUID: b1+2gPZ+TkuUBaWrc2aoow==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,180,1779174000"; 
+   d="scan'208";a="261962172"
+Received: from tassilo.jf.intel.com (HELO tassilo) ([10.54.38.190])
+  by ORVIESA003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jul 2026 06:47:07 -0700
+Date: Thu, 23 Jul 2026 06:47:00 -0700
+From: Andi Kleen <ak@linux.intel.com>
+To: Markus Elfring <Markus.Elfring@web.de>
+Cc: acpica-devel@lists.linux.dev, bpf@vger.kernel.org,
+	coresight@lists.linaro.org, kvm@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-gpio@vger.kernel.org, linux-kselftest@vger.kernel.org,
+	linux-mm@kvack.org, linux-perf-users@vger.kernel.org,
+	linux-pm@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, mptcp@lists.linux.dev,
+	netdev@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+	virtualization@lists.linux.dev,
+	Adrian Hunter <adrian.hunter@intel.com>,
+	Alex Mastro <amastro@fb.com>, Alex Williamson <alex@shazbot.org>,
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+	Alexei Starovoitov <ast@kernel.org>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Andrii Nakryiko <andrii@kernel.org>,
+	Ankur Arora <ankur.a.arora@oracle.com>,
+	Arnaldo Carvalho de Melo <acme@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Bobby Eshleman <bobbyeshleman@meta.com>,
+	Christian =?iso-8859-1?Q?Borntr=E4ger?= <borntraeger@linux.ibm.com>,
+	Christophe Leroy <chleroy@kernel.org>,
+	Chun-Tse Shao <ctshao@google.com>,
+	Claudio Imbrenda <imbrenda@linux.ibm.com>,
+	Costa Shulyupin <costa.shul@redhat.com>,
+	Crystal Wood <crwood@redhat.com>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Daniel Lezcano <daniel.lezcano@kernel.org>,
+	David Hildenbrand <david@kernel.org>,
+	David Matlack <dmatlack@google.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Donald Hunter <donald.hunter@gmail.com>,
+	Eduard Zingerman <eddyz87@gmail.com>,
+	Emil Tsalapatis <emil@etsalapatis.com>,
+	Eric Dumazet <edumazet@google.com>,
+	Gabriele Monaco <gmonaco@redhat.com>,
+	Geliang Tang <geliang@kernel.org>, Ian Rogers <irogers@google.com>,
+	Ingo Molnar <mingo@redhat.com>,
+	Ivan Pravdin <ipravdin.official@gmail.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	James Clark <james.clark@linaro.org>,
+	Janosch Frank <frankja@linux.ibm.com>,
+	Jason Xing <kerneljasonxing@gmail.com>,
+	Jiri Olsa <jolsa@kernel.org>, Joe Damato <joe@dama.to>,
+	John Garry <john.g.garry@oracle.com>,
+	Josh Poimboeuf <jpoimboe@kernel.org>,
+	Kaushlendra Kumar <kaushlendra.kumar@intel.com>,
+	Kent Gibson <warthog618@gmail.com>,
+	Kumar Kartikeya Dwivedi <memxor@gmail.com>,
+	Len Brown <lenb@kernel.org>, Leo Yan <leo.yan@linux.dev>,
+	Lukasz Luba <lukasz.luba@arm.com>,
+	Madhavan Srinivasan <maddy@linux.ibm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Martin KaFai Lau <martin.lau@linux.dev>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Mat Martineau <martineau@kernel.org>,
+	Matthieu Baerts <matttbe@kernel.org>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Mike Leach <mike.leach@arm.com>,
+	Mina Almasry <almasrymina@google.com>,
+	Mykyta Yatsenko <yatsenko@meta.com>, Nam Cao <namcao@linutronix.de>,
+	Namhyung Kim <namhyung@kernel.org>,
+	Nicholas Piggin <npiggin@gmail.com>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Paolo Bonzini <pbonzini@redhat.com>,
+	Pawel Chmielewski <pawel.chmielewski@intel.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Quentin Monnet <qmo@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Raghavendra Rao Ananta <rananta@google.com>,
+	Saket Dumbre <saket.dumbre@intel.com>,
+	Shuah Khan <shuah@kernel.org>, Simon Horman <horms@kernel.org>,
+	Song Liu <song@kernel.org>,
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	Stanislav Fomichev <sdf@fomichev.me>,
+	Stefano Garzarella <sgarzare@redhat.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Suzuki K Poulose <suzuki.poulose@arm.com>,
+	Swapnil Sapkal <swapnil.sapkal@amd.com>,
+	Thomas =?iso-8859-1?Q?Wei=DFschuh?= <linux@weissschuh.net>,
+	Tomas Glozar <tglozar@redhat.com>,
+	Vipin Sharma <vipinsh@google.com>,
+	Wander Lairson Costa <wander@redhat.com>,
+	Will Deacon <will@kernel.org>,
+	Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+	Willy Tarreau <w@1wt.eu>, Yonghong Song <yonghong.song@linux.dev>,
+	Zhang Chujun <zhangchujun@cmss.chinamobile.com>,
+	Zhang Rui <rui.zhang@intel.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH] tools: Use fputc() calls in some functions
+Message-ID: <amIbVOIsOeZgcBZF@tassilo>
+References: <48f2d61f-d468-49b7-881e-f00777db073f@web.de>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 13/16] arm_mpam: prepare mon_sel locking for MPAM-Fb
-To: Ben Horgan <ben.horgan@arm.com>, Lorenzo Pieralisi
- <lpieralisi@kernel.org>, Hanjun Guo <guohanjun@huawei.com>,
- Sudeep Holla <sudeep.holla@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- James Morse <james.morse@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
-Cc: Jonathan Cameron <jic23@kernel.org>,
- Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
- Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
- Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
- Niyas Sait <niyas.sait@arm.com>, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-References: <20260710144520.917375-1-andre.przywara@arm.com>
- <20260710144520.917375-14-andre.przywara@arm.com>
- <42eff7e7-695c-4e2a-aae2-8abd1b92f615@arm.com>
-Content-Language: en-GB
-From: Andre Przywara <andre.przywara@arm.com>
-In-Reply-To: <42eff7e7-695c-4e2a-aae2-8abd1b92f615@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <48f2d61f-d468-49b7-881e-f00777db073f@web.de>
 
-Hi Ben,
-
-On 7/15/26 17:16, Ben Horgan wrote:
-> Hi Andre,
+On Thu, Jul 23, 2026 at 12:25:25PM +0200, Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Thu, 23 Jul 2026 11:13:30 +0200
+> Subject: [PATCH] tools: Use fputc() calls in some functions
+> MIME-Version: 1.0
+> Content-Type: text/plain; charset=UTF-8
+> Content-Transfer-Encoding: 8bit
 > 
-> On 7/10/26 15:45, Andre Przywara wrote:
->> The MSC MON_SEL register needs to be accessed from hardirq for the overflow
->> interrupt, and when taking an IPI to access these registers on platforms
->> where MSC are not accesible from every CPU. This makes an irqsave
->> spinlock the obvious lock to protect these registers. On systems with SCMI
->> mailboxes it must be able to sleep, meaning a mutex must be used. The
->> SCMI platforms can't support an overflow interrupt.
->> Clearly these two can't exist for one MSC at the same time.
+> Single characters should occasionally be transferred into the output.
+> Thus use the corresponding function “fputc” (or even “putchar”).
 > 
-> Is an MPAM-Fb platform using overflow interrupts definitely not possible? I would have thought that
-> as long as things were fast enough that threaded interrupts could be used. I do agree that it would
-> make things harder and the increased latency may make it unworkable.
+> The source code was transformed by using the Coccinelle software.
 
-I guess they are possible, but we don't support them at the moment, 
-right? And as you said a while ago, we'll cross that bridge when we come 
-to it. I am sure we will find a nifty solution then, but don't need to 
-sweat it now. I will reword that to make it clear.
-
->>
->> Change the mon_sel locking wrapper function to only use a spinlock when
->> the MSC is accessed directly via MMIO. In case of MPAM-Fb, we use a
->> mutex, but only if we are in a sleepable context. If that's not the
->> case, we return an error. This should not happen, as MPAM-Fb by design
->> does not require an MSC access to happen from a specific CPU, so there
->> is no need for any IPIs or preemption disabling to satisfy CPU
->> constraints.
-> 
-> It'd be good to mention that on the rare occasion that all cpus are no_hz_full and resctrl does the
-> monitor read via IPI that we already bail out early.
-
-OK, if you say so ;-)
-
-Cheers,
-Andre
-
-> And since overflow interrupts are not supported at the moment
->> anyway, we also wouldn't meet the other case.
->>
->> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
->> ---
->>   drivers/resctrl/mpam_internal.h | 28 +++++++++++++++++++++++-----
->>   1 file changed, 23 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
->> index 04d1a59f02af..7b6e0df904f8 100644
->> --- a/drivers/resctrl/mpam_internal.h
->> +++ b/drivers/resctrl/mpam_internal.h
->> @@ -126,6 +126,7 @@ struct mpam_msc {
->>   	 */
->>   	raw_spinlock_t		_mon_sel_lock;
->>   	unsigned long		_mon_sel_flags;
->> +	struct mutex		mon_sel_mutex;
->>   
->>   	void __iomem		*mapped_hwpage;
->>   	size_t			mapped_hwpage_sz;
->> @@ -139,27 +140,44 @@ struct mpam_msc {
->>   /* Returning false here means accesses to mon_sel must fail and report an error. */
->>   static inline bool __must_check mpam_mon_sel_lock(struct mpam_msc *msc)
->>   {
->> -	/* Locking will require updating to support a firmware backed interface */
->> -	if (WARN_ON_ONCE(msc->iface != MPAM_IFACE_MMIO))
->> +	if (msc->iface == MPAM_IFACE_MMIO) {
->> +		raw_spin_lock_irqsave(&msc->_mon_sel_lock, msc->_mon_sel_flags);
->> +
->> +		return true;
->> +	}
->> +
->> +	if (!preemptible())
->>   		return false;
->>   
->> -	raw_spin_lock_irqsave(&msc->_mon_sel_lock, msc->_mon_sel_flags);
->> +	mutex_lock(&msc->mon_sel_mutex);
->> +
->>   	return true;
->>   }
->>   
->>   static inline void mpam_mon_sel_unlock(struct mpam_msc *msc)
->>   {
->> -	raw_spin_unlock_irqrestore(&msc->_mon_sel_lock, msc->_mon_sel_flags);
->> +	if (msc->iface == MPAM_IFACE_MMIO) {
->> +		raw_spin_unlock_irqrestore(&msc->_mon_sel_lock,
->> +					   msc->_mon_sel_flags);
->> +
->> +		return;
->> +	}
->> +
->> +	mutex_unlock(&msc->mon_sel_mutex);
->>   }
->>   
->>   static inline void mpam_mon_sel_lock_held(struct mpam_msc *msc)
->>   {
->> -	lockdep_assert_held_once(&msc->_mon_sel_lock);
->> +	if (msc->iface == MPAM_IFACE_MMIO)
->> +		lockdep_assert_held_once(&msc->_mon_sel_lock);
->> +	else
->> +		lockdep_assert_held_once(&msc->mon_sel_mutex);
->>   }
->>   
->>   static inline void mpam_mon_sel_lock_init(struct mpam_msc *msc)
->>   {
->>   	raw_spin_lock_init(&msc->_mon_sel_lock);
->> +	mutex_init(&msc->mon_sel_mutex);
->>   }
->>   
->>   /* Bits for mpam features bitmaps */
-> 
-
+gcc already does this transformation automatically.
