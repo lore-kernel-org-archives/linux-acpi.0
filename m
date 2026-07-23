@@ -1,90 +1,73 @@
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013060.outbound.protection.outlook.com [40.93.201.60])
+Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010065.outbound.protection.outlook.com [52.101.201.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07C5942AFBF;
-	Thu, 23 Jul 2026 18:27:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.60
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75AAE339386;
+	Thu, 23 Jul 2026 19:28:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.65
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784831277; cv=fail; b=R6U8wbapK+AhKb+C3DZow8qiA1SrhqTCaB36PlsjWYnzSmO+WsTa7zwzo7uDANvF5eeUf0Da5IMiAYmvEoMUcRy8WLzU91ImXP0zSXI1trycG6MBMW9PyjZnoi8OL8WegM7yzGCNv2uaWvFmuOj2wV0OOOwf8wzlSRoADy4GMis=
+	t=1784834896; cv=fail; b=LPgKfNOziR/92u2WKFKlfkcVL1yz83Ed16EuhzCiTHY0pu0cQ8vrKziILEolG7C6AoI7Pr0Q2o849cQGV8TYcz9s/9YspYTH9I/m25wBudzjMG+QEtqvp5blvsb9XzvLOgyz2YMNpFXBjuTa8ln5Symt1n/lFaeSC0333I5jW4s=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784831277; c=relaxed/simple;
-	bh=eFmbtp44yGYAHuhegHtMujDWcBI8FkTd9TvKwZucdaw=;
+	s=arc-20240116; t=1784834896; c=relaxed/simple;
+	bh=/YUVhNbVgQx3nkKRSZsBHMZczhJMu6GjwFkIqLwUzUM=;
 	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=CG9gKpj7gviUukH4GoadHERVSfhEPKsYvYyDYGJdslUu2PJWzWZEP3slTwOJXDgmtMP+ZhZKpEBzijJgJsu1rYRDjZKsu8jS665ePuMvXE4sL9oLQywZjMmGgXPWn9V7HFLDI8v7T5GzvpFxOxcGzD8mBpGelUdZjt6VtBvMSXA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=bdGqSuYa; arc=fail smtp.client-ip=40.93.201.60
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	 Content-Type:MIME-Version; b=WY0amE24QKZbAn5YxHHD1Tp0wh3mIF2e6AocMezPPTjApAH3XgvhIlHe0XNvvcuqExQ62wZhyUqTE64ogJ0rnxJPzp+zU1ZtEhMLwpIQPmUp3idM6sqAqxVoawARK7fTbnZ8CrUuO4A4pf9P/WTCAzyjgqYjq9ke+7ZADsVFmPM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=guC18tFQ; arc=fail smtp.client-ip=52.101.201.65
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="bdGqSuYa"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="guC18tFQ"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=VKiugXLySoA4VH/kTrAt3QFcCB9lHP7hHcew10BAB+UqI64F13rcS7cwSB5qyd643T9Z3/XtzMG9KqsGoqlUUtYVTY+skr+bH7QLxkLzGEYqFUZOgnCG/G7sNTOZ4a5m6XWf9BqkF7kg7D3JHGmLIwC1oHWeY+XPVdCDGaiy0Ysc7aZJuWrMXjlyjcq5S3wQKaJIeU5ApSIGw25Fv5MgfZDW3wkqDxX9nZVffJuER+r9rHGyD9y3JAHAaqIYxLm6nVnb0XB4w2G2c57j3utkcsXwbiXA6wT1WdJ7bGTjlecV+xwRkiBe2muPamvtjNVueeK+8LK7dSRzIEEhTVmhpw==
+ b=BlxIpq2Nrk6n3qIbts3E1c3apsk1ddyPIyQ2AnEYI2G2Qc4Bi2Ek8+tBrEDmL8M3lm7qU7AmH1x2s1+0ly9SmkHgDIXe79LA9/P6WA4EtZTChuu2kfhHI6A3GbrELBdcaui7xKxVFun/Jip2y7QLR8ZL/L4zVeCOgFF7chuipDDDL97TI16yXsaAtXT3vIp/H4MhhYAuB+GQHFvQeFY6uNqA+9yJNDbzTPl9haNdwes9eTYtJnTB6yqNmUUn1AzkO1uG83fvxCRD/LL0AvEyz7JQm/tXQIGuVxqTvDWyIg5FcpTgZdbR3qKL7Y56SAq6WGtkeYuXIPNNLKC9Rfg/Jg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=KQtEv5Pq1bdkvyzlUy0uZR/e+i3zIV3SHuAdyPjd7oI=;
- b=xW0UAvd620gJnJMNCpX8m+hkp/nvlrf4qUNKrzYbuAdTp/pqmMW5wAgkoT05esAMhxPtXZJ0JFvGW2v0V4dZ1s7kcS0e3jCrmQsClDfzTe5e+4xeiC8lM+SHAdZbWdF25R6Ipj5nuPU+pa8rty3ZjnRMCVIQZRuyaGErtLbz/UGxmxcSdWwSnV0Q3Lxt9Rto7H2EZusmL/Lx+HnZCs1jz/lrj5YFJWRPjqfyDehV7efSG9YbdLIWX4SdDndMcLS4DJRuGFltwt3jmA0eDM2cZlEvdFi/LyVfVBTenI4k4lE6Z/Pa+/h1h8pL5jXWomu6cZBqz3KE2LNqQIV8CZv+Pw==
+ bh=/YUVhNbVgQx3nkKRSZsBHMZczhJMu6GjwFkIqLwUzUM=;
+ b=fHzI9sOzX7+jW9aaHC0sCDvYs+gfhDkJ3dV2yEHxmLk55oMLECjjv7yiKeI3mO9+g0VstGKadIb29Osh/RiJdx0dd7w0Ns9ZacLptVsPsbzwdBrEYrilxU6scEDTYDAdx1IYxX/rlhKXTVviiNGlSbwjrzc5Q8wfh/ZPPG4PqX8GpstvqgxRUSBLBH8bj20F2RwgV1fioZSQyWatiKkcjAx4dJHMOQImljPDrysZcBvR//hp9S7JojfBrVaS8KETHXfJVzsbtbBhdUP9x4mADEQyHkUS5AuCZDprtncoIEscDkZ7pCxG7QgDShDx5tJJ2fddTTzxOl9dKhl4Tqxghg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=KQtEv5Pq1bdkvyzlUy0uZR/e+i3zIV3SHuAdyPjd7oI=;
- b=bdGqSuYakr/cgUkMLqrBF16cR38D+nzhdGmIzsjP1uSsPSkx7h98zj7jc1QbL+goKDg+sx5pTWeeUiXuZ6dDOrHRn2LY+MsVN+y8OO/nTQg7xhSNKnWdzJ/fzhPP9Z6IX/LQcsfiHqXQkbm2GclGqkwVW6zahLR0iIs2nvpwQU8=
+ bh=/YUVhNbVgQx3nkKRSZsBHMZczhJMu6GjwFkIqLwUzUM=;
+ b=guC18tFQxh5Fk6wQOdrilQbj0y8fGU4kX5D8pSBLlCiZmuH2K8R9EWwKR1/MtfuIZguR/jnwIj1ddzLQ1GvSJVmhv57inAwaJF1tKaV2AY23BQ4Z6Gt2xTlckmy/fNuT0qPjdfVG7yckDfHdZIWE3J8L6Wpbxl4DX9CHegykOQGRAqQmuvMTXSRLrc13wvChRW4Nyd01ldn2rQrsesmR0QE1meTCDtV2FmThm3F0AfdeKus/ICQjUUd2IVyNLsqkq9+M7f5E+GoqqwKD1qKVnzxan4erRhAl2jGFdln/28P6TpR1ZUaHgssRD2rQPcBEJ/P8PjRyfhtvy0WP+hpmfA==
 Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from CH8PR12MB9766.namprd12.prod.outlook.com (2603:10b6:610:2b6::10)
- by DS0PR12MB9038.namprd12.prod.outlook.com (2603:10b6:8:f2::20) with
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from BN9PR12MB5179.namprd12.prod.outlook.com (2603:10b6:408:11c::18)
+ by SN7PR12MB6792.namprd12.prod.outlook.com (2603:10b6:806:267::16) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.245.10; Thu, 23 Jul
- 2026 18:27:34 +0000
-Received: from CH8PR12MB9766.namprd12.prod.outlook.com
- ([fe80::be0f:431f:5f27:96d9]) by CH8PR12MB9766.namprd12.prod.outlook.com
- ([fe80::be0f:431f:5f27:96d9%5]) with mapi id 15.21.0245.010; Thu, 23 Jul 2026
- 18:27:34 +0000
-Message-ID: <f4504410-b69c-4808-8939-a429f9251eaf@amd.com>
-Date: Thu, 23 Jul 2026 13:27:28 -0500
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.245.11; Thu, 23 Jul
+ 2026 19:28:12 +0000
+Received: from BN9PR12MB5179.namprd12.prod.outlook.com
+ ([fe80::cf08:f59b:d016:c95f]) by BN9PR12MB5179.namprd12.prod.outlook.com
+ ([fe80::cf08:f59b:d016:c95f%4]) with mapi id 15.21.0245.010; Thu, 23 Jul 2026
+ 19:28:11 +0000
+Message-ID: <53f1382c-7b70-4942-9283-bbe8bd180297@nvidia.com>
+Date: Fri, 24 Jul 2026 00:58:02 +0530
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v18 05/13] PCI/AER: Introduce AER-CXL protocol error kfifo
-To: Richard Cheng <icheng@nvidia.com>, Jonathan Cameron <jic23@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <djbw@kernel.org>,
- Dave Jiang <dave.jiang@intel.com>, Ira Weiny <iweiny@kernel.org>,
- Len Brown <lenb@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>,
- Robert Richter <rrichter@amd.com>, linux-acpi@vger.kernel.org,
- linux-cxl@vger.kernel.org, linux-doc@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, Alejandro Lucero <alucerop@amd.com>,
- Alison Schofield <alison.schofield@intel.com>,
- Ankit Agrawal <ankita@nvidia.com>, Ard Biesheuvel <ardb@kernel.org>,
- Ben Cheatham <Benjamin.Cheatham@amd.com>, Borislav Petkov <bp@alien8.de>,
- Breno Leitao <leitao@debian.org>, Davidlohr Bueso <dave@stgolabs.net>,
- "Fabio M . De Francesco" <fabio.m.de.francesco@linux.intel.com>,
- Gregory Price <gourry@gourry.net>, Hanjun Guo <guohanjun@huawei.com>,
- Jonathan Corbet <corbet@lwn.net>, Kees Cook <kees@kernel.org>,
- Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>,
- Li Ming <ming.li@zohomail.com>, Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
- Mauro Carvalho Chehab <mchehab@kernel.org>,
- Oliver O'Halloran <oohall@gmail.com>, Shiju Jose <shiju.jose@huawei.com>,
- Shuah Khan <skhan@linuxfoundation.org>,
- Shuai Xue <xueshuai@linux.alibaba.com>,
- Smita Koralahalli <Smita.KoralahalliChannabasappa@amd.com>,
- Tony Luck <tony.luck@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
- Ashok Raj <ashok.raj@oss.qualcomm.com>,
- "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
- linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
- "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
- linuxppc-dev@lists.ozlabs.org
-References: <20260717222706.3540281-1-terry.bowman@amd.com>
- <20260717222706.3540281-6-terry.bowman@amd.com>
- <20260720234106.27e7857d@jic23-huawei> <amGpjXNJbiJX5HTg@MWDK4CY14F>
+Subject: Re: [PATCH v2 2/3] ACPI: CPPC: Add u64 wrappers for the autonomous
+ selection register
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>,
+ "zhenglifeng (A)" <zhenglifeng1@huawei.com>
+Cc: viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
+ zhanjie9@hisilicon.com, linux-kernel@vger.kernel.org,
+ linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
+ acpica-devel@lists.linux.dev, linux-tegra@vger.kernel.org,
+ treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
+ ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com,
+ bbasu@nvidia.com, sumitg@nvidia.com
+References: <20260716153820.2007095-1-sumitg@nvidia.com>
+ <20260716153820.2007095-3-sumitg@nvidia.com>
+ <31525db3-a7a6-48fa-bea9-5de28a4332c4@huawei.com>
+ <CAJZ5v0jGJ8HDjmnKP8HvPRqm6NKL1mzxd6=z-xDyxe6=SoNCCA@mail.gmail.com>
 Content-Language: en-US
-From: "Bowman, Terry" <terry.bowman@amd.com>
-In-Reply-To: <amGpjXNJbiJX5HTg@MWDK4CY14F>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: SA1PR02CA0013.namprd02.prod.outlook.com
- (2603:10b6:806:2cf::11) To CH8PR12MB9766.namprd12.prod.outlook.com
- (2603:10b6:610:2b6::10)
+From: Sumit Gupta <sumitg@nvidia.com>
+In-Reply-To: <CAJZ5v0jGJ8HDjmnKP8HvPRqm6NKL1mzxd6=z-xDyxe6=SoNCCA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: PN3PR01CA0174.INDPRD01.PROD.OUTLOOK.COM
+ (2603:1096:c01:de::15) To BN9PR12MB5179.namprd12.prod.outlook.com
+ (2603:10b6:408:11c::18)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -92,329 +75,103 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH8PR12MB9766:EE_|DS0PR12MB9038:EE_
-X-MS-Office365-Filtering-Correlation-Id: cb99633f-c7a0-4811-ea9f-08dee8e810bf
+X-MS-TrafficTypeDiagnostic: BN9PR12MB5179:EE_|SN7PR12MB6792:EE_
+X-MS-Office365-Filtering-Correlation-Id: ead55d9a-3cb4-45bd-fa52-08dee8f088a1
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|366016|7416014|376014|23010399003|11063799006|22082099003|56012099006|4143699003|10067099003|6133799003|3023799007|18002099003;
+	BCL:0;ARA:13230040|366016|23010399003|7416014|376014|1800799024|56012099006|11063799006|4143699003|10067099003|22082099003|18002099003;
 X-Microsoft-Antispam-Message-Info:
-	WrA/fHMAwMmKD2M0bvSkMEqMMrj8LaHpNcu5lOsi0PQEXiVbIMoLW1hfK4fS+b8Gc6Y5OIh9SuGVHqsSZ4HyGth4RSE0P1Nnq6ly0ofWsA8m8eJqttVkp7KNBLmPG+KjOToYK8PoEHJK5xni1rKkcDxi53NQkiZbZOvCcikSa6WhZXSLUdPhX3R6LZsYonSzhcaOLBsN2Z+m6dLyuhYudgrEtczCQHJw7i2hLd+iGH1rQkLjXrqmEGqIoM6UuOsTCx4keRK/U97J1jLPbhl/gYOpS6EMilGFKQCJXm2to4qoB3vBZFHsPcle1wbLAdAT9XciSJmTkCRD3z9sN7UcnO04gsubvK3YUMcVQTgt3FKECQ2nNKC1g9Nc0P2oo7jfeLyKFtMfFmUZ8UIbnIOan+RhWWVtrYyYbLdWWB+apKIDBCqCRXy22ak77sTCYSYCmaiw1OpMpSQPyBXnq5rxal/wD/BbiIq3APMuJi5gM5/Re3btrxAdaVKrTq1P/xBItZkFueo3h4uW+QqX8VQnEAaEVrRQOy+OyUZe8FweBA7z/euZOJc08XVAlpbuUZUDrOiHI97DBaL6U+8esI1U2wQFxi9e3aIVdBDBm3kxhRhU8x4TllIrYPqxW/GcCcwVwiv2yStcUIj7F5oAtEyqhqMgsalgQVB4go/lx6lc6kE=
+	MMuBRsCK1bIG2tjDARjqiXkU+MtZWUgddgvnwLGdwvpOKR1/bnZE1aJ+FWCvGmIf6ZI36uNbpD2wuOV5rX/o+ygOD7JPnP6+lyztXVI9lJcFKC+KA+TtkMVrzGnwbScRqSojgw1TspILL7AN2qMzvBRXBFRnQr48sLz1kybnc5qjYlrz0jiZQXTRaED24G8SEKzWfAQ35JpO+rCiXqkgWDuNBmB6jYPSvQhb/XT6vrCI5pXHwBB0HTEntKB0MC3DIMBo/3aApPNOgesvQEgoekI/ss3iPrawjoa0n8xgMrXgHzt5dKR59Sh/bDNXgNjTNznIFGj1pzJ8Er/sbZ/9UkeX80wygCeLb6vrTAOHypsGOSm9IWyfmtonkkxQiYnllU83hCSkEE15xCHS/XHYA/Sgn3sW81HAE4jrZCliQp0HDV0XRcYRKOfkijdvi17EmH0hndoZKXuiJlVREhxUw92TLDw7axsO8RJxqkAyCx4hEycIW6t+6kpVhLWMLTnGthooXR+b+Eu4zqrNKrcqgUuL9t9srNiosZeHkjMLhlpjuAS6cyOaaM0phwrJnoSsiLQuWlPBC61/c4hJihcoA+4he3woSEQflgwwA9UW4IrHra5GcS0zJO8HTn+LOjhoeb8oxLhePTyVBPFXRweSdZhS2GnCNGhDBD299eMaGTA=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH8PR12MB9766.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(7416014)(376014)(23010399003)(11063799006)(22082099003)(56012099006)(4143699003)(10067099003)(6133799003)(3023799007)(18002099003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN9PR12MB5179.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(23010399003)(7416014)(376014)(1800799024)(56012099006)(11063799006)(4143699003)(10067099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?ZUpGSTdsTWxzdEE3Y1V5UkhDUEQ0VDcxSm1GNlFITE03enFVQTgyaUFpQzl5?=
- =?utf-8?B?K0luNnhQVytHRDQweUdUdVRKZys4aS80NG5Od0ZxeUt2N0JjbWZJTmdkeVZV?=
- =?utf-8?B?SXc2SllYWDdBQnVXd2RNT0twWkI3S2tZSjhFZWZ0RVphdkZ1NDgxMWZCdnlU?=
- =?utf-8?B?QWNYdUJYQjM0aUgzeWZRUkkxanNKUVQ3NGxON0l1UFFtRHh6ZExwM3k5Q1Y5?=
- =?utf-8?B?aUtaMWd2YmlwYllzelYrTjRCRGhnWmRTaHV4U2w5SnhoQlVvY0kvZjd3SFd1?=
- =?utf-8?B?bnpDZXYzQjBncFMvdnZYNFVxYW16WlczYUJId2hrY2pjZnhCOGFWaExDR05p?=
- =?utf-8?B?S3BoR3VoTjZBTStBVG1BanBjTGsrQWR6N2dYQklZeUVENkp6U01UTllIZlor?=
- =?utf-8?B?L3kwSnUyK2xCV3lFYXYwT1VNVnlLTXNjdm05SDBBVytrdmRlZnNscis1TVM2?=
- =?utf-8?B?NmhpNDhNSDM4cmpIWEhsQmwwRVNtRWsydVRSZDA2Q0lqaGp0WnRITVl1NHk4?=
- =?utf-8?B?WWRPTkxiU01RbFE2NmxwdEltSkJPc1MxeHI3Qi9jaXRQM1cxdjZVY3NYTGhm?=
- =?utf-8?B?M3dVVzRNc1RxRGQyWlJRVERBOVhLQVNrTU50ckRSK1ZGZEdkV2ZqMDZvSStW?=
- =?utf-8?B?ekdwNmRWVDZaTVZOMnMrQjk5UmJNMi8wazVUN2k0SFp4d3Jod3RSTHc3c0to?=
- =?utf-8?B?akNuTHE4dzBDclpoTENhcmpJNkZMZ1VQbEl3MVNueDkva2FReUZiOTI0MzJW?=
- =?utf-8?B?b3pqSXdSWGlNNTVZbTNndWU2Z0Erb21JcDRGRzRDRGg5M1MxNmczZXNUZW1S?=
- =?utf-8?B?VE9FZW02MTRka2dXZmFsQWlUUUt0bEhDU3QyenByQTk0cXlzek8vTkoxY1pQ?=
- =?utf-8?B?NkJjSWR6RGFibWVMdHpRazJpVlJCTThBdEdoSC85R2svSmNSRTkxOUNZeGxB?=
- =?utf-8?B?amZLcHJLZEl4RmxOSjdRREM0ZU1mbU0wYXpmb3FpekFKM29PRlRDbHEyR3FJ?=
- =?utf-8?B?T0RkcS9YL0RKcnZ5NGswU1hITDFnblNTNlEySWhSNDhiUGUvczA5c1JvVDNM?=
- =?utf-8?B?VHFMRkNGOFl5N3QwUGxrUlJFU2F6akd3MjkwNEZKVnpUQlFYLzJoZDM2MFNl?=
- =?utf-8?B?SFl6dnZxOVV1N1ErV09hL2t2UlJMT1gvRC9zaU5rN1FJUndUZG5BWXpUSFFE?=
- =?utf-8?B?elZ4bW1sTEJ4WVcxUS8wQ2xGazJXUzYyc1JxSUhBRXdHMjNjaUMwdERiSExY?=
- =?utf-8?B?a0VOMGUrQ3RlcUtoZUxYdUxhd2FkRU9zYVNsQTRrbVhlV1NiQjVEZFpuWXpR?=
- =?utf-8?B?cjJhVDdMejFrbEcwdC9MQXk2VmEwTFJSdzUyUnhpL1E1M1JRWTkwWUFiTTZm?=
- =?utf-8?B?MDVhQTExc0JtcXc0SkxjTDROcjI5QUVGZFVmNzBUekpoUEhlZ0svVS9MekxC?=
- =?utf-8?B?UnRXYXdRVFF0Rk5RZGlrekd5Sk16ait5OFo2bVNpamlMcDJPS0VsNmU4SmhM?=
- =?utf-8?B?b0ZIRzZma0NnSnVsSG1oRnVNQkJaZExDaVNyTEJQVzBKK2tnMjhFWC9Qa090?=
- =?utf-8?B?S2NrNVRPZmxsL1RwdXNlaFRWVXUxTE44RERpQWdXRXBTeGdhTEJvT00wc0xD?=
- =?utf-8?B?NUlNYTFaNE93Z0daOW1oSGJEWG44TEkrSlF5WDdVclB2Zk1VMFpHL2t6cDFZ?=
- =?utf-8?B?WWtLeVNyenMzMzNzMlI5RmxURHhVdGRJSnREc3FhNndNeEhuUzVsQ1ZLbDdD?=
- =?utf-8?B?MlZvaXk5VUZqcFNTS2pLalZJL3liOUdvY2RQYjd5a2c0RTVRVGNhOE91ZGpk?=
- =?utf-8?B?WG1jV2dTNnFUL3U1eGVCeWtaN01uODVha0YrUGpRN1V6Tys0cGljaUdjNitw?=
- =?utf-8?B?UDZzblhMbmxYNmRHeXpmeXRISWU4SHkzamhRQ3FaMVYwVytPVUt0MXh1dVJ4?=
- =?utf-8?B?Unl2WmVmcDRXdVRhMmVTc0VvKzUvV3BDd24zTFlySDZHc3FkVFMxQ2huZlBo?=
- =?utf-8?B?YVB1VEdNMklta2dLaTllOGd5blg3dWNxaUZNUWtnNGx4VnloT2VoMVYxTEVT?=
- =?utf-8?B?Sm1OMmhlUXk2V3BpVEJ6MElqZlpROGZwNkM0djMycW5BY054dU5FbWJuajA2?=
- =?utf-8?B?RW9oVERpNHBSeTVUS0gxUGxaV0xidTFXL3R1ZENYdHhyNVZTNDJ5NFZnT0Nm?=
- =?utf-8?B?VS8xbGNrUk1CWi9IN1pnd25Wa1ZLOGV2Q2d1YWpJaENMVW9wcnRnNzJRY0lp?=
- =?utf-8?B?amplNURnUnBIQzhBQWZDQncyemdHN2dUWW5OOU5mTXRoKzRENFB2Rmt3cFo0?=
- =?utf-8?Q?gVceH/YMezBeIQwrjY?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: cb99633f-c7a0-4811-ea9f-08dee8e810bf
-X-MS-Exchange-CrossTenant-AuthSource: CH8PR12MB9766.namprd12.prod.outlook.com
+	=?utf-8?B?STJUMDZJbHp2STZJVUsrUVYrSEIxOHJrU0NFWnBxVWtXc3l4bkJJVVlYQXlZ?=
+ =?utf-8?B?V0l2QWlXc1ZZblBJSGNsODhIblhmWGNqcUdMNVhQc0N5eFFPT2lFY2k3cllp?=
+ =?utf-8?B?ZTZTVzVyQnlxcHE4L0h0Q0o5dmdLSlpOaXgzdEdMa1FCbjVCK21OL091aVc0?=
+ =?utf-8?B?Rzl0c2tvN1cyeHFMbXBST2IvV2FhWW9UZEZHSkhHcEh0MkJCK0pXS1JDeDha?=
+ =?utf-8?B?ZFlhYjFjNDY4Yk1QajdkVGtvYk9aa0dZOTJtczAyTHl1WmcwbGFTMmhpQTRG?=
+ =?utf-8?B?bXF6SkU4SXRNTkZBaXlPb3NWWlBqdkw0eEdMQ1Q2SkVHdm5sV3h2elI5Yi8r?=
+ =?utf-8?B?ZjRFdVBIUlZiRjEvZGM0ZEQ2cFp2UERCN0xEN1QrV1ZlUmo3cGdCZUNIQkFu?=
+ =?utf-8?B?aFdJWjBYSUhRcFN1NGVzakYxaVhRWFFhNXlwcXA2VzhnSGppdlkrbnJlK2Ny?=
+ =?utf-8?B?NmpyODFISlRLY3JGdDVqUmJwcTNUZEl6eEpncGxML2tNKzRrMDNxbnZ3UXNw?=
+ =?utf-8?B?ZSs0cnlRQzI0WVEvc1ZFU1FYU3pnMEZMQ1R1L3NEeHBzRlJFMFZReHpBSUkw?=
+ =?utf-8?B?VlJlZWhjL3habU9XYzBsZEZnTmFhY2doYy94YWJYVWRvZ0tMNVFhSTJzS3FY?=
+ =?utf-8?B?ZEs2RmFIcWY2SjBvK2NPVFRrdjJwdjVvRHZKVDIwNTVyTy9wRkJKaXpKMDRO?=
+ =?utf-8?B?RHpwYU9GekJYTmNQdnhkWVFhT244N2pYNlMzbWM1cTBKT1BxYlJxMzBuU3lG?=
+ =?utf-8?B?WXJSTzZ4dFg5VjZ4Y1BlQkhBdnJ6U2cxeHhSU2dJNmYxeFhiUmZLTzZkSUhX?=
+ =?utf-8?B?Vk5VUFVBTmdOSHNZMndma2VlWFo4U04vQ1Q3Uklkcm9KTlQ2dHZHdkw3L1gy?=
+ =?utf-8?B?dzRqUWZDOVVkWnRkVmtTWHlwamwyVnFLNHYvZ1hqSG9xemRmcDVpNm5pVEdX?=
+ =?utf-8?B?MUl5cXVETzdnd1YwNVVsQUNmaE5nd0hqYXpXVThEbGlvUERyU29iMFFrTVBI?=
+ =?utf-8?B?enVnM0pvakFkVXk1eWtVdW03ZEd3YTFZb3ZidVlPQkhZUjlZQjZ5Zm54OWp1?=
+ =?utf-8?B?ZllDUkRQcXh4Q3A4TjRpR1VMR05QQUE1Q2FocmZEbWJiczNoQ01iOGZaVXY1?=
+ =?utf-8?B?Ny9QSlNwbUdQK21jejVYcExhTStRcDZ3WVJxSktzQU5ia1lsNEg0R2Q2dmNW?=
+ =?utf-8?B?ek9XNEpmL3BIZjZIZlY0Umcxc1MveExwQUI5MmNCcVllRDlUbzArS3hDalFQ?=
+ =?utf-8?B?YmtPS0FienVVT3hkZklkQUZFNDNFRFFpM0VWL3JkSiswS05qZXZEN0kwZ0FD?=
+ =?utf-8?B?TTNzY250VWhZY2VlMUdTWWhSY2h4S2hxT3plWi9MeUFMTzFUUEZJajNjS09Q?=
+ =?utf-8?B?NWFyeThxbEtpMk1rSjN4Tk1Zd3FNY3RWREpXN2Rlc1ZXcmloMWFObWlHcmdZ?=
+ =?utf-8?B?OVpwWFpENVRQbzkyeE1ESGFIS1RUMVZuMHRtRGZzUmFFSFBpWDBLd2VBT3RX?=
+ =?utf-8?B?TFJlQ0RMMzliVGFWdWtQMjNHT0h2WWpaTit1R2NQSU1NakNaSFdJVXYyL1Na?=
+ =?utf-8?B?cDVqR3luNjg1ek1TRFRma09lUTZ3UEdya0NQUVRwenY0Zm9UNHZGWTNneTBL?=
+ =?utf-8?B?dmtMZElRcE1mY1BYZXRoQSs3SXdWdFFmUklYR0swRkdLUUdqdE1FZDNPcGVs?=
+ =?utf-8?B?QkQwYjNhci9YRndDdUF4eTRXNnIyNk83MFl1VzdiTytYSmpYd1duMmZZM3d1?=
+ =?utf-8?B?dGlJTkRpREcweitGeERzMmxTcUFBUVgzYm9zUUVUaXJSMTZ2ODRLUXpGSjZL?=
+ =?utf-8?B?WlZaZUNoZVBQZVoxS0gzekI1YS9KTHlZZUxTKys3eFZRSlpHclpzZ2lLbTl4?=
+ =?utf-8?B?L2xUaWFTQzNyYzNDeXdFUXJuTTVpaXc5QmhseE42UElMdExxazU1SS9ZblpU?=
+ =?utf-8?B?T0dUQ1JabStqejUrZXVpVE9lUEo1NFpvRUhoeEQxUDJ3cmhLL1h6SWFqa3RN?=
+ =?utf-8?B?K29xemcwZmx1WlBOakFzcENPdDhjNHlsOHI5N3g4bGZvZXBDakxiam9ocC82?=
+ =?utf-8?B?OEZBT3RiaXh4WlhkNmNrUWxHdTVqUW44R0RvVW1nM3hhYjQ0U1dwaUVLU2Iy?=
+ =?utf-8?B?eWovZEgxTVljNGh6N0FibytCWXpGOGliVjBueTRDWUE5RE42MlVMSUpPcmZO?=
+ =?utf-8?B?OFVkSTl3aUNnWEE3eVlkaGZ5UEI0bUlQL1N3OVVDL28zS2Z5KzIwT2xBYklO?=
+ =?utf-8?B?U20vWnhmTzVCRDFncmFDcEswSkhxbTFPcWZndmg1eDd5Y3REY2RHNWorS1hp?=
+ =?utf-8?Q?yYzK4ioCbc0PAeQM/s?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: ead55d9a-3cb4-45bd-fa52-08dee8f088a1
+X-MS-Exchange-CrossTenant-AuthSource: BN9PR12MB5179.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Jul 2026 18:27:34.5858
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Jul 2026 19:28:11.9089
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: lUMfZ/6aN9q+SC4GxrItAyQffZ8dum7k73lLK53qClPO2S/PX9m+IaKP2w+mVbd9/XQPaCC1HhnMuE0dOJu2TQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB9038
+X-MS-Exchange-CrossTenant-UserPrincipalName: 4hjoN9wWq2DMdY59hQuVG/AkxttTPNM/mWF3R1COaHcKo0FX6f5p9x2NIo819bpKiiEk/cnkuVtAWhUp+gAtaQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB6792
 
-On 7/23/2026 12:46 AM, Richard Cheng wrote:
-> On Mon, Jul 20, 2026 at 11:41:06PM +0800, Jonathan Cameron wrote:
->> On Fri, 17 Jul 2026 17:26:58 -0500
->> Terry Bowman <terry.bowman@amd.com> wrote:
->>
->> Hi Terry.
->>
->> This is a rather length patch description.  Might be worth
->> a parse to see if key details can be covered in something that folk
->> are more likely to read!
->>
->>> CXL VH RAS handling requires a path for the AER driver to hand off
->>> CXL protocol errors to cxl_core for logging and recovery before PCIe
->>> AER recovery tears down the device. Add
->>> drivers/pci/pcie/aer_cxl_vh.c to implement this handoff via a kfifo-backed
->>> work item.
->>>
->>> Introduce is_aer_internal_error() to identify CXL protocol errors
->>> from AER internal error status bits across both correctable and
->>> uncorrectable severities.
->>
->> Already existed. Just in a different location. 
->>
->>>
->>> Introduce is_cxl_error() to gate the VH kfifo path.
->>
->> Feels like to much detail to me given not really anything to say
->> about it other than the obvious.
->>
->>>
->>> Introduce struct cxl_proto_err_work_data to carry the error source
->>> PCI device and severity through the kfifo. Encapsulate the kfifo,
->>> per-producer spinlock, registration rwsem, and work pointer in struct
->>> cxl_proto_err_kfifo. Initialize the embedded kfifo via INIT_KFIFO()
->>
->> Can we cut this down a little where we don't use useful info. e.g.
->> "Initialize the kfifo from a subsys_initcall() to it is ready before
->> any producer or consumer runs."
->>
->>> from a subsys_initcall so its metadata is populated before any
->>> producer or consumer runs.
->>>
->>
->>> Introduce cxl_forward_error() to enqueue a CXL protocol error. A
->>> reference is taken on the PCI device; the consumer releases it via
->>> for_each_cxl_proto_err(). On enqueue failure the reference is
->>> released immediately, the error is dropped, and the consumer is
->>> scheduled to drain existing entries.
->>
->> We don't need to cover error paths in the patch description unless
->> they are really complex and need explanation. Even then probably belongs
->> more in comments.
->>
->> Anyhow you get the idea..
->>
->>> A subsequent patch wires
->>> cxl_forward_error() into handle_error_source() where correctable and
->>> uncorrectable status clearing is left to pci_aer_handle_error().
->>>
->>> Introduce cxl_proto_err_flush() to synchronously wait for the
->>> consumer worker to drain the kfifo. A subsequent patch wires this
->>> into handle_error_source() for UCE events so the CXL plane completes
->>> error handling and panic policy before pci_aer_handle_error() drives
->>> PCIe recovery.
->>>
->>> Introduce cxl_register_proto_err_work() and
->>> cxl_unregister_proto_err_work() for cxl_core to register and
->>> deregister its work handler. On unregistration, pending kfifo entries
->>> are drained and their pdev references released before
->>> cancel_work_sync() runs. Export these and for_each_cxl_proto_err()
->>> via EXPORT_SYMBOL_FOR_MODULES restricted to cxl_core.
->>>
->>> Protect the work pointer with a rwsem to correctly serialize
->>> registration, deregistration, enqueue, and dequeue against concurrent
->>> AER IRQ threads. Serialize concurrent kfifo writers with a spinlock.
->>>
->>> Add MAINTAINERS entries for aer_cxl_vh.c and aer_cxl_rch.c under
->>> the CXL entry so CXL maintainers are CC'd on changes to the AER-CXL
->>> bridging code.
->>
->> Various things inline.  The one potential thing I'd like to highlight is
->> the loss of tracking assume panic isn't appropriate.  My paranoid hat
->> says always go the other way.  If we don't know we didn't lose an
->> uncorrectable error panic.  Maybe it's worth us considering when this
->> might happen in a real system?
->>
->>>
->>> Co-developed-by: Dan Williams <djbw@kernel.org>
->>> Signed-off-by: Dan Williams <djbw@kernel.org>
->>> Signed-off-by: Terry Bowman <terry.bowman@amd.com>
->>>
->>> ---
->>>
->>> Changes in v17->v18:
->>> - Remove correctable status clear from cxl_forward_error(); the AER core
->>>   clears all status bits via pci_aer_handle_error() info->status writeback
->>> - Schedule consumer on kfifo overflow so existing entries can be drained
->>>
->>> Changes in v16->v17:
->>> - Reword "kfifo semaphore" to "kfifo spinlock" to match fifo_lock.
->>> - Defer the handle_error_source() is_cxl_error() switch to the patch that
->>>   registers the kfifo consumer to keep each commit bisect-safe.
->>> - Rename rwsema to rwsem
->>> - Change CPER exports to use EXPORT_SYMBOL_FOR_MODULES.
->>> - Add work cancel function.
->>> - Replace kfifo_put() with kfifo_in_spinlocked() for multiple producers
->>> - Add fifo_lock spinlock for concurrent producer serialisation
->>> - Initialize the embedded kfifo with INIT_KFIFO() in a subsys_initcall so
->>>   kfifo->mask, ->esize and ->data are set before first use.
->>> - Clear PCI_ERR_COR_STATUS in cxl_forward_error() after enqueue so the
->>>   device is acked for correctable events even when the consumer drops the
->>>   event. Uncorrectable status is left for cxl_do_recovery() to clear after
->>>   recovery completes, mirroring the AER core convention.
->>> - WARN on double-registration in cxl_register_proto_err_work() to make an
->>>   unintended second consumer visible at runtime.
->>> - Add direct rwsem.h, cleanup.h and workqueue.h includes for symbols used
->>>   in aer_cxl_vh.c
->>> - Add MAINTAINERS entries for drivers/pci/pcie/aer_cxl_*.c
->>> - Update message
->>> ---
->>>  MAINTAINERS                   |   2 +
->>>  drivers/pci/pcie/Makefile     |   1 +
->>>  drivers/pci/pcie/aer.c        |  10 --
->>>  drivers/pci/pcie/aer_cxl_vh.c | 221 ++++++++++++++++++++++++++++++++++
->>>  drivers/pci/pcie/portdrv.h    |   6 +
->>>  include/linux/aer.h           |  24 ++++
->>>  6 files changed, 254 insertions(+), 10 deletions(-)
->>>  create mode 100644 drivers/pci/pcie/aer_cxl_vh.c
->>>
->>
->>
->>> diff --git a/drivers/pci/pcie/aer_cxl_vh.c b/drivers/pci/pcie/aer_cxl_vh.c
->>> new file mode 100644
->>> index 0000000000000..93bed07936100
->>> --- /dev/null
->>> +++ b/drivers/pci/pcie/aer_cxl_vh.c
->>> @@ -0,0 +1,221 @@
->>> +// SPDX-License-Identifier: GPL-2.0-only
->>> +/* Copyright(c) 2026 AMD Corporation. All rights reserved. */
->>> +
->>> +#include <linux/aer.h>
->>> +#include <linux/atomic.h>
->>> +#include <linux/cleanup.h>
->>> +#include <linux/init.h>
->>> +#include <linux/kfifo.h>
->>> +#include <linux/rwsem.h>
->>
->> Check these.  I'd expect at least spinlock.h to meet the rough include what
->> you use aim.
->>
->>> +#include <linux/wait_bit.h>
->>> +#include <linux/workqueue.h>
->>> +#include "../pci.h"
->>> +#include "portdrv.h"
->>> +
->>> +#define CXL_ERROR_SOURCES_MAX          128
->>> +
->>> +struct cxl_proto_err_kfifo {
->>> +	struct work_struct *work;
->>> +	void (*flush)(void);
->>> +	struct rw_semaphore rwsem;
->>> +	spinlock_t fifo_lock;
->>
->> Ideally add a quick comment to every lock to say what data it covers.
->> Kind of obvious for this one but in general it is good practice and
->> reduces chance of later scope confusion.
->>
->>> +	atomic_t flush_inflight;
->>> +	DECLARE_KFIFO(fifo, struct cxl_proto_err_work_data,
->>> +		      CXL_ERROR_SOURCES_MAX);
->>> +};
->>
->>> +/**
->>> + * cxl_forward_error - Forward a CXL protocol error to the CXL subsystem via kfifo
->>> + * @pdev: PCI device that reported the AER error
->>> + * @info: AER error info containing severity and status
->>> + *
->>> + * Producer side of the AER-CXL kfifo. Enqueues a CXL protocol error work
->>> + * item and schedules the consumer workqueue. Takes a reference on @pdev
->>> + * that the consumer releases after handling.
->>> + *
->>> + * Return: true if the caller must flush the kfifo before AER recovery,
->>> + * false if no CXL error handling was initiated due to early return on
->>> + * error.
->>> + */
->>> +bool cxl_forward_error(struct pci_dev *pdev, struct aer_err_info *info)
->>> +{
->>> +	struct cxl_proto_err_work_data wd = {
->>> +		.severity = info->severity,
->>> +		.pdev = pdev,
->>> +	};
->>> +
->>> +	guard(rwsem_read)(&cxl_proto_err_kfifo.rwsem);
->>> +
->>> +	if (!cxl_proto_err_kfifo.work) {
->>> +		dev_err_ratelimited(&pdev->dev, "AER-CXL kfifo reader not registered\n");
->>> +		return false;
->>> +	}
->>> +
->>> +	/*
->>> +	 * Reference discipline: the AER caller (handle_error_source())
->>> +	 * holds a ref on @pdev for the duration of this call and releases
->>> +	 * it on return. Take a fresh ref here so the pdev stays live while
->>> +	 * queued in the kfifo; the consumer (for_each_cxl_proto_err())
->>> +	 * drops that ref after handling. On enqueue failure below, drop
->>> +	 * the ref we just took to avoid a leak.
->>
->> Most of this is useful. The what we do in error handling (given so local)
->> probably not.
->>
->>> +	 */
->>> +	pci_dev_get(pdev);
->>> +
->>> +	/* Serialize concurrent kfifo writers: multiple AER threaded IRQs */
->>> +	if (!kfifo_in_spinlocked(&cxl_proto_err_kfifo.fifo, &wd, 1,
->>> +				 &cxl_proto_err_kfifo.fifo_lock)) {
->>> +		/* Dropped; no panic - UCE unconfirmed without RAS read */
->>
->> Hmm. That's interesting.  To me it fails the normal ras thing of assume
->> the worst if we lost track. I'd panic. But I'm open to other views on this!
->>
-> 
-> Hi Terry, Jonathan,
-> 
-> I aggree with this concern.
-> 
-> When FIFO is full, cxl_forward_error() drops the new entry regardless of severity
-> and returns true. For an UCE, the caller then flushes the worker, but the worker
-> can only process the older entries that are still in the FIFO.
-> The disgarded one is never read.
-> 
-> Coud the overflow path be made severity-aware so an UCE is never dropped ?
-> For example by processing it synchronously, or reserving space for UCEs ?
-> 
-> Dropping CE may be acceptable, but that's not the case for UCE.
-> 
-> --Richard
-> 
 
-Hi Richard,
+On 21/07/26 21:04, Rafael J. Wysocki (Intel) wrote:
+> External email: Use caution opening links or attachments
+>
+>
+> On Fri, Jul 17, 2026 at 5:47 AM zhenglifeng (A) <zhenglifeng1@huawei.com> wrote:
+>> On 7/16/2026 11:38 PM, Sumit Gupta wrote:
+>>> cppc_get_auto_sel()/cppc_set_auto_sel() use a bool, unlike the other
+>>> CPPC register get/set helpers which use a u64.
+>>>
+>>> The next patch in this series saves and restores the OSPM-set registers
+>>> across CPU hotplug using a common table of get/set helpers typed as
+>>> int (*)(int, u64 *) and int (*)(int, u64), which the bool autonomous
+>>> selection helpers do not fit.
+>>>
+>>> Add cppc_get_auto_sel_u64()/cppc_set_auto_sel_u64() wrappers with the u64
+>>> signature so the autonomous selection register fits alongside the others.
+>>>
+>>> Suggested-by: Pierre Gondois <pierre.gondois@arm.com>
+>>> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
+>> If this is necessary, I think it is better to just change the input parameter
+>> of the original cppc_get/set_auto_sel() to u64.
+> Agreed.
+>
+> Sumit, why don't you just make cppc_get_auto_sel()/cppc_set_auto_sel()
+> take a u64 argument
 
-Thanks for reviewing.
+Yes, that makes sense. I originally added the wrappers to avoid changing
+the existing interface, but updating them directly is cleaner.
 
-The implementation chosen here intentionally follows the same pattern as the 
-AER core: both aer_recover_queue() and aer_irq() only log (or silently 
-drop) on kfifo overflow rather than escalating. Diverging to panic here would 
-be inconsistent with the AER behaviour this code largely mirrors.
+In v3, I’ll drop the wrappers and change cppc_get/set_auto_sel() to take
+a u64 directly, updating all callers accordingly.
 
-An overflow requires a sustained error rate that outpaces the consumer draining. 
-Hardware errors are being produced faster than they can be processed. If the 
-host cannot maintain free space through the kfifo work handler processing, the 
-system already has severe problems well beyond a single dropped entry. The 
-system is busted.
-
-You and Jonathan have convinced me to make the overflow path severity aware. 
-CXL has system-wide implications, unlike PCI device errors that are typically 
-more localized. Given the coherency requirements, changing the kfifo overflow 
-behaviour for UCE errors makes sense. I'll add a panic for UCE errors that fail 
-to enqueue due to kfifo overflow.
-
-Terry
+Regards,
+Sumit Gupta
 
 
