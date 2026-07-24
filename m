@@ -1,159 +1,130 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D77053DB328
-	for <linux-acpi@vger.kernel.org>; Fri, 24 Jul 2026 12:55:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 34A6242A782;
+	Fri, 24 Jul 2026 13:43:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784897705; cv=none; b=MczlRarWbZTJtmi0mZi7KK6bub3BUPBCtmt3u0lrlTaXj7fgxHBQCC6oC1G0tyzKbD5Zzj744fD2x+e54QriEzfUUGS/5oqd0uv3V2gYBRfys/yMwl5bGhe7/wvoNwhYetwBVwhCYv3SBWsp5hI6TfTbzTr1BBlgHr5m0NQM98E=
+	t=1784900593; cv=none; b=FZmLoVk2MQrXrNt6hLnq+u+1JZ4dDva9iXu047DhXMptg44ifPA6cX1O9JyomKaoM0JV2LCInVtjaivFcsFhFGPxma0d9EoG8Wd0/UIp+Qvdg+TP6G3Vh9OSzDCMPEVBd+GLSwkwbB2v7OxSlKzQL9icoFcCIG65Qv0CMnCdN/k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784897705; c=relaxed/simple;
-	bh=lwxpPIN8j39nvFu3zxHRLmtlQFRoBkeVuQmk4WyK5r4=;
-	h=Date:Message-ID:From:To:Cc:Subject:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=MJ8qUjJyL7SG6HNBoiiiZawGRsoae2ZZw3KYlABlzkmzsd/Soe6n0xFRTtvpTEowKcr5tGp9rNZcmgsIoPGY1S9tdFRS1Rjwa1vg6G/zcMRIzQwbLSgZlN5pMq8jiQnNSsM278ccRaY570mly3LSmOKLovpFVH74AJDC+QJ/KT0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=NR+JSjz3; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=fbevJ7nY; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=NR+JSjz3; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=fbevJ7nY; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1784900593; c=relaxed/simple;
+	bh=1QY3CziTqGNhL3/KPNo6jV0TQXBUU6XW1bZCekPF4Yc=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=QdERKWSSfM5ix+UOsm2r1V8Mpgp8WJNUXerOcEM9gVU2RlQs09RN5zHHxOVo463mbiJ2FmmHlfUAob+gDOzxrA88XG2EPbgalQEyf7qxayBFrZas01LYI8B3lUAI5YbSs00w+fMhGh8/3gTYyJjqinL/+2FB4NO0zCD+VVqArDc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=vn/eeqid; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="NR+JSjz3";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="fbevJ7nY";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="NR+JSjz3";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="fbevJ7nY"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 069FC4014;
-	Fri, 24 Jul 2026 12:54:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1784897696; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=ZGSEa7Up50XriuwYOmh8/38K+yzbqtjPK9KWNExBa/M=;
-	b=NR+JSjz3S7r9dUjqMwVHIUzin5wseXAr+q/Yh37DnHxQ2d1oNSVJ0OYxekJan8QUsGJ5SF
-	0NfJQgW8t1G1Z+2sHVtahvZDHCbFhIAcOqpBrsHAdas2yf8RYd5rj73JXlJSEHKBuRVx/H
-	2zoZpdCpcLTC16C/R7cCEtn6nRQWHtA=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1784897696;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=ZGSEa7Up50XriuwYOmh8/38K+yzbqtjPK9KWNExBa/M=;
-	b=fbevJ7nY1SHsBNvxwpwWFIYq/rPL31S3lJItgG7b1DUC7AWwFl0WygTDHOYRjjwW+Ve5vK
-	q0QJIOEIJD+dfSCw==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=NR+JSjz3;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=fbevJ7nY
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1784897696; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=ZGSEa7Up50XriuwYOmh8/38K+yzbqtjPK9KWNExBa/M=;
-	b=NR+JSjz3S7r9dUjqMwVHIUzin5wseXAr+q/Yh37DnHxQ2d1oNSVJ0OYxekJan8QUsGJ5SF
-	0NfJQgW8t1G1Z+2sHVtahvZDHCbFhIAcOqpBrsHAdas2yf8RYd5rj73JXlJSEHKBuRVx/H
-	2zoZpdCpcLTC16C/R7cCEtn6nRQWHtA=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1784897696;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=ZGSEa7Up50XriuwYOmh8/38K+yzbqtjPK9KWNExBa/M=;
-	b=fbevJ7nY1SHsBNvxwpwWFIYq/rPL31S3lJItgG7b1DUC7AWwFl0WygTDHOYRjjwW+Ve5vK
-	q0QJIOEIJD+dfSCw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 6C900779BA;
-	Fri, 24 Jul 2026 12:54:55 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id RWeJGJ9gY2rMfwAAD6G6ig
-	(envelope-from <tiwai@suse.de>); Fri, 24 Jul 2026 12:54:55 +0000
-Date: Fri, 24 Jul 2026 14:54:54 +0200
-Message-ID: <87qzkscztt.wl-tiwai@suse.de>
-From: Takashi Iwai <tiwai@suse.de>
-To: Mark Brown <broonie@kernel.org>
-Cc: Takashi Iwai <tiwai@suse.de>,
-	Marco Giunta <marco_giunta@outlook.it>,
-	hansg@kernel.org,
-	ilpo.jarvinen@linux.intel.com,
-	imitoy@imitoy.top,
-	lenb@kernel.org,
-	lgirdwood@gmail.com,
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="vn/eeqid"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1408C1477;
+	Fri, 24 Jul 2026 06:42:58 -0700 (PDT)
+Received: from e127648.arm.com (unknown [10.57.66.189])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 06F4F3F59E;
+	Fri, 24 Jul 2026 06:42:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1784900581; bh=1QY3CziTqGNhL3/KPNo6jV0TQXBUU6XW1bZCekPF4Yc=;
+	h=From:To:Cc:Subject:Date:From;
+	b=vn/eeqidapQnPcooOrIavDGocSIgnkZWyqtvg4VyCh5UMnd3AJi0Wq3wsJMyF6ix9
+	 BkCTDRXFTu+/ARdqgu4zz0ezp20oUjw8lWFgZFwZ/ZNuCvC0sJ5/SJrzNVRxa7Hiqn
+	 NXYbdP9cKjmY+z1AZxgQ6XLjUaibWD4iEMiAHtzc=
+From: Christian Loehle <christian.loehle@arm.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>,
+	Viresh Kumar <viresh.kumar@linaro.org>
+Cc: linux-pm@vger.kernel.org,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	linux-sound@vger.kernel.org,
-	munzirtaha@gmail.com,
-	nadim@symbolic.software,
-	perex@perex.cz,
-	platform-driver-x86@vger.kernel.org,
-	rafael@kernel.org,
-	tiwai@suse.com,
-	wangweidong.a@awinic.com,
-	yakov.till@gmail.com
-Subject: Re: [PATCH 0/8] ALSA: hda: Add AW88399 HDA side codec driver for Lenovo Legion
-In-Reply-To: <amNfREFfIkZIsnB_@sirena.co.uk>
-References: <87h5lsinn2.wl-tiwai@suse.de>
-	<DS7PR19MB7724E1F838E331DDE7A99E5CFCC02@DS7PR19MB7724.namprd19.prod.outlook.com>
-	<87o6fxeukj.wl-tiwai@suse.de>
-	<amNfREFfIkZIsnB_@sirena.co.uk>
-User-Agent: Wanderlust/2.15.9 (Almost Unreal) Emacs/30.2 Mule/6.0
+	Len Brown <lenb@kernel.org>,
+	Jie Zhan <zhanjie9@hisilicon.com>,
+	Lifeng Zheng <zhenglifeng1@huawei.com>,
+	Pierre Gondois <pierre.gondois@arm.com>,
+	Sumit Gupta <sumitg@nvidia.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	Ionela Voinescu <ionela.voinescu@arm.com>,
+	Christian Loehle <christian.loehle@arm.com>
+Subject: [PATCH 0/3] ACPI: CPPC: Reduce .target() callback overhead
+Date: Fri, 24 Jul 2026 14:42:48 +0100
+Message-Id: <20260724134251.1632824-1-christian.loehle@arm.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
-Content-Type: text/plain; charset=US-ASCII
-X-Spamd-Result: default: False [-2.01 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	ARC_NA(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	MIME_TRACE(0.00)[0:+];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com,outlook.it];
-	FREEMAIL_CC(0.00)[suse.de,outlook.it,kernel.org,linux.intel.com,imitoy.top,gmail.com,vger.kernel.org,symbolic.software,perex.cz,suse.com,awinic.com];
-	RCVD_TLS_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[19];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	TAGGED_RCPT(0.00)[];
-	DWL_DNSWL_BLOCKED(0.00)[suse.de:dkim];
-	DKIM_TRACE(0.00)[suse.de:+];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	TO_DN_SOME(0.00)[]
-X-Spam-Flag: NO
-X-Spam-Score: -2.01
-X-Spam-Level: 
-X-Rspamd-Queue-Id: 069FC4014
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Action: no action
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-On Fri, 24 Jul 2026 14:49:08 +0200,
-Mark Brown wrote:
-> 
-> On Thu, Jul 23, 2026 at 02:53:16PM +0200, Takashi Iwai wrote:
-> 
-> > Mark, could you send a pull request including your merged stuff, so
-> > that I can apply on the top?
-> 
-> I'll send this on Sunday, I can't generate a PR until then unfortunately.
+cppc-cpufreq reaches cppc_set_perf() from every target callback.  For
+direct SystemMemory controls, that path currently does several steps
+which are unnecessary once the immutable _CPC layout is known:
 
-No problem, I still wait for Marco's new version :)
+  - a full-width write first reads the access unit and merges the value.
+  - every write takes the descriptor's RMW lock, even when its access unit
+    is not shared with another _CPC entry.
+  - cppc_set_perf() evaluates the same three PCC predicates at each phase
+    of the transaction.
+
+Remove those costs while retaining the existing conservative paths for
+partial fields, overlapping or malformed access units, and PCC controls.
+
+The series was tested on Arm Power-Orion O6 and AmpereOne systems using
+cppc-cpufreq and schedutil.  An rt-app task pinned to one CPU ran for
+500 us every 2 ms with uclamp.min=512, for 5000 periods per run.  schedutil
+rate_limit_us was 1000.  cppc_cpufreq_fast_switch() latency was measured
+for 100 ten-second runs.  Each sample is the mean callback latency within
+one run, and the table reports the median and sample standard deviation
+of those samples.
+
+Orion O6               median       stdev       callbacks
+baseline               5703 ns      307 ns       188017
+complete series        5023 ns      240 ns       188209
+==> 680 ns (11.9%) reduction
+
+AmpereOne              median       stdev
+baseline               2090 ns      157 ns
+complete series      1907.5 ns      140 ns
+==> 182.5 ns (8.7%) reduction
+
+The cumulative intermediate results on the Orion O6 attribute roughly half
+of the gain to each of the first two patches: avoiding the read reduced
+the median by 284 ns (5.0%), and avoiding the lock reduced it by another
+336 ns (6.2%).
+Together they account for 620 ns of the 680 ns total reduction.
+
+With the same arm64 configuration and GCC 11.4, caching the PCC predicate
+also reduces cppc_set_perf() from 1124 to 884 bytes.  The generated
+function has 60 fewer instructions, 17 fewer loads and 20 fewer branches.
+
+This series is based on the CPPC fixes posted at (already queued):
+https://lore.kernel.org/lkml/20260722093825.1030594-1-christian.loehle@arm.com/
+
+and the separately posted fix still under review:
+https://lore.kernel.org/lkml/20260724104042.1481804-1-christian.loehle@arm.com/
+
+PS:
+There's a final optimization that I actually wanted to make but decided to
+split it out for now as it somewhat replicated Sumit's series:
+Skipping redundant perf ctrl writes in cpufreq-cppc if registers are non-PCC
+and !shared (because the values are unchanged, the
+!autonomous-common-case), but that requires the driver to have a more
+complex caching- and atomic-updating machinery in place, similar to
+hotplug. As opposed to this series the optimization would be for the
+microcontroller handling the CPPC requests, which may be shared across
+many CPUs and therefore redundant requests can increase the dvfs
+transition latency.
+That patch will follow once Sumit's is queued:
+https://lore.kernel.org/lkml/20260716153820.2007095-1-sumitg@nvidia.com/
+
+Christian Loehle (3):
+  ACPI: CPPC: Avoid unnecessary reads for full-width writes
+  ACPI: CPPC: Avoid locking standalone full-width registers
+  ACPI: CPPC: Evaluate performance-control PCC use once
+
+ drivers/acpi/cppc_acpi.c | 135 +++++++++++++++++++++++++++++++--------
+ include/acpi/cppc_acpi.h |   5 +-
+ 2 files changed, 113 insertions(+), 27 deletions(-)
 
 
-thanks,
-
-Takashi
+base-commit: 1590cf0329716306e948a8fc29f1d3ee87d3989f
+prerequisite-patch-id: 4c1f4063800e3658717eb77e43af13dad52d55cc
+prerequisite-patch-id: 5c40d9f099543123c9b904d18ce651e740fbefb8
+prerequisite-patch-id: 7202391dca8f31f9eb8f6d59fc753b3ce665e103
+-- 
+2.34.1
