@@ -1,60 +1,60 @@
-Received: from mail-pj1-f53.google.com (mail-pj1-f53.google.com [209.85.216.53])
+Received: from mail-pj1-f49.google.com (mail-pj1-f49.google.com [209.85.216.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96B5C3F928E
-	for <linux-acpi@vger.kernel.org>; Fri, 24 Jul 2026 08:45:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA38F40096F
+	for <linux-acpi@vger.kernel.org>; Fri, 24 Jul 2026 08:45:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784882703; cv=none; b=S+uCy1LFfQl9+/23PBdFRJyfQRc52DC9nmmNge2yf7EURPxStO+MtvkGcL1uSK2QT0vJ1GTaQfLRDAm5mNZGGIOfQg3Fav5vUvcpguvj6T8Z1rD+B0qFStgexYxO2Mz4xzajXuWwlwdS/ia/AEFS0l7tOvOnZg4bFiTnVwlwMas=
+	t=1784882708; cv=none; b=kAjpwyfccHvqu779Kt1y8XO/xLIGuoNSyJajJpRkXWpqYF0xNfFh/Ecrh58eVyy/ISjypkVf5PegO28+/A2J1fxs7Tm18rGjrluln5T5uff145c7Rawy8Eejy7f82TRkuz7OltVPMdQeSlM9/D+67bcFIAwgoZt5jrUbrbF0dgc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784882703; c=relaxed/simple;
-	bh=Weo+Ui8E43MHQNrKTqB+K8VGg2TvPBPQ6D1g4YfmF4g=;
+	s=arc-20240116; t=1784882708; c=relaxed/simple;
+	bh=TPxqymmswATTFY0Ts3z5ZJsgeicU9hkYXr5TZUF7F/U=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hi2nST6xsdXzSnDwXQFlM+6gqgn08UZw0W7sLhMg9c8vr95iNeoJxXZ6bkauPqc3vnnAIYrl734NgZq6Qbe22x4fvuUDDsZr/hrl0EbQEOvy0v6X2cnWUQtNuCXnsGc9RmAcItzn66BrgUatrUDYD2Xv84k6LhtGIXEEIerrZss=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=eEH8NjHx; arc=none smtp.client-ip=209.85.216.53
+	 MIME-Version; b=bk3kXrsI1ZlJY9XmL/xe1B/4jhzBnbWk6rG/gFXF6Q4mLwGo2YJeAhaD45Du307Cn9LbiU6BOfkJvA9unI+8K0q7H/gqEU9e+NWCh7a708W12CLQXYqGh1zD5wVSknAlOAutDdPwOz6T18XAUrWpGwfzxOLzd/xkQr7rSynYWKw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=OTRGJfbX; arc=none smtp.client-ip=209.85.216.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="eEH8NjHx"
-Received: by mail-pj1-f53.google.com with SMTP id 98e67ed59e1d1-38dd55ad76cso164570a91.1
-        for <linux-acpi@vger.kernel.org>; Fri, 24 Jul 2026 01:45:01 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="OTRGJfbX"
+Received: by mail-pj1-f49.google.com with SMTP id 98e67ed59e1d1-38e58034d05so163957a91.2
+        for <linux-acpi@vger.kernel.org>; Fri, 24 Jul 2026 01:45:06 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1784882701; x=1785487501; darn=vger.kernel.org;
+        d=chromium.org; s=google; t=1784882706; x=1785487506; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=HbHZBlGJIBZH9w4CnNEDqTFXqQ2V4R1HGaboHmDjj7s=;
-        b=eEH8NjHxdbQ4AzHsBEZRYGZUyiY8pMiQTx3ef7+ZNkeVWAJMFIpp55gIpBVDIyDTTm
-         7x37H6Q80oqvnFsqIuhMdkihsXSqLb31/ML/PxJuDa6h67Z5SK2+efCvC30Qz0W73IKF
-         ASLrFJziTRsKXt0YJFXXcXXlFA7kRGE/jGvk0=
+        bh=52TzlozFyu8oOUFzVHVO43WIZLgCMoBqx/sMPHBx7bQ=;
+        b=OTRGJfbXn6jlSMk0TKof54mYgUxVw6F9PMX9UQsE2cl0RhwkwKlxL3ZFkxugqKrOT/
+         szNNkxjpyjIQF3zJT5LWWbYpCA8UZnpIK9NWvPwRWBExJd50d/LP0+zReVinM81Te2cq
+         O5sJ5bxGjX7PDid0h/La5V1oIObWhcH0CY5VY=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1784882701; x=1785487501;
+        d=1e100.net; s=20251104; t=1784882706; x=1785487506;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=HbHZBlGJIBZH9w4CnNEDqTFXqQ2V4R1HGaboHmDjj7s=;
-        b=ekPkOl27Rd9UwrsX691JEgfH/kIqOFK3XvOFW6N3JLDEE0d/Ov1151vMOQSlbzSOca
-         EmT6Y1gaOhR1CHNeYjdtRa8etM2C8h3hy8/hwkYzXi5mK6S9Ik1TH9utrd2425aSSPZR
-         xeJVkeU5qTd9D7+VVgLe8A/1L/PlB790GxKo/suF1ZDz9UNXPCUoa1l1ab89g7Exso8J
-         +YUBFKowPxeRUVqaI/AAEY6PkW+y7x2xXaiaiEJ6tmQ+Px2px3+q1LlSAHTbirq1Qyb+
-         Zs9JFYAx0eLkEIZ7+ocKRWFTw0tfK+CPfB/0XoACWkR6CHRMaCtS+YcZOqSDd5CyEpiU
-         35Ig==
-X-Forwarded-Encrypted: i=1; AHgh+RrPtWlPNDxMnufHLgadbWbH3+zkbBXTjGparIvCjKxIcQ/0rUyj3Jo9tJiHk7P91WST89SFZ57wt6sR@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx2fssbgZL34GvnyhY28XxLksFN60wwmkhF+s2aUoj++QFogboU
-	CRWaem+zmVKCNAI8nKguP1GBr1ZCSsZnG/5tIpCmGU5JYc0bkRhUuEHLHDO6diTFGQ==
-X-Gm-Gg: AR+sD11z+YjZFarY846xfv4sBuAAQ+Tfr/UtkMqIURmdP/LtCKhkEZiuYEag4CMRjI8
-	v4/Ln0dusIPigclGclwbA9SzHUeon6USHNMi9HK79WcqyBvtztg6kDVA58+84KfK0hh0wv4YCa+
-	SkskHoI72jhEA21y+/zdhRXmU7vvtUWn+T6VlSgi4wuDpzsYe+myoolje0RpzuSMsUwGA3oL3D5
-	mNfSq/uNQHE3pIcmnLyiA6DKbz48Xh4j/auj/JS/De6o8kXAVAkXZVS8ehBdzQ7uxNwHqwYYPLy
-	dflkUmFopV9WNUCXCz+GOw7IzgfO99GAs39IJwePa0jOqSShhfucidUYnHC4qOy+GKGflop3RAf
-	aEyDyF738o8Zq3svOWyTnGuPoGnJYTiVFe253c603PsoWMdpZ9IfyyL1czL4grub9k8SDrJSzdw
-	ybzoI2uzI73wrBGDslTlDi3Qxee/KBNZVKJ5awcR4ImL5fwGb+Yzue31LQLC4=
-X-Received: by 2002:a17:90b:4d08:b0:38d:eaed:4adb with SMTP id 98e67ed59e1d1-38ec85cb1b9mr5733586a91.20.1784882700981;
-        Fri, 24 Jul 2026 01:45:00 -0700 (PDT)
+        bh=52TzlozFyu8oOUFzVHVO43WIZLgCMoBqx/sMPHBx7bQ=;
+        b=k/2FmHcGmO6eCOwNso96VV/ylcSewsQlo2ZZ8AoGblRGvRAnmnd4Yd7K/WZncwwa5r
+         jvvYcDU1tS26riytABSosW+SDbgBT+YYAQGFqnU47zlzJuCuZEM+A+oHKiUYi5xLnu1y
+         ifcWPpHtWcswJ3yE3h3dGnKMG5mdE3/gFudJ+Po/9JD+co8WioJoNDyQbWaOVWkcfS5F
+         CRY/FRVMEJ1OB+Tajg5NZGxfmThrlt8nmQT3spvgnoqgkPC+KECcRYofwTZtayDgxHVp
+         Atpmkg3xTbo5D1bb11HBsRifQSvGshC5BVeuMRxDkLaRuiZK5us105kliGV1xsZ1cKiz
+         0Jag==
+X-Forwarded-Encrypted: i=1; AHgh+RpdozgjmyMhgu62dcw/C21gPINP9HEkxDUo5ByIOKArgWuhvtoxmgJaVOyXM1HjFAry2CGbaVIHAlLy@vger.kernel.org
+X-Gm-Message-State: AOJu0YzNZKLTqrZ0TVN2qjrSALTyA5o1mbV70fyRuV22aGymRahDdm+A
+	j5AuPpX3e+EE4LOMh+dEiOAuoCW+wQW/d1tcfjYgw76M2Ye3GXcnsMy/4Di7wjMoLw==
+X-Gm-Gg: AR+sD10vjOY6wErdOrJNmNsBtF+o7aEC4R9O6IomuYeCbWI47zovRxSXlAta1Y17vvN
+	uBT2y8iYHl0MBRpG5xPcb0ImSzcPi0irPsFGuASK8dWXuqbENKGo/EMuCWKfVW0GQLlu3QhpB2T
+	IuN95ft6diKw0ZqnKCz52E8OHTCU7cXWNfPVOr3HnK9RaRQI0VZZ41axb4dDsWRbm+yECBxVfag
+	d1McF8NYm7XzgZ824VC7IQJXQfBED0fg5FIDrnsbbqCZ/NExXd5J47te23LmyZu5aEJWVVplPg7
+	g7x7B28q0GQa8gFw00vup/sayWBZWfYzVCr8mX56mIS3zyttRE9ltjk88alwIZuxwAcdSL3/ZNi
+	SHHNyjpMFMpDjfFc2l/dIgzg91DDQoczicbiI+XhzdkZS/CEoocNyDe3G4lMlbNdwArBZyIE+cz
+	y1SHwYt1GDeQa7FvN/R1rrXSaP4IkBCMtizGJcbw8x+Op4/BpRL9bujQwuU0k=
+X-Received: by 2002:a17:90b:5687:b0:387:e0bb:57f8 with SMTP id 98e67ed59e1d1-38ec6a9d77bmr7085311a91.41.1784882706348;
+        Fri, 24 Jul 2026 01:45:06 -0700 (PDT)
 Received: from wenstp920.tpe.corp.google.com ([2a00:79e0:201d:8:f131:86cc:5858:7325])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-38f089ac6d8sm434546a91.2.2026.07.24.01.44.55
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-38f089ac6d8sm434546a91.2.2026.07.24.01.45.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 24 Jul 2026 01:45:00 -0700 (PDT)
+        Fri, 24 Jul 2026 01:45:05 -0700 (PDT)
 From: Chen-Yu Tsai <wenst@chromium.org>
 To: Bartosz Golaszewski <brgl@kernel.org>,
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -80,12 +80,10 @@ Cc: Wei Deng <wei.deng@oss.qualcomm.com>,
 	linux-arm-kernel@lists.infradead.org,
 	linux-kernel@vger.kernel.org,
 	Manivannan Sadhasivam <mani@kernel.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>,
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Subject: [PATCH v7 11/16] dt-bindings: usb: mediatek,mtk-xhci: Switch to ports for USB connections
-Date: Fri, 24 Jul 2026 16:43:20 +0800
-Message-ID: <20260724084328.3943997-12-wenst@chromium.org>
+	Alan Stern <stern@rowland.harvard.edu>
+Subject: [PATCH v7 12/16] power: sequencing: pcie-m2: support matching on remote "port" node
+Date: Fri, 24 Jul 2026 16:43:21 +0800
+Message-ID: <20260724084328.3943997-13-wenst@chromium.org>
 X-Mailer: git-send-email 2.55.0.229.g6434b31f56-goog
 In-Reply-To: <20260724084328.3943997-1-wenst@chromium.org>
 References: <20260724084328.3943997-1-wenst@chromium.org>
@@ -97,70 +95,53 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This reverts commit 454a1e3cd36c113341d7b71e8e691c6e47ab4a8a.
+A USB hub can have multiple ports, and this driver needs to
+differentiate which port is being matched to. The USB hub driver now
+associates the "port" node with the usb_port device, so here we can
+use the remote "port" node to check for a match. Then fall back to
+the remote device node for the other connection types.
 
-MediaTek's XHCI implementation supports both USB 2.0 High Speed (HS)
-and USB 3.x Super Speed (SS). The block can also be synthesized with
-either HS-only capability or HS+SS capability. The SSUSB controller
-handles the device or gadget mode. Saying that SSUSB handles the HS
-portion is wrong.
+Also rewrite the existing "remote == dev_of_node(dev)" with
+device_match_of_node() for consistency.
 
-For example, on the MT8195, the first two instances support both HS and
-SS, while the latter two instances support only HS.
-
-Switch to a "ports" sub-node for describing USB connections. Port 1 is
-Super Speed if the controller is SS-capable, otherwise it is High Speed.
-Port 2 is High Speed if SS-capable. This port mapping scheme directly
-matches what the hardware returns in its capability registers.
-
-Fixes: 454a1e3cd36c ("dt-bindings: usb: mediatek,mtk-xhci: Add port for SuperSpeed EP")
-Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
 ---
-Changes since v1:
-- Squashed DT binding revert and addition together
-- Dropped reviewed-by from Bartosz
----
- .../bindings/usb/mediatek,mtk-xhci.yaml         | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+Changes since v4:
+- Dropped blank line between __free() variable declaration and
+  subsequent use of the variable in conditional
 
-diff --git a/Documentation/devicetree/bindings/usb/mediatek,mtk-xhci.yaml b/Documentation/devicetree/bindings/usb/mediatek,mtk-xhci.yaml
-index 231e6f35a986..d6c75bd20b78 100644
---- a/Documentation/devicetree/bindings/usb/mediatek,mtk-xhci.yaml
-+++ b/Documentation/devicetree/bindings/usb/mediatek,mtk-xhci.yaml
-@@ -107,10 +107,6 @@ properties:
-       - description: USB3/SS(P) PHY
-       - description: USB2/HS PHY
- 
--  port:
--    $ref: /schemas/graph.yaml#/properties/port
--    description: Super Speed (SS) Output endpoint to a Type-C connector
--
-   vusb33-supply:
-     description: Regulator of USB AVDD3.3v
- 
-@@ -188,6 +184,19 @@ properties:
-   "#size-cells":
-     const: 0
- 
-+  ports:
-+    $ref: /schemas/graph.yaml#/properties/ports
+Changes since v3:
+- Drop redundant device node validity check; device_match_of_node()
+  does it internally
+
+Changes since v2:
+- Use device_match_of_node()
+---
+ drivers/power/sequencing/pwrseq-pcie-m2.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/power/sequencing/pwrseq-pcie-m2.c b/drivers/power/sequencing/pwrseq-pcie-m2.c
+index 83fe6a1396bc..691cad0a6dd0 100644
+--- a/drivers/power/sequencing/pwrseq-pcie-m2.c
++++ b/drivers/power/sequencing/pwrseq-pcie-m2.c
+@@ -175,9 +175,16 @@ static int pwrseq_pcie_m2_match(struct pwrseq_device *pwrseq,
+ 	 * parent matches the OF node of 'dev'.
+ 	 */
+ 	for_each_endpoint_of_node(ctx->of_node, endpoint) {
++		/* USB port devices are tied to the port nodes. */
++		struct device_node *remote_port __free(device_node) =
++				of_graph_get_remote_port(endpoint);
++		if (device_match_of_node(dev, remote_port))
++			return PWRSEQ_MATCH_OK;
 +
-+    properties:
-+      port@1:
-+        $ref: /schemas/graph.yaml#/properties/port
-+        description: Super Speed (SS) data bus if SS-capable;
-+          otherwise High Speed (HS) data bus.
-+
-+      port@2:
-+        $ref: /schemas/graph.yaml#/properties/port
-+        description: High Speed (HS) data bus if controller is SS-capable.
-+
- patternProperties:
-   "@[0-9a-f]{1}$":
-     type: object
++		/* Try the remote port parent for other types. */
+ 		struct device_node *remote __free(device_node) =
+ 				of_graph_get_remote_port_parent(endpoint);
+-		if (remote && (remote == dev_of_node(dev)))
++		if (device_match_of_node(dev, remote))
+ 			return PWRSEQ_MATCH_OK;
+ 	}
+ 
 -- 
 2.55.0.229.g6434b31f56-goog
 
