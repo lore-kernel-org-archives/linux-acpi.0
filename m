@@ -1,33 +1,33 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id EAFC73DA7CA;
-	Fri, 24 Jul 2026 11:19:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 01C4A40B0EF;
+	Fri, 24 Jul 2026 12:02:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784891966; cv=none; b=LMSAP2W0ioNTNOLuPDS9Zks61qv1yib2W/mJPQq4zycDVe1MnXT3bY2g2cYLSz2DZ9igVL0gXeC0ZQfc+DSbpbmcx+QFMXOtVR8+uRQQDA8lNSRhljNFIYWamEjmm4ZlFV19dEgI8Bu0fS23d/HgQQTAD9026ZsFetskMHPd/Kg=
+	t=1784894524; cv=none; b=qz/CmXRyeFlWg5y/YUJTDcMN8mmuqKKli+pIAJNlbzNJ3zkZ6bWvl2/x1g17Na/0gw0RJErQlGBUZuEBcoiOA13UFhUBN3mAJHmGkpbk0SByFag/p7OPMMmTDT9FTmuxOKAVfevb+o3H2RG50K2EN4yl9a978xfjhIkeUxDJlNs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784891966; c=relaxed/simple;
-	bh=6DmPCA8NJHL/ZnEaVWd3asm4aMXes0MHBhltqBYPzUM=;
+	s=arc-20240116; t=1784894524; c=relaxed/simple;
+	bh=t2Fm4OcZ2NIH+xOpaL0wjVXyHl0Qp/ARR/FcYxwFvrw=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=SzPmsMGuW7gx/zGQ9/U/aDYK4W2NvlKQUrfiZzZGD45Zl0jAepWn8ZNPz615PE5xI7wdDYQnb48nBZS2Cjs9/h3GguNKV0qXnBSdTDs8nUty3RqTgUAFUBjbEX687NJu1rFnxRFj6aRJdlMb57REMYeXNOMYZwpOSW5gQ9BKF8o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=rt8qOQDU; arc=none smtp.client-ip=217.140.110.172
+	 In-Reply-To:Content-Type; b=S16KsjaUC6eF9oW3HK0Ye39OVPge2T6X049XOQY8Ias6WgtLK5WSUIqz7Pi3fPilSfd3pdHuyWCFR+e28P0bNj9SJQNu3SHNFwJpvCvmQ9bkdbMDqfPDxiDoiHgdbrtYWTsF3MSzFeT0wq4Nfx/ZRxw4S6sEcWEGQ/szVxUpQZg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=f5xpij79; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="rt8qOQDU"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="f5xpij79"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 04AF31477;
-	Fri, 24 Jul 2026 04:19:17 -0700 (PDT)
-Received: from [192.168.178.24] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id DD6543F59E;
-	Fri, 24 Jul 2026 04:19:15 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C353E1476;
+	Fri, 24 Jul 2026 05:01:55 -0700 (PDT)
+Received: from [10.1.39.91] (e127648.arm.com [10.1.39.91])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A56FF3F59E;
+	Fri, 24 Jul 2026 05:01:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1784891961; bh=6DmPCA8NJHL/ZnEaVWd3asm4aMXes0MHBhltqBYPzUM=;
+	t=1784894519; bh=t2Fm4OcZ2NIH+xOpaL0wjVXyHl0Qp/ARR/FcYxwFvrw=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=rt8qOQDUCbtSI1jimM0mrdL+fE4d2WYXQ0SO9UgDHn+T4tx7DW6bqmzbBBifj/dxV
-	 4RxZlqG4EdGj9kRiYhgQUeu+0CAH0+se3xveU5a34dmf0LOZBG/mRD9qu9shMX0sRb
-	 mPsuEhchgGPJesQC0IwJ7alze55pAHkDENU8Ce4c=
-Message-ID: <e182f2ac-6fd9-4a25-9409-9617012584ed@arm.com>
-Date: Fri, 24 Jul 2026 13:19:14 +0200
+	b=f5xpij79JxJpztbGFRwdSOvp1+dta12GYVExyTffv/FIEnIlj/I7uam9oytSozfLd
+	 F9RlPnvouBfSPA6C1sOP9SQptVICLbMIDCaPBzkZXNRQ9SJLBl7DAkGgMl8rnJQd/1
+	 L8cQYnZ2CjrHEar7UgFdtbeQg25hYbJB0eXrphFo=
+Message-ID: <e4b5b99c-bf38-49f5-89bc-e2ee0b58172f@arm.com>
+Date: Fri, 24 Jul 2026 13:01:53 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -35,75 +35,67 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 06/10] arm_mpam: propagate MSC access errors for state
- saving function
+Subject: Re: [PATCH] ACPI: CPPC: Skip writes to unsupported performance
+ controls
 To: Sudeep Holla <sudeep.holla@kernel.org>
-Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
- Hanjun Guo <guohanjun@huawei.com>, Catalin Marinas
- <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu
- <fenghuay@nvidia.com>, Jonathan Cameron <jic23@kernel.org>,
- Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
- Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
- Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
- Niyas Sait <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
- linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-kernel@vger.kernel.org
-References: <20260723155454.1760823-1-andre.przywara@arm.com>
- <20260723155454.1760823-7-andre.przywara@arm.com>
- <20260724-important-curassow-of-support-ce4777@sudeepholla>
-Content-Language: en-GB
-From: Andre Przywara <andre.przywara@arm.com>
-In-Reply-To: <20260724-important-curassow-of-support-ce4777@sudeepholla>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Cc: "Rafael J . Wysocki" <rafael@kernel.org>,
+ Viresh Kumar <viresh.kumar@linaro.org>, linux-pm@vger.kernel.org,
+ linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+ Len Brown <lenb@kernel.org>, Jie Zhan <zhanjie9@hisilicon.com>,
+ Lifeng Zheng <zhenglifeng1@huawei.com>,
+ Pierre Gondois <pierre.gondois@arm.com>, Sumit Gupta <sumitg@nvidia.com>,
+ Ionela Voinescu <ionela.voinescu@arm.com>
+References: <20260724104042.1481804-1-christian.loehle@arm.com>
+ <20260724-astonishing-hysterical-goldfish-87f8df@sudeepholla>
+Content-Language: en-US
+From: Christian Loehle <christian.loehle@arm.com>
+In-Reply-To: <20260724-astonishing-hysterical-goldfish-87f8df@sudeepholla>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-Hi,
-
-On 7/24/26 12:07, Sudeep Holla wrote:
-> On Thu, Jul 23, 2026 at 05:54:50PM +0200, Andre Przywara wrote:
->> Allow the mpam_save_mbwu_state() function to return an error, and
->> propagate read and write errors from the lower level up.
+On 7/24/26 11:57, Sudeep Holla wrote:
+> On Fri, Jul 24, 2026 at 11:40:42AM +0100, Christian Loehle wrote:
+>> MIN_PERF and MAX_PERF are optional CPPC controls. DESIRED_PERF is also
+>> optional with CPPC2 when autonomous selection is supported.
 >>
->> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+>> The cppc-cpufreq target callbacks populate both limits for every request
+>> without checking whether the controls are implemented. cppc_set_perf()
+>> consequently passes NULL register descriptors to cpc_write(). The writes
+>> fail width validation and their return values are ignored, so the failed
+>> access paths are repeated on every target request. An autonomous-only
+>> platform can take the same path for DESIRED_PERF.
+>>
+>> Check that each performance control is supported before calling
+>> cpc_write().
+>>
+>> Fixes: ea3db45ae476 ("cpufreq: cppc: Update MIN_PERF/MAX_PERF in target callbacks")
+>> Reviewed-by: Sumit Gupta <sumitg@nvidia.com>
+>> Signed-off-by: Christian Loehle <christian.loehle@arm.com>
 >> ---
->>   drivers/resctrl/mpam_devices.c | 29 ++++++++++++++++++++++-------
->>   1 file changed, 22 insertions(+), 7 deletions(-)
+>> v2: Also added desired_perf check (Sumit)
 >>
->> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
->> index bcff53477133..6329443c451f 100644
->> --- a/drivers/resctrl/mpam_devices.c
->> +++ b/drivers/resctrl/mpam_devices.c
->> @@ -1833,22 +1833,37 @@ static int mpam_save_mbwu_state(void *arg)
->>   
->>   		mon_sel = FIELD_PREP(MSMON_CFG_MON_SEL_MON_SEL, i) |
->>   			  FIELD_PREP(MSMON_CFG_MON_SEL_RIS, ris->ris_idx);
->> -		mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel);
->> -		mpam_read_monsel_reg(msc, CFG_MBWU_FLT, &cur_flt);
->> -		mpam_read_monsel_reg(msc, CFG_MBWU_CTL, &cur_ctl);
->> -		mpam_write_monsel_reg(msc, CFG_MBWU_CTL, 0);
->> +		ret = mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel);
->> +		if (ret)
->> +			return ret;
->> +		ret = mpam_read_monsel_reg(msc, CFG_MBWU_FLT, &cur_flt);
->> +		if (ret)
->> +			return ret;
->> +		ret = mpam_read_monsel_reg(msc, CFG_MBWU_CTL, &cur_ctl);
->> +		if (ret)
->> +			return ret;
+>>  drivers/acpi/cppc_acpi.c | 7 ++++---
+>>  1 file changed, 4 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+>> index 1d3a94100491..53d09ca98f06 100644
+>> --- a/drivers/acpi/cppc_acpi.c
+>> +++ b/drivers/acpi/cppc_acpi.c
+>> @@ -1963,16 +1963,17 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
+>>  		cpc_desc->write_cmd_status = 0;
+>>  	}
+>>  
+>> -	cpc_write(cpu, desired_reg, perf_ctrls->desired_perf);
+>> +	if (CPC_SUPPORTED(desired_reg))
+>> +		cpc_write(cpu, desired_reg, perf_ctrls->desired_perf);
+>>  
 > 
-> How does it work in general with PCC. Now that you can fail at any point,
-> what happens to the write that occurs before a failed read like above one.
-> Who will take care of erasing those new writes or it doesn't matter ?
-> Just checking as I don't have much knowledge on MPAM intrinsics.
+> In general, can't be set perf_ctrls->desired_perf if and only if
+> CPC_SUPPORTED(desired_reg) ?
+> 
+> I see cppc_get_perf() does that but I assume you are catering for some
+> other access that may happen before ?
+> 
 
-TBH I don't know, but I think we consider MPAM botched at this point, 
-and just stop the driver, similar to an error IRQ? But I am not sure 
-this is properly implemented at this point. The focus of these first six 
-patches was merely to lay the dirty groundwork for *being able* to 
-handle errors, and do this now rather than in the future.
-
-Cheers,
-Andre
+cppc-cpufreq sets desired_perf regardless, I guess the check could also move up
+there, but down here is fine as well IMO.
