@@ -1,116 +1,103 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D321541DDF2;
-	Fri, 24 Jul 2026 10:18:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B67E93859E0;
+	Fri, 24 Jul 2026 10:40:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784888325; cv=none; b=WHa965jH/Fbt3MAFmUtICe+Xp9VTEflW5yggqg6SNu9oDsPT+y/zs2tw9iGiNNeUZZkG/ZpKVCkPttoUyJ0cUhWOlJVGs9vIX6xi5EAMLR5wFGbTTW8oJZmp2lR++YC9o/VMabzUPfoxLyeEwrbUWK9oHKMwtkxQeKyymcZNmjs=
+	t=1784889658; cv=none; b=WYxWQK7zNMVRbTIzwDC8KF2G6ZYaZCujoQ84i1/w5W/6q82Un2cKS26Hh/FgCuk8kouoqIJRPsn9z6CNXm83B3Wkt8pGOoL+9Fq9wXkDCl+NH79dzWMJ5FEtHf09eeq8GQs3HCg9TF2ssB51Etn0XTsbymzv8DtvKMrFaIyKnlU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784888325; c=relaxed/simple;
-	bh=fUwUBmDPdtgIfdqEIOxLaPVoY66CHK+kA0Yi/fCs0Hc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=KHo4GEpZAQL4reTgkhjs5PiHSq3Mb1wI75B35qi60y7sTTwc/Qg+B0ZqQ0qoUu19b+AOnhTbPylmaT5rmgQU9KvXUrkH4xu/0ZipVO/HIgJAAAVtWS/M6G1D7dy2bpHAuITZs9chlel1Cm/lvBTe+O0PVL6pI7pewUfTqsP/ojM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eNeONbs9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1784889658; c=relaxed/simple;
+	bh=0dMTQo4+4RzWdtmKVRgM9LQMQjmSDt0cKQDtgnGATOM=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=RCdSN2UoGhSehHvkllkMOAuJtDmXzA84Viq70Vp9Wr0o+b4qVseXgk91ymwHLdn1BWiTw77xnnFCSNFwN9uB1FAyIUgOZLUvP8cUp9/BpusAot6UjNL3Rua4JbESqL+nCkFHu+G5DeQdAzdj0toU0GfbV5QLfYOjmny10RlMolA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=CCragE5o; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eNeONbs9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7381A1F000E9;
-	Fri, 24 Jul 2026 10:18:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1784888318;
-	bh=fsRwQ/MRXKU69Cz45TMuvT7xD7rCK/lcxMRZ0uHACwM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=eNeONbs9jDDO8unvLRenY4oHMgcT8mI+O7v/PPOsAMqDi1as36v3ligFWXjWwEWKH
-	 vNK0ja7HvbVS21kyI5aJBjj2v36Y+LYDRe7nSvEPWHce06WYY1nnww7zpxPaNEr1L6
-	 U7TrsL0XPQjRIR4qWb8ar0g08f32jYwvFZmd46Uwkg9Wkk9jUD8BOLnxmNYTtayl0g
-	 hcgCy0LQ1ZwId5iSeUJoClHXuebZaHum3wSOcbFlEajhFHxkApxXFe6IyeolKbNeaM
-	 aG3qDLDvX/VTeu4frVCkNwC+BCNO13pToBrDvw+dWgO9OKgeRgaXoowS8BQxWKCpba
-	 BXBmNI+0FZP2A==
-Date: Fri, 24 Jul 2026 11:18:32 +0100
-From: Sudeep Holla <sudeep.holla@kernel.org>
-To: Andre Przywara <andre.przywara@arm.com>
-Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, James Morse <james.morse@arm.com>,
-	Ben Horgan <ben.horgan@arm.com>,
-	Reinette Chatre <reinette.chatre@intel.com>,
-	Fenghua Yu <fenghuay@nvidia.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
-	Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
-	Trilok Soni <tsoni@quicinc.com>,
-	Srinivas Ramana <sramana@qti.qualcomm.com>,
-	Niyas Sait <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
-	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4 10/10] arm_mpam: detect and enable MPAM-Fb PCC support
-Message-ID: <20260724-finicky-knowing-foxhound-df1e56@sudeepholla>
-References: <20260723155454.1760823-1-andre.przywara@arm.com>
- <20260723155454.1760823-11-andre.przywara@arm.com>
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="CCragE5o"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 793841477;
+	Fri, 24 Jul 2026 03:40:51 -0700 (PDT)
+Received: from e127648.cambridge.arm.com (e127648.arm.com [10.1.39.91])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 847FC3F66F;
+	Fri, 24 Jul 2026 03:40:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1784889655; bh=0dMTQo4+4RzWdtmKVRgM9LQMQjmSDt0cKQDtgnGATOM=;
+	h=From:To:Cc:Subject:Date:From;
+	b=CCragE5op1PbD4HO+pnK+t9Napbjvr8C7r4z6cxBHTDK97tA8kPR3g3z7au+K0+iJ
+	 AcozilEJOJ8z7pxuVHq/577AT6mnSQqfKRUuQ6UIrrsVBn5DuqlzTo1ir0wcKb+D1p
+	 PZgAU6rfOwGQiRcSOfDicudk4dXUgDoyOz7aQf3g=
+From: Christian Loehle <christian.loehle@arm.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>,
+	Viresh Kumar <viresh.kumar@linaro.org>
+Cc: linux-pm@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Len Brown <lenb@kernel.org>,
+	Jie Zhan <zhanjie9@hisilicon.com>,
+	Lifeng Zheng <zhenglifeng1@huawei.com>,
+	Pierre Gondois <pierre.gondois@arm.com>,
+	Sumit Gupta <sumitg@nvidia.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	Ionela Voinescu <ionela.voinescu@arm.com>,
+	Christian Loehle <christian.loehle@arm.com>
+Subject: [PATCH] ACPI: CPPC: Skip writes to unsupported performance controls
+Date: Fri, 24 Jul 2026 11:40:42 +0100
+Message-Id: <20260724104042.1481804-1-christian.loehle@arm.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260723155454.1760823-11-andre.przywara@arm.com>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jul 23, 2026 at 05:54:54PM +0200, Andre Przywara wrote:
-> The Arm MPAM-Fb specification [1] describes a protocol to access MSC
-> registers through a firmware interface. This requires a shared memory
-> region to hold the message, and a mailbox to trigger the access.
-> For ACPI this is wrapped as a PCC channel, described using existing
-> ACPI abstractions.
-> 
-> Add code to parse those PCC table descriptions associated with an MSC,
-> and store the parsed information in the MSC struct.
-> There can be multiple PCC channels, and each channel can serve multiple
-> MSCs, so we need to keep track of the channel usage, using a list and
-> a refcount.
-> This will be used by the MPAM-Fb access wrapper code.
-> 
-> [1] https://developer.arm.com/documentation/den0144/latest
-> 
-> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
-> ---
->  drivers/acpi/arm64/mpam.c      |   6 +-
->  drivers/resctrl/mpam_devices.c | 127 ++++++++++++++++++++++++++++++++-
->  2 files changed, 129 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/mpam.c b/drivers/acpi/arm64/mpam.c
-> index 84963a20c3e7..ca9b8754ae5f 100644
-> --- a/drivers/acpi/arm64/mpam.c
-> +++ b/drivers/acpi/arm64/mpam.c
-> @@ -220,8 +220,8 @@ static struct platform_device * __init acpi_mpam_parse_msc(struct acpi_mpam_msc_
->  	struct platform_device *pdev __free(platform_device_put) =
->  		platform_device_alloc("mpam_msc", tbl_msc->identifier);
+MIN_PERF and MAX_PERF are optional CPPC controls. DESIRED_PERF is also
+optional with CPPC2 when autonomous selection is supported.
 
-Looks like tbl_msc->identifier is getting stashed as pdev->id...
+The cppc-cpufreq target callbacks populate both limits for every request
+without checking whether the controls are implemented. cppc_set_perf()
+consequently passes NULL register descriptors to cpc_write(). The writes
+fail width validation and their return values are ignored, so the failed
+access paths are repeated on every target request. An autonomous-only
+platform can take the same path for DESIRED_PERF.
 
+Check that each performance control is supported before calling
+cpc_write().
 
->  	int next_res = 0, next_prop = 0, err;
-> -	/* pcc, nrdy, affinity and a sentinel */
-> -	struct property_entry props[4] = { 0 };
-> +	/* pcc, msc-id, nrdy, affinity and a sentinel */
-> +	struct property_entry props[5] = { 0 };
->  	/* mmio, 2xirq, no sentinel. */
->  	struct resource res[3] = { 0 };
->  	struct acpi_device *companion;
-> @@ -256,6 +256,8 @@ static struct platform_device * __init acpi_mpam_parse_msc(struct acpi_mpam_msc_
->  	} else if (iface == MPAM_IFACE_PCC) {
->  		props[next_prop++] = PROPERTY_ENTRY_U32("pcc-channel",
->  							tbl_msc->base_address);
-> +		props[next_prop++] = PROPERTY_ENTRY_U32("msc-id",
-> +							tbl_msc->identifier);
+Fixes: ea3db45ae476 ("cpufreq: cppc: Update MIN_PERF/MAX_PERF in target callbacks")
+Reviewed-by: Sumit Gupta <sumitg@nvidia.com>
+Signed-off-by: Christian Loehle <christian.loehle@arm.com>
+---
+v2: Also added desired_perf check (Sumit)
 
-Why is this needed then as you can fetch it as pdev->id ?
+ drivers/acpi/cppc_acpi.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index 1d3a94100491..53d09ca98f06 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -1963,16 +1963,17 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
+ 		cpc_desc->write_cmd_status = 0;
+ 	}
+ 
+-	cpc_write(cpu, desired_reg, perf_ctrls->desired_perf);
++	if (CPC_SUPPORTED(desired_reg))
++		cpc_write(cpu, desired_reg, perf_ctrls->desired_perf);
+ 
+ 	/*
+ 	 * Only write if min_perf and max_perf not zero. Some drivers pass zero
+ 	 * value to min and max perf, but they don't mean to set the zero value,
+ 	 * they just don't want to write to those registers.
+ 	 */
+-	if (perf_ctrls->min_perf)
++	if (perf_ctrls->min_perf && CPC_SUPPORTED(min_perf_reg))
+ 		cpc_write(cpu, min_perf_reg, perf_ctrls->min_perf);
+-	if (perf_ctrls->max_perf)
++	if (perf_ctrls->max_perf && CPC_SUPPORTED(max_perf_reg))
+ 		cpc_write(cpu, max_perf_reg, perf_ctrls->max_perf);
+ 
+ 	if (CPC_IN_PCC(desired_reg) || CPC_IN_PCC(min_perf_reg) || CPC_IN_PCC(max_perf_reg))
 -- 
-Regards,
-Sudeep
+2.34.1
+
