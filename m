@@ -1,33 +1,33 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E2A97437466;
-	Fri, 24 Jul 2026 11:17:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id EAFC73DA7CA;
+	Fri, 24 Jul 2026 11:19:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784891875; cv=none; b=GIGNKD8QJs+cttlGLdGGxjmnPuExjfOxq+bY0ibo8xwmZLTgx3Kis6Wh4CWVi9sirHLH4OTYsj89Dsh5LGC+vo+1lnhyvr//+sWJkkYZ5flGTunFIPrEu98W8UztabaypG8jstbg6NEvTWzj0uMnUfEVjwJdFUBq5yvUIe//khU=
+	t=1784891966; cv=none; b=LMSAP2W0ioNTNOLuPDS9Zks61qv1yib2W/mJPQq4zycDVe1MnXT3bY2g2cYLSz2DZ9igVL0gXeC0ZQfc+DSbpbmcx+QFMXOtVR8+uRQQDA8lNSRhljNFIYWamEjmm4ZlFV19dEgI8Bu0fS23d/HgQQTAD9026ZsFetskMHPd/Kg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784891875; c=relaxed/simple;
-	bh=nRhQGNdV3NsNtoyXHQTSsEbqe72lGzHbtCTadOTmg7A=;
+	s=arc-20240116; t=1784891966; c=relaxed/simple;
+	bh=6DmPCA8NJHL/ZnEaVWd3asm4aMXes0MHBhltqBYPzUM=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=en3HMsm5qKbnBpxqI2WrhQtoPNNtgkI8AZHH1ZFYNACHoHGWluRaOYacMeCa7MRBgmAz/JMerEb6gu/yg5SgJptHtfxpF2JRXdVNCWvtyn4WAj+w+PTWht1nd/ug7ZAVfq+JxnPek7JfC8OMfwst5o8adDwqWz1A/x0Tb699ur0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=QW5fiAKT; arc=none smtp.client-ip=217.140.110.172
+	 In-Reply-To:Content-Type; b=SzPmsMGuW7gx/zGQ9/U/aDYK4W2NvlKQUrfiZzZGD45Zl0jAepWn8ZNPz615PE5xI7wdDYQnb48nBZS2Cjs9/h3GguNKV0qXnBSdTDs8nUty3RqTgUAFUBjbEX687NJu1rFnxRFj6aRJdlMb57REMYeXNOMYZwpOSW5gQ9BKF8o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=rt8qOQDU; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="QW5fiAKT"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="rt8qOQDU"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 3797A1477;
-	Fri, 24 Jul 2026 04:17:44 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 04AF31477;
+	Fri, 24 Jul 2026 04:19:17 -0700 (PDT)
 Received: from [192.168.178.24] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 3E52C3F59E;
-	Fri, 24 Jul 2026 04:17:43 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id DD6543F59E;
+	Fri, 24 Jul 2026 04:19:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1784891868; bh=nRhQGNdV3NsNtoyXHQTSsEbqe72lGzHbtCTadOTmg7A=;
+	t=1784891961; bh=6DmPCA8NJHL/ZnEaVWd3asm4aMXes0MHBhltqBYPzUM=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=QW5fiAKTizvxmC9c2ol0J4mipfSYnLhE5IIQ/t4rR++hGC7GNaLsYFgdbPJTG1a+Z
-	 jfEiCVsWkoroObSk+451XSen8vzeUQaJVFKrwJjiBGugxdl2E/4IPwqwuShEHsTHOa
-	 JVbHPGH1GYa462tMSVMwm7oKeXeJsIEHHztJf6X0=
-Message-ID: <9d5fd63a-5e9d-4e44-8f63-864764caf20d@arm.com>
-Date: Fri, 24 Jul 2026 13:17:41 +0200
+	b=rt8qOQDUCbtSI1jimM0mrdL+fE4d2WYXQ0SO9UgDHn+T4tx7DW6bqmzbBBifj/dxV
+	 4RxZlqG4EdGj9kRiYhgQUeu+0CAH0+se3xveU5a34dmf0LOZBG/mRD9qu9shMX0sRb
+	 mPsuEhchgGPJesQC0IwJ7alze55pAHkDENU8Ce4c=
+Message-ID: <e182f2ac-6fd9-4a25-9409-9617012584ed@arm.com>
+Date: Fri, 24 Jul 2026 13:19:14 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -35,8 +35,8 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 08/10] arm_mpam: add MPAM-Fb MSC firmware access
- support
+Subject: Re: [PATCH v4 06/10] arm_mpam: propagate MSC access errors for state
+ saving function
 To: Sudeep Holla <sudeep.holla@kernel.org>
 Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
  Hanjun Guo <guohanjun@huawei.com>, Catalin Marinas
@@ -52,99 +52,58 @@ Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
  linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
  linux-kernel@vger.kernel.org
 References: <20260723155454.1760823-1-andre.przywara@arm.com>
- <20260723155454.1760823-9-andre.przywara@arm.com>
- <20260724-imposing-lurking-toucanet-cfe22c@sudeepholla>
+ <20260723155454.1760823-7-andre.przywara@arm.com>
+ <20260724-important-curassow-of-support-ce4777@sudeepholla>
 Content-Language: en-GB
 From: Andre Przywara <andre.przywara@arm.com>
-In-Reply-To: <20260724-imposing-lurking-toucanet-cfe22c@sudeepholla>
+In-Reply-To: <20260724-important-curassow-of-support-ce4777@sudeepholla>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hi Sudeep,
+Hi,
 
-many thanks for having a look!
-
-On 7/24/26 11:55, Sudeep Holla wrote:
-> On Thu, Jul 23, 2026 at 05:54:52PM +0200, Andre Przywara wrote:
->> The Arm MPAM Firmware-backed (Fb) Profile document[1] describes an
->> alternative way of accessing the "Memory System Components" (MSC) in an
->> MPAM enabled system.
->>
->> Normally the MSCs are MMIO mapped, but in some implementations this
->> might not be possible (MSC located outside of the local socket, MSC
->> mapped secure-only) or desirable (direct MMIO access too slow or needs
->> to be mediated through a control processor). MPAM-fb standardises a
->> protocol to abstract MSC accesses, building on the SCMI protocol.
->>
->> Add functions that do an MSC read or write access by redirecting the
->> request through a firmware interface. For now this done via an ACPI
->> PCC shared memory and mailbox combination.
->>
->> Since the protocol used is only a small subset of the full SCMI spec,
->> and the SCMI protocol has no full ACPI support anyway, open-code the
->> (simple) SCMI message generation, for just the fields we need.
->>
->> [1] https://developer.arm.com/documentation/den0144/latest
+On 7/24/26 12:07, Sudeep Holla wrote:
+> On Thu, Jul 23, 2026 at 05:54:50PM +0200, Andre Przywara wrote:
+>> Allow the mpam_save_mbwu_state() function to return an error, and
+>> propagate read and write errors from the lower level up.
 >>
 >> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
 >> ---
->>   drivers/resctrl/Makefile        |   2 +-
->>   drivers/resctrl/mpam_devices.c  |  27 ++++-
->>   drivers/resctrl/mpam_fb.c       | 197 ++++++++++++++++++++++++++++++++
->>   drivers/resctrl/mpam_internal.h |  20 ++++
->>   include/linux/arm_mpam.h        |   2 +-
->>   5 files changed, 240 insertions(+), 8 deletions(-)
->>   create mode 100644 drivers/resctrl/mpam_fb.c
+>>   drivers/resctrl/mpam_devices.c | 29 ++++++++++++++++++++++-------
+>>   1 file changed, 22 insertions(+), 7 deletions(-)
 >>
->> diff --git a/drivers/resctrl/Makefile b/drivers/resctrl/Makefile
->> index 4f6d0e81f9b8..097c036724e9 100644
->> --- a/drivers/resctrl/Makefile
->> +++ b/drivers/resctrl/Makefile
->> @@ -1,5 +1,5 @@
->>   obj-$(CONFIG_ARM64_MPAM_DRIVER)			+= mpam.o
->> -mpam-y						+= mpam_devices.o
->> +mpam-y						+= mpam_devices.o mpam_fb.o
->>   mpam-$(CONFIG_ARM64_MPAM_RESCTRL_FS)		+= mpam_resctrl.o
->>   
->>   ccflags-$(CONFIG_ARM64_MPAM_DRIVER_DEBUG)	+= -DDEBUG
 >> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
->> index e2cb884eacf4..b8108ed4b32c 100644
+>> index bcff53477133..6329443c451f 100644
 >> --- a/drivers/resctrl/mpam_devices.c
 >> +++ b/drivers/resctrl/mpam_devices.c
->> @@ -181,6 +181,9 @@ static int __mpam_read_reg(struct mpam_msc *msc, u16 reg, u32 *res)
->>   {
->>   	WARN_ON_ONCE(!cpumask_test_cpu(smp_processor_id(), &msc->accessibility));
->>
-> 
-> The above doesn't make any sense for PCC accesses, perhaps need to be pushed
-> down ?
-
-Well, the idea was that the mask would always encompass all CPUs when 
-using MPAM-Fb, but to consider this an implementation detail of MPAM-Fb.
-We can of course move this out of the way for MPAM-Fb.
-
-> 
->> +	if (msc->iface == MPAM_IFACE_PCC)
->> +		return mpam_fb_send_read_request(msc, reg, res);
->> +
->>   	*res = readl_relaxed(msc->mapped_hwpage + reg);
+>> @@ -1833,22 +1833,37 @@ static int mpam_save_mbwu_state(void *arg)
 >>   
->>   	return 0;
->> @@ -197,9 +200,12 @@ static inline int _mpam_read_partsel_reg(struct mpam_msc *msc, u16 reg,
->>   
->>   static int __mpam_write_reg(struct mpam_msc *msc, u16 reg, u32 val)
->>   {
->> -	WARN_ON_ONCE(reg + sizeof(u32) > msc->mapped_hwpage_sz);
->>   	WARN_ON_ONCE(!cpumask_test_cpu(smp_processor_id(), &msc->accessibility));
->>   
+>>   		mon_sel = FIELD_PREP(MSMON_CFG_MON_SEL_MON_SEL, i) |
+>>   			  FIELD_PREP(MSMON_CFG_MON_SEL_RIS, ris->ris_idx);
+>> -		mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel);
+>> -		mpam_read_monsel_reg(msc, CFG_MBWU_FLT, &cur_flt);
+>> -		mpam_read_monsel_reg(msc, CFG_MBWU_CTL, &cur_ctl);
+>> -		mpam_write_monsel_reg(msc, CFG_MBWU_CTL, 0);
+>> +		ret = mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel);
+>> +		if (ret)
+>> +			return ret;
+>> +		ret = mpam_read_monsel_reg(msc, CFG_MBWU_FLT, &cur_flt);
+>> +		if (ret)
+>> +			return ret;
+>> +		ret = mpam_read_monsel_reg(msc, CFG_MBWU_CTL, &cur_ctl);
+>> +		if (ret)
+>> +			return ret;
 > 
+> How does it work in general with PCC. Now that you can fail at any point,
+> what happens to the write that occurs before a failed read like above one.
+> Who will take care of erasing those new writes or it doesn't matter ?
+> Just checking as I don't have much knowledge on MPAM intrinsics.
 
-And by the way: I think the hwpage_sz check should belong to the probe 
-function, not be done on every access. Or are there optional registers 
-that might not be part of the mapping on devices that don't support them?
+TBH I don't know, but I think we consider MPAM botched at this point, 
+and just stop the driver, similar to an error IRQ? But I am not sure 
+this is properly implemented at this point. The focus of these first six 
+patches was merely to lay the dirty groundwork for *being able* to 
+handle errors, and do this now rather than in the future.
 
 Cheers,
 Andre
-
-
-
