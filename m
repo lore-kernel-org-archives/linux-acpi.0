@@ -1,33 +1,33 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 825154446F0;
-	Fri, 24 Jul 2026 16:43:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5F75B4156D1;
+	Fri, 24 Jul 2026 16:52:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784911405; cv=none; b=QbULPJOAR0NKwxgVNCwwGUSQ3Nf7dqZYuVFyzCAR0D3iQdkHVhXbFVk8Co9n87vhoPD/w4/go4lnoi1eErT6E5l2r5BysYcByIUZG2wtJaerwb9Lz3/Fi2gmakfjMPwwM22BOzLbfGm9+vvx+Nnq2yI8tCAONFt08/cDiVZAUa8=
+	t=1784911964; cv=none; b=bEGBvh3AXaDzPFFJa4lHS59SESmswTWx1MVM2stlhQtgpJg0fhOoAA7soxt2IovNC74d3ZaNTIVUGHqe7PfzN6oc+lcvLvPe5GRh/HgxBRQzxZQ3lf+ZoQHkWUtmt3/+4L60BXzKqCmzlpaIXy1bg1/X0TfwUtHbm5Aas3jE2ww=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784911405; c=relaxed/simple;
-	bh=xg3oqIbjSE4M3l+OIN0CvX6y9JbVpfwuWJCKOcCKSwA=;
+	s=arc-20240116; t=1784911964; c=relaxed/simple;
+	bh=RoBul/17+T3FdgEK+F3KrO5hn7IfjNH0FUsIZl8w4/k=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=KoYNC+atWfHCG6cTPPNtOh9/QP80si1acYDJ4qLm5u2IvyFizNj9kKvCIYvb2vMh23lxSP4Zbt+9GmgNgBRc0b4Qa4QtEhvPnsOB/7HTyiyWecgG99FvsTHQz36W2bc3loei4GB6pEBChcl2lruBUdLvokEMP6j701v2JBztxtU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=SKBjrr57; arc=none smtp.client-ip=217.140.110.172
+	 In-Reply-To:Content-Type; b=LJrqyuES1NYackX/caQU/Kd5lSfYOCNXShpQCLj9oSrMIHAIwz+z40pzxP98Yh2VTBHchSWYo4Ovv85NladyZWoXM4a+jNjLx8w1Ub89PbY0nSXd8rV7mid7VxK8pzfQLZTM41WWhAZk5kwBEJenP5ZidW9GOhnV5UcOrS1tCjs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=P0L5J143; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="SKBjrr57"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="P0L5J143"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D11EE1476;
-	Fri, 24 Jul 2026 09:43:14 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1A6671476;
+	Fri, 24 Jul 2026 09:52:36 -0700 (PDT)
 Received: from [10.2.212.8] (e134344.arm.com [10.2.212.8])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 0D5D23F66F;
-	Fri, 24 Jul 2026 09:43:13 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id B39BF3F66F;
+	Fri, 24 Jul 2026 09:52:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1784911398; bh=xg3oqIbjSE4M3l+OIN0CvX6y9JbVpfwuWJCKOcCKSwA=;
+	t=1784911959; bh=RoBul/17+T3FdgEK+F3KrO5hn7IfjNH0FUsIZl8w4/k=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=SKBjrr57keO2j25CeVl2oqwhT6NLRMtpd2QC2pSw9IeT52fuKNPaFDsFLqwOMlO/I
-	 IhcOKDvkEZyQfpMzfWMf0J1IBUoIHGJGk2jx6vpyrlfTJDtFB4K9j2LbFcielbi0hk
-	 94w/8+rz3DbRDxJ++11T76OcKfOlXAMoSPkwjmDs=
-Message-ID: <83336f0e-85ac-4711-9594-5edcb27eecdd@arm.com>
-Date: Fri, 24 Jul 2026 17:43:12 +0100
+	b=P0L5J143rZOhfhNxZ0HNkorXC2EWBXDUnvMQwVdQeyWD8eimCgkSLy1In3Xiz9bbL
+	 GnWsiBKDKjWuepsOA9ND0ORHgh+bsBORxraV1jC/AQHX/RON78aRxgPcK0+o+e15Nx
+	 5OtNegz8+j/ZU/6iWrd4ObOkOQKnVPauDsYd+Zuc=
+Message-ID: <63fc5264-f0ef-4aa1-8ffc-10aa3ac98a79@arm.com>
+Date: Fri, 24 Jul 2026 17:52:33 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -35,17 +35,16 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Thunderbird Daily
-Subject: Re: [PATCH v4 06/10] arm_mpam: propagate MSC access errors for state
- saving function
-To: Sudeep Holla <sudeep.holla@kernel.org>,
- Andre Przywara <andre.przywara@arm.com>
-Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
- Hanjun Guo <guohanjun@huawei.com>, Catalin Marinas
- <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+Subject: Re: [PATCH v4 09/10] arm_mpam: prevent MPAM-Fb accesses inside IRQ
+ handler
+To: Andre Przywara <andre.przywara@arm.com>,
+ Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
+ <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
  "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
  James Morse <james.morse@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu
- <fenghuay@nvidia.com>, Jonathan Cameron <jic23@kernel.org>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
  Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
  Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
  Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
@@ -53,96 +52,95 @@ Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
  linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
  linux-kernel@vger.kernel.org
 References: <20260723155454.1760823-1-andre.przywara@arm.com>
- <20260723155454.1760823-7-andre.przywara@arm.com>
- <20260724-important-curassow-of-support-ce4777@sudeepholla>
- <e182f2ac-6fd9-4a25-9409-9617012584ed@arm.com>
- <20260724-perfect-pygmy-chinchilla-447ce0@sudeepholla>
+ <20260723155454.1760823-10-andre.przywara@arm.com>
 Content-Language: en-US
 From: Ben Horgan <ben.horgan@arm.com>
-In-Reply-To: <20260724-perfect-pygmy-chinchilla-447ce0@sudeepholla>
+In-Reply-To: <20260723155454.1760823-10-andre.przywara@arm.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-Hi Sudeep, Andre,
+Hi Andre,
 
-On 7/24/26 13:27, Sudeep Holla wrote:
-> On Fri, Jul 24, 2026 at 01:19:14PM +0200, Andre Przywara wrote:
->> Hi,
->>
->> On 7/24/26 12:07, Sudeep Holla wrote:
->>> On Thu, Jul 23, 2026 at 05:54:50PM +0200, Andre Przywara wrote:
->>>> Allow the mpam_save_mbwu_state() function to return an error, and
->>>> propagate read and write errors from the lower level up.
->>>>
->>>> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
->>>> ---
->>>>   drivers/resctrl/mpam_devices.c | 29 ++++++++++++++++++++++-------
->>>>   1 file changed, 22 insertions(+), 7 deletions(-)
->>>>
->>>> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
->>>> index bcff53477133..6329443c451f 100644
->>>> --- a/drivers/resctrl/mpam_devices.c
->>>> +++ b/drivers/resctrl/mpam_devices.c
->>>> @@ -1833,22 +1833,37 @@ static int mpam_save_mbwu_state(void *arg)
->>>>   		mon_sel = FIELD_PREP(MSMON_CFG_MON_SEL_MON_SEL, i) |
->>>>   			  FIELD_PREP(MSMON_CFG_MON_SEL_RIS, ris->ris_idx);
->>>> -		mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel);
->>>> -		mpam_read_monsel_reg(msc, CFG_MBWU_FLT, &cur_flt);
->>>> -		mpam_read_monsel_reg(msc, CFG_MBWU_CTL, &cur_ctl);
->>>> -		mpam_write_monsel_reg(msc, CFG_MBWU_CTL, 0);
->>>> +		ret = mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel);
->>>> +		if (ret)
->>>> +			return ret;
->>>> +		ret = mpam_read_monsel_reg(msc, CFG_MBWU_FLT, &cur_flt);
->>>> +		if (ret)
->>>> +			return ret;
->>>> +		ret = mpam_read_monsel_reg(msc, CFG_MBWU_CTL, &cur_ctl);
->>>> +		if (ret)
->>>> +			return ret;
->>>
->>> How does it work in general with PCC. Now that you can fail at any point,
->>> what happens to the write that occurs before a failed read like above one.
->>> Who will take care of erasing those new writes or it doesn't matter ?
+On 7/23/26 16:54, Andre Przywara wrote:
+> When an MPAM MSC gets into an error condition, it can trigger an error
+> IRQ. We cannot really do much about those errors, but we at least query
+> and log the error, then disable MPAM functionality.
+> 
+> This error report relies on reading the MSC's error status register
+> (ESR) in the IRQ handler, which is not possible for MPAM-Fb based
+> MSC accesses, since they involve mailbox routines that might sleep.
+> The same is true for clearing the interrupt at the source, which
+> requires MSC access.
+> 
+> For simplicity just skip the ESR read when the MSC is not using direct
+> MMIO accesses, and just ignore the pending interrupts. We will wrap up
+> MPAM functionality regardless, knowing the exact error value will not
+> change that.
+> 
+> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+> ---
+>  drivers/resctrl/mpam_devices.c | 36 +++++++++++++++++++++-------------
+>  1 file changed, 22 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
+> index b8108ed4b32c..fea3161ffbe9 100644
+> --- a/drivers/resctrl/mpam_devices.c
+> +++ b/drivers/resctrl/mpam_devices.c
+> @@ -2650,25 +2650,33 @@ static irqreturn_t __mpam_irq_handler(int irq, struct mpam_msc *msc)
+>  					   &msc->accessibility)))
+>  		return IRQ_NONE;
+>  
+> -	mpam_msc_read_esr(msc, &reg);
+> +	/* MPAM-Fb MSC accesses cannot be done in atomic context. */
+> +	if (msc->iface == MPAM_IFACE_MMIO) {
+> +		mpam_msc_read_esr(msc, &reg);
+>  
+> -	errcode = FIELD_GET(MPAMF_ESR_ERRCODE, reg);
+> -	if (!errcode)
+> -		return IRQ_NONE;
+> +		errcode = FIELD_GET(MPAMF_ESR_ERRCODE, reg);
+> +		if (!errcode)
+> +			return IRQ_NONE;
+>  
+> -	/* Clear level triggered irq */
+> -	mpam_msc_clear_esr(msc);
+> +		/* Clear level triggered irq */
+> +		mpam_msc_clear_esr(msc);
+>  
+> -	partid = FIELD_GET(MPAMF_ESR_PARTID_MON, reg);
+> -	pmg = FIELD_GET(MPAMF_ESR_PMG, reg);
+> -	ris = FIELD_GET(MPAMF_ESR_RIS, reg);
+> +		partid = FIELD_GET(MPAMF_ESR_PARTID_MON, reg);
+> +		pmg = FIELD_GET(MPAMF_ESR_PMG, reg);
+> +		ris = FIELD_GET(MPAMF_ESR_RIS, reg);
+>  
+> -	pr_err_ratelimited("error irq from msc:%u '%s', partid:%u, pmg: %u, ris: %u\n",
+> -			   msc->id, mpam_errcode_names[errcode], partid, pmg,
+> -			   ris);
+> +		pr_err_ratelimited("error irq from msc:%u '%s', partid:%u, pmg: %u, ris: %u\n",
+> +				   msc->id, mpam_errcode_names[errcode], partid,
+> +				   pmg, ris);
+>  
+> -	/* Disable this interrupt. */
+> -	mpam_disable_msc_ecr(msc);
+> +		/* Disable this interrupt. */
+> +		mpam_disable_msc_ecr(msc);
 
-At least in this particular case it doesn't matter. The MON_SEL just configures which instance of
-the monitor we are reading or writing from and we'll just write MON_SEL again next time we want to
-interact with a monitor.
-
->>> Just checking as I don't have much knowledge on MPAM intrinsics.
->>
->> TBH I don't know, but I think we consider MPAM botched at this point, and
->> just stop the driver, similar to an error IRQ? But I am not sure this is
->> properly implemented at this point. The focus of these first six patches was
->> merely to lay the dirty groundwork for *being able* to handle errors, and do
->> this now rather than in the future.
->>
-
-I've just been discussing the error handling with James and trying to work out what we can do
-without limiting our options going forward. Ideally, if there are transient errors we'd like to
-retry in the kernel if it's not taking "too long" and otherwise report the error back to user space.
-For catastrophic errors, such as when the scp doesn't reply at all or that no MPAM commands are
-going to work again we should disable MPAM. As resctrl does not anticipate errors willy nilly from
-arch code it ends up reporting the info/last_cmd_status as "ok" even in situations when the MSC
-accesses have failed. I notice this in at least rdtgroup_schemata_write(). Before we can report
-proper failure information from resctrl and update last_cmd_status based on the error status from
-the architecture code it doesn't make sense to report the errors to user space. We would likely want
-resctrl to understand -ETIMEDOUT as well. As such, this leaves us the option of just nuking MPAM on
-any error reported from the MPAM firmware interface. For now, we needn't do any retries and just
-error out on the first error. It should be possible to just schedule mpam_broken_work from mpam_fb.c
-on error.
-
-Sorry for prompting the writing of these error handling patches but they will likely come in useful
-in the future.
+I still think we should use a threaded interrupt with IRQF_ONESHOT and disable the interrupt and
+schedule the mpam_disable from there. That way it can be obvious that won't just keep on running the
+interrupt handler and never getting to run the scheduled work.
 
 Thanks,
 
 Ben
 
-> 
-> Well, I agree to some extent, but PCC adds that failure case before which
-> it wasn't there. So, it is hard to claim that it was botched up before so
-> let it be. I will let James/Ben to decide if it was already botched up or
-> PCC addition makes it fragile in terms of error handling.
-
-
+> +	} else {
+> +		struct irq_data *d = irq_get_irq_data(irq);
+> +
+> +		pr_err_ratelimited("unknown error irq %d/%ld from msc:%u\n",
+> +				   irq, d ? irqd_to_hwirq(d) : -1, msc->id);
+> +	}
+>  
+>  	/* Are we racing with the thread disabling MPAM? */
+>  	if (!mpam_is_enabled())
 
