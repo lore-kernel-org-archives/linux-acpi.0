@@ -1,135 +1,199 @@
-Received: from pdx-out-003.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-003.esa.us-west-2.outbound.mail-perimeter.amazon.com [44.246.68.102])
+Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B212B36998A;
-	Sun, 26 Jul 2026 06:40:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=44.246.68.102
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9B451D435F;
+	Sun, 26 Jul 2026 08:11:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.132
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785048011; cv=none; b=rEtVy3dJuHB02R4bJb8IwX5Wfwofgf4Xn9SEJVO9Sl0j0KF0cfqg3xgliuZochE0vSWwD/eiViTyebCoY01uiktOyV5yqtvHyaq6NMmgNxdOT9v1ff0jhK5OdPFAgNCbe1i8xLrMylwv3h3StJok77jcoH0I1a5+1XlFw7eINiA=
+	t=1785053466; cv=none; b=R9+4rWaCzVeNUu/zYJe673xVfuJ3rn3jH0bzfNlwjoc58lq7t60yPgp4PJRDuxWKG1Ip1El/LjyIe+JLhyOKOyxi/Llbvh4Y8DgO0qPWPvP+y5O8TCE4pVcsPbxDRGRjQP4K4YcbLYsMDBHdX3fnoF19WAtDvFflIzBkON/Fdmo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785048011; c=relaxed/simple;
-	bh=dJ68QbooWHZBKQDn5xlKP/a7N1o1WPC7m/Nz/t4kin4=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=hVk1JwBkis1bjEIfz4kZd34KHuEHu1jGd0GZDoQzdOjWZVTcUAN8YovzUpHHSewMY5Jgq0OVVJy0XLb5oy/YcbdDlH9i82xaN/VA+tIHCN1plDxf/e3mi08/WgAnqOo1LPIwAO+VahEoZ2A/8t36okWLzX6kLEYrtFY2wCCLXU8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=lppOrWc2; arc=none smtp.client-ip=44.246.68.102
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+	s=arc-20240116; t=1785053466; c=relaxed/simple;
+	bh=RTEPkriu0RzqeZbGXqTSNKnfnJCakanhFbBUxP0fP5s=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=QL4a06seBY6MGuU13t3J1uNQrmi6zSSbRnKO2Ju/R8B2PQJsEZz6yii4ffy/KH2peD7Jje5pcOM3skM7h1USPqtCP7qsk6r9q6Yr05/sycIUgTwTWIuiLrJH6agYRETbVdMcCxw5Q5uyY8MhrEFVlF27dYWHzm9mRERZYtNyF1c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=Xhka52Pz; arc=none smtp.client-ip=115.124.30.132
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="lppOrWc2"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1785048010; x=1816584010;
-  h=from:to:subject:date:message-id:in-reply-to:references:
-   mime-version:content-transfer-encoding;
-  bh=1PjrX0TYQgXkSpJZuPaWlzS4502XZn4rTZl60p1SQXk=;
-  b=lppOrWc2Dfv8JLTWpnlvi7nGbMqCcCPMNWg/DIMoPJg5DWvc5E21Qo3E
-   coeO1fPMezFzgdjiceDzmzC7gkCEL3crcBxr6ObhqyPqZla+3BKN9mDI7
-   XBch0z5mqKPqnl8P9HPLx4gwpP9VFxmIE/2HK71vHGs5dBNcsI7bZePfA
-   0uk3h9EkO0wL7wkB1QNkHrdN18WyPH3rD5s74rslXyz4RxP9x0bN4SG37
-   JbX8WbnnbYXds2hXhcsG7F3LAQ1w2NQDV2Bf0W1p5YTfx04ZJzP1681lk
-   2B6udMs1JafNdwqFTQn2Se2+pgj8n037PZPL0brIkA+z7lkCdfu9sITwR
-   g==;
-X-CSE-ConnectionGUID: NHEVld4iSjWQxVjxvcKtDg==
-X-CSE-MsgGUID: hJ7BKbGESPiWqqSINZIzCA==
-X-IronPort-AV: E=Sophos;i="6.25,186,1779148800"; 
-   d="scan'208";a="24381954"
-Received: from ip-10-5-0-115.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.0.115])
-  by internal-pdx-out-003.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jul 2026 06:40:10 +0000
-Received: from EX19MTAUWB002.ant.amazon.com [205.251.233.48:9010]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.25.115:2525] with esmtp (Farcaster)
- id f4fe1e6f-f478-4186-b491-0d1c57155143; Sun, 26 Jul 2026 06:40:09 +0000 (UTC)
-X-Farcaster-Flow-ID: f4fe1e6f-f478-4186-b491-0d1c57155143
-Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWB002.ant.amazon.com (10.250.64.231) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.43;
- Sun, 26 Jul 2026 06:40:09 +0000
-Received: from dev-dsk-farbere-1a-46ecabed.eu-west-1.amazon.com
- (172.19.116.181) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.45; Sun, 26 Jul 2026
- 06:40:04 +0000
-From: Eliav Farber <farbere@amazon.com>
-To: <rafael@kernel.org>, <tony.luck@intel.com>, <bp@alien8.de>,
-	<guohanjun@huawei.com>, <mchehab@kernel.org>, <xueshuai@linux.alibaba.com>,
-	<lenb@kernel.org>, <laurent.pinchart@ideasonboard.com>, <linusw@kernel.org>,
-	<brgl@kernel.org>, <orsonzhai@gmail.com>, <baolin.wang@linux.alibaba.com>,
-	<zhang.lyra@gmail.com>, <jic23@kernel.org>, <dlechner@baylibre.com>,
-	<nuno.sa@analog.com>, <andy@kernel.org>, <dmitry.torokhov@gmail.com>,
-	<hansg@kernel.org>, <ilpo.jarvinen@linux.intel.com>, <W_Armin@gmx.de>,
-	<ukleinek@kernel.org>, <fabio.m.de.francesco@linux.intel.com>,
-	<kaihengf@nvidia.com>, <ankita@nvidia.com>, <leitao@debian.org>,
-	<farbere@amazon.com>, <pedro.pbg@usp.br>, <paulmck@kernel.org>,
-	<frederic@kernel.org>, <kees@kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-gpio@vger.kernel.org>,
-	<linux-pwm@vger.kernel.org>, <linux-iio@vger.kernel.org>,
-	<linux-input@vger.kernel.org>, <platform-driver-x86@vger.kernel.org>
-Subject: [PATCH v3 12/12] reboot: use devm_blocking_notifier_chain_register()
-Date: Sun, 26 Jul 2026 06:37:27 +0000
-Message-ID: <20260726063727.19111-13-farbere@amazon.com>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260726063727.19111-1-farbere@amazon.com>
-References: <20260726063727.19111-1-farbere@amazon.com>
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="Xhka52Pz"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1785053457; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=NEC1x0t4FgKK4Tk+cZJ1XYzOhN5QrXs0rC69ea0xDJw=;
+	b=Xhka52PzVrXue4ORIq4yBJ17K/LwE00qlNrkkYVgaRlGy9dAqB/9gXxNDvvlUNwjvK1lQ2lVlES985isXjBZc4DgxLZgR5gdLM8mYYbnNLCX5k4mnPSO0muS8GSjpHwKEJxwtMTBioVZK5H6Kyq3misQcUEU/zuvRAHG9oAZHAg=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R691e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045098064;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=15;SR=0;TI=SMTPD_---0X7n1mZ1_1785053455;
+Received: from 30.28.192.31(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0X7n1mZ1_1785053455 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Sun, 26 Jul 2026 16:10:57 +0800
+Message-ID: <22906668-658f-49a2-99f3-9e4ef6506d93@linux.alibaba.com>
+Date: Sun, 26 Jul 2026 16:10:55 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: EX19D043UWC001.ant.amazon.com (10.13.139.202) To
- EX19D001UWA001.ant.amazon.com (10.13.138.214)
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 RESEND 1/4] ACPI: APEI: GHES: Refactor Grace decoder
+ helpers
+To: Kai-Heng Feng <kaihengf@nvidia.com>, rafael@kernel.org, shuah@kernel.org,
+ kees@kernel.org
+Cc: julianbraha@gmail.com, tony.luck@intel.com, bp@alien8.de,
+ guohanjun@huawei.com, mchehab@kernel.org, linux-kernel@vger.kernel.org,
+ linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org,
+ linux-hardening@vger.kernel.org, csoto@nvidia.com, mochs@nvidia.com
+References: <20260724122054.36162-1-kaihengf@nvidia.com>
+ <20260724122054.36162-2-kaihengf@nvidia.com>
+From: Shuai Xue <xueshuai@linux.alibaba.com>
+In-Reply-To: <20260724122054.36162-2-kaihengf@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Replace the manual devres_alloc() + register_reboot_notifier() pattern
-with a single call to devm_blocking_notifier_chain_register(), removing
-the devm_unregister_reboot_notifier() callback.
 
-Signed-off-by: Eliav Farber <farbere@amazon.com>
----
-Changes in v3:
-- Fix commit message to accurately describe the old code as using
-  devres_alloc() + register_reboot_notifier() (Sashiko)
 
- kernel/reboot.c | 24 ++----------------------
- 1 file changed, 2 insertions(+), 22 deletions(-)
+On 7/24/26 8:20 PM, Kai-Heng Feng wrote:
+> Split the Grace CPER processing into a separate decode step and a
+> print step so the parser can be exercised by KUnit without a live
+> ACPI device. Introduce ghes-nvidia.h to hold shared types that the
+> Vera decoder added in the next commit will also reference.
+> 
+> Signed-off-by: Kai-Heng Feng <kaihengf@nvidia.com>
+> ---
+> v2:
+>   - No change.
+> 
+>   drivers/acpi/apei/ghes-nvidia.c | 148 +++++++++++++++++++++-----------
+>   drivers/acpi/apei/ghes-nvidia.h |  38 ++++++++
+>   2 files changed, 137 insertions(+), 49 deletions(-)
+>   create mode 100644 drivers/acpi/apei/ghes-nvidia.h
+> 
+> diff --git a/drivers/acpi/apei/ghes-nvidia.c b/drivers/acpi/apei/ghes-nvidia.c
+> index 597275d81de8..af445152def0 100644
+> --- a/drivers/acpi/apei/ghes-nvidia.c
+> +++ b/drivers/acpi/apei/ghes-nvidia.c
+> @@ -12,7 +12,10 @@
+>   #include <linux/uuid.h>
+>   #include <acpi/ghes.h>
+>   
+> -static const guid_t nvidia_sec_guid =
+> +#include <kunit/visibility.h>
+> +#include "ghes-nvidia.h"
+> +
+> +static const guid_t nvidia_grace_sec_guid =
+>   	GUID_INIT(0x6d5244f2, 0x2712, 0x11ec,
+>   		  0xbe, 0xa7, 0xcb, 0x3f, 0xdb, 0x95, 0xc7, 0x86);
+>   
+> @@ -25,10 +28,7 @@ struct cper_sec_nvidia {
+>   	u8	number_regs;
+>   	u8	reserved;
+>   	__le64	instance_base;
+> -	struct {
+> -		__le64	addr;
+> -		__le64	val;
+> -	} regs[] __counted_by(number_regs);
+> +	struct nvidia_ghes_grace_reg regs[] __counted_by(number_regs);
+>   };
 
-diff --git a/kernel/reboot.c b/kernel/reboot.c
-index 695c33e75efd..557609419989 100644
---- a/kernel/reboot.c
-+++ b/kernel/reboot.c
-@@ -136,30 +136,10 @@ int unregister_reboot_notifier(struct notifier_block *nb)
- }
- EXPORT_SYMBOL(unregister_reboot_notifier);
- 
--static void devm_unregister_reboot_notifier(struct device *dev, void *res)
--{
--	WARN_ON(unregister_reboot_notifier(*(struct notifier_block **)res));
--}
--
- int devm_register_reboot_notifier(struct device *dev, struct notifier_block *nb)
- {
--	struct notifier_block **rcnb;
--	int ret;
--
--	rcnb = devres_alloc(devm_unregister_reboot_notifier,
--			    sizeof(*rcnb), GFP_KERNEL);
--	if (!rcnb)
--		return -ENOMEM;
--
--	ret = register_reboot_notifier(nb);
--	if (!ret) {
--		*rcnb = nb;
--		devres_add(dev, rcnb);
--	} else {
--		devres_free(rcnb);
--	}
--
--	return ret;
-+	return devm_blocking_notifier_chain_register(dev,
-+						     &reboot_notifier_list, nb);
- }
- EXPORT_SYMBOL(devm_register_reboot_notifier);
- 
--- 
-2.47.3
+The Vera side treats the payload as a packed wire format and uses
+get_unaligned_leXX(), but the Grace side still casts the CPER payload to
+struct cper_sec_nvidia and directly dereferences __le16/__le64 fields.
+
+Unless the GHES vendor payload is guaranteed to be naturally aligned here,
+please make the Grace decoder follow the same rule as Vera and use
+get_unaligned_le16()/get_unaligned_le64() for all multi-byte fields,
+including the register pairs.
+
+>   
+>   struct nvidia_ghes_private {
+> @@ -36,73 +36,123 @@ struct nvidia_ghes_private {
+>   	struct device		*dev;
+>   };
+>   
+> -static void nvidia_ghes_print_error(struct device *dev,
+> -				    const struct cper_sec_nvidia *nvidia_err,
+> -				    size_t error_data_length, bool fatal)
+> +VISIBLE_IF_KUNIT
+> +int nvidia_ghes_decode_grace(struct device *dev, const void *buf,
+> +			     size_t len,
+> +			     struct nvidia_ghes_decoded *decoded)
+>   {
+> -	const char *level = fatal ? KERN_ERR : KERN_INFO;
+> +	const struct cper_sec_nvidia *nvidia_err = buf;
+>   	size_t min_size;
+>   
+> -	dev_printk(level, dev, "signature: %.16s\n", nvidia_err->signature);
+> -	dev_printk(level, dev, "error_type: %u\n", le16_to_cpu(nvidia_err->error_type));
+> -	dev_printk(level, dev, "error_instance: %u\n", le16_to_cpu(nvidia_err->error_instance));
+> -	dev_printk(level, dev, "severity: %u\n", nvidia_err->severity);
+> -	dev_printk(level, dev, "socket: %u\n", nvidia_err->socket);
+> -	dev_printk(level, dev, "number_regs: %u\n", nvidia_err->number_regs);
+> -	dev_printk(level, dev, "instance_base: 0x%016llx\n",
+> -		   le64_to_cpu(nvidia_err->instance_base));
+> -
+> -	if (nvidia_err->number_regs == 0)
+> -		return;
+> -
+> -	/*
+> -	 * Validate that all registers fit within error_data_length.
+> -	 * Each register pair is two little-endian u64s.
+> -	 */
+> +	if (!buf || !decoded)
+> +		return -EINVAL;
+> +	if (len < sizeof(*nvidia_err)) {
+> +		if (dev)
+> +			dev_err(dev, "Section too small (%zu < %zu)\n",
+> +				len, sizeof(*nvidia_err));
+> +		return -ENODATA;
+> +	}
+> +
+>   	min_size = struct_size(nvidia_err, regs, nvidia_err->number_regs);
+> -	if (error_data_length < min_size) {
+> -		dev_err(dev, "Invalid number_regs %u (section size %zu, need %zu)\n",
+> -			nvidia_err->number_regs, error_data_length, min_size);
+> -		return;
+> +	if (len < min_size) {
+> +		if (dev)
+> +			dev_err(dev,
+> +				"Invalid number_regs %u (section size %zu, need %zu)\n",
+> +				nvidia_err->number_regs, len, min_size);
+> +		return -ENODATA;
+>   	}
+>   
+> -	for (int i = 0; i < nvidia_err->number_regs; i++)
+> +	memset(decoded, 0, sizeof(*decoded));
+> +	decoded->format = NVIDIA_GHES_FORMAT_GRACE;
+> +	memcpy(decoded->signature, nvidia_err->signature, sizeof(nvidia_err->signature));
+> +	decoded->signature[sizeof(nvidia_err->signature)] = '\0';
+> +	decoded->error_type = le16_to_cpu(nvidia_err->error_type);
+> +	decoded->error_instance = le16_to_cpu(nvidia_err->error_instance);
+> +	decoded->severity = nvidia_err->severity;
+> +	decoded->socket = nvidia_err->socket;
+> +	decoded->number_regs = nvidia_err->number_regs;
+> +	decoded->instance_base = le64_to_cpu(nvidia_err->instance_base);
+> +	if (nvidia_err->number_regs)
+> +		decoded->grace_regs = nvidia_err->regs;
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_IF_KUNIT(nvidia_ghes_decode_grace);
+> +
+> +VISIBLE_IF_KUNIT
+> +int nvidia_ghes_grace_reg_pair(const struct nvidia_ghes_decoded *decoded,
+> +				      unsigned int index, u64 *addr, u64 *val)
+> +{
+> +	const struct nvidia_ghes_grace_reg *regs;
+> +
+> +	if (!decoded || decoded->format != NVIDIA_GHES_FORMAT_GRACE || !addr || !val)
+> +		return -EINVAL;
+> +	if (index >= decoded->number_regs)
+> +		return -ERANGE;
+> +
+> +	regs = decoded->grace_regs;
+
+This is fine for objects produced by nvidia_ghes_decode_grace(), but now
+that the helper is visible to KUnit, please either document that contract
+or reject number_regs != 0 && !decoded->grace_regs here.
+
+Thanks.
+Shuai
 
