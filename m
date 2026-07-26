@@ -1,104 +1,65 @@
-Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
+Received: from mails.wedevs.org (mails.wedevs.org [107.172.252.250])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 250E73BB13F;
-	Sun, 26 Jul 2026 14:11:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B29FC33A70A
+	for <linux-acpi@vger.kernel.org>; Sun, 26 Jul 2026 20:56:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=107.172.252.250
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785075087; cv=none; b=eWeYvJYmzp5CSJklOU2uu3twKSdEPBgR+Ph3iyHNymzsD/02q099TAMpXGDsqPuZ4INdvryUlRR41/zk2Opo7YF1I/AES5R4SZIok2I1+cjbCvtIwwa0Sw1KIV8cYUFSB5aUQeu6m4DpZFCKxqyrutSJNB/hqWEhTvju3LAcbBY=
+	t=1785099417; cv=none; b=eC9NxWRupyxpl9AkGPCgRB1QX44yzkv7iUEk884Yb4E16liHwJp0fAchz7Yz/dTrzK4T3f6dILANR3Ni6XLjOUWjOzVcayYautPaXR5SY9XMNK4I/LXQOaCEPxXD03wO0/rzs9Ceq86sgShqwr24S705e1mzjMdQB83g43GdfK4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785075087; c=relaxed/simple;
-	bh=RsM7wLQ/jOnJ2CAOeD6Me72MGP1YsDb+SowXpnXJzvQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XCPKoBpZGA55XoQfHNGiOVkxD4jbgfnfLUgcqRKTFS9HgLFfYIc+uwTbkRzJFiqM41u0UGkvdiYo8eplTOT9l/NSLct5Um4LQDBGFu+1N+ghsZ1YbICk/ohxcB6moftdFS5vUB1d+TGrmaGeCCaGL0LU5oAZsbMGEVZg63pCzew=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=PicAm15s; arc=none smtp.client-ip=65.109.113.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
+	s=arc-20240116; t=1785099417; c=relaxed/simple;
+	bh=Nb1KN+ksmm8uBKM3h+ZxakFD6eWvdhbw2rkBPn/6QNg=;
+	h=Content-Type:MIME-Version:From:To:Subject:Date:Message-ID:
+	 MIME-Version:Content-Type; b=IAm+SkULXiI9W8qa+TJNPrYFj0nkLvePDm/TK9pZFOb9DPA/SaTb1EGzQiPkV10WKaFZCAFFoQOXccAlYpsiaopLExzwa2oi4Cqu0eSy3V4RC1nVH9uY3mwWXG577wvSrdnGqO0E46+5Gv5UJeeE78gTeKRihpQJQsOiRIUsXFs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mails.wedevs.org; spf=pass smtp.mailfrom=mails.wedevs.org; dkim=pass (2048-bit key) header.d=mails.wedevs.org header.i=@mails.wedevs.org header.b=Our/BW76; dkim=permerror (0-bit key) header.d=mails.wedevs.org header.i=@mails.wedevs.org header.b=olRorSg0; arc=none smtp.client-ip=107.172.252.250
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mails.wedevs.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mails.wedevs.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="PicAm15s"
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id 31E5540E00C3;
-	Sun, 26 Jul 2026 14:11:21 +0000 (UTC)
-X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
-Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
-	header.d=alien8.de
-Received: from mail.alien8.de ([127.0.0.1])
-	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id 0d6Ot8_kfMTT; Sun, 26 Jul 2026 14:11:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
-	t=1785075070; bh=r8doXaDn6ecHI39IRrqLZtoTpcRGraO81Kh8LY5Konc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=PicAm15s5uT96SZg3N5NWfi+nCimx4ItIGt7nRIwH+6Du9jqDhyW5STVkhbifcuL7
-	 4JQCnJ1b/WdEduujnyrWslHwKUejWKGmu000WgsSEZvlvQ4e1jkD+pdkSfPcT7zSnU
-	 JVf7fIuElseMtHnwIJWZDL4jY7lLeDMejnaxUN2Wi528uwBP6KtsTMBflle1/sGmQ9
-	 PCNvUcQm3J3MBK+ENZfF5fsFGDBCZkQczEgrhGS+6B2kDbF33DP/pUaXp3Rdfzgp3h
-	 Mg28cYxc6+z0Rb12nvJZD5mkxDm/+28zUex+Imiqr738I6QMicj42IgC6CFQDcQuhI
-	 v1aLwwFEV+Hs3EUnzQ28+R44SQ9JXFzMX5dKxNWYAkgXcMfPVUs87XC1CQ9pI9iOhu
-	 4x/0EodwXBAnF0AC1LlybjC/K8ADD3ZCnioQKWcMPAAJMkzkn6Ed/b7vnCN2ZZfnns
-	 g19aV1R8B+hLk/nH1JImgWOuHvKNirKsaAbIrfXT1fN2dm3BBliOY8hfUjvYrUOzQ4
-	 hg3tPClCDuJe45kY0Q5GsWBm34c1B4fGcT4Pa+uzeRc2g+IyOXM5r19vpb+uHuG8PV
-	 hsYj5GRZ/SloQZMSg57Q23s74VhXbOhcyHP1pasyHkKda5DqY3UsW9ZFhXbmFVUdo0
-	 tvhT5aBPUeYNBwHuOCbWzvEA=
-Received: from stx.tnic (unknown [IPv6:2600:1700:38ca:c00::1b])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
-	(No client certificate requested)
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id CE79640E00B8;
-	Sun, 26 Jul 2026 14:10:32 +0000 (UTC)
-Date: Sun, 26 Jul 2026 07:10:29 -0700
-From: Borislav Petkov <bp@alien8.de>
-To: Eliav Farber <farbere@amazon.com>
-Cc: rafael@kernel.org, tony.luck@intel.com, guohanjun@huawei.com,
-	mchehab@kernel.org, xueshuai@linux.alibaba.com, lenb@kernel.org,
-	laurent.pinchart@ideasonboard.com, linusw@kernel.org,
-	brgl@kernel.org, orsonzhai@gmail.com, baolin.wang@linux.alibaba.com,
-	zhang.lyra@gmail.com, jic23@kernel.org, dlechner@baylibre.com,
-	nuno.sa@analog.com, andy@kernel.org, dmitry.torokhov@gmail.com,
-	hansg@kernel.org, ilpo.jarvinen@linux.intel.com, W_Armin@gmx.de,
-	ukleinek@kernel.org, fabio.m.de.francesco@linux.intel.com,
-	kaihengf@nvidia.com, ankita@nvidia.com, leitao@debian.org,
-	pedro.pbg@usp.br, paulmck@kernel.org, frederic@kernel.org,
-	kees@kernel.org, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-iio@vger.kernel.org,
-	linux-input@vger.kernel.org, platform-driver-x86@vger.kernel.org
-Subject: Re: [PATCH v4 00/13] notifier: add device-managed registration APIs
- and convert drivers
-Message-ID: <20260726141029.GAamYVVeVnJfH5ebH5@fat_crate.local>
-References: <20260726101739.33170-1-farbere@amazon.com>
+	dkim=pass (2048-bit key) header.d=mails.wedevs.org header.i=@mails.wedevs.org header.b="Our/BW76";
+	dkim=permerror (0-bit key) header.d=mails.wedevs.org header.i=@mails.wedevs.org header.b="olRorSg0"
+DKIM-Signature: v=1; a=rsa-sha256; s=202601r; d=mails.wedevs.org; c=relaxed/relaxed;
+	h=Message-ID:Date:Subject:To:From; t=1785099415; bh=Nb1KN+ksmm8uBKM3h+ZxakF
+	D6eWvdhbw2rkBPn/6QNg=; b=Our/BW76xwwlYVloe0kgc6ZrZntOZaOLDM9GTvz3k+P98rfDl8
+	lgdgPxLDxhM3YGF0DME6Vo9llXUtd3sPZcrxVyvzZ0BGKzCD7aCu4SrcKp7aXOrI1VO9cdhaD8m
+	a4f7A8e64mTxXWrOmKkfm9yWtc3iPDJbW6+Ozg6AUZo4KeemkO9yTPwlekyAgkqqdF0Z3owHNfI
+	a+pBTl26GnemOpejJCQUNGeSFN8P/ZfYLFpPICyA+fCd7UXzvFy/47FoVcUSynN/0uWVW4/c64o
+	mTi0BvZMXcbuo3OeMrqtJqQcPfoZubFiwIPlBdu3DtHI6YbCOMeV5LxAGKPP0USkQ3A==;
+DKIM-Signature: v=1; a=ed25519-sha256; s=202601e; d=mails.wedevs.org; c=relaxed/relaxed;
+	h=Message-ID:Date:Subject:To:From; t=1785099415; bh=Nb1KN+ksmm8uBKM3h+ZxakF
+	D6eWvdhbw2rkBPn/6QNg=; b=olRorSg0mip1wjHA8SKRTFduA7/OFNtUsBV/OVxhjFBmRzL5fm
+	3HrYeOKLm77iq+EdUDeFXqzOKrdSu51uxRAw==;
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+From: Bug Report <bugreport@mails.wedevs.org>
+To: linux-acpi@vger.kernel.org
+Subject: [Bug] ACPI BIOS errors - MECHREVO WUJIE15XA laptop (AMD Phoenix3)
+Date: Mon, 27 Jul 2026 04:56:52 +0800
+Message-ID: <178509941255.717042.12831748341930108468@mails.wedevs.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260726101739.33170-1-farbere@amazon.com>
+Content-Transfer-Encoding: 8bit
 
-On Sun, Jul 26, 2026 at 10:17:26AM +0000, Eliav Farber wrote:
-> Many drivers repeat the same boilerplate when registering notifiers with
-> device lifetime:
-
-From: Documentation/process/submitting-patches.rst
-
-Don't get discouraged - or impatient
-------------------------------------
-
-After you have submitted your change, be patient and wait.  Reviewers are
-busy people and may not get to your patch right away.
-
-Once upon a time, patches used to disappear into the void without comment,
-but the development process works more smoothly than that now.  You should
-receive comments within a week or so; if that does not happen, make sure
-that you have sent your patches to the right place.  Wait for a minimum of
-						     ^^^^^^^^^^^^^^^^^^^^^
-one week before resubmitting or pinging reviewers - possibly longer during
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-busy times like merge windows.
-
--- 
-Regards/Gruss,
-    Boris.
-
-https://people.kernel.org/tglx/notes-about-netiquette
+SGksCgpPbiBhIE1FQ0hSRVZPIFdVSklFMTVYQSBsYXB0b3AgKEFNRCBQaG9lbml4MywgQklPUyB2
+MTExKSwgdGhlCmZvbGxvd2luZyBBQ1BJIGVycm9ycyBhcHBlYXIgYXQgYm9vdDoKCiAgQUNQSSBC
+SU9TIEVycm9yOiBGYWlsdXJlIGNyZWF0aW5nIG5hbWVkIG9iamVjdCBbXF9TQi5QQ0kwLkdQUDYu
+V0xBTi5fRFNNXSwgQUVfQUxSRUFEWV9FWElTVFMKICBBQ1BJIEJJT1MgRXJyb3I6IEZhaWx1cmUg
+Y3JlYXRpbmcgbmFtZWQgb2JqZWN0IFtcX1NCLlBDSTAuR1BQNi5fUzBXXSwgQUVfQUxSRUFEWV9F
+WElTVFMKICBBQ1BJIEJJT1MgRXJyb3I6IEZhaWx1cmUgY3JlYXRpbmcgbmFtZWQgb2JqZWN0IFtc
+X1NCLlBDSTAuR1BQNi5fUFJXXSwgQUVfQUxSRUFEWV9FWElTVFMKICBBQ1BJIEJJT1MgRXJyb3I6
+IEZhaWx1cmUgY3JlYXRpbmcgbmFtZWQgb2JqZWN0IFtcX1NCLlBDSTAuR1BQNi5XTEFOLl9TMFdd
+LCBBRV9BTFJFQURZX0VYSVNUUwogIEFDUEkgQklPUyBFcnJvcjogQ291bGQgbm90IHJlc29sdmUg
+c3ltYm9sIFteXl5eTlBDRi5BQ0JUXSwgQUVfTk9UX0ZPVU5ECiAgQUNQSSBFcnJvcjogQWJvcnRp
+bmcgbWV0aG9kIFxfU0IuUENJMC5TQlJHLkVDMC5fUTgzCgpUaGUgZmlyc3QgZm91ciBhcmUgZHVw
+bGljYXRlIG5hbWVkIG9iamVjdHMgaW4gdGhlIERTRFQgZm9yIHRoZQpXTEFOIGRldmljZS4gVGhl
+IGxhc3QgdHdvIGFmZmVjdCBFQyBxdWVyeSBtZXRob2QgX1E4My4KCktlcm5lbDogTGludXggZGUg
+Ni4xMi45NitkZWIxMy1hbWQ2NCAjMSBTTVAgUFJFRU1QVF9EWU5BTUlDIERlYmlhbiA2LjEyLjk2
+LTEgKDIwMjYtMDctMjApIHg4Nl82NCBHTlUvTGludXgKRE1JOiBNRUNIUkVWTyBXVUpJRTE1WEEK
+QklPUzogQW1lcmljYW4gTWVnYXRyZW5kcyBJbnRlcm5hdGlvbmFsLCBMTEMuIHYxMTEKCklzIHRo
+aXMgYSBrbm93biBCSU9TIGJ1Zywgb3IgaXMgYSBrZXJuZWwgd29ya2Fyb3VuZCBwb3NzaWJsZT8K
+CkZ1bGwgZG1lc2cgb3V0cHV0IGF2YWlsYWJsZSBvbiByZXF1ZXN0Lg==
