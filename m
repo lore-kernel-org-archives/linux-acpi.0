@@ -1,39 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3F563C3F73;
-	Mon, 27 Jul 2026 22:51:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6E2C3C4562;
+	Mon, 27 Jul 2026 23:22:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785192674; cv=none; b=fnxCWbqFdm+s26ZcuPvjDXbyqFndb2yXyeUMVZNSHlAH+UJXdRu3hXqUlDSqUoYC+0TbQTXX6NtBc5DpTfbvtn57NJ4ZjYsQSVEKHX2kHnMlq3JWMpvIfhvrl3X2vZbYi3C2YQFnmZCvKebVg4p1GY+N6okBaPigJpfY2eWM+WE=
+	t=1785194581; cv=none; b=DidesHsigPR3rPRAQW3Bz8YfNCVlCA3sb1UlwY7Y1+TnBU/8gqUd6oV7BE3imu1GBlh9ECtzzUbJilamTOV8v8keo6V8AlCupgFumjFFOik0xdHiWEdCVh4t1QvnT9ta9ykcQOo4IiCy0VVqbh+COAdgPxOecg8RdgNDVp9GkLw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785192674; c=relaxed/simple;
-	bh=go7V3v0u7G3cWcfTYeVJgFje64SWV8uPz4pmHui51bw=;
+	s=arc-20240116; t=1785194581; c=relaxed/simple;
+	bh=/vtscHkpkvZPLvmZtBX0+a3KQTPEDZm7+Ybp6eNbrds=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ueuk9ZkKhgf8ON8iJBLPC2uwv4EmUUZoR6vvDqQdAe4Td758Lr89qds7VzYXnc0a9bmq5kQTA1jeBqGJavVckfDBlNZ2xc+NcvfOoB7GbcccZwJ6Z+aEgI+hTfOMMQxtnBxGHww0nyhbGfJsK5SXqsI5UGzLjjQTxI9BYhLPUVg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gMjD1Wll; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=ZzP0heij6ahvQhXSRnb1ioiCGnYspBzuPwmL83XJsu4eSoHEY7ElQM0y17S9BvT+3j4vToOVKajuHcY490ZuRFLf7A6SkCsD3wrbxD94sTEvxVPaeaznybz6TUqJAA2jfToERlyAeYZYcYrEOL39pekm3eaEYwit6FayHJ1q2+g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=agluquQP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gMjD1Wll"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E1E31F000E9;
-	Mon, 27 Jul 2026 22:51:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="agluquQP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07BBE1F000E9;
+	Mon, 27 Jul 2026 23:22:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785192672;
-	bh=Os/hNsBhlrW8yY2Huxh6rA06MFVClKkCltrPKtDOtfo=;
+	s=k20260515; t=1785194579;
+	bh=lVr5Cr9nWLKIbHjqu5Qu6E+br23QI9KJofBsQ+CVWf8=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=gMjD1WllPfwdyJuRpIT00rIIbyz5IMm2v8b9kpT9hAjCb0e6GXpXWiK3RmSKvo+ga
-	 tZXfImieApzyyp8UWAC5fC5bE5izXzCPYxQIRAX/VeEJIuqszr/G5tYArg//e9abyk
-	 w+i03CRIG71OOyj7R1sTGSZXONr3fQEocgBP2WYUc30M6QA2gsyzMn1LUhpG5Ubw56
-	 gN/Y99Nh4IGk8GbSMdFxzSvOsTV6k3pLhWes9GMATNLJvlbqlL+tFaiAOO3vP1L6c2
-	 Vp1uZ2nyKDueIp1cRaQyaUydsn/KzFLwYla4vaA6faXINVUQiUkdrcJW/P9MMQVWGW
-	 wZB8cIKdFNmCw==
-Date: Mon, 27 Jul 2026 23:51:08 +0100
+	b=agluquQPSC9RXPmNnIZK76eXD/aftYt5jG2hrCU6ozy+Yvs/Hh9rZGjs6btQxiqIv
+	 twQV0i+1Q8oErKN0d+v9+G8dbZK3y1NMb6IrMx/bDpdzUro2AD+i/+R00EWmYEmYNA
+	 ZL7242R45VkJ5vsiY/8g0ebJHTreb+qmnNdeDPb3264ff2GwkqBHgvEJRfYUbeG1gg
+	 glJjGxM/3anTbs6WOcvQnTpNcS17WRNT3kU4/tHHYnqIJeTrgxlbjOW6hGf1HcJ0eK
+	 ZyIdAvcMLXjvg1rYhULKdxcPAm5bXjQ5EF05kvD7YoP1OXAYBmmwEMQjaGCGxRidrQ
+	 ByDhL/v/hPyGw==
+Date: Tue, 28 Jul 2026 00:22:52 +0100
 From: Jonathan Cameron <jic23@kernel.org>
-To: Ben Horgan <ben.horgan@arm.com>
-Cc: Sudeep Holla <sudeep.holla@kernel.org>, Andre Przywara
- <andre.przywara@arm.com>, Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun
- Guo <guohanjun@huawei.com>, Catalin Marinas <catalin.marinas@arm.com>, Will
- Deacon <will@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>, Len
- Brown <lenb@kernel.org>, James Morse <james.morse@arm.com>, Reinette Chatre
+To: Andre Przywara <andre.przywara@arm.com>
+Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
+ <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>, Catalin
+ Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, "Rafael J
+ . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, James Morse
+ <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>, Reinette Chatre
  <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>, Srivathsa L
  Rao <srivathsa.rao@oss.qualcomm.com>, Ganapatrao Kulkarni
  <ganapatrao.kulkarni@oss.qualcomm.com>, Trilok Soni <tsoni@quicinc.com>,
@@ -41,16 +41,12 @@ Cc: Sudeep Holla <sudeep.holla@kernel.org>, Andre Przywara
  <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
  linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
  linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4 06/10] arm_mpam: propagate MSC access errors for
- state saving function
-Message-ID: <20260727235108.0ec96f09@jic23-huawei>
-In-Reply-To: <83336f0e-85ac-4711-9594-5edcb27eecdd@arm.com>
+Subject: Re: [PATCH v4 08/10] arm_mpam: add MPAM-Fb MSC firmware access
+ support
+Message-ID: <20260728002252.77064c3b@jic23-huawei>
+In-Reply-To: <20260723155454.1760823-9-andre.przywara@arm.com>
 References: <20260723155454.1760823-1-andre.przywara@arm.com>
-	<20260723155454.1760823-7-andre.przywara@arm.com>
-	<20260724-important-curassow-of-support-ce4777@sudeepholla>
-	<e182f2ac-6fd9-4a25-9409-9617012584ed@arm.com>
-	<20260724-perfect-pygmy-chinchilla-447ce0@sudeepholla>
-	<83336f0e-85ac-4711-9594-5edcb27eecdd@arm.com>
+	<20260723155454.1760823-9-andre.przywara@arm.com>
 X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -61,97 +57,87 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Fri, 24 Jul 2026 17:43:12 +0100
-Ben Horgan <ben.horgan@arm.com> wrote:
+On Thu, 23 Jul 2026 17:54:52 +0200
+Andre Przywara <andre.przywara@arm.com> wrote:
 
-> Hi Sudeep, Andre,
+> The Arm MPAM Firmware-backed (Fb) Profile document[1] describes an
+> alternative way of accessing the "Memory System Components" (MSC) in an
+> MPAM enabled system.
 > 
-> On 7/24/26 13:27, Sudeep Holla wrote:
-> > On Fri, Jul 24, 2026 at 01:19:14PM +0200, Andre Przywara wrote:  
-> >> Hi,
-> >>
-> >> On 7/24/26 12:07, Sudeep Holla wrote:  
-> >>> On Thu, Jul 23, 2026 at 05:54:50PM +0200, Andre Przywara wrote:  
-> >>>> Allow the mpam_save_mbwu_state() function to return an error, and
-> >>>> propagate read and write errors from the lower level up.
-> >>>>
-> >>>> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
-> >>>> ---
-> >>>>   drivers/resctrl/mpam_devices.c | 29 ++++++++++++++++++++++-------
-> >>>>   1 file changed, 22 insertions(+), 7 deletions(-)
-> >>>>
-> >>>> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-> >>>> index bcff53477133..6329443c451f 100644
-> >>>> --- a/drivers/resctrl/mpam_devices.c
-> >>>> +++ b/drivers/resctrl/mpam_devices.c
-> >>>> @@ -1833,22 +1833,37 @@ static int mpam_save_mbwu_state(void *arg)
-> >>>>   		mon_sel = FIELD_PREP(MSMON_CFG_MON_SEL_MON_SEL, i) |
-> >>>>   			  FIELD_PREP(MSMON_CFG_MON_SEL_RIS, ris->ris_idx);
-> >>>> -		mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel);
-> >>>> -		mpam_read_monsel_reg(msc, CFG_MBWU_FLT, &cur_flt);
-> >>>> -		mpam_read_monsel_reg(msc, CFG_MBWU_CTL, &cur_ctl);
-> >>>> -		mpam_write_monsel_reg(msc, CFG_MBWU_CTL, 0);
-> >>>> +		ret = mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel);
-> >>>> +		if (ret)
-> >>>> +			return ret;
-> >>>> +		ret = mpam_read_monsel_reg(msc, CFG_MBWU_FLT, &cur_flt);
-> >>>> +		if (ret)
-> >>>> +			return ret;
-> >>>> +		ret = mpam_read_monsel_reg(msc, CFG_MBWU_CTL, &cur_ctl);
-> >>>> +		if (ret)
-> >>>> +			return ret;  
-> >>>
-> >>> How does it work in general with PCC. Now that you can fail at any point,
-> >>> what happens to the write that occurs before a failed read like above one.
-> >>> Who will take care of erasing those new writes or it doesn't matter ?  
+> Normally the MSCs are MMIO mapped, but in some implementations this
+> might not be possible (MSC located outside of the local socket, MSC
+> mapped secure-only) or desirable (direct MMIO access too slow or needs
+> to be mediated through a control processor). MPAM-fb standardises a
+> protocol to abstract MSC accesses, building on the SCMI protocol.
 > 
-> At least in this particular case it doesn't matter. The MON_SEL just configures which instance of
-> the monitor we are reading or writing from and we'll just write MON_SEL again next time we want to
-> interact with a monitor.
+> Add functions that do an MSC read or write access by redirecting the
+> request through a firmware interface. For now this done via an ACPI
+> PCC shared memory and mailbox combination.
 > 
-> >>> Just checking as I don't have much knowledge on MPAM intrinsics.  
-> >>
-> >> TBH I don't know, but I think we consider MPAM botched at this point, and
-> >> just stop the driver, similar to an error IRQ? But I am not sure this is
-> >> properly implemented at this point. The focus of these first six patches was
-> >> merely to lay the dirty groundwork for *being able* to handle errors, and do
-> >> this now rather than in the future.
-> >>  
+> Since the protocol used is only a small subset of the full SCMI spec,
+> and the SCMI protocol has no full ACPI support anyway, open-code the
+> (simple) SCMI message generation, for just the fields we need.
 > 
-> I've just been discussing the error handling with James and trying to work out what we can do
-> without limiting our options going forward. Ideally, if there are transient errors we'd like to
-> retry in the kernel if it's not taking "too long" and otherwise report the error back to user space.
+> [1] https://developer.arm.com/documentation/den0144/latest
+> 
+> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+Just a couple of suggestions that you can ignore if you like
 
-Agreed a retry makes sense.  Perhaps moan a fair bit via a ratelimited print though as
-it is a pretty bad sign if retries are normally needed.
+Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
 
-> For catastrophic errors, such as when the scp doesn't reply at all or that no MPAM commands are
-> going to work again we should disable MPAM. As resctrl does not anticipate errors willy nilly from
-> arch code it ends up reporting the info/last_cmd_status as "ok" even in situations when the MSC
-> accesses have failed. I notice this in at least rdtgroup_schemata_write(). Before we can report
-> proper failure information from resctrl and update last_cmd_status based on the error status from
-> the architecture code it doesn't make sense to report the errors to user space. We would likely want
-> resctrl to understand -ETIMEDOUT as well. As such, this leaves us the option of just nuking MPAM on
-> any error reported from the MPAM firmware interface. For now, we needn't do any retries and just
-> error out on the first error. It should be possible to just schedule mpam_broken_work from mpam_fb.c
-> on error.
+> diff --git a/drivers/resctrl/mpam_fb.c b/drivers/resctrl/mpam_fb.c
+> new file mode 100644
+> index 000000000000..ec4bf0dd9182
+> --- /dev/null
+> +++ b/drivers/resctrl/mpam_fb.c
+> @@ -0,0 +1,197 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +// Copyright (C) 2024 Arm Ltd.
 
-Hmm. Inelegant but I suppose that works... 
+Arm has either been working on this for rather a long time or that's a cut
+and paste.  Even if 2024 is a good start given changes during revisions
+seems reasonable to include 2026 as well.
 
-> 
-> Sorry for prompting the writing of these error handling patches but they will likely come in useful
-> in the future.
-> 
-> Thanks,
-> 
-> Ben
-> 
-> > 
-> > Well, I agree to some extent, but PCC adds that failure case before which
-> > it wasn't there. So, it is hard to claim that it was botched up before so
-> > let it be. I will let James/Ben to decide if it was already botched up or
-> > PCC addition makes it fragile in terms of error handling.  
-> 
-> 
-> 
+> +struct mpam_fb_read_payload {
+> +	u32 msc_id;
+> +	u32 flags;
+> +	u32 reg_offset;
+> +} __packed;
+> +
+> +struct mpam_fb_write_payload {
+
+Given these are only used in the specific functions that build the
+messages you could move the structure definitions to be local to those
+functions.
+
+Alternatively you could move all these to the header and get the advantage
+of using a union to get the maximum message size rather than a number
+currently picked out of the air.
+
+> +	u32 msc_id;
+> +	u32 flags;
+> +	u32 reg_offset;
+> +	u32 value;
+> +} __packed;
+
+
+
+> diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
+> index b3a6ed9ed175..e4686ff0ba2e 100644
+> --- a/drivers/resctrl/mpam_internal.h
+> +++ b/drivers/resctrl/mpam_internal.h
+
+...
+
+> +#define MPAM_FB_PROT_HEADER_LEN	sizeof(u32)
+> +#define MPAM_FB_MAX_MSG_SIZE	(MPAM_FB_PROT_HEADER_LEN + 4 * sizeof(u32))
+
+Doesn't seem to be used until patch 10.  Might be more sensible to bring it
+in there. A spec reference might also be good for this.  I think longest
+is current the MPAM_MSC_WRITE.  A note above that one option would be
+to make this explicit by having the message structure definitions in this
+header.
+
+
+> +
 
