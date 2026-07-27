@@ -1,33 +1,67 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 053C828150F;
-	Mon, 27 Jul 2026 14:01:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mail-wm1-f44.google.com (mail-wm1-f44.google.com [209.85.128.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9248411F83
+	for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 14:58:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785160878; cv=none; b=BtRXNphQMU27PskpVe2+lcHyycRfWewR6TGIynIlV/U6IbNBJW0WpcoAgQPxP2lb5oBMuRi0AW6v0sXw1sMxgzZpk5xzdPaGswCpZL1dDi7kstZZy6b60ZvBr1pB091MOHQJKAq51ynxdANMwaCPPQlGOWX0fpwaSYFIM/PHKJE=
+	t=1785164298; cv=none; b=r5pjgnEOcSvusZbcEfalK52HNhc3THNGoNRoKN5DbrAZGs5GPvhRwJ9I/73VsE3UvFwBT3HJu+n5F5HzugIYz5ATfuBizwV3sbt0/H6j1GGMIrHaDykZHn45SH1CN8hhBqul1edxfsG12uWCt52ui5hyDt6qfVPVu+rjp8GrUMQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785160878; c=relaxed/simple;
-	bh=NuMh4nOcJi5/5azBV7uilCMxVtBE7I++pV4eLnjbYv4=;
+	s=arc-20240116; t=1785164298; c=relaxed/simple;
+	bh=/pHEhqhHim6zbvXlXGSytIteuWLfY5Kr9gwBWC8fFio=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Xp4vhnVPi39t0PbT+hk9GrbxW3q0d+RY4/+M2VON5KfvjLuKrgFFSPNF3lD260FMt99BmJX6gMhlHFi8VfeIE0wwHg4dH8YJp09cUQfKWv0pLwmPEmjF68s7Nv077zytniBTLk7P+zpn9G1f9eGq/tb9xnUsSmKmMGVUJw0RBgo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=YS6Sd3bJ; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	 In-Reply-To:Content-Type; b=XjuW+99uEnggCvVVNP7MWOWWwnScKqboQ3ATpqsmVftljFpHEZt8WysaMgS+RT0INucsT+ZEfGvgcRiMhE9X05xbJ2fvZmYZ8/psG/GuikpmCQ/aY4Ru4O+DK6AYxUUnYyUnGf8JG8kP29Vixi7imoeM8PCQdfRYEPrnQ7oRVoo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=WtIrJspU; arc=none smtp.client-ip=209.85.128.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="YS6Sd3bJ"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 407751655;
-	Mon, 27 Jul 2026 07:01:11 -0700 (PDT)
-Received: from [10.57.1.72] (unknown [10.57.1.72])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 1617A3F763;
-	Mon, 27 Jul 2026 07:01:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1785160875; bh=NuMh4nOcJi5/5azBV7uilCMxVtBE7I++pV4eLnjbYv4=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=YS6Sd3bJ3kA9kQNlXMrsF3RiI9CgQyIQEEZg9qj2srR5bNhS0EGbyzFd8McBZIQcW
-	 psdWb4CZX3sbAkqcGFKM5DZ/OUGkVQ2H57lofyaz2NJPhoxHE4bg0TuE8B7tAphLYL
-	 tMYbKyJYBG0KoL9fTWWsp1KnPeu4Lh+RPhF130IA=
-Message-ID: <436ae296-cc68-4313-bf76-86908a1e5b29@arm.com>
-Date: Mon, 27 Jul 2026 15:01:05 +0100
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="WtIrJspU"
+Received: by mail-wm1-f44.google.com with SMTP id 5b1f17b1804b1-4953e04ef16so31163695e9.2
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 07:58:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1785164294; x=1785769094; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=cdTAOusKdU7cIGVdiXhGRlX7Lluomu67uAna+oJrbLI=;
+        b=WtIrJspUFDv9uYL8E4OhCURfnCutsSkbOm+juL/6yCshO8FMCiFZrYMSEpcfsdW4Nh
+         iKdHsW3hXXVC8Pl4kUTysqT9Zr8oF1RzlXcRzFSGc2UBRbewwmpIc4cUdB8jmp3pl1An
+         f6O93wZ1uT86BMhjp0hkFyCYKEgWqWi968vQRJXARDoAz7+tu8TEFguRFWLq/na2hZxb
+         h+/lKgJgJ7KvEmuOlPlx1TgAEAOP3gxpUS2jY/c4WBF4cEndQhBSKAsMyUFZVAH/YqQT
+         oXvZ+5VFrjrP5i1FIj+Vs0SajlFsW+dWgVvOzDcsFpUW8FB2tzSLDDUFkca3REdCvM53
+         ZAVA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785164294; x=1785769094;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=cdTAOusKdU7cIGVdiXhGRlX7Lluomu67uAna+oJrbLI=;
+        b=Z//5cvMWHJb2SVIC2f996LUz62nLde6+qJkWiYRjq+TzUFQEdFvfhJ0hovTAbJaiRU
+         rj6Sm/vnuLTvlBWf/9+yFn/ZmaRRXSFp6ixkdHASzeDkOtbP4bGpDOa5wNGLE+Qz9ohI
+         0fpeAcYifOVAr4xh+VJmg3w+znQ3oYOiJLGhmaX11xTpMJ6fk1GsxPfC/eNGOeoa2WBt
+         l22mUc+fxsnetEA35wj4dtvW1QdZOivygfvr70HY0ZQmf1nRQd+fiIru8eiyozvT71NY
+         fUriOAIB8YPQdN8byX1o/iSJI2WnGuL/s3EbtviX1lQB4hqqoup9JGiHypt8wQrMUIl7
+         5RGg==
+X-Forwarded-Encrypted: i=1; AHgh+RqPPq8KrUrKDzh2of9a7Ciqg4/2luEWvcp9zHJn0JGPiC0R9wu8TByB6baVuqic7zgA1aNkpbj3kfBb@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz4+pj1x6RYKG3QU11yOUwdohGwzT0oUrmPvStfcUXJKSMoKJ0b
+	KxKDnFCmAzcPljT+FEv9Y5fVhM/SlXYPf00t5kubd3GBnEEA+8q+gk3q3ie+u4nqUKQ=
+X-Gm-Gg: AR+sD12IMGTQQDLWOaFtiYCD58YdirzmxWQb0jxMeLJGYlwP/wcrdQmbg3jEjHRfNhU
+	aAgn3jtQbng9FSJSz/oRgeJ/GaJYneZvQUughNkFipOjtCbnWvFc+fvmiz4snrBs6zLQK92I/Il
+	ZknVsxew3rDIP489/qurjSwcVz+QkXJHwHubl6RRphxE7M4mTqs1nFBeKTIf/zjW3Raeea6dWPh
+	TDsasUbeuvGu3rI3nJcAUjgwyDW58oBDiO1kCAx54Bw1OQP7H0xbwB1HDNRNLHwoA4w0wsKi20B
+	Z4Q1rgazXgjPwDVuT8s2U154MfvVb/jvilkIOCPQFPAlYuzmzZWTLtc354dpZmtWculKzKERjrG
+	dpdd45vVKgISuOambr9EEXnOp+W9Kdp2zGviss7ctbHKeuqd+t2bQMjwd339oa8ypKcFSNrwMpz
+	q4m9o6aim74hCIs8T97n6+JlHJLq2E24jsAgEjBDI=
+X-Received: by 2002:a05:600c:1553:b0:493:e97c:216e with SMTP id 5b1f17b1804b1-496b5731987mr114339235e9.39.1785164294020;
+        Mon, 27 Jul 2026 07:58:14 -0700 (PDT)
+Received: from ?IPV6:2a07:de40:8100:0:fc6c:f9a2:4a0a:6354? ([2001:af0:8000:1409:193:86:92:181])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-496b4ee0e91sm231594995e9.4.2026.07.27.07.58.11
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 27 Jul 2026 07:58:13 -0700 (PDT)
+Message-ID: <ead73f81-26ef-4a46-9ad8-fcd2915563e1@suse.com>
+Date: Mon, 27 Jul 2026 16:58:11 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -35,254 +69,95 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 1/2] ACPI: CPPC: Add ospm_nominal_perf support
-To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
- viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
- zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, lenb@kernel.org,
- saket.dumbre@intel.co, linux-kernel@vger.kernel.org,
- linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev, linux-tegra@vger.kernel.org
-Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
- ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
-References: <20260717215330.2215058-1-sumitg@nvidia.com>
- <20260717215330.2215058-2-sumitg@nvidia.com>
+Subject: Re: [PATCH v2 2/3] time/jiffies: Include linux/sysctl.h for
+ proc_int_u2k_conv_uop(), ...
+To: Thomas Gleixner <tglx@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
+ Ingo Molnar <mingo@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>,
+ x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
+ Philipp Reisner <philipp.reisner@linbit.com>,
+ Lars Ellenberg <lars.ellenberg@linbit.com>,
+ =?UTF-8?Q?Christoph_B=C3=B6hmwalder?= <christoph.boehmwalder@linbit.com>,
+ Jens Axboe <axboe@kernel.dk>, Johan Hovold <johan@kernel.org>,
+ Alex Elder <elder@kernel.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>,
+ Michal Januszewski <spock@gentoo.org>, Helge Deller <deller@gmx.de>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ Trond Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>,
+ Chuck Lever <cel@kernel.org>, Jeff Layton <jlayton@kernel.org>,
+ NeilBrown <neil@brown.name>, Olga Kornievskaia <okorniev@redhat.com>,
+ Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>,
+ Mark Fasheh <mark@fasheh.com>, Joel Becker <jlbec@evilplan.org>,
+ Joseph Qi <joseph.qi@linux.alibaba.com>, Tejun Heo <tj@kernel.org>,
+ Johannes Weiner <hannes@cmpxchg.org>, =?UTF-8?Q?Michal_Koutn=C3=BD?=
+ <mkoutny@suse.com>, Luis Chamberlain <mcgrof@kernel.org>,
+ Daniel Gomez <da.gomez@kernel.org>, Sami Tolvanen <samitolvanen@google.com>,
+ Aaron Tomlin <atomlin@atomlin.com>, Pavel Machek <pavel@kernel.org>,
+ Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>,
+ Danilo Krummrich <dakr@kernel.org>, Nikolay Aleksandrov
+ <razor@blackwall.org>, Ido Schimmel <idosch@nvidia.com>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Simon Horman <horms@kernel.org>, David Howells <dhowells@redhat.com>,
+ Jarkko Sakkinen <jarkko@kernel.org>, Paul Moore <paul@paul-moore.com>,
+ James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>,
+ Kentaro Takeda <takedakn@nttdata.co.jp>,
+ Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>,
+ linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org,
+ drbd-dev@lists.linux.dev, linux-block@vger.kernel.org,
+ greybus-dev@lists.linaro.org, linuxppc-dev@lists.ozlabs.org,
+ linux-acpi@vger.kernel.org, linux-fbdev@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linux-fsdevel@vger.kernel.org,
+ linux-nfs@vger.kernel.org, ocfs2-devel@lists.linux.dev,
+ cgroups@vger.kernel.org, linux-modules@vger.kernel.org,
+ linux-pm@vger.kernel.org, driver-core@lists.linux.dev,
+ bridge@lists.linux.dev, netdev@vger.kernel.org, keyrings@vger.kernel.org,
+ linux-security-module@vger.kernel.org
+References: <20260721131207.803760-1-petr.pavlu@suse.com>
+ <20260721131207.803760-3-petr.pavlu@suse.com> <874ihmke0k.ffs@fw13>
 Content-Language: en-US
-From: Christian Loehle <christian.loehle@arm.com>
-In-Reply-To: <20260717215330.2215058-2-sumitg@nvidia.com>
+From: Petr Pavlu <petr.pavlu@suse.com>
+In-Reply-To: <874ihmke0k.ffs@fw13>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 7/17/26 22:53, Sumit Gupta wrote:
-> Expose the OSPM Nominal Performance register (ACPI 6.6, Section
-> 8.4.6.1.2.6), which conveys the desired nominal performance level
-> at which the platform may run. Unlike the existing read-only
-> Nominal Performance register, it is writable and lets OSPM
-> request a lower nominal level than the platform-reported nominal.
-> The platform classifies performance above this level as boosted
-> and below as throttled for its power/thermal decisions.
+On 7/25/26 10:31 PM, Thomas Gleixner wrote:
+> On Tue, Jul 21 2026 at 15:11, Petr Pavlu wrote:
 > 
-> It is exposed as a per-policy cpufreq sysfs attribute in kHz, to
-> match the cpufreq sysfs unit convention:
+>> The kernel/time/jiffies.c file uses proc_int_u2k_conv_uop(),
 > 
->   /sys/devices/system/cpu/cpuX/cpufreq/ospm_nominal_freq
+> jiffies.c uses ...
 > 
-> The attribute is documented in
-> Documentation/ABI/testing/sysfs-devices-system-cpu.
+>> proc_int_k2u_conv_kop(), proc_int_conv(), proc_dointvec_conv() and
+>> proc_doulongvec_minmax_conv(), which are declared in linux/sysctl.h. It
+>> currently relies on this header being included indirectly through
+>> linux/module.h -> linux/kmod.h. Add the missing include in preparation for
+>> removing the linux/sysctl.h include from linux/kmod.h.
 > 
-> Writes are converted to perf via cppc_khz_to_perf(), validated
-> against [Lowest Performance, Nominal Performance], and applied to
-> the policy->cpu. The register is assumed shared across the
-> policy->cpus.
+> Can you please split that spaghetti sentence into paragraphs?
 > 
-> On read, the current register value is returned, or
-> "<unsupported>" if the platform does not implement the register.
-> 
-> Also add the register to the OSPM-set register save/restore
-> table, so its value survives CPU hotplug and reverts to the
-> firmware value on driver unload, like the other registers in
-> the table.
-> 
-> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
-> ---
->  .../ABI/testing/sysfs-devices-system-cpu      | 26 ++++++++++
->  drivers/acpi/cppc_acpi.c                      | 32 +++++++++++++
->  drivers/cpufreq/cppc_cpufreq.c                | 47 +++++++++++++++++++
->  include/acpi/cppc_acpi.h                      | 10 ++++
->  4 files changed, 115 insertions(+)
-> 
-> diff --git a/Documentation/ABI/testing/sysfs-devices-system-cpu b/Documentation/ABI/testing/sysfs-devices-system-cpu
-> index 82d10d556cc8..a8d592c08823 100644
-> --- a/Documentation/ABI/testing/sysfs-devices-system-cpu
-> +++ b/Documentation/ABI/testing/sysfs-devices-system-cpu
-> @@ -346,6 +346,32 @@ Description:	Performance Limited
->  
->  		This file is only present if the cppc-cpufreq driver is in use.
->  
-> +What:		/sys/devices/system/cpu/cpuX/cpufreq/ospm_nominal_freq
-> +Date:		May 2026
-> +Contact:	linux-pm@vger.kernel.org
-> +Description:	OSPM Nominal Performance (kHz)
-> +
-> +		OSPM uses this attribute to request a nominal performance
-> +		level lower than the platform-reported nominal. The
-> +		platform treats performance above this level as boost
-> +		and below as throttle for power and thermal decisions.
-> +
-> +		Read returns the current value in kHz, or "<unsupported>"
-> +		if the platform does not implement the register. Write a
-> +		kHz value in the range [lowest_freq, nominal_freq].
-> +
-> +		Note that tasks may be migrated from one CPU to another
-> +		by the scheduler's load-balancing algorithm, and if
-> +		different OSPM Nominal Performance values are set for
-> +		those CPUs (through different cpufreq policies), that may
-> +		lead to undesirable outcomes. To avoid such issues it is
-> +		better to set the same value across all policies, or to
-> +		pin every task potentially sensitive to it to a specific
-> +		CPU.
-> +
-> +		This file is only present if the cppc-cpufreq driver is
-> +		in use.
-> +
->  What:		/sys/devices/system/cpu/cpu*/cache/index3/cache_disable_{0,1}
->  Date:		August 2008
->  KernelVersion:	2.6.27
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index a7fec6c93178..681d4fd40c11 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -1685,6 +1685,38 @@ int cppc_set_epp(int cpu, u64 epp_val)
->  }
->  EXPORT_SYMBOL_GPL(cppc_set_epp);
->  
-> +/**
-> + * cppc_set_ospm_nominal_perf() - Write OSPM Nominal Performance register.
-> + * @cpu: CPU on which to write register.
-> + * @ospm_nominal_perf: Value to write to the OSPM Nominal Performance register.
-> + *
-> + * OSPM Nominal Performance conveys the desired nominal performance level
-> + * at which the platform may run. Per ACPI 6.6, s8.4.6.1.2.6, the value
-> + * must lie within [Lowest Performance, Nominal Performance] and may be
-> + * set independently of Minimum, Maximum and Desired performance. The
-> + * caller is responsible for validating the range.
-> + *
-> + * Return: 0 on success or negative error code.
-> + */
-> +int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf)
-> +{
-> +	return cppc_set_reg_val(cpu, OSPM_NOMINAL_PERF, ospm_nominal_perf);
-> +}
-> +EXPORT_SYMBOL_GPL(cppc_set_ospm_nominal_perf);
-> +
-> +/**
-> + * cppc_get_ospm_nominal_perf() - Read OSPM Nominal Performance register.
-> + * @cpu: CPU from which to read register.
-> + * @ospm_nominal_perf: Pointer to store the OSPM Nominal Performance value.
-> + *
-> + * Return: 0 on success or negative error code.
-> + */
-> +int cppc_get_ospm_nominal_perf(int cpu, u64 *ospm_nominal_perf)
-> +{
-> +	return cppc_get_reg_val(cpu, OSPM_NOMINAL_PERF, ospm_nominal_perf);
-> +}
-> +EXPORT_SYMBOL_GPL(cppc_get_ospm_nominal_perf);
+> https://docs.kernel.org/process/maintainer-tip.html#changelog
 
-It's a write-only register, we need to track everything in the driver.
+I will update it to:
 
-> +
->  /**
->   * cppc_get_auto_act_window() - Read autonomous activity window register.
->   * @cpu: CPU from which to read register.
-> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-> index 9c88512d635c..eb6746810fa6 100644
-> --- a/drivers/cpufreq/cppc_cpufreq.c
-> +++ b/drivers/cpufreq/cppc_cpufreq.c
-> @@ -37,6 +37,7 @@ enum cppc_saved_reg_id {
->  	CPPC_SAVED_AUTO_SEL,
->  	CPPC_SAVED_EPP,
->  	CPPC_SAVED_AUTO_ACT_WINDOW,
-> +	CPPC_SAVED_OSPM_NOMINAL_PERF,
->  	CPPC_NR_SAVED_REGS,
->  };
->  
-> @@ -55,6 +56,9 @@ static const struct cppc_saved_reg cppc_saved_regs[CPPC_NR_SAVED_REGS] = {
->  	[CPPC_SAVED_AUTO_ACT_WINDOW] = {
->  		cppc_get_auto_act_window, cppc_set_auto_act_window,
->  	},
-> +	[CPPC_SAVED_OSPM_NOMINAL_PERF] = {
-> +		cppc_get_ospm_nominal_perf, cppc_set_ospm_nominal_perf,
-> +	},
->  };
->  
->  /*
-> @@ -1166,11 +1170,53 @@ static int cppc_get_perf_limited_filtered(int cpu, u64 *perf_limited)
->  CPPC_CPUFREQ_ATTR_RW_U64(perf_limited, cppc_get_perf_limited_filtered,
->  			 cppc_set_perf_limited)
->  
-> +static ssize_t show_ospm_nominal_freq(struct cpufreq_policy *policy, char *buf)
-> +{
-> +	struct cppc_cpudata *cpu_data = policy->driver_data;
-> +	u64 perf;
-> +	int ret;
-> +
-> +	ret = cppc_get_ospm_nominal_perf(policy->cpu, &perf);
-> +	if (ret == -EOPNOTSUPP)
-> +		return sysfs_emit(buf, "<unsupported>\n");
-> +	if (ret)
-> +		return ret;
-> +
-> +	return sysfs_emit(buf, "%u\n",
-> +			  cppc_perf_to_khz(&cpu_data->perf_caps, perf));
-> +}
-> +
-> +static ssize_t store_ospm_nominal_freq(struct cpufreq_policy *policy,
-> +				       const char *buf, size_t count)
-> +{
-> +	struct cppc_cpudata *cpu_data = policy->driver_data;
-> +	unsigned int freq_khz;
-> +	u32 perf;
-> +	int ret;
-> +
-> +	ret = kstrtouint(buf, 0, &freq_khz);
-> +	if (ret)
-> +		return ret;
-> +
-> +	perf = cppc_khz_to_perf(&cpu_data->perf_caps, freq_khz);
-> +	if (perf < cpu_data->perf_caps.lowest_perf ||
-> +	    perf > cpu_data->perf_caps.nominal_perf)
-> +		return -EINVAL;
-> +
-> +	/* The register is assumed shared across the policy's CPUs. */
-> +	ret = cppc_set_ospm_nominal_perf(policy->cpu, perf);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return count;
-> +}
-> +
->  cpufreq_freq_attr_ro(freqdomain_cpus);
->  cpufreq_freq_attr_rw(auto_select);
->  cpufreq_freq_attr_rw(auto_act_window);
->  cpufreq_freq_attr_rw(energy_performance_preference_val);
->  cpufreq_freq_attr_rw(perf_limited);
-> +cpufreq_freq_attr_rw(ospm_nominal_freq);
->  
->  static struct freq_attr *cppc_cpufreq_attr[] = {
->  	&freqdomain_cpus,
-> @@ -1178,6 +1224,7 @@ static struct freq_attr *cppc_cpufreq_attr[] = {
->  	&auto_act_window,
->  	&energy_performance_preference_val,
->  	&perf_limited,
-> +	&ospm_nominal_freq,
->  	NULL,
->  };
->  
-> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-> index cd07e1e92bf4..4c9e59643cc0 100644
-> --- a/include/acpi/cppc_acpi.h
-> +++ b/include/acpi/cppc_acpi.h
-> @@ -180,6 +180,8 @@ extern int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val);
->  extern int cppc_get_epp_perf(int cpunum, u64 *epp_perf);
->  extern int cppc_set_epp_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls, bool enable);
->  extern int cppc_set_epp(int cpu, u64 epp_val);
-> +extern int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf);
-> +extern int cppc_get_ospm_nominal_perf(int cpu, u64 *ospm_nominal_perf);
->  extern int cppc_get_auto_act_window(int cpu, u64 *auto_act_window);
->  extern int cppc_set_auto_act_window(int cpu, u64 auto_act_window);
->  extern int cppc_get_auto_sel(int cpu, bool *enable);
-> @@ -268,6 +270,14 @@ static inline int cppc_set_epp(int cpu, u64 epp_val)
->  {
->  	return -EOPNOTSUPP;
->  }
-> +static inline int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf)
-> +{
-> +	return -EOPNOTSUPP;
-> +}
-> +static inline int cppc_get_ospm_nominal_perf(int cpu, u64 *ospm_nominal_perf)
-> +{
-> +	return -EOPNOTSUPP;
-> +}
->  static inline int cppc_get_auto_act_window(int cpu, u64 *auto_act_window)
->  {
->  	return -EOPNOTSUPP;
+    jiffies.c uses proc_int_u2k_conv_uop(), proc_int_k2u_conv_kop(),
+    proc_int_conv(), proc_dointvec_conv() and proc_doulongvec_minmax_conv(),
+    which are declared in linux/sysctl.h. It currently gets that header
+    indirectly through linux/module.h -> linux/kmod.h, but the latter no longer
+    needs to include linux/sysctl.h.
 
+    Include linux/sysctl.h directly in jiffies.c ahead of removing the
+    unnecessary include from linux/kmod.h.
+
+> 
+>> Signed-off-by: Petr Pavlu <petr.pavlu@suse.com>
+> 
+> Other than that.
+> 
+> Acked-by: Thomas Gleixner <tglx@kernel.org>
+
+-- 
+Thanks,
+Petr
