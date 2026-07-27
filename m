@@ -1,118 +1,147 @@
-Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DC3F4189D7
-	for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 13:22:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id CAD2741A4F1;
+	Mon, 27 Jul 2026 13:27:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785158543; cv=none; b=svNK6LmeX8/TMjsiMdZMeHRd//b7cpsHM9z2JoxuznHmI7I5cE3vYhaHffo1Pg0LBlnDBM6N74L4endYurIHX2fkryhOvAMnU1USjrJtuUPfA4EakQZhT7y8/hCl21ifbMEx8v9pwlaJxQJAMNaf6X1WqQLnzhRqtSQzCBCK+8Q=
+	t=1785158859; cv=none; b=ixx+3MTcIpObDtb++GKNhwATyWdqHQASpt8Ja8OeoR1t51fvUGrLngKPvzBtPUM5NYJh2OQDHPobd5IvFQ3EIsES66CqH7Ez2Y18CU7wfj7aqWJyFieavNCPa7NgUsqvYPzIm8cueko/IVnXAhVLUhvsx8zWGrqLMas3KwGznGk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785158543; c=relaxed/simple;
-	bh=QcMiEMYwdCjlpEZ+6OgWUcYhyD7ZgPtRvz1hKGZrJ4Y=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=lCNQRNERYgYD1bPH4KqGQR1ycwGnvE/aNz02R10EhXUMJLlTyInR6CHFwinPEsRCc9f0ALTivyMr1aKZf4YA7lDOzWQkaL6BUvgs+65v+MgSkGkCIDKVECvAzQsF1uEeqhRxCnSbIvtjT4ADg6Mn5FMC/w6+DZh/IIn9dQsCR8Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=V5smmIAU; arc=none smtp.client-ip=209.85.216.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1785158859; c=relaxed/simple;
+	bh=tuOO9BJ4e09hCOeSOpQbs/7qt+nSUQ8BheAUn/4agCQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=JvGPE7/enq0/Ttd8EuXdx3sDT/zAKT1V31c6Hp8JpXgwxurtYFZoLg9x33rnZvdLq0ZpQ4AfzIQPs0kwRZcvVvHP/z+7+cA0tfYEgS7KV4E+sSG+gOUfHaVpd7viJ9ouYSUQBkXAwjiFRF1kqAi3Yzr7viE8RxslB1+DJ+6Y4nQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=MnJHjHFO; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="V5smmIAU"
-Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-383fff6e8b6so135591a91.0
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 06:22:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785158540; x=1785763340; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=v9jQTmsQCn4AYRUZfs4Oss5+mTDISaXLcnv2LYG3fsw=;
-        b=V5smmIAUUz14ikrBpOYy2fY0DlbH+sXhNq9OPlrG4Szw2w8y5FSWi4j4XxKx5kHKfZ
-         B8VgnbQVbpVEmxMpoWY5WHyuIHglSc3cX0+EvjDLpYdGFo8nyBR5eExG/q9th3FYESIn
-         mA/SKP9q+1cxNW63hkemRl1yWLKIhh0+wCPdBrT+eaypIqZWa1y5Y9MGVmjjiuaDE+oo
-         f6TXeE/YPl3YZuW0dVojtvKGOb8V7HKkx7h+R4159HXD4eY/+K+aGWCY+skEAje/y216
-         M4Yr1L9eJyE1arYTYqo5YNPr+g8D1mpZ9YLBgK5GXtAkv26wSkGLMBC7Ja+YJ+nGc7mE
-         adOw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785158540; x=1785763340;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=v9jQTmsQCn4AYRUZfs4Oss5+mTDISaXLcnv2LYG3fsw=;
-        b=lQKqzsH5QVW8UwSKUNsLhw0ma2TbKQepg5pHU4boFT0v1loDp84sfZbmAIBeEIqPuW
-         ADOQH6Enl4ZBtiWuEIBWZVlIgbYUFsNVNNPE5ITMvjAVeK8q1u67JFwaJYgCHiQjoe//
-         dKSPxKEXX9PcrYTyluJa4RKct/aFmhUpcUF1WaiUSFiT9+DbHAVLl28sOtoQ4Hl7Pwcg
-         ZBMGpjOxO3KwvWYQzAbw3JlWHwdUgXOJTKfMIzpqm52w4r50BcUfRl5ZvK9VPIMBV37B
-         tm8xbgGDjmWG/e5y/GlMT4xNT5nimd2wXq0zu7BneP0X4Kyt0Q3mTL6doUCGrftSBF4z
-         wmHA==
-X-Forwarded-Encrypted: i=1; AHgh+Rpa8Bj7vN28+46DBEv3W1rlh7wyHSCG5OppDuxzxnWWxIXmdAtimq8zPgc+bfO7+9fEfV4qelwKMQqP@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzic/HuxUk3FfI6YFZxOztweqKiDO6D/P5uLSjgqktnN6a6U2QA
-	OEA1eOoKimeQGTe+eXy6nrBRZzSXnsf+uQm5XUi7nR9z53wMTqcNx3Bd
-X-Gm-Gg: AR+sD10bjE8ejcG1OnO2slKMRtmLtYqNE2c3ml0svqZ2MN723X224uPzyJw2Oae1T3u
-	8cb1ewOmzG7XqVffIejQ85/4ACtZyQ8a+VoU7vSeKdjL0L7EmLOwa+SMwt9ZbxoDRNYeQxQyZeD
-	C8olJ5U1AQ6mhJJH5GHtFwaAbbvl9l5KsEZ6sGlCQ8pdUF/gAEyTu0NPp/jGrGd5lxEYipDtQoG
-	dics3/k+nQgF9UPItKqs9xw3WkRyx7IfqExYlZxscNwT/WiNx8W8I237D49nSVC8wILPslMUlRB
-	Ky+jqPVgt15CoLWWyBJ0kNZZ7kI0gFmDgr/jgCWqlz28PuFZd2lNQBGqalzf1hwu9+OqjYLB0Kc
-	OjLgHzpFqeVRJjOqLTrZhNhfRpLI0kgjGC4sKX6hpdeRa3YSNOjXlbgntTNa4NdWMVQj4Wj1N1n
-	BWG7rRMD6BNbA=
-X-Received: by 2002:a17:90b:4c0e:b0:381:6cf0:d5f5 with SMTP id 98e67ed59e1d1-38f6289b462mr168227a91.5.1785158539807;
-        Mon, 27 Jul 2026 06:22:19 -0700 (PDT)
-Received: from marcos-linux ([2804:3d04:a1ae:f400:ecc:47ff:fee4:ed75])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-13e53094d65sm25117076c88.13.2026.07.27.06.22.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 27 Jul 2026 06:22:19 -0700 (PDT)
-From: Marcos Paulo Medeiros <maarcospm1996@gmail.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>,
-	Hans de Goede <hansg@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	Marcos Paulo Medeiros <maarcospm1996@gmail.com>
-Subject: [PATCH] ACPI: video: force native backlight on Acer Nitro AN515-46
-Date: Mon, 27 Jul 2026 10:21:51 -0300
-Message-ID: <20260727132151.12792-1-maarcospm1996@gmail.com>
-X-Mailer: git-send-email 2.53.0
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="MnJHjHFO"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B97E21476;
+	Mon, 27 Jul 2026 06:27:22 -0700 (PDT)
+Received: from [192.168.0.248] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id B73D23F763;
+	Mon, 27 Jul 2026 06:27:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1785158846; bh=tuOO9BJ4e09hCOeSOpQbs/7qt+nSUQ8BheAUn/4agCQ=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=MnJHjHFOU90Xjrw9Fs7gEnHBf6JEsQGEhZdRkM/mVfr8QcmAQ0IBQTm98WJ3kbqX4
+	 rpwdSlfvy5KUrgbHl1wbRiUkr1q9JRExW1XiEsLjwwkZSuqDg01ojmfHPaMCqMknkg
+	 aVNU90AEr4QoeJe09WTUugXjpzyg8j29bLzNiGWQ=
+Message-ID: <40d72385-0b3f-46e5-9f32-a27be3842d7c@arm.com>
+Date: Mon, 27 Jul 2026 14:27:19 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 1/4] cpufreq: CPPC: Keep the policy across CPU hotplug
+To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
+ viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
+ zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, lenb@kernel.org,
+ saket.dumbre@intel.co, ray.huang@amd.com, mario.limonciello@amd.com,
+ perry.yuan@amd.com, kprateek.nayak@amd.com, linux-kernel@vger.kernel.org,
+ linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
+ acpica-devel@lists.linux.dev, linux-tegra@vger.kernel.org
+Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
+ ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
+References: <20260724215937.3368276-1-sumitg@nvidia.com>
+ <20260724215937.3368276-2-sumitg@nvidia.com>
+Content-Language: en-US
+From: Christian Loehle <christian.loehle@arm.com>
+In-Reply-To: <20260724215937.3368276-2-sumitg@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-The Acer Nitro AN515-46 is a hybrid graphics laptop whose internal
-panel is driven by the AMD GPU (Radeon 680M); the discrete NVIDIA GPU
-only drives external outputs. The firmware nevertheless advertises the
-NVIDIA WMI EC backlight GUID, so the backlight type resolves to
-nvidia_wmi_ec. The nvidia-wmi-ec-backlight driver however fails to
-probe ("EC backlight control failed: AE_NOT_FOUND") and, since the
-backlight type is still nvidia_wmi_ec, amdgpu skips registering its
-own backlight device. The result is no backlight device at all,
-leaving the brightness keys and the desktop brightness slider
-non-functional.
+On 7/24/26 22:59, Sumit Gupta wrote:
+> Without online()/offline() callbacks, the cpufreq core fully tears
+> down a policy during exit() when its last online CPU is offlined, and
+> rebuilds it during init() when it comes back.
+> 
+> Add lightweight online()/offline() callbacks so the core instead keeps
+> the policy live and reuses the driver's cpu_data across CPU hotplug.
+> This avoids re-reading the CPPC capabilities on every offline/online,
+> making CPU hotplug faster.
+> 
+> From online(), re-enable CPPC, as the platform may have disabled it
+> while the CPU was offline. Since the policy is no longer rebuilt via
+> init(), online() also reprograms the CPPC performance controls
+> (desired/min/max).
+> 
+> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
+> ---
+>  drivers/cpufreq/cppc_cpufreq.c | 44 ++++++++++++++++++++++++++++++++++
+>  1 file changed, 44 insertions(+)
+> 
+> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+> index f6cea0c54dd9..6dc59f99d880 100644
+> --- a/drivers/cpufreq/cppc_cpufreq.c
+> +++ b/drivers/cpufreq/cppc_cpufreq.c
+> @@ -722,6 +722,48 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
+>  	return ret;
+>  }
+>  
+> +/*
+> + * With offline() defined, the cpufreq core keeps the policy alive when
+> + * a CPU is hotplugged out.
+> + */
+> +static int cppc_cpufreq_cpu_offline(struct cpufreq_policy *policy)
+> +{
+> +	return 0;
+> +}
+> +
+> +/*
+> + * Re-enable CPPC when the policy's CPU comes back online, since the platform
+> + * may have disabled it while the CPU was offline.
+> + */
+> +static int cppc_cpufreq_cpu_online(struct cpufreq_policy *policy)
+> +{
+> +	struct cppc_cpudata *cpu_data = policy->driver_data;
+> +	unsigned int cpu = policy->cpu;
+> +	int ret;
+> +
+> +	ret = cppc_set_enable(cpu, true);
+> +	if (ret && ret != -EOPNOTSUPP)
+> +		pr_warn("Failed to re-enable CPPC for CPU%d (%d)\n", cpu, ret);
 
-Booting with acpi_backlight=native makes amdgpu register its backlight
-interface and brightness control works. Add a DMI quirk to use the
-native backlight on this model by default.
+What's the intention of continuing restoring CPPC register values here?
 
-Signed-off-by: Marcos Paulo Medeiros <maarcospm1996@gmail.com>
----
- drivers/acpi/video_detect.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+> +
+> +	/*
+> +	 * The platform may reset the controls while the CPU is offline, so
+> +	 * recompute min/max, clamp desired_perf into range, and reprogram them.
+> +	 */
+> +	cppc_cpufreq_update_perf_limits(cpu_data, policy);
+> +
+> +	cpu_data->perf_ctrls.desired_perf =
+> +		clamp_t(u32, cpu_data->perf_ctrls.desired_perf,
+> +			cpu_data->perf_ctrls.min_perf,
+> +			cpu_data->perf_ctrls.max_perf);
+> +
+> +	ret = cppc_set_perf(cpu, &cpu_data->perf_ctrls);
+> +	if (ret)
+> +		pr_debug("Failed to reapply perf request on CPU%d (%d)\n",
+> +			 cpu, ret);
 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 5b0dc679e..07755b856 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -919,6 +919,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "OMEN by HP Gaming Laptop 16-n0xxx"),
- 		},
- 	},
-+	{
-+	 .callback = video_detect_force_native,
-+	 /* Acer Nitro AN515-46 */
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Nitro AN515-46"),
-+		},
-+	},
- 
- 	/*
- 	 * x86 android tablets which directly control the backlight through
--- 
-2.53.0
+I think cppc_set_perf() needs some prep first before using it on reset values.
+We assume that reset value may be Autonomous Mode on, right? So we must never
+write MIN>MAX and vice versa. I think we may just have to read and write
+the 'otherwise-offending' value first on reset.
+
+> +
+> +	return 0;
+> +}
+> +
+>  static void cppc_cpufreq_cpu_exit(struct cpufreq_policy *policy)
+>  {
+>  	struct cppc_cpudata *cpu_data = policy->driver_data;
+> @@ -1034,6 +1076,8 @@ static struct cpufreq_driver cppc_cpufreq_driver = {
+>  	.fast_switch = cppc_cpufreq_fast_switch,
+>  	.init = cppc_cpufreq_cpu_init,
+>  	.exit = cppc_cpufreq_cpu_exit,
+> +	.online = cppc_cpufreq_cpu_online,
+> +	.offline = cppc_cpufreq_cpu_offline,
+>  	.set_boost = cppc_cpufreq_set_boost,
+>  	.attr = cppc_cpufreq_attr,
+>  	.name = "cppc_cpufreq",
 
