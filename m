@@ -1,108 +1,170 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA1CC41A549;
-	Mon, 27 Jul 2026 13:39:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59CCC41A4F1
+	for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 13:42:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785159591; cv=none; b=YoQrbx2LdNS5V8h79oZjfyHJHwZXKZar1djO9aoOyA6BllqM+5MIeCBgVNSLoGcVXS3ar19WBMgfG8HnVBEzVn2vRkqPdrv7EXMVGGps/0Majcc9h6JL5etv/KN/PepW33NraqYPOpGIDS9jHs8H/mRp8axJcWq/WK2iBoJMa+Q=
+	t=1785159723; cv=none; b=bBHpP9xmFjCjy66IVK7oQeLa9zB8KCtX7Sr6nYqSTXaYjuy/PixPlz999ZrLAQVIATlb9Y9lzB1YJxdBsTmH50CjJ+7T4No5dEZiQh7Lv0xQbhVosnEvncoUAY2rym7cfKkzgC1lE3UrnbryNLM+3ZF7Z+Wf8C489UA4tqyQTk4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785159591; c=relaxed/simple;
-	bh=nI5vmrUM6xxtmQqqlRGWsT8K5wS/QAyyejRECgCZNO0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fUPIunbFoNQE88P/M+oB6Ytmr5zaEw9lwBeFjQw3hdPbuAcyRNFHh9GHs/bV5YD0b5rEqFJSnyXbv9Io6qoG3pD1o7ziSMIUokVWsIlDXwnrCIqENkHSz3M84Z+fOsXiCMCma5B2qYNpi2Ha+ySNgxuR/Ez7RS1VHoGzon2VGCs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TFO4GhTE; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785159723; c=relaxed/simple;
+	bh=cEjTUob3/RMUWLeJdq/fHY7Csz3hUUYlH5zELynpEFw=;
+	h=Date:Message-ID:From:To:Cc:Subject:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=beqzK18F+syDlboTcCPvi8HOnUim6vtOJebgwSRznkHQo/QrjsxnluIfc8SkSBvJxCpJ2BwVpoFZl0Hwq6asBVg8vf8VWteSC8oOUZF7oSSiZEgUdEkvPzwjpyvNo73ygXaEVrC6QOVfsFuebGjWC9U4oTudRdmFfpo+dMIOUvM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=z8d7Ld/s; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=myVqyvIY; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=lWypVjbQ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Feg9kTHd; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TFO4GhTE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 291471F000E9;
-	Mon, 27 Jul 2026 13:39:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785159590;
-	bh=VwDBQNykuRmYGFu70OonIbUlNhBkjHVpvttegaysgv8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=TFO4GhTEu55l/gxs6ZO7F5k0XBouUZVcY8Wnv12bbamRwLLNatQPHWATnWdL9HxFd
-	 r+VAoaAgTR21b/eHvUDcETfFbIwCWGnUXKje8g4PFPR8/RZ0UpILnp2Hky4wLfbkbw
-	 0aWdtUxPsphaMtgoWLvGAZFZwmjICdWz9bHglTwWH05uGMIWVk49BeL4WSsism85SN
-	 pwTuRW1HUxX5BU1Qdcso1OIYwny4WZDn/iIptKCZtH1qKcpSwnCXPmrsJT9qIYEswH
-	 ZN/Z3DL7PXOWzItQHPt/nRfEq1vBLi9GLZV0I5HRxzO5kY7IvnYyrZ5/LuS7v84ITB
-	 Mq4krSTIKuoYQ==
-Date: Mon, 27 Jul 2026 14:39:45 +0100
-From: Sudeep Holla <sudeep.holla@kernel.org>
-To: Lorenzo Pieralisi <lpieralisi@kernel.org>
-Cc: Andre Przywara <andre.przywara@arm.com>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, James Morse <james.morse@arm.com>,
-	Ben Horgan <ben.horgan@arm.com>,
-	Reinette Chatre <reinette.chatre@intel.com>,
-	Fenghua Yu <fenghuay@nvidia.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
-	Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
-	Trilok Soni <tsoni@quicinc.com>,
-	Srinivas Ramana <sramana@qti.qualcomm.com>,
-	Niyas Sait <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
-	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4 10/10] arm_mpam: detect and enable MPAM-Fb PCC support
-Message-ID: <20260727-apricot-spider-of-jest-7a03dd@sudeepholla>
-References: <20260723155454.1760823-1-andre.przywara@arm.com>
- <20260723155454.1760823-11-andre.przywara@arm.com>
- <20260724-finicky-knowing-foxhound-df1e56@sudeepholla>
- <amdTr8Sxw9024CN7@lpieralisi>
- <20260727-knowing-bittern-of-tempest-6deb54@sudeepholla>
- <amdeITt0wL4FG2Am@red-moon>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="z8d7Ld/s";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="myVqyvIY";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="lWypVjbQ";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Feg9kTHd"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 5519D7D3AC;
+	Mon, 27 Jul 2026 13:41:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1785159715; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Ol+wJN7SMQsWClj0GQ/esC3CCeSGLm9ulMH1scVCpK8=;
+	b=z8d7Ld/syGosi8JLxQ7l7koNg1leoowl1zGPH97arlxOHbGDfdXKkquMgBtuigODR0f8fc
+	67jfHM4/TNTmy23YUqBzIPOIRTwntovJ3jKi0ajKO+am0lGJtphUTh700rUg6G5dKzTNzA
+	yvqHSqP8+6rJo1dUO3Tc5yHZh4yCwc8=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1785159715;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Ol+wJN7SMQsWClj0GQ/esC3CCeSGLm9ulMH1scVCpK8=;
+	b=myVqyvIYgkYQTbAaOvX1IWUn2XqClf3tnkU2M1Kv5O3WcQVqd+nLrJKiIL4cny5Gy6U2Lo
+	etg1duEMmR1idTCA==
+Authentication-Results: smtp-out1.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=lWypVjbQ;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=Feg9kTHd
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1785159711; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Ol+wJN7SMQsWClj0GQ/esC3CCeSGLm9ulMH1scVCpK8=;
+	b=lWypVjbQUPK51Q0VUVHrVkty2bjPRSd4cesGkUUjmZcLyjpAz9zKnUiszj7AAFfDr2/doE
+	tDuniYzH865kkFsX4wrpi/5/64cWRcbAQZu+BgwYdhcOjVKD0lpRnfYuHxNx7r8v3ssrpl
+	1UAuc5KLqJh1jhto+gggGP7laMiTwBo=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1785159711;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Ol+wJN7SMQsWClj0GQ/esC3CCeSGLm9ulMH1scVCpK8=;
+	b=Feg9kTHd4K8BLrZq7OhqQnexoXA/hnXfjjR98mDJOWVVDZU6yLdpkUdoiwJVlpVUWY237S
+	hJ21oyFpyGg8jaCw==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id D77FC779C1;
+	Mon, 27 Jul 2026 13:41:50 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id KtRoMx5gZ2qMFgAAD6G6ig
+	(envelope-from <tiwai@suse.de>); Mon, 27 Jul 2026 13:41:50 +0000
+Date: Mon, 27 Jul 2026 15:41:50 +0200
+Message-ID: <87se548s81.wl-tiwai@suse.de>
+From: Takashi Iwai <tiwai@suse.de>
+To: Mark Brown <broonie@kernel.org>
+Cc: Marco Giunta <marco_giunta@outlook.it>,
+	tiwai@suse.com,
+	perex@perex.cz,
+	lgirdwood@gmail.com,
+	linux-kernel@vger.kernel.org,
+	linux-sound@vger.kernel.org,
+	rafael@kernel.org,
+	lenb@kernel.org,
+	hansg@kernel.org,
+	ilpo.jarvinen@linux.intel.com,
+	linux-acpi@vger.kernel.org,
+	platform-driver-x86@vger.kernel.org,
+	wangweidong.a@awinic.com,
+	nadim@symbolic.software,
+	imitoy@imitoy.top,
+	munzirtaha@gmail.com,
+	yakov.till@gmail.com
+Subject: Re: [PATCH 0/8] ALSA: hda: Add AW88399 HDA side codec driver for Lenovo Legion
+In-Reply-To: <06572961-d2c6-4de5-9102-2b5fc6d5ef5d@sirena.org.uk>
+References: <DS7PR19MB77247D9AD698CF0FF37DB58BFCC62@DS7PR19MB7724.namprd19.prod.outlook.com>
+	<06572961-d2c6-4de5-9102-2b5fc6d5ef5d@sirena.org.uk>
+User-Agent: Wanderlust/2.15.9 (Almost Unreal) Emacs/30.2 Mule/6.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <amdeITt0wL4FG2Am@red-moon>
+MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
+Content-Type: text/plain; charset=US-ASCII
+X-Spam-Score: -2.01
+X-Spam-Level: 
+X-Rspamd-Action: no action
+X-Rspamd-Queue-Id: 5519D7D3AC
+X-Spamd-Result: default: False [-2.01 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	SUSPICIOUS_RECIPS(1.50)[];
+	MID_CONTAINS_FROM(1.00)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	ARC_NA(0.00)[];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	RCPT_COUNT_TWELVE(0.00)[18];
+	MIME_TRACE(0.00)[0:+];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com,outlook.it];
+	FREEMAIL_CC(0.00)[outlook.it,suse.com,perex.cz,gmail.com,vger.kernel.org,kernel.org,linux.intel.com,awinic.com,symbolic.software,imitoy.top];
+	RCVD_TLS_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	TAGGED_RCPT(0.00)[];
+	DKIM_TRACE(0.00)[suse.de:+];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:dkim,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns]
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Spam-Flag: NO
 
-On Mon, Jul 27, 2026 at 03:33:21PM +0200, Lorenzo Pieralisi wrote:
-> On Mon, Jul 27, 2026 at 02:20:02PM +0100, Sudeep Holla wrote:
-> > On Mon, Jul 27, 2026 at 02:48:47PM +0200, Lorenzo Pieralisi wrote:
-
-[...]
-
-> > > 
-> > > I suppose it is to have properties parity between OF and ACPI without
-> > > having to change the driver property parsing path.
-> > > 
-> > 
-> > Yes, that was my initial thought as well. However, after looking into it
-> > further, I could not find any device tree bindings in the upstream tree.
-> > I am therefore unsure whether MPAM is supported on DT platforms.
-> > 
-> > The use of these device properties appears to have been based on DT bindings
-> > that may never have been upstreamed. As [1] suggests, the bindings were
-> > dropped before the initial merge.
-> > 
-> > Although we could rename these properties later to align with any DT bindings
-> > that are introduced, I think it would be preferable to avoid adding new
-> > properties unless they are strictly necessary.
+On Mon, 27 Jul 2026 13:57:06 +0200,
+Mark Brown wrote:
 > 
-> Ah. That makes sense, if DT bindings get published the driver can be
-> reworked accordingly (if we want to improve how the code looks), this is
-> just Linux kernel internals anyway.
+> On Fri, Jul 17, 2026 at 03:25:02PM +0200, Marco Giunta wrote:
+> > Several Lenovo Legion laptops (Pro 7i 16IAX10H, Y9000P IAX10,
+> > Pro 7 16AFR10H, R9000P ADR10) use AWINIC AW88399 smart amplifiers
+> > to drive their bass woofers, connected via I2C as side codecs
+> > to a Realtek ALC287 HDA codec.
 > 
-> As it stands the "msc-id" property is churn, that's what you are saying.
+> The following changes since commit 1590cf0329716306e948a8fc29f1d3ee87d3989f:
 > 
+>   Linux 7.2-rc4 (2026-07-19 13:54:41 -0700)
+> 
+> are available in the Git repository at:
+> 
+>   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git tags/asoc-aw88339-lib
+> 
+> for you to fetch changes up to 15c9fdb3c39d5073463ffa746cc64ad9682c875f:
+> 
+>   ASoC: aw88399: add channel setter for HDA side codec (2026-07-21 19:16:08 +0100)
+> 
+> ----------------------------------------------------------------
+> ASoC: Add AW88399 HDA side codec driver for Lenovo Legion
+> 
+> In order to support AW88399 HDA side codec used on the Lenovo Legion we
+> need updates to it's ASoC driver.
 
-Indeed why add more property with names that may need to be changed with
-DT bindings in the future especially if we don't need it(IIUC it is already
-there in pdev->id unless I am missing something.
+Pulled to for-next branch now.  Thanks.
 
--- 
-Regards,
-Sudeep
 
-> > 
-> > [1] https://lore.kernel.org/all/20251107123450.664001-1-ben.horgan@arm.com/
-
+Takashi
