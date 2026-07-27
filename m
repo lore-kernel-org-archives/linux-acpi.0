@@ -1,135 +1,118 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDB2F41930C
-	for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 13:22:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DC3F4189D7
+	for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 13:22:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785158536; cv=none; b=IF4/wLQzECjpIxZOHW/xw+wg8ys0oQiGkGcE04fleD00sEznMwfRmfrw7vRn5Eab+TeWRFNuyKG5suMjuJkMWh+gCJigh2YJTTbzP5dnqX1tLQcizqmG6AjSnlhdlY8/EqDF8q/R9zXkk/aqdKJ7k5fbUm66EaTEReZxLNbRYYI=
+	t=1785158543; cv=none; b=svNK6LmeX8/TMjsiMdZMeHRd//b7cpsHM9z2JoxuznHmI7I5cE3vYhaHffo1Pg0LBlnDBM6N74L4endYurIHX2fkryhOvAMnU1USjrJtuUPfA4EakQZhT7y8/hCl21ifbMEx8v9pwlaJxQJAMNaf6X1WqQLnzhRqtSQzCBCK+8Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785158536; c=relaxed/simple;
-	bh=MNj/qSfquGY/IJvlO35QQRUB5x/GG8PvKOI6sL4i1hk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Uqd2WdfZ0DhqEJTpc6RsaKrI1B4zZszSOMQxR+rCCo5mHRqIy0VxxnO1KK0qJ7jPzwn/4nsq9ipvZYnqw1avpMRbOhlwHDsrBXUyAjBGrauv5Z98CsT732o+4qySKEVWqVEB6Yk3qrYkQXsfs8KjYfQYveLPP/fc5l4/6TcGzRE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AYHwhB3J; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785158543; c=relaxed/simple;
+	bh=QcMiEMYwdCjlpEZ+6OgWUcYhyD7ZgPtRvz1hKGZrJ4Y=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=lCNQRNERYgYD1bPH4KqGQR1ycwGnvE/aNz02R10EhXUMJLlTyInR6CHFwinPEsRCc9f0ALTivyMr1aKZf4YA7lDOzWQkaL6BUvgs+65v+MgSkGkCIDKVECvAzQsF1uEeqhRxCnSbIvtjT4ADg6Mn5FMC/w6+DZh/IIn9dQsCR8Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=V5smmIAU; arc=none smtp.client-ip=209.85.216.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AYHwhB3J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4A781F00ADF
-	for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 13:22:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785158531;
-	bh=pyG9IetWNXw/s7lNLiGozcnJuoHs5Ya5WvVHszipDKU=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=AYHwhB3JuqTrnd3Ic5SdU8hEdCYUAp9ui6DXJM4lybXqE7EdseT+qhhZljg5yCV+9
-	 SLA7Yxm0VuCT1vCMCgt5aJ4SWBBSNo2OnFuftwMxlyyFXBeKnFmmVz/9p4DIADm2IC
-	 190Kg6CxAWW+c/0mTRzVQH3cNQVyMz+OxAPiiiDqjhipFF+8NqXaeykSHXt5ZQ4d1/
-	 oOFqNZJB60erRDvhhGG53y3wp5h4kk90bwHuGRFux8xb28M3TAmgjXJyW+S6I8QJpA
-	 smmf7sIVzZ4IYCge6BjjSeOAQeXacqz/6/8W0pAYhiVsI43RxgAi2CJXue80iP0iFA
-	 Q2iUNJh70HRxQ==
-Received: by mail-lj1-f177.google.com with SMTP id 38308e7fff4ca-39c7ed5410bso15558031fa.0
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 06:22:11 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RoGOLZGdBRLXMs4GuwOZV344FKnQX8IBIk6CHZ+IihTtdY64oB4gBHa6ic3+hIjtWrhN5ovMTe13qu6@vger.kernel.org
-X-Gm-Message-State: AOJu0YzM4nEzFubzkHsHV3kfbjCRmCBHx34okiOmGTrNhCmEUzJFe7/H
-	4XPRGsXP8kpVn1U/ykG41R6flUkjbDdGfoK1mb/uahckCfxTZ6wnQy837QXTTzsy6FT0W484DzT
-	7OBODUPr7IMQqOzwPzAUL5pqpzpNXvVQ=
-X-Received: by 2002:a2e:a99a:0:b0:39e:e845:7f23 with SMTP id
- 38308e7fff4ca-39f287721acmr15254561fa.16.1785158530030; Mon, 27 Jul 2026
- 06:22:10 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="V5smmIAU"
+Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-383fff6e8b6so135591a91.0
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 06:22:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785158540; x=1785763340; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=v9jQTmsQCn4AYRUZfs4Oss5+mTDISaXLcnv2LYG3fsw=;
+        b=V5smmIAUUz14ikrBpOYy2fY0DlbH+sXhNq9OPlrG4Szw2w8y5FSWi4j4XxKx5kHKfZ
+         B8VgnbQVbpVEmxMpoWY5WHyuIHglSc3cX0+EvjDLpYdGFo8nyBR5eExG/q9th3FYESIn
+         mA/SKP9q+1cxNW63hkemRl1yWLKIhh0+wCPdBrT+eaypIqZWa1y5Y9MGVmjjiuaDE+oo
+         f6TXeE/YPl3YZuW0dVojtvKGOb8V7HKkx7h+R4159HXD4eY/+K+aGWCY+skEAje/y216
+         M4Yr1L9eJyE1arYTYqo5YNPr+g8D1mpZ9YLBgK5GXtAkv26wSkGLMBC7Ja+YJ+nGc7mE
+         adOw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785158540; x=1785763340;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=v9jQTmsQCn4AYRUZfs4Oss5+mTDISaXLcnv2LYG3fsw=;
+        b=lQKqzsH5QVW8UwSKUNsLhw0ma2TbKQepg5pHU4boFT0v1loDp84sfZbmAIBeEIqPuW
+         ADOQH6Enl4ZBtiWuEIBWZVlIgbYUFsNVNNPE5ITMvjAVeK8q1u67JFwaJYgCHiQjoe//
+         dKSPxKEXX9PcrYTyluJa4RKct/aFmhUpcUF1WaiUSFiT9+DbHAVLl28sOtoQ4Hl7Pwcg
+         ZBMGpjOxO3KwvWYQzAbw3JlWHwdUgXOJTKfMIzpqm52w4r50BcUfRl5ZvK9VPIMBV37B
+         tm8xbgGDjmWG/e5y/GlMT4xNT5nimd2wXq0zu7BneP0X4Kyt0Q3mTL6doUCGrftSBF4z
+         wmHA==
+X-Forwarded-Encrypted: i=1; AHgh+Rpa8Bj7vN28+46DBEv3W1rlh7wyHSCG5OppDuxzxnWWxIXmdAtimq8zPgc+bfO7+9fEfV4qelwKMQqP@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzic/HuxUk3FfI6YFZxOztweqKiDO6D/P5uLSjgqktnN6a6U2QA
+	OEA1eOoKimeQGTe+eXy6nrBRZzSXnsf+uQm5XUi7nR9z53wMTqcNx3Bd
+X-Gm-Gg: AR+sD10bjE8ejcG1OnO2slKMRtmLtYqNE2c3ml0svqZ2MN723X224uPzyJw2Oae1T3u
+	8cb1ewOmzG7XqVffIejQ85/4ACtZyQ8a+VoU7vSeKdjL0L7EmLOwa+SMwt9ZbxoDRNYeQxQyZeD
+	C8olJ5U1AQ6mhJJH5GHtFwaAbbvl9l5KsEZ6sGlCQ8pdUF/gAEyTu0NPp/jGrGd5lxEYipDtQoG
+	dics3/k+nQgF9UPItKqs9xw3WkRyx7IfqExYlZxscNwT/WiNx8W8I237D49nSVC8wILPslMUlRB
+	Ky+jqPVgt15CoLWWyBJ0kNZZ7kI0gFmDgr/jgCWqlz28PuFZd2lNQBGqalzf1hwu9+OqjYLB0Kc
+	OjLgHzpFqeVRJjOqLTrZhNhfRpLI0kgjGC4sKX6hpdeRa3YSNOjXlbgntTNa4NdWMVQj4Wj1N1n
+	BWG7rRMD6BNbA=
+X-Received: by 2002:a17:90b:4c0e:b0:381:6cf0:d5f5 with SMTP id 98e67ed59e1d1-38f6289b462mr168227a91.5.1785158539807;
+        Mon, 27 Jul 2026 06:22:19 -0700 (PDT)
+Received: from marcos-linux ([2804:3d04:a1ae:f400:ecc:47ff:fee4:ed75])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-13e53094d65sm25117076c88.13.2026.07.27.06.22.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 27 Jul 2026 06:22:19 -0700 (PDT)
+From: Marcos Paulo Medeiros <maarcospm1996@gmail.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>,
+	Hans de Goede <hansg@kernel.org>,
+	linux-acpi@vger.kernel.org,
+	Marcos Paulo Medeiros <maarcospm1996@gmail.com>
+Subject: [PATCH] ACPI: video: force native backlight on Acer Nitro AN515-46
+Date: Mon, 27 Jul 2026 10:21:51 -0300
+Message-ID: <20260727132151.12792-1-maarcospm1996@gmail.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260724104042.1481804-1-christian.loehle@arm.com>
- <6174756a-b779-422a-a67d-d677961d99f0@huawei.com> <9fa94c64-c4ed-45b5-85ab-c6f8f04107e5@arm.com>
-In-Reply-To: <9fa94c64-c4ed-45b5-85ab-c6f8f04107e5@arm.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Mon, 27 Jul 2026 15:21:58 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0hZbV0iNQksGqSJ3BzjFUcuYLQEf226THg5_PQo-h9TDA@mail.gmail.com>
-X-Gm-Features: AUfX_myl7xANmROMqw95ZigNHuq6vzGtODbnuhbQrnpdUsZqdrFi08Aw0-ptetw
-Message-ID: <CAJZ5v0hZbV0iNQksGqSJ3BzjFUcuYLQEf226THg5_PQo-h9TDA@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: CPPC: Skip writes to unsupported performance controls
-To: Christian Loehle <christian.loehle@arm.com>
-Cc: "zhenglifeng (A)" <zhenglifeng1@huawei.com>, "Rafael J . Wysocki" <rafael@kernel.org>, 
-	Viresh Kumar <viresh.kumar@linaro.org>, linux-pm@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	Len Brown <lenb@kernel.org>, Jie Zhan <zhanjie9@hisilicon.com>, 
-	Pierre Gondois <pierre.gondois@arm.com>, Sumit Gupta <sumitg@nvidia.com>, 
-	Sudeep Holla <sudeep.holla@arm.com>, Ionela Voinescu <ionela.voinescu@arm.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Mon, Jul 27, 2026 at 2:27=E2=80=AFPM Christian Loehle
-<christian.loehle@arm.com> wrote:
->
-> On 7/27/26 12:14, zhenglifeng (A) wrote:
-> > On 7/24/2026 6:40 PM, Christian Loehle wrote:
-> >> MIN_PERF and MAX_PERF are optional CPPC controls. DESIRED_PERF is also
-> >> optional with CPPC2 when autonomous selection is supported.
-> >>
-> >> The cppc-cpufreq target callbacks populate both limits for every reque=
-st
-> >> without checking whether the controls are implemented. cppc_set_perf()
-> >> consequently passes NULL register descriptors to cpc_write(). The writ=
-es
-> >> fail width validation and their return values are ignored, so the fail=
-ed
-> >> access paths are repeated on every target request. An autonomous-only
-> >> platform can take the same path for DESIRED_PERF.
-> >>
-> >> Check that each performance control is supported before calling
-> >> cpc_write().
-> >>
-> >> Fixes: ea3db45ae476 ("cpufreq: cppc: Update MIN_PERF/MAX_PERF in targe=
-t callbacks")
-> >> Reviewed-by: Sumit Gupta <sumitg@nvidia.com>
-> >> Signed-off-by: Christian Loehle <christian.loehle@arm.com>
-> >> ---
-> >> v2: Also added desired_perf check (Sumit)
-> >>
-> >>  drivers/acpi/cppc_acpi.c | 7 ++++---
-> >>  1 file changed, 4 insertions(+), 3 deletions(-)
-> >>
-> >> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> >> index 1d3a94100491..53d09ca98f06 100644
-> >> --- a/drivers/acpi/cppc_acpi.c
-> >> +++ b/drivers/acpi/cppc_acpi.c
-> >> @@ -1963,16 +1963,17 @@ int cppc_set_perf(int cpu, struct cppc_perf_ct=
-rls *perf_ctrls)
-> >>              cpc_desc->write_cmd_status =3D 0;
-> >>      }
-> >>
-> >> -    cpc_write(cpu, desired_reg, perf_ctrls->desired_perf);
-> >> +    if (CPC_SUPPORTED(desired_reg))
-> >> +            cpc_write(cpu, desired_reg, perf_ctrls->desired_perf);
-> >>
-> >>      /*
-> >>       * Only write if min_perf and max_perf not zero. Some drivers pas=
-s zero
-> >>       * value to min and max perf, but they don't mean to set the zero=
- value,
-> >>       * they just don't want to write to those registers.
-> >>       */
-> >> -    if (perf_ctrls->min_perf)
-> >> +    if (perf_ctrls->min_perf && CPC_SUPPORTED(min_perf_reg))
-> >>              cpc_write(cpu, min_perf_reg, perf_ctrls->min_perf);
-> >> -    if (perf_ctrls->max_perf)
-> >> +    if (perf_ctrls->max_perf && CPC_SUPPORTED(max_perf_reg))
-> >>              cpc_write(cpu, max_perf_reg, perf_ctrls->max_perf);
-> >>
-> >>      if (CPC_IN_PCC(desired_reg) || CPC_IN_PCC(min_perf_reg) || CPC_IN=
-_PCC(max_perf_reg))
-> >
-> > LGTM.
-> >
-> > Reviewed-by: Lifeng Zheng <zhenglifeng1@huawei.com>
-> >
-> > Apologize for replying to v1 before seeing v2.
-> >
->
-> Thanks for taking a look!
-> You can blame it on me for messing up the title and forgetting to put v2 =
-there :/
+The Acer Nitro AN515-46 is a hybrid graphics laptop whose internal
+panel is driven by the AMD GPU (Radeon 680M); the discrete NVIDIA GPU
+only drives external outputs. The firmware nevertheless advertises the
+NVIDIA WMI EC backlight GUID, so the backlight type resolves to
+nvidia_wmi_ec. The nvidia-wmi-ec-backlight driver however fails to
+probe ("EC backlight control failed: AE_NOT_FOUND") and, since the
+backlight type is still nvidia_wmi_ec, amdgpu skips registering its
+own backlight device. The result is no backlight device at all,
+leaving the brightness keys and the desktop brightness slider
+non-functional.
 
-Applied as 7.2-rc material, thanks!
+Booting with acpi_backlight=native makes amdgpu register its backlight
+interface and brightness control works. Add a DMI quirk to use the
+native backlight on this model by default.
+
+Signed-off-by: Marcos Paulo Medeiros <maarcospm1996@gmail.com>
+---
+ drivers/acpi/video_detect.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 5b0dc679e..07755b856 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -919,6 +919,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "OMEN by HP Gaming Laptop 16-n0xxx"),
+ 		},
+ 	},
++	{
++	 .callback = video_detect_force_native,
++	 /* Acer Nitro AN515-46 */
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Nitro AN515-46"),
++		},
++	},
+ 
+ 	/*
+ 	 * x86 android tablets which directly control the backlight through
+-- 
+2.53.0
+
