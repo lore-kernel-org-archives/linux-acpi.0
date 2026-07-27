@@ -1,117 +1,188 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 207C0323416;
-	Mon, 27 Jul 2026 11:57:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9F233F4DF8
+	for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 12:10:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785153433; cv=none; b=ECnfqvn4l7W6kXMmAfuIWxKSNoQNgzMNt7IESVPBRGewgUXcgAct+b6OWH7mMnIibE0P+QfqDYI6qWRuGewKChB5n4NkFebr8CC4dhtHZN9ypP8u7tFNTdKVfldZxRLDAT74daciJiakMolnZLjkAtFnuqFiIIK+DHDeIsxetgU=
+	t=1785154233; cv=none; b=uR0tVG2s1fsrlHPzFCEg1r8XKzBsIfLg+OxXPB1iYWPXEu8tgEAI38/w7nfZ32bh6DqBA7QJOJlaqn+zjROkzF5/vz8IdvIHGZ7SGjHpviBjY/pRijzA3mNy6s4OAGI12w9iN07OVHlwle5Si3uhLTuOP6/lajwWzV/UH0r4JMQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785153433; c=relaxed/simple;
-	bh=QZ7J9GEKKU0tiUYyGlfAOZClTIzKKMxb5eJR0V3eGuM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZHtoV6MI1WcQVWTo8kLg9Cs7BS6r09O2iQ3xeXH3rKJqXwyt3L+Jgq44mtCOwFhAPmNFE9eDWhDQJH4ChYaZFOTeYZUXSSr3miTaHgkjHMvsp49Q6XEad1kFHdupWwPdAM9J3bmv40y1jaw34+hGZ6Y4rwFYyd/TB+pF6OcjJnQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=l2tPCQ/3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785154233; c=relaxed/simple;
+	bh=AxWBmt7HYNFpujBnQhtQJvcCKraELIFeYSYo+bJ9KIE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=EK5BTr7eqNGDaKxq68u4Nm/6ml3aBJpkfgtaMXKa/+RkwGtxnex1TeWv7vU/jgxhJCJGHmJ131PER9FTRfFTa63y4UGoYcXcYPqO7G04lZEwwulyPcJ3qMb8j41FF9ZF41gxVBy+DEPbKFdEsdNslxZ2kDG0riJ72PKEcfEzKo4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LYj3Dhu/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="l2tPCQ/3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B8131F000E9;
-	Mon, 27 Jul 2026 11:57:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LYj3Dhu/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 663CA1F00A3A
+	for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 12:10:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785153431;
-	bh=lz7aqFjfuxew01pZPfuvHynhqmWSfxijKJmqQXTiYfY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=l2tPCQ/30nFIeFjMpBf4i6dwX0DDUnMOK6cPXfDIIg4SvlXjvjfMIONkqUOAvNcKI
-	 o+cLi2rF7hZeACfnfIMsOL6VJs1TIcZHgx8xKMXdGrrKvq4SZkiaPzhxnj9slalr49
-	 F7Xrlzij6VKigOcKOwzMXVLsTSaRCkl78zsgT7OyYOgzumSYlzYYFS+8FM9Ds0rpPz
-	 UeOrfg/6d8HkXD31ysBJJ0pRJ8nBPNjk64tbTp4Mmy1jhIAeDcAQ1ORSQD5ALYTZYG
-	 9SsaCz7dOvvZzURGmtpSozb6NVvF52Z2iCoozdbKsHds7M3WzxxvqDGWt66efgGBBw
-	 UlgLLPYsBtGig==
-Date: Mon, 27 Jul 2026 12:57:06 +0100
-From: Mark Brown <broonie@kernel.org>
-To: Marco Giunta <marco_giunta@outlook.it>
-Cc: tiwai@suse.com, perex@perex.cz, lgirdwood@gmail.com,
-	linux-kernel@vger.kernel.org, linux-sound@vger.kernel.org,
-	rafael@kernel.org, lenb@kernel.org, hansg@kernel.org,
-	ilpo.jarvinen@linux.intel.com, linux-acpi@vger.kernel.org,
-	platform-driver-x86@vger.kernel.org, wangweidong.a@awinic.com,
-	nadim@symbolic.software, imitoy@imitoy.top, munzirtaha@gmail.com,
-	yakov.till@gmail.com
-Subject: Re: [PATCH 0/8] ALSA: hda: Add AW88399 HDA side codec driver for
- Lenovo Legion
-Message-ID: <06572961-d2c6-4de5-9102-2b5fc6d5ef5d@sirena.org.uk>
-References: <DS7PR19MB77247D9AD698CF0FF37DB58BFCC62@DS7PR19MB7724.namprd19.prod.outlook.com>
+	s=k20260515; t=1785154231;
+	bh=JhYIp1CKigvj4CYO+OIWNTACrKJgXXmqeayTYKrnS5E=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=LYj3Dhu/YIrO7Dv9JxqpjxBbxIjNXtO2rTnkHrCIuHFdG1lFJm5DvTVCWCp2n1FE0
+	 PbfGllkZuOFdCuAyNKF2tecRbqDWe5hz1FNUCu5mFsBbvSMVI5UJmptBBvVy+XP9qc
+	 0tvRBvEePPyJycO/H4Hec2ECRSK2vWDz2bBUs0dFyY2ibDk/Mn7H42X56fDczp/8bo
+	 XQuOOt38Nz/QakUGm6Eo5RH8QbvG8mUGwupgxIrcyjvq+Y8bBKEsWn5rxpOfM+I366
+	 ZPSSzw+6/1njrlSjmigNpfCDPbflRM282xWcbI5e4kgTNK60bFzmPNVOptswSnb9Vd
+	 cAWtD9Ry+eUeQ==
+Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-39c7ef2b1e2so22132131fa.1
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 05:10:31 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+Rr5FqyUlwUMsqVEagxWUFxKxINdoTsJOYOYP3JvxTi+efvehS9yqDIJFrlHHB33rm2NOM3Ow5XZ77kB@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzmcq2yjJnVOVw4Vx3oiS4WP3Sls2KeIiE+oshXcrP/Cy6Ew0Wm
+	tiGLfZoU9jdh0+9tUzlGW9mdJURwaOfC9qSHVeiz39AWILgIIypx5k9MoSD120N1yW2uOxwzaVs
+	nc4TbOyU2+pzZlJ1i0dm45jXqxq7blU4=
+X-Received: by 2002:a05:6512:3b8f:b0:5b2:a24a:e4f9 with SMTP id
+ 2adb3069b0e04-5b2c1b2ed8cmr1677929e87.40.1785154229841; Mon, 27 Jul 2026
+ 05:10:29 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="x1jyvfTe3pCirNzp"
-Content-Disposition: inline
-In-Reply-To: <DS7PR19MB77247D9AD698CF0FF37DB58BFCC62@DS7PR19MB7724.namprd19.prod.outlook.com>
-X-Cookie: It's OKAY -- I'm an INTELLECTUAL, too.
+References: <d0be949d-0e21-472e-a44b-cedb1dd8695d@nec.com> <CAJZ5v0iacu-FW04zgTO5WDvjB4BgRvfhE9hsGskgOLGHrNwUSg@mail.gmail.com>
+ <03e9f950-4791-4c77-a961-204398255adb@nec.com>
+In-Reply-To: <03e9f950-4791-4c77-a961-204398255adb@nec.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Mon, 27 Jul 2026 14:10:11 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hEdnMSWbZ9xwNPxOw4iPaCqOquSQcRHQoiQqULDdJDhg@mail.gmail.com>
+X-Gm-Features: AUfX_mxXCZdwn2tjftj1XMuKIbDYmkAHaIJPuhvBpFImSQ0x9DKmrPZikp-3OAE
+Message-ID: <CAJZ5v0hEdnMSWbZ9xwNPxOw4iPaCqOquSQcRHQoiQqULDdJDhg@mail.gmail.com>
+Subject: Re: [REGRESSION] ACPI: PCI: misleading _OSC failure message when _OSC
+ is absent
+To: =?UTF-8?B?S09ORE8gS0FaVU1BKOi/keiXpCDlkoznnJ8p?= <kazuma-kondo@nec.com>
+Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, 
+	"bhelgaas@google.com" <bhelgaas@google.com>, 
+	"jonathan.cameron@huawei.com" <jonathan.cameron@huawei.com>, 
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, 
+	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Fri, Jul 24, 2026 at 1:15=E2=80=AFPM KONDO KAZUMA(=E8=BF=91=E8=97=A4=E3=
+=80=80=E5=92=8C=E7=9C=9F)
+<kazuma-kondo@nec.com> wrote:
+>
+> Hello,
+>
+> On 2026/07/18 1:22, Rafael J. Wysocki (Intel) wrote:
+> > Hi,
+> >
+> > On Fri, Jul 17, 2026 at 2:01=E2=80=AFPM KONDO KAZUMA(=E8=BF=91=E8=97=A4=
+=E3=80=80=E5=92=8C=E7=9C=9F)
+> > <kazuma-kondo@nec.com> wrote:
+> >>
+> >> Hello,
+> >>
+> >> After 7d703df7f4f5 ("ACPI: bus: Split _OSC evaluation out of acpi_run_=
+osc()"),
+> >> AE_NOT_FOUND from acpi_evaluate_object() is handled as AE_ERROR in
+> >> negotiate_os_control().
+> >>
+> >> I haven't yet observed any functional issue with this change,
+> >> but I started seeing the following misleading messages on my Intel ser=
+vers:
+> >>
+> >>     kernel: ACPI: Enabled 2 GPEs in block 00 to 7F
+> >>     kernel: ACPI: PCI Root Bridge [UNC0] (domain 0000 [bus fe])
+> >>     kernel: acpi PNP0A03:00: _OSC: OS supports [ExtendedConfig ASPM Cl=
+ockPM Segments MSI EDR HPX-Type3]
+> >>   + kernel: acpi PNP0A03:00: _OSC: OS requested [PCIeHotplug SHPCHotpl=
+ug PME AER PCIeCapability LTR DPC]
+> >>   + kernel: acpi PNP0A03:00: _OSC: platform willing to grant [PCIeHotp=
+lug SHPCHotplug PME AER PCIeCapability LTR DPC]
+> >>   + kernel: acpi PNP0A03:00: _OSC: platform retains control of PCIe fe=
+atures (AE_ERROR)
+> >>     kernel: PCI host bridge to bus 0000:fe
+> >>
+> >> Before the commit, the log was:
+> >>
+> >>     kernel: ACPI: Enabled 2 GPEs in block 00 to 7F
+> >>     kernel: ACPI: PCI Root Bridge [UNC0] (domain 0000 [bus fe])
+> >>     kernel: acpi PNP0A03:00: _OSC: OS supports [ExtendedConfig ASPM Cl=
+ockPM Segments MSI EDR HPX-Type3]
+> >>     kernel: PCI host bridge to bus 0000:fe
+> >>
+> >> "UNC0" is an uncore root bridge and does not define an _OSC method in =
+the ACPI
+> >> namespace on my systems.
+> >>
+> >> Previously, when acpi_evaluate_object() was called for UNC0._OSC, it r=
+eturned
+> >> AE_NOT_FOUND, and that status was propagated to negotiate_os_control()=
+.
+> >>
+> >> Now, it appears that acpi_eval_osc()/acpi_run_osc() no longer preserve=
+ the
+> >> distinction between AE_NOT_FOUND and other errors from acpi_evaluate_o=
+bject(),
+> >> so negotiate_os_control() no longer receives AE_NOT_FOUND in this case=
+.
+> >>
+> >> The call chain looks like this on my system:
+> >>
+> >> negotiate_os_control()
+> >>   acpi_pci_osc_control_set()       [retval =3D AE_ERROR    ]
+> >>     acpi_pci_query_osc ()          [retval =3D AE_ERROR    ]
+> >>       acpi_pci_run_osc()           [retval =3D AE_ERROR    ]
+> >>         acpi_run_osc()             [retval =3D AE_ERROR    ]
+> >>           acpi_eval_osc()          [retval =3D -ENODATA    ]
+> >>             acpi_evaluate_object() [retval =3D AE_NOT_FOUND]
+> >>
+> >> As a result, negotiate_os_control() logs messages as if the OS had neg=
+otiated
+> >> with the platform via _OSC, even though _OSC is absent and no such neg=
+otiation
+> >> actually happens.
+> >
+> > Fortunately though this only affects the printing of messages and only
+> > in the non-PCIe case.
+> >
+> >> I'm not very familiar with the ACPI/PCI code, so I may be missing some
+> >> context. However, if my understanding is correct, would preserving
+> >> AE_NOT_FOUND here (for example, having acpi_eval_osc()/acpi_run_osc() =
+return
+> >> the error as-is) be the right direction, or should the message handlin=
+g be
+> >> adjusted instead?
+> >>
+> >> If there is a preferred direction for fixing this, I would be happy to=
+ try
+> >> putting together a patch and testing it on my system.
+> >
+> > I cannot send you a proper patch ATM (sorry about that), but please
+> > try to replace the
+> >
+> > (status =3D=3D AE_NOT_FOUND && !is_pcie(root))
+> >
+> > check in negotiate_os_control() with the following one:
+> >
+> > (!is_pcie(root) && !acpi_has_method(handle, "_OSC"))
+> >
+> > and see if that helps.
+>
+> Sorry for the late reply.
+>
+> With the change you suggested, the failure message no longer appears.
+> If that's okay with you, I'd like to submit it as a patch.
 
---x1jyvfTe3pCirNzp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I think that it'd be better to do this check earlier, even at the
+beginning of negotiate_os_control(), because it is pointless to
+prepare for evaluating _OSC if it is not present.
 
-On Fri, Jul 17, 2026 at 03:25:02PM +0200, Marco Giunta wrote:
-> Several Lenovo Legion laptops (Pro 7i 16IAX10H, Y9000P IAX10,
-> Pro 7 16AFR10H, R9000P ADR10) use AWINIC AW88399 smart amplifiers
-> to drive their bass woofers, connected via I2C as side codecs
-> to a Realtek ALC287 HDA codec.
+So I would add
 
-The following changes since commit 1590cf0329716306e948a8fc29f1d3ee87d3989f:
+if (!is_pcie(root) && !acpi_has_method(handle, "_OSC")) {
+        print a diagnostic message;
+        return;
+}
 
-  Linux 7.2-rc4 (2026-07-19 13:54:41 -0700)
+to negotiate_os_control() after the x86_apple_machine check and remove
+the (status =3D=3D AE_NOT_FOUND && !is_pcie(root)) check that would become
+redundant then.
 
-are available in the Git repository at:
+Feel free to send a patch doing so.
 
-  https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git tags/asoc-aw88339-lib
-
-for you to fetch changes up to 15c9fdb3c39d5073463ffa746cc64ad9682c875f:
-
-  ASoC: aw88399: add channel setter for HDA side codec (2026-07-21 19:16:08 +0100)
-
-----------------------------------------------------------------
-ASoC: Add AW88399 HDA side codec driver for Lenovo Legion
-
-In order to support AW88399 HDA side codec used on the Lenovo Legion we
-need updates to it's ASoC driver.
-
-----------------------------------------------------------------
-Marco Giunta (5):
-      ASoC: aw88399: extract shared device library
-      ASoC: aw88399: derive channel from I2C address on ACPI systems
-      ASoC: aw88399: add per-instance BSTS status bypass flag
-      ASoC: aw88399: add firmware reload flag for resume
-      ASoC: aw88399: add channel setter for HDA side codec
-
- include/sound/aw88399.h        |  621 ++++++++++++++++++
- sound/soc/codecs/Kconfig       |    5 +
- sound/soc/codecs/Makefile      |    2 +
- sound/soc/codecs/aw88399-lib.c | 1411 ++++++++++++++++++++++++++++++++++++++++
- sound/soc/codecs/aw88399.c     | 1349 --------------------------------------
- sound/soc/codecs/aw88399.h     |  582 +----------------
- 6 files changed, 2041 insertions(+), 1929 deletions(-)
- create mode 100644 include/sound/aw88399.h
- create mode 100644 sound/soc/codecs/aw88399-lib.c
-
---x1jyvfTe3pCirNzp
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmpnR5EACgkQJNaLcl1U
-h9Ar7Qf+LUkk62xnAHzaptw3xw7XmAUbLO8oS2y7X0x0FvaJRClXV9LTTtn8/CQN
-rmpFg1/wT/SVdLFRa7NC+FRawZN3KDyi/goNOD7wMHuVOYBffDeROyySaBf8+94R
-MhNRPiOEcUO1XwqqaPbLowRLOD5V6PRIG2Vp3G3FFBruXsINubWLbfwHFvfs2j+Z
-Wgi6yIK+xsFkIl3Bxd4ES8xOEsV4nXx+R4sXxRvQVYZlYq6ZAOZqtQSDsIL2WjRP
-cVpns8taVeEz7aMJxhlc2ZemAERTyszYq/aVvEWEMaj8V+HLk7/zaZLClvMwGzw8
-uAoh84AKzuTGPYGC1FLz6RUNt0zL2w==
-=zE12
------END PGP SIGNATURE-----
-
---x1jyvfTe3pCirNzp--
+Thanks!
