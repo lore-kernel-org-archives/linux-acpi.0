@@ -1,48 +1,33 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27F3F42BEB2;
-	Mon, 27 Jul 2026 17:25:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0BED643E486;
+	Mon, 27 Jul 2026 17:49:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785173133; cv=none; b=hyX3QxWZhoNzlbY6OBX/BnBkOXeVB2iYjeW/hkITP6KzIV2LmfFOLKL5iSxd8L7BZRlRQ1sFybWMr5PGgTj6pSsR3Nr0mZF8+WqZJlJgw6Rap2s+ZtEJK2w1PARQSQWfQLnnwOK42VieYxeEJQjOY9qK1U4NHhGGI12iXrMycew=
+	t=1785174578; cv=none; b=cDXiPCla6n/hHEd2184RerOHGLdj5rcBXg7GBmeGL/mjFpZSe6Ar3ex2mG6GaXyg5IjHO2zNPDmBagRCzvFYEYIOswgfYcIBEiEqRMhm7FTiCexBpVPlctpcOsX8xZ9ULQUi4fKfcqgWQvxwC5/RD9oQ2fNencoawc6BZTjhQVI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785173133; c=relaxed/simple;
-	bh=xIc7mbEEDl2XzJ10CqzA3H5i8CNoTKHQjJm395IfRYM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=p8I6KGoB5gmegwISCmWdsuUofDGEOcmB5aha/NuL/Yl67uiOnS27Lgvxnuotf0d0sVmlJ5zkFD644TExr+5wAFx0OzgwsPC6hZvAhGufl+YHrDczwsIiyOC9pwPNIsq6Ubk6PMCjUnfIyzCmY+4++oSO5M7oHl2Tb1y9tOzKgxg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=dBphBV0E; arc=none smtp.client-ip=192.198.163.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1785174578; c=relaxed/simple;
+	bh=DA7+B9YKYeH7TOdVOM1/vMFaKR/jiRWVQWLtSBrapjk=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
+	 In-Reply-To:Content-Type; b=Jr6W2dOfyqybGxwT+QUgGex7eiC7KcqM3j/IKRZHNGM1LkHptEZ8+g/HsgueDEuZj9vGkvHCd3xh/+Mqe0qIGrgED2maZbNA4VKuIIIZidngsSvB7Mfy2jaDIXqcrqzZhVtaNt6UJFTDgVhr1xg9Gr5k0a+UMgonNA38krH6kJs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=toEObFLW; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="dBphBV0E"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1785173129; x=1816709129;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=xIc7mbEEDl2XzJ10CqzA3H5i8CNoTKHQjJm395IfRYM=;
-  b=dBphBV0E2yiJLzo/btO5CeLY1LvDlGf469nuveMER+6dYuKPvZUiJ5WP
-   CisPAElLJ/uWRHveq7PAbqR/AqVtrWX4CwoKpDI4jFDbrSDryNiS3M71v
-   TlJlAzii201Zwv8ALt6q3I23934I2AHlGgrhJkRXT/ZGoEvhStP+6la69
-   23gTy2rCCD+ZDN/WlvJ2CJiVdI49YE7ot2mJPVnvFjZIKPYbn97RFWlsU
-   hF96N2lRAZcldLiIK4Wj5XEMG9/nlZkzA1VKltW4UTxlrljBN0/cRWcGn
-   lUxxYwsfeKseAfB8iRMgpMJmFF/s8e+f25P2AHbCUxoRocokLtGxvMFy4
-   A==;
-X-CSE-ConnectionGUID: wiZHmS/UR7Om7sqXJiV6zA==
-X-CSE-MsgGUID: qXWKMgpGSICrmgyN2+7pNg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11858"; a="85616619"
-X-IronPort-AV: E=Sophos;i="6.25,188,1779174000"; 
-   d="scan'208";a="85616619"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jul 2026 10:25:24 -0700
-X-CSE-ConnectionGUID: eJcnvQFeQH2jgYbho+PJBA==
-X-CSE-MsgGUID: qV4n0T5IRLyMVSQ2csM7uw==
-X-ExtLoop1: 1
-Received: from sghuge-mobl2.amr.corp.intel.com (HELO [10.125.111.47]) ([10.125.111.47])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jul 2026 10:25:22 -0700
-Message-ID: <ce2fc791-e84b-49e7-8d9b-f864ee82aa25@intel.com>
-Date: Mon, 27 Jul 2026 10:25:21 -0700
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="toEObFLW"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id BED5B1682;
+	Mon, 27 Jul 2026 10:49:14 -0700 (PDT)
+Received: from [10.57.1.72] (unknown [10.57.1.72])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A86283F763;
+	Mon, 27 Jul 2026 10:49:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1785174558; bh=DA7+B9YKYeH7TOdVOM1/vMFaKR/jiRWVQWLtSBrapjk=;
+	h=Date:Subject:From:To:Cc:References:In-Reply-To:From;
+	b=toEObFLW8bsAC+E+HVlNUupw/MXWKwflgg1zbe+JielVe1ZdhB0/hcdTfyq9KL/1H
+	 n5eu4cJ8FZCfADXqusLRoqKYM6AlpY9rOEn82eB5u5wHWWPx6iVQvKamjMiqIPrkCg
+	 BysrsokttmMYEpl4C9LcIdUuSkzKrhyg+4Kf0JlM=
+Message-ID: <498f0051-e549-4be4-b5bf-56aba1670881@arm.com>
+Date: Mon, 27 Jul 2026 18:49:13 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -50,64 +35,144 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 7/9] ACPI: nfit: core: drop unused assignment of
- acpi_device_id::driver_data
-To: "Pawel Zalewski (The Capable Hub)" <pzalewski@thegoodpenguin.co.uk>,
- "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- Bjorn Helgaas <bhelgaas@google.com>, Zhang Rui <rui.zhang@intel.com>,
- Kai-Heng Feng <kaihengf@nvidia.com>, Tony Luck <tony.luck@intel.com>,
- Borislav Petkov <bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>,
- Mauro Carvalho Chehab <mchehab@kernel.org>,
- Shuai Xue <xueshuai@linux.alibaba.com>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>,
- Sudeep Holla <sudeep.holla@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
- Alison Schofield <alison.schofield@intel.com>, Ira Weiny <iweiny@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- nvdimm@lists.linux.dev
-References: <20260727-acpi-refactor-v1-0-ff900aa326ee@thegoodpenguin.co.uk>
- <20260727-acpi-refactor-v1-7-ff900aa326ee@thegoodpenguin.co.uk>
+Subject: Re: [PATCH v6 1/2] ACPI: CPPC: Add ospm_nominal_perf support
+From: Christian Loehle <christian.loehle@arm.com>
+To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
+ viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
+ zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, lenb@kernel.org,
+ saket.dumbre@intel.co, linux-kernel@vger.kernel.org,
+ linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
+ acpica-devel@lists.linux.dev, linux-tegra@vger.kernel.org
+Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
+ ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
+References: <20260717215330.2215058-1-sumitg@nvidia.com>
+ <20260717215330.2215058-2-sumitg@nvidia.com>
+ <436ae296-cc68-4313-bf76-86908a1e5b29@arm.com>
 Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20260727-acpi-refactor-v1-7-ff900aa326ee@thegoodpenguin.co.uk>
+In-Reply-To: <436ae296-cc68-4313-bf76-86908a1e5b29@arm.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-
-
-On 7/27/26 5:10 AM, Pawel Zalewski (The Capable Hub) wrote:
-> This module sets the acpi_device_id::driver_data to 0 but
-> the field is not actually used within the module, we can
-> just drop it from the table.
+On 7/27/26 15:01, Christian Loehle wrote:
+> On 7/17/26 22:53, Sumit Gupta wrote:
+>> Expose the OSPM Nominal Performance register (ACPI 6.6, Section
+>> 8.4.6.1.2.6), which conveys the desired nominal performance level
+>> at which the platform may run. Unlike the existing read-only
+>> Nominal Performance register, it is writable and lets OSPM
+>> request a lower nominal level than the platform-reported nominal.
+>> The platform classifies performance above this level as boosted
+>> and below as throttled for its power/thermal decisions.
+>>
+>> It is exposed as a per-policy cpufreq sysfs attribute in kHz, to
+>> match the cpufreq sysfs unit convention:
+>>
+>>   /sys/devices/system/cpu/cpuX/cpufreq/ospm_nominal_freq
+>>
+>> The attribute is documented in
+>> Documentation/ABI/testing/sysfs-devices-system-cpu.
+>>
+>> Writes are converted to perf via cppc_khz_to_perf(), validated
+>> against [Lowest Performance, Nominal Performance], and applied to
+>> the policy->cpu. The register is assumed shared across the
+>> policy->cpus.
+>>
+>> On read, the current register value is returned, or
+>> "<unsupported>" if the platform does not implement the register.
+>>
+>> Also add the register to the OSPM-set register save/restore
+>> table, so its value survives CPU hotplug and reverts to the
+>> firmware value on driver unload, like the other registers in
+>> the table.
+>>
+>> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
+>> ---
+>>  .../ABI/testing/sysfs-devices-system-cpu      | 26 ++++++++++
+>>  drivers/acpi/cppc_acpi.c                      | 32 +++++++++++++
+>>  drivers/cpufreq/cppc_cpufreq.c                | 47 +++++++++++++++++++
+>>  include/acpi/cppc_acpi.h                      | 10 ++++
+>>  4 files changed, 115 insertions(+)
+>>
+>> diff --git a/Documentation/ABI/testing/sysfs-devices-system-cpu b/Documentation/ABI/testing/sysfs-devices-system-cpu
+>> index 82d10d556cc8..a8d592c08823 100644
+>> --- a/Documentation/ABI/testing/sysfs-devices-system-cpu
+>> +++ b/Documentation/ABI/testing/sysfs-devices-system-cpu
+>> @@ -346,6 +346,32 @@ Description:	Performance Limited
+>>  
+>>  		This file is only present if the cppc-cpufreq driver is in use.
+>>  
+>> +What:		/sys/devices/system/cpu/cpuX/cpufreq/ospm_nominal_freq
+>> +Date:		May 2026
+>> +Contact:	linux-pm@vger.kernel.org
+>> +Description:	OSPM Nominal Performance (kHz)
+>> +
+>> +		OSPM uses this attribute to request a nominal performance
+>> +		level lower than the platform-reported nominal. The
+>> +		platform treats performance above this level as boost
+>> +		and below as throttle for power and thermal decisions.
+>> +
+>> +		Read returns the current value in kHz, or "<unsupported>"
+>> +		if the platform does not implement the register. Write a
+>> +		kHz value in the range [lowest_freq, nominal_freq].
+>> +
+>> +		Note that tasks may be migrated from one CPU to another
+>> +		by the scheduler's load-balancing algorithm, and if
+>> +		different OSPM Nominal Performance values are set for
+>> +		those CPUs (through different cpufreq policies), that may
+>> +		lead to undesirable outcomes. To avoid such issues it is
+>> +		better to set the same value across all policies, or to
+>> +		pin every task potentially sensitive to it to a specific
+>> +		CPU.
+>> +
+>> +		This file is only present if the cppc-cpufreq driver is
+>> +		in use.
+>> +
+>>  What:		/sys/devices/system/cpu/cpu*/cache/index3/cache_disable_{0,1}
+>>  Date:		August 2008
+>>  KernelVersion:	2.6.27
+>> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+>> index a7fec6c93178..681d4fd40c11 100644
+>> --- a/drivers/acpi/cppc_acpi.c
+>> +++ b/drivers/acpi/cppc_acpi.c
+>> @@ -1685,6 +1685,38 @@ int cppc_set_epp(int cpu, u64 epp_val)
+>>  }
+>>  EXPORT_SYMBOL_GPL(cppc_set_epp);
+>>  
+>> +/**
+>> + * cppc_set_ospm_nominal_perf() - Write OSPM Nominal Performance register.
+>> + * @cpu: CPU on which to write register.
+>> + * @ospm_nominal_perf: Value to write to the OSPM Nominal Performance register.
+>> + *
+>> + * OSPM Nominal Performance conveys the desired nominal performance level
+>> + * at which the platform may run. Per ACPI 6.6, s8.4.6.1.2.6, the value
+>> + * must lie within [Lowest Performance, Nominal Performance] and may be
+>> + * set independently of Minimum, Maximum and Desired performance. The
+>> + * caller is responsible for validating the range.
+>> + *
+>> + * Return: 0 on success or negative error code.
+>> + */
+>> +int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf)
+>> +{
+>> +	return cppc_set_reg_val(cpu, OSPM_NOMINAL_PERF, ospm_nominal_perf);
+>> +}
+>> +EXPORT_SYMBOL_GPL(cppc_set_ospm_nominal_perf);
+>> +
+>> +/**
+>> + * cppc_get_ospm_nominal_perf() - Read OSPM Nominal Performance register.
+>> + * @cpu: CPU from which to read register.
+>> + * @ospm_nominal_perf: Pointer to store the OSPM Nominal Performance value.
+>> + *
+>> + * Return: 0 on success or negative error code.
+>> + */
+>> +int cppc_get_ospm_nominal_perf(int cpu, u64 *ospm_nominal_perf)
+>> +{
+>> +	return cppc_get_reg_val(cpu, OSPM_NOMINAL_PERF, ospm_nominal_perf);
+>> +}
+>> +EXPORT_SYMBOL_GPL(cppc_get_ospm_nominal_perf);
 > 
-> While we are at it - used a named initializer for the
-> acpi_device_id::id field to increase readability and
-> drop explicitly setting the list terminator fields.
-> 
-> Signed-off-by: Pawel Zalewski (The Capable Hub) <pzalewski@thegoodpenguin.co.uk>
-
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-
-> ---
->  drivers/acpi/nfit/core.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index cb771d9cadb2..5732df5d53f0 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -3515,8 +3515,8 @@ void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event)
->  EXPORT_SYMBOL_GPL(__acpi_nfit_notify);
->  
->  static const struct acpi_device_id acpi_nfit_ids[] = {
-> -	{ "ACPI0012", 0 },
-> -	{ "", 0 },
-> +	{ .id = "ACPI0012" },
-> +	{ }
->  };
->  MODULE_DEVICE_TABLE(acpi, acpi_nfit_ids);
->  
+> It's a write-only register, we need to track everything in the driver.
 > 
 
+So just reread Pierre's comments, TBH I don't see the point of ever
+reading it, even for sysfs reads, but I don't think
+reading it for cppc_cpufreq_get_effective_nominal() would be valid
+in any case?
