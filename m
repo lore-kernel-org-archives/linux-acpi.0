@@ -1,116 +1,117 @@
-Received: from canpmsgout04.his.huawei.com (canpmsgout04.his.huawei.com [113.46.200.219])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C61B93F8251;
-	Mon, 27 Jul 2026 11:14:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.219
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 207C0323416;
+	Mon, 27 Jul 2026 11:57:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785150900; cv=none; b=UVU/9zWj8vihAlYNaRC85PWakBUZwRczce346nUF5s4Lfd4oUPmFkM0ZULCdfg1P/LYaGwBz8uOe9CB5sM4lAohvHUEW53vFoIHmmxJX5W0OKtD6et2JWzwdZdRP+39U45+c6v44z1k41H/2EF4icGQ/Cj64nKw+7QtsiC2X4AA=
+	t=1785153433; cv=none; b=ECnfqvn4l7W6kXMmAfuIWxKSNoQNgzMNt7IESVPBRGewgUXcgAct+b6OWH7mMnIibE0P+QfqDYI6qWRuGewKChB5n4NkFebr8CC4dhtHZN9ypP8u7tFNTdKVfldZxRLDAT74daciJiakMolnZLjkAtFnuqFiIIK+DHDeIsxetgU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785150900; c=relaxed/simple;
-	bh=IbkBx9XspAvH/xdZaiDJ7NX2w5Ye8zRuM63x4HChgIE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=g+bX8DbpyoptV1+bs69XGsGaGZoJ19JCznE4eVVOtpmmTE/Tcybxpv4TD3avxVhcALCjR/kX8dNizAhrIiIm+D3N3WCV9mTjNJQkLkt7s9XO/SB+j0kfmoym2TyEmMIdyBzQO85SFxfLYruilN95qWqJ8L8lgliyiJVdaScn4G0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=03u6kJk3; arc=none smtp.client-ip=113.46.200.219
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1785153433; c=relaxed/simple;
+	bh=QZ7J9GEKKU0tiUYyGlfAOZClTIzKKMxb5eJR0V3eGuM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZHtoV6MI1WcQVWTo8kLg9Cs7BS6r09O2iQ3xeXH3rKJqXwyt3L+Jgq44mtCOwFhAPmNFE9eDWhDQJH4ChYaZFOTeYZUXSSr3miTaHgkjHMvsp49Q6XEad1kFHdupWwPdAM9J3bmv40y1jaw34+hGZ6Y4rwFYyd/TB+pF6OcjJnQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=l2tPCQ/3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="03u6kJk3"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=xQh7wNxV773cU0+b2zVPNhmbSKzYd6c9ZfRHbrY2PG0=;
-	b=03u6kJk3dKfHTKMVe48d5uITy+p3+T1R+q1D6aBdONSeWecZ+jSJaxj2yjV4W8QrrFwygnJLb
-	yl7eqfP0lhu2ofFGzZo4zTRzyz5bjdtvgq1SwT5zn8dSvkLJzrW19hQCCkKLTAPkwxABI5yu3EJ
-	qyXxA49N1hz+jfpa5cPuBWM=
-Received: from mail.maildlp.com (unknown [172.19.162.140])
-	by canpmsgout04.his.huawei.com (SkyGuard) with ESMTPS id 4h7wjy60Jjz1prMB;
-	Mon, 27 Jul 2026 19:05:26 +0800 (CST)
-Received: from kwepemf100001.china.huawei.com (unknown [7.202.181.215])
-	by mail.maildlp.com (Postfix) with ESMTPS id B612B20333;
-	Mon, 27 Jul 2026 19:14:54 +0800 (CST)
-Received: from [10.67.121.90] (10.67.121.90) by kwepemf100001.china.huawei.com
- (7.202.181.215) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Mon, 27 Jul
- 2026 19:14:53 +0800
-Message-ID: <6174756a-b779-422a-a67d-d677961d99f0@huawei.com>
-Date: Mon, 27 Jul 2026 19:14:53 +0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="l2tPCQ/3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B8131F000E9;
+	Mon, 27 Jul 2026 11:57:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785153431;
+	bh=lz7aqFjfuxew01pZPfuvHynhqmWSfxijKJmqQXTiYfY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=l2tPCQ/30nFIeFjMpBf4i6dwX0DDUnMOK6cPXfDIIg4SvlXjvjfMIONkqUOAvNcKI
+	 o+cLi2rF7hZeACfnfIMsOL6VJs1TIcZHgx8xKMXdGrrKvq4SZkiaPzhxnj9slalr49
+	 F7Xrlzij6VKigOcKOwzMXVLsTSaRCkl78zsgT7OyYOgzumSYlzYYFS+8FM9Ds0rpPz
+	 UeOrfg/6d8HkXD31ysBJJ0pRJ8nBPNjk64tbTp4Mmy1jhIAeDcAQ1ORSQD5ALYTZYG
+	 9SsaCz7dOvvZzURGmtpSozb6NVvF52Z2iCoozdbKsHds7M3WzxxvqDGWt66efgGBBw
+	 UlgLLPYsBtGig==
+Date: Mon, 27 Jul 2026 12:57:06 +0100
+From: Mark Brown <broonie@kernel.org>
+To: Marco Giunta <marco_giunta@outlook.it>
+Cc: tiwai@suse.com, perex@perex.cz, lgirdwood@gmail.com,
+	linux-kernel@vger.kernel.org, linux-sound@vger.kernel.org,
+	rafael@kernel.org, lenb@kernel.org, hansg@kernel.org,
+	ilpo.jarvinen@linux.intel.com, linux-acpi@vger.kernel.org,
+	platform-driver-x86@vger.kernel.org, wangweidong.a@awinic.com,
+	nadim@symbolic.software, imitoy@imitoy.top, munzirtaha@gmail.com,
+	yakov.till@gmail.com
+Subject: Re: [PATCH 0/8] ALSA: hda: Add AW88399 HDA side codec driver for
+ Lenovo Legion
+Message-ID: <06572961-d2c6-4de5-9102-2b5fc6d5ef5d@sirena.org.uk>
+References: <DS7PR19MB77247D9AD698CF0FF37DB58BFCC62@DS7PR19MB7724.namprd19.prod.outlook.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] ACPI: CPPC: Skip writes to unsupported performance
- controls
-To: Christian Loehle <christian.loehle@arm.com>, "Rafael J . Wysocki"
-	<rafael@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>
-CC: <linux-pm@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Jie Zhan
-	<zhanjie9@hisilicon.com>, Pierre Gondois <pierre.gondois@arm.com>, Sumit
- Gupta <sumitg@nvidia.com>, Sudeep Holla <sudeep.holla@arm.com>, Ionela
- Voinescu <ionela.voinescu@arm.com>
-References: <20260724104042.1481804-1-christian.loehle@arm.com>
-From: "zhenglifeng (A)" <zhenglifeng1@huawei.com>
-In-Reply-To: <20260724104042.1481804-1-christian.loehle@arm.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemf100001.china.huawei.com (7.202.181.215)
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="x1jyvfTe3pCirNzp"
+Content-Disposition: inline
+In-Reply-To: <DS7PR19MB77247D9AD698CF0FF37DB58BFCC62@DS7PR19MB7724.namprd19.prod.outlook.com>
+X-Cookie: It's OKAY -- I'm an INTELLECTUAL, too.
 
-On 7/24/2026 6:40 PM, Christian Loehle wrote:
-> MIN_PERF and MAX_PERF are optional CPPC controls. DESIRED_PERF is also
-> optional with CPPC2 when autonomous selection is supported.
-> 
-> The cppc-cpufreq target callbacks populate both limits for every request
-> without checking whether the controls are implemented. cppc_set_perf()
-> consequently passes NULL register descriptors to cpc_write(). The writes
-> fail width validation and their return values are ignored, so the failed
-> access paths are repeated on every target request. An autonomous-only
-> platform can take the same path for DESIRED_PERF.
-> 
-> Check that each performance control is supported before calling
-> cpc_write().
-> 
-> Fixes: ea3db45ae476 ("cpufreq: cppc: Update MIN_PERF/MAX_PERF in target callbacks")
-> Reviewed-by: Sumit Gupta <sumitg@nvidia.com>
-> Signed-off-by: Christian Loehle <christian.loehle@arm.com>
-> ---
-> v2: Also added desired_perf check (Sumit)
-> 
->  drivers/acpi/cppc_acpi.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index 1d3a94100491..53d09ca98f06 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -1963,16 +1963,17 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
->  		cpc_desc->write_cmd_status = 0;
->  	}
->  
-> -	cpc_write(cpu, desired_reg, perf_ctrls->desired_perf);
-> +	if (CPC_SUPPORTED(desired_reg))
-> +		cpc_write(cpu, desired_reg, perf_ctrls->desired_perf);
->  
->  	/*
->  	 * Only write if min_perf and max_perf not zero. Some drivers pass zero
->  	 * value to min and max perf, but they don't mean to set the zero value,
->  	 * they just don't want to write to those registers.
->  	 */
-> -	if (perf_ctrls->min_perf)
-> +	if (perf_ctrls->min_perf && CPC_SUPPORTED(min_perf_reg))
->  		cpc_write(cpu, min_perf_reg, perf_ctrls->min_perf);
-> -	if (perf_ctrls->max_perf)
-> +	if (perf_ctrls->max_perf && CPC_SUPPORTED(max_perf_reg))
->  		cpc_write(cpu, max_perf_reg, perf_ctrls->max_perf);
->  
->  	if (CPC_IN_PCC(desired_reg) || CPC_IN_PCC(min_perf_reg) || CPC_IN_PCC(max_perf_reg))
 
-LGTM.
+--x1jyvfTe3pCirNzp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Reviewed-by: Lifeng Zheng <zhenglifeng1@huawei.com>
+On Fri, Jul 17, 2026 at 03:25:02PM +0200, Marco Giunta wrote:
+> Several Lenovo Legion laptops (Pro 7i 16IAX10H, Y9000P IAX10,
+> Pro 7 16AFR10H, R9000P ADR10) use AWINIC AW88399 smart amplifiers
+> to drive their bass woofers, connected via I2C as side codecs
+> to a Realtek ALC287 HDA codec.
 
-Apologize for replying to v1 before seeing v2.
+The following changes since commit 1590cf0329716306e948a8fc29f1d3ee87d3989f:
 
+  Linux 7.2-rc4 (2026-07-19 13:54:41 -0700)
+
+are available in the Git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git tags/asoc-aw88339-lib
+
+for you to fetch changes up to 15c9fdb3c39d5073463ffa746cc64ad9682c875f:
+
+  ASoC: aw88399: add channel setter for HDA side codec (2026-07-21 19:16:08 +0100)
+
+----------------------------------------------------------------
+ASoC: Add AW88399 HDA side codec driver for Lenovo Legion
+
+In order to support AW88399 HDA side codec used on the Lenovo Legion we
+need updates to it's ASoC driver.
+
+----------------------------------------------------------------
+Marco Giunta (5):
+      ASoC: aw88399: extract shared device library
+      ASoC: aw88399: derive channel from I2C address on ACPI systems
+      ASoC: aw88399: add per-instance BSTS status bypass flag
+      ASoC: aw88399: add firmware reload flag for resume
+      ASoC: aw88399: add channel setter for HDA side codec
+
+ include/sound/aw88399.h        |  621 ++++++++++++++++++
+ sound/soc/codecs/Kconfig       |    5 +
+ sound/soc/codecs/Makefile      |    2 +
+ sound/soc/codecs/aw88399-lib.c | 1411 ++++++++++++++++++++++++++++++++++++++++
+ sound/soc/codecs/aw88399.c     | 1349 --------------------------------------
+ sound/soc/codecs/aw88399.h     |  582 +----------------
+ 6 files changed, 2041 insertions(+), 1929 deletions(-)
+ create mode 100644 include/sound/aw88399.h
+ create mode 100644 sound/soc/codecs/aw88399-lib.c
+
+--x1jyvfTe3pCirNzp
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmpnR5EACgkQJNaLcl1U
+h9Ar7Qf+LUkk62xnAHzaptw3xw7XmAUbLO8oS2y7X0x0FvaJRClXV9LTTtn8/CQN
+rmpFg1/wT/SVdLFRa7NC+FRawZN3KDyi/goNOD7wMHuVOYBffDeROyySaBf8+94R
+MhNRPiOEcUO1XwqqaPbLowRLOD5V6PRIG2Vp3G3FFBruXsINubWLbfwHFvfs2j+Z
+Wgi6yIK+xsFkIl3Bxd4ES8xOEsV4nXx+R4sXxRvQVYZlYq6ZAOZqtQSDsIL2WjRP
+cVpns8taVeEz7aMJxhlc2ZemAERTyszYq/aVvEWEMaj8V+HLk7/zaZLClvMwGzw8
+uAoh84AKzuTGPYGC1FLz6RUNt0zL2w==
+=zE12
+-----END PGP SIGNATURE-----
+
+--x1jyvfTe3pCirNzp--
