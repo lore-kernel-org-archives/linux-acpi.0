@@ -1,87 +1,123 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2FBD400966
-	for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 13:05:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9DC6340EB82;
+	Mon, 27 Jul 2026 13:15:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785157536; cv=none; b=QB4d6g7xsS/nKchxbbYJXWtqzwL2XVGCuBpNmQYiRd5S/zP+HZ2KXn99lyvp0UanFQtUd8JP1cmaopONJlXef5MzTi/p/h/OSLT5AJzqWtk9/vWa4aoHn13aQkqAl4bIx0wfDhOS0LCgyMOpQjcRCeiPuW+IUaEgkZo9UXmXDcs=
+	t=1785158122; cv=none; b=f2g8MDxqa7uigvOjSkG3Mr0fqy1G4i4WfJ+L+jhMdzNE/tO31WPr1BOGYALru9OdkTIjz5uv0nzDRYzXE+CqWOLqZ+ueY3SkOr6yoN945LzSQS9m0bD3TVOov/ZJec7AoKC3tBrUKIdSbRcbdeYbbfONFkByeijEcSJCeV2S+GA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785157536; c=relaxed/simple;
-	bh=F1IxYhAPqVZmHS6mi7kAQp4Eo0e2Ol8GgBG3I3PWaU4=;
-	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=u5HsnfStC8h0S9ZRzAw2W66ShzTfSc6iSTDNLJJ2Gp5vDx3NZpFMV//0go0Exb1xYwj3EovH++3uC44vMG5QFTLth3/zWmBAOkX/9s2QPO5SxEK37xoscF1WnkqRN99g4u+qeRemqgP3vKVxsvjYKJMqoKtVGWZhrTpKlfiZBn4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aiauvbQK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785158122; c=relaxed/simple;
+	bh=rJWbiUDF0aztC9MsTrWCyMFzdxKTMeetPyv9Jiug1vE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Se6gWmp2yM1ATQl4IfCljDHOHXVD8exfjyCsKvFQA6X2kY1VwYV2qJ35lIANkPGxSLpJ1nyq1S/ZSzhTUe69dDjlH2toSa7rr2r3OWWudF8vJB5QdhOpGsZs5f1FFgOZ+JSipfXPCL7lzVoaZs9RCI5kV9wGQaAonRAgQBPIjC8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=sNJCLHZl; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aiauvbQK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86D961F00A3D
-	for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 13:05:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785157535;
-	bh=F1IxYhAPqVZmHS6mi7kAQp4Eo0e2Ol8GgBG3I3PWaU4=;
-	h=From:In-Reply-To:References:Date:Subject:To:Cc;
-	b=aiauvbQKCvcPkjSvA8l/Lii4R+v5S6ayvl8BWwzTyZcR3M28z3DS7RXONG6taCvi9
-	 ERO28RLBqBJATKWslAwmuJtdA6iALqszUpe0BXEPkUfqvq/O1Jw4Sq5mlzvsKETHCt
-	 f2Rp/oK7ON8h8ryagc0c7V+CmN0IxMKV9aTzVtWHfegLqeGHGCEnmvZjlE1uJEIlfb
-	 RonbDVjmUyOxn2ZmnuBh8OVN3NAZLZCXYkGReG5l+t6KFRSmQtquorXTPDKQ71mtoi
-	 ILkxAh3B9M3gJMNa8w7Ka96nDnwfb9x5jnBykV9b2VpC+1S47iy2u3+9n9hbLAdDKP
-	 /tzXPZ21Jn9tQ==
-Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5aeb2bc82ccso2608994e87.2
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 06:05:35 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+Rpw2SfNO8rLO4s89hCIY++a2A77tMeijlwav7u/xBZJdjqy6u+Htlh3nc/rBNGynPR8A6pJmn+55Uas@vger.kernel.org
-X-Gm-Message-State: AOJu0YwsW24wi3LCeMZ4Lti+2zV2P7HbHG0OoWSMi6SYy6WXZI21sdES
-	s2gNXksi4auZwuKlESntINkMvzOhpoNnLgYG1hS0kaKJfCSnsz7SXGBpmWrUoaQEozRlSl2s6Fv
-	HQSm1M4RPAZYxPwHJMhwQicL0rZte5IuIXp0od2WaDg==
-X-Received: by 2002:a05:6512:1113:b0:5ae:b998:9134 with SMTP id
- 2adb3069b0e04-5b2c1af51b2mr1357313e87.1.1785157534083; Mon, 27 Jul 2026
- 06:05:34 -0700 (PDT)
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Mon, 27 Jul 2026 06:05:32 -0700
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Mon, 27 Jul 2026 06:05:32 -0700
-From: Bartosz Golaszewski <brgl@kernel.org>
-In-Reply-To: <20260726101739.33170-13-farbere@amazon.com>
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="sNJCLHZl"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id AD7E8143D;
+	Mon, 27 Jul 2026 06:15:15 -0700 (PDT)
+Received: from [192.168.0.248] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 7A1083F66F;
+	Mon, 27 Jul 2026 06:15:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1785158119; bh=rJWbiUDF0aztC9MsTrWCyMFzdxKTMeetPyv9Jiug1vE=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=sNJCLHZl3ezzii8fE0VbcnIc3jKhAEHaCReMaVpdIO8HWwFU2T2bytKObfYZV+K4A
+	 wK6tnmdpIcgrmDYSRfEY7hNK8A8QvRVhmeO7MXlY6lhZDHKX6Msnwp9or3WFDwNTyq
+	 aP1KqOd95oYPUAUfEnij5FStgfOVYVMCF/vO4UjA=
+Message-ID: <c8f62b1d-4ab5-4d85-ae15-b5fc9ec2e3bc@arm.com>
+Date: Mon, 27 Jul 2026 14:15:12 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260726101739.33170-1-farbere@amazon.com> <20260726101739.33170-13-farbere@amazon.com>
-Date: Mon, 27 Jul 2026 06:05:32 -0700
-X-Gmail-Original-Message-ID: <CAMRc=Md4FHz3KhFAFBVCJb1+rYA8S506WPrEKs=X2ng6+byPuA@mail.gmail.com>
-X-Gm-Features: AUfX_mwa8bywtWm7t0TzzfpEly7iY_KFJAx4fJGIW8nzUJC_flDbreg42-ul5w0
-Message-ID: <CAMRc=Md4FHz3KhFAFBVCJb1+rYA8S506WPrEKs=X2ng6+byPuA@mail.gmail.com>
-Subject: Re: [PATCH v4 12/13] gpio: gpiolib-kunit: use devm_blocking_notifier_chain_register()
-To: Eliav Farber <farbere@amazon.com>
-Cc: rafael@kernel.org, tony.luck@intel.com, bp@alien8.de, guohanjun@huawei.com, 
-	mchehab@kernel.org, xueshuai@linux.alibaba.com, lenb@kernel.org, 
-	laurent.pinchart@ideasonboard.com, linusw@kernel.org, brgl@kernel.org, 
-	orsonzhai@gmail.com, baolin.wang@linux.alibaba.com, zhang.lyra@gmail.com, 
-	jic23@kernel.org, dlechner@baylibre.com, nuno.sa@analog.com, andy@kernel.org, 
-	dmitry.torokhov@gmail.com, hansg@kernel.org, ilpo.jarvinen@linux.intel.com, 
-	W_Armin@gmx.de, ukleinek@kernel.org, fabio.m.de.francesco@linux.intel.com, 
-	kaihengf@nvidia.com, ankita@nvidia.com, leitao@debian.org, pedro.pbg@usp.br, 
-	paulmck@kernel.org, frederic@kernel.org, kees@kernel.org, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-gpio@vger.kernel.org, linux-pwm@vger.kernel.org, 
-	linux-iio@vger.kernel.org, linux-input@vger.kernel.org, 
-	platform-driver-x86@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 3/4] cpufreq: CPPC: Preserve OSPM-set registers across
+ hotplug and unload
+To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
+ viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
+ zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, lenb@kernel.org,
+ saket.dumbre@intel.co, ray.huang@amd.com, mario.limonciello@amd.com,
+ perry.yuan@amd.com, kprateek.nayak@amd.com, linux-kernel@vger.kernel.org,
+ linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
+ acpica-devel@lists.linux.dev, linux-tegra@vger.kernel.org
+Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
+ ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
+References: <20260724215937.3368276-1-sumitg@nvidia.com>
+ <20260724215937.3368276-4-sumitg@nvidia.com>
+Content-Language: en-US
+From: Christian Loehle <christian.loehle@arm.com>
+In-Reply-To: <20260724215937.3368276-4-sumitg@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Sun, 26 Jul 2026 12:17:38 +0200, Eliav Farber <farbere@amazon.com> said:
-> Replace the blocking_notifier_chain_register() +
-> devm_add_action_or_reset() pattern with a single call to
-> devm_blocking_notifier_chain_register(), removing the
-> gpio_unbind_unregister_notifier() callback.
->
-> Signed-off-by: Eliav Farber <farbere@amazon.com>
+On 7/24/26 22:59, Sumit Gupta wrote:
+> Values written to OSPM-set CPPC registers (via sysfs or the autonomous
+> boot parameter) can be lost in two ways:
+> 
+>   - Across CPU hotplug: the platform may reset a CPU's registers while it
+>     is offline.
+>   - On driver unload: the value the driver wrote is left in the register
+>     instead of returning to its pre-driver state.
+> 
+> Add a small table-driven mechanism that handles both:
+> 
+>   - On init(), capture each register's firmware value before the
+>     driver programs anything.
+>   - On offline(), read back each register's current value (whatever was
+>     last set via sysfs or the boot parameter) so it can be reapplied, then
+>     restore the firmware value.
+>   - On online(), reapply the value captured at offline() after the
+>     performance request is re-established.
+> 
+> Keep Autonomous Selection (auto_sel) last in the table so that, on
+> online(), its saved value is reapplied after the other registers that
+> shape its behaviour.
+> 
+> Cover the Autonomous Selection (auto_sel), Energy Performance Preference
+> (EPP) and Autonomous Activity Window (auto_act_window) registers.
+> 
+> Suggested-by: Pierre Gondois <pierre.gondois@arm.com>
+> Link: https://lore.kernel.org/all/86780f97-29ee-4a72-b311-38c89434b707@arm.com/
+> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
 > ---
+>  drivers/cpufreq/cppc_cpufreq.c | 157 +++++++++++++++++++++++++++++++++
+>  1 file changed, 157 insertions(+)
+> 
+> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+> index 34cdba00e61a..8a13ec49eb9d 100644
+> --- a/drivers/cpufreq/cppc_cpufreq.c
+> +++ b/drivers/cpufreq/cppc_cpufreq.c
+> @@ -28,6 +28,150 @@
+>  
+>  static struct cpufreq_driver cppc_cpufreq_driver;
+>  
+> +/*
+> + * OSPM-set CPPC registers tracked for save/restore. A value set via sysfs or
+> + * the autonomous boot parameter is reapplied from online() across CPU
+> + * hotplug, and the firmware value is restored from offline().
+> + *
+> + * Autonomous Selection (auto_sel) is kept last so its saved value is
+> + * reapplied after the other registers that shape its behaviour.
 
-Assuming I'll get an immutable branch OR it doesn't conflict too much:
+While that would make sense, unfortunately:
+"8.4.6.1.6 Autonomous Activity Window Register
+Writes to this register only have meaning when Autonomous Selection is enabled."
+I think restoring an inappropriate EPP/AUTO_ACT_WINDOW temporarily is okay though.
+AFAICS it has to be:
+1. enable CPPC
+2. restore a valid DESIRED/MIN/MAX
+3. restore AUTO_SEL_ENABLE
+4. if autonomous mode is enabled, restore EPP and AUTO_ACT_WINDOW
 
-Acked-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-
-Otherwise, this should wait until the next cycle if possible.
-
-Bart
+> + */
+> +enum cppc_saved_reg_id {
+> +	CPPC_SAVED_EPP,
+> +	CPPC_SAVED_AUTO_ACT_WINDOW,
+> +	CPPC_SAVED_AUTO_SEL,
+> +	CPPC_NR_SAVED_REGS,
+> +};
+> [snip]
