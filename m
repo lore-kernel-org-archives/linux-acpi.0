@@ -1,75 +1,106 @@
-Received: from out30-99.freemail.mail.aliyun.com (out30-99.freemail.mail.aliyun.com [115.124.30.99])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F375635AC16;
-	Mon, 27 Jul 2026 03:13:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.99
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C7AD3DEFFE
+	for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 07:47:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785121991; cv=none; b=lD91lxVaZYXoITJHICU+QFM0KlEvsn87G3SaDrem4bG3fTNC7bmoGnxa8SrGxjHJjVQZz6CbY03R0l75Rz2TpMvYX7JBk5+wYW+ho73MVta2COzOowKMZGuNicxz4ZZq4+9T/7c9kJ1oM1pa6spPcWplZt95xDS0O51bKsxJrPg=
+	t=1785138467; cv=none; b=EK305Gs9Ik8oah0cxO5CzY7gfReGU0uEr3vWRA3Ck5V+ahFcl9cNiFUN2ImuNQoleGrGiCIsJYuVis9+N1d3/3MXpb7oHEQv8NVooALGF1Wnp/SPxOpNR50Gpwq7nYxP7AZ5Tmt80Lqvn0IaNb64ccWWFKI+szQN1TOQ9APz8dk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785121991; c=relaxed/simple;
-	bh=0ckSlAeWZGH5WlXALnVcyoq46mz5u82EFT2kJklHZU8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=FsEysWAWOzsFjkRRxHygTy+T7DjJLCj41K+naLaHiLkQcq7qvQ519GMXOM4w1/QPvplFMGh90r+B3Vhi6vOYSgNSqb/YEebhu5YoP4Eqsp/iTNRLZZRw33I8Xdq0htuztThpvA5ob5MKr/LhcWZGo8Sz+7OHcWPdA6EbmULM8UQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=C/x8z990; arc=none smtp.client-ip=115.124.30.99
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1785138467; c=relaxed/simple;
+	bh=JvxUq/iYUDkBFhAJpNpfuCTuKCodr+3K1ReumsuOTW0=;
+	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=kwbkoJr1O7PXKMbZ+K6d63CJp/DzW9OAbMM8GO6x8oEcTeeEAIjnAir4hFOfZ9+22e0v9YFrJEt81n8mnTx4Ak/qpsmRL9VKJ4MIf9pi6eHZdmpIxeMfaWpv6dMYZUoUk+2rTxdlWKzZSJTpLsP0NzyIB3fwyHSLu+prMTC7fiI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Us/mk17p; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="C/x8z990"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1785121982; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
-	bh=7cx4tkFQnMb16XGT7+w04RZ9UaK35xZo714kCs7v9gs=;
-	b=C/x8z990MuNlFZHqz9VsYV1dcwr2dQYTn0xwPYRzPJtpF0/e2a5IhfcH13lgOvy9z/XReZdQFazViifq3/Z8coC8wwgQy+zepWHOztpUBv+mlh7exhDDwNZF9pVXlfMFU5qZt3atPGRN5Edqh+LJLxLIKO1iK8A1OkUoHEoaU0U=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R121e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045133197;MF=baolin.wang@linux.alibaba.com;NM=1;PH=DS;RN=38;SR=0;TI=SMTPD_---0X7ojItC_1785121978;
-Received: from 30.74.144.127(mailfrom:baolin.wang@linux.alibaba.com fp:SMTPD_---0X7ojItC_1785121978 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Mon, 27 Jul 2026 11:13:00 +0800
-Message-ID: <db3ecd09-fc0c-4bb5-a2da-422c36a2feb4@linux.alibaba.com>
-Date: Mon, 27 Jul 2026 11:12:58 +0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Us/mk17p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FBF11F00A3E
+	for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 07:47:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785138466;
+	bh=LMdxTbEBC7qZA8RQ+1HVgfF515tY7oL1xF/DhlIoUos=;
+	h=From:In-Reply-To:References:Date:Subject:To:Cc;
+	b=Us/mk17pVkhDMx0imCnsR1/FdtpGBdBr5EmUo+4q/epDMSC7W/btrpK9pjt8V9aST
+	 p7WukUWMZvs0i3uErF8fp85fRYDt+Bw2RTch+g50/U3EvoFsGLFQa+ngHhBauHZDnM
+	 9hXmKph8cFZcqF14pCY8lqoaXj5XFOBkh0J1aD+PVOx2SpwM/OYtWvSLcgVtiX2byY
+	 HUvqZcg0cBbNBuNRdd85ez67E+mDKUuzzlIltzw2zHw4h2ElwVLxO0wGdc4sLcjdef
+	 yWexROKJuXWE74MNxbukUV9VLryzaYWhpjxs8lqMKAoKcFb+355pbUrfBAjFJJJURs
+	 OP2OSaucWDKEg==
+Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5b0231a3e86so2141751e87.0
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 00:47:46 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RrW2xIeoQPn26X2CGNxvHF3Tho8JYE1TTtjSyphM+7QTXVPAfJrmQK7bcPCOHBFV94eIZ7UlKicmwyw@vger.kernel.org
+X-Gm-Message-State: AOJu0YzhZJpewia7NOUiVmVuWJ61aHNuuveb1p5AMGnGq1g7KSCMdZ8p
+	7mJ3OcNTh/T/ruX5PtS00kfneD8bZ3zCrYn5rY8nqfeNq9nl7sVqTE2j/8B4IGpQwu3ra/S9/GQ
+	8IxdUBpbaQZlOCYqYwGk0/V152F3lIFRMuD/a558wVA==
+X-Received: by 2002:a05:6512:1191:b0:5b2:8a6a:1dca with SMTP id
+ 2adb3069b0e04-5b2c1b297b1mr1336942e87.36.1785138464623; Mon, 27 Jul 2026
+ 00:47:44 -0700 (PDT)
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Mon, 27 Jul 2026 00:47:42 -0700
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Mon, 27 Jul 2026 00:47:42 -0700
+From: Bartosz Golaszewski <brgl@kernel.org>
+In-Reply-To: <20260726141029.GAamYVVeVnJfH5ebH5@fat_crate.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 11/13] gpio: eic-sprd: use
- devm_atomic_notifier_chain_register()
-To: Eliav Farber <farbere@amazon.com>, rafael@kernel.org,
- tony.luck@intel.com, bp@alien8.de, guohanjun@huawei.com, mchehab@kernel.org,
- xueshuai@linux.alibaba.com, lenb@kernel.org,
- laurent.pinchart@ideasonboard.com, linusw@kernel.org, brgl@kernel.org,
- orsonzhai@gmail.com, zhang.lyra@gmail.com, jic23@kernel.org,
- dlechner@baylibre.com, nuno.sa@analog.com, andy@kernel.org,
- dmitry.torokhov@gmail.com, hansg@kernel.org, ilpo.jarvinen@linux.intel.com,
- W_Armin@gmx.de, ukleinek@kernel.org, fabio.m.de.francesco@linux.intel.com,
- kaihengf@nvidia.com, ankita@nvidia.com, leitao@debian.org, pedro.pbg@usp.br,
- paulmck@kernel.org, frederic@kernel.org, kees@kernel.org,
- linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-gpio@vger.kernel.org, linux-pwm@vger.kernel.org,
- linux-iio@vger.kernel.org, linux-input@vger.kernel.org,
- platform-driver-x86@vger.kernel.org
-Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-References: <20260726101739.33170-1-farbere@amazon.com>
- <20260726101739.33170-12-farbere@amazon.com>
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-In-Reply-To: <20260726101739.33170-12-farbere@amazon.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20260726101739.33170-1-farbere@amazon.com> <20260726141029.GAamYVVeVnJfH5ebH5@fat_crate.local>
+Date: Mon, 27 Jul 2026 00:47:42 -0700
+X-Gmail-Original-Message-ID: <CAMRc=McOT6m1CsmheePCxpZnB+GJmrqYa+D77Dz76Ovy0FPadg@mail.gmail.com>
+X-Gm-Features: AUfX_mwvXfjV5Db7FPNy2PNZM2AvQmMoXAOyTg5q8xJTdsDrQvC7kqKotPet8MQ
+Message-ID: <CAMRc=McOT6m1CsmheePCxpZnB+GJmrqYa+D77Dz76Ovy0FPadg@mail.gmail.com>
+Subject: Re: [PATCH v4 00/13] notifier: add device-managed registration APIs
+ and convert drivers
+To: Borislav Petkov <bp@alien8.de>
+Cc: rafael@kernel.org, tony.luck@intel.com, guohanjun@huawei.com, 
+	mchehab@kernel.org, xueshuai@linux.alibaba.com, lenb@kernel.org, 
+	laurent.pinchart@ideasonboard.com, linusw@kernel.org, brgl@kernel.org, 
+	orsonzhai@gmail.com, baolin.wang@linux.alibaba.com, zhang.lyra@gmail.com, 
+	jic23@kernel.org, dlechner@baylibre.com, nuno.sa@analog.com, andy@kernel.org, 
+	dmitry.torokhov@gmail.com, hansg@kernel.org, ilpo.jarvinen@linux.intel.com, 
+	W_Armin@gmx.de, ukleinek@kernel.org, fabio.m.de.francesco@linux.intel.com, 
+	kaihengf@nvidia.com, ankita@nvidia.com, leitao@debian.org, pedro.pbg@usp.br, 
+	paulmck@kernel.org, frederic@kernel.org, kees@kernel.org, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-gpio@vger.kernel.org, linux-pwm@vger.kernel.org, 
+	linux-iio@vger.kernel.org, linux-input@vger.kernel.org, 
+	platform-driver-x86@vger.kernel.org, Eliav Farber <farbere@amazon.com>
+Content-Type: text/plain; charset="UTF-8"
 
+On Sun, 26 Jul 2026 16:10:29 +0200, Borislav Petkov <bp@alien8.de> said:
+> On Sun, Jul 26, 2026 at 10:17:26AM +0000, Eliav Farber wrote:
+>> Many drivers repeat the same boilerplate when registering notifiers with
+>> device lifetime:
+>
+> From: Documentation/process/submitting-patches.rst
+>
+> Don't get discouraged - or impatient
+> ------------------------------------
+>
+> After you have submitted your change, be patient and wait.  Reviewers are
+> busy people and may not get to your patch right away.
+>
+> Once upon a time, patches used to disappear into the void without comment,
+> but the development process works more smoothly than that now.  You should
+> receive comments within a week or so; if that does not happen, make sure
+> that you have sent your patches to the right place.  Wait for a minimum of
+> 						     ^^^^^^^^^^^^^^^^^^^^^
+> one week before resubmitting or pinging reviewers - possibly longer during
+> ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> busy times like merge windows.
+>
+> --
+> Regards/Gruss,
+>     Boris.
+>
+> https://people.kernel.org/tglx/notes-about-netiquette
+>
 
+If the above snippet is not clear enough: *do not send three different versions
+of a series on a Sunday*.
 
-On 7/26/26 6:17 PM, Eliav Farber wrote:
-> Replace the atomic_notifier_chain_register() +
-> devm_add_action_or_reset() pattern with a single call to
-> devm_atomic_notifier_chain_register(), removing the
-> sprd_eic_unregister_notifier() callback.
-> 
-> Signed-off-by: Eliav Farber <farbere@amazon.com>
-> Acked-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-> ---
-
-LGTM.
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-
+Thanks,
+Bartosz
