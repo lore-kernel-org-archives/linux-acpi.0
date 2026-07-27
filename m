@@ -1,133 +1,167 @@
-Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3D7240B0ED
-	for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 12:11:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B286F37FF7F
+	for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 12:15:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785154274; cv=none; b=pz5HSiTWAhSHfmOqA+B2hoBhRf935e57ndFL8KmZdwUPv9Reks7+8sv4RLMPL+P2XO18w7WtgTcboAm2JyZ9rfgoHCcIBK0NiNzhF41lEhqhbxRMKfGmr+8WbjvvYu7Q0eADzVmQn/DYzAQr8Rkd+aS4I8qTGNsYQ52e8uUs2dE=
+	t=1785154539; cv=none; b=Gfwh+WXyLuXL3ZlCvvf5Y+RYYHvFX7UARMWhsHLbpJWkhUbbwpS1kekBLMMcHy79FrPACx36iCMXYPaihINtfyWQ+nJgVgkHOrcNY+jWQIz/y1cPXk8fhQCjzDdvj0jL0DTHzHRIQvBPgqiSYrN7YbHofhyCYiv8TJ/7O/du+/g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785154274; c=relaxed/simple;
-	bh=e3kFwrE54qrR7j9hf08X7x7yaGkc04oEEErLkv2k6T8=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=VFqF96mN+tGQaBMFq1XjrzlLoVCUrtdbs0ELHuNF6w0r5fJ3ptvejbS7htFnxtyj7OqKL6OE0v7TcDkaDlgl6yynnhdTNn2rhSw78DVdwY++h3GYwiYTghZZMTB2K7h2Je7wOARGA2IhPoZMcwe5vU2Z65SpA6lFp7grg4WuE0c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=thegoodpenguin.co.uk; spf=pass smtp.mailfrom=thegoodpenguin.co.uk; dkim=pass (2048-bit key) header.d=thegoodpenguin-co-uk.20251104.gappssmtp.com header.i=@thegoodpenguin-co-uk.20251104.gappssmtp.com header.b=NRwo8yqz; arc=none smtp.client-ip=209.85.128.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=thegoodpenguin.co.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=thegoodpenguin.co.uk
+	s=arc-20240116; t=1785154539; c=relaxed/simple;
+	bh=Bty6MctYT120Ze3HON+htllG50ccpvJj+ZxHK02dZ3E=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=oQv7K8QM5gC72b+WfhrDEKE177Mch2SCxK0IMmQX0IJ93wGb9C59yP14niQLBkw48GoWVQYrCxdiE0wF+VO7oxuoStr9+WHERhzPHxHlYHojcP/HMyPUxdNRANU2YQRUCNyB3/Tixq2Ewv3CR959gIHqe2SquWj4MUsRXSIm9v0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OWNby+HG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=thegoodpenguin-co-uk.20251104.gappssmtp.com header.i=@thegoodpenguin-co-uk.20251104.gappssmtp.com header.b="NRwo8yqz"
-Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-493f6de72faso22580955e9.0
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 05:11:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=thegoodpenguin-co-uk.20251104.gappssmtp.com; s=20251104; t=1785154270; x=1785759070; darn=vger.kernel.org;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=OYfNO8HaF8EPi01gt07T8qMMcubFMIJKbbLH4YUzSjU=;
-        b=NRwo8yqzNQuu5kW4UhsvJ5FPerztukUJxRy6xG43Fog4unve2p7NDncCHc4PJ+Nwnb
-         XN1DmIP70uCTanpVw45qOOctDV5caEgEdRdOYK6PtZ2UzGklNRXBQ+Tw79qIwORh7SNV
-         smr0NhGDHyYR0xUG21as6cB/KYvKUZVnzmSdf6ELWZQxgSKUnjDMj4xc9F6ibyhTzCfh
-         bfp4DY3h6w9NnVc+iWQj+zLK4OVZINDcGnNYGebtwUeAqPEGprLyUukXPORMdyBRBKOB
-         8X+z5ko6cOGKsiIS51T6WUCm9o+IQL41DeWlI16zDSyZeAAExYLeoRftv+qsf8F2Ua16
-         1s3A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785154270; x=1785759070;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=OYfNO8HaF8EPi01gt07T8qMMcubFMIJKbbLH4YUzSjU=;
-        b=hnHbdJUq17s6UOmCAr35cHrrWKqxbcqj6op81xX7cJC0308ovSM2PBiUxHKn7Ssxmk
-         QjuTapkx6GLpsRiPwwOPggIgP1WFn4+5/gFycLVogYHxWYBvzEqlUQ1YNvg7uNFlnh9s
-         ugEepfnBVf7aOr7nhvwtVv2my4NqHYT8hIOywYUsxRRp1pLt7uOSPSPYy3AeVF/2CrbF
-         eOSKQimWXKlNi5qqHbcNVe0GqXwiI4pd+bjkteW/W9yXvb9SzLSXviBrbQzFYHLgrw8F
-         CeXixozhyJcEp2FBsJd9M5ABMCTwKFFgpVAkxfvAclP1jGG6SBc5hVDotoDKFFmCAkBn
-         iFkg==
-X-Gm-Message-State: AOJu0YwqpFfDZxTau2nyOu/N9iMhUgjYru1Yu5oyEJbnU8QvePGs6g7u
-	dY2hY0MwrLT4Plj4wAV0G8H46cJLZ3G8YcUI2691bQ8mHiFQ4IkbQpI5rQTHF3aCXOU=
-X-Gm-Gg: AR+sD10xIVs82yj1elq0yy6w3EHzCZU1tUWad43LwTy8rcj5ty5tKMxV7VBpXSiHsHC
-	cO1BYmc5ZkslhpEeGSr+ky8IRCFlyNOvvmOKgysVQaqBKnMwm+FXe5ASQl/8xaXrmz02RLjgJpn
-	xnpzjnLTiXttOHAJZjd0pHQK9l+AQeh7sap+v3YhgQdXmCdzSUGQpkC2g3D3y95dVgdtMVXOr8n
-	Bmt4ALE8R4tjLTLeCtsFDsFHMi0kIIsA076vPOpNat6tRDlMwK0BShraRE6NNk0V8pWKREQkA14
-	RX0x9dOK42oUyfEu0ZNlJyVaKu9wxRJnsd24hH/mbqaraWIeirrpl3+BWrvyCCS5jP3Hmz8ezqa
-	0APy9WzOKg9vjQE6TLJoWDbv8uIMzPnndKfQWuEaYbM9fOfu8phdhfpmRmvTsAFzXyN09swCpMR
-	FbEOHD0LPC3ilkYD6wC4q0lPospAKvBQ==
-X-Received: by 2002:a05:600c:4444:b0:495:6b4c:fccc with SMTP id 5b1f17b1804b1-496b5c7182amr98814975e9.10.1785154269911;
-        Mon, 27 Jul 2026 05:11:09 -0700 (PDT)
-Received: from [10.42.0.1] ([2a00:23c7:1d1a:9c01:7aab:bc55:e039:4aac])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-496b4f302f8sm211778055e9.12.2026.07.27.05.11.07
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 27 Jul 2026 05:11:09 -0700 (PDT)
-From: "Pawel Zalewski (The Capable Hub)" <pzalewski@thegoodpenguin.co.uk>
-Date: Mon, 27 Jul 2026 13:10:47 +0100
-Subject: [PATCH 9/9] ACPI: use a named initializer for acpi_device_id::id
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OWNby+HG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34A961F01558
+	for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 12:15:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785154520;
+	bh=Zg3XpQecv0mXXRMsDgxjkw4kFjHnoHcsHChO/11NzsA=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=OWNby+HGAepxfSKuvxBG+TQEypvr39SSAUxEEu2K9UoUkXYZVRipxktclrFqgDuDp
+	 /cwncd5mau4QL/VEKj5R0c1tqZoN0Ly2Aw2PkpNnWnfQDorOcgYi1SW0CB7fsKaCn/
+	 OV/xjYY8x7KM1nmeFChGO6NBUDi92HS59SxLzHJ1OGtYtH+3NYFpqttkpO+xKjIxd2
+	 vdtBHdSJw921f1kqEzyfWzxXEW3EZXJNqna7/k7yHPi79JocorcYqah/9AoLO765D2
+	 /uiCVl3l1DDCumqddowDWlllssex/5BsGmMKNRA5xFmjnHLeH8HzWg9QE1LCWQ6Km0
+	 jRyrxaI3iB9Yg==
+Received: by mail-lj1-f177.google.com with SMTP id 38308e7fff4ca-39db07589caso22458181fa.2
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Jul 2026 05:15:20 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RqMvr+AVbiTXFBVx4fpNLlv5FrMwNCdK8o9mx/Akjt6dXHH0c6qbvAkaw4m1/l5U8YcZASaMT0AOIsC@vger.kernel.org
+X-Gm-Message-State: AOJu0YzVKKWDl/2NvQXL/8uESTLRcpVCYIjE54M0VpEFHb9pYi1lZbOC
+	Ba5iVdxswlxMsWSd80deN+g0ohpqdChZSTS6YOqk2dzKjIc9ybXPVrPYPifGuAq7jNqV9aH9EXR
+	TaSSH4fE84NMsmF5FpBfktnKAFUfOyP4=
+X-Received: by 2002:a05:651c:1504:b0:39e:b3b2:e95f with SMTP id
+ 38308e7fff4ca-39f2879f23dmr13514141fa.18.1785154518609; Mon, 27 Jul 2026
+ 05:15:18 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260727-acpi-refactor-v1-9-ff900aa326ee@thegoodpenguin.co.uk>
 References: <20260727-acpi-refactor-v1-0-ff900aa326ee@thegoodpenguin.co.uk>
 In-Reply-To: <20260727-acpi-refactor-v1-0-ff900aa326ee@thegoodpenguin.co.uk>
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
- Bjorn Helgaas <bhelgaas@google.com>, Zhang Rui <rui.zhang@intel.com>, 
- Kai-Heng Feng <kaihengf@nvidia.com>, Tony Luck <tony.luck@intel.com>, 
- Borislav Petkov <bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>, 
- Mauro Carvalho Chehab <mchehab@kernel.org>, 
- Shuai Xue <xueshuai@linux.alibaba.com>, 
- Lorenzo Pieralisi <lpieralisi@kernel.org>, 
- Sudeep Holla <sudeep.holla@kernel.org>, 
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
- Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, 
- Dave Jiang <dave.jiang@intel.com>, 
- Alison Schofield <alison.schofield@intel.com>, 
- Ira Weiny <iweiny@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
- nvdimm@lists.linux.dev, 
- "Pawel Zalewski (The Capable Hub)" <pzalewski@thegoodpenguin.co.uk>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1785154252; l=858;
- i=pzalewski@thegoodpenguin.co.uk; s=20260430; h=from:subject:message-id;
- bh=e3kFwrE54qrR7j9hf08X7x7yaGkc04oEEErLkv2k6T8=;
- b=wsRNozjg+w8drnieAF7pPxdPTk2dePtttYSw8fmP3QMndGXJ0o823SOn3yUNPQaqnRoaKa8AK
- Jq83mLuCTQUCT2D3wimXdXs1iPMiRgklDO0pAf9DdxAeyLqrdnv2PyD
-X-Developer-Key: i=pzalewski@thegoodpenguin.co.uk; a=ed25519;
- pk=vHq4n9IonORH2GTzLv8r6CWAFHzgfBuNkQPXA8NSly0=
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Mon, 27 Jul 2026 14:15:00 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0iVareeeAj-hECFasHtVKvZfFZXb6vqTz_BGQQVzSDk7A@mail.gmail.com>
+X-Gm-Features: AUfX_mwnO5VxOfQHtV3WXK2XDax9MNHWMK_aInuBMDBRO8AF87-O7Mc0F0MkYFQ
+Message-ID: <CAJZ5v0iVareeeAj-hECFasHtVKvZfFZXb6vqTz_BGQQVzSDk7A@mail.gmail.com>
+Subject: Re: [PATCH 0/9] ACPI: use named initializers for acpi_device_id
+To: "Pawel Zalewski (The Capable Hub)" <pzalewski@thegoodpenguin.co.uk>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Bjorn Helgaas <bhelgaas@google.com>, Zhang Rui <rui.zhang@intel.com>, 
+	Kai-Heng Feng <kaihengf@nvidia.com>, Tony Luck <tony.luck@intel.com>, 
+	Borislav Petkov <bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>, 
+	Mauro Carvalho Chehab <mchehab@kernel.org>, Shuai Xue <xueshuai@linux.alibaba.com>, 
+	Lorenzo Pieralisi <lpieralisi@kernel.org>, Sudeep Holla <sudeep.holla@kernel.org>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
+	Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>, 
+	Ira Weiny <iweiny@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, nvdimm@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Use a named initializer for the acpi_device_id::id field for
-readability and drop setting the list terminator fields
-explicitly as well to be consistent with the rest of the kernel
-code.
+On Mon, Jul 27, 2026 at 2:10=E2=80=AFPM Pawel Zalewski (The Capable Hub)
+<pzalewski@thegoodpenguin.co.uk> wrote:
+>
+> This series is converting lists that contain the acpi_device_id
+> struct, which is defined in the include/linux/device-id/acpi.h
+> to makes use of named initializers (which they do not use currently).
+> This work is part of the on going effort in the kernel associated
+> with device-ids [1]
+>
+> The plan is to convert acpi_device_id::driver_data to have an anonymous
+> union, similarly to what was introduced for PCI and I2C device ID tables.
+> The goal is to increase type-safety (as most of the existing casts are go=
+ne),
+> to improve readability and to make use intent a bit more clear:
+>
+> ```
+> union {
+>         kernel_ulong_t driver_data;
+>         const void *driver_data_ptr;
+> }
+> ```
+>
+> But for that to work all lists containing the structs need to use named
+> initializers first. I already have patches that implement this and touchi=
+ng
+> a lot of kernel subsystmes that use the acpi_device_id struct and that li=
+st
+> keeps on growing. Therefore, I have decided to split the series per every
+> subsystem into:
+> - pre-clean-ups that convert the lists to use named initializers
+> - actual implementations that make some of the modules use the new driver=
+_data_ptr
+>
+> That way the task can be fragmented into manageable and independent
+> chunks of work and makes this effort easier to review.
+>
+> Tested builds on arm64 and x86-64 in Yocto on 7.2-rc5
+>
+> [1] https://lore.kernel.org/all/cover.1780048925.git.u.kleine-koenig@bayl=
+ibre.com/
+>
+> Signed-off-by: Pawel Zalewski (The Capable Hub) <pzalewski@thegoodpenguin=
+.co.uk>
+> ---
+> Pawel Zalewski (The Capable Hub) (9):
+>       ACPI: use a named initializer for acpi_device_id
+>       ACPI: drop unused assignment of acpi_device_id::driver_data
+>       ACPI: pci: drop unused assignment of acpi_device_id::driver_data
+>       ACPI: ghes-nvidia: use a named initializer for acpi_device_id::id
+>       ACPI: amba: drop unused assignment of acpi_device_id::driver_data
+>       ACPI: dptf: drop unused assignment of acpi_device_id::driver_data
+>       ACPI: nfit: core: drop unused assignment of acpi_device_id::driver_=
+data
+>       ACPI: x86: use a named initializer for acpi_device_id::id
+>       ACPI: use a named initializer for acpi_device_id::id
+>
+>  drivers/acpi/ac.c                 |   4 +-
+>  drivers/acpi/acpi_apd.c           |  42 ++--
+>  drivers/acpi/acpi_memhotplug.c    |   4 +-
+>  drivers/acpi/acpi_pad.c           |   4 +-
+>  drivers/acpi/acpi_platform.c      |  13 +-
+>  drivers/acpi/acpi_pnp.c           | 514 +++++++++++++++++++-------------=
+------
+>  drivers/acpi/acpi_processor.c     |   8 +-
+>  drivers/acpi/acpi_tad.c           |   4 +-
+>  drivers/acpi/acpi_video.c         |   2 +-
+>  drivers/acpi/apei/ghes-nvidia.c   |   2 +-
+>  drivers/acpi/arm64/amba.c         |   6 +-
+>  drivers/acpi/battery.c            |   8 +-
+>  drivers/acpi/button.c             |  12 +-
+>  drivers/acpi/container.c          |   8 +-
+>  drivers/acpi/dptf/dptf_pch_fivr.c |  14 +-
+>  drivers/acpi/dptf/dptf_power.c    |  38 +--
+>  drivers/acpi/ec.c                 |   6 +-
+>  drivers/acpi/evged.c              |   4 +-
+>  drivers/acpi/fan_core.c           |   2 +-
+>  drivers/acpi/hed.c                |   4 +-
+>  drivers/acpi/nfit/core.c          |   4 +-
+>  drivers/acpi/pci_link.c           |   4 +-
+>  drivers/acpi/pci_root.c           |   4 +-
+>  drivers/acpi/pfr_telemetry.c      |   4 +-
+>  drivers/acpi/pfr_update.c         |   4 +-
+>  drivers/acpi/processor_driver.c   |   6 +-
+>  drivers/acpi/sbs.c                |   4 +-
+>  drivers/acpi/sbshc.c              |   6 +-
+>  drivers/acpi/scan.c               |  46 ++--
+>  drivers/acpi/thermal.c            |   4 +-
+>  drivers/acpi/tiny-power-button.c  |   6 +-
+>  drivers/acpi/video_detect.c       |   4 +-
+>  drivers/acpi/x86/cmos_rtc.c       |   2 +-
+>  drivers/acpi/x86/lpss.c           |  54 ++--
+>  drivers/acpi/x86/s2idle.c         |  14 +-
+>  drivers/acpi/x86/utils.c          |  16 +-
+>  include/linux/acpi.h              |   8 +-
+>  37 files changed, 443 insertions(+), 446 deletions(-)
+> ---
 
-Signed-off-by: Pawel Zalewski (The Capable Hub) <pzalewski@thegoodpenguin.co.uk>
----
- include/linux/acpi.h | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+So we can talk about this after 7.3-rc1 is out.
 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 60ab50cb8930..b34b483d99f5 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -805,10 +805,10 @@ int acpi_mrrm_max_mem_region(void);
- #endif
- 
- #define ACPI_CMOS_RTC_IDS	\
--	{ "PNP0B00", },		\
--	{ "PNP0B01", },		\
--	{ "PNP0B02", },		\
--	{ "", }
-+	{ .id = "PNP0B00" },		\
-+	{ .id = "PNP0B01" },		\
-+	{ .id = "PNP0B02" },		\
-+	{ }
- 
- extern bool cmos_rtc_platform_device_present;
- 
-
--- 
-2.43.0
-
+Thanks!
