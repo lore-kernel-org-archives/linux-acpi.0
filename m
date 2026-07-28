@@ -1,94 +1,56 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 66D0E33F588;
-	Tue, 28 Jul 2026 16:05:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19CF333D503;
+	Tue, 28 Jul 2026 16:08:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785254752; cv=none; b=XeDpl3lH42NTLneULYANKw787hQMrGM0xbOIw48+1rwktyA0KGSS8fLL5iWKVGmFY9QwmqbBmNmpPIW/RScAEfukzb6VWa7OCsm5GlbECtQOsH8wH6/qION/zqXDLUFy7UFbRLrzT1JUmJr7dp/r5+grLR8VTAMk6aU3AFQznDo=
+	t=1785254936; cv=none; b=NvXHI+mvnxvFbMzk0LqPbILbKIGJoAJriT1m2maxPqQ6N//I3UUiO90pKGG+sog/dh10trpJ+dK/Mjt2WsLvaNKkbY34jEOYHwkBQz6r8DKrKgT6g1Dmd3i0qzK6ZrxbfduE1aIkAh1IvfxXVaR7Nq3imKoO85VtchRnmM+vUUI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785254752; c=relaxed/simple;
-	bh=Wcio3/Oa6Ix3rJYIN/41UhejjiTiKiw25e0XYgNpLYA=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=V+lDog0g7ozu2x0vwy5fsPAhrkANHevGoqBBaoUH9eniZEti2FH1JskOTAKGw14EwPfhM0NKenAXArfDsyENX8fq7dF2+UN4154nWmua/2i/RX7GipeBnG39+1OpQc8kq+hR8NDrmvP/M1tpY5dmS1NHuGFcTqXefUI+9OrANlQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=Oka8E2IQ; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1785254936; c=relaxed/simple;
+	bh=3rMLE9Ks3xKZGLvHLJOwbbSeZusmYtdNo4J2X7Ae99w=;
+	h=Mime-Version:Content-Type:Date:Message-Id:Cc:To:From:Subject:
+	 References:In-Reply-To; b=RLoSMPOkWWn6sg2+L64ypw4JFu0fO1uINnlw9HFIRGlOsOJpFCZ2e+PHh+A1AfleynIvxkQbgt1W8nFiP/6To2GH3KgsiBYUfsXIZobjY/ad93+7OEafAtZNa1Y0nyW5fS7rXpk5Bg1HvEONyIhyhD5rH70E5qWL+wUtcIomrq8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KaDZ3BwA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="Oka8E2IQ"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 49B4A169E;
-	Tue, 28 Jul 2026 09:05:46 -0700 (PDT)
-Received: from e127648.cambridge.arm.com (unknown [10.1.39.91])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id C2E233F763;
-	Tue, 28 Jul 2026 09:05:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1785254750; bh=Wcio3/Oa6Ix3rJYIN/41UhejjiTiKiw25e0XYgNpLYA=;
-	h=From:To:Cc:Subject:Date:From;
-	b=Oka8E2IQM3xBxFSz4W0mkU0yQ2mGbZhlVQj5q2dwzU5dhiKOl92PHBPB/Y5ZQmVl1
-	 xCdKcu7R/Sj4FYZrBCIpOx0Oamf8aMLQyBXOcBrognONyNApft4LCB5NBdwqcI9YRv
-	 +OqZFHRp1BWGWdAiy1SGj4GGHPGNShn8AALx92RU=
-From: Christian Loehle <christian.loehle@arm.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
-	Viresh Kumar <viresh.kumar@linaro.org>
-Cc: linux-pm@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Len Brown <lenb@kernel.org>,
-	Jie Zhan <zhanjie9@hisilicon.com>,
-	Lifeng Zheng <zhenglifeng1@huawei.com>,
-	Pierre Gondois <pierre.gondois@arm.com>,
-	Sumit Gupta <sumitg@nvidia.com>,
-	Sudeep Holla <sudeep.holla@arm.com>,
-	Ionela Voinescu <ionela.voinescu@arm.com>,
-	Christian Loehle <christian.loehle@arm.com>
-Subject: [PATCH] ACPI: CPPC: Gate desired performance getter on ACPI <6.6
-Date: Tue, 28 Jul 2026 17:05:38 +0100
-Message-Id: <20260728160538.2574100-1-christian.loehle@arm.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KaDZ3BwA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F4231F000E9;
+	Tue, 28 Jul 2026 16:08:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785254934;
+	bh=3rMLE9Ks3xKZGLvHLJOwbbSeZusmYtdNo4J2X7Ae99w=;
+	h=Date:Cc:To:From:Subject:References:In-Reply-To;
+	b=KaDZ3BwAW4LRjXuA5Y3LYSj25FKyyakNgjXE1BAnM1eZVhB4I05LaBGhXR6arGk+h
+	 K1vSLiXLiAXeVrxHRnfYm0l6VJuTzASPxcMfX5nXsQb2KPVvDd6VwiQtUCs1jqhG++
+	 bh3mZGmIZAEb6nsHl5mqTHwfwEF3QaQD0pTisuX4/NpfpyIwX9WmdAVLVzL73tIsgI
+	 513t7+SwQjbkxYr+m/UK2cTxlxnf0m5gawHAwEp1n3d7CDdXZGET+wQPRc/ThRgbdy
+	 S9TuvF8/GYxogNzx0tpvS9VeNgN6623Ar9DrWl9Cs7l7+hzKXVaojhw2Bk+X3zjcch
+	 qSqNR3g7ecsLw==
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Tue, 28 Jul 2026 18:08:50 +0200
+Message-Id: <DKAC20YQ9T1Z.3NEEFHM908430@kernel.org>
+Cc: "Bartosz Golaszewski" <bartosz.golaszewski@oss.qualcomm.com>, "Lorenzo
+ Pieralisi" <lpieralisi@kernel.org>, "Hanjun Guo" <guohanjun@huawei.com>,
+ "Catalin Marinas" <catalin.marinas@arm.com>, "Will Deacon"
+ <will@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Len Brown"
+ <lenb@kernel.org>, "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+ <brgl@kernel.org>, <linux-acpi@vger.kernel.org>,
+ <linux-arm-kernel@lists.infradead.org>, <linux-kernel@vger.kernel.org>
+To: "Sudeep Holla" <sudeep.holla@kernel.org>
+From: "Danilo Krummrich" <dakr@kernel.org>
+Subject: Re: [PATCH 1/2] ACPI/APMT: use platform_device_set_fwnode()
+References: <20260728-acpi-arm64-pdev-set-fwnode-v1-0-b5aff9b2235a@oss.qualcomm.com> <20260728-acpi-arm64-pdev-set-fwnode-v1-1-b5aff9b2235a@oss.qualcomm.com> <20260728-energetic-mayfly-of-chivalry-4e89d8@sudeepholla>
+In-Reply-To: <20260728-energetic-mayfly-of-chivalry-4e89d8@sudeepholla>
 
-When CPPC feedback counters cannot provide a usable sample, cppc-cpufreq
-calls cppc_get_desired_perf() because some platforms repurpose Desired
-Performance to report actual delivered performance.
+On Tue Jul 28, 2026 at 5:56 PM CEST, Sudeep Holla wrote:
+> I don't see platform_device_set_fwnode() in the upstream tree, is it in
+> -next ? I didn't see -next tag as well.
 
-ACPI 6.6 changed the register's Optional Attribute from Read/Write to
-Write. The existing cppc-cpufreq error path now falls back to its
-cached OSPM request on ACPI >=6.6.
-The original (and existing) workaround was for a specific HiSilicon
-platform which isn't expected to report >=6.6.
-
-Fixes: c47195631960 ("cppc_cpufreq: Use desired perf if feedback ctrs are 0 or unchanged")
----
- drivers/acpi/cppc_acpi.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 53d09ca98f06..218fdea09c1c 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -1321,10 +1321,17 @@ static int cppc_set_reg_val(int cpu, enum cppc_regs reg_idx, u64 val)
-  * @cpunum: CPU from which to get desired performance.
-  * @desired_perf: Return address.
-  *
-- * Return: 0 for success, -EIO otherwise.
-+ * Return: 0 for success, -EOPNOTSUPP for ACPI 6.6 or later, and a negative
-+ * errno otherwise.
-  */
- int cppc_get_desired_perf(int cpunum, u64 *desired_perf)
- {
-+	/* ACPI 6.6 no longer specifies Desired Performance as readable. */
-+	if (acpi_gbl_FADT.header.revision > 6 ||
-+	    (acpi_gbl_FADT.header.revision == 6 &&
-+	     acpi_gbl_FADT.minor_revision >= 6))
-+		return -EOPNOTSUPP;
-+
- 	return cppc_get_reg_val(cpunum, DESIRED_PERF, desired_perf);
- }
- EXPORT_SYMBOL_GPL(cppc_get_desired_perf);
--- 
-2.34.1
-
+It should be contained in linux-next through driver-core-next.
