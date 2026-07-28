@@ -1,70 +1,99 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 063603F412C;
-	Tue, 28 Jul 2026 09:50:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 106D841D65A;
+	Tue, 28 Jul 2026 10:24:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785232204; cv=none; b=W6op5DAcu0S+FsPjs+N9YX6GAwb971Q7SZ1DDzmhX1u+SEug0sg9WqnEWuK2xe7WIEG/G/n6dbDeOLioWDOQAOCQ9jK06wjR4IDFJc2h+IPDvoJ6UngRcBd5Wj6MbCccl3F9MEBFEACFg7xr0BjOMr/Dr+Wjkxj6ga3N+joTxaY=
+	t=1785234272; cv=none; b=rnUjg5wsJrogU/JHx6esuSQoStsOEOZ3OwL/yU0socaqjFojohy3j4tk++pZ0l45u9Uu2aetZ4rk/98S9L5Kq+Kol1jvYMuxJzIuQFjek952E93Ra3qncGpSllZHqZHQqCIjw0h+8AUqYmF/grjuEy/K4Hqvi3I6y0D7f5Yb+3c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785232204; c=relaxed/simple;
-	bh=Fic8x1uknx06j7H/4MA2ytYdgihlpXmIwtwCzIbhMSs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qBOpZ2vcovh6ERutqLU5pRaMQMxOVz9SGAqpYE3GPWfG32iE/zlNqTXZWhYe5ZgvGt+cJ1X67KOSmHpYg3FkYIej8DfsOgTu5MkyTxmHVopEJZ2Mie5IBhfu5IEUkxUAYJ17f2H4ii8q9hntl8nIVk+/oucvXJe38A1bx53ggck=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XCVb6vZy; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785234272; c=relaxed/simple;
+	bh=Qmp+S4jeEmSrfkFAfQ5zyR7lzd8T38ptAobQNxd/cuU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Gh0wKSODcnLrBwiLEVkEus3XgsZa9lrVwkXGcakePts+cD51gDYmIIkomr/S/tQKHDb1cYZKcpy99HY5o/qE4/QqJ2ZaFJZ22Sh0VkrWXDT7LUIdZRUInj0iwJ6BKRlRdsEGXhV7f4XKgLrUM+voFgLtMM1LpX51upS9Ort8A1M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=SJoNAdeg; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XCVb6vZy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E62C1F000E9;
-	Tue, 28 Jul 2026 09:49:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785232202;
-	bh=oLWjXuqnJhPZUydlgvzC/ZmJPhlhWN5Zieclb+yQNMo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=XCVb6vZy4wNmvPHoV/sE6e6bePoiGSeNP0MDACp6Zl/nTxbBH4vxscKSgF7qzpjbd
-	 oCOKjdiYYizSwRviiNOAQ9V40f1oEyQdfq6K8ewIb8KWjX3lH5obnWL4p6wyXd1c9u
-	 Vi4TnKCBiUzIdFSGQk8Gao2PsRB2XEGuTCquYjH8AvfRjqFHGynBhN9RkHd0jpV1pt
-	 H0aJu5vP9qwaFCTigalaYYFQiXc+SHygpnq90Rly7ZPOR8M2PM0WCqVm6aP++r1oo+
-	 Ou7AUAOEkEVQkXKUrv7HA2ciun3rJ/4d8I4bUAAS1IR6KNHO+/1a/JFGpYkqJxBodM
-	 UCIIrrnDr1GMg==
-Date: Tue, 28 Jul 2026 10:49:58 +0100
-From: Sudeep Holla <sudeep.holla@kernel.org>
-To: Peixin Xie <peixin.xie@linux.spacemit.com>
-Cc: Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
-	Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
-	Yixun Lan <dlan@kernel.org>, Oza Pawandeep <quic_poza@quicinc.com>,
-	Will Deacon <will@kernel.org>,
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-	linux-acpi@vger.kernel.org, linux-riscv@lists.infradead.org,
-	linux-kernel@vger.kernel.org, spacemit@lists.linux.dev,
-	stable@vger.kernel.org
-Subject: Re: [PATCH] riscv: acpi: Handle LPI architectural context loss flags
-Message-ID: <20260728-wolverine-of-classic-penetration-2f6cc4@sudeepholla>
-References: <20260728-riscv-acpi-lpi-timer-v1-1-c722bce01e48@linux.spacemit.com>
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="SJoNAdeg"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 0DE7D1A9A;
+	Tue, 28 Jul 2026 03:24:26 -0700 (PDT)
+Received: from [192.168.178.24] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 88F8A3F66F;
+	Tue, 28 Jul 2026 03:24:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1785234270; bh=Qmp+S4jeEmSrfkFAfQ5zyR7lzd8T38ptAobQNxd/cuU=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=SJoNAdegQ7YKgun3wquk6jCn/mdv9DajGXn+1hdsfPdT+pcXBg9qEg2yzQ6VpNyta
+	 yRKeNFrrELThJLda9OTQ2THOOTS49n5hTEam30QxUHBoHnctkdaAXmieiaC4TgUmV7
+	 XmLOIkBrKGhWFoiXy/YoqSi8OyRf3fcUqsNrb8FY=
+Message-ID: <22434d15-7e7c-457d-8431-b77db9448cf0@arm.com>
+Date: Tue, 28 Jul 2026 12:24:25 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260728-riscv-acpi-lpi-timer-v1-1-c722bce01e48@linux.spacemit.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v4 08/10] arm_mpam: add MPAM-Fb MSC firmware access
+ support
+To: Ritwick Sharma <ritwick.sharma@arm.com>
+Cc: ben.horgan@arm.com, catalin.marinas@arm.com, fenghuay@nvidia.com,
+ ganapatrao.kulkarni@oss.qualcomm.com, guohanjun@huawei.com,
+ james.morse@arm.com, jic23@kernel.org, lee@trager.us, lenb@kernel.org,
+ linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-kernel@vger.kernel.org, lpieralisi@kernel.org, rafael@kernel.org,
+ reinette.chatre@intel.com, sramana@qti.qualcomm.com,
+ srivathsa.rao@oss.qualcomm.com, sudeep.holla@kernel.org, tsoni@quicinc.com,
+ will@kernel.org
+References: <20260723155454.1760823-9-andre.przywara@arm.com>
+ <20260728100421.4047928-1-ritwick.sharma@arm.com>
+Content-Language: en-GB
+From: Andre Przywara <andre.przywara@arm.com>
+In-Reply-To: <20260728100421.4047928-1-ritwick.sharma@arm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Tue, Jul 28, 2026 at 05:36:12PM +0800, Peixin Xie wrote:
-> Commit 4785aa802853 ("cpuidle, ACPI: Evaluate LPI arch_flags for
-> broadcast timer") replaced the generic nonzero check for LPI
-> architectural context loss flags with arch_get_idle_state_flags().
-> RISC-V does not implement the helper, so it falls back to the stub
-> that returns 0. Consequently, CPUIDLE_FLAG_TIMER_STOP is not set when
-> an LPI state loses the hart timer context, preventing cpuidle from
-> using a broadcast timer for that state.
+Hi Ritwick,
+
+On 7/28/26 12:04, Ritwick Sharma wrote:
+> On Thu, Jul 23, 2026 at 05:54:52PM +0200, Andre Przywara wrote:
 > 
-> Implement the RISC-V helper and map the hart timer context loss flag
-> to CPUIDLE_FLAG_TIMER_STOP.
+>> -	WARN_ON_ONCE((MSMON_MBWU_L + sizeof(u64)) > msc->mapped_hwpage_sz);
+>> +	if (msc->iface == MPAM_IFACE_MMIO)
+>> +		WARN_ON_ONCE((MSMON_MBWU_L + sizeof(u64)) > msc->mapped_hwpage_sz);
 > 
+> I tested the MPAM-Fb series on an Arm AGI CPU.
 
-Acked-by: Sudeep Holla <sudeep.holla@kernel.org>
+Many thanks for that, and for reporting on the list!
 
--- 
-Regards,
-Sudeep
+> I think a similar MPAM_IFACE_MMIO check is needed in
+> mpam_msc_zero_mbwu_l(). Without this check, the mapped_hwpage_sz bounds
+> check is also performed for an MPAM-Fb MSC, which does not have an MMIO
+> mapping. I observed the following warning during testing:
+> 
+> [   50.638246] WARNING: drivers/resctrl/mpam_devices.c:1266 at mpam_msc_zero_mbwu_l+0x98/0xa8
+
+Ouch, you are right, I missed that one. It seems my very limited testing 
+didn't touch that code path.
+
+> There also appears to be an off-by-one issue in the calculation of
+> mapped_hwpage_sz:
+> 
+> 	msc->mapped_hwpage_sz = msc_res->end - msc_res->start;
+> 
+> The current calculation records a size that is one byte smaller than
+> the actual resource. I think this should use resource_size() instead:
+> 
+> 	msc->mapped_hwpage_sz = resource_size(msc_res);
+
+Well spotted, I can make a separate patch for that, unless you beat me 
+to it!
+
+Many thanks,
+Andre
+
+> 
+> Thanks,
+> Ritwick
+
