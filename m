@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61EF91DED42;
-	Tue, 28 Jul 2026 15:56:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16C363385A5;
+	Tue, 28 Jul 2026 15:59:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785254209; cv=none; b=o4bbMiTCXApJg9+daU8LvJrTLXZcx0AFAuEfH/7e4CraffpTp6S/f5CH+HlU3zcduSsHyX2Zjo2rQMMWd2ERbj+0vk+54XR2rdyl2oywv8A35qCaNc/O6fnWGxGpx7yJBeg7FchsBOIgu6JZprgAovYP7R7+odlbRABvwiZomgU=
+	t=1785254356; cv=none; b=VWBPVW9fa8TMeYOAkECdMaB2K4jeAbuzPpDy5tRCtOQrOzVqXYnEiRMpRc7+Ip5vQ72MxWivjxryofuUvWk0Q2g4VNq98nTYqGHZWlyRfsU5xlWt9yHVth4u91DE2HmLYlNYaKWrcTV9DvnVqzGbDAs/BudRNAUfPsM6UV+QqaE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785254209; c=relaxed/simple;
-	bh=RJJ2+xD193svS7IAtcxQ4D6RmHQgrNRQf6woE+rgUh0=;
+	s=arc-20240116; t=1785254356; c=relaxed/simple;
+	bh=dkvnZ0+WEyFCKWfvunRcPWMXJpI+V15BZHHSKmaycWk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=C/iPo/MLVSdnJQvjzKMAbzyyyq5zHUgqEXaaIvXzpJ0eqJ6UYS2zqQFXEnm+VaN8whgLxr6ALDmdhR7E4evhcEzkBgl1DnjOhqFmYgiYUMB6Z3Vk1hS2D7yWpW9ai41k/a59Kptde2qyV6hvxNQRTEiJPg/lwBLg0+ecC/jPxEc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=og/cvWzH; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=Gms9e9FFYW5ovPJCdLNW3b+evUQpYb7fE0IXC9VPeCXUtsK0d3bSPeTMtkr//6LKGGhzFYqo6hhXOzmwd2906H6JaUL00dRudx9oEAu2695qWAY32aEYcW8d2JgAJdRVvKlDK4QX8dtYwnLmxab6uqdsdVRXqMVEFdJGpA0ehBc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OEBH5SYK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="og/cvWzH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB0061F000E9;
-	Tue, 28 Jul 2026 15:56:45 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OEBH5SYK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69EB91F00A3D;
+	Tue, 28 Jul 2026 15:59:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785254207;
-	bh=wPcnTH8SGUY2hLYw9g0ZMAYWVqJRrTlT+jvwj9dxDqg=;
+	s=k20260515; t=1785254354;
+	bh=w9TEetWpU/hApYqBOwZrSXIbyk3d0nWuyJATuurRhRY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=og/cvWzHCS8+zZkz21i2RAu7IPk0zZvRO5S9pOtFEp+zCd0tLlZKt4sELAeCtRznQ
-	 O/NrTf5cAri4GxoKUKmDpOMPT+wUWCSqdur/f2l4xBPQru6xZS/ke/V52fizZq6thI
-	 U2LGFhcPB+GL3/beWadFaQs++be0KKNRoczu8ToQDe8QqHj+TSOBeZKwXr1bkl1GkP
-	 e9COWVNErpN13xTTeXcCwaOfWnQL+UHWVH6pV7BElc+S9H/zEegARBVHUDmHpExU/i
-	 GKVtlF/2MLKERoPBs5FPqzyiqo2ySQF5WTZMKHTDut8596lvD38QKD5EOsyNx96IzI
-	 BrmdADRg+1z4w==
-Date: Tue, 28 Jul 2026 16:56:43 +0100
+	b=OEBH5SYKbUcSowGXTXdFAb8c9Z1+mOUqv5tUlyHCFQ/K96HIbRID6vaBDb6ZBXORY
+	 8JoIh9lGapcmZ+NWIUgRY3bhJGEtERHqFfNLaPw5EY5RE4ziTWCPiKw7oujVBrk9Ee
+	 XL/AJBg1S0c/78pGeuT3ezOwY/oBcYi3N8Tm162/rJMHhoiTTK6+fFGYzSaVhFT0QH
+	 /7Iw4E6chCYXExBKlHjN57epslQfE1KnLB3QBJlTlKYJKXcuQOLkRQeOLshx1tkN4X
+	 BdC/8VYDRguZzel+az5mSyfQYZfwB7E8R6Wffoh6DfyIKwTCiPc8zyGO8/C8u4pq6a
+	 PUiYlb7Wg1Dog==
+Date: Tue, 28 Jul 2026 16:59:10 +0100
 From: Sudeep Holla <sudeep.holla@kernel.org>
 To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
@@ -38,10 +38,10 @@ Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, brgl@kernel.org,
 	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
 	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/2] ACPI/APMT: use platform_device_set_fwnode()
-Message-ID: <20260728-energetic-mayfly-of-chivalry-4e89d8@sudeepholla>
+Subject: Re: [PATCH 2/2] ACPI/IORT: use platform_device_set_fwnode()
+Message-ID: <20260728-dramatic-famous-chihuahua-cce6a2@sudeepholla>
 References: <20260728-acpi-arm64-pdev-set-fwnode-v1-0-b5aff9b2235a@oss.qualcomm.com>
- <20260728-acpi-arm64-pdev-set-fwnode-v1-1-b5aff9b2235a@oss.qualcomm.com>
+ <20260728-acpi-arm64-pdev-set-fwnode-v1-2-b5aff9b2235a@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -50,9 +50,9 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260728-acpi-arm64-pdev-set-fwnode-v1-1-b5aff9b2235a@oss.qualcomm.com>
+In-Reply-To: <20260728-acpi-arm64-pdev-set-fwnode-v1-2-b5aff9b2235a@oss.qualcomm.com>
 
-On Tue, Jul 28, 2026 at 04:07:16PM +0200, Bartosz Golaszewski wrote:
+On Tue, Jul 28, 2026 at 04:07:17PM +0200, Bartosz Golaszewski wrote:
 > Platform devices using the split approach of calling
 > platform_device_alloc() and platform_device_add() must not assign the
 > firmware nodes manually but use the provided
@@ -62,30 +62,27 @@ On Tue, Jul 28, 2026 at 04:07:16PM +0200, Bartosz Golaszewski wrote:
 > Replace the manual assignment of the firmware node with a call to
 > platform_device_set_fwnode().
 > 
-
-I don't see platform_device_set_fwnode() in the upstream tree, is it in
--next ? I didn't see -next tag as well.
-
 > Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 > ---
->  drivers/acpi/arm64/apmt.c | 2 +-
+>  drivers/acpi/arm64/iort.c | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/acpi/arm64/apmt.c b/drivers/acpi/arm64/apmt.c
-> index bb010f6164e528acd802f65afd80d65a57f5844f..c927e4f08ec2c98137d4e3c64ec1709d672ad9a2 100644
-> --- a/drivers/acpi/arm64/apmt.c
-> +++ b/drivers/acpi/arm64/apmt.c
-> @@ -99,7 +99,7 @@ static int __init apmt_add_platform_device(struct acpi_apmt_node *node,
->  	if (ret)
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index 34412cd697d8bdc3654c40ca539ddc695a926a26..1020ac953e428797b5b90bd73c6c6ae35e6fd352 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -1992,7 +1992,7 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
 >  		goto dev_put;
+>  	}
 >  
 > -	pdev->dev.fwnode = fwnode;
 > +	platform_device_set_fwnode(pdev, fwnode);
 >  
 
-Assuming platform_device_set_fwnode() does what is needed,
-
 Acked-by: Sudeep Holla <sudeep.holla@kernel.org>
+
+With the condition specified in 1/2. I assume you plan to take it via the
+same tree that introduces platform_device_set_fwnode() ?
 
 -- 
 Regards,
