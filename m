@@ -1,186 +1,100 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from canpmsgout08.his.huawei.com (canpmsgout08.his.huawei.com [113.46.200.223])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 172A0378D8E;
-	Mon, 27 Jul 2026 23:36:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAC2E2AE78;
+	Tue, 28 Jul 2026 02:22:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.223
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785195372; cv=none; b=q7EyxbarlQC8Ycbv5S9lQvJ6+qQ5Rerz1PyS44uSB+qrNhvszT8Vl9DlvenRd9aJTKsvSZWHaN5+aPYampMfQUH4PoaNlvME9cvqusnCST/oVMwW2i/UeX8oVwJYXMNPggyXSmioW90D+a6jh5TLVNyzpa+neTLaOIl2Nrrjct0=
+	t=1785205336; cv=none; b=OYf7PfJWG4Z5+kElKvusITx8lqyTZM9j0hR8UnCdrxhmEZzmROitB06gcsbSvREP4R6JYgolANnVqHdwCX61WD26aiolEW1ZaXgVk1prlwGUsE7wxnUPQqQ2vXOqMj5I3ClpCeTXAou/sryvdgJHrDIAmWipZ6hV1Lvu+oecBkQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785195372; c=relaxed/simple;
-	bh=KJvVHItaC++80gXxgICgZBgddr8xXf91Dtc8i4k0kSM=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=jTcYisbL8cE1F+kOUgoPpivk7Mpm1JAhHoYtbiux+3GMBHZGlUSYa4SV1yhiJ0FDPm4aEnjP8e5dHwDYYSSFVgZHXCLMXCA6NkuRODyJ2O6R3Mm8ubUaLrzG+0umXh4HR8UD+/yrsUTWN5JJwWWQ4PJHL14TStWA6WwfDjYXrcs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=U/IG3Rg8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785205336; c=relaxed/simple;
+	bh=UbFD/3ksgPkZhnyFxSWZKmXSpjb+7JwiZu4mdB9Yfqs=;
+	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=uOmgGFhMbi0BqDtikwSl8qslVJgWkxMOQHZCUVVPJBaLif1TCm25VQYyKmCHtJ3ufs18K8JyrvxM2HTOSgjcDFNss7RLwNL9ILOWvykkAGWdu7WhqdFPb/f6sIEzKBbJFoPF6OUQYxhu0A00YS1vXKKo5QLuV7ngsy9Qgxyiwjg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=ALb6tHXL; arc=none smtp.client-ip=113.46.200.223
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="U/IG3Rg8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B3C61F000E9;
-	Mon, 27 Jul 2026 23:36:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785195371;
-	bh=PNl7tnAMl7nkr7Gi2tTSL3Q1eKtYp5WOaoWJus3+fR8=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=U/IG3Rg8OTRvEqGn97og+yiQdS9ry3Y7jaoYmnjhZJ1IZ92STvCSYyFdghqFjtiu2
-	 LmNW2JZ21w5IfTJMu9EMxOKGudUkSzOoqfyYFoeG6KzgBRYTd8OtzefC3OlaZBH7pM
-	 mXrpyipnDZu3mHI7vAAwgVzBSqhpHit4P7hh2k1Ec5414t18x3xfQ09pVWhnjuo9KN
-	 7ECnCAMi5mggx1aDth9yZYQO2/e/G1KUVhCEtksif9ALPE9SqSmwS7eSCJtrup0ZG6
-	 NiyUUh1kc8QWYfY/qZG0kngMFQAZBObEsMyJq3+kab034dd/Ii892bCDlWqNuO/LEo
-	 7FNPXp8b5/jXw==
-Date: Tue, 28 Jul 2026 00:36:06 +0100
-From: Jonathan Cameron <jic23@kernel.org>
-To: Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>
-Cc: Andre Przywara <andre.przywara@arm.com>, Lorenzo Pieralisi
- <lpieralisi@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla
- <sudeep.holla@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will
- Deacon <will@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>, Len
- Brown <lenb@kernel.org>, James Morse <james.morse@arm.com>, Ben Horgan
- <ben.horgan@arm.com>, Reinette Chatre <reinette.chatre@intel.com>, Fenghua
- Yu <fenghuay@nvidia.com>, Ganapatrao Kulkarni
- <ganapatrao.kulkarni@oss.qualcomm.com>, Trilok Soni <tsoni@quicinc.com>,
- Srinivas Ramana <sramana@qti.qualcomm.com>, Niyas Sait
- <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
- linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4 10/10] arm_mpam: detect and enable MPAM-Fb PCC
- support
-Message-ID: <20260728003606.14386844@jic23-huawei>
-In-Reply-To: <4faf0089-4615-4fb1-bc07-e52b4d43f073@oss.qualcomm.com>
-References: <20260723155454.1760823-1-andre.przywara@arm.com>
-	<20260723155454.1760823-11-andre.przywara@arm.com>
-	<4faf0089-4615-4fb1-bc07-e52b4d43f073@oss.qualcomm.com>
-X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="ALb6tHXL"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=IN97GRGSXWLXbuOSeEjvu2/648NjLnhN0ac5lrVnnxg=;
+	b=ALb6tHXLCLAanLMZQI8nSJM3rdhrhyIyBCLWBcHPEp8adcVrTP47IuEWxMEsTGouUk/XYCEWo
+	7nhzDsoV66XB93isASHNDjKSdWbPIl04mbmexOX7wuxMviavnI2m0vuwItLEm3JZFdTZvj0Nb5x
+	keTEWvuI5EW4QAN3gDhnOlg=
+Received: from mail.maildlp.com (unknown [172.19.163.200])
+	by canpmsgout08.his.huawei.com (SkyGuard) with ESMTPS id 4h8Jrj505HzmV8f;
+	Tue, 28 Jul 2026 10:12:37 +0800 (CST)
+Received: from dggpemf500002.china.huawei.com (unknown [7.185.36.57])
+	by mail.maildlp.com (Postfix) with ESMTPS id 1BFAF4055B;
+	Tue, 28 Jul 2026 10:22:04 +0800 (CST)
+Received: from [10.174.179.24] (10.174.179.24) by
+ dggpemf500002.china.huawei.com (7.185.36.57) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Tue, 28 Jul 2026 10:22:02 +0800
+Subject: Re: [PATCH] ACPI: APEI: Fix ERST timeout unit conversion
+To: Nirmoy Das <nirmoyd@nvidia.com>, <linux-acpi@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <stable@vger.kernel.org>, Kees Cook
+	<kees@kernel.org>, Tony Luck <tony.luck@intel.com>, "Guilherme G. Piccoli"
+	<gpiccoli@igalia.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Borislav
+ Petkov <bp@alien8.de>, Mauro Carvalho Chehab <mchehab@kernel.org>, Shuai Xue
+	<xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>, Jeshua Smith
+	<jeshuas@nvidia.com>
+References: <20260721182551.2434933-1-nirmoyd@nvidia.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Message-ID: <943f855a-67d8-7a8e-a7aa-374845807d8e@huawei.com>
+Date: Tue, 28 Jul 2026 10:22:02 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20260721182551.2434933-1-nirmoyd@nvidia.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
+ dggpemf500002.china.huawei.com (7.185.36.57)
 
-On Mon, 27 Jul 2026 21:57:15 +0530
-Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com> wrote:
+On 2026/7/22 2:25, Nirmoy Das wrote:
+> The ACPI specification defines bits 63:32 returned by
+> GET_EXECUTE_OPERATION_TIMINGS as the maximum execution time in
+> microseconds. erst_get_timeout() instead multiplies the value by
+> NSEC_PER_MSEC.
+> 
+> Use NSEC_PER_USEC to express the firmware-provided microsecond timeout
+> in the nanosecond units expected by erst_timedout().
+> 
+> Fixes: fac475aab70b ("ACPI: APEI: Use ERST timeout for slow devices")
+> Cc: stable@vger.kernel.org
+> Assisted-by: Codex:gpt-5.6-sol
+> Signed-off-by: Nirmoy Das <nirmoyd@nvidia.com>
+> ---
+>   drivers/acpi/apei/erst.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+> index bf65e34615314..15ab797641cfc 100644
+> --- a/drivers/acpi/apei/erst.c
+> +++ b/drivers/acpi/apei/erst.c
+> @@ -108,7 +108,7 @@ static inline u64 erst_get_timeout(void)
+>   
+>   	if (erst_erange.attr & ERST_RANGE_SLOW) {
+>   		timeout = ((erst_erange.timings & ERST_EXEC_TIMING_MAX_MASK) >>
+> -			ERST_EXEC_TIMING_MAX_SHIFT) * NSEC_PER_MSEC;
+> +			ERST_EXEC_TIMING_MAX_SHIFT) * NSEC_PER_USEC;
 
-> On 7/23/2026 9:24 PM, Andre Przywara wrote:
-> > The Arm MPAM-Fb specification [1] describes a protocol to access MSC
-> > registers through a firmware interface. This requires a shared memory
-> > region to hold the message, and a mailbox to trigger the access.
-> > For ACPI this is wrapped as a PCC channel, described using existing
-> > ACPI abstractions.
-> >=20
-> > Add code to parse those PCC table descriptions associated with an MSC,
-> > and store the parsed information in the MSC struct.
-> > There can be multiple PCC channels, and each channel can serve multiple
-> > MSCs, so we need to keep track of the channel usage, using a list and
-> > a refcount.
+Good catch! In the latest ACPI 6.6 spec, it says:
 
-Blank line for consistency
+[63:32] value in *microseconds* that the platform expects
+would be the maximum amount of time it will take to
+process and complete an EXECUTE_OPERATION.
 
-> > This will be used by the MPAM-Fb access wrapper code.
-> >=20
-> > [1] https://developer.arm.com/documentation/den0144/latest
-> >=20
-> > Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
 
-> > diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devi=
-ces.c
-> > index fea3161ffbe9..fc4b5f87fbe9 100644
-> > --- a/drivers/resctrl/mpam_devices.c
-> > +++ b/drivers/resctrl/mpam_devices.c
-
-> > +static void mpam_pcc_chan_release(struct kref *ref)
-> > +{
-> > +	struct mpam_pcc_chan *cur =3D container_of(ref, struct mpam_pcc_chan,
-> > +						 refcount);
-> > +
-> > +	pcc_mbox_free_channel(cur->pcc_chan);
-> > +	list_del(&cur->pcc_chans);
-> > +	kfree(cur);
-> > +}
-> > +
-> > +static struct mpam_pcc_chan *mpam_pcc_chan_get(struct device *dev,
-> > +					       int subspace_id)
-> > +{
-> > +	struct mpam_pcc_chan *cur;
-> > +	int ret;
-> > +
-> > +	guard(mutex)(&pcc_chan_list_lock);
-> > +
-> > +	list_for_each_entry(cur, &pcc_chan_list, pcc_chans) {
-> > +		if (cur->subspace_id =3D=3D subspace_id) {
-> > +			kref_get(&cur->refcount);
-> > +
-> > +			return cur;
-> > +		}
-> > +	}
-> > +
-> > +	cur =3D kzalloc_obj(*cur);
-> > +	if (!cur)
-> > +		return ERR_PTR(-ENOMEM);
-> > +
-> > +	cur->pcc_cl.dev =3D dev;
-> > +	cur->pcc_cl.tx_block =3D true;
-> > +
-> > +	cur->pcc_chan =3D pcc_mbox_request_channel(&cur->pcc_cl, subspace_id);
-> > +	if (IS_ERR(cur->pcc_chan)) {
-> > +		long err =3D PTR_ERR(cur->pcc_chan);
-> > +
-> > +		kfree(cur);
-> > +		return ERR_PTR(err);
-> > +	}
-> > +
-> > +	/* Timeout based on the "nominal latency" from the PCC ACPI table. */
-> > +	cur->pcc_cl.tx_tout =3D cur->pcc_chan->latency * 5;
-> > +
-> > +	ret =3D devm_mutex_init(dev, &cur->pcc_chan_lock);
-> > +	if (ret)
-> > +		return ERR_PTR(ret);
-> > + =20
->=20
-> Here, devm_mutex_init() ties the lifetime of pcc_chan_lock to dev, which=
-=20
-> is &pdev->dev of the first MSC to call mpam_pcc_chan_get(). But
-> mpam_pcc_chan is shared across multiple MSCs via kref, so it can
-> outlive that first device.
->=20
-> If a second MSC has incremented the refcount and is still active when
-> the first MSC's device is removed, the devm cleanup on the first device
-> would call mutex_destroy() on pcc_chan_lock while the second MSC may
-> still be inside:
->=20
->      guard(mutex)(&pcc_chan->pcc_chan_lock);
->=20
-> I am not 100% sure this is reachable in practice =E2=80=94 it may depend =
-on
-> the order in which platform devices are unbound, and whether that can
-> happen with MSCs sharing a channel. I also note that devm_mutex_init()
-> is a no-op on non-debug kernels, so this would only be observable with
-> CONFIG_DEBUG_MUTEXES=3Dy. But it felt worth raising in case
-> it is a real path.
->=20
-> If my understanding is correct, would it make sense to use a plain
-> mutex_init() here instead, and move mutex_destroy() into
-> mpam_pcc_chan_release() where the kref guarantees no concurrent users
-> remain?
-
-Good spot and fwiw Sashiko shouted about this one as well!
-https://sashiko.dev/#/patchset/20260723155454.1760823-1-andre.przywara%40ar=
-m.com
-
-It also called out the lack of error handling should this fail, but that
-becomes irrelevant if the code is updated as you suggest.
-
-
->=20
-> > +	cur->subspace_id =3D subspace_id;
-> > +	kref_init(&cur->refcount);
-> > +
-> > +	list_add_tail(&cur->pcc_chans, &pcc_chan_list);
-> > +
-> > +	return cur;
-> > +}
-> > +
-
-Thanks,
-
-Jonathan
+Thanks
+Hanjun
