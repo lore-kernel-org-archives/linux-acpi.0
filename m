@@ -1,104 +1,153 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from canpmsgout04.his.huawei.com (canpmsgout04.his.huawei.com [113.46.200.219])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A87640BCB7
-	for <linux-acpi@vger.kernel.org>; Tue, 28 Jul 2026 08:38:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3753127AC31;
+	Tue, 28 Jul 2026 08:42:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.219
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785227888; cv=none; b=NoF3xBIDR5oL7r9ysyRboyxJFMDmXxIe38F5/GizScsm/lkMRWL4zUNePsR+gfPkiuJI9iP274zeFAVLwovL6J7qD+MBCEJKmj8myEKjNQL+jVU8WLtu0myTA2dmwxXd/JQPfpqEdsp4ck35VV7BqvjxfcWdDC8YmTt0Cax+KpA=
+	t=1785228126; cv=none; b=P1NTOOdVihDBwPOh8Dpw/ezp99vqgedJF0t1DUlxHSeYl2P6Z/1jAWHplUOFBLa4KtHa4inUayXidrlLROHWTUnZA5PvhhnG1+LzM8V0KdU5YyL8elLPyjf0tex1fgYGx85LdbVgMqf96CcsHvNUrpK/X4mMskCfn/cT9zGfh/I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785227888; c=relaxed/simple;
-	bh=oGoFlCKev//ck/cDlJvBrIE/4hPG1W4/xzC6Aug7BXw=;
-	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=t1pvMswzgZJengtrAT2LoMcdUfZG5Py+lpX5I5eb8YrFBOAUMYvdtYY63UUJ4TjtTUx6hNDivzHot88ETrsFldADpFC26KNTEuK7ofbHXs+4kod3pGnUHg4EBs9y2tcRTl/bYh9qB5q04IbQ7VJLtArQ5MFT5dOVMXyECvIXwg0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AU4EF1Y1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785228126; c=relaxed/simple;
+	bh=vTtpfS8DsqV0yX6Abtwlukd5XiEPzcmJl2/q1btkP5Y=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=f5ryqTEbbDbRhlvEdd+k1nX8o9Ta3yisaUxvALz4j8AJr00TqaHC0CkfjAcOT4IA+puN7gi6Xvplu+LXpWgjGB5iemXzu79Erca6Ef9jNekrtgjKjavfvQFqvigonuS2GSWrXCGoud6EOzyNSdd1hKvab52KSu4TJQXvxhXckQU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=YPiMycY9; arc=none smtp.client-ip=113.46.200.219
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AU4EF1Y1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1A621F000E9
-	for <linux-acpi@vger.kernel.org>; Tue, 28 Jul 2026 08:38:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785227886;
-	bh=ixApoO0p0A87cDeKPtH+KfiUOtiwmHvmcBvPYKgN/Ew=;
-	h=From:In-Reply-To:References:Date:Subject:To:Cc;
-	b=AU4EF1Y1aPiNvZdn7RQEuOZHfwgoW+vkQZMoaqwBIuLN/bJk+q/JseSW+6d+gjrns
-	 /cFdpRNqnjbPB/B0ahz5n7pBWnpm6OwJ7sDEMph49YNkhC6VoOrM5CmPjBsDs/H1yX
-	 FjwQrlJWpudBGn0+U8Q37D1sCxoxUr54JjaE/rYFSSqrZ8xQquo5B2BeXMOR9hYEzd
-	 tDE9pzbotd1uMULrKN9XuTQLRqVU2eMcNAJyYg0Yi+lulpOmdTrJt5OipPHJj13CvJ
-	 Qt/P6HKZLkd5ZOs2/1o3w9gbgPGjeR1sDMU3WKXaWID7r/VhhphjUSUWDhKsKwuk/N
-	 bOpz7VS9/IcfA==
-Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5aeb2bc82ccso3535238e87.2
-        for <linux-acpi@vger.kernel.org>; Tue, 28 Jul 2026 01:38:06 -0700 (PDT)
-X-Gm-Message-State: AOJu0YyRGF2Igyz11ZPWev1+FcXrlXY1OIdJT8Ih07QgvY4ZNDOX9ouU
-	5jpEi/1Ol7buekJBQj2TltLh1QCWEwazdjdWCg6+jJvUZM8p/wI0T+ZuPRkzAvBbBU8cavB86Gw
-	O0CNEXlMj7tqEd/cbD1HwyY56viyrg79LHvJxKsHYZw==
-X-Received: by 2002:a05:6512:3d18:b0:5b0:e14:777c with SMTP id
- 2adb3069b0e04-5b2d0226797mr291279e87.22.1785227885493; Tue, 28 Jul 2026
- 01:38:05 -0700 (PDT)
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Tue, 28 Jul 2026 01:38:03 -0700
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Tue, 28 Jul 2026 01:38:03 -0700
-From: Bartosz Golaszewski <brgl@kernel.org>
-In-Reply-To: <20260727202748.2232253-1-dakr@kernel.org>
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="YPiMycY9"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=b14c05HzraPU+WgxiYx6tlHbhfsQqX/AwR0LJeM5LeM=;
+	b=YPiMycY90bZd5L+hFm9wCMxlXc98Qhc6LVe1CFm2FtQqt8rvT34YvM+dfXv03J+9MIlAPyTQG
+	ZhTVAA5QtAE97tsdAHQ9gTK0oHUTLHQXqczWGaZwPYF9UyxiepW5DJETk3DddYOu8h1DeLib/fD
+	+SzOzJ72qYmwPmQzyZ2A8Eg=
+Received: from mail.maildlp.com (unknown [172.19.163.104])
+	by canpmsgout04.his.huawei.com (SkyGuard) with ESMTPS id 4h8TGv6dKDz1prKd;
+	Tue, 28 Jul 2026 16:32:23 +0800 (CST)
+Received: from kwepemf100001.china.huawei.com (unknown [7.202.181.215])
+	by mail.maildlp.com (Postfix) with ESMTPS id 5C1044057F;
+	Tue, 28 Jul 2026 16:41:52 +0800 (CST)
+Received: from [10.67.121.90] (10.67.121.90) by kwepemf100001.china.huawei.com
+ (7.202.181.215) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.36; Tue, 28 Jul
+ 2026 16:41:51 +0800
+Message-ID: <a4891cdc-9635-4ad7-96b6-f62c39aa254a@huawei.com>
+Date: Tue, 28 Jul 2026 16:41:51 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260727202748.2232253-1-dakr@kernel.org>
-Date: Tue, 28 Jul 2026 01:38:03 -0700
-X-Gmail-Original-Message-ID: <CAMRc=MeAWLS4tZ7NxTZX58fAL_Jh+ATj4rwumUsNOCv8_bGm1Q@mail.gmail.com>
-X-Gm-Features: AUfX_mxfydpQ-ICn1dyEJbgXkqSDGdxad6RoITVNK5FFHG_uJKE4sQX9mllqd5I
-Message-ID: <CAMRc=MeAWLS4tZ7NxTZX58fAL_Jh+ATj4rwumUsNOCv8_bGm1Q@mail.gmail.com>
-Subject: Re: [PATCH] fwnode: add missing kernel-doc for struct
- fwnode_operations members
-To: Danilo Krummrich <dakr@kernel.org>
-Cc: linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
-	gregkh@linuxfoundation.org, rafael@kernel.org, 
-	andriy.shevchenko@linux.intel.com, djrscally@gmail.com, 
-	heikki.krogerus@linux.intel.com, sakari.ailus@linux.intel.com, 
-	brgl@kernel.org, rdunlap@infradead.org, lenb@kernel.org
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 1/4] cpufreq: CPPC: Keep the policy across CPU hotplug
+To: Sumit Gupta <sumitg@nvidia.com>, <rafael@kernel.org>,
+	<viresh.kumar@linaro.org>, <pierre.gondois@arm.com>,
+	<christian.loehle@arm.com>, <ionela.voinescu@arm.com>,
+	<zhanjie9@hisilicon.com>, <lenb@kernel.org>, <saket.dumbre@intel.co>,
+	<ray.huang@amd.com>, <mario.limonciello@amd.com>, <perry.yuan@amd.com>,
+	<kprateek.nayak@amd.com>, <linux-kernel@vger.kernel.org>,
+	<linux-pm@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<acpica-devel@lists.linux.dev>, <linux-tegra@vger.kernel.org>
+CC: <treding@nvidia.com>, <jonathanh@nvidia.com>, <vsethi@nvidia.com>,
+	<ksitaraman@nvidia.com>, <sanjayc@nvidia.com>, <mochs@nvidia.com>,
+	<bbasu@nvidia.com>
+References: <20260724215937.3368276-1-sumitg@nvidia.com>
+ <20260724215937.3368276-2-sumitg@nvidia.com>
+From: "zhenglifeng (A)" <zhenglifeng1@huawei.com>
+In-Reply-To: <20260724215937.3368276-2-sumitg@nvidia.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
+ kwepemf100001.china.huawei.com (7.202.181.215)
 
-On Mon, 27 Jul 2026 22:27:40 +0200, Danilo Krummrich <dakr@kernel.org> said:
-> Document the four undocumented struct members in
-> struct fwnode_operations: device_dma_supported, device_get_dma_attr,
-> iomap, and irq_get.
->
-> This avoids kernel-doc warnings once include/linux/fwnode.h is included
-> in the driver-api infrastructure documentation.
->
-> Signed-off-by: Danilo Krummrich <dakr@kernel.org>
+On 7/25/2026 5:59 AM, Sumit Gupta wrote:
+> Without online()/offline() callbacks, the cpufreq core fully tears
+> down a policy during exit() when its last online CPU is offlined, and
+> rebuilds it during init() when it comes back.
+> 
+> Add lightweight online()/offline() callbacks so the core instead keeps
+> the policy live and reuses the driver's cpu_data across CPU hotplug.
+> This avoids re-reading the CPPC capabilities on every offline/online,
+> making CPU hotplug faster.
+> 
+> From online(), re-enable CPPC, as the platform may have disabled it
+> while the CPU was offline. Since the policy is no longer rebuilt via
+> init(), online() also reprograms the CPPC performance controls
+> (desired/min/max).
+> 
+> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
 > ---
->  include/linux/fwnode.h | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-> index 4e86e6990d28..a9dcaf7e7076 100644
-> --- a/include/linux/fwnode.h
-> +++ b/include/linux/fwnode.h
-> @@ -117,6 +117,8 @@ struct fwnode_reference_args {
->   * @put: Put a reference to an fwnode.
->   * @device_is_available: Return true if the device is available.
->   * @device_get_match_data: Return the device driver match data.
-> + * @device_dma_supported: Return true if DMA is supported.
-> + * @device_get_dma_attr: Return the device DMA attribute.
->   * @property_present: Return true if a property is present.
->   * @property_read_bool: Return a boolean property value.
->   * @property_read_int_array: Read an array of integer properties. Return zero on
-> @@ -134,6 +136,8 @@ struct fwnode_reference_args {
->   *			       endpoint node.
->   * @graph_get_port_parent: Return the parent node of a port node.
->   * @graph_parse_endpoint: Parse endpoint for port and endpoint id.
-> + * @iomap: Map the I/O memory of a given index for a fwnode.
-> + * @irq_get: Get the IRQ of a given index for a fwnode.
->   * @add_links:	Create fwnode links to all the suppliers of the fwnode. Return
->   *		zero on success, a negative error code otherwise.
->   */
-> --
-> 2.55.0
->
->
+>  drivers/cpufreq/cppc_cpufreq.c | 44 ++++++++++++++++++++++++++++++++++
+>  1 file changed, 44 insertions(+)
+> 
+> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+> index f6cea0c54dd9..6dc59f99d880 100644
+> --- a/drivers/cpufreq/cppc_cpufreq.c
+> +++ b/drivers/cpufreq/cppc_cpufreq.c
+> @@ -722,6 +722,48 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
+>  	return ret;
+>  }
+>  
+> +/*
+> + * With offline() defined, the cpufreq core keeps the policy alive when
+> + * a CPU is hotplugged out.
+> + */
+> +static int cppc_cpufreq_cpu_offline(struct cpufreq_policy *policy)
+> +{
+> +	return 0;
+> +}
 
-Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+I am not sure if doing nothing here will cause issues. In my view, to be safe,
+we should perform the actions found in cppc_cpufreq_cpu_exit() here, except
+cppc_cpufreq_put_cpu_data().
+
+> +
+> +/*
+> + * Re-enable CPPC when the policy's CPU comes back online, since the platform
+> + * may have disabled it while the CPU was offline.
+> + */
+> +static int cppc_cpufreq_cpu_online(struct cpufreq_policy *policy)
+> +{
+> +	struct cppc_cpudata *cpu_data = policy->driver_data;
+> +	unsigned int cpu = policy->cpu;
+> +	int ret;
+> +
+> +	ret = cppc_set_enable(cpu, true);
+> +	if (ret && ret != -EOPNOTSUPP)
+> +		pr_warn("Failed to re-enable CPPC for CPU%d (%d)\n", cpu, ret);
+> +
+> +	/*
+> +	 * The platform may reset the controls while the CPU is offline, so
+> +	 * recompute min/max, clamp desired_perf into range, and reprogram them.
+> +	 */
+> +	cppc_cpufreq_update_perf_limits(cpu_data, policy);
+> +
+> +	cpu_data->perf_ctrls.desired_perf =
+> +		clamp_t(u32, cpu_data->perf_ctrls.desired_perf,
+> +			cpu_data->perf_ctrls.min_perf,
+> +			cpu_data->perf_ctrls.max_perf);
+> +
+> +	ret = cppc_set_perf(cpu, &cpu_data->perf_ctrls);
+> +	if (ret)
+> +		pr_debug("Failed to reapply perf request on CPU%d (%d)\n",
+> +			 cpu, ret);
+> +
+> +	return 0;
+> +}
+> +
+>  static void cppc_cpufreq_cpu_exit(struct cpufreq_policy *policy)
+>  {
+>  	struct cppc_cpudata *cpu_data = policy->driver_data;
+> @@ -1034,6 +1076,8 @@ static struct cpufreq_driver cppc_cpufreq_driver = {
+>  	.fast_switch = cppc_cpufreq_fast_switch,
+>  	.init = cppc_cpufreq_cpu_init,
+>  	.exit = cppc_cpufreq_cpu_exit,
+> +	.online = cppc_cpufreq_cpu_online,
+> +	.offline = cppc_cpufreq_cpu_offline,
+>  	.set_boost = cppc_cpufreq_set_boost,
+>  	.attr = cppc_cpufreq_attr,
+>  	.name = "cppc_cpufreq",
+
