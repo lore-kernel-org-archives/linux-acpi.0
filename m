@@ -1,123 +1,151 @@
-Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtpbguseast2.qq.com (smtpbguseast2.qq.com [54.204.34.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C14AB41B8C8
-	for <linux-acpi@vger.kernel.org>; Tue, 28 Jul 2026 09:09:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D011E3BBFC2;
+	Tue, 28 Jul 2026 09:37:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.204.34.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785229781; cv=none; b=e5AlYHvaEksYKykUiIJH2OeFbZwxnUAgKuVXIRnK2yR1n31vEo8Kst60zox92L4L6HmiDMp5M3sbuk+rExDWT7r9FCuCHmoBYVdTEJXKoUY7/q6606Dxy66wBcm13fQV9j/MXSHwLzR+Y7BE15087OnuYmQq/+yBfycKCdnft+c=
+	t=1785231455; cv=none; b=DjtYFXbyPHHbiq5abYvvSO1UPaGHK+Yr7n0ZWFaqzD5m7dNOQpeE+t2ATYHh5m3TvI7HhOJIV5HSKg5wL8zyNCnHWFJ8KFdDiMgHUppNLOpL56C+oUs/Pu+AcuLjRpX1LelUUoYbxrOoD9Wmw0ZOtz8gxFoyJQWtrvo2KphL8yk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785229781; c=relaxed/simple;
-	bh=/myIS9UDVtLxMamx56QhAR/KuoQd4dKDFh1SeQgTmt0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=C4l91m7Ab4CETgxlrUZHFXY8KPocm1zhUij4P6HYBAbK1AuelY8/tn7VXF+TmzHIyNnY7dDuaE9BKI4V7kAxhNpfWVf6u9zeM99VG6DtDWjWjzW9I+YzCk8t+ENIJJPZ5qKXAf7Y/s1QTDGfFS+dW0wJhxUpQc/oIpexWi+tSUE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RGKkBq5J; arc=none smtp.client-ip=209.85.210.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1785231455; c=relaxed/simple;
+	bh=u7q9AsM+ki5AlsnpwWFMF+9oIaQLH+1sEJj2Rb5cdm0=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=XYNKxzTCm0AiEeS1VdFBiua2unJCJmSpTDR1fL8AF0ZkOG2lGbfT24CeNjHxCnRp171QfQ8hcmUrC8+NWzyhIDBMaV6L6JazWQCno6idH7tdXOxgkBd5iqsNizcyaspu8E6kQ1ok/SjU1fab51Xv0V1iyJ/JMWfAjP/aUIOkkdY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux.spacemit.com; spf=none smtp.mailfrom=linux.spacemit.com; dkim=pass (1024-bit key) header.d=linux.spacemit.com header.i=@linux.spacemit.com header.b=iybyurhY; arc=none smtp.client-ip=54.204.34.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux.spacemit.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.spacemit.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RGKkBq5J"
-Received: by mail-pf1-f176.google.com with SMTP id d2e1a72fcca58-8484f229529so2467824b3a.2
-        for <linux-acpi@vger.kernel.org>; Tue, 28 Jul 2026 02:09:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785229778; x=1785834578; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=fhsOgJYTFPT4WrpaQ/dpU3Ea3WUMBkyN/iVdfCKxIuw=;
-        b=RGKkBq5JOX/shhovgMAqqnQdMF6UlgNgNqfwPuhPu1UYfkZ4r4rAsxg9Y6ECA8UYeL
-         C+wkcqn/LLA7Lk7nCi22sX54QuV4QH1e9WouuvtPLNDNM/7r4M8NZNOQRnBNWmCB0PeE
-         +5RYhMR36ycJrxgp1H3go8SvzgavEUcl1JsDNg7nDYpu8LXP1zIwRCHMbJI3ayr4ZO1F
-         bZ5OngYjpoptKIKmhR1gQV//7H7eYM1p8qZ5qnXR1QCv5MLZevMs4x04Swb7yNFCdj/N
-         3KDqZpYU7v1EtLWkUY2xiLbCsIRrQJuVgYRFhZ8+RkMyNwbW5c+51dPcyFYi1sPvZ4ZQ
-         GeLw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785229778; x=1785834578;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=fhsOgJYTFPT4WrpaQ/dpU3Ea3WUMBkyN/iVdfCKxIuw=;
-        b=kZsBR6W7WL+beXR0Qe/YRwHsc2qh4D2kxbQtYcrfhrwNtXRr1mi2x3Hesh181Xthxo
-         SnH1taSZqXfWrLBXq4ijsFpafsV01bfY1mwTyXoQzrTkllYiAsm+/Uq+2+s5xjEIc08S
-         xSo+ZtPLgRpp5BcrLLg+7QP2gmPesbkGb8TixlLRLhtbzFdLYrrSXCOaGDSdltBsul4H
-         NIHoNIYmYSOYlYP+IgDNbe/BFmi78TiSJQHyzXuDnkSZW0KtxJq1JK8DxrHrTljKiy6G
-         eRsib9mvgDbEl7J0Wd8ArJW4dpMEcTwciKW4+jP598Mswy57rR+5WFBdAVHDlR8QPv+v
-         qH0w==
-X-Forwarded-Encrypted: i=1; AHgh+Rqyjs+ednNIQFYMFZ9Oi/5HF6GDxI2pnpo3OVaG2c2HoyQuJi2t0e0R+iNaQGOowTGSXTEWrfq/gqRc@vger.kernel.org
-X-Gm-Message-State: AOJu0YyN+wYEN7zkEgeeTUfZmsXhICRZmfxKvEU7JUDvqPlwudlJG03a
-	vHSMtsmiLszegrv+xNBPVdcBHKBLZfznV1ECvnoyH1nYx+1dipXvI+RR
-X-Gm-Gg: AR+sD13XAZLjndqKBurKGmy16ix4FOBxm+FJhC2dQm837TkMoDy6OI/acEWBdCFeava
-	4pZPt2eipmWdTHEZVlFnsJhg+561DmVbkOCPpbQRPXxOoLPDnlmE8k2Tc2zgqGKL8G8CLCPvm/t
-	HpQfcfqx2hucCMHgaK7OFUGPtu/3n6yw7ReQdWC9ZkjaqOaShM/83Lp/siE4UQXJwGH/7ny7ExV
-	FKs5KReWTaTcjxWYkTq8XrcgA5lqpTAYlNTc4p5fiJeZpoycAjSkfj7ise5Uida7nXnu5t2nLZB
-	NHTcr0WRXYi8Kd59BnGHmHQ9ry052H1ybClokpg02Vl+O1KJy4MOFRpE0MxBFd/v4Il6l0dXomq
-	iRqogDwtg77srSSmhuxvqOYvadv6JzGR0RaoSciYGggvLgL2miF4amEFpRKDdLD60C/ifjLeLfz
-	wXApCn8KLOp+bAzu2ttaNaI5xKLQMZ5DHV65UZW7HPmNLXhjau7eYw554wSeJs/tjadOaJlZj8c
-	2O0rl1merYiK5+3yH/lzrGG
-X-Received: by 2002:a05:6a21:6083:b0:3c3:875d:c531 with SMTP id adf61e73a8af0-3c8aafbd404mr1936218637.6.1785229778044;
-        Tue, 28 Jul 2026 02:09:38 -0700 (PDT)
-Received: from localhost.localdomain ([101.251.7.10])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-314bc3e1285sm44086953eec.5.2026.07.28.02.09.33
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Tue, 28 Jul 2026 02:09:37 -0700 (PDT)
-From: Laxman Acharya Padhya <acharyalaxman8848@gmail.com>
-To: Kees Cook <kees@kernel.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>,
-	"Guilherme G . Piccoli" <gpiccoli@igalia.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Shuai Xue <xueshuai@linux.alibaba.com>,
-	Len Brown <lenb@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: [PATCH] ACPI: APEI: validate ERST record length
-Date: Tue, 28 Jul 2026 14:54:30 +0545
-Message-ID: <20260728090930.31589-1-acharyalaxman8848@gmail.com>
-X-Mailer: git-send-email 2.51.2
+	dkim=pass (1024-bit key) header.d=linux.spacemit.com header.i=@linux.spacemit.com header.b="iybyurhY"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.spacemit.com;
+	s=mxsw2412; t=1785231432;
+	bh=8fCOUsx0444xOiYJjLi/BxZmA+7UPJFelel0WkroNHA=;
+	h=From:Date:Subject:MIME-Version:Message-Id:To;
+	b=iybyurhYeTkkLCpxtmrXVpJNZn0Pak5WlIyEFJyOFGzTYCQ4NH/5ew58O+tZDLOvi
+	 QsM+CCAHbVC2u1wYWeJJwAbxmheGSoulExDk8MUETgz1b7Ovk3L/XeTAlEFM2Nt82/
+	 Xf6EelXmDGdnk6bAoeg0K480KVD2ri3QV9zk4IZc=
+X-QQ-mid: zesmtpsz3t1785231429tf850c34d
+X-QQ-Originating-IP: LCEw3mgx4E2Gruu0oCqUhT5bIyN/Q0xwg1kCeX7B0s4=
+Received: from [127.0.1.1] ( [120.237.158.181])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Tue, 28 Jul 2026 17:37:07 +0800 (CST)
+X-QQ-SSF: 0000000000000000000000000000000
+X-QQ-GoodBg: 0
+X-BIZMAIL-ID: 3040970083133766586
+EX-QQ-RecipientCnt: 15
+From: Peixin Xie <peixin.xie@linux.spacemit.com>
+Date: Tue, 28 Jul 2026 17:36:12 +0800
+Subject: [PATCH] riscv: acpi: Handle LPI architectural context loss flags
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260728-riscv-acpi-lpi-timer-v1-1-c722bce01e48@linux.spacemit.com>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yXMQQ6CQAyF4auQrmnCDMkMeBXDYqwFShBJi8SEc
+ HdHXbzFt3j/AcYqbHApDlDexeS5ZLiyABrTMjDKPRt85UMVfUQVox0TrYJz3iYPVgy9i3WbAjW
+ 1g3xdlXt5/7LX7m973Sam7duC8/wAZl5243gAAAA=
+X-Change-ID: 20260727-riscv-acpi-lpi-timer-6f1739a6c831
+To: Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
+ Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>, 
+ Yixun Lan <dlan@kernel.org>, Sudeep Holla <sudeep.holla@kernel.org>, 
+ Oza Pawandeep <quic_poza@quicinc.com>, Will Deacon <will@kernel.org>, 
+ "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-riscv@lists.infradead.org, 
+ linux-kernel@vger.kernel.org, spacemit@lists.linux.dev, 
+ stable@vger.kernel.org, Peixin Xie <peixin.xie@linux.spacemit.com>
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1785231427; l=2112;
+ i=peixin.xie@linux.spacemit.com; s=20260727; h=from:subject:message-id;
+ bh=u7q9AsM+ki5AlsnpwWFMF+9oIaQLH+1sEJj2Rb5cdm0=;
+ b=OyPyxwPg/spQvU2rXgykpOsHasu2MJGcUToy65otILXBQKyoFvo1iMbczUh077ZHsuIlpJ38e
+ 7klUMbgC2lYACnaK43HFfPkezqSD+wDCxuw5Q2MlUkRFUbc2RBEgCC5
+X-Developer-Key: i=peixin.xie@linux.spacemit.com; a=ed25519;
+ pk=jczO0FmEQZBoClfXslkwCsHKDmSRchQ1hQr8W7yiiXg=
+X-QQ-SENDSIZE: 520
+Feedback-ID: zesmtpsz:linux.spacemit.com:qybglogicsvrsz:qybglogicsvrsz3b-0
+X-QQ-XMAILINFO: Nsf/gSMgV+kGvFgt2GnbzpdQTRJunaFc0PTTUmUHWpe4pOHxM6wiTqNs
+	c8mGR0ez7Fjjc7a2lZLkCvkYjbyhj1jqGp/mQZTYVkJbL/WWkG352pbVfmugwW0VfNnUZj9
+	U+C1H3NJo3hZAq4eRmGtIvNLOmtxSEWd3ZuZITbuzBy67cpvK+Edu+VwSe91QnZn1Lh0oWw
+	4CQ4g9dMuMBc66jXG0rxKom3a67Hp7cm+J9ZiXsZBEeLLna5tMFbMP0/Ytok28R3is5lMqN
+	FFFx+s+oQ8axxo9audvDszjrmIbZZOzSk+W/QFcp1M4c/JXdV7oElo+2MIvmZ8gwxxcJyZ8
+	bkEbnZlvw3wS6TvDhgW9Kh46bbN82O/FQ5fkD/9fMJo7zxaaOEO23nTyQJ8K6mLGX/ukQRC
+	UKNQ/KawmZWF7PtXY/7pvS8Ll6Kf/KhzWmVrhN7SNlxLVzjnzHtSI+0mLtpIv4qQjNW1lIq
+	RKLkzYjt/hkQ9Ehs1oF+AmA3pj2dBEdFH0mqibIhC6+A+FZLfhHRmoqz7KGF4OqKxbIwGAB
+	y7VjhgKPv6YkV9SJSwjs0YZVbR1ZV1FleFtF/AyKiTdrvo1K6yJlQYHftkFuqIb30SQl9PQ
+	zMxiVm8t9dAiZrxaZLAEVzTrCaod2Qg3uJiIlI1fMGRap0WM7B2I8DsWbPsy4824g7VmkGE
+	BfYm8i7rSB5u4kt+sOGhab46edYKSbz4ZTnrXLa2CSn3EP1ChbBCrwRe4Jdxbk4I7F1CiVv
+	l1okjVnHqTFnKa3tXejhmVNC0Q4j+YRsFKlEenUIp6RsCFMuzSag+khEcT1EQjAjKII19K3
+	xZwRHDZXr7AdXeUedhQ8UBDwrhhxoAJTaEaxLLh3sxcy5fgisjjaB/MSGlNAT/5vIB/4dZb
+	fS965wx0X2iTdyJ+sL5TCFfZbkIxgDnl+m5ncS6NSvpcGPSg6NtpxqYWVatm/CoY+Ez423D
+	G/rHcaqx+nW715/Hqlsy6GeKMyQauLfrsv7ZJ6uzsZjVAcg2X+QexgAbkJumXX42aFIuwWE
+	Ngrb/l49qMkZCbEd+3cmGykfg5QIyn6vzkuDmyzuonIlwkbTcjSjWZlMN2b6bw9BTEELOmW
+	c11wHtld9DMANmLsck26a3pe6X1MUas89oGZquIANPM
+X-QQ-XMRINFO: Mp0Kj//9VHAxzExpfF+O8yhSrljjwrznVg==
+X-QQ-RECHKSPAM: 0
 
-erst_read() returns the advertised record length without copying when the
-caller's buffer is too small. erst_read_record() only rejects records
-shorter than the expected header before inspecting the creator ID.
+Commit 4785aa802853 ("cpuidle, ACPI: Evaluate LPI arch_flags for
+broadcast timer") replaced the generic nonzero check for LPI
+architectural context loss flags with arch_get_idle_state_flags().
+RISC-V does not implement the helper, so it falls back to the stub
+that returns 0. Consequently, CPUIDLE_FLAG_TIMER_STOP is not set when
+an LPI state loses the hart timer context, preventing cpuidle from
+using a broadcast timer for that state.
 
-An oversized record can therefore leave stale or uninitialized data in
-the destination. If that data matches the requested creator, a caller
-may use the oversized length and read beyond its temporary buffer.
+Implement the RISC-V helper and map the hart timer context loss flag
+to CPUIDLE_FLAG_TIMER_STOP.
 
-Reject record lengths outside the supplied buffer before inspecting the
-record contents.
-
-Fixes: f6f828513290 ("pstore: pass allocated memory region back to caller")
+Fixes: 4785aa802853 ("cpuidle, ACPI: Evaluate LPI arch_flags for broadcast timer")
 Cc: stable@vger.kernel.org
-Signed-off-by: Laxman Acharya Padhya <acharyalaxman8848@gmail.com>
+Signed-off-by: Peixin Xie <peixin.xie@linux.spacemit.com>
 ---
- drivers/acpi/apei/erst.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/riscv/include/asm/acpi.h | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index bf65e3461531..2fefef65d674 100644
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -936,10 +936,10 @@ ssize_t erst_read_record(u64 record_id, struct cper_record_header *record,
- 		goto out;
+diff --git a/arch/riscv/include/asm/acpi.h b/arch/riscv/include/asm/acpi.h
+index 26ab37c171bc..3a3da834c340 100644
+--- a/arch/riscv/include/asm/acpi.h
++++ b/arch/riscv/include/asm/acpi.h
+@@ -12,6 +12,8 @@
+ #ifndef _ASM_ACPI_H
+ #define _ASM_ACPI_H
  
- 	/*
--	 * if erst_read return value is less than record head length,
--	 * consider it as -EIO, and clear the record_id cache.
-+	 * If the record length is outside the supplied buffer, consider it
-+	 * invalid and clear it from the record ID cache.
- 	 */
--	if (len < recordlen) {
-+	if (len < recordlen || len > buflen) {
- 		len = -EIO;
- 		erst_clear_cache(record_id);
- 		goto out;
--- 
-2.51.2
++#include <linux/cpuidle.h>
++
+ /* Basic configuration for ACPI */
+ #ifdef CONFIG_ACPI
+ 
+@@ -67,6 +69,23 @@ int acpi_get_riscv_isa(struct acpi_table_header *table,
+ 
+ void acpi_get_cbo_block_size(struct acpi_table_header *table, u32 *cbom_size,
+ 			     u32 *cboz_size, u32 *cbop_size);
++
++/*
++ * RISC-V Functional Fixed Hardware Specification Version v1.0.1
++ * Table 4: LPI Arch. Context Lost Flags
++ */
++#define RISCV_LPI_HART_TIMER_CTXT_LOST		BIT(0)
++
++static inline unsigned int arch_get_idle_state_flags(u32 arch_flags)
++{
++	if (arch_flags & RISCV_LPI_HART_TIMER_CTXT_LOST)
++		return CPUIDLE_FLAG_TIMER_STOP;
++
++	return 0;
++}
++
++#define arch_get_idle_state_flags arch_get_idle_state_flags
++
+ #else
+ static inline void acpi_init_rintc_map(void) { }
+ static inline struct acpi_madt_rintc *acpi_cpu_get_madt_rintc(int cpu)
+
+---
+base-commit: 1d6f0a217c662693d2307ee06851cb4bfcbf9529
+change-id: 20260727-riscv-acpi-lpi-timer-6f1739a6c831
+
+Best regards,
+--  
+Peixin Xie <peixin.xie@linux.spacemit.com>
 
