@@ -1,388 +1,176 @@
 Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB2F8439F75
-	for <linux-acpi@vger.kernel.org>; Tue, 28 Jul 2026 13:25:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 119D44477EF
+	for <linux-acpi@vger.kernel.org>; Tue, 28 Jul 2026 14:07:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785245111; cv=none; b=uuwTZyF0tOcl+LrhkOXTxElnlY+TiGrfQWISBLJ2IGapnxBV7SrUknVWwwCY1T77GTa3lMB0pe6BMqCCIqbR09iWOtUUSSbMJ1RtMENrEpjH8eQFtpcQxJk/2b0y3kCUuj88CSYlm94yrU9PkRO4iKE+SqagR35swxk/AlxXnSU=
+	t=1785247656; cv=none; b=U2AjTYDHxnrFW5oL0Qalw7Kl2hWlpik+rdhDn0Ei3oyUDltAsG5SeZsNw2O28sj/Lqlx4GJIA/pNXpl5pLncMJZhE+Dc0Bc/u2uk4ja4U4tYUxL9qdAouvU8e+F0e5SwXxVSsitYLQu0C4IqPOsZDkFjx9cPxBhLq4p3hTBifdc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785245111; c=relaxed/simple;
-	bh=AxnBcZ/fTAYNRGKDrrevsDEu3/4MslJ2Oz95DNs+rPk=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=bx/sP/7iJW7t3ll7ydV44sU69srANxwf431r8RI7s+PwtyIg+Snh+D7W4XW4/nqDuyEUQP2qwrIHZP9NF4ecoPFC3TmOxSPtOG5xCuJ9/ritvBWGLJXr6KHRZr3doGdqxy4QpZpUyDjHD0Lprup3RhwMr0sI6AZKCktQISMWmps=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=WlfJR5hs; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=NHLEMimD; arc=none smtp.client-ip=205.220.180.131
+	s=arc-20240116; t=1785247656; c=relaxed/simple;
+	bh=X9iWrt01a0N1nePUzdckSKX+wCmzxqLgNdh/jIQjCXY=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=S9lCc2/rsD4SZ5zhOBrgwwoowfHjO5HrZ0KTXxzNC7iz3fsefT+SejefvKH4yqkgClezk8Q6axSMMRt6eu7PWoFQ1NRVJdvXNaSMYbaDHsqj7HqcLR3K8G1NB8FJ4sGCbeqUmF5mqPn63z9SnoehnoQifyN+kI8wNBbYBRxIXiE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=MXt5Cj+z; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=T3xWee2H; arc=none smtp.client-ip=205.220.180.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="WlfJR5hs";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="NHLEMimD"
-Received: from pps.filterd (m0279870.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66SDP8Lt3030426
-	for <linux-acpi@vger.kernel.org>; Tue, 28 Jul 2026 13:25:08 GMT
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="MXt5Cj+z";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="T3xWee2H"
+Received: from pps.filterd (m0279873.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66SDOjYt2881298
+	for <linux-acpi@vger.kernel.org>; Tue, 28 Jul 2026 14:07:34 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	R5PEfpB9NVCbVrnFwLgb+8nUp0J1gUezJGpi4PwLSEA=; b=WlfJR5hstOdy1nAF
-	Ae0zMOh5O5D+JhJ7RqOdRHpSS8GdVbyvNeIAhzQ4+s67QZnwRbBv8rtb00PguLko
-	kpOl43rJEkAqbN8dXzXEMLNtA8O6HvzTRn2OpXgxHJ889cGAXKmnYvdXKJ0qb6vP
-	xEjKQiOd1Tz2QTb+xwTC5hgPXOg3PrWTsI5PxYkX9pXyRIQvjJ0PBdI2YNoJ0FkX
-	aJBStFyHug9lKecZTzVrDGRGb+N1qxTeug246HJyD88/gF78iXE5Fk0bv/myDbQ3
-	XSRYJBHalPvB5XJM9jYH9EaDb9n2j6BhpkaVtn0G5K7WyZ11IRVDTLIcXTkRwTF2
-	rqNAJA==
-Received: from mail-pj1-f70.google.com (mail-pj1-f70.google.com [209.85.216.70])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fpvtv85bt-1
+	cc:content-transfer-encoding:content-type:date:from:message-id
+	:mime-version:subject:to; s=qcppdkim1; bh=c5fc7ww9/HSIAlazJaxeZx
+	fMvt8Px9TwkVtADywhlKI=; b=MXt5Cj+z6FZRE+LpyaUzwfxitW/j0LjVYyxKs4
+	DDqMKo1zwSgiH50T2yVEfn4SGoIHMoxjITNCxiREmOyy/UcARh7500fpbF5Wa1/H
+	4pBb1LLK9zY0BIHYT3Z+XRWMgqGSv0kF0deFZhKITBkBXbmgCdJGIxKM8e5yAyE8
+	/3AtAgTA/r7TVldQlIFwpWmPvr/sxpNT2oh6g1UYW27kK5WOrxq2AAWgaIdkMtp5
+	BPDA0VzebnbQ3g+rubBepsc6Udx7UKGjo4nE8eBv/iiRBpLN7GBOSenAbM2nm5Sm
+	k5E4MoMis0lq7S2URTUmY+7RMOUuMQa2nYbueyOkqlTmuLdA==
+Received: from mail-ua1-f72.google.com (mail-ua1-f72.google.com [209.85.222.72])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fpuyg8k5w-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Tue, 28 Jul 2026 13:25:08 +0000 (GMT)
-Received: by mail-pj1-f70.google.com with SMTP id 98e67ed59e1d1-38dbf293831so9455063a91.3
-        for <linux-acpi@vger.kernel.org>; Tue, 28 Jul 2026 06:25:08 -0700 (PDT)
+	for <linux-acpi@vger.kernel.org>; Tue, 28 Jul 2026 14:07:33 +0000 (GMT)
+Received: by mail-ua1-f72.google.com with SMTP id a1e0cc1a2514c-963d7c11611so457524241.0
+        for <linux-acpi@vger.kernel.org>; Tue, 28 Jul 2026 07:07:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1785245107; x=1785849907; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=R5PEfpB9NVCbVrnFwLgb+8nUp0J1gUezJGpi4PwLSEA=;
-        b=NHLEMimDimSVgwgnkAb1OlqY0NzCoSqp8vwCrqxKisSZK7AXukDqOJO6CvsNpX6rlh
-         OzJh3HHh3BExwUqCx9ultJfKWwooIF4ZMGnf8W+LF476hL53Qye4Sh7fdnguZqzPPFvD
-         QiXHW5RtDgvmfVnSlMT1HRn0+tSwy6sfsI8S5Pg6Q/idz5LmehvV21iUkwvMUMxRYsL2
-         OjNMyb48XCh1+6jSwmol8SQLKGl3Y4VCjuX01If1OzbAKeO/sJALfnwj1pEfaSQI0nm4
-         Hf640uMWKwnzcCjVEAeWkTpEZSMwwVuOo6tqiuuWCB3Q+OgF4wwHImZLVcor8szJ0Brc
-         sEHA==
+        d=oss.qualcomm.com; s=google; t=1785247653; x=1785852453; darn=vger.kernel.org;
+        h=cc:to:content-transfer-encoding:content-type:mime-version
+         :message-id:date:subject:from:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=c5fc7ww9/HSIAlazJaxeZxfMvt8Px9TwkVtADywhlKI=;
+        b=T3xWee2HGwJEz46sy80Uj84sh34XNvUtKU3Bfbtmu1hDGm7JzisFe5fz5GVLgNB5pq
+         huwqNsj2NDIm9b71x1waQHMdlg1u9bAnpgXDoa43QgfVsrkRZb0RQszbVfcX1gy8FEVb
+         QmuExTuI0ZmRxarL57Zih924mi1Z01ulsXjQ11fcVLoTpfIaPEmEz5pU4QtZHaoF1pX8
+         HFcTitr3XHdwHoQ+jqIVmXQogoJ3EfTBL9AVMKUhJuFIsHeKN/5VHqFNuHI9VC7KYz4G
+         nMSf2xPN2YudyInQYG+mGiBItlPxf9dsfEiPWeJBi1uVERv1GzOcE3Zhqfu3haJwF6C1
+         75JA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785245107; x=1785849907;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=R5PEfpB9NVCbVrnFwLgb+8nUp0J1gUezJGpi4PwLSEA=;
-        b=f3XwP7Rn7qWjtIGKJZyHIpKoidtAJbbD1BrEHRh1miZs167C2J+B5JYw7wm6r1ZE0i
-         6T406WjmbkxeGHGr8QN/sK/JL/Eq6WS3f8eS88ygl2bU3qQu7rMLt8LNkidKEBhgqpie
-         tRC65Z5i9sRL+NE8gyxmL/LGfM0n1QrnTOFCbR4HF3MtgXfM40kZP076fhtkTR4ERT9c
-         Q156T1Q40hq7WqnDYg8zn+NS6BmZj3OSi1LmgJ5tcC+chIsQNLgjVPxMkoj7MAVQwnTp
-         k1JG7N6W26490bWlD23TOiNbR28yArAcMAVbvFziTHTKzVDuve+5zBDnHXmDzliwMgKO
-         0Upg==
-X-Forwarded-Encrypted: i=1; AHgh+RoB32fo8rRBEDJ/NTB7COM4qbrjO234cfCVUFK/V4JYLkf4C1WDnHl+YSigEv55wkem0VoMZwXD9Z8Q@vger.kernel.org
-X-Gm-Message-State: AOJu0YyxtEKV42TxrK4MWD3agrqfGkP57y2rRxUvbaeeKAgPghB+h6ZR
-	/3i4z9QYnyP4kft6qPNMwu0cMMcLDNmEu3h5+TJvVf/Z81OY1OeL7Hcfpzvwxsdr0T6jJAuQaLt
-	I1Hn9mC0eDzwTaqKXfN8f3IGfzKbTHGNc/vQDZZI7BaEdf6BRuXi+wwhToL5D+nPTfN1WpCjq
-X-Gm-Gg: AR+sD10ZZaGJ07SH8aMUNbDP7Ca2JlFBqhdneuJjNeh2PKpUfW7+raABLVFnM9GKIyQ
-	nJMctRoeOSnTbPE7UKWDPUlTMlqyrcnst31/LvByrqI5feHrYn6o8NDnvnHk3Qq4fPkJbbwV/Jb
-	LYwXoMTLAoemE3bNOPiHsFmgqryrznitnKs05fLnviGHV93RBBgNga1EjgYsyqgmMhWaM7F3ZX6
-	6cX9yMS9g1Qk1km4mn79RcsdailVL9lkzAynSo80gYH65AncmAOZpOo9PDmbw/CStdB13nvy/Du
-	godKCpJbuuZilcEOZCxxxxh6umVUU/yktLBQGt/Wkj+wrRK3PEytqVY8L1cAmWeEpBlo3rFN+k2
-	+EzZLEbA+M/PZFgH7CbqnsX46lyyJfg==
-X-Received: by 2002:a17:90b:2251:b0:381:792d:f993 with SMTP id 98e67ed59e1d1-38f6a43e810mr2538811a91.17.1785245106494;
-        Tue, 28 Jul 2026 06:25:06 -0700 (PDT)
-X-Received: by 2002:a17:90b:2251:b0:381:792d:f993 with SMTP id 98e67ed59e1d1-38f6a43e810mr2538769a91.17.1785245105985;
-        Tue, 28 Jul 2026 06:25:05 -0700 (PDT)
-Received: from [10.239.133.197] ([114.94.8.21])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-38f642baeeesm1353818a91.12.2026.07.28.06.24.59
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 28 Jul 2026 06:25:05 -0700 (PDT)
-Message-ID: <57a80bff-948c-449d-ad17-cb3fba89ed5f@oss.qualcomm.com>
-Date: Tue, 28 Jul 2026 21:24:57 +0800
+        d=1e100.net; s=20251104; t=1785247653; x=1785852453;
+        h=cc:to:content-transfer-encoding:content-type:mime-version
+         :message-id:date:subject:from:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=c5fc7ww9/HSIAlazJaxeZxfMvt8Px9TwkVtADywhlKI=;
+        b=BOvdAbaNyaPsihHNglKsqr+37VQVmuxRgJMh6Dxv/V5sq2m+vZfN6DeM5+yGQ9qQPI
+         2F7TNrxMv55A71H0l0328t2Us2YzE4wDdeNEZHtNQJg+HSB47L6KbwpwMmr1cIT0EsXi
+         Zy8JEgBBpljynlpX1sIIyWx0h65XJ5pGBe+mH33OgVn1LM0AY78VzXsLMPsqRGZM7R3C
+         rldagMbWjZJuM6M+PPZuldkAQBcLWfnamYsx7snCwrlo7eCYRZ679DRhME4tu/ANY1oA
+         t6VboyG1e9vPLJCf/kVtMx2NbeqX3w3eMTVx2vPDxAtgQU/FcmyFqIii3yfFiZev/UUC
+         rytA==
+X-Forwarded-Encrypted: i=1; AHgh+RrrOBjnMXiDf/UO4iLSUk/p3PbtzI6PobXTMT9DuG6wTOBo/gi8gLqZttqfajz3l1BHwhNLgazfymKY@vger.kernel.org
+X-Gm-Message-State: AOJu0YzzjJv0TFPXuuHrDAb7wKESXSphMLWbAYVw4C0e/oCbi6e1oBx2
+	eaW3QP2z5YAGaGjR7b799rAKNWsZNqYtM7fTifJ/eR4XyZZbljivBEJ5bhlZllg/LFPvwBQX2Sg
+	aDow3/TECyR7M3VKtjedRyt1ua83REjzv43mCIuih5/+UGJ6XTaLkSq9Ncs/2oMR4
+X-Gm-Gg: AR+sD10dglfGtgbflB3ysBMVz5lmsthhqn+wXplvMOrNC1K87ZAsyXGfru/zu8FTr2J
+	ZRwXQv2p72gL2HolsG2iaGu8EAFwlAK+RfpaLFm8JhBpb2Dc8+M23ovcTSmvxM4ZJjj1TBuGx/W
+	hODnXiVp5MVmKRqv1unzL3RlTTb9OPb91gHALFY4xM6IQZAgAbZYs+5Inz+mNZFIyfwEv0HlNfI
+	iAC/w9PX5PZXa9xWkXYWyikuk7NCnvooLSS9L6E7b8IwGHcbzPdFkmIkpGu3ul3AEzv59onT6zE
+	DbMkjEEvCuvPOf5/KYm4MsKFhh/PjwNmtQKcf1I4+HFzhnKJDaG40fDzOJMpZdhDm3PVqJr2nIH
+	8Om5d+cYsx43nZ3eWHC1ofz/5YzyAmQ==
+X-Received: by 2002:a05:6122:1690:b0:5bf:b500:c4f4 with SMTP id 71dfb90a1353d-5c33f87ed39mr1032837e0c.2.1785247653257;
+        Tue, 28 Jul 2026 07:07:33 -0700 (PDT)
+X-Received: by 2002:a05:6122:1690:b0:5bf:b500:c4f4 with SMTP id 71dfb90a1353d-5c33f87ed39mr1032759e0c.2.1785247652689;
+        Tue, 28 Jul 2026 07:07:32 -0700 (PDT)
+Received: from brgl-qcom.local ([2a01:cb1d:dc:7e00:d2e3:b407:476e:c977])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-496c44a9451sm91612285e9.1.2026.07.28.07.07.30
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 28 Jul 2026 07:07:31 -0700 (PDT)
+From: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Subject: [PATCH 0/2] ACPI: arm64: use platform_device_set_fwnode()
+Date: Tue, 28 Jul 2026 16:07:15 +0200
+Message-Id: <20260728-acpi-arm64-pdev-set-fwnode-v1-0-b5aff9b2235a@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 1/2] ACPI: CPPC: Add ospm_nominal_perf support
-To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
-        viresh.kumar@linaro.org, pierre.gondois@arm.com,
-        christian.loehle@arm.com, ionela.voinescu@arm.com,
-        zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, lenb@kernel.org,
-        saket.dumbre@intel.co, linux-kernel@vger.kernel.org,
-        linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
-        acpica-devel@lists.linux.dev, linux-tegra@vger.kernel.org
-Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
-        ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com,
-        bbasu@nvidia.com, zhongqiu.han@oss.qualcomm.com
-References: <20260717215330.2215058-1-sumitg@nvidia.com>
- <20260717215330.2215058-2-sumitg@nvidia.com>
-Content-Language: en-US
-From: Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
-In-Reply-To: <20260717215330.2215058-2-sumitg@nvidia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-GUID: mrQ07tbVtQE6VJu4ilUYoVd7eN8qoySr
-X-Proofpoint-Spam-Info: AW1haW4tMjYwNzI4MDExOSBTYWx0ZWRfX0OA/U+tGWfn3
- HURysvmcs/c5GcVmLY4QiK600Q1wx2JZzh+BCMIIUCDV09Ua15x/FmLozFDrWpqPDuSiWxofOzB
- ODWpVZx4/SWU7XXv8sYWTqlD22F8sIk=
-X-Proofpoint-ORIG-GUID: mrQ07tbVtQE6VJu4ilUYoVd7eN8qoySr
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzI4MDExOSBTYWx0ZWRfXx7IS5D4ujQmh
- 5IThMglRRQJdDASca0HLp7Re50s+x4DUjnqg7X+5mvXLkMe50GVROxN69QKHPT2jyvw/2hCBIef
- kV54IaXnbFRFctb5zjhgiu0cRspY7Je72p5xLdDWmmuuVPetbTCXZUiZyLt82jYU68Bc7GO7FcQ
- Ii/1SXyWsOQwyzZJKB6NyFQdDcRAdYn+dObGMw3YDVEN0VoBU856O/i9AZa3DrN4rC7UcrFRlwJ
- 0KfYqxT1Yamt/0FvIZ2R1fw8wrahQ6lCDWxWHtX/nII+kq6sgB0qqlSOB15dVppX0ShpThkCARJ
- ENI89g6Ddg6eIajivctt2LRcusgmMF6Ow1SdxL9skB5GyvMYngHtc6I0lGPKRQFuSP4cafkU+wG
- 7kl8JOCO4IuYCcxFWtEhLaBP6ModS2/8y4z0+8RhKLS9ZwVh8Q3kVFpw3oRZGmt5zWMsq3e5icH
- axiyBFwZjSXd457Qq+A==
-X-Authority-Analysis: v=2.4 cv=dOiWXuZb c=1 sm=1 tr=0 ts=6a68adb4 cx=c_pps
- a=0uOsjrqzRL749jD1oC5vDA==:117 a=Uz3yg00KUFJ2y2WijEJ4bw==:17
- a=IkcTkHD0fZMA:10 a=RAioF0-LDSMA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=gowsoOTTUOVcmtlkKump:22
- a=Ikd4Dj_1AAAA:8 a=VwQbUJbxAAAA:8 a=iQLh-lR14_TgILYPUVUA:9 a=3ZKOabzyN94A:10
- a=QEXdDO2ut3YA:10 a=mQ_c8vxmzFEMiUWkPHU9:22
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAJS3aGoC/x3MSwqAIBAA0KvErBvQoR9dJVqIjjWLTDQqiO6et
+ Hyb90DmJJxhrB5IfEqWPRTougK7mrAwiisGUtSpngY0NgqatHUNRscnZj7QX2F3jNq1ylNjWqs
+ JShATe7n/fJrf9wN6ipR6bAAAAA==
+X-Change-ID: 20260728-acpi-arm64-pdev-set-fwnode-1d50f24a5c12
+To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        Hanjun Guo <guohanjun@huawei.com>,
+        Sudeep Holla <sudeep.holla@kernel.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>,
+        Len Brown <lenb@kernel.org>, Danilo Krummrich <dakr@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: brgl@kernel.org, linux-acpi@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+X-Mailer: b4 0.14.2
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1068;
+ i=bartosz.golaszewski@oss.qualcomm.com; h=from:subject:message-id;
+ bh=X9iWrt01a0N1nePUzdckSKX+wCmzxqLgNdh/jIQjCXY=;
+ b=owEBbQKS/ZANAwAKAQWdLsv/NoTDAcsmYgBqaLecgpRoz1EVR/xySHZvL4LJ8+fldkg2iAUqX
+ g/9ZYu95TqJAjMEAAEKAB0WIQSR5RMt5bVGHXuiZfwFnS7L/zaEwwUCami3nAAKCRAFnS7L/zaE
+ wweXEACiogBZUO0KpBOSfIVdcyTPkEdhiBpe49Zv7WSZD8fXBpUd2iQe2gmYKXNBg5WLgmeY8lz
+ hPf49ne0+GnnWfQX9efdQipHEGxL+RHRsilxP2eKijGNWDOs/55mm3F1PHzC626krpgbc/cw/7D
+ daEiOJX1RKDBQu1P4BYNkhN5OwPgryUTJo65GY66RTSMENj/tBPEZeZRUpLubEEComzsc+BFJ7m
+ dknDTi5kdBsB99ujnsiLXHTBGDUeMmeGQvmswGrl4AnEeYpHawsIbkckVwtOu90ucw00bNbyxoL
+ zkw5KPH5RGjxVDOK9ibZEVm1gUIlWVYft8ejf+LxEC1lJu+eA8tdPEFKtVY9YsRFdmQy1L5sbog
+ 3UhYfJSCYhPHdYmewR1x5JeN26g3DK25JcQeJK0/Bgy24jNZmQgKiPFx/n/82G0U4xaDwY5ASTq
+ HvZ+V5jbZghkXhGMg3EBgQ/ZmCaiK1Ik1+B0fdhva90uavQZgiVbUPdA8Mj49SLIykrfIfUs45j
+ MZoaEVlUCIMaS8c8VT7YizUI+unlgGeYd4Z67thOw7xtI7Wt67HcCy91KBs+wP5X5ViPRk+syxW
+ ZDRYo16U90LTnX/H03lVUmiM2KfJb2zwpJhEinSoVHLE2E9Et9A1t0tsup4zEULduLCf9pFnqmx
+ c8gD0HVkcR+BWfA==
+X-Developer-Key: i=bartosz.golaszewski@oss.qualcomm.com; a=openpgp;
+ fpr=169DEB6C0BC3C46013D2C79F11A72EA01471D772
+X-Proofpoint-GUID: z3UyYZiFuRd8PpX1ZtmvHzgr9qBGmRI6
+X-Proofpoint-ORIG-GUID: z3UyYZiFuRd8PpX1ZtmvHzgr9qBGmRI6
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzI4MDEyNSBTYWx0ZWRfX9/8r7N6N0EzL
+ BVzRj7tRFdGecAmKI828kjHYMetrE+jxh6xC8190h8eBv1OGcDYITzeNgQScKQQJCOQO++gUseI
+ vy92JrD30eVjqt7Q3WUcbJdhjNCDnyWiQYlZymw9s17MTRpUSIFEtDAUyWm0/t0y86gx4eTsZ33
+ Sp+gyrNH0jErFVBCjYcSKFxQQ3FdCTEVnktz42W1OqrpWINwfu7LJuxBrT2ctip6NZZ4779Acv2
+ VhszX2WH9SBq4Nou4lGjBgL8Tq3DxPftU5aOM4WeuqR2mk3mAJSuc486II8pHtFyLck3qw1rtOM
+ fr+NMX4OgszPc6st7T2Kpz5yRIwiznZQcQ2HwNkc5o6KUBZFvxeft7YfVPaLHvIwGZXXuR9/x+4
+ ef9+zqzmcHU/5bUef0CzdHcounn6a3Bk6X7UEzZ6yDCvtPofwGuOWLmcYQ7pkO0y5j0kWjxKqUX
+ v4GVHfqyBGP1sYWhTJQ==
+X-Authority-Analysis: v=2.4 cv=aoWCzyZV c=1 sm=1 tr=0 ts=6a68b7a5 cx=c_pps
+ a=ULNsgckmlI/WJG3HAyAuOQ==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
+ a=RAioF0-LDSMA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=u7WPNUs3qKkmUXheDGA7:22 a=rJkE3RaqiGZ5pbrm-msn:22 a=EUspDBNiAAAA:8
+ a=js6g1tapueaBODJy6MUA:9 a=QEXdDO2ut3YA:10 a=1WsBpfsz9X-RYQiigVTh:22
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzI4MDEyNSBTYWx0ZWRfX3la6HCYq+uen
+ IDNHgeY5kmSMr8+lyvCUEBUs0nGa5MnUDV3zye1vFNHbhj7L/x2TXPRjjkbpCAR+t7fm7lCN3wr
+ bsgIGfXgLxVI8DlO5v4IQdee05LV05M=
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
  definitions=2026-07-28_03,2026-07-28_02,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- adultscore=0 spamscore=0 bulkscore=0 phishscore=0 lowpriorityscore=0
- clxscore=1011 impostorscore=0 suspectscore=0 malwarescore=0
- priorityscore=1501 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
- definitions=main-2607280119
+ priorityscore=1501 lowpriorityscore=0 clxscore=1015 spamscore=0 bulkscore=0
+ adultscore=0 malwarescore=0 impostorscore=0 phishscore=0 suspectscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607280125
 
-Hello Sumit,
+Note: This must go through the driver core tree where the prerequisite
+commit 8877c06885ce ("driver core: platform: provide
+platform_device_set_fwnode()") lives before the upcoming merge window!
 
-On 7/18/2026 5:53 AM, Sumit Gupta wrote:
-> Expose the OSPM Nominal Performance register (ACPI 6.6, Section
-> 8.4.6.1.2.6), which conveys the desired nominal performance level
-> at which the platform may run. Unlike the existing read-only
-> Nominal Performance register, it is writable and lets OSPM
-> request a lower nominal level than the platform-reported nominal.
-> The platform classifies performance above this level as boosted
-> and below as throttled for its power/thermal decisions.
-> 
-> It is exposed as a per-policy cpufreq sysfs attribute in kHz, to
-> match the cpufreq sysfs unit convention:
-> 
->    /sys/devices/system/cpu/cpuX/cpufreq/ospm_nominal_freq
-> 
-> The attribute is documented in
-> Documentation/ABI/testing/sysfs-devices-system-cpu.
-> 
-> Writes are converted to perf via cppc_khz_to_perf(), validated
-> against [Lowest Performance, Nominal Performance], and applied to
-> the policy->cpu. The register is assumed shared across the
-> policy->cpus.
-> 
-> On read, the current register value is returned, or
-> "<unsupported>" if the platform does not implement the register.
-> 
-> Also add the register to the OSPM-set register save/restore
-> table, so its value survives CPU hotplug and reverts to the
-> firmware value on driver unload, like the other registers in
-> the table.
-> 
-> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
-> ---
->   .../ABI/testing/sysfs-devices-system-cpu      | 26 ++++++++++
->   drivers/acpi/cppc_acpi.c                      | 32 +++++++++++++
->   drivers/cpufreq/cppc_cpufreq.c                | 47 +++++++++++++++++++
->   include/acpi/cppc_acpi.h                      | 10 ++++
->   4 files changed, 115 insertions(+)
-> 
-> diff --git a/Documentation/ABI/testing/sysfs-devices-system-cpu b/Documentation/ABI/testing/sysfs-devices-system-cpu
-> index 82d10d556cc8..a8d592c08823 100644
-> --- a/Documentation/ABI/testing/sysfs-devices-system-cpu
-> +++ b/Documentation/ABI/testing/sysfs-devices-system-cpu
-> @@ -346,6 +346,32 @@ Description:	Performance Limited
->   
->   		This file is only present if the cppc-cpufreq driver is in use.
->   
-> +What:		/sys/devices/system/cpu/cpuX/cpufreq/ospm_nominal_freq
-> +Date:		May 2026
-> +Contact:	linux-pm@vger.kernel.org
-> +Description:	OSPM Nominal Performance (kHz)
-> +
-> +		OSPM uses this attribute to request a nominal performance
-> +		level lower than the platform-reported nominal. The
-> +		platform treats performance above this level as boost
-> +		and below as throttle for power and thermal decisions.
-> +
-> +		Read returns the current value in kHz, or "<unsupported>"
-> +		if the platform does not implement the register. Write a
-> +		kHz value in the range [lowest_freq, nominal_freq].
-> +
-> +		Note that tasks may be migrated from one CPU to another
-> +		by the scheduler's load-balancing algorithm, and if
-> +		different OSPM Nominal Performance values are set for
-> +		those CPUs (through different cpufreq policies), that may
-> +		lead to undesirable outcomes. To avoid such issues it is
-> +		better to set the same value across all policies, or to
-> +		pin every task potentially sensitive to it to a specific
-> +		CPU.
-> +
-> +		This file is only present if the cppc-cpufreq driver is
-> +		in use.
-> +
->   What:		/sys/devices/system/cpu/cpu*/cache/index3/cache_disable_{0,1}
->   Date:		August 2008
->   KernelVersion:	2.6.27
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index a7fec6c93178..681d4fd40c11 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -1685,6 +1685,38 @@ int cppc_set_epp(int cpu, u64 epp_val)
->   }
->   EXPORT_SYMBOL_GPL(cppc_set_epp);
->   
-> +/**
-> + * cppc_set_ospm_nominal_perf() - Write OSPM Nominal Performance register.
-> + * @cpu: CPU on which to write register.
-> + * @ospm_nominal_perf: Value to write to the OSPM Nominal Performance register.
-> + *
-> + * OSPM Nominal Performance conveys the desired nominal performance level
-> + * at which the platform may run. Per ACPI 6.6, s8.4.6.1.2.6, the value
-> + * must lie within [Lowest Performance, Nominal Performance] and may be
-> + * set independently of Minimum, Maximum and Desired performance. The
-> + * caller is responsible for validating the range.
-> + *
-> + * Return: 0 on success or negative error code.
-> + */
-> +int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf)
-> +{
-> +	return cppc_set_reg_val(cpu, OSPM_NOMINAL_PERF, ospm_nominal_perf);
-> +}
-> +EXPORT_SYMBOL_GPL(cppc_set_ospm_nominal_perf);
-> +
-> +/**
-> + * cppc_get_ospm_nominal_perf() - Read OSPM Nominal Performance register.
-> + * @cpu: CPU from which to read register.
-> + * @ospm_nominal_perf: Pointer to store the OSPM Nominal Performance value.
-> + *
-> + * Return: 0 on success or negative error code.
-> + */
-> +int cppc_get_ospm_nominal_perf(int cpu, u64 *ospm_nominal_perf)
-> +{
-> +	return cppc_get_reg_val(cpu, OSPM_NOMINAL_PERF, ospm_nominal_perf);
-> +}
-> +EXPORT_SYMBOL_GPL(cppc_get_ospm_nominal_perf);
-> +
->   /**
->    * cppc_get_auto_act_window() - Read autonomous activity window register.
->    * @cpu: CPU from which to read register.
-> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-> index 9c88512d635c..eb6746810fa6 100644
-> --- a/drivers/cpufreq/cppc_cpufreq.c
-> +++ b/drivers/cpufreq/cppc_cpufreq.c
-> @@ -37,6 +37,7 @@ enum cppc_saved_reg_id {
->   	CPPC_SAVED_AUTO_SEL,
->   	CPPC_SAVED_EPP,
->   	CPPC_SAVED_AUTO_ACT_WINDOW,
-> +	CPPC_SAVED_OSPM_NOMINAL_PERF,
->   	CPPC_NR_SAVED_REGS,
->   };
->   
-> @@ -55,6 +56,9 @@ static const struct cppc_saved_reg cppc_saved_regs[CPPC_NR_SAVED_REGS] = {
->   	[CPPC_SAVED_AUTO_ACT_WINDOW] = {
->   		cppc_get_auto_act_window, cppc_set_auto_act_window,
->   	},
-> +	[CPPC_SAVED_OSPM_NOMINAL_PERF] = {
-> +		cppc_get_ospm_nominal_perf, cppc_set_ospm_nominal_perf,
-> +	},
->   };
->   
->   /*
-> @@ -1166,11 +1170,53 @@ static int cppc_get_perf_limited_filtered(int cpu, u64 *perf_limited)
->   CPPC_CPUFREQ_ATTR_RW_U64(perf_limited, cppc_get_perf_limited_filtered,
->   			 cppc_set_perf_limited)
->   
-> +static ssize_t show_ospm_nominal_freq(struct cpufreq_policy *policy, char *buf)
-> +{
-> +	struct cppc_cpudata *cpu_data = policy->driver_data;
-> +	u64 perf;
-> +	int ret;
-> +
-> +	ret = cppc_get_ospm_nominal_perf(policy->cpu, &perf);
-> +	if (ret == -EOPNOTSUPP)
-> +		return sysfs_emit(buf, "<unsupported>\n");
-> +	if (ret)
-> +		return ret;
-> +
-> +	return sysfs_emit(buf, "%u\n",
-> +			  cppc_perf_to_khz(&cpu_data->perf_caps, perf));
+A series of recent changes in platform device code provided the
+platform_device_set_fwnode() helper but later changes converted all its
+users to different APIs. The function however should be used whenever a
+dynamically allocated platform device gets a firmware node assigned so
+use it in two such cases in ACPI arm64 drivers.
 
-In patch 2/2, cppc_cpufreq_get_effective_nominal() reads the OSPM
-Nominal into ospm_nominal via the output pointer of
-cppc_get_ospm_nominal_perf(policy->cpu, &ospm_nominal), then checks
-ospm_nominal for zero ("A zero value means OSPM has not selected a
-nominal level") and substitutes the platform Nominal in that case.
+Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+---
+Bartosz Golaszewski (2):
+      ACPI/APMT: use platform_device_set_fwnode()
+      ACPI/IORT: use platform_device_set_fwnode()
 
-However, show_ospm_nominal_freq() passes the value read through the same
-output pointer straight into cppc_perf_to_khz() without the equivalent
-zero check. This looks a bit inconsistent — is it intentional, or
-should show() apply the same "zero means not selected" handling?
+ drivers/acpi/arm64/apmt.c | 2 +-
+ drivers/acpi/arm64/iort.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+---
+base-commit: 0d33d21e47d9dc66f91e44da3fc9220c74d93df7
+change-id: 20260728-acpi-arm64-pdev-set-fwnode-1d50f24a5c12
 
-
-> +}
-> +
-> +static ssize_t store_ospm_nominal_freq(struct cpufreq_policy *policy,
-> +				       const char *buf, size_t count)
-> +{
-> +	struct cppc_cpudata *cpu_data = policy->driver_data;
-> +	unsigned int freq_khz;
-> +	u32 perf;
-> +	int ret;
-> +
-> +	ret = kstrtouint(buf, 0, &freq_khz);
-> +	if (ret)
-> +		return ret;
-> +
-> +	perf = cppc_khz_to_perf(&cpu_data->perf_caps, freq_khz);
-> +	if (perf < cpu_data->perf_caps.lowest_perf ||
-> +	    perf > cpu_data->perf_caps.nominal_perf)
-> +		return -EINVAL;
-> +
-> +	/* The register is assumed shared across the policy's CPUs. */
-> +	ret = cppc_set_ospm_nominal_perf(policy->cpu, perf);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return count;
-> +}
-> +
->   cpufreq_freq_attr_ro(freqdomain_cpus);
->   cpufreq_freq_attr_rw(auto_select);
->   cpufreq_freq_attr_rw(auto_act_window);
->   cpufreq_freq_attr_rw(energy_performance_preference_val);
->   cpufreq_freq_attr_rw(perf_limited);
-> +cpufreq_freq_attr_rw(ospm_nominal_freq);
->   
->   static struct freq_attr *cppc_cpufreq_attr[] = {
->   	&freqdomain_cpus,
-> @@ -1178,6 +1224,7 @@ static struct freq_attr *cppc_cpufreq_attr[] = {
->   	&auto_act_window,
->   	&energy_performance_preference_val,
->   	&perf_limited,
-> +	&ospm_nominal_freq,
->   	NULL,
->   };
->   
-> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-> index cd07e1e92bf4..4c9e59643cc0 100644
-> --- a/include/acpi/cppc_acpi.h
-> +++ b/include/acpi/cppc_acpi.h
-> @@ -180,6 +180,8 @@ extern int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val);
->   extern int cppc_get_epp_perf(int cpunum, u64 *epp_perf);
->   extern int cppc_set_epp_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls, bool enable);
->   extern int cppc_set_epp(int cpu, u64 epp_val);
-> +extern int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf);
-> +extern int cppc_get_ospm_nominal_perf(int cpu, u64 *ospm_nominal_perf);
->   extern int cppc_get_auto_act_window(int cpu, u64 *auto_act_window);
->   extern int cppc_set_auto_act_window(int cpu, u64 auto_act_window);
->   extern int cppc_get_auto_sel(int cpu, bool *enable);
-> @@ -268,6 +270,14 @@ static inline int cppc_set_epp(int cpu, u64 epp_val)
->   {
->   	return -EOPNOTSUPP;
->   }
-> +static inline int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf)
-> +{
-> +	return -EOPNOTSUPP;
-> +}
-> +static inline int cppc_get_ospm_nominal_perf(int cpu, u64 *ospm_nominal_perf)
-> +{
-> +	return -EOPNOTSUPP;
-> +}
->   static inline int cppc_get_auto_act_window(int cpu, u64 *auto_act_window)
->   {
->   	return -EOPNOTSUPP;
-
-
+Best regards,
 -- 
-Thx and BRs,
-Zhongqiu Han
+Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+
