@@ -1,114 +1,92 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id C519D3597B;
-	Tue, 28 Jul 2026 15:48:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61EF91DED42;
+	Tue, 28 Jul 2026 15:56:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785253739; cv=none; b=dKlUk3GHZOgxe897WDElmMVof1n/XBHDTvEkhBGesk+BBTH2mdp3BuuLe3vgXsJ74hZ0B9kNyctkyccUy4bBlywIsf40tBATBU+DQKY9DsG/ji6kmvSXTsGcGgHE4EkvrhZV8JU2+7Ddk/BPuBznYP9snndnxuRCIYPalbODSc0=
+	t=1785254209; cv=none; b=o4bbMiTCXApJg9+daU8LvJrTLXZcx0AFAuEfH/7e4CraffpTp6S/f5CH+HlU3zcduSsHyX2Zjo2rQMMWd2ERbj+0vk+54XR2rdyl2oywv8A35qCaNc/O6fnWGxGpx7yJBeg7FchsBOIgu6JZprgAovYP7R7+odlbRABvwiZomgU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785253739; c=relaxed/simple;
-	bh=zr+9PxuDJ8lVkBBcPMcBlC8LCkYW7GLO6vnyeUF46Tw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Mn9zYJPErPwfAljQZuWPMyK7Yh918e3oYEybHeCPAnGArkXtjPa3PtJQ5E6NFohpm/nwRg+tI25YL/HevpSJviysxhI3gELkrS8DvfrJOrkrwAB8mg2DvuSZhvffI9pOu3kKUOP0VCH/CuY4QM/l/dj8bGX5ulBAG7MX9HwUpro=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=sdfWHKkq; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1785254209; c=relaxed/simple;
+	bh=RJJ2+xD193svS7IAtcxQ4D6RmHQgrNRQf6woE+rgUh0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=C/iPo/MLVSdnJQvjzKMAbzyyyq5zHUgqEXaaIvXzpJ0eqJ6UYS2zqQFXEnm+VaN8whgLxr6ALDmdhR7E4evhcEzkBgl1DnjOhqFmYgiYUMB6Z3Vk1hS2D7yWpW9ai41k/a59Kptde2qyV6hvxNQRTEiJPg/lwBLg0+ecC/jPxEc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=og/cvWzH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="sdfWHKkq"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 16956169E;
-	Tue, 28 Jul 2026 08:48:53 -0700 (PDT)
-Received: from [10.2.212.8] (e134344.arm.com [10.2.212.8])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 0E0F03F66F;
-	Tue, 28 Jul 2026 08:48:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1785253737; bh=zr+9PxuDJ8lVkBBcPMcBlC8LCkYW7GLO6vnyeUF46Tw=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=sdfWHKkq+5CXHiHCV32yCTAkdMpxSOe2krpGhrxe+7SD9xNOR0XUje2Y+l3Hu/2ln
-	 dDzKpX1lq9LoumIAdJ7EV4Zq3ceOUSo54++8dAj6TFMHRvdX6PiCW17pUJpJLt3pCv
-	 SW2d3bsmt4+r5UO/bpDtJs1vw+X/6RiCbPbdQJlM=
-Message-ID: <d471ead3-d6fd-4e2e-a800-5bbeba42cb90@arm.com>
-Date: Tue, 28 Jul 2026 16:48:53 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="og/cvWzH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB0061F000E9;
+	Tue, 28 Jul 2026 15:56:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785254207;
+	bh=wPcnTH8SGUY2hLYw9g0ZMAYWVqJRrTlT+jvwj9dxDqg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=og/cvWzHCS8+zZkz21i2RAu7IPk0zZvRO5S9pOtFEp+zCd0tLlZKt4sELAeCtRznQ
+	 O/NrTf5cAri4GxoKUKmDpOMPT+wUWCSqdur/f2l4xBPQru6xZS/ke/V52fizZq6thI
+	 U2LGFhcPB+GL3/beWadFaQs++be0KKNRoczu8ToQDe8QqHj+TSOBeZKwXr1bkl1GkP
+	 e9COWVNErpN13xTTeXcCwaOfWnQL+UHWVH6pV7BElc+S9H/zEegARBVHUDmHpExU/i
+	 GKVtlF/2MLKERoPBs5FPqzyiqo2ySQF5WTZMKHTDut8596lvD38QKD5EOsyNx96IzI
+	 BrmdADRg+1z4w==
+Date: Tue, 28 Jul 2026 16:56:43 +0100
+From: Sudeep Holla <sudeep.holla@kernel.org>
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>, Danilo Krummrich <dakr@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, brgl@kernel.org,
+	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2] ACPI/APMT: use platform_device_set_fwnode()
+Message-ID: <20260728-energetic-mayfly-of-chivalry-4e89d8@sudeepholla>
+References: <20260728-acpi-arm64-pdev-set-fwnode-v1-0-b5aff9b2235a@oss.qualcomm.com>
+ <20260728-acpi-arm64-pdev-set-fwnode-v1-1-b5aff9b2235a@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Thunderbird Daily
-Subject: Re: [RFC PATCH] arm_mpam: remove sanity check of accessibility when
- error interrupt is SPI on SMT platforms
-To: Yadong Qi <yadong.qi@linux.alibaba.com>, james.morse@arm.com,
- reinette.chatre@intel.com, fenghuay@nvidia.com,
- linux-kernel@vger.kernel.org, lpieralisi@kernel.org, guohanjun@huawei.com,
- sudeep.holla@kernel.org, catalin.marinas@arm.com, will@kernel.org,
- rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, ying.huang@linux.alibaba.com
-Cc: ptg-linux-kernel@linux.alibaba.com
-References: <20260720072409.2660-1-yadong.qi@linux.alibaba.com_quarantine>
-Content-Language: en-US
-From: Ben Horgan <ben.horgan@arm.com>
-In-Reply-To: <20260720072409.2660-1-yadong.qi@linux.alibaba.com_quarantine>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260728-acpi-arm64-pdev-set-fwnode-v1-1-b5aff9b2235a@oss.qualcomm.com>
 
-Hi Yadong,
-
-On 7/20/26 08:24, Yadong Qi wrote:
-> On SMT platforms, an L2 cache MSC is typically shared between sibling
-> threads. Per the MPAM ACPI spec (DEN0065B), the MSC's linked device
-> should be set to the processor container of those siblings, so the
-> kernel derives msc->accessibility as just the sibling CPUs.
+On Tue, Jul 28, 2026 at 04:07:16PM +0200, Bartosz Golaszewski wrote:
+> Platform devices using the split approach of calling
+> platform_device_alloc() and platform_device_add() must not assign the
+> firmware nodes manually but use the provided
+> platform_device_set_fwnode() function which additionally makes sure we
+> track the reference count of the firmware node correctly.
 > 
-> Per the MPAM spec (IHI0099B), when an MSC is not integrated into a PE,
-> SPI/LPI is the recommended error interrupt. SPIs are not per-CPU, and a
-> sanity check in mpam_msc_setup_error_irq() requires accessibility ==
-> cpu_possible_mask — assuming a shared interrupt must be routable to all
-> CPUs. This creates a conflict on SMT platforms: the MSC has a restricted
-> accessibility but a shared error interrupt, causing probe to fail with:
+> Replace the manual assignment of the firmware node with a call to
+> platform_device_set_fwnode().
 > 
->   msc:N is a private resource with a shared error interrupt
-> 
-> This RFC patch removes the check to allow MSC probe to succeed on SMT
-> platforms, but this is mainly intended to start a discussion. We would
-> appreciate advice on the right way to handle this conflict. Is this a
-> spec issue, or should the driver handle SPI error interrupts differently
 
-For advice on questions broader than just linux please ask arm support: support@arm.com
+I don't see platform_device_set_fwnode() in the upstream tree, is it in
+-next ? I didn't see -next tag as well.
 
-> when an MSC has a restricted accessibility mask?
-
-I expect the MPAM driver could be taught to deal with SPI interrupts without global affinity.
-
-> 
-> Signed-off-by: Yadong Qi <yadong.qi@linux.alibaba.com>
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 > ---
->  drivers/resctrl/mpam_devices.c | 7 -------
->  1 file changed, 7 deletions(-)
+>  drivers/acpi/arm64/apmt.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-> index b69f99488111..e8b2b5e00d7c 100644
-> --- a/drivers/resctrl/mpam_devices.c
-> +++ b/drivers/resctrl/mpam_devices.c
-> @@ -1964,13 +1964,6 @@ static int mpam_msc_setup_error_irq(struct mpam_msc *msc)
->  	if (irq_is_percpu(irq))
->  		return __setup_ppi(msc);
+> diff --git a/drivers/acpi/arm64/apmt.c b/drivers/acpi/arm64/apmt.c
+> index bb010f6164e528acd802f65afd80d65a57f5844f..c927e4f08ec2c98137d4e3c64ec1709d672ad9a2 100644
+> --- a/drivers/acpi/arm64/apmt.c
+> +++ b/drivers/acpi/arm64/apmt.c
+> @@ -99,7 +99,7 @@ static int __init apmt_add_platform_device(struct acpi_apmt_node *node,
+>  	if (ret)
+>  		goto dev_put;
 >  
-> -	/* sanity check: shared interrupts can be routed anywhere? */
-> -	if (!cpumask_equal(&msc->accessibility, cpu_possible_mask)) {
-> -		pr_err_once("msc:%u is a private resource with a shared error interrupt",
-> -			    msc->id);
-> -		return -EINVAL;
-> -	}
-> -
-
-To do this the MPAM driver would have to remove the interrupt from balancing, IRQF_NOBALANCING, and
-control the balancing itself.
-
-Thanks,
-
-Ben
-
->  	return 0;
->  }
+> -	pdev->dev.fwnode = fwnode;
+> +	platform_device_set_fwnode(pdev, fwnode);
 >  
 
+Assuming platform_device_set_fwnode() does what is needed,
+
+Acked-by: Sudeep Holla <sudeep.holla@kernel.org>
+
+-- 
+Regards,
+Sudeep
