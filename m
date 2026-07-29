@@ -1,287 +1,228 @@
-Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012034.outbound.protection.outlook.com [40.107.209.34])
+Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010006.outbound.protection.outlook.com [40.93.198.6])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53B4D3A1A21;
-	Wed, 29 Jul 2026 17:57:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.209.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D17964519BD;
+	Wed, 29 Jul 2026 19:10:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.198.6
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785347880; cv=fail; b=mgeeVbrzqhHiz/7BshwrDI2Z40/t/C/K57nbprDv4tR+aYJtHxHJ/JbNhXA45I4bVcRozjOBG+qAW9h8sIqMrfEItlHOI1qxmmHx/LsYfJLWdlrZ4ZnSC6e64g3nygLSLwCmRa6HsbCVjjnCkKSEQ5/Qm4voH1zRMH/gX5uQ3Y8=
+	t=1785352257; cv=fail; b=kvvhKsokERyTfFZ+8QwarQlnp8ZetrUeS2pGlsnTDxU32QZ8wHQAFQEO3BhBqbYHVNGVoDnc0ABoC/xPAyr7v8pN7mZcW6/FQFuiM648uvTS5176VwaXTmzs2ECmqmfNWAKGF/XVbac181mXWM3XHW3cHvscJHyBxNPWCTyiEXc=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785347880; c=relaxed/simple;
-	bh=zovfQzXzBPp/I+HKqGko8d98yIR0wxEcIZJqC3xub0w=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ddDhTzG1+wQqMQrghVyHs4etV0q2eKDp1smFHbT9GRrtqmn6TqLjEQLMQRTmt/rkubkzmIf8NGme/OZ+Pm3XOM7AbVncWzhnZGrwC2Ko2tdjAHQIzYoH6afWvMQQJ94nfOndvrtTCznkU7r1e53AENy8kcd/iWYEQkNDAvsg4BA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=E2wwRCjo; arc=fail smtp.client-ip=40.107.209.34
+	s=arc-20240116; t=1785352257; c=relaxed/simple;
+	bh=6JAW9YpF8imCMfkvSC0pU0iZRAcxEj8IuUo6B3nPqc4=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=G4GzCduyojRsK+DyPyIduFLtLTpMOfZMYfy6M9h8DJTdrG4Y4uJ5bAbTpXiJ2drGf5gvRWb/OR+s3Z7uGM+LhHGu7t19cB9q7xG5vHajNddOvMKHruktLwA26sx45jMW/wFtjN9sk1nmZSr/q0SdhNMxl27Fvf6HIBavKQssp3g=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=lX6hCp49; arc=fail smtp.client-ip=40.93.198.6
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="E2wwRCjo"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="lX6hCp49"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=r2kfFE0kwlR4qmm6nyf6h8H6QbkzxsrznAHc80qowqClGM7v4dElDjCfK4Hjl7uFkbJZ5V2vbIGKy5XS+tFMfRx+7s1AeG2MrbbW1SSjTM7QYCHztWDlF0b58tzBOuBlVw3oXkwUOe5RRu1LfNQAbyhIrWbKE3EDcEHXUFHo1duACKh0YUJacqspevL1LYW6i2A/lIm/tuwSgZeQFRS56dYkcG/ogMuUZAFxlR/ARN8Pe0KyeGBDa7OYAxAEy1rlB6ajTueyCGdFSUET1sxIeul8slx3Gs9D6sEBVmvojVuFDfbR9sh6XY/yBQPcH0xM8/yArapQcTJ5IkNobe6+cw==
+ b=g2Vpknmsgu68UcJU9eDEFq/QJTfxB+OASdb2P9tAkJN4K4G0LjqDmjMLujTtsh3KG0F9TAf1SqX81/uZ9uy7JbIMCEoI0PxUlIHxWFxB4tv5sdF39kj9TWnDo6XRlXBA8n2J1qojEon09rgFw8C4po4Z1p3QfTgjV9sT01e/WJafq67S6aZs4ewISNs5o5z2YCibOPoFKMQNAZudt+4eupSbXV49gnH5yKCcCpOZhc497YRpSSj+6xessQUcK3Gu6wQUYaDN4U/zkF1BbsnKGnjW5QVpxFw3+2crk2IySY5znPBslIKw1PLFm5wXf+5bD1BPEmGbD/CYU7z/sd0yTg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=WQBZjfqsEja8e8SgqKwFCXVFDxNqAVH4JCPU4XDUpdI=;
- b=jGVihuR39uEtXxCl0r1sJ486lgxhbNNU7tXu9VCWCagG4Zf+ilDj4svdbrDRpvRQ41N8duGYo+eCF1+eaAWzUZ77qqj/byy+pTdeEWpoTNNWOzuAXe7Ix9rEXRa4NA59/c0y/X/c8jAdoZlygPmXQAAoCkVZDLtesM6wpAa5fOrZj6h2Q3jQ4AJtulsjZ5Z9Ya4HosjMq7TV3Nymal8M8hdqHM6f5KsheqYUaX8QLez4iqSJofmDC2GRcBiPZks2wrDj9Pu3IpWXY5RLukzjATF4i5Nj6G75qqgQz+4hOlrTMJL5PE8OkGElZTzopFkbpb/qsIDWaJQGoBKqF/IGpA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
+ bh=BotRfndZVPXIZQUb9cLgKWNijf/xDu8Hb3Mog8/yWao=;
+ b=TgbWAKmS5v3tkcT5Coi6oLwrX9ttN+LmsaMwC2tFY/h+1O+SL56m3IYtcsmtk9Uf+ENorXqDJgiNoC6ZJhv4uCjrLQu588dgVfulSzJK3GDFAbiPFoWwCVVgU8+CNMQUueEd9GC6wPUlKMpBERIYAD/eUX5+sGD/rEW1u551eRukHB91MCR6i2i2kLf+V1nRbp1UBydX8sp9Usv/oRVsyy8G4zRSDrwR/8fIf2Vq9oRdB/7monKEw6mt/xIL4RszSNevzLV7mj/+xPiRfKfQ9weTerQaoT5ExduoGwOGZac8NwqV6xyC0TfN37kXYx1gQERLY4Ug6V99hJngPbEOQg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=WQBZjfqsEja8e8SgqKwFCXVFDxNqAVH4JCPU4XDUpdI=;
- b=E2wwRCjo75KOEYwjk8qK9H/470ylSx6cUjJYwJ1pr+tYCzotnNcxgAQeqgYcKXCF0lPD6UqXOWfLrAPTSqypPnZdu2kZkDIm942TmCmH/KZppbHWx+QSgKd7aNyDkEqSi7Wg2rIZkUinLvkzrDb4wo3HFa1VAsEaH4Pao7SmIpz/NhESCicElCykxx/pGDNhlcl8Tj6gBqLMrAHFbh2yrDVgqECNdpbZvsA7OvYfpJfH9U0MxEPU4LQ3bO80k4AQlgw4iwZWltIth0jrwXjFB/FZcXvTyDu7dKYKxd/rfaR2qJyQEdSbSffal98v1aguLc2vwxyENfy/vO/5leavvw==
-Received: from BN1PR13CA0029.namprd13.prod.outlook.com (2603:10b6:408:e2::34)
- by DS7PR12MB6310.namprd12.prod.outlook.com (2603:10b6:8:95::21) with
+ bh=BotRfndZVPXIZQUb9cLgKWNijf/xDu8Hb3Mog8/yWao=;
+ b=lX6hCp493bT0mQjhy9l8SSZEmEVk2SY55Z26siI0fYE27ZldN4qX3v0ItVQTJF1OrQutvJ0B1/WjfbSL11NZXB5KsF+g6cASleyYJdT4YspApX0ZdeR2PRmq8/L+zEDT7buKtbd2ToSlU38FyqldKxBpzJGn5nAU9lagozJ0Oxy20aEXslW62AqsTGI2v968XwqL/XpD1Eiuuu2+n1HW13GhgrCxogy4N3yQ+qWlZ4jhrXZM1Yf7YdQproBwFRyICRfmV9Op1m5MDtqy1p9oQJT0pE0kautqCVx3eJxCdrhgKRIblPNEn5LiZ70B4iP+Hpoa6qF7B8QscKkmRBhRFg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from BN9PR12MB5179.namprd12.prod.outlook.com (2603:10b6:408:11c::18)
+ by IA1PR12MB7615.namprd12.prod.outlook.com (2603:10b6:208:428::17) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.12; Wed, 29 Jul
- 2026 17:57:27 +0000
-Received: from BN3PEPF0000B371.namprd21.prod.outlook.com
- (2603:10b6:408:e2:cafe::3e) by BN1PR13CA0029.outlook.office365.com
- (2603:10b6:408:e2::34) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.8 via Frontend Transport; Wed, 29
- Jul 2026 17:57:27 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- BN3PEPF0000B371.mail.protection.outlook.com (10.167.243.168) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.292.1 via Frontend Transport; Wed, 29 Jul 2026 17:57:27 +0000
-Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 29 Jul
- 2026 10:57:00 -0700
-Received: from dgx-1v-42.nvidia.com (10.126.231.37) by rnnvmail201.nvidia.com
- (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Wed, 29 Jul
- 2026 10:57:00 -0700
-From: Jamie Nguyen <jamien@nvidia.com>
-To: Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
-	<guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>, "Catalin
- Marinas" <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, "Rafael J
- . Wysocki" <rafael@kernel.org>
-CC: Len Brown <lenb@kernel.org>, Dat Mach <dmach@nvidia.com>,
-	<linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
-	<linux-kernel@vger.kernel.org>, Jamie Nguyen <jamien@nvidia.com>
-Subject: [RFC PATCH 3/3] firmware: arm_ffa: Back the ACPI FF-A FFH Operation Region
-Date: Wed, 29 Jul 2026 10:56:38 -0700
-Message-ID: <20260729175638.3796440-4-jamien@nvidia.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260729175638.3796440-1-jamien@nvidia.com>
-References: <20260729175638.3796440-1-jamien@nvidia.com>
+ 2026 19:10:51 +0000
+Received: from BN9PR12MB5179.namprd12.prod.outlook.com
+ ([fe80::cf08:f59b:d016:c95f]) by BN9PR12MB5179.namprd12.prod.outlook.com
+ ([fe80::cf08:f59b:d016:c95f%4]) with mapi id 15.21.0270.012; Wed, 29 Jul 2026
+ 19:10:51 +0000
+Message-ID: <ae4e72b2-36a6-4d2e-a176-83384c0292d7@nvidia.com>
+Date: Thu, 30 Jul 2026 00:40:39 +0530
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 3/4] cpufreq: CPPC: Preserve OSPM-set registers across
+ hotplug and unload
+To: Christian Loehle <christian.loehle@arm.com>, rafael@kernel.org,
+ viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
+ zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, lenb@kernel.org,
+ saket.dumbre@intel.co, ray.huang@amd.com, mario.limonciello@amd.com,
+ perry.yuan@amd.com, kprateek.nayak@amd.com, linux-kernel@vger.kernel.org,
+ linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
+ acpica-devel@lists.linux.dev, linux-tegra@vger.kernel.org
+Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
+ ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com,
+ bbasu@nvidia.com, sumitg@nvidia.com
+References: <20260724215937.3368276-1-sumitg@nvidia.com>
+ <20260724215937.3368276-4-sumitg@nvidia.com>
+ <c8f62b1d-4ab5-4d85-ae15-b5fc9ec2e3bc@arm.com>
+Content-Language: en-US
+From: Sumit Gupta <sumitg@nvidia.com>
+In-Reply-To: <c8f62b1d-4ab5-4d85-ae15-b5fc9ec2e3bc@arm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: PN5PR01CA0036.INDPRD01.PROD.OUTLOOK.COM
+ (2603:1096:c01:260::14) To BN9PR12MB5179.namprd12.prod.outlook.com
+ (2603:10b6:408:11c::18)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: rnnvmail201.nvidia.com (10.129.68.8) To
- rnnvmail201.nvidia.com (10.129.68.8)
-X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN3PEPF0000B371:EE_|DS7PR12MB6310:EE_
-X-MS-Office365-Filtering-Correlation-Id: 92189647-b756-4e08-5c2e-08deed9ada11
+X-MS-TrafficTypeDiagnostic: BN9PR12MB5179:EE_|IA1PR12MB7615:EE_
+X-MS-Office365-Filtering-Correlation-Id: 8ebe1194-03c3-419a-8545-08deeda51aa9
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|7416014|376014|23010399003|82310400026|36860700016|11063799006|10067099003|56012099006|18002099003|22082099003|3023799007;
+	BCL:0;ARA:13230040|1800799024|7416014|376014|366016|23010399003|921020|6133799003|11063799006|4143699003|56012099006|10067099003|22082099003|18002099003;
 X-Microsoft-Antispam-Message-Info:
-	QRNFPxDKHOzmkWrNJqJdOJdEmHYRD0WvXFx/ypF/kP27tTuksbS9QdFGRZ5XlE11LFoZ6bJNka0Gn0MfOupIl3DR4SMoyU1mWXc3OHZ3IQO5ckWSg9JTGeO8cAT610JkX5vXcsy1rK05mrHlyfzqirX/V2HeJ4Z2d5mi1iZKG2zGFOImw8HB+OqLo7E4zxCW0oSnokpz2kJ4jo7E0t5ym/NRM5dkeQyGVSe690wv0Uc8pIYiuPAhvVH0TTUINmy9SegzhdWDwmP/6PIvo0nhi2mNpOq6be1hqW+Xtwii876/7KCMeXFTCjDaQrhHg+BXKEVARZfr/ynP6s9iCSq5UzP/xLTYWoaHVLQl+apQmZO3np8FIMpF9Vt2XaGbLrjMgqNl+sAmwqWhjy1LPz6G3OipzjsH2XRtsCDL6c7ohkfv/UzLgZ60f8BIlnap+G+/suXUPt90JcWvE8gvrJMBBuR8uerP96UokYpwe+Vmj8PD/obvlTq1F1pJi/8M6xM1Qzao9dSbJDcKv5m9n5BC1eEVCT2sCZeVtXpBjWZormELmoxUrymbMr1vBIL7csNBuBCPfbfbcx+qdM0cF2s3iT4ZGURCZKqhkvP1FAeEGhomXkeUMp7jZC88FSwKGrQRGvu0TXqRUfS1bGvxY+6BS6r666uHFcF9vy+0Q4bQ+QufTupFTkz+X2qpSAt/taPgLm7hMiQGxw9TqLJ2Bfeb1A==
+	dLIA3jRiTIEVxlmX4ckpxlPCJjOlKfzkOwpdPMXjAPndUxOx+ycObjWk8pTE+eHPXsChNXYJK5cA2a2gwBG4eVdYc/w9/x0sqtX1ceBzVHP/Ee9pK+z8z1nEvZRGaF5Ir9WKeH5HsfpDdN2sRYX5V3gFoomlaENOhPmS6WBLenlLt8ojIy9uz//daB/UIZ0TmddkONudM4iZvREgWzirpawkIhPSm7Lx1xtIRmLbtdd5369pGXO1eemcMFK2ruFQQGDfOef1kgxYOhDcS+MiwW4tGmLl4kxjRm8BtRLbkiZsA0K9N0/S2h3QoAn4IPBRWAZpy4cAoAsIiOAWGMcvOKKoqY5u6H78AvfRTcfHT4uouBCNATkDeLSED4KwRlPBnuJf1hqUFVteOOyGX/isE4uY9FOrkHLIfIM6bTwm2Kf8iQhvwcxCtXk1zp+SwxiKdeBpCebMJTi3qg+bFGcFynTP4K0eCaMW73jREDXYtcizBJDSqgXL5H+Oo8DDiKXGmxi+VZIa1J6Uimtc8gY63il/D0dYVMSzQa3tAN280Y8kvyVoY+OCxr2TEeH/Rzd0JrEvZL3dN4Aamcy6nyhOaMRSvzSj9R1bOWslMaBvLM3SGzh99k2hRxEIEH9h7WAM/13Q6jXzGIenVdyViMzhkj8Gge2lWMf0xFrgOya5tttQcuBcreAKxc0Drwq78mtLWxFdMfCDEBm54B/jrk+jWg==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(23010399003)(82310400026)(36860700016)(11063799006)(10067099003)(56012099006)(18002099003)(22082099003)(3023799007);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN9PR12MB5179.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(366016)(23010399003)(921020)(6133799003)(11063799006)(4143699003)(56012099006)(10067099003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	4Lkar9OW+IvFuQbUjK/xxS1auFbCPD3MU6Dius3uoGJzV2d65wTuFIDhBS1AE9p83iU0MQgktRslplOo8HJCvwMZDBTFRnF5vjpdXRTdDfLpUqnICAKBJcesU2iDQwoXtsajK0jEQOkzkJr1mVNooEzMvmJ18DGA9QBY1IDmI66LLf/WzuSuJlfpgZGPUlaAv3vFS0RFo9XOdnNM+jPHf51b9qGvmizb8tuHoITTGXwL101oIsoM1Zb4ct8+E2waPRpiHZK+JrNd4n4pv/rqqUp82By+8e3nOmq+QaKan62tuoCQfUBxrHV5J/e6ADx966Ozp9hOhUCCXLW8z9eRwGooq0eSDs22auax5Mg9DKPXFEtMO7j7oqaXV3iCvaWm/+GGwtmzPfbaBzf9+/YNWuL3JfhzLBQfGyRHvGm54eqX324TcoW9wczM/cD8r4O4
+	=?utf-8?B?Zm1Yd01lSkVHWGlkK0xVV2IxSTlQNmFzekdkY3R4QTBQU01vUVhsYjAvL1RM?=
+ =?utf-8?B?N2pYNWpXeEFLSEY5M3ZTSzJnZU5IbzhaM1U3cXA4Z1ZWQ1BBdkI3NThsUUNu?=
+ =?utf-8?B?dzhSeHloMldCVWk0UG11RTEzbTZJZUoyTzFMU09LWUR2U0tyV08vUlBHNnZy?=
+ =?utf-8?B?SHc5bVZadzBzN1E4Nlh1cWNwVlRkOXluNDFKcXIxZi9MN0ZuNXFlRDdlVTgw?=
+ =?utf-8?B?OGl3THpDbVhtNGM0MEhtYk9QVzJxWGY4OCtlOXN6OWdNbFBuR2dwZE9wTEJp?=
+ =?utf-8?B?cmowZGZ2Tmk1QU5GQW5KRG95VU40SUw1Z2RDbGFIVFhhNmgzd2tuSDltaWpz?=
+ =?utf-8?B?SmxmNCtpaFFrelc4dCtVZDRVZWF6cVk5SEo3OGp3MXRLUTBjdVNDdit0ZE9i?=
+ =?utf-8?B?UmgzYllLUmQ4NzhFVlJ4ZkhVeGFNdWx0T3ZEdHN2SGEySnhrRVUraGV5MjAr?=
+ =?utf-8?B?d3lXNkhlK1BKbGxHSkgxV0hoVWdVeWJDTUo3ai9Ia042dnJpUEZrU1d1R0ky?=
+ =?utf-8?B?L1NMUGhpYW5hSE1LNTRDK3BXSURvdmUwZkpZMURsSTY5S0d2dVJjaUpaNzFv?=
+ =?utf-8?B?YkZPZVdQVHJlTVg0QnQxdldHd1dVSnJSNUIwK3lYdFFsVTZVaTk5WHlCem83?=
+ =?utf-8?B?QjljNVRoRVc2aWFtd3lwWVhSUmRsM1J5TVllZmZXd1ZUaHpRM0tiQytacVF0?=
+ =?utf-8?B?UnNPekpnbDBRSWo2eENGSEM5dEJ4Vjk2amVqOEMyYUVKN1pXa3lTZHZyWk1t?=
+ =?utf-8?B?Z2svNnM1SktQajFWNVdlWjBzYlZ5Q0xNVEpSc1c5aGZYNEdidmtLbTBRWG9S?=
+ =?utf-8?B?aGNGYUtsbXFyUk10WmdrUUl3eDRvY24ybHdLbnd1dDkzYy9aMDRvTm9mdTlF?=
+ =?utf-8?B?NEFZUFZIb2ZhTkQ0VGVJeW41N3R4SzNKY0ZZQzJ2RDZ0aWNKTWJjclFWaVow?=
+ =?utf-8?B?ejBmR05mN2ZEdktzUzgvQzNZWFkrVUFTMndIb1lnNlFJUE9wYWNyYnpvdWxa?=
+ =?utf-8?B?UkY4L2tMam5SdGlSaTN6NDNmYWJhK0orNTc1NUtxY3dwTkFpNGlub2EwbjQ5?=
+ =?utf-8?B?ZmVqd3czc1gxdkZhWjdJZ3dtbVZnV296TDJMK2l6c1VUZWMvc2dsRk13RmpR?=
+ =?utf-8?B?TTJ3M3BoZHhBR0hzREgxNXlRZnlLdlJWUG1HTENaWVJFdUhZd1AvVTdrOVlF?=
+ =?utf-8?B?b3JpVEFjQkZFbS9ISFpDVU90SW40eFZRU20zcE4yeVBsZ2N2UFBRSnY1OUNS?=
+ =?utf-8?B?V0hWNG0zcGpIeVRRdUFkNkxUb3BVWUZTUWJWZDZDenMzNE00VUlqTWxrNlNB?=
+ =?utf-8?B?MzF1cTlENE5JSFJOUTZDOG55bEJyZkJOeFgxdll6SUZZVDdaUUQ1OUU5cisr?=
+ =?utf-8?B?U2lja1FEUVV0U2x5b2srRnA0SC9OZDFIeG82SlVvalUxbVlWaWtTcjcwYlBY?=
+ =?utf-8?B?K3Q0bmdXMElmS3pCMGsxYjJsOFF1M3lYQ3lwRSt5QzA1aTNZaTlMQytDNmwv?=
+ =?utf-8?B?S1QwY2h3RGVSUHUzcUdEazhmcmg3ay84czN0dmd6SHBrRDFQMXNxMXNDamgr?=
+ =?utf-8?B?RzQ5akJoU2s0NG01eThpVVB4VDJSQXFpTHBXMkRtNnltbXZZUjAxWTZUYlE0?=
+ =?utf-8?B?TGtzSXFlS2V1Y0JBNW1SNzBpbGhGWkptWTkwZlhPYkZXRE10MWF3Y2ZOVkFt?=
+ =?utf-8?B?MjlNUWRmdk9MVmFkSnh1d2g3M3dJZm1HRUVhV0J5K2haSFRxbWNvWkhncDhn?=
+ =?utf-8?B?MmZ5UXRBRm9yV3dwUmZkSGVPV0dzL0hDcCtCOEZVblpqeXFFdmZJUFpTTHZW?=
+ =?utf-8?B?MmsyQVZqQXJORTdrNnhoTE4wZFpWMVhzNEY5ZER0UytwUWVlS09MQ2x5YVlr?=
+ =?utf-8?B?Y1A1QlRjS0NHY2FrUGFHb3RUMmlUZDhjbFZOSFJhb3BTQTNDQW5aWmx4UTFo?=
+ =?utf-8?B?OVRyWW9wdEJEYUVwZ081c245Ri9ib1FSeENzbEY2YzB3Ry81ditYWnVBMld6?=
+ =?utf-8?B?WmdaYU1seHlzZW9iL0dCMkVYVVJoaWppTmF1YmJBYUVsMWFFek14ZUd5RHN0?=
+ =?utf-8?B?dVVSUTJRWVYvWHk1MDloUlpsZ2x5bVpnc0pYcyt2aVVGdTIxZ2E5OTNBZFdk?=
+ =?utf-8?B?YTNmem1KcTBqTXF6b1c0QnVPbnRSQlNOc1FTOHhteFROL2o3UmMwN01OTjhF?=
+ =?utf-8?B?SGxsa2FjSUdDdWwwMXZlYzlNSHk3VHlkNHpCVEF6WVdvL29ZVzgzWklxKzRL?=
+ =?utf-8?B?N1RiUnpkbU1ESkt0dlFpQ0lsUXQ5ZGlXSFpxcTZrcm0vcjJPL3g3enIxMXRF?=
+ =?utf-8?B?b0FncFl0VlVxeXJxOUg2SUxUL1p6Z1ozRjBqQzFWZERIQkFNYlJZUT09?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Jul 2026 17:57:27.0659
+X-MS-Exchange-CrossTenant-Network-Message-Id: 8ebe1194-03c3-419a-8545-08deeda51aa9
+X-MS-Exchange-CrossTenant-AuthSource: BN9PR12MB5179.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Jul 2026 19:10:50.9138
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 92189647-b756-4e08-5c2e-08deed9ada11
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BN3PEPF0000B371.namprd21.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB6310
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: sTSmqV5uyNtId1P/oYvWwajs5OzCmHoBUdClndqcS7M2oDMTjBujq0aWcrSD/RlOpcGwmqJH5yF0XtsAjHV4RA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB7615
 
-Add the FFA_MSG_SEND_DIRECT_REQ2 backend behind FFH Operation Regions
-declared with an Offset of 0x2, as described in Arm DEN0048D section
-2.3.1.2, and register it once partition setup has completed.
 
-None of what the Operation Region handler needs was reachable through the
-existing ffa_device based interface. Resolving a service UUID to an
-endpoint ID had no user yet. ffa_sync_send_receive2() always addresses
-dev->vm_id, so a receiver endpoint ID that AML supplied in X1 cannot be
-honoured. And the response registers DEN0048D wants copied back to AML are
-discarded by ffa_msg_send_direct_req2(), which folds the FF-A error code
-into an errno instead; patch 1 dealt with that one.
+On 27/07/26 18:45, Christian Loehle wrote:
+> External email: Use caution opening links or attachments
+>
+>
+> On 7/24/26 22:59, Sumit Gupta wrote:
+>> Values written to OSPM-set CPPC registers (via sysfs or the autonomous
+>> boot parameter) can be lost in two ways:
+>>
+>>    - Across CPU hotplug: the platform may reset a CPU's registers while it
+>>      is offline.
+>>    - On driver unload: the value the driver wrote is left in the register
+>>      instead of returning to its pre-driver state.
+>>
+>> Add a small table-driven mechanism that handles both:
+>>
+>>    - On init(), capture each register's firmware value before the
+>>      driver programs anything.
+>>    - On offline(), read back each register's current value (whatever was
+>>      last set via sysfs or the boot parameter) so it can be reapplied, then
+>>      restore the firmware value.
+>>    - On online(), reapply the value captured at offline() after the
+>>      performance request is re-established.
+>>
+>> Keep Autonomous Selection (auto_sel) last in the table so that, on
+>> online(), its saved value is reapplied after the other registers that
+>> shape its behaviour.
+>>
+>> Cover the Autonomous Selection (auto_sel), Energy Performance Preference
+>> (EPP) and Autonomous Activity Window (auto_act_window) registers.
+>>
+>> Suggested-by: Pierre Gondois <pierre.gondois@arm.com>
+>> Link: https://lore.kernel.org/all/86780f97-29ee-4a72-b311-38c89434b707@arm.com/
+>> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
+>> ---
+>>   drivers/cpufreq/cppc_cpufreq.c | 157 +++++++++++++++++++++++++++++++++
+>>   1 file changed, 157 insertions(+)
+>>
+>> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+>> index 34cdba00e61a..8a13ec49eb9d 100644
+>> --- a/drivers/cpufreq/cppc_cpufreq.c
+>> +++ b/drivers/cpufreq/cppc_cpufreq.c
+>> @@ -28,6 +28,150 @@
+>>
+>>   static struct cpufreq_driver cppc_cpufreq_driver;
+>>
+>> +/*
+>> + * OSPM-set CPPC registers tracked for save/restore. A value set via sysfs or
+>> + * the autonomous boot parameter is reapplied from online() across CPU
+>> + * hotplug, and the firmware value is restored from offline().
+>> + *
+>> + * Autonomous Selection (auto_sel) is kept last so its saved value is
+>> + * reapplied after the other registers that shape its behaviour.
+> While that would make sense, unfortunately:
+> "8.4.6.1.6 Autonomous Activity Window Register
+> Writes to this register only have meaning when Autonomous Selection is enabled."
+> I think restoring an inappropriate EPP/AUTO_ACT_WINDOW temporarily is okay though.
+> AFAICS it has to be:
+> 1. enable CPPC
+> 2. restore a valid DESIRED/MIN/MAX
+> 3. restore AUTO_SEL_ENABLE
+> 4. if autonomous mode is enabled, restore EPP and AUTO_ACT_WINDOW
 
-DEN0048D only requires the resolved endpoint to be unique, and a single
-partition may be described by more than one entry, so compare endpoint IDs
-instead of insisting on exactly one descriptor.
+Right, the ordering depends on the auto_sel value being restored, so a
+single fixed table order is insufficient.
+When restoring 1, auto_sel is written before EPP/window.
+When restoring 0, EPP/window are written before disabling auto_sel,
+allowing them to take effect if autonomous selection is still enabled.
+online() already enables CPPC and restores valid desired/min/max values
+before this sequence.
 
-Where the endpoint was enumerated at probe time, check first that it can
-receive direct request2 messages. AML then gets FFH_FFA_NOT_SUPPORTED
-instead of a call that was never going to work. An endpoint with no
-matching device is passed through and left for the callee to reject.
+If autonomous selection is already disabled, the EPP/window writes may
+have no effect. Temporarily enabling it to force them through would
+introduce an observable mode change and would not work where auto_sel
+is not writable.
 
-Co-developed-by: Dat Mach <dmach@nvidia.com>
-Signed-off-by: Dat Mach <dmach@nvidia.com>
-Signed-off-by: Jamie Nguyen <jamien@nvidia.com>
----
- drivers/firmware/arm_ffa/driver.c | 118 +++++++++++++++++++++++++++++-
- 1 file changed, 116 insertions(+), 2 deletions(-)
+Thanks,
+Sumit
 
-diff --git a/drivers/firmware/arm_ffa/driver.c b/drivers/firmware/arm_ffa/driver.c
-index 3236cd0a731ab..0577c7d5685ee 100644
---- a/drivers/firmware/arm_ffa/driver.c
-+++ b/drivers/firmware/arm_ffa/driver.c
-@@ -2146,6 +2146,114 @@ static void ffa_notifications_setup(void)
- 	ffa_notifications_cleanup();
- }
- 
-+/*
-+ * Backend for FFH Operation Regions declared with an Offset of 0x2, see Arm
-+ * DEN0048D (Functional Fixed Hardware Specification v1.3) section 2.3.1.2.
-+ * The Operation Region handler itself lives in drivers/acpi/arm64/ffh.c and
-+ * is built in, so it reaches this driver, which may be a module, through the
-+ * ops registered below.
-+ */
-+static int ffa_acpi_ffh_partition_id(const uuid_t *uuid, u16 *dst_id)
-+{
-+	struct ffa_partition_info *pbuf;
-+	int count, idx, ret = 0;
-+	u16 id;
-+
-+	count = ffa_partition_probe(uuid, &pbuf);
-+	if (count <= 0)
-+		return count ? : -ENOENT;
-+
-+	/*
-+	 * DEN0048D only requires the endpoint ID to be unique. A partition may
-+	 * be described by more than one entry, so compare IDs rather than
-+	 * insisting on a single descriptor.
-+	 */
-+	id = pbuf[0].id;
-+	for (idx = 1; idx < count; idx++) {
-+		if (pbuf[idx].id != id) {
-+			ret = -ENOTUNIQ;
-+			goto out;
-+		}
-+	}
-+
-+	*dst_id = id;
-+out:
-+	kfree(pbuf);
-+	return ret;
-+}
-+
-+static int ffa_acpi_ffh_match_id(struct device *dev, const void *data)
-+{
-+	const u16 *dst_id = data;
-+
-+	return to_ffa_dev(dev)->vm_id == *dst_id;
-+}
-+
-+static int ffa_acpi_ffh_check_partition(u16 dst_id)
-+{
-+	struct device *dev;
-+	bool supported;
-+
-+	dev = bus_find_device(&ffa_bus_type, NULL, &dst_id,
-+			      ffa_acpi_ffh_match_id);
-+	/*
-+	 * Only partitions reported by FFA_PARTITION_INFO_GET at probe time have
-+	 * a device here. AML may name an endpoint that was never enumerated, so
-+	 * an unknown one is left to the callee to reject rather than refused
-+	 * outright.
-+	 */
-+	if (!dev)
-+		return 0;
-+
-+	supported = ffa_partition_supports_direct_req2_recv(to_ffa_dev(dev));
-+	put_device(dev);
-+
-+	return supported ? 0 : -EOPNOTSUPP;
-+}
-+
-+static int ffa_acpi_ffh_direct_req2(u16 dst_id, const uuid_t *uuid,
-+				    u64 *payload, unsigned int nr_payload,
-+				    u64 resp_regs[3])
-+{
-+	struct ffa_send_direct_data2 req = {}, resp;
-+	int ret;
-+
-+	BUILD_BUG_ON(sizeof(req.data[0]) != sizeof(*payload));
-+
-+	if (!drv_info->msg_direct_req2_supp)
-+		return -EOPNOTSUPP;
-+
-+	if (!nr_payload || nr_payload > ARRAY_SIZE(req.data))
-+		return -EINVAL;
-+
-+	ret = ffa_acpi_ffh_check_partition(dst_id);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * Registers not represented in the Operation Region stay zero, as
-+	 * required by DEN0048D.
-+	 */
-+	memcpy(req.data, payload, nr_payload * sizeof(*payload));
-+
-+	ret = __ffa_msg_send_direct_req2(drv_info->vm_id, dst_id, uuid, &req,
-+					 &resp, resp_regs);
-+
-+	/*
-+	 * DEN0048D asks for the registers to be copied back once the call has
-+	 * completed, whatever the outcome, so this runs on the FFA_ERROR path
-+	 * too rather than leaving AML looking at its own request.
-+	 */
-+	memcpy(payload, resp.data, nr_payload * sizeof(*payload));
-+
-+	return ret;
-+}
-+
-+static const struct acpi_ffh_ffa_ops ffa_acpi_ffh_ops = {
-+	.partition_id	= ffa_acpi_ffh_partition_id,
-+	.direct_req2	= ffa_acpi_ffh_direct_req2,
-+};
-+
- static int ffa_probe(struct platform_device *pdev)
- {
- 	int ret;
-@@ -2228,8 +2336,13 @@ static int ffa_probe(struct platform_device *pdev)
- 	ffa_notifications_setup();
- 
- 	ret = ffa_setup_partitions();
--	if (!ret)
--		return ret;
-+	if (!ret) {
-+		ret = acpi_ffh_ffa_register(&ffa_acpi_ffh_ops);
-+		if (ret && ret != -EOPNOTSUPP)
-+			pr_warn("failed to register ACPI FFH backend (%d)\n",
-+				ret);
-+		return 0;
-+	}
- 
- 	pr_err("failed to setup partitions\n");
- 	ffa_notifications_cleanup();
-@@ -2249,6 +2362,7 @@ static void ffa_remove(struct platform_device *pdev)
- {
- 	struct ffa_drv_info *info = platform_get_drvdata(pdev);
- 
-+	acpi_ffh_ffa_unregister(&ffa_acpi_ffh_ops);
- 	ffa_notifications_cleanup();
- 	ffa_partitions_cleanup();
- 	ffa_rxtx_unmap();
--- 
-2.43.0
 
+>> + */
+>> +enum cppc_saved_reg_id {
+>> +     CPPC_SAVED_EPP,
+>> +     CPPC_SAVED_AUTO_ACT_WINDOW,
+>> +     CPPC_SAVED_AUTO_SEL,
+>> +     CPPC_NR_SAVED_REGS,
+>> +};
+>> [snip]
