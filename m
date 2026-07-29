@@ -1,121 +1,223 @@
-Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDBD148125E
-	for <linux-acpi@vger.kernel.org>; Wed, 29 Jul 2026 12:44:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.210.176
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785329089; cv=pass; b=Mjz7TlIvWBvjYDOxlizNj475siIKrTjzgR5SeTBAIwrd+2HLzzQHDeS8YmmJJfn8zsBgfv37m0qpOChGS3ZW/5LQYFM5UlxK7+VV7LTlvgaYReExeZxbFITBlW01BZpfR1xDaRJ/uONUsBXQQG9GH8cmVjEuD3ErXI5+69Of96s=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785329089; c=relaxed/simple;
-	bh=FZDjz/F55Ie1M0v56bfpoehgRTLCH7hYAH2EKNVwZnY=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=e30M1yj/msvA6R2m9asfEs7C9SulpYRdj+NM8NQztTle6z5/jZbvmolj6IW8bvSHJNLFs0W60kWBeZr/EfwBbR12d5okp0EV+7zGSbKTUtEBGMyV6X4Pnr6arqzZf1QNgJvERgaa15ZW728TncyDX43VOmGvIOmDmcfAqrgDTLU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QHmKnWhX; arc=pass smtp.client-ip=209.85.210.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 51D8F430CCB;
+	Wed, 29 Jul 2026 13:41:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785332499; cv=none; b=jadjuHQ1kX3JWNFPOskauoEKCwiXEQYHKQZ9oi11VSpcztov4imNyKy6i6TiQ4lhTwHxUo1Rx7DmjD+3F913G3ZzoZyGHXxW2j5dU6az/osJjWqbZm+FHsAmti3OcJMaXfK6BfWAsiA65XT8Fqv8VXCqVbCQcCgxg0jrbwJx2iY=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785332499; c=relaxed/simple;
+	bh=x++LESHWtWfxtigyVEeHqLKsoMx5GGiqNTIeIwaJ7SU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=iL6P/Q5v2V0Hi4QQYk3+EjVBKJbC1ev3hLUOFMwgWrwEdYpiRXbqwIbCI2mtMnho7zm71y5RTfniRQeUaOnaGCBJFRRqdhHitZcEqyFC49ugSj6RsjUNVsN+trvdoJF2P6MGhyN/+LYFogpefdaVbHNSDDxx1tiJ83pdHRED66c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=dz+Rpk4x; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QHmKnWhX"
-Received: by mail-pf1-f176.google.com with SMTP id d2e1a72fcca58-84874b52eabso1197505b3a.0
-        for <linux-acpi@vger.kernel.org>; Wed, 29 Jul 2026 05:44:42 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1785329079; cv=none;
-        d=google.com; s=arc-20260327;
-        b=XfCqX8BwYGYJEoTXQCeSVI1tf+0Fl8JLpE5Y4aOItYZfVQDce0xfnfCMBk9o40Y3Ie
-         OlLYr5u/iE9swF1RS2MrilYs3kgCKKLDaKuI2LJrWWUyYB4xsIO/NsYz9xYLHKFVT5b4
-         WwySvTVI6d+mCLBIi5tL/5K4lf6IcFp7UaisgnQ8vCZVEQbEjN5pbIosTjKThpajwREr
-         yHlAQEViZGJbZXsDqCCHCYLBZHb3el1o+cuPlYbrfD/yi0a8F8M3uOZ1PF1qz23OrD1b
-         HrxsYYCaHzSI08SZ1L+HcmZV0OOo8aSi2nmsOYTa6q7ooxYyx/wfejFH8KTp0mUOi8lH
-         DOEA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :mime-version:dkim-signature;
-        bh=FZDjz/F55Ie1M0v56bfpoehgRTLCH7hYAH2EKNVwZnY=;
-        fh=fNCk7gCpj73DQXRkrMjciSI5FQ12zZk+glanoKTZCDk=;
-        b=nqtGIoPctYV8lZU7AnHoMIO47muHDVyfGcwauJmDOKKDfNr+irLlQx7xwdBYwD85Vi
-         rNZJf5keExeD9fMdrgIgwJinBb6BowAYaZ+Z3AL193b7G0D+h3OcLxIbbn516XYuHMdy
-         Y1nLyuMxwVeFFrfTubt4fXT5/AQjPzcNsJLaemgW4oTg+gVFoqef6dVdusfVw7bJ7yBk
-         7CHpNY3W8xthClES8eAb/412OfCkHCA0P57vLymXvFKp5qocZPaEPTIO+LsD3psb5hyH
-         jf2CvRY7GJh9cBEnHxpHq8tGWQE00cPdNIdxMwRI4PsELw3WPJ32ybWuZ4Z1otWRGghS
-         R0yA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785329079; x=1785933879; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=FZDjz/F55Ie1M0v56bfpoehgRTLCH7hYAH2EKNVwZnY=;
-        b=QHmKnWhXNEhPoaM9N6RX699JMx1ztHLbmma3zlB0OwLWJVf3Q1Oj1FT6eMl7U4aBH/
-         uTU8rWN2WB32x3J4IMbmjNUBs3WlIMzgU0ZAPAWpI5van/LikKsEMUj6hg83udsrK9VN
-         qo/zCRzOfdxzADXKSEkGo0QXGeS562JrUq0SSnmpdfyfAiPkHBisbp/HXgw80T+MNL+x
-         VrhKbVEymuP8F0w/1uJymYFi+nv8BUYGvLPSA8vd0yRvzm/qMxM+o0Q8tk/nqYdZZO08
-         lDNr1vAuYeXuxD/P/CRn36vJpQCDGtT5zw+dRqF8HVPGsQhagYjULEZeiKEhqW4ZBgpC
-         vE0g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785329079; x=1785933879;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=FZDjz/F55Ie1M0v56bfpoehgRTLCH7hYAH2EKNVwZnY=;
-        b=MdtBX9cYgQrDZ6XVU6B28Nd7HuwxLOp4Mwz8xfoS02ltgeSCcg14OJrcLPPkUDsJc2
-         8Yv1amNksZLx1GgFDgMHSdSBCIuFCreKt28qlHl2etdyw6GfzxerDYGOJBrfC3e0JwNd
-         GuPKCr2b+6+WaxLCrTKZAn/LSS4a0C0vEfcpAnHZrAAm44msU+Cb6oxQV4fGMcv3WK+f
-         vhf4Mfa+f4teIXVpyzW1nuR0xxGEEWjC2J5L0x7LiWyLkZ5/WTudDsf/p0pWJvDYMUuA
-         9fjnv2H/4Oy4ZaPb4R0O4hkxQxB300YdYpz32jBPOWROgus4oaJKdYtB5ZiB/kPgO8qy
-         lrpQ==
-X-Forwarded-Encrypted: i=1; AHgh+Rqv1TZniBq7pOzeJGTrFroLmoYjcPVA2t8U++8OMix39LlID6iSp4LPxuRDnmh5/fLjvFhSI9BLxr1N@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyu+xNcXGt5QJSM+YkXT4jZWHrn2PTLUhN3aONtLOVA/CZ6opQL
-	IzEhAKMfIirjcP2s7sMQYLY9O8e1vKljgmKVaHrJmQwyVMxnZxjXkVN51Bxqaa58PKwpjQp2fb+
-	axJ5A6mc8ikH1k8xoGWuPcP6wcjwBDp4=
-X-Gm-Gg: AR+sD11uPKjVPwm6vhzFae/jjpWVE20hOVB/kZO8wYyuWvZjefQPoj7KzjtiZMCFu2B
-	yJor8agSfYJR5wFGNwQnkoic+fyFesKYdv2IxUxvzZr4UMCJd6j/3rae7vWmzV204/HWWpYGFLh
-	FTVGnOvbyC/JbHYA2Adi0338dvNk+Vid6aVlLDrgDctGUMLW2QRkNSLDWbn01C5b0FrgViTta6K
-	7xE/NWO1MIxe02GlyX85tWOt6DPp1WPV9Za9rowEU8RM0rsVjV4jfn0rgQaxRXhxVmJLdj1Y7vB
-	hBGkauLPAwz6ZHWpuar7ANCNY6zlIiWYPtD9iYpvh4E=
-X-Received: by 2002:a05:6a00:35c4:b0:845:e432:e93 with SMTP id
- d2e1a72fcca58-84e9331e5eamr7041497b3a.48.1785329079445; Wed, 29 Jul 2026
- 05:44:39 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="dz+Rpk4x"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 24192165C;
+	Wed, 29 Jul 2026 06:41:32 -0700 (PDT)
+Received: from e142021.fritz.box (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 4C0653F86F;
+	Wed, 29 Jul 2026 06:41:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1785332496; bh=x++LESHWtWfxtigyVEeHqLKsoMx5GGiqNTIeIwaJ7SU=;
+	h=From:To:Cc:Subject:Date:From;
+	b=dz+Rpk4xWLfrnzcMm1NB9TRvoyPLTVXTe0nKIbLyZuUFNrzSbIIQnJfyF1By49Bzv
+	 a+/mMhytpS+LW/p9C4NLFVNF5eHIM7s9GU/yqw2kB6cl5e1P6L0Bi9OnJ0B1M+0ONN
+	 X2QKFyoUKTYRwfxrFaQkITch2FAtbPQJNiO6smrU=
+From: Andre Przywara <andre.przywara@arm.com>
+To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	James Morse <james.morse@arm.com>,
+	Ben Horgan <ben.horgan@arm.com>,
+	Reinette Chatre <reinette.chatre@intel.com>,
+	Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+	Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+	Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+	Trilok Soni <tsoni@quicinc.com>,
+	Srinivas Ramana <sramana@qti.qualcomm.com>,
+	Niyas Sait <niyas.sait@arm.com>,
+	Lee Trager <lee@trager.us>,
+	linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v5 00/10] arm_mpam: Add MPAM-Fb firmware support
+Date: Wed, 29 Jul 2026 15:41:14 +0200
+Message-ID: <20260729134124.2506269-1-andre.przywara@arm.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: Pengyu Ma <mapengyu@gmail.com>
-Date: Wed, 29 Jul 2026 20:44:27 +0800
-X-Gm-Features: AUfX_mxA4etvlqMH1AkG8JNXFGenrt_C92n1wg3pKM4Nj8bFnD6JmwEU7iPTaME
-Message-ID: <CALSz7m1iW_hZbkL56+OMLXm5wE2s+ytxT_oGEU+DHyvYEMx8jQ@mail.gmail.com>
-Subject: Re: [PATCH v2 3/3] ALSA: hda/realtek: enable AW88399 on Lenovo Legion Pro
-To: marco_giunta@outlook.it
-Cc: broonie@kernel.org, hansg@kernel.org, ilpo.jarvinen@linux.intel.com, 
-	imitoy@imitoy.top, lenb@kernel.org, lgirdwood@gmail.com, 
-	linux-acpi@vger.kernel.org, open list <linux-kernel@vger.kernel.org>, 
-	linux-sound@vger.kernel.org, munzirtaha@gmail.com, nadim@symbolic.software, 
-	perex@perex.cz, platform-driver-x86@vger.kernel.org, rafael@kernel.org, 
-	tiwai@suse.com, wangweidong.a@awinic.com, yakov.till@gmail.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Hi Marco,
+Hi,
 
-This breaks 4-channel playback on SSID 17aa:3906 (Y9000P) and
-bugzilla 218329#c31 reports silent woofers on 17aa:3928.
+this is version 5 of the MPAM-Fb code, for firmware based MSC accesses.
+Many thanks to all the diligent reviewers, uncovering bugs and less pretty
+code. Big change this time is the move to a threaded IRQ handler, to be
+able to handle error interrupts despite MPAM-Fb MSC accesses requiring
+process context. Another notable change is that the MPAM-Fb request
+routine now tears down the whole of MPAM upon noticing an error condition,
+as we cannot really recover easily at this point. This might be refined
+and partially lifted in the future.
 
-override_conn_list(0x17, {0x02}) forces both speaker pins (0x14
-tweeters, 0x17 woofers) onto DAC 0x02. For a 4-ch stream the parser
-needs a second DAC, grabs DAC 0x03 from headphone pin (0x21), and
-assigns FL/FR to the higher-priority headphone (muted). Result:
-FL/FR lost, RL/RR played on all speakers.
+Find a changelog below. Based on v7.2-rc1.
 
-Pin 0x17's hardware default conn list {0x02, 0x03*, 0x06, 0x08}
-selects DAC 0x03* which has full volume control. Without the override
-the routing is correct: FL/FR =E2=86=92 DAC 0x02 (tweeters), RL/RR =E2=86=
-=92 DAC 0x03
-(woofers).
+=======================
+The Arm MPAM specification defines Memory System Components (MSCs),
+which are devices that are programmed through an MMIO register frame. In
+some occasions this turned out to be too limiting: the MSC might be
+located behind a separate bus system (for instance inside an on-board
+controller), it might be mapped secure-only, or in a different processor
+socket without direct MMIO mapping. Also the MMIO access might be too slow
+or it would need to be filtered or otherwise access controlled. Finally
+there might be bugs in the MSC integration, which require a mediating
+firmware to be accessible.
 
-Does this affect other 4 SSIDs (3906/3927/3938/3939)?
-Please drop the override_conn_list if it is the same on these 4 SSIDs.
+To accommodate all those different use cases, the MPAM-Fb specification
+[1] describes an alternative way to access MSCs. Accesses to an MSC
+would be wrapped in a message and communicated to the system using a
+shared-memory/mailbox system mostly mimicking the Arm SCMI spec.
+For ACPI systems, this would be abstracted through an ACPI PCC channel,
+which provides the shared-memory region and the mailbox trigger. We can
+lean on existing ACPI parsing code to register with these two
+subsystems, but cannot rely on the existing SCMI code in the kernel.
+This means we somewhat need to open code a very simplified SCMI handler,
+which just provides enough functionality for the very basic subset of
+SCMI that the MPAM-Fb spec requires.
 
-Pin 0x1d is already 0x40600001 ([N/A]) in hardware defaults on both
-3906 and 3928. The override is redundant.
+The first six patches rework all MSC access wrappers to propagate error
+information. Pure MMIO based MSC accesses would never fail, but the
+MPAM-Fb access can go wrong in multiple ways. The patches have been split
+up purely for reviewing reasons, if the number is a problem, we could as
+well squash them. Please note that until the very last patch of this series
+any MSC accesses would always only return 0, it's only the final enablement
+of MPAM-Fb that could possibly introduce errors. Hence all former patches
+can add error handling gradually, those code paths wouldn't be triggered
+before patch 10/10.
+Patch 7/10 solves a nasty problem: At the moment we protect stateful MSC
+register accesses (mon_sel) through a spinlock. Unfortunately the mailbox
+subsystem and the slow nature of the communication through this channel
+forbid MPAM-Fb access in atomic context. So this patch keeps using a
+spinlock for MMIO based accesses, but reverts to a mutex otherwise.
+We just deny taking the lock for MPAM-Fb in atomic context, ideally we
+wouldn't need that (no need to IPI another core when the MSC access does
+not need to be local to one particular core), or we simply deny that part
+of the functionality (access through perf).
+Patch 8/10 adds the code to redirect MSC accesses through the
+PCC shmem/mailbox system.
+Patch 9/10 reworks the error interrupt handler to use a threaded IRQ, to
+be able to do MPAM-Fb MSC accesses inside (which might sleep).
+The final patch 10/10 then adds the code to detect and store the PCC
+channel information from the ACPI tables, and eventually enables
+MPAM-Fb accesses.
 
-Aaron
+This would enable systems where some MSCs are not accessible via MMIO to
+use those components anyway.
+
+Please have a look and test!
+
+Cheers,
+Andre
+
+[1] https://developer.arm.com/documentation/den0144/latest
+
+Changes in v5:
+- do not initialise _high variables early
+- fix whitespace issues
+- add Jonathan's Reviewed-by: tags
+- init only either the spinlock OR the mutex for the mon_sel_lock
+- drop warning about mapped_hwpage_sz for MPAM-Fb in mpam_msc_zero_mbwu_l()
+- change IRQ handler to threaded handler, to allow MPAM-Fb MSC accesses
+- disallow per-CPU IRQs (PPIs) for MPAM-Fb
+- trigger MPAM disabling on MPAM-Fb protocol errors
+- fix MPAM_PROTOCOL_VERSION_CMD name
+- use PCC driver defined symbol for PCC_CHAN_FLAGS_IRQ
+- add comment about usage of PCC's .signature field
+- check for illegal MPAM-Fb command before sending request
+- drop CPU accessibility check for MPAM-Fb based MSC accesses
+- move MPAM-Fb protocol message structs inside build functions
+- add comment about largest message size
+- drop extra msc->mpam_fb_msc_id, in favour using pdev->id
+- use already defined local dev variable instead of &pdev->dev
+- use FIELD_GET() macro for MPAM-Fb protocol check
+- drop devm_mutex_init() for pcc_chan_lock
+
+Changes in v4:
+- unify error check patterns
+- use scoped_guard(mutex) and ACQUIRE to simplify error handling
+- use struct kref for PCC channel refcount
+- drop unused mailbox rx_callback function
+- increase size of props[] array to hold new msc_id property
+- set mailbox TX timeout based on ACPI MPAM table field
+- use devm_mutex_init() to allow automatic cleanup
+- avoid overwriting error value for arm,not-ready-us property read
+- prune MPAM-Fb protocol token to fit into bitmask inside register
+- check return value for AIDR read
+- use two separate MPAM-Fb protocol payload structs
+- prune header list for mpam_fb.c
+- drop "nrdy handled as an error" change
+- fix message size field in MPAM-Fb protocol shmem area
+- drop message size return from MPAM-Fb message build functions
+- bring back IRQ flag in MPAM-Fb protocol header
+
+Changes in v3:
+- drop inner/outer mon_sel lock patch, replace with simpler version
+- harmonise code patterns in error propagation changes
+- drop mon_sel lock before erroring out in mpam_ris_hw_probe_csu_nrdy()
+- refactor mpam_msc_read_mbwu_l() to return an error
+- drop special NRDY handling in __ris_msmon_read()
+- add IRQ numbers in error interrupt handler to help pinpoint failure
+- refactor MPAM-Fb message generation to accommodate more than read/write
+- check MPAM-Fb protocol version at probe time
+- drop mpam_fb.h header, merge into mpam_internal.h
+- translate MPAM-Fb error code in Linux codes where needed
+- clear IRQ flag bit in MPAM-Fb protocol header
+- drop unneeded endianness conversions when crafting MPAM-Fb message
+- use C struct to model MPAM-Fb message payload
+
+Changes in v2:
+- add patches to add error propagation to MSC access wrappers
+- drop former patch 1/5 (not needed)
+- drop lock in mpam_reprogram_msc(), to avoid double lock
+- add support for multiple MSCs per PCC channel
+- adjust SCMI protocol code to use a PCC subtype 3 channel
+- let PCC code handle the PCC channel negotiation (due to subtype 3)
+- drop SCMI names in shmem offsets, and use existing PCC type 3 struct
+- adjust shmem field offsets to match MPAM-Fb spec, not pure SCMI
+- prevent MPAM-Fb calls inside atomic smp_call_function_any() payload
+- skip all MSC accesses inside the IRQ handler when using MPAM-Fb
+
+
+Andre Przywara (10):
+  arm_mpam: let low level MSC accessors return an error
+  arm_mpam: propagate MSC access errors for hw_probe functions
+  arm_mpam: propagate MSC access errors for MBWU counters
+  arm_mpam: propagate MSC access errors for msmon helpers
+  arm_mpam: propagate MSC access errors for __ris_msmon_read()
+  arm_mpam: propagate MSC access errors for state saving function
+  arm_mpam: prepare mon_sel locking for MPAM-Fb
+  arm_mpam: add MPAM-Fb MSC firmware access support
+  arm_mpam: change error IRQ to use a threaded IRQ handler
+  arm_mpam: detect and enable MPAM-Fb PCC support
+
+ drivers/resctrl/Makefile        |   2 +-
+ drivers/resctrl/mpam_devices.c  | 674 ++++++++++++++++++++++++--------
+ drivers/resctrl/mpam_fb.c       | 214 ++++++++++
+ drivers/resctrl/mpam_internal.h |  68 +++-
+ include/linux/arm_mpam.h        |   2 +-
+ 5 files changed, 781 insertions(+), 179 deletions(-)
+ create mode 100644 drivers/resctrl/mpam_fb.c
+
+-- 
+2.43.0
+
