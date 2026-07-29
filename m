@@ -1,243 +1,252 @@
-Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11012041.outbound.protection.outlook.com [40.107.200.41])
+Received: from BN8PR05CU002.outbound.protection.outlook.com (mail-eastus2azolkn19011037.outbound.protection.outlook.com [52.103.12.37])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE91245FFAA;
-	Wed, 29 Jul 2026 17:05:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.200.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2563839CCFD;
+	Wed, 29 Jul 2026 17:48:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.103.12.37
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785344746; cv=fail; b=DG9f+lF70EmgCrdxCVqYpyXhRdUGfwqz1ESWJ/VcnthDed+/vnqGC3ey10o13AUBc41H4B1Ncf+m7nLopH7vexJPYg+/bFpfDgu9WHmaFqwLGopAkUiKFxNR+mMKcf2HVESWObv74ZRqo0o+LYE6Va9MtBGPaAxhIgQJQ9E35xE=
+	t=1785347312; cv=fail; b=HOyedOPpenaM/nWOCzOhxNzt9UjrKsT4/7PDKeT/xX4GIGfj+uSKxsomZ4j87JapXItj2PgnzC39U963Lx71miZGI1yz996M2ty9kwZ57iy9qKUeQhNcso6hkT/sc6DCO6W1Ys1eQUkQL++HzcmKqFIysi6AfMBqTXvN6EIKTIM=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785344746; c=relaxed/simple;
-	bh=Jn/N8kmOYGopTe91U/bY5rIb+GaApduhF3geXCx0Rd8=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=SeEyuXQZ5gdVpLXKsniJCBx3f86Vr7q67VYtwXk16hV42cXuI1sfd/+Y7OcVVLyBV4g6Xj88Hb8uoknSUtKGol7C1x1ujXAdZPtPhm5OoK+CRXoJ/1qlOHrCDjAT9JljFUErrROwwh7EU4+qLbZDi4eXxCbFdgI1yQmdSZbQU8U=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=l9rSkAxy; arc=fail smtp.client-ip=40.107.200.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	s=arc-20240116; t=1785347312; c=relaxed/simple;
+	bh=KOAdxVLoSd242yOLaIzJU3uC628pp5IMByULyye9Mj0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=RHmrZ/Zcx9f9yt1Q46+nFtck8AuHhXsUTKzArVv63kmLfYbQiShTF6NIN80a7Px+XTOBtAGy0Qfz3u7dUFGmRc2KVR2+9MXB5BxepZhCtiyOlWlHZJjtyzf8A6ndxv+fvKToB0q4ynHl+FCaYIH/aLf6bZ+LMPAOzZeIgh7XwQA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=outlook.it; spf=pass smtp.mailfrom=outlook.it; dkim=pass (2048-bit key) header.d=OUTLOOK.IT header.i=@OUTLOOK.IT header.b=HPRojKGA; arc=fail smtp.client-ip=52.103.12.37
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=outlook.it
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=outlook.it
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="l9rSkAxy"
+	dkim=pass (2048-bit key) header.d=OUTLOOK.IT header.i=@OUTLOOK.IT header.b="HPRojKGA"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=AfHSsJ0TXBdIGMOFWOXjJeSizvMZ9u2WAZogA8k5p+Qz8iFIGxDp0gzHkqllGbZbtRQR5TWLcdNJVvMHWzJipsOZ8RVcylNcEjV1e2fpZBhkySEexHB5kG28vZAkO/NAbg0qXvRAzOOJTQ1uvScNk4Mp+0TwJMLzbX3jZ+NW25DXRb1etTGmR2ux/AiXPhj3BPGHipIHC6IwpmOA4B713o4g8QngFo8r71z9KXvMOKLYIz2GifB43K7PXyQf/RcrZ69eG7My3Bnu9PPj8tikc8FTF1OeiMfN43MzQ2+e5dRSPEDOI+0sK/qG9OI1C7D6EY9jV5+Hp0pqL9zH0E5KEQ==
+ b=lJV2aeufinO6fjRXoU0Ymhn1hHTTThmGgSt9yXyLLwQUY1jImO6QenhmfJP8DzmLJKFkUmKM0hAwRwVK0qdRLt3MnXNvawuYS5lxrvMnfLz2U2uOSikacj2EyR3l8AxZ6/BkvM+QcRNGmcWkTZOnVaj4mcUizao/BGIiq17RdpOeem3Whk8iubfyCcO/fL6CWR5R0/aa7xq7HFXLUz4P96fXg798c97NXOgPbrV+dmwimM3QE4KFpr19PAwMvYaDS7MlQHTa80+enq57PZCEhEFryu7nEKne47QBsbQLBt7y4sQf8XvDp+psCObSdQdYA+MEFgb/SYQYkBMr28JdHw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=iEmHSZvYXrFt4/htW7zsdsROiKa1T0/hgmRSeLysJyo=;
- b=O6q1/0408BRCxEojoZfqkAJ9D7WK2StGlZN5ulvc3jO5LQflfxlXReMoswiSpIYUJfVPxqs5ia3eCImgzQE+SA63tcCLAzovHGr9PA30ZBl+KDUvepEgz7XzIg6fUL6E3k3VehuApl0TuFWrYsJKkeVHoU0fIKvIlXEqdaK/KwuMg1w+wG5W/QaFVaQZj6gfV6mb4OgBwWK+oYTLX6H1DkRUl7DPqlYKia2x/TqSinqCJ3bum7TFkdj5zf0CAx8HmjjzjTZjVU1U8YB8O9mSYKPchSa78RRADGmv5Qj89MMOVDajBauZTGCJVeieHaAU/fBhUWpyivaBxZjtL6k00Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
+ bh=y1ILbV09Nq0eQ7TMgn4wXI7kuC4flLrOZzxXno/jhDA=;
+ b=E7b1k1+9Umccwqv5KXWFDzJI5OQslQfj0JgvSXMAxQQHNczLKb0T37m9QktELG+rdslC9m43NXkI7a93ntt+Lvexyrak/2PMLazVjHZLTOeMMxkxi/yIkNdxDvDaxYDvRoARdRfu0Pr9N/SGMWRitn5W0HVKGDY4x4c0b3yiuPnBVxusN8t68pOZ+L3REjvrR14BvZ3yGXCrprGKfMdT6uiuzreWv65cEUh5fMcOEaLziupR7lf2ek/5NmKOE6zERahsgURsSyDCDQFqYbz1elfIIrG5tAZol+SREX54qWTyj7IV9VY3jYGawLDgcM1rp4XRLMGZWtUdjV18qs3x1Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=OUTLOOK.IT;
+ s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=iEmHSZvYXrFt4/htW7zsdsROiKa1T0/hgmRSeLysJyo=;
- b=l9rSkAxyRB3qLLTtq2mLVQ55PcZ3Q1JlkiTXUXArTc7b2C9YjbL+WR55M5EY5qtKx87vgZyycpKN23/+CiMP36WdHwG81WAELoCVnAJK1ENTReSwXPi/z89etX3NW2D8pjAWfgacNvPpyRevTx9/fbAyMe6mq6rqeEk7l8mkMb98fqfPcc55lQjI/9C2EmP3c8zDE9Gt7O169vcdgMvzjSZ06Y4yUFrbH7K+FztDiMKZ/WJZywI8hOi6zIo6KaKkol2yT2qVnnZVSk0eZk0/W5k4AQ5Kd81xNTLcigFI/VeDfL1wDDCx5rfk1LINs3miszsetYDygZRjGM36oKKC8g==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from BN9PR12MB5179.namprd12.prod.outlook.com (2603:10b6:408:11c::18)
- by PH7PR12MB6418.namprd12.prod.outlook.com (2603:10b6:510:1fe::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.12; Wed, 29 Jul
- 2026 17:05:40 +0000
-Received: from BN9PR12MB5179.namprd12.prod.outlook.com
- ([fe80::cf08:f59b:d016:c95f]) by BN9PR12MB5179.namprd12.prod.outlook.com
- ([fe80::cf08:f59b:d016:c95f%4]) with mapi id 15.21.0270.012; Wed, 29 Jul 2026
- 17:05:40 +0000
-Message-ID: <161afe04-7d27-4e93-9ec5-db00caf99869@nvidia.com>
-Date: Wed, 29 Jul 2026 22:35:29 +0530
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 1/4] cpufreq: CPPC: Keep the policy across CPU hotplug
-To: "zhenglifeng (A)" <zhenglifeng1@huawei.com>, rafael@kernel.org,
- viresh.kumar@linaro.org, pierre.gondois@arm.com, christian.loehle@arm.com,
- ionela.voinescu@arm.com, zhanjie9@hisilicon.com, lenb@kernel.org,
- saket.dumbre@intel.co, ray.huang@amd.com, mario.limonciello@amd.com,
- perry.yuan@amd.com, kprateek.nayak@amd.com, linux-kernel@vger.kernel.org,
- linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev, linux-tegra@vger.kernel.org
-Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
- ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com,
- bbasu@nvidia.com, sumitg@nvidia.com
-References: <20260724215937.3368276-1-sumitg@nvidia.com>
- <20260724215937.3368276-2-sumitg@nvidia.com>
- <a4891cdc-9635-4ad7-96b6-f62c39aa254a@huawei.com>
-Content-Language: en-US
-From: Sumit Gupta <sumitg@nvidia.com>
-In-Reply-To: <a4891cdc-9635-4ad7-96b6-f62c39aa254a@huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: PN3PEPF0000017A.INDPRD01.PROD.OUTLOOK.COM
- (2603:1096:c04::45) To BN9PR12MB5179.namprd12.prod.outlook.com
- (2603:10b6:408:11c::18)
+ bh=y1ILbV09Nq0eQ7TMgn4wXI7kuC4flLrOZzxXno/jhDA=;
+ b=HPRojKGAGJR/WuBqzjGTvS2cQsEfldRRsYK6SWgxel/gLq80iHD7hgpIrwt5USWsJ+3S6cM+fWVnrgdLvTQDWDdcGLpWDkPLP6LnjO5qv3Nxt0utdFbInC3qzgkr4B5YRMX7LpxnlPRw7F4w3E5G6o22lFOsT4FklcJEXq4NjnT4L1c52U4lJ+nYGh+PW6AZ4PMtuMZruq4AyxvRUMxnAHUp2xSeFziamTp27v/AAsPXomLMeR2cTIdCJa0uYizyDpgfCaQdQ7cxdvD8XzXW5rjwCOxfTnRET/tDVNCGD9/kXj41LcJ/mXf1TNzjP82zB9tkrRWOmvntYF5rR+P8Rg==
+Received: from DS7PR19MB7724.namprd19.prod.outlook.com (2603:10b6:8:d9::20) by
+ CY8PR19MB7667.namprd19.prod.outlook.com (2603:10b6:930:77::16) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.270.12; Wed, 29 Jul 2026 17:48:27 +0000
+Received: from DS7PR19MB7724.namprd19.prod.outlook.com
+ ([fe80::70de:3c05:ac62:7f86]) by DS7PR19MB7724.namprd19.prod.outlook.com
+ ([fe80::70de:3c05:ac62:7f86%5]) with mapi id 15.21.0270.009; Wed, 29 Jul 2026
+ 17:48:26 +0000
+From: Marco Giunta <marco_giunta@outlook.it>
+To: mapengyu@gmail.com
+Cc: broonie@kernel.org,
+	hansg@kernel.org,
+	ilpo.jarvinen@linux.intel.com,
+	imitoy@imitoy.top,
+	lenb@kernel.org,
+	lgirdwood@gmail.com,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-sound@vger.kernel.org,
+	marco_giunta@outlook.it,
+	munzirtaha@gmail.com,
+	nadim@symbolic.software,
+	perex@perex.cz,
+	platform-driver-x86@vger.kernel.org,
+	rafael@kernel.org,
+	tiwai@suse.com,
+	wangweidong.a@awinic.com,
+	yakov.till@gmail.com
+Subject: Re: [PATCH v2 3/3] ALSA: hda/realtek: enable AW88399 on Lenovo Legion Pro
+Date: Wed, 29 Jul 2026 19:48:14 +0200
+Message-ID:
+ <DS7PR19MB7724B08C9CEA36A4A71C06C1FCCA2@DS7PR19MB7724.namprd19.prod.outlook.com>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <CALSz7m1iW_hZbkL56+OMLXm5wE2s+ytxT_oGEU+DHyvYEMx8jQ@mail.gmail.com>
+References: <CALSz7m1iW_hZbkL56+OMLXm5wE2s+ytxT_oGEU+DHyvYEMx8jQ@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: MI1P293CA0012.ITAP293.PROD.OUTLOOK.COM
+ (2603:10a6:290:2::10) To DS7PR19MB7724.namprd19.prod.outlook.com
+ (2603:10b6:8:d9::20)
+X-Microsoft-Original-Message-ID:
+ <20260729174814.85411-1-marco_giunta@outlook.it>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN9PR12MB5179:EE_|PH7PR12MB6418:EE_
-X-MS-Office365-Filtering-Correlation-Id: 8e81bdeb-11ad-44f6-d761-08deed939e0c
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
+X-MS-TrafficTypeDiagnostic: DS7PR19MB7724:EE_|CY8PR19MB7667:EE_
+X-MS-Office365-Filtering-Correlation-Id: d52c134c-d4f4-4adb-2002-08deed99974f
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|366016|1800799024|23010399003|921020|6133799003|56012099006|11063799006|5023799004|4143699003|22082099003|18002099003|10067099003;
+	BCL:0;ARA:14566002|23021999003|15080799012|25010399006|4140399003|5072599009|51005399006|41001999006|55001999006|24021099003|8060799015|19110799012|440099028|3412199025|40105399003|1710799026;
 X-Microsoft-Antispam-Message-Info:
-	IXMtQrZos57uwFvRYN/Cz2Aj/sstO6dAiuBRGdJnI8jHk0MOYJaZ4cP1rJZOgmjnuXUEHCnjvNcWbn7Z7tTVKqin+vn8m5cy9sj0PWyoJ4qsWgWEzec3jknFxL87USi48HATZD6/Z9liCBA1kbsYb71d2aBRKUP4DrVrZsh3XV+XUSBl6ghtwKq25Ce7prV/FQ2niYoWiLCoLs6ExQOlNt8/vys7RQ6dV1A1zhK98h2Ii3chzlPhdSg0GLo8nnbovaCvPBv648PBDst4NPx0FvNxsCoVzjcBjznmmlBNTnQCWD3TWkhHiDBEY9JOsYisapOVMtSa5fG+rEU/5EWmTf+fLRo0OUhuzCeFh7ejnnlpYbphGvVjCTtN6dsovtzunpKdhIhkaiwG3iuZrDyHySLVVpITxe9T+cLJi5iOa0kOZ6cgTsSzwqqZMDLDSkbfqKt3ARgBIF4nTvOQApoEIYTAvVPX+tKw5vnRU3PWPF6vzatPDY6K3vamn8uXO91t9+TPt1Gf3b1oDerGXjtOSKnQ3wn+HsPRsdxDVbl2kE45pPW75MHFf/V+s8fGx/8hyU0JCmyRJWzmwJpSA8IRPaDP2Gp+9rGk6G2Q7c6U/rkp7rCZKMg8rrcNfNPTRFg+NSzBcsxlF3y0o4DgrP0kdHFx2jB8MfjeY3LMpZySfMBHEAxHzN37/D36EytdhLDBc4AToSSSmAqmjshqUGM9Jg==
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN9PR12MB5179.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(366016)(1800799024)(23010399003)(921020)(6133799003)(56012099006)(11063799006)(5023799004)(4143699003)(22082099003)(18002099003)(10067099003);DIR:OUT;SFP:1101;
+	=?us-ascii?Q?1IqXuY2/CGq0TWiIDMZDuEZDHgvlKcG1S+Gb7rigdPRdFE8Lg+WkvrsKccJP?=
+ =?us-ascii?Q?m21xC29oRYG3fT56CzsNyA3C4wUgt4TE6CsRuaN2aTiAiWXI9W6gzNtjmC2j?=
+ =?us-ascii?Q?9D32mVDottcQRNUrVkb/63NEVH9A8mBVX9tGvH1vNfsPHqRs6QREaUmWmKVQ?=
+ =?us-ascii?Q?YmNHZiMSRXpQz9CaMP1EPRuQV9+nsk3qetacIb+nrSc55wq6mfT5EFiaLLv4?=
+ =?us-ascii?Q?0ejvlENDujJDP06I6oK9t00xzjV4VCeEz/Etd6o0rr5nlq0Ro6OqPNRvh3lG?=
+ =?us-ascii?Q?Dsoam02jR8u1ru6ZsemQnFog2yK2k/scoKSK/AoKIYLKUAJQM9qyO3VlAM0Y?=
+ =?us-ascii?Q?sKsJo+VEn3DOmZjVWFmZBJr4AFGDu5zo7Qc6gn87BRia3hc07aikarDdziS9?=
+ =?us-ascii?Q?0r5KtkhSqMOC6OO7R+vT+K2COacaRNiXONvAx+S7PVCv5J4Ap7rOeU7yrlpn?=
+ =?us-ascii?Q?ThEW6v9yKLIdB/GNIyqRZgMfSVHXiwac7B06r3BTtBlociH0lxHDc7OcGpcq?=
+ =?us-ascii?Q?ou6N3VRHuJ2ZIU+EUNxQMcPJsUL2WV01r5XRLSS669i/UIG7NWXWZWPUD8ry?=
+ =?us-ascii?Q?exyKR/PbM7CaNQMdURWVaJR/Vq1+zf6cBm4D50CEP9vsovxd/DSbzlShOXKn?=
+ =?us-ascii?Q?EDZ3U2v+ktD0RKa+v38/3hdcQ8j0msAe52lWDPN4roYhI81BbYy2TGsifQSC?=
+ =?us-ascii?Q?tZ9UTk+bBS8hM++MeQFEiWFEJHlsGcs+XKk8Qf3VECcD9pLKDIIRdYUJFBt5?=
+ =?us-ascii?Q?P+dolBiJkcIfTTBi+N5znomaIHd1X8YuNn8unL8noQJvC11hzX6qCuw3SMr6?=
+ =?us-ascii?Q?wWHQ094ZCzYSHJx0k15uqEgfaih0IrlaDoqzUG36eEz7RlIGmbjvIq2OCDP1?=
+ =?us-ascii?Q?BY2kLtMF+uTELyoDmzBUd9Zw3meZlJCbv2fcDysrwSEr+cigwgAiA7tnBHDZ?=
+ =?us-ascii?Q?SECkh6sjA3odjKItS4iN0y0kZePXG98A2LS0sgd1o/m9jp4TkfsZyYoqkTCy?=
+ =?us-ascii?Q?cxaQwF7JpsS0gtr/TQLAkUHkWw=3D=3D?=
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?V0xtNEwvRnJ0d2RDd0pvZmZrck9LU2pvdTBMUDcySEFQZC9UZlVHa2pic3kz?=
- =?utf-8?B?eExYNVJBUFNyWEZQWVg4MTFtekdiOGxSMXcwdktPWS9NN0tJR1p1T1JPWFls?=
- =?utf-8?B?L0dOZTdXTTlrNVhjMWpWYzhCdllpdlE2djc2dmJ4d3J3RFN1dWorYVNhMWdM?=
- =?utf-8?B?L2x5bUJQeFJIWFcrSWgwYi9xbit1ZXE4ZERyQ2xubGI0Y3EydkJPZ25TNTJG?=
- =?utf-8?B?NU80QXZNNzlBeWpVZXBQbGFVZHhqK0RhWU84U3VCRmoxMkxVYkRIV25XVHM4?=
- =?utf-8?B?SCtGQko1TDhyL1pkc1l5cFVjbCtDTXM2aUFQQjlSQVR5VkNQQXVidFZMMFl5?=
- =?utf-8?B?SjRRSWhRbC94ZjgrUkxVS2NpRWg4bDlsY0FsQjJFK0p3TGlvSXRod2dNcElo?=
- =?utf-8?B?OE1IcVpNQUExb2VyeEJ2bFZVaVR2WWh5Ly9OUU1FRHZSc3Zhb1NTc1dFNVN1?=
- =?utf-8?B?cmtHcVNHWVduU1dvaUg5cTQ0aTlobm5XL2FVVGxUVlhQQm1RZ0d2NnJpbmsw?=
- =?utf-8?B?d0M4NEs3TFFBWUhHMG94K1VRWFg3MmJaKy91RnF2d1BoREdRZ2pTOExPa2NE?=
- =?utf-8?B?MUxYV0tDVnJXbnRlenF4V3krbG1scGZ4Y29aMmZ5QzRCeFJnY0J6K0VHYzly?=
- =?utf-8?B?N3E0ZHArcFI0Ym9CZkNrRVBTelVrUUF1UmY0V29IVVMrUHJvOVVHYzhvVi9a?=
- =?utf-8?B?VmNLbHJCenBYTEl5S1YyRUdNU2UvaWZhRCsxc0ZJdGNQR1FSd3lpMmZyMExZ?=
- =?utf-8?B?cm9ZUkloODlBZXcvcmhreGNXYXhUOVd2b0tlM21CTTZXdEhFZ3A0RHZTeklN?=
- =?utf-8?B?aVc1d3I5SjRxQW55Qml0T2xOcjdRaHFGRWNHVlJpaTdxcXM2MEtLK3I4VERU?=
- =?utf-8?B?V3NrcmhaUzhlaVFtNVhmclFvdEVVTGN2UWRTRGRnSDVUUHI0QUNwblN0YmE3?=
- =?utf-8?B?S2pBNEpyTTZ2Ylh5S21CdXhSWjNIMXJkWjVaKzZHaUIvbkcvMkpCdWFDZ2N3?=
- =?utf-8?B?QXQ4SWtlMXdMUUJCNENrb25QRnQySEd1K2grK3luOE9tNWRGTnZkRWRpV0lv?=
- =?utf-8?B?cTdKc0hWaUVWVTl0UnBGalZ0QlpPNTlEc21zY21IMzQvNkNmNlZSRTJxT29K?=
- =?utf-8?B?cFZtand0UHVrUm56ZndqbjJuNWV1b1NWTVdpVlk5NGdKTWFjL0xzV2xEYmoz?=
- =?utf-8?B?RmZidmlSOE03aEp0cFhyV0FMNnVMYnpVWG51SEI0SXhqMVh1c0x6SGo4WTRL?=
- =?utf-8?B?OUpBZmc1WVBRY3EvSGpYSkJ0VUlBaXZCZXdMM1R6MFVDREJ6U0hJQSs3WmtF?=
- =?utf-8?B?d2NubTRpVkwrSkEyRVQ1aEJHZlRXdDdMWEdzV012RWxjdXI1SzNXb0ZxaXdQ?=
- =?utf-8?B?ajVLRWJtMTlrR2JIbkhQWHBWQTJkRlNZb01vdUlKN2VaLzZ4RXNTQm9rRTNv?=
- =?utf-8?B?dGdNQXV2T0hrNjIzMWJmRjdYbk5NSVh3a3FMUUJ0RzZTZXVqWVNmQWZ0Tklq?=
- =?utf-8?B?aGo2UTN5RisveXFSWk9pL2svYXZwam5sNWF0dkhkanJiQjlodmNDVk9Xai9P?=
- =?utf-8?B?WVJxTzBUc3NVMHBPb1ZIOHQ1MFVvc3hRSUZyRmk3b2NlZW5MY012SThWdER2?=
- =?utf-8?B?NE5FQUxUZjVvR0pCdjJUYWZESVZhME9WMUNhUmVONU1vUXNOOXB5UHJudFJX?=
- =?utf-8?B?WVdxdTM0S1FmSmRaS28vckV1SHF2QVYvWUg5cDh6SFdJZkR3S3ErL3BYUmEr?=
- =?utf-8?B?bXNCZnh4dEhCRERzNEhHc2RyeU5ESUZ0YUdmREUzY0tFbmcxa3F2WDFTRHdS?=
- =?utf-8?B?MWs5a2x4WXZwa0RmQ3VPcy9obG5rajA0TldzTjRRdVc0eENnZDd6cVpVMFpR?=
- =?utf-8?B?bURsT1hYenFiUDVuNXJXYmkwYVdFMjF2TTRRSjQ4Y0xtR2o3U3pzMi92OWZS?=
- =?utf-8?B?Ymo4c0JJb2JQMi9URlZjMHhCdGNLSnlwSWp6Z0tVS3FpcFFOVGpxRG5sOE54?=
- =?utf-8?B?MDEzaTRQSi9tYjV1a1JqWElHNzRZMi80TkxOUm9MU1U1UFNQbEpwQW05Q0lF?=
- =?utf-8?B?NDJaK0JOQWxGQitNU3FRNXV6YkM3T3VtcEU5SDQ2d3BuYmJYZk43UjllM2Vy?=
- =?utf-8?B?a2h2L3AwTEkweWx5ZmVyMGRHYjA4b01UcUFNd3JUZjYra2VZdk1mSElHM0hy?=
- =?utf-8?B?L0VIM2FZMU9QQWxGRlJ0UjUwVzhwYlVDb0xDY2JpRmRROCtOUzRPWTNlRHRF?=
- =?utf-8?B?Rml3YjJWVWRWdFJqNUo5VXN2WUd2cnNKbDZjKzN3WSs3RWMxMVF6bXNmczVI?=
- =?utf-8?B?U3cyUnpxRWZjZXAwaGYwdlVIT3RqOEhGT2pCOE9WS2x0OU0zc2t5UT09?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8e81bdeb-11ad-44f6-d761-08deed939e0c
-X-MS-Exchange-CrossTenant-AuthSource: BN9PR12MB5179.namprd12.prod.outlook.com
+	=?us-ascii?Q?wCZPQIAkQf+LmYTYMqFB5U8ZL+PChYm292Qa1YhgaP+vP1liojUW0cTr3Zq7?=
+ =?us-ascii?Q?/sxKeR8IGe0NojIICW3TytuvgSASBz0y94R8eiIpnxxDIhR/EYhBvoEiFxeU?=
+ =?us-ascii?Q?pZH1RBosB3rKMnVzhjAWrth+Wp0LyjyhPNveyQIVxHEGt/YVAFQ7WHFiHSXl?=
+ =?us-ascii?Q?mD+DKHB/u2tIVO9R66r1cLvTVPDP4ZEnrTlJdpVTnjwudyEqzDMoxzQlEW37?=
+ =?us-ascii?Q?wgxLn0KH5IACM9lPx5c608w8OJS8rUVngdA9O921wfTAfJ6QdNqp2dPyAZUQ?=
+ =?us-ascii?Q?taEM/zcu0i968UvGCTL/N9a4fb44Ra+dRm/hLYracbOAdc6c8yyUVNLnI/ah?=
+ =?us-ascii?Q?F1iteHR/6Ucr+7zGv2TEcNm2c12Uqq/vlMOqEFEbcLP4UTjtjtuME1242a2a?=
+ =?us-ascii?Q?qpS+A7DFdqax3SCR4zz/j5VMqMPNoaM5wmM3wrte0OJ93dZW0jpjA6HMsvsK?=
+ =?us-ascii?Q?GQZAk7wfoASI1fkT9t32YXDppQexT7txuKtKCxDLWxArlE2+ni2/pem+FlN6?=
+ =?us-ascii?Q?iV1/a/gEbVAHKu68EcSnQhEcOksnglIfE0zKomKWPICkCeoMvwrrUt1aCohs?=
+ =?us-ascii?Q?oUntCuZvll0ODY1mtj2IWgUO4wrhWiOChhnLzsHd5ZdL5m6WiAdSC0gYRMzX?=
+ =?us-ascii?Q?owERrzIR6FY045KjentDZa8m7MJB9745DKox4o/sfJoenveDywIKiEzjUyZL?=
+ =?us-ascii?Q?64GbZFWCbNy8CBBxONYxBoS9U8fiJqejgUu3Rwzb7pAZXI+DwL7OL6G3AgFs?=
+ =?us-ascii?Q?KkdBzvSBVvI8AAP0WUag1AieVL4lf+60ZR6kc95xhik2fbZCXIggjLT6dWl+?=
+ =?us-ascii?Q?7YcNrdKlYlmatApr3vNAyAoVeEdq7oafPZUEXPltEvMTEf+tRtpFjBPBQkmx?=
+ =?us-ascii?Q?e9ryApHjvn6mA1BtbwLOs4p9njbuR9sOEIYBEjMYD/XqgIxeZxbs8pj4fGxK?=
+ =?us-ascii?Q?+d7q45R8/P8tF5gagVRGsl6V2Flx+ocMn9htvq+tHf4aDAxKQ1uIH8VYJXch?=
+ =?us-ascii?Q?87NshvrwdLXpPZvl+dPMOt0J5tt4P6xHA0A5CgN531QrvNxLRzSTbSPovZl1?=
+ =?us-ascii?Q?TPdxT7W3StNsAlbi9HIEfiwsMF32+Ej5KHncYA4/ibq0TxJHXIxXkp+YsIsG?=
+ =?us-ascii?Q?U2Qq9x9wbwsCokpbFKwaNRBYqHo6kjvU1HMaC87IW4azD4t7LttzAoykS7sF?=
+ =?us-ascii?Q?FQTSCCYCwPCFwdCJcjlIKbSC38rBB5SMBLDRWczoasgw4OQMrjAtH2Eok38F?=
+ =?us-ascii?Q?1oY1FBSkMdupKYlXEt+kahgSUpasBDstWYDp1c2BIOlKYX/pYhgj9TL3C5Zk?=
+ =?us-ascii?Q?13+Un+FuP/U562tjsB1r1w8b2WYJo4OXXY5chFEDFrruWckYP8dQYxGEAti8?=
+ =?us-ascii?Q?gNFy9qvhq1mecXxesZXnszjOBe450XKwJ/q/E94bTzWKTx8i50SPGtJNCo3P?=
+ =?us-ascii?Q?y4lqsCVGfC4=3D?=
+X-OriginatorOrg: sct-15-20-9412-4-msonline-outlook-990eb.templateTenant
+X-MS-Exchange-CrossTenant-Network-Message-Id: d52c134c-d4f4-4adb-2002-08deed99974f
+X-MS-Exchange-CrossTenant-AuthSource: DS7PR19MB7724.namprd19.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Jul 2026 17:05:40.3961
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Jul 2026 17:48:26.6159
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: HKftv7p3Hd5FNhoaNxN5FtbcvcnoxRVoRguuYuNO8gECHpjkbIvpIfayS8c0KJO69Q1vJr/lZpYnYxSze557ng==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB6418
+X-MS-Exchange-CrossTenant-Id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
+X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg:
+	00000000-0000-0000-0000-000000000000
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR19MB7667
 
+Hi Aaron,
 
-On 28/07/26 14:11, zhenglifeng (A) wrote:
-> External email: Use caution opening links or attachments
->
->
-> On 7/25/2026 5:59 AM, Sumit Gupta wrote:
->> Without online()/offline() callbacks, the cpufreq core fully tears
->> down a policy during exit() when its last online CPU is offlined, and
->> rebuilds it during init() when it comes back.
->>
->> Add lightweight online()/offline() callbacks so the core instead keeps
->> the policy live and reuses the driver's cpu_data across CPU hotplug.
->> This avoids re-reading the CPPC capabilities on every offline/online,
->> making CPU hotplug faster.
->>
->>  From online(), re-enable CPPC, as the platform may have disabled it
->> while the CPU was offline. Since the policy is no longer rebuilt via
->> init(), online() also reprograms the CPPC performance controls
->> (desired/min/max).
->>
->> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
->> ---
->>   drivers/cpufreq/cppc_cpufreq.c | 44 ++++++++++++++++++++++++++++++++++
->>   1 file changed, 44 insertions(+)
->>
->> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
->> index f6cea0c54dd9..6dc59f99d880 100644
->> --- a/drivers/cpufreq/cppc_cpufreq.c
->> +++ b/drivers/cpufreq/cppc_cpufreq.c
->> @@ -722,6 +722,48 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
->>        return ret;
->>   }
->>
->> +/*
->> + * With offline() defined, the cpufreq core keeps the policy alive when
->> + * a CPU is hotplugged out.
->> + */
->> +static int cppc_cpufreq_cpu_offline(struct cpufreq_policy *policy)
->> +{
->> +     return 0;
->> +}
-> I am not sure if doing nothing here will cause issues. In my view, to be safe,
-> we should perform the actions found in cppc_cpufreq_cpu_exit() here, except
-> cppc_cpufreq_put_cpu_data().
+Thanks for looking at this. I think there are some misunderstandings
+I'd like to address.
 
-Agreed regarding the performance request. Since exit() previously set
-desired_perf to lowest_perf during hotplug, I will do the same in
-offline().
-I will keep FIE registered across the lightweight tear down, as clearing
-it on every hotplug would add tear down cost with no benefit. It does
-need the feedback counter snapshots refreshed, as init() no longer runs,
-so I will do that for the online CPUs from online().
+Regarding default DAC routing and the R9000P codec dump
+in bugzilla 218329#c31: that user is running a stock kernel,
+without this patch series applied; indeed, they have no
+snd_hda_scodec_aw88399 module loaded, and their dmesg shows:
 
-Thanks,
-Sumit
+  ALC287: picked fixup  for PCI SSID 17aa:38bb
 
+This is the Yoga S780-14.5 Air quirk (ALC287_FIXUP_TAS2781_I2C)
+firing by mistake, because the R9000P shares PCI SSID 17aa:38bb
+with that model (one of our R9000P testers independently confirmed this
+by providing their lspci output).
+That quirk is chained to several other, and in particular it ultimately
+calls the function alc285_fixup_thinkpad_x1_gen7, which does:
 
->
->> +
->> +/*
->> + * Re-enable CPPC when the policy's CPU comes back online, since the platform
->> + * may have disabled it while the CPU was offline.
->> + */
->> +static int cppc_cpufreq_cpu_online(struct cpufreq_policy *policy)
->> +{
->> +     struct cppc_cpudata *cpu_data = policy->driver_data;
->> +     unsigned int cpu = policy->cpu;
->> +     int ret;
->> +
->> +     ret = cppc_set_enable(cpu, true);
->> +     if (ret && ret != -EOPNOTSUPP)
->> +             pr_warn("Failed to re-enable CPPC for CPU%d (%d)\n", cpu, ret);
->> +
->> +     /*
->> +      * The platform may reset the controls while the CPU is offline, so
->> +      * recompute min/max, clamp desired_perf into range, and reprogram them.
->> +      */
->> +     cppc_cpufreq_update_perf_limits(cpu_data, policy);
->> +
->> +     cpu_data->perf_ctrls.desired_perf =
->> +             clamp_t(u32, cpu_data->perf_ctrls.desired_perf,
->> +                     cpu_data->perf_ctrls.min_perf,
->> +                     cpu_data->perf_ctrls.max_perf);
->> +
->> +     ret = cppc_set_perf(cpu, &cpu_data->perf_ctrls);
->> +     if (ret)
->> +             pr_debug("Failed to reapply perf request on CPU%d (%d)\n",
->> +                      cpu, ret);
->> +
->> +     return 0;
->> +}
->> +
->>   static void cppc_cpufreq_cpu_exit(struct cpufreq_policy *policy)
->>   {
->>        struct cppc_cpudata *cpu_data = policy->driver_data;
->> @@ -1034,6 +1076,8 @@ static struct cpufreq_driver cppc_cpufreq_driver = {
->>        .fast_switch = cppc_cpufreq_fast_switch,
->>        .init = cppc_cpufreq_cpu_init,
->>        .exit = cppc_cpufreq_cpu_exit,
->> +     .online = cppc_cpufreq_cpu_online,
->> +     .offline = cppc_cpufreq_cpu_offline,
->>        .set_boost = cppc_cpufreq_set_boost,
->>        .attr = cppc_cpufreq_attr,
->>        .name = "cppc_cpufreq",
+    static const hda_nid_t conn[] = { 0x02, 0x03 }; /* exclude 0x06 */
+    static const hda_nid_t preferred_pairs[] = {
+		0x14, 0x02, 0x17, 0x03, 0x21, 0x03, 0
+	};
+
+The HDA_CODEC_QUIRK entries in this patch exist precisely to prevent
+that collision, matching on codec SSID instead of PCI SSID.
+The "0x03*" in that bugzilla codec dump, therefore, comes from the
+wrong quirk's override, not the hardware default,
+which instead is 0x17->0x06, as can also be seen on the other Legions.
+
+Regarding the DAC 0x02 override for pin 0x17: this is necessary
+in order to fix broken volume controls. The fact that this override
+achieves this goal has been confirmed by every tester
+across all three supported models.
+Indeed, before adding this override, earlier versions of the patch
+required alsa-ucm-conf workarounds to make volume controls work at all.
+Without it and the rest of the patch as-is, the woofers turn on, but
+speaker volume is always 0 or 100% irrespective of OS volume controls.
+
+Three independent lines of evidence support this being
+the correct DAC rerouting:
+
+1. The official Lenovo Windows driver selects DAC 0x02
+   for both 0x14 and 0x17, as can be confirmed by performing a
+   realtek codec dump on a stock Windows install.
+
+2. Multiple existing quirks in alc269.c perform the same override on
+   laptops (Lenovo or otherwise) with similar sound architectures,
+   with comments explicitly stating that this is done to fix
+   volume controls, and therefore implying that this is a common issue
+   on laptops with realtek chips from this family.
+   Some examples of these quirks and comments include:
+   * alc274_fixup_hp_aio_bind_dacs:
+     "avoid DAC 0x06 for speaker switch 0x17; it has no volume
+     control"
+     "The speaker is routed to the Node 0x06 by a mistake, thus the
+     speaker's volume can't be adjusted"
+   * alc289_fixup_asus_ga401:
+     "avoid DAC 0x06 for bass speaker 0x17; it has no volume
+     control"
+   * alc287_fixup_yoga9_14iap7_bass_spk_pin:
+     "Avoid DAC 0x06 and 0x08, as they have no volume controls"
+     "Prefer both speakerbar (0x14) and bass speakers (0x17) connected
+     to DAC 0x02."
+   * alc285_fixup_hp_spectre_x360_eb1:
+     "share DAC [0x02 among 0x14 and 0x17] to have unified volume control"
+   * alc285_fixup_thinkpad_x1_gen7 itself:
+     "DAC3 (NID 0x06) -> Unused, due to the lack of volume amp"
+
+   In particular, many of these quirks share a single DAC between
+   tweeters and woofers (typically 0x02 and 0x14/0x17) without issue.
+
+3. All testers confirmed working volume control with DAC 0x02 rerouting
+   on SSIDs 3906/3907, 3927/3928, and 3938/3939. Without an override of
+   the default 0x06 routing, instead, woofer volume is either 0 or 100%
+   regardless of OS volume levels.
+
+In light of these points, an override away from 0x06 is absolutely needed
+on these machines, and preferentially towards DAC 0x02.
+
+Regarding DAC 0x03 and 4-channel playback: a 4.0 surround profile is not
+meaningful on this hardware regardless of DAC assignment.
+Indeed, selecting a 4.0 profile results in one pair of L/R channels
+(either front or rear) being silent; no DAC configuration makes
+all four channels work. I verified this empirically with both
+0x17->0x02 and 0x17->0x03 (as well as no override), so in this sense
+which DAC override is used is actually completely irrelevant.
+The correct audio profile for this hardware is analog stereo (2.0),
+which works perfectly with the DAC 0x02 override, and makes front and rear
+channels sound the same and work correctly when using speaker-test -c 4.
+More generally, the tweeters and woofers reproduce the same stereo signal,
+and don't actually represent separate channels in a true surround setup.
+That the 4.0 profiles are exposed at all is an artifact of the HDA parser,
+not a consequence of this patch's DAC override.
+
+Regarding pin 0x1d: it's true that, in practice,
+leaving the hardware default 0x40600001 untouched won't change
+anything meaningful for this node, which is essentially
+already disabled for all practical purposes. The override to
+0x411111f0 matches the Windows driver's pin configuration, which,
+as can be seen from a realtek codec dump from the official driver,
+performs this pincfg override anyway.
+I'm happy to drop this line if a maintainer considers it redundant.
+
+Happy to answer further questions, and thanks again for looking at this.
+
+Best regards,
+Marco
