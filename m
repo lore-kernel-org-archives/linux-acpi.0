@@ -1,31 +1,31 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 12455496906;
-	Wed, 29 Jul 2026 13:42:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8D4774A2E3C;
+	Wed, 29 Jul 2026 13:42:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785332524; cv=none; b=FvGLKSnuREEUNDv1N2XJ/MFUnogkZ5oSiZpWzAX3fkT0rz9jagqWYy8MwSynocoMLfP+0akwfTi8a+sHGwBS/V75knggVohWusvfV6ucu2Hejggm5zm2b/P2BmhJhM/TsmBrTjyJtRAF7taATqY0xtT4RA6cOfQQgWka5grWxXw=
+	t=1785332529; cv=none; b=AA1HmneH2ZITA0bJdoo/b5cCwOLPe7iah95HLYPUbUI3vSdUHBOSWbY9pHuqkcdxXU+GOmJC+1qME3uKkcmYGpJzn5G7vA7/SW650GZ5RaExvmjUmmokltZBAe+/EVqqaomOvcgvU1xYvAwTNfqYDqwr7GhrKChbAkrnf1jq/1A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785332524; c=relaxed/simple;
-	bh=9z9NU4rclo/l5DJELjzybhVW3IFJ+hEU2wBrmc8WBMc=;
+	s=arc-20240116; t=1785332529; c=relaxed/simple;
+	bh=gFWFVKbiczu1tbQpF65sJQ5MgfZteaR6jRjtAc8c+XQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Y2bAXpG43qkASdFovVdh/zi52f8E9SLcNZz3ARKbSwfSc1Sd71fymk9M2yim45Jbu3WhjBK+rA5PlNwsFL43BBSRIBXzzzCtqxynjzXnDMdHJG+97Lprhe/Sbtu45qB7KtNVsK6yV7nPG+cRlfyfYmHM29VOw7w9Z7rBNph6HnU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=HTZZISDF; arc=none smtp.client-ip=217.140.110.172
+	 MIME-Version; b=Xg/GtUTUROWcG1RQIVtjw15K5NmoZtyBLCl4BtLuOVm/OAnxUjoa0PfmRnUjFzesUKh1y4utI4P+Le4EkqXdO8g/4XzN4Mwolkes0dJkZ36KEvea+OWWiAo7dWaS+IwvdiKAcBLJRDn/QNQCm0fDCIGEaJPUsrhhFPXFt1U3tyw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=RtuzCjuQ; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="HTZZISDF"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="RtuzCjuQ"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 23DF01688;
-	Wed, 29 Jul 2026 06:41:58 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6E7BD168F;
+	Wed, 29 Jul 2026 06:42:02 -0700 (PDT)
 Received: from e142021.fritz.box (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 4DBD83F86F;
-	Wed, 29 Jul 2026 06:41:58 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 98E2A3F86F;
+	Wed, 29 Jul 2026 06:42:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1785332522; bh=9z9NU4rclo/l5DJELjzybhVW3IFJ+hEU2wBrmc8WBMc=;
+	t=1785332526; bh=gFWFVKbiczu1tbQpF65sJQ5MgfZteaR6jRjtAc8c+XQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=HTZZISDF/YdbiYrpf+au47eIaoXgWWS9Yo63IKEclbJJgw3lxAMdveefkq2C9KNGe
-	 BwdDq1ijiJFjmFA4a0MdpqjbzO+IyOmSLH1maeI43BEj0VC0DSM2JdIkIR0lpD+Aop
-	 561kWEYWDAtDlHg+m75zyT2iRcBVakr0rpDuWYtM=
+	b=RtuzCjuQPyfa7oV4jBb+dl5nbkHsXpY/tHeOQs/SwzV8w0EOOeGZcuRTh93vMp+AT
+	 4gZBi/8sE7SqF/F461xBzP+cemjCg/HEbIUoyzJLUnZuf/SlX+j2Vk4ypypPomjKva
+	 IxLbF4nxsouoMiy8gqG0uB6h8BQDHB+CvCYMirjI=
 From: Andre Przywara <andre.przywara@arm.com>
 To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
 	Hanjun Guo <guohanjun@huawei.com>,
@@ -48,9 +48,9 @@ Cc: Jonathan Cameron <jic23@kernel.org>,
 	linux-acpi@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v5 06/10] arm_mpam: propagate MSC access errors for state saving function
-Date: Wed, 29 Jul 2026 15:41:20 +0200
-Message-ID: <20260729134124.2506269-7-andre.przywara@arm.com>
+Subject: [PATCH v5 07/10] arm_mpam: prepare mon_sel locking for MPAM-Fb
+Date: Wed, 29 Jul 2026 15:41:21 +0200
+Message-ID: <20260729134124.2506269-8-andre.przywara@arm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260729134124.2506269-1-andre.przywara@arm.com>
 References: <20260729134124.2506269-1-andre.przywara@arm.com>
@@ -62,64 +62,116 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Allow the mpam_save_mbwu_state() function to return an error, and
-propagate read and write errors from the lower level up.
+The MSC MON_SEL register needs to be accessed from hardirq for the overflow
+interrupt, and when taking an IPI to access these registers on platforms
+where MSCs are not accesible from every CPU. This makes an irqsave
+spinlock the obvious lock to protect these registers. On systems with
+MPAM-Fb mailbox MSC access it must be able to sleep, meaning a mutex must
+be used. So MPAM-Fb platforms cannot support an overflow interrupt easily.
+Clearly these two methods can't exist for one MSC at the same time.
+
+Change the mon_sel locking wrapper function to only use a spinlock when
+the MSC is accessed directly via MMIO. In case of MPAM-Fb, we use a
+mutex, but only if we are in a sleepable context. If that's not the
+case, we return an error. This should not happen, as MPAM-Fb by design
+does not require an MSC access to happen from a specific CPU, so there
+is no need for any IPIs or preemption disabling to satisfy CPU
+constraints. And since overflow interrupts are not supported at the moment
+anyway, we also wouldn't meet the other case.
+Bailing out early is already happening in rare occasions today.
 
 Signed-off-by: Andre Przywara <andre.przywara@arm.com>
-Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
 ---
- drivers/resctrl/mpam_devices.c | 29 ++++++++++++++++++++++-------
- 1 file changed, 22 insertions(+), 7 deletions(-)
+ drivers/resctrl/mpam_devices.c  |  5 ++++-
+ drivers/resctrl/mpam_internal.h | 38 +++++++++++++++++++++++++++------
+ 2 files changed, 35 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-index 44eafef1e7ab..9b6d266b4fa6 100644
+index 9b6d266b4fa6..f6910ab3bbc2 100644
 --- a/drivers/resctrl/mpam_devices.c
 +++ b/drivers/resctrl/mpam_devices.c
-@@ -1838,22 +1838,37 @@ static int mpam_save_mbwu_state(void *arg)
+@@ -2230,7 +2230,10 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
+ 	if (err)
+ 		return ERR_PTR(err);
  
- 		mon_sel = FIELD_PREP(MSMON_CFG_MON_SEL_MON_SEL, i) |
- 			  FIELD_PREP(MSMON_CFG_MON_SEL_RIS, ris->ris_idx);
--		mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel);
--		mpam_read_monsel_reg(msc, CFG_MBWU_FLT, &cur_flt);
--		mpam_read_monsel_reg(msc, CFG_MBWU_CTL, &cur_ctl);
--		mpam_write_monsel_reg(msc, CFG_MBWU_CTL, 0);
-+		ret = mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel);
-+		if (ret)
-+			return ret;
-+		ret = mpam_read_monsel_reg(msc, CFG_MBWU_FLT, &cur_flt);
-+		if (ret)
-+			return ret;
-+		ret = mpam_read_monsel_reg(msc, CFG_MBWU_CTL, &cur_ctl);
-+		if (ret)
-+			return ret;
-+		ret = mpam_write_monsel_reg(msc, CFG_MBWU_CTL, 0);
-+		if (ret)
-+			return ret;
- 
- 		if (mpam_ris_has_mbwu_long_counter(ris)) {
- 			ret = mpam_msc_read_mbwu_l(msc, &val);
- 			if (ret)
- 				return ret;
--			mpam_msc_zero_mbwu_l(msc);
-+			ret = mpam_msc_zero_mbwu_l(msc);
-+			if (ret)
-+				return ret;
- 		} else {
- 			u32 val32;
- 
--			mpam_read_monsel_reg(msc, MBWU, &val32);
-+			ret = mpam_read_monsel_reg(msc, MBWU, &val32);
-+			if (ret)
-+				return ret;
+-	mpam_mon_sel_lock_init(msc);
++	err = mpam_mon_sel_lock_init(dev, msc);
++	if (err)
++		return ERR_PTR(err);
 +
- 			val = val32;
--			mpam_write_monsel_reg(msc, MBWU, 0);
-+			ret = mpam_write_monsel_reg(msc, MBWU, 0);
-+			if (ret)
-+				return ret;
- 		}
+ 	msc->id = pdev->id;
+ 	msc->pdev = pdev;
+ 	INIT_LIST_HEAD_RCU(&msc->all_msc_list);
+diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
+index 57f2b3dbf7d0..2b81b6b0bf4e 100644
+--- a/drivers/resctrl/mpam_internal.h
++++ b/drivers/resctrl/mpam_internal.h
+@@ -126,6 +126,7 @@ struct mpam_msc {
+ 	 */
+ 	raw_spinlock_t		_mon_sel_lock;
+ 	unsigned long		_mon_sel_flags;
++	struct mutex		mon_sel_mutex;
  
- 		cfg->mon = i;
+ 	void __iomem		*mapped_hwpage;
+ 	size_t			mapped_hwpage_sz;
+@@ -139,27 +140,50 @@ struct mpam_msc {
+ /* Returning false here means accesses to mon_sel must fail and report an error. */
+ static inline bool __must_check mpam_mon_sel_lock(struct mpam_msc *msc)
+ {
+-	/* Locking will require updating to support a firmware backed interface */
+-	if (WARN_ON_ONCE(msc->iface != MPAM_IFACE_MMIO))
++	if (msc->iface == MPAM_IFACE_MMIO) {
++		raw_spin_lock_irqsave(&msc->_mon_sel_lock, msc->_mon_sel_flags);
++
++		return true;
++	}
++
++	if (!preemptible())
+ 		return false;
+ 
+-	raw_spin_lock_irqsave(&msc->_mon_sel_lock, msc->_mon_sel_flags);
++	mutex_lock(&msc->mon_sel_mutex);
++
+ 	return true;
+ }
+ 
+ static inline void mpam_mon_sel_unlock(struct mpam_msc *msc)
+ {
+-	raw_spin_unlock_irqrestore(&msc->_mon_sel_lock, msc->_mon_sel_flags);
++	if (msc->iface == MPAM_IFACE_MMIO) {
++		raw_spin_unlock_irqrestore(&msc->_mon_sel_lock,
++					   msc->_mon_sel_flags);
++
++		return;
++	}
++
++	mutex_unlock(&msc->mon_sel_mutex);
+ }
+ 
+ static inline void mpam_mon_sel_lock_held(struct mpam_msc *msc)
+ {
+-	lockdep_assert_held_once(&msc->_mon_sel_lock);
++	if (msc->iface == MPAM_IFACE_MMIO)
++		lockdep_assert_held_once(&msc->_mon_sel_lock);
++	else
++		lockdep_assert_held_once(&msc->mon_sel_mutex);
+ }
+ 
+-static inline void mpam_mon_sel_lock_init(struct mpam_msc *msc)
++static inline int mpam_mon_sel_lock_init(struct device *dev,
++					 struct mpam_msc *msc)
+ {
+-	raw_spin_lock_init(&msc->_mon_sel_lock);
++	if (msc->iface == MPAM_IFACE_MMIO) {
++		raw_spin_lock_init(&msc->_mon_sel_lock);
++
++		return 0;
++	}
++
++	return devm_mutex_init(dev, &msc->mon_sel_mutex);
+ }
+ 
+ DEFINE_GUARD(mon_sel, struct mpam_msc *,
 -- 
 2.43.0
 
