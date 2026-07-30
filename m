@@ -1,96 +1,82 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AD5F449B31
-	for <linux-acpi@vger.kernel.org>; Thu, 30 Jul 2026 16:16:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3B3C643DA26;
+	Thu, 30 Jul 2026 17:10:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785428212; cv=none; b=QUXLUmS76dgY6hL62UmUKpxhGFa/xilsyAsjjApnvPywkjyf+0meOin78WXPJ4XKhuLXg52IyhX9oWoR26vHx3OgIikP4uVZ6jBBCKp990UZIxvFr89pa3o/J6bzNZYVdCoxR5IjKhlYyXrEnbJ7/mgMd6KFhvLXmkh69fSKUcE=
+	t=1785431437; cv=none; b=CKB+0bh4GuxkXdBCPjQrS0Lba9N94WlZXfTiE+tJRcbuYAEXW2y58wskzL/Q3r70a4DvhtlUKMeLKZIXocZwWLtpvbaBU/Y6FfLwIZIDu1eQWCpPbfWcJmTQwOXFnCxFnVenMfcO3O2FpGqEVgpb4ui+KNm1hA3b7tXsvbkqcuY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785428212; c=relaxed/simple;
-	bh=vTL2CoCioo0C29r7W2+MFUas25/QqmMowB+wUM6mGTk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=EJTodJ7712boQnxoAdnLZI7yCFAa+A1jyxdUrVOsu5Ctg3GduyG9HBfAAPQjTgVHY+7MWE76XQINYXpKcDYPKMg6VER2LLlsUx1PhlEAoyHnJUQBkTs00nXJIu0TYm7OrLOza9vH3VksUJnlxW/IaJX5Et9tVDWpnYwqz1QUGC8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Cr3yqEcT; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785431437; c=relaxed/simple;
+	bh=NEV1SeAY7e9fur5jsw64YihesSttf5xPw9v8EsYpE7w=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=gl7Od3X5TNJlzFP4TsEwlwzH3nQBM9cDPoPHhXpcwHjCw5gePLnxy11bzu+MmZHa1Rm14yUolaEzXp8aC8zX+iWOYknXMdgvY51u5dEvrw7AT+L+EvLiQf1YzglA3XuYWf2ljHH3zgDtIyPXT7PgpMzUD6xbI//WyRbKgcQLsHI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=rKfe24nH; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Cr3yqEcT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 761D91F00ACA
-	for <linux-acpi@vger.kernel.org>; Thu, 30 Jul 2026 16:16:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785428202;
-	bh=vTL2CoCioo0C29r7W2+MFUas25/QqmMowB+wUM6mGTk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=Cr3yqEcTRxQH2d/5SbtkUkWZVOvUBke2+iadHZ9YkFjwGzKgb/vSkKOiL8wPKXFHG
-	 hvjLQUlfs0S+CTUgKiU4hvFWJOHCd+T7saYlwC683eknvBgcj2KbwEix0z3tdGyXHV
-	 cnEKTvlLMgfPkc29MI/84cW+/eoqxCN969yPGe5uR8g8qciiKQ6ZWRwTS7ODRcFOXJ
-	 NmZ1wyszdXiLjhBSxYzE15C6cMspjPVa0LWi7yMrXKsQk3w+bEdGqj5YJUihK/EX1M
-	 tkFqxii+70ZAWBufXXj3RAdIjwJD78mpwjSFEUkt0lfMyFgP1uLpLl/T1p1uDt4KQe
-	 KJl63unhYwhiA==
-Received: by mail-lf1-f46.google.com with SMTP id 2adb3069b0e04-5b2a44a3b66so2348918e87.1
-        for <linux-acpi@vger.kernel.org>; Thu, 30 Jul 2026 09:16:42 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RqkIFWuXpYW0g+AEup7JENGjmvGwDpSxkc1btQFkOXscAeJD46W2NIvkP6N+oijbVmHRVeJkM8PAR9H@vger.kernel.org
-X-Gm-Message-State: AOJu0YxUNbcDnhwwQLbsrqYL+fAvpjWRCqE0YY3ZwPkcRlUx7ZtAUVOw
-	Cxrt5wjIuJi5Lm/un4NlWZz3cdHTRdVZIcRB0Xh8hkLV33AUc01nW0jZnKlkCim4YOv83dTXR1n
-	SSNI0H6gRd1Zn8aXMPWk6FpQ8wALCLwc=
-X-Received: by 2002:a05:6512:b95:b0:5ae:ba47:e7bb with SMTP id
- 2adb3069b0e04-5b2db36ff2fmr756325e87.36.1785428200820; Thu, 30 Jul 2026
- 09:16:40 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="rKfe24nH"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 8165C15A1;
+	Thu, 30 Jul 2026 10:10:30 -0700 (PDT)
+Received: from [10.2.212.8] (e134344.arm.com [10.2.212.8])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id ABEEB3F7B4;
+	Thu, 30 Jul 2026 10:10:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1785431434; bh=NEV1SeAY7e9fur5jsw64YihesSttf5xPw9v8EsYpE7w=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=rKfe24nHrRUQFSs7BPeQVC3d7nntvLRKXTHJnKrjfXFM0j9YtvPULxv7b26v23U6Z
+	 vF4B+v10W3rmV33Aqo2JzjWUVF/Bb7Yd5scIjuNwJ2PSfY8ByP9FDeP1Ed2s9qTXm1
+	 QsLIDgQesgSQP1tZSl6JoW5eTQDWNfsxzWcYzaxA=
+Message-ID: <af820923-c423-4f19-99dd-7d8fdd2da864@arm.com>
+Date: Thu, 30 Jul 2026 18:10:30 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <3353bdf3-4f33-44b1-809b-b0378bee5816@gmail.com>
- <CAJZ5v0h1kqDEBYk0k05rv6f2SJ7g+TN4FhBDJYZSVUctu-0FdA@mail.gmail.com> <daf0bb9b-246d-437d-87ca-16706113b201@gmail.com>
-In-Reply-To: <daf0bb9b-246d-437d-87ca-16706113b201@gmail.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Thu, 30 Jul 2026 18:16:27 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jByxtQ2tmNm_ZyyBnDMBNjuqQwD_367NRyGNzF7wQtRw@mail.gmail.com>
-X-Gm-Features: AUfX_mwZ5mGlfMgKYkJ4kGxNRS7Dq4qB-hx9LK75gZM3H9j-7RhwOVWynjj-T0w
-Message-ID: <CAJZ5v0jByxtQ2tmNm_ZyyBnDMBNjuqQwD_367NRyGNzF7wQtRw@mail.gmail.com>
-Subject: Re: [REGRESSION] usb controller fails to initialize on intel s1200btl
-To: Julian Silver <mendaxca@gmail.com>
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, rafael.j.wysocki@intel.com, 
-	linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org, 
-	regressions@lists.linux.dev
-Content-Type: multipart/mixed; boundary="000000000000aeaf7f0657d665e7"
+User-Agent: Thunderbird Daily
+Subject: Re: [PATCH v6 00/10] arm_mpam: Add MPAM-Fb firmware support
+To: Andre Przywara <andre.przywara@arm.com>,
+ Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
+ <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ James Morse <james.morse@arm.com>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+ Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+ Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+ Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
+ Niyas Sait <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
+ Ritwick Sharma <ritwick.sharma@arm.com>, linux-acpi@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20260730152539.2712312-1-andre.przywara@arm.com>
+Content-Language: en-US
+From: Ben Horgan <ben.horgan@arm.com>
+In-Reply-To: <20260730152539.2712312-1-andre.przywara@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
---000000000000aeaf7f0657d665e7
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Hi Andre,
 
-On Thu, Jul 30, 2026 at 5:32=E2=80=AFPM Julian Silver <mendaxca@gmail.com> =
-wrote:
->
-> On 2026-07-30 21:55:14, Rafael J. Wysocki (Intel) wrote:
-> > Does adding "intel_idle.max_cstate=3D1" to the kernel command line also
-> > help, by any chance?
->
-> Yes. "intel_idle.max_cstate=3D1" also helps (on kernel 7.1.5).
+On 7/30/26 16:25, Andre Przywara wrote:
+[...]
+> The first six patches rework all MSC access wrappers to propagate error
+> information. Pure MMIO based MSC accesses would never fail, but the
+> MPAM-Fb access can go wrong in multiple ways. The patches have been split
+> up purely for reviewing reasons, if the number is a problem, we could as
+> well squash them. Please note that until the very last patch of this series
+> any MSC accesses would always only return 0, it's only the final enablement
+> of MPAM-Fb that could possibly introduce errors. Hence all former patches
+> can add error handling gradually, those code paths wouldn't be triggered
+> before patch 10/10.
 
-Thanks for checking.
+I had a go at injecting some errors and noticed that at least some aren't getting to user space.
+When writing the schemata file any MPAM-Fb error is not propagated to the user. The
+resctrl_arch_update_domains() continues to return 0 as there are some missing links in the chain
+down to the writes, e.g. __write_config() always returns 0.
 
-Can you please check if the attached patch (on top of the current
-mainline) helps?
+Thanks,
 
---000000000000aeaf7f0657d665e7
-Content-Type: text/x-patch; charset="US-ASCII"; name="usb-ehci-pm-qos.patch"
-Content-Disposition: attachment; filename="usb-ehci-pm-qos.patch"
-Content-Transfer-Encoding: base64
-Content-ID: <f_ms7psosk0>
-X-Attachment-Id: f_ms7psosk0
+Ben
 
-LS0tCiBkcml2ZXJzL3VzYi9ob3N0L2VoY2ktcGNpLmMgfCAgIDEwICsrKysrKysrKy0KIDEgZmls
-ZSBjaGFuZ2VkLCA5IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkKCi0tLSBhL2RyaXZlcnMv
-dXNiL2hvc3QvZWhjaS1wY2kuYworKysgYi9kcml2ZXJzL3VzYi9ob3N0L2VoY2ktcGNpLmMKQEAg
-LTM4MCw5ICszODAsMTcgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBlaGNpX2RyaXZlcl9vdmVycmlk
-ZQogCiBzdGF0aWMgaW50IGVoY2lfcGNpX3Byb2JlKHN0cnVjdCBwY2lfZGV2ICpwZGV2LCBjb25z
-dCBzdHJ1Y3QgcGNpX2RldmljZV9pZCAqaWQpCiB7CisJc3RydWN0IHBtX3Fvc19yZXF1ZXN0IHJl
-cTsKKwlpbnQgcmV0OworCiAJaWYgKGlzX2J5cGFzc2VkX2lkKHBkZXYpKQogCQlyZXR1cm4gLUVO
-T0RFVjsKLQlyZXR1cm4gdXNiX2hjZF9wY2lfcHJvYmUocGRldiwgJmVoY2lfcGNpX2hjX2RyaXZl
-cik7CisKKwljcHVfbGF0ZW5jeV9xb3NfYWRkX3JlcXVlc3QoJnJlcSwgMTApOworCXJldCA9IHVz
-Yl9oY2RfcGNpX3Byb2JlKHBkZXYsICZlaGNpX3BjaV9oY19kcml2ZXIpOworCWNwdV9sYXRlbmN5
-X3Fvc19yZW1vdmVfcmVxdWVzdCgmcmVxKTsKKworCXJldHVybiByZXQ7CiB9CiAKIHN0YXRpYyB2
-b2lkIGVoY2lfcGNpX3JlbW92ZShzdHJ1Y3QgcGNpX2RldiAqcGRldikK
---000000000000aeaf7f0657d665e7--
