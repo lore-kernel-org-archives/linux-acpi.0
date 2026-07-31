@@ -1,139 +1,108 @@
-Received: from smtpbguseast1.qq.com (smtpbguseast1.qq.com [54.204.34.129])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57020372B5E;
-	Fri, 31 Jul 2026 07:07:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.204.34.129
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4CC793128D7;
+	Fri, 31 Jul 2026 08:16:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785481670; cv=none; b=MzZXOWwtEfeNaKIpSZm+MSuwuu4uZmhtadG/7OUu8qRMzg0JrswTWbToUlwy16DMNZYANimuQWPT3W16fzA0Tfb6JdBO2rgtvxczFCVExVlUKWfaksIB/+VHqb0/0WL1uG5xxsLabu6uNnd7kcC1cgB2qTRNyYyWwXotH7ctt2o=
+	t=1785485794; cv=none; b=qS5hUS2AgYPPq4PcNVZSG3kfwFBMvJrcmgwMQAuwrMbowYP6WeMjQMdgKtpnM7QHiBEhoVpdG9LyPR1D3yO8FhdO/qRFndy9YiVRgaiQXZO0UEQqbJq4UnNQUchhWV6mcMlK/LjSr/0/ETCsO8Wf4AKcNhD4V4cHSxvcN+3wjyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785481670; c=relaxed/simple;
-	bh=47Oiq8OG+w+OjYYQiWFZiOCnui0yqDOnd2mjMfcETiU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JdmsG+GDUNAUGKpTtcW3NWNAXTLTcEN91Tvl5eeuxH/I2GsfQbE3ks5jUm1CBSz70IJcIyF6UhcGhvhEhZc7jQZn/EbEyjsjLYMqOy2PLHknPgqwmEDI97kt5isTCyPUtloohrRflL4dOQNBBO5Nb1tIysolxqsAisF4N7diYeU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=GY4gpefC; arc=none smtp.client-ip=54.204.34.129
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=uniontech.com
+	s=arc-20240116; t=1785485794; c=relaxed/simple;
+	bh=ODD+RQ3c0scVEL717WO54IAEdEQGya0ubicBxFrbSIc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=jQoEInTxrPlJAlJhSNZS4f6VoLDfg/R32003iRg12qd/MOTp6DFTJbF4YfuA5bRi1cU360Q8NcMZ+YpgScT14nqCp/A+ncJFZc0/sm2QOqRgbl7Q5zkNoJ2YemKEKykimeSY1QzUE6u6Md+eys7wmRRUoNHvT+E2Di1TLxGP2yE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=DdPztJIQ; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="GY4gpefC"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uniontech.com;
-	s=onoh2408; t=1785481642;
-	bh=79W1ViVi75fumG/3jfuSfp8zQq0hxw/soO1tZiCmCKE=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version;
-	b=GY4gpefCHD3iHAqto3LCDm8ug4BewgokcJ1OFU7DKuJs+9eE5OGEES/XL/RKq/1p2
-	 J//7KNkuc/yLFHiBbvLbWT9dRmXwctk9/ZArhmGVf37a8VxP+5m+Ocu2mkyNx6iCnY
-	 drmkF7DXlevaHXi+RmzUApxjqSSUUVLiU06U6hHo=
-X-QQ-mid: zesmtpsz7t1785481637t1db84062
-X-QQ-Originating-IP: ZMFTIrR2AIMnVu0BHEV8rES2vCHnKlBLEGVxVmy8/q0=
-Received: from PEN202512010004 ( [113.57.152.160])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Fri, 31 Jul 2026 15:07:15 +0800 (CST)
-X-QQ-SSF: 0000000000000000000000000000000
-X-QQ-GoodBg: 1
-X-BIZMAIL-ID: 7423907543112446876
-EX-QQ-RecipientCnt: 6
-From: raoxu <raoxu@uniontech.com>
-To: rafael@kernel.org
-Cc: lenb@kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	raoxu@uniontech.com,
-	stable@vger.kernel.org
-Subject: [PATCH] ACPI: TAD: report expired alarm status through RTC
-Date: Fri, 31 Jul 2026 15:07:14 +0800
-Message-ID: <8829E8C06120473E+20260731070714.1287959-1-raoxu@uniontech.com>
-X-Mailer: git-send-email 2.50.1
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="DdPztJIQ"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 87C0C204C;
+	Fri, 31 Jul 2026 01:16:25 -0700 (PDT)
+Received: from [192.168.178.24] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 4C4503F86F;
+	Fri, 31 Jul 2026 01:16:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1785485789; bh=ODD+RQ3c0scVEL717WO54IAEdEQGya0ubicBxFrbSIc=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=DdPztJIQ7rODWoZdz9EXRz6whXe2bm/U/1uJqikbIUFxF/8lvx87RA4hyN+dP19y1
+	 BvP2OVdH2MYw6Le7L43/rvpHVXqwegrztZA5dIL8CBUjtoyT1nhZK8VPJ/8ajA8Hg/
+	 OIx7uEQXQzNZFbeuXamGSqibAERYQFNi6barE1LE=
+Message-ID: <b3224280-4925-41ed-8e45-838eb212d093@arm.com>
+Date: Fri, 31 Jul 2026 10:16:24 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-QQ-SENDSIZE: 520
-Feedback-ID: zesmtpsz:uniontech.com:qybglogicsvrgz:qybglogicsvrgz6b-0
-X-QQ-XMAILINFO: M6ndBoZOFDxJ4tzzIIYvWJuJM40DRs1lN5Mi1yN2GdoJlCIZKz9ccri+
-	RM/yHPGKtFk4q5V7ZQRczG11QNr/mmwBEvSNNfuyLavfbo2el/YjMhZAJHmOWqzUwM/bFj1
-	/eXNFvtURRBIMx9zWfz4Be97DdtkRvl/iB2eAcy6UsXeq6pk7hqafSBfqvc4gGyh9CTvYX5
-	gZ7dlKUKpOCh3NqjmLbTQdMA9+aSNxVRrAXLvbUDVjBvLIIRm/Ut1wziqDShzd+hTd14z7G
-	MuMEIetoEUQiXkdvo6X1/3kviEibsOeGIxrOrLqC3H/nMasEPCSIj+JZZoQcy0inOPWCdDn
-	xpppMboTagfPs0kwen59vgFmyZiK13kg/6ICZYCWzwVxZYJ8OdtyfCivgo7BDpOBY7UfWjo
-	X1RCJDPUFQ/NkpgaZ+8+w8A+jG+niiEjcYQDW1wLXBzZNve8w4vsM/Mj2unD9n3NGYwDOq6
-	751x1MAMRZyk2O+e3HWO/YKAJ1WtGxFVSFlOhsztSz4ujq1UEAXLgJOHHFd7xfqXtIQM2/Z
-	xIWz57+uLJp9oMmSx9ya4HTlmFRdACJtjmwFPcllYwI8e3+FMuR0c2zNMdijDt/8kbJV/VX
-	2TqVTKV/HSxvSxuzP3r7jQnops30s1mxz+UkLkZXpDDzCco/OL65diB5GAUari8QBiumimM
-	wK/GrTMt8qCgBlp1uEaGqLoJpBcVYgjVuY4eAXaWmGMdceUxef5W0ZCyJRvOV1ZbnktATan
-	32w/CxknI1mQ3RaWDfCwX0W7r95VScviEXkkLmMUiKkghYHkVNXFFCO6D5Cfo5Ln93AZnyY
-	UPg8d95LvRQAJTL5fCmefqFZ2/EF+INu97tHPuqbILViEUtWQTPHdbKdAJLwNbyDkdRlKIj
-	VvQEosv32yGIOZigq5t1cwx5kH5y7hYXNrMtq5a54tIzLKEpxslTjBtQ/7+9n9sKprr0Gsv
-	9uqpGhA6a+1AZ6bkAYHmQRrk0jbiHefgtNWyPaMm0jT/XCppB3UI2eNztT7M4DMZ6n65oU7
-	ehI/7ztA/M80Y3PhcQuAn8I/IghiqVKSf7Eob5RzcwD2rHQuLA+BGq4ssuTS7/M4gxdysF7
-	4ytX+mKD+gk
-X-QQ-XMRINFO: OD9hHCdaPRBwH5bRRRw8tsiH4UAatJqXfg==
-X-QQ-RECHKSPAM: 0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v6 10/10] arm_mpam: detect and enable MPAM-Fb PCC support
+To: Ben Horgan <ben.horgan@arm.com>, Lorenzo Pieralisi
+ <lpieralisi@kernel.org>, Hanjun Guo <guohanjun@huawei.com>,
+ Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ James Morse <james.morse@arm.com>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+ Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+ Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+ Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
+ Niyas Sait <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
+ Ritwick Sharma <ritwick.sharma@arm.com>, linux-acpi@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20260730152539.2712312-1-andre.przywara@arm.com>
+ <20260730152539.2712312-11-andre.przywara@arm.com>
+ <e09e7d37-59bb-4a4f-b47e-a014c674796e@arm.com>
+Content-Language: en-GB
+From: Andre Przywara <andre.przywara@arm.com>
+In-Reply-To: <e09e7d37-59bb-4a4f-b47e-a014c674796e@arm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-From: Xu Rao <raoxu@uniontech.com>
+Hi Ben,
 
-acpi_tad_rtc_read_alarm() always sets rtc_wkalrm::pending to zero, so
-RTC_WKALM_RD cannot report that a TAD alarm has expired.
+On 7/30/26 18:13, Ben Horgan wrote:
+> Hi Andre,
+> 
+> On 7/30/26 16:25, Andre Przywara wrote:
+>> The Arm MPAM-Fb specification [1] describes a protocol to access MSC
+>> registers through a firmware interface. This requires a shared memory
+>> region to hold the message, and a mailbox to trigger the access.
+>> For ACPI this is wrapped as a PCC channel, described using existing
+>> ACPI abstractions.
+>>
+>> Add code to parse those PCC table descriptions associated with an MSC,
+>> and store the parsed information in the MSC struct.
+>> There can be multiple PCC channels, and each channel can serve multiple
+>> MSCs, so we need to keep track of the channel usage, using a list and
+>> a refcount.
+>>
+>> This will be used by the MPAM-Fb access wrapper code.
+>>
+>> [1] https://developer.arm.com/documentation/den0144/latest
+>>
+>> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+>> Tested-by: Ritwick Sharma <ritwick.sharma@arm.com>
+> Ritwick gave his Tested-by for the series on v5. Any reason to just add the tag on this patch?
 
-ACPI 6.6, Section 9.17.5 defines _GWS as returning a DWORD bit field.
-Bit 0 indicates that the selected timer has expired, bit 1 indicates
-that it caused a platform wake, and bits 31:2 are reserved. Therefore,
-only bit 0 maps to rtc_wkalrm::pending; converting the complete _GWS
-value to bool would incorrectly treat the wake-source bit or a nonzero
-reserved bit as an expired alarm.
+submitting-patches.rst says:
+"Both Tested-by and Reviewed-by tags, once received on mailing list from 
+tester or reviewer, should be added by author to the *applicable* 
+patches when sending next versions."
 
-Read _GWS for the AC timer, reject values wider than the specified
-DWORD, and report its expired bit through rtc_wkalrm::pending. This
-matches the existing read path, which reads the AC timer because alarms
-programmed through the RTC interface set the AC and DC timers to the same
-value.
+I think this system relies on MPAM-Fb, so he couldn't test each patch in 
+isolation, but "just" that MPAM-Fb works, which is what only patch 10/10 
+enables.
 
-Fixes: 7572dcabe38d ("ACPI: TAD: Add alarm support to the RTC class device interface")
-Cc: stable@vger.kernel.org
-Signed-off-by: Xu Rao <raoxu@uniontech.com>
----
- drivers/acpi/acpi_tad.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+So I find tags given for the whole series always tricky to handle, but 
+in this case I figured patch 10/10 would be the right target.
 
-diff --git a/drivers/acpi/acpi_tad.c b/drivers/acpi/acpi_tad.c
-index fc43df083738..610840c6240d 100644
---- a/drivers/acpi/acpi_tad.c
-+++ b/drivers/acpi/acpi_tad.c
-@@ -51,6 +51,9 @@ MODULE_AUTHOR("Rafael J. Wysocki");
- #define ACPI_TAD_AC_TIMER	(u32)0
- #define ACPI_TAD_DC_TIMER	(u32)1
+> I guess patch 9 has significant enough changes to drop tags but I don't see it for the others.
 
-+/* ACPI TAD wake alarm status flags (ACPI 6.6, Section 9.17.5) */
-+#define ACPI_TAD_WAKE_STATUS_EXPIRED	BIT(0)
-+
- /* Special value for disabled timer or expired timer wake policy. */
- #define ACPI_TAD_WAKE_DISABLED	(~(u32)0)
+Well, even smaller changes could ruin a whole thing, but IIUC in this 
+case Ritwick's setup doesn't even enable error IRQs, so this part wasn't 
+tested anyway.
 
-@@ -709,6 +712,7 @@ static int acpi_tad_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *t)
- static int acpi_tad_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *t)
- {
- 	unsigned long long retval;
-+	unsigned long long status;
- 	struct rtc_time tm_now;
- 	struct acpi_tad_rt rt;
- 	int ret;
-@@ -740,7 +744,14 @@ static int acpi_tad_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *t)
- 	if (retval > U32_MAX)
- 		return -ENODATA;
-
--	t->pending = 0;
-+	ret = __acpi_tad_wake_read(dev, "_GWS", ACPI_TAD_AC_TIMER, &status);
-+	if (ret)
-+		return ret;
-+
-+	if (status > U32_MAX)
-+		return -ENODATA;
-+
-+	t->pending = !!(status & ACPI_TAD_WAKE_STATUS_EXPIRED);
-
- 	if (retval != ACPI_TAD_WAKE_DISABLED) {
- 		t->enabled = 1;
---
-2.50.1
+Cheers,
+Andre.
 
