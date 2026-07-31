@@ -1,45 +1,46 @@
-Received: from smtpbgbr1.qq.com (smtpbgbr1.qq.com [54.207.19.206])
+Received: from smtpbguseast1.qq.com (smtpbguseast1.qq.com [54.204.34.129])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D146C36B07E;
-	Fri, 31 Jul 2026 06:43:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.207.19.206
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57020372B5E;
+	Fri, 31 Jul 2026 07:07:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.204.34.129
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785480237; cv=none; b=Iq6h5lcDnoVh7b2xQH4jzoQf8Cx1Bet0OPjefMIu1h2t8jhrTSw4MBBT0yt1APYbSHe7JuGE8d9suCp6ZF0AoAnt4boVy+FMLgJjc23R2m1F2GqzCcEt8SX0jNgrqRqBR8p8Wnu1AvLaCZ27MvaHCUYXqGteMk3RPdiGSlaJYZo=
+	t=1785481670; cv=none; b=MzZXOWwtEfeNaKIpSZm+MSuwuu4uZmhtadG/7OUu8qRMzg0JrswTWbToUlwy16DMNZYANimuQWPT3W16fzA0Tfb6JdBO2rgtvxczFCVExVlUKWfaksIB/+VHqb0/0WL1uG5xxsLabu6uNnd7kcC1cgB2qTRNyYyWwXotH7ctt2o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785480237; c=relaxed/simple;
-	bh=/cOsnaRhOcIFwY6omEbRyXYCX3LyySZ2HNmMT3qsEqY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=mEmqb5/23Oc3eM9+OeaDleXWLN/bG/jOqqJ5xPFo74Jt9cGdHCnVTezP1zUUKVi+mmPeJKeF7AtmxnLWE6070NMt4ZydEv/4s+5AimKBYT4Sn2jEpMpaA1mDS0gwS15icFlTaelYKGpmsmtzqHNPYWlXrsA+a3spDNohuefAuRk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=MC+dATxk; arc=none smtp.client-ip=54.207.19.206
+	s=arc-20240116; t=1785481670; c=relaxed/simple;
+	bh=47Oiq8OG+w+OjYYQiWFZiOCnui0yqDOnd2mjMfcETiU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JdmsG+GDUNAUGKpTtcW3NWNAXTLTcEN91Tvl5eeuxH/I2GsfQbE3ks5jUm1CBSz70IJcIyF6UhcGhvhEhZc7jQZn/EbEyjsjLYMqOy2PLHknPgqwmEDI97kt5isTCyPUtloohrRflL4dOQNBBO5Nb1tIysolxqsAisF4N7diYeU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=GY4gpefC; arc=none smtp.client-ip=54.204.34.129
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=uniontech.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="MC+dATxk"
+	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="GY4gpefC"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uniontech.com;
-	s=onoh2408; t=1785480218;
-	bh=sqbZPkVIiuKibAq/XHWC59H5Nrjr8DcW9MdOEbErPUc=;
+	s=onoh2408; t=1785481642;
+	bh=79W1ViVi75fumG/3jfuSfp8zQq0hxw/soO1tZiCmCKE=;
 	h=From:To:Subject:Date:Message-ID:MIME-Version;
-	b=MC+dATxkx9vF919r+T54kAiPe8ThBq+UgHfEzy2QA9DiL+JhcQ24AxqSUsd2uQ9vc
-	 gW3c3cz/2396BG6gIbPgnA8hq/CPw0nT+lQUHrMJO+mIhau4D7lbcxUXXA+FNF1/5l
-	 Sg0UVWISihjcJydbBa/Hig5duS/oUh3nLE0YKn2k=
-X-QQ-mid: esmtpsz11t1785480203t95e16825
-X-QQ-Originating-IP: JeUMyCL9oW+ImUdze/+77Vqu8XUGeM4KpPRU/0ilIpk=
+	b=GY4gpefCHD3iHAqto3LCDm8ug4BewgokcJ1OFU7DKuJs+9eE5OGEES/XL/RKq/1p2
+	 J//7KNkuc/yLFHiBbvLbWT9dRmXwctk9/ZArhmGVf37a8VxP+5m+Ocu2mkyNx6iCnY
+	 drmkF7DXlevaHXi+RmzUApxjqSSUUVLiU06U6hHo=
+X-QQ-mid: zesmtpsz7t1785481637t1db84062
+X-QQ-Originating-IP: ZMFTIrR2AIMnVu0BHEV8rES2vCHnKlBLEGVxVmy8/q0=
 Received: from PEN202512010004 ( [113.57.152.160])
 	by bizesmtp.qq.com (ESMTP) with 
-	id ; Fri, 31 Jul 2026 14:43:21 +0800 (CST)
+	id ; Fri, 31 Jul 2026 15:07:15 +0800 (CST)
 X-QQ-SSF: 0000000000000000000000000000000
 X-QQ-GoodBg: 1
-X-BIZMAIL-ID: 10087580991105572539
-EX-QQ-RecipientCnt: 5
+X-BIZMAIL-ID: 7423907543112446876
+EX-QQ-RecipientCnt: 6
 From: raoxu <raoxu@uniontech.com>
 To: rafael@kernel.org
 Cc: lenb@kernel.org,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	raoxu@uniontech.com
-Subject: [PATCH] ACPI: FPDT: unmap header on signature mismatch
-Date: Fri, 31 Jul 2026 14:43:20 +0800
-Message-ID: <B7D368CE62E0C10C+20260731064320.1241855-1-raoxu@uniontech.com>
+	raoxu@uniontech.com,
+	stable@vger.kernel.org
+Subject: [PATCH] ACPI: TAD: report expired alarm status through RTC
+Date: Fri, 31 Jul 2026 15:07:14 +0800
+Message-ID: <8829E8C06120473E+20260731070714.1287959-1-raoxu@uniontech.com>
 X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -49,62 +50,90 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-QQ-SENDSIZE: 520
-Feedback-ID: esmtpsz:uniontech.com:qybglogicsvrgz:qybglogicsvrgz6b-0
-X-QQ-XMAILINFO: MQPu5pFEJFN4RE/dkrJolz/CiJ7cDfxbiusX0xMhpd6dS2H8jRTtv7XX
-	67yLiKoDmWaZAbJxi7oF6EINNCFpPB4EH7S3dIhvGZzM+WMl6qa2s840BH9TT9oGj3AK2Hv
-	MyFhqu7TvB9MMf2HipjC/NF9uyAS74/oY0xoqd9NwTuEkYkN+2xADmigLC4PngUdIwMsB9x
-	wrQetlk7IjzCnOHAUtX4ROkwS3mmJG8n/ip9ZECVs/x5EQnR8bdtY4qDKi7N2S4Y4a7iCBV
-	v/hdeCkHAggDpOm03nM983hAKjKunVXdQmA/lc7KdD/YJFDTDEjXswuv9u3BR8YjL0+B1st
-	f8QFUN1mS3lDOOyfafoPLCbm1BJRozh9ww4WlJAIE3Ku3ANv9iIjL9zg0exmwSJlMtZZCrN
-	o5jAaS9AXSMJ52vk5Y0cdqHmZe08YXGIjZXhMUO46l93osraVAiko592rUf4DqTIE5TmZOC
-	ePfhn/PL5QWdKtoPkiajWd/jRrbF8PjHLrWzmGoCjv5b0Ph4sPH5dVqYuZOCEVkZ9zq35Mx
-	S4s7ilMG9rY0E7hIwKvLZGw+KQ3mbj6lVceLJeHLhH+D9xAGSbzRKhW5A7K1/vOvpNNNZMo
-	/kX3iBxcH6zsmAVvFI9Tezk/V3jICkhMqmMjw399dlsxygfc/o9uqET60jjkU/iNx0TGL7k
-	h9wfdtna7hQs4lKdg8jRVrsIvUoAxtbi4mcN0IsYDCfsTSlduS8kTryW8fG6bwMBr5rCPap
-	tXjlBmaEn0Vp89h3qM90nW97P5Ioan/srSSYOavOIJN5Kt/NE4n8ZAvab86NYyv8tERfOxz
-	eTkjfHv/x7/AUqPWkRzMgf0+hNS5/U/gFHFLw5ZpYT8wwgvTTOEMb2iRQ17u0UYb4NW1M13
-	/AHdbZri1AVX9BHbea9stos/BBT/6pmTd4lbqVeP/OMLVsisfezkOeU5d+Oe67MuK5gCF2X
-	hwfdDsV9BY2wHbJllGYVfTwF86O9q67GMUA4hycGi0D4dVvN4hcxNos+Bqkg7KXtdoVRonX
-	N7ZW/tpbv/zOtKmu8hW/CKkfVqpvthBgkiyj2rl0GxB59mwYffbS3XDbvhi9T0IrEkcmu3i
-	Q==
+Feedback-ID: zesmtpsz:uniontech.com:qybglogicsvrgz:qybglogicsvrgz6b-0
+X-QQ-XMAILINFO: M6ndBoZOFDxJ4tzzIIYvWJuJM40DRs1lN5Mi1yN2GdoJlCIZKz9ccri+
+	RM/yHPGKtFk4q5V7ZQRczG11QNr/mmwBEvSNNfuyLavfbo2el/YjMhZAJHmOWqzUwM/bFj1
+	/eXNFvtURRBIMx9zWfz4Be97DdtkRvl/iB2eAcy6UsXeq6pk7hqafSBfqvc4gGyh9CTvYX5
+	gZ7dlKUKpOCh3NqjmLbTQdMA9+aSNxVRrAXLvbUDVjBvLIIRm/Ut1wziqDShzd+hTd14z7G
+	MuMEIetoEUQiXkdvo6X1/3kviEibsOeGIxrOrLqC3H/nMasEPCSIj+JZZoQcy0inOPWCdDn
+	xpppMboTagfPs0kwen59vgFmyZiK13kg/6ICZYCWzwVxZYJ8OdtyfCivgo7BDpOBY7UfWjo
+	X1RCJDPUFQ/NkpgaZ+8+w8A+jG+niiEjcYQDW1wLXBzZNve8w4vsM/Mj2unD9n3NGYwDOq6
+	751x1MAMRZyk2O+e3HWO/YKAJ1WtGxFVSFlOhsztSz4ujq1UEAXLgJOHHFd7xfqXtIQM2/Z
+	xIWz57+uLJp9oMmSx9ya4HTlmFRdACJtjmwFPcllYwI8e3+FMuR0c2zNMdijDt/8kbJV/VX
+	2TqVTKV/HSxvSxuzP3r7jQnops30s1mxz+UkLkZXpDDzCco/OL65diB5GAUari8QBiumimM
+	wK/GrTMt8qCgBlp1uEaGqLoJpBcVYgjVuY4eAXaWmGMdceUxef5W0ZCyJRvOV1ZbnktATan
+	32w/CxknI1mQ3RaWDfCwX0W7r95VScviEXkkLmMUiKkghYHkVNXFFCO6D5Cfo5Ln93AZnyY
+	UPg8d95LvRQAJTL5fCmefqFZ2/EF+INu97tHPuqbILViEUtWQTPHdbKdAJLwNbyDkdRlKIj
+	VvQEosv32yGIOZigq5t1cwx5kH5y7hYXNrMtq5a54tIzLKEpxslTjBtQ/7+9n9sKprr0Gsv
+	9uqpGhA6a+1AZ6bkAYHmQRrk0jbiHefgtNWyPaMm0jT/XCppB3UI2eNztT7M4DMZ6n65oU7
+	ehI/7ztA/M80Y3PhcQuAn8I/IghiqVKSf7Eob5RzcwD2rHQuLA+BGq4ssuTS7/M4gxdysF7
+	4ytX+mKD+gk
 X-QQ-XMRINFO: OD9hHCdaPRBwH5bRRRw8tsiH4UAatJqXfg==
 X-QQ-RECHKSPAM: 0
 
 From: Xu Rao <raoxu@uniontech.com>
 
-fpdt_process_subtable() first maps the FPDT subtable header to verify
-that the signature matches the type of the pointer record and to obtain
-the full subtable length.
+acpi_tad_rtc_read_alarm() always sets rtc_wkalrm::pending to zero, so
+RTC_WKALM_RD cannot report that a TAD alarm has expired.
 
-If malformed firmware supplies a subtable with an unexpected signature,
-the function returns -EINVAL without dropping the mapping reference
-acquired for the header. The normal validation path does drop this
-reference before mapping the complete subtable.
+ACPI 6.6, Section 9.17.5 defines _GWS as returning a DWORD bit field.
+Bit 0 indicates that the selected timer has expired, bit 1 indicates
+that it caused a platform wake, and bits 31:2 are reserved. Therefore,
+only bit 0 maps to rtc_wkalrm::pending; converting the complete _GWS
+value to bool would incorrectly treat the wake-source bit or a nonzero
+reserved bit as an expired alarm.
 
-This path is only reached for inconsistent firmware data and FPDT is
-initialized once during boot, so the leak is unlikely to be noticed in
-normal testing.
+Read _GWS for the AC timer, reject values wider than the specified
+DWORD, and report its expired bit through rtc_wkalrm::pending. This
+matches the existing read path, which reads the AC timer because alarms
+programmed through the RTC interface set the AC and DC timers to the same
+value.
 
-Unmap the header before returning from the signature-mismatch path.
-
-Fixes: d1eb86e59be0 ("ACPI: tables: introduce support for FPDT table")
+Fixes: 7572dcabe38d ("ACPI: TAD: Add alarm support to the RTC class device interface")
+Cc: stable@vger.kernel.org
 Signed-off-by: Xu Rao <raoxu@uniontech.com>
 ---
- drivers/acpi/acpi_fpdt.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/acpi_tad.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpi_fpdt.c b/drivers/acpi/acpi_fpdt.c
-index e75dd28d31a9..e2acaff76e77 100644
---- a/drivers/acpi/acpi_fpdt.c
-+++ b/drivers/acpi/acpi_fpdt.c
-@@ -182,6 +182,7 @@ static int fpdt_process_subtable(u64 address, u32 subtable_type)
+diff --git a/drivers/acpi/acpi_tad.c b/drivers/acpi/acpi_tad.c
+index fc43df083738..610840c6240d 100644
+--- a/drivers/acpi/acpi_tad.c
++++ b/drivers/acpi/acpi_tad.c
+@@ -51,6 +51,9 @@ MODULE_AUTHOR("Rafael J. Wysocki");
+ #define ACPI_TAD_AC_TIMER	(u32)0
+ #define ACPI_TAD_DC_TIMER	(u32)1
 
- 	if (strncmp((char *)&subtable_header->signature, signature, 4)) {
- 		pr_info(FW_BUG "subtable signature and type mismatch!\n");
-+		acpi_os_unmap_memory(subtable_header, sizeof(*subtable_header));
- 		return -EINVAL;
- 	}
++/* ACPI TAD wake alarm status flags (ACPI 6.6, Section 9.17.5) */
++#define ACPI_TAD_WAKE_STATUS_EXPIRED	BIT(0)
++
+ /* Special value for disabled timer or expired timer wake policy. */
+ #define ACPI_TAD_WAKE_DISABLED	(~(u32)0)
 
+@@ -709,6 +712,7 @@ static int acpi_tad_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *t)
+ static int acpi_tad_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *t)
+ {
+ 	unsigned long long retval;
++	unsigned long long status;
+ 	struct rtc_time tm_now;
+ 	struct acpi_tad_rt rt;
+ 	int ret;
+@@ -740,7 +744,14 @@ static int acpi_tad_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *t)
+ 	if (retval > U32_MAX)
+ 		return -ENODATA;
+
+-	t->pending = 0;
++	ret = __acpi_tad_wake_read(dev, "_GWS", ACPI_TAD_AC_TIMER, &status);
++	if (ret)
++		return ret;
++
++	if (status > U32_MAX)
++		return -ENODATA;
++
++	t->pending = !!(status & ACPI_TAD_WAKE_STATUS_EXPIRED);
+
+ 	if (retval != ACPI_TAD_WAKE_DISABLED) {
+ 		t->enabled = 1;
 --
 2.50.1
 
