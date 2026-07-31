@@ -1,291 +1,220 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013068.outbound.protection.outlook.com [40.93.196.68])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41BCE369D59;
-	Fri, 31 Jul 2026 20:35:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785530117; cv=none; b=OKXdS3UOJjPpgBe1kWyultqW9YCIxVcEgpWzJUR6odzC5zn/q6JLSN09sWpTCf7iNq+k/7zwty5Hbb/vpwjNokkewyY2RKpFJtdjsG9Xgx+EcQvw0WO0XxqSPDTlXCb0RFVON7kSDo5iV4M58hSD9OgGuqw+GaLkX3pBfdjGNhM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785530117; c=relaxed/simple;
-	bh=uA9qyBlrPYYjPC2CTTIGFM0Fv+fwiQo0Q5cdWC2o3Jk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=peazTKbxcvgOpuGNmqzMq42nPfYjt6tAIAVgBv08Nv9IQPnBArkmzzQVn5jSvrNB2lD6hADZDx02005irxgFe+v8WnLt4f9aX0yWZT5pxPFgVFBMKVNQwycemJPQtJtktB3plNHRf2KEFrtt33GefquIqF7TTVlkjL8uxUgFn/I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MAnlS0XC; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 550B432E6BC;
+	Fri, 31 Jul 2026 20:53:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.68
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785531191; cv=fail; b=YuewKK3iGhgVRCNVGN+87LAQg4u2Ouy2YSGx/jpr3fUHhiG6/XAAAjFjThLoB9sjFey5OPdiYmRgPaUnj1BNG/LHIlKqvfWIKow6X3MgA6aNggfMAdxsVYpyLIYbEz5XeF0uWEIgJWwMijGBWE3593RuNw7bUwyRK9Wtz5c6wX4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785531191; c=relaxed/simple;
+	bh=NbEDRhKpOCUOswQIcW1WQYJmh7EdI4tk6biC5RMm4qQ=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=Zj3O5SUMeESAGRUz1NXCjOBkQ1G+YRwbEAl7gaXncWvPySTYi9S259qs7gjmNA9hJcmNvBzlDlIeW4U0fL36n/gEhfUi5V0lRIL2I3aNywuIQ/D62NCfuCojk354On6865Gxz9k70YArUvGrOhG2PLwDPBEoVsqELJly9Fo7kt0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=izWpMb98; arc=fail smtp.client-ip=40.93.196.68
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MAnlS0XC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AED4B1F00AC4;
-	Fri, 31 Jul 2026 20:35:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785530115;
-	bh=1b7OOK1ydfjojKAeVm00aLNWdWN8CVli0QWCGJGGJH4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=MAnlS0XCeeG+IAX/DZqY8aetmPZb9L9iC68UYljTTm34OpK/T93OaKcoaWl9zDNlh
-	 qfS3qG4bG0a/935rvi1QLUI64nC7w4TZ+f2cZIQSKsLCdTY9izrFbigFcQ9NBCQ1z6
-	 IWGutnQJ3FiEYxA8SviAJheFFfSNnqA6V89hkE6axDb5jIcaUsHD0pIXRyuR1q1tPj
-	 zkfQjMVrLUPIP6nzoWlQ+HmsipDG4EdYUFtdrptG22DwTY8mrFEGOf9FGQ0sOkqjAq
-	 mlSn1vQL84YLakUibYG9bJuMBeyvIrfg8Vb0RyJx+vUOk/BnNVIP5+n86MG1itqxaP
-	 SSeejGJ0poq4Q==
-Date: Fri, 31 Jul 2026 15:35:15 -0500
-From: Rob Herring <robh@kernel.org>
-To: Umang Chheda <umang.chheda@oss.qualcomm.com>
-Cc: Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Bjorn Andersson <andersson@kernel.org>,
-	Konrad Dybcio <konradybcio@kernel.org>,
-	Ruidong Tian <tianruidong@linux.alibaba.com>,
-	Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-msm@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-edac@vger.kernel.org,
-	faruque.ansari@oss.qualcomm.com, avaneesh.dwivedi@oss.qualcomm.com
-Subject: Re: [PATCH v2 1/4] dt-bindings: arm: ras: Introduce bindings for ARM
- RAS error sources
-Message-ID: <20260731203515.GA1619665-robh@kernel.org>
-References: <20260720081954.1858180-1-umang.chheda@oss.qualcomm.com>
- <20260720081954.1858180-2-umang.chheda@oss.qualcomm.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="izWpMb98"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=MxLf384A9+g/3mSyzJNYSeUxH6x2+u177rnAZnm7UFcMMahpatmXF+rqoKhWWGPW5zvFKbx4JFYfSENRLpQgMQx8+hIw2Vc9bhzVPsTdJRC9fTixB8OTjPXCJuhEinfoG4I0sXtIi7WPVKIj5JwUGoNEQBCCzB4RnLkFrrI+HYrPpCXT61mia1b+GLEHbxGmbD6rGFG+Bya6yJi1a0FUje6sVnV+c6CMlCMfLYVbE33FypPBrC61zLcniW+bQGLZ97vzet47gXnbZYVZk6ftgqaRRgFzeuZR0gA9PvswTnqgwbIYW0m+cnqd1mg3aJbjT6kZcfA45VfwHAgUpzhRxA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ZF9OprNpKwTv+ex95HhGx5+nAMtY1E4uWWJv03rWfSc=;
+ b=SUPy9lVBSO1lYWp6E6EVhPRIWGS93K5pN3fekhmT1Ur5iXk/fi1DIDUKA9huKgHCrpBL8mVZVAEQk8JS/XtQcWdWWQJdzHFh625ZBAwLXm3MwqyN+GyABJYUeW0JZwKpjLJblac0WLOqv98j6caSs+lAyArKaw+AIWCnbdZnVY+5Js/0c4MsKqZ6sZosiWTo6jRU7X68bBRRGjHfekw0pCn37CWvZubCIJDvqjBjqVfkMDkhUVtkC9hHYhCraKs36fP9C+JFjWEupZxHGKidsnl0tvjoqxeiZ4YdPTHoptqm6gLc/6960e80A+CXAeQAAbxHs5EtTfyFHW6AdnBY6g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ZF9OprNpKwTv+ex95HhGx5+nAMtY1E4uWWJv03rWfSc=;
+ b=izWpMb98WvnFFhVH5h6JTZ7wk3LIgDNFHk6fikwLgcQwQfh1W1YjM5+W9N4qh7jBgTvC+SsOfDfx4bk85zVFj/5QD1a++1Uj4Hcpyk3BhvdQNoTZMyXehy4xWZAzC4dIBPW4V/1El4EsZFsYqiLcWOu9dOdap/+JNhoGWTGIx9silcC3deoHSaGYsNfEp7Y8SZbzYkTp8a7I1Xv7mPquegXN3QS8nDUJ55jLvIW0p8j+qwgb9w829w2oF/GBIWvaMUCZPyoSot/VYqny/bWOXIqAmaMuO7k6ShKfvR3b4UJ0S4D06/By1bD26I1ghlBnMEwys4qieK4mgaQbLEK77A==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from BN9PR12MB5179.namprd12.prod.outlook.com (2603:10b6:408:11c::18)
+ by MW4PR12MB7287.namprd12.prod.outlook.com (2603:10b6:303:22c::7) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.16; Fri, 31 Jul
+ 2026 20:53:04 +0000
+Received: from BN9PR12MB5179.namprd12.prod.outlook.com
+ ([fe80::cf08:f59b:d016:c95f]) by BN9PR12MB5179.namprd12.prod.outlook.com
+ ([fe80::cf08:f59b:d016:c95f%4]) with mapi id 15.21.0270.015; Fri, 31 Jul 2026
+ 20:53:04 +0000
+Message-ID: <3945845a-af6a-4d24-9821-a3925a030301@nvidia.com>
+Date: Sat, 1 Aug 2026 02:22:55 +0530
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCHv2 1/3] ACPI: CPPC: Reject desired_perf reads on ACPI 6.6+
+To: Christian Loehle <christian.loehle@arm.com>,
+ "Rafael J . Wysocki" <rafael@kernel.org>,
+ Viresh Kumar <viresh.kumar@linaro.org>
+Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>,
+ Jie Zhan <zhanjie9@hisilicon.com>, Lifeng Zheng <zhenglifeng1@huawei.com>,
+ Pierre Gondois <pierre.gondois@arm.com>, Sudeep Holla
+ <sudeep.holla@arm.com>, Ionela Voinescu <ionela.voinescu@arm.com>,
+ zhongqiu.han@oss.qualcomm.com, stable@vger.kernel.org
+References: <20260729100245.2628302-1-christian.loehle@arm.com>
+ <20260729100245.2628302-2-christian.loehle@arm.com>
+Content-Language: en-US
+From: Sumit Gupta <sumitg@nvidia.com>
+In-Reply-To: <20260729100245.2628302-2-christian.loehle@arm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: PN3PR01CA0174.INDPRD01.PROD.OUTLOOK.COM
+ (2603:1096:c01:de::15) To BN9PR12MB5179.namprd12.prod.outlook.com
+ (2603:10b6:408:11c::18)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260720081954.1858180-2-umang.chheda@oss.qualcomm.com>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN9PR12MB5179:EE_|MW4PR12MB7287:EE_
+X-MS-Office365-Filtering-Correlation-Id: e2518542-973c-425f-1ec6-08deef45b712
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|7416014|376014|366016|23010399003|1800799024|56012099006|11063799006|4143699003|10067099003|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	TvzT/qH5fAKozs9FLs7WZOoUPMP4C0IyglAKaCYXrbBxM7pX8cSlTMY3ukwTy9/qh245vmfozp4JA0yxBYwP1gjUfUpAkjYdE/d7eaWAznrrume8nSR73KCJw8Ibko8iz1DsgpsA57LU372ZD1UlaA6eYali7L3RNPanZ8Tfuk71Iiw1H+m7Fqb/i3P7DpU1nFcHye4pmGMKn2z3UHpr6xAnbJWeNH67OWnBUBcYfRXqkXZ76NivUqAdSbWAU/p/ex1If4RQfywSPPGTYin/yJKl5n8UGzXncvnBGk9B1CRe+XuOv1JFGwnvFt577VFnE2MIu1GQrJsAGd2d9A1oTp18K14VAqMMfLrDkUOHsuJU27ucqP81mYgHZNtC/HbA/khCHdeFPEwAZEHUWeRI2A/dGpXS8Z1LwOS82R7U5Vkt01keKNZKhnewsW9aTOBDecca+fujbD4IwT6oP5bI8zZ3OWS1zQBhWCJqBEbUjqPAT5JigC6O/HVgDcoB8F52PtRZCp+yaGXyFq48Hmfrdgy2f/A/upFn2ou1sVKunAwFqP1h8cqUyZqTmi2GOTD16C4RpGtFegFeTVDTkxu82/O3yd8LnO86ek88zGJYgmoFJPukGkcVrnL0ra+C/NNUPaFu/m+L2DWV8L5xJSXM4AAnS3ZmSWi71n08Wreioas=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN9PR12MB5179.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(366016)(23010399003)(1800799024)(56012099006)(11063799006)(4143699003)(10067099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?UkZxYnh4aVlkbUFCeng4Ti9TNXZLSWFNTEdrQnNVaHhaUHhkeFpCRGR6dEVl?=
+ =?utf-8?B?aXQveE5INWN6dXJkZm9tMVpWcUFBMGlBRTYzeWExUWp6M3cyRU5QY2QzS2U2?=
+ =?utf-8?B?bW9LN2czaGtKbHowaTVZbk5SNGpJOGdSbXZBVXhjeVlEcjJDN0xSS0lhZ2RL?=
+ =?utf-8?B?clZySkdvM3NsS2ViY2VFbmt1WGwySDRoZUdHTjVjbzJaSGozdFF3cGgvZ3pa?=
+ =?utf-8?B?cW5MVVo0dlY4R2lZWnk4eGNnVjZtNGNOSnNOZHU1Nm5FVmNaaUZtWllZS0lE?=
+ =?utf-8?B?MzBIT25XZkFHZEt1bzZwSDgzZXZ2RUxWdjNSZ0w5ZFgvRjUxUmlYajRiU2Zq?=
+ =?utf-8?B?TUtMNUZiYTNSbWRVV2kxajlEWkF5TTBhUGdnOXlpbTMvbkZpZm90Tlc1MEFX?=
+ =?utf-8?B?ejBkZEFkMWpRamxzMC9qNTRBUTFqYmx1WVJaYzVRZ2pHZ21lQ0lQeE90NmVO?=
+ =?utf-8?B?OWNvZGNEOGFiYXFnZ1pmSXllUXpCTENBQ1FGZ3lSWGdjMmc1UVdrbzQ2SFZX?=
+ =?utf-8?B?OG9zM0hxM2hnMyswWlUxd2V0QTY2YW5YeWNPUHdRakdORFNOQjRVU3Y0eTFL?=
+ =?utf-8?B?UWhGMTR3Y2Yvd3Q0UXN2RFFlT1NSdmlnU0tqRlFIVHFYcmNabVdzSExjZ2NF?=
+ =?utf-8?B?TUxoWGlLcVp0anNkWDRkVlJ1Nld1S0F1T3NtL00xenFFRWtwMkRBVWN0S1dH?=
+ =?utf-8?B?VHBpZ0k2Zm9rVnViUEhDUTFBUmdXZ2w3dHJSNkxlaHNNS0FvcElUUWx5R0Y1?=
+ =?utf-8?B?aFEvcmxsSzY3c0tsTFpXRHBldG1TVnhsV0ZJbG5WQUZ1Uy9vNTlGS0YxVGlD?=
+ =?utf-8?B?L0Y1WUVTVS8yMVpneWxZeDJkTnNINlhibDZFQysyQkVDL1h3dVlNSWV2bmx6?=
+ =?utf-8?B?RERzeDdEOWs0Sm42L0VheUgxd1hWeVBvUkdnV3IxenlYYXoyTVZrKzJmWWQ2?=
+ =?utf-8?B?TlRtZUV4NERnMEJLWFBMS3EvMk5FVGhXbHF4V2xNWkNtaFYrTlFFdFl2QzlJ?=
+ =?utf-8?B?cklJVUlSb1hBM0xLanQ3REVBTi9JYnR2NzRDV2pGelhrdXBGNzFKWHJPV3NS?=
+ =?utf-8?B?ckpwUUdFaFBINDNHYU1jZEF4NHpXUjNOZHBXZ2Y4T3lHQmNsZTJzZ1hoekRn?=
+ =?utf-8?B?NXJDa2xQSGt2MmIraWdzMFVoVjlDS2Z0VzlqZTBnUUxqUW9Hek5SR0h4Y0F6?=
+ =?utf-8?B?UW9jekQ1OTVqZ3c2dGsyMGVQN2QwR2ZQTDJUb2hxYlFaZ1NscXpzUytaZmNN?=
+ =?utf-8?B?TDczSFNLd3l3QWdJaGl5UlIybGFPVjdDeC9QSnhScVVtcmc5RDNGTUM1QmZF?=
+ =?utf-8?B?UnpCREZjeHJxT2MwYS8vUE5tbVFVV0wvc2p2RXNmZlZ4eVlOOTVGakhxemVY?=
+ =?utf-8?B?clRvYlBWUE8wYWo4WW9UZE41R3dYRFRSK0wrSnNqOCt4c2JtUUhKdG5DZ3RW?=
+ =?utf-8?B?K0hFQzlmTHk5cDJSSFczcm1xMzJRL2RQQzFYZzZmSGRGam95ek5pT3Y2SHgz?=
+ =?utf-8?B?NzlnUG1OR0wzU3oyTkc0Yyt4SUlLc1pqSzJVRkhISUtaejJLMSs5K2FORXp0?=
+ =?utf-8?B?dDFlRFNTaW1GcU16a3pwdXNvcEpzVU5TWFBiK1BGZks1aWl0cWdVeVFqVUVa?=
+ =?utf-8?B?b1l5Kzh1WmN4eEQwYU5DQTZjb21vVGRTVWYvTDJ1STRld2RJV2tDNXNtNnNn?=
+ =?utf-8?B?bVdzVmFRRk4xMUVBVnZGendHbytybWhJc2xuVzlXTnNlQy9pMFVwNFp6a0Y3?=
+ =?utf-8?B?RFR5bDQ5RVNoc2NCWExvRWljTmc3eWZxamU2U3o1YzFjOUc4RUdvN1cvUlBD?=
+ =?utf-8?B?ZU1oNEkyYTByS2NjMzRDVXdxS3JWbmtUL0swd1A4UEwvbk5YaGxERmVGTWl4?=
+ =?utf-8?B?ejJCSWIxV1dJL1Z0anlxOC9teTRHYkVBVWsrSzd6LzBOb3lOcGdSUmpKaTNl?=
+ =?utf-8?B?YTNjdWRpNmlEK1ZqQ2IybDJSODFjSEVkNDl2Qk9BY0pPUUt3bHp3bGZYc1ZX?=
+ =?utf-8?B?U2d1b2dNbW85WUk4WERpcC9CU2hsZFZ4Zkt0OTZQZFRReHVIN2tUdUZVL0RT?=
+ =?utf-8?B?NjQyTEhlY1plVkMvWU5mZkdUNlUyS0hFTmNoU01RSEJFaHhKb3BwU2gza1dH?=
+ =?utf-8?B?MHprMnhGb3NLQnBQVW1QZWlHTzdJTC85Nzh1UzFocWxzVTBEVmJQWHhxUmlp?=
+ =?utf-8?B?S0Z3QlpidWd2cmJwbkVFMmxOY3E4dkJQOW8yTVlXQS9YVi9Nb05BM0RIblA3?=
+ =?utf-8?B?NHlCZi9ka1FpdXl3cnZhSlhqRjhCcHpwbVA5dlcrZVdZVHI1ZzJKeEh6dXlD?=
+ =?utf-8?B?VldCVGZ4eXVHa1lWM3JWYVRrZW1KOUI5dGJsRU0vT3pCNFlxNXc4QT09?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: e2518542-973c-425f-1ec6-08deef45b712
+X-MS-Exchange-CrossTenant-AuthSource: BN9PR12MB5179.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 31 Jul 2026 20:53:03.9660
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: LhiWvI4WX1/s5bv8oTlwCTLp2oAm0JMsdg0uSttgdHvwITyapZU4cmYLOPG2RYAUPCMJqMFXafBrB983I2kxXw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB7287
 
-On Mon, Jul 20, 2026 at 01:49:51PM +0530, Umang Chheda wrote:
-> ARMv8 and later processors implement the RAS (Reliability,
-> Availability and Serviceability) extensions, exposing hardware
-> error records through a standardised register interface.
-> 
-> Add Device Tree bindings to describe RAS error sources.
-> 
-> Signed-off-by: Umang Chheda <umang.chheda@oss.qualcomm.com>
+
+On 29/07/26 15:32, Christian Loehle wrote:
+> External email: Use caution opening links or attachments
+>
+>
+> When CPPC feedback counters cannot provide a usable sample, cppc-cpufreq
+> calls cppc_get_desired_perf() because some platforms repurpose Desired
+> Performance to report actual delivered performance.
+>
+> The fallback was added for platforms on which Desired Performance reflects
+> delivered performance. ACPI 6.6 defines the register as write-only, so
+> invoking that workaround on an ACPI 6.6 or later platform would require an
+> invalid register read.
+>
+> Make cppc_get_desired_perf() return -EOPNOTSUPP in that case. Its caller
+> already handles an error by using the cached desired-performance value.
+> When checking the FADT minor revision, mask off its upper errata-generation
+> bits and compare only the specification minor version.
+>
+> Fixes: c47195631960 ("cppc_cpufreq: Use desired perf if feedback ctrs are 0 or unchanged")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Christian Loehle <christian.loehle@arm.com>
 > ---
->  .../bindings/arm/arm,ras-error-source.yaml    | 330 ++++++++++++++++++
->  include/dt-bindings/arm/arm-ras.h             |  11 +
->  2 files changed, 341 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/arm/arm,ras-error-source.yaml
->  create mode 100644 include/dt-bindings/arm/arm-ras.h
-> 
-> diff --git a/Documentation/devicetree/bindings/arm/arm,ras-error-source.yaml b/Documentation/devicetree/bindings/arm/arm,ras-error-source.yaml
-> new file mode 100644
-> index 000000000000..add7063a1a62
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/arm/arm,ras-error-source.yaml
-> @@ -0,0 +1,330 @@
-> +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-> +%YAML 1.2
-> +---
-> +$id: http://devicetree.org/schemas/arm/arm,ras-error-source.yaml#
-> +$schema: http://devicetree.org/meta-schemas/core.yaml#
+>   drivers/acpi/cppc_acpi.c | 15 ++++++++++++++-
+>   1 file changed, 14 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 53d09ca98f06..6e5381f8de38 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -1316,15 +1316,28 @@ static int cppc_set_reg_val(int cpu, enum cppc_regs reg_idx, u64 val)
+>          return cpc_write(cpu, reg, val);
+>   }
+>
+> +static bool cppc_desired_perf_readable(void)
+> +{
+> +       u8 minor_revision = acpi_gbl_FADT.minor_revision & 0x0f;
 > +
-> +title: ARM RAS error source
+> +       return acpi_gbl_FADT.header.revision < 6 ||
+> +              (acpi_gbl_FADT.header.revision == 6 && minor_revision < 6);
+> +}
 > +
-> +maintainers:
-> +  - Umang Chheda <umang.chheda@oss.qualcomm.com>
-> +
-> +description: |
-> +  ARMv8 and later processors implement the Reliability, Availability and
-> +  Serviceability (RAS) extensions.  Hardware blocks that support RAS expose
-> +  one or more error records through a standardised register interface.  Each
-> +  error record captures information about a detected hardware error (cache
-> +  ECC fault, TLB parity error, interconnect error, etc.) and can optionally
-> +  signal the OS via an interrupt.
-> +
-> +  Each DT node described by this binding represents one RAS error source —
-> +  a hardware block that exposes a set of error records.  Error records are
-> +  accessed either through system registers (for processor-local resources
-> +  such as L1/L2 caches and TLBs) or through a memory-mapped register window
-> +  (for shared or off-core resources such as L3 caches, SMMUs and GICs).
-> +
-> +properties:
-> +  compatible:
-> +    description:
-> +      Identifies the class of hardware block this error source belongs to.
-> +      arm,ras-processor covers processor error sources (cache, TLB, etc.).
-> +      arm,ras-smmu covers SMMU error sources.
-> +      arm,ras-gic covers GIC error sources.
-> +    enum:
-> +      - arm,ras-processor
-> +      - arm,ras-smmu
-> +      - arm,ras-gic
-> +
-> +  reg:
-> +    description:
-> +      Register windows for this error source.  When absent the error records
-> +      are accessed through system registers (ERRSELR_EL1 + ERX*_EL1).
-> +      When present, the first range is the primary error-record window;
-> +      additional named ranges are identified by reg-names.
-> +    minItems: 1
-> +    maxItems: 4
-> +
-> +  reg-names:
-> +    description:
-> +      Names for the optional additional register windows beyond the primary
-> +      error-record window.  err-group is the error group status register
-> +      window (ERRGSR).  fault-inject is the fault injection register window
-> +      (ERXPFG*).  irq-config is the interrupt routing configuration window.
-> +    minItems: 1
-> +    maxItems: 3
-> +    items:
-> +      enum:
-> +        - err-group
-> +        - fault-inject
-> +        - irq-config
 
-reg and reg-names must be the same number of entries.
+A platform whose _CPC follows ACPI 6.6 semantics but whose FADT still
+reports 6.5 would pass this check as readable. If the register read
+returns zero, cppc_cpufreq_get_rate() reports 0 kHz and policy online
+fails with:
+   cpufreq: cpufreq_policy_online: ->get() failed
 
-> +
-> +  interrupts:
-> +    description:
-> +      Interrupts signalled by this error source.  The first interrupt is the
-> +      Fault Handling Interrupt (FHI), fired when a corrected error counter
-> +      overflows or a deferred error is detected.  The optional second
-> +      interrupt is the Error Recovery Interrupt (ERI), fired when an
-> +      uncorrected recoverable error is detected.
-> +    minItems: 1
-> +    maxItems: 2
+Since the FADT version cannot be fully relied upon, would it make sense
+to also harden the consumer? Although zero is valid Desired Performance
+value, it is not usable as a frequency estimate.
+So, cppc_cpufreq_get_rate() could fall back to the cached OSPM request:
 
-Replace description with:
+   -    if (cppc_get_desired_perf(cpu, &delivered_perf))
+   +    if (cppc_get_desired_perf(cpu, &delivered_perf) || !delivered_perf)
+             delivered_perf = cpu_data->perf_ctrls.desired_perf;
 
-minItems: 1
-items:
-  - description:
-      Fault Handling Interrupt (FHI), fired when a corrected error 
-      counter overflows or a deferred error is detected.
-  - description: 
-      Error Recovery Interrupt (ERI), fired when an uncorrected 
-      recoverable error is detected.
+Thanks,
+Sumit
 
 
-Seems backwards to me that corrected errors is required and uncorrected 
-errors is optional. Should be fine to not care about corrected errors, 
-but uncorrected errors can't really be ignored.
-
+>   /**
+>    * cppc_get_desired_perf - Get the desired performance register value.
+>    * @cpunum: CPU from which to get desired performance.
+>    * @desired_perf: Return address.
+>    *
+> - * Return: 0 for success, -EIO otherwise.
+> + * Return: 0 for success, -EOPNOTSUPP for ACPI 6.6 or later, and a negative
+> + * errno otherwise.
+>    */
+>   int cppc_get_desired_perf(int cpunum, u64 *desired_perf)
+>   {
+> +       /* ACPI 6.6 no longer specifies Desired Performance as readable. */
+> +       if (!cppc_desired_perf_readable())
+> +               return -EOPNOTSUPP;
 > +
-> +  interrupt-names:
-> +    description:
-> +      Names identifying the interrupts.  "fhi" is the Fault Handling
-> +      Interrupt; "eri" is the optional Error Recovery Interrupt.
-> +    minItems: 1
-> +    maxItems: 2
-> +    items:
-> +      enum:
-> +        - fhi
-> +        - eri
-
-Define the order.
-
-> +
-> +  arm,group-format:
-> +    description:
-> +      Page granularity of the memory-mapped error record group register
-> +      window.  Determines the ioremap size and the number of error group
-> +      status registers (ERRGSR) available.  Required when reg is present.
-
-Don't state constraints which are expressed as schemas.
-
-> +      Use the ARM_RAS_GROUP_* constants from <dt-bindings/arm/arm-ras.h>.
-> +      0 (ARM_RAS_GROUP_4K) is a 4 KiB window with 1 ERRGSR supporting up
-> +      to 64 records.  1 (ARM_RAS_GROUP_16K) is 16 KiB with 4 ERRGSRs and
-> +      up to 256 records.  2 (ARM_RAS_GROUP_64K) is 64 KiB with 14 ERRGSRs
-> +      and up to 896 records.
-> +    $ref: /schemas/types.yaml#/definitions/uint32
-> +    enum: [0, 1, 2]
-> +
-> +  arm,num-records:
-> +    description:
-> +      Total number of error records in this error source, including both
-> +      implemented and unimplemented slots.
-> +    $ref: /schemas/types.yaml#/definitions/uint32
-> +    minimum: 1
-> +
-> +  arm,record-impl:
-> +    description:
-> +      Bitmap of implemented error records.  Bit N set to 1 means error
-> +      record N is present and active in this error source.  Bit N set to 0
-> +      means record N is not implemented and must be skipped.  The array
-> +      length must equal the number of ERRGSRs implied by arm,group-format
-> +      (1 element for 4K, 4 for 16K, 14 for 64K).  For system-register
-> +      nodes (no reg property) a single u64 element is used.
-> +    $ref: /schemas/types.yaml#/definitions/uint64-array
-> +    minItems: 1
-> +    maxItems: 14
-> +
-> +  arm,status-reporting:
-> +    description:
-> +      Bitmap indicating which implemented error records must be polled
-> +      directly by the OS.  Bit N set to 1 means record N does not report
-> +      through the ERRGSR and must be polled by reading its ERX_STATUS
-> +      register directly in the interrupt handler.  Bit N set to 0 means
-> +      record N reports its status through the ERRGSR and will be discovered
-> +      via the ERRGSR scan path.  For system-register nodes (no reg property)
-> +      there is no ERRGSR, so every implemented record must be polled
-> +      directly; arm,status-reporting must equal arm,record-impl for all
-> +      system-register nodes.  Array length as for arm,record-impl.
-> +    $ref: /schemas/types.yaml#/definitions/uint64-array
-> +    minItems: 1
-> +    maxItems: 14
-> +
-> +  arm,addressing-mode:
-> +    description:
-> +      Bitmap indicating the type of address reported in the error address
-> +      register (ERX_ADDR) for each error record.  Bit N set to 0 means
-> +      record N reports a System Physical Address (SPA) that the OS can use
-> +      directly.  Bit N set to 1 means record N reports a node-specific
-> +      Logical Address (LA) that requires platform-specific translation to
-> +      obtain a SPA.  Array length as for arm,record-impl.
-> +    $ref: /schemas/types.yaml#/definitions/uint64-array
-> +    minItems: 1
-> +    maxItems: 14
-> +
-> +  # Processor error source properties (arm,ras-processor only)
-> +
-> +  cache:
-> +    description:
-> +      Phandle to the cache node (L1, L2, or L3) that this processor error
-> +      source monitors.  The referenced node must have compatible = "cache"
-> +      and a cache-level property identifying the level in the hierarchy.
-> +    $ref: /schemas/types.yaml#/definitions/phandle
-> +
-> +  # SMMU error source properties (arm,ras-smmu only)
-> +
-> +  iommus:
-> +    description:
-> +      Phandle to the SMMU node that this error source monitors.
-
-If the iommu has #iommu-cells >0, then this property must match the cell 
-size. You can't have your own definition of 'iommus'.
-
-> +    maxItems: 1
-> +
-> +  # GIC error source properties (arm,ras-gic only)
-> +
-> +  arm,gic-ref:
-> +    description:
-> +      Phandle to the GIC node that this error source monitors.
-> +    $ref: /schemas/types.yaml#/definitions/phandle
-> +
-> +required:
-> +  - compatible
-> +  - arm,num-records
-> +  - arm,record-impl
-> +  - arm,status-reporting
-> +
-> +allOf:
-> +  - if:
-> +      required:
-> +        - reg
-> +    then:
-> +      required:
-> +        - arm,group-format
-
-Better expressed as:
-
-dependentRequired:
-  reg: [ 'arm,group-format' ]
-
-Rob
+>          return cppc_get_reg_val(cpunum, DESIRED_PERF, desired_perf);
+>   }
+>   EXPORT_SYMBOL_GPL(cppc_get_desired_perf);
+> --
+> 2.34.1
+>
