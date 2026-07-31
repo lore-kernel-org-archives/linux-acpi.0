@@ -1,65 +1,86 @@
-Received: from mail-lj1-f178.google.com (mail-lj1-f178.google.com [209.85.208.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AE783E63B2
-	for <linux-acpi@vger.kernel.org>; Fri, 31 Jul 2026 14:34:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBB5842E8FB
+	for <linux-acpi@vger.kernel.org>; Fri, 31 Jul 2026 14:42:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785508472; cv=none; b=ZkKMO+snhpnFK5b149dsGplhYH/hwN2mc+XxDPiz49xaUNu0p3l8V/qXysUN7B83ChOfOgMTBf0ERTJM7V+KZTYpj9l+zAUFdCRdAWk16ocSeb8xMf+Gr+pUwS0LF37DaFRznaWw3ivOctJUVluNpZDW0aJ1ju9CDT3RQltNBNI=
+	t=1785508958; cv=none; b=QabXAWbfU8hI08YqIQ6rWSjGp5dXxAWwIBW4r5Qj4uEhOrktH3VQw8vWxDOHOeZx3cdmSaII6Py45Ly8Y0wOFi0tTqam4uw79uxMlxvB5lG6wTDrobf/9DefvRdRdnbdsGbq7SKfawaLRf9paLhrGL5gG5llHPtktwNSbvLmcTI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785508472; c=relaxed/simple;
-	bh=Lu9hJWM5FnkOlRaWVWjIRI/RDVl5jUP9oaZX7fCXZhY=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=chsduC0taomRdyJ8rid1ksCbgnwSEZfDZc7OuWjulhibSMHzIyr+95XLWUGmYgo/sGYd7r48Tp5uncOusEcGWzA1f4eRkWgsQIzhrmAoLOZdOPzN1ewTq4q4yhg9HB9Hp4oIDmHpBiMoiOFwp6b7m9T5Bqp24xgch81L1DrNME0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=X+ByasTO; arc=none smtp.client-ip=209.85.208.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1785508958; c=relaxed/simple;
+	bh=tBo1pOIGLQzGzdk2QTAoCK07FNlt308/uZWd59j360w=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=YBMLcfqibXiWSvZT3HMeN9dBeJUFiBkEDbAp1UAj+SLioIQG3JIjO7GAJXy7EMwxANPB/Qojlfx5KS6qcD4SEmokMYO3Pjem1svOfeKBM1/PCrC7vlu3Ibtnrzyc/coPF59CYJFU/JVL8oypnaA4smEjWtjAEmjFUk8AuGT5rec=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=o/rNEoJ8; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=iMAXKoYy; arc=none smtp.client-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="X+ByasTO"
-Received: by mail-lj1-f178.google.com with SMTP id 38308e7fff4ca-39c62764c7cso15961341fa.0
-        for <linux-acpi@vger.kernel.org>; Fri, 31 Jul 2026 07:34:31 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="o/rNEoJ8";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="iMAXKoYy"
+Received: from pps.filterd (m0279864.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 66VBdBtX3371057
+	for <linux-acpi@vger.kernel.org>; Fri, 31 Jul 2026 14:42:36 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	hV/RxAH1jzvT9xYdfJOYdrkiDJC+wzPI1b5Q4RRYKRg=; b=o/rNEoJ8Oye8yOuF
+	zL6GwiazrXRPiI+uF8nuWoBzc0ZlBjPX+m3pwkU8aGZ46/XUJ/H4BikXVmcxx/8a
+	jEJtTz8kgaAQeS52Zv/l9JSSCEbbIvhW0j9P8T9yJyvAMyqO/Z2DKI2wcD58YOx3
+	CDUxaim7tmttEvgQKpkJ+bCJ78WZCo0NGeAdCJqqzPktw8/0P3PkedyWGrav8FLr
+	0+K8G/YaIQWUya9VPJ1w7TXufpter81WjdDhCP5qMIpCgmDpbwL7IFglq6wc5Xwb
+	KQSnDZbRiPz4YaR4NoBTXBLvXTCd8pbwGyHz/HmAOk9lp75Jk/3OuxBrdcGz0S1l
+	1WSbdQ==
+Received: from mail-qk1-f199.google.com (mail-qk1-f199.google.com [209.85.222.199])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fru0y0rgv-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Fri, 31 Jul 2026 14:42:36 +0000 (GMT)
+Received: by mail-qk1-f199.google.com with SMTP id af79cd13be357-93105103d06so18939385a.2
+        for <linux-acpi@vger.kernel.org>; Fri, 31 Jul 2026 07:42:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1785508469; x=1786113269; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:content-language
-         :references:cc:to:from:subject:user-agent:mime-version:date
-         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=cEYf8XWt7uIQNYBnvw5HrwZeU0df85IjOKBJMRJ7Wzw=;
-        b=X+ByasTObEzX5fSUAw2i3Y9aVdSdmy4R+Is2Uj0h1R8ZFdcMCEK7ijp3rGrmiO7ZvM
-         qW+rIj6ajAqShR3qi9EFIDSOJmBLE4Jtpns8tCVzTH+X9HELyNdtLhNdYA+kv00ANwCU
-         KLNnFhObk0PkcFMTw2OrrXFbaTNYyieiNeWja7zXH5qmvZuyHFuDM1IaeELjZP66r0IL
-         TRrdBMWEprra6URU2F60Y7I6YYFQ3K0VfwBCK/6oTMz6yswd7KK/ULIJ4qYbwIklJGZx
-         r1kHQ5SJZFtM1CludfBx5QwdID//sAmOcKI6/1Jbtz3qK3X5+E6+ofidePRNLk/FhC1i
-         yqJg==
+        d=oss.qualcomm.com; s=google; t=1785508955; x=1786113755; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=hV/RxAH1jzvT9xYdfJOYdrkiDJC+wzPI1b5Q4RRYKRg=;
+        b=iMAXKoYyNT3xLjRpA0//GrIksqRCjKwsKFqDNO4T7Y/pPEunAS4sM6uruyGG+4py0X
+         ZMMgbNbMFa5aCfE1EFazCW7/fmfDoCn14PaXQ0z6hFvDXx0kc/jV8WbrmtSlUOxaMVYf
+         51iiPOoi/VD5zE6aaTDLpCgnBtqDKlEvGubkoGGOKgYn2jgdl3bLay78jECbafsnMDv3
+         xGQkGGb8VBu+tP61qhkv9sruEsQDtdl5sOdTtlk3R3QEXtzYZB8i4b9K8+L5F3sG1rpS
+         +NL4/Dm5hX2WJi2jtliLufLlCnhOKgnEgmrFQ8ETaccCKiilF2S70fxbSoZnFP854U4M
+         SwrQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785508469; x=1786113269;
-        h=content-transfer-encoding:content-type:in-reply-to:content-language
-         :references:cc:to:from:subject:user-agent:mime-version:date
-         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=1e100.net; s=20251104; t=1785508955; x=1786113755;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=cEYf8XWt7uIQNYBnvw5HrwZeU0df85IjOKBJMRJ7Wzw=;
-        b=fQQzoKqM8YthfpN+Bkxh0H3d9Ua/J9gtGf2UMLtQE2YTgKu3xp7CmcYIDzHbtFQK5D
-         VhgL5H+OqUfMIClooNieKyBnbCSYAAG6OIAwhP7Q0zJmOn96W4Cn51wPGanN3vSGuNdU
-         xJXqAVVskL+/KXEAjAIatr9eDDjDTmQ9T647rsox3HJBLDk1fvF7Q5ouNWh7+X9zfu46
-         ttnpggkw2pfDh3JB429zuuIrBmQ5j3RaFVVKwwL2QZdBYe12ZlgLfQy0aefXlCxqmkZw
-         s85U8c2WDKVoBSZ70MRFhr6CjMdkc0KZ2qYXDErnK6M3OG8FS5yDsDBIxj6ttZ/yq9f6
-         7F5g==
-X-Gm-Message-State: AOJu0YzY1AEmfkjrTXoGl/sr8ax13WpOzdWkEWw/outyb03aftbhhmqS
-	JEaT6wDybdC+3vr7sp8cCHAR/csV8LRMcSMSOBIgupWJQZXUSjBqyAd0
-X-Gm-Gg: AR+sD13UFFHGpnl3GrRcLNZKUXptWGtO3Z2u0uSiCjZwYU1F1pEuKaNOJoDmWrsqnfi
-	ynMvnHCkGE8q0/y7F7EWr8+Nrla70PnMLqoZdv8iCmhzdnb6JTkzSPvrdp3kP/HBFWYhAHWOJwP
-	xxkKiEUmmSNAiXo0hjvObokLW9Hx1yltie0MPrWhrvuCdwf08iLOBufmWeCBRyKdmz89EW/RteD
-	06kxQDUaA8zYH+Uy0Tj1Ewr6Q2GK8yfi3R7HjXS8tFr9ZiIkTvI8x/pA4UQe5hg9P07wzk8yiP4
-	negthwLUHtkFu+dEEUMucBoQvKzuUu2dV4geaqKhP/xfsQUdv90Jg/LTybrsCq1YuEhko7XTGML
-	0ZA9IDVypd64gpVV744n1/K+GLxmYsAWK3lcbHpJC4x7YLoAo6ODxRkQ5j2q/KaDAGdAEbNvRNO
-	NJzrnOIDI3ZN4Aqqcxl140uDZfkpGS2Q3MrGr9aYyWh2/4gibinZ9LktXXXF8DD8SWuGYvhMV3
-X-Received: by 2002:a05:6512:3d03:b0:5ae:acbd:439c with SMTP id 2adb3069b0e04-5b2e2422d22mr454761e87.23.1785508468894;
-        Fri, 31 Jul 2026 07:34:28 -0700 (PDT)
+        bh=hV/RxAH1jzvT9xYdfJOYdrkiDJC+wzPI1b5Q4RRYKRg=;
+        b=msz2wB56zu66sUAnN/awBVS7sWjK0CZJoDnya35VmGqw+HQmbx/hyDi/UzFWibHebC
+         SEz/d2WGnPVcyqm5VFvxaBTer/OQD1xHhaiZfr0K7aORjV4UWEANkipzWXhsmRCJS1M0
+         iwbZK7kDqlOpAs3q7Hei4D8G/yVbK/4fYUSnfS2OOtK4+yOGMe3vwdWM9ddDCFjbwZrO
+         OsDbFBKTwZWZeVq/Hm1faom/4Vgw9Jaz36UCWObo3TgzQb2raUJtQplj1zp6B5vM/4Df
+         rdBHWhskKEQtu6gHP3UOnEex29YXuIgE3fWXHQYVVfKakPpfBmbeVMDax4R7vEw2+d/N
+         1QxA==
+X-Gm-Message-State: AOJu0YwyMbg0WxsgxHXJyz82BuR17jFx1uHQlOVdHob+0WXzfyJhxUfy
+	f5gVPzv5iVuucMunpkF+fgSrQlZFhRw7mayN+sl+eigL9QcJSUb3LcL/dVSM2mnn5Nhhik0dTP9
+	FSVnclE8g8TkH8uusAvP1Gd7JMdu2eurOXEs6omPdMDA2r12p0VCHD7WnPyC+rkiC
+X-Gm-Gg: AR+sD11P6qXQ/c+74ruyqykFsuTKXvsZI129wLy4r0zwnWGCqptK0KG3ooyH3o6A2Om
+	TE46+mfeJW4UgsQn3uU+X3rjrhvGG0r1E7ZLfiiZsG021GGvk4r/+6kaovToUw8ILeMy70SRYG9
+	uhNZal/l4QV46D+dIkYFx+mm9ewUsEWseQVq9ooOkI+0hry9AcdG2cow/QOwmFCX5T0bfd7PlJ4
+	eb9ek/wrKGIwoItYp/Je7u2F0vbHiU47FJt65wH6TDh+UUIj8PdkgQrsT5k14FTxx2DzBlLqF7S
+	3P2VwG6pQD8mFj8uhDcGVqtuwrB20uKpxlGaMm8bALVAtHcny7xzHDwO1zKAiVad5IWBdzez8GG
+	ygkh4VPdNA2N6nqizjET9gOqg
+X-Received: by 2002:a05:620a:17a1:b0:930:f930:a09f with SMTP id af79cd13be357-934a06e88c5mr34877285a.1.1785508955217;
+        Fri, 31 Jul 2026 07:42:35 -0700 (PDT)
+X-Received: by 2002:a05:620a:17a1:b0:930:f930:a09f with SMTP id af79cd13be357-934a06e88c5mr34869985a.1.1785508954780;
+        Fri, 31 Jul 2026 07:42:34 -0700 (PDT)
 Received: from [192.168.120.193] ([178.235.128.140])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5b2e2441db4sm332262e87.45.2026.07.31.07.34.24
+        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-39f812e3a7dsm1541071fa.32.2026.07.31.07.42.30
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 31 Jul 2026 07:34:28 -0700 (PDT)
-Message-ID: <7855a0c3-29ac-4842-8e07-352fcb535a63@gmail.com>
-Date: Fri, 31 Jul 2026 16:34:23 +0200
+        Fri, 31 Jul 2026 07:42:33 -0700 (PDT)
+Message-ID: <c6526ba0-be08-46c6-a501-1b161939657c@oss.qualcomm.com>
+Date: Fri, 31 Jul 2026 16:42:29 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -67,86 +88,138 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 11/16] dt-bindings: usb: mediatek,mtk-xhci: Switch to
- ports for USB connections
-From: Konrad Dybcio <konradybcio@gmail.com>
+Subject: Re: [PATCH v6 06/16] usb: hub: Associate port@ fwnode with USB port
+ device
 To: Chen-Yu Tsai <wenst@chromium.org>, Bartosz Golaszewski <brgl@kernel.org>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Daniel Scally <djrscally@gmail.com>,
- Heikki Krogerus <heikki.krogerus@linux.intel.com>,
- Sakari Ailus <sakari.ailus@linux.intel.com>,
- "Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>,
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
- Conor Dooley <conor+dt@kernel.org>, Matthias Brugger
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>,
+        Krzysztof Kozlowski <krzk+dt@kernel.org>,
+        Conor Dooley <conor+dt@kernel.org>,
+        Matthias Brugger
  <matthias.bgg@gmail.com>,
- AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+        AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
 Cc: linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
- linux-pm@vger.kernel.org, linux-usb@vger.kernel.org,
- devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
- Manivannan Sadhasivam <mani@kernel.org>,
- Alan Stern <stern@rowland.harvard.edu>,
- Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>,
- Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+        linux-pm@vger.kernel.org, linux-usb@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        Manivannan Sadhasivam <mani@kernel.org>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 References: <20260721065413.2306137-1-wenst@chromium.org>
- <20260721065413.2306137-12-wenst@chromium.org>
- <38397324-56b0-41e9-960f-152a16ce8b12@gmail.com>
+ <20260721065413.2306137-7-wenst@chromium.org>
 Content-Language: en-US
-In-Reply-To: <38397324-56b0-41e9-960f-152a16ce8b12@gmail.com>
+From: Konrad Dybcio <konrad.dybcio@oss.qualcomm.com>
+In-Reply-To: <20260721065413.2306137-7-wenst@chromium.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
+X-Proofpoint-Spam-Info: AW1haW4tMjYwNzMxMDExMiBTYWx0ZWRfXwCELr/x/0HBZ
+ sliS6E4Xk1fvNcaxHPwtWlYJnC/jwTKRpMSW5pXyIfaGsjKmNMA+m1zcd3vImJi1reL9MpnBS6a
+ SKMt2ZQqd1QzvEK4xqu1YdbvF5j6vnE=
+X-Authority-Analysis: v=2.4 cv=TcamcxQh c=1 sm=1 tr=0 ts=6a6cb45c cx=c_pps
+ a=HLyN3IcIa5EE8TELMZ618Q==:117 a=PRfkaYvzSr8QmIIGAkY2Sg==:17
+ a=IkcTkHD0fZMA:10 a=RAioF0-LDSMA:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=DJpcGTmdVt4CTyJn9g5Z:22
+ a=QyXUC8HyAAAA:8 a=EUspDBNiAAAA:8 a=cm27Pg_UAAAA:8 a=7ZmCE17i0x7kTLN8kT8A:9
+ a=QEXdDO2ut3YA:10 a=bTQJ7kPSJx9SKPbeHEYW:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwNzMxMDExMiBTYWx0ZWRfX1sX+gziCBDCi
+ zKtboHsregGX2OR8diRv3esoDPJj5y5aiowFyCyUSMlJ6zHebn/tFi2u0YNIMMIUhMAv2rOlMq+
+ HEtFouER/0XVk5pk+Mqo2HNIz2xb8+iNI12lDBcEFDAL+QLTtsSYWAE3FHhG1fQezHEHPVseKrv
+ cZgonrnOWKl1B2Cvj0tvxV6OPaRbSqL2vhbQnVnk3ly2zARyftCDcPIITDDiBfypcxQaUE7aaUs
+ AzFLZzSVtDSt0hFabWR2ykKag2o11rUue+alS8CJXzM6/HVd5CW+2LNHtmW+QJhU0WP5hcGZ+Ol
+ 1eYem19A+EOyEehPoRdzBx2bEjGduo3YWyLcz7jD5rnqyzXTj2ah79Gb1kb5QLRAmK8AuX5p4w5
+ VDWq4ncrBppP4EzhOtRDMys01Qp9auShQnqNc/oZBY04Q5tQVVTTKwkoooKaZ4/kucW9s8BUQ5W
+ C2IdST95mBcddrXpyaw==
+X-Proofpoint-ORIG-GUID: EuqC1tLyxJHad7H4Z4c17oTforh0qwyq
+X-Proofpoint-GUID: EuqC1tLyxJHad7H4Z4c17oTforh0qwyq
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-07-31_04,2026-07-30_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ lowpriorityscore=0 bulkscore=0 malwarescore=0 phishscore=0 priorityscore=1501
+ suspectscore=0 spamscore=0 adultscore=0 clxscore=1015 impostorscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2607310112
 
-On 7/31/26 4:33 PM, Konrad Dybcio wrote:
-> On 7/21/26 8:54 AM, Chen-Yu Tsai wrote:
->> This reverts commit 454a1e3cd36c113341d7b71e8e691c6e47ab4a8a.
->>
->> MediaTek's XHCI implementation supports both USB 2.0 High Speed (HS)
->> and USB 3.x Super Speed (SS). The block can also be synthesized with
->> either HS-only capability or HS+SS capability. The SSUSB controller
->> handles the device or gadget mode. Saying that SSUSB handles the HS
->> portion is wrong.
+On 7/21/26 8:54 AM, Chen-Yu Tsai wrote:
+> When a USB hub port is connected to a connector in a firmware node
+> graph, the port itself has a node in the graph.
 > 
-> [...]
+> Associate the port's firmware node with the USB port's device,
+> usb_port::dev. This is used in later changes for the M.2 slot power
+> sequencing provider to match against the requesting port.
 > 
->> +  ports:
->> +    $ref: /schemas/graph.yaml#/properties/ports
->> +
->> +    properties:
->> +      port@1:
->> +        $ref: /schemas/graph.yaml#/properties/port
->> +        description: Super Speed (SS) data bus if SS-capable;
->> +          otherwise High Speed (HS) data bus.
->> +
->> +      port@2:
->> +        $ref: /schemas/graph.yaml#/properties/port
->> +        description: High Speed (HS) data bus if controller is SS-capable.
+> To avoid potential conflicts with ACPI firmware nodes and then causing
+> power management issues, only assign the firmware node if the hub's
+> firmware node is not an ACPI firmware node.
 > 
-> FWIW this is opposite vs what the (most common) DWC3 schema defines:
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
+> ---
 
-(s/opposite/different to)
+[...]
+
+> +	/*
+> +	 * ACPI FW nodes are associated later when device_register() happens.
+> +	 * Skip assigning one here to avoid potential conflicts.
+> +	 */
+> +	if (!is_acpi_node(fwnode)) {
+> +		struct fwnode_handle *port;
+> +
+> +		/*
+> +		 * fwnode_graph_get_port_by_id() returns either a valid fwnode handle
+> +		 * or NULL. Passing NULL to device_set_node() clears any associated
+> +		 * fwnode. It is effectively a no-op here, since no fwnode has been
+> +		 * assigned to the newly created device yet.
+> +		 */
+> +		port = fwnode_graph_get_port_by_id(fwnode, port1, FWNODE_GRAPH_DEVICE_DISABLED);
+
+This works if the node at the other end of the graph is a
+USB hub, e.g. from qcom/lemans-evk.dts:
+
+usb_hub_3_x: hub@2 {
+	compatible = "usb5e3,625";
+	reg = <2>;
+
+	peer-hub = <&usb_hub_2_x>;
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@1 {
+			reg = <1>;
+
+			usb_hub_3_1: endpoint {
+				remote-endpoint = <&hd3ss3220_1_out_ep>;
+			};
+		};
+
+		port@4 {
+			reg = <4>;
+
+			usb_hub_3_4: endpoint {
+			};
+		};
+	};
+};
+
+But something I faced when I was poking at USB4 was that dt-bindings
+currently assume every controller is effectively single-port and the
+of_graph ports under it represent HS/SS lanes, i.e. the entire
+"ports" subnode represents a single USB port
+
+I think the solution here would be to do ports {} under the controller
+and have every one of them have 2 endpoints (for HS and SS
+respectively) - then, each DT-port would correspond to a USB port
+(sorta like in the hub case, minus the hubs are split for HS/SS so
+they have just a single endpoint under each port)
+
+But that comes with a big breakage, as always..
 
 Konrad
-
-> 
-> 
-> (also true for mediatek,mtu3 and renesas,usb3-peri)
-> 
-> -- Documentation/devicetree/bindings/usb/snps,dwc3-common.yaml
->   ports:
->     $ref: /schemas/graph.yaml#/properties/ports
->     description:
->       Those ports should be used with any connector to the data bus of this
->       controller using the OF graph bindings specified if the "usb-role-switch"
->       property is used.
-> 
->     properties:
->       port@0:
->         $ref: /schemas/graph.yaml#/properties/port
->         description: High Speed (HS) data bus.
-> 
->       port@1:
->         $ref: /schemas/graph.yaml#/properties/port
->         description: Super Speed (SS) data bus.
-> 
-> Konrad
