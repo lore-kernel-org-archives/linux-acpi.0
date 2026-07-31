@@ -1,99 +1,96 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DADB36196E
-	for <linux-acpi@vger.kernel.org>; Fri, 31 Jul 2026 12:49:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9770A36920F
+	for <linux-acpi@vger.kernel.org>; Fri, 31 Jul 2026 13:06:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785502176; cv=none; b=bw9nfNrarg9NoASXdetIwpaXXs2zUdFJuUKxvq8s/+s9OM1MYQKSbacv0kmLzLwQ/2f/r8B1+ybMmYJh/N36IBOyJm8I6Y3a+jzU3PbeLzWo8fEd90zNJhGwlB8KFrZTr+21sKzRfFG6c3fAvG/223lvd2CEyEH6gt3NJ8vnUDo=
+	t=1785503184; cv=none; b=OHTzpn8T+QMgxFp7n4URRNQb21w/nVFN/lpWPYJx4Mb1dvFdwKm1BxBv78DyLWHZ0RSzu9Q3ReKQ3eLlVYFVMttpsO1Gc37W05j8jDE6mZZQiALf+oNLy9iuG2V6MCEu/2iql5ixA6+ek4KzgkdtUvUCxoD8/IYg9Ih975s5tx0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785502176; c=relaxed/simple;
-	bh=Nxs0IJlMpvvQPkPZCSCHsK69ptqLhyFTIZFUE11+1W0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=dVVM5ifoWOPnUg14YIgNNG3UbGhLHv7B/x+0VKXokj8NvM5BuoKy94LieGGO0FqFtalfDz/0gh64Pheeuu1uLTpnWdn4lMGWIbKE/UD6TFGMYHj12YvAyPTYOADI8hdVe/1W5lOSPpep5RSachzSp8MUUL50+I2someWXzQ4lFU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Poion0TD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785503184; c=relaxed/simple;
+	bh=/72SslYpy2PVQIMAAmadnePuVCvoy+6MWfdj9ZYOdZ0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=bp11whkakNiHYDzUexVmG03Ow976EzA8jLolfDzABT+6HZ7udJSXfbnM0ilKWgbFUCmy6r4rgXcRqSz71eIdsg8JoIPLNQOgcvU0lE40WoH5744aBIXw4ghxr0d8Qic89pz/1zeO+udjAa245hBa4om/Xu/SOPsW35F7PfoiYrs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=pHygtYvH; arc=none smtp.client-ip=209.85.214.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Poion0TD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7E1A1F00ACA
-	for <linux-acpi@vger.kernel.org>; Fri, 31 Jul 2026 12:49:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785502174;
-	bh=+bgypQloe09D/SCkqvxtOnLfUh1v9U7opnoYhQHUSkI=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=Poion0TDFFtqLhXrxFHGeA+BDbVpfZ28x+BFscqTUFD0XoO9xvo52hd8p0u7Xd/DM
-	 XPEWTCb40bjloHxLziT0IQ6QanMT27bg1e953IvOXSwbsdA54xB0krou3YxliwaReF
-	 pMRaSkEdQA5OBPYltnHGTX/8LANsRmhEjYqJeuOFRAhCgUXmzvnqnNMNCnK+bP8bZ/
-	 4lmBxn7xCAdN1ptDQpi5e8GRdBY4iThZBs/oLPF6PtUCscEbYZ0TXUHBVMmnVw2+t6
-	 tEywOSFw8ijgREtY86mHayE0QNW2RVOdyj6niQTWxMCmkryxQoTJMI9Qcpr7zQ+eli
-	 /ekNK47KQU7Cg==
-Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5aeb2bc82ccso977262e87.2
-        for <linux-acpi@vger.kernel.org>; Fri, 31 Jul 2026 05:49:34 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RrNrMcK5CWdiIleezAhd5gux19PKcNt2cb9N8hDbHg8eBMNw9jx6T4GvcarowtptxaIPoon4PbpVfL7@vger.kernel.org
-X-Gm-Message-State: AOJu0YxErn+yju4ebUHH5Yz204bg2245Obdq13TByvMLf88L0eFcOYG+
-	zofEirsNcVD9zOrquE20khgkBRHClgZqS67zDD0yGpH+61cZFyOxGq2dvzfPNenctpG7gtGgVNc
-	d/qVqr2ulcy1NImpoLAs9YHdfOxKQK7s=
-X-Received: by 2002:a05:6512:3b11:b0:5ae:b78c:da1 with SMTP id
- 2adb3069b0e04-5b2e1fcae73mr470947e87.28.1785502173236; Fri, 31 Jul 2026
- 05:49:33 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="pHygtYvH"
+Received: by mail-pl1-f178.google.com with SMTP id d9443c01a7336-2cc891373e0so9325285ad.2
+        for <linux-acpi@vger.kernel.org>; Fri, 31 Jul 2026 06:06:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1785503183; x=1786107983; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=eWMr5EOxuzjVi5gwglHccB0LsO3CP+DoymMW6cwNef0=;
+        b=pHygtYvHx1RtSbKvbmO2VWEp7Zl0b7xsJ/srCgu6Up3Yyuy6qws2EP+Lx401I81n6W
+         kbmKuHdIuwGiQWsePnfVIch1zuFwQaVhwr/+b4R5ksp2izbK5dVSb5waca5pWbZOu5iq
+         59t09lGDzqjRtOStDFehbVG6UouLLBTbs3NoVEalgZIu478AyOVe/Z4dHTO84qgX/9H4
+         xXfeWm1nVA/gJ8nnur9H2OUQTKonmT+YYf/cdCQEygpexo9MQfM7Q03VP5/f+wAAeQY3
+         SSuUWM/JoruOl6NuXyilXCHtE8/PpXBOb4QTQGmBwqx1NAM384u6Jp1l9R41czqJgJnp
+         VmhQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785503183; x=1786107983;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=eWMr5EOxuzjVi5gwglHccB0LsO3CP+DoymMW6cwNef0=;
+        b=JP022pxYcPs4B92uX1aplK4oj/pCSUOMSrDzG9+calaMm5pHtlTPI+4xFTOI63icGk
+         5kbF45blJoDeiqyiRjTl9vITQZP6MTIUFs3IlvXspxfQrPGEWngs3+pNrabgjVJJgnum
+         ngezgozhuZhElISVmJoMlwh2Hbh6TO3AWKyWW77HI6q3QNOPXrbxljy0S5BbEggqJAwt
+         ST3dcMZCftSSmmUifz09Aad1B54IcWkbzmNBw43nTvr2LMW8CLvOWs+7O5NttaPfezSi
+         cLunK7XTL17qK7ap0ZJkcTAPE+ZEgstEhYPtSD+pC8n9RIWbU8I7VZhHuNkOcLxVZwKe
+         4lTA==
+X-Forwarded-Encrypted: i=1; AHgh+RqGZNrXtlt1Z94NkovRGHuNpLceYoFJslBUxCmRoOxZJdSWH4pJdD5OO9bH+e9re+VGTPcNZuPlD6x9@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw++J5ZNotG+95lZC4BXeg3+/McymZwyhjDs68vuXNuBFEnapNd
+	WinkSYbmE27Fr06zqxrgpOb838077E2YS7RC8UfCNiBiCKNDlcBu8syT
+X-Gm-Gg: AR+sD10XtYZzV+m973Je4cXXL/qQvqdQy6xXI16qOy9huC7cOTqDLF5zsS7/t/Ff0qG
+	AfMxwaZ74H9HKyUgdOan5AKod31FBwzKvIuUKYdCibP8s9FF2/NO4urFmbLhGOtFzg8JUrRwpVI
+	q/enRsiXmlHHGleFBCAD75THB4ZDE8Dljtjo/W8F2FQEswClRzNKZNMpbeq7nhODaFSsFJWvI1D
+	cY36Uw8hmdzKcZBaAVBRUv/+8hKpl/w1zaXWGYbnMtum3h+CxC9r2F0+kB+uS8ueo55MWX9l/k7
+	WElI/Btepnf1GAK7hiOZ/aO8U5f6vHuZ5vE8caYDdt+ylk8mQuRtlq2yMnTcFYiRoqdHsdf/Sa7
+	zksUnyUw1fYp4AR8O876KgLc23wHPHAWZjUp1GFYMLMBK6yppZbSHdwFfxsPhCUcae+P7fNfi7B
+	BKL4W5lpZFYk37qXYbpIPaa5nMaLUll8v/y7U3AJr6vfHSy6LNExmISxnVWg==
+X-Received: by 2002:a17:903:190:b0:2ca:ecf6:9104 with SMTP id d9443c01a7336-2d046d81079mr19211725ad.4.1785503182834;
+        Fri, 31 Jul 2026 06:06:22 -0700 (PDT)
+Received: from [10.10.0.5] ([59.152.127.200])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d04b0eb491sm5193715ad.42.2026.07.31.06.06.19
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 31 Jul 2026 06:06:22 -0700 (PDT)
+Message-ID: <588c2e18-e6fb-4fc1-95d5-7a5dd0f556fe@gmail.com>
+Date: Fri, 31 Jul 2026 21:06:17 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260729023605.197367-1-pengcan@kylinos.cn>
-In-Reply-To: <20260729023605.197367-1-pengcan@kylinos.cn>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 31 Jul 2026 14:49:21 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jHVCtac+=M1Qqzu88ynzjSco9EZVp6+7e=c=2iP1vrsg@mail.gmail.com>
-X-Gm-Features: AUfX_mxPOTEXFY7g0ySl6BTtE5r-jjVxinNfcjAPKr3BNnh-J-74VsprdHKCdG0
-Message-ID: <CAJZ5v0jHVCtac+=M1Qqzu88ynzjSco9EZVp6+7e=c=2iP1vrsg@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: processor: Unregister cpufreq notifier on init failure
-To: Can Peng <pengcan@kylinos.cn>
-Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [REGRESSION] usb controller fails to initialize on intel s1200btl
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org,
+ linux-usb@vger.kernel.org, regressions@lists.linux.dev
+References: <3353bdf3-4f33-44b1-809b-b0378bee5816@gmail.com>
+ <CAJZ5v0h1kqDEBYk0k05rv6f2SJ7g+TN4FhBDJYZSVUctu-0FdA@mail.gmail.com>
+ <daf0bb9b-246d-437d-87ca-16706113b201@gmail.com>
+ <CAJZ5v0jByxtQ2tmNm_ZyyBnDMBNjuqQwD_367NRyGNzF7wQtRw@mail.gmail.com>
+ <7792f017-42b0-4a09-9941-5259138e21b1@gmail.com>
+ <CAJZ5v0jCFFNuG7WtCE2CG+hP=YNsYMdXH_945QgkgAUcr4Lryg@mail.gmail.com>
+ <37daa35f-06aa-49d0-bf0a-1b5ac9f44c89@gmail.com>
+ <CAJZ5v0jyy0+hqU3=gmBrgMzLBVhdUQwDj8d0_jGCqZwqyWT=_g@mail.gmail.com>
+Content-Language: en-US
+From: Julian Silver <mendaxca@gmail.com>
+In-Reply-To: <CAJZ5v0jyy0+hqU3=gmBrgMzLBVhdUQwDj8d0_jGCqZwqyWT=_g@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 29, 2026 at 4:36=E2=80=AFAM Can Peng <pengcan@kylinos.cn> wrote=
-:
->
-> acpi_processor_driver_init() registers the cpufreq policy notifier before
-> registering the ACPI processor driver and setting up CPU hotplug state.
->
-> If driver_register() or cpuhp_setup_state() fails, the error path only
-> unregisters the ACPI processor driver and the idle driver. The cpufreq
-> notifier remains registered even though initialization failed.
->
-> Mirror the module exit path on the init failure path and unregister the
-> cpufreq notifier when it has been registered.
->
-> Fixes: c0e0421a60bf ("ACPI: processor: Reorder acpi_processor_driver_init=
-()")
-> Signed-off-by: Can Peng <pengcan@kylinos.cn>
-> ---
->  drivers/acpi/processor_driver.c | 6 ++++++
->  1 file changed, 6 insertions(+)
->
-> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_dri=
-ver.c
-> index cda8fd720000..cdc2ae1632b2 100644
-> --- a/drivers/acpi/processor_driver.c
-> +++ b/drivers/acpi/processor_driver.c
-> @@ -285,6 +285,12 @@ static int __init acpi_processor_driver_init(void)
->  unregister_idle_drv:
->         acpi_processor_unregister_idle_driver();
->
-> +       if (acpi_processor_cpufreq_init) {
-> +               cpufreq_unregister_notifier(&acpi_processor_notifier_bloc=
-k,
-> +                                           CPUFREQ_POLICY_NOTIFIER);
-> +               acpi_processor_cpufreq_init =3D false;
-> +       }
-> +
->         return result;
->  }
->
-> --
+On 2026-07-31 19:58:32, Rafael J. Wysocki (Intel) wrote:
+> Please boot with "intel_idle.states_off=16" in the kernel command line
+> and see if the problem is still there.  If this doesn't help, please
+> also try "intel_idle.states_off=24".
 
-Applied as 7.3 material, thanks!
+"intel_idle.states_off=16" does not help.  "intel_idle.states_off=24" works.
+Note that the test is performed on vanilla kernel v7.2-rc5(without the patch).
