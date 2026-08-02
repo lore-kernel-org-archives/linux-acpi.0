@@ -1,83 +1,89 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from out-180.mta0.migadu.com (out-180.mta0.migadu.com [91.218.175.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 450083B38BE;
-	Sun,  2 Aug 2026 12:13:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8903F3093DD
+	for <linux-acpi@vger.kernel.org>; Sun,  2 Aug 2026 19:28:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785672791; cv=none; b=ZTcusiXMN8+ya21EimvaPFiOTmqTI0wLicHxt6RvdbULYWX5e04X6Zvilgv6uhTMayqbbx05QHM927latukX9NpJk1y7o+hz9OFLnJvymmuyoanYc8m1qtLeGMZrcEGz3sz+v+SECknRZ4DkzAWGL49zfSE7A1Q0ljpnWJLJxUw=
+	t=1785698902; cv=none; b=Gf/fYgsewvUQmMbod/4UnXnfTtguYE+Z263a0qRUyo4l7arSuhW3JbsWfEtz7JDjEho9YoKBI+1kCbuGTp1kCmr//OzeuU57oawIMty3vahIBgUbd+6kdKw2YcnNlGwOnCLbsmR8wCdM6g2I5yRDhSaOV1bLkh3WWhJzyCrQQwQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785672791; c=relaxed/simple;
-	bh=E/cdMvj75FbwXT20aijaNacdbnll/H/2vJgOWV8ES9s=;
+	s=arc-20240116; t=1785698902; c=relaxed/simple;
+	bh=ih17u19AEzHyVVPvha5pFDpYhRKd9u+uawUawKr9oxY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=FcS6s6cvTKd8Xntrt+CReg/RfY4XysQG8+ep3L2uDEEfP7dpqPrrNggSxCCqPzWbZtBWd4HfOt8JIxypbgXmWwgwodDuqLSDHlsQyQQg7bH6zPY4a0vClFvsb8Zmk5AE5poQdnh4xxVWhQSWju3g+SQvB5Igco+jY+78lAQMtx8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=G/BIDdBh; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:MIME-Version; b=XJb5EiZ+/GW0iZK8rwJrbkI0+7qTJm8zxU6seIti9JDQi7PeJyA55eIMKsg9nijdsxP60Lvm47H2mJnMCmEabEejxZH/37YdkKGAEGrfxpGTZilpXd4mSC0HOCHgKYqjzjIJ/uRrXzbMR9TkVzuF6ToZr6HakRxWBE3pcKX4kMQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=HH4I9Pcm; arc=none smtp.client-ip=91.218.175.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="G/BIDdBh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24BC51F000E9;
-	Sun,  2 Aug 2026 12:13:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785672790;
-	bh=8NzEz/L4MaCMQSAHBHYHb2gFB0rRQPncj/WkeDZonM4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=G/BIDdBhh0jGS83ufomQbqpih8WuyrfX9n7eXd3xEdA0uOxw//ZTMdapaH9k1LYIa
-	 Le0ZlCvDaRNtOpRbwTuemJeSKgKOgqNS5MjM431wZWRxFt4YDMOzvnVD1WjttqQN5W
-	 NPKsrYiUGkAK6Pui+WkOB7KdxEEOecISKGn30xse+6MrHqEaHBdB2yiBRpwv9YfYaF
-	 oeLmZVjlYsJmZSS1bq3P7AVVm2no0/Eu0JqM0kuUr4ZCa8sNUqpvNs1UXW0DlCQsQN
-	 +eIUrgon8lpdEjW9nd87x8qhzqBBkxUYYKfdxqSrILl6NInPJ22AXNYbJ810E/oB3l
-	 7UNhE9HNilGgQ==
-From: Will Deacon <will@kernel.org>
-To: mark.rutland@arm.com,
-	catalin.marinas@arm.com,
-	Robin Murphy <robin.murphy@arm.com>
-Cc: kernel-team@android.com,
-	Will Deacon <will@kernel.org>,
-	ilkka@os.amperecomputing.com,
-	bwicaksono@nvidia.com,
-	linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-perf-users@vger.kernel.org
-Subject: Re: [PATCH v2 0/4] perf/arm_cspmu: Miscellaneous improvements
-Date: Sun,  2 Aug 2026 13:12:29 +0100
-Message-ID: <178566825175.1853083.11515494641516544186.b4-ty@kernel.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <cover.1784213435.git.robin.murphy@arm.com>
-References: <cover.1784213435.git.robin.murphy@arm.com>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="HH4I9Pcm"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1785698887;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ih17u19AEzHyVVPvha5pFDpYhRKd9u+uawUawKr9oxY=;
+	b=HH4I9Pcm/SBcXwV76O4Zr3TEewgiBxIxBBXpqQM8Bxx6pbnHqmdspVGXVoRm/tgt+ZRxhP
+	Wkq2QgEeZnDBB73o9s4NOq1KfotlJUZUu9J7K8JDW1REDwfinGozamxxiHbS4lLkZI2pCQ
+	7/57U/olWMrrVRTQ9kGqYX0jVopHcEs=
+From: Igor Korotin <igor.korotin@linux.dev>
+To: Danilo Krummrich <dakr@kernel.org>, Gary Guo <gary@garyguo.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Miguel Ojeda <ojeda@kernel.org>,
+ Boqun Feng <boqun@kernel.org>,
+ =?utf-8?q?Bj=C3=B6rn?= Roy Baron <bjorn3_gh@protonmail.com>,
+ Benno Lossin <lossin@kernel.org>, Andreas Hindborg <a.hindborg@kernel.org>,
+ Alice Ryhl <aliceryhl@google.com>, Trevor Gross <tmgross@umich.edu>,
+ Daniel Almeida <daniel.almeida@collabora.com>,
+ Tamir Duberstein <tamird@kernel.org>, Alexandre Courbot <acourbot@nvidia.com>,
+ Onur =?utf-8?q?=C3=96zkan?= <work@onurozkan.dev>,
+ FUJITA Tomonori <fujita.tomonori@gmail.com>, David Airlie <airlied@gmail.com>,
+ Simona Vetter <simona@ffwll.ch>, Bjorn Helgaas <bhelgaas@google.com>,
+ Krzysztof =?utf-8?q?Wilczy=C5=84ski?= <kwilczynski@kernel.org>,
+ Abdiel Janulgue <abdiel.janulgue@gmail.com>,
+ Robin Murphy <robin.murphy@arm.com>, Dave Ertman <david.m.ertman@intel.com>,
+ Ira Weiny <iweiny@kernel.org>, Leon Romanovsky <leon@kernel.org>,
+ Len Brown <lenb@kernel.org>, Rob Herring <robh@kernel.org>,
+ Saravana Kannan <saravanak@kernel.org>,
+ Viresh Kumar <viresh.kumar@linaro.org>,
+ Michal Wilczynski <m.wilczynski@samsung.com>,
+ Drew Fustini <fustini@kernel.org>, Guo Ren <guoren@kernel.org>,
+ Fu Wei <wefu@redhat.com>,
+ Uwe =?utf-8?q?Kleine-K=C3=B6nig?= <ukleinek@kernel.org>,
+ driver-core@lists.linux.dev, rust-for-linux@vger.kernel.org,
+ linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+ nova-gpu@lists.linux.dev, dri-devel@lists.freedesktop.org,
+ linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
+ devicetree@vger.kernel.org, linux-pm@vger.kernel.org,
+ linux-pwm@vger.kernel.org, linux-usb@vger.kernel.org
+Subject: Re: (subset) [PATCH v2 00/11] rust: driver: use pointers instead of
+ indices for ID info
+Date: Sun, 02 Aug 2026 20:27:50 +0100
+Message-ID: <178569887068.1652.14450480404285948832@linux.dev>
+In-Reply-To: <20260730210149.1117242-2-dakr@kernel.org>
+References: <20260629-id_info-v2-0-56fccbe9c5ef@garyguo.net>
+ <20260730210149.1117242-2-dakr@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-On Thu, 16 Jul 2026 15:56:33 +0100, Robin Murphy wrote:
-> These are a few quality-of-life improvements for CoreSight PMU that
-> I've accumulated based on things which have come up in practical usage.
-> There's no real dependency between any of the individual patches, it
-> just felt right to send them as a series.
-> 
-> v1: https://lore.kernel.org/linux-perf-users/cover.1783605641.git.robin.murphy@arm.com/
-> v2: Fix valid nits from Sashiko review, add Ilkka's R-b.
-> 
-> [...]
+Hi Danilo,
 
-Applied to arm64 (for-next/perf), thanks!
+Sorry for the silence -- I was offline for personal reasons for about two
+weeks from the 16th, and missed this before it got applied.
 
-[1/4] ACPI/APMT: Use stable device ID
-      https://git.kernel.org/arm64/c/04aa909b38bf
-[2/4] perf/arm_cspmu: Improve APMT-based PMU naming
-      https://git.kernel.org/arm64/c/745a724f9c81
-[3/4] perf/arm_cspmu: Improve sub-module error reporting
-      https://git.kernel.org/arm64/c/60b234db6bf1
-[4/4] perf/arm_cspmu: Make IRQ more optional
-      https://git.kernel.org/arm64/c/36e200f01991
+Checked 6-9/11 now: the i2c bits are correct. Unlike PCI/USB, i2c has no
+dynamic-ID (new_id) mechanism, so i2c_match_id() can only ever return a
+pointer that IdArray::new() actually populated -- the plain
+info_unchecked() (not _opt) in i2c_id_info() is the right call, not an
+oversight.
 
-Cheers,
--- 
-Will
-
-https://fixes.arm64.dev
-https://next.arm64.dev
-https://will.arm64.dev
+Cheers
+Igor
