@@ -1,33 +1,33 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0ADA63AEF47;
-	Mon,  3 Aug 2026 17:24:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B447A425872;
+	Mon,  3 Aug 2026 17:30:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785777871; cv=none; b=gPjBMSSma5pB57cijA22wa471gl/gW74tjWwd53pyCHPlBgFUUM1m8vS82x3zkIh8AUYLtvIfFhlBQDVB/0XvXGiN8WdHddrKWUVRaG7Xn8JEoNncm2BbKge8/wxBUTdy7tWyMjniuhHb9O7vcnX8XxoMzQCxZ2Gb8D80gDECyA=
+	t=1785778216; cv=none; b=Wl/VZgUxoy+CFPyP1AgHN2r6aaehNhVn2aHSWY/SjTHQrksboYeLk/Tku23Kp+DwoMyiUr5DtWru+uLmwcumBOvroavrec2YhBrziG0lRqSL/KHWFKM8Aq4XFrwQoJOPOxHIsTA0sfZRrdgU9DkMLy2V2U7IWe9M8H4z+Y/PDws=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785777871; c=relaxed/simple;
-	bh=f6bpgv69S18gRY4BSwh25O4n1LJwXyI+7lswDU9KAx0=;
+	s=arc-20240116; t=1785778216; c=relaxed/simple;
+	bh=9YM35LW5OLzP8OftHEbL6r3w+81q6IrW3F6X2Vt474Q=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Hvu1pZolI/Mvu2m379c/lF3vgAJzYOwnCwxgpSsyBIEX0ikcuyLsiOmhfdgitsIyQlL5R9CwMUspixPKdIUTBgOuuLIk73AKGzmJ/2gBPQo7PCwPxzgf0j9II+N4zBwAy+kVo09J6BRf0XDX/kqGIz4o0HVRmtFPU5h+4jCOD+o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=nQMMI12H; arc=none smtp.client-ip=217.140.110.172
+	 In-Reply-To:Content-Type; b=dyDCOl3BT9uJcW2wipY5Mip2xIuFv93c455oR93AjFkmXikkp9E2N010CYOxxLE9K5oBl/aW1wKWiXv3EvN4WYHK5F/JIIZHExMQexstfdl/dIXUnmkuzRknYc5KRT+pkRVE390JAjPDz4LhlxkPUGV5dVIVH79m21qeHnwwt5A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=pBxzW30l; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="nQMMI12H"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="pBxzW30l"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CE3AA143D;
-	Mon,  3 Aug 2026 10:24:23 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id DC4BA143D;
+	Mon,  3 Aug 2026 10:30:08 -0700 (PDT)
 Received: from [10.2.212.8] (e134344.arm.com [10.2.212.8])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 007423F632;
-	Mon,  3 Aug 2026 10:24:24 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 0E2EC3F632;
+	Mon,  3 Aug 2026 10:30:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1785777867; bh=f6bpgv69S18gRY4BSwh25O4n1LJwXyI+7lswDU9KAx0=;
+	t=1785778212; bh=9YM35LW5OLzP8OftHEbL6r3w+81q6IrW3F6X2Vt474Q=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=nQMMI12H45CZtRsM3jkFuuL93/8Tk/lnebaXOTk8Cgxxyhva63Z6+b61jc41ATzJn
-	 Z0jf7RIOMpECPir1eLUnUtL7wW46RLl8YHq6S3hFOD9fIWjP9uE55JIaUGRDatYosL
-	 Ria63P4FrbbrZHfzOsOc5GhBrddskkKmXSHz1X9U=
-Message-ID: <c078297a-c68b-44e8-a80c-c57f066f023a@arm.com>
-Date: Mon, 3 Aug 2026 18:24:23 +0100
+	b=pBxzW30lBcff3mXSkDZZV8G4XUG141b0Or932Tt2N3JBCsoiG+YOWCfX8rLV3rK/V
+	 g2k6tVCh2h7Yta99awsT6G7XLT1fzyTf8smWty9f2ygWSMfQYa6ndxwXQZtyZeWtNF
+	 k0oMEnZJ26ueqHhOe93FeRHjGEDGsoArqSd55+LU=
+Message-ID: <a812717f-cf0d-4722-849c-b6f5c7b5b395@arm.com>
+Date: Mon, 3 Aug 2026 18:30:08 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -35,7 +35,8 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Thunderbird Daily
-Subject: Re: [PATCH v7 08/11] arm_mpam: prepare mon_sel locking for MPAM-Fb
+Subject: Re: [PATCH v7 10/11] arm_mpam: change MPAM-Fb error IRQ to use a
+ threaded IRQ handler
 To: Andre Przywara <andre.przywara@arm.com>,
  Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
  <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
@@ -51,38 +52,157 @@ Cc: Jonathan Cameron <jic23@kernel.org>,
  Ritwick Sharma <ritwick.sharma@arm.com>, linux-acpi@vger.kernel.org,
  linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 References: <20260731170324.2927758-1-andre.przywara@arm.com>
- <20260731170324.2927758-9-andre.przywara@arm.com>
+ <20260731170324.2927758-11-andre.przywara@arm.com>
 Content-Language: en-US
 From: Ben Horgan <ben.horgan@arm.com>
-In-Reply-To: <20260731170324.2927758-9-andre.przywara@arm.com>
+In-Reply-To: <20260731170324.2927758-11-andre.przywara@arm.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 Hi Andre,
 
 On 7/31/26 18:03, Andre Przywara wrote:
-> The MSC MON_SEL register needs to be accessed from hardirq for the overflow
-> interrupt, and when taking an IPI to access these registers on platforms
-> where MSCs are not accesible from every CPU. This makes an irqsave
-> spinlock the obvious lock to protect these registers. On systems with
-> MPAM-Fb mailbox MSC access it must be able to sleep, meaning a mutex must
-> be used. So MPAM-Fb platforms cannot support an overflow interrupt easily.
-> Clearly these two methods can't exist for one MSC at the same time.
+> When an MPAM MSC gets into an error condition, it can trigger an error
+> IRQ. We cannot really do much about those errors, but we at least query
+> and log the error, then disable MPAM functionality.
 > 
-> Change the mon_sel locking wrapper function to only use a spinlock when
-> the MSC is accessed directly via MMIO. In case of MPAM-Fb, we use a
-> mutex, but only if we are in a sleepable context. If that's not the
-> case, we return an error. This should not happen, as MPAM-Fb by design
-> does not require an MSC access to happen from a specific CPU, so there
-> is no need for any IPIs or preemption disabling to satisfy CPU
-> constraints. And since overflow interrupts are not supported at the moment
-> anyway, we also wouldn't meet the other case.
-> Bailing out early is already happening in rare occasions today.
+> This error report relies on reading the MSC's error status register
+> (ESR) in the current hard-IRQ handler, which is not possible for MPAM-Fb
+> based MSC accesses, since they involve mailbox routines that might sleep.
+> The same is true for clearing the interrupt at the source, which requires
+> an MSC access as well.
+> 
+> When an MSC is using MPAM-Fb, change the error IRQ to use a threaded IRQ
+> handler, with an empty hard IRQ routine, and doing all the MSC accesses
+> (to access the status and disable the IRQ line) in the threaded part.
+> Also forbid per-CPU interrupts (PPIs) for MPAM-Fb, as we cannot use a
+> threaded IRQ here.
+> 
+> The change in the actual IRQ handler is minimal, we just check for the
+> first MSC access error and bail out early. MMIO based MSCs keep using a
+> hard-IRQ handler, since they must be at least non-migrate-able when doing
+> MSC accesses, for the CPU affinity check to work.
 > 
 > Signed-off-by: Andre Przywara <andre.przywara@arm.com>
-> Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-Reviewed-by: Ben Horgan <ben.horgan@arm.com>
+> ---
+>  drivers/resctrl/mpam_devices.c | 52 +++++++++++++++++++++++++---------
+>  1 file changed, 39 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
+> index ea08c12f717a..b238feb559d4 100644
+> --- a/drivers/resctrl/mpam_devices.c
+> +++ b/drivers/resctrl/mpam_devices.c
+> @@ -2713,24 +2713,38 @@ static int mpam_disable_msc_ecr(void *_msc)
+>  	return 0;
+>  }
+>  
+> +/*
+> + * This will run as the threaded IRQ handler part when using MPAM-Fb, but
+> + * as the sole hard-IRQ handler for MMIO based accesses.
+> + */
+>  static irqreturn_t __mpam_irq_handler(int irq, struct mpam_msc *msc)
+>  {
+>  	u64 reg;
+> +	int ret;
+>  	u16 partid;
+>  	u8 errcode, pmg, ris;
+>  
+> -	if (WARN_ON_ONCE(!msc) ||
+> +	if (WARN_ON_ONCE(!msc))
+> +		return IRQ_NONE;
+> +
+> +	if (msc->iface == MPAM_IFACE_MMIO &&
+>  	    WARN_ON_ONCE(!cpumask_test_cpu(smp_processor_id(),
+>  					   &msc->accessibility)))
+>  		return IRQ_NONE;
+>  
+> -	mpam_msc_read_esr(msc, &reg);
+> +	ret = mpam_msc_read_esr(msc, &reg);
+> +	if (ret) {
+> +		pr_err_ratelimited("unknown error irq from msc:%u\n", msc->id);
+> +
+> +		/* Try out best here ... */
+> +		goto out_disable;
+> +	}
+>  
+>  	errcode = FIELD_GET(MPAMF_ESR_ERRCODE, reg);
+>  	if (!errcode)
+>  		return IRQ_NONE;
+>  
+> -	/* Clear level triggered irq */
+> +	/* Clear level triggered irq. Ignore errors, we need to proceed. */
+>  	mpam_msc_clear_esr(msc);
+>  
+>  	partid = FIELD_GET(MPAMF_ESR_PARTID_MON, reg);
+> @@ -2741,19 +2755,19 @@ static irqreturn_t __mpam_irq_handler(int irq, struct mpam_msc *msc)
+>  			   msc->id, mpam_errcode_names[errcode], partid, pmg,
+>  			   ris);
+>  
+> -	/* Disable this interrupt. */
+> +out_disable:
+> +	/* Disable this interrupt. Ignore errors, we need to proceed anyway. */
+>  	mpam_disable_msc_ecr(msc);
+
+
+If IRQ_NONE is not correct is disable_irq_nosync() better? We only ever need the error irq handler
+to run once and we don't want the schedule_work() to contend with the handler being run again and again.
 
 Thanks,
 
 Ben
+
+>  
+> -	/* Are we racing with the thread disabling MPAM? */
+> -	if (!mpam_is_enabled())
+> -		return IRQ_HANDLED;
+> -
+>  	/*
+> -	 * Schedule the teardown work. Don't use a threaded IRQ as we can't
+> -	 * unregister the interrupt from the threaded part of the handler.
+> +	 * Schedule the teardown work. We have to defer it as we can't
+> +	 * unregister the interrupt from the threaded part of a handler.
+> +	 * Check whether we are racing with the thread disabling MPAM.
+>  	 */
+> -	mpam_disable_reason = "hardware error interrupt";
+> -	schedule_work(&mpam_broken_work);
+> +	if (mpam_is_enabled()) {
+> +		mpam_disable_reason = "hardware error interrupt";
+> +		schedule_work(&mpam_broken_work);
+> +	}
+>  
+>  	return IRQ_HANDLED;
+>  }
+> @@ -2789,6 +2803,11 @@ static int mpam_register_irqs(void)
+>  		/* The MPAM spec says the interrupt can be SPI, PPI or LPI */
+>  		/* We anticipate sharing the interrupt with other MSCs */
+>  		if (irq_is_percpu(irq)) {
+> +			if (msc->iface != MPAM_IFACE_MMIO) {
+> +				dev_err(&msc->pdev->dev,
+> +					"Only MMIO MSCs can use per-CPU interrupts\n");
+> +				return -EINVAL;
+> +			}
+>  			err = request_percpu_irq(irq, &mpam_ppi_handler,
+>  						 "mpam:msc:error",
+>  						 msc->error_dev_id);
+> @@ -2799,12 +2818,19 @@ static int mpam_register_irqs(void)
+>  			smp_call_function_many(&msc->accessibility,
+>  					       &_enable_percpu_irq, &irq,
+>  					       true);
+> -		} else {
+> +		} else if (msc->iface == MPAM_IFACE_MMIO) {
+>  			err = devm_request_irq(&msc->pdev->dev, irq,
+>  					       &mpam_spi_handler, IRQF_SHARED,
+>  					       "mpam:msc:error", msc);
+>  			if (err)
+>  				return err;
+> +		} else {
+> +			err = devm_request_threaded_irq(&msc->pdev->dev, irq,
+> +							NULL, &mpam_spi_handler,
+> +							IRQF_SHARED | IRQF_ONESHOT,
+> +							"mpam:msc:error", msc);
+> +			if (err)
+> +				return err;
+>  		}
+>  
+>  		mutex_lock(&msc->error_irq_lock);
+
