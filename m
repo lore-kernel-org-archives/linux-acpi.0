@@ -1,173 +1,161 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7394368D59
-	for <linux-acpi@vger.kernel.org>; Mon,  3 Aug 2026 14:54:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C43C23BBFBA;
+	Mon,  3 Aug 2026 17:05:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785768859; cv=none; b=Y9PGkw1ChT33BXMGaKsdoKaD315vxYQnGTSZEyI68NbbZcHiQpRrFpt0radz0/15k1J1fiPwyJq3w5Q3UL9y11zaVostukpnzC5/+UNZb7GPeXL4O9jRFpWgCTyt75fM/JPYEP11/440fZ4rNbpm4g1Io7xFfVgibDJi/Sf1peE=
+	t=1785776711; cv=none; b=o4IyE0H5Jm1NfiqlZoEDtyuRJ8noQfuTBKOUD9OR9XUgO0Ww9ztoASWCHqhcjSoDmAQcfjBoucVYdFM1qJo1fkeXUgb1k/wCp0mVOp6tK0XnFVWYrN+LNtuCCYzHmvgn34GNLr2TU3FyMlyBOafX6w8MrBxBYcMY2xxT9d9pUTU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785768859; c=relaxed/simple;
-	bh=3yzxWvETrsnYT4xHWMhYoTAD97GVF8bzp7RYly7/W1c=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=aGG1423IyWNqHDef7Mf6nEU9rBb5+6YfDOytuKPbcYOr0Pu6uXbWvGoEL4pQgo8B2jyk+3xN9CxNzfsV2S+MNhf92S7rTpE+2u3wIbkhBHOxrVw4BN+lF31HFNxES4YUmSgpXGIWqtIfUFyISJVyF60SLm+9hc/OTyi9xyWUsvg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QVg3O0Tg; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785776711; c=relaxed/simple;
+	bh=8ylZj4mCSSNDkUIDMUbdM6OiX2Xn4Kwb5/xvgqqQr5k=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Sk/hfZRDWSa9IjKUqXvfSe0nZa+qdObprO1dx0TqBuRpUO6IzFOfx9ObRCt8nyDdfUXDIJW0SprHUl/PA+2+qPWm/4wbomOzOTQC1PIWsS36Ev/NJQUi8Ph8DphcPKMnv4GxpyaWcjpxlVcYEcx0WGDQOSKznDWh7I9LyaYIzB8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=spKlICXV; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QVg3O0Tg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA69F1F00ADF
-	for <linux-acpi@vger.kernel.org>; Mon,  3 Aug 2026 14:54:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785768857;
-	bh=Ywl5oe623Vpe3tuJANluxXi2/b2rsrMCrnpTFJYzc0w=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=QVg3O0TgZ+zJXKWWL5IxngXLtIUD3zO92M3QPQkZCTA7sPddsVp47U1N/GW9kk5tx
-	 0OV9iPasxWm/2eiXCjv+B44hfDDOMmUH+4Ip47CKFgNgSHWTeajalHpU+sZagkdp9Z
-	 qR8QMluRzbfjWQYf0CcFVgZ/dmwQwzHXkwpAj4EmsTnQJhMUsHgRKlwTKiFMQWPX1z
-	 deCArbBuD8SmlR+frMtEaw6vN2HwqQbxh5jNQIdBd4k4zExTo+oJ7T0sFsgpapS3IZ
-	 Su+hqqwVXR6X5H9d/omZHXl4ZxULF2eRMtG7FTHFdU1Jcnl9vsyrCyKiky2vSqUyQ8
-	 VN97DpWu+pkJw==
-Received: by mail-lj1-f170.google.com with SMTP id 38308e7fff4ca-39f1ac13687so23630151fa.0
-        for <linux-acpi@vger.kernel.org>; Mon, 03 Aug 2026 07:54:17 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RrOYwVuBwdfqzFo7YMGklf6BAyVT5zVolQ1rsMCsKMpbRiC1Ayso+zmc3kay667SUoCn4abWwR10jQZ@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy5GWJmF7j6RqPFncz7bMjVQens7XvgQoFukvk5zJi3TUXkFhDd
-	682CUI2oyDIrqFmL6ldDVnEkjQrM300ZK/naAPU9YA0K682kTrDip2skN1Xdm+ZB60c53RaA/rZ
-	l7mpmI06DkpQjURXnDUj56lM8hRf/dT0=
-X-Received: by 2002:a05:6512:669a:10b0:5b2:b6a4:707 with SMTP id
- 2adb3069b0e04-5b2e4fa0f67mr1228384e87.63.1785768856144; Mon, 03 Aug 2026
- 07:54:16 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="spKlICXV"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 805F21476;
+	Mon,  3 Aug 2026 10:05:04 -0700 (PDT)
+Received: from e142021.fritz.box (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 72A9A3F632;
+	Mon,  3 Aug 2026 10:05:04 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1785776708; bh=8ylZj4mCSSNDkUIDMUbdM6OiX2Xn4Kwb5/xvgqqQr5k=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=spKlICXVnziC366fHmXzRD1CHs7aF0l8ZStMuynkfx2uSHGO3pX2tJpqmLC5TJm96
+	 azLtJD9DNHhTrVSdylvlp7+c3SpmPSRhtjF99H9L7JgS4dGaAuTKYH9SOw3yIXq6Cl
+	 gfuXZlScO+YZevJgurf+ed9zxrpqwy4Zv0uAeaw4=
+From: Andre Przywara <andre.przywara@arm.com>
+To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	James Morse <james.morse@arm.com>,
+	Ben Horgan <ben.horgan@arm.com>,
+	Reinette Chatre <reinette.chatre@intel.com>,
+	Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+	Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+	Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+	Trilok Soni <tsoni@quicinc.com>,
+	Srinivas Ramana <sramana@qti.qualcomm.com>,
+	Niyas Sait <niyas.sait@arm.com>,
+	Lee Trager <lee@trager.us>,
+	Ritwick Sharma <ritwick.sharma@arm.com>,
+	linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] FIX: avoid using mailbox client dev pointer for error prints
+Date: Mon,  3 Aug 2026 19:04:58 +0200
+Message-ID: <20260803170458.3135976-1-andre.przywara@arm.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260731170324.2927758-12-andre.przywara@arm.com>
+References: <20260731170324.2927758-12-andre.przywara@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260724134251.1632824-1-christian.loehle@arm.com> <033eb158-936a-4f79-a134-80402fb018e8@arm.com>
-In-Reply-To: <033eb158-936a-4f79-a134-80402fb018e8@arm.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Mon, 3 Aug 2026 16:54:03 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jFvXKTO7MnC5GHYo85E6NwXQUXRDmmkq1i9BtSbQueAg@mail.gmail.com>
-X-Gm-Features: AUfX_mxrWwuFwnt0mThMwbZPh5Am2hnR2yvkfgnKMGv2aZ7g-dd2tOgpUyzqSRU
-Message-ID: <CAJZ5v0jFvXKTO7MnC5GHYo85E6NwXQUXRDmmkq1i9BtSbQueAg@mail.gmail.com>
-Subject: Re: [PATCH 0/3] ACPI: CPPC: Reduce .target() callback overhead
-To: Christian Loehle <christian.loehle@arm.com>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>, linux-pm@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	Jie Zhan <zhanjie9@hisilicon.com>, Lifeng Zheng <zhenglifeng1@huawei.com>, 
-	Pierre Gondois <pierre.gondois@arm.com>, Sumit Gupta <sumitg@nvidia.com>, 
-	Sudeep Holla <sudeep.holla@arm.com>, Ionela Voinescu <ionela.voinescu@arm.com>, 
-	Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Mon, Aug 3, 2026 at 4:07=E2=80=AFPM Christian Loehle
-<christian.loehle@arm.com> wrote:
->
-> On 7/24/26 14:42, Christian Loehle wrote:
-> > cppc-cpufreq reaches cppc_set_perf() from every target callback.  For
-> > direct SystemMemory controls, that path currently does several steps
-> > which are unnecessary once the immutable _CPC layout is known:
-> >
-> >   - a full-width write first reads the access unit and merges the value=
-.
-> >   - every write takes the descriptor's RMW lock, even when its access u=
-nit
-> >     is not shared with another _CPC entry.
-> >   - cppc_set_perf() evaluates the same three PCC predicates at each pha=
-se
-> >     of the transaction.
-> >
-> > Remove those costs while retaining the existing conservative paths for
-> > partial fields, overlapping or malformed access units, and PCC controls=
-.
-> >
-> > The series was tested on Arm Power-Orion O6 and AmpereOne systems using
-> > cppc-cpufreq and schedutil.  An rt-app task pinned to one CPU ran for
-> > 500 us every 2 ms with uclamp.min=3D512, for 5000 periods per run.  sch=
-edutil
-> > rate_limit_us was 1000.  cppc_cpufreq_fast_switch() latency was measure=
-d
-> > for 100 ten-second runs.  Each sample is the mean callback latency with=
-in
-> > one run, and the table reports the median and sample standard deviation
-> > of those samples.
-> >
-> > Orion O6               median       stdev       callbacks
-> > baseline               5703 ns      307 ns       188017
-> > complete series        5023 ns      240 ns       188209
-> > =3D=3D> 680 ns (11.9%) reduction
-> >
-> > AmpereOne              median       stdev
-> > baseline               2090 ns      157 ns
-> > complete series      1907.5 ns      140 ns
-> > =3D=3D> 182.5 ns (8.7%) reduction
-> >
-> > The cumulative intermediate results on the Orion O6 attribute roughly h=
-alf
-> > of the gain to each of the first two patches: avoiding the read reduced
-> > the median by 284 ns (5.0%), and avoiding the lock reduced it by anothe=
-r
-> > 336 ns (6.2%).
-> > Together they account for 620 ns of the 680 ns total reduction.
-> >
-> > With the same arm64 configuration and GCC 11.4, caching the PCC predica=
-te
-> > also reduces cppc_set_perf() from 1124 to 884 bytes.  The generated
-> > function has 60 fewer instructions, 17 fewer loads and 20 fewer branche=
-s.
-> >
-> > This series is based on the CPPC fixes posted at (already queued):
-> > https://lore.kernel.org/lkml/20260722093825.1030594-1-christian.loehle@=
-arm.com/
-> >
-> > and the separately posted fix still under review:
-> > https://lore.kernel.org/lkml/20260724104042.1481804-1-christian.loehle@=
-arm.com/
-> >
-> > PS:
-> > There's a final optimization that I actually wanted to make but decided=
- to
-> > split it out for now as it somewhat replicated Sumit's series:
-> > Skipping redundant perf ctrl writes in cpufreq-cppc if registers are no=
-n-PCC
-> > and !shared (because the values are unchanged, the
-> > !autonomous-common-case), but that requires the driver to have a more
-> > complex caching- and atomic-updating machinery in place, similar to
-> > hotplug. As opposed to this series the optimization would be for the
-> > microcontroller handling the CPPC requests, which may be shared across
-> > many CPUs and therefore redundant requests can increase the dvfs
-> > transition latency.
-> > That patch will follow once Sumit's is queued:
-> > https://lore.kernel.org/lkml/20260716153820.2007095-1-sumitg@nvidia.com=
-/
-> >
-> > Christian Loehle (3):
-> >   ACPI: CPPC: Avoid unnecessary reads for full-width writes
-> >   ACPI: CPPC: Avoid locking standalone full-width registers
-> >   ACPI: CPPC: Evaluate performance-control PCC use once
-> >
-> >  drivers/acpi/cppc_acpi.c | 135 +++++++++++++++++++++++++++++++--------
-> >  include/acpi/cppc_acpi.h |   5 +-
-> >  2 files changed, 113 insertions(+), 27 deletions(-)
-> >
-> >
-> > base-commit: 1590cf0329716306e948a8fc29f1d3ee87d3989f
-> > prerequisite-patch-id: 4c1f4063800e3658717eb77e43af13dad52d55cc
-> > prerequisite-patch-id: 5c40d9f099543123c9b904d18ce651e740fbefb8
-> > prerequisite-patch-id: 7202391dca8f31f9eb8f6d59fc753b3ce665e103
->
->
-> I was about the rebase and resend this series but noticed it still applie=
-s cleanly
-> on 7.2-rc6 + ACPI: CPPC: Avoid Desired Performance reads on ACPI 6.6+
-> https://lore.kernel.org/all/cover.1785749175.git.christian.loehle@arm.com=
-/
->
-> Any comments on this?
+When a PCC channel is shared among several MSCs, all use the same
+mailbox client struct, which contains the device pointer of the very
+first MSC created. If that MSC goes away, the dev pointer becomes stale.
+We use that pointer only for error printing, so drop that usage. We can
+use the dev pointer from the MSC instead, which the callers of
+mpam_fb_send_request() know.
+The mailbox client code also seems to use this pointer only for error
+prints, and only during initialisation, so it becoming stale afterwards
+does not cause problems.
 
-Sashiko says that it couldn't apply this series:
+Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+---
+Hi,
 
-https://sashiko.dev/#/patchset/20260724134251.1632824-1-christian.loehle%40=
-arm.com
+so this is the fix for the issue that Srivathsa described. This applies
+on top of the v7 series posted. I put up a branch with the patch
+squashed here:
+https://gitlab.arm.com/linux-arm/linux-ap/-/commits/mpam-fb-v7-fixed?ref_type=heads
+If I shall post a v8, please let me know.
 
-Would it apply on top of plain 7.2-rc6?  If so, can you please rebase
-and resend it?  Or is it linux-next-only?
+Cheers,
+Andre
+
+ drivers/resctrl/mpam_fb.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/resctrl/mpam_fb.c b/drivers/resctrl/mpam_fb.c
+index 7a7fb6d067ba..79e0229b77c1 100644
+--- a/drivers/resctrl/mpam_fb.c
++++ b/drivers/resctrl/mpam_fb.c
+@@ -6,6 +6,7 @@
+ #include <linux/errno.h>
+ #include <linux/mailbox_client.h>
+ #include <linux/mutex.h>
++#include <linux/platform_device.h>
+ #include <linux/types.h>
+ 
+ #include <acpi/pcc.h>
+@@ -128,17 +129,19 @@ static int mpam_fb_translate_error_code(int mpam_fb_code)
+ 	}
+ }
+ 
+-static int mpam_fb_send_request(struct mpam_pcc_chan *pcc_chan, u32 msc_id,
++static int mpam_fb_send_request(struct mpam_msc *msc, u32 msc_id,
+ 				u16 reg, u32 *result, int mpam_fb_command)
+ {
+ 	unsigned int token = atomic_inc_return(&mpam_fb_token);
+ 	struct acpi_pcct_ext_pcc_shared_memory __iomem *pcc_shmem;
++	struct mpam_pcc_chan *pcc_chan;
+ 	struct pcc_mbox_chan *chan;
+ 	void __iomem *payload_ofs;
+ 	int mpam_fb_err = 0;
+ 	u32 status;
+ 	int ret;
+ 
++	pcc_chan = msc->pcc_chan;
+ 	if (!pcc_chan)
+ 		return -ENODEV;
+ 
+@@ -162,7 +165,7 @@ static int mpam_fb_send_request(struct mpam_pcc_chan *pcc_chan, u32 msc_id,
+ 		mpam_fb_build_version_message(token, chan->shmem);
+ 		break;
+ 	default:
+-		dev_err(pcc_chan->pcc_cl.dev, "unsupported MPAM-Fb command %d\n",
++		dev_err(&msc->pdev->dev, "unsupported MPAM-Fb command %d\n",
+ 			mpam_fb_command);
+ 		ret = -EINVAL;
+ 		goto out_err;
+@@ -203,13 +206,13 @@ static int mpam_fb_send_request(struct mpam_pcc_chan *pcc_chan, u32 msc_id,
+ 
+ int mpam_fb_send_read_request(struct mpam_msc *msc, u16 reg, u32 *result)
+ {
+-	return mpam_fb_send_request(msc->pcc_chan, msc->id, reg, result,
++	return mpam_fb_send_request(msc, msc->id, reg, result,
+ 				    MPAM_MSC_READ_CMD);
+ }
+ 
+ int mpam_fb_send_write_request(struct mpam_msc *msc, u16 reg, u32 value)
+ {
+-	return mpam_fb_send_request(msc->pcc_chan, msc->id, reg, &value,
++	return mpam_fb_send_request(msc, msc->id, reg, &value,
+ 				    MPAM_MSC_WRITE_CMD);
+ }
+ 
+@@ -219,7 +222,7 @@ int mpam_fb_check_protocol_version(struct mpam_msc *msc)
+ 	u32 version;
+ 	int ret;
+ 
+-	ret = mpam_fb_send_request(msc->pcc_chan, 0,
++	ret = mpam_fb_send_request(msc, 0,
+ 				   0, &version, MPAM_PROTOCOL_VERSION_CMD);
+ 	if (ret)
+ 		return ret;
+-- 
+2.43.0
+
