@@ -1,212 +1,433 @@
-Received: from TYVP286CU001.outbound.protection.outlook.com (mail-japaneastazon11011015.outbound.protection.outlook.com [52.101.125.15])
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BC3B372B39;
-	Mon,  3 Aug 2026 10:05:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.125.15
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785751542; cv=fail; b=u8yElwQikmEeLsEm/eJCN05agkUjS25ZGIr3ORJpFXu2fT93EkgZh+1TDWJJSX4YotW4GBMtDF44pc27HS9spu50OteDXSN6VEB8Sx69GCHVcyJHg1L6YHINQqzWy9qR9FzIWmSlqWXrZ31FMIMK2xVeRLbxZ3lqLONYXjYEEGI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785751542; c=relaxed/simple;
-	bh=hQ+oP7jnKXBKEZqdwr/aFA8YbIgA/H+Y+pYa/dH4beA=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=lvGhNsDJ72RFS+XzAWrTU1OpUkB2bQQDEmXFPCsrn/pql5AbiPhv85i2afISDpgPKzgmePPHi4nSlXh9/qFZQmy43hDAKXqQfW1GvFt6Uzb1hLrjHvK7gnNxuDsh2YadyXfe3OKmZRQe0HtomcLk+pE9flvxI3QtcSZkEeX2kUs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nec.com; spf=pass smtp.mailfrom=nec.com; dkim=pass (2048-bit key) header.d=nec.com header.i=@nec.com header.b=Zuz9vpKL; arc=fail smtp.client-ip=52.101.125.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nec.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nec.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C7FE3793CC
+	for <linux-acpi@vger.kernel.org>; Mon,  3 Aug 2026 10:50:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785754206; cv=none; b=SaJn3mmSVlOupSGs6UnBlG0ik4ERgM2dequ97azHtX5GF4pvQXCPSpeT5MBmVaPkwjm/nJzQYsSiZXzILaSKxeBiT80DSt5ehXvNwh4kIjfbQAEtj4ip8ONkjtyt0N3TOyfcRtCrxm/FAtad+e8eKIKxidDQ7P0L3IV6G2iDbNg=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785754206; c=relaxed/simple;
+	bh=0OP9Yq7lLye7fVqsZFDSj0MbYeSHPnxCci/0vJaRlok=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=mcNwvu5pd9RE8FACZ0PaR7JtCdrGH6aNqm39jaBVYSlpIa6AoVlhw/Ui+nl8LPG/u2+XbMeHwSWaLp5twJy8G7WxQA42i5lFbXYNhlZJBZl3Vhrrv2Edt2IwNJPbyB6umru2ivYtb7av+3frQonKDWlwuCZH0XvxBMMNvJhNcZY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=Pbe/KUvd; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=GwRHYXUw; arc=none smtp.client-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nec.com header.i=@nec.com header.b="Zuz9vpKL"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=HzcatZm/22ZHAJsPqdNHgeZYG8/+h2UyXUVWddZM8HTMjKsHHxUfOA+l5TROLqGkMo/4alJ00hSFC6jCmlg+VghQsVe6TPh3+X0YUwVHEQslUOhbGo40HCMlzCR+9xsiOAkCSnuD+IOgOXyN0NpuRuE3L03IuEBYLVA4J0pTTDpho5Hmxt1a2c5/VNlPzbt4Bc4tQjUtpNQ/94llpfiii8XjPAwWnycq+fHHSf/qpddRg2w8GY/+LN7iXLeD2b4NDdN9g3Yds+qFBfLc74Iw3yXIZHja5hH9L7I7yKWOVy/sALc2wl1YjV4U4QED8wXC7VnlgrurlEwDfwbbxZAQYA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=hQ+oP7jnKXBKEZqdwr/aFA8YbIgA/H+Y+pYa/dH4beA=;
- b=BdBE8ELLL+PyikQ5/2n+tLZg4qXQ5xkPjEGsrSq4wroRZi1ugQwrdb6Jvm055itZnRDsALox86ddsT3bCNwJdkXA1grbo6/KPT7PsTBCuPUlSRzc3znPVHko0MESMzgQCISuLQUU/9D5DtwsP3GOjNIaqdLo5XlJ/coy1+/rT6wShctOtuRlFNV4y9thrGUvqAs1qxZyuC181wfn1h2K8mP7EgOLFGFWoJ2u8dF3DWdvpVKnzriaEaRBL0+UBooIFVYkfdKKL4qkIO06U/ZBVCwJALJqnyphzl63/1l+XF0gk4zDBpnLHDRj5UEgxVZIEhSHaBmGu/q1pQOFgrmceg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nec.com; dmarc=pass action=none header.from=nec.com; dkim=pass
- header.d=nec.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nec.com; s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=hQ+oP7jnKXBKEZqdwr/aFA8YbIgA/H+Y+pYa/dH4beA=;
- b=Zuz9vpKLCvmpLbOJyB1+/mN8OJsOaL3qELbw2Yt/WOSIIeXlxGsZwqKZpxNWxwcB09/laTj2ywGIfVY2XEE5k6CzUtH5mjUp/dgOSOKsGVk5Fi8ag2JErBnao4evyHnGiwPxoFxNrhwbntTUCgAo49Ep4KPL3V5CfPVrA5M6wEjzn7j6r4p/JeVyb45IFKk10dqsf0DmYnKg+XbWiM3ZTvddINKw7xJnns+e7IaGVrmvcFKt4OqOAIqK9YEpTwM7kaDTcW/f73XUazl7aj8CF18nLND8jaeFPDL23V6Nzt74w3J8SUy9vcu+7lplfrX+VfnToK0athjyUxLmhIH+Gw==
-Received: from OS7PR01MB17384.jpnprd01.prod.outlook.com (2603:1096:604:43c::6)
- by TYYPR01MB15068.jpnprd01.prod.outlook.com (2603:1096:405:1a2::9) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.17; Mon, 3 Aug
- 2026 10:05:36 +0000
-Received: from OS7PR01MB17384.jpnprd01.prod.outlook.com
- ([fe80::e19a:50c0:4d9c:1bb6]) by OS7PR01MB17384.jpnprd01.prod.outlook.com
- ([fe80::e19a:50c0:4d9c:1bb6%7]) with mapi id 15.21.0270.016; Mon, 3 Aug 2026
- 10:05:36 +0000
-From: =?utf-8?B?S09ORE8gS0FaVU1BKOi/keiXpOOAgOWSjOecnyk=?=
-	<kazuma-kondo@nec.com>
-To: "rafael@kernel.org" <rafael@kernel.org>, "lenb@kernel.org"
-	<lenb@kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>
-CC: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] ACPI: PCI: Avoid misleading _OSC messages for non-PCIe
- host bridges without _OSC
-Thread-Topic: [PATCH] ACPI: PCI: Avoid misleading _OSC messages for non-PCIe
- host bridges without _OSC
-Thread-Index: AQHdIMw9rF/Py4ZE00CoCPvRVB+Hj7aHWmyAgATDPQA=
-Date: Mon, 3 Aug 2026 10:05:36 +0000
-Message-ID: <c8b237c8-6e2a-4648-99ea-a28fdd2404d4@nec.com>
-References: <20260731090820.493064-1-kazuma-kondo@nec.com>
- <20260731092147.B7C531F00A3F@smtp.kernel.org>
-In-Reply-To: <20260731092147.B7C531F00A3F@smtp.kernel.org>
-Accept-Language: ja-JP, en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nec.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: OS7PR01MB17384:EE_|TYYPR01MB15068:EE_
-x-ms-office365-filtering-correlation-id: 2ef55e7d-d270-4bb5-0dbe-08def146c39c
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230040|23010399003|366016|376014|1800799024|56012099006|10067099003|11063799006|4143699003|18002099003|22082099003|38070700021;
-x-microsoft-antispam-message-info:
- AsuZZuoDfOsSiKKCrvN37mSkhNFACl1+tJJ4cOTanLCocMTV/F+x6pqEUJrMsnISQN2f9i6qYXl9MlAtQnf1mQwLJcDs/3VgQsDjcwd1cGwTFIb/mtkvlbGXn9ftUpK6mMgafiCpFS8xJqA06HxM7tldii8/xYvxf+UvTLXEU5ahK1W5JUi/Z2ej4aPla34GkUi2LxDO1EJtOHGoSOy8idPcjxJUL4obKLYJA8RTNry8ymUrwINhhngPyvMFGZmONY5EBrGf5e/CsWmtpB1MS+UilALhXflKESk8IjsKFURTTfEw7W+KuPGPaltjdQVFpAECLyW8RHANIiz2gNWqqkB56eIuLR69H63Z0zEMjT1+WKoa5xCglt7hywlP1Eeccs/k/nou89nvvJyjk6CjH6hQuJmPwaMUoVTaquG/3cct+Jlu7tPagQeBNqe62sn5x4vRwBlahEan844guFbjWfpU28DJsYvYGGrxxaf1XNeg7m5qmWLRRv2stxwH/8dsld8PJ5MSjGIRoR4sge6/t2F9C2QRYRgJI60QNx0KLuAPfpM3vlFz5FakES5j54JIwUcqXXgoHhXHkqhr1Wl6awKNAjMD00m2aJESdmMQ9RYvN+OCKSlC+s4ZaBIYZ6cqSXJ5aoPNT4KIZD7ZWPvHW2i+UPLGLAi2AUc3u8s4XcM=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:OS7PR01MB17384.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(366016)(376014)(1800799024)(56012099006)(10067099003)(11063799006)(4143699003)(18002099003)(22082099003)(38070700021);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?utf-8?B?UTlQV2JiSGlJeEhVdDlvdjVobVBRSWJMb0JxOGlBUE5RWU84bEV1STIweVRC?=
- =?utf-8?B?NTAvYXA1WkgxTFJrandOY29EZDNFaWZDaVRqMFZxRndXZitEM2E4SHM3VFRr?=
- =?utf-8?B?QXJZNTEvS3ZOaXMxdWR6TmVINnlRcHBpdVpHY1ZRZEwrQ3luTUFwZHdDYnpO?=
- =?utf-8?B?STAwYmtobk1WTlZnNE54Z3UzeVFSWnZSeTZQM0NjQWwrVnQ0ZHNldCtMSmkr?=
- =?utf-8?B?VVd5TmYwWnJueGJVMGovNnBDMWE3ZUViQ1JkaGtiTWd6UmI2NG5McUxsKzFT?=
- =?utf-8?B?Nzd3cjYwZE94QUpQaHJXV202Tk12UjRzNEtvOVdpN2paV2hmRVpkbWxQZ0hZ?=
- =?utf-8?B?VThOWWRtVnJMb3hlNVhmRFlUWGZ4NUpIMkpVNUxBUmk0N21mZDFDbmF0VW9n?=
- =?utf-8?B?YzJSSjJqVm5FNng1VytiNHFkT2loMElpMkZnbWp1WjJXaDdseXZqN0hPM2dk?=
- =?utf-8?B?b0RSZ3hmZGJSMlBHOTlCdUp6MTBTVTQ4N2l6dFdPcCt5d0dTbFh0QVJ5Y1Vu?=
- =?utf-8?B?cHoyNjA2dFZueHZzQ25BT1daa2RMc3dZaFZJd1RtVk1FTTBxcFVUNUNIMEMz?=
- =?utf-8?B?aUlMQ0NWckZlanBTVVF6TnZuUS9iZTVzdlErQkozL3dZNDhUNzY3aFV6SHVt?=
- =?utf-8?B?M29HenVjTE1Oc2hIUUxSRHRMNU9yNTJRYTFEMlBIQVBzY3ZRSjlmNU0vUXNp?=
- =?utf-8?B?ZWx6bFFIbE9yN0ErYVFaaWpKRitCN2lBQWNFZHVad21BeXpVdkRYY3pMekVw?=
- =?utf-8?B?M3RKVGRFRG9OQXlNcThmeEMvVEdEdzFIL3pOQmJ0NE5lSjFMKzNMTTdZUnpV?=
- =?utf-8?B?ZTF5R2lZUExIU1dOeFdZUm5RRDVYY2pSZnBNTy9Pa3ZvSWtFSFprTlZQekNs?=
- =?utf-8?B?UXJEVTJIM29TZS8rZzQzVjdCd1NWZ21XOGU2N0E1U3Y1cUJSaFhiSnd1dklx?=
- =?utf-8?B?ZFB5Vm9HUDZkQzM3M2lXWEttcjY4bXhCd2J2SkJPMXkzYXcwNzhuVFIwU05E?=
- =?utf-8?B?WVJzaTJUNkF2cWNsdVozdDY2UlNQVjJXYi95M3BKZml3UDhoa21jdVZCNkdY?=
- =?utf-8?B?REFxN0x4OXlDVFJ4SXRoeEpUM2dadm5nSklCRzdHZXpPeUtHb2hKY1ZoamtW?=
- =?utf-8?B?SEVPanEvMjd2em9PdjFoZXhydlRtWXVCM2JPYmg0OFVjdHlkMTVibm1mYVFy?=
- =?utf-8?B?MzREWjhrdFIwQ21mOG5hbW16eFdlZUpYaHlBOEN2bUFEKzEyOXdSUmdwNGZ4?=
- =?utf-8?B?bDRGWVBQYSs2dzVGdHhDUnFxV0xuL3lNZ1EzcmZ1Qlc4R0tacjlrcm5zVTQv?=
- =?utf-8?B?dm5MTnJtRXFxb1hKS0FwcjQzTXNjQks3ajR5cnIxVzZWWU9IUHdzR3ZtdnNN?=
- =?utf-8?B?Z3ZuT0dSV0VIRW5ESVhYTmNwdjFSbnY3Vi8vK01TYWd0M29wU0Y3dk5XbDU4?=
- =?utf-8?B?akt5YmcyVCtRZm1ZcWJ0bWZlcWpJdEVpR1RzMG9uV2ZxRDZOa2ltanZHQ20r?=
- =?utf-8?B?NWcvN3Q1anQyRFNKTVlySU9vd3A4RkI1TUFQUVdRajR5UjZvSUp2eTVyNVVl?=
- =?utf-8?B?ajRUSE95UHRyaXNBNHpmc2xuTVhNYjR1M3c5ZGdOT2lHNDl3bkM3a3ZIL09G?=
- =?utf-8?B?MWxUV20ramRLbFJaTUYyRXVYbXdVMnRndDc0L0pMUDJqMUlhb0E2M2UxVWha?=
- =?utf-8?B?a09Fb0swbVlGcWQ2MVBCakVmRlhCTUlSNXc1RlFHWUkySVAwcnB0NjhKb3Mr?=
- =?utf-8?B?RnRVd0svVHY2Z25NL2pISnd2bDN5RFM4WndIa1JuRGhKdTQwVTZ1eVBsWUhJ?=
- =?utf-8?B?UFloQXpPaXZ0K3pCamp0SXRPdVdDamhlWGM3UmpLdU83Sjd5eUgvd0dpVjQy?=
- =?utf-8?B?UCt3eHdKVW4yeThYTjZPbCs4dlcra2o3UXdsRXV4RmJhRUR5czNuemo0OHNU?=
- =?utf-8?B?M0tkNVNVY2JYMkRFQXA2VmFDY2NlY3VGeWFXUmhranM2aGgxYjdkdC9KQnBZ?=
- =?utf-8?B?ajJiTXBJbU8vRjNTc2hRbmFHV1Q4bXV0dHpoUU1YUEpuWkIyVGNubFlpc1lp?=
- =?utf-8?B?d2loQlBtdUpKcm1zZnNDVnA0NGo1cjhJTFJSWGk5K3Z6Ujh2VzJVSy9SU0Fu?=
- =?utf-8?B?UlhqN2RSc0RhMWNiTU1qdThya1d1K0t6UmFVdW5aN1ZJNThwcXVxaEtGLzFI?=
- =?utf-8?B?Z2dzUVlraUFuNVZBNlRsZHI4U0pJa1FjLzEydEJpSm5HMFM5WEEreUIveE4y?=
- =?utf-8?B?NHIwdGYzdkVtT25oVUtPRklYZlJQVUVuSy9ad20xOVhtNW9MQTMrcTZFdEVF?=
- =?utf-8?B?U0t4VnVBUU1nc3BNdDNFSmFOVTVqMkN4SldDMnNBalVyQVVpbHY5dz09?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <56818CAA2A15764EBD3C37C6B4D9919A@jpnprd01.prod.outlook.com>
-Content-Transfer-Encoding: base64
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="Pbe/KUvd";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="GwRHYXUw"
+Received: from pps.filterd (m0279862.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6736SlmA3759185
+	for <linux-acpi@vger.kernel.org>; Mon, 3 Aug 2026 10:50:03 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	9hkRJdHHeh4LvGjciwvxGygdU4Rqbcvkupv7IYudRX4=; b=Pbe/KUvdhObQu9Kd
+	yBAUFYkyh9ubMnvIaz52rDPd64UTKuhaP94V/AsmSzr8QlIwqxXBqelkIskbr1qn
+	LzdFymYQXZo+gN7HfQRwazb5aUIXmHp873SoxCfytMa0Pr+7TdQSxGELY5CkI8h7
+	hBWg1B/VTqwDKe/F3auiU8QueAwCJ7eWVaOdFA2ZZjm/ZmLyhiXkLTNi/3EgDMT9
+	eiukH+Esvg9rwPb8NzYgAcX3oQSIiAj0TUQips44gVG0elSTu3vsrcuteDHk+d/X
+	Fe5luCkB4RKeIcOJM+jglq1eUWlOohOtquCSmuyCNJajb4RVvSDtvEr1ze5YMlEI
+	6/xrpA==
+Received: from mail-pg1-f198.google.com (mail-pg1-f198.google.com [209.85.215.198])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4ftnrns3w3-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Mon, 03 Aug 2026 10:50:03 +0000 (GMT)
+Received: by mail-pg1-f198.google.com with SMTP id 41be03b00d2f7-c860544c077so7768082a12.3
+        for <linux-acpi@vger.kernel.org>; Mon, 03 Aug 2026 03:50:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1785754202; x=1786359002; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=9hkRJdHHeh4LvGjciwvxGygdU4Rqbcvkupv7IYudRX4=;
+        b=GwRHYXUwjkcCG81bZhHU4nvIoR8Ne9ilAmbTOW5M/FWqSGOcACguwEQ3crPqC/X31L
+         woe30lIyriXYe6Sxaik3LLSzDXSqCCxS5Bqf1Fvwk1u6ES8gJEB9qg4YxwngSWLqjg5J
+         bc/snp09nFyxUpmuq58q4iIrS40qf04H5lUmquqPwrm4GDArrKhCNE2XHY6kpd2AuI0y
+         R+z6PEdNrJjL0QQy32ZQXBgx3MTKpingYflV1lTOgnNmu2WjI9/f1sRUur+jVslb5USe
+         4ugfFbadXrIokbIOh2O1Hgj+wpx1l8neD4BNdVjcXCH4kAsA47vYswWnuWq6lyaZIdCk
+         laiw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785754202; x=1786359002;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=9hkRJdHHeh4LvGjciwvxGygdU4Rqbcvkupv7IYudRX4=;
+        b=DcFIc5Mt57ObKDdxxNGpzkR1lKH87Jv/kiz7/zftZ28Bz9dMvUk/XHInvbH6oyIUw1
+         aSIrARf9+DFn7z64EurD6Y57uo2pBBz7XFgkrmPPPVQuHaHhuMw6xhLmjbcdqLVUYdRq
+         7o3CeYw3x72TfGJdSr36c6Ak7XJ+sy+DtByTAlABrw6DKh2Oz/mz8o4worqOQb1a55KB
+         s0ESv0A5XuQWjP1N8ZZilhC4jTjJfHFbNXxjXVf1lbKiRaxFUpA5uA+EHGdZuDwYc7hY
+         kpTKruzj2cl+sic2141WCrvuyiOQc9lge9Qt8LJ4HEbrcoLsZBqVk2sUuqK7d9qZmTJc
+         zHig==
+X-Forwarded-Encrypted: i=1; AHgh+RqcbvntTD3VeYTqEBrNEttn4YIghchYabrcpl8mBucSfxMfzfxeCqpPG4gmcXx+ZFIEBuoTsnjU1FM6@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywumosmt9eha5/S7PLF5TiCUXvRc4NhLLwL67v8QwkoGZSI2Kkj
+	EFruTlod83N2ThUXTzNHqkAviMsz74fwT0ZrGd642ZirtzA3zbbsONFKu3hlGAgBUiVyGZVQYTD
+	paqrGlW+NvhY5rz7SIEZ4l8smP9TC5ZOMv6Nwmv2SZwPUxhuMlNR24HagHFogjUcg
+X-Gm-Gg: AR+sD12XwwoIT/tREY+Dll05qYU+yA7yHy0jY9D7IFF+39VO/J6j3ADfHxjl0bK8Bgh
+	Sw8cVIt0EwUm+KEGYPKzQpe+GNZcPzzV364jL1hi8WpvRYelNDtcqe9ZA8zyVsyuyiQS++xm9EA
+	vXOxt1cf/FQYEcnzjzyvuEytZ4N9/tiXYA/yHMykgS3MmBYmsWSiAG0EAeOgWK5ioocye+sYUuZ
+	j2zmi3kw5YR8So7gCnNT3Iqo70vptTTvbQplau4yARtx1vIbqvTF/oBYmbCPxz4TVXggYJcELer
+	iQtlxCLgKbiMo33lYpdX5pds3GUr1u/eRMHykyPKPwchM2D2x4jezGLa1e5e6gjfVAHuXiio74/
+	crGewvX+fU79U84Y8NXzcf+J1TuNu6AkPag==
+X-Received: by 2002:a05:6a21:e082:b0:3c3:7d12:a98c with SMTP id adf61e73a8af0-3c92a8b424amr9581877637.52.1785754202379;
+        Mon, 03 Aug 2026 03:50:02 -0700 (PDT)
+X-Received: by 2002:a05:6a21:e082:b0:3c3:7d12:a98c with SMTP id adf61e73a8af0-3c92a8b424amr9581847637.52.1785754201875;
+        Mon, 03 Aug 2026 03:50:01 -0700 (PDT)
+Received: from [192.168.1.106] ([106.51.196.242])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3153db2f911sm41210280eec.0.2026.08.03.03.49.54
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 03 Aug 2026 03:50:01 -0700 (PDT)
+Message-ID: <dd4d5ddc-e198-4747-85ce-aef4c569c593@oss.qualcomm.com>
+Date: Mon, 3 Aug 2026 16:19:53 +0530
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: nec.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: OS7PR01MB17384.jpnprd01.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2ef55e7d-d270-4bb5-0dbe-08def146c39c
-X-MS-Exchange-CrossTenant-originalarrivaltime: 03 Aug 2026 10:05:36.4945
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: e67df547-9d0d-4f4d-9161-51c6ed1f7d11
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: izhlzYV5pWda0/lBSeN78GG6Biot4V87xYBVLJQTdXrSmuA63LHRTQfiJ/TJL1Z/NRprhVFIlPNtR8U/RMI32w==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: TYYPR01MB15068
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v7 11/11] arm_mpam: detect and enable MPAM-Fb PCC support
+To: Andre Przywara <andre.przywara@arm.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        Hanjun Guo
+ <guohanjun@huawei.com>,
+        Sudeep Holla <sudeep.holla@kernel.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+        James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
+        Reinette Chatre <reinette.chatre@intel.com>,
+        Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+        Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+        Trilok Soni <tsoni@quicinc.com>,
+        Srinivas Ramana <sramana@qti.qualcomm.com>,
+        Niyas Sait <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
+        Ritwick Sharma <ritwick.sharma@arm.com>, linux-acpi@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20260731170324.2927758-1-andre.przywara@arm.com>
+ <20260731170324.2927758-12-andre.przywara@arm.com>
+Content-Language: en-US
+From: Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>
+In-Reply-To: <20260731170324.2927758-12-andre.przywara@arm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-Spam-Info: AW1haW4tMjYwODAzMDA5NiBTYWx0ZWRfXxSWxM8wYN2nb
+ wRVx+MGO9nbJ1Z0jfAHzP5jcPycE6fsLA94e+jfeD/3r+vPwx+7f0xJD74Pg/0ndpZfxwxL/qdp
+ 4hGcxmCmhCtZXMDSe+UsuQVWJarMkqs=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODAzMDA5NiBTYWx0ZWRfX/GZsCiQ1M64B
+ QjHmQgpbX5Zb/Kr9Aj8lqfRjhjiAnQXYeV3+6nSlthdc7beJLxF37jc04KisnopffJQ01pBN2iI
+ /jNSkgQqlzvrtU44rSGw9+j4q5kpl7vuhjmFySt4QOqXtR7k/S7kFPZbWwJs/yqJGQq2VYx0nhn
+ 06lhdr0RwWUSwKM4DHwk7yK4A04PLAeaXbD3dk/D/iJDnpvNKIafFDPqIaEjsiiNV8pR0yg1S3Z
+ dcBZxnkqOkGbidvmXU6GQmP1502aZ/9FWuCH94NTO9MuDqH0TuCm2zfe2QGEYqMOwVW4FpxhzOj
+ IkUt8Ium/i0KGfCXwt31Ia1weRQ55BDKKY8QmAKyomWaqOGDqQHOdkqU6WtQP4JvngHM9pr9nW0
+ fDO9Xy/srCiUJ7L/hGLVpd6V3xTg+tnjaP0w5sWVXAJAjBN6LsIUsYKsqC4+Ow16l37sDGWrTDi
+ jVfVDqwJwH4Y4vFUFZA==
+X-Authority-Analysis: v=2.4 cv=Zest8MVA c=1 sm=1 tr=0 ts=6a70725b cx=c_pps
+ a=Qgeoaf8Lrialg5Z894R3/Q==:117 a=eeZ6Vdm3skWBw8YHU2i37Q==:17
+ a=IkcTkHD0fZMA:10 a=Sv0fKeRqtYgA:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=_K5XuSEh1TEqbUxoQ0s3:22
+ a=7CQSdrXTAAAA:8 a=EUspDBNiAAAA:8 a=PHT_-lC4Pkg6agqfKfUA:9 a=3ZKOabzyN94A:10
+ a=QEXdDO2ut3YA:10 a=x9snwWr2DeNwDh03kgHS:22 a=a-qgeE7W1pNrGK8U0ZQC:22
+X-Proofpoint-GUID: U0IgHSiZXbdMG3pMLyqKciAgvlXAjGuP
+X-Proofpoint-ORIG-GUID: U0IgHSiZXbdMG3pMLyqKciAgvlXAjGuP
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1143,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-08-02_06,2026-07-30_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ spamscore=0 phishscore=0 clxscore=1015 adultscore=0 lowpriorityscore=0
+ priorityscore=1501 bulkscore=0 suspectscore=0 malwarescore=0 impostorscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2608030096
 
-SGVsbG8sDQoNCkkgcmVjZWl2ZWQgcmV2aWV3IGNvbW1lbnRzIGZyb20gU2FzaGlrbzoNCmh0dHBz
-Oi8vc2FzaGlrby5kZXYvIy9wYXRjaHNldC8yMDI2MDczMTA5MDgyMC40OTMwNjQtMS1rYXp1bWEt
-a29uZG9AbmVjLmNvbT9wYXJ0PTENCg0KT24gMjAyNi8wNy8zMSAxODoyMSwgc2FzaGlrby1ib3RA
-a2VybmVsLm9yZyB3cm90ZToNCj4gVGhhbmsgeW91IGZvciB5b3VyIGNvbnRyaWJ1dGlvbiEgU2Fz
-aGlrbyBBSSByZXZpZXcgZm91bmQgMSBwb3RlbnRpYWwgaXNzdWUocykgdG8gY29uc2lkZXI6DQo+
-IC0gW0hpZ2hdIEVhcmx5IHJldHVybiBieXBhc3NlcyBBU1BNIGRpc2FibGVtZW50IGZvciBub24t
-UENJZSBhbmQgQ1hMIGhvc3QgYnJpZGdlcyB3aXRob3V0IF9PU0MsIGNhdXNpbmcgYW4gdW5kb2N1
-bWVudGVkIGZ1bmN0aW9uYWwgY2hhbmdlIGFuZCBwb3RlbnRpYWwgaW5zdGFiaWxpdHkNCj4gLS0N
-Cj4gDQo+IC0tLSBQYXRjaCBbMV06IFtQQVRDSF0gQUNQSTogUENJOiBBdm9pZCBtaXNsZWFkaW5n
-IF9PU0MgbWVzc2FnZXMgZm9yIG5vbi1QQ0llIGhvc3QgYnJpZGdlcyB3aXRob3V0IF9PU0MgLS0t
-DQo+IGNvbW1pdCBlNjhkMjlmNjUzYTFjMzRmOGI3YjA4YmFhYTU0OGUyZmYyZDM2NjNmDQo+IEF1
-dGhvcjogS09ORE8gS0FaVU1BKCAkQjZhRiMhIU9CPz8gKEIpIDxrYXp1bWEta29uZG9AbmVjLmNv
-bT4NCj4gDQo+IEFDUEk6IFBDSTogQXZvaWQgbWlzbGVhZGluZyBfT1NDIG1lc3NhZ2VzIGZvciBu
-b24tUENJZSBob3N0IGJyaWRnZXMgd2l0aG91dCBfT1NDDQo+IA0KPiBUaGlzIHBhdGNoIHNraXBz
-IF9PU0MgbmVnb3RpYXRpb24gZm9yIG5vbi1QQ0llIGhvc3QgYnJpZGdlcyB0aGF0IGRvIG5vdCBk
-ZWZpbmUNCj4gYW4gX09TQyBtZXRob2QgYmVmb3JlIGF0dGVtcHRpbmcgdG8gZXZhbHVhdGUgaXQu
-IEl0IGFpbXMgdG8gcHJldmVudCBtaXNsZWFkaW5nDQo+IG1lc3NhZ2VzIGluIHRoZSBsb2dzIG9u
-IHNvbWUgSW50ZWwgc2VydmVycyB3aGVyZSB0aGUgT1MgYXBwZWFycyB0byBuZWdvdGlhdGUNCj4g
-d2l0aCB0aGUgcGxhdGZvcm0gZGVzcGl0ZSB0aGUgbGFjayBvZiBhbiBfT1NDIG1ldGhvZC4NCj4g
-DQo+IExpbms6IGh0dHBzOi8vbG9yZS5rZXJuZWwub3JnL2xpbnV4LWFjcGkvZDBiZTk0OWQtMGUy
-MS00NzJlLWE0NGItY2VkYjFkZDg2OTVkQG5lYy5jb20vDQo+IA0KPj4gZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvYWNwaS9wY2lfcm9vdC5jIGIvZHJpdmVycy9hY3BpL3BjaV9yb290LmMNCj4+IGluZGV4
-IDRjMDZjM2ZmZDBjYmIuLjNhMjRkMDE4NDM2YjQgMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL2Fj
-cGkvcGNpX3Jvb3QuYw0KPj4gKysrIGIvZHJpdmVycy9hY3BpL3BjaV9yb290LmMNCj4+IEBAIC01
-NzQsNiArNTc0LDEyIEBAIHN0YXRpYyB2b2lkIG5lZ290aWF0ZV9vc19jb250cm9sKHN0cnVjdCBh
-Y3BpX3BjaV9yb290ICpyb290LCBpbnQgKm5vX2FzcG0pDQo+PiAgCQlyZXR1cm47DQo+PiAgCX0N
-Cj4+ICANCj4+ICsJLyogX09TQyBpcyBvcHRpb25hbCBmb3IgUENJIGhvc3QgYnJpZGdlcyAqLw0K
-Pj4gKwlpZiAoIWlzX3BjaWUocm9vdCkgJiYgIWFjcGlfaGFzX21ldGhvZChoYW5kbGUsICJfT1ND
-IikpIHsNCj4+ICsJCWRldl9kYmcoJmRldmljZS0+ZGV2LCAiX09TQzogbmVnb3RpYXRpb24gc2tp
-cHBlZCAobWV0aG9kIG5vdCBwcmVzZW50IGZvciBub24tUENJZSBob3N0IGJyaWRnZSlcbiIpOw0K
-Pj4gKwkJcmV0dXJuOw0KPj4gKwl9DQo+PiArDQo+IA0KPiBbU2V2ZXJpdHk6IEhpZ2hdDQo+IERv
-ZXMgdGhpcyBlYXJseSByZXR1cm4gdW5pbnRlbnRpb25hbGx5IHNraXAgZGlzYWJsaW5nIEFTUE0g
-Zm9yIHRoZXNlIGhvc3QNCj4gYnJpZGdlcz8NCj4gDQo+IFRoZSBjb21taXQgbWVzc2FnZSBzdGF0
-ZXMgdGhpcyBjaGFuZ2UgcHJvZHVjZXMgbm8gZnVuY3Rpb25hbCBpc3N1ZXMgYW5kIG9ubHkNCj4g
-cmVtb3ZlcyBtaXNsZWFkaW5nIG1lc3NhZ2VzLiBIb3dldmVyLCBiZWZvcmUgdGhpcyBwYXRjaCwg
-aWYgdGhlIF9PU0MgbWV0aG9kDQo+IHdhcyBtaXNzaW5nLCB0aGUgZnVuY3Rpb24gd291bGQgcHJv
-Y2VlZCwgZmFpbCB0aGUgbmVnb3RpYXRpb24sIGFuZCBmYWxsDQo+IHRocm91Z2ggdG8gdGhlIGZh
-aWx1cmUgcGF0aCB3aGVyZSAqbm9fYXNwbSA9IDEgaXMgdW5jb25kaXRpb25hbGx5IHNldC4NCj4g
-DQo+IEJ5IHJldHVybmluZyBlYXJseSBoZXJlLCBpdCBsb29rcyBsaWtlICpub19hc3BtID0gMSBp
-cyBjb21wbGV0ZWx5IGJ5cGFzc2VkDQo+IGZvciBsZWdhY3kgaG9zdCBicmlkZ2VzLg0KPiANCj4g
-QWRkaXRpb25hbGx5LCBpc19wY2llKCkgb25seSBjaGVja3MgZm9yIEFDUElfQlJJREdFX1RZUEVf
-UENJRS4gQ291bGQgdGhpcw0KPiBjYXVzZSBDWEwgaG9zdCBicmlkZ2VzIChBQ1BJX0JSSURHRV9U
-WVBFX0NYTCkgdG8gZXZhbHVhdGUgdG8gZmFsc2UgaGVyZT8NCj4gSWYgYSBDWEwgYnJpZGdlIGxh
-Y2tzIGFuIF9PU0MgbWV0aG9kLCBpdCB3b3VsZCB0YWtlIHRoaXMgZWFybHkgcmV0dXJuIGFuZCBz
-a2lwDQo+IEFTUE0gZGlzYWJsZW1lbnQgZW50aXJlbHksIHdoaWNoIGNvdWxkIGxlYXZlIEFTUE0g
-ZW5hYmxlZCBpbmFwcHJvcHJpYXRlbHkNCj4gd2l0aG91dCBmaXJtd2FyZSBuZWdvdGlhdGlvbi4N
-Cg0KSSB0aGluayBTYXNoaWtvJ3MgcmV2aWV3IGlzIHJlYXNvbmFibGUuIEFjY29yZGluZyB0byBb
-MV0sIHVubGVzcyB0aGUNCnBsYXRmb3JtIGV4cGxpY2l0bHkgZ3JhbnRzIHRoZSBPUyBjb250cm9s
-IG92ZXIgQVNQTSB2aWEgX09TQywgdGhlIE9TDQpzaG91bGQgbm90IGNoYW5nZSB0aGUgQVNQTSBz
-dGF0ZSBjb25maWd1cmVkIGJ5IHRoZSBwbGF0Zm9ybS4NCg0KQWxzbywgYXMgZGVzY3JpYmVkIGlu
-IFsyXSwgaWYgQ1hMIDEuMSBob3N0cyBkbyBub3QgcHVibGlzaCBhIENYTCBfT1NDLA0KdGhlIE9T
-IHNob3VsZCBmYWxsIGJhY2sgdG8gdGhlIFBDSWUgX09TQyAoanVzdCBhcyBhY3BpX3BjaV9xdWVy
-eV9vc2MoKQ0KZG9lcykuDQoNClNvLCBuZWdvdGlhdGVfb3NfY29udHJvbCgpIHNob3VsZCBza2lw
-IF9PU0MgbmVnb3RpYXRpb24gb25seSB3aGVuIGENCmxlZ2FjeSBQQ0kgaG9zdCBicmlkZ2UgZG9l
-cyBub3QgaGF2ZSBfT1NDLiBGb3IgZXhhbXBsZToNCg0KCS8qIF9PU0MgaXMgb3B0aW9uYWwgZm9y
-IFBDSSBob3N0IGJyaWRnZXMgKi8NCglpZiAoIWlzX3BjaWUocm9vdCkgJiYgIWlzX2N4bChyb290
-KSAmJg0KCSAgICAhYWNwaV9oYXNfbWV0aG9kKGhhbmRsZSwgIl9PU0MiKSkgew0KCQlkZXZfZGJn
-KCZkZXZpY2UtPmRldiwgIl9PU0M6IG5lZ290aWF0aW9uIHNraXBwZWQgKG1ldGhvZCBub3QgcHJl
-c2VudCBmb3IgbGVnYWN5IFBDSSBob3N0IGJyaWRnZSlcbiIpOw0KDQoJCS8qDQoJCSAqIERpc2Fi
-bGUgQVNQTSB1bmxlc3MgdGhlIE9TIGhhcyBiZWVuIGdyYW50ZWQgY29udHJvbCBvdmVyIGl0DQoJ
-CSAqIHZpYSBfT1NDLg0KCQkgKi8NCgkJKm5vX2FzcG0gPSAxOw0KCQlyZXR1cm47DQoJfQ0KDQpJ
-ZiBJIGhhdmUgbWlzdW5kZXJzdG9vZCBhbnl0aGluZywgcGxlYXNlIGxldCBtZSBrbm93Lg0KDQpb
-MV0gaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvYWxsLzEzMjA5NjExMTMtNTA1MC0xLWdpdC1zZW5k
-LWVtYWlsLW1qZ0ByZWRoYXQuY29tLw0KWzJdIGh0dHBzOi8vbG9yZS5rZXJuZWwub3JnL2FsbC8y
-MDIyMDQxMzA3MzYxOC4yOTEzMzUtMy12aXNoYWwubC52ZXJtYUBpbnRlbC5jb20vDQoNClRoYW5r
-cywNCkthenVtYQ0KDQo+IA0KPj4gIAlzdXBwb3J0ID0gY2FsY3VsYXRlX3N1cHBvcnQoKTsNCj4+
-ICANCj4+ICAJZGVjb2RlX29zY19zdXBwb3J0KHJvb3QsICJPUyBzdXBwb3J0cyIsIHN1cHBvcnQp
-Ow0KPiANCj4gWyAuLi4gXQ0KPiANCj4+IEBAIC02MTUsMTAgKzYyMSw2IEBAIHN0YXRpYyB2b2lk
-IG5lZ290aWF0ZV9vc19jb250cm9sKHN0cnVjdCBhY3BpX3BjaV9yb290ICpyb290LCBpbnQgKm5v
-X2FzcG0pDQo+PiAgCQkgKi8NCj4+ICAJCSpub19hc3BtID0gMTsNCj4+ICANCj4+IC0JCS8qIF9P
-U0MgaXMgb3B0aW9uYWwgZm9yIFBDSSBob3N0IGJyaWRnZXMgKi8NCj4+IC0JCWlmIChzdGF0dXMg
-PT0gQUVfTk9UX0ZPVU5EICYmICFpc19wY2llKHJvb3QpKQ0KPj4gLQkJCXJldHVybjsNCj4+IC0N
-Cj4+ICAJCWlmIChjb250cm9sKSB7DQo+PiAgCQkJZGVjb2RlX29zY19jb250cm9sKHJvb3QsICJP
-UyByZXF1ZXN0ZWQiLCByZXF1ZXN0ZWQpOw0KPj4gIAkJCWRlY29kZV9vc2NfY29udHJvbChyb290
-LCAicGxhdGZvcm0gd2lsbGluZyB0byBncmFudCIsIGNvbnRyb2wpOw0KPiANCg==
+Hi Andre,
+
+On 7/31/2026 10:33 PM, Andre Przywara wrote:
+> The Arm MPAM-Fb specification [1] describes a protocol to access MSC
+> registers through a firmware interface. This requires a shared memory
+> region to hold the message, and a mailbox to trigger the access.
+> For ACPI this is wrapped as a PCC channel, described using existing
+> ACPI abstractions.
+> 
+> Add code to parse those PCC table descriptions associated with an MSC,
+> and store the parsed information in the MSC struct.
+> There can be multiple PCC channels, and each channel can serve multiple
+> MSCs, so we need to keep track of the channel usage, using a list and
+> a refcount.
+> 
+> This will be used by the MPAM-Fb access wrapper code.
+> 
+> [1] https://developer.arm.com/documentation/den0144/latest
+> 
+> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+> Tested-by: Ritwick Sharma <ritwick.sharma@arm.com>
+> Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+> ---
+>   drivers/resctrl/mpam_devices.c  | 113 +++++++++++++++++++++++++++++++-
+>   drivers/resctrl/mpam_fb.c       |  41 ++++++++++++
+>   drivers/resctrl/mpam_internal.h |   2 +
+>   3 files changed, 154 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
+> index b238feb559d4..40b247a89f8e 100644
+> --- a/drivers/resctrl/mpam_devices.c
+> +++ b/drivers/resctrl/mpam_devices.c
+> @@ -19,14 +19,19 @@
+>   #include <linux/irqdesc.h>
+>   #include <linux/list.h>
+>   #include <linux/lockdep.h>
+> +#include <linux/mailbox_client.h>
+>   #include <linux/mutex.h>
+>   #include <linux/platform_device.h>
+>   #include <linux/printk.h>
+> +#include <linux/property.h>
+>   #include <linux/srcu.h>
+>   #include <linux/spinlock.h>
+>   #include <linux/types.h>
+>   #include <linux/workqueue.h>
+>   
+> +#include <acpi/pcc.h>
+> +#include <acpi/acpi_io.h>
+> +
+>   #include "mpam_internal.h"
+>   
+>   /* Values for the T241 errata workaround */
+> @@ -49,6 +54,88 @@ static LIST_HEAD(mpam_all_msc);
+>   
+>   struct srcu_struct mpam_srcu;
+>   
+> +/* PCC channels might be serving multiple MSCs, so keep a refcounted list. */
+> +static DEFINE_MUTEX(pcc_chan_list_lock);
+> +static LIST_HEAD(pcc_chan_list);
+> +
+> +static void mpam_pcc_chan_release(struct kref *ref)
+> +{
+> +	struct mpam_pcc_chan *cur = container_of(ref, struct mpam_pcc_chan,
+> +						 refcount);
+> +
+> +	pcc_mbox_free_channel(cur->pcc_chan);
+> +	list_del(&cur->pcc_chans);
+> +	mutex_destroy(&cur->pcc_chan_lock);
+> +	kfree(cur);
+> +}
+> +
+> +static struct mpam_pcc_chan *mpam_pcc_chan_get(struct device *dev,
+> +					       int subspace_id)
+> +{
+> +	struct mpam_pcc_chan *cur;
+> +
+> +	guard(mutex)(&pcc_chan_list_lock);
+> +
+> +	list_for_each_entry(cur, &pcc_chan_list, pcc_chans) {
+> +		if (cur->subspace_id == subspace_id) {
+> +			kref_get(&cur->refcount);
+> +
+> +			return cur;
+> +		}
+> +	}
+> +
+> +	cur = kzalloc_obj(*cur);
+> +	if (!cur)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	cur->pcc_cl.dev = dev;
+
+While testing v7 with multiple PCC MSCs sharing a single PCC channel, I
+noticed that pcc_cl.dev is set once at channel creation time (from the
+first MSC's device) and never updated when subsequent MSCs reuse the
+channel.In mpam_pcc_chan_get(), the first call sets:
+  cur->pcc_cl.dev = dev;
+
+Subsequent calls return the existing channel without updating 
+pcc_cl.dev. Here dev_err() calls through the channel report errors 
+against the first MSC's device, even when a different MSC triggered them.
+
+I reproduced this with four PCC MSCs sharing subspace 0. After unbinding
+the first MSC (kref 4→3), triggering dev_err() via a test hook showed 
+the device prefix change from "mpam_msc mpam_msc.1:" to "platform 
+mpam_msc.1:"
+
+A simple fix maybe to use the MSC's own device for error messages in
+mpam_fb_send_request() instead of pcc_chan->pcc_cl.dev
+
+> +	cur->pcc_cl.tx_block = true;
+> +
+> +	cur->pcc_chan = pcc_mbox_request_channel(&cur->pcc_cl, subspace_id);
+> +	if (IS_ERR(cur->pcc_chan)) {
+> +		long err = PTR_ERR(cur->pcc_chan);
+> +
+> +		kfree(cur);
+> +		return ERR_PTR(err);
+> +	}
+> +
+> +	/*
+> +	 * Timeout based on the "nominal latency" in us, from the
+> +	 * PCC ACPI table. tx_tout is in ms.
+> +	 * Add some margin here to be on the safe side.
+> +	 */
+> +	cur->pcc_cl.tx_tout = DIV_ROUND_UP(cur->pcc_chan->latency * 5, 1000);
+> +
+> +	mutex_init(&cur->pcc_chan_lock);
+> +
+> +	cur->subspace_id = subspace_id;
+> +	kref_init(&cur->refcount);
+> +
+> +	list_add_tail(&cur->pcc_chans, &pcc_chan_list);
+> +
+> +	return cur;
+> +}
+> +
+> +static int mpam_pcc_chan_put(struct mpam_pcc_chan *pcc_chan)
+> +{
+> +	struct mpam_pcc_chan *cur, *tmp;
+> +
+> +	if (!pcc_chan)
+> +		return 0;
+> +
+> +	guard(mutex)(&pcc_chan_list_lock);
+> +
+> +	list_for_each_entry_safe(cur, tmp, &pcc_chan_list, pcc_chans) {
+> +		if (cur == pcc_chan) {
+> +			kref_put(&cur->refcount, mpam_pcc_chan_release);
+> +
+> +			return 0;
+> +		}
+> +	}
+> +
+> +	return -ENOENT;
+> +}
+> +
+>   /*
+>    * Number of MSCs that have been probed. Once all MSCs have been probed MPAM
+>    * can be enabled.
+> @@ -2274,6 +2361,8 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
+>   {
+>   	struct mpam_msc *msc = platform_get_drvdata(pdev);
+>   
+> +	mpam_pcc_chan_put(msc->pcc_chan);
+> +
+>   	mutex_lock(&mpam_list_lock);
+>   	mpam_msc_destroy(msc);
+>   	mutex_unlock(&mpam_list_lock);
+> @@ -2284,7 +2373,7 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
+>   static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
+>   {
+>   	int err;
+> -	u32 tmp;
+> +	u32 pcc_subspace_id;
+>   	struct mpam_msc *msc;
+>   	struct resource *msc_res;
+>   	struct device *dev = &pdev->dev;
+> @@ -2328,7 +2417,7 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
+>   	if (err)
+>   		return ERR_PTR(err);
+>   
+> -	if (device_property_read_u32(&pdev->dev, "pcc-channel", &tmp))
+> +	if (device_property_read_u32(dev, "pcc-channel", &pcc_subspace_id))
+>   		msc->iface = MPAM_IFACE_MMIO;
+>   	else
+>   		msc->iface = MPAM_IFACE_PCC;
+> @@ -2349,6 +2438,26 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
+>   		}
+>   		msc->mapped_hwpage_sz = msc_res->end - msc_res->start;
+>   		msc->mapped_hwpage = io;
+> +	} else if (msc->iface == MPAM_IFACE_PCC) {
+> +		msc->pcc_chan = mpam_pcc_chan_get(dev, pcc_subspace_id);
+> +		if (IS_ERR(msc->pcc_chan)) {
+> +			pr_err("Failed to request MSC PCC channel\n");
+> +			return ERR_CAST(msc->pcc_chan);
+> +		}
+> +
+> +		err = mpam_fb_check_shared_buffer_size(msc);
+> +		if (err) {
+> +			mpam_pcc_chan_put(msc->pcc_chan);
+> +
+> +			return ERR_PTR(err);
+> +		}
+> +
+> +		err = mpam_fb_check_protocol_version(msc);
+> +		if (err) {
+> +			mpam_pcc_chan_put(msc->pcc_chan);
+> +
+> +			return ERR_PTR(err);
+> +		}
+>   	} else {
+>   		return ERR_PTR(-EINVAL);
+>   	}
+> diff --git a/drivers/resctrl/mpam_fb.c b/drivers/resctrl/mpam_fb.c
+> index 61a91c6cec0a..7a7fb6d067ba 100644
+> --- a/drivers/resctrl/mpam_fb.c
+> +++ b/drivers/resctrl/mpam_fb.c
+> @@ -37,6 +37,11 @@
+>   #define MPAM_MSC_TOKEN_MASK		GENMASK(27, 18)
+>   
+>   #define MPAM_FB_PROT_HEADER_LEN		sizeof(u32)
+> +/* The longest message is MPAM_MSC_WRITE, with 4 parameters. */
+> +#define MPAM_FB_MAX_MSG_SIZE		(4 * sizeof(u32))
+> +
+> +#define MPAM_FB_VERSION_MAJOR_MASK	GENMASK(31, 16)
+> +#define MPAM_FB_VERSION_MINOR_MASK	GENMASK(15, 0)
+>   
+>   static atomic_t mpam_fb_token = ATOMIC_INIT(0);
+>   
+> @@ -207,3 +212,39 @@ int mpam_fb_send_write_request(struct mpam_msc *msc, u16 reg, u32 value)
+>   	return mpam_fb_send_request(msc->pcc_chan, msc->id, reg, &value,
+>   				    MPAM_MSC_WRITE_CMD);
+>   }
+> +
+> +/* We only support MPAM-Fb protocol version 1.x */
+> +int mpam_fb_check_protocol_version(struct mpam_msc *msc)
+> +{
+> +	u32 version;
+> +	int ret;
+> +
+> +	ret = mpam_fb_send_request(msc->pcc_chan, 0,
+> +				   0, &version, MPAM_PROTOCOL_VERSION_CMD);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (FIELD_GET(MPAM_FB_VERSION_MAJOR_MASK, version) != 1) {
+> +		pr_err("Incompatible MPAM-Fb protocol version %ld.%ld\n",
+> +		       FIELD_GET(MPAM_FB_VERSION_MAJOR_MASK, version),
+> +		       FIELD_GET(MPAM_FB_VERSION_MINOR_MASK, version));
+> +
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +int mpam_fb_check_shared_buffer_size(struct mpam_msc *msc)
+> +{
+> +	int min_buffer_size = MPAM_FB_MAX_MSG_SIZE +
+> +			      sizeof(struct acpi_pcct_ext_pcc_shared_memory);
+> +
+> +	if (msc->pcc_chan->pcc_chan->shmem_size < min_buffer_size) {
+> +		pr_err("MPAM-Fb PCC channel size too small.\n");
+> +
+> +		return -ENOMEM;
+> +	}
+> +
+> +	return 0;
+> +}
+> diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
+> index f13a79a84c58..8859189088f3 100644
+> --- a/drivers/resctrl/mpam_internal.h
+> +++ b/drivers/resctrl/mpam_internal.h
+> @@ -528,6 +528,8 @@ static inline void mpam_resctrl_teardown_class(struct mpam_class *class) { }
+>   /* MPAM-Fb Firmware-backed protocol wrappers */
+>   int mpam_fb_send_read_request(struct mpam_msc *msc, u16 reg, u32 *result);
+>   int mpam_fb_send_write_request(struct mpam_msc *msc, u16 reg, u32 value);
+> +int mpam_fb_check_protocol_version(struct mpam_msc *msc);
+> +int mpam_fb_check_shared_buffer_size(struct mpam_msc *msc);
+>   
+>   /*
+>    * MPAM MSCs have the following register layout. See:
+
+--
+Best Regards,
+Srivathsa
+
