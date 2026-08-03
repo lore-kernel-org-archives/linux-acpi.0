@@ -1,137 +1,163 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3543041CB31;
-	Mon,  3 Aug 2026 14:07:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4E0E3148D2
+	for <linux-acpi@vger.kernel.org>; Mon,  3 Aug 2026 14:39:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785766079; cv=none; b=mMChytUm3iFMpsgwhjUu3VERoIsUU5EH3Q5+j5xKcxzFpUnuPFN5Fp866GzcGkVxTfi5TmDo0mwBFz1N/7m44/Bu5eBduszYv/LVQl6svXrzZUp7TSFKbZw9XSU/klS9sun+okCV6DarwryO/XKRFMOyRCF0fmZCWmAJPjBNugE=
+	t=1785767945; cv=none; b=XlqOxmU2AG/4SRnAiayzRtShHjmL89QHfEoV32rFv71qYwutqz7Xp0Y8SrVO6BABJjY/qCZBheHtlPKBXpVrZ6oIK2qFV4VSY2h0dtRkB2xQNlz28cup43RcyTACJcSJBkIO6bCC58aYjBaFSJa755+61BRKYc4+THP97qtKhRE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785766079; c=relaxed/simple;
-	bh=ceDPxQhnxFVr3VRUYS6PmWrZ8RZWSqkjM6zIo7C7Y7w=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Zzs90KbSi3mNgQjqhMhM93uB862y3USE0yImexfWujv3pKwOOQV1HD1aylshfSrnLz1c9QV11uvEalvRZLnpiuKPZjvSSOMN+VzS/TxCDeI6y0aKDH39RGkC9Shvir5Q/2NumvCQ52pZ9zJLWXNYg/xXv381ctNNMcCy5Xqi/0o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=i/SeqjSS; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1785767945; c=relaxed/simple;
+	bh=iMeqXMRGjrp0Nq0PPQPzg3zyRAhYXmQcpV1GxGO0n5k=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=obcCojgiH7jVHm7JkuqXVoLXO6FIdnHEyqBD6AY3DjQl8ktxllEd+9T8CGrvTaPLJMQ4b2wXqrKwHLs6HhK4FbG7+IGT6gzs+uy56cH3i/tvWMHG12jDtNayymmyCkBc5OTICkteYqR5pY3xDBI+dX07A8owKm3VYG2VpxolkZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Fjr+lZgA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="i/SeqjSS"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 77FF3143D;
-	Mon,  3 Aug 2026 07:07:53 -0700 (PDT)
-Received: from [10.1.39.91] (e127648.arm.com [10.1.39.91])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id B0EF53F632;
-	Mon,  3 Aug 2026 07:07:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1785766077; bh=ceDPxQhnxFVr3VRUYS6PmWrZ8RZWSqkjM6zIo7C7Y7w=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=i/SeqjSSME8Sy7eXQlShpWpML6EyiYQkYK+ZmjfwbwbcHRnrWxG902RpMFKd0DwDy
-	 FEPaVd0CQRhOO9rHj2xiIFnefSvJCnBkI4uO3PUvD4jfTL0mUFsVzkki5NZYfQ1au5
-	 Q1iAW+WrQBpj93VBmOeLN91Y7XV0zMLj92b7vkkQ=
-Message-ID: <033eb158-936a-4f79-a134-80402fb018e8@arm.com>
-Date: Mon, 3 Aug 2026 15:07:54 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Fjr+lZgA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A79C01F00ADB
+	for <linux-acpi@vger.kernel.org>; Mon,  3 Aug 2026 14:39:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785767943;
+	bh=6ChJKbexhrQNNjYD8D2rQ6cUBDqXzgYhjKV+NCQQdyg=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=Fjr+lZgAUmQQQfylxIcmZcNdSMi9heXAPnYqKrZGrkYep3n6z6lQO8a4jhq+Zao26
+	 sOnlb80A2JJ3tOuXFmml0Oqldfu9eTI9TZHm4uP8WMo2Wp9SWYKG5K+XUV04A9TD3k
+	 QVz7H/zO7m3wJKwZ3zCc8RNovEvxhtKWdRf7L195TMHCo7vGSKVKS+TVu/2+rca2o2
+	 m9gaR8QkwjW15NcxbT8xfjJ5xXqcN6ngUwHV20i/z9yCS86v/NExQ4PENUxZN+zjwz
+	 l2VipuYPib0NRELvbtfT6be3g6ymBCpXfym2DbCvBqzwJNM/42O8OaR/jpELR35A75
+	 bGGPLBIUJ5ipg==
+Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5aeb2bc82ccso4042507e87.2
+        for <linux-acpi@vger.kernel.org>; Mon, 03 Aug 2026 07:39:03 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+Rpk1gfvyHteaxoRbmwXFxrQZpBxCcqPJHgIRZ43os2VodV/mn3GfTAZ5KYVY+t1ZENOBfzwa7BVQknQ@vger.kernel.org
+X-Gm-Message-State: AOJu0YziSfzomOxcgiaCtbiK5OiyaUnjlGgT3SgrtXOb8jxiABUNd+pp
+	kBtLhMBr5Gl9bZ5jyJ0b/j9AuLCSeZk+qLGr4jlmGxvFdhTxdj88uTDniasg/ZH5/H1mO2/MaDW
+	NvnOivrdDWK0PBippNw/2w1Pf7o2ZNhM=
+X-Received: by 2002:ac2:5b5b:0:b0:5b2:a89f:bcf8 with SMTP id
+ 2adb3069b0e04-5b2e4f933b2mr1478355e87.57.1785767942052; Mon, 03 Aug 2026
+ 07:39:02 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 0/3] ACPI: CPPC: Reduce .target() callback overhead
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
- Viresh Kumar <viresh.kumar@linaro.org>
-Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>,
- Jie Zhan <zhanjie9@hisilicon.com>, Lifeng Zheng <zhenglifeng1@huawei.com>,
- Pierre Gondois <pierre.gondois@arm.com>, Sumit Gupta <sumitg@nvidia.com>,
- Sudeep Holla <sudeep.holla@arm.com>,
- Ionela Voinescu <ionela.voinescu@arm.com>,
- Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
-References: <20260724134251.1632824-1-christian.loehle@arm.com>
-Content-Language: en-US
-From: Christian Loehle <christian.loehle@arm.com>
-In-Reply-To: <20260724134251.1632824-1-christian.loehle@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20260729100245.2628302-1-christian.loehle@arm.com>
+ <cover.1785749175.git.christian.loehle@arm.com> <18ee922e97441b99b9ab346fe559d837d05eb5e7.1785749175.git.christian.loehle@arm.com>
+In-Reply-To: <18ee922e97441b99b9ab346fe559d837d05eb5e7.1785749175.git.christian.loehle@arm.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Mon, 3 Aug 2026 16:38:49 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0iDuOJ2C_P8G9xD9BV7XEpQroyPecqM30ZxfEL=PzROAg@mail.gmail.com>
+X-Gm-Features: AUfX_mwfoznVKLWmN2Gr2TjX8Ryjzp2eaIbW19kByFsIwyJLfld5ror2HFqbop0
+Message-ID: <CAJZ5v0iDuOJ2C_P8G9xD9BV7XEpQroyPecqM30ZxfEL=PzROAg@mail.gmail.com>
+Subject: Re: [PATCH v3 1/3] ACPI: CPPC: Reject desired_perf reads on ACPI 6.6+
+To: Christian Loehle <christian.loehle@arm.com>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, linux-pm@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	Jie Zhan <zhanjie9@hisilicon.com>, Lifeng Zheng <zhenglifeng1@huawei.com>, 
+	Pierre Gondois <pierre.gondois@arm.com>, Sumit Gupta <sumitg@nvidia.com>, 
+	Sudeep Holla <sudeep.holla@arm.com>, Ionela Voinescu <ionela.voinescu@arm.com>, 
+	zhongqiu.han@oss.qualcomm.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 7/24/26 14:42, Christian Loehle wrote:
-> cppc-cpufreq reaches cppc_set_perf() from every target callback.  For
-> direct SystemMemory controls, that path currently does several steps
-> which are unnecessary once the immutable _CPC layout is known:
-> 
->   - a full-width write first reads the access unit and merges the value.
->   - every write takes the descriptor's RMW lock, even when its access unit
->     is not shared with another _CPC entry.
->   - cppc_set_perf() evaluates the same three PCC predicates at each phase
->     of the transaction.
-> 
-> Remove those costs while retaining the existing conservative paths for
-> partial fields, overlapping or malformed access units, and PCC controls.
-> 
-> The series was tested on Arm Power-Orion O6 and AmpereOne systems using
-> cppc-cpufreq and schedutil.  An rt-app task pinned to one CPU ran for
-> 500 us every 2 ms with uclamp.min=512, for 5000 periods per run.  schedutil
-> rate_limit_us was 1000.  cppc_cpufreq_fast_switch() latency was measured
-> for 100 ten-second runs.  Each sample is the mean callback latency within
-> one run, and the table reports the median and sample standard deviation
-> of those samples.
-> 
-> Orion O6               median       stdev       callbacks
-> baseline               5703 ns      307 ns       188017
-> complete series        5023 ns      240 ns       188209
-> ==> 680 ns (11.9%) reduction
-> 
-> AmpereOne              median       stdev
-> baseline               2090 ns      157 ns
-> complete series      1907.5 ns      140 ns
-> ==> 182.5 ns (8.7%) reduction
-> 
-> The cumulative intermediate results on the Orion O6 attribute roughly half
-> of the gain to each of the first two patches: avoiding the read reduced
-> the median by 284 ns (5.0%), and avoiding the lock reduced it by another
-> 336 ns (6.2%).
-> Together they account for 620 ns of the 680 ns total reduction.
-> 
-> With the same arm64 configuration and GCC 11.4, caching the PCC predicate
-> also reduces cppc_set_perf() from 1124 to 884 bytes.  The generated
-> function has 60 fewer instructions, 17 fewer loads and 20 fewer branches.
-> 
-> This series is based on the CPPC fixes posted at (already queued):
-> https://lore.kernel.org/lkml/20260722093825.1030594-1-christian.loehle@arm.com/
-> 
-> and the separately posted fix still under review:
-> https://lore.kernel.org/lkml/20260724104042.1481804-1-christian.loehle@arm.com/
-> 
-> PS:
-> There's a final optimization that I actually wanted to make but decided to
-> split it out for now as it somewhat replicated Sumit's series:
-> Skipping redundant perf ctrl writes in cpufreq-cppc if registers are non-PCC
-> and !shared (because the values are unchanged, the
-> !autonomous-common-case), but that requires the driver to have a more
-> complex caching- and atomic-updating machinery in place, similar to
-> hotplug. As opposed to this series the optimization would be for the
-> microcontroller handling the CPPC requests, which may be shared across
-> many CPUs and therefore redundant requests can increase the dvfs
-> transition latency.
-> That patch will follow once Sumit's is queued:
-> https://lore.kernel.org/lkml/20260716153820.2007095-1-sumitg@nvidia.com/
-> 
-> Christian Loehle (3):
->   ACPI: CPPC: Avoid unnecessary reads for full-width writes
->   ACPI: CPPC: Avoid locking standalone full-width registers
->   ACPI: CPPC: Evaluate performance-control PCC use once
-> 
->  drivers/acpi/cppc_acpi.c | 135 +++++++++++++++++++++++++++++++--------
->  include/acpi/cppc_acpi.h |   5 +-
->  2 files changed, 113 insertions(+), 27 deletions(-)
-> 
-> 
-> base-commit: 1590cf0329716306e948a8fc29f1d3ee87d3989f
-> prerequisite-patch-id: 4c1f4063800e3658717eb77e43af13dad52d55cc
-> prerequisite-patch-id: 5c40d9f099543123c9b904d18ce651e740fbefb8
-> prerequisite-patch-id: 7202391dca8f31f9eb8f6d59fc753b3ce665e103
+On Mon, Aug 3, 2026 at 12:03=E2=80=AFPM Christian Loehle
+<christian.loehle@arm.com> wrote:
+>
+> When CPPC feedback counters cannot provide a usable sample, cppc-cpufreq
+> calls cppc_get_desired_perf() because some platforms repurpose Desired
+> Performance to report actual delivered performance.
+>
+> The fallback was added for platforms on which Desired Performance reflect=
+s
+> delivered performance. ACPI 6.6 defines the register as write-only, so
+> invoking that workaround on an ACPI 6.6 or later platform would require a=
+n
+> invalid register read.
+>
+> Make cppc_get_desired_perf() return -EOPNOTSUPP in that case. When checki=
+ng
+> the FADT minor revision, mask off its upper errata-generation bits and
+> compare only the specification minor version.
 
+I'm wondering if the _CPC revision can be used for this instead of the
+spec revision?
 
-I was about the rebase and resend this series but noticed it still applies cleanly
-on 7.2-rc6 + ACPI: CPPC: Avoid Desired Performance reads on ACPI 6.6+
-https://lore.kernel.org/all/cover.1785749175.git.christian.loehle@arm.com/
+The _CPC revision changed from 3 to 4 between ACPI 6.5 and ACPI 6.6,
+so doing that should be straightforward.
 
-Any comments on this?
+> The FADT revision may not accurately describe the semantics implemented b=
+y
+> _CPC. If a nominally pre-6.6 platform implements Desired Performance as
+> write-only, a read may return zero and make cppc_cpufreq_get_rate() repor=
+t
+> 0 kHz. Treat a zero read as unusable and fall back to the cached OSPM
+> request, just as for a failed read.
+>
+> Fixes: c47195631960 ("cppc_cpufreq: Use desired perf if feedback ctrs are=
+ 0 or unchanged")
+> Cc: stable@vger.kernel.org
+> Suggested-by: Sumit Gupta <sumitg@nvidia.com>
+> Signed-off-by: Christian Loehle <christian.loehle@arm.com>
+> ---
+>  drivers/acpi/cppc_acpi.c       | 15 ++++++++++++++-
+>  drivers/cpufreq/cppc_cpufreq.c |  2 +-
+>  2 files changed, 15 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 53d09ca98f06..6e5381f8de38 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -1316,15 +1316,28 @@ static int cppc_set_reg_val(int cpu, enum cppc_re=
+gs reg_idx, u64 val)
+>         return cpc_write(cpu, reg, val);
+>  }
+>
+> +static bool cppc_desired_perf_readable(void)
+> +{
+> +       u8 minor_revision =3D acpi_gbl_FADT.minor_revision & 0x0f;
+> +
+> +       return acpi_gbl_FADT.header.revision < 6 ||
+> +              (acpi_gbl_FADT.header.revision =3D=3D 6 && minor_revision =
+< 6);
+> +}
+> +
+>  /**
+>   * cppc_get_desired_perf - Get the desired performance register value.
+>   * @cpunum: CPU from which to get desired performance.
+>   * @desired_perf: Return address.
+>   *
+> - * Return: 0 for success, -EIO otherwise.
+> + * Return: 0 for success, -EOPNOTSUPP for ACPI 6.6 or later, and a negat=
+ive
+> + * errno otherwise.
+>   */
+>  int cppc_get_desired_perf(int cpunum, u64 *desired_perf)
+>  {
+> +       /* ACPI 6.6 no longer specifies Desired Performance as readable. =
+*/
+> +       if (!cppc_desired_perf_readable())
+> +               return -EOPNOTSUPP;
+> +
+>         return cppc_get_reg_val(cpunum, DESIRED_PERF, desired_perf);
+>  }
+>  EXPORT_SYMBOL_GPL(cppc_get_desired_perf);
+> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufre=
+q.c
+> index 6fe0e972952a..80893844353c 100644
+> --- a/drivers/cpufreq/cppc_cpufreq.c
+> +++ b/drivers/cpufreq/cppc_cpufreq.c
+> @@ -836,7 +836,7 @@ static unsigned int cppc_cpufreq_get_rate(unsigned in=
+t cpu)
+>          * value first as some platforms may update the actual delivered =
+perf
+>          * there; if failed, resort to the cached desired perf.
+>          */
+> -       if (cppc_get_desired_perf(cpu, &delivered_perf))
+> +       if (cppc_get_desired_perf(cpu, &delivered_perf) || !delivered_per=
+f)
+>                 delivered_perf =3D cpu_data->perf_ctrls.desired_perf;
+>
+>         return cppc_perf_to_khz(&cpu_data->perf_caps, delivered_perf);
+> --
+> 2.34.1
+>
