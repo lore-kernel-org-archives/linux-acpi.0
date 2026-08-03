@@ -1,396 +1,173 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 63108307AC6;
-	Mon,  3 Aug 2026 14:53:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7394368D59
+	for <linux-acpi@vger.kernel.org>; Mon,  3 Aug 2026 14:54:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785768829; cv=none; b=qkB2Ej+VYsJa4oC3EdWfQ1JSQJ/WTJAdLQz7gflFG0XozhCAuQzKevw8/krsaZse+i+A6kAUUJ0Omgpwu4BH/28A7KPfjjqxtzN2+kMR+A1zbm8GmqU7uDydRpeMDdt6pB8PBIH5SC8A298LxTxV2GmieDHKRkuyszsv9ahd+WE=
+	t=1785768859; cv=none; b=Y9PGkw1ChT33BXMGaKsdoKaD315vxYQnGTSZEyI68NbbZcHiQpRrFpt0radz0/15k1J1fiPwyJq3w5Q3UL9y11zaVostukpnzC5/+UNZb7GPeXL4O9jRFpWgCTyt75fM/JPYEP11/440fZ4rNbpm4g1Io7xFfVgibDJi/Sf1peE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785768829; c=relaxed/simple;
-	bh=22b24nKVspIIerMyJPhz4Lk+/zJYhUSjkwYys92cSQM=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=NSGnTya5ccRtb+faz4zXEvxghLGuFTzspfXEfaNfah7XsKDbIaxKNhW/OXw60vBo5HjaW426ZH+ZGrN+TLHjLp74LNOTkeRYqAWI5jxj0hZuMQ+Y6Vb34Ethovc3NmrUX8TaB4vyM8gH2F37RkUh82OK7UDdwmfCSCDTNlyRXms=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=lIRqUf+b; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1785768859; c=relaxed/simple;
+	bh=3yzxWvETrsnYT4xHWMhYoTAD97GVF8bzp7RYly7/W1c=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=aGG1423IyWNqHDef7Mf6nEU9rBb5+6YfDOytuKPbcYOr0Pu6uXbWvGoEL4pQgo8B2jyk+3xN9CxNzfsV2S+MNhf92S7rTpE+2u3wIbkhBHOxrVw4BN+lF31HFNxES4YUmSgpXGIWqtIfUFyISJVyF60SLm+9hc/OTyi9xyWUsvg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QVg3O0Tg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="lIRqUf+b"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id A702D143D;
-	Mon,  3 Aug 2026 07:53:42 -0700 (PDT)
-Received: from [192.168.178.24] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id B95EF3F632;
-	Mon,  3 Aug 2026 07:53:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1785768826; bh=22b24nKVspIIerMyJPhz4Lk+/zJYhUSjkwYys92cSQM=;
-	h=Date:Subject:From:To:Cc:References:In-Reply-To:From;
-	b=lIRqUf+bRhghUJq+UNbfYsV6sy8wAfOUrtNwwmcHyowc0tWFr2zJpNqBNTxrVlRTR
-	 /LifKsbx1oc1UceaSso5mGQqkFZguD143ddzqogbOQef4pqOwAWqog+UQfxIuVzeTz
-	 oFUEgmviRB1fOovP0rTMsMh/zqnrp+89Z7D+1Lp4=
-Message-ID: <e9b506d4-9461-4cf8-9331-83698093ca90@arm.com>
-Date: Mon, 3 Aug 2026 16:53:40 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QVg3O0Tg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA69F1F00ADF
+	for <linux-acpi@vger.kernel.org>; Mon,  3 Aug 2026 14:54:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785768857;
+	bh=Ywl5oe623Vpe3tuJANluxXi2/b2rsrMCrnpTFJYzc0w=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=QVg3O0TgZ+zJXKWWL5IxngXLtIUD3zO92M3QPQkZCTA7sPddsVp47U1N/GW9kk5tx
+	 0OV9iPasxWm/2eiXCjv+B44hfDDOMmUH+4Ip47CKFgNgSHWTeajalHpU+sZagkdp9Z
+	 qR8QMluRzbfjWQYf0CcFVgZ/dmwQwzHXkwpAj4EmsTnQJhMUsHgRKlwTKiFMQWPX1z
+	 deCArbBuD8SmlR+frMtEaw6vN2HwqQbxh5jNQIdBd4k4zExTo+oJ7T0sFsgpapS3IZ
+	 Su+hqqwVXR6X5H9d/omZHXl4ZxULF2eRMtG7FTHFdU1Jcnl9vsyrCyKiky2vSqUyQ8
+	 VN97DpWu+pkJw==
+Received: by mail-lj1-f170.google.com with SMTP id 38308e7fff4ca-39f1ac13687so23630151fa.0
+        for <linux-acpi@vger.kernel.org>; Mon, 03 Aug 2026 07:54:17 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RrOYwVuBwdfqzFo7YMGklf6BAyVT5zVolQ1rsMCsKMpbRiC1Ayso+zmc3kay667SUoCn4abWwR10jQZ@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy5GWJmF7j6RqPFncz7bMjVQens7XvgQoFukvk5zJi3TUXkFhDd
+	682CUI2oyDIrqFmL6ldDVnEkjQrM300ZK/naAPU9YA0K682kTrDip2skN1Xdm+ZB60c53RaA/rZ
+	l7mpmI06DkpQjURXnDUj56lM8hRf/dT0=
+X-Received: by 2002:a05:6512:669a:10b0:5b2:b6a4:707 with SMTP id
+ 2adb3069b0e04-5b2e4fa0f67mr1228384e87.63.1785768856144; Mon, 03 Aug 2026
+ 07:54:16 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v7 11/11] arm_mpam: detect and enable MPAM-Fb PCC support
-From: Andre Przywara <andre.przywara@arm.com>
-To: Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
- <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
-Cc: Jonathan Cameron <jic23@kernel.org>,
- Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
- Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
- Niyas Sait <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
- Ritwick Sharma <ritwick.sharma@arm.com>, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-References: <20260731170324.2927758-1-andre.przywara@arm.com>
- <20260731170324.2927758-12-andre.przywara@arm.com>
- <dd4d5ddc-e198-4747-85ce-aef4c569c593@oss.qualcomm.com>
- <21d9c35b-58e8-4b99-a764-58fe45160cf6@arm.com>
-Content-Language: en-GB
-In-Reply-To: <21d9c35b-58e8-4b99-a764-58fe45160cf6@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+References: <20260724134251.1632824-1-christian.loehle@arm.com> <033eb158-936a-4f79-a134-80402fb018e8@arm.com>
+In-Reply-To: <033eb158-936a-4f79-a134-80402fb018e8@arm.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Mon, 3 Aug 2026 16:54:03 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jFvXKTO7MnC5GHYo85E6NwXQUXRDmmkq1i9BtSbQueAg@mail.gmail.com>
+X-Gm-Features: AUfX_mxrWwuFwnt0mThMwbZPh5Am2hnR2yvkfgnKMGv2aZ7g-dd2tOgpUyzqSRU
+Message-ID: <CAJZ5v0jFvXKTO7MnC5GHYo85E6NwXQUXRDmmkq1i9BtSbQueAg@mail.gmail.com>
+Subject: Re: [PATCH 0/3] ACPI: CPPC: Reduce .target() callback overhead
+To: Christian Loehle <christian.loehle@arm.com>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, linux-pm@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	Jie Zhan <zhanjie9@hisilicon.com>, Lifeng Zheng <zhenglifeng1@huawei.com>, 
+	Pierre Gondois <pierre.gondois@arm.com>, Sumit Gupta <sumitg@nvidia.com>, 
+	Sudeep Holla <sudeep.holla@arm.com>, Ionela Voinescu <ionela.voinescu@arm.com>, 
+	Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Mon, Aug 3, 2026 at 4:07=E2=80=AFPM Christian Loehle
+<christian.loehle@arm.com> wrote:
+>
+> On 7/24/26 14:42, Christian Loehle wrote:
+> > cppc-cpufreq reaches cppc_set_perf() from every target callback.  For
+> > direct SystemMemory controls, that path currently does several steps
+> > which are unnecessary once the immutable _CPC layout is known:
+> >
+> >   - a full-width write first reads the access unit and merges the value=
+.
+> >   - every write takes the descriptor's RMW lock, even when its access u=
+nit
+> >     is not shared with another _CPC entry.
+> >   - cppc_set_perf() evaluates the same three PCC predicates at each pha=
+se
+> >     of the transaction.
+> >
+> > Remove those costs while retaining the existing conservative paths for
+> > partial fields, overlapping or malformed access units, and PCC controls=
+.
+> >
+> > The series was tested on Arm Power-Orion O6 and AmpereOne systems using
+> > cppc-cpufreq and schedutil.  An rt-app task pinned to one CPU ran for
+> > 500 us every 2 ms with uclamp.min=3D512, for 5000 periods per run.  sch=
+edutil
+> > rate_limit_us was 1000.  cppc_cpufreq_fast_switch() latency was measure=
+d
+> > for 100 ten-second runs.  Each sample is the mean callback latency with=
+in
+> > one run, and the table reports the median and sample standard deviation
+> > of those samples.
+> >
+> > Orion O6               median       stdev       callbacks
+> > baseline               5703 ns      307 ns       188017
+> > complete series        5023 ns      240 ns       188209
+> > =3D=3D> 680 ns (11.9%) reduction
+> >
+> > AmpereOne              median       stdev
+> > baseline               2090 ns      157 ns
+> > complete series      1907.5 ns      140 ns
+> > =3D=3D> 182.5 ns (8.7%) reduction
+> >
+> > The cumulative intermediate results on the Orion O6 attribute roughly h=
+alf
+> > of the gain to each of the first two patches: avoiding the read reduced
+> > the median by 284 ns (5.0%), and avoiding the lock reduced it by anothe=
+r
+> > 336 ns (6.2%).
+> > Together they account for 620 ns of the 680 ns total reduction.
+> >
+> > With the same arm64 configuration and GCC 11.4, caching the PCC predica=
+te
+> > also reduces cppc_set_perf() from 1124 to 884 bytes.  The generated
+> > function has 60 fewer instructions, 17 fewer loads and 20 fewer branche=
+s.
+> >
+> > This series is based on the CPPC fixes posted at (already queued):
+> > https://lore.kernel.org/lkml/20260722093825.1030594-1-christian.loehle@=
+arm.com/
+> >
+> > and the separately posted fix still under review:
+> > https://lore.kernel.org/lkml/20260724104042.1481804-1-christian.loehle@=
+arm.com/
+> >
+> > PS:
+> > There's a final optimization that I actually wanted to make but decided=
+ to
+> > split it out for now as it somewhat replicated Sumit's series:
+> > Skipping redundant perf ctrl writes in cpufreq-cppc if registers are no=
+n-PCC
+> > and !shared (because the values are unchanged, the
+> > !autonomous-common-case), but that requires the driver to have a more
+> > complex caching- and atomic-updating machinery in place, similar to
+> > hotplug. As opposed to this series the optimization would be for the
+> > microcontroller handling the CPPC requests, which may be shared across
+> > many CPUs and therefore redundant requests can increase the dvfs
+> > transition latency.
+> > That patch will follow once Sumit's is queued:
+> > https://lore.kernel.org/lkml/20260716153820.2007095-1-sumitg@nvidia.com=
+/
+> >
+> > Christian Loehle (3):
+> >   ACPI: CPPC: Avoid unnecessary reads for full-width writes
+> >   ACPI: CPPC: Avoid locking standalone full-width registers
+> >   ACPI: CPPC: Evaluate performance-control PCC use once
+> >
+> >  drivers/acpi/cppc_acpi.c | 135 +++++++++++++++++++++++++++++++--------
+> >  include/acpi/cppc_acpi.h |   5 +-
+> >  2 files changed, 113 insertions(+), 27 deletions(-)
+> >
+> >
+> > base-commit: 1590cf0329716306e948a8fc29f1d3ee87d3989f
+> > prerequisite-patch-id: 4c1f4063800e3658717eb77e43af13dad52d55cc
+> > prerequisite-patch-id: 5c40d9f099543123c9b904d18ce651e740fbefb8
+> > prerequisite-patch-id: 7202391dca8f31f9eb8f6d59fc753b3ce665e103
+>
+>
+> I was about the rebase and resend this series but noticed it still applie=
+s cleanly
+> on 7.2-rc6 + ACPI: CPPC: Avoid Desired Performance reads on ACPI 6.6+
+> https://lore.kernel.org/all/cover.1785749175.git.christian.loehle@arm.com=
+/
+>
+> Any comments on this?
 
-On 8/3/26 15:37, Andre Przywara wrote:
-> Hi Srivathsa,
-> 
-> On 8/3/26 12:49, Srivathsa L Rao wrote:
->> Hi Andre,
->>
->> On 7/31/2026 10:33 PM, Andre Przywara wrote:
->>> The Arm MPAM-Fb specification [1] describes a protocol to access MSC
->>> registers through a firmware interface. This requires a shared memory
->>> region to hold the message, and a mailbox to trigger the access.
->>> For ACPI this is wrapped as a PCC channel, described using existing
->>> ACPI abstractions.
->>>
->>> Add code to parse those PCC table descriptions associated with an MSC,
->>> and store the parsed information in the MSC struct.
->>> There can be multiple PCC channels, and each channel can serve multiple
->>> MSCs, so we need to keep track of the channel usage, using a list and
->>> a refcount.
->>>
->>> This will be used by the MPAM-Fb access wrapper code.
->>>
->>> [1] https://developer.arm.com/documentation/den0144/latest
->>>
->>> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
->>> Tested-by: Ritwick Sharma <ritwick.sharma@arm.com>
->>> Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
->>> ---
->>>   drivers/resctrl/mpam_devices.c  | 113 +++++++++++++++++++++++++++++++-
->>>   drivers/resctrl/mpam_fb.c       |  41 ++++++++++++
->>>   drivers/resctrl/mpam_internal.h |   2 +
->>>   3 files changed, 154 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/ 
->>> mpam_devices.c
->>> index b238feb559d4..40b247a89f8e 100644
->>> --- a/drivers/resctrl/mpam_devices.c
->>> +++ b/drivers/resctrl/mpam_devices.c
->>> @@ -19,14 +19,19 @@
->>>   #include <linux/irqdesc.h>
->>>   #include <linux/list.h>
->>>   #include <linux/lockdep.h>
->>> +#include <linux/mailbox_client.h>
->>>   #include <linux/mutex.h>
->>>   #include <linux/platform_device.h>
->>>   #include <linux/printk.h>
->>> +#include <linux/property.h>
->>>   #include <linux/srcu.h>
->>>   #include <linux/spinlock.h>
->>>   #include <linux/types.h>
->>>   #include <linux/workqueue.h>
->>> +#include <acpi/pcc.h>
->>> +#include <acpi/acpi_io.h>
->>> +
->>>   #include "mpam_internal.h"
->>>   /* Values for the T241 errata workaround */
->>> @@ -49,6 +54,88 @@ static LIST_HEAD(mpam_all_msc);
->>>   struct srcu_struct mpam_srcu;
->>> +/* PCC channels might be serving multiple MSCs, so keep a refcounted 
->>> list. */
->>> +static DEFINE_MUTEX(pcc_chan_list_lock);
->>> +static LIST_HEAD(pcc_chan_list);
->>> +
->>> +static void mpam_pcc_chan_release(struct kref *ref)
->>> +{
->>> +    struct mpam_pcc_chan *cur = container_of(ref, struct mpam_pcc_chan,
->>> +                         refcount);
->>> +
->>> +    pcc_mbox_free_channel(cur->pcc_chan);
->>> +    list_del(&cur->pcc_chans);
->>> +    mutex_destroy(&cur->pcc_chan_lock);
->>> +    kfree(cur);
->>> +}
->>> +
->>> +static struct mpam_pcc_chan *mpam_pcc_chan_get(struct device *dev,
->>> +                           int subspace_id)
->>> +{
->>> +    struct mpam_pcc_chan *cur;
->>> +
->>> +    guard(mutex)(&pcc_chan_list_lock);
->>> +
->>> +    list_for_each_entry(cur, &pcc_chan_list, pcc_chans) {
->>> +        if (cur->subspace_id == subspace_id) {
->>> +            kref_get(&cur->refcount);
->>> +
->>> +            return cur;
->>> +        }
->>> +    }
->>> +
->>> +    cur = kzalloc_obj(*cur);
->>> +    if (!cur)
->>> +        return ERR_PTR(-ENOMEM);
->>> +
->>> +    cur->pcc_cl.dev = dev;
->>
->> While testing v7 with multiple PCC MSCs sharing a single PCC channel, I
->> noticed that pcc_cl.dev is set once at channel creation time (from the
->> first MSC's device) and never updated when subsequent MSCs reuse the
->> channel.In mpam_pcc_chan_get(), the first call sets:
->>   cur->pcc_cl.dev = dev;
->>
->> Subsequent calls return the existing channel without updating 
->> pcc_cl.dev. Here dev_err() calls through the channel report errors 
->> against the first MSC's device, even when a different MSC triggered them.
-> 
-> Mmh, that's true, but I don't think there is much we can do about it? 
-> Ultimately it's a channel shared between multiple devices.
-> And I am less concerned about our own dev_err() (we can easily - and 
-> actually should - replace this with pr_err()), but more about the mbox 
-> uses of the dev pointer. Did you by any chance find more critical users 
-> of the dev pointer other than dev_err() prints, in the mailbox code?
+Sashiko says that it couldn't apply this series:
 
-To answer my own question: I could only find code using the dev pointer 
-during initialisation, to attribute the error messages to the right 
-device. Which means when we drop the single usage in mpam_fb.c, there 
-should be no more problems.
-Fixed that accordingly.
+https://sashiko.dev/#/patchset/20260724134251.1632824-1-christian.loehle%40=
+arm.com
 
-Cheers,
-Andre
-
-> I don't know if the correct MSC attribution really matters, or if we can 
-> live with just a valid reference to some "related" device, but ...
-> 
->> I reproduced this with four PCC MSCs sharing subspace 0. After unbinding
->> the first MSC (kref 4→3), triggering dev_err() via a test hook showed 
->> the device prefix change from "mpam_msc mpam_msc.1:" to "platform 
->> mpam_msc.1:"
-> 
-> Mmmh, interesting, where does the change come from? I would think that 
-> would result in a use after free?
-> Which means we should make sure that some other MSC donates their dev 
-> pointer if the first MSC goes away? I will have a look into that 
-> direction, though it still feels a bit odd.
-> 
->> A simple fix maybe to use the MSC's own device for error messages in
->> mpam_fb_send_request() instead of pcc_chan->pcc_cl.dev
-> 
-> But we don't have that pointer at this time, do we?  But as mentioned, 
-> we could just revert to a simple pr_err() instead.
-> 
-> Thanks for the heads up anyway!
-> Cheers,
-> Andre
-> 
-> 
->>
->>> +    cur->pcc_cl.tx_block = true;
->>> +
->>> +    cur->pcc_chan = pcc_mbox_request_channel(&cur->pcc_cl, 
->>> subspace_id);
->>> +    if (IS_ERR(cur->pcc_chan)) {
->>> +        long err = PTR_ERR(cur->pcc_chan);
->>> +
->>> +        kfree(cur);
->>> +        return ERR_PTR(err);
->>> +    }
->>> +
->>> +    /*
->>> +     * Timeout based on the "nominal latency" in us, from the
->>> +     * PCC ACPI table. tx_tout is in ms.
->>> +     * Add some margin here to be on the safe side.
->>> +     */
->>> +    cur->pcc_cl.tx_tout = DIV_ROUND_UP(cur->pcc_chan->latency * 5, 
->>> 1000);
->>> +
->>> +    mutex_init(&cur->pcc_chan_lock);
->>> +
->>> +    cur->subspace_id = subspace_id;
->>> +    kref_init(&cur->refcount);
->>> +
->>> +    list_add_tail(&cur->pcc_chans, &pcc_chan_list);
->>> +
->>> +    return cur;
->>> +}
->>> +
->>> +static int mpam_pcc_chan_put(struct mpam_pcc_chan *pcc_chan)
->>> +{
->>> +    struct mpam_pcc_chan *cur, *tmp;
->>> +
->>> +    if (!pcc_chan)
->>> +        return 0;
->>> +
->>> +    guard(mutex)(&pcc_chan_list_lock);
->>> +
->>> +    list_for_each_entry_safe(cur, tmp, &pcc_chan_list, pcc_chans) {
->>> +        if (cur == pcc_chan) {
->>> +            kref_put(&cur->refcount, mpam_pcc_chan_release);
->>> +
->>> +            return 0;
->>> +        }
->>> +    }
->>> +
->>> +    return -ENOENT;
->>> +}
->>> +
->>>   /*
->>>    * Number of MSCs that have been probed. Once all MSCs have been 
->>> probed MPAM
->>>    * can be enabled.
->>> @@ -2274,6 +2361,8 @@ static void mpam_msc_drv_remove(struct 
->>> platform_device *pdev)
->>>   {
->>>       struct mpam_msc *msc = platform_get_drvdata(pdev);
->>> +    mpam_pcc_chan_put(msc->pcc_chan);
->>> +
->>>       mutex_lock(&mpam_list_lock);
->>>       mpam_msc_destroy(msc);
->>>       mutex_unlock(&mpam_list_lock);
->>> @@ -2284,7 +2373,7 @@ static void mpam_msc_drv_remove(struct 
->>> platform_device *pdev)
->>>   static struct mpam_msc *do_mpam_msc_drv_probe(struct 
->>> platform_device *pdev)
->>>   {
->>>       int err;
->>> -    u32 tmp;
->>> +    u32 pcc_subspace_id;
->>>       struct mpam_msc *msc;
->>>       struct resource *msc_res;
->>>       struct device *dev = &pdev->dev;
->>> @@ -2328,7 +2417,7 @@ static struct mpam_msc 
->>> *do_mpam_msc_drv_probe(struct platform_device *pdev)
->>>       if (err)
->>>           return ERR_PTR(err);
->>> -    if (device_property_read_u32(&pdev->dev, "pcc-channel", &tmp))
->>> +    if (device_property_read_u32(dev, "pcc-channel", &pcc_subspace_id))
->>>           msc->iface = MPAM_IFACE_MMIO;
->>>       else
->>>           msc->iface = MPAM_IFACE_PCC;
->>> @@ -2349,6 +2438,26 @@ static struct mpam_msc 
->>> *do_mpam_msc_drv_probe(struct platform_device *pdev)
->>>           }
->>>           msc->mapped_hwpage_sz = msc_res->end - msc_res->start;
->>>           msc->mapped_hwpage = io;
->>> +    } else if (msc->iface == MPAM_IFACE_PCC) {
->>> +        msc->pcc_chan = mpam_pcc_chan_get(dev, pcc_subspace_id);
->>> +        if (IS_ERR(msc->pcc_chan)) {
->>> +            pr_err("Failed to request MSC PCC channel\n");
->>> +            return ERR_CAST(msc->pcc_chan);
->>> +        }
->>> +
->>> +        err = mpam_fb_check_shared_buffer_size(msc);
->>> +        if (err) {
->>> +            mpam_pcc_chan_put(msc->pcc_chan);
->>> +
->>> +            return ERR_PTR(err);
->>> +        }
->>> +
->>> +        err = mpam_fb_check_protocol_version(msc);
->>> +        if (err) {
->>> +            mpam_pcc_chan_put(msc->pcc_chan);
->>> +
->>> +            return ERR_PTR(err);
->>> +        }
->>>       } else {
->>>           return ERR_PTR(-EINVAL);
->>>       }
->>> diff --git a/drivers/resctrl/mpam_fb.c b/drivers/resctrl/mpam_fb.c
->>> index 61a91c6cec0a..7a7fb6d067ba 100644
->>> --- a/drivers/resctrl/mpam_fb.c
->>> +++ b/drivers/resctrl/mpam_fb.c
->>> @@ -37,6 +37,11 @@
->>>   #define MPAM_MSC_TOKEN_MASK        GENMASK(27, 18)
->>>   #define MPAM_FB_PROT_HEADER_LEN        sizeof(u32)
->>> +/* The longest message is MPAM_MSC_WRITE, with 4 parameters. */
->>> +#define MPAM_FB_MAX_MSG_SIZE        (4 * sizeof(u32))
->>> +
->>> +#define MPAM_FB_VERSION_MAJOR_MASK    GENMASK(31, 16)
->>> +#define MPAM_FB_VERSION_MINOR_MASK    GENMASK(15, 0)
->>>   static atomic_t mpam_fb_token = ATOMIC_INIT(0);
->>> @@ -207,3 +212,39 @@ int mpam_fb_send_write_request(struct mpam_msc 
->>> *msc, u16 reg, u32 value)
->>>       return mpam_fb_send_request(msc->pcc_chan, msc->id, reg, &value,
->>>                       MPAM_MSC_WRITE_CMD);
->>>   }
->>> +
->>> +/* We only support MPAM-Fb protocol version 1.x */
->>> +int mpam_fb_check_protocol_version(struct mpam_msc *msc)
->>> +{
->>> +    u32 version;
->>> +    int ret;
->>> +
->>> +    ret = mpam_fb_send_request(msc->pcc_chan, 0,
->>> +                   0, &version, MPAM_PROTOCOL_VERSION_CMD);
->>> +    if (ret)
->>> +        return ret;
->>> +
->>> +    if (FIELD_GET(MPAM_FB_VERSION_MAJOR_MASK, version) != 1) {
->>> +        pr_err("Incompatible MPAM-Fb protocol version %ld.%ld\n",
->>> +               FIELD_GET(MPAM_FB_VERSION_MAJOR_MASK, version),
->>> +               FIELD_GET(MPAM_FB_VERSION_MINOR_MASK, version));
->>> +
->>> +        return -EINVAL;
->>> +    }
->>> +
->>> +    return 0;
->>> +}
->>> +
->>> +int mpam_fb_check_shared_buffer_size(struct mpam_msc *msc)
->>> +{
->>> +    int min_buffer_size = MPAM_FB_MAX_MSG_SIZE +
->>> +                  sizeof(struct acpi_pcct_ext_pcc_shared_memory);
->>> +
->>> +    if (msc->pcc_chan->pcc_chan->shmem_size < min_buffer_size) {
->>> +        pr_err("MPAM-Fb PCC channel size too small.\n");
->>> +
->>> +        return -ENOMEM;
->>> +    }
->>> +
->>> +    return 0;
->>> +}
->>> diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/ 
->>> mpam_internal.h
->>> index f13a79a84c58..8859189088f3 100644
->>> --- a/drivers/resctrl/mpam_internal.h
->>> +++ b/drivers/resctrl/mpam_internal.h
->>> @@ -528,6 +528,8 @@ static inline void 
->>> mpam_resctrl_teardown_class(struct mpam_class *class) { }
->>>   /* MPAM-Fb Firmware-backed protocol wrappers */
->>>   int mpam_fb_send_read_request(struct mpam_msc *msc, u16 reg, u32 
->>> *result);
->>>   int mpam_fb_send_write_request(struct mpam_msc *msc, u16 reg, u32 
->>> value);
->>> +int mpam_fb_check_protocol_version(struct mpam_msc *msc);
->>> +int mpam_fb_check_shared_buffer_size(struct mpam_msc *msc);
->>>   /*
->>>    * MPAM MSCs have the following register layout. See:
->>
->> -- 
->> Best Regards,
->> Srivathsa
->>
-> 
-
+Would it apply on top of plain 7.2-rc6?  If so, can you please rebase
+and resend it?  Or is it linux-next-only?
