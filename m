@@ -1,142 +1,227 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7E89C330644;
-	Mon,  3 Aug 2026 22:28:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CA6F34CFC6
+	for <linux-acpi@vger.kernel.org>; Mon,  3 Aug 2026 22:29:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785796103; cv=none; b=VgwX9eestXbRqmalfRiLpCbSqptg8L+5VocsD6H0x3wbV2XGO2fWUmr7Ik+zP5ee6XuU7wi2hqrwczr/OwjsVJbaFwbI0wDhFI0u/BtfyAXjmGo8xDsE+UVMLUG6XQ0hQRlgIojcPS1+trGN/wB7/eRwGtAlhyDvp7m/0/EAIuw=
+	t=1785796149; cv=none; b=By5FtFGP4Lwjt180t6nIvUVmPiWjjdCizzLRUBBbiEQMJCEgM9EY//gHqW3ZXvIEehbXU5ezm8ZPVtAQrQmAj0iteUHyvZqaFupHz3MZyOdFsF7hH/tBzmhui4q8KCoseSiZzvjH61iiILkqcQR8DJzhnXBhPTAmqYA/2IE+PI0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785796103; c=relaxed/simple;
-	bh=NXJgj8gPFUqPBvFvOMrhrVy+XO6YL2yIwB/GeZEOGgw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=EzZZM3DDSE/RYtE7z4/K2BkCLZr4+pue8FViuJIDpvpTBLnY8jwi7LRm0Jv5SeXb1dADzsOJ1l7o5lipNPuqGGcOzEKKDjwijps6iqVzCSSEyvx1ZGr+BuxTivYC48G4L2JDxnOTCJraNhC5IP9lW+VtJ2wlg8ytRQSt6ODxwkg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=MlOHhvq8; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1785796149; c=relaxed/simple;
+	bh=ddjOipXehAODpjbycR9ZsNGaVtxKMYm+UzQ8H8R4O4E=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=gcbDg3wUFNJyCq+J1/TAcAwgxDwblVvvdWG7RVt2jU1Us2AUjRlH+CXVSH5XrvGKAvuglw3VgB1LQNyLmeXGsCH4wlELlKxkgjdxy03iPQAwvocYHtGA0XWpmJASxQrFAGVRtWrs+MA0YZTcV/gMbUwNN1tQ9hJU4IAYsfhtVWI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=PxjIBm1Y; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=h5CVIOiR; arc=none smtp.client-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="MlOHhvq8"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 30D80143D;
-	Mon,  3 Aug 2026 15:28:15 -0700 (PDT)
-Received: from [10.57.0.71] (unknown [10.57.0.71])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id E45563F632;
-	Mon,  3 Aug 2026 15:28:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1785796099; bh=NXJgj8gPFUqPBvFvOMrhrVy+XO6YL2yIwB/GeZEOGgw=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=MlOHhvq8WEVJI3A8rewVMHVOBwqb036diiVgMzikIqEuxYL2gcChiASOedICqR/YU
-	 5dm94z3k1kd9O57msIH9i1Q9iLoXhdtj7bhqyrzk42y36NrRpFCWTNRy5iliCcHer0
-	 w3mlXL63otKIY89csgp5QFIpTBQzR5OuiQ8GkBMc=
-Message-ID: <f48c36fe-446f-4f83-8d2d-0913aafc377e@arm.com>
-Date: Mon, 3 Aug 2026 23:28:14 +0100
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="PxjIBm1Y";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="h5CVIOiR"
+Received: from pps.filterd (m0279865.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 673K2Xof2165664
+	for <linux-acpi@vger.kernel.org>; Mon, 3 Aug 2026 22:29:06 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	sZ80AOwZ+2hx6l5a4gRP6Wc1xQDrMzv5eF1oL8ozawI=; b=PxjIBm1Yq1f01leh
+	2aY5HGi0wy6fti4bkHOHYHc5whd32Qf4IKp+R23FwjXaS3dTvagqRLFY9ypn8Do+
+	NTopKjNr015QQx6Az9Wix03c2VNUGn85L4s3TGSi6wUpbnSx8nxBKdOntcUgRp4M
+	03rNOw6Ao/REOzbBB+7CXbUiotLQzdPWFOBWT/R6kDZbO3tGad7Q2jBFbpbzbNwS
+	kdHyIYZdWdrMFOISv8eXMxVwpglN2IHRjmtHpUogXP+EP/exMk6KfIhCyobE5JsC
+	Zo/H9rp2oILcAHu/dUxhWRPocFcYT1ZFma99wrJbba6ISyNouGiiO81LqCbBeCqo
+	01dXTg==
+Received: from mail-pj1-f72.google.com (mail-pj1-f72.google.com [209.85.216.72])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fu1p4rh3r-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Mon, 03 Aug 2026 22:29:06 +0000 (GMT)
+Received: by mail-pj1-f72.google.com with SMTP id 98e67ed59e1d1-385d2703b64so314375a91.1
+        for <linux-acpi@vger.kernel.org>; Mon, 03 Aug 2026 15:29:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1785796145; x=1786400945; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:organization
+         :references:in-reply-to:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=sZ80AOwZ+2hx6l5a4gRP6Wc1xQDrMzv5eF1oL8ozawI=;
+        b=h5CVIOiR8f9Yeb1W16JOhVz4d9KsB4rZMQVv0bCb20lt0ljW6T1mH4oRpjVmdGWS8l
+         fVa19hOt6pyYS57ZHZnlWLpo3Dcy+Z2lZCvtkL+8zY8FxAicbIGwK1l3/N48GMLsg0za
+         fQJAhh4P1/wtbJlNIgToZ8hJJbn4roR1/SHloPJEWO94XWLCQKl+Y9OHe6Yh2W4w6Xnf
+         K2UrFiQGiugHtkFqGQb2COcwNF5lFZnJm+tbty9jaEsUqykMhcDDAIEs2rvfFyQiNppo
+         9spL20e7W8MOrv5kQ7E9E4jSIUoA21CnQbwZwEXQ+aXJc0ZiFIzAj5dw8DbByyj9oCZY
+         k6dg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785796145; x=1786400945;
+        h=content-transfer-encoding:content-type:mime-version:organization
+         :references:in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=sZ80AOwZ+2hx6l5a4gRP6Wc1xQDrMzv5eF1oL8ozawI=;
+        b=QhpUgLoQZYMQhS/J+/VC/AEnj91O6aIlE2kPIQ+t4snw9hHe2J0yVf1o7kf/9HiI5c
+         JzndXXepqmfFLW/WTzyMxMphonBnPnmbsVo7HM9svXACQwm8+WuyxM5YXwMh68IhLPsl
+         YHFP+CF3DpvoRqk19GC2a8WY2ePpAIu9McidG+E3AlCD0LJVHJEoiFJOS4YS/PcPa7vj
+         4rpQ2qdBEBuGa7k51CfSmtlXxkvFY9Y+iVvVPkEcOeoFoopdOucJaUb15Wjcea8MMdUn
+         hKghnZQWm6AwqERDPxt4zojv7TcUmVW28LP839vfmNv/sdOzmbulfr+apMhJs/EV6VWp
+         WcMA==
+X-Forwarded-Encrypted: i=1; AHgh+Rp3hqA3W1+5teJcsTF/RbezlRnL+rpQANTaxOu/i7wegTFsCu/OV2RoErcOIvbN2LpVsRWd9I6sCjZv@vger.kernel.org
+X-Gm-Message-State: AOJu0YwfVmL6d5cMLm7B5dhSHI+HIVWxdXwCYDjB61Chz03zMK5Q3QcB
+	FJZemo4RaHv4ie6y+ilbglvI9NM5srNB0zZKbluAx93NG5TpX3vVcPNbpaWdHJHEG0FUuqZZT5n
+	7rqvLlSU1/XmfbhL3/RDlNWX2e87FcaSH1JvuFOTiqBqz6eNCWqVpTImyWMA+KNaP
+X-Gm-Gg: AR+sD137enfcCR00vzz9E2GAgBp1vkjFSacmr0Ms//cZEP+f7+4MxB5iPgkgkG8nSYK
+	rDgT7UQdcFyCb47/kHZV+k+2CAbi+5/mou1DEaduLMRwwTj4+ECIqLyvNpvyg5Ose4PpeqtXzcx
+	p0OkV9f3hM1F5XbhDWimM+BM7gLErdze+0obtYEnNhvdXzvuSFHsjRJDFjbdzFb7LHnilaBuHEX
+	bxysEcp+nn0bDebICvfc62jeHvaufp2IHJ2XwY0GZ9dc5Xk2keXXgXSVvSzJHAdABmDEnRbE7ch
+	Q9izhT1cG14GhZdtJP4dyHSOuVgtOm80nuirfz7i5Qg12ka8CDCYmDclbJwjRJ/dJ+PPmt4Wwnb
+	NwVHao8e2RDKqe25yCZxhuYnWUA==
+X-Received: by 2002:a17:90b:4d05:b0:38e:4f31:8412 with SMTP id 98e67ed59e1d1-38fecc2f007mr1071151a91.11.1785796144752;
+        Mon, 03 Aug 2026 15:29:04 -0700 (PDT)
+X-Received: by 2002:a17:90b:4d05:b0:38e:4f31:8412 with SMTP id 98e67ed59e1d1-38fecc2f007mr1071121a91.11.1785796144318;
+        Mon, 03 Aug 2026 15:29:04 -0700 (PDT)
+Received: from localhost ([50.35.46.84])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-13fab4e44bcsm49863604c88.12.2026.08.03.15.29.02
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 03 Aug 2026 15:29:04 -0700 (PDT)
+Date: Mon, 3 Aug 2026 15:28:59 -0700
+From: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+To: Andre Przywara <andre.przywara@arm.com>
+Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        Hanjun Guo
+ <guohanjun@huawei.com>,
+        Sudeep Holla <sudeep.holla@kernel.org>,
+        Catalin
+ Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        "Rafael J
+ . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+        James Morse
+ <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
+        Reinette Chatre
+ <reinette.chatre@intel.com>,
+        Fenghua Yu <fenghuay@nvidia.com>, Jonathan
+ Cameron <jic23@kernel.org>,
+        Srivathsa L Rao
+ <srivathsa.rao@oss.qualcomm.com>,
+        Ganapatrao Kulkarni
+ <ganapatrao.kulkarni@oss.qualcomm.com>,
+        Trilok Soni <tsoni@quicinc.com>,
+        Srinivas Ramana <sramana@qti.qualcomm.com>,
+        Niyas Sait
+ <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
+        Ritwick Sharma
+ <ritwick.sharma@arm.com>, linux-acpi@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v7 07/11] arm_mpam: propagate MSC access errors for
+ mpam_reprogram_ris_partid()
+Message-ID: <20260803152859.00006590@oss.qualcomm.com>
+In-Reply-To: <20260731170324.2927758-8-andre.przywara@arm.com>
+References: <20260731170324.2927758-1-andre.przywara@arm.com>
+	<20260731170324.2927758-8-andre.przywara@arm.com>
+Organization: Qualcomm
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.51; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RESEND][PATCH 0/3] ACPI: CPPC: Reduce .target() callback
- overhead
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
- Viresh Kumar <viresh.kumar@linaro.org>
-Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>,
- Jie Zhan <zhanjie9@hisilicon.com>, Lifeng Zheng <zhenglifeng1@huawei.com>,
- Pierre Gondois <pierre.gondois@arm.com>, Sumit Gupta <sumitg@nvidia.com>,
- Sudeep Holla <sudeep.holla@arm.com>,
- Ionela Voinescu <ionela.voinescu@arm.com>, zhongqiu.han@oss.qualcomm.com
-References: <20260803210527.1285229-1-christian.loehle@arm.com>
-Content-Language: en-US
-From: Christian Loehle <christian.loehle@arm.com>
-In-Reply-To: <20260803210527.1285229-1-christian.loehle@arm.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+X-Authority-Analysis: v=2.4 cv=auOCzyZV c=1 sm=1 tr=0 ts=6a711632 cx=c_pps
+ a=RP+M6JBNLl+fLTcSJhASfg==:117 a=qC1CW/w66vtJz1P9yTJxNA==:17
+ a=kj9zAlcOel0A:10 a=Sv0fKeRqtYgA:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=Um2Pa8k9VHT-vaBCBUpS:22
+ a=7CQSdrXTAAAA:8 a=EUspDBNiAAAA:8 a=_W4zCIwx36R_oyA-FJgA:9 a=CjuIK1q_8ugA:10
+ a=iS9zxrgQBfv6-_F4QbHw:22 a=a-qgeE7W1pNrGK8U0ZQC:22
+X-Proofpoint-ORIG-GUID: qU-LvlVwdo1t4xdAyAcv1C_p1gNmY0-l
+X-Proofpoint-Spam-Info: AW1haW4tMjYwODAzMDE5NyBTYWx0ZWRfX+MlSx25M1Qxu
+ pebJbBmKwhKQOL/OvqeoQLafYRVMsyEPro2rxpADP8oy0sE+3ZgitLqwpUEtj6zbBNusybpY6p9
+ X/GQQ0uXW61IYT2dSHrotM7+LAuiUJc=
+X-Proofpoint-GUID: qU-LvlVwdo1t4xdAyAcv1C_p1gNmY0-l
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODAzMDE5NyBTYWx0ZWRfX6A5pw7kPj5Ea
+ Gs/knXAUC4xQWuJMLRZaTwT4X4zpYf9MoGOzaNmrhUEK21+TQZPWEseGR3v3mID2SSfhxupVSXW
+ rgtq3RSauBQtF4Rje474PIWYXYSEu7Pmta8T5LD69u1hn2+oRZHzphlLaKy1G5NzCJ/ZnK3g7T1
+ JORimOMwpRCsbtOQOaB16Tk2yoT3Ki55Mf/geo/9kF/RQ3MUz9CJZNwh2COTSxA/sG2CIQCH+Q8
+ vz0uBZKWXQOfiyIjIOTqxdlwesuJJBKj4ssEtWNM/s10fhv8RgAJ2QgppuWrsNXXgC9TlEw8jsD
+ KShJfYzh4nat+o/z8HlHvy8bXERQ5Mt2qLXhHAIhuWMZnljlwdz6pgbKTV4Rx/P5NcuuAx8mO16
+ U4JqpnttDg739WdTrCvqvipnA6+82WaoWKHSYMPuOX7FZiK1wmMm3Tvq4v54711J6jqMlv9tjrT
+ sTsCeDLDKR7yrwz6eUg==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-08-03_05,2026-08-03_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501 spamscore=0 bulkscore=0 suspectscore=0 malwarescore=0
+ lowpriorityscore=0 clxscore=1015 phishscore=0 adultscore=0 impostorscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2608030197
 
-On 8/3/26 22:05, Christian Loehle wrote:
-> cppc-cpufreq reaches cppc_set_perf() from every target callback.  For
-> direct SystemMemory controls, that path currently does several steps
-> which are unnecessary once the immutable _CPC layout is known:
-> 
->   - a full-width write first reads the access unit and merges the value.
->   - every write takes the descriptor's RMW lock, even when its access unit
->     is not shared with another _CPC entry.
->   - cppc_set_perf() evaluates the same three PCC predicates at each phase
->     of the transaction.
-> 
-> Remove those costs while retaining the existing conservative paths for
-> partial fields, overlapping or malformed access units, and PCC controls.
-> 
-> The series was tested on Arm Power-Orion O6 and AmpereOne systems using
-> cppc-cpufreq and schedutil.  An rt-app task pinned to one CPU ran for
-> 500 us every 2 ms with uclamp.min=512, for 5000 periods per run.  schedutil
-> rate_limit_us was 1000.  cppc_cpufreq_fast_switch() latency was measured
-> for 100 ten-second runs.  Each sample is the mean callback latency within
-> one run, and the table reports the median and sample standard deviation
-> of those samples.
-> 
-> Orion O6               median       stdev       callbacks
-> baseline               5703 ns      307 ns       188017
-> complete series        5023 ns      240 ns       188209
-> ==> 680 ns (11.9%) reduction
-> 
-> AmpereOne              median       stdev
-> baseline               2090 ns      157 ns
-> complete series      1907.5 ns      140 ns
-> ==> 182.5 ns (8.7%) reduction
-> 
-> The cumulative intermediate results on the Orion O6 attribute roughly half
-> of the gain to each of the first two patches: avoiding the read reduced
-> the median by 284 ns (5.0%), and avoiding the lock reduced it by another
-> 336 ns (6.2%).
-> Together they account for 620 ns of the 680 ns total reduction.
-> 
-> With the same arm64 configuration and GCC 11.4, caching the PCC predicate
-> also reduces cppc_set_perf() from 1124 to 884 bytes.  The generated
-> function has 60 fewer instructions, 17 fewer loads and 20 fewer branches.
-> 
-> This series is based on the CPPC fixes posted at (already queued):
-> https://lore.kernel.org/lkml/20260722093825.1030594-1-christian.loehle@arm.com/
-> 
-> and the separately posted fix still under review:
-> https://lore.kernel.org/lkml/20260724104042.1481804-1-christian.loehle@arm.com/
-> 
-> PS:
-> There's a final optimization that I actually wanted to make but decided to
-> split it out for now as it somewhat replicated Sumit's series:
-> Skipping redundant perf ctrl writes in cpufreq-cppc if registers are non-PCC
-> and !shared (because the values are unchanged, the
-> !autonomous-common-case), but that requires the driver to have a more
-> complex caching- and atomic-updating machinery in place, similar to
-> hotplug. As opposed to this series the optimization would be for the
-> microcontroller handling the CPPC requests, which may be shared across
-> many CPUs and therefore redundant requests can increase the dvfs
-> transition latency.
-> That patch will follow once Sumit's is queued:
-> https://lore.kernel.org/lkml/20260716153820.2007095-1-sumitg@nvidia.com/
-> 
-> [RESEND] for the new base-commit specifier below
-> 
-> Christian Loehle (3):
->   ACPI: CPPC: Avoid unnecessary reads for full-width writes
->   ACPI: CPPC: Avoid locking standalone full-width registers
->   ACPI: CPPC: Evaluate performance-control PCC use once
-> 
->  drivers/acpi/cppc_acpi.c | 135 +++++++++++++++++++++++++++++++--------
->  include/acpi/cppc_acpi.h |   5 +-
->  2 files changed, 113 insertions(+), 27 deletions(-)
-> 
-> 
-> base-commit: 075b74841bd0065a3bda3440873c747938e69b68
+On Fri, 31 Jul 2026 19:03:20 +0200
+Andre Przywara <andre.przywara@arm.com> wrote:
 
-Nice, so that worked:
-https://sashiko.dev/#/patchset/20260803210527.1285229-1-christian.loehle@arm.com
-Seems no findings on $SUBJECT but the rest of the comments it has
-look legit to me? I'll go take another look tomorrow:
+> Allow the mpam_reprogram_ris_partid() function check for and return
 
-1. Using per-CPU cpc_desc->rmw_lock for SYSTEM_MEMORY CPPC control register that
-may be shared.
-2. MASK_VAL_WRITE() truncation on 32bit architectures.
-3. acpi_cppc_processor_exit() calls kfree(cpc_ptr) unconditionally (UAF with sysfs?)
-4. cppc_set_reg_val_in_pcc() calls cpc_write() before down_write(&pcc_ss_data->pcc_lock)
-5 & 6 are sanitization of values from FW. 
+function to check
+
+> errors, and propagate MSC read and write errors from the lower level up.
+> This also covers the callers of this function: mpam_reset_ris() and
+> apply_config().
+> 
+> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+One thing below to perhaps modify if you are respinning
+
+Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+
+> ---
+>  drivers/resctrl/mpam_devices.c | 136 ++++++++++++++++++++++-----------
+>  1 file changed, 93 insertions(+), 43 deletions(-)
+> 
+> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
+> index 38450c55e45e..32088ad1d67e 100644
+> --- a/drivers/resctrl/mpam_devices.c
+> +++ b/drivers/resctrl/mpam_devices.c
+> @@ -1601,7 +1601,7 @@ void mpam_msmon_reset_mbwu(struct mpam_component *comp, struct mon_cfg *ctx)
+>  	}
+>  }
+>  
+> -static void mpam_reset_msc_bitmap(struct mpam_msc *msc, u16 reg, u16 wd)
+> +static int mpam_reset_msc_bitmap(struct mpam_msc *msc, u16 reg, u16 wd)
+>  {
+>  	u32 num_words, msb;
+>  	u32 bm = ~0;
+> @@ -1610,15 +1610,19 @@ static void mpam_reset_msc_bitmap(struct mpam_msc *msc, u16 reg, u16 wd)
+>  	lockdep_assert_held(&msc->part_sel_lock);
+>  
+>  	if (wd == 0)
+> -		return;
+> +		return 0;
+>  
+>  	/*
+>  	 * Write all ~0 to all but the last 32bit-word, which may
+>  	 * have fewer bits...
+>  	 */
+>  	num_words = DIV_ROUND_UP(wd, 32);
+> -	for (i = 0; i < num_words - 1; i++, reg += sizeof(bm))
+> -		__mpam_write_reg(msc, reg, bm);
+> +	for (i = 0; i < num_words - 1; i++, reg += sizeof(bm)) {
+
+Not really related to what you are doing here, but if you like you could
+reduce the scope of i via
+
+	for (int i = 0;...
+
+as it isn't used outside of this loop.
+
+> +		int ret = __mpam_write_reg(msc, reg, bm);
+> +
+> +		if (ret)
+> +			return ret;
+Personally I don't like this style but feel free to ignore as this is
+very much a personal taste thing. I'd do
+		int ret;
+
+		ret = __mpam_write_reg(msc, reg, bm);
+		if (ret)
+			return ret;
+	}
+just to keep the source of error and check for error next to each other.
+
+> +	}
+
 
