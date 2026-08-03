@@ -1,140 +1,186 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id DE2FB429CEB;
-	Mon,  3 Aug 2026 20:35:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 02DFA42BEBA;
+	Mon,  3 Aug 2026 20:47:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785789360; cv=none; b=WZAJs9avitmeL0O8S+gdMSLfmSgJrtm0yp7blz2MPiVyRXaxsOu2uMUFBOB6+VPDma7xMfzXVKHSxn7xrfpLZNiua9YjY4O6yQxLXnmWqP4iS+IiXJIlURq4WEEZXIK9IdL5C2KrjbCA/sgYOFwIVGjvscg5eRKnlv4HPbs2L38=
+	t=1785790026; cv=none; b=dJP9/KriYSlMDpDn23dMDSRD1l+Bwg526moFYNu01CK9KKerUr/l4Ua1Jl7MNB/dHuhD5UP7O/jH+x2p6R55byMtQpgRwpQvXJTnaghppACRNuAnkrPIy6WXB1T/RB0JlMn7v7gTG4+4bM6rzyu/PEb8gapQbsdlI2ZU+PvBKMk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785789360; c=relaxed/simple;
-	bh=aXEladsx7QGEQ3DSQbj0ebilCOY8ifpj9tTQIEY3teU=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=YLklqETUqWXhclhdgHXBc+iJOhdQ3C5UtXq5iu6JQ2sfmYhzoksSLKIJMiIeRMsx07Ln3wUlM8IK7e05SX2PhwyJ+ViPGD7yBSVmNTHiLhOXHzcEhBs9zUvNYY3GDbeGc+umJ41yeC6c13nFurMbfc7wcJbKv80PR0PVQNQZQFE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=qJgaBubD; arc=none smtp.client-ip=217.140.110.172
+	s=arc-20240116; t=1785790026; c=relaxed/simple;
+	bh=bNN8afaKkSQsGb5zYeGHzmvS3ZkKTxnVHtHplVnUiCE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=HNwaIJ+cLW6XworhFFNBOTSLzFuU/KVhPj/BjgGYZMa7QbicvOgQM8KbEyz3ZPvLSB+tqVi6nPvQSlctjkFPvjhb3gTVNd8XqPfnIfYtO1fvyqGpznJQKGfgrPcG5ev4V/jZCLACwAVl1HwTGC+AGC6wrBBysRqffKcZHVOImjs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=mJDnFVfY; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="qJgaBubD"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="mJDnFVfY"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 8A810143D;
-	Mon,  3 Aug 2026 13:35:44 -0700 (PDT)
-Received: from e127648.arm.com (unknown [10.57.0.71])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 5820B3F632;
-	Mon,  3 Aug 2026 13:35:46 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D555A143D;
+	Mon,  3 Aug 2026 13:46:58 -0700 (PDT)
+Received: from [10.57.0.71] (unknown [10.57.0.71])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id B01D33F632;
+	Mon,  3 Aug 2026 13:47:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1785789348; bh=aXEladsx7QGEQ3DSQbj0ebilCOY8ifpj9tTQIEY3teU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=qJgaBubDzKb0jZhbemu+nQGwDwwIdwQgcttDoihCtFDDNxXRxMIop239h+Pz0F9vJ
-	 pZi98sTVteMA960+GT70K4tIFbuchaco6+2e1PRw/G/+b3eKARKvVnuDVNdVbHmL6A
-	 R2jJ36PjlrO9L9zYuz1hatSW+S7NRSUnb35TuR08=
-From: Christian Loehle <christian.loehle@arm.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
-	Viresh Kumar <viresh.kumar@linaro.org>
-Cc: linux-pm@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Len Brown <lenb@kernel.org>,
-	Jie Zhan <zhanjie9@hisilicon.com>,
-	Lifeng Zheng <zhenglifeng1@huawei.com>,
-	Pierre Gondois <pierre.gondois@arm.com>,
-	Sumit Gupta <sumitg@nvidia.com>,
-	Sudeep Holla <sudeep.holla@arm.com>,
-	Ionela Voinescu <ionela.voinescu@arm.com>,
-	zhongqiu.han@oss.qualcomm.com,
-	Christian Loehle <christian.loehle@arm.com>
-Subject: [PATCH 3/3] ACPI: CPPC: Stop reading desired_perf in cppc_get_perf()
-Date: Mon,  3 Aug 2026 21:35:31 +0100
-Message-Id: <20260803203531.1268651-4-christian.loehle@arm.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260803203531.1268651-1-christian.loehle@arm.com>
-References: <20260803203531.1268651-1-christian.loehle@arm.com>
+	t=1785790022; bh=bNN8afaKkSQsGb5zYeGHzmvS3ZkKTxnVHtHplVnUiCE=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=mJDnFVfY46QrhnTB82KrqN7s3c0kDDVm5+5DR1Igz73B6HqsAJxeqhf6uE5oKW03i
+	 T9qLGDmcteYcPjhIhJupiIFJvKO/4ebPTvED8szwyA6k3FDKGQ+ZlbXFC4yzIEWlAe
+	 vKKOhWbAs2kJSXG18ffuniRNLIRc1dRqlF+3CEUk=
+Message-ID: <e672b3f1-1a43-4f20-a02c-384b283883c9@arm.com>
+Date: Mon, 3 Aug 2026 21:46:58 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 0/3] ACPI: CPPC: Reduce .target() callback overhead
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, linux-pm@vger.kernel.org,
+ linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+ Jie Zhan <zhanjie9@hisilicon.com>, Lifeng Zheng <zhenglifeng1@huawei.com>,
+ Pierre Gondois <pierre.gondois@arm.com>, Sumit Gupta <sumitg@nvidia.com>,
+ Sudeep Holla <sudeep.holla@arm.com>,
+ Ionela Voinescu <ionela.voinescu@arm.com>,
+ Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
+References: <20260724134251.1632824-1-christian.loehle@arm.com>
+ <033eb158-936a-4f79-a134-80402fb018e8@arm.com>
+ <CAJZ5v0jFvXKTO7MnC5GHYo85E6NwXQUXRDmmkq1i9BtSbQueAg@mail.gmail.com>
+Content-Language: en-US
+From: Christian Loehle <christian.loehle@arm.com>
+In-Reply-To: <CAJZ5v0jFvXKTO7MnC5GHYo85E6NwXQUXRDmmkq1i9BtSbQueAg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-cppc_get_perf() has one in-tree caller, cppc_cpufreq_get_cpu_data().
-It uses the function to preserve existing controls before writing them, but
-overwrites desired_perf with highest_perf before the first cppc_set_perf().
-Consequently, the current Desired Performance value is not consumed.
+On 8/3/26 15:54, Rafael J. Wysocki (Intel) wrote:
+> On Mon, Aug 3, 2026 at 4:07 PM Christian Loehle
+> <christian.loehle@arm.com> wrote:
+>>
+>> On 7/24/26 14:42, Christian Loehle wrote:
+>>> cppc-cpufreq reaches cppc_set_perf() from every target callback.  For
+>>> direct SystemMemory controls, that path currently does several steps
+>>> which are unnecessary once the immutable _CPC layout is known:
+>>>
+>>>   - a full-width write first reads the access unit and merges the value.
+>>>   - every write takes the descriptor's RMW lock, even when its access unit
+>>>     is not shared with another _CPC entry.
+>>>   - cppc_set_perf() evaluates the same three PCC predicates at each phase
+>>>     of the transaction.
+>>>
+>>> Remove those costs while retaining the existing conservative paths for
+>>> partial fields, overlapping or malformed access units, and PCC controls.
+>>>
+>>> The series was tested on Arm Power-Orion O6 and AmpereOne systems using
+>>> cppc-cpufreq and schedutil.  An rt-app task pinned to one CPU ran for
+>>> 500 us every 2 ms with uclamp.min=512, for 5000 periods per run.  schedutil
+>>> rate_limit_us was 1000.  cppc_cpufreq_fast_switch() latency was measured
+>>> for 100 ten-second runs.  Each sample is the mean callback latency within
+>>> one run, and the table reports the median and sample standard deviation
+>>> of those samples.
+>>>
+>>> Orion O6               median       stdev       callbacks
+>>> baseline               5703 ns      307 ns       188017
+>>> complete series        5023 ns      240 ns       188209
+>>> ==> 680 ns (11.9%) reduction
+>>>
+>>> AmpereOne              median       stdev
+>>> baseline               2090 ns      157 ns
+>>> complete series      1907.5 ns      140 ns
+>>> ==> 182.5 ns (8.7%) reduction
+>>>
+>>> The cumulative intermediate results on the Orion O6 attribute roughly half
+>>> of the gain to each of the first two patches: avoiding the read reduced
+>>> the median by 284 ns (5.0%), and avoiding the lock reduced it by another
+>>> 336 ns (6.2%).
+>>> Together they account for 620 ns of the 680 ns total reduction.
+>>>
+>>> With the same arm64 configuration and GCC 11.4, caching the PCC predicate
+>>> also reduces cppc_set_perf() from 1124 to 884 bytes.  The generated
+>>> function has 60 fewer instructions, 17 fewer loads and 20 fewer branches.
+>>>
+>>> This series is based on the CPPC fixes posted at (already queued):
+>>> https://lore.kernel.org/lkml/20260722093825.1030594-1-christian.loehle@arm.com/
+>>>
+>>> and the separately posted fix still under review:
+>>> https://lore.kernel.org/lkml/20260724104042.1481804-1-christian.loehle@arm.com/
+>>>
+>>> PS:
+>>> There's a final optimization that I actually wanted to make but decided to
+>>> split it out for now as it somewhat replicated Sumit's series:
+>>> Skipping redundant perf ctrl writes in cpufreq-cppc if registers are non-PCC
+>>> and !shared (because the values are unchanged, the
+>>> !autonomous-common-case), but that requires the driver to have a more
+>>> complex caching- and atomic-updating machinery in place, similar to
+>>> hotplug. As opposed to this series the optimization would be for the
+>>> microcontroller handling the CPPC requests, which may be shared across
+>>> many CPUs and therefore redundant requests can increase the dvfs
+>>> transition latency.
+>>> That patch will follow once Sumit's is queued:
+>>> https://lore.kernel.org/lkml/20260716153820.2007095-1-sumitg@nvidia.com/
+>>>
+>>> Christian Loehle (3):
+>>>   ACPI: CPPC: Avoid unnecessary reads for full-width writes
+>>>   ACPI: CPPC: Avoid locking standalone full-width registers
+>>>   ACPI: CPPC: Evaluate performance-control PCC use once
+>>>
+>>>  drivers/acpi/cppc_acpi.c | 135 +++++++++++++++++++++++++++++++--------
+>>>  include/acpi/cppc_acpi.h |   5 +-
+>>>  2 files changed, 113 insertions(+), 27 deletions(-)
+>>>
+>>>
+>>> base-commit: 1590cf0329716306e948a8fc29f1d3ee87d3989f
+>>> prerequisite-patch-id: 4c1f4063800e3658717eb77e43af13dad52d55cc
+>>> prerequisite-patch-id: 5c40d9f099543123c9b904d18ce651e740fbefb8
+>>> prerequisite-patch-id: 7202391dca8f31f9eb8f6d59fc753b3ce665e103
+>>
+>>
+>> I was about the rebase and resend this series but noticed it still applies cleanly
+>> on 7.2-rc6 + ACPI: CPPC: Avoid Desired Performance reads on ACPI 6.6+
+>> https://lore.kernel.org/all/cover.1785749175.git.christian.loehle@arm.com/
+>>
+>> Any comments on this?
+> 
+> Sashiko says that it couldn't apply this series:
+> 
+> https://sashiko.dev/#/patchset/20260724134251.1632824-1-christian.loehle%40arm.com
+> 
+> Would it apply on top of plain 7.2-rc6?  If so, can you please rebase
+> and resend it?  Or is it linux-next-only?
 
-Remove the Desired Performance read from this aggregate getter and
-document that the field is returned as zero.
+Strange, it still works for me, anything I'm missing?
+Anyway I can rebase on v7.2-rc6 and rebase, the desired_perf changes are unrelated,
+but here's my log FWIW:
 
-Reviewed-by: Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
-Signed-off-by: Christian Loehle <christian.loehle@arm.com>
+# git checkout v7.2-rc6
+# git switch -c cloehle/cppc-target-optimizations-7.2-rc6-test
+# b4 am -c -o - 20260724134251.1632824-1-christian.loehle@arm.com | git am
+Grabbing thread from lore.kernel.org/all/20260724134251.1632824-1-christian.loehle@arm.com/t.mbox.gz
+Checking for newer revisions
+Grabbing search results from lore.kernel.org
+Analyzing 6 messages in the thread
+Looking for additional code-review trailers on lore.kernel.org
+Analyzing 0 code-review messages
+Checking attestation on all messages, may take a moment...
 ---
- drivers/acpi/cppc_acpi.c | 22 +++++++---------------
- 1 file changed, 7 insertions(+), 15 deletions(-)
+  ✓ [PATCH 1/3] ACPI: CPPC: Avoid unnecessary reads for full-width writes
+  ✓ [PATCH 2/3] ACPI: CPPC: Avoid locking standalone full-width registers
+  ✓ [PATCH 3/3] ACPI: CPPC: Evaluate performance-control PCC use once
+  ---
+  ✓ Signed: DKIM/arm.com
+---
+Total patches: 3
+---
+ Link: https://lore.kernel.org/r/20260724134251.1632824-1-christian.loehle@arm.com
+ Base: using specified base-commit 1590cf0329716306e948a8fc29f1d3ee87d3989f
+       git checkout -b 20260724_christian_loehle_arm_com 1590cf0329716306e948a8fc29f1d3ee87d3989f
+Applying: ACPI: CPPC: Avoid unnecessary reads for full-width writes
+Applying: ACPI: CPPC: Avoid locking standalone full-width registers
+Applying: ACPI: CPPC: Evaluate performance-control PCC use once
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index becb7e442b30..15a1c5f00e51 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -1834,41 +1834,38 @@ EXPORT_SYMBOL_GPL(cppc_set_enable);
-  * @cpu: CPU for which to get performance controls.
-  * @perf_ctrls: ptr to cppc_perf_ctrls. See cppc_acpi.h
-  *
-+ * Desired Performance is not read and is returned as 0.
-+ *
-  * Return: 0 for success with perf_ctrls, -ERRNO otherwise.
-  */
- int cppc_get_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
- {
- 	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpu);
--	struct cpc_register_resource *desired_perf_reg,
--				     *min_perf_reg, *max_perf_reg,
-+	struct cpc_register_resource *min_perf_reg, *max_perf_reg,
- 				     *energy_perf_reg, *auto_sel_reg;
--	u64 desired_perf = 0, min = 0, max = 0, energy_perf = 0, auto_sel = 0;
-+	u64 min = 0, max = 0, energy_perf = 0, auto_sel = 0;
- 	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu);
- 	struct cppc_pcc_data *pcc_ss_data = NULL;
--	bool read_desired_perf;
- 	int ret = 0, regs_in_pcc = 0;
- 
- 	if (!cpc_desc) {
- 		pr_debug("No CPC descriptor for CPU:%d\n", cpu);
- 		return -ENODEV;
- 	}
--	read_desired_perf = cppc_desired_perf_readable(cpc_desc);
- 
- 	if (!perf_ctrls) {
- 		pr_debug("Invalid perf_ctrls pointer\n");
- 		return -EINVAL;
- 	}
- 
--	desired_perf_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
- 	min_perf_reg = &cpc_desc->cpc_regs[MIN_PERF];
- 	max_perf_reg = &cpc_desc->cpc_regs[MAX_PERF];
- 	energy_perf_reg = &cpc_desc->cpc_regs[ENERGY_PERF];
- 	auto_sel_reg = &cpc_desc->cpc_regs[AUTO_SEL_ENABLE];
- 
- 	/* Are any of the regs PCC ?*/
--	if ((read_desired_perf && CPC_IN_PCC(desired_perf_reg)) ||
--	    CPC_IN_PCC(min_perf_reg) ||
--	    CPC_IN_PCC(max_perf_reg) || CPC_IN_PCC(energy_perf_reg) ||
-+	if (CPC_IN_PCC(min_perf_reg) || CPC_IN_PCC(max_perf_reg) ||
-+	    CPC_IN_PCC(energy_perf_reg) ||
- 	    CPC_IN_PCC(auto_sel_reg)) {
- 		if (pcc_ss_id < 0) {
- 			pr_debug("Invalid pcc_ss_id for CPU:%d\n", cpu);
-@@ -1899,12 +1896,7 @@ int cppc_get_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
- 	}
- 	perf_ctrls->min_perf = min;
- 
--	if (read_desired_perf && CPC_SUPPORTED(desired_perf_reg)) {
--		ret = cpc_read(cpu, desired_perf_reg, &desired_perf);
--		if (ret)
--			goto out_err;
--	}
--	perf_ctrls->desired_perf = desired_perf;
-+	perf_ctrls->desired_perf = 0;
- 
- 	if (CPC_SUPPORTED(energy_perf_reg)) {
- 		ret = cpc_read(cpu, energy_perf_reg, &energy_perf);
--- 
-2.34.1
+# git log --oneline
+86f53dfeddb6 (HEAD -> cloehle/cppc-target-optimizations-7.2-rc6-test) ACPI: CPPC: Evaluate performance-control PCC use once
+61378f475006 ACPI: CPPC: Avoid locking standalone full-width registers
+0c5b12480412 ACPI: CPPC: Avoid unnecessary reads for full-width writes
+075b74841bd0 (tag: v7.2-rc6, origin/master, origin/HEAD) Linux 7.2-rc6
 
