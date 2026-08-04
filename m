@@ -1,150 +1,252 @@
-Received: from canpmsgout01.his.huawei.com (canpmsgout01.his.huawei.com [113.46.200.216])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A3A345DF5C;
-	Tue,  4 Aug 2026 08:52:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.216
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D241C429CF2
+	for <linux-acpi@vger.kernel.org>; Tue,  4 Aug 2026 08:56:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785833577; cv=none; b=HjL7Lce1q3qA33GUITq1G/TnlD0j3T5T3AMVPlnjW5srrq9xArWIRp++bofda5azyUqZp/rMurE9NyoJsgIrYeFiXQ/eXGaT4h9u8OUZ6Pqkfty9Wudb1/42QxzXIaMAg8Oq0fkuoNUGi0aJD/Sxx7x661D7T2urGDpf8cv3LJU=
+	t=1785833816; cv=none; b=Ml4R+nnMa8ibaPs1E3dGPW9gx7dtTdCcVA1ulZHIWhTzzigHXz6zTU111hw2mJp4doHubsPu9eSmkEYM0ElDiTJZ4JOF+fyQDu7H+c11aBWNUTExF1Xsfnn1bMBJDI+jjQWESYnweWy5l2z//WEKHoMYgdDhCD+ZayNrhOavRiE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785833577; c=relaxed/simple;
-	bh=lbfyjpQGikg2fwlU4B1wBMNg9ioxsQXwBSGp1X0dAaI=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=kBPENcR9j56zLCyayWFkS0hvr4QXQlAlmTaQRLeTvAXrBTbv5MgV2vCpBL6xORm11LXES+R1zpjecDQZpIUitxcg4JMASu7LtmbM6257tXOCjZKXqfBtdYft+2crwooKmU4ntwm/3iFXR7fukEMEFnhpv0s2zNKNKvwq4/3KxlI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=GbqsxbM8; arc=none smtp.client-ip=113.46.200.216
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1785833816; c=relaxed/simple;
+	bh=h6wQ/gBgYU8sEnHG7gKIOXfVVIysv10bJ53XQ7jVs+U=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=CdWO6V0iEXC8/2g8ePZl79IMFVjYMNLPtSSq5oEpzxYb72dDcYTo9VWhqOMC7hB0QzAnrlpKxuSps45mbujEMy257rrCEsxA1Qtpu24w8WwOoGFqISzsqlt89FcGwm3G+nJwWMYS40pNVT+WERSOoybTjXpqr1K1xBoNwW4nvfM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=aQD1prZ0; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=qa+FYKMs; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="GbqsxbM8"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=qnmIKmDtED1A4RTC75yukztLHMsK8E6I1/QPQ2SMS0E=;
-	b=GbqsxbM8b3I296YHsDAavRcC/UE3BLAJ2lZwoBykqlaB9MUuxtL2WddV/Gfg7n/1f1HYLaUXV
-	niWpCvvp+wJzWf+AoiYkTb2UR3Zf/tSolUNqs/gSf6QUtxzehF+losN5MQSLFAJRljZdNvjTeo0
-	exwJT6y5jHB1LO/SGHOYr9A=
-Received: from mail.maildlp.com (unknown [172.19.163.104])
-	by canpmsgout01.his.huawei.com (SkyGuard) with ESMTPS id 4hDnB13bqKz1T4Lb;
-	Tue,  4 Aug 2026 16:43:05 +0800 (CST)
-Received: from kwepemf100001.china.huawei.com (unknown [7.202.181.215])
-	by mail.maildlp.com (Postfix) with ESMTPS id 7ABEC4057F;
-	Tue,  4 Aug 2026 16:52:44 +0800 (CST)
-Received: from localhost.localdomain (10.50.163.32) by
- kwepemf100001.china.huawei.com (7.202.181.215) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Tue, 4 Aug 2026 16:52:43 +0800
-From: Lifeng Zheng <zhenglifeng1@huawei.com>
-To: <rafael@kernel.org>, <viresh.kumar@linaro.org>, <saket.dumbre@intel.com>,
-	<lenb@kernel.org>, <zhanjie9@hisilicon.com>, <pierre.gondois@arm.com>,
-	<sumitg@nvidia.com>
-CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-pm@vger.kernel.org>, <acpica-devel@lists.linux.dev>,
-	<linuxarm@huawei.com>, <lihuisong@huawei.com>, <yubowen8@huawei.com>,
-	<zhangpengjie2@huawei.com>, <wangzhi12@huawei.com>,
-	<linhongye@h-partners.com>, <zhenglifeng1@huawei.com>
-Subject: [PATCH v2 5/8] ACPI: CPPC: Store optional flag in cpc_register_resource
-Date: Tue, 4 Aug 2026 16:50:39 +0800
-Message-ID: <20260804085042.4118193-6-zhenglifeng1@huawei.com>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20260804085042.4118193-1-zhenglifeng1@huawei.com>
-References: <20260804085042.4118193-1-zhenglifeng1@huawei.com>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="aQD1prZ0";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="qa+FYKMs"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1785833812;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=oHMZ+hX0V0vr0a9Nft0AKjYbaEjQK6WSHNPIE5IxYn0=;
+	b=aQD1prZ0/iwJo1Rx0E/nCx0O1b+TuXXTw5Y8yVtLOUIpkvjSQo0xdV7C+VO+YBWVqYTDaO
+	/ZV9K7+DQmKdhQZVnyeOsxwGkssW6dNkeGvhiQPA11rQz5Qi+9I4JPnDzgdCumzZ4JFqrC
+	dL6QZ5eNt+yiZ9LURWkIj7VMKwsvEIc=
+Received: from mail-pl1-f199.google.com (mail-pl1-f199.google.com
+ [209.85.214.199]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-193-XCNK7NXqNZ-TDT19B7__Ow-1; Tue, 04 Aug 2026 04:56:51 -0400
+X-MC-Unique: XCNK7NXqNZ-TDT19B7__Ow-1
+X-Mimecast-MFC-AGG-ID: XCNK7NXqNZ-TDT19B7__Ow_1785833811
+Received: by mail-pl1-f199.google.com with SMTP id d9443c01a7336-2cfc52ddc55so58447255ad.3
+        for <linux-acpi@vger.kernel.org>; Tue, 04 Aug 2026 01:56:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=redhat.com; s=google; t=1785833810; x=1786438610; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=oHMZ+hX0V0vr0a9Nft0AKjYbaEjQK6WSHNPIE5IxYn0=;
+        b=qa+FYKMs94Wz7+hHqk/fs7+A/V4aOA/BLKLnK12ZMXvgNYOz+dL+yW0FQmRZuOkGSl
+         pNKkcmNrOYHqNfx56VxEBZxSvMwZ5sy1/CyC47ar364fCIPlVnLJi8R3RzgUVxdksQJo
+         eFM+oLo0BtUUXRkB+sCiY7rGZgxJH5v9oFUI0Wnl2VOWOtY8zP+bpmezrOMOjRMkwZmF
+         /oWKq01ZRZUptJUH+TQi+WYu2oF93QwwK1D7OVR+uIbkbC3WXAJS5LPHBNfoyHrwK7DV
+         Z4/cvKXTRQqSz7RjbWwSRfnDA5cRz4z2pQXTbTlFPXLiTCF466HINmCglxbnLjYFfBjh
+         9N5A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785833810; x=1786438610;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=oHMZ+hX0V0vr0a9Nft0AKjYbaEjQK6WSHNPIE5IxYn0=;
+        b=lQOIZvUumEOWetvQv9B1tk84/56MzbFyr5zI1/dYXVJNpU0Pe25cVwumY6IpZ6h8Yw
+         1/vxdkZb9nVVTu9NSvEVnYH+5bE9EOKpawJDC4x6YmgVOv+xvtSvIulG40c33i856yGz
+         dM7lp6NEwXLJxS6A85oTMAA/wjsX3h/oqFYzJIFcdB9Z7xGpRF+3uJ0Mwpxw+ziy3pBq
+         pK5qa6gypNbctxyLg1oVXxKnEyYtvRdR2x0u7ZPADZe+6TOk9fqcM6EFiQnjA0NA39MV
+         Y8S4a+zgKYKb18vn8Zzn4CDHsj8OObVPZrBIG005c3bB0zmOlL0vFP9nAhmIGyAloybg
+         U5sg==
+X-Forwarded-Encrypted: i=1; AHgh+Rqjj/YitdUmLpJMTMFqhE0zBPUtWssB/h6OxWAkKrnCM4F8KH92N79p3nAXE7XbH9pdrjrGkZ7kVePI@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx2QjEZpHc/GzcNi9n8hujxDoCEpTJ9OTNkG6Ldw0JY49dzsAby
+	AtHtHSS6RLso/qMneXtAYEHFL4g2T9WXBr3ris2cyRaiVPuiW1DyoiHWLeYrOqIrjqGxHjgIelJ
+	HKs7pd8uFtszcdLuEWV6KnYfXQoZXHxQz18tUi3E0xqYUE4/JqAP8r7KxVVhgsVM=
+X-Gm-Gg: AR+sD12d+3t8i4ZxO/1lNdnZ3lXvQ895eCYBIVI/iMc5EyNfexwkkRYEJdCT1eGSRpJ
+	2p0LwZlkPR+sl7nSTKB6dhI7QjOXX4OK9tpd5r1Aa85AjQXFQ/sFeSm3wivRrbtb4dBK5+mrzmJ
+	WdTlGJjx/V1SsN8BQ6/olid+9egy4CiCkar3i9L8i9vzt9CVIqIIc5F2wcf5WxuSk9kxno00jDx
+	uBgR/eBNwWOljLNbfnmmt2OW7/7val7JVMq1K3lp6moBTcH84NqMs/PMu5hcjDYPcUjGuXFoPuR
+	bfzGwFfpcQilHtxSP9ukUBKTY2BCv5tZFF8K6fb0zdnAltgXjHBjMVZJLKWu8lu4Y4oHIvNNevu
+	ISvpnctUQN68kUjSslW54z3P9/0GIDhfQ1hEXlECMi6Y=
+X-Received: by 2002:a17:902:d48f:b0:2ca:bf8e:35fe with SMTP id d9443c01a7336-2d0521e2704mr122370795ad.16.1785833810472;
+        Tue, 04 Aug 2026 01:56:50 -0700 (PDT)
+X-Received: by 2002:a17:902:d48f:b0:2ca:bf8e:35fe with SMTP id d9443c01a7336-2d0521e2704mr122370395ad.16.1785833809903;
+        Tue, 04 Aug 2026 01:56:49 -0700 (PDT)
+Received: from [192.168.68.51] (n175-34-8-244.mrk21.qld.optusnet.com.au. [175.34.8.244])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d0aa4d9b86sm2899145ad.76.2026.08.04.01.56.40
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 04 Aug 2026 01:56:49 -0700 (PDT)
+Message-ID: <8a5e291f-f547-4dad-8a90-1ebb1511a280@redhat.com>
+Date: Tue, 4 Aug 2026 18:56:37 +1000
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v7 00/11] arm_mpam: Add MPAM-Fb firmware support
+To: Andre Przywara <andre.przywara@arm.com>,
+ Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
+ <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+ Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+ Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+ Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
+ Niyas Sait <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
+ Ritwick Sharma <ritwick.sharma@arm.com>, linux-acpi@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20260731170324.2927758-1-andre.przywara@arm.com>
+ <6f8bc358-91a0-4c44-9110-c071e10df385@redhat.com>
+ <afb75484-2739-4b75-a164-dd90433c7179@arm.com>
+Content-Language: en-US
+From: Gavin Shan <gshan@redhat.com>
+In-Reply-To: <afb75484-2739-4b75-a164-dd90433c7179@arm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemf100001.china.huawei.com (7.202.181.215)
 
-The current optionality check uses a compile-time bitmask (REG_OPTIONAL)
-applied at call sites via IS_OPTIONAL_CPC_REG(reg_idx).  This requires
-every caller to know the register index, which will not work for registers
-accessed without a fixed index (e.g. entries inside Resource Priority
-sub-packages).
+Hi Andre,
 
-Add a boolean 'optional' field to cpc_register_resource so that each
-register element carries its own optionality.  Populate the field during
-_CPC probe (for main registers) and parse_priority_regs() (for Resource
-Priority sub-packages), using the existing REG_OPTIONAL and
-RES_PRIO_OPTIONAL bitmasks respectively.
+On 8/4/26 6:50 PM, Andre Przywara wrote:
+> Hi Gavin,
+> 
+> many thanks for the review and the testing!
+> 
+> ...
+> 
+> On 8/4/26 05:29, Gavin Shan wrote:
+>> On 8/1/26 3:03 AM, Andre Przywara wrote:
+>>> v7 is another quick respin of the MPAM-Fb code, for firmware based MSC
+>>> accesses. This propagates MSC access errors in a function where it was
+>>> missing before, covering more functions that pass their return value
+>>> to userspace (new patch 07/11). Also some bug fixes, formatting
+>>> adjustments and adding the accumulated tags - many thanks to the
+>>> reviewers. Find the changelog below. Based on v7.2-rc1.
+>>>
+>>> =======================
+>>> The Arm MPAM specification defines Memory System Components (MSCs),
+>>> which are devices that are programmed through an MMIO register frame. In
+>>> some occasions this turned out to be too limiting: the MSC might be
+>>> located behind a separate bus system (for instance inside an on-board
+>>> controller), it might be mapped secure-only, or in a different processor
+>>> socket without direct MMIO mapping. Also the MMIO access might be too slow
+>>> or it would need to be filtered or otherwise access controlled. Finally
+>>> there might be bugs in the MSC integration, which require a mediating
+>>> firmware to be accessible.
+>>>
+>>> To accommodate all those different use cases, the MPAM-Fb specification
+>>> [1] describes an alternative way to access MSCs. Accesses to an MSC
+>>> would be wrapped in a message and communicated to the system using a
+>>> shared-memory/mailbox system mostly mimicking the Arm SCMI spec.
+>>> For ACPI systems, this would be abstracted through an ACPI PCC channel,
+>>> which provides the shared-memory region and the mailbox trigger. We can
+>>> lean on existing ACPI parsing code to register with these two
+>>> subsystems, but cannot rely on the existing SCMI code in the kernel.
+>>> This means we somewhat need to open code a very simplified SCMI handler,
+>>> which just provides enough functionality for the very basic subset of
+>>> SCMI that the MPAM-Fb spec requires.
+>>>
+>>> The first seven patches rework all MSC access wrappers to propagate error
+>>> information. Pure MMIO based MSC accesses would never fail, but the
+>>> MPAM-Fb access can go wrong in multiple ways. The patches have been split
+>>> up purely for reviewing reasons, if the number is a problem, we could as
+>>> well squash them. Please note that until the very last patch of this series
+>>> any MSC accesses would always only return 0, it's only the final enablement
+>>> of MPAM-Fb that could possibly introduce errors. Hence all former patches
+>>> can add error handling gradually, those code paths wouldn't be triggered
+>>> before patch 11/11.
+>>> Patch 8/11 solves a nasty problem: At the moment we protect stateful MSC
+>>> register accesses (mon_sel) through a spinlock. Unfortunately the mailbox
+>>> subsystem and the slow nature of the communication through this channel
+>>> forbid MPAM-Fb access in atomic context. So this patch keeps using a
+>>> spinlock for MMIO based accesses, but reverts to a mutex otherwise.
+>>> We just deny taking the lock for MPAM-Fb in atomic context, ideally we
+>>> wouldn't need that (no need to IPI another core when the MSC access does
+>>> not need to be local to one particular core), or we simply deny that part
+>>> of the functionality (access through perf).
+>>> Patch 9/11 adds the code to redirect MSC accesses through the
+>>> PCC shmem/mailbox system.
+>>> Patch 10/11 reworks the error interrupt handler to use a threaded IRQ for
+>>> MPAM-Fb, to be able to do MPAM-Fb MSC accesses inside (which might sleep).
+>>> The final patch 11/11 then adds the code to detect and store the PCC
+>>> channel information from the ACPI tables, and eventually enables
+>>> MPAM-Fb accesses.
+>>>
+>>> This would enable systems where some MSCs are not accessible via MMIO to
+>>> use those components anyway.
+>>>
+>>> Please have a look and test!
+>>>
+>>> Cheers,
+>>> Andre
+>>>
+>>> [1] https://developer.arm.com/documentation/den0144/latest
+>>>
+>>> Changes in v7:
+>>> - add tags
+>>> - add new patch to propagate errors in mpam_reprogram_ris_partid()
+>>> - prevent loop when mpam_diable() tries MSC accesses again
+>>> - register MMIO error IRQ handler without IRQF_ONESHOT
+>>> - re-use existing "err" variable instead of declaring "ret"
+>>> - initialise mon_sel_lock later, to wait for interface decision
+>>> - convert timeout units for nominal latency, between us and ms
+>>
+>> [...]
+>>
+>>>
+>>> Andre Przywara (11):
+>>>    arm_mpam: let low level MSC accessors return an error
+>>>    arm_mpam: propagate MSC access errors for hw_probe functions
+>>>    arm_mpam: propagate MSC access errors for MBWU counters
+>>>    arm_mpam: propagate MSC access errors for msmon helpers
+>>>    arm_mpam: propagate MSC access errors for __ris_msmon_read()
+>>>    arm_mpam: propagate MSC access errors for state saving function
+>>>    arm_mpam: propagate MSC access errors for mpam_reprogram_ris_partid()
+>>>    arm_mpam: prepare mon_sel locking for MPAM-Fb
+>>>    arm_mpam: add MPAM-Fb MSC firmware access support
+>>>    arm_mpam: change MPAM-Fb error IRQ to use a threaded IRQ handler
+>>>    arm_mpam: detect and enable MPAM-Fb PCC support
+>>>
+>>>   drivers/resctrl/Makefile        |   2 +-
+>>>   drivers/resctrl/mpam_devices.c  | 820 +++++++++++++++++++++++---------
+>>>   drivers/resctrl/mpam_fb.c       | 250 ++++++++++
+>>>   drivers/resctrl/mpam_internal.h |  62 ++-
+>>>   include/linux/arm_mpam.h        |   2 +-
+>>>   5 files changed, 915 insertions(+), 221 deletions(-)
+>>>   create mode 100644 drivers/resctrl/mpam_fb.c
+>>>
+>>
+>> With this series (manually) applied to v7.2.rc6, the tests for the existing functions
+>> like kunit-tests, L3 cache partitioning, MBW (soft) limiting, llc_occupancy monitor
+>> look fine on NVidia's grace-hopper machine.
+> 
+> Awesome, many thanks for doing that!
+> 
 
-Replace the IS_OPTIONAL_CPC_REG() check in cppc_get_reg_val() with a
-direct test of reg->optional, and remove the IS_OPTIONAL_CPC_REG() macro.
+Glad to give it a try :-)
 
-Signed-off-by: Lifeng Zheng <zhenglifeng1@huawei.com>
----
- drivers/acpi/cppc_acpi.c | 13 ++++++++-----
- include/acpi/cppc_acpi.h |  1 +
- 2 files changed, 9 insertions(+), 5 deletions(-)
+>> Tested-by: Gavin Shan <gshan@redhat.com>
+> 
+> I'd assume this is a regression test, as your machine uses the standard MMIO interface?
+> If you don't mind, I'd put this tag on the first refactoring patches, so 01/11 - 08/11, and leave out the remaining 3, as they are about MPAM-Fb, which wasn't really tested, I guess? Also patch 10/11 (the error IRQ changes) changed, so I would drop all tags from this anyway.
+> 
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index fde51823e938..3b35c757a789 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -137,11 +137,11 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
- #define REG_OPTIONAL (0x7FC7D0)
- 
- /*
-- * Use the index of the register in per-cpu cpc_regs[] to check if
-- * it's an optional one.
-+ * Each bit indicates the optionality of the register in resource
-+ * priority register descriptor with the corresponding index. 0 means
-+ * mandatory and 1 means optional.
-  */
--#define IS_OPTIONAL_CPC_REG(reg_idx) (REG_OPTIONAL & (1U << (reg_idx)))
--
-+#define RES_PRIO_OPTIONAL (0x6)
- /*
-  * Arbitrary Retries in case the remote processor is slow to respond
-  * to PCC commands. Keeping it high enough to cover emulators where
-@@ -844,6 +844,7 @@ static int parse_priority_regs(union acpi_object *cpc_obj,
- 
- 		reg_elements[0].type = ACPI_TYPE_PACKAGE;
- 		reg_elements[0].cpc_entry.package.count = resources_count;
-+		reg_elements[0].optional = RES_PRIO_OPTIONAL & 1U;
- 
- 		for (j = 0; j < reg_elements[0].cpc_entry.package.count; j++) {
- 			reg_elements[0].cpc_entry.package.elements[j].type = ACPI_TYPE_INTEGER;
-@@ -852,6 +853,7 @@ static int parse_priority_regs(union acpi_object *cpc_obj,
- 		}
- 
- 		for (j = 1; j < RESOURCE_PRIORITY_NUM; j++) {
-+			reg_elements[j].optional = RES_PRIO_OPTIONAL & (1U << j);
- 			ret = parse_cpc_element(&reg_desc_obj.package.elements[j], &reg_elements[j],
- 						pcc_subspace_id, cpu, RESOURCE_PRIORITY);
- 			if (ret)
-@@ -990,6 +992,7 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
- 	/* Iterate through remaining entries in _CPC */
- 	for (i = 2; i < num_ent; i++) {
- 		cpc_obj = &out_obj->package.elements[i];
-+		cpc_ptr->cpc_regs[i-2].optional = REG_OPTIONAL & (1U << (i-2));
- 
- 		/*
- 		 * Package-type entries are used for nested structures such as
-@@ -1409,7 +1412,7 @@ static int cppc_get_reg_val(int cpu, enum cppc_regs reg_idx, u64 *val)
- 
- 	reg = &cpc_desc->cpc_regs[reg_idx];
- 
--	if ((reg->type == ACPI_TYPE_INTEGER && IS_OPTIONAL_CPC_REG(reg_idx) &&
-+	if ((reg->type == ACPI_TYPE_INTEGER && reg->optional &&
- 	     !reg->cpc_entry.int_value) || (reg->type != ACPI_TYPE_INTEGER &&
- 	     IS_NULL_REG(&reg->cpc_entry.reg))) {
- 		pr_debug("CPC register is not supported\n");
-diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index 19f8a722654b..c0b8d52016cd 100644
---- a/include/acpi/cppc_acpi.h
-+++ b/include/acpi/cppc_acpi.h
-@@ -80,6 +80,7 @@ struct cpc_register_resource {
- 			struct cpc_register_resource *elements;
- 		} package;
- 	} cpc_entry;
-+	bool optional;
- };
- 
- /* Container to hold the CPC details for each CPU */
--- 
-2.33.0
+Yes, it's a regression test. My Tested-by tag are only applied to 01/11 - 08/11.
+I don't have a machine where MPAM-fb is available to test 09/11 - 11/11.
+
+Thanks,
+Gavin
+
+> Cheers,
+> Andre
+> 
+
+
 
