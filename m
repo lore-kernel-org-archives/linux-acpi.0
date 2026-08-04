@@ -1,55 +1,55 @@
-Received: from out203-205-221-164.mail.qq.com (out203-205-221-164.mail.qq.com [203.205.221.164])
+Received: from out203-205-221-242.mail.qq.com (out203-205-221-242.mail.qq.com [203.205.221.242])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D67B13D891
-	for <linux-acpi@vger.kernel.org>; Tue,  4 Aug 2026 02:03:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.205.221.164
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58FAF27876A
+	for <linux-acpi@vger.kernel.org>; Tue,  4 Aug 2026 02:07:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.205.221.242
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785809000; cv=none; b=KiVaxArrjPSZicP17ymC+w1f7hW6lI6nZZtjcORK6ZNDBRKQCcrqzxt9W4QzXFsJpvR7xvgC/05KZQFK2Hd9YkqVH5ZHLkKivfSDGrDQbhx++PGcV3HulVsIx4umR2LHMvAV4dT6tgDJLEqdsGsj3KMLKEahUuPasGdHAicqDu8=
+	t=1785809247; cv=none; b=D7qDdb7OKChHvbzLNKNbAAg1tCk6A622LIdtv6iuXMWPf34rZieUoA0Eh+jJ13nQS/RcU8mwDu+/bBE638OD2iqwMcrkLCsnr938Ti57kPlURSkhmmERLJAnitu0X3+9azXVJv1bqgQpD5ent1kFT04m8i6OiscWGnvXuFjjNCM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785809000; c=relaxed/simple;
+	s=arc-20240116; t=1785809247; c=relaxed/simple;
 	bh=pZfKd+assU3VL24yWogzRGRbmX1jkyrlbRU5ScQsWXs=;
-	h=Message-ID:From:To:Cc:Subject:Date:MIME-Version; b=Q48p4nj2hdIt3Zn+m3IaN4vtRUh+mD55fTxESkdkHE471mXVXrZUUSR/s3x7v8qt3dMu+Osibj62GVpDiO4InJdz47ZJb9R6NSVZVdqbrGjyRN55Rz/xYQ8PVg9uodo4ikK3o5C79d3/q93RYokqU2TdnmcwxEkd1tZ6knQiWOA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com; spf=pass smtp.mailfrom=qq.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=Xh2tkzh6; arc=none smtp.client-ip=203.205.221.164
+	h=Message-ID:From:To:Cc:Subject:Date:MIME-Version; b=RyWGJUsBsIzJVXYRRBOuHNQ9DDpMSI763+nivC6hOwKHM+QvjifSKwOBdfMtZdpBvncAviv6h0ueI5GNKxP9UxV/3Ws/VVxN4hOE+EyyDcvi5xtXCAKc5EsSPltX96TcGyFNyuiFGsDv+H+Pa5VvkTVSE4/RThTQ1QHIXX6qTDk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com; spf=pass smtp.mailfrom=qq.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=Lx7eLnSk; arc=none smtp.client-ip=203.205.221.242
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="Xh2tkzh6"
+	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="Lx7eLnSk"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
-	t=1785808989; bh=vYwZM+30tJSrnVZnXjBHoe/Nii0cRwvnAag3naV/C34=;
+	t=1785809233; bh=vYwZM+30tJSrnVZnXjBHoe/Nii0cRwvnAag3naV/C34=;
 	h=From:To:Cc:Subject:Date;
-	b=Xh2tkzh6RcdyIN/+zlBhaG6hqWqYiig98xTaKiQd6p8qDcEnyYcwkoGV6SxXGtcXf
-	 WQkneEsFCqCcGCXAy+vGb0QDbRjzLYKdHYoorCZr9ey43dtzqxowy+7F1ytRqxvTOK
-	 h2IgR0buMFODgdzJcFrUsmEFq6oqpDvo3MXBlR10=
+	b=Lx7eLnSkOgE8EAHOCw2OvR04ANcdH2RSssTjx01QQvgIq3pTXAYsohB1oyxtEIt/0
+	 1cEke6BDM3YFxcC7JsNcYlCeCjqFrXwUtcKOKgNE/K/Dk6OIRY/6Ehqa+FgC8xB2p3
+	 zOiDvRGuDFVtIOTwnZtgIaL7szQ3pD3cLyz85FGo=
 Received: from Xiaomi-Book-Pro-14 ([183.162.103.196])
-	by newxmesmtplogicsvrsza73-0.qq.com (NewEsmtp) with SMTP
-	id C69845F; Tue, 04 Aug 2026 10:03:06 +0800
-X-QQ-mid: xmsmtpt1785808986tdr9s6o8s
-Message-ID: <tencent_E0DC09C013F1131F80E3BD2021DAAE6DFF07@qq.com>
-X-QQ-XMAILINFO: OIJV+wUmQOUA9XFs4IhXaE8S6JuuPEn8uKZHZ4aCgEa1+Zv2TQD3cKpEnSbXZu
-	 3hZcBMTXSp9QdUTwWLxMPVw/vz6Leh/K6VlA3a0Ac16LGU7Y/RHpepTJMKL3Dh7pefh0ngoFXLrm
-	 Ng4fYNtqNotwcqyBt+nr7tHnQawoEDASkQFU0Kar6pFxLJhifDTiMXbNozY58QiS5gFYPwji4QEg
-	 91sjk03gScOhpkXpxokkDi9/LPPkIopLU1x0ivNdde5fvHCHeP3ofFgCsdqMph4uJ0H7uCJGwRNw
-	 58BX/DU+31YZJIE0epQXWatcO59RTFdP7NyLMFsDXyKcb4HqYl5BRUaQFJ83gzGE0eK4jDJ/24MV
-	 rzUI6BTuTF337yd0177cncPrMGXA4MlRTwF0/5uVNpf0WthHjCvUgEq1Hv42fgIGZu/JrGGITJHw
-	 zByqJ7vsDvQBPeqt/sFTpOZmFM/udVAbEkcauIwInudt+mI52w2A04xivk62b9Jc8yKt98mDv7hD
-	 WAIl+M0akS0qVP0Ncv9cRTiTj+ax4Ygltx4ENKV2XnEstlOzGxBR9Ma5Qwkt1QbfLNGY+KjfD40i
-	 KEERFjgriN3NGRLt0+a3BETPapRqGWOiYrCKzWfj8HUKDg3qWAo1Al/sGJovzGQwRsPGU9UGSwkE
-	 vVNxo4Dd0BC+BOwXu0HIdsrNNrtH4n7mYBQAwCHP9GuY0dVBCQRBmZz/xr9KI5PHrQCPn7z5SdO+
-	 Z2P/80xnbBW8VqiSf7fMUS6NhqimK8owf5eBq3vQVVw6Z3laI6VZ+2jus8Gzk/1iTptN+85tgwJL
-	 8z7QaubVAONh7IOo4k+Uox/0sc/6d2W/ZFGdylG9aOjNRC54DjoRNn5p9sqr+VXUc2jF8d0gM+l2
-	 h/k57Tt1uo9+/M4bjhxABK6pnXXAvS41GbA5bXVWt7kpvk+82VT4NvrWRDh8kEq/bp3qqRtP8N+p
-	 5kFXxaR2q2TXVuMJd37ZVta7jOpvDvvYOpoCZZFJFYrJAs2CIacZiOeWaX2ANhCnuneACp7V5LAU
-	 sHRLJBZJBvP8JRQKg5U6CEr25xVtc=
-X-QQ-XMRINFO: OD9hHCdaPRBwH5bRRRw8tsiH4UAatJqXfg==
+	by newxmesmtplogicsvrszc56-0.qq.com (NewEsmtp) with SMTP
+	id 1CB85821; Tue, 04 Aug 2026 10:07:11 +0800
+X-QQ-mid: xmsmtpt1785809231tuu82w7hx
+Message-ID: <tencent_E301A1C5ED7C868FC1827068ADB63D727B09@qq.com>
+X-QQ-XMAILINFO: N/WmRbclY25GN12c9ErvdTarapyjU+dkGIzPZ9euvu4uhlIdWgCmFMIAj2z079
+	 DH5XcqY7MnmV1UtnnoO42jAwoX3K3LiV9dyLBjkLkvOVv1KwqmyiAEHckTla8Obb9yekhs8ejm66
+	 4geDO8De2FlAq8+cN5bNgbplZk3iNx8frEaOGvAhmyZX8Df5wNhvWqfxNIDoOoZGx+OnFtrqfBVb
+	 dgqZkV8Vi4XkF1fHwkXfjx0CLWzwEp6vsqfjeXn6YtFNChBHJITY8KuesA7ofC8mKwVXvkGMImU2
+	 X63FHuRkdWS6n2lWpEOYB+H+cLYqFpPL3SHjkMnxRxpbKmHYWGEP5Z1DTUWB3mz7sFkm8Z9mRe9p
+	 szuBT99asB1iGGUd0t48m42D8+R1saBvaCOHgzwsP0tYgFbeIT3vcaGOjsupe0BAgfZsqId6i80p
+	 r49BK50ah5tSGjP9/k/ETbBd9sIfUbcvBmJVvHpCL9G1uTrukmv+6TdfnYQkq5u4q9PWfZ3EOJY6
+	 ZP3IL366y/AVtWinZRQR+m7BjQsWBqgmk4MV3nn+A8QcsvFnAoK3yO4A8fuhz4jXu+FL1foPMYw9
+	 U5VpcuvflDbLs/VHfeWLgd4DgP//59fMP2JH17iG1FajoI/rBFUZDVesIEG3ePFiy3VHfluhEg8M
+	 PJ912o9Eb18KYL3AAWbe09bSi9kwAbaxb6mat7nztdWczTTWpVq6fop0AOJShDyL5cN4CsHsBxaX
+	 UU3Tr8HKk70H7zXlXlmpG27tTf99Q45QQ50B+JKroxJTv8O5cwEfo8FzhJA7RuCMT9ungFWCcNcW
+	 onaQgtZ+qhnrZK68zoJ2xumyFNRM1qhId69p+3H1c+rMkIXmvQIlOyUhLCpLdqBKRvrMhMH4IyUu
+	 qTyBpe1hk2iucrU770sCxPfN9vxxz9S6G3telo4J6MPF8/8XKWc1bFSZ/BP5BQrAJ3Yzgn67Nzvg
+	 aYGc7LfudJ0ChJq0MB+n4buphzVnyEaQ/KZq8ewg4vyXBQFVLmiJG2t+IS2Vzy+/Xau8BrHfVwv9
+	 NJKmGm0SQ/2RCQ6us1BUsVws2aJ8iiptFV515KV1QcKZ/dUcoFAM1Lmipvddx39ePNg1IpV/3I8B
+	 nWLQ/FQakuEWvuPbqZnxKlpqn+Hw==
+X-QQ-XMRINFO: Mp0Kj//9VHAxzExpfF+O8yhSrljjwrznVg==
 From: frank717@qq.com
 To: srinivas.pandruvada@intel.com
 Cc: linux-intel-ish@lists.linuxfoundation.org,
-	linux-acpi@vger.kernel.org,
-	daniel.drubin@intel.com
+	linux-acpi@vger.kernel.org
 Subject: [BUG] Intel ISH (8086:E445) not working on Panther Lake - ACPI ISHD device missing _HID
-Date: Tue,  4 Aug 2026 10:03:06 +0800
-X-OQ-MSGID: <20260804020306.699456-1-frank717@qq.com>
+Date: Tue,  4 Aug 2026 10:07:11 +0800
+X-OQ-MSGID: <20260804020711.706891-1-frank717@qq.com>
 X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
