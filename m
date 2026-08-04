@@ -1,166 +1,185 @@
-Received: from out203-205-221-242.mail.qq.com (out203-205-221-242.mail.qq.com [203.205.221.242])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58FAF27876A
-	for <linux-acpi@vger.kernel.org>; Tue,  4 Aug 2026 02:07:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.205.221.242
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785809247; cv=none; b=D7qDdb7OKChHvbzLNKNbAAg1tCk6A622LIdtv6iuXMWPf34rZieUoA0Eh+jJ13nQS/RcU8mwDu+/bBE638OD2iqwMcrkLCsnr938Ti57kPlURSkhmmERLJAnitu0X3+9azXVJv1bqgQpD5ent1kFT04m8i6OiscWGnvXuFjjNCM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785809247; c=relaxed/simple;
-	bh=pZfKd+assU3VL24yWogzRGRbmX1jkyrlbRU5ScQsWXs=;
-	h=Message-ID:From:To:Cc:Subject:Date:MIME-Version; b=RyWGJUsBsIzJVXYRRBOuHNQ9DDpMSI763+nivC6hOwKHM+QvjifSKwOBdfMtZdpBvncAviv6h0ueI5GNKxP9UxV/3Ws/VVxN4hOE+EyyDcvi5xtXCAKc5EsSPltX96TcGyFNyuiFGsDv+H+Pa5VvkTVSE4/RThTQ1QHIXX6qTDk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com; spf=pass smtp.mailfrom=qq.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=Lx7eLnSk; arc=none smtp.client-ip=203.205.221.242
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8661C3EB0FA;
+	Tue,  4 Aug 2026 02:11:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.16
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785809474; cv=fail; b=FnuGqbC9JquDtDuurwFDtud12A2gMp4JriA3T6QuHaHDaM2WY4+wwJRyYADxUhfm0rBJrqgDLrSj0czuTWBVakuo+EKRTx39S8G0tRznatKeGZh48kmPQ8fD+pEA7i+pAeFvfEhWM5SK2D1JLWgo0phoP1geYKe0JFcfTtO/1Nw=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785809474; c=relaxed/simple;
+	bh=tk4LDKW6e6vbvxV8r4ny/autXT7TXiwEKAefCBwIqoM=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=Et7zQ3ZHZma1fI+Dt4ArnSv6F3H5qS5FOB1q3z3K356BLs1E0/7IdGfZIJnE2dKBI3RA4wSavSKXDpjbMKQQEIsIX55pG7K5zpQavGyGKtd3sYuKMsBuQ6LKnmhlT8711WfOciS2Waw3FLd5X6pADlBTTNx5K7dxkHkF2ufBsUA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=OqoUsPTv; arc=fail smtp.client-ip=198.175.65.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="Lx7eLnSk"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
-	t=1785809233; bh=vYwZM+30tJSrnVZnXjBHoe/Nii0cRwvnAag3naV/C34=;
-	h=From:To:Cc:Subject:Date;
-	b=Lx7eLnSkOgE8EAHOCw2OvR04ANcdH2RSssTjx01QQvgIq3pTXAYsohB1oyxtEIt/0
-	 1cEke6BDM3YFxcC7JsNcYlCeCjqFrXwUtcKOKgNE/K/Dk6OIRY/6Ehqa+FgC8xB2p3
-	 zOiDvRGuDFVtIOTwnZtgIaL7szQ3pD3cLyz85FGo=
-Received: from Xiaomi-Book-Pro-14 ([183.162.103.196])
-	by newxmesmtplogicsvrszc56-0.qq.com (NewEsmtp) with SMTP
-	id 1CB85821; Tue, 04 Aug 2026 10:07:11 +0800
-X-QQ-mid: xmsmtpt1785809231tuu82w7hx
-Message-ID: <tencent_E301A1C5ED7C868FC1827068ADB63D727B09@qq.com>
-X-QQ-XMAILINFO: N/WmRbclY25GN12c9ErvdTarapyjU+dkGIzPZ9euvu4uhlIdWgCmFMIAj2z079
-	 DH5XcqY7MnmV1UtnnoO42jAwoX3K3LiV9dyLBjkLkvOVv1KwqmyiAEHckTla8Obb9yekhs8ejm66
-	 4geDO8De2FlAq8+cN5bNgbplZk3iNx8frEaOGvAhmyZX8Df5wNhvWqfxNIDoOoZGx+OnFtrqfBVb
-	 dgqZkV8Vi4XkF1fHwkXfjx0CLWzwEp6vsqfjeXn6YtFNChBHJITY8KuesA7ofC8mKwVXvkGMImU2
-	 X63FHuRkdWS6n2lWpEOYB+H+cLYqFpPL3SHjkMnxRxpbKmHYWGEP5Z1DTUWB3mz7sFkm8Z9mRe9p
-	 szuBT99asB1iGGUd0t48m42D8+R1saBvaCOHgzwsP0tYgFbeIT3vcaGOjsupe0BAgfZsqId6i80p
-	 r49BK50ah5tSGjP9/k/ETbBd9sIfUbcvBmJVvHpCL9G1uTrukmv+6TdfnYQkq5u4q9PWfZ3EOJY6
-	 ZP3IL366y/AVtWinZRQR+m7BjQsWBqgmk4MV3nn+A8QcsvFnAoK3yO4A8fuhz4jXu+FL1foPMYw9
-	 U5VpcuvflDbLs/VHfeWLgd4DgP//59fMP2JH17iG1FajoI/rBFUZDVesIEG3ePFiy3VHfluhEg8M
-	 PJ912o9Eb18KYL3AAWbe09bSi9kwAbaxb6mat7nztdWczTTWpVq6fop0AOJShDyL5cN4CsHsBxaX
-	 UU3Tr8HKk70H7zXlXlmpG27tTf99Q45QQ50B+JKroxJTv8O5cwEfo8FzhJA7RuCMT9ungFWCcNcW
-	 onaQgtZ+qhnrZK68zoJ2xumyFNRM1qhId69p+3H1c+rMkIXmvQIlOyUhLCpLdqBKRvrMhMH4IyUu
-	 qTyBpe1hk2iucrU770sCxPfN9vxxz9S6G3telo4J6MPF8/8XKWc1bFSZ/BP5BQrAJ3Yzgn67Nzvg
-	 aYGc7LfudJ0ChJq0MB+n4buphzVnyEaQ/KZq8ewg4vyXBQFVLmiJG2t+IS2Vzy+/Xau8BrHfVwv9
-	 NJKmGm0SQ/2RCQ6us1BUsVws2aJ8iiptFV515KV1QcKZ/dUcoFAM1Lmipvddx39ePNg1IpV/3I8B
-	 nWLQ/FQakuEWvuPbqZnxKlpqn+Hw==
-X-QQ-XMRINFO: Mp0Kj//9VHAxzExpfF+O8yhSrljjwrznVg==
-From: frank717@qq.com
-To: srinivas.pandruvada@intel.com
-Cc: linux-intel-ish@lists.linuxfoundation.org,
-	linux-acpi@vger.kernel.org
-Subject: [BUG] Intel ISH (8086:E445) not working on Panther Lake - ACPI ISHD device missing _HID
-Date: Tue,  4 Aug 2026 10:07:11 +0800
-X-OQ-MSGID: <20260804020711.706891-1-frank717@qq.com>
-X-Mailer: git-send-email 2.53.0
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="OqoUsPTv"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1785809471; x=1817345471;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=tk4LDKW6e6vbvxV8r4ny/autXT7TXiwEKAefCBwIqoM=;
+  b=OqoUsPTvC+EO2oc+f5eUGqpdAOdxEvWmjLjuvEZPs2wIQgxlSH4NxZnY
+   c+sNxGNf1/29dcTJdKWgZLP7VtmpXuttObF7xnRm05QpfYU0eDB2VynvK
+   elXlafNJ8f1bs8YJxDeklGAAv8oPOzcaNj5al0VKppLKxK2mfKlBzSfe3
+   s9TLLjsL08DkUCL3C6oE3z8mf1+jwEe78+VHaXZjgDdBTDqUgj1RpBsrT
+   Hrvu6ewtJTzjb5j2Ql65ykUS+CK1UUD4XEVZjaklvSCrOIbT67p6u+lHH
+   nPoq2Uk5QnXelR9VGFVDzm48POVtRWhYJLF1o8CEHMU5H6Vupn6RM6lhD
+   g==;
+X-CSE-ConnectionGUID: 6fXxuKhNT96kAp0CRVd0sQ==
+X-CSE-MsgGUID: 3D0Ceab0TgmbUy5e73rPSg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11864"; a="86551354"
+X-IronPort-AV: E=Sophos;i="6.25,203,1779174000"; 
+   d="scan'208";a="86551354"
+Received: from orviesa001.jf.intel.com ([10.64.159.141])
+  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2026 19:11:09 -0700
+X-CSE-ConnectionGUID: TzO8+wyaTYSe1SljhyjINg==
+X-CSE-MsgGUID: cIaDqxifSSG7sFxENKHzVw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,203,1779174000"; 
+   d="scan'208";a="299601869"
+Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
+  by orviesa001.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2026 19:11:09 -0700
+Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Mon, 3 Aug 2026 19:11:08 -0700
+Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45 via Frontend Transport; Mon, 3 Aug 2026 19:11:08 -0700
+Received: from MW6PR02CU001.outbound.protection.outlook.com (52.101.48.40) by
+ edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Mon, 3 Aug 2026 19:11:08 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=xfgWB+u7EHl+KyAcDh62kZ94WMLSyA/b4IodKWX+sVzKc5o5fbCsAQhaGmR5h5OCD0d0uoW0UwghEfVSnUfV8mH+DKNo5nN1c6NHPjSeWRQRFaISooIEDEp6wKH5o02sduslCeYUawEn9rZXA3Px2lwolxMDkzt6yqkmybIbqm4bP/NpViWR5nNwhE1UyqngiFsKJ84JRamndInHAu6FludLLb+NT7N+tSFXS80oNfG+kbcx/uDdIOgvmsBcESFXHH0yrwfeXwg3Wrus9AGhBWzxqel9drpkkJtVKT9dMGS6QpvTYYW5lyGykoCvmVinAoftQCFTg8PNSd+VdrOrgg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Yeub50LLkGB/whE+Z5xnYYULnpNGyBYscjnKqa2b0GQ=;
+ b=KOTDf8uEkfOI212yuOoCH90NTcyiTiGWUmY1iPAUNznaQ12UJ5fNvSKX6u75VLWqdpiDQZIpTCocX6DPW5jS14dih8fHWpiCBVm9xHwxTO7ZU+0mRNtOqIJaT3C65qh6XhtDtoNJ+tzVHkrRr6be3bMG1v8BAwokfPIxgDM9UkKQDpkyN8N4ardQrii14zQje6etirH3JOg25XAccOd1OQT545AxAhM2vjFFvnzA8TB5n+Q4LkWZnlWGDh0YPvRaAAc5f0OxG6dse/BuYZ+O1T5FFQHcjiasflwrGsuaavGskYC4lBgsalEx/RSQ8P6zkASbYSVDxILG0zSZtCs8jw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
+ by CYXPR11MB8731.namprd11.prod.outlook.com (2603:10b6:930:db::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.270.18; Tue, 4 Aug
+ 2026 02:11:01 +0000
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::e721:90d7:9214:2d53]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::e721:90d7:9214:2d53%6]) with mapi id 15.21.0270.017; Tue, 4 Aug 2026
+ 02:11:01 +0000
+Date: Mon, 3 Aug 2026 19:10:55 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Terry Bowman <terry.bowman@amd.com>
+CC: Jonathan Cameron <jic23@kernel.org>, Dave Jiang <dave.jiang@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>, Davidlohr Bueso <dave@stgolabs.net>,
+	Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki"
+	<rafael@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
+	<linux-cxl@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, Borislav Petkov
+	<bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>, Mauro Carvalho Chehab
+	<mchehab@kernel.org>, Shuai Xue <xueshuai@linux.alibaba.com>, Len Brown
+	<lenb@kernel.org>, Ira Weiny <iweiny@kernel.org>, Li Ming
+	<ming.li@zohomail.com>, Shuah Khan <skhan@linuxfoundation.org>, Ben Cheatham
+	<Benjamin.Cheatham@amd.com>, Richard Cheng <icheng@nvidia.com>, "Robert
+ Richter" <rrichter@amd.com>, <linux-pci@vger.kernel.org>,
+	<linux-acpi@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v19 01/14] cxl/ras: Fix cxl_rch_get_aer_info()
+ out-of-bounds AER register read
+Message-ID: <anFKLwmHtWQK_pHK@aschofie-mobl2.lan>
+References: <20260803221810.3685703-1-terry.bowman@amd.com>
+ <20260803221810.3685703-2-terry.bowman@amd.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20260803221810.3685703-2-terry.bowman@amd.com>
+X-ClientProxiedBy: SJ0PR03CA0157.namprd03.prod.outlook.com
+ (2603:10b6:a03:338::12) To DS4PPF0BAC23327.namprd11.prod.outlook.com
+ (2603:10b6:f:fc02::9)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|CYXPR11MB8731:EE_
+X-MS-Office365-Filtering-Correlation-Id: 714d72e9-c39f-4d19-1f96-08def1cda12b
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|7416014|23010399003|376014|1800799024|366016|18002099003|22082099003|56012099006|4143699003|11063799006|10067099003;
+X-Microsoft-Antispam-Message-Info: BtAK+OsfKAYLNnQ/k4P4OsH9mSGg6/Q4tLbuvB1/ZydOL/jXsZnt+KMd8j6IkjXL0vVF9gQrH1giyN22B+OxaeRa/5syY5gOhPaIJOT7pvI1A1Ca28a4J9QFWRMXGeT3paHZR4XJqyvZo2BdlAikaBAktp2OieqthkDMraPVWUFfyHyXlnpxEGZlLetBkZfZDr8wOY2qAcLCYSLkohUMdJfw6xE38iGNEjV1SlOXDXZU3b63j+DCm6KqKn6O+p066+aasVWlIoTWdCMY73jY9ZC+StlE/tUTj1PD3wg4GaIb31NUhXOxNmPSSHmDQHhGpICWvHF6nsy3UMydsnHlLsUVPzCUwgh/VYEYBZD+bRIx8PMX+dDt0UZXpJs3oFDTSQHIlUjnuHQYZF872YJ56wXyViKDRJrklb+gbaf6Ugod/YXr59+o0jxnVUyzza7aSVs2ZLgj1ZLYNM3JxkfD/USq3sfvdvnmuuEB3hHfj3iu4B1pytydNmm3q6yIse3+cduA7k2xjQ2CUJxWmxvZ6D/WWwOCSec5bFiyX3ElDwmaNM9Ts+R6q/0QV+VWbgj9Y00oqFZM2IatIbs9l6RIapcWEH0bD0UHFgtkA0WCWsoC+dr9f66oyIe2hfkDxCQ+LuZLzUkNW5wvVS33ATh38aSivb8+O2AVdsU9ue4Va2w=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(23010399003)(376014)(1800799024)(366016)(18002099003)(22082099003)(56012099006)(4143699003)(11063799006)(10067099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?dXcnNpAPlifYPx8xOuSE7nnf3jSlkSz3M7QGyPtHfuu9dEdHQVhhYIAVxzzu?=
+ =?us-ascii?Q?cQXgcjo1Obju0F+ZtbXVEKwkxep0q1b50nD3DpjfRH7iZK0cat7WwrfR+XAW?=
+ =?us-ascii?Q?/WAqu07ukGZQRLATnSWNyRg88GU3B9s9g7xS2/z1DfYGBsLY/R1WtnwE7gM2?=
+ =?us-ascii?Q?sur6h3ymOvy21sEB9Xioqzc+V9LzpsXbTvG2W04IU+PIoHkHZXLSlyVfPA7u?=
+ =?us-ascii?Q?FmblzqSX8X8qNAL3Il2/slDCOpq5wkijXyWOpaSXb5x4jEe4w4FIDxa4uqE0?=
+ =?us-ascii?Q?Xiw+UlhZeyOyJe37mAXr8k6qdm5HcVyuOjCqV4KtO8LigNTWq3ElU1GY1sB3?=
+ =?us-ascii?Q?NCbvM8GQc3JUCrAdDRkGrpWHQ8Ni6Jb1xtgwdG6BDjfn4DzusJdiF/CQTJz4?=
+ =?us-ascii?Q?rOhoO5ZaiKeYjz6I+PS6ws9fft5JzcSe7ywpl/mM7t66lI7SY1eQEUm7704/?=
+ =?us-ascii?Q?MGYS6kVS0IjAwgUpocdYaDFph91di/7Qmw7Yr47pphf6ts/N+ljJ9OAEaX62?=
+ =?us-ascii?Q?DwzI+LWelXeENE6Vrs9ANkWmzyyw8fkmuOBOypgd7u7DuBJtJbUQn0bSb0Ki?=
+ =?us-ascii?Q?DsZvkdhnSrBho50fdcJYqtsmmIRQFrWadmWK+A78N6tUW2ikHDfLI+VOWpGd?=
+ =?us-ascii?Q?7Nhi2EtuBY5D8GwtVRqcmWBvSZIziybtcnkoJFB0CK+2bUDJ46QAoCA1Zd32?=
+ =?us-ascii?Q?6WvydiGjznyb8UY/9scBsdZAfUmrGO7+/HfLHsIrH9sPZRXitxTDjsnwEfNb?=
+ =?us-ascii?Q?teWePVpUFI3KlrH2ALcUG95Rz2CEqJ5+q2izlUYLjH6rAic1MbNirNvZAbhN?=
+ =?us-ascii?Q?SmVI5MVinUyRGvCmmSApMbvaNenM3BJlgxV+sVykx8j+eoCTehZftZpju0og?=
+ =?us-ascii?Q?GWCAjXZFbuqznkMWs5l+f/J+Onzl4oXmnDOh/r/gL4ytnek1qnUaWeCE5FlT?=
+ =?us-ascii?Q?j+4siZyfjJ6stygs2VpyjVsa0WoKhju5AVJ3JxdPYsFSw+p2aOJWu7N9S61q?=
+ =?us-ascii?Q?8xcvOOCKeEZt4myrA8pZp8Y/reL+5S1uYceuTqcYlVGiXnvHRMAuEGlkW0cY?=
+ =?us-ascii?Q?GRzpXtwrOQRqz79liYwsOxKlv4j9T2ZnV4LgY6p8zvtCut7SidPfKrKJI4W2?=
+ =?us-ascii?Q?k3wc9r72sdOOg+5yb84VeLY6hZcmQpsEILYpQ1Ki9fhHHZFh96RmkU/e4UQn?=
+ =?us-ascii?Q?g29i+/am32esknObaQxYa4QajTvzYm6kaRd4w+/AsP0Zy/h/xLwxZpJd7NZP?=
+ =?us-ascii?Q?k8Juo8IkB9RRNVZWveeay2SPtIn1k+6CcxEWg+qvAXnmsBXRwdUuPqkwPC9T?=
+ =?us-ascii?Q?u5/ks1a9dky9zYOdrrhKfLhaAQ8qY+LiJIPgXtxnuBX0wwIFk6xRIA2sLVnA?=
+ =?us-ascii?Q?QhC525KUgjzX+tKAEttxd/ujshU+MYiQPiHWH5sdV33WT5tMK5cq4cVsQNXc?=
+ =?us-ascii?Q?07ZITEhHRsyx4YZPOrGFcfxh/jqIYnR7buNmvMbdf70fr5MGglDFmFEInlUz?=
+ =?us-ascii?Q?+Zfi6k89Gqv6RW4OkASYZwgTFrKu4UXpF1oSqcqkD1+ywMjni/1+A2d7gomk?=
+ =?us-ascii?Q?AD8yXv/TWGrSuS8T0/74+LsMYU4byHLpvpGZDSX4juFEv9voNA7FIC43iWfK?=
+ =?us-ascii?Q?F88LexGW2IHuH70jNebXKDuguDiH8X6Ze75CPOxXGFSMSSiipZgjPOTOMX/l?=
+ =?us-ascii?Q?oKlHSQy9Ng6oq2hOMj6Z+DryRFO3gyZRgwFvv8Qwz3P6Inhkozv9a4WFKs3W?=
+ =?us-ascii?Q?8i/tYDn3WqTFc2QgciOzZVdHQzBBprs=3D?=
+X-Exchange-RoutingPolicyChecked: BFJqhgpMMoqoW9oHflFmkEoIA7HOOevp17WplEIqB2DKdRXTiBMThFe1ew5FaCE2otwtXDP3HQR6HF25zW52lb5c7//8rPp/Y7kIQ30DP0n5ZR4LFBVfFxpoATIDWyunQkTfCGWN4o0BdGoDlvnWl3mC+vfM46NE3wdKcKl/zotCuawynSCDg99o/uVpTZrWEIx+Fvhi9syK3TgjBBGK1rKCcytI37GizqAUs79AAOKIsLcZ80YuSNwwwrnPTwbuT8OocRCfdPwmWSsHNXllflfNUP/eEed99itEKOd3ZCIDlwLzh0OJZtXEw+gOg0NKqnYyczxetgmMM2FCX9L50A==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 714d72e9-c39f-4d19-1f96-08def1cda12b
+X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Aug 2026 02:11:01.1133
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: HMgzDesydPZrwrSriySKh9PsZtgVUmD1dVNvOjXsHK5+QsnF+X2kafsq154FpygrtTnFmEp8Rcb32qWRp2lXTdfxXz5uOxxvoCibcmwOiW8=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CYXPR11MB8731
+X-OriginatorOrg: intel.com
 
-Hi,
+On Mon, Aug 03, 2026 at 05:17:57PM -0500, Terry Bowman wrote:
+> cxl_rch_get_aer_info() copies the RCH Downstream Port AER capability from
+> the RCRB MMIO block using a readl() loop bounded by sizeof(struct
+> aer_capability_regs). This struct is a software layout and its embedded
+> struct pcie_tlp_log is larger than the on-wire AER capability. As a
+> result the loop reads past the mapped AER register block.
+> 
+> The over-read also populates the software-only tail fields including
+> header_log.header_len. An out-of-range header_len passed to
+> pcie_print_tlp_log() can then loop past the header log buffer and cause
+> a second out-of-bounds read.
+> 
+> The read was correct when introduced, but struct pcie_tlp_log has since
+> grown (Header Log and TLP Prefix Log sizes, header_len and flit fields),
+> so sizeof(struct aer_capability_regs) no longer matches the physical AER
+> capability.
+> 
+> Bound the read to the physical AER registers, header through the 16 byte
+> Header Log. Zero the destination first so the software-only fields are
+> deterministic.
 
-I'm reporting an issue with Intel ISH (Integrated Sensor Hub) on a Panther
-Lake platform (Xiaomi Book Pro 14, TM2424). The ISH processor is completely
-unresponsive, preventing any sensor functionality (ambient light, etc.).
-
-## Hardware
-
-- Platform: Intel Panther Lake Core Ultra X7 358H
-- ISH Device: PCI 00:12.0 [8086:e445] (rev 01)
-- Subsystem: Xiaomi Device 2424 (1D72:2424)
-- Kernel: 7.0.0-28-generic (Ubuntu)
-- linux-firmware: 20260319.git217ca6e4.1ubuntu
-
-## Problem Description
-
-The ISH IPC registers all read 0xffffffff, indicating the ISH processor is
-completely unresponsive:
-
-```
-ISH_BUSY   = 0xffffffff
-ISH_READY  = 0xffffffff
-CMD        = 0xffffffff
-CMD_RSP    = 0xffffffff
-MSG        = 0xffffffff
-MSG_RSP    = 0xffffffff
-FWSTS      = 0xffffffff
-ISH_READY2 = 0x0000311f  (only non-0xff register)
-```
-
-Firmware loading fails:
-```
-intel_ish_ipc 0000:00:12.0: ISH loader: load firmware: intel/ish/ish_ptl.bin
-intel_ish_ipc 0000:00:12.0: ISH loader: cmd 2 failed 10
-intel_ish_ipc 0000:00:12.0: ISH loader: cmd 0 failed 6
-intel_ish_ipc 0000:00:12.0: ISH loader: cmd 0 failed 6
-```
-
-## Root Cause Analysis
-
-The ISHD ACPI device exists in the DSDT at path `\_SB_.PC00.ISHD` but has
-**no _HID (Hardware ID)**. This causes the Linux ACPI subsystem to completely
-ignore the device - it's never probed, and its _DSM method is never called.
-
-Key ACPI methods found:
-- _DSM: Exists (checks PCI vendor/device ID, not UUID-based)
-- _PRW: Returns [0x68, 0x4] (wake from S4 via GPE 0x68)
-- _S0W: Returns 0x3 (supports D3hot in S0)
-
-Windows driver (IshOed.sys v5.8.56.0) successfully initializes ISH by:
-1. Using HECI interface to communicate with ISH
-2. Calling ACPI methods to power on ISH hardware
-3. Loading firmware through the IPC channel
-
-The Linux intel_ish_ipc driver loads but cannot communicate because the ISH
-processor was never powered on/initialized via ACPI.
-
-## Windows Driver Information
-
-The Windows driver (IshOed.sys) source path indicates it's from the same
-Intel unified-ish-drivers repository:
-```
-C:\builds\ipg-sh\github\ish\unified-ish-drivers\Drivers\IshOed\
-```
-
-The driver matches PCI\VEN_8086&DEV_E445 and includes device configuration
-data with firmware hashes:
-- 7AF851FC54FC7A78 (for Lunar Lake A845)
-- 7E907E4577457F78 (for Panther Lake E345/E445)
-
-## Reproduction Steps
-
-1. Boot Ubuntu 26.04 with kernel 7.0.0-28-generic on Panther Lake
-2. Observe ISH IPC registers all read 0xffffffff
-3. Firmware loading fails with "cmd 2 failed 10"
-
-## Expected Behavior
-
-ISH processor should be initialized via ACPI during driver probe, allowing
-firmware loading and sensor functionality.
-
-## Questions
-
-1. Is Panther Lake ISH support planned for the upstream ISH driver?
-2. Does the ISHD ACPI device need a _HID for Linux to probe it?
-3. Should the intel_ish_ipc driver call ACPI _DSM during initialization?
-4. Is there a specific ISH firmware version needed for Panther Lake?
-
-## System Information
-
-```
-$ cat /sys/bus/pci/devices/0000:00:12.0/firmware/base_version
-0.0.0.0
-$ cat /sys/bus/pci/devices/0000:00:12.0/firmware/project_version
-0.0.0.0
-$ lsmod | grep ish
-intel_ish_ipc          36864  0
-intel_ishtp            77824  1 intel_ish_ipc
-```
-
-Thank you for your support.
-
-Best regards,
-Frank
-
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
