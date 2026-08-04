@@ -1,279 +1,225 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id CF8EB37106E;
-	Tue,  4 Aug 2026 12:28:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 755403D9DDE
+	for <linux-acpi@vger.kernel.org>; Tue,  4 Aug 2026 12:46:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785846541; cv=none; b=qTbXGDCQWkF8ZiAsetr20LyGpyFFJZPRAo8oswhJ7k1j7nzkaxeiZZ57cGfpCRdNqmvTtM2r/23GkU8a9+hzonfC0Ug98QrseY8ejksEH4C6IM8cmVR9biRW2I8YU21z4Iyqlb9978jwb33cQg3Ny9d4d4mLsi/1s2g8iJFdQrY=
+	t=1785847605; cv=none; b=PlVA5KJm0JeXofCwudiSk+5z/QU9ZT7E0o40WkSAK+kk0gxy+akuH2o/KBy4i5Zp5rrum55zQKdJab6VSZEnnk0OGjXCzR4vUyq846OMnibgpb9OSz6F/0w/q0it+qEEw4e4Dr4T4Ba63r40IKzB+s8L37SmG78R8O+Yfe8mybI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785846541; c=relaxed/simple;
-	bh=RFjijuGBOfqMDDD06CRgUBWpe4Bi46Y+B4+xD23nhZM=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=MhAVWbOa+4Ed/vkmS2h20KSgkpnaYJ3S+qJwI1/RZ+7DDpVpYVyCIPya8yRCc2RESC6Umqz6uC2aZRarvVky5ks6pqQkxsrXTauKmFUUWtq38m3sZ9elvs21FXEQl7dgmC8H6QpVYESX2EO/g153mAnH/cX26gjZQ4vniptFRp8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=EYcTj3Xh; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1785847605; c=relaxed/simple;
+	bh=LYzrSwBFbfl22TyOkFOzeEjPlc63rtVaztyq2FVmUuU=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=KnJ4ucP0+cpDXodEmYjkbLzgGezf7/yWli67YRopxjexl8PoG2DKbg2c4W8C26EIA33iDWREqVPTbGa//saIJMUQ8dFNBe8F2k7/FLElUWCUJTcECYH0kQmtUzQ87avZv6iTKjxbEH21JKOcqFNjz6xN7153EQ6QKfGJFMydWo0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TefkPpql; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="EYcTj3Xh"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 18DA81476;
-	Tue,  4 Aug 2026 05:28:55 -0700 (PDT)
-Received: from [192.168.178.24] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id EB89E3F66F;
-	Tue,  4 Aug 2026 05:28:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1785846539; bh=RFjijuGBOfqMDDD06CRgUBWpe4Bi46Y+B4+xD23nhZM=;
-	h=Date:Subject:From:To:Cc:References:In-Reply-To:From;
-	b=EYcTj3XhGIKB/rY/kPSKyDdeqJjrUdGNBeB1eb8Dtwot7YUI0czWtmGoBkIfNM0+S
-	 NZ+gUxCl4S2HRLrFOpVjkyKkRjBcPqq9le59PGCQxbK+zyjryNBedfGKPqBk9KIIzQ
-	 azaTX6ZIdJRo+S8Jv7rUAbcoVD+roLjHyCmPt3hA=
-Message-ID: <5d7433ff-f6e4-42cc-bc8a-08179b3d136b@arm.com>
-Date: Tue, 4 Aug 2026 14:28:53 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TefkPpql"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D6D41F00A3F
+	for <linux-acpi@vger.kernel.org>; Tue,  4 Aug 2026 12:46:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1785847601;
+	bh=sQ3/NC+3cpmXFMYetYl7lO8X8YpBbpgvgulg/NkNMQ0=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=TefkPpqls1ZZTAGa4/z92f6he8C1TE1kWASWEntglG+IE1MYuZfISroWLw84x9WcG
+	 3UdJ0oBAlSo36pUfeppT0sY1Zf5S8mNP5Td2lRgrUQ+JKGBufhaZE+RF2h+ausTaDX
+	 zpKhp/I1u1xTy3R4aejECKkGnQ4Q8sqWRaCR9UjFrURorWC20PbpdR3hd1bY2PQp8Y
+	 6IYow8nWHAPU1Y5d8caCWKuwk9/PnSKMZ6RaJE8OYN6TcJOOLMbIwm2GDzMiu6+S9X
+	 fr7b7RgOhYnfEwIXkh/8YO/nmpPpcQLCC7dij5OPyWVztvuAs0+64HEhh8yZN4sp9Q
+	 EvwpRQ5+wSMGQ==
+Received: by mail-lj1-f176.google.com with SMTP id 38308e7fff4ca-39c908d6cb6so51604761fa.1
+        for <linux-acpi@vger.kernel.org>; Tue, 04 Aug 2026 05:46:41 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+Rpe2arIA/meXa4Yvlb4dVtbfDSx23P6w+i+QuunL2E5tarlpM7nM4D4zAOEbj/riSEmwe0ki3/mTWan@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywe1S1VcwfGi1DQcWVty9Yp3J4YBjf/xMB+4N+KJIVmzkTTstyF
+	jW1mntF7bOlsIv6KlfVKD7KmSrLpWXpoODziNJ4a2bwq8VzWb5LvejF2ifq0v6vd7pYn7XGspq6
+	ElbFx1liMBSvEdr+PborAZSUv5AP/d28=
+X-Received: by 2002:a05:6512:3991:b0:5ae:b136:acdc with SMTP id
+ 2adb3069b0e04-5b2e4f6e8f6mr2869316e87.35.1785847599905; Tue, 04 Aug 2026
+ 05:46:39 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v8 00/11] arm_mpam: Add MPAM-Fb firmware support
-From: Andre Przywara <andre.przywara@arm.com>
-To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
- Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
-Cc: Jonathan Cameron <jic23@kernel.org>,
- Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
- Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
- Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
- Niyas Sait <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
- Ritwick Sharma <ritwick.sharma@arm.com>, Gavin Shan <gshan@redhat.com>,
- linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-kernel@vger.kernel.org
-References: <20260804100627.3217149-1-andre.przywara@arm.com>
-Content-Language: en-GB
-In-Reply-To: <20260804100627.3217149-1-andre.przywara@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20260803203459.10680-1-derekjohn.clark@gmail.com>
+In-Reply-To: <20260803203459.10680-1-derekjohn.clark@gmail.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Tue, 4 Aug 2026 14:46:27 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0h78CSSORe_td1gp0n5DDWXN4zcnuXJsz247KYxgs-mdg@mail.gmail.com>
+X-Gm-Features: AUfX_mz1srr2nF8qgwOyctaxm3G1UWnLyBr6WGtF7SuwYoBl4ClgZzzFQY9hT2A
+Message-ID: <CAJZ5v0h78CSSORe_td1gp0n5DDWXN4zcnuXJsz247KYxgs-mdg@mail.gmail.com>
+Subject: Re: [PATCH] acpi: pci_root: Add quirks table for _OSC support
+To: "Derek J. Clark" <derekjohn.clark@gmail.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	"Pierre-Loup A . Griffais" <pgriffais@valvesoftware.com>, David Box <david.e.box@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Mon, Aug 3, 2026 at 10:35=E2=80=AFPM Derek J. Clark
+<derekjohn.clark@gmail.com> wrote:
+>
+> The MSI Claw A8 hard-locks on resume from s2idle whenever an SD/MMC
+> card is present in the RTS525A card reader (10ec:525a, PCI ID). This
+> issue is not present on the Lenovo Legion Go with the same card reader.
+> The primary difference is that the Claw A8 withholds LTR and DPC while
+> granting ASPM control to the OS, leading to a split ownership. The issue
+> can be mitigated by passing pcie_asmp=3Doff, but quirking on the pci_dev
 
-On 8/4/26 12:06, Andre Przywara wrote:
-> this is v8 of the MPAM-Fb code, for firmware based MSC accesses.
-> It fixes a potential use-after-free of the dev pointer on error
-> prints, and disables the IRQ on the irqchip side in case doing it on
-> the device side doesn't work. The rest are cosmetic fixes and adding
-> the tags from the diligent reviewers and testers, many thanks for that!
-> I dropped tags from the error IRQ patch (10/11) due to changes.
-> Find the changelog below. Based on v7.2-rc1.
-> 
-> =======================
-> The Arm MPAM specification defines Memory System Components (MSCs),
-> which are devices that are programmed through an MMIO register frame. In
-> some occasions this turned out to be too limiting: the MSC might be
-> located behind a separate bus system (for instance inside an on-board
-> controller), it might be mapped secure-only, or in a different processor
-> socket without direct MMIO mapping. Also the MMIO access might be too slow
-> or it would need to be filtered or otherwise access controlled. Finally
-> there might be bugs in the MSC integration, which require a mediating
-> firmware to be accessible.
+You mean pcie_aspm=3Doff I suppose.
 
+> in pci/quirks has no effect.
+>
+> Attempted quirks included use of pci_disable_link_state(),
+> dev->link_state =3D NULL, manually zeroing aspm_l0s_support/aspm_l1_suppo=
+rt
+> via DECLARE_PCI_FIXUP_FINAL, and pcie_aspm_remove_cap() on
+> DECLARE_PCI_FIXUP_HEADER. Only by disabling ASPM on the root hub is the
+> system able to resume successfully.
 
-For the records, I looked at the sashiko complaints, by my analysis most 
-comments fall into one of those categories:
+So if there is a clash between the firmware and the OS, the question
+is why it only happens during system resume and only for this specific
+device in this specific configuration.
 
-- Does this new early return / error return .... break MPAM logic?
-It's concerned about just bailing out from the middle of a sequence of 
-MPAM read or writes, leaving the MSC in a misconfigured state. This is 
-true, but doesn't apply, because we tear down MPAM completely upon an 
-MPAM-Fb access returning an error. And if the communication between the 
-kernel and an MSC breaks down completely, there isn't much we can do 
-anyway: attempts to recover would fail as well.
+If disabling ASPM globally makes the symptom go away, it certainly is
+related to ASPM, but it is kind of hard to say what exactly the
+relationship is at this point.
 
-- Since xxx() now returns an error code, do the callers need
-   to be updated to check it?
-- Are there missing error checks in xxx() related to the new error
-   return values?
-Yes, this is done in one of the following patches. The series is 
-constructed so that only the final patch enables MPAM-Fb, before that 
-there is no way MPAM-Fb could be instantiated, so only MMIO accesses are 
-happening. They always return 0, so no error could occur and error paths 
-are never exercised.
-This is used to construct the functionality gradually, and allow 
-multiple, but smaller patches. Mentioned in the cover letter.
+> This strongly suggests a race between
+> the OS resuming the link under its own ASPM assumptions and firmware
+> independently acting on the same link based on state it never
+> relinquished.
 
-- This is a pre-existing issue, but ....
-I haven't checked in detail, but from previous rounds those concerns 
-were addressed by Ben's fixes, which IIUC are on its way already. This 
-series is based on v7.2-rc1, so those fixes are not applied here.
+I'd like to see a boot log from the affected platform including the
+entire PCI _OSC negotiation.
 
-Hope that helps,
-Cheers,
-Andre
+There actually is no way for the firmware to grant or refuse the ASPM
+control to the OS separately.  It is part of the PCI Express
+Capability Structure covered by OSC_PCI_EXPRESS_CAPABILITY_CONTROL, so
+if that control bit is acknowledged via _OSC, the OS is supposed to
+control ASPM (among other things).
 
-> To accommodate all those different use cases, the MPAM-Fb specification
-> [1] describes an alternative way to access MSCs. Accesses to an MSC
-> would be wrapped in a message and communicated to the system using a
-> shared-memory/mailbox system mostly mimicking the Arm SCMI spec.
-> For ACPI systems, this would be abstracted through an ACPI PCC channel,
-> which provides the shared-memory region and the mailbox trigger. We can
-> lean on existing ACPI parsing code to register with these two
-> subsystems, but cannot rely on the existing SCMI code in the kernel.
-> This means we somewhat need to open code a very simplified SCMI handler,
-> which just provides enough functionality for the very basic subset of
-> SCMI that the MPAM-Fb spec requires.
-> 
-> The first seven patches rework all MSC access wrappers to propagate error
-> information. Pure MMIO based MSC accesses would never fail, but the
-> MPAM-Fb access can go wrong in multiple ways. The patches have been split
-> up purely for reviewing reasons, if the number is a problem, we could as
-> well squash them. Please note that until the very last patch of this series
-> any MSC accesses would always only return 0, it's only the final enablement
-> of MPAM-Fb that could possibly introduce errors. Hence all former patches
-> can add error handling gradually, those code paths wouldn't be triggered
-> before patch 11/11.
-> Patch 8/11 solves a nasty problem: At the moment we protect stateful MSC
-> register accesses (mon_sel) through a spinlock. Unfortunately the mailbox
-> subsystem and the slow nature of the communication through this channel
-> forbid MPAM-Fb access in atomic context. So this patch keeps using a
-> spinlock for MMIO based accesses, but reverts to a mutex otherwise.
-> We just deny taking the lock for MPAM-Fb in atomic context, ideally we
-> wouldn't need that (no need to IPI another core when the MSC access does
-> not need to be local to one particular core), or we simply deny that part
-> of the functionality (access through perf).
-> Patch 9/11 adds the code to redirect MSC accesses through the
-> PCC shmem/mailbox system.
-> Patch 10/11 reworks the error interrupt handler to use a threaded IRQ for
-> MPAM-Fb, to be able to do MPAM-Fb MSC accesses inside (which might sleep).
-> The final patch 11/11 then adds the code to detect and store the PCC
-> channel information from the ACPI tables, and eventually enables
-> MPAM-Fb accesses.
-> 
-> This would enable systems where some MSCs are not accessible via MMIO to
-> use those components anyway.
-> 
-> Please have a look and test!
-> 
-> Cheers,
-> Andre
-> 
-> [1] https://developer.arm.com/documentation/den0144/latest
-> 
-> Changes in v8:
-> - disable error IRQ on irqchip level when device side fails
-> - use MSC dev pointer for dev_err() instead of mailbox one
-> - smaller white space and formatting fixes
-> - reorder MPAM-Fb definitions
-> - rename error translation function to mpam_fb_to_linux_errno()
-> - add review and test tags
-> 
-> Changes in v7:
-> - add tags
-> - add new patch to propagate errors in mpam_reprogram_ris_partid()
-> - prevent loop when mpam_diable() tries MSC accesses again
-> - register MMIO error IRQ handler without IRQF_ONESHOT
-> - re-use existing "err" variable instead of declaring "ret"
-> - initialise mon_sel_lock later, to wait for interface decision
-> - convert timeout units for nominal latency, between us and ms
->   
-> Changes in v6:
-> - keep using hard IRQ handler for MMIO based accesses
-> - move shmem buffer size and MPAM-Fb version check into mpam_fb.c
-> - drop mutex guard in mpam_fb_send_request(), we use gotos anyway
-> - factor out MPAM-Fb protocol error translation
-> - add MPAM_FB_ERR_BUSY error code to translation
-> - explicitly report also MPAM-Fb protocol error number when disabling MPAM
-> - remove unneeded MPAM-Fb details from mpam_internal.h
-> - drop leftover mpam_fb_msc_id usage
-> 
-> Changes in v5:
-> - do not initialise _high variables early
-> - fix whitespace issues
-> - add Jonathan's Reviewed-by: tags
-> - init only either the spinlock OR the mutex for the mon_sel_lock
-> - drop warning about mapped_hwpage_sz for MPAM-Fb in mpam_msc_zero_mbwu_l()
-> - change IRQ handler to threaded handler, to allow MPAM-Fb MSC accesses
-> - disallow per-CPU IRQs (PPIs) for MPAM-Fb
-> - trigger MPAM disabling on MPAM-Fb protocol errors
-> - fix MPAM_PROTOCOL_VERSION_CMD name
-> - use PCC driver defined symbol for PCC_CHAN_FLAGS_IRQ
-> - add comment about usage of PCC's .signature field
-> - check for illegal MPAM-Fb command before sending request
-> - drop CPU accessibility check for MPAM-Fb based MSC accesses
-> - move MPAM-Fb protocol message structs inside build functions
-> - add comment about largest message size
-> - drop extra msc->mpam_fb_msc_id, in favour using pdev->id
-> - use already defined local dev variable instead of &pdev->dev
-> - use FIELD_GET() macro for MPAM-Fb protocol check
-> - drop devm_mutex_init() for pcc_chan_lock
-> 
-> Changes in v4:
-> - unify error check patterns
-> - use scoped_guard(mutex) and ACQUIRE to simplify error handling
-> - use struct kref for PCC channel refcount
-> - drop unused mailbox rx_callback function
-> - increase size of props[] array to hold new msc_id property
-> - set mailbox TX timeout based on ACPI MPAM table field
-> - use devm_mutex_init() to allow automatic cleanup
-> - avoid overwriting error value for arm,not-ready-us property read
-> - prune MPAM-Fb protocol token to fit into bitmask inside register
-> - check return value for AIDR read
-> - use two separate MPAM-Fb protocol payload structs
-> - prune header list for mpam_fb.c
-> - drop "nrdy handled as an error" change
-> - fix message size field in MPAM-Fb protocol shmem area
-> - drop message size return from MPAM-Fb message build functions
-> - bring back IRQ flag in MPAM-Fb protocol header
-> 
-> Changes in v3:
-> - drop inner/outer mon_sel lock patch, replace with simpler version
-> - harmonise code patterns in error propagation changes
-> - drop mon_sel lock before erroring out in mpam_ris_hw_probe_csu_nrdy()
-> - refactor mpam_msc_read_mbwu_l() to return an error
-> - drop special NRDY handling in __ris_msmon_read()
-> - add IRQ numbers in error interrupt handler to help pinpoint failure
-> - refactor MPAM-Fb message generation to accommodate more than read/write
-> - check MPAM-Fb protocol version at probe time
-> - drop mpam_fb.h header, merge into mpam_internal.h
-> - translate MPAM-Fb error code in Linux codes where needed
-> - clear IRQ flag bit in MPAM-Fb protocol header
-> - drop unneeded endianness conversions when crafting MPAM-Fb message
-> - use C struct to model MPAM-Fb message payload
-> 
-> Changes in v2:
-> - add patches to add error propagation to MSC access wrappers
-> - drop former patch 1/5 (not needed)
-> - drop lock in mpam_reprogram_msc(), to avoid double lock
-> - add support for multiple MSCs per PCC channel
-> - adjust SCMI protocol code to use a PCC subtype 3 channel
-> - let PCC code handle the PCC channel negotiation (due to subtype 3)
-> - drop SCMI names in shmem offsets, and use existing PCC type 3 struct
-> - adjust shmem field offsets to match MPAM-Fb spec, not pure SCMI
-> - prevent MPAM-Fb calls inside atomic smp_call_function_any() payload
-> - skip all MSC accesses inside the IRQ handler when using MPAM-Fb
-> 
-> Andre Przywara (11):
->    arm_mpam: let low level MSC accessors return an error
->    arm_mpam: propagate MSC access errors for hw_probe functions
->    arm_mpam: propagate MSC access errors for MBWU counters
->    arm_mpam: propagate MSC access errors for msmon helpers
->    arm_mpam: propagate MSC access errors for __ris_msmon_read()
->    arm_mpam: propagate MSC access errors for state saving function
->    arm_mpam: propagate MSC access errors for mpam_reprogram_ris_partid()
->    arm_mpam: prepare mon_sel locking for MPAM-Fb
->    arm_mpam: add MPAM-Fb MSC firmware access support
->    arm_mpam: change MPAM-Fb error IRQ to use a threaded IRQ handler
->    arm_mpam: detect and enable MPAM-Fb PCC support
-> 
->   drivers/resctrl/Makefile        |   2 +-
->   drivers/resctrl/mpam_devices.c  | 825 ++++++++++++++++++++++++--------
->   drivers/resctrl/mpam_fb.c       | 252 ++++++++++
->   drivers/resctrl/mpam_internal.h |  62 ++-
->   include/linux/arm_mpam.h        |   2 +-
->   5 files changed, 926 insertions(+), 217 deletions(-)
->   create mode 100644 drivers/resctrl/mpam_fb.c
-> 
-> 
-> base-commit: dc59e4fea9d83f03bad6bddf3fa2e52491777482
+The LTR and DPC are extended capabilities, so in principle they may be
+controlled separately, if the OS controls the PCI Express Capability
+structure, and there is no formal requirement to grant control of any
+of them for ASPM to work.
 
+> As an attempt to localize the workaround to as low level as possible
+> while also being effective, introduce a quirk system to the existing
+> acpi pci_root calculate_support() mechanism.
+
+I'm not sure if there is a need to tell the firmware that ASPM is not
+supported.  You may as well avoid asking for
+OSC_PCI_EXPRESS_CAPABILITY_CONTROL on the affected platform.
+
+> Signed-off-by: Derek J. Clark <derekjohn.clark@gmail.com>
+> ---
+>  drivers/acpi/pci_root.c | 68 +++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 66 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 6f78f96332ea..abd436a10438 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -422,7 +422,69 @@ static acpi_status acpi_pci_osc_control_set(acpi_han=
+dle handle, u32 *mask,
+>         return AE_OK;
+>  }
+>
+> -static u32 calculate_support(void)
+> +/*
+> + * Some platforms advertise ASPM support in _OSC but withhold related
+> + * control (e.g. LTR, DPC) from the OS on a specific root complex. The
+> + * resulting split ownership between OS-managed ASPM and firmware-owned
+> + * LTR/DPC can cause resume failures on s2idle. Rather than disabling
+> + * ASPM system-wide, strip the offending support bits only on the
+> + * affected root bridge so the OS abstains from requesting _OSC control
+> + * there, leaving every other root complex on the system unaffected.
+> + */
+> +struct osc_support_quirk {
+> +       const struct dmi_system_id dmi_match[2];
+> +       u16 segment;
+> +       u8 bus;
+> +       u32 strip_support;
+> +};
+> +
+> +static const struct osc_support_quirk osc_support_quirks[] =3D {
+> +       /*
+> +        * MSI Claw A8 (MS-1T8K): firmware withholds LTR/DPC control on
+> +        * the primary root complex despite advertising ASPM support,
+> +        * causing a hard lock on s2idle resume when the onboard RTS525A
+> +        * SD card reader is populated.
+> +        */
+> +       {
+> +               .dmi_match =3D {
+> +                       {
+> +                               .ident =3D "MSI Claw A8 BZ2EM",
+> +                               .matches =3D {
+> +                                       DMI_MATCH(DMI_SYS_VENDOR,
+> +                                                 "Micro-Star Internation=
+al Co., Ltd."),
+> +                                       DMI_MATCH(DMI_BOARD_NAME, "MS-1T8=
+K"),
+> +                               },
+> +                       },
+> +                       {}
+> +               },
+> +               .segment =3D 0,
+> +               .bus =3D 0,
+> +               .strip_support =3D OSC_PCI_ASPM_SUPPORT | OSC_PCI_CLOCK_P=
+M_SUPPORT,
+> +       },
+> +};
+> +
+> +static u32 pci_osc_support_quirk_mask(struct acpi_pci_root *root)
+> +{
+> +       int i;
+> +
+> +       for (i =3D 0; i < ARRAY_SIZE(osc_support_quirks); i++) {
+> +               const struct osc_support_quirk *q =3D &osc_support_quirks=
+[i];
+> +
+> +               if (dmi_first_match(q->dmi_match) &&
+> +                   root->segment =3D=3D q->segment &&
+> +                   root->secondary.start =3D=3D q->bus) {
+> +                       dev_info(&root->device->dev,
+> +                                "PCI Root Bridge [%04x:%02x] _OSC quirk:=
+ stripping support 0x%08x (%s)\n",
+> +                                root->segment, (unsigned int)root->secon=
+dary.start,
+> +                                q->strip_support, q->dmi_match[0].ident)=
+;
+> +                       return ~q->strip_support;
+> +               }
+> +       }
+> +
+> +       return ~0;
+> +}
+> +
+> +static u32 calculate_support(struct acpi_pci_root *root)
+>  {
+>         u32 support;
+>
+> @@ -441,6 +503,8 @@ static u32 calculate_support(void)
+>         if (IS_ENABLED(CONFIG_PCIE_EDR))
+>                 support |=3D OSC_PCI_EDR_SUPPORT;
+>
+> +       support &=3D pci_osc_support_quirk_mask(root);
+> +
+>         return support;
+>  }
+>
+> @@ -571,7 +635,7 @@ static void negotiate_os_control(struct acpi_pci_root=
+ *root, int *no_aspm)
+>                 return;
+>         }
+>
+> -       support =3D calculate_support();
+> +       support =3D calculate_support(root);
+
+This will delay the initialization of any system, not just the quirky
+one.  Is there any way to avoid that?
+
+>         decode_osc_support(root, "OS supports", support);
+>
+> --
