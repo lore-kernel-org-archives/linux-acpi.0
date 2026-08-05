@@ -1,105 +1,133 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14194335091
-	for <linux-acpi@vger.kernel.org>; Wed,  5 Aug 2026 17:15:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51EAB3CF1FF
+	for <linux-acpi@vger.kernel.org>; Wed,  5 Aug 2026 17:36:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785950143; cv=none; b=M5+GDG3Es5J6/q3hccRflo9b4cVjnAwulHx5KiB20Jnc6jbxV+rEZA4KoY1mHayeV8aaEGWsSnAk3LujINwnE2+/x0nH6pb++A1CgXJLl3A1lb8MkNeHIQvaKVXWrlOF5BHvCJab8enFPDzvMCk9pQFmVfS1GC/FkR2u+8rQmVo=
+	t=1785951364; cv=none; b=tdJZdOncE4NdpawpR6M8qSwtSwD29cXu0z7oVs/HjTkkUrmZBLTFxhspgSkaOLCKwdFXkbJ7pw8GNn34surdAqVpbjPkZqIUzPTLjSN1O7joVdGaP23mHGyIkRVr9J2IAAut4p1yWsIww+cqlBna+szBR4I5eKd0KNngaYlUZ1M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785950143; c=relaxed/simple;
-	bh=UVXndUC5AiXrgpThIiPLHz9wzQoGGbMP2Fg7NsV01F4=;
+	s=arc-20240116; t=1785951364; c=relaxed/simple;
+	bh=9dqorHKYzxEJyKXFMaxkG+Of7cFvmeyfyPIVRmTm/rE=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=jnOxIqrerQLyReCVVhM+jJttuAe0CYTE594vtPvLyhDlMVN/C6D8YFhneUYbd56lI5z+WUrsfFnUB8gHhb4LF0D+mStFYjIlt+ogQCiPndwlDhmjcBITqLb1f0eNB0RxKBWy6Isq0TfL5qK/W5/kC4Pox9ItMaMfUpWvjlcI3hg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PJlcAr7R; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=rq8XXENcgMvQkCxrjwAT9tSI6wnOS9RDPavUGUHmHqj6mXpFtI3NHv1RW130cqk5cQBg8FTyMcwXg/3vgZXmwEz/q1F+RRkR/UgefD+glID6aPde8WtQ5QFpbi65a+vuGZJIf31Hq3+YM4ZRbiXBBPREE9WPNWD5op3BBh8EUhs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LM6QMS94; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PJlcAr7R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABDB31F000E9
-	for <linux-acpi@vger.kernel.org>; Wed,  5 Aug 2026 17:15:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LM6QMS94"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02C891F00A3A
+	for <linux-acpi@vger.kernel.org>; Wed,  5 Aug 2026 17:36:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785950141;
-	bh=b9AAwPnowa411jA6f+Cdna9enhr2G3lCD0UlJHOIWmQ=;
+	s=k20260515; t=1785951362;
+	bh=3+W5ZEC0FG5qpRnN/ibUCo/W/Wu2WQSN8/Be7jtuqkQ=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=PJlcAr7Rdlc/K3G83/lh+BI0TRdJc96+Lh3+6suaOjshT7C1GWwh3Qu/jvWX9j7em
-	 Xa9nRplpuDRBIkQw1SZh8ezRXBmhaL4dX5Wi4WR+HcQ1oKUAc5WpfGAFkMpkGIEg3d
-	 hy5YKkmnsUxcsxUoIEG/U9lAj0F+ucJwzaZanVP2hZw60ZvNJ+E0XfcO7LXyBK36Hl
-	 BeRC0pwffvVuOB+ZVjLQZXBxM6YsKxId8bgHxvyLViALIZqiGde8dqv/pBoPYJeV8K
-	 8t8FB88X8+NnSgq/NADRmn8Cf+N+HOqvWdjQ7e5uXWm2WFVi0i7XE+8PxleONHv5OZ
-	 ohvYhxNKOORUA==
-Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5b2a8e4c77eso1224570e87.1
-        for <linux-acpi@vger.kernel.org>; Wed, 05 Aug 2026 10:15:41 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RofxKuEehSl1pjYfjukTTdYd6ugkfUbgSh3EIfNvEvYraXF74BqG7uUw7dCLucQg8nnXRLLb4QRN7PG@vger.kernel.org
-X-Gm-Message-State: AOJu0YzlSeWK4Lx8thK9t6nbjni+Hn+5VimP4PFEGwF8ZfMGimzJzYpE
-	sYN3Q0IieHERbOT7ikCCsMYIvkgADi4kaxdSHQgE6hnPtbtvCd4lgMtGWKsDe9mHeVCk0ZZihd4
-	6yhrjmt0yaTW68/kc3YxLkPrNpGvWYDc=
-X-Received: by 2002:a05:6512:1293:b0:5aa:6c98:a090 with SMTP id
- 2adb3069b0e04-5b2f4cc8ddcmr1265179e87.34.1785950140193; Wed, 05 Aug 2026
- 10:15:40 -0700 (PDT)
+	b=LM6QMS94K2wiqzBU/KDmcU958DNLeQoRF5CVFune1Vp3tKQXe/iq0PQ899yFwlgbr
+	 VgoZmGRtVeUaJjqBtl0oSV1oCAbKZ8K9pUA0LHU/28Z62b27E/gnGtZNt+bGkRiw6p
+	 /A5ieJHieby7JhMNa9UQ9e3xHWMt5hLbY0sZZNps4Rfg3yovppFYnKiOWEn+bmExF5
+	 4ffrgv86yT2SXtZMTq43R+hg9iYj+wA5q4XB7OdZuc7BZh1FS8E1ByfcO4pbIQx1hA
+	 VBEzfox+e7zvWdGnPTsMKMdjOAYWfNCzlxcqlx9rRI1A8CznlsW/V52rM3onItc8VH
+	 SILXyLk+LATBg==
+Received: by mail-lf1-f47.google.com with SMTP id 2adb3069b0e04-5b2aa3be376so998665e87.0
+        for <linux-acpi@vger.kernel.org>; Wed, 05 Aug 2026 10:36:01 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RrOHwWp+xTN9yEyWOj5cSpuPCF0yUQ31tb8Ew5cvyVUvdbnhGeFMXwmVW+2d7Dh72BzGTMFuwYUpO4N@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw0x7/4DsBa7FNK/DnU5yukQdez1nUPTpKmaY2laydUZpcxlxh6
+	cHZpfNIXuKaOCmlBMd/2ec0iODNNXkJU7jJsLLvPPK/skHXLS2UJR7hj5lwz91eugW7SjvVy48T
+	c1CE5gf5x3H2vCMkR2F9fUIntsMg6yio=
+X-Received: by 2002:ac2:538d:0:b0:5b2:b0eb:5313 with SMTP id
+ 2adb3069b0e04-5b2f4cb32c8mr827411e87.29.1785951360433; Wed, 05 Aug 2026
+ 10:36:00 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260727132151.12792-1-maarcospm1996@gmail.com>
-In-Reply-To: <20260727132151.12792-1-maarcospm1996@gmail.com>
+References: <8829E8C06120473E+20260731070714.1287959-1-raoxu@uniontech.com>
+In-Reply-To: <8829E8C06120473E+20260731070714.1287959-1-raoxu@uniontech.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 5 Aug 2026 19:15:27 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jRYmhr+x7j_zWSu5tnt+Nkf3-sVHXS1_rp=xk86wFbCA@mail.gmail.com>
-X-Gm-Features: AUfX_my3JmedCtKm9VmYYAfb05BRMCL3JbodFcmhWVu5jNL7rAYpIVTbBLqoCPY
-Message-ID: <CAJZ5v0jRYmhr+x7j_zWSu5tnt+Nkf3-sVHXS1_rp=xk86wFbCA@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: video: force native backlight on Acer Nitro AN515-46
-To: Marcos Paulo Medeiros <maarcospm1996@gmail.com>
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Hans de Goede <hansg@kernel.org>, 
-	linux-acpi@vger.kernel.org
+Date: Wed, 5 Aug 2026 19:35:47 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0iTbz=BMfbeVVDyjmcv_u1x8Sqn3b4sn6x5qCGU=KYqFg@mail.gmail.com>
+X-Gm-Features: AUfX_mx09HwPA0HuNuBUf5IDSLBJrYfQ8CBXSFG6Rce_--GAi-EMl7Km2SGBekg
+Message-ID: <CAJZ5v0iTbz=BMfbeVVDyjmcv_u1x8Sqn3b4sn6x5qCGU=KYqFg@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: TAD: report expired alarm status through RTC
+To: raoxu <raoxu@uniontech.com>
+Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jul 27, 2026 at 3:22=E2=80=AFPM Marcos Paulo Medeiros
-<maarcospm1996@gmail.com> wrote:
+On Fri, Jul 31, 2026 at 9:07=E2=80=AFAM raoxu <raoxu@uniontech.com> wrote:
 >
-> The Acer Nitro AN515-46 is a hybrid graphics laptop whose internal
-> panel is driven by the AMD GPU (Radeon 680M); the discrete NVIDIA GPU
-> only drives external outputs. The firmware nevertheless advertises the
-> NVIDIA WMI EC backlight GUID, so the backlight type resolves to
-> nvidia_wmi_ec. The nvidia-wmi-ec-backlight driver however fails to
-> probe ("EC backlight control failed: AE_NOT_FOUND") and, since the
-> backlight type is still nvidia_wmi_ec, amdgpu skips registering its
-> own backlight device. The result is no backlight device at all,
-> leaving the brightness keys and the desktop brightness slider
-> non-functional.
+> From: Xu Rao <raoxu@uniontech.com>
 >
-> Booting with acpi_backlight=3Dnative makes amdgpu register its backlight
-> interface and brightness control works. Add a DMI quirk to use the
-> native backlight on this model by default.
->
-> Signed-off-by: Marcos Paulo Medeiros <maarcospm1996@gmail.com>
-> ---
->  drivers/acpi/video_detect.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
->
-> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-> index 5b0dc679e..07755b856 100644
-> --- a/drivers/acpi/video_detect.c
-> +++ b/drivers/acpi/video_detect.c
-> @@ -919,6 +919,14 @@ static const struct dmi_system_id video_detect_dmi_t=
-able[] =3D {
->                 DMI_MATCH(DMI_PRODUCT_NAME, "OMEN by HP Gaming Laptop 16-=
-n0xxx"),
->                 },
->         },
-> +       {
-> +        .callback =3D video_detect_force_native,
-> +        /* Acer Nitro AN515-46 */
-> +        .matches =3D {
-> +               DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-> +               DMI_MATCH(DMI_PRODUCT_NAME, "Nitro AN515-46"),
-> +               },
-> +       },
->
->         /*
->          * x86 android tablets which directly control the backlight throu=
-gh
-> --
+> acpi_tad_rtc_read_alarm() always sets rtc_wkalrm::pending to zero, so
+> RTC_WKALM_RD cannot report that a TAD alarm has expired.
 
-Applied as 7.3 material, thanks!
+Well, "pending" doesn't mean "expired".
+
+> ACPI 6.6, Section 9.17.5 defines _GWS as returning a DWORD bit field.
+> Bit 0 indicates that the selected timer has expired, bit 1 indicates
+> that it caused a platform wake, and bits 31:2 are reserved. Therefore,
+> only bit 0 maps to rtc_wkalrm::pending; converting the complete _GWS
+> value to bool would incorrectly treat the wake-source bit or a nonzero
+> reserved bit as an expired alarm.
+>
+> Read _GWS for the AC timer, reject values wider than the specified
+> DWORD, and report its expired bit through rtc_wkalrm::pending. This
+> matches the existing read path, which reads the AC timer because alarms
+> programmed through the RTC interface set the AC and DC timers to the same
+> value.
+>
+> Fixes: 7572dcabe38d ("ACPI: TAD: Add alarm support to the RTC class devic=
+e interface")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Xu Rao <raoxu@uniontech.com>
+> ---
+>  drivers/acpi/acpi_tad.c | 13 ++++++++++++-
+>  1 file changed, 12 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/acpi_tad.c b/drivers/acpi/acpi_tad.c
+> index fc43df083738..610840c6240d 100644
+> --- a/drivers/acpi/acpi_tad.c
+> +++ b/drivers/acpi/acpi_tad.c
+> @@ -51,6 +51,9 @@ MODULE_AUTHOR("Rafael J. Wysocki");
+>  #define ACPI_TAD_AC_TIMER      (u32)0
+>  #define ACPI_TAD_DC_TIMER      (u32)1
+>
+> +/* ACPI TAD wake alarm status flags (ACPI 6.6, Section 9.17.5) */
+> +#define ACPI_TAD_WAKE_STATUS_EXPIRED   BIT(0)
+> +
+>  /* Special value for disabled timer or expired timer wake policy. */
+>  #define ACPI_TAD_WAKE_DISABLED (~(u32)0)
+>
+> @@ -709,6 +712,7 @@ static int acpi_tad_rtc_set_alarm(struct device *dev,=
+ struct rtc_wkalrm *t)
+>  static int acpi_tad_rtc_read_alarm(struct device *dev, struct rtc_wkalrm=
+ *t)
+>  {
+>         unsigned long long retval;
+> +       unsigned long long status;
+>         struct rtc_time tm_now;
+>         struct acpi_tad_rt rt;
+>         int ret;
+> @@ -740,7 +744,14 @@ static int acpi_tad_rtc_read_alarm(struct device *de=
+v, struct rtc_wkalrm *t)
+>         if (retval > U32_MAX)
+>                 return -ENODATA;
+>
+> -       t->pending =3D 0;
+> +       ret =3D __acpi_tad_wake_read(dev, "_GWS", ACPI_TAD_AC_TIMER, &sta=
+tus);
+> +       if (ret)
+> +               return ret;
+> +
+> +       if (status > U32_MAX)
+> +               return -ENODATA;
+> +
+> +       t->pending =3D !!(status & ACPI_TAD_WAKE_STATUS_EXPIRED);
+
+ACPI_TAD_WAKE_STATUS_EXPIRED doesn't actually mean a "pending interrupt".
+
+>
+>         if (retval !=3D ACPI_TAD_WAKE_DISABLED) {
+>                 t->enabled =3D 1;
+> --
