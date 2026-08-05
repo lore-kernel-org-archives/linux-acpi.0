@@ -1,147 +1,116 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A71B7480947
-	for <linux-acpi@vger.kernel.org>; Wed,  5 Aug 2026 16:01:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC45F3B4E88
+	for <linux-acpi@vger.kernel.org>; Wed,  5 Aug 2026 16:46:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785945702; cv=none; b=SmI+1vHEakpv5atQZn3C6ALZsX3MJnLNnJHjOZYjg2H2nsvGylphm+3PtFnCPdculv2FtJerIrDGXukAbzxxRtoOaDgHA5qAG//MkHdpa2KLYP5yaYR34nmSrJN+bkOF0z1tJL63FTN4jo32PPkcQEzfQCYuAUdj5ltpcLHJwGE=
+	t=1785948389; cv=none; b=pnicS8jPHr9ZSb4F9n8AhSbOrQ2V/QKG9ELHP4U5WjJEWVmnZBpdc5ZuAw77GpeHdLyMYsdFU3MtWnlcpEqTL9juAuiN0dOST+wlskpUSCtMz+TsxtYTRe3I+JcAV0YW14foQBddw6mQ0Psgl/wXTOxbhO2rbAhZ6UrUBUGCzLE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785945702; c=relaxed/simple;
-	bh=xAbaVHxc2dMOzrDQrzk6m+BmC0sNBSR4flGgtHWvDMQ=;
+	s=arc-20240116; t=1785948389; c=relaxed/simple;
+	bh=icSBlX5Bn6PnoDrrPwFCn+zO/g7q3+sDiGHwIKmhxmQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=DTZ58LQ/Jeov2f5X9B0Yar7WZ6BcVskjHj3DlFipqCS7Q6Eap68u/WkFWLPRBM6iJynOn+fEM6MrKRDyni9n/PeJrGP3vguPcZTuOS/mEPc+UwVLW1gScmyQLE5cvMiv/ufQYnyWljmgx6pjPoB42jk7Yo7Qvx/V2d1q20KgvtY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NCP3luce; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=HG2jlqBlSMO6NuzPEFlIq81zP7ztL34eCY4f//wj/H0vMecaCIikCgJrDhxfNWEPTZ7GyT/fPLou6HOT8o+jd+GDYxr1EPVufuzc1lgOaPck7a9/0TlFcmgW5uyKJz5xnIofWxxG1t3U6pY1Q1Qn9ev+ugMuCzdSg5dVcFPi7+E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eUUUovKw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NCP3luce"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68B231F00A3A
-	for <linux-acpi@vger.kernel.org>; Wed,  5 Aug 2026 16:01:36 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eUUUovKw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 935DC1F00A3D
+	for <linux-acpi@vger.kernel.org>; Wed,  5 Aug 2026 16:46:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785945696;
-	bh=GsmC6QA8gkvnd3hLSg9Klgxkzd6KUrmOUb1n5QfNqYY=;
+	s=k20260515; t=1785948388;
+	bh=+Ye8b+wsZIA2qG9lNMZfJMyCZTt+P4r6Wvz905OiOMI=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=NCP3luceVZjP+YRbFN732Z8MY1iXD9lZIaDJx8RdmXDnrAA6aNbIN8x0D99bSwj+n
-	 X8cvaQNXEuKMGlZ0AQHEhMrGEQmWbz31y6CXhkKqnxkK/JPWfvFYTz+fTVB9r2RSmu
-	 PSUU3A7oJOAK0m5til5+4E8i9a2Zm+OQhLTY8d5NPHUM8i1CcZdu+XCSN1hDId51Z+
-	 ISAV6KFWshUdKl6IXXTCBcnZzKrTg42ZKwYCpHQRuJF+jfM3101e0kEitfAXZTNDm8
-	 Zr5TEyWfnueChba5yKvkL/RhF7Pa4x+NW1kbdlzj4CribtBZ0+LBcuFsT/o4QWwkQq
-	 tokZQdab3WBLw==
-Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5b28c91fba5so12294e87.1
-        for <linux-acpi@vger.kernel.org>; Wed, 05 Aug 2026 09:01:36 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RoVVj8hsPJslOnEZUjFQ+yQza2hbaKbIz5b+qwomw90jfItosXv8/KaE+HTJqqvI8AiDwaO8hS+paNL@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw9OxLnd5d0UupyOS8L+EQp3ig5KAhj0esUIIyKPbPPBa5qlxWR
-	YniwIrnumFHSKupzDQ5MvxgU2xhqUWBpCHjDdglplIEGxEKavWiK8ekVJGp+0mPqZC06qGxunpY
-	27Pa0vrGD0FRpCSzxzmMzJg2P6Mg1wcA=
-X-Received: by 2002:ac2:4c53:0:b0:5b2:aad1:7dc2 with SMTP id
- 2adb3069b0e04-5b2fe7bec59mr27783e87.21.1785945694862; Wed, 05 Aug 2026
- 09:01:34 -0700 (PDT)
+	b=eUUUovKwv9uxwqttLQAVJjeTRkikfHTamyYCz8NXkLN4cJ+zm33qmIuGvpyrbKOFl
+	 LnNtxGwRwTeOKg4alfsVK/MLJynEixLaPZAy9TzP8SI2xdSzuWu7efYXSx5M4oI63m
+	 Kpm6srWOBdc4mnqnaI++JkbDbwbWWI8JKwFzb9ai6FXCBbU6HHIhKFqhbDYgFe1kG/
+	 f+yQuUUNjdJdFuGeAMbkTwQ+kjow8FPAoTOgO+77iFyOmITTepxQ2SPe8KUmiiOcSi
+	 n5gqx6lqmMRPHVixzArW23xmmOUZibHOE/GSUmzGsLLTpLiX0K6YxlcNwM4d+t6KAH
+	 5ZyR4YKtIocaw==
+Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5b015b2d792so1130739e87.3
+        for <linux-acpi@vger.kernel.org>; Wed, 05 Aug 2026 09:46:28 -0700 (PDT)
+X-Gm-Message-State: AOJu0YyE/UDYAk8ynT3Bbzpze12AeamIl6l4IBUQGYIM3447FA7RHtUo
+	MniYbByGSbDKoxYUZfdvLZULLR/+GWAaXlVhQztNxLrIAqiJTj7cBPLRkDJhHYqF7mN+v7rwTcz
+	1etAd1dhBkTaGlQhnH2AVkvRoanqArbc=
+X-Received: by 2002:a05:6512:b91:b0:5b2:e947:b3f9 with SMTP id
+ 2adb3069b0e04-5b2f4cc9324mr1083863e87.26.1785948387055; Wed, 05 Aug 2026
+ 09:46:27 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAJOGg3z6LJPDsdPNBxajgy8_wQxfhYBRxe4EiurZf3kPU5A5Bw@mail.gmail.com>
- <f42cc94c-ff60-4999-b473-c2fc5b1b4199@intel.com>
-In-Reply-To: <f42cc94c-ff60-4999-b473-c2fc5b1b4199@intel.com>
+References: <20260722131553.2117835-1-sudeep.holla@kernel.org> <20260722131553.2117835-2-sudeep.holla@kernel.org>
+In-Reply-To: <20260722131553.2117835-2-sudeep.holla@kernel.org>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 5 Aug 2026 18:01:21 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0j1Tucb0yzS8=3U_X1E4ziztjgOsiYrc_QfUUKZfScCPA@mail.gmail.com>
-X-Gm-Features: AUfX_myW7xu4tnlSo8vBz4hdbtZoOseDwqKUO260JwpnpQ0OYqDFe4bcn4eCJH4
-Message-ID: <CAJZ5v0j1Tucb0yzS8=3U_X1E4ziztjgOsiYrc_QfUUKZfScCPA@mail.gmail.com>
-Subject: Re: [REGRESSION] no TPM device after "tpm_crb: Convert ACPI driver to
- a platform one"
-To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
-Cc: Julien <julien82453@gmail.com>, regressions@lists.linux.dev, jarkko@kernel.org, 
-	linux-integrity@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Content-Type: multipart/mixed; boundary="000000000000bb187606584ee296"
-
---000000000000bb187606584ee296
+Date: Wed, 5 Aug 2026 18:46:15 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hdxtuEbFQdwRe=T+Q2xRki+uN9PP7PPw7AdW4Obe3fqA@mail.gmail.com>
+X-Gm-Features: AUfX_mzDCkRCv6uCTLFlvOrFSsuEeF3hnYAkpAif_GgMK46WdV30q3YbLj2U8Is
+Message-ID: <CAJZ5v0hdxtuEbFQdwRe=T+Q2xRki+uN9PP7PPw7AdW4Obe3fqA@mail.gmail.com>
+Subject: Re: [PATCH v2 1/4] ACPICA: Fix PCC OperationRegion command offsets
+To: Sudeep Holla <sudeep.holla@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	acpica-devel@lists.linux.dev, "Rafael J . Wysocki" <rafael@kernel.org>, 
+	Saket Dumbre <saket.dumbre@intel.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 4, 2026 at 9:08=E2=80=AFPM Wysocki, Rafael J
-<rafael.j.wysocki@intel.com> wrote:
+On Wed, Jul 22, 2026 at 3:16=E2=80=AFPM Sudeep Holla <sudeep.holla@kernel.o=
+rg> wrote:
 >
-> Hi,
+> ACPI 6.3, section 5.5.2.4.7.3, states that the PCC Operation
+> Region is associated with the region of shared memory that follows the
+> PCC signature.
 >
-> On 8/2/2026 2:54 PM, Julien wrote:
-> > Hello,
-> >
-> > Please keep in mind this is my first time reporting a Linux kernel
-> > regression.
-> >
-> > Since commit 48fe2cddc85c ("tpm_crb: Convert ACPI driver to a platform
-> > one"), my TPM device is no longer available. Both /dev/tpm0 and
-> > /dev/tpmrm0 are missing.
-> >
-> > Log messages:
-> > platform MSFT0101:00: failed to claim resource 1: [mem
-> > 0xfed40000-0xfed40fff]
-> > acpi MSFT0101:00: platform device creation failed: -16
-> >
-> So there's no platform device for the driver to bind to.
+> The generic and extended PCC shared memory layouts include the 4-byte
+> signature at offset 0, so their raw shared memory COMMAND fields are at
+> offsets 4 and 12 respectively. Since AML field offsets for the PCC
+> OperationRegion are relative to the region after that signature, ACPICA
+> must look for those COMMAND fields at OperationRegion offsets 0 and 8.
 >
-> I think that these messages have been present in the kernel logs for
-> quite some time, but previously they were not connected to any
-> functional issues.
+> Adjust the generic and master subspace command checks to use those
+> OperationRegion-relative offsets. Otherwise writes to the COMMAND field
+> can fail to invoke the PCC address space handler at the offset described
+> by the PCC OperationRegion definition.
 >
+> Fixes: aa6ec56b574d ("ACPICA: ACPI 6.3: add PCC operation region support =
+for AML interpreter")
+> Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
+> ---
+>  drivers/acpi/acpica/exfield.c | 11 ++++++-----
+>  1 file changed, 6 insertions(+), 5 deletions(-)
 >
-> > I added some debug logging:
-> > ACPI resourcet[0] =3D [mem 0xfed40040-0xfed4103f flags 0x200]
-> > ACPI resourcet[1] =3D [mem 0xfed40000-0xfed40fff flags 0x200]
-> >
-> > I think the failure happens in kernel/resource.c: __insert_resource()
-> > because of the two memory regions overlapping.
-> >
-> This is quite plausible, but if that's the case, it should be fixable.
+> diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.=
+c
+> index 9a55524ed8f4..a7fac63938b3 100644
+> --- a/drivers/acpi/acpica/exfield.c
+> +++ b/drivers/acpi/acpica/exfield.c
+> @@ -45,12 +45,13 @@ static const u8 acpi_protocol_lengths[] =3D {
 >
-> Let me figure out something.
+>  /*
+>   * The following macros determine a given offset is a COMD field.
+> - * According to the specification, generic subspaces (types 0-2) contain=
+s a
+> - * 2-byte COMD field at offset 4 and master subspaces (type 3) contains =
+a 4-byte
+> - * COMD field starting at offset 12.
+> + * According to the specification, the PCC OperationRegion begins after
+> + * the PCC signature. The raw shared memory COMD offsets of 4 for generi=
+c
+> + * subspaces (types 0-2) and 12 for master subspaces (type 3) therefore
+> + * appear at OperationRegion offsets 0 and 8.
+>   */
+> -#define GENERIC_SUBSPACE_COMMAND(a)     (4 =3D=3D a || a =3D=3D 5)
+> -#define MASTER_SUBSPACE_COMMAND(a)      (12 <=3D a && a <=3D 15)
+> +#define GENERIC_SUBSPACE_COMMAND(a)     ((a) < 2)
+> +#define MASTER_SUBSPACE_COMMAND(a)      (((a) - 8) < 4)
+>
+>  /***********************************************************************=
+********
+>   *
+> --
 
-Please try the attached patch and let me know how it goes.
+Can you please see the corresponding upstream ACPICA pull request?
+There are concerns regarding it.
 
-It applies on top of the current mainline, but it may be adjusted to
-older kernels, so please let me know if you need that.
-
---000000000000bb187606584ee296
-Content-Type: text/x-patch; charset="US-ASCII"; name="acpi-platform-adjust-resources.patch"
-Content-Disposition: attachment; 
-	filename="acpi-platform-adjust-resources.patch"
-Content-Transfer-Encoding: base64
-Content-ID: <f_msg9rd8a0>
-X-Attachment-Id: f_msg9rd8a0
-
-LS0tCiBkcml2ZXJzL2FjcGkvYWNwaV9wbGF0Zm9ybS5jIHwgICAzOSArKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrLS0KIDEgZmlsZSBjaGFuZ2VkLCAzNyBpbnNlcnRpb25zKCsp
-LCAyIGRlbGV0aW9ucygtKQoKLS0tIGEvZHJpdmVycy9hY3BpL2FjcGlfcGxhdGZvcm0uYworKysg
-Yi9kcml2ZXJzL2FjcGkvYWNwaV9wbGF0Zm9ybS5jCkBAIC03MSw2ICs3MSwzOSBAQCBzdGF0aWMg
-c3RydWN0IG5vdGlmaWVyX2Jsb2NrIGFjcGlfcGxhdGZvCiAJLm5vdGlmaWVyX2NhbGwgPSBhY3Bp
-X3BsYXRmb3JtX2RldmljZV9yZW1vdmVfbm90aWZ5LAogfTsKIAorc3RhdGljIHZvaWQgYWNwaV9w
-bGF0Zm9ybV9hZGp1c3RfcmVzb3VyY2Uoc3RydWN0IGFjcGlfZGV2aWNlICphZGV2LAorCQkJCQkg
-IHN0cnVjdCByZXNvdXJjZSAqbmV3X3JlcywKKwkJCQkJICBjb25zdCBzdHJ1Y3QgcmVzb3VyY2Ug
-KnJlc291cmNlcywKKwkJCQkJICB1bnNpZ25lZCBpbnQgY291bnQpCit7CisJdW5zaWduZWQgaW50
-IGk7CisKKwlpZiAoIShuZXdfcmVzLT5mbGFncyAmIChJT1JFU09VUkNFX0lPIHwgSU9SRVNPVVJD
-RV9NRU0pKSkKKwkJcmV0dXJuOworCisJZm9yIChpID0gMDsgaSA8IGNvdW50OyBpKyspIHsKKwkJ
-Y29uc3Qgc3RydWN0IHJlc291cmNlICpyZXMgPSAmcmVzb3VyY2VzW2ldOworCisJCWlmIChyZXNv
-dXJjZV90eXBlKG5ld19yZXMpICE9IHJlc291cmNlX3R5cGUocmVzKSkKKwkJCWNvbnRpbnVlOwor
-CisJCWlmICghcmVzb3VyY2Vfb3ZlcmxhcHMobmV3X3JlcywgcmVzKSkKKwkJCWNvbnRpbnVlOwor
-CisJCWRldl9pbmZvKCZhZGV2LT5kZXYsICJBZGp1c3RpbmcgcmVzb3VyY2UgJXBSIHRvICVwUlxu
-IiwgbmV3X3JlcywgcmVzKTsKKwkJLyoKKwkJICogRXh0ZW5kIHRoZSBuZXcgcmVzb3VyY2UgdG8g
-aW5jbHVkZSB0aGUgb25lIHRoYXQgaGFzIGJlZW4KKwkJICogcHJvY2Vzc2VkIGFscmVhZHkgdG8g
-YXZvaWQgcmVzb3VyY2UgaW5zZXJ0aW9uIGZhaWx1cmVzIGR1cmluZworCQkgKiBwbGF0Zm9ybSBk
-ZXZpY2UgcmVnaXN0cmF0aW9uLgorCQkgKi8KKwkJaWYgKHJlcy0+c3RhcnQgPCBuZXdfcmVzLT5z
-dGFydCkKKwkJCW5ld19yZXMtPnN0YXJ0ID0gcmVzLT5zdGFydDsKKworCQlpZiAocmVzLT5lbmQg
-PiBuZXdfcmVzLT5lbmQpCisJCQluZXdfcmVzLT5lbmQgPSByZXMtPmVuZDsKKwl9Cit9CisKIHN0
-YXRpYyB2b2lkIGFjcGlfcGxhdGZvcm1fZmlsbF9yZXNvdXJjZShzdHJ1Y3QgYWNwaV9kZXZpY2Ug
-KmFkZXYsCiAJY29uc3Qgc3RydWN0IHJlc291cmNlICpzcmMsIHN0cnVjdCByZXNvdXJjZSAqZGVz
-dCkKIHsKQEAgLTE1MSwxMCArMTg0LDEyIEBAIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKmFjcGlf
-Y3JlYXRlX3BsYXQKIAkJCQlyZXR1cm4gRVJSX1BUUigtRU5PTUVNKTsKIAkJCX0KIAkJCWNvdW50
-ID0gMDsKLQkJCWxpc3RfZm9yX2VhY2hfZW50cnkocmVudHJ5LCAmcmVzb3VyY2VfbGlzdCwgbm9k
-ZSkKKwkJCWxpc3RfZm9yX2VhY2hfZW50cnkocmVudHJ5LCAmcmVzb3VyY2VfbGlzdCwgbm9kZSkg
-eworCQkJCWFjcGlfcGxhdGZvcm1fYWRqdXN0X3Jlc291cmNlKGFkZXYsIHJlbnRyeS0+cmVzLAor
-CQkJCQkJCSAgICAgIHJlc291cmNlcywgY291bnQpOwogCQkJCWFjcGlfcGxhdGZvcm1fZmlsbF9y
-ZXNvdXJjZShhZGV2LCByZW50cnktPnJlcywKIAkJCQkJCQkgICAgJnJlc291cmNlc1tjb3VudCsr
-XSk7Ci0KKwkJCX0KIAkJCWFjcGlfZGV2X2ZyZWVfcmVzb3VyY2VfbGlzdCgmcmVzb3VyY2VfbGlz
-dCk7CiAJCX0KIAl9Cg==
---000000000000bb187606584ee296--
+Thanks!
