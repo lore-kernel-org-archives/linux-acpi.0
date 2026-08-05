@@ -1,180 +1,147 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5077213254
-	for <linux-acpi@vger.kernel.org>; Wed,  5 Aug 2026 13:08:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A71B7480947
+	for <linux-acpi@vger.kernel.org>; Wed,  5 Aug 2026 16:01:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785935324; cv=none; b=f2czF/JAYbqbeQfCxtEu666g3yYu5Qra+DdcX4ZMTCA96ezpWLKFZ337VC2NwEqylLBf3ILYx0X82K1tSe3iQqYUQmeOSg3Q6VDMv9ctJ2hUKyR1cDtw3kvoKBhdASKIKNovlOZ2VFLDzELPdgYrgYG2zEI1lnI+dvUvdnTW6EE=
+	t=1785945702; cv=none; b=SmI+1vHEakpv5atQZn3C6ALZsX3MJnLNnJHjOZYjg2H2nsvGylphm+3PtFnCPdculv2FtJerIrDGXukAbzxxRtoOaDgHA5qAG//MkHdpa2KLYP5yaYR34nmSrJN+bkOF0z1tJL63FTN4jo32PPkcQEzfQCYuAUdj5ltpcLHJwGE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785935324; c=relaxed/simple;
-	bh=6dUMIQzJj/gjxFZDPawThVxYqfw6kpsbefTT6E1dAT4=;
+	s=arc-20240116; t=1785945702; c=relaxed/simple;
+	bh=xAbaVHxc2dMOzrDQrzk6m+BmC0sNBSR4flGgtHWvDMQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=MJE9L97aKlwyh8B+iGFb5cwUf/28QKcoBuymBvQI+9BCI09+ibmZLnmY0WzFmo0BL129FIe0xNV77ugTeBewJ6Bq13TkUFa5BnXZR92S6BKvjqbrb6XKA2l8F/nD9l0yi0HRp6ybjm5Q6/NQp5EED4C0cTpuzMRRFn/sLVtRwWA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZojHv2G5; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=DTZ58LQ/Jeov2f5X9B0Yar7WZ6BcVskjHj3DlFipqCS7Q6Eap68u/WkFWLPRBM6iJynOn+fEM6MrKRDyni9n/PeJrGP3vguPcZTuOS/mEPc+UwVLW1gScmyQLE5cvMiv/ufQYnyWljmgx6pjPoB42jk7Yo7Qvx/V2d1q20KgvtY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NCP3luce; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZojHv2G5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C8F11F00A3A
-	for <linux-acpi@vger.kernel.org>; Wed,  5 Aug 2026 13:08:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NCP3luce"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68B231F00A3A
+	for <linux-acpi@vger.kernel.org>; Wed,  5 Aug 2026 16:01:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785935322;
-	bh=rriqBNK6oHvVYqznZx3OyFyQqrBnagP/gYB4IvuW224=;
+	s=k20260515; t=1785945696;
+	bh=GsmC6QA8gkvnd3hLSg9Klgxkzd6KUrmOUb1n5QfNqYY=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=ZojHv2G5aY3DwD+8ZzyoYIkGtVhpCWlB7AMfBhbtjF9okbu8HRvnFFJqeNJ/lNeif
-	 bRXto/wzSBYinYfgB9VC82Lj9Oxl24v9IB34eoS9/Hk1a1CHT4KWORj3o9Mz8JrWR5
-	 8Las6/DaU0DwO+i98hz1+jRR29sL6fow7uzCyF+xWUEKdqyk1DW7X41iy1YIYghHq2
-	 DZlaZ2PJvjfrFTEyvE+JeCihqUpKFc22a5PdTlrEBqHuxrndKDALcgvoILKRfbfiYb
-	 WYGD3Rg8Mu2at92Y0yV6nG9pcXZK3xxuRnV+iWZcD+qn2kmNlJClPq3ADaCRj+V+ch
-	 wWlRGVWii83lA==
-Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-5aebd52488cso1128060e87.2
-        for <linux-acpi@vger.kernel.org>; Wed, 05 Aug 2026 06:08:42 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RrSmC9DHs0JrHhgqEL+1i3YjEUPx1e+5o3BRHam/zpFFnbQUb/7APH3F+B/BVhmhCjm0k37x7O7YY8p@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzx4GAYkfeEyIBnTQQUCK8yPQeL2dpJxkWYLiY7+pa2F5cuWf9E
-	8QyFJbAl/eNwatUcqSZawggjq5BrGU7kTk19FeDcAGX90cVbATM98gsid4aFPWzkgNnjfEixiAh
-	kFLgkQhCpCikFEt6WXweleA3Pgqt9J9Y=
-X-Received: by 2002:a05:6512:61b3:b0:5ae:c063:6397 with SMTP id
- 2adb3069b0e04-5b2f4b8f29fmr928934e87.15.1785935321073; Wed, 05 Aug 2026
- 06:08:41 -0700 (PDT)
+	b=NCP3luceVZjP+YRbFN732Z8MY1iXD9lZIaDJx8RdmXDnrAA6aNbIN8x0D99bSwj+n
+	 X8cvaQNXEuKMGlZ0AQHEhMrGEQmWbz31y6CXhkKqnxkK/JPWfvFYTz+fTVB9r2RSmu
+	 PSUU3A7oJOAK0m5til5+4E8i9a2Zm+OQhLTY8d5NPHUM8i1CcZdu+XCSN1hDId51Z+
+	 ISAV6KFWshUdKl6IXXTCBcnZzKrTg42ZKwYCpHQRuJF+jfM3101e0kEitfAXZTNDm8
+	 Zr5TEyWfnueChba5yKvkL/RhF7Pa4x+NW1kbdlzj4CribtBZ0+LBcuFsT/o4QWwkQq
+	 tokZQdab3WBLw==
+Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5b28c91fba5so12294e87.1
+        for <linux-acpi@vger.kernel.org>; Wed, 05 Aug 2026 09:01:36 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RoVVj8hsPJslOnEZUjFQ+yQza2hbaKbIz5b+qwomw90jfItosXv8/KaE+HTJqqvI8AiDwaO8hS+paNL@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw9OxLnd5d0UupyOS8L+EQp3ig5KAhj0esUIIyKPbPPBa5qlxWR
+	YniwIrnumFHSKupzDQ5MvxgU2xhqUWBpCHjDdglplIEGxEKavWiK8ekVJGp+0mPqZC06qGxunpY
+	27Pa0vrGD0FRpCSzxzmMzJg2P6Mg1wcA=
+X-Received: by 2002:ac2:4c53:0:b0:5b2:aad1:7dc2 with SMTP id
+ 2adb3069b0e04-5b2fe7bec59mr27783e87.21.1785945694862; Wed, 05 Aug 2026
+ 09:01:34 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260803210527.1285229-1-christian.loehle@arm.com> <f48c36fe-446f-4f83-8d2d-0913aafc377e@arm.com>
-In-Reply-To: <f48c36fe-446f-4f83-8d2d-0913aafc377e@arm.com>
+References: <CAJOGg3z6LJPDsdPNBxajgy8_wQxfhYBRxe4EiurZf3kPU5A5Bw@mail.gmail.com>
+ <f42cc94c-ff60-4999-b473-c2fc5b1b4199@intel.com>
+In-Reply-To: <f42cc94c-ff60-4999-b473-c2fc5b1b4199@intel.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 5 Aug 2026 15:08:26 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0hdAmDORMeHD5qVpji8vBZpCP-uHJ-bF_7wYxA5f8kKaA@mail.gmail.com>
-X-Gm-Features: AUfX_mzpRx3VG1wGIvbulaHf7izF1itLfhxfEyIyhlUMkBZwn6rv-6d431tybeQ
-Message-ID: <CAJZ5v0hdAmDORMeHD5qVpji8vBZpCP-uHJ-bF_7wYxA5f8kKaA@mail.gmail.com>
-Subject: Re: [RESEND][PATCH 0/3] ACPI: CPPC: Reduce .target() callback overhead
-To: Christian Loehle <christian.loehle@arm.com>
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, linux-pm@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	Len Brown <lenb@kernel.org>, Jie Zhan <zhanjie9@hisilicon.com>, 
-	Lifeng Zheng <zhenglifeng1@huawei.com>, Pierre Gondois <pierre.gondois@arm.com>, 
-	Sumit Gupta <sumitg@nvidia.com>, Sudeep Holla <sudeep.holla@arm.com>, 
-	Ionela Voinescu <ionela.voinescu@arm.com>, zhongqiu.han@oss.qualcomm.com
+Date: Wed, 5 Aug 2026 18:01:21 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0j1Tucb0yzS8=3U_X1E4ziztjgOsiYrc_QfUUKZfScCPA@mail.gmail.com>
+X-Gm-Features: AUfX_myW7xu4tnlSo8vBz4hdbtZoOseDwqKUO260JwpnpQ0OYqDFe4bcn4eCJH4
+Message-ID: <CAJZ5v0j1Tucb0yzS8=3U_X1E4ziztjgOsiYrc_QfUUKZfScCPA@mail.gmail.com>
+Subject: Re: [REGRESSION] no TPM device after "tpm_crb: Convert ACPI driver to
+ a platform one"
+To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
+Cc: Julien <julien82453@gmail.com>, regressions@lists.linux.dev, jarkko@kernel.org, 
+	linux-integrity@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="000000000000bb187606584ee296"
+
+--000000000000bb187606584ee296
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 4, 2026 at 12:28=E2=80=AFAM Christian Loehle
-<christian.loehle@arm.com> wrote:
+On Tue, Aug 4, 2026 at 9:08=E2=80=AFPM Wysocki, Rafael J
+<rafael.j.wysocki@intel.com> wrote:
 >
-> On 8/3/26 22:05, Christian Loehle wrote:
-> > cppc-cpufreq reaches cppc_set_perf() from every target callback.  For
-> > direct SystemMemory controls, that path currently does several steps
-> > which are unnecessary once the immutable _CPC layout is known:
-> >
-> >   - a full-width write first reads the access unit and merges the value=
-.
-> >   - every write takes the descriptor's RMW lock, even when its access u=
-nit
-> >     is not shared with another _CPC entry.
-> >   - cppc_set_perf() evaluates the same three PCC predicates at each pha=
-se
-> >     of the transaction.
-> >
-> > Remove those costs while retaining the existing conservative paths for
-> > partial fields, overlapping or malformed access units, and PCC controls=
-.
-> >
-> > The series was tested on Arm Power-Orion O6 and AmpereOne systems using
-> > cppc-cpufreq and schedutil.  An rt-app task pinned to one CPU ran for
-> > 500 us every 2 ms with uclamp.min=3D512, for 5000 periods per run.  sch=
-edutil
-> > rate_limit_us was 1000.  cppc_cpufreq_fast_switch() latency was measure=
-d
-> > for 100 ten-second runs.  Each sample is the mean callback latency with=
-in
-> > one run, and the table reports the median and sample standard deviation
-> > of those samples.
-> >
-> > Orion O6               median       stdev       callbacks
-> > baseline               5703 ns      307 ns       188017
-> > complete series        5023 ns      240 ns       188209
-> > =3D=3D> 680 ns (11.9%) reduction
-> >
-> > AmpereOne              median       stdev
-> > baseline               2090 ns      157 ns
-> > complete series      1907.5 ns      140 ns
-> > =3D=3D> 182.5 ns (8.7%) reduction
-> >
-> > The cumulative intermediate results on the Orion O6 attribute roughly h=
-alf
-> > of the gain to each of the first two patches: avoiding the read reduced
-> > the median by 284 ns (5.0%), and avoiding the lock reduced it by anothe=
-r
-> > 336 ns (6.2%).
-> > Together they account for 620 ns of the 680 ns total reduction.
-> >
-> > With the same arm64 configuration and GCC 11.4, caching the PCC predica=
-te
-> > also reduces cppc_set_perf() from 1124 to 884 bytes.  The generated
-> > function has 60 fewer instructions, 17 fewer loads and 20 fewer branche=
-s.
-> >
-> > This series is based on the CPPC fixes posted at (already queued):
-> > https://lore.kernel.org/lkml/20260722093825.1030594-1-christian.loehle@=
-arm.com/
-> >
-> > and the separately posted fix still under review:
-> > https://lore.kernel.org/lkml/20260724104042.1481804-1-christian.loehle@=
-arm.com/
-> >
-> > PS:
-> > There's a final optimization that I actually wanted to make but decided=
- to
-> > split it out for now as it somewhat replicated Sumit's series:
-> > Skipping redundant perf ctrl writes in cpufreq-cppc if registers are no=
-n-PCC
-> > and !shared (because the values are unchanged, the
-> > !autonomous-common-case), but that requires the driver to have a more
-> > complex caching- and atomic-updating machinery in place, similar to
-> > hotplug. As opposed to this series the optimization would be for the
-> > microcontroller handling the CPPC requests, which may be shared across
-> > many CPUs and therefore redundant requests can increase the dvfs
-> > transition latency.
-> > That patch will follow once Sumit's is queued:
-> > https://lore.kernel.org/lkml/20260716153820.2007095-1-sumitg@nvidia.com=
-/
-> >
-> > [RESEND] for the new base-commit specifier below
-> >
-> > Christian Loehle (3):
-> >   ACPI: CPPC: Avoid unnecessary reads for full-width writes
-> >   ACPI: CPPC: Avoid locking standalone full-width registers
-> >   ACPI: CPPC: Evaluate performance-control PCC use once
-> >
-> >  drivers/acpi/cppc_acpi.c | 135 +++++++++++++++++++++++++++++++--------
-> >  include/acpi/cppc_acpi.h |   5 +-
-> >  2 files changed, 113 insertions(+), 27 deletions(-)
-> >
-> >
-> > base-commit: 075b74841bd0065a3bda3440873c747938e69b68
+> Hi,
 >
-> Nice, so that worked:
-> https://sashiko.dev/#/patchset/20260803210527.1285229-1-christian.loehle@=
-arm.com
-> Seems no findings on $SUBJECT
-
-Yes, so applied as 7.3 material.
-
-> but the rest of the comments it has look legit to me?
-
-Yes, but please address those on top of the $subject series, thanks!
-
-> I'll go take another look tomorrow:
+> On 8/2/2026 2:54 PM, Julien wrote:
+> > Hello,
+> >
+> > Please keep in mind this is my first time reporting a Linux kernel
+> > regression.
+> >
+> > Since commit 48fe2cddc85c ("tpm_crb: Convert ACPI driver to a platform
+> > one"), my TPM device is no longer available. Both /dev/tpm0 and
+> > /dev/tpmrm0 are missing.
+> >
+> > Log messages:
+> > platform MSFT0101:00: failed to claim resource 1: [mem
+> > 0xfed40000-0xfed40fff]
+> > acpi MSFT0101:00: platform device creation failed: -16
+> >
+> So there's no platform device for the driver to bind to.
 >
-> 1. Using per-CPU cpc_desc->rmw_lock for SYSTEM_MEMORY CPPC control regist=
-er that
-> may be shared.
-> 2. MASK_VAL_WRITE() truncation on 32bit architectures.
-> 3. acpi_cppc_processor_exit() calls kfree(cpc_ptr) unconditionally (UAF w=
-ith sysfs?)
-> 4. cppc_set_reg_val_in_pcc() calls cpc_write() before down_write(&pcc_ss_=
-data->pcc_lock)
-> 5 & 6 are sanitization of values from FW.
+> I think that these messages have been present in the kernel logs for
+> quite some time, but previously they were not connected to any
+> functional issues.
+>
+>
+> > I added some debug logging:
+> > ACPI resourcet[0] =3D [mem 0xfed40040-0xfed4103f flags 0x200]
+> > ACPI resourcet[1] =3D [mem 0xfed40000-0xfed40fff flags 0x200]
+> >
+> > I think the failure happens in kernel/resource.c: __insert_resource()
+> > because of the two memory regions overlapping.
+> >
+> This is quite plausible, but if that's the case, it should be fixable.
+>
+> Let me figure out something.
 
-Sounds good to me.
+Please try the attached patch and let me know how it goes.
+
+It applies on top of the current mainline, but it may be adjusted to
+older kernels, so please let me know if you need that.
+
+--000000000000bb187606584ee296
+Content-Type: text/x-patch; charset="US-ASCII"; name="acpi-platform-adjust-resources.patch"
+Content-Disposition: attachment; 
+	filename="acpi-platform-adjust-resources.patch"
+Content-Transfer-Encoding: base64
+Content-ID: <f_msg9rd8a0>
+X-Attachment-Id: f_msg9rd8a0
+
+LS0tCiBkcml2ZXJzL2FjcGkvYWNwaV9wbGF0Zm9ybS5jIHwgICAzOSArKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrLS0KIDEgZmlsZSBjaGFuZ2VkLCAzNyBpbnNlcnRpb25zKCsp
+LCAyIGRlbGV0aW9ucygtKQoKLS0tIGEvZHJpdmVycy9hY3BpL2FjcGlfcGxhdGZvcm0uYworKysg
+Yi9kcml2ZXJzL2FjcGkvYWNwaV9wbGF0Zm9ybS5jCkBAIC03MSw2ICs3MSwzOSBAQCBzdGF0aWMg
+c3RydWN0IG5vdGlmaWVyX2Jsb2NrIGFjcGlfcGxhdGZvCiAJLm5vdGlmaWVyX2NhbGwgPSBhY3Bp
+X3BsYXRmb3JtX2RldmljZV9yZW1vdmVfbm90aWZ5LAogfTsKIAorc3RhdGljIHZvaWQgYWNwaV9w
+bGF0Zm9ybV9hZGp1c3RfcmVzb3VyY2Uoc3RydWN0IGFjcGlfZGV2aWNlICphZGV2LAorCQkJCQkg
+IHN0cnVjdCByZXNvdXJjZSAqbmV3X3JlcywKKwkJCQkJICBjb25zdCBzdHJ1Y3QgcmVzb3VyY2Ug
+KnJlc291cmNlcywKKwkJCQkJICB1bnNpZ25lZCBpbnQgY291bnQpCit7CisJdW5zaWduZWQgaW50
+IGk7CisKKwlpZiAoIShuZXdfcmVzLT5mbGFncyAmIChJT1JFU09VUkNFX0lPIHwgSU9SRVNPVVJD
+RV9NRU0pKSkKKwkJcmV0dXJuOworCisJZm9yIChpID0gMDsgaSA8IGNvdW50OyBpKyspIHsKKwkJ
+Y29uc3Qgc3RydWN0IHJlc291cmNlICpyZXMgPSAmcmVzb3VyY2VzW2ldOworCisJCWlmIChyZXNv
+dXJjZV90eXBlKG5ld19yZXMpICE9IHJlc291cmNlX3R5cGUocmVzKSkKKwkJCWNvbnRpbnVlOwor
+CisJCWlmICghcmVzb3VyY2Vfb3ZlcmxhcHMobmV3X3JlcywgcmVzKSkKKwkJCWNvbnRpbnVlOwor
+CisJCWRldl9pbmZvKCZhZGV2LT5kZXYsICJBZGp1c3RpbmcgcmVzb3VyY2UgJXBSIHRvICVwUlxu
+IiwgbmV3X3JlcywgcmVzKTsKKwkJLyoKKwkJICogRXh0ZW5kIHRoZSBuZXcgcmVzb3VyY2UgdG8g
+aW5jbHVkZSB0aGUgb25lIHRoYXQgaGFzIGJlZW4KKwkJICogcHJvY2Vzc2VkIGFscmVhZHkgdG8g
+YXZvaWQgcmVzb3VyY2UgaW5zZXJ0aW9uIGZhaWx1cmVzIGR1cmluZworCQkgKiBwbGF0Zm9ybSBk
+ZXZpY2UgcmVnaXN0cmF0aW9uLgorCQkgKi8KKwkJaWYgKHJlcy0+c3RhcnQgPCBuZXdfcmVzLT5z
+dGFydCkKKwkJCW5ld19yZXMtPnN0YXJ0ID0gcmVzLT5zdGFydDsKKworCQlpZiAocmVzLT5lbmQg
+PiBuZXdfcmVzLT5lbmQpCisJCQluZXdfcmVzLT5lbmQgPSByZXMtPmVuZDsKKwl9Cit9CisKIHN0
+YXRpYyB2b2lkIGFjcGlfcGxhdGZvcm1fZmlsbF9yZXNvdXJjZShzdHJ1Y3QgYWNwaV9kZXZpY2Ug
+KmFkZXYsCiAJY29uc3Qgc3RydWN0IHJlc291cmNlICpzcmMsIHN0cnVjdCByZXNvdXJjZSAqZGVz
+dCkKIHsKQEAgLTE1MSwxMCArMTg0LDEyIEBAIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKmFjcGlf
+Y3JlYXRlX3BsYXQKIAkJCQlyZXR1cm4gRVJSX1BUUigtRU5PTUVNKTsKIAkJCX0KIAkJCWNvdW50
+ID0gMDsKLQkJCWxpc3RfZm9yX2VhY2hfZW50cnkocmVudHJ5LCAmcmVzb3VyY2VfbGlzdCwgbm9k
+ZSkKKwkJCWxpc3RfZm9yX2VhY2hfZW50cnkocmVudHJ5LCAmcmVzb3VyY2VfbGlzdCwgbm9kZSkg
+eworCQkJCWFjcGlfcGxhdGZvcm1fYWRqdXN0X3Jlc291cmNlKGFkZXYsIHJlbnRyeS0+cmVzLAor
+CQkJCQkJCSAgICAgIHJlc291cmNlcywgY291bnQpOwogCQkJCWFjcGlfcGxhdGZvcm1fZmlsbF9y
+ZXNvdXJjZShhZGV2LCByZW50cnktPnJlcywKIAkJCQkJCQkgICAgJnJlc291cmNlc1tjb3VudCsr
+XSk7Ci0KKwkJCX0KIAkJCWFjcGlfZGV2X2ZyZWVfcmVzb3VyY2VfbGlzdCgmcmVzb3VyY2VfbGlz
+dCk7CiAJCX0KIAl9Cg==
+--000000000000bb187606584ee296--
