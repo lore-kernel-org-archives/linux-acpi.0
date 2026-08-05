@@ -1,227 +1,176 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f78.google.com (mail-oo1-f78.google.com [209.85.161.78])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64830357CEC
-	for <linux-acpi@vger.kernel.org>; Wed,  5 Aug 2026 21:45:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2E7945D5D0
+	for <linux-acpi@vger.kernel.org>; Wed,  5 Aug 2026 22:45:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.78
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785966329; cv=none; b=jJgAcP95RoXMm5GRsEVHIq5Kmj3guh54EzUWHEfmxB4PKHIK8FbvV4160QW3ASoMvfkzMJuqvKWys71raU1q9DNFZ2xAEM4oir/laHfz1qfbHF1LKQa+KMJoU/B7bnb/LBWq51T9SeOQtXzf2t9fzo5ebCgTDXueraBtIigNOqw=
+	t=1785969929; cv=none; b=LTJC6KHNF+QJPm4NnIgF9ly8wmQD9BzbnR9BrtsxbsVj73pvMQ019YRvGeuKJ0yekgudKxO4TNLhLiQPjUJJSpUQK0UAXCWLBxcqYQ32odpt/VfOisAPlpKEAbS12GwP/PrUvuIP3NV+gUIVN/yj1aBsCsGPuvFXK4UL4wSvoVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785966329; c=relaxed/simple;
-	bh=ym6aC+Uv17jnJSfWSxwkJOrckCGteSJ0OGz6xOhRoag=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=uTnM+AATiBaJYTxRZubvqrDNSj6vtRs6MoH7Ci2u2zpdG4OdI+BlLvaSGHorWTiRGQnYIlrUTgBvz6IDYNhoHjeP8DRrcQ91htSU54YlSTN6aIIECzzY+rE5b0BNy1L5G9QRgTQn36Mf4oo/EXeOAHSGCWxK1ai/uvWzgLLoE7o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nH0nJGja; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nH0nJGja"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16D261F000E9
-	for <linux-acpi@vger.kernel.org>; Wed,  5 Aug 2026 21:45:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785966328;
-	bh=HHby+6xoF8bayEA6nLXmPYZgbuy5cKfxuxsck6XPhgc=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=nH0nJGjaADEzuynxupYmKSV8CKg/GRZt/jFaA2O8SMm0Fkt+uMDshE2rM4M9dBGhi
-	 kzGnMti8gSNUfPm2kHDDIR59omPZ5D18aGjagjuiMcaVe6P19uEF+zh0CgmLJ1Hdzv
-	 SDYY3VOuAw3u8nTsdgZkiKt6pnG2x/QtNAOdPba7K9G5Ugeyx1vV19/MYs5ED7qgeB
-	 96si93kDAKf0UmIBa0X9zEz8Z0IJ3AomO0tPl/L8ZyzEddiueex6+jSufYgwaU0Mvw
-	 z+eFqSdTDXL0FYb6MTGRaEp1M2yTWMP6ZAuMnQhOV5PhLEadXSfdCCpFWKhzN4fhaZ
-	 UeVC8pyc9MarQ==
-Received: by mail-lf1-f47.google.com with SMTP id 2adb3069b0e04-5aebd52488cso1754362e87.2
-        for <linux-acpi@vger.kernel.org>; Wed, 05 Aug 2026 14:45:28 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RpHxAXUji9l3M1QD2J0T54oOu1cSF0G7hu6eKhGQMX91vc0Zx9YHDCNreIN86fyNvex2PwXMRN8baMu@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzsq1vIR7aZBX8b7QC5KvKXKvlrYeKRBd3552x4wtGtSbtMvX/h
-	Gddaqp3WAs6B0YzyyWpKvzIT7Q2TuScPE2fRV7y9lc7+rRXUYllZSQV6fTDlqli7h0xWWN8PA/Q
-	AkXEZsyxujZYNyk/a+31Qq7Qie7EebtY=
-X-Received: by 2002:a05:6512:1386:b0:5b0:1bf6:f48f with SMTP id
- 2adb3069b0e04-5b2f4cc6f97mr1367700e87.48.1785966326416; Wed, 05 Aug 2026
- 14:45:26 -0700 (PDT)
+	s=arc-20240116; t=1785969929; c=relaxed/simple;
+	bh=ObrrrhVIABvmMsjgtGxn0fo10sgWBJJq1fSzxCxi5tc=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=F26ei3DW0epmMkVmiNU2VFwptTPYbL07J+OTbu082x/A5YkQawmW75fRdDIaBvAzcUH69eUYM5blQIbnQIbdfniZKUAxAqVVWrqBK9hT2S2YAIe1QEZfsOHIETa7CymTKz/RIEmc0l46/poW32rSKo2c0YSx2/8V3ci0afTS37U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.161.78
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oo1-f78.google.com with SMTP id 006d021491bc7-6aae6f87ed7so1373626eaf.0
+        for <linux-acpi@vger.kernel.org>; Wed, 05 Aug 2026 15:45:26 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1785969926; x=1786574726;
+        h=content-type:to:from:subject:message-id:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=SREuf9Mlu8ZYiOLiOyDH/te4HL0atuAHoIKIhO5+8Ck=;
+        b=TgsVVWjbWKsQVzd09GnHzrVFj31Bw1FxpXo+Chfa1nel3OtzIUqbfuIkuvS+5A8poL
+         2u/YfimtzL560lGj/3boVGCaJMexJuyJkxUSv3DFFPoCKP5uVfNl6Yo+Zg2vYY3y9ZUY
+         rRrm69X1C3Ao/LI8ly/Jv9JS4qK9wNVoN3uK5PUfrbvRd7CoOB0nUErSvzvIM+pun8pI
+         HlCc6q7DUpvKGEWOczjWKe3B0XcGzf1jG710hKqLoUxRCgW4WiDjxN+JrWQcZp8nmvu9
+         A3vP9CQ6hxCPBEIyQWYf9QmJTL498TQoVGULPLY0+95myZo2MJqmrig0DSDJ0Be04UlP
+         WdkQ==
+X-Forwarded-Encrypted: i=1; AHgh+RprNOluwLXGYLJGTRkeoTn+TRFEG6YYEQ5E3PKMUJHV6U5ZmRaKaxXocLeBYY1TxVQI/u6NPQQmdA7S@vger.kernel.org
+X-Gm-Message-State: AOJu0YzCAwW1heDpk+tnZAdtPp9Z2cr/wb/BZwfzS0Ws2UFKLOf3rAtv
+	VGuKEEnw+ZxliSxmWlUtuL64hTUEC+toxs6lwKCpMr6vX99H43FLE9o1URKmxnV9fZicyoVRdcn
+	Hl8qfzViqej4DUj4Lg/2Vc34VudK+1XDy6MKdrzvRukYac5jUPz1qS7Ik73Q=
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260718-b4-acpi-battery-notification-v4-0-599c8ed1072f@rong.moe>
- <20260718-b4-acpi-battery-notification-v4-3-599c8ed1072f@rong.moe>
- <CAJZ5v0ijiG23QWjG9C9OfZSB5jxFTg42OwYRS6KVc=Voi2s42w@mail.gmail.com> <9055f4665dfb170f7053f785c76e46dfe364fd87.camel@rong.moe>
-In-Reply-To: <9055f4665dfb170f7053f785c76e46dfe364fd87.camel@rong.moe>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 5 Aug 2026 23:45:14 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iR56bDhRMyika91OVQE1CMbebJK4fL4ZoBTRdM12F+Cg@mail.gmail.com>
-X-Gm-Features: AUfX_mzs0vrGfJgWrtdxk7Ana3nHzgt7Eve-h8v-oas_lnatXP4z7Vceb8L2_Qo
-Message-ID: <CAJZ5v0iR56bDhRMyika91OVQE1CMbebJK4fL4ZoBTRdM12F+Cg@mail.gmail.com>
-Subject: Re: [PATCH v4 3/3] ACPI: battery: Protect all properties with a
- separated mutex
-To: Rong Zhang <i@rong.moe>
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Avraham Hollander <anhollander516@gmail.com>, 
-	=?UTF-8?Q?Jeffrey_W=C3=A4lti?= <jeffrey@waelti.dev>, 
-	Rick <rickk1166@gmail.com>, Mark Pearson <mpearson-lenovo@squebb.ca>, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+X-Received: by 2002:a05:6820:1a0e:b0:6aa:da04:b583 with SMTP id
+ 006d021491bc7-6ae96ed3e2dmr5417575eaf.17.1785969925759; Wed, 05 Aug 2026
+ 15:45:25 -0700 (PDT)
+Date: Wed, 05 Aug 2026 15:45:25 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6a73bd05.5aeeccc9.207e63.0005.GAE@google.com>
+Subject: [syzbot] [acpi?] general protection fault in software_node_register
+From: syzbot <syzbot+665bae0a102933788e1a@syzkaller.appspotmail.com>
+To: andriy.shevchenko@linux.intel.com, dakr@kernel.org, djrscally@gmail.com, 
+	driver-core@lists.linux.dev, gregkh@linuxfoundation.org, 
+	heikki.krogerus@linux.intel.com, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, rafael@kernel.org, sakari.ailus@linux.intel.com, 
+	syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
 Hello,
 
-On Wed, Jul 22, 2026 at 8:25=E2=80=AFPM Rong Zhang <i@rong.moe> wrote:
->
-> Hi Rafael,
->
-> On Tue, 2026-07-21 at 22:54 +0200, Rafael J. Wysocki (Intel) wrote:
-> > On Sat, Jul 18, 2026 at 1:11=E2=80=AFAM Rong Zhang <i@rong.moe> wrote:
-> > >
-> > > The acpi_battery_get_property() callback calls acpi_battery_get_state=
-()
-> > > without any lock held, which could lead to race conditions, e.g., whe=
-n
-> > > multiple tasks read power supply properties simultaneously, or when
-> > > other callbacks are called during its execution.
-> > >
-> > > Moreover, some devices' _BST method relies on a heavily shared ACPI
-> > > mutex which protects EC accesses, so it cannot tolerate too much
-> > > pressure or else other methods will time out. The lack of
-> > > synchronization sometimes nullifies the cache mechanism of
-> > > acpi_battery_get_state() when multiple processes read power supply
-> > > properties simultaneously, which usually happens after a uevent.
-> > > Normally, emitting a uevent implies that the cache must have been
-> > > refreshed due to power_supply_uevent() reading all properties, so the
-> > > mentioned processes should have seen cache hits. Unfortunately, these
-> > > fragile devices' power_supply_ext properties are somehow slow to read
-> > > after battery events, resulting in cache expiration before
-> > > power_supply_uevent() finishes. Hence, once the uevent reaches
-> > > userspace, the _BST method will be executed multiple times within a
-> > > short period due to userspace processes reading all properties again.
-> > > The coincidence causes lock starvation, resulting in a catastrophic
-> > > situation that a lot of ACPI methods fail to acquire the shared ACPI
-> > > mutex due to timeout and return garbage data thanks to the firmware's
-> > > poorly designed error paths.
-> > >
-> > > The said "other synchronized methods" are protected by update_lock,
-> > > leaving acpi_battery_get_property() to be the last desynchronized cod=
-e
-> > > path. Unfortunately, update_lock is not applicapable for
-> > > acpi_battery_get_property(), as it protects too many fields, far more
-> > > than necessary. What's worse, some code path could call or wait for
-> > > acpi_battery_get_property() while an outer functions holding
-> > > update_lock.
-> > >
-> > > Therefore, introduce a mutex to protect all accesses to battery
-> > > properties, so that acpi_battery_get_property() can take the advantag=
-e
-> > > of the mutex and synchronize itself. The helper function
-> > > acpi_battery_handle_discharging() for quirky devices has to be inline=
-d
-> > > due to the change, as the mutex must be unlocked before calling the
-> > > expensive power_supply_is_system_supplied() helper function.
-> > >
-> > > Tested-by: Avraham Hollander <anhollander516@gmail.com>
-> > > Reported-by: Rick <rickk1166@gmail.com>
-> > > Closes: https://bugzilla.kernel.org/show_bug.cgi?id=3D221065
-> > > Signed-off-by: Rong Zhang <i@rong.moe>
-> >
-> > I have queued up the other 2 patches in the series for 7.3,
-> >
->
-> Thanks a lot ;-)
->
-> > but this
-> > one is not quite ready IMV.
-> >
-> > In the first place, it is not quite clear from the changelog what
-> > exactly the role of the new mutex is.
->
-> It aims to eliminate lock-free access to battery properties. Especially,
-> synchronize the fragile update_time-based cache.
->
-> I agreed that the changelog is somehow hard to read. I was struggling to
-> summarize the debugging findings, and it turned out to be too
-> complicated. I will explain them below.
->
-> >
-> > If there are any real race conditions it prevents from occurring, it
-> > would be good to give examples.
->
-> This pattern can be reliably reproduced on Rick's device. I had a
-> detailed analysis to the sysrq stacktraces on his device, see
-> https://bugzilla.kernel.org/show_bug.cgi?id=3D221065#c85
+syzbot found the following issue on:
 
-So please add a Link: tag pointing to this.
+HEAD commit:    7235a3e71949 Merge branch 'for-next/core' into for-kernelci
+git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-kernelci
+console output: https://syzkaller.appspot.com/x/log.txt?x=122e13b9580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=ccf4bea59f67007
+dashboard link: https://syzkaller.appspot.com/bug?extid=665bae0a102933788e1a
+compiler:       Debian clang version 22.1.8 (++20260613092233+e80beda6e255-1~exp1~20260613092250.77), Debian LLD 22.1.8
+userspace arch: arm64
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=142f9bb9580000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=16abbe32580000
 
-> >
-> > Moreover, the exact mechanism of the _BST synchronization failure is
-> > unclear to me because in Linux all AML evaluation is synchronized by
-> > the namespace and interpreter mutexes.
-> >
->
-> Well, _BST itself has no synchronization failure. It's always evaluated
-> serialized. However, the frequency of its evaluation matters on buggy
-> devices.
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/fd45635beaae/disk-7235a3e7.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/d7d2e6507223/vmlinux-7235a3e7.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/b5b5d8de4cea/Image-7235a3e7.gz.xz
 
-Yes, it does, because it isn't really serialized.
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+665bae0a102933788e1a@syzkaller.appspotmail.com
 
-Please see the changelog of this patch:
+EXT4-fs (nvme0n1p2): shut down requested (2)
+Aborting journal on device nvme0n1p2-8.
+Unable to handle kernel paging request at virtual address dfff800000
+Unable to handle kernel paging request at virtual address dfff800000000001
+KASAN: null-ptr-deref in range [0x0000000000000008-0x000000000000000f]
+Mem abort info:
+  ESR = 0x0000000096000005
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x05: level 1 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000005, ISS2 = 0x00000000
+  CM = 0, WnR = 0, TnD = 0, TagAccess = 0
+  GCS = 0, Overlay = 0, DirtyBit = 0
+[dfff800000000001] address between user and kernel address ranges
+Internal error: Oops: 0000000096000005 [#1]  SMP
+Modules linked in:
+CPU: 1 UID: 0 PID: 4917 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT 
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/02/2026
+pstate: 83400005 (Nzcv daif +PAN -UAO +TCO +DIT -SSBS BTYPE=--)
+pc : software_node_register+0x30/0xd4 drivers/base/swnode.c:927
+lr : software_node_register+0x28/0xd4 drivers/base/swnode.c:926
+sp : ffff800095917500
+x29: ffff800095917500 x28: 0000000000000000 x27: ffff0000c2b100d0
+x26: dfff800000000000 x25: ffff700012b22eb4 x24: 0000000000001ae0
+x23: 0000000000000001 x22: dfff800000000000 x21: 0000000000000008
+x20: 0000000000000000 x19: 0000000000000000 x18: 00000000ffffffff
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+x11: 0000000000000000 x10: 0000000000000003 x9 : 0000000000000000
+x8 : 0000000000000000 x7 : 0000010000003fff x6 : 0000010000000000
+x5 : ffff0000c6f62980 x4 : 0000000000000400 x3 : ffff8000831b8d98
+x2 : 0000000000001ae0 x1 : ffff0000d09aba80 x0 : 0000000000000000
+Call trace:
+ software_node_register+0x30/0xd4 drivers/base/swnode.c:927 (P)
+ device_add_software_node+0x16c/0x1cc drivers/base/swnode.c:1015
+ dwc3_pci_quirks drivers/usb/dwc3/dwc3-pci.c:311 [inline]
+ dwc3_pci_probe+0x460/0x8e4 drivers/usb/dwc3/dwc3-pci.c:375
+ local_pci_probe+0xc8/0x158 drivers/pci/pci-driver.c:332
+ pci_call_probe drivers/pci/pci-driver.c:394 [inline]
+ __pci_device_probe drivers/pci/pci-driver.c:455 [inline]
+ pci_device_probe+0x460/0x8d4 drivers/pci/pci-driver.c:489
+ call_driver_probe drivers/base/dd.c:-1 [inline]
+ really_probe+0x29c/0x800 drivers/base/dd.c:706
+ __driver_probe_device+0x1e0/0x350 drivers/base/dd.c:868
+ device_driver_attach+0x58/0xac drivers/base/dd.c:1203
+ bind_store+0xf4/0x14c drivers/base/bus.c:267
+ drv_attr_store+0x80/0xa4 drivers/base/bus.c:125
+ sysfs_kf_write+0xe0/0x108 fs/sysfs/file.c:145
+ kernfs_fop_write_iter+0x260/0x3b8 fs/kernfs/file.c:345
+ new_sync_write fs/read_write.c:595 [inline]
+ vfs_write+0x51c/0xa0c fs/read_write.c:687
+ ksys_write+0x12c/0x228 fs/read_write.c:739
+ __do_sys_write fs/read_write.c:750 [inline]
+ __se_sys_write fs/read_write.c:747 [inline]
+ __arm64_sys_write+0x84/0x98 fs/read_write.c:747
+ __invoke_syscall arch/arm64/kernel/syscall.c:35 [inline]
+ invoke_syscall+0x98/0x244 arch/arm64/kernel/syscall.c:49
+ el0_svc_common+0xec/0x23c arch/arm64/kernel/syscall.c:121
+ do_el0_svc+0x4c/0x5c arch/arm64/kernel/syscall.c:140
+ el0_svc+0x64/0x260 arch/arm64/kernel/entry-common.c:736
+ el0t_64_sync_handler+0x48/0x148 arch/arm64/kernel/entry-common.c:755
+ el0t_64_sync+0x198/0x19c arch/arm64/kernel/entry.S:594
+Code: f2fbfff6 9784f9dc 91002275 d343feb7 (38766ae8) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	f2fbfff6 	movk	x22, #0xdfff, lsl #48
+   4:	9784f9dc 	bl	0xfffffffffe13e774
+   8:	91002275 	add	x21, x19, #0x8
+   c:	d343feb7 	lsr	x23, x21, #3
+* 10:	38766ae8 	ldrb	w8, [x23, x22] <-- trapping instruction
 
-https://lore.kernel.org/linux-acpi/12951141.O9o76ZdvQC@rafael.j.wysocki/
 
-and the documentation comment of acpi_ex_exit_interpreter().  ACPICA
-drops the namespace and interpreter locks when AML is acquiring a
-mutex, so effectively you can get two (or more) _BST evaluations
-running at the same time and all of them except for one will be
-blocking on the AML mutex.  Moreover, this appears to somehow confuse
-the interpreter and it attempts to release the AML mutex in a thread
-that hasn't acquired it (see the debug info in this message:
-https://lore.kernel.org/linux-acpi/CAP1mzZReJCn6df5DwEPu-JCQUyr=3DPu1cg5xKC=
-MttWZkHCQtVmQ@mail.gmail.com/).
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-So obviously the frequency of _BST evaluation matters and the devices
-in question may not in fact be buggy.
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
 
-> > If that is not sufficient, it
-> > would be good to explain why because as it stands, it is not clear
-> > whether or not the approach used in this patch is adequate.
->
-> The issue is about the synchronization failure of battery->update_time
-> due to acpi_battery_get_property() calling acpi_battery_get_state()
-> without any mutex held, which results in _BST being evaluated too
-> frequently.
->
-> The _BST method on buggy devices acquires an ACPI mutex called ECMT. As
-> the name suggests, the mutex protects all sorts of EC stuff. The mutex
-> is heavily used, but very fragile. It is prone to some sorts of lock
-> starvation (or deadlock? I am unsure as I don't have a buggy device)
-> once its acquired too frequently. Lock starvation causes mutex
-> acquisition timeout in other methods, which is handled by the firmware
-> poorly, and thus leads to catastrophic results.
->
-> Once battery->update_time has expired, multiple get_property() requests
-> originated from userspace will all have to try to evaluate the _BST
-> method. The evaluation is indeed serialized, but still causing to much
-> pressure on the mutex.
->
-> The patch fixes the synchronization failure of the unfortunate
-> combination of battery->update_time and acpi_battery_get_property(), and
-> thus always ensures the 1000ms gap (i.e., cache_time).
->
->
-> BTW, even not thinking about the buggy device, the race condition of
-> property access still exists. Consider:
->
->                 CPU0                            CPU1
-> acpi_battery_get_property()
->   acpi_battery_get_state()
->     [update_time expired]
->     extract_package()                   acpi_battery_get_property()
->     battery->update_time =3D jiffies        acpi_battery_get_state()
->                                             [up to date]
->                                           [read capacity_now]
->                                         return
->     [fix capacity_now due to quirk]
->     ...
->
-> where CPU1 reads raw capacity_now before CPU0 fixes it to a meaningful
-> value.
->
-> Does my explanation make sense to you? If so, I will refine the
-> changelog and resubmit the patch.
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
 
-Yes, please.
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
