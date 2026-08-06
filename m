@@ -1,243 +1,135 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A06E2C3768;
-	Thu,  6 Aug 2026 14:36:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00EB6477295;
+	Thu,  6 Aug 2026 14:45:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786026984; cv=none; b=SJ0jrHfJ7CJ3V2c9RI23IMW8MBq9F7V8Nt2iRxAfXA83tWsXdAYO4jME/VyZ3ZbO8ViP7d81v3+3bVPv/NwW3kXsqx/uj9ImJfHbYm+WbcH33n1Ivjh7BC/Zy0re4/dMIJNfGzxF8U+naFmZxiMDYGYzR7DdR5DFy3rgmj8s5iw=
+	t=1786027519; cv=none; b=MaWE+F+Ph42y/f4F8VenBLpxKEN68sYrgp86M5GPXUlVLc1b0ptnZvvyg1wAlkjuk5oxhCulGgIow05w+/Zc33OGD5G6lMnooKgtYnhZJ7z8cATA+kw31T2pvWT3bDGG33TFWpJmgYhg+pL5FZUAjI1OUp/5RK0BGRNGne5/CCg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786026984; c=relaxed/simple;
-	bh=I5U/3QMOREYQLQtBCGPZb8D/ULcgP7XxXdTi6Mn1G7U=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=g1paaad15cd7Zb3n5pXBmQxhYi6NR1HRtYr/yoQyYC4lSDvM4JkrVg7Y7eCdPxfaOkjucUlJT4KTwpIDXEi231Tn/WodbckNVLneffJRkK2EZt0+20/UezRlZokH8Toj0oyuJV0TAU4kjdNK2E8EdLd8MJJkypQwO16KHK4jeAc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Zv4woaL6; arc=none smtp.client-ip=198.175.65.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1786027519; c=relaxed/simple;
+	bh=gVu96IuS3Y2OpP5+Z97dgvDA/7UJAFvQqzWgEJhsW/8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=oPpejB85BW8HwQkmLetuJAM/0KJWLqjZpoEIW0I77kCotWzQ3NNlgio2FTMv3mwumZrJaH3rP5nO2i0cG6uOZT34R11VFo1FBpvol+aqjrDfJPKKwA2YyodLK7/t66014TTYdYNDUQ7Cj0z5ylrtGsMz7IvqC1Q4UpEQBZxgnGA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PXlc8zGY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Zv4woaL6"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1786026981; x=1817562981;
-  h=date:from:to:cc:subject:message-id;
-  bh=I5U/3QMOREYQLQtBCGPZb8D/ULcgP7XxXdTi6Mn1G7U=;
-  b=Zv4woaL6qDQSyWcgqAVKNcjpOLr0JleiwBlnjxczsq5NUEEWbFx5dHrD
-   LdyXqbmUPap9qEHYN1kW4z03Jcpmsy7JXx5iCqVbN/l0hguYaG+LwrdWF
-   W4Qo/x8PsHD9IHG6jq8DFAfMSa5HAAKQkaAuE3zumQ/k+oYfSVMGb1Ewv
-   lRMcIfYMy56F2+DY7dLsqd88KdmybNxDhae+KURhWVInOfLiTwNhXoYly
-   CuQQZuCrdbDLUWxseSZ7gZBp+UQaE47ZrzV+7l2O7hsJ4/NevyNkrgm6r
-   xclAS450dw0+ZeczYVjB6Ai4hfrgu8lMIggWtlFUcyejdX37PDUH8jxNu
-   w==;
-X-CSE-ConnectionGUID: +h7t3DzHR9mWpoc+uDfb3A==
-X-CSE-MsgGUID: Jm/VOtFSRQ+zWtKoqOxY8A==
-X-IronPort-AV: E=McAfee;i="6800,10657,11867"; a="90502547"
-X-IronPort-AV: E=Sophos;i="6.25,208,1779174000"; 
-   d="scan'208";a="90502547"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Aug 2026 07:36:19 -0700
-X-CSE-ConnectionGUID: i6Glns09Q3a/E0KIi1fO6g==
-X-CSE-MsgGUID: Fyeu2qmcS0m3iQzsUk4rgA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,208,1779174000"; 
-   d="scan'208";a="259500577"
-Received: from lkp-server01.sh.intel.com (HELO 6eda058d650d) ([10.239.97.150])
-  by fmviesa008.fm.intel.com with ESMTP; 06 Aug 2026 07:36:17 -0700
-Received: from kbuild by 6eda058d650d with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wrzCg-00000000FMl-3g8m;
-	Thu, 06 Aug 2026 14:36:14 +0000
-Date: Thu, 06 Aug 2026 22:35:24 +0800
-From: kernel test robot <lkp@intel.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Subject: [rafael-pm:fixes] BUILD SUCCESS
- 39cd7b5ec8fe62bb4ac533f629819a2203828db5
-Message-ID: <202608062212.Mt42KW53-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PXlc8zGY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 042811F000E9;
+	Thu,  6 Aug 2026 14:45:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786027517;
+	bh=RkUNu3dD9YnIDjUZJ3FwPH5jDFShA5DHY9gf7smCC9M=;
+	h=From:To:Cc:Subject:Date;
+	b=PXlc8zGYx8NntRxtRWt7m2ldzN6ZkeeU07VkpSaJ1w+y2TemZp8PHtbQNKcDaqoPT
+	 Y/JbUt+/XLjQCVTfTA2G7ZZGicCxpLIIjlBuagonCDPwHjZ6nMp7nyMZc0IWCa8Ep9
+	 CGv0tpiHDmPTjnKVLY5SrzV8trHetgHQrt/jaDvWg9Ji02xq1dANUbD249n2tM3Ic/
+	 EJCmhpqpPmSLIfatKIhX7iSRvBw6cgW7ajUTMISHW/FHS7JR9PZh6DMeDwFz9JdXKc
+	 n+DinyLElliPOBWkEqumNxeeYOkTgdsJCIq0RvhB9O1fh4JC3nAihdymsYu+REPwjX
+	 tzxbNxkemk1Ig==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Mika Westerberg <mika.westerberg@linux.intel.com>,
+ Julien <julien82453@gmail.com>, jarkko@kernel.org,
+ linux-integrity@vger.kernel.org
+Subject:
+ [PATCH v1] ACPI: scan: Avoid registering platform devices with resource
+ overlaps
+Date: Thu, 06 Aug 2026 16:45:13 +0200
+Message-ID: <6299389.lOV4Wx5bFT@rafael.j.wysocki>
+Organization: Linux Kernel Development - Intel
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git fixes
-branch HEAD: 39cd7b5ec8fe62bb4ac533f629819a2203828db5  Merge branch 'thermal-hwmon' into fixes
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-elapsed time: 1576m
+If acpi_dev_get_resources() returns overlapping I/O or memory resources,
+the subsequent registration of a platform devices will fail with -EBUSY
+due to a resource conflict.  This is reported to happen on Acer Aspire
+ES1-572 [1].
 
-configs tested: 166
-configs skipped: 2
+Avoid that by adjusting resources returned by acpi_dev_get_resources()
+to eliminate partial overlaps between them.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+This has not been regarded as necessary before because putting
+overlapping resources into the _CRS of one device is really pointless,
+but now that the issue has been reported to actually happen in the
+field, it needs to be done.
 
-tested configs:
-alpha                            allnoconfig    gcc-16.1.0
-alpha                           allyesconfig    gcc-16.1.0
-alpha                              defconfig    gcc-16.1.0
-arc                             alldefconfig    gcc-16.1.0
-arc                             allmodconfig    gcc-16.1.0
-arc                             allyesconfig    gcc-16.1.0
-arc                  randconfig-001-20260806    gcc-11.5.0
-arc                  randconfig-002-20260806    gcc-11.5.0
-arm                  randconfig-001-20260806    gcc-11.5.0
-arm                  randconfig-002-20260806    gcc-11.5.0
-arm                  randconfig-003-20260806    gcc-11.5.0
-arm                  randconfig-004-20260806    gcc-11.5.0
-arm64                randconfig-001-20260805    clang-24
-arm64                randconfig-001-20260806    gcc-13.4.0
-arm64                randconfig-002-20260805    gcc-8.5.0
-arm64                randconfig-002-20260806    gcc-13.4.0
-arm64                randconfig-003-20260805    clang-24
-arm64                randconfig-003-20260806    gcc-13.4.0
-arm64                randconfig-004-20260805    clang-24
-arm64                randconfig-004-20260806    gcc-13.4.0
-csky                            allmodconfig    gcc-16.1.0
-csky                 randconfig-001-20260805    gcc-16.1.0
-csky                 randconfig-001-20260806    gcc-13.4.0
-csky                 randconfig-002-20260805    gcc-10.5.0
-csky                 randconfig-002-20260806    gcc-13.4.0
-hexagon              randconfig-001-20260805    clang-17
-hexagon              randconfig-001-20260806    clang-24
-hexagon              randconfig-002-20260805    clang-19
-hexagon              randconfig-002-20260806    clang-24
-i386                            allmodconfig    gcc-14
-i386       buildonly-randconfig-001-20260806    gcc-14
-i386       buildonly-randconfig-002-20260806    gcc-14
-i386       buildonly-randconfig-003-20260806    gcc-14
-i386       buildonly-randconfig-004-20260806    gcc-14
-i386       buildonly-randconfig-005-20260806    gcc-14
-i386       buildonly-randconfig-006-20260806    gcc-14
-i386                          randconfig-001    clang-22
-i386                 randconfig-001-20260805    clang-22
-i386                 randconfig-001-20260806    clang-22
-i386                 randconfig-002-20260805    clang-22
-i386                 randconfig-002-20260806    clang-22
-i386                 randconfig-003-20260805    gcc-14
-i386                 randconfig-003-20260806    clang-22
-i386                 randconfig-004-20260805    clang-22
-i386                 randconfig-004-20260806    clang-22
-i386                 randconfig-005-20260805    gcc-14
-i386                 randconfig-005-20260806    clang-22
-i386                 randconfig-006-20260805    gcc-13
-i386                 randconfig-006-20260806    clang-22
-i386                 randconfig-007-20260805    gcc-14
-i386                 randconfig-007-20260806    clang-22
-i386                 randconfig-011-20260805    gcc-14
-i386                 randconfig-011-20260806    clang-22
-i386                 randconfig-012-20260805    gcc-14
-i386                 randconfig-012-20260806    clang-22
-i386                 randconfig-013-20260805    clang-22
-i386                 randconfig-013-20260806    clang-22
-i386                 randconfig-014-20260805    clang-22
-i386                 randconfig-014-20260806    clang-22
-i386                 randconfig-015-20260805    gcc-14
-i386                 randconfig-015-20260806    clang-22
-i386                 randconfig-016-20260805    gcc-14
-i386                 randconfig-016-20260806    clang-22
-i386                 randconfig-017-20260805    gcc-14
-i386                 randconfig-017-20260806    clang-22
-loongarch                          defconfig    clang-24
-loongarch            randconfig-001-20260805    clang-18
-loongarch            randconfig-001-20260806    clang-24
-loongarch            randconfig-002-20260805    clang-18
-loongarch            randconfig-002-20260806    clang-24
-m68k                      m5208evb_defconfig    gcc-16.1.0
-mips                          xway_defconfig    clang-19
-nios2                           allmodconfig    gcc-11.5.0
-nios2                            allnoconfig    gcc-11.5.0
-nios2                randconfig-001-20260805    gcc-10.5.0
-nios2                randconfig-001-20260806    clang-24
-nios2                randconfig-002-20260805    gcc-11.5.0
-nios2                randconfig-002-20260806    clang-24
-parisc                          allmodconfig    gcc-16.1.0
-parisc                          allyesconfig    gcc-16.1.0
-parisc                             defconfig    gcc-16.1.0
-parisc               randconfig-001-20260806    gcc-8.5.0
-parisc               randconfig-002-20260806    gcc-8.5.0
-powerpc              randconfig-001-20260806    gcc-8.5.0
-powerpc              randconfig-002-20260806    gcc-8.5.0
-powerpc64            randconfig-001-20260806    gcc-8.5.0
-powerpc64            randconfig-002-20260806    gcc-8.5.0
-riscv                         randconfig-001    gcc-13.4.0
-riscv                randconfig-001-20260806    gcc-13.4.0
-riscv                randconfig-002-20260806    gcc-13.4.0
-s390                 randconfig-001-20260806    gcc-13.4.0
-s390                 randconfig-002-20260806    gcc-13.4.0
-sh                                 defconfig    gcc-16.1.0
-sh                   randconfig-001-20260806    gcc-13.4.0
-sh                   randconfig-002-20260806    gcc-13.4.0
-sparc                         randconfig-001    gcc-8.5.0
-sparc                randconfig-001-20260805    gcc-16.1.0
-sparc                randconfig-001-20260806    gcc-8.5.0
-sparc                randconfig-002-20260805    gcc-11.5.0
-sparc                randconfig-002-20260806    gcc-8.5.0
-sparc64              randconfig-001-20260805    gcc-9.5.0
-sparc64              randconfig-001-20260806    gcc-8.5.0
-sparc64              randconfig-002-20260805    gcc-8.5.0
-sparc64              randconfig-002-20260806    gcc-8.5.0
-um                   randconfig-001-20260805    gcc-14
-um                   randconfig-001-20260806    gcc-8.5.0
-um                   randconfig-002-20260805    gcc-14
-um                   randconfig-002-20260806    gcc-8.5.0
-x86_64              buildonly-randconfig-001    clang-22
-x86_64     buildonly-randconfig-001-20260805    gcc-14
-x86_64     buildonly-randconfig-001-20260806    clang-22
-x86_64     buildonly-randconfig-002-20260805    clang-22
-x86_64     buildonly-randconfig-002-20260806    clang-22
-x86_64     buildonly-randconfig-003-20260805    clang-22
-x86_64     buildonly-randconfig-003-20260806    clang-22
-x86_64     buildonly-randconfig-004-20260805    gcc-13
-x86_64     buildonly-randconfig-004-20260806    clang-22
-x86_64     buildonly-randconfig-005-20260805    gcc-14
-x86_64     buildonly-randconfig-005-20260806    clang-22
-x86_64     buildonly-randconfig-006-20260805    clang-22
-x86_64     buildonly-randconfig-006-20260806    clang-22
-x86_64                                 kexec    clang-22
-x86_64                        randconfig-001    gcc-14
-x86_64               randconfig-001-20260805    gcc-14
-x86_64               randconfig-001-20260806    clang-22
-x86_64               randconfig-002-20260805    gcc-14
-x86_64               randconfig-002-20260806    clang-22
-x86_64               randconfig-003-20260805    clang-22
-x86_64               randconfig-003-20260806    clang-22
-x86_64               randconfig-004-20260805    gcc-14
-x86_64               randconfig-004-20260806    clang-22
-x86_64               randconfig-005-20260805    gcc-14
-x86_64               randconfig-005-20260806    clang-22
-x86_64               randconfig-006-20260805    gcc-14
-x86_64               randconfig-006-20260806    clang-22
-x86_64                        randconfig-011    clang-22
-x86_64                        randconfig-011    gcc-14
-x86_64               randconfig-011-20260805    gcc-14
-x86_64               randconfig-011-20260806    clang-22
-x86_64               randconfig-012-20260805    gcc-14
-x86_64               randconfig-012-20260806    clang-22
-x86_64               randconfig-013-20260805    gcc-14
-x86_64               randconfig-013-20260806    clang-22
-x86_64               randconfig-014-20260805    clang-22
-x86_64               randconfig-014-20260806    clang-22
-x86_64               randconfig-015-20260805    clang-22
-x86_64               randconfig-015-20260806    clang-22
-x86_64               randconfig-016-20260805    clang-22
-x86_64               randconfig-016-20260806    clang-22
-x86_64                        randconfig-071    gcc-14
-x86_64               randconfig-071-20260805    clang-22
-x86_64               randconfig-071-20260806    gcc-14
-x86_64               randconfig-072-20260805    gcc-14
-x86_64               randconfig-072-20260806    gcc-14
-x86_64               randconfig-073-20260805    gcc-13
-x86_64               randconfig-073-20260806    gcc-14
-x86_64               randconfig-074-20260805    clang-22
-x86_64               randconfig-074-20260806    gcc-14
-x86_64               randconfig-075-20260805    clang-22
-x86_64               randconfig-075-20260806    gcc-14
-x86_64               randconfig-076-20260805    clang-22
-x86_64               randconfig-076-20260806    gcc-14
-x86_64                          rhel-9.4-bpf    gcc-14
-xtensa               randconfig-001-20260805    gcc-13.4.0
-xtensa               randconfig-001-20260806    gcc-8.5.0
-xtensa               randconfig-002-20260806    gcc-8.5.0
+Fixes: 8e345c991c8c ("ACPI: Centralized processing of ACPI device resources")
+Fixes: 48fe2cddc85c ("tpm_crb: Convert ACPI driver to a platform one")
+Reported-by: Julien <julien82453@gmail.com>
+Tested-by: Julien <julien82453@gmail.com>
+Closes: https://lore.kernel.org/linux-integrity/CAJOGg3z6LJPDsdPNBxajgy8_wQxfhYBRxe4EiurZf3kPU5A5Bw@mail.gmail.com/ [1]
+Cc: All applicable <stable@vger.kernel.org>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpi_platform.c |   39 +++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 37 insertions(+), 2 deletions(-)
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -71,6 +71,39 @@ static struct notifier_block acpi_platfo
+ 	.notifier_call = acpi_platform_device_remove_notify,
+ };
+ 
++static void acpi_platform_adjust_resource(struct acpi_device *adev,
++					  struct resource *new_res,
++					  const struct resource *resources,
++					  unsigned int count)
++{
++	unsigned int i;
++
++	if (!(new_res->flags & (IORESOURCE_IO | IORESOURCE_MEM)))
++		return;
++
++	for (i = 0; i < count; i++) {
++		const struct resource *res = &resources[i];
++
++		if (resource_type(new_res) != resource_type(res))
++			continue;
++
++		if (!resource_overlaps(new_res, res))
++			continue;
++
++		dev_info(&adev->dev, "Adjusting %pR for %pR\n", new_res, res);
++		/*
++		 * Extend the new resource to include the one that has been
++		 * processed already to avoid resource insertion failures during
++		 * platform device registration.
++		 */
++		if (res->start < new_res->start)
++			new_res->start = res->start;
++
++		if (res->end > new_res->end)
++			new_res->end = res->end;
++	}
++}
++
+ static void acpi_platform_fill_resource(struct acpi_device *adev,
+ 	const struct resource *src, struct resource *dest)
+ {
+@@ -151,10 +184,12 @@ struct platform_device *acpi_create_plat
+ 				return ERR_PTR(-ENOMEM);
+ 			}
+ 			count = 0;
+-			list_for_each_entry(rentry, &resource_list, node)
++			list_for_each_entry(rentry, &resource_list, node) {
++				acpi_platform_adjust_resource(adev, rentry->res,
++							      resources, count);
+ 				acpi_platform_fill_resource(adev, rentry->res,
+ 							    &resources[count++]);
+-
++			}
+ 			acpi_dev_free_resource_list(&resource_list);
+ 		}
+ 	}
+
+
+
