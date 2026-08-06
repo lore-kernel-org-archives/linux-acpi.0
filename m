@@ -1,78 +1,90 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F2AF2FD696;
-	Thu,  6 Aug 2026 02:44:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0EE41DC985;
+	Thu,  6 Aug 2026 03:03:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785984289; cv=none; b=tq9hyPjwBBg+CCGt96auF31oXXfJrkGy7UCXxSSQ28etw4lwa46eryxso2LfFa7RXnXV6AGwFcYFQce+Lhnv9UTlcXs8gmCSvJXI+ZhMvJ3YOzDkS35PwIfGk9RZIKkESdaWSSAx0AQ9+lOz8YrtuVTOX6sJG9D7ATpY67dnUyY=
+	t=1785985394; cv=none; b=qrFvxnLNlPUlz3sZxVNe7utps0F/Eu4ZCv2+p+lR+liImprhhr8qoYagDJclwxBcFmxR4usgtFhqScfBy+Jqgttd2NNffSJklTf1N7ZDXpYdkyu/eni38a6EX49jIYxXngO/95VbDHVKpIAq/3VghhKRBFjfk9ZFUPaLQDohozk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785984289; c=relaxed/simple;
-	bh=dlqyYmVKeqyVIUQmPyqZFyzV7xRFXPloCZDvdepy43U=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=MpKIiwaRzYFxQjYgGOjigp01z7Ml5DvkZTZuXQ7cF/YHSthwE1x6oC/5Tsb8he8xFhv9p+rCGTgl8s9/cKNSuhOg/xcBpgt3cSq2ZRT3vrQ5LO2PmUWeOIF5yRleyeMpE9JvdBKKsGfcmylH6LLY/myV/b4bCF0m9+qnbO5Yx8E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XqiB5cci; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1785985394; c=relaxed/simple;
+	bh=GkaTfaveSsD3z5A8YzPLkmNCrx+3A9h51z3TYCftdz4=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=aGy8f9hldVmGqVOwUxXlz8+5FwGVcHOu2RGMHmAgf7iEIFzA6cj/2M4bWAoTj8ZHCmsmQFqJgP4t0Gy3zwa0+JP7s0/BhgtnMQ7n2Dy/AHGyCNWi6KTcvcLE/WE35x0POkO7y3Om8WZX6i8WIQsBDrBpgeLr/0P0ZxQ0EWHKtvY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ZhXVnCgj; arc=none smtp.client-ip=198.175.65.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XqiB5cci"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6671C1F000E9;
-	Thu,  6 Aug 2026 02:44:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1785984288;
-	bh=CiA7EOsZf1u31c7ZK2OS7J7IWSJm/ecqwp0+2UUVfkM=;
-	h=Date:From:To:cc:Subject:In-Reply-To:References;
-	b=XqiB5cciERKd1+gcdfpX74rbCDBckILJJE9lwPZPccRKQgjift/VpL1v0JTXaGGzu
-	 6KAM29U4nZ7sjk7OrvdBVIlxikf/Wabx12MbVUWNxvEXZBduyl98FTw4aGEew376kf
-	 JV6qfQ0Gdf5jmBqw6OyUfoDj8BmjP7Mb2C5E1Ucprv8XsMG6hfq0zp9GOqmLgY+Qwq
-	 Dlhkkc/+ByT4ikQtiBKDFS4XQwWzHM9r5ASJJIGAHFpcMZo89bbQP+WmKmdbCfl+Ch
-	 89Ynv1386dJqJPTrM+y5+RMX7Mbbg1f1vwYjAF9JpyADCvNaLfY5oyGFIsvtasN2OW
-	 5fzeDubkwkeUw==
-Date: Wed, 5 Aug 2026 20:44:46 -0600 (MDT)
-From: Paul Walmsley <pjw@kernel.org>
-To: Peixin Xie <peixin.xie@linux.spacemit.com>
-cc: Paul Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, 
-    Albert Ou <aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>, 
-    Yixun Lan <dlan@kernel.org>, Sudeep Holla <sudeep.holla@kernel.org>, 
-    Oza Pawandeep <quic_poza@quicinc.com>, Will Deacon <will@kernel.org>, 
-    "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, 
-    linux-acpi@vger.kernel.org, linux-riscv@lists.infradead.org, 
-    linux-kernel@vger.kernel.org, spacemit@lists.linux.dev, 
-    stable@vger.kernel.org, Sunil V L <sunilvl@oss.qualcomm.com>, 
-    Huisong Li <lihuisong@huawei.com>
-Subject: Re: [PATCH v3] riscv: acpi: Handle LPI architectural context loss
- flags
-In-Reply-To: <20260803-riscv-acpi-lpi-timer-v3-1-520fa13732f5@linux.spacemit.com>
-Message-ID: <e9ccdf60-481a-39a3-f0fa-428f47d838b9@kernel.org>
-References: <20260803-riscv-acpi-lpi-timer-v3-1-520fa13732f5@linux.spacemit.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ZhXVnCgj"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1785985391; x=1817521391;
+  h=date:from:to:cc:subject:message-id;
+  bh=GkaTfaveSsD3z5A8YzPLkmNCrx+3A9h51z3TYCftdz4=;
+  b=ZhXVnCgjlYJXOMwsfHDp6yS/8lj/7T98eCuxz+Dg/V4wMZraZID76sEL
+   kUFodr1Ac3CTq0W9mvd0Hf27f2GzuKuGk8Iju/Qs/c9/XWvx5Q5uptD7g
+   QmI4u3dHM3uGeoa9Z+IxWi7UDvBCTvxrmBcigRJDZq0Ri68Uq5dpkT6SA
+   /cTbbFO9ltjdyA/QuRVRh4q1yDecw3nTb/GCrTs8IZG8nNHxgiJinDuXN
+   w2ogIaL18Z2KPZUXv/QqHvIw7iEi5w33EEljtqqh2m+IoeedKd7paa/0e
+   n6G5OkCA4oYYSZE6fJHGTZe9Cxd+Qr7Eowc2UXZg3W5kLH27JfD0bXhIB
+   Q==;
+X-CSE-ConnectionGUID: gozZZ48pQoeCqt04n6g4Jw==
+X-CSE-MsgGUID: ACbdTWNTQgOI1LHxdciXBQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11866"; a="86647310"
+X-IronPort-AV: E=Sophos;i="6.25,207,1779174000"; 
+   d="scan'208";a="86647310"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Aug 2026 20:03:11 -0700
+X-CSE-ConnectionGUID: 94USftiETRWAX5v/rOBp2g==
+X-CSE-MsgGUID: Y2tBAQoFQwe9GGVpRmzdLw==
+X-ExtLoop1: 1
+Received: from lkp-server01.sh.intel.com (HELO 6eda058d650d) ([10.239.97.150])
+  by fmviesa003.fm.intel.com with ESMTP; 05 Aug 2026 20:03:09 -0700
+Received: from kbuild by 6eda058d650d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wroNu-00000000E16-3f5s;
+	Thu, 06 Aug 2026 03:03:06 +0000
+Date: Thu, 06 Aug 2026 11:02:51 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ 77acf59d7cf1d4e00e4f7689263f56bd8e1d3392
+Message-ID: <202608061131.0H7fo8Ko-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 
-On Mon, 3 Aug 2026, Peixin Xie wrote:
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: 77acf59d7cf1d4e00e4f7689263f56bd8e1d3392  Merge branch 'acpi-cppc' into bleeding-edge
 
-> Commit 4785aa802853 ("cpuidle, ACPI: Evaluate LPI arch_flags for
-> broadcast timer") replaced the generic nonzero check for LPI
-> architectural context loss flags with arch_get_idle_state_flags().
-> RISC-V does not implement the helper, so it falls back to the stub
-> that returns 0. Consequently, CPUIDLE_FLAG_TIMER_STOP is not set when
-> an LPI state loses the hart timer context, preventing cpuidle from
-> using a broadcast timer for that state.
-> 
-> Implement the RISC-V helper and map the hart timer context loss flag
-> to CPUIDLE_FLAG_TIMER_STOP.
-> 
-> Fixes: 4785aa802853 ("cpuidle, ACPI: Evaluate LPI arch_flags for broadcast timer")
-> Cc: stable@vger.kernel.org
-> Acked-by: Sudeep Holla <sudeep.holla@kernel.org>
-> Reviewed-by: Yixun Lan <dlan@kernel.org>
-> Reviewed-by: Sunil V L <sunilvl@oss.qualcomm.com>
-> Reviewed-by: Huisong Li <lihuisong@huawei.com>
-> Signed-off-by: Peixin Xie <peixin.xie@linux.spacemit.com>
+elapsed time: 784m
 
-Thanks, queued for v7.3.
+configs tested: 15
+configs skipped: 1
 
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-- Paul
+tested configs:
+alpha            allnoconfig    gcc-16.1.0
+alpha           allyesconfig    gcc-16.1.0
+alpha              defconfig    gcc-16.1.0
+arc             allmodconfig    gcc-16.1.0
+arc             allyesconfig    gcc-16.1.0
+csky            allmodconfig    gcc-16.1.0
+i386            allmodconfig    gcc-14
+loongarch          defconfig    clang-24
+nios2           allmodconfig    gcc-11.5.0
+nios2            allnoconfig    gcc-11.5.0
+parisc          allmodconfig    gcc-16.1.0
+parisc          allyesconfig    gcc-16.1.0
+parisc             defconfig    gcc-16.1.0
+powerpc    asp8347_defconfig    clang-24
+sh                 defconfig    gcc-16.1.0
+
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
