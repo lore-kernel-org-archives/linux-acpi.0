@@ -1,135 +1,199 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from sender-op-o14.zoho.in (sender-op-o14.zoho.in [103.117.158.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00EB6477295;
-	Thu,  6 Aug 2026 14:45:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786027519; cv=none; b=MaWE+F+Ph42y/f4F8VenBLpxKEN68sYrgp86M5GPXUlVLc1b0ptnZvvyg1wAlkjuk5oxhCulGgIow05w+/Zc33OGD5G6lMnooKgtYnhZJ7z8cATA+kw31T2pvWT3bDGG33TFWpJmgYhg+pL5FZUAjI1OUp/5RK0BGRNGne5/CCg=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786027519; c=relaxed/simple;
-	bh=gVu96IuS3Y2OpP5+Z97dgvDA/7UJAFvQqzWgEJhsW/8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=oPpejB85BW8HwQkmLetuJAM/0KJWLqjZpoEIW0I77kCotWzQ3NNlgio2FTMv3mwumZrJaH3rP5nO2i0cG6uOZT34R11VFo1FBpvol+aqjrDfJPKKwA2YyodLK7/t66014TTYdYNDUQ7Cj0z5ylrtGsMz7IvqC1Q4UpEQBZxgnGA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PXlc8zGY; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F85230E0D6;
+	Thu,  6 Aug 2026 15:17:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=103.117.158.14
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786029436; cv=pass; b=Oq/n5uBp/h0DhNIgyt9di6yRjp//c5SLVhXILcaSXw2/eRFrexGQ7iAbKJgjZqbfoXcebCd+IuIzjMoS/BABhhVKbcBY+VR+LX19fLJn8/PDd7A+tHQe28q221bTn3uHxUJ1fzebZvaU4xIDAYhK9XN55SXeOjLdSQzOHyJx/eA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786029436; c=relaxed/simple;
+	bh=Qhzyq3vBVbDH9v7Ok0XmtdGUCaOHCrmPbFFZYOP+VQQ=;
+	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
+	 MIME-Version:Content-Type; b=Q20OPBBB1CXhugxMHuGoxdzdicOpJ5udKBySSAKZw3TviaFrEnqICI4/l4owwI8bJt6zOLto0+tViyNko1REa5K8d8JkYFPeWyAi4NTU2YF+Ig5d6MCjneSEh/nnFZs2ZygkEnsaKnbUyadZBWYutHocyn9+eY/vxOg3dip2bMU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=a0rg.com; spf=pass smtp.mailfrom=a0rg.com; dkim=pass (1024-bit key) header.d=a0rg.com header.i=icarus@a0rg.com header.b=eGXk90Xs; arc=pass smtp.client-ip=103.117.158.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=a0rg.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=a0rg.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PXlc8zGY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 042811F000E9;
-	Thu,  6 Aug 2026 14:45:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786027517;
-	bh=RkUNu3dD9YnIDjUZJ3FwPH5jDFShA5DHY9gf7smCC9M=;
-	h=From:To:Cc:Subject:Date;
-	b=PXlc8zGYx8NntRxtRWt7m2ldzN6ZkeeU07VkpSaJ1w+y2TemZp8PHtbQNKcDaqoPT
-	 Y/JbUt+/XLjQCVTfTA2G7ZZGicCxpLIIjlBuagonCDPwHjZ6nMp7nyMZc0IWCa8Ep9
-	 CGv0tpiHDmPTjnKVLY5SrzV8trHetgHQrt/jaDvWg9Ji02xq1dANUbD249n2tM3Ic/
-	 EJCmhpqpPmSLIfatKIhX7iSRvBw6cgW7ajUTMISHW/FHS7JR9PZh6DMeDwFz9JdXKc
-	 n+DinyLElliPOBWkEqumNxeeYOkTgdsJCIq0RvhB9O1fh4JC3nAihdymsYu+REPwjX
-	 tzxbNxkemk1Ig==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Mika Westerberg <mika.westerberg@linux.intel.com>,
- Julien <julien82453@gmail.com>, jarkko@kernel.org,
- linux-integrity@vger.kernel.org
-Subject:
- [PATCH v1] ACPI: scan: Avoid registering platform devices with resource
- overlaps
-Date: Thu, 06 Aug 2026 16:45:13 +0200
-Message-ID: <6299389.lOV4Wx5bFT@rafael.j.wysocki>
-Organization: Linux Kernel Development - Intel
+	dkim=pass (1024-bit key) header.d=a0rg.com header.i=icarus@a0rg.com header.b="eGXk90Xs"
+ARC-Seal: i=1; a=rsa-sha256; t=1786029428; cv=none; 
+	d=zohomail.in; s=zohoarc; 
+	b=LFzw7p81Cxt1KPXLpgdTgq1ml2SXIell2md/KvCX+Is4ZG+CWSxRlfVJl4SN/JtMytu8FGV/nCwSzj33qKK/Qx0TNfYYZR1g3KS/NYpT+Km5BJ0hwxtYv0J2GhO4Qe9RK2jU8y0tEfjLDPGjfznnI65g/zOvatE0ZiFi2xJgeJ4=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.in; s=zohoarc; 
+	t=1786029428; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=HBtRMe4r3wyhrvEPAawnN/a45MhtYc0r0R5r3Qi96sA=; 
+	b=ehNStz2krUc++7XJs7F/dV8LiJZygiVLbb7HqrZ5ofR1rEEbo3OLoNmG8P6JFJojW5I4AdkW6lYjCCaqUiza2ZIyILO7zQOiXiPDeIdsD5IMZ3gV/6pN+7m0c5Wsto9nuhJBqMY3RlBvo76TBl2eJiF5jv5QyIJ+sZMtqQG+sMA=
+ARC-Authentication-Results: i=1; mx.zohomail.in;
+	dkim=pass  header.i=a0rg.com;
+	spf=pass  smtp.mailfrom=icarus@a0rg.com;
+	dmarc=pass header.from=<icarus@a0rg.com>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1786029428;
+	s=zmail; d=a0rg.com; i=icarus@a0rg.com;
+	h=Date:Date:From:From:To:To:Cc:Cc:Message-ID:In-Reply-To:Subject:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:Reply-To;
+	bh=HBtRMe4r3wyhrvEPAawnN/a45MhtYc0r0R5r3Qi96sA=;
+	b=eGXk90Xs+L94PpgZ+BACRSZNqSvnwBU8gd8VSCwGqbkUINam31kIh5rJorYV9PRk
+	0yRScngOGi5wHqPaJjlP/FeSmgtFTo3jFYJFUMj79/qfKQpwKXCtBbo+jzvNkSuZVpc
+	981NizHCrsgu9KZvTgD9+GKE4deUWzDhddg2HQdc=
+Received: from mail.zoho.in by mx.zoho.in
+	with SMTP id 1786029426639815.3097152056939; Thu, 6 Aug 2026 20:47:06 +0530 (IST)
+Date: Thu, 06 Aug 2026 20:47:06 +0530
+From: Anirudh Prasad <icarus@a0rg.com>
+To: "linux-acpi" <linux-acpi@vger.kernel.org>
+Cc: "rafaeljwysocki" <rafael.j.wysocki@intel.com>,
+	"linux-kernel" <linux-kernel@vger.kernel.org>,
+	"stable" <stable@vger.kernel.org>
+Message-ID: <19fd7a647c3.1059430542637.572965728630481984@a0rg.com>
+In-Reply-To: <19fd74e46a8.25f5bfd941182.5953196137231825269@a0rg.com>
+References: <19fd74e46a8.25f5bfd941182.5953196137231825269@a0rg.com>
+Subject: Re: [PATCH] ACPI: pfr_update: fix stack buffer overflow in
+ query_capability()
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Importance: Medium
+User-Agent: Zoho Mail
+X-Mailer: Zoho Mail
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> If the firmware wants the kernel to copy more data than the latter has
+> room for, the operation should fail instead of pretending to succeed.
 
-If acpi_dev_get_resources() returns overlapping I/O or memory resources,
-the subsequent registration of a platform devices will fail with -EBUSY
-due to a resource conflict.  This is reported to happen on Acer Aspire
-ES1-572 [1].
+Agreed. v2 validates all four buffer lengths upfront and returns
+-EINVAL if any exceeds its destination field size.
 
-Avoid that by adjusting resources returned by acpi_dev_get_resources()
-to eliminate partial overlaps between them.
-
-This has not been regarded as necessary before because putting
-overlapping resources into the _CRS of one device is really pointless,
-but now that the issue has been reported to actually happen in the
-field, it needs to be done.
-
-Fixes: 8e345c991c8c ("ACPI: Centralized processing of ACPI device resources")
-Fixes: 48fe2cddc85c ("tpm_crb: Convert ACPI driver to a platform one")
-Reported-by: Julien <julien82453@gmail.com>
-Tested-by: Julien <julien82453@gmail.com>
-Closes: https://lore.kernel.org/linux-integrity/CAJOGg3z6LJPDsdPNBxajgy8_wQxfhYBRxe4EiurZf3kPU5A5Bw@mail.gmail.com/ [1]
-Cc: All applicable <stable@vger.kernel.org>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpi_platform.c |   39 +++++++++++++++++++++++++++++++++++++--
- 1 file changed, 37 insertions(+), 2 deletions(-)
 
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -71,6 +71,39 @@ static struct notifier_block acpi_platfo
- 	.notifier_call = acpi_platform_device_remove_notify,
- };
- 
-+static void acpi_platform_adjust_resource(struct acpi_device *adev,
-+					  struct resource *new_res,
-+					  const struct resource *resources,
-+					  unsigned int count)
-+{
-+	unsigned int i;
-+
-+	if (!(new_res->flags & (IORESOURCE_IO | IORESOURCE_MEM)))
-+		return;
-+
-+	for (i = 0; i < count; i++) {
-+		const struct resource *res = &resources[i];
-+
-+		if (resource_type(new_res) != resource_type(res))
-+			continue;
-+
-+		if (!resource_overlaps(new_res, res))
-+			continue;
-+
-+		dev_info(&adev->dev, "Adjusting %pR for %pR\n", new_res, res);
-+		/*
-+		 * Extend the new resource to include the one that has been
-+		 * processed already to avoid resource insertion failures during
-+		 * platform device registration.
-+		 */
-+		if (res->start < new_res->start)
-+			new_res->start = res->start;
-+
-+		if (res->end > new_res->end)
-+			new_res->end = res->end;
-+	}
-+}
-+
- static void acpi_platform_fill_resource(struct acpi_device *adev,
- 	const struct resource *src, struct resource *dest)
- {
-@@ -151,10 +184,12 @@ struct platform_device *acpi_create_plat
- 				return ERR_PTR(-ENOMEM);
- 			}
- 			count = 0;
--			list_for_each_entry(rentry, &resource_list, node)
-+			list_for_each_entry(rentry, &resource_list, node) {
-+				acpi_platform_adjust_resource(adev, rentry->res,
-+							      resources, count);
- 				acpi_platform_fill_resource(adev, rentry->res,
- 							    &resources[count++]);
--
-+			}
- 			acpi_dev_free_resource_list(&resource_list);
- 		}
+query_capability() copies four ACPI buffer objects returned by the
+firmware _DSM into fixed-size u8[16] fields in struct
+pfru_update_cap_info using memcpy with the firmware-supplied length:
+
+  memcpy(&cap_hdr->code_type,
+         elements[CAP_CODE_TYPE_IDX].buffer.pointer,
+         elements[CAP_CODE_TYPE_IDX].buffer.length);
+
+The same pattern repeats for drv_type, platform_id, and oem_id.
+If the firmware returns buffer.length > 16 for any of these fields,
+memcpy writes past the destination array.
+
+struct pfru_update_cap_info is stack-allocated in pfru_ioctl().
+Confirmed with KASAN on 7.2-rc6: three stack-out-of-bounds reports
+are generated when a DSM returns 64-byte buffers, with writes reaching
+44 bytes past the end of cap_hdr's [64, 156) frame window into
+adjacent stack redzones.
+
+Fix by validating each buffer length against its destination field
+size before copying, and returning -EINVAL if the firmware supplies
+an oversized buffer.
+
+Fixes: 0db89fa243e5 ("ACPI: Introduce Platform Firmware Runtime Update device driver")
+Cc: stable@vger.kernel.org
+Signed-off-by: Anirudh Prasad <icarus@a0rg.com>
+---
+ drivers/acpi/pfr_update.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/acpi/pfr_update.c b/drivers/acpi/pfr_update.c
+index 6283105bb0e8..e14e053cea44 100644
+--- a/drivers/acpi/pfr_update.c
++++ b/drivers/acpi/pfr_update.c
+@@ -158,6 +158,14 @@ static int query_capability(struct pfru_update_cap_info *cap_hdr,
+ 		goto free_acpi_buffer;
  	}
+ 
++	if (out_obj->package.elements[CAP_CODE_TYPE_IDX].buffer.length > sizeof(cap_hdr->code_type) ||
++	    out_obj->package.elements[CAP_DRV_TYPE_IDX].buffer.length > sizeof(cap_hdr->drv_type) ||
++	    out_obj->package.elements[CAP_PLAT_ID_IDX].buffer.length > sizeof(cap_hdr->platform_id) ||
++	    out_obj->package.elements[CAP_OEM_ID_IDX].buffer.length > sizeof(cap_hdr->oem_id)) {
++		ret = -EINVAL;
++		goto free_acpi_buffer;
++	}
++
+ 	cap_hdr->update_cap = out_obj->package.elements[CAP_UPDATE_IDX].integer.value;
+ 	memcpy(&cap_hdr->code_type,
+ 	       out_obj->package.elements[CAP_CODE_TYPE_IDX].buffer.pointer,
+-- 
+2.55.0
 
 
+
+
+
+From: Anirudh Prasad <icarus@a0rg.com>
+To: "linux-acpi"<linux-acpi@vger.kernel.org>
+Cc: "rafaeljwysocki"<rafael.j.wysocki@intel.com>, "linux-kernel"<linux-kernel@vger.kernel.org>, "stable"<stable@vger.kernel.org>
+Date: Thu, 06 Aug 2026 19:10:59 +0530
+Subject: [PATCH] ACPI: pfr_update: fix stack buffer overflow in query_capability()
+
+ > query_capability() copies four ACPI buffer objects returned by the 
+ > firmware _DSM into fixed-size u8[16] fields in struct 
+ > pfru_update_cap_info using memcpy with the firmware-supplied length: 
+ >  
+ >  memcpy(&cap_hdr->code_type, 
+ >  elements[CAP_CODE_TYPE_IDX].buffer.pointer, 
+ >  elements[CAP_CODE_TYPE_IDX].buffer.length); 
+ >  
+ > The same pattern repeats for drv_type, platform_id, and oem_id. 
+ > If the firmware returns buffer.length > 16 for any of these fields, 
+ > memcpy writes past the destination array. 
+ >  
+ > struct pfru_update_cap_info is stack-allocated in pfru_ioctl(). 
+ > Confirmed with KASAN on 7.2-rc6: three stack-out-of-bounds reports 
+ > are generated when a DSM returns 64-byte buffers, with writes reaching 
+ > 44 bytes past the end of cap_hdr's [64, 156) frame window into 
+ > adjacent stack redzones. 
+ >  
+ > Fix by clamping each memcpy length to the size of its destination 
+ > field with min_t(u32, buffer.length, sizeof(cap_hdr->field)). 
+ >  
+ > Fixes: 0db89fa243e5 ("ACPI: Introduce Platform Firmware Runtime Update device driver") 
+ > Cc: stable@vger.kernel.org 
+ > Signed-off-by: Anirudh Prasad <icarus@a0rg.com> 
+ > --- 
+ >  drivers/acpi/pfr_update.c | 12 ++++++++---- 
+ >  1 file changed, 8 insertions(+), 4 deletions(-) 
+ >  
+ > diff --git a/drivers/acpi/pfr_update.c b/drivers/acpi/pfr_update.c 
+ > index 6283105bb0e8..0219347cd78f 100644 
+ > --- a/drivers/acpi/pfr_update.c 
+ > +++ b/drivers/acpi/pfr_update.c 
+ > @@ -161,24 +161,28 @@ static int query_capability(struct pfru_update_cap_info *cap_hdr, 
+ >      cap_hdr->update_cap = out_obj->package.elements[CAP_UPDATE_IDX].integer.value; 
+ >      memcpy(&cap_hdr->code_type, 
+ >             out_obj->package.elements[CAP_CODE_TYPE_IDX].buffer.pointer, 
+ > -           out_obj->package.elements[CAP_CODE_TYPE_IDX].buffer.length); 
+ > +           min_t(u32, out_obj->package.elements[CAP_CODE_TYPE_IDX].buffer.length, 
+ > +             sizeof(cap_hdr->code_type))); 
+ >      cap_hdr->fw_version = 
+ >          out_obj->package.elements[CAP_FW_VER_IDX].integer.value; 
+ >      cap_hdr->code_rt_version = 
+ >          out_obj->package.elements[CAP_CODE_RT_VER_IDX].integer.value; 
+ >      memcpy(&cap_hdr->drv_type, 
+ >             out_obj->package.elements[CAP_DRV_TYPE_IDX].buffer.pointer, 
+ > -           out_obj->package.elements[CAP_DRV_TYPE_IDX].buffer.length); 
+ > +           min_t(u32, out_obj->package.elements[CAP_DRV_TYPE_IDX].buffer.length, 
+ > +             sizeof(cap_hdr->drv_type))); 
+ >      cap_hdr->drv_rt_version = 
+ >          out_obj->package.elements[CAP_DRV_RT_VER_IDX].integer.value; 
+ >      cap_hdr->drv_svn = 
+ >          out_obj->package.elements[CAP_DRV_SVN_IDX].integer.value; 
+ >      memcpy(&cap_hdr->platform_id, 
+ >             out_obj->package.elements[CAP_PLAT_ID_IDX].buffer.pointer, 
+ > -           out_obj->package.elements[CAP_PLAT_ID_IDX].buffer.length); 
+ > +           min_t(u32, out_obj->package.elements[CAP_PLAT_ID_IDX].buffer.length, 
+ > +             sizeof(cap_hdr->platform_id))); 
+ >      memcpy(&cap_hdr->oem_id, 
+ >             out_obj->package.elements[CAP_OEM_ID_IDX].buffer.pointer, 
+ > -           out_obj->package.elements[CAP_OEM_ID_IDX].buffer.length); 
+ > +           min_t(u32, out_obj->package.elements[CAP_OEM_ID_IDX].buffer.length, 
+ > +             sizeof(cap_hdr->oem_id))); 
+ >      cap_hdr->oem_info_len = 
+ >          out_obj->package.elements[CAP_OEM_INFO_IDX].buffer.length; 
+ >  
+ > -- 
+ > 2.55.0 
+ > 
 
