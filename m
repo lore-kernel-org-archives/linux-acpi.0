@@ -1,176 +1,285 @@
-Received: from mail-oo1-f78.google.com (mail-oo1-f78.google.com [209.85.161.78])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2E7945D5D0
-	for <linux-acpi@vger.kernel.org>; Wed,  5 Aug 2026 22:45:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.78
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1785969929; cv=none; b=LTJC6KHNF+QJPm4NnIgF9ly8wmQD9BzbnR9BrtsxbsVj73pvMQ019YRvGeuKJ0yekgudKxO4TNLhLiQPjUJJSpUQK0UAXCWLBxcqYQ32odpt/VfOisAPlpKEAbS12GwP/PrUvuIP3NV+gUIVN/yj1aBsCsGPuvFXK4UL4wSvoVM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1785969929; c=relaxed/simple;
-	bh=ObrrrhVIABvmMsjgtGxn0fo10sgWBJJq1fSzxCxi5tc=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=F26ei3DW0epmMkVmiNU2VFwptTPYbL07J+OTbu082x/A5YkQawmW75fRdDIaBvAzcUH69eUYM5blQIbnQIbdfniZKUAxAqVVWrqBK9hT2S2YAIe1QEZfsOHIETa7CymTKz/RIEmc0l46/poW32rSKo2c0YSx2/8V3ci0afTS37U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.161.78
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oo1-f78.google.com with SMTP id 006d021491bc7-6aae6f87ed7so1373626eaf.0
-        for <linux-acpi@vger.kernel.org>; Wed, 05 Aug 2026 15:45:26 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1785969926; x=1786574726;
-        h=content-type:to:from:subject:message-id:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=SREuf9Mlu8ZYiOLiOyDH/te4HL0atuAHoIKIhO5+8Ck=;
-        b=TgsVVWjbWKsQVzd09GnHzrVFj31Bw1FxpXo+Chfa1nel3OtzIUqbfuIkuvS+5A8poL
-         2u/YfimtzL560lGj/3boVGCaJMexJuyJkxUSv3DFFPoCKP5uVfNl6Yo+Zg2vYY3y9ZUY
-         rRrm69X1C3Ao/LI8ly/Jv9JS4qK9wNVoN3uK5PUfrbvRd7CoOB0nUErSvzvIM+pun8pI
-         HlCc6q7DUpvKGEWOczjWKe3B0XcGzf1jG710hKqLoUxRCgW4WiDjxN+JrWQcZp8nmvu9
-         A3vP9CQ6hxCPBEIyQWYf9QmJTL498TQoVGULPLY0+95myZo2MJqmrig0DSDJ0Be04UlP
-         WdkQ==
-X-Forwarded-Encrypted: i=1; AHgh+RprNOluwLXGYLJGTRkeoTn+TRFEG6YYEQ5E3PKMUJHV6U5ZmRaKaxXocLeBYY1TxVQI/u6NPQQmdA7S@vger.kernel.org
-X-Gm-Message-State: AOJu0YzCAwW1heDpk+tnZAdtPp9Z2cr/wb/BZwfzS0Ws2UFKLOf3rAtv
-	VGuKEEnw+ZxliSxmWlUtuL64hTUEC+toxs6lwKCpMr6vX99H43FLE9o1URKmxnV9fZicyoVRdcn
-	Hl8qfzViqej4DUj4Lg/2Vc34VudK+1XDy6MKdrzvRukYac5jUPz1qS7Ik73Q=
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DBAB344DB9;
+	Thu,  6 Aug 2026 00:32:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.13
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1785976360; cv=fail; b=HpfpmV6WR28Nb8vqY62X/akjV4ZedIvGgym9bLeCXCi0gXpDFwNABAZjPfpZQS7Ou91SevsImlG2xxn7kqUvN0tgogVlXOZp9DnslagAKx7Qt7MpxVNQbbU73JBugd996r9uEPDVUwVVE+LLiFtcFBlm1AHc3s6mLsU4gYHw6Wg=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1785976360; c=relaxed/simple;
+	bh=UNK3ZkrcDC3UtjcLj7v4Z9MfTGnoV0YfATwgujQDhiQ=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=tTsiZ9goN4AGuCcDEaj6+FRVh5ZgjZeQiJiy8mL62HuGCDoYSzLVtupfMtIV7Kw55/jL2XgvmNhIXxhQsGeE0DOhyFZrGXW1djOOCwVFKADowUqiF2d2eRXhiX6XJpOp2WWnirHObAOiJJuqU7GilTJUoQOJj3dxCjdWbSX8fF0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JHSLhFRw; arc=fail smtp.client-ip=192.198.163.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JHSLhFRw"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1785976357; x=1817512357;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=UNK3ZkrcDC3UtjcLj7v4Z9MfTGnoV0YfATwgujQDhiQ=;
+  b=JHSLhFRwmbw7+peWP6wxsu6o3aa3IzRaaSGQOtql81l1c4wkRlKZE+e2
+   omTB/B6mXx5eTC9HCWnYLJZVfMSnbWNDVAF8vlpNtVQ3/2+vXm7avWng6
+   41VA57/tbK6/fYlSQjaRZyBxW7wPrAibvdfBL67bwuk9l5OnRIJZonOKm
+   VcTUUoD2PDgiZAnGkd3b6/ikI9Xy/TaoiFa9BTspZx/xdHNCh53dK7FFA
+   KvcqgobvWqmb6EZLdNaKERyG+vutJWBG7MpuumIkD0YkYyPNQLPIj01Y2
+   vqgjLDBzN7zAfwQ3mU/cyC79cYq2PW1Z0BTnKLw4u5AATXarSp4HiuReo
+   w==;
+X-CSE-ConnectionGUID: 6K+PS/DeSmWvqeIQwNRxvQ==
+X-CSE-MsgGUID: tEjqIRJ0QTSpjo30cVvegw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11866"; a="89085699"
+X-IronPort-AV: E=Sophos;i="6.25,207,1779174000"; 
+   d="scan'208";a="89085699"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Aug 2026 17:32:36 -0700
+X-CSE-ConnectionGUID: 303Zbb6WRsi/fgx2Dljb+w==
+X-CSE-MsgGUID: O8/Nj+LWTb2GRIo5ovoICQ==
+X-ExtLoop1: 1
+Received: from orsmsx901.amr.corp.intel.com ([10.22.229.23])
+  by fmviesa003.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Aug 2026 17:32:36 -0700
+Received: from ORSMSX901.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Wed, 5 Aug 2026 17:32:36 -0700
+Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
+ ORSMSX901.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45 via Frontend Transport; Wed, 5 Aug 2026 17:32:36 -0700
+Received: from SN4PR0501CU005.outbound.protection.outlook.com (40.93.194.67)
+ by edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Wed, 5 Aug 2026 17:32:36 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=VwBpKrxuISBRwCbUHBrscyLlwQ7zrVUvTdt+tO24da0Oxn8sqtZABhgxAgvF8/4tiMHHr56Vk9DHHtphwSsbDLZzvJdXdhUh+lyW9N0QvnrCiMkoppC0l81qxxAwaGBul73nCcs5qoN50Xl6NL6VcNotngFTMolGPGePjtDa992uUtV3o7zhzMIZTKITw2jir6FPGH6i/bS0jIdYljvSdplEjQrBLA7wL9MhcXKOUFBr11y/FrNamn3iPxoTP5TpQ7umSNlsAwERHKu1hc5AmilO6GUQCGgDA5aaipSpAw17teEXWPFeOWJnxAgyuguHMqhLwK7WtLU2H0OB9Jns2A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=IZhf5OVJPCo4f7nceTGmFSvSzeGPKOoeG3J1QK5xIKc=;
+ b=lfYJ3ZcAxRlnMjpNo0BUiQGL8ShZkN2JyqrGQVa0mCrejEnlYx0jsRv4nfdR1nhJHKCH3e4Cpa5GbuO3lGjpPIIWOqiQ8eCJ/gmjKKnZmqtqgywq/mewyNzoIxBsqczliHfVvtDLajuTNmSesoGaFrrAeJpClRnBZdzp+to5kYsb/j90YjZGcj574AKYOciiFWG2ekGOedIbpcgtA6NVJkbYhj6pTfJfJ/Mz/rUgq22t0bKi8ZA83VMYzANx4zwJgXOvvdzHKp5Gv/y5qRsaP3pwRzfFM4xtBqyj4+5+V+ZaEZZokcUTnCBVSmod31bsOyk7g6I5Ce5sTRnE8/Keag==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
+ by SJ2PR11MB7520.namprd11.prod.outlook.com (2603:10b6:a03:4c2::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.15; Thu, 6 Aug
+ 2026 00:32:30 +0000
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::e721:90d7:9214:2d53]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::e721:90d7:9214:2d53%6]) with mapi id 15.21.0292.013; Thu, 6 Aug 2026
+ 00:32:30 +0000
+Date: Wed, 5 Aug 2026 17:32:22 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Pengpeng Hou <pengpeng@iscas.ac.cn>
+CC: Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <iweiny@kernel.org>, "Rafael J.
+ Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-acpi@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] ACPI: NFIT: validate subtable extents before parsing
+Message-ID: <anPWFspQOA-7ejmi@aschofie-mobl2.lan>
+References: <20260722041701.21078-1-pengpeng@iscas.ac.cn>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20260722041701.21078-1-pengpeng@iscas.ac.cn>
+X-ClientProxiedBy: SJ0PR13CA0202.namprd13.prod.outlook.com
+ (2603:10b6:a03:2c3::27) To DS4PPF0BAC23327.namprd11.prod.outlook.com
+ (2603:10b6:f:fc02::9)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6820:1a0e:b0:6aa:da04:b583 with SMTP id
- 006d021491bc7-6ae96ed3e2dmr5417575eaf.17.1785969925759; Wed, 05 Aug 2026
- 15:45:25 -0700 (PDT)
-Date: Wed, 05 Aug 2026 15:45:25 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6a73bd05.5aeeccc9.207e63.0005.GAE@google.com>
-Subject: [syzbot] [acpi?] general protection fault in software_node_register
-From: syzbot <syzbot+665bae0a102933788e1a@syzkaller.appspotmail.com>
-To: andriy.shevchenko@linux.intel.com, dakr@kernel.org, djrscally@gmail.com, 
-	driver-core@lists.linux.dev, gregkh@linuxfoundation.org, 
-	heikki.krogerus@linux.intel.com, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, rafael@kernel.org, sakari.ailus@linux.intel.com, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|SJ2PR11MB7520:EE_
+X-MS-Office365-Filtering-Correlation-Id: 9a4e2270-0dd6-4e11-04a1-08def352330d
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|23010399003|376014|22082099003|18002099003|11063799006|56012099006|6133799003|10067099003;
+X-Microsoft-Antispam-Message-Info: 08TxnOBC2ROHmwkCu2n4fNMBqCKtqn4N9K1ZxxV8Lesj59Ud731ecr7aNPVtgyNfU2aVuCYFMOMXaJXbGFN0ltPMh7QIyiHXs79kk24zHyraAECSYbgmV1hnNMpNr8vQYVD55420O2vAAqi341mkSfGZcTRiYvaNkBLpDt3vjshIuSeNz4j5x/W3mpabd7YeFYBvhf0fOOAyux49EOQ5cy/Y5Ae1MwAerZ38br6AgNpIM+jVPHTqkIngY54UZQvnL33E+TshFn4sUiUTmmYjt1zM7uSzy6JQmf0SDbOXEoaRXZA7NijGxgohLDtwVLEvtwrT2MUxGGpWD5nCYBTpw/mvYLTEf4hXdY0jaM6nD1/9qMPARCvKlKnoqzBEHGxyLMtAcNRfO/qI4rVG8Tf8yl/mh2x75JXm2axt3q7U7wh9anBboCPTYxty6ZAlVVDRHQqP8rzNbOWIks+8owwulx0i6z9w/FrmPKZAwfde/zyN8BV3i4cIl1SDzobPA9f5z6vtnuP+NHekZR6BwD1eWm6NQ97gu8cGF9hC68vjlOETqwohXIFvCU3vz8RCi6l2Auk+V149vIc68kPZHhTwD4nsq2Q+eCLWVYZCQwbSeeSVBjOwN5tuGq75TYOVnHer+4pPZ1haoN8mSUUQ9uEVFM2LcquAtG2xS/N/yaTucQ0=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(23010399003)(376014)(22082099003)(18002099003)(11063799006)(56012099006)(6133799003)(10067099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?yTrpa57dyiI4cgIwlGzwh2m07jY6l+pQdrltiJLh2QEX/MUpbaT3Pm8aI+LI?=
+ =?us-ascii?Q?khR690+n8TKoJVP2YtnMfIX3a1M51Twj+MROeK6//KSKDUFvSpcAhvH+JUk7?=
+ =?us-ascii?Q?YZzPb5KklKm0qJNfVpFiQTFQXEOZSv4V+5ruM6oera9fZAszXwxBxMIV3ail?=
+ =?us-ascii?Q?7kGRi5xqSJ3B6/TfdZ6dFtchRd1daDpjg0f0bDtNcKbsm949qG+SUaThyNXR?=
+ =?us-ascii?Q?AXo70lbi2OjgmHOcSlFM4nq0/PSbWpj9yxoWzxVwZ+HxKondxeJ3D0MEX3TH?=
+ =?us-ascii?Q?mV2Le3p1AJXhrFEcLqiL9nF6sIfsqXBQcQQXIlWAWAjfEgJ9xk36lgh4FJXq?=
+ =?us-ascii?Q?9S1FRp49FxYLcbiuI4t503G1fbgukcXuEq+iMPPRX4BKcXBWnsjGVQ/yRq9L?=
+ =?us-ascii?Q?g9hm6JUAXACp7kWhNJpLeluqbkLjSVdXFMDRlj5cDimSLsEWWIgiK5p1Z1Gg?=
+ =?us-ascii?Q?2nPuqULKm4x8Q3i2nGPszloI8hJLFVRyQw6JAtLyAH5Dzj7JDdRTH5eDbgqI?=
+ =?us-ascii?Q?V+GsTInBrmrW9jVhdSapyG9qD+AjviRYtUJIUGaNefG9MDPNtpO6dYl0zU1x?=
+ =?us-ascii?Q?zGZ6sD2c9w+vMLMtmlHECpnDL+bdGJRr62C+x2/uhoh16YRdLgbbJIVxOvYu?=
+ =?us-ascii?Q?D2GQyIC1gKc9weOQ9TcVapgi2zl0mHyeSV8eClteuSet8XEQw6d4Z8ldC9yl?=
+ =?us-ascii?Q?OOYJ9cnxuZQLviRnc+kG57q0MmhN2MLhuxPgYwrtwugfEaTINlsfO3vcSw7R?=
+ =?us-ascii?Q?j1Ksp+nWdttOxbw8qWlT0yRmSfcQdkziNGZS6xeAp84kBEy9iZ5dHe2Tasbj?=
+ =?us-ascii?Q?9Rz8quq4wLgHLg0izS7/9M8MbzPVK94Didzts3BADg3cn/a8Wp8pgapFR6p5?=
+ =?us-ascii?Q?Y0mm+vfaYXZxiSnaKBnqnfr8jQ38oLO3yzAlpt5Nd16bTiJ7eaivZwN0LAOn?=
+ =?us-ascii?Q?gRvjKUunkI5M25u54OS0fPIlzVRQH1hMNwKTTzpPq+yeNIj4mEscO4cxgC4Q?=
+ =?us-ascii?Q?tYTmfHrNZ5ZQ00m8MrFs5jIZbWGLRaLBzD2V5wUOxDTYqmDXnGM9lrNN2YtZ?=
+ =?us-ascii?Q?4q67rTcmsj+Sod40urjmTpl+DXfubT7VXbgQMjtM/dM0AbDw4gZYBfrMClIy?=
+ =?us-ascii?Q?6DExYFQgAUwIRSIzOIGKZpwHVPbcOv51aaM75ppYjzWDfkdeyBgI2dsOnMCV?=
+ =?us-ascii?Q?n9Cuw452r6xJZuPZTc+juxtPUYe8TcElqdS6RX4qetd6C1vNSjdUj9UIY4gj?=
+ =?us-ascii?Q?1ZvR33VJcTcaElvSRL3/fas1PuTwhuR5iZTaXjX+Pxunoyq2bBEp0KZ3cnRg?=
+ =?us-ascii?Q?R5JDxQ196Yx/MYqvGeccHsZpVocZVg3g1REyDaby8d3FCZC0ud4iZQSDO8rW?=
+ =?us-ascii?Q?72zmPx/sNQwRN/SbgpbX+704lv1G/5h8tmbiKVngunruAtChh+k+fpVZRH6h?=
+ =?us-ascii?Q?D51lLAviIJn9dsPFXmIfowDN5khrbsnrwWyt4YX8PXtwQ5usmeFFT+b5bMaa?=
+ =?us-ascii?Q?n2YRdaahYsylVc6RrOKFWJS9oTggN2kVNEvviihuozQ5IicHbxJ5Roh3V32q?=
+ =?us-ascii?Q?N8Wne/TDqIkA4flzgl6Zh5Q4rRaA9+hdgAp9q7yWnhwQvioHl6VGzVISpWLe?=
+ =?us-ascii?Q?iUDC1Gp1f5Xi0quD/4kd+fJoG1UJ+Ze8LSSn60j6W/LlW1AvC3qB2rM7qMjg?=
+ =?us-ascii?Q?E7zqVEnWndZZxL47Vi/d8BrktKrl8NdFmZuOeIO5yicbWJPKVGCGRyyCJfr0?=
+ =?us-ascii?Q?cv65FbjEUcw18vSxcV/OMCn+o3cBoh4=3D?=
+X-Exchange-RoutingPolicyChecked: eUO3GpG5+ATMJztqzIJa1DLMoHNrKPFgPnmtAwpcv6Ep5XDcInFEjm1mTif+VaUv7xjm1ducC4jR1Rsc4EfUojkA21Ve4Jm3Ww39LkrwL1qEvlZjHvDALnck31dSbn1CTwrlLb/1QWGC82hUPji2ADdJm3dm5N0xxsC/kKorZ2m1duoFk/ggfELBkvNEkhaIDaYphMuzvjShdLrkj9mrueXF5f+VKJX9x6e6cdAC9PJberuH/YE4PAIHo8Zbpg5jl8Erg1+0+uHseovC+xNqVR4Llz0qZD2lNJKu/waBq/1W2I0TjEaWfSIT+blOYXLe3vCMXZvDNQ6gOQN4aYFDmA==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 9a4e2270-0dd6-4e11-04a1-08def352330d
+X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Aug 2026 00:32:30.5184
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: rq/HM54xMEfjWqvEgT55gZuVbZVoy3XX8CtoLLF2uGwo1rPI1+mCL+3x7QIijlsUwxJq5emL7vHGmWNMsfn3vJZ3o1khqSbU54+R2hcJwc8=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR11MB7520
+X-OriginatorOrg: intel.com
 
-Hello,
+On Wed, Jul 22, 2026 at 12:17:01PM +0800, Pengpeng Hou wrote:
+> add_table() reads an NFIT subtable header after checking only that the
+> cursor is before the end of the table. It then advances by the advertised
+> subtable length without proving that either the header or the full
+> subtable is present.
+> 
+> The interleave and flush helpers also derive copy lengths from entry
+> counts without ensuring those arrays fit in the current subtable.
+> 
+> Validate the fixed header and advertised length before dispatch. Ensure
+> the variable interleave and flush arrays fit their subtables, and prove the
+> SPA flags and capabilities fields are present before reading them. Reject a
+> capability index that cannot be represented by the 32-bit capability mask.
 
-syzbot found the following issue on:
+Hi Pengpeng Hou,
 
-HEAD commit:    7235a3e71949 Merge branch 'for-next/core' into for-kernelci
-git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-kernelci
-console output: https://syzkaller.appspot.com/x/log.txt?x=122e13b9580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=ccf4bea59f67007
-dashboard link: https://syzkaller.appspot.com/bug?extid=665bae0a102933788e1a
-compiler:       Debian clang version 22.1.8 (++20260613092233+e80beda6e255-1~exp1~20260613092250.77), Debian LLD 22.1.8
-userspace arch: arm64
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=142f9bb9580000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=16abbe32580000
-
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/fd45635beaae/disk-7235a3e7.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/d7d2e6507223/vmlinux-7235a3e7.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/b5b5d8de4cea/Image-7235a3e7.gz.xz
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+665bae0a102933788e1a@syzkaller.appspotmail.com
-
-EXT4-fs (nvme0n1p2): shut down requested (2)
-Aborting journal on device nvme0n1p2-8.
-Unable to handle kernel paging request at virtual address dfff800000
-Unable to handle kernel paging request at virtual address dfff800000000001
-KASAN: null-ptr-deref in range [0x0000000000000008-0x000000000000000f]
-Mem abort info:
-  ESR = 0x0000000096000005
-  EC = 0x25: DABT (current EL), IL = 32 bits
-  SET = 0, FnV = 0
-  EA = 0, S1PTW = 0
-  FSC = 0x05: level 1 translation fault
-Data abort info:
-  ISV = 0, ISS = 0x00000005, ISS2 = 0x00000000
-  CM = 0, WnR = 0, TnD = 0, TagAccess = 0
-  GCS = 0, Overlay = 0, DirtyBit = 0
-[dfff800000000001] address between user and kernel address ranges
-Internal error: Oops: 0000000096000005 [#1]  SMP
-Modules linked in:
-CPU: 1 UID: 0 PID: 4917 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT 
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/02/2026
-pstate: 83400005 (Nzcv daif +PAN -UAO +TCO +DIT -SSBS BTYPE=--)
-pc : software_node_register+0x30/0xd4 drivers/base/swnode.c:927
-lr : software_node_register+0x28/0xd4 drivers/base/swnode.c:926
-sp : ffff800095917500
-x29: ffff800095917500 x28: 0000000000000000 x27: ffff0000c2b100d0
-x26: dfff800000000000 x25: ffff700012b22eb4 x24: 0000000000001ae0
-x23: 0000000000000001 x22: dfff800000000000 x21: 0000000000000008
-x20: 0000000000000000 x19: 0000000000000000 x18: 00000000ffffffff
-x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
-x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
-x11: 0000000000000000 x10: 0000000000000003 x9 : 0000000000000000
-x8 : 0000000000000000 x7 : 0000010000003fff x6 : 0000010000000000
-x5 : ffff0000c6f62980 x4 : 0000000000000400 x3 : ffff8000831b8d98
-x2 : 0000000000001ae0 x1 : ffff0000d09aba80 x0 : 0000000000000000
-Call trace:
- software_node_register+0x30/0xd4 drivers/base/swnode.c:927 (P)
- device_add_software_node+0x16c/0x1cc drivers/base/swnode.c:1015
- dwc3_pci_quirks drivers/usb/dwc3/dwc3-pci.c:311 [inline]
- dwc3_pci_probe+0x460/0x8e4 drivers/usb/dwc3/dwc3-pci.c:375
- local_pci_probe+0xc8/0x158 drivers/pci/pci-driver.c:332
- pci_call_probe drivers/pci/pci-driver.c:394 [inline]
- __pci_device_probe drivers/pci/pci-driver.c:455 [inline]
- pci_device_probe+0x460/0x8d4 drivers/pci/pci-driver.c:489
- call_driver_probe drivers/base/dd.c:-1 [inline]
- really_probe+0x29c/0x800 drivers/base/dd.c:706
- __driver_probe_device+0x1e0/0x350 drivers/base/dd.c:868
- device_driver_attach+0x58/0xac drivers/base/dd.c:1203
- bind_store+0xf4/0x14c drivers/base/bus.c:267
- drv_attr_store+0x80/0xa4 drivers/base/bus.c:125
- sysfs_kf_write+0xe0/0x108 fs/sysfs/file.c:145
- kernfs_fop_write_iter+0x260/0x3b8 fs/kernfs/file.c:345
- new_sync_write fs/read_write.c:595 [inline]
- vfs_write+0x51c/0xa0c fs/read_write.c:687
- ksys_write+0x12c/0x228 fs/read_write.c:739
- __do_sys_write fs/read_write.c:750 [inline]
- __se_sys_write fs/read_write.c:747 [inline]
- __arm64_sys_write+0x84/0x98 fs/read_write.c:747
- __invoke_syscall arch/arm64/kernel/syscall.c:35 [inline]
- invoke_syscall+0x98/0x244 arch/arm64/kernel/syscall.c:49
- el0_svc_common+0xec/0x23c arch/arm64/kernel/syscall.c:121
- do_el0_svc+0x4c/0x5c arch/arm64/kernel/syscall.c:140
- el0_svc+0x64/0x260 arch/arm64/kernel/entry-common.c:736
- el0t_64_sync_handler+0x48/0x148 arch/arm64/kernel/entry-common.c:755
- el0t_64_sync+0x198/0x19c arch/arm64/kernel/entry.S:594
-Code: f2fbfff6 9784f9dc 91002275 d343feb7 (38766ae8) 
----[ end trace 0000000000000000 ]---
-----------------
-Code disassembly (best guess):
-   0:	f2fbfff6 	movk	x22, #0xdfff, lsl #48
-   4:	9784f9dc 	bl	0xfffffffffe13e774
-   8:	91002275 	add	x21, x19, #0x8
-   c:	d343feb7 	lsr	x23, x21, #3
-* 10:	38766ae8 	ldrb	w8, [x23, x22] <-- trapping instruction
+Above the commit log could be a little more precise. The new checks prove
+the SPA flags field and the platform capability highest_capability field
+are present before they are read. (not a more general 'capabilities fields')
 
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+> 
+> Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
+> ---
+>  drivers/acpi/nfit/core.c | 43 +++++++++++++++++++++++++++++++++++++------
+>  1 file changed, 37 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index cb771d9cadb2a..711ab639cb147 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -705,6 +705,10 @@ int nfit_spa_type(struct acpi_nfit_system_address *spa)
+>  
+>  static size_t sizeof_spa(struct acpi_nfit_system_address *spa)
+>  {
+> +	if (spa->header.length <
+> +	    offsetof(struct acpi_nfit_system_address, reserved))
+> +		return 0;
+> +
+>  	if (spa->flags & ACPI_NFIT_LOCATION_COOKIE_VALID)
+>  		return sizeof(*spa);
+>  	return sizeof(*spa) - 8;
+> @@ -868,9 +872,16 @@ static bool add_bdw(struct acpi_nfit_desc *acpi_desc,
+>  
+>  static size_t sizeof_idt(struct acpi_nfit_interleave *idt)
+>  {
+> +	size_t size;
+> +
+>  	if (idt->header.length < sizeof(*idt))
+>  		return 0;
+> -	return sizeof(*idt) + sizeof(u32) * idt->line_count;
+> +
+> +	size = struct_size(idt, line_offset, idt->line_count);
+> +	if (size > idt->header.length)
+> +		return 0;
+> +
+> +	return size;
+>  }
+>  
+>  static bool add_idt(struct acpi_nfit_desc *acpi_desc,
+> @@ -907,9 +918,16 @@ static bool add_idt(struct acpi_nfit_desc *acpi_desc,
+>  
+>  static size_t sizeof_flush(struct acpi_nfit_flush_address *flush)
+>  {
+> +	size_t size;
+> +
+>  	if (flush->header.length < sizeof(*flush))
+>  		return 0;
+> -	return struct_size(flush, hint_address, flush->hint_count);
+> +
+> +	size = struct_size(flush, hint_address, flush->hint_count);
+> +	if (size > flush->header.length)
+> +		return 0;
+> +
+> +	return size;
+>  }
+>  
+>  static bool add_flush(struct acpi_nfit_desc *acpi_desc,
+> @@ -951,7 +969,16 @@ static bool add_platform_cap(struct acpi_nfit_desc *acpi_desc,
+>  	struct device *dev = acpi_desc->dev;
+>  	u32 mask;
+>  
+> -	mask = (1 << (pcap->highest_capability + 1)) - 1;
+> +	if (pcap->header.length < sizeof(*pcap))
+> +		return false;
+> +	if (pcap->highest_capability > 31)
+> +		return false;
+> +
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+Does above break forward compatibility, like future FW
+advertising capability bits beyond the 32 we implement now.
+Maybe ignore unknown cap bits, like clamp to the implemented
+mask instead of returning false.
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
+I looked at Sashiko's issues and will respond directly
+there. I didn't think any were in scope of this patch,
+beyond this new return when > 31.
 
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
+-- Alison
 
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
 
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
+> +	if (pcap->highest_capability == 31)
+> +		mask = U32_MAX;
+> +	else
+> +		mask = (1U << (pcap->highest_capability + 1)) - 1;
+> +
+>  	acpi_desc->platform_cap = pcap->capabilities & mask;
+>  	dev_dbg(dev, "cap: %#x\n", acpi_desc->platform_cap);
+>  	return true;
+> @@ -963,14 +990,18 @@ static void *add_table(struct acpi_nfit_desc *acpi_desc,
+>  	struct device *dev = acpi_desc->dev;
+>  	struct acpi_nfit_header *hdr;
+>  	void *err = ERR_PTR(-ENOMEM);
+> +	size_t table_len;
+>  
+>  	if (table >= end)
+>  		return NULL;
+> +	table_len = end - table;
+> +	if (table_len < sizeof(*hdr))
+> +		return NULL;
+>  
+>  	hdr = table;
+> -	if (!hdr->length) {
+> -		dev_warn(dev, "found a zero length table '%d' parsing nfit\n",
+> -			hdr->type);
+> +	if (hdr->length < sizeof(*hdr) || hdr->length > table_len) {
+> +		dev_warn(dev, "invalid table length %u for type %u parsing nfit\n",
+> +			 hdr->length, hdr->type);
+>  		return NULL;
+>  	}
+>  
+> -- 
+> 2.50.1 (Apple Git-155)
+> 
