@@ -1,199 +1,157 @@
-Received: from sender-op-o14.zoho.in (sender-op-o14.zoho.in [103.117.158.14])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F85230E0D6;
-	Thu,  6 Aug 2026 15:17:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=103.117.158.14
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786029436; cv=pass; b=Oq/n5uBp/h0DhNIgyt9di6yRjp//c5SLVhXILcaSXw2/eRFrexGQ7iAbKJgjZqbfoXcebCd+IuIzjMoS/BABhhVKbcBY+VR+LX19fLJn8/PDd7A+tHQe28q221bTn3uHxUJ1fzebZvaU4xIDAYhK9XN55SXeOjLdSQzOHyJx/eA=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786029436; c=relaxed/simple;
-	bh=Qhzyq3vBVbDH9v7Ok0XmtdGUCaOHCrmPbFFZYOP+VQQ=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 MIME-Version:Content-Type; b=Q20OPBBB1CXhugxMHuGoxdzdicOpJ5udKBySSAKZw3TviaFrEnqICI4/l4owwI8bJt6zOLto0+tViyNko1REa5K8d8JkYFPeWyAi4NTU2YF+Ig5d6MCjneSEh/nnFZs2ZygkEnsaKnbUyadZBWYutHocyn9+eY/vxOg3dip2bMU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=a0rg.com; spf=pass smtp.mailfrom=a0rg.com; dkim=pass (1024-bit key) header.d=a0rg.com header.i=icarus@a0rg.com header.b=eGXk90Xs; arc=pass smtp.client-ip=103.117.158.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=a0rg.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=a0rg.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 232E6481FCA;
+	Thu,  6 Aug 2026 17:40:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786038059; cv=none; b=SY15D+Ve2btwkfU7ggsWmYFvQVbTeMkMUK7fyKVqjzliwscMO/taDK7moXQPl3gmfWjC+Dalr19Foj/wSNW1J/X5ZWrB+oa466BuVcew4mzR1d992mUiwX5Fjda/TqxFBhbXRPMnhhjdFeZDyoSuUllufKblNGvbecJFP1Rm1tA=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786038059; c=relaxed/simple;
+	bh=jR6UAf+W3pRyagiBnBIthX9L1RTvVK8tgmNzQD67mJU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=GnxA61I61T8q3hiKRA2zTWkPq4jZoCjbelZ06oazTGLVBlSRkHxB7DOC5PTDTSBV4C07/yjbMVAfafT7IVI9tjJC9x1WbOGmFfE/HdV9bz/C7nzmeb70h0UZXyb0uethVduKy1Fq3pnyjBYrx4m9rz9gyvQy9RXBX8d5JH4yV30=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lWpTxuxP; arc=none smtp.client-ip=198.175.65.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=a0rg.com header.i=icarus@a0rg.com header.b="eGXk90Xs"
-ARC-Seal: i=1; a=rsa-sha256; t=1786029428; cv=none; 
-	d=zohomail.in; s=zohoarc; 
-	b=LFzw7p81Cxt1KPXLpgdTgq1ml2SXIell2md/KvCX+Is4ZG+CWSxRlfVJl4SN/JtMytu8FGV/nCwSzj33qKK/Qx0TNfYYZR1g3KS/NYpT+Km5BJ0hwxtYv0J2GhO4Qe9RK2jU8y0tEfjLDPGjfznnI65g/zOvatE0ZiFi2xJgeJ4=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.in; s=zohoarc; 
-	t=1786029428; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=HBtRMe4r3wyhrvEPAawnN/a45MhtYc0r0R5r3Qi96sA=; 
-	b=ehNStz2krUc++7XJs7F/dV8LiJZygiVLbb7HqrZ5ofR1rEEbo3OLoNmG8P6JFJojW5I4AdkW6lYjCCaqUiza2ZIyILO7zQOiXiPDeIdsD5IMZ3gV/6pN+7m0c5Wsto9nuhJBqMY3RlBvo76TBl2eJiF5jv5QyIJ+sZMtqQG+sMA=
-ARC-Authentication-Results: i=1; mx.zohomail.in;
-	dkim=pass  header.i=a0rg.com;
-	spf=pass  smtp.mailfrom=icarus@a0rg.com;
-	dmarc=pass header.from=<icarus@a0rg.com>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1786029428;
-	s=zmail; d=a0rg.com; i=icarus@a0rg.com;
-	h=Date:Date:From:From:To:To:Cc:Cc:Message-ID:In-Reply-To:Subject:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:Reply-To;
-	bh=HBtRMe4r3wyhrvEPAawnN/a45MhtYc0r0R5r3Qi96sA=;
-	b=eGXk90Xs+L94PpgZ+BACRSZNqSvnwBU8gd8VSCwGqbkUINam31kIh5rJorYV9PRk
-	0yRScngOGi5wHqPaJjlP/FeSmgtFTo3jFYJFUMj79/qfKQpwKXCtBbo+jzvNkSuZVpc
-	981NizHCrsgu9KZvTgD9+GKE4deUWzDhddg2HQdc=
-Received: from mail.zoho.in by mx.zoho.in
-	with SMTP id 1786029426639815.3097152056939; Thu, 6 Aug 2026 20:47:06 +0530 (IST)
-Date: Thu, 06 Aug 2026 20:47:06 +0530
-From: Anirudh Prasad <icarus@a0rg.com>
-To: "linux-acpi" <linux-acpi@vger.kernel.org>
-Cc: "rafaeljwysocki" <rafael.j.wysocki@intel.com>,
-	"linux-kernel" <linux-kernel@vger.kernel.org>,
-	"stable" <stable@vger.kernel.org>
-Message-ID: <19fd7a647c3.1059430542637.572965728630481984@a0rg.com>
-In-Reply-To: <19fd74e46a8.25f5bfd941182.5953196137231825269@a0rg.com>
-References: <19fd74e46a8.25f5bfd941182.5953196137231825269@a0rg.com>
-Subject: Re: [PATCH] ACPI: pfr_update: fix stack buffer overflow in
- query_capability()
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lWpTxuxP"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1786038058; x=1817574058;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=jR6UAf+W3pRyagiBnBIthX9L1RTvVK8tgmNzQD67mJU=;
+  b=lWpTxuxPDWz8JQzO9DOn/GoslLZ7c1UN3NkPUIy08mh9OA2HKcWIcxuy
+   ihbPUl7o8B8tjcSghoWzuPTmAZH4cZfv/ra1ox4CtUy71ep0ZUEyzJbNJ
+   Ed0cFP4tDWbTzm+7pFJfZK0+LWTm0k93ApptxeFJRDmpeNdtLKpwGPZfd
+   BcodF6DnuNYkysOLHvssREQN1nEPz1eUI0zOb3u1IkN/cc/I04ncO8Cjo
+   5nV9l5B1oifh1XR181yst5Hguru/xgQAiBIvIjZOjZYwkHYjJE3bFzPAy
+   uc8RnMtnlJ+CKjQW1u4HLwdyPWb6XgynmYpFQxlsh6OMYTlkpzGZjTWdm
+   g==;
+X-CSE-ConnectionGUID: r5Vd7SBkRP6MLumyYFCKOg==
+X-CSE-MsgGUID: 02BNnFMdQoa8q6shNRLTDg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11867"; a="98151986"
+X-IronPort-AV: E=Sophos;i="6.25,208,1779174000"; 
+   d="scan'208";a="98151986"
+Received: from orviesa001.jf.intel.com ([10.64.159.141])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Aug 2026 10:40:57 -0700
+X-CSE-ConnectionGUID: 7DB5m3cyQx2LtjOXhuPo6g==
+X-CSE-MsgGUID: 1SUtF5e8QmWqOPxccB+TSA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,208,1779174000"; 
+   d="scan'208";a="300373251"
+Received: from igk-lkp-server01.igk.intel.com (HELO 3cba2a188a06) ([10.211.93.152])
+  by orviesa001.jf.intel.com with ESMTP; 06 Aug 2026 10:40:51 -0700
+Received: from kbuild by 3cba2a188a06 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1ws25I-000000004f4-1D7z;
+	Thu, 06 Aug 2026 17:40:48 +0000
+Date: Thu, 6 Aug 2026 19:40:10 +0200
+From: kernel test robot <lkp@intel.com>
+To: Markus Elfring <Markus.Elfring@web.de>, acpica-devel@lists.linux.dev,
+	bpf@vger.kernel.org, coresight@lists.linaro.org,
+	kvm@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-gpio@vger.kernel.org,
+	linux-kselftest@vger.kernel.org, linux-mm@kvack.org,
+	linux-perf-users@vger.kernel.org, linux-pm@vger.kernel.org,
+	linux-trace-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	mptcp@lists.linux.dev, netdev@vger.kernel.org,
+	platform-driver-x86@vger.kernel.org, virtualization@lists.linux.dev,
+	Adrian Hunter <adrian.hunter@intel.com>,
+	Alex Mastro <amastro@fb.com>, Alex Williamson <alex@shazbot.org>,
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+	Alexei Starovoitov <ast@kernel.org>,
+	Andi Kleen <ak@linux.intel.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Andrii Nakryiko <andrii@kernel.org>,
+	Ankur Arora <ankur.a.arora@oracle.com>,
+	Arnaldo Carvalho de Melo <acme@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+	Linux Memory Management List <linux-mm@kvack.org>
+Subject: Re: [PATCH] tools: Use fputc() calls in some functions
+Message-ID: <202608061909.wj199SHx-lkp@intel.com>
+References: <48f2d61f-d468-49b7-881e-f00777db073f@web.de>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Importance: Medium
-User-Agent: Zoho Mail
-X-Mailer: Zoho Mail
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <48f2d61f-d468-49b7-881e-f00777db073f@web.de>
 
-> If the firmware wants the kernel to copy more data than the latter has
-> room for, the operation should fail instead of pretending to succeed.
+Hi Markus,
 
-Agreed. v2 validates all four buffer lengths upfront and returns
--EINVAL if any exceeds its destination field size.
+kernel test robot noticed the following build errors:
 
----
+[auto build test ERROR on perf-tools-next/perf-tools-next]
+[also build test ERROR on tip/perf/core perf-tools/perf-tools linus/master v7.2-rc6 next-20260806]
+[cannot apply to acme/perf/core]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-query_capability() copies four ACPI buffer objects returned by the
-firmware _DSM into fixed-size u8[16] fields in struct
-pfru_update_cap_info using memcpy with the firmware-supplied length:
+url:    https://github.com/intel-lab-lkp/linux/commits/Markus-Elfring/tools-Use-fputc-calls-in-some-functions/20260806-165154
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/perf/perf-tools-next.git perf-tools-next
+patch link:    https://lore.kernel.org/r/48f2d61f-d468-49b7-881e-f00777db073f%40web.de
+patch subject: [PATCH] tools: Use fputc() calls in some functions
+config: x86_64-kexec (https://download.01.org/0day-ci/archive/20260806/202608061909.wj199SHx-lkp@intel.com/config)
+compiler: clang version 22.1.8 (https://github.com/llvm/llvm-project ca7933e47d3a3451d81e72ac174dcb5aa28b59d1)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260806/202608061909.wj199SHx-lkp@intel.com/reproduce)
 
-  memcpy(&cap_hdr->code_type,
-         elements[CAP_CODE_TYPE_IDX].buffer.pointer,
-         elements[CAP_CODE_TYPE_IDX].buffer.length);
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202608061909.wj199SHx-lkp@intel.com/
 
-The same pattern repeats for drv_type, platform_id, and oem_id.
-If the firmware returns buffer.length > 16 for any of these fields,
-memcpy writes past the destination array.
+All errors (new ones prefixed by >>):
 
-struct pfru_update_cap_info is stack-allocated in pfru_ioctl().
-Confirmed with KASAN on 7.2-rc6: three stack-out-of-bounds reports
-are generated when a DSM returns 64-byte buffers, with writes reaching
-44 bytes past the end of cap_hdr's [64, 156) frame window into
-adjacent stack redzones.
+>> builtin-check.c:300:8: error: incompatible pointer to integer conversion passing 'FILE *' (aka 'struct _IO_FILE *') to parameter of type 'int' [-Wint-conversion]
+     300 |         fputc(stderr, '\n');
+         |               ^~~~~~
+   /usr/include/stdio.h:155:16: note: expanded from macro 'stderr'
+     155 | #define stderr stderr
+         |                ^~~~~~
+   /usr/include/stdio.h:611:23: note: passing argument to parameter '__c' here
+     611 | extern int fputc (int __c, FILE *__stream) __nonnull ((2));
+         |                       ^
+>> builtin-check.c:300:16: error: incompatible integer to pointer conversion passing 'int' to parameter of type 'FILE *' (aka 'struct _IO_FILE *') [-Wint-conversion]
+     300 |         fputc(stderr, '\n');
+         |                       ^~~~
+   /usr/include/stdio.h:611:34: note: passing argument to parameter '__stream' here
+     611 | extern int fputc (int __c, FILE *__stream) __nonnull ((2));
+         |                                  ^
+   2 errors generated.
+   make[5]: *** [tools/build/Makefile.build:95: tools/objtool/builtin-check.o] Error 1
+>> disas.c:540:9: error: incompatible pointer to integer conversion passing 'FILE *' (aka 'struct _IO_FILE *') to parameter of type 'int' [-Wint-conversion]
+     540 |                 fputc(stream, '\n');
+         |                       ^~~~~~
+   /usr/include/stdio.h:611:23: note: passing argument to parameter '__c' here
+     611 | extern int fputc (int __c, FILE *__stream) __nonnull ((2));
+         |                       ^
+>> disas.c:540:17: error: incompatible integer to pointer conversion passing 'int' to parameter of type 'FILE *' (aka 'struct _IO_FILE *') [-Wint-conversion]
+     540 |                 fputc(stream, '\n');
+         |                               ^~~~
+   /usr/include/stdio.h:611:34: note: passing argument to parameter '__stream' here
+     611 | extern int fputc (int __c, FILE *__stream) __nonnull ((2));
+         |                                  ^
+   2 errors generated.
+   make[5]: *** [tools/build/Makefile.build:95: tools/objtool/disas.o] Error 1
+   make[5]: Target '__build' not remade because of errors.
+   make[4]: *** [Makefile:123: tools/objtool/objtool-in.o] Error 2
+   make[4]: Target 'all' not remade because of errors.
+   make[3]: *** [Makefile:74: objtool] Error 2
+   make[2]: *** [Makefile:1587: tools/objtool] Error 2
+   make[2]: Target 'prepare' not remade because of errors.
+   make[1]: *** [Makefile:248: __sub-make] Error 2
+   make[1]: Target 'prepare' not remade because of errors.
+   make: *** [Makefile:248: __sub-make] Error 2
+   make: Target 'prepare' not remade because of errors.
 
-Fix by validating each buffer length against its destination field
-size before copying, and returning -EINVAL if the firmware supplies
-an oversized buffer.
-
-Fixes: 0db89fa243e5 ("ACPI: Introduce Platform Firmware Runtime Update device driver")
-Cc: stable@vger.kernel.org
-Signed-off-by: Anirudh Prasad <icarus@a0rg.com>
----
- drivers/acpi/pfr_update.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/drivers/acpi/pfr_update.c b/drivers/acpi/pfr_update.c
-index 6283105bb0e8..e14e053cea44 100644
---- a/drivers/acpi/pfr_update.c
-+++ b/drivers/acpi/pfr_update.c
-@@ -158,6 +158,14 @@ static int query_capability(struct pfru_update_cap_info *cap_hdr,
- 		goto free_acpi_buffer;
- 	}
- 
-+	if (out_obj->package.elements[CAP_CODE_TYPE_IDX].buffer.length > sizeof(cap_hdr->code_type) ||
-+	    out_obj->package.elements[CAP_DRV_TYPE_IDX].buffer.length > sizeof(cap_hdr->drv_type) ||
-+	    out_obj->package.elements[CAP_PLAT_ID_IDX].buffer.length > sizeof(cap_hdr->platform_id) ||
-+	    out_obj->package.elements[CAP_OEM_ID_IDX].buffer.length > sizeof(cap_hdr->oem_id)) {
-+		ret = -EINVAL;
-+		goto free_acpi_buffer;
-+	}
-+
- 	cap_hdr->update_cap = out_obj->package.elements[CAP_UPDATE_IDX].integer.value;
- 	memcpy(&cap_hdr->code_type,
- 	       out_obj->package.elements[CAP_CODE_TYPE_IDX].buffer.pointer,
--- 
-2.55.0
-
-
-
-
-
-From: Anirudh Prasad <icarus@a0rg.com>
-To: "linux-acpi"<linux-acpi@vger.kernel.org>
-Cc: "rafaeljwysocki"<rafael.j.wysocki@intel.com>, "linux-kernel"<linux-kernel@vger.kernel.org>, "stable"<stable@vger.kernel.org>
-Date: Thu, 06 Aug 2026 19:10:59 +0530
-Subject: [PATCH] ACPI: pfr_update: fix stack buffer overflow in query_capability()
-
- > query_capability() copies four ACPI buffer objects returned by the 
- > firmware _DSM into fixed-size u8[16] fields in struct 
- > pfru_update_cap_info using memcpy with the firmware-supplied length: 
- >  
- >  memcpy(&cap_hdr->code_type, 
- >  elements[CAP_CODE_TYPE_IDX].buffer.pointer, 
- >  elements[CAP_CODE_TYPE_IDX].buffer.length); 
- >  
- > The same pattern repeats for drv_type, platform_id, and oem_id. 
- > If the firmware returns buffer.length > 16 for any of these fields, 
- > memcpy writes past the destination array. 
- >  
- > struct pfru_update_cap_info is stack-allocated in pfru_ioctl(). 
- > Confirmed with KASAN on 7.2-rc6: three stack-out-of-bounds reports 
- > are generated when a DSM returns 64-byte buffers, with writes reaching 
- > 44 bytes past the end of cap_hdr's [64, 156) frame window into 
- > adjacent stack redzones. 
- >  
- > Fix by clamping each memcpy length to the size of its destination 
- > field with min_t(u32, buffer.length, sizeof(cap_hdr->field)). 
- >  
- > Fixes: 0db89fa243e5 ("ACPI: Introduce Platform Firmware Runtime Update device driver") 
- > Cc: stable@vger.kernel.org 
- > Signed-off-by: Anirudh Prasad <icarus@a0rg.com> 
- > --- 
- >  drivers/acpi/pfr_update.c | 12 ++++++++---- 
- >  1 file changed, 8 insertions(+), 4 deletions(-) 
- >  
- > diff --git a/drivers/acpi/pfr_update.c b/drivers/acpi/pfr_update.c 
- > index 6283105bb0e8..0219347cd78f 100644 
- > --- a/drivers/acpi/pfr_update.c 
- > +++ b/drivers/acpi/pfr_update.c 
- > @@ -161,24 +161,28 @@ static int query_capability(struct pfru_update_cap_info *cap_hdr, 
- >      cap_hdr->update_cap = out_obj->package.elements[CAP_UPDATE_IDX].integer.value; 
- >      memcpy(&cap_hdr->code_type, 
- >             out_obj->package.elements[CAP_CODE_TYPE_IDX].buffer.pointer, 
- > -           out_obj->package.elements[CAP_CODE_TYPE_IDX].buffer.length); 
- > +           min_t(u32, out_obj->package.elements[CAP_CODE_TYPE_IDX].buffer.length, 
- > +             sizeof(cap_hdr->code_type))); 
- >      cap_hdr->fw_version = 
- >          out_obj->package.elements[CAP_FW_VER_IDX].integer.value; 
- >      cap_hdr->code_rt_version = 
- >          out_obj->package.elements[CAP_CODE_RT_VER_IDX].integer.value; 
- >      memcpy(&cap_hdr->drv_type, 
- >             out_obj->package.elements[CAP_DRV_TYPE_IDX].buffer.pointer, 
- > -           out_obj->package.elements[CAP_DRV_TYPE_IDX].buffer.length); 
- > +           min_t(u32, out_obj->package.elements[CAP_DRV_TYPE_IDX].buffer.length, 
- > +             sizeof(cap_hdr->drv_type))); 
- >      cap_hdr->drv_rt_version = 
- >          out_obj->package.elements[CAP_DRV_RT_VER_IDX].integer.value; 
- >      cap_hdr->drv_svn = 
- >          out_obj->package.elements[CAP_DRV_SVN_IDX].integer.value; 
- >      memcpy(&cap_hdr->platform_id, 
- >             out_obj->package.elements[CAP_PLAT_ID_IDX].buffer.pointer, 
- > -           out_obj->package.elements[CAP_PLAT_ID_IDX].buffer.length); 
- > +           min_t(u32, out_obj->package.elements[CAP_PLAT_ID_IDX].buffer.length, 
- > +             sizeof(cap_hdr->platform_id))); 
- >      memcpy(&cap_hdr->oem_id, 
- >             out_obj->package.elements[CAP_OEM_ID_IDX].buffer.pointer, 
- > -           out_obj->package.elements[CAP_OEM_ID_IDX].buffer.length); 
- > +           min_t(u32, out_obj->package.elements[CAP_OEM_ID_IDX].buffer.length, 
- > +             sizeof(cap_hdr->oem_id))); 
- >      cap_hdr->oem_info_len = 
- >          out_obj->package.elements[CAP_OEM_INFO_IDX].buffer.length; 
- >  
- > -- 
- > 2.55.0 
- > 
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
