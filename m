@@ -1,172 +1,162 @@
-Received: from mail-yx1-f48.google.com (mail-yx1-f48.google.com [74.125.224.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 247B5435EF2
-	for <linux-acpi@vger.kernel.org>; Thu,  6 Aug 2026 09:55:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.48
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786010108; cv=pass; b=BK8HgnXNpPNfKiwiWTrnuwsafwuSHQMvjO7aA1LjIlghkbjY35J7NiGpbayQdQWtWcQPVg+DkiS/qZrXvF1Dkd60PyTL8u0l0ubF/12Ac7oBczHAnJqn8UZCqbcFIdOHncacriy2aSloLe9NeUlnRuZycr/6hblq4oX00DpD4sQ=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786010108; c=relaxed/simple;
-	bh=KTqd0lpP09EibOiKqFQAK/d7YclsTCvhaaQ0Bd3pIog=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=my3uE9bziN3Kk48i44Z9szL++MXlecP3vnIHFOnjh5y7yDQnpfLOdV+rsom1UktA6IDGtQyESQIJlAXwPF+bp8DmuZXmQNfXalgL+ur8KMoSjo1uiv7sONicEVQCJ3Cyfn9b3v4muu4iS2c5WsWbfJt9UErD1mtyVVRGa3raSwU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PwqO0iw6; arc=pass smtp.client-ip=74.125.224.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 44EA73D5229;
+	Thu,  6 Aug 2026 10:05:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786010730; cv=none; b=MJZNAaiRHrTN1B94yL5jlVUEUrBfSv85C1kegwrRV/AwaRnp6SnDbDd+YnGuw/FjjL+2dJ2AIYkG8umDc/ZaxXtWRrYXotg2Y1JUEWfB0E8bGTCj9+ZOC80/TJInqsZwY4+uA3xnEcP4INXmbjMi8zI0JsJOZB7N8D29UDm19Ks=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786010730; c=relaxed/simple;
+	bh=WS/rfO4oajIp3FHdAu714TgnXE0c4amp0mFK0+3ku9M=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
+	 In-Reply-To:Content-Type; b=SxuRao0iij5sTr/3u6o41UhwwVhJH0ZtOcOu4QJXHdDDxC2LwOECSF5ZRIppwnFBR6sWHthY9VmrnRk+9le3p3Ojl2QfVluQq13aaWlRwT62xxxUbQTgTXchLh6h8Sy9uT75cwkUC9DiiHaAE0EPqzRwmeMslyWH0WbNfva5T6U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=oPSEHAjs; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PwqO0iw6"
-Received: by mail-yx1-f48.google.com with SMTP id 956f58d0204a3-667923d86a7so1434323d50.0
-        for <linux-acpi@vger.kernel.org>; Thu, 06 Aug 2026 02:55:07 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1786010106; cv=none;
-        d=google.com; s=arc-20260327;
-        b=MoAI9yV5agnQnPHK6aWj47NwNlfnWZ+hXgovNpqeESEB7xQALAzjnN/OPDxemKhnX7
-         eIcWaZTUu0Xi0KkSkxGrPg8mCnZ71m3QdT8pqLCPqf7B2RmCuuA35E9FRNCdQMoGV9jl
-         6ijWTwOAbN1rGDACEsKG7hKreFH4uY0yvCTATffs6fr3o7WY3UTuIZfvYKa3WtoWcQNP
-         TAhrFbeyvAdxiJ1TFcOMp34YhEIeYp0OmnmQ9JiqOeXkUpAPlHSq32YxxDlpiaw+P37q
-         qDLREwZtkgPQqWPhMfkf9q6XiJf9HIyOraNr192s9qA3V3oB73stFdpRhut7l4iau04H
-         GwwA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=KTqd0lpP09EibOiKqFQAK/d7YclsTCvhaaQ0Bd3pIog=;
-        fh=XvA062WV5+Uye1em+ghdwVJcTPQ8fe19+qtvrBKLRqQ=;
-        b=g/pD34S5wBqTiEhDx9jswi29oJy0bDT6sZflmA/9dhVftr9CcMAGAwSR/q1Faq0oAA
-         ds0Hf5BxRW6n2mVaCv7aWUXDmTkHnaw/lM63FQwUUoLS3W+CfrzoulHuAqJFFJawXJCZ
-         NYbersfFaS9jDGX/YcKkrR3I4w3M00EY3x9JVGtbnbbYV89rnlWms0uVg3fXmKN995b9
-         uQFUaoljzOsiEp0s6aIPxTRoSF3Zc063U0zGABGrlvt30GZc6bS9Q3MUD+tQfHGPj5Ef
-         SlbS9u/+a6kuipYOjCYwYFwqRpkbxwupKnw5EeEII4dDM+8T4Dwo/iKh+6YfUPgfrAqR
-         cW9w==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786010106; x=1786614906; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=KTqd0lpP09EibOiKqFQAK/d7YclsTCvhaaQ0Bd3pIog=;
-        b=PwqO0iw6b6mUSTq5Ob4Oag4vKZjUltAV+05UqIPYGIoayxRy3bBZTX092lRhOTZeU5
-         g3UuEUuQCt5svZOqwDzijyiX1uBax+xyVWNcH9MiVEavm++DMOalhuzO6lDtnmTFoZJ8
-         3rHHmG9NBR+JKXe65CpuRnr2HSC7y/hCsQ7aXAWmARvv5Q+p6wGqiODqBfnaLMYsJWlB
-         dfyx9cawQSukH7r0B02+J3gm0bhB56NN+swW3NdpNZ+15qyJVutLboQ8wsd29EyH1Cfq
-         RJBUql8CeIU7D/+APZRRbNHRUTf7y59WO+JQIkMpFxD1hjX2SB6Xxa6sf9Lpt0Gi7WNm
-         L5yg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786010106; x=1786614906;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=KTqd0lpP09EibOiKqFQAK/d7YclsTCvhaaQ0Bd3pIog=;
-        b=ZO4eFKp7iVWcYpddviQRnS5wHMMd7b3W+SKIi4vYrXO92GSGpRItbC0S+4B8reSPIb
-         JCsQyJ27P3jN0h5pQnvNtUwdw0ENnibrjXUoiPiXjQuyhWx942nWYKI79yScHoitBZPO
-         wgMK4bPOFNZT2OHBrT1ICfGLlubsx3xHxv07EIh1ix7LDYEnCoJHGAgAuvhv3WtG+qua
-         MuWEf5pjxK9fr9ATEa9ENN44Xc4EnDOSZhX4QK3w116OQm0YdapLNB+9KDJ8OjISQlws
-         vUjnhDjiqGczAATRDrDPlTTi2BBqzekq02synMLeKtFT0gmpgobdebm51AWLxHTG9jfn
-         Kkrg==
-X-Forwarded-Encrypted: i=1; AHgh+RpaTyyS3w6iYSCZvpu/kIS1c8/h4kk80L+6D0XxlphtJrT/KjbVSc3fL+s+3OYOma656D8Vq1i1LiJc@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw6fY9I3b7gtX/CI4lEGEfzp7hHCX9vKTmKk7C9i2XZYJLtEz62
-	wL69Bq9F9eu4HNP8KPumukw7N2JdWru39aaIfWZGgwCMM4fH0c4odWaO0fdii+WH3NS1Fa/3GTX
-	8DaoaE7JUbAHFr2PbdQ9EvohyZjDarKw=
-X-Gm-Gg: AR+sD13RYECCrj2ETeLx1XkTCX/QghIi4ktaZTMriRo5uwlNMQKsMjHlSjwJ+GKvYgq
-	9xl3ulKI5peHni8jFrf0I48blC4Ev9KNHN2tU8zz0c2c+P+83owyAqXqtovy9dADi6Dn/sITXke
-	cfD/5/a2o3zZBc1XQ3QhWC+2+mmTozmL5CCAIKXgJHDX8/ExCQU/yGaYdqDNinstP0Vdv4x+h1I
-	NJY38aZpUDRgfzIRLS8JRZkNwqaVQjQrF3qCH7GcHFuA6zv243k0UPZFYzog1osuRy9jNBpsSvu
-	h8UDgOjI8l+s8X4/6YlBJtRDOuB9OXqlrA8RHKvaKAOcjffp0tc3N5FqWcUdPAHJaxAsr1KtJaO
-	x9fFfmoCmH+0=
-X-Received: by 2002:a05:690e:b8d:b0:667:c8ae:f683 with SMTP id
- 956f58d0204a3-66abad23602mr1541113d50.4.1786010105998; Thu, 06 Aug 2026
- 02:55:05 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="oPSEHAjs"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 218F5153B;
+	Thu,  6 Aug 2026 03:05:22 -0700 (PDT)
+Received: from [10.1.39.91] (e127648.arm.com [10.1.39.91])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 7B5993F632;
+	Thu,  6 Aug 2026 03:05:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1786010726; bh=WS/rfO4oajIp3FHdAu714TgnXE0c4amp0mFK0+3ku9M=;
+	h=Date:Subject:From:To:Cc:References:In-Reply-To:From;
+	b=oPSEHAjsm6+UxcjffeaS1ehA+IvlvDIAcsgw63oQqaGVQZyRC3e99JAdtUlX4lxgP
+	 b24O+8XgmeqNIjGAlRTljEL1WjyMcPxHDXVjCZMx63yLEBmCGiY/WBdHlT7KpzBFAn
+	 cpRkTJp+7jIns8/iB/ft4OItQTVlsCvlrQT7dDws=
+Message-ID: <4bae4fa9-b2fc-48e8-9f11-b3cf520e9c0d@arm.com>
+Date: Thu, 6 Aug 2026 11:05:21 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAJOGg3z6LJPDsdPNBxajgy8_wQxfhYBRxe4EiurZf3kPU5A5Bw@mail.gmail.com>
- <f42cc94c-ff60-4999-b473-c2fc5b1b4199@intel.com> <CAJZ5v0j1Tucb0yzS8=3U_X1E4ziztjgOsiYrc_QfUUKZfScCPA@mail.gmail.com>
-In-Reply-To: <CAJZ5v0j1Tucb0yzS8=3U_X1E4ziztjgOsiYrc_QfUUKZfScCPA@mail.gmail.com>
-From: Julien <julien82453@gmail.com>
-Date: Thu, 6 Aug 2026 11:54:54 +0200
-X-Gm-Features: AUfX_mxsuSxYb4bRTLw_auynOoK9idt7FQzZIelPKJrVZG-Vnf3CPDnTHMYa3ew
-Message-ID: <CAJOGg3zhEFner5pze-eX+6jh5D8nJppyWkNN5bWtg7MZ7cW9_Q@mail.gmail.com>
-Subject: Re: [REGRESSION] no TPM device after "tpm_crb: Convert ACPI driver to
- a platform one"
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, regressions@lists.linux.dev, 
-	jarkko@kernel.org, linux-integrity@vger.kernel.org, 
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RESEND][PATCH 0/3] ACPI: CPPC: Reduce .target() callback
+ overhead
+From: Christian Loehle <christian.loehle@arm.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>,
+ Viresh Kumar <viresh.kumar@linaro.org>
+Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>,
+ Jie Zhan <zhanjie9@hisilicon.com>, Lifeng Zheng <zhenglifeng1@huawei.com>,
+ Pierre Gondois <pierre.gondois@arm.com>, Sumit Gupta <sumitg@nvidia.com>,
+ Sudeep Holla <sudeep.holla@arm.com>,
+ Ionela Voinescu <ionela.voinescu@arm.com>, zhongqiu.han@oss.qualcomm.com
+References: <20260803210527.1285229-1-christian.loehle@arm.com>
+ <f48c36fe-446f-4f83-8d2d-0913aafc377e@arm.com>
+Content-Language: en-US
+In-Reply-To: <f48c36fe-446f-4f83-8d2d-0913aafc377e@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-> Please try the attached patch and let me know how it goes.
->
-> It applies on top of the current mainline, but it may be adjusted to
-> older kernels, so please let me know if you need that.
+On 8/3/26 23:28, Christian Loehle wrote:
+> On 8/3/26 22:05, Christian Loehle wrote:
+>> cppc-cpufreq reaches cppc_set_perf() from every target callback.  For
+>> direct SystemMemory controls, that path currently does several steps
+>> which are unnecessary once the immutable _CPC layout is known:
+>>
+>>   - a full-width write first reads the access unit and merges the value.
+>>   - every write takes the descriptor's RMW lock, even when its access unit
+>>     is not shared with another _CPC entry.
+>>   - cppc_set_perf() evaluates the same three PCC predicates at each phase
+>>     of the transaction.
+>>
+>> Remove those costs while retaining the existing conservative paths for
+>> partial fields, overlapping or malformed access units, and PCC controls.
+>>
+>> The series was tested on Arm Power-Orion O6 and AmpereOne systems using
+>> cppc-cpufreq and schedutil.  An rt-app task pinned to one CPU ran for
+>> 500 us every 2 ms with uclamp.min=512, for 5000 periods per run.  schedutil
+>> rate_limit_us was 1000.  cppc_cpufreq_fast_switch() latency was measured
+>> for 100 ten-second runs.  Each sample is the mean callback latency within
+>> one run, and the table reports the median and sample standard deviation
+>> of those samples.
+>>
+>> Orion O6               median       stdev       callbacks
+>> baseline               5703 ns      307 ns       188017
+>> complete series        5023 ns      240 ns       188209
+>> ==> 680 ns (11.9%) reduction
+>>
+>> AmpereOne              median       stdev
+>> baseline               2090 ns      157 ns
+>> complete series      1907.5 ns      140 ns
+>> ==> 182.5 ns (8.7%) reduction
+>>
+>> The cumulative intermediate results on the Orion O6 attribute roughly half
+>> of the gain to each of the first two patches: avoiding the read reduced
+>> the median by 284 ns (5.0%), and avoiding the lock reduced it by another
+>> 336 ns (6.2%).
+>> Together they account for 620 ns of the 680 ns total reduction.
+>>
+>> With the same arm64 configuration and GCC 11.4, caching the PCC predicate
+>> also reduces cppc_set_perf() from 1124 to 884 bytes.  The generated
+>> function has 60 fewer instructions, 17 fewer loads and 20 fewer branches.
+>>
+>> This series is based on the CPPC fixes posted at (already queued):
+>> https://lore.kernel.org/lkml/20260722093825.1030594-1-christian.loehle@arm.com/
+>>
+>> and the separately posted fix still under review:
+>> https://lore.kernel.org/lkml/20260724104042.1481804-1-christian.loehle@arm.com/
+>>
+>> PS:
+>> There's a final optimization that I actually wanted to make but decided to
+>> split it out for now as it somewhat replicated Sumit's series:
+>> Skipping redundant perf ctrl writes in cpufreq-cppc if registers are non-PCC
+>> and !shared (because the values are unchanged, the
+>> !autonomous-common-case), but that requires the driver to have a more
+>> complex caching- and atomic-updating machinery in place, similar to
+>> hotplug. As opposed to this series the optimization would be for the
+>> microcontroller handling the CPPC requests, which may be shared across
+>> many CPUs and therefore redundant requests can increase the dvfs
+>> transition latency.
+>> That patch will follow once Sumit's is queued:
+>> https://lore.kernel.org/lkml/20260716153820.2007095-1-sumitg@nvidia.com/
+>>
+>> [RESEND] for the new base-commit specifier below
+>>
+>> Christian Loehle (3):
+>>   ACPI: CPPC: Avoid unnecessary reads for full-width writes
+>>   ACPI: CPPC: Avoid locking standalone full-width registers
+>>   ACPI: CPPC: Evaluate performance-control PCC use once
+>>
+>>  drivers/acpi/cppc_acpi.c | 135 +++++++++++++++++++++++++++++++--------
+>>  include/acpi/cppc_acpi.h |   5 +-
+>>  2 files changed, 113 insertions(+), 27 deletions(-)
+>>
+>>
+>> base-commit: 075b74841bd0065a3bda3440873c747938e69b68
+> 
+> Nice, so that worked:
+> https://sashiko.dev/#/patchset/20260803210527.1285229-1-christian.loehle@arm.com
+> Seems no findings on $SUBJECT but the rest of the comments it has
+> look legit to me? I'll go take another look tomorrow:
 
-Thanks. The patch seems to be working. /dev/tpm0 and /dev/tpmrm0 are
-back and a command like tpm2_get_random 16 succeeds.
+So I have patches for these all and will post them in a minute.
 
-> I think that these messages have been present in the kernel logs for
-> quite some time, but previously they were not connected to any
-> functional issues.
+> 
+> 1. Using per-CPU cpc_desc->rmw_lock for SYSTEM_MEMORY CPPC control register that
+> may be shared.
 
-You are right that the messages were already present before. I see
-them in the commit before "tpm_crb: Convert ACPI driver to a platform
-one".
+The solution here sucks unfortunately.
+Obviously expanding the per-CPU rmw_lock to per-policy is reasonable, but unfortunately
+that doesn't prevent something like:
+Policy 0 Desired: address X, bits 7:0,  access size 32
+Policy 1 Desired: address X, bits 15:8, access size 32
+which would be a compliant GAS description and would require a global lock for rmw.
 
-Here is what the logs say now:
-acpi MSFT0101:00: Adjusting resource [mem 0xfed4000-0xfed40fff] to
-[mem 0xfed40040-0xfed4103f]
-tpm_crb_acpi MSFT0101:00: [Firmware Bug]: Bad ACPI memory layout
+And of course even worse, now that Desired is write-only rmw isn't possible at all
+anymore.
+I'm leaning to just reject these edge-cases that hopefully don't actually exist
+(and require _CPC rev4 to be full access-unit width)
+Opinions?
 
-The second message was already there before too.
+> 2. MASK_VAL_WRITE() truncation on 32bit architectures.
+> 3. acpi_cppc_processor_exit() calls kfree(cpc_ptr) unconditionally (UAF with sysfs?)
+> 4. cppc_set_reg_val_in_pcc() calls cpc_write() before down_write(&pcc_ss_data->pcc_lock)
+> 5 & 6 are sanitization of values from FW. 
+> 
 
-I'm sorry for sending multiple times the same email. I'm still learning.
-
-On Wed, Aug 5, 2026 at 6:01=E2=80=AFPM Rafael J. Wysocki (Intel)
-<rafael@kernel.org> wrote:
->
-> On Tue, Aug 4, 2026 at 9:08=E2=80=AFPM Wysocki, Rafael J
-> <rafael.j.wysocki@intel.com> wrote:
-> >
-> > Hi,
-> >
-> > On 8/2/2026 2:54 PM, Julien wrote:
-> > > Hello,
-> > >
-> > > Please keep in mind this is my first time reporting a Linux kernel
-> > > regression.
-> > >
-> > > Since commit 48fe2cddc85c ("tpm_crb: Convert ACPI driver to a platfor=
-m
-> > > one"), my TPM device is no longer available. Both /dev/tpm0 and
-> > > /dev/tpmrm0 are missing.
-> > >
-> > > Log messages:
-> > > platform MSFT0101:00: failed to claim resource 1: [mem
-> > > 0xfed40000-0xfed40fff]
-> > > acpi MSFT0101:00: platform device creation failed: -16
-> > >
-> > So there's no platform device for the driver to bind to.
-> >
-> > I think that these messages have been present in the kernel logs for
-> > quite some time, but previously they were not connected to any
-> > functional issues.
-> >
-> >
-> > > I added some debug logging:
-> > > ACPI resourcet[0] =3D [mem 0xfed40040-0xfed4103f flags 0x200]
-> > > ACPI resourcet[1] =3D [mem 0xfed40000-0xfed40fff flags 0x200]
-> > >
-> > > I think the failure happens in kernel/resource.c: __insert_resource()
-> > > because of the two memory regions overlapping.
-> > >
-> > This is quite plausible, but if that's the case, it should be fixable.
-> >
-> > Let me figure out something.
->
-> Please try the attached patch and let me know how it goes.
->
-> It applies on top of the current mainline, but it may be adjusted to
-> older kernels, so please let me know if you need that.
