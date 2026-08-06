@@ -1,60 +1,79 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25DE53E556D;
-	Thu,  6 Aug 2026 21:23:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8622340EBA1;
+	Thu,  6 Aug 2026 21:51:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786051432; cv=none; b=XlT3pHSi7x/DAum9Uilsq9gLgesKfykWUNU6PrHbuE7emhlyyp31+A1jKSNgvxSHcRFWECbLQ2YY5Z8eC88by1cfm26FybAo0WPQlwRW1oReRXWHeECeDgU+iIsrIcDRWkXL+OxXiz9mhl5rVDX2YM2k+G5nStwLM4RQXUohTGQ=
+	t=1786053094; cv=none; b=ZGDSjh/UeYY3QtMCWm/s6QcV/xr1NDwdQpmNld6AQyUElqhgQ6CiYQfCgvQ1krWwUx6KBpvDwkWOBn+4MlMQUlxfCitHGT4qmYd8zqkJvCERa0y0ddS684h6g1bNqZXpO2vkpVTxGELgMcWxKoYTbr6eN3ATUID78pPworxZuB4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786051432; c=relaxed/simple;
-	bh=bA3ALD63gW685t+PI1gCCfzSab22X6sCn1t4DUkkEKA=;
+	s=arc-20240116; t=1786053094; c=relaxed/simple;
+	bh=7YXZzO7rHKj6qKOZ2jDkYVaRVikc1Wt8k9LrXwdPOkI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=u3sMX+Rn2QLs9xQ2URe2LeqZSNDF8oyiZ5ozq6k1ncrEQ06mxdwst+oGAySgrhFDiIdaSs6no2CXSdGZZYm17KkQz9y3Jg/AElB0qE21b8JGVeE1S7oiMbXWvlKHiRA5IYa1TPoJBI3xt1tDA8fF3wpaiZn8u93Dk+7YKJmiRkc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=kA0ln7ZI; arc=none smtp.client-ip=198.175.65.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=Ast/+CtArSYz1oAKxx39wSbWi+RiV3uenwR9z3qmHOBBEkujKuiCrpCa6otmo9mn3fYGWsr5c5E2HXX8KFZgwM+T/Li25Dcolr8FXitV4svdseprvlecpXw0/0DtOrEbdTsQfZ/syv80DtBbuKZe87AWVaVRZbes9gjgxsBEhIk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=STrjp17Z; arc=none smtp.client-ip=192.198.163.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="kA0ln7ZI"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="STrjp17Z"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1786051431; x=1817587431;
+  t=1786053093; x=1817589093;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=bA3ALD63gW685t+PI1gCCfzSab22X6sCn1t4DUkkEKA=;
-  b=kA0ln7ZIX888banILKTjVV3hbyTxPJMuAKf3348jLcZXF2BUpqHKfthw
-   VOcnjZWJAuANR3d4lD1jZXtosW6p4035rzM+XyxnEQTS9HSDJRwntpeZh
-   wrsYClMSK29nM3vNFLwRztsZ4pCSxQx5LjduHpqpvQ4EmvvqS/xGbcyHB
-   X9t+AUnFbyUFrQg+du/kKn3OU/EApTmOUFx6qrFRY/MDXP1ElZOz7LQ1Q
-   jcViC/lkHruQ6DMsrHQ5S7w9N9S+TloSU9keM4JSpd+AhJ50Zm9vCavaW
-   +hhDPjOyFTWF5maUuuaZ4Rf+FhVU7PiDllL79CS5StrROpTuW+KDJ6Uc1
-   w==;
-X-CSE-ConnectionGUID: PUSgITpUSkK/osnKlygBpA==
-X-CSE-MsgGUID: vXjmWTBKTq2jY9SYbLnW+g==
-X-IronPort-AV: E=McAfee;i="6800,10657,11867"; a="86425754"
+  bh=7YXZzO7rHKj6qKOZ2jDkYVaRVikc1Wt8k9LrXwdPOkI=;
+  b=STrjp17ZrWDDfBkq6sC6Z3ueXIF2jXJWW7OIEK375PjXAX9+Kg0x881B
+   B/tFAsOhA40Z0lvuWVffvaQAEljKw7HYMqX/u7KP0ur9dOv6jJC6wRO0d
+   DHJUEQxewFwF/3wcMAPvZ3ix9baxvlK4Vk9YNc++PpXraV3YglmGArkoC
+   iKmr4WFz3XinofM9bF2IfWwapjytMYTSBBTRaGoHF485ODLSJ+83P9WYi
+   TWw13K4aqwMmD5m4HxjNkjtU44HLV1zYQPtySd2JSudd5Gj+2p4RPZQKS
+   mpPou75Nx/vjJJkTUg/wpXIUtZopZQJCa9y9NqB10rFxJ7pc54PduokLY
+   g==;
+X-CSE-ConnectionGUID: KFxNgBEHR9KxKySnE2yhMg==
+X-CSE-MsgGUID: YzVDWGa4Tq+38KhSvoMDDw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11867"; a="85630870"
 X-IronPort-AV: E=Sophos;i="6.25,209,1779174000"; 
-   d="scan'208";a="86425754"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Aug 2026 14:23:50 -0700
-X-CSE-ConnectionGUID: fBNz+2nGQYi/rPgs9adqvA==
-X-CSE-MsgGUID: zsWofeD/SMKFxThXxXMZBQ==
+   d="scan'208";a="85630870"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Aug 2026 14:51:32 -0700
+X-CSE-ConnectionGUID: AB8YyTXOSCSKko1pPJhpvA==
+X-CSE-MsgGUID: gfPYtjsYTwuf1P+pMEQQWA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.25,209,1779174000"; 
-   d="scan'208";a="266058014"
-Received: from ettammin-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.245.50])
-  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Aug 2026 14:23:48 -0700
-Date: Fri, 7 Aug 2026 00:23:45 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mika Westerberg <mika.westerberg@linux.intel.com>,
-	Julien <julien82453@gmail.com>, jarkko@kernel.org,
-	linux-integrity@vger.kernel.org
-Subject: Re: [PATCH v2] ACPI: scan: Avoid registering platform devices with
- resource overlaps
-Message-ID: <anT7YdW6b-uYwgK0@ashevche-desk.local>
-References: <12954206.O9o76ZdvQC@rafael.j.wysocki>
+   d="scan'208";a="285586569"
+Received: from lkp-server01.sh.intel.com (HELO 6eda058d650d) ([10.239.97.150])
+  by fmviesa002.fm.intel.com with ESMTP; 06 Aug 2026 14:51:25 -0700
+Received: from kbuild by 6eda058d650d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1ws5zl-00000000GKf-1GLg;
+	Thu, 06 Aug 2026 21:51:21 +0000
+Date: Fri, 7 Aug 2026 05:50:26 +0800
+From: kernel test robot <lkp@intel.com>
+To: Markus Elfring <Markus.Elfring@web.de>, acpica-devel@lists.linux.dev,
+	bpf@vger.kernel.org, coresight@lists.linaro.org,
+	kvm@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-gpio@vger.kernel.org,
+	linux-kselftest@vger.kernel.org, linux-mm@kvack.org,
+	linux-perf-users@vger.kernel.org, linux-pm@vger.kernel.org,
+	linux-trace-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	mptcp@lists.linux.dev, netdev@vger.kernel.org,
+	platform-driver-x86@vger.kernel.org, virtualization@lists.linux.dev,
+	Adrian Hunter <adrian.hunter@intel.com>,
+	Alex Mastro <amastro@fb.com>, Alex Williamson <alex@shazbot.org>,
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+	Alexei Starovoitov <ast@kernel.org>,
+	Andi Kleen <ak@linux.intel.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Andrii Nakryiko <andrii@kernel.org>,
+	Ankur Arora <ankur.a.arora@oracle.com>,
+	Arnaldo Carvalho de Melo <acme@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+	Linux Memory Management List <linux-mm@kvack.org>
+Subject: Re: [PATCH] tools: Use fputc() calls in some functions
+Message-ID: <202608070547.MRKfa3bH-lkp@intel.com>
+References: <48f2d61f-d468-49b7-881e-f00777db073f@web.de>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -63,72 +82,76 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <12954206.O9o76ZdvQC@rafael.j.wysocki>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+In-Reply-To: <48f2d61f-d468-49b7-881e-f00777db073f@web.de>
 
-On Thu, Aug 06, 2026 at 09:28:03PM +0200, Rafael J. Wysocki wrote:
+Hi Markus,
 
-> If acpi_dev_get_resources() returns overlapping I/O or memory resources,
-> the subsequent registration of a platform device will fail with -EBUSY
-> due to a resource conflict.  This is reported to happen on Acer Aspire
-> ES1-572 [1].
-> 
-> Avoid that by adjusting resources returned by acpi_dev_get_resources()
-> to eliminate partial overlaps between them.
-> 
-> This has not been regarded as necessary before because putting
-> overlapping resources into the _CRS of one device is really pointless,
-> but now that the issue has been reported to actually happen in the
-> field, it needs to be done.
+kernel test robot noticed the following build errors:
 
-...
+[auto build test ERROR on perf-tools-next/perf-tools-next]
+[also build test ERROR on tip/perf/core perf-tools/perf-tools linus/master v7.2-rc6 next-20260806]
+[cannot apply to acme/perf/core]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-> +static unsigned int acpi_platform_adjust_resources(struct acpi_device *adev,
-> +						   struct resource *new_res,
-> +						   struct resource *resources,
-> +						   unsigned int count)
-> +{
-> +	unsigned int i;
-> +
-> +	if (!(new_res->flags & (IORESOURCE_IO | IORESOURCE_MEM)))
-> +		return count;
-> +
-> +	for (i = 0; i < count; ) {
-> +		struct resource *res = &resources[i];
-> +
-> +		if (resource_type(new_res) != resource_type(res) ||
-> +		    !resource_overlaps(new_res, res)) {
-> +			i++;
-> +			continue;
-> +		}
-> +
-> +		dev_info(&adev->dev, "Adjusting %pR for %pR\n", new_res, res);
-> +		/*
-> +		 * Extend the new resource to include the one that has been processed
-> +		 * already.
-> +		 */
-> +		if (res->start < new_res->start)
-> +			new_res->start = res->start;
-> +
-> +		if (res->end > new_res->end)
-> +			new_res->end = res->end;
+url:    https://github.com/intel-lab-lkp/linux/commits/Markus-Elfring/tools-Use-fputc-calls-in-some-functions/20260806-165154
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/perf/perf-tools-next.git perf-tools-next
+patch link:    https://lore.kernel.org/r/48f2d61f-d468-49b7-881e-f00777db073f%40web.de
+patch subject: [PATCH] tools: Use fputc() calls in some functions
+config: x86_64-kexec (https://download.01.org/0day-ci/archive/20260807/202608070547.MRKfa3bH-lkp@intel.com/config)
+compiler: clang version 22.1.3 (https://github.com/llvm/llvm-project e9846648fd6183ee6d8cbdb4502213fcf902a211)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260807/202608070547.MRKfa3bH-lkp@intel.com/reproduce)
 
-Can we use resource_union() instead?
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202608070547.MRKfa3bH-lkp@intel.com/
 
-> +		/*
-> +		 * Eliminate the previously processed resource that has
-> +		 * triggered the adjustment because it is not necessary any
-> +		 * more.
-> +		 */
-> +		memmove(res, res + 1, (--count - i) * sizeof(*res));
-> +	}
-> +
-> +	return count;
-> +}
+All errors (new ones prefixed by >>):
 
--- 
-With Best Regards,
-Andy Shevchenko
+>> builtin-check.c:300:8: error: incompatible pointer to integer conversion passing 'FILE *' (aka 'struct _IO_FILE *') to parameter of type 'int' [-Wint-conversion]
+     300 |         fputc(stderr, '\n');
+         |               ^~~~~~
+   /usr/include/stdio.h:155:16: note: expanded from macro 'stderr'
+     155 | #define stderr stderr
+         |                ^~~~~~
+   /usr/include/stdio.h:611:23: note: passing argument to parameter '__c' here
+     611 | extern int fputc (int __c, FILE *__stream) __nonnull ((2));
+         |                       ^
+>> builtin-check.c:300:16: error: incompatible integer to pointer conversion passing 'int' to parameter of type 'FILE *' (aka 'struct _IO_FILE *') [-Wint-conversion]
+     300 |         fputc(stderr, '\n');
+         |                       ^~~~
+   /usr/include/stdio.h:611:34: note: passing argument to parameter '__stream' here
+     611 | extern int fputc (int __c, FILE *__stream) __nonnull ((2));
+         |                                  ^
+   2 errors generated.
+>> disas.c:540:9: error: incompatible pointer to integer conversion passing 'FILE *' (aka 'struct _IO_FILE *') to parameter of type 'int' [-Wint-conversion]
+     540 |                 fputc(stream, '\n');
+         |                       ^~~~~~
+   /usr/include/stdio.h:611:23: note: passing argument to parameter '__c' here
+     611 | extern int fputc (int __c, FILE *__stream) __nonnull ((2));
+         |                       ^
+>> disas.c:540:17: error: incompatible integer to pointer conversion passing 'int' to parameter of type 'FILE *' (aka 'struct _IO_FILE *') [-Wint-conversion]
+     540 |                 fputc(stream, '\n');
+         |                               ^~~~
+   /usr/include/stdio.h:611:34: note: passing argument to parameter '__stream' here
+     611 | extern int fputc (int __c, FILE *__stream) __nonnull ((2));
+         |                                  ^
+   make[5]: *** [tools/build/Makefile.build:96: tools/objtool/builtin-check.o] Error 1
+   2 errors generated.
+   make[5]: *** [tools/build/Makefile.build:95: tools/objtool/disas.o] Error 1
+   make[5]: Target '__build' not remade because of errors.
+   make[4]: *** [Makefile:123: tools/objtool/objtool-in.o] Error 2
+   make[4]: Target 'all' not remade because of errors.
+   make[3]: *** [Makefile:74: objtool] Error 2
+   make[2]: *** [Makefile:1587: tools/objtool] Error 2
+   make[2]: Target 'prepare' not remade because of errors.
+   make[1]: *** [Makefile:248: __sub-make] Error 2
+   make[1]: Target 'prepare' not remade because of errors.
+   make: *** [Makefile:248: __sub-make] Error 2
+   make: Target 'prepare' not remade because of errors.
 
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
