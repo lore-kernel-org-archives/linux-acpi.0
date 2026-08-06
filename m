@@ -1,223 +1,279 @@
-Received: from OS0P286CU011.outbound.protection.outlook.com (mail-japanwestazon11010065.outbound.protection.outlook.com [52.101.228.65])
+Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010009.outbound.protection.outlook.com [40.93.198.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54BB23D9551;
-	Thu,  6 Aug 2026 11:21:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.228.65
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94D5B47ACD7;
+	Thu,  6 Aug 2026 12:28:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.198.9
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786015276; cv=fail; b=JO7hHYJUNs8dyJ13fdthLEhHTrprj1hxj1PuBMsM0nHvVZCjx943g3irGLbs0FiNLOq9id5Ezym9FciEXy/NAq87daOm+SRUV9Sts/p+DLrQpQs1wwo8b9ZS/g+59FZgZDB8iKZ1j3Us/xA+QJDqJZiwg7IflqytPe0q+MXROHc=
+	t=1786019285; cv=fail; b=BVUej8oqcZ2m+sF2zNQAbl1yrT1sAvbelX2yo+yA6cD06XtaW/cEb94+1KZDrMOrot/ihMoAyspRli0vis+7aTEluekWNpgqxtvmsZcWTPDnVN+NJvUKWGIuhmm/YUTd00SyL37EvAjbnS1k4F7H2UnEG5raXot6l79I9hZJwKk=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786015276; c=relaxed/simple;
-	bh=Pt6zVZwRZA3C+Tmf7pZDy69L2/aRZ8ONR3laaOWnWLY=;
-	h=From:To:CC:Subject:Date:Message-ID:Content-Type:MIME-Version; b=YVmodp3m+h0tEL9xm5fOaeH5j0Pe5E9vxbPRRgvbfRHOibh8zfvXGbTq64j3meq9CvIqraPCzTy+M8CWdGyFJ8XtPN0f6xbZpIvdkQh59gpMWJ/hzi8ocNcdrHazAl+xst401d3QmVTGELcB2ryaGkoyqKlSHngTtcgQwIZe4s0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nec.com; spf=pass smtp.mailfrom=nec.com; dkim=pass (2048-bit key) header.d=nec.com header.i=@nec.com header.b=dsIThjc+; arc=fail smtp.client-ip=52.101.228.65
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nec.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nec.com
+	s=arc-20240116; t=1786019285; c=relaxed/simple;
+	bh=sXlQPhxmA7oV6XT9IkfoGGIvXXKyZIxj9zAMpdX7VIY=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=GTj7ewEjQTfmGe8HfnTzPbVcDSqmZ13XRxeO7F6azWLKh3JIrhDniJB4GqgyrDiWanigkByFS3Opdbs+RgCUz/aGyRuukO0Q9g1Ga17BMqM0jTXXVKD/arLUVDgRVvJL5c4A+qeCM0j6Cuu+TeypmClt3hh5A8pUDQXYM1sQROo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=o8QJx9L0; arc=fail smtp.client-ip=40.93.198.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nec.com header.i=@nec.com header.b="dsIThjc+"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="o8QJx9L0"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=p6D+NbdYR62GF8Lkc81cnX8J8W3UcmPyTQeQPVXhWMEXPOv4vUEx3CSp562iVOW+Wl32RR8Mc4a9fgaAMbEeK7E2NkKmsRXkoGgJLn6eORhq8LNUKW8c9lmzRM+Ovg316z0fDl/qEoxip1/D3D8ynTNfPJWuy1zjuDxktcoYe3O1U9GlKep1dnIy/rUf99UqGSRim0T9BPfb1WXrQokWbStAYtisAEVj+kgDW3JJYoQzx3z/rbECkkjTfthA6PM5RFGpn9mU8tySXDhYjzTsZDRvWy4p7Tv1Y6E4va2P3hoBxvj2OZVol4nC+a/u/lvPmANJqzgkYXMBFJ1cV4WUPg==
+ b=AqFdD8ycPW5rkUnPcavUFC3ejhphlrIrHQ7wSuotpjE94zdxYflFxepmSKJld6ZyjESa5+kqDm5PGQfj7fj1e9FQrV7DGoHzK7oJCfJpCZuBeAmA1h7GmRuKDz44U1PAcibDNsRXzYR2fbQoTW22J6oMcmRSwJkHWVg/5t8e8GGvcRyHr+/nEktRiySPBQfzlFTPX6as6sA4W6abK24OCPTTyCQ0iZF5RLWXOs5bYSl64Kew/8pChIiDw5LqesZDLWFf2S5dQHiyq2QG/ob6i4KVe/LAJciUSGRo0tNyqqj86z8y8N49F3ou3l8hfFVMyUg9nC9wVHm9WoNaKR7xaQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Z02NiTHIaH1Q3XLPhJS9/9/CvufXMbuhH5i/A5bvMQw=;
- b=qlI4kr+IpvSprS8bW+h99gJ24Imoq1ww0LlGLJVjOU6Tn8k1hG9ax5LDwdd8fqVG5cPctkpbxnRRXlOgD2QF0eScpEhsTsVqAHoqg/TxPUYtNDnOC+aBMEUCSMyFFzie/HyxrRhLbB9je4nSVtH86aNcCVPVQj773TQe56EUkgFSuYCQW1evr44e9stfQQw8ZYF3bU0h8Z0h3obERTQuY48JwyZWfJmAIsUaRWU1r/klv7GAxPi60jsjplG/HXgXCzHOGhXgVJqsuZOmMctmPIsCUwgmjBk6N36Yn1oKDxZFLee/CkkcVW+SDlo/wTpChkaeSVeKKbUBzQ8ZBWf6IQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nec.com; dmarc=pass action=none header.from=nec.com; dkim=pass
- header.d=nec.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nec.com; s=selector2;
+ bh=UiWw0qNpX3vBEChGCu9SyB4oejHSlrQLcyqjVMnwrOM=;
+ b=rXwJiysrRJi4l3G6HuWH+GeysInfyfIZUV8TBiS9YetjCqLFrBjfilEyA+mdsx8+QipAg0/JvknQIAChSD/iCh/f9yWFmKUnmR2FxE4KWc0EBIGymaSIDm0Rj478ErUKFRQfCyO+Vlh45LER6YJRh1H4VCV2g7VNWGhx2pnkzpqQEihoZSp6+7iB5PVYvhf7uxY7FbumiZbu9pDrS8CAP1bmPmsJt0vc5XbA1xOqqlZjZVoK+jFkD7/SKZoe6wwxfgOaInnwZDfbazEtknVQXcirG/z4giMklO14uhexsZQQUzaIJV+OTpofLduYj+SpjsKaYdL7IrZ0u2SsuYMuGw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Z02NiTHIaH1Q3XLPhJS9/9/CvufXMbuhH5i/A5bvMQw=;
- b=dsIThjc+QJOocRpljc2b2xGFTttTu6JMsgzOkuY2hm0lShVW/uuTQgP7AyagP4/bslb3eYhT9qNKSgDaXpds7mBwOjB/FxJ7JbRY+iBAXQqS9yacsSkMz6ac8QwQF6acOKCMVnDZShGHI7CpyVpaByiAZxEMCGJrdwIzi13W4ccKI4bDAFUjuFoQPRLOXEluxf5rj//JyVujfSYygDaz3QJiGk4Een2iTjO6IfF5BgIzXOrBRtEoIoPSrSsdrve3FXXZVGRhO3VRSzyRnAA3t7DKko+FYlyGxMGUAgLMZYE8pljNEsC0KgjoW8OQ+H41aePJaYySpCewU+MgUqByrA==
-Received: from OS7PR01MB17384.jpnprd01.prod.outlook.com (2603:1096:604:43c::6)
- by TY7PR01MB15037.jpnprd01.prod.outlook.com (2603:1096:405:248::9) with
+ bh=UiWw0qNpX3vBEChGCu9SyB4oejHSlrQLcyqjVMnwrOM=;
+ b=o8QJx9L0+VJdKobt20P0WDsm0DGaI/amBdlLfoXl0r0PYwZzIKySVzWl8bXEf20lvi6tpCNfF7nJGfUf3s6Pb3OA1yMbzQ1xGgQnedT+Ha2ngobruMsgKPNCR67XT78B8vOJtSRzzw5OFaGvkjXs8EqvauqliKzczdYQG89AphQ=
+Received: from SJ0PR13CA0192.namprd13.prod.outlook.com (2603:10b6:a03:2c3::17)
+ by LV8PR12MB9690.namprd12.prod.outlook.com (2603:10b6:408:296::16) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.19; Thu, 6 Aug
- 2026 11:21:11 +0000
-Received: from OS7PR01MB17384.jpnprd01.prod.outlook.com
- ([fe80::e19a:50c0:4d9c:1bb6]) by OS7PR01MB17384.jpnprd01.prod.outlook.com
- ([fe80::e19a:50c0:4d9c:1bb6%7]) with mapi id 15.21.0292.019; Thu, 6 Aug 2026
- 11:21:11 +0000
-From: =?iso-2022-jp?B?S09ORE8gS0FaVU1BKBskQjZhRiMhIU9CPz8bKEIp?=
-	<kazuma-kondo@nec.com>
-To: "rafael@kernel.org" <rafael@kernel.org>, "lenb@kernel.org"
-	<lenb@kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>
-CC: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: [PATCH v2] ACPI: PCI: Avoid misleading _OSC messages for non-PCIe
- host bridges without _OSC
-Thread-Topic: [PATCH v2] ACPI: PCI: Avoid misleading _OSC messages for
- non-PCIe host bridges without _OSC
-Thread-Index: AQHdJZWvx2vyzEdBNUu/hIrr4kWloQ==
-Date: Thu, 6 Aug 2026 11:21:11 +0000
-Message-ID: <20260806112052.857684-1-kazuma-kondo@nec.com>
-Accept-Language: ja-JP, en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-x-mailer: git-send-email 2.49.0
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nec.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: OS7PR01MB17384:EE_|TY7PR01MB15037:EE_
-x-ms-office365-filtering-correlation-id: f3cdc7d6-af53-4a22-73d4-08def3acd1ab
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam:
- BCL:0;ARA:13230040|23010399003|366016|1800799024|376014|11063799006|56012099006|10067099003|18002099003|38070700021;
-x-microsoft-antispam-message-info:
- JcJnpbM2L2HiQg/e0OHNZPm4sXE1/ZpaQOmH6DC4LK9g12bRa8DfnVJUOdR85t1cYVA3RW+85assMfJUhTJVtOyu0I+QrBpa6FlbhbAIoTmhljWNgTwO7c9cRBbdItFFRZboeIwu/CQItMcnRcclM3oZZ1W4GPiF38q0x6StgAu9Uc7NZ7E/r9gmZqkWwQpdS8faNl9ACmt+ZSjTMx4osWmywpPr5f4JcZVznArqfA9gyhNhRcps7YWaGMg3nofauhqjRy3wgFoMf2Q5vMT7FksLVEqQCDepc+O51Un5KKkT21fSoL4geCMKDPVc0J9HZUVdv7CM+kxZeog7Nv9sBpk/07zOuooXXbFzWdaHVK7BJKVFC+ykv/wZgt5TyXxFPWv0/C1owmdjJnYJIKsWwMWknrdNwduKDP79UUO6udgKB40naZKCi3oTZAoY8sYhqYY3z0LU/Vn8JvK2TOVU4d8bZS/UI9uz9qy0uBaOrIIIxr6/4IcY9gWt3bZiHcSfTAMlp/c9D0B+JVYxEOir9/jJMVBjCLjHdDsVfUVz6OJiac3a51gcoU++GBCavGx4BgQpzkv1yL9ULgUEuvYlb/Z1t/dkEv+oYKf8lglZlMamzq4viquUCYJlDDX86auK8XmnKyX/3p0cS6MrI/whggpFnFfxKaaopm0XNUYIGi8mhT2qr2yyPjiPZ6Qx0831YPoAaVsW8ZhgHDyF1FNnj2G/ePNN7JLITHNpHkK4YHI=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:ja;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:OS7PR01MB17384.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(366016)(1800799024)(376014)(11063799006)(56012099006)(10067099003)(18002099003)(38070700021);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?iso-2022-jp?B?QzBqcHk5ZUYwOHhBRnRJdTBpVWp6c3B6d05lODBqUDlFc2lPZkp5WktC?=
- =?iso-2022-jp?B?MEJOM0ZYQWQwWXB1SFZEa0tYMlBSSzA0R3pEaWZ2a21Md0JnYlM4TDZn?=
- =?iso-2022-jp?B?S1Y0Uzl1ZGh1WEpoeU9iemtqTTBRUy9HWlFhMkVWbHZucjR0ZXFDYVNB?=
- =?iso-2022-jp?B?QXpEWnp6VFptNSt0aEJybEJKejRSeEZhdUZwTDBJTHhqeWpSbzFZeTJj?=
- =?iso-2022-jp?B?NnppTG11SGlxa1Q4UHBwd3V5VEo3T1ZlK2hiOVBvT3JOUmRUQ0QraG0v?=
- =?iso-2022-jp?B?ZzRCV2UvSnRCUkdSZ1ZGNHhVcDM4SEJ2ZVhSUG1HdC9lSml3eUpPbDEx?=
- =?iso-2022-jp?B?cUwxWE56N0pHaTBrNEJ4YlZMVVdodUtCQ0UwcW9oakUxVnErNjBRRHBn?=
- =?iso-2022-jp?B?aVJ1QnF6REJSZWFYUk93UjY3ZTkvOTVyNWpSTTJHNEhKR0g4b3BnR3ZV?=
- =?iso-2022-jp?B?eWRLOGVqb0Zhc1NmMEM2dFlPVkUvUC9FcHdoVFdNUTFDZ3puOFFKQkJQ?=
- =?iso-2022-jp?B?cWFHdGllNDFTV3FFV0tnTlIxT2pVRlJmN295Zk8vRUhWVWhCVjh1RDRB?=
- =?iso-2022-jp?B?em03MjR2ODZKWUlKQlY2T2loTm5mOG9lalBSU3RtSXg1THJVVDhqRUpl?=
- =?iso-2022-jp?B?cVBqL2d3WUZBOTlIY2ZBTjlSemoyT3J6QmNISXY1VE9uTlBzbXVvZUd4?=
- =?iso-2022-jp?B?UHA5MVJ0TUpMSDM5RXVGY3ArcVdOQmM2ZkphVWRvYkNIQXJybjUzeXM2?=
- =?iso-2022-jp?B?d2s1UzMvZUI1bHg5Mm1ZMGFoUkxEWk9YTERzQnFmZS82TFhVdmJDTVR1?=
- =?iso-2022-jp?B?dGpjeUwzclBzbzJRR0piaXBCQVFJZlFkUUp6WUZtQUpCdXd0SHhHQUVh?=
- =?iso-2022-jp?B?TnpPUHBUa1lOalBEVXZRSCtneDJSMEgxTG9aNkhhMkd2ek90K24xVU5K?=
- =?iso-2022-jp?B?RmR0VWx3Y2NROXhNR092ZFVCRE55bW90aDlOV3k4N0UxcHJNd2duZkdL?=
- =?iso-2022-jp?B?amVxdTNQcmVsUFZmQlg4dW9aOFB4ZGpEeUM3VmYrcGJWclBjMGlnckM3?=
- =?iso-2022-jp?B?ejNBN0lpR0Y2M3g0VVFiN2Q5a016Y2l4T0J4MXcwNDYyTDgxZC95UFlT?=
- =?iso-2022-jp?B?ZytaeTEzb0FyMU5rVXBmd2NCK3M3aFRhQ2xrdjV2eW9lOGp3WXo3ZFVY?=
- =?iso-2022-jp?B?NUNYN2pwSUlCR3B6NTdPMzdFNlVjVHk5amZBWU9RZ2hobFA1bHNtNlZO?=
- =?iso-2022-jp?B?S3hZbkcyYkNsVlpzRG5HTzhlMVpmK0NIOGJ1M1o4QnVmcmZwMVF5WVFN?=
- =?iso-2022-jp?B?RzIxR0l5ZXhHVFNSdk5EU0s3dGZUTlJpZisvazAvMGhGS3dyZm9NanhC?=
- =?iso-2022-jp?B?bFVVYWp1Qm5DbHNNRXR1cHB6SzR1QVBDZUhFOFl4MUw4V2UvM0NxWExw?=
- =?iso-2022-jp?B?WEx0enZRUUFlaGRaTE50VGd5Z2wxekQ0R1lQcDR0djMwYlNORG11UmhU?=
- =?iso-2022-jp?B?ODhjQjhPZ3VqQ2FXY3NWd2ZEK3lRTGN0U2ttaHJzd1lSMWR5dm1FMVdt?=
- =?iso-2022-jp?B?MG5CdXRReDlEdk0vN2VjYnQ0NHp5V0hVd2xydlNVZlloOXRYbTYvSnhi?=
- =?iso-2022-jp?B?aTZmZVNDOTY5TlJvZ2t3MW5RU3AxWktaWU9RQTc2a2U4K01LdzZPMHpW?=
- =?iso-2022-jp?B?Ykh2UERZdVJlcmxCcFdIY2FMVnhyWXovTlIwNG1ON2ZzQnZXR0svWGlH?=
- =?iso-2022-jp?B?YmROSDB5Vm5UL2d5STk0a0pDR05xc3FnNzM4T1VDMGwrTktGUXJBVlFV?=
- =?iso-2022-jp?B?VFR1b1g0Q0ZxZzcwdnVhM0xZaXhIeUdtN3RHVVhod2V5QlFFQWhsOGxa?=
- =?iso-2022-jp?B?T1lJbTdrNjZFVlc2MWtJR3ZweG5MWGcrby9Wd0FBdnUybERrTWhZTCtn?=
- =?iso-2022-jp?B?NGhscmdMcjVrTitaN1RXbStMNlYyOGtJTCtEQUFpSHFsaS9zODFRaFN1?=
- =?iso-2022-jp?B?U0NGWTNrNXFxQkJYbWpSV01mTFJaSk5xTzE0YUpBNmhIM0JoK0Y5amsz?=
- =?iso-2022-jp?B?bkZSaThmL0EzZ1JVNDlCRy83dm9CWTlYVzdSbTdMZHZrcGhMdGQrQXBL?=
- =?iso-2022-jp?B?cHVmUjNBV0J4TXJ0TmVDVEhJNXZzOHprbU0zSktvUGd3bzV3Qm45c2Nm?=
- =?iso-2022-jp?B?TXNIQ1E4TCtacDJkdURhT2xLYXN5WWNFRG9weWl1RkJ0U1djd0UzejRM?=
- =?iso-2022-jp?B?cURuaVpDZGc1WEY3cHZ1TFI0eHpTVWlOMStvUXRTNE1aSDlrREdWVnZX?=
- =?iso-2022-jp?B?OTE4THhSZml2aTdQQU4vdlFwSlR2UFpXUDl4SXpNVTZCU3Q5dlpVV2Fl?=
- =?iso-2022-jp?B?OUwxMy9PdmI2T3JFdm81WGVTaWloMXBiOEYzY2c0YUNndkxLa0l1QnVX?=
- =?iso-2022-jp?B?Wlg2V0hIeDJNcmx3dTRPU2owWWtrNTVMTmdKS0MzTi9pTHpyYjFpbVpq?=
- =?iso-2022-jp?B?UUFGYWt1RWllcXEyUnFScGtiSXJqY1NzY0NOTE1JMUxwWDZBc0pHclBN?=
- =?iso-2022-jp?B?WFVQQTVvYz0=?=
-Content-Type: text/plain; charset="iso-2022-jp"
-Content-Transfer-Encoding: quoted-printable
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.21; Thu, 6 Aug
+ 2026 12:27:55 +0000
+Received: from SJ5PEPF000001F6.namprd05.prod.outlook.com
+ (2603:10b6:a03:2c3:cafe::8a) by SJ0PR13CA0192.outlook.office365.com
+ (2603:10b6:a03:2c3::17) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.315.7 via Frontend Transport; Thu, 6
+ Aug 2026 12:27:55 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
+Received: from satlexmb07.amd.com (165.204.84.17) by
+ SJ5PEPF000001F6.mail.protection.outlook.com (10.167.242.74) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.315.6 via Frontend Transport; Thu, 6 Aug 2026 12:27:55 +0000
+Received: from localhost.amd.com (10.180.168.240) by satlexmb07.amd.com
+ (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.41; Thu, 6 Aug
+ 2026 07:27:52 -0500
+From: Baorui Liu <baorliu@amd.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>
+CC: Len Brown <lenb@kernel.org>, Mario Limonciello <superm1@kernel.org>,
+	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<acpica-devel@lists.linux.dev>, Baorui Liu <baorliu@amd.com>
+Subject: [PATCH] ACPI: button: Report wakeup key only for power button wakeups
+Date: Thu, 6 Aug 2026 20:27:32 +0800
+Message-ID: <20260806122732.533-1-baorliu@amd.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: nec.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: OS7PR01MB17384.jpnprd01.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f3cdc7d6-af53-4a22-73d4-08def3acd1ab
-X-MS-Exchange-CrossTenant-originalarrivaltime: 06 Aug 2026 11:21:11.0671
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
+ (10.181.42.216)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SJ5PEPF000001F6:EE_|LV8PR12MB9690:EE_
+X-MS-Office365-Filtering-Correlation-Id: ae5e502d-c6d4-46c5-a388-08def3b62456
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|1800799024|82310400026|36860700016|23010399003|11063799006|56012099006|10067099003|6133799003|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	TcWiGf0n30uzaJ9V7g/JXAcG9vWCfKepUee87pPuNi/4OaH5mz+JahmaMqjBfuzcUsDPxwLJP6fIMbfIQLyKIhAcNOet7EUDL1tLpNTK+1JoasXRCiCsO4R4w6mJ8X/uqqpIUmfXZAucUm4WlIrYVBadVFFFJ2fHZDb9p7p1NpkVdmXxVaDDTzm/RyEy7p8k1SW5H79LT48wrbxh0UxNnW+1XYWFd9y6U9wVyNE1Auz/J7+RiBzDxKmpZsjzX0Ge+THxXGIxnTwrQU83kyVlGvu6uUyG0lJAi+lbQ80XIfrTqdbe4ObWwVER/sj/+3XHccx6Wxqofn88KqA91o/TJIkc0FVnRff+2cgLO5V0ntN7oErXZ3z3y53IaG1NUFfX8bevpzTI/6ZwSrfGYL1sJJH3lTyrp95i2i5PCf/MXLLq9Y3htgIZSDnGSVVz7EQk92dHjm63u5gknlyj2vZZSgPpB0yW2CHlbiMj4Q8g66N06vsNGdRP9L3PptJiF0Wi1qIeFvW4nTrRz+b/x+JiqH1JC2vymkVVw6P/y6QwaJex2Ub4qqmelf14SZGvgcyLZOM4jIEDXjT86D8D/b63BTPCH6OiyEBva4aPaN3cV9qNMIKRTqoU7jyxE7KFO8BJs+gGjEF6/ObQbRIwblc95Jj4d5Ufv2p+2IuB/NkjVknryPT8j4niCPUWEcGxYPvS9AexAikgT+mYOAZ4A7Tw3A==
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(376014)(1800799024)(82310400026)(36860700016)(23010399003)(11063799006)(56012099006)(10067099003)(6133799003)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	ehKax6pDZHm18JGzTrqx+7TJqA78W4LOd664HtWT6SKDan/Y99h6hpvieHM+/IWA0Mp6ZTrQBOKebwbfkHer9TbS7GtqBMnfd2vBsp6NjEYWv+YyNfQEBW9xmOfdUKS8F7nH1lUB5wrfqVWwChJ4DvH5gI9bVfMQpvoP/ABOSHvI9Y2blKpLkBaZXqaiz0BXlpUm5hvZTf87qUJ48NGt0XEKAKq1FsSQAZWTol9tNHkajMtgObUb8bStOy7JYlfbbEOYXACl5uLRhySi/tmAUcLPl9yJbamuOGj0vLszZapFQAg15wPo7NYoDCAqEmM74pXAcshAcpQfpzEFQZ9weGk+fmeEPCcCVIch1nzpYF8n70ljxi6gGyrhIoBn3bTHKGjzKcR1m2Xqnw1PsIqsQO4lyZ1wrp94wIXILXs0HYFoi3ijl0YMZUYBkxdrKgY8
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Aug 2026 12:27:55.1050
  (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: e67df547-9d0d-4f4d-9161-51c6ed1f7d11
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: JHSWRHLNIsYgGjj9fE5WNQeDem5XeMCYo2dLsHR3AhaWEtqY7U9vM+QApniFOayjZGN17KLCfClreEzX7VUvEg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: TY7PR01MB15037
+X-MS-Exchange-CrossTenant-Network-Message-Id: ae5e502d-c6d4-46c5-a388-08def3b62456
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	SJ5PEPF000001F6.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV8PR12MB9690
 
-After commit 7d703df7f4f5 ("ACPI: bus: Split _OSC evaluation out of
-acpi_run_osc()"), the _OSC evaluation path now returns AE_ERROR to
-negotiate_os_control() instead of propagating AE_NOT_FOUND from
-acpi_evaluate_object().
+Commit 16f70feaabe9 ("ACPI: button: trigger wakeup key events")
+makes the ACPI power button driver report KEY_WAKEUP from its resume
+callback. However, that callback is run whenever the ACPI button device
+is resumed, regardless of the actual system wakeup source.
 
-This has not caused any functional issues so far, but it produces
-additional misleading messages for non-PCIe host bridges without _OSC on
-some Intel servers:
+As a result, userspace may receive a KEY_WAKEUP event after resumes
+caused by unrelated wakeup sources.
 
-    kernel: ACPI: Enabled 2 GPEs in block 00 to 7F
-    kernel: ACPI: PCI Root Bridge [UNC0] (domain 0000 [bus fe])
-    kernel: acpi PNP0A03:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM=
- Segments MSI EDR HPX-Type3]
-  + kernel: acpi PNP0A03:00: _OSC: OS requested [PCIeHotplug SHPCHotplug PM=
-E AER PCIeCapability LTR DPC]
-  + kernel: acpi PNP0A03:00: _OSC: platform willing to grant [PCIeHotplug S=
-HPCHotplug PME AER PCIeCapability LTR DPC]
-  + kernel: acpi PNP0A03:00: _OSC: platform retains control of PCIe feature=
-s (AE_ERROR)
-    kernel: PCI host bridge to bus 0000:fe
+Avoid reporting the input event from acpi_button_resume(). Instead,
+report it only when the ACPI fixed power button status indicates that
+the power button was the wakeup source.
 
-Previously, negotiate_os_control() silently ignored AE_NOT_FOUND for
-non-PCIe host bridges without _OSC, but after the above change, it no
-longer does so.
-
-As a result, negotiate_os_control() logs messages as if the OS had
-negotiated with the platform via _OSC, even though the non-PCIe host
-bridge has no _OSC method and no such negotiation actually occurs.
-
-Skip _OSC negotiation for non-PCIe host bridges that do not define an
-_OSC method before attempting to evaluate it.
-
-Fixes: 7d703df7f4f5 ("ACPI: bus: Split _OSC evaluation out of acpi_run_osc(=
-)")
-Link: https://lore.kernel.org/linux-acpi/d0be949d-0e21-472e-a44b-cedb1dd869=
-5d@nec.com/
-Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Kazuma Kondo <kazuma-kondo@nec.com>
+Fixes: 16f70feaabe9 ("ACPI: button: trigger wakeup key events")
+Signed-off-by: Baorui Liu <baorliu@amd.com>
 ---
-Changes in v2:
-- Set *no_aspm to 1 when skipping _OSC negotiation.
-- Updated the debug message and the comment.
-- Link to v1: https://lore.kernel.org/linux-acpi/20260731090820.493064-1-ka=
-zuma-kondo@nec.com/
+ drivers/acpi/button.c     | 23 +++++++++++++++--------
+ drivers/acpi/sleep.c      | 21 +++++++++++++++++++++
+ drivers/acpi/sleep.h      |  1 +
+ drivers/acpi/x86/s2idle.c |  4 +++-
+ include/acpi/button.h     |  5 +++++
+ 5 files changed, 45 insertions(+), 9 deletions(-)
 
- drivers/acpi/pci_root.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 4c06c3ffd0cb..cab29a75a276 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -574,6 +574,17 @@ static void negotiate_os_control(struct acpi_pci_root =
-*root, int *no_aspm)
- 		return;
- 	}
-=20
-+	if (!is_pcie(root) && !is_cxl(root) &&
-+	    !acpi_has_method(handle, "_OSC")) {
-+		dev_dbg(&device->dev, "_OSC: Skipping a non-PCIe host bridge without _OS=
-C\n");
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 3836ee75dd66..700510f6e5d0 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -480,6 +480,21 @@ static void acpi_button_notify(acpi_handle handle, u32 event, void *data)
+ 					event, ++button->pushed);
+ }
+ 
++void acpi_power_button_wakeup(struct acpi_device *device)
++{
++	struct acpi_button *button = acpi_driver_data(device);
++	struct input_dev *input;
 +
-+		/*
-+		 * No ASPM for non-PCIe host bridges
-+		 */
-+		*no_aspm =3D 1;
-+		return;
++	if (button->type == ACPI_BUTTON_TYPE_POWER) {
++		input = button->input;
++		input_report_key(input, KEY_WAKEUP, 1);
++		input_sync(input);
++		input_report_key(input, KEY_WAKEUP, 0);
++		input_sync(input);
 +	}
++}
++EXPORT_SYMBOL(acpi_power_button_wakeup);
 +
- 	support =3D calculate_support();
-=20
- 	decode_osc_support(root, "OS supports", support);
-@@ -615,10 +626,6 @@ static void negotiate_os_control(struct acpi_pci_root =
-*root, int *no_aspm)
- 		 */
- 		*no_aspm =3D 1;
-=20
--		/* _OSC is optional for PCI host bridges */
--		if (status =3D=3D AE_NOT_FOUND && !is_pcie(root))
--			return;
--
- 		if (control) {
- 			decode_osc_control(root, "OS requested", requested);
- 			decode_osc_control(root, "platform willing to grant", control);
---=20
-2.49.0
+ static void acpi_button_notify_run(void *data)
+ {
+ 	acpi_button_notify(NULL, ACPI_BUTTON_NOTIFY_STATUS, data);
+@@ -503,7 +518,6 @@ static int acpi_button_suspend(struct device *dev)
+ static int acpi_button_resume(struct device *dev)
+ {
+ 	struct acpi_button *button = dev_get_drvdata(dev);
+-	struct input_dev *input;
+ 
+ 	button->suspended = false;
+ 	if (button->type == ACPI_BUTTON_TYPE_LID) {
+@@ -512,13 +526,6 @@ static int acpi_button_resume(struct device *dev)
+ 		acpi_lid_initialize_state(button);
+ 	}
+ 
+-	if (button->type == ACPI_BUTTON_TYPE_POWER) {
+-		input = button->input;
+-		input_report_key(input, KEY_WAKEUP, 1);
+-		input_sync(input);
+-		input_report_key(input, KEY_WAKEUP, 0);
+-		input_sync(input);
+-	}
+ 	return 0;
+ }
+ #endif
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 132a9df98471..26bbecd0c166 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -22,6 +22,7 @@
+ #include <linux/syscore_ops.h>
+ #include <asm/io.h>
+ #include <trace/events/power.h>
++#include <acpi/button.h>
+ 
+ #include "internal.h"
+ #include "sleep.h"
+@@ -518,6 +519,7 @@ static void acpi_pm_finish(void)
+ 						    NULL, -1);
+ 	if (pwr_btn_adev) {
+ 		pm_wakeup_event(&pwr_btn_adev->dev, 0);
++		acpi_power_button_wakeup(pwr_btn_adev);
+ 		acpi_dev_put(pwr_btn_adev);
+ 	}
+ }
+@@ -818,6 +820,24 @@ bool acpi_s2idle_wake(void)
+ 	return false;
+ }
+ 
++void acpi_s2idle_restore_check_powerkey(void)
++{
++	struct acpi_device *pwr_btn_adev;
++	acpi_event_status pwr_btn_status = ACPI_EVENT_FLAG_DISABLED;
++
++	acpi_get_event_status(ACPI_EVENT_POWER_BUTTON, &pwr_btn_status);
++
++	if (pwr_btn_status & ACPI_EVENT_FLAG_STATUS_SET) {
++		pwr_btn_adev = acpi_dev_get_first_match_dev(ACPI_BUTTON_HID_POWERF,
++							    NULL, -1);
++		if (pwr_btn_adev) {
++			pm_wakeup_event(&pwr_btn_adev->dev, 0);
++			acpi_power_button_wakeup(pwr_btn_adev);
++			acpi_dev_put(pwr_btn_adev);
++		}
++	}
++}
++
+ void acpi_s2idle_restore(void)
+ {
+ 	/*
+@@ -849,6 +869,7 @@ static const struct platform_s2idle_ops acpi_s2idle_ops = {
+ 	.begin = acpi_s2idle_begin,
+ 	.prepare = acpi_s2idle_prepare,
+ 	.wake = acpi_s2idle_wake,
++	.restore_early = acpi_s2idle_restore_check_powerkey,
+ 	.restore = acpi_s2idle_restore,
+ 	.end = acpi_s2idle_end,
+ };
+diff --git a/drivers/acpi/sleep.h b/drivers/acpi/sleep.h
+index 9c3cb109c5d2..50382c90446c 100644
+--- a/drivers/acpi/sleep.h
++++ b/drivers/acpi/sleep.h
+@@ -18,6 +18,7 @@ static inline acpi_status acpi_set_waking_vector(u32 wakeup_address)
+ extern int acpi_s2idle_begin(void);
+ extern int acpi_s2idle_prepare(void);
+ extern bool acpi_s2idle_wake(void);
++extern void acpi_s2idle_restore_check_powerkey(void);
+ extern void acpi_s2idle_restore(void);
+ extern void acpi_s2idle_end(void);
+ 
+diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
+index b6b1dd76a06b..ce6663c1ef70 100644
+--- a/drivers/acpi/x86/s2idle.c
++++ b/drivers/acpi/x86/s2idle.c
+@@ -598,8 +598,10 @@ static void acpi_s2idle_restore_early_lps0(void)
+ {
+ 	struct acpi_s2idle_dev_ops *handler;
+ 
+-	if (!lps0_device_handle || sleep_no_lps0)
++	if (!lps0_device_handle || sleep_no_lps0) {
++		acpi_s2idle_restore_check_powerkey();
+ 		return;
++	}
+ 
+ 	list_for_each_entry(handler, &lps0_s2idle_devops_head, list_node)
+ 		if (handler->restore)
+diff --git a/include/acpi/button.h b/include/acpi/button.h
+index af2fce5d2ee3..3cbf3272371e 100644
+--- a/include/acpi/button.h
++++ b/include/acpi/button.h
+@@ -8,11 +8,16 @@
+ 
+ #if IS_ENABLED(CONFIG_ACPI_BUTTON)
+ extern int acpi_lid_open(void);
++extern void acpi_power_button_wakeup(struct acpi_device *device);
+ #else
+ static inline int acpi_lid_open(void)
+ {
+ 	return 1;
+ }
++
++static inline void acpi_power_button_wakeup(struct acpi_device *device)
++{
++}
+ #endif /* IS_ENABLED(CONFIG_ACPI_BUTTON) */
+ 
+ #endif /* ACPI_BUTTON_H */
+
+base-commit: 4d823c9d06aaa91476b58e56e4d44c4112da2811
+-- 
+2.34.1
+
