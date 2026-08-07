@@ -1,153 +1,97 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D938E314A73
-	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 15:12:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A26203A6F0A
+	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 15:31:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786115578; cv=none; b=NyF8TFsgab1JjXUiMNy7n97BycFCstBf0LvLry7k8lcnOGYweDaJb3NV9GCzbQWYoyYCB+OWzZ9Upz/hHD0bybvIu9NUDb3mWM6zZOlUsHUOEWWbcOtbpGeIegfbPrM3Z3OaomVs67TsQZr9Bl3OiSN2VlPKFurLPoaxheZIgHU=
+	t=1786116661; cv=none; b=oGW81RWW9ShWkWGRGojuSZPc2mwknTzzqLrh7CB/M5TuGm17pR3+sJSemFJfgRx0r7wcCGwVK1HtIxtKIWb4F2cWZUKSfI9c6WtoVcgMHbUxJA1vEx3TwPfXv2et+0f8q1Dtn3LwOWjGdjqv4NUKcCLLUzR5xWsIbp9oSncUlfU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786115578; c=relaxed/simple;
-	bh=zDXKTEWX1pI7NBm5GyjF1XbjQMTKWjE+TVm+1eLxBSs=;
+	s=arc-20240116; t=1786116661; c=relaxed/simple;
+	bh=J/X9S5mHRkBZqjiBC2mztY0guIjZaDc5I5e/LwjNRtE=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=C/0UEgNBlTUwldSPrirgzVASXeSg6VKuUSb6l8w1YFVM9WdjNb6h2XtHer0dPfSJxMiq7xH7BjnQLOfgPDI2CY1ABQUXZGBP03B+hi47JxP0hlmImpwQ3nFW7InTyK/t1q1qcrcLxrD1ujfoZvztavHavbDDgklXC+q1PYntM9c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QZsugA/T; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=BhCLlGgATVZObWxgOkOFo25uX9LuXdVbjWQWsLd3VuQTjJ1A1GsFsrvb583tw8rQO2XnEgYL4FzrsM5YJZOTK3JouaqM0vCdDWb/g29EPICqI2U814LrKQWjv6oxGp42vgFxV7t7se1oGBLdGMosviV9EMLlbKpMY3CdfSVwBk0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nNGuZzVP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QZsugA/T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B22B61F00A3F
-	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 15:12:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nNGuZzVP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8151A1F00A3D
+	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 15:31:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786115576;
-	bh=w3idmkLYxvaX5dQDFxcBPWDJ2RpS4frlnOp764QzOiw=;
+	s=k20260515; t=1786116660;
+	bh=RLXgL/vXT2/LzkqZHzqAvFRxe67NW5e1tLWzzIAoLYU=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=QZsugA/TsQnVghgjFe1tpWFS8y8US3uVF010Z4zEEHOALY1f2dy5mGc9mhrrEIuqW
-	 HKDV2qCKUUh0y2gTyoS0mzm3yfgh3EemVbFLML2HSlmWsOHo92/QqNfCGKq3Io0KZv
-	 0G9vegoRgeYrXHh++c1OuDLXh3bpcVH9DsB3/5y+KH/1bqdJ6JxeRCG+C+M/mOj8rk
-	 jiGjDajq9Hit5WX8nViY+d3LItJZyHl9rI4OXFTmSbxzDSw2CEMEvyHgQgirHEz6md
-	 n45JqhSGQMrAs6QYwanaEA1IFs9T+NH4jy1DjsJ1BeFlsHfs1xNrihplTtF/dP5iTf
-	 xkXLpl5TFCxRA==
-Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-5b015532f7bso3271286e87.0
-        for <linux-acpi@vger.kernel.org>; Fri, 07 Aug 2026 08:12:56 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RrMBgu5Yc2krtfUdsPEAiFhWv6h8J/Dgd/CavuYlMVcuXLEpWs/wrrzzpX2cT0/dIE+vBCaztXJsWZG@vger.kernel.org
-X-Gm-Message-State: AOJu0YxBOHvmMQuT5LAinN/WlKZFjaxxe86m4LkfwI1HEuD56JqiERhV
-	5WnrZVnerVoRXnzBqclXfvcRKVFDjjB+LpMzmLBfghYtgD1sSCaiCM1f+cZBcDU2jUI78Nc5cTf
-	eb9SGvN/2ErTsjMlOqjO8VPMyWcJKafE=
-X-Received: by 2002:ac2:4e10:0:b0:5b0:1669:1a00 with SMTP id
- 2adb3069b0e04-5b2f4ccb516mr3477925e87.32.1786115575169; Fri, 07 Aug 2026
- 08:12:55 -0700 (PDT)
+	b=nNGuZzVPZcqi1JCJFAn+03TF08Ihckf1P96eiEOOoh+s1YoRdDNXQvS9Goh9FpQCc
+	 lG40gzeXJ8xsmXP+XtTEfhR5s9SZY+ei1vEAbPXaqztjURMd0sSrcqnxG6qAycYIIy
+	 UkIJeTWPhhFi+DoM/E5ZCToKX2iu5fzgqqkPxy7bMHdTQO9ZaaekYJBCVJWK1uLBcE
+	 pDJxypATmXM49O+0iW9WZJXJkvkvO8p/QGzikYCwt24tyHfU8xDU1Kf82oHdhniS48
+	 LQe25CV4GeLqlC3YpFg+q7Udij9e7uANycRtpRISNISJ+cCl3b4+B7yjf2ugdU5rFe
+	 kgJzjosmviEdA==
+Received: by mail-lj1-f175.google.com with SMTP id 38308e7fff4ca-39f75e0a2f1so24808341fa.2
+        for <linux-acpi@vger.kernel.org>; Fri, 07 Aug 2026 08:31:00 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RrThLiYo3X17bgScdT9XJS21dUW1Il7bi9zE3ca+yKxh+k23MO4ngC3mp2yjd17YMVObV5LS2yzjcRO@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy8/HtaptM19trck+EMWDe/R6n3CClQGhp4aBbisA11jX+7w8Ga
+	QwIacyxm1KWz8Fpvi5NxG6Vm25FReTwVFf7IE+u1helc67din1FOoDTqxSV2q+1r6N7e5YnDmYK
+	XWmPUCHImxVF6RyYSECX0LH9RQB4uPf4=
+X-Received: by 2002:a05:651c:b2a:b0:39a:cfe9:2482 with SMTP id
+ 38308e7fff4ca-39fbb2d1d60mr26755321fa.31.1786116658978; Fri, 07 Aug 2026
+ 08:30:58 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260806112052.857684-1-kazuma-kondo@nec.com>
-In-Reply-To: <20260806112052.857684-1-kazuma-kondo@nec.com>
+References: <20260807015734.913361-1-dbgh9129@gmail.com>
+In-Reply-To: <20260807015734.913361-1-dbgh9129@gmail.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 7 Aug 2026 17:12:40 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0g0MeLGgzHGihBXH3YBnDt4KGdq2uR8-F3H9b4Fszpx2Q@mail.gmail.com>
-X-Gm-Features: AUfX_mxnYNK1cnghTgS2c7HVx38GGer4JLILGBUkje9kVgOVewCfNNqyBpHZqsc
-Message-ID: <CAJZ5v0g0MeLGgzHGihBXH3YBnDt4KGdq2uR8-F3H9b4Fszpx2Q@mail.gmail.com>
-Subject: Re: [PATCH v2] ACPI: PCI: Avoid misleading _OSC messages for non-PCIe
- host bridges without _OSC
-To: =?UTF-8?B?S09ORE8gS0FaVU1BKOi/keiXpCDlkoznnJ8p?= <kazuma-kondo@nec.com>
-Cc: "rafael@kernel.org" <rafael@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, 
-	"bhelgaas@google.com" <bhelgaas@google.com>, 
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, 
-	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, 
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Date: Fri, 7 Aug 2026 17:30:46 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jUAA2xZbe=_ZeGsskeXQ4DS=s0AamDc4776BvH9QFuYw@mail.gmail.com>
+X-Gm-Features: AUfX_my1DT7IwIH5M6FQdEXyGK_eortWGfVB_TKgUbUuaWBEusfgvaTFfh9Q-Qo
+Message-ID: <CAJZ5v0jUAA2xZbe=_ZeGsskeXQ4DS=s0AamDc4776BvH9QFuYw@mail.gmail.com>
+Subject: Re: [PATCH v1] ACPI: video: Release PCI device reference after lookup
+To: Yuho Choi <dbgh9129@gmail.com>
+Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Aug 6, 2026 at 1:21=E2=80=AFPM KONDO KAZUMA(=E8=BF=91=E8=97=A4=E3=
-=80=80=E5=92=8C=E7=9C=9F) <kazuma-kondo@nec.com> wrote:
+On Fri, Aug 7, 2026 at 3:57=E2=80=AFAM Yuho Choi <dbgh9129@gmail.com> wrote=
+:
 >
-> After commit 7d703df7f4f5 ("ACPI: bus: Split _OSC evaluation out of
-> acpi_run_osc()"), the _OSC evaluation path now returns AE_ERROR to
-> negotiate_os_control() instead of propagating AE_NOT_FOUND from
-> acpi_evaluate_object().
+> video_detect_portege_r100() uses pci_get_device() only as a boolean
+> check for the Trident CyberBlade XP4m32 device. pci_get_device() takes a
+> reference on a matching PCI device, but the callback returns without
+> releasing it.
 >
-> This has not caused any functional issues so far, but it produces
-> additional misleading messages for non-PCIe host bridges without _OSC on
-> some Intel servers:
+> Drop the reference after selecting the vendor backlight quirk so the PCI
+> device can be released normally.
 >
->     kernel: ACPI: Enabled 2 GPEs in block 00 to 7F
->     kernel: ACPI: PCI Root Bridge [UNC0] (domain 0000 [bus fe])
->     kernel: acpi PNP0A03:00: _OSC: OS supports [ExtendedConfig ASPM Clock=
-PM Segments MSI EDR HPX-Type3]
->   + kernel: acpi PNP0A03:00: _OSC: OS requested [PCIeHotplug SHPCHotplug =
-PME AER PCIeCapability LTR DPC]
->   + kernel: acpi PNP0A03:00: _OSC: platform willing to grant [PCIeHotplug=
- SHPCHotplug PME AER PCIeCapability LTR DPC]
->   + kernel: acpi PNP0A03:00: _OSC: platform retains control of PCIe featu=
-res (AE_ERROR)
->     kernel: PCI host bridge to bus 0000:fe
->
-> Previously, negotiate_os_control() silently ignored AE_NOT_FOUND for
-> non-PCIe host bridges without _OSC, but after the above change, it no
-> longer does so.
->
-> As a result, negotiate_os_control() logs messages as if the OS had
-> negotiated with the platform via _OSC, even though the non-PCIe host
-> bridge has no _OSC method and no such negotiation actually occurs.
->
-> Skip _OSC negotiation for non-PCIe host bridges that do not define an
-> _OSC method before attempting to evaluate it.
->
-> Fixes: 7d703df7f4f5 ("ACPI: bus: Split _OSC evaluation out of acpi_run_os=
-c()")
-> Link: https://lore.kernel.org/linux-acpi/d0be949d-0e21-472e-a44b-cedb1dd8=
-695d@nec.com/
-> Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Signed-off-by: Kazuma Kondo <kazuma-kondo@nec.com>
+> Fixes: 35a341c9b25d ("ACPI: video: Add acpi_backlight=3Dvendor quirk for =
+Toshiba Port=C3=A9g=C3=A9 R100")
+> Assisted-by: OpenAI-Codex:GPT-5
+> Signed-off-by: Yuho Choi <dbgh9129@gmail.com>
 > ---
-> Changes in v2:
-> - Set *no_aspm to 1 when skipping _OSC negotiation.
-> - Updated the debug message and the comment.
-> - Link to v1: https://lore.kernel.org/linux-acpi/20260731090820.493064-1-=
-kazuma-kondo@nec.com/
+>  drivers/acpi/video_detect.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
 >
->  drivers/acpi/pci_root.c | 15 +++++++++++----
->  1 file changed, 11 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 4c06c3ffd0cb..cab29a75a276 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -574,6 +574,17 @@ static void negotiate_os_control(struct acpi_pci_roo=
-t *root, int *no_aspm)
->                 return;
->         }
->
-> +       if (!is_pcie(root) && !is_cxl(root) &&
-> +           !acpi_has_method(handle, "_OSC")) {
-> +               dev_dbg(&device->dev, "_OSC: Skipping a non-PCIe host bri=
-dge without _OSC\n");
-> +
-> +               /*
-> +                * No ASPM for non-PCIe host bridges
-> +                */
-> +               *no_aspm =3D 1;
-> +               return;
+> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+> index 458efa4fe9d4..4c1c3b0b5499 100644
+> --- a/drivers/acpi/video_detect.c
+> +++ b/drivers/acpi/video_detect.c
+> @@ -137,8 +137,10 @@ static int video_detect_portege_r100(const struct dm=
+i_system_id *d)
+>         struct pci_dev *dev;
+>         /* Search for Trident CyberBlade XP4m32 to confirm Port=C3=A9g=C3=
+=A9 R100 */
+>         dev =3D pci_get_device(PCI_VENDOR_ID_TRIDENT, 0x2100, NULL);
+> -       if (dev)
+> +       if (dev) {
+>                 acpi_backlight_dmi =3D acpi_backlight_vendor;
+> +               pci_dev_put(dev);
 > +       }
-> +
->         support =3D calculate_support();
+>         return 0;
+>  }
 >
->         decode_osc_support(root, "OS supports", support);
-> @@ -615,10 +626,6 @@ static void negotiate_os_control(struct acpi_pci_roo=
-t *root, int *no_aspm)
->                  */
->                 *no_aspm =3D 1;
->
-> -               /* _OSC is optional for PCI host bridges */
-> -               if (status =3D=3D AE_NOT_FOUND && !is_pcie(root))
-> -                       return;
-> -
->                 if (control) {
->                         decode_osc_control(root, "OS requested", requeste=
-d);
->                         decode_osc_control(root, "platform willing to gra=
-nt", control);
 > --
 
-Applied as 7.3 material with some minor modifications, thanks!
+Applied as 7.3 material, thanks!
