@@ -1,97 +1,146 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A26203A6F0A
-	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 15:31:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DED733C1AD
+	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 15:32:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786116661; cv=none; b=oGW81RWW9ShWkWGRGojuSZPc2mwknTzzqLrh7CB/M5TuGm17pR3+sJSemFJfgRx0r7wcCGwVK1HtIxtKIWb4F2cWZUKSfI9c6WtoVcgMHbUxJA1vEx3TwPfXv2et+0f8q1Dtn3LwOWjGdjqv4NUKcCLLUzR5xWsIbp9oSncUlfU=
+	t=1786116726; cv=none; b=fNKTfk/yeJUsyCthp532Ba5zKXlz6KZ8Z34pJ4PfoPbA0LxI2MvBXzR1+n1chUwMg5zFI5OLoUOS5OP0a36U1vUh0+Zxt1zvPG+LeDqdTA/ldGoPXkj6DjDjze6k1dHamUdZoHNZ+YVGaSPflqYfUpv6rp/P5pj8Pzt4NQrTv7Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786116661; c=relaxed/simple;
-	bh=J/X9S5mHRkBZqjiBC2mztY0guIjZaDc5I5e/LwjNRtE=;
+	s=arc-20240116; t=1786116726; c=relaxed/simple;
+	bh=0Ua7+GDwlr2bqJfYRwuqX5uYgu3xS0ybJ+Z2qS7AX0s=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=BhCLlGgATVZObWxgOkOFo25uX9LuXdVbjWQWsLd3VuQTjJ1A1GsFsrvb583tw8rQO2XnEgYL4FzrsM5YJZOTK3JouaqM0vCdDWb/g29EPICqI2U814LrKQWjv6oxGp42vgFxV7t7se1oGBLdGMosviV9EMLlbKpMY3CdfSVwBk0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nNGuZzVP; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=qo6PpMP3HVKvhHraBN4boxIHGBrDHp2JIbkOrefXBuR4URNJ76bbvwEzN9krAUNnQC0swAfZcHBRJAVfyLl+tYFoGt5Djng5a99F/CVOl1Ay6m+lT4fZL35iu+r0vn1hwOgjIAPVXGPaQvctDIRtYj0pPbLRbhsenXC8xClqm14=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eMoIiip/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nNGuZzVP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8151A1F00A3D
-	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 15:31:00 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eMoIiip/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32A541F00AC4
+	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 15:32:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786116660;
-	bh=RLXgL/vXT2/LzkqZHzqAvFRxe67NW5e1tLWzzIAoLYU=;
+	s=k20260515; t=1786116725;
+	bh=+G09DO7XOtGeiTQtlsOtMpyrrBBNAyV7TFtV+NSVamQ=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=nNGuZzVPZcqi1JCJFAn+03TF08Ihckf1P96eiEOOoh+s1YoRdDNXQvS9Goh9FpQCc
-	 lG40gzeXJ8xsmXP+XtTEfhR5s9SZY+ei1vEAbPXaqztjURMd0sSrcqnxG6qAycYIIy
-	 UkIJeTWPhhFi+DoM/E5ZCToKX2iu5fzgqqkPxy7bMHdTQO9ZaaekYJBCVJWK1uLBcE
-	 pDJxypATmXM49O+0iW9WZJXJkvkvO8p/QGzikYCwt24tyHfU8xDU1Kf82oHdhniS48
-	 LQe25CV4GeLqlC3YpFg+q7Udij9e7uANycRtpRISNISJ+cCl3b4+B7yjf2ugdU5rFe
-	 kgJzjosmviEdA==
-Received: by mail-lj1-f175.google.com with SMTP id 38308e7fff4ca-39f75e0a2f1so24808341fa.2
-        for <linux-acpi@vger.kernel.org>; Fri, 07 Aug 2026 08:31:00 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RrThLiYo3X17bgScdT9XJS21dUW1Il7bi9zE3ca+yKxh+k23MO4ngC3mp2yjd17YMVObV5LS2yzjcRO@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy8/HtaptM19trck+EMWDe/R6n3CClQGhp4aBbisA11jX+7w8Ga
-	QwIacyxm1KWz8Fpvi5NxG6Vm25FReTwVFf7IE+u1helc67din1FOoDTqxSV2q+1r6N7e5YnDmYK
-	XWmPUCHImxVF6RyYSECX0LH9RQB4uPf4=
-X-Received: by 2002:a05:651c:b2a:b0:39a:cfe9:2482 with SMTP id
- 38308e7fff4ca-39fbb2d1d60mr26755321fa.31.1786116658978; Fri, 07 Aug 2026
- 08:30:58 -0700 (PDT)
+	b=eMoIiip/iGQ100gQPf4Y1u2c405B7OJcvkMaq5FAsw4G807pXGUphgyDtQgH1xemT
+	 DAusFYInjO6ZuiIldb/9hkbL5sBAveApIW+D3A4DYbaSyNvITx8cI1P7kG4Y5tzdWr
+	 NT4958Hny8R/9X+qucHlpVpX7/deLy/4wmF/t3pS2vqijgWwqmcQaKd0RJ6V7jfzGM
+	 tDEPQ6RSajET/0GB9v+1eED7TXqjyutLEwi+Xnp67BU5gXqwU723gdVuFCH+ZO/nvA
+	 U/PnMzB55d6IzSn37JYJRh2YbNhJ55Y0SYEAKX/X5cL+SdLNNcM3+KSN/abiqqitQv
+	 +JB4SGPtPUYBA==
+Received: by mail-lj1-f175.google.com with SMTP id 38308e7fff4ca-39f91ba1ef7so23735551fa.3
+        for <linux-acpi@vger.kernel.org>; Fri, 07 Aug 2026 08:32:05 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RrPSAyGALKQJeqE/dnhwATQwoLh2m5vLPf5U57zNYwGXzU10/NKppvbwf270t473V792cfCuSzW4QLc@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyb0hxQnJvAJy5rusmMN642n2KN3TwidrCBaks2quZezV7fMz7Z
+	6GTEFjTFU3xze/n5cLGFGxk8VBkt+9m85vmwC46Ciw9rdiKUqkn+HCT5GJDpUOaSitB6tOdryOg
+	L8ICcyG39n9PS1Htf022bJHLjHtsiV/w=
+X-Received: by 2002:ac2:4429:0:b0:5ae:c7a2:69a8 with SMTP id
+ 2adb3069b0e04-5b30b78824cmr133212e87.44.1786116723651; Fri, 07 Aug 2026
+ 08:32:03 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260807015734.913361-1-dbgh9129@gmail.com>
-In-Reply-To: <20260807015734.913361-1-dbgh9129@gmail.com>
+References: <20260807035453.948129-1-dbgh9129@gmail.com>
+In-Reply-To: <20260807035453.948129-1-dbgh9129@gmail.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 7 Aug 2026 17:30:46 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jUAA2xZbe=_ZeGsskeXQ4DS=s0AamDc4776BvH9QFuYw@mail.gmail.com>
-X-Gm-Features: AUfX_my1DT7IwIH5M6FQdEXyGK_eortWGfVB_TKgUbUuaWBEusfgvaTFfh9Q-Qo
-Message-ID: <CAJZ5v0jUAA2xZbe=_ZeGsskeXQ4DS=s0AamDc4776BvH9QFuYw@mail.gmail.com>
-Subject: Re: [PATCH v1] ACPI: video: Release PCI device reference after lookup
+Date: Fri, 7 Aug 2026 17:31:51 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gbp-TwukgbvA=XBVTwYnePqo+SBSpUEUrrP6h4rRrc9A@mail.gmail.com>
+X-Gm-Features: AUfX_mwdftLqOaxurPNw5U7u9YZbVXWV_RxiMKVO_-tujkHN7hf6so-b24sXfMI
+Message-ID: <CAJZ5v0gbp-TwukgbvA=XBVTwYnePqo+SBSpUEUrrP6h4rRrc9A@mail.gmail.com>
+Subject: Re: [PATCH v1] PNP: Release protocol device on registration failure
 To: Yuho Choi <dbgh9129@gmail.com>
 Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, 
 	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Aug 7, 2026 at 3:57=E2=80=AFAM Yuho Choi <dbgh9129@gmail.com> wrote=
+On Fri, Aug 7, 2026 at 5:55=E2=80=AFAM Yuho Choi <dbgh9129@gmail.com> wrote=
 :
 >
-> video_detect_portege_r100() uses pci_get_device() only as a boolean
-> check for the Trident CyberBlade XP4m32 device. pci_get_device() takes a
-> reference on a matching PCI device, but the callback returns without
-> releasing it.
+> pnp_register_protocol() adds a protocol to the PNP list before calling
+> device_register(). If device registration fails, pnp_remove_protocol() on=
+ly
+> removes the list entry and leaves the device-core reference acquired by
+> device_initialize() held.
 >
-> Drop the reference after selecting the vendor backlight quirk so the PCI
-> device can be released normally.
+> Give static protocol devices a release callback and drop the reference on
+> registration failure. Also stop PNP ACPI device enumeration when protocol
+> registration fails, instead of using an unregistered protocol device as a
+> parent.
 >
-> Fixes: 35a341c9b25d ("ACPI: video: Add acpi_backlight=3Dvendor quirk for =
-Toshiba Port=C3=A9g=C3=A9 R100")
-> Assisted-by: OpenAI-Codex:GPT-5
+> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
 > Signed-off-by: Yuho Choi <dbgh9129@gmail.com>
 > ---
->  drivers/acpi/video_detect.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+>  drivers/pnp/core.c         | 9 ++++++++-
+>  drivers/pnp/pnpacpi/core.c | 7 ++++++-
+>  2 files changed, 14 insertions(+), 2 deletions(-)
 >
-> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-> index 458efa4fe9d4..4c1c3b0b5499 100644
-> --- a/drivers/acpi/video_detect.c
-> +++ b/drivers/acpi/video_detect.c
-> @@ -137,8 +137,10 @@ static int video_detect_portege_r100(const struct dm=
-i_system_id *d)
->         struct pci_dev *dev;
->         /* Search for Trident CyberBlade XP4m32 to confirm Port=C3=A9g=C3=
-=A9 R100 */
->         dev =3D pci_get_device(PCI_VENDOR_ID_TRIDENT, 0x2100, NULL);
-> -       if (dev)
-> +       if (dev) {
->                 acpi_backlight_dmi =3D acpi_backlight_vendor;
-> +               pci_dev_put(dev);
-> +       }
->         return 0;
->  }
+> diff --git a/drivers/pnp/core.c b/drivers/pnp/core.c
+> index 81603327079c..fc3bff43fdd8 100644
+> --- a/drivers/pnp/core.c
+> +++ b/drivers/pnp/core.c
+> @@ -23,6 +23,10 @@ static LIST_HEAD(pnp_protocols);
+>  LIST_HEAD(pnp_global);
+>  DEFINE_MUTEX(pnp_lock);
 >
-> --
+> +static void pnp_protocol_release(struct device *dev)
+> +{
+> +}
+> +
+>  /*
+>   * ACPI or PNPBIOS should tell us about all platform devices, so we can
+>   * skip some blind probes.  ISAPNP typically enumerates only plug-in ISA
+> @@ -66,14 +70,17 @@ int pnp_register_protocol(struct pnp_protocol *protoc=
+ol)
+>
+>         protocol->number =3D nodenum;
+>         dev_set_name(&protocol->dev, "pnp%d", nodenum);
+> +       protocol->dev.release =3D pnp_protocol_release;
 
-Applied as 7.3 material, thanks!
+Sashiko complains about adding an empty release callback here and IMV
+it has a point:
+
+https://sashiko.dev/#/patchset/20260807035453.948129-1-dbgh9129%40gmail.com
+
+>
+>         list_add_tail(&protocol->protocol_list, &pnp_protocols);
+>
+>         mutex_unlock(&pnp_lock);
+>
+>         ret =3D device_register(&protocol->dev);
+> -       if (ret)
+> +       if (ret) {
+>                 pnp_remove_protocol(protocol);
+> +               put_device(&protocol->dev);
+> +       }
+>
+>         return ret;
+>  }
+> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+> index fbf03ff007eb..da0ebc378696 100644
+> --- a/drivers/pnp/pnpacpi/core.c
+> +++ b/drivers/pnp/pnpacpi/core.c
+> @@ -298,12 +298,17 @@ static acpi_status __init pnpacpi_add_device_handle=
+r(acpi_handle handle,
+>  int pnpacpi_disabled __initdata;
+>  static int __init pnpacpi_init(void)
+>  {
+> +       int ret;
+> +
+>         if (acpi_disabled || pnpacpi_disabled) {
+>                 printk(KERN_INFO "pnp: PnP ACPI: disabled\n");
+>                 return 0;
+>         }
+>         printk(KERN_INFO "pnp: PnP ACPI init\n");
+> -       pnp_register_protocol(&pnpacpi_protocol);
+> +       ret =3D pnp_register_protocol(&pnpacpi_protocol);
+> +       if (ret)
+> +               return ret;
+> +
+>         acpi_get_devices(NULL, pnpacpi_add_device_handler, NULL, NULL);
+>         printk(KERN_INFO "pnp: PnP ACPI: found %d devices\n", num);
+>         pnp_platform_devices =3D 1;
+> --
+> 2.43.0
+>
