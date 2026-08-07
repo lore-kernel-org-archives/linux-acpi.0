@@ -1,154 +1,104 @@
-Received: from mail-qk1-f172.google.com (mail-qk1-f172.google.com [209.85.222.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D53C63C9896
-	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 03:54:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 655EA44683A;
+	Fri,  7 Aug 2026 06:00:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786074906; cv=none; b=ecIEEjXr/gdkIfl7sE3zbx3o4S7aUfU9tRuXqFdsGsTIRzbOSqzyr6gXQnwCq53ucDgXY/ABxbGeZVN0eVkOKvotsPJHRVJ08vt26kDgaYrTnqRQyGPhJGmrOV3lbvpDJzSWIk8YX3nf3BerS55P/98HUmrwDALxNWFBh660TaA=
+	t=1786082449; cv=none; b=P7w+bWY/21yH1XNHyC64EkXwGjiOdzGJdWu9ecDbQJtEkE7xtgSM7o3zYgcmnM/eFvsMxZtI4luTqvwdSttKdBVOZoIYlFg6WU3mDADfO2neBnkiccOYZYs183Z+NlRK8+JwXvA5qYOosl5vkTtAOotSi62jKaORHF1ykzscr1w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786074906; c=relaxed/simple;
-	bh=Elhaw7454IcxOxFvajFIj/zc+9hsb3/Q9YfUijVfmjU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YaKvVl/0GF4bPpB6z84mmKaVYg4z26TLKVwGIxq0/nPq7txkIDDTyovuSHNWJXUPqDRciR2p7VPjoAjoenYcunb/0WvRDUkEyt9yBXvISJaoCpgdAEgHsM/4hIMEEBfb4CbIgfrYrkc1NrnRBfow0j3Q3TSJrrZ3ZWtMSHW57BY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=fWKOsA69; arc=none smtp.client-ip=209.85.222.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1786082449; c=relaxed/simple;
+	bh=5iCUd0HV92C1OK5Pl+OH0sfT0wUckvSw0Bi3kxDA2X4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=dRjLRZDEZZC9V78nAE+00BM4GTa9L3S0CoT73jMWxFY1ihmbqqntQT4SLF0siSS5RbURDEfCoWNMSB+v3w+acZlbUUPc7FlMI7Bx2sRfdwq/OxH5d2+VbDRtSgvI8AyhyKrkXINd3m+fYfovQv7EtU1hRUpWZCJS0jufaZDuffc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=dx1PqtKq; arc=none smtp.client-ip=65.109.113.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fWKOsA69"
-Received: by mail-qk1-f172.google.com with SMTP id af79cd13be357-92e85499ffbso197246285a.0
-        for <linux-acpi@vger.kernel.org>; Thu, 06 Aug 2026 20:54:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786074898; x=1786679698; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=V73Au8wEhU0LrohqbWiG8So58r1u7vwRuaOrdVjuz8Y=;
-        b=fWKOsA69tHrnoXuMtSRFOThpnW5seCHiWJmWA/Z/LhbX+vgFp1/ucYoyGPJedbc+Xt
-         Zhbn2FYGQ7QxT1YhgdJYxVAGNmM9IO+rhjiH6BbnvyGWp/siAztCcP4YH0ITizskZeKV
-         totXkdhmVnuiQjs5geE169sa6h14GA7IvoQ4pJpuvQqTzj/HsPDsID4x6PFUo+MqqOxF
-         AfVSR18w2SozUtr+fNTZOD67QKFkdz4/rgQ7Dlq+/7y2FmPwop9xzwGuwGSc4VyHOfgc
-         uaU3doqwbNTAZtiyBd+sowBjICRfn1A/3JOi8WjovWvE+ezfYapE2LZ54Sq3oB9/MfxR
-         Ghlg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786074898; x=1786679698;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=V73Au8wEhU0LrohqbWiG8So58r1u7vwRuaOrdVjuz8Y=;
-        b=FGLtJnRgGlhL88tPRAif4NDnDJIKCYfbOj7UNTSyrWNVZIsbImDrXzKYOV8LnnnXCh
-         q4yrsKV+mEiLd+Hjc1WrWcSeS7pzTvt+kkG4GwIWbDzOCgrZyw9TANP/iObfzraqDwy0
-         qd89tphoCIYht5/nU/BVl9ePxQqyGic14mvMQ4s7EhXTH0TvDjp3nnt24KrbMKKmktRX
-         0zeXaS7pHKVE9kXApXGDPzLZP6wXH1iMvJrxul57iVx3RlkcMbfP+14lcSI3PxKumte3
-         eBBtJ0oDoCIxIoe7b6fFomujYKizx34LsO722ZjpQeIRRbUpLfcJnmMChw/71oNqdKby
-         qVTg==
-X-Forwarded-Encrypted: i=1; AHgh+RoFsyIlib+q7Lrh5WWzySdv6cStqfypB8tpFjOZ97g7m32ONGZ1pl7xodn6JsTT5okUKWtrygxT2xVC@vger.kernel.org
-X-Gm-Message-State: AOJu0YwuV3e7mbFpp31q7210jD1uOzVCQj72TVq6sxvCP0myM4hp1Bdp
-	w1jWStoBoNnJUY6yKdEoRchnuOezgKZLoV289Ho/2a6HJp4qdqMoBV0w
-X-Gm-Gg: AR+sD12xnpbLB7KbZz/Er6ylvH0IbklclhHf2A28lnAdyttg2JDZ0Li9n7FFVe5WKC8
-	/DE6VmhQZWx/XDxJn9Z9ibJg7kdpWNayWf5sGashF2Ui3a7WSe+m4cpuiFYn8PGs4SoqFqRJzur
-	HmGyMkG+3tl6dkWikTbHTlUORw47waO5v8/Ldu2j4EREP5ZE/sh1XUmJQyfTHbi9jOC2aVzktCl
-	8oSQBj9kF5TwqMDtgEjr1E/RJn40Lam6oU3UAf2wF5yamxsQtb+/XAPmo8U0wMgPktDbqP2AQ7S
-	1/g2/vnbLkqTjCRxZwfFrMPhV+ac+hsDfjPmMbdUcl6LDjcuDWUJQziZbdiYTb0pOyT3CUrXGBU
-	BNBflrJGBA1Jtyd2CW81Wqt32wwjcD/SJTP+GKEm+vZbUhg2RMzLDoluZdU3n6mjGjV/k1H0rHY
-	P5MRHjcL/YmSk0NCVuM9QdwUx8JCl3aCHTFwgm727yRNBJighbip77IfPn9O6yBqF8WACjTjtMO
-	fSpAUu2c36Q91i2Fry9UuMgwgZhGwyXLmUrO3IlUbRbqHMQ0g7+csusX+JNxnI=
-X-Received: by 2002:a05:620a:f07:b0:936:583a:dd75 with SMTP id af79cd13be357-9366646501amr671111785a.17.1786074898332;
-        Thu, 06 Aug 2026 20:54:58 -0700 (PDT)
-Received: from i4-gl-tmk5904.ad.psu.edu ([130.203.156.186])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-9366e258608sm61386985a.33.2026.08.06.20.54.56
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 06 Aug 2026 20:54:57 -0700 (PDT)
-From: Yuho Choi <dbgh9129@gmail.com>
-To: rafael@kernel.org
-Cc: lenb@kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Yuho Choi <dbgh9129@gmail.com>
-Subject: [PATCH v1] PNP: Release protocol device on registration failure
-Date: Thu,  6 Aug 2026 23:54:53 -0400
-Message-ID: <20260807035453.948129-1-dbgh9129@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="dx1PqtKq"
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id 4FB2F40E00B8;
+	Fri,  7 Aug 2026 06:00:44 +0000 (UTC)
+X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
+Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
+	header.d=alien8.de
+Received: from mail.alien8.de ([127.0.0.1])
+	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP id pPJzRbAhWiuE; Fri,  7 Aug 2026 06:00:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
+	t=1786082432; bh=qYhI0fwC8PZZssZoGwGoCXzMpJcSZ4YzBIlml3eONO4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=dx1PqtKqAVe76ho+lYRP90RfoiVidM4o5srU//3AoWiYRtlQ2bacoCRB3ybVKgKd3
+	 ZObnyWdGjhbOfZxFSa77uP31O5aLgYnGUrh3dkyJytSMm7kCIcgXTTFKCdIwvQAyGF
+	 GnBV9MtMKV1Re9YKUin/9FuAZZNhUyaWlH7hCYtMKAS/d+3ymoxOi5F/J8e0ykWU87
+	 NVkBv6z5BJK2A7Q/Ct0AUFco/DzYjs//z+iD3mqlTF3i3I0H4XgHwtrPQbjtnyCFFu
+	 VX1SCJyvTufXUFtZNV9ssNxnYQAsrJvF9iUW8xche/+onBIV/wo0FcmjIZET8E4JEr
+	 8M2cNaHwisw8EuHOzD9PCCuzJSGT35cCn9BYtkVxJKbjwyt19wyWMn9YTitHcSx541
+	 /iJzG/CMeZB2zhqCsqziiBtdzH9LeD3dzaPq1LN/jAR2ifsM/HCFy7Spf3YNPWlVLn
+	 M5lvWzqfz5+EOzr8gveQL944/fVM7KpUwPZxS5j+rOWnR9cq4e1U5SUKP9uktsFHrc
+	 6Guq4+5VVwbLXMKalbQPpZCUMBsshIWsrfiqwuzMdG4PrDceLo0YzXrdNCCNO5MGEF
+	 4YB9BoIxJJTSXi7HdKhl63M2dpCALaswTSOLcEMOB5jr54GJ4qZ/L97o3STjTgM3s3
+	 NhJKL4bQJi3gIA9AMWx6gUeg=
+Received: from stx.tnic (unknown [IPv6:2600:1700:38ca:c00::b])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
+	(No client certificate requested)
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id F3F8140E0140;
+	Fri,  7 Aug 2026 05:59:55 +0000 (UTC)
+Date: Thu, 6 Aug 2026 22:59:52 -0700
+From: Borislav Petkov <bp@alien8.de>
+To: shijujose2008@gmail.com
+Cc: rafael@kernel.org, akpm@linux-foundation.org, rppt@kernel.org,
+	dferguson@amperecomputing.com, linux-edac@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-mm@kvack.org,
+	linux-doc@vger.kernel.org, tony.luck@intel.com, lenb@kernel.org,
+	Yazen.Ghannam@amd.com, mchehab@kernel.org,
+	ashok.raj@oss.qualcomm.com, jic23@kernel.org, linuxarm@huawei.com,
+	rientjes@google.com, jiaqiyan@google.com, Jon.Grimm@amd.com,
+	dave.hansen@linux.intel.com, naoya.horiguchi@nec.com,
+	james.morse@arm.com, jthoughton@google.com, somasundaram.a@hpe.com,
+	erdemaktas@google.com, pgonda@google.com, duenwen@google.com,
+	gthelen@google.com, wschwartz@amperecomputing.com,
+	wbs@os.amperecomputing.com, nifan.cxl@gmail.com,
+	tanxiaofei@huawei.com, prime.zeng@hisilicon.com,
+	roberto.sassu@huawei.com, kangkang.shen@futurewei.com,
+	wanghuiqiang@huawei.com
+Subject: Re: [PATCH v23 0/2] ACPI: Add support for ACPI RAS2 feature table
+Message-ID: <20260807055952.GIanV0WDlB9-eP9VdV@fat_crate.local>
+References: <20260726212812.89266-1-shijujose2008@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260726212812.89266-1-shijujose2008@gmail.com>
 
-pnp_register_protocol() adds a protocol to the PNP list before calling
-device_register(). If device registration fails, pnp_remove_protocol() only
-removes the list entry and leaves the device-core reference acquired by
-device_initialize() held.
+On Sun, Jul 26, 2026 at 10:28:10PM +0100, shijujose2008@gmail.com wrote:
+> From: Shiju Jose <shijujose2008@gmail.com>
+> 
+> Add support for ACPI RAS2 feature table (RAS2) defined in the
+> ACPI 6.5 specification, section 5.2.21 and RAS2 HW based memory
+> scrubbing feature.
+> 
+> ACPI RAS2 patches were part of the EDAC series [1].
+> 
+> The code is based on linux.git v7.2-rc2 [2].
 
-Give static protocol devices a release callback and drop the reference on
-registration failure. Also stop PNP ACPI device enumeration when protocol
-registration fails, instead of using an unregistered protocol device as a
-parent.
+You're probably going to hate Sashiko by now but there's more issues against
+patch 2:
 
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Yuho Choi <dbgh9129@gmail.com>
----
- drivers/pnp/core.c         | 9 ++++++++-
- drivers/pnp/pnpacpi/core.c | 7 ++++++-
- 2 files changed, 14 insertions(+), 2 deletions(-)
+https://sashiko.dev/#/patchset/20260726212812.89266-1-shijujose2008%40gmail.com
 
-diff --git a/drivers/pnp/core.c b/drivers/pnp/core.c
-index 81603327079c..fc3bff43fdd8 100644
---- a/drivers/pnp/core.c
-+++ b/drivers/pnp/core.c
-@@ -23,6 +23,10 @@ static LIST_HEAD(pnp_protocols);
- LIST_HEAD(pnp_global);
- DEFINE_MUTEX(pnp_lock);
- 
-+static void pnp_protocol_release(struct device *dev)
-+{
-+}
-+
- /*
-  * ACPI or PNPBIOS should tell us about all platform devices, so we can
-  * skip some blind probes.  ISAPNP typically enumerates only plug-in ISA
-@@ -66,14 +70,17 @@ int pnp_register_protocol(struct pnp_protocol *protocol)
- 
- 	protocol->number = nodenum;
- 	dev_set_name(&protocol->dev, "pnp%d", nodenum);
-+	protocol->dev.release = pnp_protocol_release;
- 
- 	list_add_tail(&protocol->protocol_list, &pnp_protocols);
- 
- 	mutex_unlock(&pnp_lock);
- 
- 	ret = device_register(&protocol->dev);
--	if (ret)
-+	if (ret) {
- 		pnp_remove_protocol(protocol);
-+		put_device(&protocol->dev);
-+	}
- 
- 	return ret;
- }
-diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-index fbf03ff007eb..da0ebc378696 100644
---- a/drivers/pnp/pnpacpi/core.c
-+++ b/drivers/pnp/pnpacpi/core.c
-@@ -298,12 +298,17 @@ static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
- int pnpacpi_disabled __initdata;
- static int __init pnpacpi_init(void)
- {
-+	int ret;
-+
- 	if (acpi_disabled || pnpacpi_disabled) {
- 		printk(KERN_INFO "pnp: PnP ACPI: disabled\n");
- 		return 0;
- 	}
- 	printk(KERN_INFO "pnp: PnP ACPI init\n");
--	pnp_register_protocol(&pnpacpi_protocol);
-+	ret = pnp_register_protocol(&pnpacpi_protocol);
-+	if (ret)
-+		return ret;
-+
- 	acpi_get_devices(NULL, pnpacpi_add_device_handler, NULL, NULL);
- 	printk(KERN_INFO "pnp: PnP ACPI: found %d devices\n", num);
- 	pnp_platform_devices = 1;
+Please sanity-check them if they even make sense. If they don't, you can say
+why and we can ignore.
+
+Thx.
+
 -- 
-2.43.0
+Regards/Gruss,
+    Boris.
 
+https://people.kernel.org/tglx/notes-about-netiquette
