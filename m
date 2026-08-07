@@ -1,112 +1,153 @@
-Received: from sender-op-o12.zoho.in (sender-op-o12.zoho.in [103.117.158.12])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E270F3AEF28
-	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 14:39:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=103.117.158.12
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786113597; cv=pass; b=A38irtuBP42oc4nvYaail5nVnk0q5+N3vAkSyi1zgw48WpeEieh0uFu4OU+nFZwt60PJsuOgf6dQZ4kQeXNP5UBbuCvfcOr7zenoSyIGAumiuepWw9aZTyiCRGemLOda/CeB1t55A1A51UMyRWiBamCcMqrpRIMbLEwcMfS6MvA=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786113597; c=relaxed/simple;
-	bh=Kpi+UXt/mVaJSt3kdXa3E43AhBUvbW4u9EIi7Br0syk=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:Subject:MIME-Version:
-	 Content-Type; b=UT/feARPNwFOYkmWMyzdw0GxgIin2X/FL5yIxY+GJG/ApsmSANn1tqrje1Zj0eYkOJ0JTU8xA9B+Z7wanBMi0Ian9E9EMpNHcdQlE6ZSAYoll5/eCdjb8AYcq3zfH3WR/FIUYUq737wOVWOcLRxwb7bGUDw4aSqW1DTjlpeJOJI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=a0rg.com; spf=pass smtp.mailfrom=a0rg.com; dkim=pass (1024-bit key) header.d=a0rg.com header.i=icarus@a0rg.com header.b=YODa0nr2; arc=pass smtp.client-ip=103.117.158.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=a0rg.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=a0rg.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D938E314A73
+	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 15:12:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786115578; cv=none; b=NyF8TFsgab1JjXUiMNy7n97BycFCstBf0LvLry7k8lcnOGYweDaJb3NV9GCzbQWYoyYCB+OWzZ9Upz/hHD0bybvIu9NUDb3mWM6zZOlUsHUOEWWbcOtbpGeIegfbPrM3Z3OaomVs67TsQZr9Bl3OiSN2VlPKFurLPoaxheZIgHU=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786115578; c=relaxed/simple;
+	bh=zDXKTEWX1pI7NBm5GyjF1XbjQMTKWjE+TVm+1eLxBSs=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=C/0UEgNBlTUwldSPrirgzVASXeSg6VKuUSb6l8w1YFVM9WdjNb6h2XtHer0dPfSJxMiq7xH7BjnQLOfgPDI2CY1ABQUXZGBP03B+hi47JxP0hlmImpwQ3nFW7InTyK/t1q1qcrcLxrD1ujfoZvztavHavbDDgklXC+q1PYntM9c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QZsugA/T; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=a0rg.com header.i=icarus@a0rg.com header.b="YODa0nr2"
-ARC-Seal: i=1; a=rsa-sha256; t=1786113571; cv=none; 
-	d=zohomail.in; s=zohoarc; 
-	b=bEMxvV8QnZDsivTPulioGVAtRhEFhgGXduhYcCVt0RX+ARroEg3Q5BsWc5Oaj0Ll9zbwLnAmIYHyknrl8wz2Fpv1cz0R1dJYsbSmMTK/aeyFcBHwzPuaZLZD5Ph7u868jqoAWSbBZvWsj8c9eDM7QOGKzsBCxTv7qTvKNRrJKMw=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.in; s=zohoarc; 
-	t=1786113571; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=QFyW7em+a6TgHJzmuWJ2E8pdf7m8X3qSXLj5q/I1U5s=; 
-	b=ZXgY3XubV0FLLwVcRYiL4+ZGIfUU52uKb3SAcsQuRfOf/gJC1G8vHdU2BiFOvxFx2/qgUdYtHaflj1e4yewtcu2t+Nwt38JLaHJL4gd/A2Q+vZ4SZfjl5nJH+jP5AeZUETrC7u5cKakAWij3ExgUvSbkBYEkY3a8VKSdHZWm/MY=
-ARC-Authentication-Results: i=1; mx.zohomail.in;
-	dkim=pass  header.i=a0rg.com;
-	spf=pass  smtp.mailfrom=icarus@a0rg.com;
-	dmarc=pass header.from=<icarus@a0rg.com>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1786113571;
-	s=zmail; d=a0rg.com; i=icarus@a0rg.com;
-	h=Date:Date:From:From:To:To:Cc:Cc:Message-ID:In-Reply-To:Subject:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:Reply-To;
-	bh=QFyW7em+a6TgHJzmuWJ2E8pdf7m8X3qSXLj5q/I1U5s=;
-	b=YODa0nr2hJJIUnyyBCYDEG3lvbUX+2r1ftpY/ZYxBQZg0Ooxou2JdVSzLHDrkTQ5
-	YYp5/zuJ10GJ7iWcRY7VYB4zQBwt/hhDhSeM0lF5QQpIHDrtHcmurfx9viB0D46K3/z
-	XSfIoumjqfpGrqLXX3v/S09bjKh7hYcuDcZUVh48=
-Received: from mail.zoho.in by mx.zoho.in
-	with SMTP id 1786113568825928.4737957537083; Fri, 7 Aug 2026 20:09:28 +0530 (IST)
-Date: Fri, 07 Aug 2026 20:09:28 +0530
-From: Anirudh Prasad <icarus@a0rg.com>
-To: "linux-acpi" <linux-acpi@vger.kernel.org>
-Cc: "rafaeljwysocki" <rafael.j.wysocki@intel.com>,
-	"linux-kernel" <linux-kernel@vger.kernel.org>,
-	"stable" <stable@vger.kernel.org>
-Message-ID: <19fdcaa3013.263bb5511124041.2034910216820799254@a0rg.com>
-In-Reply-To: 
-Subject: [PATCH v2] ACPI: pfr_update: fix stack buffer overflow in
- query_capability()
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QZsugA/T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B22B61F00A3F
+	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 15:12:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786115576;
+	bh=w3idmkLYxvaX5dQDFxcBPWDJ2RpS4frlnOp764QzOiw=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=QZsugA/TsQnVghgjFe1tpWFS8y8US3uVF010Z4zEEHOALY1f2dy5mGc9mhrrEIuqW
+	 HKDV2qCKUUh0y2gTyoS0mzm3yfgh3EemVbFLML2HSlmWsOHo92/QqNfCGKq3Io0KZv
+	 0G9vegoRgeYrXHh++c1OuDLXh3bpcVH9DsB3/5y+KH/1bqdJ6JxeRCG+C+M/mOj8rk
+	 jiGjDajq9Hit5WX8nViY+d3LItJZyHl9rI4OXFTmSbxzDSw2CEMEvyHgQgirHEz6md
+	 n45JqhSGQMrAs6QYwanaEA1IFs9T+NH4jy1DjsJ1BeFlsHfs1xNrihplTtF/dP5iTf
+	 xkXLpl5TFCxRA==
+Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-5b015532f7bso3271286e87.0
+        for <linux-acpi@vger.kernel.org>; Fri, 07 Aug 2026 08:12:56 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RrMBgu5Yc2krtfUdsPEAiFhWv6h8J/Dgd/CavuYlMVcuXLEpWs/wrrzzpX2cT0/dIE+vBCaztXJsWZG@vger.kernel.org
+X-Gm-Message-State: AOJu0YxBOHvmMQuT5LAinN/WlKZFjaxxe86m4LkfwI1HEuD56JqiERhV
+	5WnrZVnerVoRXnzBqclXfvcRKVFDjjB+LpMzmLBfghYtgD1sSCaiCM1f+cZBcDU2jUI78Nc5cTf
+	eb9SGvN/2ErTsjMlOqjO8VPMyWcJKafE=
+X-Received: by 2002:ac2:4e10:0:b0:5b0:1669:1a00 with SMTP id
+ 2adb3069b0e04-5b2f4ccb516mr3477925e87.32.1786115575169; Fri, 07 Aug 2026
+ 08:12:55 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+References: <20260806112052.857684-1-kazuma-kondo@nec.com>
+In-Reply-To: <20260806112052.857684-1-kazuma-kondo@nec.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Fri, 7 Aug 2026 17:12:40 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0g0MeLGgzHGihBXH3YBnDt4KGdq2uR8-F3H9b4Fszpx2Q@mail.gmail.com>
+X-Gm-Features: AUfX_mxnYNK1cnghTgS2c7HVx38GGer4JLILGBUkje9kVgOVewCfNNqyBpHZqsc
+Message-ID: <CAJZ5v0g0MeLGgzHGihBXH3YBnDt4KGdq2uR8-F3H9b4Fszpx2Q@mail.gmail.com>
+Subject: Re: [PATCH v2] ACPI: PCI: Avoid misleading _OSC messages for non-PCIe
+ host bridges without _OSC
+To: =?UTF-8?B?S09ORE8gS0FaVU1BKOi/keiXpCDlkoznnJ8p?= <kazuma-kondo@nec.com>
+Cc: "rafael@kernel.org" <rafael@kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, 
+	"bhelgaas@google.com" <bhelgaas@google.com>, 
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, 
+	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Importance: Medium
-User-Agent: Zoho Mail
-X-Mailer: Zoho Mail
+Content-Transfer-Encoding: quoted-printable
 
-query_capability() copies four ACPI buffer objects returned by the
-firmware _DSM into fixed-size u8[16] fields in struct
-pfru_update_cap_info using memcpy with the firmware-supplied length:
+On Thu, Aug 6, 2026 at 1:21=E2=80=AFPM KONDO KAZUMA(=E8=BF=91=E8=97=A4=E3=
+=80=80=E5=92=8C=E7=9C=9F) <kazuma-kondo@nec.com> wrote:
+>
+> After commit 7d703df7f4f5 ("ACPI: bus: Split _OSC evaluation out of
+> acpi_run_osc()"), the _OSC evaluation path now returns AE_ERROR to
+> negotiate_os_control() instead of propagating AE_NOT_FOUND from
+> acpi_evaluate_object().
+>
+> This has not caused any functional issues so far, but it produces
+> additional misleading messages for non-PCIe host bridges without _OSC on
+> some Intel servers:
+>
+>     kernel: ACPI: Enabled 2 GPEs in block 00 to 7F
+>     kernel: ACPI: PCI Root Bridge [UNC0] (domain 0000 [bus fe])
+>     kernel: acpi PNP0A03:00: _OSC: OS supports [ExtendedConfig ASPM Clock=
+PM Segments MSI EDR HPX-Type3]
+>   + kernel: acpi PNP0A03:00: _OSC: OS requested [PCIeHotplug SHPCHotplug =
+PME AER PCIeCapability LTR DPC]
+>   + kernel: acpi PNP0A03:00: _OSC: platform willing to grant [PCIeHotplug=
+ SHPCHotplug PME AER PCIeCapability LTR DPC]
+>   + kernel: acpi PNP0A03:00: _OSC: platform retains control of PCIe featu=
+res (AE_ERROR)
+>     kernel: PCI host bridge to bus 0000:fe
+>
+> Previously, negotiate_os_control() silently ignored AE_NOT_FOUND for
+> non-PCIe host bridges without _OSC, but after the above change, it no
+> longer does so.
+>
+> As a result, negotiate_os_control() logs messages as if the OS had
+> negotiated with the platform via _OSC, even though the non-PCIe host
+> bridge has no _OSC method and no such negotiation actually occurs.
+>
+> Skip _OSC negotiation for non-PCIe host bridges that do not define an
+> _OSC method before attempting to evaluate it.
+>
+> Fixes: 7d703df7f4f5 ("ACPI: bus: Split _OSC evaluation out of acpi_run_os=
+c()")
+> Link: https://lore.kernel.org/linux-acpi/d0be949d-0e21-472e-a44b-cedb1dd8=
+695d@nec.com/
+> Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Signed-off-by: Kazuma Kondo <kazuma-kondo@nec.com>
+> ---
+> Changes in v2:
+> - Set *no_aspm to 1 when skipping _OSC negotiation.
+> - Updated the debug message and the comment.
+> - Link to v1: https://lore.kernel.org/linux-acpi/20260731090820.493064-1-=
+kazuma-kondo@nec.com/
+>
+>  drivers/acpi/pci_root.c | 15 +++++++++++----
+>  1 file changed, 11 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 4c06c3ffd0cb..cab29a75a276 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -574,6 +574,17 @@ static void negotiate_os_control(struct acpi_pci_roo=
+t *root, int *no_aspm)
+>                 return;
+>         }
+>
+> +       if (!is_pcie(root) && !is_cxl(root) &&
+> +           !acpi_has_method(handle, "_OSC")) {
+> +               dev_dbg(&device->dev, "_OSC: Skipping a non-PCIe host bri=
+dge without _OSC\n");
+> +
+> +               /*
+> +                * No ASPM for non-PCIe host bridges
+> +                */
+> +               *no_aspm =3D 1;
+> +               return;
+> +       }
+> +
+>         support =3D calculate_support();
+>
+>         decode_osc_support(root, "OS supports", support);
+> @@ -615,10 +626,6 @@ static void negotiate_os_control(struct acpi_pci_roo=
+t *root, int *no_aspm)
+>                  */
+>                 *no_aspm =3D 1;
+>
+> -               /* _OSC is optional for PCI host bridges */
+> -               if (status =3D=3D AE_NOT_FOUND && !is_pcie(root))
+> -                       return;
+> -
+>                 if (control) {
+>                         decode_osc_control(root, "OS requested", requeste=
+d);
+>                         decode_osc_control(root, "platform willing to gra=
+nt", control);
+> --
 
-  memcpy(&cap_hdr->code_type,
-         elements[CAP_CODE_TYPE_IDX].buffer.pointer,
-         elements[CAP_CODE_TYPE_IDX].buffer.length);
-
-The same pattern repeats for drv_type, platform_id, and oem_id.
-If the firmware returns buffer.length > 16 for any of these fields,
-memcpy writes past the destination array.
-
-struct pfru_update_cap_info is stack-allocated in pfru_ioctl().
-Confirmed with KASAN on 7.2-rc6: three stack-out-of-bounds reports
-are generated when a DSM returns 64-byte buffers, with writes reaching
-44 bytes past the end of cap_hdr's [64, 156) frame window into
-adjacent stack redzones.
-
-Fix by validating each buffer length against its destination field
-size before copying, and returning -EINVAL if the firmware supplies
-an oversized buffer.
-
-Fixes: 0db89fa243e5 ("ACPI: Introduce Platform Firmware Runtime Update device driver")
-Cc: stable@vger.kernel.org
-Signed-off-by: Anirudh Prasad <icarus@a0rg.com>
----
- drivers/acpi/pfr_update.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/drivers/acpi/pfr_update.c b/drivers/acpi/pfr_update.c
-index 6283105bb0e8..e14e053cea44 100644
---- a/drivers/acpi/pfr_update.c
-+++ b/drivers/acpi/pfr_update.c
-@@ -158,6 +158,14 @@ static int query_capability(struct pfru_update_cap_info *cap_hdr,
- 		goto free_acpi_buffer;
- 	}
- 
-+	if (out_obj->package.elements[CAP_CODE_TYPE_IDX].buffer.length > sizeof(cap_hdr->code_type) ||
-+	    out_obj->package.elements[CAP_DRV_TYPE_IDX].buffer.length > sizeof(cap_hdr->drv_type) ||
-+	    out_obj->package.elements[CAP_PLAT_ID_IDX].buffer.length > sizeof(cap_hdr->platform_id) ||
-+	    out_obj->package.elements[CAP_OEM_ID_IDX].buffer.length > sizeof(cap_hdr->oem_id)) {
-+		ret = -EINVAL;
-+		goto free_acpi_buffer;
-+	}
-+
- 	cap_hdr->update_cap = out_obj->package.elements[CAP_UPDATE_IDX].integer.value;
- 	memcpy(&cap_hdr->code_type,
- 	       out_obj->package.elements[CAP_CODE_TYPE_IDX].buffer.pointer,
--- 
-2.55.0
-
-
+Applied as 7.3 material with some minor modifications, thanks!
