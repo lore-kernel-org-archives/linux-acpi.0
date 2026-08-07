@@ -1,204 +1,181 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.15.15])
+Received: from BL0PR03CU003.outbound.protection.outlook.com (mail-eastusazon11012031.outbound.protection.outlook.com [52.101.53.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2707C3769FF;
-	Fri,  7 Aug 2026 21:03:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.15
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786136631; cv=none; b=iVihlWdolxCXSr+PEW5UL5t4RdomvT4Nfbe92ppClF49nhNOfNQ3loE2WFQTngaP3M4PSoz5ODIK1kNNUvRbdvgSq0zmoF2167lAwNwyGcBaUJyx8e+Z03S/ZX3iD8xYZ2SxXftUkmVy6yyu+n+5la5wLXi26BcZtTsneC8xtNY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786136631; c=relaxed/simple;
-	bh=URkF00b8J2DxwB7pHn3uv+FvXmei9Qd6jHdd3mceo7o=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=Rbs7OSKn9kxax4TVhn/9NkxlK7MX8eyIoThiN2Q9G1vWQpQL60GKn41l6EPRw031ugPqibRTOSp4fR/Bt+JKKa5h9DVE9SYGlAVFtXfHZ6T16wvAf/dB+hqxK82SWB1nwoEudL7gkBLPcgr7K7d0/P9aqIGUuSG+3+HM+XSlryk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b=AR+k+BOq; arc=none smtp.client-ip=212.227.15.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7498F3546CF;
+	Fri,  7 Aug 2026 21:49:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.53.31
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786139363; cv=fail; b=XJXZ8SNM6Y4Dcyr29fKM5JvhmYuwxSReGfnGPPF0XVjckPzuH713LU7AZHob0p0bv0bKwNlz8EluKepQLy2XfS2qO4GjejCvWW2FMWVJVaxLyKl6fhe11sl8hE/ymjtJnXyJvClsoR0Qw2fubVEIbd/azh0zU/vy2U3XzCAqRM4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786139363; c=relaxed/simple;
+	bh=+Hjgi4bILmzpM9PDpY9hg4q1Bad38plV5ie36/SNSUY=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=BTo1zekntRsdeHPA3m/6Mr1JfuR145x/zZ3qUbF+YDbGVwblKg4PrlCVDg5+hiX/Hw9ucnMrPq6x6RZ81MB+/Ycd/ZDXLkQ5dzAOZhXHGPciCS0JdRsByG172S9EvjvDoTQ5gFCWIyE1gSFZDASBM0psED7dcjHquW2JQu4/XAE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=PZKMkIHu; arc=fail smtp.client-ip=52.101.53.31
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b="AR+k+BOq"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1786136612; x=1786741412; i=w_armin@gmx.de;
-	bh=ynAuYqRxpHHvvBQeKkL2i31ZDhBcUSyqeTHmWhd2yWU=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:From:To:
-	 Cc:References:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-	 cc:content-transfer-encoding:content-type:date:from:message-id:
-	 mime-version:reply-to:subject:to;
-	b=AR+k+BOqNe6TJTuONOW6tClhewKZVZLP7jbbvFlTzJgsdyZ+YDYSyznu/xemrSYh
-	 5e3+pW7SxrSJ/p8ELKiaGXpfr8iYaNDd/jkZOt6BwArfREv1hnnMDCr/dl/i8x2nP
-	 1wL06078VNW9W+KDxy9kHX1JdQX2nDf5vtGmKPu0uFEjnVq/PGWhuLjm/h+7le5+5
-	 fqxoJ2r80IKgLFOMLoRo+XURUowQ4WDtyCmfue+l9dm+qV1MhjrFB4QayzLf5R66x
-	 EIp4glIBRoVsfxK2JQZCFwXOW5j9Nn4ruZ8zaRNfcMNjGIpDrSGddp/ATZNdKmcdF
-	 fK+cUeQ3Ur0DbrouVQ==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from client.hidden.invalid by mail.gmx.net (mrgmx005
- [212.227.17.190]) with ESMTPSA (Nemesis) id 1MEm2D-1whDaB1b6x-008ngS; Fri, 07
- Aug 2026 23:03:32 +0200
-Message-ID: <59aadf0f-953c-4b7c-8c92-9dd9bc4f89de@gmx.de>
-Date: Fri, 7 Aug 2026 23:03:29 +0200
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="PZKMkIHu"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=A7UFUcFSP3DqCpoY+sUrbX0+mzEXljCVxY70N7FoG+bc0HNLXaOGaTwssOdwIduHWjUPw+wUezOsU8BcIY983Aojlh8QMs9nXp0qVrOAcaEo4mNQYWY6Zk0fgMfRbxR3Q3CJQrhVOFOFFMUzhBshg/k3LrGx5P9jrSncSwy9PL0SCG8ORfdpf1TXhxInJzR8OpUqGLijxU0wGSnpjVsB1XrjAdxPC04Nx7yMVtmSFclQnpLbF+XmzfkGsiQVAWBc2ZNPH0VqB087HLyXTMqRonBYgtMYDf3D0/8QsAJ/7lgHAAAhqnEqAXpLyOW4TA/p3cvM3indWCPetP/0pI+uVA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=XMhesy9ER0eTiVNPZIuNBUCbNR0C5eh1JKA7mMZvcYA=;
+ b=ShVIoHCtARD0jg1Qhh2kGHWxlvfK3k+w2X86EbDWSyA4CO4Hq+Jy196ooq4nK6CEQe817sa3sv+19KryoiA+pjQ21XUi2SPEbuSSH91tUA48Hm9/iyFA7C8TTOzTXmgUvW0Bn4dHxBfQ476N6boGGea6QKHGr+oDnRfezSP9nEPMlX9fBUPyfJA1PYmOI7uVsjxKPUnIpP0wdvO3GjL3TD3X+3B7iBLUaln6CawXCkPIJ0EpvIAhfaKzXWPiaEgNwftGvBKuWFVKH2Gwa2bVLngjjP+zkqW/Ozp53CaCaLiq0Ki0Ec6apwo+xm/PWftmg7KOj/i7EtPWP/JfmMUIGg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=XMhesy9ER0eTiVNPZIuNBUCbNR0C5eh1JKA7mMZvcYA=;
+ b=PZKMkIHu5QrswkkYHBb2nYPsUv1OYzYJ148D9Ac9W7EyL70VvmNRpkcircjUQdh1WeAi3D4ORMAd9e1SmzdaXyNdr6VG1yq6MX2KOMijVtq6NbZ7IgmIQXaVsKPJCFbMya5I7DVmbmsoGkureXQgA87e9X8m/eJQc3lRZ9iTRFVbXcWSr0xS52mli63E8FCTdM7w+DQTJJwGvBmguVugddpiQWH9JeHZcn98cguCMZUr/WWZ1F4X4hnY+Mkdy7XnAzVXHW6PFIkrrBWU1Dwq+KiZ5cQntku+VQI4LHIl96FJSPT6REUnXkqNOT7TuYN03iWiuRXUx9CeL0jmTfnpLQ==
+Received: from SJ0PR03CA0300.namprd03.prod.outlook.com (2603:10b6:a03:39e::35)
+ by CH3PR12MB8901.namprd12.prod.outlook.com (2603:10b6:610:180::6) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.21; Fri, 7 Aug
+ 2026 21:49:15 +0000
+Received: from BY1PEPF0001AE18.namprd04.prod.outlook.com
+ (2603:10b6:a03:39e:cafe::7b) by SJ0PR03CA0300.outlook.office365.com
+ (2603:10b6:a03:39e::35) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.292.23 via Frontend Transport; Fri, 7
+ Aug 2026 21:49:15 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ BY1PEPF0001AE18.mail.protection.outlook.com (10.167.242.100) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.315.6 via Frontend Transport; Fri, 7 Aug 2026 21:49:15 +0000
+Received: from rnnvmail205.nvidia.com (10.129.68.10) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Fri, 7 Aug
+ 2026 14:48:58 -0700
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by rnnvmail205.nvidia.com
+ (10.129.68.10) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.20; Fri, 7 Aug
+ 2026 14:48:58 -0700
+Received: from sumitg-l4t.nvidia.com (10.127.8.14) by mail.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server id 15.2.2562.20 via Frontend
+ Transport; Fri, 7 Aug 2026 14:48:52 -0700
+From: Sumit Gupta <sumitg@nvidia.com>
+To: <rafael@kernel.org>, <viresh.kumar@linaro.org>, <pierre.gondois@arm.com>,
+	<christian.loehle@arm.com>, <ionela.voinescu@arm.com>,
+	<zhenglifeng1@huawei.com>, <zhanjie9@hisilicon.com>, <lenb@kernel.org>,
+	<saket.dumbre@intel.co>, <mario.limonciello@amd.com>,
+	<linux-kernel@vger.kernel.org>, <linux-pm@vger.kernel.org>,
+	<linux-acpi@vger.kernel.org>, <acpica-devel@lists.linux.dev>,
+	<linux-tegra@vger.kernel.org>
+CC: <treding@nvidia.com>, <jonathanh@nvidia.com>, <vsethi@nvidia.com>,
+	<ksitaraman@nvidia.com>, <sanjayc@nvidia.com>, <mochs@nvidia.com>,
+	<bbasu@nvidia.com>, <sumitg@nvidia.com>
+Subject: [PATCH v7 0/3] ACPI / cpufreq: CPPC: Add ospm_nominal_perf support
+Date: Sat, 8 Aug 2026 03:18:34 +0530
+Message-ID: <20260807214837.863209-1-sumitg@nvidia.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 0/3] platform/wmi: Add aarch64 support
-From: Armin Wolf <W_Armin@gmx.de>
-To: hansg@kernel.org, ilpo.jarvinen@linux.intel.com
-Cc: platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux@weissschuh.net, rafael@kernel.org, lenb@kernel.org,
- linux-acpi@vger.kernel.org, alexander.deucher@amd.com,
- christian.koenig@amd.com, airlied@gmail.com, simona@ffwll.ch,
- amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
- patrik.r.jakobsson@gmail.com, maarten.lankhorst@linux.intel.com,
- mripard@kernel.org, tzimmermann@suse.de, jani.nikula@linux.intel.com,
- joonas.lahtinen@linux.intel.com, rodrigo.vivi@intel.com,
- tursulin@ursulin.net, intel-gfx@lists.freedesktop.org,
- matthew.brost@intel.com, thomas.hellstrom@linux.intel.com,
- intel-xe@lists.freedesktop.org
-References: <20260724025959.142826-1-W_Armin@gmx.de>
-Content-Language: en-US
-In-Reply-To: <20260724025959.142826-1-W_Armin@gmx.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Provags-ID: V03:K1:XhWPv/JKs4wg1ltPcjA54qJdjyQYAJWIMSfQd03vtac47SDDNdn
- 8VjSCgQ806r+Ys3YKucEiQIL6op5LNfCWBUZDrl74GW7ZUgltIaCaMdRFjvzDehSkQw395p
- XczQ0QCmtsEuQdRBq5uIyd2jW+EGD5vAIMZ8U2Ap4lGYlriV3kCZW5LqiU6SoK0v0LfamzK
- 17YvP00mXx/53FXvjRA3w==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:JHOuLfo+bYw=;LeVQ+PkhJUxE5EPezqlRlsmB6Tn
- 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
+X-NVConfidentiality: public
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BY1PEPF0001AE18:EE_|CH3PR12MB8901:EE_
+X-MS-Office365-Filtering-Correlation-Id: c799c5e3-b031-439b-8edf-08def4cdb99d
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|36860700016|376014|7416014|82310400026|1800799024|6133799003|56012099006|10067099003|11063799006|13003099007|18002099003|921020;
+X-Microsoft-Antispam-Message-Info:
+	589Gn4iyItpUG2APRpRinaWoLnWZ/hCILNNM7qoploTZ2wmiAGOKTXDI3eNbIK9QLOb8bR9EI3ILDbtU7HI7VkJec5L4+PoCIagDTO2WQiPu3e4+m8tua5BhSDckoMPmuxCuJjhuqrDptF8Vweny+CNe10vffQ/InmDHk+MFRGcHz5mAY7mXhm39KBsFXrTonYnnmzpPfwl4Q0nZ4EjaOdt8nWS9IuL10/13p/ob8OqI/eOpE4aX8PBm0rng0aH8Rsb/tZkTOg9q6I/UW4qdQPOD5Cyjc3eUvudc664tjFA4MGo0coqpWOp4pNaTM0P0kra0z+4LzUiwZadRl+K9e4vogp4007Nff8uvNxaufgWoMnDCPO9Yh/cTKEevsNFoDr0FV96GCSIOb0E2gMmtFy7WFT47Ue2p37HVreGrwcGMaYkbkdNkygDPKvTLh7IZhUGTM47M8Yx0fl/jEIOUhoBcXILNsF3LFoWWJVZ8RLtWNRnIwh3pgK7wgDFJY4VnhMypQn8Ig5qLRJx/mVf1HV96LmfV+M/sAbzcokLnCTPsIhuOilTeJpWAWcdnivybJuhUDNLqCrMMmNm97SXREFvEn5yG2qTBUDQh2273/kMGvQSaeeSDuLkaWNn2SjJnI+8xny468O7+HpTl7FZazKAd0v1FdSLTPx4jgg/G+7OGPxZ539yB0L575VzMmnuenY3r0JUZ8Df17MKQpAcZTruEvybLfnUm+yaYvefbHnZof902LBmAWZR+0eT+bNTO
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(36860700016)(376014)(7416014)(82310400026)(1800799024)(6133799003)(56012099006)(10067099003)(11063799006)(13003099007)(18002099003)(921020);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	Xt0F77SWXQXY4If8HfgKk7oRzBrmCy2Mhhu27Q6TFILySEEexEtwKRt2lXOMGpz9l7uNahROxXSDsCh85LVKWrd9aK4/YvZG70LEVU49DCrkJY2YHf4G+DfyZNofuM01ciYzlRW48VUYZjm7lEaimXWy7tVjzdWlvA7wL5M/TThsMmC49lPffF/uYD9ys9eOVdVER0zFizIDr6Xg8E1mbl56KkuiagOe+s2Z+cKLtXsCeI2X7Cy8akdYq0blpkokWpNFl1f4/q/VJR8yagdr+8hh5IxB1+w8Bxf9T+x6ZrFOjel6bpC/fiQY1wu3uVPHbMu8kY89nvtHQjvSttluiTNhFgtnt4nvTT5/DriL6p9uIaIKZFORkTHMRupt7f0/Qu7Le41q4MsCfLKpRQaxCPJPsZAcX9sRkHBH0iNoZ0RQe+uSvcI0Zn3I+6ij4/OJ
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Aug 2026 21:49:15.1531
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: c799c5e3-b031-439b-8edf-08def4cdb99d
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BY1PEPF0001AE18.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB8901
 
-Am 24.07.26 um 04:59 schrieb Armin Wolf:
+This series adds support for the OSPM Nominal Performance register
+(ACPI 6.6, Section 8.4.6.1.2.6) to the CPPC ACPI and cpufreq drivers.
 
-> The aarch64-laptops project found out that some Windows-on-Arm
-> notebooks contain WMI-ACPI mapping devices (PNP0C14) that work
-> exactly like on x86. Those devices however are currently not
-> supported by the WMI driver core due to only supporting x86.
->
-> The first patch removes this restriction and allows the WMI
-> driver core to run on all architectures that support ACPI.
-> The second patch updates the acpi-video driver to take advantage
-> of the improved support for architectures other than x86, and
-> the last patch enables the generic WMI BMOF driver to support
-> aarch64 as well.
->
-> All patches have been tested on a ACPI-based aarch64 VM and
-> work just fine.
+Unlike the read-only Nominal Performance register, OSPM Nominal
+Performance is writable and lets OSPM request a nominal level below
+the platform-reported nominal. The platform treats performance above
+this level as boost and below as throttle for its power and thermal
+decisions.
 
-Any thoughts about this series from the GPU driver people?
+ - Patch 1: adds cppc_set_ospm_nominal_perf() and
+   cppc_ospm_nominal_perf_supported().
 
-Thanks,
-Armin Wolf
+ - Patch 2: adds the per-policy ospm_nominal_freq attribute in kHz, and
+   tracks the register in the OSPM-set save/restore table. The register
+   cannot be read back, so the attribute is write-only.
 
->
-> Changes since v2:
-> - fix Kconfig issue for the loongson-laptop driver
->
-> Changes  since v1:
-> - add additional tags
->
-> Armin Wolf (3):
->    platform/wmi: Remove dependency on CONFIG_X86
->    ACPI: video: Remove CONFIG_X86 handling from nvidia_wmi_ec_supported()
->    platform/x86: wmi-bmof: Move to generic WMI code
->
->   MAINTAINERS                                     |  2 +-
->   drivers/acpi/Kconfig                            |  2 +-
->   drivers/acpi/video_detect.c                     |  8 --------
->   drivers/gpu/drm/amd/amdgpu/Kconfig              |  4 +---
->   drivers/gpu/drm/gma500/Kconfig                  |  1 -
->   drivers/gpu/drm/i915/Kconfig                    |  1 -
->   drivers/gpu/drm/radeon/Kconfig                  |  4 +---
->   drivers/gpu/drm/xe/Kconfig                      |  5 ++---
->   drivers/platform/loongarch/Kconfig              |  1 +
->   drivers/platform/wmi/Kconfig                    | 14 +++++++++++++-
->   drivers/platform/wmi/Makefile                   |  4 ++++
->   drivers/platform/{x86/wmi-bmof.c => wmi/bmof.c} |  0
->   drivers/platform/x86/Kconfig                    | 12 ------------
->   drivers/platform/x86/Makefile                   |  3 ---
->   14 files changed, 24 insertions(+), 37 deletions(-)
->   rename drivers/platform/{x86/wmi-bmof.c => wmi/bmof.c} (100%)
->
+ - Patch 3: reflects the OSPM nominal in the cpufreq policy, so that
+   boost and the frequency limits stay consistent with the register.
+
+This series applies on top of the following series, which provides the
+save/restore table that patch 2 hooks into:
+  cpufreq: CPPC: Preserve OSPM-set registers across hotplug and unload
+  https://lore.kernel.org/lkml/20260806200857.601152-1-sumitg@nvidia.com/
+
+v6[6] -> v7:
+ - Split patch 1 into an ACPI patch and a cpufreq patch.
+ - Patch 1:
+   - drop cppc_get_ospm_nominal_perf(), as the register is write-only.
+   - add cppc_ospm_nominal_perf_supported(), sharing the setter's
+     writable check via the new cpc_reg_writable() helper.
+ - Patch 2:
+   - make ospm_nominal_freq write-only, and track the requested value
+     in software instead of reading the register back.
+   - place the register before auto_sel in the save/restore table.
+ - Patch 3:
+   - rename *_reflect_nominal() to *_update_nominal_limits().
+   - do not fail the sysfs write when cppc_cpufreq_update_nominal_limits()
+     fails to update the QoS limit.
+   - skip the limit update while boost is enabled.
+   - make cppc_cpufreq_effective_nominal() take the value from the
+     software-tracked state, so it returns it directly and cannot fail.
+   - init() checks cppc_ospm_nominal_perf_supported() directly, instead
+     of using cppc_cpufreq_effective_nominal().
+
+Sumit Gupta (3):
+  ACPI: CPPC: Add ospm_nominal_perf support
+  cpufreq: CPPC: Add ospm_nominal_freq attribute
+  cpufreq: CPPC: Reflect the OSPM nominal in boost and limits
+
+ .../ABI/testing/sysfs-devices-system-cpu      |  24 ++++
+ drivers/acpi/cppc_acpi.c                      |  48 ++++++-
+ drivers/cpufreq/cppc_cpufreq.c                | 135 +++++++++++++++++-
+ include/acpi/cppc_acpi.h                      |  10 ++
+ 4 files changed, 208 insertions(+), 9 deletions(-)
+
+v6: https://lore.kernel.org/lkml/20260717215330.2215058-1-sumitg@nvidia.com/
+v5: https://lore.kernel.org/lkml/20260615185934.2383514-1-sumitg@nvidia.com/
+v4: https://lore.kernel.org/lkml/20260527194626.185286-1-sumitg@nvidia.com/
+v3: https://lore.kernel.org/lkml/20260514194822.1841748-1-sumitg@nvidia.com/
+v2: https://lore.kernel.org/lkml/20260430142430.755437-1-sumitg@nvidia.com/
+v1: https://lore.kernel.org/lkml/20260427051823.280419-1-sumitg@nvidia.com/
+
+-- 
+2.34.1
+
