@@ -1,106 +1,211 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DB09431A39
-	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 13:20:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C687944238A
+	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 13:31:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786108859; cv=none; b=fI+DAINlDVDTNqfo6liJYUKlzzQGE04bYysWKoeJI8IHloFUfAt527u8a1AjQjXoIUMSAQl9VIECN9VF7+XtWE1F9GlqT99b3bcVKxLxv69ckalVZOY6X9x4kqdJFy+Njy2vs9XbGltbRk11kqcC5e+BnPmffuPZ5tHXqrYQ5xY=
+	t=1786109483; cv=none; b=o6nIjc2mAPUPXSsC5CsxOnauiOhgSAP+D0u7SY2Xx21LDOTh8nG4/CX6I45FKQcsn0M0cpAisZwWL8XeS4efjJcRDUN8eB9G166cHjhQi///w9SpznDXEx1ET5fBwuB+mFD5RnpF5mR1CBFIsAuPMj/6IQsEOgCrN9b6SRdT0HY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786108859; c=relaxed/simple;
-	bh=4isHO14CgbVSody6z39XpnyOmhSZrX6o3nwUveDwXls=;
+	s=arc-20240116; t=1786109483; c=relaxed/simple;
+	bh=8eHFgMRs/ojHMFsHb9GihM4x8eJHiOPzVolhkdcd3tM=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=b9/sEnjwfA6Waw7k+UUPEMWShHfgREkB5AIOHTlb83buh7Y8AHFRb05OTh5eiD0pRE5EpLylMkK2O1T7mmLk7im4tpkDPv5RhIrG2NgFbFbwjVjIVY9YYWe6rFat2JFYBJAeLjYNjOHfKt6j/o4IBBNHx6iSaxerliEIr3qnc1g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gKoV3yrN; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=uPImOX8N6eaj+nAxgzULJ4gW/tIQOSKaRcNg9yG3f6GOBR2V5ZRqrkME/4noqhPqCXqT1PHl228RBqkrIhBiXgyUM1L9ggzTrBizM9wUGN1/aJ8dkU567IwY/CtCNc87rwy+d/yZ3F/q3iMokInVmQtYayqK5KowWLVD9WkT5I0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WWYWeE5U; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gKoV3yrN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01C131F00A3A
-	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 13:20:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WWYWeE5U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DE4D1F00A3E
+	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 13:31:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786108857;
-	bh=YS6ppee6LjQvpZEJwS/FN5SZYS0sOXzr31c5/h+kh/U=;
+	s=k20260515; t=1786109476;
+	bh=cr3uXUWw48oClM6s029WaH/arJdaHlup4jHlPrjw/Ho=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=gKoV3yrNKFzu7buI4nhEEnzLYnVie6shBq0v+nuaOK0Aiwjik+xLj4LnWKu4l86od
-	 FljL+0Kamwiny4AXneZeWp0UlABkHf/AZEjYXiZb7rcZtFKHXtrObTzWGeD2ZM0ftP
-	 7E6jcKLY3vucLQKHdNmBmVl2WxjjZyFpxhNK5D/4me+NQtfFKTsTZJKl7hXAYStA4D
-	 IazK2xbVJsHIxpxRFhmPxXl4XRKMKZkX89VdK4wFhGKxX/zBTI8QZTHb3q3UsqNpZ+
-	 O8oSDNmXDi98i2NxXvlWnt2SCHxNZKTDA4w2JM6lG7tXoua3M7egKH4hFJL9lfdO/U
-	 UTmjsOHNzE3cQ==
-Received: by mail-lj1-f171.google.com with SMTP id 38308e7fff4ca-39c9a3acd40so27538181fa.3
-        for <linux-acpi@vger.kernel.org>; Fri, 07 Aug 2026 06:20:56 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+Rr1VQxNynSCtzSaQhSY1aeWb3rDjzfCoxhN/AQaH/FvzZnYK/ntbrcNwNKuL1KGegYqM+p1IByEQqOH@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw8yRZC7fEZ38b2J3iDEE3rCrOYeR/7Ks2F7LpiiW7evafKer8d
-	YpunPV8cLcXGOiE0aS3zJzhdglncs/0fLVsDVnYIn171m+GlvErNotbnUudO4k1YeIKvmNr+eRu
-	tjRblKpiq7MBQSKR1mh2KMz6U4hskCqg=
-X-Received: by 2002:a2e:a54d:0:b0:39c:9285:84f6 with SMTP id
- 38308e7fff4ca-39fbb0374f1mr27056571fa.11.1786108855474; Fri, 07 Aug 2026
- 06:20:55 -0700 (PDT)
+	b=WWYWeE5Urqipj9WvxNsF/cwMXasK60WieBhduENLM9Xp98M+aVe6iL56kD4lpZ2om
+	 2TmkcGk5GDFYheXzraRLdenoXaNLhiLAI74MJZ3F3hkaAKzpFuISLkXcnrC5CrLNdE
+	 +3WuTkwpReZ/P/XhJt3SmbbTsaHpC7+FQ1LX5QiSraxEbLZ5omOu5xLO64eVofTxE0
+	 hRFe/uK/qea3KC8otxEaVoYk1Z0M3yhjtCBKDeeTHi7VY4V1h/OrJWS25Qly5MuSPK
+	 M6l1n3ko23AaIHgrn3prPz+mzZti6PXj0s1xND17xtEJ2TB00LP4qBoAeNyq6lEpck
+	 bvP+Qt33vrB0g==
+Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5b28c91fba5so2581396e87.1
+        for <linux-acpi@vger.kernel.org>; Fri, 07 Aug 2026 06:31:16 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+Rq942yxfIFBjljXnieQu7bv9s6+X6XwGgAMAA0gUKZRrMtwoadTyNDpEZGDyTUbsMc5u2ERUgKxHiXR@vger.kernel.org
+X-Gm-Message-State: AOJu0YxpeF9PlYscv+mmVEXRMhEcjgdMzgFWYn/Vt4xpiEq58UiggcZz
+	eFyzcMMbuYHqqHq5WdoZ7w85RoDgz+nwcWz13GH2pvsCtv6h0yZexX18mafn7lRoJPdqp2EE3Kp
+	l1MXLI4eUn6Gu6i9x5zoMr+u+goPgyqo=
+X-Received: by 2002:a05:6512:6186:b0:5b0:1108:c58b with SMTP id
+ 2adb3069b0e04-5b3023cfe15mr2082055e87.15.1786109474938; Fri, 07 Aug 2026
+ 06:31:14 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260708024902.70806-1-luoxueqin@kylinos.cn>
-In-Reply-To: <20260708024902.70806-1-luoxueqin@kylinos.cn>
+References: <12955541.O9o76ZdvQC@rafael.j.wysocki> <c159e25b-379a-4e0d-b284-f68bcbb09c7d@molgen.mpg.de>
+In-Reply-To: <c159e25b-379a-4e0d-b284-f68bcbb09c7d@molgen.mpg.de>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 7 Aug 2026 15:20:43 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0ia9eb=5PpmP=7bZs+birJ+R=hDKvCMLgFx4cGY8po=zw@mail.gmail.com>
-X-Gm-Features: AUfX_mywEHrqJq_lRvjcXlwhmrlku-u9WmVobo83VCLLtCi8yiu7y-Axiv6S7sc
-Message-ID: <CAJZ5v0ia9eb=5PpmP=7bZs+birJ+R=hDKvCMLgFx4cGY8po=zw@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: TAD: Use devm_pm_runtime_set_active_enabled()
-To: Xueqin Luo <luoxueqin@kylinos.cn>
-Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
+Date: Fri, 7 Aug 2026 15:31:01 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gvsnEn-ZgavT6YrWUO1GOWAri7fnT5i1KpEtdEVWSTBw@mail.gmail.com>
+X-Gm-Features: AUfX_myAC2MiU57iWZ5wRgf4FuA0nrTMdzC-Pn5OmaWyEgAtqXEucqFd6Qb6_W0
+Message-ID: <CAJZ5v0gvsnEn-ZgavT6YrWUO1GOWAri7fnT5i1KpEtdEVWSTBw@mail.gmail.com>
+Subject: Re: [PATCH v3] ACPI: scan: Avoid registering platform devices with
+ resource overlaps
+To: Paul Menzel <pmenzel@molgen.mpg.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, 
+	LKML <linux-kernel@vger.kernel.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Mika Westerberg <mika.westerberg@linux.intel.com>, julien82453@gmail.com, jarkko@kernel.org, 
+	linux-integrity@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jul 8, 2026 at 4:49=E2=80=AFAM Xueqin Luo <luoxueqin@kylinos.cn> wr=
-ote:
+On Fri, Aug 7, 2026 at 2:57=E2=80=AFPM Paul Menzel <pmenzel@molgen.mpg.de> =
+wrote:
 >
-> Replace pm_runtime_set_active() and pm_runtime_enable() with
-> devm_pm_runtime_set_active_enabled(), which also handles runtime PM
-> cleanup on driver remove.  Drop the redundant pm_runtime_disable() call
-> from acpi_tad_remove() accordingly.
+> Dear Rafael,
+>
+>
+> Thank you for the patch.
+>
+> Am 07.08.26 um 12:22 schrieb Rafael J. Wysocki:
+> > From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> >
+> > If acpi_dev_get_resources() returns overlapping I/O or memory resources=
+,
+> > the subsequent registration of a platform device will fail with -EBUSY
+> > due to a resource conflict.  This is reported to happen on Acer Aspire
+> > ES1-572 [1].
+>
+> Reading the diff, it might be useful to paste the log warning already her=
+e:
+>
+>      tpm_crb_acpi MSFT0101:00: [Firmware Bug]: Bad ACPI memory layout
 
-The runtime PM on driver removal is handled already AFAICS and the
-code before the change is simpler than after it.
+It's there in the message pointed to by the Closes: tag though.
 
-So why change it?
+> > Avoid that by adjusting resources returned by acpi_dev_get_resources()
+> > to eliminate partial overlaps between them.
+> >
+> > This has not been regarded as necessary before because putting
+> > overlapping resources into the _CRS of one device is really pointless,
+> > but now that the issue has been reported to actually happen in the
+> > field, it needs to be done.
+> >
+> > Fixes: ab06eb920401 ("ACPI: scan: Register platform devices for fixed e=
+vent buttons")
+> > Reported-by: Julien <julien82453@gmail.com>
+> > Closes: https://lore.kernel.org/linux-integrity/CAJOGg3z6LJPDsdPNBxajgy=
+8_wQxfhYBRxe4EiurZf3kPU5A5Bw@mail.gmail.com/ [1]
+> > Cc: All applicable <stable@vger.kernel.org>
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >
+> > v2 -> v3:
+> >     * Use resource_union() and adjust code and comment (Andy)
+> >     * Include ioport.h directly
+> >
+> > v1 -> v2:
+> >     * Add the expanded resource instead of and not in addition to the o=
+ther
+> >       overlapping one (Sashiko)
+> >
+> > ---
+> >   drivers/acpi/acpi_platform.c |   39 +++++++++++++++++++++++++++++++++=
+++++--
+> >   1 file changed, 37 insertions(+), 2 deletions(-)
+> >
+> > --- a/drivers/acpi/acpi_platform.c
+> > +++ b/drivers/acpi/acpi_platform.c
+> > @@ -12,6 +12,7 @@
+> >   #include <linux/bits.h>
+> >   #include <linux/device.h>
+> >   #include <linux/err.h>
+> > +#include <linux/ioport.h>
+> >   #include <linux/kernel.h>
+> >   #include <linux/module.h>
+> >   #include <linux/dma-mapping.h>
+> > @@ -71,6 +72,36 @@ static struct notifier_block acpi_platfo
+> >       .notifier_call =3D acpi_platform_device_remove_notify,
+> >   };
+> >
+> > +static unsigned int acpi_platform_adjust_resources(struct acpi_device =
+*adev,
+> > +                                                struct resource *new_r=
+es,
+> > +                                                struct resource *resou=
+rces,
+> > +                                                unsigned int count)
+> > +{
+> > +     unsigned int i;
+> > +
+> > +     if (!(new_res->flags & (IORESOURCE_IO | IORESOURCE_MEM)))
+> > +             return count;
+> > +
+> > +     for (i =3D 0; i < count; ) {
+> > +             struct resource *res =3D &resources[i];
+> > +
+> > +             if (resource_type(new_res) !=3D resource_type(res) ||
+> > +                 !resource_union(new_res, res, new_res)) {
+> > +                     i++;
+> > +                     continue;
+> > +             }
+> > +
+> > +             dev_info(&adev->dev, "%pR expanded to avoid overlap\n", n=
+ew_res);
+>
+> Maybe more normal user understandable:
+>
+>      %pR expanded to fit all resources to avoid overlap
 
-> Signed-off-by: Xueqin Luo <luoxueqin@kylinos.cn>
-> ---
->  drivers/acpi/acpi_tad.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
+What about "expanded due to overlap"?  I'd prefer it to be shorter
+because the resource printout takes up some message space already.
+
+> For the record, Julian reported that now the lines below are logged:
 >
-> diff --git a/drivers/acpi/acpi_tad.c b/drivers/acpi/acpi_tad.c
-> index fc43df083738..51f8d1b9a8fb 100644
-> --- a/drivers/acpi/acpi_tad.c
-> +++ b/drivers/acpi/acpi_tad.c
-> @@ -809,7 +809,6 @@ static void acpi_tad_remove(void *data)
->         }
+>      MSFT0101:00: [mem 0xfed40000-0xfed4103f] expanded to avoid overlap
+>      tpm_crb_acpi MSFT0101:00: [Firmware Bug]: Bad ACPI memory layout
+
+Right, and the second one comes from the driver binding to the device.
+
+> > +             /*
+> > +              * Eliminate the previously processed resource that overl=
+apped
+> > +              * with the new one because it is not necessary any more.
+> > +              */
+> > +             memmove(res, res + 1, (--count - i) * sizeof(*res));
+> > +     }
+> > +
+> > +     return count;
+> > +}
+> > +
+> >   static void acpi_platform_fill_resource(struct acpi_device *adev,
+> >       const struct resource *src, struct resource *dest)
+> >   {
+> > @@ -151,10 +182,14 @@ struct platform_device *acpi_create_plat
+> >                               return ERR_PTR(-ENOMEM);
+> >                       }
+> >                       count =3D 0;
+> > -                     list_for_each_entry(rentry, &resource_list, node)
+> > +                     list_for_each_entry(rentry, &resource_list, node)=
+ {
+> > +                             count =3D acpi_platform_adjust_resources(=
+adev,
+> > +                                                                    re=
+ntry->res,
+> > +                                                                    re=
+sources,
+> > +                                                                    co=
+unt);
+> >                               acpi_platform_fill_resource(adev, rentry-=
+>res,
+> >                                                           &resources[co=
+unt++]);
+> > -
+> > +                     }
+> >                       acpi_dev_free_resource_list(&resource_list);
+> >               }
+> >       }
 >
->         pm_runtime_suspend(dev);
-> -       pm_runtime_disable(dev);
->  }
->
->  static int acpi_tad_probe(struct platform_device *pdev)
-> @@ -866,8 +865,10 @@ static int acpi_tad_probe(struct platform_device *pd=
-ev)
->          * The platform bus type probe callback tells the ACPI PM domain =
-to
->          * power up the device, so set the runtime PM status of it to "ac=
-tive".
->          */
-> -       pm_runtime_set_active(dev);
-> -       pm_runtime_enable(dev);
-> +       ret =3D devm_pm_runtime_set_active_enabled(dev);
-> +       if (ret)
-> +               return ret;
-> +
->         pm_runtime_suspend(dev);
->
->         /*
-> --
-> 2.43.0
->
+> Reviewed-by: Paul Menzel <pmenzel@molgen.mpg.de>
+
+Thank you!
