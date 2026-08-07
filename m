@@ -1,221 +1,113 @@
-Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f175.google.com (mail-qk1-f175.google.com [209.85.222.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87F0622F767
-	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 00:38:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29AAE239085
+	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 01:57:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786063113; cv=none; b=ALznMbl3hLsOn5+BnHlFetIfIJ6GezGKPoiz0OPukwg1aYNKtHbY/V8UL6MvBsBh/8xq/Nqs4AHK6RDm8rkVNYN6Zuh0bHTrmIYj2IEHc07HxD2G0P7GwDOgMHomRoq93xyoZCpxSZETS8UgiwcrWCXJFn8ot/U6QTSUBFi37PI=
+	t=1786067865; cv=none; b=imIqzzEY2Cb4u4l8PchlTk6gJgBEGAUTv/jmRfwOlKs72AqLifa083radp+BzbxJ7TrqDN+wO6ZrJSoBepfsCx/3Rfq0aJg6jqVWu6jCHaW8p1OgxL7IERyd64WkPNY4Dyml92YQy+wX56QfH4wff08zHC/0sEDDWRjZZb2gSAU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786063113; c=relaxed/simple;
-	bh=dsWMhdIrqSK6WxQqUiMqdWFZLYDnTD9M2oM1sYypADk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BxdJbjHBjFp1ULdmK+7wT+M41bzWXoD/xqNZiTyOVd4RZPntPEO/rsZmNn86Uajao5S6RwVgBiTO6NBjWn8rF8C9j8pHugwzjZQ7O5NnPiVR211sFwmwaOxVJ8K4sWsBa+rPE1jxhKSJU/ynJj/VGnxGR+4rjjOq8gXtlJserKI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=lWxfGMft; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=TITZg+4Z; arc=none smtp.client-ip=205.220.180.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	s=arc-20240116; t=1786067865; c=relaxed/simple;
+	bh=PYarvIk4stXWbmENgKi5cQ3zEw7C2KPueXSGbpom3cc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Fn6++ebWxreZoSD92lFvv5/x8OcnzhRf/4XLBqnte/vSZW31OwMIpjm241wT9nZlBSe4XorIfkmNqd7dn74x6BqhQJs9K8uR6PRYiZvhksUznwWe/g2K/Mb8tYB+CLWswru4yCPbi0IJ09FcvNdxk9777Dv/osgmlboW3/KrlTQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZH0AIKEJ; arc=none smtp.client-ip=209.85.222.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="lWxfGMft";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="TITZg+4Z"
-Received: from pps.filterd (m0279870.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6770GnSP3519240
-	for <linux-acpi@vger.kernel.org>; Fri, 7 Aug 2026 00:38:30 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=qcppdkim1; bh=JY6AEkRNUFU/eSw3bdP8Dhft
-	bSXAEXPlKY7ke5titbY=; b=lWxfGMft2Mxn5rO6npfQrfmWwzbDbl0mNP4X/Gv2
-	GQPgKfxuuS5jHPPG8KM2tHlIRaHVqQsD8uW+T732mKnonUdLtisy0mc+t4YbVY8C
-	d1/SeNxamkuw9I1+8laLfaaZ0iqIKfx+EaRdVJ8Zq11TIIbSfK7G7HXPUgfrILY7
-	Ts2sSV8YGNcDEksPqZBWaceYqlXgN2ERMlhMTRfnFNrT6NNK+SuMzCP5ogPqi264
-	Uz/JpEKkiRmZIM1IKk+LqbKW/QYRxgJym2r3wjgXVLSAvwS2CxP3rc2jFk7Uio6+
-	iQ9m9Kfc6EJETQ6JZMGZIQzfDy9M1eFEpExDbof2v64Nqw==
-Received: from mail-pg1-f197.google.com (mail-pg1-f197.google.com [209.85.215.197])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4fvy6s1hfa-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Fri, 07 Aug 2026 00:38:30 +0000 (GMT)
-Received: by mail-pg1-f197.google.com with SMTP id 41be03b00d2f7-cbb6433e9d4so3480397a12.3
-        for <linux-acpi@vger.kernel.org>; Thu, 06 Aug 2026 17:38:30 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZH0AIKEJ"
+Received: by mail-qk1-f175.google.com with SMTP id af79cd13be357-92e5c9211d2so227817985a.1
+        for <linux-acpi@vger.kernel.org>; Thu, 06 Aug 2026 18:57:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1786063109; x=1786667909; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=JY6AEkRNUFU/eSw3bdP8DhftbSXAEXPlKY7ke5titbY=;
-        b=TITZg+4ZRe3CDND7M5ejwEANPS5wn46rBf1ASzUejOcriqTBxopAFUE86J3G/Bf2zc
-         k4uJIHKdbuXRO3Q6n3iggCh3aA0CcU+Xs/4jdRmyhGhThGMoC1SoIh6UZJdmBnjAANdL
-         RCHEwjoC7hPSIWDb1u+tZeWLLpSQgZnAokHkvCu53CXzDBOzpGvCsijbyHwkb/rYv05Y
-         upBw4SQpCRHL3YfLo641NJM43LvpHV/OX+DjsvOzY6zZm2rdtbESBKW8jvfLY+N0VVCP
-         d5gm8KTbkjVahJ5Xh13Cyj/miTfx1s++cGOLizMqQjmrxAVbHXOrEZ8re8XVekGfErmz
-         Kv7A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786063109; x=1786667909;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+        d=gmail.com; s=20251104; t=1786067863; x=1786672663; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:message-id:date
+         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=JY6AEkRNUFU/eSw3bdP8DhftbSXAEXPlKY7ke5titbY=;
-        b=h8R10mMkZTx0P1pJT/Z7JNGBDphU9eaz0VUvm+Q+mpDrrHGcNAcy0Re26g2wYQnM4i
-         PKo9zQTJJzZvtBveJ31wgMIIaAVNuKoQo8wugfOQnRAiqps6AVb8JmlAFSHH4CTKd5o9
-         sVFOpg+FbtYLGL8rH3Z+XpQeQTbTIKsGcgID1YTEzf0QsioK5QSHigmEL92plDCIHha+
-         XbDfZq+8esV2Iu8sfKLXVHT/IulcWl6M6pZqbXAbrlClPuGqswCB/VS2i5BwMLt56EVc
-         bWXRDqGbyOYmu4L0D2JDp54FaURysYB5ct4vEQmRxVDtNONimbVBRGAaUTFY/2lPjelS
-         /jYw==
-X-Forwarded-Encrypted: i=1; AHgh+Ro88ml/QITvzWdESwdRHy48GnWfhWcYkxWqg8ZZvZ66+boQRpkC1tBFrIsIh2+yQ6Ox6N64kBc+SWnb@vger.kernel.org
-X-Gm-Message-State: AOJu0YyQ0J3vCYbFyzrz8yxte4GUllpyefeUxUrCG/dQN60+5eXzm4j0
-	M+ZKpk/GDKgti8Oxoqid9jzqSin4+bGtaZCe63LFIBEWsO+rYeYIyp+7ov7tYY6C6YXTUScGrmM
-	EAlZykkrZXn7zTg/RnSo1Uaw38MppRhQJ6sdOC/+nBZon/TMLii6qHlp8QVZF4cng
-X-Gm-Gg: AR+sD13QG5e2vtYC+G0sBdI58dStO4bETRGH3PtzXua5pqJ3kTazEjVWlVlYneh75Yq
-	hSIB+j34ld2nLu7blA74n5mi1/eZtGpFKY8RBmb59ErvO7mwpXruAvX/FLL9E2DSWyN9YbWB0mv
-	1fGyZ3qP/wRZFAdlQxT6eZJelhnWLZPxVCIx2KCWuY4w4m7lN5oTC46tAE7QND3AmPjlrDSYbz0
-	+LTv9S97O35TrcRkWDUo/D9sLkj2xGno8XgBgiXgRBf6gSFZwXPzxtmUo/oah9srppwwcbnm00b
-	EszKtishsrcErr6AIsNwQbW/ASdG0sNSRrC3EETL0QqxmXKS1HkANZmYQCwi3U9TnOUPIBXvWFH
-	L4WhA4dF46uNZrP5R40lCKZnmqCDj5xd4irsmhge1DQ5tcktAUQ==
-X-Received: by 2002:a05:6a21:139a:b0:3c3:c07b:5322 with SMTP id adf61e73a8af0-3cb8602693bmr24170268637.34.1786063109214;
-        Thu, 06 Aug 2026 17:38:29 -0700 (PDT)
-X-Received: by 2002:a05:6a21:139a:b0:3c3:c07b:5322 with SMTP id adf61e73a8af0-3cb8602693bmr24170219637.34.1786063108809;
-        Thu, 06 Aug 2026 17:38:28 -0700 (PDT)
-Received: from hu-ashoraj-lv.qualcomm.com (Global_NAT1.qualcomm.com. [129.46.96.20])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-315be86e90asm648336eec.3.2026.08.06.17.38.27
+        bh=daDjSIgh++0EBQy8pk/MlTH43hFTaX8dzx/fJmq3gq0=;
+        b=ZH0AIKEJrkpnitdIA5FVi4P5gZED/IisrRx/vZ93+85kyB3xc8LjBN+fwlA6gXACNm
+         6JU2wyw1u6HN/Z5+XEV2B95/maQpHnN7iTlhiqcGdifIAMpRUMWdr4QK49H+7VGU/Twy
+         ytc2OPF9qwFOosVdBq8YdEF/LQfjuZjw0mozjS/mU9UuOFAPvl7UiNRlf2OB4wVvIgSN
+         /rcj4ajYRuF4RyKOMiciJNxmt0DJFRysBx0VaPANp+KCUbGF0/SW0KRrW0cmQCSeItFd
+         bN6XR06slzSVokCKGY+xbpzmeBV5ICUBs8LL7i2PMNkLefNKtvxiXHBsao3j/1tsTcNy
+         FKoA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786067863; x=1786672663;
+        h=content-transfer-encoding:content-type:mime-version:message-id:date
+         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=daDjSIgh++0EBQy8pk/MlTH43hFTaX8dzx/fJmq3gq0=;
+        b=jsJFIWi6F3TtLUbeIIfzbH9OftfkhqaRxoPePJVacAJI3uyLjt+mgERyM8WkGCzYGr
+         GnZKN0oyQAk+TSwiuAm6qv6J/Sme1iVvADcbXRrgx8Yap1KigJdyODZe1ze1+54NeqaJ
+         ekFwz7juKKE4Mer0Et/HHSEOdrNIcFRkoj6HoXAxpslXiUeFi4rYiIEODpP5IWQAzjxl
+         tuYGsP8yYoiI0NprZypX5qxHhFK6Xcf7qzu+BJhsZ9iINUv/59+mOvbgwf2uZzZx9rEk
+         dzL3cxdTHOr6Gls+Fz3zVI8U6IQmxDuOrnMEA70byuAfNzSTQNX3Mrn+RQPoAbsdNmC6
+         lcww==
+X-Forwarded-Encrypted: i=1; AHgh+RpXdEz8cOPP91lAmN+PL1lo+H+bZBxuhtIlW16DdxAUyneL42H0yRAyUlxpByQjm500Qfwd+np3dQdK@vger.kernel.org
+X-Gm-Message-State: AOJu0YylFTPZLkfB6abOe5bC1Ge7lhMNiZrtjlMcBJlczBQ046yivA6P
+	n/85M982/yfPKyQeI8FBLgb6qXFUMGSEKTZ/k/6+rbbL62yb3V1YmEWA
+X-Gm-Gg: AR+sD13HTSJPtL3NEeLOsLM2lJNgCLxY1t0PGj5ytLoRrAFk9IUhuMUU+G71q6W0ky+
+	a7B88E5J3hx91i1OuqppsLNeN5jgBSb9aqHxPp5Y7i5H+Lb5IGbGInAX6bTsKKVr5dL+M28bO/Z
+	c8ZtiT7ftovALNKbiJa4q4E4SU2a1rbtQurSZXU4joz4GjSM+NGVq2QQbXY6NKrw8hoWKGwzmgX
+	g9AuzH3UDMk8f0wKVM2vn28HD3FHcvjqv++kn/FjWchJkq+Ev6BWiyeglzOziSbJBDeVk9MnGc6
+	ah2G3040t5tMRfy5Cx52CASKZmPy/5cpTTk92rDdd8reqhoP5jYNp+hSgK6/D0nh9tuoJhs25zR
+	EtcuAdOr5NsN/LAiJq0wSfEcbUKps+8+1LTjGUkJ5K9QzaFf0C2x0NK66meC9zJzXCgjl7NDc/2
+	0yOK4zoRlGYP3v7KsGyopolONxXjqspoKZXVorqRRLdHh+U7Q/apN0Zq1Pk9FiwlRTEFgXOojnF
+	T0Qti5Lt1slefCllPPS+o+XikyYdX3ukpybhpYgGX0L32/vhQWZhjL743e0Yvs=
+X-Received: by 2002:a05:620a:4d98:b0:934:9fe8:6b54 with SMTP id af79cd13be357-936491651b2mr1383857885a.31.1786067862818;
+        Thu, 06 Aug 2026 18:57:42 -0700 (PDT)
+Received: from i4-gl-tmk5904.ad.psu.edu ([130.203.156.186])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-9366e22695bsm44311185a.25.2026.08.06.18.57.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 06 Aug 2026 17:38:28 -0700 (PDT)
-Date: Thu, 6 Aug 2026 17:38:26 -0700
-From: Ashok Raj <ashok.raj@oss.qualcomm.com>
-To: Kai-Heng Feng <kaihengf@nvidia.com>
-Cc: rafael@kernel.org, linux-acpi@vger.kernel.org, tony.luck@intel.com,
-        bp@alien8.de, guohanjun@huawei.com, mchehab@kernel.org,
-        xueshuai@linux.alibaba.com, lenb@kernel.org, kees@kernel.org,
-        gustavoars@kernel.org, linux-hardening@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Ashok Raj <ashok.raj@oss.qualcomm.com>
-Subject: Re: [PATCH v3 1/3] ACPI: APEI: GHES: Refactor Grace decoder helpers
-Message-ID: <anUpAigVklVNG7ij@hu-ashoraj-lv.qualcomm.com>
-References: <20260724122054.36162-1-kaihengf@nvidia.com>
- <20260804122318.88193-1-kaihengf@nvidia.com>
- <20260804122318.88193-2-kaihengf@nvidia.com>
+        Thu, 06 Aug 2026 18:57:41 -0700 (PDT)
+From: Yuho Choi <dbgh9129@gmail.com>
+To: rafael@kernel.org
+Cc: lenb@kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Yuho Choi <dbgh9129@gmail.com>
+Subject: [PATCH v1] ACPI: video: Release PCI device reference after lookup
+Date: Thu,  6 Aug 2026 21:57:34 -0400
+Message-ID: <20260807015734.913361-1-dbgh9129@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260804122318.88193-2-kaihengf@nvidia.com>
-X-Proofpoint-Spam-Info: AW1haW4tMjYwODA3MDAwMSBTYWx0ZWRfXyjKRzaZmAkZN
- lWyl3Ci0X3PCuKgSOUAjpZneOlByjkOelcD+daTRwTt30xPLb9cKBNos9cyDOyFdmpxXWp1c6V4
- 4ITo7DUXnqGfAcjOEePw1l/YTQ/tcXY=
-X-Proofpoint-ORIG-GUID: P9ZvdeisSZB9tPF-VMqpA9CZxb248-8q
-X-Proofpoint-GUID: P9ZvdeisSZB9tPF-VMqpA9CZxb248-8q
-X-Authority-Analysis: v=2.4 cv=B+eJFutM c=1 sm=1 tr=0 ts=6a752906 cx=c_pps
- a=rz3CxIlbcmazkYymdCej/Q==:117 a=ouPCqIW2jiPt+lZRy3xVPw==:17
- a=IkcTkHD0fZMA:10 a=Sv0fKeRqtYgA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=gowsoOTTUOVcmtlkKump:22
- a=Ikd4Dj_1AAAA:8 a=VwQbUJbxAAAA:8 a=u8maBWZV0gvdrbkAJa4A:9 a=QEXdDO2ut3YA:10
- a=bFCP_H2QrGi7Okbo017w:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODA3MDAwMSBTYWx0ZWRfX/4HviQNorsHo
- px6vYs8XRyM2loUbJ0XF+rgJO4Bzj11PVmDnbS6a7dGbnR9368wZwsNwYhPEtJAHxpwfSEUvqwI
- DE082q/h0Jv6asfx8nk9rJ/PkO+Vv3iSvZozenNGmSo4JV7q2YEJng6muu8xHMQ4msxqsQ8bX8q
- oGlQcBV11iP970ekKW4eje6UxuFSdUhggdVk4lB9eTAwMDlL2Xxd82ERmKaL8XqHSTtlr78LEjD
- c/M81yWefc0uFjjgRO77qndC1fPYY6ydXtoIwZLzZ+MoEhF/vQiy9iY2RJItVrX7iYpusKSsHFS
- lQiSDJ0+UnPL8RMn7MvF7lSCKVQlER8SqqJ0ekpKgQPganhUSICvWNuCEQ+6VMPywYIo3C4W2H8
- i+D45esexts44P/HOJAL7et/5rJGb+87Vh4AhcL5OaePx/D08TE5MhBtJl4hviOilEDZ1VGjwTs
- vfgGnALRzFIY8hq6m2w==
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-08-07_01,2026-08-06_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- spamscore=0 suspectscore=0 impostorscore=0 clxscore=1015 lowpriorityscore=0
- priorityscore=1501 adultscore=0 bulkscore=0 phishscore=0 malwarescore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2608070001
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Tue, Aug 04, 2026 at 08:23:15PM +0800, Kai-Heng Feng wrote:
-> Split the Grace CPER processing into a separate decode step and a
-> print step so the parser can be exercised by KUnit without a live
-> ACPI device. Introduce ghes-nvidia.h to hold shared types that the
-> Vera decoder added in the next commit will also reference.
-> 
-> Parse the Grace wire payload with __packed structs and
-> get_unaligned_le*() for multi-byte fields, matching the Vera
-> decoder style. Reject nvidia_ghes_grace_reg_pair() calls with a
-> non-zero register count and a NULL grace_regs pointer, and
-> rate-limit Grace decoder diagnostics.
-> 
-> Signed-off-by: Kai-Heng Feng <kaihengf@nvidia.com>
+video_detect_portege_r100() uses pci_get_device() only as a boolean
+check for the Trident CyberBlade XP4m32 device. pci_get_device() takes a
+reference on a matching PCI device, but the callback returns without
+releasing it.
 
-Hi Kai,
+Drop the reference after selecting the vendor backlight quirk so the PCI
+device can be released normally.
 
-> ---
-> v3:
->  - Use __packed + get_unaligned_le*() for Grace multi-byte fields,
->    including register pairs (Shuai Xue).
->  - Keep __counted_by / struct_size; reject NULL grace_regs when
->    number_regs != 0; document the helper contract.
->  - Rate-limit Grace decoder and notify error messages.
-> v2:
->  - No change.
-> ---
->  MAINTAINERS                     |   2 +-
->  drivers/acpi/apei/ghes-nvidia.c | 160 ++++++++++++++++++++++----------
->  drivers/acpi/apei/ghes-nvidia.h |  50 ++++++++++
->  3 files changed, 160 insertions(+), 52 deletions(-)
->  create mode 100644 drivers/acpi/apei/ghes-nvidia.h
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 5114e6db7307..aa9c2ae58ac5 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -19348,7 +19348,7 @@ NVIDIA GHES VENDOR CPER RECORD HANDLER
->  M:	Kai-Heng Feng <kaihengf@nvidia.com>
->  L:	linux-acpi@vger.kernel.org
->  S:	Maintained
-> -F:	drivers/acpi/apei/ghes-nvidia.c
-> +F:	drivers/acpi/apei/ghes-nvidia*
->  
->  NVIDIA VRS RTC DRIVER
->  M:	Shubhi Garg <shgarg@nvidia.com>
-> diff --git a/drivers/acpi/apei/ghes-nvidia.c b/drivers/acpi/apei/ghes-nvidia.c
-> index 597275d81de8..e7cc912344fd 100644
-> --- a/drivers/acpi/apei/ghes-nvidia.c
-> +++ b/drivers/acpi/apei/ghes-nvidia.c
-> @@ -9,13 +9,18 @@
->  #include <linux/module.h>
->  #include <linux/platform_device.h>
->  #include <linux/types.h>
-> +#include <linux/unaligned.h>
->  #include <linux/uuid.h>
->  #include <acpi/ghes.h>
+Fixes: 35a341c9b25d ("ACPI: video: Add acpi_backlight=vendor quirk for Toshiba Portégé R100")
+Assisted-by: OpenAI-Codex:GPT-5
+Signed-off-by: Yuho Choi <dbgh9129@gmail.com>
+---
+ drivers/acpi/video_detect.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-One naive question, do these CPER decoding for vendor specific pieces
-belong in the kernel? Or you would manage them from user space?
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 458efa4fe9d4..4c1c3b0b5499 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -137,8 +137,10 @@ static int video_detect_portege_r100(const struct dmi_system_id *d)
+ 	struct pci_dev *dev;
+ 	/* Search for Trident CyberBlade XP4m32 to confirm Portégé R100 */
+ 	dev = pci_get_device(PCI_VENDOR_ID_TRIDENT, 0x2100, NULL);
+-	if (dev)
++	if (dev) {
+ 		acpi_backlight_dmi = acpi_backlight_vendor;
++		pci_dev_put(dev);
++	}
+ 	return 0;
+ }
+ 
+-- 
+2.43.0
 
-
->  
-> -static const guid_t nvidia_sec_guid =
-> +#include <kunit/visibility.h>
-> +#include "ghes-nvidia.h"
-> +
-> +static const guid_t nvidia_grace_sec_guid =
->  	GUID_INIT(0x6d5244f2, 0x2712, 0x11ec,
->  		  0xbe, 0xa7, 0xcb, 0x3f, 0xdb, 0x95, 0xc7, 0x86);
->  
-> +/* Grace CPER section wire layout (header without flexible register array). */
->  struct cper_sec_nvidia {
->  	char	signature[16];
->  	__le16	error_type;
-> @@ -25,84 +30,137 @@ struct cper_sec_nvidia {
->  	u8	number_regs;
->  	u8	reserved;
->  	__le64	instance_base;
-> -	struct {
-> -		__le64	addr;
-> -		__le64	val;
-> -	} regs[] __counted_by(number_regs);
-> -};
-> +	struct nvidia_ghes_grace_reg regs[] __counted_by(number_regs);
-> +} __packed;
-> +
-
-[snip]
-
-Cheers,
-Ashok
