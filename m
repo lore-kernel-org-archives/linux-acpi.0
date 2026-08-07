@@ -1,72 +1,71 @@
-Received: from mail-qk1-f175.google.com (mail-qk1-f175.google.com [209.85.222.175])
+Received: from mail-qk1-f172.google.com (mail-qk1-f172.google.com [209.85.222.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29AAE239085
-	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 01:57:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D53C63C9896
+	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2026 03:54:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786067865; cv=none; b=imIqzzEY2Cb4u4l8PchlTk6gJgBEGAUTv/jmRfwOlKs72AqLifa083radp+BzbxJ7TrqDN+wO6ZrJSoBepfsCx/3Rfq0aJg6jqVWu6jCHaW8p1OgxL7IERyd64WkPNY4Dyml92YQy+wX56QfH4wff08zHC/0sEDDWRjZZb2gSAU=
+	t=1786074906; cv=none; b=ecIEEjXr/gdkIfl7sE3zbx3o4S7aUfU9tRuXqFdsGsTIRzbOSqzyr6gXQnwCq53ucDgXY/ABxbGeZVN0eVkOKvotsPJHRVJ08vt26kDgaYrTnqRQyGPhJGmrOV3lbvpDJzSWIk8YX3nf3BerS55P/98HUmrwDALxNWFBh660TaA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786067865; c=relaxed/simple;
-	bh=PYarvIk4stXWbmENgKi5cQ3zEw7C2KPueXSGbpom3cc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Fn6++ebWxreZoSD92lFvv5/x8OcnzhRf/4XLBqnte/vSZW31OwMIpjm241wT9nZlBSe4XorIfkmNqd7dn74x6BqhQJs9K8uR6PRYiZvhksUznwWe/g2K/Mb8tYB+CLWswru4yCPbi0IJ09FcvNdxk9777Dv/osgmlboW3/KrlTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZH0AIKEJ; arc=none smtp.client-ip=209.85.222.175
+	s=arc-20240116; t=1786074906; c=relaxed/simple;
+	bh=Elhaw7454IcxOxFvajFIj/zc+9hsb3/Q9YfUijVfmjU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YaKvVl/0GF4bPpB6z84mmKaVYg4z26TLKVwGIxq0/nPq7txkIDDTyovuSHNWJXUPqDRciR2p7VPjoAjoenYcunb/0WvRDUkEyt9yBXvISJaoCpgdAEgHsM/4hIMEEBfb4CbIgfrYrkc1NrnRBfow0j3Q3TSJrrZ3ZWtMSHW57BY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=fWKOsA69; arc=none smtp.client-ip=209.85.222.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZH0AIKEJ"
-Received: by mail-qk1-f175.google.com with SMTP id af79cd13be357-92e5c9211d2so227817985a.1
-        for <linux-acpi@vger.kernel.org>; Thu, 06 Aug 2026 18:57:43 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fWKOsA69"
+Received: by mail-qk1-f172.google.com with SMTP id af79cd13be357-92e85499ffbso197246285a.0
+        for <linux-acpi@vger.kernel.org>; Thu, 06 Aug 2026 20:54:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786067863; x=1786672663; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:message-id:date
-         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=daDjSIgh++0EBQy8pk/MlTH43hFTaX8dzx/fJmq3gq0=;
-        b=ZH0AIKEJrkpnitdIA5FVi4P5gZED/IisrRx/vZ93+85kyB3xc8LjBN+fwlA6gXACNm
-         6JU2wyw1u6HN/Z5+XEV2B95/maQpHnN7iTlhiqcGdifIAMpRUMWdr4QK49H+7VGU/Twy
-         ytc2OPF9qwFOosVdBq8YdEF/LQfjuZjw0mozjS/mU9UuOFAPvl7UiNRlf2OB4wVvIgSN
-         /rcj4ajYRuF4RyKOMiciJNxmt0DJFRysBx0VaPANp+KCUbGF0/SW0KRrW0cmQCSeItFd
-         bN6XR06slzSVokCKGY+xbpzmeBV5ICUBs8LL7i2PMNkLefNKtvxiXHBsao3j/1tsTcNy
-         FKoA==
+        d=gmail.com; s=20251104; t=1786074898; x=1786679698; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=V73Au8wEhU0LrohqbWiG8So58r1u7vwRuaOrdVjuz8Y=;
+        b=fWKOsA69tHrnoXuMtSRFOThpnW5seCHiWJmWA/Z/LhbX+vgFp1/ucYoyGPJedbc+Xt
+         Zhbn2FYGQ7QxT1YhgdJYxVAGNmM9IO+rhjiH6BbnvyGWp/siAztCcP4YH0ITizskZeKV
+         totXkdhmVnuiQjs5geE169sa6h14GA7IvoQ4pJpuvQqTzj/HsPDsID4x6PFUo+MqqOxF
+         AfVSR18w2SozUtr+fNTZOD67QKFkdz4/rgQ7Dlq+/7y2FmPwop9xzwGuwGSc4VyHOfgc
+         uaU3doqwbNTAZtiyBd+sowBjICRfn1A/3JOi8WjovWvE+ezfYapE2LZ54Sq3oB9/MfxR
+         Ghlg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786067863; x=1786672663;
-        h=content-transfer-encoding:content-type:mime-version:message-id:date
-         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=daDjSIgh++0EBQy8pk/MlTH43hFTaX8dzx/fJmq3gq0=;
-        b=jsJFIWi6F3TtLUbeIIfzbH9OftfkhqaRxoPePJVacAJI3uyLjt+mgERyM8WkGCzYGr
-         GnZKN0oyQAk+TSwiuAm6qv6J/Sme1iVvADcbXRrgx8Yap1KigJdyODZe1ze1+54NeqaJ
-         ekFwz7juKKE4Mer0Et/HHSEOdrNIcFRkoj6HoXAxpslXiUeFi4rYiIEODpP5IWQAzjxl
-         tuYGsP8yYoiI0NprZypX5qxHhFK6Xcf7qzu+BJhsZ9iINUv/59+mOvbgwf2uZzZx9rEk
-         dzL3cxdTHOr6Gls+Fz3zVI8U6IQmxDuOrnMEA70byuAfNzSTQNX3Mrn+RQPoAbsdNmC6
-         lcww==
-X-Forwarded-Encrypted: i=1; AHgh+RpXdEz8cOPP91lAmN+PL1lo+H+bZBxuhtIlW16DdxAUyneL42H0yRAyUlxpByQjm500Qfwd+np3dQdK@vger.kernel.org
-X-Gm-Message-State: AOJu0YylFTPZLkfB6abOe5bC1Ge7lhMNiZrtjlMcBJlczBQ046yivA6P
-	n/85M982/yfPKyQeI8FBLgb6qXFUMGSEKTZ/k/6+rbbL62yb3V1YmEWA
-X-Gm-Gg: AR+sD13HTSJPtL3NEeLOsLM2lJNgCLxY1t0PGj5ytLoRrAFk9IUhuMUU+G71q6W0ky+
-	a7B88E5J3hx91i1OuqppsLNeN5jgBSb9aqHxPp5Y7i5H+Lb5IGbGInAX6bTsKKVr5dL+M28bO/Z
-	c8ZtiT7ftovALNKbiJa4q4E4SU2a1rbtQurSZXU4joz4GjSM+NGVq2QQbXY6NKrw8hoWKGwzmgX
-	g9AuzH3UDMk8f0wKVM2vn28HD3FHcvjqv++kn/FjWchJkq+Ev6BWiyeglzOziSbJBDeVk9MnGc6
-	ah2G3040t5tMRfy5Cx52CASKZmPy/5cpTTk92rDdd8reqhoP5jYNp+hSgK6/D0nh9tuoJhs25zR
-	EtcuAdOr5NsN/LAiJq0wSfEcbUKps+8+1LTjGUkJ5K9QzaFf0C2x0NK66meC9zJzXCgjl7NDc/2
-	0yOK4zoRlGYP3v7KsGyopolONxXjqspoKZXVorqRRLdHh+U7Q/apN0Zq1Pk9FiwlRTEFgXOojnF
-	T0Qti5Lt1slefCllPPS+o+XikyYdX3ukpybhpYgGX0L32/vhQWZhjL743e0Yvs=
-X-Received: by 2002:a05:620a:4d98:b0:934:9fe8:6b54 with SMTP id af79cd13be357-936491651b2mr1383857885a.31.1786067862818;
-        Thu, 06 Aug 2026 18:57:42 -0700 (PDT)
+        d=1e100.net; s=20251104; t=1786074898; x=1786679698;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=V73Au8wEhU0LrohqbWiG8So58r1u7vwRuaOrdVjuz8Y=;
+        b=FGLtJnRgGlhL88tPRAif4NDnDJIKCYfbOj7UNTSyrWNVZIsbImDrXzKYOV8LnnnXCh
+         q4yrsKV+mEiLd+Hjc1WrWcSeS7pzTvt+kkG4GwIWbDzOCgrZyw9TANP/iObfzraqDwy0
+         qd89tphoCIYht5/nU/BVl9ePxQqyGic14mvMQ4s7EhXTH0TvDjp3nnt24KrbMKKmktRX
+         0zeXaS7pHKVE9kXApXGDPzLZP6wXH1iMvJrxul57iVx3RlkcMbfP+14lcSI3PxKumte3
+         eBBtJ0oDoCIxIoe7b6fFomujYKizx34LsO722ZjpQeIRRbUpLfcJnmMChw/71oNqdKby
+         qVTg==
+X-Forwarded-Encrypted: i=1; AHgh+RoFsyIlib+q7Lrh5WWzySdv6cStqfypB8tpFjOZ97g7m32ONGZ1pl7xodn6JsTT5okUKWtrygxT2xVC@vger.kernel.org
+X-Gm-Message-State: AOJu0YwuV3e7mbFpp31q7210jD1uOzVCQj72TVq6sxvCP0myM4hp1Bdp
+	w1jWStoBoNnJUY6yKdEoRchnuOezgKZLoV289Ho/2a6HJp4qdqMoBV0w
+X-Gm-Gg: AR+sD12xnpbLB7KbZz/Er6ylvH0IbklclhHf2A28lnAdyttg2JDZ0Li9n7FFVe5WKC8
+	/DE6VmhQZWx/XDxJn9Z9ibJg7kdpWNayWf5sGashF2Ui3a7WSe+m4cpuiFYn8PGs4SoqFqRJzur
+	HmGyMkG+3tl6dkWikTbHTlUORw47waO5v8/Ldu2j4EREP5ZE/sh1XUmJQyfTHbi9jOC2aVzktCl
+	8oSQBj9kF5TwqMDtgEjr1E/RJn40Lam6oU3UAf2wF5yamxsQtb+/XAPmo8U0wMgPktDbqP2AQ7S
+	1/g2/vnbLkqTjCRxZwfFrMPhV+ac+hsDfjPmMbdUcl6LDjcuDWUJQziZbdiYTb0pOyT3CUrXGBU
+	BNBflrJGBA1Jtyd2CW81Wqt32wwjcD/SJTP+GKEm+vZbUhg2RMzLDoluZdU3n6mjGjV/k1H0rHY
+	P5MRHjcL/YmSk0NCVuM9QdwUx8JCl3aCHTFwgm727yRNBJighbip77IfPn9O6yBqF8WACjTjtMO
+	fSpAUu2c36Q91i2Fry9UuMgwgZhGwyXLmUrO3IlUbRbqHMQ0g7+csusX+JNxnI=
+X-Received: by 2002:a05:620a:f07:b0:936:583a:dd75 with SMTP id af79cd13be357-9366646501amr671111785a.17.1786074898332;
+        Thu, 06 Aug 2026 20:54:58 -0700 (PDT)
 Received: from i4-gl-tmk5904.ad.psu.edu ([130.203.156.186])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-9366e22695bsm44311185a.25.2026.08.06.18.57.41
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-9366e258608sm61386985a.33.2026.08.06.20.54.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 06 Aug 2026 18:57:41 -0700 (PDT)
+        Thu, 06 Aug 2026 20:54:57 -0700 (PDT)
 From: Yuho Choi <dbgh9129@gmail.com>
 To: rafael@kernel.org
 Cc: lenb@kernel.org,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Yuho Choi <dbgh9129@gmail.com>
-Subject: [PATCH v1] ACPI: video: Release PCI device reference after lookup
-Date: Thu,  6 Aug 2026 21:57:34 -0400
-Message-ID: <20260807015734.913361-1-dbgh9129@gmail.com>
+Subject: [PATCH v1] PNP: Release protocol device on registration failure
+Date: Thu,  6 Aug 2026 23:54:53 -0400
+Message-ID: <20260807035453.948129-1-dbgh9129@gmail.com>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -74,40 +73,82 @@ List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-video_detect_portege_r100() uses pci_get_device() only as a boolean
-check for the Trident CyberBlade XP4m32 device. pci_get_device() takes a
-reference on a matching PCI device, but the callback returns without
-releasing it.
+pnp_register_protocol() adds a protocol to the PNP list before calling
+device_register(). If device registration fails, pnp_remove_protocol() only
+removes the list entry and leaves the device-core reference acquired by
+device_initialize() held.
 
-Drop the reference after selecting the vendor backlight quirk so the PCI
-device can be released normally.
+Give static protocol devices a release callback and drop the reference on
+registration failure. Also stop PNP ACPI device enumeration when protocol
+registration fails, instead of using an unregistered protocol device as a
+parent.
 
-Fixes: 35a341c9b25d ("ACPI: video: Add acpi_backlight=vendor quirk for Toshiba Portégé R100")
-Assisted-by: OpenAI-Codex:GPT-5
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
 Signed-off-by: Yuho Choi <dbgh9129@gmail.com>
 ---
- drivers/acpi/video_detect.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/pnp/core.c         | 9 ++++++++-
+ drivers/pnp/pnpacpi/core.c | 7 ++++++-
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 458efa4fe9d4..4c1c3b0b5499 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -137,8 +137,10 @@ static int video_detect_portege_r100(const struct dmi_system_id *d)
- 	struct pci_dev *dev;
- 	/* Search for Trident CyberBlade XP4m32 to confirm Portégé R100 */
- 	dev = pci_get_device(PCI_VENDOR_ID_TRIDENT, 0x2100, NULL);
--	if (dev)
-+	if (dev) {
- 		acpi_backlight_dmi = acpi_backlight_vendor;
-+		pci_dev_put(dev);
-+	}
- 	return 0;
- }
+diff --git a/drivers/pnp/core.c b/drivers/pnp/core.c
+index 81603327079c..fc3bff43fdd8 100644
+--- a/drivers/pnp/core.c
++++ b/drivers/pnp/core.c
+@@ -23,6 +23,10 @@ static LIST_HEAD(pnp_protocols);
+ LIST_HEAD(pnp_global);
+ DEFINE_MUTEX(pnp_lock);
  
++static void pnp_protocol_release(struct device *dev)
++{
++}
++
+ /*
+  * ACPI or PNPBIOS should tell us about all platform devices, so we can
+  * skip some blind probes.  ISAPNP typically enumerates only plug-in ISA
+@@ -66,14 +70,17 @@ int pnp_register_protocol(struct pnp_protocol *protocol)
+ 
+ 	protocol->number = nodenum;
+ 	dev_set_name(&protocol->dev, "pnp%d", nodenum);
++	protocol->dev.release = pnp_protocol_release;
+ 
+ 	list_add_tail(&protocol->protocol_list, &pnp_protocols);
+ 
+ 	mutex_unlock(&pnp_lock);
+ 
+ 	ret = device_register(&protocol->dev);
+-	if (ret)
++	if (ret) {
+ 		pnp_remove_protocol(protocol);
++		put_device(&protocol->dev);
++	}
+ 
+ 	return ret;
+ }
+diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+index fbf03ff007eb..da0ebc378696 100644
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -298,12 +298,17 @@ static acpi_status __init pnpacpi_add_device_handler(acpi_handle handle,
+ int pnpacpi_disabled __initdata;
+ static int __init pnpacpi_init(void)
+ {
++	int ret;
++
+ 	if (acpi_disabled || pnpacpi_disabled) {
+ 		printk(KERN_INFO "pnp: PnP ACPI: disabled\n");
+ 		return 0;
+ 	}
+ 	printk(KERN_INFO "pnp: PnP ACPI init\n");
+-	pnp_register_protocol(&pnpacpi_protocol);
++	ret = pnp_register_protocol(&pnpacpi_protocol);
++	if (ret)
++		return ret;
++
+ 	acpi_get_devices(NULL, pnpacpi_add_device_handler, NULL, NULL);
+ 	printk(KERN_INFO "pnp: PnP ACPI: found %d devices\n", num);
+ 	pnp_platform_devices = 1;
 -- 
 2.43.0
 
