@@ -1,36 +1,74 @@
-Received: from mail-m49198.qiye.163.com (mail-m49198.qiye.163.com [45.254.49.198])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B40430E0F2
-	for <linux-acpi@vger.kernel.org>; Sat,  8 Aug 2026 08:59:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.254.49.198
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE48F2F7F01
+	for <linux-acpi@vger.kernel.org>; Sat,  8 Aug 2026 15:56:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786179591; cv=none; b=CDmHx9bBvRYQazRNH2fF0gzIiGz3KSlBWWbK2B8lr22fxwHni3pOARL3MILn5s8w98kQLsEWB8nxODy7Y+b0O8GMMoBt6hO3D5oB0hI+6YqZcsnHOW4U5FFDJj/cZ8f6SyEmZTEAYpTNKtga4Q18dS92NDxLJVtyX+lFghJCPkU=
+	t=1786204566; cv=none; b=T3qQ2n466oPqM62bYHmCdxttKNrphop2eV+rZRyLRlBIsXdRgwn1a2V3qG2T+02vcVrku/kn3c1hSZqkAt6V5KGJS/G557pErGNPIKtEfws6ChXYm7N7Tj54gmPdZxwCjcwZQN+tzGqNiALGv4REQ5FUFx1L5n1pnTmgmW0Z21k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786179591; c=relaxed/simple;
-	bh=CojdOdzv1+buguz0MA8PIz0DGsTm91WNaHj5rYRAaU0=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=J301uPTAuYR6Jjy/OCwAdTBg66/JtEF65Eez1fbU/9A/P2C1aJQuSUtieAagiBHDaSumkcceOOJm8aStENdDQbkqh2BSeuXrhZVPytBEKXbW73eH67MPhUGKOBczmGWvHUi1Yj+lPJhDIJyYeROy1OzJ3jXElm9NmfcpA3sCLGs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=seu.edu.cn; spf=pass smtp.mailfrom=seu.edu.cn; dkim=pass (1024-bit key) header.d=seu.edu.cn header.i=@seu.edu.cn header.b=OVLTbjJ+; arc=none smtp.client-ip=45.254.49.198
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=seu.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=seu.edu.cn
+	s=arc-20240116; t=1786204566; c=relaxed/simple;
+	bh=i696J/gXK+RpkG0zn/Hf7Ox8aMAw6efUnT10D+Ea+m4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jPZ+AMZP0O2wLP2oRPi4z0ZKgLyjMMJ/2F1l0s5jm4vZQXBi9acm36WinYH4LthYp/uB9MbOt64wBuMW4XFhxM6s39mcwsJl0/SKiZFenAxvpboRpzcggbSfQe+lhUGSd5Ey+9T6hegymscnn6bGDG5N6DT/6AcNvNo5SdDXjWY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qHHM68p6; arc=none smtp.client-ip=209.85.214.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=seu.edu.cn header.i=@seu.edu.cn header.b="OVLTbjJ+"
-Received: from LAPTOP-99KJFSET (unknown [36.153.54.101])
-	by smtp.qiye.163.com (Hmail) with ESMTP id 4940f053f;
-	Sat, 8 Aug 2026 16:59:43 +0800 (GMT+08:00)
-From: Hongyan Xu <getshell@seu.edu.cn>
-To: rafael@kernel.org
-Cc: Len Brown <lenb@kernel.org>,
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qHHM68p6"
+Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-2caed617615so6333585ad.3
+        for <linux-acpi@vger.kernel.org>; Sat, 08 Aug 2026 08:56:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1786204565; x=1786809365; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=Z1fnok8b1HIkkpNvGzYE+StwjNqCvQ2feItOzMlKbV0=;
+        b=qHHM68p6IV9Y3e+ryKAy65kmSKjR0oyn2FCqgh0qJVhWHV6otw6FoBplFNZ4fu4CEk
+         masPSyUyH7QZf5w2d8CZEcd0iyWx0H0O7L3ZDXQpYcoi6OBtjv3CguOzoKj7tv2vtl06
+         igJ4Ksy/xIwnJy7+KtVSmKZBIspbtwjReBAhDRJFvTAJbbZ0btVzt8rI0mP7JoLjl+hg
+         2uVyNOMTmzMtqkb4BuaI0srmibxpMU/khFW17YTylsa+Jyg+wrKu+DXPXBE2303RM6Rh
+         smtg8ZiUmoDHx2xbVVTBIQIMZAi/+GTU0GFLzFKH0jRFGRAK0+aACXksiDS35leYR2oa
+         8kMw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786204565; x=1786809365;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=Z1fnok8b1HIkkpNvGzYE+StwjNqCvQ2feItOzMlKbV0=;
+        b=f/AgFjpAfGhL6iywNcyNH+ZpRQ+xu02NB1T6sZzSgQFFVvkY11qRDEWoIk/JToDKwn
+         T8IA8I7mfyXuPfbhmLsiWxgERvnmHoxz8XF9vyGxNwvCH6dsmd6Ez6/L/hnPk53Lp8m8
+         ak2n0Oi8te9ykY/N/Ih2K5IMTmzArWc85XvUyHYuEj6r2npi2/wCsvqbhVn2UchIIwS7
+         wN0SAmxyUPg47AgpiNSN2O6QLOc0a8yys9fj/vtLjPpxzWm2HIyBs0ho/mSDuOrdNSNp
+         r9Wr5iDJv8imaJOaXUxgpFD6Q0SQXi5dKGH2uzSpQYEyX7gcUYaXUzqR+I9hXAF3rqob
+         30cg==
+X-Forwarded-Encrypted: i=1; AHgh+RrkybyBZ3nXh0y88xn9NxeZddATG2Le0NcBknhqkdcQH6dmhPPWio997OW0eJUTOnCPCLGNJWDTT9fm@vger.kernel.org
+X-Gm-Message-State: AOJu0YwVUrUqs8JqVYkPGJusTcbrn2NLz61Krg8TEHdh8KZ792gboWda
+	viOR/rMOX+k5ThOZtXAXFEgqwDPDzlI445QLyJU4Uw4DAUvAN7QVAu8=
+X-Gm-Gg: AR+sD10g3yZBEKbzdkYG4x4Bdfhw9jiYcyAR93NKnuH2XPBi04EdGNrE8HV2OXb2w52
+	dPupDisGlxs8NAdzemDsTYeZDevZdCZA5b1RWI0dTqY2WHUNd50+bOeiFySxQLzNulnJjx1t5Oq
+	rQoYK2yEfkJbwZFBcSXr//cYM47MNjH7/dy3jaLMgZNIUUarZjm8MAJdBr0TvWbglr9/hvtirmC
+	A4UpzeoNm80nH4OMIZ37k4jbFGOYNmT78X+ioIgcbT/dhZN2OpZ3TJTJb5OENmLssAQ/icQY7zB
+	l1A5gQH+04OhvwjeMUFv3+E8aPPCccbgLGVWqUwzkbde7IiM1EIjsZQqRoDbRT2fR+d2bbeSQ9J
+	cQfBZnH248J82h/r+gMLbfqOe5m2YtxsboKCzymw1M+3RXWhCDpMxyj9f/m/ANBBzT6zem5Bfn1
+	RWNe+KiA7IuudMZZ7T0U2CpQMfM20Ob1PO4Eb1DCp/E+LnSLyiNUV/49WKT0mrag==
+X-Received: by 2002:a17:902:ccca:b0:2ca:e3f:6a4a with SMTP id d9443c01a7336-2d0ca962f22mr363775835ad.21.1786204564842;
+        Sat, 08 Aug 2026 08:56:04 -0700 (PDT)
+Received: from DBA71591436.local ([38.76.196.47])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2d16c4ea157sm19404345ad.78.2026.08.08.08.56.00
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 08 Aug 2026 08:56:03 -0700 (PDT)
+From: Yao Qi <xnorigc@gmail.com>
+To: westeri@kernel.org,
+	andriy.shevchenko@linux.intel.com,
+	linusw@kernel.org,
+	brgl@kernel.org
+Cc: linux-gpio@vger.kernel.org,
 	linux-acpi@vger.kernel.org,
-	jianhao.xu@seu.edu.cn,
-	Hongyan Xu <getshell@seu.edu.cn>
-Subject: [PATCH v2] ACPI: scan: fix bus ID cleanup on device_add() failure
-Date: Sat,  8 Aug 2026 16:59:42 +0800
-Message-ID: <20260808085943.526-1-getshell@seu.edu.cn>
-X-Mailer: git-send-email 2.50.1.windows.1
-In-Reply-To: <20260804154854.1555-1-getshell@seu.edu.cn>
-References: <20260804154854.1555-1-getshell@seu.edu.cn>
+	linux-kernel@vger.kernel.org,
+	Yao Qi <xnorigc@gmail.com>
+Subject: [PATCH] gpiolib: acpi: Add ignore_wake quirk for ASUS TX Air FA401GM
+Date: Sat,  8 Aug 2026 15:55:13 +0000
+Message-ID: <20260808155513.2221976-1-xnorigc@gmail.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -38,86 +76,47 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-HM-Tid: 0a9fe0997da303a1kunmfaacafbd4faf4
-X-HM-MType: 10
-X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
-	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVkaTENMVhhLS0IZTk1OQ0hJSFYeHw
-	5VEwETFhoSFyQUDg9ZV1kYEgtZQVlITVVKTkhVTk9VSktKWVdZFhoPEhUdFFlBWU9LSFVKS0hKT0
-	hMVUpLS1VKQktLWQY+
-DKIM-Signature: a=rsa-sha256;
-	b=OVLTbjJ+gcSs4HmQUJa6fHZn/ByF0a/oPTBUsoEg79xsQ/IrdyKEyS3qPBzuLenLa5QT58dn4Ib8I3JaXzGweARGeQAwhTZPqsoNp3NrIIK2Wa0TFCTufQ+VElMebWQYKkpzB6wDsUTS+iiUknBgVjvGaheY7ITjyMy33gp99R8=; s=default; c=relaxed/relaxed; d=seu.edu.cn; v=1;
-	bh=yw4MO+lR59jvnVGEOPikqFrRF35lpOl9Aigcj6/b6Yw=;
-	h=date:mime-version:subject:message-id:from;
 
-When device_add() fails after acpi_device_set_name() has allocated an
-instance ID and linked a new acpi_device_bus_id into acpi_bus_id_list, the
-rollback path only removes wakeup_list and detaches the ACPI handle data.
+The ASUS TX Air FA401GM experiences immediate wakeups from s2idle
+(Modern Standby) when suspended with an external HDMI display connected.
 
-That leaves the bus-ID bookkeeping behind and keeps the allocated instance
-number consumed.
+This issue is caused by spurious ACPI event signaling routed through
+GPIO 24 on the AMD GPIO controller (AMDI0030:00), which triggers a
+system-wide IRQ 7 (pinctrl_amd) wake-up interrupt during sleep.
 
-Move the bus-ID cleanup and wakeup-list removal into a single helper.
-Use it from both the normal device teardown path and the device_add()
-rollback path. The wakeup list node is initialized before registration, so
-it can be deleted without checking whether the device is wakeup-capable, as
-in the original teardown path.
+Add an ignore_wake quirk for GPIO 24 on this machine to prevent these
+unwanted wakeups. This has been runtime-tested and verified using the
+`gpiolib_acpi.ignore_wake=AMDI0030:00@24` kernel parameter.
 
-Found by manual review of reports from the
-kernel70rc2-fail11-retry-20260801 run.
-
-Signed-off-by: Hongyan Xu <getshell@seu.edu.cn>
+Signed-off-by: Yao Qi <xnorigc@gmail.com>
 ---
-v2:
-- Fold the bus-ID cleanup and wakeup-list removal into one helper to avoid
-  duplicating the same sequence in acpi_device_del() and the device_add()
-  rollback path.
-- Drop the wakeup.flags.valid check before list_del(&device->wakeup_list).
+ drivers/gpio/gpiolib-acpi-quirks.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-v1: https://lore.kernel.org/linux-acpi/20260804154854.1555-1-getshell@seu.edu.cn/
-
- drivers/acpi/scan.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index ff7000b71fd1..a311af60d8d3 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -520,12 +520,10 @@ static void acpi_device_release(struct device *dev)
- 	kfree(acpi_dev);
- }
+diff --git a/drivers/gpio/gpiolib-acpi-quirks.c b/drivers/gpio/gpiolib-acpi-quirks.c
+index a0116f004..8d7d18b62 100644
+--- a/drivers/gpio/gpiolib-acpi-quirks.c
++++ b/drivers/gpio/gpiolib-acpi-quirks.c
+@@ -392,6 +392,19 @@ static const struct dmi_system_id gpiolib_acpi_quirks[] __initconst = {
+ 			.ignore_wake = "VEN_0488:00@355",
+ 		},
+ 	},
++	{
++		/*
++		 * Spurious wakeups from s2idle when suspended with an
++		 * external HDMI display connected.
++		 */
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "TX Air FA401GM"),
++		},
++		.driver_data = &(struct acpi_gpiolib_dmi_quirk) {
++			.ignore_wake = "AMDI0030:00@24",
++		},
++	},
+ 	{} /* Terminating entry */
+ };
  
--static void acpi_device_del(struct acpi_device *device)
-+static void acpi_device_del_list(struct acpi_device *device)
- {
- 	struct acpi_device_bus_id *acpi_device_bus_id;
- 
--	mutex_lock(&acpi_device_lock);
--
- 	list_for_each_entry(acpi_device_bus_id, &acpi_bus_id_list, node)
- 		if (!strcmp(acpi_device_bus_id->bus_id,
- 			    acpi_device_hid(device))) {
-@@ -540,6 +538,13 @@ static void acpi_device_del(struct acpi_device *device)
- 		}
- 
- 	list_del(&device->wakeup_list);
-+}
-+
-+static void acpi_device_del(struct acpi_device *device)
-+{
-+	mutex_lock(&acpi_device_lock);
-+
-+	acpi_device_del_list(device);
- 
- 	mutex_unlock(&acpi_device_lock);
- 
-@@ -800,7 +805,7 @@ int acpi_device_add(struct acpi_device *device)
- err:
- 	mutex_lock(&acpi_device_lock);
- 
--	list_del(&device->wakeup_list);
-+	acpi_device_del_list(device);
- 
- err_unlock:
- 	mutex_unlock(&acpi_device_lock);
 -- 
-2.50.1.windows.1
+2.55.0
+
