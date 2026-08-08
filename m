@@ -1,53 +1,36 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id CC0EE3B19CF;
-	Sat,  8 Aug 2026 08:28:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mail-m49198.qiye.163.com (mail-m49198.qiye.163.com [45.254.49.198])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B40430E0F2
+	for <linux-acpi@vger.kernel.org>; Sat,  8 Aug 2026 08:59:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.254.49.198
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786177713; cv=none; b=KB2Zi0VdD7kMcZmHMZ4meVS+2DNMGncu3Ze3+PWBLL0+Wl0fO/N6AwcTWXQy8kUm+OuIyNtO26Pr6ZAFOVFsw91yZTpYufhm99pShzDZDFERLBVl5KriX8nURfoyEMv0kmzAs6/3dZLbZoLTakmTzOu3HetqEWHAmbcxA+b9fu8=
+	t=1786179591; cv=none; b=CDmHx9bBvRYQazRNH2fF0gzIiGz3KSlBWWbK2B8lr22fxwHni3pOARL3MILn5s8w98kQLsEWB8nxODy7Y+b0O8GMMoBt6hO3D5oB0hI+6YqZcsnHOW4U5FFDJj/cZ8f6SyEmZTEAYpTNKtga4Q18dS92NDxLJVtyX+lFghJCPkU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786177713; c=relaxed/simple;
-	bh=x2W/qudr6wfVbY9UCho1t8cvHsFS/wHJFGI6BbnPIe0=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=U7Z8yYxhpPLBp4SIGwBfWzqIlTRR0V0g+C+c94Ac1FcHYcKY7cqZ8qFUVpGMU2eWFKod/PchNp4c5MkpRHxISbrxi4UtF9imN/DYvp773hdnT7UhuqR9mwxRKMAUXCnTnSdUMaymrs2lgozfHDVpm7nFj2dIru/TEjZqRWTli9I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=BjHoCqlr; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1786179591; c=relaxed/simple;
+	bh=CojdOdzv1+buguz0MA8PIz0DGsTm91WNaHj5rYRAaU0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=J301uPTAuYR6Jjy/OCwAdTBg66/JtEF65Eez1fbU/9A/P2C1aJQuSUtieAagiBHDaSumkcceOOJm8aStENdDQbkqh2BSeuXrhZVPytBEKXbW73eH67MPhUGKOBczmGWvHUi1Yj+lPJhDIJyYeROy1OzJ3jXElm9NmfcpA3sCLGs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=seu.edu.cn; spf=pass smtp.mailfrom=seu.edu.cn; dkim=pass (1024-bit key) header.d=seu.edu.cn header.i=@seu.edu.cn header.b=OVLTbjJ+; arc=none smtp.client-ip=45.254.49.198
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=seu.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=seu.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="BjHoCqlr"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6D1201BF3;
-	Sat,  8 Aug 2026 01:28:27 -0700 (PDT)
-Received: from e127648.arm.com (unknown [10.57.5.149])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 11EC93F9A2;
-	Sat,  8 Aug 2026 01:28:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1786177711; bh=x2W/qudr6wfVbY9UCho1t8cvHsFS/wHJFGI6BbnPIe0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=BjHoCqlrGreoykr8fxv9gAjT94BvjYbSoxr59EjPv8LU8yh5voZaZnqEQdH6eQj0O
-	 FJs+flX77qBoBf/qljS7ORf7anbdG51I/oOPvfp2jjep7vZ5N5Y//QW3X83y40dR+b
-	 cVZiW/Tw2DVx2Pkw8P/tGuyRqmFv+vpp8h8AEEWs=
-From: Christian Loehle <christian.loehle@arm.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
-	Viresh Kumar <viresh.kumar@linaro.org>
-Cc: linux-pm@vger.kernel.org,
+	dkim=pass (1024-bit key) header.d=seu.edu.cn header.i=@seu.edu.cn header.b="OVLTbjJ+"
+Received: from LAPTOP-99KJFSET (unknown [36.153.54.101])
+	by smtp.qiye.163.com (Hmail) with ESMTP id 4940f053f;
+	Sat, 8 Aug 2026 16:59:43 +0800 (GMT+08:00)
+From: Hongyan Xu <getshell@seu.edu.cn>
+To: rafael@kernel.org
+Cc: Len Brown <lenb@kernel.org>,
 	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Len Brown <lenb@kernel.org>,
-	Jie Zhan <zhanjie9@hisilicon.com>,
-	Lifeng Zheng <zhenglifeng1@huawei.com>,
-	Pierre Gondois <pierre.gondois@arm.com>,
-	Sumit Gupta <sumitg@nvidia.com>,
-	Sudeep Holla <sudeep.holla@arm.com>,
-	Ionela Voinescu <ionela.voinescu@arm.com>,
-	zhongqiu.han@oss.qualcomm.com,
-	Christian Loehle <christian.loehle@arm.com>,
-	Sashiko <sashiko-bot@kernel.org>
-Subject: [PATCH v2 15/15] ACPI: CPPC: Clear Performance Limited without a stale read
-Date: Sat,  8 Aug 2026 09:26:44 +0100
-Message-Id: <20260808082644.1251332-16-christian.loehle@arm.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260808082644.1251332-1-christian.loehle@arm.com>
-References: <20260808082644.1251332-1-christian.loehle@arm.com>
+	jianhao.xu@seu.edu.cn,
+	Hongyan Xu <getshell@seu.edu.cn>
+Subject: [PATCH v2] ACPI: scan: fix bus ID cleanup on device_add() failure
+Date: Sat,  8 Aug 2026 16:59:42 +0800
+Message-ID: <20260808085943.526-1-getshell@seu.edu.cn>
+X-Mailer: git-send-email 2.50.1.windows.1
+In-Reply-To: <20260804154854.1555-1-getshell@seu.edu.cn>
+References: <20260804154854.1555-1-getshell@seu.edu.cn>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -55,107 +38,86 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-HM-Tid: 0a9fe0997da303a1kunmfaacafbd4faf4
+X-HM-MType: 10
+X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
+	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVkaTENMVhhLS0IZTk1OQ0hJSFYeHw
+	5VEwETFhoSFyQUDg9ZV1kYEgtZQVlITVVKTkhVTk9VSktKWVdZFhoPEhUdFFlBWU9LSFVKS0hKT0
+	hMVUpLS1VKQktLWQY+
+DKIM-Signature: a=rsa-sha256;
+	b=OVLTbjJ+gcSs4HmQUJa6fHZn/ByF0a/oPTBUsoEg79xsQ/IrdyKEyS3qPBzuLenLa5QT58dn4Ib8I3JaXzGweARGeQAwhTZPqsoNp3NrIIK2Wa0TFCTufQ+VElMebWQYKkpzB6wDsUTS+iiUknBgVjvGaheY7ITjyMy33gp99R8=; s=default; c=relaxed/relaxed; d=seu.edu.cn; v=1;
+	bh=yw4MO+lR59jvnVGEOPikqFrRF35lpOl9Aigcj6/b6Yw=;
+	h=date:mime-version:subject:message-id:from;
 
-The Performance Limited status bits are sticky and write-zero-to-clear.
-ACPI 6.6 Section 8.4.6.1.3.2 also requires both entities to use interlocked
-accesses.
+When device_add() fails after acpi_device_set_name() has allocated an
+instance ID and linked a new acpi_device_bus_id into acpi_bus_id_list, the
+rollback path only removes wakeup_list and detaches the ACPI handle data.
 
-cppc_set_perf_limited() currently reads the register, computes a new value,
-and writes it in a separate transaction. If the platform reports another
-excursion between those transactions, the stale write can clear that new
-event.
+That leaves the bus-ID bookkeeping behind and keeps the allocated instance
+number consumed.
 
-Write zero to the requested bits and one to the other defined status bits
-directly. Keep reserved bits zero as required for hardware status registers
-by ACPI 6.6 Section 4.6.1. This removes the stale read window.
+Move the bus-ID cleanup and wakeup-list removal into a single helper.
+Use it from both the normal device teardown path and the device_add()
+rollback path. The wakeup list node is initialized before registration, so
+it can be deleted without checking whether the device is wakeup-capable, as
+in the original teardown path.
 
-Reject SystemMemory descriptions which require read-modify-write to
-preserve the containing access unit, because the per-descriptor spinlock
-cannot interlock that RMW with platform updates. Also reject 64-bit
-SystemMemory descriptions on 32-bit kernels, where generic readq()/writeq()
-may be split into two 32-bit operations and cannot provide the required
-portable interlocked access. A naturally aligned full-width QWord remains
-supported on 64-bit kernels, where the architecture provides a native
-64-bit MMIO accessor.
+Found by manual review of reports from the
+kernel70rc2-fail11-retry-20260801 run.
 
-Performance Limited status is not required for CPPC control. If firmware
-describes it using an access that Linux cannot interlock safely, disable
-that status register instead of rejecting the processor's otherwise usable
-_CPC package.
-
-Fixes: 13c45a26635f ("ACPI: CPPC: add APIs and sysfs interface for perf_limited")
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Link: https://sashiko.dev/#/patchset/20260807111303.1062391-1-christian.loehle%40arm.com
-Signed-off-by: Christian Loehle <christian.loehle@arm.com>
+Signed-off-by: Hongyan Xu <getshell@seu.edu.cn>
 ---
- drivers/acpi/cppc_acpi.c | 33 ++++++++++++++++++++++-----------
- 1 file changed, 22 insertions(+), 11 deletions(-)
+v2:
+- Fold the bus-ID cleanup and wakeup-list removal into one helper to avoid
+  duplicating the same sequence in acpi_device_del() and the device_add()
+  rollback path.
+- Drop the wakeup.flags.valid check before list_del(&device->wakeup_list).
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index fbbc71671717..426e94434376 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -414,6 +414,13 @@ static int cpc_validate_sysmem_reg(const struct cpc_desc *cpc_desc,
- 		       cpc_desc->cpu_id, cpc_desc->version, name);
- 		return -EINVAL;
- 	}
-+	if (reg_idx == PERF_LIMITED &&
-+	    (gas->bit_offset || gas->bit_width != access_width ||
-+	     (access_width == 64 && !IS_ENABLED(CONFIG_64BIT)))) {
-+		pr_err("CPU%d: Performance Limited register cannot use an interlocked SystemMemory access\n",
-+		       cpc_desc->cpu_id);
-+		return -EINVAL;
-+	}
- 
- 	return 0;
- 
-@@ -441,6 +448,14 @@ static int cpc_resolve_unsupported(struct cpc_desc *cpc_desc,
- 		if (!(unsupported & BIT(i)))
- 			continue;
- 
-+		/* CPPC control does not depend on Performance Limited status. */
-+		if (i == PERF_LIMITED) {
-+			pr_warn("CPU%d: ignoring inaccessible Performance Limited register\n",
-+				cpc_desc->cpu_id);
-+			cpc_disable_reg(cpc_desc, i);
-+			continue;
-+		}
-+
- 		if (i == DESIRED_PERF && cpc_immutable_autonomous(cpc_desc)) {
- 			pr_warn("CPU%d: ignoring inaccessible Desired Performance register in autonomous mode\n",
- 				cpc_desc->cpu_id);
-@@ -3080,9 +3095,6 @@ EXPORT_SYMBOL_GPL(cppc_get_perf_limited);
-  */
- int cppc_set_perf_limited(int cpu, u64 bits_to_clear)
- {
--	u64 current_val, new_val;
--	int ret;
--
- 	/* Only bits 0 and 1 are valid */
- 	if (bits_to_clear & ~CPPC_PERF_LIMITED_MASK)
- 		return -EINVAL;
-@@ -3090,14 +3102,13 @@ int cppc_set_perf_limited(int cpu, u64 bits_to_clear)
- 	if (!bits_to_clear)
- 		return 0;
- 
--	ret = cppc_get_perf_limited(cpu, &current_val);
--	if (ret)
--		return ret;
--
--	/* Clear the specified bits */
--	new_val = current_val & ~bits_to_clear;
--
--	return cppc_set_reg_val(cpu, PERF_LIMITED, new_val);
-+	/*
-+	 * Performance Limited is write-zero-to-clear.  Write one to the other
-+	 * defined sticky bits so a concurrently reported event is not cleared
-+	 * using a value obtained by an earlier, separate read transaction.
-+	 */
-+	return cppc_set_reg_val(cpu, PERF_LIMITED,
-+				CPPC_PERF_LIMITED_MASK & ~bits_to_clear);
+v1: https://lore.kernel.org/linux-acpi/20260804154854.1555-1-getshell@seu.edu.cn/
+
+ drivers/acpi/scan.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index ff7000b71fd1..a311af60d8d3 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -520,12 +520,10 @@ static void acpi_device_release(struct device *dev)
+ 	kfree(acpi_dev);
  }
- EXPORT_SYMBOL_GPL(cppc_set_perf_limited);
  
+-static void acpi_device_del(struct acpi_device *device)
++static void acpi_device_del_list(struct acpi_device *device)
+ {
+ 	struct acpi_device_bus_id *acpi_device_bus_id;
+ 
+-	mutex_lock(&acpi_device_lock);
+-
+ 	list_for_each_entry(acpi_device_bus_id, &acpi_bus_id_list, node)
+ 		if (!strcmp(acpi_device_bus_id->bus_id,
+ 			    acpi_device_hid(device))) {
+@@ -540,6 +538,13 @@ static void acpi_device_del(struct acpi_device *device)
+ 		}
+ 
+ 	list_del(&device->wakeup_list);
++}
++
++static void acpi_device_del(struct acpi_device *device)
++{
++	mutex_lock(&acpi_device_lock);
++
++	acpi_device_del_list(device);
+ 
+ 	mutex_unlock(&acpi_device_lock);
+ 
+@@ -800,7 +805,7 @@ int acpi_device_add(struct acpi_device *device)
+ err:
+ 	mutex_lock(&acpi_device_lock);
+ 
+-	list_del(&device->wakeup_list);
++	acpi_device_del_list(device);
+ 
+ err_unlock:
+ 	mutex_unlock(&acpi_device_lock);
 -- 
-2.34.1
-
+2.50.1.windows.1
