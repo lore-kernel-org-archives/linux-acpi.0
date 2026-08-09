@@ -1,326 +1,164 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 34D3329B8E1;
-	Sun,  9 Aug 2026 07:18:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mail-oa1-f78.google.com (mail-oa1-f78.google.com [209.85.160.78])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84A68221FB6
+	for <linux-acpi@vger.kernel.org>; Sun,  9 Aug 2026 07:47:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.78
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786259935; cv=none; b=R9+ngW5WO18QBY9i1syzubepXbReA/BzMxl9GqWGVRpoa03LXwO1m1IVNIYwR7wzlCunJ0pXfrHES1YaNpnDyzac9bCsLd5/5YnxH1Gii5Q/MZ3Et7USNTNr76xi1uUufEqj/QUEhLeKIW1lvLyo+5CtRL/+8IfFoC4wu8sO7nw=
+	t=1786261646; cv=none; b=XuwOKWrsQpTmR/qvERymahk5GVHMLYDHWHjw9/yYWh0FVf7N/NkLDzRDJgDfW2+pQSFCm3mHXliJ6KdEDL88N02D6tDietfxpRF0In6GNOzMFQ8Fn26PmYPXO7H3/HVRgN073Aaim/otK11GttgwLh9pzTP6b9H/k90lm6TvKmA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786259935; c=relaxed/simple;
-	bh=z1B8t17SMV/Bwo6gMhiaisUrcwYjmLpcTBK4eZa54PU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=HKcFNWjcn6IF/np5FjEY76w/kJVswhWK2B+upECn8dWwr4FY7Lqzs1JEus/dWm1PS1RNzXjblIaXueU/ZMkqoFjn1vykQSPP8UgX8Zx/mWmQTfpTH0SubQ+jmEBvkLwuU+2l8wUf9ECwfOvWCC7WYU2BQ9k533k7ICSNC0GavQA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=GF7Qbjaf; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="GF7Qbjaf"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 81DB6152B;
-	Sun,  9 Aug 2026 00:18:48 -0700 (PDT)
-Received: from [10.57.4.198] (unknown [10.57.4.198])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A36E33F632;
-	Sun,  9 Aug 2026 00:18:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1786259932; bh=z1B8t17SMV/Bwo6gMhiaisUrcwYjmLpcTBK4eZa54PU=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=GF7Qbjafryzrz6NpqbnGxgHZzyrr6zzKIQE2HKA0OBo15f1Rctf5RgnKXkkblzxZ2
-	 D3sWHEO38Vk3XDGXNEtnBjYS9u8xQLVwQOMWPDyRJA13h+Q62RVpIbSpHJJjgXxX70
-	 srO7vH72BDpmpx+uSAtAdPREsUUD8hpXOi1nn3hE=
-Message-ID: <8831def0-2b6c-477d-8f43-025a4a0cbca2@arm.com>
-Date: Sun, 9 Aug 2026 08:18:47 +0100
+	s=arc-20240116; t=1786261646; c=relaxed/simple;
+	bh=MxxK1nswFdGGIQiE2Cgw7vJY/VTYW1q42GfKB1Dk82A=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=ZZVj0zI6LHXbMIO1BS5jI9HKn9++pypXwc2LW64MXYGxkbCH4DYOYazyCgu6BDs6W2GwYVavjPKLTMt3sq7pTvYSBe0A+A9qbffRTHBDLLTDap+NoIrlgdyLvI6SwwZU1zvEcBW3I3mo2gEFmOqbSkwskSMe5od20+bh/9fL80I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.160.78
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oa1-f78.google.com with SMTP id 586e51a60fabf-458582a8c9fso126197fac.2
+        for <linux-acpi@vger.kernel.org>; Sun, 09 Aug 2026 00:47:24 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786261643; x=1786866443;
+        h=content-type:to:from:subject:message-id:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=EoRtarnkCMgBYDZmui+42eWr+FzDy4ub2bi2lcKX4OY=;
+        b=M3gzD2GJZHNu8jGvyAzP4mTIXlXHNooo10n6CmTAxALvSNseqrMk5HmN7jXzsA/kTh
+         sYNGPS8w6u3J3AtdW5jNOz4YpXIb00OsoO9mrwpcQtAU/aI3acputnvuj2PjHATzY+JO
+         qGXSASNnyRA6adBBar9uLu19N9jiZRiemHs+XTU7T1jr3OP8AZJddr8gH5zPzTHXCQV0
+         SGWpwmvnhrSwXxLNP8p1pL24hHladF0fFsBZ1LoscXHpQtwrvSHCmZfOBoaO14vmuHzl
+         AKKN5WChIkCR8OdSZxLCD6ehVFf0NxmyPgtWPG193Q+8cygAJasNMNZL/XVmTjNQpKQd
+         //zw==
+X-Forwarded-Encrypted: i=1; AHgh+RrKfRTGWl2SlQsMszk3HEyVaSOgE9udtpfA/XxOCc8tnr4t1RF78ba2aX7jyMAiUib7Qvj7XNg/Blnn@vger.kernel.org
+X-Gm-Message-State: AOJu0YzfX3tVTEaPHA7+9Zo4MTJq5/nFXrNkvCHB63z0LVMP1pmfLRBx
+	MgYhpAUiJRLzUNDAMwUDOBFbO77cnBQtI7gBv/+2WMPetglBWOWqnUf8U8iW7i38RZZ5Xs+vBsP
+	atb3kAlTmbZG6SLk3hMv6hYklhSCrx9DYIaXvqpp3SFxX/c/sTdIXrjDsw9E=
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 00/15] ACPI: CPPC: Fix register access and lifetime
- bugs
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
- Viresh Kumar <viresh.kumar@linaro.org>
-Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>,
- Jie Zhan <zhanjie9@hisilicon.com>, Lifeng Zheng <zhenglifeng1@huawei.com>,
- Pierre Gondois <pierre.gondois@arm.com>, Sumit Gupta <sumitg@nvidia.com>,
- Sudeep Holla <sudeep.holla@arm.com>,
- Ionela Voinescu <ionela.voinescu@arm.com>, zhongqiu.han@oss.qualcomm.com
-References: <20260809062549.1415955-1-christian.loehle@arm.com>
-Content-Language: en-US
-From: Christian Loehle <christian.loehle@arm.com>
-In-Reply-To: <20260809062549.1415955-1-christian.loehle@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+X-Received: by 2002:a05:6808:5392:b0:48f:a9f3:1c38 with SMTP id
+ 5614622812f47-4afadebaf89mr19199567b6e.2.1786261643402; Sun, 09 Aug 2026
+ 00:47:23 -0700 (PDT)
+Date: Sun, 09 Aug 2026 00:47:23 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6a78308b.b50370da.49fe0.003b.GAE@google.com>
+Subject: [syzbot] [acpica?] KCSAN: data-race in number / vsnprintf
+From: syzbot <syzbot+6fd18c31ea0ad8f3d5ee@syzkaller.appspotmail.com>
+To: acpica-devel@lists.linux.dev, lenb@kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, rafael@kernel.org, robert.moore@intel.com, 
+	saket.dumbre@intel.com, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On 8/9/26 07:25, Christian Loehle wrote:
-> First of all, sorry this got so out of hand, initially this was just
-> trying to fix some relatively simple issues found by sashiko in an
-> earlier (unrelated) series.
-> But with me touching more and more code and going through rounds of AI
-> review that kept finding more and more pre-existing issues I've arrived
-> at this.
-> 
-> This series fixes correctness and robustness issues found while reviewing
-> the CPPC control path. They affect malformed _CPC handling, error
-> propagation, PCC ownership and cleanup, CPC object lifetime, register field
-> access, cross-processor aliases, and Performance Limited clearing.
-> 
-> Series structure
-> ================
-> 
-> Patches 1-8 are deliberately small, independently useful fixes. They
-> validate the _CPC encoding consumed by cppc-acpi, propagate control-write
-> errors, serialize PCC payload updates, correct 64-bit field masks, and fix
-> descriptor and PCC lifetime handling.
-> 
-> Patches 9-15 are the register-layout hardening portion. Geometry validation
-> is more substantial because safe RMW and alias handling depend on the
-> physical access unit, not merely on a logical _CPC entry or _PSD domain.
-> These patches normalize and validate each supported address space before
-> building probe-only physical interval registries. Keeping this work in the
-> same posting gives the complete safety boundary and a single base for
-> review, while each transport and bug retains its own Fixes provenance.
-> Feel free to treat the two parts as independent series, I didn't split it
-> because they're all technically fixes and to get Sashiko review for the
-> whole lot.
-> 
-> No interval lookup is added to the scheduler hot path. Full-width
-> SystemMemory writes remain lockless. RMW locking remains necessary only for
-> a partial field, where we must preserve the other bits in its access
-> unit. The existing per-descriptor raw lock continues to cover disjoint
-> partial fields within one _CPC package; probe rejects cross-descriptor
-> layouts that it cannot protect.
-> 
-> Parsing and control semantics
-> =============================
-> 
-> The parser now validates the package header before indexing it, bounds the
-> BYTE and DWORD Integer forms before conversion, and validates the Generic
-> Register descriptor consumed by cppc-acpi. NumEntries may not exceed the AML
-> package count, but additional trailing package elements are ignored because
-> doing so is safe and preserves compatibility with padded firmware. The parser
-> likewise tolerates trailing ResourceTemplate data instead of imposing a new
-> EndTag compatibility requirement.
-> 
-> Writable controls must be Buffer-encoded registers. Minimum and Maximum
-> Performance are checked as the pair required by ACPI 6.6 Sections
-> 8.4.6.1.2.1 and 8.4.6.1.2.2. Object presence is kept separate from the
-> Integer-zero convention for absent optional fields, so Lowest Performance
-> may retain the valid abstract value zero.
-> 
-> Performance Limited is one deliberate compatibility exception. ACPI lists
-> it as required, but permits a platform with no limiting indication to
-> always return zero, and deployed firmware represents that case with a NULL
-> descriptor. CPPC control does not depend on this status register, so we
-> continue to accept that encoding. A present _CPC package which otherwise
-> fails parsing or initialization now emits an error instead of silently
-> preventing cpufreq registration.
-> 
-> Compound performance and EPP updates propagate errors and perform every
-> fallible non-PCC write before modifying the PCC payload. Updates across
-> address spaces cannot be atomic, but a known non-PCC failure can no longer
-> commit only the PCC portion or leave an unsent value for a later command.
-> 
-> SystemMemory locking and support boundary
-> =========================================
-> 
-> A partial SystemMemory field requires RMW to preserve the rest of its
-> access unit. Commit 60949b7b8054 ("ACPI: CPPC: Fix MASK_VAL() usage") used
-> a per-_CPC lock and noted that a global lock would be needed if physical
-> registers were shared between packages.
-> 
-> ACPI does not make _PSD a physical-register ownership boundary. Rather than
-> put a global raw lock or lookup into the scheduler path, this series makes
-> the cheaper per-descriptor model's assumptions enforceable at probe.
-> 
-> Supported SystemMemory layouts are:
-> 
->   - naturally aligned 8-, 16-, 32-, and 64-bit access units;
->   - lockless full-width controls;
->   - read-only aliases;
->   - exact full-width writable aliases, including 64-bit aliases on 64-bit
->     kernels;
->   - disjoint partial writers within one descriptor, serialized by its
->     rmw_lock; and
->   - a partial writer sharing an access unit with a disjoint read-only
->     field.
-> 
-> Probe rejects overlapping logical fields involving a writer, another field
-> inside a full-width writable access unit, cross-descriptor partial writers,
-> unaligned accesses, and exact writable 64-bit aliases on 32-bit kernels.
-> These layouts were not safely supported by the old per-descriptor lock or
-> generic writeq(); rejecting them turns possible corruption into a visible
-> probe failure rather than removing working support.
-> 
-> PCC access and locking
-> ======================
-> 
-> The PCC protocol requires OSPM to acquire the subspace before changing its
-> command or payload. Single-register and EPP updates now hold pcc_lock
-> across ownership acquisition, payload staging, and command submission.
-> 
-> ACPI 6.6's implementation example places a mandatory 32-bit Delivered
-> Performance Counter at unaligned PCC offset 0x116. Performance controls may
-> also use byte-multiple widths such as 24 bits. PCC therefore uses
-> byte-oriented I/O with explicit little-endian encoding for zero-offset,
-> byte-multiple fields from 8 through 64 bits. A short per-subspace payload
-> lock protects concurrent aliased copies made under the shared side of
-> pcc_lock; it does not replace the protocol ownership lock.
-> 
-> Bit-level PCC fields require RMW and remain unsupported. An unsupported
-> optional field is marked absent, but a present inaccessible CPPC Enable
-> fails probe because OSPM must write it before using CPPC. Thus the
-> ACPI-legal one-bit CPPC Enable used by the specification example is a
-> documented kernel limitation. The old accessor could not program it
-> correctly either, so an explicit error is safer than silently proceeding
-> without enabling CPPC.
-> 
-> Every retained PCC field is bounds checked against the shared-memory
-> region. A subspace-keyed interval registry permits read-only overlap and
-> exact same-control aliases while rejecting every other writable overlap
-> across processors.
-> 
-> SystemIO support boundary
-> =========================
-> 
-> SystemIO supports Bit Offset zero, full 8-, 16-, or 32-bit accesses ending
-> at or below port 0xffff, including legacy Access Size zero when Bit Width
-> supplies the size. Partial fields never worked because the driver neither
-> shifted them nor preserved adjacent bits, so they now fail visibly instead
-> of being misprogrammed.
-> 
-> On kernels without CONFIG_HAS_IOPORT, SystemIO entries are rejected or
-> disabled according to the affected control's semantics. Runtime accessors
-> also return -EOPNOTSUPP rather than treating an I/O port as a
-> physical-memory address. A global port interval registry rejects
-> cross-processor writable overlap.
-> 
-> Write-only and Performance Limited controls
-> ===========================================
-> 
-> Between _CPC revisions 3 and 4, Desired Performance changed from
-> Read/Write to Write, and revision 4 added write-only OSPM Nominal
-> Performance. ACPI 6.6 Section 4.6.3 says reads from write-only positions
-> are undefined. Explicit reads of both controls are rejected, as are
-> SystemMemory layouts which would implicitly read them for RMW. Full-width
-> writes remain supported.
-> 
-> Performance Limited is sticky, write-zero-to-clear, and requires
-> interlocked accesses under ACPI 6.6 Section 8.4.6.1.3.2. The old separate
-> read and write could clear a new event reported between transactions. The
-> clear path now writes zero only to requested status bits and one to the
-> other defined bits. Partial SystemMemory forms cannot be used because a
-> spinlock cannot interlock an enclosing RMW with platform updates. QWord
-> forms cannot be used on 32-bit kernels, where the MMIO accessor may be
-> split into two 32-bit operations; naturally aligned, full-width QWords
-> remain supported on 64-bit kernels. Since CPPC control does not depend on
-> Performance Limited status, an unusable description disables that status
-> register instead of rejecting the processor's otherwise usable _CPC.
-> 
-> Lifetime and cleanup
-> ====================
-> 
-> CPC descriptors are released through their kobject callback, keeping their
-> storage and mappings alive for outstanding sysfs references. Every PCC
-> allocation, reference, and acquired channel is unwound on probe failure,
-> and the per-CPU PCC index is initialized before every early return. PCC
-> allocation uses a separate temporary result, so its success cannot turn a
-> later parse failure into a successful probe return.
-> 
-> Changes since v2
-> ================
-> 
->   - Relaxed the exact NumEntries/package-count match to tolerate safe trailing
->     package elements while still rejecting any count that could cause an
->     out-of-bounds walk.
->   - Made patch 10 independently preserve immutable-autonomous setups whose
->     inaccessible Desired Performance register requires RMW, rather than
->     relying on patch 11 to restore that exception.
->     
-> Sashiko v2 review not addressed 
-> ===============================
-> 
->   - Kept Guaranteed Performance Buffer-only. The suggestion was to accept a
->     nonzero Integer, but ACPI 6.6 Table 8.23 permits only a Buffer for this
->     entry.
-> 
-> Deferred follow-up work
-> =======================
-> 
-> Sashiko also identified a broader pre-existing lifetime question which this
-> series does not attempt to solve. In-kernel accessors read the per-CPU
-> cpc_desc_ptr without acquiring a reference, while processor teardown can
-> unpublish and eventually release the descriptor and its PCC data. The kobject
-> change here fixes the concrete sysfs lifetime bug, but a NULL pcc_data check
-> would not protect a caller which already holds a stale pointer. Closing this
-> properly requires defining the kernel accessor lifetime contract and then
-> using CPU-hotplug serialization / safe referencing across all callers,
-> therefore will be handled by a follow-up.
-> 
-> ACPI-legal bit-level PCC and SystemIO fields also remain unsupported. In
-> particular, the ACPI example's one-bit PCC CPPC Enable register cannot be
-> implemented by the old whole-value accessors. Supporting these descriptions
-> requires transport-specific field extraction and an RMW operation which obeys
-> PCC ownership or safely preserves adjacent SystemIO bits, just accepting the
-> descriptors would silently program the wrong value. Therefore continue to
-> disable optional inaccessible fields where safe and reject a present
-> inaccessible CPPC Enable control.
-> Full support, if even needed, belongs in a separate follow-up.
-> 
-> The review additionally suggested validating the complete AML
-> ResourceTemplate, including its EndTag. We currently validate the Register
-> descriptor we consume and tolerate trailing firmware data. I don't really
-> see the point of ever doing this, but definitely not in this series,
-> where I'm trying to guarantee that no reasonably working platform is
-> regressing.
-> 
-> Patches 1, 2, 4-7, and 9 address findings reported by Sashiko while
-> reviewing:
-> 
->   https://sashiko.dev/#/patchset/20260724134251.1632824-1-christian.loehle%40arm.com
-> 
-> Patches 3, 5, 6, 9, 10, and 15 address findings from the follow-up review:
-> 
->   https://sashiko.dev/#/patchset/20260807111303.1062391-1-christian.loehle%40arm.com
-> 
-> Patches 1 and 10 address findings from the v2 review:
-> 
->   https://sashiko.dev/#/patchset/20260808082644.1251332-1-christian.loehle%40arm.com
-> 
-> The series is based on Rafael's bleeding-edge
-> 77acf59d7cf1 ("Merge branch 'acpi-cppc' into bleeding-edge")
-> the base-commit specified below is linux-next for Sashiko review.
-> It applies cleanly on either.
-> 
-> Christian Loehle (15):
->   ACPI: CPPC: Validate the _CPC package header
->   ACPI: CPPC: Validate _CPC entry and control semantics
->   ACPI: CPPC: Propagate performance-control write errors
->   ACPI: CPPC: Use 64-bit masks for register fields
->   ACPI: CPPC: Serialize PCC single-register payload updates
->   ACPI: CPPC: Serialize PCC EPP payload updates
->   ACPI: CPPC: Release CPC descriptors through kobject
->   ACPI: CPPC: Release PCC data after probe failures
->   ACPI: CPPC: Reject unsafe cross-CPU SystemMemory RMW
->   ACPI: CPPC: Reject reads and RMW of write-only controls
->   ACPI: CPPC: Validate and access PCC register layouts
->   ACPI: CPPC: Validate SystemIO register layouts
->   ACPI: CPPC: Validate PCC overlaps across processors
->   ACPI: CPPC: Validate SystemIO overlaps across processors
->   ACPI: CPPC: Clear Performance Limited without a stale read
-> 
->  drivers/acpi/cppc_acpi.c | 1298 ++++++++++++++++++++++++++++++++------
->  include/acpi/cppc_acpi.h |    7 +-
->  2 files changed, 1116 insertions(+), 189 deletions(-)
-> 
-> base-commit: ea2bff00da89d7767d677bb68470130ba96f4928
+Hello,
 
-Looks like Sashiko is happy with this now, so human-reviewers, feel free
-to have a go!
+syzbot found the following issue on:
 
-Also I'm afraid this won't be the last series, Sashiko found 20 pre-existing
-issues again, I haven't looked at all of them in detail but the ones I have
-look legitimate to me and some are at least non-trivial to fix.
-(Some are also issues fixed by $SUBJECT but reviewed in an earlier patch.)
-I didn't see anything super urgent in it though so I might just let things
-settle before posting that.
+HEAD commit:    848acc8ffe1b Merge tag 'fsverity-for-linus' of git://git.k..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=140dbe32580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=84b3039e8461eef5
+dashboard link: https://syzkaller.appspot.com/bug?extid=6fd18c31ea0ad8f3d5ee
+compiler:       Debian clang version 22.1.8 (++20260613092233+e80beda6e255-1~exp1~20260613092250.77), Debian LLD 22.1.8
+
+Unfortunately, I don't have any reproducer for this issue yet.
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/d1a0ae21bd78/disk-848acc8f.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/9be505d18eb6/vmlinux-848acc8f.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/8ab6a3838bc0/bzImage-848acc8f.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+6fd18c31ea0ad8f3d5ee@syzkaller.appspotmail.com
+
+      osl-1334 os_signal_semaphore   : Signaling semaphore[ffff8881000c3390|1]
+==================================================================
+BUG: KCSAN: data-race in number / vsnprintf
+
+write to 0xffffffff89405bc0 of 30 bytes by task 3755 on cpu 1:
+ vsnprintf+0x2c0/0x8c0 lib/vsprintf.c:2896
+ vsprintf+0x2a/0x40 lib/vsprintf.c:3090
+ acpi_os_vprintf drivers/acpi/osl.c:162 [inline]
+ acpi_os_printf+0x87/0x200 drivers/acpi/osl.c:153
+ acpi_debug_print+0x113/0x200 drivers/acpi/acpica/utdebug.c:158
+ acpi_os_wait_semaphore+0x29e/0x2b0 drivers/acpi/osl.c:1310
+ acpi_ut_acquire_mutex+0x242/0x4a0 drivers/acpi/acpica/utmutex.c:241
+ acpi_ns_get_node+0x46/0xc0 drivers/acpi/acpica/nsutils.c:721
+ acpi_get_handle+0xfd/0x180 drivers/acpi/acpica/nsxfname.c:98
+ acpi_has_method+0x46/0x80 drivers/acpi/utils.c:672
+ acpi_pci_set_power_state+0x5d/0x190 drivers/pci/pci-acpi.c:1084
+ platform_pci_set_power_state drivers/pci/pci.c:1068 [inline]
+ pci_power_up+0x40/0x3b0 drivers/pci/pci.c:1306
+ pci_pm_power_up_and_verify_state+0x29/0x130 drivers/pci/pci.c:3153
+ pci_pm_default_resume_early drivers/pci/pci-driver.c:591 [inline]
+ pci_pm_restore_noirq+0x53/0x1b0 drivers/pci/pci-driver.c:1259
+ dpm_run_callback+0x53/0x2f0 drivers/base/power/main.c:510
+ device_resume_noirq+0x851/0x880 drivers/base/power/main.c:857
+ async_resume_noirq+0x2c/0x40 drivers/base/power/main.c:879
+ async_run_entry_fn+0x52/0x180 kernel/async.c:129
+ process_one_work kernel/workqueue.c:3322 [inline]
+ process_scheduled_works+0x4d4/0x9a0 kernel/workqueue.c:3405
+ worker_thread+0x569/0x750 kernel/workqueue.c:3486
+ kthread+0x221/0x270 kernel/kthread.c:436
+ ret_from_fork+0x146/0x330 arch/x86/kernel/process.c:158
+ ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+
+write to 0xffffffff89405bca of 1 bytes by task 3757 on cpu 0:
+ number+0x5c2/0xb80 lib/vsprintf.c:553
+ vsnprintf+0x68f/0x8c0 lib/vsprintf.c:2909
+ vsprintf+0x2a/0x40 lib/vsprintf.c:3090
+ acpi_os_vprintf drivers/acpi/osl.c:162 [inline]
+ acpi_os_printf+0x87/0x200 drivers/acpi/osl.c:153
+ acpi_debug_print+0x150/0x200 drivers/acpi/acpica/utdebug.c:171
+ acpi_ut_status_exit+0xc1/0x120 drivers/acpi/acpica/utdebug.c:-1
+ acpi_ns_get_node+0xa2/0xc0 drivers/acpi/acpica/nsutils.c:-1
+ acpi_get_handle+0xfd/0x180 drivers/acpi/acpica/nsxfname.c:98
+ acpi_has_method+0x46/0x80 drivers/acpi/utils.c:672
+ acpi_pci_set_power_state+0x5d/0x190 drivers/pci/pci-acpi.c:1084
+ platform_pci_set_power_state drivers/pci/pci.c:1068 [inline]
+ pci_power_up+0x40/0x3b0 drivers/pci/pci.c:1306
+ pci_pm_power_up_and_verify_state+0x29/0x130 drivers/pci/pci.c:3153
+ pci_pm_default_resume_early drivers/pci/pci-driver.c:591 [inline]
+ pci_pm_restore_noirq+0x53/0x1b0 drivers/pci/pci-driver.c:1259
+ dpm_run_callback+0x53/0x2f0 drivers/base/power/main.c:510
+ device_resume_noirq+0x851/0x880 drivers/base/power/main.c:857
+ async_resume_noirq+0x2c/0x40 drivers/base/power/main.c:879
+ async_run_entry_fn+0x52/0x180 kernel/async.c:129
+ process_one_work kernel/workqueue.c:3322 [inline]
+ process_scheduled_works+0x4d4/0x9a0 kernel/workqueue.c:3405
+ worker_thread+0x569/0x750 kernel/workqueue.c:3486
+ kthread+0x221/0x270 kernel/kthread.c:436
+ ret_from_fork+0x146/0x330 arch/x86/kernel/process.c:158
+ ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+
+value changed: 0x73 -> 0x65
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 UID: 0 PID: 3757 Comm: kworker/u8:46 Not tainted syzkaller #0 PREEMPT(lazy) 
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/24/2026
+Workqueue: async async_run_entry_fn
+
+==================================================================
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
