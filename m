@@ -1,43 +1,58 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A7632F616A;
-	Mon, 10 Aug 2026 15:35:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A01B5412BFC;
+	Mon, 10 Aug 2026 15:43:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786376143; cv=none; b=p5quS4bckFBtK8I3FnQoQhSV51w57uqtVwzLVXXLnRtYShhdJt/3wDST1ic2sHnyR+WhTmr85C/fmoO1b+VD2nHC/SmafYyn1sT6XQNtLDstozrT+uH0jsq+aH84cpcWgDG1NvmNN7xvz5MtynA+iC3UI62UZFCk4XZ1pcaiqGg=
+	t=1786376601; cv=none; b=UcFImOKZgPEqIMIjcVZ8YQep3X9dAzvEtA17FofdiL+CoDgeCeDlAHAFovrc+iPjFdpUg6KYjgTZxCVtd5/C0svYFffRhAuoUfrcBmEXtTNwzneGDm7dpzMA++2MatO3kckULRD5uwUF+Hdt6xYqa+nExP70ikqqyAUbW8wJISI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786376143; c=relaxed/simple;
-	bh=5XxmMIFn4Af/OFqmT/PGjRd/0zLw9ldLbsCCU3/nmCY=;
+	s=arc-20240116; t=1786376601; c=relaxed/simple;
+	bh=kSpYRxFesnNJJ1Ns1S+VbxA/rGQJaJ8W8iaBYFhenwI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jIanox9jwmi8ei2Lua4Sa8kwusg73Xj9m3iNBaDQtj5zdQS+LqPjgSt14IuhlEI74RZ5MTq8j3f5GQRXF6hGBhqzuq4u3ZDUwtyjNZqz/46kMPJC8r0jKR19gSmXLEHosApvcfNY8LWf6e/BgZY1gKZzlCCJOENqg889gKhgZq4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cyAJzAw7; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=NKwNrCBA3t+TXKT+4de0/9TLLhS8HXA5Z3dZsrAbqdjhX+YmpIG8pRQcFGwP7kD0Wk0xqK3lfFF8t2bnwKvFJ3NpT7bIYwAIyPGjdHyaIPURZn1BmQptN++NI5/vsqbpipOgFCxd0fRoxUZahX8zoit6RPx+MbaSqGOKt8UXr9k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Pv0qEcLF; arc=none smtp.client-ip=198.175.65.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cyAJzAw7"
-Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 703C31F000E9;
-	Mon, 10 Aug 2026 15:35:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786376142;
-	bh=aczLzN+0x2c8FkCGS2gEFsCS2C6r++0q6AJ0OfptsXk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=cyAJzAw7exubwk7sZiObJmRVCk5PrtY82DgNN2zoIPjWI/JpDv0gDHC7np6dkpILK
-	 sna26698jsYCsYu+hfkI8fmS0/JmlKDSTsC+glNvpl2oxAy/4IdTJVOn4gNH2aix5S
-	 BNzBTC3fYqW/8uOfRSmvc8sQrLZfXhJZwEjMT7YUqLp2jZh4uIvqC5nJIkHJpgEcHm
-	 j3/9QBOiMj2eLvzSSd6mmUzQVNXg5TTIg3YUsCJ7J2BGfmQARo2vW4QTM6AfWW8WPJ
-	 tPWPI91TKQ2VL2SyjPe15N7IKBzlRUiKRfzy+VWN2+9CdzkaAaFpzprbfHORlpwUu3
-	 ceZvjHf4ZrpmA==
-Date: Mon, 10 Aug 2026 18:35:38 +0300
-From: Jarkko Sakkinen <jarkko@kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Pv0qEcLF"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1786376599; x=1817912599;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=kSpYRxFesnNJJ1Ns1S+VbxA/rGQJaJ8W8iaBYFhenwI=;
+  b=Pv0qEcLFAht2X/SJlSFV7B/uq/rky6aq19DQ3hWe5Fmljt2KErt+r2K6
+   KC/QLoewgiYUw8hMcyYSRVhEtfFdKXCoDFsUjRz4IHvnIdkH52B4K3Dym
+   hZJTisRxhM4tHT417/7N17OIG1p1tUfXrUXsnfWoSHF8hmndhMBlcFWST
+   9ziF8Z9AisMB/ztSDw+uXSycY5w09iAIBhDZYe5aWA//buw+iL+820lJj
+   iONYPFl1wL4fVygvb/fjXMShLjeUWNxZneCo9UdpXxQnCUjMZpJVQqnmM
+   jM5rcE7QXBtISEXJLX09SKWSIp7m31yUiOiQdxJequmkJPLqBWAvu/CBI
+   w==;
+X-CSE-ConnectionGUID: waHvnBU2Q6qc/d1GRptsGg==
+X-CSE-MsgGUID: 75m+ve05T2WOg/IiayYlhA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11870"; a="90573309"
+X-IronPort-AV: E=Sophos;i="6.25,216,1779174000"; 
+   d="scan'208";a="90573309"
+Received: from orviesa010.jf.intel.com ([10.64.159.150])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2026 08:43:18 -0700
+X-CSE-ConnectionGUID: MUKTrvwxTImvHAi29sLCDw==
+X-CSE-MsgGUID: dReE5RHiTj65xZJNWXnaEA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,216,1779174000"; 
+   d="scan'208";a="261779686"
+Received: from conormcd-mobl2.ger.corp.intel.com (HELO localhost) ([10.245.244.99])
+  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2026 08:43:16 -0700
+Date: Mon, 10 Aug 2026 18:43:14 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
 	LKML <linux-kernel@vger.kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Mika Westerberg <mika.westerberg@linux.intel.com>,
-	Julien <julien82453@gmail.com>, linux-integrity@vger.kernel.org
-Subject: Re: [PATCH v3] ACPI: scan: Avoid registering platform devices with
- resource overlaps
-Message-ID: <annvyrUCmqOxW7-o@kernel.org>
-References: <12955541.O9o76ZdvQC@rafael.j.wysocki>
+	Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v1 1/3] ACPI: bus: Introduce acpi_bus_get_primary_device()
+Message-ID: <annxkiYsyfa4nh6z@ashevche-desk.local>
+References: <4764923.LvFx2qVVIh@rafael.j.wysocki>
+ <2283799.irdbgypaU6@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -46,111 +61,61 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <12955541.O9o76ZdvQC@rafael.j.wysocki>
+In-Reply-To: <2283799.irdbgypaU6@rafael.j.wysocki>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Fri, Aug 07, 2026 at 12:22:37PM +0200, Rafael J. Wysocki wrote:
+On Mon, Aug 10, 2026 at 01:33:41PM +0200, Rafael J. Wysocki wrote:
 > From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 > 
-> If acpi_dev_get_resources() returns overlapping I/O or memory resources,
-> the subsequent registration of a platform device will fail with -EBUSY
-> due to a resource conflict.  This is reported to happen on Acer Aspire
-> ES1-572 [1].
+> The function used for obtaining the first "physical" device for which
+> the given ACPI one is the ACPI companion, acpi_get_first_physical_node(),
+> may return a stale device pointer (mostly in theory) because
+> acpi_unbind_one() may run as a whole after dropping the ACPI device's
+> physical_node_lock in acpi_get_first_physical_node() and before it
+> returns.  The last reference to the "physical" device may be dropped
+> then before the pointer to it is returned to the caller.
 > 
-> Avoid that by adjusting resources returned by acpi_dev_get_resources()
-> to eliminate partial overlaps between them.
+> If that happens and the acpi_get_first_physical_node() caller invokes
+> get_device() on the pointer obtained from it, which is done by the
+> majority of its callers, a use-after-free will occur.
 > 
-> This has not been regarded as necessary before because putting
-> overlapping resources into the _CRS of one device is really pointless,
-> but now that the issue has been reported to actually happen in the
-> field, it needs to be done.
+> To prepare for addressing this problem, introduce a new function for
+> getting the first "physical" device associated with the given ACPI one
+> (the "primary physical device") that will also reference count the
+> device in question before returning a pointer to it.
 > 
-> Fixes: ab06eb920401 ("ACPI: scan: Register platform devices for fixed event buttons")
-> Reported-by: Julien <julien82453@gmail.com>
-> Closes: https://lore.kernel.org/linux-integrity/CAJOGg3z6LJPDsdPNBxajgy8_wQxfhYBRxe4EiurZf3kPU5A5Bw@mail.gmail.com/ [1]
-> Cc: All applicable <stable@vger.kernel.org>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
+> Make that new function and acpi_get_first_physical_node() share the
+> physical node list lookup code.
 > 
-> v2 -> v3:
->    * Use resource_union() and adjust code and comment (Andy)
->    * Include ioport.h directly
-> 
-> v1 -> v2:
->    * Add the expanded resource instead of and not in addition to the other
->      overlapping one (Sashiko)
-> 
-> ---
->  drivers/acpi/acpi_platform.c |   39 +++++++++++++++++++++++++++++++++++++--
->  1 file changed, 37 insertions(+), 2 deletions(-)
-> 
-> --- a/drivers/acpi/acpi_platform.c
-> +++ b/drivers/acpi/acpi_platform.c
-> @@ -12,6 +12,7 @@
->  #include <linux/bits.h>
->  #include <linux/device.h>
->  #include <linux/err.h>
-> +#include <linux/ioport.h>
->  #include <linux/kernel.h>
->  #include <linux/module.h>
->  #include <linux/dma-mapping.h>
-> @@ -71,6 +72,36 @@ static struct notifier_block acpi_platfo
->  	.notifier_call = acpi_platform_device_remove_notify,
->  };
->  
-> +static unsigned int acpi_platform_adjust_resources(struct acpi_device *adev,
-> +						   struct resource *new_res,
-> +						   struct resource *resources,
-> +						   unsigned int count)
+> No intentional functional impact.
+
+...
+
+> +static struct device *primary_physical_device(struct acpi_device *adev)
 > +{
-> +	unsigned int i;
+> +	if (list_empty(&adev->physical_node_list))
+> +		return NULL;
 > +
-> +	if (!(new_res->flags & (IORESOURCE_IO | IORESOURCE_MEM)))
-> +		return count;
-> +
-> +	for (i = 0; i < count; ) {
-> +		struct resource *res = &resources[i];
-> +
-> +		if (resource_type(new_res) != resource_type(res) ||
-> +		    !resource_union(new_res, res, new_res)) {
-> +			i++;
-> +			continue;
-> +		}
-> +
-> +		dev_info(&adev->dev, "%pR expanded to avoid overlap\n", new_res);
-> +		/*
-> +		 * Eliminate the previously processed resource that overlapped
-> +		 * with the new one because it is not necessary any more.
-> +		 */
-> +		memmove(res, res + 1, (--count - i) * sizeof(*res));
-> +	}
-> +
-> +	return count;
+> +	return list_first_entry(&adev->physical_node_list,
+> +				struct acpi_device_physical_node, node)->dev;
+
+This is open-coded list_first_entry_or_null().
+
+I see the ->dev, so having temporary variable will suit this
+
+	struct ... *...;
+
+	... = list_first_entry_or_null(...);
+	if (...)
+		return ...->dev;
+
+	return NULL;
+
 > +}
-> +
->  static void acpi_platform_fill_resource(struct acpi_device *adev,
->  	const struct resource *src, struct resource *dest)
->  {
-> @@ -151,10 +182,14 @@ struct platform_device *acpi_create_plat
->  				return ERR_PTR(-ENOMEM);
->  			}
->  			count = 0;
-> -			list_for_each_entry(rentry, &resource_list, node)
-> +			list_for_each_entry(rentry, &resource_list, node) {
-> +				count = acpi_platform_adjust_resources(adev,
-> +								       rentry->res,
-> +								       resources,
-> +								       count);
->  				acpi_platform_fill_resource(adev, rentry->res,
->  							    &resources[count++]);
-> -
-> +			}
->  			acpi_dev_free_resource_list(&resource_list);
->  		}
->  	}
-> 
-> 
-> 
 
-Applied to my tree I'll just run some tests.
+-- 
+With Best Regards,
+Andy Shevchenko
 
-BR, Jarkko
+
