@@ -1,39 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D01C43C1966;
-	Mon, 10 Aug 2026 11:40:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 508D23C1F4B;
+	Mon, 10 Aug 2026 11:40:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786362034; cv=none; b=OFFNwReklVywQZOvqFMcyEbJ8rs/qJGk5QCjVR3QnS17jaNrn7zqHYNifQP9Mno+WCitxhrnbQ9WD8JpO2yeuyvTO7lQfaQnI2MwLuQEX8ebURUbqHV4IBEh+i8eoGcuvWD5RkhWXjCMN/3T1acORiZvryId15ajYEyc9pMa2uc=
+	t=1786362038; cv=none; b=DS0hZeNu7KAUuwjm08v+Ruv2EoZsv51ir/11wa5Xdo0i8LfjJ9d0nT/gxwMK48v5kmdMxTKVuxbUTekeboN8m62hgUE5TfX5n2eujH73558NJnq8j2vH8LDzyFGE5dwttlP5JzTnCnPRlGTBk2JWrNo41E244YiPoICF0wqFi6s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786362034; c=relaxed/simple;
-	bh=Rvpy7KJlt2o2Tshj3r/yKbPrYMflM9zuWmxn/55AOhY=;
+	s=arc-20240116; t=1786362038; c=relaxed/simple;
+	bh=NMSDwi3wtBvS0TVgOZFlD0+odwRoN1wXtjnCXwYHwhU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=QO4FV7Dm9y+kD2LIYg4NhZrFjlKWwuJA2MI0r3vnr8zzf7vuO+lIhxPeZAV4tWMLhDNNajQ3SJT0vw0OVHqHEi8E/F9t3/c7DT58GF+5BOO2cKmvpzz/iRYlX94csRvFj2VQpYSa6+AuLcCeW/H8vkfwx8nYs2R0aS3Dr0RwtaY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aREIzZ60; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=IKq/3eYywZYsoYxDsvHo70nUsIIhSzAmi4KwsHfi8hUKP/WHhTWsnxpZPZQbR8zXqRSnyHIIcC5a9xmXyr5ouQE+YzUxxwic6LhCmOEwkReog2tZr7sHn6HOkhgSp356V04fGvvN16VuMzOfszGe9XODp1F0bTjkMevvbmKr6xU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=k293Y4bQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aREIzZ60"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C43A71F000E9;
-	Mon, 10 Aug 2026 11:40:30 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="k293Y4bQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 650BF1F000E9;
+	Mon, 10 Aug 2026 11:40:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786362032;
-	bh=O22CSa8G+2dNgkBniiNvjg//euMKmYXzub5vCNybg/8=;
+	s=k20260515; t=1786362036;
+	bh=PfEweG1BRuQH+PzHoCVKBSGMSkZyS8sDXG4iRu+oc6I=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=aREIzZ60WbzW4/k6RrJ3OSzN8u1OX5MleELiqgAKWqUy4AG3FSA9D6pWAXFo3RitH
-	 UL1ffNiJ3/1c3ubJ6Fy3lP5C31lj9bpJ3oH7j1Q3Ls7s66SNAuje0iYBx0t2a9kWNl
-	 uAicyOkw+cSQkD7iRF93uIhwKsYp9ydaXrfu7vIy1HFSJRDRxn+4lunDho2C5wfRMR
-	 WjrEDoZTfCBritQGMwippFWEQCKti42kXgL5Qfdacg2ixDWmF2x4CPAXdEIIgK0YWd
-	 xBNXLkHKMH55YetOL54dNz9ZCcVdRz02FbyTt2EaooesY4bFToJv+6KazyyV8x4uYk
-	 yyyiJ6PMWy4Sg==
+	b=k293Y4bQBrLA2Lv0NoKazUGjnIRvzIv8orLpeIQlIs2QvT78ZZAIl1/aV1f7U+m9c
+	 Thc5z1a4LbqHdiELgpnJfVM9Wb49FeYBnJYqjt6KEtKRK/9CF7t6Tzld4eMU7v+dBl
+	 CV//yzsLScVtxSCduWjRcIX6mlcibE0cuuYzGAYJCZH7+OMWAY0Xq39jH5vIeCRGj1
+	 8KZQI+yZLoNLoPKUGC1GlA9O7SMW2v18YxOzV7nD1bGXSfdSuwOvcMZSIr8BTwAcEW
+	 w3OeEccIaDzulQ16rrYrMcigiJYGQynkXkPMo05HZG8/r1ImAUYTuu1DnsdW2JFvgi
+	 Ocvdal0GGM9fg==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
  Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
  Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v1 3/3] ACPI: scan: Use acpi_bus_get_primary_device()
-Date: Mon, 10 Aug 2026 13:40:18 +0200
-Message-ID: <10906414.nUPlyArG6x@rafael.j.wysocki>
+Subject: [PATCH v1 2/3] ACPI: platform: Use acpi_bus_get_primary_device()
+Date: Mon, 10 Aug 2026 13:38:08 +0200
+Message-ID: <3436112.aeNJFYEL58@rafael.j.wysocki>
 Organization: Linux Kernel Development - Intel
 In-Reply-To: <4764923.LvFx2qVVIh@rafael.j.wysocki>
 References: <4764923.LvFx2qVVIh@rafael.j.wysocki>
@@ -48,61 +48,78 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-The acpi_get_first_physical_node() usage in acpi_create_video_bus_device()
-is generally unsafe because in theory the device returned by it may be
-freed at any time.
+The acpi_get_first_physical_node() usage in acpi_platform_fill_resource()
+and acpi_create_platform_device() is generally unsafe because in theory
+the device returned by it may be freed at any time [1].
 
-Address this issues by using acpi_bus_get_primary_device() instead of
-acpi_get_first_physical_node() and dropping the device reference
-acquired by it after registering the child.
+It is also inefficient because acpi_get_first_physical_node() is called
+multiple times for the same argument which can be avoided.
 
-Fixes: 6ab3532b4c98 ("ACPI: video: Switch over to auxiliary bus type")
+Address these issues by using acpi_bus_get_primary_device() instead of
+acpi_get_first_physical_node() and adjusting the code to call it just
+once at the beginning of and acpi_create_platform_device() and drop
+the device reference acquired by it upon the return from that function.
+
+Fixes: 3b95bd160547 ("ACPI: introduce a function to find the first physical device")
+Fixes: a252d881c558 ("ACPI / platform: Pay attention to parent device's resources")
+Link: https://sashiko.dev/#/patchset/12955541.O9o76ZdvQC%40rafael.j.wysocki [1]
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/scan.c |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ drivers/acpi/acpi_platform.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -2203,29 +2203,27 @@ static void acpi_create_video_bus_device
- 	struct auxiliary_device *aux_dev;
- 	static unsigned int aux_dev_id;
- 
-+	struct device *phys_parent __free(put_device) = acpi_bus_get_primary_device(parent);
-+	if (!phys_parent)
-+		return;
-+
- 	aux_dev = kzalloc_obj(*aux_dev);
- 	if (!aux_dev)
- 		return;
- 
- 	aux_dev->id = aux_dev_id++;
- 	aux_dev->name = "video_bus";
--	aux_dev->dev.parent = acpi_get_first_physical_node(parent);
--	if (!aux_dev->dev.parent)
--		goto err;
--
-+	aux_dev->dev.parent = phys_parent;
- 	aux_dev->dev.release = acpi_video_bus_device_release;
- 
--	if (auxiliary_device_init(aux_dev))
--		goto err;
-+	if (auxiliary_device_init(aux_dev)) {
-+		kfree(aux_dev);
-+		return;
-+	}
- 
- 	ACPI_COMPANION_SET(&aux_dev->dev, adev);
- 	if (__auxiliary_device_add(aux_dev, "acpi"))
- 		auxiliary_device_uninit(aux_dev);
--
--	return;
--
--err:
--	kfree(aux_dev);
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -102,18 +102,15 @@ static unsigned int acpi_platform_adjust
+ 	return count;
  }
  
- struct acpi_scan_system_dev {
+-static void acpi_platform_fill_resource(struct acpi_device *adev,
+-	const struct resource *src, struct resource *dest)
++static void acpi_platform_fill_resource(struct device *parent,
++					const struct resource *src,
++					struct resource *dest)
+ {
+-	struct device *parent;
+-
+ 	*dest = *src;
+-
+ 	/*
+ 	 * If the device has parent we need to take its resources into
+ 	 * account as well because this device might consume part of those.
+ 	 */
+-	parent = acpi_get_first_physical_node(acpi_dev_parent(adev));
+ 	if (parent && dev_is_pci(parent))
+ 		dest->parent = pci_find_resource(to_pci_dev(parent), dest);
+ }
+@@ -141,7 +138,8 @@ static unsigned int acpi_platform_resour
+ struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
+ 						    const struct property_entry *properties)
+ {
+-	struct acpi_device *parent = acpi_dev_parent(adev);
++	struct acpi_device *p = acpi_dev_parent(adev);
++	struct device *parent __free(put_device) = acpi_bus_get_primary_device(p);
+ 	struct platform_device *pdev = NULL;
+ 	struct platform_device_info pdevinfo;
+ 	const struct acpi_device_id *match;
+@@ -187,7 +185,7 @@ struct platform_device *acpi_create_plat
+ 								       rentry->res,
+ 								       resources,
+ 								       count);
+-				acpi_platform_fill_resource(adev, rentry->res,
++				acpi_platform_fill_resource(parent, rentry->res,
+ 							    &resources[count++]);
+ 			}
+ 			acpi_dev_free_resource_list(&resource_list);
+@@ -200,7 +198,7 @@ struct platform_device *acpi_create_plat
+ 	 * attached to it, that physical device should be the parent of the
+ 	 * platform device we are about to create.
+ 	 */
+-	pdevinfo.parent = parent ? acpi_get_first_physical_node(parent) : NULL;
++	pdevinfo.parent = parent;
+ 	pdevinfo.name = dev_name(&adev->dev);
+ 	pdevinfo.id = PLATFORM_DEVID_NONE;
+ 	pdevinfo.res = resources;
 
 
 
