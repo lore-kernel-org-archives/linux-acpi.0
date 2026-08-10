@@ -1,84 +1,104 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6413B368974
-	for <linux-acpi@vger.kernel.org>; Sun,  9 Aug 2026 22:17:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 178D41E9B1A;
+	Mon, 10 Aug 2026 04:23:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786313841; cv=none; b=rHn/t9xqrUfNRdlE4EUA4VPvlS1bPc6OSRy3wrgN/iAmwmTYGYe10v29u0981mUU7ORoUo4BVaSG9+h7x2zJcKM91S2G3LxLmPA5MJGWUOZ4JGkH3zPfDIq+NrMJdpg2XGj/NDRTApJevN/r8Xh9zlZWnoQot7g4Qvw+bpDT3B0=
+	t=1786335840; cv=none; b=UrjP0znG9jmMnEPFfv1SDUY0d4C26J+6OIpBgaIz3uVrZko3aP3iTbUrrxeR5RPLAHqsjp3Fxr4R2xU4NA87zbjAsmm/7fczzq8iH/NyQZvoL0eclVtd9FeGx33NAbMS/vxFpWaxQjY3iNnvk/32PShd4FxTF0UfJMiiiyO1obk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786313841; c=relaxed/simple;
-	bh=nhdqEbSz8qSG7osSBFFJiYNmPxdqJgnHGqPOYaeaDVw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=m7f58GHqHFv3/kS2drgdRuoKcdzYgCCt3kcISmf7ucNGbLbKDEZmkAKajYVUFBfRjg/QT96QjrkM3r+M/REtpoWaBo4LBcexPJ4B3b9NwEEXjmICEpfYAWJP2NlIDMNdhIdh/+rTXVlisKVGhvHkVFD4iXCGISKU1EAh6FN1TsQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nONNCQXo; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786335840; c=relaxed/simple;
+	bh=ZcVqvT+Y6eFRnYyRCFWzLo91a4PH7hvw4v2r0+IFFzg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=iG/5FFcPpu6p29a8RCQ+VRvkTUY9xuGTs1aeuW8yV9g5eOXc6/Foryp7rt29hbB1qrDq/J+p3W+V6z8QRLwXIiXizuqxMCbecB3S3oCTvEYqtb4mWm35oZOx+SsvtUKv8UT5fJQWMEqLuEbhpCWaqVke6+XbW4h3NWCAlU04sE0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CrftN1Pw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nONNCQXo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3976C1F000E9
-	for <linux-acpi@vger.kernel.org>; Sun,  9 Aug 2026 22:17:20 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CrftN1Pw"
+Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id B95921F000E9;
+	Mon, 10 Aug 2026 04:23:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786313840;
-	bh=nhdqEbSz8qSG7osSBFFJiYNmPxdqJgnHGqPOYaeaDVw=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=nONNCQXouVsHIKRK2hYsLMITmuoZ6KEDTBlkONLf7Ufrr47x2CrM+peC5rgyzliJm
-	 SS84wLwSLK7f262JDgYuNpgOMRrzcsffeF+LiNwVcbqgBMrqPC/JxVqRB2aKGoQpEy
-	 TbGT9yyG9Q62ybHRkuE34bRIEbzR0gRqSYDjljgRE2d++ma2jBZIv86L3MN+UWy5HK
-	 cA3dw+qch065Z3xWPrDVPUNQQEbw4OZ8oVrGbFv7fy7oWEmwMHSbh4+9KPNUnf6cwi
-	 rJ0AY5dFvx2QaZYRt/lBpH9Riu8b258iGovP9Nkn5S8w+7xautUS4jf+IEBOSOQomF
-	 ap52fGwbbHabQ==
-Received: by mail-lj1-f177.google.com with SMTP id 38308e7fff4ca-39c74722e27so14084821fa.0
-        for <linux-acpi@vger.kernel.org>; Sun, 09 Aug 2026 15:17:20 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+Ropvw8Jeb7l5iwlHJckcvMCViqNKG1+JxEbGa5xB6Q6+9WU8Uj5a5aomi2OqreKLxmERZmwpjxYbiXw@vger.kernel.org
-X-Gm-Message-State: AOJu0YwDDQ2GPZzkGVA83MeXAZCk+Rp3K87VFixGxHtypsgubnOkkdXq
-	i6FgyUaPH1QlDvKiRlivrKORDjriQRTcHKcAXhtAIm3UURau2MEk48CQISgE1FRwZAcySYtrfZO
-	KJsLnhUuvIovXafFzz0TAeYQ0zCGzKgY=
-X-Received: by 2002:a2e:be0a:0:b0:39c:a24b:f0b8 with SMTP id
- 38308e7fff4ca-39fe830f6e4mr19632901fa.2.1786313839066; Sun, 09 Aug 2026
- 15:17:19 -0700 (PDT)
+	s=k20260515; t=1786335838;
+	bh=uFGiMJzadKk4WX1sGbrXcX9F5jSOD0EWYJ8Z2mfpKII=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=CrftN1Pw5PPEzt8ofFRGrvoIUPrn3m58F4gAMhw6PyZ6K8lS9mih2UHvQ7UgfJM+u
+	 id1TdxQitIoh2/bcsUaPHyuxkeWr9VYr588ad7U/ATEwj3XLS8uREaoytUHrK9m1sf
+	 lTkmydeKQnI32vp737oTsvYBdkYtjiPyD13ilRa4Vp90zFvZNWXXugj2QwDs0n0K/N
+	 I4Mi1e5dhslGK0mG7e1+4QUtOtcGsWLao3JeWExAsjjV+/pXgiZckXMhu+YXy6vxB9
+	 g150QZEK0Kc8W2DYqS55/aWXZQV2Y3DbazYvpj2lSTyl0vvSZLBl0cL+WI0HHGYiPe
+	 two04nd7qCD8A==
+Date: Mon, 10 Aug 2026 06:23:55 +0200
+From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <ukleinek@kernel.org>
+To: Eliav Farber <farbere@amazon.com>
+Cc: rafael@kernel.org, tony.luck@intel.com, bp@alien8.de, 
+	guohanjun@huawei.com, mchehab@kernel.org, xueshuai@linux.alibaba.com, lenb@kernel.org, 
+	laurent.pinchart@ideasonboard.com, linusw@kernel.org, brgl@kernel.org, orsonzhai@gmail.com, 
+	baolin.wang@linux.alibaba.com, zhang.lyra@gmail.com, jic23@kernel.org, dlechner@baylibre.com, 
+	nuno.sa@analog.com, andy@kernel.org, dmitry.torokhov@gmail.com, hansg@kernel.org, 
+	ilpo.jarvinen@linux.intel.com, W_Armin@gmx.de, fabio.m.de.francesco@linux.intel.com, 
+	kaihengf@nvidia.com, ankita@nvidia.com, leitao@debian.org, pedro.pbg@usp.br, 
+	paulmck@kernel.org, frederic@kernel.org, kees@kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-pwm@vger.kernel.org, 
+	linux-iio@vger.kernel.org, linux-input@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Subject: Re: [PATCH v4 10/13] platform/x86: uniwill-wmi: use
+ devm_blocking_notifier_chain_register()
+Message-ID: <anlSAqWxS7boyJBT@monoceros>
+References: <20260726101739.33170-1-farbere@amazon.com>
+ <20260726101739.33170-11-farbere@amazon.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260808155513.2221976-1-xnorigc@gmail.com> <aneGptJn8J7eF9tj@ashevche-desk.local>
-In-Reply-To: <aneGptJn8J7eF9tj@ashevche-desk.local>
-From: Linus Walleij <linusw@kernel.org>
-Date: Mon, 10 Aug 2026 00:17:06 +0200
-X-Gmail-Original-Message-ID: <CAD++jLkCYwTyK6C8LvZiYJ9fSc8bp3RPpb4d6EgQTRraJtJDzA@mail.gmail.com>
-X-Gm-Features: AUfX_mwdclHsp2TUQj2kqqtrFMTvL6R8j3-WzVqxIY599QYIJ4ZBXCxS7imuOfs
-Message-ID: <CAD++jLkCYwTyK6C8LvZiYJ9fSc8bp3RPpb4d6EgQTRraJtJDzA@mail.gmail.com>
-Subject: Re: [PATCH] gpiolib: acpi: Add ignore_wake quirk for ASUS TX Air FA401GM
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Yao Qi <xnorigc@gmail.com>, westeri@kernel.org, brgl@kernel.org, 
-	linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="mu7hbbg5juva7cmc"
+Content-Disposition: inline
+In-Reply-To: <20260726101739.33170-11-farbere@amazon.com>
 
-On Sat, Aug 8, 2026 at 9:42=E2=80=AFPM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> On Sat, Aug 08, 2026 at 03:55:13PM +0000, Yao Qi wrote:
 
-> > The ASUS TX Air FA401GM experiences immediate wakeups from s2idle
-> > (Modern Standby) when suspended with an external HDMI display connected=
-.
-> >
-> > This issue is caused by spurious ACPI event signaling routed through
-> > GPIO 24 on the AMD GPIO controller (AMDI0030:00), which triggers a
-> > system-wide IRQ 7 (pinctrl_amd) wake-up interrupt during sleep.
-> >
-> > Add an ignore_wake quirk for GPIO 24 on this machine to prevent these
-> > unwanted wakeups. This has been runtime-tested and verified using the
-> > `gpiolib_acpi.ignore_wake=3DAMDI0030:00@24` kernel parameter.
->
-> If AMD people will be quick enough to tag this, I will include in my PR t=
-o
-> Linus W. on next week.
+--mu7hbbg5juva7cmc
+Content-Type: text/plain; protected-headers=v1; charset=us-ascii
+Content-Disposition: inline
+Subject: Re: [PATCH v4 10/13] platform/x86: uniwill-wmi: use
+ devm_blocking_notifier_chain_register()
+MIME-Version: 1.0
 
-To Bartosz?
+Hello,
 
-It's gpiolib...
+On Sun, Jul 26, 2026 at 10:17:36AM +0000, Eliav Farber wrote:
+>  int devm_uniwill_wmi_register_notifier(struct device *dev, struct notifier_block *nb)
+>  {
+> -	int ret;
+> -
+> -	ret = blocking_notifier_chain_register(&uniwill_wmi_chain_head, nb);
+> -	if (ret < 0)
+> -		return ret;
+> -
+> -	return devm_add_action_or_reset(dev, devm_uniwill_wmi_unregister_notifier, nb);
+> +	return devm_blocking_notifier_chain_register(dev,
+> +						     &uniwill_wmi_chain_head,
+> +						     nb);
+>  }
 
-Yours,
-Linus Walleij
+I'd remove this function and replace calls to it directly by
+devm_blocking_notifier_chain_register().
+
+Best regards
+Uwe
+
+--mu7hbbg5juva7cmc
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmp5UlgACgkQj4D7WH0S
+/k6sGwf/UZUQmeE+yaDBE/vWSAF4KRfM4BCOpYcTy2/gv7+b5S9qFmFjWZ0HCOoh
+3V4X2yJPH6DGRzTHUVXh8dm+ZJMuNjVS01nEMJ1zlyJfJna5Cp0FJDsIhDJRCqc9
+y5GYM6P2xKFZLwL5D7FisGULZQmpmrhUXPsKsC/GpSKCplAWSTyGHtfSBPBQQuCh
+F+5zgE5mG28X8ZNw5bycaSMPtilvT4jot0aIPE3USc7k1tofx/1UcWVBWRaGFYEF
+nctDHlhw63B2c8e/RcObUVengsA4HeVjy+Xwaf7Pwk/nP0pOQEo6S+zy/rd+/62b
+57kF59SGPY7M6iDeGXMEyaXmkbc21A==
+=62yG
+-----END PGP SIGNATURE-----
+
+--mu7hbbg5juva7cmc--
