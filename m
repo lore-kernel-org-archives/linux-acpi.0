@@ -1,101 +1,79 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F91B263F5D;
-	Mon, 10 Aug 2026 15:46:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2A09331EDD;
+	Mon, 10 Aug 2026 16:20:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786376810; cv=none; b=L478SEi5jFpHGywRdkArXSS85B1k0LLthlXgJFz632VFknoAle96LqbOrj4tkt87fBQFAw9b9MJueWPJz3EK81sAYuBfHikPbcOBco/tXjCqd5W8RJd3NEYXiyiyDac80WoyCNiVMdmd8ArXF+V/QDZxghPiSN867C2pFybjXVs=
+	t=1786378805; cv=none; b=nmctRFEAjNbSs530X5eA1uok7TA0WwKGhQBdH0ks5lfYFRNskZYw2eodvzW22SlIq+cH7GOFLKouN6VvpyfEH7zDCM7kPpRAIQfr8fuAsZ6/IZC/R5bIL39tEFcX9U4/VHbqb1+7GXAIqQx2PQN9YFpExzDqIOxOxhZXY0EKr4I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786376810; c=relaxed/simple;
-	bh=4gIbwgwasZxeg2+1kdZunO96UDOuzVeBaoe4/ii5Euw=;
+	s=arc-20240116; t=1786378805; c=relaxed/simple;
+	bh=gsBZW3roLR55x3KD23eK9IBtGuPFN6cGbNRvxUGO+Jg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nTBPShvS2pb/7f8MTlgjxhzyzR8eRKZdRV0FFlzWcgCDDkdCqzzvSc6dtO5EXflHkuC4wh5s5iyUA2QYhLiekdXTte3UqXBk6k+08CaislqIWc7TgY7uuSBCt1CE6watUo9/L9V2nAHhAqd+Rf5ZJLbD0PoJ2DhdK83sRfwF1JQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=P/btvMoz; arc=none smtp.client-ip=192.198.163.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=THzDC67tmkOxfBVwdHkankbYGfR47hBleHEIQCZrX4E38OtiRYWlg5XLiSvcy9xiY5AUJrUjJmTZLZcDVQZ8g2ca5Vf71c8PvIZbD9rXKPiwvHMgz/beTtuDT4stmfPbaHoi5zWKMNPTeXYSuETs9r+TnLmibg9eMpeAcn+Q6bw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cTNv9jC/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="P/btvMoz"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1786376809; x=1817912809;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=4gIbwgwasZxeg2+1kdZunO96UDOuzVeBaoe4/ii5Euw=;
-  b=P/btvMoz3+D/MhfhKfhgmb0UvqjkjUIEFI3bStRZIX6dN38H1KGRT70J
-   vTFc/9NjLtK35435616xFAUZCOnxkZEuTeRl3Ikdu3qlIWxFiJIx7icHC
-   NK121o+WIH1c34PPjKqHzZvJ53elZDZFwpBW+RrrTq8ynAKXklgZAJlyj
-   IIIXR8Wuict4phqchPUUv7a+w3J27S0oSgs45AhrTJRjYKxIS6f/830Sq
-   SwtmR9RX/5fF/qHcYaFe490hMz0lk7KzLtjBrlgo0wcdhkdMyr7Th/npp
-   62AvUpUiGUT45utu5z3X2qHaUKRT7aSlorurzgRFj7Ekv+Y0/DhMLjDjJ
-   A==;
-X-CSE-ConnectionGUID: x1cFQs2DRTuwBEgQzzCihA==
-X-CSE-MsgGUID: XWTQvd3zRE6lvk4UqFDZfA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11870"; a="86015396"
-X-IronPort-AV: E=Sophos;i="6.25,216,1779174000"; 
-   d="scan'208";a="86015396"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2026 08:46:48 -0700
-X-CSE-ConnectionGUID: /ofJ9f6TT/WAYaZ9NelnvQ==
-X-CSE-MsgGUID: 7KeEez6BSHqgE2M3o3thXQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,216,1779174000"; 
-   d="scan'208";a="261323021"
-Received: from conormcd-mobl2.ger.corp.intel.com (HELO localhost) ([10.245.244.99])
-  by orviesa006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2026 08:46:46 -0700
-Date: Mon, 10 Aug 2026 18:46:43 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v1 0/3] ACPI: bus: Rework acquiring the primary physical
- for a given ACPI one
-Message-ID: <annyY81d3NRYxCB9@ashevche-desk.local>
-References: <4764923.LvFx2qVVIh@rafael.j.wysocki>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cTNv9jC/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C87551F000E9;
+	Mon, 10 Aug 2026 16:19:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786378804;
+	bh=RPOZDjm0qicPVxcdpi6ugyNcGwoCVz6o/jhlFg1DkwA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=cTNv9jC/aG9GpEcPuG/S5rsnSC9CG7OLShcGUUGf2DothJRSHWvCP/+upsSE3l9WG
+	 f0woCzDd/0kF6hE8tAo2g7pqiAK8eukZm/KrEr66NptSJIUaJ0Rb4fwSDfYyn8HiW3
+	 HGf1yCCsfDutQZ/ziT3ziWsbFK170iLWcCL9BfNfeuy+wcAcURn2mRN1yeZg9hzTGc
+	 pjjz1Ip9lIEZQMpupAP2tKSo3rmBjEW7N/YIIDMV2dUIXvbQElP5QNDu1wCIQZwMeP
+	 9SdjsXJFS1ErWospxII5r6xeT3+s9QIbquSzf2G/Y2uLxK0jPOyY8LApKOpWoD+QBM
+	 uwclds2+gi4Uw==
+Date: Mon, 10 Aug 2026 18:19:52 +0200
+From: Manivannan Sadhasivam <mani@kernel.org>
+To: Chen-Yu Tsai <wenst@chromium.org>
+Cc: Bartosz Golaszewski <brgl@kernel.org>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, Wei Deng <wei.deng@oss.qualcomm.com>, linux-acpi@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org, 
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	Alan Stern <stern@rowland.harvard.edu>, Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Subject: Re: [PATCH v7 03/16] power: sequencing: Add pwrseq_get_state()
+Message-ID: <5kvmepqjoeh4igu3q3xovgimqunz4e6z3h35gqq6p2runsab5c@an2sg7ltp4p4>
+References: <20260724084328.3943997-1-wenst@chromium.org>
+ <20260724084328.3943997-4-wenst@chromium.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <4764923.LvFx2qVVIh@rafael.j.wysocki>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260724084328.3943997-4-wenst@chromium.org>
 
-On Mon, Aug 10, 2026 at 01:28:44PM +0200, Rafael J. Wysocki wrote:
-> Hi All,
+On Fri, Jul 24, 2026 at 04:43:12PM +0800, Chen-Yu Tsai wrote:
+> The power sequencing consumer API already does power on state tracking
+> internally. Expose the state to consumers through pwrseq_get_state()
+> so that they don't have to reimplement it locally.
 > 
-> This is somewhat late, but since there will be follow-up changes tree-wide,
-> it would be good to get it into the mainline sooner than later.
-> 
-> It is based on the observation that the majority of
-> acpi_get_first_physical_node() callers want to hold a reference on the returned
-> device and the function is potentially racy because it doesn't get such a
-> reference itself.  There were also some comments from Sashiko pointing
-> out to this as a "preexisting issue".
-> 
-> The first patch adds a acpi_get_first_physical_node() replacement called
-> acpi_bus_get_primary_device() and returning a reference-counted device (the
-> former is retained for the time being, but made use the same code as the
-> latter).
-> 
-> The next two patches change the core ACPI code to use the new function
-> instead of the old one.
-> 
-> Later on, patches will be sent to switch all of the callers of
-> acpi_get_first_physical_node() over to using acpi_bus_get_primary_device()
-> and finally to drop the former.
+> Instead of just on/off and error codes, the function can also return
 
-I have one comment in patch 1 (see separate reply) but overall LGTM and I like
-the end result.
+'can' -> in the future? I don't see a value in adding it, but not a concern.
 
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> "unknown" state. This is in anticipation for "uncontrollable" power
+> sequencers (such as GPIOs left unconnected).
+> 
+> Acked-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
+
+Reviewed-by: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
+
+- Mani
 
 -- 
-With Best Regards,
-Andy Shevchenko
-
-
+மணிவண்ணன் சதாசிவம்
