@@ -1,336 +1,547 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id CFA13395ACA;
-	Mon, 10 Aug 2026 05:15:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47F9B39A076;
+	Mon, 10 Aug 2026 06:55:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786338916; cv=none; b=UEcBo/XdmP9PdMkoxJ9gvIRFQBrxGvhWjom5zdbZbEOWjxLcU97yHV7a/1tUOTI5JcVjssrNF1j6AgR+CMonHAlQ96YPbhpP19ttlZrU0QQtwL67y4GHR34sQ/JEslqbz7leHTsoqcGtWcm4i5tAgB/KSE0qZWhpKsPMVK7YkPM=
+	t=1786344952; cv=none; b=uFNBYUg6PaeHyYkdcL2pPeFh8cLV0YB4QaL7amBc6k5/dgKl0lIzyTiAsQEwOoDHD+rfVGaza63+2ji4nrpXVmf4T3+byW2uDvrSnY1PXg+MbsQy6FKvvTLN1H/kRHPvwRpsPTYdutX8w45ReIg5CNWykrR5TrQgpz53D6wnWAE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786338916; c=relaxed/simple;
-	bh=Et8J0vsuWr4coSWx79J/HtWlJORqkuumCSEA4SWMEbs=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=dIf3ddfUHRWNeyOSv13KRFJl/LPHhLkawJxmumaF+5WqePjuh9F5BKLnvt2Sj99dMfVyVq5F01F2rZk6waqrJ6U2TNv8JoyTK5akKHiWQ1bjhEVKWYo6q4CtxmPR9fALJDpVqB9ry2NPig0T4CgpGMO3E32Y6HVTj6Fig0Zx2w4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=eWdCLFRq; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="eWdCLFRq"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 0B8E31516;
-	Sun,  9 Aug 2026 22:15:09 -0700 (PDT)
-Received: from [10.57.1.129] (unknown [10.57.1.129])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id D2D593F632;
-	Sun,  9 Aug 2026 22:15:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1786338912; bh=Et8J0vsuWr4coSWx79J/HtWlJORqkuumCSEA4SWMEbs=;
-	h=Date:Subject:From:To:Cc:References:In-Reply-To:From;
-	b=eWdCLFRq7aeCB01uvRamVysiIJO8MkUO0uHT/Atw8IUEqa55OTQtyGGuwh2DfApP0
-	 ZHeMLlM7eUd5fzfyYIPSru1AyBtH3FjI2Xu9ixT9Vhc26JC0Dn4VcW1ZxT1bDeZqvG
-	 bLtU1f6UT8UItnVtos3FT+HC1ss8KAImfP1ZM3SQ=
-Message-ID: <c1190e23-2043-46d9-ae7e-f95103363b0b@arm.com>
-Date: Mon, 10 Aug 2026 06:15:03 +0100
+	s=arc-20240116; t=1786344952; c=relaxed/simple;
+	bh=4pECNR68Zg/GS4kp7uh9eHA/Zi2K+bnV+fTLyWAK6rE=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=khPSLSLpe1Olrg7sQMBFOGCpcg5rXiQ+Bo8r9CGHkAoTTMT3rnPzFgK5LAs2qERBS5OxZ83bOsEWvk9l9gnY9536qzFxrbkBzKB/miBAwHQNcteMNYLe00cIBwahaAzyYJJZ/nBk01Cso6UUNGXJQ+6T5nlWycZWshot+RV1ogM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
+X-UUID: 7f70fb40948811f1aa26b74ffac11d73-20260810
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.3.12,REQID:e3c9ceca-9477-4be6-9bb5-df42f3a12271,IP:0,U
+	RL:0,TC:0,Content:-25,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTIO
+	N:release,TS:-25
+X-CID-META: VersionHash:e7bac3a,CLOUDID:82af115f358b4597dcc0136890df5dc3,BulkI
+	D:nil,BulkQuantity:0,Recheck:0,SF:102|136|850|865|898,TC:nil,Content:0|15|
+	50,EDM:-3|-100,IP:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,
+	OSI:0,OSA:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
+X-CID-BVR: 2,SSN|SDN
+X-CID-BAS: 2,SSN|SDN,0,_
+X-CID-FACTOR: TF_CID_SPAM_SNR
+X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
+X-UUID: 7f70fb40948811f1aa26b74ffac11d73-20260810
+X-User: luriwen@kylinos.cn
+Received: from localhost.localdomain [(10.44.16.150)] by mailgw.kylinos.cn
+	(envelope-from <luriwen@kylinos.cn>)
+	(Generic MTA with TLSv1.3 TLS_AES_256_GCM_SHA384 256/256)
+	with ESMTP id 1480129823; Mon, 10 Aug 2026 14:55:39 +0800
+From: Riwen Lu <luriwen@kylinos.cn>
+To: rafael@kernel.org,
+	lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Riwen Lu <luriwen@kylinos.cn>
+Subject: [PATCH v5] ACPI: PM: Introduce CONFIG_ACPI_S2IDLE for platform-independent S2Idle support
+Date: Mon, 10 Aug 2026 14:55:35 +0800
+Message-Id: <20260810065535.3432984-1-luriwen@kylinos.cn>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 00/15] ACPI: CPPC: Fix register access and lifetime
- bugs
-From: Christian Loehle <christian.loehle@arm.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
- Viresh Kumar <viresh.kumar@linaro.org>
-Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>,
- Jie Zhan <zhanjie9@hisilicon.com>, Lifeng Zheng <zhenglifeng1@huawei.com>,
- Pierre Gondois <pierre.gondois@arm.com>, Sumit Gupta <sumitg@nvidia.com>,
- Sudeep Holla <sudeep.holla@arm.com>,
- Ionela Voinescu <ionela.voinescu@arm.com>, zhongqiu.han@oss.qualcomm.com
-References: <20260809062549.1415955-1-christian.loehle@arm.com>
- <8831def0-2b6c-477d-8f43-025a4a0cbca2@arm.com>
-Content-Language: en-US
-In-Reply-To: <8831def0-2b6c-477d-8f43-025a4a0cbca2@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 8/9/26 08:18, Christian Loehle wrote:
-> On 8/9/26 07:25, Christian Loehle wrote:
->> First of all, sorry this got so out of hand, initially this was just
->> trying to fix some relatively simple issues found by sashiko in an
->> earlier (unrelated) series.
->> But with me touching more and more code and going through rounds of AI
->> review that kept finding more and more pre-existing issues I've arrived
->> at this.
->>
->> This series fixes correctness and robustness issues found while reviewing
->> the CPPC control path. They affect malformed _CPC handling, error
->> propagation, PCC ownership and cleanup, CPC object lifetime, register field
->> access, cross-processor aliases, and Performance Limited clearing.
->>
->> Series structure
->> ================
->>
->> Patches 1-8 are deliberately small, independently useful fixes. They
->> validate the _CPC encoding consumed by cppc-acpi, propagate control-write
->> errors, serialize PCC payload updates, correct 64-bit field masks, and fix
->> descriptor and PCC lifetime handling.
->>
->> Patches 9-15 are the register-layout hardening portion. Geometry validation
->> is more substantial because safe RMW and alias handling depend on the
->> physical access unit, not merely on a logical _CPC entry or _PSD domain.
->> These patches normalize and validate each supported address space before
->> building probe-only physical interval registries. Keeping this work in the
->> same posting gives the complete safety boundary and a single base for
->> review, while each transport and bug retains its own Fixes provenance.
->> Feel free to treat the two parts as independent series, I didn't split it
->> because they're all technically fixes and to get Sashiko review for the
->> whole lot.
->>
->> No interval lookup is added to the scheduler hot path. Full-width
->> SystemMemory writes remain lockless. RMW locking remains necessary only for
->> a partial field, where we must preserve the other bits in its access
->> unit. The existing per-descriptor raw lock continues to cover disjoint
->> partial fields within one _CPC package; probe rejects cross-descriptor
->> layouts that it cannot protect.
->>
->> Parsing and control semantics
->> =============================
->>
->> The parser now validates the package header before indexing it, bounds the
->> BYTE and DWORD Integer forms before conversion, and validates the Generic
->> Register descriptor consumed by cppc-acpi. NumEntries may not exceed the AML
->> package count, but additional trailing package elements are ignored because
->> doing so is safe and preserves compatibility with padded firmware. The parser
->> likewise tolerates trailing ResourceTemplate data instead of imposing a new
->> EndTag compatibility requirement.
->>
->> Writable controls must be Buffer-encoded registers. Minimum and Maximum
->> Performance are checked as the pair required by ACPI 6.6 Sections
->> 8.4.6.1.2.1 and 8.4.6.1.2.2. Object presence is kept separate from the
->> Integer-zero convention for absent optional fields, so Lowest Performance
->> may retain the valid abstract value zero.
->>
->> Performance Limited is one deliberate compatibility exception. ACPI lists
->> it as required, but permits a platform with no limiting indication to
->> always return zero, and deployed firmware represents that case with a NULL
->> descriptor. CPPC control does not depend on this status register, so we
->> continue to accept that encoding. A present _CPC package which otherwise
->> fails parsing or initialization now emits an error instead of silently
->> preventing cpufreq registration.
->>
->> Compound performance and EPP updates propagate errors and perform every
->> fallible non-PCC write before modifying the PCC payload. Updates across
->> address spaces cannot be atomic, but a known non-PCC failure can no longer
->> commit only the PCC portion or leave an unsent value for a later command.
->>
->> SystemMemory locking and support boundary
->> =========================================
->>
->> A partial SystemMemory field requires RMW to preserve the rest of its
->> access unit. Commit 60949b7b8054 ("ACPI: CPPC: Fix MASK_VAL() usage") used
->> a per-_CPC lock and noted that a global lock would be needed if physical
->> registers were shared between packages.
->>
->> ACPI does not make _PSD a physical-register ownership boundary. Rather than
->> put a global raw lock or lookup into the scheduler path, this series makes
->> the cheaper per-descriptor model's assumptions enforceable at probe.
->>
->> Supported SystemMemory layouts are:
->>
->>   - naturally aligned 8-, 16-, 32-, and 64-bit access units;
->>   - lockless full-width controls;
->>   - read-only aliases;
->>   - exact full-width writable aliases, including 64-bit aliases on 64-bit
->>     kernels;
->>   - disjoint partial writers within one descriptor, serialized by its
->>     rmw_lock; and
->>   - a partial writer sharing an access unit with a disjoint read-only
->>     field.
->>
->> Probe rejects overlapping logical fields involving a writer, another field
->> inside a full-width writable access unit, cross-descriptor partial writers,
->> unaligned accesses, and exact writable 64-bit aliases on 32-bit kernels.
->> These layouts were not safely supported by the old per-descriptor lock or
->> generic writeq(); rejecting them turns possible corruption into a visible
->> probe failure rather than removing working support.
->>
->> PCC access and locking
->> ======================
->>
->> The PCC protocol requires OSPM to acquire the subspace before changing its
->> command or payload. Single-register and EPP updates now hold pcc_lock
->> across ownership acquisition, payload staging, and command submission.
->>
->> ACPI 6.6's implementation example places a mandatory 32-bit Delivered
->> Performance Counter at unaligned PCC offset 0x116. Performance controls may
->> also use byte-multiple widths such as 24 bits. PCC therefore uses
->> byte-oriented I/O with explicit little-endian encoding for zero-offset,
->> byte-multiple fields from 8 through 64 bits. A short per-subspace payload
->> lock protects concurrent aliased copies made under the shared side of
->> pcc_lock; it does not replace the protocol ownership lock.
->>
->> Bit-level PCC fields require RMW and remain unsupported. An unsupported
->> optional field is marked absent, but a present inaccessible CPPC Enable
->> fails probe because OSPM must write it before using CPPC. Thus the
->> ACPI-legal one-bit CPPC Enable used by the specification example is a
->> documented kernel limitation. The old accessor could not program it
->> correctly either, so an explicit error is safer than silently proceeding
->> without enabling CPPC.
->>
->> Every retained PCC field is bounds checked against the shared-memory
->> region. A subspace-keyed interval registry permits read-only overlap and
->> exact same-control aliases while rejecting every other writable overlap
->> across processors.
->>
->> SystemIO support boundary
->> =========================
->>
->> SystemIO supports Bit Offset zero, full 8-, 16-, or 32-bit accesses ending
->> at or below port 0xffff, including legacy Access Size zero when Bit Width
->> supplies the size. Partial fields never worked because the driver neither
->> shifted them nor preserved adjacent bits, so they now fail visibly instead
->> of being misprogrammed.
->>
->> On kernels without CONFIG_HAS_IOPORT, SystemIO entries are rejected or
->> disabled according to the affected control's semantics. Runtime accessors
->> also return -EOPNOTSUPP rather than treating an I/O port as a
->> physical-memory address. A global port interval registry rejects
->> cross-processor writable overlap.
->>
->> Write-only and Performance Limited controls
->> ===========================================
->>
->> Between _CPC revisions 3 and 4, Desired Performance changed from
->> Read/Write to Write, and revision 4 added write-only OSPM Nominal
->> Performance. ACPI 6.6 Section 4.6.3 says reads from write-only positions
->> are undefined. Explicit reads of both controls are rejected, as are
->> SystemMemory layouts which would implicitly read them for RMW. Full-width
->> writes remain supported.
->>
->> Performance Limited is sticky, write-zero-to-clear, and requires
->> interlocked accesses under ACPI 6.6 Section 8.4.6.1.3.2. The old separate
->> read and write could clear a new event reported between transactions. The
->> clear path now writes zero only to requested status bits and one to the
->> other defined bits. Partial SystemMemory forms cannot be used because a
->> spinlock cannot interlock an enclosing RMW with platform updates. QWord
->> forms cannot be used on 32-bit kernels, where the MMIO accessor may be
->> split into two 32-bit operations; naturally aligned, full-width QWords
->> remain supported on 64-bit kernels. Since CPPC control does not depend on
->> Performance Limited status, an unusable description disables that status
->> register instead of rejecting the processor's otherwise usable _CPC.
->>
->> Lifetime and cleanup
->> ====================
->>
->> CPC descriptors are released through their kobject callback, keeping their
->> storage and mappings alive for outstanding sysfs references. Every PCC
->> allocation, reference, and acquired channel is unwound on probe failure,
->> and the per-CPU PCC index is initialized before every early return. PCC
->> allocation uses a separate temporary result, so its success cannot turn a
->> later parse failure into a successful probe return.
->>
->> Changes since v2
->> ================
->>
->>   - Relaxed the exact NumEntries/package-count match to tolerate safe trailing
->>     package elements while still rejecting any count that could cause an
->>     out-of-bounds walk.
->>   - Made patch 10 independently preserve immutable-autonomous setups whose
->>     inaccessible Desired Performance register requires RMW, rather than
->>     relying on patch 11 to restore that exception.
->>     
->> Sashiko v2 review not addressed 
->> ===============================
->>
->>   - Kept Guaranteed Performance Buffer-only. The suggestion was to accept a
->>     nonzero Integer, but ACPI 6.6 Table 8.23 permits only a Buffer for this
->>     entry.
->>
->> Deferred follow-up work
->> =======================
->>
->> Sashiko also identified a broader pre-existing lifetime question which this
->> series does not attempt to solve. In-kernel accessors read the per-CPU
->> cpc_desc_ptr without acquiring a reference, while processor teardown can
->> unpublish and eventually release the descriptor and its PCC data. The kobject
->> change here fixes the concrete sysfs lifetime bug, but a NULL pcc_data check
->> would not protect a caller which already holds a stale pointer. Closing this
->> properly requires defining the kernel accessor lifetime contract and then
->> using CPU-hotplug serialization / safe referencing across all callers,
->> therefore will be handled by a follow-up.
->>
->> ACPI-legal bit-level PCC and SystemIO fields also remain unsupported. In
->> particular, the ACPI example's one-bit PCC CPPC Enable register cannot be
->> implemented by the old whole-value accessors. Supporting these descriptions
->> requires transport-specific field extraction and an RMW operation which obeys
->> PCC ownership or safely preserves adjacent SystemIO bits, just accepting the
->> descriptors would silently program the wrong value. Therefore continue to
->> disable optional inaccessible fields where safe and reject a present
->> inaccessible CPPC Enable control.
->> Full support, if even needed, belongs in a separate follow-up.
->>
->> The review additionally suggested validating the complete AML
->> ResourceTemplate, including its EndTag. We currently validate the Register
->> descriptor we consume and tolerate trailing firmware data. I don't really
->> see the point of ever doing this, but definitely not in this series,
->> where I'm trying to guarantee that no reasonably working platform is
->> regressing.
->>
->> Patches 1, 2, 4-7, and 9 address findings reported by Sashiko while
->> reviewing:
->>
->>   https://sashiko.dev/#/patchset/20260724134251.1632824-1-christian.loehle%40arm.com
->>
->> Patches 3, 5, 6, 9, 10, and 15 address findings from the follow-up review:
->>
->>   https://sashiko.dev/#/patchset/20260807111303.1062391-1-christian.loehle%40arm.com
->>
->> Patches 1 and 10 address findings from the v2 review:
->>
->>   https://sashiko.dev/#/patchset/20260808082644.1251332-1-christian.loehle%40arm.com
->>
->> The series is based on Rafael's bleeding-edge
->> 77acf59d7cf1 ("Merge branch 'acpi-cppc' into bleeding-edge")
->> the base-commit specified below is linux-next for Sashiko review.
->> It applies cleanly on either.
->>
->> Christian Loehle (15):
->>   ACPI: CPPC: Validate the _CPC package header
->>   ACPI: CPPC: Validate _CPC entry and control semantics
->>   ACPI: CPPC: Propagate performance-control write errors
->>   ACPI: CPPC: Use 64-bit masks for register fields
->>   ACPI: CPPC: Serialize PCC single-register payload updates
->>   ACPI: CPPC: Serialize PCC EPP payload updates
->>   ACPI: CPPC: Release CPC descriptors through kobject
->>   ACPI: CPPC: Release PCC data after probe failures
->>   ACPI: CPPC: Reject unsafe cross-CPU SystemMemory RMW
->>   ACPI: CPPC: Reject reads and RMW of write-only controls
->>   ACPI: CPPC: Validate and access PCC register layouts
->>   ACPI: CPPC: Validate SystemIO register layouts
->>   ACPI: CPPC: Validate PCC overlaps across processors
->>   ACPI: CPPC: Validate SystemIO overlaps across processors
->>   ACPI: CPPC: Clear Performance Limited without a stale read
->>
->>  drivers/acpi/cppc_acpi.c | 1298 ++++++++++++++++++++++++++++++++------
->>  include/acpi/cppc_acpi.h |    7 +-
->>  2 files changed, 1116 insertions(+), 189 deletions(-)
->>
->> base-commit: ea2bff00da89d7767d677bb68470130ba96f4928
-> 
-> Looks like Sashiko is happy with this now, so human-reviewers, feel free
-> to have a go!
-> 
-> Also I'm afraid this won't be the last series, Sashiko found 20 pre-existing
-> issues again, I haven't looked at all of them in detail but the ones I have
-> look legitimate to me and some are at least non-trivial to fix.
-> (Some are also issues fixed by $SUBJECT but reviewed in an earlier patch.)
-> I didn't see anything super urgent in it though so I might just let things
-> settle before posting that.
+The ACPI S2Idle (suspend-to-idle) code is currently located in sleep.c
+and guarded by CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT. This config is
+historically tied to x86/ia64 sleep states (S3/S4), which prevents
+ACPI-based platforms like ARM64 from using the OS-centric s2idle
+framework and its associated wakeup event handling (e.g., from ACPI
+buttons or the lid).
 
-Okay after having a more detailed look, it's not as bad as I thought, there's
-basically only the one case mentioned above which is lifetime wrt
-acpi_cppc_processor_exit() teardown which is currently unprotected against kernel
-users, so mostly the driver unbind. AFAICS it's fixable with RCU, refcount and
-some cleanup work, so definitely non-trivial.
-All other findings either fall into the other two mentioned ones or are already
-fixed by later patches of the series AFAICT.
+Since S2Idle is a software-driven low-power state that does not rely on
+firmware sleep states (S3/S4), it should be available to all
+ACPI-enabled platforms.
+
+To achieve this, introduce a new, independent Kconfig option,
+CONFIG_ACPI_S2IDLE. It is selected by ACPI_SYSTEM_POWER_STATES_SUPPORT
+for backward compatibility, but can now also be enabled separately by
+other platforms.
+
+Move all s2idle-specific code into a dedicated file,
+drivers/acpi/s2idle.c. This creates a clear and independent ACPI s2idle
+framework, centered around a default acpi_s2idle_ops and a weakly
+defined acpi_s2idle_setup() hook.
+
+The change allows all ACPI platforms to use this common s2idle
+infrastructure. Platforms with unique requirements can override the
+defaults via the weak function, while others (like ARM64) can now simply
+enable the config to obtain functional s2idle support with standard ACPI
+wakeup handling.
+
+Signed-off-by: Riwen Lu <luriwen@kylinos.cn>
+---
+v1 -> v2:
+ - Fix acpi_s2idle_setup() declaration error when SUSPEND is disabled in
+   x86 builds.
+
+v2 -> v3:
+ - Select ACPI_S2IDLE if SUSPEND is enabled for
+   ACPI_SYSTEM_POWER_STATES_SUPPORT, so the select no longer violates the
+   ACPI_S2IDLE dependency on SUSPEND.
+
+v3 -> v4:
+ - Add pr_fmt() in s2idle.c so log messages keep the "ACPI: PM: " prefix
+   that sleep.c used; without it the moved pr_info/pr_warn would lose the
+   subsystem prefix.
+ - Drop the redundant #ifdef CONFIG_SUSPEND / #else wrapper in s2idle.c.
+   The !SUSPEND branch was dead code, because CONFIG_ACPI_S2IDLE itself
+   depends on SUSPEND, so s2idle.c is only compiled when SUSPEND is set.
+ - Make acpi_s2idle_init() return void.  The int return value was always 0
+   in the real implementation and -ENXIO in the stub, and the only caller
+   (acpi_bus_init()) ignores it; a void interface is honest and the stub
+   becomes a clean no-op.
+ - Mark the weak acpi_s2idle_setup() default __init, matching the x86
+   override (which is already __init) and allowing the code to be discarded
+   after init.
+ - Use SPDX-License-Identifier: GPL-2.0-only in s2idle.c for consistency
+   with sleep.c (the file the code was split out from).
+ - Trivial cleanups: remove a double blank line in the Makefile and drop
+   the redundant "Warning: " prefix from a pr_warn() message.
+
+v4 -> v5:
+ - Add #include <linux/interrupt.h> to s2idle.c.  enable_irq_wake(),
+   disable_irq_wake() and rearm_wake_irq() are declared there.
+
+ drivers/acpi/Kconfig    |  14 ++++
+ drivers/acpi/Makefile   |   1 +
+ drivers/acpi/bus.c      |   3 +
+ drivers/acpi/internal.h |  10 ++-
+ drivers/acpi/s2idle.c   | 163 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/sleep.c    | 145 -----------------------------------
+ 6 files changed, 189 insertions(+), 147 deletions(-)
+ create mode 100644 drivers/acpi/s2idle.c
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index f165d14cf61a..8c0918747bbb 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -55,6 +55,7 @@ config ACPI_GENERIC_GSI
+ 
+ config ACPI_SYSTEM_POWER_STATES_SUPPORT
+ 	bool
++	select ACPI_S2IDLE if SUSPEND
+ 
+ config ACPI_CCA_REQUIRED
+ 	bool
+@@ -113,6 +114,19 @@ config ACPI_SLEEP
+ 	depends on ACPI_SYSTEM_POWER_STATES_SUPPORT
+ 	default y
+ 
++config ACPI_S2IDLE
++	bool "ACPI suspend-to-idle support"
++	depends on SUSPEND
++	help
++	  This option enables the core ACPI framework for the suspend-to-idle
++	  (S2Idle) power state. This state is software-driven and does not
++	  require platform firmware sleep states (S3/S4).
++
++	  It is automatically selected by platforms with
++	  CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT (like x86), but can also
++	  be enabled independently by other ACPI platforms (e.g., ARM64) to
++	  gain support for low-power idle and ACPI wakeup events.
++
+ config ACPI_REV_OVERRIDE_POSSIBLE
+ 	bool "Allow supported ACPI revision to be overridden"
+ 	depends on X86
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index d1b0affb844f..f1e89e45e876 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -35,6 +35,7 @@ acpi-$(CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT) += sleep.o
+ acpi-y				+= device_sysfs.o device_pm.o
+ acpi-$(CONFIG_ACPI_SLEEP)	+= proc.o
+ 
++acpi-$(CONFIG_ACPI_S2IDLE)	+= s2idle.o
+ 
+ #
+ # ACPI Bus and Device Drivers
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index a30a904f6535..eedcd940859c 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1534,6 +1534,9 @@ static int __init acpi_bus_init(void)
+ 	/* Initialize sleep structures */
+ 	acpi_sleep_init();
+ 
++	/* Initialize default acpi s2idle ops */
++	acpi_s2idle_init();
++
+ 	/*
+ 	 * Get the system interrupt model and evaluate \_PIC.
+ 	 */
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 40f875b265a9..5a08315d308a 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -267,13 +267,19 @@ static inline bool acpi_ec_dispatch_gpe(void)
+                                   Suspend/Resume
+   -------------------------------------------------------------------------- */
+ #ifdef CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
+-extern bool acpi_s2idle_wakeup(void);
+ extern int acpi_sleep_init(void);
+ #else
+-static inline bool acpi_s2idle_wakeup(void) { return false; }
+ static inline int acpi_sleep_init(void) { return -ENXIO; }
+ #endif
+ 
++#ifdef CONFIG_ACPI_S2IDLE
++extern bool acpi_s2idle_wakeup(void);
++extern void acpi_s2idle_init(void);
++#else
++static inline bool acpi_s2idle_wakeup(void) { return false; }
++static inline void acpi_s2idle_init(void) {}
++#endif
++
+ #ifdef CONFIG_ACPI_SLEEP
+ void acpi_sleep_proc_init(void);
+ int suspend_nvs_alloc(void);
+diff --git a/drivers/acpi/s2idle.c b/drivers/acpi/s2idle.c
+new file mode 100644
+index 000000000000..b5cd9649acda
+--- /dev/null
++++ b/drivers/acpi/s2idle.c
+@@ -0,0 +1,163 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * s2idle.c - ACPI suspend-to-idle support.
++ *
++ */
++
++#define pr_fmt(fmt) "ACPI: PM: " fmt
++
++#include <linux/acpi.h>
++#include <linux/device.h>
++#include <linux/interrupt.h>
++#include <linux/suspend.h>
++#include <linux/irq.h>
++
++#include "internal.h"
++#include "sleep.h"
++
++static bool s2idle_wakeup;
++
++int acpi_s2idle_begin(void)
++{
++	acpi_scan_lock_acquire();
++	return 0;
++}
++
++int acpi_s2idle_prepare(void)
++{
++	if (acpi_sci_irq_valid()) {
++		int error;
++
++		error = enable_irq_wake(acpi_sci_irq);
++		if (error)
++			pr_warn("Failed to enable wakeup from IRQ %d: %d\n",
++				acpi_sci_irq, error);
++
++		acpi_ec_set_gpe_wake_mask(ACPI_GPE_ENABLE);
++	}
++
++	acpi_enable_wakeup_devices(ACPI_STATE_S0);
++
++	/* Change the configuration of GPEs to avoid spurious wakeup. */
++	acpi_enable_all_wakeup_gpes();
++	acpi_os_wait_events_complete();
++
++	s2idle_wakeup = true;
++	return 0;
++}
++
++bool acpi_s2idle_wake(void)
++{
++	if (!acpi_sci_irq_valid())
++		return pm_wakeup_pending();
++
++	while (pm_wakeup_pending()) {
++		/*
++		 * If IRQD_WAKEUP_ARMED is set for the SCI at this point, the
++		 * SCI has not triggered while suspended, so bail out (the
++		 * wakeup is pending anyway and the SCI is not the source of
++		 * it).
++		 */
++		if (irqd_is_wakeup_armed(irq_get_irq_data(acpi_sci_irq))) {
++			pm_pr_dbg("Wakeup unrelated to ACPI SCI\n");
++			return true;
++		}
++
++		/*
++		 * If the status bit of any enabled fixed event is set, the
++		 * wakeup is regarded as valid.
++		 */
++		if (acpi_any_fixed_event_status_set()) {
++			pm_pr_dbg("ACPI fixed event wakeup\n");
++			return true;
++		}
++
++		/* Check wakeups from drivers sharing the SCI. */
++		if (acpi_check_wakeup_handlers()) {
++			pm_pr_dbg("ACPI custom handler wakeup\n");
++			return true;
++		}
++
++		/*
++		 * Check non-EC GPE wakeups and if there are none, cancel the
++		 * SCI-related wakeup and dispatch the EC GPE.
++		 */
++		if (acpi_ec_dispatch_gpe()) {
++			pm_pr_dbg("ACPI non-EC GPE wakeup\n");
++			return true;
++		}
++
++		acpi_os_wait_events_complete();
++
++		/*
++		 * The SCI is in the "suspended" state now and it cannot produce
++		 * new wakeup events till the rearming below, so if any of them
++		 * are pending here, they must be resulting from the processing
++		 * of EC events above or coming from somewhere else.
++		 */
++		if (pm_wakeup_pending()) {
++			pm_pr_dbg("Wakeup after ACPI Notify sync\n");
++			return true;
++		}
++
++		pm_pr_dbg("Rearming ACPI SCI for wakeup\n");
++
++		pm_wakeup_clear(acpi_sci_irq);
++		rearm_wake_irq(acpi_sci_irq);
++	}
++
++	return false;
++}
++
++void acpi_s2idle_restore(void)
++{
++	/*
++	 * Drain pending events before restoring the working-state configuration
++	 * of GPEs.
++	 */
++	acpi_os_wait_events_complete(); /* synchronize GPE processing */
++	acpi_ec_flush_work(); /* flush the EC driver's workqueues */
++	acpi_os_wait_events_complete(); /* synchronize Notify handling */
++
++	s2idle_wakeup = false;
++
++	acpi_enable_all_runtime_gpes();
++
++	acpi_disable_wakeup_devices(ACPI_STATE_S0);
++
++	if (acpi_sci_irq_valid()) {
++		acpi_ec_set_gpe_wake_mask(ACPI_GPE_DISABLE);
++		disable_irq_wake(acpi_sci_irq);
++	}
++}
++
++void acpi_s2idle_end(void)
++{
++	acpi_scan_lock_release();
++}
++
++static const struct platform_s2idle_ops acpi_s2idle_ops = {
++	.begin = acpi_s2idle_begin,
++	.prepare = acpi_s2idle_prepare,
++	.wake = acpi_s2idle_wake,
++	.restore = acpi_s2idle_restore,
++	.end = acpi_s2idle_end,
++};
++
++void __init __weak acpi_s2idle_setup(void)
++{
++	if (acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0)
++		pr_info("Efficient low-power S0 idle declared\n");
++
++	s2idle_set_ops(&acpi_s2idle_ops);
++}
++
++bool acpi_s2idle_wakeup(void)
++{
++	return s2idle_wakeup;
++}
++
++void __init acpi_s2idle_init(void)
++{
++	acpi_s2idle_setup();
++}
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 132a9df98471..eeaacc354c48 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -724,143 +724,6 @@ static const struct platform_suspend_ops acpi_suspend_ops_old = {
+ 	.recover = acpi_pm_finish,
+ };
+ 
+-static bool s2idle_wakeup;
+-
+-int acpi_s2idle_begin(void)
+-{
+-	acpi_scan_lock_acquire();
+-	return 0;
+-}
+-
+-int acpi_s2idle_prepare(void)
+-{
+-	if (acpi_sci_irq_valid()) {
+-		int error;
+-
+-		error = enable_irq_wake(acpi_sci_irq);
+-		if (error)
+-			pr_warn("Warning: Failed to enable wakeup from IRQ %d: %d\n",
+-				acpi_sci_irq, error);
+-
+-		acpi_ec_set_gpe_wake_mask(ACPI_GPE_ENABLE);
+-	}
+-
+-	acpi_enable_wakeup_devices(ACPI_STATE_S0);
+-
+-	/* Change the configuration of GPEs to avoid spurious wakeup. */
+-	acpi_enable_all_wakeup_gpes();
+-	acpi_os_wait_events_complete();
+-
+-	s2idle_wakeup = true;
+-	return 0;
+-}
+-
+-bool acpi_s2idle_wake(void)
+-{
+-	if (!acpi_sci_irq_valid())
+-		return pm_wakeup_pending();
+-
+-	while (pm_wakeup_pending()) {
+-		/*
+-		 * If IRQD_WAKEUP_ARMED is set for the SCI at this point, the
+-		 * SCI has not triggered while suspended, so bail out (the
+-		 * wakeup is pending anyway and the SCI is not the source of
+-		 * it).
+-		 */
+-		if (irqd_is_wakeup_armed(irq_get_irq_data(acpi_sci_irq))) {
+-			pm_pr_dbg("Wakeup unrelated to ACPI SCI\n");
+-			return true;
+-		}
+-
+-		/*
+-		 * If the status bit of any enabled fixed event is set, the
+-		 * wakeup is regarded as valid.
+-		 */
+-		if (acpi_any_fixed_event_status_set()) {
+-			pm_pr_dbg("ACPI fixed event wakeup\n");
+-			return true;
+-		}
+-
+-		/* Check wakeups from drivers sharing the SCI. */
+-		if (acpi_check_wakeup_handlers()) {
+-			pm_pr_dbg("ACPI custom handler wakeup\n");
+-			return true;
+-		}
+-
+-		/*
+-		 * Check non-EC GPE wakeups and if there are none, cancel the
+-		 * SCI-related wakeup and dispatch the EC GPE.
+-		 */
+-		if (acpi_ec_dispatch_gpe()) {
+-			pm_pr_dbg("ACPI non-EC GPE wakeup\n");
+-			return true;
+-		}
+-
+-		acpi_os_wait_events_complete();
+-
+-		/*
+-		 * The SCI is in the "suspended" state now and it cannot produce
+-		 * new wakeup events till the rearming below, so if any of them
+-		 * are pending here, they must be resulting from the processing
+-		 * of EC events above or coming from somewhere else.
+-		 */
+-		if (pm_wakeup_pending()) {
+-			pm_pr_dbg("Wakeup after ACPI Notify sync\n");
+-			return true;
+-		}
+-
+-		pm_pr_dbg("Rearming ACPI SCI for wakeup\n");
+-
+-		pm_wakeup_clear(acpi_sci_irq);
+-		rearm_wake_irq(acpi_sci_irq);
+-	}
+-
+-	return false;
+-}
+-
+-void acpi_s2idle_restore(void)
+-{
+-	/*
+-	 * Drain pending events before restoring the working-state configuration
+-	 * of GPEs.
+-	 */
+-	acpi_os_wait_events_complete(); /* synchronize GPE processing */
+-	acpi_ec_flush_work(); /* flush the EC driver's workqueues */
+-	acpi_os_wait_events_complete(); /* synchronize Notify handling */
+-
+-	s2idle_wakeup = false;
+-
+-	acpi_enable_all_runtime_gpes();
+-
+-	acpi_disable_wakeup_devices(ACPI_STATE_S0);
+-
+-	if (acpi_sci_irq_valid()) {
+-		acpi_ec_set_gpe_wake_mask(ACPI_GPE_DISABLE);
+-		disable_irq_wake(acpi_sci_irq);
+-	}
+-}
+-
+-void acpi_s2idle_end(void)
+-{
+-	acpi_scan_lock_release();
+-}
+-
+-static const struct platform_s2idle_ops acpi_s2idle_ops = {
+-	.begin = acpi_s2idle_begin,
+-	.prepare = acpi_s2idle_prepare,
+-	.wake = acpi_s2idle_wake,
+-	.restore = acpi_s2idle_restore,
+-	.end = acpi_s2idle_end,
+-};
+-
+-void __weak acpi_s2idle_setup(void)
+-{
+-	if (acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0)
+-		pr_info("Efficient low-power S0 idle declared\n");
+-
+-	s2idle_set_ops(&acpi_s2idle_ops);
+-}
+-
+ static void __init acpi_sleep_suspend_setup(void)
+ {
+ 	bool suspend_ops_needed = false;
+@@ -875,20 +738,12 @@ static void __init acpi_sleep_suspend_setup(void)
+ 	if (suspend_ops_needed)
+ 		suspend_set_ops(old_suspend_ordering ?
+ 				&acpi_suspend_ops_old : &acpi_suspend_ops);
+-
+-	acpi_s2idle_setup();
+ }
+ 
+ #else /* !CONFIG_SUSPEND */
+-#define s2idle_wakeup		(false)
+ static inline void acpi_sleep_suspend_setup(void) {}
+ #endif /* !CONFIG_SUSPEND */
+ 
+-bool acpi_s2idle_wakeup(void)
+-{
+-	return s2idle_wakeup;
+-}
+-
+ #ifdef CONFIG_PM_SLEEP
+ static u32 saved_bm_rld;
+ 
+-- 
+2.25.1
+
