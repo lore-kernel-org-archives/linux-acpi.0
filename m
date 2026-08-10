@@ -1,39 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 508D23C1F4B;
-	Mon, 10 Aug 2026 11:40:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E84A3C3432;
+	Mon, 10 Aug 2026 11:40:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786362038; cv=none; b=DS0hZeNu7KAUuwjm08v+Ruv2EoZsv51ir/11wa5Xdo0i8LfjJ9d0nT/gxwMK48v5kmdMxTKVuxbUTekeboN8m62hgUE5TfX5n2eujH73558NJnq8j2vH8LDzyFGE5dwttlP5JzTnCnPRlGTBk2JWrNo41E244YiPoICF0wqFi6s=
+	t=1786362042; cv=none; b=dIYdY3dbazO7iOInUbl8dbyq4xW6/Dj0jJrGlv90u3BG6jJe5zvWMa6WTMAsB0RlcKZere4I/wYCRiVsiqDBMP0ow4TkmKDgVM+pUQV32EwSrYHCNf4Wqsv2V95Kw8JCKqcyzLnKYf6+/Cj6/z+gyYJZCChjCtYMM5wYJx2vgKw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786362038; c=relaxed/simple;
-	bh=NMSDwi3wtBvS0TVgOZFlD0+odwRoN1wXtjnCXwYHwhU=;
+	s=arc-20240116; t=1786362042; c=relaxed/simple;
+	bh=B4I1LkUxE4e9U5MNc00ZBvuw/Y+hCnnbRxuOOy44I80=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=IKq/3eYywZYsoYxDsvHo70nUsIIhSzAmi4KwsHfi8hUKP/WHhTWsnxpZPZQbR8zXqRSnyHIIcC5a9xmXyr5ouQE+YzUxxwic6LhCmOEwkReog2tZr7sHn6HOkhgSp356V04fGvvN16VuMzOfszGe9XODp1F0bTjkMevvbmKr6xU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=k293Y4bQ; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=a0vgIBzfM8lw4cFHpSqosX+Tid48b+NVXvID3kV5sVr2gtHkKYOxhCya3BUd5beNfhmGUzquun6jyx2kejxepEHLWKELOdnaJnHCzLToYCzl8qvngcdifE7qlrXTTFPBZNSuEyiwirzPOGTkbgaqG+h3nirwYr6aK/F7Gtrz3qE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hpotgW70; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="k293Y4bQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 650BF1F000E9;
-	Mon, 10 Aug 2026 11:40:35 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hpotgW70"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F74E1F000E9;
+	Mon, 10 Aug 2026 11:40:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786362036;
-	bh=PfEweG1BRuQH+PzHoCVKBSGMSkZyS8sDXG4iRu+oc6I=;
+	s=k20260515; t=1786362041;
+	bh=KxyI1z+ajGdJB+n5jcvI1tVobKlFynaTQmsJ9a+gM8U=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=k293Y4bQBrLA2Lv0NoKazUGjnIRvzIv8orLpeIQlIs2QvT78ZZAIl1/aV1f7U+m9c
-	 Thc5z1a4LbqHdiELgpnJfVM9Wb49FeYBnJYqjt6KEtKRK/9CF7t6Tzld4eMU7v+dBl
-	 CV//yzsLScVtxSCduWjRcIX6mlcibE0cuuYzGAYJCZH7+OMWAY0Xq39jH5vIeCRGj1
-	 8KZQI+yZLoNLoPKUGC1GlA9O7SMW2v18YxOzV7nD1bGXSfdSuwOvcMZSIr8BTwAcEW
-	 w3OeEccIaDzulQ16rrYrMcigiJYGQynkXkPMo05HZG8/r1ImAUYTuu1DnsdW2JFvgi
-	 Ocvdal0GGM9fg==
+	b=hpotgW70pDkLHHxwNakvl/elW7gTH6CWRjxxb7cujijt5VsO1lLK0OZVhRI3JT8Kp
+	 RyRaBdkZANM4tbL4V+PjejTQ6Q+r5EKgZ218r9sn8cKq1TCTs9mk4g09A1SfGrZPiB
+	 jqoxbArX/jdV4DNqLgAu3zAn9L/c15kj+s7VJUOVouzaeXAhYy0DvLQmQUGsXzqhwZ
+	 2tiS1C834/MKqJtmvB+f2SUT/l0871ILMHNmy9qTDTPWJrEBAIj5go9R+fOcPhW1H7
+	 RQa7Oo/VrLVT0bnmLs8s/NxG989n2eAAujhfiqYy5W+hgGItk/rJbXUGYplwRSX/ON
+	 rKMtFfI6O7GDw==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
  Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
  Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v1 2/3] ACPI: platform: Use acpi_bus_get_primary_device()
-Date: Mon, 10 Aug 2026 13:38:08 +0200
-Message-ID: <3436112.aeNJFYEL58@rafael.j.wysocki>
+Subject: [PATCH v1 1/3] ACPI: bus: Introduce acpi_bus_get_primary_device()
+Date: Mon, 10 Aug 2026 13:33:41 +0200
+Message-ID: <2283799.irdbgypaU6@rafael.j.wysocki>
 Organization: Linux Kernel Development - Intel
 In-Reply-To: <4764923.LvFx2qVVIh@rafael.j.wysocki>
 References: <4764923.LvFx2qVVIh@rafael.j.wysocki>
@@ -48,78 +48,124 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-The acpi_get_first_physical_node() usage in acpi_platform_fill_resource()
-and acpi_create_platform_device() is generally unsafe because in theory
-the device returned by it may be freed at any time [1].
+The function used for obtaining the first "physical" device for which
+the given ACPI one is the ACPI companion, acpi_get_first_physical_node(),
+may return a stale device pointer (mostly in theory) because
+acpi_unbind_one() may run as a whole after dropping the ACPI device's
+physical_node_lock in acpi_get_first_physical_node() and before it
+returns.  The last reference to the "physical" device may be dropped
+then before the pointer to it is returned to the caller.
 
-It is also inefficient because acpi_get_first_physical_node() is called
-multiple times for the same argument which can be avoided.
+If that happens and the acpi_get_first_physical_node() caller invokes
+get_device() on the pointer obtained from it, which is done by the
+majority of its callers, a use-after-free will occur.
 
-Address these issues by using acpi_bus_get_primary_device() instead of
-acpi_get_first_physical_node() and adjusting the code to call it just
-once at the beginning of and acpi_create_platform_device() and drop
-the device reference acquired by it upon the return from that function.
+To prepare for addressing this problem, introduce a new function for
+getting the first "physical" device associated with the given ACPI one
+(the "primary physical device") that will also reference count the
+device in question before returning a pointer to it.
 
-Fixes: 3b95bd160547 ("ACPI: introduce a function to find the first physical device")
-Fixes: a252d881c558 ("ACPI / platform: Pay attention to parent device's resources")
-Link: https://sashiko.dev/#/patchset/12955541.O9o76ZdvQC%40rafael.j.wysocki [1]
+Make that new function and acpi_get_first_physical_node() share the
+physical node list lookup code.
+
+No intentional functional impact.
+
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpi_platform.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ drivers/acpi/bus.c      |   51 ++++++++++++++++++++++++++++++++----------------
+ include/acpi/acpi_bus.h |    6 +++++
+ 2 files changed, 41 insertions(+), 16 deletions(-)
 
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -102,18 +102,15 @@ static unsigned int acpi_platform_adjust
- 	return count;
- }
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -774,30 +774,49 @@ static int __init acpi_setup_sb_notify_h
+                              Device Matching
+    -------------------------------------------------------------------------- */
  
--static void acpi_platform_fill_resource(struct acpi_device *adev,
--	const struct resource *src, struct resource *dest)
-+static void acpi_platform_fill_resource(struct device *parent,
-+					const struct resource *src,
-+					struct resource *dest)
++
++static struct device *primary_physical_device(struct acpi_device *adev)
++{
++	if (list_empty(&adev->physical_node_list))
++		return NULL;
++
++	return list_first_entry(&adev->physical_node_list,
++				struct acpi_device_physical_node, node)->dev;
++}
++
++/**
++ * acpi_bus_get_primary_device - Get first physical device for a given ACPI one
++ * @adev: ACPI device to get the first physical device for.
++ *
++ * Find the first physical device for which @adev is the ACPI companion and
++ * reference count it if present.
++ *
++ * Return: Pointer to the first physical counterpart of @adev or NULL if there
++ * are none.  Callers are responsible for invoking put_device() on the returned
++ * device.
++ */
++struct device *acpi_bus_get_primary_device(struct acpi_device *adev)
++{
++	if (!adev)
++		return NULL;
++
++	guard(mutex)(&adev->physical_node_lock);
++
++	return get_device(primary_physical_device(adev));
++}
++EXPORT_SYMBOL_GPL(acpi_bus_get_primary_device);
++
+ /**
+- * acpi_get_first_physical_node - Get first physical node of an ACPI device
++ * acpi_get_first_physical_node - Find first physical node of an ACPI device
+  * @adev:	ACPI device in question
+  *
+  * Return: First physical node of ACPI device @adev
+  */
+ struct device *acpi_get_first_physical_node(struct acpi_device *adev)
  {
--	struct device *parent;
+-	struct mutex *physical_node_lock = &adev->physical_node_lock;
+-	struct device *phys_dev;
++	guard(mutex)(&adev->physical_node_lock);
+ 
+-	mutex_lock(physical_node_lock);
+-	if (list_empty(&adev->physical_node_list)) {
+-		phys_dev = NULL;
+-	} else {
+-		const struct acpi_device_physical_node *node;
 -
- 	*dest = *src;
+-		node = list_first_entry(&adev->physical_node_list,
+-					struct acpi_device_physical_node, node);
 -
- 	/*
- 	 * If the device has parent we need to take its resources into
- 	 * account as well because this device might consume part of those.
- 	 */
--	parent = acpi_get_first_physical_node(acpi_dev_parent(adev));
- 	if (parent && dev_is_pci(parent))
- 		dest->parent = pci_find_resource(to_pci_dev(parent), dest);
+-		phys_dev = node->dev;
+-	}
+-	mutex_unlock(physical_node_lock);
+-	return phys_dev;
++	return primary_physical_device(adev);
  }
-@@ -141,7 +138,8 @@ static unsigned int acpi_platform_resour
- struct platform_device *acpi_create_platform_device(struct acpi_device *adev,
- 						    const struct property_entry *properties)
- {
--	struct acpi_device *parent = acpi_dev_parent(adev);
-+	struct acpi_device *p = acpi_dev_parent(adev);
-+	struct device *parent __free(put_device) = acpi_bus_get_primary_device(p);
- 	struct platform_device *pdev = NULL;
- 	struct platform_device_info pdevinfo;
- 	const struct acpi_device_id *match;
-@@ -187,7 +185,7 @@ struct platform_device *acpi_create_plat
- 								       rentry->res,
- 								       resources,
- 								       count);
--				acpi_platform_fill_resource(adev, rentry->res,
-+				acpi_platform_fill_resource(parent, rentry->res,
- 							    &resources[count++]);
- 			}
- 			acpi_dev_free_resource_list(&resource_list);
-@@ -200,7 +198,7 @@ struct platform_device *acpi_create_plat
- 	 * attached to it, that physical device should be the parent of the
- 	 * platform device we are about to create.
- 	 */
--	pdevinfo.parent = parent ? acpi_get_first_physical_node(parent) : NULL;
-+	pdevinfo.parent = parent;
- 	pdevinfo.name = dev_name(&adev->dev);
- 	pdevinfo.id = PLATFORM_DEVID_NONE;
- 	pdevinfo.res = resources;
+ EXPORT_SYMBOL_GPL(acpi_get_first_physical_node);
+ 
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -645,6 +645,7 @@ int acpi_scan_add_handler(struct acpi_sc
+ int acpi_bus_scan(acpi_handle handle);
+ void acpi_bus_trim(struct acpi_device *start);
+ acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
++struct device *acpi_bus_get_primary_device(struct acpi_device *adev);
+ int acpi_match_device_ids(struct acpi_device *device,
+ 			  const struct acpi_device_id *ids);
+ void acpi_set_modalias(struct acpi_device *adev, const char *default_id,
+@@ -947,6 +948,11 @@ int acpi_scan_add_dep(acpi_handle handle
+ u32 arch_acpi_add_auto_dep(acpi_handle handle);
+ #else	/* CONFIG_ACPI */
+ 
++static inline struct device *acpi_bus_get_primary_device(struct acpi_device *adev)
++{
++	return NULL;
++}
++
+ static inline bool acpi_of_match_device(const struct acpi_device *adev,
+ 					const struct of_device_id *of_match_table,
+ 					const struct of_device_id **of_id)
 
 
 
