@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D8A741A4EE;
-	Mon, 10 Aug 2026 16:26:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2585133A03F;
+	Mon, 10 Aug 2026 17:12:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786379196; cv=none; b=CGnpF5MhfvgKwdPmrT5X8c1pAz7yL0D8trjfQFB6CWjH+1TvCriMw8VSWrW17Y6sSLoY/Uf4A2Re6C2rQTPJGSj27ETyLX0e7g0K+45kuitNL1uzaSJSk47tI5uktNI+8icP/I6IlWCM2G00hnUKUh9BD+MoM5+yjROlczpWlLY=
+	t=1786381938; cv=none; b=Fpuju0peNxRRe00+4wnAs6q4nFsnSglqvpnQlE68cqqNSWUs6wYtK9su1ul95XCXZFAG1Kg9tWhkC45hFtF9T8BK/KWkwoPpyNooUI4k6Qsil49T72b8+31J6y7S08VlBxPpnaAEdLwxnP8Bmbvj6onUXBAnTMSHZMiDfXnzPi8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786379196; c=relaxed/simple;
-	bh=ysPMNBeJ2ay+VOXT1/Gdtq9+3bpoy6chLIHWvgB0SHY=;
+	s=arc-20240116; t=1786381938; c=relaxed/simple;
+	bh=mceccNaaWmcchg9L8ED4lJf/FLN7OSM0KRweOSQ6BlY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Hw7dkEpju4bxSh9Nnyycl2YHyLoh0dIwufcmQnQZrMjlARHRvyGIX39YJWJHawVZmsNKu8T4LbZmz+ugSUe+YCAkNv7DplZiviQF+7Ha50QbmbFsS+dH9HShlKxgoFq/jijSIQMOw7jnHIJte2di/L4sy/O0Pb+SZI9TE3yu2N8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iZLUvply; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=toCgr5KbcyUonHfyGJzEwIJh7rCWJYQL59uIqS7j4Pb7xOS0d1j5421EB7pnXmAajzRLgkegUAhPWneMGJ/YQ7Lrns/6LdqczfpjV3U4kzX9UHkcEB+YjGAhkJd1pYJSad6BYj2svDqNTCYbEDQCTBfbXA6rwmd1loI/vojnXvk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PjGA/P24; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iZLUvply"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CE791F00A3A;
-	Mon, 10 Aug 2026 16:26:19 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PjGA/P24"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A5881F000E9;
+	Mon, 10 Aug 2026 17:12:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786379185;
-	bh=SUi8TvaGZ/ONLDR20xtbgTj2PSwgrawqHUmwvPH281Y=;
+	s=k20260515; t=1786381936;
+	bh=fVrGGL5Q0nSgj2p380L09qPkXcrVRBJyN66cazrVrMM=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=iZLUvplyIcNz5VE9d3kCC55idVkZrcMUkNQMbp9OGxSTxJfNYZ4yr2JOIOsKLJAn8
-	 OObjougUbmk/38Tg1bYoCpjH+ub9h5QwXhL5o/8zljucHR+7DSNhua66AetPZHytcQ
-	 3y2CRfYBQvSNkeuKQbvgCx8L6hlt9D3WV679tfLe6BvPHzmCHXlH9U99BxReF/HGin
-	 TL4hR+2U4zuEU+faiR9plq7xmFoQFSgBVHxVjTPoHNr+pLGwQl794ToVshVql7ZgUD
-	 g+L0acQ0yPs3jYsKAs1idJ115olPzn+IoDNqdAlrajYd2g8cEdKKUpyT9Dcts4aZoC
-	 Zur8II8DGV73g==
-Date: Mon, 10 Aug 2026 18:26:15 +0200
+	b=PjGA/P24nLObN/Vr0Bxq12S0QmU7205Y8TzFWVr4OpTB51Nd4GtcEPxwaNVh5NLY/
+	 Hk870KboTaYos41UywIijUWP3lCPNOr3XiUbNzg2JR+WFmMUJ01xs9HHUosv/IG7HD
+	 bj54JiKJBhSDlWThr6gedepNZrPRdreI5HoQdfLV/WE5NWmWa654WjYcXxrPStliRh
+	 p2Zj5kFWg6+KNdbmipxEEADZGm1w8pFmFt5//PmCO7lY3AUodjHHKu/fLekg1Dtan4
+	 Za+sUxmqcSAJSMiDJEfrQzAMrReqclqt8FH7is5NZlviPAdg/Rf7Vy633pOmQOqCsk
+	 QhAXbL278yMcQ==
+Date: Mon, 10 Aug 2026 19:12:06 +0200
 From: Manivannan Sadhasivam <mani@kernel.org>
 To: Chen-Yu Tsai <wenst@chromium.org>
 Cc: Bartosz Golaszewski <brgl@kernel.org>, 
@@ -41,11 +41,11 @@ Cc: Bartosz Golaszewski <brgl@kernel.org>,
 	devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org, 
 	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
 	Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH v7 13/16] power: sequencing: pcie-m2: Add usb and sdio
- targets for E-key connector
-Message-ID: <hxidwwqeooyo4fwjc6rmbsfv35b2af7flub23qcpwin6bqj5ff@h46sqvwc6k6i>
+Subject: Re: [PATCH v7 14/16] power: sequencing: pcie-m2: Split Bluetooth
+ unit based on interface
+Message-ID: <ns5zexfsbin4om3klprrh4v2xfvhhg5nztbbf5neakyuwq47bc@mckelf2d5x5f>
 References: <20260724084328.3943997-1-wenst@chromium.org>
- <20260724084328.3943997-14-wenst@chromium.org>
+ <20260724084328.3943997-15-wenst@chromium.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -55,27 +55,51 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260724084328.3943997-14-wenst@chromium.org>
+In-Reply-To: <20260724084328.3943997-15-wenst@chromium.org>
 
-On Fri, Jul 24, 2026 at 04:43:22PM +0800, Chen-Yu Tsai wrote:
-> The M.2 E-key connector allows either PCIe or SDIO for WiFi and USB or
-> UART for BT. Currently the driver only supports PCIe and UART.
+On Fri, Jul 24, 2026 at 04:43:23PM +0800, Chen-Yu Tsai wrote:
+> Some UART / serdev based Bluetooth drivers need to be able to reset the
+> hardware during initialization or recovery. This is not possible with
+> the current power sequencing API if a unit is shared between USB and
+> UART interfaces.
 > 
-> Add power sequencing targets for SDIO and USB. To avoid adding a
-> complicated dependency tree, rename the existing power sequencing units
-> "pcie" and "uart" to "wifi" and "bt". The existing target names are left
-> untouched. The new "sdio" and "usb" targets just point to the renamed
-> "wifi" and "bt" units.
+> For now, split the Bluetooth unit into two, one for each interface.
+> This allows either interface to independently toggle the power, with
+> the last action prevailing, thereby unbreaking the Qualcomm Bluetooth
+> serdev driver. This is also needed for the Realtek Bluetooth serdev
+> driver (hci_h5).
 > 
-> The "unit" names are internal to the power sequencing framework, and
-> should be confined to a single provider. The names are only
-> informational. Dependencies are tracked with pointers to other units.
+> Having independent control from either interface unfortunately means
+> that userspace is able to shut down the controller from sysfs using
+> the USB port's "disable" setting without the serdev driver knowing
+> about it. On the USB side, independent control is also desired, as it
+> allows the USB core to power cycle the port/device during faults, and
+> for userspace to initiate reset and recovery using the aforementioned
+> "disable" setting. However when USB is used, a serdev device is not
+> created, and there is no conflicting usage, which allows the power
+> sequencing to work even without the split unit.
 > 
-> The "target" names are the strings that the consumer uses to acquire a
-> descriptor with. As these remain the same, existing users will continue
-> to work.
-> 
+> Suggested-by: Wei Deng <wei.deng@oss.qualcomm.com>
 > Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
+> ---
+> Changes since v4:
+> - New patch
+> 
+> This patch is _not_ squashed into the previous to provide clear context
+> on the change, and the less than perfect nature of it.
+> 
+> I think what we need in this case is some sort of lockout. The serdev
+> consumer would want "exclusive" access, locking out the USB consumer,
+> which can tolerate "shared" access.
+> 
+> Something similar would be needed for the WiFi if we ever add support
+> for SDIO for toggling the state of W_DISABLE#1. At least the SDIO and
+> PCIe reset signals are separate.
+
+I don't think PCIe/SDIO suffers from the same issue as USB/BT. But anyhow, I
+think it is OK to have this patch as an interim solution, but we should try to
+model the BT control in a proper manner. I'd fancy adding TODO instead of XXX in
+the comments. But nevertheless,
 
 Reviewed-by: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
 
