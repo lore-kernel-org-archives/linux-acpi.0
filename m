@@ -1,24 +1,24 @@
-Received: from mail-m1973175.qiye.163.com (mail-m1973175.qiye.163.com [220.197.31.75])
+Received: from mail-m49221.qiye.163.com (mail-m49221.qiye.163.com [45.254.49.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8147330C157;
-	Tue, 11 Aug 2026 06:58:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.75
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A627425CC4;
+	Tue, 11 Aug 2026 09:13:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.254.49.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786431520; cv=none; b=bsM63GXzw34LcoP0TmfMLxXUq+vGzGoTlQ1hdWSDQn04MNiV0++50axaAx9Lsa6K1DbrTV10znKsR1ly1MzI3u8ZfYCqFpolerX9wxRrjXXQzsC4ztjw5sqyIN3wtby6kivnGxmKGf0NGD2n079XD9RCj6zQ3PvhwvH5aQVBOWU=
+	t=1786439617; cv=none; b=FYcPzpDJRQTnZMrQy7hqTTxmd9sEeN3ruje8DF1qYXRTWI+iaQE2fDxr+0eJucH+n/P/05Po12Ckgn6C49T0Y9P7Bz7tYM6AZ71jkL3sCK1sbYJ2rSP3NRulmQ1up/ZrWVkiwKpvO48If66T3WrtppI1P+OVzRjw9VGAsTyM5Ik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786431520; c=relaxed/simple;
-	bh=adMLUAY0dxKNLIZG5jtn1IcB1Idln7VdnPHy5XqNFYs=;
+	s=arc-20240116; t=1786439617; c=relaxed/simple;
+	bh=k+5q2GFDm/w/4Wxk+VW6ipO2KJOZ8aNul3VUW3j42JQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fXVYayj3/EUbxBZQikTWuL88WN0nrMJo1XycuhlU1T/kJkEQh2Y94ETaFdZl3xfxPiNR1M5qDesCoYHQI2cjqGSEB6mz67zZen7N+a2Mf5EKMX90cSLMNsuIqtlM6i4HYcdWiXZ5JBPe8Ji7i3RmXfFHtYjbMWeWwjx5ktph4eE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hj-micro.com; spf=pass smtp.mailfrom=hj-micro.com; dkim=pass (1024-bit key) header.d=hj-micro.com header.i=@hj-micro.com header.b=j83JQwvQ; arc=none smtp.client-ip=220.197.31.75
+	 MIME-Version; b=ZIzdCPX+qqmdzO5EXvCY2xfIwQzP9WdUe0SD5w4sKLBish79zDmbRewzncI2EQlom3KDKfOKHKMUNnT51j2Ciwn4yC0duf29Z1+SGgrmYHBfDb+kq3mCM6rv2t4/t8CSUDaO2lPLzHmCecJ5+vzgo+vnfi5mOC3s87oK5JzHjdE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hj-micro.com; spf=pass smtp.mailfrom=hj-micro.com; dkim=pass (1024-bit key) header.d=hj-micro.com header.i=@hj-micro.com header.b=QFcxNGFQ; arc=none smtp.client-ip=45.254.49.221
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hj-micro.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hj-micro.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=hj-micro.com header.i=@hj-micro.com header.b="j83JQwvQ"
+	dkim=pass (1024-bit key) header.d=hj-micro.com header.i=@hj-micro.com header.b="QFcxNGFQ"
 Received: from 1clarkelill.hj-micro.com (unknown [122.224.241.34])
-	by smtp.qiye.163.com (Hmail) with ESMTP id 498815963;
-	Tue, 11 Aug 2026 14:22:56 +0800 (GMT+08:00)
+	by smtp.qiye.163.com (Hmail) with ESMTP id 498f1a1a8;
+	Tue, 11 Aug 2026 17:08:11 +0800 (GMT+08:00)
 From: "clarke.li" <clarke.li@hj-micro.com>
 To: andriy.shevchenko@linux.intel.com
 Cc: andi.shyti@kernel.org,
@@ -32,11 +32,11 @@ Cc: andi.shyti@kernel.org,
 	peter.du@hj-micro.com,
 	rafael@kernel.org
 Subject: Re: [PATCH v3] ACPI: APD: Add clock frequency for HJMC01 I2C controller
-Date: Tue, 11 Aug 2026 14:22:34 +0800
-Message-ID: <20260811062234.74676-1-clarke.li@hj-micro.com>
+Date: Tue, 11 Aug 2026 17:07:51 +0800
+Message-ID: <20260811090751.123062-1-clarke.li@hj-micro.com>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <anTvBaRZNDhCz60e@ashevche-desk.local>
-References: <anTvBaRZNDhCz60e@ashevche-desk.local>
+In-Reply-To: <anrHKdFEUF339B7Q@ashevche-desk.local>
+References: <anrHKdFEUF339B7Q@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -44,53 +44,51 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-HM-Tid: 0a9fef7d081609d6kunm0b4f2cbe268487
+X-HM-Tid: 0a9ff014512f09d6kunm82230f2d286765
 X-HM-MType: 1
 X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
-	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVlCHkNDVkkZGE4aSk5LQ0JKHlYVFA
+	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVlDThhDVhlMSR1NHkhPHUMaQlYVFA
 	kWGhdVEwETFhoSFyQUDg9ZV1kYEgtZQVlKSUlVSUlPVUlPSlVIT1lXWRYaDxIVHRRZQVlPS0hVQk
 	JJTktVSktLVUpCS0JZBg++
 DKIM-Signature: a=rsa-sha256;
-	b=j83JQwvQlxQHqjISdRqjdfDidyWoZLYn1Hj2e7ME3V7iKYzRsbI22YJOY7U1nzwTcWX9C7XcnS51YSne5V+m7HwkcZYF6qmPPR6wAP+yBuG8d3Q7ZSlsciY7rGifCQJ2A/FzK6WIn/v2opJzDYOsJ7xJpy1O5w4iYGCd6mMrdUo=; s=default; c=relaxed/relaxed; d=hj-micro.com; v=1;
-	bh=mGF/urkIDDD2MMxbnXFOmgL1YfXDsUMK69/3yb2oOmM=;
+	b=QFcxNGFQvZjNVM10SiNBkAfTwc+xKL3C82Jg9ifekhhoK/QZBsVwvIy8qCiduQZp1/2EcgN7q6S3gam63SR3PqaouTnqicBQq3UEvfMk9BMIXMEQrpbUgTnMDvMw//WuK6ktMax0iMXtm07fYyRt8UZwX47mdEFngJZ/29n8VVo=; s=default; c=relaxed/relaxed; d=hj-micro.com; v=1;
+	bh=L6eZGn+z7EEql0hETPKjW0bixv3kp5tuxmyYGRtLz2w=;
 	h=date:mime-version:subject:message-id:from;
 
-On Thu, Aug 06, 2026 at 11:31:01PM +0300, Andy Shevchenko wrote:
+On Tue, Aug 11, 2026 at 09:54:33AM +0300, Andy Shevchenko wrote:
 
-> On Wed, Jul 22, 2026 at 03:30:31PM +0800, clarke.li wrote:
->
-> > I2C clock frequency for HJMC01 is 200MHz, define a new ACPI
-> > HID for it.
+> On Tue, Aug 11, 2026 at 02:22:34PM +0800, clarke.li wrote:
+> > On Thu, Aug 06, 2026 at 11:31:01PM +0300, Andy Shevchenko wrote:
+> > > On Wed, Jul 22, 2026 at 03:30:31PM +0800, clarke.li wrote:
 >
 > ...
-
-> > +	.fixed_clk_rate = 200000000,
 >
-> Can you at some point update these constants to use
+> > > > +	.fixed_clk_rate = 200000000,
+> > >
+> > > Can you at some point update these constants to use
+> > >
+> > > 	.fixed_clk_rate = 200 * HZ_PER_MHZ,
+> > >
+> > > and so on?
+> >
+> > Thanks for the suggestion, I will use 200 * HZ_PER_MHZ in the
+> > next version.
+> >
+> > By the way, do you also want me to convert the other
+> > fixed_clk_rate constants in acpi_apd.c to use HZ_PER_MHZ?
+> > If so, I can send it as a separate cleanup patch.
 >
-> 	.fixed_clk_rate = 200 * HZ_PER_MHZ,
->
-> and so on?
+> The idea is that you convert existing ones in a separate patch and then use a
+> new format for the new hw support.
 
-Thanks for the suggestion, I will use 200 * HZ_PER_MHZ in the
-next version.
+Understood. I will send the next revision as a two-patch series:
 
-By the way, do you also want me to convert the other
-fixed_clk_rate constants in acpi_apd.c to use HZ_PER_MHZ?
-If so, I can send it as a separate cleanup patch.
+  [PATCH v4 1/2] ACPI: APD: Convert fixed clock rates to HZ_PER_MHZ
+  [PATCH v4 2/2] ACPI: APD: Add clock frequency for HJMC01 I2C controller
 
-> ...
->
-> >  	{ "HISI0173", APD_ADDR(hip08_spi_desc) },
-> >  	{ "LECA0002", APD_ADDR(leca_spi_desc) },
-> >  	{ "LECA0003", APD_ADDR(leca_i2c_desc) },
-> > +	{ "HJMC3001", APD_ADDR(hjmc_i2c_desc) },
-> >  	{ "NXP0001", APD_ADDR(nxp_i2c_desc) },
->
-> Keep it sorted.
-
-You are right, HJMC3001 should be placed before LECA0002
-alphabetically. I will fix the order in the next version.
+The first patch converts the existing fixed_clk_rate constants in
+acpi_apd.c to use HZ_PER_MHZ, and the second one adds the HJMC01
+support using the new format (200 * HZ_PER_MHZ).
 
 --
 Thanks,
