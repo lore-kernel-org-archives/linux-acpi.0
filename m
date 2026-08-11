@@ -1,109 +1,178 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2585133A03F;
-	Mon, 10 Aug 2026 17:12:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43ED0286409;
+	Tue, 11 Aug 2026 04:46:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786381938; cv=none; b=Fpuju0peNxRRe00+4wnAs6q4nFsnSglqvpnQlE68cqqNSWUs6wYtK9su1ul95XCXZFAG1Kg9tWhkC45hFtF9T8BK/KWkwoPpyNooUI4k6Qsil49T72b8+31J6y7S08VlBxPpnaAEdLwxnP8Bmbvj6onUXBAnTMSHZMiDfXnzPi8=
+	t=1786423598; cv=none; b=g52zOD0w4FmhNGqkftLRmwzD8Mjv0IudGyDSs5D2i6GpbJL+EDBSwk7Yb35hArK0VrP8/g9vFj5W8b2ee2mmaE+kahR/4rRgEcuv21gs7HOSRL4juFsIMFm5wUb81RS6veh4GZGmbzeOWwMcV1h+JvY4XCrv5Y5Mgya06Qpgi6U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786381938; c=relaxed/simple;
-	bh=mceccNaaWmcchg9L8ED4lJf/FLN7OSM0KRweOSQ6BlY=;
+	s=arc-20240116; t=1786423598; c=relaxed/simple;
+	bh=GTkOB2Wxi5hEX2mIwzJTm5d/29Sc42ULzXtp4BpvDVg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=toCgr5KbcyUonHfyGJzEwIJh7rCWJYQL59uIqS7j4Pb7xOS0d1j5421EB7pnXmAajzRLgkegUAhPWneMGJ/YQ7Lrns/6LdqczfpjV3U4kzX9UHkcEB+YjGAhkJd1pYJSad6BYj2svDqNTCYbEDQCTBfbXA6rwmd1loI/vojnXvk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PjGA/P24; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=Q8DICEqokiDiYz1Un7a6w04BF7njYfOMHaKJ958/8eW7Odgm6vW8542k22exnTqLxQzydptOgyG027WqtePyiFMfV3tTrbK6LiWCI0bDFMKw2YkOSSsO3iRSU2+raaOKyTh6nCiy2oYOhbmei2dM8USdOEYUALobrn0mePoBhr0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=byL5nLN9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PjGA/P24"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A5881F000E9;
-	Mon, 10 Aug 2026 17:12:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="byL5nLN9"
+Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 159D41F00A3A;
+	Tue, 11 Aug 2026 04:46:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786381936;
-	bh=fVrGGL5Q0nSgj2p380L09qPkXcrVRBJyN66cazrVrMM=;
+	s=k20260515; t=1786423596;
+	bh=4EpS7VWmzddg2JU4Yq8TnnLax8NwlqEQzTHK2msPp1A=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=PjGA/P24nLObN/Vr0Bxq12S0QmU7205Y8TzFWVr4OpTB51Nd4GtcEPxwaNVh5NLY/
-	 Hk870KboTaYos41UywIijUWP3lCPNOr3XiUbNzg2JR+WFmMUJ01xs9HHUosv/IG7HD
-	 bj54JiKJBhSDlWThr6gedepNZrPRdreI5HoQdfLV/WE5NWmWa654WjYcXxrPStliRh
-	 p2Zj5kFWg6+KNdbmipxEEADZGm1w8pFmFt5//PmCO7lY3AUodjHHKu/fLekg1Dtan4
-	 Za+sUxmqcSAJSMiDJEfrQzAMrReqclqt8FH7is5NZlviPAdg/Rf7Vy633pOmQOqCsk
-	 QhAXbL278yMcQ==
-Date: Mon, 10 Aug 2026 19:12:06 +0200
-From: Manivannan Sadhasivam <mani@kernel.org>
-To: Chen-Yu Tsai <wenst@chromium.org>
-Cc: Bartosz Golaszewski <brgl@kernel.org>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Matthias Brugger <matthias.bgg@gmail.com>, 
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, Wei Deng <wei.deng@oss.qualcomm.com>, linux-acpi@vger.kernel.org, 
-	driver-core@lists.linux.dev, linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, 
-	devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org, 
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
-	Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH v7 14/16] power: sequencing: pcie-m2: Split Bluetooth
- unit based on interface
-Message-ID: <ns5zexfsbin4om3klprrh4v2xfvhhg5nztbbf5neakyuwq47bc@mckelf2d5x5f>
-References: <20260724084328.3943997-1-wenst@chromium.org>
- <20260724084328.3943997-15-wenst@chromium.org>
+	b=byL5nLN9p4uTRnm2l4VJcv6vJJFDdD1y470p25he8zjX+zLqOcTNTWNFI7895S44W
+	 z0kimI8da0ixsHibmhCYhKPz+85CaZyZoIZ4AFIuawotNGTLvzruJOmeinclRM7LkD
+	 81mN6ZSVI5LiIt0m+g/ZioTmLN9UIGsxIVumWC8xPEkw5BT2i3XICjE90yGsWWzFO6
+	 lYxtroWnW88Qgd1mqllkvKjTesm4Z7uH8mTN/im8QxnmV7VECxpBFVQq4SyhXtNElF
+	 wL29A1nItWjVMS7BO6XX64WruWPyKNhXYZDE+EZCP2qD+3PFi520bdflVSPRcOjToZ
+	 OQT1fbMJjMytg==
+Date: Tue, 11 Aug 2026 06:46:33 +0200
+From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <ukleinek@kernel.org>
+To: Andy Shevchenko <andriy.shevchenko@intel.com>
+Cc: Eliav Farber <farbere@amazon.com>, rafael@kernel.org, 
+	tony.luck@intel.com, bp@alien8.de, guohanjun@huawei.com, mchehab@kernel.org, 
+	xueshuai@linux.alibaba.com, lenb@kernel.org, laurent.pinchart@ideasonboard.com, 
+	linusw@kernel.org, brgl@kernel.org, orsonzhai@gmail.com, 
+	baolin.wang@linux.alibaba.com, zhang.lyra@gmail.com, jic23@kernel.org, dlechner@baylibre.com, 
+	nuno.sa@analog.com, andy@kernel.org, dmitry.torokhov@gmail.com, hansg@kernel.org, 
+	ilpo.jarvinen@linux.intel.com, W_Armin@gmx.de, fabio.m.de.francesco@linux.intel.com, 
+	kaihengf@nvidia.com, ankita@nvidia.com, leitao@debian.org, pedro.pbg@usp.br, 
+	paulmck@kernel.org, frederic@kernel.org, kees@kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-pwm@vger.kernel.org, 
+	linux-iio@vger.kernel.org, linux-input@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Subject: Re: [PATCH v4 01/13] notifier: add device-managed registration APIs
+Message-ID: <anqlfa6UADHn4qbo@monoceros>
+References: <20260726101739.33170-1-farbere@amazon.com>
+ <20260726101739.33170-2-farbere@amazon.com>
+ <anlUQXtxrghA8kNT@monoceros>
+ <anmVwiYW6fT7XhD2@ashevche-desk.local>
+ <anmWCWT_p8sIMwyf@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="pgdaeslknqpb7jv7"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260724084328.3943997-15-wenst@chromium.org>
+In-Reply-To: <anmWCWT_p8sIMwyf@ashevche-desk.local>
 
-On Fri, Jul 24, 2026 at 04:43:23PM +0800, Chen-Yu Tsai wrote:
-> Some UART / serdev based Bluetooth drivers need to be able to reset the
-> hardware during initialization or recovery. This is not possible with
-> the current power sequencing API if a unit is shared between USB and
-> UART interfaces.
-> 
-> For now, split the Bluetooth unit into two, one for each interface.
-> This allows either interface to independently toggle the power, with
-> the last action prevailing, thereby unbreaking the Qualcomm Bluetooth
-> serdev driver. This is also needed for the Realtek Bluetooth serdev
-> driver (hci_h5).
-> 
-> Having independent control from either interface unfortunately means
-> that userspace is able to shut down the controller from sysfs using
-> the USB port's "disable" setting without the serdev driver knowing
-> about it. On the USB side, independent control is also desired, as it
-> allows the USB core to power cycle the port/device during faults, and
-> for userspace to initiate reset and recovery using the aforementioned
-> "disable" setting. However when USB is used, a serdev device is not
-> created, and there is no conflicting usage, which allows the power
-> sequencing to work even without the split unit.
-> 
-> Suggested-by: Wei Deng <wei.deng@oss.qualcomm.com>
-> Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
-> ---
-> Changes since v4:
-> - New patch
-> 
-> This patch is _not_ squashed into the previous to provide clear context
-> on the change, and the less than perfect nature of it.
-> 
-> I think what we need in this case is some sort of lockout. The serdev
-> consumer would want "exclusive" access, locking out the USB consumer,
-> which can tolerate "shared" access.
-> 
-> Something similar would be needed for the WiFi if we ever add support
-> for SDIO for toggling the state of W_DISABLE#1. At least the SDIO and
-> PCIe reset signals are separate.
 
-I don't think PCIe/SDIO suffers from the same issue as USB/BT. But anyhow, I
-think it is OK to have this patch as an interim solution, but we should try to
-model the BT control in a proper manner. I'd fancy adding TODO instead of XXX in
-the comments. But nevertheless,
+--pgdaeslknqpb7jv7
+Content-Type: text/plain; protected-headers=v1; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH v4 01/13] notifier: add device-managed registration APIs
+MIME-Version: 1.0
 
-Reviewed-by: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
+Hello Andy,
 
-- Mani
+On Mon, Aug 10, 2026 at 12:12:41PM +0300, Andy Shevchenko wrote:
+> On Mon, Aug 10, 2026 at 12:11:40PM +0300, Andy Shevchenko wrote:
+> > On Mon, Aug 10, 2026 at 06:37:25AM +0200, Uwe Kleine-K=F6nig wrote:
+> > > On Sun, Jul 26, 2026 at 10:17:27AM +0000, Eliav Farber wrote:
+>=20
+> ...
+>=20
+> > > > +{
+> > > > +	struct atomic_notifier_chain_devres *dr;
+> > > > +	int ret;
+> > > > +
+> > > > +	dr =3D devres_alloc(devm_atomic_notifier_chain_unregister,
+> > > > +			  sizeof(*dr), GFP_KERNEL);
+> > > > +	if (!dr)
+> > > > +		return -ENOMEM;
+> > > > +
+> > > > +	ret =3D atomic_notifier_chain_register(nh, n);
+> > > > +	if (ret) {
+> > > > +		devres_free(dr);
+> > > > +		return ret;
+> > > > +	}
+> > > > +
+> > > > +	dr->nh =3D nh;
+> > > > +	dr->nb =3D n;
+> > > > +	devres_add(dev, dr);
+> > > > +
+> > > > +	return 0;
+> > > > +}
+> > > > +EXPORT_SYMBOL_GPL(devm_atomic_notifier_chain_register);
+> > >=20
+> > > IMHO devm_atomic_notifier_chain_register() should look as follows:
+> > >=20
+> > > 	ret =3D atomic_notifier_chain_register(nh, n);
+> > > 	if (ret)
+> > > 		return ret;
+> > >=20
+> > > 	return devm_add_action_or_reset(dev, devm_atomic_notifier_chain_unre=
+gister, dr)
+> > >=20
+> > > which is much easier and includes less details from the inner workings
+> > > of devm. Same for the blocking variant.
+> >=20
+> > Won't work. We need more than one parameter and hence the whole devres_=
+alloc().
 
--- 
-மணிவண்ணன் சதாசிவம்
+Oh indeed, justified concern.
+
+> > Please, look closer to the code.
+>=20
+> And just answering ahead, no, devm_kmalloc() is not good bandaid as it ma=
+kes code
+> not anyhow better to read and have a downside of memory fragmentation.
+
+My idea would be to introduce a variant of devm_add_action_or_reset()
+that copies the data (in a way to prevent the fragmentation), such that
+the function could look as follows:
+
+int devm_atomic_notifier_chain_register(struct device *dev,
+                                       struct atomic_notifier_head *nh,
+                                       struct notifier_block *n)
+{
+	struct atomic_notifier_chain_devres dr =3D {
+		.nh =3D nh,
+		/*
+		 * Maybe rename n to nb (or vice-versa) to make the
+		 * names match here?
+		 */
+		.nb =3D n,
+	};
+	int ret;
+=09
+	ret =3D atomic_notifier_chain_register(nh, n);
+	if (ret)
+		return ret;
+=09
+	return devm_copy_data_and_add_action_or_reset(dev,
+						      devm_atomic_notifier_chain_unregister,
+						      &dr, sizeof(dr));
+}
+
+The name is ugly and long, but IMHO the semantics are useful and the new
+devm_atomic_notifier_chain_register() looks IMHO nicer that the original
+=66rom Eliav's patch.
+
+But that would be a separate topic, so going with the currently
+suggested approach is fine for me.
+
+If you rename n to nb, you can have my ack.
+
+Best regards
+Uwe
+
+--pgdaeslknqpb7jv7
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmp6qQ0ACgkQj4D7WH0S
+/k6ggwf/Z6S0sEQFjfzsNngJIVe2RoUmYHf1HfmknhlH/LnJGYT0OHIavL+0UQOU
+B+wpvX9017EnBs2q/1eK2G+HPFlD3maUNsneSetO+JmHsM+irw3CWi7q8Dp2WPcn
+ytwmRruben9C96hQPBK/rhAaLk/763FJ+0OHkJtc3Jr9reRXtEqdBtHdM5WzSX/q
+ccFlhWQAlYb2myD50oTjypoiw19P+hig/s0eBOZZR9y7Zpc19Hjou6Eh6hpCOR8n
+RKw8Z9tFLBn2BlxaO7WW1scfOoxSdNhvoXlj5zeQqozPxcVvmpsmS/LwY90vaCIF
+WgjPbhvYs1ELYqC5MLau4yu6CUumAA==
+=5gDi
+-----END PGP SIGNATURE-----
+
+--pgdaeslknqpb7jv7--
