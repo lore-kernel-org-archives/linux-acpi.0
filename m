@@ -1,189 +1,119 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F6D2433BC4
-	for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 11:59:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 589BB322C73
+	for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 12:02:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786535951; cv=none; b=B6DQlr+AqC2ytrDJGNkCZa8S8dtVq6KhcHULuV6BIB85Pka038zL7M4X4gqFKdbwvxZWZI5F0B62idyKSKw6Am7iJ8EMQDAjrnSjjfves24Umew8pmF16rRDlRdYwxrKotH6nOGkhZ26v0/zVlA7/LUeSZQQinzFzXRIF30GpaQ=
+	t=1786536174; cv=none; b=PpLQf9v7SSWhxXdj3e8RLlxBuhZMT8llrh16ZEJB7IDxV+ZAcD//ECpDNw2zVjWHs/loB+yv3ElqscYverzVAQxm4acckUIUZSCTXVzpGvtpO7xCdFMPPpESMw+M7ET0ZO1YHp9b+AQ2P74Hq0397R0CFKontFBkrQlT3Xp4XJY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786535951; c=relaxed/simple;
-	bh=F+vfx/bAWod4tYvm8iYy+q4HPwUzzfnyWHXSyTbqXSo=;
+	s=arc-20240116; t=1786536174; c=relaxed/simple;
+	bh=Heg1qKwJNbpnpiNSZ7pcG17dhllkUQpztZGWwQ5+SVo=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=u/DAVQU7qYFiydksh0CEpKwBV7gNbOjoktTzusZQwW28hsjfJdluFGLRBE8UjFoGp4XutvWc8WeQIeIQYy0wqIfBOghSz6QZQP4z2Vqs/zMxiel8cPDBziS8t7w7dWr1kuo3bv9fpY8b35hXzmMnZkyeDpRMZA39YPzLpIpU2pQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hMBMHzgm; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=tdoWEoTWYgIRBQYQJtqxsXsfUqErTtLCPg48lDJ8iLW0q1WMQtWe8q1XbDaqIgYif7MAvJBhbmxYe7eJsNC1JUeg3AQ0h/Ar66oiq3tplpRN5rhVzTJvOq+4BXaXvzVm1Wa/15kRKGJ90/uCEV/qLoJwT/zfJW4DW25PdQgwQI8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=f8qj0oE1; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hMBMHzgm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFAD51F000E9
-	for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 11:59:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="f8qj0oE1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 403381F00A3D
+	for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 12:02:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786535948;
-	bh=VCQrrHOG8+geTdGCt+xFXYgWr/4kPLkDFpaLPXVMqAM=;
+	s=k20260515; t=1786536173;
+	bh=uvNIA4pyIqQL809luPFORZ74KYFo/MOzx/1VeZaBUZo=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=hMBMHzgmWP5beDkzpRG577uYN/vnzEsEQ+ucGbLHcwfhNi1TzFbVXlYqUH4SfQFqA
-	 0NksVr+QU+8V8VSfn38AE70Fha/MeGV/eTMbBmIU0SVEt4YC5o6S1050OzcvWRJ8qc
-	 Dkhf3rhug78UGzxAcIWCspFjBU+ysl1kxkM5oup4/uw/T59HWUb9XR9VWLPxyUjwD6
-	 CDRPXKyJF1HEbVadVGysyAIbEe3kxmbkPPFTfN6DY/P30D8GbTd0zb3VGHslUIMHLa
-	 42GDv0zn6X1r9TFsJIRbY+VtBxEg7Zcu4A6/FMFu7ul40lQSTNPmiDu19TpKnobixB
-	 woQOGhJlF8CvQ==
-Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5b01cb18515so737139e87.2
-        for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 04:59:08 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+Rr5wKKm5iUs2eExYTOcubnAOwgOLabAm2iN63o9p/4lsFR1HXF+2GgjU0FijFEv03aa2jH30yEbzO3u@vger.kernel.org
-X-Gm-Message-State: AOJu0YwWPkiO/2zJXSajbJFhnRBkRJug8m60g/6SV521cKyFDGQHNQ/V
-	8t1UUshTgtwm5a3l0BqHx1MxHNF6ZMoJAOuX2qeU40gmJoajMAzGwpDQX0zhfjXrOvsuBqFx6lX
-	xs+oXS5mcbAfIVg9283wBjpzOIIv4o98=
-X-Received: by 2002:ac2:5dd2:0:b0:5ae:b75e:454d with SMTP id
- 2adb3069b0e04-5b44e31f627mr501528e87.45.1786535947393; Wed, 12 Aug 2026
- 04:59:07 -0700 (PDT)
+	b=f8qj0oE12goM07b4JT5BbteG+FIvXVe48/CpLRcScvsteGJ/d4nHD1MaH7xg8qchl
+	 zGEjA8LPCW9iacoufz0tjMV+gW8NoLnPkqBw33/vSWMBCG5Qkgx5kEyKhs5KG0j52i
+	 3E8IdIynzwLcSd9UdxP8h//es9tsoUH96evCzZD/6U1I+iSeq1JtWyubH++tdTMGNY
+	 PcKwH5jc+SRvAoP25sSu9d7pFKRxkUT+wrUE7RczZkFfa/1mN66UgYBAEh//sXd6/K
+	 bLqMcy8u32aPdrmusxIkJ2LnrLb3bvTn4IFJAWA5+meBV/nRrUGQ0EL0DPUVwPX9VM
+	 ase5k+2ANcE/Q==
+Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5b013084dc2so891353e87.0
+        for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 05:02:53 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RoTJkMMrEFTTQRs2NOZ4nWU3Zx+WfsyQ3FPuAtDpFN8KNf9j5ZKN7o4y+T3A7PDKJnr3DumD8x1MCCh@vger.kernel.org
+X-Gm-Message-State: AOJu0YyLBa4Nvz1p2/VTqstEoJkAGXB1UNO9NvFJI3gRLwepP/fDUq36
+	Ldy7JaUBX+aN6rJfHcccklwqP28dXUxLO0B5WDfS+M+r6PLUX8BPmwoAg+5JzRVCvBHaVfFjCnV
+	CYThy49+8MfFYqwTI1nOhKopvJ4UvrQk=
+X-Received: by 2002:a05:6512:b03:b0:5ae:bfd6:1bc1 with SMTP id
+ 2adb3069b0e04-5b44e2e6205mr746144e87.14.1786536171731; Wed, 12 Aug 2026
+ 05:02:51 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <12955541.O9o76ZdvQC@rafael.j.wysocki> <annvyrUCmqOxW7-o@kernel.org>
-In-Reply-To: <annvyrUCmqOxW7-o@kernel.org>
+References: <4764923.LvFx2qVVIh@rafael.j.wysocki> <2283799.irdbgypaU6@rafael.j.wysocki>
+ <annxkiYsyfa4nh6z@ashevche-desk.local>
+In-Reply-To: <annxkiYsyfa4nh6z@ashevche-desk.local>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 12 Aug 2026 13:58:46 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0hrVwZYb6gHXmtGfZ9A+OA=_F4pzET=5mrb6qBF0nbGSA@mail.gmail.com>
-X-Gm-Features: AUfX_mwXkn2NBFpe3-NHBBjXTDgMmsxfCDLkDeAEVQGlpLo6Jxk25CeLt0dLxAQ
-Message-ID: <CAJZ5v0hrVwZYb6gHXmtGfZ9A+OA=_F4pzET=5mrb6qBF0nbGSA@mail.gmail.com>
-Subject: Re: [PATCH v3] ACPI: scan: Avoid registering platform devices with
- resource overlaps
-To: Jarkko Sakkinen <jarkko@kernel.org>
+Date: Wed, 12 Aug 2026 14:02:31 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gjJ7N-gRXPrk2=K+4-y3Oim0TE7xbj9hnZc4VbJDuU1A@mail.gmail.com>
+X-Gm-Features: AUfX_my3sMLdAIa5wO0Ddxr9xtFglwUrnEE9TXMA67JaFe1BHTYwwVuAQvbOiwk
+Message-ID: <CAJZ5v0gjJ7N-gRXPrk2=K+4-y3Oim0TE7xbj9hnZc4VbJDuU1A@mail.gmail.com>
+Subject: Re: [PATCH v1 1/3] ACPI: bus: Introduce acpi_bus_get_primary_device()
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
 	LKML <linux-kernel@vger.kernel.org>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Mika Westerberg <mika.westerberg@linux.intel.com>, Julien <julien82453@gmail.com>, 
-	linux-integrity@vger.kernel.org
+	Mika Westerberg <mika.westerberg@linux.intel.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Aug 10, 2026 at 5:35=E2=80=AFPM Jarkko Sakkinen <jarkko@kernel.org>=
- wrote:
+On Mon, Aug 10, 2026 at 5:43=E2=80=AFPM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
 >
-> On Fri, Aug 07, 2026 at 12:22:37PM +0200, Rafael J. Wysocki wrote:
+> On Mon, Aug 10, 2026 at 01:33:41PM +0200, Rafael J. Wysocki wrote:
 > > From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 > >
-> > If acpi_dev_get_resources() returns overlapping I/O or memory resources=
-,
-> > the subsequent registration of a platform device will fail with -EBUSY
-> > due to a resource conflict.  This is reported to happen on Acer Aspire
-> > ES1-572 [1].
+> > The function used for obtaining the first "physical" device for which
+> > the given ACPI one is the ACPI companion, acpi_get_first_physical_node(=
+),
+> > may return a stale device pointer (mostly in theory) because
+> > acpi_unbind_one() may run as a whole after dropping the ACPI device's
+> > physical_node_lock in acpi_get_first_physical_node() and before it
+> > returns.  The last reference to the "physical" device may be dropped
+> > then before the pointer to it is returned to the caller.
 > >
-> > Avoid that by adjusting resources returned by acpi_dev_get_resources()
-> > to eliminate partial overlaps between them.
+> > If that happens and the acpi_get_first_physical_node() caller invokes
+> > get_device() on the pointer obtained from it, which is done by the
+> > majority of its callers, a use-after-free will occur.
 > >
-> > This has not been regarded as necessary before because putting
-> > overlapping resources into the _CRS of one device is really pointless,
-> > but now that the issue has been reported to actually happen in the
-> > field, it needs to be done.
+> > To prepare for addressing this problem, introduce a new function for
+> > getting the first "physical" device associated with the given ACPI one
+> > (the "primary physical device") that will also reference count the
+> > device in question before returning a pointer to it.
 > >
-> > Fixes: ab06eb920401 ("ACPI: scan: Register platform devices for fixed e=
-vent buttons")
-> > Reported-by: Julien <julien82453@gmail.com>
-> > Closes: https://lore.kernel.org/linux-integrity/CAJOGg3z6LJPDsdPNBxajgy=
-8_wQxfhYBRxe4EiurZf3kPU5A5Bw@mail.gmail.com/ [1]
-> > Cc: All applicable <stable@vger.kernel.org>
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
+> > Make that new function and acpi_get_first_physical_node() share the
+> > physical node list lookup code.
 > >
-> > v2 -> v3:
-> >    * Use resource_union() and adjust code and comment (Andy)
-> >    * Include ioport.h directly
-> >
-> > v1 -> v2:
-> >    * Add the expanded resource instead of and not in addition to the ot=
-her
-> >      overlapping one (Sashiko)
-> >
-> > ---
-> >  drivers/acpi/acpi_platform.c |   39 ++++++++++++++++++++++++++++++++++=
-+++--
-> >  1 file changed, 37 insertions(+), 2 deletions(-)
-> >
-> > --- a/drivers/acpi/acpi_platform.c
-> > +++ b/drivers/acpi/acpi_platform.c
-> > @@ -12,6 +12,7 @@
-> >  #include <linux/bits.h>
-> >  #include <linux/device.h>
-> >  #include <linux/err.h>
-> > +#include <linux/ioport.h>
-> >  #include <linux/kernel.h>
-> >  #include <linux/module.h>
-> >  #include <linux/dma-mapping.h>
-> > @@ -71,6 +72,36 @@ static struct notifier_block acpi_platfo
-> >       .notifier_call =3D acpi_platform_device_remove_notify,
-> >  };
-> >
-> > +static unsigned int acpi_platform_adjust_resources(struct acpi_device =
-*adev,
-> > +                                                struct resource *new_r=
-es,
-> > +                                                struct resource *resou=
-rces,
-> > +                                                unsigned int count)
-> > +{
-> > +     unsigned int i;
-> > +
-> > +     if (!(new_res->flags & (IORESOURCE_IO | IORESOURCE_MEM)))
-> > +             return count;
-> > +
-> > +     for (i =3D 0; i < count; ) {
-> > +             struct resource *res =3D &resources[i];
-> > +
-> > +             if (resource_type(new_res) !=3D resource_type(res) ||
-> > +                 !resource_union(new_res, res, new_res)) {
-> > +                     i++;
-> > +                     continue;
-> > +             }
-> > +
-> > +             dev_info(&adev->dev, "%pR expanded to avoid overlap\n", n=
-ew_res);
-> > +             /*
-> > +              * Eliminate the previously processed resource that overl=
-apped
-> > +              * with the new one because it is not necessary any more.
-> > +              */
-> > +             memmove(res, res + 1, (--count - i) * sizeof(*res));
-> > +     }
-> > +
-> > +     return count;
-> > +}
-> > +
-> >  static void acpi_platform_fill_resource(struct acpi_device *adev,
-> >       const struct resource *src, struct resource *dest)
-> >  {
-> > @@ -151,10 +182,14 @@ struct platform_device *acpi_create_plat
-> >                               return ERR_PTR(-ENOMEM);
-> >                       }
-> >                       count =3D 0;
-> > -                     list_for_each_entry(rentry, &resource_list, node)
-> > +                     list_for_each_entry(rentry, &resource_list, node)=
- {
-> > +                             count =3D acpi_platform_adjust_resources(=
-adev,
-> > +                                                                    re=
-ntry->res,
-> > +                                                                    re=
-sources,
-> > +                                                                    co=
-unt);
-> >                               acpi_platform_fill_resource(adev, rentry-=
->res,
-> >                                                           &resources[co=
-unt++]);
-> > -
-> > +                     }
-> >                       acpi_dev_free_resource_list(&resource_list);
-> >               }
-> >       }
-> >
-> >
-> >
+> > No intentional functional impact.
 >
-> Applied to my tree I'll just run some tests.
+> ...
+>
+> > +static struct device *primary_physical_device(struct acpi_device *adev=
+)
+> > +{
+> > +     if (list_empty(&adev->physical_node_list))
+> > +             return NULL;
+> > +
+> > +     return list_first_entry(&adev->physical_node_list,
+> > +                             struct acpi_device_physical_node, node)->=
+dev;
+>
+> This is open-coded list_first_entry_or_null().
 
-Well, I've applied it too because I have material that depends on it.
+You're right, I forgot about this one.
 
-I guess it won't be a big deal if it goes in from two different places.
+I'll send an update of this particular patch shortly.
+
+> I see the ->dev, so having temporary variable will suit this
+>
+>         struct ... *...;
+>
+>         ... =3D list_first_entry_or_null(...);
+>         if (...)
+>                 return ...->dev;
+>
+>         return NULL;
+>
+> > +}
+>
+> --
