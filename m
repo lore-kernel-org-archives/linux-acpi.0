@@ -1,180 +1,55 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail-24431.protonmail.ch (mail-24431.protonmail.ch [109.224.244.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38AAB390CB8
-	for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 20:44:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03BB8407CF6
+	for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 23:19:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=109.224.244.31
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786567487; cv=none; b=GOoFcGBCa9PbFpBGBO1uW5Mfrb1/kwRJPawkquwxypBdfZwov3sftPet8TiuIf3+sigDmFak/cfrwr7xAjk/eA4uD6w6nuiwXHlZ464XRahpTSC0YdLfZg85Y0GqKnfnhvg+tBGdv2NqsxVM9zoVSwdV4i9WvrX7FWNQvAccP88=
+	t=1786576787; cv=none; b=Z1zimRiT7mzo6HL7fD5oAd7C+Im/EMzJrZcyi9a9XmMj3XCY4/KsgXKT/wBW2S9pZX6FkZNg3nK49+qyk8CW/LgxPvebX1E1jaoT01xWtgVPo1jszKCnmpZoCZMMWsMLGO4fOuQ2AtHAHv7oLIwA7QObtavLX/tUG8ymNAomKZQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786567487; c=relaxed/simple;
-	bh=97qht0VSPclh2jfvCYKsb9HY6Jg+kX97joSQ/dpqcrg=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=SVwijEb+0f1ABjo+33NrsddndSXtnslavpkQXmTa+9vYfdFuXQ3QMU8aOR1URhYLOH4K4hymDH+Gfw5cyCQfIHKWQZxvOw/Gu+r9s9V+sCVNb8Y4LKIa5TcZt6M82LQp+tn+SZNQl/V9JYcsG0QvSuVf3epj6UqIKCEfnG5qBE8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Uy0bz81f; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786576787; c=relaxed/simple;
+	bh=SHi0vfZG9DlqgM81Tro0NnUp4Kcm7o4Ob1I5pVCwaeM=;
+	h=Date:To:From:Subject:Message-ID:MIME-Version:Content-Type; b=PU6VoeCn12O2xcHlW/E1R8fAz3+9tMB1tYZC4HhifXij/nYNFoyFtYYj1qDtJbupsCCRsC+cqU9UP+1gAykXOxoYcRnDAqdRqgZ0PlvpMLP3I0e0AL7mBAYi6wiP5apuDk5OzfC29YYDJ4klw2aPLB8ZlryWs3IcwiCmqgANZAI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me; spf=pass smtp.mailfrom=proton.me; dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b=ep8S3pfJ; arc=none smtp.client-ip=109.224.244.31
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Uy0bz81f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB2D21F00A3E
-	for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 20:44:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786567485;
-	bh=a2HwOrWbYV21vmm25vN7HnI+FZl++WM5Q7n6oQOswLk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=Uy0bz81fjPJ9vcn2DmayoQIUCRzL/QYhwnSdHKsoXQ5fwdOBuSGoWVrKGGZoLIexS
-	 Tfaw/V7p0uvOgnCh7rDJEy+vieSxAdyHyKDP9wtRK+lAp+chKxw+8l5gdDCsZps/zh
-	 rDk8Zo39T4RGNUYWFEuukEfoXi3iXSCnHt/W56mC0JUrrW3FU6fvhExQ0fg8nU+PVR
-	 LoaDqPFya9A068HKfmLZaMSABDGzAablUESmPh2RcYzG8bNvpjXsoo4e+MXKEuju0h
-	 GhZ4XqJxGnZzXWV9bm62UZivhX8KmweIJBnOoL/mf3mhBxoBKQmJZhHHNG/GdNEhXs
-	 HLHs4teGhbW+g==
-Received: by mail-lj1-f173.google.com with SMTP id 38308e7fff4ca-39ca0a30148so738921fa.3
-        for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 13:44:45 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RrIEPTaAw4WO96g0D5SLG8+D4SjeZWzXx4Cmnf0YkgL7hLvc82RtjAkFmp0e7Nc9eBpPyDg0qiFF0gj@vger.kernel.org
-X-Gm-Message-State: AOJu0YxNf7df9dQaYWwuC6YYxQLbKXRBvhwLKmIoYY3q01SYNEYBjRZq
-	uGX4wRLwLN/UOL4QQedfVNJaXRlB2Zeasc4rvRYaJpW+TIeAxwdMVTkCFh9L6Xnq6ClNdkKV82E
-	ZszTxSCnUWdc/V6GkDFK4nR0It8MfSPA=
-X-Received: by 2002:a2e:bc07:0:b0:3a1:1882:7406 with SMTP id
- 38308e7fff4ca-3a11a680595mr1382691fa.10.1786567484298; Wed, 12 Aug 2026
- 13:44:44 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=proton.me header.i=@proton.me header.b="ep8S3pfJ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
+	s=protonmail; t=1786576774; x=1786835974;
+	bh=SHi0vfZG9DlqgM81Tro0NnUp4Kcm7o4Ob1I5pVCwaeM=;
+	h=Date:To:From:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
+	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
+	b=ep8S3pfJVbdeBlVodFpYu5VVNXZ6r6mfGnDPmoe6alI95fXzWAqvW0gZxWM4ltDJs
+	 ZhkwqGHFxLQ5ZGchksnL1kiNYflxU6uq+sPbQ7dzAOqoGlC4Xo82hkXm+AHyWsTfK9
+	 bEBHCbsXpFUs5sMTowph6RvmWKnWc6jIQZG532DNQqD1QVGTJ+KWiPMB+2dclgV11d
+	 1Rd/rP+ZRY9FPVKtXNquQ2edixc2LWr74K/GvG5QfyFs9/I56l2zpE3FHeEr1L9QtC
+	 G6vVNFpSW5vovq/sN4F74GLnnXNrNpKst0TMrBG6bH6Z3jVwSQPuk6ihN0knTvEeRs
+	 gfrWIr1E8ykEw==
+Date: Wed, 12 Aug 2026 23:19:32 +0000
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+From: kot-valera123 <kot-valera123@proton.me>
+Subject: [Bug] Lenovo LOQ 15ARP9: _BCM evaluation failed (-22), backlight control broken
+Message-ID: <USoV6ptGAnEY7Z-MNKt0ZGGM50xuUn9UQvSpHVkpm-37jYxeqJIe03nHeEO-yDfbq-N9QyhnwX69J0Q1eo9C6isUQ2Horg0j0_-_gH-NpXo=@proton.me>
+Feedback-ID: 214147674:user:proton
+X-Pm-Message-ID: 3fee4eb416f6b4e5a020529038cd78fca3e37b43
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <202608121937.J7M1vGVB-lkp@intel.com>
-In-Reply-To: <202608121937.J7M1vGVB-lkp@intel.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 12 Aug 2026 22:44:24 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gaAfZFuwze2rU4gACoOE2jjF6dfAOELC2vqBCwV2bhJA@mail.gmail.com>
-X-Gm-Features: AUfX_mw9nJN8CrL84lPdWL0yx9XAlkSOSroFbZMr9MseA62Cpw25_GGw3k9RjJA
-Message-ID: <CAJZ5v0gaAfZFuwze2rU4gACoOE2jjF6dfAOELC2vqBCwV2bhJA@mail.gmail.com>
-Subject: Re: [rafael-pm:bleeding-edge] BUILD SUCCESS fc02d96a639b5b4ca32bd249e971e5d0aafeb874
-To: kernel test robot <lkp@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Aug 12, 2026 at 1:24=E2=80=AFPM kernel test robot <lkp@intel.com> w=
-rote:
->
-> tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux=
--pm.git bleeding-edge
-> branch HEAD: fc02d96a639b5b4ca32bd249e971e5d0aafeb874  Merge branch 'test=
-/acpi-driver' into testing
->
-> elapsed time: 1515m
->
-> configs tested: 98
-> configs skipped: 2
->
-> The following configs have been built successfully.
-> More configs may be tested in the coming days.
->
-> tested configs:
-> alpha                            allnoconfig    gcc-16.1.0
-> alpha                           allyesconfig    gcc-16.1.0
-> alpha                              defconfig    gcc-16.1.0
-> arc                             allmodconfig    gcc-16.1.0
-> arc                             allyesconfig    gcc-16.1.0
-> arc                  randconfig-001-20260812    gcc-12.5.0
-> arc                  randconfig-002-20260812    gcc-10.5.0
-> arm                  randconfig-001-20260812    clang-19
-> arm                  randconfig-002-20260812    gcc-12.5.0
-> arm                  randconfig-003-20260812    gcc-14.3.0
-> arm                  randconfig-004-20260812    clang-24
-> arm64                randconfig-001-20260812    clang-24
-> arm64                randconfig-002-20260812    clang-20
-> arm64                randconfig-003-20260812    clang-17
-> arm64                randconfig-004-20260812    clang-24
-> csky                            allmodconfig    gcc-16.1.0
-> csky                 randconfig-001-20260812    gcc-10.5.0
-> csky                 randconfig-002-20260812    gcc-16.1.0
-> hexagon              randconfig-001-20260812    clang-24
-> hexagon              randconfig-002-20260812    clang-17
-> i386                            allmodconfig    gcc-14
-> i386       buildonly-randconfig-001-20260812    clang-22
-> i386       buildonly-randconfig-002-20260812    gcc-14
-> i386       buildonly-randconfig-003-20260812    clang-22
-> i386       buildonly-randconfig-004-20260812    clang-22
-> i386       buildonly-randconfig-005-20260812    gcc-14
-> i386       buildonly-randconfig-006-20260812    clang-22
-> i386                          randconfig-001    clang-22
-> i386                 randconfig-001-20260812    gcc-14
-> i386                 randconfig-002-20260812    gcc-14
-> i386                 randconfig-003-20260812    clang-22
-> i386                 randconfig-004-20260812    gcc-14
-> i386                 randconfig-005-20260812    gcc-14
-> i386                 randconfig-006-20260812    clang-22
-> i386                 randconfig-007-20260812    gcc-14
-> i386                 randconfig-011-20260812    gcc-14
-> i386                 randconfig-012-20260812    gcc-12
-> i386                 randconfig-013-20260812    clang-22
-> i386                 randconfig-014-20260812    clang-22
-> i386                 randconfig-015-20260812    clang-22
-> i386                 randconfig-016-20260812    clang-22
-> i386                 randconfig-017-20260812    clang-22
-> loongarch                          defconfig    clang-24
-> loongarch            randconfig-001-20260812    clang-24
-> loongarch            randconfig-002-20260812    clang-24
-> nios2                           allmodconfig    gcc-11.5.0
-> nios2                            allnoconfig    gcc-11.5.0
-> nios2                randconfig-001-20260812    gcc-11.5.0
-> nios2                randconfig-002-20260812    gcc-10.5.0
-> openrisc        de0_nano_multicore_defconfig    gcc-16.1.0
-> parisc                          allmodconfig    gcc-16.1.0
-> parisc                          allyesconfig    gcc-16.1.0
-> parisc                             defconfig    gcc-16.1.0
-> parisc                        randconfig-001    gcc-8.5.0
-> parisc               randconfig-001-20260812    gcc-8.5.0
-> parisc               randconfig-002-20260812    gcc-8.5.0
-> powerpc              randconfig-001-20260812    gcc-14.3.0
-> powerpc              randconfig-002-20260812    clang-24
-> powerpc64            randconfig-001-20260812    clang-17
-> powerpc64            randconfig-002-20260812    clang-24
-> riscv                randconfig-001-20260812    clang-20
-> riscv                randconfig-002-20260812    gcc-8.5.0
-> s390                 randconfig-001-20260812    gcc-9.5.0
-> s390                 randconfig-002-20260812    clang-24
-> sh                                 defconfig    gcc-16.1.0
-> sh                   randconfig-001-20260812    gcc-14.3.0
-> sh                   randconfig-002-20260812    gcc-12.5.0
-> sparc                randconfig-001-20260812    gcc-15.2.0
-> sparc                randconfig-002-20260812    gcc-13.4.0
-> sparc64              randconfig-001-20260812    gcc-15.2.0
-> sparc64              randconfig-002-20260812    gcc-13.4.0
-> um                   randconfig-001-20260812    clang-17
-> um                   randconfig-002-20260812    clang-20
-> x86_64     buildonly-randconfig-001-20260812    gcc-14
-> x86_64     buildonly-randconfig-002-20260812    gcc-14
-> x86_64     buildonly-randconfig-003-20260812    clang-22
-> x86_64     buildonly-randconfig-004-20260812    gcc-14
-> x86_64     buildonly-randconfig-005-20260812    gcc-14
-> x86_64     buildonly-randconfig-006-20260812    gcc-14
-> x86_64               randconfig-001-20260812    clang-22
-> x86_64               randconfig-002-20260812    gcc-14
-> x86_64               randconfig-003-20260812    gcc-14
-> x86_64               randconfig-004-20260812    clang-22
-> x86_64               randconfig-005-20260812    clang-22
-> x86_64               randconfig-006-20260812    clang-22
-> x86_64               randconfig-011-20260812    clang-22
-> x86_64               randconfig-012-20260812    clang-22
-> x86_64               randconfig-013-20260812    clang-22
-> x86_64               randconfig-014-20260812    gcc-14
-> x86_64               randconfig-015-20260812    clang-22
-> x86_64               randconfig-016-20260812    clang-22
-> x86_64               randconfig-071-20260811    clang-22
-> x86_64               randconfig-072-20260811    gcc-14
-> x86_64               randconfig-073-20260811    gcc-14
-> x86_64               randconfig-074-20260811    gcc-14
-> x86_64               randconfig-075-20260811    clang-22
-> x86_64               randconfig-076-20260811    gcc-14
-
-I'm wondering why we don't do "x86_64 allmodconfig" and so we don't
-catch failures like this one in linux-next:
-
-https://lore.kernel.org/lkml/annVRNepH48qe6b8@sirena.org.uk/
-
-Honestly, doing "i386 allmodconfig" without doing "x86_64
-allmodconfig" is somewhat couter-intuitive IMV.
-
-> xtensa               randconfig-001-20260812    gcc-15.2.0
+Hello, I am writing to report a backlight control issue on a Lenovo LOQ 15A=
+RP9 laptop (AMD Ryzen + NVIDIA GPU using the open-source nouveau driver). D=
+isplay brightness adjustment is completely non-functional. During boot, the=
+ kernel outputs the following error: [ 5.209088] nouveau 0000:01:00.0: drm:=
+ [DRM/0000000b:kmsOutp] [BL_GET level:0] (ret:-22) After discussing this wi=
+th Karol Herbst (nouveau maintainer), it was pointed out that this is an AC=
+PI subsystem/firmware issue rather than a driver bug. I have created a deta=
+iled bug report on Bugzilla containing all necessary debugging details (ful=
+l dmesg logs and acpidump): https://bugzilla.kernel.org/show_bug.cgi?id=3D2=
+21859 Please let me know if any additional tests or information are needed =
+to help resolve this.
