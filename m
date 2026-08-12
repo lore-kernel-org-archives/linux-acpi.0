@@ -1,298 +1,112 @@
-Received: from canpmsgout07.his.huawei.com (canpmsgout07.his.huawei.com [113.46.200.222])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1953371CFF;
-	Wed, 12 Aug 2026 01:54:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.222
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ACD73B19B3
+	for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 08:23:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786499678; cv=none; b=T96tB9r73sWsUAfcrdtV4WeiC5PVOgFJtmZ1//bc5KPoQ4y2ET0ja+Xj+qSUxU4cvbw2tGi1c4VyHuHUGrHPetOmBW70OxuNthoDKrjABOarguPBWHUS3mOtzlnVpRSlIXJMKCR1cTMbSm+W5iwKFA2xEuGjTD5qNUcWlcoRb4g=
+	t=1786523037; cv=none; b=FT5/33/L72oWOQse7fumrCwurQJ2RB1usZr23N2mgeCtbBKkHosGcjyIgroaUTyVYOJq/aX1l4L74w744JF6I/NGHFHtY0pSH4XIVP22o2x8TXAQjB4iF6zFOr+xJ+OUe7DxEOEcSD2FjwhFYYRDyFyMG+BHj1l3w0offh9sPTE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786499678; c=relaxed/simple;
-	bh=Pdyn01ETs/TPNcRKTejGGKn3Lvp/cyjB3+r4JaYkOxI=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=rzV/fTRun3r8z2lbGELqBi9g/HwbD+qZ6QENMFvquqUYYmfMisfE4DPTfZROYUU5eG+IBiFWVAUvL1dL5wHRm/dFn7JeZuVSw0kBxhhK4teTB3Uy7v9lv+FuRwkzECTLaRhAiV8NHzyqPico2SFbGZmPOH9vQfqYWJoI0VDq2EU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=D6xeNl5n; arc=none smtp.client-ip=113.46.200.222
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1786523037; c=relaxed/simple;
+	bh=ggewJBxgRCZ6GM4jSGbE8mnerhZ/94VxFYfhAw6sWlQ=;
+	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=SA30SH0OX2Uj7KxmckgDHhdgiBBSTwL7wdZj985UpCOt/ek+r3cRnao08SQO+eK7YXI9xC7tbqSWzXsMCQ8PrYRWMpud50zRyR07vrk1OoDBoefdTQn+JWkfcmjXfWmnPkEPoFAawf4LHzvBRVmD2GPnACJNeTbHmhKDkQ3xIiQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QiS5Q6w+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="D6xeNl5n"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=Rh83EaNYRqmAhG/BdnqS5kQ6Bg6zMu3GoGaveSHo+e0=;
-	b=D6xeNl5nPVjjO2LcB1lYJMIA5fK4YwH5bIyrbi+bPHim8aYr55+V3yOSyHIhpis4BvreIJ2/c
-	KlZS8guvxYz1uXFsMhJthZUUzN/4mTMmTvqA2E2yK+RWzF027XecBDE/POson7If0jVp9g9/ZLu
-	EFKdUAn4KDyE5zYmPSqx4IQ=
-Received: from mail.maildlp.com (unknown [172.19.163.127])
-	by canpmsgout07.his.huawei.com (SkyGuard) with ESMTPS id 4hKWVT1743zLlX5;
-	Wed, 12 Aug 2026 09:43:45 +0800 (CST)
-Received: from kwepemf100001.china.huawei.com (unknown [7.202.181.215])
-	by mail.maildlp.com (Postfix) with ESMTPS id D046B40572;
-	Wed, 12 Aug 2026 09:54:21 +0800 (CST)
-Received: from localhost.localdomain (10.50.163.32) by
- kwepemf100001.china.huawei.com (7.202.181.215) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Wed, 12 Aug 2026 09:54:21 +0800
-From: Lifeng Zheng <zhenglifeng1@huawei.com>
-To: <rafael@kernel.org>, <viresh.kumar@linaro.org>, <saket.dumbre@intel.com>,
-	<lenb@kernel.org>, <zhanjie9@hisilicon.com>, <pierre.gondois@arm.com>,
-	<sumitg@nvidia.com>
-CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-pm@vger.kernel.org>, <acpica-devel@lists.linux.dev>,
-	<linuxarm@huawei.com>, <lihuisong@huawei.com>, <yubowen8@huawei.com>,
-	<zhangpengjie2@huawei.com>, <wangzhi12@huawei.com>,
-	<linhongye@h-partners.com>, <zhenglifeng1@huawei.com>
-Subject: [PATCH v3 4/8] ACPI: CPPC: Parse Resource Priority Register entries from _CPC package
-Date: Wed, 12 Aug 2026 09:52:12 +0800
-Message-ID: <20260812015217.74598-5-zhenglifeng1@huawei.com>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20260812015217.74598-1-zhenglifeng1@huawei.com>
-References: <20260812015217.74598-1-zhenglifeng1@huawei.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QiS5Q6w+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A8391F00ACF
+	for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 08:23:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1786523036;
+	bh=ggewJBxgRCZ6GM4jSGbE8mnerhZ/94VxFYfhAw6sWlQ=;
+	h=From:In-Reply-To:References:Date:Subject:To:Cc;
+	b=QiS5Q6w+hl4qg76NBgLfnDqncgvI2uMa+x/VHPPxMVYz2km6lrdHHYNIj4qEwFWuL
+	 Brkv4f5ujuTCZD8chLJGV1knvpAJjF4fnI5vajQGv6HUPZTnzNq26cTjV3YU1gGl3a
+	 ldLrxuidqzC0ZVCg5OPCbiHLGTtNyd4Vs1QI+Waa1eH+SaOH3gusXJ/qJN+6ClaKOy
+	 tVu16cQwoY8PtKVBLqO3SEHbQ89rnHcimarER8dWbnaGhyl2cN9OgnglAOoAozijeR
+	 J61PfsWJ4hlB8Yrc8Q32hlv+nVy4lKKdU3gcrXAOWBN0wb1aDlfYuL+5sbqILqagNm
+	 E+aJ3eJA1/fmA==
+Received: by mail-lf1-f48.google.com with SMTP id 2adb3069b0e04-5aeba09900bso539740e87.2
+        for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 01:23:55 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RqcppMrJZJ9sdBHYI/XVU2NQmzMViotLgSW1z+3I6L3rMmOB4bdPDDiZcQachex75yi3ksEhYnYomkS@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzml3kjYknmotMTJSYc1F4jk8I6Q5LT0HHjyvfcNEUVsD1kX8Qn
+	6eQ+ZIqZeQ9SI+a2Mf4TdN4G7SBggFPTELR5FTXg59ImmCihdjf8Ez8FTuTTEJfuITcAmbVn7m3
+	hyy+NF1+vdfrYGVdwux04ckBqxWvxGa+crTFegs8cZw==
+X-Received: by 2002:a05:6512:ac8:b0:5b2:d876:514a with SMTP id
+ 2adb3069b0e04-5b44e31a1famr493806e87.26.1786523034804; Wed, 12 Aug 2026
+ 01:23:54 -0700 (PDT)
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Wed, 12 Aug 2026 01:23:53 -0700
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Wed, 12 Aug 2026 01:23:53 -0700
+From: Bartosz Golaszewski <brgl@kernel.org>
+In-Reply-To: <ans3pcNFEDVBYXXT@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemf100001.china.huawei.com (7.202.181.215)
+References: <20260808155513.2221976-1-xnorigc@gmail.com> <aneGptJn8J7eF9tj@ashevche-desk.local>
+ <CAD++jLkCYwTyK6C8LvZiYJ9fSc8bp3RPpb4d6EgQTRraJtJDzA@mail.gmail.com>
+ <anmNf3rJGxso6nuc@ashevche-desk.local> <ans3pcNFEDVBYXXT@ashevche-desk.local>
+Date: Wed, 12 Aug 2026 01:23:53 -0700
+X-Gmail-Original-Message-ID: <CAMRc=MeDLc-LPwoCEA8yMw3+L9UcN-NgXpYpFPxtUNffAAffyw@mail.gmail.com>
+X-Gm-Features: AUfX_mzp0xFoKJQOkb5LbPvMPRLjgGd29o-t2k5FVBFiVV_bBiOJeFevYaDnlEM
+Message-ID: <CAMRc=MeDLc-LPwoCEA8yMw3+L9UcN-NgXpYpFPxtUNffAAffyw@mail.gmail.com>
+Subject: Re: [PATCH] gpiolib: acpi: Add ignore_wake quirk for ASUS TX Air FA401GM
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Yao Qi <xnorigc@gmail.com>, westeri@kernel.org, brgl@kernel.org, 
+	linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Linus Walleij <linusw@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-CPPC v4 (ACPI 6.6, Section 8.4.6.1.2.7) defines the Resource Priority
-entry as a Package of sub-packages, each containing:
+On Tue, 11 Aug 2026 16:54:29 +0200, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> said:
+> On Mon, Aug 10, 2026 at 11:36:19AM +0300, Andy Shevchenko wrote:
+>> On Mon, Aug 10, 2026 at 12:17:06AM +0200, Linus Walleij wrote:
+>> > On Sat, Aug 8, 2026 at 9:42=E2=80=AFPM Andy Shevchenko
+>> > <andriy.shevchenko@linux.intel.com> wrote:
+>> > > On Sat, Aug 08, 2026 at 03:55:13PM +0000, Yao Qi wrote:
+>> >
+>> > > > The ASUS TX Air FA401GM experiences immediate wakeups from s2idle
+>> > > > (Modern Standby) when suspended with an external HDMI display conn=
+ected.
+>> > > >
+>> > > > This issue is caused by spurious ACPI event signaling routed throu=
+gh
+>> > > > GPIO 24 on the AMD GPIO controller (AMDI0030:00), which triggers a
+>> > > > system-wide IRQ 7 (pinctrl_amd) wake-up interrupt during sleep.
+>> > > >
+>> > > > Add an ignore_wake quirk for GPIO 24 on this machine to prevent th=
+ese
+>> > > > unwanted wakeups. This has been runtime-tested and verified using =
+the
+>> > > > `gpiolib_acpi.ignore_wake=3DAMDI0030:00@24` kernel parameter.
+>> > >
+>> > > If AMD people will be quick enough to tag this, I will include in my=
+ PR to
+>> > > Linus W. on next week.
+>> >
+>> > To Bartosz?
+>> > It's gpiolib...
+>>
+>> Oh, true, I have also pin control stuff to send!
+>
+> Okay, I have checked if I have anything to Bart and it seems I mixed that=
+ with
+> pin control stuff. So, Bart, if you feel confident about this patch, you =
+can
+> take it directly. Here is my formal tag for that
+>
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+>
 
-  - CONTROLLED_RESOURCES: a Package of integer resource IDs
-  - ENABLE_VALUE / ENABLE_REGISTER: enable/disable control
-  - PRIORITY_COUNT / PRIORITY_REGISTER: priority level setting
+Is this a bugfix? I'll be OoO until the end of August starting on Friday wi=
+th
+the exception of a single day to catch up on email. I'll be sending my PRs =
+for
+v7.3 tomorrow. Not sure if I should take it for v7.3 or v7.2?
 
-These allow OSPM to set relative priority among processors for shared
-resources such as boost, throttle, L2/L3 cache, and memory bandwidth.
-
-Implement parse_priority_regs() which:
-
-  1. Validates each sub-package has the expected element count
-     (RESOURCE_PRIORITY_NUM).
-  2. Allocates cpc_register_resource arrays for the sub-package
-     elements and the nested CONTROLLED_RESOURCES list.
-  3. Parses CONTROLLED_RESOURCES as integers and the remaining
-     entries (ENABLE_REGISTER, PRIORITY_REGISTER, etc.) via
-     parse_cpc_element() so that register descriptors, PCC subspace
-     tracking, and ioremap are handled consistently.
-  4. Wires the parser into the main _CPC probe loop, replacing the
-     previous "package type not supported" stub with full parsing for
-     RESOURCE_PRIORITY while rejecting unexpected Package entries.
-
-The probe and _exit() error/cleanup paths already use
-free_reg_resource(), which recursively frees Package-type entries,
-so no additional cleanup changes are needed.
-
-Add the resource_priority_regs enumeration that defines the indices
-into each Resource Priority sub-package (CONTROLLED_RESOURCES,
-ENABLE_VALUE, ENABLE_REGISTER, PRIORITY_COUNT, PRIORITY_REGISTER)
-and RESOURCE_PRIORITY_NUM as the element count sentinel.
-
-Signed-off-by: Lifeng Zheng <zhenglifeng1@huawei.com>
----
- drivers/acpi/cppc_acpi.c | 137 ++++++++++++++++++++++++++++++++++++---
- include/acpi/cppc_acpi.h |  13 ++++
- 2 files changed, 142 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index dce15d875c62..b5563d75d6c5 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -777,6 +777,91 @@ static void free_reg_resource(struct cpc_register_resource *cpc_reg)
- 	}
- }
- 
-+/**
-+ * parse_priority_regs - Parse the RESOURCE_PRIORITY nested package structure.
-+ * @cpc_obj:         ACPI Package object for the RESOURCE_PRIORITY entry.
-+ * @regs:            Output array of cpc_register_resource to fill.
-+ * @pcc_subspace_id: In/out pointer to PCC subspace ID.
-+ * @cpu:             CPU number, used for debug messages.
-+ *
-+ * The RESOURCE_PRIORITY entry (CPPC v4) is a Package of sub-packages.
-+ * Each sub-package has RESOURCE_PRIORITY_NUM elements:
-+ *   [0] = Package of integers (CONTROLLED_RESOURCES list)
-+ *   [1] = ENABLE_VALUE, [2] = ENABLE_REGISTER,
-+ *   [3] = PRIORITY_COUNT, [4] = PRIORITY_REGISTER
-+ *
-+ * Return: 0 on success, -ENODATA on malformed data, -ENOMEM on allocation failure.
-+ */
-+static int parse_priority_regs(union acpi_object *cpc_obj,
-+			       struct cpc_register_resource *regs,
-+			       int *pcc_subspace_id, u32 cpu)
-+{
-+	struct cpc_register_resource *reg_elements;
-+	union acpi_object reg_desc_obj;
-+	unsigned int i, j, resources_count;
-+	int ret;
-+
-+	for (i = 0; i < cpc_obj->package.count; i++) {
-+		reg_desc_obj = cpc_obj->package.elements[i];
-+		if (reg_desc_obj.type != ACPI_TYPE_PACKAGE ||
-+		    reg_desc_obj.package.count != RESOURCE_PRIORITY_NUM) {
-+			pr_debug("Malformed priority regs sub-pkg: type %d count %d, expected %d for CPU:%d\n",
-+				 reg_desc_obj.type, reg_desc_obj.package.count,
-+				 RESOURCE_PRIORITY_NUM, cpu);
-+			return -ENODATA;
-+		}
-+
-+		reg_elements = kzalloc_objs(struct cpc_register_resource, RESOURCE_PRIORITY_NUM);
-+		if (!reg_elements) {
-+			pr_debug("Failed to allocate reg_elements for CPU:%d\n", cpu);
-+			return -ENOMEM;
-+		}
-+
-+		/*
-+		 * Assign values immediately after successful allocation to ensure that resources
-+		 * can be properly released.
-+		 */
-+		regs[i].type = ACPI_TYPE_PACKAGE;
-+		regs[i].cpc_entry.package.count = RESOURCE_PRIORITY_NUM;
-+		regs[i].cpc_entry.package.elements = reg_elements;
-+
-+		resources_count = reg_desc_obj.package.elements[0].package.count;
-+
-+		if (reg_desc_obj.package.elements[0].type != ACPI_TYPE_PACKAGE ||
-+		    !resources_count) {
-+			pr_debug("Invalid priority sub-elements: type %d count %d for CPU:%d\n",
-+				 reg_desc_obj.package.elements[0].type, resources_count, cpu);
-+			return -ENODATA;
-+		}
-+
-+		reg_elements[0].cpc_entry.package.elements =
-+			kzalloc_objs(struct cpc_register_resource, resources_count);
-+		if (!reg_elements[0].cpc_entry.package.elements) {
-+			pr_debug("Failed to allocate %d priority sub-elements for CPU:%d\n",
-+				 resources_count, cpu);
-+			return -ENOMEM;
-+		}
-+
-+		reg_elements[0].type = ACPI_TYPE_PACKAGE;
-+		reg_elements[0].cpc_entry.package.count = resources_count;
-+
-+		for (j = 0; j < reg_elements[0].cpc_entry.package.count; j++) {
-+			reg_elements[0].cpc_entry.package.elements[j].type = ACPI_TYPE_INTEGER;
-+			reg_elements[0].cpc_entry.package.elements[j].cpc_entry.int_value =
-+				reg_desc_obj.package.elements[0].package.elements[j].integer.value;
-+		}
-+
-+		for (j = 1; j < RESOURCE_PRIORITY_NUM; j++) {
-+			ret = parse_cpc_element(&reg_desc_obj.package.elements[j], &reg_elements[j],
-+						pcc_subspace_id, cpu, RESOURCE_PRIORITY);
-+			if (ret)
-+				return ret;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- /*
-  * An example CPC table looks like the following.
-  *
-@@ -815,6 +900,7 @@ static void free_reg_resource(struct cpc_register_resource *cpc_reg)
- int acpi_cppc_processor_probe(struct acpi_processor *pr)
- {
- 	struct acpi_buffer output = {ACPI_ALLOCATE_BUFFER, NULL};
-+	struct cpc_register_resource *pkg_elements;
- 	union acpi_object *out_obj, *cpc_obj;
- 	struct cpc_desc *cpc_ptr;
- 	struct device *cpu_dev;
-@@ -823,6 +909,7 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
- 	int pcc_subspace_id = -1;
- 	acpi_status status;
- 	int ret = -ENODATA;
-+	u32 pkg_count;
- 
- 	if (!osc_sb_cppc2_support_acked) {
- 		pr_debug("CPPC v2 _OSC not acked\n");
-@@ -904,16 +991,50 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
- 	for (i = 2; i < num_ent; i++) {
- 		cpc_obj = &out_obj->package.elements[i];
- 
--		if (cpc_obj->type == ACPI_TYPE_PACKAGE && (i - 2) == RESOURCE_PRIORITY) {
-+		/*
-+		 * Package-type entries are used for nested structures such as
-+		 * RESOURCE_PRIORITY (CPPC v4). Only RESOURCE_PRIORITY is
-+		 * currently supported; any other Package entry is rejected.
-+		 */
-+		if (cpc_obj->type == ACPI_TYPE_PACKAGE) {
-+			cpc_ptr->cpc_regs[i-2].type = ACPI_TYPE_PACKAGE;
-+			cpc_ptr->cpc_regs[i-2].cpc_entry.package.count = 0;
-+			cpc_ptr->cpc_regs[i-2].cpc_entry.package.elements = NULL;
-+
-+			pkg_count = cpc_obj->package.count;
-+			if (!pkg_count) {
-+				pr_debug("Empty package entry at index %d for CPU:%d\n",
-+					 i, pr->id);
-+				continue;
-+			}
-+
-+			pkg_elements = kzalloc_objs(struct cpc_register_resource, pkg_count);
-+			if (!pkg_elements) {
-+				ret = -ENOMEM;
-+				goto out_free;
-+			}
-+
- 			/*
--			 * ACPI 6.6, s8.4.6.1.2.7 defines Resource Priority as a
--			 * Package of Resource Priority Register Descriptor sub-packages.
--			 * Parsing the full structure is not yet supported.
--			 * Mark the register as unsupported for now.
-+			 * Assign values immediately after successful allocation to ensure that
-+			 * resources can be properly released.
- 			 */
--			pr_debug("CPU:%d Resource Priority not supported\n", pr->id);
--			cpc_ptr->cpc_regs[i-2].type = ACPI_TYPE_INTEGER;
--			cpc_ptr->cpc_regs[i-2].cpc_entry.int_value = 0;
-+			cpc_ptr->cpc_regs[i-2].cpc_entry.package.count = pkg_count;
-+			cpc_ptr->cpc_regs[i-2].cpc_entry.package.elements = pkg_elements;
-+
-+			if (i - 2 == RESOURCE_PRIORITY) {
-+				ret = parse_priority_regs(cpc_obj, pkg_elements,
-+							  &pcc_subspace_id, pr->id);
-+				if (ret)
-+					goto out_free;
-+
-+				pr_debug("Parsed RESOURCE_PRIORITY (%d sub-pkgs) for CPU:%d\n",
-+					 pkg_count, pr->id);
-+			} else {
-+				pr_debug("Unexpected ACPI_TYPE_PACKAGE at index %d for CPU:%d\n",
-+					 i, pr->id);
-+				ret = -ENODATA;
-+				goto out_free;
-+			}
- 		} else {
- 			ret = parse_cpc_element(cpc_obj, &cpc_ptr->cpc_regs[i-2],
- 						&pcc_subspace_id, pr->id, i);
-diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index 1839582b80be..19f8a722654b 100644
---- a/include/acpi/cppc_acpi.h
-+++ b/include/acpi/cppc_acpi.h
-@@ -123,6 +123,19 @@ enum cppc_regs {
- 	RESOURCE_PRIORITY,
- };
- 
-+/*
-+ * Indices into each sub-package of the RESOURCE_PRIORITY entry.
-+ * RESOURCE_PRIORITY_NUM serves as the element count / loop bound.
-+ */
-+enum resource_priority_regs {
-+	CONTROLLED_RESOURCES,	/* Package of integer resource IDs */
-+	ENABLE_VALUE,		/* Enable/disable value */
-+	ENABLE_REGISTER,	/* Register for enable/disable control */
-+	PRIORITY_COUNT,		/* Number of priority levels */
-+	PRIORITY_REGISTER,	/* Register for priority setting */
-+	RESOURCE_PRIORITY_NUM,	/* Number of elements (sentinel) */
-+};
-+
- /*
-  * Categorization of registers as described
-  * in the ACPI v.5.1 spec.
--- 
-2.33.0
-
+Bart
