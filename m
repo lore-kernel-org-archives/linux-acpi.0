@@ -1,120 +1,105 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
+Received: from out30-118.freemail.mail.aliyun.com (out30-118.freemail.mail.aliyun.com [115.124.30.118])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42A9F44C66C;
-	Wed, 12 Aug 2026 13:16:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E2CC3546F9;
+	Wed, 12 Aug 2026 13:18:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.118
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786540607; cv=none; b=VuEH8XrV3veofL4TzI5Nuv+7vC6TGCNMrTOGvAuqoekK8djXP/obEQ2IOczTW43JkNfjJ86S7CPKzr3QxHUG4i0lZjdFo5xOwWd0X2w5sh2e0kZQrIeUjYLrTkLZuaUAVLWQ4YUEXXdCBqwcaZpxw9ZhtxipcYkpN26dPnNoP1s=
+	t=1786540707; cv=none; b=EFePDfe954VsvKKo5ZgcRaJh/4KWAmDJyxYuk4jj9PbUcXy39Q016lnAh2Gl7fj5W08FXJ9Sb8UjktP3t5fifmb/P00KIFa2Vd9GCnpKy8iiSYHdZqOfAE0rggo3MmT/2lykcVQ6eM6DyjhYkHghdqn4fgYSGJzxR3DRPlSFr50=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786540607; c=relaxed/simple;
-	bh=CzBnYJfPYNqNZa6BeodRxrWTplke50AiNUnTXijZvAI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uyVxPuZj3USRCQunwUdhfRRXdcFiUFzOC9Om9rQhOK7sUfxq6ERLGb4z//Fjz3k+GGzdr5DIISsb8Zhiz7mokxxNngKLqPYcIKtcs1kVh6CynxOpuRbBnddD2mkhtsr72GV1WpnXWpW/Yx9/rJwUjbNjnuxh19+vtodgjHxBOB0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=U5Ji71O0; arc=none smtp.client-ip=192.198.163.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1786540707; c=relaxed/simple;
+	bh=FNYMuvDxnN2le7GrJsSybD+3kq9674S4u5uqSocNf8Q=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=AXjWw63q8UsTqfJR/g7oLXkAnOzy9Y5lVbTvPXnjBmA/PUYG6Dw4x1JBXJwOz0elj5M0fAd76Jjf7bf+W2Ryc258Mm5fVxXwHI9Z1tJHri4/VnSGT2/RdsGW1E6hBQMIo96wei+ZecUkPFQwbtC7YGQhg/qxBXCfbQCNvvX1Uik=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=VDMJoP7o; arc=none smtp.client-ip=115.124.30.118
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="U5Ji71O0"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1786540601; x=1818076601;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=CzBnYJfPYNqNZa6BeodRxrWTplke50AiNUnTXijZvAI=;
-  b=U5Ji71O02HQpYEDBG4fk4H3HpQ+UpwmBrTMch162H4z+Ua+bRG2vE3nQ
-   wUXeHfz2cQsnyR1spMu8JoQEtxUh/AJHrX+fBLzkHZZC+tCjtOk8GV5qt
-   lTzyDsakfGNh8sp+vclP5A9aEpL1XElM2DB0FvU6DG1mZrNmlquwIM49R
-   xpPWA5CEhMK+yvuMHPrvL8zA05e0tBhD8sbjDGYX30Bl1XptrwL0ICw1C
-   dZ6wCbTqO6hdlmduFPiZPKsZb/UzXvMtUHIHHE9UyaRiCSX2ESfI1klUc
-   Drk6hwAswp/fhlhs3NRLXUj6cR2+mhFEYnNqTRtTYKnQbbB2sRXwsFA5Y
-   A==;
-X-CSE-ConnectionGUID: 2Lft6m4YSgCku9IJZp+Fmw==
-X-CSE-MsgGUID: UECs/cz2Rmmlg4tFxFnnaQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11872"; a="97756634"
-X-IronPort-AV: E=Sophos;i="6.25,219,1779174000"; 
-   d="scan'208";a="97756634"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Aug 2026 06:16:39 -0700
-X-CSE-ConnectionGUID: 27dfOVj7TEGRN/pYKDd0DQ==
-X-CSE-MsgGUID: NgU2c3zHRXupH6/dz3CyiA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,219,1779174000"; 
-   d="scan'208";a="259816883"
-Received: from rvuia-mobl.ger.corp.intel.com (HELO localhost) ([10.245.245.92])
-  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Aug 2026 06:16:38 -0700
-Date: Wed, 12 Aug 2026 16:16:36 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Bartosz Golaszewski <brgl@kernel.org>
-Cc: Yao Qi <xnorigc@gmail.com>, westeri@kernel.org,
-	linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Linus Walleij <linusw@kernel.org>
-Subject: Re: [PATCH] gpiolib: acpi: Add ignore_wake quirk for ASUS TX Air
- FA401GM
-Message-ID: <anxyNPJfvkVaa8L-@ashevche-desk.local>
-References: <20260808155513.2221976-1-xnorigc@gmail.com>
- <aneGptJn8J7eF9tj@ashevche-desk.local>
- <CAD++jLkCYwTyK6C8LvZiYJ9fSc8bp3RPpb4d6EgQTRraJtJDzA@mail.gmail.com>
- <anmNf3rJGxso6nuc@ashevche-desk.local>
- <ans3pcNFEDVBYXXT@ashevche-desk.local>
- <CAMRc=MeDLc-LPwoCEA8yMw3+L9UcN-NgXpYpFPxtUNffAAffyw@mail.gmail.com>
- <anwxWXfqSt2bM8iy@ashevche-desk.local>
- <CAMRc=McGR_2V2mPJZwU6kBk8TzCV6iKu3-C9yF1bbWE0R73-cw@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="VDMJoP7o"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1786540702; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=w5Ux7//5pOr7u2EOh2gxhjxHv/3OlkRpCDUVa9tIf1U=;
+	b=VDMJoP7o2wOCOsMWZFuTGfqomOVQGMcjb8K8Szn/UJ33Z7o3zPcubgxUSgJkbNwj+bVVYSvFC0VT4nbTdn3XAI4ay5EvqKkPLNt8YDeioOeyHX6dDC4K6x3zNI/KEqYF3/q+GP3lLvEHpqZ4f5nkSuqTzTAlEq5LXKAdiaMD3xg=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R191e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037033178;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=10;SR=0;TI=SMTPD_---0X8rgG-I_1786540701;
+Received: from 30.246.161.236(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0X8rgG-I_1786540701 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Wed, 12 Aug 2026 21:18:21 +0800
+Message-ID: <607b4999-6054-4fc9-8e30-d2de20031bc2@linux.alibaba.com>
+Date: Wed, 12 Aug 2026 21:18:20 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAMRc=McGR_2V2mPJZwU6kBk8TzCV6iKu3-C9yF1bbWE0R73-cw@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 10/10] ACPI: extlog: Validate elog record length before
+ walking sections
+To: Dave Jiang <dave.jiang@intel.com>, linux-acpi@vger.kernel.org,
+ linux-cxl@vger.kernel.org
+Cc: rafael@kernel.org, tony.luck@intel.com, bp@alien8.de,
+ guohanjun@huawei.com, mchehab@kernel.org, terry.bowman@amd.com,
+ sashiko-bot@kernel.org
+References: <20260717161647.1493259-1-dave.jiang@intel.com>
+ <20260717161647.1493259-11-dave.jiang@intel.com>
+From: Shuai Xue <xueshuai@linux.alibaba.com>
+In-Reply-To: <20260717161647.1493259-11-dave.jiang@intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Wed, Aug 12, 2026 at 06:54:30AM -0500, Bartosz Golaszewski wrote:
-> On Wed, 12 Aug 2026 10:39:53 +0200, Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> said:
-> > On Wed, Aug 12, 2026 at 01:23:53AM -0700, Bartosz Golaszewski wrote:
-> >> On Tue, 11 Aug 2026 16:54:29 +0200, Andy Shevchenko
-> >> <andriy.shevchenko@linux.intel.com> said:
-> >> > On Mon, Aug 10, 2026 at 11:36:19AM +0300, Andy Shevchenko wrote:
-> >> >> On Mon, Aug 10, 2026 at 12:17:06AM +0200, Linus Walleij wrote:
-> >> >> > On Sat, Aug 8, 2026 at 9:42 PM Andy Shevchenko
-> >> >> > <andriy.shevchenko@linux.intel.com> wrote:
-> >> >> > > On Sat, Aug 08, 2026 at 03:55:13PM +0000, Yao Qi wrote:
 
-...
 
-> >> >> > > If AMD people will be quick enough to tag this, I will include in my PR to
-> >> >> > > Linus W. on next week.
-> >> >> >
-> >> >> > To Bartosz?
-> >> >> > It's gpiolib...
-> >> >>
-> >> >> Oh, true, I have also pin control stuff to send!
-> >> >
-> >> > Okay, I have checked if I have anything to Bart and it seems I mixed that with
-> >> > pin control stuff. So, Bart, if you feel confident about this patch, you can
-> >> > take it directly. Here is my formal tag for that
-> >> >
-> >> > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> >>
-> >> Is this a bugfix? I'll be OoO until the end of August starting on Friday with
-> >> the exception of a single day to catch up on email. I'll be sending my PRs for
-> >> v7.3 tomorrow. Not sure if I should take it for v7.3 or v7.2?
-> >
-> > On one hand there is no rocket science behind this patch (that's why I gave my tag),
-> > but if you strictly want AMD to confirm, then postpone, so it's up to you to decide.
+On 7/18/26 12:16 AM, Dave Jiang wrote:
+> sashiko-bot flagged a missing bounds check on data_length that allows
+> an out-of-bounds read of elog_buf.
 > 
-> If this is not an important bugfix, then let me postpone it until next cycle.
+> extlog_print() copies a fixed ELOG_ENTRY_LEN (4096) bytes from the elog
+> record into elog_buf, then walks the sections using the
+> firmware-controlled data_length. Nothing checks that data_length stays
+> within the buffer, so a malformed record can walk the section pointer
+> past elog_buf and read adjacent memory.
+> 
+> Unlike the GHES paths, extlog never calls cper_estatus_check(). Reject a
+> record whose length exceeds ELOG_ENTRY_LEN and run cper_estatus_check()
+> before walking the sections.
+> 
+> A malformed record is now dropped with NOTIFY_DONE without setting
+> MCE_HANDLED_EXTLOG, reflecting that extlog did not consume it.
+> 
+> Reported-by: sashiko-bot@kernel.org
+> Closes: https://sashiko.dev/#/patchset/20260714231835.303081-1-dave.jiang@intel.com?part=6
+> Fixes: f6ec01da40e4 ("ACPI: extlog: Handle multiple records")
+> Assisted-by: Claude:claude-opus-4-8
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+> v3:
+> - New patch. sashiko's review of v2 pointed out extlog walks the elog
+>    sections without the cper_estatus_check() bound the GHES paths use.
+> ---
+>   drivers/acpi/acpi_extlog.c | 7 +++++++
+>   1 file changed, 7 insertions(+)
+> 
+> diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
+> index 1fbaf134c04e..30863fd3f5b0 100644
+> --- a/drivers/acpi/acpi_extlog.c
+> +++ b/drivers/acpi/acpi_extlog.c
+> @@ -200,6 +200,13 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
+>   
+>   	tmp = (struct acpi_hest_generic_status *)elog_buf;
+>   
+> +	/*
+> +	 * data_length is firmware controlled, so make sure the record and its
+> +	 * sections stay within elog_buf before anything walks them.
+> +	 */
+> +	if (cper_estatus_len(tmp) > ELOG_ENTRY_LEN || cper_estatus_check(tmp))
+> +		return NOTIFY_DONE;
+> +
+>   	if (!ras_userspace_consumers()) {
+>   		print_extlog_rcd(NULL, tmp, cpu);
+>   		goto out;
 
-I believe a user may survive with this bug to be present for a bit longer.
-But not my call, at Intel I have no such hardware :-)
+Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com>
 
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+Thanks.
+Shuai
