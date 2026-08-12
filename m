@@ -1,237 +1,202 @@
-Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59A2A4746B7
-	for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 15:34:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.52
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786548879; cv=none; b=iclsQHmokLOzFUrF2DpzGuUFmwXJPENautzBoUF3ySnbPRuo/6h6DCNoSa+fPt0gcS5YDNVJzPspPTH+mnXbQKmk9iGB1jDdk5k/usX3+ASENjMWUZHAZCi/wnqaau2qNp0K2mcxLCOS5BOkaIbmFLu+Ec5HEUbIDR5+bCGqSPM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786548879; c=relaxed/simple;
-	bh=x0XfJfYYmm0lZckHiSTrULL19u0GEKu1sJMJbH7EwyY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Z/pqEo6vMhybzqsQd1uO0U0YnwYTXxR8VbMR7Qa6POGs2U8pHPc9kBau3jEqkLdHSgm1HRMZfDGMy0olG2duGpkuW2hXTNKkMVLuzAc72qcnF4UcGppqXu3Xy6gG9NKrigiBl+atQwG4EkE7zt/B/jWss5m2ObASSmNPLGx5yIU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XFJpR9Hy; arc=none smtp.client-ip=209.85.216.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58A3A397E8E;
+	Wed, 12 Aug 2026 18:10:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.17
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786558223; cv=fail; b=hzXNJ8KcLODnpby+K312yYutxFZZTVqgqp3ZkdmXUNmH5BtaJu51R513aQsZZDVUm59UcxgTguNjsKYBbaYdmEQceC+y8GnlsoS4SQs+DEf0+Ya+RlB2ub/dtegKBJazY0CAsDtKigbuSRWvpJB5ScBYhkhWh8I6cRvgODnZhWI=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786558223; c=relaxed/simple;
+	bh=zLxUV1vWelfx/ZlqzLkYVu8iJaKq7KbNEJQ+BXuxoWk=;
+	h=Message-ID:Date:Subject:To:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=LmqZp3nLXtG3qOHXJupLqnATwn/Fg5h2O+pq5Iz3QnfWqA17AKvbs3zJguCtZSTrX2fZ+pgDCALkn5nnbBjkwPTgYtgnt+DNN+pFZ/7ykGI00OkJj9XZi65v6YZ1wKRQrKLrZWVq9N56PMYwxKLaCcpN0RLDkg2P/+GT4keRvJg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BXNpQg9z; arc=fail smtp.client-ip=198.175.65.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XFJpR9Hy"
-Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-38f620399a0so1111403a91.2
-        for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 08:34:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1786548873; x=1787153673; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=fzIk5I7OqDCOAhpxa2DhuDUN9BeeRjYb7EQC4Ahia0I=;
-        b=XFJpR9Hyc8Lt2lxvmcKjpWT7qA5Lv0Wp74VAnzbEFy/nbzJvnRpccTNcBpOX84y+j1
-         Lxv5U9cmTQFxcw95NLAj1d1Zr68cI4J5L8+Yv8tEPDbvppTypDY9FhNEI8yYK0EHLM3c
-         KtB/jk0EC5vXa3FNej7452fEg5YfCfSlpc5SqyZrbIjvQgIwijFogwO5vccuU6Bbo1IH
-         GHfKHEJwjw1dq11r0B7YS2aoF36SheP+Hdnk1OTPmrOHF7Gp87qUG22d4Z75pF5J4L6N
-         U8cibdvEdUgyS+mrsuUqGEEwY2KG6i+sWpibhrnYb3qB7supSglugw5qKeOtyWJb1Mnx
-         UUmA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786548873; x=1787153673;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=fzIk5I7OqDCOAhpxa2DhuDUN9BeeRjYb7EQC4Ahia0I=;
-        b=F0jsdVYtnA3ZkBPT6K+W0z9Puc5j9EJmtttEPf9s100LgMh51bSED7kxRzrnb3JZsc
-         1yyFFI2m8Dcn4m+cwAMaHAOlkDLPFs73SEGs9xc6Kf4p9xwDUJ6yeH/eXXB5FNg8bM+d
-         dlD9y4z1U5jvnE2LbM0inydKufbdj38RLaR71LRt+D0FVwUTzDMzuNFcX/RjPFr3Q+ls
-         0dQNjyN3FqHHPFgfep4n5Pi/+IH8fovFpBIfJKdV3aWDarvF1oSJf93+o0GrXsVeOHIx
-         9eKL+y3m7Y64Ww8uTndEfO5g4QTEZhQt9eN/2CWsbALIFIKFQnqfnjHjQ2fqdQFuDLPz
-         ZQlw==
-X-Forwarded-Encrypted: i=1; AHgh+RrLPQByRe3UCStBiGbHL4b5Y6GZK6lYgrFC/ilcXUrZO1O8rzIgS7y0K0CP3KMXNrztjJC5lv4wOGb9@vger.kernel.org
-X-Gm-Message-State: AOJu0YyRkymfPynh5Hghfv6ZSfeHlmjv7n6DQAxpJ2PG7+JUOI7Zrk/F
-	5m9NRsW28eny9D9W8BUvKxyL0W6bezQbmuKXefI+PbOSMlp8csfVE0Y=
-X-Gm-Gg: AR+sD11MN4KP6Go5ncQTtjtZX/Ok1OPWEkLnvl7nSxgv1wUk4BPqSPXgmk1GlYBFrcn
-	yWgWn2ZeYLLeZefiS4/toPAgk2oGKXgYybROKSzYtgymfSQqNZMhs5RyK5BunmUX521Ugq4ol7D
-	2rSic3opH50eXszZBWJHDLHcz/T1rpGgqhz9o+WhfRwuSeWs+FZSbmXUV4F5jsR5uhsQHKnokBi
-	iuaFm+qhXv3Xz2i0xPoHz/2SoDIeBZVYtgIvWN7lhDJJ7XUsET5sbzpNh4W5Qz/FcEynQ5gq7uN
-	b5UZptC4TpNFEI8EcFLzd3v3LEI+Cf3LRkD0Tj6FvnAGlUljfK7oYO96YVcRrK/kJuaUEIUI6qf
-	4lr04dJzcCVR3+uS97kkAmW5yC8Z09OS8POONzQwDf+N7eu/x/TY0BGffl3vSmYd8FfoHBTd6yY
-	zNPrgMhUmnnAxVbnQRYbu4TpF7AIjn7Fsr1v0Ejecb6MzQGP7F52lIK8ggms06VbBbJVMfCwg5r
-	Mgwx0/8CuVE3sjMtmudBjiCK1lMovLXStA=
-X-Received: by 2002:a17:90a:d64f:b0:390:8361:a532 with SMTP id 98e67ed59e1d1-393011eea08mr7525677a91.7.1786548872437;
-        Wed, 12 Aug 2026 08:34:32 -0700 (PDT)
-Received: from at-Standard-PC-Q35-ICH9-2009.. ([14.97.72.18])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-31dba3e9791sm7160804eec.0.2026.08.12.08.34.26
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 12 Aug 2026 08:34:32 -0700 (PDT)
-From: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>
-To: 
-Cc: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>,
-	Andre Eikmeyer <andre@negmaster.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Sven Peter <sven@kernel.org>,
-	Janne Grunau <j@jannau.net>,
-	Neal Gompa <neal@gompa.dev>,
-	Sebastian Reichel <sre@kernel.org>,
-	Andreas Noever <andreas.noever@gmail.com>,
-	Mika Westerberg <westeri@kernel.org>,
-	Yehezkel Bernat <YehezkelShB@gmail.com>,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	asahi@lists.linux.dev,
-	linux-arm-kernel@lists.infradead.org,
-	linux-pm@vger.kernel.org,
-	linux-usb@vger.kernel.org
-Subject: [PATCH RESEND v7] thunderbolt: Add device links for Apple T2 NHI
-Date: Wed, 12 Aug 2026 11:34:07 -0400
-Message-ID: <20260812153411.1159-2-atharvatiwarilinuxdev@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260812153411.1159-1-atharvatiwarilinuxdev@gmail.com>
-References: <20260812153411.1159-1-atharvatiwarilinuxdev@gmail.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BXNpQg9z"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1786558223; x=1818094223;
+  h=message-id:date:subject:to:references:from:in-reply-to:
+   content-transfer-encoding:mime-version;
+  bh=zLxUV1vWelfx/ZlqzLkYVu8iJaKq7KbNEJQ+BXuxoWk=;
+  b=BXNpQg9zMEtZyNSJOuvC7FZGe7MI3Ho6OCHwkbs9Pa+1JZC3V0cfhf9t
+   x645SXmdWzP7XDTd7SdLnP434yqK3djtDq6Kx+Ieu9RM8V1ls1wOmapuV
+   QoeTA1VmLhATv6n+a8m6QeuwXau4F14jAjMOg6GTCf1XPKsZxLeKM5ZN5
+   LNmCsytrXwkqGWspx7+0a2TrFnC9VDpM5zhcpqgZWxq/JJjTS6swiETL4
+   Aic0wCUGFdbkaqev9sU6/tpzxmnJHiqNSor9ngvarcfsPSfA0bC+oShiP
+   xky9mYAiG3ZadMhIgiSgNm053m629MqFVnhQN04rz2NLSNSJRtDNkGsbX
+   Q==;
+X-CSE-ConnectionGUID: /jdNNAuiQv6jhdhgPVkVdw==
+X-CSE-MsgGUID: tBr5C6MWQ8+lidky2cdMjA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11873"; a="87137925"
+X-IronPort-AV: E=Sophos;i="6.25,219,1779174000"; 
+   d="scan'208";a="87137925"
+Received: from fmviesa009.fm.intel.com ([10.60.135.149])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Aug 2026 11:10:23 -0700
+X-CSE-ConnectionGUID: we6s4G1EQCabBZz5BmVi9g==
+X-CSE-MsgGUID: cl87Ptg3TqamxEkAVVi45w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,219,1779174000"; 
+   d="scan'208";a="257512341"
+Received: from fmsmsx901.amr.corp.intel.com ([10.18.126.90])
+  by fmviesa009.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Aug 2026 11:10:22 -0700
+Received: from FMSMSX903.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Wed, 12 Aug 2026 11:10:21 -0700
+Received: from fmsedg903.ED.cps.intel.com (10.1.192.145) by
+ FMSMSX903.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45 via Frontend Transport; Wed, 12 Aug 2026 11:10:21 -0700
+Received: from SA9PR02CU001.outbound.protection.outlook.com (40.93.196.47) by
+ edgegateway.intel.com (192.55.55.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Wed, 12 Aug 2026 11:10:21 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=drZbZmB/zSdFKp37FTtzCe1eu1cOLY2y8JGnI3p5uee4damEEPVQtRZ+8oZgwPNt0Tr4IAhpwoHv4beRoMsZtlRjUzFVeL8wBRJYhsv8C71vZtXjFURwZeePtBmh5TZoIF+L7TgwlcvX+T82WCBHupqX5LnYEmhu7C5s5z3Zi4UgEeGqx2tHLtpfJERBgdVLjOrogIiCMPv9yUm0gAaZzvVPQL2yGD8kS3YTPHJJobZam958meP2zM6dFVLlzwyG7QIaskixIKxPyiGrcGy6eh8kOYTxy+dhKvo/0JUVMqdv/jgCDM3Wfu4SIzX5RJ2uHCehArdsIBYlLy36hCVI8Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=whThSop6c1ZY6HYCzrTCuHCywwBjn/t+85iwVBxHTBA=;
+ b=nOva0Pp7OAPxrUcjXoIoFzRtQra1XA+aBSoyZ2EXbUGTqzrbToKBbSsN1l9uyJDZY6GeMTlvtLTUqUhHwzfh/TYS95/kZcxpAvyPjuf+gJsYZ1Sh50CVnCiHXxj5yCNQk7J/ON7MPyATNFCPmGTkQ/SGaY0VXPMO2Rnzalw2YKGRt0GC3Gn869CAmVT4oXbTzFhKGoDyLwo4h2fIE+wLPFMSalW8WHayVsmx1ubCddUNPLuTbJkZ83nEsK2pL5w4IVXcHjopCPDxnRYiiltd8uR1WW9ey0Y+ytGLKj9JURbaOcH2yjRAS+XjVaRl1RUltmATNvXLiSvj6hv9jqBkIQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from DM3PPF63A6024A9.namprd11.prod.outlook.com
+ (2603:10b6:f:fc00::f27) by PH7PR11MB5818.namprd11.prod.outlook.com
+ (2603:10b6:510:132::11) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.292.25; Wed, 12 Aug
+ 2026 18:10:17 +0000
+Received: from DM3PPF63A6024A9.namprd11.prod.outlook.com
+ ([fe80::ed8b:1455:8b29:144c]) by DM3PPF63A6024A9.namprd11.prod.outlook.com
+ ([fe80::ed8b:1455:8b29:144c%7]) with mapi id 15.21.0315.012; Wed, 12 Aug 2026
+ 18:10:16 +0000
+Message-ID: <57f89d3a-e2ab-4a79-9bfb-719678671b9a@intel.com>
+Date: Wed, 12 Aug 2026 20:10:12 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] platform/x86: Add ACPI_COMPANION() NULL check in
+ topstar_acpi_probe
+To: Xueqin Luo <luoxueqin@kylinos.cn>, <herton@canonical.com>,
+	<hansg@kernel.org>, <ilpo.jarvinen@linux.intel.com>,
+	<platform-driver-x86@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+References: <20260811022115.338595-1-luoxueqin@kylinos.cn>
+Content-Language: en-US
+From: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
+In-Reply-To: <20260811022115.338595-1-luoxueqin@kylinos.cn>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: VE1PR03CA0001.eurprd03.prod.outlook.com
+ (2603:10a6:802:a0::13) To DM3PPF63A6024A9.namprd11.prod.outlook.com
+ (2603:10b6:f:fc00::f27)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DM3PPF63A6024A9:EE_|PH7PR11MB5818:EE_
+X-MS-Office365-Filtering-Correlation-Id: 9189f89b-df97-47d5-9c0a-08def89cf67d
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|376014|23010399003|56012099006|3023799007|11063799006|18002099003|22082099003|10067099003;
+X-Microsoft-Antispam-Message-Info: V8/frfb3Jny6GcmEl6JyuLmL6WwQLbwMSRDirsZZCDJEu8uJpn7Xkt5JncP8waisrgCKnpL/2Vk2vjtjz0m8AjGPN3EYKOZwpHzK32cxQQP3ELMmYpDwvPvhSeWTfWZ6l5LC0KvPvlpH6q8apKvcr4yfTpWp8FIJy/buBB58DSKitEdnxX1VRq6/iHuIwII99mr87TCXuapdnCK+WQBEECPrK8KYa3pqJzHiv+C9lwEG6mhBbUf59FgQjV1J2xD2HLXJsSjqCuX2gjlXpLyE0IFjd9jTVOKL3ZgAMDLrD2/R93IE8prHRtqQJPaxQqYP+xReIBQY7qUvgECn/EGj2Mlcrc4BTWiiYb1yi1QaUTnUoNqATy1BrwaDKBYRXwT3jl+ZgSLAmhtMTl8LF+FVLHWmfmWPC8rhQsAcqvYyfcKtSRpgsQk62z+R80v3KTGuX/3xbzWvPCOAP+VKX6kl5uHBVYf45l4+IXopVq3Q4yuGwGQRb7KJJAL+H5BuTTCAoIsm1T98oSgC/sPzOrVdVaxMCBZYSrPWOEHEWCRGXjEr0vcVabaFPW0vOD7qvR25kDm6fxOgINDYbuPF5D6PO/CYSEwe0usTmw3lgEiOE/hgYC46Lo6WOpUBzsRClevPKAQDR47h2I/3W/0fhnEAgfCTIVtItEBNeBeF/tzsjpA=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM3PPF63A6024A9.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(23010399003)(56012099006)(3023799007)(11063799006)(18002099003)(22082099003)(10067099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?OHFJdThucms0WVlrRCtJdUx3WWQ5SlJYMjFGVEhJbVl0WkxxTGY5ajJLRHZh?=
+ =?utf-8?B?UjY2dXBURXJVNEQ4N1hlTld0SWt1Qm03UHpYbjN5TlpWTHRkeFhPT0dMdTJx?=
+ =?utf-8?B?N3ZxUXFpL2hUSjQveTFKMHIraGpuVlgwZDhNcm5jOWdKUERyUjhLdzc2S3I1?=
+ =?utf-8?B?VGJ4dFlsOGJHa29IUzNPaHBCZ1JiV2tJU1lKbmhFRWtvdnlSZG1PQkJSTTFh?=
+ =?utf-8?B?ajZ4NUp1bVJoMW1wZ09wZk9tQTZlSnpkd0U4MkIzQ0dBem14RC9UQ3VtSzNu?=
+ =?utf-8?B?Rnc2d1lEdmJCcUFTS2RtMVpIWDZOZDZpYVR3SnRTVnNCSVJwNkxjMjNWdDNX?=
+ =?utf-8?B?QXdEYng4aDl0aXk1UmdGZ1dIZ3VyRkZTa1dyRjdSSVUzUjhZeXlJRnQzeXg3?=
+ =?utf-8?B?ZkpDNTBsam93TUN1bXhnQkFTd1pmSk9JTXRDSGg1QVc0OUZEYXhoVEk4Yzl3?=
+ =?utf-8?B?Zmd4aUlHNWREMi9uYS93WWtMdUpmTTRnZUxoRnlZanM0dnluZDl6WEIyYWR3?=
+ =?utf-8?B?bWY5c1hJZzFNZUZnUXVqNzZoeGtFYmFMWjJnczRjdUQ0WDMzNTJELy84ZEV2?=
+ =?utf-8?B?RVUzY29uUVZrTXBZdzNXN3NHMzJ5N3BzbE0xQXR1b3ZqSXJ0L1JuMmNhekIx?=
+ =?utf-8?B?T3BzdTc2KzUrN0g5QXREbmFZYVhoblpSV1hCTlN2Q0JKME9RQ3NmTVM0VW5O?=
+ =?utf-8?B?SHppMWsvNVJlby9VUmV5VE5VSE5UUVh3UlNCbGJ2TTE4VTdoT2ZML3l0SjhI?=
+ =?utf-8?B?N3BHOGdQd2RaS0R3eUpCS3MzaXAwSGdnTTJ4eHZiTkhRajliM2N2QnI1YWNu?=
+ =?utf-8?B?aFFmSmQwdFp3cXA3dVBJbjBkN002Tkx0ZmdCZUJ6VjNNUklNaXhXakMva2VF?=
+ =?utf-8?B?L00ySXhoUCtOY2YvUW5MTHhHNHg3VHZhY09paGVXOWRQZFpiM3hTNzVGYith?=
+ =?utf-8?B?SmNTOVpiaU1iNzZHQi9JMjNBRHNncnRZaHBKTTM5TzZ3aHh5YjBBa2w4Qk85?=
+ =?utf-8?B?MGlla0cvRFY3UFZGTy9qaW5oY3JwVmljL2xBb3ArM2FjN0UyMGU0SVNhVE5D?=
+ =?utf-8?B?aWZxZU1VMnhhZ2JFYXM3M29KRmtISDVGOE9KOTUwckQvcVhLc2RiL2hGUUd2?=
+ =?utf-8?B?eXZNbHpyUE4zdkVEeHh2QjUwMHAyaEEvWmlmTmdZSU90b1pLK0ljZ01nRDI0?=
+ =?utf-8?B?Y05pQkhDdG9ZSlNETnBSeDFXdEdUZ3dJaGNiZmNTOGFmN2hzYmhKMGlyZXJu?=
+ =?utf-8?B?UjhFMGRVWlZnRlhvSjNIcWxiVk1Tb1BodFQ0OU9VekhmUDFSMHVqREsyVm1x?=
+ =?utf-8?B?MWtHaXZ0VHlFa0gwOTNWdVBXOTdJWUxzUGJJYUxVYUwybjNQZS9lb3JiVU5L?=
+ =?utf-8?B?YmpNKzNLSnFGWXdESlNNcDM2Rm5vWkpGN3BYeVYxTXE1a0tFZFltVlphSW9L?=
+ =?utf-8?B?NlpQV2orSGp6aXBwZnFmbFp2Q1V2eXF4cDd4MS9ncnBleVNER1ZJeWFrbzZq?=
+ =?utf-8?B?cVF6VEdXQ2RGSFVHN2R1Rm9rZnlTci9kTzBwTmdZOXBDOXprYVYwNEhoWUUw?=
+ =?utf-8?B?cHhNUkVCZ3ZVSWEwQjg4cUVEYWQyN1hGVzBpajkwRXI5ZFYvZDQ5THV0UmdW?=
+ =?utf-8?B?QUJObTVOenpRQnJIVUk1QXNzS094Z0Y3M21KTGJ0cWYzT25vOFNxNkx0VzY5?=
+ =?utf-8?B?TDFkTzJJbXhvT291cjgwUDJQMW1RS0kwRGZrdVY2enRHUlB1RE9UM3QzdnJv?=
+ =?utf-8?B?SWpsT0kyMmJ2cHRGb3ZMUyt4eE9GTnBob2RFb25aNGVTSHdYaXJlenA1UUlS?=
+ =?utf-8?B?bW5Id09wUHFvdlIxUlhodHdFRTFSaTVtdnhQMlg5bVZ6YVhuVGtrNTNSS2RB?=
+ =?utf-8?B?Sm1BWXRaS0tZaW1yT2xRUFdPTjZtd1VlbXVyVEVYbjdGK09VaEdqQXNVQVFi?=
+ =?utf-8?B?RDFIM0NLZzRyYVdOMEt1T1dYcCtVQjhLU3RJTmRqZUs2VG5oRW10c0lGUG12?=
+ =?utf-8?B?ZnE3RUw5STZUblZzZzBNaG5NMnU3dTlZMzY2T2FJL0tPUXVuUytpRlc1M1BT?=
+ =?utf-8?B?OUhEeU5FZkZ4azlBQkplbEFkbldzbUtkQ3ZnOTR6N05nbVUyWEh6a1NXam1B?=
+ =?utf-8?B?ZXAzN3ltK3l3ZGN3RFpyUzNLL1VJTkdrTk1pOER4cFRRbHNDZHp0VDQwT1lE?=
+ =?utf-8?B?THpDbEh3czJoVXByQ2RuL0lvWGNRNHhRS0k2b2FBTmRyZkd2Y1Q3Ukg4V3pn?=
+ =?utf-8?B?QkNBVGFwZHd4MWdkYk9xbWxBR3FJb1RrL2tBc3B6MGJoeXBkVEZod1JFTnln?=
+ =?utf-8?B?OWIvaFF0dzJObWtRMUpNaWRYWXl1U2FXbkh5eFNVUVNRRjJBeGsrME50QXVm?=
+ =?utf-8?Q?h32I+4hj1jzns9Lg=3D?=
+X-Exchange-RoutingPolicyChecked: r/Jmoh/x5PVFU7qOH7WXsp8dVAuIKeXxvMRKkaV0Ck7lMdNj4CkPoLanUCbvRnceRZpTC1x80OHZKdLJD50Owxq2/7IWSTECzAH9hiG8+40vid2nTsUcKxQM5EHPsjAll5pjGx2zpW8jwEiWSP0roWmKtncIYWlSJZKCEpuq9cljb4/OHFL6Q20WLiuQa680FYZECnosBlZldknm0BdQogL7jQePJoBU2g3myjQ7w1N3a25i/UpppbisCI8TfKxdMyK+Ydd90b7sVo0xI3760uYCc545GB1prvXAvaonhl06rP7q4w86T1C5tWoQPe/O3h1GfpljANE4ib5/evEjCQ==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 9189f89b-df97-47d5-9c0a-08def89cf67d
+X-MS-Exchange-CrossTenant-AuthSource: DM3PPF63A6024A9.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Aug 2026 18:10:16.8335
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: +lTeAe1x7YK1oxQFOx8Kg4TwMZvTT2LoyUaqvpx1RgKxCEqHKC0RNo8i9FXgfpoE5bR5Lsi1uBRqTBUJw79jaTVpw0w0JUkwTHUt02IZH8Y=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR11MB5818
+X-OriginatorOrg: intel.com
 
-Ice Lake Thunderbolt NHI That are only on T2 Macs. The NHI and its
-associated PCIe Root Ports all sit directly on the Root Complex
-with no upstream port. Identify the tunneled PCIe Root Ports by
-their PCI IDs and create device links back to the NHI so that
-PCIe tunnels can be re-established after sleep.
 
-And on other Thunderbolt NHI's, like Titan Ridge, the default method
-is used to add device links.
+On 8/11/2026 4:21 AM, Xueqin Luo wrote:
+> Add NULL check for ACPI_COMPANION() in topstar_acpi_probe() to prevent
+> NULL pointer dereference when driver_override matches a device without
+> ACPI companion.
+>
+> Fixes: 3471415c8186 ("platform/x86: topstar-laptop: Convert ACPI driver to a platform one")
+> Signed-off-by: Xueqin Luo <luoxueqin@kylinos.cn>
 
-Co-developed-by: Andre Eikmeyer <andre@negmaster.com>
-Signed-off-by: Andre Eikmeyer <andre@negmaster.com>
+I'm not sure why I haven't sent a patch to address this, so
 
-Signed-off-by: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>
----
-Changes in v7:
-- Used pci_lock_rescan_remove to prevent race conditons.
-- Fixed patch format.
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Changes in v6:
-- Used for_each_pci_bridge in Icelake section
-- Removed has_apple_t2_chip as its not required now
 
-Changes in v5:
-- Used Icelake root PCI IDs for detection of root ports instead of TRP
-
-Changes in v4:
-- Limited TRP check to T2 Icelake systems only
-- Optimized has_apple_t2_chip check
-- Included pci.h to drivers/thunderbolt/tb.c
-- Used __free(pci_dev_put) to avoid label
-
-Changes in v3:
-- Fix build errors with non-x86 machines
-- Used __initconst for apple_t2_devices
-- Removed UEFI_QUIRK_SKIP_CERT as its unused now
-- Used IS_ENABLED(CONFIG_ACPI) in tb_apple_add_links for the T2 part
-- Removed !bid check to remove warning with -Waddress
-
-Changes in v2:
-- Used a less generic name for has_t2_chip
-- Used DMI instead of PCI for has_apple_t2_chip to avoid PCI problems
-- Initialized ret in tb_apple_add_links
-
-Link to v6:
-https://lore.kernel.org/all/20260730223435.2874-1-atharvatiwarilinuxdev@gmail.com/
-
-Link to v5:
-https://lore.kernel.org/all/20260727211807.1223-1-atharvatiwarilinuxdev@gmail.com/
-
-Link to v4:
-https://lore.kernel.org/all/20260724164641.2239-1-atharvatiwarilinuxdev@gmail.com/
-
-Link to v3:
-https://lore.kernel.org/all/20260721063412.11588-1-atharvatiwarilinuxdev@gmail.com/
-
-Link to v2:
-https://lore.kernel.org/all/20260721054506.11871-1-atharvatiwarilinuxdev@gmail.com/
-
-Link to v1:
-https://lore.kernel.org/all/20260719180308.1398-1-atharvatiwarilinuxdev@gmail.com/
-
- drivers/thunderbolt/tb.c | 49 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 48 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/thunderbolt/tb.c b/drivers/thunderbolt/tb.c
-index c69c323e6952..2534c6378000 100644
---- a/drivers/thunderbolt/tb.c
-+++ b/drivers/thunderbolt/tb.c
-@@ -9,6 +9,7 @@
- #include <linux/slab.h>
- #include <linux/errno.h>
- #include <linux/delay.h>
-+#include <linux/pci.h>
- #include <linux/pm_runtime.h>
- #include <linux/platform_data/x86/apple.h>
- 
-@@ -3305,16 +3306,62 @@ static const struct tb_cm_ops tb_cm_ops = {
- static bool tb_apple_add_links(struct tb_nhi *nhi)
- {
- 	struct pci_dev *upstream, *pdev;
--	bool ret;
-+	bool ret = false;
- 
- 	if (!x86_apple_machine)
- 		return false;
- 
-+	/* Identify the tunneled PCIe Root Ports by their PCI IDs
-+	 * on Macs with Icelake NHI's
-+	 * and create device links so that
-+	 * PCIe tunnels can be re-established after sleep.
-+	 */
-+	if (nhi->pdev->device == PCI_DEVICE_ID_INTEL_ICL_NHI0 ||
-+		nhi->pdev->device == PCI_DEVICE_ID_INTEL_ICL_NHI1) {
-+		const struct device_link *link;
-+
-+		pci_lock_rescan_remove();
-+
-+		for_each_pci_bridge(pdev, nhi->pdev->bus) {
-+			if (!pci_is_pcie(pdev) || pci_pcie_type(pdev) != PCI_EXP_TYPE_ROOT_PORT)
-+				continue;
-+
-+			switch (pdev->device) {
-+			/* Ice Lake Thunderbolt 3 PCIe Root Ports */
-+			case 0x8a1d:
-+			case 0x8a1f:
-+			case 0x8a21:
-+			case 0x8a23:
-+				break;
-+			default:
-+				continue;
-+			}
-+
-+			link = device_link_add(&pdev->dev, &nhi->pdev->dev,
-+					DL_FLAG_AUTOREMOVE_SUPPLIER |
-+					DL_FLAG_PM_RUNTIME);
-+			if (link) {
-+				dev_dbg(&nhi->pdev->dev, "created link from %s\n",
-+					dev_name(&pdev->dev));
-+				ret = true;
-+			} else {
-+				dev_warn(&nhi->pdev->dev,
-+					"device link creation from %s failed\n",
-+					dev_name(&pdev->dev));
-+			}
-+		}
-+
-+		pci_unlock_rescan_remove();
-+		return ret;
-+	}
-+
- 	switch (nhi->pdev->device) {
- 	case PCI_DEVICE_ID_INTEL_LIGHT_RIDGE:
- 	case PCI_DEVICE_ID_INTEL_CACTUS_RIDGE_4C:
- 	case PCI_DEVICE_ID_INTEL_FALCON_RIDGE_2C_NHI:
- 	case PCI_DEVICE_ID_INTEL_FALCON_RIDGE_4C_NHI:
-+	case PCI_DEVICE_ID_INTEL_TITAN_RIDGE_2C_NHI:
-+	case PCI_DEVICE_ID_INTEL_TITAN_RIDGE_4C_NHI:
- 		break;
- 	default:
- 		return false;
--- 
-2.43.0
-
+> ---
+>   drivers/platform/x86/topstar-laptop.c | 6 +++++-
+>   1 file changed, 5 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/platform/x86/topstar-laptop.c b/drivers/platform/x86/topstar-laptop.c
+> index 0e842c55dcc5..730a599abf0f 100644
+> --- a/drivers/platform/x86/topstar-laptop.c
+> +++ b/drivers/platform/x86/topstar-laptop.c
+> @@ -287,10 +287,14 @@ static const struct dmi_system_id topstar_dmi_ids[] = {
+>   
+>   static int topstar_acpi_probe(struct platform_device *pdev)
+>   {
+> -	struct acpi_device *device = ACPI_COMPANION(&pdev->dev);
+> +	struct acpi_device *device;
+>   	struct topstar_laptop *topstar;
+>   	int err;
+>   
+> +	device = ACPI_COMPANION(&pdev->dev);
+> +	if (!device)
+> +		return -ENODEV;
+> +
+>   	dmi_check_system(topstar_dmi_ids);
+>   
+>   	topstar = kzalloc_obj(struct topstar_laptop);
