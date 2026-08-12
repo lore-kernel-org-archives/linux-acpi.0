@@ -1,38 +1,38 @@
-Received: from canpmsgout03.his.huawei.com (canpmsgout03.his.huawei.com [113.46.200.218])
+Received: from canpmsgout04.his.huawei.com (canpmsgout04.his.huawei.com [113.46.200.219])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B717C370AF1;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FFEE37207D;
 	Wed, 12 Aug 2026 01:54:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.218
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.219
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786499669; cv=none; b=QNPp9Gz7kWVr4cUntbJKx+pL8FuVX9GIIeIeBDCzqwXf7VQO2tq69ghT51mroy23pENRpf24uQv8wHYYd2I07k+hKL2cUxb8hiXMWsvwdANYNYQnj6NYHdgppr+JN8IoI+HjErQVA8DmSRsaTpoAyMyXnQt5EtfK97TMIjf0urQ=
+	t=1786499676; cv=none; b=uZQoZfxQrQSDNC7NtNpN8LLGABF/h9ZknPMHEXO2OvHZRSi3BmdzvMjQ2NP2XpSbjFIrFO0rTX3GwRyPZuxTwPGdx5po47xSWCMSCqQWNRAnTRB/erW6nb5Ynu2a2qpC0TTHnnw8xQWfo9i0UqczqIUg6N7B9XGCVRGhgnK0WRE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786499669; c=relaxed/simple;
-	bh=4ebNe8xcy+gZy/jwfzhaVB/U/5i290Lkrm0E7UMx678=;
+	s=arc-20240116; t=1786499676; c=relaxed/simple;
+	bh=kDpK7Seh/MxWoKpik6r7NblQ5wfpHGUwrsILNj5QaYs=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Bc9Q0bPbjH727d+OpkGMuuJBI+sKCrmgi76ye284xtPqgMtUPFumySQu5nZ4joQpYJ8apsgPUfOPLtDrY7redaissGS9Rm1bViapDfyMv3AjmqvHBoqURMZeSe9+6UVIVcXYYZT7rISMIkplQFvCFGRU2LIu1h1/LRFZsZ+VEmk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=ZhLquWVk; arc=none smtp.client-ip=113.46.200.218
+	 MIME-Version:Content-Type; b=FTIp34XOPWQ1JfqsiQ+wzLIbTf3hiV9ifxYX5jpdG0y2NbOS32euRotf+Ftn4FV22M02AXmLNZ0AZm+/K5U4xqz0a/IkOfVVmp1kMaAM+gEhWFMQlWYf4b7E1KPXOEtjBnjPDAO7pDzO/FB+X7NhTzWjrPmb97AHz3Z91QnSXb0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=D66CmRTe; arc=none smtp.client-ip=113.46.200.219
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="ZhLquWVk"
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="D66CmRTe"
 dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
 	c=relaxed/relaxed; q=dns/txt;
 	h=From;
-	bh=fucjSwjA3JlEtRmLOfGwAv2I4I9v7+l/r2xRlHpKvLw=;
-	b=ZhLquWVkaf/1p07znDq0mzUNM06de/4FoVIQ4KTNXnry5Qw7mI2NvWgK2Gx0aiHjiSB7/qqzi
-	26XgnupFWt1GwjdYuygHgiK5ihVer827jrG3a0G9S74IIQ/PGwkyIYBBRlfCLK9RzH95EGOMrwy
-	J/ZiEWhIdtDxoD23IhH8f7A=
+	bh=FCtyezrfFYHAsq12yeCIgaKi9Rbow+xBWuIlKanOkyk=;
+	b=D66CmRTe0YZORKY7r8ATMMk2H/F/vX4IrE3iMes4ZC5WIuOJUw8idDe2tMPcYt9MQ1cx40+wf
+	Kemo7oJQAFNmsyHd1FCNNxywrW5f1FZpCUX8l5j/zhWG4HONjLcobSD6wMr9dCpayYajAqrgO62
+	TnJudJ+lMKD4BghxDsUpFls=
 Received: from mail.maildlp.com (unknown [172.19.162.140])
-	by canpmsgout03.his.huawei.com (SkyGuard) with ESMTPS id 4hKWVM1WJvzpT0q;
-	Wed, 12 Aug 2026 09:43:39 +0800 (CST)
+	by canpmsgout04.his.huawei.com (SkyGuard) with ESMTPS id 4hKWVQ3R4Tz1prKd;
+	Wed, 12 Aug 2026 09:43:42 +0800 (CST)
 Received: from kwepemf100001.china.huawei.com (unknown [7.202.181.215])
-	by mail.maildlp.com (Postfix) with ESMTPS id 438EE20333;
-	Wed, 12 Aug 2026 09:54:22 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 5CC6120333;
+	Wed, 12 Aug 2026 09:54:21 +0800 (CST)
 Received: from localhost.localdomain (10.50.163.32) by
  kwepemf100001.china.huawei.com (7.202.181.215) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.36; Wed, 12 Aug 2026 09:54:21 +0800
+ 15.2.1544.36; Wed, 12 Aug 2026 09:54:20 +0800
 From: Lifeng Zheng <zhenglifeng1@huawei.com>
 To: <rafael@kernel.org>, <viresh.kumar@linaro.org>, <saket.dumbre@intel.com>,
 	<lenb@kernel.org>, <zhanjie9@hisilicon.com>, <pierre.gondois@arm.com>,
@@ -42,9 +42,9 @@ CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<linuxarm@huawei.com>, <lihuisong@huawei.com>, <yubowen8@huawei.com>,
 	<zhangpengjie2@huawei.com>, <wangzhi12@huawei.com>,
 	<linhongye@h-partners.com>, <zhenglifeng1@huawei.com>
-Subject: [PATCH v3 5/8] ACPI: CPPC: Store optional flag in cpc_register_resource
-Date: Wed, 12 Aug 2026 09:52:13 +0800
-Message-ID: <20260812015217.74598-6-zhenglifeng1@huawei.com>
+Subject: [PATCH v3 3/8] ACPI: CPPC: Refactor resource cleanup into free_reg_resource()
+Date: Wed, 12 Aug 2026 09:52:11 +0800
+Message-ID: <20260812015217.74598-4-zhenglifeng1@huawei.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20260812015217.74598-1-zhenglifeng1@huawei.com>
 References: <20260812015217.74598-1-zhenglifeng1@huawei.com>
@@ -59,100 +59,101 @@ Content-Type: text/plain
 X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
  kwepemf100001.china.huawei.com (7.202.181.215)
 
-The current optionality check uses a compile-time bitmask (REG_OPTIONAL)
-applied at call sites via IS_OPTIONAL_CPC_REG(reg_idx).  This requires
-every caller to know the register index, which will not work for registers
-accessed without a fixed index (e.g. entries inside Resource Priority
-sub-packages).
+Both the error path of acpi_cppc_processor_probe() and the normal
+cleanup in acpi_cppc_processor_exit() iterate over the cpc_regs[]
+array and iounmap() any SystemMemory virtual addresses that were
+set up during probe.
 
-Add a boolean 'optional' field to cpc_register_resource so that each
-register element carries its own optionality.  Populate the field during
-_CPC probe (for main registers) and parse_priority_regs() (for Resource
-Priority sub-packages), using the existing REG_OPTIONAL and
-RES_PRIO_OPTIONAL bitmasks respectively.
+CPPC v4 adds Package-type entries that own dynamically allocated
+sub-elements which also need to be freed.  Inlining this recursive
+cleanup at every call-site would be error-prone and repetitive.
 
-Replace the IS_OPTIONAL_CPC_REG() check in cppc_get_reg_val() with a
-direct test of reg->optional, and remove the IS_OPTIONAL_CPC_REG() macro.
+Extract the per-register cleanup logic into free_reg_resource(),
+which releases any iomapped address and, for Package-type entries,
+recursively frees all child elements and the elements array itself.
+Convert both the probe error path and _exit() to use the new helper.
+
+No functional change for existing Integer / Buffer entries.
 
 Signed-off-by: Lifeng Zheng <zhenglifeng1@huawei.com>
 ---
- drivers/acpi/cppc_acpi.c | 14 +++++++++-----
- include/acpi/cppc_acpi.h |  1 +
- 2 files changed, 10 insertions(+), 5 deletions(-)
+ drivers/acpi/cppc_acpi.c | 41 ++++++++++++++++++++++++++++------------
+ 1 file changed, 29 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index b5563d75d6c5..53c71888108d 100644
+index 47ececf214c4..dce15d875c62 100644
 --- a/drivers/acpi/cppc_acpi.c
 +++ b/drivers/acpi/cppc_acpi.c
-@@ -137,11 +137,11 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
- #define REG_OPTIONAL (0x7FC7D0)
+@@ -753,6 +753,30 @@ static int parse_cpc_element(union acpi_object *cpc_obj,
+ 	return 0;
+ }
  
++/**
++ * free_reg_resource - Free resources held by a CPC register resource.
++ * @cpc_reg: Pointer to the CPC register resource to clean up.
++ *
++ * Releases any iomapped SystemMemory address and, for Package-type
++ * resources, recursively frees all nested elements before freeing the
++ * elements array itself.
++ */
++static void free_reg_resource(struct cpc_register_resource *cpc_reg)
++{
++	void __iomem *addr = cpc_reg->sys_mem_vaddr;
++	int i;
++
++	if (addr)
++		iounmap(addr);
++
++	if (cpc_reg->type == ACPI_TYPE_PACKAGE) {
++		for (i = 0; i < cpc_reg->cpc_entry.package.count; i++)
++			free_reg_resource(&cpc_reg->cpc_entry.package.elements[i]);
++
++		kfree(cpc_reg->cpc_entry.package.elements);
++	}
++}
++
  /*
-- * Use the index of the register in per-cpu cpc_regs[] to check if
-- * it's an optional one.
-+ * Each bit indicates the optionality of the register in resource
-+ * priority register descriptor with the corresponding index. 0 means
-+ * mandatory and 1 means optional.
-  */
--#define IS_OPTIONAL_CPC_REG(reg_idx) (REG_OPTIONAL & (1U << (reg_idx)))
--
-+#define RES_PRIO_OPTIONAL (0x6)
- /*
-  * Arbitrary Retries in case the remote processor is slow to respond
-  * to PCC commands. Keeping it high enough to cover emulators where
-@@ -844,6 +844,7 @@ static int parse_priority_regs(union acpi_object *cpc_obj,
+  * An example CPC table looks like the following.
+  *
+@@ -965,12 +989,9 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
  
- 		reg_elements[0].type = ACPI_TYPE_PACKAGE;
- 		reg_elements[0].cpc_entry.package.count = resources_count;
-+		reg_elements[0].optional = RES_PRIO_OPTIONAL & 1U;
+ out_free:
+ 	/* Free all the mapped sys mem areas for this CPU */
+-	for (i = 2; i < cpc_ptr->num_entries; i++) {
+-		void __iomem *addr = cpc_ptr->cpc_regs[i-2].sys_mem_vaddr;
++	for (i = 2; i < cpc_ptr->num_entries; i++)
++		free_reg_resource(&cpc_ptr->cpc_regs[i-2]);
  
- 		for (j = 0; j < reg_elements[0].cpc_entry.package.count; j++) {
- 			reg_elements[0].cpc_entry.package.elements[j].type = ACPI_TYPE_INTEGER;
-@@ -852,6 +853,7 @@ static int parse_priority_regs(union acpi_object *cpc_obj,
- 		}
+-		if (addr)
+-			iounmap(addr);
+-	}
+ 	kfree(cpc_ptr);
  
- 		for (j = 1; j < RESOURCE_PRIORITY_NUM; j++) {
-+			reg_elements[j].optional = RES_PRIO_OPTIONAL & (1U << j);
- 			ret = parse_cpc_element(&reg_desc_obj.package.elements[j], &reg_elements[j],
- 						pcc_subspace_id, cpu, RESOURCE_PRIORITY);
- 			if (ret)
-@@ -990,6 +992,7 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
- 	/* Iterate through remaining entries in _CPC */
- 	for (i = 2; i < num_ent; i++) {
- 		cpc_obj = &out_obj->package.elements[i];
-+		cpc_ptr->cpc_regs[i-2].optional = REG_OPTIONAL & (1U << (i-2));
+ out_buf_free:
+@@ -989,7 +1010,6 @@ void acpi_cppc_processor_exit(struct acpi_processor *pr)
+ {
+ 	struct cpc_desc *cpc_ptr;
+ 	unsigned int i;
+-	void __iomem *addr;
+ 	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, pr->id);
  
- 		/*
- 		 * Package-type entries are used for nested structures such as
-@@ -1060,6 +1063,7 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
- 	 * LOWEST_FREQ and NOMINAL_FREQ regs as unsupported
- 	 */
- 	for (i = num_ent - 2; i < MAX_CPC_REG_ENT; i++) {
-+		cpc_ptr->cpc_regs[i].optional = true;
- 		cpc_ptr->cpc_regs[i].type = ACPI_TYPE_INTEGER;
- 		cpc_ptr->cpc_regs[i].cpc_entry.int_value = 0;
- 	}
-@@ -1410,7 +1414,7 @@ static int cppc_get_reg_val(int cpu, enum cppc_regs reg_idx, u64 *val)
+ 	if (pcc_ss_id >= 0 && pcc_data[pcc_ss_id]) {
+@@ -1007,12 +1027,9 @@ void acpi_cppc_processor_exit(struct acpi_processor *pr)
+ 	if (!cpc_ptr)
+ 		return;
  
- 	reg = &cpc_desc->cpc_regs[reg_idx];
+-	/* Free all the mapped sys mem areas for this CPU */
+-	for (i = 2; i < cpc_ptr->num_entries; i++) {
+-		addr = cpc_ptr->cpc_regs[i-2].sys_mem_vaddr;
+-		if (addr)
+-			iounmap(addr);
+-	}
++	/* Free all the mapped sys mem areas and nested package resources for this CPU */
++	for (i = 2; i < cpc_ptr->num_entries; i++)
++		free_reg_resource(&cpc_ptr->cpc_regs[i-2]);
  
--	if ((reg->type == ACPI_TYPE_INTEGER && IS_OPTIONAL_CPC_REG(reg_idx) &&
-+	if ((reg->type == ACPI_TYPE_INTEGER && reg->optional &&
- 	     !reg->cpc_entry.int_value) || (reg->type != ACPI_TYPE_INTEGER &&
- 	     IS_NULL_REG(&reg->cpc_entry.reg))) {
- 		pr_debug("CPC register is not supported\n");
-diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index 19f8a722654b..c0b8d52016cd 100644
---- a/include/acpi/cppc_acpi.h
-+++ b/include/acpi/cppc_acpi.h
-@@ -80,6 +80,7 @@ struct cpc_register_resource {
- 			struct cpc_register_resource *elements;
- 		} package;
- 	} cpc_entry;
-+	bool optional;
- };
- 
- /* Container to hold the CPC details for each CPU */
+ 	kobject_put(&cpc_ptr->kobj);
+ 	kfree(cpc_ptr);
 -- 
 2.33.0
 
