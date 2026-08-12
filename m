@@ -1,229 +1,119 @@
-Received: from mx5.mail-out.lima-city.de (mx5.mail-out.lima-city.de [91.216.248.207])
+Received: from out30-118.freemail.mail.aliyun.com (out30-118.freemail.mail.aliyun.com [115.124.30.118])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7541A3546C8;
-	Wed, 12 Aug 2026 12:03:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.248.207
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BE37437847;
+	Wed, 12 Aug 2026 12:10:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.118
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786536232; cv=none; b=NaeHwhpFt5ZK/VfRmAGzWQ1GH3K8nMTSowTCV2xtDAVh/j4MFSY+zLWgTCQ4vdw4UqhedsLY22WbQZZSaDS/269Ueq+7Xd5TPc/ViuRiKxQe8NqN6F0EwpKH7UP0jyNXIAI7mvBGCJ21B3bDqB/kF9a/nRxaQdmassb2ofbLWOE=
+	t=1786536649; cv=none; b=Wb2Fu7Xtyo9n8qszjmVOzeTTKrBovdF2dBAtWQHQyKK/0F6FM5cGfaqvw4Mq7f/1R+M81ol2rbMZk8AZ7CP2bCmrI7pzoNitxL6e6njnDWjGZBgOkkK5TVg2CZyt+SMFolhlkNO6XUYPRKxvrH6K24KAhhyZxsh2vIV/ZJgq1/8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786536232; c=relaxed/simple;
-	bh=kvpBh02FRfteHfgHwO5CYuK1PrTOzwA3xxXqAWpXKc8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=utZxyxjffJNj89+DuJCMUmRd6Faff1UgvNf5YkJo9I5VsY5fxWEcKJ2RY/NwhATlhqXAIdOuzFS1Ty7Z+hogvwOIR37+5SJmDsRsN09sgcho0xahtnivCigiDVgOqDfsPkg1p7SFLiF3ipGumtSKI3Es+P/x5gvoonlkuFVjRoU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=deq.rocks; spf=none smtp.mailfrom=deq.rocks; dkim=pass (2048-bit key) header.d=deq.rocks header.i=@deq.rocks header.b=wnCDNiel; arc=none smtp.client-ip=91.216.248.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=deq.rocks
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=deq.rocks
+	s=arc-20240116; t=1786536649; c=relaxed/simple;
+	bh=0UDr0EBBfcrUP0FjorC38oo5e9HO+aQKsepeABQNmec=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=MXZn3duCimRypa3S1oCXM2dYQHd+T06sfFchQ+A/IV+cUKf3dFT4mUC53sk0K8286dszqmwg20705XWS+mGBpr5F7oqN8YWPD9hAULmqQ4TUJODfOqVNKE9CDIREarqXercHXoRL+0mjfIuAAVJ4TICFiyecz+UxtH/tgInZ76Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=XToKDol2; arc=none smtp.client-ip=115.124.30.118
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=deq.rocks header.i=@deq.rocks header.b="wnCDNiel"
-From: Andre Eikmeyer <dev@deq.rocks>
-X-Lima-ML-UUID: ae1f50a7-1b19-44d8-b6d4-d2eb0f197f70
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=deq.rocks;
-	s=securedbylima-20251205; t=1786536219;
-	bh=kvpBh02FRfteHfgHwO5CYuK1PrTOzwA3xxXqAWpXKc8=;
-	h=From:To:Cc:Subject:Date:From;
-	b=wnCDNiel0WNIh0FyQByH3cB6lNK/N0zzuFhCU3HxZjQFt3p3pnQPrgl+2SRTUfIFV
-	 jkaOmkKVp/DY68OKedhqEefhWCJHK+YuIiN5Mr/Ns21F7foyZ3z3YlaxcK9N6p2Ben
-	 IQGnK/VyXPVQpPwZgdaHalnNw+25/6FrLxT7oTkGcNjejLdkdeWEvubyjotYAl+DdK
-	 0sV0rA37+etzHbWEPX9f60FpXBLFXw4MrwmjATepTz7AtTjAGGh9V37YhFS6zH64LU
-	 xaShiUnOPl0X+az1GwTXA+2KpWwJLhdZ6dHIeHv25ATmdQvhe+a/tmaWhnu5PMoyAK
-	 NCo7oPetnNkoQ==
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
-	linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	linux-pm@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Andre Eikmeyer <dev@deq.rocks>
-Subject: [PATCH] ACPI: x86: Apple T2 systems need early CPU offlining
-Date: Wed, 12 Aug 2026 14:03:26 +0200
-Message-ID: <20260812120326.155226-1-dev@deq.rocks>
-X-Mailer: git-send-email 2.55.0
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="XToKDol2"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1786536642; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=L/ApQ+Kp5ph3UNP2SUM7U7txnWOka8qjdFdllep9x8s=;
+	b=XToKDol2AKBnD1To8yxy+krP4H7kBOE+J0hnDU73n+46AiWCs3lO+6p6zn6JFzcpYRyDkHewahH29I+5VYqHtJF9NYq19DoUuOi9wKqu1o3I2OffQJTZFvf37GgUyi+jy7ONlJYzQlPIFzUv2+piCdmjbkt+puYaFHiR83Qfwo0=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R191e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033032089153;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=10;SR=0;TI=SMTPD_---0X8rUyu3_1786536641;
+Received: from 30.246.161.236(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0X8rUyu3_1786536641 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Wed, 12 Aug 2026 20:10:41 +0800
+Message-ID: <1f92dbb9-a25b-4833-891e-2a4e3d2392a6@linux.alibaba.com>
+Date: Wed, 12 Aug 2026 20:10:40 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 01/10] ACPI: APEI: GHES: Bound CXL event record copy to
+ the firmware section length
+To: Dave Jiang <dave.jiang@intel.com>, linux-acpi@vger.kernel.org,
+ linux-cxl@vger.kernel.org
+Cc: rafael@kernel.org, tony.luck@intel.com, bp@alien8.de,
+ guohanjun@huawei.com, mchehab@kernel.org, terry.bowman@amd.com,
+ sashiko-bot@kernel.org
+References: <20260717161647.1493259-1-dave.jiang@intel.com>
+ <20260717161647.1493259-2-dave.jiang@intel.com>
+From: Shuai Xue <xueshuai@linux.alibaba.com>
+In-Reply-To: <20260717161647.1493259-2-dave.jiang@intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hello everyone,
 
-Linux reports _OSI("Darwin") on x86 Apple systems. On T2 Macs, the
-selected firmware suspend path makes secondary CPU startup during early
-resume take several seconds per CPU. The same CPUs can be brought online
-normally after platform resume.
 
-We therefore move secondary CPU hotplug outside the generic CPU PM
-notifier window on T2 systems. A prepare notifier runs before the CPU
-core blocks hotplug, while a post notifier restores only the CPUs it
-removed after the core enables hotplug again.
+On 7/18/26 12:16 AM, Dave Jiang wrote:
+> sashiko-bot flagged a missing bounds check that allows an
+> out-of-bounds read of the firmware CPER section.
+> 
+> cxl_cper_post_event() copies a fixed sizeof(struct cxl_cper_event_rec)
+> out of the firmware CPER section without checking its length. Pass
+> gdata->error_data_length in and reject a section too small to hold the
+> record before the copy.
+> 
+> Reported-by: sashiko-bot@kernel.org
+> Link: https://sashiko.dev/#/patchset/20260617-topics-ahmtib01-ras_ffh_arm_internal_review-v6-0-91f725174aa0@arm.com?part=6
+> Fixes: 5e4a264bf8b5 ("acpi/ghes: Process CXL Component Events")
+> Assisted-by: Claude:claude-opus-4-8
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>   drivers/acpi/apei/ghes.c | 16 ++++++++++++----
+>   1 file changed, 12 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 3236a3ce79d6..a752e152a5a0 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -815,10 +815,15 @@ static DEFINE_SPINLOCK(cxl_cper_work_lock);
+>   struct work_struct *cxl_cper_work;
+>   
+>   static void cxl_cper_post_event(enum cxl_event_type event_type,
+> -				struct cxl_cper_event_rec *rec)
+> +				struct cxl_cper_event_rec *rec, u32 len)
+>   {
+>   	struct cxl_cper_work_data wd;
+>   
+> +	if (len < sizeof(*rec)) {
+> +		pr_err(FW_WARN "CXL CPER section too small (%u)\n", len);
+> +		return;
+> +	}
+> +
+>   	if (rec->hdr.length <= sizeof(rec->hdr) ||
+>   	    rec->hdr.length > sizeof(*rec)) {
+>   		pr_err(FW_WARN "CXL CPER Invalid section length (%u)\n",
+> @@ -949,15 +954,18 @@ static void ghes_do_proc(struct ghes *ghes,
+>   		} else if (guid_equal(sec_type, &CPER_SEC_CXL_GEN_MEDIA_GUID)) {
+>   			struct cxl_cper_event_rec *rec = acpi_hest_get_payload(gdata);
+>   
+> -			cxl_cper_post_event(CXL_CPER_EVENT_GEN_MEDIA, rec);
+> +			cxl_cper_post_event(CXL_CPER_EVENT_GEN_MEDIA, rec,
+> +					    gdata->error_data_length);
+>   		} else if (guid_equal(sec_type, &CPER_SEC_CXL_DRAM_GUID)) {
+>   			struct cxl_cper_event_rec *rec = acpi_hest_get_payload(gdata);
+>   
+> -			cxl_cper_post_event(CXL_CPER_EVENT_DRAM, rec);
+> +			cxl_cper_post_event(CXL_CPER_EVENT_DRAM, rec,
+> +					    gdata->error_data_length);
+>   		} else if (guid_equal(sec_type, &CPER_SEC_CXL_MEM_MODULE_GUID)) {
+>   			struct cxl_cper_event_rec *rec = acpi_hest_get_payload(gdata);
+>   
+> -			cxl_cper_post_event(CXL_CPER_EVENT_MEM_MODULE, rec);
+> +			cxl_cper_post_event(CXL_CPER_EVENT_MEM_MODULE, rec,
+> +					    gdata->error_data_length);
+>   		} else {
+>   			void *err = acpi_hest_get_payload(gdata);
+>   
 
-This reduces CPU bring-up during resume from several seconds per CPU to a
-fraction of a second. The change was tested on MacBookPro15,1,
-MacBookPro16,2, MacBookAir9,1 and a 27-inch T2 iMac.
 
-Signed-off-by: Andre Eikmeyer <dev@deq.rocks>
----
- drivers/acpi/x86/apple.c | 140 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 140 insertions(+)
+Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com>
 
-diff --git a/drivers/acpi/x86/apple.c b/drivers/acpi/x86/apple.c
-index 45d0f16..5595a6a 100644
---- a/drivers/acpi/x86/apple.c
-+++ b/drivers/acpi/x86/apple.c
-@@ -6,7 +6,13 @@
- 
- #include <linux/acpi.h>
- #include <linux/bitmap.h>
-+#include <linux/cpu.h>
-+#include <linux/cpuhplock.h>
-+#include <linux/init.h>
-+#include <linux/notifier.h>
-+#include <linux/pci.h>
- #include <linux/platform_data/x86/apple.h>
-+#include <linux/suspend.h>
- #include <linux/uuid.h>
- #include "../internal.h"
- 
-@@ -146,3 +152,137 @@ out_free:
- 	ACPI_FREE(props);
- 	bitmap_free(valid);
- }
-+
-+#ifdef CONFIG_PM_SLEEP_SMP
-+/*
-+ * The ACPI path selected by _OSI("Darwin") leaves Apple T2 systems in a
-+ * state where bringing secondary CPUs online during early resume may take
-+ * several seconds per CPU. Normal CPU hotplug after platform resume is not
-+ * affected, so we move it outside the generic suspend CPU hotplug window.
-+ */
-+static cpumask_var_t apple_t2_offlined_cpus;
-+
-+#define PCI_DEVICE_ID_APPLE_T2_BRIDGE 0x1801
-+
-+static bool __init apple_t2_present(void)
-+{
-+	struct pci_dev *pdev;
-+
-+	if (!x86_apple_machine)
-+		return false;
-+
-+	pdev = pci_get_device(PCI_VENDOR_ID_APPLE,
-+			      PCI_DEVICE_ID_APPLE_T2_BRIDGE, NULL);
-+	if (!pdev)
-+		return false;
-+
-+	pci_dev_put(pdev);
-+	return true;
-+}
-+
-+static void apple_t2_restore_cpus(void)
-+{
-+	unsigned int cpu;
-+	int ret;
-+
-+	for_each_cpu(cpu, apple_t2_offlined_cpus) {
-+		ret = add_cpu(cpu);
-+		if (ret) {
-+			pr_err("ACPI: Apple T2 failed to restore CPU%u: %d\n",
-+			       cpu, ret);
-+			continue;
-+		}
-+
-+		cpumask_clear_cpu(cpu, apple_t2_offlined_cpus);
-+	}
-+}
-+
-+static void apple_t2_offline_cpus(void)
-+{
-+	unsigned int cpu;
-+	int ret;
-+
-+	if (!cpumask_empty(apple_t2_offlined_cpus)) {
-+		pr_err("ACPI: Apple T2 CPUs from the previous suspend remain offline\n");
-+		apple_t2_restore_cpus();
-+		if (!cpumask_empty(apple_t2_offlined_cpus)) {
-+			pr_err("ACPI: Apple T2 early CPU offlining skipped\n");
-+			return;
-+		}
-+	}
-+
-+	for_each_online_cpu(cpu) {
-+		if (cpu == 0)
-+			continue;
-+
-+		ret = remove_cpu(cpu);
-+		if (ret) {
-+			pr_err("ACPI: Apple T2 failed to offline CPU%u: %d\n",
-+			       cpu, ret);
-+			continue;
-+		}
-+
-+		cpumask_set_cpu(cpu, apple_t2_offlined_cpus);
-+	}
-+}
-+
-+static int apple_t2_cpu_prepare(struct notifier_block *nb,
-+				unsigned long action, void *unused)
-+{
-+	if (action == PM_SUSPEND_PREPARE)
-+		apple_t2_offline_cpus();
-+
-+	return NOTIFY_OK;
-+}
-+
-+static int apple_t2_cpu_restore(struct notifier_block *nb,
-+				unsigned long action, void *unused)
-+{
-+	if (action == PM_POST_SUSPEND)
-+		apple_t2_restore_cpus();
-+
-+	return NOTIFY_OK;
-+}
-+
-+/*
-+ * The CPU core PM notifier runs at priority 0. We offline CPUs before
-+ * hotplug is blocked, then restore them after it enables hotplug again.
-+ */
-+static struct notifier_block apple_t2_cpu_prepare_nb = {
-+	.notifier_call = apple_t2_cpu_prepare,
-+	.priority = 1,
-+};
-+
-+static struct notifier_block apple_t2_cpu_restore_nb = {
-+	.notifier_call = apple_t2_cpu_restore,
-+	.priority = -1,
-+};
-+
-+static int __init apple_t2_cpu_pm_init(void)
-+{
-+	int ret;
-+
-+	if (!apple_t2_present())
-+		return 0;
-+
-+	if (!alloc_cpumask_var(&apple_t2_offlined_cpus, GFP_KERNEL))
-+		return -ENOMEM;
-+
-+	ret = register_pm_notifier(&apple_t2_cpu_prepare_nb);
-+	if (ret)
-+		goto free_mask;
-+
-+	ret = register_pm_notifier(&apple_t2_cpu_restore_nb);
-+	if (ret)
-+		goto unregister_prepare;
-+
-+	return 0;
-+
-+unregister_prepare:
-+	unregister_pm_notifier(&apple_t2_cpu_prepare_nb);
-+free_mask:
-+	free_cpumask_var(apple_t2_offlined_cpus);
-+	return ret;
-+}
-+late_initcall(apple_t2_cpu_pm_init);
-+#endif
--- 
-2.55.0
-
+Thanks.
+Shuai
