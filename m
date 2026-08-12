@@ -1,122 +1,154 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f45.google.com (mail-pj1-f45.google.com [209.85.216.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC1E4450410
-	for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 13:39:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDA3A4746A8
+	for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 15:34:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786541966; cv=none; b=BReizyLMmjt+TeINXBmoUTvQGcJE58UjsDDBuG80eDI+FgN6+gN8DUQYmW5QzbQmK7TTUFrvyBQbR9Iy3NmvGuG0r+ivXz62/XgepV4FZnWoxfL0488ZAxGYxzR/f4F28QxE8YnD1NMLwexTlMp17tTH7CzVpyLSGDlLi4eb1F0=
+	t=1786548875; cv=none; b=s6MU90AqvBy9qTUrIJXWAHGU4M3K8I7o+HKZ8b32Wy+VoNQSMvOLv0bcecwWIjQb0WwqpN66MSCQEknMjgWUWGaWG31q6N4ro1cAFHB4r2r49+bHYI854Wiaocg5E+8TTBd+4KY0lm9Yt/3DijYbl6QNaUifdn55hhZnNkWEfoY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786541966; c=relaxed/simple;
-	bh=RWE7pQb8i2JB14XwU4wJ+yXFy3Q4jS2VR+KW/a4+0Lw=;
-	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=swPJYZmU9hNjo/kQLlAxLv9hjCFy/52QVEBDiefGv/e/UrM+g5kPxcvB7jbjqweHlBGSBVrPMVEr+XQRgz1OneJCtzTCE745oY1Ycl3wue4cPaT88FKZCtWQnOZrCR/HG2RrUVBmi/RHl7jzwvbUFmkzkayXArMU20tBHkPBaMw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=imABkov/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786548875; c=relaxed/simple;
+	bh=BW+pwps1I6hyIq4fVhrPN0rElN20jmXdCuok9i3T7S8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=l6GL5coiAYhYgZKOdHl762ms+kXopCg24RZnk8XvruZuvNQnV8iI0qaa9Mre9XpnE97yHgDKulJXzl/jmuEOc61VPMnlkD1oJynT9D8uJ66Thz5OC1WCkIme9eLgV8bnbpRvP3kHMDXaMFCj9ngVp6hJt9pmoyvRtsk447E+a+c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=A6OEMyvK; arc=none smtp.client-ip=209.85.216.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="imABkov/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72FDC1F000E9
-	for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 13:39:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786541964;
-	bh=RWE7pQb8i2JB14XwU4wJ+yXFy3Q4jS2VR+KW/a4+0Lw=;
-	h=From:In-Reply-To:References:Date:Subject:To:Cc;
-	b=imABkov/1V0w27uXhO5lV4FS5nkHrPG7rBt8tYoLX3y1JFEW/3TQe3RSd440Ja6AJ
-	 YGA29br8xyG0cPZ1vs5d35V4Jtu+tmnWv+JPMqTZdzYV79II+Iaa+sggUZCdmJ+Mco
-	 ioT+aPHt/cM0vcDUlctBo7/U0y/kF7zy53oHbMthN44gtP4SzHsyhWRSU5MqpCauew
-	 1dX8SnwlMCqb+I3bYP90bXYFO2EOxCvl57Coj0yKspSnJ8QhT6hjJPskupQMOBzgs9
-	 S+gPrt89TVNwRCzy8xOiiRBDMnumIEecuwIB2/gBLMX7Z9c1jlQYJtdjia4jMqFOBG
-	 JYhy+KYYygNEA==
-Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5b0117d49dcso842951e87.3
-        for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 06:39:24 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+Rp5QhFKLcV/CFmAJKG7KuEIm5Qb9gJo+dMPk3CJoM87YGm7hhRR3OCQMY0owUeli747HiKVvENS8j3K@vger.kernel.org
-X-Gm-Message-State: AOJu0YxJ/wIafUmhMRPfkCMt2hOK7GT74kSyRArtuHhdDnz90I1RMb/1
-	09VQ4iOHuiSTI/AxY1FIdsdL2H9G1+Z/ab6xQRj0eJbSFVcmh2gycd+LBW0ivSCoA9qJ7nCLcaN
-	WwcPSUvoiwbziAzQKi0QkwyDvHqvHDPgGiCpZlPSZbA==
-X-Received: by 2002:a05:6512:1053:b0:5b2:a339:b422 with SMTP id
- 2adb3069b0e04-5b44e2e2690mr954360e87.14.1786541963208; Wed, 12 Aug 2026
- 06:39:23 -0700 (PDT)
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Wed, 12 Aug 2026 06:39:20 -0700
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Wed, 12 Aug 2026 06:39:20 -0700
-From: Bartosz Golaszewski <brgl@kernel.org>
-In-Reply-To: <anxyNPJfvkVaa8L-@ashevche-desk.local>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="A6OEMyvK"
+Received: by mail-pj1-f45.google.com with SMTP id 98e67ed59e1d1-38e07ebd263so898184a91.1
+        for <linux-acpi@vger.kernel.org>; Wed, 12 Aug 2026 08:34:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1786548866; x=1787153666; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=/jMN3WBwV3KB4v9bEDXkBGlhmHx1HUQvcapjqufTDqM=;
+        b=A6OEMyvKRsXsuQ9AksPHnd1ro7eVsutF6AoMmyGbzmc5nyg/lx4Vv7Dm9JPVQCfnXD
+         kYo1KSaEwbs1QZdbrLZiyDorant/K7OOqctnl4/Ev4GTa5U3R38bvff6+e0erUBUGgfM
+         TIrnboR6thlM6mN/7Lqw3RBPXyzskWigTNd1MSTqOxBT89f4zgKZrDgpT31ILEwbLnCa
+         GIqkBYcZvu9oQEo/tTmOhjnXUTuiwAZkAQRFNQCwTwLaWJNon/7uIfOIMh2ZBIg5A1a2
+         LmsDAsaPYMoB06evbRp2+j9aN4tVAb+AT1Qry7+cooE0nx5g3UcFGydBAUQ5yF+6AHi0
+         lIeA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786548866; x=1787153666;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=/jMN3WBwV3KB4v9bEDXkBGlhmHx1HUQvcapjqufTDqM=;
+        b=aTWKaFlOpSY5IgVk1QHnwBtQ2ocD5WsgMDYpuTTe+QvhmayOs5LY8nla82nLUAv2Wk
+         /Te0e/xbYT7IP0xHeFyk4mLdu87AoKeiyBXvAFN8qtCJ2qIMGDn+KzNsqMMQTpb3WO0w
+         QaMjRfCR1PUDo3bmLFr480WSNulVU7AYHlSowvmtC15hLQELLDrNGGhybKw/uEYs48GR
+         VeMO39dmcgygFQDHb+eOqc6I0trBXMzgUH6/K3HOou2fwbAZd54MKFElKI64pK4HxGWA
+         vkT7azglnS1rz/BjMNg4exPdkm+uiMfXZgioNVDRyJO8RqA7HQduKsWNTk6BZrGzPcMp
+         CuOw==
+X-Forwarded-Encrypted: i=1; AHgh+Rrn65xz9SbhTxo5GZGGnrtM14J+2lNXNSW4YJGgkKVVfi2NFlUVgp5z6h9umZnBBmbNXEBVi75gAGpI@vger.kernel.org
+X-Gm-Message-State: AOJu0YzPeQCQdKmdLArN8ssCtzKYen5qHgs0gnf5KA4VTiae8gHqExxK
+	6KD62N9IgNjcCglNL7ft46YRM+gcS++un1WeBl+k2UHAUVy828AZFQU=
+X-Gm-Gg: AR+sD10PQjKmwGMQET/vgBCduCijgo6wtGoR+gJZ2twL+tc5+DQq1Co33G8r69pQvoi
+	eGMwPzVLezxPaQd3Sa0MEHLN4p9NJBvQd7dP2cw8oQtgeiwMh/4EZVaIJMHeM3eG9TyBcm0A1dR
+	Kli7wVxFbMDru2l2SyvknyoC03tRKtZQVwSMerOKBIbBARcKGyoZWZYW90xJ6/rsvpjHaUTT1K/
+	ttK13pw1p0OFFehx4HwHKQ+fi3i3Il+E1MMrmiJXVxWULbqHxTldx/hiQLsIXgu7pilV+nU5rui
+	BxBrfvIssuwCt8ZJNDFkE+qhOjZ10JLiUDk2Atj1W7yeMWBwl1TjPG/YROpEsppx5aWqjPRF+pH
+	Em3JcXIbUGjyckNCm7MUx0ODqyh1czZkcVGc4H77Wlbu2O+ZrnzTlRWQloD4F2wOvsqRKpV5Ry9
+	vB+/TRoyYMmLZQZecCF0nN4+FPkKSP8pn3JZoKGZvoCbfVTe70/7sZkeAyxsZ7CJWaWKOVPM8zE
+	mcauXtCY27EeGFN1upLU0Tv
+X-Received: by 2002:a17:90b:580b:b0:381:28e0:6259 with SMTP id 98e67ed59e1d1-39301490293mr7234944a91.9.1786548865759;
+        Wed, 12 Aug 2026 08:34:25 -0700 (PDT)
+Received: from at-Standard-PC-Q35-ICH9-2009.. ([14.97.72.18])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-31dba3e9791sm7160804eec.0.2026.08.12.08.34.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 12 Aug 2026 08:34:25 -0700 (PDT)
+From: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>
+To: 
+Cc: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Sven Peter <sven@kernel.org>,
+	Janne Grunau <j@jannau.net>,
+	Neal Gompa <neal@gompa.dev>,
+	Sebastian Reichel <sre@kernel.org>,
+	Andreas Noever <andreas.noever@gmail.com>,
+	Mika Westerberg <westeri@kernel.org>,
+	Yehezkel Bernat <YehezkelShB@gmail.com>,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	asahi@lists.linux.dev,
+	linux-arm-kernel@lists.infradead.org,
+	linux-pm@vger.kernel.org,
+	linux-usb@vger.kernel.org
+Subject: [PATCH] debug
+Date: Wed, 12 Aug 2026 11:34:06 -0400
+Message-ID: <20260812153411.1159-1-atharvatiwarilinuxdev@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260808155513.2221976-1-xnorigc@gmail.com> <aneGptJn8J7eF9tj@ashevche-desk.local>
- <CAD++jLkCYwTyK6C8LvZiYJ9fSc8bp3RPpb4d6EgQTRraJtJDzA@mail.gmail.com>
- <anmNf3rJGxso6nuc@ashevche-desk.local> <ans3pcNFEDVBYXXT@ashevche-desk.local>
- <CAMRc=MeDLc-LPwoCEA8yMw3+L9UcN-NgXpYpFPxtUNffAAffyw@mail.gmail.com>
- <anwxWXfqSt2bM8iy@ashevche-desk.local> <CAMRc=McGR_2V2mPJZwU6kBk8TzCV6iKu3-C9yF1bbWE0R73-cw@mail.gmail.com>
- <anxyNPJfvkVaa8L-@ashevche-desk.local>
-Date: Wed, 12 Aug 2026 06:39:20 -0700
-X-Gmail-Original-Message-ID: <CAMRc=Md=5gnKO9TzQR6bgSzNqj_qvRF=j9uVSTnA75A_ZPqT_g@mail.gmail.com>
-X-Gm-Features: AUfX_myIFpzGsa8pkdvOuZXkp5lxzCJJOo3Vo6IeC0qxJJRVzTzdxOBgA_uQfpk
-Message-ID: <CAMRc=Md=5gnKO9TzQR6bgSzNqj_qvRF=j9uVSTnA75A_ZPqT_g@mail.gmail.com>
-Subject: Re: [PATCH] gpiolib: acpi: Add ignore_wake quirk for ASUS TX Air FA401GM
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Yao Qi <xnorigc@gmail.com>, westeri@kernel.org, linux-gpio@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Wed, 12 Aug 2026 15:16:36 +0200, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> said:
-> On Wed, Aug 12, 2026 at 06:54:30AM -0500, Bartosz Golaszewski wrote:
->> On Wed, 12 Aug 2026 10:39:53 +0200, Andy Shevchenko
->> <andriy.shevchenko@linux.intel.com> said:
->> > On Wed, Aug 12, 2026 at 01:23:53AM -0700, Bartosz Golaszewski wrote:
->> >> On Tue, 11 Aug 2026 16:54:29 +0200, Andy Shevchenko
->> >> <andriy.shevchenko@linux.intel.com> said:
->> >> > On Mon, Aug 10, 2026 at 11:36:19AM +0300, Andy Shevchenko wrote:
->> >> >> On Mon, Aug 10, 2026 at 12:17:06AM +0200, Linus Walleij wrote:
->> >> >> > On Sat, Aug 8, 2026 at 9:42=E2=80=AFPM Andy Shevchenko
->> >> >> > <andriy.shevchenko@linux.intel.com> wrote:
->> >> >> > > On Sat, Aug 08, 2026 at 03:55:13PM +0000, Yao Qi wrote:
->
-> ...
->
->> >> >> > > If AMD people will be quick enough to tag this, I will include=
- in my PR to
->> >> >> > > Linus W. on next week.
->> >> >> >
->> >> >> > To Bartosz?
->> >> >> > It's gpiolib...
->> >> >>
->> >> >> Oh, true, I have also pin control stuff to send!
->> >> >
->> >> > Okay, I have checked if I have anything to Bart and it seems I mixe=
-d that with
->> >> > pin control stuff. So, Bart, if you feel confident about this patch=
-, you can
->> >> > take it directly. Here is my formal tag for that
->> >> >
->> >> > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->> >>
->> >> Is this a bugfix? I'll be OoO until the end of August starting on Fri=
-day with
->> >> the exception of a single day to catch up on email. I'll be sending m=
-y PRs for
->> >> v7.3 tomorrow. Not sure if I should take it for v7.3 or v7.2?
->> >
->> > On one hand there is no rocket science behind this patch (that's why I=
- gave my tag),
->> > but if you strictly want AMD to confirm, then postpone, so it's up to =
-you to decide.
->>
->> If this is not an important bugfix, then let me postpone it until next c=
-ycle.
->
-> I believe a user may survive with this bug to be present for a bit longer=
-.
-> But not my call, at Intel I have no such hardware :-)
->
+Signed-off-by: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>
+---
+ drivers/acpi/sbshc.c                | 11 +++++++++--
+ drivers/power/supply/macsmc-power.c |  2 ++
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
-No worries, it can go upstream right after I'm back from vacations.
+diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
+index 6bf5c5de5b89..a919be8bff05 100644
+--- a/drivers/acpi/sbshc.c
++++ b/drivers/acpi/sbshc.c
+@@ -207,6 +207,7 @@ int acpi_smbus_register_callback_global(smbus_alarm_callback callback, void *con
+ 
+ 	struct acpi_smb_hc *hc = READ_ONCE(global_hc);
+ 
++	pr_warn("registered callback\n");
+ 	mutex_lock(&hc->lock);
+ 	hc->callback = callback;
+ 	hc->context = context;
+@@ -233,6 +234,7 @@ EXPORT_SYMBOL_GPL(acpi_smbus_unregister_callback_global);
+ 
+ static inline void acpi_smbus_callback(void *context)
+ {
++	pr_warn("acpi_smbus_callback\n");
+ 	struct acpi_smb_hc *hc = context;
+ 	if (hc->callback)
+ 		hc->callback(hc->context);
+@@ -243,15 +245,20 @@ static int smbus_alarm(void *context)
+ 	struct acpi_smb_hc *hc = context;
+ 	union acpi_smb_status status;
+ 	u8 address;
+-	if (smb_hc_read(hc, ACPI_SMB_STATUS, &status.raw))
++	pr_warn("smbus_alarm called\n");
++	if (smb_hc_read(hc, ACPI_SMB_STATUS, &status.raw)) {
++		pr_err("smbus_alarm: cant read status\n");
+ 		return 0;
++	}
+ 	/* Check if it is only a completion notify */
+ 	if (status.fields.done && status.fields.status == SMBUS_OK) {
+ 		hc->done = true;
+ 		wake_up(&hc->wait);
+ 	}
+-	if (!status.fields.alarm)
++	if (!status.fields.alarm) {
++		pr_err("no alarm\n");
+ 		return 0;
++	}
+ 	mutex_lock(&hc->lock);
+ 	smb_hc_read(hc, ACPI_SMB_ALARM_ADDRESS, &address);
+ 	status.fields.alarm = 0;
+diff --git a/drivers/power/supply/macsmc-power.c b/drivers/power/supply/macsmc-power.c
+index d4614fd728c5..8fb3694ddc58 100644
+--- a/drivers/power/supply/macsmc-power.c
++++ b/drivers/power/supply/macsmc-power.c
+@@ -927,6 +927,8 @@ static void macsmc_power_acpi_callback(void *context)
+ {
+ 	struct macsmc_power *power = context;
+ 
++	dev_warn(power->dev, "got interrupt\n");
++
+ 	power_supply_changed(power->batt);
+ 	power_supply_changed(power->ac);
+ }
+-- 
+2.43.0
 
-Bart
