@@ -1,174 +1,180 @@
-Received: from mail-m60199.netease.com (mail-m60199.netease.com [210.79.60.199])
+Received: from sender-op-o12.zoho.in (sender-op-o12.zoho.in [103.117.158.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A689341A4F6;
-	Thu, 13 Aug 2026 06:30:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.79.60.199
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786602658; cv=none; b=HZqwTMwFRQGpVQ+g+pYWwqjv8w0Q+Glx3dOugtX3uvR33jiGlXk9SsMCYx3ox7EfjSnHcYtlQ6hI5+kttBykHB2mq8uL1iVXwHxuE46DLmZRaN+5ExdMKRk6VtCrN7dgaWOP9GxqvzE10sSxIQj1pG2rVU4W8uvlU0Xhjlv15ZI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786602658; c=relaxed/simple;
-	bh=XFMM5bqs/AO41XLvj+2fa+9/dMCWI2BOAliSlrA6yfo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mOmhepO2LypzIv339K6FT5ZwqS7lhrlkgp0MoMgpS40z6IiKOihx2tTA/Ol6feFcP1AgTG+ehanbz5N3IVqGAeaYTOpjomCSPtkJ77ggtTl7lPjfwioCrOlmM9VA6gRGTL1hxxDR8O3uLK1sSd2+m26fhtMSePuhRDsMOgepaic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hj-micro.com; spf=pass smtp.mailfrom=hj-micro.com; dkim=pass (1024-bit key) header.d=hj-micro.com header.i=@hj-micro.com header.b=ORVD9QRG; arc=none smtp.client-ip=210.79.60.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hj-micro.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hj-micro.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2AC9330301;
+	Thu, 13 Aug 2026 07:11:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=103.117.158.12
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786605091; cv=pass; b=jrwK6eBJprznpLaDpucRxB8tG7qfcVIWLEBXd5M0uorPHSdIOkuIInI1BKxd58xudLGTnNcutxhulGv4i3suOG8+KTg+roFTdrwd4uKhFlcbnagN6A9E7R1mQM2jNzetxDVhJrXJJdOfy+I0cABpYr9QWQ5iKsWe2f8cNRIIww4=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786605091; c=relaxed/simple;
+	bh=fZ5C6Nrevz/tCw1/yt/+lBfnDv9QmTE/ijkt9cbd5o8=;
+	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
+	 MIME-Version:Content-Type; b=f3yUh9iy1P8qN3RmquX9Nv2JUDqGz9oXLO3+gO5ccMZpzaoRiP+pz3d4vcp/G1n2cB7ARormuxA/IyOfyjZPE3V1ySe6x4NFpjrlkqGJfVaSsGywXuABpXpDjfiBxLCi4Fg16g4QgBJJp8Y/Rr4gLcc171N1A4dH8//K4+tDwug=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=a0rg.com; spf=pass smtp.mailfrom=a0rg.com; dkim=pass (1024-bit key) header.d=a0rg.com header.i=icarus@a0rg.com header.b=WmYDGEdv; arc=pass smtp.client-ip=103.117.158.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=a0rg.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=a0rg.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=hj-micro.com header.i=@hj-micro.com header.b="ORVD9QRG"
-Received: from 1clarkelill.hj-micro.com (unknown [122.224.241.34])
-	by smtp.qiye.163.com (Hmail) with ESMTP id 49d4e2e55;
-	Thu, 13 Aug 2026 14:30:35 +0800 (GMT+08:00)
-From: "clarke.li" <clarke.li@hj-micro.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
-	Andi Shyti <andi.shyti@kernel.org>
-Cc: linux-acpi@vger.kernel.org,
-	linux-i2c@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Len Brown <lenb@kernel.org>,
-	andy.xu@hj-micro.com,
-	peter.du@hj-micro.com,
-	Hongnan Li <clarke.li@hj-micro.com>
-Subject: [PATCH v4 1/2] ACPI: APD: Convert fixed clock rates to use HZ_PER_MHZ
-Date: Thu, 13 Aug 2026 14:30:04 +0800
-Message-ID: <20260813063005.42925-1-clarke.li@hj-micro.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260722073031.1078080-1-clarke.li@hj-micro.com>
-References: <20260722073031.1078080-1-clarke.li@hj-micro.com>
+	dkim=pass (1024-bit key) header.d=a0rg.com header.i=icarus@a0rg.com header.b="WmYDGEdv"
+ARC-Seal: i=1; a=rsa-sha256; t=1786605079; cv=none; 
+	d=zohomail.in; s=zohoarc; 
+	b=Z+EoJXsXtVQIORsJ3sZcuxDW8YpVtJb0X3XcblUegb8KbfcbNhxXs/ZxdRSRS4qfKO3vI6Jd794kf4ZGXQHQ3+0kScIXPu87ApXvTsMKoSUlt4Jag9ncptQfbPjbVdcjOa5yNUEF2nkCfaezOf8/LIQgePWYDzQ9ptNje+wbI4Y=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.in; s=zohoarc; 
+	t=1786605079; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=96OEejPnQuneKnEwTCECyecmPPt751F4H3Yz7DeCxaQ=; 
+	b=RzdZQa3MJKcimUPA5rUDMz9ShXmZlRMpw3toUpvpgSQgWiGKq9TpmOTJBe34CLnIt2cYl40edNIGjxHCXXL8Bz79XfrNIejSnu0hnSyFqaKLaz3l4VsKqnHOVVetzaZzE4g0V9OG0Y9j2PDNXxpHhy+6opg6LzmNyKLkFvkHZP4=
+ARC-Authentication-Results: i=1; mx.zohomail.in;
+	dkim=pass  header.i=a0rg.com;
+	spf=pass  smtp.mailfrom=icarus@a0rg.com;
+	dmarc=pass header.from=<icarus@a0rg.com>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1786605079;
+	s=zmail; d=a0rg.com; i=icarus@a0rg.com;
+	h=Date:Date:From:From:To:To:Cc:Cc:Message-ID:In-Reply-To:Subject:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:Reply-To;
+	bh=96OEejPnQuneKnEwTCECyecmPPt751F4H3Yz7DeCxaQ=;
+	b=WmYDGEdvQ0zmNveryW++ZWIpljRMzCUuqszYR/PSrALGDh5B1jkaOeXNK2hZU7ee
+	pWUOUMiBW7ICO6s5RRvGQ7Jun/khnUXUYWQDqDWKle3YpJ8B1xIo3haCu/qssxg/3U1
+	yhetwMg6cMrGq6QiCsnc0ms+RNuFvzEQ+HREUJK8=
+Received: from mail.zoho.in by mx.zoho.in
+	with SMTP id 1786605076030512.6942028504891; Thu, 13 Aug 2026 12:41:16 +0530 (IST)
+Date: Thu, 13 Aug 2026 12:41:15 +0530
+From: Anirudh Prasad <icarus@a0rg.com>
+To: "linux-acpi" <linux-acpi@vger.kernel.org>
+Cc: "rafaeljwysocki" <rafael.j.wysocki@intel.com>,
+	"linux-kernel" <linux-kernel@vger.kernel.org>,
+	"stable" <stable@vger.kernel.org>
+Message-ID: <19ff9f5fe16.152015f52867129.231910284877135436@a0rg.com>
+In-Reply-To: <19fdcf5017a.193154c01134335.5292960934110253862@a0rg.com>
+References: <19fdcf5017a.193154c01134335.5292960934110253862@a0rg.com>
+Subject: Re: [PATCH v3] ACPI: pfr_update: fix stack buffer overflow in
+ query_capability()
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-HM-Tid: 0a9ff9d0bfb709d6kunmebbce19d3eb22b
-X-HM-MType: 1
-X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
-	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVlCTBgeVk1MHk8dHkIaThpKHVYVFA
-	kWGhdVEwETFhoSFyQUDg9ZV1kYEgtZQVlKSUlVSUlPVUlPSlVIT1lXWRYaDxIVHRRZQVlPS0hVSk
-	tISkpCTVVKS0tVSkJZBg++
-DKIM-Signature: a=rsa-sha256;
-	b=ORVD9QRG0gVXT//M+ul0h0JW6MQGVdP73fzOqC0ROOsNUxEnvHQ3T6IHLXASiU4dZ2KSMKDHJ70wWqEKGpWDpzO6kCIHAXFfpQgCII6rrAs5BcpxBWhpDH0XzAQiEIUBmHLVlq1UgoQjcoWRghfS1//r+zdOJtShFw+Ttno0Cz0=; s=default; c=relaxed/relaxed; d=hj-micro.com; v=1;
-	bh=KJNrRzQ2oIZdJYb182wGJCuIuqJuvEH6CreRJX73yyE=;
-	h=date:mime-version:subject:message-id:from;
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Importance: Medium
+User-Agent: Zoho Mail
+X-Mailer: Zoho Mail
 
-From: Hongnan Li <clarke.li@hj-micro.com>
+Hi, just gently nudging this. Thanks!
 
-Use HZ_PER_MHZ multiplier for fixed_clk_rate values to
-improve readability.
 
-Signed-off-by: Hongnan Li <clarke.li@hj-micro.com>
----
- drivers/acpi/acpi_apd.c | 29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+From: Anirudh Prasad <icarus@a0rg.com>
+To: "linux-acpi"<linux-acpi@vger.kernel.org>
+Cc: "rafaeljwysocki"<rafael.j.wysocki@intel.com>, "linux-kernel"<linux-kernel@vger.kernel.org>, "stable"<stable@vger.kernel.org>
+Date: Fri, 07 Aug 2026 21:31:12 +0530
+Subject: [PATCH v3] ACPI: pfr_update: fix stack buffer overflow in query_capability()
 
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index 008bd0552cb7..275027ebd01f 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -14,6 +14,7 @@
- #include <linux/io.h>
- #include <linux/platform_data/clk-fch.h>
- #include <linux/platform_device.h>
-+#include <linux/units.h>
- 
- #include "internal.h"
- 
-@@ -110,17 +111,17 @@ static int fch_misc_setup(struct apd_private_data *pdata)
- 
- static const struct apd_device_desc cz_i2c_desc = {
- 	.setup = acpi_apd_setup,
--	.fixed_clk_rate = 133000000,
-+	.fixed_clk_rate = 133 * HZ_PER_MHZ,
- };
- 
- static const struct apd_device_desc wt_i2c_desc = {
- 	.setup = acpi_apd_setup,
--	.fixed_clk_rate = 150000000,
-+	.fixed_clk_rate = 150 * HZ_PER_MHZ,
- };
- 
- static const struct apd_device_desc wt_i3c_desc = {
- 	.setup = acpi_apd_setup,
--	.fixed_clk_rate = 125000000,
-+	.fixed_clk_rate = 125 * HZ_PER_MHZ,
- };
- 
- static struct property_entry uart_properties[] = {
-@@ -132,7 +133,7 @@ static struct property_entry uart_properties[] = {
- 
- static const struct apd_device_desc cz_uart_desc = {
- 	.setup = acpi_apd_setup,
--	.fixed_clk_rate = 48000000,
-+	.fixed_clk_rate = 48 * HZ_PER_MHZ,
- 	.properties = uart_properties,
- };
- 
-@@ -144,52 +145,52 @@ static const struct apd_device_desc fch_misc_desc = {
- #ifdef CONFIG_ARM64
- static const struct apd_device_desc xgene_i2c_desc = {
- 	.setup = acpi_apd_setup,
--	.fixed_clk_rate = 100000000,
-+	.fixed_clk_rate = 100 * HZ_PER_MHZ,
- };
- 
- static const struct apd_device_desc vulcan_spi_desc = {
- 	.setup = acpi_apd_setup,
--	.fixed_clk_rate = 133000000,
-+	.fixed_clk_rate = 133 * HZ_PER_MHZ,
- };
- 
- static const struct apd_device_desc hip07_i2c_desc = {
- 	.setup = acpi_apd_setup,
--	.fixed_clk_rate = 200000000,
-+	.fixed_clk_rate = 200 * HZ_PER_MHZ,
- };
- 
- static const struct apd_device_desc hip08_i2c_desc = {
- 	.setup = acpi_apd_setup,
--	.fixed_clk_rate = 250000000,
-+	.fixed_clk_rate = 250 * HZ_PER_MHZ,
- };
- 
- static const struct apd_device_desc hip08_lite_i2c_desc = {
- 	.setup = acpi_apd_setup,
--	.fixed_clk_rate = 125000000,
-+	.fixed_clk_rate = 125 * HZ_PER_MHZ,
- };
- 
- static const struct apd_device_desc thunderx2_i2c_desc = {
- 	.setup = acpi_apd_setup,
--	.fixed_clk_rate = 125000000,
-+	.fixed_clk_rate = 125 * HZ_PER_MHZ,
- };
- 
- static const struct apd_device_desc nxp_i2c_desc = {
- 	.setup = acpi_apd_setup,
--	.fixed_clk_rate = 350000000,
-+	.fixed_clk_rate = 350 * HZ_PER_MHZ,
- };
- 
- static const struct apd_device_desc hip08_spi_desc = {
- 	.setup = acpi_apd_setup,
--	.fixed_clk_rate = 250000000,
-+	.fixed_clk_rate = 250 * HZ_PER_MHZ,
- };
- 
- static const struct apd_device_desc leca_spi_desc = {
- 	.setup = acpi_apd_setup,
--	.fixed_clk_rate = 400000000,
-+	.fixed_clk_rate = 400 * HZ_PER_MHZ,
- };
- 
- static const struct apd_device_desc leca_i2c_desc = {
- 	.setup = acpi_apd_setup,
--	.fixed_clk_rate = 250000000,
-+	.fixed_clk_rate = 250 * HZ_PER_MHZ,
- };
- 
- #endif /* CONFIG_ARM64 */
--- 
-2.55.0
-
+ > query_capability() copies four ACPI buffer objects returned by the 
+ > firmware _DSM into fixed-size u8[16] fields in struct 
+ > pfru_update_cap_info using memcpy with the firmware-supplied length: 
+ >  
+ >  memcpy(&cap_hdr->code_type, 
+ >  elements[CAP_CODE_TYPE_IDX].buffer.pointer, 
+ >  elements[CAP_CODE_TYPE_IDX].buffer.length); 
+ >  
+ > The same pattern repeats for drv_type, platform_id, and oem_id. 
+ > If the firmware returns buffer.length > 16 for any of these fields, 
+ > memcpy writes past the destination array. 
+ >  
+ > struct pfru_update_cap_info is stack-allocated in pfru_ioctl(). 
+ > Confirmed with KASAN on 7.2-rc6: three stack-out-of-bounds reports 
+ > are generated when a DSM returns 64-byte buffers, with writes reaching 
+ > 44 bytes past the end of cap_hdr's [64, 156) frame window into 
+ > adjacent stack redzones. 
+ >  
+ > Introduce a helper pointer to out_obj->package.elements and use it 
+ > to validate each buffer length against its destination field size 
+ > before copying, returning -EINVAL if the firmware supplies an 
+ > oversized buffer. 
+ >  
+ > Fixes: 0db89fa243e5 ("ACPI: Introduce Platform Firmware Runtime Update device driver") 
+ > Cc: stable@vger.kernel.org 
+ > Signed-off-by: Anirudh Prasad <icarus@a0rg.com> 
+ > --- 
+ >  drivers/acpi/pfr_update.c | 47 ++++++++++++++++++++++----------------- 
+ >  1 file changed, 26 insertions(+), 21 deletions(-) 
+ >  
+ > diff --git a/drivers/acpi/pfr_update.c b/drivers/acpi/pfr_update.c 
+ > index 6283105bb0e8..79cedd4cf2a2 100644 
+ > --- a/drivers/acpi/pfr_update.c 
+ > +++ b/drivers/acpi/pfr_update.c 
+ > @@ -120,7 +120,7 @@ static int query_capability(struct pfru_update_cap_info *cap_hdr, 
+ >                  struct pfru_device *pfru_dev) 
+ >  { 
+ >      acpi_handle handle = ACPI_HANDLE(pfru_dev->parent_dev); 
+ > -    union acpi_object *out_obj; 
+ > +    union acpi_object *out_obj, *elem; 
+ >      int ret = -EINVAL; 
+ >  
+ >      out_obj = acpi_evaluate_dsm_typed(handle, &pfru_guid, 
+ > @@ -150,7 +150,9 @@ static int query_capability(struct pfru_update_cap_info *cap_hdr, 
+ >          goto free_acpi_buffer; 
+ >      } 
+ >  
+ > -    cap_hdr->status = out_obj->package.elements[CAP_STATUS_IDX].integer.value; 
+ > +    elem = out_obj->package.elements; 
+ > + 
+ > +    cap_hdr->status = elem[CAP_STATUS_IDX].integer.value; 
+ >      if (cap_hdr->status != DSM_SUCCEED) { 
+ >          ret = -EBUSY; 
+ >          dev_dbg(pfru_dev->parent_dev, "Query cap Error Status:%d\n", 
+ > @@ -158,29 +160,32 @@ static int query_capability(struct pfru_update_cap_info *cap_hdr, 
+ >          goto free_acpi_buffer; 
+ >      } 
+ >  
+ > -    cap_hdr->update_cap = out_obj->package.elements[CAP_UPDATE_IDX].integer.value; 
+ > +    if (elem[CAP_CODE_TYPE_IDX].buffer.length > sizeof(cap_hdr->code_type) || 
+ > +        elem[CAP_DRV_TYPE_IDX].buffer.length > sizeof(cap_hdr->drv_type) || 
+ > +        elem[CAP_PLAT_ID_IDX].buffer.length > sizeof(cap_hdr->platform_id) || 
+ > +        elem[CAP_OEM_ID_IDX].buffer.length > sizeof(cap_hdr->oem_id)) { 
+ > +        ret = -EINVAL; 
+ > +        goto free_acpi_buffer; 
+ > +    } 
+ > + 
+ > +    cap_hdr->update_cap = elem[CAP_UPDATE_IDX].integer.value; 
+ >      memcpy(&cap_hdr->code_type, 
+ > -           out_obj->package.elements[CAP_CODE_TYPE_IDX].buffer.pointer, 
+ > -           out_obj->package.elements[CAP_CODE_TYPE_IDX].buffer.length); 
+ > -    cap_hdr->fw_version = 
+ > -        out_obj->package.elements[CAP_FW_VER_IDX].integer.value; 
+ > -    cap_hdr->code_rt_version = 
+ > -        out_obj->package.elements[CAP_CODE_RT_VER_IDX].integer.value; 
+ > +           elem[CAP_CODE_TYPE_IDX].buffer.pointer, 
+ > +           elem[CAP_CODE_TYPE_IDX].buffer.length); 
+ > +    cap_hdr->fw_version = elem[CAP_FW_VER_IDX].integer.value; 
+ > +    cap_hdr->code_rt_version = elem[CAP_CODE_RT_VER_IDX].integer.value; 
+ >      memcpy(&cap_hdr->drv_type, 
+ > -           out_obj->package.elements[CAP_DRV_TYPE_IDX].buffer.pointer, 
+ > -           out_obj->package.elements[CAP_DRV_TYPE_IDX].buffer.length); 
+ > -    cap_hdr->drv_rt_version = 
+ > -        out_obj->package.elements[CAP_DRV_RT_VER_IDX].integer.value; 
+ > -    cap_hdr->drv_svn = 
+ > -        out_obj->package.elements[CAP_DRV_SVN_IDX].integer.value; 
+ > +           elem[CAP_DRV_TYPE_IDX].buffer.pointer, 
+ > +           elem[CAP_DRV_TYPE_IDX].buffer.length); 
+ > +    cap_hdr->drv_rt_version = elem[CAP_DRV_RT_VER_IDX].integer.value; 
+ > +    cap_hdr->drv_svn = elem[CAP_DRV_SVN_IDX].integer.value; 
+ >      memcpy(&cap_hdr->platform_id, 
+ > -           out_obj->package.elements[CAP_PLAT_ID_IDX].buffer.pointer, 
+ > -           out_obj->package.elements[CAP_PLAT_ID_IDX].buffer.length); 
+ > +           elem[CAP_PLAT_ID_IDX].buffer.pointer, 
+ > +           elem[CAP_PLAT_ID_IDX].buffer.length); 
+ >      memcpy(&cap_hdr->oem_id, 
+ > -           out_obj->package.elements[CAP_OEM_ID_IDX].buffer.pointer, 
+ > -           out_obj->package.elements[CAP_OEM_ID_IDX].buffer.length); 
+ > -    cap_hdr->oem_info_len = 
+ > -        out_obj->package.elements[CAP_OEM_INFO_IDX].buffer.length; 
+ > +           elem[CAP_OEM_ID_IDX].buffer.pointer, 
+ > +           elem[CAP_OEM_ID_IDX].buffer.length); 
+ > +    cap_hdr->oem_info_len = elem[CAP_OEM_INFO_IDX].buffer.length; 
+ >  
+ >      ret = 0; 
+ >  
+ > -- 
+ > 2.55.0 
+ >  
+ > 
