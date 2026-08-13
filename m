@@ -1,93 +1,82 @@
-Received: from mail-m49211.qiye.163.com (mail-m49211.qiye.163.com [45.254.49.211])
+Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BFBC36215D;
-	Thu, 13 Aug 2026 07:56:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.254.49.211
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83961393DC7;
+	Thu, 13 Aug 2026 08:19:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786607790; cv=none; b=RZ7DYFG8gD+rgNmbF7ExlaMAnp/ASS/+VHt96cq9Wef/1Ivyny7kr+E6sJmJQp/flNW+a0r4Sfl7dATI0tpne9PXT7RjzBACGxOyZmhwG6AuIH+dkD8QahG0lhfKF+fKLSsER2yRMcSWj4F8OE+XRb3jNkSdUNHf1lZDT1I5V9k=
+	t=1786609153; cv=none; b=NsZnt6FGPU9VfgL3SI1PUUtvxuyB7Wvxt0JQbHLYhtwNilG3Q4JWh66wuVRg5cUZHjttuuylL1f1m97fajkFAKy7ezgKsx1zLTM+ufdYFLWtTIZ2Jpa9P0/68+EiMOQW44dfsLyGkG0/SuaQRTcVAkedRpfzWYlwXvc8qJhqpDo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786607790; c=relaxed/simple;
-	bh=1113FDagA0vvNX+6LC32uDr9rAeGzoW3zR8NJ+PRgrQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ov/PhDr8hmyvrUnoNEZNj2c7WuKLW7i3rvQgfCeOegh0uIEs6XbRQbhFI/9QntrdJh93AkglyZDblh650OkF8+4H8LZJm5UvMaDsUsOu3kpHhytSpbytfHv6ywu7BJM5+mIALL0+Rh/mqnwWzf3otJDTeJJEuoEQ7hTz68fAT0k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hj-micro.com; spf=pass smtp.mailfrom=hj-micro.com; dkim=pass (1024-bit key) header.d=hj-micro.com header.i=@hj-micro.com header.b=jWSkn/dZ; arc=none smtp.client-ip=45.254.49.211
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hj-micro.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hj-micro.com
+	s=arc-20240116; t=1786609153; c=relaxed/simple;
+	bh=XWpaEDO3+rbAUvzY+hzgtDrIbi9KE786DnKAQvasEDs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=HrO0S9fjA4SRqRo7Y7P+rLXUNT94BsxuPPLVGMUc75LXArotYvmI3E7A8SfaNXCNFf011o5k2xEz3DaT/F4McOSW8BBb7MpzrpgAR5dx0xISb0PN71KSozQAdN2/oI/5YJdDIoWWj7SkWDKSgF3uKgCLe+MJJdVi1jXcLZKrPf8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=hwm3IEqm; arc=none smtp.client-ip=82.195.75.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debian.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=hj-micro.com header.i=@hj-micro.com header.b="jWSkn/dZ"
-Received: from 1clarkelill.hj-micro.com (unknown [122.224.241.34])
-	by smtp.qiye.163.com (Hmail) with ESMTP id 49d542657;
-	Thu, 13 Aug 2026 14:40:28 +0800 (GMT+08:00)
-From: "clarke.li" <clarke.li@hj-micro.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
-	Andi Shyti <andi.shyti@kernel.org>
-Cc: linux-acpi@vger.kernel.org,
-	linux-i2c@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Len Brown <lenb@kernel.org>,
-	andy.xu@hj-micro.com,
-	peter.du@hj-micro.com
-Subject: [PATCH v4 2/2] ACPI: APD: Add clock frequency for HJMC01 I2C controller
-Date: Thu, 13 Aug 2026 14:40:25 +0800
-Message-ID: <20260813064025.45242-1-clarke.li@hj-micro.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260813063005.42925-1-clarke.li@hj-micro.com>
-References: <20260813063005.42925-1-clarke.li@hj-micro.com>
+	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="hwm3IEqm"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
+	s=smtpauto.stravinsky; h=X-Debian-User:In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=6zB9bsLWAFCrFiTXraLNFfeuV12w/CqvhL2aIObeX+Y=; b=hwm3IEqmw83GN4h+9IHzQlaFpA
+	vDUewVOZW9BWo8vo8ea9PwF7Zpo5QPuxg2Sl6hGYiRDFbcHlf7aE/jp2VTpJsSaWaoj0G3KYDFMtB
+	UBdWWxPSU4Iwl0PDv8BH9ItgRFeGe5SPPJXkNoPZQrAnx/ChaGTdOH01wmSUzl8xDswjQXpofZD+L
+	BUdhn1vOcr/DqP/nMrGgJMdM0l/Souein8g08iOiTnv1y5uui8/S5rrwiQVN5eWnZK51MLrPTeGo8
+	7rBou+ZvcfoNgT+WT9cnhDnEd8k88tZuO9t64yPpvMhrYhYJs2rTJnduW9DTSt6KujIywIFQVMM6M
+	qIPflIcw==;
+Received: from authenticated-user
+	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+	(Exim 4.96)
+	(envelope-from <leitao@debian.org>)
+	id 1wuQeV-004yeo-0Q;
+	Thu, 13 Aug 2026 08:19:03 +0000
+Date: Thu, 13 Aug 2026 01:18:58 -0700
+From: Breno Leitao <leitao@debian.org>
+To: Sudeep Holla <sudeep.holla@kernel.org>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, 
+	Adam Young <admiyo@os.amperecomputing.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	rmikey@meta.com, kernel-team@meta.com
+Subject: Re: [PATCH] mailbox: pcc: Free the channel before unmapping the
+ shared memory
+Message-ID: <an19sQf5myJJnRq3@gmail.com>
+References: <20260812-pcc-v1-1-5a94d2cc26cc@debian.org>
+ <20260813-furry-seriema-of-prestige-af2a76@sudeepholla>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-HM-Tid: 0a9ff9d9cbe209d6kunm4b54ea4d3ed1a4
-X-HM-MType: 1
-X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
-	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVkZQx1PVkpPGU0fQx1IGUNISVYVFA
-	kWGhdVEwETFhoSFyQUDg9ZV1kYEgtZQVlKSUlVSUlPVUlPSlVIT1lXWRYaDxIVHRRZQVlPS0hVSk
-	tJT09PSFVKS0tVSkJLS1kG
-DKIM-Signature: a=rsa-sha256;
-	b=jWSkn/dZqyPAB8+4kI54gWJ9A8KsL6xh/2DLrz3ixxVAnLS51yqRs7eXTY0HwITtoJ+LZMXMbglHM//001rpetDpEviqecrUbl4G/9rCNUA3hsGG/2JM/bbm4mlbjeyI3QOODIVUZyJnT55BSzBoR2MtYl7znL98xM1IxxkHwp8=; s=default; c=relaxed/relaxed; d=hj-micro.com; v=1;
-	bh=Q2Vs3tCI9iu/WJBoTZIFLC2cxl96URGhM1ZRNl/lDGY=;
-	h=date:mime-version:subject:message-id:from;
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260813-furry-seriema-of-prestige-af2a76@sudeepholla>
+X-Debian-User: leitao
 
-From: Xiangyang Yu <hunter.yu@hj-micro.com>
+Hello Sudeep,
 
-I2C clock frequency for HJMC01 is 200MHz, define a new ACPI
-HID for it.
+On Thu, Aug 13, 2026 at 03:57:29AM +0100, Sudeep Holla wrote:
+> On Wed, Aug 12, 2026 at 05:36:03AM -0700, Breno Leitao wrote:
+> > I am seeing a crash on PCC that is related to a an shared memory being
+> > unmapped before the IRQ is disabled, and the IRQ kicks in and hits the
+> > unmapped (NULL) address. This is a summary of what I see on my box:
+> > 
+> > 	scmi_protocol scmi_dev.1: Message for 1 type 0 is not expected!
+> > 	Unable to handle kernel NULL pointer dereference at virtual address 0000000000000004
+> > 	 __handle_irq_event_percpu+0x1c4/0x9e0
+> > 	 handle_irq_event+0x98/0x218
+> > 	 handle_fasteoi_irq+0x230/0x750
+> > 	 generic_handle_domain_irq+0xac/0x138
+> > 	 gic_handle_irq+0x344/0x740
+> > 	 call_on_irq_stack+0x30/0x48
+> > 
+> 
+> Just curious as how are you testing ACPI PCC + SCMI using upstream and
+> on which platform ?
 
-Signed-off-by: Xiangyang Yu <hunter.yu@hj-micro.com>
-Signed-off-by: Hongnan Li <clarke.li@hj-micro.com>
----
- drivers/acpi/acpi_apd.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+I am using Arm AGI CPU with the latest SCMI patches that are being under
+discussion in the mailing list.
 
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index 275027ebd01f..e7366fcb76ee 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -193,6 +193,11 @@ static const struct apd_device_desc leca_i2c_desc = {
- 	.fixed_clk_rate = 250 * HZ_PER_MHZ,
- };
- 
-+static const struct apd_device_desc hjmc_i2c_desc = {
-+	.setup = acpi_apd_setup,
-+	.fixed_clk_rate = 200 * HZ_PER_MHZ,
-+};
-+
- #endif /* CONFIG_ARM64 */
- 
- #endif
-@@ -263,6 +268,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
- 	{ "HISI02A2", APD_ADDR(hip08_i2c_desc) },
- 	{ "HISI02A3", APD_ADDR(hip08_lite_i2c_desc) },
- 	{ "HISI0173", APD_ADDR(hip08_spi_desc) },
-+	{ "HJMC3001", APD_ADDR(hjmc_i2c_desc) },
- 	{ "LECA0002", APD_ADDR(leca_spi_desc) },
- 	{ "LECA0003", APD_ADDR(leca_i2c_desc) },
- 	{ "NXP0001", APD_ADDR(nxp_i2c_desc) },
--- 
-2.55.0
+--breno
 
