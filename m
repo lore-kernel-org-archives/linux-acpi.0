@@ -1,228 +1,198 @@
-Received: from mx0a-00498f03.pphosted.com (mx0a-00498f03.pphosted.com [148.163.146.23])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5F88381B0C;
-	Thu, 13 Aug 2026 22:43:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=148.163.146.23
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4F47395D9F;
+	Thu, 13 Aug 2026 22:51:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.15
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786660997; cv=fail; b=h7PwfG2NdPUg0BjKBoL5pk+GQDD/C4tpemamQFHL6A9nkcTdc0C0GczGm9o9Ujfchi+2gCGXn/lmwmRQ2G5tBJRa4S7LS5jRXx099uJcX3B4pai80JbPIm0YexXGo5iFIolxU+VRDSgspsH5adtr7F69T8y3pwmJGcE0qFCPvg0=
+	t=1786661515; cv=fail; b=IrAX3bRMHwzomRZzJjebVGXjq3CwS8z0vgFYKmrZnqU+ZdNKKUq7KKnQPl813N0mLBRogRmRGnoU/PmcduApYG2yFC3IUKz+9y7jLWV6Cc6cUGsqhaNN+TwsUzPLY9WcsYUZPRca/jTD/LUxuaN5fHEXcOhkd5z907+Lpm6DLKY=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786660997; c=relaxed/simple;
-	bh=wH5yVl6Q0w5X7r3mS/rOGe3ZURPMWFQeqyQ6WrLJlKw=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=X+he2mmaj54O/ddTEczKL8ITZmNhJaV+5/Yh93XTqcNkQcwAiKKguPiLOS1t2dgGTOc8vDTBMCpOi2F0l/NKULTv+cdRNoCretZCd3nGPokF7uqGg0veydYrPRObcrXWvHs9aLuPnNWlsxZZIld1QDxCspJA8qKwC3MfYQ6YAjY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ford.com; spf=pass smtp.mailfrom=ford.com; dkim=pass (2048-bit key) header.d=ford.com header.i=@ford.com header.b=h4aiy6+9; dkim=pass (1024-bit key) header.d=azureford.onmicrosoft.com header.i=@azureford.onmicrosoft.com header.b=Xmwd8iRZ; dkim=pass (2048-bit key) header.d=saarlouis.ford.com header.i=@saarlouis.ford.com header.b=IoKjYlCB; dkim=neutral (0-bit key) header.d=ford.com header.i=@ford.com header.b=mENztRoF; arc=fail smtp.client-ip=148.163.146.23
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ford.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ford.com
+	s=arc-20240116; t=1786661515; c=relaxed/simple;
+	bh=C0hOzO0VpGzBAGI1PRfI1/J9ImE1ivrq7KW6O/PRuPw=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=knobFtTuGgFH+k8+ntTlUU7lxGh17Lwhfap7d4z97vaGmnxSaIXXgnZdOrfJoKmjLO5IXdu+z0ybTjDDargHhuJVqynsiHafTQd6+l7VH+Ob1UGdBVnVeVDmc2/eoKStvPfRmR9YIh50mngee2sqrBiqXmUiu1/mOyarYtAEO0c=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=B3d6ddp3; arc=fail smtp.client-ip=192.198.163.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ford.com header.i=@ford.com header.b="h4aiy6+9";
-	dkim=pass (1024-bit key) header.d=azureford.onmicrosoft.com header.i=@azureford.onmicrosoft.com header.b="Xmwd8iRZ";
-	dkim=pass (2048-bit key) header.d=saarlouis.ford.com header.i=@saarlouis.ford.com header.b="IoKjYlCB";
-	dkim=neutral (0-bit key) header.d=ford.com header.i=@ford.com header.b="mENztRoF"
-Received: from pps.filterd (m0482516.ppops.net [127.0.0.1])
-	by m0482516.ppops.net (8.18.1.11/8.18.1.11) with ESMTP id 67DLXG5o1269463;
-	Thu, 13 Aug 2026 15:43:13 -0700
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ford.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=ppford; bh=5SY
-	wsHjxbJ+kf9ED5nXR+UiCU+k+Ad4Sa0424rWbZ6k=; b=h4aiy6+9YLtYQD1ZA8X
-	L4b5kWbXCTzzkeYJZNAc+8j2XmTu2Ziqs/V/F1VGkmygKGJrH1ftiDJCVzOhLNFj
-	4epX8DoM5L0YZyv2sTgTgSmTka4wIkorJRlC3geWvemedP3LxiikOICXKqPEYtwC
-	KRGHpQOsZoAOdmlMW0W2oLw08b4u6yu46F29vpLVSXEAjfctPrDGLanHMs4Qx5GZ
-	fPp9DfTSqz9Bot7x4K1C4HvAqPiT0AVH740XYmWEdp5sWWVrIZaVbkLNIAfK1JUY
-	WKWmCL5gWir4xLfZVPVCYspxq9DT3Kk4h5FNfsOwTunGCaf6oHPEIJoo/mKlmuYZ
-	apQ==
-Received: from ch4pr04cu002.outbound.protection.outlook.com (mail-northcentralusazon11013019.outbound.protection.outlook.com [40.107.201.19])
-	by m0482516.ppops.net (PPS) with ESMTPS id 4g1h88m2c1-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Thu, 13 Aug 2026 15:43:12 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="B3d6ddp3"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1786661514; x=1818197514;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=C0hOzO0VpGzBAGI1PRfI1/J9ImE1ivrq7KW6O/PRuPw=;
+  b=B3d6ddp3SXY86JMrGbCs3aefBz5ZvD3bcufDbVnqo5VAZzRCvm6Imjxg
+   CDP8qNy/hhD5GVp2jzOXKgU3lzEEKkmxOTh3Cyw6xnvN1mgvC53aiYEBE
+   /PGXVZCM+M1iZlTmjzCMQIuqRHGa8Gko0xX1i/NGiHxDGXkthZHJEPiuO
+   ISSZRmmOeFhVvBI/9+ZRQqIfL0Z5z4UcHmI6JQ2SXBmJjQb0a/FA8Svws
+   nYUBuradDiY4ZKu3Wj1Rhl3i5ytX7yNA5cLpz81eInJJn+5McVctwq1mB
+   7oF+QWpHWGM99doEcNpHi5jDQHTn7iwvLKj2Ugb7a0P7EVozwdJovLI6i
+   A==;
+X-CSE-ConnectionGUID: Zk7Rqp6DQSOaSd8ZyqKgaQ==
+X-CSE-MsgGUID: UxlyP18oRNWR/CdNOsPP6A==
+X-IronPort-AV: E=McAfee;i="6800,10657,11874"; a="87374328"
+X-IronPort-AV: E=Sophos;i="6.25,222,1779174000"; 
+   d="scan'208";a="87374328"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2026 15:51:53 -0700
+X-CSE-ConnectionGUID: ll3KLogKQGabO5U8i2BWhA==
+X-CSE-MsgGUID: 4w6m7oR/QGSgRbbXJ6BXVQ==
+X-ExtLoop1: 1
+Received: from fmsmsx901.amr.corp.intel.com ([10.18.126.90])
+  by fmviesa003.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2026 15:51:53 -0700
+Received: from FMSMSX902.amr.corp.intel.com (10.18.126.91) by
+ fmsmsx901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Thu, 13 Aug 2026 15:51:52 -0700
+Received: from fmsedg901.ED.cps.intel.com (10.1.192.143) by
+ FMSMSX902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45 via Frontend Transport; Thu, 13 Aug 2026 15:51:52 -0700
+Received: from BL0PR03CU003.outbound.protection.outlook.com (52.101.53.15) by
+ edgegateway.intel.com (192.55.55.81) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Thu, 13 Aug 2026 15:51:52 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=KnL3eGRm1rOvHJRLOgv0i020Kg/3jts6eNwz8MaeNYiGLPcZvZ8rSk5ETu2UOcrV93cw9n8EHoIMmrYrCJ9CicD3g0r3cSJ9+6uhO81t4gqsNoCkSOZRDvQA00ird1OxtRLauy54f7L7b2tYW/ONI4Q1VLpXI21UCkEdG3toEPTNFleSBPCl8w7qgVkwRCkEgsalthOZihxVvr6lyPlIEgqW3RYfX/PD52lhDfNOo/5UFAmZkpE/5o3UUNOaFLNfB96a05QWkT6jCwhP3+LomEcrDZQVYzLp6GVkytEliPszK4W2eFRZHBHYe/K7sX56AMpsoy44cRw70pqk1e0d/Q==
+ b=e29sp9UffEuPc0UEGgY27lZUwp0neJZiG4JcC1lRkonAN0s08nf5EijO+BPo4gYOB3kA1UulabNj1dxJi82FdsX8vMd08M1KQLx6J2GWfcJRKV67WjN5yV2vkzWG/P8Rpw7zPO81ecjvmGnQuVapIgWLGo2KFrQ+xCVPuoWBqte+d5zqIlMGTxhY8vYGWAGdh71p1T6pjvONf6bSXHhZL7aWyA+sNTrZYG+u+ipeb9eyuAp/BuBJc7chTzG2j7NY2nD6EdCv6ygjXbAuLj7pFbWYSUj8RgXAhYQzx1W6Ov8H6wR/m+44EYeeT3bC9Pit4qMILjvT8wNISriBDVYxVw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=5SYwsHjxbJ+kf9ED5nXR+UiCU+k+Ad4Sa0424rWbZ6k=;
- b=ygLJSyMr0iPZT3wW75Vjbp55/Q9TxipPzb0v2qFAyb6+rMip6039tRXj0eR5HBDZdDtnLXs/nl3LzO/j58m7lohkjPEMBBOjLu8RKC8iB70/mLFe6pwq+Kd6Y3sgbMl/1T3wf3h6J9mAtrxfasyhd8xbQx3aCJE6Rk8W0BYJuQcoZLCTYMpx/Ci9bkm563ln36CJR9tn3Gewe5NCWoyIkodiOVhmKQOopGX5bruwKJerCJV8hn9+2BWc44LuoCOT9BF81yS1IoGRs41sDa+X2BNezHW7tLmaCyyalNzUnNSqydcI1ANeCOkLze2fg/de3SxCiiptezW/GzlW20jK8g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 148.163.138.245) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=ford.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=ford.com;
- dkim=pass (signature was verified) header.d=saarlouis.ford.com; dkim=pass
- (signature was verified) header.d=ford.com; arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=azureford.onmicrosoft.com; s=selector2-azureford-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=5SYwsHjxbJ+kf9ED5nXR+UiCU+k+Ad4Sa0424rWbZ6k=;
- b=Xmwd8iRZQij8hVj06JcldNAjCQUb27sU8OlXroSLH7oigxDuBxRY9w+w8ytik+mSoE/cYWQWvwCF/BqC2/Mx/6/H+LlG5Ui7p4SA+NzqEobKjjdV/uWF31cZQFi7O4XgzNm3OwfVGpfXUqUVz/W6FGWE5hY7vofjLk0eySjx5iQ=
-Received: from BN9PR03CA0846.namprd03.prod.outlook.com (2603:10b6:408:13d::11)
- by LV3PR16MB5811.namprd16.prod.outlook.com (2603:10b6:408:1a8::8) with
+ bh=l45dI5KQgnjlGWwtwK5niUj2s3CNiaFDyulF0uD2BWc=;
+ b=LhPEj9fIVg/zCaFIjPd+geSq5sX99QCbovXlZCUs9aZHT2YRsYA6361VS2cdZyOdUg/cUrIBKd+8eIaUicuGcWHxWv6jNn48Fe7Fkia4+BiTzB37W+KOM9pEfamjhvf9KyV/66UcvkJCv/JSbIJhoVQB04SApVgOLkey6sF2Dvn5pzP9e5oIch5m5+/7ULmwz2YfAnmWSxLZpUIACqxft1AuDy9FE43MdJ5JmOFQ0vl9C4LiZzA6FOwwZfh5HQliRWiQm5fAPw2WGAUHcQ+AN+msj+c2nvx5tyGoY3et05RzdszWghMILi77x8zxeZnR2mjXE0ARxPF4j1z7KyogYg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com (2603:10b6:f:fc02::9)
+ by DS7PR11MB7835.namprd11.prod.outlook.com (2603:10b6:8:db::10) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.315.15; Thu, 13 Aug
- 2026 22:43:08 +0000
-Received: from BL02EPF0001A0FF.namprd03.prod.outlook.com
- (2603:10b6:408:13d:cafe::d) by BN9PR03CA0846.outlook.office365.com
- (2603:10b6:408:13d::11) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.315.14 via Frontend Transport; Thu,
- 13 Aug 2026 22:43:07 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 148.163.138.245)
- smtp.mailfrom=ford.com; dkim=pass (signature was verified)
- header.d=saarlouis.ford.com;dkim=pass (signature was verified)
- header.d=ford.com;dmarc=pass action=none header.from=ford.com;
-Received-SPF: Pass (protection.outlook.com: domain of ford.com designates
- 148.163.138.245 as permitted sender) receiver=protection.outlook.com;
- client-ip=148.163.138.245; helo=mx0b-00498f04.pphosted.com; pr=C
-Received: from mx0b-00498f04.pphosted.com (148.163.138.245) by
- BL02EPF0001A0FF.mail.protection.outlook.com (10.167.242.106) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.339.3
- via Frontend Transport; Thu, 13 Aug 2026 22:43:07 +0000
-Received: from pps.filterd (m0426315.ppops.net [127.0.0.1])
-	by mx0b-00498f04.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 67DLVci21343738;
-	Thu, 13 Aug 2026 18:43:07 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	saarlouis.ford.com; h=cc:content-transfer-encoding:content-type
-	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to; s=ppserprodsaar; bh=5SYwsHjxbJ+kf9ED5nXR+UiCU+k+Ad4
-	Sa0424rWbZ6k=; b=IoKjYlCBN2l+3TN/Q3ptiFcWR0Omx2bd6+n/ZzG4vB/bQ12
-	NULFsfbDqI0mxDHkpj/1CedCst0jQWxe9sws30q1USfoOUzBhTvPlLb/izoTAihT
-	A6l6Rnppq1Er+0BmG36Ox/Rpm8l8nMxS+16Kca13VYAp3UizxXzm8a9NSVT1ipZS
-	tYPFo2Q2xlNJfm7Z2SKTCxsLf2/HfZPFw7X9I4+3NUrgiQzxoqyKjIWBlUEI80+B
-	hDhUxMJuiFrCtrGdvWIMLlfWohvBmVSGqgk8BKY5uwNNzafSyKPXN5m8MIJR9o/L
-	IqTA2eNylEAUZEYvbjDLVaZOjlwU2XIBsfJO7Yw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ford.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=ppfserpocford;
-	 bh=5SYwsHjxbJ+kf9ED5nXR+UiCU+k+Ad4Sa0424rWbZ6k=; b=mENztRoFacoV
-	LUBd+Rs2LfTcLssjD+bqn+MzcYKe1MGkziDFnh4tClJ4+Nc3GRyruAFPq4+gOYN2
-	hUo9HPZabCpJzlKcbYLMa19d/5znx6ywKi4+jw8VfwV05BCf8LGEpy86AblmPnwi
-	mBIH1Tet8WJUDIBId4O3dydLcvnqVOI88kByl8gyxOZJbMnnrmIpAP4EnqE1BDIp
-	Iw3CvHbS9UjbRfeMbaKaFCxDRDTE9eLCGPGKcGbGjnrHWwypeoLJ315VtituBnnT
-	BfSnZU51fL1VGpq6p9ev1LNcDRNsJGxsNLiYSKmP/SqmhqHLOZuc1HKOzx4dxNWB
-	SIWV3FiQHA==
-Received: from smtp-us.ser.proofpoint.com (pmta-use.ser.proofpoint.com [3.215.31.156])
-	by mx0b-00498f04.pphosted.com (PPS) with ESMTPS id 4fxpbsnw0p-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT);
-	Thu, 13 Aug 2026 18:43:07 -0400 (EDT)
-Received: from localhost ([19.12.76.222])
-	by cmsmtp with ESMTPSA
-	id ue8fwT1dwQLYTue8gwoPLy; Thu, 13 Aug 2026 22:43:06 +0000
-X-Mailer: SER-76bead168636dc6ed1c9e51ce4dea80dbdd4163750742b614a4d871e565792b7
-X-Cloudmark-MID: ue8fwT1dwQLYTue8gwoPLy
-X-Proofpoint-CID: eb09f7eb-2dc2-34ab-a188-7b293c1db1fe
-From: dmukhin@ford.com
-Date: Thu, 13 Aug 2026 15:43:04 -0700
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: dmukhin@ford.com, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/2] acpi: bus: Introduce acpi.skip_ids= boot parameter
-Message-ID: <an5IePwLSjb9lGLJ@kraken>
-References: <20260813024129.905583-1-dmukhin@ford.com>
- <20260813024129.905583-3-dmukhin@ford.com>
- <CAJZ5v0iB5JkQ_xso_exDjsrbC1ezH68vTAJAh7V4XwV57AqniQ@mail.gmail.com>
+ 2026 22:51:49 +0000
+Received: from DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::e721:90d7:9214:2d53]) by DS4PPF0BAC23327.namprd11.prod.outlook.com
+ ([fe80::e721:90d7:9214:2d53%6]) with mapi id 15.21.0315.014; Thu, 13 Aug 2026
+ 22:51:49 +0000
+Date: Thu, 13 Aug 2026 15:51:38 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Pengpeng Hou <pengpeng@iscas.ac.cn>
+CC: Dan Williams <djbw@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <iweiny@kernel.org>, "Rafael J.
+ Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Jeff Moyer
+	<jmoyer@redhat.com>, Ross Zwisler <zwisler@kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-acpi@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 0/5] ACPI: NFIT: harden subtable extent validation
+Message-ID: <an5KepVGGITAfr2M@aschofie-mobl2.lan>
+References: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
+X-ClientProxiedBy: SJ0PR13CA0099.namprd13.prod.outlook.com
+ (2603:10b6:a03:2c5::14) To DS4PPF0BAC23327.namprd11.prod.outlook.com
+ (2603:10b6:f:fc02::9)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJZ5v0iB5JkQ_xso_exDjsrbC1ezH68vTAJAh7V4XwV57AqniQ@mail.gmail.com>
-PSER-M365-App: SER-APP
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-08-13_07,2026-08-12_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0
- lowpriorityscore=0 spamscore=0 adultscore=0 phishscore=0 bulkscore=0
- suspectscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2606150000
- definitions=main-2608130166
-X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL02EPF0001A0FF:EE_|LV3PR16MB5811:EE_
-X-MS-Office365-Filtering-Correlation-Id: a3aef960-abae-4656-e158-08def98c3ec2
+X-MS-TrafficTypeDiagnostic: DS4PPF0BAC23327:EE_|DS7PR11MB7835:EE_
+X-MS-Office365-Filtering-Correlation-Id: 2aa9fad9-213f-497c-0c76-08def98d7588
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|23010399003|36860700016|1800799024|82310400026|6133799003|10067099003|4143699003|56012099006|11063799006|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	RwSbcXCpoXnzOb4HkPSMFNIEVO+gkIK13kmQBEpmIir2Ed1fMr027kr6l6QT6Mxd04suuH6TbVY6lU5+KjrqVkiVyRlVmPo33jv8mc9BiMJ2EMH+e3k0csRv8pB++oNp8x/bPZTuXDNFLLNCZ86vw6AJppjca6N3aFNx2BsYtidS5ZpjZbBUNffiQbqlRhXap3WV66hkNLiVaRc+QN5lhkgEj7VhCYB5ocGsiwaQjRy3cvSOqN65QDxUz6OU83RcTEWTMJG7jg2kHUVFPWlwPKJ3ClM7zKU1qWKUbe1EdM60mAuUnhg+1Vh+PloMwZ4N8I6kxG9Lxsfz//2HJ49P7z+BNRamrSZv6lt5S12GpjW2zN4VdWq/5YA4Am27s3K8D6/91awqWRGhV+hyll/Rjg8oq6p/GPATChb8pBB60vUe9cpv9W7nDaDTRd1Xj4TxCqTIqihmD3M/hGB1sP2sgqw51OD2vrx8/78TK2ctIqykYJuUPOrEBJaGTz2nStDp9ZWmW4IIDgJQ2Ces8fuQWufffsvJlvSpQ8kSCMBsbXAV3d8QC8UbBZR7DkkAUyoifqLW4YPEJ3/rWbJIE522L0QzRabvHKPTTkFpZsdFUTZikdg86it10l9xsgO/w5ZzDR2/HCdQhvGmtlz/wrz24HLjRdWsJM48cWNbZGLOBGJOlvvFcrl5E8l6YA1xZ346K+eLxzGxRtRoDZMH3B1rvg==
-X-Forefront-Antispam-Report:
-	CIP:148.163.138.245;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mx0b-00498f04.pphosted.com;PTR:mx0b-00498f04.pphosted.com;CAT:NONE;SFS:(13230040)(376014)(23010399003)(36860700016)(1800799024)(82310400026)(6133799003)(10067099003)(4143699003)(56012099006)(11063799006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|7416014|376014|23010399003|366016|56012099006|10067099003|18002099003|22082099003|11063799006;
+X-Microsoft-Antispam-Message-Info: hxH+9n5xxBunKj8EACmSv+kxrEHClalRPzTFyMBcL9qqrgCWnAdSzz+g0oufXzPDSd8gA9ZLC8XLpTMnJx95fj0BuorJYzD9EvQZczoFv+MT4bBb7DquiOpT5t6U3O/Eu9RyBuiTBgEaS9uGfV57MNjsN8SUAkVvxbGrQmFlHha9/XV57HdpcAvu6VTdx5zNU3d6Kwx3W6HYQjayWr8pSSaAmxvbJ3FZuj3FzIuk9KkP2EqCiXqtPDEBiBAqB/mrIeomTas8a9ICSzSsQ41gNSWEza+jNM5oR4vD8QWExd2yJyKzV/jTN96Gax4ElInvlT56TNk9QWONss0iywVsUwq7cMT2ItOs56sd4MM/05AXJKmUy7DTAlDK+7FpNju8j5uwCaIMbJcFM5lw2V/60BxIonyMGsmh6PDJ5uR0BSToqVl5aAw2TMOcV+8Ii07uVVKVuQvo83m7n/xT09V07FHeyWqbXqQRF0Z9e5DFV+dF48pOCahjQxLvscQEQOyZTl59ijePEO7kPSQykCvAr/ljvCEeZ2QWW27rGC2LcCtFRp497BCKgGfdgzsRByWtpA4YTu1N0s9zNKZhuAMOSlzgtqgndBDcCG+rlOgF8s2/QTN/42tLT/Xgwau2x7fkLPuTgghIJGy1geN2C/Clbv/fO8joZQ28l7Yw3vFF8TA=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS4PPF0BAC23327.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(23010399003)(366016)(56012099006)(10067099003)(18002099003)(22082099003)(11063799006);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	9A+3Ua1cUkCqMtwDMzx9FBjKwCiv+0gE7PQMRYib3IrNj8T5PFXSpdRVgJgCv1g69WRc6N28/3YvSW+5USBEIoOGIYnXl5ojMInqvTN2TD5i3zB720jVH0F7W1lSMGa/JTIkc6LzNhoN/oygsM3pRRc2fTFY1abxsabUjy7P2ZflVubpsQM90DZcSF2Tzk3isk8iBnFmUPey0THqkSb8yoSYkvOS7mntd8eP756uyGVLe5lLrZrNLs8YvCEEbyFkE+N4Xuu9o8KIYnoA0AhWoWBmO3gTda5a4FD2D3kKHazFYIKkcllPI1qipkqJCp9rZ0VK5kICBEAFsi57O6NYu5y69W4Hed73HjvX240o++cR5aTrJFXti2BWf7ARrsU+tZARNt6QETc5kNhMFFDFgG4Hy17GRXLgyGcIh49pP8u+RrfTmk1xWDEU3KrOuwBw
-X-Exchange-RoutingPolicyChecked:
-	jco29c0R+Ayn2HNBafnY0Ms7vwLTlnyRrNu+kCvtz+oj2dbI2faNB0gBJucgARGhZTDubk3n1P+tSwXnYBohXOY+fRr5IzXL/A+ErGaqXOz0xmdBPbwtMbsa5BrQBbj1t0w7wTXUAoYPso2MkUurDc9HP4UDtZzd+CpfVQHkuhRxwBkMqqiI1mwbszv2UaGf4RrwhNVE6Arll+JkheHuFA1ok4lWitu0+Fzs7hU8p6OxU1sD4cNRktNo1W+buAg0dWNT2OLxEgY4r5XlnwPVGH3/UmXuB/ZnHuuabhNO6d6hQCJayBOl7WDzik3mWGp4nUoVbpt/iscwKTK2GcuEhA==
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
-	PLfFlcPBV/eQCE7KXjkicwZM5FOSkaAWWxcRn4qEg40fAC7vtLFqsiIyn2Ulu9+5k2Z+VHLKiLBoXr3n6mHjSjwGFYh3mrye1ViNLHEXg6xRXU9dYoayCvvxaOVtlpKpeh9evsfKHUPnZe8cWy59weoax+pPpfj3DgnIMA4TJ7oxKWGPuTPPs+Q7TvvK+jyVuPQbO1JbdJoclV2cdfk+M+AU+IM6kTVXwYCAolLgm0/SDoJrdfMUbOE5mN/5RNff+fj8miRvQcq+fuutLEYI8/7y2d2QIvXNlV9gKR/Hb3PCzpe+rEh+t4GFiTydrCzHcmGVn0fohWF8PCp+WSc6mhG4y3PrvbnN/QSc4amu+deuVdr1GrSc2ltVfhJ5FGy1zyPaoWxYjmHziJChrKOBYmOn7DX7XvXenBogyO4LomZ2fJtVdKjQrzoZ0cSThfLkjUAyrQHDWohqiTLhOwfQtOrIULendmwHPtt9o6iZPUO+MamNYeCoGo/ANLf87DODG2yNdS5GtHQdLGF8FlL1vcPnPndQ4xz7vt7uHU1/lSe3ZBhTvUCnd5mU92V3kAfYZi6CJqnLzzcIMtCSxPApVHfeLQJ0ND4QV9OgRhlTovr95txzxpYn4ET3sP/4Psc9iRiZ9Lerjr8YHBde3bN2pQ==
-X-OriginatorOrg: ford.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Aug 2026 22:43:07.5845
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?C2JG4g7jeC98P45tnbNaDGcL5uLx/syEv9h3oOK6UYPCNeRS06UvIiQaoilV?=
+ =?us-ascii?Q?hbztD92epO8fH4mc+IzuDVVv7l0QkQdborHa0OzYsEc+XDvEAj6fbfNfsEGv?=
+ =?us-ascii?Q?kRUZAxfDNmLgjgdEGkLRh6fcYj1evrHjHiAtDyjLGgz78u15EFKbUi2/EaMm?=
+ =?us-ascii?Q?R0vZQldoKS9yf4oDMOnUbPNCq0gie/2Hxzg93HFRvyMPkXDsvgpW1HqWJdgu?=
+ =?us-ascii?Q?0A+1a25NsaSwyJ+dbBcDKKlDOgw6BbdOh7Em8aAUDz2z+Vk0NbpPk2SJaf3X?=
+ =?us-ascii?Q?7JwUyJbjErq2Wmm8plFc33OIG2QbLrhYpiFfVCo+BEUn/26Zli/4jrIMVnU3?=
+ =?us-ascii?Q?w11Iwo9b/QQ+2Xyal12tGVq5Aq166RUP0aWJkX1149Uvaa3dIYiBG/ljcrUu?=
+ =?us-ascii?Q?oZI9fB7dPXgJsS8CouoKcUdTCrc9Y/wEaJELeTu199VZma+pKMHN0r54Il49?=
+ =?us-ascii?Q?cpqsPrWy33wx4rJxQAot46E8+bkpyygvFnShYbdT647ZfSn5T4W7ijDQu3VA?=
+ =?us-ascii?Q?3LlgmpYAZQrmyS4troVq9qVEZWFSXfT+cWukhqd2MefG4OvBeyDOzF1gzcZk?=
+ =?us-ascii?Q?cC3oKZ8JwgMuRX2s1Sy0kIiwiU+ZQ3rDO0pYjxC4OSs4NNv3naIfZ3p+5Xuk?=
+ =?us-ascii?Q?4mTQPm0neA1jjCXbzMx2DEsr+FX0Mg/VipD8KnBaHkR5tdB91IXfJSzlGlz1?=
+ =?us-ascii?Q?DRZSz+6A/7FPkxj3JHsKAaT8BWe08OCNXcejvEjDiT8KJ3PbCOr8YpyAedG3?=
+ =?us-ascii?Q?TUcIxgux4oqm540KLXrb5ifUgUq5d2d9ClHAkVF52YNKrnBQxHdzXkzW2r56?=
+ =?us-ascii?Q?j9YtrR4FfqWdLWCj1VGTnZddHR8oHY3g8bvx/6oqNxT9/3YUaBNscDTjCQr4?=
+ =?us-ascii?Q?WB/2cTsoIUO3CFOgWS4IgD8BaWsvmfA002yB8+JKceCUuhdsvLFgFPCXKXN6?=
+ =?us-ascii?Q?50yGXz/u0VENljqS0pBOnMJzS/3cJs6vdVkKbDM3HXDB2fsK9Bce9s7qRtjz?=
+ =?us-ascii?Q?63uBKGjzRvAkEdwYPiGQF03tC/V5qL58oPZvfdwEFRpjHi8AicO6nanUkV6i?=
+ =?us-ascii?Q?xPhoUjpF0XQZ1VWNXs/tGU1EHoPI2COD1P/+XQvPyE3EQfx+yoYcwZyQMi3L?=
+ =?us-ascii?Q?zjVcwqKDkjZSiC3VaC+MjBctDeFCWJq5Y/M9ySlxjR2vidPrnz7VYiq1KVVv?=
+ =?us-ascii?Q?xnaUX8ASZU/jCw87j7jZrjZSIwg5AoLGtACxfFAvmZhMNooZ+XWzqGQwYPk2?=
+ =?us-ascii?Q?SKUL/ht7Mi0Qg+1UnpwwtunoofTOIu3L+DcWpKDE6lbvw7xbyH5Zn0nW/WbJ?=
+ =?us-ascii?Q?xtrMXuTqiRRahEPtpgZgFyVttvu142XBKMiZ8GQBzsx5x8FKQOD9lpHZRLEI?=
+ =?us-ascii?Q?VyY1JF7xc5othnwnRsvUxT2RD628Uu+1OpQO2Z+oYhVSQm6TqFPsZAcMWvEw?=
+ =?us-ascii?Q?nmJn/eCZyCmtYYM6vER4zjH9gh8vZYFBWQY7H6I5TecRimNQVDiTfB7hA1F4?=
+ =?us-ascii?Q?Qd3gTrdCVWARI8CTbGjvonC7xuxmsW35LNeY8UdxcgfgZKDeHwG/VsPmlP0m?=
+ =?us-ascii?Q?4YXbeDBrunDsH8McbvzafqoUJWoEU0y/3fdGcTnurdO6M53ePMB8YLB6oVPq?=
+ =?us-ascii?Q?cVDD+TxLL7y3U4Tf47sMRAL82d7xaSC8zHTYvAS8K+/xzw7hzmUO7mpK5pKt?=
+ =?us-ascii?Q?wXiyb1N9GsNDCpmNJ11teSdD3/ivZe2dimQcq/bHYOJncoWJJcc3BJ7oaVor?=
+ =?us-ascii?Q?dcVk6w3It3LszOqq8jzEN04j97V6Ttk=3D?=
+X-Exchange-RoutingPolicyChecked: EfpnR1xjDrYSaTsYEzF8kYuI5IuSbssGD8Rfdm/DEcmWbmzvHFDWqvZbMDfpAk5xKZbCx+vCGr6Ir9uLVaAbDWdY/n1u6zvxywbeO38PXbC9zDGROY/aF1oNyo7+o1KzvXPWhuSyN3SDhbRdD0TK8zO5aLDF/fwok9Q9uCrE6ET+kI7Yc+ufFy9gA0/Mm3s0k2R7JzueNJ0P0IQ2fqLIj0/m9Dol1ZKkqSQ0YPE6PU5i5wK7oW/Uwe1MSAkXkAoWbaJo24r9MC+YIxTTJRxx2z2L0kq4WF0HeGS6/JBGzJKZFCwxFaQwWqwPOcjWFY5gJl38CUETzVkm+BrXVMc0yQ==
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2aa9fad9-213f-497c-0c76-08def98d7588
+X-MS-Exchange-CrossTenant-AuthSource: DS4PPF0BAC23327.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Aug 2026 22:51:49.2859
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: a3aef960-abae-4656-e158-08def98c3ec2
-X-MS-Exchange-CrossTenant-Id: c990bb7a-51f4-439b-bd36-9c07fb1041c0
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=c990bb7a-51f4-439b-bd36-9c07fb1041c0;Ip=[148.163.138.245];Helo=[mx0b-00498f04.pphosted.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BL02EPF0001A0FF.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV3PR16MB5811
-X-Proofpoint-Spam-Info: AW1haW4tMjYwODEzMDE2NiBTYWx0ZWRfX68+US54GhEVL
- iIlDWLf+7rEYGI1We3ogoNcgEdVOqAxLJsTmZMXzgG4d50cQCeE+yXIO6eHrwkaSufbZnkDBJUi
- 3TlBdlVgPW/M3x12XOPZguDeGS9jgioIwU18Ug2HVuCwgOPRX3DT
-X-Proofpoint-ORIG-GUID: 3-3Lnu0CdXN18l3Wi9CYXENDdbEgIDnE
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwODEzMDE2NiBTYWx0ZWRfXyL3/PRDdQydT
- +j7JGh67lvknvXSftY9q7j7MDAJ/viVviMHD1u7tMciKooHjeDse8uJCY+nGtaRiiHCfZyk03WM
- agqaF+0fsjBtN11zOEoFwj/xGIfuvwLXZx8B8RU5DXfhjSPhEgD87DvhiMFLSLF/E01erjIdeY5
- IKFrKYd8ShiMPCmBSn74zLd6hp2dJ7QVOVqAlZ/z7KNEkdshNZZlf2LHfx06ahiZLd0LY33TgL3
- 8SLuIQdKqKe1hyS/rIDkuu6vmETyltnzVyhdsnbPpxlkgfhF78kXIJ3yLm/UaATYIxc0aFrTwth
- aEFrI2SOFQ5KPSLmVzFR24j9dUP033Xxzk6j6z7ZlXWWiIj+2LXroNe8zzQ7utdqfWBS9XKGMbl
- /upA4Qf9JkagvsqSjyaLKDK4q+eTTJ8x4QKn6QViqEpfDF9Rc98zmx/UA7mnmmCGn66HO55rzSe
- pMWGhD1kAkLnRZpHi5g==
-X-Proofpoint-GUID: 3-3Lnu0CdXN18l3Wi9CYXENDdbEgIDnE
-X-Authority-Analysis: v=2.4 cv=Xda5Co55 c=1 sm=1 tr=0 ts=6a7e4881 cx=c_pps
- a=UA+Ybm6NSixuq697YtHT5A==:117 a=b7IhknPlfT0FN1EembXvig==:17
- a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=IkcTkHD0fZMA:10 a=Sv0fKeRqtYgA:10
- a=3PXLN80vpJUA:10 a=6NUGLSImWEsA:10 a=w9pew1qAHqMA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=P_n1zlmtWsCQbjROFjcg:22 a=NvsXeTrgx-CJMFV-xl94:22
- a=cbNQJ9GKAAAA:8 a=WrgTi4t3HTPjek_z4TwA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
- a=G69WFyCBNqGPyalROSdv:22
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-08-13_07,2026-08-12_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0
- bulkscore=0 suspectscore=0 adultscore=0 malwarescore=0 impostorscore=0
- spamscore=0 priorityscore=1501 clxscore=1015 lowpriorityscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2608130166
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: KuBE5n8ywpRaITGFLTZTyIxdHG/EcN4YBVL3on9CKu/pjHPWELiNuoM/e8MT4Jp9jouTwZ8nhCNcdGsd10b218sj1DHlTsXIqEO1VdICtDo=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR11MB7835
+X-OriginatorOrg: intel.com
 
-On Thu, Aug 13, 2026 at 12:09:41PM +0200, Rafael J. Wysocki (Intel) wrote:
-> On Thu, Aug 13, 2026 at 4:41 AM <dmukhin@ford.com> wrote:
-> >
-> > From: Denis Mukhin <dmukhin@ford.com>
-> >
-> > In virtualized environments it is possible that a device managed by the
-> > hypervisor or another VM is described in the ACPI tables. In these
-> > cases, binding a device driver to it can cause functional issues.
+On Thu, Aug 13, 2026 at 11:09:48PM +0800, Pengpeng Hou wrote:
+> NFIT parsing has several independent extent contracts: the outer table
+> must contain each advertised subtable, and variable or versioned records
+> must fit inside that subtable.  The original patch mixed those contracts
+> and also derived the SPA structure length from the location-cookie-valid
+> flag.
 > 
-> Examples, please.
+> Split the checks by record type.  Patch 1 validates the generic subtable
+> header and outer extent.  Patch 2 accepts both defined SPA layouts while
+> treating the cookie flag as a validity bit, not a size selector.  Patches
+> 3 and 4 validate the variable arrays and the control-region extent.
+> Patch 5 bounds the 32-bit capability mask without rejecting future
+> firmware that advertises a higher capability index.
+> 
+> Changes since v1:
+> https://lore.kernel.org/all/20260722041701.21078-1-pengpeng@iscas.ac.cn/
 
-One example would be a system with two MMIO-based UARTs described in ACPI
-tables. Both UARTs have the same _HID, but different _UIDs. One UART reserved
-for the hypervisor console, another is assigned to the guest.
+NAK
+See: Documentation/process/submitting-patches.rst 
+Section "Respond to review comments"
 
-Both devices reported as present and same platform driver may probe both device
-instances.
 
-I understand that, ideally, guest ACPI tables should omit the unassigned
-device or report it unavailable via _STA.
-
-The proposed parameter was intended for configurations where the device
-assignment varies between boot environments while the firmware-provided ACPI
-description remains common.
-
-What would be the preferred way to prevent Linux from enumerating or probing
-one specific _HID/_UID instance in such a configuration?
-
-Thanks,
-Denis
+> - split the generic and type-specific contracts into separate patches
+> - handle both 56-byte and 64-byte SPA structures
+> - add the control-region extent check identified during review
+> - clamp the implemented capability mask instead of rejecting future bits
+> - describe the exact fields protected by each check
+> 
+> The series was reviewed statically against the current tree. I did not
+> run an NFIT firmware fault-injection test.
+> 
+> Pengpeng Hou (5):
+>   ACPI: NFIT: validate subtable extents before dispatch
+>   ACPI: NFIT: accept SPA structures with an unused location cookie
+>   ACPI: NFIT: validate interleave and flush array extents
+>   ACPI: NFIT: validate control region extent
+>   ACPI: NFIT: bound the platform capability mask
+> 
+>  drivers/acpi/nfit/core.c | 77 ++++++++++++++++++++++++++++++++--------
+>  1 file changed, 62 insertions(+), 15 deletions(-)
+> 
+> base-commit: f5bbbfec59b4e2fb7520a91de3df8a6174325d6a
+> 
+> -- 
+> 2.50.1 (Apple Git-155)
+> 
