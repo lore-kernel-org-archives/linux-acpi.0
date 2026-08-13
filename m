@@ -1,92 +1,174 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail-m60199.netease.com (mail-m60199.netease.com [210.79.60.199])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93AF931E85B;
-	Thu, 13 Aug 2026 06:17:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A689341A4F6;
+	Thu, 13 Aug 2026 06:30:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.79.60.199
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786601857; cv=none; b=gebhxlwvy5H5M3CkVGCUWaXrLOzFFiDIEj07gPXvXUq0hV4lU5BM4GgVMrcaOkXZz+EKjWg0bxComjseiLj3819uHDF9Nn3Z6J6Sv4OJ15tZivbc5V67EhCnFQsYmfuoIngb3IiorQVXy+o5+M1m9Fibhg5OrfwFfY394oZpBZw=
+	t=1786602658; cv=none; b=HZqwTMwFRQGpVQ+g+pYWwqjv8w0Q+Glx3dOugtX3uvR33jiGlXk9SsMCYx3ox7EfjSnHcYtlQ6hI5+kttBykHB2mq8uL1iVXwHxuE46DLmZRaN+5ExdMKRk6VtCrN7dgaWOP9GxqvzE10sSxIQj1pG2rVU4W8uvlU0Xhjlv15ZI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786601857; c=relaxed/simple;
-	bh=z9G4N5ySez6K/OvcDFMO2s/RhZrVwmETPeCrg/mdxC0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uBO7TdCLLb8kG6aPKfI+MAjXjiP1IvIqGazpU622zt0gGQNVcStwPb60SZC2UWvAoqaXPJUcTkGpXUWveHE1XvewN3EeHtzwUrsNYc20SeVpTyFpaDSovjprNnD16c45h1hEG4GXbDmcVUDnYeVg7Rflli+r79tpIkB+tzlRBsU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UKMwQCK2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1786602658; c=relaxed/simple;
+	bh=XFMM5bqs/AO41XLvj+2fa+9/dMCWI2BOAliSlrA6yfo=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=mOmhepO2LypzIv339K6FT5ZwqS7lhrlkgp0MoMgpS40z6IiKOihx2tTA/Ol6feFcP1AgTG+ehanbz5N3IVqGAeaYTOpjomCSPtkJ77ggtTl7lPjfwioCrOlmM9VA6gRGTL1hxxDR8O3uLK1sSd2+m26fhtMSePuhRDsMOgepaic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hj-micro.com; spf=pass smtp.mailfrom=hj-micro.com; dkim=pass (1024-bit key) header.d=hj-micro.com header.i=@hj-micro.com header.b=ORVD9QRG; arc=none smtp.client-ip=210.79.60.199
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=hj-micro.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hj-micro.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UKMwQCK2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33E111F00A3A;
-	Thu, 13 Aug 2026 06:17:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786601856;
-	bh=3hkGajI2L3VCIaYqx24q5REez+3Wl5xg9c6GVH/Friw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=UKMwQCK28TSILWRtZYIiOcDLDZRvrYVvr/6WUGonpE2gXO5sNj35XDxJbbXJaZfVf
-	 TQ3isjzHk5zA44MkIUI7rf31xc96ZlPoM29T6vDCVLY5XSo3+bi4CXnmSQnLtGw5LR
-	 l9eUDYCo81v18wDWy3hLv4BuLcEO4693tIm2NyYTz1BHVm9UchV8r3znS6zj0kbwzx
-	 suKUgSmAmTepJhXFbvH2zhssyQebFtQvBZjH2GwlqUVbGWRQFnVCyiYtxadBubaTPz
-	 JnLWT7alQeMWPuhaB8sD3fhgHgzTKVcvx6WOH5IjXYGoSL/BeX/EVklUkktbmuizf0
-	 Sg1WZcz2PdcVw==
-Date: Thu, 13 Aug 2026 08:17:20 +0200
-From: Manivannan Sadhasivam <mani@kernel.org>
-To: Herve Codina <herve.codina@bootlin.com>
-Cc: Richard Cheng <icheng@nvidia.com>, Andrew Lunn <andrew@lunn.ch>, 
-	Rob Herring <robh@kernel.org>, Saravana Kannan <saravanak@kernel.org>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, 
-	David Rhodes <david.rhodes@cirrus.com>, Richard Fitzgerald <rf@opensource.cirrus.com>, 
-	Charles Keepax <ckeepax@opensource.cirrus.com>, Linus Walleij <linusw@kernel.org>, Len Brown <lenb@kernel.org>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Davidlohr Bueso <dave@stgolabs.net>, Jonathan Cameron <jic23@kernel.org>, 
-	Dave Jiang <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dan Williams <djbw@kernel.org>, Ira Weiny <iweiny@kernel.org>, 
-	Li Ming <ming.li@zohomail.com>, Lizhi Hou <lizhi.hou@amd.com>, driver-core@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, 
-	patches@opensource.cirrus.com, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-cxl@vger.kernel.org, Allan Nielsen <allan.nielsen@microchip.com>, 
-	Horatiu Vultur <horatiu.vultur@microchip.com>, Daniel Machon <daniel.machon@microchip.com>, 
-	Steen Hegelund <steen.hegelund@microchip.com>, Luca Ceresoli <luca.ceresoli@bootlin.com>, 
-	Thomas Petazzoni <thomas.petazzoni@bootlin.com>, stable@vger.kernel.org
-Subject: Re: [PATCH v10 08/10] PCI: of: Set fwnode device of newly created
- PCI device nodes
-Message-ID: <ir6y6vwejuqjpz3dx37xadojinvxniduzv5tycylnhidqs2ma7@5v5hy2vwv6qi>
-References: <20260717145147.823749-1-herve.codina@bootlin.com>
- <20260717145147.823749-9-herve.codina@bootlin.com>
+	dkim=pass (1024-bit key) header.d=hj-micro.com header.i=@hj-micro.com header.b="ORVD9QRG"
+Received: from 1clarkelill.hj-micro.com (unknown [122.224.241.34])
+	by smtp.qiye.163.com (Hmail) with ESMTP id 49d4e2e55;
+	Thu, 13 Aug 2026 14:30:35 +0800 (GMT+08:00)
+From: "clarke.li" <clarke.li@hj-micro.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>,
+	Andi Shyti <andi.shyti@kernel.org>
+Cc: linux-acpi@vger.kernel.org,
+	linux-i2c@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Len Brown <lenb@kernel.org>,
+	andy.xu@hj-micro.com,
+	peter.du@hj-micro.com,
+	Hongnan Li <clarke.li@hj-micro.com>
+Subject: [PATCH v4 1/2] ACPI: APD: Convert fixed clock rates to use HZ_PER_MHZ
+Date: Thu, 13 Aug 2026 14:30:04 +0800
+Message-ID: <20260813063005.42925-1-clarke.li@hj-micro.com>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260722073031.1078080-1-clarke.li@hj-micro.com>
+References: <20260722073031.1078080-1-clarke.li@hj-micro.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260717145147.823749-9-herve.codina@bootlin.com>
+X-HM-Tid: 0a9ff9d0bfb709d6kunmebbce19d3eb22b
+X-HM-MType: 1
+X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
+	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVlCTBgeVk1MHk8dHkIaThpKHVYVFA
+	kWGhdVEwETFhoSFyQUDg9ZV1kYEgtZQVlKSUlVSUlPVUlPSlVIT1lXWRYaDxIVHRRZQVlPS0hVSk
+	tISkpCTVVKS0tVSkJZBg++
+DKIM-Signature: a=rsa-sha256;
+	b=ORVD9QRG0gVXT//M+ul0h0JW6MQGVdP73fzOqC0ROOsNUxEnvHQ3T6IHLXASiU4dZ2KSMKDHJ70wWqEKGpWDpzO6kCIHAXFfpQgCII6rrAs5BcpxBWhpDH0XzAQiEIUBmHLVlq1UgoQjcoWRghfS1//r+zdOJtShFw+Ttno0Cz0=; s=default; c=relaxed/relaxed; d=hj-micro.com; v=1;
+	bh=KJNrRzQ2oIZdJYb182wGJCuIuqJuvEH6CreRJX73yyE=;
+	h=date:mime-version:subject:message-id:from;
 
-On Fri, Jul 17, 2026 at 04:51:43PM +0200, Herve Codina wrote:
-> Device-tree node can be created when CONFIG_PCI_DYNAMIC_OF_NODES. Those
-> nodes are created and filled based on PCI core information but the
-> fwnode device field is not set.
-> 
-> When later an overlay is applied, this confuses fw_devlink. Indeed,
-> without any device attached to the node, fw_devlink considers that this
-> node will never become a device. When this node is pointed as a
-> supplier, devlink looks at its ancestors in order to find a node with a
-> device that could be used as the supplier.
-> 
-> In the PCI use case, this leads to links that wrongly use the PCI root
-> bridge device as the supplier instead of the expected PCI device.
-> 
-> Setting the fwnode device to the device of the PCI device allows devlink
-> to use this device as a supplier and so, correct links are created.
-> 
-> Fixes: 407d1a51921e ("PCI: Create device tree node for bridge")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Herve Codina <herve.codina@bootlin.com>
+From: Hongnan Li <clarke.li@hj-micro.com>
 
-Acked-by: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
+Use HZ_PER_MHZ multiplier for fixed_clk_rate values to
+improve readability.
 
-- Mani
+Signed-off-by: Hongnan Li <clarke.li@hj-micro.com>
+---
+ drivers/acpi/acpi_apd.c | 29 +++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
 
+diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+index 008bd0552cb7..275027ebd01f 100644
+--- a/drivers/acpi/acpi_apd.c
++++ b/drivers/acpi/acpi_apd.c
+@@ -14,6 +14,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_data/clk-fch.h>
+ #include <linux/platform_device.h>
++#include <linux/units.h>
+ 
+ #include "internal.h"
+ 
+@@ -110,17 +111,17 @@ static int fch_misc_setup(struct apd_private_data *pdata)
+ 
+ static const struct apd_device_desc cz_i2c_desc = {
+ 	.setup = acpi_apd_setup,
+-	.fixed_clk_rate = 133000000,
++	.fixed_clk_rate = 133 * HZ_PER_MHZ,
+ };
+ 
+ static const struct apd_device_desc wt_i2c_desc = {
+ 	.setup = acpi_apd_setup,
+-	.fixed_clk_rate = 150000000,
++	.fixed_clk_rate = 150 * HZ_PER_MHZ,
+ };
+ 
+ static const struct apd_device_desc wt_i3c_desc = {
+ 	.setup = acpi_apd_setup,
+-	.fixed_clk_rate = 125000000,
++	.fixed_clk_rate = 125 * HZ_PER_MHZ,
+ };
+ 
+ static struct property_entry uart_properties[] = {
+@@ -132,7 +133,7 @@ static struct property_entry uart_properties[] = {
+ 
+ static const struct apd_device_desc cz_uart_desc = {
+ 	.setup = acpi_apd_setup,
+-	.fixed_clk_rate = 48000000,
++	.fixed_clk_rate = 48 * HZ_PER_MHZ,
+ 	.properties = uart_properties,
+ };
+ 
+@@ -144,52 +145,52 @@ static const struct apd_device_desc fch_misc_desc = {
+ #ifdef CONFIG_ARM64
+ static const struct apd_device_desc xgene_i2c_desc = {
+ 	.setup = acpi_apd_setup,
+-	.fixed_clk_rate = 100000000,
++	.fixed_clk_rate = 100 * HZ_PER_MHZ,
+ };
+ 
+ static const struct apd_device_desc vulcan_spi_desc = {
+ 	.setup = acpi_apd_setup,
+-	.fixed_clk_rate = 133000000,
++	.fixed_clk_rate = 133 * HZ_PER_MHZ,
+ };
+ 
+ static const struct apd_device_desc hip07_i2c_desc = {
+ 	.setup = acpi_apd_setup,
+-	.fixed_clk_rate = 200000000,
++	.fixed_clk_rate = 200 * HZ_PER_MHZ,
+ };
+ 
+ static const struct apd_device_desc hip08_i2c_desc = {
+ 	.setup = acpi_apd_setup,
+-	.fixed_clk_rate = 250000000,
++	.fixed_clk_rate = 250 * HZ_PER_MHZ,
+ };
+ 
+ static const struct apd_device_desc hip08_lite_i2c_desc = {
+ 	.setup = acpi_apd_setup,
+-	.fixed_clk_rate = 125000000,
++	.fixed_clk_rate = 125 * HZ_PER_MHZ,
+ };
+ 
+ static const struct apd_device_desc thunderx2_i2c_desc = {
+ 	.setup = acpi_apd_setup,
+-	.fixed_clk_rate = 125000000,
++	.fixed_clk_rate = 125 * HZ_PER_MHZ,
+ };
+ 
+ static const struct apd_device_desc nxp_i2c_desc = {
+ 	.setup = acpi_apd_setup,
+-	.fixed_clk_rate = 350000000,
++	.fixed_clk_rate = 350 * HZ_PER_MHZ,
+ };
+ 
+ static const struct apd_device_desc hip08_spi_desc = {
+ 	.setup = acpi_apd_setup,
+-	.fixed_clk_rate = 250000000,
++	.fixed_clk_rate = 250 * HZ_PER_MHZ,
+ };
+ 
+ static const struct apd_device_desc leca_spi_desc = {
+ 	.setup = acpi_apd_setup,
+-	.fixed_clk_rate = 400000000,
++	.fixed_clk_rate = 400 * HZ_PER_MHZ,
+ };
+ 
+ static const struct apd_device_desc leca_i2c_desc = {
+ 	.setup = acpi_apd_setup,
+-	.fixed_clk_rate = 250000000,
++	.fixed_clk_rate = 250 * HZ_PER_MHZ,
+ };
+ 
+ #endif /* CONFIG_ARM64 */
 -- 
-மணிவண்ணன் சதாசிவம்
+2.55.0
+
