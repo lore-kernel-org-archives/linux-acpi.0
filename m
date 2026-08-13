@@ -1,389 +1,199 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f179.google.com (mail-oi1-f179.google.com [209.85.167.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF8BF3EFFC9
-	for <linux-acpi@vger.kernel.org>; Thu, 13 Aug 2026 18:52:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786647146; cv=none; b=BBO4OfCTU1Pzpc3cS+qreMFLJRKopAIpaoGs0rXo/P8tYNaM18N3N1VxOSYg0MZX0c6XI8yqySHj4T6rqx4wHp4WgMWaZylZFRS5UoTfBjux+74ckO1Aho+cQl+lE1xouT/uRh/pK8krDlKGNQsfZn7th9nBAFuOLWs3eo6dkC4=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786647146; c=relaxed/simple;
-	bh=W+ie+bBX+h8sWuMFti8GFhYHUpWWLpmVzKbTFUWFCQk=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=pub8E+41Ga6X5O+fqwrlJ7IVRhfb4nvFWiUU/AMBumUZjoQP6v2QVvZtRI+lmTHBul0+L0tBzgkOGz9WZtaRMeaTlcZthh5+tKu09xTNZ8GxzgIxJdb4MUQ7uU4eW23upGr18wU/l2eBzsMxSJeCjhRf6vsHfHGcGhDKJUT0mgE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GeR3BvCA; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 584C549505E
+	for <linux-acpi@vger.kernel.org>; Thu, 13 Aug 2026 18:55:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.179
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786647303; cv=pass; b=EhI1W/ysJCJSwSVqVQ8WbGOQkWcPMVOEURNJMdN2UkEK7TP1vH+Po0bT8osTAYOo54Xu1w5N0PbFRFq/KXPQonQzysHOk+npHFWebBVWo7eNQZVLTDQy0qEJBuixqvGGc2/YLhvC+c+RVsqUgL5g+zMl10eIHhRUlgpE2oRW5yo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786647303; c=relaxed/simple;
+	bh=MZMk5amhVvwpxgU22Jr2gG0SimDKHn4o3AJnpzUIRys=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=dkkYW4SChfEWUqNKkBS4LO4hbyTsfb5eZi6d3vQ+HhdVpfgfZew//mW+YPAbSU6gmnSEPipP9GZEaWudhJTTvdnY8lEQgCySRlEkZ6KfkqTkSDgXW/pSBNA44S/85p0/3wMYAupAEEzY4LDtfAjun5S3cVwJfdVJPFO/IRb8wf4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Hb662xZ+; arc=pass smtp.client-ip=209.85.167.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GeR3BvCA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6F891F000E9
-	for <linux-acpi@vger.kernel.org>; Thu, 13 Aug 2026 18:52:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786647144;
-	bh=RmmciqbalK1atmqi9hQzyON9o4LPwPnpghmENEiq9pI=;
-	h=From:Date:Subject:To:Cc;
-	b=GeR3BvCAv47yhvAZhpDD4kd1HA8/goo+96CNJ7c7JybMhxvUV7CTFaBm78vPvH+yI
-	 XhevhmiBaZ69rs6x4zeKDtHTW1jyIW2HYqOFSU4PX9RGaex27zEO5GJHjwugIZSpju
-	 hBuubyhfusxGgKXlfue4fatOMRvN7MRrxiHlNK81OdC4+N3fhqorK4wM+/8jNLgG19
-	 2FMWMao1MfwuXVFMjly6cSOhPA1v2mbRbLQvZ1hLwQKEIPValgfocXfU7auXhATOnR
-	 dr0U1BX0TY2e2rr6ums38odc8LIkB/BMRwt+IJXdeICsWsH/Hww9MrApLgU/IS4VS6
-	 jDlQrSDQSz5jg==
-Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5b013084dc2so119525e87.0
-        for <linux-acpi@vger.kernel.org>; Thu, 13 Aug 2026 11:52:24 -0700 (PDT)
-X-Gm-Message-State: AOJu0YxZjVwQzoiwY7/BdY+ssLusrt2YWDRV5JQBGe5IJXsBWnGF1xmj
-	V/3t2nJ1uf0y4sHXwsmpgjPmKDILHVByPEvkBKmL9iA0kHDaYaVKcxErMdynfD0YpbBPVnW3wbU
-	7vt/srr06z0N2XzECrpmhgwVwK5E7UqM=
-X-Received: by 2002:a05:6512:61dc:20b0:5b2:b705:445a with SMTP id
- 2adb3069b0e04-5b453f8c6d8mr1013283e87.45.1786647143097; Thu, 13 Aug 2026
- 11:52:23 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Hb662xZ+"
+Received: by mail-oi1-f179.google.com with SMTP id 5614622812f47-4a416619cb2so82903b6e.3
+        for <linux-acpi@vger.kernel.org>; Thu, 13 Aug 2026 11:55:00 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1786647299; cv=none;
+        d=google.com; s=arc-20260327;
+        b=Ykb9psVc+s9e6uhNVeotGa9CvMhT82w43dIfW8cDFau7HVyGNoNPlHkHo8A/SVZpaA
+         HRtmjb8MUPtI7YZ+AM/MCTXVobV1vlO3MzFAFOBZnsjSC9VF7qHWGe23lgmy+MTFvgdo
+         pv8NmSpaYvZsAwqzQAIPV/KIDrMG5ZentEbH3SSwj4Yoy8jZObnFhju9V5N3/6nVouDA
+         iaY9tERBXmkTD47bFzzkZgRMXyzEO6dyQD1liZoOwr6SrSQYom3kdGB2DUE/qENCkAHd
+         Ub7lAIMDM+w6ixsK9O6K2m/Yrfs651d+7SW6Uqm9wgf8cvmbYC6GtG+og4TGmhjno7mD
+         AmXg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=4D8xAVPVQumphtAB0QLf5r82YP3dFNVcG1VBTYgExPI=;
+        fh=4lSLjHMqUH+nF6a5+SdgHoOJYn/mLQN0pq5WA74W534=;
+        b=AitaT51LBzxPn7T2gBn8k91Ott0/qFnSfxnblKOd50J/tHv1gGFGI4FJDPdAbtONQQ
+         TcTbLsYhWdrx35EX6c8W4RSH7Nl1yB17Q+lERrfcZCD4n4yXo4fnPtK27Ys54PDUcoBf
+         /xY1sD561TatYaABhJL8jFCUTCqkH0vGoiIslL4E7Z9WLinuxw810ZqpzSo/qkdsHzHa
+         CgLKka8Znfcc9Cw71VAkYMN9whahsZQrkACDg65cJQ7OI+kOYlIMnSF6dC/1Ct6AM3Q0
+         J6+673Wuhxk37hdMIi5dmqvHJa4F+suZ7exzkmYE/vzQUsYQPIvs8vsyjWtZzOLhtc+W
+         cDZw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1786647299; x=1787252099; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=4D8xAVPVQumphtAB0QLf5r82YP3dFNVcG1VBTYgExPI=;
+        b=Hb662xZ+DWuhLhaaGHLkKwhvVQkAyjuu/PDNAfrIObBmSVhXeN5Gd7WV9Tj/Da6tlP
+         HhTkaB42si8PfQUj565U6maiY4Ko7hf50VQAEH9QvZ0mXUFnQji/vjRcGiHhBxqlY/IC
+         ydGjxxG4oJDa+kyPJP0mp5624mcrPpInWRn6HBrqkCBg2c9VhFWICjbbC6YQC9cdRgX5
+         akmXV2iIdZysTz50F5YhtEnW2ll/mTW6wH5PZlpUbw2BYe4z8GqBp8jMH5pjyyVhLQ8j
+         HjKaonWdjXjGgwdW0jzBpo+HQnSuSC9Hs5Jxak29ZbQfmFCH1mMWyFjxnFANMh2V6+8n
+         ZmzA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1786647299; x=1787252099;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=4D8xAVPVQumphtAB0QLf5r82YP3dFNVcG1VBTYgExPI=;
+        b=OwuH6VCDhC1sUTTz8DOIjqEEGJiEPYoY6OFIC76RQNon4+t+SxQccVZLTv72pJUm4s
+         ju+++zwpocFZO12VTCp0kPtqhcRVKfXAvOXr54EYZ0tkyGaFdbQqofhIQLfVCrwtZvqK
+         UXGuYftmx8mM50FaYOMv1urQBbsXdeFoCv5yW8Ua5V+YGQhKp4LVRW8aPSZfZWv3b7b2
+         LpwopMIfAIyg1bT8P3Ax4ph4vphttAz43ZXJ/3Aup6QXLUgcJQe89r18ut9lhxR1OyMZ
+         pL65Lso8ghdVpySg2ayTDyio/9v35mNmzvR6+EGpKcz+fPr8jkXfYFYG6e21KS3UqL2X
+         NVzQ==
+X-Forwarded-Encrypted: i=1; AHgh+Rr8jNWS4B96U2JaH+BuBpJkPsN7llWGEmZZefw0hGljnr7jawWqR+DRfqMp5l0VbjUKy0COx5DGXYE6@vger.kernel.org
+X-Gm-Message-State: AOJu0YyJHqJ8IwNvBntCzun7hm8tH6Fpx0ur6rvR1PlCOUlheXOExKb7
+	MyFECbpdReTdxPUZgr2aP7DBIXu3XtZG8tpoZzltofrqcm7YdJfwPwFMauQfqo53RItLH5b5pZj
+	Rp73WV0H2PQXEz5zN9Sh8hPvVGvR6kKM=
+X-Gm-Gg: AR+sD13VnNypAYvhmRbdzfT6QqMzH6TR+wry+zACIeHphd70Z/+jlpTfqd2UZa1oeQa
+	dN4Yu1mPqFbzF1NNMXSuMus9BLDqNhbMdOG1Xf5OWKU7dYt+AFq1Kt0f+UvU+f+TiWe6YhRSmJV
+	Bw8X9eygnarfADDpOVnSUb1aBnHqyjZinW/IA6MItonIGsLdmId/hD6fU2yYcpos07c0h9Nv5fs
+	XrrNjo/kLnW56hYVmX+bdA4BztP50NDP4NG2Bi4VsBbsIIwAyUXoCpjocBy1zUAFIn2KNlRKeR8
+	Cb5xDL1oRAcky20S8AAAVyHN1vOPVgVV7JBwQDzUAhjM
+X-Received: by 2002:a05:6808:1456:b0:4b2:3e72:bab1 with SMTP id
+ 5614622812f47-4b2413e7cd2mr156530b6e.6.1786647299226; Thu, 13 Aug 2026
+ 11:54:59 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Thu, 13 Aug 2026 20:52:00 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0h7+MKn52LePu1qqJucAqGpJB3cHZu7Adccsy1TQEJ4rw@mail.gmail.com>
-X-Gm-Features: AUfX_mxuCujcF-8mjtaWZsYh4HY8ltbuznroTh1zLT0Cl7-T3jWyL3r2ElaKVQ0
-Message-ID: <CAJZ5v0h7+MKn52LePu1qqJucAqGpJB3cHZu7Adccsy1TQEJ4rw@mail.gmail.com>
-Subject: [GIT PULL] ACPI support updates for 7.3-rc1
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <lpieralisi@kernel.org>
+References: <20260726212812.89266-1-shijujose2008@gmail.com>
+ <20260726212812.89266-2-shijujose2008@gmail.com> <anvRn4g9Ihn5eyVq@hu-ashoraj-lv.qualcomm.com>
+In-Reply-To: <anvRn4g9Ihn5eyVq@hu-ashoraj-lv.qualcomm.com>
+From: Shiju Jose <shijujose2008@gmail.com>
+Date: Thu, 13 Aug 2026 19:54:48 +0100
+X-Gm-Features: AUfX_mzK2KYq66enN11TTUyY_bgBfEgK88jDGTBrTGSa-gkPWcIl2Tm-4YHdY2Q
+Message-ID: <CAG4KcRJR9+KMsoWjUWjaMveTteqMUrFukTcRgb0SZ593Zqj=tQ@mail.gmail.com>
+Subject: Re: [PATCH v23 1/2] ACPI:RAS2: Add driver for the ACPI RAS2 feature table
+To: Ashok Raj <ashok.raj@oss.qualcomm.com>
+Cc: rafael@kernel.org, bp@alien8.de, akpm@linux-foundation.org, 
+	rppt@kernel.org, dferguson@amperecomputing.com, linux-edac@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-doc@vger.kernel.org, 
+	tony.luck@intel.com, lenb@kernel.org, Yazen.Ghannam@amd.com, 
+	mchehab@kernel.org, jic23@kernel.org, linuxarm@huawei.com, 
+	rientjes@google.com, jiaqiyan@google.com, Jon.Grimm@amd.com, 
+	dave.hansen@linux.intel.com, naoya.horiguchi@nec.com, james.morse@arm.com, 
+	jthoughton@google.com, somasundaram.a@hpe.com, erdemaktas@google.com, 
+	pgonda@google.com, duenwen@google.com, gthelen@google.com, 
+	wschwartz@amperecomputing.com, wbs@os.amperecomputing.com, 
+	nifan.cxl@gmail.com, tanxiaofei@huawei.com, prime.zeng@hisilicon.com, 
+	roberto.sassu@huawei.com, kangkang.shen@futurewei.com, 
+	wanghuiqiang@huawei.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi Linus,
-
-This goes early for your convenience.
-
-Please pull from the tag
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-7.3-rc1
-
-with top-most commit 79ba234b396b0fdcb3a82dd8aa872348f4069aae
-
- Merge branch 'acpi-video'
-
-on top of commit 075b74841bd0065a3bda3440873c747938e69b68
-
- Linux 7.2-rc6
-
-to receive ACPI support updates for 7.3-rc1.
-
-The most significant change here is the elimination of struct
-acpi_driver that has no more users in the tree now along with some
-documentation related to it, and a follow-up update to set the "no PM"
-flag for all ACPI devices that are now only going to play the role of
-other devices' "companions" (in analogy with DT nodes).
-
-There is also a significant update of irqchip code related to ACPI done
-in order to enable GICv5 IWB ACPI probe ordering detection on ARM, which
-involves RISC-V interrupt controller management code refactoring to
-extract generic code from it into the common ACPI IRQ code.
-
-The rest is mostly fixes, including some fallout of the _OSC handling
-rework in 7.0, ACPI CPPC library fixes, a workaround for registering
-ACPI platform devices with overlapping I/O or memory resources, an ACPI
-EC driver fix related to probe deferral on platforms using HW-reduced
-ACPI, two ACPI battery driver fixes and a workaround for handling
-model numbers with unprintable characters in it, probe error cleanup
-and driver unload code path fixes, hardware error reporting fixes,
-documentation fixes, and assorted code cleanups all over.
-
-Specifics:
-
- - Eliminate struct acpi_driver whose users have all been converted to
-   bind to platform devices or auxiliary devices and set the "no power
-   management" flag for all struct acpi_device objects (Rafael Wysocki)
-
- - Avoid complaints regarding missing _OSC features on platforms where
-   OSC_CAPABILITIES_MASK_ERROR is set in _OSC error bits even though all
-   of the requested features are actually acknowledged (Rafael Wysocki)
-
- - Avoid printing confusing _OSC messages for non-PCIe host bridges
-   without _OSC which is a valid configuration (Kazuma Kondo)
-
- - Use correct region struct for BERT region size check and properly
-   map BERT and CCEL data to their ACPI tables (Thomas Renninger)
-
- - Add acpi_device_clear_deps(), refactor RISC-V interrupt controller
-   management code to extract generic code from it into the common ACPI
-   IRQ code, and enable GICv5 IWB ACPI probe ordering detection on ARM
-   on top of that (Lorenzo Pieralisi)
-
- - Stop using acpi_device_name() in the PNP core, stop setting
-   acpi_device_name/class() in the Xen variant of the ACPI PAD
-   (Processor Aggregator Device) driver, and make the Loongarch
-   laptop driver stop setting acpi_device_class() (Rafael Wysocki)
-
- - Fix issues related to the desired_perf register access in the ACPI
-   CPPC library and update it to avoid unnecessary overhead (Christian
-   Loehle)
-
- - Simplify acpi_get_pci_dev() with the help of a mutex guard, introduce
-   acpi_dev_get_pci_dev() for code that has a struct ACPI device for
-   which it wants to get the struct pci_dev pointer of the associated
-   PCI device, and use it in the ACPI video bus driver (Rafael Wysocki)
-
- - Avoid registering platform devices with resource overlaps in the ACPI
-   core device enumeration code (Rafael Wysocki)
-
- - Clean up the list of included header files in the NHLT table parser
-   and validate the table and record lengths in the FPDT parser (Andy
-   Shevchenko and Pengpeng Hou)
-
- - Unregister the cpufreq notifier on init failure in the ACPI processor
-   driver (Can Peng)
-
- - Validate MADT IOAPIC entry bounds during IOAPIC hotplug lookup in the
-   ACPI processor driver (Pengpeng Hou)
-
- - Avoid _REG disconnect on probe deferrals related to GPIO IRQ in the
-   ACPI EC driver (Zhu Ling)
-
- - Update kerneldoc comments of two structures in the ACPI bus type code
-   to use correct struct member names to avoid warnings (Randy Dunlap)
-
- - Use a correct function parameter name in kernel-doc in the ACPI fan
-   driver (Randy Dunlap)
-
- - Update ACPI fan IDs to follow modern style and clean up header file
-   inclusions in the ACPI fan driver (Andy Shevchenko)
-
- - Use devm_acpi_install_notify_handler() to replace a custom open-coded
-   devres-based management of an ACPI notify handler in the ACPI fan
-   driver (Rafael Wysocki)
-
- - Adjust charging status validation check in the ACPI battery driver to
-   avoid incorrect status reporting (Rafael Wysocki)
-
- - Merge consecutive battery notifications in the ACPI battery driver to
-   reduce the pressure on STA, _BST and _BIX/_BIF ACPI control methods
-   and make that driver use kstrtoul() instead of sscanf("%lu\n") (Rong
-   Zhang)
-
- - Sanitise model_number in the ACPI battery driver by dropping
-   unprintable characters (Kate Hsuan)
-
- - Remove a node_set() call that is redundant from
-   acpi_parse_memory_affinity() (Sang-Heon Jeon)
-
- - Prevent kernel-doc warnings by converting 2 function description
-   comments to kernel-doc format (Randy Dunlap)
-
- - Fix docs build error in the ACPI admin-guide documentation (Randy
-   Dunlap)
-
- - Replace __get_free_page() with kmalloc() in the code handling ACPI
-   NVS memory during system suspend/resume (Mike Rapoport)
-
- - Fix card device cleanup on registration failure in the core PNP
-   code (Yuho Choi)
-
- - Drop an unused assignment of pnp_device_id driver data (Uwe
-   Kleine-K=C3=B6nig)
-
- - Clear driver_data on all paths that free acpi_pci_root in
-   acpi_pci_root_add() (Chen Pei)
-
- - Add locking around evaluation of ACPI control methods in the ACPI TAD
-   driver to avoid race conditions (Rafael Wysocki)
-
- - Handle repeated SEA error storms in APEI (Junhao He)
-
- - Fix ERST timeout unit conversion in APEI (Nirmoy Das)
-
- - Fix ARM section length accounting after header in the ACPI APEI GHES
-   driver (TanZheng)
-
- - Mark ghes_in_nmi_spool_from_list() as maybe unused (Rui Qi)
-
- - Introduce helper function acpi_dev_is_video_device() and use it in
-   the core ACPI device enumeration code, in the ACPI video bus driver,
-   in the ACPI support code for I2C, in the PCI VGA driver, and in the
-   x86 platform thinkpad_acpi driver (Andy Shevchenko)
-
- - Add a quirk to use the native backlight on Acer Nitro AN515-46 to the
-   ACPI video bus driver (Marcos Paulo Medeiros)
-
- - Release PCI device reference after lookup in video_detect_portege_r100()
-   in the ACPI video bus driver (Yuho Choi)
-
-The ACPI IRQ code updates included here had a merge conflict with the risc-=
-v
-tree in linux-next as per
-
-https://lore.kernel.org/lkml/anSH5R8s3L_Br-Zw@sirena.org.uk/
-
-Thanks!
-
-
----------------
-
-Andy Shevchenko (9):
-      ACPI: utils: Introduce acpi_dev_is_video_device() helper
-      ACPI: scan: Convert to use acpi_dev_is_video_device() helper
-      ACPI: video: Convert to use acpi_dev_is_video_device() helper
-      i2c: acpi: Convert to use acpi_dev_is_video_device() helper
-      PCI/VGA: Convert to use acpi_dev_is_video_device() helper
-      platform/x86: thinkpad_acpi: Convert to use
-acpi_dev_is_video_device() helper
-      ACPI: fan: Don't use "proxy" headers
-      ACPI: fan: Update ACPI fan IDs to follow modern style
-      ACPI: NHLT: Remove always included kconfig.h
-
-Can Peng (1):
-      ACPI: processor: Unregister cpufreq notifier on init failure
-
-Chen Pei (1):
-      ACPI: PCI: Clear driver_data on all paths that free the acpi_pci_root
-
-Christian Loehle (6):
-      ACPI: CPPC: Reject desired_perf reads on _CPC revision 4+
-      ACPI: CPPC: Skip desired_perf read in cppc_get_perf()
-      ACPI: CPPC: Stop reading desired_perf in cppc_get_perf()
-      ACPI: CPPC: Avoid unnecessary reads for full-width writes
-      ACPI: CPPC: Avoid locking standalone full-width registers
-      ACPI: CPPC: Evaluate performance-control PCC use once
-
-Junhao He (1):
-      ACPI: APEI: Handle repeated SEA error storms
-
-Kate Hsuan (1):
-      ACPI: battery: Sanitise model_number by dropping unprintable characte=
-rs
-
-Kazuma Kondo (1):
-      ACPI: PCI: Avoid misleading _OSC messages for non-PCIe host
-bridges without _OSC
-
-Lorenzo Pieralisi (7):
-      ACPI: Add acpi_device_clear_deps() helper function
-      ACPI: RISC-V: Fix riscv_acpi_irq_get_dep() loop termination
-      ACPI: RISC-V: Check acpi_get_handle() status in riscv_acpi_add_prt_de=
-p()
-      ACPI: RISC-V: Fix riscv_acpi_add_prt_dep() loop handling
-      ACPI: irq: Move RISC-V interrupt controllers autodep to ACPI IRQ code
-      ACPI/IORT: Implement ACPI infrastructure to enable GICv5 IWB
-probe deferral
-      irqchip/gic-v5: Enable GICv5 IWB ACPI probe ordering detection
-
-Marcos Paulo Medeiros (1):
-      ACPI: video: force native backlight on Acer Nitro AN515-46
-
-Mike Rapoport (Microsoft) (1):
-      ACPI: NVS: replace __get_free_page() with kmalloc()
-
-Nirmoy Das (1):
-      ACPI: APEI: Fix ERST timeout unit conversion
-
-Pengpeng Hou (2):
-      ACPI: FPDT: validate table and record lengths
-      ACPI: processor: validate MADT IOAPIC entry bounds
-
-Rafael J. Wysocki (14):
-      ACPI: bus: Eliminate struct acpi_driver
-      ACPI: scan: Set power.no_pm for all struct acpi_device objects
-      ACPI: fan: Use devm_acpi_install_notify_handler()
-      platform/loongarch: laptop: Stop setting acpi_device_class()
-      ACPI: PAD: xen: Stop setting acpi_device_name/class()
-      PNP: ACPI: Stop using acpi_device_name()
-      ACPI: PCI: Use a mutex guard to simplify acpi_get_pci_dev()
-      ACPI: PCI: Introduce acpi_dev_get_pci_dev()
-      ACPI: video: Drop backlight parent device reference later
-      ACPI: video: Use acpi_dev_get_pci_dev() instead of acpi_get_pci_dev()
-      ACPI: battery: Adjust charging status validation check
-      ACPI: bus: Avoid confusing complaints regarding missing _OSC features
-      ACPI: TAD: Add locking around AML evaluations
-      ACPI: scan: Avoid registering platform devices with resource overlaps
-
-Randy Dunlap (4):
-      docs: ACPI: DSD: motorcomm: fix docs build error
-      ACPI: fan: Use correct function parameter name in kernel-doc
-      ACPI: bus: Use correct struct member names
-      ACPI: pmtmr: Convert to kernel-doc format
-
-Rong Zhang (2):
-      ACPI: battery: Merge consecutive battery notifications
-      ACPI: battery: Use kstrtoul() over sscanf("%lu\n")
-
-Rui Qi (1):
-      ACPI: APEI: GHES: Mark ghes_in_nmi_spool_from_list() as maybe unused
-
-Sang-Heon Jeon (1):
-      ACPI: NUMA: remove redundant node_set() call
-
-TanZheng (1):
-      ACPI: APEI: GHES: fix ARM section length accounting after header
-
-Thomas Renninger (2):
-      ACPI: Use correct region struct for BERT region size check
-      ACPI: sysfs: Properly map BERT and CCEL data to their ACPI tables
-
-Uwe Kleine-K=C3=B6nig (The Capable Hub) (1):
-      PNP: Drop unused assignment of pnp_device_id driver data
-
-Yuho Choi (2):
-      PNP: Fix card device cleanup on registration failure
-      ACPI: video: Release PCI device reference after lookup
-
-Zhu Ling (1):
-      ACPI: EC: Avoid _REG disconnect on GPIO IRQ defer
-
----------------
-
- Documentation/driver-api/acpi/acpi-drivers.rst     |  80 ----------
- Documentation/driver-api/acpi/index.rst            |   1 -
- .../acpi/dsd/motorcomm-yt8xxx-phy.rst              |   5 +-
- arch/riscv/include/asm/acpi.h                      |   1 +
- drivers/acpi/acpi_fpdt.c                           |  53 ++++++-
- drivers/acpi/acpi_platform.c                       |  39 ++++-
- drivers/acpi/acpi_tad.c                            |  50 +++---
- drivers/acpi/acpi_video.c                          |  14 +-
- drivers/acpi/apei/erst.c                           |   2 +-
- drivers/acpi/apei/ghes.c                           |  16 +-
- drivers/acpi/arm64/iort.c                          |  22 ++-
- drivers/acpi/battery.c                             | 147 ++++++++++++++---=
--
- drivers/acpi/bus.c                                 | 152 ++---------------=
--
- drivers/acpi/cppc_acpi.c                           | 171 +++++++++++++++--=
----
- drivers/acpi/ec.c                                  |  40 +++--
- drivers/acpi/fan.h                                 |  27 ++--
- drivers/acpi/fan_core.c                            |  25 +--
- drivers/acpi/irq.c                                 | 172 +++++++++++++++++=
-+++-
- drivers/acpi/numa/srat.c                           |   2 -
- drivers/acpi/nvs.c                                 |   4 +-
- drivers/acpi/pci_root.c                            |  47 +++---
- drivers/acpi/power.c                               |   1 -
- drivers/acpi/processor_core.c                      |  31 +++-
- drivers/acpi/processor_driver.c                    |   6 +
- drivers/acpi/riscv/irq.c                           | 141 +----------------
- drivers/acpi/scan.c                                |  22 +--
- drivers/acpi/sysfs.c                               |  11 +-
- drivers/acpi/utils.c                               |  17 ++
- drivers/acpi/video_detect.c                        |  21 ++-
- drivers/cpufreq/cppc_cpufreq.c                     |   2 +-
- drivers/i2c/i2c-core-acpi.c                        |  15 +-
- drivers/irqchip/irq-gic-v3.c                       |   2 +-
- drivers/irqchip/irq-gic-v5-iwb.c                   |   2 +
- drivers/irqchip/irq-gic-v5.c                       |  13 +-
- drivers/irqchip/irq-gic.c                          |   2 +-
- drivers/irqchip/irq-loongarch-cpu.c                |   2 +-
- drivers/irqchip/irq-riscv-intc.c                   |   3 +-
- drivers/pci/vgaarb.c                               |   4 +-
- drivers/platform/x86/lenovo/thinkpad_acpi.c        |   2 +-
- drivers/pnp/card.c                                 |  11 +-
- drivers/pnp/pnpacpi/core.c                         |   5 +-
- drivers/pnp/system.c                               |   6 +-
- drivers/xen/xen-acpi-pad.c                         |   5 -
- include/acpi/acpi_bus.h                            |  54 +------
- include/acpi/acpi_drivers.h                        |   9 +-
- include/acpi/cppc_acpi.h                           |   5 +-
- include/acpi/nhlt.h                                |   1 -
- include/linux/acpi.h                               |  14 +-
- include/linux/acpi_iort.h                          |   3 +-
- include/linux/acpi_pmtmr.h                         |  10 +-
- 50 files changed, 807 insertions(+), 683 deletions(-)
+On Wed, Aug 12, 2026 at 2:51=E2=80=AFAM Ashok Raj <ashok.raj@oss.qualcomm.c=
+om> wrote:
+>
+> Hi Shiju
+>
+> On Sun, Jul 26, 2026 at 10:28:11PM +0100, shijujose2008@gmail.com wrote:
+> > From: Shiju Jose <shijujose2008@gmail.com>
+> >
+> > ACPI 6.5 Specification, section 5.2.21, defined RAS2 feature table (RAS=
+2).
+> > Driver adds support for RAS2 feature table, which provides interfaces f=
+or
+> > platform RAS features, e.g., for HW-based memory scrubbing, and logical=
+ to
+> > PA translation service. RAS2 uses PCC channel subspace for communicatin=
+g
+> > with the ACPI compliant HW platform.
+> >
+> > Co-developed-by: A Somasundaram <somasundaram.a@hpe.com>
+> > Signed-off-by: A Somasundaram <somasundaram.a@hpe.com>
+> > Co-developed-by: Jonathan Cameron <jic23@kernel.org>
+> > Signed-off-by: Jonathan Cameron <jic23@kernel.org>
+> > Tested-by: Daniel Ferguson <danielf@os.amperecomputing.com>
+> > Reviewed-by: Ashok Raj <ashok.raj@oss.qualcomm.com>
+> > Signed-off-by: Shiju Jose <shijujose2008@gmail.com>
+> > ---
+> >  drivers/acpi/Kconfig  |  11 +
+> >  drivers/acpi/Makefile |   1 +
+> >  drivers/acpi/bus.c    |   3 +
+> >  drivers/acpi/ras2.c   | 509 ++++++++++++++++++++++++++++++++++++++++++
+> >  include/acpi/ras2.h   |  57 +++++
+> >  5 files changed, 581 insertions(+)
+> >  create mode 100644 drivers/acpi/ras2.c
+> >  create mode 100644 include/acpi/ras2.h
+> >
+> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+>
+> [snip]
+>
+> > +int ras2_send_pcc_cmd(struct ras2_mem_ctx *ras2_ctx, u16 cmd)
+> > +{
+> > +     struct acpi_ras2_shmem __iomem *gen_comm_base;
+> > +     struct mbox_chan *pcc_channel;
+> > +     struct ras2_sspcc *sspcc;
+> > +     s64 time_delta;
+> > +     u16 val;
+> > +     int rc;
+> > +
+>
+> [snip]
+>
+> > +
+> > +     /* Ring doorbell */
+> > +     rc =3D mbox_send_message(pcc_channel, &cmd);
+> > +     /*
+> > +      * mbox_send_message() returns a non-negative integer for success=
+ful submission
+> > +      * and a negative value on failure.
+> > +      */
+> > +     if (rc < 0) {
+> > +             dev_warn(ras2_ctx->dev,
+> > +                      "Error sending PCC mbox message command: 0x%x, r=
+c:%d\n", cmd, rc);
+> > +             /* Restore CMD COMPLETE bit on error */
+> > +             val =3D ioread16(&gen_comm_base->status);
+> > +             val |=3D PCC_STATUS_CMD_COMPLETE;
+> > +             iowrite16(val, &gen_comm_base->status);
+> > +             return rc;
+> > +     } else {
+> > +             rc =3D 0;
+> > +     }
+>
+> Minor:
+>
+> Sorry, I missed in prior review.
+>
+> Can the else after return be removed?
+> just set rc =3D 0 should be sufficient.
+
+Hi Ashok,
+
+Thanks for the feedback.
+I will make this change if another version is needed.
+
+Thanks,
+Shiju
+
+>
+> Cheers,
+> Ashok
