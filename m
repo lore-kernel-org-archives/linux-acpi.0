@@ -1,22 +1,22 @@
 Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
 	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 228703B71A4;
-	Thu, 13 Aug 2026 15:16:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0407E46AA7B;
+	Thu, 13 Aug 2026 15:18:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786634184; cv=none; b=E5m+teYBZbrqYeINFgeFhXUE5Oiftbh1NeMwDtTNq8ngfT0kmUfafGv9ilJsCtISAZnabCeXyDTdBqqfqlvKm1CWT0LhOqmcW3g6XvUX16CvuiNJxHQKj7M9puX6ZsqrI/NBShhFDoxLkLIJN6r4LTdWgDVEd1MpqLfawz3tuzU=
+	t=1786634333; cv=none; b=YgUYZ4KYmXQs1MCb1P9ruvS46Ch58OisR2wXdCtDGkTeSlagVbUvlvsv0PGF7MSvecIn3qaUnv4uA9s4BbAfTzMeOddFu7TbjJ1DRcIYutgc9i59d40AO/H9u5s6ALBe2i1wPubO/mCws6bv+ywozbzxFsFLqyzpj6ugKOWMRiQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786634184; c=relaxed/simple;
-	bh=xdf0t7m7Bhn3KmbAQhElZb+68JO5fpEcRK1bl1cz6yM=;
+	s=arc-20240116; t=1786634333; c=relaxed/simple;
+	bh=yuDC1gRxHvrdCLXoPP0tdkI+BRFORJkxV2MDo3+744w=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=WcqxYVljG2OWvdzr831/SvPmGUdooc/sAgSW+v5TnDPenSddngaPD79+Y9/B2Y3u+XPEJwpzmD92wIWmn/QsPUvzILoPLB3MEXOBk5nUzpGJpdIX4ElQKiW0rZAn3KKOay7vmqj7A3wu0+PA4//qjOyFrrbY0Fxsd7ywSQ9x3oM=
+	 MIME-Version:Content-Type; b=ru5rcLhegcDKoDWOqTxBCGGcr8qYG5l9vez7DlYXn3gg9bhbOwD79AIVDGlPs5iHJRLAgbzHPRl6/x0fsuPB4w6SaDLrKmGBMps9dERhIsWeoxfWR4OqLYCh7ThOVTjLJqEUzib88a5cXb5E0130fHn0pMp4vHy+eWoktRp7xdE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.21
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
 Received: from localhost.localdomain (unknown [111.196.241.250])
-	by APP-01 (Coremail) with SMTP id qwCowAB3Se29331qEEx5BQ--.9196S2;
-	Thu, 13 Aug 2026 23:16:14 +0800 (CST)
+	by APP-01 (Coremail) with SMTP id qwCowAAX7O9T4H1qDWZ5BQ--.56168S2;
+	Thu, 13 Aug 2026 23:18:44 +0800 (CST)
 From: Pengpeng Hou <pengpeng@iscas.ac.cn>
 To: Dan Williams <djbw@kernel.org>
 Cc: Vishal Verma <vishal.l.verma@intel.com>,
@@ -31,9 +31,9 @@ Cc: Vishal Verma <vishal.l.verma@intel.com>,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Pengpeng Hou <pengpeng@iscas.ac.cn>
-Subject: [PATCH v2 3/5] ACPI: NFIT: validate interleave and flush array extents
-Date: Thu, 13 Aug 2026 23:16:12 +0800
-Message-ID: <20260813151612.21777-1-pengpeng@iscas.ac.cn>
+Subject: [PATCH v2 4/5] ACPI: NFIT: validate control region extent
+Date: Thu, 13 Aug 2026 23:18:43 +0800
+Message-ID: <20260813151843.24305-1-pengpeng@iscas.ac.cn>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
 References: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
@@ -45,10 +45,10 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:qwCowAB3Se29331qEEx5BQ--.9196S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7CF45CF4xur1UurW5Zw4fZrb_yoW8ury5pF
-	40gasFyr4xJr13G3y3tw4rAw45Aan3AF12yFy8Ca43A3Zakr4UGF4rKFyYqFy5Xrn3Cw43
-	uF4kKa45uFWkZr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+X-CM-TRANSID:qwCowAAX7O9T4H1qDWZ5BQ--.56168S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7tryrZF1Dtry8tr1DJF13Jwb_yoW8Ary8pF
+	4Ut3sxArn7ta15Aw12kw45Zay5Zan3AF47C397J342kr9akw1UJF90yFyYqayUJrs7GrW3
+	CF4ktF95AF98Ar7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
 	9KBjDU0xBIdaVrnRJUUU9Y14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
 	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
 	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26F4j
@@ -64,66 +64,53 @@ X-Coremail-Antispam: 1UD129KBjvJXoW7CF45CF4xur1UurW5Zw4fZrb_yoW8ury5pF
 	nIWIevJa73UjIFyTuYvjfUoq2MUUUUU
 X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
 
-Interleave and flush subtables carry a fixed header followed by arrays
-whose element counts come from firmware. sizeof_idt() and sizeof_flush()
-derive the copy size from those counts but do not require the result to
-fit in the subtable's advertised length.
+A control region with no block windows may legally stop before the
+window-size fields, so sizeof_dcr() first reads the windows count from
+the shortened fixed portion. When the count is nonzero, however, the
+helper returns sizeof(*dcr) without checking that the advertised
+subtable contains the remaining fields.
 
-A short subtable with a large line_count or hint_count can consequently
-make add_idt() or add_flush() copy beyond the subtable. The outer NFIT
-extent check cannot catch this because the following subtable bytes are
-still inside the enclosing ACPI table.
+add_dcr() then copies that full size. A malformed subtable that ends
+immediately after a nonzero windows count can therefore make the copy
+read beyond the control region.
 
-Use struct_size() for both variable arrays and reject a derived size that
-exceeds the current subtable.
+Compute the required size from the windows count and require that size
+to fit in the advertised subtable before returning it.
 
 Fixes: b94d5230d06e ("libnvdimm, nfit: initial libnvdimm infrastructure and NFIT support")
 Assisted-by: Codex:gpt-5
 Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
 ---
- drivers/acpi/nfit/core.c | 18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ drivers/acpi/nfit/core.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index f68edfe64952..bf4ddc56494e 100644
+index bf4ddc56494e..84c70f1941c5 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -882,9 +882,16 @@ static bool add_bdw(struct acpi_nfit_desc *acpi_desc,
- 
- static size_t sizeof_idt(struct acpi_nfit_interleave *idt)
+@@ -817,12 +817,20 @@ EXPORT_SYMBOL_GPL(nfit_get_smbios_id);
+  */
+ static size_t sizeof_dcr(struct acpi_nfit_control_region *dcr)
  {
 +	size_t size;
 +
- 	if (idt->header.length < sizeof(*idt))
+ 	if (dcr->header.length < offsetof(struct acpi_nfit_control_region,
+ 				window_size))
  		return 0;
--	return sizeof(*idt) + sizeof(u32) * idt->line_count;
+ 	if (dcr->windows)
+-		return sizeof(*dcr);
+-	return offsetof(struct acpi_nfit_control_region, window_size);
++		size = sizeof(*dcr);
++	else
++		size = offsetof(struct acpi_nfit_control_region, window_size);
 +
-+	size = struct_size(idt, line_offset, idt->line_count);
-+	if (size > idt->header.length)
++	if (size > dcr->header.length)
 +		return 0;
 +
 +	return size;
  }
  
- static bool add_idt(struct acpi_nfit_desc *acpi_desc,
-@@ -921,9 +928,16 @@ static bool add_idt(struct acpi_nfit_desc *acpi_desc,
- 
- static size_t sizeof_flush(struct acpi_nfit_flush_address *flush)
- {
-+	size_t size;
-+
- 	if (flush->header.length < sizeof(*flush))
- 		return 0;
--	return struct_size(flush, hint_address, flush->hint_count);
-+
-+	size = struct_size(flush, hint_address, flush->hint_count);
-+	if (size > flush->header.length)
-+		return 0;
-+
-+	return size;
- }
- 
- static bool add_flush(struct acpi_nfit_desc *acpi_desc,
+ static bool add_dcr(struct acpi_nfit_desc *acpi_desc,
 -- 
 2.50.1 (Apple Git-155)
 
