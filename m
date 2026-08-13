@@ -1,71 +1,102 @@
-Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E92247AF6D;
-	Thu, 13 Aug 2026 13:47:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E8ED47CC67;
+	Thu, 13 Aug 2026 15:09:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786628828; cv=none; b=q3LuRNoyT5w5m0vcI4SjOljjdGwwKlHkQry9p5NTo9UlRUMJa5NYQSJWLH2kAJ/BeNpnEPnoDeOaZ8/SzyQ01kc7l1X3+Im/Y0zbumtYNaLvC6HAoMNimGhv+Js5Yr4wqk+tt+neYmW90Ao70gYEgdMgU8x7eKFseYpZOu4GC4o=
+	t=1786633800; cv=none; b=n2IBnuIWWQXog0cGEmHcPcSawBRz5wdHfuyHuBgDZb3MFOJYe7UoY0ORcNlBni+EivW7Gb7QsDygYSV+ZTgi7+0bpubfvWzd+LI58J1qIkiEuOdVwkBTBbWKjA63/3iXsalvrbG7L9lqXPmvguPXBca/qOExF4wkJLeM84kB+Q8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786628828; c=relaxed/simple;
-	bh=t4gwTXbKOa3d6d1IbiyhWTHm4k2wZ+WZSKUzzEMygzo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PDjboPcWPsSLExb0HoGfGOx59PXnGIVKoBM1fSA2WmZoJ5vzRExYfg4pNUv04AkgbHEUVZr73I5hFH8QyFo5aP4JlnhnBMNzSUmrb4QQb6fQEdSchyAfC1gVAFZpv8/CEU40QlnzQzmcOgKPGeDMmSaQfMlNVyL3QyZLOPO3qWY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=OOwWXTv/; arc=none smtp.client-ip=82.195.75.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debian.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="OOwWXTv/"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
-	s=smtpauto.stravinsky; h=X-Debian-User:In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=UDH74oYvqeDV9mh6r27tpGk1J6b++832lVnfnB6EKPQ=; b=OOwWXTv/j6LkNKfdMEy+Zdhvs3
-	f808oZkgok4FagaoUlT36dw8nE93HbnD0jpdN3ezHFD7KZnhUKmvmikhFR3lgTTko1864Fzy5OYLN
-	gzrNCasQNz9k1T7Nrt/n03HBh631ZKbI2wwG4O9OzakWXrMn8ic35CJr/whnnyAsCdX6tMhiigexc
-	ElYIrYAm8zOu+Tvc0zSdG3ud4jC4BO3iIaHV13O/scjBMNoSzldIZzW+fMOYxy6VB3njO/wIBYkvD
-	9kyZXfUPY9dpJR1Meh9JrI9YJr4GOP1p+i/xpSpnMC/Jcoh/FW03E2w11eDYxm48NwP3BRdi947k/
-	LDA1OH5g==;
-Received: from authenticated-user
-	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-	(Exim 4.96)
-	(envelope-from <leitao@debian.org>)
-	id 1wuVlo-0059Ui-1h;
-	Thu, 13 Aug 2026 13:46:56 +0000
-Date: Thu, 13 Aug 2026 06:46:51 -0700
-From: Breno Leitao <leitao@debian.org>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: Saket Dumbre <saket.dumbre@intel.com>, Len Brown <lenb@kernel.org>, 
-	Sudeep Holla <sudeep.holla@kernel.org>, Bob Moore <robert.moore@intel.com>, 
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, catalin.marinas@arm.com, kernel-team@meta.com
-Subject: Re: [PATCH] ACPICA: Fix memory leak at acpi_ds_create_field()
-Message-ID: <an3KsfqHv9GirRb7@gmail.com>
-References: <20260813-acpica-pcc-field-leak-v1-1-3d6c5f0eb557@debian.org>
- <CAJZ5v0isQYRN9aZCmWty-kZpjHvZWyJT2AnRXs9RDszy7b5TkA@mail.gmail.com>
+	s=arc-20240116; t=1786633800; c=relaxed/simple;
+	bh=4fTqmbW/Ir1kfvekNBcHHdO6gaMAAD/9ejt8y9ZjxnA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=FlRpL9Jrd66EJ8tLuJrre1c4Veb+vtpIQ3E/0Hd6tWQ8hTGLdvzboMCq2Z6+xDIqYhvcNu5bmlMTkkiYVnVp+U+I0gzbwcWXhoTdf531Gjp0dT1dJfXA1YN+pFBBJHedPqohV9DhTK3Ji2zbKEMrhncpzGOG/O+4J9XLxcWTsy0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
+Received: from localhost.localdomain (unknown [111.196.241.250])
+	by APP-01 (Coremail) with SMTP id qwCowAAn+u093n1qWAt5BQ--.55707S2;
+	Thu, 13 Aug 2026 23:09:50 +0800 (CST)
+From: Pengpeng Hou <pengpeng@iscas.ac.cn>
+To: Dan Williams <djbw@kernel.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Ira Weiny <iweiny@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Jeff Moyer <jmoyer@redhat.com>,
+	Ross Zwisler <zwisler@kernel.org>,
+	nvdimm@lists.linux.dev,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Pengpeng Hou <pengpeng@iscas.ac.cn>
+Subject: [PATCH v2 0/5] ACPI: NFIT: harden subtable extent validation
+Date: Thu, 13 Aug 2026 23:09:48 +0800
+Message-ID: <20260813150948.17239-1-pengpeng@iscas.ac.cn>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0isQYRN9aZCmWty-kZpjHvZWyJT2AnRXs9RDszy7b5TkA@mail.gmail.com>
-X-Debian-User: leitao
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:qwCowAAn+u093n1qWAt5BQ--.55707S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7Ary3tryUtF1rtFy8Gw48Zwb_yoW8AFy8pF
+	WrG343GF4kJF47A343Aa10qa45u395JFZxWasxG348Z3Wa9w18GFyIkFyjqFy7WryfG3Wa
+	9F4jvr97CFWDZ37anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUU9j14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+	1l84ACjcxK6xIIjxv20xvE14v26r1I6r4UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
+	6F4UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s
+	0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xII
+	jxv20xvE14v26r1Y6r17McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr
+	1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7M4IIrI8v6xkF7I0E8cxa
+	n2IY04v7MxkF7I0En4kS14v26r1q6r43MxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4
+	AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE
+	17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMI
+	IF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4l
+	IxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvf
+	C2KfnxnUUI43ZEXa7VUb_Ma5UUUUU==
+X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
 
-On Thu, Aug 13, 2026 at 03:39:37PM +0200, Rafael J. Wysocki (Intel) wrote:
-> > Do not allocate a region if it was previously allocated before,
-> > preserving the current design, but, not leaking memory.
-> >
-> > Fixes: 0acf24ad7e10 ("ACPICA: Add support for PCC Opregion special context data")
-> > Signed-off-by: Breno Leitao <leitao@debian.org>
-> 
-> As per Documentation/driver-api/acpi/linuxized-acpica.rst, please
-> submit a pull request with this change to the upstream ACPICA project
-> on GitHub.  The Linux patch will become applicable when there is a
-> corresponding commit upstream.
+NFIT parsing has several independent extent contracts: the outer table
+must contain each advertised subtable, and variable or versioned records
+must fit inside that subtable.  The original patch mixed those contracts
+and also derived the SPA structure length from the location-cookie-valid
+flag.
 
-Ack. I will do it. sorry for the noise.
+Split the checks by record type.  Patch 1 validates the generic subtable
+header and outer extent.  Patch 2 accepts both defined SPA layouts while
+treating the cookie flag as a validity bit, not a size selector.  Patches
+3 and 4 validate the variable arrays and the control-region extent.
+Patch 5 bounds the 32-bit capability mask without rejecting future
+firmware that advertises a higher capability index.
 
---breno
+Changes since v1:
+https://lore.kernel.org/all/20260722041701.21078-1-pengpeng@iscas.ac.cn/
+- split the generic and type-specific contracts into separate patches
+- handle both 56-byte and 64-byte SPA structures
+- add the control-region extent check identified during review
+- clamp the implemented capability mask instead of rejecting future bits
+- describe the exact fields protected by each check
+
+The series was reviewed statically against the current tree. I did not
+run an NFIT firmware fault-injection test.
+
+Pengpeng Hou (5):
+  ACPI: NFIT: validate subtable extents before dispatch
+  ACPI: NFIT: accept SPA structures with an unused location cookie
+  ACPI: NFIT: validate interleave and flush array extents
+  ACPI: NFIT: validate control region extent
+  ACPI: NFIT: bound the platform capability mask
+
+ drivers/acpi/nfit/core.c | 77 ++++++++++++++++++++++++++++++++--------
+ 1 file changed, 62 insertions(+), 15 deletions(-)
+
+base-commit: f5bbbfec59b4e2fb7520a91de3df8a6174325d6a
+
+-- 
+2.50.1 (Apple Git-155)
+
