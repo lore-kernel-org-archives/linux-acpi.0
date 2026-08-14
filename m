@@ -1,134 +1,91 @@
-Received: from ale.deltatee.com (ale.deltatee.com [204.191.154.188])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDDE335E944;
-	Fri, 14 Aug 2026 03:51:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=204.191.154.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE9F745C710;
+	Fri, 14 Aug 2026 09:29:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786679509; cv=none; b=YMbMKPPc8yzSZSkYc9k4roIrW6dZuqJZhhMas1fn596sh039lVIrYfEhgiCbMOzsKkuni51/y+2JuHx4IY49Vsl81GGadHX5K+w9L4UAEfdxCVuI/vDHPmMn/1pMUdwfBnxpkGGM7wvGwl/h3g2rqkloel9t3VD5jT+cttxmYnE=
+	t=1786699754; cv=none; b=iKp62/cFaJUZkr4RHRbs7MYdb7HCrNicWP7uwMwoTRre/adNks7Oy/u2eNN3eenLfRGw+2/JSuiiEDrs9SaxnkRxFz7uum79HTMZ1fvVOJj4gzzfwESfV6WFl2PENE+vhnrvulqoGp1CYSmoYzc9+wl5QRIPgecxtGECVr4SSbQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786679509; c=relaxed/simple;
-	bh=Qg+Ecx7NVsm+ljabb4vLMxPnowmdo0/TRRssY72JkJs=;
-	h=Message-ID:Date:MIME-Version:To:Cc:References:From:In-Reply-To:
-	 Content-Type:Subject; b=amCvNO2+y1HC9aZsLl0HNkSgb2JWVcGVRKHrPADE4WR4QZPNDRtvc5Sl48BxMx8IQLzu54JNiBNS+pEtgGuzYamz20kJVr80M+6G4sAOlOsvCueHsY2Ens9FjsAZHsmNYaiDf4V11toX3Xs+4lFmPgh2C8cuL0BUTLd4MID5WLA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com; spf=pass smtp.mailfrom=deltatee.com; dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b=dQ8rNrOs; arc=none smtp.client-ip=204.191.154.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=deltatee.com
+	s=arc-20240116; t=1786699754; c=relaxed/simple;
+	bh=sJeQZ2qyZfCTNWWiUNH1haMgVysRvCuni+YeTle1ix0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=DKMaA2CZDuYHoWXa66PxB5QmiY0bmJfaU2fdfGMvyUCkUV9ORCEtfkN+ak9rSGQMYYYVhvVqYbofuY8ysN9KelOuprZTFKneBgSnmYesNvLzVNG3XmJPC2KwJlWT51v7gRXGIy+LvQeMou5gW8ziKpMHBVp/CNPSJfMrvJwSZh0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=J4s7n65Z; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b="dQ8rNrOs"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=deltatee.com; s=20200525; h=Subject:In-Reply-To:From:References:Cc:To:
-	MIME-Version:Date:Message-ID:content-disposition;
-	bh=6GFa1C7gAI7sWCaZh4nkyxfa5WX3juo6z7eBpomHhtU=; b=dQ8rNrOsie+NPGcrV3FgZdgmVC
-	fnM148n+gAddDgoHD3FCFI33I5aSDzxPGmnsPXicEv0+tpo9yTBVzfdhdfGb0/u4G9EM7kTNFA5Ww
-	xvgaspsNf29bwXUQZ2Kp8T1QLSJLeMKE4lBEV7w97MLqWrjbxhZOiqLMt19srgSgNLbbq0lU5v09s
-	YGw4cSqHBIGZ06+hM7SToV38scDnp/XQyZHOf1md/OAZQuUO7XTYB2qt/icKcQ9Nnc8OT5sz2MDu2
-	fs4WQOsn52eT8DVnooTggdl1+7Fl6yhZh+Hw+qPTaea+NDS7s4JdRGQEO42fT73Km04l1B9bNiVpm
-	c06YU8mw==;
-Received: from [104.157.31.28] (helo=[192.168.1.251])
-	by ale.deltatee.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-	(Exim 4.98.2)
-	(envelope-from <logang@deltatee.com>)
-	id 1wuixO-00000002Yve-0ibj;
-	Thu, 13 Aug 2026 21:51:47 -0600
-Message-ID: <5e7eb09b-a47b-4cb5-8629-0ca5fa39f1f9@deltatee.com>
-Date: Thu, 13 Aug 2026 21:50:07 -0600
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="J4s7n65Z"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1786699752; x=1818235752;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=sJeQZ2qyZfCTNWWiUNH1haMgVysRvCuni+YeTle1ix0=;
+  b=J4s7n65ZiI81L2H62LQpxgI2RMVeN+mY+Qc2TkqbDygyPbOggV3jFVD8
+   m0jcQYeU9hFxrMW2ylnsjfFLgJkPwBkF/ddMkVHPqMJwb7GRXSSBrxmD3
+   mrCG8+BJEAPeNmnDW2CrnbTmhAa+MySyNzAX4eHHz9JUGY11CmMMlW3nd
+   li9/okAbvAAi5G30TaQaFaTGO3tjBw7NVGR5FfH9qqFGPNdDCsTLETdEu
+   GYnfn0dwJMvlQIny7qomOGJ37MsVnYqw63R5JsZMkyfKyGlb8U5zr80iC
+   FRfTP65mJgRWlZRw1aOpus7ZrHb6BfF/sjk9pEOlCNhtitK5mHX7lDDxf
+   A==;
+X-CSE-ConnectionGUID: cZtYLtOETnamdGKJiQ3Cpg==
+X-CSE-MsgGUID: qLAtqi4NROOvZW9JIQG99A==
+X-IronPort-AV: E=McAfee;i="6800,10657,11874"; a="104811649"
+X-IronPort-AV: E=Sophos;i="6.25,222,1779174000"; 
+   d="scan'208";a="104811649"
+Received: from orviesa002.jf.intel.com ([10.64.159.142])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Aug 2026 02:29:10 -0700
+X-CSE-ConnectionGUID: CQn/jN8BTOGXHguAmGlaVQ==
+X-CSE-MsgGUID: Gbl0fMm5S82Z82jKEm4UFw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,222,1779174000"; 
+   d="scan'208";a="294117337"
+Received: from mkosciow-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.134])
+  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Aug 2026 02:29:08 -0700
+Date: Fri, 14 Aug 2026 12:29:05 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Steffen Dirkwinkel <lists@steffen.cc>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jiri Slaby <jirislaby@kernel.org>,
+	Mario Limonciello <mario.limonciello@amd.com>,
+	Shyam Sundar S K <Shyam-sundar.S-k@amd.com>,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-serial@vger.kernel.org,
+	Steffen Dirkwinkel <s.dirkwinkel@beckhoff.com>
+Subject: Re: [PATCH] serial: 8250_dw: Add device HID for AMDI0021 AMD UART
+ controller
+Message-ID: <an7f4VJbgXDiDl7f@ashevche-desk.local>
+References: <20260813-b4-raven-ridge-uart-v1-1-fae442416ba1@beckhoff.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-To: Leon Romanovsky <leon@kernel.org>, "Rafael J. Wysocki"
- <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- Saket Dumbre <saket.dumbre@intel.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
- linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
- Lukas Wunner <lukas@wunner.de>, "Natu, Mahesh" <mahesh.natu@intel.com>
-References: <20260812-hmat-p2p-v1-0-75ac41380585@nvidia.com>
- <20260812-hmat-p2p-v1-4-75ac41380585@nvidia.com>
-Content-Language: en-CA
-From: Logan Gunthorpe <logang@deltatee.com>
-In-Reply-To: <20260812-hmat-p2p-v1-4-75ac41380585@nvidia.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-SA-Exim-Connect-IP: 104.157.31.28
-X-SA-Exim-Rcpt-To: leon@kernel.org, rafael@kernel.org, lenb@kernel.org, saket.dumbre@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, lukas@wunner.de, mahesh.natu@intel.com
-X-SA-Exim-Mail-From: logang@deltatee.com
-X-Spam-Level: 
-Subject: Re: [PATCH RFC 4/7] PCI/P2PDMA: Prefer providers with better HMAT
- performance
-X-SA-Exim-Version: 4.2.1 (built Sun, 23 Feb 2025 07:57:16 +0000)
-X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260813-b4-raven-ridge-uart-v1-1-fae442416ba1@beckhoff.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
+
+On Thu, Aug 13, 2026 at 08:37:05PM +0200, Steffen Dirkwinkel wrote:
+
+> This ID is found on AMD V1202B.
+> Like the AMDI0022 [1] this one works with the same match and the existing driver.
+> Tested with a loopback cable.
+
+> [1] commit 3c35d2a960c0 ("serial: 8250_dw: Add device HID for new AMD UART controller")
+
+You can also make it a proper Link tag
+
+Link: https://git.kernel.org/torvalds/c/3c35d2a960c0 [1]
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+
+-- 
+With Best Regards,
+Andy Shevchenko
 
 
-
-On 2026-08-12 1:47 p.m., Leon Romanovsky wrote:
-> @@ -820,21 +844,29 @@ static unsigned long map_types_idx(struct pci_dev *client)
->   * PCI_P2PDMA_MAP_THRU_HOST_BRIDGE. Otherwise, return
->   * PCI_P2PDMA_MAP_BUS_ADDR.
->   *
-> - * Any two devices that have a data path that goes through the host bridge
-> - * will consult a whitelist. If the host bridge is in the whitelist, return
-> - * PCI_P2PDMA_MAP_THRU_HOST_BRIDGE with the distance set to the number of
-> - * ports per above. If the device is not in the whitelist, return
-> - * PCI_P2PDMA_MAP_NOT_SUPPORTED.
-> + * Any two devices that have a data path through a host bridge require
-> + * platform support from the CPU, the host bridge whitelist, or a reachable
-> + * ordered HMAT path. Return PCI_P2PDMA_MAP_NOT_SUPPORTED when none of those
-> + * sources permits the path.
->   */
->  VISIBLE_IF_KUNIT enum pci_p2pdma_map_type
->  calc_map_type_and_dist(struct pci_dev *provider, struct pci_dev *client,
->  		int *dist, bool verbose)
-> +{
-> +	return __calc_map_type_and_dist(provider, client, dist, verbose, NULL);
-> +}
-
-This patch is a bit hard to follow compared to the earlier ones in this
-series.
-
-Why do we need to have a different variant of the function that excludes
-coord and is exported only for KUNIT? Why can't we just export the
-original function as is instead of creating the double underscore
-variant? Personally, I've been trying to avoid creating double
-underscore functions and naming functions more appropriately. But this
-one seems weird to me.
-
-Seems like some of these details would be better split into another
-patch justifying them as this change seems more like prep changes for
-the KUNIT work that follows instead of what the patch is meant to do:
-enabling the HMAT stuff.
-
-
-> @@ -941,12 +976,22 @@ calc_map_type_and_dist(struct pci_dev *provider, struct pci_dev *client,
->  	}
->  
->  map_through_host_bridge:
-> -	if (!cpu_supports_p2pdma() &&
-> -	    !host_bridge_hmat_p2p(provider, client) &&
-> -	    !host_bridge_whitelist(provider, client, verbose)) {
-> -		if (verbose)
-> +	host_bridge_allowed = cpu_supports_p2pdma() ||
-> +			      host_bridge_whitelist(provider, client,
-> +						    false);
-> +	/*
-> +	 * The coordinates are only used to rank providers, which happens in
-> +	 * process context. Skip the firmware lookup on the mapping path once
-> +	 * the CPU or the whitelist has already permitted the path.
-> +	 */
-
-This feels backwards to me. If ACPI is kind enough to include
-information on P2PDMA support then I feel like we should use it
-exclusively. Not prioritize the old janky whitelists.
-
---
-
-In general this series looks really nice. And I'm so glad someone is
-finally adding this stuff to ACPI so that we can move away from the
-annoying white list.
-
-Thanks,
-
-Logan
