@@ -1,74 +1,200 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 537B93314D2
-	for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2026 20:12:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39D663AE712
+	for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2026 20:16:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786738329; cv=none; b=HuHFF/BzBvAufFS6sVgcrYmWRqPiiN+cWTUUtzx/4f4txfTkNxEkdvAT1ZVYWU3dSWRGenbhjjjsH3EocSOyakEbsUyX9+hWicNetQLtAKco5EZ382tNqWokdqudqm9gO5ZshDEILUpTG//y+TslSDSuZIOTWgeqcAeCJDSTL7E=
+	t=1786738601; cv=none; b=ZPvB1t+TgUJmeJLKIc5XF/kb+AJpCszSvbmUJa4glhvAljSP7aNgq0H+JugubAOC7P0W5vJXhtkHpLUjswKLdqfr7VAwPSSfL1eEeFCokaO31dMnglTu3dvm+Z3t/zd4yJ/QN/kAUvoYs2IXlkM9ktYjdz1GtcpJMHLXSUYt4G0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786738329; c=relaxed/simple;
-	bh=UHJGAO5caGRcGvQXt1/8l2kXfks8BZV1e1Niz/GuoHI=;
+	s=arc-20240116; t=1786738601; c=relaxed/simple;
+	bh=hrNEUujtlwgp55tgVOQ65TaiYBA5wkhkwQF0qukjUv0=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ZR1+PZpYkeFPkhX3bSTlj+SnJC2fTPAoBysU0ho28eAsFdwd+QNXIW34rcxGNhtrBSk/XD7O0RFmbDTgr4a9k+35PhZxoTucw7rca41Xyheo/AFVemNvxGTQPPBOdJQF9/NTTcH5VlWDyINIwtZaWu3RgwpeTQu2JSH2ky6HHNk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PUpbJ+cb; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=WzCbSl6iZB3EU2FrwjHQubKExCH/pFFsFHeoOFR0t1dbpkH+MRWd2z7IN2G6JM0wtQjIrQtCbVJZ1NdspGsShzzvd8Iy91++IXtynZavbm+Nj05tNhi7sOSRuXatXz5FjiA56q8bwaQXWx97wICDq+A5kcZxAZBFGKla4fYsAGs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=inelM0p8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PUpbJ+cb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E6EE1F00AC4
-	for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2026 20:12:06 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="inelM0p8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCD711F000E9
+	for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2026 20:16:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786738326;
-	bh=UHJGAO5caGRcGvQXt1/8l2kXfks8BZV1e1Niz/GuoHI=;
+	s=k20260515; t=1786738599;
+	bh=CFpoGw8i1dQwGv9id0aSNKTDEhoVoO76p9O5fgfRVms=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=PUpbJ+cb/TsoHjKfXBv2DUZ14q8a0SQWmDQzSkEoO+fzbkdKNw9teK6UMV0sAfVke
-	 qolNJGlACm65y9qT/V859HJK/CrcLK//NYTN7adKF9vQl/Pej0gzW4aYGOFlPU5IoU
-	 JS0qY+/dFL+jrOPTgZ/tT377L0qHG/17Mj0A6qmJ+yusahhjSOH8IKR3mpP2O3t6Br
-	 0mtCWojKvf4jJle0iyTnWyjCziGyhmZBC1PPlAFWedNfSl5m4tAm0IC6sOOHGRCk1z
-	 J+e17q4AlpoR7u0foJPYbbrb4CToVS67p9xxwxv5rZgxbsKdRxD5nUd1cQN7so+VPs
-	 vYtXKoKLeTTPw==
-Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5aeba09900bso1073173e87.2
-        for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2026 13:12:05 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RroSI2kunRJftZ/rEpg5h8OJO55jS3KRC1KA/eoyOCaoIzkyenXQvGqtZqTcTxF9VDS/01l9RO3pCmx@vger.kernel.org
-X-Gm-Message-State: AOJu0YyIoshPTQD89LfIYjTQ6uWKifQyGPbzSs2R9XSXSt7tyyXb10i9
-	G2nbC/IdZIEermTz9XlkxI7rHq1wPLVBYPHhMEBJAs1lmNtkL48vjSnY4d8qu0mS0CK5Uj0OrAE
-	iXPTPBEatzH5FzStK6UyXii7ez1TA0BQ=
-X-Received: by 2002:a05:6512:1304:b0:5b2:a31c:378e with SMTP id
- 2adb3069b0e04-5b45919019emr1071334e87.52.1786738324476; Fri, 14 Aug 2026
- 13:12:04 -0700 (PDT)
+	b=inelM0p8cGFcxWQeqGhKcx8ukD87N/rxOvFgmSq73aP8uUL9Mn3gzupQ1DnjerMrQ
+	 AGxNOOpfmem8kjiVmsJ/sSl8NJM4RNj40EqvDJyMdsZqJapM8vTE7CVOia3Ou5ns24
+	 KOjtWuUIvqZwv1dMoSQCIstwVql7meNUziwdVYJIS9QQHWjYAnm+xZ+GQm4NKeLLKQ
+	 /eoEwpklfDwaHhf8eM0tOXlCm6gNVcW+ABbAyFhnFJLVG2cX5VNzFjYzho0SewIrL5
+	 8otbpExhE8213rYGuNJPhkF1JRiIqa/OyCPG6emqlfeVdvWSo+9TBUfGx+jFvl8XYd
+	 ptqcJ754bDTcA==
+Received: by mail-lf1-f47.google.com with SMTP id 2adb3069b0e04-5b0117d49dcso1301476e87.3
+        for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2026 13:16:39 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RpLn2y/B7o9OaFHT+4hC4yNRDHsDbyTE/JI0aOexRSUHr89RVgwLQetef2p29T+GuOkyrUkTk76qPkf@vger.kernel.org
+X-Gm-Message-State: AOJu0YzZ2DOddLoywPnrlKR9+DDooNLs1uaCmB6/uWzNlEt0YNcLpHrS
+	qQ/iA31d5NUSdapk0eR/l1/2dg/APLZKSontLWA05hcvOYj4w2ZxTi7Bx7EKr2KNGEaO+cYyaUG
+	385wpUXSdArs1cpQLjTlsS43Gwld7vUM=
+X-Received: by 2002:a05:6512:6681:20b0:5b2:158e:9918 with SMTP id
+ 2adb3069b0e04-5b45916e5f6mr843457e87.19.1786738598358; Fri, 14 Aug 2026
+ 13:16:38 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260722073031.1078080-1-clarke.li@hj-micro.com>
- <20260813063005.42925-1-clarke.li@hj-micro.com> <an1zzWb0mpm1huz_@ashevche-desk.local>
-In-Reply-To: <an1zzWb0mpm1huz_@ashevche-desk.local>
+References: <20260717161647.1493259-1-dave.jiang@intel.com>
+ <CAJZ5v0gLTkGLX_3PLBJYCfFS0_qFjHR+P4agvQQ-Usg4p5nUcA@mail.gmail.com> <983e48d0-b281-44dc-9ca6-4e1612319ce3@intel.com>
+In-Reply-To: <983e48d0-b281-44dc-9ca6-4e1612319ce3@intel.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 14 Aug 2026 22:11:40 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jMWgias-Xf8oArXtb9NUOhKw5GeM3y=y+Soym+oRx5ZQ@mail.gmail.com>
-X-Gm-Features: AUfX_mxGnMOIDgEpDrKV742_u8fA6qOAmED4ouBrNyj0ggkFTsHx6Gm8QOhmXOs
-Message-ID: <CAJZ5v0jMWgias-Xf8oArXtb9NUOhKw5GeM3y=y+Soym+oRx5ZQ@mail.gmail.com>
-Subject: Re: [PATCH v4 1/2] ACPI: APD: Convert fixed clock rates to use HZ_PER_MHZ
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "clarke.li" <clarke.li@hj-micro.com>
-Cc: Andi Shyti <andi.shyti@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, andy.xu@hj-micro.com, 
-	peter.du@hj-micro.com
+Date: Fri, 14 Aug 2026 22:16:13 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hSMLe-erYp7v+WiJi4_jgEwoNWowYKZ+i84P-KXvYNyQ@mail.gmail.com>
+X-Gm-Features: AUfX_mzN4EZG6yjV0P2n2KXtC_9eXXLZqCYHGC7LJFdeFbF0GreR0H3_0r66KAw
+Message-ID: <CAJZ5v0hSMLe-erYp7v+WiJi4_jgEwoNWowYKZ+i84P-KXvYNyQ@mail.gmail.com>
+Subject: Re: [PATCH v3 00/10] ACPI: APEI: GHES: Collection of fixes for issues
+ reported by sashiko
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-cxl@vger.kernel.org, tony.luck@intel.com, bp@alien8.de, 
+	guohanjun@huawei.com, mchehab@kernel.org, xueshuai@linux.alibaba.com, 
+	terry.bowman@amd.com, Ben Cheatham <benjamin.cheatham@amd.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Aug 13, 2026 at 9:35=E2=80=AFAM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
+On Tue, Jul 21, 2026 at 5:06=E2=80=AFPM Dave Jiang <dave.jiang@intel.com> w=
+rote:
 >
-> On Thu, Aug 13, 2026 at 02:30:04PM +0800, clarke.li wrote:
 >
-> > Use HZ_PER_MHZ multiplier for fixed_clk_rate values to
-> > improve readability.
 >
-> And actually increases robustness of the code as there is less chances
-> to miss a 0 or have an extra one.
+> On 7/21/26 4:33 AM, Rafael J. Wysocki (Intel) wrote:
+> > On Fri, Jul 17, 2026 at 6:16=E2=80=AFPM Dave Jiang <dave.jiang@intel.co=
+m> wrote:
+> >>
+> >> A collection of fixes for pre-existing issues reported by sashiko-bot =
+while
+> >> reviewing patches.
+> >>
+> >> The v1 posting fixed a first batch of these issues, and v2 grew the se=
+t as
+> >> sashiko-bot's review surfaced more problems in the same CPER/extlog pa=
+ths.
+> >> sashiko-bot's review of v2 flagged yet more of the same class of bug i=
+n
+> >> neighbouring code, so v3 adds those as well: an out-of-range section l=
+ength
+> >> that defeats cper_estatus_check(), the same unvalidated AER buffer han=
+dling
+> >> in ghes_handle_aer() that was already fixed for extlog, and an unbound=
+ed
+> >> walk of the extlog record.
+> >>
+> >> 1/10:  Bound the CXL event record copy to the firmware section length.
+> >> 2/10:  Reject CPER records with an out-of-range error_data_length.
+> >> 3/10:  Validate the CXL protocol error section length before the RAS c=
+ap copy.
+> >> 4/10:  Avoid populating software AER metadata from the raw hardware bu=
+ffer.
+> >> 5/10:  Validate the PCIe error section length before payload access.
+> >> 6/10:  Fix the CONFIG_ACPI_APEI_PCIEAER guard typo in extlog.c.
+> >> 7/10:  Defer CXL protocol error handling to avoid a lock inversion.
+> >> 8/10:  Validate the memory error section length before payload access.
+> >> 9/10:  Bound the AER info copy and sanitize software metadata in ghes.=
+c.
+> >> 10/10: Validate the extlog record length before walking sections.
+> >>
+> >> Note patch 2 touches drivers/firmware/efi/cper.c; it closes the length
+> >> validation hole at the shared choke point that the per-section guards =
+in the
+> >> rest of the series rely on.
+> >>
+> >> sashiko-bot's review of v2 also flagged a few related issues that are =
+not
+> >> addressed here because they live in other subsystems.
+> >>
+> >>   - cxl_cper_print_prot_err() in drivers/firmware/efi/cper_cxl.c uses =
+the
+> >>     firmware-controlled dvsec_len without bounding it against the sect=
+ion
+> >>     length.
+> >>   - cxl_rch_get_aer_info() in drivers/cxl/core/ras_rch.c reads the RCH=
+ AER
+> >>     capability from MMIO into a struct aer_capability_regs without cle=
+aring
+> >>     the software-only header_len/flit fields, the same class of issue =
+as
+> >>     patches 4 and 9.
+> >>
+> >> v1: https://lore.kernel.org/linux-cxl/20260709162807.1957783-1-dave.ji=
+ang@intel.com/
+> >> v2: https://lore.kernel.org/linux-cxl/20260714231835.303081-1-dave.jia=
+ng@intel.com/
+> >>
+> >> Changes since v2
+> >> ----------------
+> >> - Dropped the standalone spin_lock_irqsave() change; it is a separate =
+issue
+> >>   being handled by Terry Bowman.
+> >> - New patch 2: reject a section whose error_data_length is out of rang=
+e in
+> >>   cper_estatus_check(), closing the signed-int overflow that let a cra=
+fted
+> >>   section bypass the check and defeat the per-caller size guards (sash=
+iko).
+> >> - New patch 9: apply the same AER buffer sanitization to ghes_handle_a=
+er()
+> >>   that patch 4 applies to extlog (sashiko).
+> >> - New patch 10: bound the extlog record and run cper_estatus_check() b=
+efore
+> >>   walking its sections, which extlog did not do (sashiko).
+> >> - Patch 8: move the memory error length check into ghes_do_proc() so t=
+he
+> >>   report chain and arch reporter are covered too, and bound against th=
+e
+> >>   older UEFI 2.1/2.2 layout rather than the full struct (sashiko).
+> >> - Reordered so the extlog PCIe path is hardened, and the CXL protocol =
+error
+> >>   handling is deferred to the workqueue, before the typo fix that acti=
+vates
+> >>   that code.
+> >>
+> >> Changes since v1
+> >> ----------------
+> >> - See the v2 posting for the full v1 -> v2 changelog.
+> >>
+> >>
+> >> Dave Jiang (10):
+> >>   ACPI: APEI: GHES: Bound CXL event record copy to the firmware sectio=
+n
+> >>     length
+> >>   efi/cper: Reject CPER records with an out-of-range error_data_length
+> >>   ACPI: APEI: GHES: Validate CXL protocol error section length before
+> >>     RAS cap copy
+> >>   ACPI: extlog: Avoid populating software AER metadata from raw hardwa=
+re
+> >>     buffer
+> >>   ACPI: extlog: Validate PCIe error section length before payload acce=
+ss
+> >>   ACPI: extlog: Defer CXL protocol error handling to avoid lock
+> >>     inversion
+> >>   ACPI: extlog: Fix CONFIG_ACPI_APEI_PCIEAER guard typo
+> >>   ACPI: APEI: GHES: Validate memory error section length before payloa=
+d
+> >>     access
+> >>   ACPI: APEI: GHES: Bound AER info copy and sanitize software metadata
+> >>   ACPI: extlog: Validate elog record length before walking sections
+> >>
+> >>  drivers/acpi/acpi_extlog.c       | 47 ++++++++++++-------------
+> >>  drivers/acpi/apei/ghes.c         | 59 +++++++++++++++++++++++++------=
+-
+> >>  drivers/acpi/apei/ghes_helpers.c | 21 +++++++++++-
+> >>  drivers/firmware/efi/cper.c      | 10 ++++++
+> >>  include/acpi/ghes.h              |  4 +++
+> >>  include/cxl/event.h              |  4 +--
+> >>  6 files changed, 106 insertions(+), 39 deletions(-)
+> >
+> > All of this looks reasonable to me, but it really is material for Tony
+> > to look at.
 >
-> Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Thanks Rafael. I've asked Tony to take a look. Looks like he's on vacatio=
+n so hopefully soon.
 
-Applied along with the [2/2] as 7.3 material, thanks!
+After Shuai Xue's review this is good to go from my perspective, but
+please address the review feedback.
