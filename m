@@ -1,143 +1,193 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 907CB3314C3
-	for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2026 19:41:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29DD436D9EC
+	for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2026 19:57:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786736516; cv=none; b=IYL80nypjXxiOvknBHU7mDNmtZvTUFl0MJ1+jzMqdyP73plwT4Z0/LMItGn8WZvF1FGZaZYwUNu4AD1QxvSHpyVwZYekZVjaRK/fueaf4PXrxD5q5H4QAtyYUwjccCV60m1QtB6EY+4q4qQXLyypa0xNsS1pTR5eCPKI9BRSM0c=
+	t=1786737448; cv=none; b=ee7o6JeQIIArEv0GAClLdJsUqJOq17FlQp9dVHAEcnXc+vGnTdjJxp+PAK7Kh7eQfbJET2izQw6Zgm7TdcS7hj9sPwwADdNQpIEYyo/r0aNUjunUwFn3G7gxn1doILrs7bia5ngYc9XjPPGPS963adOzHZhEPr+na5ODdKe0sSM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786736516; c=relaxed/simple;
-	bh=XWCWKtvcQ7H51oZUBx/VGFGzk0o5hSILKUe2cVvoVzg=;
+	s=arc-20240116; t=1786737448; c=relaxed/simple;
+	bh=5KMSJOTgXjSvdTDyMgmTa2u7F8LvDZRqCU+YXS+jUhk=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=DRIm47Cpmptg7KXZfW+IneXEt4MhMIBwaJ3h97Qoq1hA2/s9xWgUtZnGT7RaNT8TAZKXriky7NUwnXTxfBvkAaPcG8DJz6Z4LhwLdDFwDnhuIX2rFklzf0hchRxZvrkeH9P4p9+f/N3Tw3TXLGqkLSOuVC1YLjfLdBkDFHSD7ng=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EJWmHSGb; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=IyjNuXSISN/1/Lo3WADccg+aHEBiN1b5q/B7G72dIvC9J6VOI1mKMk1y/cJoUKEKhVVldfHydhNa+0socGhKKCl9/orhGfBDsEF83Fp3GpzEEuABC0eZbT6OfmWqgsdd+E3FCXsAwpktwzn7feu3EPm7TkdMzNMQpDgaCe7GrBQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XwgVhsl3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EJWmHSGb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4289B1F00A3E
-	for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2026 19:41:54 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XwgVhsl3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10E1D1F00A3A
+	for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2026 19:57:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1786736514;
-	bh=FFtU03ISaHPPtUc1ysEOBT/IWGeKZlGHUseUe6jrEFI=;
+	s=k20260515; t=1786737447;
+	bh=PswRQ3VybxKVhQl5sV/6OBfdiyOWqcU1+y/a2m04DP4=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=EJWmHSGbvNcUQynzOVnMcrlDaYqfyD6AaF9YWn9x5bCbQ1cBmr0C7r9VYQOTJN+mj
-	 kB9HrIVI211T2ilu9LwumwuQI7J3fsUniAz4EFoOnnjjPf/v81dMH/IbAbKDSfy4h2
-	 pPqTA108cM8jPeE6yl0YhXDLKBru99hgEWwfKYlDFmJ4T+mGWG6EBGrNZ2tPBK+3et
-	 lKfcLf3/L8Yjic0Vw25U4rKJ/q63U/4pzChctPNCpxUjF79Hfhgoa3n7FZcIUAP8Ir
-	 5lp/19jIQBguv3DRVwR6dlGPzT0BaKrPJmyyHRG2e7/AR1GPB4Hgpn80u4eJ3b9Fjm
-	 O1PmmEur8ZZ5g==
-Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-5aeb98460c6so1142120e87.2
-        for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2026 12:41:54 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RpGhyBEf4FQN8GCVZVjMEZdO/lXfi9FhNLJpVgNi1PeqlBk13r29IbECOooaWPrIGytxBd6SxLmKNrr@vger.kernel.org
-X-Gm-Message-State: AOJu0YyBnaGTVLvuMbLvGEqVZOCku2Va3BUER1UjRDxXwovIoBOO1AT5
-	yspPMLW0eT+wJ0tgpou4x4Cwn9GSk95UU0e0wIkSzVbmYA4AaAeHtCZYvgFJ6Z3IuH9v9WjADfG
-	FdQiuTeFvihpgs30k1YI2MzC+4r8fNzU=
-X-Received: by 2002:ac2:4c50:0:b0:5b2:a6e6:8d83 with SMTP id
- 2adb3069b0e04-5b45916c878mr1505863e87.23.1786736512705; Fri, 14 Aug 2026
- 12:41:52 -0700 (PDT)
+	b=XwgVhsl3qmR2M5YC/LPx6K9M7TEgCaWqEhCP3v8sblzdQpD/L4IZI+85RHD7AuH++
+	 uro5ji5gjswK6paOQbNu4MH/ickJEvBYaFoOkeFa6jV4O4NjyzOO6B5sXRrNaQ4hGG
+	 y+mll0X2xEJJrEiWGuRPYcpDv7HseOjI+xDEkhWwxMJayDebTwkv5BH0hW3ZmFzG0F
+	 pDYYNttPS81VZcJIKp37ZtBceFJ0ncyRkIkKGB4ISHuZSF4GAhhfIaZ9azmX2oEKrJ
+	 v2pELflRpWigQVuWLJTA7O+We1CTD/UPx31JCEWyEAPF0257scptyJyw33lnlavUJR
+	 yoCjdHW2J12mw==
+Received: by mail-lj1-f171.google.com with SMTP id 38308e7fff4ca-39c9bb9d2fbso11012811fa.2
+        for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2026 12:57:26 -0700 (PDT)
+X-Gm-Message-State: AOJu0Yx+aWqVCVEyl0m/ahS0GjGbzw3Abx1UgcG5nUpkuH28CT4ja0vr
+	uP52wmlrvsM9PvRa5ZikcVI1fzRNuXEIaWYGmjFTeRgANdT498Old2VyZW6gf7GL+81mp9CXw9c
+	CDdbDminN+5zdrHorYKG2RY6wteAEAdE=
+X-Received: by 2002:a2e:be9b:0:b0:39b:4371:dbe6 with SMTP id
+ 38308e7fff4ca-3a13249eb07mr8571421fa.16.1786737445353; Fri, 14 Aug 2026
+ 12:57:25 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260804154854.1555-1-getshell@seu.edu.cn> <20260808085943.526-1-getshell@seu.edu.cn>
-In-Reply-To: <20260808085943.526-1-getshell@seu.edu.cn>
+References: <19fdcf5017a.193154c01134335.5292960934110253862@a0rg.com>
+In-Reply-To: <19fdcf5017a.193154c01134335.5292960934110253862@a0rg.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 14 Aug 2026 21:41:29 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0i05zUkpz01nTAh0R_rha7fqfhH1gWDpKFzmfZczHyHXw@mail.gmail.com>
-X-Gm-Features: AUfX_mx4a3kQs3InYd2T6kxlvUy2XDwYYc7Jc4FPrVDZG2r8XUgJxZ15C1KiqdI
-Message-ID: <CAJZ5v0i05zUkpz01nTAh0R_rha7fqfhH1gWDpKFzmfZczHyHXw@mail.gmail.com>
-Subject: Re: [PATCH v2] ACPI: scan: fix bus ID cleanup on device_add() failure
-To: Hongyan Xu <getshell@seu.edu.cn>
-Cc: rafael@kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	jianhao.xu@seu.edu.cn
+Date: Fri, 14 Aug 2026 21:57:01 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jWzfWV1y_i0kpPd0VbvGdmTrR00=nQgO-RJWYUrZRrXQ@mail.gmail.com>
+X-Gm-Features: AUfX_mzSme_BIDTClW9sTfH29rgeGIuaAsyB-dRVMgHwZoZdsPQchkOu7RKr2kU
+Message-ID: <CAJZ5v0jWzfWV1y_i0kpPd0VbvGdmTrR00=nQgO-RJWYUrZRrXQ@mail.gmail.com>
+Subject: Re: [PATCH v3] ACPI: pfr_update: fix stack buffer overflow in query_capability()
+To: Anirudh Prasad <icarus@a0rg.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, rafaeljwysocki <rafael.j.wysocki@intel.com>, 
+	linux-kernel <linux-kernel@vger.kernel.org>, stable <stable@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Aug 8, 2026 at 10:59=E2=80=AFAM Hongyan Xu <getshell@seu.edu.cn> wr=
-ote:
+On Fri, Aug 7, 2026 at 6:01=E2=80=AFPM Anirudh Prasad <icarus@a0rg.com> wro=
+te:
 >
-> When device_add() fails after acpi_device_set_name() has allocated an
-> instance ID and linked a new acpi_device_bus_id into acpi_bus_id_list, th=
-e
-> rollback path only removes wakeup_list and detaches the ACPI handle data.
+> query_capability() copies four ACPI buffer objects returned by the
+> firmware _DSM into fixed-size u8[16] fields in struct
+> pfru_update_cap_info using memcpy with the firmware-supplied length:
 >
-> That leaves the bus-ID bookkeeping behind and keeps the allocated instanc=
-e
-> number consumed.
+>   memcpy(&cap_hdr->code_type,
+>          elements[CAP_CODE_TYPE_IDX].buffer.pointer,
+>          elements[CAP_CODE_TYPE_IDX].buffer.length);
 >
-> Move the bus-ID cleanup and wakeup-list removal into a single helper.
-> Use it from both the normal device teardown path and the device_add()
-> rollback path. The wakeup list node is initialized before registration, s=
-o
-> it can be deleted without checking whether the device is wakeup-capable, =
-as
-> in the original teardown path.
+> The same pattern repeats for drv_type, platform_id, and oem_id.
+> If the firmware returns buffer.length > 16 for any of these fields,
+> memcpy writes past the destination array.
 >
-> Found by manual review of reports from the
-> kernel70rc2-fail11-retry-20260801 run.
+> struct pfru_update_cap_info is stack-allocated in pfru_ioctl().
+> Confirmed with KASAN on 7.2-rc6: three stack-out-of-bounds reports
+> are generated when a DSM returns 64-byte buffers, with writes reaching
+> 44 bytes past the end of cap_hdr's [64, 156) frame window into
+> adjacent stack redzones.
 >
-> Signed-off-by: Hongyan Xu <getshell@seu.edu.cn>
-
-Applied (with some non-essential modifications) as 7.3 material, thanks!
-
+> Introduce a helper pointer to out_obj->package.elements and use it
+> to validate each buffer length against its destination field size
+> before copying, returning -EINVAL if the firmware supplies an
+> oversized buffer.
+>
+> Fixes: 0db89fa243e5 ("ACPI: Introduce Platform Firmware Runtime Update de=
+vice driver")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Anirudh Prasad <icarus@a0rg.com>
 > ---
-> v2:
-> - Fold the bus-ID cleanup and wakeup-list removal into one helper to avoi=
-d
->   duplicating the same sequence in acpi_device_del() and the device_add()
->   rollback path.
-> - Drop the wakeup.flags.valid check before list_del(&device->wakeup_list)=
-.
+>  drivers/acpi/pfr_update.c | 47 ++++++++++++++++++++++-----------------
+>  1 file changed, 26 insertions(+), 21 deletions(-)
 >
-> v1: https://lore.kernel.org/linux-acpi/20260804154854.1555-1-getshell@seu=
-.edu.cn/
->
->  drivers/acpi/scan.c | 13 +++++++++----
->  1 file changed, 9 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index ff7000b71fd1..a311af60d8d3 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -520,12 +520,10 @@ static void acpi_device_release(struct device *dev)
->         kfree(acpi_dev);
->  }
->
-> -static void acpi_device_del(struct acpi_device *device)
-> +static void acpi_device_del_list(struct acpi_device *device)
+> diff --git a/drivers/acpi/pfr_update.c b/drivers/acpi/pfr_update.c
+> index 6283105bb0e8..79cedd4cf2a2 100644
+> --- a/drivers/acpi/pfr_update.c
+> +++ b/drivers/acpi/pfr_update.c
+> @@ -120,7 +120,7 @@ static int query_capability(struct pfru_update_cap_in=
+fo *cap_hdr,
+>                             struct pfru_device *pfru_dev)
 >  {
->         struct acpi_device_bus_id *acpi_device_bus_id;
+>         acpi_handle handle =3D ACPI_HANDLE(pfru_dev->parent_dev);
+> -       union acpi_object *out_obj;
+> +       union acpi_object *out_obj, *elem;
+>         int ret =3D -EINVAL;
 >
-> -       mutex_lock(&acpi_device_lock);
-> -
->         list_for_each_entry(acpi_device_bus_id, &acpi_bus_id_list, node)
->                 if (!strcmp(acpi_device_bus_id->bus_id,
->                             acpi_device_hid(device))) {
-> @@ -540,6 +538,13 @@ static void acpi_device_del(struct acpi_device *devi=
-ce)
->                 }
+>         out_obj =3D acpi_evaluate_dsm_typed(handle, &pfru_guid,
+> @@ -150,7 +150,9 @@ static int query_capability(struct pfru_update_cap_in=
+fo *cap_hdr,
+>                 goto free_acpi_buffer;
+>         }
 >
->         list_del(&device->wakeup_list);
-> +}
+> -       cap_hdr->status =3D out_obj->package.elements[CAP_STATUS_IDX].int=
+eger.value;
+> +       elem =3D out_obj->package.elements;
 > +
-> +static void acpi_device_del(struct acpi_device *device)
-> +{
-> +       mutex_lock(&acpi_device_lock);
+> +       cap_hdr->status =3D elem[CAP_STATUS_IDX].integer.value;
+>         if (cap_hdr->status !=3D DSM_SUCCEED) {
+>                 ret =3D -EBUSY;
+>                 dev_dbg(pfru_dev->parent_dev, "Query cap Error Status:%d\=
+n",
+> @@ -158,29 +160,32 @@ static int query_capability(struct pfru_update_cap_=
+info *cap_hdr,
+>                 goto free_acpi_buffer;
+>         }
+>
+> -       cap_hdr->update_cap =3D out_obj->package.elements[CAP_UPDATE_IDX]=
+.integer.value;
+> +       if (elem[CAP_CODE_TYPE_IDX].buffer.length > sizeof(cap_hdr->code_=
+type) ||
+> +           elem[CAP_DRV_TYPE_IDX].buffer.length > sizeof(cap_hdr->drv_ty=
+pe) ||
+> +           elem[CAP_PLAT_ID_IDX].buffer.length > sizeof(cap_hdr->platfor=
+m_id) ||
+> +           elem[CAP_OEM_ID_IDX].buffer.length > sizeof(cap_hdr->oem_id))=
+ {
+> +               ret =3D -EINVAL;
+
+ret is equal to -EINVAL already at this point if I'm not mistaken, so
+no need to set it again to the same value.
+
+> +               goto free_acpi_buffer;
+> +       }
 > +
-> +       acpi_device_del_list(device);
+> +       cap_hdr->update_cap =3D elem[CAP_UPDATE_IDX].integer.value;
+>         memcpy(&cap_hdr->code_type,
+> -              out_obj->package.elements[CAP_CODE_TYPE_IDX].buffer.pointe=
+r,
+> -              out_obj->package.elements[CAP_CODE_TYPE_IDX].buffer.length=
+);
+> -       cap_hdr->fw_version =3D
+> -               out_obj->package.elements[CAP_FW_VER_IDX].integer.value;
+> -       cap_hdr->code_rt_version =3D
+> -               out_obj->package.elements[CAP_CODE_RT_VER_IDX].integer.va=
+lue;
+> +              elem[CAP_CODE_TYPE_IDX].buffer.pointer,
+> +              elem[CAP_CODE_TYPE_IDX].buffer.length);
+> +       cap_hdr->fw_version =3D elem[CAP_FW_VER_IDX].integer.value;
+> +       cap_hdr->code_rt_version =3D elem[CAP_CODE_RT_VER_IDX].integer.va=
+lue;
+>         memcpy(&cap_hdr->drv_type,
+> -              out_obj->package.elements[CAP_DRV_TYPE_IDX].buffer.pointer=
+,
+> -              out_obj->package.elements[CAP_DRV_TYPE_IDX].buffer.length)=
+;
+> -       cap_hdr->drv_rt_version =3D
+> -               out_obj->package.elements[CAP_DRV_RT_VER_IDX].integer.val=
+ue;
+> -       cap_hdr->drv_svn =3D
+> -               out_obj->package.elements[CAP_DRV_SVN_IDX].integer.value;
+> +              elem[CAP_DRV_TYPE_IDX].buffer.pointer,
+> +              elem[CAP_DRV_TYPE_IDX].buffer.length);
+> +       cap_hdr->drv_rt_version =3D elem[CAP_DRV_RT_VER_IDX].integer.valu=
+e;
+> +       cap_hdr->drv_svn =3D elem[CAP_DRV_SVN_IDX].integer.value;
+>         memcpy(&cap_hdr->platform_id,
+> -              out_obj->package.elements[CAP_PLAT_ID_IDX].buffer.pointer,
+> -              out_obj->package.elements[CAP_PLAT_ID_IDX].buffer.length);
+> +              elem[CAP_PLAT_ID_IDX].buffer.pointer,
+> +              elem[CAP_PLAT_ID_IDX].buffer.length);
+>         memcpy(&cap_hdr->oem_id,
+> -              out_obj->package.elements[CAP_OEM_ID_IDX].buffer.pointer,
+> -              out_obj->package.elements[CAP_OEM_ID_IDX].buffer.length);
+> -       cap_hdr->oem_info_len =3D
+> -               out_obj->package.elements[CAP_OEM_INFO_IDX].buffer.length=
+;
+> +              elem[CAP_OEM_ID_IDX].buffer.pointer,
+> +              elem[CAP_OEM_ID_IDX].buffer.length);
+> +       cap_hdr->oem_info_len =3D elem[CAP_OEM_INFO_IDX].buffer.length;
 >
->         mutex_unlock(&acpi_device_lock);
+>         ret =3D 0;
 >
-> @@ -800,7 +805,7 @@ int acpi_device_add(struct acpi_device *device)
->  err:
->         mutex_lock(&acpi_device_lock);
->
-> -       list_del(&device->wakeup_list);
-> +       acpi_device_del_list(device);
->
->  err_unlock:
->         mutex_unlock(&acpi_device_lock);
 > --
-> 2.50.1.windows.1
+> 2.55.0
+>
+>
