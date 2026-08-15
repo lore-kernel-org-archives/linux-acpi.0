@@ -1,22 +1,22 @@
 Received: from cstnet.cn (smtp25.cstnet.cn [159.226.251.25])
 	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6322B2AEF5;
-	Sat, 15 Aug 2026 13:41:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC6BD30B53F;
+	Sat, 15 Aug 2026 13:43:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.25
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786801315; cv=none; b=bS5NIWbPTqp6FKbc+vUZ6p4wgwTSQoCf1hfiarS7qEQHSfn2CF/69XfqdmVF85+Muo6nIUpvXD415RlxqvW4FodncV+imH2yv28I9ee9GA13zJJcxE1vqXov0IJvX0kSCy1h+Csl5Ar6FpbbROJBlLzqQtRcfOvPhIEgXgx+ENw=
+	t=1786801419; cv=none; b=lNWb1/LnpLtBQ2mH8bPG2Ac3+g7nmrcJEN12qPuDK8+610k9ZYdcDMFGU1dT5rupoeoX/E4UfCLwtlomBURGRgopoQrxdX059hQhrjzk8o4GPNeTHr/8PKRSaNzltExJd6As+HwllOIIS88BXhD15aUGwwIU+8FOgt4bYsSqR28=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786801315; c=relaxed/simple;
-	bh=Spb0yFbCsRs1KFeQlzLfscL2M91Gzn6RIxmeoa04nVw=;
+	s=arc-20240116; t=1786801419; c=relaxed/simple;
+	bh=VccHjzo70kJs/g+yi3EenvdlombykYNLBtnsCvK+IPs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jHfAqNKnxlFZz8va/MlyhpQhrLeXhEQsBa4EwGGs35hix1yNWwETV8sMB2olP6n4e5bsfm95kdFyAiTZKXXTdt7osGuooJIVhuT15RWI6f3778x+IlTPR2KkyTxU/RB4aJydNIyqgTV4vu+RdPBXTDx4OqCsy5RYk8ujSQRNulE=
+	 MIME-Version; b=DVh5R6aQ+Tdqt50mNnyi/AipDTkYaJflvrMQd/zyS33Pt+SzxrXvojZ2EGtNsp/+vCS1O2cannnigEpxRcAOagVkRXOEU0a3qIxHxnEP8ycTxY4RxbT3r4y9HhreOo2Y5SbcTeKJrYm1SDWogmlaG7IDstX1bDn2o69ECEbSo7c=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.25
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
 Received: from localhost.localdomain (unknown [111.196.241.250])
-	by APP-05 (Coremail) with SMTP id zQCowAB3qEKZbIBq9TnRBQ--.19027S2;
-	Sat, 15 Aug 2026 21:41:45 +0800 (CST)
+	by APP-05 (Coremail) with SMTP id zQCowAC35kABbYBqpkTRBQ--.31847S2;
+	Sat, 15 Aug 2026 21:43:30 +0800 (CST)
 From: Pengpeng Hou <pengpeng@iscas.ac.cn>
 To: rafael@kernel.org
 Cc: Pengpeng Hou <pengpeng@iscas.ac.cn>,
@@ -30,9 +30,9 @@ Cc: Pengpeng Hou <pengpeng@iscas.ac.cn>,
 	Morduan Zang <zhangdandan@uniontech.com>,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 1/2] efi/cper: validate ARM context headers before reading their size
-Date: Sat, 15 Aug 2026 21:41:45 +0800
-Message-ID: <20260815134145.44465-1-pengpeng@iscas.ac.cn>
+Subject: [PATCH v2 2/2] efi/cper: bound IA32/X64 processor record walks
+Date: Sat, 15 Aug 2026 21:43:29 +0800
+Message-ID: <20260815134329.46057-1-pengpeng@iscas.ac.cn>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20260815133837.42466-1-pengpeng@iscas.ac.cn>
 References: <20260815133837.42466-1-pengpeng@iscas.ac.cn>
@@ -43,10 +43,10 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:zQCowAB3qEKZbIBq9TnRBQ--.19027S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxWr1UCw13KFW8Kw1rCr4rZrb_yoWrZw1fp3
-	W3Kw17Jr4UKw1fGwn7ArWUZr9xK393AF4UJ3srAryxCwn3A3WkWFZ8KFWq9rnxGr18GrWa
-	qF4DtFy5GFykAF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+X-CM-TRANSID:zQCowAC35kABbYBqpkTRBQ--.31847S2
+X-Coremail-Antispam: 1UD129KBjvJXoW3JFykKrW5Zw1rGF1Utw4fXwb_yoW7WFWrpa
+	1akF17Jw4DKw1rJwnayr4UZas8K395ZFWUK3srZw1xuwnxAa4kJFs8KrWI9343GryxXr1a
+	qa1Dta98GFykAF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
 	9KBjDU0xBIdaVrnRJUUU9Y14x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
 	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
 	1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
@@ -62,121 +62,155 @@ X-Coremail-Antispam: 1UD129KBjvJXoWxWr1UCw13KFW8Kw1rCr4rZrb_yoWrZw1fp3
 	nIWIevJa73UjIFyTuYvjfUoWlkDUUUU
 X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
 
-ARM processor CPER sections contain a fixed header, a fixed-size
-error-information array and variable-size context records.  The parser
-derives the remaining byte count in int after subtracting
-firmware-controlled unsigned values, then reads ctx_info->size before
-proving that a complete context header remains.
+IA32/X64 processor CPER sections encode fixed error-info and variable
+context record counts in validation_bits.  cper_print_proc_ia() receives
+only a pointer, so a truncated section can make either loop dereference a
+missing header or dump a register array beyond the section.
 
-Keep the remaining extent in size_t.  Validate the section header and
-error-information count before advancing, then require each context
-header, payload and 16-byte-aligned record to fit before it is read or
-consumed.
+Pass the section length to the printer and track the unconsumed bytes after
+the fixed processor header.  Require every fixed record, variable payload
+and aligned context extent to fit before reading it.
 
-Fixes: c6d8c8ef1d0d ("efi: Move ARM CPER code to new file")
+Fixes: f9e1bdb9f35f ("efi: Decode IA32/X64 Processor Error Section")
 
 Assisted-by: Codex:gpt-5
 Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
 ---
- drivers/firmware/efi/cper-arm.c | 53 ++++++++++++++++++++++++++-------
- 1 file changed, 42 insertions(+), 11 deletions(-)
+ drivers/firmware/efi/cper-x86.c | 51 +++++++++++++++++++++++++++++++++++++--
+ drivers/firmware/efi/cper.c     |  3 ++-
+ include/linux/cper.h            |  3 ++-
+ 3 files changed, 52 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/firmware/efi/cper-arm.c b/drivers/firmware/efi/cper-arm.c
-index b21cb1232d82..e2f973d7a4a4 100644
---- a/drivers/firmware/efi/cper-arm.c
-+++ b/drivers/firmware/efi/cper-arm.c
-@@ -229,26 +229,39 @@ void cper_print_proc_arm(const char *pfx,
- 			 const struct cper_sec_proc_arm *proc,
- 			 u32 length)
- {
--	int i, len, max_ctx_type;
-+	int i, max_ctx_type;
- 	struct cper_arm_err_info *err_info;
- 	struct cper_arm_ctx_info *ctx_info;
- 	char newpfx[64], infopfx[ARRAY_SIZE(newpfx) + 1];
- 	char error_type[120];
-+	size_t len;
+diff --git a/drivers/firmware/efi/cper-x86.c b/drivers/firmware/efi/cper-x86.c
+index 3949d7b5e808..fd0e84cf836f 100644
+--- a/drivers/firmware/efi/cper-x86.c
++++ b/drivers/firmware/efi/cper-x86.c
+@@ -2,6 +2,7 @@
+ // Copyright (C) 2018, Advanced Micro Devices, Inc.
  
--	printk("%sMIDR: 0x%016llx\n", pfx, proc->midr);
+ #include <linux/cper.h>
++#include <linux/limits.h>
+ #include <linux/acpi.h>
+ 
+ /*
+@@ -254,14 +254,24 @@ static void print_err_info(const char *pfx, u8 err_type, u64 check)
+ 	}
+ }
+ 
+-void cper_print_proc_ia(const char *pfx, const struct cper_sec_proc_ia *proc)
++void cper_print_proc_ia(const char *pfx, const struct cper_sec_proc_ia *proc,
++			u32 length)
+ {
+ 	int i;
+ 	struct cper_ia_err_info *err_info;
+ 	struct cper_ia_proc_ctx *ctx_info;
+ 	char newpfx[64], infopfx[64];
++	size_t len;
+ 	u8 err_type;
+ 
 +	if (length < sizeof(*proc)) {
 +		printk("%ssection length is too small\n", pfx);
 +		printk("%sfirmware-generated error record is incorrect\n", pfx);
 +		return;
 +	}
- 
--	len = proc->section_length - (sizeof(*proc) +
--		proc->err_info_num * (sizeof(*err_info)));
-+	printk("%sMIDR: 0x%016llx\n", pfx, proc->midr);
- 
--	if (len < 0 || proc->section_length > length) {
--		printk("%ssection length: %d, CPER size: %d\n",
-+	if (proc->section_length < sizeof(*proc) ||
-+	    proc->section_length > length) {
-+		printk("%ssection length: %u, CPER size: %u\n",
- 		       pfx, proc->section_length, length);
- 		printk("%ssection length is too %s\n", pfx,
--		       (len < 0) ? "small" : "big");
-+		       proc->section_length < sizeof(*proc) ? "small" : "big");
-+		printk("%sfirmware-generated error record is incorrect\n", pfx);
-+		return;
-+	}
 +
-+	len = proc->section_length - sizeof(*proc);
-+	if (proc->err_info_num > len / sizeof(*err_info)) {
-+		printk("%ssection length is too small\n", pfx);
- 		printk("%sfirmware-generated error record is incorrect\n", pfx);
- 		printk("%sERR_INFO_NUM is %d\n", pfx, proc->err_info_num);
- 		return;
++	len = length - sizeof(*proc);
++
+ 	if (proc->validation_bits & VALID_LAPIC_ID)
+ 		printk("%sLocal APIC_ID: 0x%llx\n", pfx, proc->lapic_id);
+ 
+@@ -275,6 +285,12 @@ void cper_print_proc_ia(const char *pfx, const struct cper_sec_proc_ia *proc)
+ 
+ 	err_info = (struct cper_ia_err_info *)(proc + 1);
+ 	for (i = 0; i < VALID_PROC_ERR_INFO_NUM(proc->validation_bits); i++) {
++		if (len < sizeof(*err_info)) {
++			printk("%ssection length is too small\n", newpfx);
++			printk("%sfirmware-generated error record is incorrect\n", pfx);
++			return;
++		}
++
+ 		printk("%sError Information Structure %d:\n", pfx, i);
+ 
+ 		err_type = cper_get_err_type(&err_info->err_type);
+@@ -321,13 +337,40 @@ void cper_print_proc_ia(const char *pfx, const struct cper_sec_proc_ia *proc)
+ 		}
+ 
+ 		err_info++;
++		len -= sizeof(*err_info);
  	}
-+	len -= proc->err_info_num * sizeof(*err_info);
  
- 	if (proc->validation_bits & CPER_ARM_VALID_MPIDR)
- 		printk("%sMultiprocessor Affinity Register (MPIDR): 0x%016llx\n",
-@@ -313,10 +326,28 @@ void cper_print_proc_arm(const char *pfx,
- 	ctx_info = (struct cper_arm_ctx_info *)err_info;
- 	max_ctx_type = ARRAY_SIZE(arm_reg_ctx_strs) - 1;
- 	for (i = 0; i < proc->context_info_num; i++) {
--		int size = ALIGN(sizeof(*ctx_info) + ctx_info->size, 16);
+ 	ctx_info = (struct cper_ia_proc_ctx *)err_info;
+ 	for (i = 0; i < VALID_PROC_CXT_INFO_NUM(proc->validation_bits); i++) {
+-		int size = ALIGN(sizeof(*ctx_info) + ctx_info->reg_arr_size, 16);
 +		size_t size;
+ 		int groupsize = 4;
  
- 		printk("%sContext info structure %d:\n", pfx, i);
--		if (len < size) {
 +		if (len < sizeof(*ctx_info)) {
 +			printk("%ssection length is too small\n", newpfx);
 +			printk("%sfirmware-generated error record is incorrect\n", pfx);
 +			return;
 +		}
-+		if (ctx_info->size > len - sizeof(*ctx_info)) {
++
++		if (ctx_info->reg_arr_size > len - sizeof(*ctx_info)) {
 +			printk("%ssection length is too small\n", newpfx);
 +			printk("%sfirmware-generated error record is incorrect\n", pfx);
 +			return;
 +		}
 +
-+		size = sizeof(*ctx_info) + ctx_info->size;
++		size = sizeof(*ctx_info) + ctx_info->reg_arr_size;
 +		if (size > SIZE_MAX - 15) {
-+			printk("%scontext record size is too big\n", newpfx);
++			printk("%ssection length is too large\n", newpfx);
 +			printk("%sfirmware-generated error record is incorrect\n", pfx);
 +			return;
 +		}
++
 +		size = ALIGN(size, 16);
 +		if (size > len) {
- 			printk("%ssection length is too small\n", newpfx);
- 			printk("%sfirmware-generated error record is incorrect\n", pfx);
- 			return;
-@@ -331,11 +362,11 @@ void cper_print_proc_arm(const char *pfx,
- 		print_hex_dump(newpfx, "", DUMP_PREFIX_OFFSET, 16, 4,
- 				(ctx_info + 1), ctx_info->size, 0);
- 		len -= size;
--		ctx_info = (struct cper_arm_ctx_info *)((long)ctx_info + size);
-+		ctx_info = (struct cper_arm_ctx_info *)((u8 *)ctx_info + size);
- 	}
++			printk("%ssection length is too small\n", newpfx);
++			printk("%sfirmware-generated error record is incorrect\n", pfx);
++			return;
++		}
++
+ 		printk("%sContext Information Structure %d:\n", pfx, i);
  
- 	if (len > 0) {
--		printk("%sVendor specific error info has %u bytes:\n", pfx,
-+		printk("%sVendor specific error info has %zu bytes:\n", pfx,
- 		       len);
- 		print_hex_dump(newpfx, "", DUMP_PREFIX_OFFSET, 16, 4, ctx_info,
- 				len, true);
+ 		printk("%sRegister Context Type: %s\n", newpfx,
+@@ -356,6 +399,7 @@ void cper_print_proc_ia(const char *pfx, const struct cper_sec_proc_ia *proc)
+ 				       ctx_info->reg_arr_size, 0);
+ 		}
+ 
+-		ctx_info = (struct cper_ia_proc_ctx *)((long)ctx_info + size);
++		ctx_info = (struct cper_ia_proc_ctx *)((u8 *)ctx_info + size);
++		len -= size;
+ 	}
+ }
+diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
+index 06b4fdb59917..87e65377a15d 100644
+--- a/drivers/firmware/efi/cper.c
++++ b/drivers/firmware/efi/cper.c
+@@ -675,7 +675,8 @@ cper_estatus_print_section(const char *pfx, struct acpi_hest_generic_data *gdata
+ 
+ 		printk("%ssection_type: IA32/X64 processor error\n", newpfx);
+ 		if (gdata->error_data_length >= sizeof(*ia_err))
+-			cper_print_proc_ia(newpfx, ia_err);
++			cper_print_proc_ia(newpfx, ia_err,
++					   gdata->error_data_length);
+ 		else
+ 			goto err_section_too_small;
+ #endif
+diff --git a/include/linux/cper.h b/include/linux/cper.h
+index 440b35e459e5..a2fa9376f6c0 100644
+--- a/include/linux/cper.h
++++ b/include/linux/cper.h
+@@ -598,7 +598,8 @@ void cper_print_proc_arm(const char *pfx,
+ 			 const struct cper_sec_proc_arm *proc,
+ 			 u32 length);
+ void cper_print_proc_ia(const char *pfx,
+-			const struct cper_sec_proc_ia *proc);
++			const struct cper_sec_proc_ia *proc,
++			u32 length);
+ int cper_mem_err_location(struct cper_mem_err_compact *mem, char *msg);
+ int cper_dimm_err_location(struct cper_mem_err_compact *mem, char *msg);
+ 
 -- 
 2.50.1 (Apple Git-155)
 
