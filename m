@@ -1,312 +1,170 @@
-Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E648D255F2C
-	for <linux-acpi@vger.kernel.org>; Mon, 17 Aug 2026 05:02:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.221.42
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1786942956; cv=pass; b=N+KST2OTE/fL9tFJr6O3EKUx5xSQNuKBhsX1yyEx9I5GZVeKzvve0O2C+UknuW/Xpprr3rWF2jc24CJ+1lZ2/BLGRLK3QWBDUhmh+RgKyYTnGMQquG9Tq/mR0RUtBhhkJrD1+CkOMvOblXdWzY4Ft9cdCyMObXnw/ic5AsqQCZM=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1786942956; c=relaxed/simple;
-	bh=/vnlXw1vg51WClqglYSoXDRtRgD3/bNrYVr/0IH3+kY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=rg3admtmd19B6c2YzYLvC+21RKbGF3J+WXfo3xtDTvceTkmFPXwKRo6aKhG5ptsibMhkoiOQWr3ylse46yTeHFhSiHTjaGRpNoYNc7lOhFPsKFq2lHzkJ1Un3QPHZg9QgxRHfVckUmma2F5req+ir6iQTH1BrGZGD+yol694N00=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brainfault.org; spf=none smtp.mailfrom=brainfault.org; dkim=pass (2048-bit key) header.d=brainfault.org header.i=@brainfault.org header.b=IDXII/hI; arc=pass smtp.client-ip=209.85.221.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brainfault.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=brainfault.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44F4418DB1F;
+	Mon, 17 Aug 2026 06:35:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1786948518; cv=none; b=JJiX17bw9X3CG1KKksNynJeby0i8uN8svdOSWAId8QIhI9TxOHePz/I9hjQjSgs7SkwbDYkRf3FRDnSFEaqqMhwriXsAUnibaIc4gGNjMj78T3lxlMgLKKb90MjRvzvT+5y76Pjd7AiaC+0UtmqSABUbLmuM7lL4g4E2eCEeYL0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1786948518; c=relaxed/simple;
+	bh=OHb/Ukkl5wYeXcU02S+w/kjomGU6EOUWgSlaJ0dzaLA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gxTToffa/+GnD3RPjl4Rqip1hbCpKThnYg7W8TR835C/zsG7rm3qVQHVN/0DbKh0h5qBNY3ym/mWH8c/DShlBNQUGJdFDuC3ZHsB3Unq+/cVUsHVDcIpsuIaPKHbwkXgo+BdJuwauij4SVYbU5BrVWQD6CBbq9RQbhKavYk6xds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Gt80AMwm; arc=none smtp.client-ip=192.198.163.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=brainfault.org header.i=@brainfault.org header.b="IDXII/hI"
-Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-4798bea72f9so1847794f8f.1
-        for <linux-acpi@vger.kernel.org>; Sun, 16 Aug 2026 22:02:34 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1786942953; cv=none;
-        d=google.com; s=arc-20260327;
-        b=aQbnmAuOE84HoQiaus8RF4AaN0y420HryekJOh7hHG7McO+IuTU2QGfHS3shr8KBan
-         JirjZiOP05l/Y76wXiyHGJwIuwOYjNgt5TSncOhuhZLK+l2nQQ0q+Dx4oD54yTyMqurC
-         BoUA9S5Ze8gxxxHupRCOfitAL5J8GxyRA1Y+vUy6XUYfyMLD7Yfoe3NCwDx8LyXEGWd9
-         V9s3qGcfDFHMwTNA7SRaFUQKLrXtvX4+DcVvkwKwhbkhJNiQI2UH6WqkpSQU23eGxUlr
-         c9pXbuIoJ5da/scGj2A++b5eUNt+FW20er9WpID3xgx1sXpyGVCkatddXFOHR9NUdXWH
-         j3hA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=qoYi18RDSR4LawRHK5O3loQLaPLqT9tLcA3hUir4WQY=;
-        fh=fEqQJaOa+By7/jrNapAmsSelxuU/ITWBZ78qowWjkx0=;
-        b=X8JZjlO/MtiZOcjYkbmMbokiM5+tLKi/4+UqYdTEkiRdDVpWNrejJYxaAKXbibu6fL
-         0RerEdEzlhLmi5qzmhpfSzAvUXtc2R62skWmWe6iJkE2ZNuye5yIKKQQW9ggAyLqNipW
-         r4c5FMz6+fuDm2aQaejJ2VmiIQeYabYfrBUGAaDh7fwqc3yEXEj6UuPcCLtEhv1KW6ZL
-         YQUgSf71/fcvOEgh1AaLrL7ZPA89sFRWtgrqLBS2/kgw7ZJ0mW/vSu3Y2pxpSpWXEDJD
-         Tyj5YubZZKmx00FDzQXuQI78Zp7SqL+IfIgFqDGsvGyBtclrG6pw0UDklubzgMA9zq1w
-         Q7OA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=brainfault.org; s=google; t=1786942953; x=1787547753; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=qoYi18RDSR4LawRHK5O3loQLaPLqT9tLcA3hUir4WQY=;
-        b=IDXII/hIrYYNBEUqAQ2HC0Sbt6lU1ITMF0ql3R60uq1nSjPl7hmz20sUPdyfLWeiLn
-         ga5t0BXPdBLBbOZGwK0mCGzgFKlq53rPIH3PCZe42gAjWRaTFSCJsVKy20+Q/QCOIfDa
-         v2AMV4efAPXN1kno3XC3lVW1XPifC4sSDMc1GcXC0G41IEwZMY2azfyuFWi4MABKWVV9
-         YkCWkq9z3YGnb3qa4ch41VHOMO5EuY+h/Vd9k/cwf/NKpV22ry5QFS6lMJiltBrCnNp8
-         Cq0W6tC6oSp709e9/hRzZr161A+Qd4InYbkuXr7RFXN6BUaed/WeJRfJLz1+yFK/uCav
-         6YTg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1786942953; x=1787547753;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=qoYi18RDSR4LawRHK5O3loQLaPLqT9tLcA3hUir4WQY=;
-        b=E1jw0hwzVqHIMlh+rjHNGEDFcsGtYOiITpWDEQwqlpPvd5PBlVCNaCSQOMEfMvnT4d
-         pgTT/+PITAVXMdivv93ONAf+DzKku46wPxCPpqslgtqxWPiHPgJKTRGK/bKELQ5ncaCO
-         SYAhUNjWN4lTXsoliDUXiU/uzAotIEApKYGAQG9r5timHr1gzT7iLnlmz2FMpEwUHu+f
-         oGnEDp3rGQHZfBt65q7jEjX5tII885uu2hTsYmr4E3i6129uiaqho8XGzg2Zh80sJiuq
-         6iYQX0Ba3fdfFlmoS9iEdy84De/U2S0IOfokmJ1Yt1aFnPKEokm+9VipVjNjDGcQweZh
-         WqGw==
-X-Forwarded-Encrypted: i=1; AHgh+RobraOdc3rwIYZuOIOP/8k/uB1IFGKE/svLQY7SEG/35nNUw9lxu1TlNWdl3xql+BCnYkky24c8gSrb@vger.kernel.org
-X-Gm-Message-State: AOJu0YwU6Gdco59ilypWXGNU6J4Kh+ZXZrXAy3tEpWzKH4UNHRoG2LNC
-	2xpGr+ItKJ52yH8hor9vwo72EJ0881giEC8uiYj10QUcnIFNaiDjZORkMAHawg/VMuhOonpGYZZ
-	5wNQESjTDcQssNPHTbivUJcqW6apvIsEgkhQYr/xs/g==
-X-Gm-Gg: AR+sD10fdUT3lfBiSk/pFHmhuW/CLbfkieos1dTN7ErLQpl7uzeg1naTLvKx9FdoR6F
-	HEof9n0Z4I+hcFy2pw2wMq7NU0EByfaamPe8lCJIwfvmZsIXCd8yB6cE0ukz4LbJFfFN9WvS0eM
-	E8Wxc8mhT5eXJF3C2xA5r16Q05klS62vkItIGaeOQTD3t+2i8EWoobxxzqAtua6n+Zxs0EE4MzC
-	R295x/Jt2jOCjuvYwWlEDnpmtTENXZG3y0RluDkwZGl1+Vj4uaZ95l6qVm+XqEa8zBFrJJsI5fn
-	YIZiSWnKqJxNOePcw561Dm0SrSVLZQ82cpY5K5ksVuIXx9jRTgBoCrUHgHChpzZ2RI1NKL54I7D
-	bOvlDVBoXjLcTV6to0MhC1BFgszY+mRTRckHs4b/zW3nFZvZjaaYZ/dNO5YYbqJg=
-X-Received: by 2002:a05:6000:2588:b0:47f:97f6:d39a with SMTP id
- ffacd0b85a97d-48160799ccemr36697191f8f.17.1786942952631; Sun, 16 Aug 2026
- 22:02:32 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Gt80AMwm"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1786948517; x=1818484517;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=OHb/Ukkl5wYeXcU02S+w/kjomGU6EOUWgSlaJ0dzaLA=;
+  b=Gt80AMwm3dRhwyIlWYe0uwLEBO0GF+ShUN4MLS1uMPOellMpIRM5ZUSI
+   BxHMi+3EFTyGFQ5p1OU1hLrD1xb7k4LNMERy7XBDuFAmryqvzwqA4K29a
+   n5yvb+vtE6EUj5h+IXabgkLqIdkxH/HH2S9VFu5mrfZGaJkBI5jEUegEV
+   kqvFOrYFSwv6MRcFkQwbMiKOjB/tFhC9Km2buQPGP/JltwmjC3nBn139f
+   +oxzFwfU/vkaJWPWlc+4WL3/uXT7Z4Oi+M8u2RWOK0dwsFQ9EU9cbUfDD
+   EEnzYT0PW1YnSou8X++QcnrYgl5PvpVAQVTYQmkK64ZXG7jx2vs9m+IYO
+   Q==;
+X-CSE-ConnectionGUID: bPZdBcAzTtW+ZqWAkUxZqQ==
+X-CSE-MsgGUID: gDw6KLBASFmqNheIplwzFw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11877"; a="98780143"
+X-IronPort-AV: E=Sophos;i="6.25,228,1779174000"; 
+   d="scan'208";a="98780143"
+Received: from orviesa007.jf.intel.com ([10.64.159.147])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2026 23:35:15 -0700
+X-CSE-ConnectionGUID: IhYXXzm8SKWwRseS0Ppuig==
+X-CSE-MsgGUID: LS7+ULQkQqmleKkMf5wgXA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,228,1779174000"; 
+   d="scan'208";a="264865206"
+Received: from klitkey1-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.67])
+  by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2026 23:35:07 -0700
+Date: Mon, 17 Aug 2026 09:35:05 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Manivannan Sadhasivam <mani@kernel.org>
+Cc: Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	manivannan.sadhasivam@oss.qualcomm.com,
+	Rob Herring <robh@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jiri Slaby <jirislaby@kernel.org>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Nicolas Schier <nicolas.schier@linux.dev>,
+	Hans de Goede <hansg@kernel.org>,
+	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Mark Pearson <mpearson-lenovo@squebb.ca>,
+	"Derek J. Clark" <derekjohn.clark@gmail.com>,
+	Conor Dooley <conor+dt@kernel.org>,
+	Marcel Holtmann <marcel@holtmann.org>,
+	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
+	Bartosz Golaszewski <brgl@bgdev.pl>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>, linux-serial@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org,
+	platform-driver-x86@vger.kernel.org, linux-pci@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, linux-pm@vger.kernel.org,
+	Stephan Gerhold <stephan.gerhold@linaro.org>,
+	Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>,
+	linux-acpi@vger.kernel.org, Sui Jingfeng <sui.jingfeng@linux.dev>
+Subject: Re: [PATCH v3 03/14] software node: Implement device_get_match_data
+ fwnode callback
+Message-ID: <aoKrmZzmYsyvRJ-5@ashevche-desk.local>
+References: <20260110-pci-m2-e-v3-0-4faee7d0d5ae@oss.qualcomm.com>
+ <20260110-pci-m2-e-v3-3-4faee7d0d5ae@oss.qualcomm.com>
+ <aWSpFk9z0zpyKjr6@smile.fi.intel.com>
+ <6l3rs5pv6xnrbygpvqrdxqoqtybjyefsltk5bl4336q56rfoza@ejo3sxuufghe>
+ <aWSwgRiEkT9unYw9@smile.fi.intel.com>
+ <6peb6afhpm4l7opxbdt3b5sx32longevwds5c3dlqji2hr5dlh@kxuvj55jkqgi>
+ <ljqd5ovcsg7t62tdzd77w5mv5buawm3x7xyapy7n7l7azcaorh@tytj46t2lxyb>
+ <ks2nm67zp5i2grzomu7mjb7uhkuwtd7w5stoqp5kri2clpxpsp@ayn42h7meh5l>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260513084325.2176952-1-himanshu.chauhan@oss.qualcomm.com> <20260513084325.2176952-9-himanshu.chauhan@oss.qualcomm.com>
-In-Reply-To: <20260513084325.2176952-9-himanshu.chauhan@oss.qualcomm.com>
-From: Anup Patel <anup@brainfault.org>
-Date: Mon, 17 Aug 2026 10:32:21 +0530
-X-Gm-Features: AcwNN1WIHMlsMJLB7hUwYKC927a3ggaJ6kZFcGlSqz813vIhEHmZTD8KTFxo-cU
-Message-ID: <CAAhSdy2LkwC_FBFWP3M66X-mY8WwpSHiOCOKf=e4Fri=gkt27Q@mail.gmail.com>
-Subject: Re: [PATCH v4 08/10] riscv: Introduce HEST SSE notification handlers
-To: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
-Cc: linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, 
-	acpica-devel@lists.linux.dev, paul.walmsley@sifive.com, palmer@dabbelt.com, 
-	lenb@kernel.org, james.morse@arm.com, tony.luck@intel.com, ardb@kernel.org, 
-	conor@kernel.org, cleger@rivosinc.com, robert.moore@intel.com, 
-	sunilvl@oss.qualcomm.com, anup.patel@oss.qualcomm.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ks2nm67zp5i2grzomu7mjb7uhkuwtd7w5stoqp5kri2clpxpsp@ayn42h7meh5l>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Wed, May 13, 2026 at 2:18=E2=80=AFPM Himanshu Chauhan
-<himanshu.chauhan@oss.qualcomm.com> wrote:
->
-> Add config option to enable SSE in APEI. When it is enabled, functions
-> to register/unregister a ghes entry with SSE are avilable along with
-> low and high priority event handers. If a SSE notification type is
-> determined, a ghes common handler to handle an error event is registered.
->
-> Signed-off-by: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
-> ---
->  drivers/acpi/apei/Kconfig |  5 ++
->  drivers/acpi/apei/ghes.c  | 99 ++++++++++++++++++++++++++++++++++-----
->  2 files changed, 93 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
-> index 428458c623f0..895a843d0e36 100644
-> --- a/drivers/acpi/apei/Kconfig
-> +++ b/drivers/acpi/apei/Kconfig
-> @@ -46,6 +46,11 @@ config ACPI_APEI_SEA
->         depends on ARM64 && ACPI_APEI_GHES
->         default y
->
-> +config ACPI_APEI_SSE
-> +       bool
-> +       depends on RISCV && RISCV_SBI_SSE && ACPI_APEI_GHES
-> +       default y
-> +
->  config ACPI_APEI_MEMORY_FAILURE
->         bool "APEI memory error recovering support"
->         depends on ACPI_APEI && MEMORY_FAILURE
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 8edc2c8db1bb..1baa8ddd10ea 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -17,6 +17,8 @@
->   *   Author: Huang Ying <ying.huang@intel.com>
->   */
->
-> +#include <linux/err.h>
-> +#include <linux/riscv_sbi_sse.h>
->  #include <linux/arm_sdei.h>
->  #include <linux/kernel.h>
->  #include <linux/moduleparam.h>
-> @@ -100,6 +102,11 @@
->  #define FIX_APEI_GHES_SDEI_CRITICAL    __end_of_fixed_addresses
->  #endif
->
-> +#ifndef CONFIG_RISCV_SBI_SSE
-> +#define FIX_APEI_GHES_SSE_LOW_PRIORITY __end_of_fixed_addresses
-> +#define FIX_APEI_GHES_SSE_HIGH_PRIORITY        __end_of_fixed_addresses
-> +#endif
-> +
->  static ATOMIC_NOTIFIER_HEAD(ghes_report_chain);
->
->  static inline bool is_hest_type_generic_v2(struct ghes *ghes)
-> @@ -1662,6 +1669,63 @@ static int apei_sdei_unregister_ghes(struct ghes *=
-ghes)
->         return sdei_unregister_ghes(ghes);
->  }
->
-> +#if defined(CONFIG_ACPI_APEI_SSE)
-> +/* SSE Handlers */
-> +static int __ghes_sse_callback(struct ghes *ghes,
-> +                              enum fixed_addresses fixmap_idx)
-> +{
-> +       if (!ghes_in_nmi_queue_one_entry(ghes, fixmap_idx)) {
-> +               irq_work_queue(&ghes_proc_irq_work);
-> +
-> +               return 0;
-> +       }
-> +
-> +       return -ENOENT;
-> +}
-> +
-> +/* Low priority */
-> +static int ghes_sse_lo_callback(u32 event_num, void *arg, struct pt_regs=
- *regs)
-> +{
-> +       static DEFINE_RAW_SPINLOCK(ghes_notify_lock_sse_lo);
-> +       struct ghes *ghes =3D arg;
-> +       int err;
-> +
-> +       raw_spin_lock(&ghes_notify_lock_sse_lo);
-> +       err =3D __ghes_sse_callback(ghes, FIX_APEI_GHES_SSE_LOW_PRIORITY)=
-;
-> +       raw_spin_unlock(&ghes_notify_lock_sse_lo);
-> +
-> +       return err;
-> +}
-> +
-> +/* High priority */
-> +static int ghes_sse_hi_callback(u32 event_num, void *arg, struct pt_regs=
- *regs)
-> +{
-> +       static DEFINE_RAW_SPINLOCK(ghes_notify_lock_sse_hi);
-> +       struct ghes *ghes =3D arg;
-> +       int err;
-> +
-> +       raw_spin_lock(&ghes_notify_lock_sse_hi);
-> +       err =3D __ghes_sse_callback(ghes, FIX_APEI_GHES_SSE_HIGH_PRIORITY=
-);
-> +       raw_spin_unlock(&ghes_notify_lock_sse_hi);
-> +
-> +       return err;
-> +}
-> +
-> +static int apei_sse_register_ghes(struct ghes *ghes)
-> +{
-> +       return sse_register_ghes(ghes, ghes_sse_lo_callback,
-> +                                ghes_sse_hi_callback);
-> +}
-> +
-> +static int apei_sse_unregister_ghes(struct ghes *ghes)
-> +{
-> +       return sse_unregister_ghes(ghes);
-> +}
-> +#else /* CONFIG_ACPI_APEI_SSE */
-> +static int apei_sse_register_ghes(struct ghes *ghes) { return -EOPNOTSUP=
-P; }
-> +static int apei_sse_unregister_ghes(struct ghes *ghes) { return -EOPNOTS=
-UPP; }
-> +#endif
-> +
->  static int ghes_probe(struct platform_device *ghes_dev)
->  {
->         struct acpi_hest_generic *generic;
-> @@ -1708,6 +1772,14 @@ static int ghes_probe(struct platform_device *ghes=
-_dev)
->                 pr_warn(GHES_PFX "Generic hardware error source: %d notif=
-ied via local interrupt is not supported!\n",
->                         generic->header.source_id);
->                 goto err;
-> +       case ACPI_HEST_NOTIFY_SSE:
-> +               if (!IS_ENABLED(CONFIG_ACPI_APEI_SSE)) {
-> +                       pr_warn(GHES_PFX "Generic hardware error source: =
-%d notified via SSE is not supported\n",
-> +                               generic->header.source_id);
-> +                       rc =3D -EOPNOTSUPP;
-> +                       goto err;
-> +               }
-> +               break;
->         default:
->                 pr_warn(FW_WARN GHES_PFX "Unknown notification type: %u f=
-or generic hardware error source: %d\n",
->                         generic->notify.type, generic->header.source_id);
-> @@ -1775,6 +1847,17 @@ static int ghes_probe(struct platform_device *ghes=
-_dev)
->                 if (rc)
->                         goto err;
->                 break;
-> +
-> +       case ACPI_HEST_NOTIFY_SSE:
-> +               rc =3D apei_sse_register_ghes(ghes);
-> +               if (rc) {
-> +                       pr_err(GHES_PFX "Failed to register for SSE notif=
-ication on vector %d\n",
-> +                              generic->notify.vector);
-> +                       goto err;
-> +               }
-> +               pr_err(GHES_PFX "Registered SSE notification on vector %d=
-\n",
-> +                      generic->notify.vector);
+On Fri, Aug 14, 2026 at 02:49:31PM +0200, Manivannan Sadhasivam wrote:
+> On Mon, Jan 12, 2026 at 10:01:23PM +0530, Manivannan Sadhasivam wrote:
+> > On Mon, Jan 12, 2026 at 02:32:21PM +0530, Manivannan Sadhasivam wrote:
+> > > On Mon, Jan 12, 2026 at 10:27:45AM +0200, Andy Shevchenko wrote:
+> > > > On Mon, Jan 12, 2026 at 01:49:54PM +0530, Manivannan Sadhasivam wrote:
+> > > > > + Dmitry Torokhov (who was against this patch previously)
+> > > > > 
+> > > > > On Mon, Jan 12, 2026 at 09:56:06AM +0200, Andy Shevchenko wrote:
+> > > > > > On Sat, Jan 10, 2026 at 12:26:21PM +0530, Manivannan Sadhasivam via B4 Relay wrote:
+> > > > > > 
+> > > > > > > Because the software node backend of the fwnode API framework lacks an
+> > > > > > > implementation for the .device_get_match_data function callback.
+> > > > > > 
+> > > > > > Maybe this is done on purpose. Have you thought about this aspect?
+> > > > > 
+> > > > > IMO, software nodes were introduced to add sub-properties to the existing
+> > > > > firmware nodes, but it has usecase/potential to go beyond that. More below.
+> > > > 
+> > > > Potential doesn't mean the necessity.
+> > > > 
+> > > > > > > This makes it difficult to use(and/or test) a few drivers that originates
+> > > > > > > from DT world on the non-DT platform.
+> > > > > > 
+> > > > > > How difficult? DSA implementation went to the way of taking DT overlay
+> > > > > > approach. Why that one can't be applied here?
+> > > > > 
+> > > > > Sometimes you do not have any DT node at all.
+> > > > 
+> > > > Yes, that is exactly the case I have referred to. The PCI core (in Linux)
+> > > > is able to create DT subtree on non-OF based platforms.
+> > > > 
+> > > 
+> > > Maybe I should look into creating dynamic DT node for the device and insert it
+> > > to the uart node. Theoretically it should work.
+> > > 
+> > 
+> > It worked flawlessly. So I sent v4 incorporating this design:
+> > https://lore.kernel.org/linux-pci/20260112-pci-m2-e-v4-0-eff84d2c6d26@oss.qualcomm.com/
+> > 
+> 
+> Andy, I had to revive this old thread of a merged series as Krzk is not in
+> favour of adding DT overlay or dynamic OF nodes for these BT devices [1]. His
+> objections are due to the fact that we are just adding BT nodes of a
+> discoverable device (M.2 PCIe device) without any resources. So the node just
+> contains the compatible to match with the serdev driver and nothing else.
+> 
+> And he suggested to use swnodes or other similar mechanisms to plug with the
+> serdev driver as that's the only thing we want here, not a true hardware
+> description.
 
-This needs to be pr_info() instead of pr_err().
+SW nodes are not for describing HW from scratch. They are for fixing missing
+pieces. If you can justify your case as a missing piece for the *existing*
+device (which is enumerated using standard mechanisms), you can add a property
+that fills the gap.
 
-> +               break;
->         default:
->                 BUG();
->         }
-> @@ -1804,7 +1887,6 @@ static int ghes_probe(struct platform_device *ghes_=
-dev)
->
->  static void ghes_remove(struct platform_device *ghes_dev)
->  {
-> -       int rc;
->         struct ghes *ghes;
->         struct acpi_hest_generic *generic;
->
-> @@ -1838,16 +1920,11 @@ static void ghes_remove(struct platform_device *g=
-hes_dev)
->                 ghes_nmi_remove(ghes);
->                 break;
->         case ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED:
-> -               rc =3D apei_sdei_unregister_ghes(ghes);
-> -               if (rc) {
-> -                       /*
-> -                        * Returning early results in a resource leak, bu=
-t we're
-> -                        * only here if stopping the hardware failed.
-> -                        */
-> -                       dev_err(&ghes_dev->dev, "Failed to unregister ghe=
-s (%pe)\n",
-> -                               ERR_PTR(rc));
-> -                       return;
-> -               }
-> +               apei_sdei_unregister_ghes(ghes);
-> +               break;
-> +
-> +       case ACPI_HEST_NOTIFY_SSE:
-> +               apei_sse_unregister_ghes(ghes);
->                 break;
->         default:
->                 BUG();
-> --
-> 2.43.0
->
->
+Unfortunately I see that there are `PROPERTY_ENTRY_STRING("compatible", ...)`
+cases in the kernel (only 9 drivers so far), and I can't say if they describing
+missing pieces or a SW-made descriptions of the hardware. For the latter the
+DT/ACPI/other means but swnodes should be used.
 
-Regards,
-Anup
+> Since you strongly objected the swnode approach in this series, I wanted to hear
+> your opinion before I rework the code.
+
+> [1] https://lore.kernel.org/linux-pci/768142f0-2638-41f3-a34f-dc80bb99eb7f@kernel.org
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
