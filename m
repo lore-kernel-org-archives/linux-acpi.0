@@ -1,112 +1,89 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4E5A423EA2;
-	Tue, 18 Aug 2026 08:26:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 606B7466B15
+	for <linux-acpi@vger.kernel.org>; Tue, 18 Aug 2026 11:58:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787041616; cv=none; b=mMqLKQBWNytxT5DsboPIsyBdiUx+ZDb67H1xk/GZbdp4xheAcB0Z/dD1wa9HxfbTlvziWI/J5B1OYAYgC2bsHAEKRmbsaDaDJ8jkX6NDZ1zBSUxsVcgAiB/6ceccNH7m76uI3xefVMKz0BMpRDBbYq2tvY3fNhCx4SOM5If+lVU=
+	t=1787054281; cv=none; b=iCDqroJNIABqH13YREwNcfSjGA1jem59ElTKETAbHm/wLLSYP3jNVSvzwO485N4X142Qp+HUQv1FgzzJYG+zgUReqPlWGFeKQAP93cZORmbKZcdfb6xVWQ1fNlcCYqvr0Ai4SFhe1i0dCS8sjVdCvgBduX4bi5nLgI89gWxNYSs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787041616; c=relaxed/simple;
-	bh=4phCkJfenRg107fZkQ7iErF8Bl7JZhhxA3UMBCXdsDY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bavtO4DsUUfXSCh0GqsF9gggPjf7r534yigBwhull4JbIocPfdtWwmNLH08rPnQd9A4aEAQ5lggnbjn+wc4UuXsOAv3pE9BnxFX8h5Wmt9+9RW0R2PW2Unj7nRpT4agQnecTttcHu3f3tWLw+FHJ0VYsobBrc/v/gHNc7KuhVZs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Yk8utEmC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787054281; c=relaxed/simple;
+	bh=XKvpuhGOPbv8JCt779JZ4GIg/qJ5Sfy6ojxNg7/AzzQ=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=sLtt2LsIzjitHKuXOMdcfT1h3kWPsenj51OwlRzmFpS3OgdZIKSiZCf6mYokhjHQWq3jbo/lSuGYU6Rb6/q2FH2HKTtMf9dPS20FKtLll2EDpfA/CpPpJZwOBtp/rnoOY5WTEFxyduQHIrM9UFou9P0Mb3OnmLErisxSiKUN9ss=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Y2itKOHZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Yk8utEmC"
-Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 8D4181F000E9;
-	Tue, 18 Aug 2026 08:26:54 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Y2itKOHZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C4711F00A3D
+	for <linux-acpi@vger.kernel.org>; Tue, 18 Aug 2026 11:58:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787041615;
-	bh=4phCkJfenRg107fZkQ7iErF8Bl7JZhhxA3UMBCXdsDY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Yk8utEmCxy96+toKCErkoYApQaMdiPS/mCchSNuianQYv5m27/NqvByr5wIHg/m/V
-	 JYPws0OalIunJ4Yd2Snp/HnkIw1rSMOTd/6QctDhGAOp0jvQrHwF0n9PaeAGt00qC0
-	 saa1+8NO9+GG/Co8K7GGanrbgXB+dSdO7Oxcz2iFPdZC6CEgC3Yj9aPfTOcd+dIN8Z
-	 +LT3Vfdjc4SKL6Lbp/+x2xuv4GH2gVaRlGE3hHt8WEvPCMdOBXAxXd0WAG3L93H+O5
-	 nZwX4r8hyUboRXsOUUNS71jbX+QUFn7K0le4nTVH+Oymi6Gwb5Ng2kBuVnesHYQesU
-	 PTDG5N+c0BpDA==
-Date: Tue, 18 Aug 2026 10:26:52 +0200
-From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <ukleinek@kernel.org>
-To: Linus Walleij <linusw@kernel.org>
-Cc: Eliav Farber <farbere@amazon.com>, rafael@kernel.org, 
-	tony.luck@intel.com, bp@alien8.de, guohanjun@huawei.com, mchehab@kernel.org, 
-	xueshuai@linux.alibaba.com, lenb@kernel.org, laurent.pinchart@ideasonboard.com, 
-	brgl@kernel.org, orsonzhai@gmail.com, baolin.wang@linux.alibaba.com, 
-	zhang.lyra@gmail.com, jic23@kernel.org, dlechner@baylibre.com, nuno.sa@analog.com, 
-	andy@kernel.org, dmitry.torokhov@gmail.com, hansg@kernel.org, 
-	ilpo.jarvinen@linux.intel.com, W_Armin@gmx.de, fabio.m.de.francesco@linux.intel.com, 
-	kaihengf@nvidia.com, ankita@nvidia.com, leitao@debian.org, pedro.pbg@usp.br, 
-	paulmck@kernel.org, frederic@kernel.org, kees@kernel.org, saket.dumbre@intel.com, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, 
-	linux-pwm@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, 
-	platform-driver-x86@vger.kernel.org, acpica-devel@lists.linux.dev
-Subject: Re: [PATCH v5 01/13] notifier: add device-managed registration APIs
-Message-ID: <aoQWOsPeyU9o3Ahn@monoceros>
-References: <20260816060648.4030-1-farbere@amazon.com>
- <20260816060648.4030-2-farbere@amazon.com>
- <aoFgF2E4p4DqYLGG@monoceros>
- <CAD++jLk+MMH=-ifdSs=Vm4G9RO5-yVs8NLUb4AE1wYH5FQrmjg@mail.gmail.com>
+	s=k20260515; t=1787054280;
+	bh=XKvpuhGOPbv8JCt779JZ4GIg/qJ5Sfy6ojxNg7/AzzQ=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=Y2itKOHZ1Mnet1zHwg5XtX1JhFrFSmUObrDdtPi12AxNF5VMjvFPNo8kqGlpnpeAn
+	 NTS3pnbO1qM+nhrpTCFn5AlETHOXPAHh+NN2dKDSuKxb4E4Hq8keA3rtE1Gobr9gxs
+	 c1bizEj38yKoa9EoXQhLMLFN33faqhMKNdFrJGPfnjI2QIMUCYT+Iwx3H+A57nVTSd
+	 CclTRaaJR+ow2lz9L/Nc2RpLmriXlQD/iOqJagXKzYuhIDVQ/y5ZHBDj2mw3Y/F233
+	 BLQfO1LmolBF6fzxuUNujNphjxReJkk6ijWzuSewWCnAs8CEbGDyM/6wQS/ErtNCqS
+	 ENidzBiQt6Szw==
+Received: by mail-lj1-f178.google.com with SMTP id 38308e7fff4ca-3a151eda82dso20828671fa.1
+        for <linux-acpi@vger.kernel.org>; Tue, 18 Aug 2026 04:58:00 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+Rrx7N2aZlGUSc/R0SP63T6VA77JWDb6JbAKUxoWjCl7sd6fMY5+Y2Mpi8xoXBa2YXmb/i2K3nzO1clN@vger.kernel.org
+X-Gm-Message-State: AOJu0YxVRGeFb4BLrq+2tQLuz9dxqxeoML6tvZsl3n4Mtk6sGyaVdxQI
+	gOqRyCOQ/yTxx1864uIY/IuxQoeQOEXk3qTzbfP99/SDB1u+XPWWcLuvDZ4WQynAR0QqFQRas0k
+	/0DJWM0FqiHgbO2ZwNme1SvDltruO+10=
+X-Received: by 2002:a05:651c:30ca:b0:3a1:1d3b:67f1 with SMTP id
+ 38308e7fff4ca-3a1751ed6f9mr11681411fa.7.1787054278515; Tue, 18 Aug 2026
+ 04:57:58 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="atk2on2uarby33p4"
-Content-Disposition: inline
-In-Reply-To: <CAD++jLk+MMH=-ifdSs=Vm4G9RO5-yVs8NLUb4AE1wYH5FQrmjg@mail.gmail.com>
-
-
---atk2on2uarby33p4
-Content-Type: text/plain; protected-headers=v1; charset=utf-8
-Content-Disposition: inline
+References: <CAJZ5v0g3pVxLgXBAHho5B+kfAiQQkQHGoO-1uBxp0OyXiGGcRQ@mail.gmail.com>
+ <20260818034110.1067658-1-peixin.xie@linux.spacemit.com>
+In-Reply-To: <20260818034110.1067658-1-peixin.xie@linux.spacemit.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Tue, 18 Aug 2026 13:57:29 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jwAvynHo+ctq_CJJCKPDFct7DBj8SbDhKvWp7KZM0wwQ@mail.gmail.com>
+X-Gm-Features: AcwNN1VT3s4C1GHK_DVVrKqoeuQkWt6_4B_3wLCbIvEsEaFXd2oU1DdrdTKsH9I
+Message-ID: <CAJZ5v0jwAvynHo+ctq_CJJCKPDFct7DBj8SbDhKvWp7KZM0wwQ@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: scan: Drop power resource references for deferred devices
+To: Peixin Xie <peixin.xie@linux.spacemit.com>
+Cc: rafael@kernel.org, dlan@kernel.org, lenb@kernel.org, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-riscv@lists.infradead.org, spacemit@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Subject: Re: [PATCH v5 01/13] notifier: add device-managed registration APIs
-MIME-Version: 1.0
 
-Hello Linus,
+On Tue, Aug 18, 2026 at 5:41=E2=80=AFAM Peixin Xie
+<peixin.xie@linux.spacemit.com> wrote:
+>
+> On Wed, Aug 12, 2026 at 03:15:27PM +0200, Rafael J. Wysocki wrote:
+> > Have you considered dropping the acpi_bus_init_power() call from
+> > acpi_bus_get_power_flags() and doing it only once when the device gets
+> > ready for enumeration?
+>
+> Thank you for the suggestion. I tested this approach on the SpacemiT K3
+> platform and it works as expected.
+>
+> In addition to removing the acpi_bus_init_power() call, I set
+> device->flags.initialized to false at the end of acpi_bus_get_power_flags=
+()
+> to mark the device power state as not yet initialized.
 
-On Mon, Aug 17, 2026 at 02:10:13PM +0200, Linus Walleij wrote:
-> On Sun, Aug 16, 2026 at 9:04=E2=80=AFAM Uwe Kleine-K=C3=B6nig <ukleinek@k=
-ernel.org> wrote:
->=20
-> > I suggested to add "Must be called in process context." to the kdoc for
-> > devm_atomic_notifier_chain_register() as this is a relevant difference
-> > to atomic_notifier_chain_register() and create an immutable branch for
-> > it as a base for subsystems to apply their follow-up patches. I'd wait
-> > till Wednesday for concerns and review tags to tickle in.
->=20
-> I think this is a good approach, but we are in the merge window,
-> don't you wanna wait for v7.3-rc1 and create the immutable branch
-> based on that?
+Instead of doing this, IMV it would be better to remove the setting of
+device->flags.initialized to 1 in acpi_init_device_object() and set it
+to 1 in acpi_add_power_resource().
 
-My thought was to base on v7.2, and then consider the topic done for me.
-=20
-> (But Bartosz will be the one pulling the immutable branch...)
+> This causes the existing path in acpi_bus_attach() to call acpi_bus_init_=
+power() once the
+> device is ready for enumeration.
+>
+> The power resource references are now balanced and runtime suspend and
+> resume continue to work correctly. I will send a v2 in next couple days.
 
-It shouldn't make a difference for him if the branch's base is v7.2 or
-v7.3-rc1, still more given that there are no changes staged in next to
-the affected files (`git log v7.2..next/master --
-include/linux/notifier.h kernel/notifier.c`).
+Please do, but please take the comment above into consideration.
 
-Best regards
-Uwe
-
---atk2on2uarby33p4
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmqEF0QACgkQj4D7WH0S
-/k6+ewf/TQPKKAWHFqB2guxJQb4tJtqqrt9CfxNlHgpRy98IQr+Wzsclp/2b55PD
-+Vt8rK1QzYpoCbHNgn48yp+ZwOgUgZLGuFt1oOMJuz4TML4VoRQW/KQBjYb8RH6h
-bZwXKf20jhh0jcWWdq+Oloo7khDa3AfPjzRMezSt63HtWnFWyDBFmk+Hpj2iK5wV
-ydEynNxomqrfrzujN4nShzkby6/nearXk+4xXCvj02C50nfaHCtzBWc07ic2TP90
-xDPXfb0bl2EHmQ7jRNKDBne2D3J7gm+NVDzSblze4JXAuRSbDl51QXnnQ49Me8pn
-JJE4fMKe0QjKuFoPX4pzR1Up39HZcg==
-=T8Ew
------END PGP SIGNATURE-----
-
---atk2on2uarby33p4--
+Thanks!
