@@ -1,183 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F4C2383984
-	for <linux-acpi@vger.kernel.org>; Tue, 18 Aug 2026 15:23:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22E06489889;
+	Tue, 18 Aug 2026 19:15:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787066605; cv=none; b=kLB3CQEkvrlaoebwVIMtwctz7ZG8mkMwMHyxbxhqcg5jQP0GjFLuiDVJdzZuYuc2aIx7jtLZBT9TsHUnEvN6XeFyRsKPFOCp5kxlyvwqsBhoBYLYkQiN0Vtedd8+AHzTkvbzbfF6e4Fl3O9VjvkanZuMMcIaiP02dVNb+4Rg3dI=
+	t=1787080544; cv=none; b=VE9uYHcsnf5AJZ95iGzVVx56+C/m/hcqNhX4YARv7i02XEQ21VFV1NiLUjj/ebQZCZimGr/avl5e6kalOV2D/DHelsOnLGS1ej64+xwPSbJ5f2QOzWT9+/Kpx++XFOMBVVCEpsSenWHNTRwTnXa0mBbqtuBLzp0j1KJANFAjSqs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787066605; c=relaxed/simple;
-	bh=apV4MFXuinpqWoqNOaKgBV+93M9TMWWLYxR7HwQlPLA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ucpzL/aGOWvXZamtB1CZof5sZVb4kmQDzjMqp/vlrms1yjWc2MBkbzf2Qc4yBq+YZBVVD4dFqrDJFr0gUPtQtLeb5YiSjJYEZtKTELxsL/SDoaHaJm6mBXjHS0sdiRfoJScvlIOPC1efBzJQB20kr4sEgsuCpUelQxiOwKO5MCU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aDZmR15B; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787080544; c=relaxed/simple;
+	bh=GSWHD9Q6JXw3F+eOUifpIwxrVSbk12yDCV7fGwDC+dc=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=mizVXSx0hp4wAsUhs0sG+151Im1vwMHzhkxmnzC8dWeui6kJYEajTNF/okEzFnVByVpjAyvmEvopNd4rQ/4abuwHrs9cweOMonutN6piKSY+VWNj0NPeTopvEC5sc87TGOxNj9jz8P8ZS9ftaQ7g+7vnmOIvy85li38d72e82LU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OglsKkYg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aDZmR15B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56F8A1F00A3A
-	for <linux-acpi@vger.kernel.org>; Tue, 18 Aug 2026 15:23:24 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OglsKkYg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD9FE1F00A3A;
+	Tue, 18 Aug 2026 19:15:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787066604;
-	bh=VM/O2tFnOA/m3uwjcQ3FYby8zOl177tbOL49//JHdQk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=aDZmR15BTG+nXw8vzhad1VfOBmPdvLxmFNu5Nz3c5bwgrcicgetuC3qCcwkfmH0BN
-	 7D6Ha4bu5Wd3go/ClBmui8zcxOl/ESw1BvB/T1Mb1f8hAMKJhN/4QWPgwbDxfnoSYO
-	 gyZ6KX4bBze1Tzvf3SgU/waLI5OmMzGxqhHtVF484lMa2T1DYOeBGGeIxiVdvNzQY8
-	 NssnyyqeME75QImfjdkxNb8iprvCK9ECFTszleTUBgKTrT8ZTG66+WwBdtWI90GOjf
-	 y/T6PWRS2Bqq8eBznoDHIg5okZ/bY3qffFernrDrNpRho23EFPCTnzDKiQ628MG2la
-	 V41JtggIXePbg==
-Received: by mail-lj1-f171.google.com with SMTP id 38308e7fff4ca-39dbe684115so9805431fa.1
-        for <linux-acpi@vger.kernel.org>; Tue, 18 Aug 2026 08:23:24 -0700 (PDT)
-X-Gm-Message-State: AOJu0Yyh8uV+TR0cAa+2YUwRbe6d6qQrt6FxpjJIQz7Yeenx2FVRfBZs
-	C09pXY2gwFF9RrSKxEPV2LR2oFw4Z/uQnRSsuAJksgYWahm9dD+/VMDdK9oyU9niCJP7PNFG/CY
-	my+L9kqk5T+phErN0KPbimoX+ejCa89w=
-X-Received: by 2002:a2e:a552:0:b0:39b:11f9:6132 with SMTP id
- 38308e7fff4ca-3a17686cff9mr17509831fa.1.1787066602757; Tue, 18 Aug 2026
- 08:23:22 -0700 (PDT)
+	s=k20260515; t=1787080519;
+	bh=7mHexR8XIGD2KXFRGcfpmVbqm5UqFriBaZVbtBKOHQg=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc;
+	b=OglsKkYgfzZzZnn0BTjcCY/JjS9sfyIhZPJIzPK85eYS4ZMQk9w3zxkXyEGyDhGAU
+	 Cq+FA4IrA7UnHag6pTltVUh+BBkIm7YqQ4mtNstT5B3g0K/b0jwkGlILt2N0hLFd6R
+	 7OtNd8NSnD4bAW6zf6QmMUqEaJ2q7v6f9/fCROY57418rzfpuaS0pKOVMBZkqe657p
+	 +ZjlnUxnwesa2mMxeTAg1hfK3op2m2nJ2CdFtnNJoRRgoX4/VYKMJmsRC/lYhVOQ1o
+	 LFyDC7J2qaSw22/hwr5QDjGr8M0rn7mdQ79ch/eIe1CQ17hbDWow0dLeq9hUiuUSNj
+	 yQSVcCBjrEw6w==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 938D73927051;
+	Tue, 18 Aug 2026 19:14:32 +0000 (UTC)
+Subject: Re: [GIT PULL] Power management updates for 7.3-rc1
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <CAJZ5v0j=dZ8UjEDYjKs3WosMy=H8p8YwPdB-NRWu3qMUb9KCQQ@mail.gmail.com>
+References: <CAJZ5v0j=dZ8UjEDYjKs3WosMy=H8p8YwPdB-NRWu3qMUb9KCQQ@mail.gmail.com>
+X-PR-Tracked-List-Id: <linux-pm.vger.kernel.org>
+X-PR-Tracked-Message-Id: <CAJZ5v0j=dZ8UjEDYjKs3WosMy=H8p8YwPdB-NRWu3qMUb9KCQQ@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-7.3-rc1
+X-PR-Tracked-Commit-Id: 7544a367adc1ce5e9cc62315b4c32dc72b509451
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: a5778046a02570fd23bdf0b48dce330237d1996c
+Message-Id: <178708047124.2235733.6700006601491205102.pr-tracker-bot@kernel.org>
+Date: Tue, 18 Aug 2026 19:14:31 +0000
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mario Limonciello <superm1@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Shuah Khan <shuah@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <69a1eaf0-4a58-47d5-ad94-2af958f84841@gmail.com> <5d99ccb3-691e-4b89-b58b-017a7318aef0@gmail.com>
-In-Reply-To: <5d99ccb3-691e-4b89-b58b-017a7318aef0@gmail.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 18 Aug 2026 17:22:53 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iMjbTGd5mDuPwypJ06E_F_QZweHH_QHj_Kryh9ZWtRQg@mail.gmail.com>
-X-Gm-Features: AcwNN1VrOFEiUsaLMpH2gy89EfCfen9UrKzcqZj6i8q0_7xrsCpiNAzfrc8zlsA
-Message-ID: <CAJZ5v0iMjbTGd5mDuPwypJ06E_F_QZweHH_QHj_Kryh9ZWtRQg@mail.gmail.com>
-Subject: =?UTF-8?Q?Re=3A_Regression=3A_Backlight_control_broken_on_HP_Omen_?=
-	=?UTF-8?Q?15=E2=80=91ax246nf_with_kernel_7=2E0=2E0=E2=80=9128=E2=80=91generic?=
-To: harryblanc <garett26@gmail.com>
-Cc: linux-acpi@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 18, 2026 at 3:03=E2=80=AFPM harryblanc <garett26@gmail.com> wro=
-te:
->
-> *Subject:* Re: Regression: Backlight control broken on HP Omen
-> 15=E2=80=91ax246nf with kernel 7.0.x
->
-> Hello Rafael, Thorsten,
->
-> Here are the outputs you requested, from both the working kernel
-> (6.17.0=E2=80=9142) and the failing one (7.0.0=E2=80=9129).
->
-> For context:
->
->   *
->
->     Secure Boot is *disabled* on this machine.
->
->   *
->
->     GPU setup is *Optimus with NVIDIA GTX 1050 =E2=80=9Con=E2=80=91demand=
-=E2=80=9D mode* (Intel
->     iGPU is primary).
->
->   *
->
->     These changes do not affect the issue: the backlight regression
->     remains exactly the same on kernel 7.0.29.
->
->   *
->
->     Kernel 6.17.0=E2=80=9142 (backlight working normally)
->
->   *
->
->     $ ls -l /sys/bus/acpi/drivers/video/
->     total 0
->     --w------- 1 root root 4096 ao=C3=BBt 18 14:50 bind
->     lrwxrwxrwx 1 root root    0 ao=C3=BBt 18 14:50 LNXVIDEO:00 ->
->     ../../../../devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:00/LNXV=
-IDEO:00
->     lrwxrwxrwx 1 root root    0 ao=C3=BBt 18 14:50 LNXVIDEO:01 ->
->     ../../../../devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/LNXVIDEO:01
->     lrwxrwxrwx 1 root root    0 ao=C3=BBt 18 14:43 module ->
->     ../../../../module/video
->     --w------- 1 root root 4096 ao=C3=BBt 18 14:50 uevent
->     --w------- 1 root root 4096 ao=C3=BBt 18 14:50 unbind
->
->   *
->
->     The ACPI video driver attaches normally, and backlight control works
->     as expected.
->
->   *
->
->     Kernel 7.0.0=E2=80=9129 (backlight stuck at maximum)
->
->   *
->
->     $ ls -l /sys/bus/auxiliary/devices/*/
->
->     /sys/bus/auxiliary/devices/acpi.video_bus.0/:
->     driver -> ../../../../bus/auxiliary/drivers/video
->     firmware_node ->
->     ../../../LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:00/LNXVIDEO:00
->     input/
->     power/
->     subsystem -> ../../../../bus/auxiliary
->     uevent
->
->     /sys/bus/auxiliary/devices/acpi.video_bus.1/:
->     driver -> ../../../bus/auxiliary/drivers/video
->     firmware_node -> ../../LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/LNXVIDEO:01
->     input/
->     power/
->     subsystem -> ../../../bus/auxiliary
->     uevent
->
->   *
->
->     On kernel 7.0.x, the ACPI video devices are no longer bound under
->     |/sys/bus/acpi/drivers/video/|. Instead, they appear under the
->     *auxiliary bus* (|acpi.video_bus.*|). As a result:
->
->   *
->
->     |acpi_video0| disappears
+The pull request you sent on Thu, 13 Aug 2026 20:54:47 +0200:
 
-Well, this is not supposed to happen regardless.
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-7.3-rc1
 
-The (auxiliary) video driver binds to both devices and it uses the
-same platform firmware interfaces as before.
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/a5778046a02570fd23bdf0b48dce330237d1996c
 
-It should register the backlight interface for one of them, but that
-doesn't happen for some reason, probably related to the ACPI error
-messages you see when running 7.0.x.
+Thank you!
 
->
->   *
->
->     only |intel_backlight| remains
->
->   *
->
->     brightness keys move the slider, but the actual backlight does not
->     change
->
->   *
->
->     ACPI errors appear in dmesg (CreateField length zero,
->     AE_AML_BUFFER_LIMIT, WMID failures)
->
-> This matches the regression I initially reported.
->
-> If you need additional logs (ACPI, i915, auxiliary bus traces), I can
-> provide them.
-
-Please boot the working 6.17.0=E2=80=9142 kernel again, do
-
-$ ls -l /sys/class/backlight
-
-while running it and send the output of that command.
-
-Also please send boot logs (the output of dmesg after a fresh boot)
-from both the working (6.17.0=E2=80=9142) and failing (7.0.0=E2=80=9129) ke=
-rnels.
-
-Thanks!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
