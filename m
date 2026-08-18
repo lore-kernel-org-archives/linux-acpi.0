@@ -1,136 +1,112 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E0423DDB02;
-	Tue, 18 Aug 2026 07:48:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4E5A423EA2;
+	Tue, 18 Aug 2026 08:26:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787039323; cv=none; b=pQzMVQz4W1QWjmdnw5BmSOGtYiI436y0mGTuEl3l4b0tB0uM7peEnsg0L5+SlzS2srgJxnkICV/vMNltHWciR+vDyp85BIWbYSqECei4enstcMEtkDYT9Ul2vkUSkbQ0l7dh1SWhWMMMLccqaTYnPjPAa55W/aAQNePpYV+WXMo=
+	t=1787041616; cv=none; b=mMqLKQBWNytxT5DsboPIsyBdiUx+ZDb67H1xk/GZbdp4xheAcB0Z/dD1wa9HxfbTlvziWI/J5B1OYAYgC2bsHAEKRmbsaDaDJ8jkX6NDZ1zBSUxsVcgAiB/6ceccNH7m76uI3xefVMKz0BMpRDBbYq2tvY3fNhCx4SOM5If+lVU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787039323; c=relaxed/simple;
-	bh=lNpM1FUAkwHHr4KU4DnJgDoG+TryyRfmHE2fyV2mtLQ=;
+	s=arc-20240116; t=1787041616; c=relaxed/simple;
+	bh=4phCkJfenRg107fZkQ7iErF8Bl7JZhhxA3UMBCXdsDY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Up21nNDktEF7abYskJmE05+7XynOT8tN6cbr66k2N8qiU6qoAlWu+OiTtAG/qJfcuV3rsy7ddwygP7WC7H8L2zEcW3HtsBYbcryJodjE5lG2HTVn69yMBpWhjG17Y1YmEurBFjpFPjmZANkL51XVMwKKELKGJXQGZhfIR5e46+0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PX4wEix9; arc=none smtp.client-ip=192.198.163.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=bavtO4DsUUfXSCh0GqsF9gggPjf7r534yigBwhull4JbIocPfdtWwmNLH08rPnQd9A4aEAQ5lggnbjn+wc4UuXsOAv3pE9BnxFX8h5Wmt9+9RW0R2PW2Unj7nRpT4agQnecTttcHu3f3tWLw+FHJ0VYsobBrc/v/gHNc7KuhVZs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Yk8utEmC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PX4wEix9"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1787039322; x=1818575322;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=lNpM1FUAkwHHr4KU4DnJgDoG+TryyRfmHE2fyV2mtLQ=;
-  b=PX4wEix9fVrkNRb3wpjPVSFEI8+MDP8X6OLlOQNACA+0iKfirQoKelgR
-   dhVWBqrGtGGEpXDStq3PQzmP5C1x2LYaAIVEh3RG2gIQL9D03oY9L8593
-   Q5+sVJ79F/VNk0J7sVkZIHsPnnw/nX4XAQcB0/C0tBgQqC1rqMhcOXbI4
-   CeJ8D81RaHVYM1tm2e/MAo8SjmnuUeKJ4HmJ7qkPALzwUmiNdOj4PjhzC
-   lL2fEKiaXB9Tb5JGR6XQfSzQBV5Swjw1f2LuA7j7thwDomw2zU6SUKtvV
-   HDNx0PERiAfeHrr6c/Y5DnYBbAEpByqGTVyzxQxxbLIdbrVpBEE7/kgpa
-   Q==;
-X-CSE-ConnectionGUID: 99UEIWdVTearBUym7Vx/bA==
-X-CSE-MsgGUID: mlIL3EEYQe+MevVUmHFCWg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11878"; a="98886822"
-X-IronPort-AV: E=Sophos;i="6.25,230,1779174000"; 
-   d="scan'208";a="98886822"
-Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Aug 2026 00:48:40 -0700
-X-CSE-ConnectionGUID: U8HBBO6VSuOZkGT3bjOyHw==
-X-CSE-MsgGUID: /rpXRdVEROaxsr0e5kpsyw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,230,1779174000"; 
-   d="scan'208";a="265760633"
-Received: from pgcooper-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.245.209])
-  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Aug 2026 00:48:33 -0700
-Date: Tue, 18 Aug 2026 10:48:31 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: James Hilliard <james.hilliard1@gmail.com>
-Cc: Rob Herring <robh@kernel.org>, Saravana Kannan <saravanak@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Len Brown <lenb@kernel.org>, Andrew Lunn <andrew@lunn.ch>,
-	Heiner Kallweit <hkallweit1@gmail.com>,
-	Russell King <linux@armlinux.org.uk>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Christian Marangi <ansuelsmth@gmail.com>,
-	devicetree@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, driver-core@lists.linux.dev,
-	linux-acpi@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH net-next v3 4/4] driver core: handle managed links for
- class devices
-Message-ID: <aoQOT1B7AeBdmYnL@ashevche-desk.local>
-References: <20260818-submit-phy-package-fwdevlink-v1-v3-0-40a905ea16b6@gmail.com>
- <20260818-submit-phy-package-fwdevlink-v1-v3-4-40a905ea16b6@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Yk8utEmC"
+Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 8D4181F000E9;
+	Tue, 18 Aug 2026 08:26:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787041615;
+	bh=4phCkJfenRg107fZkQ7iErF8Bl7JZhhxA3UMBCXdsDY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Yk8utEmCxy96+toKCErkoYApQaMdiPS/mCchSNuianQYv5m27/NqvByr5wIHg/m/V
+	 JYPws0OalIunJ4Yd2Snp/HnkIw1rSMOTd/6QctDhGAOp0jvQrHwF0n9PaeAGt00qC0
+	 saa1+8NO9+GG/Co8K7GGanrbgXB+dSdO7Oxcz2iFPdZC6CEgC3Yj9aPfTOcd+dIN8Z
+	 +LT3Vfdjc4SKL6Lbp/+x2xuv4GH2gVaRlGE3hHt8WEvPCMdOBXAxXd0WAG3L93H+O5
+	 nZwX4r8hyUboRXsOUUNS71jbX+QUFn7K0le4nTVH+Oymi6Gwb5Ng2kBuVnesHYQesU
+	 PTDG5N+c0BpDA==
+Date: Tue, 18 Aug 2026 10:26:52 +0200
+From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <ukleinek@kernel.org>
+To: Linus Walleij <linusw@kernel.org>
+Cc: Eliav Farber <farbere@amazon.com>, rafael@kernel.org, 
+	tony.luck@intel.com, bp@alien8.de, guohanjun@huawei.com, mchehab@kernel.org, 
+	xueshuai@linux.alibaba.com, lenb@kernel.org, laurent.pinchart@ideasonboard.com, 
+	brgl@kernel.org, orsonzhai@gmail.com, baolin.wang@linux.alibaba.com, 
+	zhang.lyra@gmail.com, jic23@kernel.org, dlechner@baylibre.com, nuno.sa@analog.com, 
+	andy@kernel.org, dmitry.torokhov@gmail.com, hansg@kernel.org, 
+	ilpo.jarvinen@linux.intel.com, W_Armin@gmx.de, fabio.m.de.francesco@linux.intel.com, 
+	kaihengf@nvidia.com, ankita@nvidia.com, leitao@debian.org, pedro.pbg@usp.br, 
+	paulmck@kernel.org, frederic@kernel.org, kees@kernel.org, saket.dumbre@intel.com, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, 
+	linux-pwm@vger.kernel.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, 
+	platform-driver-x86@vger.kernel.org, acpica-devel@lists.linux.dev
+Subject: Re: [PATCH v5 01/13] notifier: add device-managed registration APIs
+Message-ID: <aoQWOsPeyU9o3Ahn@monoceros>
+References: <20260816060648.4030-1-farbere@amazon.com>
+ <20260816060648.4030-2-farbere@amazon.com>
+ <aoFgF2E4p4DqYLGG@monoceros>
+ <CAD++jLk+MMH=-ifdSs=Vm4G9RO5-yVs8NLUb4AE1wYH5FQrmjg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="atk2on2uarby33p4"
 Content-Disposition: inline
-In-Reply-To: <20260818-submit-phy-package-fwdevlink-v1-v3-4-40a905ea16b6@gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
-
-On Tue, Aug 18, 2026 at 12:59:00AM -0600, James Hilliard wrote:
-> fw_devlink deliberately lets the nearest device pick up dependencies below
-> class-backed firmware nodes because driverless class devices do not
-> currently progress through managed device-link states. This can leave
-> consumers of class suppliers dormant, while sync-state-only links from
-> class consumers never reach the successful-probe cleanup.
-> 
-> Track class-only devices through equivalent registration and removal
-> transitions. Mark them probing before device_add() publishes them, complete
-> their incoming and outgoing links after class interfaces run, and enter the
-> unbind and no-driver states during device_del(). Preserve firmware links
-> below class-backed nodes so later-created descendants can acquire their own
-> links.
-> 
-> Include class registration in wait_for_device_probe() so supplier unbind
-> cannot race a class consumer that is still being published. Transition
-> managed links which existed before device_add(), remove stale
-> waiting_for_supplier attributes and do not revive a link whose supplier has
-> already started unbinding.
-> 
-> During supplier teardown, wait for class registration to finish, but move
-> an already registered class consumer directly to the unbinding link state
-> because it has no driver to release. Keep consumer-autoremove links valid
-> until class consumer removal without triggering driver-only cleanup
-> warnings.
-> 
-> Factor the supplier-bound, consumer-bound and cleanup transitions shared
-> with driver-backed devices. Activate late links involving an already
-> functional class endpoint instead of trying to reprobe it, and let
-> sync-state-only links retire without forcing consumer unbind. Ordinary
-> supplier links cannot defer class registration, so they must not be the
-> only mechanism on which a class consumer relies for functionality.
-> 
-> Class devices do not match drivers, so distinguish a genuinely unavailable
-> supplier from a probing or registered class endpoint before relaxing
-> inferred links. Preserve normal probe and runtime-PM ordering for those
-> links. Also recognize class-backed nodes when refreshing dependencies after
-> firmware-tree overlays.
-> 
-> Exclude the internal device-link class because device-link objects are
-> registered while the device-links lock is held. Document the class-device
-> state transitions and add KUnit coverage for supplier and consumer links,
-> pre-existing links, inferred-link preservation, registration waiters and a
-> concurrent supplier unbind.
-
-This is enormous change, can it be split to several logically isolated patches?
-
--- 
-With Best Regards,
-Andy Shevchenko
+In-Reply-To: <CAD++jLk+MMH=-ifdSs=Vm4G9RO5-yVs8NLUb4AE1wYH5FQrmjg@mail.gmail.com>
 
 
+--atk2on2uarby33p4
+Content-Type: text/plain; protected-headers=v1; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH v5 01/13] notifier: add device-managed registration APIs
+MIME-Version: 1.0
+
+Hello Linus,
+
+On Mon, Aug 17, 2026 at 02:10:13PM +0200, Linus Walleij wrote:
+> On Sun, Aug 16, 2026 at 9:04=E2=80=AFAM Uwe Kleine-K=C3=B6nig <ukleinek@k=
+ernel.org> wrote:
+>=20
+> > I suggested to add "Must be called in process context." to the kdoc for
+> > devm_atomic_notifier_chain_register() as this is a relevant difference
+> > to atomic_notifier_chain_register() and create an immutable branch for
+> > it as a base for subsystems to apply their follow-up patches. I'd wait
+> > till Wednesday for concerns and review tags to tickle in.
+>=20
+> I think this is a good approach, but we are in the merge window,
+> don't you wanna wait for v7.3-rc1 and create the immutable branch
+> based on that?
+
+My thought was to base on v7.2, and then consider the topic done for me.
+=20
+> (But Bartosz will be the one pulling the immutable branch...)
+
+It shouldn't make a difference for him if the branch's base is v7.2 or
+v7.3-rc1, still more given that there are no changes staged in next to
+the affected files (`git log v7.2..next/master --
+include/linux/notifier.h kernel/notifier.c`).
+
+Best regards
+Uwe
+
+--atk2on2uarby33p4
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmqEF0QACgkQj4D7WH0S
+/k6+ewf/TQPKKAWHFqB2guxJQb4tJtqqrt9CfxNlHgpRy98IQr+Wzsclp/2b55PD
++Vt8rK1QzYpoCbHNgn48yp+ZwOgUgZLGuFt1oOMJuz4TML4VoRQW/KQBjYb8RH6h
+bZwXKf20jhh0jcWWdq+Oloo7khDa3AfPjzRMezSt63HtWnFWyDBFmk+Hpj2iK5wV
+ydEynNxomqrfrzujN4nShzkby6/nearXk+4xXCvj02C50nfaHCtzBWc07ic2TP90
+xDPXfb0bl2EHmQ7jRNKDBne2D3J7gm+NVDzSblze4JXAuRSbDl51QXnnQ49Me8pn
+JJE4fMKe0QjKuFoPX4pzR1Up39HZcg==
+=T8Ew
+-----END PGP SIGNATURE-----
+
+--atk2on2uarby33p4--
