@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CCA822083;
-	Wed, 19 Aug 2026 20:15:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29E62232395;
+	Wed, 19 Aug 2026 20:16:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787170558; cv=none; b=u4N6nj2tS2G4z79O+asHj53JFdymxUO8oNa9c6pxVBG8WjtYuxIC8MrqwacXlOUHw0jNXLWtRq9V4zHSt5vBwQdPLMCfQo66WnkkBdS9LRp9QA9rbFxt99i/UXDyRKRs4htL1mU5z2XcZIJ79eAaDTx+cNUmN0E7IEWNAE9ZPY8=
+	t=1787170565; cv=none; b=ZRQLzmcTgzkE7eMJO637zsOH3BUhodr8MaHC/ucfTnIrxpjdPOfk6IKgB+9bpbNaKYhCvsDIDbnfqkIGSeZkJ85u4V+UWfNC5eMIAH8rTb7UR/JbgFeYX0y0XJiwSEO18kIk7O+4dUI4I2B/JixStStId/2Rwj2ldnx0FToB+38=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787170558; c=relaxed/simple;
-	bh=eiR7AEPExJRfS9L8W7Y0DasFSP/eCKLDmgr7DeWSJVQ=;
+	s=arc-20240116; t=1787170565; c=relaxed/simple;
+	bh=AzB0SDKcedei2OFPqblN08f3aKA5UdqXdVIU2+Aq3Uw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=aQ39sJlqxAutvUxRFg2xegwyhuirz56HF2q9ne2iX0VBNBMfdG0sK/Uv0TTNWUOWW4uN9CQbdD/vQUOuwcrjNtW0N9jOmCPOmM3WwAAmLSodAXHyRgrBLtSnEmAcVpjpu1JSj1jcDsM9V5ngjpnvEzQ/bHCPCSvQnivXwfkMNSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WLJksdSQ; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=hgDVvn75supg0B4Za7PBO6+SAGBbFrmQMTVjGVPeQBMrEgJQ/PbxXvkRdOY7SmR0yh/O2stV8oU2yZIG+xrpGjVr/MoAdsL4SMP9pTzhgadolD8WxgcC873wJA6MaOiDx2TzLXqEAzNN5JpzjVqx0IyNjgS7s8Z1+QTpCSb9RTI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VScCT/VQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WLJksdSQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60BF01F000E9;
-	Wed, 19 Aug 2026 20:15:54 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VScCT/VQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C85E1F000E9;
+	Wed, 19 Aug 2026 20:15:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787170557;
-	bh=Co8UH/flwlcLr7iQK+8PpYPN9SoQE1REBl+L/X3+I/A=;
+	s=k20260515; t=1787170562;
+	bh=KRC9+ciSlIXVYYpxH+nbh2IVdOnLyUcrW5XbPtk/sr8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=WLJksdSQV5yiImf57JJXwryd0ogtHH2J0MqCW/pOsvm8gvD1JOFoT1rZz+YiedgtJ
-	 36Hr4TLPSW1B+EkAuCOKjiBF6Vsd1WAhucMddnMWloWTAsQVqQMEVK/F2Hyu0pLJsD
-	 cOFLDQ88f957H9qzddTE9mDuwDFwlnZbpKo3Uj2+VC7L0nttdSLnbXT2qouT6zIHvK
-	 3ZZgX7sqHuDKE9fVIf+/qZjFRw0tJoFnI3z4cmmryq40/xuAeVVVjTUggr+tBQI/mM
-	 QEMn9IUg8HonUrB3wYVeVJjb0QcmJwr1p1rdMrILwunePshzvZbGWu5dmDx1aBJrRq
-	 DXdH5zXiIHEgw==
+	b=VScCT/VQGaNQ+AJQoSs7OIxASM9W5pGp+IPgo+BCiYUohNXE3hZPc8dJQDDwZGPXF
+	 zRXYK4x4mdnUvFdmQBIFR2DSuH6H0alSMvcgga0f9fH3ouNW+yodrGTdVttdaMvUZ8
+	 oSwY2jHmN3GcuY6TpYCeKTxegLcU66NTLdT6SGjeB5Llgk2c3tu7x0BgTl503vy1Xr
+	 nWgkUSM/QxwwH/W8mdbDjjtD1AQ/8dV1eyI/ALlJwj9v8CMVsF8WEc8OZBkuwOd0UR
+	 m1PDghCy8+Tjs46tud3ofwRHItKXs2Xc2fKVLbpac3w6xjR8k+2+TA/5+6jnvuIti0
+	 xiBRbjqI6Iu4w==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
@@ -36,10 +36,9 @@ Cc: LKML <linux-kernel@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
  Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
  Pawel Chmielewski <pawel.chmielewski@intel.com>,
  Lukasz Luba <lukasz.luba@arm.com>
-Subject:
- [PATCH v1 3/3] ACPI: Update upstream ACPICA repository URL in documentation
-Date: Wed, 19 Aug 2026 22:14:10 +0200
-Message-ID: <1867400.VLH7GnMWUR@rafael.j.wysocki>
+Subject: [PATCH v1 2/3] ACPI: Update MAINTAINERS entry for ACPICA
+Date: Wed, 19 Aug 2026 22:13:13 +0200
+Message-ID: <3356863.5fSG56mABF@rafael.j.wysocki>
 Organization: Linux Kernel Development - Intel
 In-Reply-To: <7982261.EvYhyI6sBW@rafael.j.wysocki>
 References: <7982261.EvYhyI6sBW@rafael.j.wysocki>
@@ -54,61 +53,35 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Update the URL of the upstream ACPICA repository after recent changes in
-the upstream ACPICA project.
+Update the MAINTAINERS entry for ACPICA after recent changes in the
+upstream ACPICA project.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- Documentation/driver-api/acpi/linuxized-acpica.rst |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ MAINTAINERS |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/Documentation/driver-api/acpi/linuxized-acpica.rst
-+++ b/Documentation/driver-api/acpi/linuxized-acpica.rst
-@@ -117,7 +117,7 @@ ACPICA Release
- ==============
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -314,15 +314,15 @@ F:	drivers/firmware/efi/cper*
  
- The ACPICA project maintains its code base at the following repository URL:
--https://github.com/acpica/acpica.git. As a rule, a release is made every
-+https://github.com/open-acpica/acpica.git. As a rule, a release is made every
- month.
- 
- As the coding style adopted by the ACPICA project is not acceptable by
-@@ -173,7 +173,7 @@ illustrated in the following figure::
-        utility located in source/tools/acpisrc folder and a number of
-        scripts located in generate/linux folder.
-     B. acpica / master - "master" branch of the git repository at
--       <https://github.com/acpica/acpica.git>.
-+       <https://github.com/open-acpica/acpica.git>.
-     C. linux-pm / linux-next - "linux-next" branch of the git repository at
-        <https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git>.
-     D. linux / master - "master" branch of the git repository at
-@@ -244,7 +244,7 @@ before they become available from the AC
-    Then the gen-patch.sh command can help to cherry-pick an ACPICA commit
-    from the ACPICA local repository::
- 
--   $ git clone https://github.com/acpica/acpica
-+   $ git clone https://github.com/open-acpica/acpica
-    $ cd acpica
-    $ generate/linux/gen-patch.sh -u [commit ID]
- 
-@@ -259,7 +259,7 @@ before they become available from the AC
-    You can generate the ACPICA release series yourself and rebase your code on
-    top of the generated ACPICA release patches::
- 
--   $ git clone https://github.com/acpica/acpica
-+   $ git clone https://github.com/open-acpica/acpica
-    $ cd acpica
-    $ generate/linux/make-patches.sh -u [commit ID]
- 
-@@ -273,7 +273,7 @@ before they become available from the AC
-    If you have local copies of both Linux and upstream ACPICA, you can generate
-    a diff file indicating the state of the current divergences::
- 
--   # git clone https://github.com/acpica/acpica
-+   # git clone https://github.com/open-acpica/acpica
-    # git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-    # cd acpica
-    # generate/linux/divergence.sh -s ../linux
+ ACPI COMPONENT ARCHITECTURE (ACPICA)
+ M:	"Rafael J. Wysocki" <rafael@kernel.org>
+-M:	Saket Dumbre <saket.dumbre@intel.com>
++M:	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
++M:	Pawel Chmielewski <pawel.chmielewski@intel.com>
+ L:	linux-acpi@vger.kernel.org
+ L:	acpica-devel@lists.linux.dev
+ S:	Supported
+ W:	https://acpica.org/
+-W:	https://github.com/acpica/acpica/
++W:	https://github.com/open-acpica/acpica/
+ Q:	https://patchwork.kernel.org/project/linux-acpi/list/
+ B:	https://bugzilla.kernel.org
+-B:	https://bugs.acpica.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+ F:	drivers/acpi/acpica/
+ F:	include/acpi/
 
 
 
