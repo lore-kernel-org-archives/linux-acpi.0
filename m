@@ -1,31 +1,30 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C3C82E7F3A;
-	Wed, 19 Aug 2026 20:16:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50641440651;
+	Wed, 19 Aug 2026 20:16:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787170568; cv=none; b=S++1a3A3i7mUuP80HK7iV8S+g2fX7M82gDKDKtJDJ6qiDWc1NXLnAGdeZtz0NgK7kF3sFozzdUzFgyo3gYFuI/WcXcohZlzkdM7+tpZVjRHc6kryVTH87SG6qX4UONnJj05knS6cPEjLnDjphzOeLLrLgKGfjm4PAAIn9MdchbQ=
+	t=1787170573; cv=none; b=X+gtwNYYe4DV+YBLVc9FhsvHSjRqvQ69/adtRYgH9mDe8CX8oGvJwzjjdKOo/l9CkUGnB6RMIB4VTpOeGHpre55Q7S/eD1tgiVrdetf/mfi4Yg8klSAMXx8xLobXXGroqkhHXe73Kb2m6c9g5r7k2PjtTRAgO1U3IaXsz97Yl8Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787170568; c=relaxed/simple;
-	bh=6XJRCr4BLlghvTMmBdYC2HCOKClI4rlCt4oQqwlHdEA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=B3j1DKKG2L/vlSAem8S0+8Z3KTQi5FzKnu+bRbVU5+meb7Em+qHs2vUjbH0SME5wt3DN1uRa2Wmk3aXm1uxDi4E9c5SCXEtRxwDykLcNvhqtpKp1qI8AyeVVH9OMe22G61KdXKyX+C3ARH6sk2dqEhFXo4eOIDHtIw5qm4tcY9w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bTJaL3fQ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787170573; c=relaxed/simple;
+	bh=W4jgoq4fQg0H6vcFvyCjP7//GAwNRkRqyJb1iOvsJrY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=JH51lVtmVEiK625l93X5KITOSVOMIE4KfPS433I0MdIfZ6Q7tBD4aobSEn/tjsXHqp8/jzhAV9Mxn0JHMBB5/eRc+Bk50wqRL/UB28YgR455qLlNWV6ztZXhi10tFBh4JPqhA6XYFeqtqw1GK/P/QzK2CmgzjajkcwoGgwKRoI4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fh3O/9Ic; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bTJaL3fQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E7231F00A3A;
-	Wed, 19 Aug 2026 20:16:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fh3O/9Ic"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22D5F1F000E9;
+	Wed, 19 Aug 2026 20:16:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787170566;
-	bh=/quJiVVjvx+QYXmUOPvcZFzCq2jM4zCcwoljT7Pgkh0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=bTJaL3fQKj8mUxzyd1wRCNIbDovge0SZz4T3Ai/DzGBMbnXVYs8r68bURGBXJL8ae
-	 pljYqDaBuM5yPRT3z3lGTvJPyCb3EUrhncKH1B2K+8hjrJ7jdYsAbDL8XOnUBCyV5e
-	 xYbCcro+3bRY84D8igjz7F7hmrbcSHOVYtR2fTIsmMUxUX4hjHl1wwQ/50b8QoGWZ+
-	 EYOK+Dgi0q0XcdidE+6r4yLlYEtrjLrTZui9JoqUaqO/n147rA+nWh3103Wma+iVFG
-	 vX1CR0TtACScLCaoReAgp/y6vOd/w2/4L+zfcZGMUV3oV/8ctjizVKaTah4ycLz/51
-	 jC4RlP3HKVDoA==
+	s=k20260515; t=1787170571;
+	bh=0akuDUBjXMI/6O3Z4zq1ZUmRU3C7pXTgHVTbkwfW6c4=;
+	h=From:To:Cc:Subject:Date;
+	b=fh3O/9IcP6CeY4tDOtv1bsboWCSwzN+DdJgIIF0lAbQn1xwaOLuNWsQupIQMPjBtf
+	 GoiuWOcJyCdUKw5QfHA44EXqNoBo4JSMlB36HMYyc7/th0MnopKhK3JV831OFaY4pD
+	 pZDLmV9/xDHcsQbO0uUNIy8G2HZg33ckm/N19v0Qrv0WAv1NJz5gMcBeK1mZPbkq2/
+	 pqYt47SUUNPc7E3SEGn+ONYlXQnlTZi6GjSkcXWQpVQa7ovoLEY52KlA0i+DXxMzeW
+	 gfpyDaAmaKvpfnJIepXMMDa9q0+VxPDROdR0Q8qSU9IHsdKylp46trQQHl+/z4fcoS
+	 Ss6Pbzn71gX4g==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
@@ -36,12 +35,11 @@ Cc: LKML <linux-kernel@vger.kernel.org>, Hans de Goede <hansg@kernel.org>,
  Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
  Pawel Chmielewski <pawel.chmielewski@intel.com>,
  Lukasz Luba <lukasz.luba@arm.com>
-Subject: [PATCH v1 1/3] ACPI: Add Bob Moore to CREDITS
-Date: Wed, 19 Aug 2026 22:12:34 +0200
-Message-ID: <3711645.iIbC2pHGDl@rafael.j.wysocki>
+Subject:
+ [PATCH v1 0/3] ACPI: Updates related to upstream ACPICA project changes
+Date: Wed, 19 Aug 2026 22:11:17 +0200
+Message-ID: <7982261.EvYhyI6sBW@rafael.j.wysocki>
 Organization: Linux Kernel Development - Intel
-In-Reply-To: <7982261.EvYhyI6sBW@rafael.j.wysocki>
-References: <7982261.EvYhyI6sBW@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -51,41 +49,42 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="UTF-8"
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Hi All,
 
-To me, Bob is a silent hero.
+The upstream ACPICA project is undergoing some changes that require
+documentation updates and similar, and hence this series.
 
-He had been driving the development and maintenance of the ACPI
-Component Architecture (ACPICA) project for over 2 decades and while
-he was not vocal or otherwise visible too much, he was focused on
-improving the code delivered by him to a community reaching far
-beyond the Linux kernel.
+Some of that is due to the departure of the long-time upstream ACPICA
+developer and maintainer Bob Moore and his immediate successor from
+Intel, but there is more.
 
-Bob retired from Intel earlier this year after over 40 years of
-continuous service and departed from software development as far
-as I know, and he is missed already.
+The project's license has changed (hopefully for the better) and it is
+now going to be the BSD-2-Clause-Patent license or the GPL-2.0-only
+license (as per the SPDX identifier).
 
-The kernel depends on Bob's contributions quite a bit, so he
-deserves a CREDITS entry.
+Also, the project will now require Sign-off-by tags from all
+contributors which should make it easier to track the provenance of
+code changes.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- CREDITS |    4 ++++
- 1 file changed, 4 insertions(+)
+Moreover, the ACPICA repository on GitHub has been relocated, so
+basically it has a new URL, even though the old one should just take
+you to the new location (at least most of the time), but it is still
+the same repository with all pull requests, issues etc.  Nevertheless,
+I apologize everyone who may be affected by this change for the
+inconvenience.
 
---- a/CREDITS
-+++ b/CREDITS
-@@ -2906,6 +2906,10 @@ N: Thomas Molina
- E: tmolina@cablespeed.com
- D: bug fixes, documentation, minor hackery
- 
-+N: Bob Moore
-+E: robert.moore@intel.com
-+D: ACPI Component Architecture (ACPICA)
-+
- N: Paul Moore
- E: paul@paul-moore.com
- W: https://www.paul-moore.com
+This series makes updates related to those changes.
+
+The first patch adds a CREDITS entry for Bob Moore, which is well-deserved
+in my view.
+
+The second patch updates the ACPICA entry in MAINTAINERS in accordance with
+the current state of the upstream ACPICA project.
+
+The last patch updates the upstream ACPICA repository URL in the only document
+other than MAINTAINERS in which it is present.
+
+Thanks!
 
 
 
