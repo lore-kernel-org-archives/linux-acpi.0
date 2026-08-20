@@ -1,192 +1,358 @@
-Received: from CY7PR03CU001.outbound.protection.outlook.com (mail-westcentralusazon11010001.outbound.protection.outlook.com [40.93.198.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFDA044062A;
-	Thu, 20 Aug 2026 04:56:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.198.1
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787201786; cv=fail; b=VQDVmtrjLuDq4SqHLCszKZUaEyVBuwcyxIBTEIaxqUNMg2u4p2hdIKqTnJYLW758uFvLJSW3ttOq2aVmoipwQDSwJFdlk6YPH/3MxsefjY7Z2/ey7MaV3z+dbrEC8OfZZrwg0+3rQUs+AGk5jLTeE9wu03PS6DlDFts3diizdzI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787201786; c=relaxed/simple;
-	bh=nliyzKgGT61UEpO/S/LVvCyaS7g4WZ87Mn2XL9dcdeI=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=YZQNhGp0D6yJd7OP9rnbcyppf9P5gie9s8Gk1pwe79nqx7EgtJVGPsCpRndR2F33vQ3rvo9KsCisIsu//9aNHGqI+VLAHwJOcrJAGVY8FxijpgzVbrzQZrWp1Zc/RpxXqHdQTIpZnLGA6YrgNKsKQqVYiJWbt5A3u9TyN6J9JB4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=m6NNjNEl; arc=fail smtp.client-ip=40.93.198.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D08E38B14B
+	for <linux-acpi@vger.kernel.org>; Thu, 20 Aug 2026 05:27:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.53
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1787203638; cv=none; b=A65KClUUelHBStNOuqTfPNMjI8PhL6oJndVwHSP3O82J1WbS+t/auB5GAe57pzA/3ekXPgdQNHRLTmoE33jdi/AOePFAVKecSifhGCMO4q5ISlCsTvTONRaRCKSziD+ewwAMDW+4bxLhli5waIg+lY0+7wcn2Ugkx90g9p9ym+M=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1787203638; c=relaxed/simple;
+	bh=pD5f4qqlrVvZK5V1FYjurHHuEuqcJN2AUDmZ/4khKV0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=g7n55Wch8pNaO3b7IaiATRAlD5r6/ObVCZ2ddsIG8Pi9UwkC63o5HBY0+GR1jteBlfGezWdYV1yd0kzV/qudVXznQ8/IMxjQMdnpWYmSD0AgaZyUKvUy/f5lsWMcDxq2C03rHr0RsyidYtScdEH+9EGpaLpQWI28dNIVqn/9FD4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=Z7FActPy; arc=none smtp.client-ip=209.85.218.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="m6NNjNEl"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=gXv2zTUP0j6EwOgeRxXu/Yq1CjoHv0DsOqDxlMc3y+MJrvYTKO3Jv4revWDQK14mrsPr3ik9h5r6cA+F5h6zzwYwA7fAm2OYFeiRrxRHKjWZrRr948ncljSsGx/BgUH1eOdePau0h3u2ny2kdgp7ZchhtttT+R40lRv6JqViHgYBNKtBRDi1SnT6+hmUxe6xHBQojQ0a6Auu4NWnbrlFkHbfOn1W0YtTWAo3hJcapzcFGwWZkRA8RmtDR9AQLBD0cMqX8S2K5R+0VQrzzTfti0ZMygAK932s3shZZrc1pNCAo40uwLTTkRQ30M5lxl7aAu7wIHdZOEl7dRDPw9qasA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=f7wko9QzZA7GZ5O/3Hycxv0T17zdPudKXj+ly/Yox00=;
- b=nWogwfeqnzsY5sFPk5dNV2NuLaaeOF5TI1Vr2UYCv8SHjEUSwJtw24XNQ19CljQGHlFWlNy6ehNT3HiHj505hmI3LGdowu6MWO8WAlGxOiGOTew1llavppATErFemnIrjgExlDFarxrhh55Bqrxh0u4FNkfnLfKXcQA+xhJmI5EDbSwxt144KI8NkdJYmtin1puSwR2GY8vAAKx4H13KNcjEGdfFUrz2cOg/QTZt6YUTw8kZRkXvTp5cPb42ajbB2kGlfwmYiC9A/BDCY4JoL5L6TQYeB/X/tIMkfHJ3Tpu2TSOkpOKRqdL8A/P4HSP9fRyYt0xlbp7pxVszO9hHnw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=f7wko9QzZA7GZ5O/3Hycxv0T17zdPudKXj+ly/Yox00=;
- b=m6NNjNElNejbER715EtZgBAJ4ybAfAbrcvvjJ0CJVTMUOBa/PeJAN02aWrWUtA6AmUQHGblV6patsXA6UvEbXUB9YnwCJ8Ttysnq6RECVGUwlXO25bYzVAWYdwT14BSvUMNPdULQDkQZ32/TELkTPRRpJT8PtAXFROGyItS/RbQ=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from CH3PR12MB8284.namprd12.prod.outlook.com (2603:10b6:610:12e::21)
- by DM6PR12MB4186.namprd12.prod.outlook.com (2603:10b6:5:21b::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.339.8; Thu, 20 Aug
- 2026 04:56:21 +0000
-Received: from CH3PR12MB8284.namprd12.prod.outlook.com
- ([fe80::1bc1:88b1:7cf7:87aa]) by CH3PR12MB8284.namprd12.prod.outlook.com
- ([fe80::1bc1:88b1:7cf7:87aa%4]) with mapi id 15.21.0339.008; Thu, 20 Aug 2026
- 04:56:21 +0000
-Message-ID: <f22c5687-c379-4fa5-9b32-555ecf5e54f1@amd.com>
-Date: Thu, 20 Aug 2026 10:26:11 +0530
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] serial: 8250_dw: Add device HID for AMDI0021 AMD UART
- controller
-To: Steffen Dirkwinkel <lists@steffen.cc>,
- "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Jiri Slaby <jirislaby@kernel.org>,
- Mario Limonciello <mario.limonciello@amd.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-serial@vger.kernel.org, Steffen Dirkwinkel <s.dirkwinkel@beckhoff.com>
-References: <20260813-b4-raven-ridge-uart-v1-1-fae442416ba1@beckhoff.com>
-Content-Language: en-US
-From: Shyam Sundar S K <Shyam-sundar.S-k@amd.com>
-In-Reply-To: <20260813-b4-raven-ridge-uart-v1-1-fae442416ba1@beckhoff.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: PN4PR01CA0100.INDPRD01.PROD.OUTLOOK.COM
- (2603:1096:c01:2ac::6) To CH3PR12MB8284.namprd12.prod.outlook.com
- (2603:10b6:610:12e::21)
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="Z7FActPy"
+Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-c20fb91ed0fso300009566b.3
+        for <linux-acpi@vger.kernel.org>; Wed, 19 Aug 2026 22:27:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1787203634; x=1787808434; darn=vger.kernel.org;
+        h=content-type:in-reply-to:autocrypt:from:content-language:references
+         :cc:to:subject:user-agent:mime-version:date:message-id:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=pD5f4qqlrVvZK5V1FYjurHHuEuqcJN2AUDmZ/4khKV0=;
+        b=Z7FActPyTstqqIMBWep14HE1wSsJM7LQruclIzAmE8HhjyScmVRs/zt3OHuDNeZlbY
+         oRTJJ14qyJS9BS4SqOUnJC5/X40Ew+OrSn09Pr0b/SH4YuxICBo/whwUULE416tGUbPk
+         TKAuUGjbt8RCp2TyqHlTkJSnXb0zPa42L1aFyXh9fslYqRBd96Y1/0/iPYu5Hdf1gBQA
+         CNdfTkYxOy8ADICCCLgA8F70h8ByZe+uBGWSB45jRy81oCLs3ARHsJqDnEKGfRDZaZD6
+         HbtKtC+QpQjSxnfrPvtTO4Xhv8+1a9DyN2SmwIWFV2vfWVHmPQTJuRy5v+lOXnzGq7dy
+         u+0g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787203634; x=1787808434;
+        h=content-type:in-reply-to:autocrypt:from:content-language:references
+         :cc:to:subject:user-agent:mime-version:date:message-id:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=pD5f4qqlrVvZK5V1FYjurHHuEuqcJN2AUDmZ/4khKV0=;
+        b=XduXqOI7bHUtKiiRk0cXaDdcz9pykxNJjwGEfJBxZ45XiQCZZbERonkQpk6dKlHoJ5
+         WXvfzLs99mluzY107hv3zWLu6dIXde8iZW+dL9WPLinFmqsX2W5CPy7ic3O9rVX+k7Lr
+         YySzpdZkx5vk/8eBonjTfBsQ1XYXbxSinaUz5UqXYWS9K6XpsULAo6O8MS2pDgJW61WH
+         VV5KN4SJEMqzsn2FWkP1HxXtwUKt0ZcsyQuQmyFRdRICLnwzKq0sGUKZmSlDpzPPgup+
+         pRMIc+997bdHowNah/ClTN5VIZN/58l6HlyqFfkRxHr7KBkXbssH4c6NR6mGABNz2ZK9
+         lymw==
+X-Forwarded-Encrypted: i=1; AHgh+RqVYoSYicX0Sl8BQufiTkYxFx+vt8q7BWnq6SLNMsIDoqiKDxQ/+mqhCtQJj93OF4Bgz2cShKdYi9oF@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywa5kwfUEffVxgBe+BIPzm4fJkvYUfhkAMl5rmkw4f8TNMPpIuL
+	4LW3oniDYSn9hVmguTzdExb5TmJhxtGyhFrp6nCIhPJgyIfC1lK02/QvVw1WZ17Il1Q=
+X-Gm-Gg: AR+sD11fh4KLdGoZ2QwdfjddJj7DCyqrPEG9ch+wHEjSVcsBQfRGNjGBw4LHQ9a41jn
+	aRbqWxhPBX+5J8BsikwVpDO6NM5/i9dzEhoGSAJ02Xod7aNVq1EVicPfP8++Elv8zfZA1b1sOvz
+	9amAb1LA4Qvpot+B7uHmZ7A8jSsV+8j4W2drn4H9qeWnrTZlmRtksTcGouaZ3Yzf7SnMNClhW7J
+	aQAs3B4o7ciEXZiHA9JbsyLkPrEMGeQ55/WOw43J+5mvpG6niGDh1D4Fiv6AyZWAfATqjaS0ukd
+	wzbZ9O8JC02LT5Uz2QmGdP1NAKqFYcXxWoKBDBDgtcfOe5chAlvQEwWABsg46Z4Wm9EXqCHMhrf
+	hUGDy2qsLgormfgrhjZCyjQRDRG0fGxKHQuoHofMwag+VJuRuo4O3Hoo2P2fhB6WrKFTtUa14M9
+	bAZMR8KZUVBQOTzIuVjii8wmwz9pZRmNkAr+HVmxzU2DwdOAIX06roLrnb1fgZfsHtSMho3Ukel
+	iO+vmsBwUDMYj3aMGk9GbnMCFDp5YkeihkTN1+WLXS9I748aQQBbdhGdiiLVR4xumvgtXIPgjn3
+	hl+geZ89MM2Xrg==
+X-Received: by 2002:a17:907:3c8f:b0:c21:34a3:4df9 with SMTP id a640c23a62f3a-c23f92a86e6mr659193466b.3.1787203633620;
+        Wed, 19 Aug 2026 22:27:13 -0700 (PDT)
+Received: from ?IPV6:2a00:12d0:af5d:ad01:5d3f:14e6:9bcb:5112? (2a00-12d0-af5d-ad01-5d3f-14e6-9bcb-5112.ip.tng.de. [2a00:12d0:af5d:ad01:5d3f:14e6:9bcb:5112])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c24591989ecsm24409966b.38.2026.08.19.22.27.11
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 19 Aug 2026 22:27:13 -0700 (PDT)
+Message-ID: <7c46f230-7eff-4420-aafc-47fdc27abd24@suse.com>
+Date: Thu, 20 Aug 2026 07:27:11 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH3PR12MB8284:EE_|DM6PR12MB4186:EE_
-X-MS-Office365-Filtering-Correlation-Id: 8725ee31-26f7-4fc7-5a51-08defe776098
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|7416014|376014|366016|23010399003|10067099003|56012099006|11063799006|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	dqJdhKBr+JwNVXGlT8YxiYHrWl4/PzIDy3rb96O1Zn4Le1BDAvmk/RoSjch9mRrtYRu+2s0uh6IRDzaMc7yaeOSg2alGNCr3NQiKjmBFDlrOSiDMq932fILeH2/wQtg5LGwceWjpnbpR9gnZ+Buo7tKsTzsN65LBwv41oOcvdm0zXLiOXXhPJq9jTfMnSCJwmmko0oWxYUBTY+J7H87irnIuWvmFIH3xpSl6q+jrqV1GXNuUPmmGEBZ4wKX4e61ryLIXZbyFJZBfmC3XlPHv2EaU8YMPY367kWOpLiyIBYBKMZlFD+pew/WW4KEHezLtyM8d5FMWocMs2AP5+ZKMqSjHV0Wuj6OBgdG3/1vE2Q/9s4CVVBp2G++oM6XAme8SQfky+hbqk5a2HbpThSnuYGz60sKE2qZay6QY20IAr4BPsatYQeHSDfeL0cP9Tazy2mpnDHFRQ3UXE9rdScCV04ycSeQYd8K4eOs+EhJUS+cmAKSGGggERH5HPidJ6sddOjtJgJO+In/xlrmM4v1I7nDEtRt+y95axgvrlWOqkRIa+OBkJ3/JAq4CdpOK5/jbZ5ft8Ebm/HFlnBDFrbEdqZGnI5Jq7V8tQ7IReCPXyqMkydBz8plh2t+Fe6QwgQEFYRnJpVsxTNXiIVNagg64JyZZiQWKdSh8jk0ZYJpY3fI=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB8284.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(366016)(23010399003)(10067099003)(56012099006)(11063799006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?S0pwWit0NVVGTDVCM3BzSjFRZEdzWXVIZEVac1A0cXhMSk9qNTEwbkJqYll3?=
- =?utf-8?B?K29KYWVuekoxSnZadUxaWVlsMm9GQll0SUN0SDlzRWxHQUx2L3BKcTVRb0c5?=
- =?utf-8?B?Ynd2Z05Uc2ZZUStXZm9nOUV6N3pRcXNkcTEzREt0QzMwOXczS3FRY3ozTjJS?=
- =?utf-8?B?WlpyNXJKUWF2ZFdUdFdmL2dKdkFTWVpzWVZBbnFaM2cvazUzWXJDZC85cUkr?=
- =?utf-8?B?K1V5RDU0OGZ3b3NBbXhTMFc3NTBhVW1EUTlGV2V2MzlmYVM0Y3A1Zk5ydjFW?=
- =?utf-8?B?ODdaT0dKenRTYzhpM0EybnZQdlNOUFZqUHkrMTFoUkZWZEdLZUV6SzhIT2ho?=
- =?utf-8?B?R2k3aE1FdGt0SmtOQzR3WFJqZDlKL0QrUUtaVlU5RHRYY25RTytrSFpJUjUy?=
- =?utf-8?B?eHBZc2V4L0xrZndnWWZIS3I1bUJ1cVYwaXhwZXlHdmNONXdoZXN5SzJuRUpv?=
- =?utf-8?B?a1IyYVVhM1p0Q3plZUpEc05mb0JqZTlsT0FIaXROc1AxNUdHNVBTeGE2YWYr?=
- =?utf-8?B?QUZmVUQ3VG4xOWhKWSt2KzBmWTF4YjRBczNDTXBRUGZ5Z2xMYXRlMEx2TDF4?=
- =?utf-8?B?aUNwYThOZTlyMjIzOWlVWVdTVWgrOEZtZHA0UitKTDJGc0lmbWhPbHVoVUdN?=
- =?utf-8?B?aytRUmk3V2MrL1YxRy9NdFpONHAvU0lmYWVtTUU4TjlqaXlmTE1mYlBpeWRi?=
- =?utf-8?B?Um11bk8rYnBsbmc1cHZneWZqOE8yNEFTK3ZpbHdrZTM3R0VVT3pQNUlJSFZD?=
- =?utf-8?B?dklrUFM3R3FqN25zckdpeFlqbEhPR2RVbVBxQldwNFJneFhYTG00WmFKNlBZ?=
- =?utf-8?B?eTBkMzFaQ0lXRzRlR1huYmdnOEgyTUdZd2J1UWYwa2ZFV2p6R2VMVTdWQlY2?=
- =?utf-8?B?R2FvWUdkVjRLemxTbFBtT3dNYmpyOGFla0l4ZXdjRjNlU25aNzNkZFpWRHlH?=
- =?utf-8?B?TU1acVJiYStRZE9URUNaNjkrR3dPV2F1V1lFdkNNMy9TSGJFa1dUTW9qd1RS?=
- =?utf-8?B?YWoxVlA1dUZoVXF5eDJzeVBBdW11cDFmWDNpcHhTTTNLRXROdElTM3o4eVhT?=
- =?utf-8?B?OUIyZWR3VldFb3BGeXh2WVV5WFdXWFRmdDdTT1QwRnE2a0owZ0ZwTk5yZ0VR?=
- =?utf-8?B?VjRNdzU3T0czNDVvTU9PaDN6RDZmTUNXQmxublZRTzZCbVllK3pQelNuNU9Q?=
- =?utf-8?B?cFVrVWs2NjhrM2ZvZitRaWFjWk9ZVHh5T3EwU0xBNng2aWN1T2V1YklYRCsy?=
- =?utf-8?B?RWtQeWtYc0FHRGZscUR6YzlXMVdnMDkwWGNSa0tkOEdTbzU1NGNmNWVFZGdq?=
- =?utf-8?B?Zmh2SkFvbDVQQzlQY1ViSU41NmJoajFBbU5tRy9UaHdnT3QxYjYvRzNUUEhy?=
- =?utf-8?B?RG4xenZNOFNheUNpTVFLTUxjV01XWGwwSy9QL1F1N29zakI3VWNaTHhhR2tZ?=
- =?utf-8?B?ajJTeGVNeUpIbHlxaUxXTkp3bTZVaERUZGRqV0tSMXdaNkFjU3FwWHJZSkZs?=
- =?utf-8?B?YjFxREk2dTArZjVueEFoQTJFTmxxcWxnYnMzZmttZmM3YjE0SlpBZ1VRekJ5?=
- =?utf-8?B?TjZRZXVNbHFOYkcvajhFeTlYYkIvU0ZmSWFRRFRNZ1V6UkxqTU56czNkQ0pK?=
- =?utf-8?B?OTlsbHBudHVJN0VDd0tVSksya3ZLOXhBV3hnWUE0UFN3bS83ZjhCbHdONFcr?=
- =?utf-8?B?aWhWVUlRdlZBQWNkTHJFMGltcFZhT2FqcTJlU2pRZ2JnTWE2ODhZMGNFblcz?=
- =?utf-8?B?SHFBbmFGc2lIMW9GRXAwNDk4RTVzTVBleDlUTUd4TDNyQ2VTdEMzOGZQR3lX?=
- =?utf-8?B?VlpraWVVdjFMWnhKVWUyN0diNG1vb3prazF3R1hOYSs2N1BQSkh0UVpJcEx6?=
- =?utf-8?B?cnpFSUJlN3RhbU5nR0dvU3BPZWhCa2diTUxOcFN5SFdTNDRkSHFpYXFsZ1pQ?=
- =?utf-8?B?RU1ZZjdwQkJiajdSVlBkeTZaSlA1UHVybWlab05KcEFmR2U3TzJXM0czdzNI?=
- =?utf-8?B?eWFZWklXZ0JYU2UrUWVNSUZobDd5Z2t5anQvVy9FTzVFMWZDbGNsOVZJbXNq?=
- =?utf-8?B?aEpDRkU1UWxVNjRoclV5cjc3WFBsTzRvd21HNHZUOGR0a2RkR1ozakdvSmor?=
- =?utf-8?B?dHpVSmF6R210OUV2eTY0aU92MUpDMHcxMkZaYTBBb1REQklyY3p2OU93ankr?=
- =?utf-8?B?ajRPak1UOVMrQzZKYythYjlYRWZ0LzVJU0VkbWVSaWw1Y0EwMDRNa1FOLzJh?=
- =?utf-8?B?ODU5WG9lNHdpVC92dGd5eXB6bVNaUDhlRGUreG1WRjZ1Tmc3Tm5FWERqbVYy?=
- =?utf-8?B?aDBaai9oZ080ZHdJTFJRRFVQTjRMWnZKazcwYzhKeWZyZkx6TG9OZz09?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8725ee31-26f7-4fc7-5a51-08defe776098
-X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB8284.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Aug 2026 04:56:21.0526
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 8/1yOpB4gNHjfJ2VRk51AAJeC7J+ks6xSDUre40oRnVedkulslQ4XA5TDH9GgORiLFou5LZIuTMvE1nK0Av9HA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4186
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 00/13] x86/msr: Drop 32-bit MSR interfaces
+To: Sean Christopherson <seanjc@google.com>,
+ Dave Hansen <dave.hansen@intel.com>
+Cc: linux-kernel@vger.kernel.org, x86@kernel.org,
+ virtualization@lists.linux.dev, linux-ide@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+ linux-crypto@vger.kernel.org, linux-gpio@vger.kernel.org,
+ linux-perf-users@vger.kernel.org, linux-hyperv@vger.kernel.org,
+ kvm@vger.kernel.org, linux-edac@vger.kernel.org, linux-pci@vger.kernel.org,
+ linux-pm@vger.kernel.org, linux-coco@lists.linux.dev,
+ linux-acpi@vger.kernel.org, linux-hwmon@vger.kernel.org,
+ linux-mtd@lists.infradead.org, platform-driver-x86@vger.kernel.org,
+ Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
+ "H. Peter Anvin" <hpa@zytor.com>, Ajay Kaher <ajay.kaher@broadcom.com>,
+ Alexey Makhalov <alexey.makhalov@broadcom.com>,
+ Broadcom internal kernel review list
+ <bcm-kernel-feedback-list@broadcom.com>, Damien Le Moal
+ <dlemoal@kernel.org>, Niklas Cassel <cassel@kernel.org>,
+ David Airlie <airlied@redhat.com>, Helge Deller <deller@gmx.de>,
+ linux-geode@lists.infradead.org, Olivia Mackall <olivia@selenic.com>,
+ Herbert Xu <herbert@gondor.apana.org.au>, Linus Walleij <linusw@kernel.org>,
+ Bartosz Golaszewski <brgl@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Peter Zijlstra <peterz@infradead.org>,
+ Arnaldo Carvalho de Melo <acme@kernel.org>,
+ Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
+ Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+ Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>,
+ Adrian Hunter <adrian.hunter@intel.com>, James Clark
+ <james.clark@linaro.org>, "K. Y. Srinivasan" <kys@microsoft.com>,
+ Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>,
+ Dexuan Cui <decui@microsoft.com>, Long Li <longli@microsoft.com>,
+ Paolo Bonzini <pbonzini@redhat.com>, Josh Poimboeuf <jpoimboe@kernel.org>,
+ Pawan Gupta <pawan.kumar.gupta@linux.intel.com>, Pu Wen <puwen@hygon.cn>,
+ Tony Luck <tony.luck@intel.com>, Reinette Chatre
+ <reinette.chatre@intel.com>, Dave Martin <Dave.Martin@arm.com>,
+ James Morse <james.morse@arm.com>, Babu Moger <babu.moger@amd.com>,
+ Tony W Wang-oc <TonyWWang-oc@zhaoxin.com>,
+ Vitaly Kuznetsov <vkuznets@redhat.com>, Andy Lutomirski <luto@kernel.org>,
+ Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki"
+ <rafael@kernel.org>, Pavel Machek <pavel@kernel.org>,
+ Kiryl Shutsemau <kas@kernel.org>, Rick Edgecombe
+ <rick.p.edgecombe@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+ Len Brown <lenb@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>,
+ Huang Rui <ray.huang@amd.com>, Mario Limonciello
+ <mario.limonciello@amd.com>, Perry Yuan <perry.yuan@amd.com>,
+ K Prateek Nayak <kprateek.nayak@amd.com>,
+ Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+ Yazen Ghannam <yazen.ghannam@amd.com>, Guenter Roeck <linux@roeck-us.net>,
+ Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
+ Artem Bityutskiy <dedekind1@gmail.com>,
+ Miquel Raynal <miquel.raynal@bootlin.com>,
+ Richard Weinberger <richard@nod.at>, Vignesh Raghavendra <vigneshr@ti.com>,
+ Ashok Raj <ashok.raj.linux@gmail.com>, Hans de Goede <hansg@kernel.org>,
+ =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+ Rajneesh Bhardwaj <irenic.rajneesh@gmail.com>,
+ David E Box <david.e.box@intel.com>,
+ Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>,
+ Lukasz Luba <lukasz.luba@arm.com>, xen-devel@lists.xenproject.org
+References: <20260819102314.1499258-1-jgross@suse.com>
+ <bd9e5b6e-07f2-459d-bca6-e290585060aa@intel.com>
+ <aoXM2f1YTwgVj8KL@google.com>
+Content-Language: en-US
+From: =?UTF-8?B?SsO8cmdlbiBHcm/Dnw==?= <jgross@suse.com>
+Autocrypt: addr=jgross@suse.com; keydata=
+ xsBNBFOMcBYBCACgGjqjoGvbEouQZw/ToiBg9W98AlM2QHV+iNHsEs7kxWhKMjrioyspZKOB
+ ycWxw3ie3j9uvg9EOB3aN4xiTv4qbnGiTr3oJhkB1gsb6ToJQZ8uxGq2kaV2KL9650I1SJve
+ dYm8Of8Zd621lSmoKOwlNClALZNew72NjJLEzTalU1OdT7/i1TXkH09XSSI8mEQ/ouNcMvIJ
+ NwQpd369y9bfIhWUiVXEK7MlRgUG6MvIj6Y3Am/BBLUVbDa4+gmzDC9ezlZkTZG2t14zWPvx
+ XP3FAp2pkW0xqG7/377qptDmrk42GlSKN4z76ELnLxussxc7I2hx18NUcbP8+uty4bMxABEB
+ AAHNH0p1ZXJnZW4gR3Jvc3MgPGpncm9zc0BzdXNlLmNvbT7CwHkEEwECACMFAlOMcK8CGwMH
+ CwkIBwMCAQYVCAIJCgsEFgIDAQIeAQIXgAAKCRCw3p3WKL8TL8eZB/9G0juS/kDY9LhEXseh
+ mE9U+iA1VsLhgDqVbsOtZ/S14LRFHczNd/Lqkn7souCSoyWsBs3/wO+OjPvxf7m+Ef+sMtr0
+ G5lCWEWa9wa0IXx5HRPW/ScL+e4AVUbL7rurYMfwCzco+7TfjhMEOkC+va5gzi1KrErgNRHH
+ kg3PhlnRY0Udyqx++UYkAsN4TQuEhNN32MvN0Np3WlBJOgKcuXpIElmMM5f1BBzJSKBkW0Jc
+ Wy3h2Wy912vHKpPV/Xv7ZwVJ27v7KcuZcErtptDevAljxJtE7aJG6WiBzm+v9EswyWxwMCIO
+ RoVBYuiocc51872tRGywc03xaQydB+9R7BHPzsBNBFOMcBYBCADLMfoA44MwGOB9YT1V4KCy
+ vAfd7E0BTfaAurbG+Olacciz3yd09QOmejFZC6AnoykydyvTFLAWYcSCdISMr88COmmCbJzn
+ sHAogjexXiif6ANUUlHpjxlHCCcELmZUzomNDnEOTxZFeWMTFF9Rf2k2F0Tl4E5kmsNGgtSa
+ aMO0rNZoOEiD/7UfPP3dfh8JCQ1VtUUsQtT1sxos8Eb/HmriJhnaTZ7Hp3jtgTVkV0ybpgFg
+ w6WMaRkrBh17mV0z2ajjmabB7SJxcouSkR0hcpNl4oM74d2/VqoW4BxxxOD1FcNCObCELfIS
+ auZx+XT6s+CE7Qi/c44ibBMR7hyjdzWbABEBAAHCwF8EGAECAAkFAlOMcBYCGwwACgkQsN6d
+ 1ii/Ey9D+Af/WFr3q+bg/8v5tCknCtn92d5lyYTBNt7xgWzDZX8G6/pngzKyWfedArllp0Pn
+ fgIXtMNV+3t8Li1Tg843EXkP7+2+CQ98MB8XvvPLYAfW8nNDV85TyVgWlldNcgdv7nn1Sq8g
+ HwB2BHdIAkYce3hEoDQXt/mKlgEGsLpzJcnLKimtPXQQy9TxUaLBe9PInPd+Ohix0XOlY+Uk
+ QFEx50Ki3rSDl2Zt2tnkNYKUCvTJq7jvOlaPd6d/W0tZqpyy7KVay+K4aMobDsodB3dvEAs6
+ ScCnh03dDAFgIq5nsB11j3KPKdVoPlfucX2c7kGNH+LUMbzqV6beIENfNexkOfxHfw==
+In-Reply-To: <aoXM2f1YTwgVj8KL@google.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="------------OlQIV8uZOa0bnOS7005717DP"
 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--------------OlQIV8uZOa0bnOS7005717DP
+Content-Type: multipart/mixed; boundary="------------qk5J6DZ8xy0dNfYeK9IbauuV";
+ protected-headers="v1"
+From: =?UTF-8?B?SsO8cmdlbiBHcm/Dnw==?= <jgross@suse.com>
+To: Sean Christopherson <seanjc@google.com>,
+ Dave Hansen <dave.hansen@intel.com>
+Cc: linux-kernel@vger.kernel.org, x86@kernel.org,
+ virtualization@lists.linux.dev, linux-ide@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+ linux-crypto@vger.kernel.org, linux-gpio@vger.kernel.org,
+ linux-perf-users@vger.kernel.org, linux-hyperv@vger.kernel.org,
+ kvm@vger.kernel.org, linux-edac@vger.kernel.org, linux-pci@vger.kernel.org,
+ linux-pm@vger.kernel.org, linux-coco@lists.linux.dev,
+ linux-acpi@vger.kernel.org, linux-hwmon@vger.kernel.org,
+ linux-mtd@lists.infradead.org, platform-driver-x86@vger.kernel.org,
+ Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
+ "H. Peter Anvin" <hpa@zytor.com>, Ajay Kaher <ajay.kaher@broadcom.com>,
+ Alexey Makhalov <alexey.makhalov@broadcom.com>,
+ Broadcom internal kernel review list
+ <bcm-kernel-feedback-list@broadcom.com>, Damien Le Moal
+ <dlemoal@kernel.org>, Niklas Cassel <cassel@kernel.org>,
+ David Airlie <airlied@redhat.com>, Helge Deller <deller@gmx.de>,
+ linux-geode@lists.infradead.org, Olivia Mackall <olivia@selenic.com>,
+ Herbert Xu <herbert@gondor.apana.org.au>, Linus Walleij <linusw@kernel.org>,
+ Bartosz Golaszewski <brgl@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Peter Zijlstra <peterz@infradead.org>,
+ Arnaldo Carvalho de Melo <acme@kernel.org>,
+ Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
+ Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+ Jiri Olsa <jolsa@kernel.org>, Ian Rogers <irogers@google.com>,
+ Adrian Hunter <adrian.hunter@intel.com>, James Clark
+ <james.clark@linaro.org>, "K. Y. Srinivasan" <kys@microsoft.com>,
+ Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>,
+ Dexuan Cui <decui@microsoft.com>, Long Li <longli@microsoft.com>,
+ Paolo Bonzini <pbonzini@redhat.com>, Josh Poimboeuf <jpoimboe@kernel.org>,
+ Pawan Gupta <pawan.kumar.gupta@linux.intel.com>, Pu Wen <puwen@hygon.cn>,
+ Tony Luck <tony.luck@intel.com>, Reinette Chatre
+ <reinette.chatre@intel.com>, Dave Martin <Dave.Martin@arm.com>,
+ James Morse <james.morse@arm.com>, Babu Moger <babu.moger@amd.com>,
+ Tony W Wang-oc <TonyWWang-oc@zhaoxin.com>,
+ Vitaly Kuznetsov <vkuznets@redhat.com>, Andy Lutomirski <luto@kernel.org>,
+ Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki"
+ <rafael@kernel.org>, Pavel Machek <pavel@kernel.org>,
+ Kiryl Shutsemau <kas@kernel.org>, Rick Edgecombe
+ <rick.p.edgecombe@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+ Len Brown <lenb@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>,
+ Huang Rui <ray.huang@amd.com>, Mario Limonciello
+ <mario.limonciello@amd.com>, Perry Yuan <perry.yuan@amd.com>,
+ K Prateek Nayak <kprateek.nayak@amd.com>,
+ Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+ Yazen Ghannam <yazen.ghannam@amd.com>, Guenter Roeck <linux@roeck-us.net>,
+ Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
+ Artem Bityutskiy <dedekind1@gmail.com>,
+ Miquel Raynal <miquel.raynal@bootlin.com>,
+ Richard Weinberger <richard@nod.at>, Vignesh Raghavendra <vigneshr@ti.com>,
+ Ashok Raj <ashok.raj.linux@gmail.com>, Hans de Goede <hansg@kernel.org>,
+ =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+ Rajneesh Bhardwaj <irenic.rajneesh@gmail.com>,
+ David E Box <david.e.box@intel.com>,
+ Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>,
+ Lukasz Luba <lukasz.luba@arm.com>, xen-devel@lists.xenproject.org
+Message-ID: <7c46f230-7eff-4420-aafc-47fdc27abd24@suse.com>
+Subject: Re: [PATCH v2 00/13] x86/msr: Drop 32-bit MSR interfaces
+References: <20260819102314.1499258-1-jgross@suse.com>
+ <bd9e5b6e-07f2-459d-bca6-e290585060aa@intel.com>
+ <aoXM2f1YTwgVj8KL@google.com>
+In-Reply-To: <aoXM2f1YTwgVj8KL@google.com>
 
+--------------qk5J6DZ8xy0dNfYeK9IbauuV
+Content-Type: multipart/mixed; boundary="------------VektzkYqobfpSCR53LmeFJO1"
 
-On 14-08-2026 00:07, Steffen Dirkwinkel wrote:
-> From: Steffen Dirkwinkel <s.dirkwinkel@beckhoff.com>
-> 
-> This ID is found on AMD V1202B.
-> Like the AMDI0022 [1] this one works with the same match and the existing driver.
-> Tested with a loopback cable.
-> 
-> [1] commit 3c35d2a960c0 ("serial: 8250_dw: Add device HID for new AMD UART controller")
-> 
-> Signed-off-by: Steffen Dirkwinkel <s.dirkwinkel@beckhoff.com>
+--------------VektzkYqobfpSCR53LmeFJO1
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: base64
 
-Looked at AMD's ACPI reservation table and this looks right to me.
+T24gMTkuMDguMjYgMTc6MzMsIFNlYW4gQ2hyaXN0b3BoZXJzb24gd3JvdGU6DQo+IE9uIFdl
+ZCwgQXVnIDE5LCAyMDI2LCBEYXZlIEhhbnNlbiB3cm90ZToNCj4+IEhleSBKdWVyZ2VuLA0K
+Pj4NCj4+IFRoZXNlIGxvb2sgZ3JlYXQuIFRoYW5rcyBmb3IgZG9pbmcgaXQhDQo+Pg0KPj4g
+VGhlIG9ubHkgd29ua3kgdGhpbmcgaXMgaG93IHdlJ3JlIGdvaW5nIHRvIGFjdHVhbGx5IG1l
+cmdlIGl0LiBXZQ0KPj4gb2J2aW91c2x5IGNhbid0IGRvIHBhdGNoZXMgMTAtMTEgdW50aWwg
+YWxsIHRoZSAic3RvcCB1c2luZyIgcGF0Y2hlcyBoYXZlDQo+PiBiZWVuIGFwcGxpZWQuDQo+
+Pg0KPj4gSSBvYnZpb3VzbHkgMTAwJSByZWFsaXplIHRoYXQgaXQncyBkdXJpbmcgdGhlIG1l
+cmdlIHdpbmRvdywgYnV0IGFueSBhY2tzDQo+PiB0aGF0IHRoZSBtYWludGFpbmVycyBvZiA1
+LTkgcHJvdmlkZSBpbiB0aGUgbmV4dCBmZXcgd2Vla3Mgd291bGQgYmUgc3VwZXINCj4+IGhl
+bHBmdWwuIE9yLCBpZiBhbnkgb2YgdGhvc2UgbWFpbnRhaW5lcnMgd2FudCB0byBjaGVycnkg
+cGljayB0aGVpcg0KPj4gc3Vic3lzdGVtJ3Mgc3R1ZmYgb3V0IG9mIHRoaXMgc2VyaWVzIGFu
+ZCBhcHBseSBpdCwgdGhhdCB3b3VsZCBiZSBncmVhdCB0b28uDQo+Pg0KPj4gQnV0LCB0aGUg
+bGFzdCB0aW1lIHdlIGRpZCBzb21lIE1TUiBmdW5jdGlvbiBtdW5naW5nLCB0aGUgdGlwIHRy
+ZWUNCj4+IGNhcnJpZWQgbW9zdCBvZiB0aGUgcGF0Y2hlcy4gSSB3b3VsZCBleHBlY3Qgd2Un
+bGwgaGF2ZSBhIHJlcGVhdCBvZiB0aGF0DQo+PiBoZXJlIHRvby4gSSdsbCBwZW5jaWwgaW4g
+dGhlIGlkZWEgb2YganVzdCBtZXJnaW5nIHRoZSBsb3QgYXJvdW5kIC1yYzEgdGltZS4NCj4g
+DQo+IE5vdGUsIHBhdGNoIDEyICJ0cmVld2lkZTogY29udmVydCByZG1zcnEoKSBmcm9tIGEg
+bWFjcm8gdG8gYW4gaW5saW5lIGZ1bmN0aW9uIg0KPiBpcyBnb2luZyB0byBjb25mbGljdCB3
+aXRoIHRoZSBLVk0gY2hhbmdlcyBmb3IgNy4zOyBrdm1fYWNjZXNzX3hzdGF0ZV9tc3IoKSBp
+cw0KPiBnZXR0aW5nIG1vdmVkIGZyb20geDg2LmMgdG8gbXNycy5jLiAgU29tZXdoYXQgc3Vy
+cHJpc2luZ2x5LCBBRkFJQ1QgdGhhdCdzIHRoZQ0KPiBvbmx5IGNvbmZsaWN0IHdpdGggS1ZN
+J3MgY29kZSBtb3ZlbWVudCwgc28gaXQncyBwcm9iYWJseSBub3Qgc3RyaWN0bHkgcmVxdWly
+ZWQNCj4gdG8gc2VuZCBhIG5ldyB2ZXJzaW9uIGFmdGVyIHRoZSBLVk0gcHVsbCByZXF1ZXN0
+Pw0KDQpJJ20gZXhwZWN0aW5nIHNvbWUgbW9yZSBjb25mbGljdHMgZXNwZWNpYWxseSBmb3Ig
+cGF0Y2hlcyAxMC0xMiBiZWZvcmUgdGhleSBhcmUNCm1lcmdlZC4gSSdtIG1vcmUgb3IgbGVz
+cyBjb25zdGFudGx5IHJlYmFzaW5nIGxvY2FsbHkuIEluIGNhc2UgYSBjb25mbGljdCBpcw0K
+ZGV0ZWN0ZWQsIEknbGwgc2VuZCBhIFYzIGFmdGVyIHJjMS4NCg0KDQpKdWVyZ2VuDQo=
+--------------VektzkYqobfpSCR53LmeFJO1
+Content-Type: application/pgp-keys; name="OpenPGP_0xB0DE9DD628BF132F.asc"
+Content-Disposition: attachment; filename="OpenPGP_0xB0DE9DD628BF132F.asc"
+Content-Description: OpenPGP public key
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Shyam Sundar S K <Shyam-sundar.S-k@amd.com>
+-----BEGIN PGP PUBLIC KEY BLOCK-----
 
-> ---
->  drivers/acpi/acpi_apd.c           | 1 +
->  drivers/tty/serial/8250/8250_dw.c | 1 +
->  2 files changed, 2 insertions(+)
-> 
-> diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-> index 008bd0552cb7..562be86aa272 100644
-> --- a/drivers/acpi/acpi_apd.c
-> +++ b/drivers/acpi/acpi_apd.c
-> @@ -250,6 +250,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
->  	{ "AMDI0015", APD_ADDR(wt_i3c_desc) },
->  	{ "AMDI0019", APD_ADDR(wt_i2c_desc) },
->  	{ "AMDI0020", APD_ADDR(cz_uart_desc) },
-> +	{ "AMDI0021", APD_ADDR(cz_uart_desc) },
->  	{ "AMDI0022", APD_ADDR(cz_uart_desc) },
->  	{ "HYGO0010", APD_ADDR(wt_i2c_desc) },
->  #endif
-> diff --git a/drivers/tty/serial/8250/8250_dw.c b/drivers/tty/serial/8250/8250_dw.c
-> index 5fba913f3301..214d3e7ae628 100644
-> --- a/drivers/tty/serial/8250/8250_dw.c
-> +++ b/drivers/tty/serial/8250/8250_dw.c
-> @@ -910,6 +910,7 @@ static const struct acpi_device_id dw8250_acpi_match[] = {
->  	{ "8086228A", (kernel_ulong_t)&dw8250_dw_apb },
->  	{ "AMD0020", (kernel_ulong_t)&dw8250_dw_apb },
->  	{ "AMDI0020", (kernel_ulong_t)&dw8250_dw_apb },
-> +	{ "AMDI0021", (kernel_ulong_t)&dw8250_dw_apb },
->  	{ "AMDI0022", (kernel_ulong_t)&dw8250_dw_apb },
->  	{ "APMC0D08", (kernel_ulong_t)&dw8250_apmc0d08 },
->  	{ "BRCM2032", (kernel_ulong_t)&dw8250_dw_apb },
-> 
-> ---
-> base-commit: 3aa1dcaa4f6f5ae08936491e08bd456f331f2d40
-> change-id: 20260813-b4-raven-ridge-uart-62b1ef1fc246
-> 
-> Best regards,
-> --  
-> Steffen Dirkwinkel <s.dirkwinkel@beckhoff.com>
-> 
+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
+kt+z4drzFUyEjLM1vVvIMjkUoJs=3D
+=3DeeAB
+-----END PGP PUBLIC KEY BLOCK-----
 
+--------------VektzkYqobfpSCR53LmeFJO1--
+
+--------------qk5J6DZ8xy0dNfYeK9IbauuV--
+
+--------------OlQIV8uZOa0bnOS7005717DP
+Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="OpenPGP_signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+wsB5BAABCAAjFiEEhRJncuj2BJSl0Jf3sN6d1ii/Ey8FAmqGkC8FAwAAAAAACgkQsN6d1ii/Ey+e
+awf+Jpv8k2uyA4+Ryt6TuDaHqSnrkgatMB0F84HZ1AAuI02rgaxcS4qHeWXYnftFjGMzmdOuklMu
+fD2qHqlJtns8wbus6eBshyaJf7L5QqPdODWfJ1xma7m/JkWCfsWEtF1RHh+/gqnAxZ36Pjln1VTa
+cxXkk6/DqdrBc78e/ZRqY+yi90Eew9HaLArNBthsvcyWc9uXr8aGVl4naO3p/2Pj6J8FxDK7+9rm
+OVsJX5tkOwDyarQUJGLfaSNizqJT0nDnb+VyBzRdCHS06Uy2ho9GXkp83OfJo7tn5MWHtggptx9W
+8Q9DFLf/YdwL9qfWGVa/u5zq863UtqO9SWyFmp3aYQ==
+=np+M
+-----END PGP SIGNATURE-----
+
+--------------OlQIV8uZOa0bnOS7005717DP--
