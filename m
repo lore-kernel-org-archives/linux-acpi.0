@@ -1,140 +1,127 @@
-Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B42AF2C3257
-	for <linux-acpi@vger.kernel.org>; Fri, 21 Aug 2026 07:07:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 752683BF66B
+	for <linux-acpi@vger.kernel.org>; Fri, 21 Aug 2026 11:32:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787296034; cv=none; b=Jlguy2Dl54i3n4hxDgvBGVJg0dPpEgpj5L1APWAnIm9D7x4Q3J5sa5YoBMiEgGVjFl2JavePaTgC5YWD9EO+AWO+Q7xE/InnVwuA7SPFUvNHhf43dh2ds7WTMP2u5/xfFrvy/0tVgqvkz4Hn0Te3KWvAim25/LBLNuhTulfhIDw=
+	t=1787311936; cv=none; b=VR1foPdAtxxtlpehGmCk42uQCoL/q37UH7ruGYy9TS+zuIxzWtsEApfMmClOURln5tAmfRZaWfE4tPAyWv2D5ezW3rhkx0yZLf1xum4K5XuwdHBFQXyMEtcDroktZEIVLyxwzv+0xNEsyUK918MIP2AvIetQYZGVO1ciB7mnjlM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787296034; c=relaxed/simple;
-	bh=KHiT9Uz3L1tUUvPiMn+ljKbKUXigLaVXOr8hzafaS7g=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=VMGBDxbqDwr64LfMl3N2wVHiYLZ1jKnhx8MsDk6VjmHYkB7jqYUePGTHmXJpmJpAmzzsAyz7G9t6iutfFuzi4hioMBp8vVv7eh4RGt2Jp4weADjlEfAlVXqoKFi2vO4U7yah/SWozhVhsvPS/yhJkimbFNrTJsz8Ev/fnLiY+uc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=n3+iFbah; arc=none smtp.client-ip=209.85.218.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1787311936; c=relaxed/simple;
+	bh=l/B+Md1W1jiZxRBO5PV+SOyAVru4gPNS253mLqdvSK4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=QUKed2VCpjcbqXsqlGT1WJ59HWD1GlsO+7BlXDAA7w6rvnOd88QjjYKfvRZbNB67NqULSlh/ltOZBQ6ft689iueLRZu2bTWRhI4KeclakURhrsWMI8Vo1N/CrjQtxn4a9YTr5wv1shOozojYxDDnlxRIjqFbKUh7y1cLafm6vXA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IdEMJ4LD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="n3+iFbah"
-Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-c2022323c37so109997866b.0
-        for <linux-acpi@vger.kernel.org>; Fri, 21 Aug 2026 00:07:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787296031; x=1787900831; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=4/P0D6GBeuWoJ3fKJc4nQEvpIIn/RZFrAaGDwh5r7l8=;
-        b=n3+iFbahR4rSqm2LoLtHV9HvbAc0jP+2Gm8W2zAu0ryEkju/THb03W3oELy8jHtYW4
-         YuWVb7U2VrfaPn9wCf7p9Jw8UeppLWClazCwsFna/Jwmq72mddE0S72BbRaBXQ5DjozV
-         AkfIGqrxChVv0akQYi2l7nZGzYSHOalK8h9PJYPI+UH82OCy/MaYq8fQZc4bBOUPH0AB
-         tD6aRNE520p6mi50qz1w9vqrBwdSo8xLWy5QJB/oUPG7yVpqGXOcQAfYpaAp10rvoIhm
-         KJdjw46h4ozala4k/gJHO5jZpclcZOaPgPezhTp7QjCrStpIiLgd3/JvLQNMo1i+25QI
-         1gOw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787296031; x=1787900831;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=4/P0D6GBeuWoJ3fKJc4nQEvpIIn/RZFrAaGDwh5r7l8=;
-        b=PoJAqomd0y0aX+kMILVoM0AmofUOGVoyoQclhTVGTvdmhR66poLY2zqC1yRKqRdHBx
-         UjtDg3+QYlSkGRkzbi0BswrPBT5LGL/kQjo6ZshA/M1HLlrHeKcIrVaz1Aa7rjGFyAF9
-         vX1dMx4jdCb4YB0XO/jxlxdyCswu/3fRUYNQabPaAXWTZbgwBSya1+YnkIuChGuPoYXc
-         qY4vTfmxwbvatJsSouXMvKq2iY1g/0efUlLrgStu0E/nL05i/lD+5zHstzBaP6r8VXmC
-         0KAYNEuxkCBMK74At36mHUD0Mgh1WTYO8CqE+yNrHhCUh+2ZGN3P2F2VWsao4eQ7F6/s
-         CODw==
-X-Forwarded-Encrypted: i=1; AHgh+RqPchjBQccuX2PfP2lruC6a5J0vbVyD3u/GvvdX/EjAxMPc9cH9/3JfNtB1CFLsN59E/gTSlPxqK8e5@vger.kernel.org
-X-Gm-Message-State: AFuF++kNvxL9zLLvxn+lhv1xoeej1Ur57JRivuLuDYnqY0ffIoIbylld
-	xqXtoT6rZ75lAOZuaMq6CJ/c+R3dz2NvrZBC1mUAiqTeab7GD11vJ4dZ
-X-Gm-Gg: AR+sD13U2v2zzrSNJMQyS8ZLKi7ed2uJ6y6FpOdrAy3Zww6R2anwnFPzwR15wxckZr9
-	1TY4c/NuFxKsOqLeoJ/7IzzTfgVgKjnU5ck5QWwC9hYDZqvPX1zwMSd3YxST7A+nKwTwULWNxaQ
-	rFvKGkbNj8frbhhqwLRrCUXyBeaet7IV4Xkr5Pz8sxrfzbhZlkJAky/she17pfrvVtn+N49PC2j
-	eLyXCnIe6qObipkKLHPdpxw6rIZjEdPT9cFnKEv5UQVV3V7WAIQvlfSQnkrEwIsn5NEw2wnH8Lz
-	Oj5RbjDdRLdmut5aK1/Zb5663yAPcqw3YJhRruX+aJZji98r7KDpMW5cB9ezuDvMj+kZTsIsUbL
-	fV495xdZ9+uhIKkJxbGXc7FhiFr6tA4VQz4ELUJYddvHGiy3z1Gg0nfD3UR9tBOLy2S3KyFMCro
-	MiukCYMf1EFzmHpJepi2WMCKzhY+3FtIsXKomCcLbE4dZX6CPT1Dyh7PxyIIx3k0xhQo4zU0hwc
-	6zpeH3FOmG2wL+bCnV2WIZxAXXY8rSENdI6gJMohe+yzNeHLy++hy9/+1oIpTG0HHXBiMLPfl09
-	aOMPgUorPw7ANHw=
-X-Received: by 2002:a17:907:7ba7:b0:c16:4e5:944a with SMTP id a640c23a62f3a-c246a6836bcmr403412566b.21.1787296030701;
-        Fri, 21 Aug 2026 00:07:10 -0700 (PDT)
-Received: from localhost.localdomain ([5.22.132.95])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c24591df622sm332597366b.46.2026.08.21.00.07.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 21 Aug 2026 00:07:10 -0700 (PDT)
-From: Kivan <vaknins33@gmail.com>
-To: Mika Westerberg <westeri@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Linus Walleij <linusw@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Mario Limonciello <mario.limonciello@amd.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Kivan <vaknins33@gmail.com>
-Subject: [PATCH] gpiolib: acpi: Add ignore_wake quirk for ASUS ZenBook UX425UA_UM425UA
-Date: Fri, 21 Aug 2026 10:06:50 +0300
-Message-ID: <20260821070651.39763-1-vaknins33@gmail.com>
-X-Mailer: git-send-email 2.55.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IdEMJ4LD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1122D1F000E9
+	for <linux-acpi@vger.kernel.org>; Fri, 21 Aug 2026 11:32:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787311935;
+	bh=AEcGi7SmslsDrHx9u5V+f5rOPm6DBZ+8VubAfvuWq3M=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=IdEMJ4LDdXBgMlLWteXIwUZJzVSUTQIHQe6focJ1xL3BBdrdWZ8tPCW8e2jd4Jwmw
+	 g2jXsBq1n/Zufyrb18hefM/3Mf5V3qP8Mo9776C0cGUgqIrmZ4w2tnYxzc6KJ8s/J2
+	 yvtFJK0jiTef78A801NJCXJZQLHhmPtDKHTZyldaVZg421a+GpLPOHZZ4/48Vcl4Ay
+	 kAizT1IS/ghC0G2BAjUXwSQiEq3WRZ1vmWEMBtTVvudo7ZOedgYAkI4kFFdCmI7n5T
+	 i3yBRNuLQUmZTy0QTIpsmoyt0rNuOtAl0O61Gy0eh0FTV0Dk0PFaagdDBug9cvBA3A
+	 KnW01npQ+22BQ==
+Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-5b01910b499so780270e87.0
+        for <linux-acpi@vger.kernel.org>; Fri, 21 Aug 2026 04:32:14 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RrRMdmlEreN69jV+TF8O4p2TSRaaVB5NUcukzYN+LIh72UJ9t68UVqjVNkXtwiAFPeiDAWzjMnqWOgR@vger.kernel.org
+X-Gm-Message-State: AFuF++kEw1Yn38eoyIPkRTrYzme7Hw479KGrdRiRYQypTie9Pgnbwj3p
+	mvAcMe6/Sc3lqEGfZPNujrslKqB8LclmslGEyErAjeazgVY+ck+QPBFzKra/Dt+HEeyOaC1u86p
+	XOdcPXmAFrmx90NjPiZQfLEfAwotK1iY=
+X-Received: by 2002:a05:6512:3d0d:b0:5ad:68aa:8a78 with SMTP id
+ 2adb3069b0e04-5b47d4c95a6mr3379111e87.5.1787311933534; Fri, 21 Aug 2026
+ 04:32:13 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <12956979.O9o76ZdvQC@rafael.j.wysocki> <aoeojDfTngzP1Eku@kernel.org>
+In-Reply-To: <aoeojDfTngzP1Eku@kernel.org>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Fri, 21 Aug 2026 13:31:38 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gE_7T9=20qG6+YZp-9Q9FRcUtgbi5h+2axzp_xaZEyXA@mail.gmail.com>
+X-Gm-Features: AcwNN1UAxC4YxFmLKTw5USh-GVvkygTQq5R5KEwZH81RzR2X_j9xUYvsQ6WVsHo
+Message-ID: <CAJZ5v0gE_7T9=20qG6+YZp-9Q9FRcUtgbi5h+2axzp_xaZEyXA@mail.gmail.com>
+Subject: Re: [PATCH v1] ACPI: scan: Do not combine resources that overlap completely
+To: Jarkko Sakkinen <jarkko@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
+	LKML <linux-kernel@vger.kernel.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Mika Westerberg <mika.westerberg@linux.intel.com>, Julien <julien82453@gmail.com>, 
+	linux-integrity@vger.kernel.org, Nathan Chancellor <nathan@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The ASUS ZenBook UX425UA_UM425UA (with AMD Ryzen 7 5700U SoC) fails
-to stay suspended in s2idle (Modern Standby), prematurely waking
-after 1-3 seconds with 0% hardware sleep achieved.
+On Fri, Aug 21, 2026 at 3:23=E2=80=AFAM Jarkko Sakkinen <jarkko@kernel.org>=
+ wrote:
+>
+> On Thu, Aug 20, 2026 at 12:50:46PM +0200, Rafael J. Wysocki wrote:
+> > From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> >
+> > Commit f234fdaae1ca ("ACPI: scan: Avoid registering platform devices
+> > with resource overlaps") attempted to avoid platform device registratio=
+n
+> > errors due to overlaps of resources of the same type returned by the
+> > same _CRS object in the ACPI tables.  It did that by combining two or
+> > more overlapping resources into one, but it went too far and also
+> > caused resources that overlap completely to be combined which broke
+> > the arm-cmn driver that expects two MMIO resources to be present for
+> > each device it binds to and it expects those two resources to overlap
+> > completely.
+> >
+> > Address this issue by adding a check for completely overlapping
+> > resources to acpi_platform_adjust_resources() and add a comment
+> > explaining what is done there.
+> >
+> > Fixes: f234fdaae1ca ("ACPI: scan: Avoid registering platform devices wi=
+th resource overlaps")
+> > Reported-by: Nathan Chancellor <nathan@kernel.org>
+> > Tested-by: Nathan Chancellor <nathan@kernel.org>
+> > Closes: https://lore.kernel.org/linux-acpi/20260819003752.GA3063251@ax1=
+62/
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >
+> > @Julien: I would appreciate testing this on the machine that needed
+> > commit f234fdaae1ca.
+> >
+> > ---
+> >  drivers/acpi/acpi_platform.c |    7 ++++++-
+> >  1 file changed, 6 insertions(+), 1 deletion(-)
+> >
+> > --- a/drivers/acpi/acpi_platform.c
+> > +++ b/drivers/acpi/acpi_platform.c
+> > @@ -85,7 +85,12 @@ static unsigned int acpi_platform_adjust
+> >       for (i =3D 0; i < count; ) {
+> >               struct resource *res =3D &resources[i];
+> >
+> > -             if (resource_type(new_res) !=3D resource_type(res) ||
+> > +             /*
+> > +              * Look for overlaps of resources of the same type that w=
+ould
+> > +              * cause resource insertion to fail down the road.
+> > +              */
+> > +             if (__resource_contains_unbound(res, new_res) ||
+> > +                 resource_type(new_res) !=3D resource_type(res) ||
+> >                   !resource_union(new_res, res, new_res)) {
+> >                       i++;
+> >                       continue;
+> >
+> >
+> >
+>
+> Reviewed-by: Jarkko Sakkinen <jarkko@kernel.org>
 
-In the laptop's ACPI SSDT tables (SSDT15), GPIO Pin 24 (hex 0x18) is
-defined in _AEI as ExclusiveAndWake targeting the PCIe bridge device
-\_SB.PCI0.GPP3:
+Thanks!
 
-    GpioInt (Edge, ActiveLow, ExclusiveAndWake, PullNone, 0x0000,
-             "\\_SB.GPIO", ...) { 0x0018 }
+I'm assuming that the tag also applies to the v2 of the patch
 
-When the SoC powers down PCIe root ports into low-power states during
-s2idle, an electrical edge transition triggers a spurious wake interrupt
-on GPIO Pin 24. This signals the AMD GPIO controller (AMDI0030:00 / IRQ 7
-via pinctrl_amd), aborting sleep across the system.
+https://lore.kernel.org/linux-acpi/12955564.O9o76ZdvQC@rafael.j.wysocki/
 
-Booting with kernel parameter "gpiolib_acpi.ignore_wake=AMDI0030:00@24"
-completely resolves the issue: amd_gpio reports ignoring the wakeup on
-pin 24, and interrupt counts in /proc/interrupts remain at 0 during sleep
-cycles, allowing uninterrupted s2idle until intentionally woken by the
-user.
-
-Add a DMI quirk entry to ignore wake events on AMDI0030:00@24 for this
-system.
-
-Signed-off-by: Kivan <vaknins33@gmail.com>
----
- drivers/gpio/gpiolib-acpi-quirks.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
-
-diff --git a/drivers/gpio/gpiolib-acpi-quirks.c b/drivers/gpio/gpiolib-acpi-quirks.c
-index a0116f0..dd4db58 100644
---- a/drivers/gpio/gpiolib-acpi-quirks.c
-+++ b/drivers/gpio/gpiolib-acpi-quirks.c
-@@ -392,6 +392,19 @@ static const struct dmi_system_id gpiolib_acpi_quirks[] __initconst = {
- 			.ignore_wake = "VEN_0488:00@355",
- 		},
- 	},
-+	{
-+		/*
-+		 * Spurious wakeups from GPP3 PCIe bridge interrupt
-+		 * Found in BIOS UX425UA.301
-+		 */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "ZenBook UX425UA_UM425UA"),
-+		},
-+		.driver_data = &(struct acpi_gpiolib_dmi_quirk) {
-+			.ignore_wake = "AMDI0030:00@24",
-+		},
-+	},
- 	{} /* Terminating entry */
- };
- 
--- 
-2.55.0
-
+so please let me know if that's not the case.
