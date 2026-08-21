@@ -1,484 +1,1517 @@
-Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazolkn19012010.outbound.protection.outlook.com [52.103.14.10])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDB3C37D13D;
-	Fri, 21 Aug 2026 04:13:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.103.14.10
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787285594; cv=fail; b=LxTLwB1i9r9VLY1DPStH/iGwBiGRHYwthcUpy8FNr2x0FAcdRIhVaiixqKm+PpxinYqZOjtFCvUC+acTWYyvtoV8WctRkEXsOaJ5UbM15Jc/mfCY6PSUiuTEc2EdJf5niD9StGB8F6LOONzxp8pqjp56QrN7fudpCZxAapgcRZU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787285594; c=relaxed/simple;
-	bh=ZFO8zrhqtB66cXJ33SuIgQV5/DBxessQoz1LFr6UcfM=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=Vj0dWBwIqu1htZZKabdChmStuq80HHK4CLZ7sheQMrmYt7SB2Xp6+ZoADkN/OEwjt2U90HQER/2+hd/cs0wWswOSuLoiKapxhkvyi4FPE4BecKC4LsCK7EVpWvGsAqKki83Iu3d42idfUJqxY/ULCQ9IS1xJ3xCr5EvDjI8BedM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=outlook.com; spf=pass smtp.mailfrom=outlook.com; dkim=pass (2048-bit key) header.d=outlook.com header.i=@outlook.com header.b=n9paxuXB; arc=fail smtp.client-ip=52.103.14.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=outlook.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=outlook.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7F8637DE84
+	for <linux-acpi@vger.kernel.org>; Fri, 21 Aug 2026 04:27:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1787286443; cv=none; b=Gk1n988zu9IwNSbJTjl6ULbczHB4CMhEZ7CxAvdDxL7UyZSmqpWN3z0rhSdQWMKn42Rp0uvFnljSYMS0qIhyO9F7hnPMFF7y3mc0lmFsAXNfR9iX7K6r2chSB8FghgUwbPRPJHLyBfICz9k5in2yukBzaXr8SlyFu79otVSbxQs=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1787286443; c=relaxed/simple;
+	bh=Sjmy2ZfZit4xpzDzilLx2DZFJtenv5ruq9mWRucBucM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=OH8SlVLNXEaa9iywbqz66VMFrxy1AArWU3YXo69BnG8QNjqCDomSDXFfkUqfrv7DyjgCt7CIDeF3nIB6QJsot4ByZ5C4EHQfLngk9tpGafDZXt8OhO3gMQvakNKfgIMrFKHEjH2RfisSgTPX3mqjKEEo1GZdtAbDzhE9oIx3Oio=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kHVz9cZT; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=outlook.com header.i=@outlook.com header.b="n9paxuXB"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=faf6PAn6grplnPPA8bsRN9eBcLQa23f1cRjb8HLUEBwqgJY23EOl8XjBH+qFphKFlVF0tLN/F5wyLoRuFxk/cw9fV+/vBdJs3iyYJQUDA/itQgovYbvWaZSChMaSYKBzLLYrStKwrSP+lQ8jaWH7WZZgjQfQyAg8WX/ZBGzvnhatAYPNwOsVUfO0Xm6W573uAeIEesMbjrbVBFG3JEsh8X6V82EW3mao3ahHkr/9rhWgf5r1zhtwjUaWN37mz5DEGgKoxsNyhIt3CquyeCWx+9HYzroJOXAJY3K8FrMFRsmMvHhHLbN29Dx6VYYbiahDIy2Kmxj6U/3MIJfh2tAE7Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=ZFO8zrhqtB66cXJ33SuIgQV5/DBxessQoz1LFr6UcfM=;
- b=Kyc8TaG1qr343TKoVJdVFeHFQ7p1BpUq3nnDVGmEfif1SpIFcnUnOmG3o4ql+sLFIS1qWgN7zR14Of7ykIYKe30JJVChgvZc1zXSoc9XAa7brAdY5ye42bFlc/6hQadLnt5KL56nfM6hWB7Qm0XGka0gJtU3s5ZyTxAgyRJzM9I074tnI06++rLDzr7SU+6kZbE5jE9DgFaSbtud6Z5igW8+9NTVQ49/sLhqeuw2gM+xfsYPrc/KZ4heDyn/jzH3ofn8Py2beSCrG4f0/oY8kTX/2BD7lgX7M9X8+PxCKqKKaKFj4ZJXs2zF7ffFPQbmrX9tnDQk2nPmYNV0xth69Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
- dkim=none; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=outlook.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ZFO8zrhqtB66cXJ33SuIgQV5/DBxessQoz1LFr6UcfM=;
- b=n9paxuXBIzPpMMrgaqCD794zank0ubKqBqfwTSpoKIvYuz4720XKS5YLZotrj1aE4TBg4PmCbrkr4JBGCt09/36t3cirkM49LcL12a185JqsaTRyQrAO4SkfzdPQBpNzyca7vg0DwJSV4jyqUwrkr+FaeKakDRC1dERSyqA8wLD2CjD0GUnbddAKSnrEHlupzgXA/2uJcFOmw0008EB/sEb6A4D8vXc5Cinxqr051u5GFHZzvjrB0fYfZH0PITsJKLcjFtREvTiwuTQflcWiRybeQdyGAn44FKXxTT5QUTby+dE6Vsnk4lt2GNQuDjk4d32FnMkvtCax9ct5IYEqGg==
-Received: from SN6PR02MB4157.namprd02.prod.outlook.com (2603:10b6:805:33::23)
- by SA1PR02MB9758.namprd02.prod.outlook.com (2603:10b6:806:373::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.339.8; Fri, 21 Aug
- 2026 04:13:06 +0000
-Received: from SN6PR02MB4157.namprd02.prod.outlook.com
- ([fe80::900:1ccf:2b1e:52b6]) by SN6PR02MB4157.namprd02.prod.outlook.com
- ([fe80::900:1ccf:2b1e:52b6%3]) with mapi id 15.21.0339.008; Fri, 21 Aug 2026
- 04:13:06 +0000
-From: Michael Kelley <mhklinux@outlook.com>
-To: Juergen Gross <jgross@suse.com>, "linux-kernel@vger.kernel.org"
-	<linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>,
-	"linux-perf-users@vger.kernel.org" <linux-perf-users@vger.kernel.org>,
-	"linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
-	"kvm@vger.kernel.org" <kvm@vger.kernel.org>, "virtualization@lists.linux.dev"
-	<virtualization@lists.linux.dev>, "linux-edac@vger.kernel.org"
-	<linux-edac@vger.kernel.org>, "linux-pci@vger.kernel.org"
-	<linux-pci@vger.kernel.org>, "linux-pm@vger.kernel.org"
-	<linux-pm@vger.kernel.org>, "linux-coco@lists.linux.dev"
-	<linux-coco@lists.linux.dev>, "linux-acpi@vger.kernel.org"
-	<linux-acpi@vger.kernel.org>, "linux-ide@vger.kernel.org"
-	<linux-ide@vger.kernel.org>, "dri-devel@lists.freedesktop.org"
-	<dri-devel@lists.freedesktop.org>, "linux-crypto@vger.kernel.org"
-	<linux-crypto@vger.kernel.org>, "linux-gpio@vger.kernel.org"
-	<linux-gpio@vger.kernel.org>, "linux-hwmon@vger.kernel.org"
-	<linux-hwmon@vger.kernel.org>, "linux-mtd@lists.infradead.org"
-	<linux-mtd@lists.infradead.org>, "platform-driver-x86@vger.kernel.org"
-	<platform-driver-x86@vger.kernel.org>, "linux-fbdev@vger.kernel.org"
-	<linux-fbdev@vger.kernel.org>
-CC: Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
-	"H. Peter Anvin" <hpa@zytor.com>, Peter Zijlstra <peterz@infradead.org>,
-	Arnaldo Carvalho de Melo <acme@kernel.org>, Namhyung Kim
-	<namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Alexander
- Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@kernel.org>,
-	Ian Rogers <irogers@google.com>, Adrian Hunter <adrian.hunter@intel.com>,
-	James Clark <james.clark@linaro.org>, "K. Y. Srinivasan" <kys@microsoft.com>,
-	Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>, Dexuan
- Cui <decui@microsoft.com>, Long Li <longli@microsoft.com>, Sean
- Christopherson <seanjc@google.com>, Paolo Bonzini <pbonzini@redhat.com>, Ajay
- Kaher <ajay.kaher@broadcom.com>, Alexey Makhalov
-	<alexey.makhalov@broadcom.com>, Broadcom internal kernel review list
-	<bcm-kernel-feedback-list@broadcom.com>, Josh Poimboeuf
-	<jpoimboe@kernel.org>, Pawan Gupta <pawan.kumar.gupta@linux.intel.com>, Pu
- Wen <puwen@hygon.cn>, Tony Luck <tony.luck@intel.com>, Reinette Chatre
-	<reinette.chatre@intel.com>, Dave Martin <Dave.Martin@arm.com>, James Morse
-	<james.morse@arm.com>, Babu Moger <babu.moger@amd.com>, Tony W Wang-oc
-	<TonyWWang-oc@zhaoxin.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, Andy
- Lutomirski <luto@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J.
- Wysocki" <rafael@kernel.org>, Pavel Machek <pavel@kernel.org>, Kiryl
- Shutsemau <kas@kernel.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>,
-	Boris Ostrovsky <boris.ostrovsky@oracle.com>, Len Brown <lenb@kernel.org>,
-	Damien Le Moal <dlemoal@kernel.org>, Niklas Cassel <cassel@kernel.org>, David
- Airlie <airlied@redhat.com>, Olivia Mackall <olivia@selenic.com>, Herbert Xu
-	<herbert@gondor.apana.org.au>, Viresh Kumar <viresh.kumar@linaro.org>, Huang
- Rui <ray.huang@amd.com>, Mario Limonciello <mario.limonciello@amd.com>, Perry
- Yuan <perry.yuan@amd.com>, K Prateek Nayak <kprateek.nayak@amd.com>, Srinivas
- Pandruvada <srinivas.pandruvada@linux.intel.com>, Yazen Ghannam
-	<yazen.ghannam@amd.com>, Linus Walleij <linusw@kernel.org>, Bartosz
- Golaszewski <brgl@kernel.org>, Guenter Roeck <linux@roeck-us.net>, Artem
- Bityutskiy <artem.bityutskiy@linux.intel.com>, Artem Bityutskiy
-	<dedekind1@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman
-	<gregkh@linuxfoundation.org>, Miquel Raynal <miquel.raynal@bootlin.com>,
-	Richard Weinberger <richard@nod.at>, Vignesh Raghavendra <vigneshr@ti.com>,
-	Ashok Raj <ashok.raj.linux@gmail.com>, Hans de Goede <hansg@kernel.org>,
-	=?utf-8?B?SWxwbyBKw6RydmluZW4=?= <ilpo.jarvinen@linux.intel.com>, Rajneesh
- Bhardwaj <irenic.rajneesh@gmail.com>, David E Box <david.e.box@intel.com>,
-	Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>,
-	Lukasz Luba <lukasz.luba@arm.com>, Helge Deller <deller@gmx.de>,
-	"xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>,
-	"linux-geode@lists.infradead.org" <linux-geode@lists.infradead.org>
-Subject: RE: [PATCH v2 12/13] treewide: convert rdmsrq() from a macro to an
- inline function
-Thread-Topic: [PATCH v2 12/13] treewide: convert rdmsrq() from a macro to an
- inline function
-Thread-Index: AQINTp4TPtSs6ebCNDDLlaH1nXSnpAH3JEcqtjc5VeA=
-Date: Fri, 21 Aug 2026 04:13:05 +0000
-Message-ID:
- <SN6PR02MB4157769F2FAEB7D78259164ED4A32@SN6PR02MB4157.namprd02.prod.outlook.com>
-References: <20260819102314.1499258-1-jgross@suse.com>
- <20260819102314.1499258-13-jgross@suse.com>
-In-Reply-To: <20260819102314.1499258-13-jgross@suse.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: SN6PR02MB4157:EE_|SA1PR02MB9758:EE_
-x-ms-office365-filtering-correlation-id: 0eaa3b97-02b3-491e-1f8c-08deff3a8045
-x-microsoft-antispam:
- BCL:0;ARA:14566002|41001999006|25010399006|4140399003|8062599012|31061999003|24021099003|8060799015|37011999003|19110799012|15080799012|55001999006|13091999003|440099028|3412199025|102099032|31055399003|52005399003|40105399003|2607281247196008;
-x-microsoft-antispam-message-info:
- =?utf-8?B?VE5jb3pZT3lrd3UvVklPb0ZabFZoczZDTTJGM2VaWFlLSkxEb0kwZUtpTGs4?=
- =?utf-8?B?RjRjVXBBTzdtcHA2aGdoN3dVRGtyT2c1bGNTT0dBSExNSDVFbWJwRHNqUnBR?=
- =?utf-8?B?NUxSUjI0QlAyZlRYd3M4WVNEN0xaT0kxVE1CeHk5MElwdHdSUlQ3d3g3YytC?=
- =?utf-8?B?VjN0RElNWjRrZ3ZWY2R4S251MEhZdzFWdWo5a0RkMVRCUGZCS2RvQVMxdjRp?=
- =?utf-8?B?T1dLQ0tWbFBTVnpTeUFabnhKZktaYkdNRWJjd00wRjN2VjZDZ3d6WkE0d2w4?=
- =?utf-8?B?QlBMZFIzUGlSbGR6Vk8xQVNkNVZSaTQvNERSMDJOZUdWSXJuSHE0NXBFZFoz?=
- =?utf-8?B?MHhTaW5KL01QV2grYTdad3Rqb0crdk1OMVAwUHZBbjNiVmpPU09nQnBkd2NT?=
- =?utf-8?B?M1BBeTV1ZXQ0SDZud0pvbEdxc2pSV05HbUN3aWNodTN1bndDRTdzeGhlUjhv?=
- =?utf-8?B?eGlxZ296MXZjTTU1WmtZWU5zbFpnRysydmlnb0xwZm9RZ3NjV1dWeVYzNUFD?=
- =?utf-8?B?U3RSNWJBUDdvZThxWkZwcTVDVGN3dmxoNEJmVVo2UW5qMEhzdFVBNXMzTlpt?=
- =?utf-8?B?aU1VMThWdFc0V293R2V0Z1RWYW5ZeEhEZjBJZk5IeW9kRFVId0tyKzF3TDFN?=
- =?utf-8?B?THRxY3pVREVBeFVGSVl2RFhOYUNCRnlTR1dCYkNqdDZ1OG8wN3NBRnBZeVB6?=
- =?utf-8?B?YUorOWVhRHhFWFlHTFJuYmtIeGU3OU1rblhVOHkvZVZhcTJBcVRCWjBPRE5w?=
- =?utf-8?B?L011MEZIbE9hK0dGdkQxVm0xVUZ0dFcyRG5wMCs2cEZidUt3U1VDUWhLQVdk?=
- =?utf-8?B?alFKUkxrZUhpL2t1cTBDYUZ4T1YvN0dpU0tDSXB5ZDdDUmViZFk4UGNTQXRm?=
- =?utf-8?B?VWJZTkNSVitHL3h4c3NVM2RuKyswRVhFSURoa2U1bTFOY3Z5d1hCczMralF2?=
- =?utf-8?B?WUpaQUpmWHlDWkxrd3NsZ3Zia3ozdnBVU0M2MmNrT2xNUWorRGxOVzhnQnI1?=
- =?utf-8?B?My9xbE1qUmNTOE5YdmxLUXJFZkhJcTdNVkdhZzRsV0J6MDFieXVCeFdKWEdC?=
- =?utf-8?B?OEluWGRYUTIxNVZNVDg1L3ovbzBiSzR5U29iWXdzeTlIakZUUi9PVDF5Ri9T?=
- =?utf-8?B?NHAvSU14WE9SS3VENDMyVElBWmxnU0dZL1BZWHZMenYrY3pXdXY3V3J5N0o0?=
- =?utf-8?B?ZUdrUUJLU1VHRi9qSUZYMWJJM3pGMkZCZnZHTE9FbjFMay90UzU0NkVqVVJP?=
- =?utf-8?B?Wlh3WlBxVlJNcGZQdWd6ZmhIWEhLSmxVUVYwWVVvSEVnRFZRUzJBNkVabEhZ?=
- =?utf-8?B?WkpUSDlvRk55L3RoM1BkNG1BWjNteTk4eG5IczQ3KzJyUkJRb1FJdW1KeGt2?=
- =?utf-8?B?TjhXcWVVditaKy8rdVUzb0JIV2VpbTRlOTg2UEd1T3RHRGg4QUtHZno2d1o0?=
- =?utf-8?B?eldwb3NJQUVNSTIyZHcvRnpPYzZha1RqR0QrSHlpNlo0em1TY2l5VHo3Nm5B?=
- =?utf-8?Q?y0IhSY=3D?=
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?utf-8?B?QmM3eFlkSHNPYWVSaWpRaDVqT2g3dE5Edk9DUnVvSVc2aTZPTVprd2VGYUdx?=
- =?utf-8?B?LzFsRW1hODBnZmVwUGExU3Ftc21jYlZBbDk2Z2pTVjFSYlhFY1ZrTmZTc3Fp?=
- =?utf-8?B?RTNQTHlBZC9jZit0NHVkV1pjQTZtU1hiK0lhank3cUl4a21BYUdKNkw3NFNn?=
- =?utf-8?B?aStuMk1uYytLNGlSRUxDc2NoWWJkR2ZiOUYxRkJ3OFpMUHZRaHFCcUJjS2Vv?=
- =?utf-8?B?V1B3Rmd5bll2Uk1FcUdpZ1pIQU93S3VsVmM2VXlORURwbm1Od2pQYkkzWUxJ?=
- =?utf-8?B?ZU9aMG9UbTk4V2ErVXhCQVAzRTZIV3FEZ0N4L3IzUVZIRFl1TndVdG1pQmhP?=
- =?utf-8?B?SnUyZjE5Q2l4dDVXbXBMOEJibDl2TUgweURkMjFyL3ZTOTc1QUlaTFhUa01q?=
- =?utf-8?B?THMvS3ordk8zYzR2MnBHR1I0Z1M2YmwweE9kWEF2Y3RmRFJ4clhvaWFhRUdr?=
- =?utf-8?B?UmtHSlVxUzBrRFByN0pwUHAyaEFTUmVrLy92Q1VjRytpZTA2b3dnTTB1ZEU5?=
- =?utf-8?B?VExNeVA1cHBabHo3dXFVajJUb1c5RVFFUjZuRWRVU1ZpdHZyN1Ura1VVWDB3?=
- =?utf-8?B?NDN6T3g3aHU5Mm1wMHFFWkgxNWVXTHI1blNPSEVZWkhQL0xXcXVMVEE0SE8x?=
- =?utf-8?B?Z0FUUWNkdkJDNko3VEh3K0dOV1dyK1c4WU9NYzd2SUVralUyczFRWlplSUlj?=
- =?utf-8?B?M3pWdW9pc1RzZ25ya0dXMjRUZnpaOUpNYWJycmllWHBRMUgyNncxNWg4d2Fw?=
- =?utf-8?B?MndtWHQvWlhkaXVmUTBSN014VFlvNkxKb0xjaWFtUTJTdGhyY2R5N25YaERK?=
- =?utf-8?B?aEJkK1VheE9wNEZYOW5KY2h0Ty9TNllaRXhFWkw0cnlpMUsvYUROVkVHWUdH?=
- =?utf-8?B?QkZYZXZwZCs2bUNqNkp1ZndVdGl1ZjlsaW5OYmhKSmlkMExqejdlQjkwcy91?=
- =?utf-8?B?ZEdYOVNSREx3NUJBZHBuc2RkWnJ5OVRNYndxNC9YM2hSRzBKSjVFL2swZkt0?=
- =?utf-8?B?K1NSQlRvaEhvU2tmVysxc1dWcXZ5bnhoTlZEUHA5UVFLZzJ1YUg3aTcrN0NK?=
- =?utf-8?B?VUFXUkJPZ0hhejRGNFY2ZndQMWhzOXk2cDZYTFlHNTNjUnI0cjg5cmJsTXc3?=
- =?utf-8?B?MExzT0o0ZFVEeG9xU2dxS2wwVytjSDRrenJjL05Ncnp3bmF3L2lPZkxETWtD?=
- =?utf-8?B?YzRydFB6ZlZ0VjdwdGlVY3h2bm1MeXh3UjZQQTVabkxScU00UVB0dXYwcHVG?=
- =?utf-8?B?R2s0TGFNMEFuV1ZmMlp4c0lLQXBJemFOMmhjZ2lEMXJ2Z1BIVFJLRFV3UHNz?=
- =?utf-8?B?UHVvc3F4MTBEOGxEZlhVYWdXM0ttaDk1TEVUaU1Yb3pKOWxoODEwYzFha0JR?=
- =?utf-8?B?UDRxZnNlaXJmZm54bWZ2a3VCdHRmVXFvR2lZOXBuR0htN0gzUFJKdDdXbHEy?=
- =?utf-8?B?YjJIRnMzRzRJQW5LUjYxSFFIU0cxbU8zc1l4TDltV1psc2dKMkkySHN0VU1h?=
- =?utf-8?B?QXcrNThabVU3cFFBOCtneVNDbHkxQXdjUzQ4N2M4NzlDQWZmUjcvNS9OYWFt?=
- =?utf-8?B?dEF1dkorcm90ZzZZQkJjQjJWMjFyYVZvZ2V0OHhWdDk4Lzd5UHAxSU85RUkz?=
- =?utf-8?B?b2d0YlRUZXExN2wrZUVHaC9BdlVWeGM1M2c4Y2F5cjNsQm55TG0vZmVhYnBn?=
- =?utf-8?B?U011azlvWnlOZlFWemJGcXR0bkxRanN0WE5xU1V1UkVwNDlTbFNOYmNqVHFz?=
- =?utf-8?B?MU43c1ZlUG50WnFrM0hZWE5sNEN1U0d6SnRwVEE2Y0RCYkdhK0RNZ1dNMEVi?=
- =?utf-8?Q?NBDvWmZW+2kzq14/wMMlZbp8tNDkCgF/8lz/s=3D?=
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kHVz9cZT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B41E1F00ACF
+	for <linux-acpi@vger.kernel.org>; Fri, 21 Aug 2026 04:27:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787286440;
+	bh=LwpFt+LnTp+muHxqvGS3w2X5tK0X5Z5VO3o6gZf4HdM=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=kHVz9cZT1PpP9mIsg6yB9Mca/y0pVlq72OKiADp6ecfXHy2afj6QWHE2CjWePQO2e
+	 kB4CgDsk2DBiNyI46nGt4tF4Qlu4GlG/8BWvEm+lhe5LdRn3n6FxUYiZdeQ00PtVND
+	 J7Jt/QXo2tSFQ/3nFqhL/DJCAWWnaVzyYdzqhsJE/fsymJbB8y42MrrtID0kSJjWs3
+	 PPsdXl+wEmAE8bJNR6TVFNrYjIRxlKfUW9yltgXgkoegwh/zEf9rP1UD0Vv8hpDOaI
+	 5bSTYQEJu0vb+6fog49N1vYlknSzdSFE5ryFb0jOm6stiI22s1Cr5TkAfdDFHjWXEp
+	 rmDSGl98MlukQ==
+Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-69f7fa1c548so1281811a12.2
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Aug 2026 21:27:20 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RoBhGmjpGinWk8wxsdf+pG6YlcbNyDgntID0r03l5ZD9tFbz+gh9t+sewK6eNbOOK+NHpRsUSnjEbWZ@vger.kernel.org
+X-Gm-Message-State: AFuF++lYgTjFXN9DlwCA4jiwxpq/egtQjidKyxWDvlVXTynXIKt+I8Wm
+	SWbDip4QIZzJ2k66+HIc9mLTTjU/bHVhJspsT81mIHeMHrxQx2Md5iTsAqm70uUJhskUzlsnn+y
+	iBsFX0Nax5iY76lE7LKD73WIsqxAG0yw=
+X-Received: by 2002:a05:6402:42c7:b0:697:f6b2:a94e with SMTP id
+ 4fb4d7f45d1cf-6a42f2120dcmr3341924a12.13.1787286438893; Thu, 20 Aug 2026
+ 21:27:18 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: SN6PR02MB4157.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg: 00000000-0000-0000-0000-000000000000
-X-MS-Exchange-CrossTenant-Network-Message-Id: 0eaa3b97-02b3-491e-1f8c-08deff3a8045
-X-MS-Exchange-CrossTenant-originalarrivaltime: 21 Aug 2026 04:13:05.8171
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
-X-MS-Exchange-CrossTenant-rms-persistedconsumerorg: 00000000-0000-0000-0000-000000000000
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR02MB9758
+References: <20260818-submit-phy-package-fwdevlink-v1-v3-0-40a905ea16b6@gmail.com>
+ <20260818-submit-phy-package-fwdevlink-v1-v3-4-40a905ea16b6@gmail.com>
+In-Reply-To: <20260818-submit-phy-package-fwdevlink-v1-v3-4-40a905ea16b6@gmail.com>
+From: Saravana Kannan <saravanak@kernel.org>
+Date: Thu, 20 Aug 2026 21:27:05 -0700
+X-Gmail-Original-Message-ID: <CACRMN=fEPoyEk1oi4QRMX0whMEF=xQv=kkd62bueKTKWtxDedA@mail.gmail.com>
+X-Gm-Features: AcwNN1W4jxXR15kzgJAdC7fSGJapyONShiqTKQITYhYSR59uulEemZy8CloVVys
+Message-ID: <CACRMN=fEPoyEk1oi4QRMX0whMEF=xQv=kkd62bueKTKWtxDedA@mail.gmail.com>
+Subject: Re: [PATCH net-next v3 4/4] driver core: handle managed links for
+ class devices
+To: James Hilliard <james.hilliard1@gmail.com>
+Cc: Rob Herring <robh@kernel.org>, Saravana Kannan <saravanak@kernel.org>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Len Brown <lenb@kernel.org>, 
+	Andrew Lunn <andrew@lunn.ch>, Heiner Kallweit <hkallweit1@gmail.com>, 
+	Russell King <linux@armlinux.org.uk>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+	Christian Marangi <ansuelsmth@gmail.com>, devicetree@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	driver-core@lists.linux.dev, linux-acpi@vger.kernel.org, 
+	netdev@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-RnJvbTogSnVlcmdlbiBHcm9zcyA8amdyb3NzQHN1c2UuY29tPiBTZW50OiBXZWRuZXNkYXksIEF1
-Z3VzdCAxOSwgMjAyNiAzOjIzIEFNDQo+IA0KPiBUb2RheSByZG1zcnEoKSBpcyBhIG1hY3JvIHVz
-aW5nIGl0cyBzZWNvbmQgcGFyYW1ldGVyIGFzIHRoZSB0YXJnZXQgZm9yDQo+IHN0b3JpbmcgdGhl
-IHJlYWQgTVNSIHZhbHVlLg0KPiANCj4gQ29udmVydCByZG1zcnEoKSB0byBhbiBpbmxpbmUgZnVu
-Y3Rpb24gcmV0dXJuaW5nIHRoZSBNU1IgdmFsdWUuDQo+IA0KPiBUaGUgdXNlcnMgaGF2ZSBiZWVu
-IGNvbnZlcnRlZCB1c2luZyB0aGUgZm9sbG93aW5nIHNlbWFudGljIHBhdGNoOg0KPiANCj4gICAv
-LyBPcHRpb25zOiAtLWluY2x1ZGUtaGVhZGVycw0KPiANCj4gICB2aXJ0dWFsIHBhdGNoDQo+ICAg
-dmlydHVhbCByZXBvcnQNCj4gDQo+ICAgQEANCj4gICBleHByZXNzaW9uIG1zciwgdmFsOw0KPiAg
-IEBADQo+ICAgKA0KPiAgIC0gcmRtc3JxKG1zcix2YWwpDQo+ICAgKyB2YWwgPSByZG1zcnEobXNy
-KQ0KPiAgICkNCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEp1ZXJnZW4gR3Jvc3MgPGpncm9zc0BzdXNl
-LmNvbT4NCj4gLS0tDQo+ICBhcmNoL3g4Ni9jb2NvL3Nldi9jb3JlLmMgICAgICAgICAgICAgICAg
-ICAgICAgfCAgMiArLQ0KPiAgYXJjaC94ODYvZXZlbnRzL2FtZC9icnMuYyAgICAgICAgICAgICAg
-ICAgICAgIHwgIDQgKy0tDQo+ICBhcmNoL3g4Ni9ldmVudHMvYW1kL2NvcmUuYyAgICAgICAgICAg
-ICAgICAgICAgfCAgNCArLS0NCj4gIGFyY2gveDg2L2V2ZW50cy9hbWQvaWJzLmMgICAgICAgICAg
-ICAgICAgICAgICB8IDE4ICsrKysrLS0tLS0NCj4gIGFyY2gveDg2L2V2ZW50cy9hbWQvbGJyLmMg
-ICAgICAgICAgICAgICAgICAgICB8ICA4ICsrLS0tDQo+ICBhcmNoL3g4Ni9ldmVudHMvYW1kL3Bv
-d2VyLmMgICAgICAgICAgICAgICAgICAgfCAgOCArKy0tLQ0KPiAgYXJjaC94ODYvZXZlbnRzL2Ft
-ZC91bmNvcmUuYyAgICAgICAgICAgICAgICAgIHwgIDQgKy0tDQo+ICBhcmNoL3g4Ni9ldmVudHMv
-Y29yZS5jICAgICAgICAgICAgICAgICAgICAgICAgfCAyMCArKysrKy0tLS0tLQ0KPiAgYXJjaC94
-ODYvZXZlbnRzL2ludGVsL2NvcmUuYyAgICAgICAgICAgICAgICAgIHwgMTEgKysrLS0tDQo+ICBh
-cmNoL3g4Ni9ldmVudHMvaW50ZWwvY3N0YXRlLmMgICAgICAgICAgICAgICAgfCAgMiArLQ0KPiAg
-YXJjaC94ODYvZXZlbnRzL2ludGVsL2RzLmMgICAgICAgICAgICAgICAgICAgIHwgIDIgKy0NCj4g
-IGFyY2gveDg2L2V2ZW50cy9pbnRlbC9rbmMuYyAgICAgICAgICAgICAgICAgICB8ICA2ICsrLS0N
-Cj4gIGFyY2gveDg2L2V2ZW50cy9pbnRlbC9sYnIuYyAgICAgICAgICAgICAgICAgICB8IDE0ICsr
-KystLS0tDQo+ICBhcmNoL3g4Ni9ldmVudHMvaW50ZWwvcDQuYyAgICAgICAgICAgICAgICAgICAg
-fCAgNiArKy0tDQo+ICBhcmNoL3g4Ni9ldmVudHMvaW50ZWwvcDYuYyAgICAgICAgICAgICAgICAg
-ICAgfCAgNCArLS0NCj4gIGFyY2gveDg2L2V2ZW50cy9pbnRlbC9wdC5jICAgICAgICAgICAgICAg
-ICAgICB8IDEyICsrKy0tLS0NCj4gIGFyY2gveDg2L2V2ZW50cy9pbnRlbC91bmNvcmUuYyAgICAg
-ICAgICAgICAgICB8ICAyICstDQo+ICBhcmNoL3g4Ni9ldmVudHMvaW50ZWwvdW5jb3JlX25obWV4
-LmMgICAgICAgICAgfCAgNCArLS0NCj4gIGFyY2gveDg2L2V2ZW50cy9pbnRlbC91bmNvcmVfc25i
-LmMgICAgICAgICAgICB8ICAyICstDQo+ICBhcmNoL3g4Ni9ldmVudHMvaW50ZWwvdW5jb3JlX3Nu
-YmVwLmMgICAgICAgICAgfCAgNiArKy0tDQo+ICBhcmNoL3g4Ni9ldmVudHMvbXNyLmMgICAgICAg
-ICAgICAgICAgICAgICAgICAgfCAgMiArLQ0KPiAgYXJjaC94ODYvZXZlbnRzL3BlcmZfZXZlbnQu
-aCAgICAgICAgICAgICAgICAgIHwgIDYgKystLQ0KPiAgYXJjaC94ODYvZXZlbnRzL3JhcGwuYyAg
-ICAgICAgICAgICAgICAgICAgICAgIHwgIDQgKy0tDQo+ICBhcmNoL3g4Ni9ldmVudHMvemhhb3hp
-bi9jb3JlLmMgICAgICAgICAgICAgICAgfCAgNiArKy0tDQo+ICBhcmNoL3g4Ni9oeXBlcnYvaHZf
-YXBpYy5jICAgICAgICAgICAgICAgICAgICAgfCAgNiArKy0tDQo+ICBhcmNoL3g4Ni9oeXBlcnYv
-aHZfaW5pdC5jICAgICAgICAgICAgICAgICAgICAgfCAyNiArKysrKysrLS0tLS0tLQ0KPiAgYXJj
-aC94ODYvaHlwZXJ2L2h2X3NwaW5sb2NrLmMgICAgICAgICAgICAgICAgIHwgIDIgKy0NCj4gIGFy
-Y2gveDg2L2luY2x1ZGUvYXNtL2FwaWMuaCAgICAgICAgICAgICAgICAgICB8ICA0ICstLQ0KPiAg
-YXJjaC94ODYvaW5jbHVkZS9hc20vZGVidWdyZWcuaCAgICAgICAgICAgICAgIHwgIDIgKy0NCj4g
-IGFyY2gveDg2L2luY2x1ZGUvYXNtL2ZzZ3NiYXNlLmggICAgICAgICAgICAgICB8ICAyICstDQo+
-ICBhcmNoL3g4Ni9pbmNsdWRlL2FzbS9rdm1faG9zdC5oICAgICAgICAgICAgICAgfCAgMiArLQ0K
-PiAgYXJjaC94ODYvaW5jbHVkZS9hc20vbXNyLmggICAgICAgICAgICAgICAgICAgIHwgMTUgKysr
-Ky0tLS0NCj4gIGFyY2gveDg2L2luY2x1ZGUvYXNtL3BhcmF2aXJ0LmggICAgICAgICAgICAgICB8
-ICA4ICsrLS0tDQo+ICBhcmNoL3g4Ni9rZXJuZWwvYXBpYy9hcGljLmMgICAgICAgICAgICAgICAg
-ICAgfCAxNCArKysrLS0tLQ0KPiAgYXJjaC94ODYva2VybmVsL2FwaWMvYXBpY19udW1hY2hpcC5j
-ICAgICAgICAgIHwgIDYgKystLQ0KPiAgYXJjaC94ODYva2VybmVsL2NldC5jICAgICAgICAgICAg
-ICAgICAgICAgICAgIHwgIDIgKy0NCj4gIGFyY2gveDg2L2tlcm5lbC9jcHUvYW1kLmMgICAgICAg
-ICAgICAgICAgICAgICB8IDE0ICsrKystLS0tDQo+ICBhcmNoL3g4Ni9rZXJuZWwvY3B1L2FwZXJm
-bXBlcmYuYyAgICAgICAgICAgICAgfCAgOCArKy0tLQ0KPiAgYXJjaC94ODYva2VybmVsL2NwdS9i
-dWdzLmMgICAgICAgICAgICAgICAgICAgIHwgMTIgKysrLS0tLQ0KPiAgYXJjaC94ODYva2VybmVs
-L2NwdS9idXNfbG9jay5jICAgICAgICAgICAgICAgIHwgIDggKystLS0NCj4gIGFyY2gveDg2L2tl
-cm5lbC9jcHUvY2VudGF1ci5jICAgICAgICAgICAgICAgICB8ICA4ICsrLS0tDQo+ICBhcmNoL3g4
-Ni9rZXJuZWwvY3B1L2NvbW1vbi5jICAgICAgICAgICAgICAgICAgfCAxMiArKystLS0tDQo+ICBh
-cmNoL3g4Ni9rZXJuZWwvY3B1L2ZlYXRfY3RsLmMgICAgICAgICAgICAgICAgfCAgNCArLS0NCj4g
-IGFyY2gveDg2L2tlcm5lbC9jcHUvaHlnb24uYyAgICAgICAgICAgICAgICAgICB8ICA0ICstLQ0K
-PiAgYXJjaC94ODYva2VybmVsL2NwdS9pbnRlbC5jICAgICAgICAgICAgICAgICAgIHwgIDYgKyst
-LQ0KPiAgYXJjaC94ODYva2VybmVsL2NwdS9pbnRlbF9lcGIuYyAgICAgICAgICAgICAgIHwgIDQg
-Ky0tDQo+ICBhcmNoL3g4Ni9rZXJuZWwvY3B1L21jZS9hbWQuYyAgICAgICAgICAgICAgICAgfCAg
-NCArLS0NCj4gIGFyY2gveDg2L2tlcm5lbC9jcHUvbWNlL2NvcmUuYyAgICAgICAgICAgICAgICB8
-ICA4ICsrLS0tDQo+ICBhcmNoL3g4Ni9rZXJuZWwvY3B1L21jZS9pbmplY3QuYyAgICAgICAgICAg
-ICAgfCAgMiArLQ0KPiAgYXJjaC94ODYva2VybmVsL2NwdS9tY2UvaW50ZWwuYyAgICAgICAgICAg
-ICAgIHwgMTggKysrKystLS0tLQ0KPiAgYXJjaC94ODYva2VybmVsL2NwdS9tY2UvcDUuYyAgICAg
-ICAgICAgICAgICAgIHwgIDggKystLS0NCj4gIGFyY2gveDg2L2tlcm5lbC9jcHUvbWNlL3dpbmNo
-aXAuYyAgICAgICAgICAgICB8ICAyICstDQo+ICBhcmNoL3g4Ni9rZXJuZWwvY3B1L21pY3JvY29k
-ZS9pbnRlbC5jICAgICAgICAgfCAgMiArLQ0KPiAgYXJjaC94ODYva2VybmVsL2NwdS9tc2h5cGVy
-di5jICAgICAgICAgICAgICAgIHwgIDYgKystLQ0KPiAgYXJjaC94ODYva2VybmVsL2NwdS9tdHJy
-L2FtZC5jICAgICAgICAgICAgICAgIHwgIDQgKy0tDQo+ICBhcmNoL3g4Ni9rZXJuZWwvY3B1L210
-cnIvY2xlYW51cC5jICAgICAgICAgICAgfCAgNCArLS0NCj4gIGFyY2gveDg2L2tlcm5lbC9jcHUv
-bXRyci9nZW5lcmljLmMgICAgICAgICAgICB8IDMyICsrKysrKysrLS0tLS0tLS0tDQo+ICBhcmNo
-L3g4Ni9rZXJuZWwvY3B1L210cnIvbXRyci5jICAgICAgICAgICAgICAgfCAgMiArLQ0KPiAgYXJj
-aC94ODYva2VybmVsL2NwdS9yZXNjdHJsL2NvcmUuYyAgICAgICAgICAgIHwgIDIgKy0NCj4gIGFy
-Y2gveDg2L2tlcm5lbC9jcHUvcmVzY3RybC9tb25pdG9yLmMgICAgICAgICB8ICA0ICstLQ0KPiAg
-YXJjaC94ODYva2VybmVsL2NwdS9yZXNjdHJsL3BzZXVkb19sb2NrLmMgICAgIHwgIDQgKy0tDQo+
-ICBhcmNoL3g4Ni9rZXJuZWwvY3B1L3Jlc2N0cmwvcmR0Z3JvdXAuYyAgICAgICAgfCAgMiArLQ0K
-PiAgYXJjaC94ODYva2VybmVsL2NwdS90b3BvbG9neS5jICAgICAgICAgICAgICAgIHwgIDIgKy0N
-Cj4gIGFyY2gveDg2L2tlcm5lbC9jcHUvdG9wb2xvZ3lfYW1kLmMgICAgICAgICAgICB8ICA0ICst
-LQ0KPiAgYXJjaC94ODYva2VybmVsL2NwdS90cmFuc21ldGEuYyAgICAgICAgICAgICAgIHwgIDIg
-Ky0NCj4gIGFyY2gveDg2L2tlcm5lbC9jcHUvdHN4LmMgICAgICAgICAgICAgICAgICAgICB8IDEw
-ICsrKy0tLQ0KPiAgYXJjaC94ODYva2VybmVsL2NwdS91bXdhaXQuYyAgICAgICAgICAgICAgICAg
-IHwgIDIgKy0NCj4gIGFyY2gveDg2L2tlcm5lbC9jcHUvemhhb3hpbi5jICAgICAgICAgICAgICAg
-ICB8ICA0ICstLQ0KPiAgYXJjaC94ODYva2VybmVsL2ZwdS9jb3JlLmMgICAgICAgICAgICAgICAg
-ICAgIHwgIDIgKy0NCj4gIGFyY2gveDg2L2tlcm5lbC9ocGV0LmMgICAgICAgICAgICAgICAgICAg
-ICAgICB8ICAyICstDQo+ICBhcmNoL3g4Ni9rZXJuZWwva3ZtLmMgICAgICAgICAgICAgICAgICAg
-ICAgICAgfCAgMiArLQ0KPiAgYXJjaC94ODYva2VybmVsL21tY29uZi1mYW0xMGhfNjQuYyAgICAg
-ICAgICAgIHwgIDYgKystLQ0KPiAgYXJjaC94ODYva2VybmVsL3Byb2Nlc3MuYyAgICAgICAgICAg
-ICAgICAgICAgIHwgIDQgKy0tDQo+ICBhcmNoL3g4Ni9rZXJuZWwvcHJvY2Vzc182NC5jICAgICAg
-ICAgICAgICAgICAgfCAxNCArKysrLS0tLQ0KPiAgYXJjaC94ODYva2VybmVsL3Noc3RrLmMgICAg
-ICAgICAgICAgICAgICAgICAgIHwgIDggKystLS0NCj4gIGFyY2gveDg2L2tlcm5lbC90cmFwcy5j
-ICAgICAgICAgICAgICAgICAgICAgICB8ICA0ICstLQ0KPiAgYXJjaC94ODYva2VybmVsL3RzYy5j
-ICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDIgKy0NCj4gIGFyY2gveDg2L2tlcm5lbC90c2Nf
-bXNyLmMgICAgICAgICAgICAgICAgICAgICB8ICA2ICsrLS0NCj4gIGFyY2gveDg2L2tlcm5lbC90
-c2Nfc3luYy5jICAgICAgICAgICAgICAgICAgICB8ICA2ICsrLS0NCj4gIGFyY2gveDg2L2t2bS9z
-dm0vcG11LmMgICAgICAgICAgICAgICAgICAgICAgICB8ICA0ICstLQ0KPiAgYXJjaC94ODYva3Zt
-L3N2bS9zdm0uYyAgICAgICAgICAgICAgICAgICAgICAgIHwgIDQgKy0tDQo+ICBhcmNoL3g4Ni9r
-dm0vdm14L25lc3RlZC5jICAgICAgICAgICAgICAgICAgICAgfCAgNCArLS0NCj4gIGFyY2gveDg2
-L2t2bS92bXgvcG11X2ludGVsLmMgICAgICAgICAgICAgICAgICB8ICA4ICsrLS0tDQo+ICBhcmNo
-L3g4Ni9rdm0vdm14L3NneC5jICAgICAgICAgICAgICAgICAgICAgICAgfCAgNiArKy0tDQo+ICBh
-cmNoL3g4Ni9rdm0vdm14L3ZteC5jICAgICAgICAgICAgICAgICAgICAgICAgfCAzNiArKysrKysr
-KystLS0tLS0tLS0tDQo+ICBhcmNoL3g4Ni9rdm0veDg2LmMgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgfCAgOCArKy0tLQ0KPiAgYXJjaC94ODYvbGliL2luc24tZXZhbC5jICAgICAgICAgICAg
-ICAgICAgICAgIHwgIDYgKystLQ0KPiAgYXJjaC94ODYvbGliL21zci1zbXAuYyAgICAgICAgICAg
-ICAgICAgICAgICAgIHwgIDIgKy0NCj4gIGFyY2gveDg2L21tL3BhdC9tZW10eXBlLmMgICAgICAg
-ICAgICAgICAgICAgICB8ICAyICstDQo+ICBhcmNoL3g4Ni9wY2kvYW1kX2J1cy5jICAgICAgICAg
-ICAgICAgICAgICAgICAgfCAgOCArKy0tLQ0KPiAgYXJjaC94ODYvcGxhdGZvcm0vb2xwYy9vbHBj
-LXhvMS1ydGMuYyAgICAgICAgIHwgIDYgKystLQ0KPiAgYXJjaC94ODYvcGxhdGZvcm0vb2xwYy9v
-bHBjLXhvMS1zY2kuYyAgICAgICAgIHwgIDIgKy0NCj4gIGFyY2gveDg2L3Bvd2VyL2NwdS5jICAg
-ICAgICAgICAgICAgICAgICAgICAgICB8IDEwICsrKy0tLQ0KPiAgYXJjaC94ODYvcmVhbG1vZGUv
-aW5pdC5jICAgICAgICAgICAgICAgICAgICAgIHwgIDIgKy0NCj4gIGFyY2gveDg2L3ZpcnQvaHcu
-YyAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICA4ICsrLS0tDQo+ICBhcmNoL3g4Ni92aXJ0
-L3N2bS9zZXYuYyAgICAgICAgICAgICAgICAgICAgICAgfCAxOCArKysrKy0tLS0tDQo+ICBhcmNo
-L3g4Ni92aXJ0L3ZteC90ZHgvdGR4LmMgICAgICAgICAgICAgICAgICAgfCAgMiArLQ0KPiAgYXJj
-aC94ODYveGVuL3N1c3BlbmQuYyAgICAgICAgICAgICAgICAgICAgICAgIHwgIDIgKy0NCj4gIGRy
-aXZlcnMvYWNwaS9wcm9jZXNzb3JfcGVyZmxpYi5jICAgICAgICAgICAgICB8ICAyICstDQo+ICBk
-cml2ZXJzL2F0YS9wYXRhX2NzNTUzNS5jICAgICAgICAgICAgICAgICAgICAgfCAgNCArLS0NCj4g
-IGRyaXZlcnMvYXRhL3BhdGFfY3M1NTM2LmMgICAgICAgICAgICAgICAgICAgICB8ICAyICstDQo+
-ICBkcml2ZXJzL2NoYXIvYWdwL252aWRpYS1hZ3AuYyAgICAgICAgICAgICAgICAgfCAgNiArKy0t
-DQo+ICBkcml2ZXJzL2NoYXIvaHdfcmFuZG9tL3ZpYS1ybmcuYyAgICAgICAgICAgICAgfCAgNCAr
-LS0NCj4gIGRyaXZlcnMvY3B1ZnJlcS9hY3BpLWNwdWZyZXEuYyAgICAgICAgICAgICAgICB8ICA4
-ICsrLS0tDQo+ICBkcml2ZXJzL2NwdWZyZXEvYW1kLXBzdGF0ZS5jICAgICAgICAgICAgICAgICAg
-fCAgNCArLS0NCj4gIGRyaXZlcnMvY3B1ZnJlcS9lX3Bvd2Vyc2F2ZXIuYyAgICAgICAgICAgICAg
-ICB8IDIwICsrKysrLS0tLS0tDQo+ICBkcml2ZXJzL2NwdWZyZXEvaW50ZWxfcHN0YXRlLmMgICAg
-ICAgICAgICAgICAgfCAzMCArKysrKysrKy0tLS0tLS0tDQo+ICBkcml2ZXJzL2NwdWZyZXEvbG9u
-Z2hhdWwuYyAgICAgICAgICAgICAgICAgICAgfCAxMiArKystLS0tDQo+ICBkcml2ZXJzL2NwdWZy
-ZXEvbG9uZ3J1bi5jICAgICAgICAgICAgICAgICAgICAgfCAxNiArKysrLS0tLS0NCj4gIGRyaXZl
-cnMvY3B1ZnJlcS9wb3dlcm5vdy1rNy5jICAgICAgICAgICAgICAgICB8IDEwICsrKy0tLQ0KPiAg
-ZHJpdmVycy9jcHVmcmVxL3Bvd2Vybm93LWs4LmMgICAgICAgICAgICAgICAgIHwgIDggKystLS0N
-Cj4gIGRyaXZlcnMvY3B1ZnJlcS9zcGVlZHN0ZXAtY2VudHJpbm8uYyAgICAgICAgICB8ICA0ICst
-LQ0KPiAgZHJpdmVycy9jcHVmcmVxL3NwZWVkc3RlcC1saWIuYyAgICAgICAgICAgICAgIHwgMTQg
-KysrKy0tLS0NCj4gIGRyaXZlcnMvZWRhYy9hbWQ2NF9lZGFjLmMgICAgICAgICAgICAgICAgICAg
-ICB8ICA2ICsrLS0NCj4gIGRyaXZlcnMvZ3Bpby9ncGlvLWNzNTUzNS5jICAgICAgICAgICAgICAg
-ICAgICB8ICAyICstDQo+ICBkcml2ZXJzL2h2L21zaHZfdnRsX21haW4uYyAgICAgICAgICAgICAg
-ICAgICAgfCAgMiArLQ0KPiAgZHJpdmVycy9od21vbi9od21vbi12aWQuYyAgICAgICAgICAgICAg
-ICAgICAgIHwgIDQgKy0tDQo+ICBkcml2ZXJzL2lkbGUvaW50ZWxfaWRsZS5jICAgICAgICAgICAg
-ICAgICAgICAgfCAyNiArKysrKysrLS0tLS0tLQ0KPiAgZHJpdmVycy9taXNjL2NzNTUzNS1tZmdw
-dC5jICAgICAgICAgICAgICAgICAgIHwgIDYgKystLQ0KPiAgZHJpdmVycy9tdGQvbmFuZC9yYXcv
-Y3M1NTN4X25hbmQuYyAgICAgICAgICAgIHwgIDYgKystLQ0KPiAgZHJpdmVycy9wbGF0Zm9ybS94
-ODYvaW50ZWwvaWZzL2xvYWQuYyAgICAgICAgIHwgMTAgKysrLS0tDQo+ICBkcml2ZXJzL3BsYXRm
-b3JtL3g4Ni9pbnRlbC9pZnMvcnVudGVzdC5jICAgICAgfCAgOCArKy0tLQ0KPiAgZHJpdmVycy9w
-bGF0Zm9ybS94ODYvaW50ZWwvcG1jL2NucC5jICAgICAgICAgIHwgIDIgKy0NCj4gIC4uLi9pbnRl
-bC9zcGVlZF9zZWxlY3RfaWYvaXNzdF9pZl9tYm94X21zci5jICB8ICA2ICsrLS0NCj4gIC4uLi9p
-bnRlbC9zcGVlZF9zZWxlY3RfaWYvaXNzdF90cG1pX2NvcmUuYyAgICB8ICAyICstDQo+ICBkcml2
-ZXJzL3BsYXRmb3JtL3g4Ni9pbnRlbF9pcHMuYyAgICAgICAgICAgICAgfCAyMCArKysrKy0tLS0t
-LQ0KPiAgZHJpdmVycy9wb3dlcmNhcC9pbnRlbF9yYXBsX21zci5jICAgICAgICAgICAgIHwgIDIg
-Ky0NCj4gIGRyaXZlcnMvdGhlcm1hbC9pbnRlbC9pbnRlbF9oZmkuYyAgICAgICAgICAgICB8ICA4
-ICsrLS0tDQo+ICBkcml2ZXJzL3RoZXJtYWwvaW50ZWwvdGhlcm1fdGhyb3QuYyAgICAgICAgICAg
-fCAyMiArKysrKystLS0tLS0NCj4gIGRyaXZlcnMvdGhlcm1hbC9pbnRlbC94ODZfcGtnX3RlbXBf
-dGhlcm1hbC5jICB8ICA2ICsrLS0NCj4gIGRyaXZlcnMvdmlkZW8vZmJkZXYvZ2VvZGUvZGlzcGxh
-eV9neC5jICAgICAgICB8ICAyICstDQo+ICBkcml2ZXJzL3ZpZGVvL2ZiZGV2L2dlb2RlL2d4ZmJf
-Y29yZS5jICAgICAgICAgfCAgMiArLQ0KPiAgZHJpdmVycy92aWRlby9mYmRldi9nZW9kZS9seGZi
-X29wcy5jICAgICAgICAgIHwgMTggKysrKystLS0tLQ0KPiAgZHJpdmVycy92aWRlby9mYmRldi9n
-ZW9kZS9zdXNwZW5kX2d4LmMgICAgICAgIHwgIDggKystLS0NCj4gIGRyaXZlcnMvdmlkZW8vZmJk
-ZXYvZ2VvZGUvdmlkZW9fZ3guYyAgICAgICAgICB8ICA4ICsrLS0tDQo+ICBpbmNsdWRlL2xpbnV4
-L2NzNTUzNS5oICAgICAgICAgICAgICAgICAgICAgICAgfCAgMiArLQ0KPiAgMTM2IGZpbGVzIGNo
-YW5nZWQsIDQ4NCBpbnNlcnRpb25zKCspLCA0ODYgZGVsZXRpb25zKC0pDQo+IA0KDQpbc25pcF0N
-Cg0KPiBkaWZmIC0tZ2l0IGEvYXJjaC94ODYvaHlwZXJ2L2h2X2FwaWMuYyBiL2FyY2gveDg2L2h5
-cGVydi9odl9hcGljLmMNCj4gaW5kZXggOTVmMTc4MmQxZTE3Li40ZTMwZjlhMTFiYzQgMTAwNjQ0
-DQo+IC0tLSBhL2FyY2gveDg2L2h5cGVydi9odl9hcGljLmMNCj4gKysrIGIvYXJjaC94ODYvaHlw
-ZXJ2L2h2X2FwaWMuYw0KPiBAQCAtMzgsNyArMzgsNyBAQCBzdGF0aWMgdTY0IGh2X2FwaWNfaWNy
-X3JlYWQodm9pZCkNCj4gIHsNCj4gIAl1NjQgcmVnX3ZhbDsNCj4gDQo+IC0JcmRtc3JxKEhWX1g2
-NF9NU1JfSUNSLCByZWdfdmFsKTsNCj4gKwlyZWdfdmFsID0gcmRtc3JxKEhWX1g2NF9NU1JfSUNS
-KTsNCj4gIAlyZXR1cm4gcmVnX3ZhbDsNCj4gIH0NCj4gDQo+IEBAIC02NCwxMCArNjQsMTAgQEAg
-c3RhdGljIHUzMiBodl9hcGljX3JlYWQodTMyIHJlZykNCj4gDQo+ICAJc3dpdGNoIChyZWcpIHsN
-Cj4gIAljYXNlIEFQSUNfRU9JOg0KPiAtCQlyZG1zcnEoSFZfWDY0X01TUl9FT0ksIHJlZ192YWwu
-cSk7DQo+ICsJCXJlZ192YWwucSA9IHJkbXNycShIVl9YNjRfTVNSX0VPSSk7DQo+ICAJCXJldHVy
-biByZWdfdmFsLmw7DQo+ICAJY2FzZSBBUElDX1RBU0tQUkk6DQo+IC0JCXJkbXNycShIVl9YNjRf
-TVNSX1RQUiwgcmVnX3ZhbC5xKTsNCj4gKwkJcmVnX3ZhbC5xID0gcmRtc3JxKEhWX1g2NF9NU1Jf
-VFBSKTsNCj4gIAkJcmV0dXJuIHJlZ192YWwubDsNCj4gDQo+ICAJZGVmYXVsdDoNCj4gZGlmZiAt
-LWdpdCBhL2FyY2gveDg2L2h5cGVydi9odl9pbml0LmMgYi9hcmNoL3g4Ni9oeXBlcnYvaHZfaW5p
-dC5jDQo+IGluZGV4IDU1YThiNmRlMjg2NS4uYmM4ZjkxMTE0ODY4IDEwMDY0NA0KPiAtLS0gYS9h
-cmNoL3g4Ni9oeXBlcnYvaHZfaW5pdC5jDQo+ICsrKyBiL2FyY2gveDg2L2h5cGVydi9odl9pbml0
-LmMNCj4gQEAgLTEwMSw3ICsxMDEsNyBAQCBzdGF0aWMgaW50IGh5cGVydl9pbml0X2doY2Iodm9p
-ZCkNCj4gIAkgKiByZXR1cm5lZCBieSBNU1JfQU1ENjRfU0VWX0VTX0dIQ0IgaXMgYWJvdmUgc2hh
-cmVkDQo+ICAJICogbWVtb3J5IGJvdW5kYXJ5IGFuZCBtYXAgaXQgaGVyZS4NCj4gIAkgKi8NCj4g
-LQlyZG1zcnEoTVNSX0FNRDY0X1NFVl9FU19HSENCLCBnaGNiX2dwYSk7DQo+ICsJZ2hjYl9ncGEg
-PSByZG1zcnEoTVNSX0FNRDY0X1NFVl9FU19HSENCKTsNCj4gDQo+ICAJLyogTWFzayBvdXQgdlRP
-TSBiaXQgYW5kIG1hcCBhcyBkZWNyeXB0ZWQgKi8NCj4gIAlnaGNiX2dwYSAmPSB+bXNfaHlwZXJ2
-LnNoYXJlZF9ncGFfYm91bmRhcnk7DQo+IEBAIC0xMzQsNyArMTM0LDcgQEAgc3RhdGljIGludCBo
-dl9jcHVfaW5pdCh1bnNpZ25lZCBpbnQgY3B1KQ0KPiAgCQkgKiBGb3Igcm9vdCBwYXJ0aXRpb24g
-d2UgZ2V0IHRoZSBoeXBlcnZpc29yIHByb3ZpZGVkIFZQIGFzc2lzdA0KPiAgCQkgKiBwYWdlLCBp
-bnN0ZWFkIG9mIGFsbG9jYXRpbmcgYSBuZXcgcGFnZS4NCj4gIAkJICovDQo+IC0JCXJkbXNycShI
-Vl9YNjRfTVNSX1ZQX0FTU0lTVF9QQUdFLCBtc3IuYXNfdWludDY0KTsNCj4gKwkJbXNyLmFzX3Vp
-bnQ2NCA9IHJkbXNycShIVl9YNjRfTVNSX1ZQX0FTU0lTVF9QQUdFKTsNCj4gIAkJKmh2cCA9IG1l
-bXJlbWFwKG1zci5wZm4gPDwgSFZfWDY0X01TUl9WUF9BU1NJU1RfUEFHRV9BRERSRVNTX1NISUZU
-LA0KPiAgCQkJCVBBR0VfU0laRSwgTUVNUkVNQVBfV0IpOw0KPiAgCX0gZWxzZSB7DQo+IEBAIC0x
-ODMsNyArMTgzLDcgQEAgc3RhdGljIHZvaWQgaHZfcmVlbmxpZ2h0ZW5tZW50X25vdGlmeShzdHJ1
-Y3Qgd29ya19zdHJ1Y3QgKmR1bW15KQ0KPiAgew0KPiAgCXN0cnVjdCBodl90c2NfZW11bGF0aW9u
-X3N0YXR1cyBlbXVfc3RhdHVzOw0KPiANCj4gLQlyZG1zcnEoSFZfWDY0X01TUl9UU0NfRU1VTEFU
-SU9OX1NUQVRVUywgKih1NjQgKikmZW11X3N0YXR1cyk7DQo+ICsJKih1NjQgKikmZW11X3N0YXR1
-cyA9IHJkbXNycShIVl9YNjRfTVNSX1RTQ19FTVVMQVRJT05fU1RBVFVTKTsNCj4gDQo+ICAJLyog
-RG9uJ3QgaXNzdWUgdGhlIGNhbGxiYWNrIGlmIFRTQyBhY2Nlc3NlcyBhcmUgbm90IGVtdWxhdGVk
-ICovDQo+ICAJaWYgKGh2X3JlZW5saWdodGVubWVudF9jYiAmJiBlbXVfc3RhdHVzLmlucHJvZ3Jl
-c3MpDQo+IEBAIC0xOTYsMTEgKzE5NiwxMSBAQCB2b2lkIGh5cGVydl9zdG9wX3RzY19lbXVsYXRp
-b24odm9pZCkNCj4gIAl1NjQgZnJlcTsNCj4gIAlzdHJ1Y3QgaHZfdHNjX2VtdWxhdGlvbl9zdGF0
-dXMgZW11X3N0YXR1czsNCj4gDQo+IC0JcmRtc3JxKEhWX1g2NF9NU1JfVFNDX0VNVUxBVElPTl9T
-VEFUVVMsICoodTY0ICopJmVtdV9zdGF0dXMpOw0KPiArCSoodTY0ICopJmVtdV9zdGF0dXMgPSBy
-ZG1zcnEoSFZfWDY0X01TUl9UU0NfRU1VTEFUSU9OX1NUQVRVUyk7DQo+ICAJZW11X3N0YXR1cy5p
-bnByb2dyZXNzID0gMDsNCj4gIAl3cm1zcnEoSFZfWDY0X01TUl9UU0NfRU1VTEFUSU9OX1NUQVRV
-UywgKih1NjQgKikmZW11X3N0YXR1cyk7DQo+IA0KPiAtCXJkbXNycShIVl9YNjRfTVNSX1RTQ19G
-UkVRVUVOQ1ksIGZyZXEpOw0KPiArCWZyZXEgPSByZG1zcnEoSFZfWDY0X01TUl9UU0NfRlJFUVVF
-TkNZKTsNCj4gIAl0c2Nfa2h6ID0gZGl2NjRfdTY0KGZyZXEsIDEwMDApOw0KPiAgfQ0KPiAgRVhQ
-T1JUX1NZTUJPTF9HUEwoaHlwZXJ2X3N0b3BfdHNjX2VtdWxhdGlvbik7DQo+IEBAIC0yNjAsNyAr
-MjYwLDcgQEAgdm9pZCBjbGVhcl9odl90c2NjaGFuZ2VfY2Iodm9pZCkNCj4gIAlpZiAoIWh2X3Jl
-ZW5saWdodGVubWVudF9hdmFpbGFibGUoKSkNCj4gIAkJcmV0dXJuOw0KPiANCj4gLQlyZG1zcnEo
-SFZfWDY0X01TUl9SRUVOTElHSFRFTk1FTlRfQ09OVFJPTCwgKih1NjQgKikmcmVfY3RybCk7DQo+
-ICsJKih1NjQgKikmcmVfY3RybCA9IHJkbXNycShIVl9YNjRfTVNSX1JFRU5MSUdIVEVOTUVOVF9D
-T05UUk9MKTsNCj4gIAlyZV9jdHJsLmVuYWJsZWQgPSAwOw0KPiAgCXdybXNycShIVl9YNjRfTVNS
-X1JFRU5MSUdIVEVOTUVOVF9DT05UUk9MLCAqKHU2NCAqKSZyZV9jdHJsKTsNCj4gDQo+IEBAIC0y
-OTcsNyArMjk3LDcgQEAgc3RhdGljIGludCBodl9jcHVfZGllKHVuc2lnbmVkIGludCBjcHUpDQo+
-ICAJCQkgKi8NCj4gIAkJCW1lbXVubWFwKGh2X3ZwX2Fzc2lzdF9wYWdlW2NwdV0pOw0KPiAgCQkJ
-aHZfdnBfYXNzaXN0X3BhZ2VbY3B1XSA9IE5VTEw7DQo+IC0JCQlyZG1zcnEoSFZfWDY0X01TUl9W
-UF9BU1NJU1RfUEFHRSwgbXNyLmFzX3VpbnQ2NCk7DQo+ICsJCQltc3IuYXNfdWludDY0ID0gcmRt
-c3JxKEhWX1g2NF9NU1JfVlBfQVNTSVNUX1BBR0UpOw0KPiAgCQkJbXNyLmVuYWJsZSA9IDA7DQo+
-ICAJCX0NCj4gIAkJd3Jtc3JxKEhWX1g2NF9NU1JfVlBfQVNTSVNUX1BBR0UsIG1zci5hc191aW50
-NjQpOw0KPiBAQCAtMzA2LDcgKzMwNiw3IEBAIHN0YXRpYyBpbnQgaHZfY3B1X2RpZSh1bnNpZ25l
-ZCBpbnQgY3B1KQ0KPiAgCWlmIChodl9yZWVubGlnaHRlbm1lbnRfY2IgPT0gTlVMTCkNCj4gIAkJ
-cmV0dXJuIDA7DQo+IA0KPiAtCXJkbXNycShIVl9YNjRfTVNSX1JFRU5MSUdIVEVOTUVOVF9DT05U
-Uk9MLCAqKCh1NjQgKikmcmVfY3RybCkpOw0KPiArCSooKHU2NCAqKSZyZV9jdHJsKSA9IHJkbXNy
-cShIVl9YNjRfTVNSX1JFRU5MSUdIVEVOTUVOVF9DT05UUk9MKTsNCj4gIAlpZiAocmVfY3RybC50
-YXJnZXRfdnAgPT0gaHZfdnBfaW5kZXhbY3B1XSkgew0KPiAgCQkvKg0KPiAgCQkgKiBSZWFzc2ln
-biByZWVubGlnaHRlbm1lbnQgbm90aWZpY2F0aW9ucyB0byBzb21lIG90aGVyIG9ubGluZQ0KPiBA
-QCAtMzc3LDcgKzM3Nyw3IEBAIHN0YXRpYyBpbnQgaHZfc3VzcGVuZCh2b2lkICpkYXRhKQ0KPiAg
-CWh2X3NldF9oeXBlcmNhbGxfcGcoTlVMTCk7DQo+IA0KPiAgCS8qIERpc2FibGUgdGhlIGh5cGVy
-Y2FsbCBwYWdlIGluIHRoZSBoeXBlcnZpc29yICovDQo+IC0JcmRtc3JxKEhWX1g2NF9NU1JfSFlQ
-RVJDQUxMLCBoeXBlcmNhbGxfbXNyLmFzX3VpbnQ2NCk7DQo+ICsJaHlwZXJjYWxsX21zci5hc191
-aW50NjQgPSByZG1zcnEoSFZfWDY0X01TUl9IWVBFUkNBTEwpOw0KPiAgCWh5cGVyY2FsbF9tc3Iu
-ZW5hYmxlID0gMDsNCj4gIAl3cm1zcnEoSFZfWDY0X01TUl9IWVBFUkNBTEwsIGh5cGVyY2FsbF9t
-c3IuYXNfdWludDY0KTsNCj4gDQo+IEBAIC0zOTQsNyArMzk0LDcgQEAgc3RhdGljIHZvaWQgaHZf
-cmVzdW1lKHZvaWQgKmRhdGEpDQo+ICAJV0FSTl9PTihyZXQpOw0KPiANCj4gIAkvKiBSZS1lbmFi
-bGUgdGhlIGh5cGVyY2FsbCBwYWdlICovDQo+IC0JcmRtc3JxKEhWX1g2NF9NU1JfSFlQRVJDQUxM
-LCBoeXBlcmNhbGxfbXNyLmFzX3VpbnQ2NCk7DQo+ICsJaHlwZXJjYWxsX21zci5hc191aW50NjQg
-PSByZG1zcnEoSFZfWDY0X01TUl9IWVBFUkNBTEwpOw0KPiAgCWh5cGVyY2FsbF9tc3IuZW5hYmxl
-ID0gMTsNCj4gIAloeXBlcmNhbGxfbXNyLmd1ZXN0X3BoeXNpY2FsX2FkZHJlc3MgPQ0KPiAgCQl2
-bWFsbG9jX3RvX3Bmbihodl9oeXBlcmNhbGxfcGdfc2F2ZWQpOw0KPiBAQCAtNTI5LDcgKzUyOSw3
-IEBAIHZvaWQgX19pbml0IGh5cGVydl9pbml0KHZvaWQpDQo+ICAJaWYgKGh2X2h5cGVyY2FsbF9w
-ZyA9PSBOVUxMKQ0KPiAgCQlnb3RvIGNsZWFuX2d1ZXN0X29zX2lkOw0KPiANCj4gLQlyZG1zcnEo
-SFZfWDY0X01TUl9IWVBFUkNBTEwsIGh5cGVyY2FsbF9tc3IuYXNfdWludDY0KTsNCj4gKwloeXBl
-cmNhbGxfbXNyLmFzX3VpbnQ2NCA9IHJkbXNycShIVl9YNjRfTVNSX0hZUEVSQ0FMTCk7DQo+ICAJ
-aHlwZXJjYWxsX21zci5lbmFibGUgPSAxOw0KPiANCj4gIAlpZiAoaHZfcm9vdF9wYXJ0aXRpb24o
-KSkgew0KPiBAQCAtNjcxLDcgKzY3MSw3IEBAIHZvaWQgaHlwZXJ2X3JlcG9ydF9wYW5pYyhzdHJ1
-Y3QgcHRfcmVncyAqcmVncywgbG9uZyBlcnIsIGJvb2wgaW5fZGllKQ0KPiAgCQlyZXR1cm47DQo+
-ICAJcGFuaWNfcmVwb3J0ZWQgPSB0cnVlOw0KPiANCj4gLQlyZG1zcnEoSFZfWDY0X01TUl9HVUVT
-VF9PU19JRCwgZ3Vlc3RfaWQpOw0KPiArCWd1ZXN0X2lkID0gcmRtc3JxKEhWX1g2NF9NU1JfR1VF
-U1RfT1NfSUQpOw0KPiANCj4gIAl3cm1zcnEoSFZfWDY0X01TUl9DUkFTSF9QMCwgZXJyKTsNCj4g
-IAl3cm1zcnEoSFZfWDY0X01TUl9DUkFTSF9QMSwgZ3Vlc3RfaWQpOw0KPiBAQCAtNzA1LDcgKzcw
-NSw3IEBAIGJvb2wgaHZfaXNfaHlwZXJ2X2luaXRpYWxpemVkKHZvaWQpDQo+ICAJICogdGhhdCB0
-aGUgaHlwZXJjYWxsIHBhZ2UgaXMgc2V0dXANCj4gIAkgKi8NCj4gIAloeXBlcmNhbGxfbXNyLmFz
-X3VpbnQ2NCA9IDA7DQo+IC0JcmRtc3JxKEhWX1g2NF9NU1JfSFlQRVJDQUxMLCBoeXBlcmNhbGxf
-bXNyLmFzX3VpbnQ2NCk7DQo+ICsJaHlwZXJjYWxsX21zci5hc191aW50NjQgPSByZG1zcnEoSFZf
-WDY0X01TUl9IWVBFUkNBTEwpOw0KPiANCj4gIAlyZXR1cm4gaHlwZXJjYWxsX21zci5lbmFibGU7
-DQo+ICB9DQo+IGRpZmYgLS1naXQgYS9hcmNoL3g4Ni9oeXBlcnYvaHZfc3BpbmxvY2suYyBiL2Fy
-Y2gveDg2L2h5cGVydi9odl9zcGlubG9jay5jDQo+IGluZGV4IDZiNGJkZWExODIxOC4uN2VmMmQ3
-OTRlMmU4IDEwMDY0NA0KPiAtLS0gYS9hcmNoL3g4Ni9oeXBlcnYvaHZfc3BpbmxvY2suYw0KPiAr
-KysgYi9hcmNoL3g4Ni9oeXBlcnYvaHZfc3BpbmxvY2suYw0KPiBAQCAtNTAsNyArNTAsNyBAQCBz
-dGF0aWMgdm9pZCBodl9xbG9ja193YWl0KHU4ICpieXRlLCB1OCB2YWwpDQo+ICAJaWYgKFJFQURf
-T05DRSgqYnl0ZSkgPT0gdmFsKSB7DQo+ICAJCXVuc2lnbmVkIGxvbmcgbXNyX3ZhbDsNCj4gDQo+
-IC0JCXJkbXNycShIVl9YNjRfTVNSX0dVRVNUX0lETEUsIG1zcl92YWwpOw0KPiArCQltc3JfdmFs
-ID0gcmRtc3JxKEhWX1g2NF9NU1JfR1VFU1RfSURMRSk7DQo+IA0KPiAgCQkodm9pZCltc3JfdmFs
-Ow0KPiAgCX0NCg0KW3NuaXBdDQoNCj4gZGlmZiAtLWdpdCBhL2FyY2gveDg2L2tlcm5lbC9jcHUv
-bXNoeXBlcnYuYyBiL2FyY2gveDg2L2tlcm5lbC9jcHUvbXNoeXBlcnYuYw0KPiBpbmRleCAxODVk
-NGY2NzdlYzAuLjY1YWQyMzVlZjVjNiAxMDA2NDQNCj4gLS0tIGEvYXJjaC94ODYva2VybmVsL2Nw
-dS9tc2h5cGVydi5jDQo+ICsrKyBiL2FyY2gveDg2L2tlcm5lbC9jcHUvbXNoeXBlcnYuYw0KPiBA
-QCAtNzQsNyArNzQsNyBAQCB1NjQgaHZfZ2V0X25vbl9uZXN0ZWRfbXNyKHVuc2lnbmVkIGludCBy
-ZWcpDQo+ICAJaWYgKGh2X2lzX3N5bmljX21zcihyZWcpICYmIG1zX2h5cGVydi5wYXJhdmlzb3Jf
-cHJlc2VudCkNCj4gIAkJaHZfaXZtX21zcl9yZWFkKHJlZywgJnZhbHVlKTsNCj4gIAllbHNlDQo+
-IC0JCXJkbXNycShyZWcsIHZhbHVlKTsNCj4gKwkJdmFsdWUgPSByZG1zcnEocmVnKTsNCj4gIAly
-ZXR1cm4gdmFsdWU7DQo+ICB9DQo+ICBFWFBPUlRfU1lNQk9MX0dQTChodl9nZXRfbm9uX25lc3Rl
-ZF9tc3IpOw0KPiBAQCAtMzk5LDcgKzM5OSw3IEBAIHN0YXRpYyB1bnNpZ25lZCBsb25nIGh2X2dl
-dF90c2Nfa2h6KHZvaWQpDQo+ICB7DQo+ICAJdW5zaWduZWQgbG9uZyBmcmVxOw0KPiANCj4gLQly
-ZG1zcnEoSFZfWDY0X01TUl9UU0NfRlJFUVVFTkNZLCBmcmVxKTsNCj4gKwlmcmVxID0gcmRtc3Jx
-KEhWX1g2NF9NU1JfVFNDX0ZSRVFVRU5DWSk7DQo+IA0KPiAgCXJldHVybiBmcmVxIC8gMTAwMDsN
-Cj4gIH0NCj4gQEAgLTY0NSw3ICs2NDUsNyBAQCBzdGF0aWMgdm9pZCBfX2luaXQgbXNfaHlwZXJ2
-X2luaXRfcGxhdGZvcm0odm9pZCkNCj4gIAkJICovDQo+ICAJCXU2NAlodl9sYXBpY19mcmVxdWVu
-Y3k7DQo+IA0KPiAtCQlyZG1zcnEoSFZfWDY0X01TUl9BUElDX0ZSRVFVRU5DWSwgaHZfbGFwaWNf
-ZnJlcXVlbmN5KTsNCj4gKwkJaHZfbGFwaWNfZnJlcXVlbmN5ID0gcmRtc3JxKEhWX1g2NF9NU1Jf
-QVBJQ19GUkVRVUVOQ1kpOw0KPiAgCQlodl9sYXBpY19mcmVxdWVuY3kgPSBkaXZfdTY0KGh2X2xh
-cGljX2ZyZXF1ZW5jeSwgSFopOw0KPiAgCQlsYXBpY190aW1lcl9wZXJpb2QgPSBodl9sYXBpY19m
-cmVxdWVuY3k7DQo+ICAJCXByX2luZm8oIkh5cGVyLVY6IExBUElDIFRpbWVyIEZyZXF1ZW5jeTog
-JSN4XG4iLA0KDQpGb3IgdGhpcyBIeXBlci1WIHNwZWNpZmljIGNvZGUsDQoNClJldmlld2VkLWJ5
-OiBNaWNoYWVsIEtlbGxleSA8bWhrbGludXhAb3V0bG9vay5jb20+DQoNCg0KDQo=
+On Mon, Aug 17, 2026 at 11:59=E2=80=AFPM James Hilliard
+<james.hilliard1@gmail.com> wrote:
+>
+> fw_devlink deliberately lets the nearest device pick up dependencies belo=
+w
+> class-backed firmware nodes because driverless class devices do not
+> currently progress through managed device-link states. This can leave
+> consumers of class suppliers dormant, while sync-state-only links from
+> class consumers never reach the successful-probe cleanup.
+>
+> Track class-only devices through equivalent registration and removal
+> transitions. Mark them probing before device_add() publishes them, comple=
+te
+> their incoming and outgoing links after class interfaces run, and enter t=
+he
+> unbind and no-driver states during device_del(). Preserve firmware links
+> below class-backed nodes so later-created descendants can acquire their o=
+wn
+> links.
+>
+> Include class registration in wait_for_device_probe() so supplier unbind
+> cannot race a class consumer that is still being published. Transition
+> managed links which existed before device_add(), remove stale
+> waiting_for_supplier attributes and do not revive a link whose supplier h=
+as
+> already started unbinding.
+>
+> During supplier teardown, wait for class registration to finish, but move
+> an already registered class consumer directly to the unbinding link state
+> because it has no driver to release. Keep consumer-autoremove links valid
+> until class consumer removal without triggering driver-only cleanup
+> warnings.
+>
+> Factor the supplier-bound, consumer-bound and cleanup transitions shared
+> with driver-backed devices. Activate late links involving an already
+> functional class endpoint instead of trying to reprobe it, and let
+> sync-state-only links retire without forcing consumer unbind. Ordinary
+> supplier links cannot defer class registration, so they must not be the
+> only mechanism on which a class consumer relies for functionality.
+>
+> Class devices do not match drivers, so distinguish a genuinely unavailabl=
+e
+> supplier from a probing or registered class endpoint before relaxing
+> inferred links. Preserve normal probe and runtime-PM ordering for those
+> links. Also recognize class-backed nodes when refreshing dependencies aft=
+er
+> firmware-tree overlays.
+>
+> Exclude the internal device-link class because device-link objects are
+> registered while the device-links lock is held. Document the class-device
+> state transitions and add KUnit coverage for supplier and consumer links,
+> pre-existing links, inferred-link preservation, registration waiters and =
+a
+> concurrent supplier unbind.
+>
+> Signed-off-by: James Hilliard <james.hilliard1@gmail.com>
+>
+> ---
+> Changes v2 -> v3:
+>   - Replace the framework-specific proxy cleanup API with generic
+>     class-device managed-link lifecycle handling, as suggested by
+>     Saravana Kannan
+
+Please add the Suggested-by tag.
+
+I'm okay with the use of AI to write patches, but it's not clear if
+you understand the existing code base enough to use it correctly? If
+not, maybe I'll take a weekend to write the patch series to add
+devlink support for class devices and you can test it? You can then
+write the networking part of the fix.
+
+Just the class devices devlink support alone should be a long patch
+series. And should be sent to driver core next. Not net next.
+
+Thanks,
+Saravana
+
+>   - Preserve inferred links to probing and registered class suppliers in
+>     no-driver fallback paths and include class nodes in overlay refresh
+>   - Cover pre-existing and inferred links, wait_for_device_probe()
+>     integration, waiting_for_supplier cleanup and supplier-unbind races
+>   - Document the limits of ordinary supplier links for driverless class
+>     consumers
+>   - Handle registered class consumers during supplier teardown without a
+>     no-op driver release or driver-only cleanup warning
+>   - Derive class handling inside the shared bound helpers and clarify the
+>     lifecycle documentation
+> ---
+>  Documentation/driver-api/device_link.rst   |  47 ++-
+>  drivers/base/base.h                        |   2 +
+>  drivers/base/core.c                        | 270 +++++++++++-----
+>  drivers/base/dd.c                          |  21 +-
+>  drivers/base/test/Makefile                 |   1 +
+>  drivers/base/test/device-link-class-test.c | 479 +++++++++++++++++++++++=
+++++++
+>  include/linux/device.h                     |   9 +-
+>  7 files changed, 739 insertions(+), 90 deletions(-)
+>
+> diff --git a/Documentation/driver-api/device_link.rst b/Documentation/dri=
+ver-api/device_link.rst
+> index ee913ae16371..c248ec9fa9f8 100644
+> --- a/Documentation/driver-api/device_link.rst
+> +++ b/Documentation/driver-api/device_link.rst
+> @@ -253,6 +253,18 @@ child one.
+>  State machine
+>  =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>
+> +Driverless class devices participate in the managed-link state machine a=
+s
+> +supplier and consumer endpoints, including as consumers of sync-state-on=
+ly
+> +proxy links.  Their registration is treated like a successful driver pro=
+be:
+> +links are completed after :c:func:`device_add()` has finished running cl=
+ass
+> +interfaces.  During removal, driver-backed consumers are unbound before =
+the
+> +class device is deleted and its links return to the no-driver state.
+> +
+> +Class devices are not probed, so an ordinary supplier link cannot defer =
+their
+> +registration in the way that it defers a driver probe.  Frameworks must =
+not use
+> +such a link as the only mechanism guaranteeing that a class consumer's
+> +supplier is functional.
+> +
+>  .. kernel-doc:: include/linux/device.h
+>     :functions: device_link_state
+>
+> @@ -271,10 +283,13 @@ State machine
+>    and consumer.  If the link is created before any devices are probed, i=
+t
+>    is set to ``DL_STATE_DORMANT``.
+>
+> -* When a supplier device is bound to a driver, links to its consumers
+> -  progress to ``DL_STATE_AVAILABLE``.
+> -  (Call to :c:func:`device_links_driver_bound()` from
+> -  :c:func:`driver_bound()`.)
+> +* When a supplier device is bound to a driver, links to its consumers pr=
+ogress
+> +  to ``DL_STATE_AVAILABLE``.  Registering a driverless class supplier pe=
+rforms
+> +  the equivalent transition, or activates a late link whose consumer is
+> +  already functional.
+> +  The driver-backed path calls :c:func:`device_links_driver_bound()` fro=
+m
+> +  :c:func:`driver_bound()`, while the class-device completion path perfo=
+rms
+> +  the equivalent transition from :c:func:`device_add()`.
+>
+>  * Before a consumer device is probed, presence of supplier drivers is
+>    verified by checking the consumer device is not in the wait_for_suppli=
+ers
+> @@ -286,17 +301,28 @@ State machine
+>    (Call to :c:func:`wait_for_device_probe()` from
+>    :c:func:`device_links_unbind_consumers()`.)
+>
+> +  Registering a driverless class consumer similarly moves existing avail=
+able
+> +  links to ``DL_STATE_CONSUMER_PROBE`` before publishing the device, and=
+ its
+> +  registration participates in :c:func:`wait_for_device_probe()`.  Unlik=
+e a
+> +  driver probe, class registration is not deferred for unavailable suppl=
+iers.
+> +
+>  * If the probe fails, links to suppliers revert back to ``DL_STATE_AVAIL=
+ABLE``.
+>    (Call to :c:func:`device_links_no_driver()` from :c:func:`really_probe=
+()`.)
+>
+>  * If the probe succeeds, links to suppliers progress to ``DL_STATE_ACTIV=
+E``.
+> -  (Call to :c:func:`device_links_driver_bound()` from :c:func:`driver_bo=
+und()`.)
+> +  A driverless class consumer activates usable incoming links when its
+> +  registration completes, drops sync-state-only proxy links and preserve=
+s
+> +  links whose suppliers are dormant or unbinding.  The driver-backed pat=
+h
+> +  calls :c:func:`device_links_driver_bound()` from :c:func:`driver_bound=
+()`,
+> +  while :c:func:`device_add()` performs the equivalent class-device
+> +  transition.
+>
+>  * When the consumer's driver is later on removed, links to suppliers rev=
+ert
+>    back to ``DL_STATE_AVAILABLE``.
+>    (Call to :c:func:`__device_links_no_driver()` from
+>    :c:func:`device_links_driver_cleanup()`, which in turn is called from
+> -  :c:func:`__device_release_driver()`.)
+> +  :c:func:`__device_release_driver()`.)  Removing a driverless class con=
+sumer
+> +  performs the equivalent cleanup from :c:func:`device_del()`.
+>
+>  * Before a supplier's driver is removed, links to consumers that are not
+>    bound to a driver are updated to ``DL_STATE_SUPPLIER_UNBIND``.
+> @@ -305,14 +331,17 @@ State machine
+>    This prevents the consumers from binding.
+>    (Call to :c:func:`device_links_check_suppliers()` from
+>    :c:func:`really_probe()`.)
+> -  Consumers that are bound are freed from their driver; consumers that a=
+re
+> -  probing are waited for until they are done.
+> +  Driver-backed consumers that are bound are freed from their driver;
+> +  driverless class consumers remain registered and their links move dire=
+ctly
+> +  to ``DL_STATE_SUPPLIER_UNBIND``.  Consumers that are probing or being
+> +  registered as class devices are waited for until they are done.
+>    (Call to :c:func:`device_links_unbind_consumers()` from
+>    :c:func:`__device_release_driver()`.)
+>    Once all links to consumers are in ``DL_STATE_SUPPLIER_UNBIND`` state,
+>    the supplier driver is released and the links revert to ``DL_STATE_DOR=
+MANT``.
+>    (Call to :c:func:`device_links_driver_cleanup()` from
+> -  :c:func:`__device_release_driver()`.)
+> +  :c:func:`__device_release_driver()`.)  Removing a driverless class sup=
+plier
+> +  follows the same sequence from :c:func:`device_del()`.
+>
+>  API
+>  =3D=3D=3D
+> diff --git a/drivers/base/base.h b/drivers/base/base.h
+> index a5b7abc10ff0..8bdf0a709401 100644
+> --- a/drivers/base/base.h
+> +++ b/drivers/base/base.h
+> @@ -166,6 +166,8 @@ void device_release_driver_internal(struct device *de=
+v, const struct device_driv
+>  void driver_detach(const struct device_driver *drv);
+>  void driver_deferred_probe_del(struct device *dev);
+>  void device_set_deferred_probe_reason(const struct device *dev, struct v=
+a_format *vaf);
+> +void device_probe_begin(void);
+> +void device_probe_end(void);
+>  static inline int driver_match_device(const struct device_driver *drv,
+>                                       struct device *dev)
+>  {
+> diff --git a/drivers/base/core.c b/drivers/base/core.c
+> index d2f9ff65138c..0c26ba38e6cf 100644
+> --- a/drivers/base/core.c
+> +++ b/drivers/base/core.c
+> @@ -213,10 +213,10 @@ static void __fwnode_links_move_consumers(struct fw=
+node_handle *from,
+>   * @fwnode: fwnode from which to pick up dangling consumers
+>   * @new_sup: fwnode of new supplier
+>   *
+> - * If the @fwnode has a corresponding struct device and the device suppo=
+rts
+> - * probing (that is, added to a bus), then we want to let fw_devlink cre=
+ate
+> - * MANAGED device links to this device, so leave @fwnode and its descend=
+ant's
+> - * fwnode links alone.
+> + * If the @fwnode has a corresponding struct device whose device-link st=
+ate is
+> + * managed by the driver core (that is, a bus or class device), then we =
+want to
+> + * let fw_devlink create MANAGED device links to this device, so leave @=
+fwnode
+> + * and its descendants' fwnode links alone.
+>   *
+>   * Otherwise, move its consumers to the new supplier @new_sup.
+>   */
+> @@ -225,7 +225,7 @@ static void __fw_devlink_pickup_dangling_consumers(st=
+ruct fwnode_handle *fwnode,
+>  {
+>         struct fwnode_handle *child;
+>
+> -       if (fwnode->dev && fwnode->dev->bus)
+> +       if (fwnode->dev && (fwnode->dev->bus || fwnode->dev->class))
+>                 return;
+>
+>         fwnode_set_flag(fwnode, FWNODE_FLAG_NOT_DEVICE);
+> @@ -259,7 +259,7 @@ void fw_devlink_refresh_fwnode(struct fwnode_handle *=
+fwnode)
+>
+>         /*
+>          * Find the closest ancestor fwnode that has been converted to a =
+device
+> -        * that can bind to a driver (bus device).
+> +        * whose managed-link lifecycle is handled by the driver core.
+>          */
+>         fwnode_handle_get(fwnode);
+>         do {
+> @@ -270,15 +270,15 @@ void fw_devlink_refresh_fwnode(struct fwnode_handle=
+ *fwnode)
+>                 if (!dev)
+>                         continue;
+>
+> -               if (dev->bus)
+> +               if (dev->bus || dev->class)
+>                         break;
+>
+>                 put_device(dev);
+>         } while ((fwnode =3D fwnode_get_next_parent(fwnode)));
+>
+>         /*
+> -        * If none of the ancestor fwnodes have (yet) been converted to a=
+ device
+> -        * that can bind to a driver, there's nothing to fix up.
+> +        * If none of the ancestor fwnodes have (yet) been converted to s=
+uch a
+> +        * device, there's nothing to fix up.
+>          */
+>         if (!fwnode)
+>                 return;
+> @@ -287,10 +287,9 @@ void fw_devlink_refresh_fwnode(struct fwnode_handle =
+*fwnode)
+>              "Don't multithread overlaying and probing the same device!\n=
+");
+>
+>         /*
+> -        * If the device has already bound to a driver, then we need to r=
+edo
+> -        * some of the work that was done after the device was bound to a
+> -        * driver. If the device hasn't bound to a driver, running things=
+ too
+> -        * soon would incorrectly pick up consumers that it shouldn't.
+> +        * If the device's managed links are available, redo some of the =
+work
+> +        * performed when it reached that state. Running this too soon wo=
+uld
+> +        * incorrectly pick up consumers that it shouldn't.
+>          */
+>         if (dev->links.status =3D=3D DL_DEV_DRIVER_BOUND) {
+>                 fw_devlink_pickup_dangling_consumers(dev);
+> @@ -1088,6 +1087,12 @@ static bool dev_is_best_effort(struct device *dev)
+>                 (dev->fwnode && fwnode_test_flag(dev->fwnode, FWNODE_FLAG=
+_BEST_EFFORT));
+>  }
+>
+> +static bool dev_is_unmatchable(const struct device *dev)
+> +{
+> +       return READ_ONCE(dev->links.status) =3D=3D DL_DEV_NO_DRIVER &&
+> +              !dev_can_match(dev);
+> +}
+> +
+>  static struct fwnode_handle *fwnode_links_check_suppliers(
+>                                                 struct fwnode_handle *fwn=
+ode)
+>  {
+> @@ -1152,7 +1157,7 @@ int device_links_check_suppliers(struct device *dev=
+)
+>
+>                         if (dev_is_best_effort(dev) &&
+>                             device_link_test(link, DL_FLAG_INFERRED) &&
+> -                           !dev_can_match(link->supplier)) {
+> +                           dev_is_unmatchable(link->supplier)) {
+>                                 ret =3D -EAGAIN;
+>                                 continue;
+>                         }
+> @@ -1307,6 +1312,33 @@ static void device_link_drop_managed(struct device=
+_link *link)
+>         kref_put(&link->kref, __device_link_del);
+>  }
+>
+> +static bool device_links_track_class(const struct device *dev)
+> +{
+> +       /* Device-link objects are class devices registered with the lock=
+ held. */
+> +       return dev->class && !dev->bus && dev->class !=3D &devlink_class;
+> +}
+> +
+> +static void device_links_class_start(struct device *dev)
+> +{
+> +       struct device_link *link;
+> +
+> +       device_probe_begin();
+> +       device_links_write_lock();
+> +       WARN_ON(dev->links.status !=3D DL_DEV_NO_DRIVER);
+> +       list_for_each_entry(link, &dev->links.suppliers, c_node) {
+> +               if (!device_link_test(link, DL_FLAG_MANAGED))
+> +                       continue;
+> +
+> +               /* Do not revive a link whose supplier is already unbindi=
+ng. */
+> +               if (link->status =3D=3D DL_STATE_AVAILABLE ||
+> +                   (device_link_test(link, DL_FLAG_SYNC_STATE_ONLY) &&
+> +                    link->status !=3D DL_STATE_SUPPLIER_UNBIND))
+> +                       WRITE_ONCE(link->status, DL_STATE_CONSUMER_PROBE)=
+;
+> +       }
+> +       dev->links.status =3D DL_DEV_PROBING;
+> +       device_links_write_unlock();
+> +}
+> +
+>  static ssize_t waiting_for_supplier_show(struct device *dev,
+>                                          const struct device_attribute *a=
+ttr,
+>                                          char *buf)
+> @@ -1356,43 +1388,11 @@ void device_links_force_bind(struct device *dev)
+>         device_links_write_unlock();
+>  }
+>
+> -/**
+> - * device_links_driver_bound - Update device links after probing its dri=
+ver.
+> - * @dev: Device to update the links for.
+> - *
+> - * The probe has been successful, so update links from this device to an=
+y
+> - * consumers by changing their status to "available".
+> - *
+> - * Also change the status of @dev's links to suppliers to "active".
+> - *
+> - * Links without the DL_FLAG_MANAGED flag set are ignored.
+> - */
+> -void device_links_driver_bound(struct device *dev)
+> +static void __device_links_supplier_bound(struct device *dev,
+> +                                         struct list_head *sync_list)
+>  {
+> -       struct device_link *link, *ln;
+> -       LIST_HEAD(sync_list);
+> -
+> -       /*
+> -        * If a device binds successfully, it's expected to have created =
+all
+> -        * the device links it needs to or make new device links as it ne=
+eds
+> -        * them. So, fw_devlink no longer needs to create device links to=
+ any
+> -        * of the device's suppliers.
+> -        *
+> -        * Also, if a child firmware node of this bound device is not add=
+ed as a
+> -        * device by now, assume it is never going to be added. Make this=
+ bound
+> -        * device the fallback supplier to the dangling consumers of the =
+child
+> -        * firmware node because this bound device is probably implementi=
+ng the
+> -        * child firmware node functionality and we don't want the dangli=
+ng
+> -        * consumers to defer probe indefinitely waiting for a device for=
+ the
+> -        * child firmware node.
+> -        */
+> -       if (dev->fwnode && dev->fwnode->dev =3D=3D dev) {
+> -               fwnode_links_purge_suppliers(dev->fwnode);
+> -               fw_devlink_pickup_dangling_consumers(dev);
+> -       }
+> -       device_remove_file(dev, &dev_attr_waiting_for_supplier);
+> -
+> -       device_links_write_lock();
+> +       struct device_link *link;
+> +       bool class_device =3D device_links_track_class(dev);
+>
+>         list_for_each_entry(link, &dev->links.consumers, s_node) {
+>                 if (!device_link_test(link, DL_FLAG_MANAGED))
+> @@ -1409,16 +1409,35 @@ void device_links_driver_bound(struct device *dev=
+)
+>                         continue;
+>
+>                 WARN_ON(link->status !=3D DL_STATE_DORMANT);
+> -               WRITE_ONCE(link->status, DL_STATE_AVAILABLE);
+> +               /*
+> +                * A class interface can add a link from an already-bound=
+ consumer
+> +                * while the class supplier is being registered.  Likewis=
+e, a class
+> +                * consumer has no driver probe to retry when a late supp=
+lier binds.
+> +                * Those consumers are already functional, so activate th=
+eir links.
+> +                */
+> +               if ((class_device ||
+> +                    device_links_track_class(link->consumer)) &&
+> +                   link->consumer->links.status =3D=3D DL_DEV_DRIVER_BOU=
+ND) {
+> +                       WRITE_ONCE(link->status, DL_STATE_ACTIVE);
+> +               } else {
+> +                       WRITE_ONCE(link->status, DL_STATE_AVAILABLE);
+>
+> -               if (device_link_test(link, DL_FLAG_AUTOPROBE_CONSUMER))
+> -                       driver_deferred_probe_add(link->consumer);
+> +                       if (device_link_test(link, DL_FLAG_AUTOPROBE_CONS=
+UMER))
+> +                               driver_deferred_probe_add(link->consumer)=
+;
+> +               }
+>         }
+>
+>         if (defer_sync_state_count)
+>                 __device_links_supplier_defer_sync(dev);
+>         else
+> -               __device_links_queue_sync_state(dev, &sync_list);
+> +               __device_links_queue_sync_state(dev, sync_list);
+> +}
+> +
+> +static void __device_links_consumer_bound(struct device *dev,
+> +                                         struct list_head *sync_list)
+> +{
+> +       struct device_link *link, *ln;
+> +       bool class_device =3D device_links_track_class(dev);
+>
+>         list_for_each_entry_safe(link, ln, &dev->links.suppliers, c_node)=
+ {
+>                 struct device *supplier;
+> @@ -1431,13 +1450,13 @@ void device_links_driver_bound(struct device *dev=
+)
+>                         /*
+>                          * When DL_FLAG_SYNC_STATE_ONLY is set, it means =
+no
+>                          * other DL_MANAGED_LINK_FLAGS have been set. So,=
+ it's
+> -                        * save to drop the managed link completely.
+> +                        * safe to drop the managed link completely.
+>                          */
+>                         device_link_drop_managed(link);
+> -               } else if (dev_is_best_effort(dev) &&
+> +               } else if (!class_device && dev_is_best_effort(dev) &&
+>                            device_link_test(link, DL_FLAG_INFERRED) &&
+>                            link->status !=3D DL_STATE_CONSUMER_PROBE &&
+> -                          !dev_can_match(link->supplier)) {
+> +                          dev_is_unmatchable(link->supplier)) {
+>                         /*
+>                          * When dev_is_best_effort() is true, we ignore d=
+evice
+>                          * links to suppliers that don't have a driver.  =
+If the
+> @@ -1446,9 +1465,17 @@ void device_links_driver_bound(struct device *dev)
+>                          * (consumer probed before supplier). So delete i=
+t.
+>                          */
+>                         device_link_drop_managed(link);
+> -               } else {
+> +               } else if (!class_device) {
+>                         WARN_ON(link->status !=3D DL_STATE_CONSUMER_PROBE=
+);
+>                         WRITE_ONCE(link->status, DL_STATE_ACTIVE);
+> +               } else if (link->status =3D=3D DL_STATE_CONSUMER_PROBE ||
+> +                          link->status =3D=3D DL_STATE_AVAILABLE) {
+> +                       WRITE_ONCE(link->status, DL_STATE_ACTIVE);
+> +               } else {
+> +                       WARN_ON(link->status !=3D DL_STATE_ACTIVE &&
+> +                               link->status !=3D DL_STATE_DORMANT &&
+> +                               link->status !=3D DL_STATE_SUPPLIER_UNBIN=
+D);
+> +                       continue;
+>                 }
+>
+>                 /*
+> @@ -1460,10 +1487,67 @@ void device_links_driver_bound(struct device *dev=
+)
+>                 if (defer_sync_state_count)
+>                         __device_links_supplier_defer_sync(supplier);
+>                 else
+> -                       __device_links_queue_sync_state(supplier, &sync_l=
+ist);
+> +                       __device_links_queue_sync_state(supplier, sync_li=
+st);
+>         }
+>
+>         dev->links.status =3D DL_DEV_DRIVER_BOUND;
+> +}
+> +
+> +static void device_links_class_bound(struct device *dev)
+> +{
+> +       LIST_HEAD(sync_list);
+> +
+> +       device_remove_file(dev, &dev_attr_waiting_for_supplier);
+> +
+> +       device_links_write_lock();
+> +       __device_links_supplier_bound(dev, &sync_list);
+> +       __device_links_consumer_bound(dev, &sync_list);
+> +       device_links_write_unlock();
+> +
+> +       device_links_flush_sync_list(&sync_list, NULL);
+> +       driver_deferred_probe_trigger();
+> +       device_probe_end();
+> +}
+> +
+> +/**
+> + * device_links_driver_bound - Update device links after probing its dri=
+ver.
+> + * @dev: Device to update the links for.
+> + *
+> + * The probe has been successful, so update links from this device to an=
+y
+> + * consumers by changing their status to "available".
+> + *
+> + * Also change the status of @dev's links to suppliers to "active".
+> + *
+> + * Links without the DL_FLAG_MANAGED flag set are ignored.
+> + */
+> +void device_links_driver_bound(struct device *dev)
+> +{
+> +       LIST_HEAD(sync_list);
+> +
+> +       /*
+> +        * If a device binds successfully, it's expected to have created =
+all
+> +        * the device links it needs to or make new device links as it ne=
+eds
+> +        * them. So, fw_devlink no longer needs to create device links to=
+ any
+> +        * of the device's suppliers.
+> +        *
+> +        * Also, if a child firmware node of this bound device is not add=
+ed as a
+> +        * device by now, assume it is never going to be added. Make this=
+ bound
+> +        * device the fallback supplier to the dangling consumers of the =
+child
+> +        * firmware node because this bound device is probably implementi=
+ng the
+> +        * child firmware node functionality and we don't want the dangli=
+ng
+> +        * consumers to defer probe indefinitely waiting for a device for=
+ the
+> +        * child firmware node.
+> +        */
+> +       if (dev->fwnode && dev->fwnode->dev =3D=3D dev) {
+> +               fwnode_links_purge_suppliers(dev->fwnode);
+> +               fw_devlink_pickup_dangling_consumers(dev);
+> +       }
+> +
+> +       device_remove_file(dev, &dev_attr_waiting_for_supplier);
+> +
+> +       device_links_write_lock();
+> +       __device_links_supplier_bound(dev, &sync_list);
+> +       __device_links_consumer_bound(dev, &sync_list);
+>
+>         device_links_write_unlock();
+>
+> @@ -1548,17 +1632,7 @@ void device_links_no_driver(struct device *dev)
+>         device_links_write_unlock();
+>  }
+>
+> -/**
+> - * device_links_driver_cleanup - Update links after driver removal.
+> - * @dev: Device whose driver has just gone away.
+> - *
+> - * Update links to consumers for @dev by changing their status to "dorma=
+nt" and
+> - * invoke %__device_links_no_driver() to update links to suppliers for i=
+t as
+> - * appropriate.
+> - *
+> - * Links without the DL_FLAG_MANAGED flag set are ignored.
+> - */
+> -void device_links_driver_cleanup(struct device *dev)
+> +static void device_links_cleanup(struct device *dev)
+>  {
+>         struct device_link *link, *ln;
+>
+> @@ -1568,7 +1642,8 @@ void device_links_driver_cleanup(struct device *dev=
+)
+>                 if (!device_link_test(link, DL_FLAG_MANAGED))
+>                         continue;
+>
+> -               WARN_ON(device_link_test(link, DL_FLAG_AUTOREMOVE_CONSUME=
+R));
+> +               WARN_ON(device_link_test(link, DL_FLAG_AUTOREMOVE_CONSUME=
+R) &&
+> +                       !device_links_track_class(link->consumer));
+>                 WARN_ON(link->status !=3D DL_STATE_SUPPLIER_UNBIND);
+>
+>                 /*
+> @@ -1589,6 +1664,21 @@ void device_links_driver_cleanup(struct device *de=
+v)
+>         device_links_write_unlock();
+>  }
+>
+> +/**
+> + * device_links_driver_cleanup - Update links after driver removal.
+> + * @dev: Device whose driver has just gone away.
+> + *
+> + * Update links to consumers for @dev by changing their status to "dorma=
+nt" and
+> + * invoke %__device_links_no_driver() to update links to suppliers for i=
+t as
+> + * appropriate.
+> + *
+> + * Links without the DL_FLAG_MANAGED flag set are ignored.
+> + */
+> +void device_links_driver_cleanup(struct device *dev)
+> +{
+> +       device_links_cleanup(dev);
+> +}
+> +
+>  /**
+>   * device_links_busy - Check if there are any busy links to consumers.
+>   * @dev: Device to check.
+> @@ -1599,7 +1689,9 @@ void device_links_driver_cleanup(struct device *dev=
+)
+>   * state to "supplier unbind" to prevent the consumer from being probed
+>   * successfully going forward.
+>   *
+> - * Return 'false' if there are no probing or active consumers.
+> + * Sync-state-only links are moved to "supplier unbind" without making t=
+he
+> + * supplier busy, since they do not require the consumer to be unbound.
+> + * Return 'false' if there are no other probing or active consumers.
+>   *
+>   * Links without the DL_FLAG_MANAGED flag set are ignored.
+>   */
+> @@ -1613,6 +1705,11 @@ bool device_links_busy(struct device *dev)
+>         list_for_each_entry(link, &dev->links.consumers, s_node) {
+>                 if (!device_link_test(link, DL_FLAG_MANAGED))
+>                         continue;
+> +               /* Sync-state-only links do not require consumer unbindin=
+g. */
+> +               if (device_link_test(link, DL_FLAG_SYNC_STATE_ONLY)) {
+> +                       WRITE_ONCE(link->status, DL_STATE_SUPPLIER_UNBIND=
+);
+> +                       continue;
+> +               }
+>
+>                 if (link->status =3D=3D DL_STATE_CONSUMER_PROBE
+>                     || link->status =3D=3D DL_STATE_ACTIVE) {
+> @@ -1668,6 +1765,10 @@ void device_links_unbind_consumers(struct device *=
+dev)
+>                 if (status =3D=3D DL_STATE_ACTIVE) {
+>                         struct device *consumer =3D link->consumer;
+>
+> +                       /* Class consumers have no driver to release. */
+> +                       if (device_links_track_class(consumer))
+> +                               continue;
+> +
+>                         get_device(consumer);
+>
+>                         device_links_write_unlock();
+> @@ -1826,7 +1927,7 @@ static int fw_devlink_no_driver(struct device *dev,=
+ void *data)
+>  {
+>         struct device_link *link =3D to_devlink(dev);
+>
+> -       if (!dev_can_match(link->supplier))
+> +       if (dev_is_unmatchable(link->supplier))
+>                 fw_devlink_relax_link(link);
+>
+>         return 0;
+> @@ -3704,6 +3805,7 @@ int device_add(struct device *dev)
+>         struct device *parent;
+>         struct kobject *kobj;
+>         struct class_interface *class_intf;
+> +       bool track_class_links =3D false;
+>         int error =3D -EINVAL;
+>         struct kobject *glue_dir =3D NULL;
+>
+> @@ -3737,6 +3839,10 @@ int device_add(struct device *dev)
+>         if (error)
+>                 goto name_error;
+>
+> +       track_class_links =3D device_links_track_class(dev);
+> +       if (track_class_links)
+> +               device_links_class_start(dev);
+> +
+>         pr_debug("device: '%s': %s\n", dev_name(dev), __func__);
+>
+>         parent =3D get_device(dev->parent);
+> @@ -3838,7 +3944,7 @@ int device_add(struct device *dev)
+>          * match with any driver, don't block its consumers from probing =
+in
+>          * case the consumer device is able to operate without this suppl=
+ier.
+>          */
+> -       if (dev->fwnode && fw_devlink_drv_reg_done && !dev_can_match(dev)=
+)
+> +       if (dev->fwnode && fw_devlink_drv_reg_done && dev_is_unmatchable(=
+dev))
+>                 fw_devlink_unblock_consumers(dev);
+>
+>         if (parent)
+> @@ -3858,6 +3964,8 @@ int device_add(struct device *dev)
+>                 mutex_unlock(&sp->mutex);
+>                 subsys_put(sp);
+>         }
+> +       if (track_class_links)
+> +               device_links_class_bound(dev);
+>  done:
+>         put_device(dev);
+>         return error;
+> @@ -3886,6 +3994,10 @@ int device_add(struct device *dev)
+>  parent_error:
+>         put_device(parent);
+>  name_error:
+> +       if (track_class_links) {
+> +               device_links_no_driver(dev);
+> +               device_probe_end();
+> +       }
+>         kfree(dev->p);
+>         dev->p =3D NULL;
+>         goto done;
+> @@ -3980,9 +4092,17 @@ void device_del(struct device *dev)
+>         struct device *parent =3D dev->parent;
+>         struct kobject *glue_dir =3D NULL;
+>         struct class_interface *class_intf;
+> +       bool track_class_links =3D device_links_track_class(dev);
+>         unsigned int noio_flag;
+>
+>         device_lock(dev);
+> +       if (track_class_links) {
+> +               while (device_links_busy(dev)) {
+> +                       device_unlock(dev);
+> +                       device_links_unbind_consumers(dev);
+> +                       device_lock(dev);
+> +               }
+> +       }
+>         kill_device(dev);
+>         device_unlock(dev);
+>
+> @@ -4024,6 +4144,8 @@ void device_del(struct device *dev)
+>         device_pm_remove(dev);
+>         driver_deferred_probe_del(dev);
+>         device_platform_notify_remove(dev);
+> +       if (track_class_links)
+> +               device_links_cleanup(dev);
+>         device_links_purge(dev);
+>
+>         /*
+> diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+> index 60c005223844..61288fcceb5b 100644
+> --- a/drivers/base/dd.c
+> +++ b/drivers/base/dd.c
+> @@ -555,9 +555,21 @@ int device_bind_driver(struct device *dev)
+>  }
+>  EXPORT_SYMBOL_GPL(device_bind_driver);
+>
+> +/* Driver probes and driverless class-device registrations in progress. =
+*/
+>  static atomic_t probe_count =3D ATOMIC_INIT(0);
+>  static DECLARE_WAIT_QUEUE_HEAD(probe_waitqueue);
+>
+> +void device_probe_begin(void)
+> +{
+> +       atomic_inc(&probe_count);
+> +}
+> +
+> +void device_probe_end(void)
+> +{
+> +       atomic_dec(&probe_count);
+> +       wake_up_all(&probe_waitqueue);
+> +}
+> +
+>  static ssize_t state_synced_store(struct device *dev,
+>                                   struct device_attribute *attr,
+>                                   const char *buf, size_t count)
+> @@ -797,7 +809,7 @@ static int really_probe_debug(struct device *dev, con=
+st struct device_driver *dr
+>
+>  /**
+>   * driver_probe_done
+> - * Determine if the probe sequence is finished or not.
+> + * Determine if the probe and class-device registration sequence is fini=
+shed.
+>   *
+>   * Should somehow figure out how to use a semaphore, not an atomic varia=
+ble...
+>   */
+> @@ -811,7 +823,7 @@ bool __init driver_probe_done(void)
+>
+>  /**
+>   * wait_for_device_probe
+> - * Wait for device probing to be completed.
+> + * Wait for device probing and driverless class registration to be compl=
+eted.
+>   */
+>  void wait_for_device_probe(void)
+>  {
+> @@ -894,7 +906,7 @@ static int driver_probe_device(const struct device_dr=
+iver *drv, struct device *d
+>         int trigger_count =3D atomic_read(&deferred_trigger_count);
+>         int ret;
+>
+> -       atomic_inc(&probe_count);
+> +       device_probe_begin();
+>         ret =3D __driver_probe_device(drv, dev);
+>         if (ret =3D=3D -EPROBE_DEFER || ret =3D=3D EPROBE_DEFER) {
+>                 driver_deferred_probe_add(dev);
+> @@ -906,8 +918,7 @@ static int driver_probe_device(const struct device_dr=
+iver *drv, struct device *d
+>                     !defer_all_probes)
+>                         driver_deferred_probe_trigger();
+>         }
+> -       atomic_dec(&probe_count);
+> -       wake_up_all(&probe_waitqueue);
+> +       device_probe_end();
+>         return ret;
+>  }
+>
+> diff --git a/drivers/base/test/Makefile b/drivers/base/test/Makefile
+> index d871a71dbbaa..c33c615eaabf 100644
+> --- a/drivers/base/test/Makefile
+> +++ b/drivers/base/test/Makefile
+> @@ -3,6 +3,7 @@ obj-$(CONFIG_TEST_ASYNC_DRIVER_PROBE)   +=3D test_async_d=
+river_probe.o
+>
+>  obj-$(CONFIG_DM_KUNIT_TEST)    +=3D root-device-test.o
+>  obj-$(CONFIG_DM_KUNIT_TEST)    +=3D platform-device-test.o
+> +obj-$(CONFIG_DM_KUNIT_TEST)    +=3D device-link-class-test.o
+>  obj-$(CONFIG_DM_KUNIT_TEST)    +=3D fwnode-link-test.o
+>
+>  obj-$(CONFIG_DRIVER_PE_KUNIT_TEST) +=3D property-entry-test.o
+> diff --git a/drivers/base/test/device-link-class-test.c b/drivers/base/te=
+st/device-link-class-test.c
+> new file mode 100644
+> index 000000000000..7d52efb55aa5
+> --- /dev/null
+> +++ b/drivers/base/test/device-link-class-test.c
+> @@ -0,0 +1,479 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +
+> +#include <kunit/platform_device.h>
+> +#include <kunit/resource.h>
+> +#include <kunit/test.h>
+> +
+> +#include <linux/completion.h>
+> +#include <linux/device.h>
+> +#include <linux/device/driver.h>
+> +#include <linux/fwnode.h>
+> +#include <linux/jiffies.h>
+> +#include <linux/kernfs.h>
+> +#include <linux/kthread.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/sched/task.h>
+> +#include <linux/slab.h>
+> +#include <linux/sysfs.h>
+> +
+> +#define TEST_CLASS_NAME                "device-link-test"
+> +#define TEST_DRIVER_NAME       "device-link-test-consumer"
+> +
+> +enum test_class_action {
+> +       TEST_CLASS_NONE,
+> +       TEST_CLASS_SUPPLIER,
+> +       TEST_CLASS_SYNC_CONSUMER,
+> +       TEST_CLASS_OBSERVE,
+> +       TEST_CLASS_WAIT,
+> +       TEST_CLASS_UNBIND_RACE,
+> +};
+> +
+> +struct device_link_class_context {
+> +       enum test_class_action action;
+> +       struct device *endpoint;
+> +       struct device_link *link;
+> +       struct completion waiter_started;
+> +       struct completion waiter_done;
+> +       struct task_struct *waiter;
+> +       struct completion unbind_started;
+> +       struct completion unbind_done;
+> +       struct task_struct *unbinder;
+> +       bool waiter_completed_during_add;
+> +       bool unbind_completed_during_add;
+> +       bool waiting_for_supplier_seen;
+> +};
+> +
+> +struct test_class_device {
+> +       struct device dev;
+> +       struct fwnode_handle fwnode;
+> +       struct fwnode_handle missing_supplier;
+> +       bool added;
+> +};
+> +
+> +static struct class *test_class;
+> +static struct device_link_class_context *test_context;
+> +static atomic_t remove_count;
+> +static atomic_t sync_count;
+> +
+> +static int test_driver_probe(struct platform_device *pdev)
+> +{
+> +       return 0;
+> +}
+> +
+> +static void test_driver_remove(struct platform_device *pdev)
+> +{
+> +       atomic_inc(&remove_count);
+> +}
+> +
+> +static void test_driver_sync_state(struct device *dev)
+> +{
+> +       atomic_inc(&sync_count);
+> +}
+> +
+> +static struct platform_driver test_driver =3D {
+> +       .probe =3D test_driver_probe,
+> +       .remove =3D test_driver_remove,
+> +       .driver =3D {
+> +               .name =3D TEST_DRIVER_NAME,
+> +               .sync_state =3D test_driver_sync_state,
+> +       },
+> +};
+> +
+> +static bool test_has_waiting_for_supplier(struct device *dev)
+> +{
+> +       struct kernfs_node *kn;
+> +
+> +       kn =3D sysfs_get_dirent(dev->kobj.sd, "waiting_for_supplier");
+> +       if (kn)
+> +               kernfs_put(kn);
+> +
+> +       return !!kn;
+> +}
+> +
+> +static int test_wait_for_probe(void *data)
+> +{
+> +       struct device_link_class_context *context =3D data;
+> +
+> +       complete(&context->waiter_started);
+> +       wait_for_device_probe();
+> +       complete(&context->waiter_done);
+> +
+> +       return 0;
+> +}
+> +
+> +static int test_unbind_supplier(void *data)
+> +{
+> +       struct device_link_class_context *context =3D data;
+> +
+> +       complete(&context->unbind_started);
+> +       device_release_driver(context->endpoint);
+> +       complete(&context->unbind_done);
+> +
+> +       return 0;
+> +}
+> +
+> +static int test_class_add(struct device *dev)
+> +{
+> +       struct device_link_class_context *context =3D test_context;
+> +
+> +       if (!context)
+> +               return 0;
+> +
+> +       switch (context->action) {
+> +       case TEST_CLASS_SUPPLIER:
+> +               context->link =3D device_link_add(context->endpoint, dev,
+> +                                               DL_FLAG_INFERRED |
+> +                                               DL_FLAG_AUTOPROBE_CONSUME=
+R);
+> +               return context->link ? 0 : -ENOMEM;
+> +       case TEST_CLASS_SYNC_CONSUMER:
+> +               context->link =3D device_link_add(dev, context->endpoint,
+> +                                               DL_FLAG_INFERRED |
+> +                                               DL_FLAG_SYNC_STATE_ONLY);
+> +               return context->link ? 0 : -ENOMEM;
+> +       case TEST_CLASS_OBSERVE:
+> +               context->waiting_for_supplier_seen =3D
+> +                       test_has_waiting_for_supplier(dev);
+> +               return 0;
+> +       case TEST_CLASS_WAIT:
+> +               context->waiter =3D kthread_create(test_wait_for_probe, c=
+ontext,
+> +                                                "device-link-wait");
+> +               if (IS_ERR(context->waiter))
+> +                       return PTR_ERR(context->waiter);
+> +               get_task_struct(context->waiter);
+> +               wake_up_process(context->waiter);
+> +               wait_for_completion(&context->waiter_started);
+> +               context->waiter_completed_during_add =3D
+> +                       wait_for_completion_timeout(&context->waiter_done=
+,
+> +                                                   msecs_to_jiffies(50))=
+;
+> +               return 0;
+> +       case TEST_CLASS_UNBIND_RACE:
+> +               context->link =3D device_link_add(dev, context->endpoint,=
+ 0);
+> +               if (!context->link)
+> +                       return -ENOMEM;
+> +               context->unbinder =3D kthread_create(test_unbind_supplier=
+, context,
+> +                                                  "device-link-unbind");
+> +               if (IS_ERR(context->unbinder))
+> +                       return PTR_ERR(context->unbinder);
+> +               get_task_struct(context->unbinder);
+> +               wake_up_process(context->unbinder);
+> +               wait_for_completion(&context->unbind_started);
+> +               context->unbind_completed_during_add =3D
+> +                       wait_for_completion_timeout(&context->unbind_done=
+,
+> +                                                   msecs_to_jiffies(50))=
+;
+> +               return 0;
+> +       case TEST_CLASS_NONE:
+> +               return 0;
+> +       }
+> +
+> +       return -EINVAL;
+> +}
+> +
+> +static struct class_interface test_class_interface =3D {
+> +       .add_dev =3D test_class_add,
+> +};
+> +
+> +static void test_unregister_device(void *data)
+> +{
+> +       device_unregister(data);
+> +}
+> +
+> +static void test_resume_sync_state(void *data)
+> +{
+> +       device_links_supplier_sync_state_resume();
+> +}
+> +
+> +static struct platform_device *
+> +test_register_platform_device(struct kunit *test)
+> +{
+> +       struct platform_device_info info =3D {
+> +               .name =3D TEST_DRIVER_NAME,
+> +               .id =3D PLATFORM_DEVID_AUTO,
+> +       };
+> +       struct platform_device *pdev;
+> +
+> +       pdev =3D kunit_platform_device_register_full(test, &info);
+> +       KUNIT_ASSERT_NOT_ERR_OR_NULL(test, pdev);
+> +       KUNIT_ASSERT_EQ(test, pdev->dev.links.status, DL_DEV_DRIVER_BOUND=
+);
+> +
+> +       return pdev;
+> +}
+> +
+> +static void test_class_device_release(struct device *dev)
+> +{
+> +       struct test_class_device *tdev =3D
+> +               container_of(dev, struct test_class_device, dev);
+> +
+> +       fwnode_links_purge(&tdev->fwnode);
+> +       fwnode_links_purge(&tdev->missing_supplier);
+> +       kfree(tdev);
+> +}
+> +
+> +static void test_class_device_cleanup(void *data)
+> +{
+> +       struct test_class_device *tdev =3D data;
+> +
+> +       if (tdev->added)
+> +               device_unregister(&tdev->dev);
+> +       else
+> +               put_device(&tdev->dev);
+> +}
+> +
+> +static struct test_class_device *
+> +test_class_device_alloc(struct kunit *test, const char *name)
+> +{
+> +       struct test_class_device *tdev;
+> +       int ret;
+> +
+> +       tdev =3D kzalloc_obj(*tdev);
+> +       KUNIT_ASSERT_NOT_NULL(test, tdev);
+> +
+> +       device_initialize(&tdev->dev);
+> +       fwnode_init(&tdev->fwnode, NULL);
+> +       fwnode_init(&tdev->missing_supplier, NULL);
+> +       tdev->dev.class =3D test_class;
+> +       tdev->dev.release =3D test_class_device_release;
+> +       device_set_node(&tdev->dev, &tdev->fwnode);
+> +       ret =3D dev_set_name(&tdev->dev, "%s", name);
+> +       if (ret) {
+> +               put_device(&tdev->dev);
+> +               KUNIT_FAIL(test, "failed to name class device: %d", ret);
+> +               return NULL;
+> +       }
+> +
+> +       ret =3D kunit_add_action_or_reset(test, test_class_device_cleanup=
+, tdev);
+> +       KUNIT_ASSERT_EQ(test, ret, 0);
+> +
+> +       return tdev;
+> +}
+> +
+> +static void device_link_class_supplier_test(struct kunit *test)
+> +{
+> +       struct device_link_class_context *context =3D test->priv;
+> +       struct platform_device *consumer;
+> +       struct device *supplier;
+> +       int ret;
+> +
+> +       consumer =3D test_register_platform_device(test);
+> +       context->action =3D TEST_CLASS_SUPPLIER;
+> +       context->endpoint =3D &consumer->dev;
+> +
+> +       supplier =3D device_create(test_class, NULL, 0, NULL,
+> +                                TEST_CLASS_NAME "-supplier");
+> +       KUNIT_ASSERT_NOT_ERR_OR_NULL(test, supplier);
+> +       ret =3D kunit_add_action_or_reset(test, test_unregister_device, s=
+upplier);
+> +       KUNIT_ASSERT_EQ(test, ret, 0);
+> +
+> +       KUNIT_ASSERT_NOT_NULL(test, context->link);
+> +       KUNIT_EXPECT_EQ(test, supplier->links.status, DL_DEV_DRIVER_BOUND=
+);
+> +       KUNIT_EXPECT_EQ(test, READ_ONCE(context->link->status), DL_STATE_=
+ACTIVE);
+> +       KUNIT_EXPECT_TRUE(test, device_link_test(context->link,
+> +                                                DL_FLAG_AUTOPROBE_CONSUM=
+ER));
+> +       KUNIT_EXPECT_FALSE(test, device_link_test(context->link,
+> +                                                 DL_FLAG_SYNC_STATE_ONLY=
+));
+> +
+> +       kunit_release_action(test, test_unregister_device, supplier);
+> +       device_link_wait_removal();
+> +
+> +       KUNIT_EXPECT_EQ(test, atomic_read(&remove_count), 1);
+> +       KUNIT_EXPECT_EQ(test, consumer->dev.links.status, DL_DEV_NO_DRIVE=
+R);
+> +}
+> +
+> +static void device_link_class_consumer_sync_test(struct kunit *test)
+> +{
+> +       struct device_link_class_context *context =3D test->priv;
+> +       struct platform_device *supplier;
+> +       struct device *consumer;
+> +       int ret;
+> +
+> +       device_links_supplier_sync_state_pause();
+> +       ret =3D kunit_add_action_or_reset(test, test_resume_sync_state, N=
+ULL);
+> +       KUNIT_ASSERT_EQ(test, ret, 0);
+> +
+> +       supplier =3D test_register_platform_device(test);
+> +       context->action =3D TEST_CLASS_SYNC_CONSUMER;
+> +       context->endpoint =3D &supplier->dev;
+> +
+> +       consumer =3D device_create(test_class, NULL, 0, NULL,
+> +                                TEST_CLASS_NAME "-consumer");
+> +       KUNIT_ASSERT_NOT_ERR_OR_NULL(test, consumer);
+> +       ret =3D kunit_add_action_or_reset(test, test_unregister_device, c=
+onsumer);
+> +       KUNIT_ASSERT_EQ(test, ret, 0);
+> +
+> +       KUNIT_ASSERT_NOT_NULL(test, context->link);
+> +       KUNIT_EXPECT_EQ(test, consumer->links.status, DL_DEV_DRIVER_BOUND=
+);
+> +       KUNIT_EXPECT_TRUE(test, list_empty(&consumer->links.suppliers));
+> +       kunit_release_action(test, test_resume_sync_state, NULL);
+> +       KUNIT_EXPECT_EQ(test, atomic_read(&sync_count), 1);
+> +}
+> +
+> +static void device_link_class_existing_consumer_link_test(struct kunit *=
+test)
+> +{
+> +       struct device_link_class_context *context =3D test->priv;
+> +       struct test_class_device *consumer;
+> +       struct platform_device *supplier;
+> +       struct device_link *link;
+> +       int ret;
+> +
+> +       supplier =3D test_register_platform_device(test);
+> +       consumer =3D test_class_device_alloc(test,
+> +                                          TEST_CLASS_NAME "-existing-lin=
+k");
+> +       KUNIT_ASSERT_NOT_NULL(test, consumer);
+> +
+> +       link =3D device_link_add(&consumer->dev, &supplier->dev,
+> +                              DL_FLAG_AUTOREMOVE_CONSUMER);
+> +       KUNIT_ASSERT_NOT_NULL(test, link);
+> +       KUNIT_ASSERT_EQ(test, READ_ONCE(link->status), DL_STATE_AVAILABLE=
+);
+> +       ret =3D fwnode_link_add(&consumer->fwnode,
+> +                             &consumer->missing_supplier, 0);
+> +       KUNIT_ASSERT_EQ(test, ret, 0);
+> +
+> +       context->action =3D TEST_CLASS_OBSERVE;
+> +       ret =3D device_add(&consumer->dev);
+> +       KUNIT_ASSERT_EQ(test, ret, 0);
+> +       consumer->added =3D true;
+> +
+> +       KUNIT_EXPECT_EQ(test, consumer->dev.links.status, DL_DEV_DRIVER_B=
+OUND);
+> +       KUNIT_EXPECT_EQ(test, READ_ONCE(link->status), DL_STATE_ACTIVE);
+> +       KUNIT_EXPECT_TRUE(test, context->waiting_for_supplier_seen);
+> +       KUNIT_EXPECT_FALSE(test, test_has_waiting_for_supplier(&consumer-=
+>dev));
+> +}
+> +
+> +static void device_link_class_registration_wait_test(struct kunit *test)
+> +{
+> +       struct device_link_class_context *context =3D test->priv;
+> +       struct device *dev;
+> +       unsigned long timeout;
+> +       int ret;
+> +
+> +       wait_for_device_probe();
+> +       context->action =3D TEST_CLASS_WAIT;
+> +       dev =3D device_create(test_class, NULL, 0, NULL,
+> +                           TEST_CLASS_NAME "-wait");
+> +       KUNIT_ASSERT_NOT_ERR_OR_NULL(test, dev);
+> +       ret =3D kunit_add_action_or_reset(test, test_unregister_device, d=
+ev);
+> +       KUNIT_ASSERT_EQ(test, ret, 0);
+> +
+> +       KUNIT_EXPECT_FALSE(test, context->waiter_completed_during_add);
+> +       timeout =3D wait_for_completion_timeout(&context->waiter_done,
+> +                                             msecs_to_jiffies(1000));
+> +       KUNIT_EXPECT_GT(test, timeout, 0UL);
+> +}
+> +
+> +static void device_link_class_supplier_unbind_race_test(struct kunit *te=
+st)
+> +{
+> +       struct device_link_class_context *context =3D test->priv;
+> +       struct platform_device *supplier;
+> +       struct device *consumer;
+> +       unsigned long timeout;
+> +       int ret;
+> +
+> +       supplier =3D test_register_platform_device(test);
+> +       context->action =3D TEST_CLASS_UNBIND_RACE;
+> +       context->endpoint =3D &supplier->dev;
+> +       consumer =3D device_create(test_class, NULL, 0, NULL,
+> +                                TEST_CLASS_NAME "-unbind-race");
+> +       KUNIT_ASSERT_NOT_ERR_OR_NULL(test, consumer);
+> +       ret =3D kunit_add_action_or_reset(test, test_unregister_device, c=
+onsumer);
+> +       KUNIT_ASSERT_EQ(test, ret, 0);
+> +
+> +       KUNIT_ASSERT_NOT_NULL(test, context->link);
+> +       KUNIT_EXPECT_FALSE(test, context->unbind_completed_during_add);
+> +       timeout =3D wait_for_completion_timeout(&context->unbind_done,
+> +                                             msecs_to_jiffies(1000));
+> +       KUNIT_EXPECT_GT(test, timeout, 0UL);
+> +       KUNIT_EXPECT_EQ(test, atomic_read(&remove_count), 1);
+> +       KUNIT_EXPECT_EQ(test, supplier->dev.links.status, DL_DEV_NO_DRIVE=
+R);
+> +}
+> +
+> +static int device_link_class_test_init(struct kunit *test)
+> +{
+> +       struct device_link_class_context *context;
+> +
+> +       context =3D kunit_kzalloc(test, sizeof(*context), GFP_KERNEL);
+> +       if (!context)
+> +               return -ENOMEM;
+> +
+> +       init_completion(&context->waiter_started);
+> +       init_completion(&context->waiter_done);
+> +       init_completion(&context->unbind_started);
+> +       init_completion(&context->unbind_done);
+> +       test->priv =3D context;
+> +       test_context =3D context;
+> +       atomic_set(&remove_count, 0);
+> +       atomic_set(&sync_count, 0);
+> +
+> +       return 0;
+> +}
+> +
+> +static void device_link_class_test_exit(struct kunit *test)
+> +{
+> +       struct device_link_class_context *context =3D test->priv;
+> +
+> +       if (context->waiter && !IS_ERR(context->waiter)) {
+> +               kthread_stop(context->waiter);
+> +               put_task_struct(context->waiter);
+> +       }
+> +       if (context->unbinder && !IS_ERR(context->unbinder)) {
+> +               kthread_stop(context->unbinder);
+> +               put_task_struct(context->unbinder);
+> +       }
+> +       test_context =3D NULL;
+> +}
+> +
+> +static int device_link_class_suite_init(struct kunit_suite *suite)
+> +{
+> +       int ret;
+> +
+> +       test_class =3D class_create(TEST_CLASS_NAME);
+> +       if (IS_ERR(test_class))
+> +               return PTR_ERR(test_class);
+> +
+> +       ret =3D platform_driver_register(&test_driver);
+> +       if (ret)
+> +               goto destroy_class;
+> +
+> +       test_class_interface.class =3D test_class;
+> +       ret =3D class_interface_register(&test_class_interface);
+> +       if (ret)
+> +               goto unregister_driver;
+> +
+> +       return 0;
+> +
+> +unregister_driver:
+> +       platform_driver_unregister(&test_driver);
+> +destroy_class:
+> +       class_destroy(test_class);
+> +
+> +       return ret;
+> +}
+> +
+> +static void device_link_class_suite_exit(struct kunit_suite *suite)
+> +{
+> +       class_interface_unregister(&test_class_interface);
+> +       platform_driver_unregister(&test_driver);
+> +       class_destroy(test_class);
+> +       device_link_wait_removal();
+> +}
+> +
+> +static struct kunit_case device_link_class_test_cases[] =3D {
+> +       KUNIT_CASE(device_link_class_supplier_test),
+> +       KUNIT_CASE(device_link_class_consumer_sync_test),
+> +       KUNIT_CASE(device_link_class_existing_consumer_link_test),
+> +       KUNIT_CASE(device_link_class_registration_wait_test),
+> +       KUNIT_CASE(device_link_class_supplier_unbind_race_test),
+> +       {}
+> +};
+> +
+> +static struct kunit_suite device_link_class_test_suite =3D {
+> +       .name =3D "device-link-class",
+> +       .suite_init =3D device_link_class_suite_init,
+> +       .suite_exit =3D device_link_class_suite_exit,
+> +       .init =3D device_link_class_test_init,
+> +       .exit =3D device_link_class_test_exit,
+> +       .test_cases =3D device_link_class_test_cases,
+> +};
+> +
+> +kunit_test_suite(device_link_class_test_suite);
+> +
+> +MODULE_DESCRIPTION("KUnit tests for class device links");
+> +MODULE_LICENSE("GPL");
+> diff --git a/include/linux/device.h b/include/linux/device.h
+> index aee79fd6b32b..3783744df86e 100644
+> --- a/include/linux/device.h
+> +++ b/include/linux/device.h
+> @@ -446,11 +446,16 @@ enum device_link_state {
+>  #define DL_FLAG_CYCLE                  BIT(9)
+>
+>  /**
+> - * enum dl_dev_state - Device driver presence tracking information.
+> + * enum dl_dev_state - Device availability tracking information.
+>   * @DL_DEV_NO_DRIVER: There is no driver attached to the device.
+>   * @DL_DEV_PROBING: A driver is probing.
+>   * @DL_DEV_DRIVER_BOUND: The driver has been bound to the device.
+>   * @DL_DEV_UNBINDING: The driver is unbinding from the device.
+> + *
+> + * Class devices which are not on a bus use the same states for their
+> + * registration lifecycle.  In that case, PROBING and DRIVER_BOUND mean =
+that
+> + * device_add() is in progress or has completed, respectively, and UNBIN=
+DING
+> + * means that device_del() is in progress.
+>   */
+>  enum dl_dev_state {
+>         DL_DEV_NO_DRIVER =3D 0,
+> @@ -480,7 +485,7 @@ enum device_removable {
+>   * @suppliers: List of links to supplier devices.
+>   * @consumers: List of links to consumer devices.
+>   * @defer_sync: Hook to global list of devices that have deferred sync_s=
+tate.
+> - * @status: Driver status information.
+> + * @status: Driver or class-device availability status.
+>   */
+>  struct dev_links_info {
+>         struct list_head suppliers;
+>
+> --
+> 2.53.0
+>
