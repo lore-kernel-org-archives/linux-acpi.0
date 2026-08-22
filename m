@@ -1,141 +1,125 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB28664;
-	Fri, 21 Aug 2026 22:00:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 633755695;
+	Sat, 22 Aug 2026 06:31:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787349621; cv=none; b=N3cSV/2yKM+Z3Ja7IQkV/nGMHMXGOY64QPU/OhOqVhVQiZfZOA+8ty01W4nFio53ealCQehy276c6db+QKpE0/kVo2kl66YLDTVANL02gItkbrUAw9kWDfgPOzMDGO/nWMqxLz0YwipPmQfQdhFqwp2N6/QrFPignh4gWUSosns=
+	t=1787380307; cv=none; b=mX2KDp3bZsb/khqI05RTVoE7OpcfTQjn0IsPXAhhkU0ls4Izx/N16BtOnYN4SScZdxjBtnO0mj73E2D0DRMucNzbhw6sKfXp/VsTJSnlsh8hbIxNWITuSmp9y5k83lsP146h7tBIwcRJ9ILSun6YHrTRC1NmOJ06AuKqJnaq8WE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787349621; c=relaxed/simple;
-	bh=C9lyqQL2gR8JG0O76COff55Wax7NXCLXnnFi3u4A26w=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=cv/Db9yjzYy5PfL2++IAZAaqBTAxU2kRiU8o9rfRyJ6XEM7idEBeodnRKxxTS3Es6IpjQCyxBASjU7p2bZYTL3qJbf2snEbzrlZJkFBLlhQF+UioeIffeZ5Hl4AJpLnH7sYo5jDmK235UQ28N6vpkEm9WFov+FYhghix7kc/xMo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cHpodfAz; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787380307; c=relaxed/simple;
+	bh=06ShQr22+Mv3tkCvQ5CnmYEUc3wr87P+zY3ZUu64T8o=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ObmBwvPHDFmd0MNDVTOqEvuDGkZui1sXkOI5ndi3XPvYfSdhmPZjVZpTGKP+8+CMVsNRDi1R6EFpsovW94Bz7sduJntUcUBA9TL83MltTduhUPbqnKDCFCkAVce5xsbw7Xb1u1eiMkg4NAptkC1VmlKWa0iu2uHfvhfAwc7eUlk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=k/PHgpG2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cHpodfAz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B79B81F00A3A;
-	Fri, 21 Aug 2026 22:00:18 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="k/PHgpG2"
+Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 932571F000E9;
+	Sat, 22 Aug 2026 06:31:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787349619;
-	bh=t2AJLr3PEYZ4xN2XziYZu5Jr67vAyQ7rQz3dghKzCow=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=cHpodfAz+Uyi9kLTKbJrD8UGbQkY6kmkAJJlgJ5Y2nle6VKX8ohLnrGvc+fzujACt
-	 K+/oAmI4ZV1vBR7Y4vTRbEaXD+fZhwmmLnyHX4oOsMau0ppHNd3YIrTnnv5EHKS171
-	 dR58xZriodNoSMovQNSIjMb0JCh3zMCIAsOo4De6JHpzp2T/tERbtnqbWQc4RyXm+T
-	 3Y79Bqcl9i95niPG9ZFntpulLBcYwvp/0ae01BX+7Xopb6ESoQPC1W6c21YgbwJGkZ
-	 2/Vb6yON330b8mUsLjRALkywRJnQTCMiM1i4FJ/kEU7FrWFRmUjKigxYBhuZmrC+Or
-	 QodW/ZHBHvaPg==
-Message-ID: <0f5e0efc-b856-4fb8-8b1a-e98f3061192e@kernel.org>
-Date: Fri, 21 Aug 2026 17:00:17 -0500
+	s=k20260515; t=1787380306;
+	bh=R9sVHw5FU4Bh8AKC2R5yfA5vR9BNlZNhimXLNPJPBA8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=k/PHgpG28J5nrHMNy2VGXDoCYnAwZqf0WJGNuXY+FE7tEkLeJa8WgWondVBEcV9QK
+	 RL2mDtaizjnwnlkaPRUNiMTXiER3bdbMYPwe3ucC+BFHLyqQb9bhHLnuBdpUsJH6xj
+	 j/gs14GaCEU9qpyUya/ZrWYtSKfbki2eo5HC5CNUsSNQ/oLc0GuRl8smfBzjGjERU4
+	 sJ//iQhB/wg8DaFepxPYl6heQ9/q+2Y02KXoBDOAzFmocYOuv/aO+jllHGA7cJhTmj
+	 ocHBhkaMZScRw3I8Ts+EnJfBlS2uX8m5QHJIeoLEQu8aRGu0luVkNgMSaa/DWNrYOm
+	 4mXEggP5DD/FA==
+Date: Sat, 22 Aug 2026 08:31:41 +0200
+From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <ukleinek@kernel.org>
+To: Bartosz Golaszewski <brgl@kernel.org>, 
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>, Kees Cook <kees@kernel.org>, Armin Wolf <W_Armin@gmx.de>, 
+	Hans de Goede <hansg@kernel.org>, Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Jonathan Cameron <jic23@kernel.org>
+Cc: Eliav Farber <farbere@amazon.com>, tony.luck@intel.com, bp@alien8.de, 
+	guohanjun@huawei.com, mchehab@kernel.org, xueshuai@linux.alibaba.com, lenb@kernel.org, 
+	laurent.pinchart@ideasonboard.com, linusw@kernel.org, orsonzhai@gmail.com, 
+	baolin.wang@linux.alibaba.com, zhang.lyra@gmail.com, dlechner@baylibre.com, nuno.sa@analog.com, 
+	andy@kernel.org, fabio.m.de.francesco@linux.intel.com, kaihengf@nvidia.com, 
+	ankita@nvidia.com, leitao@debian.org, pedro.pbg@usp.br, paulmck@kernel.org, 
+	frederic@kernel.org, saket.dumbre@intel.com, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-pwm@vger.kernel.org, 
+	linux-iio@vger.kernel.org, linux-input@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
+	acpica-devel@lists.linux.dev, Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [GIT PULL] Base commit for
+ devm_{atomic,blocking}_notifier_chain_register()
+Message-ID: <aolA9ZV4eDN2uNVe@monoceros>
+References: <20260816060648.4030-1-farbere@amazon.com>
+ <aohZHuN68wIyaxWy@monoceros>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] gpiolib: acpi: Add ignore_wake quirk for ASUS ZenBook
- UX425UA_UM425UA
-Content-Language: en-US
-To: Aviv <vaknins33@gmail.com>
-Cc: Mika Westerberg <westeri@kernel.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>,
- Hans de Goede <hdegoede@redhat.com>, linux-gpio@vger.kernel.org,
- linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20260821070651.39763-1-vaknins33@gmail.com>
- <52e55283-f628-4a85-851b-fe33dcdd9c47@amd.com>
- <CAMpL-YwbRe7A+wLxi9gi=q7VuufHtaoLDiLTm1fe_jK7J3D8Ww@mail.gmail.com>
-From: Mario Limonciello <superm1@kernel.org>
-In-Reply-To: <CAMpL-YwbRe7A+wLxi9gi=q7VuufHtaoLDiLTm1fe_jK7J3D8Ww@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="pb2liudaw3te6hmi"
+Content-Disposition: inline
+In-Reply-To: <aohZHuN68wIyaxWy@monoceros>
 
 
+--pb2liudaw3te6hmi
+Content-Type: text/plain; protected-headers=v1; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Subject: Re: [GIT PULL] Base commit for
+ devm_{atomic,blocking}_notifier_chain_register()
+MIME-Version: 1.0
 
-On 8/21/26 16:46, Aviv wrote:
-> Hi Mario,
-> 
-> Nothing is physically connected to GPP3. The bridge (00:02.1 /
-> \_SB.PCI0.GPP3) is unpopulated on this board (the ZenBook UX425UA has
-> no Ethernet or secondary PCIe devices there).
-> 
-> The DSDT seems to have leftover definitions for RTL8/RUSB on GPP3 from
-> a shared BIOS base, and routes GPIO pin 24 to it in _EVT, causing
-> phantom wake events during s2idle.
-> 
-> Here is the acpidump:
-> https://gist.github.com/vaknin/142f5cbad15958e9025cd81960114f6e
-> 
-> Thanks,
-> Kivan
+On Fri, Aug 21, 2026 at 04:07:18PM +0200, Uwe Kleine-K=C3=B6nig wrote:
+> On Sun, Aug 16, 2026 at 06:05:59AM +0000, Eliav Farber wrote:
+> > Many drivers repeat the same boilerplate when registering notifiers with
+> > device lifetime:
+> >=20
+> >   1. Register the notifier with *_notifier_chain_register()
+> >   2. Check for error
+> >   3. Register a devm action to unregister on teardown
+> >   4. Implement a per-driver static unregister callback
+> >=20
+> > This series adds devm_atomic_notifier_chain_register() and
+> > devm_blocking_notifier_chain_register() that automatically unregister
+> > the notifier when the device is unbound, then converts 11 drivers to use
+> > them.
+>=20
+> I applied the first patch on top of v7.2 for you to merge into your
+> subsystem trees as base for applying the patch(es) from this series that
+> should go via your tree.
+>=20
+> Find it at
+>=20
+>   https://git.kernel.org/pub/scm/linux/kernel/git/ukleinek/linux.git tags=
+/devm_notifier_chain_register-for-7.3
+>=20
+> This tag only contains this single commit e38b9eda475f ("notifier: add
+> device-managed registration APIs"). I intend to include it in my PR for
+> v7.3-rc1, feel free to do the same.
 
-Thanks.  The dump agrees with your assessment.
+While I tried to pick up the pwm patch in this series I noticed my
+Arithmetic error here =F0=9F=99=84. It should be 7.4 of course. I created
 
-Reviewed-by: Mario Limonciello (AMD) <superm1@kernel.org>>
-> 
-> On Fri, Aug 21, 2026 at 11:49 PM Mario Limonciello
-> <mario.limonciello@amd.com> wrote:
->>
->> What is connected to this GPP3?
->>
->> Can you please share your acpidump somewhere?
->>
->> On 8/21/26 02:06, Kivan wrote:
->>> The ASUS ZenBook UX425UA_UM425UA (with AMD Ryzen 7 5700U SoC) fails
->>> to stay suspended in s2idle (Modern Standby), prematurely waking
->>> after 1-3 seconds with 0% hardware sleep achieved.
->>>
->>> In the laptop's ACPI SSDT tables (SSDT15), GPIO Pin 24 (hex 0x18) is
->>> defined in _AEI as ExclusiveAndWake targeting the PCIe bridge device
->>> \_SB.PCI0.GPP3:
->>>
->>>       GpioInt (Edge, ActiveLow, ExclusiveAndWake, PullNone, 0x0000,
->>>                "\\_SB.GPIO", ...) { 0x0018 }
->>>
->>> When the SoC powers down PCIe root ports into low-power states during
->>> s2idle, an electrical edge transition triggers a spurious wake interrupt
->>> on GPIO Pin 24. This signals the AMD GPIO controller (AMDI0030:00 / IRQ 7
->>> via pinctrl_amd), aborting sleep across the system.
->>>
->>> Booting with kernel parameter "gpiolib_acpi.ignore_wake=AMDI0030:00@24"
->>> completely resolves the issue: amd_gpio reports ignoring the wakeup on
->>> pin 24, and interrupt counts in /proc/interrupts remain at 0 during sleep
->>> cycles, allowing uninterrupted s2idle until intentionally woken by the
->>> user.
->>>
->>> Add a DMI quirk entry to ignore wake events on AMDI0030:00@24 for this
->>> system.
->>>
->>> Signed-off-by: Kivan <vaknins33@gmail.com>
->>> ---
->>>    drivers/gpio/gpiolib-acpi-quirks.c | 13 +++++++++++++
->>>    1 file changed, 13 insertions(+)
->>>
->>> diff --git a/drivers/gpio/gpiolib-acpi-quirks.c b/drivers/gpio/gpiolib-acpi-quirks.c
->>> index a0116f0..dd4db58 100644
->>> --- a/drivers/gpio/gpiolib-acpi-quirks.c
->>> +++ b/drivers/gpio/gpiolib-acpi-quirks.c
->>> @@ -392,6 +392,19 @@ static const struct dmi_system_id gpiolib_acpi_quirks[] __initconst = {
->>>                        .ignore_wake = "VEN_0488:00@355",
->>>                },
->>>        },
->>> +     {
->>> +             /*
->>> +              * Spurious wakeups from GPP3 PCIe bridge interrupt
->>> +              * Found in BIOS UX425UA.301
->>> +              */
->>> +             .matches = {
->>> +                     DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
->>> +                     DMI_MATCH(DMI_PRODUCT_NAME, "ZenBook UX425UA_UM425UA"),
->>> +             },
->>> +             .driver_data = &(struct acpi_gpiolib_dmi_quirk) {
->>> +                     .ignore_wake = "AMDI0030:00@24",
->>> +             },
->>> +     },
->>>        {} /* Terminating entry */
->>>    };
->>>
->>
+	https://git.kernel.org/pub/scm/linux/kernel/git/ukleinek/linux.git tags/de=
+vm_notifier_chain_register-for-7.4
 
+with a fixed tag message and dropped the 7.3 tag. (Even is someone
+already pulled it, nothing bad happens as it points to the same commit.)
+
+Sorry for the confusion.
+Uwe
+
+--pb2liudaw3te6hmi
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmqJQksACgkQj4D7WH0S
+/k631Af9HnbvYBW34E2hi/rCdPLfdqmD+ReFFb5Is+xyDnSW0UAUmvCloPf6QKKQ
+E4K8KqnIztkgI5Q96G79DDjEaWzqhnPfyC6cyByCpmdUh9R093TgR3zk15TXLBlS
+y4v1jTqQvsnN194uYGXOZNZWaneYxQamJO+j7KgAzGRfWnPrJ5yZT0rnngYTluHJ
+U+9zpO5JSc0KEHqLd9Ut9pgQshqpH3zA5c6eH/ZrosIHZMjk2eXjtP+UgoktdtGQ
+Y/qm5UfncradKTexlH2pNh5euQCooFO3fueiYEPgqiddaMl+iF9e5znDvbwSZgsh
+TSvmbdhspJJJz6j0IFJs2kzKgZohWA==
+=4Uhe
+-----END PGP SIGNATURE-----
+
+--pb2liudaw3te6hmi--
