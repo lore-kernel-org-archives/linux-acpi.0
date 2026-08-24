@@ -1,74 +1,91 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78F2F39446D;
-	Mon, 24 Aug 2026 23:14:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C787F2EA75E;
+	Mon, 24 Aug 2026 23:34:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787613283; cv=none; b=ZsUk/XfBHW+9Ar/Q0WIBmAs4azjuYd05RbUL1pm3HHCqQW/dygq98Ik8VsGKk2a7JuHoUxTRHW5FPXitygbmsdvmjADZuQL0xZJhbNftwozqikESiV7RU+CO3hULp8mHE+qrERy2iD7CFV2uiHFtJ3rC6ql+GSk6Psbzo2cmpFY=
+	t=1787614475; cv=none; b=ohqgPsh+hdF/Kyz6eICz0hH9XAWSUaLTaBwetNBLidzmsx1wXc7hoAkMIy1hluQ5scpzg8GH3fplevBDZEQSbPWGWeQMafg/I2xTsy6LM8gxcz9xRakpRB+FdhuOJANlaGsGwrXMH1ehfTjFOEKByL+nIvTF8lZrMBdskZ52Q6I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787613283; c=relaxed/simple;
-	bh=s/seawrg9V1dim3TtGAqG/cxLWd2DqAFAEFq5/I6eew=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=UBwjsp67zcEITSwRvcyFxr0taBiC4Ha49MzM9EdpuM59RypWEVhH9ICfCDo6MoTlXwE7oCkryEAIa/gF/s1ROpsSUVlSYKrBhjwO7WR2AU0HglFCphHVJmK3PVU5RmNLYDEx1sFqNWZhuZKRhEra+4jG793ihEMDqwFbhUDFKV0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JBGU7cSh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787614475; c=relaxed/simple;
+	bh=I8hw8QcYhrVE0Xtu/s4HveX5wFVFRiZ/9FuQd30RZQw=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=by2sfSw2gcTb7sDvrK135V34P2KP7vr/LMVGQZOeKMnhS8xhKu5PwrtwMp+CDpL/pT5IxRvfmX7lpKMB9dsc5oMG41RwwPJDWcsNreV3UlwApHwdGPlbKLuKGqJQXvSjV8UY6qXg7WgBaAsI16Ff2aydp/4Sxlx4y6gGbOogb4s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PUVtNNWV; arc=none smtp.client-ip=198.175.65.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JBGU7cSh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD4581F000E9;
-	Mon, 24 Aug 2026 23:14:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787613282;
-	bh=hGjHpIlm5WKDXg4JBZ7h8JUL2M8SWiZvnFZa7lTZgsU=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=JBGU7cShH9adw9UfvYncyJhRyUf8EIrmM3OxflZ5DZmVcTEbeNH9YhsUZ7zKZ43mV
-	 XSPtnWt/M65m3eMlpW+KSIp0QdyFejVW1Xv7C7DbAWMyBAYBAp/kPkP9ZgAxQa+VrF
-	 a6yLQpRccRBO9P5whQ/cF++WTmT2txt7IBV7PCVCtxuFL8iLp/VzO/cR+VG/IOnBiK
-	 BXrEzHRJxcpTh/f2+5bm8IsLtRKrKwL5LRQiJJRELNVj5lPqb6wGqRHb9vVnWnM78d
-	 XCHmTjSXGmS8NyI388NXO2F1A/cMmYH82LfyUUUXJYm5k4kk2cn7nylFdvbDlDx7J3
-	 a7WcMWsCosesQ==
-Date: Tue, 25 Aug 2026 00:14:35 +0100
-From: Jonathan Cameron <jic23@kernel.org>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org,
- rafael@kernel.org, tony.luck@intel.com, bp@alien8.de, guohanjun@huawei.com,
- mchehab@kernel.org, xueshuai@linux.alibaba.com, terry.bowman@amd.com,
- benjamin.cheatham@amd.com, alison.schofield@intel.com,
- sashiko-bot@kernel.org
-Subject: Re: [PATCH v4 09/13] ACPI: APEI: GHES: Validate CXL protocol error
- section length before RAS cap copy
-Message-ID: <20260825001435.046f007e@jic23-huawei>
-In-Reply-To: <20260824174936.939059-10-dave.jiang@intel.com>
-References: <20260824174936.939059-1-dave.jiang@intel.com>
-	<20260824174936.939059-10-dave.jiang@intel.com>
-X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PUVtNNWV"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1787614472; x=1819150472;
+  h=date:from:to:cc:subject:message-id;
+  bh=I8hw8QcYhrVE0Xtu/s4HveX5wFVFRiZ/9FuQd30RZQw=;
+  b=PUVtNNWVYDegcuS0V0bLqtEWpLYzIfVWQ7cGqsH4fCEBeekEGegj1XG1
+   KxByOCN6sOJDURdh4of65jWCoIcEsWgZ9YRX4Q/6S2VwNw88H/+k7ucGD
+   S7MeYp7RM2R0QQV/fuU6n2Qa/SEI45KR1CWqRGhQ44IyDiu8l0o4v7pjf
+   s8A/4DEZx9uQIgOTLOtL/F25kCcFSRu3CgbUMioDCvhZUllIRBKvGFG1i
+   L+SdWCPKQt6yj03mcCjH96yb89kEhYUDYlWmR+Sr04gOBA0bpyAcI2S0D
+   xGMv/Ltvc8Cz+bxUNvv3bdwgAbFsx2bXe175HDhn+8C/cCUw/U65JpLru
+   g==;
+X-CSE-ConnectionGUID: oHk1bNY6SfeCHLNJr/F3jQ==
+X-CSE-MsgGUID: TdFhCoUjR8GB9M2tAB4Kxw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11885"; a="87841415"
+X-IronPort-AV: E=Sophos;i="6.25,241,1779174000"; 
+   d="scan'208";a="87841415"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2026 16:34:31 -0700
+X-CSE-ConnectionGUID: vAmsXkNvQMi2gzv0eMocnw==
+X-CSE-MsgGUID: k2SvPbSXTsCD9fzwmjL7wA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,241,1779174000"; 
+   d="scan'208";a="271336694"
+Received: from lkp-server01.sh.intel.com (HELO 3532383e6126) ([10.239.97.150])
+  by orviesa005.jf.intel.com with ESMTP; 24 Aug 2026 16:34:30 -0700
+Received: from kbuild by 3532383e6126 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wyeBK-000000004Yn-1ZiC;
+	Mon, 24 Aug 2026 23:34:24 +0000
+Date: Tue, 25 Aug 2026 07:33:32 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ 9906109d1e9a0544cf0816740ba5a130400c6256
+Message-ID: <202608250720.hjGwJBus-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Mon, 24 Aug 2026 10:49:32 -0700
-Dave Jiang <dave.jiang@intel.com> wrote:
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: 9906109d1e9a0544cf0816740ba5a130400c6256  Merge branch 'pm-powercap-next' into bleeding-edge
 
-> cxl_cper_setup_prot_err_work_data() locates the RAS Capability block at
-> prot_err + sizeof(*prot_err) + dvsec_len and copies it, but dvsec_len is
-> firmware controlled and never validated, so it can point the copy outside
-> the section.
-> 
-> Extend cxl_cper_sec_prot_err_valid() to check that the section can hold
-> the header, and that the header, DVSEC and RAS Capability block together
-> fit the reported section length.
-> 
-> Reported-by: sashiko-bot@kernel.org
-> Link: https://sashiko.dev/#/patchset/20260617-topics-ahmtib01-ras_ffh_arm_internal_review-v6-0-91f725174aa0@arm.com?part=6
-> Link: https://lore.kernel.org/linux-cxl/20260709165457.8BA181F000E9@smtp.kernel.org/
-> Fixes: 315c2f0b53ba ("acpi/ghes, cper: Recognize and cache CXL Protocol errors")
-> Reviewed-by: Alison Schofield <alison.schofield@intel.com>
-> Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com>
-> Reviewed-by: Ben Cheatham <benjamin.cheatham@amd.com>
-> Assisted-by: Claude:claude-sonnet-4-6
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+elapsed time: 760m
+
+configs tested: 14
+configs skipped: 2
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+tested configs:
+alpha       allnoconfig    gcc-16.1.0
+alpha      allyesconfig    gcc-16.1.0
+alpha         defconfig    gcc-16.1.0
+arc        allmodconfig    gcc-16.1.0
+arc        allyesconfig    gcc-16.1.0
+csky       allmodconfig    gcc-16.1.0
+i386       allmodconfig    gcc-14
+loongarch     defconfig    clang-24
+nios2       allnoconfig    gcc-11.5.0
+parisc     allmodconfig    gcc-16.1.0
+parisc     allyesconfig    gcc-16.1.0
+parisc        defconfig    gcc-16.1.0
+sh            defconfig    gcc-16.1.0
+sparc      alldefconfig    gcc-16.1.0
+
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
