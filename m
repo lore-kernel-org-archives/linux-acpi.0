@@ -1,456 +1,227 @@
-Received: from mail-oi2-f4.google.com (mail-oi2-f4.google.com [74.125.231.196])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D22483749F5
-	for <linux-acpi@vger.kernel.org>; Mon, 24 Aug 2026 15:56:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.231.196
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 127F937AA78;
+	Mon, 24 Aug 2026 17:49:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787587004; cv=none; b=FTCTl0WnAxSuaX1tvOSAfzXQAnNLs6EpFfqsszalElA8d4ofRRemS25n0ldU7+4rJQEDP7+LFmI8UChWcKilksSlcvGjCjBfvG4eWy2shxL1WptA2sXM/+7+SGAgNEmDt8P9YGbyybj2Og/zpENNJa0LLUQqPaSB8j9E6CoQemA=
+	t=1787593780; cv=none; b=Bsp7l03zBRS0rYojoN/k82vWCwNzuLbszcvO1KrfhBQj2uVIulo8f0DLHrht21PNoCd40TrITVg0g/BxBjEMfh/JMJRMMlHF28j+JJzOoCujV8rDT3KkwKQZ1Is0kxWv2VtfFgGHaL2c5nyb1I6TwQbYb6WSvUIXBIzaiud8Mbk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787587004; c=relaxed/simple;
-	bh=NcrWUDcrG/mCNtXMbgPfbvZSceIj/D8GGkFMMDJWFvU=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=XYNgt7y+6maLtNhBslpr5YuYxuScVv/584xvnhQrpzXJ9D1IjtSB6Fqrz59vCKVCU1eg7FoW74+QiGCYG35Ip5Kz2genyOrokdfm8/ZwzjyAr5lBpU6K5pzoueCj78fg42sYChDcheOD9QuAzh3FHL+xO3BCjyQYjLvRKcHQtfE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=74.125.231.196
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oi2-f4.google.com with SMTP id 5614622812f47-4961058e787so486093b6e.0
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Aug 2026 08:56:37 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787586996; x=1788191796;
-        h=content-type:to:from:subject:message-id:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=InSelIQtvuERPXKUGsUKFbCwhTimVborn25IOYTuBGY=;
-        b=XwIT1bWR9fyBgqlf3iAXygiYfZp4dRifbIfuPiNAL6lf30me9/+3GnZXIrW7h4CyEh
-         f1Zp9Rwbbrqyd8hFAAF6Msy4h65Sv2vemjctS4GFdOh18P1BjiDJ17AjLctC0TjMPRBu
-         6EBDHBNeCtIMUHpPa/G0onaDHK0IbP69kqXfUMpw8DSxarE/NZX4WD5H1XZun53VVfSj
-         aklRqTQJuCbLrgkWzUbgxS9DlIimgO4Vb6o9+1lZhXDClSlxvwoo37k7cCrMAYGhYXvV
-         EhwvqmxWeXREZ6l54wNXSVMYNVstEA07Ol4GoNNX+D+OvdWpJ/pFWyEhPN9NrnfY1W4L
-         LtHQ==
-X-Forwarded-Encrypted: i=1; AHgh+RpqPMbr+eoIht4XSlgs5dmqE5edhnjpibR78i9EEl/38Sdi1PRpxXcWppzHh5yXG1bysB1X6WRkL2cn@vger.kernel.org
-X-Gm-Message-State: AFuF++nWstuCivzdhM437O7Mq/VUhIxUwifG3+DaEmb8mHR+1/ySctCa
-	JusnMckfDG2hZqcLFcupIvHWuh6S0dzi6Q4ipnuUkObq2oq+mt4UTXMbWIkI0ErWK46YvDjvnro
-	NkbmORwzhA8d/fgIFcE1O1jI9aDfCFvcXrSzIg0zc+i4yWZ78DVXWiZ3te2I=
+	s=arc-20240116; t=1787593780; c=relaxed/simple;
+	bh=CLw/eMF0/YJgPSmPEusffNcYPb5lUMe041XHS9SRf8s=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DxoDu9wAlJBcrvmCuVHIWuoOV/SCpIp20g2zPioLqql3hYifPoAKdYecZ0rgFqn+szGN6BOzAOvrxVJ0Td5cmHRxFr0gD3YaF363LLIFt5eW9oeEaD0CZNchIGzWt9pHWND6Lus6avtD00vvM5H+gwGiWJCAsquSlkHvRiQSa5c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4A411F00A3E;
+	Mon, 24 Aug 2026 17:49:38 +0000 (UTC)
+From: Dave Jiang <dave.jiang@intel.com>
+To: linux-acpi@vger.kernel.org,
+	linux-cxl@vger.kernel.org
+Cc: rafael@kernel.org,
+	tony.luck@intel.com,
+	bp@alien8.de,
+	guohanjun@huawei.com,
+	mchehab@kernel.org,
+	xueshuai@linux.alibaba.com,
+	terry.bowman@amd.com,
+	benjamin.cheatham@amd.com,
+	alison.schofield@intel.com
+Subject: [PATCH v4 00/13] ACPI: APEI: GHES: Collection of fixes for issues reported by sashiko
+Date: Mon, 24 Aug 2026 10:49:23 -0700
+Message-ID: <20260824174936.939059-1-dave.jiang@intel.com>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6808:bd3:b0:495:e16d:5d03 with SMTP id
- 5614622812f47-4b309ca1450mr18112834b6e.21.1787586995752; Mon, 24 Aug 2026
- 08:56:35 -0700 (PDT)
-Date: Mon, 24 Aug 2026 08:56:35 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6a8c69b3.dbb3a75c.7844.0008.GAE@google.com>
-Subject: [syzbot] [acpica?] possible deadlock in get_from_partial_node
-From: syzbot <syzbot+c45feb6d62880ad9f42b@syzkaller.appspotmail.com>
-To: acpica-devel@lists.linux.dev, lenb@kernel.org, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, rafael@kernel.org, robert.moore@intel.com, 
-	saket.dumbre@intel.com, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Hello,
+Fixes for pre-existing issues sashiko-bot found while reviewing patches in the
+CPER, extlog and GHES paths. v1 through v3 fixed successive batches as the
+review widened; see the links below.
 
-syzbot found the following issue on:
+v4 answers Tony Luck's question on v3: is there a common early point where an
+oversized gdata->error_data_length gets rejected, rather than each caller
+checking only "len < sizeof(*foo)"?
 
-HEAD commit:    a4ff2be345d0 Merge tag 'v7.3-p1' of git://git.kernel.org/p..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=12786549580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=29686c02180e4e86
-dashboard link: https://syzkaller.appspot.com/bug?extid=c45feb6d62880ad9f42b
-compiler:       gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44
+cper_estatus_check() walks every section and runs before any handler
+on all three paths - the IRQ path via ghes_read_estatus(), the NMI path via
+ghes_in_nmi_queue_one_entry(), and bert_print_all() for BERT. Patch 1 bounds
+error_data_length there, so the handlers' own checks are lower bounds only, by
+design, and ghes_do_proc() and ghes_handle_aer() need nothing extra.
 
-Unfortunately, I don't have any reproducer for this issue yet.
+Patch 1 also stops that bound depending on the signed helpers the question
+points at. The wrap goes the wrong way to be caught: against the 72-byte v300
+header, an error_data_length of 0xffffffb9 makes acpi_hest_get_record_size()
+return 1 rather than something huge, so it passes "record_size > data_len" and
+acpi_hest_get_next() advances by that 1. Summing in u64 and rejecting what an
+int cannot carry removes the dependency.
 
-Downloadable assets:
-disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/d900f083ada3/non_bootable_disk-a4ff2be3.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/e0a874c2c2e0/vmlinux-a4ff2be3.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/b39932275def/bzImage-a4ff2be3.xz
+A record needs a second, independent bound, since cper_estatus_check() sees
+the record alone and never the buffer it was read into. That one belongs to
+each caller: bert_print_all() bounds against the remaining BERT region, and
+extlog_print() gains an ELOG_ENTRY_LEN bound in patch 3.
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+c45feb6d62880ad9f42b@syzkaller.appspotmail.com
+GHES is the one caller without it - __ghes_read_estatus() copies buf_len bytes
+over the header buf_len came from, and never re-checks. No patch here:
+reaching it needs something to rewrite the block while block_status is still
+set, which the ACPI read-acknowledge handshake forbids, and I have no instance
+of firmware doing that. Better as a separate look than a Fixes: tag and a trip
+to stable for a window nobody can show is real.
 
-======================================================
-WARNING: possible circular locking dependency detected
-syzkaller #0 Tainted: G             L     
-------------------------------------------------------
-syz.2.702/8696 is trying to acquire lock:
-ffffffff8ecf5400 (console_owner){..-.}-{0:0}, at: console_trylock_spinning kernel/printk/printk.c:2026 [inline]
-ffffffff8ecf5400 (console_owner){..-.}-{0:0}, at: vprintk_emit+0x4c3/0x6b0 kernel/printk/printk.c:2478
+The series is grouped in three parts, plus a cleanup.
 
-but task is already holding lock:
-ffff888027fc2558 (&n->list_lock){-.-.}-{3:3}, at: spin_lock_irq include/linux/spinlock.h:377 [inline]
-ffff888027fc2558 (&n->list_lock){-.-.}-{3:3}, at: free_partial mm/slub.c:8009 [inline]
-ffff888027fc2558 (&n->list_lock){-.-.}-{3:3}, at: __kmem_cache_shutdown+0x10c/0x330 mm/slub.c:8058
+Bound the record before anything walks it:
 
-which lock already depends on the new lock.
+1/13:  Reject CPER records with an out-of-range error_data_length.
+2/13:  Reject an error status block length that wraps a u32.
+3/13:  Validate the extlog record length before walking sections.
 
+Fix the extlog error paths, then enable them:
 
-the existing dependency chain (in reverse order) is:
+4/13:  Defer CXL protocol error handling to avoid a lock inversion.
+5/13:  Avoid populating software AER metadata from the raw hardware buffer.
+6/13:  Validate the PCIe error section length before payload access.
+7/13:  Fix the CONFIG_ACPI_APEI_PCIEAER guard typo in extlog.c.
 
--> #4 (&n->list_lock){-.-.}-{3:3}:
-       lock_acquire kernel/locking/lockdep.c:5886 [inline]
-       lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5843
-       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:155 [inline]
-       _raw_spin_lock_irqsave+0x3a/0x60 kernel/locking/spinlock.c:181
-       get_from_partial_node+0x7d/0x5b0 mm/slub.c:3817
-       get_from_partial mm/slub.c:3947 [inline]
-       ___slab_alloc+0x78/0x800 mm/slub.c:4459
-       slab_alloc_node mm/slub.c:4908 [inline]
-       kmem_cache_alloc_noprof+0x3a9/0x6a0 mm/slub.c:4931
-       kmem_alloc_batch+0x49/0x170 lib/debugobjects.c:371
-       fill_pool lib/debugobjects.c:420 [inline]
-       debug_objects_fill_pool lib/debugobjects.c:780 [inline]
-       debug_objects_fill_pool+0x24d/0x550 lib/debugobjects.c:758
-       debug_object_activate+0x103/0x4b0 lib/debugobjects.c:869
-       debug_work_activate kernel/workqueue.c:682 [inline]
-       insert_work+0x2e/0x230 kernel/workqueue.c:2223
-       insert_wq_barrier kernel/workqueue.c:3940 [inline]
-       start_flush_work kernel/workqueue.c:4303 [inline]
-       __flush_work+0x46e/0xcb0 kernel/workqueue.c:4338
-       flush_all_cpus_locked+0x1bc/0x220 mm/slub.c:4008
-       flush_all mm/slub.c:4017 [inline]
-       __kmem_cache_shrink+0x15/0x30 mm/slub.c:8326
-       acpi_os_purge_cache+0x15/0x20 drivers/acpi/osl.c:1622
-       acpi_purge_cached_objects+0x51/0x140 drivers/acpi/acpica/utxface.c:237
-       acpi_initialize_objects+0x8b/0x100 drivers/acpi/acpica/utxfinit.c:250
-       acpi_bus_init drivers/acpi/bus.c:1375 [inline]
-       acpi_init+0x1b0/0x840 drivers/acpi/bus.c:1464
-       do_one_initcall+0x11c/0x6f0 init/main.c:1353
-       do_initcall_level init/main.c:1415 [inline]
-       do_initcalls init/main.c:1431 [inline]
-       do_basic_setup init/main.c:1451 [inline]
-       kernel_init_freeable+0x6ea/0x7b0 init/main.c:1666
-       kernel_init+0x21/0x1e0 init/main.c:1556
-       ret_from_fork+0x730/0xd60 arch/x86/kernel/process.c:158
-       ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+Bound each section payload before its consumers read it:
 
--> #3 (&pool->lock){-.-.}-{2:2}:
-       lock_acquire kernel/locking/lockdep.c:5886 [inline]
-       lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5843
-       __raw_spin_lock include/linux/spinlock_api_smp.h:190 [inline]
-       _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:173
-       __queue_work+0x298/0x12b0 kernel/workqueue.c:2361
-       queue_work_on+0x1a9/0x1e0 kernel/workqueue.c:2452
-       queue_work include/linux/workqueue.h:699 [inline]
-       rpm_suspend+0xf6b/0x1220 drivers/base/power/runtime.c:685
-       rpm_idle+0x60c/0x790 drivers/base/power/runtime.c:559
-       __pm_runtime_idle+0xba/0x1a0 drivers/base/power/runtime.c:1129
-       pm_runtime_put include/linux/pm_runtime.h:551 [inline]
-       __device_attach+0x37e/0x4d0 drivers/base/dd.c:1116
-       device_initial_probe+0xaf/0xd0 drivers/base/dd.c:1153
-       bus_probe_device+0x64/0x160 drivers/base/bus.c:620
-       device_add+0x121d/0x1970 drivers/base/core.c:3776
-       serial_base_port_add+0x227/0x2b0 drivers/tty/serial/serial_base_bus.c:186
-       serial_core_port_device_add drivers/tty/serial/serial_core.c:3275 [inline]
-       serial_core_register_port+0x13c/0x16f0 drivers/tty/serial/serial_core.c:3314
-       serial8250_register_8250_port+0x15af/0x2330 drivers/tty/serial/8250/8250_core.c:828
-       serial_pnp_probe+0x436/0x930 drivers/tty/serial/8250/8250_pnp.c:480
-       pnp_device_probe+0x2b3/0x4a0 drivers/pnp/driver.c:111
-       call_driver_probe drivers/base/dd.c:628 [inline]
-       really_probe+0x241/0xa60 drivers/base/dd.c:706
-       __driver_probe_device+0x210/0x460 drivers/base/dd.c:868
-       driver_probe_device+0x4a/0x140 drivers/base/dd.c:898
-       __driver_attach+0x21f/0x5b0 drivers/base/dd.c:1292
-       bus_for_each_dev+0x13e/0x1d0 drivers/base/bus.c:383
-       bus_add_driver+0x305/0x5b0 drivers/base/bus.c:763
-       driver_register+0x1e2/0x360 drivers/base/driver.c:174
-       serial8250_init+0xcc/0x1c0 drivers/tty/serial/8250/8250_platform.c:317
-       do_one_initcall+0x11c/0x6f0 init/main.c:1353
-       do_initcall_level init/main.c:1415 [inline]
-       do_initcalls init/main.c:1431 [inline]
-       do_basic_setup init/main.c:1451 [inline]
-       kernel_init_freeable+0x6ea/0x7b0 init/main.c:1666
-       kernel_init+0x21/0x1e0 init/main.c:1556
-       ret_from_fork+0x730/0xd60 arch/x86/kernel/process.c:158
-       ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+8/13:  Bound the CXL event record copy to the firmware section length.
+9/13:  Validate the CXL protocol error section length before the RAS cap copy.
+10/13: Read only validated fields in cper_mem_err_pack().
+11/13: Validate the memory error section length before payload access.
+12/13: Bound the AER info copy and sanitize software metadata in ghes.c.
 
--> #2 (&dev->power.lock){-.-.}-{3:3}:
-       lock_acquire kernel/locking/lockdep.c:5886 [inline]
-       lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5843
-       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:155 [inline]
-       _raw_spin_lock_irqsave+0x3a/0x60 kernel/locking/spinlock.c:181
-       __pm_runtime_resume+0xa9/0x170 drivers/base/power/runtime.c:1196
-       pm_runtime_get include/linux/pm_runtime.h:494 [inline]
-       __uart_start+0x1b0/0x510 drivers/tty/serial/serial_core.c:149
-       uart_write+0x211/0xb20 drivers/tty/serial/serial_core.c:629
-       process_output_block drivers/tty/n_tty.c:557 [inline]
-       n_tty_write+0x431/0x1160 drivers/tty/n_tty.c:2366
-       iterate_tty_write drivers/tty/tty_io.c:1006 [inline]
-       file_tty_write.isra.0+0x4d2/0x890 drivers/tty/tty_io.c:1081
-       tty_write drivers/tty/tty_io.c:1102 [inline]
-       redirected_tty_write drivers/tty/tty_io.c:1125 [inline]
-       redirected_tty_write+0xd4/0x120 drivers/tty/tty_io.c:1105
-       new_sync_write fs/read_write.c:595 [inline]
-       vfs_write+0x6af/0x1050 fs/read_write.c:687
-       ksys_write+0x12a/0x250 fs/read_write.c:739
-       do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
-       do_syscall_64+0x123/0x790 arch/x86/entry/syscall_64.c:84
-       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+Then drop an export patch 4 made redundant:
 
--> #1 (&port_lock_key){-.-.}-{3:3}:
-       lock_acquire kernel/locking/lockdep.c:5886 [inline]
-       lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5843
-       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:155 [inline]
-       _raw_spin_lock_irqsave+0x3a/0x60 kernel/locking/spinlock.c:181
-       uart_port_lock_irqsave include/linux/serial_core.h:719 [inline]
-       serial8250_console_write+0x177/0x1a50 drivers/tty/serial/8250/8250_port.c:3344
-       console_emit_next_record kernel/printk/printk.c:3183 [inline]
-       console_flush_one_record+0x790/0xe50 kernel/printk/printk.c:3269
-       console_flush_all kernel/printk/printk.c:3343 [inline]
-       __console_flush_and_unlock kernel/printk/printk.c:3373 [inline]
-       console_unlock+0x103/0x260 kernel/printk/printk.c:3413
-       vprintk_emit+0x407/0x6b0 kernel/printk/printk.c:2479
-       _printk+0xcf/0x110 kernel/printk/printk.c:2504
-       register_console.cold+0xc0/0x248 kernel/printk/printk.c:4208
-       univ8250_console_init+0x6f/0x80 drivers/tty/serial/8250/8250_core.c:515
-       console_init+0x3d5/0x5b0 kernel/printk/printk.c:4407
-       start_kernel+0x314/0x490 init/main.c:1118
-       x86_64_start_reservations+0x24/0x30 arch/x86/kernel/head64.c:310
-       x86_64_start_kernel+0x12b/0x130 arch/x86/kernel/head64.c:291
-       common_startup_64+0x13e/0x158
+13/13: Make cxl_cper_handle_prot_err() static.
 
--> #0 (console_owner){..-.}-{0:0}:
-       check_prev_add+0xeb/0xe60 kernel/locking/lockdep.c:3181
-       check_prevs_add kernel/locking/lockdep.c:3300 [inline]
-       validate_chain kernel/locking/lockdep.c:3924 [inline]
-       __lock_acquire+0x1492/0x1ec0 kernel/locking/lockdep.c:5253
-       lock_acquire kernel/locking/lockdep.c:5886 [inline]
-       lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5843
-       console_trylock_spinning kernel/printk/printk.c:2026 [inline]
-       vprintk_emit+0x4d4/0x6b0 kernel/printk/printk.c:2478
-       _printk+0xcf/0x110 kernel/printk/printk.c:2504
-       __slab_bug+0x4f/0xb0 mm/slub.c:1144
-       slab_bug+0x5d/0x80 mm/slub.c:1155
-       list_slab_objects mm/slub.c:7978 [inline]
-       free_partial mm/slub.c:8015 [inline]
-       __kmem_cache_shutdown.cold+0x39/0x177 mm/slub.c:8058
-       kmem_cache_destroy mm/slab_common.c:569 [inline]
-       kmem_cache_destroy+0x73/0x190 mm/slab_common.c:527
-       virtio_gpu_free_vbufs+0x38/0x80 drivers/gpu/drm/virtio/virtgpu_vq.c:86
-       virtio_gpu_release+0x5c/0x1c0 drivers/gpu/drm/virtio/virtgpu_kms.c:312
-       drm_dev_release drivers/gpu/drm/drm_drv.c:912 [inline]
-       kref_put include/linux/kref.h:65 [inline]
-       drm_dev_put.part.0+0xbd/0x140 drivers/gpu/drm/drm_drv.c:948
-       drm_dev_put+0x1f/0x30 drivers/gpu/drm/drm_drv.c:947
-       virtio_dev_remove+0xb8/0x170 drivers/virtio/virtio.c:375
-       device_remove+0xcb/0x180 drivers/base/dd.c:616
-       __device_release_driver drivers/base/dd.c:1349 [inline]
-       device_release_driver_internal+0x44e/0x620 drivers/base/dd.c:1372
-       bus_remove_device+0x2bc/0x560 drivers/base/bus.c:664
-       device_del+0x376/0x9b0 drivers/base/core.c:3965
-       device_unregister+0x1d/0xe0 drivers/base/core.c:4006
-       unregister_virtio_device+0x39/0x60 drivers/virtio/virtio.c:594
-       virtio_pci_remove+0x7c/0x110 drivers/virtio/virtio_pci_common.c:758
-       pci_device_remove+0xb2/0x1d0 drivers/pci/pci-driver.c:512
-       device_remove+0xcb/0x180 drivers/base/dd.c:616
-       __device_release_driver drivers/base/dd.c:1349 [inline]
-       device_release_driver_internal+0x44e/0x620 drivers/base/dd.c:1372
-       unbind_store+0xf8/0x110 drivers/base/bus.c:244
-       drv_attr_store+0x74/0xb0 drivers/base/bus.c:125
-       sysfs_kf_write+0xf2/0x150 fs/sysfs/file.c:145
-       kernfs_fop_write_iter+0x3e0/0x5f0 fs/kernfs/file.c:345
-       new_sync_write fs/read_write.c:595 [inline]
-       vfs_write+0x6af/0x1050 fs/read_write.c:687
-       ksys_write+0x12a/0x250 fs/read_write.c:739
-       do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
-       do_syscall_64+0x123/0x790 arch/x86/entry/syscall_64.c:84
-       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+Patches 1, 2 and 10 touch drivers/firmware/efi/cper.c, closing the holes at
+the shared choke point the rest of the series relies on. Patch 2 also fixes an
+infinite loop in bert_print_all(), unrelated to this series but the same root
+cause.
 
-other info that might help us debug this:
+Known gaps, left for separate patches:
 
-Chain exists of:
-  console_owner --> &pool->lock --> &n->list_lock
+  - cxl_cper_print_prot_err() in drivers/firmware/efi/cper_cxl.c uses
+    dvsec_len without bounding it against the section length.
+  - cxl_rch_get_aer_info() in drivers/cxl/core/ras_rch.c reads the RCH AER
+    capability from MMIO without clearing header_len/flit, the same class as
+    patches 5 and 12.
+  - struct pcie_tlp_log grew to 60 bytes for Flit mode, so the 96-byte CPER
+    AER info no longer maps 1:1 onto struct aer_capability_regs: Root Error
+    Command, Root Error Status and Error Source ID land in
+    header_log.prefix[0..2] and print as end-to-end TLP prefixes. Patch 7
+    makes this visible in extlog by fixing the guard typo, but the misdecode
+    is the same before and after; patches 5 and 12 only stop the
+    out-of-bounds reads around it.
 
- Possible unsafe locking scenario:
+v1: https://lore.kernel.org/linux-cxl/20260709162807.1957783-1-dave.jiang@intel.com/
+v2: https://lore.kernel.org/linux-cxl/20260714231835.303081-1-dave.jiang@intel.com/
+v3: https://lore.kernel.org/linux-cxl/20260717161647.1493259-1-dave.jiang@intel.com/
 
-       CPU0                    CPU1
-       ----                    ----
-  lock(&n->list_lock);
-                               lock(&pool->lock);
-                               lock(&n->list_lock);
-  lock(console_owner);
+Review tags from the v3 thread are carried over. Patches 2, 10 and 13 are new
+in v4 and have none. Patches 1 and 11 were reworked, so their v3 Reviewed-by
+tags are dropped. Patches 4, 5, 6, 7 and 9 changed in smaller ways and keep
+theirs. Patches 3, 8 and 12 are unchanged.
 
- *** DEADLOCK ***
+Changes since v3
+----------------
+- Regrouped into three parts: bound the record, fix and enable the extlog
+  paths, then bound each section payload. v3 interleaved them, so patch 1
+  checked a section before the patch establishing that contract. No code
+  changed.
+- Moved the extlog lock inversion fix (patch 4) ahead of the CXL protocol
+  error length validation (patch 9). The former deletes
+  extlog_cxl_cper_handle_prot_err(), which the v3 order plumbed a new len
+  argument through three patches before removing it. No functional change.
+- Patch 1: sum in u64 and reject a size the int helpers cannot carry, so the
+  choke point no longer depends on acpi_hest_get_record_size() not wrapping
+  (Tony Luck). The v3 "< 0" check was dead code, and bounding the u32 alone
+  would have left the sum unchecked. Reviewed-by dropped; not the same check.
+- New patch 2: reject an error status block length that wraps the u32 sum in
+  cper_estatus_len(). A data_length of 0xffffffec makes it read back as 0,
+  slipping past the extlog bound in patch 3 and leaving bert_print_all()
+  advancing by zero forever (sashiko). Its commit message no longer claims
+  extlog already reached cper_estatus_check_header() (sashiko).
+- Patch 4: moved the cxl_cper_post_prot_err() declaration inside the
+  CONFIG_ACPI_APEI_GHES block in <acpi/ghes.h> (Shuai Xue). The GHES=n plus
+  EXTLOG=m failure that prompted it is unreachable, since ACPI_EXTLOG selects
+  ACPI_APEI_GHES, but the declaration belongs there anyway.
+- Patch 5: dropped a pointless aer alias; the local aer_regs goes straight to
+  pci_print_aer().
+- Patch 6: warn instead of returning silently on a short PCIe section (Shuai
+  Xue), and added the Closes: link v3 omitted.
+- Patch 7: corrected the Fixes tag to e778ffefa34d, the commit that added the
+  "#ifdef ACPI_APEI_PCIEAER" guard, and dropped its Reported-by; sashiko-bot
+  reviewed that patch rather than reporting the typo.
+- Patch 9: made the two prot-err length messages distinguishable; both printed
+  the same text. The second now reports dvsec_len (Shuai Xue).
+- New patch 10: read only validated fields in cper_mem_err_pack(). It copied
+  extended, rank, mem_array_handle and mem_dev_handle unconditionally from
+  offsets 73 to 79, past the end of the 73-byte UEFI 2.1/2.2 layout (sashiko).
+- Patch 11: derive the required length from the claimed validation bits. A
+  single size gets it wrong both ways: 73 bytes let a 74 to 79 byte record
+  through, so patch 10 could read mem_dev_handle at offset 78 off the end, and
+  80 bytes rejected a 76-byte record legitimately carrying rank, or one
+  claiming only bank at offset 38 (sashiko).
+- New patch 13: make cxl_cper_handle_prot_err() static. Patch 4 removed its
+  last external caller.
+- Condensed the commit logs and comments throughout; prose only.
 
-locks held by syz.2.702/8696: 8, last CPU#0:
- #0: ffff888013f16ef0 (&f->f_pos_lock){+.+.}-{4:4}, at: fdget_pos+0x2aa/0x380 fs/file.c:1259
- #1: ffff888042fd8460 (sb_writers#8){.+.+}-{0:0}, at: ksys_write+0x12a/0x250 fs/read_write.c:739
- #2: ffff888035090c80 (&of->mutex){+.+.}-{4:4}, at: kernfs_fop_write_iter+0x2c2/0x5f0 fs/kernfs/file.c:336
- #3: ffff888022e821f8 (&dev->mutex){....}-{4:4}, at: device_lock include/linux/device.h:1104 [inline]
- #3: ffff888022e821f8 (&dev->mutex){....}-{4:4}, at: __device_driver_lock drivers/base/dd.c:1171 [inline]
- #3: ffff888022e821f8 (&dev->mutex){....}-{4:4}, at: device_release_driver_internal+0xb2/0x620 drivers/base/dd.c:1369
- #4: ffff88802658d1b0 (&dev->mutex){....}-{4:4}, at: device_lock include/linux/device.h:1104 [inline]
- #4: ffff88802658d1b0 (&dev->mutex){....}-{4:4}, at: __device_driver_lock drivers/base/dd.c:1171 [inline]
- #4: ffff88802658d1b0 (&dev->mutex){....}-{4:4}, at: device_release_driver_internal+0xb2/0x620 drivers/base/dd.c:1369
- #5: ffffffff8ec7a350 (cpu_hotplug_lock){++++}-{0:0}, at: kmem_cache_destroy mm/slab_common.c:556 [inline]
- #5: ffffffff8ec7a350 (cpu_hotplug_lock){++++}-{0:0}, at: kmem_cache_destroy+0x4b/0x190 mm/slab_common.c:527
- #6: ffffffff8ef8a0e0 (slab_mutex){+.+.}-{4:4}, at: kmem_cache_destroy mm/slab_common.c:557 [inline]
- #6: ffffffff8ef8a0e0 (slab_mutex){+.+.}-{4:4}, at: kmem_cache_destroy+0x59/0x190 mm/slab_common.c:527
- #7: ffff888027fc2558 (&n->list_lock){-.-.}-{3:3}, at: spin_lock_irq include/linux/spinlock.h:377 [inline]
- #7: ffff888027fc2558 (&n->list_lock){-.-.}-{3:3}, at: free_partial mm/slub.c:8009 [inline]
- #7: ffff888027fc2558 (&n->list_lock){-.-.}-{3:3}, at: __kmem_cache_shutdown+0x10c/0x330 mm/slub.c:8058
+Changes since v2
+----------------
+- Dropped the standalone spin_lock_irqsave() change; a separate issue being
+  handled by Terry Bowman.
+- New patch 2: reject a section whose error_data_length is out of range in
+  cper_estatus_check(), closing the signed-int overflow that let a crafted
+  section defeat the per-caller size guards (sashiko).
+- New patch 9: apply the same AER buffer sanitization to ghes_handle_aer()
+  that patch 4 applies to extlog (sashiko).
+- New patch 10: bound the extlog record and run cper_estatus_check() before
+  walking its sections, which extlog did not do (sashiko).
+- Patch 8: move the memory error length check into ghes_do_proc() so the
+  report chain and arch reporter are covered too, and bound against the older
+  UEFI 2.1/2.2 layout rather than the full struct (sashiko).
+- Reordered so the extlog PCIe path is hardened, and CXL protocol error
+  handling deferred to the workqueue, before the typo fix that activates it.
 
-stack backtrace:
-CPU: 0 UID: 0 PID: 8696 Comm: syz.2.702 Tainted: G             L      syzkaller #0 PREEMPT(full) 
-Tainted: [L]=SOFTLOCKUP
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x100/0x190 lib/dump_stack.c:120
- print_circular_bug.cold+0x178/0x1be kernel/locking/lockdep.c:2059
- check_noncircular+0x146/0x160 kernel/locking/lockdep.c:2191
- check_prev_add+0xeb/0xe60 kernel/locking/lockdep.c:3181
- check_prevs_add kernel/locking/lockdep.c:3300 [inline]
- validate_chain kernel/locking/lockdep.c:3924 [inline]
- __lock_acquire+0x1492/0x1ec0 kernel/locking/lockdep.c:5253
- lock_acquire kernel/locking/lockdep.c:5886 [inline]
- lock_acquire+0x1b9/0x370 kernel/locking/lockdep.c:5843
- console_trylock_spinning kernel/printk/printk.c:2026 [inline]
- vprintk_emit+0x4d4/0x6b0 kernel/printk/printk.c:2478
- _printk+0xcf/0x110 kernel/printk/printk.c:2504
- __slab_bug+0x4f/0xb0 mm/slub.c:1144
- slab_bug+0x5d/0x80 mm/slub.c:1155
- list_slab_objects mm/slub.c:7978 [inline]
- free_partial mm/slub.c:8015 [inline]
- __kmem_cache_shutdown.cold+0x39/0x177 mm/slub.c:8058
- kmem_cache_destroy mm/slab_common.c:569 [inline]
- kmem_cache_destroy+0x73/0x190 mm/slab_common.c:527
- virtio_gpu_free_vbufs+0x38/0x80 drivers/gpu/drm/virtio/virtgpu_vq.c:86
- virtio_gpu_release+0x5c/0x1c0 drivers/gpu/drm/virtio/virtgpu_kms.c:312
- drm_dev_release drivers/gpu/drm/drm_drv.c:912 [inline]
- kref_put include/linux/kref.h:65 [inline]
- drm_dev_put.part.0+0xbd/0x140 drivers/gpu/drm/drm_drv.c:948
- drm_dev_put+0x1f/0x30 drivers/gpu/drm/drm_drv.c:947
- virtio_dev_remove+0xb8/0x170 drivers/virtio/virtio.c:375
- device_remove+0xcb/0x180 drivers/base/dd.c:616
- __device_release_driver drivers/base/dd.c:1349 [inline]
- device_release_driver_internal+0x44e/0x620 drivers/base/dd.c:1372
- bus_remove_device+0x2bc/0x560 drivers/base/bus.c:664
- device_del+0x376/0x9b0 drivers/base/core.c:3965
- device_unregister+0x1d/0xe0 drivers/base/core.c:4006
- unregister_virtio_device+0x39/0x60 drivers/virtio/virtio.c:594
- virtio_pci_remove+0x7c/0x110 drivers/virtio/virtio_pci_common.c:758
- pci_device_remove+0xb2/0x1d0 drivers/pci/pci-driver.c:512
- device_remove+0xcb/0x180 drivers/base/dd.c:616
- __device_release_driver drivers/base/dd.c:1349 [inline]
- device_release_driver_internal+0x44e/0x620 drivers/base/dd.c:1372
- unbind_store+0xf8/0x110 drivers/base/bus.c:244
- drv_attr_store+0x74/0xb0 drivers/base/bus.c:125
- sysfs_kf_write+0xf2/0x150 fs/sysfs/file.c:145
- kernfs_fop_write_iter+0x3e0/0x5f0 fs/kernfs/file.c:345
- new_sync_write fs/read_write.c:595 [inline]
- vfs_write+0x6af/0x1050 fs/read_write.c:687
- ksys_write+0x12a/0x250 fs/read_write.c:739
- do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
- do_syscall_64+0x123/0x790 arch/x86/entry/syscall_64.c:84
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f857079e0d9
-Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 e8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f8571728028 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 00007f8570a25fa0 RCX: 00007f857079e0d9
-RDX: 000000000000000d RSI: 00002000000001c0 RDI: 0000000000000003
-RBP: 00007f8570835024 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 00007f8570a26038 R14: 00007f8570a25fa0 R15: 00007ffeb5a8ff58
- </TASK>
-BUG virtio-gpu-vbufs (Tainted: G             L     ): Objects remaining on __kmem_cache_shutdown()
------------------------------------------------------------------------------
+Changes since v1
+----------------
+- See the v2 posting for the full v1 -> v2 changelog.
 
-Object 0xffff888027e50348 @offset=840
-Object 0xffff888027e50460 @offset=1120
-Object 0xffff888027e50d20 @offset=3360
-Object 0xffff888027e50e38 @offset=3640
-Object 0xffff888027e51298 @offset=4760
-Object 0xffff888027e513b0 @offset=5040
-Object 0xffff888027e514c8 @offset=5320
-Object 0xffff888027e515e0 @offset=5600
-Slab 0xffffea00009f9400 objects=29 used=8 fp=0xffff888027e50000 flags=0xfff00000000240(workingset|head|node=0|zone=1|lastcpupid=0x7ff)
-------------[ cut here ]------------
-1
-WARNING: mm/slub.c:1244 at __slab_err+0x15/0x20 mm/slub.c:1244, CPU#0: syz.2.702/8696
-Modules linked in:
-CPU: 0 UID: 0 PID: 8696 Comm: syz.2.702 Tainted: G    B        L      syzkaller #0 PREEMPT(full) 
-Tainted: [B]=BAD_PAGE, [L]=SOFTLOCKUP
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-RIP: 0010:__slab_err+0x15/0x20 mm/slub.c:1244
-Code: 00 00 00 00 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 e8 5b fd ff ff be 01 00 00 00 bf 05 00 00 00 e8 7c f6 a2 00 90 <0f> 0b 90 c3 cc cc cc cc 0f 1f 00 90 90 90 90 90 90 90 90 90 90 90
-RSP: 0018:ffffc9000160f808 EFLAGS: 00010046
-RAX: 0000000000080000 RBX: ffffc9000160f858 RCX: ffffc90006a91000
-RDX: 0000000000080000 RSI: ffffffff81c7459d RDI: ffff8880308e8000
-RBP: ffff888027fc2558 R08: 0000000000000007 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000062616c53 R12: 0000000000001ea0
-R13: ffff888027e51fb8 R14: ffff888027fc2540 R15: ffffea00009f9400
-FS:  00007f85717286c0(0000) GS:ffff8880d5bc6000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007ffe71918568 CR3: 0000000040e74000 CR4: 0000000000352ef0
-Call Trace:
- <TASK>
- list_slab_objects mm/slub.c:7994 [inline]
- free_partial mm/slub.c:8015 [inline]
- __kmem_cache_shutdown.cold+0x16e/0x177 mm/slub.c:8058
- kmem_cache_destroy mm/slab_common.c:569 [inline]
- kmem_cache_destroy+0x73/0x190 mm/slab_common.c:527
- virtio_gpu_free_vbufs+0x38/0x80 drivers/gpu/drm/virtio/virtgpu_vq.c:86
- virtio_gpu_release+0x5c/0x1c0 drivers/gpu/drm/virtio/virtgpu_kms.c:312
- drm_dev_release drivers/gpu/drm/drm_drv.c:912 [inline]
- kref_put include/linux/kref.h:65 [inline]
- drm_dev_put.part.0+0xbd/0x140 drivers/gpu/drm/drm_drv.c:948
- drm_dev_put+0x1f/0x30 drivers/gpu/drm/drm_drv.c:947
- virtio_dev_remove+0xb8/0x170 drivers/virtio/virtio.c:375
- device_remove+0xcb/0x180 drivers/base/dd.c:616
- __device_release_driver drivers/base/dd.c:1349 [inline]
- device_release_driver_internal+0x44e/0x620 drivers/base/dd.c:1372
- bus_remove_device+0x2bc/0x560 drivers/base/bus.c:664
- device_del+0x376/0x9b0 drivers/base/core.c:3965
- device_unregister+0x1d/0xe0 drivers/base/core.c:4006
- unregister_virtio_device+0x39/0x60 drivers/virtio/virtio.c:594
- virtio_pci_remove+0x7c/0x110 drivers/virtio/virtio_pci_common.c:758
- pci_device_remove+0xb2/0x1d0 drivers/pci/pci-driver.c:512
- device_remove+0xcb/0x180 drivers/base/dd.c:616
- __device_release_driver drivers/base/dd.c:1349 [inline]
- device_release_driver_internal+0x44e/0x620 drivers/base/dd.c:1372
- unbind_store+0xf8/0x110 drivers/base/bus.c:244
- drv_attr_store+0x74/0xb0 drivers/base/bus.c:125
- sysfs_kf_write+0xf2/0x150 fs/sysfs/file.c:145
- kernfs_fop_write_iter+0x3e0/0x5f0 fs/kernfs/file.c:345
- new_sync_write fs/read_write.c:595 [inline]
- vfs_write+0x6af/0x1050 fs/read_write.c:687
- ksys_write+0x12a/0x250 fs/read_write.c:739
- do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
- do_syscall_64+0x123/0x790 arch/x86/entry/syscall_64.c:84
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f857079e0d9
-Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 e8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f8571728028 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 00007f8570a25fa0 RCX: 00007f857079e0d9
-RDX: 000000000000000d RSI: 00002000000001c0 RDI: 0000000000000003
-RBP: 00007f8570835024 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 00007f8570a26038 R14: 00007f8570a25fa0 R15: 00007ffeb5a8ff58
- </TASK>
+Dave Jiang (13):
+  efi/cper: Reject CPER records with an out-of-range error_data_length
+  efi/cper: Reject an error status block length that wraps a u32
+  ACPI: extlog: Validate elog record length before walking sections
+  ACPI: extlog: Defer CXL protocol error handling to avoid lock
+    inversion
+  ACPI: extlog: Avoid populating software AER metadata from raw hardware
+    buffer
+  ACPI: extlog: Validate PCIe error section length before payload access
+  ACPI: extlog: Fix CONFIG_ACPI_APEI_PCIEAER guard typo
+  ACPI: APEI: GHES: Bound CXL event record copy to the firmware section
+    length
+  ACPI: APEI: GHES: Validate CXL protocol error section length before
+    RAS cap copy
+  efi/cper: Read only validated fields in cper_mem_err_pack()
+  ACPI: APEI: GHES: Validate memory error section length before payload
+    access
+  ACPI: APEI: GHES: Bound AER info copy and sanitize software metadata
+  cxl/ras: Make cxl_cper_handle_prot_err() static
+
+ drivers/acpi/acpi_extlog.c       | 49 +++++++++---------
+ drivers/acpi/apei/ghes.c         | 89 +++++++++++++++++++++++++++-----
+ drivers/acpi/apei/ghes_helpers.c | 18 ++++++-
+ drivers/cxl/core/ras.c           |  3 +-
+ drivers/firmware/efi/cper.c      | 53 ++++++++++++++++---
+ include/acpi/ghes.h              |  4 ++
+ include/cxl/event.h              |  6 +--
+ 7 files changed, 170 insertions(+), 52 deletions(-)
 
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+base-commit: 075b74841bd0065a3bda3440873c747938e69b68
+-- 
+2.54.0
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
