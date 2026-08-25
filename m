@@ -1,96 +1,184 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+Received: from mail.www403.your-server.de (mail.www403.your-server.de [116.202.139.230])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B52FF331EBB;
-	Tue, 25 Aug 2026 12:07:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 234114052D4
+	for <linux-acpi@vger.kernel.org>; Tue, 25 Aug 2026 12:18:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=116.202.139.230
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787659665; cv=none; b=JSDy5g+ihOtwOdPYefs2opIXy685h8XUphfA19ngKfjL50Rh4XXPB5NRYJxn7U89yLOmbxTZxdg5yo4zZ1PkrIhh97R5CC0P03DHQDIZdzoH7qluqfZjwITW4C7TeJ07GV9zwwWvBxCNgBARfGBLXYzd/pTCxCfOqoMhtDyZYyA=
+	t=1787660330; cv=none; b=XeKWP+S1gpGziHS6S3TzkS84+U1Rnz43Br2J+dIqS43pBI1B1/bggJjs5ogt2qFxQ2xjoZsNp/34h2wjpsZUvgnzosJEsEtyLdeT06IogepWcejpM0DWN7n/ar9TVjvDwUobhhkONKWc3NOgZG2Ta7wvKkkDdnpdfW9PW4ZEfhA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787659665; c=relaxed/simple;
-	bh=FpXJLOnjCg4pDN0knSp9lYxnhTUVgLVUjMapNt5oa38=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lBPV5xtktFE4wieZQ3a4I5zA4NSsTVIBf1j+6VnXV1XIvw+ezLGcyprLzCAKFgj82i3RSsmm6ghR2lvibVChcEx5qx11+vgVYeoqGcVEAVAf7+l1sczKcUVedEcs3XsUBFWb4L/I6NGX58zva1epWckNVYL4+9rlRNLQnjyB9z8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=d4lm1DhX; arc=none smtp.client-ip=198.175.65.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1787660330; c=relaxed/simple;
+	bh=NE7H1QqexBXiI98A4QeWK3vUdM9Ty561634SctWKIAs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=bUOGpS9l2mGU9nOZQIOqn5nk1C0TIc90Zf+9moV3MYNGgDa3Yy+OUuMK41V4PyV6ppA2rl3sXjBsMHlhpDushXLkUsgf4ReqiykBvzoOW9ZVFzX1a5/HYQezWxIXHCM3kt87Mf8W8ptJxoU+SYpS7YWhbbJZEb7eUcgBpxIT9X8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stefan-reisinger.at; spf=fail smtp.mailfrom=stefan-reisinger.at; dkim=pass (2048-bit key) header.d=stefan-reisinger.at header.i=@stefan-reisinger.at header.b=qcIsCUy5; arc=none smtp.client-ip=116.202.139.230
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stefan-reisinger.at
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=stefan-reisinger.at
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="d4lm1DhX"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1787659664; x=1819195664;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=FpXJLOnjCg4pDN0knSp9lYxnhTUVgLVUjMapNt5oa38=;
-  b=d4lm1DhX9qJOui9ZQmW153GHudXTKcSkvYToszgc6euogyBUo35xCaWv
-   iaprThAy/ma/4kayRXB3hZWkxAnUu2XoDuMU4dKJdTzKyNCx5pLUJlatM
-   ViRkO4C2Cx0C+n5xq/lAiiv09YYWbbTij7Rwoy6FprGhH+swoxjaTLrJO
-   a6Xi1UeIAeKirq0vEtj05GpLAY26QP0y+13+/8o3F7avg2eUkGHTBWeZy
-   evd5p8EMQR87Je5ZnytiH7qAufCgodCkKGbZM6hkKct7umTFB3OW1InNy
-   V5Q/edqXr67yiu3F96xu5XAnTMQYX08ZtRf9U3pcCIVLiK3XsnWGNEbXE
-   w==;
-X-CSE-ConnectionGUID: 9ZuG3QAYSEGqgbfhAniq2Q==
-X-CSE-MsgGUID: GgvkZDVBRCahvycKB4TCcw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11885"; a="87888696"
-X-IronPort-AV: E=Sophos;i="6.25,242,1779174000"; 
-   d="scan'208";a="87888696"
-Received: from fmviesa004.fm.intel.com ([10.60.135.144])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2026 05:07:44 -0700
-X-CSE-ConnectionGUID: /5L24Rc4TJ2RPNC8xzskgQ==
-X-CSE-MsgGUID: m/zcJPpCRuyVmHg1FJwrvQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,242,1779174000"; 
-   d="scan'208";a="269216424"
-Received: from pgcooper-mobl3.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.245.245.50])
-  by fmviesa004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2026 05:07:41 -0700
-Received: from kekkonen.localdomain (localhost [IPv6:::1])
-	by kekkonen.fi.intel.com (Postfix) with ESMTP id 534A6121BE0;
-	Tue, 25 Aug 2026 15:07:52 +0300 (EEST)
-Date: Tue, 25 Aug 2026 15:07:52 +0300
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
-	Len Brown <lenb@kernel.org>,
-	Daniel Scally <dan.scally@ideasonboard.com>,
-	Hans de Goede <hansg@kernel.org>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	platform-driver-x86@vger.kernel.org
-Subject: Re: [PATCH v2 3/5] ACPI: Support __free() from cleanup.h for ACPI
- objects
-Message-ID: <ao2FmNRFjSJVxhrL@kekkonen.localdomain>
-References: <20260824211338.3583976-1-sakari.ailus@linux.intel.com>
- <20260824211338.3583976-4-sakari.ailus@linux.intel.com>
- <CAJZ5v0ieb2FcANOt0MRMsTrwtbLiUF48W_c=3z3OpNH92d=7vg@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=stefan-reisinger.at header.i=@stefan-reisinger.at header.b="qcIsCUy5"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=stefan-reisinger.at; s=default2406; h=Content-Type:
+	Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:Cc:To:From:
+	Sender:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References;
+	bh=YtCThPdcHL0I4o06mZ5weH6gLybIVjLb5Oh5RV2Wk2M=; b=qcIsCUy5w8A2idSSefqrk/bN97
+	xebMKTfB/KmG8dzCVaWqQ6vGq+B+hmM4Kn/ThVOIR8wESeYB7fa1m0Bwp3+RBcfghQI3tqQI3JBnd
+	0bs+0OgdgT7PovNhGopGlyi9X3owAx9CfTFfZdZduIDyf7NBWnApffbG+AWYz145TSphRhJ9WOHNc
+	JMR0B2aU1vesM5D6bQBaVub5fvs+cw9GOhmNMJpQQwA5Jh6mJuTeu+RoqU4nlFwIfoNRWdmfM3xkU
+	eYylM3ugXCPmlOSk3tg3m59TPLjQrgOELCGShkd8HDPj1XAU6SFpjU/IViwPPGs+Fhfgx8oCSdelD
+	j9zlhUnA==;
+Received: from sslproxy01.your-server.de ([78.46.139.224])
+	by mail.www403.your-server.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+	(Exim 4.96.2)
+	(envelope-from <linux-kernel@stefan-reisinger.at>)
+	id 1wyplI-000Ji8-1u;
+	Tue, 25 Aug 2026 13:56:16 +0200
+Received: from localhost ([127.0.0.1])
+	by sslproxy01.your-server.de with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+	(Exim 4.96)
+	(envelope-from <linux-kernel@stefan-reisinger.at>)
+	id 1wyplI-000Fes-18;
+	Tue, 25 Aug 2026 13:56:16 +0200
+From: Stefan Reisinger <linux-kernel@stefan-reisinger.at>
+To: linux-acpi@vger.kernel.org
+Cc: rafael@kernel.org, lenb@kernel.org
+Subject:
+ ACPI: battery: _BIX data (last full charge capacity) stays stale forever on
+ firmware that never sends Notify 0x81
+Date: Tue, 25 Aug 2026 13:56:09 +0200
+Message-ID: <m3scjOJOQ56oIpfVW2acEg@stefan-reisinger.at>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJZ5v0ieb2FcANOt0MRMsTrwtbLiUF48W_c=3z3OpNH92d=7vg@mail.gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
+X-Virus-Scanned: Clear (ClamAV 1.4.3/28103/Tue Aug 25 08:27:08 2026)
 
-Hi Rafael,
+Hi,
 
-On Tue, Aug 25, 2026 at 01:51:18PM +0200, Rafael J. Wysocki (Intel) wrote:
-> On Mon, Aug 24, 2026 at 11:13 PM Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> >
-> > Use DEFINE_FREE() to allow ACPI objects to be released automatically.
-> 
-> But at least some of them are allocated by ACPICA functions like
-> acpi_evaluate_object() and so they have no proper constructors.
+on machines whose EC never issues Notify 0x81 (Battery Information Changed), 
+the values the ACPI battery driver exposes from _BIX -- most importantly last 
+full charge capacity (energy_full/charge_full) and cycle count -- remain stale 
+indefinitely. On systems that run continuously and are never suspended or 
+rebooted (for example a laptop repurposed as a small always-on server), the 
+reported battery health never updates, potentially for years.
 
-You could still assign the return buffer to a local variable. It's not
-ideal API-wise though.
+Observed on: Lenovo ThinkPad T460 (20FMS1VA09), BIOS R06ET71W (1.45), EC 
+firmware 1.12, kernel 7.1.9-arch1-2 (Arch Linux). BIOS 1.45 is the current (and 
+presumably final) release for this model, so this is reproduced against the 
+latest available firmware. I can reproduce and test patches on this hardware.
 
-I'm not quite sure what was the point you wanted to make but I reckon this
-wasn't an ack. :-)
+Observation
 
--- 
-Regards,
+The battery's fuel gauge (SANYO pack, SBS over EC) commits a new 
+FullChargeCapacity after an undisturbed full-charge termination. Directly 
+observable: after a full charge, energy_now settled at 17750000 uWh while 
+sysfs energy_full still reported 17830000 uWh (the pre-learning value). The 
+new FCC of 17750000 only became visible after a reboot. Replugging AC does not 
+help (EC sends Notify 0x80 only). The threshold-based charge stop confirms the 
+gauge itself uses the new value immediately, so the stale data is purely on 
+the reporting path.
 
-Sakari Ailus
+The impact is not limited to a stale health figure. The driver derives 
+POWER_SUPPLY_STATUS by comparing fresh _BST data against cached _BIX data: 
+acpi_battery_is_full() tests full_charge_capacity == capacity_now, i.e. it 
+compares values sampled at two different points in time. With a stale cache the 
+comparison can never succeed, so the driver reports "Not charging" indefinitely 
+for a battery that is physically full -- while the firmware-side data is 
+perfectly self-consistent (a fresh _BIX evaluation yields energy_full == 
+energy_now with rate 0). I could observe this directly: with identical 
+physical state, sysfs reported "Not charging" (energy_now 17750000 vs cached 
+energy_full 17830000) before a reboot and "Full" (17750000 == 17750000) after 
+it. Userspace should be able to treat POWER_SUPPLY_STATUS as authoritative; 
+anything that does and waits for "Full" (charging indicators, calibration 
+tooling) never completes on such systems.
+
+Firmware analysis (DSDT of the T460)
+BAT0 (internal): a query method containing Notify 0x81 exists (Method _Q4A: 
+CLPM() + Notify(BAT0, 0x81)), but the EC never raises this query when the 
+gauge commits a new FCC. Manually evaluating _Q4A (e.g. via acpi_call) 
+triggers the expected refresh, confirming the kernel side works when notified.
+BAT1 (removable): the DSDT contains no Notify(BAT1, 0x81) at all; the only 
+notifications for BAT1 are 0x80 (status) in the status/hotplug queries. 
+Firmware relies on physical reinsertion for info refresh.
+
+Both contradict the platform requirements Microsoft documents for battery 
+firmware ("the platform firmware must generate ... a Notify(0x81) ... whenever 
+any of the battery state data in _BIX changes. This includes last full charge 
+capacity, design capacity, and cycle count.") [1].
+
+I have verified this on one platform only. I suspect it is not unique to it -- 
+under Windows the frequent suspend/resume cycles of modern usage would mask 
+such a firmware omission entirely, and Linux likewise refreshes on resume 
+(PM_POST_SUSPEND in battery_notify()), so it would only ever surface on 
+machines that never suspend. But I want to be explicit that the cross-vendor 
+part is a suspicion, not something I have data for. For what it is worth, user 
+reports of the same symptom and folklore workaround exist for other ThinkPad 
+models -- reported capacity exceeding 100% after a recalibration (remaining 
+energy running past the stale energy_full), fixed by a reboot or by physically 
+reinserting the battery: https://www.reddit.com/r/thinkpad/comments/tqc4cw/
+tlp_recalibration_110_charge/
+
+Current kernel behavior
+
+drivers/acpi/battery.c evaluates _BIX only at probe, on Notify 0x81 
+(acpi_battery_refresh()), and after suspend/hibernate (PM_POST_SUSPEND handler 
+/ acpi_battery_resume()). There is no other path that ever re-reads _BIX. That 
+is spec-conformant, but combined with the firmware behavior above it produces 
+permanently stale health data.
+
+Possible directions
+
+I would be happy to work on a patch, but since I have not worked on the ACPI 
+subsystem before, I cannot judge the trade-offs well and would appreciate a 
+pointer on which direction (if any) would be acceptable before writing code:
+
+(a) Re-read battery info on charge-state transitions that plausibly coincide 
+with a gauge commit: "charging" -> "neither charging nor discharging while on 
+AC" (charge completed -- the moment fuel gauges typically commit a newly 
+learned FCC, and the moment [1] recommends firmware to update it), and possibly 
+also "discharging" -> "charging"/"not charging" (the empty point, where gauges 
+resynchronize as well). Would need a rate limit (e.g. once per 60 s at most), 
+since ECs oscillate between charging and not-charging near the stop threshold 
+(top-off cycles). I am aware of the recent work on merging consecutive battery 
+notifications to reduce pressure on the ACPI methods and the EC (acpi_notif_fifo 
+/ NOTIF_MERGING_MS) -- though that effort targeted call rates of several per 
+second, while transition-triggered _BIX reads would happen at most every few 
+minutes, several orders of magnitude below that, so I would not expect it to 
+add meaningful load back.
+
+(b) A maximum cache age for the _BIX data, checked lazily: when a _BST update 
+runs anyway (i.e. something is reading the sysfs values) and the cached 
+battery info is older than some limit, re-read it along the way. No timers, no 
+wakeups, zero cost on an idle system; additionally covers commits that happen 
+without any observable charge-state transition. Downside: up to the cache age 
+of latency instead of seconds. I have no good intuition for the limit -- tens 
+of minutes? hours? -- you probably have a much better sense of how often well- 
+behaved firmware refreshes this data, so I would defer to your judgment there.
+
+(c) A DMI-gated quirk (bat_dmi_table, as done for the notification-delay quirk) 
+limiting either behavior to known affected machines.
+
+(d) An explicit userspace-triggered refresh (similar in spirit to the SCSI/PCI 
+rescan attributes), leaving the default behavior untouched.
+
+My current workaround is invoking the DSDT's EC query method that contains the 
+Notify (via acpi_call), which works but is obviously not a general solution.
+
+The driver already carries several quirks compensating for non-conformant 
+battery firmware (percentage capacity, ThinkPad mAh units, degraded full 
+charge, notification delay), so I hope this fits the established pattern. If 
+this has been discussed before, pointers welcome -- I did not find prior 
+threads.
+
+[1] https://learn.microsoft.com/en-us/windows-hardware/design/component-guidelines/acpi-battery-and-power-subsystem-firmware-implementation
+
+This is my first report to this list and my first contact with kernel 
+development -- apologies in advance if I got parts of the process wrong; happy 
+to redo this via bugzilla or in any other form if preferred.
+
+Thanks, Stefan
+
+
