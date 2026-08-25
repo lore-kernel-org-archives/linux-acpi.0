@@ -1,228 +1,201 @@
-Received: from mail-oi1-f169.google.com (mail-oi1-f169.google.com [209.85.167.169])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from DM1PR04CU001.outbound.protection.outlook.com (mail-centralusazon11010009.outbound.protection.outlook.com [52.101.61.9])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63C6637757D
-	for <linux-acpi@vger.kernel.org>; Tue, 25 Aug 2026 21:05:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 378B63E49CD;
+	Tue, 25 Aug 2026 21:20:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.61.9
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787691912; cv=pass; b=Fd1Y0MHcHRFDN4DuM3aLiPK7+WOzrY5rE0wqVwvWUX8b56krPSNEAS+E9r1ndjY1MNsl9HgNUHzzSBVlAu3XNDuwPdZxsPOpONS7iyrLXgksCjwt/eZBuj1ATgFjGswAuHF9yLLtj8kb0XwhwHtgo2rqpNJaPxbOk5Y6xFPqdcw=
+	t=1787692836; cv=fail; b=iYS6n75++VYhMeQLsPvnBhv5ig/N1/x+/5DX7qLCprLDd1yycQpue6iYIExaLDSsUQ+3UOmpq2qHVccoqhpjS8O/vZoAZyXa7PczAiVMGW6POX0+I2ui9rAXH7qSoFKGjHPz3BKpUgJwx3T0QFj0qfG3ImJB0IYzvMaFAjSFp+4=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787691912; c=relaxed/simple;
-	bh=tIHycO/GI6MLlaki9fgjnmTXBN6r13RpIqRLp+IZuVE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=aIiEBI3GKnASC9Jv3l3RNHmbwFs0UjFQtcl5ETgfuTy2Lc3LPRn4MTxIl4tzG7lR1fuka5tOGPEeG57AGnJUhdLz4gLTyQ/4elImR7e3joOBgiLyxdAViqIHa10XWpzLQMcPxbn6V2J6fhRQOz6sZWhm9V4K5i1bwMqpLZqcpxk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KwnvLDqs; arc=pass smtp.client-ip=209.85.167.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1787692836; c=relaxed/simple;
+	bh=85K0ZbzkrcN33hQ9ivp4xHYtuVl3iQWoNSi30CK2cfA=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=JE+3tMvN7YFU6El2cIBQgY+CRNuhJOlQby8g9EfZSflLWFq+PrDl9IsIDzEvGXtSBgRFYM/Jn9Ai8Hk/y8TavKE5Wph9E2+P1qEqiLdLTxq38QK6Y/RkIplJZglOaBCPolm8ku7sPadBT191yvUoc5s/ughnjd32jByfN7YGoYA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=FC7je+ok; arc=fail smtp.client-ip=52.101.61.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KwnvLDqs"
-Received: by mail-oi1-f169.google.com with SMTP id 5614622812f47-4ab47c40e7eso290560b6e.3
-        for <linux-acpi@vger.kernel.org>; Tue, 25 Aug 2026 14:05:11 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1787691910; cv=none;
-        d=google.com; s=arc-20260327;
-        b=KcdB/Kt5zmynJ5hWRd0OK34FAU0+SMccSIZviUB7/buUDiYS649kuxi0M4ALVm5uW+
-         OXcSTcJY54yfYDjfJzcSweeGo9bCIiOaohf/j3+xWZtOC+THDTpElFYZdiXHuTE/r103
-         deiFhCT8+kTTKmN2mOcQPBEXpI7FhuHNG3IsO2h9pmshjzBzZbsPizgbYSWr8k7TeTYt
-         CtJm4VUca9+rtX/VvCB8dk6c3VtjclLeAt11j+YOLA+WB3lRbz3N7yN8TBwyh6Ba/GEz
-         6tN/h+gxrlFmFDxSi4EeALYd1HK5UlcQst4OvF+Q82A4DQgztpkTtb/EcovhLmws/ZC7
-         L5Tw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=DrFC6uOzO3NeHI9ggPwFw1lwVA1Ud0+9aZIxH+l/DVU=;
-        fh=HCey6QICKVfmaJMH6pPoRf6X9plhcFbWntWXB3uKER8=;
-        b=ODdXeftFRgqQN1lLPLLSIiIQw8fM708j+BxBzBQgqsMG7TrdpxzN5GnjlXVe3VPvc4
-         E2hhHeUFrS54iDWr6RVBU6XvhEQ9+qEcwx+pbsi5n0GM5qxvPPQe5kJsgyZ2o1HpUERh
-         o3T/GESQ3p0d7lyiDwLTlnY8E0rp8QSjZ7I44WxtjsHCrnsolKnbSMqc2+UjTXxARF6Z
-         p6ENeGdlYfyNhSoZYeLAVVxhdmWE7154WquasgIXGOQDbktCiTLeN25ZvQVF8anGjuXC
-         fDn5/eiKYJhs/CupGihBXr8FW6MhfOUt/YDQH1MNeIEh/gjyj6huzeUNian4+3ZQ18/H
-         GC5Q==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787691910; x=1788296710; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=DrFC6uOzO3NeHI9ggPwFw1lwVA1Ud0+9aZIxH+l/DVU=;
-        b=KwnvLDqsomebZYgAc81dx61hOoDQW9QOZFTUvArz5CI4po+NbhObPljHjlftDV+cn3
-         E2sZOhp0NTEKWdXKzaAt3uRd+1RB8V4M9uIJvODOJxY68ku9CVCWTXzVh2d/SC1mWfZz
-         jqqqva1qeDuGCPCixRGAXmQrytP4G3NtSRsmXfSFKcQVdyn+GHWpTMvs2HjIPwy84Wjb
-         7Mdj6bWgjoe5qIdbIcA8vQpoqAzcRWLpKqZNZHXA9c0W304O8vlvOPq5/lsbS7sGWGUc
-         duFzw9jvj/ImOrRln95DCrnY0pUFek+PmMXWD7XCpwtazrVlJnVRYWlvh4s/Ps1NaIry
-         pCSw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787691910; x=1788296710;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=DrFC6uOzO3NeHI9ggPwFw1lwVA1Ud0+9aZIxH+l/DVU=;
-        b=annlSpJO2HTDDGy4bwwQ//6PSZ08z9oXB9nLVUqtfn3WnHvW+N2pqbWPPq9p9FbcEy
-         iiCxQyPE+2LySPUCRt5moaiaMZZn/druEaQ8pqUFIxI1zenELGA69SXePjdNGmDst2vO
-         Xm8u0cjj0nAUysr6Ja2Z+Zk7uncdnFkTuMAdM4iJ8HZpSnH7rdKCv6ig/NMG7PTDOp+Y
-         edywz5P5auzynTlbVSx3MyFvW0xV49xrJ10zui54CoocNyfTchfo7q4pdE+7p/9EmeaF
-         ZEjw4mVlXM1PRuaIccDQPT4ntgGXOlwsUWWeHdyIUKdSG8cA5JSEVJMYJ95xHopc1GqU
-         J0VA==
-X-Forwarded-Encrypted: i=1; AHgh+RoQnWCvEH/js0HhYWkCEuzLj2NlEfKhAjxs3wnhWbDuCYVrW7Ttwr7ffIawk1rrzkBchNS1nVZ3MpjF@vger.kernel.org
-X-Gm-Message-State: AFuF++nX06B53N3Y782K/ZS7hzCU8AoywC6fUU70NGC7q/jJWuTMA/1p
-	gO7sKiCyhaMRqu55m6fR5sxbrXYPQvYgLTyyDWh6GQHnhSGA2jo4olx4RohxWTmyLGg6NmfABGX
-	/lQvGNp3hG4QWQ8lcUr4OYTBnk3irHJI=
-X-Gm-Gg: AR+sD13zYwdKsw4tHCAHn5+laFu+O2FxizZz8X8L8R9SN1AzuvBxYJmHGi44eYk1Smq
-	g+S9HjZf4OYihmAXSubv05gEYVE67sIJbU5HufkzFH4+bt0zAeuvap/LO3oldfZaoi2J3gQ2Pgj
-	4nONgZiGa2qBRLaDRjOVTEPkbjiIMppcShgqm43bI0wAyKy9fOU0pNtrDwvziHzAMiVm/+wTDPx
-	d1+grtr4ZnwDG9BuBeleSUFdH+kBY7acykvS2Hz1a8UGu8pjDw1cyd1P00ftvvAd/shrJYCEgJa
-	G6vL2niNxxG29CZMPb2CH9KXHaMvuQvvWULgb4BIHF+DmBj9erBWHSQwwSIYRpxEfAFoKS5rkDs
-	=
-X-Received: by 2002:a05:6808:1b11:b0:497:e7e2:756e with SMTP id
- 5614622812f47-4b366aa6fc7mr2621143b6e.13.1787691910243; Tue, 25 Aug 2026
- 14:05:10 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="FC7je+ok"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=H25Xj3qCQJCWUX/eg3hnLc9QI4sF9qHEUd1jLOon8/NaWjuCGLM4iEo9BUujE+zdkPBH9QzkQ4mksu9tubSor0M+AxzDgBfVSfftsWl1qh43OouL6+S22LWMxgSek5qQP1WfNid3CtL47/TcXT80GAHV+5bKSTSuj/n8SgiJrCiOfC9qyPKUX0x17JOIMKekW7cv3A3jd0eEUnvtSM17rtmWYzCD/MfsVRqgTisflKkLY3HvIt0+I3njAXb4S1zb13PDv6bPxbhmG96cBHioE9NFJp/Af516+GxVckuanrn1B6jUzgzBCHCqolGTLyEsqK8RdRtnsgxfohYRl+I/FQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=hg/YK0i9DDalpgmMhPEaF7gLvEIvyzANRvquthFDkvA=;
+ b=EE2SniUDquxPKHid3pOWsZGaEIGHE6qKmqsLigx0fsh7SZ4m7zXvjtCJbWPYJO+wX63mZo8wsfcoW4oA00zS1HLvtuJo5x0d6cZ6wB8/Tc4X8cyI4gjfPlm6z+HZX6dwLC5zW2OZ4hqnrOCdo9kqSqk3GP/vRtlZYaNjhiN3Ct8VBDnrxwNLopo0F/SYyr68heyCj3d754SOWpAoZvbfU0OdiUrtz+4HGiSB5GpZtmwYv4OwM6ePkFy0+1l9en8db7LLbpiPf1l6dpdIqjPaCwK/vvkkFnLGdEpspz6NkNPne3ZjdmnlAqFTTl/zBaoLqiQ4+dUS45f5v6c7/FfW2A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=hg/YK0i9DDalpgmMhPEaF7gLvEIvyzANRvquthFDkvA=;
+ b=FC7je+ok7y7LAj7deX4JRz/N96JWgs1cNsRP0K4a6YR8K7pGe3Y2nZj2WuWUzb9xoLYplInRz5KXRtczpWod6zhiYMxHV5vsmUbRyr7lS4BwQBsonytiyowQT4n5ofbvR5wEZo4syPkoVB++tzuJLnDuLqsh1p5mWZc+yr5c7ccQCF1IcocPnmMGanWYVkeEeKOghUQ7DyyDlfv5+kkvORwcMm1Qmoe34CfhaRMwTIK/RY8L2XFeI0A3nq92TfEEbBRGixA137y5HsFdDeUGyWEtiVxvc55SpM/C0/Fp+jKXZEzpThjPOKAHZG0wFMXpjE8eAPnkE9zDoFpXoQtDPg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from DM4PR12MB5246.namprd12.prod.outlook.com (2603:10b6:5:399::17)
+ by SJ1PR12MB6121.namprd12.prod.outlook.com (2603:10b6:a03:45c::6) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.6; Tue, 25 Aug
+ 2026 21:20:26 +0000
+Received: from DM4PR12MB5246.namprd12.prod.outlook.com
+ ([fe80::9c9e:30a1:5456:c485]) by DM4PR12MB5246.namprd12.prod.outlook.com
+ ([fe80::9c9e:30a1:5456:c485%6]) with mapi id 15.21.0360.005; Tue, 25 Aug 2026
+ 21:20:26 +0000
+Message-ID: <46d81167-1548-4b6a-b6cc-38542b2d093e@nvidia.com>
+Date: Wed, 26 Aug 2026 02:50:16 +0530
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v4 0/4] cpufreq: CPPC: Preserve OSPM-set registers across
+ hotplug and unload
+To: rafael@kernel.org, viresh.kumar@linaro.org, pierre.gondois@arm.com,
+ christian.loehle@arm.com, ionela.voinescu@arm.com, zhenglifeng1@huawei.com,
+ zhanjie9@hisilicon.com, lenb@kernel.org, saket.dumbre@intel.com,
+ ray.huang@amd.com, mario.limonciello@amd.com, perry.yuan@amd.com,
+ kprateek.nayak@amd.com, linux-kernel@vger.kernel.org,
+ linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
+ acpica-devel@lists.linux.dev, linux-tegra@vger.kernel.org
+Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
+ ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
+References: <20260806200857.601152-1-sumitg@nvidia.com>
+Content-Language: en-US
+From: Sumit Gupta <sumitg@nvidia.com>
+In-Reply-To: <20260806200857.601152-1-sumitg@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: PN3PR01CA0124.INDPRD01.PROD.OUTLOOK.COM
+ (2603:1096:c01:96::12) To DM4PR12MB5246.namprd12.prod.outlook.com
+ (2603:10b6:5:399::17)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260825203553.3725132-1-sakari.ailus@linux.intel.com> <20260825203553.3725132-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20260825203553.3725132-3-sakari.ailus@linux.intel.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Tue, 25 Aug 2026 23:04:51 +0200
-X-Gm-Features: AcwNN1VGU9Qwk5_fHeJYNkRopBcA7EiO0dUKi7oyW0GavJGXv0cEQiH0jbLRPpg
-Message-ID: <CAPybu_1J4z2Z0Xv1PyHZa2U+PFsTWPVyifJr2p8DgkQRTJm6YQ@mail.gmail.com>
-Subject: Re: [PATCH v3 2/3] platform/x86: int3472: Fix uninitialised variable warning
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, 
-	Daniel Scally <dan.scally@ideasonboard.com>, Hans de Goede <hansg@kernel.org>, 
-	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
-	platform-driver-x86@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-nits:
-
-It would be nice to have the error message that it is fixed in the
-commit message (also for 1/3)
-
-Would you consider adding a Fixes? This patch fixes a compilation
-error (with the right kernel config)
-
-On Tue, Aug 25, 2026 at 10:36=E2=80=AFPM Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
->
-> Fix a smatch warning about uninitialised err_msg variable, by printing th=
-e
-> error where it is handled.
->
-Reviewed-by: Ricardo Ribalda <ribalda@chromium.org>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/platform/x86/intel/int3472/discrete.c | 25 +++++++++++--------
->  1 file changed, 14 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/platform/x86/intel/int3472/discrete.c b/drivers/plat=
-form/x86/intel/int3472/discrete.c
-> index 6c729fcfce5d..9cd4f78875ab 100644
-> --- a/drivers/platform/x86/intel/int3472/discrete.c
-> +++ b/drivers/platform/x86/intel/int3472/discrete.c
-> @@ -329,7 +329,6 @@ static int skl_int3472_handle_gpio_resources(struct a=
-cpi_resource *ares,
->         unsigned long gpio_flags;
->         union acpi_object *obj;
->         struct gpio_desc *gpio;
-> -       const char *err_msg;
->         const char *con_id;
->         int ret;
->
-> @@ -375,7 +374,8 @@ static int skl_int3472_handle_gpio_resources(struct a=
-cpi_resource *ares,
->         case INT3472_GPIO_TYPE_HOTPLUG_DETECT:
->                 ret =3D skl_int3472_map_gpio_to_sensor(int3472, agpio, co=
-n_id, gpio_flags);
->                 if (ret)
-> -                       err_msg =3D "Failed to map GPIO pin to sensor\n";
-> +                       dev_err_probe(int3472->dev, ret,
-> +                                     "Failed to map GPIO pin to sensor\n=
-");
->
->                 break;
->         case INT3472_GPIO_TYPE_CLK_ENABLE:
-> @@ -387,7 +387,7 @@ static int skl_int3472_handle_gpio_resources(struct a=
-cpi_resource *ares,
->                 gpio =3D skl_int3472_gpiod_get_from_temp_lookup(int3472, =
-agpio, con_id, gpio_flags);
->                 if (IS_ERR(gpio)) {
->                         ret =3D PTR_ERR(gpio);
-> -                       err_msg =3D "Failed to get GPIO\n";
-> +                       dev_err_probe(int3472->dev, ret, "Failed to get G=
-PIO\n");
->                         break;
->                 }
->
-> @@ -395,14 +395,16 @@ static int skl_int3472_handle_gpio_resources(struct=
- acpi_resource *ares,
->                 case INT3472_GPIO_TYPE_CLK_ENABLE:
->                         ret =3D skl_int3472_register_gpio_clock(int3472, =
-gpio);
->                         if (ret)
-> -                               err_msg =3D "Failed to register clock\n";
-> +                               dev_err_probe(int3472->dev, ret,
-> +                                             "Failed to register clock\n=
-");
->
->                         break;
->                 case INT3472_GPIO_TYPE_PRIVACY_LED:
->                 case INT3472_GPIO_TYPE_STROBE:
->                         ret =3D skl_int3472_register_led(int3472, gpio, c=
-on_id);
->                         if (ret)
-> -                               err_msg =3D "Failed to register LED\n";
-> +                               dev_err_probe(int3472->dev, ret,
-> +                                             "Failed to register LED\n")=
-;
->
->                         break;
->                 case INT3472_GPIO_TYPE_POWER_ENABLE:
-> @@ -413,7 +415,8 @@ static int skl_int3472_handle_gpio_resources(struct a=
-cpi_resource *ares,
->                         ret =3D skl_int3472_register_regulator(int3472, g=
-pio, enable_time_us,
->                                                              con_id, seco=
-nd_sensor);
->                         if (ret)
-> -                               err_msg =3D "Failed to register regulator=
-\n";
-> +                               dev_err_probe(int3472->dev, ret,
-> +                                             "Failed to register regulat=
-or\n");
->
->                         break;
->                 default: /* Never reached */
-> @@ -436,11 +439,11 @@ static int skl_int3472_handle_gpio_resources(struct=
- acpi_resource *ares,
->         int3472->ngpios++;
->         ACPI_FREE(obj);
->
-> -       if (ret < 0)
-> -               return dev_err_probe(int3472->dev, ret, err_msg);
-> -
-> -       /* Tell acpi_dev_get_resources() to not make a copy of the resour=
-ce */
-> -       return 1;
-> +       /*
-> +        * Either return an error or tell acpi_dev_get_resources() to not=
- make a
-> +        * copy of the resource.
-> +        */
-> +       return ret < 0 ? ret : 1;
->  }
->
->  int int3472_discrete_parse_crs(struct int3472_discrete_device *int3472)
-> --
-> 2.47.3
->
->
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DM4PR12MB5246:EE_|SJ1PR12MB6121:EE_
+X-MS-Office365-Filtering-Correlation-Id: 9f697843-5d91-472c-6c4a-08df02eeae48
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|7416014|376014|366016|1800799024|23010399003|921020|6133799003|10067099003|11063799006|5023799004|56012099006|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	5w9CwAVF47MSXKRQ9l1P7AnqZuZquAgDMAgnYGEo40gC7yl1rzOypfY02k4jkwBY4WO5VfcNQY7jIyNkg76/52jyRpBTMhB98uUzqv8xSEJWm8cYLb8RdXwUl1mz5yAtVVGP9Gau90zbB9mzm6Jz7CEpXmrxzG0RBaXPsJ5X8Ew1tWpt/lwieBvVpGr/OZuJS0qqRjRNOyysEG8rfcCjIF/CBhGx0XqFv2rC8TWRyoFaysoVmx3N93BadbIqFhgLT8rLePhZqPy+Cu++EXI+ZDOIaensRXGmfy37Rtg5kw8bOYMgX9V7G8uMZ1cm3MY1fzIkLE/mhPeDQg8CcGBJsQZA5aezVtCaqyR+bBCNnnIDlxwCOByX5uRAZN1D+fPysZEEG+waQWQolInBHUJppNb4jOdUyKGLEG3C8WKndh10isDNiJFO4zFNPXi5MFHAFwcH3E8FAqsxZxZmQzRcyn4q/G7FZw6AHtGV/7voqS/+RumLs1jXo8EKA0ZiBVjO0vUGOHYywV7tPy5TZ2IKTgSPcPaQfpuOQmJrzifgUL4gYfL9wrdjqZL/pfhc9zS0tiAQC6ib/Or+eDV2l+a7PY1cHvWqvhBvyTotoiDiHm2nkWjwPnKpFLmFRbvIrnNuIPqJel0fN3LgpQwgLTiwUPeu4w1OVblXzNAqpu1qwOwxXxsDNepzaOIvIR838h7yY2QbVtP1pAMXxCjg8lq6KQ==
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR12MB5246.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(366016)(1800799024)(23010399003)(921020)(6133799003)(10067099003)(11063799006)(5023799004)(56012099006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?RFNlWHpwc3BQMXJyYmk0SlhKaGw4aGdVOFFwc0gwWTd4KzkxOGtwcUh6Z1ZB?=
+ =?utf-8?B?a1pGOVh0aWhLdTZFUzFsWXlCd1hhbGlUczBuMmdJeHRTRGp2dHlHTXFDRmJL?=
+ =?utf-8?B?RFpsd1VwNit6WW9jeUROMkdBdmNhaGR0NWtkVG5YcGhpV05CaXprNTI4RDNM?=
+ =?utf-8?B?MEhmWHRQS3Z2Z3I2bllEbUhrNUdudHVLc3pBWnZ0eG5mdHZKVFNCZXp4VWM1?=
+ =?utf-8?B?STBteTB2eG9qQUY5MDJIenVXMlZnaVlOaElGNUxVSVh0YmdORTNKWlViYWs4?=
+ =?utf-8?B?Y1FXYyszMlBrSHVScFJVMmhpQk8zdUF0ZWhYbUVpZGNkTkdnWWpBSjNlZU1Z?=
+ =?utf-8?B?R0xVYXQ2MFM0WXBzMW5ReS9CTHhyRXZQZTJ4aXhRWis4a090WG92byt4V1cx?=
+ =?utf-8?B?SUtxL3FlZ2lRVFBzR0RvY1JtQ1J0aGN0QUV1YUNkd0ZIcGN6eFk5WkNDdU5s?=
+ =?utf-8?B?VG40VS8wWDUzbG5uOU5iajErRmM0eWpnRDR1MUZ1M2R5c3FvNEp1R0c3c0dX?=
+ =?utf-8?B?N2I2aWM4VS9DU0lIT043WWV4K1dvVGpiSXhwMlZrTXhwWUs1UFlyclQwVXBF?=
+ =?utf-8?B?elNJUkRIcXJ1RHRyYTh1bTBITU5lVldiNmhxeEE2Y2pVUUNJZXlrT1ltS2JT?=
+ =?utf-8?B?bFRVMXFmamhFUlc3RzNiWjhiVW8yc2Jnajl6bjJ1eklJZ1V1N0FVSXo2VS9M?=
+ =?utf-8?B?byt4WWYwOFFOUHhEMWxveVduVXcwMkJ2RG1GWmdZVkFYYUYrSmgxSndJWFVB?=
+ =?utf-8?B?K1VOT21CblJEcE9sSG1Vd0tjRGdOcklwd3BQWU5Za3ZvUmVlREU1T3VLaU44?=
+ =?utf-8?B?SzdaVzRaTjdPUk9sUWI0MUc4V2h0QzN2T2FGMHcxVWNQaXVtSVliKzhmRDlm?=
+ =?utf-8?B?cU1kWUhJQmpVQTJwWTEzek5kaVN0Q0Qxa3RTYXlZczJ4OGxzSldkNVB3SmlY?=
+ =?utf-8?B?VlExaVd1REI4c0hnTXYzb043OFgrVkZud0lEMTJUY2ZtbGRHMjNhczFSMEdw?=
+ =?utf-8?B?dDVWVDhFRXhQOHp0YmQwajREODNLZ21rdGpBenhpMU5qYzRrNGxvQ0JaY0dD?=
+ =?utf-8?B?QjhEK1hSVi9ZUnF2QkVkeStIREF0MHh1QnM5cFN3YVg4dGVWcGMzdWc5ZjlG?=
+ =?utf-8?B?NVZnUHNHYWt4c0VEcUE2eHNSMlpmY25LL08xWEdDQjVLdGVnbWJQUWhoRmcz?=
+ =?utf-8?B?bmtlUUJuMHJVRTI5bXEwaDlIc2RoY1lYVEVLSzBTbEF5TEFKeUo3WTBPRDk4?=
+ =?utf-8?B?NHdEQmUvN2VMd3pVT3Rab1ZGUUkrY0JWRlJ2VllxL3FtcXY3VlR5eFRyc2FR?=
+ =?utf-8?B?TklNWFk3bzR6OHlpOU11MmkzY0NpSjlaQWRpb2dka2JuTzJFejN2cjRkR1FW?=
+ =?utf-8?B?QTF4Vk9PRzhiNGc2dHlIaC9kWU53ZlE4amVuakVCMTMyRjA1bGN4STc5T0di?=
+ =?utf-8?B?dUtsMlJrWWdGYTQ2ZkFndVpVVUU0RXZjMzVSa3E2K2FESUFoWGpOaDY1MkNs?=
+ =?utf-8?B?TTBXQUF0Qk1vV2pDVVc2OFFpekhZWFVxamdWWFBGR1hWYVAraEtvVWxzeHhL?=
+ =?utf-8?B?eG5WeEJjYzJEalJWQ0VqVjlBQytqN2NLVDZKNVZTQzdCVGlSbE83NXRISDA1?=
+ =?utf-8?B?ak1lZ1NSMjlJbG95dDZ4OUpTWGxDUkV4Z05qeW1yMGV1TTVNQnJqalU4OXZw?=
+ =?utf-8?B?cWdENk1vU1htSjhCKzNqalYwM1NzaDF0MXZVUkZtd0pGSldTa3BxTW1QZ0hS?=
+ =?utf-8?B?dVNkSytoTW5CYm55SER5Z0YwSXRNQk5HRVVpeG45QzVpcjZWaGdGaHh6Lysv?=
+ =?utf-8?B?OWdSZ0V5N1ZtUXFnTUUveVhFYU16SngwdWhYT1JsMXZ0KzJTREVoVXp4QWNP?=
+ =?utf-8?B?YmJqaStoRjNodVZsYnJPalpZYmxvL29oR3RkTzRocmtHWFVvS09ONGJrZnJG?=
+ =?utf-8?B?WWk1MzZSS1VjNVM1VDRSaFYrcmtFbWhGYklBa2lNc1hzS0tZaCtyTStXY3g5?=
+ =?utf-8?B?a0MyQzUzc3E5Wi9abm41WHVmcjcxTFVKRmx5MjJkdzVoWjFKV0w0YzBRNmdw?=
+ =?utf-8?B?REluUnBncFdXemhYaVBNYkNoeFFoVTJHK1VGUlBDakxRdldlNXgwZVdhSnpw?=
+ =?utf-8?B?SVlCcktxODJGeTNKZDE0cHlVY0p4QS82b2lnR0dLbkJPSlowclhUSUhRSmhE?=
+ =?utf-8?B?enEvQm9DTDRDZGVXeE9HQzJiUXpKOVFEaE0yaHBnV2xpdzBIWHlhcXFMRXpS?=
+ =?utf-8?B?RFdHcklTNW81am1ndWxpdTFjcnQzK3lZWFUxWjAvT3V6RHNPWFA0YVhERHZw?=
+ =?utf-8?Q?+jCqlr05focooq/seL?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 9f697843-5d91-472c-6c4a-08df02eeae48
+X-MS-Exchange-CrossTenant-AuthSource: DM4PR12MB5246.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Aug 2026 21:20:26.2497
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: Htt+9SON9ZPSW2wIZMXNqnWeJSZwSYWcH1bAfti3cMrRSpN0mVIIOOHtoQhEwupUmvImLOl2VrkZBQ1PvFoRSg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ1PR12MB6121
 
 
---=20
-Ricardo Ribalda
+On 07/08/26 01:38, Sumit Gupta wrote:
+> This series keeps the CPPC cpufreq policy alive across CPU hotplug and
+> preserves the OSPM-set CPPC registers (Energy Performance Preference,
+> Autonomous Activity Window, Autonomous Selection - set via sysfs).
+>
+> Without online()/offline() callbacks, the core tears a policy down when
+> its last CPU goes offline and rebuilds it on the way back, re-reading the
+> CPPC capabilities each time. The values written to these registers can
+> be lost:
+>
+>   - Across CPU hotplug or suspend/resume: the platform may reset them
+>     while the CPU is offline.
+>   - On driver unload: the driver-written value is left in the register
+>     instead of returning to its pre-driver state.
+>
+> Handle these with:
+>
+>   - Patch 1: adds online()/offline() callbacks so the core keeps policy
+>     alive across CPU hotplug instead of tearing it down and rebuilding it.
+>   - Patch 2: makes the autonomous selection register helpers take a u64.
+>   - Patch 3: adds a table-driven mechanism that captures each register's
+>     firmware value at init(), restores it from offline(), and reapplies
+>     the OSPM-set value from online().
+>   - Patch 4: extends the same save/restore to system suspend/resume.
+
+Gentle reminder.
+Could this be considered for queuing if nothing further needs addressing.
+
+Thanks,
+Sumit
+
+
+> v3[3] -> v4:
+>   - Patch 1:
+>     - offline() parks the perf request at lowest_perf, as exit() did.
+>     - online() resyncs the frequency invariance counters.
+>     - raise MAX before the perf restore when the saved MIN is above it.
+>   - Patch 3:
+>     - write auto_sel first when enabling it and last when disabling it.
+>     - replace the four save/restore helpers into save_regs() and
+>       apply_saved_regs(), each taking the firmware or requested type.
+>     - keep the per-policy saved values in one struct, and name each
+>       register for the pr_debug diagnostics.
+>   - Patch 4:
+>     - suspend() also restores the firmware values and flags it, so
+>       offline() skips them and resume() only handles still-online policies.
+>
+> Sumit Gupta (4):
+>    cpufreq: CPPC: Keep the policy across CPU hotplug
+>    ACPI: CPPC: Make autonomous selection helpers take a u64
+>    cpufreq: CPPC: Preserve OSPM-set registers across hotplug and unload
+>    cpufreq: CPPC: Preserve OSPM-set registers across suspend/resume
+>
+>   drivers/acpi/cppc_acpi.c       |  20 +-
+>   drivers/cpufreq/amd-pstate.c   |   2 +-
+>   drivers/cpufreq/cppc_cpufreq.c | 369 ++++++++++++++++++++++++++++++++-
+>   include/acpi/cppc_acpi.h       |   8 +-
+>   4 files changed, 376 insertions(+), 23 deletions(-)
+>
+> [1] v1: https://lore.kernel.org/lkml/20260623095403.3407436-1-sumitg@nvidia.com/
+> [2] v2: https://lore.kernel.org/lkml/20260716153820.2007095-1-sumitg@nvidia.com/
+> [3] v3: https://lore.kernel.org/lkml/20260724215937.3368276-1-sumitg@nvidia.com/
+>
