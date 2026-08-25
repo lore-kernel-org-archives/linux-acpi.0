@@ -1,201 +1,251 @@
-Received: from DM1PR04CU001.outbound.protection.outlook.com (mail-centralusazon11010009.outbound.protection.outlook.com [52.101.61.9])
+Received: from mout02.posteo.de (mout02.posteo.de [185.67.36.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 378B63E49CD;
-	Tue, 25 Aug 2026 21:20:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.61.9
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787692836; cv=fail; b=iYS6n75++VYhMeQLsPvnBhv5ig/N1/x+/5DX7qLCprLDd1yycQpue6iYIExaLDSsUQ+3UOmpq2qHVccoqhpjS8O/vZoAZyXa7PczAiVMGW6POX0+I2ui9rAXH7qSoFKGjHPz3BKpUgJwx3T0QFj0qfG3ImJB0IYzvMaFAjSFp+4=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787692836; c=relaxed/simple;
-	bh=85K0ZbzkrcN33hQ9ivp4xHYtuVl3iQWoNSi30CK2cfA=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=JE+3tMvN7YFU6El2cIBQgY+CRNuhJOlQby8g9EfZSflLWFq+PrDl9IsIDzEvGXtSBgRFYM/Jn9Ai8Hk/y8TavKE5Wph9E2+P1qEqiLdLTxq38QK6Y/RkIplJZglOaBCPolm8ku7sPadBT191yvUoc5s/ughnjd32jByfN7YGoYA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=FC7je+ok; arc=fail smtp.client-ip=52.101.61.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE9B848CD71
+	for <linux-acpi@vger.kernel.org>; Tue, 25 Aug 2026 23:11:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.66
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1787699465; cv=none; b=fN0ExbT43fRFnwltXcWlZIL7SxJNAKH2vyLZDM2Bx3sbnRXZVUtHjBQXAWYwftyuxAu+0vOXZeeARviApdv/OuqBuCgOeLsEr/FGm7noQxcHgqJCsY1dLgGXkLKpBE9a3zI8oz5yf1v8MBrK84nNDGyMHkAhNfq8CrSLsvfXU4c=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1787699465; c=relaxed/simple;
+	bh=/mG6PyefbWFiabSftZ542/gjN6J7mAIDhUmg6WE7Sys=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=WxkZlRiQ0lQxvg/HPDI2bN3Qy0pqQOM2iHS5Smi4/sLuMVAmqz8RhUh3cVMt/1U98vrbVf6o56PruypgzJuhUvplHbhW9MPjU6e/yaU/sibKWUUlxz9mKN3XHpTCorHTbnrKjuLLR0uKVBJaabmoMeknHLksTnP31XstRXrGNvA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=fJt5Q3dI; arc=none smtp.client-ip=185.67.36.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="FC7je+ok"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=H25Xj3qCQJCWUX/eg3hnLc9QI4sF9qHEUd1jLOon8/NaWjuCGLM4iEo9BUujE+zdkPBH9QzkQ4mksu9tubSor0M+AxzDgBfVSfftsWl1qh43OouL6+S22LWMxgSek5qQP1WfNid3CtL47/TcXT80GAHV+5bKSTSuj/n8SgiJrCiOfC9qyPKUX0x17JOIMKekW7cv3A3jd0eEUnvtSM17rtmWYzCD/MfsVRqgTisflKkLY3HvIt0+I3njAXb4S1zb13PDv6bPxbhmG96cBHioE9NFJp/Af516+GxVckuanrn1B6jUzgzBCHCqolGTLyEsqK8RdRtnsgxfohYRl+I/FQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=hg/YK0i9DDalpgmMhPEaF7gLvEIvyzANRvquthFDkvA=;
- b=EE2SniUDquxPKHid3pOWsZGaEIGHE6qKmqsLigx0fsh7SZ4m7zXvjtCJbWPYJO+wX63mZo8wsfcoW4oA00zS1HLvtuJo5x0d6cZ6wB8/Tc4X8cyI4gjfPlm6z+HZX6dwLC5zW2OZ4hqnrOCdo9kqSqk3GP/vRtlZYaNjhiN3Ct8VBDnrxwNLopo0F/SYyr68heyCj3d754SOWpAoZvbfU0OdiUrtz+4HGiSB5GpZtmwYv4OwM6ePkFy0+1l9en8db7LLbpiPf1l6dpdIqjPaCwK/vvkkFnLGdEpspz6NkNPne3ZjdmnlAqFTTl/zBaoLqiQ4+dUS45f5v6c7/FfW2A==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=hg/YK0i9DDalpgmMhPEaF7gLvEIvyzANRvquthFDkvA=;
- b=FC7je+ok7y7LAj7deX4JRz/N96JWgs1cNsRP0K4a6YR8K7pGe3Y2nZj2WuWUzb9xoLYplInRz5KXRtczpWod6zhiYMxHV5vsmUbRyr7lS4BwQBsonytiyowQT4n5ofbvR5wEZo4syPkoVB++tzuJLnDuLqsh1p5mWZc+yr5c7ccQCF1IcocPnmMGanWYVkeEeKOghUQ7DyyDlfv5+kkvORwcMm1Qmoe34CfhaRMwTIK/RY8L2XFeI0A3nq92TfEEbBRGixA137y5HsFdDeUGyWEtiVxvc55SpM/C0/Fp+jKXZEzpThjPOKAHZG0wFMXpjE8eAPnkE9zDoFpXoQtDPg==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DM4PR12MB5246.namprd12.prod.outlook.com (2603:10b6:5:399::17)
- by SJ1PR12MB6121.namprd12.prod.outlook.com (2603:10b6:a03:45c::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.6; Tue, 25 Aug
- 2026 21:20:26 +0000
-Received: from DM4PR12MB5246.namprd12.prod.outlook.com
- ([fe80::9c9e:30a1:5456:c485]) by DM4PR12MB5246.namprd12.prod.outlook.com
- ([fe80::9c9e:30a1:5456:c485%6]) with mapi id 15.21.0360.005; Tue, 25 Aug 2026
- 21:20:26 +0000
-Message-ID: <46d81167-1548-4b6a-b6cc-38542b2d093e@nvidia.com>
-Date: Wed, 26 Aug 2026 02:50:16 +0530
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 0/4] cpufreq: CPPC: Preserve OSPM-set registers across
- hotplug and unload
-To: rafael@kernel.org, viresh.kumar@linaro.org, pierre.gondois@arm.com,
- christian.loehle@arm.com, ionela.voinescu@arm.com, zhenglifeng1@huawei.com,
- zhanjie9@hisilicon.com, lenb@kernel.org, saket.dumbre@intel.com,
- ray.huang@amd.com, mario.limonciello@amd.com, perry.yuan@amd.com,
- kprateek.nayak@amd.com, linux-kernel@vger.kernel.org,
- linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev, linux-tegra@vger.kernel.org
-Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
- ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
-References: <20260806200857.601152-1-sumitg@nvidia.com>
-Content-Language: en-US
-From: Sumit Gupta <sumitg@nvidia.com>
-In-Reply-To: <20260806200857.601152-1-sumitg@nvidia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: PN3PR01CA0124.INDPRD01.PROD.OUTLOOK.COM
- (2603:1096:c01:96::12) To DM4PR12MB5246.namprd12.prod.outlook.com
- (2603:10b6:5:399::17)
+	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="fJt5Q3dI"
+Received: from submission (posteo.de [185.67.36.169]) 
+	by mout02.posteo.de (Postfix) with ESMTPS id 66365240103
+	for <linux-acpi@vger.kernel.org>; Wed, 26 Aug 2026 01:10:59 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de;
+	s=1984.8680eb; t=1787699459;
+	bh=tzlvJ6oEobG27IKTMAet51gtj7PMHSLpqxA+1yDIakw=;
+	h=From:Date:Subject:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:Message-Id:To:Cc:Autocrypt:OpenPGP:From;
+	b=fJt5Q3dIMiKQFgoS/unZe6lbYdl4WxZYxGkDyc0n3fnFegyuv4X+/b2NqyZX12AYe
+	 xzHsnItt1DT1DVO32SdM9cYVeOTQvL4m/j0d3wruoMR/N8n4yy4ZTbeiW5Un8am4Od
+	 WOZTQ2J2GIyVD28zAdeeSBuL3fDJu/ZJ4gNwR9RLdF2NULdrvD5krOV2LiYd9zDdYc
+	 ry19sesoxRb0nVLInfMN7FpCRd1jVetsMsu1hereATd8do7y/zPndPYTDB8t4pN+4C
+	 EKcJTO31zQTZ+mrp0BebqbO9lvQM5L1REj4jMQunK8QoS1unyItIDSHVXWrb5hWex/
+	 ASb5cwnw2I69Q==
+Received: from customer (localhost [127.0.0.1])
+	by submission (posteo.de) with ESMTPSA id 4hV3Rk2DFfz6twb;
+	Wed, 26 Aug 2026 01:10:58 +0200 (CEST)
+From: Markus Probst <markus.probst@posteo.de>
+Date: Tue, 25 Aug 2026 23:10:59 +0000
+Subject: [PATCH v4] ACPI: SPCR: Support UART clock frequency field
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM4PR12MB5246:EE_|SJ1PR12MB6121:EE_
-X-MS-Office365-Filtering-Correlation-Id: 9f697843-5d91-472c-6c4a-08df02eeae48
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|366016|1800799024|23010399003|921020|6133799003|10067099003|11063799006|5023799004|56012099006|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	5w9CwAVF47MSXKRQ9l1P7AnqZuZquAgDMAgnYGEo40gC7yl1rzOypfY02k4jkwBY4WO5VfcNQY7jIyNkg76/52jyRpBTMhB98uUzqv8xSEJWm8cYLb8RdXwUl1mz5yAtVVGP9Gau90zbB9mzm6Jz7CEpXmrxzG0RBaXPsJ5X8Ew1tWpt/lwieBvVpGr/OZuJS0qqRjRNOyysEG8rfcCjIF/CBhGx0XqFv2rC8TWRyoFaysoVmx3N93BadbIqFhgLT8rLePhZqPy+Cu++EXI+ZDOIaensRXGmfy37Rtg5kw8bOYMgX9V7G8uMZ1cm3MY1fzIkLE/mhPeDQg8CcGBJsQZA5aezVtCaqyR+bBCNnnIDlxwCOByX5uRAZN1D+fPysZEEG+waQWQolInBHUJppNb4jOdUyKGLEG3C8WKndh10isDNiJFO4zFNPXi5MFHAFwcH3E8FAqsxZxZmQzRcyn4q/G7FZw6AHtGV/7voqS/+RumLs1jXo8EKA0ZiBVjO0vUGOHYywV7tPy5TZ2IKTgSPcPaQfpuOQmJrzifgUL4gYfL9wrdjqZL/pfhc9zS0tiAQC6ib/Or+eDV2l+a7PY1cHvWqvhBvyTotoiDiHm2nkWjwPnKpFLmFRbvIrnNuIPqJel0fN3LgpQwgLTiwUPeu4w1OVblXzNAqpu1qwOwxXxsDNepzaOIvIR838h7yY2QbVtP1pAMXxCjg8lq6KQ==
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR12MB5246.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(366016)(1800799024)(23010399003)(921020)(6133799003)(10067099003)(11063799006)(5023799004)(56012099006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?RFNlWHpwc3BQMXJyYmk0SlhKaGw4aGdVOFFwc0gwWTd4KzkxOGtwcUh6Z1ZB?=
- =?utf-8?B?a1pGOVh0aWhLdTZFUzFsWXlCd1hhbGlUczBuMmdJeHRTRGp2dHlHTXFDRmJL?=
- =?utf-8?B?RFpsd1VwNit6WW9jeUROMkdBdmNhaGR0NWtkVG5YcGhpV05CaXprNTI4RDNM?=
- =?utf-8?B?MEhmWHRQS3Z2Z3I2bllEbUhrNUdudHVLc3pBWnZ0eG5mdHZKVFNCZXp4VWM1?=
- =?utf-8?B?STBteTB2eG9qQUY5MDJIenVXMlZnaVlOaElGNUxVSVh0YmdORTNKWlViYWs4?=
- =?utf-8?B?Y1FXYyszMlBrSHVScFJVMmhpQk8zdUF0ZWhYbUVpZGNkTkdnWWpBSjNlZU1Z?=
- =?utf-8?B?R0xVYXQ2MFM0WXBzMW5ReS9CTHhyRXZQZTJ4aXhRWis4a090WG92byt4V1cx?=
- =?utf-8?B?SUtxL3FlZ2lRVFBzR0RvY1JtQ1J0aGN0QUV1YUNkd0ZIcGN6eFk5WkNDdU5s?=
- =?utf-8?B?VG40VS8wWDUzbG5uOU5iajErRmM0eWpnRDR1MUZ1M2R5c3FvNEp1R0c3c0dX?=
- =?utf-8?B?N2I2aWM4VS9DU0lIT043WWV4K1dvVGpiSXhwMlZrTXhwWUs1UFlyclQwVXBF?=
- =?utf-8?B?elNJUkRIcXJ1RHRyYTh1bTBITU5lVldiNmhxeEE2Y2pVUUNJZXlrT1ltS2JT?=
- =?utf-8?B?bFRVMXFmamhFUlc3RzNiWjhiVW8yc2Jnajl6bjJ1eklJZ1V1N0FVSXo2VS9M?=
- =?utf-8?B?byt4WWYwOFFOUHhEMWxveVduVXcwMkJ2RG1GWmdZVkFYYUYrSmgxSndJWFVB?=
- =?utf-8?B?K1VOT21CblJEcE9sSG1Vd0tjRGdOcklwd3BQWU5Za3ZvUmVlREU1T3VLaU44?=
- =?utf-8?B?SzdaVzRaTjdPUk9sUWI0MUc4V2h0QzN2T2FGMHcxVWNQaXVtSVliKzhmRDlm?=
- =?utf-8?B?cU1kWUhJQmpVQTJwWTEzek5kaVN0Q0Qxa3RTYXlZczJ4OGxzSldkNVB3SmlY?=
- =?utf-8?B?VlExaVd1REI4c0hnTXYzb043OFgrVkZud0lEMTJUY2ZtbGRHMjNhczFSMEdw?=
- =?utf-8?B?dDVWVDhFRXhQOHp0YmQwajREODNLZ21rdGpBenhpMU5qYzRrNGxvQ0JaY0dD?=
- =?utf-8?B?QjhEK1hSVi9ZUnF2QkVkeStIREF0MHh1QnM5cFN3YVg4dGVWcGMzdWc5ZjlG?=
- =?utf-8?B?NVZnUHNHYWt4c0VEcUE2eHNSMlpmY25LL08xWEdDQjVLdGVnbWJQUWhoRmcz?=
- =?utf-8?B?bmtlUUJuMHJVRTI5bXEwaDlIc2RoY1lYVEVLSzBTbEF5TEFKeUo3WTBPRDk4?=
- =?utf-8?B?NHdEQmUvN2VMd3pVT3Rab1ZGUUkrY0JWRlJ2VllxL3FtcXY3VlR5eFRyc2FR?=
- =?utf-8?B?TklNWFk3bzR6OHlpOU11MmkzY0NpSjlaQWRpb2dka2JuTzJFejN2cjRkR1FW?=
- =?utf-8?B?QTF4Vk9PRzhiNGc2dHlIaC9kWU53ZlE4amVuakVCMTMyRjA1bGN4STc5T0di?=
- =?utf-8?B?dUtsMlJrWWdGYTQ2ZkFndVpVVUU0RXZjMzVSa3E2K2FESUFoWGpOaDY1MkNs?=
- =?utf-8?B?TTBXQUF0Qk1vV2pDVVc2OFFpekhZWFVxamdWWFBGR1hWYVAraEtvVWxzeHhL?=
- =?utf-8?B?eG5WeEJjYzJEalJWQ0VqVjlBQytqN2NLVDZKNVZTQzdCVGlSbE83NXRISDA1?=
- =?utf-8?B?ak1lZ1NSMjlJbG95dDZ4OUpTWGxDUkV4Z05qeW1yMGV1TTVNQnJqalU4OXZw?=
- =?utf-8?B?cWdENk1vU1htSjhCKzNqalYwM1NzaDF0MXZVUkZtd0pGSldTa3BxTW1QZ0hS?=
- =?utf-8?B?dVNkSytoTW5CYm55SER5Z0YwSXRNQk5HRVVpeG45QzVpcjZWaGdGaHh6Lysv?=
- =?utf-8?B?OWdSZ0V5N1ZtUXFnTUUveVhFYU16SngwdWhYT1JsMXZ0KzJTREVoVXp4QWNP?=
- =?utf-8?B?YmJqaStoRjNodVZsYnJPalpZYmxvL29oR3RkTzRocmtHWFVvS09ONGJrZnJG?=
- =?utf-8?B?WWk1MzZSS1VjNVM1VDRSaFYrcmtFbWhGYklBa2lNc1hzS0tZaCtyTStXY3g5?=
- =?utf-8?B?a0MyQzUzc3E5Wi9abm41WHVmcjcxTFVKRmx5MjJkdzVoWjFKV0w0YzBRNmdw?=
- =?utf-8?B?REluUnBncFdXemhYaVBNYkNoeFFoVTJHK1VGUlBDakxRdldlNXgwZVdhSnpw?=
- =?utf-8?B?SVlCcktxODJGeTNKZDE0cHlVY0p4QS82b2lnR0dLbkJPSlowclhUSUhRSmhE?=
- =?utf-8?B?enEvQm9DTDRDZGVXeE9HQzJiUXpKOVFEaE0yaHBnV2xpdzBIWHlhcXFMRXpS?=
- =?utf-8?B?RFdHcklTNW81am1ndWxpdTFjcnQzK3lZWFUxWjAvT3V6RHNPWFA0YVhERHZw?=
- =?utf-8?Q?+jCqlr05focooq/seL?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9f697843-5d91-472c-6c4a-08df02eeae48
-X-MS-Exchange-CrossTenant-AuthSource: DM4PR12MB5246.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Aug 2026 21:20:26.2497
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Htt+9SON9ZPSW2wIZMXNqnWeJSZwSYWcH1bAfti3cMrRSpN0mVIIOOHtoQhEwupUmvImLOl2VrkZBQ1PvFoRSg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ1PR12MB6121
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260826-acpi_spcr-v4-1-2d5670dace43@posteo.de>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/12O3WoDIRSEX2XxugY9urs1V32PUoo/x8ZC4kaNt
+ IR99xpTaLaXA983M1eSMQXMZD9cScIacoinFuTTQOxBnz6QBtcyAQYTk4JRbZfwnheb6MQVA+8
+ UCA+k8UtCH7561+vbPeeL+URbbgW/RMLzpY2UO0aMzkhtPB5D2Q913gG5mYeQS0zf/VTlHez7I
+ xsf9iunnHonjZ28RDOKlyXmgnHnsLdUeDBhYwJl1DIJ7Fm5WVj93xR/5sQ3pmim0qNCo90scWO
+ u6/oDQkZIvlABAAA=
+X-Change-ID: 20260430-acpi_spcr-61902fd923f2
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ Jiri Slaby <jirislaby@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+ Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, 
+ linux-acpi@vger.kernel.org, Markus Probst <markus.probst@posteo.de>
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5267;
+ i=markus.probst@posteo.de; h=from:subject:message-id;
+ bh=/mG6PyefbWFiabSftZ542/gjN6J7mAIDhUmg6WE7Sys=;
+ b=owEBiQJ2/ZANAwAIATR2H/jnrUPSAcsmYgBqjiEBHGcyS0Z7fP9FG82778r5OASTaPGvYpDi2
+ tNT1u7Mn3WJAk8EAAEIADkWIQSCdBjE9KxY53IwxHM0dh/4561D0gUCao4hARsUgAAAAAAEAA5t
+ YW51MiwyLjUrMS4xMiwyLDIACgkQNHYf+OetQ9IUBA//bOagfhY6RcvfHTuOEo/1CirdwtBJqgk
+ mHdOMpE+7tSZljIy0+/FppkNrg0br+rdEFiH92Aqncn7FLt7Xvge/dMpn4nIpSDeqL4YMGDU/ZH
+ XI/KY4l+erROR8JSlM8ELiVBMc458SZa0hElJctkSzPxcsrLvmRYKaAN7DUn+dsZOJJMsZnyVwe
+ sr2/nkbSx4nqFhV+8m97Bg8p19W3ig23U7lZk0sD5wdw+NvpEVM/ESgcPcaptbXE+7Dt9FhI/Hb
+ mr/UHGYOBgr7AgNBlRSdPDR/y+QfyidtzCjtaMp2T2f817VfoowHVe3y4BzOz8Yt+Do8b0C8Sbt
+ euqDBjny9gZ9QVX5/tIQOa8qzz8J9zpKPCbB1NCQca7avshU0pdDeoND6tpZniQmslo2x5UcP4A
+ MBhcjrsaEawwsPAdm0YWBzJKfyhvKcvRbIGEu+/vdBVse2b8YEJlkv8EIZn+deouo04LY2pcMEx
+ dzx0kRvw0+lIsp0ZbttTz1QkmjW2TlPTFHL1v3zX54o5vzbgxaVQSwqMHvXCPTH9rqVjtqhaB3w
+ QZK4lxOcbYjFWP5MFdjG0JLgDBjzupFDOYU/vyMKfYyb/ObmunjasBBsV1swcHcgCOWkC2MOZ11
+ fWZ8BwwucI3TjL0Mk3jFX4zCKUHwOG3FnvP47AINagvORW3sA8fw=
+X-Developer-Key: i=markus.probst@posteo.de; a=openpgp;
+ fpr=827418C4F4AC58E77230C47334761FF8E7AD43D2
+Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
+  keydata=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
+  aBeNN4ijKZchBXHPgVx+YtWRHfcm4l8=
+OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
 
+Prior to this patch, we assume the uart clock frequency is 1843200 Hz in
+the early console. This behaviour results in garbage console output if the
+actual uart clock frequency differs.
 
-On 07/08/26 01:38, Sumit Gupta wrote:
-> This series keeps the CPPC cpufreq policy alive across CPU hotplug and
-> preserves the OSPM-set CPPC registers (Energy Performance Preference,
-> Autonomous Activity Window, Autonomous Selection - set via sysfs).
->
-> Without online()/offline() callbacks, the core tears a policy down when
-> its last CPU goes offline and rebuilds it on the way back, re-reading the
-> CPPC capabilities each time. The values written to these registers can
-> be lost:
->
->   - Across CPU hotplug or suspend/resume: the platform may reset them
->     while the CPU is offline.
->   - On driver unload: the driver-written value is left in the register
->     instead of returning to its pre-driver state.
->
-> Handle these with:
->
->   - Patch 1: adds online()/offline() callbacks so the core keeps policy
->     alive across CPU hotplug instead of tearing it down and rebuilding it.
->   - Patch 2: makes the autonomous selection register helpers take a u64.
->   - Patch 3: adds a table-driven mechanism that captures each register's
->     firmware value at init(), restores it from offline(), and reapplies
->     the OSPM-set value from online().
->   - Patch 4: extends the same save/restore to system suspend/resume.
+The UART Clock Frequency field was added in the Microsoft Serial Port
+Console Redirection (SPCR) specification revision 1.08. If present, use it
+to configure the serial port with the correct uart clock frequency.
+Fallback to old behaviour if missing.
 
-Gentle reminder.
-Could this be considered for queuing if nothing further needs addressing.
+Add function `setup_earlycon_with_uartclk` to set uart clock frequency
+while still allowing to reuse the same console string with
+`add_preferred_console`.
 
-Thanks,
-Sumit
+Link: https://learn.microsoft.com/en-us/windows-hardware/drivers/serports/serial-port-console-redirection-table
+Signed-off-by: Markus Probst <markus.probst@posteo.de>
+---
+Changes in v4:
+- merge patches together
+- rewrite commit message
+- Link to v3: https://patch.msgid.link/20260615-acpi_spcr-v3-0-9a59ebad74ea@posteo.de
 
+Changes in v3:
+- add separate function for earlycon with uartclk
+- Link to v2: https://patch.msgid.link/20260525-acpi_spcr-v2-0-c042089d73ca@posteo.de
 
-> v3[3] -> v4:
->   - Patch 1:
->     - offline() parks the perf request at lowest_perf, as exit() did.
->     - online() resyncs the frequency invariance counters.
->     - raise MAX before the perf restore when the saved MIN is above it.
->   - Patch 3:
->     - write auto_sel first when enabling it and last when disabling it.
->     - replace the four save/restore helpers into save_regs() and
->       apply_saved_regs(), each taking the firmware or requested type.
->     - keep the per-policy saved values in one struct, and name each
->       register for the pr_debug diagnostics.
->   - Patch 4:
->     - suspend() also restores the firmware values and flags it, so
->       offline() skips them and resume() only handles still-online policies.
->
-> Sumit Gupta (4):
->    cpufreq: CPPC: Keep the policy across CPU hotplug
->    ACPI: CPPC: Make autonomous selection helpers take a u64
->    cpufreq: CPPC: Preserve OSPM-set registers across hotplug and unload
->    cpufreq: CPPC: Preserve OSPM-set registers across suspend/resume
->
->   drivers/acpi/cppc_acpi.c       |  20 +-
->   drivers/cpufreq/amd-pstate.c   |   2 +-
->   drivers/cpufreq/cppc_cpufreq.c | 369 ++++++++++++++++++++++++++++++++-
->   include/acpi/cppc_acpi.h       |   8 +-
->   4 files changed, 376 insertions(+), 23 deletions(-)
->
-> [1] v1: https://lore.kernel.org/lkml/20260623095403.3407436-1-sumitg@nvidia.com/
-> [2] v2: https://lore.kernel.org/lkml/20260716153820.2007095-1-sumitg@nvidia.com/
-> [3] v3: https://lore.kernel.org/lkml/20260724215937.3368276-1-sumitg@nvidia.com/
->
+Changes in v2:
+- fix uart_clk_freq possibly being interpreted as parity/bits/flow
+- Link to v1: https://patch.msgid.link/20260505-acpi_spcr-v1-1-fd4bc6f4eb53@posteo.de
+---
+ drivers/acpi/spcr.c           |  3 ++-
+ drivers/tty/serial/earlycon.c | 17 ++++++++++++-----
+ include/linux/serial_core.h   | 11 +++++++++--
+ 3 files changed, 23 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+index 73cb933fdc89..c79c809f49d4 100644
+--- a/drivers/acpi/spcr.c
++++ b/drivers/acpi/spcr.c
+@@ -228,7 +228,8 @@ int __init acpi_parse_spcr(bool enable_earlycon, bool enable_console)
+ 	pr_info("console: %s\n", opts);
+ 
+ 	if (enable_earlycon)
+-		setup_earlycon(opts);
++		setup_earlycon_with_uartclk(opts,
++					    table->header.revision >= 3 ? table->uart_clk_freq : 0);
+ 
+ 	if (enable_console)
+ 		err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
+diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
+index ab9af37f6cda..5a20fe9e3fb6 100644
+--- a/drivers/tty/serial/earlycon.c
++++ b/drivers/tty/serial/earlycon.c
+@@ -135,11 +135,14 @@ static int __init parse_options(struct earlycon_device *device, char *options)
+ 	return 0;
+ }
+ 
+-static int __init register_earlycon(char *buf, const struct earlycon_id *match)
++static int __init register_earlycon(char *buf, unsigned int uart_clk_freq,
++				    const struct earlycon_id *match)
+ {
+ 	int err;
+ 	struct uart_port *port = &early_console_dev.port;
+ 
++	port->uartclk = uart_clk_freq;
++
+ 	/* On parsing error, pass the options buf to the setup function */
+ 	if (buf && !parse_options(&early_console_dev, buf))
+ 		buf = NULL;
+@@ -163,8 +166,9 @@ static int __init register_earlycon(char *buf, const struct earlycon_id *match)
+ }
+ 
+ /**
+- *	setup_earlycon - match and register earlycon console
+- *	@buf:	earlycon param string
++ *	setup_earlycon_with_uartclk - match and register earlycon console
++ *	@buf:			      earlycon param string
++ *	@uart_clk_freq:		      uart clock frequency in Hz or 0 for BASE_BAUD*16
+  *
+  *	Registers the earlycon console matching the earlycon specified
+  *	in the param string @buf. Acceptable param strings are of the form
+@@ -177,10 +181,13 @@ static int __init register_earlycon(char *buf, const struct earlycon_id *match)
+  *	<options> string in the 'options' parameter; all other forms set
+  *	the parameter to NULL.
+  *
++ *	If the uart clock frequency is specified in the 'options' parameter,
++ *	the value of the param @uart_clk_freq will be ignored.
++ *
+  *	Returns 0 if an attempt to register the earlycon was made,
+  *	otherwise negative error code
+  */
+-int __init setup_earlycon(char *buf)
++int __init setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq)
+ {
+ 	const struct earlycon_id *match;
+ 	bool empty_compatible = true;
+@@ -209,7 +216,7 @@ int __init setup_earlycon(char *buf)
+ 		} else
+ 			buf = NULL;
+ 
+-		return register_earlycon(buf, match);
++		return register_earlycon(buf, uart_clk_freq, match);
+ 	}
+ 
+ 	if (empty_compatible) {
+diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+index bdc214386e4a..9b2bcd4295a9 100644
+--- a/include/linux/serial_core.h
++++ b/include/linux/serial_core.h
+@@ -1099,11 +1099,18 @@ int of_setup_earlycon(const struct earlycon_id *match, unsigned long node,
+ 
+ #ifdef CONFIG_SERIAL_EARLYCON
+ extern bool earlycon_acpi_spcr_enable __initdata;
+-int setup_earlycon(char *buf);
++int setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq);
+ #else
+ static const bool earlycon_acpi_spcr_enable EARLYCON_USED_OR_UNUSED;
+-static inline int setup_earlycon(char *buf) { return 0; }
++static inline int setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq)
++{
++	return 0;
++}
+ #endif
++static inline int setup_earlycon(char *buf)
++{
++	return setup_earlycon_with_uartclk(buf, 0);
++}
+ 
+ /* Variant of uart_console_registered() when the console_list_lock is held. */
+ static inline bool uart_console_registered_locked(struct uart_port *port)
+
+---
+base-commit: 237a1c39e8dfd3e1c6f1f023eea37a48ec04cc63
+change-id: 20260430-acpi_spcr-61902fd923f2
+
