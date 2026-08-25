@@ -1,71 +1,81 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA4B52E06E4
-	for <linux-acpi@vger.kernel.org>; Tue, 25 Aug 2026 13:50:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C935545A287;
+	Tue, 25 Aug 2026 13:51:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787665819; cv=none; b=KWIv89223I641KNveGZxy4hMhhBJfeBwdZtPQaWBuDYnl0ip1WO3W4428hAHp01wCitYaFsQpA5EEdjHsS0JWzDXRm+lpgfqNmgFDhNES7uPK6aTq+YRyTFOP9Zx1JPXjQ7EAytXb5Vu7bB+3ew7r+bVCWkmlU/ST+II0P/KHVc=
+	t=1787665879; cv=none; b=VOJDyIMOpqTdJlZrvGYlB2ZmzzOJJGzRqGykFN7TbfmSsNY8O2igS+LP2pVpvx12gyf6wzUxi4pWC2lx8y68zTFrCbKkTsQYjDiR2ZftQ7yyF4FnftVXgn7NXucq7IPVZSIS6G07JEvxW0lKJgjiQIf3CzQl1m9d5br5Lby3qRc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787665819; c=relaxed/simple;
-	bh=V6KhqcINj5j7dYarEJ4tYCTHw2zFOlDuHjfXqECi9Lg=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=t5hZLnmzxd42KBDLmRJoVmVUU63knImCCunbKY6irFvhsxXypfrW82KpW/6OLZoWE1tcfdmyxj3oDOM7kBLKdWfCbkUAt+aQo+kaSYbr36mxNn1YYndI5W/nbeF1M5lfgTaswQQTrwRUs1b08cBo8vGNRnT+FwDPe0HhNRhCa9I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ODfNbf+M; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787665879; c=relaxed/simple;
+	bh=tJND6aND2PywHJERPckQQl5cRba0RNyWcv7GeD802pM=;
+	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=oanWF5pTm+uUl4SKwq1pD80ztb0CUoFIhx6JyG7eXgnjC//LauArwPK4eAn8jQhbHbpIQSqLEQ/WoscBNHj4rb6g2cm6echkTe4NfcUk1++mvHpHn50yrHfmxy/KbARFk5EcBd0zMZDCsT8yLMEI6fm4lvXTRB1tVa247FWyfMM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=O/QQ4hzj; arc=none smtp.client-ip=198.175.65.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ODfNbf+M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F3241F00A3E
-	for <linux-acpi@vger.kernel.org>; Tue, 25 Aug 2026 13:50:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787665818;
-	bh=H/7sjQJv5Z0N/jJ3lKfgwQCRsdOQUJnP2hzY/CyJnKM=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=ODfNbf+MSqIzan9lBPIGx965AirA4wdYspV9Wn4EwtaJgYBdw0A5z4maRpXAsfVpN
-	 RJiCVkjU/I82nSGuJwDa4ZasxG4e6Jfr+8x3jza4tzqcZpTYzClkORcfFOFAaoyfz7
-	 4MT79GQBymtmESQLzftoqGyLi+HBgEMr5112DcfST3OwGWW2R89Po2n//aSgUeVg33
-	 SZnUfKVTu1kYQeh9NM5GA5vPHXmlK20b35PmN/NFRP94WIPHVUTGiGPkMN1ksOpFJp
-	 8JbTaEgt4UUp3pX1tk3Rm3lzbFqpezPbsDgXlXGU5n724rnJTg2S92ZX1qaozuMcfF
-	 rLif0OapBy0vQ==
-Received: by mail-lj1-f179.google.com with SMTP id 38308e7fff4ca-3a1f628b1d1so2833201fa.0
-        for <linux-acpi@vger.kernel.org>; Tue, 25 Aug 2026 06:50:18 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+Rpc326GaAxRAawELO9h5uvP++WsjY/hMrlP2kks4CXn9jhfXxzK8L2j5N/DT5FeMiMyWwGrvgNulMJy@vger.kernel.org
-X-Gm-Message-State: AFuF++nh1DmfqRkzOTG7tjgQUeYrpudMm2xio/XxEOMd2U9HFadjQfsP
-	VvrPnTyX3lEGoR00SskZ1+M011Gg9vhjB9DTJeg2ExOXH6lbEpxLdfou42PQToKb6TX9dd1pd7U
-	qgmBaNSCJO9O5+rO8srHh2G7XranX17M=
-X-Received: by 2002:a05:651c:a208:10b0:3a1:1198:d196 with SMTP id
- 38308e7fff4ca-3a1aeba29d7mr62284691fa.1.1787665816627; Tue, 25 Aug 2026
- 06:50:16 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="O/QQ4hzj"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1787665877; x=1819201877;
+  h=from:date:to:cc:subject:in-reply-to:message-id:
+   references:mime-version;
+  bh=tJND6aND2PywHJERPckQQl5cRba0RNyWcv7GeD802pM=;
+  b=O/QQ4hzjS+3dOKZCSORo8SjX662og8VSVHFJhk2HCSoTc5RLdrbcUsGb
+   QXsv1wKeqlnPPAVor9Oqm2LOVDLNkcpaR6os+AJ+QGngVm/qi+j19nAEe
+   HwqeouZMV3PeVRNcCetH0IQu9T8QqLdynkxF3wuU9WPyWEIcqOnhAfdt2
+   VDxsF/PHoAIFQntI6jLNScdjBKmMHnxmWXWiOu6OK38aCp3PtBcjqVRQL
+   Q8hcw/bH5fYZb3jjD5fbGCdG1qbLbiwJBW9ibfY5cQQmAxtZRyx6T0ElO
+   zlEr2yQ0z3NNdXPVpVZxN4HRDXJVe0PiTec8mxipAmC+yBoZ7D0ENZh2A
+   Q==;
+X-CSE-ConnectionGUID: bFKdu2qbSS6Df6L3Yba2cg==
+X-CSE-MsgGUID: IEeUizN2Q72AqGnNmPk8Xw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11885"; a="88187312"
+X-IronPort-AV: E=Sophos;i="6.25,242,1779174000"; 
+   d="scan'208";a="88187312"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2026 06:51:16 -0700
+X-CSE-ConnectionGUID: j/Lmqp7hTqGhtLaJQwVWtA==
+X-CSE-MsgGUID: Ls8fAcFGSdaQz/8xY15nYQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,242,1779174000"; 
+   d="scan'208";a="271495174"
+Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.99])
+  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2026 06:51:14 -0700
+From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Date: Tue, 25 Aug 2026 16:51:10 +0300 (EEST)
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, 
+    linux-acpi@vger.kernel.org, Daniel Scally <dan.scally@ideasonboard.com>, 
+    Hans de Goede <hansg@kernel.org>, platform-driver-x86@vger.kernel.org
+Subject: Re: [PATCH v2 3/5] ACPI: Support __free() from cleanup.h for ACPI
+ objects
+In-Reply-To: <CAJZ5v0ggPGEu8YQTpeTC6=tVNr1zponkCbs+UQPieAH5k6ngUg@mail.gmail.com>
+Message-ID: <831afa75-ab9f-b54e-a5a5-6b46f4fe26cc@linux.intel.com>
+References: <20260824211338.3583976-1-sakari.ailus@linux.intel.com> <20260824211338.3583976-4-sakari.ailus@linux.intel.com> <CAJZ5v0ieb2FcANOt0MRMsTrwtbLiUF48W_c=3z3OpNH92d=7vg@mail.gmail.com> <ao2FmNRFjSJVxhrL@kekkonen.localdomain>
+ <CAJZ5v0gQVFxSkkjPbRf6bsKdgUBGduZV0M5SWrHoeB246ZLqew@mail.gmail.com> <134e9566-7913-86d7-1e8b-b2ca9ebec55c@linux.intel.com> <CAJZ5v0h4KD6Q1DeuwbFQ83U1=wKORMWUQNA2BwnFtsYAyzz_Ow@mail.gmail.com>
+ <CAJZ5v0ggPGEu8YQTpeTC6=tVNr1zponkCbs+UQPieAH5k6ngUg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260824211338.3583976-1-sakari.ailus@linux.intel.com>
- <20260824211338.3583976-4-sakari.ailus@linux.intel.com> <CAJZ5v0ieb2FcANOt0MRMsTrwtbLiUF48W_c=3z3OpNH92d=7vg@mail.gmail.com>
- <ao2FmNRFjSJVxhrL@kekkonen.localdomain> <CAJZ5v0gQVFxSkkjPbRf6bsKdgUBGduZV0M5SWrHoeB246ZLqew@mail.gmail.com>
- <134e9566-7913-86d7-1e8b-b2ca9ebec55c@linux.intel.com> <CAJZ5v0h4KD6Q1DeuwbFQ83U1=wKORMWUQNA2BwnFtsYAyzz_Ow@mail.gmail.com>
- <3aad6baa-6b19-b441-d294-5a656ef190a5@linux.intel.com>
-In-Reply-To: <3aad6baa-6b19-b441-d294-5a656ef190a5@linux.intel.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 25 Aug 2026 15:49:34 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gN2Wzp8FxXS6kpE=Pk-jDTyVGws0p9Y4J7MgjweaniFQ@mail.gmail.com>
-X-Gm-Features: AcwNN1X0LyQlmgiirap1-j54mU1q46agrnJQ3Idtk4nf4WdmMhP_dMhkLVZS4wU
-Message-ID: <CAJZ5v0gN2Wzp8FxXS6kpE=Pk-jDTyVGws0p9Y4J7MgjweaniFQ@mail.gmail.com>
-Subject: Re: [PATCH v2 3/5] ACPI: Support __free() from cleanup.h for ACPI objects
-To: =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	linux-media@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	Len Brown <lenb@kernel.org>, Daniel Scally <dan.scally@ideasonboard.com>, 
-	Hans de Goede <hansg@kernel.org>, platform-driver-x86@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="8323328-58132523-1787665870=:1165"
 
-On Tue, Aug 25, 2026 at 3:37=E2=80=AFPM Ilpo J=C3=A4rvinen
-<ilpo.jarvinen@linux.intel.com> wrote:
->
-> On Tue, 25 Aug 2026, Rafael J. Wysocki (Intel) wrote:
->
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--8323328-58132523-1787665870=:1165
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+On Tue, 25 Aug 2026, Rafael J. Wysocki (Intel) wrote:
+
+> On Tue, Aug 25, 2026 at 3:02=E2=80=AFPM Rafael J. Wysocki (Intel)
+> <rafael@kernel.org> wrote:
+> >
 > > On Tue, Aug 25, 2026 at 2:32=E2=80=AFPM Ilpo J=C3=A4rvinen
 > > <ilpo.jarvinen@linux.intel.com> wrote:
 > > >
@@ -145,43 +155,39 @@ t was
 > >
 > > If there is a cleanup.h "free" that can only be used with objects
 > > returned by acpi_evaluate_dsm_typed(), I'll be fine with that.
->
-> So you'd be fine with something like this:
->
->       union acpi_object *out_obj __free(some_other_name_than_ACPI_FREE) =
-=3D ...
->
-> ?
-
-Basically, yes.
-
+> >
 > > Or if everyone agrees that doing
 > >
 > >     union acpi_object *out_obj __free(ACPI_FREE) =3D NULL;
 > >
 > > is not confusing and fine, I may just say "Hey, I don't care that much"=
-.
->
-> I personally don't hang myself into "free" or "constructor" terminology
-> but look it more pragmatically, if ACPI_FREE() should be called before
-> the object goes out of scope, __free() is a tool for that.
+=2E
+>=20
+> And particularly there is this paragraph in a comment in cleanup.h:
+>=20
+>  * Given that the "__free(...) =3D NULL" pattern for variables defined at
+>  * the top of the function poses this potential interdependency problem
+>  * the recommendation is to always define and assign variables in one
+>  * statement and not group variable definitions at the top of the
+>  * function when __free() is used.
+>=20
+> regarding a broken code example, so I would think that this is not a
+> made-up concern.
 
-It is also good to consider the example given in cleanup.h though, in
-which there is the
+That comment relates to how defining the variables at the start of=20
+functions may result in wrong/unexpected cleanup order. More imporantly,=20
+the comment is not an argument for not using __free() but an instruction=20
+on what is the correct pattern to use it so those ordering issues do not=20
+occur.
 
-            struct object *obj __free(remove_free) =3D NULL;
+The cleanups will execute in reverse order the variables where defined so=
+=20
+a variable defined at start may be cleaned up only after releasing a lock=
+=20
+that was taken mid-function (which often is safe but one can easily=20
+envision cases where the lock should be still held when the cleanup runs).
 
-pattern leading to a real bug due to a cleanup ordering issue.
+--=20
+ i.
 
-I would prefer to avoid encouraging people to create code patterns
-that are potentially problematic.  The "free" or "constructor"
-terminology mentioned above boils down to avoiding those code patterns
-which also matters in practice.
-
-> Have Rust people tried to wrap this interface already (there seems to
-> acpi.rs but it seems very limited in scope)? I'd expect them to be just a=
-s
-> interested in knowing what to do when something is at the end of its
-> lifetime.
-
-No, they haven't, AFAICS.  At least I'm not aware of any attempts to do so.
+--8323328-58132523-1787665870=:1165--
