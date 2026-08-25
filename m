@@ -1,111 +1,190 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9C1D3F12F9;
-	Tue, 25 Aug 2026 14:06:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 591FB484236
+	for <linux-acpi@vger.kernel.org>; Tue, 25 Aug 2026 14:43:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787666821; cv=none; b=CWh2DPdTZvzuLfVJ7iqq5DsUbUsBz7W5bU7WAmmuI+N0yrKUQka1U9HXQ2usws8a9Z1jGTFOD7/0e3tjqG+483p2xS+B9V6Ml5isGgVPpYaITBX+OY48tt3AB0h+dEKeoeRWsq8xUqCJbWdjpmiH2DIEYJMI79t5zWBSMxcDSVM=
+	t=1787668998; cv=none; b=BHjwTL8VgEBNzLTF06dlubJp0F4/vntcEnl1fB7RTt4i7c3frVz6fAqc7GZdx5Mg052f4PAii59tmuP1ACNLdaktZijb8yiytvcVWA/L20or3giwam3YHtuuczMuPXoTQxGf/ASJ0X3wx8dwmxHM/j2NmI2iCcizMckahvY8qQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787666821; c=relaxed/simple;
-	bh=/DCL2Wd5ABMMdfHiA5VXKmT76TcoUlejxrwEdvyMLcQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tiF6zgIJ2bwokRSlNunQc8KpI2qkb2zCbJpiggcYBRMvl1YghiNHvNMyW8n0YnSqiJhzBNlN9rOQeGCiIOzLhoYzGtOV1jYUFZbf8jXLriMRhjNmrf2OhEEFcUaeo3ngnAaFTcaypUokMw5nTqXD7Vg5q+dxDTmCaW6He8WPrc8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=atNHsjr0; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787668998; c=relaxed/simple;
+	bh=wch87i9yJYzX6N4Tw9uzlMwiZrqht4WcrmhzTQ4ye38=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=AvK5J0f1//rTV6kBa/ye7XJ7Lu36xbsD9nnWMVf3BvWh2jWF2ZmydWsjAdi3DqmZaTaUL7olPYGl9pKFnUEPs+97EMlvj7YZrpqwMUTwgmKCXcmDa/psiTO5f+ek496E4Bhn56JFaDwbkbOkZ8+zF49XdepXerzm1v3xCQ1ErHU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dBVp3+rh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="atNHsjr0"
-Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 7D1A31F000E9;
-	Tue, 25 Aug 2026 14:06:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dBVp3+rh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 122BB1F00ADB
+	for <linux-acpi@vger.kernel.org>; Tue, 25 Aug 2026 14:43:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787666819;
-	bh=zb2dR1ky3e/i5jY9uLyTx7grJbKpM/glhXzntMr7hu8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=atNHsjr0X6f3Chro5uZ8uIRUeuHFeZKo7krQDdTIL2ftctr03anYju7o9PjMmroD6
-	 2/Kde4GueqynQPrERRzJO0dHW/UD7F9Xh5uT3n1cgNV+CZsXpt8AmoO1GvjlXreX6s
-	 ApXw7K7hyhWG2AgqRO9EWCQtx3MUZwwBousfqjTloYbacrCrNFTpsteYM7l9nFNwQn
-	 rC3SjQPnGwwdeGWfmM8YNEYdgOZcuxux3sxZ5lDqng7jNkV1R1ayYdUSXXVHWqq9kD
-	 2KaBIh5tSWR2t2VA8MdJcmL6+EkV8NTKzQQ9WjO/L+LuVIsrfTR6ea4rcmMkIUQUkA
-	 FPhGIVp2znzQw==
-Date: Tue, 25 Aug 2026 17:06:54 +0300
-From: Jarkko Sakkinen <jarkko@kernel.org>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Mika Westerberg <mika.westerberg@linux.intel.com>,
-	Julien <julien82453@gmail.com>, linux-integrity@vger.kernel.org,
-	Nathan Chancellor <nathan@kernel.org>
-Subject: Re: [PATCH v2] ACPI: scan: Do not combine resources that overlap
- completely
-Message-ID: <ao2hfu9ioyLSMmpg@kernel.org>
-References: <12955564.O9o76ZdvQC@rafael.j.wysocki>
+	s=k20260515; t=1787668996;
+	bh=wFVBzOqPc8UOPhde8GY7epvGk77JTDfDkKrM8bjfz9Q=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=dBVp3+rhMhgESq5Bk68zaGBVsPUVuGiSYAZXJ1JjYilUYEoou8PKBwgPk759hpJMd
+	 nK8udHHCOWHU7vRyesvhWnyXUg70xdeEiEYnRgR6Z1hhXyhw7tQxgnYyQqjEZXOvyC
+	 qEQOKVb8iTrT63/GBFNj16jtNBeyeRo4aYjxKkjfl+EQ57NwqJ3IrivBEXSYU52+t5
+	 h3j3BFUbt3QdnH8orji+ByALcgpt6XGHb/g+FS6DLxDiHT85iOzM+kdmMHKQBVC98h
+	 umJUaETul4dY3tBEHo89k62YjT15weBS/CLFdqJxTE7lng5vQwCypZl0DpLEoDPB5f
+	 ay8cLHwl+3xsg==
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5b49fee1ce9so421995e87.0
+        for <linux-acpi@vger.kernel.org>; Tue, 25 Aug 2026 07:43:15 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+RqWJta3QWhw5sjMHYgE7jHidv8t6gKMYZ3BwjZrWe86LsvZ9JlIcuVBBjyQwjzfoAhsjI+rWwoPZHlz@vger.kernel.org
+X-Gm-Message-State: AFuF++kpF9CLDd+EZum3/jIsgGOyozLm5JGZ1CfG6jtNcP7yFjRzeeYI
+	Ci3yP1GbW/vwJkr5OjBqBSdbO+avv1xBBcOTMYdnRZpBR6+AojqbJKVC3a8tZ39ApIoRGWO7c48
+	9bVFHsPFnJNi4W6xXsoM4OY+BxfD1K44=
+X-Received: by 2002:a05:651c:b29:b0:39b:2757:c1d3 with SMTP id
+ 38308e7fff4ca-3a1aec08881mr83137611fa.9.1787668994165; Tue, 25 Aug 2026
+ 07:43:14 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <12955564.O9o76ZdvQC@rafael.j.wysocki>
+References: <20260824211338.3583976-1-sakari.ailus@linux.intel.com>
+ <20260824211338.3583976-4-sakari.ailus@linux.intel.com> <CAJZ5v0ieb2FcANOt0MRMsTrwtbLiUF48W_c=3z3OpNH92d=7vg@mail.gmail.com>
+ <ao2FmNRFjSJVxhrL@kekkonen.localdomain> <CAJZ5v0gQVFxSkkjPbRf6bsKdgUBGduZV0M5SWrHoeB246ZLqew@mail.gmail.com>
+ <134e9566-7913-86d7-1e8b-b2ca9ebec55c@linux.intel.com> <CAJZ5v0h4KD6Q1DeuwbFQ83U1=wKORMWUQNA2BwnFtsYAyzz_Ow@mail.gmail.com>
+ <CAJZ5v0ggPGEu8YQTpeTC6=tVNr1zponkCbs+UQPieAH5k6ngUg@mail.gmail.com> <831afa75-ab9f-b54e-a5a5-6b46f4fe26cc@linux.intel.com>
+In-Reply-To: <831afa75-ab9f-b54e-a5a5-6b46f4fe26cc@linux.intel.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Tue, 25 Aug 2026 16:42:31 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0iYNQgrKfH0Jpv1g1Ja3d=vA8+TWpWKaipivjd0iN-gUQ@mail.gmail.com>
+X-Gm-Features: AcwNN1WzxmKSLqDHEdyKyFwsm9FCSoLC9qlNcs_i000cZYtvQgZf5gLQKfFi4kg
+Message-ID: <CAJZ5v0iYNQgrKfH0Jpv1g1Ja3d=vA8+TWpWKaipivjd0iN-gUQ@mail.gmail.com>
+Subject: Re: [PATCH v2 3/5] ACPI: Support __free() from cleanup.h for ACPI objects
+To: =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	linux-media@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	Daniel Scally <dan.scally@ideasonboard.com>, Hans de Goede <hansg@kernel.org>, 
+	platform-driver-x86@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Aug 20, 2026 at 09:11:14PM +0200, Rafael J. Wysocki wrote:
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> 
-> Commit f234fdaae1ca ("ACPI: scan: Avoid registering platform devices
-> with resource overlaps") attempted to avoid platform device registration
-> errors due to overlaps of resources of the same type returned by the
-> same _CRS object in the ACPI tables.  It did that by combining two or
-> more overlapping resources into one, but it went too far and also
-> caused resources that overlap completely to be combined which broke
-> the arm-cmn driver that expects two MMIO resources to be present for
-> each device it binds to and it expects those two resources to overlap
-> completely.
-> 
-> Address this issue by adding checks for completely overlapping
-> resources to acpi_platform_adjust_resources() and add a comment
-> explaining what is done there.
-> 
-> Fixes: f234fdaae1ca ("ACPI: scan: Avoid registering platform devices with resource overlaps")
-> Reported-by: Nathan Chancellor <nathan@kernel.org> 
-> Tested-by: Nathan Chancellor <nathan@kernel.org> 
-> Closes: https://lore.kernel.org/linux-acpi/20260819003752.GA3063251@ax162/
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
-> 
-> v1 -> v2:
->    * It is better to check for complete overlaps both ways as suggested
->      by Sashiko.
-> 
-> @Julien: I would appreciate testing this on the machine that needed
-> commit f234fdaae1ca.
-> 
-> ---
->  drivers/acpi/acpi_platform.c |    8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
-> 
-> --- a/drivers/acpi/acpi_platform.c
-> +++ b/drivers/acpi/acpi_platform.c
-> @@ -85,7 +85,13 @@ static unsigned int acpi_platform_adjust
->  	for (i = 0; i < count; ) {
->  		struct resource *res = &resources[i];
->  
-> -		if (resource_type(new_res) != resource_type(res) ||
-> +		/*
-> +		 * Look for overlaps of resources of the same type that would
-> +		 * cause resource insertion to fail down the road.
-> +		 */
-> +		if (__resource_contains_unbound(res, new_res) ||
-> +		    __resource_contains_unbound(new_res, res) ||
-> +		    resource_type(new_res) != resource_type(res) ||
->  		    !resource_union(new_res, res, new_res)) {
->  			i++;
->  			continue;
-> 
-> 
-> 
+On Tue, Aug 25, 2026 at 3:51=E2=80=AFPM Ilpo J=C3=A4rvinen
+<ilpo.jarvinen@linux.intel.com> wrote:
+>
+> On Tue, 25 Aug 2026, Rafael J. Wysocki (Intel) wrote:
+>
+> > On Tue, Aug 25, 2026 at 3:02=E2=80=AFPM Rafael J. Wysocki (Intel)
+> > <rafael@kernel.org> wrote:
+> > >
+> > > On Tue, Aug 25, 2026 at 2:32=E2=80=AFPM Ilpo J=C3=A4rvinen
+> > > <ilpo.jarvinen@linux.intel.com> wrote:
+> > > >
+> > > > On Tue, 25 Aug 2026, Rafael J. Wysocki (Intel) wrote:
+> > > >
+> > > > > On Tue, Aug 25, 2026 at 2:07=E2=80=AFPM Sakari Ailus
+> > > > > <sakari.ailus@linux.intel.com> wrote:
+> > > > > >
+> > > > > > Hi Rafael,
+> > > > > >
+> > > > > > On Tue, Aug 25, 2026 at 01:51:18PM +0200, Rafael J. Wysocki (In=
+tel) wrote:
+> > > > > > > On Mon, Aug 24, 2026 at 11:13=E2=80=AFPM Sakari Ailus
+> > > > > > > <sakari.ailus@linux.intel.com> wrote:
+> > > > > > > >
+> > > > > > > > Use DEFINE_FREE() to allow ACPI objects to be released auto=
+matically.
+> > > > > > >
+> > > > > > > But at least some of them are allocated by ACPICA functions l=
+ike
+> > > > > > > acpi_evaluate_object() and so they have no proper constructor=
+s.
+> > > > > >
+> > > > > > You could still assign the return buffer to a local variable. I=
+t's not
+> > > > > > ideal API-wise though.
+> > > > >
+> > > > > Exactly.
+> > > > >
+> > > > > > I'm not quite sure what was the point you wanted to make but I =
+reckon this
+> > > > > > wasn't an ack. :-)
+> > > > >
+> > > > > Using the _FREE with variables that are not initialized through a
+> > > > > constructor is questionable, so this is generally not particularl=
+y
+> > > > > clean.
+> > > >
+> > > > The driver does call ACPI_FREE() for that pointer so clearly it's a=
+lready
+> > > > using something ending with "_FREE" already. So unless Rafael is
+> > > > suggesting ACPI_FREE() should be renamed, I'm a bit lost what that
+> > > > even means on concrete terms.
+> > >
+> > > Sorry for the confusion.
+> > >
+> > > I just don't want people to do things like this:
+> > >
+> > >     struct acpi_buffer output =3D { ACPI_ALLOCATE_BUFFER };
+> > >     union acpi_object *out_obj __free(ACPI_FREE);
+> > >     acpi_status status;
+> > >
+> > >     status =3D acpi_evaluate_object(handle, METHOD_NAME, NULL, &outpu=
+t);
+> > >     if (ACPI_FAILURE(status))
+> > >         return AN_ERROR;
+> > >
+> > >    out_obj =3D output.pointer;
+> > >
+> > > > > There is no cleanup.h in ACPICA that is a more traditional C code
+> > > > > base, so mixing up ACPICA code, which ACPI_FREE() is strictly
+> > > > > speaking, with cleanup.h stuff is not particularly straightforwar=
+d
+> > > > > IMV.  I'd rather not do it.
+> > > >
+> > > > Perhaps add the DEFINE_FREE() into int3472 driver then, it seems to=
+ be
+> > > > what intel/pmc is already doing (I don't seem to anymore recall why=
+ it was
+> > > > added there). Using cleanup.h for that variable it clearly simplifi=
+es the
+> > > > code flow.
+> > >
+> > > Well, fair enough, but as I said elsewhere, the code flow
+> > > simplification can also be achieved in a different way.
+> > >
+> > > > It feels a bit stupid to duplicate it there but I guess we'll
+> > > > just have to live with that if there's no place in any acpi related
+> > > > headers for cleanup.h.
+> > >
+> > > If there is a cleanup.h "free" that can only be used with objects
+> > > returned by acpi_evaluate_dsm_typed(), I'll be fine with that.
+> > >
+> > > Or if everyone agrees that doing
+> > >
+> > >     union acpi_object *out_obj __free(ACPI_FREE) =3D NULL;
+> > >
+> > > is not confusing and fine, I may just say "Hey, I don't care that muc=
+h".
+> >
+> > And particularly there is this paragraph in a comment in cleanup.h:
+> >
+> >  * Given that the "__free(...) =3D NULL" pattern for variables defined =
+at
+> >  * the top of the function poses this potential interdependency problem
+> >  * the recommendation is to always define and assign variables in one
+> >  * statement and not group variable definitions at the top of the
+> >  * function when __free() is used.
+> >
+> > regarding a broken code example, so I would think that this is not a
+> > made-up concern.
+>
+> That comment relates to how defining the variables at the start of
+> functions may result in wrong/unexpected cleanup order. More imporantly,
+> the comment is not an argument for not using __free() but an instruction
+> on what is the correct pattern to use it so those ordering issues do not
+> occur.
+>
+> The cleanups will execute in reverse order the variables where defined so
+> a variable defined at start may be cleaned up only after releasing a lock
+> that was taken mid-function (which often is safe but one can easily
+> envision cases where the lock should be still held when the cleanup runs)=
+.
 
+I agree with all of the above.
 
-Reviewed-by: Jarkko Sakkinen <jarkko@kernel.org>
-
-BR, Jarkko
+Though I think that cleanup ordering issues are easier to overlook
+when the "__free(...) =3D NULL" pattern is used, which is why I wouldn't
+like to encourage using it.
