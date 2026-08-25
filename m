@@ -1,190 +1,180 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 591FB484236
-	for <linux-acpi@vger.kernel.org>; Tue, 25 Aug 2026 14:43:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 888033515E5;
+	Tue, 25 Aug 2026 16:31:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787668998; cv=none; b=BHjwTL8VgEBNzLTF06dlubJp0F4/vntcEnl1fB7RTt4i7c3frVz6fAqc7GZdx5Mg052f4PAii59tmuP1ACNLdaktZijb8yiytvcVWA/L20or3giwam3YHtuuczMuPXoTQxGf/ASJ0X3wx8dwmxHM/j2NmI2iCcizMckahvY8qQU=
+	t=1787675498; cv=none; b=DQ7XpO6DXxbBM46UitsX3sCW6ghe2Hnt1cSSxVNqYaL4fy1nVCNNzlG4qjYVpSDxuIZuVCsOqDUQxF2uXBXaQ/WIGedE/WIduN6VFjt3lz2Ty+9QwBlO3G0HO49RAG0JsRUxzELQNBzr5ZPoVDmTCIm5XVpUDE7sGTk+gIOc/vM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787668998; c=relaxed/simple;
-	bh=wch87i9yJYzX6N4Tw9uzlMwiZrqht4WcrmhzTQ4ye38=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=AvK5J0f1//rTV6kBa/ye7XJ7Lu36xbsD9nnWMVf3BvWh2jWF2ZmydWsjAdi3DqmZaTaUL7olPYGl9pKFnUEPs+97EMlvj7YZrpqwMUTwgmKCXcmDa/psiTO5f+ek496E4Bhn56JFaDwbkbOkZ8+zF49XdepXerzm1v3xCQ1ErHU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dBVp3+rh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787675498; c=relaxed/simple;
+	bh=dp+KW4f8+XPu+All9CHluvBCReWZ+TC7lcG0OTywihM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=n82hv8xUwVrLk/GVPgMnmXEsQ1P5tK5FLqSlv+BNx6mem9C6iWbQWm+0C9MoZVS1L2y7L80HKdI9LnJn1C4bUK+jvFnGXpxOcGG0ncJhDlYu5XG1nndtKzPLYT+sKRERcLF+SLN4/j7UY83md5PktZlOsGjZcnKrjDN98GM4gDI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=aeVGWzqV; arc=none smtp.client-ip=198.175.65.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dBVp3+rh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 122BB1F00ADB
-	for <linux-acpi@vger.kernel.org>; Tue, 25 Aug 2026 14:43:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787668996;
-	bh=wFVBzOqPc8UOPhde8GY7epvGk77JTDfDkKrM8bjfz9Q=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=dBVp3+rhMhgESq5Bk68zaGBVsPUVuGiSYAZXJ1JjYilUYEoou8PKBwgPk759hpJMd
-	 nK8udHHCOWHU7vRyesvhWnyXUg70xdeEiEYnRgR6Z1hhXyhw7tQxgnYyQqjEZXOvyC
-	 qEQOKVb8iTrT63/GBFNj16jtNBeyeRo4aYjxKkjfl+EQ57NwqJ3IrivBEXSYU52+t5
-	 h3j3BFUbt3QdnH8orji+ByALcgpt6XGHb/g+FS6DLxDiHT85iOzM+kdmMHKQBVC98h
-	 umJUaETul4dY3tBEHo89k62YjT15weBS/CLFdqJxTE7lng5vQwCypZl0DpLEoDPB5f
-	 ay8cLHwl+3xsg==
-Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5b49fee1ce9so421995e87.0
-        for <linux-acpi@vger.kernel.org>; Tue, 25 Aug 2026 07:43:15 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RqWJta3QWhw5sjMHYgE7jHidv8t6gKMYZ3BwjZrWe86LsvZ9JlIcuVBBjyQwjzfoAhsjI+rWwoPZHlz@vger.kernel.org
-X-Gm-Message-State: AFuF++kpF9CLDd+EZum3/jIsgGOyozLm5JGZ1CfG6jtNcP7yFjRzeeYI
-	Ci3yP1GbW/vwJkr5OjBqBSdbO+avv1xBBcOTMYdnRZpBR6+AojqbJKVC3a8tZ39ApIoRGWO7c48
-	9bVFHsPFnJNi4W6xXsoM4OY+BxfD1K44=
-X-Received: by 2002:a05:651c:b29:b0:39b:2757:c1d3 with SMTP id
- 38308e7fff4ca-3a1aec08881mr83137611fa.9.1787668994165; Tue, 25 Aug 2026
- 07:43:14 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="aeVGWzqV"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1787675495; x=1819211495;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=dp+KW4f8+XPu+All9CHluvBCReWZ+TC7lcG0OTywihM=;
+  b=aeVGWzqVPoeCBYccfqZfocDNtYXZ+9U70x2WkaIqDD2nOl4j5YVm1Toj
+   jHwg+Xp/YBfIlWbvSEKIWxCs7IchfK11oiUH1WzgT5X4OqLgO2JMzjJCL
+   EgzKH/pQYvSMOCpetJ1tzisxP69s55GumrJLb5dmjioyhKXurZ26QKTIu
+   5YZmZHYCYh8sTW+DmcHDCqGcRmFE6Mf7veZyuqSycJWejScjRBocHz0yu
+   nK3O+CJ0CndXl6nSmcWkwAfXeDtilJJ8I3R5DyxSL9Hxaz4o0scc+witI
+   yU/Iq21RvOblnrViQTw9n3zxK6frVf+t+izr8fE3zbnzLdlhagLPiykxa
+   A==;
+X-CSE-ConnectionGUID: frG1NGs0Q3ibq1+y8nBFIg==
+X-CSE-MsgGUID: PDRVug1wQ86NMyNVmVaKXw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11886"; a="99672718"
+X-IronPort-AV: E=Sophos;i="6.25,243,1779174000"; 
+   d="scan'208";a="99672718"
+Received: from orviesa010.jf.intel.com ([10.64.159.150])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2026 09:31:33 -0700
+X-CSE-ConnectionGUID: DcwmwOpvQsuo+93AAIqMNw==
+X-CSE-MsgGUID: okcB3BlcS9KLlCBvWFpZkg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,243,1779174000"; 
+   d="scan'208";a="266026376"
+Received: from rchatre-mobl4.amr.corp.intel.com (HELO [10.125.109.2]) ([10.125.109.2])
+  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2026 09:31:32 -0700
+Message-ID: <5d86f754-c1ca-4a70-ad8e-a94b3c23ff4a@intel.com>
+Date: Tue, 25 Aug 2026 09:31:28 -0700
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260824211338.3583976-1-sakari.ailus@linux.intel.com>
- <20260824211338.3583976-4-sakari.ailus@linux.intel.com> <CAJZ5v0ieb2FcANOt0MRMsTrwtbLiUF48W_c=3z3OpNH92d=7vg@mail.gmail.com>
- <ao2FmNRFjSJVxhrL@kekkonen.localdomain> <CAJZ5v0gQVFxSkkjPbRf6bsKdgUBGduZV0M5SWrHoeB246ZLqew@mail.gmail.com>
- <134e9566-7913-86d7-1e8b-b2ca9ebec55c@linux.intel.com> <CAJZ5v0h4KD6Q1DeuwbFQ83U1=wKORMWUQNA2BwnFtsYAyzz_Ow@mail.gmail.com>
- <CAJZ5v0ggPGEu8YQTpeTC6=tVNr1zponkCbs+UQPieAH5k6ngUg@mail.gmail.com> <831afa75-ab9f-b54e-a5a5-6b46f4fe26cc@linux.intel.com>
-In-Reply-To: <831afa75-ab9f-b54e-a5a5-6b46f4fe26cc@linux.intel.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 25 Aug 2026 16:42:31 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iYNQgrKfH0Jpv1g1Ja3d=vA8+TWpWKaipivjd0iN-gUQ@mail.gmail.com>
-X-Gm-Features: AcwNN1WzxmKSLqDHEdyKyFwsm9FCSoLC9qlNcs_i000cZYtvQgZf5gLQKfFi4kg
-Message-ID: <CAJZ5v0iYNQgrKfH0Jpv1g1Ja3d=vA8+TWpWKaipivjd0iN-gUQ@mail.gmail.com>
-Subject: Re: [PATCH v2 3/5] ACPI: Support __free() from cleanup.h for ACPI objects
-To: =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	linux-media@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	Daniel Scally <dan.scally@ideasonboard.com>, Hans de Goede <hansg@kernel.org>, 
-	platform-driver-x86@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v4 01/13] efi/cper: Reject CPER records with an
+ out-of-range error_data_length
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org, rafael@kernel.org,
+ tony.luck@intel.com, bp@alien8.de, guohanjun@huawei.com, mchehab@kernel.org,
+ xueshuai@linux.alibaba.com, terry.bowman@amd.com, benjamin.cheatham@amd.com,
+ alison.schofield@intel.com, sashiko-bot@kernel.org
+References: <20260824174936.939059-1-dave.jiang@intel.com>
+ <20260824174936.939059-2-dave.jiang@intel.com>
+ <20260824225720.60a4fdcf@jic23-huawei>
+From: Dave Jiang <dave.jiang@intel.com>
+Content-Language: en-US
+In-Reply-To: <20260824225720.60a4fdcf@jic23-huawei>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Tue, Aug 25, 2026 at 3:51=E2=80=AFPM Ilpo J=C3=A4rvinen
-<ilpo.jarvinen@linux.intel.com> wrote:
->
-> On Tue, 25 Aug 2026, Rafael J. Wysocki (Intel) wrote:
->
-> > On Tue, Aug 25, 2026 at 3:02=E2=80=AFPM Rafael J. Wysocki (Intel)
-> > <rafael@kernel.org> wrote:
-> > >
-> > > On Tue, Aug 25, 2026 at 2:32=E2=80=AFPM Ilpo J=C3=A4rvinen
-> > > <ilpo.jarvinen@linux.intel.com> wrote:
-> > > >
-> > > > On Tue, 25 Aug 2026, Rafael J. Wysocki (Intel) wrote:
-> > > >
-> > > > > On Tue, Aug 25, 2026 at 2:07=E2=80=AFPM Sakari Ailus
-> > > > > <sakari.ailus@linux.intel.com> wrote:
-> > > > > >
-> > > > > > Hi Rafael,
-> > > > > >
-> > > > > > On Tue, Aug 25, 2026 at 01:51:18PM +0200, Rafael J. Wysocki (In=
-tel) wrote:
-> > > > > > > On Mon, Aug 24, 2026 at 11:13=E2=80=AFPM Sakari Ailus
-> > > > > > > <sakari.ailus@linux.intel.com> wrote:
-> > > > > > > >
-> > > > > > > > Use DEFINE_FREE() to allow ACPI objects to be released auto=
-matically.
-> > > > > > >
-> > > > > > > But at least some of them are allocated by ACPICA functions l=
-ike
-> > > > > > > acpi_evaluate_object() and so they have no proper constructor=
-s.
-> > > > > >
-> > > > > > You could still assign the return buffer to a local variable. I=
-t's not
-> > > > > > ideal API-wise though.
-> > > > >
-> > > > > Exactly.
-> > > > >
-> > > > > > I'm not quite sure what was the point you wanted to make but I =
-reckon this
-> > > > > > wasn't an ack. :-)
-> > > > >
-> > > > > Using the _FREE with variables that are not initialized through a
-> > > > > constructor is questionable, so this is generally not particularl=
-y
-> > > > > clean.
-> > > >
-> > > > The driver does call ACPI_FREE() for that pointer so clearly it's a=
-lready
-> > > > using something ending with "_FREE" already. So unless Rafael is
-> > > > suggesting ACPI_FREE() should be renamed, I'm a bit lost what that
-> > > > even means on concrete terms.
-> > >
-> > > Sorry for the confusion.
-> > >
-> > > I just don't want people to do things like this:
-> > >
-> > >     struct acpi_buffer output =3D { ACPI_ALLOCATE_BUFFER };
-> > >     union acpi_object *out_obj __free(ACPI_FREE);
-> > >     acpi_status status;
-> > >
-> > >     status =3D acpi_evaluate_object(handle, METHOD_NAME, NULL, &outpu=
-t);
-> > >     if (ACPI_FAILURE(status))
-> > >         return AN_ERROR;
-> > >
-> > >    out_obj =3D output.pointer;
-> > >
-> > > > > There is no cleanup.h in ACPICA that is a more traditional C code
-> > > > > base, so mixing up ACPICA code, which ACPI_FREE() is strictly
-> > > > > speaking, with cleanup.h stuff is not particularly straightforwar=
-d
-> > > > > IMV.  I'd rather not do it.
-> > > >
-> > > > Perhaps add the DEFINE_FREE() into int3472 driver then, it seems to=
- be
-> > > > what intel/pmc is already doing (I don't seem to anymore recall why=
- it was
-> > > > added there). Using cleanup.h for that variable it clearly simplifi=
-es the
-> > > > code flow.
-> > >
-> > > Well, fair enough, but as I said elsewhere, the code flow
-> > > simplification can also be achieved in a different way.
-> > >
-> > > > It feels a bit stupid to duplicate it there but I guess we'll
-> > > > just have to live with that if there's no place in any acpi related
-> > > > headers for cleanup.h.
-> > >
-> > > If there is a cleanup.h "free" that can only be used with objects
-> > > returned by acpi_evaluate_dsm_typed(), I'll be fine with that.
-> > >
-> > > Or if everyone agrees that doing
-> > >
-> > >     union acpi_object *out_obj __free(ACPI_FREE) =3D NULL;
-> > >
-> > > is not confusing and fine, I may just say "Hey, I don't care that muc=
-h".
-> >
-> > And particularly there is this paragraph in a comment in cleanup.h:
-> >
-> >  * Given that the "__free(...) =3D NULL" pattern for variables defined =
-at
-> >  * the top of the function poses this potential interdependency problem
-> >  * the recommendation is to always define and assign variables in one
-> >  * statement and not group variable definitions at the top of the
-> >  * function when __free() is used.
-> >
-> > regarding a broken code example, so I would think that this is not a
-> > made-up concern.
->
-> That comment relates to how defining the variables at the start of
-> functions may result in wrong/unexpected cleanup order. More imporantly,
-> the comment is not an argument for not using __free() but an instruction
-> on what is the correct pattern to use it so those ordering issues do not
-> occur.
->
-> The cleanups will execute in reverse order the variables where defined so
-> a variable defined at start may be cleaned up only after releasing a lock
-> that was taken mid-function (which often is safe but one can easily
-> envision cases where the lock should be still held when the cleanup runs)=
-.
 
-I agree with all of the above.
 
-Though I think that cleanup ordering issues are easier to overlook
-when the "__free(...) =3D NULL" pattern is used, which is why I wouldn't
-like to encourage using it.
+On 8/24/26 2:57 PM, Jonathan Cameron wrote:
+> On Mon, 24 Aug 2026 10:49:24 -0700
+> Dave Jiang <dave.jiang@intel.com> wrote:
+> 
+>> cper_estatus_check() sizes each section with acpi_hest_get_record_size(),
+>> which adds the firmware-controlled u32 error_data_length to the header size
+>> as a signed int (see <acpi/ghes.h>). A value in the top sizeof(*gdata)
+>> bytes of the u32 range wraps the sum small rather than large, so it slips
+>> past the "record_size > data_len" check: against the 72-byte v300 header,
+>> 0xffffffb9 sizes the record at 1 and acpi_hest_get_next() walks it a byte
+>> at a time, off the end. 0xffffffb8 sizes it at 0 and loops forever.
+>>
+>> Sum in u64 so the check sees the real size, and reject a size the int
+>> helpers cannot carry, since the walk advances by their return value.
+>>
+>> This is the per-section upper bound the later "len < sizeof(*foo)" guards
+>> rely on; they are lower bounds only.
+>>
+>> Reported-by: sashiko-bot@kernel.org
+>> Closes: https://sashiko.dev/#/patchset/20260714231835.303081-1-dave.jiang@intel.com?part=1
+>> Fixes: 45b14a4ffcc1 ("efi: cper: Fix possible out-of-bounds access")
+>> Assisted-by: Claude:claude-opus-4-8
+>> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> I know I'm late to the discussion but maybe it would just be simpler to
+> use check_add_overflow()?
+> 
+>> ---
+>> v4:
+>> - Do the arithmetic in u64 at the choke point instead of bounding the u32
+>>   error_data_length against data_len, so the check no longer depends on the
+>>   signed helpers in <acpi/ghes.h> behaving (Tony Luck). Bounding the u32
+>>   still left a window when data_length itself was within a header of
+>>   U32_MAX, and it did not stop acpi_hest_get_next() advancing by a wrapped
+>>   int. The v3 "< 0" arm was dead either way, since data_len is unsigned and
+>>   promoted the int back (Tony Luck, Shuai Xue).
+>> - Dropped Alison's and Shuai's Reviewed-by; the check was reworked after
+>>   they reviewed it.
+>> ---
+>>  drivers/firmware/efi/cper.c | 16 +++++++++++++---
+>>  1 file changed, 13 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
+>> index 06b4fdb59917..ec092729cacc 100644
+>> --- a/drivers/firmware/efi/cper.c
+>> +++ b/drivers/firmware/efi/cper.c
+>> @@ -752,7 +752,7 @@ EXPORT_SYMBOL_GPL(cper_estatus_check_header);
+>>  int cper_estatus_check(const struct acpi_hest_generic_status *estatus)
+>>  {
+>>  	struct acpi_hest_generic_data *gdata;
+>> -	unsigned int data_len, record_size;
+>> +	unsigned int data_len;
+>>  	int rc;
+>>  
+>>  	rc = cper_estatus_check_header(estatus);
+>> @@ -762,11 +762,21 @@ int cper_estatus_check(const struct acpi_hest_generic_status *estatus)
+>>  	data_len = estatus->data_length;
+>>  
+>>  	apei_estatus_for_each_section(estatus, gdata) {
+>> +		u64 record_size;
+>> +
+>>  		if (acpi_hest_get_size(gdata) > data_len)
+>>  			return -EINVAL;
+>>  
+>> -		record_size = acpi_hest_get_record_size(gdata);
+>> -		if (record_size > data_len)
+>> +		/*
+>> +		 * acpi_hest_get_record_size() sums these as a signed int (see
+>> +		 * <acpi/ghes.h>), which wraps small for a huge
+>> +		 * error_data_length and slips past the check below. Sum in u64,
+>> +		 * and reject what those helpers cannot carry, since the walk
+>> +		 * advances by their return value.
+>> +		 */
+>> +		record_size = (u64)acpi_hest_get_size(gdata) +
+>> +			      gdata->error_data_length;
+> 
+> I'm late to the game obviously and what you have works but could this have
+> used some explicit overflow checking?  Something like
+
+Not late at all.
+
+> 
+> 		if (check_add_overflow(acpi_hest_get_size(gdata),
+> 				       gdata->error_data_length, &record_size))
+> 			return -EINVAL;
+> 
+> 		if (record_size > data_len)
+> 			return -EINVAL;
+> 
+> That uses the compiler __builtin_add_overflow() which checks if the infinite
+> precision result of the sum of the parameters would have wrapped when written
+> to the output one.
+> 
+> I think you could then drop the earlier check as well as
+> record_size is at least as big as acpi_hest_get_size() and we know there
+> was no wrap around.
+> 
+
+Yup I'll do that.
+
+DJ
+
+> 	
+>> +		if (record_size > data_len || record_size > INT_MAX)
+>>  			return -EINVAL;
+>>  
+>>  		data_len -= record_size;
+> 
+
