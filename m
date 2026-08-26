@@ -1,278 +1,173 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E176A37E5F2;
-	Thu, 27 Aug 2026 06:31:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from out203-205-221-221.mail.qq.com (out203-205-221-221.mail.qq.com [203.205.221.221])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 310103644BE;
+	Thu, 27 Aug 2026 06:42:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.205.221.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787812318; cv=none; b=elfBHfwtz1ZSH7sQj/WhroP3rEj8s6ooJ8vgPGpUNudNiEAeDs+bTzVyBPFux0OslC3ZIEdO5NzNvEOs06V0yyGbV5zkLFecDb/vSTa0mufXxdfbd9xBwbWUNDINb1rM9wTFkI5oOxWmRkKF8/ZaMN4xhBt9oZ/olUWA6vAZRhE=
+	t=1787812961; cv=none; b=M2NjKfscgDqTBjMxPE3ha691owaDCnV+ME+ehU1fByjktIOHK/QawDuKq4i8k+1yvc1LsvmiP2KXOrLlT+XseSwNufJW6WSyeVNzEcT/jHbzV9FR8ttIsBSIZ6l8MmP7BFqwM94NAmFPdQOf3qqv9TmXrif3K40t3uUN+rYrsAk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787812318; c=relaxed/simple;
-	bh=wYDipPpsn3hVxVkCp+T3hJZXl4lxoxD6MBvRZ1E8Xq8=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=FeRB0RKOyAtx6UhAE+jtOsaRncgN1At0Vt2PHHNW66dOHdDYCfuaBpYjRSJJAW+JE/yAY9NhzYATkIzgR7x5SDbov8VTHFicKXdPt+UZrReJTT5qbM3DCj7+SzsQllKwckm4OuQAI7i9NYvs9YpUX5T1pjdmZJhV/GNZbDE+opM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=uWUNTv4k; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1787812961; c=relaxed/simple;
+	bh=YVZtFrajDbpPflOWP7G1rE6Ax3pnPOPv3Z9dYQLRObc=;
+	h=Message-ID:From:To:Cc:Subject:Date:MIME-Version:Content-Type; b=IRTn6XG9BAL9K09ITZ3Chl8xKT4dSNaiZ5+juxsQ3vE2Z7Z4DDYjU5ohkV+scZNwCYH6iD7e7fc20hZ77JOCZrGqNvizkR4DFH87032JLqQCU1o+t8AsFHJIP75zmUO/mYsXOdlNpvZWzNFGFASsK7FZypXjh4GgTkpUGp9iS2w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com; spf=pass smtp.mailfrom=qq.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=kOY5F4Zo; arc=none smtp.client-ip=203.205.221.221
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="uWUNTv4k"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B8FA0169E;
-	Wed, 26 Aug 2026 23:31:51 -0700 (PDT)
-Received: from e127648.arm.com (unknown [10.57.73.34])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 2A22D3F85F;
-	Wed, 26 Aug 2026 23:31:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1787812315; bh=wYDipPpsn3hVxVkCp+T3hJZXl4lxoxD6MBvRZ1E8Xq8=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=uWUNTv4kZFK3QBh7m7kJzymtCVPUQXCVrnBXyYGpOB7Gdpa/mZkk8GHN7qfv2Tf8p
-	 jrYfXx/lv2E2gYCQpQpbhRB4CzgHMlbvVeYXaYQ6pu+fCMagYFs2JGTqDQsJVMjtzD
-	 I7/bw4zGHmSgHXtEqG6Vl6fl//m1zaxTOEpId70k=
-From: Christian Loehle <christian.loehle@arm.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
-	Viresh Kumar <viresh.kumar@linaro.org>
-Cc: linux-pm@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Len Brown <lenb@kernel.org>,
-	Jie Zhan <zhanjie9@hisilicon.com>,
-	Lifeng Zheng <zhenglifeng1@huawei.com>,
-	Pierre Gondois <pierre.gondois@arm.com>,
-	Sumit Gupta <sumitg@nvidia.com>,
-	Sudeep Holla <sudeep.holla@arm.com>,
-	Ionela Voinescu <ionela.voinescu@arm.com>,
-	zhongqiu.han@oss.qualcomm.com,
-	Christian Loehle <christian.loehle@arm.com>,
-	Sashiko <sashiko-bot@kernel.org>
-Subject: [PATCH v5 15/15] ACPI: CPPC: Clear Performance Limited without a stale read
-Date: Thu, 27 Aug 2026 07:31:00 +0100
-Message-Id: <20260827063100.2741066-16-christian.loehle@arm.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260827063100.2741066-1-christian.loehle@arm.com>
-References: <20260827063100.2741066-1-christian.loehle@arm.com>
+	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="kOY5F4Zo"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
+	t=1787812949; bh=JN9cwocoVSnc4dJa47FODR20clQofla8GnMhi3yDhV8=;
+	h=From:To:Cc:Subject:Date:Reply-To;
+	b=kOY5F4ZotXa0qDnYqIZ15Ts6E3vtH2XM3JAbOqAhMukEAneeLwdjFHHpc7mI+BIcB
+	 BWlyFvvpz9UKC0zwzOi1I2xYzY4WVtf2i2D/ErIdOMZhKsP6LkY9JVkybndFeOdjoS
+	 lm4D75hHEngq7wcyKP82ozvw5agrzRpT8NPpiqBI=
+Received: from DESKTOP-5664AH9 ([2408:8459:3840:c746:b80c:e0bd:3b46:8260])
+	by newxmesmtplogicsvrsza53-0.qq.com (NewEsmtp) with SMTP
+	id A9A38C9F; Thu, 27 Aug 2026 14:42:26 +0800
+X-QQ-mid: xmsmtpt1787812946t05jmb08z
+Message-ID: <tencent_262C335D5C0549C6ED9EA88FF00437B26708@qq.com>
+X-QQ-XMAILINFO: ObqHjTnQtDvTAcFSH+C+DJDy0FfoQfjZrD7wmIzsexCrOt/9BJ7V2jG0bHco6+
+	 GvsF5sYMpJE4XNp9lp5q1gpgTeNymM9IwhkcG0vNTLNmrcUFPflvxp6Z25PTj2bdPNyevL0ZRDHg
+	 D6ppZBxKuad4ND4OlTzvuQ6RlHxbabMu+GBLizJK9c/ugt5cipOvCacteJ0bYr+EXaJoSk9A6OPQ
+	 3CahuzVEBzhRI5N58/D1LnBl5ULcE9g3F1aDAlhd6SQPJj668yvY0mbc3gpC56RFu2amjchD2l/H
+	 mDUP29fYhTeqVXQkR7gerRhlw+kPzrgTsZg580xlH5h+Zqr5eJLUSPEdIIraTZ9RQhfN4KYY3mbD
+	 dCxdQ8ARJkHzNhgtU1xv4zN47TUiP+oFnvd7Bgr+FoOuXchJSJGEFvsL7+XfrUfOYFX6UEbfYNnG
+	 qcJW+yW6S02Kwn5qxoEu6SDLWys6BBeqoGghmWmIih/4/La9yiRqVPGSgaqZKexDinK2WIutb/dN
+	 1vNl0JF0g/sQSU5wNRSyqsQ5ne+39oFv1AC1iGwFWDyd2VGNv6jSjC/yplqqJlzf9bShGlkeDNj0
+	 q7dfN4Kb5bu2+qc64Rm6RjkaR9vLqWynoF/HhzeQBEKClIVUg/7f0+5p/Q00RkUqbHL3jlIrDIib
+	 QHuOdE0dbLRgw4K2e6T+XuHeuPXdR/cg7UBsU+6EYPp5m81++WduC7scW4bYogEjEUcuF2z9kqOH
+	 CmPhwlPCNvvFCcHu8EX2cn3mybbgkgeL74Ae/K0LoKRUw1QJa1QtyMWFdbXtynMmX+Tv3QYAha3r
+	 rAsVeogBqjGCY/dxiJT3W3xTar5wRhquiEZdDjjeJ1uvVn4H65MpVQR22Sl4tz4s6gWL9sDpKlo9
+	 gElDYP1M6xRDxJl/MUdLwaBAV4QCAiSCRm5WeJZ1GkGLKzyG71JUDlQCbXAWhuIIepCgSw1prs2j
+	 w5is7tjC142yoQ63pgwCBL7su+rxsP19Zye0pE6bDJU0gqHiZhyn8tFryR+awdowOk2H3NmElx7F
+	 Ac8SA7rdbSW+DgwOMhp5RuUZQ8sD5gRYkWYeyAJW6IN31OPP9qg/h6PNOq0MKV9SYy13SsPJqH6b
+	 5I8AZ9IUZX9PI2j6MzPQ7ZOOyy6sztrjjyrf1zdtfbHJMUJ3rp8mu7z+5qp909ISLVCBen
+X-QQ-XMRINFO: OD9hHCdaPRBwH5bRRRw8tsiH4UAatJqXfg==
+From: =?UTF-8?q?DUAN=20Xuejian=20=28=E6=AE=B5=E9=9B=AA=E5=81=A5=29?= <445735441@qq.com>
+To: greg@kroah.com
+Cc: linux-acpi@vger.kernel.org,
+	hansg@kernel.org,
+	rafael.j.wysocki@intel.com,
+	stable@vger.kernel.org,
+	DUAN Xuejian <445735441@qq.com>
+Subject: [PATCH v2] ACPI: resource: Add MECHREVO GM5BG0E to irq1_edge_low_force_override[]
+Date: Thu, 27 Aug 2026 06:42:27 +0800
+X-OQ-MSGID: <20260826224227.1489-1-445735441@qq.com>
+X-Mailer: git-send-email 2.55.0.windows.3
+Reply-To: greg@kroah.com
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-The Performance Limited status bits are sticky and write-zero-to-clear.
-ACPI 6.6 Section 8.4.6.1.3.2 also requires both entities to use interlocked
-accesses.
+Changes since v1:
+- Use real name (DUAN Xuejian) instead of nickname (Hackdale)
+- Add real Link to mailing list discussion
+- Update maintainer email (hansg@kernel.org)
 
-cppc_set_perf_limited() currently reads the register, computes a new value,
-and writes it in a separate transaction. If the platform reports another
-excursion between those transactions, the stale write can clear that new
-event.
+The MECHREVO Jiaolong 15K (GM5BG0E), an AMD Ryzen 7 7435H based laptop,
+has a defective DSDT that declares the PS2K keyboard IRQ1 as ActiveLow,
+whereas the hardware is actually ActiveHigh. Starting with Linux 6.0,
+the kernel no longer auto-corrects this polarity mismatch on AMD Zen
+platforms, causing the internal keyboard to become non-functional.
 
-Write zero to the requested bits and one to the other defined status bits
-directly. Keep reserved bits zero as required for hardware status registers
-by ACPI 6.6 Section 4.6.1. This removes the stale read window.
+Add the GM5BG0E board to the irq1_edge_low_force_override[] DMI quirk
+table so that the kernel forces the correct IRQ polarity for this model.
 
-A partial SystemMemory field would still make the generic writer perform a
-read-modify-write to preserve the containing access unit. The
-per-descriptor spinlock cannot interlock that RMW with platform updates, so
-reject clears of such a field. Keep the descriptor mapped and readable,
-because reading the containing access unit once and extracting the field
-does not require RMW.
-
-Also reject another writable SystemMemory field sharing Performance
-Limited's access unit. Its RMW could similarly replay stale status bits,
-and an OSPM lock cannot serialize against the platform.
-
-Also reject 64-bit SystemMemory descriptions on 32-bit kernels, where
-generic readq()/writeq() may be split into two 32-bit operations and cannot
-provide the required portable interlocked access. A naturally aligned
-full-width QWord remains supported on 64-bit kernels, where the
-architecture provides a native 64-bit MMIO accessor.
-
-Performance Limited status is not required for CPPC control. If firmware
-describes it using an access which Linux cannot read safely, disable that
-status register instead of rejecting the processor's otherwise usable _CPC
-package. Report reads as unsupported rather than returning a synthetic
-zero, and emit a single warning for each nonfatal fallback.
-
-Fixes: 13c45a26635f ("ACPI: CPPC: add APIs and sysfs interface for perf_limited")
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Link: https://sashiko.dev/#/patchset/20260807111303.1062391-1-christian.loehle%40arm.com
-Signed-off-by: Christian Loehle <christian.loehle@arm.com>
+Link: https://lore.kernel.org/linux-acpi/tencent_7C3B122A153CDB0DEF19FA4C03D779D27806@qq.com/
+Cc: All applicable <stable@vger.kernel.org>
+Signed-off-by: DUAN Xuejian (段雪健) <445735441@qq.com>
 ---
- drivers/acpi/cppc_acpi.c | 74 +++++++++++++++++++++++++++-------------
- include/acpi/cppc_acpi.h |  1 +
- 2 files changed, 52 insertions(+), 23 deletions(-)
+ drivers/acpi/resource.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 62d50ec71ca7..5f0c5e1394d2 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -194,7 +194,8 @@ static struct cpc_sysmem_node *cpc_sysmem_next(struct cpc_sysmem_node *node,
- static bool cpc_is_writable(const struct cpc_register_resource *cpc)
- {
- 	return cpc->type == ACPI_TYPE_BUFFER &&
--	       !IS_NULL_REG(&cpc->cpc_entry.reg);
-+	       !IS_NULL_REG(&cpc->cpc_entry.reg) &&
-+	       !cpc->cpc_entry.write_unsupported;
- }
- 
- static bool cpc_entry_present(const struct cpc_register_resource *cpc)
-@@ -390,7 +391,7 @@ static bool cpc_sysmem_reg_needs_rmw(const struct cpc_register_resource *reg)
- 	return gas->bit_offset || gas->bit_width != access_size * 8;
- }
- 
--static int cpc_validate_sysmem_reg(const struct cpc_desc *cpc_desc,
-+static int cpc_validate_sysmem_reg(struct cpc_desc *cpc_desc,
- 				   const struct cpc_reg *gas,
- 				   unsigned int reg_idx)
- {
-@@ -412,6 +413,17 @@ static int cpc_validate_sysmem_reg(const struct cpc_desc *cpc_desc,
- 	if (gas->address & (access_size - 1))
- 		goto invalid;
- 
-+	if (reg_idx == PERF_LIMITED) {
-+		if (access_width == 64 && !IS_ENABLED(CONFIG_64BIT))
-+			return -EINVAL;
-+
-+		if (gas->bit_offset || gas->bit_width != access_width) {
-+			pr_warn("CPU%d: Performance Limited register cannot be cleared safely; keeping it readable\n",
-+				cpc_desc->cpu_id);
-+			cpc_desc->cpc_regs[reg_idx].cpc_entry.write_unsupported = true;
-+		}
-+	}
-+
- 	return 0;
- 
- invalid:
-@@ -438,6 +450,14 @@ static int cpc_resolve_unsupported(struct cpc_desc *cpc_desc,
- 		if (!(unsupported & BIT(i)))
- 			continue;
- 
-+		/* CPPC control does not depend on Performance Limited status. */
-+		if (i == PERF_LIMITED) {
-+			pr_warn("CPU%d: ignoring inaccessible Performance Limited register\n",
-+				cpc_desc->cpu_id);
-+			cpc_disable_reg(cpc_desc, i);
-+			continue;
-+		}
-+
- 		if (i == DESIRED_PERF && cpc_immutable_autonomous(cpc_desc)) {
- 			pr_warn("CPU%d: ignoring inaccessible Desired Performance register in autonomous mode\n",
- 				cpc_desc->cpu_id);
-@@ -724,7 +744,8 @@ static void cpc_mark_rmw_lock_users(struct cpc_desc *cpc_desc)
- 	for (i = 0; i < cpc_desc->num_entries - 2; i++) {
- 		struct cpc_register_resource *reg = &cpc_desc->cpc_regs[i];
- 
--		if (CPC_SUPPORTED(reg) && CPC_IN_SYSTEM_MEMORY(reg))
-+		if (CPC_SUPPORTED(reg) && CPC_IN_SYSTEM_MEMORY(reg) &&
-+		    cpc_is_writable(reg))
- 			reg->cpc_entry.use_rmw_lock =
- 				cpc_sysmem_reg_needs_rmw(reg);
- 	}
-@@ -805,10 +826,11 @@ static int cpc_validate_sysmem_pair(const struct cpc_desc *a_desc,
- 
- 	if (cpc_same_sysmem_register(a_idx, a, b_idx, b)) {
- 		/*
--		 * Cross-CPU partial writes were never safely serialized, and a
--		 * 64-bit MMIO write may be split on 32-bit kernels.
-+		 * Identical read-only registers may be shared. Cross-CPU partial
-+		 * writes were never safely serialized, and a 64-bit MMIO write may
-+		 * be split on 32-bit kernels.
- 		 */
--		if (!a_writable ||
-+		if ((!cpc_is_writable(a) && !cpc_is_writable(b)) ||
- 		    (!cpc_sysmem_reg_needs_rmw(a) &&
- 		     (cpc_sysmem_access_size(a) < sizeof(u64) ||
- 		      IS_ENABLED(CONFIG_64BIT))))
-@@ -816,6 +838,15 @@ static int cpc_validate_sysmem_pair(const struct cpc_desc *a_desc,
- 		goto conflict;
- 	}
- 
-+	/*
-+	 * The platform may set Performance Limited asynchronously.  A write to
-+	 * another field in the same access unit could write back stale status
-+	 * bits, which an OSPM lock cannot prevent.
-+	 */
-+	if ((a_idx == PERF_LIMITED && b_writable && cpc_is_writable(b)) ||
-+	    (b_idx == PERF_LIMITED && a_writable && cpc_is_writable(a)))
-+		goto conflict;
-+
- 	/*
- 	 * A full-width writable register owns its access unit.  It cannot
- 	 * coexist with another logical field because it has no bits to
-@@ -2070,13 +2101,10 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
- 	unsigned int i;
- 	bool locked = false;
- 
--	if (reg_res->type != ACPI_TYPE_BUFFER)
-+	if (!cpc_is_writable(reg_res))
- 		return -EOPNOTSUPP;
- 
- 	reg = &reg_res->cpc_entry.reg;
--	if (IS_NULL_REG(reg))
--		return -EOPNOTSUPP;
--
- 	size = GET_BIT_WIDTH(reg);
- 
- 	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
-@@ -2238,9 +2266,13 @@ static int cppc_get_reg_val(int cpu, enum cppc_regs reg_idx, u64 *val)
- 
- 	reg = &cpc_desc->cpc_regs[reg_idx];
- 
--	/* Desired may be absent for immutable autonomous selection. */
-+	/*
-+	 * Desired and Performance Limited may be disabled despite not being
-+	 * generally optional.
-+	 */
- 	if ((reg->type == ACPI_TYPE_INTEGER &&
--	     (IS_OPTIONAL_CPC_REG(reg_idx) || reg_idx == DESIRED_PERF) &&
-+	     (IS_OPTIONAL_CPC_REG(reg_idx) || reg_idx == DESIRED_PERF ||
-+	      reg_idx == PERF_LIMITED) &&
- 	     !reg->cpc_entry.int_value) || (reg->type != ACPI_TYPE_INTEGER &&
- 	     IS_NULL_REG(&reg->cpc_entry.reg))) {
- 		pr_debug("CPC register is not supported\n");
-@@ -3164,9 +3196,6 @@ EXPORT_SYMBOL_GPL(cppc_get_perf_limited);
-  */
- int cppc_set_perf_limited(int cpu, u64 bits_to_clear)
- {
--	u64 current_val, new_val;
--	int ret;
--
- 	/* Only bits 0 and 1 are valid */
- 	if (bits_to_clear & ~CPPC_PERF_LIMITED_MASK)
- 		return -EINVAL;
-@@ -3174,14 +3203,13 @@ int cppc_set_perf_limited(int cpu, u64 bits_to_clear)
- 	if (!bits_to_clear)
- 		return 0;
- 
--	ret = cppc_get_perf_limited(cpu, &current_val);
--	if (ret)
--		return ret;
--
--	/* Clear the specified bits */
--	new_val = current_val & ~bits_to_clear;
--
--	return cppc_set_reg_val(cpu, PERF_LIMITED, new_val);
-+	/*
-+	 * Performance Limited is write-zero-to-clear.  Write one to the other
-+	 * defined sticky bits so a concurrently reported event is not cleared
-+	 * using a value obtained by an earlier, separate read transaction.
-+	 */
-+	return cppc_set_reg_val(cpu, PERF_LIMITED,
-+				CPPC_PERF_LIMITED_MASK & ~bits_to_clear);
- }
- EXPORT_SYMBOL_GPL(cppc_set_perf_limited);
- 
-diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index 3275ecb51ca5..91635fcac3c5 100644
---- a/include/acpi/cppc_acpi.h
-+++ b/include/acpi/cppc_acpi.h
-@@ -72,6 +72,7 @@ struct cpc_register_resource {
- 		struct {
- 			struct cpc_reg reg;
- 			bool use_rmw_lock;
-+			bool write_unsupported;
- 		};
- 		u64 int_value;
- 	} cpc_entry;
 -- 
-2.34.1
+2.49.0
+
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index xxxxxxx..xxxxxxx 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -xxx,x +xxx,x @@ static const struct dmi_system_id irq1_edge_low_force_override[] = {
+ 		},
+ 	},
++	{
++		/* MECHREVO Jiaolong 15K GM5BG0E */
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "GM5BG0E"),
++		},
++	},
+ 	{ }
+ };
+ 
+-- 
+2.49.0
+
+---
+
+# 中文版补丁说明
+
+## 问题描述
+
+MECHREVO 蛟龙15K (GM5BG0E) 搭载 AMD Ryzen 7 7435H 处理器，其 BIOS DSDT 表中存在错误：
+键盘 IRQ1 被声明为 ActiveLow（低电平触发），但硬件实际为 ActiveHigh（高电平触发）。
+
+从 Linux 6.0 内核开始，AMD Zen 平台不再自动修正此极性不匹配问题，导致内置键盘无法使用。
+
+## 修复方案
+
+将 GM5BG0E 主板添加到内核 `irq1_edge_low_force_override[]` DMI 兼容表中，
+使内核为该型号强制使用正确的 IRQ 极性。
+
+## 提交信息
+
+- **维护者**：Hans de Goede <hansg@kernel.org>
+- **邮件列表**：linux-acpi@vger.kernel.org
+- **抄送**：stable@vger.kernel.org（用于稳定版回溯）
+
+---
+
+# English Version - Patch Description
+
+## Problem Description
+
+The MECHREVO Jiaolong 15K (GM5BG0E), equipped with AMD Ryzen 7 7435H processor,
+contains a defective BIOS DSDT table. The PS2K keyboard interrupt (IRQ1) is
+declared as ActiveLow in the ACPI table, but the hardware is actually wired
+for ActiveHigh operation.
+
+Starting with Linux 6.0, the kernel no longer automatically corrects this
+polarity mismatch on AMD Zen platforms (commit 2d331a6ac481), causing the
+internal keyboard to become non-functional.
+
+## Solution
+
+Add the GM5BG0E board name to the irq1_edge_low_force_override[] DMI quirk
+table in drivers/acpi/resource.c. This forces the kernel to apply the correct
+IRQ polarity override for this specific hardware model.
+
+## Technical Details
+
+- **File modified**: drivers/acpi/resource.c
+- **Function affected**: acpi_dev_irq_override()
+- **Quirk table**: irq1_edge_low_force_override[]
+- **DMI match**: DMI_BOARD_NAME = "GM5BG0E"
+
+## Testing
+
+Verified on MECHREVO Jiaolong 15K with:
+- AMD Ryzen 7 7435H
+- BIOS N.1.23MRO20
+- Linux kernel 6.x
+
+After applying this patch, the internal keyboard functions correctly.
+
+## References
+
+- Similar fixes: GM6BGEQ, GM6BG5Q, GM6BG0Q (TongFang barebones)
+- upstream commit: 2d331a6ac481 ("ACPI: resource: Fix IRQ override quirk")
 
