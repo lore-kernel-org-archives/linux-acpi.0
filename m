@@ -1,46 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E780F42E418;
-	Wed, 26 Aug 2026 14:08:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 625B3361DA7;
+	Wed, 26 Aug 2026 14:09:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787753316; cv=none; b=RDhVpFk+UTfKDIQTS/ea9SCA3KLebZ5A3aqvn/6Yhi5TOGgc9VpD55lJcGIs4FWnV4rJWy9iGJJyzLWMXsAWeSBBEGnoXwqgSlnQ7so48XraoeKCq40wTzQW+BKng6zcygiabrs8DyxF7rs3DclY1lUAm2nHByw7MtIuykX2ZR8=
+	t=1787753352; cv=none; b=PYEOwPUAL9qvF3sU6OpLXHSC8a7+SjYUE2NZXpJM9XbPfwnq9cqmyRDj2YfJpEyAb206rUizmVgUvweJoPgQtaMGpF3JrOD5LZ06J5L4uMYDi0+B+P8W0joVzTPSTKRI1ObS7DMQQbBD9+EZD179bAHhmINYzBKSMvD6PLkDgjk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787753316; c=relaxed/simple;
-	bh=CFG87ZaWpvxar+LmzhhuZpRsOTZ64BqB1+w3gYa98yc=;
+	s=arc-20240116; t=1787753352; c=relaxed/simple;
+	bh=qd/k45PDOeaWIMY7RY7wAaBtaQcu3Q+5gYHbfIRt0AM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dEez06kcpbeBBHPJevrTQLDMOZsdJIXLLwxyTUvgMe8Y/R8+yRNV9/B27YN5p5ZoEUYmBNtv/l0NCVaDYPT7NQObLtA8kyT/DdfvTat3vqbnitGhcSey7H6mcbBbYcagSXMWIt95kBseU0L+kRLkoc82C446IqpZXGuS0EPuGSQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dZiGcDnl; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=OKOAcpcsi5A3E744uwoIu9c+t8ZEjwZlmSLcGUZEw3q3rkL7x/anjWyp40epHfVLVa5iczyvwntW3hMhS1n5VeI0SgnDM1ryZ0VmIb7Xvf94PlbVCdXGgIX+db+JrlwiRXjkgX9FFTjnrqHEJM5dSRfEOo9G2F6DolJZP6BxWNU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lCejeG0v; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dZiGcDnl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AD271F000E9;
-	Wed, 26 Aug 2026 14:08:33 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lCejeG0v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCBD81F000E9;
+	Wed, 26 Aug 2026 14:09:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787753314;
-	bh=58CqlTkVH+yeGKqVx3x8yllINuupuUvSuHy1ToSmt8o=;
+	s=k20260515; t=1787753349;
+	bh=TNBvO+ky0/3VWJnTsxbu78ogNLbMq/8VlOuUXVeNmoc=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=dZiGcDnlz6tDjWuQcAuRDVN9X4hvLFz0grc8asWYHCXwDkmEDtD1eQHI4owQslV/P
-	 yAaCW+FUfOddDcMs/zBZLDSCSsiD58j+7hEzQq9N5QgR7UZaMIXrMACPfPQvo+KSh0
-	 vyXP/eHeK8girFF8S3HcvBQr+HSkPUwgDlm32kwCdF2+VvK9A7LnhNOKrz/MCMUxMp
-	 NHwdwHV48AZsjvxm2wtYBzBHan8CLH3hZyCPURljSi6QqAtVL6xm7B5gle5a3s5mQk
-	 xgyEdcZMZf1X1CfJnFSIN3EXL/dLtc2Z1nfxGuBeB1+eJhXwweci6L8dADVW2B/2xS
-	 ZhmUoi1HsZ6jg==
-Date: Wed, 26 Aug 2026 17:08:31 +0300
-From: Leon Romanovsky <leon@kernel.org>
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
-	Saket Dumbre <saket.dumbre@intel.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>, linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev, linux-kernel@vger.kernel.org,
-	linux-pci@vger.kernel.org, Lukas Wunner <lukas@wunner.de>,
-	"Natu, Mahesh" <mahesh.natu@intel.com>
-Subject: Re: [PATCH RFC 0/7] PCI/HMAT: Describe P2PDMA reachability and
- performance
-Message-ID: <20260826140831.GF42790@unreal>
-References: <20260812-hmat-p2p-v1-0-75ac41380585@nvidia.com>
- <aoymZhOaSCG_Tsmj@aschofie-mobl2.lan>
+	b=lCejeG0vCtFknqu4WX0iSTUrFlrVK2jfDvpCHnR9lMB4LXEg1eq6ylerAkO8BiKDs
+	 C9bgbPHtQq166hmFzaEwE+ziBevHgmdnvYK96Y5uBC6gGIQsnpYXSq1hDUSsNcRabY
+	 BNXtRy01rbxODxp07uDiOVBVpLS3MZUQmvh/RbxXZvfn0QKoOwNyRHz9t5Q1CLR8m/
+	 W6mtgsRkCvCYgYWDIQWMlRTV7j7AObZg9qox5M5uuenaK/ezA1Kjufquki4p6cd/aX
+	 8m8GnZ60d14RrDpxPA/A13+mB1dZPkjhn8USGisHyJkoC3ZT+db7ojyREIDYhJNkkv
+	 sQ09IFTmcllMA==
+Date: Wed, 26 Aug 2026 16:09:05 +0200
+From: Andi Shyti <andi.shyti@kernel.org>
+To: YuXin Xiao <xiaoyueyoqwq@gmail.com>
+Cc: westeri@kernel.org, linux-i2c@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4] i2c: acpi: Add DELL0A86 to
+ i2c_acpi_force_100khz_device_ids
+Message-ID: <ao7yggBh5-MiEIDm@zenone.zhora.eu>
+References: <20260824111814.75242-1-xiaoyueyoqwq@gmail.com>
+ <20260824181559.146133-1-xiaoyueyoqwq@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -49,100 +44,69 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aoymZhOaSCG_Tsmj@aschofie-mobl2.lan>
+In-Reply-To: <20260824181559.146133-1-xiaoyueyoqwq@gmail.com>
 
-On Mon, Aug 24, 2026 at 01:15:34PM -0700, Alison Schofield wrote:
-> On Wed, Aug 12, 2026 at 10:47:37PM +0300, Leon Romanovsky wrote:
-> > Linux derives P2PDMA reachability from visible PCI topology, ACS
-> > configuration, and a host-bridge whitelist. It cannot describe conditional
-> > or slower cross-host-bridge paths; passthrough can hide the physical peer
-> > relationships.
-> > 
-> > This RFC series implements the proposed ACPI HMAT Type 3 extension below.
-> 
-> Hi Leon,
-> 
-> Is there an ECN document for review alongside this?
-> I get that the table below is a snapshot of the expected change, but
-> would appreciate the long version to read.
+Hi YuXin,
 
-Sure, Mahesh sent me the document, which I promised to convert to the
-mailing list format. I will send the official RFC to the linux-acpi ML
-slightly later.
+Please, next time don't send successive versions as in reply-to.
 
-Thanks
+On Tue, Aug 25, 2026 at 02:15:59AM +0800, YuXin Xiao wrote:
+> The ELAN 04F3:3185 touchpad exposed as DELL0A86 on the Dell Inspiron
+> 13 5310 intermittently exhibits excessive smoothing when the I2C bus
+> runs at 400 kHz. During an affected period pointer movement becomes
+> severely sluggish and sticky for tens of seconds.
+> 
+> The ACPI firmware configures the touchpad bus for 400 kHz. Add DELL0A86
+> to i2c_acpi_force_100khz_device_ids so that the bus runs at 100 kHz, as
+> is already done for other touchpads exhibiting the same excessive
+> smoothing problem.
+> 
+> With the quirk applied, the kernel reports that the firmware requested
+> 400 kHz and that the bus is forced to 100 kHz. The problem did not recur
+> during extended heavy use, including an S4 hibernate/resume cycle.
+> 
+> An independent 2021 report from another Dell Inspiron 13 5310 user
+> describes the same intermittent sticky behavior and identifies the same
+> DELL0A86 / 04F3:3185 touchpad.
+> 
+> Link: https://www.reddit.com/r/linuxquestions/comments/nsso5b/help_needed_with_sticky_touchpad_spoiling_brand/
+> 
+> Assisted-by: Codex:ChatGPT-5.6-Sol
+> Assisted-by: OpenCode:Ox Alpha (x-preview-f-free)
+> 
 
+Please don't leave a blank line in between tags.
+
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Signed-off-by: YuXin Xiao <xiaoyueyoqwq@gmail.com>
+> ---
+> Changes in v4:
+> - Add an independent public report for the same model, device, and symptom.
+> - No code changes.
+
+Please, don't omit the rest of the changelog. I want to see v2,
+v3 and v4.
+
+Anyway, I merged your patch in i2c/i2c.
+
+Thanks,
+Andi
+
+>  drivers/i2c/i2c-core-acpi.c | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> Please add linux-cxl to CC list on future postings.
-> 
-> -- Alison
-> 
-> 
-> > Directional Generic Port matrices describe reachability, ordering, latency,
-> > and bandwidth. Linux uses ordered paths to authorize P2PDMA and their
-> > latency/bandwidth to rank providers. A VMM could translate these matrices
-> > into guest domains; that is outside this series.
-> > 
-> >   HMAT Type 3 structure
-> > 
-> >   Field               Offset       Bytes  Meaning
-> >   ---------------------------------------------------------------
-> >   Type:                    0           2  value 3
-> >   Length:                  4           4  entire structure
-> >   Flags:                   8           1  traffic classes
-> >   Data-type:               9           1  metric selector
-> >   Initiators:             12           4  Generic Port count (s)
-> >   Targets:                16           4  Generic Port count (t)
-> >   Base-unit:              24           8  ps or MB/s; non-zero
-> >   Initiator-PDs:          32         4*s  proximity-domain list
-> >   Target-PDs:         32+4*s         4*t  proximity-domain list
-> >   Matrix:         32+4*(s+t)       2*s*t  directional Entry[i][j]
-> >   Reserved: bytes 2-3, 10-11, and 20-23
-> > 
-> >   Flags: encoding
-> >     bit 0  non-UIO
-> >     bit 1  UIO
-> > 
-> >   Metrics: selector
-> >     0/1/2  access/read/write latency
-> >     3/4/5  access/read/write bandwidth
-> > 
-> >   Direction: Initiator PD[i] -- Entry[i][j] metric --> Target PD[j]
-> > 
-> > ----------------------------------------------------------------------
-> > Based on [PATCH v3 00/17] PCI/P2PDMA: Fix ACS egress control handling
-> > https://lore.kernel.org/all/20260811-fix-p2p-acs-v3-0-efc488ee7c03@nvidia.com/
-> > 
-> > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> > ---
-> > Leon Romanovsky (7):
-> >       ACPICA: Define PCIe P2P latency and bandwidth information
-> >       ACPI: HMAT: Make PCIe P2P paths available to consumers
-> >       PCI/P2PDMA: Authorize HMAT-described cross-host-bridge P2P
-> >       PCI/P2PDMA: Prefer providers with better HMAT performance
-> >       ACPI: HMAT: Add KUnit tests for PCIe P2P matrix semantics
-> >       PCI/P2PDMA: Add KUnit tests for HMAT policy boundaries
-> >       PCI/P2PDMA: Add KUnit tests for HMAT provider ranking
-> > 
-> >  drivers/acpi/numa/Kconfig     |  13 ++
-> >  drivers/acpi/numa/Makefile    |   1 +
-> >  drivers/acpi/numa/hmat.c      | 245 +++++++++++++++++++++-
-> >  drivers/acpi/numa/hmat_test.c | 223 ++++++++++++++++++++
-> >  drivers/acpi/numa/hmat_test.h |  17 ++
-> >  drivers/pci/Kconfig           |  14 ++
-> >  drivers/pci/Makefile          |   1 +
-> >  drivers/pci/p2pdma.c          | 300 ++++++++++++++++++++------
-> >  drivers/pci/p2pdma_test.c     | 477 ++++++++++++++++++++++++++++++++++++++++++
-> >  drivers/pci/pci.h             |  23 ++
-> >  include/acpi/actbl1.h         |  27 ++-
-> >  include/linux/acpi.h          |  26 +++
-> >  12 files changed, 1298 insertions(+), 69 deletions(-)
-> > ---
-> > base-commit: bc5261fca94dd94ab557cc0852ce465d9c3ab8b0
-> > change-id: 20260715-hmat-p2p-eb4971a9d731
-> > 
-> > Best regards,
-> > --  
-> > Leon Romanovsky <leonro@nvidia.com>
-> > 
+> diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+> index 8f3bdd5..3af0e05 100644
+> --- a/drivers/i2c/i2c-core-acpi.c
+> +++ b/drivers/i2c/i2c-core-acpi.c
+> @@ -371,6 +371,7 @@ static const struct acpi_device_id i2c_acpi_force_100khz_device_ids[] = {
+>  	 * the device works without issues on Windows at what is expected to be
+>  	 * a 400KHz frequency. The root cause of the issue is not known.
+>  	 */
+> +	{ "DELL0A86", 0 },
+>  	{ "DLL0945", 0 },
+>  	{ "ELAN0678", 0 },
+>  	{ "ELAN06FA", 0 },
+> -- 
+> 2.53.0
 > 
