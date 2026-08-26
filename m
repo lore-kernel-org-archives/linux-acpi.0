@@ -1,108 +1,196 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+Received: from canpmsgout12.his.huawei.com (canpmsgout12.his.huawei.com [113.46.200.227])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06BDD2882D6;
-	Wed, 26 Aug 2026 07:04:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55C433B1006;
+	Wed, 26 Aug 2026 07:59:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.227
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787727848; cv=none; b=CIVBn8rzTi9TxbiE1hvobzosF9AFO/K3cZOkQAxP1lDBdvSpSbsxsmLg256pKPWlfT5d2c2CbYQCdsED4Drfm8WwvSJQMeKEpQU3j6IMXYFxZ3ourZ6or52hpZRNknwjgbARTbEV2wALHdydqIPQbf9Mc85cb9M4zvzQCDycp+4=
+	t=1787731203; cv=none; b=EDJcBRrtUDQq4E8PYRo15tyoc/MdV7Y0I5iFtxfBT0rEKNHLToAJEJykp/i5jtNrk+gWy7xHglZY/NmyhHTIaXvsB7zCPLo7nLHkPRf1qnJmRfxsr4T5ONHQGG47ZYHDHlFJnAf1iP4elQjyTZtp7mmwVPM0kKPKmCO/NnkvttE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787727848; c=relaxed/simple;
-	bh=22JDLPCvqO9mQwJ1JEhz+5Eo1o/r95PMdiTc+1EfyKM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=r4sXKDfLq70RcYqxbRRAJsaQgJbr+pX9cvls0mBTNusSXluhF1gjCsH8EA81rvk6iHfWgU4FVSYTmh3/55cObsa1BPXZq3Y6Iblu8i8N9YaoeNw40mhFmuwHLwVmgNZLqdiMCMpsvgrwb4pkCVjefODNFKRhUv0BlKNf/ZEavAs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QTcVUh0h; arc=none smtp.client-ip=192.198.163.8
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1787731203; c=relaxed/simple;
+	bh=lr+rIjWdo4vv+UHdVg2aaFWrTgrbTVhfcpFAq1j+gEk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=D5T5WKXtwxNHHQ/+oMsEEwOUajSk7Q97WG4wv4PA7QjdHTaEg1aYgwX5gRLsPMf6PjoLkPuKJXIoFwTYXJvOirlT3wADpjSDVyblcf0WDHCE64p5QIajl83t/jaH20OIz5HkDm4zex8fpNCmyOvhTo2oHn9dQ6EQNUriesB8sc8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=c6Jri0BB; arc=none smtp.client-ip=113.46.200.227
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QTcVUh0h"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1787727847; x=1819263847;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=22JDLPCvqO9mQwJ1JEhz+5Eo1o/r95PMdiTc+1EfyKM=;
-  b=QTcVUh0hVCQjOp1jCFZezX5J1jLer47loBEneXc6PePWmGbGGzerJWrx
-   OdbCBVAiaCpLxyT7T4zB3z109eKRcfKfC9Z5ETCD3T1LfsI1IOMBPNR6J
-   AwpXAPOetrgySYIL7EMXM3FD0Tjs9bF23LoEXAcre/sVOAatBLfvdb/lP
-   QbgahVtsC+m56nqQbaAXK47dRhbUkgEUTTKjDfJKzXXDNvyOwYl93Z2iN
-   QIWi1Z3QD1RoWDlmSPzrZpY9zlkv7sGf0xmmvWJ2y07nHBYTKxuHNm5wC
-   JQ7J9hTYDDcieaYurm6iEICAhc2PGbO932jmx97++ImQqR4Vg7w9lafZG
-   Q==;
-X-CSE-ConnectionGUID: 0SkBbaknQbejaX0AIPgZuQ==
-X-CSE-MsgGUID: IEto+oa5Rz6iIeISz91Mag==
-X-IronPort-AV: E=McAfee;i="6800,10657,11886"; a="105728439"
-X-IronPort-AV: E=Sophos;i="6.25,244,1779174000"; 
-   d="scan'208";a="105728439"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2026 00:04:06 -0700
-X-CSE-ConnectionGUID: Nju8ON1tQA6WA8wt0VPP3w==
-X-CSE-MsgGUID: g9fkz5xIRbWsjJ6Taqn7xg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,244,1779174000"; 
-   d="scan'208";a="264901564"
-Received: from abityuts-desk1.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.245.245.215])
-  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2026 00:04:04 -0700
-Received: from kekkonen.localdomain (localhost [IPv6:::1])
-	by kekkonen.fi.intel.com (Postfix) with ESMTP id E7EB611F961;
-	Wed, 26 Aug 2026 10:04:16 +0300 (EEST)
-Date: Wed, 26 Aug 2026 10:04:16 +0300
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: linux-media@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>,
-	linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>,
-	Daniel Scally <dan.scally@ideasonboard.com>,
-	Hans de Goede <hansg@kernel.org>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	platform-driver-x86@vger.kernel.org
-Subject: Re: [PATCH v3 2/3] platform/x86: int3472: Fix uninitialised variable
- warning
-Message-ID: <ao6P8POpBLSDOZSI@kekkonen.localdomain>
-References: <20260825203553.3725132-1-sakari.ailus@linux.intel.com>
- <20260825203553.3725132-3-sakari.ailus@linux.intel.com>
- <CAPybu_1J4z2Z0Xv1PyHZa2U+PFsTWPVyifJr2p8DgkQRTJm6YQ@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="c6Jri0BB"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=x1KWjaNvJ6+Tv8l7r/tws4/ss73PvPhsX07zL3SQsEM=;
+	b=c6Jri0BBaLwySOADRXzwWkxiV2lsYcNrTC6wDOji2RxICMeoxcsnk01Dy9DulGWy/PAwNvfhh
+	+1540BgHFC8iTkAIu2RpWHz6opebBwrDQAwSJgKhBCmDut6PgsHFrP8LkEPeduRwq37Vx0hNZ0D
+	HXEoJCNTIjyGDZTmiNQTfMI=
+Received: from mail.maildlp.com (unknown [172.19.163.127])
+	by canpmsgout12.his.huawei.com (SkyGuard) with ESMTPS id 4hVGy61xHHznTVn;
+	Wed, 26 Aug 2026 15:49:34 +0800 (CST)
+Received: from kwepemr200004.china.huawei.com (unknown [7.202.195.241])
+	by mail.maildlp.com (Postfix) with ESMTPS id BC80440572;
+	Wed, 26 Aug 2026 15:59:48 +0800 (CST)
+Received: from [10.67.121.62] (10.67.121.62) by kwepemr200004.china.huawei.com
+ (7.202.195.241) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Wed, 26 Aug
+ 2026 15:59:47 +0800
+Message-ID: <e83096fc-d6f8-46bf-91e6-2922ac35b751@huawei.com>
+Date: Wed, 26 Aug 2026 15:59:47 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] ACPI: processor: Add acpi_processor_start() back to parse
+ _CPC tables before CPU online
+To: Lifeng Zheng <zhenglifeng1@huawei.com>, <rafael@kernel.org>,
+	<catalin.marinas@arm.com>, <Jonathan.Cameron@huawei.com>, <lenb@kernel.org>
+CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linuxarm@huawei.com>, <gshan@redhat.com>, <miguel.luis@oracle.com>,
+	<guohanjun@huawei.com>, <zhanjie9@hisilicon.com>, <lihuisong@huawei.com>,
+	<yubowen8@huawei.com>, <wangzhi12@huawei.com>, <linhongye@h-partners.com>
+References: <20260120113242.3843463-1-zhenglifeng1@huawei.com>
+From: Pengjie Zhang <zhangpengjie2@huawei.com>
+In-Reply-To: <20260120113242.3843463-1-zhenglifeng1@huawei.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAPybu_1J4z2Z0Xv1PyHZa2U+PFsTWPVyifJr2p8DgkQRTJm6YQ@mail.gmail.com>
+X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
+ kwepemr200004.china.huawei.com (7.202.195.241)
 
-Hi Ricardo,
+Hi Lifeng,
 
-Thanks for the review.
+On 1/20/2026 7:32 PM, Lifeng Zheng wrote:
+> Currently, if boot with maxcpus less than NR_CPUS, the cppc_cpufreq driver
+> will fail to register. Because it requires the domain information of all
+> possible CPUs to construct shared_cpu_map, which shows the CPUs that share
+> the same domain.
+>
+> Commit c1385c1f0ba3 ("ACPI: processor: Simplify initial onlining to use
+> same path for cold and hotplug") removes probe() of acpi_processor_driver
+> and makes acpi_cppc_processor_probe() only being called the first time CPU
+> goes online. This means that CPUs that haven't yet gone online will not
+> have pre-parsed _CPC objects and causes cppc_cpufreq driver register fail.
+>
+> Add acpi_processor_start() back as the probe() callback of
+> acpi_processor_driver and call acpi_cppc_processor_probe() in it to make
+> sure all _CPC tables will be parsed when acpi_processor_driver registered.
+>
+> Fixes: c1385c1f0ba3 ("ACPI: processor: Simplify initial onlining to use same path for cold and hotplug")
+> Signed-off-by: Lifeng Zheng <zhenglifeng1@huawei.com>
+> ---
+>   drivers/acpi/processor_driver.c | 30 ++++++++++++++++++++++++++----
+>   1 file changed, 26 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+> index 65e779be64ff..c8b4daf580b0 100644
+> --- a/drivers/acpi/processor_driver.c
+> +++ b/drivers/acpi/processor_driver.c
+> @@ -33,6 +33,7 @@ MODULE_AUTHOR("Paul Diefenbaugh");
+>   MODULE_DESCRIPTION("ACPI Processor Driver");
+>   MODULE_LICENSE("GPL");
+>   
+> +static int acpi_processor_start(struct device *dev);
+>   static int acpi_processor_stop(struct device *dev);
+>   
+>   static const struct acpi_device_id processor_device_ids[] = {
+> @@ -46,6 +47,7 @@ static struct device_driver acpi_processor_driver = {
+>   	.name = "processor",
+>   	.bus = &cpu_subsys,
+>   	.acpi_match_table = processor_device_ids,
+> +	.probe = acpi_processor_start,
+>   	.remove = acpi_processor_stop,
+>   };
+>   
+> @@ -162,10 +164,6 @@ static int __acpi_processor_start(struct acpi_device *device)
+>   	if (!pr)
+>   		return -ENODEV;
+>   
+> -	result = acpi_cppc_processor_probe(pr);
+> -	if (result && !IS_ENABLED(CONFIG_ACPI_CPU_FREQ_PSS))
+> -		dev_dbg(&device->dev, "CPPC data invalid or not present\n");
+> -
+>   	if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
+>   		acpi_processor_power_init(pr);
+>   
+> @@ -192,6 +190,30 @@ static int __acpi_processor_start(struct acpi_device *device)
+>   	return result;
+>   }
+>   
+> +static int acpi_processor_start(struct device *dev)
+> +{
+> +	struct acpi_device *device = ACPI_COMPANION(dev);
+> +	struct acpi_processor *pr;
+> +	int result;
+> +
+> +	if (!device)
+> +		return -ENODEV;
+> +
+> +	pr = acpi_driver_data(device);
+> +	if (!pr)
+> +		return -ENODEV;
+> +
+> +	/* Protect against concurrent CPU hotplug operations */
+> +	cpu_hotplug_disable();
+> +	result = acpi_cppc_processor_probe(pr);
+> +	cpu_hotplug_enable();
+> +
+> +	if (result && !IS_ENABLED(CONFIG_ACPI_CPU_FREQ_PSS))
+> +		dev_dbg(&device->dev, "CPPC data invalid or not present\n");
+> +
+> +	return 0;
+> +}
+> +
+>   static int acpi_processor_stop(struct device *dev)
+>   {
+>   	struct acpi_device *device = ACPI_COMPANION(dev);
+I reproduced the issue described by this patch on the latest kernel at
+commit 45c13f3f9e3bb15f.
 
-On Tue, Aug 25, 2026 at 11:04:51PM +0200, Ricardo Ribalda Delgado wrote:
-> nits:
-> 
-> It would be nice to have the error message that it is fixed in the
-> commit message (also for 1/3)
+On my system, CPU0 and CPU1 belong to the same software-coordinated
+frequency domain. After booting with maxcpus=1, CPU1 is present but
+offline, and its CPC descriptor is not parsed.
 
-There's actually a compiler warning on this, too. I'll reword this being:
+Consequently, acpi_get_psd_map() skips CPU1 and constructs an
+incomplete shared_cpu_map containing only CPU0.
 
-Fix a compiler warning about an uninitialised err_msg variable by printing
-the error where it is handled:
+When CPU1 is subsequently brought online:
 
-drivers/platform/x86/intel/int3472/discrete.c:440:24: warning: ‘err_msg’ may be used uninitialized [-Wmaybe-uninitialized]
-  440 |                 return dev_err_probe(int3472->dev, ret, err_msg);
+echo 1 > /sys/devices/system/cpu/cpu1/online
 
-> 
-> Would you consider adding a Fixes? This patch fixes a compilation
-> error (with the right kernel config)
+the cpufreq core creates an overlapping policy and attempts to create
+the existing cpu0/cpufreq symbolic link again, resulting in the
+following warnings:
+...
+sysfs_warn_dup
+sysfs_do_create_link_sd
+sysfs_create_link
+add_cpu_dev_symlink
+cpufreq_policy_online
+cpufreq_online
+cpuhp_cpufreq_online
+...
+processor cpu0: cpufreq symlink creation failed
 
-Fixes: 5de691bffe57 ("platform/x86: Add intel_skl_int3472 driver")
-Cc: stable
+freq_qos_add_request() called for active request
+WARNING: kernel/power/qos.c:658 at freq_qos_add_request
 
-It seems it's always been there but I think it's a false positive: the
-compiler probably just can't figure out err_msg is unused if ret is
-non-zero.
+The affected CPU masks are also inconsistent:
 
--- 
-Regards,
+$ cat /sys/devices/system/cpu/cpu0/cpufreq/affected_cpus
+0
 
-Sakari Ailus
+$ cat /sys/devices/system/cpu/cpu1/cpufreq/affected_cpus
+0 1
+
+After applying this patch on top of commit 45c13f3f9e3bb15f, the CPC
+descriptors are parsed before the CPUs are brought online. The
+shared_cpu_map is constructed correctly, and CPU1 can be brought
+online without triggering the duplicate sysfs link or active QoS
+request warnings.
+
+This patch fixes the issue in my testing. so，
+
+Tested-by: Pengjie Zhang <zhangpengjie2@huawei.com>
+Reviewed-by: Pengjie Zhang <zhangpengjie2@huawei.com>
+
