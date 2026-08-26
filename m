@@ -1,251 +1,135 @@
-Received: from mout02.posteo.de (mout02.posteo.de [185.67.36.66])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE9B848CD71
-	for <linux-acpi@vger.kernel.org>; Tue, 25 Aug 2026 23:11:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.66
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4BFA53947AE;
+	Wed, 26 Aug 2026 06:30:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787699465; cv=none; b=fN0ExbT43fRFnwltXcWlZIL7SxJNAKH2vyLZDM2Bx3sbnRXZVUtHjBQXAWYwftyuxAu+0vOXZeeARviApdv/OuqBuCgOeLsEr/FGm7noQxcHgqJCsY1dLgGXkLKpBE9a3zI8oz5yf1v8MBrK84nNDGyMHkAhNfq8CrSLsvfXU4c=
+	t=1787725839; cv=none; b=dcIJ5HEkcZNEmu57n8BKg3LI89r0gF3uUoa10uGg9n2TAIPBWX+xO6iwgB4DWRYxDXCIt2C6ZE3VFEYOLA9eFP2HMr0MjoM2GUj7K5fa1Lm+gj5MYyPeYySs2bpFr8SV1YhKZs/CrVav93puytawSeKsfc40+2gIzRGInM38itE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787699465; c=relaxed/simple;
-	bh=/mG6PyefbWFiabSftZ542/gjN6J7mAIDhUmg6WE7Sys=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=WxkZlRiQ0lQxvg/HPDI2bN3Qy0pqQOM2iHS5Smi4/sLuMVAmqz8RhUh3cVMt/1U98vrbVf6o56PruypgzJuhUvplHbhW9MPjU6e/yaU/sibKWUUlxz9mKN3XHpTCorHTbnrKjuLLR0uKVBJaabmoMeknHLksTnP31XstRXrGNvA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=fJt5Q3dI; arc=none smtp.client-ip=185.67.36.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
+	s=arc-20240116; t=1787725839; c=relaxed/simple;
+	bh=y4x2hBtTKq/UTTtPQl7KCSgGM77FGT9bLH90ajPUoXw=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=OPaZuwttb9Z6YeggWqIIe1eyhEOQMF70/sKndjrg3sl/Gy+HpJaO3Da3fJ1AQVyS7ikC7aSa7I2OCIfBYh1nFwi96T2BWJBEjtgBY1U0x8KCXD0pnJvnCDDWbQtQluxl4XXQ8I9rpjWQaFI1DXgRwxIwQ56EkA8svkdRMEZHM9I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=TFGUAPyB; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="fJt5Q3dI"
-Received: from submission (posteo.de [185.67.36.169]) 
-	by mout02.posteo.de (Postfix) with ESMTPS id 66365240103
-	for <linux-acpi@vger.kernel.org>; Wed, 26 Aug 2026 01:10:59 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de;
-	s=1984.8680eb; t=1787699459;
-	bh=tzlvJ6oEobG27IKTMAet51gtj7PMHSLpqxA+1yDIakw=;
-	h=From:Date:Subject:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:Message-Id:To:Cc:Autocrypt:OpenPGP:From;
-	b=fJt5Q3dIMiKQFgoS/unZe6lbYdl4WxZYxGkDyc0n3fnFegyuv4X+/b2NqyZX12AYe
-	 xzHsnItt1DT1DVO32SdM9cYVeOTQvL4m/j0d3wruoMR/N8n4yy4ZTbeiW5Un8am4Od
-	 WOZTQ2J2GIyVD28zAdeeSBuL3fDJu/ZJ4gNwR9RLdF2NULdrvD5krOV2LiYd9zDdYc
-	 ry19sesoxRb0nVLInfMN7FpCRd1jVetsMsu1hereATd8do7y/zPndPYTDB8t4pN+4C
-	 EKcJTO31zQTZ+mrp0BebqbO9lvQM5L1REj4jMQunK8QoS1unyItIDSHVXWrb5hWex/
-	 ASb5cwnw2I69Q==
-Received: from customer (localhost [127.0.0.1])
-	by submission (posteo.de) with ESMTPSA id 4hV3Rk2DFfz6twb;
-	Wed, 26 Aug 2026 01:10:58 +0200 (CEST)
-From: Markus Probst <markus.probst@posteo.de>
-Date: Tue, 25 Aug 2026 23:10:59 +0000
-Subject: [PATCH v4] ACPI: SPCR: Support UART clock frequency field
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="TFGUAPyB"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 32D3E1BCA;
+	Tue, 25 Aug 2026 23:30:28 -0700 (PDT)
+Received: from e127648.arm.com (unknown [10.57.6.192])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 43A1D3F7D8;
+	Tue, 25 Aug 2026 23:30:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1787725832; bh=y4x2hBtTKq/UTTtPQl7KCSgGM77FGT9bLH90ajPUoXw=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=TFGUAPyBA/NtbRESYPd2xxvekYgy+9GN8SGzsv9EwaB/jOc/idIXN6wxNI0K1RgcS
+	 3Ts04wsQxT3mG6/mkksLg1FP3h0lR3LpvTasWy0SjFKrwLdhi08C98Q8yxrRYEObvq
+	 HpzujaKpvlTV/Y4IMRsD6yBrDpZIGZSkLT5dU+MI=
+From: Christian Loehle <christian.loehle@arm.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>,
+	Viresh Kumar <viresh.kumar@linaro.org>
+Cc: linux-pm@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Len Brown <lenb@kernel.org>,
+	Jie Zhan <zhanjie9@hisilicon.com>,
+	Lifeng Zheng <zhenglifeng1@huawei.com>,
+	Pierre Gondois <pierre.gondois@arm.com>,
+	Sumit Gupta <sumitg@nvidia.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	Ionela Voinescu <ionela.voinescu@arm.com>,
+	zhongqiu.han@oss.qualcomm.com,
+	Christian Loehle <christian.loehle@arm.com>,
+	Sashiko <sashiko-bot@kernel.org>
+Subject: [PATCH v4 01/15] ACPI: CPPC: Validate the _CPC package header
+Date: Wed, 26 Aug 2026 07:30:05 +0100
+Message-Id: <20260826063019.670240-2-christian.loehle@arm.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20260826063019.670240-1-christian.loehle@arm.com>
+References: <20260826063019.670240-1-christian.loehle@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260826-acpi_spcr-v4-1-2d5670dace43@posteo.de>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/12O3WoDIRSEX2XxugY9urs1V32PUoo/x8ZC4kaNt
- IR99xpTaLaXA983M1eSMQXMZD9cScIacoinFuTTQOxBnz6QBtcyAQYTk4JRbZfwnheb6MQVA+8
- UCA+k8UtCH7561+vbPeeL+URbbgW/RMLzpY2UO0aMzkhtPB5D2Q913gG5mYeQS0zf/VTlHez7I
- xsf9iunnHonjZ28RDOKlyXmgnHnsLdUeDBhYwJl1DIJ7Fm5WVj93xR/5sQ3pmim0qNCo90scWO
- u6/oDQkZIvlABAAA=
-X-Change-ID: 20260430-acpi_spcr-61902fd923f2
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
- Jiri Slaby <jirislaby@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
- Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, 
- linux-acpi@vger.kernel.org, Markus Probst <markus.probst@posteo.de>
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5267;
- i=markus.probst@posteo.de; h=from:subject:message-id;
- bh=/mG6PyefbWFiabSftZ542/gjN6J7mAIDhUmg6WE7Sys=;
- b=owEBiQJ2/ZANAwAIATR2H/jnrUPSAcsmYgBqjiEBHGcyS0Z7fP9FG82778r5OASTaPGvYpDi2
- tNT1u7Mn3WJAk8EAAEIADkWIQSCdBjE9KxY53IwxHM0dh/4561D0gUCao4hARsUgAAAAAAEAA5t
- YW51MiwyLjUrMS4xMiwyLDIACgkQNHYf+OetQ9IUBA//bOagfhY6RcvfHTuOEo/1CirdwtBJqgk
- mHdOMpE+7tSZljIy0+/FppkNrg0br+rdEFiH92Aqncn7FLt7Xvge/dMpn4nIpSDeqL4YMGDU/ZH
- XI/KY4l+erROR8JSlM8ELiVBMc458SZa0hElJctkSzPxcsrLvmRYKaAN7DUn+dsZOJJMsZnyVwe
- sr2/nkbSx4nqFhV+8m97Bg8p19W3ig23U7lZk0sD5wdw+NvpEVM/ESgcPcaptbXE+7Dt9FhI/Hb
- mr/UHGYOBgr7AgNBlRSdPDR/y+QfyidtzCjtaMp2T2f817VfoowHVe3y4BzOz8Yt+Do8b0C8Sbt
- euqDBjny9gZ9QVX5/tIQOa8qzz8J9zpKPCbB1NCQca7avshU0pdDeoND6tpZniQmslo2x5UcP4A
- MBhcjrsaEawwsPAdm0YWBzJKfyhvKcvRbIGEu+/vdBVse2b8YEJlkv8EIZn+deouo04LY2pcMEx
- dzx0kRvw0+lIsp0ZbttTz1QkmjW2TlPTFHL1v3zX54o5vzbgxaVQSwqMHvXCPTH9rqVjtqhaB3w
- QZK4lxOcbYjFWP5MFdjG0JLgDBjzupFDOYU/vyMKfYyb/ObmunjasBBsV1swcHcgCOWkC2MOZ11
- fWZ8BwwucI3TjL0Mk3jFX4zCKUHwOG3FnvP47AINagvORW3sA8fw=
-X-Developer-Key: i=markus.probst@posteo.de; a=openpgp;
- fpr=827418C4F4AC58E77230C47334761FF8E7AD43D2
-Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
-  keydata=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
-  aBeNN4ijKZchBXHPgVx+YtWRHfcm4l8=
-OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
+Content-Transfer-Encoding: 8bit
 
-Prior to this patch, we assume the uart clock frequency is 1843200 Hz in
-the early console. This behaviour results in garbage console output if the
-actual uart clock frequency differs.
+The _CPC NumEntries field includes every package element, including
+NumEntries and Revision. acpi_cppc_processor_probe() nevertheless reads
+those first two elements before checking that they exist and trusts
+NumEntries when walking the remaining elements.
 
-The UART Clock Frequency field was added in the Microsoft Serial Port
-Console Redirection (SPCR) specification revision 1.08. If present, use it
-to configure the serial port with the correct uart clock frequency.
-Fallback to old behaviour if missing.
+Reject packages with fewer than two elements and NumEntries values which
+exceed the package count before accessing Revision or iterating over
+register descriptors. Although the specification defines NumEntries as the
+number of package elements, tolerate additional trailing elements because
+ignoring them is safe and avoids rejecting padded firmware.
 
-Add function `setup_earlycon_with_uartclk` to set uart clock frequency
-while still allowing to reuse the same console string with
-`add_preferred_console`.
+Revision is specified as a BYTE, but the parser assigns its 64-bit AML
+Integer to an unsigned int before validating it. Reject values above U8_MAX
+before conversion so, for example, 0x100000004 cannot truncate to revision
+4.
 
-Link: https://learn.microsoft.com/en-us/windows-hardware/drivers/serports/serial-port-console-redirection-table
-Signed-off-by: Markus Probst <markus.probst@posteo.de>
+Fixes: 337aadff8e45 ("ACPI: Introduce CPU performance controls using CPPC")
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Link: https://sashiko.dev/#/patchset/20260724134251.1632824-1-christian.loehle%40arm.com
+Link: https://sashiko.dev/#/patchset/20260808082644.1251332-1-christian.loehle%40arm.com
+Signed-off-by: Christian Loehle <christian.loehle@arm.com>
 ---
-Changes in v4:
-- merge patches together
-- rewrite commit message
-- Link to v3: https://patch.msgid.link/20260615-acpi_spcr-v3-0-9a59ebad74ea@posteo.de
+ drivers/acpi/cppc_acpi.c | 22 ++++++++++++++++++----
+ 1 file changed, 18 insertions(+), 4 deletions(-)
 
-Changes in v3:
-- add separate function for earlycon with uartclk
-- Link to v2: https://patch.msgid.link/20260525-acpi_spcr-v2-0-c042089d73ca@posteo.de
-
-Changes in v2:
-- fix uart_clk_freq possibly being interpreted as parity/bits/flow
-- Link to v1: https://patch.msgid.link/20260505-acpi_spcr-v1-1-fd4bc6f4eb53@posteo.de
----
- drivers/acpi/spcr.c           |  3 ++-
- drivers/tty/serial/earlycon.c | 17 ++++++++++++-----
- include/linux/serial_core.h   | 11 +++++++++--
- 3 files changed, 23 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-index 73cb933fdc89..c79c809f49d4 100644
---- a/drivers/acpi/spcr.c
-+++ b/drivers/acpi/spcr.c
-@@ -228,7 +228,8 @@ int __init acpi_parse_spcr(bool enable_earlycon, bool enable_console)
- 	pr_info("console: %s\n", opts);
- 
- 	if (enable_earlycon)
--		setup_earlycon(opts);
-+		setup_earlycon_with_uartclk(opts,
-+					    table->header.revision >= 3 ? table->uart_clk_freq : 0);
- 
- 	if (enable_console)
- 		err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
-diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
-index ab9af37f6cda..5a20fe9e3fb6 100644
---- a/drivers/tty/serial/earlycon.c
-+++ b/drivers/tty/serial/earlycon.c
-@@ -135,11 +135,14 @@ static int __init parse_options(struct earlycon_device *device, char *options)
- 	return 0;
- }
- 
--static int __init register_earlycon(char *buf, const struct earlycon_id *match)
-+static int __init register_earlycon(char *buf, unsigned int uart_clk_freq,
-+				    const struct earlycon_id *match)
- {
- 	int err;
- 	struct uart_port *port = &early_console_dev.port;
- 
-+	port->uartclk = uart_clk_freq;
-+
- 	/* On parsing error, pass the options buf to the setup function */
- 	if (buf && !parse_options(&early_console_dev, buf))
- 		buf = NULL;
-@@ -163,8 +166,9 @@ static int __init register_earlycon(char *buf, const struct earlycon_id *match)
- }
- 
- /**
-- *	setup_earlycon - match and register earlycon console
-- *	@buf:	earlycon param string
-+ *	setup_earlycon_with_uartclk - match and register earlycon console
-+ *	@buf:			      earlycon param string
-+ *	@uart_clk_freq:		      uart clock frequency in Hz or 0 for BASE_BAUD*16
-  *
-  *	Registers the earlycon console matching the earlycon specified
-  *	in the param string @buf. Acceptable param strings are of the form
-@@ -177,10 +181,13 @@ static int __init register_earlycon(char *buf, const struct earlycon_id *match)
-  *	<options> string in the 'options' parameter; all other forms set
-  *	the parameter to NULL.
-  *
-+ *	If the uart clock frequency is specified in the 'options' parameter,
-+ *	the value of the param @uart_clk_freq will be ignored.
-+ *
-  *	Returns 0 if an attempt to register the earlycon was made,
-  *	otherwise negative error code
-  */
--int __init setup_earlycon(char *buf)
-+int __init setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq)
- {
- 	const struct earlycon_id *match;
- 	bool empty_compatible = true;
-@@ -209,7 +216,7 @@ int __init setup_earlycon(char *buf)
- 		} else
- 			buf = NULL;
- 
--		return register_earlycon(buf, match);
-+		return register_earlycon(buf, uart_clk_freq, match);
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index fef54fcd00b7..3b8cdf88e31d 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -793,6 +793,11 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
  	}
  
- 	if (empty_compatible) {
-diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-index bdc214386e4a..9b2bcd4295a9 100644
---- a/include/linux/serial_core.h
-+++ b/include/linux/serial_core.h
-@@ -1099,11 +1099,18 @@ int of_setup_earlycon(const struct earlycon_id *match, unsigned long node,
+ 	out_obj = (union acpi_object *) output.pointer;
++	if (out_obj->package.count < 2) {
++		pr_debug("Unexpected _CPC package count (%u) for CPU:%d\n",
++			 out_obj->package.count, pr->id);
++		goto out_buf_free;
++	}
  
- #ifdef CONFIG_SERIAL_EARLYCON
- extern bool earlycon_acpi_spcr_enable __initdata;
--int setup_earlycon(char *buf);
-+int setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq);
- #else
- static const bool earlycon_acpi_spcr_enable EARLYCON_USED_OR_UNUSED;
--static inline int setup_earlycon(char *buf) { return 0; }
-+static inline int setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq)
-+{
-+	return 0;
-+}
- #endif
-+static inline int setup_earlycon(char *buf)
-+{
-+	return setup_earlycon_with_uartclk(buf, 0);
-+}
- 
- /* Variant of uart_console_registered() when the console_list_lock is held. */
- static inline bool uart_console_registered_locked(struct uart_port *port)
-
----
-base-commit: 237a1c39e8dfd3e1c6f1f023eea37a48ec04cc63
-change-id: 20260430-acpi_spcr-61902fd923f2
+ 	cpc_ptr = kzalloc_obj(struct cpc_desc);
+ 	if (!cpc_ptr) {
+@@ -803,12 +808,15 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+ 	/* First entry is NumEntries. */
+ 	cpc_obj = &out_obj->package.elements[0];
+ 	if (cpc_obj->type == ACPI_TYPE_INTEGER)	{
+-		num_ent = cpc_obj->integer.value;
+-		if (num_ent <= 1) {
+-			pr_debug("Unexpected _CPC NumEntries value (%d) for CPU:%d\n",
+-				 num_ent, pr->id);
++		if (cpc_obj->integer.value < 2 ||
++		    cpc_obj->integer.value > out_obj->package.count) {
++			pr_debug("Invalid _CPC NumEntries (%llu) for package count (%u) on CPU:%d\n",
++				 cpc_obj->integer.value, out_obj->package.count,
++				 pr->id);
+ 			goto out_free;
+ 		}
++
++		num_ent = cpc_obj->integer.value;
+ 	} else {
+ 		pr_debug("Unexpected _CPC NumEntries entry type (%d) for CPU:%d\n",
+ 			 cpc_obj->type, pr->id);
+@@ -818,6 +826,12 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+ 	/* Second entry should be revision. */
+ 	cpc_obj = &out_obj->package.elements[1];
+ 	if (cpc_obj->type == ACPI_TYPE_INTEGER)	{
++		if (cpc_obj->integer.value > U8_MAX) {
++			pr_debug("Invalid _CPC Revision (%llu) for CPU:%d\n",
++				 cpc_obj->integer.value, pr->id);
++			ret = -EINVAL;
++			goto out_free;
++		}
+ 		cpc_rev = cpc_obj->integer.value;
+ 	} else {
+ 		pr_debug("Unexpected _CPC Revision entry type (%d) for CPU:%d\n",
+-- 
+2.34.1
 
