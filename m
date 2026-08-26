@@ -1,156 +1,125 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DE6638422F
-	for <linux-acpi@vger.kernel.org>; Wed, 26 Aug 2026 10:18:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24B953D565B
+	for <linux-acpi@vger.kernel.org>; Wed, 26 Aug 2026 10:28:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787739493; cv=none; b=BDNIkxVylWWwq+IhemUS2lOClULCqIo5Ylg6uQb0PxQyVo/vFdGm/OWGR+knhjgy9CXzoVJGjJmIuwZZZ6nCSTVsd0kc7L2rVQXP+u877rj/KFY+duvhB7q2YH0YZ2FUfcE0inuJJzn31WLyH4KOUTzh3FT4J5jr+0aIAuQAGzI=
+	t=1787740109; cv=none; b=uD7OMoP+g6aRyHTdg5GQ0hKgsZlI/If7rVvtMeImZ2k7cMbc9pplmPxUqX9PBIWsualnG/m8I6bXmLpcWhxl16oyMET5xxfCEZIaQLfB0h0mWqIHzMXUbbSUVDKNoARkH1/0dpVCkXFHhNywPuvSD4EgLqH9mrO8y+TjCMoD5ws=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787739493; c=relaxed/simple;
-	bh=sqL24K0KfJdbx0vHEs3vDO0I9peitKLJ5huBhDqLg/Y=;
+	s=arc-20240116; t=1787740109; c=relaxed/simple;
+	bh=wL5hc3LpyT3SWMGIxNFjPrz1dCnPAqt0M9tE+ySsTFs=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=So3Iec1ypFNFGv/dFUSUavv8eJQMC4im4d3cEIHyO0PpBUaRZ2Nybmu3m199A+UqsmdVvsvCmD6i4Tp/vkdOjr5bvhnM7PNA2SWSaYupBih3cndewcv2wL+KHIWzxQ8x6fTjjoDerZSW2DTR5GB7fV0EkqnWC/ujUpWCtj3fY0s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WEYJ0QiP; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=KLrElSibzG2g8WMZruHF0D+FeQjy15MAAy5uaMTe7nxh8IjyD8Y6gYKZ8wQINY2OiFRjSQZi3hLX5xxki6QP9poObi8m3Im3PqTuarUokOCWYqOl2nZpGETBJFWVTdKdo+yzj58BU26k8agSZ2wrjimrN+TxWKg0Pf9AAcXh5k8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ez6/Kr+q; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WEYJ0QiP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 142581F00ACA
-	for <linux-acpi@vger.kernel.org>; Wed, 26 Aug 2026 10:18:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ez6/Kr+q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92B7C1F01564
+	for <linux-acpi@vger.kernel.org>; Wed, 26 Aug 2026 10:28:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787739492;
-	bh=mDV5gdsC6yguzGKpIGUB6MMAjCOyqIfbyxfQVnSthAw=;
+	s=k20260515; t=1787740107;
+	bh=t4LB0ynimvmu7IDX+F7ZHjm0CNIAuGM932GF2KntDbE=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=WEYJ0QiPsNz/hfSPDfjvjPu8n3hqjXwZNZvTlaejmuycz+nSglf5e425z6K8VtWCA
-	 8e6IlIR4tv4OdCBmVs1wtRiGE1c268+VscF/ztbKnZawYk8E8RX2Zn8BZV5lx0pIpx
-	 qB7mhhpgEBgQFNs8SaouLWV1Uo4loeSEKxBKDGUBUQHLVKPQLVdwqsjnwZHgvlgsov
-	 IIjlNvBrI3XA5c13p43a+if6kDPffd1PeYjkxe/rjRU6mF9Z8Om74N5NwbZzU9X5W/
-	 D0j2jTYXElRy+eXLnzSnfU3FlsgCxOt45gqzsaVw5oucoSCvUO/6cUCbfQea7d8y6+
-	 0TP6AIixhaM0g==
-Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-3a2015bbfceso4025551fa.1
-        for <linux-acpi@vger.kernel.org>; Wed, 26 Aug 2026 03:18:11 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AHgh+RqGxtsCFp6gqH5PSVlGRsjtkw/sKbcfc+grHSCIIkubNYaW2m9BbvS8rPfYo067etVrTJMEkDbIAhlp@vger.kernel.org
-X-Gm-Message-State: AFuF++mIk+gT0spWflyeZNZJ1LBuskXxOiEMGInY1DidQIHlKUwMzQFd
-	bve7zsIXBvHeuB1M+VBmhPmfvsqXRiFj5w+oX0Ro5WdGioO4BluyBRInUvUBboXR5LDRxSH5CIv
-	zGJl6KqED5y2IZAgfetspmucYi2o+6tk=
-X-Received: by 2002:a2e:b8cd:0:b0:3a1:8dd6:aada with SMTP id
- 38308e7fff4ca-3a1fbb66ed5mr9694031fa.4.1787739490431; Wed, 26 Aug 2026
- 03:18:10 -0700 (PDT)
+	b=ez6/Kr+qZR/Ocy5aSFcPdPsbdH/0FP89fskhHThhM3BBpbHCZ9VsGp+8htG2sqwnX
+	 pjNgnTzO5YudXR4vHeNTNdmYk7TMMHqvT77BL1vQ8Z2MqY5JOi05ZnBhVAroVau/hz
+	 uyFPrvbRv56IXSx/ZQLJFWzlfyUkpHXrlYPRsZX4UozW39+2EysSf/uzgapvAjubX8
+	 e27Fp4rRs6ufE38jwSK4TwijNGufi6jsz2Jlxg1u5GcQmHTUZJWnZam9JK1y/Cq1Pa
+	 ivEn6k2Gb4xZi+YgiKxKLZYTNjc3ZCPktWX63NLytrp2f0PWl0RIE6solC5O9EWuYy
+	 Fie+3QpVFJzzw==
+Received: by mail-lj1-f173.google.com with SMTP id 38308e7fff4ca-3a20367cf82so4091581fa.1
+        for <linux-acpi@vger.kernel.org>; Wed, 26 Aug 2026 03:28:27 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AHgh+Rp9xgVBskOvXutXZFsk7WmJ/xFoZIqtcMwkYN1KwOWjWAevUA0ZMMvLxOeyuJLszQYAxE52Cf4PFScr@vger.kernel.org
+X-Gm-Message-State: AFuF++nPgpGoo9phMsBTDlcXEnyhSIfitTiGLfLxze0nbOkd9SC8FU0s
+	TCj17V0QF/zGGDRrkQr/iRhBPTkmJybeHcKZda33aUfzA0MMtvG85WiUbSA6jtMx6QVQritNSaz
+	q9jHK5vsM+xmFZvKSFh4sCi6KZWIkYdM=
+X-Received: by 2002:a05:651c:1443:b0:3a2:522:c75 with SMTP id
+ 38308e7fff4ca-3a205221193mr5570921fa.4.1787740105816; Wed, 26 Aug 2026
+ 03:28:25 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260824211338.3583976-1-sakari.ailus@linux.intel.com>
- <20260824211338.3583976-4-sakari.ailus@linux.intel.com> <CAJZ5v0ieb2FcANOt0MRMsTrwtbLiUF48W_c=3z3OpNH92d=7vg@mail.gmail.com>
- <ao2FmNRFjSJVxhrL@kekkonen.localdomain> <CAJZ5v0gQVFxSkkjPbRf6bsKdgUBGduZV0M5SWrHoeB246ZLqew@mail.gmail.com>
- <134e9566-7913-86d7-1e8b-b2ca9ebec55c@linux.intel.com> <CAJZ5v0h4KD6Q1DeuwbFQ83U1=wKORMWUQNA2BwnFtsYAyzz_Ow@mail.gmail.com>
- <CAJZ5v0ggPGEu8YQTpeTC6=tVNr1zponkCbs+UQPieAH5k6ngUg@mail.gmail.com>
- <ao3uh2xos_1uwAgJ@kekkonen.localdomain> <762e0630-1b04-6a82-69b6-ca5148e74cff@linux.intel.com>
-In-Reply-To: <762e0630-1b04-6a82-69b6-ca5148e74cff@linux.intel.com>
+References: <20260806200857.601152-1-sumitg@nvidia.com> <46d81167-1548-4b6a-b6cc-38542b2d093e@nvidia.com>
+ <146a49c4-5b2a-41db-90fd-6dd2028d2d53@arm.com>
+In-Reply-To: <146a49c4-5b2a-41db-90fd-6dd2028d2d53@arm.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 26 Aug 2026 12:17:26 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0g+82WhVmdK=MT8oyuZ=d=Lb7adwEepmTx4JKebh-bqRg@mail.gmail.com>
-X-Gm-Features: AcwNN1XVhFh3nFaaB5EpSZughSsqDc3uvAx5MZLQaiHg6Md-aDFOcSXi5vYryYg
-Message-ID: <CAJZ5v0g+82WhVmdK=MT8oyuZ=d=Lb7adwEepmTx4JKebh-bqRg@mail.gmail.com>
-Subject: Re: [PATCH v2 3/5] ACPI: Support __free() from cleanup.h for ACPI objects
-To: =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	"Rafael J. Wysocki (Intel)" <rafael@kernel.org>, linux-media@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	Daniel Scally <dan.scally@ideasonboard.com>, Hans de Goede <hansg@kernel.org>, 
-	platform-driver-x86@vger.kernel.org
+Date: Wed, 26 Aug 2026 12:27:40 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hMRNTZbhb1tR7rf5+65Oes-7K__b1dLg5kGkm7NqKvWw@mail.gmail.com>
+X-Gm-Features: AcwNN1Vq8ojxPy8S0E7lgKbAolH28ywilxtnQLjWXsCL5FdsGTBnAjbB9hFBo08
+Message-ID: <CAJZ5v0hMRNTZbhb1tR7rf5+65Oes-7K__b1dLg5kGkm7NqKvWw@mail.gmail.com>
+Subject: Re: [PATCH v4 0/4] cpufreq: CPPC: Preserve OSPM-set registers across
+ hotplug and unload
+To: Christian Loehle <christian.loehle@arm.com>, Sumit Gupta <sumitg@nvidia.com>
+Cc: viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com, 
+	zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, saket.dumbre@intel.com, 
+	ray.huang@amd.com, mario.limonciello@amd.com, perry.yuan@amd.com, 
+	kprateek.nayak@amd.com, linux-kernel@vger.kernel.org, 
+	linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	acpica-devel@lists.linux.dev, linux-tegra@vger.kernel.org, treding@nvidia.com, 
+	jonathanh@nvidia.com, vsethi@nvidia.com, ksitaraman@nvidia.com, 
+	sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Aug 26, 2026 at 11:04=E2=80=AFAM Ilpo J=C3=A4rvinen
-<ilpo.jarvinen@linux.intel.com> wrote:
+On Wed, Aug 26, 2026 at 11:07=E2=80=AFAM Christian Loehle
+<christian.loehle@arm.com> wrote:
 >
-> On Tue, 25 Aug 2026, Sakari Ailus wrote:
->
-> > Hi Rafael, Ilpo,
+> On 8/25/26 22:20, Sumit Gupta wrote:
 > >
-> > On Tue, Aug 25, 2026 at 03:08:07PM +0200, Rafael J. Wysocki (Intel) wro=
-te:
-> > > > If there is a cleanup.h "free" that can only be used with objects
-> > > > returned by acpi_evaluate_dsm_typed(), I'll be fine with that.
-> > > >
-> > > > Or if everyone agrees that doing
-> > > >
-> > > >     union acpi_object *out_obj __free(ACPI_FREE) =3D NULL;
-> > > >
-> > > > is not confusing and fine, I may just say "Hey, I don't care that m=
-uch".
-> > >
-> > > And particularly there is this paragraph in a comment in cleanup.h:
-> > >
-> > >  * Given that the "__free(...) =3D NULL" pattern for variables define=
-d at
-> > >  * the top of the function poses this potential interdependency probl=
-em
-> > >  * the recommendation is to always define and assign variables in one
-> > >  * statement and not group variable definitions at the top of the
-> > >  * function when __free() is used.
-> > >
-> > > regarding a broken code example, so I would think that this is not a
-> > > made-up concern.
-> >
-> > That's indeed a valid concern, still quite unlikely in practice but
-> > probably hard to find when it happens, so avoiding that is definitely
-> > preferred. That being said, the biggest trap in cleanup.h is probably i=
+> > On 07/08/26 01:38, Sumit Gupta wrote:
+> >> This series keeps the CPPC cpufreq policy alive across CPU hotplug and
+> >> preserves the OSPM-set CPPC registers (Energy Performance Preference,
+> >> Autonomous Activity Window, Autonomous Selection - set via sysfs).
+> >>
+> >> Without online()/offline() callbacks, the core tears a policy down whe=
 n
-> > scoped_guard(), and doing __free() =3D NULL somewhere doesn't matter mu=
-ch in
-> > the end.
+> >> its last CPU goes offline and rebuilds it on the way back, re-reading =
+the
+> >> CPPC capabilities each time. The values written to these registers can
+> >> be lost:
+> >>
+> >>   - Across CPU hotplug or suspend/resume: the platform may reset them
+> >>     while the CPU is offline.
+> >>   - On driver unload: the driver-written value is left in the register
+> >>     instead of returning to its pre-driver state.
+> >>
+> >> Handle these with:
+> >>
+> >>   - Patch 1: adds online()/offline() callbacks so the core keeps polic=
+y
+> >>     alive across CPU hotplug instead of tearing it down and rebuilding=
+ it.
+> >>   - Patch 2: makes the autonomous selection register helpers take a u6=
+4.
+> >>   - Patch 3: adds a table-driven mechanism that captures each register=
+'s
+> >>     firmware value at init(), restores it from offline(), and reapplie=
+s
+> >>     the OSPM-set value from online().
+> >>   - Patch 4: extends the same save/restore to system suspend/resume.
+> >
+> > Gentle reminder.
+> > Could this be considered for queuing if nothing further needs addressin=
+g.
 >
-> __free() =3D NULL is not that hard to catch during review (or even in
-> code already in-tree), have done that dozens of times myself by now.
-> Checkpatch, too, should be able to catch that easily, if it doesn't
-> already.
->
-> None of those cases I've commented on had a bug, so it was just for
-> teaching submitters & readers of that code the correct __free() pattern.
-> I think the concern is largely overblown given how rare actual bugs are
-> even if the wrong pattern is used. Put that to contrast to memleaks found
-> on our rollback paths, __free() looks a clear win despite very rare to
-> occur caveats.
->
-> Given what I've seen, I'd say on dangerous level __free() =3D NULL is
-> somewhere around using MAGIC_SIZE_DEFINE instead sizeof(*obj) when doing
-> mem allocs. It usually isn't buggy even if we don't want to teach people
-> to use it.
->
-> Besides, it was actually Rafael himself who brought the unsafe pattern
-> into this discussion (I immediately noticed the problem but since it was
-> not an actual patch, I didn't raise a concern). Sakari's patch did use th=
-e
-> correct pattern (and if it wouldn't have done so, there would have been a
-> review comment from me ;-)). In my reply to Rafael, I intentionally left
-> the right side open with "=3D ..." to not place that NULL there.
->
-> > In this case I'll just call ACPI_FREE() sooner.
->
-> That works too in this case, yes.
+> FWIW both sashiko findings look legit to me, the feedback counters one I
+> wouldn't consider that drastic, given that these counters are expected to
+> have 'fuzzy' readings anyhow, the second one is worse (losing sysfs setti=
+ngs
+> on cpu_online())
 
-So overall, something like this can be defined
+I agree.
 
-static inline void free_acpi_object(union acpi_object *obj)
-{
-        ACPI_FREE(obj);
-}
+Besides, as I said elsewhere, I want this series to go in before any
+other pending changes related to CPPC:
 
-DEFINE_FREE(acpi_object_free, union acpi_object *, free_acpi_object(_T))
+https://lore.kernel.org/linux-acpi/20260826063019.670240-1-christian.loehle=
+@arm.com/
 
-and used along with acpi_evaluate_dsm*().
+and I really would like to get some tags on it before it goes in.  It
+clearly is not ready for 7.3, but it may be applicable early for 7.4
+if people care to respond to it.
 
-Moreover, a wrapper around acpi_evaluate_object() returning a pointer
-to union acpi_object on success and NULL on failure can be defined and
-used along with the above.
-
-IMV that would be way cleaner than wrapping a raw cleanup macro around
-ACPI_FREE().
-
-I generally think that there needs to be a wrapper layer around the
-ACPICA API, so drivers don't need to call functions returning
-acpi_status directly, for instance.
-
-Someday we'll get there.
+Thanks!
