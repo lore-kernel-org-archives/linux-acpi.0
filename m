@@ -1,202 +1,360 @@
-Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010035.outbound.protection.outlook.com [52.101.193.35])
+Received: from mout.gmx.net (mout.gmx.net [212.227.15.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D54383F788D;
-	Wed, 26 Aug 2026 19:56:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.35
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787774195; cv=fail; b=F6nehjHaALKbr6LSR7+TMu09wzHeAo+9HmF3mKvfw1KcU3iq962g3Kpa6wTaU3cfyFydjlHlf3qYn4wsfmvyY9hcedx5wcxEo33v4Z/yu2m02AlWdAxXryUqNYgO6lXZG8ptWFwLxMVlNx0YgTAguNtPJyUYNM4JfkzYBwF2uLI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787774195; c=relaxed/simple;
-	bh=YSCJHnUXTfgvY3VrPpxz7ND5udJbybhFKsP3kDQpsjc=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=N71TXVmPbvEJl61PPpCqCWQj38bQOJDz0yvh7/T80MwbPn0onKi3EToqI+hIpZIBhX6+ca0VcH9qRXMzabsEWDNl6bUSzPDFenbB2xlT044JXtvOmHzAPpnUkLx3tqItYMRnY/3JE91INN0iGXl06erACMGNWcsuBce2Pvm3+B8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=OFqDjYhT; arc=fail smtp.client-ip=52.101.193.35
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C27ED301709;
+	Wed, 26 Aug 2026 21:26:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1787779607; cv=none; b=A/8et4uNi6n7u9eTJf9QD718YGM89rF2+B/n1A1LhNDW0w9nLd03Zmg1qU0yaL50p7OzRWFxE44LHd5hcQviqw9fIEhBCskTPDmPz0v2nZiRNM1xpNGOOuNbtjYb32ZETt5ajCvLBWbPonSPyRHCEWAtaMUVS2VLBU/A6qUmZh4=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1787779607; c=relaxed/simple;
+	bh=TkYvFTvMt02jy5gMlyF59wDDmPbKmvAMS+8plOg1xys=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Tvx2Fv5/F6LU5hmBeXdxbEGEf5mot9UT38cjFXgZjUto8PAnabQthiHsYHeSTaJyjiw7I28/kqXtB5gBQ7ahjN7/bLFh9DSkl7qGxHgDTvxKX1xDFfbNiCL82dX48YG+e80iN4QlkSZxHSFExYzShLKWarS8nDFxd/DCzqhkXYM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b=IL57l9jo; arc=none smtp.client-ip=212.227.15.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="OFqDjYhT"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=LR+IrBGKNDY5rM1l6nXaVJtV00QxgoQmW4csoox7mogiJsit+KRPPBwMvVo+6mc2axY+bfMVC76dziXPWMGAQWFHTh4sowNDB/aw1OehLi+KF4aLO2RB42RkvBH+YSc/RnaKJRsNxMi8BoZ1Zf3yVPk2Q+Z2Z40gffw8isO9Xj7/oE4zjW5hMbzyOj6SeezYybiSbK9XfK+QPXbzbme4UW3KRdZmBSXXGNMFUR7/Z1vMQMhbyhWTxId0BwQToALCCIRbIFt0t9Fno56xFRnnVlAB6grsLbGpoDNRyAHGYxhHihA5ypTncTVMPBDT8wdHiJqm02M+UBUX3j2WWPj7/g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Ddbxz4gK8caIuwyS6OPC7ig3R0pqszzlcIStVgqGjeg=;
- b=JUSPGxBUKZVz0vfR9g98P7Im9iVT3JuqwbMBaAWFZVFXa50xRiuFcTi9PZaj0xN/8eyrhsEqLN2n8K9Z/MFsWIl9ZOoKqmsPnLuyKpWbixSi6tGU+xXASNxSUTPK6lITaQeQ7c6Z15HkYByLKwqxvfsc9BqRI3J2gTCGGXsYcwoTpBxrXL7KpBU28mB5ntKVofU51gkU6adRLNspoiTK/kLnrxlSAZP4alCHxrV4+Xf5VZcMWclZzPt4zTw3BQeqPJ3KS6jUyKoyyQeHUB29uGfeoy3eMPL+zQa+beyWHj6bX/lqDYeW/KbZ2dVp54twNxlnOy6gzWYOQtpnXV/ZHQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Ddbxz4gK8caIuwyS6OPC7ig3R0pqszzlcIStVgqGjeg=;
- b=OFqDjYhT5AkXBihZA3vA/GdwJzWKBEwExTXNX2fiSIcN8Nz5zB4q6WL/1YXwfmzm3jscgxoH8TTrH0o2+jcMvxmb7CfW6isVjSlXFI4jLk/eY6Bp3Pj2T8yp5tdYxk//WZ/fge0pnzqagy+bsa7SVvUU2zv2C44n3Ojo/HXcU6mX2i529is2Dc3JjmOufQPytqh2Fojev4y7EBfldPgRsrQT1MCprnXib7HPXm+YCbgAv8A5U/CuarEP742jGQHZzrL73YxRAykG0hUiOwOuOchybbUd7qn6/ic85OwDeBTtln41iPHXX6zkT36V25eLw/QWkNn/BXngRjdkJO1kPg==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DM4PR12MB5246.namprd12.prod.outlook.com (2603:10b6:5:399::17)
- by DS2PR12MB9710.namprd12.prod.outlook.com (2603:10b6:8:276::7) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.10; Wed, 26 Aug
- 2026 19:56:26 +0000
-Received: from DM4PR12MB5246.namprd12.prod.outlook.com
- ([fe80::9c9e:30a1:5456:c485]) by DM4PR12MB5246.namprd12.prod.outlook.com
- ([fe80::9c9e:30a1:5456:c485%6]) with mapi id 15.21.0360.005; Wed, 26 Aug 2026
- 19:56:23 +0000
-Message-ID: <067ccb72-5324-4f4a-b21f-d1ce87f78ad0@nvidia.com>
-Date: Thu, 27 Aug 2026 01:26:11 +0530
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 0/4] cpufreq: CPPC: Preserve OSPM-set registers across
- hotplug and unload
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>,
- Christian Loehle <christian.loehle@arm.com>
-Cc: viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
- zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, saket.dumbre@intel.com,
- ray.huang@amd.com, mario.limonciello@amd.com, perry.yuan@amd.com,
- kprateek.nayak@amd.com, linux-kernel@vger.kernel.org,
- linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev, linux-tegra@vger.kernel.org,
- treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
- ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
-References: <20260806200857.601152-1-sumitg@nvidia.com>
- <46d81167-1548-4b6a-b6cc-38542b2d093e@nvidia.com>
- <146a49c4-5b2a-41db-90fd-6dd2028d2d53@arm.com>
- <CAJZ5v0hMRNTZbhb1tR7rf5+65Oes-7K__b1dLg5kGkm7NqKvWw@mail.gmail.com>
-Content-Language: en-US
-From: Sumit Gupta <sumitg@nvidia.com>
-In-Reply-To: <CAJZ5v0hMRNTZbhb1tR7rf5+65Oes-7K__b1dLg5kGkm7NqKvWw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: PN4PR01CA0057.INDPRD01.PROD.OUTLOOK.COM
- (2603:1096:c01:274::16) To DM4PR12MB5246.namprd12.prod.outlook.com
- (2603:10b6:5:399::17)
+	dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b="IL57l9jo"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
+	s=s31663417; t=1787779604; x=1788384404; i=w_armin@gmx.de;
+	bh=TkYvFTvMt02jy5gMlyF59wDDmPbKmvAMS+8plOg1xys=;
+	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:To:Cc:
+	 References:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding:cc:content-transfer-encoding:
+	 content-type:date:from:message-id:mime-version:reply-to:subject:
+	 to;
+	b=IL57l9jobdg4H3f3D2+nHv+njiXMl5VOZMcjuYnd4/26JkItKG4sQKKnLjNEHI3O
+	 lrMBHsR9iAGZw4RQI8hgzU4oxP4AhKUuj9+V7mCKSSs+dulI5Hhls3oH5SShnJB8S
+	 N4jF6dw95QYa4P2LkN88vqaG2MphRs92OTmCpw5Rr8ysIwkYtC8lQXUl3V4Jtfs+a
+	 L/H2GUvGNbS3R0zIXiZDfRAoIJDVaBqcGUCtGihNc87SzmN7IIZ5IpV778eO8deM+
+	 iMbIaQ+znNDlyrrd/nIRBmKt9Ass5VtfYQl9C5ZJXd3ptJiMYAd+eGLD/k8ps7I4F
+	 y5wzmkb/YcWLu/yDNg==
+X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
+Received: from client.hidden.invalid by mail.gmx.net (mrgmx004
+ [212.227.17.190]) with ESMTPSA (Nemesis) id 1MNKhs-1xIUaP3ALq-00Hob8; Wed, 26
+ Aug 2026 23:26:43 +0200
+Message-ID: <3b58a0ae-f050-4dd5-80f6-bf2cdfc20318@gmx.de>
+Date: Wed, 26 Aug 2026 23:26:43 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM4PR12MB5246:EE_|DS2PR12MB9710:EE_
-X-MS-Office365-Filtering-Correlation-Id: bb640f6c-a0c3-4f6d-268d-08df03ac1ab4
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|1800799024|366016|376014|7416014|56012099006|10067099003|6133799003|5023799004|22082099003|18002099003|11063799006|4143699003;
-X-Microsoft-Antispam-Message-Info:
-	MmcvF92dl6S4iIbQ3RbGXsRTK9RZjvX+NZisn4SpHtksvakHA2jncU+v43z5w1A3ofJ5E09MqrkwFkob4cPCZEVxaEonYZc7mkPdU/Q91N6hXLQtC3gagkpHrUOk1iV3G52pbl918R58J68OklNij6B8r1EG+t6nzfgok36ztPhfOrYM/hoTwDs6nUUay4pV8ftDebcoS1+qCH/o4ivowxOiJiesfxQzGOsqiSI3OjdXLqqmJzmogBqbt15j71JRF9OXR4W1eKrfiVkMweu9GKFB5RnFbrfUqfEfzCxEzAhPOEp9tby7UBdo2DgTTqin4qEvP6uqdLNY6MX54aFJRQz3HQtOe3pfKjXyjKt8bJYDiC6vucPaXkoNzZ57FLAlBXNsp73sXYM9QUGsiBK9P/YSuKp9zL/6TnG62KCzoCkULMX/qFxY70rT27BUZNwZurZuXKJ4/Ls52xyEXiyf6U91l0xGujptR7o+4c5X0jXXO4Z4qW0oPAUEcXtRWqgAGgpYdX3CFQXuvUC3HUJP5S7pEOgKXGTHJp5/uumqhM/2GEOq5Ees9T1BB1F59TxbtK0oefnNN/U4udFtN1QMRJPp9Dcj5NXbG4U3IwpEMETZ1F9lenLLwuACuPP1gcoGBB8E1VVBGtSb9DnLJQgZOQ+8tW2tLt1CZVq6YU5Qe/I=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR12MB5246.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(366016)(376014)(7416014)(56012099006)(10067099003)(6133799003)(5023799004)(22082099003)(18002099003)(11063799006)(4143699003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?SGdVSENBUjFMTFAreG0wTFltTWhYZXd4S1JJWGJlWllldFFRVUNYUU0wQUJQ?=
- =?utf-8?B?d0xDbStiNUxDdEJkT2Y5eG03dlpwRGdoZTZTWHN3M2tFYVVmeko5Y21XeWp2?=
- =?utf-8?B?RXFYUllyUW1GMmpPd005VzZhQk5tQ3hCWU9GNmgzNE9ja1RlcTFXRjBhY2th?=
- =?utf-8?B?aEFTN1NndmVYMTB1dUo1RHdqcmF6RHZpU1hFMXBrRWVTbkpJRG5qbG1tdXh0?=
- =?utf-8?B?RGV4UVREOXdyTDZYZE40b2FyeXU4UDFUcFZHWUFMbFBvNFB6Mmw0ZE1yRGZ4?=
- =?utf-8?B?cGhqVTRybUp3Ylg2RDZjanNLdHFFamtZc2d1eWQ1MVl1ckhGR1FLT2dUSmcv?=
- =?utf-8?B?aTlneUF4ZGpodjN1VFpYU0RTOS95RjREWXpDMjZ2YjdUMG9UUnRTSzVhcWxC?=
- =?utf-8?B?MWNWZjlxbVRPMEhXRU9rTFNEQjNzRE9MNzd3Yzk2WFhjVWNtOUVkTkJJbm42?=
- =?utf-8?B?a3pPTEovblJWUUo1bk8zWUVTSUh6dmMyOG03ckFyZE1MdXVSSlROcGh1VVlE?=
- =?utf-8?B?Zm1yZXdqK05qb2pKMXloRWU3aXdmclE5c2tsR0pvc1VWb1BpZThYakI4bHNW?=
- =?utf-8?B?UEV6eFVqaW5WdmFXdW1UVXhBcXFFUi8zUTRHTVo5dkI3OVB5RGpXLzR3Q1hw?=
- =?utf-8?B?a3ZhRm9DQVRVMEtBbU00bGEyTzBSbUFlQjZZU2dQVDlLSTZYL1dZeWdOUDlp?=
- =?utf-8?B?cVQ0bFFoUklNMzA0UE9kVFVMQ2F1dFFrM2trc01DSWRMQVVwQUUvcmdWRFFG?=
- =?utf-8?B?QmtGN3ZmUjBRYU5QSGduRnh1am1VUzYrcDA1MEdGUFVNNEFWWDVyOFBpK1lD?=
- =?utf-8?B?bVNFallnQXMzdG1mVk9pbkk3Ukt2QzlBS2I3T0Fia2tNNzRXcnpYTTh2eTdC?=
- =?utf-8?B?S25JMjdUODJ6MWowRWhEcHJSdUhrbXRldDlZbmloY0FNKzlpQkJiakxRSC9G?=
- =?utf-8?B?TUR0bGFqbFJaR2ZiekVCWlpsdkxDN3p4SnpobHFDSDI0TzBrQmhIZE1XazUv?=
- =?utf-8?B?dEFKVXhCUG53cnpocEFtYmorNmVvRWN4VTF1VVRreHhzK3lJc2dIanl4LzlC?=
- =?utf-8?B?V1UzeG83SzFGcmV1QXgyMXdZcDBHL0dTbWF0QzY2QkZPbEl6MXdhNFd2MXM3?=
- =?utf-8?B?Zlk1RUNQNW1YWDhuRXRCU0htVHZjSWkvZnFSZ3FEdWFLVUZJNVE2L0d4cDcv?=
- =?utf-8?B?RVpjUVBOOTNpWUpGMktwakxqMHZHdlV3cC9uazdvNmlhUnJla0JzYi9rcEVX?=
- =?utf-8?B?dFREZkQzeFFyT211aFJNZmFwdjBJWmc4M2I0RHFJZmxSRTRCS0h6dTlMVE82?=
- =?utf-8?B?c0pQZVV6OTFvNy9Pbmdxai9xTVZxeTRBcU9oU3g1RWZPaGtTeUcrRlkyenZi?=
- =?utf-8?B?VENTTTVRYkdMdVhYUm05V2VzVHdPQW9hazUzWHFsVUNRcFhUYXZZaS9vbnli?=
- =?utf-8?B?WTNScythdnF6aDZmOEI1Q1BQUWNuZE5oT1FrSEozbEJqNG1uSmpuVlRCS2lS?=
- =?utf-8?B?YXZOS3JyRHBxaXRvdGhKcFArdlREZmpoRVRpOHNvcnJMVmJLYldLQzdBTlhk?=
- =?utf-8?B?SHA3N3UxTndZajlOODVmeXNjeFRtOHI2MVFrZitwd0VDNjN0Ty9TZDBvUWpH?=
- =?utf-8?B?S0dpSkg2WTR4S2REaURkRjNkbFhKWUJNL1p5ZjZ4NUdaNk1ybTk5ODR5ZWw3?=
- =?utf-8?B?UndEa1NRVnF2dURXVUhLZzF4emdXQW03S1VjaTNXTEJla0d2Q1FuVHFXeGlz?=
- =?utf-8?B?SGl4dyttek1iTlB3RzdOZkZMWkloemplU1BXSEVwdEE0Nkhmc25sLzFkTUpI?=
- =?utf-8?B?MFQyR3JENDd1STYyYldoN1JFbWV1bENoSkY1UHFlSUNwNG85ZkZYSi9nU2F4?=
- =?utf-8?B?MERKWC83UEQxdDgyTHFNcmdXaXBmZGRjeWlyYTdoL0lqTlhCU0NYdGlHbkhx?=
- =?utf-8?B?QlJOOFd1QVViNWJST3JjSGluT1NWZWJ2RGozeUZXRjFDMXVFN2xXYkFnd1Nk?=
- =?utf-8?B?QTdaVHhsbDF5SG5wNFBVNndpQnBvM0l1aHV2cW8rY1V0Rlg4dGlKRXpPcmVn?=
- =?utf-8?B?MzZHVzV5M0JBaDhONC8xUVlDSm9FeVhkVXdqTUxUWE52aXBQU2lXa29QQWdM?=
- =?utf-8?B?eE9kcGJGaTVBbXQ3ME5ZQmRVSTdOU01BMlN2ME1TNks0QXkvZ0NmTlBIaVJm?=
- =?utf-8?B?K0g3NUlsUjJsSGNPc2FyQ0RyS3AzY0JlSHY3UGdPWWtrcnUvRjRhNkZISlpj?=
- =?utf-8?B?RDR5MnBYWUxsZXVIaXMxL1pPQmtySGhocHM5b1lqd0xlWU5CUWxsenljbGFC?=
- =?utf-8?Q?Ckn0edoPhhCZP9mbSo?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: bb640f6c-a0c3-4f6d-268d-08df03ac1ab4
-X-MS-Exchange-CrossTenant-AuthSource: DM4PR12MB5246.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Aug 2026 19:56:23.1014
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: +f/w5rVtg8UbH8gNGQAJxIf+NuB+Ry9LCAX/bRLViDCcd65HcmekSZe0VxDWHflEmQoRMi0qz4vCmUOfY1brjA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS2PR12MB9710
+User-Agent: Mozilla Thunderbird
+Subject: Re: [BUG] Redmi Book Pro 16 2024 platform_profile write fails on
+ Linux 7.1.7
+To: Martiya Aryan Mehr <martiya.ar@gmail.com>,
+ platform-driver-x86@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <CAM-sYPpgNU+tmfHKWg0KHfVF8f-K8oaNvfYwj-vaUGsEvf1tjg@mail.gmail.com>
+Content-Language: en-US
+From: Armin Wolf <W_Armin@gmx.de>
+In-Reply-To: <CAM-sYPpgNU+tmfHKWg0KHfVF8f-K8oaNvfYwj-vaUGsEvf1tjg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Provags-ID: V03:K1:FGZQUttSrsKntN8CPNjPxROrX+3bvwGMJYhXqPUYqQvxdnYCXkI
+ 6Pmm7tfY13V4WvnB0tWTVaZCfD5w1HWDTLoBscwTtELfLhDukTArWAjtTghV+igAn1dI2Wg
+ SStjW+X4hyfQp7fb+2WWNXsPYs8XQ5KEQQt5gmiMQwPDo4VietNOoyybCVcGHoECiHuDIwC
+ /U9O9uluXBNE6f+cLrA6Q==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:tGiXiDEzt6k=;3FZMKNNlecGvMpwgIRANi/Pr7Kf
+ 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
 
+Am 11.08.26 um 20:55 schrieb Martiya Aryan Mehr:
 
-On 26/08/26 15:57, Rafael J. Wysocki (Intel) wrote:
-> External email: Use caution opening links or attachments
+> Hello,
+>
+> I am testing Linux kernel support on a Xiaomi Redmi Book Pro 16 2024 laptop.
+>
+> I found a problem with platform_profile handling on the Arch Linux 7.1.7 kernel.
+>
+> Hardware:
+>
+> Laptop: Xiaomi Redmi Book Pro 16 2024
+> Model: TM2309
+> CPU: Intel Core Ultra 7 155H (Meteor Lake)
+> BIOS: RMAMT6B0P0B0B
+> BIOS date: 06/10/2025
 >
 >
-> On Wed, Aug 26, 2026 at 11:07 AM Christian Loehle
-> <christian.loehle@arm.com> wrote:
->> On 8/25/26 22:20, Sumit Gupta wrote:
->>> On 07/08/26 01:38, Sumit Gupta wrote:
->>>> This series keeps the CPPC cpufreq policy alive across CPU hotplug and
->>>> preserves the OSPM-set CPPC registers (Energy Performance Preference,
->>>> Autonomous Activity Window, Autonomous Selection - set via sysfs).
->>>>
->>>> Without online()/offline() callbacks, the core tears a policy down when
->>>> its last CPU goes offline and rebuilds it on the way back, re-reading the
->>>> CPPC capabilities each time. The values written to these registers can
->>>> be lost:
->>>>
->>>>    - Across CPU hotplug or suspend/resume: the platform may reset them
->>>>      while the CPU is offline.
->>>>    - On driver unload: the driver-written value is left in the register
->>>>      instead of returning to its pre-driver state.
->>>>
->>>> Handle these with:
->>>>
->>>>    - Patch 1: adds online()/offline() callbacks so the core keeps policy
->>>>      alive across CPU hotplug instead of tearing it down and rebuilding it.
->>>>    - Patch 2: makes the autonomous selection register helpers take a u64.
->>>>    - Patch 3: adds a table-driven mechanism that captures each register's
->>>>      firmware value at init(), restores it from offline(), and reapplies
->>>>      the OSPM-set value from online().
->>>>    - Patch 4: extends the same save/restore to system suspend/resume.
->>> Gentle reminder.
->>> Could this be considered for queuing if nothing further needs addressing.
->> FWIW both sashiko findings look legit to me, the feedback counters one I
->> wouldn't consider that drastic, given that these counters are expected to
->> have 'fuzzy' readings anyhow, the second one is worse (losing sysfs settings
->> on cpu_online())
-> I agree.
+> Kernel comparison:
 >
-> Besides, as I said elsewhere, I want this series to go in before any
-> other pending changes related to CPPC:
+> Problematic kernel:
 >
-> https://lore.kernel.org/linux-acpi/20260826063019.670240-1-christian.loehle@arm.com/
+> Linux 7.1.7-arch1-1
 >
-> and I really would like to get some tags on it before it goes in.  It
-> clearly is not ready for 7.3, but it may be applicable early for 7.4
-> if people care to respond to it.
+> Reference kernel:
 >
-> Thanks!
+> Linux 6.18.43-1-lts
+>
+> On Linux 6.18.43 LTS the platform_profile sysfs interface is not
+> exposed, so the issue cannot be reproduced there.
+>
+> Installed packages:
+>
+> linux 7.1.7.arch1-1
+> linux-lts 6.18.43-1
+> power-profiles-daemon 0.30-1
+>
+>
+> Problem description:
+>
+> On Linux 7.1.7 the platform_profile interface exists and exposes the
+> following profiles:
+>
+> $ cat /sys/firmware/acpi/platform_profile_choices
+>
+> low-power balanced balanced-performance performance
+>
+>
+> Current profile:
+>
+> $ cat /sys/firmware/acpi/platform_profile
+>
+> balanced
+>
+>
+> Reading the current profile works correctly, but writing some profiles fails.
+>
+>
+> Working example:
+>
+> $ echo low-power | sudo tee /sys/firmware/acpi/platform_profile
+>
+> Result:
+>
+> low-power
+>
+>
+> Verification:
+>
+> $ cat /sys/firmware/acpi/platform_profile
+>
+> low-power
+>
+>
+> However, the following profiles fail:
+>
+> $ echo performance | sudo tee /sys/firmware/acpi/platform_profile
+>
+> Result:
+>
+> performance
+> tee: /sys/firmware/acpi/platform_profile: Operation not supported
+>
+>
+> Same behavior with:
+>
+> $ echo balanced-performance | sudo tee /sys/firmware/acpi/platform_profile
+>
+> Result:
+>
+> balanced-performance
+> tee: /sys/firmware/acpi/platform_profile: Operation not supported
+>
+>
+> The same issue causes power-profiles-daemon failure:
+>
+> $ powerprofilesctl set performance
+>
+> Failed to communicate with power-profiles-daemon:
+>
+> Failed to activate platform driver 'platform_profile':
+> Failed to write to acpi_platform_profile:
+> Error writing '/sys/firmware/acpi/platform_profile':
+> Operation not supported (15)
+>
+>
+> Expected behavior:
+>
+> All profiles listed in:
+>
+> /sys/firmware/acpi/platform_profile_choices
+>
+> should be writable successfully, especially:
+>
+> balanced-performance
+> performance
+>
+>
+> Actual behavior:
+>
+> Writable:
+>
+> - low-power
+> - balanced
+>
+> Not writable:
+>
+> - balanced-performance
+> - performance
+>
+>
+> Module information:
+>
+> Linux 7.1.7:
+>
+> $ modinfo redmi_wmi
+>
+> filename:
+> /lib/modules/7.1.7-arch1-1/kernel/drivers/platform/x86/redmi-wmi.ko.zst
+>
+> srcversion:
+> E64350B38255B1100E64863
+>
+>
+> Linux 6.18.43 LTS:
+>
+> filename:
+> /lib/modules/6.18.43-1-lts/kernel/drivers/platform/x86/redmi-wmi.ko.zst
+>
+> srcversion:
+> 369C9F3502463ADD78FDC0F
+>
+>
+> Dmesg information:
+>
+> The laptop is detected correctly:
+>
+> DMI:
+> XIAOMI Redmi Book Pro 16 2024/TM2309
+>
+> WMI device:
+>
+> input:
+> Redmibook WMI keys
+>
+>
+> No specific redmi_wmi error appears in dmesg.
+>
+>
+> Additional observation:
+>
+> On Linux 7.1.7:
+>
+> $ powerprofilesctl
+>
+> performance:
+> CpuDriver: intel_pstate
+>
+> balanced:
+> CpuDriver: intel_pstate
+> PlatformDriver: placeholder
+>
+>
+> The platform profile backend is detected but cannot switch to
+> performance or balanced-performance.
+>
+>
+> Possible affected components:
+>
+> - drivers/platform/x86/redmi-wmi
+> - platform_profile framework
+> - processor_thermal_soc_slider
+> - ACPI platform profile handling
+>
+>
+> I can provide additional logs, ACPI tables, or help with testing
+> patches if needed.
+>
+> Thank you.
 
-Thanks for pointing this out.
-
-I did not receive a Sashiko review email for this series, so I was
-unaware of the findings. I have found the web review now. I will go
-through both findings and address them in v5.
+Sorry for the late reply. Could you please share the output of "acpidump"?
 
 Thanks,
-Sumit
-
+Armin Wolf
 
