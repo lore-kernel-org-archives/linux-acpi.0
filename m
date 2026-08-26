@@ -1,278 +1,108 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 84C683BBA0A;
-	Wed, 26 Aug 2026 06:31:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06BDD2882D6;
+	Wed, 26 Aug 2026 07:04:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787725884; cv=none; b=ivigUv+U2zCq5ht79H/e7qwX/AE0+I0/6qKDVEINWnBw9hqcQdRhqD9fG7Z2/EAfxDF/Hr5GX2bnazyR1kjUZpJCIk7VfIMURYEL4u4agqPmVO6zpTKvGbRyWFpd1FeDRIQU32OvHIE4WbleANcN4q13+LyUUIHgxZ02uDvLKuE=
+	t=1787727848; cv=none; b=CIVBn8rzTi9TxbiE1hvobzosF9AFO/K3cZOkQAxP1lDBdvSpSbsxsmLg256pKPWlfT5d2c2CbYQCdsED4Drfm8WwvSJQMeKEpQU3j6IMXYFxZ3ourZ6or52hpZRNknwjgbARTbEV2wALHdydqIPQbf9Mc85cb9M4zvzQCDycp+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787725884; c=relaxed/simple;
-	bh=dod/31aalkw5NC++ec7S5xfDDRiYIPjZyStVMp6Ok5o=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=kwb7OaRG6MbXzoqChojatC5LWz/u6WY9igHpzr/Twh0MsmQMK/PzzWQOo3OKe+vyfiRsLM1GAGO5JcDUFDtWVW2n+VDR98emuwIxzvkkDt6LjCb58XX4LeLMp+4onLB4msUkjYLFVRod1mvKKlIqummPy158EBBzxLKcWjON11g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=joLhqmF7; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1787727848; c=relaxed/simple;
+	bh=22JDLPCvqO9mQwJ1JEhz+5Eo1o/r95PMdiTc+1EfyKM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=r4sXKDfLq70RcYqxbRRAJsaQgJbr+pX9cvls0mBTNusSXluhF1gjCsH8EA81rvk6iHfWgU4FVSYTmh3/55cObsa1BPXZq3Y6Iblu8i8N9YaoeNw40mhFmuwHLwVmgNZLqdiMCMpsvgrwb4pkCVjefODNFKRhUv0BlKNf/ZEavAs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QTcVUh0h; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="joLhqmF7"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id CAF9D1D31;
-	Tue, 25 Aug 2026 23:31:11 -0700 (PDT)
-Received: from e127648.arm.com (unknown [10.57.6.192])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 970E53F7D8;
-	Tue, 25 Aug 2026 23:31:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1787725875; bh=dod/31aalkw5NC++ec7S5xfDDRiYIPjZyStVMp6Ok5o=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=joLhqmF7uCXLIHzRKS/Je1bRvUT+miU8A0lLF4WEYObdV1LCVl/Jt4Ft/TzSDflZo
-	 zH3wu7BlpbXR/akRjoC/jNibW3sztObe98RRVUjGrDm1zytb9OzM0BfpzkyVs9Qeac
-	 ZQzsjwEsktt5e9gi9CYrLKwc2ltsd2LdLoK5cMUA=
-From: Christian Loehle <christian.loehle@arm.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
-	Viresh Kumar <viresh.kumar@linaro.org>
-Cc: linux-pm@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Len Brown <lenb@kernel.org>,
-	Jie Zhan <zhanjie9@hisilicon.com>,
-	Lifeng Zheng <zhenglifeng1@huawei.com>,
-	Pierre Gondois <pierre.gondois@arm.com>,
-	Sumit Gupta <sumitg@nvidia.com>,
-	Sudeep Holla <sudeep.holla@arm.com>,
-	Ionela Voinescu <ionela.voinescu@arm.com>,
-	zhongqiu.han@oss.qualcomm.com,
-	Christian Loehle <christian.loehle@arm.com>,
-	Sashiko <sashiko-bot@kernel.org>
-Subject: [PATCH v4 15/15] ACPI: CPPC: Clear Performance Limited without a stale read
-Date: Wed, 26 Aug 2026 07:30:19 +0100
-Message-Id: <20260826063019.670240-16-christian.loehle@arm.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260826063019.670240-1-christian.loehle@arm.com>
-References: <20260826063019.670240-1-christian.loehle@arm.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QTcVUh0h"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1787727847; x=1819263847;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=22JDLPCvqO9mQwJ1JEhz+5Eo1o/r95PMdiTc+1EfyKM=;
+  b=QTcVUh0hVCQjOp1jCFZezX5J1jLer47loBEneXc6PePWmGbGGzerJWrx
+   OdbCBVAiaCpLxyT7T4zB3z109eKRcfKfC9Z5ETCD3T1LfsI1IOMBPNR6J
+   AwpXAPOetrgySYIL7EMXM3FD0Tjs9bF23LoEXAcre/sVOAatBLfvdb/lP
+   QbgahVtsC+m56nqQbaAXK47dRhbUkgEUTTKjDfJKzXXDNvyOwYl93Z2iN
+   QIWi1Z3QD1RoWDlmSPzrZpY9zlkv7sGf0xmmvWJ2y07nHBYTKxuHNm5wC
+   JQ7J9hTYDDcieaYurm6iEICAhc2PGbO932jmx97++ImQqR4Vg7w9lafZG
+   Q==;
+X-CSE-ConnectionGUID: 0SkBbaknQbejaX0AIPgZuQ==
+X-CSE-MsgGUID: IEto+oa5Rz6iIeISz91Mag==
+X-IronPort-AV: E=McAfee;i="6800,10657,11886"; a="105728439"
+X-IronPort-AV: E=Sophos;i="6.25,244,1779174000"; 
+   d="scan'208";a="105728439"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2026 00:04:06 -0700
+X-CSE-ConnectionGUID: Nju8ON1tQA6WA8wt0VPP3w==
+X-CSE-MsgGUID: g9fkz5xIRbWsjJ6Taqn7xg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,244,1779174000"; 
+   d="scan'208";a="264901564"
+Received: from abityuts-desk1.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.245.245.215])
+  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2026 00:04:04 -0700
+Received: from kekkonen.localdomain (localhost [IPv6:::1])
+	by kekkonen.fi.intel.com (Postfix) with ESMTP id E7EB611F961;
+	Wed, 26 Aug 2026 10:04:16 +0300 (EEST)
+Date: Wed, 26 Aug 2026 10:04:16 +0300
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: linux-media@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>,
+	linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>,
+	Daniel Scally <dan.scally@ideasonboard.com>,
+	Hans de Goede <hansg@kernel.org>,
+	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	platform-driver-x86@vger.kernel.org
+Subject: Re: [PATCH v3 2/3] platform/x86: int3472: Fix uninitialised variable
+ warning
+Message-ID: <ao6P8POpBLSDOZSI@kekkonen.localdomain>
+References: <20260825203553.3725132-1-sakari.ailus@linux.intel.com>
+ <20260825203553.3725132-3-sakari.ailus@linux.intel.com>
+ <CAPybu_1J4z2Z0Xv1PyHZa2U+PFsTWPVyifJr2p8DgkQRTJm6YQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPybu_1J4z2Z0Xv1PyHZa2U+PFsTWPVyifJr2p8DgkQRTJm6YQ@mail.gmail.com>
 
-The Performance Limited status bits are sticky and write-zero-to-clear.
-ACPI 6.6 Section 8.4.6.1.3.2 also requires both entities to use interlocked
-accesses.
+Hi Ricardo,
 
-cppc_set_perf_limited() currently reads the register, computes a new value,
-and writes it in a separate transaction. If the platform reports another
-excursion between those transactions, the stale write can clear that new
-event.
+Thanks for the review.
 
-Write zero to the requested bits and one to the other defined status bits
-directly. Keep reserved bits zero as required for hardware status registers
-by ACPI 6.6 Section 4.6.1. This removes the stale read window.
+On Tue, Aug 25, 2026 at 11:04:51PM +0200, Ricardo Ribalda Delgado wrote:
+> nits:
+> 
+> It would be nice to have the error message that it is fixed in the
+> commit message (also for 1/3)
 
-A partial SystemMemory field would still make the generic writer perform a
-read-modify-write to preserve the containing access unit. The
-per-descriptor spinlock cannot interlock that RMW with platform updates, so
-reject clears of such a field. Keep the descriptor mapped and readable,
-because reading the containing access unit once and extracting the field
-does not require RMW.
+There's actually a compiler warning on this, too. I'll reword this being:
 
-Also reject another writable SystemMemory field sharing Performance
-Limited's access unit. Its RMW could similarly replay stale status bits,
-and an OSPM lock cannot serialize against the platform.
+Fix a compiler warning about an uninitialised err_msg variable by printing
+the error where it is handled:
 
-Also reject 64-bit SystemMemory descriptions on 32-bit kernels, where
-generic readq()/writeq() may be split into two 32-bit operations and cannot
-provide the required portable interlocked access. A naturally aligned
-full-width QWord remains supported on 64-bit kernels, where the
-architecture provides a native 64-bit MMIO accessor.
+drivers/platform/x86/intel/int3472/discrete.c:440:24: warning: ‘err_msg’ may be used uninitialized [-Wmaybe-uninitialized]
+  440 |                 return dev_err_probe(int3472->dev, ret, err_msg);
 
-Performance Limited status is not required for CPPC control. If firmware
-describes it using an access which Linux cannot read safely, disable that
-status register instead of rejecting the processor's otherwise usable _CPC
-package. Report reads as unsupported rather than returning a synthetic
-zero, and emit a single warning for each nonfatal fallback.
+> 
+> Would you consider adding a Fixes? This patch fixes a compilation
+> error (with the right kernel config)
 
-Fixes: 13c45a26635f ("ACPI: CPPC: add APIs and sysfs interface for perf_limited")
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Link: https://sashiko.dev/#/patchset/20260807111303.1062391-1-christian.loehle%40arm.com
-Signed-off-by: Christian Loehle <christian.loehle@arm.com>
----
- drivers/acpi/cppc_acpi.c | 74 +++++++++++++++++++++++++++-------------
- include/acpi/cppc_acpi.h |  1 +
- 2 files changed, 52 insertions(+), 23 deletions(-)
+Fixes: 5de691bffe57 ("platform/x86: Add intel_skl_int3472 driver")
+Cc: stable
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 2d9c04a8c93c..b97227a661f5 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -193,7 +193,8 @@ static struct cpc_sysmem_node *cpc_sysmem_next(struct cpc_sysmem_node *node,
- static bool cpc_is_writable(const struct cpc_register_resource *cpc)
- {
- 	return cpc->type == ACPI_TYPE_BUFFER &&
--	       !IS_NULL_REG(&cpc->cpc_entry.reg);
-+	       !IS_NULL_REG(&cpc->cpc_entry.reg) &&
-+	       !cpc->cpc_entry.write_unsupported;
- }
- 
- static bool cpc_entry_present(const struct cpc_register_resource *cpc)
-@@ -382,7 +383,7 @@ static bool cpc_sysmem_reg_needs_rmw(const struct cpc_register_resource *reg)
- 	return gas->bit_offset || gas->bit_width != access_size * 8;
- }
- 
--static int cpc_validate_sysmem_reg(const struct cpc_desc *cpc_desc,
-+static int cpc_validate_sysmem_reg(struct cpc_desc *cpc_desc,
- 				   const struct cpc_reg *gas,
- 				   unsigned int reg_idx)
- {
-@@ -404,6 +405,17 @@ static int cpc_validate_sysmem_reg(const struct cpc_desc *cpc_desc,
- 	if (gas->address & (access_size - 1))
- 		goto invalid;
- 
-+	if (reg_idx == PERF_LIMITED) {
-+		if (access_width == 64 && !IS_ENABLED(CONFIG_64BIT))
-+			return -EINVAL;
-+
-+		if (gas->bit_offset || gas->bit_width != access_width) {
-+			pr_warn("CPU%d: Performance Limited register cannot be cleared safely; keeping it readable\n",
-+				cpc_desc->cpu_id);
-+			cpc_desc->cpc_regs[reg_idx].cpc_entry.write_unsupported = true;
-+		}
-+	}
-+
- 	return 0;
- 
- invalid:
-@@ -430,6 +442,14 @@ static int cpc_resolve_unsupported(struct cpc_desc *cpc_desc,
- 		if (!(unsupported & BIT(i)))
- 			continue;
- 
-+		/* CPPC control does not depend on Performance Limited status. */
-+		if (i == PERF_LIMITED) {
-+			pr_warn("CPU%d: ignoring inaccessible Performance Limited register\n",
-+				cpc_desc->cpu_id);
-+			cpc_disable_reg(cpc_desc, i);
-+			continue;
-+		}
-+
- 		if (i == DESIRED_PERF && cpc_immutable_autonomous(cpc_desc)) {
- 			pr_warn("CPU%d: ignoring inaccessible Desired Performance register in autonomous mode\n",
- 				cpc_desc->cpu_id);
-@@ -716,7 +736,8 @@ static void cpc_mark_rmw_lock_users(struct cpc_desc *cpc_desc)
- 	for (i = 0; i < cpc_desc->num_entries - 2; i++) {
- 		struct cpc_register_resource *reg = &cpc_desc->cpc_regs[i];
- 
--		if (CPC_SUPPORTED(reg) && CPC_IN_SYSTEM_MEMORY(reg))
-+		if (CPC_SUPPORTED(reg) && CPC_IN_SYSTEM_MEMORY(reg) &&
-+		    cpc_is_writable(reg))
- 			reg->cpc_entry.use_rmw_lock =
- 				cpc_sysmem_reg_needs_rmw(reg);
- 	}
-@@ -797,10 +818,11 @@ static int cpc_validate_sysmem_pair(const struct cpc_desc *a_desc,
- 
- 	if (cpc_same_sysmem_register(a_idx, a, b_idx, b)) {
- 		/*
--		 * Cross-CPU partial writes were never safely serialized, and a
--		 * 64-bit MMIO write may be split on 32-bit kernels.
-+		 * Identical read-only registers may be shared. Cross-CPU partial
-+		 * writes were never safely serialized, and a 64-bit MMIO write may
-+		 * be split on 32-bit kernels.
- 		 */
--		if (!a_writable ||
-+		if ((!cpc_is_writable(a) && !cpc_is_writable(b)) ||
- 		    (!cpc_sysmem_reg_needs_rmw(a) &&
- 		     (cpc_sysmem_access_size(a) < sizeof(u64) ||
- 		      IS_ENABLED(CONFIG_64BIT))))
-@@ -808,6 +830,15 @@ static int cpc_validate_sysmem_pair(const struct cpc_desc *a_desc,
- 		goto conflict;
- 	}
- 
-+	/*
-+	 * The platform may set Performance Limited asynchronously.  A write to
-+	 * another field in the same access unit could write back stale status
-+	 * bits, which an OSPM lock cannot prevent.
-+	 */
-+	if ((a_idx == PERF_LIMITED && b_writable && cpc_is_writable(b)) ||
-+	    (b_idx == PERF_LIMITED && a_writable && cpc_is_writable(a)))
-+		goto conflict;
-+
- 	/*
- 	 * A full-width writable register owns its access unit.  It cannot
- 	 * coexist with another logical field because it has no bits to
-@@ -2026,13 +2057,10 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
- 	unsigned int i;
- 	bool locked = false;
- 
--	if (reg_res->type != ACPI_TYPE_BUFFER)
-+	if (!cpc_is_writable(reg_res))
- 		return -EOPNOTSUPP;
- 
- 	reg = &reg_res->cpc_entry.reg;
--	if (IS_NULL_REG(reg))
--		return -EOPNOTSUPP;
--
- 	size = GET_BIT_WIDTH(reg);
- 
- 	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
-@@ -2194,9 +2222,13 @@ static int cppc_get_reg_val(int cpu, enum cppc_regs reg_idx, u64 *val)
- 
- 	reg = &cpc_desc->cpc_regs[reg_idx];
- 
--	/* Desired may be absent for immutable autonomous selection. */
-+	/*
-+	 * Desired and Performance Limited may be disabled despite not being
-+	 * generally optional.
-+	 */
- 	if ((reg->type == ACPI_TYPE_INTEGER &&
--	     (IS_OPTIONAL_CPC_REG(reg_idx) || reg_idx == DESIRED_PERF) &&
-+	     (IS_OPTIONAL_CPC_REG(reg_idx) || reg_idx == DESIRED_PERF ||
-+	      reg_idx == PERF_LIMITED) &&
- 	     !reg->cpc_entry.int_value) || (reg->type != ACPI_TYPE_INTEGER &&
- 	     IS_NULL_REG(&reg->cpc_entry.reg))) {
- 		pr_debug("CPC register is not supported\n");
-@@ -3117,9 +3149,6 @@ EXPORT_SYMBOL_GPL(cppc_get_perf_limited);
-  */
- int cppc_set_perf_limited(int cpu, u64 bits_to_clear)
- {
--	u64 current_val, new_val;
--	int ret;
--
- 	/* Only bits 0 and 1 are valid */
- 	if (bits_to_clear & ~CPPC_PERF_LIMITED_MASK)
- 		return -EINVAL;
-@@ -3127,14 +3156,13 @@ int cppc_set_perf_limited(int cpu, u64 bits_to_clear)
- 	if (!bits_to_clear)
- 		return 0;
- 
--	ret = cppc_get_perf_limited(cpu, &current_val);
--	if (ret)
--		return ret;
--
--	/* Clear the specified bits */
--	new_val = current_val & ~bits_to_clear;
--
--	return cppc_set_reg_val(cpu, PERF_LIMITED, new_val);
-+	/*
-+	 * Performance Limited is write-zero-to-clear.  Write one to the other
-+	 * defined sticky bits so a concurrently reported event is not cleared
-+	 * using a value obtained by an earlier, separate read transaction.
-+	 */
-+	return cppc_set_reg_val(cpu, PERF_LIMITED,
-+				CPPC_PERF_LIMITED_MASK & ~bits_to_clear);
- }
- EXPORT_SYMBOL_GPL(cppc_set_perf_limited);
- 
-diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index 3275ecb51ca5..91635fcac3c5 100644
---- a/include/acpi/cppc_acpi.h
-+++ b/include/acpi/cppc_acpi.h
-@@ -72,6 +72,7 @@ struct cpc_register_resource {
- 		struct {
- 			struct cpc_reg reg;
- 			bool use_rmw_lock;
-+			bool write_unsupported;
- 		};
- 		u64 int_value;
- 	} cpc_entry;
+It seems it's always been there but I think it's a false positive: the
+compiler probably just can't figure out err_msg is unused if ret is
+non-zero.
+
 -- 
-2.34.1
+Regards,
 
+Sakari Ailus
