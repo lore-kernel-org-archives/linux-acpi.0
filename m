@@ -1,164 +1,122 @@
-Received: from out162-62-57-64.mail.qq.com (out162-62-57-64.mail.qq.com [162.62.57.64])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f52.google.com (mail-wr1-f52.google.com [209.85.221.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D3B130F7EB;
-	Thu, 27 Aug 2026 05:33:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.62.57.64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 026B42E717B
+	for <linux-acpi@vger.kernel.org>; Thu, 27 Aug 2026 05:39:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787808811; cv=none; b=FWhmZmg13EWJKcHgA52OSMnTwvUXg/IR+LVK1FoAT9cVBfTgkWh2qIZKpYJeV3Gdngu5XLmdnlHqDKqoJjXF4cJD1gDca2ppUWPQLcxDu9/Jffw4wDOCbeEylWZjzuCmCz0RZFojpWr8DwkjqeLiBvI4JxNF1CjFnhzlLO0U/Bk=
+	t=1787809149; cv=none; b=iBYdhkUfFdN2DCbpNUt+mAmR+tuou17R9vKFMeN1xn+eKgoP2UAfjobEO/DUEMXEu3jTcNbCkxn3PgQwu58W+8vcPJR3FT0RYggxiaYX8h0Itq36nlkyGJHsrDA6eO4CBJDj6p50VR6k2CIdZ6DzFhF7Aa64zd2FtsEIQf3x3vA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787808811; c=relaxed/simple;
-	bh=9QFB4DUl9aZ2Pe1XNGXqmGG3h71UlbRZ6fml/A49EFw=;
-	h=Message-ID:From:To:Cc:Subject:Date:MIME-Version:Content-Type; b=qY8JRAqU1rrUM2PuKdyq0royWN2s5TmKWre+Flub+UnOJgsIDLe8igy/cNt9QnnzOI+r5WwrAx1VYE4ZykI6Gb7q9QFl2UZrINlfWuG4/mPBhabpM+R3mF9NnakXxEqDhUU+dFU+LIzoxb6tpCe5tjuvCn2cSUO3K8UUsgxhFi4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com; spf=pass smtp.mailfrom=qq.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=vAgqfqzh; arc=none smtp.client-ip=162.62.57.64
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
+	s=arc-20240116; t=1787809149; c=relaxed/simple;
+	bh=xfQh0Y5R20vSZUxjaK2vmYzmU1LW79HxmsPiG+WbHk4=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=NWfNfMl2Jbt9kJd6rJtgltCeG8SCk0hBmdI+XH+0t5I5zVhmuxUvKQYlU+kNhz9uJ22kRup+QcnIUCZ3IyCIiggdiO9IWgk41sV/w2Shyr6JIOjUp6V6yTDP2exWHhV9ry5G84cxpya5IL+sHUcUSxLO2BY4X/R5OOYo58x53g4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=c3ijnRxm; arc=none smtp.client-ip=209.85.221.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="vAgqfqzh"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
-	t=1787808796; bh=DEjWwAjp2asnbHmKeFBTjrJ/EfouG9qQ7hO1fKlT/nY=;
-	h=From:To:Cc:Subject:Date;
-	b=vAgqfqzhdeZUh0CkLp/zQCdM9vAUH9cll/RjV3qLkSGEKoBvgvo7JVa0Qk51ceuOb
-	 EsZHaH0N78jB4gNyaMLsNSjkGT7+6mL3QRBhlHiZkbBAbTxzIqYPpg/qYtVg9uJDxo
-	 fPjlcV4aZd9z4OxTr5b1RcezkZT0PdMXYCw6Z1Z8=
-Received: from DESKTOP-5664AH9 ([14.153.63.166])
-	by newxmesmtplogicsvrszb51-0.qq.com (NewEsmtp) with SMTP
-	id 84DB2498; Thu, 27 Aug 2026 13:33:13 +0800
-X-QQ-mid: xmsmtpt1787808793t7e1gcgzd
-Message-ID: <tencent_751A66BCB84E931ADBAB5073E0EB6FC8CF09@qq.com>
-X-QQ-XMAILINFO: N/WmRbclY25GlVKqr2TxuygHu4H9YWSY5NdOvDOJJSShZEv8491m/ivsL60O4C
-	 zxXDr3i2Rb0ElFdJf6qmjwSuKaud2ierp0RZLkY5rpKmtV81Flk4XKEA58QvNs2b944+55LD9ffE
-	 opDXOlp7WEcI3lR3gKN2qSZqDNlmKtDrDrZltokIBV9uE6fO3r7S5w1BESxKivllGfLI3KKhIBvs
-	 Ynw53UBRqx42LyKde40EnH4lZ4NhD2keCrndz/eRnBqyNR7UHkHfkI7L0ZKnACo5dMZsk2QEZFs2
-	 kvs+rjEOlEKF540lvycwiYMmKEq1Qp7bXf1FynxazWtqByS0CkgApHMKH6MrmqXhM8djceB0ZEm3
-	 ScKBWVwPg7DCqn62+2b9smYRL0P45hZtNCkpYxzdBR4OLcZaW628GM/vyVzv31whmi/1+s+3Da1D
-	 I3cIRqTVKtWgRRrpHwMgVDTvbUpDys1oq8DT5Er4jPPwLpH6nui6BHk2HY6X+V2bUYw04pvSeWNE
-	 KiQAr22WMLKZYvwJI7r20cUdbWT1QyeviaNk5HIdM5DhITxCMIBzZn1o2j1W1/xO+Axiij3u7CvW
-	 4Tp0QdkhQRb9v2tBoPwypBACO8P69u+ixoIuqt2W34Wdi/F877v06gJgvVvr8vwCKdW/1QSUuPbg
-	 3Vsx3MQahRtgWftkFZ54DI74DdeJNv6Yr/MXOx1jt8uxHOuq3TNfREXqm5CFvZJZZ1lt/QkMtawI
-	 b/0JrzrzZBH+OI8gHk5j1PTGTttvVqIzj+iosY95ReKjdhWnlgGosW2+kY/AsEBCXsBz7hCHiFxZ
-	 s8YD6GmyhDIzHoMDmmLebj7mSUELzQaVoMmo8HroW9no6oyAvNuCcA/Fn/P9Z4Ck70Z10+MZTe0R
-	 6QN5Nc6yIclWm4qwfvhZbYUXa+qfQjficHcn/Q5ukP+X3hR8piTnM7MW21WWsWSlP+GzfJZgcjGV
-	 VNEafZxvwh1dVaPit3Q2U+pQ0sdMlCkvckyi/sY5TVkJRokbDld+nZQZxOO/fIFYT0pXrnA7i6Y1
-	 XnD8zwDoj64dPRYiDDOt4fsaP7rJ9HzBV9CN5fAO3tN//lE022JCgxC5tS5rmkKEzTsPbSTloE+H
-	 fo1vR0
-X-QQ-XMRINFO: MSVp+SPm3vtSI1QTLgDHQqIV1w2oNKDqfg==
-From: Hackdale <445735441@qq.com>
-To: linux-acpi@vger.kernel.org
-Cc: hdegoede@redhat.com,
-	rafael.j.wysocki@intel.com,
-	stable@vger.kernel.org,
-	Hackdale <445735441@qq.com>
-Subject: [PATCH] ACPI: resource: Add MECHREVO GM5BG0E to irq1_edge_low_force_override[]
-Date: Thu, 27 Aug 2026 05:33:14 +0800
-X-OQ-MSGID: <20260826213314.1291-1-445735441@qq.com>
-X-Mailer: git-send-email 2.55.0.windows.3
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="c3ijnRxm"
+Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-482dbe4d247so75728f8f.2
+        for <linux-acpi@vger.kernel.org>; Wed, 26 Aug 2026 22:39:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1787809146; x=1788413946; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=lOz3YD9m113l6BvHxW+pci6nfgveDpLEimxy0iOIiEM=;
+        b=c3ijnRxmJJGNX1Co5BRN6SCDFkviargZThXe98Dwp5eHrG01JVfRzw4BQssiQ8iRem
+         k4AUVtA7vc57GEoYqWuqbwYR27VTnifhBFdUonsd7w5972g2+XFTUoV78+oqBMwqkerf
+         VbFSbN0TIODlaO91kp8oKS2fMkBthjFUPxoAXH3TghfhqmwprnLqQ9zVv0IMIcSo5gnx
+         l32818GwfTJ8a+zQIwUtsVfVYY4J2W+Vqc807J4WAw9k/NUp3W0nQvOgS9p5l1vReRp2
+         Uwc9jcTTgoUyMf6jczXYFgMtme6Ht2/fpsXgk3UAU5fvMAhuYS3TG18Mh5vsxN1C2AuJ
+         y+/g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1787809146; x=1788413946;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=lOz3YD9m113l6BvHxW+pci6nfgveDpLEimxy0iOIiEM=;
+        b=a1PlSpTd6iAYSNIPwVM4fecG6tP+SFEHCcmCkhCTTg2wCXELz/QTi/5Rhnqkuw3q2P
+         5SCbhWodtzQgk+M3HTKFnMqrzvoDfXd+nqdVrlekzPKoUPg0iO1Cp5VNNEt2OI5Bh/EH
+         CDzRBPzcXuvs5zb+PjYJ2cdictU92Ielj3CccKjhCJ/QRZDcwgxxGsi8Baaq5qdR4mdy
+         GzQCrgFds8Tk31Uzj7dQpMwvxp9gkmcpFUCMdLNuluAyjrZKfrmujutfoEfCX0FjAA/q
+         7r57Ri0XQSGgsVdL7FwmVXPZqyQYCJNtARVAjCBHdju6NsSPBou5Ruyi4arLog8Ah/nP
+         QjRA==
+X-Forwarded-Encrypted: i=1; AHgh+RqvtU25IG/oG2pp48f2Vpr/nkkiFl34tL43ammwZAv4yBvOr4tH79wkiz1gLTZ9T0/bo8VOeEanHHBX@vger.kernel.org
+X-Gm-Message-State: AFuF++kgI+bqM2TNTP07JNKZvW2eQ60hjiGk+kJPc5AU1Ipzoy6G08TF
+	+Dbs+xzFCF+ZyVxkO+u2vkQ8vMM1h13m7VHeKPC4Sf/KgeoqJMgHOlOt5PJS0A6b
+X-Gm-Gg: AR+sD13CtBxxE7QbR88tbm3y5QnLuZzl+NucnIaKJj5KKTkcKl9lRB9kooFcjpmKmnS
+	IV9KjjsYOm8HOoPsVI/Ql4/cz9P/1Tew3s9psbha87bL8yNdBacUmRcKTsMcmAWNBpCCUNH/3zG
+	3bNHGgh1SBsE/RUUN/Bmp3AqFjftLikYthUTHGHFlKP9yAPJBenF8dXkLs3bXZFdW1oGtvcQ1f5
+	1xzyCZ8l1WH3yJW7pHL9aopGCBGUMY2d26FXnzkG6qOgIYTcqLdylYak5tXsP33nz+GGcj1l1PD
+	gjGSUkUb1bWOI21QaDv+uFUhkbkRsWOCWCWvpAyYF5/ZUo4xxzxt2w90b6Xr01QxE+zie+19Kjt
+	yqoiY2QGy2wY7K7rXNvLsLXckdaSPIqBovFonZcSBm1Ncr07z1zrpebCRBp/bXGSUn4TXHwKq85
+	IjtOhMMjtwkP9Gl55/HM73R9YqBBtcxGadvD0OFkC16NiRQ+OMuUI35+sl3Snbhvhx9VN0gsDR1
+	eJfq0QSr9lQ7CfkliJU3sTEqJGNYrV6JOPAGd5YJ67X+v08cpXEMOXJd2JntVoQvz5H2LwxZzOz
+	ZAAeIKtjmu08AfVx5X3AAQKV9A==
+X-Received: by 2002:adf:e00d:0:10b0:47f:6f9e:1e82 with SMTP id ffacd0b85a97d-482e26d7482mr10341961f8f.9.1787809146021;
+        Wed, 26 Aug 2026 22:39:06 -0700 (PDT)
+Received: from localhost.localdomain (dynamic-095-114-154-097.95.114.pool.telefonica.de. [95.114.154.97])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-482e28dc3f5sm6397295f8f.21.2026.08.26.22.39.04
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Wed, 26 Aug 2026 22:39:05 -0700 (PDT)
+From: Karl Mehltretter <kmehltretter@gmail.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>,
+	linux-acpi@vger.kernel.org
+Cc: Karl Mehltretter <kmehltretter@gmail.com>,
+	Len Brown <lenb@kernel.org>,
+	Anirudh Prasad <icarus@a0rg.com>,
+	Sashiko <sashiko-bot@kernel.org>,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH] ACPI: pfr_update: zero-initialize capability query result
+Date: Thu, 27 Aug 2026 07:37:41 +0200
+Message-Id: <20260827053741.79425-1-kmehltretter@gmail.com>
+X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-The MECHREVO Jiaolong 15K (GM5BG0E), an AMD Ryzen 7 7435H based laptop,
-has a defective DSDT that declares the PS2K keyboard IRQ1 as ActiveLow,
-whereas the hardware is actually ActiveHigh. Starting with Linux 6.0,
-the kernel no longer auto-corrects this polarity mismatch on AMD Zen
-platforms, causing the internal keyboard to become non-functional.
+query_capability() copies four ACPI buffers into fixed-size fields using
+the firmware-supplied lengths.  The existing overflow guard rejects
+oversized buffers, but shorter buffers are accepted and leave trailing
+bytes of the stack-allocated cap_hdr uninitialized.  PFRU_IOC_QUERY_CAP
+then copies the entire structure to userspace.
 
-Add the GM5BG0E board to the irq1_edge_low_force_override[] DMI quirk
-table so that the kernel forces the correct IRQ polarity for this model.
+Zero-initialize cap_hdr before querying the firmware.  This preserves the
+existing handling of short firmware responses while preventing disclosure
+of kernel stack data.  Oversized buffers remain rejected.
 
-Bug: https://bugzilla.kernel.org/show_bug.cgi?id=XXXXXX
-Link: https://lore.kernel.org/linux-acpi/XXXXXX@XXXXXX
-Cc: All applicable <stable@vger.kernel.org>
-Signed-off-by: Hackdale <445735441@qq.com>
+A QEMU _DSM returning one-byte buffers reproduced nonzero stack suffix
+bytes in all four fields.  With this change, the ioctl still succeeds and
+each unwritten suffix is zero-filled, while 64-byte buffers continue to
+return -EINVAL.
+
+Fixes: 0db89fa243e5 ("ACPI: Introduce Platform Firmware Runtime Update device driver")
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Closes: https://sashiko.dev/#/patchset/1a001e1fee9.637da6dc3533246.238498880682901704%40a0rg.com
+Cc: stable@vger.kernel.org
+Assisted-by: LLM
+Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
 ---
- drivers/acpi/resource.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/acpi/pfr_update.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index xxxxxxx..xxxxxxx 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -xxx,x +xxx,x @@ static const struct dmi_system_id irq1_edge_low_force_override[] = {
- 		},
- 	},
-+	{
-+		/* MECHREVO Jiaolong 15K GM5BG0E */
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "GM5BG0E"),
-+		},
-+	},
- 	{ }
- };
+diff --git a/drivers/acpi/pfr_update.c b/drivers/acpi/pfr_update.c
+index 9afd2c52fdbd..98ace679601b 100644
+--- a/drivers/acpi/pfr_update.c
++++ b/drivers/acpi/pfr_update.c
+@@ -422,7 +422,7 @@ static int start_update(int action, struct pfru_device *pfru_dev)
  
+ static long pfru_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+-	struct pfru_update_cap_info cap_hdr;
++	struct pfru_update_cap_info cap_hdr = {};
+ 	struct pfru_device *pfru_dev = to_pfru_dev(file);
+ 	void __user *p = (void __user *)arg;
+ 	u32 rev;
 -- 
-2.49.0
-
----
-
-# 中文版补丁说明
-
-## 问题描述
-
-MECHREVO 蛟龙15K (GM5BG0E) 搭载 AMD Ryzen 7 7435H 处理器，其 BIOS DSDT 表中存在错误：
-键盘 IRQ1 被声明为 ActiveLow（低电平触发），但硬件实际为 ActiveHigh（高电平触发）。
-
-从 Linux 6.0 内核开始，AMD Zen 平台不再自动修正此极性不匹配问题，导致内置键盘无法使用。
-
-## 修复方案
-
-将 GM5BG0E 主板添加到内核 `irq1_edge_low_force_override[]` DMI 兼容表中，
-使内核为该型号强制使用正确的 IRQ 极性。
-
-## 提交信息
-
-- **维护者**：Hans de Goede <hdegoede@redhat.com>
-- **邮件列表**：linux-acpi@vger.kernel.org
-- **抄送**：stable@vger.kernel.org（用于稳定版回溯）
-
----
-
-# English Version - Patch Description
-
-## Problem Description
-
-The MECHREVO Jiaolong 15K (GM5BG0E), equipped with AMD Ryzen 7 7435H processor,
-contains a defective BIOS DSDT table. The PS2K keyboard interrupt (IRQ1) is
-declared as ActiveLow in the ACPI table, but the hardware is actually wired
-for ActiveHigh operation.
-
-Starting with Linux 6.0, the kernel no longer automatically corrects this
-polarity mismatch on AMD Zen platforms (commit 2d331a6ac481), causing the
-internal keyboard to become non-functional.
-
-## Solution
-
-Add the GM5BG0E board name to the irq1_edge_low_force_override[] DMI quirk
-table in drivers/acpi/resource.c. This forces the kernel to apply the correct
-IRQ polarity override for this specific hardware model.
-
-## Technical Details
-
-- **File modified**: drivers/acpi/resource.c
-- **Function affected**: acpi_dev_irq_override()
-- **Quirk table**: irq1_edge_low_force_override[]
-- **DMI match**: DMI_BOARD_NAME = "GM5BG0E"
-
-## Testing
-
-Verified on MECHREVO Jiaolong 15K with:
-- AMD Ryzen 7 7435H
-- BIOS N.1.23MRO20
-- Linux kernel 6.x
-
-After applying this patch, the internal keyboard functions correctly.
-
-## References
-
-- Similar fixes: GM6BGEQ, GM6BG5Q, GM6BG0Q (TongFang barebones)
-- upstream commit: 2d331a6ac481 ("ACPI: resource: Fix IRQ override quirk")
+2.39.5 (Apple Git-154)
 
