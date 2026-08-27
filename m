@@ -1,122 +1,107 @@
-Received: from mail-wr1-f52.google.com (mail-wr1-f52.google.com [209.85.221.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fout-b5-smtp.messagingengine.com (fout-b5-smtp.messagingengine.com [202.12.124.148])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 026B42E717B
-	for <linux-acpi@vger.kernel.org>; Thu, 27 Aug 2026 05:39:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B80CA1A5B8A;
+	Thu, 27 Aug 2026 05:46:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.148
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787809149; cv=none; b=iBYdhkUfFdN2DCbpNUt+mAmR+tuou17R9vKFMeN1xn+eKgoP2UAfjobEO/DUEMXEu3jTcNbCkxn3PgQwu58W+8vcPJR3FT0RYggxiaYX8h0Itq36nlkyGJHsrDA6eO4CBJDj6p50VR6k2CIdZ6DzFhF7Aa64zd2FtsEIQf3x3vA=
+	t=1787809617; cv=none; b=ZIU6Yuy8A1PSCjXNVGGawZYsOYKNs1UQRuxR6uMuj7kAtginjlG1sqOOqWqUUv7vxqd2Hd5qsKDO5LdHCgfh9rTRPQ2wjEl87/KCcB2hcOTvqfGCOpRhblOEZFKqO/Whfr9Du4w3SX6HFYaStUbhUbc+NGjzf/ZJEr16u7DcNqQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787809149; c=relaxed/simple;
-	bh=xfQh0Y5R20vSZUxjaK2vmYzmU1LW79HxmsPiG+WbHk4=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=NWfNfMl2Jbt9kJd6rJtgltCeG8SCk0hBmdI+XH+0t5I5zVhmuxUvKQYlU+kNhz9uJ22kRup+QcnIUCZ3IyCIiggdiO9IWgk41sV/w2Shyr6JIOjUp6V6yTDP2exWHhV9ry5G84cxpya5IL+sHUcUSxLO2BY4X/R5OOYo58x53g4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=c3ijnRxm; arc=none smtp.client-ip=209.85.221.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1787809617; c=relaxed/simple;
+	bh=dLmG91zn2oU/M66kJqcWLHbRnLjYZMJnxLcKZFD4hSI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=FE3bNkYSxl03F+42mT1HN1bKQx6kj58ffy+wrHM9p7mrNXBw1IXDhvacDaevJPQTBu9RZHTTy+xJK0kh9ENoj7rZRoDwadzSPmS+rbgnTdAaz8EzGO5n3ESTaymv4b6+ncuSBtTzsT3m8PyDa8JNWD6qL42ZMA7XjLvzbwq7Yiw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kroah.com; spf=pass smtp.mailfrom=kroah.com; dkim=pass (2048-bit key) header.d=kroah.com header.i=@kroah.com header.b=cNemag5M; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=XDUGfX4r; arc=none smtp.client-ip=202.12.124.148
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kroah.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kroah.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="c3ijnRxm"
-Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-482dbe4d247so75728f8f.2
-        for <linux-acpi@vger.kernel.org>; Wed, 26 Aug 2026 22:39:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1787809146; x=1788413946; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=lOz3YD9m113l6BvHxW+pci6nfgveDpLEimxy0iOIiEM=;
-        b=c3ijnRxmJJGNX1Co5BRN6SCDFkviargZThXe98Dwp5eHrG01JVfRzw4BQssiQ8iRem
-         k4AUVtA7vc57GEoYqWuqbwYR27VTnifhBFdUonsd7w5972g2+XFTUoV78+oqBMwqkerf
-         VbFSbN0TIODlaO91kp8oKS2fMkBthjFUPxoAXH3TghfhqmwprnLqQ9zVv0IMIcSo5gnx
-         l32818GwfTJ8a+zQIwUtsVfVYY4J2W+Vqc807J4WAw9k/NUp3W0nQvOgS9p5l1vReRp2
-         Uwc9jcTTgoUyMf6jczXYFgMtme6Ht2/fpsXgk3UAU5fvMAhuYS3TG18Mh5vsxN1C2AuJ
-         y+/g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787809146; x=1788413946;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=lOz3YD9m113l6BvHxW+pci6nfgveDpLEimxy0iOIiEM=;
-        b=a1PlSpTd6iAYSNIPwVM4fecG6tP+SFEHCcmCkhCTTg2wCXELz/QTi/5Rhnqkuw3q2P
-         5SCbhWodtzQgk+M3HTKFnMqrzvoDfXd+nqdVrlekzPKoUPg0iO1Cp5VNNEt2OI5Bh/EH
-         CDzRBPzcXuvs5zb+PjYJ2cdictU92Ielj3CccKjhCJ/QRZDcwgxxGsi8Baaq5qdR4mdy
-         GzQCrgFds8Tk31Uzj7dQpMwvxp9gkmcpFUCMdLNuluAyjrZKfrmujutfoEfCX0FjAA/q
-         7r57Ri0XQSGgsVdL7FwmVXPZqyQYCJNtARVAjCBHdju6NsSPBou5Ruyi4arLog8Ah/nP
-         QjRA==
-X-Forwarded-Encrypted: i=1; AHgh+RqvtU25IG/oG2pp48f2Vpr/nkkiFl34tL43ammwZAv4yBvOr4tH79wkiz1gLTZ9T0/bo8VOeEanHHBX@vger.kernel.org
-X-Gm-Message-State: AFuF++kgI+bqM2TNTP07JNKZvW2eQ60hjiGk+kJPc5AU1Ipzoy6G08TF
-	+Dbs+xzFCF+ZyVxkO+u2vkQ8vMM1h13m7VHeKPC4Sf/KgeoqJMgHOlOt5PJS0A6b
-X-Gm-Gg: AR+sD13CtBxxE7QbR88tbm3y5QnLuZzl+NucnIaKJj5KKTkcKl9lRB9kooFcjpmKmnS
-	IV9KjjsYOm8HOoPsVI/Ql4/cz9P/1Tew3s9psbha87bL8yNdBacUmRcKTsMcmAWNBpCCUNH/3zG
-	3bNHGgh1SBsE/RUUN/Bmp3AqFjftLikYthUTHGHFlKP9yAPJBenF8dXkLs3bXZFdW1oGtvcQ1f5
-	1xzyCZ8l1WH3yJW7pHL9aopGCBGUMY2d26FXnzkG6qOgIYTcqLdylYak5tXsP33nz+GGcj1l1PD
-	gjGSUkUb1bWOI21QaDv+uFUhkbkRsWOCWCWvpAyYF5/ZUo4xxzxt2w90b6Xr01QxE+zie+19Kjt
-	yqoiY2QGy2wY7K7rXNvLsLXckdaSPIqBovFonZcSBm1Ncr07z1zrpebCRBp/bXGSUn4TXHwKq85
-	IjtOhMMjtwkP9Gl55/HM73R9YqBBtcxGadvD0OFkC16NiRQ+OMuUI35+sl3Snbhvhx9VN0gsDR1
-	eJfq0QSr9lQ7CfkliJU3sTEqJGNYrV6JOPAGd5YJ67X+v08cpXEMOXJd2JntVoQvz5H2LwxZzOz
-	ZAAeIKtjmu08AfVx5X3AAQKV9A==
-X-Received: by 2002:adf:e00d:0:10b0:47f:6f9e:1e82 with SMTP id ffacd0b85a97d-482e26d7482mr10341961f8f.9.1787809146021;
-        Wed, 26 Aug 2026 22:39:06 -0700 (PDT)
-Received: from localhost.localdomain (dynamic-095-114-154-097.95.114.pool.telefonica.de. [95.114.154.97])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-482e28dc3f5sm6397295f8f.21.2026.08.26.22.39.04
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Wed, 26 Aug 2026 22:39:05 -0700 (PDT)
-From: Karl Mehltretter <kmehltretter@gmail.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
-	linux-acpi@vger.kernel.org
-Cc: Karl Mehltretter <kmehltretter@gmail.com>,
-	Len Brown <lenb@kernel.org>,
-	Anirudh Prasad <icarus@a0rg.com>,
-	Sashiko <sashiko-bot@kernel.org>,
-	linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: [PATCH] ACPI: pfr_update: zero-initialize capability query result
-Date: Thu, 27 Aug 2026 07:37:41 +0200
-Message-Id: <20260827053741.79425-1-kmehltretter@gmail.com>
-X-Mailer: git-send-email 2.39.5 (Apple Git-154)
+	dkim=pass (2048-bit key) header.d=kroah.com header.i=@kroah.com header.b="cNemag5M";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="XDUGfX4r"
+Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
+	by mailfout.stl.internal (Postfix) with ESMTP id A27B71D000EB;
+	Thu, 27 Aug 2026 01:46:54 -0400 (EDT)
+Received: from phl-frontend-04 ([10.202.2.163])
+  by phl-compute-05.internal (MEProxy); Thu, 27 Aug 2026 01:46:54 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kroah.com; h=cc
+	:cc:content-type:content-type:date:date:from:from:in-reply-to
+	:in-reply-to:message-id:mime-version:references:reply-to:subject
+	:subject:to:to; s=fm3; t=1787809614; x=1787896014; bh=o+ssIJuGRD
+	zgshjvCjYAVg8jF8+dDtGdr+Sa5sOLKs8=; b=cNemag5MVyRMdp1CrxBtOXLCht
+	eIy7XSlTlTcwr+YW7RsFJbt9qrtSp88EUscX62veabb4RSROrBYjU0w5f5Z5aSXN
+	1BnRQlxHjF1ervYgCoijC+PoaqZ/hI5kXztaW1LzwV5GbBC2y5rn80LeThRSwosv
+	6oFQbcxpFy69KkL1EDS/70YLdlHNOzEXuIDXSQy5f8hw7Mnwql2ogVkGd9gINIGF
+	XXgNiNz0ltzzLUqrJeuJxHc7xWmi0s3NIuG66gTIn/PszaGm2H1FneOFVq0CYEZH
+	VsHXUCFB6Ug10sawWUxBRjlGFtPIrGNNPxzieuHfEFmPjlIxQ4briclzY9Bw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-type:content-type:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:subject:subject:to
+	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
+	1787809614; x=1787896014; bh=o+ssIJuGRDzgshjvCjYAVg8jF8+dDtGdr+S
+	a5sOLKs8=; b=XDUGfX4r68IUs0ZnRnc5obH64HJXJLL0hWt3nLimE6cwiPeUXSu
+	gIZ3XbXYtyktTkQR49es6ZxdUnGzrc7csbxtGfb+/avIVsBmRkOsvIeftaqRb7/3
+	0JS6gnVDH5AcPs4dlUNbvA4EV619rzqp3nDdrYQONSLPxco4U8povdBitLZIApoA
+	0+XZKmm3xrHwjdJ8j2J+qyUAhh9GSrWNxltKtB2+GPe9FzSWNc/xPW/kJjLyJ7ip
+	VJnfyrQR5ax1Okt1eC4zsZvO/jD1+JwLJg2IAIy+kSVTabU64CXRM8iYRJm9eEXD
+	rQV4vG9uNlvajqT5Mh7UvNLDDLm6e/onXOA==
+X-ME-Sender: <xms:Ts-Pav38FpxxDhp_g_nh-K_Zc964QE1tcinby_pcc51XnGATyRunNw>
+    <xme:Ts-PatzHy0U_-i_GTF4MFNLvEhJ7ravloNwbTEk7ywN6T8PmHm4rZD43I8xvHgI0U
+    WmQQYjQ5e6C2njEPpzllnM-JuuSzBj3EbSpIpv-7tWAwMyUbs8>
+X-ME-Received: <xmr:Ts-ParhGnDbyGn6TcRfSOA51sI0li6dl0T7flet5OmChPL9y3GYmx1IlSt0AUR1pGcbgRqQqd4tnmLYPmY6ROBztdVL7Z1h7w2AX-fn6h6E>
+X-ME-Proxy-Cause: dmFkZTFHo3LYfQEVYjvD3mDk/LUtj8RqIPPvAH2MqYercJI7otQ1cuo81Pd9dsYcpoeo1B
+    AFaXgMK7gHM6xs/J70914zYs3eFa7Xw2KNe/8w9xLC+OuQmvDPI4yv56qJfWqpFmv84hl8
+    ZiNWq1J/fNXgsOElNk/wjiVnGHWQT00vIySQ7s1wXmJv4wQy3+hdlzjLPSktM0ALVBveHt
+    fFhotIxt+Ke1/pgguR66ucuxIAKqvBIBsbKyQWEO1C0YhQcqJiCZ/9Iq89WzUNu8M1jX23
+    gRaBvy0qKNdAMbPVH2PjQgCzmRVJhS0TKGgtyq1EeIpiCW2pQ5u0o3afNu33RiEtYXl7AM
+    PtCIM3Ag7uuSgWAykLRxF0SoCFi5rx7QXtwFtdIyZz16pzF+aWZ13ZcYbmu9u/9VBGZKPK
+    +7nBFoMG+BCFoc3i5R9zNsf7+T0/2hgxdn8kD5QutDYJBAZP0ClJu6MDut5QQSiMhGJUJS
+    Arbi8ev+Nn+GnHQLbtYlsc+SBSf9eY7ii3leU6kVF9/+CJJGej4vvntgF2tum8iW6PW4qS
+    Ns9oVkWJh/uknmGA4ewl8qae6QtzwQYDIFZT91yWPApO7oxPlhyg2jE6Nw0Q6Kruu06Bh8
+    ssD9E7TUyIC9vdro6qpLwLUfZ1z5xht0j71z2wGX0V/nm+GEO0g4oniCMgNw
+X-ME-Proxy: <xmx:Ts-PagqwAWFmqsxENnN5nhzD9IQ5xy9WGEC3McDf03nbcHjXiOhHnw>
+    <xmx:Ts-PaijD_b3n8zz5RJ3Fxa9aRb6NHtFAIx62zsG0t_E8ErdCpLjh2A>
+    <xmx:Ts-PaiMjDUvLZ_0FrIdqXxtSh6UZnjjBI7-wvx-GMryf9KGnJQkzWg>
+    <xmx:Ts-PaszSnj0dy2_B83YzMjYc3_UxMV77r0_tW8RnG7uwDcib-z_3mQ>
+    <xmx:Ts-PaloahrRUAcZQIPlH6Ut4cxemd6RPgYAnsc6eX3OdxrKANoo5CJW5>
+Feedback-ID: i787e41f1:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 27 Aug 2026 01:46:53 -0400 (EDT)
+Date: Thu, 27 Aug 2026 07:45:12 +0200
+From: Greg KH <greg@kroah.com>
+To: Hackdale <445735441@qq.com>
+Cc: linux-acpi@vger.kernel.org, hdegoede@redhat.com,
+	rafael.j.wysocki@intel.com, stable@vger.kernel.org
+Subject: Re: [PATCH] ACPI: resource: Add MECHREVO GM5BG0E to
+ irq1_edge_low_force_override[]
+Message-ID: <2026082751-viable-tamer-1d6e@gregkh>
+References: <tencent_751A66BCB84E931ADBAB5073E0EB6FC8CF09@qq.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <tencent_751A66BCB84E931ADBAB5073E0EB6FC8CF09@qq.com>
 
-query_capability() copies four ACPI buffers into fixed-size fields using
-the firmware-supplied lengths.  The existing overflow guard rejects
-oversized buffers, but shorter buffers are accepted and leave trailing
-bytes of the stack-allocated cap_hdr uninitialized.  PFRU_IOC_QUERY_CAP
-then copies the entire structure to userspace.
+On Thu, Aug 27, 2026 at 05:33:14AM +0800, Hackdale wrote:
+> The MECHREVO Jiaolong 15K (GM5BG0E), an AMD Ryzen 7 7435H based laptop,
+> has a defective DSDT that declares the PS2K keyboard IRQ1 as ActiveLow,
+> whereas the hardware is actually ActiveHigh. Starting with Linux 6.0,
+> the kernel no longer auto-corrects this polarity mismatch on AMD Zen
+> platforms, causing the internal keyboard to become non-functional.
+> 
+> Add the GM5BG0E board to the irq1_edge_low_force_override[] DMI quirk
+> table so that the kernel forces the correct IRQ polarity for this model.
+> 
+> Bug: https://bugzilla.kernel.org/show_bug.cgi?id=XXXXXX
+> Link: https://lore.kernel.org/linux-acpi/XXXXXX@XXXXXX
+> Cc: All applicable <stable@vger.kernel.org>
+> Signed-off-by: Hackdale <445735441@qq.com>
 
-Zero-initialize cap_hdr before querying the firmware.  This preserves the
-existing handling of short firmware responses while preventing disclosure
-of kernel stack data.  Oversized buffers remain rejected.
+Real name please.
 
-A QEMU _DSM returning one-byte buffers reproduced nonzero stack suffix
-bytes in all four fields.  With this change, the ioctl still succeeds and
-each unwritten suffix is zero-filled, while 64-byte buffers continue to
-return -EINVAL.
+thanks,
 
-Fixes: 0db89fa243e5 ("ACPI: Introduce Platform Firmware Runtime Update device driver")
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Closes: https://sashiko.dev/#/patchset/1a001e1fee9.637da6dc3533246.238498880682901704%40a0rg.com
-Cc: stable@vger.kernel.org
-Assisted-by: LLM
-Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
----
- drivers/acpi/pfr_update.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/pfr_update.c b/drivers/acpi/pfr_update.c
-index 9afd2c52fdbd..98ace679601b 100644
---- a/drivers/acpi/pfr_update.c
-+++ b/drivers/acpi/pfr_update.c
-@@ -422,7 +422,7 @@ static int start_update(int action, struct pfru_device *pfru_dev)
- 
- static long pfru_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
--	struct pfru_update_cap_info cap_hdr;
-+	struct pfru_update_cap_info cap_hdr = {};
- 	struct pfru_device *pfru_dev = to_pfru_dev(file);
- 	void __user *p = (void __user *)arg;
- 	u32 rev;
--- 
-2.39.5 (Apple Git-154)
-
+greg k-h
