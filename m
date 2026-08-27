@@ -1,19 +1,19 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A218371041;
-	Thu, 27 Aug 2026 20:37:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CBC0362154;
+	Thu, 27 Aug 2026 20:37:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787863065; cv=none; b=n7tW+pNlwVaWLL8sgCHtwFsaEo5sBPhIvoaTFsRe49I9DXp9SCBWJSCcwI3scbCbtILIroENE09V6M05lbLaiWChY+CsEI9Rs0e2nIl3bBaSjgHZUmp+/9Yt/yjVfziEbkWr9/cd7S17lt2ppVJIJgEIhhvVgjUJMfVNYjAIC9Q=
+	t=1787863068; cv=none; b=Mv13WBjsCc0+eLtC0BRqUm7eVcSFy/mH+gsOsLcvx2bp/UUErGHm9u4YjFKDps8ugVl4cBHhLFu9XI25Mwuspag6Bc3oLA/EoMnnZNlxwuFsAsy8yTdWk56URP2aMJzIIAyskJzweatV/O2KCcRI6WeVgTNRy7rL7nYyAdoA8gA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787863065; c=relaxed/simple;
-	bh=G2p6iWc4QokKg1eeqAvZn9kCfoir2M8txi1JXkLcUyg=;
+	s=arc-20240116; t=1787863068; c=relaxed/simple;
+	bh=7Mc/0mC+h80MgAUX/QIvCK0gbbRLJAGiM9qQ7w9osQY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ZzFCyhZcuMPheWXzANsdI+05tW/l470A4WQH9jCHXKHmfZ3kx34wU+mz7/rCUUNVXwl7AETGBFUqRqsbt2h7QP63tWm7NnMuP9vatqfkPmA5IXFFN9tXrByDol3Gch0tyJKCQauJkWvYu/vmhIRHGoxdz8d2G7x9W0IVSpuQNWU=
+	 MIME-Version; b=QOoWdx4W5W8hkjmmRsgGbuq7PxvfWpnuwesMB68MVLR/o2h7BK+SfJzkYoQdn498Rro5a4EFoKZnr2jqPtF6gg80uSBuKJbWjhFfDXfDA2RmeJ9Pa65quvkqhoFSRWU8uNeCkqkoaRRhPAV/ryiVhObIMvkZJD/XyB3He271jnk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C27441F00A3D;
-	Thu, 27 Aug 2026 20:37:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD0701F00A3E;
+	Thu, 27 Aug 2026 20:37:41 +0000 (UTC)
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-acpi@vger.kernel.org,
 	linux-cxl@vger.kernel.org
@@ -28,9 +28,9 @@ Cc: rafael@kernel.org,
 	alison.schofield@intel.com,
 	sashiko-bot@kernel.org,
 	Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-Subject: [PATCH v5 02/13] efi/cper: Reject an error status block length that wraps a u32
-Date: Thu, 27 Aug 2026 13:37:15 -0700
-Message-ID: <20260827203726.3027541-3-dave.jiang@intel.com>
+Subject: [PATCH v5 09/13] ACPI: APEI: GHES: Validate CXL protocol error section length before RAS cap copy
+Date: Thu, 27 Aug 2026 13:37:22 -0700
+Message-ID: <20260827203726.3027541-10-dave.jiang@intel.com>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260827203726.3027541-1-dave.jiang@intel.com>
 References: <20260827203726.3027541-1-dave.jiang@intel.com>
@@ -42,52 +42,146 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-cper_estatus_len() sums the firmware-controlled data_length (or
-raw_data_offset plus raw_data_length) into a u32. A data_length of
-0xffffffec wraps that sum to 0, and a length that reads back short defeats
-every bound built on it: bert_print_all() passes its "remain <
-estatus_len" check, then advances "estatus += estatus_len" by zero and
-loops forever. GHES survives only because __ghes_check_estatus() rejects a
-length below sizeof(*estatus) first.
+cxl_cper_setup_prot_err_work_data() locates the RAS Capability block at
+prot_err + sizeof(*prot_err) + dvsec_len and copies it, but dvsec_len is
+firmware controlled and never validated, so it can point the copy outside
+the section.
 
-Reject a length that cannot be expressed in a u32 in
-cper_estatus_check_header(), which both of today's callers reach: GHES via
-__ghes_check_estatus() and BERT via cper_estatus_check(). extlog reaches
-neither yet; a later patch routes it through cper_estatus_check(), whose
-ELOG_ENTRY_LEN bound needs this to hold.
+Extend cxl_cper_sec_prot_err_valid() to check that the section can hold
+the header, and that the header, DVSEC and RAS Capability block together
+fit the reported section length.
 
 Reported-by: sashiko-bot@kernel.org
-Closes: https://sashiko.dev/#/patchset/20260714231835.303081-1-dave.jiang@intel.com?part=1
-Fixes: 06d65deade9a ("ACPI, APEI, UEFI Common Platform Error Record (CPER) header")
+Link: https://sashiko.dev/#/patchset/20260617-topics-ahmtib01-ras_ffh_arm_internal_review-v6-0-91f725174aa0@arm.com?part=6
+Link: https://lore.kernel.org/linux-cxl/20260709165457.8BA181F000E9@smtp.kernel.org/
+Fixes: 315c2f0b53ba ("acpi/ghes, cper: Recognize and cache CXL Protocol errors")
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com>
+Reviewed-by: Ben Cheatham <benjamin.cheatham@amd.com>
 Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-Assisted-by: Claude:claude-opus-4-8
+Assisted-by: Claude:claude-sonnet-4-6
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/firmware/efi/cper.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/acpi/acpi_extlog.c       |  3 ++-
+ drivers/acpi/apei/ghes.c         |  7 ++++---
+ drivers/acpi/apei/ghes_helpers.c | 18 +++++++++++++++++-
+ include/acpi/ghes.h              |  2 +-
+ include/cxl/event.h              |  4 ++--
+ 5 files changed, 26 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-index 332c78f2d561..3dcef618ad39 100644
---- a/drivers/firmware/efi/cper.c
-+++ b/drivers/firmware/efi/cper.c
-@@ -745,6 +745,17 @@ int cper_estatus_check_header(const struct acpi_hest_generic_status *estatus)
- 	    estatus->raw_data_offset < sizeof(*estatus) + estatus->data_length)
- 		return -EINVAL;
+diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
+index ab46fa2adc53..3e0d21fb287c 100644
+--- a/drivers/acpi/acpi_extlog.c
++++ b/drivers/acpi/acpi_extlog.c
+@@ -244,7 +244,8 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
+ 				acpi_hest_get_payload(gdata);
  
-+	/*
-+	 * cper_estatus_len() sums these into a u32, and a wrapped sum reads
-+	 * back smaller than the record. Reject a length that cannot be
-+	 * expressed so no caller is handed the short value.
-+	 */
-+	if ((u64)sizeof(*estatus) + estatus->data_length > U32_MAX)
+ 			cxl_cper_post_prot_err(prot_err,
+-					       gdata->error_severity);
++					       gdata->error_severity,
++					       gdata->error_data_length);
+ 		} else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
+ 			struct cper_sec_pcie *pcie_err = acpi_hest_get_payload(gdata);
+ 
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index e5f8dbd17017..b8dbd99da47e 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -753,12 +753,12 @@ static DEFINE_SPINLOCK(cxl_cper_prot_err_work_lock);
+ struct work_struct *cxl_cper_prot_err_work;
+ 
+ void cxl_cper_post_prot_err(struct cxl_cper_sec_prot_err *prot_err,
+-			    int severity)
++			    int severity, u32 len)
+ {
+ #ifdef CONFIG_ACPI_APEI_PCIEAER
+ 	struct cxl_cper_prot_err_work_data wd;
+ 
+-	if (cxl_cper_sec_prot_err_valid(prot_err))
++	if (cxl_cper_sec_prot_err_valid(prot_err, len))
+ 		return;
+ 
+ 	guard(spinlock_irqsave)(&cxl_cper_prot_err_work_lock);
+@@ -951,7 +951,8 @@ static void ghes_do_proc(struct ghes *ghes,
+ 		} else if (guid_equal(sec_type, &CPER_SEC_CXL_PROT_ERR)) {
+ 			struct cxl_cper_sec_prot_err *prot_err = acpi_hest_get_payload(gdata);
+ 
+-			cxl_cper_post_prot_err(prot_err, gdata->error_severity);
++			cxl_cper_post_prot_err(prot_err, gdata->error_severity,
++					       gdata->error_data_length);
+ 		} else if (guid_equal(sec_type, &CPER_SEC_CXL_GEN_MEDIA_GUID)) {
+ 			struct cxl_cper_event_rec *rec = acpi_hest_get_payload(gdata);
+ 
+diff --git a/drivers/acpi/apei/ghes_helpers.c b/drivers/acpi/apei/ghes_helpers.c
+index bc7111b740af..df41b993f413 100644
+--- a/drivers/acpi/apei/ghes_helpers.c
++++ b/drivers/acpi/apei/ghes_helpers.c
+@@ -5,8 +5,15 @@
+ #include <linux/aer.h>
+ #include <cxl/event.h>
+ 
+-int cxl_cper_sec_prot_err_valid(struct cxl_cper_sec_prot_err *prot_err)
++int cxl_cper_sec_prot_err_valid(struct cxl_cper_sec_prot_err *prot_err, u32 len)
+ {
++	if (len < sizeof(*prot_err)) {
++		pr_err_ratelimited(FW_WARN
++				   "CXL CPER prot err section too small (%u)\n",
++				   len);
 +		return -EINVAL;
-+	if (estatus->raw_data_length &&
-+	    (u64)estatus->raw_data_offset + estatus->raw_data_length > U32_MAX)
-+		return -EINVAL;
++	}
 +
- 	return 0;
+ 	if (!(prot_err->valid_bits & PROT_ERR_VALID_AGENT_ADDRESS)) {
+ 		pr_err_ratelimited("CXL CPER invalid agent type\n");
+ 		return -EINVAL;
+@@ -23,6 +30,15 @@ int cxl_cper_sec_prot_err_valid(struct cxl_cper_sec_prot_err *prot_err)
+ 		return -EINVAL;
+ 	}
+ 
++	/* The RAS Capability block sits after a firmware-sized DVSEC. */
++	if (sizeof(*prot_err) + prot_err->dvsec_len +
++	    sizeof(struct cxl_ras_capability_regs) > len) {
++		pr_err_ratelimited(FW_WARN
++				   "CXL CPER prot err DVSEC (%u) overruns section (%u)\n",
++				   prot_err->dvsec_len, len);
++		return -EINVAL;
++	}
++
+ 	if ((prot_err->agent_type == RCD || prot_err->agent_type == DEVICE ||
+ 	     prot_err->agent_type == LD || prot_err->agent_type == FMLD) &&
+ 	    !(prot_err->valid_bits & PROT_ERR_VALID_SERIAL_NUMBER))
+diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+index be496bc0386f..7acf209061ea 100644
+--- a/include/acpi/ghes.h
++++ b/include/acpi/ghes.h
+@@ -88,7 +88,7 @@ void ghes_estatus_pool_region_free(unsigned long addr, u32 size);
+ 
+ struct cxl_cper_sec_prot_err;
+ void cxl_cper_post_prot_err(struct cxl_cper_sec_prot_err *prot_err,
+-			    int severity);
++			    int severity, u32 len);
+ #else
+ static inline struct list_head *ghes_get_devices(void) { return NULL; }
+ 
+diff --git a/include/cxl/event.h b/include/cxl/event.h
+index ff97fea718d2..912305bee3bc 100644
+--- a/include/cxl/event.h
++++ b/include/cxl/event.h
+@@ -321,13 +321,13 @@ static inline int cxl_cper_prot_err_kfifo_get(struct cxl_cper_prot_err_work_data
+ #endif
+ 
+ #ifdef CONFIG_ACPI_APEI_PCIEAER
+-int cxl_cper_sec_prot_err_valid(struct cxl_cper_sec_prot_err *prot_err);
++int cxl_cper_sec_prot_err_valid(struct cxl_cper_sec_prot_err *prot_err, u32 len);
+ int cxl_cper_setup_prot_err_work_data(struct cxl_cper_prot_err_work_data *wd,
+ 				      struct cxl_cper_sec_prot_err *prot_err,
+ 				      int severity);
+ #else
+ static inline int
+-cxl_cper_sec_prot_err_valid(struct cxl_cper_sec_prot_err *prot_err)
++cxl_cper_sec_prot_err_valid(struct cxl_cper_sec_prot_err *prot_err, u32 len)
+ {
+ 	return -EOPNOTSUPP;
  }
- EXPORT_SYMBOL_GPL(cper_estatus_check_header);
 -- 
 2.54.0
 
