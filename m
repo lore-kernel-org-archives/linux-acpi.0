@@ -1,404 +1,155 @@
-Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
+Received: from SJ2PR03CU001.outbound.protection.outlook.com (mail-westusazon11012000.outbound.protection.outlook.com [52.101.43.0])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69AE7360EF9;
-	Thu, 27 Aug 2026 20:44:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787863500; cv=none; b=XmD2PRXkXP+glhb4ddx0RxfdmIdU8VFv5ltF0ExMQbRNQ13H33FN8CtbzU+EUPkhB9sEG4AM/oJERAdAOnFYLW0Ooz4fkhWXphaGTQUWK3vJEPBgaTfXdhFDR+r+2keDpLEHjt/hYSlDLxGViBOtO1MCxrJF9zW4HJZEXA/9R4g=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787863500; c=relaxed/simple;
-	bh=KYfICtcSFfvQ8TeE0qIMFHRGjD2Zc7/d73fIGpwp7Aw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tJQ+UVwxXKIR5WwgCT6FiWDp9uSYkqXCJLFE4aDBZjG2Xzu5FPxblZuylwG5dBEsMk8pqz43+xdYsKx2BcctBe7wvG/0IT7S1HbgMzWEHbcyUr3y/S5p7ACCaMcQYLouEU0NGkaoP+BMeTw8doop4+QOxGFCq6wDIKsdnYr4ljo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=MpZbZg+a; arc=none smtp.client-ip=65.109.113.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B66E377A8A;
+	Thu, 27 Aug 2026 20:49:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.43.0
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1787863778; cv=fail; b=IJItQFTvTm12rHBDi125Yq55CoRZC6/3K2KsmawJs70D8RdSxLHWxvL/TQQUwfAzty6Xj4WVrWf3+PSwc5cnQNo1cHeBr107QIHGvMUjXJwhQOD8fMfwJQbjb1vnVUr3MiSKNOmKEJV2VxEqqCHGP23jL4mnsFi0wgsXxYTKMFU=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1787863778; c=relaxed/simple;
+	bh=soz/nUirTM4pDt3Ozw+jJpeAE82UVjqcPw2qslallrE=;
+	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=hpGYiI3e/Yu0aXZSG/c5HQZB0DyNDn6Ch5CEFyIIgzGWvMk3PgiCdZLeH3jYrv78FLhLsPPgkUjgxk6ZeFYLkKNSqzemuZ2BwJUFB+Sv1DvpmTBbPx2oIhJF4smU0MotDCTzzG5fnTN3kdwmG4FPnxoHCwyB6ZT2qnzs4sv1Ud8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=pktFjnFN; arc=fail smtp.client-ip=52.101.43.0
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="MpZbZg+a"
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id 2A66E40E01D0;
-	Thu, 27 Aug 2026 20:44:53 +0000 (UTC)
-X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
-Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
-	header.d=alien8.de
-Received: from mail.alien8.de ([127.0.0.1])
-	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id aOu4f02GyiEU; Thu, 27 Aug 2026 20:44:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
-	t=1787863485; bh=1RgFFsZHeTL4RzO7yrSrgFLZyu6C+Vvc4pK8jxo7bH4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=MpZbZg+a/cxDR/LH+wUtC1l7LLjhE4cAzQ2I8JG75pNB47b7kO7aoFA9uFHQQFI0F
-	 L3i7FifVYLFvYnqvlafGRrarsUnWUnWdNiD5KpVUEirpAw06C+av73n3t09T9nSzct
-	 8QWEq0mfsb9YJEyJkTfRvdcGSZD99SKIH8TZsYMK2VOXy0/YGUhl5yQq+jLkftzoRB
-	 RAzDQbCSYUhaCWieqUTq80LxxdHrPyx5XznpJR6vbUYN+6jM2j+33ZXrbXEdPqfaaz
-	 iSAXtFyBtKgBUuDvhzYu66P5kD/MxNB0v48HLlFGEc/uxBOG38Fxphtc+3kkPplddG
-	 cenVhF106hF5wpxjbUxQ/4866Kr9bRtbZ1KYqOjZL7kyTC2VrNlpy53xRDdeYSJkr9
-	 xckymJCfsDYOIcWTTBBSH4WFCasn+Zl+wJXUHT6E4Y6RKSSg+Mwy9AKVM2zEo6PyNm
-	 2zP1klMmMKZdO7gKh6UWWLaXX+SWetOmGhPsgiH4VWoNCmXYRaoiG/u50NDYmWpTGI
-	 qBqzrwsrllmuwMiRXHF2rX768pqdMHEyEga/wPJEIPfSZPobA+HckoOu6QNkT8pUYo
-	 kpOTuQKHW5zU3LZmfdtQTU11ORLRip1+GzK7fN2uQcd1MHU7s6moDZ5ZOgpH5EhDN4
-	 fKgM6HnQyZpZiSRhVgu60BRs=
-Received: from stx.tnic (unknown [IPv6:2600:1700:38ca:c00::42])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
-	(No client certificate requested)
-	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 46AE340E019F;
-	Thu, 27 Aug 2026 20:44:29 +0000 (UTC)
-Date: Thu, 27 Aug 2026 13:44:25 -0700
-From: Borislav Petkov <bp@alien8.de>
-To: Thomas Gleixner <tglx@kernel.org>
-Cc: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>,
-	dave.hansen@linux.intel.com, Vishal Badole <Vishal.Badole@amd.com>,
-	mingo@redhat.com, x86@kernel.org, hpa@zytor.com, rafael@kernel.org,
-	lenb@kernel.org, linux-kernel@vger.kernel.org,
-	linux-acpi@vger.kernel.org, peterz@infradead.org,
-	tony.luck@intel.com, chang.seok.bae@intel.com,
-	wei.w.wang@hotmail.com
-Subject: Re: [PATCH] x86/topo: Map vendor CPU types to generic Linux such
- types
-Message-ID: <20260827204425.GDapChqT4IymVmrf7T@fat_crate.local>
-References: <87wlv6sin7.ffs@fw13>
- <o6lnfms2uw5xpx54bqmc72zbtdblya6bknkx5g6di5s6g3ovjf@gybebdp6p7dm>
- <87fr1us7sa.ffs@fw13>
- <20260721031858.GEal7lIlYLnsf-aEPZ@fat_crate.local>
- <6ff5asua7jywnn7ge4k37bu22artrkfgqybfdt747cm5ieiybo@bwkdi2bqlsm6>
- <20260722183152.GCamEMmAiE2BnyrNOV@fat_crate.local>
- <un5ex54iuszxdubdkjhhtezk4rqkgrzrx4ewgu74id3n3swkyy@hh4df7yq32ox>
- <20260722195105.GEamEfKQIPgWp4HiBk@fat_crate.local>
- <bpncabyd5x7q2niuopingb4ztimoxz7ldw3mha7yntyq5mbsyb@5qjrfihupvym>
- <20260722212314.GFamE0wsvHL6eLvTjT@fat_crate.local>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="pktFjnFN"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=iInqwWVkttW7s92U4l+Ig27TZJHjppVhK2aR61s+/VEMI3VOIAE9RVH3pyEC4RNBjYGqNJ7I8Q6R0Gps5VkhD038xU9jWX22XkiefR4DXfC7M07sW3klELFzXbLkP42DQ61Dk6ma61Ypz56am+JAcJBxwGjG2rwq/KF+RZPKq1ljdqfrb9QJABxL+sk/8M4/oG7vwx0wNQ8rkq1wguaCWgDhWWhyewlcqyncNab1Lgjw+xxxHugBZe4oEmOoBVjpEQdIBwH6sPYQu+DqBep4YmsuNAq4y2rbJX7WhWlxxQMjxA1AAgAdyWgsl+w/yxwmdJdvNGYCEWJsba9dr9SQuA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=wm87bwjoQJmiQL3zpX4l4Rrv8NU/DtLDPPC5nexWbZ0=;
+ b=ciAJ4+q0iFULy36hZ8QsWWgbhaG0PN1z4x3M3g+Ktr2wz5NApyKpjbsjTtKvwyauUrVnKTEqyUpwNqXv14nwc/3KJzDGU3NPzf1ax8k6cjV1iVu0Hm6bDHUTDUD/MTXImMY2st2k0aBZWU5OoMDCi9f6wUXZ2vtjT+HxkSA88ZfbhMsZD2MJpGtxI+hRE5iO1a6RzeoO7vc5xawvKnif0NV+uno9OKyAHbN/lTMuceUJvjhD6pKqZPn1PRgsg3ZOJ8tj5HuDVRoDifNS7SrNjGs2XAHL8JKFkkoOJA0dmhFQ09I1QcI2UxVlAqFi6zEOhbV+YxrwZk8/gk+0UM7esg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.160) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=wm87bwjoQJmiQL3zpX4l4Rrv8NU/DtLDPPC5nexWbZ0=;
+ b=pktFjnFNXiXeToGanlsIu+TLDLz9szP8qrwTMnOyj7lj1rZ+5h6qOUwuP4RqLEADpEIax/I0WEtYyIEsK7WpQWnvZCh7XHrLryybnhPfKndP0xlVrd/YUnUQBXgUAEpgvwYA6/2P8ozLQ3H+cxwIrUGcsLOU4TTWoLSEl3cYJYwpwABxWrrf7CLu5NYrb+vT9JyqvVv1XHv/gsMvCNJL3jJ9GG3lMVdtrhpAo0UMAk8QiKBEPghSM8t6GgF3uIZRanlP0qBjpQr4N2jNZkJhocXiamKLNKWnqHiaP/HLZ6hiBidh5aGkJLZe3YYpPSptNGhFWbgJ3eaFP0ZzEAh72Q==
+Received: from SJ0PR03CA0390.namprd03.prod.outlook.com (2603:10b6:a03:3a1::35)
+ by SJ1PR12MB6340.namprd12.prod.outlook.com (2603:10b6:a03:453::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.10; Thu, 27 Aug
+ 2026 20:49:31 +0000
+Received: from SJ5PEPF000001CE.namprd05.prod.outlook.com
+ (2603:10b6:a03:3a1:cafe::6) by SJ0PR03CA0390.outlook.office365.com
+ (2603:10b6:a03:3a1::35) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.360.10 via Frontend Transport; Thu,
+ 27 Aug 2026 20:49:31 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ SJ5PEPF000001CE.mail.protection.outlook.com (10.167.242.38) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.382.8 via Frontend Transport; Thu, 27 Aug 2026 20:49:30 +0000
+Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Thu, 27 Aug
+ 2026 13:49:08 -0700
+Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail203.nvidia.com
+ (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Thu, 27 Aug
+ 2026 13:49:07 -0700
+Received: from nvidia.com (10.127.8.11) by mail.nvidia.com (10.129.68.10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46 via Frontend
+ Transport; Thu, 27 Aug 2026 13:49:06 -0700
+Date: Thu, 27 Aug 2026 13:49:05 -0700
+From: Nicolin Chen <nicolinc@nvidia.com>
+To: Jason Gunthorpe <jgg@nvidia.com>
+CC: Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>, "Joerg
+ Roedel" <joro@8bytes.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J .
+ Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, "Pranjal
+ Shrivastava" <praan@google.com>, Mostafa Saleh <smostafa@google.com>, Lu
+ Baolu <baolu.lu@linux.intel.com>, Kevin Tian <kevin.tian@intel.com>,
+	<linux-arm-kernel@lists.infradead.org>, <iommu@lists.linux.dev>,
+	<linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<linux-pci@vger.kernel.org>, <vsethi@nvidia.com>, Shuai Xue
+	<xueshuai@linux.alibaba.com>
+Subject: Re: [PATCH v5 02/18] PCI/CXL: Probe the underlying bus reset in
+ cxl_reset_bus_function()
+Message-ID: <apCiweYENYZcBYiV@nvidia.com>
+References: <cover.1783044582.git.nicolinc@nvidia.com>
+ <eb77bc0422c77158f48f370c3f7c1b937c319894.1783044582.git.nicolinc@nvidia.com>
+ <178786269177.3808739.5968833634148757858.b4-review@b4>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <20260722212314.GFamE0wsvHL6eLvTjT@fat_crate.local>
+In-Reply-To: <178786269177.3808739.5968833634148757858.b4-review@b4>
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SJ5PEPF000001CE:EE_|SJ1PR12MB6340:EE_
+X-MS-Office365-Filtering-Correlation-Id: 10a4c646-7155-45aa-e99b-08df047cb15c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|36860700016|376014|7416014|1800799024|82310400026|23010399003|10067099003|56012099006|11063799006|4143699003|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	RKECW/E49PtTNM1W3EAG6EPOh+9b6vg6AAGJcyxwtrI6AzvLLvwrJSxlVbMWfAfU4jtak1iuvRmczOSfr8706KhLN0p3T7cYrwSpIfR/iJ7zvcIoccNTrn39vsGcZ+zba5OaIvgH1ddsLMBwUmzk4QdcXi9z5CcvDAdWoGjfz7WOcd5mRRYcgaYW9B8l8+FZjUGAQCqx9bXh6unVhGjG4KFf+uSefO3wmaNMHaJXx/QSqyAkNkcIXY5TZ0GxTo5PIEQ0rHLnMbzoB2Pd1yF9r/8z0wgmBdv2snc0G6yY9h7ic2OedQq6yPZeJ5qA1IZN2HLrZicCS0voSpvQxoQP5DGU9YTMtW82+4eLdzEnYjbARtSbUMyzTrNUU4XDqQztadQrO1VtC6kEN1zhrqBxVQ5+U/7l3My+Gm9xeQZYUzk45OIcn2K6I96ZD3rXMryvczYO9sN91pe6ZJONve1OoYAUyDK5jhsowh8b5f5LnZ2Aaa4BU4uvdDgmAPZzRndZ3B/afIbwuNGTujs7W+bb8tNvTtqSyuTX/0aE2dZu3QHPMvvkV/4+JExSCIYj9sGqDBN12gx4Qow3VCDC+6e/NVdCz0prwS3GeLwdyckRnWuhoWEGSaqnmiFVkexk/mlocnhRSQBdCJC5+FyzUjpl/SRlQ1Aql6DKPIVko7uePZdqKlIExzq7vCcDspccaVho
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(376014)(7416014)(1800799024)(82310400026)(23010399003)(10067099003)(56012099006)(11063799006)(4143699003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	nGpiHyxNuNFHkWbvgQI6j35GlGg//3/DUWSlO1swM17bf2iKKVkHAg2fq/pIT1h+Nkv7QSOTusf46fGZaIeJ4qnUMzFPLYNuk9KoNwfb5NjzWGhwgOBTnzDaCPVxGFQF1q+/V9XtUbuxk1AzUtIEfy0cSLJzSEbgJJJEc36G60jDB0PN6ur/IFCsEy45A8QUE2ZL0Uwu9PhdlyD9ZcBYG7sCiAIP72ksSjSujb8+TdJ9/tSzAp3lb1aYq515lRS6h/Izqd04hDonHNeYD0qdRCmjTYP8xVDJJQYq/W3c2cvRD13H7jb1WUuZlaEmBUBZuAzL19yPVkY6a6GDKZgRDTa5kC6fMQEjxgGOe6qwAmMkCHTBUUSCdIiw5lyo81E1pXPScIt7iVJBrr4vGK2WaP5//+GC13FimhJHg+0r99kLav8sAxdIX70uAdIpp7h1
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Aug 2026 20:49:30.7601
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 10a4c646-7155-45aa-e99b-08df047cb15c
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	SJ5PEPF000001CE.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ1PR12MB6340
 
-Here's the cleanup ontop, lemme know pls whether that makes sense.
+On Thu, Aug 27, 2026 at 05:31:31PM -0300, Jason Gunthorpe wrote:
+> > [ ... 27 lines skipped ... ]
+> > @@ -4979,8 +4979,16 @@ static int cxl_reset_bus_function(struct pci_dev *dev, bool probe)
+> >  	if (!dvsec)
+> >  		return -ENOTTY;
+> >  
+> > -	if (probe)
+> > -		return 0;
+> > +	/*
+> > +	 * Do not probe via pci_reset_bus_function(), which would reject a
+> > +	 * masked SBR that the do-reset path below unmasks before resetting.
+> > +	 */
+> > +	if (probe) {
+> > +		rc = pci_dev_reset_slot_function(dev, PCI_RESET_PROBE);
+> > +		if (rc != -ENOTTY)
+> > +			return rc;
+> > +		return pci_parent_bus_reset(dev, PCI_RESET_PROBE);
+> > +	}
+> 
+> Why not put this a little lower after the:
+> 
+> >
+> >  	rc = pci_read_config_word(bridge, dvsec + PCI_DVSEC_CXL_PORT_CTL, &reg);
+> >  	if (rc)
+> 
+> ?
 
-Some noteworthy things:
+Hmm, the "if (probe)" was checked before pci_read_config_word, so I
+kept it there. I don't quite get the reason of putting it behind.
 
-* this basically switches to TOPO_CPU_TYPE and only the detection code knows
-about the vendor-specific ones. The generic types are union set of both.
+Mind elaborating?
 
-* We do some CPUID calls where needed:
-
--			native_id = c->topo.intel_native_model_id;
-+			native_id = cpuid_eax(0x1a) & GENMASK(23, 0);
-
-and in get_topology_cpu_type() but those will go away too with Ahmed's rework
-
-The rest is just manual conversion labour. Oh, and TOPO_CPU_TYPE_ANY is gone
-too, so that Pawan can sleep at night :-P
-
-Thoughts?
-
-I think it is better this way instead of carrying intel_type and amd_type in
-cpuinfo - now the topology code is preparing things for us.
-
-I'll split it into proper patches if people are ok with it.
-
-Thx.
-
----
-diff --git a/arch/x86/events/intel/core.c b/arch/x86/events/intel/core.c
-index cc13164d948f..f14775968308 100644
---- a/arch/x86/events/intel/core.c
-+++ b/arch/x86/events/intel/core.c
-@@ -5682,9 +5682,9 @@ static int adl_hw_config(struct perf_event *event)
- 	return -EOPNOTSUPP;
- }
- 
--static enum intel_cpu_type adl_get_hybrid_cpu_type(void)
-+static enum x86_topology_cpu_type adl_get_hybrid_cpu_type(void)
- {
--	return INTEL_CPU_TYPE_CORE;
-+	return TOPO_CPU_TYPE_EFFICIENCY;
- }
- 
- static inline bool erratum_hsw11(struct perf_event *event)
-@@ -6292,7 +6292,7 @@ static void intel_pmu_check_hybrid_pmus(struct x86_hybrid_pmu *pmu)
- static struct x86_hybrid_pmu *find_hybrid_pmu_for_cpu(void)
- {
- 	struct cpuinfo_x86 *c = &cpu_data(smp_processor_id());
--	enum intel_cpu_type cpu_type = c->topo.intel_type;
-+	enum x86_topology_cpu_type cpu_type = c->topo.cpu_type;
- 	int i;
- 
- 	/*
-@@ -6301,7 +6301,7 @@ static struct x86_hybrid_pmu *find_hybrid_pmu_for_cpu(void)
- 	 * on it. There should be a fixup function provided for these
- 	 * troublesome CPUs (->get_hybrid_cpu_type).
- 	 */
--	if (cpu_type == INTEL_CPU_TYPE_UNKNOWN) {
-+	if (cpu_type == TOPO_CPU_TYPE_UNKNOWN) {
- 		if (x86_pmu.get_hybrid_cpu_type)
- 			cpu_type = x86_pmu.get_hybrid_cpu_type();
- 		else
-@@ -6318,13 +6318,13 @@ static struct x86_hybrid_pmu *find_hybrid_pmu_for_cpu(void)
- 		enum hybrid_pmu_type pmu_type = x86_pmu.hybrid_pmu[i].pmu_type;
- 		u32 native_id;
- 
--		if (cpu_type == INTEL_CPU_TYPE_CORE && pmu_type == hybrid_big)
-+		if (cpu_type == TOPO_CPU_TYPE_PERFORMANCE && pmu_type == hybrid_big)
- 			return &x86_pmu.hybrid_pmu[i];
--		if (cpu_type == INTEL_CPU_TYPE_ATOM) {
-+		if (cpu_type == TOPO_CPU_TYPE_EFFICIENCY) {
- 			if (x86_pmu.num_hybrid_pmus == 2 && pmu_type == hybrid_small)
- 				return &x86_pmu.hybrid_pmu[i];
- 
--			native_id = c->topo.intel_native_model_id;
-+			native_id = cpuid_eax(0x1a) & GENMASK(23, 0);
- 			if (native_id == INTEL_ATOM_SKT_NATIVE_ID && pmu_type == hybrid_small)
- 				return &x86_pmu.hybrid_pmu[i];
- 			if (native_id == INTEL_ATOM_CMT_NATIVE_ID && pmu_type == hybrid_tiny)
-diff --git a/arch/x86/events/perf_event.h b/arch/x86/events/perf_event.h
-index 71ed5b2acea2..89418310b788 100644
---- a/arch/x86/events/perf_event.h
-+++ b/arch/x86/events/perf_event.h
-@@ -1051,7 +1051,7 @@ struct x86_pmu {
- 	 */
- 	int				num_hybrid_pmus;
- 	struct x86_hybrid_pmu		*hybrid_pmu;
--	enum intel_cpu_type (*get_hybrid_cpu_type)	(void);
-+	enum x86_topology_cpu_type (*get_hybrid_cpu_type)	(void);
- };
- 
- struct x86_perf_task_context_opt {
-diff --git a/arch/x86/include/asm/intel-family.h b/arch/x86/include/asm/intel-family.h
-index 66d964afe18a..ee5a88ffc849 100644
---- a/arch/x86/include/asm/intel-family.h
-+++ b/arch/x86/include/asm/intel-family.h
-@@ -207,20 +207,6 @@
- #define INTEL_P4_PRESCOTT_2M		IFM(15, 0x04)
- #define INTEL_P4_CEDARMILL		IFM(15, 0x06) /* Also Xeon Dempsey */
- 
--/*
-- * Intel CPU core types
-- *
-- * CPUID.1AH.EAX[31:0] uniquely identifies the microarchitecture
-- * of the core. Bits 31-24 indicates its core type (Core or Atom)
-- * and Bits [23:0] indicates the native model ID of the core.
-- * Core type and native model ID are defined in below enumerations.
-- */
--enum intel_cpu_type {
--	INTEL_CPU_TYPE_UNKNOWN,
--	INTEL_CPU_TYPE_ATOM = 0x20,
--	INTEL_CPU_TYPE_CORE = 0x40,
--};
--
- enum intel_native_id {
- 	INTEL_ATOM_CMT_NATIVE_ID = 0x2,  /* Crestmont */
- 	INTEL_ATOM_SKT_NATIVE_ID = 0x3,  /* Skymont */
-diff --git a/arch/x86/include/asm/processor.h b/arch/x86/include/asm/processor.h
-index ec9db0dfa0df..89b0e0886b54 100644
---- a/arch/x86/include/asm/processor.h
-+++ b/arch/x86/include/asm/processor.h
-@@ -69,12 +69,11 @@ extern u16 __read_mostly tlb_lld_4m;
- extern u16 __read_mostly tlb_lld_1g;
- 
- enum x86_topology_cpu_type {
--	/* X86_CPU_TYPE_ANY */
--	TOPO_CPU_TYPE_ANY = 0,
-+	/* Must remain 0 like X86_CPU_TYPE_ANY for x86_match_cpu() to work */
-+	TOPO_CPU_TYPE_UNKNOWN = 0,
- 	TOPO_CPU_TYPE_PERFORMANCE,
- 	TOPO_CPU_TYPE_EFFICIENCY,
- 	TOPO_CPU_TYPE_LOW_POWER,
--	TOPO_CPU_TYPE_UNKNOWN,
- };
- 
- struct cpuinfo_topology {
-@@ -107,24 +106,6 @@ struct cpuinfo_topology {
- 	u32			llc_id;
- 	u32			l2c_id;
- 
--	// Hardware defined CPU-type
--	union {
--		u32		hw_cpu_type;
--		struct {
--			// CPUID.1A.EAX[23-0]
--			u32	intel_native_model_id	:24;
--			// CPUID.1A.EAX[31-24]
--			u32	intel_type		:8;
--		};
--		struct {
--			// CPUID 0x80000026.EBX
--			u32	amd_num_processors	:16,
--				amd_power_eff_ranking	:8,
--				amd_native_model_id	:4,
--				amd_type		:4;
--		};
--	};
--
- 	// Linux vendor-agnostic CPU type
- 	enum x86_topology_cpu_type cpu_type;
- };
-diff --git a/arch/x86/include/asm/topology.h b/arch/x86/include/asm/topology.h
-index 1825691af941..ef76ba674f1b 100644
---- a/arch/x86/include/asm/topology.h
-+++ b/arch/x86/include/asm/topology.h
-@@ -114,12 +114,6 @@ enum x86_topology_domains {
- 	TOPO_MAX_DOMAIN,
- };
- 
--enum amd_cpu_type {
--	AMD_CPU_TYPE_PERFORMANCE	= 0,
--	AMD_CPU_TYPE_EFFICIENCY		= 1,
--	AMD_CPU_TYPE_LOW_POWER		= 2,
--};
--
- struct x86_topology_system {
- 	unsigned int	dom_shifts[TOPO_MAX_DOMAIN];
- 	unsigned int	dom_size[TOPO_MAX_DOMAIN];
-diff --git a/arch/x86/kernel/acpi/cppc.c b/arch/x86/kernel/acpi/cppc.c
-index bbade0da5130..bb2840c15397 100644
---- a/arch/x86/kernel/acpi/cppc.c
-+++ b/arch/x86/kernel/acpi/cppc.c
-@@ -274,7 +274,6 @@ int amd_get_boost_ratio_numerator(unsigned int cpu, u64 *numerator)
- 	if (cpu_feature_enabled(X86_FEATURE_AMD_HTR_CORES)) {
- 		switch (cpu_data(cpu).topo.cpu_type) {
- 		case TOPO_CPU_TYPE_UNKNOWN:
--		case TOPO_CPU_TYPE_ANY:
- 			pr_warn("Undefined core type found for cpu %d\n", cpu);
- 			break;
- 		case TOPO_CPU_TYPE_PERFORMANCE:
-diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
-index c7352827f491..d0dd120b9c14 100644
---- a/arch/x86/kernel/cpu/common.c
-+++ b/arch/x86/kernel/cpu/common.c
-@@ -1394,7 +1394,7 @@ static bool __init vulnerable_to_rfds(u64 x86_arch_cap_msr)
- 	 */
- 	if ((boot_cpu_data.x86_model == 0x97 ||
- 	     boot_cpu_data.x86_model == 0xB7) &&
--	     boot_cpu_data.topo.intel_type != INTEL_CPU_TYPE_ATOM &&
-+	     boot_cpu_data.topo.cpu_type != TOPO_CPU_TYPE_EFFICIENCY &&
- 	     !boot_cpu_has(X86_FEATURE_HYBRID_CPU))
- 		return false;
- 
-diff --git a/arch/x86/kernel/cpu/topology.h b/arch/x86/kernel/cpu/topology.h
-index 74e02bacd854..b948e87f1722 100644
---- a/arch/x86/kernel/cpu/topology.h
-+++ b/arch/x86/kernel/cpu/topology.h
-@@ -2,6 +2,25 @@
- #ifndef ARCH_X86_TOPOLOGY_H
- #define ARCH_X86_TOPOLOGY_H
- 
-+/*
-+ * Intel CPU core types
-+ *
-+ * CPUID.1AH.EAX[31:0] uniquely identifies the microarchitecture
-+ * of the core. Bits 31-24 indicates its core type (Core or Atom)
-+ * and Bits [23:0] indicates the native model ID of the core.
-+ */
-+enum intel_cpu_type {
-+	INTEL_CPU_TYPE_UNKNOWN,
-+	INTEL_CPU_TYPE_ATOM = 0x20,
-+	INTEL_CPU_TYPE_CORE = 0x40,
-+};
-+
-+enum amd_cpu_type {
-+	AMD_CPU_TYPE_PERFORMANCE	= 0,
-+	AMD_CPU_TYPE_EFFICIENCY		= 1,
-+	AMD_CPU_TYPE_LOW_POWER		= 2,
-+};
-+
- struct topo_scan {
- 	struct cpuinfo_x86	*c;
- 	unsigned int		dom_shifts[TOPO_MAX_DOMAIN];
-diff --git a/arch/x86/kernel/cpu/topology_amd.c b/arch/x86/kernel/cpu/topology_amd.c
-index c5a6944df86a..457c27626028 100644
---- a/arch/x86/kernel/cpu/topology_amd.c
-+++ b/arch/x86/kernel/cpu/topology_amd.c
-@@ -177,10 +177,8 @@ static void topoext_fixup(struct topo_scan *tscan)
- 
- static void parse_topology_amd(struct topo_scan *tscan)
- {
--	if (cpu_feature_enabled(X86_FEATURE_AMD_HTR_CORES)) {
--		tscan->c->topo.hw_cpu_type = cpuid_ebx(0x80000026);
--		tscan->c->topo.cpu_type    = get_topology_cpu_type(tscan->c);
--	}
-+	if (cpu_feature_enabled(X86_FEATURE_AMD_HTR_CORES))
-+		tscan->c->topo.cpu_type = get_topology_cpu_type(tscan->c);
- 
- 	/*
- 	 * Try to get SMT, CORE, TILE, and DIE shifts from extended
-diff --git a/arch/x86/kernel/cpu/topology_common.c b/arch/x86/kernel/cpu/topology_common.c
-index 6845e3c63fbb..40476f5c5cfc 100644
---- a/arch/x86/kernel/cpu/topology_common.c
-+++ b/arch/x86/kernel/cpu/topology_common.c
-@@ -35,13 +35,17 @@ void topology_set_dom(struct topo_scan *tscan, enum x86_topology_domains dom,
- enum x86_topology_cpu_type get_topology_cpu_type(struct cpuinfo_x86 *c)
- {
- 	if (c->x86_vendor == X86_VENDOR_INTEL) {
--		switch (c->topo.intel_type) {
-+		unsigned int type = (cpuid_eax(0x1a) >> 24) & 0xff;
-+
-+		switch (type) {
- 		case INTEL_CPU_TYPE_ATOM: return TOPO_CPU_TYPE_EFFICIENCY;
- 		case INTEL_CPU_TYPE_CORE: return TOPO_CPU_TYPE_PERFORMANCE;
- 		}
- 	}
- 	if (c->x86_vendor == X86_VENDOR_AMD) {
--		switch (c->topo.amd_type) {
-+		unsigned int type = (cpuid_ebx(0x80000026) >> 28) & 0xf;
-+
-+		switch (type) {
- 		case AMD_CPU_TYPE_PERFORMANCE:	return TOPO_CPU_TYPE_PERFORMANCE;
- 		case AMD_CPU_TYPE_EFFICIENCY:	return TOPO_CPU_TYPE_EFFICIENCY;
- 		case AMD_CPU_TYPE_LOW_POWER:	return TOPO_CPU_TYPE_LOW_POWER;
-@@ -172,10 +176,8 @@ static void parse_topology(struct topo_scan *tscan, bool early)
- 		if (!IS_ENABLED(CONFIG_CPU_SUP_INTEL) || !cpu_parse_topology_ext(tscan))
- 			parse_legacy(tscan);
- 
--		if (c->cpuid_level >= 0x1a) {
--			c->topo.hw_cpu_type = cpuid_eax(0x1a);
--			c->topo.cpu_type    = get_topology_cpu_type(c);
--		}
-+		if (c->cpuid_level >= 0x1a)
-+			c->topo.cpu_type = get_topology_cpu_type(c);
- 
- 		break;
- 	}
-diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
-index ceb340f7a110..17cfde971f0b 100644
---- a/drivers/cpufreq/intel_pstate.c
-+++ b/drivers/cpufreq/intel_pstate.c
-@@ -868,7 +868,7 @@ static struct freq_attr *hwp_cpufreq_attrs[] = {
- 
- static u8 hybrid_get_cpu_type(unsigned int cpu)
- {
--	return cpu_data(cpu).topo.intel_type;
-+	return cpu_data(cpu).topo.cpu_type;
- }
- 
- static bool no_cas __ro_after_init;
-@@ -931,7 +931,7 @@ static int hybrid_get_cost(struct device *dev, unsigned long freq,
- 	 * capacity.  Similarly, P-cores start to be populated when E-cores are
- 	 * utilized above 60% of the capacity.
- 	 */
--	if (hybrid_get_cpu_type(dev->id) == INTEL_CPU_TYPE_CORE) /* P-core */
-+	if (hybrid_get_cpu_type(dev->id) == TOPO_CPU_TYPE_PERFORMANCE) /* P-core */
- 		*cost += 2;
- 	else if (hybrid_has_l3(dev->id)) /* E-core */
- 		*cost += 1;
-@@ -2235,7 +2235,7 @@ static int hwp_get_cpu_scaling(int cpu)
- 		 * Return the hybrid scaling factor for P-cores and use the
- 		 * default core scaling for E-cores.
- 		 */
--		if (hybrid_get_cpu_type(cpu) != INTEL_CPU_TYPE_ATOM)
-+		if (hybrid_get_cpu_type(cpu) != TOPO_CPU_TYPE_EFFICIENCY)
- 			return hybrid_scaling_factor;
- 
- 		return core_get_scaling();
-
-
--- 
-Regards/Gruss,
-    Boris.
-
-https://people.kernel.org/tglx/notes-about-netiquette
+Thanks
+Nicolin
