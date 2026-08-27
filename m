@@ -1,19 +1,19 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00E68371071;
-	Thu, 27 Aug 2026 20:37:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A218371041;
+	Thu, 27 Aug 2026 20:37:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787863065; cv=none; b=t5Rwhi3hCAiFUoyyory39WvLSzDoXdUAqKP3ErFca03r+iWbCTM6wBzqMSwN8OZOifqt7adJn3fPAVKa14gJS2ortF21EosI01dEKl4MzL9Yq0h7mplYiegu2Ba1ZuTjy7vk0ozc+jV2s7Wjr7AItzCC0npEywLC2Kco2GVgBqU=
+	t=1787863065; cv=none; b=n7tW+pNlwVaWLL8sgCHtwFsaEo5sBPhIvoaTFsRe49I9DXp9SCBWJSCcwI3scbCbtILIroENE09V6M05lbLaiWChY+CsEI9Rs0e2nIl3bBaSjgHZUmp+/9Yt/yjVfziEbkWr9/cd7S17lt2ppVJIJgEIhhvVgjUJMfVNYjAIC9Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1787863065; c=relaxed/simple;
-	bh=anFqC8Uh7SIZrovNIGDBRUMKdu6KKN3iUe1pV9XmqBE=;
+	bh=G2p6iWc4QokKg1eeqAvZn9kCfoir2M8txi1JXkLcUyg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Za8LLz9DIsOSHhH7JAyrgjuVo/Yu3WTjsSEDryXs80Wc+hAuS/1QkY5PXeCKwpFD0c6CYoDyaWQalEI6F4pikqjvRk3ISSpA6tL/uGaA2yDDIL+nRP/qx7zNi8Y2FP+zQw5uAZZrWsMHnpBsyMeWDSjYJbfhs/zrvgIJucuU+tA=
+	 MIME-Version; b=ZzFCyhZcuMPheWXzANsdI+05tW/l470A4WQH9jCHXKHmfZ3kx34wU+mz7/rCUUNVXwl7AETGBFUqRqsbt2h7QP63tWm7NnMuP9vatqfkPmA5IXFFN9tXrByDol3Gch0tyJKCQauJkWvYu/vmhIRHGoxdz8d2G7x9W0IVSpuQNWU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FAB51F000E9;
-	Thu, 27 Aug 2026 20:37:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C27441F00A3D;
+	Thu, 27 Aug 2026 20:37:31 +0000 (UTC)
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-acpi@vger.kernel.org,
 	linux-cxl@vger.kernel.org
@@ -28,9 +28,9 @@ Cc: rafael@kernel.org,
 	alison.schofield@intel.com,
 	sashiko-bot@kernel.org,
 	Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-Subject: [PATCH v5 06/13] ACPI: extlog: Validate PCIe error section length before payload access
-Date: Thu, 27 Aug 2026 13:37:19 -0700
-Message-ID: <20260827203726.3027541-7-dave.jiang@intel.com>
+Subject: [PATCH v5 02/13] efi/cper: Reject an error status block length that wraps a u32
+Date: Thu, 27 Aug 2026 13:37:15 -0700
+Message-ID: <20260827203726.3027541-3-dave.jiang@intel.com>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260827203726.3027541-1-dave.jiang@intel.com>
 References: <20260827203726.3027541-1-dave.jiang@intel.com>
@@ -42,64 +42,52 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-extlog_print_pcie() reads pcie_err->validation_bits and device_id and
-copies the 96-byte aer_info buffer without checking that
-gdata->error_data_length is big enough for a struct cper_sec_pcie. The
-cper_estatus_check() call added earlier keeps the read inside the estatus
-block, but a short section still gets stale adjacent bytes treated as PCIe
-error data.
+cper_estatus_len() sums the firmware-controlled data_length (or
+raw_data_offset plus raw_data_length) into a u32. A data_length of
+0xffffffec wraps that sum to 0, and a length that reads back short defeats
+every bound built on it: bert_print_all() passes its "remain <
+estatus_len" check, then advances "estatus += estatus_len" by zero and
+loops forever. GHES survives only because __ghes_check_estatus() rejects a
+length below sizeof(*estatus) first.
 
-Reject a section too small to hold the record before touching any field,
-and warn: a truncated section means firmware is emitting malformed records.
+Reject a length that cannot be expressed in a u32 in
+cper_estatus_check_header(), which both of today's callers reach: GHES via
+__ghes_check_estatus() and BERT via cper_estatus_check(). extlog reaches
+neither yet; a later patch routes it through cper_estatus_check(), whose
+ELOG_ENTRY_LEN bound needs this to hold.
 
 Reported-by: sashiko-bot@kernel.org
-Closes: https://lore.kernel.org/linux-cxl/20260709165457.8BA181F000E9@smtp.kernel.org/
-Fixes: e778ffefa34d ("ACPI: extlog: Trace CPER PCI Express Error Section")
-Reviewed-by: Alison Schofield <alison.schofield@intel.com>
-Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com>
+Closes: https://sashiko.dev/#/patchset/20260714231835.303081-1-dave.jiang@intel.com?part=1
+Fixes: 06d65deade9a ("ACPI, APEI, UEFI Common Platform Error Record (CPER) header")
 Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
 Assisted-by: Claude:claude-opus-4-8
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/acpi/acpi_extlog.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/firmware/efi/cper.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
-index feb7c002a713..7c45a9865726 100644
---- a/drivers/acpi/acpi_extlog.c
-+++ b/drivers/acpi/acpi_extlog.c
-@@ -134,7 +134,7 @@ static int print_extlog_rcd(const char *pfx,
- }
+diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
+index 332c78f2d561..3dcef618ad39 100644
+--- a/drivers/firmware/efi/cper.c
++++ b/drivers/firmware/efi/cper.c
+@@ -745,6 +745,17 @@ int cper_estatus_check_header(const struct acpi_hest_generic_status *estatus)
+ 	    estatus->raw_data_offset < sizeof(*estatus) + estatus->data_length)
+ 		return -EINVAL;
  
- static void extlog_print_pcie(struct cper_sec_pcie *pcie_err,
--			      int severity)
-+			      int severity, u32 len)
- {
- #ifdef ACPI_APEI_PCIEAER
- 	struct aer_capability_regs aer_regs = {};
-@@ -144,6 +144,12 @@ static void extlog_print_pcie(struct cper_sec_pcie *pcie_err,
- 	int aer_severity;
- 	int domain;
- 
-+	if (len < sizeof(*pcie_err)) {
-+		pr_warn_ratelimited(FW_WARN
-+				    "PCIe error section too small (%u)\n", len);
-+		return;
-+	}
++	/*
++	 * cper_estatus_len() sums these into a u32, and a wrapped sum reads
++	 * back smaller than the record. Reject a length that cannot be
++	 * expressed so no caller is handed the short value.
++	 */
++	if ((u64)sizeof(*estatus) + estatus->data_length > U32_MAX)
++		return -EINVAL;
++	if (estatus->raw_data_length &&
++	    (u64)estatus->raw_data_offset + estatus->raw_data_length > U32_MAX)
++		return -EINVAL;
 +
- 	if (!(pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
- 	      pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO))
- 		return;
-@@ -242,7 +248,8 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
- 		} else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
- 			struct cper_sec_pcie *pcie_err = acpi_hest_get_payload(gdata);
- 
--			extlog_print_pcie(pcie_err, gdata->error_severity);
-+			extlog_print_pcie(pcie_err, gdata->error_severity,
-+					  gdata->error_data_length);
- 		} else {
- 			void *err = acpi_hest_get_payload(gdata);
- 
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(cper_estatus_check_header);
 -- 
 2.54.0
 
