@@ -1,86 +1,40 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from canpmsgout02.his.huawei.com (canpmsgout02.his.huawei.com [113.46.200.217])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66AD8239E80
-	for <linux-acpi@vger.kernel.org>; Thu, 27 Aug 2026 00:10:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CC64379C22;
+	Thu, 27 Aug 2026 01:39:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.217
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787789429; cv=none; b=QtiZUGYSPjrOYX9ySm9QNo5Sr2gJEhQ3MWXfy2BaJZugeIMA3dpXWkY4DAyeDkfy24WbSjcKTXIzzUC0sozuDM6RkzG54clugBDISl60+0CA7dgX7+Rfx+IZWSpchVnnhYpzwpa5mlu6WhigNvYQnQVKmPx5IHpT6LQ7hJnVcFM=
+	t=1787794788; cv=none; b=X/cdWLqGNTyr5P4Lv976wdpnR9q61ZOkmwJQYHdylo2tFkFs+pxfFYotQq4SUfrV1O5UWnKCeXPgLp7Sf/xNoJxjJXBDiHbbu4bH2ppvtwMTiC34aJMo/duakcX9638AoLja1YryublDQ0JxLDsuhL4T1RMplDZlfNrsuRj8Dqo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787789429; c=relaxed/simple;
-	bh=NpFoAN3ARoByq+Fs2sx4uXcEiHmYv9k+CBvlMh5NByY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=qpL7PJ0KHRkYTvsdJTF2H9zx55p4XT4xz7ovTI1UdGixr+61vPF5xf4NLJGDA60SH4O52L+fvvWvdjC3cYeLc186Pb8aaIT0TtHjYHWIzl8VCelnS9MsP0mfSrzykKBFlZ7pSTOxk+SNqUPx96qhHT/aMGw2Hc8j7DUOTN7JXfA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Smk83bzV; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=DX1Aueue; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1787794788; c=relaxed/simple;
+	bh=2MdvFAHIEshwqfWjDGepWUruAskvgBp4I4JxaicYqN4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=f15x4nxybCrOYKyD5T9FLhh54EZmBnzldCUJGEv6aOiOooL1P1xr5XD7HhGP/OkAIqodeZ+OVXY6o5ggj0+CVYqUEWDsyaFMq0yRLve2nHqMBy9Za14s0b3/ZBJyXPNqQQcrXYuJ4yaxs96hRfIy9M55VncOmTCKO7uEqBuuXKE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=cMdkJyY7; arc=none smtp.client-ip=113.46.200.217
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Smk83bzV";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="DX1Aueue"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1787789427;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=7kI48VtjA0m79pfKThr79GcCuUw/Tq7WCD7HinJujWM=;
-	b=Smk83bzVDcKDOlhffKdsWDNIW76PbyUVLHJmf1FIlZCuFiWc5R4VZvGBw+eNN77qAAns5D
-	d9wc4OZdBJ6GqJQyglKg9HTIsI2BGavD/Y0L+ty7nnj+L2R0Ya+PhSPt0qi2KzDPpoJSU+
-	x0meOwTrhAhKqyWbDV3saKqoVFBOrr8=
-Received: from mail-pj1-f69.google.com (mail-pj1-f69.google.com
- [209.85.216.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-509-DLOJspDHO66VRxjFbXu_Jw-1; Wed, 26 Aug 2026 20:10:25 -0400
-X-MC-Unique: DLOJspDHO66VRxjFbXu_Jw-1
-X-Mimecast-MFC-AGG-ID: DLOJspDHO66VRxjFbXu_Jw_1787789424
-Received: by mail-pj1-f69.google.com with SMTP id 98e67ed59e1d1-38e54b6556aso2324194a91.2
-        for <linux-acpi@vger.kernel.org>; Wed, 26 Aug 2026 17:10:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1787789424; x=1788394224; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=7kI48VtjA0m79pfKThr79GcCuUw/Tq7WCD7HinJujWM=;
-        b=DX1Aueuee4LYfJ9W27naBvENe8PUUiZkwCO9PKwt1GJJwpD7pyCTXO2IM5AlntgJWh
-         mSo967J9Kgrr4kUxCS7OqVPwcUhHauUvrB1ULeSWmCegjH156pFa9qDvqUSF4GvqAx3w
-         iHkQJIgYJy7kpdRjcznJlBH4FqG7BdtuTlL+HjEzzlwJAXW9l69V6d6zf/IdV0cH84px
-         9pti+Tdd5ZNT6KtykU/LWadGbFAHC29k15LlxdfHk8S9ewchQ6D1VePmLf2jRTrNdGoP
-         vrRIO8WuWnLPERR+JCi+srIo8jrP+bLei5ZxKBUeS/6i9dOPN3ZHHfnZHQkZiZQIGWIG
-         VCwQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1787789424; x=1788394224;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=7kI48VtjA0m79pfKThr79GcCuUw/Tq7WCD7HinJujWM=;
-        b=TujCoX70stVapi63TLRdsv1P5QRcmfFJTMKmFmMi3RkOGXYm2MUoT1XfP3xU5a9qEu
-         FEg7g35aVzrLvK1RC216erfmBCUYAQjCjVXG1bBOLbL6VyAcSJceAlesMf51yADdvI04
-         z78tFBOjGm+v4+hBBLze6bHkmR39OL3+SpBDnX7WzqGNqCDCoZKhN22ZyNOPmO1poha4
-         yqv/RrVYvlx8K4iyJM0uu6PPpS05/Cm2a5V4nJXe6Go9/FbyoGY6wvwzO5223phiTnYT
-         pbCLdGt3orrFL4le/kSutAI/tWXIPAN8pq5sUn0n4gZV/+WgUDgGShg3W7bXr10LkLK8
-         6vyw==
-X-Forwarded-Encrypted: i=1; AHgh+RrFOnyKQ977UHnrXr2Onx7nNI1LO2AjuY54JTxS1nDPGV+mbE5GH/mItiWbvbbo/d0tUFd3YCn1bFNw@vger.kernel.org
-X-Gm-Message-State: AFuF++mDGMNJQJteIRZpYQe/DBEPqy+I9zuX4n2sqZlpd5YSXng9r119
-	m1GxNikthGRtfnkgIP37te/OS4qwjZ0aUZvB11JLj+/DzBeiAsDEjLPUqF3Ev1CEduQ9qIVSAu+
-	+8xvw4Rhhk76WZfy1hdwZVfN3DLM1kq3CzckKtkJ2/kJUHA594HFl/IAUjIo/WgM=
-X-Gm-Gg: AR+sD11lhQ2LYh0AlsfMXbLoEpJnjMpXNQ4BQZnRnSeE3rEO+FDcVFeL1NPoXHnVDrI
-	KuXSwkmeyw13TIrnCMqglMn7vBDygoDEzKR9nWpryEYP4LAXaZ6M74dthxOMNuBfx7uHCj3cdmD
-	F6VcvlJ+FJNk1JvtwykpMVwWxNg/J4TpoYsE6hEF8ZOTueBTvKSQuLQG+LET79FYZwELqs5HPZj
-	++sKoMgzE38wjsucvt1MrMpdutYMTQpVcB3H8R9TuyI+IDpn535bYyWOKzRCBjP5rCMhqgcsw51
-	s7XRfBgWH9LfbOP6+OdRqxzzxOCW4j58/rbBL9QBAWxjFj/6pqLwIBsjQZni5kAbz7ZqrbKRAyb
-	MVxByY5DcDIejhk2dRwjiwxQP2G8Rt9IEaE1wRg8lqw==
-X-Received: by 2002:a17:90b:1dce:b0:381:cef1:11ac with SMTP id 98e67ed59e1d1-3966d3e1cfdmr21940245a91.10.1787789424343;
-        Wed, 26 Aug 2026 17:10:24 -0700 (PDT)
-X-Received: by 2002:a17:90b:1dce:b0:381:cef1:11ac with SMTP id 98e67ed59e1d1-3966d3e1cfdmr21940059a91.10.1787789423479;
-        Wed, 26 Aug 2026 17:10:23 -0700 (PDT)
-Received: from [192.168.68.51] (n175-34-8-244.mrk21.qld.optusnet.com.au. [175.34.8.244])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3283da048d3sm12020839eec.28.2026.08.26.17.10.15
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 26 Aug 2026 17:10:22 -0700 (PDT)
-Message-ID: <996cd400-44e2-4b4a-8286-1235c3248750@redhat.com>
-Date: Thu, 27 Aug 2026 10:10:13 +1000
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="cMdkJyY7"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=6V/h+o47odsyXIkxbfxkMIxGGEws32dxuRVF3fbP4lk=;
+	b=cMdkJyY79rhFemLfJnmHtfBmdzU4z+QZw2teLc9nRsAh3EPFUwYTH4Yu367yK9WgOoNsrBLDD
+	iFj80RBXDylV0su8ss449sBZUOus1vFmd53cu/GJNuvppeargZOewslDIfQiP/XXa66m9ImU+5T
+	qbqnm1caQxoju3xi/C2YEfI=
+Received: from mail.maildlp.com (unknown [172.19.163.104])
+	by canpmsgout02.his.huawei.com (SkyGuard) with ESMTPS id 4hVkSg1p2Szcb0T;
+	Thu, 27 Aug 2026 09:29:07 +0800 (CST)
+Received: from kwepemf100001.china.huawei.com (unknown [7.202.181.215])
+	by mail.maildlp.com (Postfix) with ESMTPS id 4F6974057F;
+	Thu, 27 Aug 2026 09:39:41 +0800 (CST)
+Received: from [10.67.121.90] (10.67.121.90) by kwepemf100001.china.huawei.com
+ (7.202.181.215) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Thu, 27 Aug
+ 2026 09:39:40 +0800
+Message-ID: <7572871f-7533-4373-9ebf-5c392a57140f@huawei.com>
+Date: Thu, 27 Aug 2026 09:39:40 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -88,56 +42,157 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v9 12/12] arm_mpam: detect and enable MPAM-Fb PCC support
-To: Andre Przywara <andre.przywara@arm.com>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
- <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
-Cc: Jonathan Cameron <jic23@kernel.org>,
- Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
- Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
- Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
- Niyas Sait <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
- Ritwick Sharma <ritwick.sharma@arm.com>, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-References: <20260807105451.3728284-1-andre.przywara@arm.com>
- <20260807105451.3728284-13-andre.przywara@arm.com>
-Content-Language: en-US
-From: Gavin Shan <gshan@redhat.com>
-In-Reply-To: <20260807105451.3728284-13-andre.przywara@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH] ACPI: processor: Add acpi_processor_start() back to parse
+ _CPC tables before CPU online
+To: Pengjie Zhang <zhangpengjie2@huawei.com>, <rafael@kernel.org>,
+	<catalin.marinas@arm.com>, <lenb@kernel.org>,
+	<jonathan.cameron@oss.qualcomm.com>
+CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linuxarm@huawei.com>, <gshan@redhat.com>, <miguel.luis@oracle.com>,
+	<guohanjun@huawei.com>, <zhanjie9@hisilicon.com>, <lihuisong@huawei.com>,
+	<yubowen8@huawei.com>, <wangzhi12@huawei.com>, <linhongye@h-partners.com>
+References: <20260120113242.3843463-1-zhenglifeng1@huawei.com>
+ <e83096fc-d6f8-46bf-91e6-2922ac35b751@huawei.com>
+From: "zhenglifeng (A)" <zhenglifeng1@huawei.com>
+In-Reply-To: <e83096fc-d6f8-46bf-91e6-2922ac35b751@huawei.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
+ kwepemf100001.china.huawei.com (7.202.181.215)
 
-On 8/7/26 8:54 PM, Andre Przywara wrote:
-> The Arm MPAM-Fb specification [1] describes a protocol to access MSC
-> registers through a firmware interface. This requires a shared memory
-> region to hold the message, and a mailbox to trigger the access.
-> For ACPI this is wrapped as a PCC channel, described using existing
-> ACPI abstractions.
+Hi Pengjie,
+
+On 8/26/2026 3:59 PM, Pengjie Zhang wrote:
+> Hi Lifeng,
 > 
-> Add code to parse those PCC table descriptions associated with an MSC,
-> and store the parsed information in the MSC struct.
-> There can be multiple PCC channels, and each channel can serve multiple
-> MSCs, so we need to keep track of the channel usage, using a list and
-> a refcount.
+> On 1/20/2026 7:32 PM, Lifeng Zheng wrote:
+>> Currently, if boot with maxcpus less than NR_CPUS, the cppc_cpufreq driver
+>> will fail to register. Because it requires the domain information of all
+>> possible CPUs to construct shared_cpu_map, which shows the CPUs that share
+>> the same domain.
+>>
+>> Commit c1385c1f0ba3 ("ACPI: processor: Simplify initial onlining to use
+>> same path for cold and hotplug") removes probe() of acpi_processor_driver
+>> and makes acpi_cppc_processor_probe() only being called the first time CPU
+>> goes online. This means that CPUs that haven't yet gone online will not
+>> have pre-parsed _CPC objects and causes cppc_cpufreq driver register fail.
+>>
+>> Add acpi_processor_start() back as the probe() callback of
+>> acpi_processor_driver and call acpi_cppc_processor_probe() in it to make
+>> sure all _CPC tables will be parsed when acpi_processor_driver registered.
+>>
+>> Fixes: c1385c1f0ba3 ("ACPI: processor: Simplify initial onlining to use same path for cold and hotplug")
+>> Signed-off-by: Lifeng Zheng <zhenglifeng1@huawei.com>
+>> ---
+>>   drivers/acpi/processor_driver.c | 30 ++++++++++++++++++++++++++----
+>>   1 file changed, 26 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+>> index 65e779be64ff..c8b4daf580b0 100644
+>> --- a/drivers/acpi/processor_driver.c
+>> +++ b/drivers/acpi/processor_driver.c
+>> @@ -33,6 +33,7 @@ MODULE_AUTHOR("Paul Diefenbaugh");
+>>   MODULE_DESCRIPTION("ACPI Processor Driver");
+>>   MODULE_LICENSE("GPL");
+>>   +static int acpi_processor_start(struct device *dev);
+>>   static int acpi_processor_stop(struct device *dev);
+>>     static const struct acpi_device_id processor_device_ids[] = {
+>> @@ -46,6 +47,7 @@ static struct device_driver acpi_processor_driver = {
+>>       .name = "processor",
+>>       .bus = &cpu_subsys,
+>>       .acpi_match_table = processor_device_ids,
+>> +    .probe = acpi_processor_start,
+>>       .remove = acpi_processor_stop,
+>>   };
+>>   @@ -162,10 +164,6 @@ static int __acpi_processor_start(struct acpi_device *device)
+>>       if (!pr)
+>>           return -ENODEV;
+>>   -    result = acpi_cppc_processor_probe(pr);
+>> -    if (result && !IS_ENABLED(CONFIG_ACPI_CPU_FREQ_PSS))
+>> -        dev_dbg(&device->dev, "CPPC data invalid or not present\n");
+>> -
+>>       if (!cpuidle_get_driver() || cpuidle_get_driver() == &acpi_idle_driver)
+>>           acpi_processor_power_init(pr);
+>>   @@ -192,6 +190,30 @@ static int __acpi_processor_start(struct acpi_device *device)
+>>       return result;
+>>   }
+>>   +static int acpi_processor_start(struct device *dev)
+>> +{
+>> +    struct acpi_device *device = ACPI_COMPANION(dev);
+>> +    struct acpi_processor *pr;
+>> +    int result;
+>> +
+>> +    if (!device)
+>> +        return -ENODEV;
+>> +
+>> +    pr = acpi_driver_data(device);
+>> +    if (!pr)
+>> +        return -ENODEV;
+>> +
+>> +    /* Protect against concurrent CPU hotplug operations */
+>> +    cpu_hotplug_disable();
+>> +    result = acpi_cppc_processor_probe(pr);
+>> +    cpu_hotplug_enable();
+>> +
+>> +    if (result && !IS_ENABLED(CONFIG_ACPI_CPU_FREQ_PSS))
+>> +        dev_dbg(&device->dev, "CPPC data invalid or not present\n");
+>> +
+>> +    return 0;
+>> +}
+>> +
+>>   static int acpi_processor_stop(struct device *dev)
+>>   {
+>>       struct acpi_device *device = ACPI_COMPANION(dev);
+> I reproduced the issue described by this patch on the latest kernel at
+> commit 45c13f3f9e3bb15f.
 > 
-> This will be used by the MPAM-Fb access wrapper code.
+> On my system, CPU0 and CPU1 belong to the same software-coordinated
+> frequency domain. After booting with maxcpus=1, CPU1 is present but
+> offline, and its CPC descriptor is not parsed.
 > 
-> [1] https://developer.arm.com/documentation/den0144/latest
+> Consequently, acpi_get_psd_map() skips CPU1 and constructs an
+> incomplete shared_cpu_map containing only CPU0.
 > 
-> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
-> Tested-by: Ritwick Sharma <ritwick.sharma@arm.com> # on Arm AGI CPU
-> Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-> Tested-by: Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>
-> ---
->   drivers/resctrl/mpam_devices.c  | 112 +++++++++++++++++++++++++++++++-
->   drivers/resctrl/mpam_fb.c       |  41 ++++++++++++
->   drivers/resctrl/mpam_internal.h |   2 +
->   3 files changed, 153 insertions(+), 2 deletions(-)
+> When CPU1 is subsequently brought online:
+> 
+> echo 1 > /sys/devices/system/cpu/cpu1/online
+> 
+> the cpufreq core creates an overlapping policy and attempts to create
+> the existing cpu0/cpufreq symbolic link again, resulting in the
+> following warnings:
+> ...
+> sysfs_warn_dup
+> sysfs_do_create_link_sd
+> sysfs_create_link
+> add_cpu_dev_symlink
+> cpufreq_policy_online
+> cpufreq_online
+> cpuhp_cpufreq_online
+> ...
+> processor cpu0: cpufreq symlink creation failed
+> 
+> freq_qos_add_request() called for active request
+> WARNING: kernel/power/qos.c:658 at freq_qos_add_request
+> 
+> The affected CPU masks are also inconsistent:
+> 
+> $ cat /sys/devices/system/cpu/cpu0/cpufreq/affected_cpus
+> 0
+> 
+> $ cat /sys/devices/system/cpu/cpu1/cpufreq/affected_cpus
+> 0 1
+> 
+> After applying this patch on top of commit 45c13f3f9e3bb15f, the CPC
+> descriptors are parsed before the CPUs are brought online. The
+> shared_cpu_map is constructed correctly, and CPU1 can be brought
+> online without triggering the duplicate sysfs link or active QoS
+> request warnings.
+> 
+> This patch fixes the issue in my testing. so，
+> 
+> Tested-by: Pengjie Zhang <zhangpengjie2@huawei.com>
+> Reviewed-by: Pengjie Zhang <zhangpengjie2@huawei.com>
 > 
 
-Reviewed-by: Gavin Shan <gshan@redhat.com>
+Thanks for the testing! 
 
