@@ -1,121 +1,89 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2552D3537EE;
-	Fri, 28 Aug 2026 15:44:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C062241686
+	for <linux-acpi@vger.kernel.org>; Fri, 28 Aug 2026 15:47:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787931851; cv=none; b=tFRk77YsLNAu2sY8sziqxjeYCLfWThKqedzT5QD9SqUlAEBuhm0ApQxCWEnOzgboEJjW3yPLu+6Vt65MEdOcUE1nmoV2r4A/F8s45jBqDfK1auTq0gIJRDeOCoJO8CLacHpyrox8Ue1DjV++c/DMBkx6GIht9QghbqXgqnQ0uXM=
+	t=1787932083; cv=none; b=FZpyvWuButhkzCZra3CQ1PJhApXn5U7TCh8NISrvDnnGAKUQkwPbdSlv3VVidbQei5yUkIbKY83AdkfK1qNUAY/gTWwvLtFX5COFy0Mb7WqZz/9/HOfCGNnY41xR7iU7fTrRFIpyXHKjDXfAqzCUB6l1HEMWzGc3eu1pGh59+Zc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787931851; c=relaxed/simple;
-	bh=3kftKU6QSsPS12aGYnEzewRmMCKAjq7AHM3XHC9rZAA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=iMLyvy1GBq9EU3KRumzstv4C6iVk7tvgdEqooQZM57CfuSbodcU8QAgM6IA9kOpikBm/4GzDRZa3H60ly8XFEhrE/LS2oNkJHDWbQqAdnnMvU+dMTfA9cy20taT6GUjp6EYS5H7G1SPy8K5RLkWnu7Em/2hAHPwZSqHZ35aStPE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VRhd9MQx; arc=none smtp.client-ip=192.198.163.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1787932083; c=relaxed/simple;
+	bh=WbxtKhIbMOejm7liR9/rPZ2UBXbDbt5sTcDBrPI2dz8=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=FX7HWMhtiJ798RMrEwNvPwTHe1KseFggdOz1MkQKB7OyZiYfGRKy9J7eOWxhbr17lCJ7hpfH9ePZbT7ZEEUiWBVaVaVUX2oeMRqLVUX7iETaP5P1N9More8bnV9DnvQI4SR/KI2zROpyPZMCFUqY8Ys6b0jncFWvRxQE9YMZhQw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jvS5K8E4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VRhd9MQx"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1787931850; x=1819467850;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=3kftKU6QSsPS12aGYnEzewRmMCKAjq7AHM3XHC9rZAA=;
-  b=VRhd9MQx3Hzo91g37qGeubjV3ke42bayD5dOKKHV9SqIq0NS53uVGMVS
-   Y84yG+w5DSMuIYLwUtF2SruF7IeGcoRqFK+82B6bZrXoaTIbdCLi0+xMC
-   K8mAoeQYOZ6a47+dYWSlSZpuzcdCDozeBIGloTLeovWRaEP5We9vIFFp9
-   Jr5xAkqMZkb9OzknhAzCu3gBwmHbxQz3gu8kOyActnPENdKu8NYgg6vAm
-   ROo8TjHM8kuDb2Y4t/uJt8a/ZnrKVcriB5izlZ1X7V5Vwt7eOoKX5cXLt
-   q0Gf8yMCOP+ADfr2GAELaxJKnQykYybU2hKHi9QoRZ5b5c7B3Utdhi2Ip
-   A==;
-X-CSE-ConnectionGUID: Gvt16lhxTvKdXn9AkngB0A==
-X-CSE-MsgGUID: E1n9ZpD3RdCOP3ax11hn6w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11889"; a="99106286"
-X-IronPort-AV: E=Sophos;i="6.25,248,1779174000"; 
-   d="scan'208";a="99106286"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Aug 2026 08:44:09 -0700
-X-CSE-ConnectionGUID: ctRrCIJNSxy4QXK1nITJ2A==
-X-CSE-MsgGUID: m9fV/uLMSVS0MTQJStOzKg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,248,1779174000"; 
-   d="scan'208";a="291687312"
-Received: from slindbla-desk.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.245.245.176])
-  by fmviesa002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Aug 2026 08:44:08 -0700
-Received: from kekkonen.localdomain (localhost [IPv6:::1])
-	by kekkonen.fi.intel.com (Postfix) with SMTP id F1E1C121BDC;
-	Fri, 28 Aug 2026 18:44:04 +0300 (EEST)
-Date: Fri, 28 Aug 2026 18:44:04 +0300
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
-	rafael@kernel.org
-Subject: Re: [PATCH 3/3] media: i2c: Use ACPI_PTR() for ACPI ID tables
-Message-ID: <apGsxDddKkRsP-Un@kekkonen.localdomain>
-References: <20260828084328.257703-1-sakari.ailus@linux.intel.com>
- <20260828084328.257703-4-sakari.ailus@linux.intel.com>
- <apGNYsroZTTOqe4c@black.igk.intel.com>
- <apGk_7Uy_NcHG8V3@kekkonen.localdomain>
- <apGnw9HlXSfVGy4z@ashevche-desk.local>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jvS5K8E4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2BF01F00A3E
+	for <linux-acpi@vger.kernel.org>; Fri, 28 Aug 2026 15:47:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1787932076;
+	bh=qmXa71VaIDs5omcsqKx45QoxRAq7MtBZj++ZHm+Bdv8=;
+	h=From:Date:Subject:To:Cc;
+	b=jvS5K8E4KkB/E1j418TdtZwXAFvRI0RuP/kESm+6126lT/RjM1s9Q993blbABqXFR
+	 ztR25Ykvy4XE47cfWfjwXKRv57sgUixxJPHUhIG0csd2W0fZX1CPL91id9PhW86K1e
+	 Fo76vMUVHSPiJCSJ9FhuPo/44u/GLFhrb1QmWEZ9vWmxMEgqekb9vWTPyTeWdTRT8m
+	 Y2rVW6b7+J1ldNphCaDLw7g6yNn6F7CcDMLmw2awlJUweyAQ6pah64u3gjzfc0l+Dq
+	 3lBqx/uLnwnQsqtUKM9JX4BC68uIMCkXK/JF6ApjWwwEs0X+aMZTftxOOQIklb/Ocy
+	 Q3GTyDWtyIi7Q==
+Received: by mail-lj1-f170.google.com with SMTP id 38308e7fff4ca-3a1a3bb6c5dso10122981fa.2
+        for <linux-acpi@vger.kernel.org>; Fri, 28 Aug 2026 08:47:56 -0700 (PDT)
+X-Gm-Message-State: AFuF++n5ammku1lD4E2N0Ku3Jqc2mJysWzlA4NLM4n871FxM+ZV7JjLP
+	S2v2xH3Jg2q6Z8nxIINY3GyGpUhi7r1AmrAVpd6CrVSGgJsxgoyWz7rr2+CVSKEmGJo6phXH+Rl
+	7Cw+wjHliLD63z+D2HD187vAA95/bfUc=
+X-Received: by 2002:a05:651c:3056:b0:3a1:476:74b3 with SMTP id
+ 38308e7fff4ca-3a301b63a84mr14800961fa.9.1787932075015; Fri, 28 Aug 2026
+ 08:47:55 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <apGnw9HlXSfVGy4z@ashevche-desk.local>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Fri, 28 Aug 2026 17:47:05 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0i9xVAS9XWOOfB58w9oA5WTUQnx=QfLo=7Nnsup3KS-OA@mail.gmail.com>
+X-Gm-Features: AcwNN1XihMrn46N5cOvdT5tW7nCNPj8V133tEWIw2xxTC4zbFKe8B_SebPzgxLU
+Message-ID: <CAJZ5v0i9xVAS9XWOOfB58w9oA5WTUQnx=QfLo=7Nnsup3KS-OA@mail.gmail.com>
+Subject: [GIT PULL] ACPI support fix for 7.3-rc1
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Aug 28, 2026 at 06:22:43PM +0300, Andy Shevchenko wrote:
-> On Fri, Aug 28, 2026 at 06:10:55PM +0300, Sakari Ailus wrote:
-> > On Fri, Aug 28, 2026 at 03:30:10PM +0200, Andy Shevchenko wrote:
-> > > On Fri, Aug 28, 2026 at 11:43:28AM +0300, Sakari Ailus wrote:
-> > > > Add ACPI_PTR() to the ACPI ID tables where missing. The patch has been
-> > > > produced with the following command:
-> > > > 
-> > > > git grep -lP 'acpi_match_table.*=\s*(?!ACPI_PTR)' \
-> > > > 	drivers/media/|while read i; do
-> > > > 	perl -i -pe 's/\.acpi_match_table\s*=\s*\K(\w+),/ACPI_PTR($1),/' $i;
-> > > > done
-> > > 
-> > > NAK.
-> > > 
-> > > It doesn't explain why we need that. This also inconsistent with OF type of
-> > > IDs.
-> > 
-> > ACPI IDs are used on ACPI only while compatible strings are used on both
-> > ACPI and OF. Thus the ACPI ID table is redundant if CONFIG_ACPI is
-> > disabled.
-> 
-> They may be informative for the cases when on the working say OF system I can
-> get the IDs for ACPI based platforms at run-time.
+Hi Linus,
 
-That's a bit far-fetched I think. Have you ever done that? :-)
+Please pull from the tag
 
-Media drivers are probably one of the largest groups of drivers that are as
-relevant for ACPI as they are for OF.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-7.3-rc1-3
 
-The of_match_ptr() that used to be present in nearly all media drivers has
-been largely eliminated in the same context and the only reason for that is
-that the table is also relevant for ACPI systems. The case is indeed the
-opposite to the ACPI equivalent so I really don't see why we shouldn't just
-drop it where it's, well, redundant.
+with top-most commit 3b446d169a93e6abae9a93535369fa18bbcbefd9
 
-> 
-> Also you just save a couple of dozens of bytes. This is peanuts and unneeded
-> churn. Again, here is my formal
+ Revert "ACPI: scan: Defer device power initialization"
 
-I recall you often comment on struct field ordering to save, well,
-typically less than dozens of bytes, too.
+on top of commit 3382bfbca58c7d5ee3f31a7b37fbeb208e98e656
 
-> 
-> NAKed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
-> 
-> In case you want to override that, please keep it in the commit message (among
-> other tags). And yes, we have such a tag in the Git history of Linux kernel.
+ Merge tag 'acpi-7.3-rc1-2' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
 
--- 
-Sakari Ailus
+to receive an urgent ACPI support fix for 7.3-rc1.
+
+This reverts an incomplete recent commit that may cause ACPI device
+power management to stop working.
+
+Unfortunately, I only realized that the problem was there after the
+commit in question had gone in and AI did not catch it either.
+
+Thanks!
+
+
+---------------
+
+Rafael J. Wysocki (1):
+      Revert "ACPI: scan: Defer device power initialization"
+
+---------------
+
+ drivers/acpi/power.c | 1 -
+ drivers/acpi/scan.c  | 4 ++++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
