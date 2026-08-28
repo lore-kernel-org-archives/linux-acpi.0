@@ -1,63 +1,94 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A99A63B42C4;
-	Fri, 28 Aug 2026 17:50:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D4F53B813D;
+	Fri, 28 Aug 2026 19:54:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1787939429; cv=none; b=WZCRr8t/4PehQEAx9z4Sh28UXQF4gDw/S+tApdibV7Jipa177MI7k9kpwun1E/HRWmRPIo2AfrLP3M+GnPdqMyIpRv3cNmIYIk1PWk6uA+n02rMkCU8njQKQ9ydyuUZf/lt5N9jq2qbJbk9pj10CW/ThIlSBU/V9p/UfLd5M9oA=
+	t=1787946888; cv=none; b=VeM4oiw8xhD4whemQIhvEXHwpCTYMNEe9txKH5fESZTjX4+DSwcQNeI6AIK2aoJaNpDrTL2KFi+hxG1oUwcXMSfZhAQFw41LvAaVzD2m/SxWxEuAeC1de01UxoOn3rPLqsEH0q5CajLxNZwDFRh6PyBSsw/LE/Fprgd/t13gj+Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1787939429; c=relaxed/simple;
-	bh=OBSOHEA9enDimSlCYLaa/VvzdQu3fnthFdBAspB46lw=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=BzZqb7jd7yPjCQl4geQ064q7mR8YjVRFZujVYZa/7zJ23KtGNwHP7uz4vy53u/L/Ypr3yHeBc7BCOJbTZqfJxoEJ9FXI5Wp3eX5os7V5UNXaJ8ZEOyag+oWioJUsImRG4VyGpJzFv/HLAHUD2XTr9sNtljctSqhSPT/nSiIPufk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eCYqRkfE; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1787946888; c=relaxed/simple;
+	bh=5iZX0wkpD+MNEcZhPumqgcBkerrHnfx/Lwndq8Q7CYw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=dx8yoNgKRm45VaKgbShHnqNMZ1pBx2MokSWGPOhVQOE51bUCRJ75U0Bmvp530vJZOvH8V9L+HL8ddA4z9i31mBhd3iLBEA1ZJXnJOL2dBDMYj6pPxDuNr84E/Rw81f4IflqeInzmrhH5qJIdk8R6CnGxAcvomjNVcUZ4XsPqhfk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=kipKh5fP; arc=none smtp.client-ip=198.175.65.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eCYqRkfE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 458BF1F000E9;
-	Fri, 28 Aug 2026 17:50:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1787939428;
-	bh=XntAcv8iQPyS1VXnsHoweRYIAdxgFQhXuceRGWYG8q0=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc;
-	b=eCYqRkfEXup5hFNaBshPoW5soNWfEotQm8yBQtBuSu5e99oAZQ3K2w3sNH/cz9gyp
-	 vSSolUECzayVlSSPe6317IPleHzBNDifBxneYJlb/CFbGMqIzN8pjyzesdeQDEuWY1
-	 GoW5oRBn4d5lZDhpD8M9Z8v7HkCquR2D964jY0hVdFcNiFtLFPjkl8HmioGSm7Qrxw
-	 kP6T503TgqWrRWr+wKxl+pl+Rv6/eUCy3odaSOzHr5vjP+yvcyl5BmJenEpnuVRXBa
-	 7Lsk4dUHCEBcGheSYCa2oyqRFt608dS4VW34ll2IL6Q8hbLZJGPQ6uUTfoQZhT9x9/
-	 Zw1NaTetDdopQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 56B90380AA67;
-	Fri, 28 Aug 2026 17:49:34 +0000 (UTC)
-Subject: Re: [GIT PULL] ACPI support fix for 7.3-rc1
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0i9xVAS9XWOOfB58w9oA5WTUQnx=QfLo=7Nnsup3KS-OA@mail.gmail.com>
-References: <CAJZ5v0i9xVAS9XWOOfB58w9oA5WTUQnx=QfLo=7Nnsup3KS-OA@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-acpi.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0i9xVAS9XWOOfB58w9oA5WTUQnx=QfLo=7Nnsup3KS-OA@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-7.3-rc1-3
-X-PR-Tracked-Commit-Id: 3b446d169a93e6abae9a93535369fa18bbcbefd9
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 344be13211d0fceb791a7da70ef810ad13340fe0
-Message-Id: <178793937295.2708560.3128394683288620075.pr-tracker-bot@kernel.org>
-Date: Fri, 28 Aug 2026 17:49:32 +0000
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="kipKh5fP"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1787946887; x=1819482887;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=5iZX0wkpD+MNEcZhPumqgcBkerrHnfx/Lwndq8Q7CYw=;
+  b=kipKh5fP7z+mAHfOMRdX9OmOAwL7R1wLdUSIqMTvK8LwLhFT9Gk3E87P
+   2zVzWVhuSeRZNvyGgya1h2nB9sm/uaNaW/AA4xAJiUxx19QDHesAvja8T
+   XAUfCa9U4AYD69k8RLkvmA5Ja8Wo2jtEQWO0Om2ppQH04hgjEyH7PwAxb
+   U3fJpjjcxIKYYYumfE/tCCfhH34pQ7/lD2LiIFswbkQfTNl97w9rNI2w1
+   Ib3rxlj1M5ihcGW4tz/1qVQFuhlsu9Tw2uOnGYC1Xlr5LKbo2EwMTvtR3
+   KfDpgdBXqOSDQn2FnXBDEUbIUBP+SIOb/eflpveIW1b+D4IzDd44JBnTf
+   g==;
+X-CSE-ConnectionGUID: Wcyt4lQfRhqIFArDYoKK2Q==
+X-CSE-MsgGUID: piZ0BWQLQGSGUyrQEGZDHw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11889"; a="111236297"
+X-IronPort-AV: E=Sophos;i="6.25,249,1779174000"; 
+   d="scan'208";a="111236297"
+Received: from orviesa010.jf.intel.com ([10.64.159.150])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Aug 2026 12:54:46 -0700
+X-CSE-ConnectionGUID: PHEhfjWoRICSTULj0uJ4iQ==
+X-CSE-MsgGUID: pxJOEjBwTOihx1J5QKxIRQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,249,1779174000"; 
+   d="scan'208";a="266929906"
+Received: from guptapa-desk.jf.intel.com (HELO desk) ([10.165.239.46])
+  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Aug 2026 12:54:45 -0700
+Date: Fri, 28 Aug 2026 12:54:38 -0700
+From: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
+To: Borislav Petkov <bp@alien8.de>
+Cc: Thomas Gleixner <tglx@kernel.org>, dave.hansen@linux.intel.com, 
+	Vishal Badole <Vishal.Badole@amd.com>, mingo@redhat.com, x86@kernel.org, hpa@zytor.com, 
+	rafael@kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, peterz@infradead.org, tony.luck@intel.com, 
+	chang.seok.bae@intel.com, wei.w.wang@hotmail.com
+Subject: Re: [PATCH] x86/topo: Map vendor CPU types to generic Linux such
+ types
+Message-ID: <dznktzvdfxqrlvugqvmkfkoarxxaqzpbmhkxou4lipuq2q52ss@crc6jbfrnmpl>
+References: <o6lnfms2uw5xpx54bqmc72zbtdblya6bknkx5g6di5s6g3ovjf@gybebdp6p7dm>
+ <87fr1us7sa.ffs@fw13>
+ <20260721031858.GEal7lIlYLnsf-aEPZ@fat_crate.local>
+ <6ff5asua7jywnn7ge4k37bu22artrkfgqybfdt747cm5ieiybo@bwkdi2bqlsm6>
+ <20260722183152.GCamEMmAiE2BnyrNOV@fat_crate.local>
+ <un5ex54iuszxdubdkjhhtezk4rqkgrzrx4ewgu74id3n3swkyy@hh4df7yq32ox>
+ <20260722195105.GEamEfKQIPgWp4HiBk@fat_crate.local>
+ <bpncabyd5x7q2niuopingb4ztimoxz7ldw3mha7yntyq5mbsyb@5qjrfihupvym>
+ <20260722212314.GFamE0wsvHL6eLvTjT@fat_crate.local>
+ <20260827204425.GDapChqT4IymVmrf7T@fat_crate.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260827204425.GDapChqT4IymVmrf7T@fat_crate.local>
 
-The pull request you sent on Fri, 28 Aug 2026 17:47:05 +0200:
+On Thu, Aug 27, 2026 at 01:44:25PM -0700, Borislav Petkov wrote:
+> diff --git a/arch/x86/events/intel/core.c b/arch/x86/events/intel/core.c
+> index cc13164d948f..f14775968308 100644
+> --- a/arch/x86/events/intel/core.c
+> +++ b/arch/x86/events/intel/core.c
+> @@ -5682,9 +5682,9 @@ static int adl_hw_config(struct perf_event *event)
+>  	return -EOPNOTSUPP;
+>  }
+>  
+> -static enum intel_cpu_type adl_get_hybrid_cpu_type(void)
+> +static enum x86_topology_cpu_type adl_get_hybrid_cpu_type(void)
+>  {
+> -	return INTEL_CPU_TYPE_CORE;
+> +	return TOPO_CPU_TYPE_EFFICIENCY;
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-7.3-rc1-3
+Should be:
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/344be13211d0fceb791a7da70ef810ad13340fe0
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+	return TOPO_CPU_TYPE_PERFORMANCE;
