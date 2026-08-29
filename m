@@ -1,62 +1,64 @@
-Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
+Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87EF13B0AE3
-	for <linux-acpi@vger.kernel.org>; Sat, 29 Aug 2026 14:55:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2E5A3AEF45
+	for <linux-acpi@vger.kernel.org>; Sat, 29 Aug 2026 14:55:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788015345; cv=none; b=Lr3x99CySKHTI0/0DanqJxXjaSkDmtf7BC23WIu3U0HD9hzdgSa4PygehixUSwYMYfvPawJJWA0OSyfGXmGZI5RQkvlgBo1wQNJsO1X4DVBgNvILyFPiqB+ERc7DD8iV0BfpBK9PG439rnu8hqiQLvq/f0qJyDbbvg4KocCkwgI=
+	t=1788015347; cv=none; b=FrJ/0xoOGLJW4bRgeRTcoJWUfzYA9ELqiMA8q0K6n4jfHYcRgU0PrcQruYksYMe+rf2tXuNlPZaC1rewkqh1e9DoeQzqXbpLt+lyYHG0/vl3pf2CRu1URj9Tt6EmbuB/95t9On1tBxOrjcfC96vA6jowh8KH+0110w2xHN7cbCM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788015345; c=relaxed/simple;
-	bh=BwrsapI1lbY1VuA5R33NbR3GNe+BnBcSC2crTnv7Rlc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=GSHtDqR1HLbLsM3yPqldTzn44ydsvx5n4eIyU7CTUYNrdtuvQmbUFOZORWJ3wAEiagDd78T7/TpUGb3nUPVmxc8EQjssx1bqX3Fpc7CWPVHzeymtg2FXMHsZTJEPGzU+t0JKfHjevmi7gBjs7v8hZP+EMKrTY+fYBG5kMpNcfTU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aeQO2tAS; arc=none smtp.client-ip=209.85.128.53
+	s=arc-20240116; t=1788015347; c=relaxed/simple;
+	bh=3XdOABZSZLH0OgwUYmhLpcJyF2mhu4J+bTtYORu5bZQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Y3Y2gocO/u+MRrm7C4mkmrNXR1HnhGCLmHUZgxEcSJtJwA0V8AJZq7oBPxuAduncwi342g6iEuspdvVRx2AvuRhLDRDWWBnY5uUKwSLL6W956asooUHj+u7TYHPAOTjchFvoOwq7rYiHs2T6ozjxtzsWf/t/jtTEPX6Si9SpNZ8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=h+gxRfsk; arc=none smtp.client-ip=209.85.128.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aeQO2tAS"
-Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-49b96837ca3so10611705e9.3
-        for <linux-acpi@vger.kernel.org>; Sat, 29 Aug 2026 07:55:42 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="h+gxRfsk"
+Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-49b0d78a801so15152365e9.2
+        for <linux-acpi@vger.kernel.org>; Sat, 29 Aug 2026 07:55:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788015340; x=1788620140; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Sznin/P7lIs0oXLcYrBqu0KsuS3x0PiQ6+HHBq1mQpk=;
-        b=aeQO2tASpTC6K+OKTMzafHVMm27055KpCE0AyqCeat5/0QZ+hmgyIy7I/j1iqKJQO0
-         u8fDotU7MidWZqFZPcLX0TiP6KpKcPSXT0s0vI7LuP4UZaColNeM95UWi070LgxtibNk
-         sHOYJg72WufV2QJMtjOc5yC5eB4C67EtohCn9NeZaviNgiIarYfPOKY0AqL/Xso9PwuX
-         TAg21ooii38JEqwIlu9YWG/ND24YBUCCPGr1uBj1DFZveOvOaszeP5qjIRh835K9XmrB
-         8mf0VZV55oktvE+WbQzEzbsMZDD0dTq5iKEooyJ8hLeoEyJYWfh16p7jxvTGdtEchUS9
-         hLQQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788015340; x=1788620140;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1788015341; x=1788620141; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Sznin/P7lIs0oXLcYrBqu0KsuS3x0PiQ6+HHBq1mQpk=;
-        b=j9yiydssU0RtRXKxhYxusnfExHOr6qBMlN/VO+S2QMAtWeLcn0s1O0RTGOe80ohnSx
-         lNRLjDqaB2vforznWmVbEeHoP1o7kktdg8dQEbSIhVcBOedtpHkTQrvlZRiL6TpDYWxL
-         F/laXghvetNpFF/TmW2SievBa//51XQoOAuLbh/BOo69EmYX6XH4zHpM5dNQ5dXgXcgy
-         r3UZ9pr2zEIWD9KOpT01gjBcE8vz7fSttGdZ5eF8bZ+xdUv8eDS6TxYrnSNLjWl2KiQg
-         Bx8LOh2Dcmq83RAOCwKQIk5AiTJNPiSdlVlNyZ8XYkFIW0Ewm47wBN0kDx0OEhcTrJ+m
-         pv1g==
-X-Gm-Message-State: AFuF++lj6IYX7LycsLV4LQFkbL1mf920Kczf290uOLjpQY9Mcc692FYC
-	yudbghXOREw58ZbCDHWoj2QmZhgcSuFD82N66Uix6HHwQe9+SX7RC/jRjqSN1g6TeyA=
-X-Gm-Gg: AR+sD13JelweevjNa659o4sejByFJhcFxDCqaK+3zGSedVWsYJJchQNCWrsfKPFv1em
-	nKooj+PU2CNhjgyiXv69YlPjSbB7+os7Ptdy09JrUy4tFHhWYs6HrdB2hsYwS3nw2BXK7Y2h5Na
-	yF8jviVfVPSOP8T/sJK0xbx2WV608Vjw+3wZ+Z8kchFhcj+PgVGAdnUtiV8d6BsApGdY1ViQoRZ
-	sW40zHXYuhGb7/Rr8zFMMZ3suDp5Dsjbefm77+79S81tkGr9Ie3zfSPQQRU0ZNa4nQJpSkduZ9d
-	mKov2t9SI2Kjou9oJCtHJeDKJoj2ooQxUytqN6E9uzrQu2OjhPVEUTkZg2sOwH6amfbyvId4RoB
-	bFIOgU3r33VlU1Li+z0sefomdChxdfFWsDe8KjMKkQgKPSQVABCKEUXInX/V66My72nNa6vav8S
-	z3Jgn2fD6+lafPmpQOPxEIsCYL52F13ixA1FZxm6Woi9c38HlCCrJEtyKulu2POXx5Qw7EZRW83
-	bmI6vbo/vy9pvmMKFhLD3mMwPSsZhs1qYXLLpVgDgDcKAaT7IXE/khdTzH2QEfKOh5A7y3GjO5u
-	9EROQiYg62sKrzEbyRORoj9NYwtq5FuvLJ2/NaxVO6LMYobZ
-X-Received: by 2002:a05:600c:8411:b0:499:4892:d022 with SMTP id 5b1f17b1804b1-49b91c279e1mr243879245e9.8.1788015339857;
-        Sat, 29 Aug 2026 07:55:39 -0700 (PDT)
+        bh=/89mfV6La/iUEjGbkyjyZE3vO+uySlEnPZmMX8i9U8g=;
+        b=h+gxRfskZjmmU00YWJAE+CArrHUO5PHQrsRRG5xM3hOp7/QPNG+UC6+x1MLkb9GHDp
+         w1NxFyLtIxTReqa29vrc9ayQQ/pttIvQ2mbLx9a3b45AlGZXbaX6eIAUqJldTs+H2zyN
+         WBmOVfs9TDIHGOiywTA0xbUJBj2lhXiCbmgbxiQME3QryS4uxZHdsDBH9+iDmVkrFqQI
+         x1EpPJ7oVlt5fVliV7wWungAUmYvfUPUmB3h8rRTaDvq1L5TpgyC4DewPV6/fE0WGaN3
+         IKtWd4xpPdSjv44OG6A/WKv2fTAK227afl1rQN48unxtnGrP2tt8ACHk8iME2v2+f64p
+         FJog==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788015341; x=1788620141;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=/89mfV6La/iUEjGbkyjyZE3vO+uySlEnPZmMX8i9U8g=;
+        b=QJKV1M5CLKNMohV2BK2uG0hCMgrG3C0pwy6YcqeItYW7bTCexg1JLnJAzqO2uPYzDN
+         Bdk5CFdpwxGXgFHHdmwOS8of2I/IIPav7Wb0Hk92yRCdFDIus5poUrur1If7X0dmtoVI
+         bJl0v7uy7D3JNDeqbeknK4GGWVWnrVJnJT1Yrnmz+PhgKIh3W5X03zt1Mj11hRdH000n
+         baTB0Cb/WQCcQmsndRLs//drdjDtw2TK/ZdIgywSTFrZ2znpici/ftDTLiHse0IAtpSi
+         Fgzj4SX3FLCxox8qd857Ev0PMx3cypMz7ChOCXQddJT4aJulXQDhzX9QaV6lQl7Uaqx4
+         m1cQ==
+X-Gm-Message-State: AFuF++mTZD2T9qmdnCz+VYycPiVjU3hI+7517i0Ts2LC7JltU888ueZs
+	0jekPez9Y0F5HfXVqgvLqkETPSGbGukg6AR1UQyi/CNwILS+gGqG7HSaLL9rAvwXXIU=
+X-Gm-Gg: AR+sD12sU2qJxrIDdR2P4bdlStU63j3wxANjTX1iLT/dtA6XZuDSJpabLTLWJxZspwU
+	jfX5v+YBKgaEHtzTBpOcItgMvV9Dss0tbARP9J+12Gur/JV9ZiOv5LplpUjoo6w30XplWto3t7e
+	oxjHdyD/v/PlyvOGnhIqZHaSMt0RtALCYEHFVPDy0uEfqL28bCUeV215VPhOEQCIC3IhvQiwK7m
+	dL2a3uAqFR/L002bLbtA4w2SV2EJXGSYDq36ttHfR4zKERQ8wON1rNPTkC3XgTLrfI7TjystFih
+	YYzFfBD/f99qxqwgJUbDVZWsXsCP8iuirZ+UfDIv0CozyLkqFhnSQ1IuHNy08svjzYHGnIAru8b
+	VbgvFGNvNWXZSw99taw/i6eW7KrWAQDOniMI/w6ZqeY7qnCDeFlyp7W0OLmT4bK+mzYKQW6ggQJ
+	H2O+oQ4AKA3KjPOcddFqhd0vHpVCwxuoX/sNG4SWBuLTWuo3G1CkbrNEw5VeOmDzkPwDiuHJb7z
+	E/mBZJg6QLMbjsZMkByJADeT1taRaIh3Ckf/zLqQBTqtsSRwlidVosKutGfHI+m4U1O7tmZT1iw
+	u2RZ/T/ZAB01WIxiGDME5+JoHxG7EQSUxcEZ4Ja8uk0aE2pk
+X-Received: by 2002:a05:600c:c490:b0:499:726a:a017 with SMTP id 5b1f17b1804b1-49b91c17294mr214818975e9.1.1788015341035;
+        Sat, 29 Aug 2026 07:55:41 -0700 (PDT)
 Received: from scambox.localdomain (5-198-68-184.static.kc.net.uk. [5.198.68.184])
         by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49b4dfdf00csm195113255e9.14.2026.08.29.07.55.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 29 Aug 2026 07:55:39 -0700 (PDT)
+        Sat, 29 Aug 2026 07:55:40 -0700 (PDT)
 From: Edward Blair <edward.blair@gmail.com>
 To: linux-acpi@vger.kernel.org,
 	linux-usb@vger.kernel.org
@@ -68,10 +70,12 @@ Cc: rafael@kernel.org,
 	W_Armin@gmx.de,
 	linux-kernel@vger.kernel.org,
 	Edward Blair <edward.blair@gmail.com>
-Subject: [PATCH v3 0/2] Add ITE885x UCSI I2C transport driver
-Date: Sat, 29 Aug 2026 15:55:14 +0100
-Message-ID: <20260829145516.13500-1-edward.blair@gmail.com>
+Subject: [PATCH v3 1/2] ACPI: scan: do not enumerate MSFT8000 as a serial bus slave
+Date: Sat, 29 Aug 2026 15:55:15 +0100
+Message-ID: <20260829145516.13500-2-edward.blair@gmail.com>
 X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260829145516.13500-1-edward.blair@gmail.com>
+References: <20260829145516.13500-1-edward.blair@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -80,77 +84,37 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Some ASUS desktop boards describe the same ITE USB-C controller twice
-in ACPI: as an MSFT8000 Resource Hub Proxy and as an ITE885x device at
-the same I2C address. If the Resource Hub Proxy claims the address first,
-the ITE device cannot be registered. Only the ITE node provides the
-interrupt required by this transport.
+MSFT8000 represents the Windows Resource Hub Proxy. Its SerialBus
+resources describe connections that Windows exposes to userspace rather
+than a physical peripheral attached to a serial bus.
 
-Patch 1 handles MSFT8000 generically in the ACPI core. It keeps the ACPI
-device present but prevents its SerialBus resources from being
-instantiated as I2C, SPI or serdev clients.
+Treat the device like other ACPI nodes which contain SerialBus resources
+without being serial bus slaves. This keeps the ACPI device present while
+preventing the resources from being instantiated as I2C, SPI or serdev
+clients and conflicting with the actual devices.
 
-Patch 2 adds the ITE885x UCSI transport. These controllers use
-ITE-specific offsets for CCI, MESSAGE_IN, CONTROL and interrupt
-handling. They do not expose a VERSION register or accept PPM_RESET
-over I2C.
+Suggested-by: Armin Wolf <W_Armin@gmx.de>
+Signed-off-by: Edward Blair <edward.blair@gmail.com>
+---
+ drivers/acpi/scan.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-The register layout and reset behaviour were checked against the ITE
-Windows driver supplied for this board.
-
-Tested on an ASUS ROG Strix Z790-E Gaming WiFi with ITE8853:
-
-- Built and booted on x86_64.
-- ucsi_ite bound to ITE8853:00 without the previous -EBUSY failure.
-- /sys/class/typec/port0 was registered.
-- USB-C attachment detection worked.
-- No UCSI, ITE or Type-C initialization errors were logged.
-
-Suspend/resume and the ITE8800 through ITE8805 IDs have not been tested.
-
-Changes in v3:
-
-- Rework patch 1 as suggested by Armin: add MSFT8000 to
-  ignore_serial_bus_ids[] in acpi_device_enumeration_by_parent().
-- Keep the MSFT8000 ACPI device present while preventing its SerialBus
-  resources from being instantiated as bus clients.
-- Drop the ITE-specific ACPI x86 status override added in v2.
-- Add a comment explaining why MSFT8000 is ignored during serial bus
-  enumeration.
-- Rebase onto current mainline and retest the series.
-- Patch 2 is unchanged apart from the rebase.
-
-Changes in v2:
-
-- Move the v1 duplicate-device handling from the I2C core to the ACPI
-  x86 status-override code, as suggested by Mika and Heikki.
-- Correctly identify MSFT8000 as a Resource Hub Proxy.
-- Restrict the quirk to exact matching I2C resources.
-- Use devm_request_threaded_irq(), as suggested by Heikki.
-- Rebase onto Linux 7.2 and update for the current UCSI API.
-- Read and cache complete UCSI events before acknowledging them.
-- Match the vendor transport's MESSAGE_IN and PPM_RESET behaviour.
-
-Changes in v1:
-
-- Initial submission.
-
-v2: https://lore.kernel.org/all/20260825201426.47030-1-edward.blair@gmail.com/
-v1: https://lore.kernel.org/all/20260314013157.7181-1-edward.blair@gmail.com/
-
-Edward Blair (2):
-  ACPI: scan: do not enumerate MSFT8000 as a serial bus slave
-  usb: typec: ucsi: add ITE885x I2C transport driver
-
- drivers/acpi/scan.c               |   5 +
- drivers/usb/typec/ucsi/Kconfig    |  11 +
- drivers/usb/typec/ucsi/Makefile   |   1 +
- drivers/usb/typec/ucsi/ucsi_ite.c | 395 ++++++++++++++++++++++++++++++
- 4 files changed, 412 insertions(+)
- create mode 100644 drivers/usb/typec/ucsi/ucsi_ite.c
-
-
-base-commit: 1b78070aaef63512688aebfbc82365ef9d6660f1
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 7dcf78419..608527cda 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1770,6 +1770,11 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
+ 	 * attached to a serial bus at all.
+ 	 */
+ 		{"MSHW0028", },
++	/*
++	 * MSFT8000 is a Windows Resource Hub Proxy device. Its SerialBus
++	 * resources grant userspace access and do not describe a slave.
++	 */
++		{"MSFT8000", },
+ 	/*
+ 	 * HIDs of device with an UartSerialBusV2 resource for which userspace
+ 	 * expects a regular tty cdev to be created (instead of the in kernel
 -- 
 2.55.0
 
