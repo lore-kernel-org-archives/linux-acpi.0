@@ -1,120 +1,141 @@
-Received: from fout-a4-smtp.messagingengine.com (fout-a4-smtp.messagingengine.com [103.168.172.147])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AD805CDF1;
-	Sun, 30 Aug 2026 01:19:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.147
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B10FB231A3B;
+	Sun, 30 Aug 2026 07:06:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788052788; cv=none; b=FZm3+zprtAPCTZU4SAdx2Wl2xjwrxk5C1G8vim89k0tL0F301ExmHtOUwBdyR3wDrnsR9NHdhBmSOcupbvQG0p1SyPbdLeEOineuTvZzY21NyjmLfn9mtCZIDiFOdnvdMMgF1jSxkb1gEjGttdyf7VTkDu85BQ8ZTIJk7ZDZl/s=
+	t=1788073621; cv=none; b=HACigMAvaIPT20fclf0f622ti25hvjx2B/ijyCsLrClkR7FUw4YaV+U4qQSieXdGQholR76LdIzIuEa0r/omkxfKttoHovQFSFqniHg0VfjZ+WfHdSp9pI7/LA7gGOIzlk6sHKdAfzuoIQOlUtkfVmeVFzaN7h8UU6dkNIjK+lA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788052788; c=relaxed/simple;
-	bh=bBAVkR7J+jhX0M7p7q3MN7iF+qUyn8nYAEm7xPP/ViQ=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:Subject:Content-Type; b=nUQ1B71WqfJC4AG/vKL6FhYoGkUfI/Jx3mX3R9y+y/QklwgTemJZZUFRrKGxwm3wJD5y7Sc6ycZzCqhypfWUvfSfY2PxkqxkkjEQixLHEBicFtkGjEaMANZkMhRdOSp2QK8+6WM9+9yB2R2yB3g/pxRBbllh0AMoxyVE4WHWBMo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cdine.org; spf=pass smtp.mailfrom=cdine.org; dkim=pass (2048-bit key) header.d=cdine.org header.i=@cdine.org header.b=kbkO5tKR; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=Is4J8Lo5; arc=none smtp.client-ip=103.168.172.147
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cdine.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cdine.org
+	s=arc-20240116; t=1788073621; c=relaxed/simple;
+	bh=MGmsVi7TZDCdgsOZMrhHPi1ZoVvRIQBoiKiFOOZ7K1k=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=TEXQafOEoO/MdzZPlUgBmunpEzFpS1teynYP65GdVdHXmQkgGQ3Nht6T2CtxhkFSGv9sb65eRsV96DdWiyuuBrtvBaUH7m74VIfdvwTzCyq0pQkWgk0D2mYGA5rajU8r060SLKjdjkeFBwXwzZq/PWDswpAOUJb3AlKH/Zr6qdg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=H3xxVfEV; arc=none smtp.client-ip=192.198.163.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cdine.org header.i=@cdine.org header.b="kbkO5tKR";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="Is4J8Lo5"
-Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
-	by mailfout.phl.internal (Postfix) with ESMTP id E7F74EC01CD;
-	Sat, 29 Aug 2026 21:19:44 -0400 (EDT)
-Received: from phl-imap-03 ([10.202.2.93])
-  by phl-compute-04.internal (MEProxy); Sat, 29 Aug 2026 21:19:44 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cdine.org; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:message-id:mime-version:reply-to
-	:subject:subject:to:to; s=fm3; t=1788052784; x=1788139184; bh=UX
-	iJMnQXlpvgzMAbhK9ZBau3/cDbZtLOTU5YJvvM34Y=; b=kbkO5tKR+GSpYzMdKw
-	MquGZ9cQE1Iekudf0u8RQbfHtWYo79H4TGZoEBvl4uDRGV+VnmJqstgAW7aDoP+q
-	R33P/+XGlsX4nOtmmsdYbPXjZghNh9HM8pnFQEhoBP5Vy3Gp1kj7pIb24j13NBVP
-	PP2dSNAMxz80+pRF0VylaiLan5+VWoInl8cwceHnlmESz5oGzGrIATzJ4moCYk3b
-	AuRX1gyZeLlaU8z+qi05rvuOFijRJHYkXMZJeGPlR8Vo7gA/fi/ioXvNbe0kzU/5
-	X8kK6abMW4FwOfEO1nYWvDGhji2DS0we65ep9fSOfcXy/EWR6skCQcApuu/JbsRw
-	YA2A==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:message-id:mime-version:reply-to:subject
-	:subject:to:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-	fm3; t=1788052784; x=1788139184; bh=UXiJMnQXlpvgzMAbhK9ZBau3/cDb
-	ZtLOTU5YJvvM34Y=; b=Is4J8Lo5xj1OBXj5+pibuPulzY8RI8bs6BV1dhS4aWV+
-	nautOIGzMN+LNOZ7lLli1+0r7jK8dbBt6awpTvKd0sPNhGiTVzbFe8f8sq32yHQm
-	3HY3gf9DDgnEsfsEoaFbbozsTnHtVkg9P1l9pnustUrvWyTWCVL95ISv7X1KuDpV
-	1hCSICjLXi+lKsEFXT+xxdbpUHzCTKGm0TBxRB2UTFqWRX4I3Kwt2ea9rz89Mms/
-	XLXbhMbOcK0SbQndyDHz0cTPbl2ecW2l7rz+x4yWebavhs83d/vg5FJec8SJDakq
-	0m51Jec3vqbKzWYGveNRqxaBrYrcHz0MiSrfxnLDXg==
-X-ME-Sender: <xms:MIWTapRcbVj-2LmtONgOCwixdm1gzUnkx7jQPMcuo-fd86NcOX0hMw>
-    <xme:MIWTatk2vHPEEOmhmapLgAq9PqHht60cnizajVRTEqGbQBHjxcjbS2RgV-ZTuL8Ee
-    MJp1H47l4SHS7MtywMUGGNU0oBOKdOD2OeyBxjZv7Kn5sYG4ew_EYg>
-X-ME-Proxy-Cause: dmFkZTFMi74plZTRsMMynkByVRAUtnbyL+SZggYx/IHooXpafqWQB2s6mEpYhLzZ8Y4KcG
-    pZNnGwAcCmQFSVTJU4TF6N7ssJKp6VrrBz09aL7YYydvh1tKajD9Ie5NriA4p8dAYs7Y7r
-    ho40UAj/UsVXnvKNWWDRa5a7OKjF/FOueuO7MwA3e1wG4uqsFMvIGNsllJW2e8FExpg+xX
-    oMShqIdcMr5BjJA5xapfy6afyU7B9ClU6p6zndjvCV+zsAuQoat0fTN+T9p1XYjqU6IfEC
-    N/MvnQWFlkFqhE7KIJZnaoLjFtqTyKbJBzFOkWuK99J+rHCYCeDTSUcrZP8OoNpuy6ZkOJ
-    ca7M5pOq41KA6OiYTu+v9ddxRZ6KxKju9NaaEQtwRaBIgUKctKTrT+WKelYvp5KK/+YiB1
-    Ahx6q0WivDn1PuswySHb/jMtQigS+8w5sKSHVN/EzWWQtEvp5J2cumm9PibG0pA4uM6Db0
-    em3yElXUaQo8/KPu8llxkNalC15cNYaR/Tw13ZwV+9cjfqEBLfLnY+zY17wYXjNk7q6e8L
-    /jUPmEX/kUkjtgyAgRPo9ToEo9LOJeT45WIRyjjf0BAJsNJahJds9jyBm9O6qCGvWVZc09
-    NMfseqSlWzcPRDdVK5oM3crG19kU/cvCxvitlYnkj20Xa2oD7sVm3DiXZ7AQ
-X-ME-Proxy: <xmx:MIWTag6a8y5-j1BQoB9BFyuoW8sfmmAKJqJtro0bloV6_XRZgWk0kg>
-    <xmx:MIWTatV5n1FeTf75MvK2tXA0f5NxRsHxIZeRkO1AWWdpMkkDZCSAhQ>
-    <xmx:MIWTai9Ro5acOoKbTgY27ltGDbE7D-CQV4TBnOP8lrKuyVJTkbEaMA>
-    <xmx:MIWTapmx-pJJTfc-qSgYMGz7AKqBYgo6v0OPcfRFYYSMsJWn1BJKLA>
-    <xmx:MIWTauvTc4sBq5tuoBqDOizrwaaLhbULwhlLXPYSTexeqYjZEgYYrWGA>
-Feedback-ID: i7f6c46dc:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id AA2CD18E006C; Sat, 29 Aug 2026 21:19:44 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="H3xxVfEV"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1788073620; x=1819609620;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=MGmsVi7TZDCdgsOZMrhHPi1ZoVvRIQBoiKiFOOZ7K1k=;
+  b=H3xxVfEV98CRt3B3w77U8DKKbU/Ds5o201DU4vI8EUFijnAzFimvShxS
+   kyrnT91os2fN5nYQQzBQWeeEH3dIP7p3MXGGnOs5VSDHFvUMueMCAGlA8
+   xWeztiJjHn/jV7rddF7NQcUdkcXObePQZvezPylXdpDJiHovgSlRh5sul
+   g0ysEE3Xhn6WG1d8pFQY0xOOh8EMSL6Q3RKASPcTg29oHNWFPKM6obhxU
+   ZnvnFvfpdBLUK57aPDvjRZT2paPWyu5f74WuMjkwaPsUqsu9BR3pPrVx1
+   WY6TikbqHxLCg2cyHIUkQs3/x4tGB30Cfskx3LWPrbmhlLpzZrn7PuZOR
+   w==;
+X-CSE-ConnectionGUID: BeCbI0MQTfejJ7RdeONeJw==
+X-CSE-MsgGUID: APJZyxouSAWqNW7ZqyDGNw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11890"; a="88530617"
+X-IronPort-AV: E=Sophos;i="6.25,251,1779174000"; 
+   d="scan'208";a="88530617"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Aug 2026 00:06:59 -0700
+X-CSE-ConnectionGUID: Sm2dx8fsQoWi6QSgJf/ucA==
+X-CSE-MsgGUID: 0fe+B8/zTw26sFDF2vbuTA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,251,1779174000"; 
+   d="scan'208";a="269088947"
+Received: from abityuts-desk1.ger.corp.intel.com (HELO localhost) ([10.245.245.243])
+  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Aug 2026 00:06:57 -0700
+Date: Sun, 30 Aug 2026 10:06:54 +0300
+From: Andy Shevchenko <andriy.shevchenko@intel.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
+	rafael@kernel.org
+Subject: Re: [PATCH 3/3] media: i2c: Use ACPI_PTR() for ACPI ID tables
+Message-ID: <apPWjluHkxwHCagh@ashevche-desk.local>
+References: <20260828084328.257703-1-sakari.ailus@linux.intel.com>
+ <20260828084328.257703-4-sakari.ailus@linux.intel.com>
+ <apGNYsroZTTOqe4c@black.igk.intel.com>
+ <apGk_7Uy_NcHG8V3@kekkonen.localdomain>
+ <apGnw9HlXSfVGy4z@ashevche-desk.local>
+ <apGsxDddKkRsP-Un@kekkonen.localdomain>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Date: Sun, 30 Aug 2026 13:19:24 +1200
-From: "Ian Gallagher" <cdine@cdine.org>
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Len Brown" <lenb@kernel.org>
-Message-Id: <90ab9b58-da8b-4ffc-bd4b-adf7590545a9@app.fastmail.com>
-Subject: [PATCH] ACPI: button: Add lid_init_state quirk for Razer Blade Stealth 13
- (Early 2020) RZ09-0310
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <apGsxDddKkRsP-Un@kekkonen.localdomain>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-This patch adds a quirk mapping for the
-"Blade Stealth 13 (Early 2020) - RZ09-0310" laptop, which exhibits the same
-issue as the following two related products already accounted for in
-this file.
+On Fri, Aug 28, 2026 at 06:44:04PM +0300, Sakari Ailus wrote:
+> On Fri, Aug 28, 2026 at 06:22:43PM +0300, Andy Shevchenko wrote:
+> > On Fri, Aug 28, 2026 at 06:10:55PM +0300, Sakari Ailus wrote:
+> > > On Fri, Aug 28, 2026 at 03:30:10PM +0200, Andy Shevchenko wrote:
+> > > > On Fri, Aug 28, 2026 at 11:43:28AM +0300, Sakari Ailus wrote:
+> > > > > Add ACPI_PTR() to the ACPI ID tables where missing. The patch has been
+> > > > > produced with the following command:
+> > > > > 
+> > > > > git grep -lP 'acpi_match_table.*=\s*(?!ACPI_PTR)' \
+> > > > > 	drivers/media/|while read i; do
+> > > > > 	perl -i -pe 's/\.acpi_match_table\s*=\s*\K(\w+),/ACPI_PTR($1),/' $i;
+> > > > > done
+> > > > 
+> > > > NAK.
+> > > > 
+> > > > It doesn't explain why we need that. This also inconsistent with OF type of
+> > > > IDs.
+> > > 
+> > > ACPI IDs are used on ACPI only while compatible strings are used on both
+> > > ACPI and OF. Thus the ACPI ID table is redundant if CONFIG_ACPI is
+> > > disabled.
+> > 
+> > They may be informative for the cases when on the working say OF system I can
+> > get the IDs for ACPI based platforms at run-time.
+> 
+> That's a bit far-fetched I think. Have you ever done that? :-)
 
-- Razer Blade Stealth 13 Late 2019
-- Blade Pro 17 (Early 2020) - RZ09-0329
+I have not working with OF platforms, but I'm pretty much see value of this
+possibility.
 
-Summary of the issue this fixes:
-The firmware's _LID method still returns "closed" after resume when the lid
-was opened during S3, causing systemd-logind to suspend the system again
-within several seconds (15-40) after waking.
+> Media drivers are probably one of the largest groups of drivers that are as
+> relevant for ACPI as they are for OF.
+> 
+> The of_match_ptr() that used to be present in nearly all media drivers has
+> been largely eliminated in the same context and the only reason for that is
+> that the table is also relevant for ACPI systems.
 
-Signed-off-by: Ian Gallagher <cdine@cdine.org>
----
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -146,6 +146,18 @@
- 	},
- 	{
- 		/*
-+		 * Razer Blade Stealth 13 early 2020, when the lid is opened
-+		 * while suspended the open notification is lost and _LID keeps
-+		 * returning closed after resume, causing spurious re-suspends.
-+		 */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Razer"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Blade Stealth 13 (Early 2020) - RZ09-0310"),
-+		},
-+		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
-+	},
-+	{
-+		/*
- 		 * Samsung galaxybook2 ,initial _LID device notification returns
- 		 * lid closed.
- 		 */
+So, if we ever will have a code to use ACPI IDs in OF enumeration, this will
+have the same argument.
+
+> The case is indeed the
+> opposite to the ACPI equivalent so I really don't see why we shouldn't just
+> drop it where it's, well, redundant.
+
+The use of the unneeded macro makes code harder to follow. Still ID tables
+are useful on their own.
+
+> > Also you just save a couple of dozens of bytes. This is peanuts and unneeded
+> > churn. Again, here is my formal
+> 
+> I recall you often comment on struct field ordering to save, well,
+> typically less than dozens of bytes, too.
+
+There is a difference, the ID tables are from RO sections, the structures
+are runtime and grow linearly as many objects of a type are created. Among
+two the priority of reducing runtime memory footprint has a priority over
+the RO sections.
+
+> > NAKed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
+
+The tag still stays. But nobody prevents media maintainers to do what they want
+:-)
+
+> > In case you want to override that, please keep it in the commit message (among
+> > other tags). And yes, we have such a tag in the Git history of Linux kernel.
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
