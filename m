@@ -1,164 +1,161 @@
-Received: from MW6PR02CU001.outbound.protection.outlook.com (mail-westus2azon11012004.outbound.protection.outlook.com [52.101.48.4])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 076132264D9
-	for <linux-acpi@vger.kernel.org>; Mon, 31 Aug 2026 05:41:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.48.4
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788154868; cv=fail; b=Z1YMe29ci6Lv7AUl2rDFPIU/Uwts2erFa2own1s+44L+Iodq5sXxpbtltYprvB8WjYollu2KmTKQVH6DECwCG8UBcSGGBQzDNUmXr+nn8/XkebYsGtBD9FznnkE59dPUyo0H6vaLK8vSW2qUvzbng9T7Ww6bbmFqZUIeW2SOd7g=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788154868; c=relaxed/simple;
-	bh=KYHKddbtaY8JkFFqSnTMPmBorTYlS3trdyFWA1aRkPo=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=oYuRE12vIUT4DCqIpY0F5rncuspm1dnwNnp4Xz5ErF2Wp0qZu8P4eYUU9aPyKKrtUZ7RO0yJ7fIT3Y/0DFWOcaeagBDCe0QOXvhLjyJc+PXYNzcX2juyk3woXuAN4CQVzGXa13WAw28ODrieqjo6Qb/7S9fUN+bEBw7le8fanfw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=fSC2f/O3; arc=fail smtp.client-ip=52.101.48.4
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AD213C65E0;
+	Mon, 31 Aug 2026 10:55:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788173736; cv=none; b=doiCNmHToShe97A293XVSCALsACP3QTkWA0Bf1oiQcYZH0hMD7leQVNEhI7wrZahxsTaD2vJMtH9jNuCVYU0J120ryUQ9KR1440pSVE1JZ0fLDvS8Xxxc6UAOX1n6RO/S1ScnMtr31t24FtWpN2+qP29L3kpzOFWiYNxrIZ/YEc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788173736; c=relaxed/simple;
+	bh=XuH+eb1MXLy0JmaspRiYm92S3Ssw/F5c26M6qzF2a9E=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=EZDQLmGT1+NQ5QRXeiGQG2tAr0H8DJMexWW43Xq8wtvX5FUr+I6AOTpQQP/bfrpJ3+nwA3aB6sLnaybURYmX3P+cCbArLrTGVdzY/hpQIg4D3oDE37A+82bMWWkhP4Ld4/f9/zCo09acJt5WAcbmw4l93fZ8ACtmIgh/k/rhi7I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Ot3NO7df; arc=none smtp.client-ip=192.198.163.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="fSC2f/O3"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=j/YTZdHO02Ov5CFH9mUy+ZMs+TyQS0mbf89sSC8R/1FfJCApT5+9nbnkBysdu8kqhyDIkwSVJvIEocX0JmMvwdWadMDYeXtCMIoi5ZDKFXymgqguHcuhyZAxAi6ESiZF+fJY1M7rR/Mn4Bvy9gLRvTMJvU2uUQovEWz2s0tapNOO/b3BmW9JjDu0P4f37IuE7R9WCKNqKn/oH0vWH8bwwAjTRPtR4oyDedwkBYpCvqYOPmkuU8X7ZWwjz8PHf6WpW2sgFclzKu4poE8XoSLMZYPjNzZJuTy7egNt+Lh5HW+Jm1Ctmq2WSkfdZKUwGvlJNJBT7zyPS+K2q/wwX41VHg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=JYXsvL0jGzhww+3An+zD6Jcu74WHpCIklDPskT7bBRs=;
- b=xh8qbOMD4a2BfvmrOluuE47cmDn3eA8S/C7FfPZDA6xCbEoZkBCHyqIy1wJ6dleAGV10LgJawLHDaG8ZOoa5iY5bpE2SbJaxw+FU/VCYkUNUT6fYjRpt4f4ih2yHrP1Mr67HkhcFcjSxsHIxBL/ylQnn7jMjBimToZ/jJIP2mgPGZX2Nu0KzNj6Svly9pCrPRXN8VGDfWWcRkN3fqjDy0hhufvhXzd+geE+grHsq1bYzML0dcsnSSOkSc99Rmwhodpl0i9EJVZGYrC7YHUaX8hUd1mlm99yUZGGJ1lQBMtKww//d4xi+0yRjrnHIQJTCJW2YvNpaAU34Z+hEGuU98w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=JYXsvL0jGzhww+3An+zD6Jcu74WHpCIklDPskT7bBRs=;
- b=fSC2f/O33jMZsFoG3kQPZbIaPHZBuKq5URt+gcTD0DQgChmT4K/Ad7AYMfQuGNjDDbiCZShNopiNv00MtPDYquq6QW+J83waHRyF2vKYlnKqMrFMrPyXxbbAdR0XnznhD5wLR/b3ls5oIOQL0fLKrBxFk+zNIx1Db7uxauhE+A4=
-Received: from MW4PR03CA0227.namprd03.prod.outlook.com (2603:10b6:303:b9::22)
- by PH7PR12MB6468.namprd12.prod.outlook.com (2603:10b6:510:1f4::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.13; Mon, 31 Aug
- 2026 05:41:02 +0000
-Received: from MWH0EPF000C6194.namprd02.prod.outlook.com
- (2603:10b6:303:b9:cafe::29) by MW4PR03CA0227.outlook.office365.com
- (2603:10b6:303:b9::22) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.360.13 via Frontend Transport; Mon,
- 31 Aug 2026 05:41:02 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
-Received: from satlexmb07.amd.com (165.204.84.17) by
- MWH0EPF000C6194.mail.protection.outlook.com (10.167.249.104) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.382.8 via Frontend Transport; Mon, 31 Aug 2026 05:41:02 +0000
-Received: from aus0006770c4n-lx01.amd.com (10.180.168.240) by
- satlexmb07.amd.com (10.181.42.216) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.46; Mon, 31 Aug 2026 00:41:00 -0500
-From: Mario Limonciello <mario.limonciello@amd.com>
-To: <rafael@kernel.org>, <lenb@kernel.org>, <mario.limonciello@amd.com>
-CC: Giusy <kurmikon@yahoo.com>, <rafael.j.wysocki@intel.com>,
-	<linux-acpi@vger.kernel.org>
-Subject: [PATCH] ACPI: CPPC: Don't gate FFH EPP writes on flexible address space _OSC
-Date: Mon, 31 Aug 2026 00:40:37 -0500
-Message-ID: <20260831054043.1884105-1-mario.limonciello@amd.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Ot3NO7df"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1788173735; x=1819709735;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=XuH+eb1MXLy0JmaspRiYm92S3Ssw/F5c26M6qzF2a9E=;
+  b=Ot3NO7dfq2XpiWSZ2V7UtaIMMWBtHVCdTn47CFOQFEwY4g/bwfFcHJdE
+   FHATpoc1mYpSx/USBBF1FfTrJeDBv6Y46/zO3yh/XE5XXQMLR7wSntLeE
+   jQ8p7qcnLPgw/MznF4H/b6am5P27T3c+ryfR/YhxnqtjZR7eEex6a7r+h
+   HkSBp71pk2xEILbqk3v3PksblQdvCnlKyme3WQ6YBKrYfcKjWKXGaWp1i
+   zCKt/qrY86AxED0PZhmauiSF1YwhktNS7dA2r4kXWMDvlsO2nuDkR0u5C
+   qxaqU7KxPhjQxDgVk9sYIgI3CgmjlbAmF0WpogqudCGxA7s6zm3yECAKq
+   w==;
+X-CSE-ConnectionGUID: NpRnRzm1TMOWGi3GFT2nbA==
+X-CSE-MsgGUID: Danx45CqTq6z0lR/bQjh9A==
+X-IronPort-AV: E=McAfee;i="6800,10657,11891"; a="88701387"
+X-IronPort-AV: E=Sophos;i="6.25,252,1779174000"; 
+   d="scan'208";a="88701387"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Aug 2026 03:55:34 -0700
+X-CSE-ConnectionGUID: 6x2tAfSVSTaDJvB5rHn+1A==
+X-CSE-MsgGUID: LInQW8rdRum8czUqXNdP6w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,252,1779174000"; 
+   d="scan'208";a="264474258"
+Received: from conormcd-mobl2.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.245.244.87])
+  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Aug 2026 03:55:33 -0700
+Received: from kekkonen.localdomain (localhost [IPv6:::1])
+	by kekkonen.fi.intel.com (Postfix) with SMTP id 01E4211F894;
+	Mon, 31 Aug 2026 13:55:29 +0300 (EEST)
+Date: Mon, 31 Aug 2026 13:55:29 +0300
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Andy Shevchenko <andriy.shevchenko@intel.com>
+Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
+	rafael@kernel.org
+Subject: Re: [PATCH 3/3] media: i2c: Use ACPI_PTR() for ACPI ID tables
+Message-ID: <apVdoSlF9KNzRi36@kekkonen.localdomain>
+References: <20260828084328.257703-1-sakari.ailus@linux.intel.com>
+ <20260828084328.257703-4-sakari.ailus@linux.intel.com>
+ <apGNYsroZTTOqe4c@black.igk.intel.com>
+ <apGk_7Uy_NcHG8V3@kekkonen.localdomain>
+ <apGnw9HlXSfVGy4z@ashevche-desk.local>
+ <apGsxDddKkRsP-Un@kekkonen.localdomain>
+ <apPWjluHkxwHCagh@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
- (10.181.42.216)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000C6194:EE_|PH7PR12MB6468:EE_
-X-MS-Office365-Filtering-Correlation-Id: 5c2b5a28-5da3-458a-2a89-08df0722715e
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|1800799024|376014|23010399003|36860700016|18002099003|56012099006|13003099007|11063799006|10067099003;
-X-Microsoft-Antispam-Message-Info:
-	H29w/bYYpl1W5SIyOB8akWpso4hwqg8HWa9mY+ADfJjE5hztfPEZMifxDp3Y+Ne00W05e7MlGqr8BBroqGWEXeWOwMvUgpShbKZ+LMXsfmKbHky2WE96uGqoOcDnnBV29g6LW9igOKupP6WjSDWJiHBp4RkaAwoNh4AFfWihqoKYBmn34UmxUph1Da8UJSq3/EIexa94HTXA8U62wdMHsYAz5UNTpS+rZ9qL+uPTjo2C72x3JX99fHWdO7o8R4p1OYYrUbzHBmqdgr2Hkk6yrvXR8SF2KtCZRPPCRiBKDKkjBRsjlVxaZFofQkHsn5fD8X5m/GkJDR72EE+Du6EEwe5BfTzgm0K3RSrr3baKIgtFIAJvOy5fUJYYw4leJjssnEiv1006H5ZsPHd1ZmgJrv0PK1Xh1Qm77TbgZuF3sqhUn/0Z3KSd4hHWVOG3xFZCabDGN2sFPucchcnim0DZO8Gi08gamaKCUpRbsO3u9WBOhd3vRZW79ZUqFcjTi0Q3NxABK/45HYnxpjFYle4/XNlNSrVW+BIRSxdgyKKdGS8YJkgSB80HpplYtVIfDheIHmX50XzD3YRIvum9oknA4bnq0N44v9PmiAMbYyTnVdkVlGnX0Y6+UvaKZ+NyunPzeN19/30I+W6qiD29ypgirJNJLFTJFIFLwYVItfpGaRxgZY4bmSjNG4Nliaw/xyDrq3zOZXU1jOHA8giuzb1iMg==
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(376014)(23010399003)(36860700016)(18002099003)(56012099006)(13003099007)(11063799006)(10067099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	bbdchRQGepklu5xG8E+yPwT991eF/GxjGAG/4KnmKUMyJbhKyz0I8K+2tdLNqBP3OmOSLyCGHDIqVs1xQsaxHOSDKOVPGlni5qUpfojCoam15oeRJj16NOeO2gpik9ufgKKXYpixQXCX3a8+uo77jm7WS5B9RT0dSIAyERinV3kattfGgcfCKUT227FB+tGyaDEPTdehBjebrxoEP/89GCHC6h0e5sBqFOQtDAaL3uuAO7HwED7HvUmYeUO3AFg6XSCBTD0NxHla/pE1MN4k6peUjGx/SZ7wsF/IEg+sNKtrDTIlf9ZTIFLtclcmTF9a8ssZFTvjbHUeSsle9npooutNehlJsK6NoUOxYMSkP6CKeSU9DtRJQLAiJiQUIYE+ACKQ0Q7bgmbpR903sek/39KXeJIB5gBhgEVnAiGhJKE9zGgzz8CjUvrG1poWelm3
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 31 Aug 2026 05:41:02.0814
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5c2b5a28-5da3-458a-2a89-08df0722715e
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	MWH0EPF000C6194.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB6468
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <apPWjluHkxwHCagh@ashevche-desk.local>
 
-cppc_set_epp_perf() requires osc_cpc_flexible_adr_space_confirmed before
-writing the EPP and autonomous-selection registers, even when they live
-in FFH.  FFH access is a direct rdmsr/wrmsr and does not depend on that
-_OSC bit, which only governs CPPC controls in SystemMemory/SystemIO.
+On Sun, Aug 30, 2026 at 10:06:54AM +0300, Andy Shevchenko wrote:
+> On Fri, Aug 28, 2026 at 06:44:04PM +0300, Sakari Ailus wrote:
+> > On Fri, Aug 28, 2026 at 06:22:43PM +0300, Andy Shevchenko wrote:
+> > > On Fri, Aug 28, 2026 at 06:10:55PM +0300, Sakari Ailus wrote:
+> > > > On Fri, Aug 28, 2026 at 03:30:10PM +0200, Andy Shevchenko wrote:
+> > > > > On Fri, Aug 28, 2026 at 11:43:28AM +0300, Sakari Ailus wrote:
+> > > > > > Add ACPI_PTR() to the ACPI ID tables where missing. The patch has been
+> > > > > > produced with the following command:
+> > > > > > 
+> > > > > > git grep -lP 'acpi_match_table.*=\s*(?!ACPI_PTR)' \
+> > > > > > 	drivers/media/|while read i; do
+> > > > > > 	perl -i -pe 's/\.acpi_match_table\s*=\s*\K(\w+),/ACPI_PTR($1),/' $i;
+> > > > > > done
+> > > > > 
+> > > > > NAK.
+> > > > > 
+> > > > > It doesn't explain why we need that. This also inconsistent with OF type of
+> > > > > IDs.
+> > > > 
+> > > > ACPI IDs are used on ACPI only while compatible strings are used on both
+> > > > ACPI and OF. Thus the ACPI ID table is redundant if CONFIG_ACPI is
+> > > > disabled.
+> > > 
+> > > They may be informative for the cases when on the working say OF system I can
+> > > get the IDs for ACPI based platforms at run-time.
+> > 
+> > That's a bit far-fetched I think. Have you ever done that? :-)
+> 
+> I have not working with OF platforms, but I'm pretty much see value of this
+> possibility.
+> 
+> > Media drivers are probably one of the largest groups of drivers that are as
+> > relevant for ACPI as they are for OF.
+> > 
+> > The of_match_ptr() that used to be present in nearly all media drivers has
+> > been largely eliminated in the same context and the only reason for that is
+> > that the table is also relevant for ACPI systems.
+> 
+> So, if we ever will have a code to use ACPI IDs in OF enumeration, this will
+> have the same argument.
+> 
+> > The case is indeed the
+> > opposite to the ACPI equivalent so I really don't see why we shouldn't just
+> > drop it where it's, well, redundant.
+> 
+> The use of the unneeded macro makes code harder to follow. Still ID tables
+> are useful on their own.
 
-As a result amd-pstate active mode fails to initialize on platforms whose
-firmware does not ack CPPC in _OSC but whose EPP register is a working FFH
-MSR.  On an HP 255 G8 (Ryzen 5 5500U) reads succeed via the _CPC parse
-path's cpc_supported_by_cpu() fallback, but the EPP write is rejected:
+About 20 drivers currently in Media tree use this "unneeded" macro in this
+context. (These either have #ifdefs, __maybe_unused or depend on ACPI
+directly, and the two first then can be removed after the two first patches
+in the series.)
 
-    amd_pstate: failed to set energy perf value (-524)
-    amd_pstate: failed to register with return -19
+The rest of the reasoning you provided above is rather improbable IMHO.
 
-Gate only SystemMemory on osc_cpc_flexible_adr_space_confirmed and allow
-FFH unconditionally, matching the _CPC parse path and cpc_ffh_supported().
+> 
+> > > Also you just save a couple of dozens of bytes. This is peanuts and unneeded
+> > > churn. Again, here is my formal
+> > 
+> > I recall you often comment on struct field ordering to save, well,
+> > typically less than dozens of bytes, too.
+> 
+> There is a difference, the ID tables are from RO sections, the structures
+> are runtime and grow linearly as many objects of a type are created. Among
+> two the priority of reducing runtime memory footprint has a priority over
+> the RO sections.
 
-Fixes: aaf21ac93909 ("ACPI: CPPC: Add support for setting EPP register in FFH")
-Reported-by: Giusy <kurmikon@yahoo.com>
-Closes: https://lore.kernel.org/linux-pm/e4259474-fa4f-4ed8-8a7f-1a3a2521acd3@yahoo.com/
-Assisted-by: Claude:claude-opus-4-8
-Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
----
- drivers/acpi/cppc_acpi.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+These are often device specific and typically, albeit not always, there's
+one device (especially camera sensors etc.) of a kind in a system.
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index fef54fcd00b78..6b590842b5668 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -1766,10 +1766,18 @@ int cppc_set_epp_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls, bool enable)
- 	auto_sel_reg = &cpc_desc->cpc_regs[AUTO_SEL_ENABLE];
- 	epp_set_reg = &cpc_desc->cpc_regs[ENERGY_PERF];
- 
-+	/*
-+	 * The flexible address space _OSC ack is only needed for
-+	 * SystemMemory/SystemIO; FFH is accessed directly and always available.
-+	 */
- 	epp_ffh_sysmem = CPC_SUPPORTED(epp_set_reg) &&
--		(CPC_IN_FFH(epp_set_reg) || CPC_IN_SYSTEM_MEMORY(epp_set_reg));
-+		(CPC_IN_FFH(epp_set_reg) ||
-+		 (CPC_IN_SYSTEM_MEMORY(epp_set_reg) &&
-+		  osc_cpc_flexible_adr_space_confirmed));
- 	autosel_ffh_sysmem = CPC_SUPPORTED(auto_sel_reg) &&
--		(CPC_IN_FFH(auto_sel_reg) || CPC_IN_SYSTEM_MEMORY(auto_sel_reg));
-+		(CPC_IN_FFH(auto_sel_reg) ||
-+		 (CPC_IN_SYSTEM_MEMORY(auto_sel_reg) &&
-+		  osc_cpc_flexible_adr_space_confirmed));
- 
- 	if (CPC_IN_PCC(epp_set_reg) || CPC_IN_PCC(auto_sel_reg)) {
- 		if (pcc_ss_id < 0) {
-@@ -1795,8 +1803,7 @@ int cppc_set_epp_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls, bool enable)
- 		/* after writing CPC, transfer the ownership of PCC to platform */
- 		ret = send_pcc_cmd(pcc_ss_id, CMD_WRITE);
- 		up_write(&pcc_ss_data->pcc_lock);
--	} else if (osc_cpc_flexible_adr_space_confirmed &&
--		   (epp_ffh_sysmem || autosel_ffh_sysmem)) {
-+	} else if (epp_ffh_sysmem || autosel_ffh_sysmem) {
- 		if (autosel_ffh_sysmem) {
- 			ret = cpc_write(cpu, auto_sel_reg, enable);
- 			if (ret)
+> 
+> > > NAKed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
+> 
+> The tag still stays. But nobody prevents media maintainers to do what they want
+> :-)
+
+Kernel documentation appears not to recognise such a tag. This can always
+be found in lore though.
+
+> 
+> > > In case you want to override that, please keep it in the commit message (among
+> > > other tags). And yes, we have such a tag in the Git history of Linux kernel.
+> 
+
 -- 
-2.43.0
+Regards,
 
+Sakari Ailus
