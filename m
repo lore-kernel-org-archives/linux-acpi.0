@@ -1,161 +1,143 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AD213C65E0;
-	Mon, 31 Aug 2026 10:55:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B219A1A3160;
+	Mon, 31 Aug 2026 13:02:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788173736; cv=none; b=doiCNmHToShe97A293XVSCALsACP3QTkWA0Bf1oiQcYZH0hMD7leQVNEhI7wrZahxsTaD2vJMtH9jNuCVYU0J120ryUQ9KR1440pSVE1JZ0fLDvS8Xxxc6UAOX1n6RO/S1ScnMtr31t24FtWpN2+qP29L3kpzOFWiYNxrIZ/YEc=
+	t=1788181375; cv=none; b=roO945B8KuWAl6RaSweciDI/Zn8dbxHFQ6R04pfLp8ZWD92U6d4/a2DY6z2O15L2lg2ZfAxGIpg9p7SWkiGANrdf+tRouiceJVABc2Ko5VLioXcRhDXuOXLd4u19yLdXs8TPi0pCKC8qLxIInSMWs/JidE38CGI2Lo0wwZDKDaU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788173736; c=relaxed/simple;
-	bh=XuH+eb1MXLy0JmaspRiYm92S3Ssw/F5c26M6qzF2a9E=;
+	s=arc-20240116; t=1788181375; c=relaxed/simple;
+	bh=DgUGDzDsFcaHkO/kfFjyblEG2ccdokJ8aFjLP+oZEss=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=EZDQLmGT1+NQ5QRXeiGQG2tAr0H8DJMexWW43Xq8wtvX5FUr+I6AOTpQQP/bfrpJ3+nwA3aB6sLnaybURYmX3P+cCbArLrTGVdzY/hpQIg4D3oDE37A+82bMWWkhP4Ld4/f9/zCo09acJt5WAcbmw4l93fZ8ACtmIgh/k/rhi7I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Ot3NO7df; arc=none smtp.client-ip=192.198.163.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=D2kD7ZJXZItgnzoNEVKZzFl4LXicGkLYwVqwlLMkZtX2B/JdlTUPfYmCvzDN9xmv/3wZC60vuGnhuyPAHU+I4cI5/B9yFXL/0+pqTt0mrBA9b3sZf3Fru8EVY0qdKonnM24REHyHzvOnPpzVBk5vbnOksUZOibXrQE3coiisYcg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=W95mgbnZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Ot3NO7df"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1788173735; x=1819709735;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=XuH+eb1MXLy0JmaspRiYm92S3Ssw/F5c26M6qzF2a9E=;
-  b=Ot3NO7dfq2XpiWSZ2V7UtaIMMWBtHVCdTn47CFOQFEwY4g/bwfFcHJdE
-   FHATpoc1mYpSx/USBBF1FfTrJeDBv6Y46/zO3yh/XE5XXQMLR7wSntLeE
-   jQ8p7qcnLPgw/MznF4H/b6am5P27T3c+ryfR/YhxnqtjZR7eEex6a7r+h
-   HkSBp71pk2xEILbqk3v3PksblQdvCnlKyme3WQ6YBKrYfcKjWKXGaWp1i
-   zCKt/qrY86AxED0PZhmauiSF1YwhktNS7dA2r4kXWMDvlsO2nuDkR0u5C
-   qxaqU7KxPhjQxDgVk9sYIgI3CgmjlbAmF0WpogqudCGxA7s6zm3yECAKq
-   w==;
-X-CSE-ConnectionGUID: NpRnRzm1TMOWGi3GFT2nbA==
-X-CSE-MsgGUID: Danx45CqTq6z0lR/bQjh9A==
-X-IronPort-AV: E=McAfee;i="6800,10657,11891"; a="88701387"
-X-IronPort-AV: E=Sophos;i="6.25,252,1779174000"; 
-   d="scan'208";a="88701387"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Aug 2026 03:55:34 -0700
-X-CSE-ConnectionGUID: 6x2tAfSVSTaDJvB5rHn+1A==
-X-CSE-MsgGUID: LInQW8rdRum8czUqXNdP6w==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,252,1779174000"; 
-   d="scan'208";a="264474258"
-Received: from conormcd-mobl2.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.245.244.87])
-  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Aug 2026 03:55:33 -0700
-Received: from kekkonen.localdomain (localhost [IPv6:::1])
-	by kekkonen.fi.intel.com (Postfix) with SMTP id 01E4211F894;
-	Mon, 31 Aug 2026 13:55:29 +0300 (EEST)
-Date: Mon, 31 Aug 2026 13:55:29 +0300
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org,
-	rafael@kernel.org
-Subject: Re: [PATCH 3/3] media: i2c: Use ACPI_PTR() for ACPI ID tables
-Message-ID: <apVdoSlF9KNzRi36@kekkonen.localdomain>
-References: <20260828084328.257703-1-sakari.ailus@linux.intel.com>
- <20260828084328.257703-4-sakari.ailus@linux.intel.com>
- <apGNYsroZTTOqe4c@black.igk.intel.com>
- <apGk_7Uy_NcHG8V3@kekkonen.localdomain>
- <apGnw9HlXSfVGy4z@ashevche-desk.local>
- <apGsxDddKkRsP-Un@kekkonen.localdomain>
- <apPWjluHkxwHCagh@ashevche-desk.local>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="W95mgbnZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F37371F000E9;
+	Mon, 31 Aug 2026 13:02:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788181374;
+	bh=Vh+bXtqB0JrmOUc7Cfb62eydik9BcrlwIErB4WGzYVY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=W95mgbnZSp3BKeR7gGy563E1S8nGYEOO9jEEqz96V9WeLaRNbpV394kayreuxjKfO
+	 ucfpy3x7RxAUezg6X9VoVkKpUSmQIRwz/iuFDRfJn6q4nKl0+Yo4Mf13WJcluJwKmZ
+	 cYTWrSHszAGqUVQtdChncE2y29CuqlSqoGhMHtTzdnvIojdK/dxMpxaGKNrZrutfPy
+	 0+osd4l8GKdnaU+l2Nsgy8ZfLgcDAVVvpWFHak3w4H9iij3MFGPKosrd7+ReK0hg+7
+	 Te1kuVXW6ni0cgIcHVdT2LJ0Wvn1jq1zBsJ9xg+FWrFPIY04pM1MCVRRVHhvkg8G59
+	 FXLsUTQYOiZ9w==
+Date: Mon, 31 Aug 2026 15:02:29 +0200
+From: Manivannan Sadhasivam <mani@kernel.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh@kernel.org>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jirislaby@kernel.org>, 
+	Nathan Chancellor <nathan@kernel.org>, Nicolas Schier <nicolas.schier@linux.dev>, 
+	Hans de Goede <hansg@kernel.org>, Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>, 
+	Mark Pearson <mpearson-lenovo@squebb.ca>, "Derek J. Clark" <derekjohn.clark@gmail.com>, 
+	Conor Dooley <conor+dt@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, 
+	Luiz Augusto von Dentz <luiz.dentz@gmail.com>, Bartosz Golaszewski <brgl@bgdev.pl>, 
+	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, 
+	linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org, 
+	platform-driver-x86@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-arm-msm@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-pm@vger.kernel.org, 
+	Stephan Gerhold <stephan.gerhold@linaro.org>, Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>, 
+	linux-acpi@vger.kernel.org, Sui Jingfeng <sui.jingfeng@linux.dev>
+Subject: Re: [PATCH v3 03/14] software node: Implement device_get_match_data
+ fwnode callback
+Message-ID: <vawuqud4z54ucbj4j4sbu5de3vh7fz6q7kvlluaw36vko443ki@7qdmd3trra2n>
+References: <20260110-pci-m2-e-v3-0-4faee7d0d5ae@oss.qualcomm.com>
+ <20260110-pci-m2-e-v3-3-4faee7d0d5ae@oss.qualcomm.com>
+ <aWSpFk9z0zpyKjr6@smile.fi.intel.com>
+ <6l3rs5pv6xnrbygpvqrdxqoqtybjyefsltk5bl4336q56rfoza@ejo3sxuufghe>
+ <aWSwgRiEkT9unYw9@smile.fi.intel.com>
+ <6peb6afhpm4l7opxbdt3b5sx32longevwds5c3dlqji2hr5dlh@kxuvj55jkqgi>
+ <ljqd5ovcsg7t62tdzd77w5mv5buawm3x7xyapy7n7l7azcaorh@tytj46t2lxyb>
+ <ks2nm67zp5i2grzomu7mjb7uhkuwtd7w5stoqp5kri2clpxpsp@ayn42h7meh5l>
+ <aoKrmZzmYsyvRJ-5@ashevche-desk.local>
+ <aoMGJqwcEAHWmZX9@black.igk.intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <apPWjluHkxwHCagh@ashevche-desk.local>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <aoMGJqwcEAHWmZX9@black.igk.intel.com>
 
-On Sun, Aug 30, 2026 at 10:06:54AM +0300, Andy Shevchenko wrote:
-> On Fri, Aug 28, 2026 at 06:44:04PM +0300, Sakari Ailus wrote:
-> > On Fri, Aug 28, 2026 at 06:22:43PM +0300, Andy Shevchenko wrote:
-> > > On Fri, Aug 28, 2026 at 06:10:55PM +0300, Sakari Ailus wrote:
-> > > > On Fri, Aug 28, 2026 at 03:30:10PM +0200, Andy Shevchenko wrote:
-> > > > > On Fri, Aug 28, 2026 at 11:43:28AM +0300, Sakari Ailus wrote:
-> > > > > > Add ACPI_PTR() to the ACPI ID tables where missing. The patch has been
-> > > > > > produced with the following command:
+On Mon, Aug 17, 2026 at 03:01:26PM +0200, Andy Shevchenko wrote:
+> On Mon, Aug 17, 2026 at 09:35:05AM +0300, Andy Shevchenko wrote:
+> > On Fri, Aug 14, 2026 at 02:49:31PM +0200, Manivannan Sadhasivam wrote:
+> > > On Mon, Jan 12, 2026 at 10:01:23PM +0530, Manivannan Sadhasivam wrote:
+> > > > On Mon, Jan 12, 2026 at 02:32:21PM +0530, Manivannan Sadhasivam wrote:
+> > > > > On Mon, Jan 12, 2026 at 10:27:45AM +0200, Andy Shevchenko wrote:
+> > > > > > On Mon, Jan 12, 2026 at 01:49:54PM +0530, Manivannan Sadhasivam wrote:
+> > > > > > > + Dmitry Torokhov (who was against this patch previously)
+> > > > > > > 
+> > > > > > > On Mon, Jan 12, 2026 at 09:56:06AM +0200, Andy Shevchenko wrote:
+> > > > > > > > On Sat, Jan 10, 2026 at 12:26:21PM +0530, Manivannan Sadhasivam via B4 Relay wrote:
+> > > > > > > > 
+> > > > > > > > > Because the software node backend of the fwnode API framework lacks an
+> > > > > > > > > implementation for the .device_get_match_data function callback.
+> > > > > > > > 
+> > > > > > > > Maybe this is done on purpose. Have you thought about this aspect?
+> > > > > > > 
+> > > > > > > IMO, software nodes were introduced to add sub-properties to the existing
+> > > > > > > firmware nodes, but it has usecase/potential to go beyond that. More below.
 > > > > > > 
-> > > > > > git grep -lP 'acpi_match_table.*=\s*(?!ACPI_PTR)' \
-> > > > > > 	drivers/media/|while read i; do
-> > > > > > 	perl -i -pe 's/\.acpi_match_table\s*=\s*\K(\w+),/ACPI_PTR($1),/' $i;
-> > > > > > done
+> > > > > > Potential doesn't mean the necessity.
+> > > > > > 
+> > > > > > > > > This makes it difficult to use(and/or test) a few drivers that originates
+> > > > > > > > > from DT world on the non-DT platform.
+> > > > > > > > 
+> > > > > > > > How difficult? DSA implementation went to the way of taking DT overlay
+> > > > > > > > approach. Why that one can't be applied here?
+> > > > > > > 
+> > > > > > > Sometimes you do not have any DT node at all.
+> > > > > > 
+> > > > > > Yes, that is exactly the case I have referred to. The PCI core (in Linux)
+> > > > > > is able to create DT subtree on non-OF based platforms.
 > > > > > 
-> > > > > NAK.
-> > > > > 
-> > > > > It doesn't explain why we need that. This also inconsistent with OF type of
-> > > > > IDs.
+> > > > > Maybe I should look into creating dynamic DT node for the device and insert it
+> > > > > to the uart node. Theoretically it should work.
 > > > > 
-> > > > ACPI IDs are used on ACPI only while compatible strings are used on both
-> > > > ACPI and OF. Thus the ACPI ID table is redundant if CONFIG_ACPI is
-> > > > disabled.
+> > > > It worked flawlessly. So I sent v4 incorporating this design:
+> > > > https://lore.kernel.org/linux-pci/20260112-pci-m2-e-v4-0-eff84d2c6d26@oss.qualcomm.com/
 > > > 
-> > > They may be informative for the cases when on the working say OF system I can
-> > > get the IDs for ACPI based platforms at run-time.
+> > > Andy, I had to revive this old thread of a merged series as Krzk is not in
+> > > favour of adding DT overlay or dynamic OF nodes for these BT devices [1]. His
+> > > objections are due to the fact that we are just adding BT nodes of a
+> > > discoverable device (M.2 PCIe device) without any resources. So the node just
+> > > contains the compatible to match with the serdev driver and nothing else.
+> > > 
+> > > And he suggested to use swnodes or other similar mechanisms to plug with the
+> > > serdev driver as that's the only thing we want here, not a true hardware
+> > > description.
 > > 
-> > That's a bit far-fetched I think. Have you ever done that? :-)
-> 
-> I have not working with OF platforms, but I'm pretty much see value of this
-> possibility.
-> 
-> > Media drivers are probably one of the largest groups of drivers that are as
-> > relevant for ACPI as they are for OF.
+> > SW nodes are not for describing HW from scratch. They are for fixing missing
+> > pieces. If you can justify your case as a missing piece for the *existing*
+> > device (which is enumerated using standard mechanisms), you can add a property
+> > that fills the gap.
 > > 
-> > The of_match_ptr() that used to be present in nearly all media drivers has
-> > been largely eliminated in the same context and the only reason for that is
-> > that the table is also relevant for ACPI systems.
+> > Unfortunately I see that there are `PROPERTY_ENTRY_STRING("compatible", ...)`
+> > cases in the kernel (only 9 drivers so far), and I can't say if they describing
+> > missing pieces or a SW-made descriptions of the hardware. For the latter the
+> > DT/ACPI/other means but swnodes should be used.
 > 
-> So, if we ever will have a code to use ACPI IDs in OF enumeration, this will
-> have the same argument.
+> I have read all replies by @krzk and the question here, why don't you use
+> auxiliary bus? It seems the best suit for the case.
 > 
-> > The case is indeed the
-> > opposite to the ACPI equivalent so I really don't see why we shouldn't just
-> > drop it where it's, well, redundant.
-> 
-> The use of the unneeded macro makes code harder to follow. Still ID tables
-> are useful on their own.
 
-About 20 drivers currently in Media tree use this "unneeded" macro in this
-context. (These either have #ifdefs, __maybe_unused or depend on ACPI
-directly, and the two first then can be removed after the two first patches
-in the series.)
+I agree and I realised it very late. I've prototyped aux device locally and it
+works.
 
-The rest of the reasoning you provided above is rather improbable IMHO.
+Will submit the rework after some more testing, thanks!
 
-> 
-> > > Also you just save a couple of dozens of bytes. This is peanuts and unneeded
-> > > churn. Again, here is my formal
-> > 
-> > I recall you often comment on struct field ordering to save, well,
-> > typically less than dozens of bytes, too.
-> 
-> There is a difference, the ID tables are from RO sections, the structures
-> are runtime and grow linearly as many objects of a type are created. Among
-> two the priority of reducing runtime memory footprint has a priority over
-> the RO sections.
-
-These are often device specific and typically, albeit not always, there's
-one device (especially camera sensors etc.) of a kind in a system.
-
-> 
-> > > NAKed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
-> 
-> The tag still stays. But nobody prevents media maintainers to do what they want
-> :-)
-
-Kernel documentation appears not to recognise such a tag. This can always
-be found in lore though.
-
-> 
-> > > In case you want to override that, please keep it in the commit message (among
-> > > other tags). And yes, we have such a tag in the Git history of Linux kernel.
-> 
+- Mani
 
 -- 
-Regards,
-
-Sakari Ailus
+மணிவண்ணன் சதாசிவம்
