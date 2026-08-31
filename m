@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BBBF4A8415;
-	Mon, 31 Aug 2026 13:45:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96FB554A7D7;
+	Mon, 31 Aug 2026 13:46:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788183925; cv=none; b=cW/tl0zblfDhFRloqBjYMfFFEWy4rPnNejwaVP2ojPAxhMDat68r2mdnvz1uZD/6k0WHdtONy8OhIeYR6RLVvz+Z1GtoZ+B+b6UwGW/oDlV3cxRT0aH9wkA1C5EoI3zIV0emOg4kSLELtvo4+IIWplI8s2Lxql31Y23+w5BoIT4=
+	t=1788183990; cv=none; b=lua96UU4HHVW+kESh2PIhbbZ4wgDtLsDH4yF057WXD/mFLjW7DANo5ejFMOKoQQ+8lLzBpV2ZN+3TsmXjz85t1Fqfk6rGWiZ61MFAb2+EIPecOn2KEcvJM3ZogB9KbFdymfnpEyHjRxkUMM0H0XOI1dm3S0ki9l5zUPgqaskRb8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788183925; c=relaxed/simple;
-	bh=OIg7l13nxuhdLn1XpDZ8UMkOMxzCvSHj/QYjizJdQ90=;
+	s=arc-20240116; t=1788183990; c=relaxed/simple;
+	bh=QrrSsW7Q53fjm5gyXVHzfqwlRQmQfNlzWlpLZWkNVWs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=lp7XftSeALIbyWkm27cfpmbxJR+tz0I3GTwrMaPsWmUcTuZMhENwZDzMpwQPEN7DWwVhnCc3/B5I8VJA7XK2OVvM2aNCPHoyWn1+6LzyY0lBrz3lY2iUXUXQ8PoRqDWELskjkovHB7qGQzz3+1TTN79wK8Ot9+q51+Euh7wATqY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=J8yogWWh; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=cOH51xnRu7tE9TPJ9ugkWU/6+5nOaMNbq0LFvX5a08mwPscmtxvPQbegKW49FkCRQ7UxxTrvXi4RgIelOczuhWqPr5zUUVN9FtPtTnC5Jdikr6lyY+Y+VBJvdHES7T73ig0cymRp8+fYDQ6jBSliBFTpGBaiQMAuY0z6cJAnqB8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QoVx97Nm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="J8yogWWh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0F011F00ACA;
-	Mon, 31 Aug 2026 13:45:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QoVx97Nm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41FBD1F00ACA;
+	Mon, 31 Aug 2026 13:46:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788183922;
-	bh=vfRLqjE0w724fjjraUPwJXa+ty8mIFanlDPtt44qbrs=;
+	s=k20260515; t=1788183986;
+	bh=AEn1EkuoVMCTAw9FNBlW4wAm8PyUTNXt8wvQ2WMCEkI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=J8yogWWhJJIDD6ntjM7BAK0893jhdI1Q4N6GNCkcG/zJ7qLu8Bg82DmzcbkCqDTw3
-	 ybbAm7v9q8oJetTycPjS5IUAz80VR6sfM4b4wfXe8PzoeV6DsyTRKjvaiMs1Z3w/3L
-	 A0ubvm/7wE1WPZbH5F++qQD+s7gKRxjYuaGrtLNZY4BdDaBmGIVdOQeAXfzg5Vruy3
-	 B5XGoEWqBG3AwTUaGpd9mPlkNhy35yuDxqNApZ6oU3Nty/sPZ4F4DR/HeX40wZcBhK
-	 Kh/Jsp0nzXNU4q3Pbee8Yt4K44/Bw2gWCG42M6N6zdZe74ZMvb0rvkAnJwwJQyencg
-	 vMVvvH3nJ8Q0A==
+	b=QoVx97NmD6aVfSHIoZgMHhkShgOvUpG/nzrg7C5UloJspUgz9wOZj7qYSiMySL7eF
+	 WqUDofBr6RP/LmgGNOg6a2Dm+yN8rlCKZOsGdTtOogqwS8pe0XywduTAq13jeHLn3w
+	 VYAfVXwa0oeS46993gaVdSjcMNQabxf+DDjPi8HQO2Jgkdky6DHW8RHvRbDWO476SL
+	 bs48dVcf27Sb++25vKecEj0XkO9gDKMJ+TIRe89cEsAEwP25qE4pdb3EyjOjWwRIST
+	 wVKM5V9a5mxWLjtlAofzUYPtmw3L+q4uD7gkr5O064UMsQjK40MHx2SeKA0TBzw/3Q
+	 l3v0ZtvQDojIw==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
@@ -38,9 +38,9 @@ Cc: ikaros <void0red@gmail.com>,
 	linux-acpi@vger.kernel.org,
 	acpica-devel@lists.linux.dev,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-5.10] ACPICA: Fix use-after-free in acpi_ds_terminate_control_method()
-Date: Mon, 31 Aug 2026 09:26:51 -0400
-Message-ID: <20260831133314.4125787-383-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.18-5.10] ACPICA: validate byte_count in acpi_ps_get_next_package_length()
+Date: Mon, 31 Aug 2026 09:27:30 -0400
+Message-ID: <20260831133314.4125787-422-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260831133314.4125787-1-sashal@kernel.org>
 References: <20260831133314.4125787-1-sashal@kernel.org>
@@ -58,442 +58,401 @@ Content-Transfer-Encoding: 8bit
 
 From: ikaros <void0red@gmail.com>
 
-[ Upstream commit 945e87267cfd90937b3c637f87324cbb56998b72 ]
+[ Upstream commit d49c6ee08365a8596f639da46eb7e71752b0cd42 ]
 
-Fix use-after-free issue in acpi_ds_terminate_control_method() by
-clearing references to method locals and arguments.
+Validate package length reading in acpi_ps_get_next_package_length().
 
-Link: https://github.com/acpica/acpica/commit/36f22a94cb1b
+Link: https://github.com/acpica/acpica/commit/40e03f9941e2
 Signed-off-by: ikaros <void0red@gmail.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Link: https://patch.msgid.link/8730924.NyiUUSuA9g@rafael.j.wysocki
+Link: https://patch.msgid.link/3616255.QJadu78ljV@rafael.j.wysocki
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-# Stable Backport Analysis: ACPICA UAF in
-`acpi_ds_terminate_control_method()`
+# Stable Backport Analysis: ACPICA `acpi_ps_get_next_package_length()`
+bounds check
 
-**Local tree:** Linux **6.18.44** (`git describe HEAD` → `v6.18.44`,
-`make kernelversion` → `6.18.44`)
+**Local tree:** Linux **6.18.44** (`git describe HEAD` → `v6.18.44`)
 
 ---
 
 ## PHASE 1: COMMIT MESSAGE FORENSICS
 
-### Step 1.1: PARSE THE SUBJECT LINE
-**Record:** `[ACPICA] [fix] use-after-free in
-acpi_ds_terminate_control_method() when clearing references to method
-locals/arguments`
+### Step 1.1: Subject line
+**Record:** `[ACPICA] [validate] validate byte_count in
+acpi_ps_get_next_package_length()` — ACPI parser subsystem; verb is
+“validate,” indicating a safety/bounds fix.
 
-### Step 1.2: PARSE ALL COMMIT MESSAGE TAGS
+### Step 1.2: Tags
 **Record:**
-- **Link:** https://github.com/acpica/acpica/commit/36f22a94cb1b
+- **Link:** https://github.com/acpica/acpica/commit/40e03f9941e2
   (upstream ACPICA commit)
-- **Link:** https://patch.msgid.link/8730924.NyiUUSuA9g@rafael.j.wysocki
-  (kernel submission; could not fetch)
+- **Link:** https://patch.msgid.link/3616255.QJadu78ljV@rafael.j.wysocki
+  (kernel submission)
 - **Signed-off-by:** ikaros \<void0red@gmail.com\> (author)
 - **Signed-off-by:** Rafael J. Wysocki \<rafael.j.wysocki@intel.com\>
   (ACPI maintainer)
-- **Fixes:** #1119 (ACPICA GitHub issue, in upstream commit message)
-- No Reported-by, Tested-by, Reviewed-by, Acked-by, or Cc: stable in the
-  provided message
-- Notable: Maintainer sign-off; upstream issue with ASAN reproduction
+- No Fixes:, Reported-by:, Tested-by:, Reviewed-by:, Acked-by:, or Cc:
+  stable tags
+- Notable: submitted as **[PATCH v1 13/27]** in an ACPICA upstream sync
+  series (May 27, 2026)
 
-### Step 1.3: ANALYZE THE COMMIT BODY TEXT
+### Step 1.3: Body analysis
 **Record:**
-- **Bug:** If `walk_state->return_desc` is a `RefOf` reference pointing
-  at a method local or argument namespace node (embedded in
-  `walk_state`), terminating the method deletes locals/args and later
-  frees `walk_state`, leaving a dangling pointer in `return_desc`.
-- **Symptom:** Heap use-after-free when `acpi_ns_resolve_references()`
-  dereferences `node->object` during `acpi_evaluate_object()`.
-- **Root cause:** `acpi_ds_method_data_delete_all()` and
-  `acpi_ds_delete_walk_state()` invalidate nodes still referenced by
-  `return_desc`.
-- **Fix approach:** Before deleting locals/args, detect
-  `ACPI_REFCLASS_REFOF` references to `walk_state->local_variables[]` or
-  `walk_state->arguments[]`, drop the reference, and NULL `return_desc`.
+- **Bug:** `acpi_ps_get_next_package_length()` reads package-length
+  encoding bytes without checking remaining AML buffer size.
+- **Symptom:** Out-of-bounds read when `byte_count` (bits 6:7 of first
+  byte) claims more follow-on bytes than exist before `aml_end`.
+- **Upstream evidence:** ACPICA issue #1123 documents ASAN heap-buffer-
+  overflow at `psargs.c:223` in `AcpiPsGetNextPackageLength`, triggered
+  by malformed `issue8.aml` via `acpiexec`.
+- **Root cause:** Parser advances and reads `aml[byte_count]` in a loop
+  without validating `byte_count + 1 <= remaining`.
 
-### Step 1.4: DETECT HIDDEN BUG FIXES
-**Record:** Not disguised — explicitly labeled as a use-after-free fix.
-The mechanism is a classic dangling-pointer bug in interpreter teardown,
-not cosmetic cleanup.
+### Step 1.4: Hidden bug fix?
+**Record:** Yes — despite minimal commit text, this is a confirmed
+memory-safety bug fix (heap buffer overflow / OOB read), not cosmetic
+cleanup.
 
 ---
 
 ## PHASE 2: DIFF ANALYSIS
 
-### Step 2.1: INVENTORY THE CHANGES
+### Step 2.1: Inventory
 **Record:**
-- **Files:** `drivers/acpi/acpica/dsmethod.c` (+43 lines, 0 removed)
-- **Function modified:** `acpi_ds_terminate_control_method()`
-- **Scope:** Single-file, surgical fix in ACPI interpreter dispatch path
+- **File:** `drivers/acpi/acpica/psargs.c` (+17 lines, 0 removed)
+- **Function:** `acpi_ps_get_next_package_length()`
+- **Scope:** Single-file, single-function surgical fix
 
-### Step 2.2: UNDERSTAND THE CODE FLOW CHANGE
+### Step 2.2: Code flow change
 **Record:**
-- **Hunk (before):** On method termination, immediately calls
-  `acpi_ds_method_data_delete_all(walk_state)` while
-  `walk_state->return_desc` may still hold a `RefOf` pointer into
-  `walk_state->local_variables[]` or `walk_state->arguments[]`.
-- **Hunk (after):** Before `acpi_ds_method_data_delete_all()`, if
-  `return_desc` is `ACPI_TYPE_LOCAL_REFERENCE` / `ACPI_REFCLASS_REFOF`
-  and `reference.object` matches a local or argument node in this
-  `walk_state`, call `acpi_ut_remove_reference()` and set `return_desc =
-  NULL`.
-- **Execution path:** Method termination during AML parse/execute
-  (normal and error paths), always under interpreter lock.
+- **Hunk 1 (remaining == 0):** Before → reads `aml[0]` unconditionally.
+  After → if no bytes remain, return 0 immediately.
+- **Hunk 2 (byte_count >= remaining):** Before → reads `aml[0]`,
+  advances pointer, loops reading `aml[byte_count]` even past buffer
+  end. After → if encoding needs more bytes than available (`byte_count
+  >= remaining` means `byte_count + 1 > remaining`), set
+  `parser_state->aml = aml_end` and return 0.
+- **Normal path:** Unchanged when sufficient bytes exist.
 
-### Step 2.3: IDENTIFY THE BUG MECHANISM
+### Step 2.3: Bug mechanism
 **Record:**
-- **Category:** Memory safety — use-after-free (dangling pointer)
-- **Mechanism:** `local_variables[]` and `arguments[]` are embedded in
-  `struct acpi_walk_state` (`acstruct.h:66-67`). A `RefOf(LocalX)`
-  return value stores a pointer to those nodes. After method termination
-  frees `walk_state`, `acpi_ns_resolve_references()` at
-  `nsxfeval.c:496-501` reads `node->object` from freed memory.
+- **Category:** Buffer overflow / out-of-bounds read (memory safety)
+- **Mechanism:** ACPI package-length encoding uses 1–4 bytes. With
+  truncated/corrupt AML near `aml_end`, `byte_count` can be 1–3 while
+  only 1–2 bytes remain. The `while (byte_count)` loop does
+  `aml[byte_count]` past the allocation — exactly matching the ASAN
+  report at line 223 (Linux tree line 71: `package_length |=
+  (aml[byte_count] << ...)`).
 
-### Step 2.4: ASSESS THE FIX QUALITY
+### Step 2.4: Fix quality
 **Record:**
-- Fix is minimal, localized, and logically correct for the identified
-  failure mode.
-- Regression risk is low: only affects the teardown path when
-  `return_desc` references ephemeral local/arg nodes.
-- Trade-off: dropping the reference yields no return value instead of a
-  crash — acceptable vs. UAF, and explicit `Return(RefOf(Local))` paths
-  are supposed to resolve references earlier in `dscontrol.c`.
-- No API changes, no new features.
+- Fix is obviously correct: compares available bytes against encoding
+  width before reading.
+- Minimal, no unrelated changes.
+- Low regression risk: only affects truncated/corrupt AML; valid tables
+  unchanged.
+- On error, returns 0 and advances to `aml_end` — safe degradation vs.
+  OOB read.
 
 ---
 
 ## PHASE 3: GIT HISTORY INVESTIGATION
 
-### Step 3.1: BLAME THE CHANGED LINES
-**Record:** Buggy teardown sequence dates to **2005-2006**
-(`b229cf92eee616` / `^1da177e4c3f41` on
-`acpi_ds_method_data_delete_all()` call). Long-present bug, not a recent
-regression.
+### Step 3.1: Blame
+**Record:** Core parsing logic dates to **2005** (Bob Moore,
+`drivers/acpi/parser/psargs.c`). Bug present since initial
+implementation. `aml_end` field and `ACPI_PTR_DIFF` macro already exist
+in this tree.
 
-### Step 3.2: FOLLOW THE FIXES: TAG
-**Record:** No `Fixes:` tag in the kernel commit message. Upstream
-ACPICA commit references `Fixes: #1119`.
+### Step 3.2: Fixes: tag
+**Record:** N/A — no Fixes: tag. Upstream ACPICA commit references
+GitHub issue #1123.
 
-### Step 3.3: CHECK FILE HISTORY FOR RELATED CHANGES
-**Record:** Related prior UAF fix in this tree: `6fcab27915439`
-("ACPICA: Refuse to evaluate a method if arguments are missing") —
-different bug, same subsystem, also UAF from AML evaluation. Another:
-`470188b09e92d` (package copy UAF). This specific
-`terminate_control_method` fix is **not** present in 6.18.44.
+### Step 3.3: Related file history
+**Record:** Recent `psargs.c` changes in 6.18.44 include memory-leak
+fixes (`e6169a8ffee8a`, `5accb265f7a1b`) — same file, same maintainer
+pattern for stable-worthy ACPICA parser fixes. This specific fix is
+**not** yet in the tree.
 
-### Step 3.4: CHECK THE AUTHOR'S OTHER COMMITS
-**Record:** Author ikaros reported ACPICA issue #1119. Rafael J. Wysocki
-is ACPI maintainer and regularly syncs ACPICA fixes (e.g.,
-`6fcab27915439`, `e2c80b3c23782`).
+### Step 3.4: Author context
+**Record:** ikaros reported the ACPICA bug with ASAN PoC. Rafael Wysocki
+(ACPI maintainer) carried it into kernel as patch 13/27 of an ACPICA
+sync.
 
-### Step 3.5: CHECK FOR DEPENDENT/PREREQUISITE COMMITS
-**Record:** Standalone fix. No series dependencies. Applies to existing
-`acpi_ds_terminate_control_method()` with only path adjustment
-(`source/components/dispatcher/dsmethod.c` →
-`drivers/acpi/acpica/dsmethod.c`).
+### Step 3.5: Dependencies
+**Record:** Patch is part of a 27-patch series but **this hunk is self-
+contained**:
+- Uses existing `parser_state->aml_end` (in `struct acpi_parse_state`
+  since long ago)
+- Uses existing `ACPI_PTR_DIFF` (`include/acpi/actypes.h:505`)
+- `git apply --check` succeeds cleanly on 6.18.44
+- No prerequisite structural changes from earlier series patches
+  required
 
 ---
 
 ## PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
 
-### Step 4.1: FIND THE ORIGINAL PATCH DISCUSSION
-**Record:** `b4 dig -c 36f22a94cb1b` failed — commit is upstream ACPICA
-only, not in this kernel tree. `lore.kernel.org` returned 403.
-`patch.msgid.link` blocked by bot protection. Upstream GitHub issue
-#1119 provides full reproduction and ASAN stack trace.
+### Step 4.1: Original discussion
+**Record:**
+- **URL:** https://lkml.iu.edu/2605.3/06258.html (patch submission, May
+  27, 2026)
+- **Series:** v1 13/27 of ACPICA upstream sync
+- **Review thread:** No replies visible on lkml.iu.edu mirror; no NAKs
+  found
+- **Stable nomination:** None found in available thread content
 
-### Step 4.2: CHECK WHO REVIEWED THE PATCH
-**Record:** Could not verify via b4/lore. Upstream issue closed by Saket
-Dumbre (ACPICA maintainer). Kernel commit signed by Rafael J. Wysocki.
+### Step 4.2: Reviewers
+**Record:** `b4 dig -c 40e03f9941e2` failed (ACPICA hash, not in Linux
+tree). Patch submitted by Rafael Wysocki to linux-acpi; maintainer sign-
+off present.
 
-### Step 4.3: SEARCH FOR THE BUG REPORT
-**Record:** [ACPICA issue
-#1119](https://github.com/acpica/acpica/issues/1119) — "Use-After-Free
-in AcpiNsResolveReferences"
-- **Reproducer:** `./acpiexec -m issue7.aml`
-- **ASAN:** heap-use-after-free READ at `AcpiNsResolveReferences`
-  (nsxfeval.c:692 upstream)
-- **Free site:** `AcpiDsDeleteWalkState` during `AcpiPsParseAml`
-- **Alloc site:** `AcpiDsCreateWalkState`
-- Severity: reproducible memory corruption in ACPI method evaluation
+### Step 4.3: Bug report
+**Record:**
+- **ACPICA issue #1123:** Heap-buffer-overflow, ASAN-confirmed,
+  reproducible with `acpiexec -m issue8.aml`
+- Stack trace: `AcpiPsGetNextPackageLength` → `AcpiPsGetNextPackageEnd`
+  → `AcpiPsGetNextArg` → `AcpiPsParseLoop` → `AcpiNsLoadTable` →
+  `AcpiLoadTables`
+- Severity: memory safety violation during ACPI table parsing
 
-### Step 4.4: CHECK FOR RELATED PATCHES AND SERIES
-**Record:** Single-commit fix in upstream ACPICA. No multi-patch series.
+### Step 4.4: Related patches
+**Record:** Same series includes additional boundary checks in
+`acpi_ps_peek_opcode()`, `acpi_ps_get_next_field()`,
+`acpi_ps_get_next_namestring()` (patches 14–27). Those fix related but
+separate OOB paths; this patch stands alone for this specific function.
 
-### Step 4.5: CHECK STABLE MAILING LIST HISTORY
-**Record:** Could not access lore (403). No stable-list discussion found
-via available tools.
+### Step 4.5: Stable list history
+**Record:** lore.kernel.org/stable blocked by bot protection; no stable-
+specific discussion found via alternate sources.
 
 ---
 
 ## PHASE 5: CODE SEMANTIC ANALYSIS
 
-### Step 5.1: IDENTIFY KEY FUNCTIONS IN THE DIFF
-**Record:** `acpi_ds_terminate_control_method()` — only function
-modified.
+### Step 5.1: Key functions
+**Record:** `acpi_ps_get_next_package_length()` (modified); callers
+include `acpi_ps_get_next_package_end()`.
 
-### Step 5.2: TRACE CALLERS
-**Record:** Called from:
-- `psxface.c:168` — internal method execution cleanup
-- `psparse.c:434` — error path during thread creation
-- `psparse.c:568` — normal method completion / error during parse
-- `dsmethod.c:594` — nested method handling
-
-All paths run during ACPI control method evaluation — core interpreter
-hot path.
-
-### Step 5.3: TRACE CALLEES
-**Record:** Fix adds `acpi_ut_remove_reference()`; existing path calls
-`acpi_ds_method_data_delete_all()`, namespace cleanup, mutex release,
-thread count management.
-
-### Step 5.4: FOLLOW THE CALL CHAIN
+### Step 5.2: Callers
 **Record:**
-`acpi_evaluate_object()` → `acpi_ns_evaluate()` →
-`acpi_ps_execute_method()` → `acpi_ps_parse_aml()` →
-`acpi_ds_terminate_control_method()` → (later)
-`acpi_ns_resolve_references()` on the return object.
+- `acpi_ps_get_next_package_end()` → used from `acpi_ps_get_next_arg()`
+  (ARGP_PKGLENGTH, field parsing)
+- `acpi_ps_get_next_package_length()` direct calls in
+  `acpi_ps_get_next_field()` (buffer/field length)
+- Upstream call chain reaches `acpi_ps_parse_loop()` →
+  `acpi_ps_execute_table()` → `acpi_ns_load_table()` →
+  `acpi_load_tables()` → `acpi_bus_init()` at boot
 
-Reachable whenever kernel code evaluates ACPI methods returning `RefOf`
-references to locals/args without prior resolution — including firmware
-AML during boot, suspend/resume, thermal, battery, and device
-enumeration.
+### Step 5.3: Callees
+**Record:** Uses `ACPI_PTR_DIFF`, pointer arithmetic on
+`parser_state->aml` / `aml_end`; no allocations or locks.
 
-### Step 5.5: SEARCH FOR SIMILAR PATTERNS
-**Record:** `dscontrol.c:236-254` and `dscontrol.c:264-286` already
-resolve references on explicit `Return()`, but
-`acpi_ds_restart_control_method()` (`dsmethod.c:658`) can propagate
-unresolved `return_desc` from nested calls. The terminate-time guard
-closes the gap.
+### Step 5.4: Reachability
+**Record:** **Yes — boot path.** `acpi_bus_init()` calls
+`acpi_load_tables()` during ACPI subsystem init. Any corrupt/truncated
+DSDT/SSDT AML with malformed package-length encoding can hit this. With
+`CONFIG_ACPI_TABLE_OVERRIDE_VIA_BUILTIN_INITRD`, root can supply custom
+ACPI tables.
 
----
-
-## PHASE 6: CROSS-REFERENCING AGAINST THE LOCAL TREE
-
-### Step 6.1: DOES THE BUGGY CODE EXIST IN THIS TREE?
-**Record:** **YES.** `drivers/acpi/acpica/dsmethod.c:717-721` goes
-directly to `acpi_ds_method_data_delete_all()` with no `return_desc`
-guard. `local_variables[]` / `arguments[]` embedded in `walk_state` per
-`acstruct.h:66-67`. `acpi_ns_resolve_references()` at
-`nsxfeval.c:496-501` performs the dangling dereference. Fix is **not**
-present (grep found no matching comment/pattern).
-
-### Step 6.2: CHECK FOR BACKPORT COMPLICATIONS
-**Record:** Expected **clean apply** with path adjustment only.
-Insertion point at line 717 matches upstream hunk context exactly.
-Upstream raw patch failed only due to path mismatch
-(`source/components/dispatcher/` vs `drivers/acpi/acpica/`).
-
-### Step 6.3: CHECK IF RELATED FIXES ARE ALREADY HERE
-**Record:** No equivalent fix for this specific UAF. Prior ACPICA UAF
-fixes (`6fcab27915439`, `470188b09e92d`) address different bugs.
+### Step 5.5: Similar patterns
+**Record:** Same series adds similar bounds checks elsewhere. Prior
+stable-relevant fix in tree: `a3e525feaeec4` “Avoid subobject buffer
+overflow when validating RSDP signature.”
 
 ---
 
-## PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
+## PHASE 6: CROSS-REFERENCE WITH LOCAL TREE (6.18.44)
 
-### Step 7.1: IDENTIFY THE SUBSYSTEM AND ITS CRITICALITY
-**Record:** **ACPI / ACPICA interpreter** — **CORE**. Affects all ACPI-
-enabled systems (x86, ARM servers/laptops, etc.).
+### Step 6.1: Buggy code present?
+**Record:** **Yes.** Lines 58–71 of `drivers/acpi/acpica/psargs.c` lack
+bounds checking — exactly the vulnerable code. Bug present since ~2005.
 
-### Step 7.2: ASSESS SUBSYSTEM ACTIVITY
-**Record:** Actively maintained; regular ACPICA syncs in 6.18.y (e.g.,
-`e2c80b3c23782`, `6fcab27915439`).
+### Step 6.2: Backport complications
+**Record:** **Clean apply** — `git apply --check` passed with zero
+conflicts. `aml_end` and `ACPI_PTR_DIFF` already present.
+
+### Step 6.3: Fix already present?
+**Record:** **No.** `git log --grep="validate byte_count"` found
+nothing. Current function has no `remaining` variable or bounds checks.
 
 ---
 
-## PHASE 8: IMPACT AND RISK ASSESSMENT
+## PHASE 7: SUBSYSTEM CONTEXT
 
-### Step 8.1: DETERMINE WHO IS AFFECTED
-**Record:** All systems running ACPI firmware methods — universal on
-ACPI platforms. `acpi_evaluate_object` is used across battery, thermal,
-power, PCI, processor, and bus code (30+ files under `drivers/acpi/`).
+### Step 7.1: Subsystem criticality
+**Record:** **ACPI / ACPICA parser** — IMPORTANT/CORE for x86/ARM
+systems with ACPI. Affects boot-time namespace loading for essentially
+all ACPI-enabled machines.
 
-### Step 8.2: DETERMINE THE TRIGGER CONDITIONS
-**Record:** ACPI method returns a `RefOf` reference to its own local or
-argument without the reference being fully resolved before method
-termination. Triggered by specific AML (reproduced with `issue7.aml`;
-potentially present in platform firmware). Not a direct unprivileged
-syscall path, but firmware-controlled AML runs with kernel privileges.
+### Step 7.2: Activity
+**Record:** Actively maintained; regular ACPICA upstream merges. Recent
+`psargs.c` leak fixes confirm ongoing parser hardening.
 
-### Step 8.3: DETERMINE THE FAILURE MODE SEVERITY
-**Record:** **HIGH** — heap use-after-free during
-`acpi_evaluate_object()`. Can cause kernel oops/crash or memory
-corruption. Potential security relevance (UAF in privileged interpreter
-context).
+---
 
-### Step 8.4: CALCULATE RISK-BENEFIT RATIO
+## PHASE 8: IMPACT AND RISK
+
+### Step 8.1: Who is affected
+**Record:** All systems using ACPI (most PCs, many ARM servers/laptops).
+Config: `CONFIG_ACPI=y` (default on most platforms).
+
+### Step 8.2: Trigger conditions
 **Record:**
-- **Benefit:** HIGH — prevents real UAF on common ACPI evaluation path
-- **Risk:** LOW — 43 lines, single function, teardown-only, maintainer-
-  reviewed pattern
+- Corrupt or truncated ACPI AML in DSDT/SSDT tables
+- Malformed package-length encoding near end of AML buffer
+- Triggered during boot `acpi_load_tables()` — every boot with bad
+  tables
+- Root can inject tables via initrd override; firmware/QEMU can supply
+  bad tables
+- Not directly triggerable by unprivileged userspace, but boot crash is
+  severe
+
+### Step 8.3: Failure mode severity
+**Record:** **HIGH** — heap-buffer-overflow / OOB read; can cause kernel
+oops/panic during early boot, potential info leak with KASAN/ASAN. Boot
+failure = system unusable.
+
+### Step 8.4: Risk-benefit
+**Record:**
+- **Benefit:** HIGH — prevents OOB read on common boot path with corrupt
+  ACPI data
+- **Risk:** VERY LOW — 17-line bounds check, no API changes, clean apply
 - **Ratio:** Strongly favors backport
 
 ---
 
 ## PHASE 9: FINAL SYNTHESIS
 
-### Step 9.1: COMPILE THE EVIDENCE
+### Step 9.1: Evidence summary
 
 **FOR backport:**
-- Confirmed heap UAF with ASAN reproduction (ACPICA #1119)
-- Affects `acpi_evaluate_object()` — widely used kernel API
-- Buggy code present in 6.18.44 since ~2005
-- Small, surgical, obviously correct fix
-- ACPI maintainer sign-off
-- Precedent: similar ACPICA UAF fixes already in stable series
-  (`6fcab27915439`)
-- Failure mode is crash/memory corruption, not cosmetic
+- Confirmed heap-buffer-overflow (ASAN, ACPICA #1123)
+- Boot-path ACPI table parsing (`acpi_load_tables`)
+- Bug present since 2005 in this tree
+- Small, surgical, maintainer-reviewed fix
+- Applies cleanly to 6.18.44
+- Precedent: similar ACPICA overflow/bounds fixes in stable trees
+- Self-contained despite being patch 13/27
 
 **AGAINST backport:**
-- Requires minor path adjustment for kernel tree (trivial)
-- Trigger depends on specific AML patterns (may be rare in the wild, but
-  firmware is uncontrolled input)
-- No in-kernel Tested-by / Reviewed-by tags in provided message
+- Part of larger 27-patch series (but this hunk has no code dependencies
+  on siblings)
+- No syzbot report (but ASAN PoC exists)
+- ACPI tables usually from firmware (limited direct attack surface, but
+  corrupt firmware and initrd override are real)
 
-**UNRESOLVED:**
-- Full lore.kernel.org review thread (403)
-- Whether this exact commit has landed in mainline kernel yet (not in
-  6.18.44)
+**Unresolved:**
+- No visible reviewer stable nominations (lore blocked)
+- Full series not yet merged to 6.18.44 (only this patch needed for this
+  specific bug)
 
-### Step 9.2: STABLE RULES CHECKLIST
-1. Obviously correct and tested? **PASS** — logic is clear; ASAN-tested
-   upstream with reproducer; maintainer SOB
-2. Fixes a real bug affecting users? **PASS** — confirmed UAF in ACPI
-   evaluation
-3. Important issue? **PASS** — UAF / potential crash and memory
-   corruption (HIGH severity)
-4. Small and contained? **PASS** — 43 lines, one function, one file
-5. No new features or APIs? **PASS**
-6. Can apply to the local tree? **PASS** — code exists; trivial path
-   adjustment
+### Step 9.2: Stable rules checklist
+1. Obviously correct and tested? **PASS** — logic is straightforward;
+   ASAN-tested upstream
+2. Fixes a real bug affecting users? **PASS** — OOB read on ACPI parse
+3. Important issue? **PASS** — memory safety, boot-time crash risk
+   (HIGH)
+4. Small and contained? **PASS** — 17 lines, one function
+5. No new features/APIs? **PASS** — defensive bounds check only
+6. Can apply to local tree? **PASS** — verified clean apply
 
-### Step 9.3: EXCEPTION CATEGORIES
-**Record:** Not applicable (not device ID, quirk, DT, build, or docs).
-Standard bug fix.
+### Step 9.3: Exception categories
+**Record:** N/A (not device ID, quirk, DT, build fix, or docs — standard
+bug fix)
 
-### Step 9.4: DECISION RATIONALE
-
-This commit fixes a real, reproducible use-after-free in the ACPICA
-interpreter teardown path. The vulnerable code is present in Linux
-6.18.44, the failure occurs on the `acpi_evaluate_object()` return path
-used throughout the kernel, and the fix is minimal with low regression
-risk. This is appropriate stable material comparable to the already-
-accepted `6fcab27915439` ACPICA UAF fix.
+### Step 9.4: Decision rationale
+For **Linux 6.18.44**, the vulnerable code exists, the fix applies
+cleanly, and the bug is a confirmed out-of-bounds read on the ACPI boot
+parsing path. This meets all stable kernel criteria.
 
 ---
 
 ## Verification
 
-- [Phase 1] Parsed subject, tags, body; identified UAF fix intent
-- [Phase 1] GitHub API: upstream commit `36f22a94cb1b`, author ikaros,
-  `Fixes: #1119`
-- [Phase 2] Diff: +43 lines in `acpi_ds_terminate_control_method()`,
-  REFOF local/arg guard before `acpi_ds_method_data_delete_all()`
-- [Phase 3] `git blame -L 717,722`: buggy teardown from 2005-2006
-- [Phase 3] `git log --grep`: fix not in tree; related UAF fix
-  `6fcab27915439` present
-- [Phase 4] GitHub issue #1119: full ASAN report, reproducer `acpiexec
-  -m issue7.aml`
-- [Phase 4] `b4 dig -c 36f22a94cb1b`: no match (ACPICA-only commit)
-- [Phase 4] lore.kernel.org / patch.msgid.link: 403/bot-blocked —
-  UNVERIFIED for ML review
-- [Phase 5] `grep acpi_ds_terminate_control_method`: callers in
-  `psxface.c`, `psparse.c`, `dsmethod.c`
-- [Phase 5] Read `nsxfeval.c:472-517`: UAF dereference at `node->object`
-  for `ACPI_REFCLASS_REFOF`
-- [Phase 5] Read `acstruct.h:66-67`: locals/args embedded in
-  `walk_state`
-- [Phase 6] `git describe HEAD`: v6.18.44; buggy code confirmed at
-  `dsmethod.c:717-721`
-- [Phase 6] `grep` for fix comment: not present in tree
-- [Phase 6] Upstream patch dry-run: fails on path only; hunk context
-  matches kernel file
-- [Phase 8] Failure mode: heap UAF → crash/corruption, severity HIGH
+- [Phase 1] Parsed subject, tags, body; identified ASAN-confirmed OOB
+  read
+- [Phase 1] Fetched ACPICA commit 40e03f9941e2 and issue #1123 from
+  GitHub
+- [Phase 2] Read current `psargs.c:45-80` — vulnerable code confirmed
+- [Phase 2] Analyzed diff: adds `remaining` check before `byte_count`
+  read loop
+- [Phase 3] `git blame`: buggy logic from 2005; fix not present
+- [Phase 3] `git log --oneline -20 -- drivers/acpi/acpica/psargs.c`: no
+  matching fix
+- [Phase 3] Verified `struct acpi_parse_state.aml_end` in
+  `aclocal.h:912`
+- [Phase 3] Verified `ACPI_PTR_DIFF` in `include/acpi/actypes.h:505`
+- [Phase 4] `b4 dig -c 40e03f9941e2`: no match (ACPICA-only hash)
+- [Phase 4] lkml.iu.edu/2605.3/06258.html: patch 13/27, Rafael Wysocki
+  submission
+- [Phase 4] GitHub issue #1123: ASAN stack trace and reproduction steps
+- [Phase 5] Traced callers: `acpi_ps_get_next_package_end` →
+  `acpi_ps_get_next_arg` → parse loop → `acpi_ns_load_table` →
+  `acpi_load_tables` → `acpi_bus_init`
+- [Phase 5] Confirmed `acpi_load_tables()` call in
+  `drivers/acpi/bus.c:1413`
+- [Phase 6] `git describe HEAD`: v6.18.44
+- [Phase 6] `git apply --check`: patch applies cleanly
+- [Phase 6] Confirmed fix absent (`remaining` variable not in current
+  code)
+- [Phase 8] Assessed severity: HIGH (boot-time OOB read)
+- [UNVERIFIED] Full lore review thread replies (lore blocked by Anubis)
+- [UNVERIFIED] Whether entire 27-patch series will merge before next
+  6.18.y release (does not affect standalone merit of this fix)
 
-**YES**The background searches finished and line up with the earlier
-analysis:
+**YES****Verdict: YES** — backport to this tree (Linux 6.18.44).
 
-- **UAF fix commit search:** No match for “Fix use-after-free in
-  acpi_ds_terminate” in this tree — the fix is **not** in 6.18.44 yet.
-- **Related fixes search:** Other ACPICA UAF fixes are already here
-  (`6fcab27915439` for missing method arguments, `470188b09e92d` for
-  package copy), but nothing equivalent for this
-  `acpi_ds_terminate_control_method()` issue.
+The commit adds bounds checks in `acpi_ps_get_next_package_length()` so
+truncated or corrupt ACPI AML cannot trigger an out-of-bounds read when
+decoding package-length fields. That bug is confirmed upstream (ASAN
+heap-buffer-overflow, ACPICA issue #1123), hits the boot path via
+`acpi_load_tables()`, and the vulnerable code is still present in
+6.18.44. The patch is small (17 lines), self-contained, and applies
+cleanly.
 
-**Verdict for 6.18.44 remains YES** — real, reproducible UAF on the
-`acpi_evaluate_object()` path; small, surgical fix; should backport with
-the usual ACPICA path adjustment.
+ drivers/acpi/acpica/psargs.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
- drivers/acpi/acpica/dsmethod.c | 43 ++++++++++++++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
-
-diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-index 45ec32e81903a..08bfe83030838 100644
---- a/drivers/acpi/acpica/dsmethod.c
-+++ b/drivers/acpi/acpica/dsmethod.c
-@@ -705,6 +705,8 @@ void
- acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
- 				 struct acpi_walk_state *walk_state)
- {
-+	u32 i;
-+	struct acpi_namespace_node *ref_node;
+diff --git a/drivers/acpi/acpica/psargs.c b/drivers/acpi/acpica/psargs.c
+index 55273cbbfc67e..3526ea1094146 100644
+--- a/drivers/acpi/acpica/psargs.c
++++ b/drivers/acpi/acpica/psargs.c
+@@ -48,6 +48,7 @@ acpi_ps_get_next_package_length(struct acpi_parse_state *parser_state)
+ 	u32 package_length = 0;
+ 	u32 byte_count;
+ 	u8 byte_zero_mask = 0x3F;	/* Default [0:5] */
++	u32 remaining;
  
- 	ACPI_FUNCTION_TRACE_PTR(ds_terminate_control_method, walk_state);
+ 	ACPI_FUNCTION_TRACE(ps_get_next_package_length);
  
-@@ -715,6 +717,47 @@ acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
- 	}
- 
- 	if (walk_state) {
-+		/*
-+		 * Check if the return value is a ref_of reference to a method local
-+		 * or argument. If so, clear the reference to avoid use-after-free
-+		 * when the walk state is deleted.
-+		 */
-+		if (walk_state->return_desc &&
-+		    (walk_state->return_desc->common.type ==
-+		     ACPI_TYPE_LOCAL_REFERENCE)
-+		    && (walk_state->return_desc->reference.class ==
-+			ACPI_REFCLASS_REFOF)) {
-+			ref_node = walk_state->return_desc->reference.object;
-+			if (ref_node) {
+@@ -55,7 +56,23 @@ acpi_ps_get_next_package_length(struct acpi_parse_state *parser_state)
+ 	 * Byte 0 bits [6:7] contain the number of additional bytes
+ 	 * used to encode the package length, either 0,1,2, or 3
+ 	 */
 +
-+				/* Check against method locals */
-+				for (i = 0; i < ACPI_METHOD_NUM_LOCALS; i++) {
-+					if (ref_node ==
-+					    &walk_state->local_variables[i]) {
-+						acpi_ut_remove_reference
-+						    (walk_state->return_desc);
-+						walk_state->return_desc = NULL;
-+						break;
-+					}
-+				}
++	/* Check if we have at least one byte to read */
++	remaining = (u32)ACPI_PTR_DIFF(parser_state->aml_end, aml);
++	if (remaining == 0) {
++		return_UINT32(0);
++	}
 +
-+				/* Check against method arguments if not already cleared */
-+				if (walk_state->return_desc) {
-+					for (i = 0; i < ACPI_METHOD_NUM_ARGS;
-+					     i++) {
-+						if (ref_node ==
-+						    &walk_state->arguments[i]) {
-+							acpi_ut_remove_reference
-+							    (walk_state->
-+							     return_desc);
-+							walk_state->
-+							    return_desc = NULL;
-+							break;
-+						}
-+					}
-+				}
-+			}
-+		}
+ 	byte_count = (aml[0] >> 6);
++
++	/* Validate byte_count and ensure we have enough bytes to read */
++	if (byte_count >= remaining) {
++
++		/* Clamp to available bytes and advance to end */
++		parser_state->aml = parser_state->aml_end;
++		return_UINT32(0);
++	}
++
+ 	parser_state->aml += ((acpi_size)byte_count + 1);
  
- 		/* Delete all arguments and locals */
- 
+ 	/* Get bytes 3, 2, 1 as needed */
 -- 
 2.53.0
 
