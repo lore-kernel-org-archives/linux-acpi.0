@@ -1,36 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 311D937F8A4;
-	Mon, 31 Aug 2026 20:04:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9595E3839A0;
+	Mon, 31 Aug 2026 20:07:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788206677; cv=none; b=RYS0AKT00B5PfM5CSzN3TL6cCRuhcWTuigIduNhVThwEwkXli3p4Haudd0G14+XdQIvQUcBPCGqNT+TltnqjY3pc1FoMg+AKS0j6MxeD9840wpf7pCMRyr14SubjMl1wHTLRXlRM/gv+Qf0VHFMy4B53Sq13XPvtRnPPs2r3fHo=
+	t=1788206836; cv=none; b=bBLOclQW5JzGi/a5YcsqM4z8UkRDHyOSBfJ+/ERe/jB6idBcQkwvx4IGvBy/ov9VWhiLvkR2Fdg2SDnGJZZiu4WLua62tZ8hazzegHg5XXMojy+bSNmPeDzMVcYDwZ9PiqMJCynNsYKNVOts3qs6GcUtLb0rf74prBJPSnhAYlQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788206677; c=relaxed/simple;
-	bh=jpApC1IxYyJ3IXDLLBdUpoiJFdbpvib33Hdf9mWwb8Q=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Ovo2jCtui7btNMPGr1vYQroj6okDjJvEG8sSaq/ACgiyvxUiVJm80S+WQ6x/3kynONCBf4MAqgptJpM32v+plmmADutxGTM/84iwvQTHZPeaUQJlZ6Zz45I0ICOSS0qhEBw1OYHZ4T1fBpCm7SRxI2/Mchu442P+DGsDo/uD938=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YdxxeWOU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788206836; c=relaxed/simple;
+	bh=E1j7Sdfnpyfm0oFvVlaZ0kmjFpMXExSNpoRgtan/4OY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=OZv/eEFxZzlLyicbRkI3eJWM1BbfSsKnicrIhnxcF62vz5vkjr+0LB6leP4PEwpvVAM/jQm1ITrqAUqw//5RAJnA1TI9o1DjTHaHgJfU8RbRpKcASIdvXDEErBaTVjk9jPcNFWcpAY5w7za/2AtjRFRUlOQceBQ+thQMd/ochDg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XqSHiqQS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YdxxeWOU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 742981F000E9;
-	Mon, 31 Aug 2026 20:04:35 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XqSHiqQS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88AB01F000E9;
+	Mon, 31 Aug 2026 20:07:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788206676;
-	bh=BdSyXpjN1Pdbc/0U7bLGPgVv4WZN/quYZIsZ/oJCZZA=;
+	s=k20260515; t=1788206834;
+	bh=UqP6iE36qE2v5zs2vu7b45gepQqfDGbgB7LdmkYot78=;
 	h=From:To:Cc:Subject:Date;
-	b=YdxxeWOUZK7HEN3g/9vSHP/2w2Jbs01C9aVMTR0XFAlY7JMqQIOYGxeT93Z4xScF2
-	 g4NzN6WoOYikV7bGpr+9JUNjQQKv7bsjvyO4seiu2mBurNNozMXY9FymyCjFao4bIF
-	 eoVB/CGbb/uEN0VMKGwsr6D/GxzhfOhY5NMBX5XO4k0kHHLGxkez2FCHIqnyO1F7gK
-	 gQVZs+oZIOXHv69jyzPyQdj+LjdWCdq3is86IFPCGnjYdeOVYFwoimzC2UkIig8OQT
-	 Ob0QuJY6HPHClpg8AU6584KXJvWdsMPSdD2sNzQ5edDF18PFz9sBzDLCjikhtoL7eg
-	 V2i6Zgkf6QtLA==
+	b=XqSHiqQSXZJPiO8C17BPThmj6csk98jzri1M7ycoOEsDOFmjJH8Ghk0sE/rRRETAV
+	 ojSOkyoDCSsr8Ewa5PyQSEok0RosRcKwQx1YlvDSiZPI7vYKLg8NQEeYOoGRD4u65w
+	 Sd/QjtGlGUIHw9TFxiicjrenh4arLghSNDhOtJXudF0zDN2qr3sa2zve9VIMXsPbGs
+	 pQ3Kvw+9EakBBVxKn7VPKs/a5Zo5EGZob8ZIhZn9KuwcRCUD8I3liX4i1fO+/sKa2d
+	 SwUtFgFHrmyyFhXaxAFKDFxOWOz5egBTXztA3fj4wzSVQCvOjBWUCgwX1cVuHg0Lab
+	 mYLit8A4zKe1A==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH v1] ACPI: scan: Drop useless and noisy debug statement
-Date: Mon, 31 Aug 2026 22:04:32 +0200
-Message-ID: <2861358.mvXUDI8C0e@rafael.j.wysocki>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+ Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+ Hans de Goede <hansg@kernel.org>, platform-driver-x86@vger.kernel.org,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1] ACPI: bus: Drop two fields from struct acpi_device_pnp
+Date: Mon, 31 Aug 2026 22:07:10 +0200
+Message-ID: <6314925.lOV4Wx5bFT@rafael.j.wysocki>
 Organization: Linux Kernel Development - Intel
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -43,34 +46,89 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-The debug message printing statement in handle_to_device() is
-super-noisy because it triggers whenever the presence of an
-attached struct acpi_device is checked for the given object in
-the ACPI namespace and it turns out that there is none.  That
-is a perfectly valid situation and the lack of an attached
-struct acpi_device is not particularly interesting, so drop
-that message.
+There are two fields in struct acpi_device_pnp, device_name and
+device_class, that were supposed to be populated and used by device
+drivers, but they have never been used consistently and now they
+are only set for the bus object in acpi_set_pnp_ids() (and never
+read afterward).
+
+Drop them along with all of the associated symbols except for
+MAX_ACPI_CLASS_NAME_LEN and the acpi_device_class typedef that
+are used by the ACPI netlink messaging code.  Move those two
+definitions closer to the struct acpi_bus_event that refers to
+the acpi_device_class type.
+
+No intentional functional impact.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/scan.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/acpi/scan.c     |    4 ----
+ include/acpi/acpi_bus.h |   11 +++--------
+ 2 files changed, 3 insertions(+), 12 deletions(-)
 
 --- a/drivers/acpi/scan.c
 +++ b/drivers/acpi/scan.c
-@@ -639,10 +639,9 @@ static struct acpi_device *handle_to_dev
+@@ -28,9 +28,7 @@
+ #include "internal.h"
+ #include "sleep.h"
  
- 	status = acpi_get_data_full(handle, acpi_scan_drop_device,
- 				    (void **)&adev, callback);
--	if (ACPI_FAILURE(status) || !adev) {
--		acpi_handle_debug(handle, "No context!\n");
-+	if (ACPI_FAILURE(status) || !adev)
- 		return NULL;
--	}
+-#define ACPI_BUS_CLASS			"system_bus"
+ #define ACPI_BUS_HID			"LNXSYBUS"
+-#define ACPI_BUS_DEVICE_NAME		"System Bus"
+ 
+ #define INVALID_ACPI_HANDLE	((acpi_handle)ZERO_PAGE(0))
+ 
+@@ -1446,8 +1444,6 @@ static void acpi_set_pnp_ids(acpi_handle
+ 			 acpi_object_is_system_bus(handle)) {
+ 			/* \_SB, \_TZ, LNXSYBUS */
+ 			acpi_add_id(pnp, ACPI_BUS_HID);
+-			strscpy(pnp->device_name, ACPI_BUS_DEVICE_NAME);
+-			strscpy(pnp->device_class, ACPI_BUS_CLASS);
+ 		}
+ 
+ 		break;
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -206,12 +206,8 @@ struct acpi_device_dir {
+ 
+ /* Plug and Play */
+ 
+-#define MAX_ACPI_DEVICE_NAME_LEN	40
+-#define MAX_ACPI_CLASS_NAME_LEN		20
+ typedef char acpi_bus_id[8];
+ typedef u64 acpi_bus_address;
+-typedef char acpi_device_name[MAX_ACPI_DEVICE_NAME_LEN];
+-typedef char acpi_device_class[MAX_ACPI_CLASS_NAME_LEN];
+ 
+ struct acpi_hardware_id {
+ 	struct list_head list;
+@@ -233,16 +229,12 @@ struct acpi_device_pnp {
+ 	acpi_bus_address bus_address;	/* _ADR */
+ 	char *unique_id;		/* _UID */
+ 	struct list_head ids;		/* _HID and _CIDs */
+-	acpi_device_name device_name;	/* Driver-determined */
+-	acpi_device_class device_class;	/*        "          */
+ };
+ 
+ #define acpi_device_bid(d)	((d)->pnp.bus_id)
+ #define acpi_device_adr(d)	((d)->pnp.bus_address)
+ const char *acpi_device_hid(struct acpi_device *device);
+ #define acpi_device_uid(d)	((d)->pnp.unique_id)
+-#define acpi_device_name(d)	((d)->pnp.device_name)
+-#define acpi_device_class(d)	((d)->pnp.device_class)
+ 
+ /* Power Management */
+ 
+@@ -582,6 +574,9 @@ int acpi_dev_for_each_child_reverse(stru
+  * ------
+  */
+ 
++#define MAX_ACPI_CLASS_NAME_LEN		20
++typedef char acpi_device_class[MAX_ACPI_CLASS_NAME_LEN];
 +
- 	return adev;
- }
- 
+ struct acpi_bus_event {
+ 	struct list_head node;
+ 	acpi_device_class device_class;
 
 
 
