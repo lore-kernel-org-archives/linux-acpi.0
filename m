@@ -1,115 +1,92 @@
-Received: from trager.us (trager.us [52.5.81.116])
+Received: from server2.schools365.in (server2.schools365.in [103.139.75.161])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ED423C3C14;
-	Mon, 31 Aug 2026 23:07:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.5.81.116
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A39A3859C2
+	for <linux-acpi@vger.kernel.org>; Mon, 31 Aug 2026 23:39:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.139.75.161
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788217647; cv=none; b=OBpvnKDcWY4cXT9RyYlXFFCCEm1vA44EpKpdzq+Axhr7l5bUtE1wZquu4DnM4p92Mi8x4J3NhVLfAiI6bE85UvZaHQozRLo4AnNQR2Q/QObiITKVc18Kc4Xb1DQS1EfH6iW4Es7b+xnW70CXi0TvSp7P002S8XbicG9a4WeOkGY=
+	t=1788219553; cv=none; b=PMVVPHCCuFdkYpfds6GqahyNbc0NKEWh0wCkL+j+co5mlb+xCKme9AlWKLEwgUneEk3CYRH69t5wn+pqWzLwf1YuDuIvKeuoYPX31EIiQwwHFKORwEIi3qLSO4TIwZdtK7U0IHgMu34ng0trSID+MJSfmcRr9yDKCtcvmXKf6Hs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788217647; c=relaxed/simple;
-	bh=ZKYbvUdQsXtqMDbl6xBIcD7cB8uHANDdOsGfTYUXct8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=r2SSQqZX/K/wzmgdL+7CXox4FFEKQu40dRZG3L0YGBLfrQxFZ4VpwQiAzGPLCLZjehAnpoxKPoKicHnabo2oHKOZIe+9X/PSFLyg3gUMzuUtYK4asWRSMgM5RKaSt62Ik0n2+556zbTW1OhZYzor0xaqQA6yRWWdiwOsl9DEjFU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=trager.us; spf=pass smtp.mailfrom=trager.us; arc=none smtp.client-ip=52.5.81.116
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=trager.us
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=trager.us
-Received: from c-73-254-161-40.hsd1.wa.comcast.net ([73.254.161.40] helo=[192.168.1.225])
-	by trager.us with esmtpsa (TLSv1.3:TLS_AES_128_GCM_SHA256:128)
-	(Exim 4.92.3)
-	(envelope-from <lee@trager.us>)
-	id 1x1AMJ-0007sZ-6G; Mon, 31 Aug 2026 22:20:07 +0000
-Message-ID: <948381d2-8ba7-458b-b729-d5398e0a8559@trager.us>
-Date: Mon, 31 Aug 2026 15:19:59 -0700
+	s=arc-20240116; t=1788219553; c=relaxed/simple;
+	bh=faICjm/z1olTl8r1Fc92CuAsaudJcdZgMOxiba+NwHM=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=JHE4/Y2yMXmJfnY16894X+AhvEQzP4mFRIQmOoTMaSDHmrMCb3mQPuKWIug1Z6XJaWwB2kxjmt0gKO7i+DAgskC5PGAqPShDQdATQ3gMHIc2AD+ozgv6DypLFWgottQYhtDIUwaO6uq6uXrBhfZzlg9cXxcbfVgoWjeGbbBPux0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pulsesports.in; spf=pass smtp.mailfrom=pulsesports.in; arc=none smtp.client-ip=103.139.75.161
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pulsesports.in
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pulsesports.in
+Received: from ip255.ip-213-32-95.eu (ip255.ip-213-32-95.eu [213.32.95.255])
+	by server2.schools365.in (Postfix) with ESMTPSA id C33C418DE40
+	for <linux-acpi@vger.kernel.org>; Mon, 31 Aug 2026 23:15:41 +0000 (UTC)
+Reply-To: info@kztoo.xyz
+From: SMIT EVRASIYA - KZ <anish@pulsesports.in>
+To: linux-acpi@vger.kernel.org
+Subject: Products Offer 
+Date: 31 Aug 2026 16:15:40 -0700
+Message-ID: <20260831161538.FE57A428A0761A80@pulsesports.in>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v9 10/12] arm_mpam: add MPAM-Fb MSC firmware access
- support
-To: Andre Przywara <andre.przywara@arm.com>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
- <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
-Cc: Jonathan Cameron <jic23@kernel.org>,
- Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
- Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
- Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
- Niyas Sait <niyas.sait@arm.com>, Ritwick Sharma <ritwick.sharma@arm.com>,
- Gavin Shan <gshan@redhat.com>, linux-acpi@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-References: <20260807105451.3728284-1-andre.przywara@arm.com>
- <20260807105451.3728284-11-andre.przywara@arm.com>
-Content-Language: en-US
-From: Lee Trager <lee@trager.us>
-In-Reply-To: <20260807105451.3728284-11-andre.przywara@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 8/7/26 3:54 AM, Andre Przywara wrote:
+    Hello linux-acpi
 
-> +
-> +static int mpam_fb_send_request(struct mpam_msc *msc, u32 msc_id,
-> +				u16 reg, u32 *result, int mpam_fb_command)
-> +{
-> +	unsigned int token = atomic_inc_return(&mpam_fb_token);
-> +	struct acpi_pcct_ext_pcc_shared_memory __iomem *pcc_shmem;
-> +	struct mpam_pcc_chan *pcc_chan;
-> +	struct pcc_mbox_chan *chan;
-> +	void __iomem *payload_ofs;
-> +	int mpam_fb_err = 0;
-> +	u32 status;
-> +	int ret;
-> +
-> +	pcc_chan = msc->pcc_chan;
-> +	if (!pcc_chan)
-> +		return -ENODEV;
-> +
-> +	chan = pcc_chan->pcc_chan;
-> +
-> +	/* prune token to fit into the 10 bits inside the command register */
-> +	token = FIELD_GET(MPAM_MSC_TOKEN_MASK,
-> +			  FIELD_PREP(MPAM_MSC_TOKEN_MASK, token));
-> +
-> +	mutex_lock(&pcc_chan->pcc_chan_lock);
-> +
-> +	switch (mpam_fb_command) {
-> +	case MPAM_PROTOCOL_VERSION_CMD:
-> +		mpam_fb_build_version_message(token, chan->shmem);
-> +		break;
-> +	case MPAM_MSC_READ_CMD:
-> +		mpam_fb_build_read_message(msc_id, reg, token, chan->shmem);
-> +		break;
-> +	case MPAM_MSC_WRITE_CMD:
-> +		mpam_fb_build_write_message(msc_id, reg, *result,
-> +					    token, chan->shmem);
-> +		break;
-> +	default:
-> +		dev_err(&msc->pdev->dev, "unsupported MPAM-Fb command %d\n",
-> +			mpam_fb_command);
-> +		ret = -EINVAL;
-> +		goto out_err;
-> +	}
-> +
-> +	ret = mbox_send_message(chan->mchan, NULL);
-> +	if (ret < 0)
-> +		goto out_err;
-> +
-While testing this series when building arm64 allnoconfig with 
-CONFIG_ARM4_MPAM=y I got a link failure:
+    It is our pleasure to make good business with you. Am sure=20
+you
+    understand that this actually is very serious. It is not in=20
+our
+    interest to work with someone who intends to waste our time,=20
+as
+    such creating an unpleasant atmosphere for us. There are=20
+several
+    Oil and Gas Refineries with more than 20 years of plausible
+    records, reliability, and trustworthiness, that we are=20
+connected
+    with. Simply put, we are directly linked to End Sellers. It
+    surely will make deals much more fluid, easy and swift,=20
+without
+    the broker's involvement and interference. We are pleased to
+    present some strong Offers with suitable Procedures and
+    Negotiable prices. Which I am positive will be of interest to
+    you.
 
-drivers/resctrl/mpam_fb.o: undefined reference to `mbox_send_message`
+    The following products are available and all can be supplied
+    mostly on FOB ROTTERDAM/HOUSTON PORT,
+    1. Commodity: JP54 or JP A1
+    2. Commodity: Diesel GAS OIL D2
+    3. Commodity: Mazut M100
+    4. Commodity: D6 Virgin Fuel Oil
+    5. Commodity: Diesel EN590 10ppm / 50ppm
+    6. Commodity: Petcoke
+    7. Commodity: LNG / LPG
+    8. Commodity: Diesel AGO
 
-Since the ACPI MPAM-Fb transport also reqiures PCC, wold it make sense 
-for ARM64_MPAM_DRIVER to select both dependencies?
+    Quotas from our various Refineries/End Seller for our=20
+different
+    buyers who are interested in Spot/Urgent transactions on FOB
+    deliveries to any safe world port (ASWP) are ensured/secured.=20
+Our
+    Refineries have their products both at  Rotterdam port, and
+    Houston Port. If interested and/or have a reliable buyer of=20
+the
+    products mentioned above or similar, with the real intention=20
+for
+    business. Please, indicate the particular Product wanted, the
+    Volumes desired and Destination it should be delivered. We=20
+will
+    immediately send an Official Soft Corporate Offer (SCO). A
+    straightforward proceeding is assured if we agree on terms.
 
-     select MAILBOX
-     select PCC if ACPI
+    We look forward to hearing from you.
 
-Lee
+
+
+
+    REPRESENTATIVE: ORAZALIEV ADILBEK RASHIDUL
+    SMIT EVRASIYA - KZ
+    POSITION: DIRECTOR
+    Email: info@kztoo.xyz
+    Phone: +7 778 395 2331
