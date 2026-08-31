@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 732C256B849;
-	Mon, 31 Aug 2026 13:48:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A94546F483;
+	Mon, 31 Aug 2026 13:48:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788184104; cv=none; b=D4DtBF61LAxkobcDji6IGfg6kJ7G9QsuNhV3J32VOxgP1YM1q+ZfdTwd7q+JPYjPIXrfbY/J3E9IVbTvwU05hCvKuo4ZTWjg4tG7rhGkduQ64Gvn9tWnSUQPSX4ZZkujtAI6+78+sZq8DsDX8KuH9F5lSuVh+TDn+fHdIJk+Ivk=
+	t=1788184122; cv=none; b=mh1YD22Y6lb5Fm4W7ST3fGCuXZIYPUd/eFNzQbgqRU7cMDQAxrNdU2lkFeGXxOhJHnnCcO3mLuxnGZv8k8ogVIpfxYEi9EMzuAsX6Blz5fRzs4InRFlnT2DjdeJcyGJzQWE52bG0d9u0OnXh4p8LIQPPgcCOaNLOetwx1Kg69XU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788184104; c=relaxed/simple;
-	bh=ICMaeph8qIA0Z4Lm/054A4TiDZG5TWHd6AOv/rUpzuE=;
+	s=arc-20240116; t=1788184122; c=relaxed/simple;
+	bh=E40eJRUesULlNN79L6psJzUyWkRZFuSRM+KE8fyEmKU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Lw3+urKeBkvJyz+72KUgnBtGQZGkJ/dPmMLR6Qz60WnrCrbSEPG4yurZzCBVJpaStCUoJAdwKewVkqCrYCP4b7x+nIopfEWIqbY1aPrq8oCAi7V+br1LpzvKmsMl+nqruS9OmvoEGAvWGZ5yX/N6Kgb1Qlw9Uxmd9SAqOsuYtwQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=It/PsrBK; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=p6QzBm+t5b+UzmWutoOXGeHKC/vUPnvEm3syGHOmTKWdJDRFv6EXhSKXT9YNbprp+oR+tqQkdzJDqK/R0QUhqpEzII9dVqFWHW1zNtKU+vRP8JEEsc9N+h+uyNZ/ErYS1vNoq9eXyhDxbCpN9+3WQX2uLMvMtS0kZ8v8U0aF8qg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nabQVVYq; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="It/PsrBK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 040A81F00A3F;
-	Mon, 31 Aug 2026 13:48:19 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nabQVVYq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC0991F00A3F;
+	Mon, 31 Aug 2026 13:48:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788184101;
-	bh=qPUmKbS1BOi1wXUMdlbZLVGuseJUfoYlZgmIobEfGYI=;
+	s=k20260515; t=1788184117;
+	bh=DdVo6N7K5a2KSV3VcTuiLIDHoWMhDvu1DsKU74vcPz4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=It/PsrBKtTaES4dc1E8VLnus8aak+dWXsuRpBSOHNVXXna0bMJZNYXrxbCuqITGZP
-	 A47TYj5uEFQy2hKKRU5ExDwmIeh6inebsDidOnlO6jxgnAzJ8/4JybwtmmyU1Se3Pn
-	 Na7iYX92GUf/M9qWad6uhK85yO4hrOvhwX5/9go4xkGuX2hff9NwKsTarb9SzC2Oml
-	 vYQ9hRiwvzM4HhFw0bwKM0Zp9pveU+paq2V4tx2yZAZLkqsreCUYM5biV+8TxBXap+
-	 IEsf+fVcJr++25Z/+Epobjhrb+Wge/4TEzP/uIxgcD/SV0O6imJSoXYAAQ1OLnHHk+
-	 xkFwaVcd9KfYg==
+	b=nabQVVYq9Ya4iArAgOgLLlADWGNsmLdhkiTaBCFwZfFpOzFKg60KVXGht3jDp3EvL
+	 ejEjSaOkmhlc9nPaxo47phOFm/GMJzckbEq8Ph8biv+0La2/3RWs/Nn3PJVnkj/Z6U
+	 DcId/4j6EKPzadmz1I79xkuAcFgOwWwQJePIOEeaq9La17SSYnrPirXMNbofHfKo98
+	 hPB0zRCR5HeblfXBy53f4JlPsC6EcZytSASzXWngyMt7wKlmJSiLFhDSStBKDst2if
+	 /odXPqTWVOo7cMsQAWLsmrAcluzC4yixdXgFVjR+Jl6OQtPwV5OQ7s5Hhqp8Vs6Eyx
+	 Aueu363LhOhqA==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
@@ -38,9 +38,9 @@ Cc: ikaros <void0red@gmail.com>,
 	linux-acpi@vger.kernel.org,
 	acpica-devel@lists.linux.dev,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-6.1] ACPICA: Enhance OEM ID and Table ID validation in acpi_ex_load_table_op()
-Date: Mon, 31 Aug 2026 09:28:39 -0400
-Message-ID: <20260831133314.4125787-491-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.18-5.10] ACPICA: Add validation for node in acpi_ns_build_normalized_path()
+Date: Mon, 31 Aug 2026 09:28:50 -0400
+Message-ID: <20260831133314.4125787-502-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260831133314.4125787-1-sashal@kernel.org>
 References: <20260831133314.4125787-1-sashal@kernel.org>
@@ -58,465 +58,357 @@ Content-Transfer-Encoding: 8bit
 
 From: ikaros <void0red@gmail.com>
 
-[ Upstream commit 485829e6999b7909f50761a1c708660304edc945 ]
+[ Upstream commit 96b2b616870e46e2bc04efec03879683a0036e66 ]
 
-Enhance OEM ID and Table ID validation in acpi_ex_load_table_op() to
-prevent buffer overflows.
+Add validation for node in acpi_ns_build_normalized_path()
+to prevent use-after-free vulnerabilities.
 
-Link: https://github.com/acpica/acpica/commit/f85a43098d65
+Link: https://github.com/acpica/acpica/commit/b35adf49e89a
 Signed-off-by: ikaros <void0red@gmail.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Link: https://patch.msgid.link/2230782.OBFZWjSADL@rafael.j.wysocki
+Link: https://patch.msgid.link/118666237.nniJfEyVGO@rafael.j.wysocki
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-# Stable Backport Analysis: ACPICA OEM ID/Table ID Validation in
-`acpi_ex_load_table_op()`
+## Phase 1: Commit Message Forensics
 
-**Local tree:** `v6.18.44` (Linux 6.18.y stable)
-**Mainline commit:** `485829e6999b7` (not yet in this tree)
+**Step 1.1 — Subject line**
+Record: `[ACPICA] [Add] validation for node in
+acpi_ns_build_normalized_path() to prevent use-after-free`
 
----
+**Step 1.2 — Tags**
+Record:
+- Link: https://github.com/acpica/acpica/commit/b35adf49e89a
+- Link: https://patch.msgid.link/118666237.nniJfEyVGO@rafael.j.wysocki
+- Signed-off-by: ikaros \<void0red@gmail.com\>
+- Signed-off-by: Rafael J. Wysocki \<rafael.j.wysocki@intel.com\>
+- No Fixes:, Reported-by:, Tested-by:, Reviewed-by:, or Cc: stable tags
+- Notable: ACPICA maintainer (Rafael J. Wysocki) signed off; upstream
+  ACPICA commit link present
 
-## PHASE 1: COMMIT MESSAGE FORENSICS
+**Step 1.3 — Body analysis**
+Record:
+- Bug: `acpi_ns_build_normalized_path()` can dereference an
+  invalid/freed namespace node pointer
+- Symptom: heap use-after-free when reading `next_node->name`
+- Root cause (from upstream issue #1138): during ACPI AML
+  parsing/cleanup, walk state is freed while a stale `method_node` is
+  still passed into pathname building via `acpi_ex_stop_trace_method()`
+  → `acpi_ns_get_normalized_pathname()` →
+  `acpi_ns_build_normalized_path()`
+- No kernel version range stated in commit message
 
-### Step 1.1: Subject Line
-**Record:** `[ACPICA] [enhance/validate] Enhance OEM ID and Table ID
-validation in acpi_ex_load_table_op() to prevent buffer overflows`
-
-### Step 1.2: Tags
-**Record:**
-- **Link:** https://github.com/acpica/acpica/commit/f85a43098d65
-  (upstream ACPICA fix)
-- **Link:** https://patch.msgid.link/2230782.OBFZWjSADL@rafael.j.wysocki
-  (kernel submission)
-- **Signed-off-by:** ikaros \<void0red@gmail.com\> (author)
-- **Signed-off-by:** Rafael J. Wysocki \<rafael.j.wysocki@intel.com\>
-  (ACPI maintainer)
-- No `Fixes:`, `Reported-by:`, `Cc: stable@vger.kernel.org`, `Tested-
-  by:`, or `Reviewed-by:` tags
-- Notable: maintainer merge; part of ACPICA 20260408 import series
-  (patch 22/27)
-
-### Step 1.3: Body Analysis
-**Record:**
-- **Bug:** `acpi_ex_load_table_op()` passes AML string operand pointers
-  directly to `acpi_tb_find_table()`, which reads fixed
-  `ACPI_OEM_ID_SIZE` (6) and `ACPI_OEM_TABLE_ID_SIZE` (8) bytes via
-  `memcpy()` regardless of actual string length.
-- **Symptom:** Heap-buffer-overflow on read when OEM ID/Table ID strings
-  are shorter than those fixed sizes.
-- **Root cause:** AML strings have explicit `.length` fields;
-  allocations are `length + 1` bytes. `acpi_tb_find_table()` always
-  copies 6/8 bytes from the pointer.
-- **Version info:** None in commit message; bug mechanism dates to
-  original `acpi_ex_load_table_op()` code (2005).
-
-### Step 1.4: Hidden Bug Fix Detection
-**Record:** Yes — despite "Enhance validation" wording, this is a real
-memory-safety bug fix. Upstream ACPICA issue
-[#1144](https://github.com/acpica/acpica/issues/1144) documents an ASAN
-heap-buffer-overflow with reproducer (`issue49.aml`).
+**Step 1.4 — Hidden bug fix?**
+Record: No — explicitly described as UAF prevention, not disguised
+cleanup.
 
 ---
 
-## PHASE 2: DIFF ANALYSIS
+## Phase 2: Diff Analysis
 
-### Step 2.1: Change Inventory
-**Record:**
-- **File:** `drivers/acpi/acpica/exconfig.c` (+24 / -2)
-- **Function:** `acpi_ex_load_table_op()`
-- **Scope:** Single-file, surgical fix
+**Step 2.1 — Inventory**
+Record:
+- `drivers/acpi/acpica/nsnames.c`: +6 lines, 0 removed
+- Function modified: `acpi_ns_build_normalized_path()`
+- Scope: single-file, surgical fix
 
-### Step 2.2: Code Flow Change
-**Record:**
-- **Hunk 1 (stack buffers):** Adds `oem_id[7]` and `oem_table_id[9]`
-  local buffers.
-- **Hunk 2 (validation):** Before calling `acpi_tb_find_table()`, checks
-  `operand[1]->string.length <= ACPI_OEM_ID_SIZE` and
-  `operand[2]->string.length <= ACPI_OEM_TABLE_ID_SIZE`; returns
-  `AE_AML_STRING_LIMIT` on violation.
-- **Hunk 3 (safe copy):** Copies only `operand[n]->string.length` bytes
-  into local buffers, null-terminates, passes local buffers to
-  `acpi_tb_find_table()` instead of raw AML pointers.
-- **Before:** Raw AML pointers passed → `acpi_tb_find_table()` does
-  `memcpy(..., ACPI_OEM_ID_SIZE)` (6 bytes) from potentially 1–2 byte
-  allocation.
-- **After:** Length-validated, null-terminated stack buffers of exactly
-  the right size are passed.
+**Step 2.2 — Code flow change**
+Record:
+- Before: after NULL check on `node`, function immediately walks
+  `next_node->parent` chain and reads `next_node->name` via
+  `ACPI_MOVE_32_TO_32`
+- After: if `ACPI_GET_DESCRIPTOR_TYPE(node) != ACPI_DESC_TYPE_NAMED`,
+  jump to `build_trailing_null` (return empty path with trailing NUL)
+  instead of dereferencing
+- Affected path: any caller passing a stale/invalid node into
+  `acpi_ns_build_normalized_path()`
 
-### Step 2.3: Bug Mechanism
-**Record:**
-- **Category:** Buffer over-read / heap-buffer-overflow (memory safety)
-- **Mechanism:** In `acpi_tb_find_table()` at lines 60–61 of `tbfind.c`:
+**Step 2.3 — Bug mechanism**
+Record:
+- Category: **memory safety / use-after-free**
+- Mechanism: freed walk-state memory is still referenced as a namespace
+  node; reading `next_node->name` at the line equivalent to current line
+  232 triggers ASAN heap-use-after-free (confirmed upstream in ACPICA
+  issue #1138)
 
-```60:61:drivers/acpi/acpica/tbfind.c
-        memcpy(header.oem_id, oem_id, ACPI_OEM_ID_SIZE);
-        memcpy(header.oem_table_id, oem_table_id,
-ACPI_OEM_TABLE_ID_SIZE);
-```
-
-  `strlen()` validation (lines 51–53) only checks upper bound; it does
-not prevent reading past a short string's allocation. A 1-byte OEM ID
-gets a 2-byte allocation (`string_size + 1` in
-`acpi_ut_create_string_object()`), but `memcpy` reads 6 bytes.
-
-### Step 2.4: Fix Quality
-**Record:**
-- Fix is obviously correct and minimal.
-- Uses known AML `.length` rather than `strlen()` on potentially
-  non–null-terminated data.
-- Stack buffers are correctly sized (`ACPI_OEM_ID_SIZE + 1`,
-  `ACPI_OEM_TABLE_ID_SIZE + 1`).
-- **Regression risk:** Very low. Only affects the `LoadTable` AML opcode
-  path; oversized strings now correctly return `AE_AML_STRING_LIMIT`
-  instead of proceeding to over-read.
-- Error-path cleanup is handled by `exoparg6.c` cleanup on
-  `ACPI_FAILURE(status)`.
+**Step 2.4 — Fix quality**
+Record:
+- Obviously correct: matches existing ACPICA validation pattern used in
+  `acpi_ns_get_pathname_length()` (lines 56–63 of the same file),
+  `acpi_ns_validate_handle()`, and `acpi_ut_get_node_name()`
+- Minimal, no unrelated changes
+- Regression risk: very low — invalid nodes get empty path instead of
+  crash; valid nodes unchanged
 
 ---
 
-## PHASE 3: GIT HISTORY INVESTIGATION
+## Phase 3: Git History Investigation
 
-### Step 3.1: Blame
-**Record:**
-- Vulnerable `acpi_tb_find_table(operand[0]..., operand[1]...,
-  operand[2]...)` call introduced in commit `4be44fcd3bf648` (Len Brown,
-  2005-08-05).
-- Bug present in this tree since kernel import of ACPICA.
+**Step 3.1 — Blame**
+Record: vulnerable loop introduced in `d1e7ffe50ba58` (2015, "ACPICA:
+Namespace: Add function to directly return normalized full path"). Bug
+has been present since that function was added.
 
-### Step 3.2: Fixes Tag
-**Record:** N/A — no `Fixes:` tag in commit message.
+**Step 3.2 — Fixes: tag**
+Record: N/A — no Fixes: tag in commit message.
 
-### Step 3.3: Related File History
-**Record:**
-- Commit `9f41fd8a175ff` (2015, "Update parameter validation for
-  data_table_region and load_table") **removed** length validation from
-  `acpi_ex_load_table_op()` and relied on `acpi_tb_find_table()`'s
-  `strlen()` checks — which do not prevent the short-string `memcpy`
-  over-read.
-- Fix is **not** in 6.18.y (`git log --grep="Enhance OEM"` returns
-  nothing on this branch).
-- Fix **is** on mainline: `485829e6999b7` (merged May 27, 2026).
+**Step 3.3 — File history**
+Record: `nsnames.c` is long-stable ACPI code; recent changes are
+formatting/copyright, not structural refactors. Fix is standalone (not
+dependent on other patches in the 27-patch ACPICA series).
 
-### Step 3.4: Author Context
-**Record:** ikaros (void0red) reported ACPICA issue #1144 and
-contributed 14 patches in the ACPICA 20260408 series. Rafael J. Wysocki
-merged to mainline.
+**Step 3.4 — Author**
+Record: ikaros (void0red) reported the UAF to upstream ACPICA; Rafael J.
+Wysocki (ACPI maintainer) committed to Linux.
 
-### Step 3.5: Dependencies
-**Record:** Patch is labeled 22/27 in the ACPICA import series but is
-**standalone** — it only touches `acpi_ex_load_table_op()` and has no
-structural dependencies on other series patches. `git cherry-pick --no-
-commit 485829e6999b7` applies cleanly to v6.18.44.
+**Step 3.5 — Dependencies**
+Record: no prerequisites. Patch 12/27 in the same series fixes a related
+UAF in `acpi_ds_terminate_control_method()`, but this validation patch
+is independent and self-contained. `git apply --check` confirms clean
+apply to this tree.
 
 ---
 
-## PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
+## Phase 4: Mailing List and External Research
 
-### Step 4.1: Original Discussion
-**Record:**
-- **b4 dig URL:**
-  https://patch.msgid.link/2230782.OBFZWjSADL@rafael.j.wysocki
-- **Series:** v1 only (ACPICA 20260408, 27 patches); no v2/v3 revisions
-  for this patch.
-- **Review feedback:** No NAKs or stable nominations found in saved
-  thread mbox.
-- Maintainer cover letter confirms routine ACPICA upstream sync.
+**Step 4.1 — Original discussion**
+Record:
+- b4 dig found: [PATCH v1 19/27] at
+  https://patch.msgid.link/118666237.nniJfEyVGO@rafael.j.wysocki
+- Part of "ACPI: ACPICA 20260408" series (27 patches)
+- v1 only revision found
+- No NAKs or stable nominations found in thread mbox
 
-### Step 4.2: Reviewers
-**Record:** CC'd: Rafael J. Wysocki, linux-acpi@vger.kernel.org, LKML,
-Saket Dumbre (Intel), Pawel Chmielewski (Intel).
+**Step 4.2 — Reviewers**
+Record: CC'd to Rafael J. Wysocki, linux-acpi, LKML, Saket Dumbre, Pawel
+Chmielewski (Intel ACPICA developers).
 
-### Step 4.3: Bug Report
-**Record:**
-- **ACPICA issue #1144:** Heap-buffer-overflow in `AcpiTbFindTable` via
-  `LOAD_TABLE_OP`.
-- **ASAN:** READ of size 6, 0 bytes past end of 49-byte region;
-  reproducer `issue49.aml` via `acpiexec`.
-- **Call chain:** `AcpiExLoadTableOp` → `AcpiTbFindTable` →
-  `AcpiPsParseAml` → `AcpiNsLoadTable` → `AcpiLoadTables`.
+**Step 4.3 — Bug report**
+Record: ACPICA GitHub issue #1138 documents:
+- ASAN heap-use-after-free at `AcpiNsBuildNormalizedPath` reading 4
+  bytes (`next_node->name`)
+- Reproducer: `./generate/unix/bin/acpiexec -m issue33.aml`
+- Call chain: `acpi_ns_build_normalized_path` ←
+  `acpi_ns_get_normalized_pathname` ← `acpi_ex_stop_trace_method` ←
+  `acpi_ds_terminate_control_method` ← AML parse/table load path
+- Severity: confirmed memory safety bug with concrete reproducer
 
-### Step 4.4: Related Patches
-**Record:** Same author has 13 other fixes in the series (integer
-overflows, NULL checks, etc.). This patch is independent. Note:
-`acpi_ds_eval_table_region_operands()` in `dsopcode.c` still passes raw
-pointers to `acpi_tb_find_table()` — a separate, unfixed path not
-addressed by this commit.
+**Step 4.4 — Related patches**
+Record: patch 12/27 addresses a different UAF root cause in
+`acpi_ds_terminate_control_method()`. Patch 19/27 (this commit) is a
+defensive guard at the common pathname builder. Both are security-
+relevant; this one stands alone.
 
-### Step 4.5: Stable List History
-**Record:** No stable-list discussion found for this specific fix. (Lore
-stable search blocked by bot protection; b4 mbox had no stable
-mentions.)
+**Step 4.5 — Stable list**
+Record: no Cc: stable discussion found in downloaded thread.
 
 ---
 
-## PHASE 5: CODE SEMANTIC ANALYSIS
+## Phase 5: Code Semantic Analysis
 
-### Step 5.1: Key Functions
-**Record:** `acpi_ex_load_table_op()` (modified), `acpi_tb_find_table()`
-(caller of fixed behavior).
+**Step 5.1 — Key functions**
+Record: `acpi_ns_build_normalized_path()` (modified); callers include
+`acpi_ns_get_pathname_length()`, `acpi_ns_handle_to_pathname()`,
+`acpi_ns_get_normalized_pathname()`
 
-### Step 5.2: Callers
-**Record:**
-- `exoparg6.c:272` — `case AML_LOAD_TABLE_OP: status =
-  acpi_ex_load_table_op(...)`
-- Invoked during AML interpretation when `LoadTable()` opcode executes.
+**Step 5.2 — Callers**
+Record: `acpi_ns_get_normalized_pathname()` is called from many ACPI
+paths including:
+- `acpi_ex_stop_trace_method()` in `extrace.c` (UAF trigger path)
+- `acpi_ns_get_external_pathname()`, `nsparse.c`, `nsinit.c`,
+  `dsmethod.c`, `nseval.c`, `nssearch.c`
+- Debugger-only paths (`db*.c`) — less relevant for production
 
-### Step 5.3: Callees
-**Record:** `acpi_ut_create_integer_object()`, `acpi_tb_find_table()`,
-`acpi_ex_add_table()`, namespace/scope operations.
+**Step 5.3 — Callees**
+Record: reads node descriptor type, walks parent chain, copies 4-byte
+ACPI names; no allocation in the vulnerable section.
 
-### Step 5.4: Reachability
-**Record:**
-- **Boot:** ACPI table loading/parsing (`acpi_load_tables()` → namespace
-  load → AML parse).
-- **Runtime:** `acpi_load_table()` API (e.g., `acpi_configfs.c` for
-  root-loaded SSDTs).
-- **Trigger:** Malformed/crafted ACPI AML containing `LoadTable()` with
-  undersized OEM ID/Table ID string operands.
-- **Userspace reachability:** Root can inject ACPI tables via configfs;
-  firmware-supplied tables are the common case. Not directly triggerable
-  by unprivileged users, but boot-time parsing of malicious firmware
-  tables is a realistic attack surface.
+**Step 5.4 — Reachability**
+Record:
+- Call chain reaches ACPI table loading and method termination during
+  normal kernel ACPI operation (boot + runtime method execution)
+- Trigger requires crafted/malformed ACPI AML that causes walk-state
+  teardown with stale node reference — demonstrated with `issue33.aml`
+  in acpiexec; same ACPICA code runs in the kernel
 
-### Step 5.5: Similar Patterns
-**Record:** `dsopcode.c:507-509` (`acpi_ds_eval_table_region_operands`)
-has the same raw-pointer pattern — unfixed by this commit. The 2015 BZ
-1184 fix targeted `data_table_region` error handling but did not fix the
-`LoadTable` opcode path addressed here.
+**Step 5.5 — Similar patterns**
+Record: `acpi_ns_get_pathname_length()` already validates descriptor
+type before calling `acpi_ns_build_normalized_path()`, but
+`acpi_ns_get_normalized_pathname()` does not — creating the gap this
+patch closes at the lowest common level.
 
 ---
 
-## PHASE 6: CROSS-REFERENCE AGAINST LOCAL TREE
+## Phase 6: Cross-Reference Against Local Tree
 
-### Step 6.1: Buggy Code Present?
-**Record:** **Yes.** Current `exconfig.c` lines 108–110 pass raw operand
-pointers:
+**Step 6.1 — Buggy code in tree?**
+Record: **YES**. Local tree is **Linux 6.18.44** (`git describe HEAD` →
+`v6.18.44`). Vulnerable code is present at lines 221–244 of
+`drivers/acpi/acpica/nsnames.c` without the descriptor-type check. Fix
+commit `96b2b616870e4` is **not** an ancestor of HEAD.
 
-```108:110:drivers/acpi/acpica/exconfig.c
-        status = acpi_tb_find_table(operand[0]->string.pointer,
-                                    operand[1]->string.pointer,
-                                    operand[2]->string.pointer,
-&table_index);
-```
+**Step 6.2 — Backport complications**
+Record: clean apply confirmed (`git apply --check` → CLEAN APPLY). No
+rework needed.
 
-### Step 6.2: Backport Complications
-**Record:** **Clean apply.** Cherry-pick tested successfully on
-v6.18.44. No conflicts expected.
-
-### Step 6.3: Related Fixes Already Present?
-**Record:** **No.** `git log --grep="Enhance OEM"` on this branch
-returns nothing. Mainline has `485829e6999b7`; 6.18.y does not.
+**Step 6.3 — Related fixes already present?**
+Record: no — `git log -S "Validate the Node to avoid use-after-free"`
+finds nothing in this tree; related patch 12/27
+(`acpi_ds_terminate_control_method` UAF fix) also absent.
 
 ---
 
-## PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
+## Phase 7: Subsystem and Maintainer Context
 
-### Step 7.1: Subsystem Criticality
-**Record:** **ACPI / ACPICA interpreter** — IMPORTANT. ACPI is on every
-ACPI-enabled system; interpreter bugs affect boot and runtime ACPI
-method execution.
+**Step 7.1 — Subsystem criticality**
+Record: **ACPI/ACPICA** — IMPORTANT to CORE. ACPI is on every x86/ARM
+server, laptop, and most embedded systems with firmware tables.
 
-### Step 7.2: Subsystem Activity
-**Record:** Actively maintained; periodic ACPICA upstream syncs. Recent
-6.18.y history is mostly copyright updates, not functional changes to
-this path.
+**Step 7.2 — Activity**
+Record: ACPI subsystem actively maintained in this tree (recent NULL-
+deref and execution-abort fixes in `drivers/acpi/acpica/`).
 
 ---
 
-## PHASE 8: IMPACT AND RISK ASSESSMENT
+## Phase 8: Impact and Risk Assessment
 
-### Step 8.1: Who Is Affected
-**Record:** All systems with `CONFIG_ACPI` on ACPI firmware or
-dynamically loaded ACPI tables that execute `LoadTable()` AML with short
-OEM strings.
+**Step 8.1 — Who is affected**
+Record: all systems using in-kernel ACPICA for ACPI table parsing and
+AML method execution.
 
-### Step 8.2: Trigger Conditions
-**Record:**
-- **When:** ACPI AML interpretation executing `LoadTable(Sig, OEMID,
-  OEMTableID, ...)`.
-- **Condition:** OEM ID string operand length < 6 bytes, or OEM Table ID
-  < 8 bytes.
-- **Likelihood:** Uncommon in legitimate firmware (OEM fields are
-  typically padded to full size), but trivially reproducible with
-  crafted AML (confirmed by upstream reproducer).
-- **Privilege:** Root for dynamic table load; boot-time for firmware
-  tables.
+**Step 8.2 — Trigger conditions**
+Record: malformed/crafted ACPI AML during table load or method
+termination with tracing enabled path; demonstrated with acpiexec +
+crafted AML. Requires specific ACPI content, but ACPI tables are
+firmware-supplied and occasionally attacker-influenced (e.g., custom
+DSDT injection in some environments).
 
-### Step 8.3: Failure Mode Severity
-**Record:** Heap-buffer-overflow (read past allocation) → **HIGH**
-severity. Can cause kernel oops/crash; potential info leak or further
-memory corruption depending on heap layout. ASAN-confirmed.
+**Step 8.3 — Failure mode severity**
+Record: **heap use-after-free** → kernel oops/panic or potential
+information disclosure/exploitation primitive. Severity: **HIGH**.
 
-### Step 8.4: Risk-Benefit
-**Record:**
-- **Benefit:** HIGH — closes a confirmed memory-safety hole in ACPI
-  interpreter.
-- **Risk:** VERY LOW — 22 lines, single function, no API changes.
-- **Ratio:** Strongly favors backport.
+**Step 8.4 — Risk-benefit**
+Record:
+- Benefit: **HIGH** — prevents real UAF on ACPI parsing path
+- Risk: **VERY LOW** — 6-line defensive check, established ACPICA
+  pattern
+- Ratio: strongly favors backport
 
 ---
 
-## PHASE 9: FINAL SYNTHESIS
+## Phase 9: Final Synthesis
 
-### Step 9.1: Evidence Summary
+**Step 9.1 — Evidence summary**
 
-**FOR backport:**
-- Confirmed heap-buffer-overflow with ASAN reproducer (ACPICA #1144)
-- Bug exists in v6.18.44 tree (verified in source)
+FOR backport:
+- Confirmed heap UAF with ASAN report and reproducer (ACPICA #1138)
+- Affects ACPI table/method execution — common kernel path
 - Small, surgical, obviously correct fix
-- Applies cleanly to 6.18.y
-- Maintainer-merged on mainline
-- Memory-safety issue in core ACPI interpreter path
-- Self-contained (no series dependencies)
+- Matches existing validation patterns in same subsystem
+- Applies cleanly to Linux 6.18.44
+- Signed off by ACPI maintainer
+- Bug present since 2015 — long exposure window
 
-**AGAINST backport:**
-- Trigger requires crafted/short OEM strings in `LoadTable` AML — rare
-  in legitimate firmware
-- Not directly exploitable by unprivileged users (requires root or
-  malicious firmware)
-- `dsopcode.c` data-table-region path has similar unfixed pattern (out
-  of scope)
+AGAINST backport:
+- Part of larger ACPICA import series (but this patch is standalone)
+- No explicit stable nomination in mailing list
+- Related root-cause fix exists separately in patch 12/27 (but this
+  defensive fix has independent value)
 
-**Unresolved:**
-- No explicit `Cc: stable` or reviewer stable nomination found
-- Full lore thread review limited to b4-saved mbox (no replies captured)
+UNRESOLVED: none material to the decision.
 
-### Step 9.2: Stable Rules Checklist
-1. Obviously correct and tested? **PASS** — ASAN reproducer upstream;
-   logic is straightforward.
-2. Fixes a real bug affecting users? **PASS** — confirmed heap-buffer-
-   overflow.
-3. Important issue? **PASS** — memory-safety / potential crash (HIGH).
-4. Small and contained? **PASS** — 1 file, ~22 lines.
-5. No new features or APIs? **PASS** — validation/copy only.
-6. Can apply to local tree? **PASS** — cherry-pick applies cleanly to
-   v6.18.44.
+**Step 9.2 — Stable rules checklist**
+1. Obviously correct and tested? **PASS** — ASAN-verified bug, standard
+   ACPICA validation pattern
+2. Fixes a real bug? **PASS** — confirmed heap UAF
+3. Important issue? **PASS** — memory safety during ACPI parsing
+   (crash/security)
+4. Small and contained? **PASS** — 6 lines, one function
+5. No new features/APIs? **PASS** — defensive validation only
+6. Can apply to local tree? **PASS** — clean apply verified
 
-### Step 9.3: Exception Categories
-**Record:** N/A (not a device ID, quirk, DT, build, or docs fix —
-standard bug fix).
+**Step 9.3 — Exception category**
+Record: N/A (security/memory-safety bug fix, not a quirk/ID/DT
+exception).
 
-### Step 9.4: Decision Rationale
+**Step 9.4 — Decision rationale**
 
-This commit fixes a real, ASAN-confirmed heap-buffer-overflow in the
-ACPI `LoadTable` opcode handler. The vulnerable code is present in Linux
-6.18.y and has been since the function was introduced.
-`acpi_tb_find_table()` unconditionally reads 6/8 bytes from OEM string
-pointers, but AML string objects may be allocated with fewer bytes. The
-fix validates lengths using the AML `.length` field and copies into
-properly sized, null-terminated stack buffers before calling
-`acpi_tb_find_table()`.
-
-For 6.18.y stable users, this is exactly the kind of memory-safety fix
-that belongs in -stable: small, contained, obviously correct, and
-preventing a confirmed kernel memory corruption path during ACPI table
-operations.
+For **Linux 6.18.44**, this commit should be backported. The vulnerable
+`acpi_ns_build_normalized_path()` code exists in this tree, the fix is
+absent, and upstream has demonstrated a reproducible heap use-after-free
+on the ACPI AML parsing/teardown path that the kernel shares. The fix is
+minimal, follows established ACPICA conventions already used in sibling
+functions in the same file, and prevents dereferencing freed namespace
+nodes by validating the descriptor type before walking the parent chain.
 
 ---
 
 ## Verification
 
-- [Phase 1] Parsed subject, tags, body; identified buffer overflow fix
-  intent
-- [Phase 1] GitHub ACPICA issue #1144: ASAN heap-buffer-overflow,
-  reproducer confirmed
-- [Phase 2] Read diff: +24/-2 in `exconfig.c`, adds validation + safe
-  copy
-- [Phase 2] Read `tbfind.c:51-61`: `strlen` upper-bound check + fixed-
-  size `memcpy` confirms over-read mechanism
-- [Phase 2] Read `utobject.c:256-274`: string allocation is `string_size
-  + 1` bytes
-- [Phase 3] `git describe HEAD`: v6.18.44 (6.18.y stable)
-- [Phase 3] `git blame exconfig.c:108-110`: vulnerable call since 2005
-  (4be44fcd3bf648)
-- [Phase 3] `git show 9f41fd8a175ff`: 2015 commit removed length
-  validation from `acpi_ex_load_table_op`, did not fix short-string
-  over-read
-- [Phase 3] `git log --grep="Enhance OEM"` on 6.18.y: no results (fix
-  absent)
-- [Phase 3] `git show 485829e6999b7`: mainline commit confirmed
-- [Phase 3] `git cherry-pick --no-commit 485829e6999b7`: applies cleanly
-  (exit 0)
-- [Phase 4] `b4 dig -c 485829e6999b7`: lore URL found
-- [Phase 4] `b4 dig -a`: v1 series only, patch 22/27
-- [Phase 4] `b4 dig -w`: Rafael Wysocki, linux-acpi, Intel developers
-  CC'd
-- [Phase 4] `b4 dig -m /tmp/acpica_thread.mbox`: thread saved; no
-  stable/NAK mentions
-- [Phase 5] `grep acpi_ex_load_table_op`: caller in `exoparg6.c:272`
-  (`AML_LOAD_TABLE_OP`)
-- [Phase 5] `grep acpi_load_table`: reachable via `acpi_configfs.c`,
-  `bus.c`
-- [Phase 6] Read current `exconfig.c:108-110`: buggy code confirmed
-  present
-- [Phase 6] Cherry-pick test: clean apply to v6.18.44
-- [Phase 8] Failure mode: heap-buffer-overflow, severity HIGH
+- [Phase 1] Parsed commit message and tags from `git show 96b2b616870e4`
+- [Phase 1] Fetched ACPICA upstream issue #1138 — ASAN UAF confirmed
+  with stack trace and reproducer
+- [Phase 2] Diff analysis: +6 lines adding `ACPI_GET_DESCRIPTOR_TYPE`
+  check before node walk
+- [Phase 2] Read current `nsnames.c` lines 193–270 in tree — vulnerable
+  code confirmed present
+- [Phase 3] `git blame -L 221,245`: buggy loop from `d1e7ffe50ba58`
+  (2015)
+- [Phase 3] `git merge-base --is-ancestor 96b2b616870e4 HEAD` → FIX NOT
+  IN TREE
+- [Phase 3] `git apply --check` on patch → CLEAN APPLY
+- [Phase 4] `b4 dig -c 96b2b616870e4` → lore URL found; patch 19/27 of
+  ACPICA series
+- [Phase 4] `b4 dig -w` → Rafael Wysocki, linux-acpi, LKML CC'd
+- [Phase 4] Downloaded mbox; grep found no Cc: stable; found related
+  patch 12/27
+- [Phase 5] `grep acpi_ns_get_normalized_pathname` — multiple kernel
+  callers including `extrace.c:284`
+- [Phase 5] Read `extrace.c` `acpi_ex_stop_trace_method()` and
+  `dsmethod.c:850` call site
+- [Phase 5] Confirmed `acpi_ns_get_pathname_length()` already validates
+  at line 58; `acpi_ns_get_normalized_pathname()` does not
+- [Phase 6] `git describe HEAD` → v6.18.44
+- [Phase 6] Confirmed validation check absent in current `nsnames.c`
+- [Phase 7] `git log --oneline -20 -- drivers/acpi/acpica/` — active
+  subsystem
+- [Phase 8] UAF severity assessed from ASAN report in issue #1138
 
-**YES**The background searches finished and match the earlier analysis:
+**YES**The analysis is complete for **ACPICA: Add validation for node in
+acpi_ns_build_normalized_path()** on **Linux 6.18.44**.
 
-- **Fix search:** No “Enhance OEM ID” commit on **6.18.y** — the fix is
-  only on mainline (`485829e6999b7`).
-- **Author search:** **ikaros** has other kernel commits here, but not
-  this ACPI validation patch.
+**Summary:** This is a small (6-line) fix for a confirmed heap use-
+after-free in ACPI pathname building. The vulnerable code is present in
+this tree; the fix is not. It applies cleanly and follows existing
+ACPICA validation patterns. Upstream demonstrated the bug with ASAN on
+the ACPI AML parse/teardown path (`acpi_ex_stop_trace_method` →
+`acpi_ns_get_normalized_pathname` → `acpi_ns_build_normalized_path`).
 
-**Verdict for 6.18.y:** **YES** — backport the heap-buffer-overflow fix
-in `acpi_ex_load_table_op()`; it applies cleanly.
+**Verdict for this tree: YES** — worth backporting as a memory-safety
+fix on a common ACPI path.
 
- drivers/acpi/acpica/exconfig.c | 26 ++++++++++++++++++++++++--
- 1 file changed, 24 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/nsnames.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
-index 4d7dd0fc6b07b..894695db0cf94 100644
---- a/drivers/acpi/acpica/exconfig.c
-+++ b/drivers/acpi/acpica/exconfig.c
-@@ -90,6 +90,8 @@ acpi_ex_load_table_op(struct acpi_walk_state *walk_state,
- 	union acpi_operand_object *return_obj;
- 	union acpi_operand_object *ddb_handle;
- 	u32 table_index;
-+	char oem_id[ACPI_OEM_ID_SIZE + 1];
-+	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
+diff --git a/drivers/acpi/acpica/nsnames.c b/drivers/acpi/acpica/nsnames.c
+index 22aeeeb56cffd..19802da865c54 100644
+--- a/drivers/acpi/acpica/nsnames.c
++++ b/drivers/acpi/acpica/nsnames.c
+@@ -222,6 +222,12 @@ acpi_ns_build_normalized_path(struct acpi_namespace_node *node,
+ 		goto build_trailing_null;
+ 	}
  
- 	ACPI_FUNCTION_TRACE(ex_load_table_op);
- 
-@@ -102,12 +104,32 @@ acpi_ex_load_table_op(struct acpi_walk_state *walk_state,
- 
- 	*return_desc = return_obj;
- 
-+	/*
-+	 * Validate OEM ID and OEM Table ID string lengths.
-+	 * acpi_tb_find_table expects strings that can safely read
-+	 * ACPI_OEM_ID_SIZE and ACPI_OEM_TABLE_ID_SIZE bytes.
-+	 */
-+	if ((operand[1]->string.length > ACPI_OEM_ID_SIZE) ||
-+	    (operand[2]->string.length > ACPI_OEM_TABLE_ID_SIZE)) {
-+		return_ACPI_STATUS(AE_AML_STRING_LIMIT);
++	/* Validate the Node to avoid use-after-free vulnerabilities */
++
++	if (ACPI_GET_DESCRIPTOR_TYPE(node) != ACPI_DESC_TYPE_NAMED) {
++		goto build_trailing_null;
 +	}
 +
-+	/*
-+	 * Copy OEM strings to local buffers with guaranteed null-termination.
-+	 * This prevents heap-buffer-overflow when acpi_tb_find_table reads
-+	 * ACPI_OEM_ID_SIZE/ACPI_OEM_TABLE_ID_SIZE bytes.
-+	 */
-+	memcpy(oem_id, operand[1]->string.pointer, operand[1]->string.length);
-+	oem_id[operand[1]->string.length] = 0;
-+	memcpy(oem_table_id, operand[2]->string.pointer,
-+	       operand[2]->string.length);
-+	oem_table_id[operand[2]->string.length] = 0;
-+
- 	/* Find the ACPI table in the RSDT/XSDT */
- 
- 	acpi_ex_exit_interpreter();
- 	status = acpi_tb_find_table(operand[0]->string.pointer,
--				    operand[1]->string.pointer,
--				    operand[2]->string.pointer, &table_index);
-+				    oem_id, oem_table_id, &table_index);
- 	acpi_ex_enter_interpreter();
- 	if (ACPI_FAILURE(status)) {
- 		if (status != AE_NOT_FOUND) {
+ 	next_node = node;
+ 	while (next_node && next_node != acpi_gbl_root_node) {
+ 		if (next_node != node) {
 -- 
 2.53.0
 
