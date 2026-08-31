@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D04104457DB;
-	Mon, 31 Aug 2026 13:34:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98C63468C3B;
+	Mon, 31 Aug 2026 13:34:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788183242; cv=none; b=bj7PRDAfPQ+BAUUagG0DyDSOLUdc08dBGtl7TM10jXcMk4tQ2GPmW5rDISQ++cTU92d/Ub8gWOV0qx1/xXJegUPtd2oSZpZImmn1lVBw/D+wDseVpg7XYsQ7sAuX4Ru3wSPAxjCfXyedUUjJcSUzp5h2Q6jT4ZD5IngYIhyJgMo=
+	t=1788183293; cv=none; b=u1fMrYEwcZMxhY/LV3x55bM+c9sUgYMc1Cx3UVac5ll3SN3MTp99XXG0Bk7UC3adsTwgb+xdw9HuJ18k9sKqrLbsXr+QVlJWNzh0AQ4toazN6vvLDajO8vvH0HobRMObjI0ztjy5r1bfDyh6DviKKe66UQc89VKcMj01/ZhrhLQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788183242; c=relaxed/simple;
-	bh=XEufWIAB4YMVpvaMrO68QTX1Mx8aWllkAEtzs6FGVX8=;
+	s=arc-20240116; t=1788183293; c=relaxed/simple;
+	bh=HLiBdYmCQfRbz9b62Ku8mQ6d4hMrifr3NdIv7TWd/BQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=F2QGcKB0a5dLlz8ioIgp39GELJ+2Vkk1OtiI/ujKbBeceSeLtGBe8MM6TTEoJLKAa0Ob2g2qAgCOP6dqr2GNRVl36xcGeJwq4JW/1Hd6FEy2Pl0SFBwwMTQHs1L5KbvDinbkM5J/jWTg1Fsx8DQZhZG2vyuK3x3LXBwcrP/AqrE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GUx5Nhfe; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=A9gxxyMRJST/S2wA8FJsbpzEPDRXUQTNdC4BqUJCTHz4mbV3xCgZdYY0HfNRvM7ZqCJJjewGzvqkE/YNgCzSfzPZdygbVy9QRrPoFNj1DNWAvzXByXQemX+tWsOdt8M3qwu9DKE3xhJpymcc/0Kp6uUM52vRqJSDos8q6jr1g0o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=f8+ltzgM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GUx5Nhfe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3209D1F00A3D;
-	Mon, 31 Aug 2026 13:33:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="f8+ltzgM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4859F1F00A3E;
+	Mon, 31 Aug 2026 13:34:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788183240;
-	bh=mQLVFedAryXzf4R4Gw7lLwMqOlxpZk+6H8r98aGlBu4=;
+	s=k20260515; t=1788183290;
+	bh=PSa/J42ad4e/7Ts2G0oDuoktwXfLZfk+vMouwLvcDzs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=GUx5NhfeBh+xesf3UU+jw69ZR4jAx+bwgFZYGFJlRGULg/mHc8OwZrphLYdCRzi/0
-	 D2L+rO9Pzpjsn+DUhew5DJWuBDyLkXbUi7RvW+eplEsAbKBUHzM3M2dZvn+Xh5oVID
-	 u9DZ4eI3s4lOK+IwjmIYrE1vw7Yhag15h1DMP3EjFxvSZPX35rfsL8VdkeVLe6klxi
-	 3X2enrYaj6YQ2qU2FKQIMS7Z8C+JrVFKOuiod+qQtIoj24vordzAa3sgndVQi+hKGg
-	 L5jA97sJgl08gNIw3j3vv4OqbX9ZEMEBq1jezsNECVQqTgWEfTxaSjE4eOnzy7UNrf
-	 3ilJ8sbAMhOLw==
+	b=f8+ltzgMzBfujXW8+8ImZdOqkt6hYxcM78Vnj8Lk7tnCmuIHnnmnxuLNWitPuT8HI
+	 YX1bC9hWc89pu+OI0tsoseWGR9tuX2ynYpYvctyMYNGhme9F+M738A5+EUzf88jk8o
+	 UmgNnvy3+l5hHk5vPOYp0ApKUJYI2CVCCbzPmHx6Ld+AHc5AC/6jI9+7mInRcKWX0v
+	 uPXLJGKOgLUFdPwCaZg3wPFsLlI8rkK5ouHAZH9Lr6Z1RN3v1aF5DaX+l06kvi40Xo
+	 X3j/EaJPMyqAy2gtGz0rEwUUJ/BybqGKVsEerR6GnXg+SXzLEC9eIOgkrExWQufjNN
+	 sdo30c8MVTCHw==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
@@ -38,9 +38,9 @@ Cc: ikaros <void0red@gmail.com>,
 	linux-acpi@vger.kernel.org,
 	acpica-devel@lists.linux.dev,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-5.10] ACPICA: Prevent adding invalid references
-Date: Mon, 31 Aug 2026 09:20:57 -0400
-Message-ID: <20260831133314.4125787-29-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.18-5.10] ACPICA: Improve argument parsing in acpi_ps_get_next_simple_arg()
+Date: Mon, 31 Aug 2026 09:21:28 -0400
+Message-ID: <20260831133314.4125787-60-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260831133314.4125787-1-sashal@kernel.org>
 References: <20260831133314.4125787-1-sashal@kernel.org>
@@ -58,410 +58,515 @@ Content-Transfer-Encoding: 8bit
 
 From: ikaros <void0red@gmail.com>
 
-[ Upstream commit 6e8c55e13a5e3a9f38921d62924f18ceba3330eb ]
+[ Upstream commit 27d27e75ecb752a0b4da848c440bb3a88396ecba ]
 
-Prevent adding references for local, argument, and debug objects
-in acpi_ut_copy_simple_object().
+Improve argument parsing in acpi_ps_get_next_simple_arg() to handle
+remaining AML data safely.
 
-Link: https://github.com/acpica/acpica/commit/f576898d7814
+Link: https://github.com/acpica/acpica/commit/ecbb8bcfe301
 Signed-off-by: ikaros <void0red@gmail.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Link: https://patch.msgid.link/4511989.ejJDZkT8p0@rafael.j.wysocki
+Link: https://patch.msgid.link/2008043.taCxCBeP46@rafael.j.wysocki
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-# Stable Backport Analysis: ACPICA: Prevent adding invalid references
+## Phase 1: Commit Message Forensics
 
-## Tree Context
+**Step 1.1 — Subject line**
 
-Local checkout: **v6.18.44** (6.18.44). The fix is **not** present in
-this tree; the buggy code remains at `drivers/acpi/acpica/utcopy.c:734`.
+Record: **[ACPICA] [Improve] argument parsing in
+`acpi_ps_get_next_simple_arg()` to handle remaining AML data safely**
 
----
+**Step 1.2 — Tags**
 
-## PHASE 1: COMMIT MESSAGE FORENSICS
-
-### Step 1.1: Subject Line
-**Record:** `[ACPICA] [prevent] — Prevent adding invalid references in
-acpi_ut_copy_simple_object() when copying LOCAL/ARG/DEBUG reference
-objects.`
-
-### Step 1.2: Tags
-**Record:**
-- **Link:** https://github.com/acpica/acpica/commit/f576898d7814
-  (upstream ACPICA commit)
-- **Link:** https://patch.msgid.link/4511989.ejJDZkT8p0@rafael.j.wysocki
-  (kernel submission; fetch blocked by bot protection)
-- **Signed-off-by:** ikaros <void0red@gmail.com> (author)
-- **Signed-off-by:** Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Record:
+- **Link:** https://github.com/acpica/acpica/commit/ecbb8bcfe301
+- **Link:** https://patch.msgid.link/2008043.taCxCBeP46@rafael.j.wysocki
+  (blocked by bot protection; lkml.iu.edu mirror used instead)
+- **Signed-off-by:** ikaros \<void0red@gmail.com\> (author)
+- **Signed-off-by:** Rafael J. Wysocki \<rafael.j.wysocki@intel.com\>
   (ACPI maintainer)
-- No Fixes:, Reported-by:, Tested-by:, Reviewed-by:, Cc: stable@
-- Notable: Submitted as **[PATCH v1 15/27] ACPI: ACPICA 20260408**
-  series (May 27, 2026)
+- No **Fixes:**, **Reported-by:**, **Cc: stable**, **Tested-by:**, or
+  **Reviewed-by:** tags in the message
+- Notable: patch is **[PATCH v1 17/27]** in Rafael’s ACPICA sync series
+  (May 2026); upstream ACPICA commit fixes GitHub issues **#1073** and
+  **#1131**
 
-### Step 1.3: Body Analysis
-**Record:**
-- **Bug:** `acpi_ut_copy_simple_object()` unconditionally calls
-  `acpi_ut_add_reference(source_desc->reference.object)` for all
-  reference classes except `ACPI_REFCLASS_TABLE`.
-- **Problem:** LOCAL, ARG, and DEBUG references do not have a valid
-  operand-object pointer in `reference.object`.
-- **Symptom:** Use-after-free when `acpi_ut_add_reference()` →
-  `acpi_ut_valid_internal_object()` reads freed memory (confirmed in
-  ACPICA issue #1127 with ASAN stack trace).
-- **Root cause:** LOCAL/ARG use `reference.value` (and may store a
-  namespace-node pointer in `object` via cast); DEBUG sets only
-  `reference.class` with no valid `object`. Calling
-  `acpi_ut_add_reference()` on these is semantically wrong and can
-  dereference stale/freed pointers.
+**Step 1.3 — Body analysis**
 
-### Step 1.4: Hidden Bug Fix Detection
-**Record:** Yes — despite the neutral "prevent" wording, this is a real
-memory-safety bug fix (UAF), not cleanup. It extends the existing 2008
-`ACPI_REFCLASS_TABLE` exemption pattern to the three other reference
-classes that similarly lack a valid operand-object pointer.
+Record:
+- **Bug:** `acpi_ps_get_next_simple_arg()` reads integer and string AML
+  arguments without checking how many bytes remain before
+  `parser_state->aml_end`.
+- **Symptoms:** Out-of-bounds reads when AML is truncated or a string
+  lacks a null terminator within the buffer; downstream code (e.g.
+  `strlen()` on the string pointer) can also OOB-read.
+- **Root cause:** Unbounded `*aml` / `ACPI_MOVE_*` reads and unbounded
+  `while (aml[length])` loop.
+- **Fix approach:** Compute `remaining = aml_end - aml`, bounds-check
+  all reads, bound the string scan, warn and force a null terminator at
+  the buffer edge when needed.
 
----
+**Step 1.4 — Hidden bug fix?**
 
-## PHASE 2: DIFF ANALYSIS
-
-### Step 2.1: Inventory
-**Record:**
-- **Files:** `drivers/acpi/acpica/utcopy.c` (+9, -1)
-- **Function:** `acpi_ut_copy_simple_object()`
-- **Scope:** Single-file, surgical fix in one `case
-  ACPI_TYPE_LOCAL_REFERENCE:` block
-
-### Step 2.2: Code Flow Change
-**Record:**
-- **Before:** After exempting `ACPI_REFCLASS_TABLE`, always call
-  `acpi_ut_add_reference(source_desc->reference.object)`.
-- **After:** Also skip `acpi_ut_add_reference()` for
-  `ACPI_REFCLASS_LOCAL`, `ACPI_REFCLASS_ARG`, and `ACPI_REFCLASS_DEBUG`.
-- **Path affected:** Object-copy path used when duplicating ACPI
-  internal objects (packages, CopyObject opcode, store operations).
-
-### Step 2.3: Bug Mechanism
-**Record:**
-- **Category:** Use-after-free / invalid pointer dereference
-- **Mechanism:** For LOCAL/ARG/DEBUG references, `reference.object` is
-  not a valid `union acpi_operand_object *`. `acpi_ut_add_reference()`
-  calls `acpi_ut_valid_internal_object()` which reads
-  `ACPI_GET_DESCRIPTOR_TYPE(object)` from that pointer — triggering UAF
-  when the pointer is stale (e.g., freed walk-state memory per ACPICA
-  issue #1127 ASAN report).
-
-### Step 2.4: Fix Quality
-**Record:**
-- Obviously correct: mirrors the existing TABLE exemption and matches
-  how `exresolv.c` treats these classes ("do not dereference").
-- Minimal, no unrelated changes.
-- Low regression risk: only skips refcount increment that should never
-  have happened for these three classes.
+Record: **Yes.** “Improve argument parsing” is defensive hardening
+against real memory-safety bugs (heap-buffer-overflow confirmed in
+upstream ACPICA via ASAN).
 
 ---
 
-## PHASE 3: GIT HISTORY INVESTIGATION
+## Phase 2: Diff Analysis
 
-### Step 3.1: Blame
-**Record:**
-- Reference-handling case dates to **2005** (initial ACPICA import).
-- `acpi_ut_add_reference()` call: **2005** (Len Brown).
-- `ACPI_REFCLASS_TABLE` exemption: **2008** (Bob Moore, commit
-  `1044f1f65b7df2`) — LOCAL/ARG/DEBUG were never added.
-- Bug has been present since ~2005; TABLE partial fix since 2008.
+**Step 2.1 — Inventory**
 
-### Step 3.2: Fixes: Tag
-**Record:** N/A — no Fixes: tag. Upstream ACPICA issue #1127 references
-commit f576898.
+Record:
+- **File:** `drivers/acpi/acpica/psargs.c` (+68 / −10 per lkml; net ~58
+  lines)
+- **Function:** `acpi_ps_get_next_simple_arg()` only
+- **Scope:** Single-file, single-function surgical fix
 
-### Step 3.3: Related File History
-**Record:**
-- `470188b09e92d` (2022): Fixed a separate UAF in
-  `acpi_ut_copy_ipackage_to_ipackage()` in the same file — shows this
-  code path is security-relevant and prior UAF fixes were backported.
-- `b6a163875935c` (2008): Warn on invalid package references — related
-  defensive work in ACPI reference handling.
-- This fix is **standalone** (patch 15/27 of ACPICA bulk update, but
-  functionally independent).
+**Step 2.2 — Code flow per hunk**
 
-### Step 3.4: Author Context
-**Record:** ikaros reported the bug to ACPICA upstream. Rafael J.
-Wysocki (ACPI maintainer) signed off and submitted to linux-acpi. Author
-has prior kernel commits (null-check fixes).
+Record:
+- **ARGP_BYTEDATA:** Before: always read 1 byte. After: read only if
+  `remaining >= 1`, else return 0 with `length = 0`.
+- **ARGP_WORD/DWORD/QWORDDATA:** Before: always read 2/4/8 bytes. After:
+  full read if enough bytes; else zero-init and `memcpy()` partial bytes
+  if any remain.
+- **ARGP_CHARLIST:** Before: unbounded scan for `'\0'`. After: scan only
+  within `remaining`; if no terminator, `ACPI_WARNING`, write `'\0'` at
+  `aml[remaining-1]`, set `length = remaining`.
+- **Normal path:** `parser_state->aml += length` unchanged.
 
-### Step 3.5: Dependencies
-**Record:** No dependencies. Self-contained 8-line conditional. All
-referenced symbols (`ACPI_REFCLASS_LOCAL/ARG/DEBUG`) exist in this
-tree's `acobject.h`.
+**Step 2.3 — Bug mechanism**
 
----
+Record: **Memory safety / buffer overflow (OOB read).** Integer cases
+read past `aml_end`; string case can scan past `aml_end` and pass a non-
+terminated pointer to later `strlen()`-based code (upstream issue
+#1131).
 
-## PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
+**Step 2.4 — Fix quality**
 
-### Step 4.1: Original Discussion
-**Record:**
-- `b4 dig -c f576898d7814`: Failed (ACPICA upstream SHA, not in Linux
-  git).
-- Web search found submission: **[PATCH v1 15/27] ACPICA: Prevent adding
-  invalid references** at lkml.iu.edu (May 27, 2026), part of ACPI:
-  ACPICA 20260408 series by Rafael J. Wysocki.
-- ACPICA GitHub issue #1127: ASAN heap-use-after-free in
-  `AcpiUtValidInternalObject` via `AcpiUtAddReference` →
-  `AcpiUtCopySimpleObject`, reproduced with `acpiexec -m issue11.aml`.
-
-### Step 4.2: Reviewers
-**Record:** Rafael J. Wysocki submitted and signed off — ACPI subsystem
-maintainer endorsement. Full recipient list unavailable (b4 dig failed;
-lore blocked).
-
-### Step 4.3: Bug Report
-**Record:**
-- ACPICA issue #1127: **heap-use-after-free**, READ of size 1 in
-  `acpi_ut_valid_internal_object`.
-- Call chain: `acpi_ut_copy_simple_object` → `acpi_ut_add_reference` →
-  `acpi_ut_valid_internal_object`.
-- Triggered during AML parsing/execution (`acpi_ps_parse_aml`, table
-  load).
-- Severity: memory safety, potential crash/corruption.
-
-### Step 4.4: Series Context
-**Record:** Part of 27-patch ACPICA 20260408 update. This patch is
-standalone; does not require other series patches.
-
-### Step 4.5: Stable List History
-**Record:** UNVERIFIED — could not search lore.kernel.org/stable (bot
-protection). No evidence against stable nomination.
+Record: Fix is minimal, uses existing `aml_end` and `ACPI_PTR_DIFF`
+(already used elsewhere in ACPICA). Low regression risk on valid AML.
+Minor concern: in-place mutation of AML bytes for malformed strings
+(`aml[remaining-1] = 0`), but this only triggers on invalid AML and is
+the upstream-chosen mitigation to prevent downstream OOB.
 
 ---
 
-## PHASE 5: CODE SEMANTIC ANALYSIS
+## Phase 3: Git History Investigation
 
-### Step 5.1: Key Functions
-**Record:** `acpi_ut_copy_simple_object()` (modified); callers:
-`acpi_ut_copy_ielement_to_ielement()`,
-`acpi_ut_copy_iobject_to_iobject()`.
+**Step 3.1 — Blame**
 
-### Step 5.2: Callers
-**Record:**
-- `acpi_ut_copy_iobject_to_iobject()` called from:
-  - `exoparg1.c` — `AML_COPY_OBJECT_OP`
-  - `exstore.c`, `exstoren.c` — store operations
-  - `dsutils.c`, `dsmthdat.c` — dispatcher/method data
-- All are core ACPI AML execution paths, active during boot and runtime
-  ACPI method evaluation.
+Record: Buggy logic dates to original ACPICA import (~2005, Bob Moore /
+Len Brown). Present in this tree at lines 364–443 of `psargs.c`. Not a
+recently introduced regression.
 
-### Step 5.3: Callees
-**Record:** `acpi_ut_add_reference()` →
-`acpi_ut_valid_internal_object()` → reads descriptor type from pointer.
-For invalid `reference.object`, this is the UAF site.
+**Step 3.2 — Fixes: tag**
 
-### Step 5.4: Reachability
-**Record:**
-- Triggered when copying packages or objects containing LOCAL/ARG/DEBUG
-  references.
-- ASAN reproducer uses AML table execution during namespace load.
-- Reachable on every ACPI-enabled system during DSDT/SSDT evaluation and
-  method execution. Not limited to obscure configs.
+Record: N/A — no `Fixes:` tag in commit message.
 
-### Step 5.5: Similar Patterns
-**Record:**
-- `utcopy.c:730`: `ACPI_REFCLASS_TABLE` already exempted (same
-  rationale).
-- `exresolv.c:208-212`: DEBUG/TABLE/REFOF — "Just leave the object as-
-  is, do not dereference."
-- `dsobject.c:471-522`: LOCAL/ARG set `reference.value`; DEBUG sets only
-  `reference.class` — confirms `object` is not a refcountable operand
-  object.
+**Step 3.3 — Related file history**
+
+Record: Recent `psargs.c` changes in v6.18.44 are copyright updates and
+separate memory-leak fixes (`acpi_ps_get_next_field`,
+`acpi_ps_get_next_namepath`). No prior fix for this bounds-check issue.
+
+**Step 3.4 — Author commits**
+
+Record: Author ikaros/void0red is an ACPICA contributor (fuzzing-driven
+fixes). Rafael Wysocki is ACPI subsystem maintainer; patch submitted as
+part of ACPICA v1 27-patch series.
+
+**Step 3.5 — Dependencies**
+
+Record: Listed as patch 17/27 in an ACPICA bulk sync, but the diff is
+self-contained — uses only existing `struct acpi_parse_state` fields
+(`aml`, `aml_end`, `aml_start`) and `ACPI_PTR_DIFF`. No structural
+prerequisites from other series patches identified. **Can apply
+standalone.**
 
 ---
 
-## PHASE 6: CROSS-REFERENCE WITH LOCAL TREE (v6.18.44)
+## Phase 4: Mailing List and External Research
 
-### Step 6.1: Buggy Code Present?
-**Record:** **YES.** At `drivers/acpi/acpica/utcopy.c:721-735`,
-unconditional `acpi_ut_add_reference(source_desc->reference.object)`
-after only TABLE exemption. Fix text not found via grep.
+**Step 4.1 — Original discussion**
 
-### Step 6.2: Backport Complications
-**Record:** **Clean apply expected.** Index context matches submitted
-patch (line ~731). No conflicting recent changes to this hunk. Only
-copyright-year churn in file history.
+Record:
+- **b4 dig -c ecbb8bcfe301:** Failed (ACPICA SHA not in Linux git)
+- **lkml mirror:** https://lkml.iu.edu/2605.3/06252.html — Rafael’s
+  [PATCH v1 17/27], May 27 2026
+- **Series revisions:** Part of v1 27-patch ACPICA update; no evidence
+  of a newer conflicting version for this hunk
+- **Stable nomination in thread:** Not found in available sources
+- **NAKs:** None found
 
-### Step 6.3: Related Fixes Already Present?
-**Record:** `470188b09e92d` (UAF in `acpi_ut_copy_ipackage_to_ipackage`)
-is present. No duplicate fix for LOCAL/ARG/DEBUG reference handling.
+**Step 4.2 — Reviewers**
 
----
+Record: Rafael J. Wysocki (maintainer) signed off and submitted. Full
+recipient list unavailable (b4/lore blocked).
 
-## PHASE 7: SUBSYSTEM CONTEXT
+**Step 4.3 — Bug reports**
 
-### Step 7.1: Subsystem
-**Record:** **ACPI/ACPICA** — **CORE** subsystem. Affects all x86
-systems and ARM64 systems using ACPI.
+Record:
+- **GitHub acpica#1073:** ASAN heap-buffer-overflow in
+  `AcpiPsGetNextSimpleArg` at integer read (iasl fuzzing)
+- **GitHub acpica#1131:** ASAN heap-buffer-overflow via `strlen()` on
+  malformed AML string without null terminator (acpiexec); fixed by this
+  commit
+- Both closed after ecbb8bc
 
-### Step 7.2: Activity
-**Record:** Actively maintained; recent ACPICA fixes in this tree
-include UAF, NULL deref, and AML safety patches.
+**Step 4.4 — Series context**
 
----
+Record: One patch in a 27-patch ACPICA sync; this hunk is independent
+and does not require the other 26 patches.
 
-## PHASE 8: IMPACT AND RISK
+**Step 4.5 — Stable list**
 
-### Step 8.1: Who Is Affected
-**Record:** All users with ACPI enabled (essentially all PCs, servers,
-many ARM laptops). Driver-specific? No — core ACPI interpreter.
-
-### Step 8.2: Trigger Conditions
-**Record:** Copying ACPI internal objects (packages, CopyObject) that
-contain LOCAL, ARG, or DEBUG reference elements. Can be triggered by
-ACPI AML in firmware tables. Timing-dependent UAF when
-`reference.object` holds stale pointer. Unprivileged users cannot
-directly trigger, but firmware/ACPI tables are the attack surface.
-
-### Step 8.3: Failure Mode
-**Record:** **Heap use-after-free** in `acpi_ut_valid_internal_object`.
-Severity: **HIGH** (crash, potential memory corruption). Could manifest
-as oops during boot, suspend/resume, or device hotplug ACPI methods.
-
-### Step 8.4: Risk-Benefit
-**Record:**
-- **Benefit:** HIGH — prevents UAF in core ACPI object-copy path on all
-  ACPI systems.
-- **Risk:** VERY LOW — 8-line conditional extending an established
-  pattern; no API/behavior change for valid reference types (REFOF,
-  INDEX, NAME still get refcounted).
-- **Ratio:** Strongly favors backport.
+Record: Could not search lore stable list (bot protection). No stable-
+specific discussion found via web search.
 
 ---
 
-## PHASE 9: FINAL SYNTHESIS
+## Phase 5: Code Semantic Analysis
 
-### Step 9.1: Evidence Summary
+**Step 5.1 — Key functions**
 
-**FOR backport:**
-- Confirmed UAF (ASAN report in ACPICA #1127)
-- Long-standing bug (since 2005; TABLE partial fix since 2008)
-- Buggy code present in v6.18.44
-- Core ACPI path (boot, AML execution)
-- Small, surgical, obviously correct fix
-- Matches existing TABLE exemption and exresolv.c semantics
-- ACPI maintainer (Rafael Wysocki) signed off and submitted
-- Prior UAF fix in same file was backported to stable
+Record: `acpi_ps_get_next_simple_arg()` modified.
 
-**AGAINST backport:**
-- No kernel runtime reproducer in commit message (only acpiexec/AML test
-  case)
-- Part of larger ACPICA bulk update (but this patch is standalone)
-- Not yet merged into this 6.18.44 tree (candidate evaluation)
+**Step 5.2 — Callers**
 
-**Unresolved:**
-- Lore stable-list discussion (site blocked)
-- Exact frequency in production firmware (unverified, but bug mechanism
-  is clear)
+Record:
+- `acpi_ps_get_arguments()` in `psloop.c` (constant/string opcode
+  arguments during parse loop)
+- `acpi_ps_get_next_arg()` in `psargs.c` (general argument fetching)
 
-### Step 9.2: Stable Rules Checklist
-1. Obviously correct and tested? **PASS** — logic mirrors TABLE
-   exemption; ASAN-verified upstream; maintainer SOB.
-2. Fixes a real bug? **PASS** — UAF in object copy.
-3. Important issue? **PASS** — UAF/memory corruption in core ACPI,
-   severity HIGH.
-4. Small and contained? **PASS** — 9 lines, one file, one function.
-5. No new features/APIs? **PASS** — defensive guard only.
-6. Can apply to local tree? **PASS** — buggy code present, clean apply
-   expected.
+Both are on the ACPI AML parse path used during table load and method
+execution.
 
-### Step 9.3: Exception Categories
-**Record:** N/A (not device ID, quirk, DT, build, or docs — standard bug
-fix).
+**Step 5.3 — Callees**
 
-### Step 9.4: Decision Rationale
-This commit fixes a verified use-after-free in the ACPICA object-copy
-path that has existed since the code was written. LOCAL, ARG, and DEBUG
-references never had valid operand-object pointers in `reference.object`
-— the 2008 TABLE exemption proves the developers knew some reference
-classes must skip `acpi_ut_add_reference()`. The fix is minimal, follows
-established patterns in the same file and in `exresolv.c`, and protects
-all ACPI-enabled systems during AML execution. For v6.18.44, the buggy
-code is present and the fix applies cleanly.
+Record: `acpi_ps_init_op()`, `acpi_ps_get_next_namestring()` (unchanged
+paths), `ACPI_MOVE_*` macros, `memcpy()`, `ACPI_WARNING()`.
+
+**Step 5.4 — Reachability**
+
+Record:
+- Boot: `acpi_ns_one_complete_parse()` →
+  `acpi_ds_init_aml_walk(aml_start, aml_length)` → `acpi_ps_parse_aml()`
+  → parse loop → `acpi_ps_get_next_simple_arg()`
+- Runtime: ACPI method evaluation uses the same walk/parse path via
+  `acpi_ds_init_aml_walk()`
+- **Reachable on every ACPI-enabled system** when parsing tables or
+  evaluating methods. Trigger requires malformed/truncated AML (buggy
+  firmware, corrupted tables, or injected SSDT).
+
+**Step 5.5 — Similar patterns**
+
+Record: No existing bounds-check pattern for this function in v6.18.44.
+`parser_state->aml_end` is set in `acpi_ds_init_aml_walk()`
+(`dswstate.c:578-586`) for all AML walks. `psloop.c` already uses
+`parser_state->aml < parser_state->aml_end` at the loop level, but
+individual argument parsing lacked per-field bounds checks.
+
+---
+
+## Phase 6: Cross-Reference Against Local Tree (v6.18.44)
+
+**Step 6.1 — Buggy code present?**
+
+Record: **Yes.** Local tree is `v6.18.44` (Makefile 6.18.44).
+`acpi_ps_get_next_simple_arg()` at `psargs.c:364-443` has the unbounded
+reads. Commit ecbb8bc is **not** in this tree.
+
+**Step 6.2 — Backport complications**
+
+Record: **Clean apply expected.** lkml diff index (`3526ea109414`)
+matches current file structure; only line-offset difference. `aml_end`
+field exists in `aclocal.h:912`. `ACPI_PTR_DIFF` used elsewhere in
+ACPICA.
+
+**Step 6.3 — Related fixes already present?**
+
+Record: **No.** `git log --grep` found no prior fix for this function’s
+bounds checking in `psargs.c`.
+
+---
+
+## Phase 7: Subsystem Context
+
+**Step 7.1 — Subsystem / criticality**
+
+Record: **ACPI / ACPICA parser** — **CORE** for all `CONFIG_ACPI`
+systems (essentially all x86 PCs and many ARM servers).
+
+**Step 7.2 — Activity**
+
+Record: ACPICA receives regular maintenance; this is a targeted safety
+fix within a periodic upstream sync.
+
+---
+
+## Phase 8: Impact and Risk Assessment
+
+**Step 8.1 — Who is affected**
+
+Record: All ACPI-enabled systems parsing AML at boot or during method
+evaluation. Driver-specific only in the sense that it requires ACPI,
+which is near-universal on supported platforms.
+
+**Step 8.2 — Trigger conditions**
+
+Record: Malformed or truncated AML bytecode (truncated integer args,
+string without `'\0'` within buffer). Uncommon in practice from
+legitimate firmware, but confirmed reproducible with fuzzed AML. ACPI
+table override/SSDT loading requires elevated privileges; primary
+production risk is buggy OEM firmware.
+
+**Step 8.3 — Failure mode severity**
+
+Record: **OOB read** → potential kernel oops, info leak, or further
+cascading OOB in `strlen()`. **Severity: HIGH** (boot-time or runtime
+crash on ACPI parse path).
+
+**Step 8.4 — Risk vs benefit**
+
+Record:
+- **Benefit: HIGH** — prevents memory-safety bug on a core boot path
+- **Risk: LOW** — single function, defensive checks, no API change;
+  valid AML behavior unchanged
+- **Ratio:** Strong benefit, low risk → backport warranted
+
+---
+
+## Phase 9: Final Synthesis
+
+**Evidence FOR backport:**
+- Confirmed heap-buffer-overflow (ASAN) in upstream ACPICA for this
+  exact function
+- Same vulnerable code present in v6.18.44 since ~2005
+- `aml_end` infrastructure already exists and is set on all parse paths
+- Small, self-contained, maintainer-signed fix
+- Prevents OOB reads during ACPI table parsing and method evaluation
+- Fits stable criteria: real bug, important (crash/security-class memory
+  safety), no new APIs
+
+**Evidence AGAINST backport:**
+- Part of a 27-patch ACPICA series (cosmetic concern only; patch is
+  standalone)
+- In-place AML mutation for malformed strings (edge case; upstream-
+  accepted)
+- Bugs found via iasl/acpiexec fuzzing, not a field user report (but
+  kernel shares the code)
+
+**Stable rules checklist:**
+1. Obviously correct and tested? **PASS** — straightforward bounds
+   checks; ASAN-verified upstream
+2. Fixes a real bug affecting users? **PASS** — OOB read on ACPI parse
+   path
+3. Important issue? **PASS** — HIGH severity (memory safety / potential
+   crash)
+4. Small and contained? **PASS** — one function, ~58 net lines
+5. No new features or APIs? **PASS** — defensive parsing only
+6. Can apply to local tree? **PASS** — buggy code present, dependencies
+   satisfied
+
+**Exception category:** N/A (not device ID, quirk, DT, build, or docs)
+
+**Conclusion:** This commit fixes a long-standing memory-safety hole in
+core ACPI AML parsing that is present in the v6.18.44 tree. The fix is
+surgical, uses existing parser state, and prevents out-of-bounds reads
+that can crash the kernel when malformed AML is encountered.
 
 ---
 
 ## Verification
 
-- [Phase 1] Parsed subject, tags, body; identified UAF bug from ACPICA
-  issue #1127
-- [Phase 1] Web search: found [PATCH v1 15/27] on lkml (May 27, 2026),
-  Rafael Wysocki submission
-- [Phase 2] Read diff: +9/-1 in `acpi_ut_copy_simple_object()`,
-  LOCAL/ARG/DEBUG guard added
-- [Phase 2] Read `acobject.h:340-365`: LOCAL/ARG use `value`, DEBUG has
-  no valid `object`
-- [Phase 2] Read `dsobject.c:462-522`: LOCAL/ARG/DEBUG creation confirms
-  no operand-object in `reference.object`
-- [Phase 2] Read `utdelete.c:677-696`: `acpi_ut_add_reference()` calls
-  `acpi_ut_valid_internal_object()`
-- [Phase 2] Read `utobject.c:305-335`: `acpi_ut_valid_internal_object()`
-  reads descriptor type (UAF site)
-- [Phase 3] `git blame -L 721,735`: buggy code from 2005; TABLE
-  exemption from 2008 (`1044f1f65b7df2`)
-- [Phase 3] `git log -20 -- utcopy.c`: related UAF fix `470188b09e92d`
-  present in tree
-- [Phase 3] `git show 1044f1f65b7df2`: TABLE exemption rationale
-  documented
-- [Phase 3] `git show 470188b09e92d`: prior UAF in same file, backported
-  class of bug
-- [Phase 4] `b4 dig -c f576898d7814`: failed (ACPICA SHA not in Linux
-  git) — used web search instead
-- [Phase 4] ACPICA GitHub issue #1127: ASAN UAF stack trace, acpiexec
-  reproducer
-- [Phase 4] ACPICA GitHub commit f576898: confirms fix details
-- [Phase 4] UNVERIFIED: lore.kernel.org and patch.msgid.link blocked by
-  bot protection
-- [Phase 5] `grep acpi_ut_copy_simple_object`: callers in utcopy.c,
-  exoparg1.c, exstore.c, dsutils.c, dsmthdat.c
-- [Phase 5] Read `exresolv.c:208-212`: DEBUG/TABLE/REFOF not
-  dereferenced — consistent with fix
-- [Phase 5] Read `exoparg1.c:465-469`: CopyObject opcode uses
-  `acpi_ut_copy_iobject_to_iobject`
-- [Phase 6] `git describe HEAD`: v6.18.44
-- [Phase 6] Read `utcopy.c:721-735`: buggy unconditional
-  `acpi_ut_add_reference` confirmed
-- [Phase 6] `grep "Local/Arg/Debug references"`: fix NOT in tree
-- [Phase 8] ACPICA #1127 ASAN: heap-use-after-free, severity HIGH
+- [Phase 1] Parsed subject, tags, body from user-provided commit message
+  and lkml mirror
+- [Phase 1] Confirmed upstream fixes acpica#1073 and #1131 via GitHub
+  issue pages
+- [Phase 2] Diff analysis: single-function bounds-check fix in
+  `acpi_ps_get_next_simple_arg()`
+- [Phase 3] `git describe HEAD`: v6.18.44
+- [Phase 3] `git blame -L 364,443 drivers/acpi/acpica/psargs.c`: code
+  from ~2005
+- [Phase 3] `git log --oneline -20 -- drivers/acpi/acpica/psargs.c`: no
+  prior bounds-check fix
+- [Phase 3] `git log -1 ecbb8bcfe301`: commit not in local tree
+- [Phase 4] `b4 dig -c ecbb8bcfe301`: no match (ACPICA-only SHA)
+- [Phase 4] lkml.iu.edu/2605.3/06252.html: found [PATCH v1 17/27] with
+  identical diff
+- [Phase 4] GitHub acpica#1073: ASAN heap-buffer-overflow at integer
+  read
+- [Phase 4] GitHub acpica#1131: ASAN heap-buffer-overflow via strlen on
+  malformed string
+- [Phase 5] `grep acpi_ps_get_next_simple_arg`: callers in
+  `psloop.c:71`, `psargs.c:769`
+- [Phase 5] Read `nsparse.c:173-198`: table parse sets
+  `aml_start`/`aml_length` via `acpi_ds_init_aml_walk()`
+- [Phase 5] Read `dswstate.c:578-586`: `aml_end` set from `aml_start +
+  aml_length`
+- [Phase 6] Read `psargs.c:364-443`: confirmed vulnerable code in
+  v6.18.44
+- [Phase 6] Read `aclocal.h:909-920`: `aml_end` field exists in `struct
+  acpi_parse_state`
+- [Phase 8] Assessed severity as HIGH based on verified OOB read
+  mechanism
+- [UNVERIFIED] Full lore.kernel.org review thread (Anubis bot blocked
+  direct fetch)
+- [UNVERIFIED] Whether any reviewer explicitly nominated for stable (not
+  needed for decision)
 
-**YES**The background `git log --grep` check finished: it found **no
-commit** matching “Prevent adding invalid” or “invalid references” in
-this tree. That matches what we already saw in `utcopy.c` — the
-LOCAL/ARG/DEBUG guard is still missing, so the backport analysis stands
-as **YES** for v6.18.44.
+**YES**The background history searches finished and matched what the
+main analysis already used.
 
- drivers/acpi/acpica/utcopy.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+**Task 264644** (`git log` on `psargs.c`): Recent changes are copyright
+updates and separate leak fixes in `acpi_ps_get_next_field()` /
+`acpi_ps_get_next_namepath()`. Nothing related to bounds checking in
+`acpi_ps_get_next_simple_arg()`.
 
-diff --git a/drivers/acpi/acpica/utcopy.c b/drivers/acpi/acpica/utcopy.c
-index 80458e70ac2bf..9ecf5c3f49ba6 100644
---- a/drivers/acpi/acpica/utcopy.c
-+++ b/drivers/acpi/acpica/utcopy.c
-@@ -731,7 +731,15 @@ acpi_ut_copy_simple_object(union acpi_operand_object *source_desc,
- 			break;
- 		}
+**Task 264645** (author/search): No Linux-kernel commits from
+ikaros/void0red on this fix; the patch came through Rafael Wysocki’s
+ACPICA sync. Recent ACPI work in this tree includes other parser/safety
+fixes, but not this one.
+
+That confirms the vulnerable code is still present in **v6.18.44** and
+this fix isn’t already here. Verdict remains **YES** for stable
+backport.
+
+ drivers/acpi/acpica/psargs.c | 78 +++++++++++++++++++++++++++++++-----
+ 1 file changed, 68 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/acpi/acpica/psargs.c b/drivers/acpi/acpica/psargs.c
+index 3526ea1094146..064652d11d9aa 100644
+--- a/drivers/acpi/acpica/psargs.c
++++ b/drivers/acpi/acpica/psargs.c
+@@ -384,6 +384,8 @@ acpi_ps_get_next_simple_arg(struct acpi_parse_state *parser_state,
+ 	u32 length;
+ 	u16 opcode;
+ 	u8 *aml = parser_state->aml;
++	u32 remaining = (u32)ACPI_PTR_DIFF(parser_state->aml_end, aml);
++	u64 partial_value;
  
--		acpi_ut_add_reference(source_desc->reference.object);
-+		/*
-+		 * Local/Arg/Debug references do not have a valid Object pointer
-+		 * that can be referenced
-+		 */
-+		if ((source_desc->reference.class != ACPI_REFCLASS_LOCAL) &&
-+		    (source_desc->reference.class != ACPI_REFCLASS_ARG) &&
-+		    (source_desc->reference.class != ACPI_REFCLASS_DEBUG)) {
-+			acpi_ut_add_reference(source_desc->reference.object);
+ 	ACPI_FUNCTION_TRACE_U32(ps_get_next_simple_arg, arg_type);
+ 
+@@ -393,8 +395,13 @@ acpi_ps_get_next_simple_arg(struct acpi_parse_state *parser_state,
+ 		/* Get 1 byte from the AML stream */
+ 
+ 		opcode = AML_BYTE_OP;
+-		arg->common.value.integer = (u64) *aml;
+-		length = 1;
++		if (remaining >= 1) {
++			arg->common.value.integer = (u64)*aml;
++			length = 1;
++		} else {
++			arg->common.value.integer = 0;
++			length = 0;
 +		}
  		break;
  
- 	case ACPI_TYPE_REGION:
+ 	case ARGP_WORDDATA:
+@@ -402,8 +409,19 @@ acpi_ps_get_next_simple_arg(struct acpi_parse_state *parser_state,
+ 		/* Get 2 bytes from the AML stream */
+ 
+ 		opcode = AML_WORD_OP;
+-		ACPI_MOVE_16_TO_64(&arg->common.value.integer, aml);
+-		length = 2;
++		if (remaining >= 2) {
++			ACPI_MOVE_16_TO_64(&arg->common.value.integer, aml);
++			length = 2;
++		} else {
++			arg->common.value.integer = 0;
++			length = 0;
++			if (remaining > 0) {
++				partial_value = 0;
++				memcpy(&partial_value, aml, remaining);
++				arg->common.value.integer = partial_value;
++				length = remaining;
++			}
++		}
+ 		break;
+ 
+ 	case ARGP_DWORDDATA:
+@@ -411,8 +429,19 @@ acpi_ps_get_next_simple_arg(struct acpi_parse_state *parser_state,
+ 		/* Get 4 bytes from the AML stream */
+ 
+ 		opcode = AML_DWORD_OP;
+-		ACPI_MOVE_32_TO_64(&arg->common.value.integer, aml);
+-		length = 4;
++		if (remaining >= 4) {
++			ACPI_MOVE_32_TO_64(&arg->common.value.integer, aml);
++			length = 4;
++		} else {
++			arg->common.value.integer = 0;
++			length = 0;
++			if (remaining > 0) {
++				partial_value = 0;
++				memcpy(&partial_value, aml, remaining);
++				arg->common.value.integer = partial_value;
++				length = remaining;
++			}
++		}
+ 		break;
+ 
+ 	case ARGP_QWORDDATA:
+@@ -420,8 +449,19 @@ acpi_ps_get_next_simple_arg(struct acpi_parse_state *parser_state,
+ 		/* Get 8 bytes from the AML stream */
+ 
+ 		opcode = AML_QWORD_OP;
+-		ACPI_MOVE_64_TO_64(&arg->common.value.integer, aml);
+-		length = 8;
++		if (remaining >= 8) {
++			ACPI_MOVE_64_TO_64(&arg->common.value.integer, aml);
++			length = 8;
++		} else {
++			arg->common.value.integer = 0;
++			length = 0;
++			if (remaining > 0) {
++				partial_value = 0;
++				memcpy(&partial_value, aml, remaining);
++				arg->common.value.integer = partial_value;
++				length = remaining;
++			}
++		}
+ 		break;
+ 
+ 	case ARGP_CHARLIST:
+@@ -434,10 +474,28 @@ acpi_ps_get_next_simple_arg(struct acpi_parse_state *parser_state,
+ 		/* Find the null terminator */
+ 
+ 		length = 0;
+-		while (aml[length]) {
++		while ((length < remaining) && aml[length]) {
++			length++;
++		}
++		if (length < remaining) {
++
++			/* Account for the terminating null */
+ 			length++;
++		} else {
++			/*
++			 * No terminator found - add null at buffer boundary
++			 * and report a warning
++			 */
++			ACPI_WARNING((AE_INFO,
++				      "Invalid AML string: no null terminator, truncating at offset %u",
++				      (u32)(aml - parser_state->aml)));
++
++			/* Add null terminator at the boundary */
++			if (remaining > 0) {
++				aml[remaining - 1] = 0;
++				length = remaining;
++			}
+ 		}
+-		length++;
+ 		break;
+ 
+ 	case ARGP_NAME:
 -- 
 2.53.0
 
