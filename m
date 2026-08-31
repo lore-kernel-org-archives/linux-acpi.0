@@ -1,45 +1,46 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EBB442E425;
-	Mon, 31 Aug 2026 13:33:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D04104457DB;
+	Mon, 31 Aug 2026 13:34:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788183217; cv=none; b=DBCWm4ZPdQdFQwWA9qA/fMQmby84n5vXiSIArM85SJZeQhIdn5fDWDW1ZegUg1Zi8nRUJ6dghYbSiFZ97cazNnkwcUKyybLryadxsJHW05aZlZx9ievaMUoCG4Ptq/6iLr4w/B1XnDkVV+adbnlFbYT8Gg7KwHnSOHbJht50kAA=
+	t=1788183242; cv=none; b=bj7PRDAfPQ+BAUUagG0DyDSOLUdc08dBGtl7TM10jXcMk4tQ2GPmW5rDISQ++cTU92d/Ub8gWOV0qx1/xXJegUPtd2oSZpZImmn1lVBw/D+wDseVpg7XYsQ7sAuX4Ru3wSPAxjCfXyedUUjJcSUzp5h2Q6jT4ZD5IngYIhyJgMo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788183217; c=relaxed/simple;
-	bh=te9lBsObeD2HvG+eVSNqGwRxdEUCCwxOLWUiuE/QCkQ=;
+	s=arc-20240116; t=1788183242; c=relaxed/simple;
+	bh=XEufWIAB4YMVpvaMrO68QTX1Mx8aWllkAEtzs6FGVX8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=OIdeAn+9Bz7orPfNH60dCgYALuYiG2/ik/vCSjgx+57+CmyJseRsZOZUHD3r3UF0jcxIPm39VXQEIE8stOHbsL509Ht3NJksHWW/4BSCjwDwTVxaOkEsyconNJw+LF+O5ltfJU9uCcnHTujeLJ1DIUKGJz0KaHqBzKKwtHNBvJ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=G8K2SMBy; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=F2QGcKB0a5dLlz8ioIgp39GELJ+2Vkk1OtiI/ujKbBeceSeLtGBe8MM6TTEoJLKAa0Ob2g2qAgCOP6dqr2GNRVl36xcGeJwq4JW/1Hd6FEy2Pl0SFBwwMTQHs1L5KbvDinbkM5J/jWTg1Fsx8DQZhZG2vyuK3x3LXBwcrP/AqrE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GUx5Nhfe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="G8K2SMBy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C8B11F00A3D;
-	Mon, 31 Aug 2026 13:33:33 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GUx5Nhfe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3209D1F00A3D;
+	Mon, 31 Aug 2026 13:33:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788183214;
-	bh=pNF0DMU5ekme0mlE1jwe1Y2+gkGX3ce/3LSBh3uopR0=;
+	s=k20260515; t=1788183240;
+	bh=mQLVFedAryXzf4R4Gw7lLwMqOlxpZk+6H8r98aGlBu4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=G8K2SMByOS+WBVBAEFkc+VmcOgHnwxyCFZIWbSc6J8fOx1UrIjHecDWk+XeKaABoa
-	 fSEL+1SFth+TYwE4PmllcCcfer0eSbPCYcmS4jIfFChfyevKIpKr+Nrdi8++cL6De/
-	 /5rThEDaKkkGsELksB64nEZ2C/AjXzfjYPG6HSwoTmqawTQ1Lpk2EH7gXEPvSb2sAG
-	 tVMNVvdSS5mzlYtL7KcjF8afyt+QJl7QgaVEaWoIgEZl8eqEMS/72rlGhIF6355Xd1
-	 M0xcMexd451DCJPLLh+oqJF4Awdvz1pxLU8zwSGJLJhtnCYQ+czNgXkudylPx7lD9z
-	 pyo21ceOJWb2A==
+	b=GUx5NhfeBh+xesf3UU+jw69ZR4jAx+bwgFZYGFJlRGULg/mHc8OwZrphLYdCRzi/0
+	 D2L+rO9Pzpjsn+DUhew5DJWuBDyLkXbUi7RvW+eplEsAbKBUHzM3M2dZvn+Xh5oVID
+	 u9DZ4eI3s4lOK+IwjmIYrE1vw7Yhag15h1DMP3EjFxvSZPX35rfsL8VdkeVLe6klxi
+	 3X2enrYaj6YQ2qU2FKQIMS7Z8C+JrVFKOuiod+qQtIoj24vordzAa3sgndVQi+hKGg
+	 L5jA97sJgl08gNIw3j3vv4OqbX9ZEMEBq1jezsNECVQqTgWEfTxaSjE4eOnzy7UNrf
+	 3ilJ8sbAMhOLw==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
-Cc: Thomas Lin <thomas_lin@lecomputing.com>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Mark Brown <broonie@kernel.org>,
+Cc: ikaros <void0red@gmail.com>,
+	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
 	Sasha Levin <sashal@kernel.org>,
 	rafael@kernel.org,
+	maciej.wieczor-retman@intel.com,
+	pawel.chmielewski@intel.com,
 	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-spi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-6.12] spi: dw-mmio: Add ACPI ID LECA0002 for LECARC SoCs
-Date: Mon, 31 Aug 2026 09:20:41 -0400
-Message-ID: <20260831133314.4125787-13-sashal@kernel.org>
+	acpica-devel@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH AUTOSEL 6.18-5.10] ACPICA: Prevent adding invalid references
+Date: Mon, 31 Aug 2026 09:20:57 -0400
+Message-ID: <20260831133314.4125787-29-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260831133314.4125787-1-sashal@kernel.org>
 References: <20260831133314.4125787-1-sashal@kernel.org>
@@ -55,69 +56,72 @@ X-stable-base: Linux 6.18.48
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Thomas Lin <thomas_lin@lecomputing.com>
+From: ikaros <void0red@gmail.com>
 
-[ Upstream commit 019947c495850461242fdcc0780258805595036c ]
+[ Upstream commit 6e8c55e13a5e3a9f38921d62924f18ceba3330eb ]
 
-This ID requires a custom initialization function
-dw_spi_hssi_no_dma_init() that sets dws->dws.ip to DW_HSSI_ID.
+Prevent adding references for local, argument, and debug objects
+in acpi_ut_copy_simple_object().
 
-Signed-off-by: Thomas Lin <thomas_lin@lecomputing.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Link: https://patch.msgid.link/20260521-lecarc-acpi-ids-v1-2-ae0ae90b2817@lecomputing.com
-Signed-off-by: Mark Brown <broonie@kernel.org>
+Link: https://github.com/acpica/acpica/commit/f576898d7814
+Signed-off-by: ikaros <void0red@gmail.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Link: https://patch.msgid.link/4511989.ejJDZkT8p0@rafael.j.wysocki
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-Connection lost, reconnecting to https://agentn.us.api5.cursor.sh
-(attempt 1)...
-Retry attempt 1...
-# Stable Backport Analysis: `spi: dw-mmio: Add ACPI ID LECA0002 for
-LECARC SoCs`
+# Stable Backport Analysis: ACPICA: Prevent adding invalid references
 
-**Local tree:** `v6.18.44` (`stable/linux-6.18.y`, detached HEAD at
-`1efe5d048a391`)
+## Tree Context
+
+Local checkout: **v6.18.44** (6.18.44). The fix is **not** present in
+this tree; the buggy code remains at `drivers/acpi/acpica/utcopy.c:734`.
 
 ---
 
 ## PHASE 1: COMMIT MESSAGE FORENSICS
 
-### Step 1.1: Subject line
-**Record:** `[spi: dw-mmio]` `[Add]` — Add ACPI ID `LECA0002` for LECARC
-SoCs SPI controller enablement on ACPI/ARM64 platforms.
+### Step 1.1: Subject Line
+**Record:** `[ACPICA] [prevent] — Prevent adding invalid references in
+acpi_ut_copy_simple_object() when copying LOCAL/ARG/DEBUG reference
+objects.`
 
 ### Step 1.2: Tags
 **Record:**
-- **Signed-off-by:** Thomas Lin \<thomas_lin@lecomputing.com\> (author)
-- **Reviewed-by:** Andy Shevchenko \<andriy.shevchenko@linux.intel.com\>
-- **Link:** https://patch.msgid.link/20260521-lecarc-acpi-
-  ids-v1-2-ae0ae90b2817@lecomputing.com
-- **Signed-off-by:** Mark Brown \<broonie@kernel.org\> (SPI maintainer
-  merge tag in final commit)
-- **Acked-by:** Mark Brown (in v1 mbox submission)
-- No Fixes:, Reported-by:, Tested-by:, Cc: stable@
-- Notable: subsystem maintainer ack; no syzbot/user bug reports
+- **Link:** https://github.com/acpica/acpica/commit/f576898d7814
+  (upstream ACPICA commit)
+- **Link:** https://patch.msgid.link/4511989.ejJDZkT8p0@rafael.j.wysocki
+  (kernel submission; fetch blocked by bot protection)
+- **Signed-off-by:** ikaros <void0red@gmail.com> (author)
+- **Signed-off-by:** Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+  (ACPI maintainer)
+- No Fixes:, Reported-by:, Tested-by:, Reviewed-by:, Cc: stable@
+- Notable: Submitted as **[PATCH v1 15/27] ACPI: ACPICA 20260408**
+  series (May 27, 2026)
 
-### Step 1.3: Body text
+### Step 1.3: Body Analysis
 **Record:**
-- **Bug description:** LECARC SoCs expose SPI via ACPI HID `LECA0002`;
-  without this ID the existing `dw_spi_mmio` driver does not bind.
-- **Symptom:** SPI controller non-functional on LECARC ACPI boots (no
-  driver probe).
-- **Root cause:** Missing ACPI ID in `acpi_apd.c` (clock/platform device
-  creation) and `spi-dw-mmio.c` (driver match + HSSI init).
-- **Init requirement:** Must use `dw_spi_hssi_no_dma_init()` to set
-  `dws->ip = DW_HSSI_ID` (HSSI register layout, no DMA).
-- **Version info:** None explicit; part of v5 series dated 2026-05-21.
+- **Bug:** `acpi_ut_copy_simple_object()` unconditionally calls
+  `acpi_ut_add_reference(source_desc->reference.object)` for all
+  reference classes except `ACPI_REFCLASS_TABLE`.
+- **Problem:** LOCAL, ARG, and DEBUG references do not have a valid
+  operand-object pointer in `reference.object`.
+- **Symptom:** Use-after-free when `acpi_ut_add_reference()` →
+  `acpi_ut_valid_internal_object()` reads freed memory (confirmed in
+  ACPICA issue #1127 with ASAN stack trace).
+- **Root cause:** LOCAL/ARG use `reference.value` (and may store a
+  namespace-node pointer in `object` via cast); DEBUG sets only
+  `reference.class` with no valid `object`. Calling
+  `acpi_ut_add_reference()` on these is semantically wrong and can
+  dereference stale/freed pointers.
 
-### Step 1.4: Hidden bug fix?
-**Record:** No — this is hardware enablement (ACPI ID addition), not a
-regression fix. The function rename (`dw_spi_intel_init` →
-`dw_spi_hssi_no_dma_init`) is cosmetic; behavior is unchanged. Without
-the ACPI entry, hardware simply does not probe; there is no pre-existing
-broken path for current 6.18.y users.
+### Step 1.4: Hidden Bug Fix Detection
+**Record:** Yes — despite the neutral "prevent" wording, this is a real
+memory-safety bug fix (UAF), not cleanup. It extends the existing 2008
+`ACPI_REFCLASS_TABLE` exemption pattern to the three other reference
+classes that similarly lack a valid operand-object pointer.
 
 ---
 
@@ -125,349 +129,339 @@ broken path for current 6.18.y users.
 
 ### Step 2.1: Inventory
 **Record:**
-| File | Changes |
-|------|---------|
-| `drivers/acpi/acpi_apd.c` | +6 lines (new `leca_spi_desc`, table
-entry) |
-| `drivers/spi/spi-dw-mmio.c` | +2 lines net (rename + ACPI entry) |
-| **Total:** ~15 lines | **Functions:** none structurally changed;
-rename only |
-| **Scope:** Single-subsystem, surgical ACPI ID addition |
+- **Files:** `drivers/acpi/acpica/utcopy.c` (+9, -1)
+- **Function:** `acpi_ut_copy_simple_object()`
+- **Scope:** Single-file, surgical fix in one `case
+  ACPI_TYPE_LOCAL_REFERENCE:` block
 
-### Step 2.2: Code flow per hunk
+### Step 2.2: Code Flow Change
 **Record:**
-1. **`acpi_apd.c` — `leca_spi_desc`:** Adds APD descriptor with
-   `fixed_clk_rate = 400000000` so ACPI scan creates a platform device
-   with correct clock for `LECA0002`.
-2. **`acpi_apd.c` — device ID table:** Maps `"LECA0002"` →
-   `leca_spi_desc` under `CONFIG_ARM64`.
-3. **`spi-dw-mmio.c` — rename:** `dw_spi_intel_init` →
-   `dw_spi_hssi_no_dma_init`; identical body (sets `DW_HSSI_ID`, no DMA
-   setup).
-4. **`spi-dw-mmio.c` — OF table:** Updates `intel,keembay-ssi` to use
-   renamed init (no behavior change).
-5. **`spi-dw-mmio.c` — ACPI table:** Adds `{"LECA0002",
-   dw_spi_hssi_no_dma_init}` so driver probes and configures HSSI IP
-   correctly.
+- **Before:** After exempting `ACPI_REFCLASS_TABLE`, always call
+  `acpi_ut_add_reference(source_desc->reference.object)`.
+- **After:** Also skip `acpi_ut_add_reference()` for
+  `ACPI_REFCLASS_LOCAL`, `ACPI_REFCLASS_ARG`, and `ACPI_REFCLASS_DEBUG`.
+- **Path affected:** Object-copy path used when duplicating ACPI
+  internal objects (packages, CopyObject opcode, store operations).
 
-**Before → After:** LECARC SPI ACPI node ignored → platform device
-created + `dw_spi_mmio` probes with HSSI register programming.
+### Step 2.3: Bug Mechanism
+**Record:**
+- **Category:** Use-after-free / invalid pointer dereference
+- **Mechanism:** For LOCAL/ARG/DEBUG references, `reference.object` is
+  not a valid `union acpi_operand_object *`. `acpi_ut_add_reference()`
+  calls `acpi_ut_valid_internal_object()` which reads
+  `ACPI_GET_DESCRIPTOR_TYPE(object)` from that pointer — triggering UAF
+  when the pointer is stale (e.g., freed walk-state memory per ACPICA
+  issue #1127 ASAN report).
 
-### Step 2.3: Bug mechanism
-**Record:** **Category:** Hardware enablement / ACPI ID addition
-(exception category, not crash/leak/race fix). **Mechanism:** Without
-ACPI match, `dw_spi_mmio` never probes; with probe but wrong IP type
-(`dws->ip` defaults to 0 = PSSI via `devm_kzalloc`),
-`dw_spi_update_config()` would use PSSI register field masks instead of
-HSSI — incorrect SPI operation. The init function prevents that.
-
-### Step 2.4: Fix quality
-**Record:** Obviously correct — follows existing `HISI0173` pattern in
-both `acpi_apd.c` and `spi-dw-mmio.c`. Reuses proven `dw_spi_intel_init`
-logic. Minimal risk; rename is zero functional change. No API changes.
+### Step 2.4: Fix Quality
+**Record:**
+- Obviously correct: mirrors the existing TABLE exemption and matches
+  how `exresolv.c` treats these classes ("do not dereference").
+- Minimal, no unrelated changes.
+- Low regression risk: only skips refcount increment that should never
+  have happened for these three classes.
 
 ---
 
 ## PHASE 3: GIT HISTORY INVESTIGATION
 
 ### Step 3.1: Blame
-**Record:** `dw_spi_intel_init` introduced in `dc4e6d9fbf9a3`
-(2022-07-13, Intel Keem Bay). ACPI SPI support since `32215a6c6beb8`
-(2018-12-03, `HISI0173`). All prerequisite code long present in 6.18.y.
+**Record:**
+- Reference-handling case dates to **2005** (initial ACPICA import).
+- `acpi_ut_add_reference()` call: **2005** (Len Brown).
+- `ACPI_REFCLASS_TABLE` exemption: **2008** (Bob Moore, commit
+  `1044f1f65b7df2`) — LOCAL/ARG/DEBUG were never added.
+- Bug has been present since ~2005; TABLE partial fix since 2008.
 
-### Step 3.2: Fixes: tag
-**Record:** N/A — no Fixes: tag.
+### Step 3.2: Fixes: Tag
+**Record:** N/A — no Fixes: tag. Upstream ACPICA issue #1127 references
+commit f576898.
 
-### Step 3.3: Related file history
-**Record:** Recent changes to `spi-dw-mmio.c` in 6.18.y include reset
-error handling (`18a5f1af596e6`), `remove` callback conversion —
-unrelated to this hunk. Standalone patch; companion GPIO patch
-(`LECA0001`) is separate subsystem.
+### Step 3.3: Related File History
+**Record:**
+- `470188b09e92d` (2022): Fixed a separate UAF in
+  `acpi_ut_copy_ipackage_to_ipackage()` in the same file — shows this
+  code path is security-relevant and prior UAF fixes were backported.
+- `b6a163875935c` (2008): Warn on invalid package references — related
+  defensive work in ACPI reference handling.
+- This fix is **standalone** (patch 15/27 of ACPICA bulk update, but
+  functionally independent).
 
-### Step 3.4: Author history
-**Record:** No prior Thomas Lin commits in `drivers/spi/` or
-`drivers/acpi/` in this tree. First-time contributor for this platform;
-patch reviewed/acked by SPI maintainer.
+### Step 3.4: Author Context
+**Record:** ikaros reported the bug to ACPICA upstream. Rafael J.
+Wysocki (ACPI maintainer) signed off and submitted to linux-acpi. Author
+has prior kernel commits (null-check fixes).
 
 ### Step 3.5: Dependencies
-**Record:** No code dependencies on other commits. Part of 2-patch
-series (GPIO + SPI) for full LECARC ACPI support, but SPI patch is self-
-contained. `DW_HSSI_ID`, `dw_spi_intel_init`, ACPI framework all
-present. Applies standalone.
+**Record:** No dependencies. Self-contained 8-line conditional. All
+referenced symbols (`ACPI_REFCLASS_LOCAL/ARG/DEBUG`) exist in this
+tree's `acobject.h`.
 
 ---
 
 ## PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
 
-### Step 4.1: Original discussion
-**Record:** `b4 am -l '20260521-lecarc-acpi-
-ids-v1-2-ae0ae90b2817@lecomputing.com'` — thread found (v5, 2 patches).
-Cover: `arm64: Add LECARC ACPI IDs for DesignWare GPIO, SPI`. SPI patch
-acked by Mark Brown, reviewed by Andy Shevchenko. No stable nomination
-found in cover or patch. No NAKs in retrieved thread.
+### Step 4.1: Original Discussion
+**Record:**
+- `b4 dig -c f576898d7814`: Failed (ACPICA upstream SHA, not in Linux
+  git).
+- Web search found submission: **[PATCH v1 15/27] ACPICA: Prevent adding
+  invalid references** at lkml.iu.edu (May 27, 2026), part of ACPI:
+  ACPICA 20260408 series by Rafael J. Wysocki.
+- ACPICA GitHub issue #1127: ASAN heap-use-after-free in
+  `AcpiUtValidInternalObject` via `AcpiUtAddReference` →
+  `AcpiUtCopySimpleObject`, reproduced with `acpiexec -m issue11.aml`.
 
 ### Step 4.2: Reviewers
-**Record:** Andy Shevchenko (Reviewed-by), Mark Brown (Acked-by/Signed-
-off-by), Bartosz Golaszewski reviewed GPIO patch. Appropriate subsystem
-coverage.
+**Record:** Rafael J. Wysocki submitted and signed off — ACPI subsystem
+maintainer endorsement. Full recipient list unavailable (b4 dig failed;
+lore blocked).
 
-### Step 4.3: Bug reports
-**Record:** None — no user/syzbot reports. Enablement for new LE
-Computing LECARC SoC platform.
+### Step 4.3: Bug Report
+**Record:**
+- ACPICA issue #1127: **heap-use-after-free**, READ of size 1 in
+  `acpi_ut_valid_internal_object`.
+- Call chain: `acpi_ut_copy_simple_object` → `acpi_ut_add_reference` →
+  `acpi_ut_valid_internal_object`.
+- Triggered during AML parsing/execution (`acpi_ps_parse_aml`, table
+  load).
+- Severity: memory safety, potential crash/corruption.
 
-### Step 4.4: Series context
-**Record:** Patch 2/2 of series. Patch 1 adds `LECA0001` to `gpio-
-dwapb.c` (not in 6.18.44 tree). Full platform needs both; SPI patch
-independently valuable.
+### Step 4.4: Series Context
+**Record:** Part of 27-patch ACPICA 20260408 update. This patch is
+standalone; does not require other series patches.
 
-### Step 4.5: Stable list
-**Record:** Could not search lore stable list (bot protection). No
-stable discussion found in retrieved mbox.
+### Step 4.5: Stable List History
+**Record:** UNVERIFIED — could not search lore.kernel.org/stable (bot
+protection). No evidence against stable nomination.
 
 ---
 
 ## PHASE 5: CODE SEMANTIC ANALYSIS
 
-### Step 5.1: Key functions
-**Record:** `dw_spi_hssi_no_dma_init()` (renamed from
-`dw_spi_intel_init`), `acpi_apd_create_device()`, `dw_spi_mmio_probe()`,
-`dw_spi_update_config()` (uses `dw_spi_ip_is()`).
+### Step 5.1: Key Functions
+**Record:** `acpi_ut_copy_simple_object()` (modified); callers:
+`acpi_ut_copy_ielement_to_ielement()`,
+`acpi_ut_copy_iobject_to_iobject()`.
 
 ### Step 5.2: Callers
-**Record:** Init called from `dw_spi_mmio_probe()` via
-`device_get_match_data()` when ACPI/OF matches.
-`acpi_apd_create_device()` called during ACPI scan at boot. Boot-time
-device enumeration path.
+**Record:**
+- `acpi_ut_copy_iobject_to_iobject()` called from:
+  - `exoparg1.c` — `AML_COPY_OBJECT_OP`
+  - `exstore.c`, `exstoren.c` — store operations
+  - `dsutils.c`, `dsmthdat.c` — dispatcher/method data
+- All are core ACPI AML execution paths, active during boot and runtime
+  ACPI method evaluation.
 
 ### Step 5.3: Callees
-**Record:** Init only sets `dwsmmio->dws.ip = DW_HSSI_ID`. Probe
-continues to `dw_spi_add_host()`. `dw_spi_update_config()` branches on
-`dw_spi_ip_is(dws, PSSI)` vs HSSI paths.
+**Record:** `acpi_ut_add_reference()` →
+`acpi_ut_valid_internal_object()` → reads descriptor type from pointer.
+For invalid `reference.object`, this is the UAF site.
 
 ### Step 5.4: Reachability
-**Record:** Triggered at boot on LECARC hardware with ACPI +
-`CONFIG_ARM64` + SPI enabled. Not userspace-triggered; affects platform
-bring-up only.
+**Record:**
+- Triggered when copying packages or objects containing LOCAL/ARG/DEBUG
+  references.
+- ASAN reproducer uses AML table execution during namespace load.
+- Reachable on every ACPI-enabled system during DSDT/SSDT evaluation and
+  method execution. Not limited to obscure configs.
 
-### Step 5.5: Similar patterns
-**Record:** `HISI0173` uses identical dual-registration pattern
-(`acpi_apd.c` + `spi-dw-mmio.c`). `intel,keembay-ssi` already uses same
-init via OF. LECA0002 mirrors Keem Bay HSSI-no-DMA pattern.
-
----
-
-## PHASE 6: CROSS-REFERENCING AGAINST LOCAL TREE (6.18.44)
-
-### Step 6.1: Buggy/missing code exists?
-**Record:** **YES — code is missing.** `LECA0002` absent from both
-`acpi_apd.c` and `spi-dw-mmio.c`. `dw_spi_intel_init` present (line
-231). `LECA0001` also absent from `gpio-dwapb.c`. Infrastructure fully
-present since 2018–2022.
-
-### Step 6.2: Backport complications
-**Record:** **`git apply --check` PASS** — patch applies cleanly to
-6.18.44 without modification. Minor line-number offset only
-(`dw_spi_remove_host` vs mainline `dw_spi_remove_controller` not in
-hunks).
-
-### Step 6.3: Related fixes already present?
-**Record:** None. `git log --grep=LECA0002` and `git log --grep=lecarc`
-return no matches in this tree.
+### Step 5.5: Similar Patterns
+**Record:**
+- `utcopy.c:730`: `ACPI_REFCLASS_TABLE` already exempted (same
+  rationale).
+- `exresolv.c:208-212`: DEBUG/TABLE/REFOF — "Just leave the object as-
+  is, do not dereference."
+- `dsobject.c:471-522`: LOCAL/ARG set `reference.value`; DEBUG sets only
+  `reference.class` — confirms `object` is not a refcountable operand
+  object.
 
 ---
 
-## PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
+## PHASE 6: CROSS-REFERENCE WITH LOCAL TREE (v6.18.44)
 
-### Step 7.1: Subsystem criticality
-**Record:** `drivers/spi/` + `drivers/acpi/` — **IMPORTANT** (common
-infrastructure), but fix affects only LECARC ARM64 ACPI platform users.
+### Step 6.1: Buggy Code Present?
+**Record:** **YES.** At `drivers/acpi/acpica/utcopy.c:721-735`,
+unconditional `acpi_ut_add_reference(source_desc->reference.object)`
+after only TABLE exemption. Fix text not found via grep.
+
+### Step 6.2: Backport Complications
+**Record:** **Clean apply expected.** Index context matches submitted
+patch (line ~731). No conflicting recent changes to this hunk. Only
+copyright-year churn in file history.
+
+### Step 6.3: Related Fixes Already Present?
+**Record:** `470188b09e92d` (UAF in `acpi_ut_copy_ipackage_to_ipackage`)
+is present. No duplicate fix for LOCAL/ARG/DEBUG reference handling.
+
+---
+
+## PHASE 7: SUBSYSTEM CONTEXT
+
+### Step 7.1: Subsystem
+**Record:** **ACPI/ACPICA** — **CORE** subsystem. Affects all x86
+systems and ARM64 systems using ACPI.
 
 ### Step 7.2: Activity
-**Record:** `spi-dw-mmio` actively maintained; recent stable-relevant
-fixes (reset handling). Mature driver with established ACPI ID pattern.
+**Record:** Actively maintained; recent ACPICA fixes in this tree
+include UAF, NULL deref, and AML safety patches.
 
 ---
 
-## PHASE 8: IMPACT AND RISK ASSESSMENT
+## PHASE 8: IMPACT AND RISK
 
-### Step 8.1: Who is affected
-**Record:** LECARC SoC users booting 6.18.y with ACPI on ARM64. Very
-small, platform-specific population. No impact on existing hardware.
+### Step 8.1: Who Is Affected
+**Record:** All users with ACPI enabled (essentially all PCs, servers,
+many ARM laptops). Driver-specific? No — core ACPI interpreter.
 
-### Step 8.2: Trigger conditions
-**Record:** Boot on LECARC with `LECA0002` ACPI node. Deterministic for
-that hardware. Not triggerable by unprivileged users on other platforms.
+### Step 8.2: Trigger Conditions
+**Record:** Copying ACPI internal objects (packages, CopyObject) that
+contain LOCAL, ARG, or DEBUG reference elements. Can be triggered by
+ACPI AML in firmware tables. Timing-dependent UAF when
+`reference.object` holds stale pointer. Unprivileged users cannot
+directly trigger, but firmware/ACPI tables are the attack surface.
 
-### Step 8.3: Failure mode severity
-**Record:** Without patch: SPI does not work (hardware non-functional) —
-**MEDIUM** for affected users (platform bring-up blocked), **NONE** for
-everyone else. Not a crash/corruption on existing systems.
+### Step 8.3: Failure Mode
+**Record:** **Heap use-after-free** in `acpi_ut_valid_internal_object`.
+Severity: **HIGH** (crash, potential memory corruption). Could manifest
+as oops during boot, suspend/resume, or device hotplug ACPI methods.
 
-### Step 8.4: Risk-benefit
+### Step 8.4: Risk-Benefit
 **Record:**
-- **Benefit:** Enables SPI on LECARC for 6.18.y distributors shipping
-  that hardware — aligns with official stable rule allowing device ID
-  additions.
-- **Risk:** Very low — ~15 lines, table entries only, no logic changes
-  beyond rename.
-- **Ratio:** High benefit for LECARC users, negligible risk for all
-  others.
+- **Benefit:** HIGH — prevents UAF in core ACPI object-copy path on all
+  ACPI systems.
+- **Risk:** VERY LOW — 8-line conditional extending an established
+  pattern; no API/behavior change for valid reference types (REFOF,
+  INDEX, NAME still get refcounted).
+- **Ratio:** Strongly favors backport.
 
 ---
 
 ## PHASE 9: FINAL SYNTHESIS
 
-### Step 9.1: Evidence compile
+### Step 9.1: Evidence Summary
 
 **FOR backport:**
-- Official `stable-kernel-rules.rst` line 15: *"must either fix a real
-  bug … or **just add a device ID**"*
-- ACPI ID addition to existing `dw_spi_mmio` and `acpi_apd` drivers —
-  textbook stable exception
-- Small (~15 lines), reviewed, maintainer-acked
-- Applies cleanly to 6.18.44
-- Follows established `HISI0173` pattern
-- Correct HSSI init prevents wrong register programming if probed
+- Confirmed UAF (ASAN report in ACPICA #1127)
+- Long-standing bug (since 2005; TABLE partial fix since 2008)
+- Buggy code present in v6.18.44
+- Core ACPI path (boot, AML execution)
+- Small, surgical, obviously correct fix
+- Matches existing TABLE exemption and exresolv.c semantics
+- ACPI maintainer (Rafael Wysocki) signed off and submitted
+- Prior UAF fix in same file was backported to stable
 
 **AGAINST backport:**
-- Not a bug fix for existing 6.18.y users
-- Very niche hardware (LECARC)
-- Companion GPIO patch (`LECA0001`) also needed for full platform
-- Must land in mainline first (procedural stable requirement)
-- No user bug reports or crash reports
+- No kernel runtime reproducer in commit message (only acpiexec/AML test
+  case)
+- Part of larger ACPICA bulk update (but this patch is standalone)
+- Not yet merged into this 6.18.44 tree (candidate evaluation)
 
-**Unresolved:** Whether commit is merged to mainline yet (not in
-6.18.44); lore stable-list search blocked.
+**Unresolved:**
+- Lore stable-list discussion (site blocked)
+- Exact frequency in production firmware (unverified, but bug mechanism
+  is clear)
 
-### Step 9.2: Stable rules checklist
-1. Obviously correct and tested? **PASS** — maintainer ack, reviewer
-   sign-off, mirrors existing IDs
-2. Fixes real bug affecting users? **PASS** — via device-ID exception;
-   SPI non-functional without it on LECARC
-3. Important issue? **PASS (qualified)** — platform hardware enablement
-   for affected users; not crash/security
-4. Small and contained? **PASS** — ~15 lines, 2 files
-5. No new features/APIs? **PASS** — ACPI ID only; no new uapi
-6. Can apply to local tree? **PASS** — verified clean apply
+### Step 9.2: Stable Rules Checklist
+1. Obviously correct and tested? **PASS** — logic mirrors TABLE
+   exemption; ASAN-verified upstream; maintainer SOB.
+2. Fixes a real bug? **PASS** — UAF in object copy.
+3. Important issue? **PASS** — UAF/memory corruption in core ACPI,
+   severity HIGH.
+4. Small and contained? **PASS** — 9 lines, one file, one function.
+5. No new features/APIs? **PASS** — defensive guard only.
+6. Can apply to local tree? **PASS** — buggy code present, clean apply
+   expected.
 
-### Step 9.3: Exception category
-**Record:** **NEW DEVICE ID (ACPI ID)** — explicitly permitted by
-stable-kernel-rules.rst and analysis guidelines.
+### Step 9.3: Exception Categories
+**Record:** N/A (not device ID, quirk, DT, build, or docs — standard bug
+fix).
 
-### Step 9.4: Decision rationale
-
-For **Linux 6.18.y**, this commit adds an ACPI HID to two existing,
-mature drivers so LECARC SPI hardware can probe and operate correctly.
-It does not fix a regression affecting current users, but stable rules
-explicitly allow backports that *"just add a device ID."* The change is
-minimal, maintainer-reviewed, applies cleanly, and reuses existing init
-logic. Distributors shipping LECARC on 6.18.y need this patch.
+### Step 9.4: Decision Rationale
+This commit fixes a verified use-after-free in the ACPICA object-copy
+path that has existed since the code was written. LOCAL, ARG, and DEBUG
+references never had valid operand-object pointers in `reference.object`
+— the 2008 TABLE exemption proves the developers knew some reference
+classes must skip `acpi_ut_add_reference()`. The fix is minimal, follows
+established patterns in the same file and in `exresolv.c`, and protects
+all ACPI-enabled systems during AML execution. For v6.18.44, the buggy
+code is present and the fix applies cleanly.
 
 ---
 
 ## Verification
 
-- **[Phase 1]** Parsed subject, tags, body from user-provided commit and
-  mbox
-- **[Phase 2]** Diff analysis: 2 files, ~15 lines; rename verified
-  identical to `dw_spi_intel_init`
-- **[Phase 3]** `git describe HEAD` → v6.18.44; `git blame` on lines
-  231–237 → `dc4e6d9fbf9a3` (2022); ACPI support `32215a6c6beb8` (2018)
-- **[Phase 3]** `git log --oneline -15 -- drivers/spi/spi-dw-mmio.c
-  drivers/acpi/acpi_apd.c` — no LECA commits
-- **[Phase 3]** `git log --grep=LECA0002` / `--grep=lecarc` — no matches
-  in tree
-- **[Phase 4]** `b4 am -l` on msgid — v5 series, 2 patches, Mark Brown
-  Acked-by
-- **[Phase 4]** Read cover letter and mbox — platform enablement, no
-  stable Cc
-- **[Phase 4]** lore.kernel.org WebFetch — blocked by bot protection
-- **[Phase 5]** `grep dw_spi_ip_is` — IP type controls register
-  programming in `spi-dw-core.c`
-- **[Phase 5]** `dw_spi_mmio_probe` — init via `device_get_match_data()`
-  at line 376
-- **[Phase 6]** `grep LECA0002` — not present in tree
-- **[Phase 6]** `grep dw_spi_intel_init` — present at lines 231, 416
-- **[Phase 6]** `git apply --check` — **clean apply confirmed**
-- **[Phase 6]** `grep LECA0001` in gpio-dwapb — not present (companion
-  patch missing)
-- **[Phase 7]** Read `Documentation/process/stable-kernel-rules.rst`
-  line 15 — device ID exception confirmed
-- **[Phase 8]** Impact: platform-specific SPI enablement only
+- [Phase 1] Parsed subject, tags, body; identified UAF bug from ACPICA
+  issue #1127
+- [Phase 1] Web search: found [PATCH v1 15/27] on lkml (May 27, 2026),
+  Rafael Wysocki submission
+- [Phase 2] Read diff: +9/-1 in `acpi_ut_copy_simple_object()`,
+  LOCAL/ARG/DEBUG guard added
+- [Phase 2] Read `acobject.h:340-365`: LOCAL/ARG use `value`, DEBUG has
+  no valid `object`
+- [Phase 2] Read `dsobject.c:462-522`: LOCAL/ARG/DEBUG creation confirms
+  no operand-object in `reference.object`
+- [Phase 2] Read `utdelete.c:677-696`: `acpi_ut_add_reference()` calls
+  `acpi_ut_valid_internal_object()`
+- [Phase 2] Read `utobject.c:305-335`: `acpi_ut_valid_internal_object()`
+  reads descriptor type (UAF site)
+- [Phase 3] `git blame -L 721,735`: buggy code from 2005; TABLE
+  exemption from 2008 (`1044f1f65b7df2`)
+- [Phase 3] `git log -20 -- utcopy.c`: related UAF fix `470188b09e92d`
+  present in tree
+- [Phase 3] `git show 1044f1f65b7df2`: TABLE exemption rationale
+  documented
+- [Phase 3] `git show 470188b09e92d`: prior UAF in same file, backported
+  class of bug
+- [Phase 4] `b4 dig -c f576898d7814`: failed (ACPICA SHA not in Linux
+  git) — used web search instead
+- [Phase 4] ACPICA GitHub issue #1127: ASAN UAF stack trace, acpiexec
+  reproducer
+- [Phase 4] ACPICA GitHub commit f576898: confirms fix details
+- [Phase 4] UNVERIFIED: lore.kernel.org and patch.msgid.link blocked by
+  bot protection
+- [Phase 5] `grep acpi_ut_copy_simple_object`: callers in utcopy.c,
+  exoparg1.c, exstore.c, dsutils.c, dsmthdat.c
+- [Phase 5] Read `exresolv.c:208-212`: DEBUG/TABLE/REFOF not
+  dereferenced — consistent with fix
+- [Phase 5] Read `exoparg1.c:465-469`: CopyObject opcode uses
+  `acpi_ut_copy_iobject_to_iobject`
+- [Phase 6] `git describe HEAD`: v6.18.44
+- [Phase 6] Read `utcopy.c:721-735`: buggy unconditional
+  `acpi_ut_add_reference` confirmed
+- [Phase 6] `grep "Local/Arg/Debug references"`: fix NOT in tree
+- [Phase 8] ACPICA #1127 ASAN: heap-use-after-free, severity HIGH
 
----
+**YES**The background `git log --grep` check finished: it found **no
+commit** matching “Prevent adding invalid” or “invalid references” in
+this tree. That matches what we already saw in `utcopy.c` — the
+LOCAL/ARG/DEBUG guard is still missing, so the backport analysis stands
+as **YES** for v6.18.44.
 
-**YES**The background git searches finished: there are **no commits** in
-this 6.18.44 tree matching `LECA0002`, `lecarc`, or `dw_spi_intel_init`
-in commit messages. That confirms the LECARC SPI ACPI support isn’t
-present yet and nothing equivalent was already backported.
+ drivers/acpi/acpica/utcopy.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-That lines up with the earlier analysis: the patch applies cleanly here
-and is a good stable candidate under the ACPI device-ID exception. The
-companion GPIO patch (`LECA0001`) is also still missing from this tree
-if full LECARC ACPI bring-up is needed.
-
- drivers/acpi/acpi_apd.c   | 7 +++++++
- drivers/spi/spi-dw-mmio.c | 7 ++++---
- 2 files changed, 11 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index 49539f7528c64..cd0fcfaeafc75 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -181,6 +181,12 @@ static const struct apd_device_desc hip08_spi_desc = {
- 	.setup = acpi_apd_setup,
- 	.fixed_clk_rate = 250000000,
- };
-+
-+static const struct apd_device_desc leca_spi_desc = {
-+	.setup = acpi_apd_setup,
-+	.fixed_clk_rate = 400000000,
-+};
-+
- #endif /* CONFIG_ARM64 */
+diff --git a/drivers/acpi/acpica/utcopy.c b/drivers/acpi/acpica/utcopy.c
+index 80458e70ac2bf..9ecf5c3f49ba6 100644
+--- a/drivers/acpi/acpica/utcopy.c
++++ b/drivers/acpi/acpica/utcopy.c
+@@ -731,7 +731,15 @@ acpi_ut_copy_simple_object(union acpi_operand_object *source_desc,
+ 			break;
+ 		}
  
- #endif
-@@ -251,6 +257,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
- 	{ "HISI02A2", APD_ADDR(hip08_i2c_desc) },
- 	{ "HISI02A3", APD_ADDR(hip08_lite_i2c_desc) },
- 	{ "HISI0173", APD_ADDR(hip08_spi_desc) },
-+	{ "LECA0002", APD_ADDR(leca_spi_desc) },
- 	{ "NXP0001", APD_ADDR(nxp_i2c_desc) },
- #endif
- 	{ }
-diff --git a/drivers/spi/spi-dw-mmio.c b/drivers/spi/spi-dw-mmio.c
-index 7a5197586919c..8f7afe0e49aea 100644
---- a/drivers/spi/spi-dw-mmio.c
-+++ b/drivers/spi/spi-dw-mmio.c
-@@ -228,8 +228,8 @@ static int dw_spi_hssi_init(struct platform_device *pdev,
- 	return 0;
- }
+-		acpi_ut_add_reference(source_desc->reference.object);
++		/*
++		 * Local/Arg/Debug references do not have a valid Object pointer
++		 * that can be referenced
++		 */
++		if ((source_desc->reference.class != ACPI_REFCLASS_LOCAL) &&
++		    (source_desc->reference.class != ACPI_REFCLASS_ARG) &&
++		    (source_desc->reference.class != ACPI_REFCLASS_DEBUG)) {
++			acpi_ut_add_reference(source_desc->reference.object);
++		}
+ 		break;
  
--static int dw_spi_intel_init(struct platform_device *pdev,
--			     struct dw_spi_mmio *dwsmmio)
-+static int dw_spi_hssi_no_dma_init(struct platform_device *pdev,
-+				   struct dw_spi_mmio *dwsmmio)
- {
- 	dwsmmio->dws.ip = DW_HSSI_ID;
- 
-@@ -413,7 +413,7 @@ static const struct of_device_id dw_spi_mmio_of_match[] = {
- 	{ .compatible = "amazon,alpine-dw-apb-ssi", .data = dw_spi_alpine_init},
- 	{ .compatible = "renesas,rzn1-spi", .data = dw_spi_pssi_init},
- 	{ .compatible = "snps,dwc-ssi-1.01a", .data = dw_spi_hssi_init},
--	{ .compatible = "intel,keembay-ssi", .data = dw_spi_intel_init},
-+	{ .compatible = "intel,keembay-ssi", .data = dw_spi_hssi_no_dma_init},
- 	{
- 		.compatible = "intel,mountevans-imc-ssi",
- 		.data = dw_spi_mountevans_imc_init,
-@@ -428,6 +428,7 @@ MODULE_DEVICE_TABLE(of, dw_spi_mmio_of_match);
- #ifdef CONFIG_ACPI
- static const struct acpi_device_id dw_spi_mmio_acpi_match[] = {
- 	{"HISI0173", (kernel_ulong_t)dw_spi_pssi_init},
-+	{"LECA0002", (kernel_ulong_t)dw_spi_hssi_no_dma_init},
- 	{},
- };
- MODULE_DEVICE_TABLE(acpi, dw_spi_mmio_acpi_match);
+ 	case ACPI_TYPE_REGION:
 -- 
 2.53.0
 
