@@ -1,36 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A92CA471D16;
-	Mon, 31 Aug 2026 13:35:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEDD9446074;
+	Mon, 31 Aug 2026 13:39:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788183318; cv=none; b=H5YAxV84gPd40oPcoQeF4SQo9mJkpbLxVD4o3+7KdDAqIXuxLyYVAc1gKxMmfKs6ynGZgEWBOFBI0fA21GAPjq04t1cd9/Vlx6E6UlDV8bSTIx4IaXu3/JW8UPLk2x9a+VFEVk1b4lxl6nzurXX2VjREscNyipWi+1O060ClNCw=
+	t=1788183601; cv=none; b=tihJ9+X0qQz3/sHToRUkcrceIR7LWYG9ULC9GBKHLZKSGDgawLojKaehb+IgORMIMpmuoFdxXMTUzM5lM2b67tEW8J/pCGY4t6LcIinLCZ4xH7c9YE4QuS5dIu9et512JYx5thGt7GylHvpkHopAD6pD5us3O1pSmp+oKByU2Go=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788183318; c=relaxed/simple;
-	bh=QIq5xOs9tJx1RW+zdVX0iUSBuvf3LzBhaXiIkg8+nUk=;
+	s=arc-20240116; t=1788183601; c=relaxed/simple;
+	bh=r8dkcLNr5q9v4O/kFqzMa0nfADSurC5aXyTF/Z5tkH8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=PTxXg3oGE08yHry7zn2njbVW7iJrOoQzaBfeFeUszkhnchl5+5WI0tH1RPjcJB+Z26obuuntYbq/I1kJTJc1tVyGgA6t8oXALabI+LmrsrYF3COt5FAh46DF/p+IpBW8hIA655wppEQE1H+/M8oJXNqkkPyufN2VEivltEDFMVA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VyQbj6NY; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=qf2jrbEk19Kje0xI2JIJhXwNnVZax6hS/boW5wyEErPbWb/AkdCxKj9gzx1c7TrdZ2MYM5C1QkDpG1qALyN3uYx3ZsewDwItbC/9A0wVod1WeLWFdQh/PsFF96PpZJxaVWjQ6GGpfRBObZrVG9/pl7hyeruJsS9IGm9TEs8Vfpc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HgKJ8abu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VyQbj6NY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A82391F00A3E;
-	Mon, 31 Aug 2026 13:35:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HgKJ8abu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A4A41F00ACA;
+	Mon, 31 Aug 2026 13:39:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788183315;
-	bh=gkkilCCaBb/bCg04OyylRmI/xG9+oB/GrFqHSYyN5Dk=;
+	s=k20260515; t=1788183598;
+	bh=rwB2YCCBSkSa7ALLQYruPF6qOCUg1uuofODiN2yR2qg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=VyQbj6NY4A2x/UnMST4J0ng8dxRuHopmGAvZklO3soqG9eaCMq/U8lrkclSEY95Zq
-	 BU6JU+BHYz14oqto3xxNI/JkRauYwTkfElc2XIzqZJ60oGdk9B6wAJJQXw43L+yqVq
-	 CYkbL6R2XmXgTycp6ugvOCLVL3efzez32bwIe84jfS4CtBgljFzPkDrV5kCKKwlyFd
-	 4KHH/+A/YqrUJgAVSMCkDEGAXIqRCx71nITqTEtiRiXNDeQ0Yw4qaFgptMkIIYMhwy
-	 jRr4CmdAZXrG7dEputRC/lpUTpJIWHOU/gWj4Fp3CihdRW0uDc6Q2jJgh3HRY7V1aP
-	 zQTzmotalmdvg==
+	b=HgKJ8abuCIeo26N0C0ygBqJWsSkxT6nQK9+oHLHVVO64se7epwcB+vF5FkE3DtOdH
+	 52m1+MdDCs5tlgtrzPBkSs9bH7YqML+wGZAkueq5E6UwIGMVjPz3Mp0AanTsOKP4jY
+	 mOVNmqW+8BtMSgXnQGn2sXcrxjb9oKeYsmTJlRQYVLjw2MapZY/2Qpdz801r5RnqXR
+	 baenAoVr+vN71jXvZVVZFYZ3e/eUI3K3M2jBf3T7yjF1L661rhXkX5zsKZF9uYT7SM
+	 JxNLaC7rbqStDjsXuG5VLO/5pwqxtt8cG5vm989jq3yVLwqiCqhVmi+WhdO3xjrQ4f
+	 +Vh3wwlQ7TRxA==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
-Cc: Weiming Shi <bestswngs@gmail.com>,
-	Xiang Mei <xmei5@asu.edu>,
+Cc: ikaros <void0red@gmail.com>,
 	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
 	Sasha Levin <sashal@kernel.org>,
 	rafael@kernel.org,
@@ -39,9 +38,9 @@ Cc: Weiming Shi <bestswngs@gmail.com>,
 	linux-acpi@vger.kernel.org,
 	acpica-devel@lists.linux.dev,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-5.10] ACPICA: Fix NULL pointer dereference in acpi_ns_custom_package()
-Date: Mon, 31 Aug 2026 09:21:43 -0400
-Message-ID: <20260831133314.4125787-75-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.18-5.10] ACPICA: Fix condition check in acpi_ps_parse_loop()
+Date: Mon, 31 Aug 2026 09:23:38 -0400
+Message-ID: <20260831133314.4125787-190-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260831133314.4125787-1-sashal@kernel.org>
 References: <20260831133314.4125787-1-sashal@kernel.org>
@@ -57,402 +56,374 @@ X-stable-base: Linux 6.18.48
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Weiming Shi <bestswngs@gmail.com>
+From: ikaros <void0red@gmail.com>
 
-[ Upstream commit f8d14b7bb0063bbbd86c0e4d73edb8cea7b362bc ]
+[ Upstream commit 8de27e2d83c0d07ae9443c6304575b0609394bfd ]
 
-acpi_ns_custom_package() unconditionally dereferences the first element
-of the package to read the _BIX version number, without checking for
-NULL:
+Fix condition check for AML_ELSE_OP in acpi_ps_parse_loop() to prevent
+out-of-bounds access.
 
-    if ((*Elements)->Common.Type != ACPI_TYPE_INTEGER)
-
-When firmware returns a _BIX package whose first element is an
-unresolvable reference, ACPICA evaluates that entry to NULL.
-acpi_ns_remove_null_elements() does not strip NULL entries for
-ACPI_PTYPE_CUSTOM packages (fixed-position format would break if
-elements were shifted), so acpi_ns_custom_package() sees the NULL
-and causes a crash.
-
-Add a NULL check for the first element (version field) before
-dereferencing it. The caller then receives AE_AML_OPERAND_TYPE
-instead of crashing.
-
-Link: https://github.com/acpica/acpica/commit/f3f111b9013b
-Reported-by: Xiang Mei <xmei5@asu.edu>
-Reported-by: Weiming Shi <bestswngs@gmail.com>
+Link: https://github.com/acpica/acpica/commit/3b537b92336e
+Signed-off-by: ikaros <void0red@gmail.com>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Link: https://patch.msgid.link/5674388.Sb9uPGUboI@rafael.j.wysocki
+Link: https://patch.msgid.link/1959692.tdWV9SEqCh@rafael.j.wysocki
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-# Stable Backport Analysis: ACPICA NULL Pointer Dereference in
-`acpi_ns_custom_package()`
+# Stable Backport Analysis: ACPICA Fix condition check in
+acpi_ps_parse_loop()
 
-**Local tree:** Linux **6.18.44** (`v6.18.44`, `stable/linux-6.18.y`)
+**Local tree:** `stable/linux-6.18.y` at `v6.18.44` (Makefile: 6.18.44)
 
 ---
 
 ## PHASE 1: COMMIT MESSAGE FORENSICS
 
-### Step 1.1: Parse the Subject Line
-**Record:** `[ACPICA] [fix] NULL pointer dereference in
-acpi_ns_custom_package()` — ACPI namespace package validation for
-predefined methods.
+### Step 1.1: Subject Line
+**Record:** `[ACPICA]` `[Fix]` — correct the `AML_ELSE_OP` condition
+check in `acpi_ps_parse_loop()` to prevent out-of-bounds access.
 
-### Step 1.2: Parse All Commit Message Tags
+### Step 1.2: Commit Message Tags
 **Record:**
-- **Link:** https://github.com/acpica/acpica/commit/f3f111b9013b
+- **Link:** https://github.com/acpica/acpica/commit/3b537b92336e
   (upstream ACPICA commit)
-- **Reported-by:** Xiang Mei \<xmei5@asu.edu\>
-- **Reported-by:** Weiming Shi \<bestswngs@gmail.com\> (two independent
-  reporters)
-- **Signed-off-by:** Rafael J. Wysocki \<rafael.j.wysocki@intel.com\>
+- **Signed-off-by:** ikaros <void0red@gmail.com> (author)
+- **Signed-off-by:** Rafael J. Wysocki <rafael.j.wysocki@intel.com>
   (ACPI maintainer)
-- **Link:** https://patch.msgid.link/5674388.Sb9uPGUboI@rafael.j.wysocki
-- No `Fixes:` tag (expected for manual review)
-- No `Cc: stable@vger.kernel.org` (expected)
-- Notable: two real-world reporters; no syzbot
+- **Link:** https://patch.msgid.link/1959692.tdWV9SEqCh@rafael.j.wysocki
+  (kernel submission; could not fetch — Anubis bot protection)
+- No `Fixes:`, `Reported-by:`, `Cc: stable@vger.kernel.org`, `Tested-
+  by:`, or `Reviewed-by:` tags
+- Notable: Rafael Wysocki sign-off indicates ACPI maintainer acceptance
+  for kernel integration
 
-### Step 1.3: Analyze the Commit Body Text
+### Step 1.3: Commit Body Analysis
 **Record:**
-- **Bug:** `acpi_ns_custom_package()` dereferences `(*elements)` to read
-  the `_BIX` version field without checking for NULL.
-- **Trigger:** Firmware returns a `_BIX` package whose first element is
-  an unresolvable reference → evaluates to NULL.
-  `acpi_ns_remove_null_elements()` intentionally does not strip NULLs
-  from `ACPI_PTYPE_CUSTOM` packages (fixed-position semantics).
-- **Symptom:** Kernel crash (NULL pointer dereference) instead of a
-  controlled validation error.
-- **Fix behavior:** Return `AE_AML_OPERAND_TYPE` with a warning,
-  matching existing invalid-type handling.
-- **Version info:** None specified; bug is in long-standing code.
+- **Bug:** After skipping a failed If/While block, the code checks
+  `*walk_state->aml == AML_ELSE_OP` without verifying `walk_state->aml`
+  is within the AML buffer.
+- **Symptom:** Out-of-bounds read (1 byte past buffer end).
+- **Root cause:** `acpi_ps_get_next_package_end()` can advance the AML
+  pointer to or past `parser_state->aml_end` on malformed/truncated AML;
+  the subsequent dereference is unchecked.
+- **Version info:** None in commit message; upstream ACPICA issue #1078
+  documents ASan reproduction.
 
-### Step 1.4: Detect Hidden Bug Fixes
-**Record:** Not hidden — explicitly labeled as a NULL pointer
-dereference fix. Clear bug-fix commit.
+### Step 1.4: Hidden Bug Fix Detection
+**Record:** Not disguised — explicitly labeled a fix for an out-of-
+bounds access. Genuine memory-safety bug fix.
 
 ---
 
 ## PHASE 2: DIFF ANALYSIS
 
-### Step 2.1: Inventory the Changes
+### Step 2.1: Change Inventory
 **Record:**
-- **Files:** `drivers/acpi/acpica/nsprepkg.c` (+7 lines, 0 removed)
-- **Function modified:** `acpi_ns_custom_package()`
-- **Scope:** Single-file, surgical fix
+- **File:** `drivers/acpi/acpica/psloop.c` (+3 / -1 lines)
+- **Function:** `acpi_ps_parse_loop()`
+- **Scope:** Single-file, surgical fix in an error-recovery path
 
-### Step 2.2: Understand the Code Flow Change
+### Step 2.2: Code Flow Change
 **Record:**
-- **Hunk (before):** Immediately dereferences `(*elements)->common.type`
-  to validate the version integer.
-- **Hunk (after):** Adds `if (!(*elements))` guard with
-  `ACPI_WARN_PREDEFINED` and early return of `AE_AML_OPERAND_TYPE`
-  before any dereference.
-- **Path affected:** Predefined-method package validation for `_BIX`
-  (`ACPI_PTYPE_CUSTOM`).
+- **Before:** After skipping a failed If/While body, unconditionally
+  dereferenced `*walk_state->aml` to test for `AML_ELSE_OP`.
+- **After:** Only dereferences if `walk_state->aml <
+  parser_state->aml_end` AND the byte equals `AML_ELSE_OP`.
+- **Path affected:** Error recovery when `acpi_ps_get_arguments()` fails
+  inside an If/While control structure during module-level ACPI table
+  parsing.
 
-### Step 2.3: Identify the Bug Mechanism
+### Step 2.3: Bug Mechanism
 **Record:**
-- **Category:** NULL pointer dereference (memory safety)
-- **Mechanism:** Missing NULL check before pointer dereference on
-  package element array; NULL elements are intentionally preserved for
-  custom fixed-position packages.
+- **Category:** Buffer overflow / out-of-bounds read (memory safety)
+- **Mechanism:** `acpi_ps_get_next_package_end()` returns a pointer past
+  the package end. On malformed AML at the buffer boundary,
+  `walk_state->aml` can equal or exceed `parser_state->aml_end`. The old
+  code read one byte past the allocated AML buffer. The fix adds the
+  same bounds guard used by the main parse loop at line 300.
 
-### Step 2.4: Assess the Fix Quality
+### Step 2.4: Fix Quality
 **Record:**
-- **Quality:** Obviously correct — mirrors the existing invalid-type
-  error path directly below it.
-- **Minimal:** 7 lines, no unrelated changes.
-- **Regression risk:** Very low — converts a crash into the same error
-  status (`AE_AML_OPERAND_TYPE`) already used for wrong element types;
-  caller already handles this status for repair/fallback.
+- **Quality:** Obviously correct; mirrors the existing
+  `parser_state->aml < parser_state->aml_end` pattern at line 300.
+- **Regression risk:** Very low — only skips the Else-block skip when
+  already past the buffer end (correct behavior).
+- **Red flags:** None.
 
 ---
 
 ## PHASE 3: GIT HISTORY INVESTIGATION
 
-### Step 3.1: Blame the Changed Lines
-**Record:** Buggy dereference introduced in commit `7952d40240855` (Bob
-Moore, 2016-05-05): "ACPICA: ACPI 6.0: Update _BIX support for new
-package element". Present in this tree since at least 2016.
+### Step 3.1: Blame
+**Record:** Buggy line introduced in `5088814a6e931` ("ACPICA: AML
+parser: attempt to continue loading table after error") by Erik Kaneda,
+2018-06-01. Confirmed ancestor of HEAD. Present in `v6.18.44`.
 
-### Step 3.2: Follow the Fixes: Tag
-**Record:** No `Fixes:` tag present — not applicable.
+### Step 3.2: Fixes: Tag
+**Record:** N/A — no `Fixes:` tag. Upstream ACPICA issue #1078
+references the bug; the introducing commit is `5088814a6e931` (2018).
 
-### Step 3.3: Check File History for Related Changes
-**Record:** Recent `nsprepkg.c` history is mostly copyright updates. No
-related NULL-check fixes for this function. Fix commit on mainline:
-`f8d14b7bb0063` (May 27, 2026). Standalone — not part of a dependent
-series for this specific fix (appeared as patch 21/27 in a larger ACPICA
-merge, but the diff is self-contained).
+### Step 3.3: Related File History
+**Record:** Recent `psloop.c` history is copyright updates and unrelated
+parser cleanups. No prior fix for this issue in this tree. The Else-skip
+logic has been unchanged since 2018.
 
-### Step 3.4: Check the Author's Other Commits
-**Record:** Author Weiming Shi reported the bug; commit committed by
-Rafael J. Wysocki (ACPI subsystem maintainer). Strong subsystem
-ownership signal.
+### Step 3.4: Author Context
+**Record:** Author ikaros (void0red) reported the bug via ACPICA
+fuzzing. Rafael Wysocki (ACPI maintainer) signed off. ACPICA maintainer
+SaketADumbre merged upstream PR #1087 with positive review ("minimal but
+the right changes").
 
-### Step 3.5: Check for Dependent/Prerequisite Commits
-**Record:** No dependencies. `acpi_ns_custom_package()`,
-`acpi_ns_remove_null_elements()`, and `_BIX`/`ACPI_PTYPE_CUSTOM`
-definitions all exist in this tree. `git apply --check` confirms clean
-apply.
+### Step 3.5: Dependencies
+**Record:** No dependencies. Standalone 3-line fix. No patch series.
+Applies cleanly to current `psloop.c` in this tree.
 
 ---
 
 ## PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
 
-### Step 4.1: Find the Original Patch Discussion
-**Record:**
-- `b4 dig -c f8d14b7bb0063`: Found at
-  https://patch.msgid.link/5674388.Sb9uPGUboI@rafael.j.wysocki
-- `b4 dig -a`: Two submission contexts — standalone v1 from Weiming Shi
-  (2026-03-22) and inclusion in Rafael's ACPICA v1 27-patch series
-  (2026-05-27). Committed version matches the latter.
-- Lore thread content could not be fetched (Anubis bot protection on
-  lore.kernel.org).
+### Step 4.1: Original Discussion
+**Record:** `b4 dig -c 3b537b92336e` failed — commit not in Linux git
+history (ACPICA-only commit). Upstream discussion found at:
+- ACPICA issue #1078: ASan heap-buffer-overflow at `psloop.c:569`
+  (fuzzed AML via `acpiexec`)
+- ACPICA PR #1087: merged 2026-02-21
+- Kernel lore/patch.msgid.link blocked by Anubis — could not read thread
 
-### Step 4.2: Check Who Reviewed the Patch
-**Record:** `b4 dig -w` recipients: Rafael J. Wysocki, linux-
-acpi@vger.kernel.org, LKML, Saket Dumbre, Pawel Chmielewski (Intel ACPI
-team). Appropriate maintainer coverage.
+### Step 4.2: Reviewers
+**Record:** Rafael Wysocki signed off (kernel ACPI maintainer).
+SaketADumbre (ACPICA maintainer) reviewed and merged upstream. No NAKs
+found.
 
-### Step 4.3: Search for the Bug Report
-**Record:** Two `Reported-by` tags from researchers who found the crash
-with broken `_BIX` firmware. GitHub ACPICA commit confirms same
-mechanism. No syzbot report.
+### Step 4.3: Bug Report
+**Record:** ACPICA issue #1078 — ASan READ of size 1 at address 0 bytes
+past a 1293-byte heap region. Reproducible with fuzzed AML
+(`fuzz_178.aml`). Severity: confirmed memory safety bug via sanitizer.
 
-### Step 4.4: Check for Related Patches and Series
-**Record:** Fix is standalone (7-line diff). Being patch 21/27 in a
-merge series does not create a functional dependency on the other 26
-patches.
+### Step 4.4: Related Patches
+**Record:** Standalone fix. Not part of a multi-patch series.
 
-### Step 4.5: Check Stable Mailing List History
-**Record:** Could not search lore stable list (bot protection). No
-evidence found that this was explicitly rejected for stable.
+### Step 4.5: Stable Mailing List
+**Record:** Could not search lore (Anubis protection). No stable-
+specific discussion found via other sources.
 
 ---
 
 ## PHASE 5: CODE SEMANTIC ANALYSIS
 
-### Step 5.1: Identify Key Functions in the Diff
-**Record:** `acpi_ns_custom_package()` (modified)
+### Step 5.1: Key Functions
+**Record:** `acpi_ps_parse_loop()` — modified.
+`acpi_ps_get_next_package_end()` — called just before the buggy check.
 
-### Step 5.2: Trace Callers
-**Record:**
-- `acpi_ns_check_package()` → case `ACPI_PTYPE_CUSTOM` →
-  `acpi_ns_custom_package()` (`nsprepkg.c:108-110`)
-- `acpi_ns_check_package()` called from `acpi_ns_check_return_value()`
-  (`nspredef.c:136`)
-- `acpi_ns_check_return_value()` called from `acpi_ns_evaluate()`
-  (`nseval.c:261`)
-- Reaches `acpi_evaluate_object()` — used by `drivers/acpi/battery.c`
-  for `_BIX` evaluation (`battery.c:546-548`)
+### Step 5.2: Callers
+**Record:** `acpi_ps_parse_loop()` called from `acpi_ps_parse_aml()` in
+`psparse.c:475`. Reachable during ACPI table loading and method
+execution.
 
-### Step 5.3: Trace Callees
-**Record:** After version check, calls
-`acpi_ns_check_package_elements()` which uses
-`acpi_ns_check_object_type()` — that function already handles NULL
-objects safely at `type_error_exit` (`nspredef.c:248-252`). The bug is
-specifically in the direct dereference before that path.
+### Step 5.3: Callees
+**Record:** `acpi_ps_get_arguments()`, `acpi_ps_complete_op()`,
+`acpi_ps_get_next_package_end()`, `acpi_ut_pop_generic_state()`.
 
-### Step 5.4: Follow the Call Chain (Bug Reachability)
+### Step 5.4: Call Chain (Reachability)
 **Record:**
 ```
-acpi_battery_get_info()
-  → acpi_evaluate_object("_BIX")
-    → acpi_ns_evaluate()
-      → acpi_ns_check_return_value()
-        → acpi_ns_check_package()
-          → acpi_ns_custom_package()  [CRASH without fix]
+Boot: acpi_ns_load_table() → acpi_ns_parse_table() →
+acpi_ns_execute_table()
+  → acpi_ps_execute_table() [sets ACPI_METHOD_MODULE_LEVEL]
+  → acpi_ps_parse_aml() → acpi_ps_parse_loop()
 ```
-Reachable during normal battery driver operation on any system with
-`_BIX` and broken firmware. Not config-obscure — ACPI battery is
-standard on laptops.
+Module-level ACPI table parsing (DSDT/SSDT) uses this error-recovery
+path. Malformed firmware AML that fails If/While argument parsing can
+reach the buggy dereference. **Reachable during boot on all ACPI-enabled
+systems.**
 
-### Step 5.5: Search for Similar Patterns
-**Record:** `acpi_ns_remove_null_elements()` explicitly excludes
-`ACPI_PTYPE_CUSTOM` from NULL stripping (`nsrepair.c:457-472`, default
-case returns without modification). This design choice makes the NULL
-check in `acpi_ns_custom_package()` necessary and consistent.
+### Step 5.5: Similar Patterns
+**Record:** Main parse loop at line 300 uses `parser_state->aml <
+parser_state->aml_end`. The Else check at line 428 was the only
+unguarded dereference in this error path. No similar fix already present
+in this tree (`git log -S 'walk_state->aml <'` returned nothing).
 
 ---
 
-## PHASE 6: CROSS-REFERENCING AGAINST THE LOCAL TREE
+## PHASE 6: CROSS-REFERENCING AGAINST LOCAL TREE
 
-### Step 6.1: Does the Buggy Code Exist in This Tree?
-**Record:** **YES.** `drivers/acpi/acpica/nsprepkg.c:634` still has `if
-((*elements)->common.type != ACPI_TYPE_INTEGER)` without a prior NULL
-check. Fix commit `f8d14b7bb0063` is **NOT** an ancestor of HEAD (`fix
-NOT in tree`).
+### Step 6.1: Buggy Code Exists?
+**Record:** **YES.** Line 428 in `drivers/acpi/acpica/psloop.c` has the
+unguarded `if (*walk_state->aml == AML_ELSE_OP)`. Confirmed in
+`v6.18.44` tag. Bug present since 2018 (commit `5088814a6e931`).
 
-### Step 6.2: Check for Backport Complications
-**Record:** `git apply --check` on the mainline patch: **APPLIES
-CLEANLY**. No conflicts expected. File has not been structurally
-refactored around this function.
+### Step 6.2: Backport Complications
+**Record:** **Clean apply expected.** File structure unchanged around
+the hunk. No conflicting recent changes in this area.
 
-### Step 6.3: Check if Related Fixes Are Already Here
-**Record:** No prior fix for this specific bug. Other ACPICA NULL-deref
-fixes exist in the tree (e.g., `acpi_ev_address_space_dispatch`) but not
-for `acpi_ns_custom_package`.
+### Step 6.3: Related Fixes Already Present?
+**Record:** **No.** Fix not in this tree. `grep` for the bounds-check
+pattern returns no matches.
 
 ---
 
 ## PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
 
-### Step 7.1: Identify the Subsystem and Its Criticality
-**Record:** **ACPI/ACPICA** — core firmware interface subsystem.
-**Criticality: CORE** — affects all ACPI-enabled x86/ARM systems during
-method evaluation.
+### Step 7.1: Subsystem Criticality
+**Record:** **ACPI / ACPICA** — **CORE**. ACPI table parsing runs at
+boot on essentially all x86 and many ARM systems. Affects firmware table
+loading.
 
-### Step 7.2: Assess Subsystem Activity
-**Record:** Actively maintained; ACPICA regularly synced. The bug
-predates recent churn — present since 2016 `_BIX` support was added.
+### Step 7.2: Subsystem Activity
+**Record:** Active — regular ACPICA syncs and copyright updates, but
+this code path has been stable since 2018.
 
 ---
 
 ## PHASE 8: IMPACT AND RISK ASSESSMENT
 
-### Step 8.1: Determine Who Is Affected
-**Record:** Systems with ACPI battery support and firmware exposing
-`_BIX` with a broken/unresolvable first package element. Affects
-laptop/desktop users with ACPI batteries — a large population, though
-trigger requires specific broken firmware.
+### Step 8.1: Who Is Affected
+**Record:** All systems with ACPI enabled that load AML tables
+containing If/While constructs. Trigger requires malformed ACPI AML
+(common in buggy firmware) combined with a parse failure in the If/While
+predicate.
 
-### Step 8.2: Determine the Trigger Conditions
-**Record:** Evaluating `_BIX` when firmware returns a package whose
-version field (element 0) is an unresolvable reference → NULL. Triggered
-during battery info queries (boot and periodic updates). Does not
-require privileged user action beyond normal system operation.
-
-### Step 8.3: Determine the Failure Mode Severity
-**Record:** **CRITICAL** — NULL pointer dereference in kernel context →
-kernel oops/panic. With the fix: controlled `AE_AML_OPERAND_TYPE` return
-→ battery driver falls back to `_BIF` (`battery.c:541-567`).
-
-### Step 8.4: Calculate Risk-Benefit Ratio
+### Step 8.2: Trigger Conditions
 **Record:**
-- **Benefit:** HIGH — prevents kernel crash on broken firmware; enables
-  graceful degradation to `_BIF`.
-- **Risk:** VERY LOW — 7-line NULL guard using existing error-return
-  pattern.
-- **Ratio:** Strongly favors backport.
+- If/While argument parsing fails during module-level table load
+- `acpi_ps_get_next_package_end()` advances AML pointer to or past
+  buffer end
+- Unprivileged users cannot directly inject ACPI tables, but **malicious
+  or buggy firmware ACPI tables** can trigger this at boot
+- Likelihood: Low in practice, but the error-recovery path exists
+  specifically for malformed AML
+
+### Step 8.3: Failure Mode Severity
+**Record:** Out-of-bounds read of 1 byte past AML buffer. **Severity:
+HIGH** — potential kernel oops/crash or information leak. ASan-confirmed
+heap-buffer-overflow.
+
+### Step 8.4: Risk-Benefit
+**Record:**
+- **Benefit:** HIGH — prevents OOB read in core ACPI parser on malformed
+  firmware tables
+- **Risk:** VERY LOW — 3-line bounds check matching existing code
+  pattern
+- **Ratio:** Strongly favors backport
 
 ---
 
 ## PHASE 9: FINAL SYNTHESIS
 
-### Step 9.1: Compile the Evidence
+### Step 9.1: Evidence Summary
 
-**FOR backporting:**
-- Real NULL pointer dereference → kernel crash
-- Two independent reporters
-- Small (7 lines), obviously correct fix
-- Applies cleanly to 6.18.y
-- Bug present since 2016 in this tree
-- ACPI maintainer committed the fix
-- Graceful error path already exists in callers (`AE_AML_OPERAND_TYPE`
-  handled in `nspredef.c:141-144`; battery driver falls back to `_BIF`)
-- No new APIs or features
+**FOR backport:**
+- Real, ASan-confirmed out-of-bounds read
+- Small (3 lines), obviously correct fix
+- Bug present in this tree since 2018
+- Affects core ACPI table loading at boot
+- ACPI maintainer (Rafael Wysocki) signed off
+- No dependencies; clean apply
+- Error-recovery path designed for malformed AML — exactly when this bug
+  triggers
 
-**AGAINST backporting:**
-- Requires specific broken `_BIX` firmware (not universal)
-- No syzbot/fuzzer confirmation
-- Lore review thread not readable (bot protection)
+**AGAINST backport:**
+- Found via acpiexec fuzzing, not a reported production kernel crash
+- Requires malformed ACPI + specific parse failure (narrow trigger)
+- ACPI tables come from firmware, not direct userspace input (reduced
+  attack surface, but buggy firmware is common)
 
-**Unresolved:** Exact crash stack traces from reporters not available;
-lore discussion content unverified.
+**UNRESOLVED:**
+- Kernel lore thread content (Anubis blocked)
+- Whether any production kernel crash has been attributed to this
+  specific bug
 
-### Step 9.2: Apply the Stable Rules Checklist
-1. Obviously correct and tested? **PASS** — minimal NULL guard;
-   committed by maintainer; two reporters.
-2. Fixes a real bug affecting users? **PASS** — NULL deref on `_BIX`
-   evaluation with broken firmware.
-3. Important issue? **PASS** — kernel crash (CRITICAL severity).
-4. Small and contained? **PASS** — 7 lines, one function, one file.
-5. No new features or APIs? **PASS** — defensive check only.
-6. Can apply to the local tree? **PASS** — buggy code present; patch
-   applies cleanly.
+### Step 9.2: Stable Rules Checklist
+1. Obviously correct and tested? **PASS** — matches existing bounds-
+   check pattern; ASan-verified fix upstream
+2. Fixes a real bug? **PASS** — confirmed OOB read
+3. Important issue? **PASS** — memory safety in core boot path (HIGH)
+4. Small and contained? **PASS** — 3 lines, one function
+5. No new features/APIs? **PASS**
+6. Can apply to local tree? **PASS** — buggy code confirmed present,
+   clean apply expected
 
-### Step 9.3: Check for Exception Categories
-**Record:** Not a device-ID/quirk/DT/build/doc exception — standard bug
-fix.
+### Step 9.3: Exception Categories
+**Record:** N/A — standard bug fix, not a device ID/quirk/DT/build/doc
+exception.
 
 ### Step 9.4: Decision Rationale
-This is a textbook stable backport: a long-standing NULL pointer
-dereference in core ACPI validation code, triggered by real broken
-firmware on a common code path (battery `_BIX` evaluation), fixed with a
-minimal guard that converts a crash into an error code the callers
-already handle. The fix is absent from Linux 6.18.44 and applies without
-modification.
+
+This commit fixes a genuine out-of-bounds read in the ACPI AML parser's
+error-recovery path. The bug has existed since 2018 and is present in
+the local `6.18.44` tree. While the trigger requires malformed ACPI AML
+with a failed If/While parse, that is precisely the scenario the 2018
+error-recovery code was written to handle — and buggy ACPI firmware is a
+known real-world problem. The fix is minimal, mirrors an existing bounds
+check in the same function, and carries negligible regression risk.
+Memory-safety fixes in core boot-path code are appropriate for stable
+trees.
 
 ---
 
 ## Verification
 
-- **[Phase 1]** Parsed subject, tags, body; identified two Reported-by,
-  maintainer SOB, ACPICA upstream link
-- **[Phase 2]** Diff: +7 lines in `acpi_ns_custom_package()`, adds NULL
-  check before dereference
-- **[Phase 3]** `git blame`: buggy line from `7952d40240855` (2016);
-  `git show 7952d40240855`: introduced `_BIX` custom package validation
-- **[Phase 3]** `git log -20 -- nsprepkg.c`: no prior fix for this issue
-- **[Phase 3]** `git show f8d14b7bb0063`: confirmed mainline fix commit
-- **[Phase 3]** `git apply --check`: patch applies cleanly to 6.18.44
-- **[Phase 3]** `git merge-base --is-ancestor f8d14b7bb0063 HEAD`: fix
-  NOT in tree
-- **[Phase 4]** `b4 dig -c f8d14b7bb0063`: lore URL found
-- **[Phase 4]** `b4 dig -a`: v1 standalone + v1 21/27 in ACPICA series
-- **[Phase 4]** `b4 dig -w`: Rafael Wysocki, linux-acpi, Intel team CC'd
-- **[Phase 4]** WebFetch lore/GitHub: GitHub ACPICA commit readable;
-  lore blocked by Anubis
-- **[Phase 5]** Grep call chain: `acpi_ns_custom_package` →
-  `acpi_ns_check_package` → `acpi_ns_check_return_value` →
-  `acpi_ns_evaluate`
-- **[Phase 5]** Read `battery.c:546-567`: `_BIX` evaluation and `_BIF`
-  fallback confirmed
-- **[Phase 5]** Read `nsrepair.c:457-472`: `ACPI_PTYPE_CUSTOM` excluded
-  from NULL stripping (confirms commit message)
-- **[Phase 5]** Read `nspredef.c:248-252`: `acpi_ns_check_object_type`
-  already handles NULL safely elsewhere
-- **[Phase 6]** `git describe HEAD`: v6.18.44
-- **[Phase 6]** Read `nsprepkg.c:634`: buggy code confirmed present
-- **[Phase 8]** Failure mode: NULL deref → kernel oops; with fix →
-  `AE_AML_OPERAND_TYPE` → battery `_BIF` fallback
+- **[Phase 1]** Parsed commit message: subsystem ACPICA, action "Fix",
+  OOB access described; Rafael Wysocki SOB confirmed
+- **[Phase 1]** No Reported-by/syzbot; upstream ACPICA issue #1078
+  provides bug report
+- **[Phase 2]** Diff: +3/-1 in `psloop.c`, adds `walk_state->aml <
+  parser_state->aml_end` guard before `AML_ELSE_OP` check
+- **[Phase 3]** `git blame -L 428,428`: buggy line from `5088814a6e931`
+  (2018-06-01)
+- **[Phase 3]** `git show 5088814a6e931`: introduced Else-skip logic
+  without bounds check
+- **[Phase 3]** `git merge-base --is-ancestor 5088814a6e931 HEAD`:
+  confirmed buggy commit in tree
+- **[Phase 3]** `git log --oneline -20 -- drivers/acpi/acpica/psloop.c`:
+  no prior fix for this issue
+- **[Phase 3]** `git log -S 'walk_state->aml <' --
+  drivers/acpi/acpica/`: no similar fix already applied
+- **[Phase 4]** `b4 dig -c 3b537b92336e`: FAILED — commit not in Linux
+  git
+- **[Phase 4]** ACPICA issue #1078: ASan heap-buffer-overflow confirmed
+  at psloop.c
+- **[Phase 4]** ACPICA PR #1087: merged, maintainer approved minimal fix
+- **[Phase 4]** lore.kernel.org / patch.msgid.link: BLOCKED by Anubis —
+  UNVERIFIED for kernel list discussion
+- **[Phase 5]** `acpi_ps_parse_loop` callers: `psparse.c:475` via
+  `acpi_ps_parse_aml`
+- **[Phase 5]** Call chain: `acpi_ns_parse_table` →
+  `acpi_ns_execute_table` → `acpi_ps_execute_table` (sets
+  `ACPI_METHOD_MODULE_LEVEL`) → `acpi_ps_parse_loop`
+- **[Phase 5]** `nsparse.c:98`: `ACPI_METHOD_MODULE_LEVEL` set during
+  table execution
+- **[Phase 6]** `git describe HEAD`: v6.18.44 on `stable/linux-6.18.y`
+- **[Phase 6]** `git show v6.18.44:drivers/acpi/acpica/psloop.c` lines
+  426-432: buggy unguarded check confirmed
+- **[Phase 6]** `grep` for fix pattern in tree: no matches — fix not
+  present
+- **[Phase 8]** Failure mode: OOB read, severity HIGH; trigger on
+  malformed ACPI during boot table load
 
-**YES**The background search finished: the fix (`f8d14b7bb0063`) is on
-mainline but **not** in this **6.18.44** tree, and `git apply --check`
-applies it cleanly.
+**YES**
 
-**Verdict: YES** — backport this to stable. It’s a 7-line NULL guard in
-`acpi_ns_custom_package()` that stops a kernel oops when broken firmware
-returns a `_BIX` package with a NULL version element; callers already
-handle the returned `AE_AML_OPERAND_TYPE` and the battery driver can
-fall back to `_BIF`.
+ drivers/acpi/acpica/psloop.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
- drivers/acpi/acpica/nsprepkg.c | 7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/drivers/acpi/acpica/nsprepkg.c b/drivers/acpi/acpica/nsprepkg.c
-index ca137ce5674fb..c32770570120a 100644
---- a/drivers/acpi/acpica/nsprepkg.c
-+++ b/drivers/acpi/acpica/nsprepkg.c
-@@ -631,6 +631,13 @@ acpi_ns_custom_package(struct acpi_evaluate_info *info,
+diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
+index c989cadf271ce..35111ff2526b1 100644
+--- a/drivers/acpi/acpica/psloop.c
++++ b/drivers/acpi/acpica/psloop.c
+@@ -425,7 +425,10 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
  
- 	/* Get version number, must be Integer */
- 
-+	if (!(*elements)) {
-+		ACPI_WARN_PREDEFINED((AE_INFO, info->full_pathname,
-+				      info->node_flags,
-+				      "Return Package has a NULL version element"));
-+		return_ACPI_STATUS(AE_AML_OPERAND_TYPE);
-+	}
-+
- 	if ((*elements)->common.type != ACPI_TYPE_INTEGER) {
- 		ACPI_WARN_PREDEFINED((AE_INFO, info->full_pathname,
- 				      info->node_flags,
+ 					ACPI_ERROR((AE_INFO,
+ 						    "Skipping While/If block"));
+-					if (*walk_state->aml == AML_ELSE_OP) {
++					if ((walk_state->aml <
++					     parser_state->aml_end)
++					    && (*walk_state->aml ==
++						AML_ELSE_OP)) {
+ 						ACPI_ERROR((AE_INFO,
+ 							    "Skipping Else block"));
+ 						walk_state->parser_state.aml =
 -- 
 2.53.0
 
