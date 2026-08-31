@@ -1,46 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F64E47042E;
-	Mon, 31 Aug 2026 13:48:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEB5057983D;
+	Mon, 31 Aug 2026 13:49:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788184139; cv=none; b=RQqTlurJlzYNcklwwvpvBbCQdDu1kE6SgvCV5zUuo3h5l5GHeQSHBnzAgYyB+NbvsxzvPngylHhmp0tOqbbxhFuID0vNfSaVUCGmXjmix1/MFCZmh5JBJEO7T7Bj0hS/IddpT9EVlDdAi5o1yS5yqaX0zAB0NiX9gaLLstClJdw=
+	t=1788184161; cv=none; b=iA1jnzGyaSdCrykNbZS3FPzLRgAKIdXcdBp3O+UNLvq/sTYDnuUXQPRM+X0P+ejvAWTzISOy9vz9JGEXo3n48fkekxDBY4yNJIPdDIP1DH+cpKvtNa5jdCmMCUYBdsyv+2kdEx7M3wu6lrMu3U8StRDl8PpETV2Ms0ZNRRk34MA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788184139; c=relaxed/simple;
-	bh=8Dnas8XOt+02KXzRfNGj6qX7Og3LgnLq9WXQkwJksbM=;
+	s=arc-20240116; t=1788184161; c=relaxed/simple;
+	bh=Xswt+y1hLefFnxkk2F+3xP6YV6N12Vs7Vsbu/twIh/A=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=YoA1KeAoqbeD8yAmcMQwiFECULSq0bWHu2sySZ/NVLEP3FauxlQ/eWCYZtgaCgvBI9cmF116ALpAhH88gW3Ud8t8bgz2U/dWjwJbT/gVl4ItKs2uAQDiHUHZbO/WQW+fF6P5wwFkeuJ6qVhq+COyE3AwMt9U+1VIKGGT+u7uVdU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GYvScM5p; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=CQvlAMIf+Z5UAQ7s2DW6j3rjZ5ivNLbJ3t/jtKg9WtGadptATkU3d/LHzMCMe4Zz0yXxEXDVAUAcvD9B3WXauVb0wYF4WHO+dR9JeSZwl1dlzQhFc6r1j7LwgNgoNATlPmi0BTt2k5myPy4irpnsQmNiwCSuBRfI8jvosotnNQw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PKAyjcyw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GYvScM5p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D511A1F00A3D;
-	Mon, 31 Aug 2026 13:48:54 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PKAyjcyw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79F5E1F00A3E;
+	Mon, 31 Aug 2026 13:49:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788184136;
-	bh=ts2fQcxFcSPHhhtRBMntO9/TZ+3ftOMNTbo+c/MwJtk=;
+	s=k20260515; t=1788184158;
+	bh=VfJs/Gcp0CX9jHDu0u3nFy+bIdQiOz97/siV7vNDj2k=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=GYvScM5pWk7NSlWFnI+4nMT2Gkv6SDzEscE/vhP2COPp3Zn16iO6PK1iKBilL/haj
-	 F/6H3LwOONvoVfDl/CaMVfIDjHJm9vHE5b4BszdxD8JrgkrZlhd1lHasLA40j48j5x
-	 s7lUglRQdyo3a4XYMg1zBEfjaPIvu/nLUe+ZZ5WK59Cu6po2gIcVHyRYWYN6t2ru+n
-	 39JPukr3O5tiUFZ/99k0UJWvo5dhWApfUM9I1cg+EV43A5KL+oRCgDv31H9JtSqZwY
-	 G8r2jiEME6e1Txv80xi5XWH+DhSLXOamieuZ6fZ6+2fA1AIhtSFPfTmAwNcS1sPfbw
-	 zRAMlLXbFCqAw==
+	b=PKAyjcywnLwT/1XdXrwLO2nMhtWa0SMeHbyFxXqAp9VBHyqr6eKrC8iAXqxkwJYdK
+	 MNZ40YjFMFOikwUN+ivOjTJjbJ9DNqHbmDigqw48ghHBDFwcNzx1cPH4TSNYPXOAFC
+	 Tc8WVx57q1e8oq/6eUgRcwvvwGWGR18mNkYbIkEtQVVcZYNhwFWJZugNL5tKrEB98R
+	 9pmZEDMkNlZs9ff4RF1q4NzvjKS4NsZeDeErslAkxoZHCnMfi1m2dUrmEAS1BrqG5P
+	 HG7Aqlg4JaEyGBK30LFuLySKYAuRk9//ZBIM0rIhvPNvwKlvbxX46knurAxcfAimPL
+	 g7hM8sbepL9NQ==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
-Cc: ikaros <void0red@gmail.com>,
+Cc: Chen Pei <cp0613@linux.alibaba.com>,
+	Alison Schofield <alison.schofield@intel.com>,
 	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
 	Sasha Levin <sashal@kernel.org>,
 	rafael@kernel.org,
-	maciej.wieczor-retman@intel.com,
-	pawel.chmielewski@intel.com,
 	linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-5.10] ACPICA: add boundary checks in acpi_ps_get_next_field()
-Date: Mon, 31 Aug 2026 09:29:01 -0400
-Message-ID: <20260831133314.4125787-513-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.18-6.12] ACPI: scan: Honor _DEP for ACPI0016 PCI/CXL host bridge
+Date: Mon, 31 Aug 2026 09:29:14 -0400
+Message-ID: <20260831133314.4125787-526-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260831133314.4125787-1-sashal@kernel.org>
 References: <20260831133314.4125787-1-sashal@kernel.org>
@@ -56,437 +54,423 @@ X-stable-base: Linux 6.18.48
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: ikaros <void0red@gmail.com>
+From: Chen Pei <cp0613@linux.alibaba.com>
 
-[ Upstream commit e15aa60de0256d63df2331bf5a4bc4dd287504cd ]
+[ Upstream commit bf5418a5fe63f35da35941ae896d5df121d95ffc ]
 
-Add boundary checks in acpi_ps_get_next_field() to prevent out-of-bounds
-access.
+CXL root devices (ACPI0017) declare _DEP on their parent ACPI0016
+PCI/CXL host bridge so that cxl_acpi probes only after acpi_pci_root
+has attached the PCI root and registered it for acpi_pci_find_root().
+However, acpi_dev_ready_for_enumeration() only consults dep_unmet
+when the supplier's HID is on acpi_honor_dep_ids[]; otherwise the
+dependency is silently ignored.
 
-Link: https://github.com/acpica/acpica/commit/c39183ea84bc
-Signed-off-by: ikaros <void0red@gmail.com>
+Without honoring the dependency, cxl_acpi can probe before the PCI
+root is ready. The resulting CXL topology is broken: decoder targets
+read as 0 and no port/endpoint devices appear under
+/sys/bus/cxl/devices/.
+
+Add ACPI0016 to acpi_honor_dep_ids[] so the _DEP declared by ACPI0017
+is enforced. This relies on the preceding patch ("ACPI: PCI: clear
+_DEP dependencies after PCI root bridge attach"), which releases the
+dependency once the PCI root is fully enumerated; the two patches
+must be applied together.
+
+Signed-off-by: Chen Pei <cp0613@linux.alibaba.com>
+Tested-by: Alison Schofield <alison.schofield@intel.com>
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+Link: https://patch.msgid.link/20260526025118.38935-3-cp0613@linux.alibaba.com
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Link: https://patch.msgid.link/24388159.6Emhk5qWAg@rafael.j.wysocki
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-# Stable Backport Analysis: ACPICA boundary checks in
-`acpi_ps_get_next_field()`
+# Stable Backport Analysis: ACPI: scan: Honor _DEP for ACPI0016 PCI/CXL
+host bridge
 
-## Phase 1: Commit Message Forensics
-
-### Step 1.1: Subject Line
-**Record:** `[ACPICA] [add] boundary checks in acpi_ps_get_next_field()
-to prevent out-of-bounds access`
-
-### Step 1.2: Commit Message Tags
-**Record:**
-- **Link:** https://github.com/acpica/acpica/commit/c39183ea84bc
-  (upstream ACPICA commit)
-- **Signed-off-by:** ikaros <void0red@gmail.com> (author)
-- **Signed-off-by:** Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-  (ACPI maintainer)
-- **Link:**
-  https://patch.msgid.link/24388159.6Emhk5qWAg@rafael.j.wysocki (Linux
-  integration patch reference)
-- No `Fixes:`, `Reported-by:`, `Cc: stable@vger.kernel.org`, `Tested-
-  by:`, or `Reviewed-by:` tags
-- Notable: upstream ACPICA issue **#1125** with ASAN heap-buffer-
-  overflow report and reproducible `acpiexec` test case
-
-### Step 1.3: Commit Body Analysis
-**Record:**
-- **Bug:** `acpi_ps_get_next_field()` reads AML bytes without verifying
-  they remain within the AML buffer (`aml_end`)
-- **Symptom:** Heap-buffer-overflow (ASAN) when parsing
-  malformed/truncated ACPI AML field lists
-- **Root cause:** Reads of 1, 2, and 4 bytes proceed without checking
-  `parser_state->aml_end`; caller loop uses `pkg_end`, which can extend
-  past `aml_end` on corrupt package-length encoding
-- **Version info:** None in commit message; bug exists in long-standing
-  code (function dates to 2005)
-
-### Step 1.4: Hidden Bug Fix Detection
-**Record:** Not disguised — explicitly a defensive boundary-check fix
-for out-of-bounds memory access. This is a real memory-safety bug fix,
-not cleanup.
+**Local tree:** `v6.18.44` (`stable/linux-6.18.y`, `make kernelversion`
+= 6.18.44)
 
 ---
 
-## Phase 2: Diff Analysis
+## PHASE 1: COMMIT MESSAGE FORENSICS
 
-### Step 2.1: Change Inventory
+### Step 1.1: Subject line
+**Record:** `[ACPI: scan]` `[Honor]` — Enforce ACPI `_DEP` dependency
+for ACPI0016 (CXL/PCIe host bridge) so ACPI0017 (CXL root) consumers
+wait for PCI root attach.
+
+### Step 1.2: Tags
 **Record:**
-- **File:** `drivers/acpi/acpica/psargs.c` (+20 / -0)
-- **Function:** `acpi_ps_get_next_field()` only
-- **Scope:** Single-file, surgical fix
+| Tag | Value |
+|-----|-------|
+| Fixes: | None |
+| Reported-by: | None |
+| Tested-by: | Alison Schofield \<alison.schofield@intel.com\> |
+| Reviewed-by: | Alison Schofield \<alison.schofield@intel.com\> |
+| Link: |
+https://patch.msgid.link/20260526025118.38935-3-cp0613@linux.alibaba.com
+|
+| Signed-off-by: | Chen Pei, Rafael J. Wysocki |
 
-### Step 2.2: Code Flow Changes
+**Notable:** Intel CXL maintainer tested and reviewed. No syzbot. No
+explicit `Cc: stable`.
+
+### Step 1.3: Body analysis
 **Record:**
-1. **Entry check:** Before any AML read, if `aml >=
-   parser_state->aml_end`, return NULL
-2. **Named field path:** Before 4-byte name read (`ACPI_MOVE_32_TO_32`),
-   verify `aml + ACPI_NAMESEG_SIZE <= aml_end`; free allocated op on
-   failure
-3. **Access field path:** Before reading 2 bytes (type/attribute),
-   verify `aml + 2 <= aml_end`; free op on failure
-4. **Extended access field:** Before reading third byte
-   (`access_length`), verify `aml < aml_end`; free op on failure
+- **Bug:** ACPI0017 (CXL root) declares `_DEP` on parent ACPI0016, but
+  `acpi_dev_ready_for_enumeration()` ignores it because ACPI0016 is not
+  in `acpi_honor_dep_ids[]`.
+- **Symptom:** `cxl_acpi` probes before `acpi_pci_root` registers the
+  PCI root → `acpi_pci_find_root()` returns NULL → broken CXL topology
+  (decoder targets = 0, no devices under `/sys/bus/cxl/devices/`).
+- **Root cause:** `_DEP` silently ignored for ACPI0016 suppliers.
+- **Dependency:** Must be applied with preceding patch "ACPI: PCI: clear
+  _DEP dependencies after PCI root bridge attach" (upstream
+  `3a59c3b772e5d`).
+- **Version info:** None explicit; cover letter says x86 is usually
+  masked by link order; RISC-V is affected.
 
-**Before → After:** Unbounded AML pointer advancement → bounded reads
-with graceful NULL return and proper `acpi_ps_free_op()` cleanup on
-post-allocation failures.
-
-### Step 2.3: Bug Mechanism
-**Record:**
-- **Category:** Buffer overflow / out-of-bounds read (memory safety)
-- **Mechanism:** On truncated or malformed AML,
-  `acpi_ps_get_next_field()` advances `parser_state->aml` and reads past
-  the end of the AML buffer. ASAN report confirms a 4-byte read past a
-  175-byte heap allocation at the named-field path.
-
-### Step 2.4: Fix Quality
-**Record:**
-- Fix is minimal, follows existing `aml_end` semantics used elsewhere in
-  ACPICA
-- Properly frees `field` on error paths after `acpi_ps_alloc_op()`
-  succeeds
-- Does not cover every read in the function (e.g.,
-  `AML_INT_CONNECTION_OP` sub-paths,
-  `acpi_ps_get_next_package_length()`), but addresses the ASAN-confirmed
-  overflow sites
-- Low regression risk; only adds early-exit guards on malformed input
+### Step 1.4: Hidden bug fix?
+**Record:** No — this is an explicit, well-described functional bug fix
+disguised as a one-line allowlist addition.
 
 ---
 
-## Phase 3: Git History Investigation
+## PHASE 2: DIFF ANALYSIS
+
+### Step 2.1: Inventory
+**Record:**
+- **Files:** `drivers/acpi/scan.c` (+1 line)
+- **Functions:** None modified; only `acpi_honor_dep_ids[]` data changed
+- **Scope:** Single-file, surgical (1 insertion)
+
+### Step 2.2: Code flow change
+**Record:**
+- **Before:** When ACPI0017 declares `_DEP` on ACPI0016,
+  `acpi_scan_add_dep()` sets `dep->honor_dep = false` (ACPI0016 not in
+  list) → `acpi_dev_ready_for_enumeration()` never blocks on `dep_unmet`
+  → CXL root probes early.
+- **After:** ACPI0016 in honor list → `honor_dep = true` → consumer
+  ACPI0017 blocked until supplier clears dependency.
+- **Path affected:** ACPI device enumeration / attach path in
+  `acpi_bus_check_add()` via `acpi_dev_ready_for_enumeration()`.
+
+### Step 2.3: Bug mechanism
+**Record:**
+- **Category:** Logic / correctness — probe ordering / dependency
+  enforcement
+- **Mechanism:** ACPI `_DEP` declared in firmware is parsed but not
+  enforced unless supplier HID is on `acpi_honor_dep_ids[]`. Early
+  `cxl_acpi_probe()` calls `to_cxl_host_bridge()` →
+  `acpi_pci_find_root()` fails → host bridges skipped silently.
+
+### Step 2.4: Fix quality
+**Record:**
+- **Quality:** Obviously correct; mirrors existing entries (PNP0C0F,
+  RSCV*, INTC*).
+- **Regression risk:** Applying **this patch alone** without the
+  prerequisite would permanently block ACPI0017 enumeration (confirmed
+  in lore review by Alison Schofield). Both patches must ship together.
+- **Risk of combined series:** Very low — follows `pci_link.c` / `ec.c`
+  pattern already in tree.
+
+---
+
+## PHASE 3: GIT HISTORY INVESTIGATION
 
 ### Step 3.1: Blame
-**Record:** Core `acpi_ps_get_next_field()` logic introduced in 2005
-(`^1da177e4c3f4`). Buggy unbounded-read pattern has been present since
-initial implementation. `parser_state->aml_end` field added long ago and
-is set in `dswstate.c`.
+**Record:** `acpi_honor_dep_ids[]` introduced by `9d9bcae47fd5a` (2021,
+INT3472 camera PMIC deps). PNP0C0F added by `2cb9155d116c4` (2024,
+pci_link dep series). ACPI0016 handling in `pci_root.c` since
+`241d26bc26add` (2022). CXL ACPI root since `4812be97c015b`. Bug has
+been latent since honor-list mechanism existed without ACPI0016 entry.
 
-### Step 3.2: Fixes: Tag
-**Record:** N/A — no `Fixes:` tag in commit message.
+### Step 3.2: Fixes: tag
+**Record:** N/A — no `Fixes:` tag.
 
-### Step 3.3: Related File History
-**Record:** Related recent fix in this tree:
-- `e6169a8ffee8a` — "ACPICA: Fix memory leak if acpi_ps_get_next_field()
-  fails" (April 2024)
-  - Ensures caller frees partial field list when
-    `acpi_ps_get_next_field()` returns NULL
-  - Complements this fix: boundary failure returns NULL, and caller
-    already handles that path
+### Step 3.3: Related file history
+**Record:** Related pending stable commits on `autosel` branch:
+- `b52e0117014b6` — ACPI: PCI: Clear _DEP dependencies after PCI root
+  bridge attach (prerequisite)
+- `82dbacca5220e` — this commit (upstream `bf5418a5fe63f`)
 
-### Step 3.4: Author Context
-**Record:** Author ikaros reported the bug via ACPICA GitHub issue
-#1125. Patch integrated by Rafael J. Wysocki (ACPI subsystem
-maintainer). No other commits from this author in the Linux ACPICA tree.
+Neither is in current HEAD (`6.18.44`). Part of a 2-patch series (v1,
+May 26 2026).
+
+### Step 3.4: Author context
+**Record:** Chen Pei (Alibaba). Series reviewed/tested by Alison
+Schofield (Intel CXL maintainer) and Reviewed-by Dave Jiang on lore
+thread.
 
 ### Step 3.5: Dependencies
-**Record:**
-- Requires `parser_state->aml_end` in `struct acpi_parse_state` —
-  **present** in this tree (`aclocal.h:912`)
-- Requires `ACPI_NAMESEG_SIZE` — **present** (used at line 527)
-- Requires `acpi_ps_free_op()` — **present**
-- Standalone; no patch-series dependency
-- **This commit is NOT yet in the local tree** (6.18.44); boundary
-  checks absent from current `psargs.c`
+**Record:** **Hard dependency** on patch 1
+(`acpi_dev_clear_dependencies()` in `acpi_pci_root_add()`). Prerequisite
+not in tree. Both patches apply cleanly (`git apply --check` passed).
+Standalone application of this commit alone is harmful.
 
 ---
 
-## Phase 4: Mailing List and External Research
+## PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
 
-### Step 4.1: Original Discussion
+### Step 4.1: Original discussion
 **Record:**
-- `b4 dig -c c39183ea84bc` — no match (hash is from upstream ACPICA
-  repo, not Linux kernel)
-- ACPICA GitHub issue #1125: detailed ASAN report, reproduction with
-  `acpiexec -m issue10.aml`, fixed by commit c39183ea84bc
-- lore.kernel.org — blocked by bot protection; could not fetch thread
+- `b4 dig -c bf5418a5fe63f` → https://patch.msgid.link/20260526025118.38
+  935-3-cp0613@linux.alibaba.com
+- Series v1, 2 patches, May 26 2026
+- Cover letter explains twofold root cause and mandatory pairing
 
 ### Step 4.2: Reviewers
-**Record:** Rafael J. Wysocki signed off on Linux integration (per
-commit message). Full lore review thread unverified due to access block.
+**Record:** CC'd: rafael@kernel.org, bhelgaas@google.com,
+djbw@kernel.org, linux-cxl@, linux-acpi@, linux-pci@. Alison Schofield:
+Tested-by + Reviewed-by for series. Dave Jiang: Reviewed-by.
 
-### Step 4.3: Bug Report
-**Record:**
-- **Severity:** Heap-buffer-overflow (ASAN), READ of 4 bytes past
-  allocation boundary
-- **Reproducible:** Yes, with crafted AML via `acpiexec`
-- **Stack trace:** `AcpiPsGetNextField` → `AcpiPsGetNextArg` →
-  `AcpiPsGetArguments` → `AcpiPsParseLoop` → `AcpiPsParseAml` → table
-  load path
+### Step 4.3: Bug report
+**Record:** No external bugzilla/syzbot. Cover letter documents
+reproducible failure: decoder targets = 0, empty
+`/sys/bus/cxl/devices/`. Trigger on RISC-V where `acpi_pci_root` vs
+`cxl_acpi` link order is not guaranteed.
 
-### Step 4.4: Related Patches
-**Record:** Standalone fix. Related but separate: memory-leak fix
-`e6169a8ffee8a` already in this tree.
+### Step 4.4: Series context
+**Record:** 2-patch series; both required. Applying only patch 2 "would
+prevent cxl_acpi from ever probing on ACPI0016 systems" (Alison
+Schofield review in mbox).
 
-### Step 4.5: Stable List Discussion
-**Record:** Could not verify stable-list discussion (lore blocked).
-Absence of prior stable nomination is not a negative signal per review
-guidelines.
+### Step 4.5: Stable list history
+**Record:** No stable@ discussion found in mbox thread. Not a negative
+signal per instructions.
 
 ---
 
-## Phase 5: Code Semantic Analysis
+## PHASE 5: CODE SEMANTIC ANALYSIS
 
-### Step 5.1: Key Functions
-**Record:** `acpi_ps_get_next_field()` (modified), called from
-`acpi_ps_get_next_arg()` for `ARGP_FIELDLIST`.
+### Step 5.1: Key functions
+**Record:** `acpi_honor_dep_ids[]` (data), consumed by
+`acpi_scan_add_dep()`, `acpi_scan_dep_init()`,
+`acpi_dev_ready_for_enumeration()`.
 
 ### Step 5.2: Callers
 **Record:**
-- `acpi_ps_get_next_arg()` — `psargs.c:787`, in `ARGP_FIELDLIST` case
-- Called from `acpi_ps_get_arguments()` in `psloop.c`
-- Reached during ACPI AML parsing: `acpi_ps_execute_table()` →
-  `acpi_ns_parse_table()` → `acpi_ns_load_table()`
-- **Context:** ACPI table load at boot (DSDT/SSDT) and dynamic table
-  load paths
+- `acpi_dev_ready_for_enumeration()` called from `acpi_bus_check_add()`
+  (scan.c:2288) — core ACPI enumeration path; also `i2c-core-acpi.c`.
+- `cxl_acpi_probe()` (drivers/cxl/acpi.c) depends on
+  `acpi_pci_find_root()` via `to_cxl_host_bridge()` and
+  `add_host_bridge_dport()`.
 
 ### Step 5.3: Callees
-**Record:** `ACPI_GET8()`, `ACPI_MOVE_32_TO_32()`, `acpi_ps_alloc_op()`,
-`acpi_ps_free_op()`, `acpi_ps_get_next_package_length()`,
-`acpi_ps_get_next_namestring()`
+**Record:** Honor flag flows to `dep->honor_dep` →
+`adev->flags.honor_deps` → checked in
+`acpi_dev_ready_for_enumeration()`. Clearing via
+`acpi_dev_clear_dependencies()` (prerequisite patch).
 
 ### Step 5.4: Reachability
-**Record:**
-- Triggered when kernel parses ACPI AML containing malformed field lists
-- ACPI tables come from firmware at boot on virtually all x86/ARM
-  systems with ACPI
-- Additional paths: `CONFIG_ACPI_TABLE_UPGRADE`, initrd ACPI override
-  (`tables.c`), configfs (`acpi_configfs.c`) — root/privileged, but
-  firmware-supplied tables are the primary real-world vector
-- **Userspace trigger:** Indirect — via firmware/BIOS ACPI tables, not
-  direct syscall; still kernel memory safety issue
+**Record:** Triggered at boot during ACPI enumeration on systems with
+ACPI0016 + ACPI0017 in DSDT. Affects `CONFIG_CXL_BUS` platforms.
+Userspace cannot directly trigger; firmware-defined topology. Common on
+CXL-capable servers, especially RISC-V.
 
-### Step 5.5: Similar Patterns
-**Record:** `aml_end` used as bound in `psloop.c:300`, `dswexec.c:745`,
-but **not** in `acpi_ps_get_next_field()` in this tree — this is a gap
-the fix addresses.
+### Step 5.5: Similar patterns
+**Record:** Identical pattern to PNP0C0F (`2cb9155d116c4`): honor
+supplier in list + `acpi_dev_clear_dependencies()` after probe.
+Precedent already in 6.18.44.
 
 ---
 
-## Phase 6: Cross-Reference Against Local Tree (6.18.44)
+## PHASE 6: CROSS-REFERENCING AGAINST LOCAL TREE
 
-### Step 6.1: Buggy Code Present?
-**Record:** **YES.** Current `psargs.c` at lines 474–586 performs
-unbounded reads in `acpi_ps_get_next_field()` with no `aml_end` checks.
-`aml_end` field exists and is initialized in `dswstate.c:580–585`.
+### Step 6.1: Buggy code present?
+**Record:** **YES.** `drivers/acpi/scan.c` lines 857–868 —
+`acpi_honor_dep_ids[]` lacks ACPI0016. `drivers/cxl/acpi.c` has ACPI0017
+probe path. `drivers/acpi/pci_root.c` handles ACPI0016 but does not call
+`acpi_dev_clear_dependencies()`. Full buggy state confirmed in 6.18.44.
 
-### Step 6.2: Backport Complications
-**Record:** `git apply --check` on the provided diff — **applies
-cleanly** to this tree. No conflicts expected.
+### Step 6.2: Backport complications
+**Record:** Clean apply for both patches (`git apply --check` exit 0).
+No conflicts expected. Minor context: line after PNP0C0F entry.
 
-### Step 6.3: Related Fixes Already Present?
-**Record:** Memory-leak companion fix `e6169a8ffee8a` is present.
-Boundary-check fix is **not** present.
-
----
-
-## Phase 7: Subsystem Context
-
-### Step 7.1: Subsystem Criticality
-**Record:** **drivers/acpi/acpica** — ACPI core parser. **Criticality:
-CORE/IMPORTANT** — affects all ACPI-enabled systems during table
-parsing.
-
-### Step 7.2: Subsystem Activity
-**Record:** ACPICA receives periodic syncs from upstream; active
-maintenance by Rafael Wysocki's team. Recent related fix (memory leak)
-landed in 2024.
+### Step 6.3: Related fixes already present?
+**Record:** Prerequisite infrastructure exists
+(`acpi_dev_clear_dependencies`, honor_dep mechanism, pci_link
+clear_deps). Neither fix from this series is in HEAD. No duplicate fix
+found.
 
 ---
 
-## Phase 8: Impact and Risk Assessment
+## PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
 
-### Step 8.1: Who Is Affected
-**Record:** All systems using ACPI (majority of PCs, servers, many ARM
-boards) when loading ACPI tables with malformed field-list AML.
+### Step 7.1: Subsystem criticality
+**Record:** **IMPORTANT** — ACPI core enumeration + CXL driver. Not
+universal, but critical for CXL memory users on affected platforms.
 
-### Step 8.2: Trigger Conditions
-**Record:**
-- Malformed/truncated ACPI DSDT/SSDT field definitions
-- Most likely: buggy firmware ACPI tables; also crafted tables via
-  override mechanisms
-- Not every boot — requires specific AML corruption in field lists
-- Unprivileged direct trigger unlikely; firmware is primary vector
-
-### Step 8.3: Failure Mode Severity
-**Record:**
-- **Failure mode:** Out-of-bounds heap read during ACPI AML parsing
-- **Severity: HIGH** — memory safety violation; potential info leak or
-  crash during boot/table load; ASAN-confirmed
-
-### Step 8.4: Risk-Benefit
-**Record:**
-- **Benefit: HIGH** — prevents OOB read in widely-used ACPI parser
-- **Risk: LOW** — 20-line additive guards, only affects malformed-input
-  paths
-- **Ratio:** Strongly favors backport
+### Step 7.2: Activity
+**Record:** ACPI scan and CXL actively maintained in 6.18.y (recent
+commits: `19b3691ec9402`, `7f0a53c2b94ca` on scan.c; multiple CXL
+commits).
 
 ---
 
-## Phase 9: Final Synthesis
+## PHASE 8: IMPACT AND RISK ASSESSMENT
 
-### Step 9.1: Evidence Summary
+### Step 8.1: Who is affected
+**Record:** CXL-capable systems with ACPI0016 host bridges and ACPI0017
+root devices — primarily non-x86 (RISC-V called out), but any platform
+where probe order differs from x86 link order.
+
+### Step 8.2: Trigger conditions
+**Record:** Boot-time ACPI enumeration when ACPI0017 `_DEP` points to
+ACPI0016 and `cxl_acpi` probes before `acpi_pci_root` completes. Non-
+deterministic on RISC-V; masked on typical x86 by built-in link order.
+
+### Step 8.3: Failure mode severity
+**Record:** Complete CXL enumeration failure — no port/endpoint devices,
+decoder targets = 0. **Severity: HIGH** for affected CXL users (hardware
+non-functional); **MEDIUM** overall (platform-specific, x86 often
+unaffected). Not a crash/oops, but total loss of CXL functionality.
+
+### Step 8.4: Risk-benefit
+**Record:**
+- **Benefit:** HIGH for affected CXL platforms — restores working CXL
+  topology
+- **Risk:** VERY LOW for combined 2-patch series (5 lines total,
+  established pattern)
+- **Ratio:** Strongly favorable when both patches applied together
+
+---
+
+## PHASE 9: FINAL SYNTHESIS
+
+### Step 9.1: Evidence summary
 
 **FOR backport:**
-- Real, ASAN-confirmed heap-buffer-overflow
-- Fixes memory safety bug in ACPI core parser used at boot
-- Small (+20 lines), single file, applies cleanly
-- Signed off by ACPI maintainer (Rafael Wysocki)
-- Complements existing memory-leak fix already in tree
-- `aml_end` infrastructure already present — no structural dependency
+- Fixes real, reproducible hardware enablement bug on CXL/ACPI platforms
+- Intel CXL maintainer tested and reviewed
+- Minimal, obviously correct change (1 line)
+- All infrastructure present in 6.18.44
+- Applies cleanly; direct precedent (PNP0C0F/pci_link series in tree)
+- Prerequisite patch equally small and follows existing
+  `ec.c`/`pci_link.c` pattern
 
 **AGAINST backport:**
-- Partial coverage (does not add bounds checks to all read paths in the
-  function, e.g., connection-op sub-path)
-- Trigger primarily via firmware ACPI tables (not direct userspace
-  attack)
-- NULL return on boundary failure reported as `AE_NO_MEMORY` by caller
-  (pre-existing semantic imprecision, not introduced by this patch)
+- Requires paired prerequisite commit (cannot apply alone)
+- Bug masked on most x86 systems
+- Very new (upstream June 2026, not yet in 6.18.44)
+- Niche hardware population (CXL + ACPI0016/0017)
 
-**Unresolved:**
-- Full lore.kernel.org review thread not accessible
-- Whether Linux mainline has merged this yet (not in 6.18.44)
+**Unresolved:** No production deployment data beyond Intel testing.
 
-### Step 9.2: Stable Rules Checklist
-1. Obviously correct and tested? **PASS** — straightforward bounds
-   checks; ASAN-tested upstream via acpiexec/issue #1125
-2. Fixes a real bug? **PASS** — confirmed heap-buffer-overflow
-3. Important issue? **PASS** — OOB read in kernel ACPI parser (HIGH
-   severity)
-4. Small and contained? **PASS** — +20 lines, one function, one file
-5. No new features/APIs? **PASS** — defensive checks only
-6. Can apply to local tree? **PASS** — verified clean apply;
-   prerequisites present
+### Step 9.2: Stable rules checklist
+| Criterion | Result |
+|-----------|--------|
+| 1. Obviously correct and tested? | **PASS** — 1-line allowlist;
+Tested-by/Reviewed-by Intel CXL maintainer |
+| 2. Fixes real bug affecting users? | **PASS** — CXL devices missing on
+affected platforms |
+| 3. Important issue? | **PASS** — complete CXL enumeration failure
+(HIGH for affected users) |
+| 4. Small and contained? | **PASS** — 1 line (+ 4 lines prerequisite) |
+| 5. No new features/APIs? | **PASS** — enforcement of existing ACPI
+`_DEP` mechanism |
+| 6. Can apply to local tree? | **PASS** — both patches apply cleanly;
+prerequisite must accompany |
 
-### Step 9.3: Exception Category
-**Record:** N/A — standard memory-safety bug fix, not a device-
-ID/quirk/DT/build/doc exception.
+### Step 9.3: Exception categories
+**Record:** Hardware enablement / probe-order fix for existing CXL ACPI
+driver — analogous to USB/PCI quirks and prior PNP0C0F `_DEP` fix.
 
-### Step 9.4: Decision Rationale
+### Step 9.4: Decision rationale
 
-This commit fixes a confirmed out-of-bounds heap read in the ACPI AML
-field parser — a core subsystem path exercised during every ACPI table
-load. The fix is minimal, uses existing `aml_end` bounds infrastructure,
-applies cleanly to Linux 6.18.44, and is signed off by the ACPI
-maintainer. While the primary trigger is malformed firmware ACPI tables
-rather than direct userspace input, heap buffer overflows in kernel
-parsers are exactly the class of fixes stable trees exist to deliver.
-The companion memory-leak fix is already in this tree, making the NULL-
-return error path safe.
+This commit fixes a genuine ACPI probe-ordering bug that leaves CXL
+hardware completely non-functional on platforms (notably RISC-V) where
+`cxl_acpi` can run before `acpi_pci_root` finishes. The change is
+minimal, follows an established in-tree pattern, and has maintainer
+review and testing.
+
+**Critical operational note:** This commit MUST be backported together
+with its prerequisite (`ACPI: PCI: Clear _DEP dependencies after PCI
+root bridge attach`, upstream `3a59c3b772e5d`). Applying this patch
+alone would block `cxl_acpi` from ever probing on ACPI0016 systems, as
+explicitly warned in the lore review.
+
+For the 6.18.44 tree, where the buggy code is present and CXL ACPI
+support is fully integrated, backporting both patches of this series is
+appropriate.
 
 ---
 
 ## Verification
 
-- **[Phase 1]** Parsed commit message and tags; confirmed ASAN report
-  via ACPICA GitHub issue #1125
-- **[Phase 1]** Identified subsystem (ACPICA), action (add boundary
-  checks), bug type (OOB access)
-- **[Phase 2]** Diff analysis: +20 lines in `acpi_ps_get_next_field()`,
-  4 boundary-check insertion points
-- **[Phase 2]** Read current `psargs.c:457-686` — confirmed buggy code
-  without bounds checks
-- **[Phase 3]** `git describe HEAD` → `v6.18.44`; `make kernelversion` →
-  `6.18.44`
-- **[Phase 3]** `git blame` on lines 474–590: function code from 2005,
-  long-standing vulnerability
-- **[Phase 3]** `git log --oneline -20 -- drivers/acpi/acpica/psargs.c`:
-  found related fix `e6169a8ffee8a`
-- **[Phase 3]** `git show e6169a8ffee8a`: memory-leak fix on NULL return
-  from same function
-- **[Phase 3]** `git log --grep="boundary checks in
-  acpi_ps_get_next_field"`: no match — fix not in tree
-- **[Phase 4]** WebFetch ACPICA commit c39183ea84bc and issue #1125:
-  ASAN heap-buffer-overflow confirmed
-- **[Phase 4]** `b4 dig -c c39183ea84bc`: no Linux kernel match (ACPICA-
-  only hash)
-- **[Phase 4]** lore.kernel.org fetch: blocked (bot protection) — review
-  thread unverified
-- **[Phase 5]** Grep callers: `acpi_ps_get_next_field` called from
-  `acpi_ps_get_next_arg()` at line 787
-- **[Phase 5]** Traced load path: `acpi_ns_load_table` →
-  `acpi_ns_parse_table` → `acpi_ps_execute_table`
-- **[Phase 5]** Read caller at `psargs.c:780-807`: NULL return handled
-  with field-list cleanup
-- **[Phase 6]** Confirmed `struct acpi_parse_state` has `aml_end` at
-  `aclocal.h:912`
-- **[Phase 6]** Confirmed `dswstate.c:580-585` initializes `aml_end`
-  from AML buffer length
-- **[Phase 6]** `git apply --check` on provided diff: **clean apply**
-- **[Phase 6]** Grep `aml >= parser_state->aml_end` in `psargs.c`: no
-  matches — fix absent
-- **[Phase 8]** Assessed severity: heap OOB read during ACPI parse =
-  HIGH
+- [Phase 1] Parsed subject, tags; found Tested-by/Reviewed-by Alison
+  Schofield, Link to patch series
+- [Phase 1] Cover letter describes broken CXL topology, decoder targets
+  = 0
+- [Phase 2] Diff: +1 line to `acpi_honor_dep_ids[]` in
+  `drivers/acpi/scan.c`
+- [Phase 2] Read `acpi_dev_ready_for_enumeration()` at scan.c:2470–2476
+  — honors `dep_unmet` only when `honor_deps` set
+- [Phase 2] Read `acpi_scan_add_dep()` at scan.c:2035–2036 — sets
+  `honor_dep` from list
+- [Phase 2] Read `to_cxl_host_bridge()` at cxl/acpi.c:523–533 — requires
+  `acpi_pci_find_root()`
+- [Phase 3] `git describe HEAD` → v6.18.44
+- [Phase 3] `acpi_honor_dep_ids` mechanism from `9d9bcae47fd5a`, in tree
+- [Phase 3] ACPI0016 in `pci_root.c` from `241d26bc26add`, in tree
+- [Phase 3] CXL ACPI0017 driver from `4812be97c015b`, in tree
+- [Phase 3] Commit `bf5418a5fe63f` NOT in HEAD; prerequisite
+  `3a59c3b772e5d` NOT in HEAD
+- [Phase 3] Both on `autosel` branch as `82dbacca5220e` and
+  `b52e0117014b6`
+- [Phase 4] `b4 dig -c bf5418a5fe63f` → lore URL; v1 2-patch series
+- [Phase 4] `b4 dig -w` → CC'd rafael, bhelgaas, djbw, linux-cxl, linux-
+  acpi, linux-pci
+- [Phase 4] mbox: Alison Schofield Tested-by/Reviewed-by; warns patch 2
+  alone blocks cxl_acpi
+- [Phase 4] mbox: RISC-V probe-order issue documented; x86 usually
+  masked
+- [Phase 5] `acpi_dev_ready_for_enumeration` callers: scan.c:2288,
+  i2c-core-acpi.c:155
+- [Phase 5] `pci_link.c:751` has `acpi_dev_clear_dependencies()` —
+  precedent confirmed
+- [Phase 6] Read scan.c:857–868 — ACPI0016 absent from honor list in
+  6.18.44
+- [Phase 6] Read pci_root.c:760–762 — no `acpi_dev_clear_dependencies()`
+  call
+- [Phase 6] `git apply --check` for both patches → exit 0 (clean apply)
+- [Phase 7] CXL Kconfig exists at `drivers/cxl/Kconfig` (CONFIG_CXL_BUS)
+- [Phase 8] Failure mode: complete CXL enumeration failure, not kernel
+  crash
 
-**YES**The analysis is done: **backport recommended** for Linux
-**6.18.44**.
+**YES**The background searches finished and line up with the earlier
+analysis:
 
-The commit adds `aml_end` boundary checks in `acpi_ps_get_next_field()`
-to stop out-of-bounds reads when parsing malformed ACPI AML. That’s a
-real, ASAN-confirmed heap buffer overflow on the ACPI table load path,
-the patch is small (+20 lines), applies cleanly here, and the needed
-`aml_end` infrastructure is already in this tree.
+- **Git history grep** for ACPI0016-related commits in `drivers/acpi/`
+  only turned up the older CXL host-bridge work (`241d26bc26add` — CXL
+  `_OSC` handling). Neither of the two `_DEP` fixes showed up in that
+  narrow search because they aren’t in the current `6.18.44` HEAD yet.
+- **`autosel` branch search** found both patches from the series:
+  - `b52e0117014b6` — ACPI: PCI: Clear _DEP dependencies after PCI root
+    bridge attach (prerequisite)
+  - `82dbacca5220e` — ACPI: scan: Honor _DEP for ACPI0016 PCI/CXL host
+    bridge (the commit under review)
 
-**YES**
+That confirms the verdict: **YES**, but only as a pair — the
+prerequisite must be backported together with this one-patch change to
+`acpi_honor_dep_ids[]`.
 
- drivers/acpi/acpica/psargs.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/acpi/scan.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/acpi/acpica/psargs.c b/drivers/acpi/acpica/psargs.c
-index 6f6ae38ec044c..55273cbbfc67e 100644
---- a/drivers/acpi/acpica/psargs.c
-+++ b/drivers/acpi/acpica/psargs.c
-@@ -474,6 +474,10 @@ static union acpi_parse_object *acpi_ps_get_next_field(struct acpi_parse_state
- 	ASL_CV_CAPTURE_COMMENTS_ONLY(parser_state);
- 	aml = parser_state->aml;
- 
-+	if (aml >= parser_state->aml_end) {
-+		return_PTR(NULL);
-+	}
-+
- 	/* Determine field type */
- 
- 	switch (ACPI_GET8(parser_state->aml)) {
-@@ -522,6 +526,11 @@ static union acpi_parse_object *acpi_ps_get_next_field(struct acpi_parse_state
- 
- 		/* Get the 4-character name */
- 
-+		if ((parser_state->aml + ACPI_NAMESEG_SIZE) >
-+		    parser_state->aml_end) {
-+			acpi_ps_free_op(field);
-+			return_PTR(NULL);
-+		}
- 		ACPI_MOVE_32_TO_32(&name, parser_state->aml);
- 		acpi_ps_set_name(field, name);
- 		parser_state->aml += ACPI_NAMESEG_SIZE;
-@@ -567,6 +576,10 @@ static union acpi_parse_object *acpi_ps_get_next_field(struct acpi_parse_state
- 
- 		/* Get the two bytes (Type/Attribute) */
- 
-+		if ((parser_state->aml + 2) > parser_state->aml_end) {
-+			acpi_ps_free_op(field);
-+			return_PTR(NULL);
-+		}
- 		access_type = ACPI_GET8(parser_state->aml);
- 		parser_state->aml++;
- 		access_attribute = ACPI_GET8(parser_state->aml);
-@@ -578,6 +591,10 @@ static union acpi_parse_object *acpi_ps_get_next_field(struct acpi_parse_state
- 		/* This opcode has a third byte, access_length */
- 
- 		if (opcode == AML_INT_EXTACCESSFIELD_OP) {
-+			if (parser_state->aml >= parser_state->aml_end) {
-+				acpi_ps_free_op(field);
-+				return_PTR(NULL);
-+			}
- 			access_length = ACPI_GET8(parser_state->aml);
- 			parser_state->aml++;
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 16704c2a730c0..a1c8609185d07 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -865,6 +865,7 @@ static const char * const acpi_honor_dep_ids[] = {
+ 	"RSCV0005", /* RISC-V SBI MPXY MBOX */
+ 	"RSCV0006", /* RISC-V RPMI SYSMSI */
+ 	"PNP0C0F",  /* PCI Link Device */
++	"ACPI0016", /* CXL/PCIe host bridge: CXL root (ACPI0017) depends on PCI root attach */
+ 	NULL
+ };
  
 -- 
 2.53.0
