@@ -1,69 +1,33 @@
-Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11010006.outbound.protection.outlook.com [52.101.56.6])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F583134CCF;
-	Tue,  1 Sep 2026 09:36:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.56.6
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788255411; cv=fail; b=Ez/UxY8e1hE6Ysoe6aPmhTH/sDaCBt2995hfoF0KqNSty2dYRvTMjlCTl2Oc+o9hBMhC4FGmk8QgnU7CQsgzxv12i+nipXwto4RIW1TCuwbdHF4d9oubSAHRjKnPUBXM2ut0hmH3fjuXLhNjjR5r8EhI7rQzSW9fRDiHEOFKJug=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788255411; c=relaxed/simple;
-	bh=Sx9cf9kqKt2goHix+1lGAot205Xf52k/WeB4BnsMKVM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=VuDILZsdFSror53dxpSM+LIUEj2tayOaD9mb0dYJL95FKs/v/bMjEjV1u1W6ymUEU8aKrn+rEHPR3ZgUUxdLOCZu6utKJQ2+Gx2PqelKTV/k61SQh5lN28niJEgEBE8bLb64+M3bDfI+Ni0IoHwwfo4jh0wmT4uszexCGdBQIhk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=f9eQJRMS; arc=fail smtp.client-ip=52.101.56.6
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 884EB476CC6;
+	Tue,  1 Sep 2026 10:01:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788256875; cv=none; b=q/EnFGbpAXO2l0SLvWvnHV8/nlTpB085oeQNNSDIx/DHNWYBMQuNto+O8V9gVGDkvsR42Cvxg4JNJSezcOVO7dO8TDRFioS8Vb5seH7Z3KSC2EgP3a9tl24sDvtKZA6Ov+1AA3fNmkiC0aFjRkQSkGGbW1/UQf6ZDOOksYygXIw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788256875; c=relaxed/simple;
+	bh=hFaGbZs+gyNt53iDxI8FMGOZYwr8mY5moKC97lpcpIw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=kKqIBan3Avh7aVBGCCinwWXRVFbY4tcVtfhR5/E4Cp4EPqK5ZKSUmZqkHR8pPiAT1WHjfuBiUPWeEvvfd6phOUtlg2bq4Lu09yD4j3WbeNBVWuj6YUl6q3aLN8gbRie7wAlQnI2Zu0GrktzDMEVXhtUoI9Ho+woYv++doZSTNGA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=EB7TCIJB; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="f9eQJRMS"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=sRf+4fkm94BKSE6j1RrWEVKgPCmWBfiAJogVzgu62ZcUvzOIxkT7vSDrrIRA52nA4c39Xgj6pLWbBnXkXTijG7Jy7goXFYvMNuFe/NnT5PQ5Io0FEXeQW8zrH/sYlnAXSRrxYD/qO7V+ENI9WXlh8ykZMJGdRVTwSfQ9uMzVXAPnUoq38S4fPliBNprHG2xpyOqAOznwO8u/iEw1kWxRQSOABBMrJ4hFiAbm7KAnERhMltAl1daG4azdDPadT6/AKYc+ktsJiDh9yiNRtYRA7++SdKyqGBCcFtpM5llpnecVZX2COphDFliJL0Gl6buInlce5rYy9wF1B/lWD7SP3Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=oMM7iQTjXlkFxFIK9pumRkOkrwJFfUdzNJfwM3ZNGEI=;
- b=prWojpAGHUMQKKFp62r0T61pCsc+ZaFRAQF9DFR1LpD4rmLoeZ/4Hn5jDUOEQwBbkA9xDmI9WgqdRUR4J57/SIyotVxT5z9HtsckBpXk1qtcWHYgrY0BCd6P0Wf1dijPVv4+ST0Z1y02ImR8bbR1WKiEBZczBBwgeNOMB8cc1JSqfMXHjKn04R0RZhCH1xNl+qByJi43o2yrvH9RE4Xt+9tOn3yqm3PEF0c5eYVR5MiZq4Ev095ZYzox0z1n7Xqvpm2AGR8+2Wj5GlPCl8gDuCgSHLqjkJofZF/BANyDtGYDGCw185zIbQEzEiAXr6bsJYM6pM8Rfr5jYe1GM35U/w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=oMM7iQTjXlkFxFIK9pumRkOkrwJFfUdzNJfwM3ZNGEI=;
- b=f9eQJRMS62/ggS2oj3nvrKatxKlR1VI9egmCBhhp7H1Qp1HTIL4tfq6Z9xnE/3oXGpMamw74dYXp+dom1j/hIsnyry9Pyx27/8B4kpmKcYn2P4xHOUBu4giyv/5mmHQUobLPf6jyKopsgS6h4gvPADRNb6J2P38TSMrnGPj3sk0=
-Received: from IA1P220CA0013.NAMP220.PROD.OUTLOOK.COM (2603:10b6:208:464::17)
- by DM6PR12MB4371.namprd12.prod.outlook.com (2603:10b6:5:2a3::23) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.13; Tue, 1 Sep
- 2026 09:36:31 +0000
-Received: from BN2PEPF000055DB.namprd21.prod.outlook.com
- (2603:10b6:208:464:cafe::2f) by IA1P220CA0013.outlook.office365.com
- (2603:10b6:208:464::17) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.10 via Frontend Transport; Tue, 1
- Sep 2026 09:36:31 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
-Received: from satlexmb07.amd.com (165.204.84.17) by
- BN2PEPF000055DB.mail.protection.outlook.com (10.167.245.5) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.382.0 via Frontend Transport; Tue, 1 Sep 2026 09:36:31 +0000
-Received: from Satlexmb09.amd.com (10.181.42.218) by satlexmb07.amd.com
- (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Tue, 1 Sep
- 2026 04:36:31 -0500
-Received: from satlexmb07.amd.com (10.181.42.216) by satlexmb09.amd.com
- (10.181.42.218) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Tue, 1 Sep
- 2026 04:36:31 -0500
-Received: from [10.136.35.162] (10.180.168.240) by satlexmb07.amd.com
- (10.181.42.216) with Microsoft SMTP Server id 15.2.2562.46 via Frontend
- Transport; Tue, 1 Sep 2026 04:36:29 -0500
-Message-ID: <9fcba9fb-8e1d-4157-8e80-bf7965e195d0@amd.com>
-Date: Tue, 1 Sep 2026 15:06:28 +0530
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="EB7TCIJB"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id DA3FC1756;
+	Tue,  1 Sep 2026 03:01:08 -0700 (PDT)
+Received: from [10.57.5.169] (unknown [10.57.5.169])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 121CF3F882;
+	Tue,  1 Sep 2026 03:01:08 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1788256872; bh=hFaGbZs+gyNt53iDxI8FMGOZYwr8mY5moKC97lpcpIw=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=EB7TCIJB8Iu53QCjpKXvPzdnpSErTVadChRzVVdQOExl+ee5c0IaDVVTERwoq/G16
+	 qGKhHYRALZWWZJhTbY8uBYAJXMDVS7fswusR3VnuG5jgtgDTFP8NCsOddfA+6gNjOc
+	 OSgwPTeZ9veykrDuDkiTZkRFc1GObf/MWmoiGwdw=
+Message-ID: <92f25c89-4f9b-4880-95ee-8f1edb803692@arm.com>
+Date: Tue, 1 Sep 2026 12:01:07 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -71,77 +35,102 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 0/3] Zen6 client CPPC
-To: Mario Limonciello <mario.limonciello@amd.com>, "Rafael J . Wysocki"
-	<rafael@kernel.org>
-CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-pm@vger.kernel.org>, <x86@kernel.org>, Vishal Badole
-	<Vishal.Badole@amd.com>
-References: <20260831194428.2287055-1-mario.limonciello@amd.com>
-Content-Language: en-US
-From: K Prateek Nayak <kprateek.nayak@amd.com>
-In-Reply-To: <20260831194428.2287055-1-mario.limonciello@amd.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN2PEPF000055DB:EE_|DM6PR12MB4371:EE_
-X-MS-Office365-Filtering-Correlation-Id: 20e1381f-c909-4b21-596f-08df080c8183
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|36860700016|376014|1800799024|23010399003|10067099003|56012099006|11063799006|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	KkyEvAoeHJEpknRW9cbppaqM1sr/hCB+n91IzCOPBdfqdDISDjiv5J2MpcjIpnjuaVcpnvWQhRUkkSKlHm7b4bEoe1dPNDbujBRnxeMwrbchxaGfhJNST3ohVpqWLaVWQCSW3IFDDZfKPQnSJBW3lovkrGcEGTB/feflIi3d8RZO+WZB7s7rdkjeHR9kpoqIvgsu2uAoG7yfC3WUFAJvUEyUObkHcFXd1bMOQfykdmd1GN+PyCaZruSbGbtyZJr7EUryW62/fBy6VDh+2PsPLbkAS798TOpmh55JVZ7tI5gVFbgvbHlGxyZaaDlk4142fE1c7I+QhelEE6U8rlX196q0t3v/u7DZAiHs74a5eEbgXyB/BerhJFttBiceLIebq2BZ+X7ecldehoQj7+hvGBD8z/to7VkiwR5+eAgx4iEeFOoKmHf8LlG9mXCTnSriFNgsG9UiRJ1bhgs7Bj+Og3qY+gQSQKv9Zh4TndVvvb5lWh96FNZ/crGQOeqt4cs4qXfrBG+wXG5HnnR1b8MYiaB3HdhGq7ffc/o2svcgpdXjnYs2M3/oHM5g7VIdVO0i/FdjUS4l12EVJhWIMXmqZhHJuuYWnwW701PycqBR8wtw2lt1zEMO1hP1cqyVuiZhBdjWvMjY1FrlvXlklnL4lxVaf6TCmDzTFXl6Zy6lMRfNpHeKBStMWjv71qKWBisE/YH94BGMJvvdavOFYIL6zg==
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(36860700016)(376014)(1800799024)(23010399003)(10067099003)(56012099006)(11063799006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	bGRAq1Du4CPwd2Nf9XI8JwyfGE4nemxCTOWsla9bGhPNnZBuY0P5Cym8SaXkhJlQibC9GxYob9FfOb34IYMcrCnsSjFRduDjoOzTDeYdcNkGcsfSjNVCZlxZeLaLNfhldrudwGp5pyPRywTVsmS99HPVOseJZoPWd8clcxtlmIIc5aBL0NSfG0OaRdL7FHRqOBK0YthM0tiIrc9z/rPLwfHrhl7mSV0nQoekj6jbj0Y5YURagumI0uDR1WkzQEWaLkMzLRRSQ90RlkcL2xhO1/Z8D7pTTaHaBnN/2ekUusdZHV7+0O7T9uyrF87Q5dvMIvfkdsUn26+tdKggVX4D8DT/4ubzWLChPXzeRMp/sZKTA2brf1hTdsBLWuwO3EQN9yqV+qSX7GPRSYPP6nOYyPaVoNJYTienzC9EbnMBSmuPvsegfwHpHALvpgzte9af
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Sep 2026 09:36:31.4972
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 20e1381f-c909-4b21-596f-08df080c8183
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BN2PEPF000055DB.namprd21.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4371
+Subject: Re: [PATCH v9 10/12] arm_mpam: add MPAM-Fb MSC firmware access
+ support
+To: Lee Trager <lee@trager.us>, Lorenzo Pieralisi <lpieralisi@kernel.org>,
+ Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ James Morse <james.morse@arm.com>, Ben Horgan <ben.horgan@arm.com>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+ Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+ Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+ Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
+ Niyas Sait <niyas.sait@arm.com>, Ritwick Sharma <ritwick.sharma@arm.com>,
+ Gavin Shan <gshan@redhat.com>, linux-acpi@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+References: <20260807105451.3728284-1-andre.przywara@arm.com>
+ <20260807105451.3728284-11-andre.przywara@arm.com>
+ <948381d2-8ba7-458b-b729-d5398e0a8559@trager.us>
+Content-Language: en-GB
+From: Andre Przywara <andre.przywara@arm.com>
+In-Reply-To: <948381d2-8ba7-458b-b729-d5398e0a8559@trager.us>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-Hello Mario,
+Hi Lee,
 
-On 9/1/2026 1:14 AM, Mario Limonciello wrote:
-> Zen6 client platforms use CPPC differently than previous platforms
-> and knowing maximum frequency for a core type is needed for capacity
-> calculations.
+On 9/1/26 00:19, Lee Trager wrote:
+> On 8/7/26 3:54 AM, Andre Przywara wrote:
 > 
-> Newer versions of the ACPI will introduce a proper interface
-> for getting this information, but for now hardcode values so that
-> these systems perform as intended and to unblock future scheduler
-> work while we continue to wait.
-
-I did some sanity testing on couple of servers and everything looks
-good apart from that one section mismatch warning. Feel free to
-include:
-
-Tested-by: K Prateek Nayak <kprateek.nayak@amd.com>
-
+>> +
+>> +static int mpam_fb_send_request(struct mpam_msc *msc, u32 msc_id,
+>> +                u16 reg, u32 *result, int mpam_fb_command)
+>> +{
+>> +    unsigned int token = atomic_inc_return(&mpam_fb_token);
+>> +    struct acpi_pcct_ext_pcc_shared_memory __iomem *pcc_shmem;
+>> +    struct mpam_pcc_chan *pcc_chan;
+>> +    struct pcc_mbox_chan *chan;
+>> +    void __iomem *payload_ofs;
+>> +    int mpam_fb_err = 0;
+>> +    u32 status;
+>> +    int ret;
+>> +
+>> +    pcc_chan = msc->pcc_chan;
+>> +    if (!pcc_chan)
+>> +        return -ENODEV;
+>> +
+>> +    chan = pcc_chan->pcc_chan;
+>> +
+>> +    /* prune token to fit into the 10 bits inside the command 
+>> register */
+>> +    token = FIELD_GET(MPAM_MSC_TOKEN_MASK,
+>> +              FIELD_PREP(MPAM_MSC_TOKEN_MASK, token));
+>> +
+>> +    mutex_lock(&pcc_chan->pcc_chan_lock);
+>> +
+>> +    switch (mpam_fb_command) {
+>> +    case MPAM_PROTOCOL_VERSION_CMD:
+>> +        mpam_fb_build_version_message(token, chan->shmem);
+>> +        break;
+>> +    case MPAM_MSC_READ_CMD:
+>> +        mpam_fb_build_read_message(msc_id, reg, token, chan->shmem);
+>> +        break;
+>> +    case MPAM_MSC_WRITE_CMD:
+>> +        mpam_fb_build_write_message(msc_id, reg, *result,
+>> +                        token, chan->shmem);
+>> +        break;
+>> +    default:
+>> +        dev_err(&msc->pdev->dev, "unsupported MPAM-Fb command %d\n",
+>> +            mpam_fb_command);
+>> +        ret = -EINVAL;
+>> +        goto out_err;
+>> +    }
+>> +
+>> +    ret = mbox_send_message(chan->mchan, NULL);
+>> +    if (ret < 0)
+>> +        goto out_err;
+>> +
+> While testing this series when building arm64 allnoconfig with 
+> CONFIG_ARM4_MPAM=y I got a link failure:
 > 
-> Mario Limonciello (3):
->   ACPI: CPPC: Refactor boost ratio handling
->   cpufreq/acpi-cpufreq: Use amd_get_boost_ratio()
->   cpufreq/amd-pstate: Get Highest Freq for a CPU
-> 
->  arch/x86/kernel/acpi/cppc.c    | 174 ++++++++++++++++++++++-----------
->  drivers/cpufreq/acpi-cpufreq.c |  17 ++--
->  drivers/cpufreq/amd-pstate.c   |  22 +++--
->  include/acpi/cppc_acpi.h       |  14 ++-
->  4 files changed, 154 insertions(+), 73 deletions(-)
-> 
+> drivers/resctrl/mpam_fb.o: undefined reference to `mbox_send_message`
 
--- 
-Thanks and Regards,
-Prateek
+Ah, thanks, that's a good find.
+
+> Since the ACPI MPAM-Fb transport also reqiures PCC, wold it make sense 
+> for ARM64_MPAM_DRIVER to select both dependencies?
+> 
+>      select MAILBOX
+>      select PCC if ACPI
+
+Yes, that looks like a pragmatic solution. Not sure if the MAILBOX 
+should be selected so easily, as the other selects for that symbol seem 
+to be more precise and constrained, and technically the mailbox is not 
+required by the core functionality of MPAM. But I leave that to the 
+maintainers to decide.
+
+Cheers,
+Andre
 
