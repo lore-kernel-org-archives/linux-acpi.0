@@ -1,200 +1,159 @@
-Received: from PH8PR06CU001.outbound.protection.outlook.com (mail-westus3azon11012005.outbound.protection.outlook.com [40.107.209.5])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E28D1481231
-	for <linux-acpi@vger.kernel.org>; Tue,  1 Sep 2026 16:50:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.209.5
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788281404; cv=fail; b=RF+cGs9WrJUB108GHQ+HGzd6J1+hTEy0KWth0BBobifO9988da1YgAmKFaBhD3fY9GhDDgvI7RCaHePiULHnIqSUkdDNNtN9TYuBdlnj0GxK3V2WmERULTvQx7Rv7lC9bThzdZy/a0pgpN7oqZ0n/fFGD38dsuI/OpEkfKTa+ao=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788281404; c=relaxed/simple;
-	bh=voorUyO+v11uOxDuc5lXKgH9NEvPjKIiO5TKoQ/RxwM=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=NDZ2KzeaYNr1zCN6R48eI6ukpbBy0+rrlznimMOpTqNX8nSvlmpL76B3dYwNZAtRgUypSHykYPCOpWKDIZ1EJx6jtgQTFNEBp6HquCWV2oaQUWsk3soMkpP1H60fScRkWdi3b2ZcxsPPo6Mao5RRAldBhUldAj07HqTpQNB4Qwo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=c8lzv7Hn; arc=fail smtp.client-ip=40.107.209.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CD1B49B1FE;
+	Tue,  1 Sep 2026 18:24:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788287058; cv=none; b=HcXk49o50fevnYhsHl65xhgMmYaYBCJ+5yY3iK+6XnCRsufaBWxiJJzvKguwZt0iKkwSBX0ej7LerfU5N6vgF3AnTGMuU0l9RCt6NQLWarOj6cjQcIUpMJ7f+EoBb8MorNfrL6pf6ZY8tmHLe/QhxKBxPAvGjsFLcm/yJcp+TDs=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788287058; c=relaxed/simple;
+	bh=raMtJFV9r1wpJ/ssJ/bywt4l9/jc3Smdoe/AlbFwX90=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=aOF1ZMXqKi8eMlQz7BTZVqq6dzJt2qP1ZN6WvPjf0lWbWCJzGpLMEtI5kzjjxdQZJj+MEKPrjxWofjXCN6uH5/iL644b4QGaaYAALwkBukKs1GJAeOXTm3TPbWwAg8SBbYKVkyaFf7L3NC/I54V8hDGy70Rkd5q8tZWaxHeXFu8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uRE2UZwf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="c8lzv7Hn"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Tm1kRsGNWzIPm9TgZoLDkUcN9g7MW20P3kmbpvORmLB9YZcu3+j39SsDDAeco5MLY9WSy0V0AZ+cOkUWkwDysXaD/Tvf4uvU4AykU7AfIZrpIkLzpRb+xMMy2uoT+KFHbP+KGLcIgYMWrYbulKI87hoBkOUcQgcEsXe5Q450o1B4rDE8BGxivpxuL0D5uDaFXHFd+MaolfV52+cgNivF9qBGqV1DrP3qae+mi2nbaP692EUO8pUnUXw94X1hhC+RjCzz9JSw2qHT4bCYF4YnzjXHE9vOLFhVgGztoPKTH0mDVC6Rtgj85T1wIsoUprdPCh7vmCt1+HvC3m4z0djS3w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=DSdf4I81bD1r/ny1iRDoNszvx3HkGq3epZ6YqnEM8s8=;
- b=siV00gyf4KbZH+PhfiGh7NfyVQ6KF5KdPxzdReSU30A+7RDSD4ReKmYWmK+flr6cnvjK+R7COHuedRj5Wyi5w2XMJXUNcEaIjec3hQtncBZPnH+vKJPt59yiFA3hAsmUK4NdFnQ6HKHlgRwom4uZbXKArHYnb+62qCkNG09npxPAbXLbGqolgSDarnUf0+MuGT5ozSjcs8Cp6tRy4Q/QEuYBxSdmx08KD1LwGq+DaB6TXoMfgE9RHQOHP4S3su1vP6UI8yJDQPBjZ0zZVLnzs4ot4df+L3dt9H+/36AoTX6f0aLGfVKxM3hythwCEiwCjqqeL/KWX67pQpHB9o7tLw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=DSdf4I81bD1r/ny1iRDoNszvx3HkGq3epZ6YqnEM8s8=;
- b=c8lzv7HnVz/Mt8XtmGZquKoDx+ctl8rZVWXBufyTRLhha7fwsoJhKKlPe3bzEM4qSd7u/nOYUx/iFxgLSBhBoMNJ5h587idS8rAjEbeWIp7oIHa18BTGNmmqGBE7zyBgJHwDRy0IdWHFH8OYdLkAEfybM4gZmS9bYxkF8Y+h4SI=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from PH8PR12MB6914.namprd12.prod.outlook.com (2603:10b6:510:1cb::21)
- by CY5PR12MB6250.namprd12.prod.outlook.com (2603:10b6:930:22::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.13; Tue, 1 Sep
- 2026 16:49:59 +0000
-Received: from PH8PR12MB6914.namprd12.prod.outlook.com
- ([fe80::2893:177a:72b0:6000]) by PH8PR12MB6914.namprd12.prod.outlook.com
- ([fe80::2893:177a:72b0:6000%7]) with mapi id 15.21.0360.008; Tue, 1 Sep 2026
- 16:49:59 +0000
-Message-ID: <a4dff3d1-afd3-4e49-a0e0-9739af8391c9@amd.com>
-Date: Tue, 1 Sep 2026 11:49:57 -0500
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] ACPI: CPPC: Don't gate FFH EPP writes on flexible address
- space _OSC
-Content-Language: en-US
-To: rafael@kernel.org, lenb@kernel.org
-Cc: Giusy <kurmikon@yahoo.com>, rafael.j.wysocki@intel.com,
- linux-acpi@vger.kernel.org
-References: <20260831054043.1884105-1-mario.limonciello@amd.com>
-From: Mario Limonciello <mario.limonciello@amd.com>
-In-Reply-To: <20260831054043.1884105-1-mario.limonciello@amd.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: SA9P221CA0026.NAMP221.PROD.OUTLOOK.COM
- (2603:10b6:806:25::31) To PH8PR12MB6914.namprd12.prod.outlook.com
- (2603:10b6:510:1cb::21)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uRE2UZwf"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 28CA0C2BCF5;
+	Tue,  1 Sep 2026 18:24:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1788287058;
+	bh=raMtJFV9r1wpJ/ssJ/bywt4l9/jc3Smdoe/AlbFwX90=;
+	h=From:Date:Subject:To:Cc:Reply-To:From;
+	b=uRE2UZwf6MEnYslBZ6vDbmYU/N7+JMtaiY7gCpP12t/kX8dl7Q1eAz0uDQ4R1JFHR
+	 Gl8DOnqJlX9KgEZRfUFNglkbswgm7Npv4ZKBrbKrSJ17Doc9xBMOkaIgEER1g+Jd9j
+	 0YaMLGilC/T+N3LIevdyeAgtx0ZgxBDWjO6/20YuAE1ECSNC0MeTWEUBIahGyvRB/Y
+	 UU7Uk3DBVj8nVB6OM/rvKSCDgkHXCLs0iNAU9uscpZ0Ab5Cm1DISignNIqjnC2VxU5
+	 bUP+qEsnvlD6zGAZKi8rKCeuuhAyDtHhqG9hqxDAqllUb7Z+ddEKDyne56Nh5Q1faH
+	 QOZisH5KGQHvQ==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DA0EC61DD3;
+	Tue,  1 Sep 2026 18:24:18 +0000 (UTC)
+From: George Kokolakis via B4 Relay <devnull+george.kokolakis.ece.gmail.com@kernel.org>
+Date: Tue, 01 Sep 2026 21:24:14 +0300
+Subject: [PATCH] ACPI: PM: Use EFI power off on Lenovo ThinkPad T14 Gen 5
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR12MB6914:EE_|CY5PR12MB6250:EE_
-X-MS-Office365-Filtering-Correlation-Id: cb3f4fa9-e233-493a-aebd-08df08490f5a
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|366016|23010399003|10067099003|56012099006|11063799006|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	GeN7IlyNaUJOt7sltYy8kwpaKFJX3LmRTp3PoGFDuYXHjHK5s3kTYSpP6PUjxrsu0rA6RxNrp9u6kfLafhbdo6QhkPSO1FcS1FWZ/CaRde5Drwqn016gCoQDKij6B+ZiYh3cRXkNkAxo0RZE9EznRKUbB4cB1ir1HKFQ4YV6m3VPdwjglPVDPhCvrTIP818qJ/Dl2VmKEwxTA5kwFrd+9Vai2aQiRffeDjgBDaN1rcLK1WpyRRPk61SHqPS6QA+AwQej0mt+G/401cHI39uFzDPMU/9EmQGQovMoDs3JIPCrJPEEQfZW7AgILxmF+NEKBHZpKhk123A+a+F5U4dkXxqo3D2Vf53N0US/4GfwYmPbZzfVf5NlvvwVW6+c06Bu8AyOZcM8ui+ItTTB+qsrfQYs2EYydYRSp/dCZlYkWUaMUUSnwM84nrMVVmHrrxBvcNGqqJse53dRTpeOplqJ+U3YTIg5qt0qgfkkd1poO2zqHDWz5GhlZKBWmp0plDQYbPlEP3Z1/4UjsMjM+A7N6jgYjvTl44wCXxgpU3h5APxLWEss0eu8sy4Wlvx5jaLNJOMobhh5wdavgnNkdgK3YNYv7W44qkm0WuDTZbbmVe4h2BxKdZIeV3+HS/3X5H7j
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR12MB6914.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(366016)(23010399003)(10067099003)(56012099006)(11063799006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?RWpQNk5KZmt0TS82YnpJKzBPc0RCa0IrSkNnNlZmVG03TmtnTjVHWjhCL1hV?=
- =?utf-8?B?YUQxUTNUOXBML3hoWWkvUXF5cE1hY3Q1cGhxV05NRXdIaFBVUE9NN1ltdjdk?=
- =?utf-8?B?RW5sVHFVcVBzV0lMUWhENE51WmdsOWtyWWJ5VGphL0s1NjRaenBpU2ozc2VD?=
- =?utf-8?B?MmZTd0R5aks2elJhTi8xeVdxWWlRSmZPVWRVSGJXaTVrZzhqZXMzaHRjNWFO?=
- =?utf-8?B?Z2N4VlRGNmc1U01zcmlINEdvd1dyaDF6MUwraVMvUC9zclhBV09wdUdtSUwr?=
- =?utf-8?B?aU5YaWMrLytYeDhEbEZKbmJ6OXpBaHhQak1jYVh5K1lCSHBFYytRRnM4T3pr?=
- =?utf-8?B?UWNpenpwRXFMMDMvc1FoVVZOVFVGVys4dzNPUnZTdWh2RXFmMlViVjQ0TCtF?=
- =?utf-8?B?eFpZTE5XZUlLckZ5ZUMyNHp3ZGgxTnNDanBaQUU1Zm1helNZS3doYmQ3eDA3?=
- =?utf-8?B?cjZGdElhOFZDcXpVWUk5TnVUQzFadWF2Wml5YkxqdEFvZGVhR1lndXFZak4y?=
- =?utf-8?B?eE94dWFqaDhOeWNHYTFxTHJ3WFdITzBOZWp1WHpZY0NNRFlKSFhXRGlPUTRZ?=
- =?utf-8?B?Z3BoNjU5ZEM3ZHlhdDVhek9Ld05kbEZDZkxwcTBLakxFYkdHa0Fta1NyeGRY?=
- =?utf-8?B?WDVzUkIybWFlQjlpMlUrWkZEL0d3RDZrNkxub1d6UGRXQVliUWZNZUlLbmdk?=
- =?utf-8?B?ZmVsSzNwcFhkSThwNjVaa2sxUStpUm5vRVZ2dktvSktSa2xpTDB0UVUzcTdh?=
- =?utf-8?B?QmowVi9zWEN2QkpXODYycWQ0ZzlxaHZVUXRYWTdrbHZ3RnJyY2hmeFBNT1NF?=
- =?utf-8?B?dytTR2NQb2JlZ1JrM0NQSUNBaWZYNncvaVNuamplVm52SFVEcVcrM1VKemN1?=
- =?utf-8?B?b0lkMjIrUmdWZDRHVWNBMUY1eEpuckZNNW9naVJtVUNhaCtWZjJpRWpCTHdk?=
- =?utf-8?B?dUJUQWdSTFhuVzdLR2VkajFGZGRxbEI3MldKTGlLTTR0dURqcmMrL2lESlg0?=
- =?utf-8?B?dEo3dWJ2VlIweFdFUlpvUHJUaUxHcFFHRi9zcWtmclV0K3p0SE4wYkNFTUM4?=
- =?utf-8?B?azBHNjViSmUvZnByaVVBZFRadFJvbmtkakd1Z3E3RzA3WTcvdGsxYmdBU2dx?=
- =?utf-8?B?UTBUSmdNS3hPR2UyWEkrTll6OXovYWNUT1UzZGxpNEZXZzdvMWtiWFRkMXcy?=
- =?utf-8?B?L0pZTlVSRUxjNjFOZTRacy9LUXpsbzcvenRXdldvVCtDWnRTK0xVTDJQQTl6?=
- =?utf-8?B?N3NRLzczZkNvZ1VqU0M5Y0JNLy90Tll5ZGpqczZWY3ZHeWlsc0JrQkZjR3lh?=
- =?utf-8?B?dmVxVk9adlRlc0NVVEFMTE8rY0dicjg2QVh0cHRESVVBeTQ0eWxLcWhIVWVM?=
- =?utf-8?B?YTV4YXJwcnF6elZueFM2aGJpNUlIMWo2cWswSXdzdFVrTUVDVDVHVHh4TVhH?=
- =?utf-8?B?RXNnOEhadkNvbm5wNXFvL2xES1JmVmUvU1BkSmhVVHZiRVFLR1dHS0NBTWMz?=
- =?utf-8?B?NlJMcnhqK3FWWXUrMWFucDcrR2wxYVJZMXhEdU1sQmlDbGZWb1BWUVQybjV0?=
- =?utf-8?B?UUV5WUIvVkVEZnF6a09pdjhUOGEzOW9nRVdSZERabGJ6aGF3MDdsNmYzN3Zm?=
- =?utf-8?B?UXYvWTBLYzNoYlNNZ1BocFJyb2xmRDkvM3dKcHdLaFpmK1dDMVlsNGdUa1or?=
- =?utf-8?B?d0VqbHMrbGd0ZVVwZ3BCekpDRHRlZ2tHZjNJVXZoejFaOVRDemo1UTNSN21D?=
- =?utf-8?B?NVd1dzdpNTd3SmlEZ0cvSlJ6VVdnbGxTRG9rL1BCT1dnTzVMYU1CemxzLzUw?=
- =?utf-8?B?cE1vbDBWSkI5bUUxVnpldlJPV2pNK1RYbUdwbnhDREhWdytaQWcwQzFwdGFJ?=
- =?utf-8?B?UzVTOE91RkgramtVRzdmK0lEMmVWZjNzcFUvbHVzZXdXb3hldVh3VzU3S3Ex?=
- =?utf-8?B?bFFOdjR0aWhRTTdMVkVqemZIYlpzQVVtck5UdlpNS1pjV29LOGxqKzN6NG9V?=
- =?utf-8?B?WGhESGN5QW42VDV0ZXRrNkZjbHBHNmVMQklkZ0VkaU4zQmZueFpuOWMxUVE2?=
- =?utf-8?B?Rkx3UDhCWGw0S2p3UURFV0VXNHYyaGt5MGFodDdzZUdpbktDaFZiclBGTFQ0?=
- =?utf-8?B?SnFzaGpXL0t1Vnh2OHErajZDdzdZZXhycG1MaHYyNGh6MDFKUWp4T05vVktK?=
- =?utf-8?B?RG8rQmMzOUI0T0gyNm11bUhlWlVRUURCS05abjlCSHpiQ3JxeUxnRUYzU1Ft?=
- =?utf-8?B?a0tFdjMzM25SV1AyTTJyUmdLbE5CT3RpOHIzY1FrbDBhZTE5eEhTNS9hSnJj?=
- =?utf-8?B?RVFEV0dzR2hCbW95dkswK2hwTjNvTGRkRUpDK1JNYWNSdDllcTlxUT09?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: cb3f4fa9-e233-493a-aebd-08df08490f5a
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR12MB6914.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Sep 2026 16:49:59.6031
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 8wcpAhbChqw8T64DOvzgesTU5rMzvWGTTZ7iZXBDbtznmN/q31V65TGzKGUz9AJnLb4zV61PdjaBbpuJ75Ve7A==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY5PR12MB6250
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260901-fix-thinkpad-t14-gen5-efi-poweroff-v1-1-7f766dc13ee9@gmail.com>
+X-B4-Tracking: v=1; b=H4sIAE0Yl2oC/x2NywqEMAwAf0VyNtC61tevLHsINtUgtKUVVxD/3
+ eJxGJi5IHMSzjBVFyQ+JEvwBXRdwbySXxjFFoZGNZ0alUYnJ+6r+C2SxV23uLA3yE4whj+n4Bw
+ O/UCfubVkyEAJxVT0+U6+v/t+AEHMSI90AAAA
+To: rafael@kernel.org
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, 
+ linux-kernel@vger.kernel.org
+X-Mailer: b4 0.13.0
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1788287057; l=3071;
+ i=george.kokolakis.ece@gmail.com; s=kernel-20260901;
+ h=from:subject:message-id;
+ bh=eB+R26itJ2JkTVFa+VyNE4Mw+wr0JpISWwRbkykFcQw=;
+ b=aSci7cGWGfRq3MarVunw1Msq3HGDWZbbRiXQRA3urKl1v3DbiAHzC4FBhgvUbWczAKlBytAdU
+ Lz8Shk+Jny/Ax6FZsxQ/UjkLuAKUTR/95kAdax752IRfkyvJn34lvEc
+X-Developer-Key: i=george.kokolakis.ece@gmail.com; a=ed25519;
+ pk=vZ27t8agUnF5GcuvLoIUzClMG59D0bvQE7GXXdwXJ9I=
+X-Endpoint-Received: by B4 Relay for
+ george.kokolakis.ece@gmail.com/kernel-20260901 with auth_id=995
+X-Original-From: George Kokolakis <george.kokolakis.ece@gmail.com>
+Reply-To: george.kokolakis.ece@gmail.com
+
+From: George Kokolakis <george.kokolakis.ece@gmail.com>
+
+A Lenovo ThinkPad T14 Gen 5 (type 21ML) powers back on immediately
+after an orderly ACPI S5 shutdown.  This was reproduced with BIOS
+N47ET29W 1.18 and Ubuntu kernel 7.0.0-30-generic.
+
+A standalone UEFI application invoking ResetSystem(EfiResetShutdown)
+leaves the same machine powered off.  A DMI-scoped test module that
+skips the ACPI S5 power-off preparation handler and invokes ResetSystem
+at the final sys-off stage also leaves it off during an ordinary
+userspace shutdown.
+
+Mark ACPI S5 unusable for power-off on this model.  This makes the
+existing x86 EFI code register its higher-priority EFI shutdown handler.
+Do not register the two ACPI power-off handlers when the quirk is active,
+but retain ACPI S5 preparation for restart.
+
+Link: https://bugs.launchpad.net/bugs/2162837
+Cc: stable@vger.kernel.org
+Signed-off-by: George Kokolakis <george.kokolakis.ece@gmail.com>
+---
+ drivers/acpi/sleep.c | 30 +++++++++++++++++++++++-------
+ 1 file changed, 23 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 132a9df984..d14833eb59 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -27,7 +27,7 @@
+ #include "sleep.h"
+ 
+ /*
+- * Some HW-full platforms do not have _S5, so they may need
++ * Some HW-full platforms do not have a usable _S5, so they may need
+  * to leverage efi power off for a shutdown.
+  */
+ bool acpi_no_s5;
+@@ -173,6 +173,12 @@ static int __init init_default_s3(const struct dmi_system_id *d)
+ 	return 0;
+ }
+ 
++static int __init init_no_s5(const struct dmi_system_id *d)
++{
++	acpi_no_s5 = true;
++	return 0;
++}
++
+ static const struct dmi_system_id acpisleep_dmi_table[] __initconst = {
+ 	{
+ 	.callback = init_old_suspend_ordering,
+@@ -407,6 +413,14 @@ static const struct dmi_system_id acpisleep_dmi_table[] __initconst = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "20GGA00L00"),
+ 		},
+ 	},
++	{
++	.callback = init_no_s5,
++	.ident = "Lenovo ThinkPad T14 Gen 5 (21ML)",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "21ML"),
++		},
++	},
+ 	{},
+ };
+ 
+@@ -1117,13 +1131,15 @@ int __init acpi_sleep_init(void)
+ 	if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
+ 		sleep_states[ACPI_STATE_S5] = 1;
+ 
+-		register_sys_off_handler(SYS_OFF_MODE_POWER_OFF_PREPARE,
+-					 SYS_OFF_PRIO_FIRMWARE,
+-					 acpi_power_off_prepare, NULL);
++		if (!acpi_no_s5) {
++			register_sys_off_handler(SYS_OFF_MODE_POWER_OFF_PREPARE,
++						 SYS_OFF_PRIO_FIRMWARE,
++						 acpi_power_off_prepare, NULL);
+ 
+-		register_sys_off_handler(SYS_OFF_MODE_POWER_OFF,
+-					 SYS_OFF_PRIO_FIRMWARE,
+-					 acpi_power_off, NULL);
++			register_sys_off_handler(SYS_OFF_MODE_POWER_OFF,
++						 SYS_OFF_PRIO_FIRMWARE,
++						 acpi_power_off, NULL);
++		}
+ 
+ 		/*
+ 		 * Windows uses S5 for reboot, so some BIOSes depend on it to
+
+---
+base-commit: 786262be6048deab760f68c8acc2c85607165894
+change-id: 20260901-fix-thinkpad-t14-gen5-efi-poweroff-878a3c4da5a5
+
+Best regards,
+-- 
+George Kokolakis <george.kokolakis.ece@gmail.com>
 
 
-
-On 8/31/26 00:40, Mario Limonciello wrote:
-> cppc_set_epp_perf() requires osc_cpc_flexible_adr_space_confirmed before
-> writing the EPP and autonomous-selection registers, even when they live
-> in FFH.  FFH access is a direct rdmsr/wrmsr and does not depend on that
-> _OSC bit, which only governs CPPC controls in SystemMemory/SystemIO.
-> 
-> As a result amd-pstate active mode fails to initialize on platforms whose
-> firmware does not ack CPPC in _OSC but whose EPP register is a working FFH
-> MSR.  On an HP 255 G8 (Ryzen 5 5500U) reads succeed via the _CPC parse
-> path's cpc_supported_by_cpu() fallback, but the EPP write is rejected:
-> 
->      amd_pstate: failed to set energy perf value (-524)
->      amd_pstate: failed to register with return -19
-> 
-> Gate only SystemMemory on osc_cpc_flexible_adr_space_confirmed and allow
-> FFH unconditionally, matching the _CPC parse path and cpc_ffh_supported().
-> 
-> Fixes: aaf21ac93909 ("ACPI: CPPC: Add support for setting EPP register in FFH")
-> Reported-by: Giusy <kurmikon@yahoo.com>
-> Closes: https://lore.kernel.org/linux-pm/e4259474-fa4f-4ed8-8a7f-1a3a2521acd3@yahoo.com/
-> Assisted-by: Claude:claude-opus-4-8
-> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
-> ---
->   drivers/acpi/cppc_acpi.c | 15 +++++++++++----
->   1 file changed, 11 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index fef54fcd00b78..6b590842b5668 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -1766,10 +1766,18 @@ int cppc_set_epp_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls, bool enable)
->   	auto_sel_reg = &cpc_desc->cpc_regs[AUTO_SEL_ENABLE];
->   	epp_set_reg = &cpc_desc->cpc_regs[ENERGY_PERF];
->   
-> +	/*
-> +	 * The flexible address space _OSC ack is only needed for
-> +	 * SystemMemory/SystemIO; FFH is accessed directly and always available.
-> +	 */
->   	epp_ffh_sysmem = CPC_SUPPORTED(epp_set_reg) &&
-> -		(CPC_IN_FFH(epp_set_reg) || CPC_IN_SYSTEM_MEMORY(epp_set_reg));
-> +		(CPC_IN_FFH(epp_set_reg) ||
-> +		 (CPC_IN_SYSTEM_MEMORY(epp_set_reg) &&
-> +		  osc_cpc_flexible_adr_space_confirmed));
->   	autosel_ffh_sysmem = CPC_SUPPORTED(auto_sel_reg) &&
-> -		(CPC_IN_FFH(auto_sel_reg) || CPC_IN_SYSTEM_MEMORY(auto_sel_reg));
-> +		(CPC_IN_FFH(auto_sel_reg) ||
-> +		 (CPC_IN_SYSTEM_MEMORY(auto_sel_reg) &&
-> +		  osc_cpc_flexible_adr_space_confirmed));
->   
->   	if (CPC_IN_PCC(epp_set_reg) || CPC_IN_PCC(auto_sel_reg)) {
->   		if (pcc_ss_id < 0) {
-> @@ -1795,8 +1803,7 @@ int cppc_set_epp_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls, bool enable)
->   		/* after writing CPC, transfer the ownership of PCC to platform */
->   		ret = send_pcc_cmd(pcc_ss_id, CMD_WRITE);
->   		up_write(&pcc_ss_data->pcc_lock);
-> -	} else if (osc_cpc_flexible_adr_space_confirmed &&
-> -		   (epp_ffh_sysmem || autosel_ffh_sysmem)) {
-> +	} else if (epp_ffh_sysmem || autosel_ffh_sysmem) {
->   		if (autosel_ffh_sysmem) {
->   			ret = cpc_write(cpu, auto_sel_reg, enable);
->   			if (ret)
-
-This patch can be dropped as 
-https://lore.kernel.org/linux-acpi/20260830115644.2056983-1-christian.loehle@arm.com/#t 
-will fix it.
-
-FFH writes being gated on the _OSC ack — no longer exist due to the 
-refactoring.
