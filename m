@@ -1,159 +1,117 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CD1B49B1FE;
-	Tue,  1 Sep 2026 18:24:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D65684A0930
+	for <linux-acpi@vger.kernel.org>; Tue,  1 Sep 2026 19:12:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788287058; cv=none; b=HcXk49o50fevnYhsHl65xhgMmYaYBCJ+5yY3iK+6XnCRsufaBWxiJJzvKguwZt0iKkwSBX0ej7LerfU5N6vgF3AnTGMuU0l9RCt6NQLWarOj6cjQcIUpMJ7f+EoBb8MorNfrL6pf6ZY8tmHLe/QhxKBxPAvGjsFLcm/yJcp+TDs=
+	t=1788289948; cv=none; b=PcN+TSMbyG/aDvx77R2uyvZWVhiTBtR5NKQmj4VJGpCMLJ1rzqr3QwwlXUGg8j7d6yFYMQI7BAjBopRpTbvXtCLAKMS9L5ASlSq1LkdxGYIN4DU+ZNQmpc3sLEnyYfgo3ssfD3iBu2YbuAPK7UXUDMdDZCoUNwDx+cI+mW1j7GU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788287058; c=relaxed/simple;
-	bh=raMtJFV9r1wpJ/ssJ/bywt4l9/jc3Smdoe/AlbFwX90=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=aOF1ZMXqKi8eMlQz7BTZVqq6dzJt2qP1ZN6WvPjf0lWbWCJzGpLMEtI5kzjjxdQZJj+MEKPrjxWofjXCN6uH5/iL644b4QGaaYAALwkBukKs1GJAeOXTm3TPbWwAg8SBbYKVkyaFf7L3NC/I54V8hDGy70Rkd5q8tZWaxHeXFu8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uRE2UZwf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1788289948; c=relaxed/simple;
+	bh=nhisCh+ihwHTyvRNLjNIpcqJgcEdj09IgLhKNEbJRh8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=nTJOaWtrCHbFuY1DJGhxZT/xP4qUEvkYUyuEx14wqpc2MOJ4+cx4TQ9Gn6rQqideZGdZ4kMiCI2fNEth0ZB/gjTuSD0LOsPfvvsmMKZV6BVluTcyogKZnSi/fxLOPxsBQQhMBt2cdhmOkNZLJxYR9HMJqPj06d9loCt0coxWy5U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BBOu/Gqx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uRE2UZwf"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 28CA0C2BCF5;
-	Tue,  1 Sep 2026 18:24:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1788287058;
-	bh=raMtJFV9r1wpJ/ssJ/bywt4l9/jc3Smdoe/AlbFwX90=;
-	h=From:Date:Subject:To:Cc:Reply-To:From;
-	b=uRE2UZwf6MEnYslBZ6vDbmYU/N7+JMtaiY7gCpP12t/kX8dl7Q1eAz0uDQ4R1JFHR
-	 Gl8DOnqJlX9KgEZRfUFNglkbswgm7Npv4ZKBrbKrSJ17Doc9xBMOkaIgEER1g+Jd9j
-	 0YaMLGilC/T+N3LIevdyeAgtx0ZgxBDWjO6/20YuAE1ECSNC0MeTWEUBIahGyvRB/Y
-	 UU7Uk3DBVj8nVB6OM/rvKSCDgkHXCLs0iNAU9uscpZ0Ab5Cm1DISignNIqjnC2VxU5
-	 bUP+qEsnvlD6zGAZKi8rKCeuuhAyDtHhqG9hqxDAqllUb7Z+ddEKDyne56Nh5Q1faH
-	 QOZisH5KGQHvQ==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DA0EC61DD3;
-	Tue,  1 Sep 2026 18:24:18 +0000 (UTC)
-From: George Kokolakis via B4 Relay <devnull+george.kokolakis.ece.gmail.com@kernel.org>
-Date: Tue, 01 Sep 2026 21:24:14 +0300
-Subject: [PATCH] ACPI: PM: Use EFI power off on Lenovo ThinkPad T14 Gen 5
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BBOu/Gqx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 770BB1F00A3A
+	for <linux-acpi@vger.kernel.org>; Tue,  1 Sep 2026 19:12:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788289944;
+	bh=TG3sfq3Q9eRabuWHt0uykLCNRXVg7IkhmV7MJfFm0Zg=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=BBOu/GqxmIEJHpaefNA2RSeSoJSFt4IBxBtIdo2YvAJ80OYU3QYgX1ublVdTORbew
+	 K52Z4J+rKcsK4xUJmqi7p+cy2xvm/6+10KUKlXVpAPmiQ/adh8Zih1Zc1vBRKb6GOw
+	 5s/zFWeplHRqr5TCfHYuLF1PGXHVwyb/guFF4dhooUsOrpzr0sY7+oMQGxdGU5CzCF
+	 ufTb8+CmnP1rFMKWnYPf9S5Xr/aOHfug1rF8DMANDWfC/nZMrM7LtO8LMWwduEJkNf
+	 ipJlImYX1BT6RFGdsAo44xAEptoXY+vrCIAKZ6Nj494JfSNMF1WoQD0pDovtPwixRe
+	 05kmKwx8Clv6g==
+Received: by mail-lj1-f181.google.com with SMTP id 38308e7fff4ca-3a20c95e412so1763571fa.1
+        for <linux-acpi@vger.kernel.org>; Tue, 01 Sep 2026 12:12:24 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBzuowIHWAOjfOY4SMsA/L1mjxjBhV3algm3DGQuLIbqJLKxSHt5QutDXJMo+/7d9a24U4pVWhLH0NN5@vger.kernel.org
+X-Gm-Message-State: AFuF++kz16FRGklmkUdoHdxnD7/LtBPjY5u/40sI3qngTaXQ/vKu3gAt
+	PxUVQruSOogEcmCiiYbNmHruiURKmex8xYYX9TDoOfnx82PqwzTBRR57yvRJOMx6HHxnzNQATy7
+	3dsyxOXkgb6Z7vEe80m5gg6ppwvQQDSw=
+X-Received: by 2002:a05:651c:25c3:10b0:3a1:7f10:912b with SMTP id
+ 38308e7fff4ca-3a301ae9c8amr61000231fa.12.1788289942740; Tue, 01 Sep 2026
+ 12:12:22 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260901-fix-thinkpad-t14-gen5-efi-poweroff-v1-1-7f766dc13ee9@gmail.com>
-X-B4-Tracking: v=1; b=H4sIAE0Yl2oC/x2NywqEMAwAf0VyNtC61tevLHsINtUgtKUVVxD/3
- eJxGJi5IHMSzjBVFyQ+JEvwBXRdwbySXxjFFoZGNZ0alUYnJ+6r+C2SxV23uLA3yE4whj+n4Bw
- O/UCfubVkyEAJxVT0+U6+v/t+AEHMSI90AAAA
-To: rafael@kernel.org
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, 
- linux-kernel@vger.kernel.org
-X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1788287057; l=3071;
- i=george.kokolakis.ece@gmail.com; s=kernel-20260901;
- h=from:subject:message-id;
- bh=eB+R26itJ2JkTVFa+VyNE4Mw+wr0JpISWwRbkykFcQw=;
- b=aSci7cGWGfRq3MarVunw1Msq3HGDWZbbRiXQRA3urKl1v3DbiAHzC4FBhgvUbWczAKlBytAdU
- Lz8Shk+Jny/Ax6FZsxQ/UjkLuAKUTR/95kAdax752IRfkyvJn34lvEc
-X-Developer-Key: i=george.kokolakis.ece@gmail.com; a=ed25519;
- pk=vZ27t8agUnF5GcuvLoIUzClMG59D0bvQE7GXXdwXJ9I=
-X-Endpoint-Received: by B4 Relay for
- george.kokolakis.ece@gmail.com/kernel-20260901 with auth_id=995
-X-Original-From: George Kokolakis <george.kokolakis.ece@gmail.com>
-Reply-To: george.kokolakis.ece@gmail.com
+References: <3435655.aeNJFYEL58@rafael.j.wysocki> <2021470.taCxCBeP46@rafael.j.wysocki>
+ <apaPjaBH48O4V03m@ashevche-desk.local>
+In-Reply-To: <apaPjaBH48O4V03m@ashevche-desk.local>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Tue, 1 Sep 2026 21:11:26 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0h7BHATHmLNftYHqdy-Ab-Dpq0PySV9q8BONc7KO30JqQ@mail.gmail.com>
+X-Gm-Features: AcwNN1WG8gPxeTQ2F4zR4GcATKypWSZjtI14jt-NrdwQ4_9NpORm45pqC9DZBuE
+Message-ID: <CAJZ5v0h7BHATHmLNftYHqdy-Ab-Dpq0PySV9q8BONc7KO30JqQ@mail.gmail.com>
+Subject: Re: [PATCH v1 4/7] ACPI: scan: Combine two conditionals in acpi_bus_attach()
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
+	Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
+	Mika Westerberg <mika.westerberg@linux.intel.com>, 
+	Peixin Xie <peixin.xie@linux.spacemit.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	Lukas Wunner <lukas@wunner.de>, =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+	Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, 
+	Hans de Goede <hansg@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-From: George Kokolakis <george.kokolakis.ece@gmail.com>
+On Tue, Sep 1, 2026 at 10:40=E2=80=AFAM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Mon, Aug 31, 2026 at 07:59:32PM +0200, Rafael J. Wysocki wrote:
+>
+> > There are two conditionals in acpi_bus_attach() that can be combined,
+> > which slightly reduces the overhead and makes the code a bit easier
+> > to follow, so do that.
+> >
+> > No intentional functional impact.
+>
+> ...
+>
+> > -     if (ret > 0 && !device->flags.enumeration_by_parent) {
+> > +     if (!device->flags.enumeration_by_parent && (ret > 0 ||
+> > +         (!device->pnp.type.platform_id && !device->pnp.type.backlight=
+)))
+> >               acpi_device_set_enumerated(device);
+> > -             goto ok;
+> > -     }
+> > -
+> > -     if (device->pnp.type.platform_id || device->pnp.type.backlight ||
+> > -         device->flags.enumeration_by_parent)
+> > -             acpi_default_enumeration(device);
+> >       else
+> > -             acpi_device_set_enumerated(device);
+> > +             acpi_default_enumeration(device);
+>
+> I would leave a longer line (having logical split)
+>
+>         if (!device->flags.enumeration_by_parent &&
+>             (ret > 0 || (!device->pnp.type.platform_id && !device->pnp.ty=
+pe.backlight)))
+>                 acpi_device_set_enumerated(device);
+>         else
+>                 acpi_default_enumeration(device);
+>
+> Or even going further and cleaning too many negations (if I'm not mistake=
+n in
+> the logic)
+>
+>         if (device->flags.enumeration_by_parent ||
+> // not sure what the expected ret values here, maybe < 0 or =3D=3D 0 part=
+ is not needed
 
-A Lenovo ThinkPad T14 Gen 5 (type 21ML) powers back on immediately
-after an orderly ACPI S5 shutdown.  This was reproduced with BIOS
-N47ET29W 1.18 and Ubuntu kernel 7.0.0-30-generic.
+!ret should be fine.
 
-A standalone UEFI application invoking ResetSystem(EfiResetShutdown)
-leaves the same machine powered off.  A DMI-scoped test module that
-skips the ACPI S5 power-off preparation handler and invokes ResetSystem
-at the final sys-off stage also leaves it off during an ordinary
-userspace shutdown.
+>             (ret <=3D 0 && (device->pnp.type.platform_id || device->pnp.t=
+ype.backlight)))
+>                 acpi_default_enumeration(device);
+>         else
+>                 acpi_device_set_enumerated(device);
 
-Mark ACPI S5 unusable for power-off on this model.  This makes the
-existing x86 EFI code register its higher-priority EFI shutdown handler.
-Do not register the two ACPI power-off handlers when the quirk is active,
-but retain ACPI S5 preparation for restart.
-
-Link: https://bugs.launchpad.net/bugs/2162837
-Cc: stable@vger.kernel.org
-Signed-off-by: George Kokolakis <george.kokolakis.ece@gmail.com>
----
- drivers/acpi/sleep.c | 30 +++++++++++++++++++++++-------
- 1 file changed, 23 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 132a9df984..d14833eb59 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -27,7 +27,7 @@
- #include "sleep.h"
- 
- /*
-- * Some HW-full platforms do not have _S5, so they may need
-+ * Some HW-full platforms do not have a usable _S5, so they may need
-  * to leverage efi power off for a shutdown.
-  */
- bool acpi_no_s5;
-@@ -173,6 +173,12 @@ static int __init init_default_s3(const struct dmi_system_id *d)
- 	return 0;
- }
- 
-+static int __init init_no_s5(const struct dmi_system_id *d)
-+{
-+	acpi_no_s5 = true;
-+	return 0;
-+}
-+
- static const struct dmi_system_id acpisleep_dmi_table[] __initconst = {
- 	{
- 	.callback = init_old_suspend_ordering,
-@@ -407,6 +413,14 @@ static const struct dmi_system_id acpisleep_dmi_table[] __initconst = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "20GGA00L00"),
- 		},
- 	},
-+	{
-+	.callback = init_no_s5,
-+	.ident = "Lenovo ThinkPad T14 Gen 5 (21ML)",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "21ML"),
-+		},
-+	},
- 	{},
- };
- 
-@@ -1117,13 +1131,15 @@ int __init acpi_sleep_init(void)
- 	if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
- 		sleep_states[ACPI_STATE_S5] = 1;
- 
--		register_sys_off_handler(SYS_OFF_MODE_POWER_OFF_PREPARE,
--					 SYS_OFF_PRIO_FIRMWARE,
--					 acpi_power_off_prepare, NULL);
-+		if (!acpi_no_s5) {
-+			register_sys_off_handler(SYS_OFF_MODE_POWER_OFF_PREPARE,
-+						 SYS_OFF_PRIO_FIRMWARE,
-+						 acpi_power_off_prepare, NULL);
- 
--		register_sys_off_handler(SYS_OFF_MODE_POWER_OFF,
--					 SYS_OFF_PRIO_FIRMWARE,
--					 acpi_power_off, NULL);
-+			register_sys_off_handler(SYS_OFF_MODE_POWER_OFF,
-+						 SYS_OFF_PRIO_FIRMWARE,
-+						 acpi_power_off, NULL);
-+		}
- 
- 		/*
- 		 * Windows uses S5 for reboot, so some BIOSes depend on it to
-
----
-base-commit: 786262be6048deab760f68c8acc2c85607165894
-change-id: 20260901-fix-thinkpad-t14-gen5-efi-poweroff-878a3c4da5a5
-
-Best regards,
--- 
-George Kokolakis <george.kokolakis.ece@gmail.com>
-
-
+Yes, it looks better this way.
