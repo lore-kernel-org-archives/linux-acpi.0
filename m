@@ -1,178 +1,162 @@
-Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010027.outbound.protection.outlook.com [52.101.193.27])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from va-2-50.ptr.blmpb.com (va-2-50.ptr.blmpb.com [209.127.231.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECE0E45DF61;
-	Tue,  1 Sep 2026 21:59:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.27
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788299979; cv=fail; b=dFW17sDjw5wEGFS7nNr6b2gJ9k6fAeHPVOzPhnlkEpnnY+kMQyhgcnaBoJfuQYIBbxXRUecCNoXrzh/BXViOFkC+f4bICVv2OIu6SGicfX89u6cVTuvBTvDzvmUTqTdZv4sCLKK03H8WOMeYwQbZ5byTEG5Jx3mpm5I1ewJUprw=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788299979; c=relaxed/simple;
-	bh=jaf2OZrz6goSaXYh9O7m7a41gzvNHur/SKLKuIvqRAc=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=hIXJoA/Jb9pKw5NgDE0JbMMcZkGgyUIfY0kwtJap3xLi21Y59zwxQt9venSrgVLWnHCKUxLh6pD0dncyEVLYJsJ2OLYdR0ENzKbWpz+5iWNmMf/0KMaubUPiq2KxC4wxI9rL5JZ8RCzyQ8cktbvpsEBfT0brRZ8ZYJlZxkT9VP8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=5bvYiSlk; arc=fail smtp.client-ip=52.101.193.27
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 274202989B5
+	for <linux-acpi@vger.kernel.org>; Wed,  2 Sep 2026 08:35:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.127.231.50
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788338113; cv=none; b=m51ez60lYgxRA2R9WvdFVe/ELe6LQTAH74FD6CCKC6Vn/RAUCcq21PfTm1awGKhtRbBDbNeW6/e0o0WwGba5AVCogjlywDGrY3hAPkZiVQs1PPV3KWQEvNiBzXe6Nb84u2xWBws7lE601UNKNthAeAS8LMsa/mgK5AdCZljxKbQ=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788338113; c=relaxed/simple;
+	bh=0Tuz00AeJ2DG8gLiKYZMXO5jtS+JnNqL2fME1NZNvmU=;
+	h=From:Subject:Message-Id:Content-Type:To:Mime-Version:Cc:Date; b=Pn6Qe+g0r6Y/gX6sETZcPEUnA3qSBl91rpzPBg3m89INAEEdixZ/lqKUxgDhKuFwo0ZceWruxHjBBjgYFfHPw6iWPh64D7NgneK7J+pa9Axp559tUD75sPJDHTMRmnDkc9+d9Kvb6PoeCE41WiN3seI4GbSuBIGt/+KkgNiVY14=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=picoheart.com; spf=pass smtp.mailfrom=picoheart.com; dkim=pass (2048-bit key) header.d=picoheart.com header.i=@picoheart.com header.b=OY6sZyRk; arc=none smtp.client-ip=209.127.231.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=picoheart.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=picoheart.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="5bvYiSlk"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=EMgpkOfvqYQng7drQqxEA3mCD/LCGYVQGZOhnj/1l31CQGYidkaE8vhRntVUAJpoDrSBnaxFFbA3CSfyC43g2inc/xzTQw6yrQhuGXzAamJYNaHnUqom7TIS6QMBgZUX7D3Motf6St6hbXMowmD2ujf10dqL7lHDqqepaFW6QNJIrd1d+FGKxjNI07N4hWCe5YoRgc2kiNMgc9J1J4U0sAeU0t/Qj6+aG5YReC11MjHlP+NPSarAKnmQ5Jy2F7vRoSHfbuw0AKXmhRnqTVpKeFL7HeW19JMuOWW+1FltwU1jEcesj6pqWfhLVYodOKLS6yo6i3/v476ci1HOE4W6SQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=/170WNqvzSQxQ9u4vl2fD+LLwjr2RfDr0kuTJ3hlnAw=;
- b=tNZFeKCUifNy0gEPU6pWZdzsCSUeIN+REeF2SzAyRLolLrRSzMDmjQ55FzRaYcbPgDhbjp9IVI6rgvswEPbe2PbJTgBNVIiTIf2kYIXHb9L7wvhLby1M3i7wU7tFI3g2SuaEOUDy3bRZFWya1UD+gJWlFyzm4lxYH5D7enuXhswjknLz7/H/kWgGYqZMB5Cpct4964hxFiuU2W8kOpOUQFPLCokmO5gZHMQyLh05aa90q9DZOXF/hAlynsvgnlGOrQRv7Gmr/UyC5zsQWjA+GQPii9/26BTEBZ5fgAsRVWXINr/zTqaHtvC6sRG/3tc9VGxiGLjjc2eFw/sojqYnEg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=/170WNqvzSQxQ9u4vl2fD+LLwjr2RfDr0kuTJ3hlnAw=;
- b=5bvYiSlk/7d6XSuZgY7MUI8imMaag0BvfsxbW9CTv1fYot2NJ0NFfTGWUY1BKN/Qfx44iJYemBSukUjayArNWbstmTQW2QFK30ypflXXhOgbDmJd8hmXjVzu5LXlagCnP/+zGk7GTNc4ot6KbI3EhvKhBaKNxReBEDwEf280pPY=
-Received: from SJ2P220CA0002.NAMP220.PROD.OUTLOOK.COM (2603:10b6:a03:5da::10)
- by PH8PR12MB8608.namprd12.prod.outlook.com (2603:10b6:510:1bc::9) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.13; Tue, 1 Sep
- 2026 21:59:28 +0000
-Received: from MWH0EPF000A6735.namprd04.prod.outlook.com
- (2603:10b6:a03:5da:cafe::3b) by SJ2P220CA0002.outlook.office365.com
- (2603:10b6:a03:5da::10) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.10 via Frontend Transport; Tue, 1
- Sep 2026 21:59:28 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
-Received: from satlexmb07.amd.com (165.204.84.17) by
- MWH0EPF000A6735.mail.protection.outlook.com (10.167.249.27) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.382.8 via Frontend Transport; Tue, 1 Sep 2026 21:59:28 +0000
-Received: from aus0006770c4n-lx01.amd.com (10.180.168.240) by
- satlexmb07.amd.com (10.181.42.216) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.46; Tue, 1 Sep 2026 16:59:25 -0500
-From: Mario Limonciello <mario.limonciello@amd.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>
-CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-pm@vger.kernel.org>, K Prateek Nayak <kprateek.nayak@amd.com>,
-	<x86@kernel.org>, Vishal Badole <Vishal.Badole@amd.com>, Mario Limonciello
-	<mario.limonciello@amd.com>
-Subject: [PATCH v2 2/3] cpufreq/acpi-cpufreq: Use amd_get_boost_ratio()
-Date: Tue, 1 Sep 2026 16:59:11 -0500
-Message-ID: <20260901215913.3042182-3-mario.limonciello@amd.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260901215913.3042182-1-mario.limonciello@amd.com>
-References: <20260901215913.3042182-1-mario.limonciello@amd.com>
+	dkim=pass (2048-bit key) header.d=picoheart.com header.i=@picoheart.com header.b="OY6sZyRk"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+ s=feishu2604151535; d=picoheart.com; t=1788338094; h=from:subject:
+ mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
+ mime-version:in-reply-to:message-id;
+ bh=wD9RsUO9lSPScERFohkjXD33MGWV4xKAf1UmItB58WI=;
+ b=OY6sZyRk8hVXuV3bclp/Y8HIul8+Ic907idxBrDqUK85wrgKrsmt+VPFqgnWUgWnDDgZO8
+ Ik+hcC2jgXOrI63FDib9/ixl0R2Yy5PmjaLWwLVmJdAAFO2VSrTRIGvyEVE/oB1J3l8wUc
+ hqEjwbev6dZ0diSr3d+W1PQjxdhx1er4SLVE1YoZWwIUq6x4NnDq8eHmavgTbhv/ffbl2o
+ iDGGjXSWyVfWdowdwmjMqg6qGuJR9mtLmZZY6+0PYtx1qEEUjqXTHpA4R3a600Jld9+j0S
+ zUtthVM5GFZBQM4Lx9UOER/fYsudHjsqc2nwA0QB1SQcdzszO4uuaoQLmvoasw==
+X-Original-From: Yufan Dou <douyufan@picoheart.com>
+Received: from 5CG30262N9-QAP.localdomain ([58.250.122.114]) by smtp.feishu.cn with ESMTPS; Wed, 02 Sep 2026 16:34:51 +0800
+From: "Yufan Dou" <douyufan@picoheart.com>
+Subject: [PATCH] ACPI: RISC-V: CPPC: Implement cpc_read_ffh_fb_ctrs()
+Message-Id: <20260902083450.2348-1-douyufan@picoheart.com>
+X-Lms-Return-Path: <lba+26a97dfac+881763+vger.kernel.org+douyufan@picoheart.com>
+Content-Transfer-Encoding: 7bit
+X-Mailer: git-send-email 2.53.0
+Content-Type: text/plain; charset=UTF-8
+To: "Sunil V L" <sunilvl@ventanamicro.com>, 
+	"Rafael J . Wysocki" <rafael@kernel.org>, "Len Brown" <lenb@kernel.org>, 
+	"Paul Walmsley" <pjw@kernel.org>, "Palmer Dabbelt" <palmer@dabbelt.com>, 
+	"Albert Ou" <aou@eecs.berkeley.edu>, "Alexandre Ghiti" <alex@ghiti.fr>, 
+	<linux-acpi@vger.kernel.org>, <linux-riscv@lists.infradead.org>, 
+	<linux-kernel@vger.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
- (10.181.42.216)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000A6735:EE_|PH8PR12MB8608:EE_
-X-MS-Office365-Filtering-Correlation-Id: ca602832-f6f8-42be-6b16-08df08744b5d
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|36860700016|23010399003|82310400026|10067099003|56012099006|11063799006|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	yP0B5zaaYfGrxZ5BgTSpsXzHaLRbpg029Hv0+C97x7X/Y2Djg0pl4Jbfad5PgotoiE44JWDLPnPor+Wb92SaxvnHHxyP5JoAQx5T0OAqa4r3fQj0Kz3E2t6QNRcpzuAt1ZYvY5cZGPQcJOSYl2zXL/CEiO3vaTT7sIIaGrx1LiRXtoWXQ2QP381I1xAtcZ4PnlyJujbvn0oHefJqLOhrUWqg6GRt781KL2vzqxU76noJc0TsP/HpZGXytuBa8uqPz5C7t+sV/an/I94YJf/l4711bUdg5jKpkVMaIbW9F5QDL8WVAK3BVmgHqDkkfTjTWKInhKBl+M3+kcy5mQqm5fsrgaSLaQ73/nPv4ZcQP5XMAhb6t6vD5BSILbrcTzfB9jbQfrQxItqV3uk8pnbZ0ZRbPch19zfP248wiwDPskSx1NegDgbgkZs0dSuPeMhQ8fxB6z7n+gLtp3UoJqVaa16y6Gla2zN0+BTISOeTYkA7Ipltb4VtvCB/GjRzGp8xMLbuyVhg4XX73ImYY5AUbNCQdJAlh+GsMug9Unv5Zed51y9q2R7YwbAD3XItN1Cv6Osr8oM3RnnjxwJWvQtEp5+FkyINEaC0KNx8qiek7A4L3RmPQvPP1hfxVHhnqh4hTbvOsoAMFz7QzNoyYoSbp3fm76OSHcPqUZHviP9PMreLsudPfoH1BIaKVNf/KGKov1FCh0hJlQLbumMAT6lrKg==
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(376014)(36860700016)(23010399003)(82310400026)(10067099003)(56012099006)(11063799006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	G3ZltZ9zjViBQ0c3PiVUWDebILsl5YtVDZuay0ynFuVeQcggIdno8pifeekYI8iSI37bseIGBk9IkJtjPyMxl8uQKbpOT6ar5PfcBu9jw+iKIehzL2rYco+PGCrvdodTtRhqCm2i50m8hx7o/KN2YGqIFZ87HtihNe9aJ/KM3cx/Nja8BLJ4XJHpsMbueC3HWDG3qqSKhrzopWPCmZ0WHTXk4y54su1ADcFpHAS9DxfKhNOj9eFwlGXKi+anwOIANvdysemM+8hAaUhe0YRH/aUJLCvFyQGeGlH3g57B1RCahsAGYKXKxn0eBKIgZeIB7u2NSKrkVnqKDmRcpMVEG+P1Rw/WC+1Mwa48J7/0bEYxx0T7g+HfqRnSdvFP3j1F8zUitW/jGl9BPCuTXnSgFrWbKQ+DVGBUmMzmnkdo8WlQVp/PJERbaZJceZO6T5Ca
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Sep 2026 21:59:28.2197
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: ca602832-f6f8-42be-6b16-08df08744b5d
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	MWH0EPF000A6735.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR12MB8608
+Mime-Version: 1.0
+Cc: <yuchao.46@picoheart.com>, <zhanjie9@hisilicon.com>, 
+	<yang.yicong@picoheart.com>, <geshijian@picoheart.com>
+Date: Wed,  2 Sep 2026 16:34:50 +0800
 
-Update get_max_boost_ratio() to use the new amd_get_boost_ratio()
-helper function instead of calling amd_get_effective_highest_perf()
-directly.
+On RISC-V, each cpc_read_ffh() for a CSR-type FFH register sends a
+separate IPI to the target hart via smp_call_function_single().
+cppc_get_perf_ctrs() therefore samples the delivered and reference
+counters in two separate IPIs, at two different instants. The skew
+between the two sampling points distorts the delivered/reference
+ratio and thus the frequency reported by cpufreq.
 
-This ensures the boost ratio is calculated correctly on systems where
-frequency values should be used instead of performance values.
+Implement the cpc_read_ffh_fb_ctrs() hook to read both CSR counters
+back-to-back in a single IPI, which narrows the sampling window to a
+few instructions and halves the number of cross-CPU calls. This
+improves the accuracy of the reported frequency in the same way as
+the arm64 implementation of the hook, which reads both AMU counters
+in a single counters_read_on_cpu() call.
 
-Reviewed-by: K Prateek Nayak <kprateek.nayak@amd.com>
-Tested-by: K Prateek Nayak <kprateek.nayak@amd.com>
-Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+SBI-type FFH registers still fall back to individual reads, since
+pairing them would not reduce the number of SBI calls on the target
+hart.
+
+Testing was performed while CPU1 was kept busy with:
+
+  # stress-ng --cpu 1 --taskset 1
+
+On a CPU with cpuinfo_max_freq of 3000000 kHz:
+
+Before:
+
+  Maximum observed cpuinfo_cur_freq: 3201369 kHz
+  Maximum observed error:            +201369 kHz (+6.71%)
+
+After:
+
+  Maximum observed cpuinfo_cur_freq: 3009646 kHz
+  Maximum observed error:              +9646 kHz (+0.32%)
+
+The maximum observed error is reduced by 95.2%.
+
+Signed-off-by: Yufan Dou <douyufan@picoheart.com>
 ---
- drivers/cpufreq/acpi-cpufreq.c | 20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ drivers/acpi/riscv/cppc.c | 47 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-diff --git a/drivers/cpufreq/acpi-cpufreq.c b/drivers/cpufreq/acpi-cpufreq.c
-index 523ee1a06ef8a..2e74a000cdc74 100644
---- a/drivers/cpufreq/acpi-cpufreq.c
-+++ b/drivers/cpufreq/acpi-cpufreq.c
-@@ -626,7 +626,7 @@ static int acpi_cpufreq_blacklist(struct cpuinfo_x86 *c)
- static u64 get_max_boost_ratio(unsigned int cpu, u64 *nominal_freq)
- {
- 	struct cppc_perf_caps perf_caps;
--	u64 highest_perf, nominal_perf;
-+	u64 numerator, denominator;
- 	int ret;
- 
- 	if (acpi_pstate_strict)
-@@ -640,33 +640,31 @@ static u64 get_max_boost_ratio(unsigned int cpu, u64 *nominal_freq)
- 	}
- 
- 	if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD) {
--		ret = amd_get_effective_highest_perf(cpu);
--		if (ret < 0) {
--			pr_debug("CPU%d: Unable to get boost ratio numerator (%d)\n",
-+		ret = amd_get_boost_ratio(cpu, &numerator, &denominator);
-+		if (ret) {
-+			pr_debug("CPU%d: Unable to get boost ratio (%d)\n",
- 				 cpu, ret);
- 			return 0;
- 		}
--		highest_perf = ret;
- 	} else {
--		highest_perf = perf_caps.highest_perf;
-+		numerator = perf_caps.highest_perf;
-+		denominator = perf_caps.nominal_perf;
- 	}
- 
--	nominal_perf = perf_caps.nominal_perf;
--
- 	if (nominal_freq)
- 		*nominal_freq = perf_caps.nominal_freq * 1000;
- 
--	if (!highest_perf || !nominal_perf) {
-+	if (!numerator || !denominator) {
- 		pr_debug("CPU%d: highest or nominal performance missing\n", cpu);
- 		return 0;
- 	}
- 
--	if (highest_perf < nominal_perf) {
-+	if (numerator < denominator) {
- 		pr_debug("CPU%d: nominal performance above highest\n", cpu);
- 		return 0;
- 	}
- 
--	return div_u64(highest_perf << SCHED_CAPACITY_SHIFT, nominal_perf);
-+	return div_u64(numerator << SCHED_CAPACITY_SHIFT, denominator);
+diff --git a/drivers/acpi/riscv/cppc.c b/drivers/acpi/riscv/cppc.c
+index 42c1a9052470..2ca98fa69e9a 100644
+--- a/drivers/acpi/riscv/cppc.c
++++ b/drivers/acpi/riscv/cppc.c
+@@ -85,6 +85,20 @@ static void cppc_ffh_csr_write(void *write_data)
+ 	data->ret.error = -EINVAL;
  }
  
- #else
--- 
-2.43.0
++struct sbi_cppc_fb_ctrs_data {
++	struct sbi_cppc_data first;
++	struct sbi_cppc_data second;
++};
++
++static void cppc_ffh_csr_read_fb_ctrs(void *read_data)
++{
++	struct sbi_cppc_fb_ctrs_data *data = read_data;
++
++	cppc_ffh_csr_read(&data->first);
++	if (!data->first.ret.error)
++		cppc_ffh_csr_read(&data->second);
++}
++
+ /*
+  * Refer to drivers/acpi/cppc_acpi.c for the description of the functions
+  * below.
+@@ -125,6 +139,39 @@ int cpc_read_ffh(int cpu, struct cpc_reg *reg, u64 *val)
+ 	return -EINVAL;
+ }
+ 
++int cpc_read_ffh_fb_ctrs(int cpu, struct cpc_reg *reg1, u64 *val1,
++			 struct cpc_reg *reg2, u64 *val2)
++{
++	struct sbi_cppc_fb_ctrs_data data;
++	int ret;
++
++	if (WARN_ON_ONCE(irqs_disabled()))
++		return -EPERM;
++
++	/* Only CSR counters can be paired within a single IPI. */
++	if (FFH_CPPC_TYPE(reg1->address) != FFH_CPPC_CSR ||
++	    FFH_CPPC_TYPE(reg2->address) != FFH_CPPC_CSR)
++		return -EOPNOTSUPP;
++
++	data.first.reg = FFH_CPPC_CSR_NUM(reg1->address);
++	data.second.reg = FFH_CPPC_CSR_NUM(reg2->address);
++
++	ret = smp_call_function_single(cpu, cppc_ffh_csr_read_fb_ctrs,
++				       &data, 1);
++	if (ret)
++		return ret;
++
++	if (data.first.ret.error)
++		return data.first.ret.error;
++	if (data.second.ret.error)
++		return data.second.ret.error;
++
++	*val1 = data.first.ret.value;
++	*val2 = data.second.ret.value;
++
++	return 0;
++}
++
+ int cpc_write_ffh(int cpu, struct cpc_reg *reg, u64 val)
+ {
+ 	struct sbi_cppc_data data;
 
+base-commit: 89a312991dc6e638a36adc43ccb91dbc25504c04
+-- 
+2.34.1
