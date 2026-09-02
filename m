@@ -1,183 +1,145 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 862D4360EEE;
-	Wed,  2 Sep 2026 17:14:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6D5C381EB5;
+	Wed,  2 Sep 2026 17:47:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788369241; cv=none; b=FUa2CHSBFkYGhdbXOOmgpW2uCk7Jz/J7sN0LbnnI3r4nAHX0n6PwPtSE6sKXv9c6KQlxK4aMAyEs8KGGzYRmg05W3NI00pXrkDPHC9dar1rFRrBlItvTB52eRh7ZW+oEi6hu/B7y3zk7eKTgAu70XfUg0KWPmwGXfoKCogYCoDI=
+	t=1788371265; cv=none; b=ddwYzpIdd0tPXXiRzHiqzWUE9zNMulUFJOqT+kaACahEGVMeyGFb2l6nlZkmp4FXEGYjww3vIZ/oXK9/37DGrtSaV4X53UfkC+nM63h4C0h/CTI/qrfu8mHm7A7eN6EDpUJeBn1TiXKZRUZJ54622rZT+h9IMN3hxENy4fK1sIM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788369241; c=relaxed/simple;
-	bh=4ILhT8sCaURyQZT0Q8M6BWApAtI4AkTq9TfGAv3S+XY=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=jsTqD1mCaZWdv1epoaEHLj1Zrv8VquKhC+kSwAYMt2DvoZAes8JZuVRCiHx2G0g+bT1v6DDZTFZ7+fX4lrPS0rhJBzgFOESzXdSrJPR8VPUujmkwfUfa9WCYXxICjZeP0qNLREqPXcO/U9tSB6xQN0OFLq9gvkSYyxvsd46Z0cs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sjlwR3bL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1788371265; c=relaxed/simple;
+	bh=IWgk0hsVjRXhlLhEWIxVCWRMRpovGs474qgm8wj4So0=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=Hd4xZPLAFUCNyL0D8+f8HY4n+ww1s1hqpfQGrHewD+q+8j70lGKiDAzyVyUxuLsqdLs3Gxm2FwqZc9uTyo18JJ4PG/V6Qd1jj6GTIDcEUAkoEGHKh8TRSFF/+NPesmcqFEU00uc+aAiAhoLMNRpYeVEjF6Qd8Z/xz4tuoKRIiR0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jmlInIoA; arc=none smtp.client-ip=198.175.65.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sjlwR3bL"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 2C633C2BCC7;
-	Wed,  2 Sep 2026 17:14:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1788369241;
-	bh=4ILhT8sCaURyQZT0Q8M6BWApAtI4AkTq9TfGAv3S+XY=;
-	h=From:Date:Subject:To:Cc:Reply-To:From;
-	b=sjlwR3bLrfch1xSw8T7AUWJdcUmIoa7fNxwHxGPWIjd9eM8xazYxkPkpky8luJ1SX
-	 uiErav9Hc01QYrSOM+fOi/0TxJCu2Ap5Rzo+vYLNxsmOfx3fKdDaRoCW7p0gwF/9s1
-	 5rqzjLvc9VNdeIPjjl+JhG+SYoDD+Q2ADZnE4gHtNkTouVtW81cxYkjIrTnlKwu19v
-	 2Yr5ajxQwbAaH4CJUgi8oasOHNiKxyIz3pL7Vko8DJvamWL1CbApl4zGJ+Hze+BlMd
-	 1lvccFz3dw/kKu2OqK6IhvPQ4c3WoHKVtvyFwgo0ZVZOt4BEQ6WU+zsBuJSse2tyDu
-	 DpqVmanR0mKxA==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18BBCC624D3;
-	Wed,  2 Sep 2026 17:14:01 +0000 (UTC)
-From: George Kokolakis via B4 Relay <devnull+george.kokolakis.ece.gmail.com@kernel.org>
-Date: Wed, 02 Sep 2026 20:14:01 +0300
-Subject: [PATCH RFC v2] ACPI: PM: Use EFI power off on Lenovo ThinkPad T14
- Gen 5
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jmlInIoA"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1788371264; x=1819907264;
+  h=date:from:to:cc:subject:message-id;
+  bh=IWgk0hsVjRXhlLhEWIxVCWRMRpovGs474qgm8wj4So0=;
+  b=jmlInIoAz2V9N8XGReCW4XJcyM+F68tH+jF4kS6R/X7AmuOjflzPy5ew
+   HsBlIpLjBw19rcR1wc4FK5TUVaiXI4tDKGVYEjMMXsXD4PUXlKFBjFdaB
+   PXN5+vRr4mDJ3Ml4p/56eWC6NpGZOoQMnAhoHNlTSrqGdJMcuVPf39ATG
+   B+xB2VNgT+D73ljSeNeXMi6CrUQb0C0EeNCbl5XNIamjgsv9ZIgco1vzZ
+   8BOYZWrmVVXruG/8Gj+cMFH+giU8d+mhY4NMwzX0Ki/gXzIPXfBQovyBx
+   iyhQ38mIZK4ldj3YeRMqMbUV8tSQlZ1nNLFr7JGjMtFbYEcT+CvQ+idTr
+   g==;
+X-CSE-ConnectionGUID: wlSQ/e0lTaSthPyas0iNdg==
+X-CSE-MsgGUID: cOW1XRjnTOeGhGkJUlkIuw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11894"; a="88873776"
+X-IronPort-AV: E=Sophos;i="6.25,258,1779174000"; 
+   d="scan'208";a="88873776"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Sep 2026 10:47:44 -0700
+X-CSE-ConnectionGUID: yYmKtuXwRa+gLyXzasgYOA==
+X-CSE-MsgGUID: a1WJh2JdRPCdEkr8txAU6Q==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,258,1779174000"; 
+   d="scan'208";a="273237769"
+Received: from lkp-server01.sh.intel.com (HELO bfac249b2189) ([10.239.97.150])
+  by orviesa004.jf.intel.com with ESMTP; 02 Sep 2026 10:47:43 -0700
+Received: from kbuild by bfac249b2189 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1x1p3j-0000000035W-43xd;
+	Wed, 02 Sep 2026 17:47:39 +0000
+Date: Thu, 03 Sep 2026 01:46:39 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ 208027d2c8957800e199a9e0f55da5fdb9550207
+Message-ID: <202609030125.KSjl1YRt-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260902-fix-thinkpad-t14-gen5-efi-poweroff-v2-1-c7bb29c91832@gmail.com>
-X-B4-Tracking: v=1; b=H4sIAFhZmGoC/5WNTQqDMBBGryKz7hTjv10VCj1At8VFSCY6tCaSi
- LWId2/wBl2+78H3NgjkmQJckg08LRzY2QjZKQE1SNsTso4MWZpVaZsKNLziPLB9TVLjLArsyZZ
- IhnFyH/LOGGzqRuaq0LKUJcSjyUe9HpEnPO436OI4cJid/x7hRRzqn8YiUGBt6qrSSuRE7bUfJ
- b/Pyo3Q7fv+A+IotRzZAAAA
-To: rafael@kernel.org
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, 
- linux-kernel@vger.kernel.org, stable@vger.kernel.org, 
- George Kokolakis <george.kokolakis.ece@gmail.com>
-X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1788369240; l=4295;
- i=george.kokolakis.ece@gmail.com; s=kernel-20260901;
- h=from:subject:message-id;
- bh=SNEEUPIgMfmYyvsyn9AZanB8keYappwqTWEzg+lMawE=;
- b=2DkAo9p8UxluXuemZ8Anbc+0+NDw1b/m5Eay1BxZ33k/2HrEVmCbXpdDWWiFM2ItLx+nUDmg2
- MM1sxzFMD7UDtx9WjRHr6UnnVKcxRO+PNPoo+vAdIosfKBZHUyNM4xY
-X-Developer-Key: i=george.kokolakis.ece@gmail.com; a=ed25519;
- pk=vZ27t8agUnF5GcuvLoIUzClMG59D0bvQE7GXXdwXJ9I=
-X-Endpoint-Received: by B4 Relay for
- george.kokolakis.ece@gmail.com/kernel-20260901 with auth_id=995
-X-Original-From: George Kokolakis <george.kokolakis.ece@gmail.com>
-Reply-To: george.kokolakis.ece@gmail.com
 
-From: George Kokolakis <george.kokolakis.ece@gmail.com>
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: 208027d2c8957800e199a9e0f55da5fdb9550207  Merge branch 'acpi-bus' into linux-next
 
-A Lenovo ThinkPad T14 Gen 5 (type 21ML) powers back on immediately
-after an orderly ACPI S5 shutdown. This was reproduced with BIOS
-N47ET29W 1.18 and Ubuntu kernel 7.0.0-30-generic.
+elapsed time: 1317m
 
-A standalone UEFI application invoking ResetSystem(EfiResetShutdown)
-left the same machine powered off, and an out-of-tree DMI-scoped
-module implementing this same approach also succeeded on its first
-real shutdown test.
+configs tested: 68
+configs skipped: 0
 
-Update: on subsequent independent shutdown attempts with the same
-out-of-tree module active, the machine intermittently powered back
-on again despite the EFI power-off handler running. Disabling the
-Intel Wi-Fi ACPI wake source (CNVW) for one boot did not change the
-outcome, ruling that out as the variable. The underlying trigger is
-not yet identified and may be a firmware/EC race rather than a fixed
-choice between ACPI S5 and EFI ResetSystem.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Sending as RFC: the EFI path is a real improvement in most observed
-cases, but is not yet confirmed reliable enough for stable/mainline
-inclusion. Posting the updated data so review isn't based on the
-single-success report in v1, and to ask whether EC-side conditions
-(e.g. AC/dock/Thunderbolt wake arming) are known to affect this on
-other Meteor Lake ThinkPads.
+tested configs:
+alpha         allnoconfig    gcc-16.1.0
+alpha        allyesconfig    gcc-16.1.0
+arc          allmodconfig    clang-24
+arc           allnoconfig    gcc-16.1.0
+arc          allyesconfig    clang-24
+arm           allnoconfig    gcc-16.1.0
+arm          allyesconfig    clang-24
+arm64        allmodconfig    clang-24
+arm64         allnoconfig    gcc-16.1.0
+csky         allmodconfig    gcc-16.1.0
+csky          allnoconfig    gcc-16.1.0
+hexagon      allmodconfig    gcc-16.1.0
+hexagon       allnoconfig    gcc-16.1.0
+i386         allmodconfig    clang-22
+i386          allnoconfig    gcc-16.1.0
+i386         allyesconfig    clang-22
+loongarch    allmodconfig    clang-24
+loongarch     allnoconfig    gcc-16.1.0
+m68k         allmodconfig    gcc-16.1.0
+m68k          allnoconfig    gcc-16.1.0
+m68k         allyesconfig    clang-24
+microblaze    allnoconfig    gcc-16.1.0
+microblaze   allyesconfig    gcc-16.1.0
+mips         allmodconfig    gcc-16.1.0
+mips          allnoconfig    gcc-16.1.0
+mips         allyesconfig    gcc-16.1.0
+nios2        allmodconfig    clang-20
+nios2         allnoconfig    clang-24
+nios2         allnoconfig    gcc-11.5.0
+openrisc     allmodconfig    clang-20
+openrisc      allnoconfig    clang-24
+openrisc      allnoconfig    gcc-16.1.0
+parisc       allmodconfig    gcc-16.1.0
+parisc        allnoconfig    clang-24
+parisc        allnoconfig    gcc-16.1.0
+parisc       allyesconfig    clang-17
+parisc       allyesconfig    gcc-16.1.0
+powerpc      allmodconfig    gcc-16.1.0
+powerpc       allnoconfig    clang-24
+powerpc       allnoconfig    gcc-16.1.0
+riscv        allmodconfig    clang-24
+riscv         allnoconfig    clang-24
+riscv         allnoconfig    gcc-16.1.0
+riscv        allyesconfig    clang-24
+s390         allmodconfig    clang-17
+s390         allmodconfig    clang-24
+s390          allnoconfig    clang-24
+s390         allyesconfig    gcc-16.1.0
+sh           allmodconfig    gcc-16.1.0
+sh            allnoconfig    clang-24
+sh            allnoconfig    gcc-16.1.0
+sh           allyesconfig    clang-17
+sh           allyesconfig    gcc-16.1.0
+sparc         allnoconfig    clang-24
+sparc         allnoconfig    gcc-16.1.0
+sparc64      allmodconfig    clang-20
+um           allmodconfig    clang-17
+um            allnoconfig    clang-17
+um            allnoconfig    clang-24
+um           allyesconfig    gcc-16.1.0
+x86_64       allmodconfig    clang-22
+x86_64        allnoconfig    clang-22
+x86_64        allnoconfig    clang-24
+x86_64       allyesconfig    clang-22
+x86_64      rhel-9.4-rust    clang-22
+xtensa        allnoconfig    clang-24
+xtensa        allnoconfig    gcc-16.1.0
+xtensa       allyesconfig    clang-20
 
-Link: https://bugs.launchpad.net/bugs/2162837
-Cc: stable@vger.kernel.org
-Signed-off-by: George Kokolakis <george.kokolakis.ece@gmail.com>
----
-Changes in v2:
-- Additional real-world shutdown attempts on the same hardware showed
-  the EFI power-off path does not reliably prevent the reboot-on-
-  poweroff behavior: it succeeded on the first two independent tests
-  but failed on two subsequent ones with the same handlers active.
-- Disabling the Intel Wi-Fi ACPI wake source (CNVW) for one boot did
-  not change the outcome, ruling it out as the variable.
-- Re-posting as RFC with this data rather than letting v1's single
-  success stand unqualified; asking whether EC-side conditions (AC/
-  dock/Thunderbolt wake arming) are known to matter here.
-- Link to v1: https://lore.kernel.org/r/20260901-fix-thinkpad-t14-gen5-efi-poweroff-v1-1-7f766dc13ee9@gmail.com
----
- drivers/acpi/sleep.c | 30 +++++++++++++++++++++++-------
- 1 file changed, 23 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 132a9df984..d14833eb59 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -27,7 +27,7 @@
- #include "sleep.h"
- 
- /*
-- * Some HW-full platforms do not have _S5, so they may need
-+ * Some HW-full platforms do not have a usable _S5, so they may need
-  * to leverage efi power off for a shutdown.
-  */
- bool acpi_no_s5;
-@@ -173,6 +173,12 @@ static int __init init_default_s3(const struct dmi_system_id *d)
- 	return 0;
- }
- 
-+static int __init init_no_s5(const struct dmi_system_id *d)
-+{
-+	acpi_no_s5 = true;
-+	return 0;
-+}
-+
- static const struct dmi_system_id acpisleep_dmi_table[] __initconst = {
- 	{
- 	.callback = init_old_suspend_ordering,
-@@ -407,6 +413,14 @@ static const struct dmi_system_id acpisleep_dmi_table[] __initconst = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "20GGA00L00"),
- 		},
- 	},
-+	{
-+	.callback = init_no_s5,
-+	.ident = "Lenovo ThinkPad T14 Gen 5 (21ML)",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "21ML"),
-+		},
-+	},
- 	{},
- };
- 
-@@ -1117,13 +1131,15 @@ int __init acpi_sleep_init(void)
- 	if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
- 		sleep_states[ACPI_STATE_S5] = 1;
- 
--		register_sys_off_handler(SYS_OFF_MODE_POWER_OFF_PREPARE,
--					 SYS_OFF_PRIO_FIRMWARE,
--					 acpi_power_off_prepare, NULL);
-+		if (!acpi_no_s5) {
-+			register_sys_off_handler(SYS_OFF_MODE_POWER_OFF_PREPARE,
-+						 SYS_OFF_PRIO_FIRMWARE,
-+						 acpi_power_off_prepare, NULL);
- 
--		register_sys_off_handler(SYS_OFF_MODE_POWER_OFF,
--					 SYS_OFF_PRIO_FIRMWARE,
--					 acpi_power_off, NULL);
-+			register_sys_off_handler(SYS_OFF_MODE_POWER_OFF,
-+						 SYS_OFF_PRIO_FIRMWARE,
-+						 acpi_power_off, NULL);
-+		}
- 
- 		/*
- 		 * Windows uses S5 for reboot, so some BIOSes depend on it to
-
----
-base-commit: 786262be6048deab760f68c8acc2c85607165894
-change-id: 20260901-fix-thinkpad-t14-gen5-efi-poweroff-878a3c4da5a5
-
-Best regards,
--- 
-George Kokolakis <george.kokolakis.ece@gmail.com>
-
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
