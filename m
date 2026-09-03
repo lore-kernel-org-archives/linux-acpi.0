@@ -1,47 +1,61 @@
-Received: from out30-101.freemail.mail.aliyun.com (out30-101.freemail.mail.aliyun.com [115.124.30.101])
+Received: from mout-p-101.mailbox.org (mout-p-101.mailbox.org [80.241.56.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27D5B4B1283;
-	Thu,  3 Sep 2026 14:00:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.101
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0A614D2ED4;
+	Thu,  3 Sep 2026 16:10:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.241.56.151
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788444066; cv=none; b=UTe5YP/d+8dIcfkzVYfEr+M56xo7S3PJLig+9ZJS43I1jtI06S+igfG8nC/2nB5WGKjJkp2jaQlRNdd9Ctu/t9MmTgzWT2hqDbElrsPTexV1ynM2/24/fz3pfNjwvIi4pKKq/2z6HOA6upsDTQLWsao/1XEMoZX0+C2ec/uiHYs=
+	t=1788451802; cv=none; b=sgTkhPiqD1bWXxnNlyXE8BNAHTJpq07l/791rRxjS6bY5VdpcKrg1lzvnkygf7a8LxJGKEc5gmcwcZKvwxfGgM7wS9symakMbhuQCloZTeaiiBL7hULzslPe/JbYiw8xUAJDa1OHNeMw0D2oP//seOgkh6CJUkcVq0Ak9MWvLEY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788444066; c=relaxed/simple;
-	bh=jY9nHpNgEvlW8JyWvz3Jehy7FPbVDgI1Ta6inmZFL4s=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=ePVwGNsb4scVWDXE6ks87bzV7U7Li5H551hyf59KfZ7KCQKeMyxArEIGx0W0Zr6IxJeG8ImmVbAVQVJOF2/P13xPfkDmRXtWJFSUMM6Z+w33gu0mk6qO3sU6iox+ed751bBPeJUys0K49xEihkIYCBsyEVRTVP/lYcF1xfcB1UI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=cpx103/W; arc=none smtp.client-ip=115.124.30.101
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1788451802; c=relaxed/simple;
+	bh=XsPoPME6+zeGGKH+SuJrQTSPdgHH5u+5A1FWapwI7/U=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FF/IstGt4a2zXQd8WR5mbP5FTgqbvIsDUjUxPW6DTEIdxWDue2lIOPvM5S1Z6ajsRGNKfUZYzhf/xAAGTsuVzonw1j7KTN5sD2NRezic8aMoQUoSaBSOcVgBw2gUgJQC13srirUkvmiMMrnsE57FfxFWepEQkm63foGhYGPi9wM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailbox.org; spf=pass smtp.mailfrom=mailbox.org; dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b=DalvjeNZ; dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b=jrdWKkj0; arc=none smtp.client-ip=80.241.56.151
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailbox.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mailbox.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="cpx103/W"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1788444035; h=From:To:Subject:Date:Message-Id:MIME-Version;
-	bh=EeH6bdDAEIQqh3qtw9ytOgfSyurKW+ipErCrXEGxYck=;
-	b=cpx103/Wm0Y1mFRFhn7w7+Naq5aAOctYx9jvfBv3FpRuMLEdLJ1GexXdmYrJJy8YA/aLl5U8RpDE8mGCFUVzV59cL0KU9BjIAdrqA6TrElt12jq+KJgKVsbBk/absg1iPgDF9Gj8MVsl6uZsM+QqnGOgBw6vmy2oczx1V7UUzMk=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R181e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam011083073210;MF=fangyu.yu@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0XAG8g3p_1788444033;
-Received: from localhost.localdomain(mailfrom:fangyu.yu@linux.alibaba.com fp:SMTPD_---0XAG8g3p_1788444033 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Thu, 03 Sep 2026 22:00:34 +0800
-From: fangyu.yu@linux.alibaba.com
-To: sunilvl@oss.qualcomm.com,
-	rafael@kernel.org,
-	lenb@kernel.org,
-	pjw@kernel.org,
-	palmer@dabbelt.com,
-	aou@eecs.berkeley.edu,
-	alex@ghiti.fr
-Cc: fangyu.yu@linux.alibaba.com,
-	guoren@kernel.org,
+	dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b="DalvjeNZ";
+	dkim=pass (2048-bit key) header.d=mailbox.org header.i=@mailbox.org header.b="jrdWKkj0"
+Received: from smtp1.mailbox.org (smtp1.mailbox.org [IPv6:2001:67c:2050:b231:465::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange x25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mout-p-101.mailbox.org (Postfix) with ESMTPS id 4hbPgj0KFLz8v1n;
+	Thu, 03 Sep 2026 18:09:53 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mailbox.org; s=mail20150812;
+	t=1788451793;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=n3tQitakLlqQDYDPHdHUWoyy1Ad3Gb0VsyWcR09H3K0=;
+	b=DalvjeNZsxU2PyWCP5+Z87wBy1Aa7voE01FYgLo/IP0YrD2VMB0yJWPXKBkESpFi5xgMtb
+	QXjYXgeWeuouRe+zfmHKYLwW/GvxT7HyDNnpuCcyYxSG8eF6pS7f6LqAFeSPET4AKEsDEc
+	IfSxAF0nu3ZsRKRTJz5+a2IEgybJmKiRfphA6Wp93oxCHgTfN01IqMWVBQC5kAKioaW7t4
+	oYpWA2OZp0kF4xc+dLyZicD7TCC3gyPFW7GF1OlOQQKvmPItmdumsxI9OfbjyQqxVpv+ng
+	qzlULpiaeYYJ7k5D33TvoWyZfGa4t1NcLbsy/a2CuF6EtoiThEcaWlCt+TT64A==
+Authentication-Results: outgoing_mbo_mout;
+	dkim=pass header.d=mailbox.org header.s=mail20150812 header.b=jrdWKkj0;
+	spf=pass (outgoing_mbo_mout: domain of manuelebnerli@mailbox.org designates 2001:67c:2050:b231:465::1 as permitted sender) smtp.mailfrom=manuelebnerli@mailbox.org
+From: Manuel Ebner <manuelebnerli@mailbox.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mailbox.org; s=mail20150812;
+	t=1788451791;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=n3tQitakLlqQDYDPHdHUWoyy1Ad3Gb0VsyWcR09H3K0=;
+	b=jrdWKkj0ltzIRS9srsGv3OtZbg90f3STwOAmkcHdCB6yjEW0kV/mXlKXfiDS4V+xgU7Pip
+	delfT5kMoAJKg6GLYpAJHW53DOZdKpBL/Lidy/GjMW5i/Pp1rvrrPscsSVfTap+OLl7tCH
+	ZGiW1XbOLaD9YhD1LW+iQqPHRUom397O+v5e/qTbowCQruf8eGEmd2Gaw0KCSUv9AtBJEB
+	+MqLucQ0baMYwXSXoqk5E/+QYMr4xRTVGtoUjWTAVmFQywz4b3NeGtkycvdi8ajGuVd+F2
+	QFFDnQW0x52OeIt+R/BMOl6LdD4AbpF+viqvx2y4I6sT3L1PUGMcErUam8DrHQ==
+To: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>
+Cc: Manuel Ebner <manuelebnerli@mailbox.org>,
 	linux-acpi@vger.kernel.org,
-	iommu@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	linux-riscv@lists.infradead.org
-Subject: [PATCH v2] ACPI: RIMT: Enable PCI ACS for root complexes mapped to an IOMMU
-Date: Thu,  3 Sep 2026 22:00:31 +0800
-Message-Id: <20260903140031.3684-1-fangyu.yu@linux.alibaba.com>
-X-Mailer: git-send-email 2.39.3 (Apple Git-146)
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] ACPI: docs: Fix brackets
+Date: Thu,  3 Sep 2026 18:08:45 +0200
+Message-ID: <20260903160846.734870-2-manuelebnerli@mailbox.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -49,113 +63,44 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-MBO-RS-META: q4irxp8iqnm98grkmd3taa43bdymty4z
+X-MBO-RS-ID: 6b01038148216495900
+X-Rspamd-Queue-Id: 4hbPgj0KFLz8v1n
 
-From: Fangyu Yu <fangyu.yu@linux.alibaba.com>
+Add missing ')' to functions.
 
-Mirror the ACPI IORT solution used on arm64 (see iort_enable_acs())
-by scanning the RIMT table for PCIe root complex nodes during
-riscv_acpi_rimt_init(), which runs before ACPI PCI enumeration. If a
-root complex node's ID mapping points at an IOMMU node, call
-pci_request_acs() immediately, so pci_acs_enable is already set by
-the time any PCI device is scanned and pci_enable_acs() runs.
-
-Only one call to pci_request_acs() is needed regardless of how many
-root complexes are found, so track that with a static acs_enabled
-flag, same as iort_enable_acs() does.
-
-Signed-off-by: Fangyu Yu <fangyu.yu@linux.alibaba.com>
-Reviewed-by: Sunil V L <sunilvl@oss.qualcomm.com>
-
+Signed-off-by: Manuel Ebner <manuelebnerli@mailbox.org>
 ---
-Changes in v2 (Suggested by Sunil):
-    - Check the RIMT node type in riscv_acpi_rimt_init() and invoke
-      rimt_enable_acs() only for PCIe root-complex nodes.
----
- drivers/acpi/riscv/rimt.c | 58 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
+ Documentation/firmware-guide/acpi/enumeration.rst | 2 +-
+ Documentation/firmware-guide/acpi/i2c-muxes.rst   | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/riscv/rimt.c b/drivers/acpi/riscv/rimt.c
-index e4538fa6c2c8..edbd04a9e03b 100644
---- a/drivers/acpi/riscv/rimt.c
-+++ b/drivers/acpi/riscv/rimt.c
-@@ -179,6 +179,42 @@ static struct acpi_rimt_node *rimt_scan_node(enum acpi_rimt_node_type type,
- 	return NULL;
- }
- 
-+#ifdef CONFIG_PCI
-+static void __init rimt_enable_acs(struct acpi_rimt_node *rimt_node)
-+{
-+	static bool acs_enabled __initdata;
-+	struct acpi_rimt_pcie_rc *pci_rc;
-+	struct acpi_rimt_id_mapping *map;
-+	struct acpi_rimt_node *parent;
-+	int i;
-+
-+	if (acs_enabled)
-+		return;
-+
-+	pci_rc = (struct acpi_rimt_pcie_rc *)rimt_node->node_data;
-+	if (!pci_rc->id_mapping_offset || !pci_rc->num_id_mappings)
-+		return;
-+
-+	map = ACPI_ADD_PTR(struct acpi_rimt_id_mapping, rimt_node,
-+			   pci_rc->id_mapping_offset);
-+
-+	for (i = 0; i < pci_rc->num_id_mappings; i++, map++) {
-+		if (!map->dest_offset)
-+			continue;
-+
-+		parent = ACPI_ADD_PTR(struct acpi_rimt_node, rimt_table,
-+				      map->dest_offset);
-+		if (parent->type == ACPI_RIMT_NODE_TYPE_IOMMU) {
-+			pci_request_acs();
-+			acs_enabled = true;
-+			return;
-+		}
-+	}
-+}
-+#else
-+static inline void rimt_enable_acs(struct acpi_rimt_node *rimt_node) { }
-+#endif
-+
- /*
-  * RISC-V supports IOMMU as a PCI device or a platform device.
-  * When it is a platform device, there should be a namespace device as
-@@ -509,7 +545,10 @@ int rimt_iommu_configure_id(struct device *dev, const u32 *id_in)
- 
- void __init riscv_acpi_rimt_init(void)
- {
-+	struct acpi_rimt_node *rimt_node, *rimt_end;
-+	struct acpi_table_rimt *rimt;
- 	acpi_status status;
-+	int i;
- 
- 	/* rimt_table will be used at runtime after the rimt init,
- 	 * so we don't need to call acpi_put_table() to release
-@@ -525,4 +564,23 @@ void __init riscv_acpi_rimt_init(void)
- 
- 		return;
- 	}
-+
-+	rimt = (struct acpi_table_rimt *)rimt_table;
-+	rimt_node = ACPI_ADD_PTR(struct acpi_rimt_node, rimt,
-+				 rimt->node_offset);
-+	rimt_end = ACPI_ADD_PTR(struct acpi_rimt_node, rimt_table,
-+				rimt_table->length);
-+
-+	for (i = 0; i < rimt->num_nodes; i++) {
-+		if (rimt_node >= rimt_end) {
-+			pr_err("RIMT node pointer overflows, bad table\n");
-+			return;
-+		}
-+
-+		if (rimt_node->type == ACPI_RIMT_NODE_TYPE_PCIE_ROOT_COMPLEX)
-+			rimt_enable_acs(rimt_node);
-+
-+		rimt_node = ACPI_ADD_PTR(struct acpi_rimt_node, rimt_node,
-+					 rimt_node->length);
-+	}
- }
+diff --git a/Documentation/firmware-guide/acpi/enumeration.rst b/Documentation/firmware-guide/acpi/enumeration.rst
+index 168c43012..da7cc8528 100644
+--- a/Documentation/firmware-guide/acpi/enumeration.rst
++++ b/Documentation/firmware-guide/acpi/enumeration.rst
+@@ -374,7 +374,7 @@ For example::
+ 	{
+ 		Method (_CRS, 0, NotSerialized)
+ 		{
+-			Name (SBUF, ResourceTemplate()
++			Name (SBUF, ResourceTemplate())
+ 			{
+ 				// Used to power on/off the device
+ 				GpioIo (Exclusive, PullNone, 0, 0, IoRestrictionOutputOnly,
+diff --git a/Documentation/firmware-guide/acpi/i2c-muxes.rst b/Documentation/firmware-guide/acpi/i2c-muxes.rst
+index 96ef4012d..d4ce90d00 100644
+--- a/Documentation/firmware-guide/acpi/i2c-muxes.rst
++++ b/Documentation/firmware-guide/acpi/i2c-muxes.rst
+@@ -35,7 +35,7 @@ which corresponds to the following ASL (in the scope of \_SB)::
+                 Device (CLIA)
+                 {
+                     Name (_HID, ...)
+-                    Name (_CRS, ResourceTemplate () {
++                    Name (_CRS, ResourceTemplate ()) {
+                         I2cSerialBus (0x50, ControllerInitiated, I2C_SPEED,
+                                     AddressingMode7Bit, "\\_SB.SMB1.MUX0.CH00",
+                                     0x00, ResourceConsumer,,)
 -- 
-2.50.1
+2.54.0
 
