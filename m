@@ -1,147 +1,263 @@
-Received: from DM1PR04CU001.outbound.protection.outlook.com (mail-centralusazon11010055.outbound.protection.outlook.com [52.101.61.55])
+Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 391263EC822;
-	Wed,  2 Sep 2026 20:57:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.61.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABFAD1A682E
+	for <linux-acpi@vger.kernel.org>; Thu,  3 Sep 2026 04:45:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=205.220.180.131
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788382672; cv=fail; b=BeVdSXn4vkIuQa66Qe1U4H1f5BWvmN8C4CHzU3UWSexF42lrNqeK+1G4M4ZDNk8/Q/QNCLvHP61O+svqRYkHSRpTSmi2HQ+tG43r+VU8KfDGdPC0Rls2zNTRX1McqeGlwyrghl82tVeIBoWrLnv1+eVvnGAnVBRSNBZjYeiC/to=
+	t=1788410743; cv=pass; b=fcJ+ReN/OfKNmISHBr8hWoyqfERJjg7O4SnE93DGDPR9fyonMxdkhIrsmJxaOm5GnKgj0Ab1OINuEhCRxT/MRcgD1dt8qXbIYMI0l9S1PT6XFi8YA3zWDwzA1H2SxnlT3+HO+FFUUjPsyV4Dk5c06mpt+dowqlKuU5c3kiXM7v0=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788382672; c=relaxed/simple;
-	bh=0L7EoNBXSm09DDDRP/UBedG62Fa7GRMCHsuHLf4Ql9I=;
-	h=Message-ID:Date:MIME-Version:From:Subject:To:CC:References:
-	 In-Reply-To:Content-Type; b=DeyifBO2mLPjIGGjrYfaJQEZ5nhuN28OZYeveARZ4GTw7x5tyXyePBs9ctz2XTMfX2hhO/tMd5csUo2ILDTRsM1CQw2qpWZCPuN7tCwb9HIz+JbwoFvMiSsueHEmWhPT4OktCbOFGLnz4v8yXg59GtYN/BSmF2b6WQK0CC0h0GQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=Gru/t7ls; arc=fail smtp.client-ip=52.101.61.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	s=arc-20240116; t=1788410743; c=relaxed/simple;
+	bh=zI+ifEyxByjM6Y9TrkSsIST3zFDRCsE93qCLJwvC3Hk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=jkU8/SPaDAD9KlnDqz2H4s8G2QO922gl+AK8YqF81FvuXQj9In42K0NYpKBHr6kDShK2WhPWJrJEAVmom1Xrk/+xFKiwRaenkAiJhsVUVzkyH6ceL36OT8DNC/8/zjzfnHWwxLzXtNOgLikLYP9BVZQ8OyIQ9vKzvr3xhY9Kujc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=GT6WQFDv; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=TI42IqP/; arc=pass smtp.client-ip=205.220.180.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="Gru/t7ls"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=u5XvzYPXSX+Ie67Pv/AV3eTYG/E+orabiP9uRhmaoVAc0skZgArWSxg58tVs+edQ5Kx4s8ocMZLTvoszOWXRAK8M5QYuOaZDSo8ncgwzWW1vUO/ZkHOz7TjhlWd4P4/d/wddeU/lyExOf3dePqVoo29WiFQQdVXaXVP5EtHl/IckaNQUq4LzU+J8lgfIQKWdu5RT/kblMgzjPf4/l3yYrCGd0ylv5Dq8VmHaVl5WcyJSdUzjjrZF9RYblA5pcY3ITUUzwzsL92zilQyyQflgsQrOD5VmsqH6ENgtv/BWn9Frwz/Ul+1xDrLPGaakYkGXBZ1kk5Z/bFq3u2NIgASOMA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=V8uzunimIgv+OM1IR9f/5KU3rMm0KFNzUX71Kx53d5w=;
- b=pIreHVAYBF8DfD2n1LKAPfEWLW/wNSbSF3vU9rJ1lvlFsEywfqGraKam7wVHoZb9TeRUxOLrLvRGyvdyuFbxn8GIUCM89Q7uQgCOfszWA6B1AzaJIyfwieIehrQT4IVXqRkTGzqwg2tpUP2Exp+oiAl+x/WxdgdvzCpa/HrEpVUtmuvpSZbLfGO9Q2b52919nRfjdBRSJUc+fDn0aqjis5ZM7ULFV8fA6Y2z71SFDjegqnx16mzHDDptm3q5YzvQ5uvqWUZosBt6IFEyo2nSq/gVCnd4iaJSPRtCuMOV4cN82d/frtCMi+FRZmp0U1b5l9j1WJ9H3z2S9Rk4thKm9w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=V8uzunimIgv+OM1IR9f/5KU3rMm0KFNzUX71Kx53d5w=;
- b=Gru/t7lsi3VcLdTFICwq6jOvemwpDSYUIV9A2t0B73xfdBydei2r4NqXdweKTMNn3GrCREUThwlGj+4wzQQTSCTVWucBL8xqMh55XlWvB+TvBJUuMjuG3eeiBAMk/2SB/2iRU01NlkDlTzOxeCROprTe49cbJZVmig5QrIjmuFQ=
-Received: from CH0PR03CA0414.namprd03.prod.outlook.com (2603:10b6:610:11b::32)
- by IA0PR12MB8907.namprd12.prod.outlook.com (2603:10b6:208:492::19) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.13; Wed, 2 Sep
- 2026 20:57:39 +0000
-Received: from CH1PEPF0000AD83.namprd04.prod.outlook.com
- (2603:10b6:610:11b:cafe::4c) by CH0PR03CA0414.outlook.office365.com
- (2603:10b6:610:11b::32) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.11 via Frontend Transport; Wed, 2
- Sep 2026 20:57:38 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
-Received: from satlexmb07.amd.com (165.204.84.17) by
- CH1PEPF0000AD83.mail.protection.outlook.com (10.167.244.85) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.382.8 via Frontend Transport; Wed, 2 Sep 2026 20:57:38 +0000
-Received: from [10.236.189.59] (10.180.168.240) by satlexmb07.amd.com
- (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Wed, 2 Sep
- 2026 15:57:37 -0500
-Message-ID: <2df10ab6-5bb9-461e-8aab-c53daf11368e@amd.com>
-Date: Wed, 2 Sep 2026 15:57:37 -0500
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="GT6WQFDv";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="TI42IqP/"
+Received: from pps.filterd (m0279871.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68344qhC4050775
+	for <linux-acpi@vger.kernel.org>; Thu, 3 Sep 2026 04:45:40 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:reply-to:subject:to; s=
+	qcppdkim1; bh=Sc3WkFAgGyNV3trhZQm/9QMD1pz+GBXUg/MNSusqdCk=; b=GT
+	6WQFDv9pLArywxCmT3lPlnoXr2OAUvu7mqcefxYUUQuUunKAa5VlMOYVhi1XHofF
+	wNp7i1KmIYwmZiVe735eI4cQHXKDmCFkr6yMJdPFaUc/NwzdHYyHYzUClpEYYgie
+	yvQv0yMi4H5DAe8jPsq4Xb1aXKV4a4AH592GoLt4RMYMq86gHdsyJ2gaU4UQGByS
+	b0gSWRpCIJPxNqaNqfgiDWP0Df9bwLAp4TI28lcvgSpD55UJxpE/3ynVVsLXxaJv
+	k02kp6hfeHLbzushzd7gKW96sI6q7AiOPsWX1ak+MOq2YWPSgXTkCDWH4aKaFCvG
+	hVD2/xRAwJBROlTjq2IQ==
+Received: from mail-yw1-f199.google.com (mail-yw1-f199.google.com [209.85.128.199])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4gf1j4g405-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Thu, 03 Sep 2026 04:45:40 +0000 (GMT)
+Received: by mail-yw1-f199.google.com with SMTP id 00721157ae682-836c9f68dcbso32401517b3.0
+        for <linux-acpi@vger.kernel.org>; Wed, 02 Sep 2026 21:45:40 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1788410740; cv=none;
+        d=google.com; s=arc-20260327;
+        b=rA1SSkYEPYtfU0ZBccj+VI7fr/wWGvNyakrSgdXbL4VbnLI6Tx/jM4h6M6naZcaeio
+         Wz4TKMrA5/JqOr7dl6LhjMFcZFED0hJeg+bsIUymMIAP8i49lDpo22fN3iZcqEGpx18t
+         w+ULBkvJxl7QEjWGCYWOMnaBZXS30TvUZSH+1nqv3DkAHmPIIja7ojEjfVly/JoR3k0s
+         c77hW/rV7Um/Cxv1hlWSWXMvR4BUrFoKo0PA6bm+QA/C8qzxKTC63U1DxhOSMnl18EoE
+         oNevqEqn0RXNOc0ByVv9igRW1aEjBffVHPUUy8n/IJxg6J43utynaChLiGBf9EF+sGnu
+         alAQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :reply-to:in-reply-to:references:mime-version:dkim-signature;
+        bh=Sc3WkFAgGyNV3trhZQm/9QMD1pz+GBXUg/MNSusqdCk=;
+        fh=5YVQvixQwS2d9NEDwoHyZgKed0wpMCEkFguQx79TruM=;
+        b=UO4UnVuK6qCPg9qcORpqM/jy4JenirxeQXXrfxemNOEcus3RisyUljnoFcA645KhaZ
+         im9AxZcM5UezkFPKMS9S2cq2Rh39g8icdX3bAYXgWxekxysnEvqs4GFIdXXTgTmCBsNj
+         2Xnk40GY34Ac3ciQZpjnEaPxQ52tQm0brUR7deovgbEAVm0IgTowHIcayx1qCi7UUnfT
+         dirp3AhraCGFBUJYIoukFj++39XOEki2SpeObfGCKQ9yy/gKYTlFD9h6aLkdY+zLEpvv
+         AZveiAHdL9DRCcFIz/PjUikurrexz+t8Qr7wodC9oEkaIqPGsQ+NEWU9YTC/jcJDL+HU
+         Ihfg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1788410740; x=1789015540; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:reply-to:in-reply-to:references:mime-version:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=Sc3WkFAgGyNV3trhZQm/9QMD1pz+GBXUg/MNSusqdCk=;
+        b=TI42IqP/CrwiugmsXM7s/OvbfKPScmXaABegJC7QmNE0c63t6LlPpL35Attg1D/4Gk
+         9wkg3vli9mvm+f7e0J19/Q1DF5ar87e2BuYBxyD/FeuJ2HTVXieybS0ACLe4AdP3lxnT
+         lORSlL7tVmL6pcKPfpuptC4q/9R30UR1kSi0lLGDSv54MJ3t1Gby+MkucN1I2H4Lt6Wh
+         gTHCl+ZnkSV+4PHoFCKYIF1FUNHx+4Gk6LLB7t9xi7FzrOk186z253tiv7NOuF95AfGk
+         VfoT92rv6DOTvDeLEZ3mRi6xBLHAfAzXcC6J63UrFqJSQxHCblm995w0MHqUX20bAhnp
+         qxsw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788410740; x=1789015540;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:reply-to:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Sc3WkFAgGyNV3trhZQm/9QMD1pz+GBXUg/MNSusqdCk=;
+        b=F1vWNUQk01lLL0xFzHequr+rFprSBBtDXlK4RnNKvQJE1AiAJJPbeTx1xSlVn/ljcc
+         sGlm3og5QjO36J6Od84TqvXv5cnqM94S09bWdzajUCWoavqVZa7csjBiL0IyhoZAi3jE
+         OEhRB8Nu724lgFxa4CAS75kc4g7wPR/G7qu/uxji9Wt25eLtYneUmFMGrVm60WhlNno7
+         5zunCu3shoXWaws6rfmycd+eaz44wvy8GzrQ77ERvwveD+ygaN6YpIShZVNW54h5xIDJ
+         Mp3MHIG7e2I+WKKHynhVENnZ6Qq770rOcFSFksIvfsdqOCZcmQewRrn8R5crdPe0UBE5
+         Awrg==
+X-Forwarded-Encrypted: i=1; AKwUvBzq6Ur9uvAxm7KtH2OE8uXcNMIEhSdDxo5Sbzk8AbsLIPx6iZFZW/TuCGuKC7lsxSQbalr9GrrYlumE@vger.kernel.org
+X-Gm-Message-State: AFuF++luyNhVUcpP6zMo53RiBp7rnFG4B/xSD8rPNCJ9TQ4IhEAfGFIf
+	XH6Vw3LABt7EcNvFuOSCfx8Oz+JvXARSCfWNLUqoHaJKuKj2DGtX1Nz4Crtpg5ENdHD9Lobi5Vm
+	xaRO1TEg5PjGq+EnmR87rf1DHz+VZgX9y2BWVCN87l8rGqSzj2LK98gSztvBjkfuXTW8LOe79Pm
+	DY8AE5HwDy0bw8S44DjpOhOc6ytcV55mAnmHwEYyc=
+X-Gm-Gg: AYBFou3Ya4ppHIO2M+8Z6+JwfcCfWirqa3PphS2DBL7qE+h1OxfDAaf5WqySUQSfkar
+	g7yy2uJctNJBO0B5p5q3KiKfDbca/FADx/e4rUrpKM4yWX64eupEh1v1xnwoNSiz5uDH7fUompC
+	PilS6ipPk4vGzWUVNSWdQPKZLfwJxD40qu4BSlL5Q7Vxeg8P6JeBKX97d/sw==
+X-Received: by 2002:a53:ac93:0:b0:66c:85e3:7f28 with SMTP id 956f58d0204a3-66f9be6b625mr3646183d50.48.1788410735025;
+        Wed, 02 Sep 2026 21:45:35 -0700 (PDT)
+X-Received: by 2002:a53:ac93:0:b0:66c:85e3:7f28 with SMTP id
+ 956f58d0204a3-66f9be6b625mr3646094d50.48.1788410729854; Wed, 02 Sep 2026
+ 21:45:29 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-From: "Cheatham, Benjamin" <benjamin.cheatham@amd.com>
-Subject: Re: [PATCH v20 8/9] PCI/CXL: Mask/Unmask CXL protocol errors
-To: Terry Bowman <terry.bowman@amd.com>, Jonathan Cameron <jic23@kernel.org>,
-	Dave Jiang <dave.jiang@intel.com>, Alison Schofield
-	<alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>, Bjorn Helgaas <bhelgaas@google.com>,
-	"Dan Williams" <djbw@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>, <linux-cxl@vger.kernel.org>
-CC: Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, "Hanjun
- Guo" <guohanjun@huawei.com>, Mauro Carvalho Chehab <mchehab@kernel.org>,
-	"Shuai Xue" <xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>, Ira
- Weiny <iweiny@kernel.org>, Li Ming <ming.li@zohomail.com>, Shuah Khan
-	<skhan@linuxfoundation.org>, Richard Cheng <icheng@nvidia.com>, "Robert
- Richter" <rrichter@amd.com>, Lukas Wunner <lukas@wunner.de>,
-	<linux-pci@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-References: <20260902133933.2992457-1-terry.bowman@amd.com>
- <20260902133933.2992457-9-terry.bowman@amd.com>
-Content-Language: en-US
-In-Reply-To: <20260902133933.2992457-9-terry.bowman@amd.com>
+References: <20260902140145.42094-1-fangyu.yu@linux.alibaba.com>
+In-Reply-To: <20260902140145.42094-1-fangyu.yu@linux.alibaba.com>
+Reply-To: sunilvl@oss.qualcomm.com
+From: Sunil V L <sunilvl@oss.qualcomm.com>
+Date: Thu, 3 Sep 2026 10:15:18 +0530
+X-Gm-Features: AcwNN1UQoEUyCiHFoU50MMSvS7TZQc6s0bZHcLqzyxXDTbBAI2PWHTUKR2JHNJY
+Message-ID: <CAB19ukHwcDnApuWcn4MWm=bJZS2=UqbLT2=MnpfsJePG=qA_wA@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: RIMT: Enable PCI ACS for root complexes mapped to
+ an IOMMU
+To: fangyu.yu@linux.alibaba.com
+Cc: sunilvl@ventanamicro.com, rafael@kernel.org, lenb@kernel.org,
+        pjw@kernel.org, palmer@dabbelt.com, aou@eecs.berkeley.edu,
+        alex@ghiti.fr, guoren@kernel.org, linux-acpi@vger.kernel.org,
+        iommu@lists.linux.dev, linux-kernel@vger.kernel.org,
+        linux-riscv@lists.infradead.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: satlexmb07.amd.com (10.181.42.216) To satlexmb07.amd.com
- (10.181.42.216)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH1PEPF0000AD83:EE_|IA0PR12MB8907:EE_
-X-MS-Office365-Filtering-Correlation-Id: e7fd451f-fce8-453b-0789-08df0934d2a7
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|82310400026|23010399003|1800799024|7416014|376014|10067099003|56012099006|4143699003|11063799006|3023799007|22082099003|18002099003|921020;
-X-Microsoft-Antispam-Message-Info:
-	lMhZoYGBncaVH4jENNxmnC4F37rE1gPYsnp42vXNdLrr2NJoci9CrUNUuVosbZ2XYgE+Eh2vNrnJJZfRnGqPUlDuP468IOHTQCdnAcBFQcOamjr/NpFE3xFJoWKh6nH82JdLYIPIuKitinfk8vXbVPl0Io9bKo30GUBKEJwypJAh1GcZHbblzLLuGBdD6lujBLxyoeETs16dnGwa2goGNdFeQci0ddyY/eVzTREqWlf2FwcRiZp1CWkGtfqYe3rs+pmZTmhROe3+PhAnI3Zvc1Wh+90F5s6spJ7FdnvEIh2kK6BsisGDmhP6fcFR7gQo/cHg0xGyqIJ3exkjJMsVLlsBv78WNG4RQ0ZFF0RFyjZqy/SFZ0kNM6Q6T0tXeoVNLw1H7v/pMdA/YWnKm2X+txDz/tpRvWAiPiS/qmwNz8tMLQq6fpRakXMZiK1VKFtKWCcFRPUe2MNXLfIkyB2De+7gAVklNqj23s47Q13ZblZwCCYiKSSK6tz8JQrw4Q/4pd6oRsIZYry/hcIy08awQYOO3/cXG7jPS7OnRQ0RmU5RMgKyyyxLcS7ize1mcNPJfGvMTLatvMDwpllaUSay/lfh9K7+tddfrepukb6w/yQRnUsaTv2LMU+2q3huHlUC4S/lsUlgqX6jBQK6vAiHRg64sDR89GuqxHOH6ZLaC4smlpkP86/xXkXR0OS3gN5lE5UGhATXdeCNZj+b+Uuwi4MgmJGqIvHbgXPox0Kv0Y4=
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700016)(82310400026)(23010399003)(1800799024)(7416014)(376014)(10067099003)(56012099006)(4143699003)(11063799006)(3023799007)(22082099003)(18002099003)(921020);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	W4ihaijCP8nR0gWFJAZBowZLyFmWH1W8P2AGoij9/6q9UtLeXg2aYpHe/oIFjgEFqY1ilCipnYR+9AHJRYgyk7j6Tvv4g9gSJU4gyzeRfd0pHYS50KjArh5BWF43wBhX7wMbCWarw/gmMLdAel93VbRttJjgrKseUaQ1WdCsnNhZpgEYV/SjHJ27rZCZduSGzheDZSgWz9SBVQ4OBgLOJj0N6BKEf3yQmF8HhwblFVW5fIZsjAoau5pTe9PixQqJspWJoW+HsL68K22bdy2J+7A3HPYYFXTAEK5kFpmtEW3EPqsszLY06foCry6xRArZZebr/mf/6DBTK1sPiCF6Af6GqmRzsejwomSOTOXyn4wO/alLwrZ8+Jd937Ie5mTLtwg2ITjaKG+B5xuzc8U9j2KETkZmRPaeAS05jjUOd8RQNhWNj79MY7Z8dT2ggNjY
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Sep 2026 20:57:38.6472
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: e7fd451f-fce8-453b-0789-08df0934d2a7
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	CH1PEPF0000AD83.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR12MB8907
+Content-Transfer-Encoding: quoted-printable
+X-Authority-Analysis: v=2.4 cv=dufrzVg4 c=1 sm=1 tr=0 ts=6a98fb74 cx=c_pps
+ a=72HoHk1woDtn7btP4rdmlg==:117 a=IkcTkHD0fZMA:10 a=VdqzKS8jKosA:10
+ a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
+ a=3WHJM1ZQz_JShphwDgj5:22 a=SRrdq9N9AAAA:8 a=EUspDBNiAAAA:8
+ a=wQ6y6Ln1IUvFgne-YVsA:9 a=QEXdDO2ut3YA:10 a=kA6IBgd4cpdPkAWqgNAz:22
+X-Proofpoint-GUID: ri5iNjnC54YDH27Ufsz7aO2VrVtQZ-cz
+X-Proofpoint-ORIG-GUID: ri5iNjnC54YDH27Ufsz7aO2VrVtQZ-cz
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTAzMDAzOSBTYWx0ZWRfX946J/BRZwvaK
+ b8I1ZLbG57M5INNFhh426FrTAAUHgBBQBxm+2Qjf8YODHCTXWbO+czSZYj0pakU8fR0CM05G6Ul
+ KocK6n5BzXGHqUwrv+9fodSmHGX8Dew=
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTAzMDAzOSBTYWx0ZWRfX5h0pI46GKfTv
+ RoATyHWl5E2AFsITzfj6MfT3h815q5eUJ3Qf/2LKaOvRj82QTlQt+2gaNMDQsAuY8SQ7XR5A9OB
+ 310mXG2Rkq8iGQEFvpGkmm05at0Q4cUlkiR7oTN7mbyrHhA70FJQE1xa45LqPGTWO6izpDPmlRl
+ 4T0X3tt3W9+mOo61Pi4WVuNUJh+09fBN6l9hdom+n8G/RTHquX5/yQCCRoch3/hWzHcS1HRWPh1
+ p3diRPhR6QOn9xaINOp4TU8zcJXddsSNlGC2wCkcs3r/xXStl3Zsi0Rrfh9oqXZzWApfmBeRfQG
+ Yj9i8lR4DEnnyXDtraut+47ayWMIcWzgQl9195zDLtCAqs20T8aTNweEIB94yi1e+WbxD8t/wcR
+ 3t6Fuy6nlObpQm/t2lsPuAbx9Vzk6gNLuicL6ADA0TvnqkmCW/2j8IiAQf6qZYfYrDMJNEgD7jS
+ HzLLD3OAiLZQa9/z9kg==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-09-03_01,2026-09-02_04,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501 phishscore=0 malwarescore=0 bulkscore=0 suspectscore=0
+ clxscore=1015 spamscore=0 lowpriorityscore=0 adultscore=0 impostorscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2606150000 definitions=main-2609030039
 
-On 9/2/2026 8:39 AM, Terry Bowman wrote:
-> CXL protocol errors must be unmasked to be reported. Add
-> pci_aer_mask_internal_errors() as the symmetric counterpart to
-> pci_aer_unmask_internal_errors() and export both for cxl_core.
-> 
-> Unmask CXL internal errors in cxl_dport_map_ras() and
-> devm_cxl_port_ras_setup() after the RAS register block is
-> successfully mapped. Register a devm action to restore the mask
-> on teardown. The unmask/mask helpers gate on dev_is_pci() and
-> pcie_aer_is_native() internally so callers need no special-casing.
-> 
-> Remove the dev_is_pci(dport->dport_dev) guard in
-> devm_cxl_dport_rch_ras_setup(). On RCH systems dport->dport_dev
-> is the pci_host_bridge device which is not on pci_bus_type, so
-> this guard blocked real hardware. The caller already gates on
-> dport->rch.
-> 
-> Co-developed-by: Dan Williams <djbw@kernel.org>
-> Signed-off-by: Dan Williams <djbw@kernel.org>
-> Signed-off-by: Terry Bowman <terry.bowman@amd.com>
-> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-> Reviewed-by: Alison Schofield <alison.schofield@intel.com>
-> 
+On Wed, Sep 2, 2026 at 7:31=E2=80=AFPM <fangyu.yu@linux.alibaba.com> wrote:
+>
+> From: Fangyu Yu <fangyu.yu@linux.alibaba.com>
+>
+> Mirror the ACPI IORT solution used on arm64 (see iort_enable_acs())
+> by scanning the RIMT table for PCIe root complex nodes during
+> riscv_acpi_rimt_init(), which runs before ACPI PCI enumeration. If a
+> root complex node's ID mapping points at an IOMMU node, call
+> pci_request_acs() immediately, so pci_acs_enable is already set by
+> the time any PCI device is scanned and pci_enable_acs() runs.
+>
+> Only one call to pci_request_acs() is needed regardless of how many
+> root complexes are found, so track that with a static acs_enabled
+> flag, same as iort_enable_acs() does.
+>
+> Signed-off-by: Fangyu Yu <fangyu.yu@linux.alibaba.com>
 > ---
+>  drivers/acpi/riscv/rimt.c | 56 +++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 56 insertions(+)
+>
+> diff --git a/drivers/acpi/riscv/rimt.c b/drivers/acpi/riscv/rimt.c
+> index e4538fa6c2c8..f22e28c8211e 100644
+> --- a/drivers/acpi/riscv/rimt.c
+> +++ b/drivers/acpi/riscv/rimt.c
+> @@ -179,6 +179,42 @@ static struct acpi_rimt_node *rimt_scan_node(enum ac=
+pi_rimt_node_type type,
+>         return NULL;
+>  }
+>
+> +#ifdef CONFIG_PCI
+> +static void __init rimt_enable_acs(struct acpi_rimt_node *rimt_node)
+> +{
+> +       static bool acs_enabled __initdata;
+> +       struct acpi_rimt_pcie_rc *pci_rc;
+> +       struct acpi_rimt_id_mapping *map;
+> +       struct acpi_rimt_node *parent;
+> +       int i;
+> +
+> +       if (acs_enabled || rimt_node->type !=3D ACPI_RIMT_NODE_TYPE_PCIE_=
+ROOT_COMPLEX)
+> +               return;
+> +
+> +       pci_rc =3D (struct acpi_rimt_pcie_rc *)rimt_node->node_data;
+> +       if (!pci_rc->id_mapping_offset || !pci_rc->num_id_mappings)
+> +               return;
+> +
+> +       map =3D ACPI_ADD_PTR(struct acpi_rimt_id_mapping, rimt_node,
+> +                          pci_rc->id_mapping_offset);
+> +
+> +       for (i =3D 0; i < pci_rc->num_id_mappings; i++, map++) {
+> +               if (!map->dest_offset)
+> +                       continue;
+> +
+> +               parent =3D ACPI_ADD_PTR(struct acpi_rimt_node, rimt_table=
+,
+> +                                     map->dest_offset);
+> +               if (parent->type =3D=3D ACPI_RIMT_NODE_TYPE_IOMMU) {
+> +                       pci_request_acs();
+> +                       acs_enabled =3D true;
+> +                       return;
+> +               }
+> +       }
+> +}
+> +#else
+> +static inline void rimt_enable_acs(struct acpi_rimt_node *rimt_node) { }
+> +#endif
+> +
+>  /*
+>   * RISC-V supports IOMMU as a PCI device or a platform device.
+>   * When it is a platform device, there should be a namespace device as
+> @@ -509,7 +545,10 @@ int rimt_iommu_configure_id(struct device *dev, cons=
+t u32 *id_in)
+>
+>  void __init riscv_acpi_rimt_init(void)
+>  {
+> +       struct acpi_rimt_node *rimt_node, *rimt_end;
+> +       struct acpi_table_rimt *rimt;
+>         acpi_status status;
+> +       int i;
+>
+>         /* rimt_table will be used at runtime after the rimt init,
+>          * so we don't need to call acpi_put_table() to release
+> @@ -525,4 +564,21 @@ void __init riscv_acpi_rimt_init(void)
+>
+>                 return;
+>         }
+> +
+> +       rimt =3D (struct acpi_table_rimt *)rimt_table;
+> +       rimt_node =3D ACPI_ADD_PTR(struct acpi_rimt_node, rimt,
+> +                                rimt->node_offset);
+> +       rimt_end =3D ACPI_ADD_PTR(struct acpi_rimt_node, rimt_table,
+> +                               rimt_table->length);
+> +
+> +       for (i =3D 0; i < rimt->num_nodes; i++) {
+> +               if (rimt_node >=3D rimt_end) {
+> +                       pr_err("RIMT node pointer overflows, bad table\n"=
+);
+> +                       return;
+> +               }
+> +
+> +               rimt_enable_acs(rimt_node);
+>
+NIT: Can we check here itself if it is a PCI RC node and then only
+call enable_acs()?
 
-Reviewed-by: Ben Cheatham <benjamin.cheatham@amd.com>
+> +               rimt_node =3D ACPI_ADD_PTR(struct acpi_rimt_node, rimt_no=
+de,
+> +                                        rimt_node->length);
+> +       }
+>  }
+> --
+> 2.50.1
+>
+Otherwise, LGTM.
 
-Thanks,
-Ben
+Reviewed-by: Sunil V L <sunilvl@oss.qualcomm.com>
