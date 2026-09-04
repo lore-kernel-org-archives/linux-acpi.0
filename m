@@ -1,223 +1,106 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0EAD3D88E0
-	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 13:43:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C48534A4409
+	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 13:47:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788529408; cv=none; b=PCRaROiSkFGIIKls0NdNnFjoa1dXHmH8w3SF4dg+6MZSJ2LwfblToDQ7sLn9YYn8oOcXzDv8kPS6CpqIuQYl2PRHE5snF51czGTAKP5StbIAo2O07ZYdc/YD+Hww/MjlJ2aYiz3/Xc99MG2r5vFU6sFSkoEflELwoHLmM6S0tFY=
+	t=1788529668; cv=none; b=JMJ0IUCRCsE9Nzc/CR2UkrD7GLWol+OTvSTbtvux48qj3BU1OgQsopwzXpy7OKdsxksmCZpB0XJGj3UruIeJr9shOyf5YBFudgJstpZtw0ZhLkh8ZuCQcreQ3OBSMc3WFl/8evs50/ebpD4BdnE2SVYdbKLOaVrF+t5R7JQNzzo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788529408; c=relaxed/simple;
-	bh=W4Ndzilstd5/JnbceWDOOcQC3jDZWB6r3+ivWid2mSY=;
+	s=arc-20240116; t=1788529668; c=relaxed/simple;
+	bh=nVrfrPt4KLobN61Snu5Z6LOs1cLixcS825sgNCChfBY=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=USbMPy1yWW3VYafUScHQr/uCYcmQkKGYcLgZAjtHuy68bL0CY5wTjH4ggnuI8UWggpfmHwFwnpGkQ66vONuN9vuj6N29pC2f77Xfly0PaXfW+fTpR0oQD59Oet4vugNQVsvtdg48zrpysKNaKDlxelat9A/mGabD0I9HyXAgYM8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BT5SIBY9; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=DNQXu+OfyaJgxlC7YPHN/JqADYugmsu1+F76jNvJK9K1VxUZvy9bgOfq3Zs+CaYXNRMnIp3heDj9ru4DZ38F7bTpGQB5mc0CJ8S1xrSxXid+hetvZcxhd3f2NGcg1UgFhFCW3uNCt1VSA6psUgu7OE56/xsYauTfwETaNlWSheQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KHQizLKj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BT5SIBY9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBE6C1F00A3E
-	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 13:43:25 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KHQizLKj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A3891F00ADB
+	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 13:47:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788529405;
-	bh=GHhD0o6c57P19uLDETL/4WoApO08CmyDzLq8rF2xBIw=;
+	s=k20260515; t=1788529666;
+	bh=q4RCXLVhLLs7Mwj/0CvXfSiT4Z86wgJa21A+w8rfgIE=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=BT5SIBY9m3pTFcStDXHpLvEc2Jwn5mO+yp0+x+Go0aaL1D2MOcqcsmbpi+jZ1M6iU
-	 BNXLFnsYkiG1zhGFm36n2Xlt5/IWJZxKzYjxd+5Q7+XaglC7R8XXvtQ3ctYIn4KQK0
-	 7bGhUK60az7/5jk67Jg0zX7MO0TAgQ0G1ke579g1jyLBXatjVa7lvtOFivHqblfnE0
-	 rXfOqOzSA8mqcrLT66eDUDFjcc8XzylvXOTSeynvUOHbrHzg6SBa605S7HCsDciBKP
-	 YdcGTT2f62yb/1Yd0kjh1HmbTfPGdCTEc7y6LolsamCo0wggSuC4vFeer1t40iHSJ5
-	 uuQ1zSv6YSO1w==
-Received: by mail-lj1-f169.google.com with SMTP id 38308e7fff4ca-3a20c95e412so9477491fa.1
-        for <linux-acpi@vger.kernel.org>; Fri, 04 Sep 2026 06:43:25 -0700 (PDT)
-X-Gm-Message-State: AFuF++lfA9F1WY12o3hKnmIh2+J2e2xAw9slzHxnIpmcMHwvE/2LbFiv
-	Mt80zqXn0+tMTbbnBMDxByEeN4sgv7/rDm0hm1CpD45si7tnEEs0KAmJnxM4lBI7mRQ9YQjyZhq
-	Pz43t56+FJv4tJ3jC7S+fQ4KLfP5uZGs=
-X-Received: by 2002:a05:651c:1986:b0:3a1:f4e7:a813 with SMTP id
- 38308e7fff4ca-3a37194ab55mr7963991fa.0.1788529404056; Fri, 04 Sep 2026
- 06:43:24 -0700 (PDT)
+	b=KHQizLKjbvJQczfP1/aYYx2whqaR8AG2ZtA4gH/lq+yHLskyQ1YYMw0TDD9t/EZwN
+	 Ugi+w+roa2SINv7MHRt2jQF+jY1rmCUBbiZDVjgqd2VJ6Ons0+XlyYiWEQdLbQWL3x
+	 xQQIi9Snn+/lfn0vFEW1zIRUwH/C3227VHIHRVuYx/IMkzXcj/6BA+qdRbhUXFTv+w
+	 vpFflSr8UXGnlhyP6WvxY4zHmIJYsBwM8k0GALdSIsOdvYUwizRv6eagLIKkSCuI03
+	 crSzzTfsXaesN78QuhXFPIAGQDJ0tHzaGM4+DP3eFLntvGi4tqqQYls6IeMSXqlYDa
+	 XWD8h+Bq4akkA==
+Received: by mail-lj1-f174.google.com with SMTP id 38308e7fff4ca-3a20f56876eso10172661fa.2
+        for <linux-acpi@vger.kernel.org>; Fri, 04 Sep 2026 06:47:46 -0700 (PDT)
+X-Gm-Message-State: AFuF++kB7G0VE8l53jCjgjvarvjDBFpOtiKW9kY9BWP3vF1XPwBUSxkU
+	fmgDnmltBLCUHJ57R5GxxiZBBy8r6NYqHqHcw9ckkvyhDRCPVjySC4DVntRtlSPNJ1ietfhAi7u
+	HrJ/WiXNjG1+tZv9G4YialpIZQdKWjoQ=
+X-Received: by 2002:a2e:bc29:0:b0:3a3:2959:a466 with SMTP id
+ 38308e7fff4ca-3a371ba4a39mr7744911fa.8.1788529664951; Fri, 04 Sep 2026
+ 06:47:44 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260829164313.20905-1-sumeet4linux@gmail.com>
-In-Reply-To: <20260829164313.20905-1-sumeet4linux@gmail.com>
+References: <20260829145516.13500-1-edward.blair@gmail.com> <20260829145516.13500-2-edward.blair@gmail.com>
+In-Reply-To: <20260829145516.13500-2-edward.blair@gmail.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 4 Sep 2026 15:42:23 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iG_uL=QB2UC74KMwp4T4L8qLfp50JWQKO5B6Fpqy93yw@mail.gmail.com>
-X-Gm-Features: AcwNN1XV9s7Rd3JIzHFLdAkEkYW2fcWV8nVNLs9Hmn8ueL86f8op-i7yeAdgByc
-Message-ID: <CAJZ5v0iG_uL=QB2UC74KMwp4T4L8qLfp50JWQKO5B6Fpqy93yw@mail.gmail.com>
-Subject: Re: [PATCH] powercap: intel_rapl: Fix rapl_packages list corruption
-To: Sumeet Pawnikar <sumeet4linux@gmail.com>, 
-	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	Linux PM <linux-pm@vger.kernel.org>
+Date: Fri, 4 Sep 2026 15:46:42 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jUcRphVQ2ntWQjGvx2z9pdryi8FQh7Z6jRjfdQCXM8vg@mail.gmail.com>
+X-Gm-Features: AcwNN1Xi7Qi4-8uon3KTIqKabwEcjlz5ZX_2MMvPVXkgVgAPjW_8bEv1rS_1CL4
+Message-ID: <CAJZ5v0jUcRphVQ2ntWQjGvx2z9pdryi8FQh7Z6jRjfdQCXM8vg@mail.gmail.com>
+Subject: Re: [PATCH v3 1/2] ACPI: scan: do not enumerate MSFT8000 as a serial
+ bus slave
+To: Edward Blair <edward.blair@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org, rafael@kernel.org, 
+	lenb@kernel.org, heikki.krogerus@linux.intel.com, 
+	mika.westerberg@linux.intel.com, gregkh@linuxfoundation.org, W_Armin@gmx.de, 
+	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi Srinivas,
+On Sat, Aug 29, 2026 at 4:55=E2=80=AFPM Edward Blair <edward.blair@gmail.co=
+m> wrote:
+>
+> MSFT8000 represents the Windows Resource Hub Proxy. Its SerialBus
+> resources describe connections that Windows exposes to userspace rather
+> than a physical peripheral attached to a serial bus.
+>
+> Treat the device like other ACPI nodes which contain SerialBus resources
+> without being serial bus slaves. This keeps the ACPI device present while
+> preventing the resources from being instantiated as I2C, SPI or serdev
+> clients and conflicting with the actual devices.
+>
+> Suggested-by: Armin Wolf <W_Armin@gmx.de>
+> Signed-off-by: Edward Blair <edward.blair@gmail.com>
 
-Can you please have a look at the patch below and let me know what you thin=
-k?
+Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
 
-On Sat, Aug 29, 2026 at 6:43=E2=80=AFPM Sumeet Pawnikar <sumeet4linux@gmail=
-.com> wrote:
->
-> The rapl_packages list was previously documented as being guarded by the
-> CPU hotplug lock (cpus_read_lock()). However, cpus_read_lock() is a
-> reader-writer semaphore taken for shared read access. This provides zero
-> mutual exclusion between multiple concurrent callers.
->
-> Because auxiliary device probes (such as intel_rapl_tpmi_probe) can
-> execute concurrently on different CPUs, multiple packages can race on
-> list operations (list_add and list_del) inside
-> rapl_add_package_cpuslocked() and rapl_remove_package_cpuslocked(),
-> leading to list corruption.
->
-> Introduce a dedicated rapl_packages_lock mutex to protect all additions,
-> removals and iterations of the rapl_packages list.
->
-> Signed-off-by: Sumeet Pawnikar <sumeet4linux@gmail.com>
+and please route it as needed or let me know if you want me to pick it up.
+
+Thanks!
+
 > ---
->  drivers/powercap/intel_rapl_common.c | 29 ++++++++++++++++++++++++----
->  1 file changed, 25 insertions(+), 4 deletions(-)
+>  drivers/acpi/scan.c | 5 +++++
+>  1 file changed, 5 insertions(+)
 >
-> diff --git a/drivers/powercap/intel_rapl_common.c b/drivers/powercap/inte=
-l_rapl_common.c
-> index 70cab5f08bc6..e544629dbe30 100644
-> --- a/drivers/powercap/intel_rapl_common.c
-> +++ b/drivers/powercap/intel_rapl_common.c
-> @@ -175,7 +175,8 @@ static u64 rapl_unit_xlate(struct rapl_domain *rd,
->                            enum unit_type type, u64 value, int to_raw);
->  static void package_power_limit_irq_save(struct rapl_package *rp);
->
-> -static LIST_HEAD(rapl_packages);       /* guarded by CPU hotplug lock */
-> +static DEFINE_MUTEX(rapl_packages_lock);
-> +static LIST_HEAD(rapl_packages);       /* guarded by rapl_packages_lock =
-*/
->
->  static const char *const rapl_domain_names[] =3D {
->         "package",
-> @@ -1360,12 +1361,14 @@ static int rapl_pmu_event_init(struct perf_event =
-*event)
->                 return -EINVAL;
->
->         /* Find out which Package the event belongs to */
-> +       mutex_lock(&rapl_packages_lock);
->         list_for_each_entry(pos, &rapl_packages, plist) {
->                 if (is_rp_pmu_cpu(pos, event->cpu)) {
->                         rp =3D pos;
->                         break;
->                 }
->         }
-> +       mutex_unlock(&rapl_packages_lock);
->         if (!rp)
->                 return -ENODEV;
->
-> @@ -1445,9 +1448,11 @@ static ssize_t cpumask_show(struct device *dev,
->         cpumask_clear(cpu_mask);
->
->         /* Choose a cpu for each RAPL Package */
-> +       mutex_lock(&rapl_packages_lock);
->         list_for_each_entry(rp, &rapl_packages, plist) {
->                 set_pmu_cpumask(rp, cpu_mask);
->         }
-> +       mutex_unlock(&rapl_packages_lock);
->         cpus_read_unlock();
->
->         ret =3D sysfs_emit(buf, "%*pbl\n", cpumask_pr_args(cpu_mask));
-> @@ -1655,11 +1660,15 @@ void rapl_package_remove_pmu_locked(struct rapl_p=
-ackage *rp)
->         if (!rp->has_pmu)
->                 return;
->
-> +       mutex_lock(&rapl_packages_lock);
->         list_for_each_entry(pos, &rapl_packages, plist) {
->                 /* PMU is still needed */
-> -               if (pos->has_pmu && pos !=3D rp)
-> +               if (pos->has_pmu && pos !=3D rp) {
-> +                       mutex_unlock(&rapl_packages_lock);
->                         return;
-> +               }
->         }
-> +       mutex_unlock(&rapl_packages_lock);
->
->         if (rapl_pmu.registered)
->                 perf_pmu_unregister(&rapl_pmu.pmu);
-> @@ -1704,7 +1713,9 @@ void rapl_remove_package_cpuslocked(struct rapl_pac=
-kage *rp)
->         /* do parent zone last */
->         powercap_unregister_zone(rp->priv->control_type,
->                                  &rd_package->power_zone);
-> +       mutex_lock(&rapl_packages_lock);
->         list_del(&rp->plist);
-> +       mutex_unlock(&rapl_packages_lock);
->         kfree(rp);
->  }
->  EXPORT_SYMBOL_NS_GPL(rapl_remove_package_cpuslocked, "INTEL_RAPL");
-> @@ -1749,11 +1760,15 @@ struct rapl_package *rapl_find_package_domain_cpu=
-slocked(int id, struct rapl_if_
->         else
->                 uid =3D id;
->
-> +       mutex_lock(&rapl_packages_lock);
->         list_for_each_entry(rp, &rapl_packages, plist) {
-> -               if (rp->id =3D=3D uid
-> -                   && rp->priv->control_type =3D=3D priv->control_type)
-> +               if (rp->id =3D=3D uid &&
-> +                   rp->priv->control_type =3D=3D priv->control_type) {
-> +                       mutex_unlock(&rapl_packages_lock);
->                         return rp;
-> +               }
->         }
-> +       mutex_unlock(&rapl_packages_lock);
->
->         return NULL;
->  }
-> @@ -1810,7 +1825,9 @@ struct rapl_package *rapl_add_package_cpuslocked(in=
-t id, struct rapl_if_priv *pr
->         ret =3D rapl_package_register_powercap(rp);
->         if (!ret) {
->                 INIT_LIST_HEAD(&rp->plist);
-> +               mutex_lock(&rapl_packages_lock);
->                 list_add(&rp->plist, &rapl_packages);
-> +               mutex_unlock(&rapl_packages_lock);
->                 return rp;
->         }
->
-> @@ -1835,6 +1852,7 @@ static void power_limit_state_save(void)
->         int ret, i;
->
->         cpus_read_lock();
-> +       mutex_lock(&rapl_packages_lock);
->         list_for_each_entry(rp, &rapl_packages, plist) {
->                 if (!rp->power_zone)
->                         continue;
-> @@ -1846,6 +1864,7 @@ static void power_limit_state_save(void)
->                                 rd->rpl[i].last_power_limit =3D 0;
->                 }
->         }
-> +       mutex_unlock(&rapl_packages_lock);
->         cpus_read_unlock();
->  }
->
-> @@ -1856,6 +1875,7 @@ static void power_limit_state_restore(void)
->         int i;
->
->         cpus_read_lock();
-> +       mutex_lock(&rapl_packages_lock);
->         list_for_each_entry(rp, &rapl_packages, plist) {
->                 if (!rp->power_zone)
->                         continue;
-> @@ -1865,6 +1885,7 @@ static void power_limit_state_restore(void)
->                                 rapl_write_pl_data(rd, i, PL_LIMIT,
->                                                rd->rpl[i].last_power_limi=
-t);
->         }
-> +       mutex_unlock(&rapl_packages_lock);
->         cpus_read_unlock();
->  }
->
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 7dcf78419..608527cda 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1770,6 +1770,11 @@ static bool acpi_device_enumeration_by_parent(stru=
+ct acpi_device *device)
+>          * attached to a serial bus at all.
+>          */
+>                 {"MSHW0028", },
+> +       /*
+> +        * MSFT8000 is a Windows Resource Hub Proxy device. Its SerialBus
+> +        * resources grant userspace access and do not describe a slave.
+> +        */
+> +               {"MSFT8000", },
+>         /*
+>          * HIDs of device with an UartSerialBusV2 resource for which user=
+space
+>          * expects a regular tty cdev to be created (instead of the in ke=
+rnel
 > --
-> 2.43.0
+> 2.55.0
 >
