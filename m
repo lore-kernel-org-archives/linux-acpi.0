@@ -1,237 +1,133 @@
-Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011021.outbound.protection.outlook.com [52.101.62.21])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBF2650EC11
-	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 17:32:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.62.21
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788543179; cv=fail; b=MAWhNFyGK5TwM80qrviKrRDOcEFwJOGz1hqKT6+aDdN0us45PCUrRPu39Z04q0uK5228Tgcn6mRhiWve6zU87GBhXUfXs9O7wR0VNf91ayvfDrJFgR/5/XHIMwDi9pkGVxGkDguRLg7mDcmXHjOmyPtl0C+rqVHFzvxVqxWHmDY=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788543179; c=relaxed/simple;
-	bh=EdailqsUDeTpqepqCZ4m09TowIe6U8Cgtl6D8bOvDCM=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=ZhVhLpIMWw1Lx8NlnyW16NTGyIMiQk/oYi7RjwJRXRxhpqhsRiC+pHn3//tRIpUaEYg89HoOB5XZ8mPhS0LstLx8+X0ofFHPZB8zM/wuoj6TZVhZhwOgmHdYvMynjJWZ+/atdUH+lp0i2ex71HpYsDNiBIzHttT0Zlcts0MwFDs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=rYlbAdhX; arc=fail smtp.client-ip=52.101.62.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A96C0519908
+	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 17:58:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.169
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788544705; cv=none; b=SLTzpQUy96Jg1l0xGULlEJOtNB5ysHWIvIrkGaPq5kx4aT8AsptTyeXCK/5LJjMrZL0FPA5dG45goOABJEWEnnzkR1gkfKKQBffr44jyF8512Al8fA9F2mVgs68QfeqPWNUVvm6n4KWoyjUHhG1VzZN+/zKJbcLqbvmR8unDUvw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788544705; c=relaxed/simple;
+	bh=pI2JbNlZVZDDW8lq9rTAQZsCB4xQJ8Xq1HJSt+KCzQw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=OBSxRABE9yJr1AudlPatLuF6R7wnwKPRVmLoLY5PloPRCkT/L9BVXwZQVDVfhSMrxrYnbV3HBlnY0DroJ9xiwE92YUMZgiCo8bjmTV+xAsssb7sJxrRuV1ZkLhyhRpJDzXz52S3gPaI4VWxuTfgTsY9aNg0f9I/DfWRsXd/jnPc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VFpQ1+wP; arc=none smtp.client-ip=209.85.214.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="rYlbAdhX"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=R0Zwsh6skPslYCL0xb0/utgjIofnWp07JK22mgG1rM9f9BENoxMS8F1zs2ilDNWxlfb9uK4Kh5qfN1zKdgf8yN3FRbSSpjOgL/zi9eq2lLWC7PbTQDSlZ92wtZJTigvmEsC7ZB7lMRvpeZQ9FH22GvNVKP8GeHqFsSp1ChQ76EqXnv917mjlw/p7Ne3eHgXnwVEflJGZ8VUyFSZbcZE6MdsSKjVhvaoY0lUvTtEBPtqkTu1amuP8EayHV2v5rs+NN6BLXdIPK8r1FwEgJuKET3nRzagMSCW5OydoDMnD8Lh6yjvTN0I9x4woJjv86ogz6Cz5wkdwGbyc4TL9uOQ3Pg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=ZVcPN8g0wDYvLbyuHCjwmMUJXLivTm82n6f4LpBQb/g=;
- b=U+WF61l9FVE7f4WT6f/4rNyrjb60PkjIwV2IcR20wtqzA2cITnJ5sujH7WxZciWbYW+JNZuqhSkOtNWIMOPrgt7tfcnM5A04DBgLJ0kyuL06L9euI2ieprOxlgXxSPp+DDGyTS3+4IISyfxc6abp60I9GnGHCZlnYgHHbDB65BqrSqRAA6vfLUislQxWCP2griKg/Hy5wSE04FlfqSi1wb+D1Yh3zW0+f29HNrM/AF+Fi9lDNsE8H7BUlwpktGYYukovVEfsuTDXiyYUfhWNU0LV4ou2cOa/mOHB/aLOXyU3QJJm+fQ1WYK1sA/bY2FHPkHUcHdaCVICWbXP5o9psQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ZVcPN8g0wDYvLbyuHCjwmMUJXLivTm82n6f4LpBQb/g=;
- b=rYlbAdhXnKKC7HSO/9aAUvT+hcIyVJ6DHGC2ANd5V/wETHEkIPwDLcUzjrwHihkCoOn1kCOZdmm41r7YQ9gc17454FCvL2mKOwcg4G/UkFlSKXmdvKpERavLUd32+qee7u7QgkrKgWjhin7kyoi0J60F+zirCoU1FwGJPTuJbQw=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from PH8PR12MB6914.namprd12.prod.outlook.com (2603:10b6:510:1cb::21)
- by SA3PR12MB7784.namprd12.prod.outlook.com (2603:10b6:806:317::20) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.13; Fri, 4 Sep
- 2026 17:32:53 +0000
-Received: from PH8PR12MB6914.namprd12.prod.outlook.com
- ([fe80::2893:177a:72b0:6000]) by PH8PR12MB6914.namprd12.prod.outlook.com
- ([fe80::2893:177a:72b0:6000%7]) with mapi id 15.21.0360.008; Fri, 4 Sep 2026
- 17:32:53 +0000
-Message-ID: <7f86bfc7-efda-4719-a0c2-fab04fba532f@amd.com>
-Date: Fri, 4 Sep 2026 12:32:50 -0500
-User-Agent: Mozilla Thunderbird Beta
-Subject: Re: [PATCH] ACPI: utils: Ignore leading root scope prefix in string
- _UID match
-Content-Language: en-US
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: maciej.wieczor-retman@intel.com, pawel.chmielewski@intel.com,
- lenb@kernel.org, linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev
-References: <20260831180214.2231161-1-mario.limonciello@amd.com>
- <CAJZ5v0hgn+_L_yvEg0yo0vPk9_brbxsywyu_77tEyww4nV+eUg@mail.gmail.com>
-From: Mario Limonciello <mario.limonciello@amd.com>
-In-Reply-To: <CAJZ5v0hgn+_L_yvEg0yo0vPk9_brbxsywyu_77tEyww4nV+eUg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: DSZP220CA0003.NAMP220.PROD.OUTLOOK.COM
- (2603:10b6:5:280::13) To PH8PR12MB6914.namprd12.prod.outlook.com
- (2603:10b6:510:1cb::21)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VFpQ1+wP"
+Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-2d91ff7d9acso11332475ad.3
+        for <linux-acpi@vger.kernel.org>; Fri, 04 Sep 2026 10:58:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1788544703; x=1789149503; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:sender:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=MCttvfM9DrOknQxq7vF2LggqSOtL8sYj8RJ3yUrgdFo=;
+        b=VFpQ1+wP1PCWPl5KnizqDlsh97db/9Ssnn7sIwlvJFlAval0ZlIUA1NWArQaotk25j
+         BnvJsLlc5/RIb8TxzvYMWIxkiaeqBtB2QXf/nPcvC535NOKxatNPjYDRvNk0b4WAbOy2
+         nISwHad2f93TDY7Dl+AAmoc0PPaZPurFdU6aaXFleKLqQgBjiliZR8cxVqhbGXX/GScg
+         19ERZJvob/yBtbjBe+cPFV/ClRHkuVziWp17+aaKtNhJomgjzYAYtxVbm+RjLLs61J1a
+         n9bu4+nAzPKMyMV2/bQN8xB2TVk5Mpm/XZiw46uGxOPOuvy685ZMw/BJp1CCrf009fB3
+         OEzw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788544703; x=1789149503;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:sender:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=MCttvfM9DrOknQxq7vF2LggqSOtL8sYj8RJ3yUrgdFo=;
+        b=o7pud6r9BErqSZwCG0Qb4LRgUTeQgZni9xSshuc2cAeCoW/J8R2Z0CTmblqvaYRfHR
+         e+XYIY0VoylrK8UY8i4HoEsqgY9/SBXLLo+VMdissaxErK5OYGyByc5bRsCKz2Ew6eks
+         pQvOHq/H0l7BBtV+UJLGoERFBFhHBln7snpaggQhzzNpATWODAZtvnmbTuOEq2wturW+
+         XGZR6qdAUr4yZzI6KQgYyvw3jz7annYfV3hU60NApPK+6yoNHid8hp0rXxttFlezHgRL
+         QJH+UkzUgQzjqcbB7FflRbGuHTPkxwO9+eC1ogM6SZsnPPPwFTpVSNUYWZo8QlQi72tP
+         CZIg==
+X-Forwarded-Encrypted: i=1; AKwUvBzihhXE2Af+B8INPE/WxI15DLSitX3Ju06q8OU7za02V9FISn4PxDSfNwhAj4kj73KiYnT/taRGuOFZ@vger.kernel.org
+X-Gm-Message-State: AFuF++mytqWREBkKuCfl2mx8oe3VP1FfOld8xBRxQDUPexe1RK0hLNOy
+	8KjzTcWDglzCckX54LEjCEZdoxQjBilkIsRgYoq41XsuAs9UWfqifpXz
+X-Gm-Gg: AYBFou2ghvPm0dQMFWqN+6R7+o2jTrVp+GxsMnhknICjSVVdGPowLlg2QHT+vHoaUl+
+	o4DAgxAxmxxhfa2SSjZsHYWAHwDDORd1hS8oLRb/4IUqA6sK3Dlo2h34QwVuedptzUQlbX7lTd/
+	igCj/WfqIg4Vk1FIZJnuIjQIDtE/rRXd+Lwg/2KvOEtKfKyuL9Ewe1rhMeLtqE3fOhfzAe+F19D
+	O95MbOxmi2DZxsws0BMn0k5xeD7GId1uxU3Qy1B7pBot/Ya9PXLcekJsRa4vXSpHRFJq2t+C2L6
+	taBZhvKtfCmutKNVDrU75TNtn+IWXGVFejye/nFsk8nxWj9/0AHhGYad6bGfGa4+Kj+DrdFy/vh
+	bQEb7q/jvsonGYo48harUVvUg0Am6/hbonYhXiWLPGlJo8znzqL2+KVPNhEKrg1AiowzqAmcJ7K
+	aAfZwRchWzpZ4XG9meA3cvcdEn2KDqZdS+t+XWad3FcaPa5MW7BYTPw7ilAHQmbHtj2pKetQn+P
+	lH3BFiZ5YLfcIk=
+X-Received: by 2002:a17:90a:ec8d:b0:37d:f983:7b5 with SMTP id 98e67ed59e1d1-39b26101c08mr11024544a91.9.1788544702820;
+        Fri, 04 Sep 2026 10:58:22 -0700 (PDT)
+Received: from server.roeck-us.net ([2600:1700:e321:62f0:da43:aeff:fecc:bfd5])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3339bbf1feesm8215824eec.26.2026.09.04.10.58.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 04 Sep 2026 10:58:21 -0700 (PDT)
+Sender: Guenter Roeck <groeck7@gmail.com>
+Date: Fri, 4 Sep 2026 10:58:20 -0700
+From: Guenter Roeck <linux@roeck-us.net>
+To: Matthew Bettencourt <matthew.bettencourt@gmail.com>
+Cc: Armin Wolf <W_Armin@gmx.de>, linux-hwmon@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Subject: Re: [BUG] SPD5118 Intermittent MR11 Corruption During Suspend/Resume
+Message-ID: <77e8caab-18b4-4953-8b66-887d5a7b31b1@roeck-us.net>
+References: <a5d32ab5-f545-4e11-bf0b-88d3eaa68890@gmail.com>
+ <474a37bb-0774-4710-8458-ea28d7c54c89@gmx.de>
+ <c81e7caf-d3e4-4212-be9b-ec35d0a04086@gmail.com>
+ <c096b0d7-90c2-4d91-9776-9f109679c309@gmx.de>
+ <7ca2e621-e0a1-4eee-bcd1-2ded610f1beb@gmail.com>
+ <cff09168-9a88-494d-bc82-d9a5e4de22a7@roeck-us.net>
+ <e1a6a91d-d03e-4e7a-ba7b-9268284ce7e8@gmail.com>
+ <5480c69c-8e98-443e-96d7-30e64e886373@roeck-us.net>
+ <02dc7eb6-6d0d-4c0c-af10-b831d3f8ba06@gmx.de>
+ <d1a590c7-f526-4e70-a255-fccfb199be39@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR12MB6914:EE_|SA3PR12MB7784:EE_
-X-MS-Office365-Filtering-Correlation-Id: f1f4744a-5fa9-4010-a7b7-08df0aaa8cab
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|366016|23010399003|376014|3023799007|22082099003|18002099003|56012099006|5023799004|4143699003|11063799006|10067099003;
-X-Microsoft-Antispam-Message-Info:
-	HiGDk2m8EwfRcGA/7hXeQqL+VRuM2ACCG2Xx1tUKvuIoDOd9urq5Y3/Ub4cbTOyzcahnJonvF+iApsfK02vJQsqJPjLNyHc4p0HLxCLNmYAnWBxw93/kCejLTad0ZASS8lC6tmdIMrWehi8aqa70E/efrz2dd6ZjuEouLVIuaKQIlzgbqr3xLEklxOPnB6rGR6agdCIhZAK3DEM7ojmptW9MIWPmqst9GNJ/4eqGYehq80qeo2JW68pSrz4omZ49x/VRr83ZbAehzxQbs9f2sP+B7nSnD2QzEO954VuMRkxGi9wxaCCtCo6+f1fB2vjUVz6gFoRfwNrtamaEPEfd7yZAP7S69kXOrt+aaP49dEtZ8OYeby4HtTSQdcQEYRhuXWV0l73MCiz/EdXWIk8k/29gFJnkiAGqmHgWPWLTG85NWFiDss6fTq+diXw/PHTFgZUzquGdrGTPPQpg9dExEfmPjgWg4AnafHg3TxMKDuzRTqJZMk89YTy5vUU+ddLhjngxo5izVABnFhWnwTXKQctD8PTdzF5zmCxA3uZbeH03YOLQsnLokSj2XA88GKQC0KMpn133KK2swyM9KXTvy+IOlkBnWeQSdRmV82TeTyqW1uInPSXVGv2k9P56cXtmt0daMgi71QUMI3k++Y9oU5TnKcCP9DaZRdDAW7Zt8iY=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR12MB6914.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(23010399003)(376014)(3023799007)(22082099003)(18002099003)(56012099006)(5023799004)(4143699003)(11063799006)(10067099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?M2NESThWK213SCtwcUhmc2hVL1hLR2lqT0tkTzQyallML2xnR0hvSVk1cDVX?=
- =?utf-8?B?R08vUHNEYW1Ha2V5L1VWZHhxSFRxYWI2aHhXdXRWdGNRV2MyVFhEWFk2dUlr?=
- =?utf-8?B?Y2J4cWtneVhzVS83NkNRNjJtRi9yaDh3dkYrOXB6SnRqWmZUZE1henEvTFRj?=
- =?utf-8?B?eHE1KzI4YVh5Wk5RdW5nMVFIQ2FVaWV2bDQ5ZlZCenpjemZKWFA3elhvbEZu?=
- =?utf-8?B?eHRidFNmbjdhc2l4clY0c0YrVVVjK21TYlQ0dXJ3dDM4MkNWQW5MRSs2V0Q1?=
- =?utf-8?B?SFJnZmFNZ0s5bW5jcllsc0h5WlVoRlU4UkFlZ1EvL1JZZGsrUWtIRVZPS1F1?=
- =?utf-8?B?L2RZd2VmSFI1TjJPVnBsODBpQW9MZWxyREplbWI0bjEycWpJTmJjS1ZUdnBn?=
- =?utf-8?B?Q21wVElPU2lWVFNCQ09YUmEvdFAzcDVESUpvdVFWaUlZRXdrS1VGRDBSenNq?=
- =?utf-8?B?bDhuUnkxVjhadEhwc2gwbktWSmlIcWhpREx2dWRrNmUwSFVXd25yVkdpZmJk?=
- =?utf-8?B?WEtQbEh2T3JKZ1drNGN5dFBqTEE2RXhWVys2R2cvRnRyMFBZNXdKdGxiK0dS?=
- =?utf-8?B?UmdaZ2xBYWtvdUxGN1RSSTQxUm1pT2lTbEFFUDBnY2ZCLy9LdGY1dTZwdTZz?=
- =?utf-8?B?YWIyV2wxWG1XRkZWczUxdExZWE5xZGllMXZxb0tWemVzd0h3eGxrQVljcTdI?=
- =?utf-8?B?bi9mMTlDb3FkZUsxaEx6UkJnZFArSDJCd3lBUjlWUXovYmRRL2tJRk55eW9J?=
- =?utf-8?B?QUJ2aUV3OUV4cUpvTzBBVGY1c1k3Q0tQRXA5c1RQZy8xaWNPRXk2bFdYRWFi?=
- =?utf-8?B?WTF4ejdRcytvVVdzak5FSXNVbERoamFuUjFmM0JrbGo5OTJaOGlDdU1YbHJn?=
- =?utf-8?B?aXdBMXR3RjFSamNoZEIxRDlWN0NWUXhSbkNKQVJWR3diWEZxaDdjTmFPVFpr?=
- =?utf-8?B?WUMvWW1GTEFpQ255SW53TmFsQVorZ3RFODh1REdkYWFibXVZZkRIcGwreDVS?=
- =?utf-8?B?alUvSjlTNGdEbW9FMGY4eE80NnoyQkNXTWMrQmtYR2I4NjVnZmNOR3RpZk9o?=
- =?utf-8?B?eWNjMVROVHhielRWalBnVE8wcjJERUxPRlppU1F6aGdPUjBzeSsybEpVRXNr?=
- =?utf-8?B?RUFSNWR6K0FWdktvay83R2xXaVpiQjVxZGxOeUdVaTNJeHhZTG5adkdEQ2k4?=
- =?utf-8?B?SWRKLzBLalpBK1JJUG8xbUN6NDBlNTNlVTZrSjJnOTFUVjRBN3BySWZFRE5N?=
- =?utf-8?B?WnNBRXVFM0Q1MnN5NTlwck5xeWFpVUdBWlNlOG9KRXdtaW1YZHNzU1RPcjM1?=
- =?utf-8?B?c0NjWTc3ZU5nY0hNeDNOeVJlMWJRV1UxRmQ1Q3hybFd5WStFZ2R1TUc0N2Y1?=
- =?utf-8?B?TGgrSGlHYUJmWjh1dE4ySkpJOEFSL3hUcm4yRmlSdkdhLytZQkViWDJuRXFG?=
- =?utf-8?B?QllCK21OVVM4Z0dYOVRTVmM2MlB6TWZyWmdSaktUL1ZwQlJ1QXgva2xITkQz?=
- =?utf-8?B?THc1QmdtTHp1Y2tONmZOemZaejVBS3lFbzNxNFcwbk9SYjZXc3pHZ2dabkQw?=
- =?utf-8?B?aHhKaHJlZHB3Zkl3eSs4YVYzZWE4Y1lBZFdXNElGYWlvY3FEQmdEd3V3U3pt?=
- =?utf-8?B?bVZiajM3cnlzMUR4Nkx2cWhEWFBDUytVeEhvcU9yV3puUVJTNnZvWlRjZXdk?=
- =?utf-8?B?RGdBcHYxN3ljRzJaNGswRUZ0QVBuRjJhVmdHYXFVM1FOLzBOUWJ3YUNIcUNW?=
- =?utf-8?B?ZXFaUk1XT1lORHIrY3R3aU9jbkIrZzRsOHVwd3pLbHA0OFB6YndOQ09oaHhF?=
- =?utf-8?B?dWg4NU81S29oTUVEWllyMnhzSk9IWWRvWG0rejJuUXRtUkNkeUQ0cTZBNUZI?=
- =?utf-8?B?b0tqQlBNbzlNS1kzZHBGNGI5MllBTnZFbERZOVQzQUZ4Qm56MTdLWjB2YmlY?=
- =?utf-8?B?emdZemtPVUNxQmJDcVFDeFIveVhhS3R3NGk4RzVpQWF5bU8vYktMdnJ4WFhG?=
- =?utf-8?B?SnNCWHpoK1RaUXkwU25xb2RQN2xlbk0yR24yTGtIaUdBeFVpSlF5Tyt5OXkw?=
- =?utf-8?B?VUdxcW1TckpBcXc1OEo0dHJXY3lMUEYwdTBUNHRsaEF5dGdMV2drYWdKUG5B?=
- =?utf-8?B?TmxXQU1xVjk0Y3g5K3gxWmh0RHlGWUxmcUZGVms3SExwVWN3VTFDMllzSjRR?=
- =?utf-8?B?ZVJDRXpnWExoT3dDMzEyV0xNdk1mR3NWUm1xU211Skx2RmRXRzdOVXk2TVhn?=
- =?utf-8?B?cnZwcTZIYmFEdHBOeWRlU3piZE1OWkZBRkw4eVUzSUtmTUNJWXhaV0lPTURK?=
- =?utf-8?Q?27BEFrJ3E68ZpyMSNB?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f1f4744a-5fa9-4010-a7b7-08df0aaa8cab
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR12MB6914.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Sep 2026 17:32:53.2542
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: +Of+4tlj99p4e3pMDtoc7FEMi0wJAxPMoocehNRWyc8Fw7o3pHBD57W+eGMe/7fP62AkODs2Qt7aQnWyNvLXEQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA3PR12MB7784
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <d1a590c7-f526-4e70-a255-fccfb199be39@gmail.com>
 
+Hi Matthew,
 
-
-On 9/4/26 08:26, Rafael J. Wysocki (Intel) wrote:
-> On Mon, Aug 31, 2026 at 8:02 PM Mario Limonciello
-> <mario.limonciello@amd.com> wrote:
->>
->> Firmware may express an ACPI namespace path used as a _UID with or
->> without the leading root scope character ('\'). For example, an AMD
->> IVRS IVHD ACPI HID device entry may carry a character UID of
->> "\_SB.MHSP" while the corresponding device's _UID evaluates to
->> "_SB.MHSP" (or vice versa).  This semantic difference is due to how
->> Windows PnP enumerates and uses devices.
+On Thu, Sep 03, 2026 at 07:24:12PM -0500, Matthew Bettencourt wrote:
+> Hello Guenter,
 > 
-> Can you please elaborate a bit more?
+> >> - Do you have the latest BIOS installed on your system ?
+> >>   Some statements online seem to suggest that the problem
+> >>   _may_ be fixed with the latest BIOS on at least some
+> >>   of the affected systems.
 > 
-> I would expect _UID to return the string without the leading
-> backslash, so where does the other one come from, exactly?
-
-It comes from the ACPI IVRS table.
-
-https://docs.amd.com/v/u/en-US/48882_3.11_IOMMU_PUB
-
-p306-307 talk about this field.
-
-Here is a sample entry decoded with iasl -d
-(from BIOS on an affected system)
-
-[223h 0547 001h]               Subtable Type : F0 [Device Entry: ACPI 
-HID Named Device]
-[224h 0548 002h]                   Device ID : 0068
-[226h 0550 001h] Data Setting (decoded below) : 40
-                                     INITPass : 0
-                                     EIntPass : 0
-                                      NMIPass : 0
-                                     Reserved : 0
-                                  System MGMT : 0
-                                   LINT0 Pass : 1
-                                   LINT1 Pass : 0
-[227h 0551 008h]                    ACPI HID : "MSFT0201"
-[22Fh 0559 008h]                    ACPI CID : 0000000000000000
-[237h 0567 001h]                  UID Format : 02
-[238h 0568 001h]                  UID Length : 09
-[239h 0569 009h]                         UID : "\_SB.XHSP"
-
-Setting this field to _SB.XHSP does fix the issue for Linux, but this 
-has problems on Windows.  So my hope was to let \_SB.XHSP work for Linux 
-too.
-
+> Yup as of Sept 3 2026 I am running the latest BIOS, 4.43. I think a new one
+> is coming soonish as Asrock has started rolling out 4.50 on other x870
+> motherboards
 > 
->> acpi_str_uid_match() compared the two strings verbatim, so such
->> entries failed to match on the UID even though they refer to the same
->> object. In the AMD IOMMU case (get_acpihid_device_id()) this caused
->> the exact HID+UID match to be missed and the code to fall through to
->> the HID-only path, spuriously raising a FW_BUG.
->>
->> Skip a single leading '\' on either string before comparing so that
->> paths that differ only by the root scope prefix are treated as a
->> match. The integer _UID path is unaffected.
+> >> - Please boot the affected system with "usbcore.autosuspend=-1"
+> >>   kernel command line parameter.
+> >>   There are some claims online that this might resolve the problem.
+> >>   I have no idea why that would be the case, but I guess it does
+> >>   not hurt trying. Of course, if that _does_ work, we have yet another
+> >>   mystery to solve.
 > 
-> But this sort of assumes that the string returned by _UID will always
-> be a namespace path, but is that the case really?
-
-For IVRS entries this would be true since this is what is in the spec:
-
- > If defined as a character string, the ACPI UID marks the instances of
- > DMA-capable devices with the defined DeviceID (e.g. IOMMU visible
- > Routing ID). It should match the ACPI device namespace strings with
- > unit number, but without a trailing \0 character (as the UID length
- > specifies the size of the string already).
-
-But I don't know universally it would be true.
-
-I suppose one possible modification could be to look for the length of 
-the string being at least 2 on the string before incrementing the pointer.
-
+> I think we have another mystery to solve. I enabled "usbcore.autosuspend=-1"
+> as a boot parameter and the errors have cleared up when I suspend/resume. I
+> doubled checked this by removing "usbcore.autosuspend=-1" from my boot
+> parameters and the errors came back.
 > 
->> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
->> ---
->>   include/acpi/acpi_bus.h | 10 +++++++++-
->>   1 file changed, 9 insertions(+), 1 deletion(-)
->>
->> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
->> index 1a45e0d521d8e..e0bec35953ef1 100644
->> --- a/include/acpi/acpi_bus.h
->> +++ b/include/acpi/acpi_bus.h
->> @@ -835,7 +835,15 @@ static inline bool acpi_str_uid_match(struct acpi_device *adev, const char *uid2
->>   {
->>          const char *uid1 = acpi_device_uid(adev);
->>
->> -       return uid1 && uid2 && !strcmp(uid1, uid2);
->> +       if (!uid1 || !uid2)
->> +               return false;
->> +
->> +       if (*uid1 == '\\')
->> +               uid1++;
->> +       if (*uid2 == '\\')
->> +               uid2++;
->> +
->> +       return !strcmp(uid1, uid2);
->>   }
->>
->>   static inline bool acpi_int_uid_match(struct acpi_device *adev, u64 uid2)
->> --
->> 2.43.0
->>
 
+Outch. The mystery (or misery) deepens. So we kind of know that this has
+something to do with ACPI _and_ with USB, such as ACPI accessing (or trying
+to access) a device on the I2C bus when suspending (or trying to suspend)
+a USB port / bus.
+
+As Armin has pointed out, it isn't safe for the piix4 controller driver to
+access the hardware when its memory space is reserved by ACPI, even if that
+ACPI access turns out to be plain wrong. My ACPI / DSL knowledge isn't good
+enough to figure out what exactly is happening, but even if we do that it
+won't help: The PIIX4 driver must not load if its memory space is reserved
+by ACPI, or it must access devices on the I2C bus through ACPI.
+
+Thanks,
+Guenter
