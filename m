@@ -1,151 +1,237 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazon11011021.outbound.protection.outlook.com [52.101.62.21])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C88B0331A53
-	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 17:24:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788542682; cv=none; b=RfPYa3Zigq6YEv48C7uy2pzReNGJodC0fBblAl0puuSOkBiJI1pWg5Swz/HSP15zZROoQgcoWZHigj5C4dk8hyiD/2jXOSL+tcqApDLaRcaSiAD0+jPsneRYnWnvJDSMtae3uPcUiEz/claOYnaDndJx4FAneKCfDkQwYd1FM4k=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788542682; c=relaxed/simple;
-	bh=wzb03DLVgIj3vB7hKR26LkDSnhyToSK5dDUTYTCmeno=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=SqL+ZoL1dfejt3nUVMh2ZhGBlW9bJ3qlrzZFpo6mXCtEqkrtJdbls9sUIFKSI+0wpngdXQpPtTMQbDBTMNcPzwSjE1ySzL1EIx7KG/V6VFY0/smmMt3Ql1tLZ54DThzGfD2OFkeF5NEZROeied1WYMHxV0qMfMcDp8d0jrWeHWk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DSbCUAoa; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBF2650EC11
+	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 17:32:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.62.21
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788543179; cv=fail; b=MAWhNFyGK5TwM80qrviKrRDOcEFwJOGz1hqKT6+aDdN0us45PCUrRPu39Z04q0uK5228Tgcn6mRhiWve6zU87GBhXUfXs9O7wR0VNf91ayvfDrJFgR/5/XHIMwDi9pkGVxGkDguRLg7mDcmXHjOmyPtl0C+rqVHFzvxVqxWHmDY=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788543179; c=relaxed/simple;
+	bh=EdailqsUDeTpqepqCZ4m09TowIe6U8Cgtl6D8bOvDCM=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=ZhVhLpIMWw1Lx8NlnyW16NTGyIMiQk/oYi7RjwJRXRxhpqhsRiC+pHn3//tRIpUaEYg89HoOB5XZ8mPhS0LstLx8+X0ofFHPZB8zM/wuoj6TZVhZhwOgmHdYvMynjJWZ+/atdUH+lp0i2ex71HpYsDNiBIzHttT0Zlcts0MwFDs=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=rYlbAdhX; arc=fail smtp.client-ip=52.101.62.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DSbCUAoa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E2611F01559
-	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 17:24:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788542675;
-	bh=/CDqLznQvkVu7WQ3vZoYAE6ZEb2I+Dl4DDzf448Rh98=;
-	h=References:In-Reply-To:Reply-To:From:Date:Subject:To:Cc;
-	b=DSbCUAoaBf0BDfPe5nbw+AB5KH61cmX95b2H4GrECOmgcWubqAUSF+QTRSuXuKJ7W
-	 So0x0z73IE6ijUa/G9rzZeyi6XXSdOCJpEK1oP0odVfwTNd9h7hU4p7kbn9tbBzUkI
-	 oInQ77/mksSytpVmjMak/Lh1ZpwaM5Z7jIk/Jv59U6t216lhGAQBi4a+g3PJdstRji
-	 qrFVpmYGS3RsbLRcnKlpuulzpxXD2M11HxGYsFBaJtmdQNOmwYOOAU6PeH3T0Tjlz3
-	 dYfLpT7avAUwMSnxOhcRqJ7tStlmGT5PgYp+NABfyd5BpMETqLNwc/PXFTiF24ERqi
-	 9BoXQ1Qr/orZQ==
-Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-39da69c5ba3so11253271fa.1
-        for <linux-acpi@vger.kernel.org>; Fri, 04 Sep 2026 10:24:35 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBw6UN7RIqgd3p+c7ks+fMJQXZ9MxSK9rsetlLOrH0j9MSZWYBqUX/Sj3QvVj5kiA1Lwee+Jtj0WoHNd@vger.kernel.org
-X-Gm-Message-State: AFuF++ks9MGq2nKVW4v838OCkrkmJjQvJzrw+jR5zyGobG6SeN4c1/61
-	FtEAGtOV9ySKLMAOsYp77ymPgw/WF71+MU+MymrJCWYYWoHhhU0tTgV+v1+IEAPbISKOxM7f2u/
-	0VhzjHGIOL6HpDgbxJuRqJ0pKeFK264Y=
-X-Received: by 2002:a2e:a54f:0:b0:3a3:314d:115e with SMTP id
- 38308e7fff4ca-3a371bc73e4mr9829551fa.10.1788542673867; Fri, 04 Sep 2026
- 10:24:33 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="rYlbAdhX"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=R0Zwsh6skPslYCL0xb0/utgjIofnWp07JK22mgG1rM9f9BENoxMS8F1zs2ilDNWxlfb9uK4Kh5qfN1zKdgf8yN3FRbSSpjOgL/zi9eq2lLWC7PbTQDSlZ92wtZJTigvmEsC7ZB7lMRvpeZQ9FH22GvNVKP8GeHqFsSp1ChQ76EqXnv917mjlw/p7Ne3eHgXnwVEflJGZ8VUyFSZbcZE6MdsSKjVhvaoY0lUvTtEBPtqkTu1amuP8EayHV2v5rs+NN6BLXdIPK8r1FwEgJuKET3nRzagMSCW5OydoDMnD8Lh6yjvTN0I9x4woJjv86ogz6Cz5wkdwGbyc4TL9uOQ3Pg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ZVcPN8g0wDYvLbyuHCjwmMUJXLivTm82n6f4LpBQb/g=;
+ b=U+WF61l9FVE7f4WT6f/4rNyrjb60PkjIwV2IcR20wtqzA2cITnJ5sujH7WxZciWbYW+JNZuqhSkOtNWIMOPrgt7tfcnM5A04DBgLJ0kyuL06L9euI2ieprOxlgXxSPp+DDGyTS3+4IISyfxc6abp60I9GnGHCZlnYgHHbDB65BqrSqRAA6vfLUislQxWCP2griKg/Hy5wSE04FlfqSi1wb+D1Yh3zW0+f29HNrM/AF+Fi9lDNsE8H7BUlwpktGYYukovVEfsuTDXiyYUfhWNU0LV4ou2cOa/mOHB/aLOXyU3QJJm+fQ1WYK1sA/bY2FHPkHUcHdaCVICWbXP5o9psQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ZVcPN8g0wDYvLbyuHCjwmMUJXLivTm82n6f4LpBQb/g=;
+ b=rYlbAdhXnKKC7HSO/9aAUvT+hcIyVJ6DHGC2ANd5V/wETHEkIPwDLcUzjrwHihkCoOn1kCOZdmm41r7YQ9gc17454FCvL2mKOwcg4G/UkFlSKXmdvKpERavLUd32+qee7u7QgkrKgWjhin7kyoi0J60F+zirCoU1FwGJPTuJbQw=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from PH8PR12MB6914.namprd12.prod.outlook.com (2603:10b6:510:1cb::21)
+ by SA3PR12MB7784.namprd12.prod.outlook.com (2603:10b6:806:317::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.360.13; Fri, 4 Sep
+ 2026 17:32:53 +0000
+Received: from PH8PR12MB6914.namprd12.prod.outlook.com
+ ([fe80::2893:177a:72b0:6000]) by PH8PR12MB6914.namprd12.prod.outlook.com
+ ([fe80::2893:177a:72b0:6000%7]) with mapi id 15.21.0360.008; Fri, 4 Sep 2026
+ 17:32:53 +0000
+Message-ID: <7f86bfc7-efda-4719-a0c2-fab04fba532f@amd.com>
+Date: Fri, 4 Sep 2026 12:32:50 -0500
+User-Agent: Mozilla Thunderbird Beta
+Subject: Re: [PATCH] ACPI: utils: Ignore leading root scope prefix in string
+ _UID match
+Content-Language: en-US
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: maciej.wieczor-retman@intel.com, pawel.chmielewski@intel.com,
+ lenb@kernel.org, linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev
+References: <20260831180214.2231161-1-mario.limonciello@amd.com>
+ <CAJZ5v0hgn+_L_yvEg0yo0vPk9_brbxsywyu_77tEyww4nV+eUg@mail.gmail.com>
+From: Mario Limonciello <mario.limonciello@amd.com>
+In-Reply-To: <CAJZ5v0hgn+_L_yvEg0yo0vPk9_brbxsywyu_77tEyww4nV+eUg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: DSZP220CA0003.NAMP220.PROD.OUTLOOK.COM
+ (2603:10b6:5:280::13) To PH8PR12MB6914.namprd12.prod.outlook.com
+ (2603:10b6:510:1cb::21)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260904084158.1341550-1-wenst@chromium.org> <20260904084158.1341550-8-wenst@chromium.org>
- <2026090430-botanist-ungodly-0299@gregkh>
-In-Reply-To: <2026090430-botanist-ungodly-0299@gregkh>
-Reply-To: wens@kernel.org
-From: Chen-Yu Tsai <wens@kernel.org>
-Date: Sat, 5 Sep 2026 01:24:20 +0800
-X-Gmail-Original-Message-ID: <CAGb2v65MSxL+r+wqMjPKVSh9aS1gkn8og6oBinSXDdipnoOyCQ@mail.gmail.com>
-X-Gm-Features: AcwNN1XsOjcnbmZTa6fnJtFKjvQsiEWmd4_rlrVRXh_dounYDIlqWUAfitdifNU
-Message-ID: <CAGb2v65MSxL+r+wqMjPKVSh9aS1gkn8og6oBinSXDdipnoOyCQ@mail.gmail.com>
-Subject: Re: [PATCH v8 07/16] usb: core: Move struct usb_port and related APIs
- to port.h
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Chen-Yu Tsai <wenst@chromium.org>, Bartosz Golaszewski <brgl@kernel.org>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Matthias Brugger <matthias.bgg@gmail.com>, 
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, 
-	Wei Deng <wei.deng@oss.qualcomm.com>, Konrad Dybcio <konrad.dybcio@oss.qualcomm.com>, 
-	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, 
-	devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org, 
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
-	Manivannan Sadhasivam <mani@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, 
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Sat, Sep 5, 2026 at 12:47=E2=80=AFAM Greg Kroah-Hartman
-<gregkh@linuxfoundation.org> wrote:
->
-> On Fri, Sep 04, 2026 at 04:41:46PM +0800, Chen-Yu Tsai wrote:
-> > |struct usb_port| and its matching container_of() macro should live in
-> > its own port.h, matching the split we have for .c files.
->
-> Why?
-
-This was requested by Andy. And to me it sort of made sense.
-
-> > Move them as described. Also move usb_port_is_power_on(), since in the
-> > next change its |struct usb_hub *| parameter will be changed to
-> > |struct usb_port *|, and becomes a non-static function that only
-> > references |struct usb_port|.
->
-> No, please don't do that unless you have a really good reason.
-
-Which part? Move the code?
-
-> >
-> > port.h is only included from hub.h, as a subsequent patch will directly
-> > use fields from |struct usb_port| in a static inline helper in hub.h.
-> > The USB internal headers don't have header guards to help with this.
-> >
-> > Also drop 'extern' from the header declaration of usb_port_is_power_on(=
-).
-> > This is not needed in modern C.
-> >
-> > Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-> > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
-> > ---
-> > Changes since v4:
-> > - Dropped 'extern' (Andy)
-> >
-> > Changes since v3:
-> > - New patch (Andy)
-> > ---
-> >  drivers/usb/core/hub.c  | 16 ----------
-> >  drivers/usb/core/hub.h  | 48 ++---------------------------
-> >  drivers/usb/core/port.c | 16 ++++++++++
-> >  drivers/usb/core/port.h | 68 +++++++++++++++++++++++++++++++++++++++++
-> >  4 files changed, 86 insertions(+), 62 deletions(-)
-> >  create mode 100644 drivers/usb/core/port.h
->
-> hub.h is small enough, making a single .h file that is 68 lines long
-> for no real good reason isn't a good idea.  Odds are this will make the
-> build take longer as you now need to open/read/close another file.
-
-OK. Andy, can you accept not doing the move?
-
-> And if we really want to do this, it shouldn't be burried in the middle
-> of a long "enable this platform" series where people will miss it.
-
-Well the code is also touched in this series, so it is related. Without
-the change, the code movement makes even less sense, as mentioned in the
-commit message.
-
-As for missing the patch, I can change the series name to something
-like "usb: Hook up pwrseq for USB power control on M.2 E-key slots".
-The series spans multiple subsystems and even the driver core, and the
-goal is to enable M.2 E-key slots, so hopefully that ticks all the boxes.
-Except which platform is affected that is.
-
-
-ChenYu
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH8PR12MB6914:EE_|SA3PR12MB7784:EE_
+X-MS-Office365-Filtering-Correlation-Id: f1f4744a-5fa9-4010-a7b7-08df0aaa8cab
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|366016|23010399003|376014|3023799007|22082099003|18002099003|56012099006|5023799004|4143699003|11063799006|10067099003;
+X-Microsoft-Antispam-Message-Info:
+	HiGDk2m8EwfRcGA/7hXeQqL+VRuM2ACCG2Xx1tUKvuIoDOd9urq5Y3/Ub4cbTOyzcahnJonvF+iApsfK02vJQsqJPjLNyHc4p0HLxCLNmYAnWBxw93/kCejLTad0ZASS8lC6tmdIMrWehi8aqa70E/efrz2dd6ZjuEouLVIuaKQIlzgbqr3xLEklxOPnB6rGR6agdCIhZAK3DEM7ojmptW9MIWPmqst9GNJ/4eqGYehq80qeo2JW68pSrz4omZ49x/VRr83ZbAehzxQbs9f2sP+B7nSnD2QzEO954VuMRkxGi9wxaCCtCo6+f1fB2vjUVz6gFoRfwNrtamaEPEfd7yZAP7S69kXOrt+aaP49dEtZ8OYeby4HtTSQdcQEYRhuXWV0l73MCiz/EdXWIk8k/29gFJnkiAGqmHgWPWLTG85NWFiDss6fTq+diXw/PHTFgZUzquGdrGTPPQpg9dExEfmPjgWg4AnafHg3TxMKDuzRTqJZMk89YTy5vUU+ddLhjngxo5izVABnFhWnwTXKQctD8PTdzF5zmCxA3uZbeH03YOLQsnLokSj2XA88GKQC0KMpn133KK2swyM9KXTvy+IOlkBnWeQSdRmV82TeTyqW1uInPSXVGv2k9P56cXtmt0daMgi71QUMI3k++Y9oU5TnKcCP9DaZRdDAW7Zt8iY=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR12MB6914.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(23010399003)(376014)(3023799007)(22082099003)(18002099003)(56012099006)(5023799004)(4143699003)(11063799006)(10067099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?M2NESThWK213SCtwcUhmc2hVL1hLR2lqT0tkTzQyallML2xnR0hvSVk1cDVX?=
+ =?utf-8?B?R08vUHNEYW1Ha2V5L1VWZHhxSFRxYWI2aHhXdXRWdGNRV2MyVFhEWFk2dUlr?=
+ =?utf-8?B?Y2J4cWtneVhzVS83NkNRNjJtRi9yaDh3dkYrOXB6SnRqWmZUZE1henEvTFRj?=
+ =?utf-8?B?eHE1KzI4YVh5Wk5RdW5nMVFIQ2FVaWV2bDQ5ZlZCenpjemZKWFA3elhvbEZu?=
+ =?utf-8?B?eHRidFNmbjdhc2l4clY0c0YrVVVjK21TYlQ0dXJ3dDM4MkNWQW5MRSs2V0Q1?=
+ =?utf-8?B?SFJnZmFNZ0s5bW5jcllsc0h5WlVoRlU4UkFlZ1EvL1JZZGsrUWtIRVZPS1F1?=
+ =?utf-8?B?L2RZd2VmSFI1TjJPVnBsODBpQW9MZWxyREplbWI0bjEycWpJTmJjS1ZUdnBn?=
+ =?utf-8?B?Q21wVElPU2lWVFNCQ09YUmEvdFAzcDVESUpvdVFWaUlZRXdrS1VGRDBSenNq?=
+ =?utf-8?B?bDhuUnkxVjhadEhwc2gwbktWSmlIcWhpREx2dWRrNmUwSFVXd25yVkdpZmJk?=
+ =?utf-8?B?WEtQbEh2T3JKZ1drNGN5dFBqTEE2RXhWVys2R2cvRnRyMFBZNXdKdGxiK0dS?=
+ =?utf-8?B?UmdaZ2xBYWtvdUxGN1RSSTQxUm1pT2lTbEFFUDBnY2ZCLy9LdGY1dTZwdTZz?=
+ =?utf-8?B?YWIyV2wxWG1XRkZWczUxdExZWE5xZGllMXZxb0tWemVzd0h3eGxrQVljcTdI?=
+ =?utf-8?B?bi9mMTlDb3FkZUsxaEx6UkJnZFArSDJCd3lBUjlWUXovYmRRL2tJRk55eW9J?=
+ =?utf-8?B?QUJ2aUV3OUV4cUpvTzBBVGY1c1k3Q0tQRXA5c1RQZy8xaWNPRXk2bFdYRWFi?=
+ =?utf-8?B?WTF4ejdRcytvVVdzak5FSXNVbERoamFuUjFmM0JrbGo5OTJaOGlDdU1YbHJn?=
+ =?utf-8?B?aXdBMXR3RjFSamNoZEIxRDlWN0NWUXhSbkNKQVJWR3diWEZxaDdjTmFPVFpr?=
+ =?utf-8?B?WUMvWW1GTEFpQ255SW53TmFsQVorZ3RFODh1REdkYWFibXVZZkRIcGwreDVS?=
+ =?utf-8?B?alUvSjlTNGdEbW9FMGY4eE80NnoyQkNXTWMrQmtYR2I4NjVnZmNOR3RpZk9o?=
+ =?utf-8?B?eWNjMVROVHhielRWalBnVE8wcjJERUxPRlppU1F6aGdPUjBzeSsybEpVRXNr?=
+ =?utf-8?B?RUFSNWR6K0FWdktvay83R2xXaVpiQjVxZGxOeUdVaTNJeHhZTG5adkdEQ2k4?=
+ =?utf-8?B?SWRKLzBLalpBK1JJUG8xbUN6NDBlNTNlVTZrSjJnOTFUVjRBN3BySWZFRE5N?=
+ =?utf-8?B?WnNBRXVFM0Q1MnN5NTlwck5xeWFpVUdBWlNlOG9KRXdtaW1YZHNzU1RPcjM1?=
+ =?utf-8?B?c0NjWTc3ZU5nY0hNeDNOeVJlMWJRV1UxRmQ1Q3hybFd5WStFZ2R1TUc0N2Y1?=
+ =?utf-8?B?TGgrSGlHYUJmWjh1dE4ySkpJOEFSL3hUcm4yRmlSdkdhLytZQkViWDJuRXFG?=
+ =?utf-8?B?QllCK21OVVM4Z0dYOVRTVmM2MlB6TWZyWmdSaktUL1ZwQlJ1QXgva2xITkQz?=
+ =?utf-8?B?THc1QmdtTHp1Y2tONmZOemZaejVBS3lFbzNxNFcwbk9SYjZXc3pHZ2dabkQw?=
+ =?utf-8?B?aHhKaHJlZHB3Zkl3eSs4YVYzZWE4Y1lBZFdXNElGYWlvY3FEQmdEd3V3U3pt?=
+ =?utf-8?B?bVZiajM3cnlzMUR4Nkx2cWhEWFBDUytVeEhvcU9yV3puUVJTNnZvWlRjZXdk?=
+ =?utf-8?B?RGdBcHYxN3ljRzJaNGswRUZ0QVBuRjJhVmdHYXFVM1FOLzBOUWJ3YUNIcUNW?=
+ =?utf-8?B?ZXFaUk1XT1lORHIrY3R3aU9jbkIrZzRsOHVwd3pLbHA0OFB6YndOQ09oaHhF?=
+ =?utf-8?B?dWg4NU81S29oTUVEWllyMnhzSk9IWWRvWG0rejJuUXRtUkNkeUQ0cTZBNUZI?=
+ =?utf-8?B?b0tqQlBNbzlNS1kzZHBGNGI5MllBTnZFbERZOVQzQUZ4Qm56MTdLWjB2YmlY?=
+ =?utf-8?B?emdZemtPVUNxQmJDcVFDeFIveVhhS3R3NGk4RzVpQWF5bU8vYktMdnJ4WFhG?=
+ =?utf-8?B?SnNCWHpoK1RaUXkwU25xb2RQN2xlbk0yR24yTGtIaUdBeFVpSlF5Tyt5OXkw?=
+ =?utf-8?B?VUdxcW1TckpBcXc1OEo0dHJXY3lMUEYwdTBUNHRsaEF5dGdMV2drYWdKUG5B?=
+ =?utf-8?B?TmxXQU1xVjk0Y3g5K3gxWmh0RHlGWUxmcUZGVms3SExwVWN3VTFDMllzSjRR?=
+ =?utf-8?B?ZVJDRXpnWExoT3dDMzEyV0xNdk1mR3NWUm1xU211Skx2RmRXRzdOVXk2TVhn?=
+ =?utf-8?B?cnZwcTZIYmFEdHBOeWRlU3piZE1OWkZBRkw4eVUzSUtmTUNJWXhaV0lPTURK?=
+ =?utf-8?Q?27BEFrJ3E68ZpyMSNB?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: f1f4744a-5fa9-4010-a7b7-08df0aaa8cab
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR12MB6914.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Sep 2026 17:32:53.2542
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: +Of+4tlj99p4e3pMDtoc7FEMi0wJAxPMoocehNRWyc8Fw7o3pHBD57W+eGMe/7fP62AkODs2Qt7aQnWyNvLXEQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA3PR12MB7784
 
 
 
+On 9/4/26 08:26, Rafael J. Wysocki (Intel) wrote:
+> On Mon, Aug 31, 2026 at 8:02 PM Mario Limonciello
+> <mario.limonciello@amd.com> wrote:
+>>
+>> Firmware may express an ACPI namespace path used as a _UID with or
+>> without the leading root scope character ('\'). For example, an AMD
+>> IVRS IVHD ACPI HID device entry may carry a character UID of
+>> "\_SB.MHSP" while the corresponding device's _UID evaluates to
+>> "_SB.MHSP" (or vice versa).  This semantic difference is due to how
+>> Windows PnP enumerates and uses devices.
+> 
+> Can you please elaborate a bit more?
+> 
+> I would expect _UID to return the string without the leading
+> backslash, so where does the other one come from, exactly?
 
-> Thanks to Alan's review for making me notice it.
->
-> thanks,
->
-> greg k-h
->
+It comes from the ACPI IVRS table.
+
+https://docs.amd.com/v/u/en-US/48882_3.11_IOMMU_PUB
+
+p306-307 talk about this field.
+
+Here is a sample entry decoded with iasl -d
+(from BIOS on an affected system)
+
+[223h 0547 001h]               Subtable Type : F0 [Device Entry: ACPI 
+HID Named Device]
+[224h 0548 002h]                   Device ID : 0068
+[226h 0550 001h] Data Setting (decoded below) : 40
+                                     INITPass : 0
+                                     EIntPass : 0
+                                      NMIPass : 0
+                                     Reserved : 0
+                                  System MGMT : 0
+                                   LINT0 Pass : 1
+                                   LINT1 Pass : 0
+[227h 0551 008h]                    ACPI HID : "MSFT0201"
+[22Fh 0559 008h]                    ACPI CID : 0000000000000000
+[237h 0567 001h]                  UID Format : 02
+[238h 0568 001h]                  UID Length : 09
+[239h 0569 009h]                         UID : "\_SB.XHSP"
+
+Setting this field to _SB.XHSP does fix the issue for Linux, but this 
+has problems on Windows.  So my hope was to let \_SB.XHSP work for Linux 
+too.
+
+> 
+>> acpi_str_uid_match() compared the two strings verbatim, so such
+>> entries failed to match on the UID even though they refer to the same
+>> object. In the AMD IOMMU case (get_acpihid_device_id()) this caused
+>> the exact HID+UID match to be missed and the code to fall through to
+>> the HID-only path, spuriously raising a FW_BUG.
+>>
+>> Skip a single leading '\' on either string before comparing so that
+>> paths that differ only by the root scope prefix are treated as a
+>> match. The integer _UID path is unaffected.
+> 
+> But this sort of assumes that the string returned by _UID will always
+> be a namespace path, but is that the case really?
+
+For IVRS entries this would be true since this is what is in the spec:
+
+ > If defined as a character string, the ACPI UID marks the instances of
+ > DMA-capable devices with the defined DeviceID (e.g. IOMMU visible
+ > Routing ID). It should match the ACPI device namespace strings with
+ > unit number, but without a trailing \0 character (as the UID length
+ > specifies the size of the string already).
+
+But I don't know universally it would be true.
+
+I suppose one possible modification could be to look for the length of 
+the string being at least 2 on the string before incrementing the pointer.
+
+> 
+>> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+>> ---
+>>   include/acpi/acpi_bus.h | 10 +++++++++-
+>>   1 file changed, 9 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+>> index 1a45e0d521d8e..e0bec35953ef1 100644
+>> --- a/include/acpi/acpi_bus.h
+>> +++ b/include/acpi/acpi_bus.h
+>> @@ -835,7 +835,15 @@ static inline bool acpi_str_uid_match(struct acpi_device *adev, const char *uid2
+>>   {
+>>          const char *uid1 = acpi_device_uid(adev);
+>>
+>> -       return uid1 && uid2 && !strcmp(uid1, uid2);
+>> +       if (!uid1 || !uid2)
+>> +               return false;
+>> +
+>> +       if (*uid1 == '\\')
+>> +               uid1++;
+>> +       if (*uid2 == '\\')
+>> +               uid2++;
+>> +
+>> +       return !strcmp(uid1, uid2);
+>>   }
+>>
+>>   static inline bool acpi_int_uid_match(struct acpi_device *adev, u64 uid2)
+>> --
+>> 2.43.0
+>>
+
