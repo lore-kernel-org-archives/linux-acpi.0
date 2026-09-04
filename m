@@ -1,126 +1,151 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBC31314B63;
-	Fri,  4 Sep 2026 17:23:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C88B0331A53
+	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 17:24:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788542644; cv=none; b=cZlO0BsRr7key03a2OUOmARijsvfmJeIxJZfC0hibLDLQTWi3g6BNFQJ4XcKVrObMpNQvRuILdxYDiJKbSc1/TabyH2R+Kk8efvcACNR76qEDmucVGCXfSBy7TdQXvDwYfD3wYGsO+PiMCSr63mK4cRwtqMAYQVZuzHjIeCUW44=
+	t=1788542682; cv=none; b=RfPYa3Zigq6YEv48C7uy2pzReNGJodC0fBblAl0puuSOkBiJI1pWg5Swz/HSP15zZROoQgcoWZHigj5C4dk8hyiD/2jXOSL+tcqApDLaRcaSiAD0+jPsneRYnWnvJDSMtae3uPcUiEz/claOYnaDndJx4FAneKCfDkQwYd1FM4k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788542644; c=relaxed/simple;
-	bh=otqhtQ8FICngfUzldLBvqebkvzdHHchTadWhqnOwix4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=O7P5g/ttOh+XENQfs6v8KSXy71SnPc5Pz8e9RuJ07NVOdLag6whtL01FxwZPnhbLSGHbITEDluk95XPq0O7Qd8CQbJcp/X7kYYc6f+Yvz4Nbyvq7rRe7AffwfpKcijPzxZ0C9cYsCcjQZldLPMLjmVm/D3nBLGtpnzMjWfo5FgA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFFEE1F00A3E;
-	Fri,  4 Sep 2026 17:23:56 +0000 (UTC)
-From: Dave Jiang <dave.jiang@intel.com>
-To: linux-acpi@vger.kernel.org,
-	linux-cxl@vger.kernel.org
-Cc: rafael@kernel.org,
-	tony.luck@intel.com,
-	bp@alien8.de,
-	guohanjun@huawei.com,
-	mchehab@kernel.org,
-	xueshuai@linux.alibaba.com,
-	terry.bowman@amd.com,
-	benjamin.cheatham@amd.com,
-	alison.schofield@intel.com,
-	sashiko-bot@kernel.org
-Subject: [PATCH v6 12/13] ACPI: APEI: GHES: Bound AER info copy and sanitize software metadata
-Date: Fri,  4 Sep 2026 10:23:36 -0700
-Message-ID: <20260904172337.1409775-13-dave.jiang@intel.com>
-X-Mailer: git-send-email 2.54.0
-In-Reply-To: <20260904172337.1409775-1-dave.jiang@intel.com>
-References: <20260904172337.1409775-1-dave.jiang@intel.com>
+	s=arc-20240116; t=1788542682; c=relaxed/simple;
+	bh=wzb03DLVgIj3vB7hKR26LkDSnhyToSK5dDUTYTCmeno=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=SqL+ZoL1dfejt3nUVMh2ZhGBlW9bJ3qlrzZFpo6mXCtEqkrtJdbls9sUIFKSI+0wpngdXQpPtTMQbDBTMNcPzwSjE1ySzL1EIx7KG/V6VFY0/smmMt3Ql1tLZ54DThzGfD2OFkeF5NEZROeied1WYMHxV0qMfMcDp8d0jrWeHWk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DSbCUAoa; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DSbCUAoa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E2611F01559
+	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 17:24:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788542675;
+	bh=/CDqLznQvkVu7WQ3vZoYAE6ZEb2I+Dl4DDzf448Rh98=;
+	h=References:In-Reply-To:Reply-To:From:Date:Subject:To:Cc;
+	b=DSbCUAoaBf0BDfPe5nbw+AB5KH61cmX95b2H4GrECOmgcWubqAUSF+QTRSuXuKJ7W
+	 So0x0z73IE6ijUa/G9rzZeyi6XXSdOCJpEK1oP0odVfwTNd9h7hU4p7kbn9tbBzUkI
+	 oInQ77/mksSytpVmjMak/Lh1ZpwaM5Z7jIk/Jv59U6t216lhGAQBi4a+g3PJdstRji
+	 qrFVpmYGS3RsbLRcnKlpuulzpxXD2M11HxGYsFBaJtmdQNOmwYOOAU6PeH3T0Tjlz3
+	 dYfLpT7avAUwMSnxOhcRqJ7tStlmGT5PgYp+NABfyd5BpMETqLNwc/PXFTiF24ERqi
+	 9BoXQ1Qr/orZQ==
+Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-39da69c5ba3so11253271fa.1
+        for <linux-acpi@vger.kernel.org>; Fri, 04 Sep 2026 10:24:35 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBw6UN7RIqgd3p+c7ks+fMJQXZ9MxSK9rsetlLOrH0j9MSZWYBqUX/Sj3QvVj5kiA1Lwee+Jtj0WoHNd@vger.kernel.org
+X-Gm-Message-State: AFuF++ks9MGq2nKVW4v838OCkrkmJjQvJzrw+jR5zyGobG6SeN4c1/61
+	FtEAGtOV9ySKLMAOsYp77ymPgw/WF71+MU+MymrJCWYYWoHhhU0tTgV+v1+IEAPbISKOxM7f2u/
+	0VhzjHGIOL6HpDgbxJuRqJ0pKeFK264Y=
+X-Received: by 2002:a2e:a54f:0:b0:3a3:314d:115e with SMTP id
+ 38308e7fff4ca-3a371bc73e4mr9829551fa.10.1788542673867; Fri, 04 Sep 2026
+ 10:24:33 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260904084158.1341550-1-wenst@chromium.org> <20260904084158.1341550-8-wenst@chromium.org>
+ <2026090430-botanist-ungodly-0299@gregkh>
+In-Reply-To: <2026090430-botanist-ungodly-0299@gregkh>
+Reply-To: wens@kernel.org
+From: Chen-Yu Tsai <wens@kernel.org>
+Date: Sat, 5 Sep 2026 01:24:20 +0800
+X-Gmail-Original-Message-ID: <CAGb2v65MSxL+r+wqMjPKVSh9aS1gkn8og6oBinSXDdipnoOyCQ@mail.gmail.com>
+X-Gm-Features: AcwNN1XsOjcnbmZTa6fnJtFKjvQsiEWmd4_rlrVRXh_dounYDIlqWUAfitdifNU
+Message-ID: <CAGb2v65MSxL+r+wqMjPKVSh9aS1gkn8og6oBinSXDdipnoOyCQ@mail.gmail.com>
+Subject: Re: [PATCH v8 07/16] usb: core: Move struct usb_port and related APIs
+ to port.h
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Chen-Yu Tsai <wenst@chromium.org>, Bartosz Golaszewski <brgl@kernel.org>, 
+	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, 
+	Wei Deng <wei.deng@oss.qualcomm.com>, Konrad Dybcio <konrad.dybcio@oss.qualcomm.com>, 
+	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
+	linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org, 
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	Manivannan Sadhasivam <mani@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-ghes_handle_aer() copies sizeof(struct aer_capability_regs) out of the
-fixed 96-byte pcie_err->aer_info. The struct is larger, so the copy reads
-past the section, and it fills the software-only header_len and flit fields
-of the embedded struct pcie_tlp_log from firmware bytes.
-pcie_print_tlp_log() uses both to bound a loop over dw[], so a large value
-walks past the array. Nothing checks the section can hold a struct
-cper_sec_pcie either.
+On Sat, Sep 5, 2026 at 12:47=E2=80=AFAM Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
+>
+> On Fri, Sep 04, 2026 at 04:41:46PM +0800, Chen-Yu Tsai wrote:
+> > |struct usb_port| and its matching container_of() macro should live in
+> > its own port.h, matching the split we have for .c files.
+>
+> Why?
 
-Validate error_data_length, zero the destination, and map aer_info onto the
-struct as extlog_print_pcie() does: copy up to the four Header Log DWORDs,
-then place the TLP Prefix Log from its own offset. The rest stays zero,
-covering header_len and flit.
+This was requested by Andy. And to me it sort of made sense.
 
-Reported-by: sashiko-bot@kernel.org
-Closes: https://sashiko.dev/#/patchset/20260714231835.303081-1-dave.jiang@intel.com?part=3
-Fixes: 7e077e6707b3 ("PCI/ERR: Handle TLP Log in Flit mode")
-Reviewed-by: Alison Schofield <alison.schofield@intel.com>
-Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com>
-Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
-Assisted-by: Claude:claude-opus-4-8
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
-v6:
-- Also place the TLP Prefix Log from its own hardware offset rather than
-  leaving it zero. It is the one field the print path reads that the
-  shortened copy missed (sashiko).
----
- drivers/acpi/apei/ghes.c | 25 ++++++++++++++++++++-----
- 1 file changed, 20 insertions(+), 5 deletions(-)
+> > Move them as described. Also move usb_port_is_power_on(), since in the
+> > next change its |struct usb_hub *| parameter will be changed to
+> > |struct usb_port *|, and becomes a non-static function that only
+> > references |struct usb_port|.
+>
+> No, please don't do that unless you have a really good reason.
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 2077cc90569a..08c985e729d6 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -642,11 +642,14 @@ static void ghes_handle_aer(struct acpi_hest_generic_data *gdata)
- #ifdef CONFIG_ACPI_APEI_PCIEAER
- 	struct cper_sec_pcie *pcie_err = acpi_hest_get_payload(gdata);
- 
-+	if (gdata->error_data_length < sizeof(*pcie_err))
-+		return;
-+
- 	if (pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
- 	    pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO) {
-+		struct aer_capability_regs *aer_info;
- 		unsigned int devfn;
- 		int aer_severity;
--		u8 *aer_info;
- 
- 		devfn = PCI_DEVFN(pcie_err->device_id.device,
- 				  pcie_err->device_id.function);
-@@ -664,13 +667,25 @@ static void ghes_handle_aer(struct acpi_hest_generic_data *gdata)
- 						  sizeof(struct aer_capability_regs));
- 		if (!aer_info)
- 			return;
--		memcpy(aer_info, pcie_err->aer_info, sizeof(struct aer_capability_regs));
-+
-+		/*
-+		 * Map aer_info onto the struct as extlog_print_pcie() does:
-+		 * copy up to the four Header Log DWORDs, then place the TLP
-+		 * Prefix Log from where the hardware keeps it. The rest stays
-+		 * zero, so firmware cannot drive the pcie_print_tlp_log() loop
-+		 * over dw[] out of bounds.
-+		 */
-+		memset(aer_info, 0, sizeof(struct aer_capability_regs));
-+		memcpy(aer_info, pcie_err->aer_info,
-+		       offsetof(struct aer_capability_regs, header_log) +
-+		       PCIE_STD_NUM_TLP_HEADERLOG * sizeof(u32));
-+		memcpy(aer_info->header_log.prefix,
-+		       pcie_err->aer_info + PCI_ERR_PREFIX_LOG,
-+		       sizeof(aer_info->header_log.prefix));
- 
- 		aer_recover_queue(pcie_err->device_id.segment,
- 				  pcie_err->device_id.bus,
--				  devfn, aer_severity,
--				  (struct aer_capability_regs *)
--				  aer_info);
-+				  devfn, aer_severity, aer_info);
- 	}
- #endif
- }
--- 
-2.54.0
+Which part? Move the code?
 
+> >
+> > port.h is only included from hub.h, as a subsequent patch will directly
+> > use fields from |struct usb_port| in a static inline helper in hub.h.
+> > The USB internal headers don't have header guards to help with this.
+> >
+> > Also drop 'extern' from the header declaration of usb_port_is_power_on(=
+).
+> > This is not needed in modern C.
+> >
+> > Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
+> > ---
+> > Changes since v4:
+> > - Dropped 'extern' (Andy)
+> >
+> > Changes since v3:
+> > - New patch (Andy)
+> > ---
+> >  drivers/usb/core/hub.c  | 16 ----------
+> >  drivers/usb/core/hub.h  | 48 ++---------------------------
+> >  drivers/usb/core/port.c | 16 ++++++++++
+> >  drivers/usb/core/port.h | 68 +++++++++++++++++++++++++++++++++++++++++
+> >  4 files changed, 86 insertions(+), 62 deletions(-)
+> >  create mode 100644 drivers/usb/core/port.h
+>
+> hub.h is small enough, making a single .h file that is 68 lines long
+> for no real good reason isn't a good idea.  Odds are this will make the
+> build take longer as you now need to open/read/close another file.
+
+OK. Andy, can you accept not doing the move?
+
+> And if we really want to do this, it shouldn't be burried in the middle
+> of a long "enable this platform" series where people will miss it.
+
+Well the code is also touched in this series, so it is related. Without
+the change, the code movement makes even less sense, as mentioned in the
+commit message.
+
+As for missing the patch, I can change the series name to something
+like "usb: Hook up pwrseq for USB power control on M.2 E-key slots".
+The series spans multiple subsystems and even the driver core, and the
+goal is to enable M.2 E-key slots, so hopefully that ticks all the boxes.
+Except which platform is affected that is.
+
+
+ChenYu
+
+
+
+
+> Thanks to Alan's review for making me notice it.
+>
+> thanks,
+>
+> greg k-h
+>
