@@ -1,19 +1,19 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA4383C9EFC;
-	Fri,  4 Sep 2026 17:23:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EF48511225;
+	Fri,  4 Sep 2026 17:23:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788542640; cv=none; b=dwMacfLwlZh6jTkhssmrTktjO3Bt82SUXt6KRTv/EuhzudSx/LYNykXYAJnLU7kia9xtXgmfhZIyZObB+KewG/gDWYajDCsNJsTdvLHWbyGKTg4R7YhQfH1JFxTbUGNy5FgKmpNMFYN9onkvmec4uL53NiZ7jSFKqZLVjC73qBI=
+	t=1788542639; cv=none; b=aB9UpXNfMSDyoFv6WIYdLPRs4Ak3xHmkz2ZdQ3m7yCYNkOoir3+uoy9swBsy/p9+vCy6T6gQCTJDnr/OjgpQSbVYS8bgpayvsSRxw1S4aWDe9WYLN6Kv4KGdgMUWr7OcHFCrzo5r5p3V3Ou5thv+PU0lV6IsU0wO9wk4FLVUI9o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788542640; c=relaxed/simple;
-	bh=oUr1kx1D9Awnexx0rmJdnuHVzsUdWqFELuasZMuQRy0=;
+	s=arc-20240116; t=1788542639; c=relaxed/simple;
+	bh=xv4cYIvnwcuSBE/eXoqHKIxjdR+zLkFEavSvfr/vkLw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=FYtl4n6zIUmLatJs0FkY2V4+ayNSG/lA3dK9utq2H4pGXZ5At2c3O4JVEnANuigkvFwu9uyHXA/Tff/8+IcHL49WlAftRfOdQo74JRslcBk3H9UD/sgg1uxZMWfnd4ntYJzganv0Gt6yMRb/S1ePaNiMr+VU+zp5DiGGSjY6jkQ=
+	 MIME-Version; b=DooopaiKkXO206XhtjiS+gYlefgIoQs18NzSNCllYX3Vy1ZFCOhoVtRz+tV6EtKWV8ob9gLGMHVkq0isX/gfapQjpOB7njlsC86Ce6YkZzaMuhLhrxkKgobRB1UJPnc22C+MA7QjScu1XAvCOX3KKmhi+i5SuKrhscBhJMyMoRA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E232C1F00A3D;
-	Fri,  4 Sep 2026 17:23:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80F141F00ACF;
+	Fri,  4 Sep 2026 17:23:52 +0000 (UTC)
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-acpi@vger.kernel.org,
 	linux-cxl@vger.kernel.org
@@ -26,10 +26,11 @@ Cc: rafael@kernel.org,
 	terry.bowman@amd.com,
 	benjamin.cheatham@amd.com,
 	alison.schofield@intel.com,
-	sashiko-bot@kernel.org
-Subject: [PATCH v6 10/13] efi/cper: Read only validated fields in cper_mem_err_pack()
-Date: Fri,  4 Sep 2026 10:23:34 -0700
-Message-ID: <20260904172337.1409775-11-dave.jiang@intel.com>
+	sashiko-bot@kernel.org,
+	Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+Subject: [PATCH v6 09/13] ACPI: APEI: GHES: Validate CXL protocol error section length before RAS cap copy
+Date: Fri,  4 Sep 2026 10:23:33 -0700
+Message-ID: <20260904172337.1409775-10-dave.jiang@intel.com>
 X-Mailer: git-send-email 2.54.0
 In-Reply-To: <20260904172337.1409775-1-dave.jiang@intel.com>
 References: <20260904172337.1409775-1-dave.jiang@intel.com>
@@ -41,67 +42,147 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-cper_mem_err_pack() copies extended, rank, mem_array_handle and
-mem_dev_handle unconditionally. Those live at offsets 73 to 79, past the
-end of struct cper_sec_mem_err_old, the 73-byte UEFI 2.1/2.2 layout that
-older firmware still emits and that cper_estatus_print_section() admits.
-On such a record the copy reads up to seven bytes past the payload, and off
-the end of the error status block when that section is the last one.
+cxl_cper_setup_prot_err_work_data() locates the RAS Capability block at
+prot_err + sizeof(*prot_err) + dvsec_len and copies it, but dvsec_len is
+firmware controlled and never validated, so it can point the copy outside
+the section.
 
-Copy each of the four only when its validation bit is set, and zero it
-otherwise. Nothing is lost: a 2.1/2.2 record leaves those bits clear, and
-every consumer of struct cper_mem_err_compact already gates the fields on
-the same bits. Zeroing also stops callers reading them back out of the
-uninitialised on-stack struct they pass in.
+Extend cxl_cper_sec_prot_err_valid() to check that the section can hold
+the header, and that the header, DVSEC and RAS Capability block together
+fit the reported section length.
 
 Reported-by: sashiko-bot@kernel.org
-Closes: https://sashiko.dev/#/patchset/20260714231835.303081-1-dave.jiang@intel.com?part=7
-Fixes: 2dfb7d51a61d ("trace, RAS: Add eMCA trace event interface")
-Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
+Link: https://sashiko.dev/#/patchset/20260617-topics-ahmtib01-ras_ffh_arm_internal_review-v6-0-91f725174aa0@arm.com?part=6
+Link: https://lore.kernel.org/linux-cxl/20260709165457.8BA181F000E9@smtp.kernel.org/
+Fixes: 315c2f0b53ba ("acpi/ghes, cper: Recognize and cache CXL Protocol errors")
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com>
-Assisted-by: Claude:claude-opus-4-8
+Reviewed-by: Ben Cheatham <benjamin.cheatham@amd.com>
+Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
+Assisted-by: Claude:claude-sonnet-4-6
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/firmware/efi/cper.c | 26 ++++++++++++++++++++++----
- 1 file changed, 22 insertions(+), 4 deletions(-)
+ drivers/acpi/acpi_extlog.c       |  3 ++-
+ drivers/acpi/apei/ghes.c         |  7 ++++---
+ drivers/acpi/apei/ghes_helpers.c | 18 +++++++++++++++++-
+ include/acpi/ghes.h              |  2 +-
+ include/cxl/event.h              |  4 ++--
+ 5 files changed, 26 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-index 3dcef618ad39..13b3e72c3b62 100644
---- a/drivers/firmware/efi/cper.c
-+++ b/drivers/firmware/efi/cper.c
-@@ -389,10 +389,28 @@ void cper_mem_err_pack(const struct cper_sec_mem_err *mem,
- 	cmem->requestor_id = mem->requestor_id;
- 	cmem->responder_id = mem->responder_id;
- 	cmem->target_id = mem->target_id;
--	cmem->extended = mem->extended;
--	cmem->rank = mem->rank;
--	cmem->mem_array_handle = mem->mem_array_handle;
--	cmem->mem_dev_handle = mem->mem_dev_handle;
-+
-+	/*
-+	 * These four sit past the end of the UEFI 2.1/2.2 layout, which older
-+	 * firmware still emits, so reading them unconditionally runs off a
-+	 * short record. Every consumer of the compact record gates them on the
-+	 * same validation bits, so leave them zero when firmware does not
-+	 * claim them.
-+	 */
-+	cmem->extended = 0;
-+	cmem->rank = 0;
-+	cmem->mem_array_handle = 0;
-+	cmem->mem_dev_handle = 0;
-+
-+	if (mem->validation_bits &
-+	    (CPER_MEM_VALID_ROW_EXT | CPER_MEM_VALID_CHIP_ID))
-+		cmem->extended = mem->extended;
-+	if (mem->validation_bits & CPER_MEM_VALID_RANK_NUMBER)
-+		cmem->rank = mem->rank;
-+	if (mem->validation_bits & CPER_MEM_VALID_CARD_HANDLE)
-+		cmem->mem_array_handle = mem->mem_array_handle;
-+	if (mem->validation_bits & CPER_MEM_VALID_MODULE_HANDLE)
-+		cmem->mem_dev_handle = mem->mem_dev_handle;
- }
- EXPORT_SYMBOL_GPL(cper_mem_err_pack);
+diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
+index 8c17c2719526..9e61354a807b 100644
+--- a/drivers/acpi/acpi_extlog.c
++++ b/drivers/acpi/acpi_extlog.c
+@@ -248,7 +248,8 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
+ 				acpi_hest_get_payload(gdata);
  
+ 			cxl_cper_post_prot_err(prot_err,
+-					       gdata->error_severity);
++					       gdata->error_severity,
++					       gdata->error_data_length);
+ 		} else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
+ 			struct cper_sec_pcie *pcie_err = acpi_hest_get_payload(gdata);
+ 
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 8f66dfb8edba..111895c57c2f 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -753,12 +753,12 @@ static DEFINE_RAW_SPINLOCK(cxl_cper_prot_err_work_lock);
+ struct work_struct *cxl_cper_prot_err_work;
+ 
+ void cxl_cper_post_prot_err(struct cxl_cper_sec_prot_err *prot_err,
+-			    int severity)
++			    int severity, u32 len)
+ {
+ #ifdef CONFIG_ACPI_APEI_PCIEAER
+ 	struct cxl_cper_prot_err_work_data wd;
+ 
+-	if (cxl_cper_sec_prot_err_valid(prot_err))
++	if (cxl_cper_sec_prot_err_valid(prot_err, len))
+ 		return;
+ 
+ 	guard(raw_spinlock_irqsave)(&cxl_cper_prot_err_work_lock);
+@@ -965,7 +965,8 @@ static void ghes_do_proc(struct ghes *ghes,
+ 		} else if (guid_equal(sec_type, &CPER_SEC_CXL_PROT_ERR)) {
+ 			struct cxl_cper_sec_prot_err *prot_err = acpi_hest_get_payload(gdata);
+ 
+-			cxl_cper_post_prot_err(prot_err, gdata->error_severity);
++			cxl_cper_post_prot_err(prot_err, gdata->error_severity,
++					       gdata->error_data_length);
+ 		} else if (guid_equal(sec_type, &CPER_SEC_CXL_GEN_MEDIA_GUID)) {
+ 			struct cxl_cper_event_rec *rec = acpi_hest_get_payload(gdata);
+ 
+diff --git a/drivers/acpi/apei/ghes_helpers.c b/drivers/acpi/apei/ghes_helpers.c
+index bc7111b740af..df41b993f413 100644
+--- a/drivers/acpi/apei/ghes_helpers.c
++++ b/drivers/acpi/apei/ghes_helpers.c
+@@ -5,8 +5,15 @@
+ #include <linux/aer.h>
+ #include <cxl/event.h>
+ 
+-int cxl_cper_sec_prot_err_valid(struct cxl_cper_sec_prot_err *prot_err)
++int cxl_cper_sec_prot_err_valid(struct cxl_cper_sec_prot_err *prot_err, u32 len)
+ {
++	if (len < sizeof(*prot_err)) {
++		pr_err_ratelimited(FW_WARN
++				   "CXL CPER prot err section too small (%u)\n",
++				   len);
++		return -EINVAL;
++	}
++
+ 	if (!(prot_err->valid_bits & PROT_ERR_VALID_AGENT_ADDRESS)) {
+ 		pr_err_ratelimited("CXL CPER invalid agent type\n");
+ 		return -EINVAL;
+@@ -23,6 +30,15 @@ int cxl_cper_sec_prot_err_valid(struct cxl_cper_sec_prot_err *prot_err)
+ 		return -EINVAL;
+ 	}
+ 
++	/* The RAS Capability block sits after a firmware-sized DVSEC. */
++	if (sizeof(*prot_err) + prot_err->dvsec_len +
++	    sizeof(struct cxl_ras_capability_regs) > len) {
++		pr_err_ratelimited(FW_WARN
++				   "CXL CPER prot err DVSEC (%u) overruns section (%u)\n",
++				   prot_err->dvsec_len, len);
++		return -EINVAL;
++	}
++
+ 	if ((prot_err->agent_type == RCD || prot_err->agent_type == DEVICE ||
+ 	     prot_err->agent_type == LD || prot_err->agent_type == FMLD) &&
+ 	    !(prot_err->valid_bits & PROT_ERR_VALID_SERIAL_NUMBER))
+diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+index be496bc0386f..7acf209061ea 100644
+--- a/include/acpi/ghes.h
++++ b/include/acpi/ghes.h
+@@ -88,7 +88,7 @@ void ghes_estatus_pool_region_free(unsigned long addr, u32 size);
+ 
+ struct cxl_cper_sec_prot_err;
+ void cxl_cper_post_prot_err(struct cxl_cper_sec_prot_err *prot_err,
+-			    int severity);
++			    int severity, u32 len);
+ #else
+ static inline struct list_head *ghes_get_devices(void) { return NULL; }
+ 
+diff --git a/include/cxl/event.h b/include/cxl/event.h
+index b5673384d930..5779e35310c7 100644
+--- a/include/cxl/event.h
++++ b/include/cxl/event.h
+@@ -312,13 +312,13 @@ static inline int cxl_cper_prot_err_kfifo_get(struct cxl_cper_prot_err_work_data
+ #endif
+ 
+ #ifdef CONFIG_ACPI_APEI_PCIEAER
+-int cxl_cper_sec_prot_err_valid(struct cxl_cper_sec_prot_err *prot_err);
++int cxl_cper_sec_prot_err_valid(struct cxl_cper_sec_prot_err *prot_err, u32 len);
+ int cxl_cper_setup_prot_err_work_data(struct cxl_cper_prot_err_work_data *wd,
+ 				      struct cxl_cper_sec_prot_err *prot_err,
+ 				      int severity);
+ #else
+ static inline int
+-cxl_cper_sec_prot_err_valid(struct cxl_cper_sec_prot_err *prot_err)
++cxl_cper_sec_prot_err_valid(struct cxl_cper_sec_prot_err *prot_err, u32 len)
+ {
+ 	return -EOPNOTSUPP;
+ }
 -- 
 2.54.0
 
