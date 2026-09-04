@@ -1,132 +1,118 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CE6B44682F;
-	Fri,  4 Sep 2026 12:55:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DA5F4A1E19
+	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 13:27:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788526508; cv=none; b=SGtk4ec5bHEa5Nu4lfAg5LExf7P0SpMw1wO0e276FZdmgvyD2zXlfm7/j70mCg4qT8yyCFdF1IHKy1T36XBZjqjNNtV0xmNVdkYauPWHgq5W827e6wbVana/c+rtnjyYq5hlXRoxBIPb7ivB/mmlGBQWG8a7uUrVAed01d3/iyY=
+	t=1788528450; cv=none; b=YeXkFrCvZ+WdTgVRd9cm+tlWJ8WHpr7fwcI1VVqWCoYYTYLqwSKusiYrrab4f3NztB7mWL5gNvmhaXOQ1HvdPu6u9XDTO18RG51kdvTJ+6xN6ykv/uIzWu2vPZBp+R45ZGuu6cxv0KJcQz3hZUnHwCTfBKj4GkMG2Wb1w2rbwqQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788526508; c=relaxed/simple;
-	bh=TfD52jOzf+a1JoDQPQQivlY/fszqgwWGK2WVitDtjIw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Tcvd2TAeE+MsHlQ8BdU6qUXM9JnUJ/oq8i4vJPJI68gj5v2tDXyTTh7qVmCSWijWucS2suAvMbtHM7yjozQzUnRc6nbwa4vy6PKq9gBV3Juma97pwOaIX0/QUyBOc3869qHqMr7TAt0DNhZq+hNfd5uG6njOuyul32K2SyiCzSE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NgdrKgO3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788528450; c=relaxed/simple;
+	bh=6o3FN68txfSUOLS6C9YkD4JwzK2reI8HHvuHdgydk98=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=XQwzKGG0IUSiUcTeVZTw4jjc9fCKq5VG2PqMMx+1zUfzfZI02QrcWv6z9X5eJEcZ0QOXiGCr5yArrscBDOlfuKUNjz81ZdQfxfmg/UF7PkyG3dtk/9TB5tbKCzFaGKAtjDEc/4mCggAGanVQHZm1JYxAGAZB+EQs601FO7YoZ2k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BnUbh245; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NgdrKgO3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 041F31F00A3D;
-	Fri,  4 Sep 2026 12:55:05 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BnUbh245"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDAB21F00A3E
+	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 13:27:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788526506;
-	bh=+jAa/+gW4uJqMlBI4roLSbcXFG/6ATTWTZkTBgaLylU=;
-	h=From:To:Cc:Subject:Date;
-	b=NgdrKgO3pYOaTZTNkfrAnZN17U54JyRhb4gYeRM1VQUwfFHOL7ypUm94UGF8PdCLb
-	 VdP9JlTRZw5Nv1sxN0netJ+uzxVN8DYKA28mKvvXqbg4KpuE/ZApE63HNeHtt2HBIq
-	 ycqPZg7mcWFEcKfWdBmx7d9gcjRfIUI19VRBPpntkrtS0XFyWaYDjCmIUTQ+IOkQhE
-	 evGFgKm2IL/lxYdXl3j8eMbaUPdmgVqNbP2V+gytI/90fWDHfUlKVGycB8XVH8dCgI
-	 IbSCdJU4YQa1H5sFJsT28bQOW7IqcAI/BhIfhiuEbxPv6HASMT4mktx74rjlTlOXfW
-	 JmwiENSxD1ldw==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1] ACPI: glue: Reduce debug noise from acpi_device_notify()
-Date: Fri, 04 Sep 2026 14:55:03 +0200
-Message-ID: <2868233.mvXUDI8C0e@rafael.j.wysocki>
-Organization: Linux Kernel Development - Intel
+	s=k20260515; t=1788528448;
+	bh=yLr5JER9L2GG4LQNJ6EPE1CFk2v2zU96DBox5ONJHmE=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=BnUbh245UT2qnT2kYz9oPXxdypfw/ueXE0/573Now74NoqjoL4c6A02+Tq1XX3aqo
+	 oTcylc1gPAmf9yMmOP1Q/QeCiEu2xFGnp7bAynhyr43+qqGPyjEBmpdNb7rsG+cy5G
+	 paFq5KvZZAih66pjxOshYtcKD/5kmbSvbP/kzfq1n38fLepSYpNff9f/2awp2+Ukic
+	 tnFYmRyMgMmcT+mHw9h6lYB6QngyV8t5/YcL7i0DqDZtP7pTfEg1cTAgJ496AK5czs
+	 KwZ1Hr7gzhni1+fWcFBJurdXPYgsbQDkRkEtq1kIkyCAviwAALQt9WaDOJxt+IhhD2
+	 OJgb/lBRv5i6w==
+Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-3a309f92daaso9634611fa.3
+        for <linux-acpi@vger.kernel.org>; Fri, 04 Sep 2026 06:27:28 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBwTrk69FIvJX/8C7jmECHj5cHTuME+0jwvKGXbRQJlVZ+qpP+GZ14+qmJ9TiQtQU2vyOwgZC8HjGe0w@vger.kernel.org
+X-Gm-Message-State: AFuF++kli8MOm90iQgJr4aO/0hzf70VZATX9be7enUZBrB8zOGtag5gJ
+	SsyZRLhvjCck6OjAsg8fPpFak0zbZBQsOb4/9HO3mR3rz3DR8oEM7gAXRh9/VrnaecavFFUZUZz
+	edQdJzrNWR4kXHEqKTeXIoNFhHysKTF4=
+X-Received: by 2002:a05:651c:15c1:20b0:3a3:476:2e37 with SMTP id
+ 38308e7fff4ca-3a371b2d735mr5188101fa.6.1788528447121; Fri, 04 Sep 2026
+ 06:27:27 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+References: <20260831180214.2231161-1-mario.limonciello@amd.com>
+In-Reply-To: <20260831180214.2231161-1-mario.limonciello@amd.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Fri, 4 Sep 2026 15:26:26 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hgn+_L_yvEg0yo0vPk9_brbxsywyu_77tEyww4nV+eUg@mail.gmail.com>
+X-Gm-Features: AcwNN1UTAxjAba3vdZOPJ_75Q5wKhnCiwoSBVjcu6FvA299Kmrch79HVAOs_dvo
+Message-ID: <CAJZ5v0hgn+_L_yvEg0yo0vPk9_brbxsywyu_77tEyww4nV+eUg@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: utils: Ignore leading root scope prefix in string
+ _UID match
+To: Mario Limonciello <mario.limonciello@amd.com>
+Cc: rafael@kernel.org, maciej.wieczor-retman@intel.com, 
+	pawel.chmielewski@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, 
+	acpica-devel@lists.linux.dev
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+On Mon, Aug 31, 2026 at 8:02=E2=80=AFPM Mario Limonciello
+<mario.limonciello@amd.com> wrote:
+>
+> Firmware may express an ACPI namespace path used as a _UID with or
+> without the leading root scope character ('\'). For example, an AMD
+> IVRS IVHD ACPI HID device entry may carry a character UID of
+> "\_SB.MHSP" while the corresponding device's _UID evaluates to
+> "_SB.MHSP" (or vice versa).  This semantic difference is due to how
+> Windows PnP enumerates and uses devices.
 
-When debug is enabled in the ACPI glue code that handles binding
-devices to ACPI companions, acpi_device_notify() produces a lot of
-message noise related to devices that have no ACPI companions.
+Can you please elaborate a bit more?
 
-Reduce that noise by checking the most obvious cases, ACPI device
-objects and devices without a bus type, directly and returning from
-acpi_device_notify() in these cases without printing any debug
-messages.
+I would expect _UID to return the string without the leading
+backslash, so where does the other one come from, exactly?
 
-Also make the debug messages that get printed more informative and
-change the format prefix to "ACPI/glue", so it is easier to filter
-these messages.
+> acpi_str_uid_match() compared the two strings verbatim, so such
+> entries failed to match on the UID even though they refer to the same
+> object. In the AMD IOMMU case (get_acpihid_device_id()) this caused
+> the exact HID+UID match to be missed and the code to fall through to
+> the HID-only path, spuriously raising a FW_BUG.
+>
+> Skip a single leading '\' on either string before comparing so that
+> paths that differ only by the root scope prefix are treated as a
+> match. The integer _UID path is unaffected.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/glue.c |   34 ++++++++++++++++++++--------------
- 1 file changed, 20 insertions(+), 14 deletions(-)
+But this sort of assumes that the string returned by _UID will always
+be a namespace path, but is that the case really?
 
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -6,7 +6,7 @@
-  * Copyright (c) 2005 Intel Corp.
-  */
- 
--#define pr_fmt(fmt) "ACPI: " fmt
-+#define pr_fmt(fmt) "ACPI/glue: " fmt
- 
- #include <linux/acpi_iort.h>
- #include <linux/export.h>
-@@ -354,22 +354,33 @@ void acpi_device_notify(struct device *d
- 	struct acpi_device *adev;
- 	int ret;
- 
-+	/* ACPI devices have no ACPI companions. */
-+	if (dev->bus == &acpi_bus_type)
-+		return;
-+
- 	ret = acpi_bind_one(dev, NULL);
- 	if (ret) {
--		struct acpi_bus_type *type = acpi_get_bus_type(dev);
--
--		if (!type)
--			goto err;
-+		struct acpi_bus_type *type;
- 
-+		/* Skip devices without bus types. */
-+		if (!dev->bus)
-+			return;
-+
-+		type = acpi_get_bus_type(dev);
-+		if (!type) {
-+			dev_dbg(dev, "No matching ACPI bus type description\n");
-+			return;
-+		}
- 		adev = type->find_companion(dev);
- 		if (!adev) {
- 			dev_dbg(dev, "ACPI companion not found\n");
--			goto err;
-+			return;
- 		}
- 		ret = acpi_bind_one(dev, adev);
--		if (ret)
--			goto err;
--
-+		if (ret) {
-+			dev_dbg(dev, "Binding to ACPI companion failed\n");
-+			return;
-+		}
- 		if (type->setup) {
- 			type->setup(dev);
- 			goto done;
-@@ -391,11 +402,6 @@ void acpi_device_notify(struct device *d
- done:
- 	acpi_handle_debug(ACPI_HANDLE(dev), "Bound to device %s\n",
- 			  dev_name(dev));
--
--	return;
--
--err:
--	dev_dbg(dev, "No ACPI support\n");
- }
- 
- void acpi_device_notify_remove(struct device *dev)
-
-
-
+> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+> ---
+>  include/acpi/acpi_bus.h | 10 +++++++++-
+>  1 file changed, 9 insertions(+), 1 deletion(-)
+>
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 1a45e0d521d8e..e0bec35953ef1 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -835,7 +835,15 @@ static inline bool acpi_str_uid_match(struct acpi_de=
+vice *adev, const char *uid2
+>  {
+>         const char *uid1 =3D acpi_device_uid(adev);
+>
+> -       return uid1 && uid2 && !strcmp(uid1, uid2);
+> +       if (!uid1 || !uid2)
+> +               return false;
+> +
+> +       if (*uid1 =3D=3D '\\')
+> +               uid1++;
+> +       if (*uid2 =3D=3D '\\')
+> +               uid2++;
+> +
+> +       return !strcmp(uid1, uid2);
+>  }
+>
+>  static inline bool acpi_int_uid_match(struct acpi_device *adev, u64 uid2=
+)
+> --
+> 2.43.0
+>
