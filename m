@@ -1,213 +1,348 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 683BF332629;
-	Fri,  4 Sep 2026 21:41:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A795431ED7C;
+	Fri,  4 Sep 2026 23:26:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788558110; cv=none; b=RKVyMNJY86lpGCtzYE/tvGkG5HYq+R8bFjn8Hqyzycm7EVg2OdhBtfxLmG/VvU/qxAwuLY7tEv/K54M45ZeEDc1GmdbN9CpoxcJpOVjtNCesiqP5wyZlJF1E1DOEaJLv5jY2OHrQ4o/Pcy8lmi2g0OD1VyBiLbHY8knmvNes9ds=
+	t=1788564375; cv=none; b=Txp4pOJW43SKqpSFlEuVvBkS/NIVwS00sRL78GjHoAqsK4EDCACAeCRsrY6bLClzqw2tWLNVafbbxHAlWQnHvqH4ji3ZJrLk0BiNqBFuvpFZ/zlYlMdY42EduU8Rc1YKnsqY/M9IQ5QTYNDknnzY66XRd6fOwokHJM9F1pWT4g0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788558110; c=relaxed/simple;
-	bh=0MDHXiv+mSanbio6XV4RFsgawIPLHTk/6osxROSM/yI=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=aqcpnRakiBPQdvDkb07loyBc8iSNhQAcsICd1GbM968/JPoKhX4A3iPhfCPnxAnvgtBFyrupM2u5RFoRaaw8SVFYnjOL/HNwbxOK0tyuEwHswbNY+Ci+1V9oXOiDglLPOvwUylX07k+Sme4YunGs7vX7AI7rvfYZ8TI5kZZTzrU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=N/CXaI12; arc=none smtp.client-ip=198.175.65.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="N/CXaI12"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1788558108; x=1820094108;
-  h=message-id:subject:from:to:cc:date:in-reply-to:
-   references:content-transfer-encoding:mime-version;
-  bh=0MDHXiv+mSanbio6XV4RFsgawIPLHTk/6osxROSM/yI=;
-  b=N/CXaI121Pi1baneD3hgs+TsqI68juEeV/tKOjeYkhJOOzZrp0fRj4fc
-   6GvDkLAwS+kni+JBD0yLcrdO40k7qhfDoriXzAWTlha1g5626SAeODD++
-   Ft4jj8rbV7WBXL58ZzTW4W1mSEtj8wdWSp//RVHgJSWe4og9rsEnWABTu
-   Z6A0ZNF6X+kzK9xEI7mwpin6mZOb5d28wQgdwrETR1lmlOsGHBudBWDu6
-   cL2XFKvDaFKagAi6qz52tLy0aXzAPTwz6aYWvxL14EzZeRUIjx8d3LT5Q
-   9halLTWeO587d+dcRme9koRfBHt52adKWTKKwVF1gV52IbnVY4Ldt9ycX
-   g==;
-X-CSE-ConnectionGUID: O3/fDolVRsWzrUf6dBMWxg==
-X-CSE-MsgGUID: D3dN0fQEQKSjDxHVuRm4kA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11896"; a="89273073"
-X-IronPort-AV: E=Sophos;i="6.25,262,1779174000"; 
-   d="scan'208";a="89273073"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2026 14:41:47 -0700
-X-CSE-ConnectionGUID: 7ILAWL1wRLyS2BsLk41L0A==
-X-CSE-MsgGUID: 2tfvrZptRTyx7K08wGSHgQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,262,1779174000"; 
-   d="scan'208";a="293645911"
-Received: from smithj1-mobl2.amr.corp.intel.com (HELO [10.125.111.17]) ([10.125.111.17])
-  by fmviesa002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2026 14:41:46 -0700
-Message-ID: <0f0efbcef2aa0c18ea9f7891bb85f04be89a3716.camel@linux.intel.com>
-Subject: Re: [PATCH] powercap: intel_rapl: Fix rapl_packages list corruption
-From: srinivas pandruvada <srinivas.pandruvada@linux.intel.com>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Sumeet Pawnikar
-	 <sumeet4linux@gmail.com>, sathyanarayanan.kuppuswamy@linux.intel.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Linux PM
-	 <linux-pm@vger.kernel.org>
-Date: Fri, 04 Sep 2026 14:41:45 -0700
-In-Reply-To: <CAJZ5v0iG_uL=QB2UC74KMwp4T4L8qLfp50JWQKO5B6Fpqy93yw@mail.gmail.com>
-References: <20260829164313.20905-1-sumeet4linux@gmail.com>
-	 <CAJZ5v0iG_uL=QB2UC74KMwp4T4L8qLfp50JWQKO5B6Fpqy93yw@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
-User-Agent: Evolution 3.60.2 (3.60.2-1.fc44) 
+	s=arc-20240116; t=1788564375; c=relaxed/simple;
+	bh=5ug7+UgpD/+OaTxo+jWHsfeNnBoXDJgh92ozkhd4s/A=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uzYtnKncihWC5onPi5USQ9r0MeyBXkD2N0p9eyZ4cmPOgHZHMohUa8z4Vf8r4V3kDvlBKX1XazFRe2K6d5KDLNJI+jhXN7YN/cQ5LxYT1hsOZ8McK1sltSKC2w+GdCsIHgvn20I9tdl1FFIeydSN/YN4B7syqFBA0KNEdeCLXjk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F123D1F00A3E;
+	Fri,  4 Sep 2026 23:26:12 +0000 (UTC)
+From: Dave Jiang <dave.jiang@intel.com>
+To: linux-cxl@vger.kernel.org,
+	linux-pci@vger.kernel.org,
+	linux-acpi@vger.kernel.org
+Cc: bhelgaas@google.com,
+	ilpo.jarvinen@linux.intel.com,
+	rafael@kernel.org,
+	lenb@kernel.org,
+	bp@alien8.de,
+	guohanjun@huawei.com,
+	mchehab@kernel.org,
+	xueshuai@linux.alibaba.com,
+	jic23@kernel.org,
+	terry.bowman@amd.com,
+	sashiko-bot@kernel.org
+Subject: [PATCH] PCI/AER: Map a raw AER Capability image field by field
+Date: Fri,  4 Sep 2026 16:26:09 -0700
+Message-ID: <20260904232609.1729229-1-dave.jiang@intel.com>
+X-Mailer: git-send-email 2.54.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-T24gRnJpLCAyMDI2LTA5LTA0IGF0IDE1OjQyICswMjAwLCBSYWZhZWwgSi4gV3lzb2NraSAoSW50
-ZWwpIHdyb3RlOgo+IEhpIFNyaW5pdmFzLAo+IAo+IENhbiB5b3UgcGxlYXNlIGhhdmUgYSBsb29r
-IGF0IHRoZSBwYXRjaCBiZWxvdyBhbmQgbGV0IG1lIGtub3cgd2hhdAo+IHlvdSB0aGluaz8KPiAK
-PiBPbiBTYXQsIEF1ZyAyOSwgMjAyNiBhdCA2OjQz4oCvUE0gU3VtZWV0IFBhd25pa2FyCj4gPHN1
-bWVldDRsaW51eEBnbWFpbC5jb20+IHdyb3RlOgo+ID4gCj4gPiBUaGUgcmFwbF9wYWNrYWdlcyBs
-aXN0IHdhcyBwcmV2aW91c2x5IGRvY3VtZW50ZWQgYXMgYmVpbmcgZ3VhcmRlZAo+ID4gYnkgdGhl
-Cj4gPiBDUFUgaG90cGx1ZyBsb2NrIChjcHVzX3JlYWRfbG9jaygpKS4gSG93ZXZlciwgY3B1c19y
-ZWFkX2xvY2soKSBpcyBhCj4gPiByZWFkZXItd3JpdGVyIHNlbWFwaG9yZSB0YWtlbiBmb3Igc2hh
-cmVkIHJlYWQgYWNjZXNzLiBUaGlzIHByb3ZpZGVzCj4gPiB6ZXJvCj4gPiBtdXR1YWwgZXhjbHVz
-aW9uIGJldHdlZW4gbXVsdGlwbGUgY29uY3VycmVudCBjYWxsZXJzLgo+ID4gCgpVc2luZyB0aGVz
-ZSBsb2NrcyB0b2dldGhlciBuZWVkIHRvIGJlIGNhcmVmdWwgYXMgaXQgd2lsbCBiZSBsb2NrCmlu
-dmVyc2lvbiByaXNrLgoKPiA+IEJlY2F1c2UgYXV4aWxpYXJ5IGRldmljZSBwcm9iZXMgKHN1Y2gg
-YXMgaW50ZWxfcmFwbF90cG1pX3Byb2JlKSBjYW4KPiA+IGV4ZWN1dGUgY29uY3VycmVudGx5IG9u
-IGRpZmZlcmVudCBDUFVzLCBtdWx0aXBsZSBwYWNrYWdlcyBjYW4gcmFjZQo+ID4gb24KPiA+IGxp
-c3Qgb3BlcmF0aW9ucyAobGlzdF9hZGQgYW5kIGxpc3RfZGVsKSBpbnNpZGUKPiA+IHJhcGxfYWRk
-X3BhY2thZ2VfY3B1c2xvY2tlZCgpIGFuZCByYXBsX3JlbW92ZV9wYWNrYWdlX2NwdXNsb2NrZWQo
-KSwKPiA+IGxlYWRpbmcgdG8gbGlzdCBjb3JydXB0aW9uLgo+ID4gCj4gPiBJbnRyb2R1Y2UgYSBk
-ZWRpY2F0ZWQgcmFwbF9wYWNrYWdlc19sb2NrIG11dGV4IHRvIHByb3RlY3QgYWxsCj4gPiBhZGRp
-dGlvbnMsCj4gPiByZW1vdmFscyBhbmQgaXRlcmF0aW9ucyBvZiB0aGUgcmFwbF9wYWNrYWdlcyBs
-aXN0Lgo+ID4gCj4gPiBTaWduZWQtb2ZmLWJ5OiBTdW1lZXQgUGF3bmlrYXIgPHN1bWVldDRsaW51
-eEBnbWFpbC5jb20+Cj4gPiAtLS0KPiA+IMKgZHJpdmVycy9wb3dlcmNhcC9pbnRlbF9yYXBsX2Nv
-bW1vbi5jIHwgMjkKPiA+ICsrKysrKysrKysrKysrKysrKysrKysrKy0tLS0KPiA+IMKgMSBmaWxl
-IGNoYW5nZWQsIDI1IGluc2VydGlvbnMoKyksIDQgZGVsZXRpb25zKC0pCj4gPiAKPiA+IGRpZmYg
-LS1naXQgYS9kcml2ZXJzL3Bvd2VyY2FwL2ludGVsX3JhcGxfY29tbW9uLmMKPiA+IGIvZHJpdmVy
-cy9wb3dlcmNhcC9pbnRlbF9yYXBsX2NvbW1vbi5jCj4gPiBpbmRleCA3MGNhYjVmMDhiYzYuLmU1
-NDQ2MjlkYmUzMCAxMDA2NDQKPiA+IC0tLSBhL2RyaXZlcnMvcG93ZXJjYXAvaW50ZWxfcmFwbF9j
-b21tb24uYwo+ID4gKysrIGIvZHJpdmVycy9wb3dlcmNhcC9pbnRlbF9yYXBsX2NvbW1vbi5jCj4g
-PiBAQCAtMTc1LDcgKzE3NSw4IEBAIHN0YXRpYyB1NjQgcmFwbF91bml0X3hsYXRlKHN0cnVjdCBy
-YXBsX2RvbWFpbgo+ID4gKnJkLAo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoCBlbnVtIHVuaXRfdHlwZSB0eXBlLCB1NjQgdmFsdWUsIGludAo+
-ID4gdG9fcmF3KTsKPiA+IMKgc3RhdGljIHZvaWQgcGFja2FnZV9wb3dlcl9saW1pdF9pcnFfc2F2
-ZShzdHJ1Y3QgcmFwbF9wYWNrYWdlICpycCk7Cj4gPiAKPiA+IC1zdGF0aWMgTElTVF9IRUFEKHJh
-cGxfcGFja2FnZXMpO8KgwqDCoMKgwqDCoCAvKiBndWFyZGVkIGJ5IENQVSBob3RwbHVnCj4gPiBs
-b2NrICovCj4gPiArc3RhdGljIERFRklORV9NVVRFWChyYXBsX3BhY2thZ2VzX2xvY2spOwo+ID4g
-K3N0YXRpYyBMSVNUX0hFQUQocmFwbF9wYWNrYWdlcyk7wqDCoMKgwqDCoMKgIC8qIGd1YXJkZWQg
-YnkKPiA+IHJhcGxfcGFja2FnZXNfbG9jayAqLwo+ID4gCj4gPiDCoHN0YXRpYyBjb25zdCBjaGFy
-ICpjb25zdCByYXBsX2RvbWFpbl9uYW1lc1tdID0gewo+ID4gwqDCoMKgwqDCoMKgwqAgInBhY2th
-Z2UiLAo+ID4gQEAgLTEzNjAsMTIgKzEzNjEsMTQgQEAgc3RhdGljIGludCByYXBsX3BtdV9ldmVu
-dF9pbml0KHN0cnVjdAo+ID4gcGVyZl9ldmVudCAqZXZlbnQpCj4gPiDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqAgcmV0dXJuIC1FSU5WQUw7Cj4gPiAKPiA+IMKgwqDCoMKgwqDCoMKgIC8q
-IEZpbmQgb3V0IHdoaWNoIFBhY2thZ2UgdGhlIGV2ZW50IGJlbG9uZ3MgdG8gKi8KPiA+ICvCoMKg
-wqDCoMKgwqAgbXV0ZXhfbG9jaygmcmFwbF9wYWNrYWdlc19sb2NrKTsKCkhhdmUgeW91IHRyaWVk
-IHRvIGV4ZXJjaXNlIHRoaXMgcGF0aCBmcm9tIHBlcmYgPwoKPiA+IMKgwqDCoMKgwqDCoMKgIGxp
-c3RfZm9yX2VhY2hfZW50cnkocG9zLCAmcmFwbF9wYWNrYWdlcywgcGxpc3QpIHsKPiA+IMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBpZiAoaXNfcnBfcG11X2NwdShwb3MsIGV2ZW50LT5j
-cHUpKSB7Cj4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-IHJwID0gcG9zOwo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoCBicmVhazsKPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB9Cj4gPiDCoMKg
-wqDCoMKgwqDCoCB9Cj4gPiArwqDCoMKgwqDCoMKgIG11dGV4X3VubG9jaygmcmFwbF9wYWNrYWdl
-c19sb2NrKTsKCk11dGV4IGlzIHJlbGVhc2VkIHdoaWxlIGV2ZW50LT5wbXVfcHJpdmF0ZSA9IHJw
-IGlzIGFzc2lnbmVkIHdoaWxlCnBlcmZfZXZlbnRfb3BlbiBkb2VzIG5vdCBob2xkIGhvdHBsdWcg
-b3IgcGFja2FnZSByZWZlcmVuY2UgbG9ja3MuClNvIHJhcGxfcmVtb3ZlX3BhY2thZ2VfY3B1c2xv
-Y2tlZCgpIGNhbiBmcmVlIHRoaXMgcnAsIGJ1dCBldmVudHMtPnJwCnN0aWxsIGhvbGRzIHRoYXQg
-cG9pbnRlci4KCllvdSBtYXkgbmVlZMKgCgljcHVzX3JlYWRfbG9jaygpCgpiZWZvcmUKCW11dGV4
-X2xvY2soJnJhcGxfcGFja2FnZXNfbG9jayk7CmFib3ZlCgphbmQKIGFuZCBjcHVzX3JlYWRfdW5s
-b2NrKCkgYXQgdGhlIGVuZCBvZiBmdW5jdGlvbgoKUGxlYXNlIHJ1biBMT0NLREVQLCBwZXJmIFJB
-UEwgYW5kIG9ubGluZSBvZmZsaW5lIHRlc3RzIGJlZm9yZS4KClRoYW5rcywKU3Jpbml2YXMKCgo+
-ID4gwqDCoMKgwqDCoMKgwqAgaWYgKCFycCkKPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoCByZXR1cm4gLUVOT0RFVjsKPiA+IAo+ID4gQEAgLTE0NDUsOSArMTQ0OCwxMSBAQCBzdGF0
-aWMgc3NpemVfdCBjcHVtYXNrX3Nob3coc3RydWN0IGRldmljZQo+ID4gKmRldiwKPiA+IMKgwqDC
-oMKgwqDCoMKgIGNwdW1hc2tfY2xlYXIoY3B1X21hc2spOwo+ID4gCj4gPiDCoMKgwqDCoMKgwqDC
-oCAvKiBDaG9vc2UgYSBjcHUgZm9yIGVhY2ggUkFQTCBQYWNrYWdlICovCj4gPiArwqDCoMKgwqDC
-oMKgIG11dGV4X2xvY2soJnJhcGxfcGFja2FnZXNfbG9jayk7Cj4gPiDCoMKgwqDCoMKgwqDCoCBs
-aXN0X2Zvcl9lYWNoX2VudHJ5KHJwLCAmcmFwbF9wYWNrYWdlcywgcGxpc3QpIHsKPiA+IMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBzZXRfcG11X2NwdW1hc2socnAsIGNwdV9tYXNrKTsK
-PiA+IMKgwqDCoMKgwqDCoMKgIH0KPiA+ICvCoMKgwqDCoMKgwqAgbXV0ZXhfdW5sb2NrKCZyYXBs
-X3BhY2thZ2VzX2xvY2spOwo+ID4gwqDCoMKgwqDCoMKgwqAgY3B1c19yZWFkX3VubG9jaygpOwo+
-ID4gCj4gPiDCoMKgwqDCoMKgwqDCoCByZXQgPSBzeXNmc19lbWl0KGJ1ZiwgIiUqcGJsXG4iLAo+
-ID4gY3B1bWFza19wcl9hcmdzKGNwdV9tYXNrKSk7Cj4gPiBAQCAtMTY1NSwxMSArMTY2MCwxNSBA
-QCB2b2lkIHJhcGxfcGFja2FnZV9yZW1vdmVfcG11X2xvY2tlZChzdHJ1Y3QKPiA+IHJhcGxfcGFj
-a2FnZSAqcnApCj4gPiDCoMKgwqDCoMKgwqDCoCBpZiAoIXJwLT5oYXNfcG11KQo+ID4gwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHJldHVybjsKPiA+IAo+ID4gK8KgwqDCoMKgwqDCoCBt
-dXRleF9sb2NrKCZyYXBsX3BhY2thZ2VzX2xvY2spOwo+ID4gwqDCoMKgwqDCoMKgwqAgbGlzdF9m
-b3JfZWFjaF9lbnRyeShwb3MsICZyYXBsX3BhY2thZ2VzLCBwbGlzdCkgewo+ID4gwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgIC8qIFBNVSBpcyBzdGlsbCBuZWVkZWQgKi8KPiA+IC3CoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGlmIChwb3MtPmhhc19wbXUgJiYgcG9zICE9IHJwKQo+
-ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgaWYgKHBvcy0+aGFzX3BtdSAmJiBwb3Mg
-IT0gcnApIHsKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oCBtdXRleF91bmxvY2soJnJhcGxfcGFja2FnZXNfbG9jayk7Cj4gPiDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHJldHVybjsKPiA+ICvCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgIH0KPiA+IMKgwqDCoMKgwqDCoMKgIH0KPiA+ICvCoMKgwqDCoMKgwqAg
-bXV0ZXhfdW5sb2NrKCZyYXBsX3BhY2thZ2VzX2xvY2spOwo+ID4gCj4gPiDCoMKgwqDCoMKgwqDC
-oCBpZiAocmFwbF9wbXUucmVnaXN0ZXJlZCkKPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoCBwZXJmX3BtdV91bnJlZ2lzdGVyKCZyYXBsX3BtdS5wbXUpOwo+ID4gQEAgLTE3MDQsNyAr
-MTcxMyw5IEBAIHZvaWQgcmFwbF9yZW1vdmVfcGFja2FnZV9jcHVzbG9ja2VkKHN0cnVjdAo+ID4g
-cmFwbF9wYWNrYWdlICpycCkKPiA+IMKgwqDCoMKgwqDCoMKgIC8qIGRvIHBhcmVudCB6b25lIGxh
-c3QgKi8KPiA+IMKgwqDCoMKgwqDCoMKgIHBvd2VyY2FwX3VucmVnaXN0ZXJfem9uZShycC0+cHJp
-di0+Y29udHJvbF90eXBlLAo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAmcmRfcGFja2FnZS0+cG93ZXJfem9uZSk7Cj4g
-PiArwqDCoMKgwqDCoMKgIG11dGV4X2xvY2soJnJhcGxfcGFja2FnZXNfbG9jayk7Cj4gPiDCoMKg
-wqDCoMKgwqDCoCBsaXN0X2RlbCgmcnAtPnBsaXN0KTsKPiA+ICvCoMKgwqDCoMKgwqAgbXV0ZXhf
-dW5sb2NrKCZyYXBsX3BhY2thZ2VzX2xvY2spOwo+ID4gwqDCoMKgwqDCoMKgwqAga2ZyZWUocnAp
-Owo+ID4gwqB9Cj4gPiDCoEVYUE9SVF9TWU1CT0xfTlNfR1BMKHJhcGxfcmVtb3ZlX3BhY2thZ2Vf
-Y3B1c2xvY2tlZCwKPiA+ICJJTlRFTF9SQVBMIik7Cj4gPiBAQCAtMTc0OSwxMSArMTc2MCwxNSBA
-QCBzdHJ1Y3QgcmFwbF9wYWNrYWdlCj4gPiAqcmFwbF9maW5kX3BhY2thZ2VfZG9tYWluX2NwdXNs
-b2NrZWQoaW50IGlkLCBzdHJ1Y3QgcmFwbF9pZl8KPiA+IMKgwqDCoMKgwqDCoMKgIGVsc2UKPiA+
-IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB1aWQgPSBpZDsKPiA+IAo+ID4gK8KgwqDC
-oMKgwqDCoCBtdXRleF9sb2NrKCZyYXBsX3BhY2thZ2VzX2xvY2spOwo+ID4gwqDCoMKgwqDCoMKg
-wqAgbGlzdF9mb3JfZWFjaF9lbnRyeShycCwgJnJhcGxfcGFja2FnZXMsIHBsaXN0KSB7Cj4gPiAt
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBpZiAocnAtPmlkID09IHVpZAo+ID4gLcKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAmJiBycC0+cHJpdi0+Y29udHJvbF90eXBl
-ID09IHByaXYtCj4gPiA+Y29udHJvbF90eXBlKQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqAgaWYgKHJwLT5pZCA9PSB1aWQgJiYKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqAgcnAtPnByaXYtPmNvbnRyb2xfdHlwZSA9PSBwcml2LT5jb250cm9sX3R5cGUp
-IHsKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBtdXRl
-eF91bmxvY2soJnJhcGxfcGFja2FnZXNfbG9jayk7Cj4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHJldHVybiBycDsKPiA+ICvCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgIH0KPiA+IMKgwqDCoMKgwqDCoMKgIH0KPiA+ICvCoMKgwqDCoMKgwqAgbXV0
-ZXhfdW5sb2NrKCZyYXBsX3BhY2thZ2VzX2xvY2spOwo+ID4gCj4gPiDCoMKgwqDCoMKgwqDCoCBy
-ZXR1cm4gTlVMTDsKPiA+IMKgfQo+ID4gQEAgLTE4MTAsNyArMTgyNSw5IEBAIHN0cnVjdCByYXBs
-X3BhY2thZ2UKPiA+ICpyYXBsX2FkZF9wYWNrYWdlX2NwdXNsb2NrZWQoaW50IGlkLCBzdHJ1Y3Qg
-cmFwbF9pZl9wcml2ICpwcgo+ID4gwqDCoMKgwqDCoMKgwqAgcmV0ID0gcmFwbF9wYWNrYWdlX3Jl
-Z2lzdGVyX3Bvd2VyY2FwKHJwKTsKPiA+IMKgwqDCoMKgwqDCoMKgIGlmICghcmV0KSB7Cj4gPiDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgSU5JVF9MSVNUX0hFQUQoJnJwLT5wbGlzdCk7
-Cj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBtdXRleF9sb2NrKCZyYXBsX3BhY2th
-Z2VzX2xvY2spOwo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGxpc3RfYWRkKCZy
-cC0+cGxpc3QsICZyYXBsX3BhY2thZ2VzKTsKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgIG11dGV4X3VubG9jaygmcmFwbF9wYWNrYWdlc19sb2NrKTsKPiA+IMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoCByZXR1cm4gcnA7Cj4gPiDCoMKgwqDCoMKgwqDCoCB9Cj4gPiAKPiA+
-IEBAIC0xODM1LDYgKzE4NTIsNyBAQCBzdGF0aWMgdm9pZCBwb3dlcl9saW1pdF9zdGF0ZV9zYXZl
-KHZvaWQpCj4gPiDCoMKgwqDCoMKgwqDCoCBpbnQgcmV0LCBpOwo+ID4gCj4gPiDCoMKgwqDCoMKg
-wqDCoCBjcHVzX3JlYWRfbG9jaygpOwo+ID4gK8KgwqDCoMKgwqDCoCBtdXRleF9sb2NrKCZyYXBs
-X3BhY2thZ2VzX2xvY2spOwo+ID4gwqDCoMKgwqDCoMKgwqAgbGlzdF9mb3JfZWFjaF9lbnRyeShy
-cCwgJnJhcGxfcGFja2FnZXMsIHBsaXN0KSB7Cj4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqAgaWYgKCFycC0+cG93ZXJfem9uZSkKPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqAgY29udGludWU7Cj4gPiBAQCAtMTg0Niw2ICsxODY0LDcgQEAg
-c3RhdGljIHZvaWQgcG93ZXJfbGltaXRfc3RhdGVfc2F2ZSh2b2lkKQo+ID4gwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcmQtPnJw
-bFtpXS5sYXN0X3Bvd2VyX2xpbWl0ID0gMDsKPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoCB9Cj4gPiDCoMKgwqDCoMKgwqDCoCB9Cj4gPiArwqDCoMKgwqDCoMKgIG11dGV4X3VubG9j
-aygmcmFwbF9wYWNrYWdlc19sb2NrKTsKPiA+IMKgwqDCoMKgwqDCoMKgIGNwdXNfcmVhZF91bmxv
-Y2soKTsKPiA+IMKgfQo+ID4gCj4gPiBAQCAtMTg1Niw2ICsxODc1LDcgQEAgc3RhdGljIHZvaWQg
-cG93ZXJfbGltaXRfc3RhdGVfcmVzdG9yZSh2b2lkKQo+ID4gwqDCoMKgwqDCoMKgwqAgaW50IGk7
-Cj4gPiAKPiA+IMKgwqDCoMKgwqDCoMKgIGNwdXNfcmVhZF9sb2NrKCk7Cj4gPiArwqDCoMKgwqDC
-oMKgIG11dGV4X2xvY2soJnJhcGxfcGFja2FnZXNfbG9jayk7Cj4gPiDCoMKgwqDCoMKgwqDCoCBs
-aXN0X2Zvcl9lYWNoX2VudHJ5KHJwLCAmcmFwbF9wYWNrYWdlcywgcGxpc3QpIHsKPiA+IMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBpZiAoIXJwLT5wb3dlcl96b25lKQo+ID4gwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBjb250aW51ZTsKPiA+IEBA
-IC0xODY1LDYgKzE4ODUsNyBAQCBzdGF0aWMgdm9pZCBwb3dlcl9saW1pdF9zdGF0ZV9yZXN0b3Jl
-KHZvaWQpCj4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoCByYXBsX3dyaXRlX3BsX2RhdGEocmQsIGksIFBMX0xJTUlULAo+ID4g
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcmQtCj4gPiA+cnBsW2ldLmxhc3Rf
-cG93ZXJfbGltaXQpOwo+ID4gwqDCoMKgwqDCoMKgwqAgfQo+ID4gK8KgwqDCoMKgwqDCoCBtdXRl
-eF91bmxvY2soJnJhcGxfcGFja2FnZXNfbG9jayk7Cj4gPiDCoMKgwqDCoMKgwqDCoCBjcHVzX3Jl
-YWRfdW5sb2NrKCk7Cj4gPiDCoH0KPiA+IAo+ID4gLS0KPiA+IDIuNDMuMAo+ID4gCg==
+struct aer_capability_regs is not the hardware layout: struct
+pcie_tlp_log carries ten extra DWORDs for Flit mode plus the
+software-only header_len and flit, so it spans 60 bytes where the
+Header Log it stands in for is 16.
+
+extlog_print_pcie(), ghes_handle_aer() and cxl_rch_get_aer_info() work
+around that by stopping the copy at the Header Log, dropping everything
+past offset 44. Flit mode is never decoded either: the Flit bit and
+Logged TLP Size sit at offset 0x18 in all three images, but nothing
+reads them, so the Flit DWORDs at 0x38 are lost and the log prints as
+non-Flit.
+
+Add aer_cap_regs_unpack() to map the registers individually, taking the
+TLP Log layout from the Flit bit as pcie_read_tlp_log() does natively.
+Clamp the logged length: Logged TLP Size is 5 bits wide, so an
+untrusted value reaches 31 where dw[] holds 14 entries and
+pcie_print_tlp_log() walks header_len unbounded.
+
+Convert all three callers. cxl_rch_get_aer_info() reads the capability
+from MMIO, so also shrink its ioremap to PCIE_AER_CAP_HW_SIZE; nothing
+touches the RCRB AER block past the TLP Prefix Log.
+
+Reported-by: sashiko-bot@kernel.org
+Closes: https://sashiko.dev/#/patchset/20260904172337.1409775-1-dave.jiang@intel.com?part=5
+Link: https://lore.kernel.org/linux-cxl/CAJZ5v0hDv11cPuztPZsaDd7uwD_49KznJy=tzuRO+dZc=CnAEQ@mail.gmail.com/
+Assisted-by: Claude:claude-opus-5
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+
+---
+Depends on "[PATCH v6 00/13] ACPI: APEI: GHES: Collection of fixes for
+issues reported by sashiko"; please apply after that series:
+
+- Patches 5 and 12 are build dependencies. This patch rewrites the
+  aer_info copies they add. Before them extlog_print_pcie() has a
+  struct aer_capability_regs * rather than the local struct, and
+  ghes_handle_aer() keeps aer_info as a u8 * cast at the
+  aer_recover_queue() call.
+- Patch 7 is a functional dependency: it fixes the ACPI_APEI_PCIEAER
+  guard typo, without which extlog_print_pcie() compiles out.
+
+The drivers/pci and drivers/cxl changes do not depend on that series.
+
+No Fixes: tag on purpose: this is not stable material. Patches 5 and
+12 closed the out-of-bounds reads; what is left is diagnostic
+completeness, and the fix adds a new exported helper and rewrites
+three call sites.
+
+This is the follow-up Rafael asked for in the Link: above, and also
+covers the pre-existing ras_rch.c findings reported there.
+---
+ drivers/acpi/acpi_extlog.c | 15 +-----
+ drivers/acpi/apei/ghes.c   | 16 +------
+ drivers/cxl/core/ras_rch.c | 26 ++++-------
+ drivers/pci/pcie/tlp.c     | 94 ++++++++++++++++++++++++++++++++++++++
+ include/linux/aer.h        | 10 ++++
+ 5 files changed, 116 insertions(+), 45 deletions(-)
+
+diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
+index 9e61354a807b..c83ded0ced52 100644
+--- a/drivers/acpi/acpi_extlog.c
++++ b/drivers/acpi/acpi_extlog.c
+@@ -156,19 +156,8 @@ static void extlog_print_pcie(struct cper_sec_pcie *pcie_err,
+ 
+ 	aer_severity = cper_severity_to_aer(severity);
+ 
+-	/*
+-	 * struct pcie_tlp_log is larger than the hardware layout, so aer_info
+-	 * only maps onto the struct up to the four Header Log DWORDs. Copy that
+-	 * much, then place the TLP Prefix Log from where the hardware keeps it.
+-	 * Everything else stays zero: nothing reads root_command, root_status or
+-	 * the error source IDs, and header_len and flit are software-only.
+-	 */
+-	memcpy(&aer_regs, pcie_err->aer_info,
+-	       offsetof(struct aer_capability_regs, header_log) +
+-	       PCIE_STD_NUM_TLP_HEADERLOG * sizeof(u32));
+-	memcpy(aer_regs.header_log.prefix,
+-	       pcie_err->aer_info + PCI_ERR_PREFIX_LOG,
+-	       sizeof(aer_regs.header_log.prefix));
++	aer_cap_regs_unpack(&aer_regs, pcie_err->aer_info,
++			    sizeof(pcie_err->aer_info));
+ 
+ 	domain = pcie_err->device_id.segment;
+ 	bus = pcie_err->device_id.bus;
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 08c985e729d6..5bba3cfdb006 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -668,20 +668,8 @@ static void ghes_handle_aer(struct acpi_hest_generic_data *gdata)
+ 		if (!aer_info)
+ 			return;
+ 
+-		/*
+-		 * Map aer_info onto the struct as extlog_print_pcie() does:
+-		 * copy up to the four Header Log DWORDs, then place the TLP
+-		 * Prefix Log from where the hardware keeps it. The rest stays
+-		 * zero, so firmware cannot drive the pcie_print_tlp_log() loop
+-		 * over dw[] out of bounds.
+-		 */
+-		memset(aer_info, 0, sizeof(struct aer_capability_regs));
+-		memcpy(aer_info, pcie_err->aer_info,
+-		       offsetof(struct aer_capability_regs, header_log) +
+-		       PCIE_STD_NUM_TLP_HEADERLOG * sizeof(u32));
+-		memcpy(aer_info->header_log.prefix,
+-		       pcie_err->aer_info + PCI_ERR_PREFIX_LOG,
+-		       sizeof(aer_info->header_log.prefix));
++		aer_cap_regs_unpack(aer_info, pcie_err->aer_info,
++				    sizeof(pcie_err->aer_info));
+ 
+ 		aer_recover_queue(pcie_err->device_id.segment,
+ 				  pcie_err->device_id.bus,
+diff --git a/drivers/cxl/core/ras_rch.c b/drivers/cxl/core/ras_rch.c
+index e0e01aa5eba6..bef1550f91cc 100644
+--- a/drivers/cxl/core/ras_rch.c
++++ b/drivers/cxl/core/ras_rch.c
+@@ -19,7 +19,7 @@ void cxl_dport_map_rch_aer(struct cxl_dport *dport)
+ 		aer_phys = aer_cap + dport->rcrb.base;
+ 		dport->regs.dport_aer =
+ 			devm_cxl_iomap_block(host, aer_phys,
+-					     sizeof(struct aer_capability_regs));
++					     PCIE_AER_CAP_HW_SIZE);
+ 	}
+ }
+ 
+@@ -59,30 +59,20 @@ static bool cxl_rch_get_aer_info(void __iomem *aer_base,
+ 				 struct aer_capability_regs *aer_regs)
+ {
+ 	/*
+-	 * Bound the copy to the physically-defined AER registers (header
+-	 * through the 16-byte Header Log). struct aer_capability_regs is a
+-	 * software layout whose embedded struct pcie_tlp_log is larger than
+-	 * the on-wire AER capability; copying sizeof(*aer_regs) would
+-	 * over-read the RCRB-mapped MMIO block.
++	 * A flat copy cannot fill the struct; aer_cap_regs_unpack() places
++	 * the registers and zeroes the software-only tail.
+ 	 */
+-	int read_cnt = (PCI_ERR_HEADER_LOG + 16) / sizeof(u32);
+-	u32 *aer_regs_buf = (u32 *)aer_regs;
++	u32 raw[PCIE_AER_CAP_HW_SIZE / sizeof(u32)];
+ 	int n;
+ 
+ 	if (!aer_base)
+ 		return false;
+ 
+-	/*
+-	 * Zero the destination so the software-only tail fields
+-	 * (e.g. header_log.header_len) are deterministic rather than
+-	 * left as uninitialized stack, which could drive a bogus loop
+-	 * length in pcie_print_tlp_log().
+-	 */
+-	memset(aer_regs, 0, sizeof(*aer_regs));
+-
+ 	/* Use readl() to guarantee 32-bit accesses */
+-	for (n = 0; n < read_cnt; n++)
+-		aer_regs_buf[n] = readl(aer_base + n * sizeof(u32));
++	for (n = 0; n < ARRAY_SIZE(raw); n++)
++		raw[n] = readl(aer_base + n * sizeof(u32));
++
++	aer_cap_regs_unpack(aer_regs, raw, sizeof(raw));
+ 
+ 	writel(aer_regs->uncor_status, aer_base + PCI_ERR_UNCOR_STATUS);
+ 	writel(aer_regs->cor_status, aer_base + PCI_ERR_COR_STATUS);
+diff --git a/drivers/pci/pcie/tlp.c b/drivers/pci/pcie/tlp.c
+index 71f8fc9ea2ed..db9a5cd5b2ad 100644
+--- a/drivers/pci/pcie/tlp.c
++++ b/drivers/pci/pcie/tlp.c
+@@ -8,6 +8,8 @@
+ #include <linux/aer.h>
+ #include <linux/array_size.h>
+ #include <linux/bitfield.h>
++#include <linux/build_bug.h>
++#include <linux/minmax.h>
+ #include <linux/pci.h>
+ #include <linux/string.h>
+ 
+@@ -92,6 +94,98 @@ int pcie_read_tlp_log(struct pci_dev *dev, int where, int where2,
+ 	return 0;
+ }
+ 
++/* The registers ahead of the Header Log are the only ones that map 1:1. */
++static_assert(offsetof(struct aer_capability_regs, header_log) ==
++	      PCI_ERR_HEADER_LOG);
++/* The TLP Prefix Log registers carry dw[4..13] in Flit mode; cover all of it. */
++static_assert((PCI_ERR_PREFIX_LOG +
++	       (PCIE_STD_MAX_TLP_HEADERLOG - PCIE_STD_NUM_TLP_HEADERLOG) *
++	       sizeof(u32)) == PCIE_AER_CAP_HW_SIZE);
++
++/**
++ * aer_cap_regs_unpack - Convert a raw AER Capability image to the kernel layout
++ * @regs: Destination, fully initialised
++ * @raw: AER Capability register block in hardware order
++ * @raw_len: Number of bytes readable at @raw
++ *
++ * struct aer_capability_regs is not the hardware layout: struct pcie_tlp_log
++ * spans 60 bytes where the Header Log it stands in for is 16, so a flat copy
++ * misplaces every register behind it. Map them individually instead, taking
++ * the TLP Log layout from the Flit bit as pcie_read_tlp_log() does natively
++ * and clamping the firmware-supplied log length.
++ *
++ * Registers beyond @raw_len are left zero.
++ */
++void aer_cap_regs_unpack(struct aer_capability_regs *regs, const void *raw,
++			 size_t raw_len)
++{
++	unsigned int i, tlp_len;
++	bool flit;
++
++	memset(regs, 0, sizeof(*regs));
++
++	if (raw_len < PCI_ERR_HEADER_LOG)
++		return;
++	memcpy(regs, raw, PCI_ERR_HEADER_LOG);
++
++	flit = !!(regs->cap_control & PCI_ERR_CAP_TLP_LOG_FLIT);
++	if (flit) {
++		tlp_len = FIELD_GET(PCI_ERR_CAP_TLP_LOG_SIZE, regs->cap_control);
++	} else {
++		/*
++		 * Header Log plus the TLP Prefix Log, which dw[4..7] alias.
++		 * Take all four prefix registers whatever eetlp_prefix_max
++		 * says; pcie_print_tlp_log() stops at the first zero one.
++		 */
++		tlp_len = PCIE_STD_NUM_TLP_HEADERLOG + PCIE_STD_MAX_TLP_PREFIXLOG;
++	}
++
++	if (tlp_len > ARRAY_SIZE(regs->header_log.dw))
++		tlp_len = ARRAY_SIZE(regs->header_log.dw);
++
++	for (i = 0; i < tlp_len; i++) {
++		unsigned int off;
++
++		if (i < PCIE_STD_NUM_TLP_HEADERLOG)
++			off = PCI_ERR_HEADER_LOG + i * sizeof(u32);
++		else
++			off = PCI_ERR_PREFIX_LOG +
++			      (i - PCIE_STD_NUM_TLP_HEADERLOG) * sizeof(u32);
++
++		if (off + sizeof(u32) > raw_len)
++			break;
++		memcpy(&regs->header_log.dw[i], raw + off, sizeof(u32));
++	}
++
++	/*
++	 * @i is what was actually filled, short of @tlp_len if @raw_len ran
++	 * out. Non-Flit length needs the TLP parsed, so cap it at 4 as the
++	 * native path does.
++	 */
++	if (flit)
++		regs->header_log.header_len = i;
++	else
++		regs->header_log.header_len =
++			min_t(unsigned int, i, PCIE_STD_NUM_TLP_HEADERLOG);
++	regs->header_log.flit = flit;
++
++	if (raw_len >= PCI_ERR_ROOT_COMMAND + sizeof(regs->root_command))
++		memcpy(&regs->root_command, raw + PCI_ERR_ROOT_COMMAND,
++		       sizeof(regs->root_command));
++	if (raw_len >= PCI_ERR_ROOT_STATUS + sizeof(regs->root_status))
++		memcpy(&regs->root_status, raw + PCI_ERR_ROOT_STATUS,
++		       sizeof(regs->root_status));
++	if (raw_len >= PCI_ERR_ROOT_ERR_SRC + sizeof(regs->cor_err_source) +
++		       sizeof(regs->uncor_err_source)) {
++		memcpy(&regs->cor_err_source, raw + PCI_ERR_ROOT_ERR_SRC,
++		       sizeof(regs->cor_err_source));
++		memcpy(&regs->uncor_err_source,
++		       raw + PCI_ERR_ROOT_ERR_SRC + sizeof(regs->cor_err_source),
++		       sizeof(regs->uncor_err_source));
++	}
++}
++EXPORT_SYMBOL_GPL(aer_cap_regs_unpack);
++
+ #define EE_PREFIX_STR " E-E Prefixes:"
+ 
+ /**
+diff --git a/include/linux/aer.h b/include/linux/aer.h
+index df0f5c382286..140a5923fe8a 100644
+--- a/include/linux/aer.h
++++ b/include/linux/aer.h
+@@ -24,6 +24,14 @@
+ #define PCIE_STD_MAX_TLP_PREFIXLOG     4
+ #define PCIE_STD_MAX_TLP_HEADERLOG	(PCIE_STD_NUM_TLP_HEADERLOG + 10)
+ 
++/*
++ * Size of the AER Capability register block in hardware, far enough to hold
++ * the longest TLP Log the Flit mode registers can carry. struct
++ * aer_capability_regs below is larger and differently laid out; use
++ * aer_cap_regs_unpack() to convert.
++ */
++#define PCIE_AER_CAP_HW_SIZE		96
++
+ struct pci_dev;
+ 
+ struct pcie_tlp_log {
+@@ -68,6 +76,8 @@ static inline void pci_aer_unmask_internal_errors(struct pci_dev *dev) { }
+ 
+ void pci_print_aer(struct pci_dev *dev, int aer_severity,
+ 		    struct aer_capability_regs *aer);
++void aer_cap_regs_unpack(struct aer_capability_regs *regs, const void *raw,
++			 size_t raw_len);
+ int cper_severity_to_aer(int cper_severity);
+ void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
+ 		       int severity, struct aer_capability_regs *aer_regs);
+
+base-commit: 86adf9d0f7b074e0a1310c1bc4db66cac5c83eec
+-- 
+2.54.0
 
