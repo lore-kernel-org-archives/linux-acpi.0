@@ -1,157 +1,272 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05F69456E00
-	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 17:59:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C26246F484
+	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 18:22:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788544801; cv=none; b=bJDK7g4HbAvTbLmnp2RtuH71Hkep2frL1idRhzQpYrdeCERkArXhEMqUV5tqEZ6m4efZ7W7KnBiq64yUUBzGd+z9yQ3Zz27zQolaunlwpzkOpOvgI0b4m9Eo2wsVTNr9HANSIt+6+cX2IvSBGLpgmDnMIMqyv5d0F2sKRD3fTg0=
+	t=1788546136; cv=none; b=YKtH9zveL5xtL4gk7biOuwI3MHyYKHmfScVH/BrcCsDqFV4YOyUSiZmQ2M14L2iIWhq6UIkeENnvJ0D2oeeWAXRlnN+rdWKkdEkjhjGa+gYJILVvjPP2V0ZageSNXEHW4NVk5Bb+ANSSN+ZIoTC7o1R+OOAMK8fjYKteD4vzvs4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788544801; c=relaxed/simple;
-	bh=LsNKIz5CCqhEvP4SdIlx0QnNojwGVi16fh/ZcA697TQ=;
+	s=arc-20240116; t=1788546136; c=relaxed/simple;
+	bh=4msOaE9lrajsyNMg9k39ubXrOwu3G1E2+4s3jF3y88Q=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=HG73EF0CXbd3eGSdxgzBRTdTrIOLJvHiz/zY41lEhL6TsTCPrS0wLfIClR2GT/oawT/K78twyX2WsRP3jET5DFHEvEC4oWNE8nGvUz3DyBt3fHJuGmHHz2U3o9NO0k9ltIAkuKUCPdA1B6tTYeHzFMgeUKXk8Dkm2jwpxAzSRFE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Y3KMf/iH; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=sWm53Jir6oP60PqQ2bTx/CnL2pRVJrl3rUV5ooK3u4kqoVz/fMHmcgCoh89eUUMrCgdTLImO5fuoU5z7I/kzIGsI63yq866jujBUHbBQeYSxFBy3TOcDohDZrKlQGC3rrlXLfbVlP5/RWhjbTtSy1Dx18KZTIMk4JDZ/Lebl3oM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KHgDYwdI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Y3KMf/iH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7A711F00A3E
-	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 17:59:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KHgDYwdI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A1F51F00ADB
+	for <linux-acpi@vger.kernel.org>; Fri,  4 Sep 2026 18:22:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788544799;
-	bh=f98SNxmb0gJzAqpbbHF/J/24bNNt/KKbIWVpvAJoAXA=;
+	s=k20260515; t=1788546134;
+	bh=bk5wYS883x50IB51o7fXMQSPdkyjBNziN/066qE8/Bs=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=Y3KMf/iHTWXe8S8FWacJlhRyKpS420aunu9vu6/aCEAXP5hgvJwKnPT/9+Tquu2Cy
-	 VJuutOJDSQ7z3MMyC7rfZe/XQnuAWjtIw3AQGPvZfRtvOCTeanDyWga6lYQ6JHA+ON
-	 DP8ZUqjLmoe0lR34TUexqm+GzjELUIjgAGrJWYIuFX/kv0HrP3pz68q8cUrvkafcWO
-	 EdoAE7OU9A+NhoRvA6DvQ/a+739yw9A7KQYWuOMIBdYGnlHUfs91E8QU4c5Cpr2wGg
-	 H0S7cL5HxLhDkNFsnMgSWsYk1RhdBvVgV1AefSx6uJy8sOM59EE2v0my7Dohp0dpdg
-	 5J8pW67iPfsng==
-Received: by mail-lj1-f181.google.com with SMTP id 38308e7fff4ca-39f20d19895so11152601fa.2
-        for <linux-acpi@vger.kernel.org>; Fri, 04 Sep 2026 10:59:59 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBxXX2tJGmx0aIgiSW5VYy4oJrTD9f/VFas/Ae8cgGqpIWUhH546aElT/aU78Cr6GSo3QG/d/muV2tKe@vger.kernel.org
-X-Gm-Message-State: AFuF++k78E/RgDY8Se0Asrs6jKb1v6ppxxyhLQOTov+ImyYa3nUxojMI
-	aDlKaG18o+J0U9SNpEACOKrnC88Xj7VYZ/ugDYQhGrYZH4HqpLM7OzKUULwS8o1hWXvQQAyeQ8r
-	1rekn/uIyQc9oCjoj4JW0F291Hqp6zgE=
-X-Received: by 2002:a05:651c:15c1:20b0:3a3:476:2e37 with SMTP id
- 38308e7fff4ca-3a371b2d735mr6515681fa.6.1788544798061; Fri, 04 Sep 2026
- 10:59:58 -0700 (PDT)
+	b=KHgDYwdISTRBs9qfPeD1U8iDmFShmza6v/qa2LH98lmZEhW+Gy1TvxOcsVwSGCwEI
+	 0RIwGgZAx73V4HU3r2CppDdva9BWe1VGXi3/9uN99H2ZHzqR7qXbfobVnTQjHAspqY
+	 vknzDPQPeiHhcM8n3Gbaf71P4FNSQaKJVL8z0UhGXviKNQMIifQqH7jagixvrB6Ct4
+	 owG1JIdB2OtE/rDczfdHlnWVmoX8el8nDlTwiS2xgC/JBt9+aGF36skpHBUNEi4YV+
+	 c/V4XC2fL8K9TAh0x5i1pCk8lxksPK/87otOG6KuegQi4j+hPQGgVWDvabhjfZWo5B
+	 0n8D7OIv1PBkA==
+Received: by mail-lf1-f48.google.com with SMTP id 2adb3069b0e04-5b4a0e5aefeso1517994e87.3
+        for <linux-acpi@vger.kernel.org>; Fri, 04 Sep 2026 11:22:14 -0700 (PDT)
+X-Gm-Message-State: AFuF++ns/k5MBjp/eEXdWLhJhNuP9T7R2HsfU07wQ6dinXiDhwwuOkjq
+	e4OaqssyyzLVR4+3efFQbC4vq71Xpf0/KHuthtCPIeG2/3SDl36vuNRpIoEmIB+xm2MNSl6sEFJ
+	/jGlaULK89b5hQVDgRV24RymcNX6dPok=
+X-Received: by 2002:a05:6512:2355:b0:5b5:edd1:471f with SMTP id
+ 2adb3069b0e04-5b616f1b026mr1408459e87.11.1788546132417; Fri, 04 Sep 2026
+ 11:22:12 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260831180214.2231161-1-mario.limonciello@amd.com>
- <CAJZ5v0hgn+_L_yvEg0yo0vPk9_brbxsywyu_77tEyww4nV+eUg@mail.gmail.com> <7f86bfc7-efda-4719-a0c2-fab04fba532f@amd.com>
-In-Reply-To: <7f86bfc7-efda-4719-a0c2-fab04fba532f@amd.com>
+References: <20260904172337.1409775-1-dave.jiang@intel.com>
+In-Reply-To: <20260904172337.1409775-1-dave.jiang@intel.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 4 Sep 2026 19:58:56 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gFPcoC4nLFdjcfY5Ysk9Sw38r_rLpzWSxtVPTyTuh-0g@mail.gmail.com>
-X-Gm-Features: AcwNN1V527BmisDd60oaR4lUKRGoT6qzov8X741K6DUy-x5835bJV_3Bci7tNsw
-Message-ID: <CAJZ5v0gFPcoC4nLFdjcfY5Ysk9Sw38r_rLpzWSxtVPTyTuh-0g@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: utils: Ignore leading root scope prefix in string
- _UID match
-To: Mario Limonciello <mario.limonciello@amd.com>
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, maciej.wieczor-retman@intel.com, 
-	pawel.chmielewski@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, 
-	acpica-devel@lists.linux.dev, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Date: Fri, 4 Sep 2026 20:21:10 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hDv11cPuztPZsaDd7uwD_49KznJy=tzuRO+dZc=CnAEQ@mail.gmail.com>
+X-Gm-Features: AcwNN1VASBassuSAgS1AeYjwFpPLqjvxOU0R1ppSemd4b-bFCKP4u28NVQgbPRw
+Message-ID: <CAJZ5v0hDv11cPuztPZsaDd7uwD_49KznJy=tzuRO+dZc=CnAEQ@mail.gmail.com>
+Subject: Re: [PATCH v6 00/13] ACPI: APEI: GHES: Collection of fixes for issues
+ reported by sashiko
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org, rafael@kernel.org, 
+	tony.luck@intel.com, bp@alien8.de, guohanjun@huawei.com, mchehab@kernel.org, 
+	xueshuai@linux.alibaba.com, terry.bowman@amd.com, benjamin.cheatham@amd.com, 
+	alison.schofield@intel.com, 
+	Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-+Andy
-
-On Fri, Sep 4, 2026 at 7:32=E2=80=AFPM Mario Limonciello
-<mario.limonciello@amd.com> wrote:
+On Fri, Sep 4, 2026 at 7:23=E2=80=AFPM Dave Jiang <dave.jiang@intel.com> wr=
+ote:
 >
+> Fixes for pre-existing issues sashiko-bot found while reviewing patches i=
+n the
+> CPER, extlog and GHES paths. v1 through v3 fixed successive batches as th=
+e
+> review widened; see the links below.
 >
+> The series is grouped in three parts, plus a cleanup.
 >
-> On 9/4/26 08:26, Rafael J. Wysocki (Intel) wrote:
-> > On Mon, Aug 31, 2026 at 8:02=E2=80=AFPM Mario Limonciello
-> > <mario.limonciello@amd.com> wrote:
-> >>
-> >> Firmware may express an ACPI namespace path used as a _UID with or
-> >> without the leading root scope character ('\'). For example, an AMD
-> >> IVRS IVHD ACPI HID device entry may carry a character UID of
-> >> "\_SB.MHSP" while the corresponding device's _UID evaluates to
-> >> "_SB.MHSP" (or vice versa).  This semantic difference is due to how
-> >> Windows PnP enumerates and uses devices.
-> >
-> > Can you please elaborate a bit more?
-> >
-> > I would expect _UID to return the string without the leading
-> > backslash, so where does the other one come from, exactly?
+> Bound the record before anything walks it:
 >
-> It comes from the ACPI IVRS table.
+> 1/13:  Reject CPER records with an out-of-range error_data_length.
+> 2/13:  Reject an error status block length that wraps a u32.
+> 3/13:  Validate the extlog record length before walking sections.
 >
-> https://docs.amd.com/v/u/en-US/48882_3.11_IOMMU_PUB
+> Fix the extlog error paths, then enable them:
 >
-> p306-307 talk about this field.
+> 4/13:  Defer CXL protocol error handling to avoid a lock inversion.
+> 5/13:  Avoid populating software AER metadata from the raw hardware buffe=
+r.
+> 6/13:  Validate the PCIe error section length before payload access.
+> 7/13:  Fix the CONFIG_ACPI_APEI_PCIEAER guard typo in extlog.c.
 >
-> Here is a sample entry decoded with iasl -d
-> (from BIOS on an affected system)
+> Bound each section payload before its consumers read it:
 >
-> [223h 0547 001h]               Subtable Type : F0 [Device Entry: ACPI
-> HID Named Device]
-> [224h 0548 002h]                   Device ID : 0068
-> [226h 0550 001h] Data Setting (decoded below) : 40
->                                      INITPass : 0
->                                      EIntPass : 0
->                                       NMIPass : 0
->                                      Reserved : 0
->                                   System MGMT : 0
->                                    LINT0 Pass : 1
->                                    LINT1 Pass : 0
-> [227h 0551 008h]                    ACPI HID : "MSFT0201"
-> [22Fh 0559 008h]                    ACPI CID : 0000000000000000
-> [237h 0567 001h]                  UID Format : 02
-> [238h 0568 001h]                  UID Length : 09
-> [239h 0569 009h]                         UID : "\_SB.XHSP"
+> 8/13:  Bound the CXL event record copy to the firmware section length.
+> 9/13:  Validate the CXL protocol error section length before the RAS cap =
+copy.
+> 10/13: Read only validated fields in cper_mem_err_pack().
+> 11/13: Validate the memory error section length before payload access.
+> 12/13: Bound the AER info copy and sanitize software metadata in ghes.c.
 >
-> Setting this field to _SB.XHSP does fix the issue for Linux, but this
-> has problems on Windows.  So my hope was to let \_SB.XHSP work for Linux
-> too.
-
-So how does Linux process this table?  Maybe the leading backslash can
-be removed in that path?
-
-But I guess it may not help because _UID may contain a string with a
-leading backslash.
-
-> >
-> >> acpi_str_uid_match() compared the two strings verbatim, so such
-> >> entries failed to match on the UID even though they refer to the same
-> >> object. In the AMD IOMMU case (get_acpihid_device_id()) this caused
-> >> the exact HID+UID match to be missed and the code to fall through to
-> >> the HID-only path, spuriously raising a FW_BUG.
-> >>
-> >> Skip a single leading '\' on either string before comparing so that
-> >> paths that differ only by the root scope prefix are treated as a
-> >> match. The integer _UID path is unaffected.
-> >
-> > But this sort of assumes that the string returned by _UID will always
-> > be a namespace path, but is that the case really?
+> Then drop an export patch 4 made redundant:
 >
-> For IVRS entries this would be true since this is what is in the spec:
+> 13/13: Make cxl_cper_handle_prot_err() static.
 >
->  > If defined as a character string, the ACPI UID marks the instances of
->  > DMA-capable devices with the defined DeviceID (e.g. IOMMU visible
->  > Routing ID). It should match the ACPI device name space strings with
->  > unit number, but without a trailing \0 character (as the UID length
->  > specifies the size of the string already).
+> Patches 1, 2 and 10 touch drivers/firmware/efi/cper.c, closing the holes =
+at
+> the shared choke point the rest of the series relies on. Patch 2 also fix=
+es an
+> infinite loop in bert_print_all(), unrelated to this series but the same =
+root
+> cause.
 >
-> But I don't know universally it would be true.
-
-In general, they can be free-form strings AFAICS.
-
-> I suppose one possible modification could be to look for the length of
-> the string being at least 2 on the string before incrementing the pointer=
+> Known gaps, left for separate patches:
+>
+>   - cxl_cper_print_prot_err() in drivers/firmware/efi/cper_cxl.c uses
+>     dvsec_len without bounding it against the section length.
+>   - cxl_rch_get_aer_info() in drivers/cxl/core/ras_rch.c reads the RCH AE=
+R
+>     capability from MMIO without clearing header_len/flit, the same class=
+ as
+>     patches 5 and 12. In the same file, cxl_rch_get_aer_severity() tests
+>     PCI_ERR_ROOT_FATAL_RCV against uncor_status, where that bit is
+>     PCI_ERR_UNC_FCP.
+>   - struct pcie_tlp_log grew to 60 bytes for Flit mode, so the 96-byte CP=
+ER
+>     AER info no longer maps 1:1 onto struct aer_capability_regs past the
+>     Header Log. Patches 5 and 12 now copy the part that maps and place th=
+e TLP
+>     Prefix Log from its own offset, which covers every field the print pa=
+th
+>     reads - but nothing here decodes the Flit-mode header DWORDs, which r=
+euse
+>     those same prefix registers at payload offset 56 while the struct exp=
+ects
+>     dw[4..13] at 44. Doing that properly wants a field-by-field mapping
+>     shared with cxl_rch_get_aer_info(), plus a clamp: pcie_print_tlp_log(=
+)
+>     trusts header_len against a 14-entry dw[], and PCI_ERR_CAP_TLP_LOG_SI=
+ZE
+>     is five bits wide.
+>
+> v1: https://lore.kernel.org/linux-cxl/20260709162807.1957783-1-dave.jiang=
+@intel.com/
+> v2: https://lore.kernel.org/linux-cxl/20260714231835.303081-1-dave.jiang@=
+intel.com/
+> v3: https://lore.kernel.org/linux-cxl/20260717161647.1493259-1-dave.jiang=
+@intel.com/
+> v4: https://lore.kernel.org/linux-cxl/20260824174936.939059-1-dave.jiang@=
+intel.com/
+> v5: https://lore.kernel.org/linux-cxl/20260827203726.3027541-1-dave.jiang=
+@intel.com/
+>
+> Changes since v5
+> ----------------
+> - Patches 5 and 12: also place the TLP Prefix Log from its own hardware
+>   offset rather than leaving it zero. Shortening the copy in v5 dropped i=
+t,
+>   and it is the one field the print path still reads (sashiko). Alison's =
+and
+>   Shuai's Reviewed-by are kept on both, since the intent and location hav=
+e
+>   not changed.
+>
+> Changes since v4
+> ----------------
+> - Patch 1: use check_add_overflow() instead of a u64 sum plus an INT_MAX
+>   test, and drop the now-redundant acpi_hest_get_size() bound, since
+>   record_size is never smaller than the header (Jonathan Cameron).
+> - Patches 5 and 12: copy only the 44 bytes of aer_info that map onto stru=
+ct
+>   aer_capability_regs - the leading registers and the four Header Log DWO=
+RDs
+>   - and leave the rest zero, instead of copying all 96 bytes and then
+>   clearing header_len and flit (Jonathan Cameron). That also keeps the Ro=
+ot
+>   Error Command, Root Error Status and Error Source ID out of
+>   header_log.prefix[], where pcie_print_tlp_log() was printing them as
+>   end-to-end prefixes.
+> - Patch 3: kept the length bound ahead of cper_estatus_check() and expand=
+ed
+>   the comment to say why. Swapping them would let cper_estatus_check() wa=
+lk
+>   sections over an unbounded data_length, past the end of elog_buf
+>   (Jonathan Cameron).
+> - Condensed the commit logs and comments again; prose only.
+>
+> Changes since v3
+> ----------------
+> - Regrouped into three parts: bound the record, fix and enable the extlog
+>   paths, then bound each section payload. v3 interleaved them, so patch 1
+>   checked a section before the patch establishing that contract. No code
+>   changed.
+> - Moved the extlog lock inversion fix (patch 4) ahead of the CXL protocol
+>   error length validation (patch 9). The former deletes
+>   extlog_cxl_cper_handle_prot_err(), which the v3 order plumbed a new len
+>   argument through three patches before removing it. No functional change=
 .
+> - Patch 1: bound the sum rather than the u32 error_data_length, so the ch=
+eck
+>   does not depend on the <acpi/ghes.h> helpers behaving. The v3 "< 0" che=
+ck
+>   was dead code (Tony Luck, Shuai Xue). Reviewed-by dropped; not the same
+>   check.
+> - New patch 2: reject an error status block length that wraps the u32 sum=
+ in
+>   cper_estatus_len(). A data_length of 0xffffffec makes it read back as 0=
+,
+>   slipping past the extlog bound in patch 3 and leaving bert_print_all()
+>   advancing by zero forever (sashiko).
+> - Patch 4: moved the cxl_cper_post_prot_err() declaration inside the
+>   CONFIG_ACPI_APEI_GHES block in <acpi/ghes.h> (Shuai Xue).
+> - Patch 6: warn instead of returning silently on a short PCIe section (Sh=
+uai
+>   Xue), and added the Closes: link v3 omitted.
+> - Patch 7: corrected the Fixes tag to e778ffefa34d, the commit that added=
+ the
+>   "#ifdef ACPI_APEI_PCIEAER" guard, and dropped its Reported-by; sashiko-=
+bot
+>   reviewed that patch rather than reporting the typo.
+> - Patch 9: made the two prot-err length messages distinguishable; both pr=
+inted
+>   the same text. The second now reports dvsec_len (Shuai Xue).
+> - New patch 10: read only validated fields in cper_mem_err_pack(). It cop=
+ied
+>   extended, rank, mem_array_handle and mem_dev_handle unconditionally fro=
+m
+>   offsets 73 to 79, past the end of the 73-byte UEFI 2.1/2.2 layout (sash=
+iko).
+> - Patch 11: derive the required length from the claimed validation bits. =
+A
+>   single size gets it wrong both ways (sashiko). Reviewed-by dropped; the
+>   check gained a helper and is no longer the one Alison and Shuai reviewe=
+d.
+> - New patch 13: make cxl_cper_handle_prot_err() static. Patch 4 removed i=
+ts
+>   last external caller.
+>
+> Dave Jiang (13):
+>   efi/cper: Reject CPER records with an out-of-range error_data_length
+>   efi/cper: Reject an error status block length that wraps a u32
+>   ACPI: extlog: Validate elog record length before walking sections
+>   ACPI: extlog: Defer CXL protocol error handling to avoid lock
+>     inversion
+>   ACPI: extlog: Avoid populating software AER metadata from raw hardware
+>     buffer
+>   ACPI: extlog: Validate PCIe error section length before payload access
+>   ACPI: extlog: Fix CONFIG_ACPI_APEI_PCIEAER guard typo
+>   ACPI: APEI: GHES: Bound CXL event record copy to the firmware section
+>     length
+>   ACPI: APEI: GHES: Validate CXL protocol error section length before
+>     RAS cap copy
+>   efi/cper: Read only validated fields in cper_mem_err_pack()
+>   ACPI: APEI: GHES: Validate memory error section length before payload
+>     access
+>   ACPI: APEI: GHES: Bound AER info copy and sanitize software metadata
+>   cxl/ras: Make cxl_cper_handle_prot_err() static
+>
+>  drivers/acpi/acpi_extlog.c       | 64 +++++++++++++---------
+>  drivers/acpi/apei/ghes.c         | 92 +++++++++++++++++++++++++++-----
+>  drivers/acpi/apei/ghes_helpers.c | 18 ++++++-
+>  drivers/cxl/core/ras.c           |  3 +-
+>  drivers/firmware/efi/cper.c      | 51 +++++++++++++++---
+>  include/acpi/ghes.h              |  4 ++
+>  include/cxl/event.h              |  6 +--
+>  7 files changed, 186 insertions(+), 52 deletions(-)
 
-I guess this change can be made because it will only possibly cause
-problems when the only difference between the supplied UID and the
-string returned by _UID is the leading backslash and they are not
-supposed to match, which is unlikely to happen.
+Sashiko has still reported a finding (medium-level) in patch [5/13]:
 
-However, the kerneldoc comment of acpi_str_uid_match() needs to be
-updated to mention this.
+https://sashiko.dev/#/patchset/20260904172337.1409775-1-dave.jiang%40intel.=
+com
+
+but since the entire series has been reviewed by humans, I'm going to
+apply it as is for 7.4 and if you think that the potential issue
+pointed out in the above is worth taking care of, please send a
+follow-up fix patch (which also applies to the pre-existing issues
+reported there).
+
+Thanks!
