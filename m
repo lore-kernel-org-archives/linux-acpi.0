@@ -1,83 +1,121 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62939360EF2;
-	Sat,  5 Sep 2026 07:44:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C2DD27144B;
+	Sat,  5 Sep 2026 08:19:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788594271; cv=none; b=S0EE3Olef+tfSbQjc27r0SKHbKvPJN1yuA1HIxI1ICt8AiFprRZoAxHs6P/GnVUr0qzWlDK4VUvzx0LHpXng3fcqNaJSTcVEsZIQ/CSiEd7aBgOlaOS7QkJ8Hkmjfxtuqmwk2bsovW3de95O+RuPQurCqngBo/o7l4rm4kz9Gn4=
+	t=1788596403; cv=none; b=CDDgnUG8ZgpzonboCDReDATOQv7XnBeRQRlfnDQJvuVQl9DwZCYYgshEDozqYDdtomTCJrlXyTQpf53vEOzK1GDFxK+4+Tdui+IGnefnnYokWOxR6UnBTmEs6jcUeiH6AuldkpVx8K5FlTX72fIznfhiVNONnAFr123E5MxKrjE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788594271; c=relaxed/simple;
-	bh=j3wvVFfckmgjrFD3yF7a6wyniicOFkDp+N7/iU6mACE=;
+	s=arc-20240116; t=1788596403; c=relaxed/simple;
+	bh=LCxtwuf2XVjyavMFXpabUkNGnxhVmscqDbsgQpznjPQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=AmltW7uhmPm+v6EmLtG03DBvIhBZ4hd7GND7qMEsLN+NRfxyARugCSsYaN8b8ZG+sjCB28PvLG+TxzmVkdDkYerCdGt9Onh36/3dEnr7Ls1QEZfALi3KqXb9WCy/aYhVDz3yXDw3rpoYjgDQx92Qn884Egt9PSwar71rB5QqDx8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=RoWRky+l; arc=none smtp.client-ip=198.175.65.14
+	 Content-Type:Content-Disposition:In-Reply-To; b=AIo6YlXzthpW6DT64oKfV+fI6hl1lnxmkpibJRBEIosfkl0ixGf/VBkNGcaBzls12QiplSDFeguA3Nb2juf/fHV2m93qF50cqhTw+F64D/RvkdSFo0qxv8zAjik4XNXew58k2efwTE/2rKXRyOA/kl0xlFQFkt8yCuez5vAH+SE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jlB56NRI; arc=none smtp.client-ip=192.198.163.11
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="RoWRky+l"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jlB56NRI"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1788594269; x=1820130269;
+  t=1788596390; x=1820132390;
   h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=j3wvVFfckmgjrFD3yF7a6wyniicOFkDp+N7/iU6mACE=;
-  b=RoWRky+lJkhhBizeS13+AiZv54WRfL7V3thW76iehwChpK1ZArqV5xhy
-   x1NqtquM3Ky+wIaR8JvHX7YKFq5bA0G0+Tvw4tVntAtAwO4tYyTzyXx+m
-   93zFlzoA7aQuGPI+rQObR9uKSuwZ9cfrQXkFji3XLM97/67g210XbvcYx
-   lPTvexkjFnHoq1o5T+bRPHDtMeYA6LQAOOJLv/zGlXZN3uwqM+ODU/ud1
-   UwoaRmDJPm8SgomdiUdQiZ1KUXue9cyqfTyVT4S0q03Xxp2ypwH+hM695
-   e2Y5U/jdFTPBd5n2xttg3qJOopIvZYqgZqNPfPa+pSnkmXggB3PXHjzRc
-   w==;
-X-CSE-ConnectionGUID: 9IeRF07BQieXfL4R3uHpLA==
-X-CSE-MsgGUID: gEVsRvLvTkeimrs+uGLp1g==
-X-IronPort-AV: E=McAfee;i="6800,10657,11896"; a="92955856"
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=LCxtwuf2XVjyavMFXpabUkNGnxhVmscqDbsgQpznjPQ=;
+  b=jlB56NRIRvLP8ah9NlV8erjIBL/vx1IWXT0I++edNlZLvcncbUevTPdl
+   hIKCEK832w2II122FQ3hBtqhOcRR1dhY9kDCo8USso5IeW7KDRe8y9Nwy
+   vWPP5FG5rmdPnxz0WlNdBGhmfPUruej1Hsts31HqF0TQsCnRMoAp7HJuY
+   gqPdlKyX7L78AAiOPYTQCnNsSr3BCM7nt0GbTTBjCTNdQ0yqdRja38Sap
+   YdBdJU2I9CGWorMva8amghsXxfaIW+aKpe4Dt5xJgrutphXBGvaldkABM
+   jeRYm6zxK+e4ThOXhbAXyFeF9MNrrhB8ueCdcYIvW2ArCcnpo/7Hs8wVU
+   g==;
+X-CSE-ConnectionGUID: cNzkR1HoS7CoM2uRwaUB8Q==
+X-CSE-MsgGUID: T1Y8W0iEQt+7SmQZ05FxHg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11896"; a="99682601"
 X-IronPort-AV: E=Sophos;i="6.25,263,1779174000"; 
-   d="scan'208";a="92955856"
-Received: from orviesa001.jf.intel.com ([10.64.159.141])
-  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Sep 2026 00:44:29 -0700
-X-CSE-ConnectionGUID: MtiZCHO/QVqlSY3MbRboSQ==
-X-CSE-MsgGUID: +U3QRXWBQW+TuSc3diu8aA==
+   d="scan'208";a="99682601"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Sep 2026 01:19:39 -0700
+X-CSE-ConnectionGUID: RZJD/lMbRdmRSuPG8lpbEA==
+X-CSE-MsgGUID: cq+DJsyETMOKDJXUoiwqxA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.25,263,1779174000"; 
-   d="scan'208";a="308487217"
+   d="scan'208";a="295128198"
 Received: from fpallare-mobl4.ger.corp.intel.com (HELO localhost) ([10.245.245.105])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Sep 2026 00:44:26 -0700
-Date: Sat, 5 Sep 2026 10:44:23 +0300
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Sep 2026 01:19:34 -0700
+Date: Sat, 5 Sep 2026 11:19:32 +0300
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Hemanth Selam <hemanth.selam@gmail.com>
-Cc: Daniel Scally <djrscally@gmail.com>,
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Chen-Yu Tsai <wens@kernel.org>, Chen-Yu Tsai <wenst@chromium.org>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Daniel Scally <djrscally@gmail.com>,
 	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
 	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>, Tejun Heo <tj@kernel.org>,
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev
-Subject: Re: [PATCH] driver core: fix typos in comments
-Message-ID: <apvIV6uIkqFI5dlF@ashevche-desk.local>
-References: <20260904111816.31254-1-hemanth.selam@gmail.com>
+	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	Wei Deng <wei.deng@oss.qualcomm.com>,
+	Konrad Dybcio <konrad.dybcio@oss.qualcomm.com>,
+	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
+	linux-pm@vger.kernel.org, linux-usb@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	Manivannan Sadhasivam <mani@kernel.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Subject: Re: [PATCH v8 07/16] usb: core: Move struct usb_port and related
+ APIs to port.h
+Message-ID: <apvQlBEgHOW9MCxN@ashevche-desk.local>
+References: <20260904084158.1341550-1-wenst@chromium.org>
+ <20260904084158.1341550-8-wenst@chromium.org>
+ <2026090430-botanist-ungodly-0299@gregkh>
+ <CAGb2v65MSxL+r+wqMjPKVSh9aS1gkn8og6oBinSXDdipnoOyCQ@mail.gmail.com>
+ <2026090433-chair-tidings-5c99@gregkh>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260904111816.31254-1-hemanth.selam@gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <2026090433-chair-tidings-5c99@gregkh>
 Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
  krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Fri, Sep 04, 2026 at 04:48:14PM +0530, Hemanth Selam wrote:
-> Fix typos in comments, reported by scripts/checkpatch.pl using the
-> misspelling list in scripts/spelling.txt.  Only touches comments, no code
-> changes.
+On Fri, Sep 04, 2026 at 07:52:37PM +0200, Greg Kroah-Hartman wrote:
+> On Sat, Sep 05, 2026 at 01:24:20AM +0800, Chen-Yu Tsai wrote:
+> > On Sat, Sep 5, 2026 at 12:47 AM Greg Kroah-Hartman
+> > <gregkh@linuxfoundation.org> wrote:
+> > >
+> > > On Fri, Sep 04, 2026 at 04:41:46PM +0800, Chen-Yu Tsai wrote:
+> > > > |struct usb_port| and its matching container_of() macro should live in
+> > > > its own port.h, matching the split we have for .c files.
+> > >
+> > > Why?
+> > 
+> > This was requested by Andy. And to me it sort of made sense.
+> > 
+> > > > Move them as described. Also move usb_port_is_power_on(), since in the
+> > > > next change its |struct usb_hub *| parameter will be changed to
+> > > > |struct usb_port *|, and becomes a non-static function that only
+> > > > references |struct usb_port|.
+> > >
+> > > No, please don't do that unless you have a really good reason.
+> > 
+> > Which part? Move the code?
+> 
+> Please don't make a new .h file.
+> 
+> Moving the function might make sense on its own if you need it in a
+> different file later on, but do a move only, and then change things if
+> you really need to do that.
 
-Not sure if it's okay to combine three different areas in one patch. OTOH
-this is quite minor fix and I wouldn't expect any conflicts with anything.
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Isn't this file to break possible circular dependencies?
 
 -- 
 With Best Regards,
