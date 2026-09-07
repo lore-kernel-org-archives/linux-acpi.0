@@ -1,106 +1,140 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 745B544238C
-	for <linux-acpi@vger.kernel.org>; Mon,  7 Sep 2026 08:42:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AC37448393
+	for <linux-acpi@vger.kernel.org>; Mon,  7 Sep 2026 09:11:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788770566; cv=none; b=HaEfgnFY4a2IVN7FQmZKqFfriSATjoXmTgrJ+UgtMin3Tfa60NBxYRlG9K9gct8z/YsKK7Yi+raShvqtQ9ZGhVh6qzjCgOuBjAI2XYNXpz13rTH2Qjd5FOlqny9n+n237VOXA/0dUcScjOSv4qb+jK9S9UrRU0TtMvGz4GuxVRo=
+	t=1788772282; cv=none; b=Wwpa2H/36SS/SURgOAPWC8asty06d1jg0luusv8kYBlCHTLizgNfxTtX3ZuDCHFM9sIdWdEgkk1Lj0cROr4X7dy7NRttWahlZVlZWJrq2Pt69TgbYsFpWeEkmEebT3/hilXbBTwNk7OM8Eq4KXiFwdoglznKIsFwXzb++5fZGG0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788770566; c=relaxed/simple;
-	bh=bvgnRIDupB6q+uAT7fNeLBNHD/lrtfXyh4a6Y69o1ew=;
-	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=hMsRW8bYbHI50fh/EL0E648d5HDvLOyAHrlcjgwbndbf9VsBnAQKZvnZPV3rb5M1DACgS9XXMHwzeUrZk2Xc9yEUPwQ90LcucWVC2UDu9PBjjZV3KbVFkZxopf3NoCJS15GYu22fqLhNuIknjrMXX56GM3ciznxlfmox53I2vAE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nPGFXv9e; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788772282; c=relaxed/simple;
+	bh=l2AIl/kpAuNoaMk+ybN1XBL0IKKOwb469zrWMKRoeIc=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=VBKgnuvuAssFRK8cnbEIGG6HSwF1YClkeTfOwhGI0Zkal7r4XcL+EKCym+N7c4ut68auSUsoAVH2xjyW9r3yJJmAtGGAMFGiXmBT7cIxnNNgndlHF2JWLVSqmzz9wwxLyUsdk+5md+dP4+WQK9DgV5w1kLd/xZ/3HQY5GoZili8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bo7lq8Ix; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nPGFXv9e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BB901F00A3F
-	for <linux-acpi@vger.kernel.org>; Mon,  7 Sep 2026 08:42:45 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bo7lq8Ix"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFD471F01558
+	for <linux-acpi@vger.kernel.org>; Mon,  7 Sep 2026 09:11:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788770565;
-	bh=FsL1JRBtjl14wKfbHM2QsZ2zNoKnZ1ubF74NM1A6Jzs=;
-	h=From:In-Reply-To:References:Date:Subject:To:Cc;
-	b=nPGFXv9ebB9LWaJ4ZpwBlxuZi9KUW/dyOfZkOUMsGz3kJUpXXasI3Ki32vsrg+Tqh
-	 VJMfCrM9GZD28QvyPaxqNPSe8KvY+jR7kX59lgynC/QpxlFaoEuQKZHDmK8160ETgv
-	 l3Ji2FlItbsgAMnZOLpWtvoim2FOo3IXOYOv9IZhAzLKUC9idQGf8vmSGBCLuFtiDl
-	 s+ApzFchXRZ1kye8xnkHXgmyc2kU09h9F6n2+K7GRc/9a5/GVjcBOmAs5LASnHPwcf
-	 o1269GRHN4hqcsu6tiI4EK6h3r7sfUXHBEElE0wjbOmlkrywYTt8ATUsxZ0U1V3Ysu
-	 iQOz01z1sYE4g==
-Received: by mail-lj1-f173.google.com with SMTP id 38308e7fff4ca-3a2b4743936so25542951fa.0
-        for <linux-acpi@vger.kernel.org>; Mon, 07 Sep 2026 01:42:45 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBy1X5Mnb+B+6PSH2xIswwmiPu+3Zs1kMEBTCfb5pE7xEssdb71/RL8JIMgb6qh7TwfJZ/9owymVJhIZ@vger.kernel.org
-X-Gm-Message-State: AFuF++lrYOWG+78y6CbLgrhysIoBoeb7M097hvSPJxhW4yecd27vc/Rf
-	XzCjPt4jTppCmcFLBlXThFi53JO4/dKMsxZi04B/7M9WZVzM3jMSrVmhAHKw5m4CTAHQmpM4e8v
-	SkNQnrNesho6fdm2BCtwNRifYaLAyJBMgPExCoGhrbA==
-X-Received: by 2002:a2e:b88f:0:b0:3a3:368:fb9f with SMTP id
- 38308e7fff4ca-3a371f5630emr24940481fa.13.1788770563714; Mon, 07 Sep 2026
- 01:42:43 -0700 (PDT)
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Mon, 7 Sep 2026 01:42:42 -0700
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Mon, 7 Sep 2026 01:42:41 -0700
-From: Bartosz Golaszewski <brgl@kernel.org>
-In-Reply-To: <0587c422-8279-491e-b377-af623e13366c@kernel.org>
+	s=k20260515; t=1788772281;
+	bh=wG0WmAyOO3ymA3aJN2xgzJ3JTR+4gP9o+6XF/2CnAYs=;
+	h=References:In-Reply-To:Reply-To:From:Date:Subject:To:Cc;
+	b=bo7lq8Ix8Z66hcKAUGdbeyUGFcrhRsuV6ZTzEFGyxkZJroeJ9FR06RB2HoZ7wID95
+	 WVrXGiwWbk9nBxIYhFpryUWaF/dhz0V3Ccz9y5AmMboZtsrxdjcAXsyoJL2/lmwhtS
+	 rIEgZIboWAvAhBbh8yg//Gf6wf1h/4pFUlVd7TvVumXHepxoh4doHgRtvPF3IezqIZ
+	 vWZuG+Yjd6Rewv3d/E6jB/4KqKYlMlwty4Kuja8yUqQ3zMPG/yRY4EnpZhxwmmu0TB
+	 QC4J78n7TZ58X5kR+XjPiOeP8uQqLdnwFdg15kUvE+0MSY86ZiSFcsT+I6CaYESzVB
+	 tQzLJoZOUYB8w==
+Received: by mail-lj1-f170.google.com with SMTP id 38308e7fff4ca-39c74c469e8so20834761fa.0
+        for <linux-acpi@vger.kernel.org>; Mon, 07 Sep 2026 02:11:20 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBzI1JNWkhrU5mbUTqY308StdIkioLpm/63DkUbu2uNkhAg8Uq7buEybaTPXZ0zLBfD5g2Ea6o3zKrlq@vger.kernel.org
+X-Gm-Message-State: AFuF++mJTV6FWc50QM491LIX2SOHjIvqz2QrTkMP/nGEV8g2CUZou5kk
+	2nWdIwhEiI8iCMwnwOsTNWO8LxTxd4cadZFBUw9gVmENfI5Ary35XaPqZ+I5xPJuF3u9AMraEIQ
+	xLoKEpfGqGzp6zMa3JqQy/RkqQ7eSc6k=
+X-Received: by 2002:a05:651c:43cc:20b0:3a3:7681:6d69 with SMTP id
+ 38308e7fff4ca-3a376817499mr13635561fa.18.1788772279038; Mon, 07 Sep 2026
+ 02:11:19 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260821070651.39763-1-vaknins33@gmail.com> <178827844334.39529.382963115769227795.b4-ty@oss.qualcomm.com>
- <aplfrNXzNvgbMJf1@ashevche-desk.local> <CAMRc=Mck+ft9wmWQLcq4uFTvH9u_rB_bFQ6tGtG7YkYdbowJaw@mail.gmail.com>
- <0587c422-8279-491e-b377-af623e13366c@kernel.org>
-Date: Mon, 7 Sep 2026 01:42:41 -0700
-X-Gmail-Original-Message-ID: <CAMRc=MeDKQCuh683UVm1mZLa7gMfi9_q6nia6WFT_sZAPu4GnQ@mail.gmail.com>
-X-Gm-Features: AcwNN1WSwhJ1q6AAMkoDnQTqEurSzKK3a8rvISuNw7xwBUqiDTxxQZNMz_gWSlc
-Message-ID: <CAMRc=MeDKQCuh683UVm1mZLa7gMfi9_q6nia6WFT_sZAPu4GnQ@mail.gmail.com>
-Subject: Re: [PATCH] gpiolib: acpi: Add ignore_wake quirk for ASUS ZenBook UX425UA_UM425UA
-To: Hans de Goede <hansg@kernel.org>
-Cc: Mika Westerberg <westeri@kernel.org>, Kivan <vaknins33@gmail.com>, 
-	Linus Walleij <linusw@kernel.org>, Mario Limonciello <mario.limonciello@amd.com>, 
-	linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, 
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
-	Bartosz Golaszewski <brgl@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+References: <20260904084158.1341550-1-wenst@chromium.org> <20260904084158.1341550-8-wenst@chromium.org>
+ <2026090430-botanist-ungodly-0299@gregkh> <CAGb2v65MSxL+r+wqMjPKVSh9aS1gkn8og6oBinSXDdipnoOyCQ@mail.gmail.com>
+ <2026090433-chair-tidings-5c99@gregkh> <apvQlBEgHOW9MCxN@ashevche-desk.local> <2026090516-nutshell-handiness-37f9@gregkh>
+In-Reply-To: <2026090516-nutshell-handiness-37f9@gregkh>
+Reply-To: wens@kernel.org
+From: Chen-Yu Tsai <wens@kernel.org>
+Date: Mon, 7 Sep 2026 17:11:06 +0800
+X-Gmail-Original-Message-ID: <CAGb2v64QQ1OsQ0hEw+hrYuG2bEpBFf6AWNnbJB-O3qr3on_X5Q@mail.gmail.com>
+X-Gm-Features: AcwNN1Wpt14dNKe4B6humzooduMblAi6GFxjh3D2jQuOPYxWMei9coTZFdaWUGw
+Message-ID: <CAGb2v64QQ1OsQ0hEw+hrYuG2bEpBFf6AWNnbJB-O3qr3on_X5Q@mail.gmail.com>
+Subject: Re: [PATCH v8 07/16] usb: core: Move struct usb_port and related APIs
+ to port.h
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Chen-Yu Tsai <wenst@chromium.org>, Bartosz Golaszewski <brgl@kernel.org>, 
+	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, 
+	Wei Deng <wei.deng@oss.qualcomm.com>, Konrad Dybcio <konrad.dybcio@oss.qualcomm.com>, 
+	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
+	linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org, 
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	Manivannan Sadhasivam <mani@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, 4 Sep 2026 09:56:58 +0200, Hans de Goede <hansg@kernel.org> said:
-> Hi,
+On Sat, Sep 5, 2026 at 7:32=E2=80=AFPM Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
 >
-> On 3-Sep-26 14:42, Bartosz Golaszewski wrote:
->> On Thu, 3 Sep 2026 13:53:16 +0200, Andy Shevchenko
->> <andriy.shevchenko@linux.intel.com> said:
->>> On Tue, Sep 01, 2026 at 06:00:46PM +0200, Bartosz Golaszewski wrote:
->>>>
->>>> On Fri, 21 Aug 2026 10:06:50 +0300, Kivan wrote:
->>>>> The ASUS ZenBook UX425UA_UM425UA (with AMD Ryzen 7 5700U SoC) fails
->>>>> to stay suspended in s2idle (Modern Standby), prematurely waking
->>>>> after 1-3 seconds with 0% hardware sleep achieved.
->>>>>
->>>>> In the laptop's ACPI SSDT tables (SSDT15), GPIO Pin 24 (hex 0x18) is
->>>>> defined in _AEI as ExclusiveAndWake targeting the PCIe bridge device
->>>>> \_SB.PCI0.GPP3:
->>>
->>> [...]
->>>
->>>> Applied, thanks!
->>>>
->>>> [1/1] gpiolib: acpi: Add ignore_wake quirk for ASUS ZenBook UX425UA_UM425UA
->>>>       https://git.kernel.org/brgl/c/1900b5a41493e7050c68c1e62780d6fb9a209457
->>>
->>> I thought I am going to pick this up via my tree...
->>> But okay, not a big deal, I don't expect any conflict in that area.
->>>
->>
->> Oops, sorry. If any conflict does occur let me know, I can revert it or we can
->> fix it in tree.
+> On Sat, Sep 05, 2026 at 11:19:32AM +0300, Andy Shevchenko wrote:
+> > On Fri, Sep 04, 2026 at 07:52:37PM +0200, Greg Kroah-Hartman wrote:
+> > > On Sat, Sep 05, 2026 at 01:24:20AM +0800, Chen-Yu Tsai wrote:
+> > > > On Sat, Sep 5, 2026 at 12:47=E2=80=AFAM Greg Kroah-Hartman
+> > > > <gregkh@linuxfoundation.org> wrote:
+> > > > >
+> > > > > On Fri, Sep 04, 2026 at 04:41:46PM +0800, Chen-Yu Tsai wrote:
+> > > > > > |struct usb_port| and its matching container_of() macro should =
+live in
+> > > > > > its own port.h, matching the split we have for .c files.
+> > > > >
+> > > > > Why?
+> > > >
+> > > > This was requested by Andy. And to me it sort of made sense.
+> > > >
+> > > > > > Move them as described. Also move usb_port_is_power_on(), since=
+ in the
+> > > > > > next change its |struct usb_hub *| parameter will be changed to
+> > > > > > |struct usb_port *|, and becomes a non-static function that onl=
+y
+> > > > > > references |struct usb_port|.
+> > > > >
+> > > > > No, please don't do that unless you have a really good reason.
+> > > >
+> > > > Which part? Move the code?
+> > >
+> > > Please don't make a new .h file.
+> > >
+> > > Moving the function might make sense on its own if you need it in a
+> > > different file later on, but do a move only, and then change things i=
+f
+> > > you really need to do that.
+> >
+> > Isn't this file to break possible circular dependencies?
 >
-> Regardless of who's tree this goes through I would like to point out
-> that a quirk like this really should go through a fixes branch
-> for the current cycle (no idea if it already is on a fixes branch,
-> the "applied" message does not make that clear).
->
+> If so, that was not stated here at all...
 
-It's queued for v7.4 alright.
+No. The code movement was purely done out of request by Andy [1]:
 
-Bart
+    At a brief look this will be the only function that takes usb_port
+    instead of usb_hub in the entire hub.h (I don't count container_of()
+    as a function). With that being said I would rather see it to be moved
+    to port.c altogether (yes, it's more invasive change, but looks more
+    consistent).  I would even dare to move struct usb_port (and container_=
+of()
+    accompanied with that) and this function to port.h. This might require
+    a separate patch, though.
+
+Putting the function in either .c file works, as it is referenced in both
+files. Possible circular dependencies was the result, not the cause, of
+the code movement.
+
+And the main changes to usb_port_is_power_on() are in the next patch.
+This one just moves the code and drops the "external".
+
+If the maintainers feel that the code movement or header addition is
+undesired, I will drop the movement. Or we can discuss reorganizing the
+code in a separate series.
+
+
+ChenYu
+
+[1] https://lore.kernel.org/all/ake09vk4fEv1D9QC@ashevche-desk.local/
