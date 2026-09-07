@@ -1,169 +1,302 @@
-Received: from canpmsgout09.his.huawei.com (canpmsgout09.his.huawei.com [113.46.200.224])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6CCD434E42;
-	Mon,  7 Sep 2026 11:29:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.224
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8560941A551;
+	Mon,  7 Sep 2026 12:05:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788780581; cv=none; b=d1QqMnZFPC89N/qAG+cljP/urD6n0pNZWG2zBDFgNPFu4CMq6lb0wtmfTQMjaMsQjK/dUDLWDnGQ3cv1htAMwN34/wJv/8+i5hmGHWE9KGfQPMYIPwXic7Pb2YEZy0ohVlwelCeEKvsbN0ezVja+UW9G9VYmbAaLeB+bUXM6KEU=
+	t=1788782732; cv=none; b=Oa5CX+te56mDKuMsGWGICURK2O2bV9WnBBTQe+LwI4mjZ4ym7srFLCspb1ybZjsSHOmPWLlfCLbdKvsEaz4gUB6Wu4t9CD4lqSxnhdXtQb1flMWFxJ+deoun9GW2ogWuaZ15PaArN669/TjCcdaVFz2bDHDJeE+Ctvg7hoSeY0w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788780581; c=relaxed/simple;
-	bh=+iVzbTX39foUN0TNwoi39BROt8LoXx3mWNtDG7eN4cE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=Z3+3a3mRD9NyQ7xwycP3gvsk3HU2hVowYufuicYfdOE9IfS1468GXAe2hU+vT5KzUnqoPfMZsRlrC2z6tcOaLIBp78KI6qGWNcxSa9ob2ykXbFLfliMusKXABjCsNToAHuW9iAtqRk1NkJWrZHN/E+CJxalJ0089ORskc9rNJeU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=113.46.200.224
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.163.163])
-	by canpmsgout09.his.huawei.com (SkyGuard) with ESMTPS id 4hdl1p3DgTz1cyPY;
-	Mon,  7 Sep 2026 19:18:38 +0800 (CST)
-Received: from kwepemf200017.china.huawei.com (unknown [7.202.181.10])
-	by mail.maildlp.com (Postfix) with ESMTPS id EB0C84057A;
-	Mon,  7 Sep 2026 19:29:30 +0800 (CST)
-Received: from [10.67.121.58] (10.67.121.58) by kwepemf200017.china.huawei.com
- (7.202.181.10) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Mon, 7 Sep
- 2026 19:29:30 +0800
-Message-ID: <d48e5c92-f666-44e0-8375-9772d95065b5@hisilicon.com>
-Date: Mon, 7 Sep 2026 19:29:29 +0800
+	s=arc-20240116; t=1788782732; c=relaxed/simple;
+	bh=nBOw5KMEnNUXRYpKwfcK2ytyOLkjWpMUdImYCkuggLo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=cOUaje9pXhmoLW8LN81djAN4/YNk34144acZ+iOBsxfJeAYGU2SZ0erAauQm4asxLaJZVgI2aaXXJFQLL4vqe/0dgPcJRZ5N9CPx7BF1BVr3tOFSBDJ1tfrSf1J5ux0N7IksG8hXux5YONMM2p3Y/sNYMb6Lut7pA8NwJseHQCI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=OkKDCiMI; arc=none smtp.client-ip=198.175.65.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="OkKDCiMI"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1788782731; x=1820318731;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=nBOw5KMEnNUXRYpKwfcK2ytyOLkjWpMUdImYCkuggLo=;
+  b=OkKDCiMIpUXwuh7MB/L7nff41WZX2aC7Q0rJ52YzeSXVjyu3XNiHHuvV
+   cPGGTA+WybPn/gyEo35lFQCuexupRn4/YKZqmO9/pZipusnzVMR79AcDB
+   uoX6rYjqxx1lJGU+yi3ddOUK0lfIZQPqBrg42nQfFMAGLVobrh3Sbf3gw
+   c3r8Z2nGKOnza/g0VdEvMR74DyC9nO5ZS2fs3wrouFMyWkZT7kxtAubKC
+   0NjQ6rNQqsZP9P6UAkApUmtrBLXJZa7sh8HpgJ9rZWhNTbZ4aTr/Tdacp
+   WjcoVUbgGIQTfNSoaMzZV767KkXtQOTBVKZPHDl15BmEbjOwYJcgn2oX+
+   w==;
+X-CSE-ConnectionGUID: nTQPLjKQQ/6PaQkgEOHZHg==
+X-CSE-MsgGUID: D8h0rm1jTwSdzNDetMdMTw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11898"; a="99518645"
+X-IronPort-AV: E=Sophos;i="6.25,267,1779174000"; 
+   d="scan'208";a="99518645"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2026 05:05:31 -0700
+X-CSE-ConnectionGUID: nSuGNdrFRT6yqqJl18g8cQ==
+X-CSE-MsgGUID: d/YeiH8UQbSjxprguIVMfg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,267,1779174000"; 
+   d="scan'208";a="268115157"
+Received: from black.igk.intel.com ([10.91.253.5])
+  by fmviesa008.fm.intel.com with ESMTP; 07 Sep 2026 05:05:28 -0700
+Received: by black.igk.intel.com (Postfix, from userid 1008)
+	id A76C099; Mon, 07 Sep 2026 14:05:26 +0200 (CEST)
+Date: Mon, 7 Sep 2026 14:05:26 +0200
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+To: Edward Blair <edward.blair@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org,
+	rafael@kernel.org, lenb@kernel.org, mika.westerberg@linux.intel.com,
+	gregkh@linuxfoundation.org, W_Armin@gmx.de,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 2/2] usb: typec: ucsi: add ITE885x I2C transport driver
+Message-ID: <ap6ohv5oM4Ze9dzz@black.igk.intel.com>
+References: <20260829145516.13500-1-edward.blair@gmail.com>
+ <20260829145516.13500-3-edward.blair@gmail.com>
+ <apavoDwVFw_FKRNd@black.igk.intel.com>
+ <CAJDQNgjq-oxQkdYK+fTSd5AHMjM-qTcSPo+s2-+W=Pcn7jYr-g@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] ACPI: RISC-V: CPPC: Implement cpc_read_ffh_fb_ctrs()
-To: Yufan Dou <douyufan@picoheart.com>, Sunil V L <sunilvl@ventanamicro.com>,
-	"Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Paul
- Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou
-	<aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
-	<linux-acpi@vger.kernel.org>, <linux-riscv@lists.infradead.org>,
-	<linux-kernel@vger.kernel.org>
-CC: <yuchao.46@picoheart.com>, <yang.yicong@picoheart.com>,
-	<geshijian@picoheart.com>
-References: <20260902083450.2348-1-douyufan@picoheart.com>
-Content-Language: en-US
-From: Jie Zhan <zhanjie9@hisilicon.com>
-In-Reply-To: <20260902083450.2348-1-douyufan@picoheart.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
- kwepemf200017.china.huawei.com (7.202.181.10)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAJDQNgjq-oxQkdYK+fTSd5AHMjM-qTcSPo+s2-+W=Pcn7jYr-g@mail.gmail.com>
 
+On Tue, Sep 01, 2026 at 01:03:50PM +0100, Edward Blair wrote:
+> Thanks,
+> 
+> I will add the explicit includes and use guard(mutex) for event_lock.
+> 
+> I kept the explicit IRQ handling because ucsi_resume() queues work which
+> issues UCSI commands. If the callbacks are moved to the noirq phase,
+> that work can run before the parent I2C controller's resume_early or
+> resume callback, while the controller may still be unavailable.
 
+Okay, got it.
 
-On 9/2/2026 4:34 PM, Yufan Dou wrote:
-> On RISC-V, each cpc_read_ffh() for a CSR-type FFH register sends a
-> separate IPI to the target hart via smp_call_function_single().
-> cppc_get_perf_ctrs() therefore samples the delivered and reference
-> counters in two separate IPIs, at two different instants. The skew
-> between the two sampling points distorts the delivered/reference
-> ratio and thus the frequency reported by cpufreq.
-> 
-> Implement the cpc_read_ffh_fb_ctrs() hook to read both CSR counters
-> back-to-back in a single IPI, which narrows the sampling window to a
-> few instructions and halves the number of cross-CPU calls. This
-> improves the accuracy of the reported frequency in the same way as
-> the arm64 implementation of the hook, which reads both AMU counters
-> in a single counters_read_on_cpu() call.
-> 
-> SBI-type FFH registers still fall back to individual reads, since
-> pairing them would not reduce the number of SBI calls on the target
-> hart.
-> 
-> Testing was performed while CPU1 was kept busy with:
-> 
->   # stress-ng --cpu 1 --taskset 1
-> 
-> On a CPU with cpuinfo_max_freq of 3000000 kHz:
-> 
-> Before:
-> 
->   Maximum observed cpuinfo_cur_freq: 3201369 kHz
->   Maximum observed error:            +201369 kHz (+6.71%)
-> 
-> After:
-> 
->   Maximum observed cpuinfo_cur_freq: 3009646 kHz
->   Maximum observed error:              +9646 kHz (+0.32%)
-> 
-> The maximum observed error is reduced by 95.2%.
-Glad to see that works for RISC-V as well.
-> 
-> Signed-off-by: Yufan Dou <douyufan@picoheart.com>
-> ---
->  drivers/acpi/riscv/cppc.c | 47 +++++++++++++++++++++++++++++++++++++++
->  1 file changed, 47 insertions(+)
-> 
-> diff --git a/drivers/acpi/riscv/cppc.c b/drivers/acpi/riscv/cppc.c
-> index 42c1a9052470..2ca98fa69e9a 100644
-> --- a/drivers/acpi/riscv/cppc.c
-> +++ b/drivers/acpi/riscv/cppc.c
-> @@ -85,6 +85,20 @@ static void cppc_ffh_csr_write(void *write_data)
->  	data->ret.error = -EINVAL;
->  }
->  
-> +struct sbi_cppc_fb_ctrs_data {
-> +	struct sbi_cppc_data first;
-> +	struct sbi_cppc_data second;
-> +};
-> +
-> +static void cppc_ffh_csr_read_fb_ctrs(void *read_data)
-> +{
-> +	struct sbi_cppc_fb_ctrs_data *data = read_data;
-> +
-> +	cppc_ffh_csr_read(&data->first);
-> +	if (!data->first.ret.error)
-> +		cppc_ffh_csr_read(&data->second);
-> +}
-> +
->  /*
->   * Refer to drivers/acpi/cppc_acpi.c for the description of the functions
->   * below.
-> @@ -125,6 +139,39 @@ int cpc_read_ffh(int cpu, struct cpc_reg *reg, u64 *val)
->  	return -EINVAL;
->  }
->  
-> +int cpc_read_ffh_fb_ctrs(int cpu, struct cpc_reg *reg1, u64 *val1,
-> +			 struct cpc_reg *reg2, u64 *val2)
-> +{
-> +	struct sbi_cppc_fb_ctrs_data data;
-> +	int ret;
-> +
-> +	if (WARN_ON_ONCE(irqs_disabled()))
-> +		return -EPERM;
-AFAICS, this may cause CPPC FIE to constantly fail to read counters because
-FIE runs in hardirq context.
+> The current ordering disables the device IRQ before quiescing UCSI, then
+> re-enables it during normal resumption after the I2C bus has resumed. Does
+> that address your concern, or would it be preferable the IRQ and UCSI
+> handling to be split across separate PM phases?
 
-Any test on CPPC FIE?
-> +
-> +	/* Only CSR counters can be paired within a single IPI. */
-> +	if (FFH_CPPC_TYPE(reg1->address) != FFH_CPPC_CSR ||
-> +	    FFH_CPPC_TYPE(reg2->address) != FFH_CPPC_CSR)
-> +		return -EOPNOTSUPP;
-> +
-> +	data.first.reg = FFH_CPPC_CSR_NUM(reg1->address);
-> +	data.second.reg = FFH_CPPC_CSR_NUM(reg2->address);
-> +
-> +	ret = smp_call_function_single(cpu, cppc_ffh_csr_read_fb_ctrs,
-> +				       &data, 1);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (data.first.ret.error)
-> +		return data.first.ret.error;
-> +	if (data.second.ret.error)
-> +		return data.second.ret.error;
-> +
-> +	*val1 = data.first.ret.value;
-> +	*val2 = data.second.ret.value;
-> +
-> +	return 0;
-> +}
-> +
->  int cpc_write_ffh(int cpu, struct cpc_reg *reg, u64 val)
->  {
->  	struct sbi_cppc_data data;
+I'm sure it's fine as it is now.
+
+Thanks,
+
+> Thanks,
+> Edward
 > 
-> base-commit: 89a312991dc6e638a36adc43ccb91dbc25504c04
+> On Tue, 1 Sept 2026 at 11:57, Heikki Krogerus
+> <heikki.krogerus@linux.intel.com> wrote:
+> >
+> > On Sat, Aug 29, 2026 at 03:55:16PM +0100, Edward Blair wrote:
+> > > Add a UCSI transport driver for ITE8853 and ITE8800 through ITE8805
+> > > USB Type-C controllers found on desktop motherboards.
+> > >
+> > > These controllers expose CCI, MESSAGE_IN and CONTROL at ITE-specific I2C
+> > > offsets and signal UCSI and vendor events through a shared interrupt
+> > > status register. Read and cache each complete UCSI event before
+> > > acknowledging it so command data remains coherent between the interrupt
+> > > handler and UCSI core.
+> > >
+> > > The interface does not expose a VERSION register and does not accept
+> > > PPM_RESET over I2C. Report UCSI 1.0, limit MESSAGE_IN to its 16-byte
+> > > window and handle PPM_RESET locally, matching the vendor driver's
+> > > behavior.
+> > >
+> > > Signed-off-by: Edward Blair <edward.blair@gmail.com>
+> > > ---
+> > >  drivers/usb/typec/ucsi/Kconfig    |  11 +
+> > >  drivers/usb/typec/ucsi/Makefile   |   1 +
+> > >  drivers/usb/typec/ucsi/ucsi_ite.c | 395 ++++++++++++++++++++++++++++++
+> > >  3 files changed, 407 insertions(+)
+> > >  create mode 100644 drivers/usb/typec/ucsi/ucsi_ite.c
+> > >
+> > > diff --git a/drivers/usb/typec/ucsi/Kconfig b/drivers/usb/typec/ucsi/Kconfig
+> > > index 87dd992a4..3819c4f73 100644
+> > > --- a/drivers/usb/typec/ucsi/Kconfig
+> > > +++ b/drivers/usb/typec/ucsi/Kconfig
+> > > @@ -104,4 +104,15 @@ config UCSI_HUAWEI_GAOKUN
+> > >         To compile the driver as a module, choose M here: the module will be
+> > >         called ucsi_huawei_gaokun.
+> > >
+> > > +config UCSI_ITE
+> > > +     tristate "UCSI Interface Driver for ITE885x"
+> > > +     depends on ACPI && I2C
+> > > +     help
+> > > +       This driver enables UCSI support on platforms that expose an ITE8853
+> > > +       or ITE8800-ITE8805 USB Type-C controller over I2C, commonly found
+> > > +       on ASUS Z690/Z790/X670E motherboards.
+> > > +
+> > > +       To compile the driver as a module, choose M here: the module will be
+> > > +       called ucsi_ite.
+> > > +
+> > >  endif
+> > > diff --git a/drivers/usb/typec/ucsi/Makefile b/drivers/usb/typec/ucsi/Makefile
+> > > index c7e38bf01..9bc1d6bbb 100644
+> > > --- a/drivers/usb/typec/ucsi/Makefile
+> > > +++ b/drivers/usb/typec/ucsi/Makefile
+> > > @@ -28,3 +28,4 @@ obj-$(CONFIG_UCSI_PMIC_GLINK)               += ucsi_glink.o
+> > >  obj-$(CONFIG_CROS_EC_UCSI)           += cros_ec_ucsi.o
+> > >  obj-$(CONFIG_UCSI_LENOVO_YOGA_C630)  += ucsi_yoga_c630.o
+> > >  obj-$(CONFIG_UCSI_HUAWEI_GAOKUN)     += ucsi_huawei_gaokun.o
+> > > +obj-$(CONFIG_UCSI_ITE)                       += ucsi_ite.o
+> > > diff --git a/drivers/usb/typec/ucsi/ucsi_ite.c b/drivers/usb/typec/ucsi/ucsi_ite.c
+> > > new file mode 100644
+> > > index 000000000..16b22c77f
+> > > --- /dev/null
+> > > +++ b/drivers/usb/typec/ucsi/ucsi_ite.c
+> > > @@ -0,0 +1,395 @@
+> > > +// SPDX-License-Identifier: GPL-2.0-only
+> > > +/*
+> > > + * UCSI I2C transport driver for ITE885x USB-C controllers
+> > > + *
+> > > + * ITE8853/ITE8800-ITE8805 are UCSI-compliant USB-C controllers found on
+> > > + * desktop motherboards. They communicate over I2C using UCSI registers at
+> > > + * ITE-specific offsets and signal events through a vendor interrupt register.
+> > > + */
+> > > +
+> > > +#include <linux/acpi.h>
+> > > +#include <linux/i2c.h>
+> > > +#include <linux/interrupt.h>
+> > > +#include <linux/module.h>
+> > > +#include <linux/mutex.h>
+> >
+> > We need to include everything instead of relying on nested headers
+> > nowadays.
+> >
+> >         linux/device.h
+> >         linux/device/devres.h
+> >         linux/dev_printk.h
+> >         linux/pm.h
+> >         linux/string.h
+> >
+> > > +static int ucsi_ite_process_event(struct ucsi_ite *ite, u32 *cci)
+> > > +{
+> > > +     u8 message_in[ITE_MESSAGE_IN_MAX_LEN] = {};
+> > > +     __le32 raw_cci;
+> > > +     u8 status;
+> > > +     u8 len = 0;
+> > > +     int event;
+> > > +     int err = 0;
+> > > +     int ret;
+> > > +
+> > > +     mutex_lock(&ite->event_lock);
+> >
+> > guard(mutex)(@ite->event_lock);
+> >
+> > > +     ret = ucsi_ite_read(ite, ITE_REG_INT_STATUS, &status, sizeof(status));
+> > > +     if (ret)
+> > > +             goto out_unlock;
+> > > +
+> > > +     status &= ITE_INT_MASK;
+> > > +     if (!status) {
+> > > +             mutex_lock(&ite->received_lock);
+> > > +             *cci = ite->cci;
+> > > +             mutex_unlock(&ite->received_lock);
+> > > +             ret = ITE_EVENT_NONE;
+> > > +             goto out_unlock;
+> > > +     }
+> > > +
+> > > +     if (status & ITE_INT_CCI) {
+> > > +             err = ucsi_ite_read(ite, ITE_REG_CCI, &raw_cci,
+> > > +                                 sizeof(raw_cci));
+> > > +             if (!err) {
+> > > +                     *cci = le32_to_cpu(raw_cci);
+> > > +                     len = UCSI_CCI_LENGTH(*cci);
+> > > +
+> > > +                     if (len > sizeof(message_in)) {
+> > > +                             len = sizeof(message_in);
+> > > +                             *cci &= ~GENMASK(15, 8);
+> > > +                             *cci |= UCSI_SET_CCI_LENGTH(len);
+> > > +                     }
+> > > +                     if (len) {
+> > > +                             err = ucsi_ite_read(ite, ITE_REG_MESSAGE_IN,
+> > > +                                                 message_in, len);
+> > > +                     }
+> > > +             }
+> > > +     }
+> > > +
+> > > +     /* Acknowledge each latched event with the value expected by the PPM. */
+> > > +     if (status & ITE_INT_VENDOR_ALERT) {
+> > > +             u8 ack = ITE_INT_VENDOR_ALERT;
+> > > +
+> > > +             ret = ucsi_ite_write(ite, ITE_REG_INT_ACK, &ack, sizeof(ack));
+> > > +             if (ret)
+> > > +                     goto out_unlock;
+> > > +     }
+> > > +
+> > > +     if ((status & ITE_INT_CCI) && !err) {
+> > > +             u8 ack = ITE_INT_CCI;
+> > > +
+> > > +             ret = ucsi_ite_write(ite, ITE_REG_INT_ACK, &ack, sizeof(ack));
+> > > +             if (ret)
+> > > +                     goto out_unlock;
+> > > +     }
+> > > +
+> > > +     if (err) {
+> > > +             ret = err;
+> > > +             goto out_unlock;
+> > > +     }
+> > > +
+> > > +     if (status & ITE_INT_CCI) {
+> > > +             mutex_lock(&ite->received_lock);
+> > > +             ite->cci = *cci;
+> > > +             memset(ite->message_in, 0, sizeof(ite->message_in));
+> > > +             memcpy(ite->message_in, message_in, len);
+> > > +             mutex_unlock(&ite->received_lock);
+> > > +             event = ITE_EVENT_CCI;
+> > > +     } else {
+> > > +             mutex_lock(&ite->received_lock);
+> > > +             *cci = ite->cci;
+> > > +             mutex_unlock(&ite->received_lock);
+> > > +             event = ITE_EVENT_VENDOR;
+> > > +     }
+> > > +
+> > > +     ret = event;
+> > > +
+> > > +out_unlock:
+> > > +     mutex_unlock(&ite->event_lock);
+> > > +     return ret;
+> > > +}
+> >
+> > > +static int ucsi_ite_suspend(struct device *dev)
+> > > +{
+> > > +     struct ucsi_ite *ite = dev_get_drvdata(dev);
+> > > +     int ret;
+> > > +
+> > > +     disable_irq(ite->client->irq);
+> > > +     ret = ucsi_suspend(ite->ucsi);
+> > > +     if (ret)
+> > > +             enable_irq(ite->client->irq);
+> > > +
+> > > +     return ret;
+> > > +}
+> > > +
+> > > +static int ucsi_ite_resume(struct device *dev)
+> > > +{
+> > > +     struct ucsi_ite *ite = dev_get_drvdata(dev);
+> > > +
+> > > +     enable_irq(ite->client->irq);
+> > > +     return ucsi_resume(ite->ucsi);
+> > > +}
+> > > +
+> > > +static DEFINE_SIMPLE_DEV_PM_OPS(ucsi_ite_pm, ucsi_ite_suspend,
+> > > +                             ucsi_ite_resume);
+> >
+> > Is the enable/disable_irq really necessary - couldn't you just use
+> > NOIRQ version of the PM operations (DEFINE_NOIRQ_DEV_PM_OPS)?
+> >
+> > Thanks,
+> >
+> > --
+> > heikki
+
+-- 
+heikki
