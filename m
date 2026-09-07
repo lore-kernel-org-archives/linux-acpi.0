@@ -1,64 +1,64 @@
-Received: from mail-pj1-f45.google.com (mail-pj1-f45.google.com [209.85.216.45])
+Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8949417BCA
-	for <linux-acpi@vger.kernel.org>; Mon,  7 Sep 2026 06:47:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1F41372071
+	for <linux-acpi@vger.kernel.org>; Mon,  7 Sep 2026 06:47:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788763675; cv=none; b=RWMNSKpRogoKxKGkwoC3VGv8ISf3ykrPouITfgHxqTs7AdhnpiOXUIda6d0AOdvjrO5X/tl+cbdxn8Vc/+k8uqL0YRYP7YYUGxqxa5G22PyuX6ZOWPsUua3HsK/kVeJpWYZZtzjW9QeyHzDy1A9R4QlXmCIuH2am5SnmFYx60Jw=
+	t=1788763682; cv=none; b=mkRiPorY3AJOsZshpeiFZJVdJP4B1Qj40mZHiF4qWqd20A05ZVVCuoCJ4j4HSmvvhLaIKsXkKdrovNgrofZllV757XwKGnH+h1LPQkJwLLIiV65LwmsMaI1XSZYr7qgwtiakVjKUCXYDZY1m2/h93VeKmvs330e7skHi3JLrC/c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788763675; c=relaxed/simple;
-	bh=p91ao2AKO1u40gx02a/XDSpFyO2CsKWUxeRtlMlap68=;
+	s=arc-20240116; t=1788763682; c=relaxed/simple;
+	bh=yXnUcv5qVGtYzgWj9FiGbfPJUzxRYD9YlLEosr6E6dM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=UrfHvGziQ16bHqsPi5htpZz1plpx8Cv/egV4c/VBnGUYoOZ5e9LefsRCCUOtP4KI5DFySMcmiBpptiF231ZD8S5y2ePKkFjTcP6Z/P3BQJiFuMGDu4WysSQksZDWeM9ec/Ruumb4/quCQWLN/AxE1Ax7KTFMyfr3SdBogVmIWUc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kEjHzrbw; arc=none smtp.client-ip=209.85.216.45
+	 MIME-Version; b=uJ0L1ourN7WSjfzar9/ruMZL5T8gBMZ2WqInwi0Dj5C3fYqd0R3fpwqSYmgn48REnq/wNo25PXYvKUnqfQm6OweXlGDBVI0FzkHv0c4RkZe1X8V3S8VFTteCJD3JQUxAN1gPuvrILl2TUQ19sUYQK1QSzUbEO32HaH+QOAzoKfk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TEkA2AXz; arc=none smtp.client-ip=209.85.216.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kEjHzrbw"
-Received: by mail-pj1-f45.google.com with SMTP id 98e67ed59e1d1-398c1101c1bso3069659a91.1
-        for <linux-acpi@vger.kernel.org>; Sun, 06 Sep 2026 23:47:52 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TEkA2AXz"
+Received: by mail-pj1-f46.google.com with SMTP id 98e67ed59e1d1-39266382df6so2398673a91.3
+        for <linux-acpi@vger.kernel.org>; Sun, 06 Sep 2026 23:47:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788763672; x=1789368472; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1788763678; x=1789368478; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=SIBBvWrmpup+w6AcHGzaJw3qF8lt2RTeR72Ssm270eo=;
-        b=kEjHzrbwtRg1hg4bzJm7knqJe2KFnNf1OSbeA8WSAnrjQM2zPStzHl92eMayZ67S2f
-         Rh3Qb/Cwmct/oY3uD10q1HnmJ4CIXqOTZqyf4nuPfpS0AL4ozel78IbL0krJo4eFKhGR
-         QT5VibDE5/FrGVkkHOgobYfuNQ4R8+vk5F+HNgP8mvDBg880XowBvwtu7uzvGzP188qn
-         zNCTOT2hqZSE2Lftix4aIHtVV+WxDT9oI1uKe9T7x54funPrKbh+50+pMZD8SnvUo/i3
-         dbCR//vBRDmMpMSaPvaWvkCTWpkaJxCqhJDUqjOOE7c69mjWG1kIqATi6JwhadcZ9OUA
-         xMIg==
+        bh=HpKYH0amj/dwSRkLCI992Ocp0fThRc8J4K3VwmqlP48=;
+        b=TEkA2AXzP1ykjfqACx/jwed0U0LNdDZW6cGOrZ5RQo//9jTV+EFTNwnnmVzXjhb2op
+         6BPX5Ow09lMovUQMg3a5IJ+aIFH0adXTPVdP0+KC5v45Q5TFr0f11AG/7dNn7t5RbItV
+         c/FOxNxh3mUnUZ2+Z5UAmFDnsEqqDhQAaznTL5N3yyR4KmX3CkHPYapRil6wIcYCS1+B
+         6X0ch2njIoFDNS7TwVF+yChN9zUPBvQ3zn8HogDmLXr+Jpyh2s+XiGYvjuK/a5zqhILT
+         J+innFog8GVkrLiD5DdP+1vhX0F+laIpVd0uaIFiMElXfHI3JY7CLHyK4iKOUZITTDw1
+         P+kQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788763672; x=1789368472;
+        d=1e100.net; s=20251104; t=1788763678; x=1789368478;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=SIBBvWrmpup+w6AcHGzaJw3qF8lt2RTeR72Ssm270eo=;
-        b=JKd90acHJ2cCl3IxhKW7wQdK1FihZ2LalARqIfIxlS4BCD5qTfYjTE7xZSBHcRtYfR
-         hDCa/4hwsjayEilEWG/JpwUJptkA0snRJQQi/Lr6Ata+DfRMSL9leDDsyaB1srnBdN3D
-         wTVF91Ita2nO+ERsWXBhd6nbC08e/AtAIg3PNZRXWqzErKAMlXxuQm4lUed6kq4aTgYp
-         UjOw9H3drvVYHaHt09/nRGvniolKqVA8pmTWXW0B6X6oSfSaBWcZ37c3geazmiSOil6P
-         imRR5FDjk1eoMoCQJTpT9PSjhONqumw5qV3nhEqHFlHQ7M7ki+WtYPWzTRN51F4dPyHt
-         Dl4A==
-X-Forwarded-Encrypted: i=1; AKwUvBwjfTNyFb651WvW4yQdAhhGalWocqQuiP0cJo2JqTitLhDzIch/8BfL/SffcS6RbJf9Q5Nrm2GZUBBA@vger.kernel.org
-X-Gm-Message-State: AFuF++kkBj9emuC5KdMjQCccQLWW2ooVCedwmNAxWwZ45Z23mCsdTNcN
-	1/3MOK2qd9XoOxP1/pn0mXr7tvC49/aiHyvxLcprsirpqZdnw09mvPnU
-X-Gm-Gg: AYBFou3J8Rc1yW/Lm/fbilfUQfoUqi6uFZ5fBgKF22+RdRwE7tnmooHCUgZJGkdXboK
-	abAHiltOuioGsI4A+vpJLFQtJVhxMPVjix7lx5SyQsqMRUfI/8/1VLQElSVFJH4DNXYgpyth/DQ
-	R7v7ZIr0mdwZKr9xCpcq+nercICR2mnj6HDzENzH89PwE+nJtfe3YTjvME/fkFuHRhuYttfHLCu
-	vsrp8F+OGM+F8UCYyYQ+kY7pEGhAxXZBJA8Xcob/42sCYSyWiXFztZ5uuJkU5VzKLK0iUETxvgX
-	gZwV6znG1nhiST3F1a7BJzqMBxUyz0FT4SHdTrdm6stc9herA23hkjYDi2uNGKg8t6qC5KbbnrQ
-	CyZxlU2OufEc+adsZCzhrED97x8YIUl5mPIPmelTaQWMO7SqDsrHdebLU1OUXHe9NqN+WgL38Ic
-	9Gxdi7lW5UKp33N6FkI2mnuijCGxRSKDpHG8XdGrxZa9t01PaQhlglS2Xp2qfp/+p1RHpcffhdH
-	1oQk26wMQBI3Q==
-X-Received: by 2002:a17:90a:d2c6:b0:395:4de4:92c7 with SMTP id 98e67ed59e1d1-39b260d2f07mr32517136a91.3.1788763672025;
-        Sun, 06 Sep 2026 23:47:52 -0700 (PDT)
+        bh=HpKYH0amj/dwSRkLCI992Ocp0fThRc8J4K3VwmqlP48=;
+        b=akOrpxX+V/2W5XIZHS3qBTfMJ80TCzlZj/R4xLglusoRj6t5QhONJ6TnEouIMnfwmZ
+         LB+bDCRMXAHCR5tOKm4ZtSwMsMjMKN4CATF1fON26937kUY4EjLC7FSgdngbFgeJGKVo
+         qD0XCTIkDDd50QuXVES3ROnLq5xz0ej4SgjgSeeivcsgz5gUqAgzUY1gqYDPL4Skio+z
+         DSxj/Dnzd5lzjuex7psH0WvyAlLnYWvtSPeEQ/9pMLP5LyddZLsdkjpCdkM9SK7Y/AkN
+         WGXogIBebFZzhfdnaeDxqBdW0uW56ovC1AprAgQBZbCA8r5+0LX/RDgNDXLbAPA8Udy3
+         rJLQ==
+X-Forwarded-Encrypted: i=1; AKwUvBzfFx2yTuYrbf/s+es+D40pM1PKRRW5/uzJ2YJnp8H66Nnx0aKsterbSs9dZ3ZE+BBCmczi0H/M7ant@vger.kernel.org
+X-Gm-Message-State: AFuF++mC2GYUvs1bl1Smjfld426ncPs3u0DzPD9hRgoifgO0DbUU25u2
+	48lAV0ob50Oa5Lv0QRyjKhFjhxKX3TYk2XxY50RvTe24GcW0JtYmeGf7
+X-Gm-Gg: AYBFou0oLQj9Y9TjTwbZ720zrElLWbHT7IebBhcsZ+sdPlfOR44chbSE7/i0VSTroQ3
+	wXsmodhPvvmmzykRXtxvAxOPfYyRfKZqI2kHKb6sVoH1rpctZG/ZuptoR10CEkwlrd8ZicyTmT2
+	CaZkTw+VvUmRVoInKzcSIqvUOgjD1WCJvLnMQVnt0an8ff3urZ6FOG5FrmA28O37VdZq8I5FZqg
+	H/3Ij2dmrPEUIBII4yfvzJRN48ZfbZifOtO0Z/1gDKCqP+6+SPVA161CexMmmg/9/9eM9L6M7ub
+	PH0EdEnJv2mW/AoLBm+Udp+647tE2OVTQw7PqpNCHRVM7Bj8hjSEZ1T9D0Ye34yKqnPmY4gJtVW
+	jKVuBBqSGEFUIM+SRoshC/DdtKxBNvh4TQX+eNXC87XevGNTWILLSecJldZ17zmzxL9dbsnCJTW
+	eNjocpPvbdOjgwXqzldR2zMeHEEmDHWGt71/Rt0yiPHwNM20rrNTo/RXqmXPY9lpXbUGxr7PESI
+	vpuDFxE/S5EGA==
+X-Received: by 2002:a17:90b:35cb:b0:398:a486:81ec with SMTP id 98e67ed59e1d1-39b261ae617mr36625720a91.11.1788763678086;
+        Sun, 06 Sep 2026 23:47:58 -0700 (PDT)
 Received: from volcano9f6e-hostos.amd.com ([165.204.217.251])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-333c9db92b1sm24811158eec.9.2026.09.06.23.47.46
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-333c9db92b1sm24811158eec.9.2026.09.06.23.47.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 06 Sep 2026 23:47:51 -0700 (PDT)
+        Sun, 06 Sep 2026 23:47:57 -0700 (PDT)
 From: Hemanth Selam <hemanth.selam@gmail.com>
 To: "Rafael J . Wysocki" <rafael@kernel.org>,
 	Len Brown <lenb@kernel.org>,
@@ -79,9 +79,9 @@ Cc: linux-pm@vger.kernel.org,
 	linux-omap@vger.kernel.org,
 	linux-tegra@vger.kernel.org,
 	linux-acpi@vger.kernel.org
-Subject: [PATCH 3/5] tools/thermal: fix typo "binded" in comments
-Date: Mon,  7 Sep 2026 12:17:23 +0530
-Message-ID: <20260907064725.10686-4-hemanth.selam@gmail.com>
+Subject: [PATCH 4/5] cpuidle: fix repeated word 'that' in comment
+Date: Mon,  7 Sep 2026 12:17:24 +0530
+Message-ID: <20260907064725.10686-5-hemanth.selam@gmail.com>
 X-Mailer: git-send-email 2.48.1
 In-Reply-To: <20260907064725.10686-1-hemanth.selam@gmail.com>
 References: <20260907064725.10686-1-hemanth.selam@gmail.com>
@@ -93,57 +93,28 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Correct "binded" to "bound", reported by scripts/checkpatch.pl using the
-misspelling list in scripts/spelling.txt.  Only touches comments, no code
-changes.
+Drop the second 'that', reported by checkpatch.pl as a possible repeated
+word.  Only touches a comment, no code changes.
 
 Assisted-by: Cursor:claude-opus-5
 Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
 ---
- tools/thermal/tmon/sysfs.c | 2 +-
- tools/thermal/tmon/tmon.h  | 2 +-
- tools/thermal/tmon/tui.c   | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/cpuidle/cpuidle-tegra.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/tools/thermal/tmon/sysfs.c b/tools/thermal/tmon/sysfs.c
-index cb1108bc9249..5d64aff12a86 100644
---- a/tools/thermal/tmon/sysfs.c
-+++ b/tools/thermal/tmon/sysfs.c
-@@ -225,7 +225,7 @@ static int find_tzone_cdev(struct dirent *nl, char *tz_name,
- 				cdev_name, cdev_name_linked, cdev_id);
- 			tzi->cdev_binding |= (1 << cdev_id);
- 
--			/* find the trip point in which the cdev is binded to
-+			/* find the trip point in which the cdev is bound to
- 			 * in this tzone
- 			 */
- 			snprintf(cdev_trip_name, sizeof(cdev_trip_name) - 1,
-diff --git a/tools/thermal/tmon/tmon.h b/tools/thermal/tmon/tmon.h
-index 44d16d778f04..f347efb47c96 100644
---- a/tools/thermal/tmon/tmon.h
-+++ b/tools/thermal/tmon/tmon.h
-@@ -77,7 +77,7 @@ struct tz_info {
- 	char type[256]; /* e.g. acpitz */
- 	int instance;
- 	int passive; /* active zone has passive node to force passive mode */
--	int nr_cdev; /* number of cooling device binded */
-+	int nr_cdev; /* number of cooling device bound */
- 	int nr_trip_pts;
- 	struct trip_point tp[MAX_NR_TRIP];
- 	unsigned long cdev_binding; /* bitmap for attached cdevs */
-diff --git a/tools/thermal/tmon/tui.c b/tools/thermal/tmon/tui.c
-index 7f5dd2b87f15..b982c1d77402 100644
---- a/tools/thermal/tmon/tui.c
-+++ b/tools/thermal/tmon/tui.c
-@@ -238,7 +238,7 @@ void show_cooling_device(void)
- 				unsigned long trip_binding =
- 					ptdata.tzi[i].trip_binding[cdev_inst];
- 				int k = 0; /* per zone trip point id that
--					    * binded to this cdev, one to
-+					    * bound to this cdev, one to
- 					    * many possible based on the
- 					    * binding bitmask.
- 					    */
+diff --git a/drivers/cpuidle/cpuidle-tegra.c b/drivers/cpuidle/cpuidle-tegra.c
+index aca907a62bb5..d2fc216c38fc 100644
+--- a/drivers/cpuidle/cpuidle-tegra.c
++++ b/drivers/cpuidle/cpuidle-tegra.c
+@@ -281,7 +281,7 @@ static int tegra114_enter_s2idle(struct cpuidle_device *dev,
+  * LP2 | C7	(CPU core power gating)
+  * LP2 | CC6	(CPU cluster power gating)
+  *
+- * Note that that the older CPUIDLE driver versions didn't explicitly
++ * Note that the older CPUIDLE driver versions didn't explicitly
+  * differentiate the LP2 states because these states either used the same
+  * code path or because CC6 wasn't supported.
+  */
 -- 
 2.48.1
 
