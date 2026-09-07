@@ -1,31 +1,67 @@
-Received: from canpmsgout07.his.huawei.com (canpmsgout07.his.huawei.com [113.46.200.222])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f179.google.com (mail-yw1-f179.google.com [209.85.128.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0D98468C3D;
-	Mon,  7 Sep 2026 13:38:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.222
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E96C392828
+	for <linux-acpi@vger.kernel.org>; Mon,  7 Sep 2026 14:52:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788788298; cv=none; b=kaJqo7sHBqZiwaFsew1WEclFgYZ1VFfvxj+ZEMudp5C/x3fIeW7LE1XlaqLvG0WDv2ctdDfROiRTzxkjf9B3y4C8zjzFCeetWA3kMsbs7TV3scX8cJD7zynNEM8Btm93JO+4CIa25MtFJRZwFdHlQ/1I7RR5Nda4GoFw2woCH28=
+	t=1788792768; cv=none; b=YYFMXop6vv+f63INV910dUpLAqD6t20lQDRwjfw733lLSIYfydynj1SfOJ4b28XJXCm4q0Umlt3JTbyorsWD3SYmMcLtlT6+kGJpU4ONrTP05PParpKzqJG+k8vj+6cmFzPpApcISaH6ZnqGa2GVB/Mt6CSjKmn8EHHjcpx0VW8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788788298; c=relaxed/simple;
-	bh=LXlYr5wjTtWJeb/u23lfMUCNT/kRQcGzVA30Txxnwco=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=cpUOBeq+LEKcrZ/733xm/L5PahvP3ST64LlDRrkL4mpqEUdZ4sbqcx17mzQBdklYxuyweCpAd6lEdNvDV3/3cujUIZG/4TjmipR5mb+VFoqHw+oKY3rvuwI8wyRUkU+tjR2/KRxbfHlsZGwZgMLqe7SzRbXRxGeZgSphvctkZQ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=113.46.200.222
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.162.92])
-	by canpmsgout07.his.huawei.com (SkyGuard) with ESMTPS id 4hdntG3nhbzLlXX;
-	Mon,  7 Sep 2026 21:27:18 +0800 (CST)
-Received: from kwepemf200017.china.huawei.com (unknown [7.202.181.10])
-	by mail.maildlp.com (Postfix) with ESMTPS id B67EE40565;
-	Mon,  7 Sep 2026 21:38:11 +0800 (CST)
-Received: from [10.67.121.58] (10.67.121.58) by kwepemf200017.china.huawei.com
- (7.202.181.10) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Mon, 7 Sep
- 2026 21:38:10 +0800
-Message-ID: <ba883461-aa7c-49ac-b7c8-79e0d41fc086@hisilicon.com>
-Date: Mon, 7 Sep 2026 21:38:10 +0800
+	s=arc-20240116; t=1788792768; c=relaxed/simple;
+	bh=/S2OeMB+pVw0IsnX1n74+dfcpu2Keflp/VCkHim9+Cc=;
+	h=Message-ID:Date:MIME-Version:Subject:References:To:From:
+	 In-Reply-To:Content-Type; b=pBc7ewpEkokE4b98og79kq1PUcGVrkTvwC6fbyNYSMFpmdmxQV97ySqTiTFZ4Vl84FcWyJTMjdu0qAK7RzQ1h1cEmsaMmfkrYVYQTVjIohcXIZm3cpU/JgTVJ3S+dHNsBg+meJAavTx3pRfPk3Rbm86AsdigKRQ+aOdRWE4OBQ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=fnh5wxRU; arc=none smtp.client-ip=209.85.128.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fnh5wxRU"
+Received: by mail-yw1-f179.google.com with SMTP id 00721157ae682-836c8bde2dcso15065547b3.0
+        for <linux-acpi@vger.kernel.org>; Mon, 07 Sep 2026 07:52:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1788792738; x=1789397538; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from:to
+         :content-language:references:subject:user-agent:mime-version:date
+         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=anfs5eR69uR3hgprcQRCB5kZHsZd0+SXQ4tCOJCunJw=;
+        b=fnh5wxRUz3J1D8yRKvAOLlUD0kH2Dy25Nrqgl5ga0JBg+aXaMh7EtOyz1WdVRAy+IE
+         CAg4426+d/Iw1GGUDsQXC6YQzR1WPwPLVvJcHEN+uXic6ee3Gt+l2s7iQAzcUInCMyrK
+         BnNKmabG8zQkzo5H33W/w4b9tXXceBdZrMvxonOqRtS/z4za5x3U/pXB9niNSntKppNl
+         1WB6AXK28fVz7gZLtt5rQmeB5gbNxcWSYcxizngu0ab3VuQ8ePOgsAvYwtnNS/qMGo3o
+         2IP+wdyOCVTdrVYdIBRTZVzLfsT58TIl6909+qgTuEiZuAtd66ryblusT9YiZECWjlwt
+         etnA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788792738; x=1789397538;
+        h=content-transfer-encoding:content-type:in-reply-to:from:to
+         :content-language:references:subject:user-agent:mime-version:date
+         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=anfs5eR69uR3hgprcQRCB5kZHsZd0+SXQ4tCOJCunJw=;
+        b=G86mnMk5RyC+hLHcGG4mAgHYlP6TXTGYFjh/Jk541cWHxWsDMRYf2VGtcU3fPtUTNi
+         Pc0jBuBVcc+rURYqqUu0TJL2JCtfV7IC1mSFIlCwfaylcgLvDXf4bHV0+9GJ1oAIM/ZL
+         1iOLQjO+zZK4X1eI/PBY6HE/2yY1NL96wfa1VP0PkZ1ADKdrkrH/HZZtdxUu8k4VOwOg
+         rV+s9M0bxGs1P7SXXjw/dlTfqIhQdfU3qiET6VMonEsWHJQ8wUjeJWWfjp9gT6O/9FIV
+         61MY3tg+qhS/wpi74Sf6v4DizW6GPoirKL1CDPYIx2w8LJfEwtxkSNTTO22JxTY3rVFa
+         ImDA==
+X-Forwarded-Encrypted: i=1; AKwUvByoIeieYZfHNpxT+AhbKUHhnSAw6morKPW4UK6qAHZd+SUGJUPOJxDOLdMyXvdtK3y2Ul8Mxb79AIEe@vger.kernel.org
+X-Gm-Message-State: AFuF++m1o3ouSgEv973e4+aX+o5OAk+eykqcLP6X78JGMwPact4uhm+/
+	dlkQh7iNCtJ/YRUnGQyK8fnwc6iRouIAN4RVBz8zx9hKtJeDU5ogXwNf
+X-Gm-Gg: AYBFou1yerxk3/dUTKxa4nFv3HCcMCtkYnMMRT6wJpcHhJwpc15ccqM0A6cdAMN/yot
+	g9OzRAj8mYmHXtfqQ9g9llNKEdQMCrFzPo/hkORUddnkkHi6Ohgs9xoIgJiss2TYNC84eciFrDT
+	1ebRx/jGWxujvHwQ34cvtIDj/WhY6iMHuArYGGliDvtVSf+t8QZ76nPTMRzkX7COXeQMfUyLXeK
+	4hWbvLy+ruhMBETOW72bz4fFKE/l9rXNURFZkidn3brjVyTEpVvp9LhOh9xA4LaicAR5GpHg/wC
+	AAzP7xBKjtKnmZgQDaXThvk/FsWXz4qfnhmf9TzS3V5R0+vbiZgnwOrJ1LExeytTW2nq1sdcz28
+	mmhNLAy5tV1BzDr9igENZkSeDkP7BRjeF5HlK7ot5H67UBMAiK91GK7RTDoNVvmlVwjAglFDtcd
+	mIedjADMGS0V1FItPwTxggHZ2WMflhZ7tYrp0YCZMPExeY6O3prsRt8lWLlSFB7Xleb6cUl7j8o
+	N2Wi+5TveL96IodegU7ipxruJx/
+X-Received: by 2002:a05:690c:c00f:b0:836:ec4d:bb29 with SMTP id 00721157ae682-87128cc54d5mr72607087b3.34.1788792738337;
+        Mon, 07 Sep 2026 07:52:18 -0700 (PDT)
+Received: from ?IPV6:2806:10be:d:e8df:57b9:51e0:e022:41c0? ([2806:10be:d:e8df:57b9:51e0:e022:41c0])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-87149315162sm72634707b3.12.2026.09.07.07.52.16
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 07 Sep 2026 07:52:17 -0700 (PDT)
+Message-ID: <f9b29422-5389-4522-83e8-538e5306b3fb@gmail.com>
+Date: Mon, 7 Sep 2026 09:52:15 -0500
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -33,162 +69,70 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] ACPI: RISC-V: CPPC: Implement cpc_read_ffh_fb_ctrs()
-To: Yicong Yang <yang.yicong@picoheart.com>
-CC: Yufan Dou <douyufan@picoheart.com>, Sunil V L <sunilvl@ventanamicro.com>,
-	"Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Paul
- Walmsley <pjw@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Albert Ou
-	<aou@eecs.berkeley.edu>, Alexandre Ghiti <alex@ghiti.fr>,
-	<linux-acpi@vger.kernel.org>, <linux-riscv@lists.infradead.org>,
-	<linux-kernel@vger.kernel.org>, <yuchao.46@picoheart.com>,
-	<geshijian@picoheart.com>
-References: <20260902083450.2348-1-douyufan@picoheart.com>
- <d48e5c92-f666-44e0-8375-9772d95065b5@hisilicon.com>
- <37731989-e1f1-4dc9-944d-2544ce8e9302@picoheart.com>
+Subject: Re: [PATCH v19 02/14] cxl/ras: Fix cxl_rch_get_aer_severity() wrong
+ severity register
+References: <20260803221810.3685703-1-terry.bowman@amd.com>
+ <20260803221810.3685703-3-terry.bowman@amd.com> <anijY3eTVWSqHLxh@wunner.de>
+ <apkxP_fydVjpULaT@wunner.de>
 Content-Language: en-US
-From: Jie Zhan <zhanjie9@hisilicon.com>
-In-Reply-To: <37731989-e1f1-4dc9-944d-2544ce8e9302@picoheart.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems500002.china.huawei.com (7.221.188.17) To
- kwepemf200017.china.huawei.com (7.202.181.10)
+To: lukas@wunner.de, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Terry Bowman <ktbowman@gmail.com>
+In-Reply-To: <apkxP_fydVjpULaT@wunner.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-
-
-On 9/7/2026 9:17 PM, Yicong Yang wrote:
-> On 9/7/26 7:29 PM, Jie Zhan wrote:
+On 9/3/26 03:35, Lukas Wunner wrote:
+> Hi Terry,
+> 
+> You've submitted v20 of this series, but the following
+> questions haven't been addressed yet AFAICS.  I'd be
+> grateful if you could take a look:
+> 
+> On Sun, Aug 09, 2026 at 05:57:23PM +0200, Lukas Wunner wrote:
+>> Am I missing something?  Is a scenario ever conceivable where the RCEC
+>> receives a message with different severity than what is inferred from
+>> the registers by cxl_rch_get_aer_severity()?
+> [...]
+>> These so-called Advisory Non-Fatal Errors set one bit in the Correctable
+>> Error Status Register (Advisory Non-Fatal Error Status, bit 13) and
+>> additionally one or more bits in the Uncorrectable Error Status Register
+>> (see the commit for details).
 >>
+>> cxl_rch_get_aer_severity() is not able to cope with such errors and
+>> will incorrectly infer that the severity is AER_NONFATAL.
 >>
->> On 9/2/2026 4:34 PM, Yufan Dou wrote:
->>> On RISC-V, each cpc_read_ffh() for a CSR-type FFH register sends a
->>> separate IPI to the target hart via smp_call_function_single().
->>> cppc_get_perf_ctrs() therefore samples the delivered and reference
->>> counters in two separate IPIs, at two different instants. The skew
->>> between the two sampling points distorts the delivered/reference
->>> ratio and thus the frequency reported by cpufreq.
->>>
->>> Implement the cpc_read_ffh_fb_ctrs() hook to read both CSR counters
->>> back-to-back in a single IPI, which narrows the sampling window to a
->>> few instructions and halves the number of cross-CPU calls. This
->>> improves the accuracy of the reported frequency in the same way as
->>> the arm64 implementation of the hook, which reads both AMU counters
->>> in a single counters_read_on_cpu() call.
->>>
->>> SBI-type FFH registers still fall back to individual reads, since
->>> pairing them would not reduce the number of SBI calls on the target
->>> hart.
->>>
->>> Testing was performed while CPU1 was kept busy with:
->>>
->>>   # stress-ng --cpu 1 --taskset 1
->>>
->>> On a CPU with cpuinfo_max_freq of 3000000 kHz:
->>>
->>> Before:
->>>
->>>   Maximum observed cpuinfo_cur_freq: 3201369 kHz
->>>   Maximum observed error:            +201369 kHz (+6.71%)
->>>
->>> After:
->>>
->>>   Maximum observed cpuinfo_cur_freq: 3009646 kHz
->>>   Maximum observed error:              +9646 kHz (+0.32%)
->>>
->>> The maximum observed error is reduced by 95.2%.
->> Glad to see that works for RISC-V as well.
->>>
->>> Signed-off-by: Yufan Dou <douyufan@picoheart.com>
->>> ---
->>>  drivers/acpi/riscv/cppc.c | 47 +++++++++++++++++++++++++++++++++++++++
->>>  1 file changed, 47 insertions(+)
->>>
->>> diff --git a/drivers/acpi/riscv/cppc.c b/drivers/acpi/riscv/cppc.c
->>> index 42c1a9052470..2ca98fa69e9a 100644
->>> --- a/drivers/acpi/riscv/cppc.c
->>> +++ b/drivers/acpi/riscv/cppc.c
->>> @@ -85,6 +85,20 @@ static void cppc_ffh_csr_write(void *write_data)
->>>  	data->ret.error = -EINVAL;
->>>  }
->>>  
->>> +struct sbi_cppc_fb_ctrs_data {
->>> +	struct sbi_cppc_data first;
->>> +	struct sbi_cppc_data second;
->>> +};
->>> +
->>> +static void cppc_ffh_csr_read_fb_ctrs(void *read_data)
->>> +{
->>> +	struct sbi_cppc_fb_ctrs_data *data = read_data;
->>> +
->>> +	cppc_ffh_csr_read(&data->first);
->>> +	if (!data->first.ret.error)
->>> +		cppc_ffh_csr_read(&data->second);
->>> +}
->>> +
->>>  /*
->>>   * Refer to drivers/acpi/cppc_acpi.c for the description of the functions
->>>   * below.
->>> @@ -125,6 +139,39 @@ int cpc_read_ffh(int cpu, struct cpc_reg *reg, u64 *val)
->>>  	return -EINVAL;
->>>  }
->>>  
->>> +int cpc_read_ffh_fb_ctrs(int cpu, struct cpc_reg *reg1, u64 *val1,
->>> +			 struct cpc_reg *reg2, u64 *val2)
->>> +{
->>> +	struct sbi_cppc_fb_ctrs_data data;
->>> +	int ret;
->>> +
->>> +	if (WARN_ON_ONCE(irqs_disabled()))
->>> +		return -EPERM;
->> AFAICS, this may cause CPPC FIE to constantly fail to read counters because
->> FIE runs in hardirq context.
+>> Now I *think* this is not a problem because Advisory Non-Fatal Errors
+>> are masked by default and the commit only unmasks them on regular PCI
+>> devices, not in the RCRB of a CXL device.  Only once bit 13 in the
+>> Correctable Error Mask Register is cleared in the RCRB will
+>> cxl_rch_get_aer_severity() fail.  Right?
 > 
-> I suppose it's mainly due to the smp_call_function_single() cannot work
-> with irqs_disabled().
+> Thanks,
 > 
-> seems we need to do the similar handling like arm64's
-> counters_read_on_cpu() - read the counters locally when irqs_disabled()
-> if local cpu is the target cpu.
-Exactly.
-> 
-> so is cpc_read_ffh() of riscv. but I suppose this should be a fix of below
-> commit, as it were in the kthread for FIE...
-> 997c021abc6e ("cpufreq: CPPC: Update FIE arch_freq_scale in ticks for non-PCC regs")
-> 
-The fix on riscv has been posted.
-https://lore.kernel.org/all/20260609192856874Y8AaPpKL5TnmbgiWI8DI3@zte.com.cn/
+> Lukas
 
-cpc_read_ffh_fb_ctrs() and cpc_read_ffh() both call counters_read_on_cpu()
-on arm64, so fixing counters_read_on_cpu() is fine.
-But the two ABIs are implemented separately here on riscv, so copy the same
-fix to cpc_read_ffh_fb_ctrs() or factor out a common process.
->> Any test on CPPC FIE?
->>> +
->>> +	/* Only CSR counters can be paired within a single IPI. */
->>> +	if (FFH_CPPC_TYPE(reg1->address) != FFH_CPPC_CSR ||
->>> +	    FFH_CPPC_TYPE(reg2->address) != FFH_CPPC_CSR)
->>> +		return -EOPNOTSUPP;
->>> +
->>> +	data.first.reg = FFH_CPPC_CSR_NUM(reg1->address);
->>> +	data.second.reg = FFH_CPPC_CSR_NUM(reg2->address);
->>> +
->>> +	ret = smp_call_function_single(cpu, cppc_ffh_csr_read_fb_ctrs,
->>> +				       &data, 1);
->>> +	if (ret)
->>> +		return ret;
->>> +
->>> +	if (data.first.ret.error)
->>> +		return data.first.ret.error;
->>> +	if (data.second.ret.error)
->>> +		return data.second.ret.error;
->>> +
->>> +	*val1 = data.first.ret.value;
->>> +	*val2 = data.second.ret.value;
->>> +
->>> +	return 0;
->>> +}
->>> +
->>>  int cpc_write_ffh(int cpu, struct cpc_reg *reg, u64 val)
->>>  {
->>>  	struct sbi_cppc_data data;
->>>
->>> base-commit: 89a312991dc6e638a36adc43ccb91dbc25504c04
+Hi Lukas,
+
+I’m sorry for missing your August 9 reply. Also, I am currently on PTO 
+this week and don’t have my work laptop, so I am responding from my 
+personal email account. I’ll be back in the office Wednesday.
+
+Thanks for pointing out the issue with CE and UCE errors reported
+simultaneously. I agree this is a problem and have addressed it in v20.
+
+In v20 I remove the unused `cxl_rch_get_aer_severity()` helper, take a
+snapshot of the AER registers before calling `pci_print_aer()`, and now
+handle the CE and UCE parts in separate blocks. The UCE status is logged
+unconditionally, which prevents a fatal record from being lost under the
+advisory‑non‑fatal path. These changes directly address the scenario you
+raised for v19 and also cover any other situation where a CE and a UCE
+are co‑logged. The patch ishere: <https://lkml.org/lkml/2026/9/2/1629>
+(v20 3/9).
+
+Please let me know if you see any remaining concerns or corner cases
+that are not yet covered. Thanks again for your review and for pointing
+out the issue.
+
+- Terry
+
