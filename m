@@ -1,122 +1,265 @@
-Received: from mail-pg1-f179.google.com (mail-pg1-f179.google.com [209.85.215.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA1F03FF1D0
-	for <linux-acpi@vger.kernel.org>; Mon,  7 Sep 2026 06:48:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8394E43C076
+	for <linux-acpi@vger.kernel.org>; Mon,  7 Sep 2026 08:24:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788763690; cv=none; b=fgmX2QYdo4SFvzuEQnhEXBS/JiqFC+AbAXtiFBOwOep6fI/gRLFJ0H728judRmA4TgT3SIXPlSOhs4zDGYOr7kSXlO5RYJVo6i6dr5L/2KAZYAm0Wh2pfwimJfPG/onf0VE/mcXM+lCi55heT2C/tro7ic45i/dp4robnSiijVo=
+	t=1788769480; cv=none; b=OIKSjqi66ozSmvSBXoYV0x1rJhGvPRrwMo/7X7oq0CmO3v3aWTGVw6WI41GdttXYegshiYu5QMYX0kgO4mWLMa83bduHiSMObe7TpcH2Z/MTlCw1oq5Hy724JS3JIh4EtnuSBp+DiON1j7dNp0nC46mW6z5yg5gc8faoF6do82g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788763690; c=relaxed/simple;
-	bh=NySkzWKGvAVQrs22Wj3YGugY/Vl4ZuUmyHXC/e0Qdz8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=p49rQnSKjmdT6X/w2ptM99cc1QbGDvzdPXZitH5pKlNOVf83XkkSdx3ozPMTbKFuouGkmb78ZhjRNzrEHGh57ISx0ScUE+CkDgJSrYCdw+g4DTiT02AjNEyKjUJ/J1JCdyl7WytIdbDgWNCJ4MvPvmQbeLO4WzSvNgd6k4JK8Ok=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=pcmxg0Qd; arc=none smtp.client-ip=209.85.215.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1788769480; c=relaxed/simple;
+	bh=Q7dC/WRFxfy2ZTVBn/CI0qq4K9fuw42CK8+hq8VoEhA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=TyQQxhWSKcsHUw3KOlkvHMwlsDSKzdnA3nmUAeGcn9WmUGKq9jgbtniAY/2DckhZU8M+EnLzeYEMBoPE8j8dV3es44iORfOal9xV7ZRRqB/Xau0+/S1ucLdiHc9G1i3yRcLTwx4oirf0RSFn5QKPAibjR+kex/Lyu1YOiO+E+4s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fbEJ6elf; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="pcmxg0Qd"
-Received: by mail-pg1-f179.google.com with SMTP id 41be03b00d2f7-cc1cc97b84bso2388722a12.1
-        for <linux-acpi@vger.kernel.org>; Sun, 06 Sep 2026 23:48:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1788763684; x=1789368484; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=sp3Y74c4rqp4LQw7mbFodFzkhcskiP8CvJ8q4Odm34Y=;
-        b=pcmxg0QdhaGNJULz7S3WvjNFTMfgKEnfQ1lTzIJKt7RAkiFS2bIbnccWhd7edV+msg
-         eZW1TE/UXd3aAnYa/UbJ/Vh/YnJGXPkczE/i+KPtxwS9xsYnDMNyY3aRoWwpt5AbZOYF
-         U/T14xjPplnfMUBMcMmR2EJZizqH2g3dNQ+2nh9Pfz2nZ+NVypi8s/7kPnQLeLS+588U
-         ineD/9arkUWnWG+W6H9J35qKfU1zihcCS4IAqodFNKl7dpagHbzrjd53C0/z+zAnieK2
-         0VLOTRj1DFtJ7T3Hy7nQEJlsOF2C8RQYtrRwVhtGqnmHgHRAYUuBv1hNhIlmk3eLpQdN
-         dbKQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788763684; x=1789368484;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=sp3Y74c4rqp4LQw7mbFodFzkhcskiP8CvJ8q4Odm34Y=;
-        b=OF86Fz9ac3oWMaTFNCCxkBJH0ftIw/4C8l2ljVjox32jG3o0938FTTZvZ8U27G0g8k
-         Ocqmg60sH2Mb0qlaA1zx4dKpLoS/JZl53PRbK/ZsunxWJ5pjxuX6vnA5Krm7kYMVCmoZ
-         3hNFqWOCp7ZEPyVbZYJ+IB9qb/JIiQJoYzp+hqHVUfxhUwgZkM/4SEsOBu8i8sOIrPmS
-         vZ02eln2SmiNuH+CigkRxwjyJXq7moW+Ll6GDKocMEDFJWxWs7MEe0Fp3IVB0dt7NeHD
-         OZKvP/mAOXFUFVz4zngCBS0J+hgZ9tEK80WkbT41zV6+nmf/XRpFC54EfnxRGMV3ocvn
-         wHAQ==
-X-Forwarded-Encrypted: i=1; AKwUvBwzF6xyBqtD1W3zWkfbJE2QljIWdPbosRv5PObwnXt8wyE5lTSRyVMd16uafG2U8RIUehmwY3ATeYn2@vger.kernel.org
-X-Gm-Message-State: AFuF++l5tenutLBi7511a3jqQzShzyMtWYREsQa1Y/SjZtJmFDUGF80O
-	cB2XyFG4fKIaj7RwUxaePFmTdiU+KhAwe2eFVCmrdLpA3f91vbAGbBnn
-X-Gm-Gg: AYBFou3WyJfm9adve48wiQbvhRoXjSh5vmEE+vg6L4eyK2poi+fu+q3faBpbyzJTbE3
-	L2b+RCyruzGsTKGu8XcUg2r1mg7Zg+VQT6o7nEBpa/Ao7oquO4TrVkr6btYiqOBRUC399QZOxpZ
-	hRZyRVlhq3CXJ4+LtZXb/T0C0c//cx+BAoVCXrIKkqxYMEUr0ZNHBelmEnWjvyD8wQ1hJmH3yLY
-	ZILVIV3aK8Z1L5wE4rP0L4XN7SBJhDRfyFX17o1vqMc4L1Pgr9bewBZbNECp/V9UlV9eowkJv4Y
-	YcxSUAu6zFVe6szrPQwYHpNDWW44tshP54d52wYNDBgK2TOFHVv25iFD+7d2D1JK1DiGdqiY0o6
-	LyaRQEWOVpins6N+MCJR8Idp8ZgqBQgu7YPufB/Xr/s1GFeYF8X9e2yfPZGnzgdsZs5Ih2DuZVM
-	bApqgkDN6HjU7rMe1S0vlLiufBaqHz7FWsf8+qORkQgb9VdHaxdUZoKNsCkdfBP7qKXfGRmnwKU
-	B7CkwVgQ85uV+ZI1OgN7Ip2
-X-Received: by 2002:a17:90b:3804:b0:366:3517:1aa2 with SMTP id 98e67ed59e1d1-39b25f4397emr32259222a91.0.1788763684190;
-        Sun, 06 Sep 2026 23:48:04 -0700 (PDT)
-Received: from volcano9f6e-hostos.amd.com ([165.204.217.251])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-333c9db92b1sm24811158eec.9.2026.09.06.23.47.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 06 Sep 2026 23:48:03 -0700 (PDT)
-From: Hemanth Selam <hemanth.selam@gmail.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Pavel Machek <pavel@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Daniel Lezcano <daniel.lezcano@kernel.org>,
-	Zhang Rui <rui.zhang@intel.com>,
-	Lukasz Luba <lukasz.luba@arm.com>,
-	Eduardo Valentin <edubezval@gmail.com>,
-	Keerthy <j-keerthy@ti.com>,
-	Christian Loehle <christian.loehle@arm.com>,
-	Thierry Reding <thierry.reding@kernel.org>,
-	Jonathan Hunter <jonathanh@nvidia.com>
-Cc: linux-pm@vger.kernel.org,
-	driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	linux-tegra@vger.kernel.org,
-	linux-acpi@vger.kernel.org
-Subject: [PATCH 5/5] ACPI: NUMA: fix typo in log message
-Date: Mon,  7 Sep 2026 12:17:25 +0530
-Message-ID: <20260907064725.10686-6-hemanth.selam@gmail.com>
-X-Mailer: git-send-email 2.48.1
-In-Reply-To: <20260907064725.10686-1-hemanth.selam@gmail.com>
-References: <20260907064725.10686-1-hemanth.selam@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fbEJ6elf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49A011F00A3A
+	for <linux-acpi@vger.kernel.org>; Mon,  7 Sep 2026 08:24:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788769478;
+	bh=PCVcsXAMckoFPKkzKtrThjz17kmFVFPOkwbdSUZv7lk=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=fbEJ6elfKVryfSj3Egsb58If7rF4UeAQU5ExOzx0fxhIUY/JiGAWLTvz3pylmbsur
+	 PHLV/Npiu72K8GzUS5VAZCPibaDsULoOMYpFFizY4VsTADXjvHpZAHLH82WjMNILy8
+	 3ixphYXK3ijcPuEuUPQsl7b395WhFY0/nD6ok1oNufT712GKjptHOIhuNEIStmmxHY
+	 VZp8cAoEUWPvWaJj35kVMJg6w0XRFBYd/aM2lFVsh4eKHwQfDejpJ1w1FHQu51bAZV
+	 r51AnSprAlk4R8C0yKDVw4F/qduiB1JOBAffiInpYHQ9K/k+Nybqsc9/dDAYP/u/mD
+	 llSL0AuZsT2YA==
+Received: by mail-lj1-f177.google.com with SMTP id 38308e7fff4ca-39c86ce9e29so23092081fa.3
+        for <linux-acpi@vger.kernel.org>; Mon, 07 Sep 2026 01:24:38 -0700 (PDT)
+X-Gm-Message-State: AFuF++mMA4gCY7tUQ/T04We5pEVIZ/i3Sm1w7FSNTG+HR2eGF+ByGIYa
+	6vcF9ugE6vXC0bZuiSlEJyIZiTQf0Dn6+HrCAkvpOt8HBt2/gXsi3hEM2n2tpStarx7RVkAFgBQ
+	nEs/gFGs9MlmmDNq36dL4nTsREKxH3T4=
+X-Received: by 2002:a05:6512:acc:b0:5b6:421:a8fb with SMTP id
+ 2adb3069b0e04-5b616f3dc7emr4986729e87.27.1788769476610; Mon, 07 Sep 2026
+ 01:24:36 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <8753121.T7Z3S40VBb@rafael.j.wysocki>
+In-Reply-To: <8753121.T7Z3S40VBb@rafael.j.wysocki>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Mon, 7 Sep 2026 10:23:30 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0iVB9RM=-shOPKqPXkyN3mkB2wyA-0b5aMpmXXwuBEqkw@mail.gmail.com>
+X-Gm-Features: AcwNN1ULBo9DFxc0AiqivzArZ3dVbCVdQdBDOjj3MbqviI-1ZJcTdImDQWQ6W7Y
+Message-ID: <CAJZ5v0iVB9RM=-shOPKqPXkyN3mkB2wyA-0b5aMpmXXwuBEqkw@mail.gmail.com>
+Subject: Re: [PATCH v1] driver core/ACPI: Introduce companion_bus_register()
+To: Danilo Krummrich <dakr@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
+	Linux Driver Core Development <driver-core@lists.linux.dev>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Correct the misspelling in a message the user sees, reported by
-scripts/checkpatch.pl using the list in scripts/spelling.txt.
+On Sun, Sep 6, 2026 at 6:03=E2=80=AFPM Rafael J. Wysocki <rafael@kernel.org=
+> wrote:
+>
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> The ACPI bus type does not allow drivers to be registered, so the sysfs
+> attributes related to drivers created for it and its devices are
+> useless, and its drivers/ directory is always empty.  All of that is
+> confusing and wasteful.
+>
+> To allow skipping the creation of those sysfs attributes, introduce
+> the concept of a "companion" bus (as a bus without drivers whose
+> devices can be bound to other devices and used by their drivers) and
+> add a special registration function for registering "companion" bus
+> types, companion_bus_register().
+>
+> Use that function for registering the ACPI bus type.
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/bus.c         |    8 -----
+>  drivers/base/bus.c         |   66 ++++++++++++++++++++++++++++++++------=
+-------
+>  include/linux/device/bus.h |    1
+>  3 files changed, 49 insertions(+), 26 deletions(-)
+>
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -1120,11 +1120,6 @@ EXPORT_SYMBOL_GPL(acpi_driver_match_devi
+>                                ACPI Bus operations
+>     ---------------------------------------------------------------------=
+----- */
+>
+> -static int acpi_bus_match(struct device *dev, const struct device_driver=
+ *drv)
+> -{
+> -       return 0;
+> -}
+> -
+>  static int acpi_device_uevent(const struct device *dev, struct kobj_ueve=
+nt_env *env)
+>  {
+>         return __acpi_device_uevent_modalias(to_acpi_device(dev), env);
+> @@ -1132,7 +1127,6 @@ static int acpi_device_uevent(const stru
+>
+>  const struct bus_type acpi_bus_type =3D {
+>         .name           =3D "acpi",
+> -       .match          =3D acpi_bus_match,
+>         .uevent         =3D acpi_device_uevent,
+>  };
+>
+> @@ -1451,7 +1445,7 @@ static int __init acpi_bus_init(void)
+>          */
+>         acpi_root_dir =3D proc_mkdir(ACPI_BUS_FILE_ROOT, NULL);
+>
+> -       result =3D bus_register(&acpi_bus_type);
+> +       result =3D companion_bus_register(&acpi_bus_type);
+>         if (!result)
+>                 return 0;
+>
+> --- a/drivers/base/bus.c
+> +++ b/drivers/base/bus.c
+> @@ -735,7 +735,7 @@ int bus_add_driver(struct device_driver
+>         struct driver_private *priv;
+>         int error =3D 0;
+>
+> -       if (!sp)
+> +       if (!sp || !sp->drivers_kset)
 
-Only the message text changes, no code changes.
+This will leak the reference to sp if sp itself is not NULL, but
+sp->drivers_kset is (as dutifully reported by Sashiko).
 
-Assisted-by: Cursor:claude-opus-5
-Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
----
- drivers/acpi/numa/srat.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+>                 return -EINVAL;
+>
+>         /*
+> @@ -930,15 +930,7 @@ static ssize_t bus_uevent_store(const st
+>  static struct bus_attribute bus_attr_uevent =3D __ATTR(uevent, 0200, NUL=
+L,
+>                                                      bus_uevent_store);
+>
+> -/**
+> - * bus_register - register a driver-core subsystem
+> - * @bus: bus to register
+> - *
+> - * Once we have that, we register the bus with the kobject
+> - * infrastructure, then register the children subsystems it has:
+> - * the devices and drivers that belong to the subsystem.
+> - */
+> -int bus_register(const struct bus_type *bus)
+> +static int bus_register_internal(const struct bus_type *bus, bool use_dr=
+ivers)
+>  {
+>         int retval;
+>         struct subsys_private *priv;
+> @@ -960,7 +952,7 @@ int bus_register(const struct bus_type *
+>
+>         bus_kobj->kset =3D bus_kset;
+>         bus_kobj->ktype =3D &bus_ktype;
+> -       priv->drivers_autoprobe =3D 1;
+> +       priv->drivers_autoprobe =3D use_drivers;
+>
+>         retval =3D kset_register(&priv->subsys);
+>         if (retval)
+> @@ -976,10 +968,12 @@ int bus_register(const struct bus_type *
+>                 goto bus_devices_fail;
+>         }
+>
+> -       priv->drivers_kset =3D kset_create_and_add("drivers", NULL, bus_k=
+obj);
+> -       if (!priv->drivers_kset) {
+> -               retval =3D -ENOMEM;
+> -               goto bus_drivers_fail;
+> +       if (use_drivers) {
+> +               priv->drivers_kset =3D kset_create_and_add("drivers", NUL=
+L, bus_kobj);
+> +               if (!priv->drivers_kset) {
+> +                       retval =3D -ENOMEM;
+> +                       goto bus_drivers_fail;
+> +               }
+>         }
+>
+>         INIT_LIST_HEAD(&priv->interfaces);
+> @@ -989,9 +983,11 @@ int bus_register(const struct bus_type *
+>         klist_init(&priv->klist_devices, klist_devices_get, klist_devices=
+_put);
+>         klist_init(&priv->klist_drivers, NULL, NULL);
+>
+> -       retval =3D add_probe_files(bus);
+> -       if (retval)
+> -               goto bus_probe_files_fail;
+> +       if (use_drivers) {
+> +               retval =3D add_probe_files(bus);
+> +               if (retval)
+> +                       goto bus_probe_files_fail;
+> +       }
+>
+>         retval =3D sysfs_create_groups(bus_kobj, bus->bus_groups);
+>         if (retval)
+> @@ -1016,9 +1012,41 @@ out:
+>         kfree(priv);
+>         return retval;
+>  }
+> +
+> +/**
+> + * bus_register - register a driver-core subsystem
+> + * @bus: bus to register
+> + *
+> + * Once we have that, we register the bus with the kobject
+> + * infrastructure, then register the children subsystems it has:
+> + * the devices and drivers that belong to the subsystem.
+> + */
+> +int bus_register(const struct bus_type *bus)
+> +{
+> +       return bus_register_internal(bus, true);
+> +}
+>  EXPORT_SYMBOL_GPL(bus_register);
+>
+>  /**
+> + * companion_bus_register - register a companion bus type
+> + * @bus: companion bus to register
+> + *
+> + * A companion bus is a bus without drivers.  Devices that belong to it =
+can be
+> + * bound to other devices as their "companions" and represent interfaces=
+ that
+> + * can be used by the drivers of those other devices.  They may also be =
+used for
+> + * the enumeration of those other devices.
+> + *
+> + * The ACPI bus is a specific example of a companion bus.
+> + *
+> + * Registering a companion bus is like registering a regular bus except =
+that it
+> + * skips the creation of sysfs interfaces related to drivers for @bus.
+> + */
+> +int companion_bus_register(const struct bus_type *bus)
+> +{
+> +       return bus_register_internal(bus, false);
+> +}
+> +
+> +/**
+>   * bus_unregister - remove a bus from the system
+>   * @bus: bus.
+>   *
+> @@ -1412,7 +1440,7 @@ struct device_driver *driver_find(const
+>         struct kobject *k;
+>         struct driver_private *priv;
+>
+> -       if (!sp)
+> +       if (!sp || !sp->drivers_kset)
 
-diff --git a/drivers/acpi/numa/srat.c b/drivers/acpi/numa/srat.c
-index 5c407dc6401e..f5616830f5a9 100644
---- a/drivers/acpi/numa/srat.c
-+++ b/drivers/acpi/numa/srat.c
-@@ -111,7 +111,7 @@ int __init fix_pxm_node_maps(int max_nid)
- 			for (j = 0; j <= max_nid; j++) {
- 				if ((emu_nid_to_phys[j] == i) &&
- 				    WARN(node_to_pxm_map_copy[j] != PXM_INVAL,
--					 "Node %d is already binded to PXM %d\n",
-+					 "Node %d is already bound to PXM %d\n",
- 					 j, node_to_pxm_map_copy[j]))
- 					return -1;
- 				if (emu_nid_to_phys[j] == i) {
--- 
-2.48.1
+And same here, so I will send a v2.
 
+Nevertheless, if you have any concerns or comments on this other than
+the above, please let me know.
+
+>                 return NULL;
+>
+>         k =3D kset_find_obj(sp->drivers_kset, name);
+> --- a/include/linux/device/bus.h
+> +++ b/include/linux/device/bus.h
+> @@ -113,6 +113,7 @@ struct bus_type {
+>         bool need_parent_lock;
+>  };
+>
+> +int __must_check companion_bus_register(const struct bus_type *bus);
+>  int __must_check bus_register(const struct bus_type *bus);
+>
+>  void bus_unregister(const struct bus_type *bus);
