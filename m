@@ -1,302 +1,199 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+Received: from GVXPR05CU001.outbound.protection.outlook.com (mail-swedencentralazon11013006.outbound.protection.outlook.com [52.101.83.6])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8560941A551;
-	Mon,  7 Sep 2026 12:05:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788782732; cv=none; b=Oa5CX+te56mDKuMsGWGICURK2O2bV9WnBBTQe+LwI4mjZ4ym7srFLCspb1ybZjsSHOmPWLlfCLbdKvsEaz4gUB6Wu4t9CD4lqSxnhdXtQb1flMWFxJ+deoun9GW2ogWuaZ15PaArN669/TjCcdaVFz2bDHDJeE+Ctvg7hoSeY0w=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788782732; c=relaxed/simple;
-	bh=nBOw5KMEnNUXRYpKwfcK2ytyOLkjWpMUdImYCkuggLo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cOUaje9pXhmoLW8LN81djAN4/YNk34144acZ+iOBsxfJeAYGU2SZ0erAauQm4asxLaJZVgI2aaXXJFQLL4vqe/0dgPcJRZ5N9CPx7BF1BVr3tOFSBDJ1tfrSf1J5ux0N7IksG8hXux5YONMM2p3Y/sNYMb6Lut7pA8NwJseHQCI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=OkKDCiMI; arc=none smtp.client-ip=198.175.65.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4E8C488763;
+	Mon,  7 Sep 2026 12:07:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.83.6
+ARC-Seal:i=3; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788782839; cv=fail; b=OVXIovDsxNu/Hd++RRHwz5EYXlVj0cYbIR8FcAZad6plhQONa5KiSCFchrhA2mNNX0XTSHJo+2o2b04tWi86J3ia/zuhvujkE/pG5uUepkRewkGcyznYV0p4zyIzYKJI0pUOn5NuV7zY3RYK85XDSmwQKG6w+TPYCp67sPk3Bps=
+ARC-Message-Signature:i=3; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788782839; c=relaxed/simple;
+	bh=RWMy4ADCkdNla0FvYrUNHfUKqa5Bn1j9Ag8eeOgfoIc=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=Y+ecC65LS+OCCEnheT5EU/t9kixLUgmvRbUeudBkfHJ3Go9gPO+hB814N0PivvIctjOX7Zm9gcVjUla6q9TTkV0KrDMXcerOosK4JvR++Fi0Gixsq4oqT7yZAKz7roVCSDpynLrZidnAXgNxKlvsjYLau71WZtGOr1w5T1TqBj8=
+ARC-Authentication-Results:i=3; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=GjrVPEj8; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=GjrVPEj8; arc=fail smtp.client-ip=52.101.83.6
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="OkKDCiMI"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1788782731; x=1820318731;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=nBOw5KMEnNUXRYpKwfcK2ytyOLkjWpMUdImYCkuggLo=;
-  b=OkKDCiMIpUXwuh7MB/L7nff41WZX2aC7Q0rJ52YzeSXVjyu3XNiHHuvV
-   cPGGTA+WybPn/gyEo35lFQCuexupRn4/YKZqmO9/pZipusnzVMR79AcDB
-   uoX6rYjqxx1lJGU+yi3ddOUK0lfIZQPqBrg42nQfFMAGLVobrh3Sbf3gw
-   c3r8Z2nGKOnza/g0VdEvMR74DyC9nO5ZS2fs3wrouFMyWkZT7kxtAubKC
-   0NjQ6rNQqsZP9P6UAkApUmtrBLXJZa7sh8HpgJ9rZWhNTbZ4aTr/Tdacp
-   WjcoVUbgGIQTfNSoaMzZV767KkXtQOTBVKZPHDl15BmEbjOwYJcgn2oX+
-   w==;
-X-CSE-ConnectionGUID: nTQPLjKQQ/6PaQkgEOHZHg==
-X-CSE-MsgGUID: D8h0rm1jTwSdzNDetMdMTw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11898"; a="99518645"
-X-IronPort-AV: E=Sophos;i="6.25,267,1779174000"; 
-   d="scan'208";a="99518645"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2026 05:05:31 -0700
-X-CSE-ConnectionGUID: nSuGNdrFRT6yqqJl18g8cQ==
-X-CSE-MsgGUID: d/YeiH8UQbSjxprguIVMfg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,267,1779174000"; 
-   d="scan'208";a="268115157"
-Received: from black.igk.intel.com ([10.91.253.5])
-  by fmviesa008.fm.intel.com with ESMTP; 07 Sep 2026 05:05:28 -0700
-Received: by black.igk.intel.com (Postfix, from userid 1008)
-	id A76C099; Mon, 07 Sep 2026 14:05:26 +0200 (CEST)
-Date: Mon, 7 Sep 2026 14:05:26 +0200
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-To: Edward Blair <edward.blair@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org,
-	rafael@kernel.org, lenb@kernel.org, mika.westerberg@linux.intel.com,
-	gregkh@linuxfoundation.org, W_Armin@gmx.de,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 2/2] usb: typec: ucsi: add ITE885x I2C transport driver
-Message-ID: <ap6ohv5oM4Ze9dzz@black.igk.intel.com>
-References: <20260829145516.13500-1-edward.blair@gmail.com>
- <20260829145516.13500-3-edward.blair@gmail.com>
- <apavoDwVFw_FKRNd@black.igk.intel.com>
- <CAJDQNgjq-oxQkdYK+fTSd5AHMjM-qTcSPo+s2-+W=Pcn7jYr-g@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="GjrVPEj8";
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="GjrVPEj8"
+ARC-Seal: i=2; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=pass;
+ b=yYHNraNKIquKGFFmQHBT36ZJaWLEECFHVunE0R4GV2GqpFNseiRZT7nhT/rZD9lV4EZDtGS3IpTH0SILyr3ehZPVr2npD5rjKFED+SgQsrSA+dRARjJa80zOdY15nDC1k0/Rk2lMBxfPkNLXR1cK7PNdmwIhwFAX5muHoFYv5EUIoTjOdwnRwWumLmoHt0tPoQ4vBVZMh2peCZHkqyNxGJrQ6ki87YJpfEcKr4n3z3TYyXqKukA5Rn+JoijLQb/pY26pI5xLnasZfPygy5qW/zGdNgIUZhe7not4zNJtX71UPo0ZOsdf9OQkPNyVqQ5300j+8/rg0TxT/edOhS3bTA==
+ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=oVcsfhwrEthpQbjqa0/IPKQxhj1FPIzOGUNKhA/6R7g=;
+ b=nhy0y2eHIEcPSBhes4ZCJibKaQ9JyMyHoR1vEEbrGMO+5ge7WYKwrm0pF4koEg6YR2ZgqgoFfB7wnVcLOQoJwVYMbMVmziDtYer7sc4PYfH99mj2MAxV731PoZVPgSTt7B1wQkuDnBIG1fTeP27pICAeDq15Ok9jw6hNbY/Fg+WFnedB0dkspZQ3hyyEM/3tXPaA5qYAV9o51SsvdIYl5OS30O97S9m5Te2OBy05DT3o12oBOMDUvw7+1fWqOIDLILvqOBJ8sRV827hFX4+2HQle7GPON2h95SFeyRQO8SqniF2DOn1Hy5BvzA0ZMcN93/YZriCYa1kX5FKlu1MEeA==
+ARC-Authentication-Results: i=2; mx.microsoft.com 1; spf=pass (sender ip is
+ 4.158.2.129) smtp.rcpttodomain=alien8.de smtp.mailfrom=arm.com; dmarc=pass
+ (p=none sp=none pct=100) action=none header.from=arm.com; dkim=pass
+ (signature was verified) header.d=arm.com; arc=pass (0 oda=1 ltdi=1
+ spf=[1,1,smtp.mailfrom=arm.com] dkim=[1,1,header.d=arm.com]
+ dmarc=[1,1,header.from=arm.com])
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arm.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=oVcsfhwrEthpQbjqa0/IPKQxhj1FPIzOGUNKhA/6R7g=;
+ b=GjrVPEj8W987WO1yD1I5gySPHXAern42O72p/cymBV3/Yl6w1BQQ6s4+kil5iRq8sx2VoHx3IyNGDLcQIOhii0d8XNklmTBFHz7KcCty1xs4OHWHUpeXxZ2z4C3ZMzdqDzklDjenpHNxih1EUu1mkkr5jqzWUQL04t0dzkTzUIo=
+Received: from PAZP264CA0051.FRAP264.PROD.OUTLOOK.COM (2603:10a6:102:1fc::11)
+ by DU0PR08MB9725.eurprd08.prod.outlook.com (2603:10a6:10:447::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.406.6; Mon, 7 Sep 2026
+ 12:07:06 +0000
+Received: from MI3PEPF0000847E.eurprd02.prod.outlook.com
+ (2603:10a6:102:1fc:cafe::57) by PAZP264CA0051.outlook.office365.com
+ (2603:10a6:102:1fc::11) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.382.15 via Frontend Transport; Mon, 7
+ Sep 2026 12:07:06 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 4.158.2.129)
+ smtp.mailfrom=arm.com; dkim=pass (signature was verified)
+ header.d=arm.com;dmarc=pass action=none header.from=arm.com;
+Received-SPF: Pass (protection.outlook.com: domain of arm.com designates
+ 4.158.2.129 as permitted sender) receiver=protection.outlook.com;
+ client-ip=4.158.2.129; helo=outbound-uk1.az.dlp.m.darktrace.com; pr=C
+Received: from outbound-uk1.az.dlp.m.darktrace.com (4.158.2.129) by
+ MI3PEPF0000847E.mail.protection.outlook.com (10.167.240.165) with Microsoft
+ SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.406.5
+ via Frontend Transport; Mon, 7 Sep 2026 12:07:06 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=rCQv3jESKNrDxjaVhzImfg/V8G58xh3+kqSosEPBnYrEbVpZs20/hH/hB6P+Xdt01QsZRgZg8ofKP3eMdKI775a99YhwL/PyqduwOCzsbZq83PBO80q02ddhrZtSHegYZRoGEnLd2nB5tZ6lfIZNvHRFZvAcs/YIth7Q0sN9uhJ7kOXCKtKcoiMEKi44qq8MUMfd1IfO922eIodvJOc3rtstX3ScR70UNlfSqmN2V6OMHEFv4bjxmN5vWXNqSpAGNCXsrxY5n3kHJNKPgNM9yJ7gP55rBGjsnmPJspm0QUjXNE4OITWrgp88ez+P4s949vP4kSu/4c9hRGljDbe8cA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=oVcsfhwrEthpQbjqa0/IPKQxhj1FPIzOGUNKhA/6R7g=;
+ b=tjdGD+mn77EV2dZrZ4s4Y0wG0UtWxESUeEjcxifIpL4D1KeccigyDQ3NkjPdTE9jXm+TejWppW6Vb++Mnekyd+0odkvv7sVKX0veXWwycMph+HnFQXZKPMosPbAKVY/jZT1qnxl7latose+jVFMl2w8xfCJV5WBQ52BvfE7n59RKY2QStnuo1CV2BA2O2Kwg9N0maXsTjW/WXeKCpAO3qwda3jJ0w43DumKcQOrOKcBRVpeAuBTB1eWr4AnPg+f975/6bNNreT+Qi6gFpqjovEpADdPpvWINRh9d/3v2vSlOk5UcxY99jwppte5Rvw/uUDeMI3Ew+VjHGptU/eQ2iQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=arm.com; dmarc=pass action=none header.from=arm.com; dkim=pass
+ header.d=arm.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arm.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=oVcsfhwrEthpQbjqa0/IPKQxhj1FPIzOGUNKhA/6R7g=;
+ b=GjrVPEj8W987WO1yD1I5gySPHXAern42O72p/cymBV3/Yl6w1BQQ6s4+kil5iRq8sx2VoHx3IyNGDLcQIOhii0d8XNklmTBFHz7KcCty1xs4OHWHUpeXxZ2z4C3ZMzdqDzklDjenpHNxih1EUu1mkkr5jqzWUQL04t0dzkTzUIo=
+Authentication-Results-Original: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=arm.com;
+Received: from VI0PR08MB11823.eurprd08.prod.outlook.com (2603:10a6:800:324::5)
+ by DU0PR08MB8116.eurprd08.prod.outlook.com (2603:10a6:10:3ec::16) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.406.1; Mon, 7 Sep 2026
+ 12:06:30 +0000
+Received: from VI0PR08MB11823.eurprd08.prod.outlook.com
+ ([fe80::694c:3790:be1a:8ddd]) by VI0PR08MB11823.eurprd08.prod.outlook.com
+ ([fe80::694c:3790:be1a:8ddd%7]) with mapi id 15.21.0406.002; Mon, 7 Sep 2026
+ 12:06:28 +0000
+Message-ID: <9af92fe1-e5ec-49f9-a85b-e36888f566c9@arm.com>
+Date: Mon, 7 Sep 2026 13:06:25 +0100
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v7 00/10] ACPI: APEI: share GHES CPER helpers and add DT
+ FFH provider
+To: Borislav Petkov <bp@alien8.de>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>, Hanjun Guo <guohanjun@huawei.com>,
+ Mauro Carvalho Chehab <mchehab@kernel.org>,
+ Shuai Xue <xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>,
+ Saket Dumbre <saket.dumbre@intel.com>, Davidlohr Bueso <dave@stgolabs.net>,
+ Jonathan Cameron <jic23@kernel.org>, Dave Jiang <dave.jiang@intel.com>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Dan Williams <djbw@kernel.org>,
+ Ira Weiny <iweiny@kernel.org>, Li Ming <ming.li@zohomail.com>,
+ Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
+ Oliver O'Halloran <oohall@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>,
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
+ Conor Dooley <conor+dt@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
+ Shuah Khan <skhan@linuxfoundation.org>, linux-kernel@vger.kernel.org,
+ linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
+ linux-cxl@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ linux-pci@vger.kernel.org, devicetree@vger.kernel.org,
+ linux-edac@vger.kernel.org, linux-doc@vger.kernel.org, Dmitry.Lamerov@arm.com
+References: <20260708-topics-ahmtib01-ras_ffh_arm_internal_review-v7-0-8b3a85216cef@arm.com>
+ <20260723055347.GHamGsaxesLkMbSnfR@fat_crate.local>
+Content-Language: en-GB
+From: Ahmed Tiba <ahmed.tiba@arm.com>
+In-Reply-To: <20260723055347.GHamGsaxesLkMbSnfR@fat_crate.local>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: LO4P265CA0323.GBRP265.PROD.OUTLOOK.COM
+ (2603:10a6:600:390::11) To VI0PR08MB11823.eurprd08.prod.outlook.com
+ (2603:10a6:800:324::5)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJDQNgjq-oxQkdYK+fTSd5AHMjM-qTcSPo+s2-+W=Pcn7jYr-g@mail.gmail.com>
+X-MS-TrafficTypeDiagnostic:
+	VI0PR08MB11823:EE_|DU0PR08MB8116:EE_|MI3PEPF0000847E:EE_|DU0PR08MB9725:EE_
+X-MS-Office365-Filtering-Correlation-Id: cb0cc1c9-b761-40fc-0400-08df0cd88911
+X-LD-Processed: f34e5979-57d9-4aaa-ad4d-b122a662184d,ExtAddr,ExtAddr
+x-checkrecipientrouted: true
+NoDisclaimer: true
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam-Untrusted:
+ BCL:0;ARA:13230040|1800799024|366016|7416014|376014|23010399003|11063799006|10067099003|4143699003|56012099006|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info-Original:
+ WoSMxl1/4uHVH7cVFWun6At9WCM+jsYiQ6ctu82UA9E3c8g2Y2t1SRF55ZWVLknG1DBiyTuIpGcRgkIRKr3kN/xEFkxxCtLp1AY5SBR+hh94likgtr5kjoud2HZz24OYIQS8f9d44Ev+LiuqW8+wgInQb0gWrplIwdqKT+QvAXc+rM8n6IICLkQGZzo6nM/GqZCwLB3O9XbRnNEvAa7WKrRO5yeDQt2qFeccKYKJ4vFkK38ZfTQbH9DBlQ3BEsmoXYgqehfCKDWxY1PXro3X5shV6hH2229CldelZu3QZw5jGPNUtFAjLfHJgvJRANuhdzxUNVHoHwi4GRW/bBIsQHtm0+ghuZ7UjNRYroRfUydI8Xx3ruAfqa37vsEe6EFIUBun/wz+8gcY6A6YgbX8hr9oK8ckOsG9GW/PBWPWZKQyi9HAU8k8he2qW5eQgC+lRLNPM7Kg6gGDIHCAo6FXPsSxg39jSt4ny9+y8mbmb2HFKgXBv+Weak7DWyxmBLiEzNy68klVRzG8cAXQvn1JWQScKHFT0L6ZTI0us42AdHyk3QunuQPlgTJB02YcGQywNMAWIko6mjPNX4YMSb0x0YGK/HKuLv1XW/AlxAEzZeE=
+X-Forefront-Antispam-Report-Untrusted:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:VI0PR08MB11823.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(7416014)(376014)(23010399003)(11063799006)(10067099003)(4143699003)(56012099006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-Exchange-RoutingPolicyChecked:
+ Ax5UrOKk7+o0kiaA7rBnrjj4WDu16ZmpV1I4bT5bOtp90x27yTu0NwahSFnIxkujnlf4SWsNCAKFHDrCsX886eqFcHbEIc5M79mjitI7bL1XZrctpiosmM4Pb775XF9vq8ZsSI8XKkZ7i/+9Qg82dYyzMQeU7SYmbWNTdiXseFnEn20jFq8akxfNlah574IiO6FJLBYs92+0AULwOtw3qi0hjtreTN1MGJcPabPvKf5o3jvGJWhnp2BfWKzQUYLq7JrlSM8sKc1CRGSPez5evL4UcLulk/94p48ON6Nd0LDZ2jKCTKMZlXbT+2C6ghdtOfid9WMrv4SrHihv4728SQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DU0PR08MB8116
+X-EOPAttributedMessage: 0
+X-MS-Exchange-Transport-CrossTenantHeadersStripped:
+ MI3PEPF0000847E.eurprd02.prod.outlook.com
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id-Prvs:
+	a2ae8ed7-7dff-482e-86c9-08df0cd87263
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|35042699022|82310400026|14060799003|36860700016|23010399003|1800799024|376014|7416014|10067099003|56012099006|11063799006|4143699003|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	CjNl7YrWfKSemhO+eTHBiy8ieZ3Awd1n/7haPtPhLwCami8qO+tS8qlz5V+IauNgWm0vcb4FJANvlmMF/KnLOZuYTMclQMoG+N0fGWY45p/XH5xC0vU98PnrXgOjKB3Wa6TncK/WBga2qd0+ubep4XAcJNWI0C8qVdYEVln0fC1hi5cgpzVDwwn4DULSRRw+Rbjqqhe/58m+V5fLxVSmV2/xqMhBsNDUa/YBTh6Oi38iFZYQx5bEwf9oySf78kqSHoz7dWk6d/4Fz0Xli9ZhKdnyf1/7YvCj1JbHQjSlM52tYRpr2Tciz2Ggk3u8YqopPwJAoNMbxFAKDE+SAiUGHGVwdBIOgiwdMLC7EUy2owwSajMx8YFOiUrE0S8sB2bkNphSH3f5Rtrgf1iVMrbTZ3DFSobcraRhkShpfc4R64bp2b8Apjrw6uWqP79XqjPe1RoQVbBSdrrEQwh5C7Kweamsza1SsZVsQu/ipT1SJVSybQA5eXAiG1KdSAa9o/Bq85nD6xF4+iq4ENkbSEVGTC6L9DlaQxlLeyUuzUXC6wv2zb9nnnQUBTO+yCSAn5UZjnEIlndOWlzYsbNQXC2PZ7ldAqrpJoZ/RChcvfK4jMqxPN4qZTsa9E7QDgvOlbFJ+53wsE7ljDuXZVRRIL6yZQ==
+X-Forefront-Antispam-Report:
+	CIP:4.158.2.129;CTRY:GB;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:outbound-uk1.az.dlp.m.darktrace.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(35042699022)(82310400026)(14060799003)(36860700016)(23010399003)(1800799024)(376014)(7416014)(10067099003)(56012099006)(11063799006)(4143699003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	OlKjjU84V+Ye/CJq/JOfU+91kTbpadoZu5AvoRdiz9saVnKvr331fpzBDq0bSfAt7Zu1xLtk+nT4L+8jSyyA40wBXnEVHrK3F7kFuX/YpRKksSl3RbfnfDa2cJ7hsI5OvPxeUP1Vl8VNnpb1Mfnry4E/1pM7wZ0BnA0XkaiMO+07IYteXqitlFAJZLdk/+ACTqMGOmPXu0Tx+BLpIoqE7OGM91tY3A9c9c7TrhnraMJH9UxYcDE0V4Ov0U7gvx487UEIavMcNHmokEld08RFFpduMSjf6cd/TXhC1SbB5CebtEmDHdSVC4/mjCxV2pTBPPikO+kDDvEPQTXGBlPUQGauhuacoCbk20K28La7EpyzRFLMs2fW8VGbErmNzvc+88M2zVGs7qLpzGozL23xup2ZfXJD4jCw2fZkdFRekB4sEjSp3PKHozoMugJgYKdk
+X-OriginatorOrg: arm.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Sep 2026 12:07:06.0838
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: cb0cc1c9-b761-40fc-0400-08df0cd88911
+X-MS-Exchange-CrossTenant-Id: f34e5979-57d9-4aaa-ad4d-b122a662184d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f34e5979-57d9-4aaa-ad4d-b122a662184d;Ip=[4.158.2.129];Helo=[outbound-uk1.az.dlp.m.darktrace.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	MI3PEPF0000847E.eurprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DU0PR08MB9725
 
-On Tue, Sep 01, 2026 at 01:03:50PM +0100, Edward Blair wrote:
-> Thanks,
+On 23/07/2026 06:53, Borislav Petkov wrote:
+> On Wed, Jul 08, 2026 at 02:58:59PM +0100, Ahmed Tiba wrote:
+>> This is v7 of the GHES refactor series. Compared to v6, it addresses
+>> the Sashiko-reported issues including pre-existing ones and fixes
+>> the ACPI-disabled cper-x86 build break.
+>>
+>> The DT firmware-first CPER provider is intended for the upstream zena-css
+>> platform. Validation so far has been on FVP.
+>>
+>> Changes in v7:
+>> - Address Sashiko-reported issues for this series, including pre-existing ones.
 > 
-> I will add the explicit includes and use guard(mutex) for event_lock.
+> And Sashiko flagged more:
 > 
-> I kept the explicit IRQ handling because ucsi_resume() queues work which
-> issues UCSI commands. If the callbacks are moved to the noirq phase,
-> that work can run before the parent I2C controller's resume_early or
-> resume callback, while the controller may still be unavailable.
+> https://sashiko.dev/#/patchset/20260708-topics-ahmtib01-ras_ffh_arm_internal_review-v7-0-8b3a85216cef%40arm.com
+> 
+> I'd leave this to Rafael to decide but I would fix them all first before we go
+> and carve out things. Maybe we can share the effort and such. I see an EDAC
+> one which I wanna take a look when I get a chance.
+> 
+> Thx.
+> 
 
-Okay, got it.
+Hi Boris, Rafael,
 
-> The current ordering disables the device IRQ before quiescing UCSI, then
-> re-enables it during normal resumption after the I2C bus has resumed. Does
-> that address your concern, or would it be preferable the IRQ and UCSI
-> handling to be split across separate PM phases?
+Following up on this series, could you please advise how you would like 
+to divide the remaining fixes?
 
-I'm sure it's fine as it is now.
+Boris, did you get a chance to look at the EDAC issue?
+
+Please let me know which issues I should take. Once we agree on the 
+scope, I will address those and prepare v8.
 
 Thanks,
-
-> Thanks,
-> Edward
-> 
-> On Tue, 1 Sept 2026 at 11:57, Heikki Krogerus
-> <heikki.krogerus@linux.intel.com> wrote:
-> >
-> > On Sat, Aug 29, 2026 at 03:55:16PM +0100, Edward Blair wrote:
-> > > Add a UCSI transport driver for ITE8853 and ITE8800 through ITE8805
-> > > USB Type-C controllers found on desktop motherboards.
-> > >
-> > > These controllers expose CCI, MESSAGE_IN and CONTROL at ITE-specific I2C
-> > > offsets and signal UCSI and vendor events through a shared interrupt
-> > > status register. Read and cache each complete UCSI event before
-> > > acknowledging it so command data remains coherent between the interrupt
-> > > handler and UCSI core.
-> > >
-> > > The interface does not expose a VERSION register and does not accept
-> > > PPM_RESET over I2C. Report UCSI 1.0, limit MESSAGE_IN to its 16-byte
-> > > window and handle PPM_RESET locally, matching the vendor driver's
-> > > behavior.
-> > >
-> > > Signed-off-by: Edward Blair <edward.blair@gmail.com>
-> > > ---
-> > >  drivers/usb/typec/ucsi/Kconfig    |  11 +
-> > >  drivers/usb/typec/ucsi/Makefile   |   1 +
-> > >  drivers/usb/typec/ucsi/ucsi_ite.c | 395 ++++++++++++++++++++++++++++++
-> > >  3 files changed, 407 insertions(+)
-> > >  create mode 100644 drivers/usb/typec/ucsi/ucsi_ite.c
-> > >
-> > > diff --git a/drivers/usb/typec/ucsi/Kconfig b/drivers/usb/typec/ucsi/Kconfig
-> > > index 87dd992a4..3819c4f73 100644
-> > > --- a/drivers/usb/typec/ucsi/Kconfig
-> > > +++ b/drivers/usb/typec/ucsi/Kconfig
-> > > @@ -104,4 +104,15 @@ config UCSI_HUAWEI_GAOKUN
-> > >         To compile the driver as a module, choose M here: the module will be
-> > >         called ucsi_huawei_gaokun.
-> > >
-> > > +config UCSI_ITE
-> > > +     tristate "UCSI Interface Driver for ITE885x"
-> > > +     depends on ACPI && I2C
-> > > +     help
-> > > +       This driver enables UCSI support on platforms that expose an ITE8853
-> > > +       or ITE8800-ITE8805 USB Type-C controller over I2C, commonly found
-> > > +       on ASUS Z690/Z790/X670E motherboards.
-> > > +
-> > > +       To compile the driver as a module, choose M here: the module will be
-> > > +       called ucsi_ite.
-> > > +
-> > >  endif
-> > > diff --git a/drivers/usb/typec/ucsi/Makefile b/drivers/usb/typec/ucsi/Makefile
-> > > index c7e38bf01..9bc1d6bbb 100644
-> > > --- a/drivers/usb/typec/ucsi/Makefile
-> > > +++ b/drivers/usb/typec/ucsi/Makefile
-> > > @@ -28,3 +28,4 @@ obj-$(CONFIG_UCSI_PMIC_GLINK)               += ucsi_glink.o
-> > >  obj-$(CONFIG_CROS_EC_UCSI)           += cros_ec_ucsi.o
-> > >  obj-$(CONFIG_UCSI_LENOVO_YOGA_C630)  += ucsi_yoga_c630.o
-> > >  obj-$(CONFIG_UCSI_HUAWEI_GAOKUN)     += ucsi_huawei_gaokun.o
-> > > +obj-$(CONFIG_UCSI_ITE)                       += ucsi_ite.o
-> > > diff --git a/drivers/usb/typec/ucsi/ucsi_ite.c b/drivers/usb/typec/ucsi/ucsi_ite.c
-> > > new file mode 100644
-> > > index 000000000..16b22c77f
-> > > --- /dev/null
-> > > +++ b/drivers/usb/typec/ucsi/ucsi_ite.c
-> > > @@ -0,0 +1,395 @@
-> > > +// SPDX-License-Identifier: GPL-2.0-only
-> > > +/*
-> > > + * UCSI I2C transport driver for ITE885x USB-C controllers
-> > > + *
-> > > + * ITE8853/ITE8800-ITE8805 are UCSI-compliant USB-C controllers found on
-> > > + * desktop motherboards. They communicate over I2C using UCSI registers at
-> > > + * ITE-specific offsets and signal events through a vendor interrupt register.
-> > > + */
-> > > +
-> > > +#include <linux/acpi.h>
-> > > +#include <linux/i2c.h>
-> > > +#include <linux/interrupt.h>
-> > > +#include <linux/module.h>
-> > > +#include <linux/mutex.h>
-> >
-> > We need to include everything instead of relying on nested headers
-> > nowadays.
-> >
-> >         linux/device.h
-> >         linux/device/devres.h
-> >         linux/dev_printk.h
-> >         linux/pm.h
-> >         linux/string.h
-> >
-> > > +static int ucsi_ite_process_event(struct ucsi_ite *ite, u32 *cci)
-> > > +{
-> > > +     u8 message_in[ITE_MESSAGE_IN_MAX_LEN] = {};
-> > > +     __le32 raw_cci;
-> > > +     u8 status;
-> > > +     u8 len = 0;
-> > > +     int event;
-> > > +     int err = 0;
-> > > +     int ret;
-> > > +
-> > > +     mutex_lock(&ite->event_lock);
-> >
-> > guard(mutex)(@ite->event_lock);
-> >
-> > > +     ret = ucsi_ite_read(ite, ITE_REG_INT_STATUS, &status, sizeof(status));
-> > > +     if (ret)
-> > > +             goto out_unlock;
-> > > +
-> > > +     status &= ITE_INT_MASK;
-> > > +     if (!status) {
-> > > +             mutex_lock(&ite->received_lock);
-> > > +             *cci = ite->cci;
-> > > +             mutex_unlock(&ite->received_lock);
-> > > +             ret = ITE_EVENT_NONE;
-> > > +             goto out_unlock;
-> > > +     }
-> > > +
-> > > +     if (status & ITE_INT_CCI) {
-> > > +             err = ucsi_ite_read(ite, ITE_REG_CCI, &raw_cci,
-> > > +                                 sizeof(raw_cci));
-> > > +             if (!err) {
-> > > +                     *cci = le32_to_cpu(raw_cci);
-> > > +                     len = UCSI_CCI_LENGTH(*cci);
-> > > +
-> > > +                     if (len > sizeof(message_in)) {
-> > > +                             len = sizeof(message_in);
-> > > +                             *cci &= ~GENMASK(15, 8);
-> > > +                             *cci |= UCSI_SET_CCI_LENGTH(len);
-> > > +                     }
-> > > +                     if (len) {
-> > > +                             err = ucsi_ite_read(ite, ITE_REG_MESSAGE_IN,
-> > > +                                                 message_in, len);
-> > > +                     }
-> > > +             }
-> > > +     }
-> > > +
-> > > +     /* Acknowledge each latched event with the value expected by the PPM. */
-> > > +     if (status & ITE_INT_VENDOR_ALERT) {
-> > > +             u8 ack = ITE_INT_VENDOR_ALERT;
-> > > +
-> > > +             ret = ucsi_ite_write(ite, ITE_REG_INT_ACK, &ack, sizeof(ack));
-> > > +             if (ret)
-> > > +                     goto out_unlock;
-> > > +     }
-> > > +
-> > > +     if ((status & ITE_INT_CCI) && !err) {
-> > > +             u8 ack = ITE_INT_CCI;
-> > > +
-> > > +             ret = ucsi_ite_write(ite, ITE_REG_INT_ACK, &ack, sizeof(ack));
-> > > +             if (ret)
-> > > +                     goto out_unlock;
-> > > +     }
-> > > +
-> > > +     if (err) {
-> > > +             ret = err;
-> > > +             goto out_unlock;
-> > > +     }
-> > > +
-> > > +     if (status & ITE_INT_CCI) {
-> > > +             mutex_lock(&ite->received_lock);
-> > > +             ite->cci = *cci;
-> > > +             memset(ite->message_in, 0, sizeof(ite->message_in));
-> > > +             memcpy(ite->message_in, message_in, len);
-> > > +             mutex_unlock(&ite->received_lock);
-> > > +             event = ITE_EVENT_CCI;
-> > > +     } else {
-> > > +             mutex_lock(&ite->received_lock);
-> > > +             *cci = ite->cci;
-> > > +             mutex_unlock(&ite->received_lock);
-> > > +             event = ITE_EVENT_VENDOR;
-> > > +     }
-> > > +
-> > > +     ret = event;
-> > > +
-> > > +out_unlock:
-> > > +     mutex_unlock(&ite->event_lock);
-> > > +     return ret;
-> > > +}
-> >
-> > > +static int ucsi_ite_suspend(struct device *dev)
-> > > +{
-> > > +     struct ucsi_ite *ite = dev_get_drvdata(dev);
-> > > +     int ret;
-> > > +
-> > > +     disable_irq(ite->client->irq);
-> > > +     ret = ucsi_suspend(ite->ucsi);
-> > > +     if (ret)
-> > > +             enable_irq(ite->client->irq);
-> > > +
-> > > +     return ret;
-> > > +}
-> > > +
-> > > +static int ucsi_ite_resume(struct device *dev)
-> > > +{
-> > > +     struct ucsi_ite *ite = dev_get_drvdata(dev);
-> > > +
-> > > +     enable_irq(ite->client->irq);
-> > > +     return ucsi_resume(ite->ucsi);
-> > > +}
-> > > +
-> > > +static DEFINE_SIMPLE_DEV_PM_OPS(ucsi_ite_pm, ucsi_ite_suspend,
-> > > +                             ucsi_ite_resume);
-> >
-> > Is the enable/disable_irq really necessary - couldn't you just use
-> > NOIRQ version of the PM operations (DEFINE_NOIRQ_DEV_PM_OPS)?
-> >
-> > Thanks,
-> >
-> > --
-> > heikki
-
--- 
-heikki
+Ahmed
