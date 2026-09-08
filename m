@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8103D595741;
-	Tue,  8 Sep 2026 18:13:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C60FB5964F0;
+	Tue,  8 Sep 2026 18:39:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788891204; cv=none; b=be+ju2aoKXd+q8GaC25ChLVrvJ+4qA3h98cvFLBMtxkTQGKnpVcjUsLcqrkV1CuURrzDj/4ZtqR1tv2l6VHpaZl/mEcywX4kNPEWyRXaoLSj6607g1Ie1U9lW+RvPKIgAtDzKJXQd37swWL7+Msf34vunBIT0h8UviVmlnqjgcE=
+	t=1788892756; cv=none; b=BapyqamdRZvlqVXDIax3nOhLS7YomWl45IwZYyOUkByX0aSA/C6wepRwgJEqLpe0x5C4VQcFJHlsHGWVfjRobKxeApRH8f9jGV4vCQSTfJVxCvoXwNsqYojV75lPv5jh7COqYSbVz7Sl35mS7wQLqP6t38keT8au7A5JaJMi+Sg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788891204; c=relaxed/simple;
-	bh=q3tyUGXjtAIqbsKQHr85fM2v5b40q0UKMmYZXD804ic=;
+	s=arc-20240116; t=1788892756; c=relaxed/simple;
+	bh=RXvS/DbLE/Z+LeWdSdrUOHcOobt/9vSEKzGA0NSWBwA=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ZNMLRcbc9Dwkb9N4Tc1AAV2pCeH7T1/fzp883DgLbkhjHys5G8pI0Q01EJOB8q+9RqKjwvN86NrEuHojYGDL8dqwQ+ub/I5ZT1XrZ+vk/1tYrRM3yDs/3ILWGtmvUyUZotdkos/GivdLWNLRP5CwUbY1k8+tPd7AIiW8ZKqL3P8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JVlD2paD; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=mfXIhSsZgk9UObeJeWvw5PctTSqY8db/Argz9ZzZDJ8aLwBTgqKGf5CdmQQw7BoeUDmjAdjb3jxEMNceFZuhdbvvIiZVV38vwsh8GPqsMrvUaLiSUHA6E5GDAFxOMp4BKapEfmOKfmtG0Oumm3rXee4IebocTDWspTMsYA0Gpjw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bRTPFE3w; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JVlD2paD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E972E1F00A3A;
-	Tue,  8 Sep 2026 18:13:22 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bRTPFE3w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A76041F00A3A;
+	Tue,  8 Sep 2026 18:39:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788891203;
-	bh=eU35bkyDh/FOzv63wY00YqRoS00L3uB7DlSZ4bmKhe0=;
+	s=k20260515; t=1788892753;
+	bh=8gYQri0gkSMtdqvPScp9bYWtriSeUO+1CUCy2d4eraU=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=JVlD2paDQ8kwI7ZdrDhJncU45Hqih7sy8gRe0JhjYAY/xuGZxsrxwfUUjRWLoWkGc
-	 kDPyz40bYgpBi7qYLNAPcdi+oRFuGt4NkhMv22IGcBbvPdjMwxexYZxLgQ2TmOQw1s
-	 7uNKWr0b6yYrofBN3H0ZZIfvQj7mr5R0aMVZ6aQzRbOsSTGJCzXahzxLqG4Ae6MzZo
-	 6fTE5JILBfMJQkqHpMYp8b9ZLV0+h2eq7VJWaJpTp7K71lTi0MWmcaMPXDCr+wX0Sr
-	 5mPQf6lhzqaUVnMENvCC9RFdDXdk3UrfzWNb9ibO9EixjMY0Gp+/qOfn0R1SYXVcV6
-	 //3psex6atJ/Q==
-Date: Tue, 8 Sep 2026 19:13:19 +0100
+	b=bRTPFE3w1pEszfLI7CaHj5kIKU9NrVh6AYDD/KWHrJxO+v2Bv38/WhOG7qTkqdGhb
+	 9I8XfjGrFh7Zs7jve8n1o3bsQUKrwkF/APHlzk+wUkhD1aEMqEBc7f6oenuGEln9zn
+	 q+BSzIYJsHUn3TTcftrjW6rmF3iguPf/AysMd3JFUzUUoCiP1WPpbSP2bdktkHRYw7
+	 U83FX8egqzlfyOhSijyQZArFGrp7pkCkM9s3kFESsrO99ei7UcpI3s90SGQ+dFtDCF
+	 WoXgRQIdYmJ0O7AAVUrg0xz306+slCLs6JncFtcRt9S9/4gvh1pHAcky7w7Es+yWX6
+	 aNVHKFJ0JmWmg==
+Date: Tue, 8 Sep 2026 19:39:06 +0100
 From: Jonathan Cameron <jic23@kernel.org>
 To: Terry Bowman <terry.bowman@amd.com>
 Cc: Dave Jiang <dave.jiang@intel.com>, Alison Schofield
@@ -43,12 +43,12 @@ Cc: Dave Jiang <dave.jiang@intel.com>, Alison Schofield
  "Lukas Wunner" <lukas@wunner.de>, <linux-pci@vger.kernel.org>,
  <linux-acpi@vger.kernel.org>, <linux-doc@vger.kernel.org>,
  <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v20 7/9] cxl: Add port and dport identifiers to CXL AER
- trace events
-Message-ID: <20260908191319.3ae39bdb@jic23-huawei>
-In-Reply-To: <20260902133933.2992457-8-terry.bowman@amd.com>
+Subject: Re: [PATCH v20 9/9] Documentation: cxl: Document CXL protocol error
+ handling
+Message-ID: <20260908193906.093dd008@jic23-huawei>
+In-Reply-To: <20260902133933.2992457-10-terry.bowman@amd.com>
 References: <20260902133933.2992457-1-terry.bowman@amd.com>
-	<20260902133933.2992457-8-terry.bowman@amd.com>
+	<20260902133933.2992457-10-terry.bowman@amd.com>
 X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -59,154 +59,209 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Wed, 2 Sep 2026 08:39:31 -0500
+On Wed, 2 Sep 2026 08:39:33 -0500
 Terry Bowman <terry.bowman@amd.com> wrote:
 
-> From: Dan Williams <djbw@kernel.org>
+> Add Documentation/driver-api/cxl/linux/protocol-error-handling.rst
+> describing the end-to-end CXL protocol error path: AER ingress, the
+> AER-CXL kfifo handoff, the cxl_core consumer worker, RCD/RCH special
+> cases, severity policy, trace events, and a source code map.
 > 
-> Pass struct cxl_port * and struct cxl_dport * to the cxl_aer_* trace events
-> instead of a plain struct device * derived at the caller. The trace event
-> helpers then derive the right strings for Endpoints, Switch Ports, Root
-> Ports, and RCH Downstream Ports consistently across the CPER and native AER
-> paths.
+> This documents the architecture introduced by the preceding patches in
+> this series.
 > 
-> The unified cxl_aer_* events keep "memdev" as the legacy field (Endpoint
-> events populate it with the memdev name; non-Endpoint events emit
-> memdev="") and add new "port" and "dport" string fields populated for all
-> CXL device classes. Updated userspace can key off "port" and "dport"
-> without a parallel set of events.
-> 
-> Remove the separate cxl_port_aer_uncorrectable_error and
-> cxl_port_aer_correctable_error trace events. All CXL AER events now use the
-> unified cxl_aer_* events with port and dport fields.
-> 
-> Rework cxl_cper_handle_prot_err() to use find_cxl_port_by_dev() and the
-> unified trace helpers, replacing the per-port-type branching and
-> bus_find_device() memdev lookup.
-> 
-> The TP_printk format string places "port=%s dport=%s" between "memdev=%s"
-> and "host=%s", changing the text-mode field order from the pre-patch output.
-> This does not affect consumers such as rasdaemon that use libtraceevent to
-> parse fields by name rather than by fixed text position.
-> 
-> For non-Endpoint events (Switch Port, Root Port, RCH Dport), "memdev" is
-> empty and "port"/"dport" carry the topology information.
-> 
-> CPER: trace firmware-supplied protocol errors even when the host device is
-> unbound; the record is self-contained in ras_cap and reads no MMIO. Keep
-> the host lock only to serialize the dport lookup against teardown.
-> 
-> Below are examples of the different CXL devices' error trace logs
-> after this patch:
-> 
->      ---------------------
->      | CXL RP - 0C:00.0  |
->      ---------------------
->                |
->      ---------------------
->      | CXL USP - 0D:00.0 |
->      ---------------------
->                |
->      --------------------
->      | CXL DSP - 0E:00.0 |
->      --------------------
->                |
->      ---------------------
->      | CXL EP - 0F:00.0  |
->      ---------------------
-> 
-> Root Port:
-> cxl_aer_correctable_error: memdev= port=port1 dport=0000:0c:00.0 \
->    host=pci0000:0c serial=0: status: 'Memory Data ECC Error'
-> 
-> cxl_aer_uncorrectable_error: memdev= port=port1 dport=0000:0c:00.0 \
->    host=pci0000:0c serial=0: status: 'Cache Address Parity Error'  \
->    first_error: 'Cache Address Parity Error'
-> 
-> Upstream Switch Port:
-> cxl_aer_correctable_error: memdev= port=port2 dport= host=0000:0d:00.0 \
->    serial=0: status: 'Memory Data ECC Error'
-> 
-> UCE NA - Upstream Switch Port UCE's are handled in the portdrv driver's
-> PCI AER callbacks that are not CXL aware.
-> 
-> Downstream Switch Port:
-> cxl_aer_correctable_error: memdev= port=port2 dport=0000:0e:00.0 \
->    host=0000:0d:00.0 serial=0: status: 'Memory Data ECC Error'
-> 
-> cxl_aer_uncorrectable_error: memdev= port=port2 dport=0000:0e:00.0 \
->    host=0000:0d:00.0 serial=0: status: 'Cache Address Parity Error' \
->    first_error: 'Cache Address Parity Error'
-> 
-> RCH Downstream Port (RCD attached under a host bridge, no switch):
-> cxl_aer_correctable_error: memdev= port=root0 dport=pci0000:0c \
->    host=pci0000:0c serial=0: status: 'Memory Data ECC Error'
-> 
-> cxl_aer_uncorrectable_error: memdev= port=root0 dport=pci0000:0c \
->    host=pci0000:0c serial=0: status: 'Cache Address Parity Error' \
->    first_error: 'Cache Address Parity Error'
-> 
-> For RCH topologies, both correctable and uncorrectable protocol errors
-> were previously traced against the memdev via the cxl_aer_* events with
-> memdev populated. They now emit memdev="" with the RCH Downstream Port
-> carried in the "dport" field (dport->dport_dev, the host bridge) and the
-> host bridge in "host". Consumers that keyed RCH errors off "memdev" must
-> key off "dport" instead.
-> 
-> Endpoint:
-> cxl_aer_uncorrectable_error: memdev=mem1 port=endpoint4 dport= \
->    host=0000:0f:00.0 serial=0: status: 'Cache Address Parity Error' \
->    first_error: 'Cache Address Parity Error'
-> 
-> cxl_aer_correctable_error: memdev=mem1 port=endpoint4 dport= host=0000:0f:00.0 \
->    serial=0: status: 'Memory Data ECC Error'
-> 
-> Co-developed-by: Terry Bowman <terry.bowman@amd.com>
+> Assisted-by: Claude:claude-opus-4.8
+Assited-by: LLM
+for all of these (kernel documentation was recently changed on this).
 > Signed-off-by: Terry Bowman <terry.bowman@amd.com>
-> Signed-off-by: Dan Williams <djbw@kernel.org>
+> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+> Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 
-A trivial 'maybe it looks nicer like this' suggestion inline.
-Feel free to ignore.
+
+...
+
+> diff --git a/Documentation/driver-api/cxl/linux/protocol-error-handling.rst b/Documentation/driver-api/cxl/linux/protocol-error-handling.rst
+> new file mode 100644
+> index 0000000000000..1da71d0409a05
+> --- /dev/null
+> +++ b/Documentation/driver-api/cxl/linux/protocol-error-handling.rst
+> @@ -0,0 +1,441 @@
+> +Error flow
+> +==========
+> +
+> +.. code-block:: text
+> +
+> +   CXL device raises AER Internal Error
+> +   (PCI_ERR_COR_INTERNAL or PCI_ERR_UNC_INTN)
+> +                   |
+> +                   v
+> +   +--------------------------------------+
+> +   | AER core (aer.c)                     |
+> +   |  aer_irq() -> aer_isr()              |
+> +   |  -> find_source_device()             |
+> +   |  -> handle_error_source(dev, info)   |
+> +   +--------------------------------------+
+> +                   |
+> +                   v
+> +   +--------------------------------------+
+> +   | handle_error_source() dispatch       |
+> +   |                                      |
+> +   |  1. cxl_rch_handle_error()           |
+> +   |     [always; filters internally.     |
+> +   |      RC_END enters the kfifo here    |
+> +   |      via pcie_walk_rcec(), NOT via   |
+> +   |      is_cxl_error() below]           |
+> +   |                                      |
+> +   |  2. if is_cxl_error():               |
+> +   |       cxl_forward_error()            |
+> +   |       [enqueue to kfifo; EP/RP/USP/  |
+> +   |        DSP only, RC_END excluded]    |
+> +   |                                      |
+> +   |  3. if cxl_pending && non-CE:        |
+> +   |       cxl_proto_err_wait_for_empty() |
+> +   |       [sync drain before recovery]   |
+> +   |                                      |
+> +   |  4. pci_aer_handle_error() [always]  |
+> +   +--------------------------------------+
+> +                   |
+> +          (kfifo -> workqueue)
+> +                   |
+> +                   v
+> +   +--------------------------------------+
+> +   | __cxl_proto_err_work_fn() consumer   |
+> +   |                                      |
+> +   |  if is_cxl_restricted(pdev):         |
+> +   |    cxl_handle_rdport_errors()        |
+> +   |    [RCH dport RAS first]             |
+> +   |                                      |
+> +   |  cxl_handle_proto_error()            |
+> +   +--------------------------------------+
+> +            |                |
+> +            v                v
+> +   +-----------------+  +--------------------+
+> +   | CE              |  | UCE                |
+> +   | cxl_handle_     |  | cxl_do_recovery()  |
+> +   |   cor_ras()     |  |  read RAS status   |
+> +   | trace + clear   |  |  trace + panic     |
+> +   +-----------------+  +--------------------+
+
+Why so narrow. Seems like bits of this diag would be more readable if
+you use the whole 80 chars?
+
+
+> +
+> +.. code-block:: text
+> +
+> +   Fatal UCE on Endpoint (VH Endpoint or RCD; link down, no AER status)
+> +                   |
+> +                   v
+> +   +--------------------------------------+
+> +   | PCIe core error recovery             |
+> +   |  pcie_do_recovery()                  |
+> +   |  -> report_error_detected()          |
+> +   |  -> cxl_pci_error_detected()         |
+> +   |     [pci_error_handlers callback in  |
+> +   |      cxl_core/ras.c; the RAS handler,|
+> +   |      NOT the AER kfifo path]         |
+> +   +--------------------------------------+
+> +                   |
+> +                   v
+> +   +--------------------------------------+
+> +   | cxl_pci_error_detected()             |
+> +   |                                      |
+> +   |  if is_cxl_restricted(pdev):         |
+> +   |    cxl_handle_rdport_errors()        |
+> +   |    [RCD-only: RCH Dport RAS first]   |
+> +   |                                      |
+> +   |  if port->dev.driver == NULL:        |
+> +   |    return DISCONNECT [port unbound]  |
+> +   |                                      |
+> +   |  cxl_handle_ras(port, NULL,          |
+> +   |                 to_ras_base(...),    |
+> +   |                 pdev->dsn)           |
+> +   |    [EP RAS read, independent of      |
+> +   |     channel state (not skipped for   |
+> +   |     io_normal); dead link            |
+> +   |     readl()==0xFFFFFFFF sets all UE  |
+> +   |     bits -> panic]                   |
+> +   |                                      |
+> +   |  if ue: panic("CXL cachemem error")  |
+> +   |                                      |
+> +   |  else switch (channel state):        |
+> +   |    io_normal      -> CAN_RECOVER     |
+> +   |    io_frozen      -> release driver, |
+> +   |                      NEED_RESET      |
+> +   |    perm_failure   -> DISCONNECT      |
+> +   +--------------------------------------+
+
+Similar.  I have a new favourite irritation - overly narrow LLM (I guess)
+generated diagrams!
+
+
+
+> +.. code-block:: text
+> +
+> +   Platform firmware CPER record (CPER_SEC_CXL_PROT_ERR)
+> +            |
+> +            v
+> +   +----------------------+
+> +   | GHES/APEI (ghes.c)   |
+> +   |  ghes_do_proc()      |
+> +   |  cxl_cper_post_      |
+> +   |    prot_err()        |
+> +   |  kfifo_put(CPER-CXL) |
+> +   |  schedule_work()     |
+> +   +----------------------+
+Ouch. Definitely wider here too to avoid splitting those function names.
+
+> +            |
+> +            v
+> +   +----------------------+
+> +   | CPER-CXL kfifo       |
+> +   | + work_struct        |
+> +   +----------------------+
+> +            |
+> +            v
+> +   +----------------------+
+> +   | cxl_cper_prot_err_   |
+> +   |   work_fn() consumer |
+> +   | (cxl_core/ras.c)     |
+> +   |  drain kfifo ->      |
+> +   +----------------------+
+> +            |
+> +            v
+> +   +--------------------------------+
+> +   | cxl_cper_handle_prot_err()     |
+> +   |  pci_get_domain_bus_and_slot() |
+> +   |  find_cxl_port_by_dev()        |
+> +   |  cxl_find_dport_by_dev()       |
+> +   |                                |
+> +   |  if CE: trace correctable      |
+> +   |  else:  trace uncorrectable    |
+> +   |  [trace-only; no panic,        |
+> +   |   no cxl_do_recovery()]        |
+> +   +--------------------------------+
+
+> +Severity policy
+> +===============
+
+> +**Fatal UCE on EP/USP** - A fatal event brings the link down, so the AER
+> +core reads no AER status and is_cxl_error() cannot enqueue the event to the
+> +kfifo. Endpoints and RCDs are instead handled through the
+> +pci_error_handlers .error_detected callback (cxl_pci_error_detected()),
+> +which reads the CXL RAS registers when they are mapped and panics on any UE
+> +bit. If the RAS registers are unmapped the read is skipped without a panic,
+> +because this path has no prior confirmation that the error is CXL internal.
+> +Upstream Ports bound to portdrv fall back to standard AER recovery - a known
+> +limitation. See "Fatal UCE flow for Endpoints and RCDs" above for the full
+> +path and channel-state handling.
+
+This 'known limitation' language kind of implies there is a solution. I'm curious,
+do you have one in mind?  I can sort of see maybe that the class of UCE that leaves
+CXL.io up is larger than that for PCIe so maybe it would be worth logic to probe
+the device and see if we can get to it's registers?  Anyhow, job for another day.
+
+
+This looks good to me and even the diag things is just a 'make it prettier' so
 Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-
-> diff --git a/drivers/cxl/core/trace.c b/drivers/cxl/core/trace.c
-> index 7f2a9dd0d0e3f..df42d119c53dd 100644
-> --- a/drivers/cxl/core/trace.c
-> +++ b/drivers/cxl/core/trace.c
-> @@ -2,7 +2,42 @@
->  /* Copyright(c) 2022 Intel Corporation. All rights reserved. */
->  
->  #include <cxl.h>
-> +#include <cxlmem.h>
->  #include "core.h"
->  
-> +const char *cxl_trace_memdev_name(struct cxl_port *port)
-> +{
-> +	if (is_cxl_endpoint(port)) {
-> +		struct cxl_memdev *cxlmd = to_cxl_memdev(port->uport_dev);
-> +
-> +		return dev_name(&cxlmd->dev);
-
-Similar to below if you make that change.
-
-> +	}
-> +
-> +	return "";
-> +}
-> +
-> +const char *cxl_trace_host_name(struct cxl_port *port)
-> +{
-> +	if (is_cxl_endpoint(port)) {
-> +		struct cxl_memdev *cxlmd = to_cxl_memdev(port->uport_dev);
-> +
-> +		return dev_name(cxlmd->dev.parent);
-
-		return dev_name(to_cxl_memdev(port->uport_dev)->dev.parent);
-
-Maybe that's too ugly though.
-
-> +	}
-> +
-> +	return dev_name(port->uport_dev);
-> +}
-
