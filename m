@@ -1,122 +1,97 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61F92545DAE
-	for <linux-acpi@vger.kernel.org>; Wed,  9 Sep 2026 11:31:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A9F257982E
+	for <linux-acpi@vger.kernel.org>; Wed,  9 Sep 2026 14:28:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788953498; cv=none; b=nFTQ8Y4WwTissQeCYQAqZxtSaQ9Cg976AB3uNhh6rM5IKbiuS2T0KLTB7vLOU6fTRq9aGzSeAQEleNHzOjrC3nh4QdPD7s1WLfpQ3wXw+r3+uo1uqyXmHW6Kx1krIhM2ikmTnvXCvz9Acf72RfoTJK8Rg4Ybk3v5wPok1a6WSZ4=
+	t=1788964125; cv=none; b=W+UvnxKk2YZW3GrjQ9lyykacNclMWgGH0angquYfT5xIQWT4pQGg50qLqlNxpghQBpG3FYmZ0/SzXhkMSgU9gDW5NFLdKqQd2Fy0kkIVV7Mf91BvGV2LFNn5Mgnhn3bytTMAxZsj66dTfbl9tCFDTWOl/7X/Lj8lQOrzaM9REIs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788953498; c=relaxed/simple;
-	bh=gXMJw/DQ+kIBXhLqPTjgG8GcAowRylo+yXDoPCBkgwQ=;
-	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=CWAWfBWe7u4TSsS6tnTuk6DY+qEaJQmRx/QNOcSgXlnLyFn2em/z4qGkTNNP+KNEhB7JFQxkZOGYZ4B4FVuKL7bwYTomUzebNYK61J0ZwWDIxhBMD3/OyNiJSMoVg1NIGL1MQvUNAa9sgeb8SSDtJ+SyWe28K+GKGJGAuM5UzzI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Lgu9UQTY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788964125; c=relaxed/simple;
+	bh=stadVtBCp6wk6pQ883aHgpti5/i/VdTdCNSizlaXdF0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=I6AZZMk5Z8hy7zUFGdzWKMVxzRLZN09d85hIqL3rEg6+/cSKHjR3ceqnkjg8gx5R+gJZCOdMaChIAXjLPH0ITuz09kBGmaMpY6Nu17XhmM6EE0T3Mw+hCq3ktGUDyrmvkd4B9dSzuM+AGB2gZt89GVYGOD3UPRjFDmGUgc6r9Wc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ld4iCOtJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Lgu9UQTY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 399D81F0156A
-	for <linux-acpi@vger.kernel.org>; Wed,  9 Sep 2026 11:31:37 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ld4iCOtJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08C521F00A3A
+	for <linux-acpi@vger.kernel.org>; Wed,  9 Sep 2026 14:28:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788953497;
-	bh=4HrDWZ38uz9eK5QO7WA7e1rSHfMfcm4h44xrKZFOY9c=;
-	h=From:In-Reply-To:References:Date:Subject:To:Cc;
-	b=Lgu9UQTYB/wumaHz1xnypB7xjEMGRnX170oyZY53mDQpAI9jPWTsPtVtaIqAnqhsP
-	 Bli5+2apr/kL/Tix4LYZai5TDPa+r3/TL8/GwSuTLgEmpNTvj7I34+U8CY8gLHqeTN
-	 lHaYcanqPMrbT5wP4ndecxV47W8K6q5xIiD8jLoUXw6VcnvZYHu9Y1MTSn/xAN9hgh
-	 ZCNQFEtcTCKuZzLjTrUeosovfUnFgXbjs5wc1Vv6P2aaA4GZMRL9H/BtN4svte4TMD
-	 78B1XJoFLxdimyNOLkncz+vGlVIzml9fhQN1lR3uNrm2U3a4tUug0l9QvRv0uaHQHl
-	 /FN45hgL1Vqww==
-Received: by mail-lj1-f169.google.com with SMTP id 38308e7fff4ca-3a4a82aa383so3327671fa.3
-        for <linux-acpi@vger.kernel.org>; Wed, 09 Sep 2026 04:31:37 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBxvQpD60Y0sL4su5ivqxAlmzzv64vktiheJBhU6zvPosuc4PxgBJbOr071zOsZszMKdGZB0ikH8kGN4@vger.kernel.org
-X-Gm-Message-State: AFuF++lSQi1AqM/q0r6yKiB0aLZsqXcsKqzBNjdBL48tichKsBRR4g95
-	Sq7+vO6n/2GLQDhoL5Uto1rnKA7TSTxjlgr2oANBToD3Ida+JcIMy3FdDbKfwBfHgxzuG53bqYQ
-	uMMIoPUjqRig/TmJyhgT8IvpUVmLp4mBIPbO/7yN0vg==
-X-Received: by 2002:a05:651c:3049:b0:3a3:a3:3560 with SMTP id
- 38308e7fff4ca-3a371b2e558mr39827311fa.6.1788953495876; Wed, 09 Sep 2026
- 04:31:35 -0700 (PDT)
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Wed, 9 Sep 2026 04:31:33 -0700
-Received: from 969154062570 named unknown by gmailapi.google.com with
- HTTPREST; Wed, 9 Sep 2026 04:31:33 -0700
-From: Bartosz Golaszewski <brgl@kernel.org>
-In-Reply-To: <20260909080114.591938-2-herve.codina@bootlin.com>
+	s=k20260515; t=1788964124;
+	bh=stadVtBCp6wk6pQ883aHgpti5/i/VdTdCNSizlaXdF0=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=ld4iCOtJuGXAEhSM3K6eujG0sqPNWOp8/i4ICSZ0WmaFMo12ZOs4+jbFcNS0HVI7H
+	 5q+dIOyrlVagh8R2nw7gwU34YJflAeToJ2NYiZ3AVcz6scxy8mKIBZZVHHYcQBvq9U
+	 e4JrDKGN6iN5m5Pb3cjFJs4nIAsjeSksX5KLlhu5LJNag7ByX6DeoRVJgpk9NPNvCL
+	 Qm42x+cWmHCvYE0CXuL1ai0XHBLooWB6jarVzG7Gqs21ySwi5AIlClqy4pJy9qjdWz
+	 Wl9vLGdgU0JeZZx4SkhbD0YHIfIidwKaM2q9vqu2hbwhUub92nq48DJHmvNjtjtzgY
+	 eEXe4XOvwfnwA==
+Received: by mail-lr2-f12.google.com with SMTP id 38308e7fff4ca-3a2ff17443dso4097171fa.1
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Sep 2026 07:28:43 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBzVTKvXtZYeyGkOuI6YJfmv0ENYDdj84xYdORHFdSGUNHzt9VvqkWWWSezUZ/uPx8m8Ffk0y6I3AWWe@vger.kernel.org
+X-Gm-Message-State: AFuF++nJzTi6QAihjZZlZfWcP2Xnt+lcxnobCX3iNpsFbAK6tt+xe7pH
+	YcD1LPJO5eoDzzBwLQaCC07+VkwBH1Tniw/dDAFbWyiGKzIkP1zFr8m0T93d65R/cQg+UygU9T/
+	717auMXPaPl9X+jxBKpeuOahUqXhD8vU=
+X-Received: by 2002:a2e:8a86:0:b0:3a3:52a7:39ee with SMTP id
+ 38308e7fff4ca-3a58d33e018mr4441811fa.1.1788964122291; Wed, 09 Sep 2026
+ 07:28:42 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260909080114.591938-1-herve.codina@bootlin.com> <20260909080114.591938-2-herve.codina@bootlin.com>
-Date: Wed, 9 Sep 2026 04:31:33 -0700
-X-Gmail-Original-Message-ID: <CAMRc=McjcRnO5PWPNqR0387dRHyBU0057LmbKyVstq5m1ghspw@mail.gmail.com>
-X-Gm-Features: AcwNN1Xw1KvJ4chWgNCRGrWjb7O5pyZPCvmfkUuZ4FsL0lp5LvW4mH7OpBMH6KI
-Message-ID: <CAMRc=McjcRnO5PWPNqR0387dRHyBU0057LmbKyVstq5m1ghspw@mail.gmail.com>
-Subject: Re: [PATCH v11 01/10] driver core: fw_devlink: Introduce fw_devlink_set_device()
-To: Herve Codina <herve.codina@bootlin.com>
-Cc: driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, 
-	patches@opensource.cirrus.com, linux-gpio@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org, 
-	Allan Nielsen <allan.nielsen@microchip.com>, Horatiu Vultur <horatiu.vultur@microchip.com>, 
-	Daniel Machon <daniel.machon@microchip.com>, Steen Hegelund <steen.hegelund@microchip.com>, 
-	Luca Ceresoli <luca.ceresoli@bootlin.com>, Thomas Petazzoni <thomas.petazzoni@bootlin.com>, 
-	stable@vger.kernel.org, Ulf Hansson <ulf.hansson@linaro.org>, 
-	Richard Cheng <icheng@nvidia.com>, Andrew Lunn <andrew@lunn.ch>, Rob Herring <robh@kernel.org>, 
-	Saravana Kannan <saravanak@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, 
-	Charles Keepax <ckeepax@opensource.cirrus.com>, 
-	Richard Fitzgerald <rf@opensource.cirrus.com>, David Rhodes <david.rhodes@cirrus.com>, 
-	Linus Walleij <linusw@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, Bartosz Golaszewski <brgl@kernel.org>, 
-	Len Brown <lenb@kernel.org>, Davidlohr Bueso <dave@stgolabs.net>, Jonathan Cameron <jic23@kernel.org>, 
-	Dave Jiang <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dan Williams <djbw@kernel.org>, 
-	Ira Weiny <iweiny@kernel.org>, Li Ming <ming.li@zohomail.com>, Lizhi Hou <lizhi.hou@amd.com>
+References: <20260806233817.622975-1-W_Armin@gmx.de> <f2f17b0d-22a1-4a57-895b-318bb50456f3@gmx.de>
+ <CAJZ5v0j4EAZnrEA3Z7EKX5fdfhTWYbb=f0rOPnLsz5zaEMguGQ@mail.gmail.com> <dec5d721-8bc5-4be3-81cf-16b63829cbf0@gmx.de>
+In-Reply-To: <dec5d721-8bc5-4be3-81cf-16b63829cbf0@gmx.de>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Wed, 9 Sep 2026 16:27:32 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0j67n7N-Eogik3njKV92E=FyW33bTvg6FnVfiT_AqwXug@mail.gmail.com>
+X-Gm-Features: AcwNN1X4VP570iJuqr7naYH5b5DhHROwqgRYiMXybiki5ac9psZhgAOp68PshzE
+Message-ID: <CAJZ5v0j67n7N-Eogik3njKV92E=FyW33bTvg6FnVfiT_AqwXug@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: battery: Fix bogus cycle count values on systems
+ without _BIX
+To: Armin Wolf <W_Armin@gmx.de>
+Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, lenb@kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, wse@tuxedocomputers.com
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, 9 Sep 2026 10:01:00 +0200, Herve Codina <herve.codina@bootlin.com> said:
-> Setting fwnode->dev is specific to fw_devlink.
+On Tue, Sep 1, 2026 at 10:18=E2=80=AFPM Armin Wolf <W_Armin@gmx.de> wrote:
 >
-> In order to avoid having a direct 'fwnode->dev = dev;' in several
-> place in the kernel, introduce fw_devlink_set_device() helper to perform
-> this operation.
+> Am 01.09.26 um 22:16 schrieb Rafael J. Wysocki (Intel):
 >
-> Having this helper allows to hide the fwnode devlink related stuff
-> behind the helper.
+> > On Tue, Sep 1, 2026 at 10:11=E2=80=AFPM Armin Wolf <W_Armin@gmx.de> wro=
+te:
+> >> Am 07.08.26 um 01:38 schrieb Armin Wolf:
+> >>
+> >>> Devices supporting only the legacy _BIF ACPI control method cannot
+> >>> know the cycle count of the associated battery, so cycle_count always
+> >>> remains 0. Claiming support for POWER_SUPPLY_PROP_CYCLE_COUNT on
+> >>> such devices can thus mislead userspace applications and prevents
+> >>> power supply extensions from supplying correct cycle count values.
+> >>>
+> >>> Fix this by not claiming support for POWER_SUPPLY_PROP_CYCLE_COUNT
+> >>> on devices without _BIX.
+> >> Any thoughts on this? I tested it on my device, and so far everything =
+seems
+> >> to work flawlessly.
+> > It looks good overall, but it is quite substantial, which is why it
+> > didn't make it into 7.3-rc1.
+> >
+> > I'm planning to apply it for 7.4.
 >
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Herve Codina <herve.codina@bootlin.com>
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Reviewed-by: Ulf Hansson <ulf.hansson@linaro.org>
-> Reviewed-by: Charles Keepax <ckeepax@opensource.cirrus.com>
-> Reviewed-by: Richard Cheng <icheng@nvidia.com>
-> ---
-> Cc stable because used by other patches with Fixes + Cc stable
-> ---
->  include/linux/fwnode.h | 6 ++++++
->  1 file changed, 6 insertions(+)
->
-> diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-> index a9dcaf7e7076..3ce49575cf82 100644
-> --- a/include/linux/fwnode.h
-> +++ b/include/linux/fwnode.h
-> @@ -260,4 +260,10 @@ void fw_devlink_purge_absent_suppliers(struct fwnode_handle *fwnode);
->  void fw_devlink_refresh_fwnode(struct fwnode_handle *fwnode);
->  bool fw_devlink_is_strict(void);
->
-> +static inline void fw_devlink_set_device(struct fwnode_handle *fwnode,
-> +					 struct device *dev)
-> +{
-> +	fwnode->dev = dev;
-> +}
-> +
->  #endif
-> --
-> 2.55.0
->
->
->
+> Alright, that works for me.
 
-Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+And so applied.
+
+Sashiko has a comment on the _BIX failing case:
+
+https://sashiko.dev/#/patchset/20260806233817.622975-1-W_Armin%40gmx.de
+
+but this can be addressed on top of the current patch IMV.
+
+If you think that it's worth addressing, please send a follow-up one for th=
+at.
+
+Thanks!
