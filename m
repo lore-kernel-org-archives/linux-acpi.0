@@ -1,115 +1,91 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C881C54488E
-	for <linux-acpi@vger.kernel.org>; Wed,  9 Sep 2026 15:30:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29A3533A014;
+	Wed,  9 Sep 2026 15:35:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788967820; cv=none; b=eAxUOSAolzcFLADzlMehdhcFhdXkerPFND3J59/dMNxmkd/nqXLEF786Jtmy1PB9czHIxr9sAaRviNNuIow+kbIJOx3CAAE11PC51cJORtwp8hHmQhgrh0VZtwm3ZOXiZvlQHY47tZk1sTXzB5mQFVgHLmIPEAxbjd4VnNcgKRw=
+	t=1788968159; cv=none; b=BBuW8nqvhWFPAsFZZ2FobOFmdeeTougmqAqSnhjcn7LZBYUzHS78FSIGDs6PB0OaYnJjhzGSmHejwRaw9UL2XoZPqwgx4WEsONf0TYTkX446ceXYsk5/yx1cPCHtFuE+X+VqrvgLKc4ttQDunplyWyr1WnAlQalHHWvLA5O+ICU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788967820; c=relaxed/simple;
-	bh=pVCzGj8l2w0RaDGtSqLj9QIPDIOMgpoppirHtWmxKoo=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Q+DpdpAT4pu/zQN6BmnpZyaJ37no3HEo/GA+GI8kKTEdJWqY5MHHRULBxWKlTjCuvDBO5AaOaYtf59CUuaraGaB2F71vu3anux4cYnCpURXfQsdSAnd+8hSfhfYPiEiQeaaQ0bSU0K+6DP4fSJ+oI0LdYlU+naoKMor4kGQ5rTY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WLAO8NzV; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788968159; c=relaxed/simple;
+	bh=LwokwZRP4YKCSgxFo8B5ibiOoOROAR4KvMgZFL9vKSk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=bcYoq8SNYF9rd9Thdlg/nzCItrKYkg5uNDgc8eNZ0sjq7qS97gUF2IZDBqcDy3UPs8bY92vL2thS3aULmdUV/wq9twpDyTaASuANVjizFiSP/2yBQ2gDl6hngqal3iS2ZA1NhdGAlgdSYjZXnUrxUmQQva9OV9tn2IopR5JIjqU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JEREf9WZ; arc=none smtp.client-ip=192.198.163.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WLAO8NzV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82E531F00A3A
-	for <linux-acpi@vger.kernel.org>; Wed,  9 Sep 2026 15:30:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1788967818;
-	bh=QwEhflKuiwhqPTc4EAiTXST2I5cyiy7e2KYuuIw9i54=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=WLAO8NzVLeKO5MsmMmZUYrfQfbpFD5QFhoQntRocWLuvHbFq7RGyUIf2Aav+VRFD5
-	 q1E7a+g2loQOBT9smJyMdp7VuU8eDukFpaIjCh7Kkj5s67z/tbI+RD3BiOY3wy4ry7
-	 SRZ1WIwg7XQ8dQ7zK4rn/r9a/rPeSl/2FtE6N29Ty56EWCSU3aSDINEPXlTVD3jC6H
-	 k/Cw5sEbD3ZIW5+D9kb1thFROCyhhH7ZxdAG2/Bot2pk+PgEuVued2D44DoRJmQcE8
-	 cgEEv0ADCXeDz7CMkhCm7TQLQiddPez/KGfBNRfxIanAoHfnnhm1r5shz07GFSeL5y
-	 TWa5n4Sg3zMIA==
-Received: by mail-lf1-f46.google.com with SMTP id 2adb3069b0e04-5b6188a2c0eso4958179e87.1
-        for <linux-acpi@vger.kernel.org>; Wed, 09 Sep 2026 08:30:18 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBwLosuV58RmWcbSH8iBTr/V1AnvzfaRMpNMvfDVT0qBI21x4fQ8LZ2trlJkW7lTBLkpdDCpPaFxUR6z@vger.kernel.org
-X-Gm-Message-State: AFuF++nfaAGGQHKcWbvCPEqLZivBugL27SP/YySXJQnGXh1U5befqQI5
-	DYucQ2rXf8u/jnWBr5/8fMWOR+E6VlGy5O4B7QOc7o596mCiDbfyRk1ZDHG8ganZzfXrsaomaNk
-	pBQRIQvVM8uRTqPt46S0hA5I/+Jwbr+4=
-X-Received: by 2002:a05:6512:224b:b0:5b6:1a7c:fd8a with SMTP id
- 2adb3069b0e04-5b61a7cfe7dmr5894765e87.48.1788967816879; Wed, 09 Sep 2026
- 08:30:16 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JEREf9WZ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1788968157; x=1820504157;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=LwokwZRP4YKCSgxFo8B5ibiOoOROAR4KvMgZFL9vKSk=;
+  b=JEREf9WZsLarzoisp23ddH84clmspvXk4AIWRHkjaqD8nHf08YjwD2jj
+   qmtc2HzVJhTTtvUMxtbEha8RNkWLXaYrN4MvsaYNxZwgJ0+6z0plg6IQt
+   /IjC08nWj26iwz0PUAcT1h1SOBDMSjHm19ukrOIKYbzyZDTy1cAum4Aub
+   o66C3eNs2Hi0suug9vkScf2u5s8zlxpWF+AxDizbYy7jxlD1CueTIjTdX
+   OL1PjRoCO9jagT3saDF476t1sCgEKRcIEnDZDM/TCiHBFYKFvWkwaYHES
+   LWzd5xOhbUQi4OSB7PDVHUkgQxO/y0KJWgJLKP5OwwbCWWBwNwUGpnkgn
+   A==;
+X-CSE-ConnectionGUID: NFW7WWhLS2GQ5WNfu2D29Q==
+X-CSE-MsgGUID: lATCCTQrSHe0S742WjGBCg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11900"; a="114942263"
+X-IronPort-AV: E=Sophos;i="6.25,270,1779174000"; 
+   d="scan'208";a="114942263"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2026 08:35:56 -0700
+X-CSE-ConnectionGUID: HoIp2so8Re6yasKDaEyesw==
+X-CSE-MsgGUID: pa4yRpL1SgiDkC1UjO0Ljg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.25,270,1779174000"; 
+   d="scan'208";a="275486893"
+Received: from mkosciow-mobl1.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.245.245.132])
+  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2026 08:35:55 -0700
+Received: from kekkonen.localdomain (localhost [IPv6:::1])
+	by kekkonen.fi.intel.com (Postfix) with ESMTP id 68E64121BE3;
+	Wed, 09 Sep 2026 18:35:57 +0300 (EEST)
+Date: Wed, 9 Sep 2026 18:35:57 +0300
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH 2/3] ACPI: Use PTR_IF() for ACPI_PTR()
+Message-ID: <aqF83WCG6TnZuwsq@kekkonen.localdomain>
+References: <20260828084328.257703-1-sakari.ailus@linux.intel.com>
+ <20260828084328.257703-3-sakari.ailus@linux.intel.com>
+ <CAJZ5v0jwmpqO+QhKjgc2ipU6GMFPt-+Uggi4U4oU2WH0_Yichg@mail.gmail.com>
+ <CAJZ5v0h703-PqVtch5Zr82FjRHWt0W1x7mo6PUHD-sB9LAnLuA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260828084328.257703-1-sakari.ailus@linux.intel.com>
- <20260828084328.257703-3-sakari.ailus@linux.intel.com> <CAJZ5v0jwmpqO+QhKjgc2ipU6GMFPt-+Uggi4U4oU2WH0_Yichg@mail.gmail.com>
-In-Reply-To: <CAJZ5v0jwmpqO+QhKjgc2ipU6GMFPt-+Uggi4U4oU2WH0_Yichg@mail.gmail.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 9 Sep 2026 17:29:06 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0h703-PqVtch5Zr82FjRHWt0W1x7mo6PUHD-sB9LAnLuA@mail.gmail.com>
-X-Gm-Features: AcwNN1WJhwtwtGgOzE5Y4vK99Y5IZdypCTKWLarGs_Ef-v9MWaZD1OKEwlPTRpQ
-Message-ID: <CAJZ5v0h703-PqVtch5Zr82FjRHWt0W1x7mo6PUHD-sB9LAnLuA@mail.gmail.com>
-Subject: Re: [PATCH 2/3] ACPI: Use PTR_IF() for ACPI_PTR()
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-acpi@vger.kernel.org, rafael@kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJZ5v0h703-PqVtch5Zr82FjRHWt0W1x7mo6PUHD-sB9LAnLuA@mail.gmail.com>
 
-On Fri, Aug 28, 2026 at 11:56=E2=80=AFAM Rafael J. Wysocki (Intel)
-<rafael@kernel.org> wrote:
->
-> On Fri, Aug 28, 2026 at 10:43=E2=80=AFAM Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
+On Wed, Sep 09, 2026 at 05:29:06PM +0200, Rafael J. Wysocki (Intel) wrote:
+> On Fri, Aug 28, 2026 at 11:56 AM Rafael J. Wysocki (Intel)
+> <rafael@kernel.org> wrote:
 > >
-> > Make ACPI_PTR() use PTR_IF() so __maybe_unused can be dropped from what=
- is
-> > being referred to.
+> > On Fri, Aug 28, 2026 at 10:43 AM Sakari Ailus
+> > <sakari.ailus@linux.intel.com> wrote:
+> > >
+> > > Make ACPI_PTR() use PTR_IF() so __maybe_unused can be dropped from what is
+> > > being referred to.
+> > >
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > >
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->
-> Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+> > Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+> 
+> Or do you want me to pick it up?
 
-Or do you want me to pick it up?
+I'm happy to take it. I wondered if you had an opinion on ACPI_PTR() use in
+the third patch.
 
-> > ---
-> >  include/linux/acpi.h | 5 ++---
-> >  1 file changed, 2 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> > index 10d6c6c11bdf..347763282f36 100644
-> > --- a/include/linux/acpi.h
-> > +++ b/include/linux/acpi.h
-> > @@ -755,7 +755,6 @@ int acpi_device_modalias(struct device *, char *, i=
-nt);
-> >
-> >  struct platform_device *acpi_create_platform_device(struct acpi_device=
- *,
-> >                                                     const struct proper=
-ty_entry *);
-> > -#define ACPI_PTR(_ptr) (_ptr)
-> >
-> >  static inline void acpi_device_set_enumerated(struct acpi_device *adev=
-)
-> >  {
-> > @@ -1073,8 +1072,6 @@ static inline int acpi_dma_configure_id(struct de=
-vice *dev,
-> >         return 0;
-> >  }
-> >
-> > -#define ACPI_PTR(_ptr) (NULL)
-> > -
-> >  static inline void acpi_device_set_enumerated(struct acpi_device *adev=
-)
-> >  {
-> >  }
-> > @@ -1152,6 +1149,8 @@ static inline int acpi_mrrm_max_mem_region(void)
-> >
-> >  #endif /* !CONFIG_ACPI */
-> >
-> > +#define ACPI_PTR(_ptr) PTR_IF(IS_BUILTIN(CONFIG_ACPI), _ptr)
-> > +
-> >  #ifdef CONFIG_ACPI_HMAT
-> >  int hmat_get_extended_linear_cache_size(struct resource *backing_res, =
-int nid,
-> >                                         resource_size_t *size);
-> > --
+-- 
+Sakari Ailus
