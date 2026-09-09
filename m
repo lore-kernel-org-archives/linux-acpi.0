@@ -1,116 +1,98 @@
-Received: from mailout2.hostsharing.net (mailout2.hostsharing.net [83.223.78.233])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14139577E34;
-	Wed,  9 Sep 2026 15:16:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=83.223.78.233
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85E0F241CB7
+	for <linux-acpi@vger.kernel.org>; Wed,  9 Sep 2026 15:18:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788966988; cv=none; b=Xtz88slZSXjY9Mt97+i+2vYJ7eFmsehylZiU9X+FMfQ6N6i9BuFAUkVeJPM3sD+rNmzSPGohinXh7CJBgp8AVXt4LYcTciyJX8OC9iCWg9D4OHYpl93jbk3YZCkTwvxv/ndVXSMREhjVzPC06yRRyUwkOROSD76gpFsJyNZBK6I=
+	t=1788967089; cv=none; b=ZBhluYjtxEEO/XzMa/vQ1A5BhE481h6WIMbeIJJHK5IWlHMBXV+NILZpST7DgfCguEAlaHXCwp1ularyURPH57hSNlJip1wq/H07bBJ3SGpV3cGfkK6q3kXIGxM9gDt0/gb1W6s1pArgqnFvWjlBTiPViAodixTFlutdtbTZq/I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788966988; c=relaxed/simple;
-	bh=cbefu7KtBVu8Hz7/GYc4DkPEzBmtg3OsqUYhpmCOoM0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sSPOejruLww/Bd+9yw0cEDYP38ycPsWap85D3LaLkZi6KoTw7WK04cXXJYC3o4YQTJJVnZF7UeAHifMWlk38uT/6rjlULS6E7QZ9xO/Ls0awmkCrJuO2IpXC0psoS9BVG9mX7x+m6BLKUmKjek5ST+1YXTs+nNkjpjlGrh7o4vw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=wunner.de; spf=pass smtp.mailfrom=wunner.de; arc=none smtp.client-ip=83.223.78.233
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=wunner.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wunner.de
-Received: from h08.hostsharing.net (h08.hostsharing.net [IPv6:2a01:37:1000::53df:5f1c:0])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange x25519 server-signature ECDSA (secp384r1) server-digest SHA384
-	 client-signature ECDSA (secp384r1) client-digest SHA384)
-	(Client CN "*.hostsharing.net", Issuer "GlobalSign GCC R6 AlphaSSL CA 2025" (verified OK))
-	by mailout2.hostsharing.net (Postfix) with ESMTPS id 2CCF510F6F;
-	Wed, 09 Sep 2026 17:16:15 +0200 (CEST)
-Received: by h08.hostsharing.net (Postfix, from userid 100393)
-	id EEB5A6272376; Wed,  9 Sep 2026 17:16:14 +0200 (CEST)
-Date: Wed, 9 Sep 2026 17:16:14 +0200
-From: Lukas Wunner <lukas@wunner.de>
-To: Terry Bowman <terry.bowman@amd.com>
-Cc: Jonathan Cameron <jic23@kernel.org>, Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <djbw@kernel.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-cxl@vger.kernel.org,
-	Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Shuai Xue <xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>,
-	Ira Weiny <iweiny@kernel.org>, Li Ming <ming.li@zohomail.com>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Ben Cheatham <Benjamin.Cheatham@amd.com>,
-	Richard Cheng <icheng@nvidia.com>,
-	Robert Richter <rrichter@amd.com>, linux-pci@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v20 6/9] PCI: Cache PCI DSN into pci_dev->dsn during probe
-Message-ID: <aqF4PqdWtKpecQc2@wunner.de>
-References: <20260902133933.2992457-1-terry.bowman@amd.com>
- <20260902133933.2992457-7-terry.bowman@amd.com>
+	s=arc-20240116; t=1788967089; c=relaxed/simple;
+	bh=e4avd8W6h3CHEFt8wxakMpkcDez90eq+QXXtVfI1/Vc=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=tXMh/yo/SXvvWITJBGG0LHH4AYMRnx0Leff6pYe7jUiTXg5BVWF7OMyNwKdqc2W0CCKDzWtW1l/YW7EMKI12c4n8D2LHU62n1VK7vWxJl7AvV5jlI2bIFvRcBlFQ+KNsRJsu3lwxurwZoTBzusdyuHYYQDst3ivcq0M6TzfcP7w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=enoYgBZs; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="enoYgBZs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D72F1F00A3D
+	for <linux-acpi@vger.kernel.org>; Wed,  9 Sep 2026 15:18:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788967088;
+	bh=RACoOXuh30Y5sKO6ycgHm1b/3nOIIcawlJfb57IABzE=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=enoYgBZseRapVpuCLXSWuGnaZcpDc19fOaDYzYI7pnpqh0ekqNwIE0rrMzKjANLgY
+	 nqDCXAN78ToF0chnhkOYSkDZF17u2r3UPr3ztSuUNm0WGBRim7XZMi9urv3WX+wsRN
+	 o0aW0w0siwViZrY81q21wHu2R2lNT+aL+ehdUpNtyj3+ifYa2KFj6rX3PvjLJKe1ZO
+	 aB/cs6wR21+COfjriON+Tn+oKG74gmdTsp5SAZrOEG1RmTUceGPv1t+oB0FmVMSI6+
+	 xF+UNZY8NFfiFnBKOnI1Duiot00Jb4tTIRqOrw5t1bkHzwMEgIFnMVzWk6eOETfycp
+	 4f4UghLrvDzkg==
+Received: by mail-lr2-f12.google.com with SMTP id 38308e7fff4ca-3a302c23fb2so3033101fa.2
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Sep 2026 08:18:08 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBxamEW2Rbs+JeDlt1KI+8zi/vxBwYiYQZGKY1/RyTVEvVkKhS/+ltFkg0pa3WAjyhLAsXpe8ujKr9Jw@vger.kernel.org
+X-Gm-Message-State: AFuF++kex+uIdPs3McqIqIzeCw5CSCwHlqLySdbWVct9qz0shKSlQm0u
+	TMzuuZxfzIPCiz4xWdF6FBELE2aGfvPeykbRscVPNyFP+FKIlv5W5AR1REP8GfmM8Zv3HhKizz6
+	haOJ3NbP0KsuJWuMel91EULIJIHuqhns=
+X-Received: by 2002:a2e:bc87:0:b0:396:7547:439e with SMTP id
+ 38308e7fff4ca-3a58d44d9e9mr1994491fa.7.1788967085423; Wed, 09 Sep 2026
+ 08:18:05 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260902133933.2992457-7-terry.bowman@amd.com>
+References: <20260908014645.4165221-1-lijun01@kylinos.cn>
+In-Reply-To: <20260908014645.4165221-1-lijun01@kylinos.cn>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Wed, 9 Sep 2026 17:16:54 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jQ+dBQX0WhKJgR6QqnAufVFAbH-bFK_Vg8+9Y05aoveA@mail.gmail.com>
+X-Gm-Features: AcwNN1VVHAUwPE8NE8jH2SAJsa4c8isb2k7OrWo9E--2ID_-pp-DH__RRWhEk08
+Message-ID: <CAJZ5v0jQ+dBQX0WhKJgR6QqnAufVFAbH-bFK_Vg8+9Y05aoveA@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: button: replace SIMPLE_DEV_PM_OPS with DEFINE_SIMPLE_DEV_PM_OPS
+To: Li Jun <lijun01@kylinos.cn>
+Cc: rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 02, 2026 at 08:39:30AM -0500, Terry Bowman wrote:
-> Subsequent CXL error-reporting code paths need to log the PCI Device
-> Serial Number (DSN) as part of trace events emitted from interrupt or
-> panic context. Computing the DSN there via pci_get_dsn() requires PCI
-> configuration space reads, which are slow, can fail when the link is
-> down or frozen, and may not be safe in some contexts.
-> 
-> Add a u64 dsn field to struct pci_dev and populate it from pci_get_dsn()
-> during pci_init_capabilities() at probe time via pci_dsn_init(). Only
-> write dev->dsn when the read succeeds. The zero initial value from
-> pci_dev allocation already represents 'no DSN available.'
-[...]
-> Signed-off-by: Terry Bowman <terry.bowman@amd.com>
-> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-> Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+On Tue, Sep 8, 2026 at 3:47=E2=80=AFAM Li Jun <lijun01@kylinos.cn> wrote:
+>
+> Replace `#ifdef CONFIG_PM_SLEEP` boilerplate with the modern
+> `DEFINE_SIMPLE_DEV_PM_OPS()` macro in the acpi_button driver.
 
-Reviewed-by: Lukas Wunner <lukas@wunner.de>
+This is not a replacement, it just makes the code previously under the
+#ifdef to be compiled and never used.
 
-> +++ b/drivers/pci/probe.c
-> @@ -2638,6 +2638,22 @@ void pcie_report_downtraining(struct pci_dev *dev)
->  	__pcie_print_link_status(dev, false);
->  }
->  
-> +/*
-> + * Cache the Device Serial Number for use in contexts where config-space reads
-> + * are unsafe (interrupt, panic). Process-context callers that need a fresh
-> + * value (e.g. hotplug device replacement) call pci_get_dsn() and compare it
-> + * against this cached pdev->dsn to detect a changed device. Note pdev->dsn
-> + * is 0 for devices without the DSN capability, so such a comparison cannot
-> + * distinguish a replacement.
-> + */
+> Signed-off-by: Li Jun <lijun01@kylinos.cn>
+> ---
+>  drivers/acpi/button.c | 8 ++------
+>  1 file changed, 2 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+> index cdbb1023a8ee..15fc5d2ae467 100644
+> --- a/drivers/acpi/button.c
+> +++ b/drivers/acpi/button.c
+> @@ -161,14 +161,10 @@ static const struct dmi_system_id dmi_lid_quirks[] =
+=3D {
+>  static int acpi_button_probe(struct platform_device *pdev);
+>  static void acpi_button_remove(struct platform_device *pdev);
+>
+> -#ifdef CONFIG_PM_SLEEP
+>  static int acpi_button_suspend(struct device *dev);
+>  static int acpi_button_resume(struct device *dev);
+> -#else
+> -#define acpi_button_suspend NULL
+> -#define acpi_button_resume NULL
+> -#endif
+> -static SIMPLE_DEV_PM_OPS(acpi_button_pm, acpi_button_suspend, acpi_butto=
+n_resume);
+> +
+> +static DEFINE_SIMPLE_DEV_PM_OPS(acpi_button_pm, acpi_button_suspend, acp=
+i_button_resume);
 
-A value of 0 is not a valid serial number in the first place:
+Does this compile with CONFIG_PM_SLEEP unset?
 
-PCIe r7.0 sec 7.9.3.2 defines the Device Serial Number as an EUI-64.
+Regardless, I don't see much point in making these changes TBH.
 
-In the corresponding IEEE spec on EUIs on page 11 in section
-"Unassigned and NULL EUI values", it says:
-
-   "Many applications have found it useful to define a distinct null
-    identifier, most often indicating the absence of a valid EUI-48 or
-    EUI-64 value. As an example, a null value might be the power-on state
-    for an integrated circuit register, until the hardware or firmware
-    initializes the register with a valid EUI.
-    [...]
-    The all-zeros EUI-48 value (00-00-00-00-00-00) and EUI-64 value
-    (00-00-00-00-00-00-00-00), though assigned to an organization,
-    have not been and will not be used by that assignee as an EUI.
-    (They can be considered as assigned to the IEEE Registration Authority.)"
-
-    https://standards.ieee.org/content/dam/ieee-standards/standards/web/documents/tutorials/eui.pdf
-
-Thanks,
-
-Lukas
+>  static struct platform_driver acpi_button_driver =3D {
+>         .probe =3D acpi_button_probe,
+> --
