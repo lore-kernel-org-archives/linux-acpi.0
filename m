@@ -1,111 +1,242 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA74E560AB3;
-	Wed,  9 Sep 2026 16:39:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71D10583AD9;
+	Wed,  9 Sep 2026 16:41:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788971965; cv=none; b=hZTh76z+eENkRxAbSVCIVa8n1EvjqJb7ZfcIDws+KxYpjqXlkhy2c6bkVA62AgzTTXo2QATIEUQJ0lhziTGSX7Z+W3TRF6aNQtgR3TzmCnvXB8CgLnVZc2aKnqZ16EhR0u+ZaROpw39BIwpDhUzCUtJ9pkR8+4ECmRnbOOoZwIo=
+	t=1788972066; cv=none; b=Jc/sgkI+5yHnHktiiDyEiZH2bYs3cJn0x8n3p7EszHRvusxhsnBR3+KKGmX6pO/Oqa+USRfistA8IoGkiMkrLS/gpSmMoUnpe7cp0oi3zPEIRsuPjrHm/nbjikeb6FAtcY3urNgPrPokwjZUgaQG3d3E7YMENgfwYshikM7SF94=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788971965; c=relaxed/simple;
-	bh=FOm1fIw0DMQpAGmJi8JiagS47H8KggFhPCfSsm4vK+Y=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=KAVy1tb57Z9w+wB0ew07o0XKcmlRqrD0L0oDvCfJJcByS3MVjrpURQoeUU6e+8F1lzoh3zBYyONnIpAX1DyGK9Vm4hIrGXKs3SaPVFYYjiYYc9rSdb6DICjydIvqIdJAyn2zlZBjK8cY+ovVjTGboAUfttwGdB2VlHhzAqRaINA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Im87FuBm; arc=none smtp.client-ip=192.198.163.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1788972066; c=relaxed/simple;
+	bh=d/XEkXqOxGitkHKJC1GYcJwZVurgxLUKAHZLL90MXBA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=JpIP03cgArmyOzirNn1esjmALytZYRJeGatrVHPC9MHlTzC0KW0xvcqQdMmOZEtZfK0b9Lavae5EtXt3Gtl0qafCuwJdZ1+qhlMkOCLZJ7GHFjgZMDWHwnwaawebXZGz6Hhw/s7WX1q/Ufsz4faK7s1WkBd+QBiqaJjVEfSZabQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QvGHHxJV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Im87FuBm"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1788971963; x=1820507963;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=FOm1fIw0DMQpAGmJi8JiagS47H8KggFhPCfSsm4vK+Y=;
-  b=Im87FuBm3frEvf4c10a0VMO75pJA1fqYaUX6KwYDb1lmL9udF7fCXAW3
-   iB6CzS6JMBmCkmYUYTubvyVkjS6GVgGwfq6/2HIjK8WBQxj4PVJClGpTD
-   d0ey9cGGmuNwrgNuMNUqocHWwJS0qIMWIRcZcGYizIGRcZTwsGBDRQ6A6
-   Fm8Dh28zM4evAQbiznVh8LbR0SE2rVQmfuhkTWW5V94zdb+VZDH2Y9gM4
-   bDy83HlBthfzG8Qs8WEihhSOCc3V8IEAvAUePalb+HtXjzl0SwhoIYJwP
-   yjafEQJxEJdhUuPC1NTq8qfdrcTL6iX5OLxAywWWsA+3SYqXZTK1AUV0e
-   Q==;
-X-CSE-ConnectionGUID: hNGG9aJUQueLSrQfz4P/iA==
-X-CSE-MsgGUID: trH7MebpQTWZ0IOG7i27Bw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11900"; a="76964847"
-X-IronPort-AV: E=Sophos;i="6.25,270,1779174000"; 
-   d="scan'208";a="76964847"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2026 09:39:22 -0700
-X-CSE-ConnectionGUID: FchodqDrRu6u56mwT6YlEQ==
-X-CSE-MsgGUID: R9Zcv4YjRTC0iXfF0jXuCQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,270,1779174000"; 
-   d="scan'208";a="267688901"
-Received: from black.igk.intel.com ([10.91.253.5])
-  by fmviesa010.fm.intel.com with ESMTP; 09 Sep 2026 09:39:20 -0700
-Received: by black.igk.intel.com (Postfix, from userid 1003)
-	id 8EC0D99; Wed, 09 Sep 2026 18:39:19 +0200 (CEST)
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-	linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev,
-	linux-kernel@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	Pawel Chmielewski <pawel.chmielewski@intel.com>,
-	Len Brown <lenb@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 1/1] ACPI: bus: Reduce runtime memory footprint of struct acpi_device
-Date: Wed,  9 Sep 2026 18:39:18 +0200
-Message-ID: <20260909163918.368017-1-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.50.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QvGHHxJV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE0B11F000FF;
+	Wed,  9 Sep 2026 16:41:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788972065;
+	bh=hq66K/NljwiXGEdMQTlA0JW07dVrWK+70Qdzt//aDMw=;
+	h=From:To:Cc:Subject:Date;
+	b=QvGHHxJVC/V8DkXoW6smQ3iKZS35CGyCnvMiiriIJ/6gPJUGjUiNY1fNTWPtkfI78
+	 fKOkOCHgantis1AWsSeFsxBNXTXl54G86CZKQZ4SAF7YWQZWfKpk+fVNwd8Uw4NfC9
+	 xQz8FiXFflP9JK9fQR8eXCalB51C6a9JcnH7qJ2WPcMSfyW1HXIhXQ6+zW1/ivvwhl
+	 jSKVcd4VfQIJY8f+/Y4LWL3r+XtiPZCzUK9O1M4peNhez5gwBbWaGtmZTsT1qxR/FN
+	 eqkNkfpEbIeI+K9aLi/nCU9RtyrtxKNB6wQD2Kn1rZDFiMsldyWvtp4gN+pjbUQXWK
+	 uCEvHNo3T3xtQ==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Danilo Krummrich <dakr@kernel.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
+ LKML <linux-kernel@vger.kernel.org>,
+ Linux Driver Core Development <driver-core@lists.linux.dev>
+Subject: [PATCH v2] driver core/ACPI: Introduce companion_bus_register()
+Date: Wed, 09 Sep 2026 18:41:01 +0200
+Message-ID: <6329043.lOV4Wx5bFT@rafael.j.wysocki>
+Organization: Linux Kernel Development - Intel
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-The ACPI handler is heavily used by the ACPI code. Making it as
-the first member in the struct acpi_device reduces code size.
-For instance, the drivers/acpi/scan.o (with `make allyesconfig`)
-gives this statistics:
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-add/remove: 0/0 grow/shrink: 3/8 up/down: 50/-169 (-119)
-Function                                     old     new   delta
-acpi_device_add                             2294    2319     +25
-acpi_add_single_object                      6523    6544     +21
-acpi_dev_get_next_consumer_dev               602     606      +4
-acpi_tie_acpi_dev                            169     165      -4
-acpi_scan_drop_device                        319     315      -4
-acpi_dev_clear_dependencies                 1151    1147      -4
-acpi_bus_attach                             2898    2894      -4
-acpi_dma_get_range                          1420    1415      -5
-acpi_init_device_object                     5497    5485     -12
-acpi_bus_check_add                          1940    1923     -17
-acpi_device_hotplug                         3407    3288    -119
-Total: Before=77509, After=77390, chg -0.15%
+The ACPI bus type does not allow drivers to be registered, so the sysfs
+attributes related to drivers created for it and its devices are
+useless, and its drivers/ directory is always empty.  All of that is
+confusing and wasteful.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To allow skipping the creation of those sysfs attributes, introduce a
+"companion" bus type concept and add a special registration function for
+registering "companion" bus types, companion_bus_register().
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- include/acpi/acpi_bus.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index a10a591c18b2..64ae66ca456e 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -435,9 +435,9 @@ struct acpi_device_software_nodes {
+v1 -> v2:
+   * Address Sashiko feedback regarding possible leaks of references in two
+     places:
+
+     https://sashiko.dev/#/patchset/8753121.T7Z3S40VBb%40rafael.j.wysocki
+
+---
+ drivers/acpi/bus.c         |    8 -----
+ drivers/base/bus.c         |   72 ++++++++++++++++++++++++++++++++++-----------
+ include/linux/device/bus.h |    1 
+ 3 files changed, 57 insertions(+), 24 deletions(-)
+
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1120,11 +1120,6 @@ EXPORT_SYMBOL_GPL(acpi_driver_match_devi
+                               ACPI Bus operations
+    -------------------------------------------------------------------------- */
  
- /* Device */
- struct acpi_device {
-+	acpi_handle handle;		/* no handle for fixed hardware */
- 	u32 pld_crc;
- 	int device_type;
--	acpi_handle handle;		/* no handle for fixed hardware */
- 	struct fwnode_handle fwnode;
- 	struct list_head wakeup_list;
- 	struct list_head del_list;
--- 
-2.50.1
+-static int acpi_bus_match(struct device *dev, const struct device_driver *drv)
+-{
+-	return 0;
+-}
+-
+ static int acpi_device_uevent(const struct device *dev, struct kobj_uevent_env *env)
+ {
+ 	return __acpi_device_uevent_modalias(to_acpi_device(dev), env);
+@@ -1132,7 +1127,6 @@ static int acpi_device_uevent(const stru
+ 
+ const struct bus_type acpi_bus_type = {
+ 	.name		= "acpi",
+-	.match		= acpi_bus_match,
+ 	.uevent		= acpi_device_uevent,
+ };
+ 
+@@ -1451,7 +1445,7 @@ static int __init acpi_bus_init(void)
+ 	 */
+ 	acpi_root_dir = proc_mkdir(ACPI_BUS_FILE_ROOT, NULL);
+ 
+-	result = bus_register(&acpi_bus_type);
++	result = companion_bus_register(&acpi_bus_type);
+ 	if (!result)
+ 		return 0;
+ 
+--- a/drivers/base/bus.c
++++ b/drivers/base/bus.c
+@@ -738,6 +738,11 @@ int bus_add_driver(struct device_driver
+ 	if (!sp)
+ 		return -EINVAL;
+ 
++	if (!sp->drivers_kset) {
++		error = -ENXIO;
++		goto out_put_bus;
++	}
++
+ 	/*
+ 	 * Reference in sp is now incremented and will be dropped when
+ 	 * the driver is removed from the bus
+@@ -930,15 +935,7 @@ static ssize_t bus_uevent_store(const st
+ static struct bus_attribute bus_attr_uevent = __ATTR(uevent, 0200, NULL,
+ 						     bus_uevent_store);
+ 
+-/**
+- * bus_register - register a driver-core subsystem
+- * @bus: bus to register
+- *
+- * Once we have that, we register the bus with the kobject
+- * infrastructure, then register the children subsystems it has:
+- * the devices and drivers that belong to the subsystem.
+- */
+-int bus_register(const struct bus_type *bus)
++static int bus_register_internal(const struct bus_type *bus, bool use_drivers)
+ {
+ 	int retval;
+ 	struct subsys_private *priv;
+@@ -960,7 +957,7 @@ int bus_register(const struct bus_type *
+ 
+ 	bus_kobj->kset = bus_kset;
+ 	bus_kobj->ktype = &bus_ktype;
+-	priv->drivers_autoprobe = 1;
++	priv->drivers_autoprobe = use_drivers;
+ 
+ 	retval = kset_register(&priv->subsys);
+ 	if (retval)
+@@ -976,10 +973,12 @@ int bus_register(const struct bus_type *
+ 		goto bus_devices_fail;
+ 	}
+ 
+-	priv->drivers_kset = kset_create_and_add("drivers", NULL, bus_kobj);
+-	if (!priv->drivers_kset) {
+-		retval = -ENOMEM;
+-		goto bus_drivers_fail;
++	if (use_drivers) {
++		priv->drivers_kset = kset_create_and_add("drivers", NULL, bus_kobj);
++		if (!priv->drivers_kset) {
++			retval = -ENOMEM;
++			goto bus_drivers_fail;
++		}
+ 	}
+ 
+ 	INIT_LIST_HEAD(&priv->interfaces);
+@@ -989,9 +988,11 @@ int bus_register(const struct bus_type *
+ 	klist_init(&priv->klist_devices, klist_devices_get, klist_devices_put);
+ 	klist_init(&priv->klist_drivers, NULL, NULL);
+ 
+-	retval = add_probe_files(bus);
+-	if (retval)
+-		goto bus_probe_files_fail;
++	if (use_drivers) {
++		retval = add_probe_files(bus);
++		if (retval)
++			goto bus_probe_files_fail;
++	}
+ 
+ 	retval = sysfs_create_groups(bus_kobj, bus->bus_groups);
+ 	if (retval)
+@@ -1016,9 +1017,41 @@ out:
+ 	kfree(priv);
+ 	return retval;
+ }
++
++/**
++ * bus_register - register a driver-core subsystem
++ * @bus: bus to register
++ *
++ * Once we have that, we register the bus with the kobject
++ * infrastructure, then register the children subsystems it has:
++ * the devices and drivers that belong to the subsystem.
++ */
++int bus_register(const struct bus_type *bus)
++{
++	return bus_register_internal(bus, true);
++}
+ EXPORT_SYMBOL_GPL(bus_register);
+ 
+ /**
++ * companion_bus_register - register a companion bus type
++ * @bus: companion bus to register
++ *
++ * A companion bus is a bus without drivers.  Devices that belong to it can be
++ * bound to other devices as their "companions" and represent interfaces that
++ * can be used by the drivers of those other devices.  They may also be used for
++ * the enumeration of those other devices.
++ *
++ * The ACPI bus is a specific example of a companion bus.
++ *
++ * Registering a companion bus is like registering a regular bus except that it
++ * skips the creation of sysfs interfaces related to drivers for @bus.
++ */
++int companion_bus_register(const struct bus_type *bus)
++{
++	return bus_register_internal(bus, false);
++}
++
++/**
+  * bus_unregister - remove a bus from the system
+  * @bus: bus.
+  *
+@@ -1415,6 +1448,11 @@ struct device_driver *driver_find(const
+ 	if (!sp)
+ 		return NULL;
+ 
++	if (!sp->drivers_kset) {
++		subsys_put(sp);
++		return NULL;
++	}
++
+ 	k = kset_find_obj(sp->drivers_kset, name);
+ 	subsys_put(sp);
+ 	if (!k)
+--- a/include/linux/device/bus.h
++++ b/include/linux/device/bus.h
+@@ -113,6 +113,7 @@ struct bus_type {
+ 	bool need_parent_lock;
+ };
+ 
++int __must_check companion_bus_register(const struct bus_type *bus);
+ int __must_check bus_register(const struct bus_type *bus);
+ 
+ void bus_unregister(const struct bus_type *bus);
+
+
 
