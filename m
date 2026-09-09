@@ -1,133 +1,143 @@
-Received: from mailout1.hostsharing.net (mailout1.hostsharing.net [83.223.95.204])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AFED2AD32;
-	Wed,  9 Sep 2026 16:03:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=83.223.95.204
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E64CB57ED98;
+	Wed,  9 Sep 2026 16:03:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788969821; cv=none; b=SWfpSNwjtaF8RyBC6YRNwXOfHqv7yskWw6JTw6DexgGRF2vYqZxgy4Hcu/ATbXh5l/flS285QysUoDIcX1BoM/tPVbZCXGNnOBRidVP/YajBIcW+Ak+QqlqbIVeuh0wf/coBogapLk2Wz6rzMzL25fMRqnwWxyO1LZf9Zi2uHrU=
+	t=1788969830; cv=none; b=DPfL/bADvKPeXo5m4+azPW+tC1BYlQidbe+1iTC6JpQUMqPrMCTqLLMTEsH4Tv7WpGy3XHSwbEbryd0rnTtQp2znr597JyrHZMR3XSf5fJOi1s3sklYLu4aIRb/HuLEVVRh0QPjFMMQDi1+oTuYGfDyuhvZn1aloQ9ZNMfzs+0M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788969821; c=relaxed/simple;
-	bh=kY17nIjTQAL9Gi1jQOOw8dzs9KXs7EcvbG+ooKYoQhQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UdKnX6cdj3QWeU/uwGD/ctVt2w2obUd4LWnWbIpi3pEaAaKvtMaq6RoUtWhK/UzcW/b4HJ4dR5f6HSuiGU6SQJj11iUO+5pX8/WdEHLTgE/Kkpot4uiI/fs8l4mEbvP7H2vRO3W35O4vQM9MXzzj4as7xYkF4HAKHtkHHAIoJzo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=wunner.de; spf=pass smtp.mailfrom=wunner.de; arc=none smtp.client-ip=83.223.95.204
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=wunner.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wunner.de
-Received: from h08.hostsharing.net (h08.hostsharing.net [IPv6:2a01:37:1000::53df:5f1c:0])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange x25519 server-signature ECDSA (secp384r1) server-digest SHA384
-	 client-signature ECDSA (secp384r1) client-digest SHA384)
-	(Client CN "*.hostsharing.net", Issuer "GlobalSign GCC R6 AlphaSSL CA 2025" (verified OK))
-	by mailout1.hostsharing.net (Postfix) with ESMTPS id D9590369;
-	Wed, 09 Sep 2026 18:03:35 +0200 (CEST)
-Received: by h08.hostsharing.net (Postfix, from userid 100393)
-	id B4F166272378; Wed,  9 Sep 2026 18:03:35 +0200 (CEST)
-Date: Wed, 9 Sep 2026 18:03:35 +0200
-From: Lukas Wunner <lukas@wunner.de>
-To: Terry Bowman <terry.bowman@amd.com>
-Cc: Jonathan Cameron <jic23@kernel.org>, Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Bjorn Helgaas <bhelgaas@google.com>, Dan Williams <djbw@kernel.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-cxl@vger.kernel.org,
-	Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Shuai Xue <xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>,
-	Ira Weiny <iweiny@kernel.org>, Li Ming <ming.li@zohomail.com>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Ben Cheatham <Benjamin.Cheatham@amd.com>,
-	Richard Cheng <icheng@nvidia.com>,
-	Robert Richter <rrichter@amd.com>, linux-pci@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v20 0/9] Enable CXL PCIe Port Protocol Error handling and
- logging
-Message-ID: <aqGDV2GQEqxg_1gE@wunner.de>
-References: <20260902133933.2992457-1-terry.bowman@amd.com>
+	s=arc-20240116; t=1788969830; c=relaxed/simple;
+	bh=c9NqLg6Yn6AnzBlRYM1XDFEzegqRQkO/9VyLHbpBlTQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=lciEeFCDtQItYP+X6nmRqwVfzFYkON1RqyOdVCZUp+7g1HSXZyRl4fQPoshHG/L7sP8IrMycOcvZh7YKGQGihehXI3N0qhrxPM7X58cY59ZrS/5KNzGL0LndCx2/K2xrboAYRKHvOhI8OVmFHjjknGeGlfjDIONqg6iLZGddFxo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HvSm52B9; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HvSm52B9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F06BE1F00A3A;
+	Wed,  9 Sep 2026 16:03:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788969828;
+	bh=OX6FrUZ8cTdJayq48jS2CIaaaz7PuLHMGIF/xlZ/rSY=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=HvSm52B9HoHrizk+RsrfdgdcKwepmWbkdl8jk34/lMXDl9VA+nJiFaRyd3CERHfDv
+	 zsU6w3THyvu+ichhp5XoImtGPv2LPvLG8k+0d+PsxHQ6OAygsZL5V/zqyljLNIIwhh
+	 QT2AQq4hANN8b6e2F/dFV0cTMpldbpDFNnjNglf2p41M/hBzwqMXltid9oL6O6ytRY
+	 6J9lohCIDVxO5jh5dSsuL4LUPQmehjhb/NQxGj8veYE38MLwpu+k5OzrXPXq6mKWwR
+	 v3hlTyFNeIxwgo2XAuAhMBjv6mrENninYrzJqGTCX7s/DVpAWSv55GG+mLGhvn3Pj9
+	 kc6U2w1UBREgA==
+Message-ID: <67885235-8a79-4899-8639-1fe68d93dfd3@kernel.org>
+Date: Wed, 9 Sep 2026 11:03:47 -0500
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260902133933.2992457-1-terry.bowman@amd.com>
+User-Agent: Mozilla Thunderbird Beta
+Subject: Re: [PATCH] ACPICA: Add ACPI_MSG_DEBUG to set KERN_DEBUG for debug
+ output
+Content-Language: en-US
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: mario.limonciello@amd.com, maciej.wieczor-retman@intel.com,
+ pawel.chmielewski@intel.com, linux-acpi@vger.kernel.org,
+ acpica-devel@lists.linux.dev
+References: <20260831053420.1729024-1-superm1@kernel.org>
+ <CAJZ5v0ip5QM62Xc+xFAXDu8bv-nyXNmqd647AoERXO99HfkvTw@mail.gmail.com>
+From: Mario Limonciello <superm1@kernel.org>
+In-Reply-To: <CAJZ5v0ip5QM62Xc+xFAXDu8bv-nyXNmqd647AoERXO99HfkvTw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Wed, Sep 02, 2026 at 08:39:24AM -0500, Terry Bowman wrote:
-> Today the kernel handles native CXL.cachemem RAS only for Endpoints and
-> Restricted CXL Host (RCH) Downstream Ports. Root Ports, Upstream Switch
-> Ports, and Downstream Switch Ports are uncovered. This series introduces
-> a unified CXL protocol error path for all CXL device types, in both VH
-> and RCH topologies.
+On 9/9/26 10:50, Rafael J. Wysocki (Intel) wrote:
+> On Mon, Aug 31, 2026 at 7:34 AM Mario Limonciello (AMD)
+> <superm1@kernel.org> wrote:
+>>
+>> acpi_debug_print() emits ACPI debug output using multi-part
+>> acpi_os_printf() and acpi_os_vprintf() calls without any loglevel
+>> prefix.
+>>
+>> When acpi_os_vprintf() processes a chunk without a loglevel prefix
+>> (printk_get_level() returns 0), it prepends KERN_CONT. Because the initial
+>> header chunk lacks a loglevel prefix, it either attaches to a preceding
+>> unfinalized log message (inheriting its level) or, when split across
+>> printk buffer records, falls back to the default message loglevel rather
+>> than KERN_DEBUG. This can cause dmesg to misinterpret and colorize debug
+>> messages as errors.
+>>
+>> Define ACPI_MSG_DEBUG as KERN_DEBUG in aclinux.h (with an empty fallback
+>> in acutils.h for ACPICA OS-independence) and prefix debug message headers
+>> and context switch output in acpi_debug_print() with ACPI_MSG_DEBUG so
+>> that printk records are properly tagged with KERN_DEBUG.
+>>
+>> Signed-off-by: Mario Limonciello (AMD) <superm1@kernel.org>
+>> ---
+>> Given this is purely for Linux - it's not obvious to me if it should
+>> go upstream to ACPICA or directly to Linux.  Sending here for now.
+> 
+> Defining ACPI_MSG_DEBUG upstream would make sense in my view, so why
+> don't you submit it there?
 
-I'm trying to make sense of the existing code.  I know this wasn't
-introduced by you (but by Robert in 0a867568bb0d), but you've moved
-this code around recently and are extending it in this series.
+OK - No problem.  I've submitted there.
 
-Errors of the RCH downstream port are signaled as internal errors
-of an RCEC on the root bus.  Their handling was plumbed into:
+https://github.com/open-acpica/acpica/pull/1231
 
-aer_process_err_devices()
-  handle_error_source()
-    cxl_rch_handle_error()
+> 
+>> ---
+>>   drivers/acpi/acpica/acutils.h   | 3 +++
+>>   drivers/acpi/acpica/utdebug.c   | 4 ++--
+>>   include/acpi/platform/aclinux.h | 1 +
+>>   3 files changed, 6 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+>> index 9049bfee409c4..766a3080b5ea1 100644
+>> --- a/drivers/acpi/acpica/acutils.h
+>> +++ b/drivers/acpi/acpica/acutils.h
+>> @@ -100,6 +100,9 @@ extern const char *acpi_gbl_clock_input_scale[];
+>>   #ifndef ACPI_MSG_BIOS_WARNING
+>>   #define ACPI_MSG_BIOS_WARNING   "Firmware Warning (ACPI): "
+>>   #endif
+>> +#ifndef ACPI_MSG_DEBUG
+>> +#define ACPI_MSG_DEBUG          ""
+>> +#endif
+>>
+>>   /*
+>>    * Common message suffix
+>> diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
+>> index a31e07400c34d..1f2cab491637f 100644
+>> --- a/drivers/acpi/acpica/utdebug.c
+>> +++ b/drivers/acpi/acpica/utdebug.c
+>> @@ -156,7 +156,7 @@ acpi_debug_print(u32 requested_debug_level,
+>>          if (thread_id != acpi_gbl_previous_thread_id) {
+>>                  if (ACPI_LV_THREADS & acpi_dbg_level) {
+>>                          acpi_os_printf
+>> -                           ("\n**** Context Switch from TID %u to TID %u ****\n\n",
+>> +                           (ACPI_MSG_DEBUG "\n**** Context Switch from TID %u to TID %u ****\n\n",
+>>                               (u32)acpi_gbl_previous_thread_id, (u32)thread_id);
+>>                  }
+>>
+>> @@ -168,7 +168,7 @@ acpi_debug_print(u32 requested_debug_level,
+>>           * Display the module name, current line number, thread ID (if requested),
+>>           * current procedure nesting level, and the current procedure name
+>>           */
+>> -       acpi_os_printf("%9s-%04d ", module_name, line_number);
+>> +       acpi_os_printf(ACPI_MSG_DEBUG "%9s-%04d ", module_name, line_number);
+>>
+>>   #ifdef ACPI_APPLICATION
+>>          /*
+>> diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+>> index 9b30bb9ed711c..5e2ed5e79d3b8 100644
+>> --- a/include/acpi/platform/aclinux.h
+>> +++ b/include/acpi/platform/aclinux.h
+>> @@ -169,6 +169,7 @@
+>>
+>>   #define ACPI_MSG_BIOS_ERROR     KERN_ERR "ACPI BIOS Error (bug): "
+>>   #define ACPI_MSG_BIOS_WARNING   KERN_WARNING "ACPI BIOS Warning (bug): "
+>> +#define ACPI_MSG_DEBUG          KERN_DEBUG
+>>
+>>   /*
+>>    * Linux wants to use designated initializers for function pointer structs.
+>> --
+>> 2.53.0
+>>
 
-First of all, handle_error_source() calls pci_aer_handle_error(),
-which (for Fatal Errors) will issue an FLR of the RCEC.  Note that
-Uncorrectable Internal Errors have Fatal severity by default
-(PCIe r7.0 sec 7.8.4.4).
-
-If the Uncorrectable Internal Error was the only error, then why is the
-RCEC being reset?  It's just serving as a conduit to inform that there
-are CXL errors at the downstream port.  There's no reason at all to
-issue an FLR to the RCEC in that case.
-
-Second, cxl_rch_handle_error() then walks all the RCiEPs reporting to
-the RCEC.  This also looks weird to me.  Can there ever be more than
-one RCiEP?  I think not, but maybe I'm missing something.  If there's
-only ever a single RCiEP reporting to the RCEC, why perform a walk?
-
-What we actually want to do is retrieve the CXL errors from the
-downstream port's RCRB, but this is done in a fairly roundabout way:
-cxl_rch_handle_error() walks the RCiEPs (aka RCDs), invokes the
-->error_detected() callback for each, which is cxl_error_detected().
-That will then call cxl_handle_rdport_errors() to find the RCH
-downstream port to which the RCD is attached.
-
-Isn't there a simpler way to find the RCH downstream port from which
-the error originated?  Why do we have to go through the RCDs?
-
-Also, putting this in cxl_error_detected() has a weird side effect:
-The function is also invoked when the RCD upstream port experienced
-an error.  But because the retrieval, reporting and handling of
-RCH downstream port errors was put into this function, those errors
-are reported and handled as a side effect of RCD upstream port errors.
-What sense does this make?
-
-The commit message of 0a867568bb0d provides the following hint as
-to why this approach was chosen:
-
-    The reason for choosing this implementation is that the AER service
-    driver claims the RCEC device, but does not allow it to register a
-    custom specific handler to support CXL. Connecting the RCEC hard-wired
-    with a CXL handler does not work, as the CXL subsystem might not be
-    present all the time.
-
-So I think the point may have been to make this work even if the cxl
-module is not loaded?  Is that all?  Is that the only reason?
-We have try_module_get() and symbol_get() helpers.  You could just
-call those prior to invoking functions implemented by the cxl module
-from the AER driver.  There's plenty of precedent for that in the kernel.
-
-The problem is that the present approach is fairly complex and has
-side effects which make it difficult to understand and reason about
-the error handling.  In my view, this should be cleaned up first
-before bolting more functionality on top of it.
-
-Thanks,
-
-Lukas
