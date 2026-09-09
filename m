@@ -1,163 +1,120 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D85CB484236;
-	Wed,  9 Sep 2026 08:02:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F241748BD51
+	for <linux-acpi@vger.kernel.org>; Wed,  9 Sep 2026 09:05:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788940960; cv=none; b=CeI4rHfUbRBYbFYGRNpHFh8RcKeMBZrLomMMTZOgP8K7m83Vyl1UpGSXgMAMWSat1DW2fwq/s7rNvLmVFpQVBKJnJVpgbNAXFSHARSsg75Rexwj5fJdvayO4JsUrbCwNLkU0JLVsCWVBU8qEKfJXBwYY72b0c/VUaT+FNqQEUzo=
+	t=1788944755; cv=none; b=iElKQJC0Y/UXq4nuckE7vSsmaphPEol6GseLKfZ70ZcImBurRuU0tNoy6Mmj33rs4+jh8yFY05mfSJrpfYL6xx/jnyjBtd842hKdMimMtiQqFjdGmZFhQNhJkQhpHk0DJi0zeDus+7Z1q1DkZX3F6qnYgbk5p0ZWdwJEcrL1tPM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788940960; c=relaxed/simple;
-	bh=4RVhPavqbFdZB9dLlUgTUNkwX9QrrcgqvBFuvF2ryQw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=OCV1IKpFYKf4Sk0Mg2k3trBlOkWLBzn7bW0j316BkpYCNLeTFRF5LVETqAEjrsdBVbtLQA2eGl9OaulJ0gFXW/U435wza4TROw109jYp9bGJTqBeNJYqCCY8WnbZMSmEsnFr/RoWzCaaBHbwTRR2nrc6azPnZifbwvfY87A7XjU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=pjnC7K5p; arc=none smtp.client-ip=185.246.84.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1788944755; c=relaxed/simple;
+	bh=ReaMXwc2wrbtnGIzzccFig9moI+aYzLT2sJV31wZqwE=;
+	h=From:In-Reply-To:MIME-Version:References:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Lek1g6ohiSRkiSJcrLb2mLX4Zj8AJCHpMD6+ORpsoAxtwENHWcL3cqDfCScGqZhfWDki+CpPDBwqzX7fchstYoS57/5CO/oc2mLLCv8C0qsMWUpdcDE56LVIEFrcZvOU6wYcodO1hKzCikE5QRuOicxx/cSTt7L66lFyv8Z2wQ8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Qwh9CtZ6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="pjnC7K5p"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id 5EC961A1A77;
-	Wed,  9 Sep 2026 08:02:37 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 2CE0460448;
-	Wed,  9 Sep 2026 08:02:37 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id D710111C7AF5E;
-	Wed,  9 Sep 2026 10:02:28 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1788940954; h=from:subject:date:message-id:to:cc:mime-version:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=S9hVX9w2762K2NqjWVW1JueaSmRHavaw67h+zQmQF34=;
-	b=pjnC7K5pQ5BzeWmR3L2BvvYdnOoypY2LEsKre4EEi2Sql8RS1V6pfkZo5M4BK38ayRDMqL
-	YidsM4LucG7w+0HJFFSNNuS9yOYEZ851mUrOH/tjaf4r5Zv4p/TRvI6sI628mI4A5DoLxM
-	cpnNG87ZNq/51EMwI0A1/cbKQnogIUOo7f8YANkqi72Aq32awMp10K4OvklFZ2WUD5jjvm
-	j27UNSD0tzb3NWT0CTGcdMSVxs9yOVPvEGcjitXFOpnFKEX5rY64LVOAbTcI0zsQqC0EC/
-	yJCWwDN5RsRcabMmiKlic/6o2skkgz+WjytJGxvrnmIx2ILl1F2UGn+Jh1Fjog==
-From: Herve Codina <herve.codina@bootlin.com>
-To: Richard Cheng <icheng@nvidia.com>,
-	Andrew Lunn <andrew@lunn.ch>,
-	Rob Herring <robh@kernel.org>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Charles Keepax <ckeepax@opensource.cirrus.com>,
-	Richard Fitzgerald <rf@opensource.cirrus.com>,
-	David Rhodes <david.rhodes@cirrus.com>,
-	Linus Walleij <linusw@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dan Williams <djbw@kernel.org>,
-	Ira Weiny <iweiny@kernel.org>,
-	Li Ming <ming.li@zohomail.com>,
-	Herve Codina <herve.codina@bootlin.com>,
-	Lizhi Hou <lizhi.hou@amd.com>
-Cc: driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	linux-pci@vger.kernel.org,
-	linux-sound@vger.kernel.org,
-	patches@opensource.cirrus.com,
-	linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-cxl@vger.kernel.org,
-	Allan Nielsen <allan.nielsen@microchip.com>,
-	Horatiu Vultur <horatiu.vultur@microchip.com>,
-	Daniel Machon <daniel.machon@microchip.com>,
-	Steen Hegelund <steen.hegelund@microchip.com>,
-	Luca Ceresoli <luca.ceresoli@bootlin.com>,
-	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-	stable@vger.kernel.org,
-	Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
-Subject: [PATCH v11 08/10] PCI: of: Set fwnode device of newly created PCI device nodes
-Date: Wed,  9 Sep 2026 10:01:07 +0200
-Message-ID: <20260909080114.591938-9-herve.codina@bootlin.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260909080114.591938-1-herve.codina@bootlin.com>
-References: <20260909080114.591938-1-herve.codina@bootlin.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Qwh9CtZ6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2AD41F00ACF
+	for <linux-acpi@vger.kernel.org>; Wed,  9 Sep 2026 09:05:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788944752;
+	bh=7A2lhD4vBmTBsUTDOlsEZ7tAto0p+g+2lDwyQEnjMa0=;
+	h=From:In-Reply-To:References:Date:Subject:To:Cc;
+	b=Qwh9CtZ60lcUh+6Vx3xu0PvyzAv9IEx8yP3Cj7vuUyEv5FS/Y/+V8Sid6Y0ulQVIw
+	 xDIygxcP6doTXnIudr7mumozD63paDikWLkOCF5/pP+q1MaKzswb1+QHzn+8WAugOk
+	 WO9BHV2U3smZ8kou9g4qE/vxK3R/+0+hkEbbcJsooHaPTy7Yeh1DVXrYj6f1N288Fv
+	 v4uDD8Wo/qmbbrwRlLgg4/rWktY29IJa+rsY11mzr4jrQkTJg1pH+d8TDKWN1QyJL9
+	 U0gZaRoKQvpUillXIc6IWZO0uCEelTLoQPToCs+VQJ1TDUi9oHAAqRx+vYd2I4UAu1
+	 HXJjTig5WPvXg==
+Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5b81a2d33f7so219940e87.3
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Sep 2026 02:05:52 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBwFumPhLDBuJPkkG5t/5uggzhceNohnzXlvJs/fXpriUu4wfwMUmGFkLISBYRR1K8Ab1U1gUSaM1fBG@vger.kernel.org
+X-Gm-Message-State: AFuF++lWwrDKijPi9zp4peMaN0YCE0no1FpokSJUOvAooxWWfftpjPqW
+	wvtpw+1i5Lc57wIdHje6OlZLt1Yxl/M/3+4uMuh7jpseIZjIwKNCH60bsfp2vr6XE8kDZupsX8X
+	bmqb8U1Ll4BSDK1RvVKFCLimNzMxLpKJtMhLD1hVwgg==
+X-Received: by 2002:a05:6512:839c:b0:5b6:172a:c3ad with SMTP id
+ 2adb3069b0e04-5b6172ac8e2mr3931277e87.23.1788944750950; Wed, 09 Sep 2026
+ 02:05:50 -0700 (PDT)
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Wed, 9 Sep 2026 02:05:49 -0700
+Received: from 969154062570 named unknown by gmailapi.google.com with
+ HTTPREST; Wed, 9 Sep 2026 02:05:49 -0700
+From: Bartosz Golaszewski <brgl@kernel.org>
+In-Reply-To: <20260909080114.591938-3-herve.codina@bootlin.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Last-TLS-Session-Version: TLSv1.3
+References: <20260909080114.591938-1-herve.codina@bootlin.com> <20260909080114.591938-3-herve.codina@bootlin.com>
+Date: Wed, 9 Sep 2026 02:05:49 -0700
+X-Gmail-Original-Message-ID: <CAMRc=Mc1ePP2nZkHij9Y4fX336SG=h2fzyy8tEQEtvHQr2fiqQ@mail.gmail.com>
+X-Gm-Features: AcwNN1WKTbmqgMCh7V872_4tRwDJEAMS-fOBWcNn9vbiedgRsODRtFcaFT7QPGc
+Message-ID: <CAMRc=Mc1ePP2nZkHij9Y4fX336SG=h2fzyy8tEQEtvHQr2fiqQ@mail.gmail.com>
+Subject: Re: [PATCH v11 02/10] drivers: core: Use fw_devlink_set_device()
+To: Herve Codina <herve.codina@bootlin.com>
+Cc: driver-core@lists.linux.dev, linux-kernel@vger.kernel.org, 
+	linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, 
+	patches@opensource.cirrus.com, linux-gpio@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org, 
+	Allan Nielsen <allan.nielsen@microchip.com>, Horatiu Vultur <horatiu.vultur@microchip.com>, 
+	Daniel Machon <daniel.machon@microchip.com>, Steen Hegelund <steen.hegelund@microchip.com>, 
+	Luca Ceresoli <luca.ceresoli@bootlin.com>, Thomas Petazzoni <thomas.petazzoni@bootlin.com>, 
+	Ulf Hansson <ulf.hansson@linaro.org>, Richard Cheng <icheng@nvidia.com>, Andrew Lunn <andrew@lunn.ch>, 
+	Rob Herring <robh@kernel.org>, Saravana Kannan <saravanak@kernel.org>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, 
+	Charles Keepax <ckeepax@opensource.cirrus.com>, 
+	Richard Fitzgerald <rf@opensource.cirrus.com>, David Rhodes <david.rhodes@cirrus.com>, 
+	Linus Walleij <linusw@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Daniel Scally <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, Bartosz Golaszewski <brgl@kernel.org>, 
+	Len Brown <lenb@kernel.org>, Davidlohr Bueso <dave@stgolabs.net>, Jonathan Cameron <jic23@kernel.org>, 
+	Dave Jiang <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dan Williams <djbw@kernel.org>, 
+	Ira Weiny <iweiny@kernel.org>, Li Ming <ming.li@zohomail.com>, Lizhi Hou <lizhi.hou@amd.com>
+Content-Type: text/plain; charset="UTF-8"
 
-Device-tree node can be created when CONFIG_PCI_DYNAMIC_OF_NODES. Those
-nodes are created and filled based on PCI core information but the
-fwnode device field is not set.
+On Wed, 9 Sep 2026 10:01:01 +0200, Herve Codina <herve.codina@bootlin.com> said:
+> The code set directly fwnode->dev field.
+>
+> Use the dedicated fw_devlink_set_device() helper to perform this
+> operation.
+>
+> Signed-off-by: Herve Codina <herve.codina@bootlin.com>
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Reviewed-by: Ulf Hansson <ulf.hansson@linaro.org>
+> Reviewed-by: Richard Cheng <icheng@nvidia.com>
+> ---
+>  drivers/base/core.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/base/core.c b/drivers/base/core.c
+> index 4c0c373998a1..3268e9350c86 100644
+> --- a/drivers/base/core.c
+> +++ b/drivers/base/core.c
+> @@ -3754,7 +3754,7 @@ int device_add(struct device *dev)
+>  	 * device and the driver sync_state callback is called for this device.
+>  	 */
+>  	if (dev->fwnode && !dev->fwnode->dev) {
+> -		dev->fwnode->dev = dev;
+> +		fw_devlink_set_device(dev->fwnode, dev);
+>  		fw_devlink_link_device(dev);
+>  	}
+>
+> @@ -3929,7 +3929,7 @@ void device_del(struct device *dev)
+>  	device_unlock(dev);
+>
+>  	if (dev->fwnode && dev->fwnode->dev == dev)
+> -		dev->fwnode->dev = NULL;
+> +		fw_devlink_set_device(dev->fwnode, NULL);
+>
+>  	/* Notify clients of device removal.  This call must come
+>  	 * before dpm_sysfs_remove().
+> --
+> 2.55.0
+>
+>
 
-When later an overlay is applied, this confuses fw_devlink. Indeed,
-without any device attached to the node, fw_devlink considers that this
-node will never become a device. When this node is pointed as a
-supplier, devlink looks at its ancestors in order to find a node with a
-device that could be used as the supplier.
-
-In the PCI use case, this leads to links that wrongly use the PCI root
-bridge device as the supplier instead of the expected PCI device.
-
-Setting the fwnode device to the device of the PCI device allows devlink
-to use this device as a supplier and so, correct links are created.
-
-Fixes: 407d1a51921e ("PCI: Create device tree node for bridge")
-Cc: stable@vger.kernel.org
-Signed-off-by: Herve Codina <herve.codina@bootlin.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-Reviewed-by: Richard Cheng <icheng@nvidia.com>
-Acked-by: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
----
- drivers/pci/of.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/pci/of.c b/drivers/pci/of.c
-index 29b63a9090ae..8914bfa25dc1 100644
---- a/drivers/pci/of.c
-+++ b/drivers/pci/of.c
-@@ -736,6 +736,7 @@ void of_pci_remove_node(struct pci_dev *pdev)
- 	if (!np || !of_node_check_flag(np, OF_DYNAMIC))
- 		return;
- 
-+	fw_devlink_set_device(&np->fwnode, NULL);
- 	device_remove_of_node(&pdev->dev);
- 	of_changeset_revert(np->data);
- 	of_changeset_destroy(np->data);
-@@ -788,9 +789,16 @@ void of_pci_make_dev_node(struct pci_dev *pdev)
- 	if (ret)
- 		goto out_free_node;
- 
-+	/*
-+	 * Set the fwnode device in order to have fw_devlink creating links
-+	 * pointing to this PCI device instead of walking up to the PCI host
-+	 * bridge.
-+	 */
-+	fw_devlink_set_device(&np->fwnode, &pdev->dev);
-+
- 	ret = of_changeset_apply(cset);
- 	if (ret)
--		goto out_free_node;
-+		goto out_clear_devlink_dev;
- 
- 	np->data = cset;
- 
-@@ -805,6 +813,8 @@ void of_pci_make_dev_node(struct pci_dev *pdev)
- out_revert_cset:
- 	np->data = NULL;
- 	of_changeset_revert(cset);
-+out_clear_devlink_dev:
-+	fw_devlink_set_device(&np->fwnode, NULL);
- out_free_node:
- 	of_node_put(np);
- out_destroy_cset:
--- 
-2.55.0
-
+Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
