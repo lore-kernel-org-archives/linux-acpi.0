@@ -1,78 +1,69 @@
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013020.outbound.protection.outlook.com [40.93.201.20])
+Received: from BN1PR04CU002.outbound.protection.outlook.com (mail-eastus2azon11010046.outbound.protection.outlook.com [52.101.56.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 192F74B4892;
-	Thu, 10 Sep 2026 16:55:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 459A554A7CB
+	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 17:13:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.56.46
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789059337; cv=fail; b=t9vYp8y5t2pjhHQxHhmKKepd0ZaNFlpy51rzt1GcXYV+mwHU5GY4LddlbJfWYs6bwxuFb7jbJQJIvXcSbtj2WM63Y1uSNZs4xME+L2MqTmIs6NIOB2BD4cpuAt4rnbnvyealIQjs6nMZT2bLXZMULRMi2d9MOG06VSQk9yXxrac=
+	t=1789060436; cv=fail; b=D4ZH5QQVpOHcs/UGoeNOvoKPP4X6GWRmcnfdKfs2sNcjWZ4AFI43bIKEy7aCZFZdeFT6cJmz15Qty5FFlTDXwjCQtmB78uBtrpCawJmfbj6GMeFDD1qUfQLEMtWaye7rDlGu5C7d5yrqUwi84ghjSEZyutr2ndrrMp06TF0ZrLc=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789059337; c=relaxed/simple;
-	bh=xT8v7Zla/zU/cmmlWNNd6nZHDVSivBolR60kg/eQ+z0=;
+	s=arc-20240116; t=1789060436; c=relaxed/simple;
+	bh=F68rWrehjBxTC0orHI8CeK0MZUgUK8wqrodNgIdY8BI=;
 	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=fQfpHqTfLeJkYWBrXTN8Zxg2rSFCCZ8df4i2BegMKBy98PQ5EoIcDZ3Il4tJSruTDOz5E9ITkOQDFabHMkPzugCvlPtgbYX8xu6PVygJJf/OPGK54bTUFTLMKwNI1CqXBSAO5xSELOPXNxgmnA0UJ6ttL/D6UlUggbV7xJI/JHM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=LGzfE6dd; arc=fail smtp.client-ip=40.93.201.20
+	 Content-Type:MIME-Version; b=Ye29mQ6RD19yFY0Z5z+4UAl21M5eIL/PsIo2YVlNY2krQP4NfVcGTAHUKo7I5j+nFMUH1zPUMDaVryrFBBPsR9Wc4hJCnAQQMHc56HctAkZDrYnXOvLXrm3WhO61hF9YQqoHaiXqrFC6mqyGEJ1w8++9cT3JjyJTeIeAYEMPLz8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=lXjHMVxo; arc=fail smtp.client-ip=52.101.56.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="LGzfE6dd"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="lXjHMVxo"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=gf3G8BHu68P6QSbzXMoRPYPlNp+pWt4fVv6JtL2FgyZx0z+hIZERnfyq5sXTP4CSWr1sReImsSz9dazqhIS4GKAdNbLE8ZU+AXfLCg2YUWKN9YHM1p9aSyHDcI/uASLaVyGguqshgAQapbd2auZesWjYIBb0jIQl1cjRtKxVGG+AJAzgJQoarRY9dKNXZpWIdy00kvhnBszmU/McblPzHgERB5X6CryYfJeQnfwCe8cYLmsd4frso2QAGBkWtj+hap64ajdatPl5P368nycEPhqQxJAbwU3+jaaJuS8d7hpHnG8Imu+Exoj7KrNouzlxT9kKp+VNGT+tQNikfiPw9A==
+ b=vBwzTV4lEeaoGhNhpoWkpO5fJ0oKvWEs21KQcxcKEGkOAWpE3Euzp0eTcACh40Sar86E2geGPENhT5bmQKKmp8e2fRgktNFXMTRtNtMYNxe3sbXoJA5oSS0r3eYwtZJXvCJYH3/4wdqiYALQZL1R1NvU2tYN9pLLSLI56MwHzqbwbMGTlIUHcPUxuKQYvmTEdScTE2jgTkfjnA/ax8N67JnK2pzCqhDg112dfsaXdwcW6YCEH7ZuqIjWYJF4n8Vea9kokxe1PjMCPEk2Pohafhwad9bs9vUBJqrYlpLHmOs+PNfmj+2Lx43r2x3CD11bdj9YVKcTIo41mGPpjMeiyQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=/ywRwTT4PsKJKKqeOBaSA8/1H4gM7RNZ5ERTbFB6V+g=;
- b=geQZ3erZGE3U8EmHfv0ttcuJT+h6NI3ahcZlvH2nOC4L7E9gxzrDelT8SdpSD5B58AoT1QkXPZ4POWrXa6Tqil3LZgtAnROEo+MJqoW2r9qMo+X8Tdm1ONddgKhkEe569weu/swc8tnJ6kK9Pn4m4xTRiJ6qZsEh6yflvZ+Wsha64OvtdLAgnPZcqjhwCN7jRNvAelE4N6OY6kx5JC2ebbQrmlRJyBUcAJmtC7tW85ntRHYbt1Ap+q+L9WTDh5kxDdwGXmUNBgxPEyUJhJEpD3BbRwJrDjOa97bPHhsKz7FPx7t2+upMZIB43tJVlaxgVuC7Z1ruP8HUxVWoGEhpqA==
+ bh=Kx5OXQWrT1vnlzhS1ZHEvurBofVD3ng92Y8ArwHibAA=;
+ b=FbxDPeS37okA9QrbOIyDqGWz0vPn23e/Sh/B1yGu0aLux4tLOqC1oQFmBObx3kuh+fOpM5pU9Bo+h6T21orRvgfRF36QqINjKO5FvjxO3ClYnx0Dn1fp8yeWJl5jPbQj7V/VAwY3O9Vtju1VQMvwwXiqGR9qjUnm3mDRUbcb0S6PpZK+mnVgRqI3UUZhRrvUSh1yIa9lIRiHjADtLg1MVrixfAzA7P0AQg67JDz2NSW+dD4x0OPpPdQLTyIfgmdg5h1EPAuFFNE35g7fxfOVR1GkId/IxqDgWmSPXX9JjYfeEjQTZZ9vNiiGCilDSN3gTBbTWxB/PBcGTA8Dvew02g==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
  header.d=amd.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=/ywRwTT4PsKJKKqeOBaSA8/1H4gM7RNZ5ERTbFB6V+g=;
- b=LGzfE6ddSWHZQ5ftfxte8L+gUTDdFldE++peczKNJwA1NUTcirIZxym2weQPoa6XGibeiZWD/fNkJwYnGMgK26kOLbF2M0yhWTLwu6S0+rAfADXQw8qfiuHiXNdzfVtkHa3saYnLIwbGKIid7ZnA3Xdd77ozXTUnseOy4Eamqqc=
+ bh=Kx5OXQWrT1vnlzhS1ZHEvurBofVD3ng92Y8ArwHibAA=;
+ b=lXjHMVxo/fiKA22k9OMCvjgeTwK3zrf5Z168U5dcguB3Jz1MwR14x5zfTHQZr5V7kfYtkcqOJ/JsEg/cy3hGIiiTeODxqydnSbOYdsOyX+UfuIKv2SlrhNfPcU6JKkw4ISjPDZ8NFwAF9AAFmQvQMgVP1boICQAiov1fUe6vBt0=
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from CH8PR12MB9766.namprd12.prod.outlook.com (2603:10b6:610:2b6::10)
- by CH3PR12MB7570.namprd12.prod.outlook.com (2603:10b6:610:149::17) with
+Received: from PH8PR12MB6914.namprd12.prod.outlook.com (2603:10b6:510:1cb::21)
+ by SN7PR12MB8103.namprd12.prod.outlook.com (2603:10b6:806:355::5) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.406.9; Thu, 10 Sep
- 2026 16:55:30 +0000
-Received: from CH8PR12MB9766.namprd12.prod.outlook.com
- ([fe80::be0f:431f:5f27:96d9]) by CH8PR12MB9766.namprd12.prod.outlook.com
- ([fe80::be0f:431f:5f27:96d9%5]) with mapi id 15.21.0406.007; Thu, 10 Sep 2026
- 16:55:30 +0000
-Message-ID: <90b550f6-bca9-4bb5-b38d-b4577b03ba1d@amd.com>
-Date: Thu, 10 Sep 2026 11:55:26 -0500
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v20 2/9] PCI: Establish common CXL Port protocol error
- flow
-To: "Cheatham, Benjamin" <benjamin.cheatham@amd.com>,
- Jonathan Cameron <jic23@kernel.org>, Dave Jiang <dave.jiang@intel.com>,
- Alison Schofield <alison.schofield@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Davidlohr Bueso
- <dave@stgolabs.net>, Bjorn Helgaas <bhelgaas@google.com>,
- Dan Williams <djbw@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>,
- Jonathan Corbet <corbet@lwn.net>, linux-cxl@vger.kernel.org
-Cc: Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
- Hanjun Guo <guohanjun@huawei.com>, Mauro Carvalho Chehab
- <mchehab@kernel.org>, Shuai Xue <xueshuai@linux.alibaba.com>,
- Len Brown <lenb@kernel.org>, Ira Weiny <iweiny@kernel.org>,
- Li Ming <ming.li@zohomail.com>, Shuah Khan <skhan@linuxfoundation.org>,
- Richard Cheng <icheng@nvidia.com>, Robert Richter <rrichter@amd.com>,
- Lukas Wunner <lukas@wunner.de>, linux-pci@vger.kernel.org,
- linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20260902133933.2992457-1-terry.bowman@amd.com>
- <20260902133933.2992457-3-terry.bowman@amd.com>
- <a8ea024b-a608-4eea-bbdc-cba37b2bf2af@amd.com>
+ 2026 17:13:41 +0000
+Received: from PH8PR12MB6914.namprd12.prod.outlook.com
+ ([fe80::2893:177a:72b0:6000]) by PH8PR12MB6914.namprd12.prod.outlook.com
+ ([fe80::2893:177a:72b0:6000%7]) with mapi id 15.21.0406.007; Thu, 10 Sep 2026
+ 17:13:41 +0000
+Message-ID: <9b56cfc2-ad06-4fe4-8302-6615e0c50b71@amd.com>
+Date: Thu, 10 Sep 2026 12:13:37 -0500
+User-Agent: Mozilla Thunderbird Beta
+Subject: Re: [PATCH] ACPI: utils: Ignore leading root scope prefix in string
+ _UID match
 Content-Language: en-US
-From: "Bowman, Terry" <terry.bowman@amd.com>
-In-Reply-To: <a8ea024b-a608-4eea-bbdc-cba37b2bf2af@amd.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: SA0PR11CA0034.namprd11.prod.outlook.com
- (2603:10b6:806:d0::9) To CH8PR12MB9766.namprd12.prod.outlook.com
- (2603:10b6:610:2b6::10)
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: maciej.wieczor-retman@intel.com, pawel.chmielewski@intel.com,
+ linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev
+References: <20260831180214.2231161-1-mario.limonciello@amd.com>
+ <CAJZ5v0hgn+_L_yvEg0yo0vPk9_brbxsywyu_77tEyww4nV+eUg@mail.gmail.com>
+ <7f86bfc7-efda-4719-a0c2-fab04fba532f@amd.com>
+ <CAJZ5v0gFPcoC4nLFdjcfY5Ysk9Sw38r_rLpzWSxtVPTyTuh-0g@mail.gmail.com>
+ <aqJ22yK9h4ZHSo__@ashevche-desk.local>
+ <CAJZ5v0h-229tKZ-=eXpWrSD9Y+2YBa4cPNiYoeu54k=T412N2g@mail.gmail.com>
+From: Mario Limonciello <mario.limonciello@amd.com>
+In-Reply-To: <CAJZ5v0h-229tKZ-=eXpWrSD9Y+2YBa4cPNiYoeu54k=T412N2g@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: BN9PR03CA0414.namprd03.prod.outlook.com
+ (2603:10b6:408:111::29) To PH8PR12MB6914.namprd12.prod.outlook.com
+ (2603:10b6:510:1cb::21)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -80,199 +71,205 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH8PR12MB9766:EE_|CH3PR12MB7570:EE_
-X-MS-Office365-Filtering-Correlation-Id: cd70682b-88f3-4827-097d-08df0f5c5216
+X-MS-TrafficTypeDiagnostic: PH8PR12MB6914:EE_|SN7PR12MB8103:EE_
+X-MS-Office365-Filtering-Correlation-Id: a7842047-bebe-49ac-4e80-08df0f5edc82
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|7416014|23010399003|376014|366016|6133799003|18002099003|22082099003|3023799007|10067099003|921020|56012099006|11063799006|4143699003;
+	BCL:0;ARA:13230040|366016|376014|1800799024|23010399003|6133799003|3023799007|10067099003|56012099006|5023799004|11063799006|4143699003|22082099003|18002099003;
 X-Microsoft-Antispam-Message-Info:
-	o0hzWeSzqcKr+9mS9KE7rMzFKkguvm5fOoIhyjEtN+4usJ3seZwrKTJCoQbMHaLrmAHCMDEnWN0y4sbKbFqRIisppeyZjAK2vQvLFuzQZwi4C6Xx9jKlIEaQYi4x7fHurIPlppVD2a5NFfg19EG9hOYlu6mIi+qkCR0i68TGC+SSbYesbjX0XEYqObv6aSTk64hqd5WuDOvZp2hUOxQ+auMUbFGPCED0JO/4Qfgp+VqAj8eF/ubuB7Iezzht0M5NXjcgoUNydQfTzISeJcjpY9KG1nBYAQkOKuEzClBTnw38gdzlyKPcZ4064dq7CuHJOI+jcXlqYJTqYSSZ9Xd7jj2jHPVaGyW7nFEp03+S7E3aZ8dNJ4QNIjl51cXbVfIPwht0KclXiFFNBJ3qIw6oKa7YJTlm9cXzLEZjl7UN0ISKFGjQXp3Jrfmdb8zg653w1lx01YEEFXFOvK6IbFOVL6XXiIodW2qbOF5ItHCnN3gLPSu8lk6zjDPLphWOh5BJVYvM/rhyNBy/a1wL3Ty67a1cq0Lf5CzWriwDQOVgCaBN+3Zmc88fmezOrjE67r1FxIRwcF5lPB0Ppu1W/aBe/CkXB7LsYsaLOlKLwwEOromOS22O+DqmtS6wkKvJILPpah6diUEEQ3ecrrxgV1moYumfh5loUPNZ5dHhrXdWrc8qv0kQGiQQOYQx6Bbhkr6omeNjvXfeGvMmS8FbHlh6uw==
+	FaQynEJqlDxiopjonN1dBLa8fbGNTg6IhWsmuJ4X8B3A5vFDj4ZUX1euYDpUp7gV3tbTSNbvzxktZNL+/lABxgHEaxNSZz+fftgW++RPDkoDFl5w1Kixl1T6TFLL8MqXEIYOOsfbKHt+gC/7I6PJDy+nZcti4UpzMVsSvwIcX+XK63EvONmC+eSePcseY/Cs1g4IQ0lXxRlOPbuJCWS63BD/RemjsJ8zzEIDqBxM7yqH5KVX5FgR4ybIE1OipM6+xcfeycBbde6pnTWCZd7GdG3pkJeDlBRvTUvT+jqXQx+cDnl9MmstlyPHyQboueFyJAn8dgClnBaeCVwCz5r70yYEKH4AS4BvtDnHqbfz3CRyftWwtwp7ABRMbAvxivVvcYVrQX/wiy6/WuhdmQnC28iCM128WXuKi+03Ml7et0YfoZWCFcfnxS6yKRjJmFA1dYlEmOFKWRsI1VTJjZtWtJdAAmNr6q1+/EsxkLaBxzgY8LkWod7EIge6Vn70DARDNRGPFnydC6Rka565PelZJLxFfCJSEsNnFWrnDV/bTM48KwAWt4ba8MDvueu7q4yziPrSzbAMkTrlwECkZksHGmqa6kAtqsjNLHsvOfWCkjVw7HLVt34RKgWC7hkOQtBHpaRRIk1T32vboDkvHzhij1uHxvmBdVriUiZi5q1gPEU=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH8PR12MB9766.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(23010399003)(376014)(366016)(6133799003)(18002099003)(22082099003)(3023799007)(10067099003)(921020)(56012099006)(11063799006)(4143699003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR12MB6914.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(23010399003)(6133799003)(3023799007)(10067099003)(56012099006)(5023799004)(11063799006)(4143699003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?QUlyc2RJWkJXNzZUY3A2REFuZTdXanEzdzA5emJVOE1sYjlpNWlkZ2t0QU9W?=
- =?utf-8?B?bkVRTHRJbHNSQWdoaEVnbks1QmNQTWJnQlhESkZRSnYwOVNZMFFTUXppNkpO?=
- =?utf-8?B?SWR6bjFMN2JPdms5NzRVWHVoR0VlcW1leFkwVnlEbGdiUXhVY2pmNzZLRlFC?=
- =?utf-8?B?YmxHMWxLTEp3ZDA4M1E3VjYvZjVMS09PUWNZRjFBMjVRVURDa0tjNFNkRHYz?=
- =?utf-8?B?R1RVd2dJQnVadnltcW1MMUhKOHdYTWZESjNQcUNRem9CdjFqYzlab1VLSnRI?=
- =?utf-8?B?MVVYRk5jeCtFNWMyZXJ6UmNOb3lPTWZXZTluRkxLdjVWM3NjZUY3bnI0eW5G?=
- =?utf-8?B?eTkrSy9NZEg3MVhUcXc3Q092OUZVWjNBSllLQ0oxbWlLUDIyK2xNSnkwdUNv?=
- =?utf-8?B?dTVTNXp1NHZOdXlPNy82UWUxMGNqOTVYbEhOSytDSzhsQXQ0T28yN1RXWTBN?=
- =?utf-8?B?V0tHcTBWcE05c25VODZ4OXE1QzRMZ3gyR1BxNDM5blNGL2FZandRNU9qS1M2?=
- =?utf-8?B?Y3BlVnhrQmZ5a3IrcGRQTlNnVWFKRW1EZVFRS0VONWZOdjF2RVRZZGVmaXRm?=
- =?utf-8?B?UUhod1hQb29CVllCdlEvVWZqdUFtdUUwQ21hM3ZPbkNBU0M4NGpsRzh3YWdK?=
- =?utf-8?B?SlBTUlNLWEh5OTliZnJQL01FcFFsbCtJZnM0OU51akg2ak1BWUk3MHhBemJr?=
- =?utf-8?B?bEI2T3lyZXZOTnlzTjFTcXdZeWdva3UyYnBRMEp6dUNGMm5NYkY5dzVhQjkx?=
- =?utf-8?B?L0ZHRzZBcU13TXBWM0xvQTcrSXo2bFNDYWtuSW8zcmp5MFJzTk1DRENYT25y?=
- =?utf-8?B?Tzl3WmJXKzl4cUh3Ny85NS9ZUjdUVzJpcDRlK1lrc3BpZmJmRkxydGNtUlZm?=
- =?utf-8?B?L052Z0s0OGZSaXFrd01xT1NvNmRWdXFqbjRkM2xtc3RMQUxUSWtsU3dod0hB?=
- =?utf-8?B?YzVKMFoyQ2FGV0tyVHM0UzJPdjdnSWpmRHQ4ak4vam02ZC9qZ0NHbDdFSzcr?=
- =?utf-8?B?SzdtcWhPbjVOaitSQ1BwYkVSM0RpUmpsK0FSZmFwNlNMbXllVkhhTVQwbmhR?=
- =?utf-8?B?cUVLUkUrc2x5VGdNRWxLWGxvVmlVcFlGM2x4QkZPT2lnQ0J1SnNKSCtzWk11?=
- =?utf-8?B?QjNVS2p6UFZmbzZ0d1hoU3lLemZyUW03cmlMZTdCS3dkTm1lTVM1NW4xNGJm?=
- =?utf-8?B?ajFsU2YxOFArTjU4M2dJVlF2Zmh1U3BtTzhTRElSWHQyWGNnbkFYazBnVDA3?=
- =?utf-8?B?NU5LM25OTEZENVdFOVhaUFZRcEZFaXVHVTBYMG53WThMZm41eVM4Zjc5QkFD?=
- =?utf-8?B?cHNLYU9hTk8vSVQxSDVGNk1Zb0lpY2xwL0RZcmthQzMzZHh2dlppeFVwbWE4?=
- =?utf-8?B?Z0xmcmMxWDhVNmJkMGpPUkRYYUJRT2tyRzd5ZS91YWFtdzJ3a1pMZXNsb0Rp?=
- =?utf-8?B?NGV1R2V4ZThQcXNKckx4Mm13dld4L3pZZ3NGSG5mNGlFZDhyVVUxT21JS21j?=
- =?utf-8?B?S2JJQ1ZBS0pqMzFnS0NZaTJZVFo1MU4wb3JBNzRVeUcvaDRPNEI5Q3d5VmNh?=
- =?utf-8?B?d2R5ZERjV3RLeGNNRmdKY1JDeDlTTzQrY21KQkJCWGdtcEpLZzBvNENsU3BH?=
- =?utf-8?B?dlU0Z0FubkpqSkhoMnpIWnBmaVF5eEYrakM0WGZWdGRqYjNoa3g4Mk1hNFk0?=
- =?utf-8?B?NjZXTkx1eUpHNU1BTXZSYzRjRmRiVm5Yejh5M0dYRnZBai8rdzJtcUFRSHJh?=
- =?utf-8?B?aEpxdTY3MmJneThLVG5LNkFDMks5TCtkMk50SGVsVC9xV3lWb09uMEl0Z0xZ?=
- =?utf-8?B?OW14aTRWN3NVY0U2MmlrSnhDRE92a09OUWo5M3J6WkhQU1hrZnpPS2VSUGZr?=
- =?utf-8?B?aFJ2TklGbWVqRC9oRE5Cd3hxbFZ6b3lkYzY2Zk9NaXBnSDJCa1NWejJKZEt5?=
- =?utf-8?B?TzV0bkFueFA4UUFpSzNoVWxQM3NqNnA4aHVCOWxvQTBLUGhBc3IzK1ZFSUdC?=
- =?utf-8?B?dFRTVEJiK1FJOWw4Z1JtanJ6NUpiT0FVMUF1M2VvNmJpNzBTSytQT082RXU0?=
- =?utf-8?B?cUpZdnE4MGxKMU5BRjNibCtQTG9zVjV1aXBNN0pwVnNibWZ3ZzlwUE1EMnZk?=
- =?utf-8?B?ZGJKcDYxeDg4UXNJY1pYaVBPT0syVk9RV1VIaW03aEh6VGpTT3BWQlFkZ2NM?=
- =?utf-8?B?Z0xBakNldU9Eclorc3AyUWVWUU9GeWVueEpZTGFTZTZvbm93RHhBV2VPd3Nu?=
- =?utf-8?B?UUMxYU42bC9RRVNHNzlTbEJMZXd3M2tGcUtKME9zM0taN0dnL1U1V0FSdVI3?=
- =?utf-8?Q?p4+PjLICO3veUnLeJV?=
+	=?utf-8?B?WklSVlphWXpkYmxSTThCRU5rVGRTWG15WnhDMWE3U29FcU8vZy9QQWlDSlZT?=
+ =?utf-8?B?OTlWMTcrVDB0MHdzT3RXdkhMdzh0cEYxZit4NExkaTRNQ0lVWXgxUUEzZFll?=
+ =?utf-8?B?L0YzNW5yTlZWYi9INnpmVmNlWjdrR1JpQ1NOeEd6cXAxVFNCNDJjM0hwZE9N?=
+ =?utf-8?B?dTgwa0grcHFVT1BZUlpwcDNoTnZFK3VqYlhQaTVzcDZDNDcyU2tlTnVqNmI0?=
+ =?utf-8?B?cGpFWFVsRjM1R2YwMzFMcTgvWEdJbXVDZEdhL2dHUW5sQ2FhQlZEMTRTaDFt?=
+ =?utf-8?B?QkRlQTBRTGl5MDNaMm8rYVVBVjk1NnVta3FIQkJ3dm5Cek5sQnFDeWtDdjhQ?=
+ =?utf-8?B?NkV4dFhrdXhrVFVRSEdDSFpabm5TV05xNzBDTHlmK1VUMkltZEtIMnN2cmJa?=
+ =?utf-8?B?djNTd1Zsak1wUzlVRlB6S2JPSjhmcEVhdnRwNTJla05UNHc1NzJreXJkUTh0?=
+ =?utf-8?B?RVR1QUo1Uzd4WDh3cWI2b0VLWHFUb1JTVDhkcnNvK1lJRHh0SnQ4RUFZV2dB?=
+ =?utf-8?B?VkFkQ2pUSGpxWDBaM1dGT3N5WWpMWlhTKzFyM0pWZkE2Y2JFOXBjU3pnMjMw?=
+ =?utf-8?B?VnNrd1RQenZsVlphTVdtOVlGU0lwMldTOXowbmhpUzF5T05xdDhMMWNqVUlj?=
+ =?utf-8?B?TkwvdXlaSSswQUxSRVNtMUhLRmh5S3RiUzZjOUtjclNtUENlMlZLUkNISVE3?=
+ =?utf-8?B?UUNqNU5lUzlkdjkrVFNrT3M1OWw4YnFGdjZ2aHpDWWxCSGxJY1lRQmpleTd2?=
+ =?utf-8?B?RXhnL2NNVFllczRNbEdJNHVkSlYvMEZwaUVhK2NQTCtIcEZYSE1HS3FzdFZS?=
+ =?utf-8?B?NGQrQjlJYVN0STdvUk5FWUhVbDBSemxkVGo2ZmlUb3RBekYzZjFMaDZXUUdr?=
+ =?utf-8?B?d3MzbDU1YThhWFZLd2ZwUDkxR3BEZWtJMzFweUVCR1NBNGRDVlVlNE5wdFFm?=
+ =?utf-8?B?R09LOHBiNTVTSkliMGg3RjRFN3ZDaHcwVCt2Wk9zVDRTM0E3ODlSTEF2OVU2?=
+ =?utf-8?B?d3g0dThHVkZIU0dpRzN4M3hTbjBRYmxoRTlQZDZIcm9paDhKWFU1SjJ0bnpC?=
+ =?utf-8?B?Q21yaHhZSDg5YVFjam1lc3V2YnUxUVNYMW1kZXJHd2RCSU14OWlSamJwMllk?=
+ =?utf-8?B?aXQ4WG5zclVhVmU3VlYzUUF5aEdDN3JRMnczemRkT3NMbG9GR3hQUWtkVUgr?=
+ =?utf-8?B?OXdTOTRiOHdsbHlvRDlSTGlWUUpBd0RPb2lWZDh4OXpENjlTZWpHSkVUQVBN?=
+ =?utf-8?B?c0Y4T0NuVWJKNC9FL2F0dEM3QVdDYW9Ea3VhQjBsNUtWaW8xTlE1bUNVckZT?=
+ =?utf-8?B?NWdFVFFhREpMVlZ3U0cvVVdQZStYbVFxcVk0VFNkZGVrdHpFOWcyakp2RHpq?=
+ =?utf-8?B?bUdoTERGcGl1WC9zOXRsRGpRSGR6Njc4dG1kMHVHSVRJQjlremtEbmE1YUdD?=
+ =?utf-8?B?RElrMi9wVTVsTnhPb2s5SFZIV1J3aEg4WU9uVzN0UWM1cGdVSEg1WlphdHdB?=
+ =?utf-8?B?cjVjZTdWSzVwRVpXZkU4d3cybG9pTjU3a3BOdU8wOWs1QWQveGNRVW13d3Zx?=
+ =?utf-8?B?Zk1UNlJzRnJmdGpiOHBaTXRSK0ZzaE1vWUsrUWw5RzJ2KzI4VnIyNmluNHh4?=
+ =?utf-8?B?cktwRU1JY29wUEl3T1VZRndNdkdoNmhnblkxdExyVFFtaTIvWXRvQ3hmWWRj?=
+ =?utf-8?B?V3luUkRKdGQ5TndMVkMvVXN3OFlZeHhudjUwRGZFcWczM0UwelJVMTloSzJm?=
+ =?utf-8?B?TFZTNkFsSzJORE1URGlXT2ZwMGhaV1BDK3lvaFk3YTUzRHRlaDNUZ2V3eEl0?=
+ =?utf-8?B?d0lEeFEwb2Q2ckhtRUNVUG1tZktFeEpqZS9FT21qZzAvMng4Sll1NnZRQ0h1?=
+ =?utf-8?B?dEV3RUNXT3JYbWJxUHVnaklSNFVHTE55ZmtSTXFYTS9NdThUaGtVNzc0eHd3?=
+ =?utf-8?B?Sk9PTzduSzZHQWE2c2ZGSkRqaVVCZkJGRjFmN2Z3UEo5azBYR0h1MUtKL2Zt?=
+ =?utf-8?B?c2paOVNHamNZazAvMm45bUdyMmZrZW5RMWI3aEgxOW16ZTVxaFB3ZVFhMldI?=
+ =?utf-8?B?VzdGYUtsOUd0amVpSDNFekpxUklKbktxYXExQXNGWmJJKzVac2FEU0FxUlFS?=
+ =?utf-8?B?Z3Y1dmVXSFREQ1B3Qk05cnFtaGxWNGxDOWV6NkV4dXA0cUJiTFpCYVJNa2s1?=
+ =?utf-8?B?TVRaVXBPWUdQeXBVMENxRUFON0VaNDd6SEVtUEk5ak80b1BDR0ZxWG5YVmZ0?=
+ =?utf-8?B?dzI4MnVRdENIMnFFeDNBVG1xc1FTOE4xcFJwVHlsem9LWjd3bjk3YkFJaXhS?=
+ =?utf-8?B?cytxVWVyUnM4c2xSZmRXOHdEblV2OWJWNmVTSWlJS05mZlZBdHV3UT09?=
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: cd70682b-88f3-4827-097d-08df0f5c5216
-X-MS-Exchange-CrossTenant-AuthSource: CH8PR12MB9766.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: a7842047-bebe-49ac-4e80-08df0f5edc82
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR12MB6914.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Sep 2026 16:55:29.9483
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Sep 2026 17:13:41.2737
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: EZiEuZ3ZkL+3v89CODu8lXOa6bMsMExuye3Gl4FGm8kaCRLxEkiIbvrBfsKQwpkOg6STorFPP+5ITBDLBpLxEQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB7570
+X-MS-Exchange-CrossTenant-UserPrincipalName: Gq8NP+G4RWZVvx/8rq+Sgb5WDh4JUhh2GBoQ4l4+yriqXLGnthqHGchBCntDtzYODRSeQXz7LzX60wRxY3uKbg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB8103
 
-On 9/2/2026 3:57 PM, Cheatham, Benjamin wrote:
-> On 9/2/2026 8:39 AM, Terry Bowman wrote:
->> Establish a single CXL protocol error path shared by CXL Virtual
->> Hierarchy (VH) and Restricted CXL Host (RCH) topologies. AER dispatch in
->> handle_error_source() routes CXL protocol errors, gated by
->> is_cxl_error(), through the AER-CXL kfifo to a cxl_core consumer for
->> logging and recovery. Producer and consumer go live together so no CXL
->> error is silently dropped across a bisect.
->>
->> is_cxl_error() expands from Endpoint-only to also cover Root Port,
->> Upstream Port, and Downstream Port. RCDs report on behalf of an upstream
->> RCH Downstream Port and instead reach the kfifo via
->> cxl_rch_handle_error().
->>
->> For uncorrectable errors, cxl_proto_err_wait_for_empty() drains the CXL
->> plane (RAS read, panic policy, state clear) before pci_aer_handle_error()
->> drives PCIe recovery, so recovery does not tear down RAS iomaps while the
->> consumer is still reading them. Correctable errors run asynchronously.
->>
->> Panic policy: cxl_do_recovery() panics on a confirmed UCE, and also when
->> the RAS registers cannot be mapped -- an unconfirmable UCE is treated
->> conservatively as fatal since CXL.mem coherency may be lost. A
->> mapped-but-clear status is logged as spurious with no panic.
->>
->> to_ras_base() centralizes RAS base lookup (dport->regs.ras for
->> Root/Downstream Ports, port->regs.ras otherwise) and provides an
->> injection point for RAS status simulation during testing. The
->> cxl_cor_error_detected() AER callback is removed; correctable Endpoint
->> errors now route through the kfifo like every other CXL protocol error.
->>
->> Update cxl_handle_rdport_errors() with locking to prevent dport from
->> being freed and RAS from being unmapped.
->>
->> At this step cxl_handle_rdport_errors() still dispatches a single
->> severity per pass (matching the pre-series baseline). The following
->> patch, "cxl/ras: Handle RCH correctable and uncorrectable errors in one
->> pass", processes a simultaneously signalled CE and UCE together.
->>
->> Co-developed-by: Dan Williams <djbw@kernel.org>
->> Signed-off-by: Dan Williams <djbw@kernel.org>
->> Signed-off-by: Terry Bowman <terry.bowman@amd.com>
->>
->> ---
->>
-> 
-> One small nit, but otherwise LGTM:
-> Reviewed-by: Ben Cheatham <benjamin.cheatham@amd.com>
-> 
-> ...
-> 
->>  pci_ers_result_t cxl_error_detected(struct pci_dev *pdev,
->>  				    pci_channel_state_t state)
->>  {
->> -	struct cxl_dev_state *cxlds = pci_get_drvdata(pdev);
->> -	struct cxl_memdev *cxlmd = cxlds->cxlmd;
->> -	struct device *dev = &cxlmd->dev;
->> -	bool ue;
->> +	struct cxl_port *port __free(put_cxl_port) = find_cxl_port_by_uport(&pdev->dev);
->> +	bool ue = false;
->> +
->> +	if (!port)
->> +		return PCI_ERS_RESULT_DISCONNECT;
->> +
->> +	if (is_cxl_restricted(pdev))
->> +		cxl_handle_rdport_errors(pdev);
->>  
->> -	scoped_guard(device, dev) {
->> -		if (!dev->driver) {
->> +	scoped_guard(device, &port->dev) {
->> +		if (!port->dev.driver) {
->>  			dev_warn(&pdev->dev,
->> -				 "%s: memdev disabled, abort error handling\n",
->> -				 dev_name(dev));
->> +				 "%s: port disabled, abort error handling\n",
->> +				 dev_name(&port->dev));
->>  			return PCI_ERS_RESULT_DISCONNECT;
->>  		}
->>  
->> -		if (cxlds->rcd)
->> -			cxl_handle_rdport_errors(cxlds);
->>  		/*
->> -		 * A frozen channel indicates an impending reset which is fatal to
->> -		 * CXL.mem operation, and will likely crash the system. On the off
->> -		 * chance the situation is recoverable dump the status of the RAS
->> -		 * capability registers and bounce the active state of the memdev.
->> +		 * The CXL RAS read is unconditional regardless of channel
->> +		 * state. Any uncorrectable error bit set in the CXL RAS
->> +		 * status register triggers a panic below because CXL.mem
->> +		 * cache coherency is already lost; continuing risks silent
->> +		 * data corruption.
->>  		 */
->> -		ue = cxl_handle_ras(&cxlds->cxlmd->dev, cxlmd->endpoint->regs.ras);
->> +		ue = cxl_handle_ras(port->uport_dev, to_ras_base(port, NULL));
->>  	}
->>  
->> +	/*
->> +	 * CXL.mem UCE means cache coherency is lost. Continuing risks
->> +	 * silent data corruption.
->> +	 */
-> 
-> Don't need this comment and the last sentence in the comment above.
 
-I'll keep the panic-site comment (it's the "why" at the point of consequence) and will 
-remove the duplicated coherency/corruption sentence from the block comment above (done 
-in 2/9) so there's no duplication at any point in the series.
 
--Terry
+On 9/10/26 05:56, Rafael J. Wysocki (Intel) wrote:
+> On Thu, Sep 10, 2026 at 11:22 AM Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+>>
+>> On Fri, Sep 04, 2026 at 07:58:56PM +0200, Rafael J. Wysocki (Intel) wrote:
+>>> +Andy
+>>
+>> Thank you for Cc:ing me. And sorry for the late reply, too many emails
+>> in the box...
+>>
+>>> On Fri, Sep 4, 2026 at 7:32 PM Mario Limonciello
+>>> <mario.limonciello@amd.com> wrote:
+>>>> On 9/4/26 08:26, Rafael J. Wysocki (Intel) wrote:
+>>>>> On Mon, Aug 31, 2026 at 8:02 PM Mario Limonciello
+>>>>> <mario.limonciello@amd.com> wrote:
+>>>>>>
+>>>>>> Firmware may express an ACPI namespace path used as a _UID with or
+>>>>>> without the leading root scope character ('\'). For example, an AMD
+>>>>>> IVRS IVHD ACPI HID device entry may carry a character UID of
+>>>>>> "\_SB.MHSP" while the corresponding device's _UID evaluates to
+>>>>>> "_SB.MHSP" (or vice versa).  This semantic difference is due to how
+>>>>>> Windows PnP enumerates and uses devices.
+>>>>>
+>>>>> Can you please elaborate a bit more?
+>>>>>
+>>>>> I would expect _UID to return the string without the leading
+>>>>> backslash, so where does the other one come from, exactly?
+>>>>
+>>>> It comes from the ACPI IVRS table.
+>>>>
+>>>> https://docs.amd.com/v/u/en-US/48882_3.11_IOMMU_PUB
+>>
+>> Link is behind SSO, which Intel employee most likely can't get :-)
+> 
+> Yeah, good point.
+> 
+> Link: tags should point to stuff that is available to everyone
+> potentially interested.
+> 
+>>>> p306-307 talk about this field.
+>>>>
+>>>> Here is a sample entry decoded with iasl -d
+>>>> (from BIOS on an affected system)
+>>>>
+>>>> [223h 0547 001h]               Subtable Type : F0 [Device Entry: ACPI
+>>>> HID Named Device]
+>>>> [224h 0548 002h]                   Device ID : 0068
+>>>> [226h 0550 001h] Data Setting (decoded below) : 40
+>>>>                                       INITPass : 0
+>>>>                                       EIntPass : 0
+>>>>                                        NMIPass : 0
+>>>>                                       Reserved : 0
+>>>>                                    System MGMT : 0
+>>>>                                     LINT0 Pass : 1
+>>>>                                     LINT1 Pass : 0
+>>>> [227h 0551 008h]                    ACPI HID : "MSFT0201"
+>>>> [22Fh 0559 008h]                    ACPI CID : 0000000000000000
+>>>> [237h 0567 001h]                  UID Format : 02
+>>>> [238h 0568 001h]                  UID Length : 09
+>>>> [239h 0569 009h]                         UID : "\_SB.XHSP"
+>>
+>> As far as I can tell this is weird (very unusual) interpretation of UID field.
+>> Whoever created a specification should be informed about this.
+>>
+>>>> Setting this field to _SB.XHSP does fix the issue for Linux, but this
+>>>> has problems on Windows.  So my hope was to let \_SB.XHSP work for Linux
+>>>> too.
+>>
+>>> So how does Linux process this table?  Maybe the leading backslash can
+>>> be removed in that path?
+>>>
+>>> But I guess it may not help because _UID may contain a string with a
+>>> leading backslash.
+>>>
+>>>>>> acpi_str_uid_match() compared the two strings verbatim, so such
+>>>>>> entries failed to match on the UID even though they refer to the same
+>>>>>> object. In the AMD IOMMU case (get_acpihid_device_id()) this caused
+>>>>>> the exact HID+UID match to be missed and the code to fall through to
+>>>>>> the HID-only path, spuriously raising a FW_BUG.
+>>>>>>
+>>>>>> Skip a single leading '\' on either string before comparing so that
+>>>>>> paths that differ only by the root scope prefix are treated as a
+>>>>>> match. The integer _UID path is unaffected.
+>>>>>
+>>>>> But this sort of assumes that the string returned by _UID will always
+>>>>> be a namespace path, but is that the case really?
+>>>>
+>>>> For IVRS entries this would be true since this is what is in the spec:
+>>>>
+>>>>   > If defined as a character string, the ACPI UID marks the instances of
+>>>>   > DMA-capable devices with the defined DeviceID (e.g. IOMMU visible
+>>>>   > Routing ID). It should match the ACPI device name space strings with
+>>>>   > unit number, but without a trailing \0 character (as the UID length
+>>>>   > specifies the size of the string already).
+>>>>
+>>>> But I don't know universally it would be true.
+>>>
+>>> In general, they can be free-form strings AFAICS.
+>>
+>> Exactly, the semantic of the content is just arbitrary set of characters
+>> that is agreed to be unique (enough).
+>>
+>>>> I suppose one possible modification could be to look for the length of
+>>>> the string being at least 2 on the string before incrementing the pointer.
+>>>
+>>> I guess this change can be made because it will only possibly cause
+>>> problems when the only difference between the supplied UID and the
+>>> string returned by _UID is the leading backslash and they are not
+>>> supposed to match, which is unlikely to happen.
+>>>
+>>> However, the kerneldoc comment of acpi_str_uid_match() needs to be
+>>> updated to mention this.
+>>
+>> I don't see the direct question to me, I assume you want my opinion about
+>> the implementation. Ideally the specification has to be fixed, so we do not
+>> interpret UID as some "special" string. In a new version of the table
+>> specifications it can be amended with a new field, for example.
+>>
+>> If we need to solve the old behaviour, the skipping leading \ (and backslash
+>> only) might be good enough quirk to make sure that the rest of the callers
+>> (and possible future interpretations) won't be affected. TL;DR: Make quirk
+>> as narrow as possible to avoid false positive triggering.
+> 
+> That is a good point either, but I think that if two UID strings
+> differ only by a leading backslash, it is kind of reasonable to assume
+> that they were intended to not differ (or conversely, it is hard to
+> believe that someone would intentionally add a leading backslash to
+> distinguish one UID string from another).
+> 
+> So I'm going to apply this, but I will remove the Link: tag mentioned above.
+> 
+> Thanks for the feedback!
 
->> +	if (ue)
->> +		panic("CXL cachemem error");
->> +
->>  	switch (state) {
->>  	case pci_channel_io_normal:
->> -		if (ue) {
->> -			device_release_driver(dev);
->> -			return PCI_ERS_RESULT_NEED_RESET;
->> -		}
->>  		return PCI_ERS_RESULT_CAN_RECOVER;
->>  	case pci_channel_io_frozen:
->>  		dev_warn(&pdev->dev,
->>  			 "%s: frozen state error detected, disable CXL.mem\n",
->> -			 dev_name(dev));
->> -		device_release_driver(dev);
->> +			 dev_name(port->uport_dev));
->> +		device_release_driver(port->uport_dev);
->>  		return PCI_ERS_RESULT_NEED_RESET;
->>  	case pci_channel_io_perm_failure:
->>  		dev_warn(&pdev->dev,
->> @@ -335,3 +371,82 @@ pci_ers_result_t cxl_error_detected(struct pci_dev *pdev,
->>  	return PCI_ERS_RESULT_NEED_RESET;
->>  }
->>  EXPORT_SYMBOL_NS_GPL(cxl_error_detected, "CXL");
+Thanks guys!  And sorry for sharing the wrong public URL, I didn't 
+realize I shared an SSO one.  The important bit was copied into the 
+thread anyway.
 
