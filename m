@@ -1,38 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89E6556B874;
-	Thu, 10 Sep 2026 17:56:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BA9A57D211;
+	Thu, 10 Sep 2026 17:56:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789063011; cv=none; b=nVNVwn+CZkxshxJPEVOWcA+Rvb2iZ2QxPimRWyIKgKZ/MfWjSPZDkZDzy/S/AGDCCd/j8FdyneldwtVJwiOYmVJJKKUbkYFnDvVLP7A0OhAaqH5O5bxfirC6Cp3tL2Zzy4AtnO+G6Y6Mt1I3tCUWMQxqOh/LOc7YzWmxvYsbQC8=
+	t=1789063014; cv=none; b=YBCAhY0R4CwhHD/SXdJpiHXtRA2QBRG4+PTlDeMTmbwxKPDmfKdbzJHwM258vLyhoXQcYIh5aqaO96XakNPRz9Ypd1kk8fsrqp8+mSc5Fa5Wpc8PP2m3+2pEQ5ttWqLXQnx3NVda86fOr12yGICbutEdBGNrVn8HG5ojvq1ffdY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789063011; c=relaxed/simple;
-	bh=COGoguQ+4f/Y229X96rVq7Z+RqZXzW1k8lHse1LZNIg=;
+	s=arc-20240116; t=1789063014; c=relaxed/simple;
+	bh=+45I3UcQ709+waIgzSvnoYVOZE6rlZwZM/7TZNfF1AU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=XOi2UCMwv18lo1PYe7SIieGWLfjMNTtHwI/IPac8KMXbR3p0F8OVpZ6HgX0MPibC5C5ArtkMq+VDSTvGFE0NPc0CsX+/4nJ8zTPo+7cL5mGnhtmpeLBhAlwh0uCWUYuw6C6nrEHeCcEGeDr6g49AbLzIHxm6f+UnRwD4BlesqXY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bt0ix5G5; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=vFAdeW2hw+7kCSr94oWcJDMkzmRQDA5EBqXlqCsIO5OhITZ+3lLhxLkr0apV/ZRN8fK3Q/Kda+EeHVoS2A6HNrVa+X4bEkvSwgejoxpYA7RA7Sbu7lLhzbvtILAJrdwfmIV6lQlvysyQ+RUNaL7MCgzpQNT7oyLalMODLg/Hr0o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KKxJRuen; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bt0ix5G5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68E531F00893;
-	Thu, 10 Sep 2026 17:56:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KKxJRuen"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 611711F000FF;
+	Thu, 10 Sep 2026 17:56:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789063010;
-	bh=wXdEIHa6ugyRxbQcC4gHCUPLfLsfO9sT0qWJ1U9psjI=;
+	s=k20260515; t=1789063013;
+	bh=+dT++UdcLLyYMd/MIDRViEa0LlSjC/iYIqmAJEfDZnM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=bt0ix5G5uZy7mPFrwD8Kv/ZFuy5lwXcDsz+sc7edMf91MXhf/ZPWQ7BF0/98ziTy+
-	 Ffcnv67aArlqCdagThyH2nWbf+HBDzYO+EbUKRSJJ9hYE1/belpSQdM4//wrT3R2j+
-	 zPIqJaf4t9TQMrx7f9UZ8elTHkP3khuv/qzqGQRXizGhBNDRcvgnMYnnC8ZEHy5XZU
-	 HlpUmcvL2juQYea0O4oBz5Nx75BLNeZMn/6VZuZJceL0YIrTIETlRAGwPslfO3d15J
-	 CPDDCY7aLa2UXBTq9SsypD4xH8S/ZxhDJCdw91HDYneWXSAOAzg1kKOTOqSzBLL/+v
-	 B+tITZZDO6irQ==
+	b=KKxJRuencMpkUR6A5TiGtDNpc2akxun1kD2nb88roaHKIIjzrH3T7/Wad9Z7Mnti5
+	 TvUOF+wz3H2RPDIyeOyLEHxjJHKi00ubhqiXw8qnxTqRV8MRN+LtRHlNToJhjBXubg
+	 E9Tj7SZJiIrwRtaDmBHfbp2rYMKw1N37kKntQoh2yBmiaM5aBHy1GAPH0xVFPvL+SF
+	 1FEkEpOz9q793NHOsMu7CYlCDdxpMOZRt9IH7jM2k6vkX+7KKqRq1/6IusstQki9ER
+	 WO33eLVMbvWz6vDSicOrFek0yjZvtWt40p4tlKj6i6yMi0bjVAd7VRmW2jAow+w9ti
+	 1I2eiDn29n3Mw==
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
  Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 3/4] ACPI: glue: Fix up and adjust acpi_unbind_one()
-Date: Thu, 10 Sep 2026 19:56:16 +0200
-Message-ID: <10940500.nUPlyArG6x@rafael.j.wysocki>
+Subject:
+ [PATCH v1 2/4] ACPI: glue: Rearrange acpi_bind_one() to avoid breakage
+Date: Thu, 10 Sep 2026 19:56:10 +0200
+Message-ID: <3465482.44csPzL39Z@rafael.j.wysocki>
 Organization: Linux Kernel Development - Intel
 In-Reply-To: <12995802.O9o76ZdvQC@rafael.j.wysocki>
 References: <12995802.O9o76ZdvQC@rafael.j.wysocki>
@@ -47,74 +48,127 @@ Content-Type: text/plain; charset="UTF-8"
 
 From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Since none of the acpi_unbind_one() callers check its return value and
-it always returns 0 anyway, make it void.
+Rearange the code in acpi_bind_one() to avoid situations in which the
+existing ACPI companion of the given device would be replaced with NULL
+due to a memory allocation error or because somebody tries to bind a
+physical device with an ACPI companion to a different ACPI device
+erroneously.
 
-Also notice that unlocking physical_node_lock for the given ACPI device
-should be carried out before dropping the reference to it in case that
-reference is the last one (highly unlikely), so rearrange the code to
-make that happen.
-
-Fixes: 3e3327837c18 ("ACPI: Use list_for_each_entry() in acpi_unbind_one()")
+Fixes: 7b1998116bbb ("ACPI / driver core: Store an ACPI device pointer in struct acpi_dev_node")
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/glue.c     | 10 ++++++----
- include/acpi/acpi_bus.h |  2 +-
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/acpi/glue.c | 59 +++++++++++++++++++--------------------------
+ 1 file changed, 25 insertions(+), 34 deletions(-)
 
 diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index 89336a5fa78b..1981ebfb5ce0 100644
+index 40e6513a9942..89336a5fa78b 100644
 --- a/drivers/acpi/glue.c
 +++ b/drivers/acpi/glue.c
-@@ -322,13 +322,13 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
+@@ -243,31 +243,26 @@ static void acpi_physnode_link_name(char *buf, unsigned int node_id)
+ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
+ {
+ 	struct acpi_device_physical_node *physical_node, *pn;
++	struct acpi_device *comp_dev = ACPI_COMPANION(dev);
+ 	char physical_node_name[PHYSICAL_NODE_NAME_SIZE];
+ 	struct list_head *physnode_list;
+ 	unsigned int node_id;
+ 	int retval = -EINVAL;
+ 
+-	if (has_acpi_companion(dev)) {
+-		if (acpi_dev) {
+-			dev_warn(dev, "ACPI companion already set\n");
++	if (!acpi_dev) {
++		if (!comp_dev)
+ 			return -EINVAL;
+-		} else {
+-			acpi_dev = ACPI_COMPANION(dev);
+-		}
+-	}
+-	if (!acpi_dev)
+-		return -EINVAL;
+ 
+-	acpi_dev_get(acpi_dev);
+-	get_device(dev);
+-	physical_node = kzalloc_obj(*physical_node);
+-	if (!physical_node) {
+-		retval = -ENOMEM;
+-		goto err;
++		/* If the companion has been set upfront, pick it up. */
++		acpi_dev = comp_dev;
++	}
++	if (comp_dev && comp_dev != acpi_dev) {
++		dev_warn(dev, "ACPI companion already set to %s which is not %s\n",
++			 acpi_dev_name(comp_dev), acpi_dev_name(acpi_dev));
++		return -EEXIST;
+ 	}
+ 
+-	mutex_lock(&acpi_dev->physical_node_lock);
++	guard(mutex)(&acpi_dev->physical_node_lock);
+ 
+ 	/*
+ 	 * Keep the list sorted by node_id so that the IDs of removed nodes can
+@@ -278,15 +273,12 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
+ 	list_for_each_entry(pn, &acpi_dev->physical_node_list, node) {
+ 		/* Sanity check. */
+ 		if (pn->dev == dev) {
+-			mutex_unlock(&acpi_dev->physical_node_lock);
+-
+-			dev_warn(dev, "Already associated with ACPI node\n");
+-			kfree(physical_node);
+-			if (ACPI_COMPANION(dev) != acpi_dev)
+-				goto err;
+-
+-			put_device(dev);
+-			acpi_dev_put(acpi_dev);
++			if (!comp_dev) {
++				/* Really unexpected. */
++				ACPI_COMPANION_SET(dev, acpi_dev);
++				dev_warn(&acpi_dev->dev,
++					 "Physical device list corruption fixed up\n");
++			}
+ 			return 0;
+ 		}
+ 		if (pn->node_id == node_id) {
+@@ -295,12 +287,19 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
+ 		}
+ 	}
+ 
++	physical_node = kzalloc_obj(*physical_node);
++	if (!physical_node)
++		return -ENOMEM;
++
++	acpi_dev_get(acpi_dev);
++	get_device(dev);
++
+ 	physical_node->node_id = node_id;
+ 	physical_node->dev = dev;
+ 	list_add(&physical_node->node, physnode_list);
+ 	acpi_dev->physical_node_count++;
+ 
+-	if (!has_acpi_companion(dev))
++	if (!comp_dev)
+ 		ACPI_COMPANION_SET(dev, acpi_dev);
+ 
+ 	acpi_physnode_link_name(physical_node_name, node_id);
+@@ -316,18 +315,10 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
+ 		dev_err(dev, "Failed to create link firmware_node (%d)\n",
+ 			retval);
+ 
+-	mutex_unlock(&acpi_dev->physical_node_lock);
+-
+ 	if (acpi_dev->wakeup.flags.valid)
+ 		device_set_wakeup_capable(dev, true);
+ 
+ 	return 0;
+-
+- err:
+-	ACPI_COMPANION_SET(dev, NULL);
+-	put_device(dev);
+-	acpi_dev_put(acpi_dev);
+-	return retval;
  }
  EXPORT_SYMBOL_GPL(acpi_bind_one);
  
--int acpi_unbind_one(struct device *dev)
-+void acpi_unbind_one(struct device *dev)
- {
- 	struct acpi_device *acpi_dev = ACPI_COMPANION(dev);
- 	struct acpi_device_physical_node *entry;
- 
- 	if (!acpi_dev)
--		return 0;
-+		return;
- 
- 	mutex_lock(&acpi_dev->physical_node_lock);
- 
-@@ -343,15 +343,17 @@ int acpi_unbind_one(struct device *dev)
- 			sysfs_remove_link(&acpi_dev->dev.kobj, physnode_name);
- 			sysfs_remove_link(&dev->kobj, "firmware_node");
- 			ACPI_COMPANION_SET(dev, NULL);
-+
-+			mutex_unlock(&acpi_dev->physical_node_lock);
-+
- 			/* Drop references taken by acpi_bind_one(). */
- 			put_device(dev);
- 			acpi_dev_put(acpi_dev);
- 			kfree(entry);
--			break;
-+			return;
- 		}
- 
- 	mutex_unlock(&acpi_dev->physical_node_lock);
--	return 0;
- }
- EXPORT_SYMBOL_GPL(acpi_unbind_one);
- 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index a10a591c18b2..93b00635ba3d 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -665,7 +665,7 @@ struct acpi_bus_type {
- int register_acpi_bus_type(struct acpi_bus_type *);
- int unregister_acpi_bus_type(struct acpi_bus_type *);
- int acpi_bind_one(struct device *dev, struct acpi_device *adev);
--int acpi_unbind_one(struct device *dev);
-+void acpi_unbind_one(struct device *dev);
- 
- enum acpi_bridge_type {
- 	ACPI_BRIDGE_TYPE_PCIE = 1,
 -- 
 2.51.0
 
