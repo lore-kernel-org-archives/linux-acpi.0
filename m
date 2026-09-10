@@ -1,144 +1,123 @@
-Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yx1-f50.google.com (mail-yx1-f50.google.com [74.125.224.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AEF043498E
-	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 11:03:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789038226; cv=none; b=UYSxHsgUiULjZ4HBdcQD1snle23S7C6LX/Y0DxhkQAYU7J7iGk+juP7Rkt1r8tl9GoE4cyGDQVT3EEkDMgOzVhLWF7W/xxXLkyjJMcwjRso9QIPhGulJCQsYjZC6LtzT9VdNJqv4ebyEFs17gAC64v9d+czJ3n3tzevGAnFD6IE=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789038226; c=relaxed/simple;
-	bh=09m9BcpaN3q+ASCDSpZj070GBGLeq+f9Ppn2JgpSzYc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=FCCfSNdS6Ea9+uOYvh6vzrG4zh2HmLZQMLDqJVoAzgvE59y10VXz1flmg/T86LrRgarkoa1bNcC9/r3+WXyegrK/W7RMJvODw7ZqIjULRsZ43/7EBxAAjK+8iLX5eGmdx5LoDOYB0rWklcsFEMcLlpTqTZNcyBZr3Bw7RVdwMyg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
-X-UUID: 45777c7ead0711f19a56ed5b684f684d-20260910
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.3.19,REQID:641f06fe-aeb9-461f-a88d-18c79e238145,IP:0,U
-	RL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTION:
-	release,TS:0
-X-CID-META: VersionHash:7db8b62,CLOUDID:df30dabc3cffd7d9f198215724e963ed,BulkI
-	D:nil,BulkQuantity:0,SF:80|81|82|83|102|865|898,TC:nil,Content:0|15|50|99,
-	EDM:-3,IP:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OS
-	A:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
-X-CID-BVR: 2,SSN|SDN
-X-CID-BAS: 2,SSN|SDN,0,_
-X-CID-FACTOR: TF_CID_SPAM_SNR
-X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
-X-UUID: 45777c7ead0711f19a56ed5b684f684d-20260910
-X-User: lijun01@kylinos.cn
-Received: from [172.30.70.202] [(10.44.16.150)] by mailgw.kylinos.cn
-	(envelope-from <lijun01@kylinos.cn>)
-	(Generic MTA with TLSv1.3 TLS_AES_128_GCM_SHA256 128/128)
-	with ESMTP id 1667665250; Thu, 10 Sep 2026 19:03:36 +0800
-Message-ID: <efe67e88-35d8-4f51-8ff5-a95053562b23@kylinos.cn>
-Date: Thu, 10 Sep 2026 19:03:34 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C93FE4825B6
+	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 14:51:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.50
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789051879; cv=pass; b=CP4ZhmwfHBS+qkCZDP5PY8W7QdzmEYwZlSfOgRMIJ81h5RgYNfdjZ+gJVu5GwlqE5q4S1quJKTSfe9BMgIkd/kpEEMJ22DwcTMraJ5opGbQCUxWA6iIHVONkdKNrtHLpY7yawdXuxmuvl+tXP30nfyaomWQCotS8ZgO65jfVCbs=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789051879; c=relaxed/simple;
+	bh=b34I2AwfQYdUNFIb9GLKQdVS6ni82UwDJyTOzmC498A=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=Gwbs49HUU+CK2YGejn7jrdHPpQhAXQ25rt9IS7hhn6QzTSyY3oR58rnHvawHdVqbCQX0ukqfXLa4foEzTBDqWNxlhCEnXyqPIf7ys9DET1bi4ilU0ghNSNVdYtHZwvSm72PDTFQ/9TJEV0hY07mlAYgfzhL4SJ01spT2J+tlhxs=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=qjDFX/LV; arc=pass smtp.client-ip=74.125.224.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="qjDFX/LV"
+Received: by mail-yx1-f50.google.com with SMTP id 956f58d0204a3-671199440fcso681398d50.3
+        for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 07:51:17 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1789051876; cv=none;
+        d=google.com; s=arc-20260327;
+        b=WfietE8fCo/7s/YpCo115AAn5LasPrxOkR2B1JscU51dtdnba0NZ8oH6reA2wx/SBH
+         MAsk3YsVLvNiF5veU1SgpwMxg72nCvMCUTnzXgDWNWO/SD6jkvwBFYNOnS9ldGc6Wyev
+         4oAuILaJlY70CNQsyM6+43TwnH2nqyJmHaWgENAg5I8E7j4SgoKwu8KWEZH8MNRNj5oJ
+         ATOK9qENo15umUwoR6GAWjDT6boK+f5cVlMSXvmcZmLXvuvIqr1X2LXSBu1pQsivL5Xq
+         ZL580FPQ1GPjFjfccLkKLY4qXU7Fl68Sa7WzWcHPANx1G85O+R4rZyKIy6WHp0ouKn5r
+         KJDg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=7OlwrXGRxANbCh5aLwzdoFFGDRGqfexBFwjrOVLdFz0=;
+        fh=SejTj4q8DPB6YPcJ5SrAixVEg/gpiHytTXF2h7Rn7nE=;
+        b=YETtgNs9fQgh+OAcNPJ0vOlf7Fs1GiHcNjw8GfiLeDJCYoZUPg1f1nq3SUNa/B0sSi
+         cVXKAZl+EoYyEBel25bsrw152IoceY0v1gzDzASgrI1WmG718PF6M0nAt8hBfAf4Te1Q
+         T3MWxo/plwjsSrKt4v3Og0sJ8UkUYC5CFvACUz2IrJy2vCXOaObK0kB+0afKEEI5hcEd
+         xGIePO9Rw1CpJf0uh7tzN/8pvleeEMMYjEF1cfm8U9ZYZr8g6YTgGgoXaihu/BixvHAt
+         zibA7a6jpLto9WxswMKBOmk+Q/9t8A45ncBFC5tz4/kLkLbWMaTiElYbN6Y7apfvEhnm
+         IdMw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1789051876; x=1789656676; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=7OlwrXGRxANbCh5aLwzdoFFGDRGqfexBFwjrOVLdFz0=;
+        b=qjDFX/LVpRRyMcbwU5aDRX9uf/lDGgxt+/KFI2r0eUDpxvnS7d7p+gbqNEn6dGaeLY
+         kHnb9kgSV2Qa1bBkbLPcQyeStR+6fMBRl9ZZy6TpUT9gJatXfcPKcK63JpsvRuXySdYY
+         Q92dsv3+wCyQbIeZSQxaaIuzQJlUR6cw7xD4rndlmIlrgaaEsTghhRddT49NF5GsLOQx
+         BKmxvLz+jeIJ5UyrL+BBRDkzenNTOzCaEHu2xzjDXbhNcNBDx3LWIMxyw9DJ4hEEzN7c
+         +TTc0n4pryemVmCIGAUw48fahUfpakw62jXiGQ42VqbHrrcc7LgGw+tSB2I9qHtlxZ/h
+         SkjA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1789051876; x=1789656676;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=7OlwrXGRxANbCh5aLwzdoFFGDRGqfexBFwjrOVLdFz0=;
+        b=a7g3sLNyM/RXgFsiPO8dyPK4xvX+f2ef5UZTJEzxsui0ef5isYvDD3fk1x4mA8QETr
+         BHUnrUtX9exuhJpXx6ZcjllRfUaJHwXiDH08cbfTRt9HZceRb1gbZ+3vSlq5oa5FcEcl
+         11jqJt5vXJvKvxa9hiVNnyi67P0iNx6BWY9TRp1BBXJCZP5UwUsGPxik2C9tmCvVjJmZ
+         znSykXmT4LuQABVBwQTWaIhxqYrtu67SchHFFmnzxOkD06FrgFPK0xPm9TvSjftD35w5
+         V1uP6WfBJgy4Yx/fOnGrppWmM+sarb2gq+7I3IG3Gn3LRwprjdE6qpkCxkOYa9afMCoG
+         RkaA==
+X-Gm-Message-State: AFuF++nXghS3GOUwhPQzQ+ObHSEazxu4J+vfwzsRKHldch0imnx45S4k
+	yYopk7S95cyOiZY96Z2Q2qbQLJ7s44DMiSn0tVZMcz0G/LP3n3rj35KegJbS6duMS7GKopV8fc4
+	sQokQ8KSpt2pPwkvy5NGeNcwi2xPKyMo=
+X-Gm-Gg: AYBFou1jHoh3MZCj8LmjN1AJOrFNlxu/O9OhFHhhwB6tZImPufGvd5WTtq2ww5vQSC1
+	IcTVnY4GILmdOIEqI5Egxmv/foJU8k1fttkHLkX/lhjiAMColMUA64XUV/Apmu2C6bmTLpZKKqe
+	fU4eGiuILMfN0SZO5z+M448BCc08cY6qSsLjsf3P7HtTT3BZcIqrQtI0AynYa7zZamon2q3f9Xo
+	7IKcb6IlEAH/GFJL2TEd3kdTuRsCiOB3jQWTJwQ0t+HzNIz/Eu6nMFhv8bxmhi45h0GkSGzCUEI
+	UV+3sTXwQIEvrlWtWMyT8ari7S9a2nEcLx1FvDDPeE0gY6szaJgaAPex3+HoFvrX6MJnNElU/fs
+	3tNoZcXAO3KcVGRKHB0MT6C97uhjpSht0oc1WL6gDy4elE7jVAK/RXkY++A==
+X-Received: by 2002:a05:690e:42c2:b0:66d:113a:3928 with SMTP id
+ 956f58d0204a3-66fb596aec9mr9455951d50.12.1789051875769; Thu, 10 Sep 2026
+ 07:51:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2] ACPI: button: replace SIMPLE_DEV_PM_OPS with
- DEFINE_SIMPLE_DEV_PM_OPS
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
-References: <20260910014953.187180-1-lijun01@kylinos.cn>
- <CAJZ5v0gkhGdyoQ6t7yjY8LWJd12zVb9P1Ep3W1+kL48B=BgS5A@mail.gmail.com>
-Content-Language: en-US
-From: lijun <lijun01@kylinos.cn>
-In-Reply-To: <CAJZ5v0gkhGdyoQ6t7yjY8LWJd12zVb9P1Ep3W1+kL48B=BgS5A@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+From: Marcel Moosbrugger <marcelmoosbrugger@gmail.com>
+Date: Thu, 10 Sep 2026 16:51:04 +0200
+X-Gm-Features: AcwNN1W4qqornyMomI8be8O6y2FOBOe1tK3kMf2k2XgTe5kTH5uGTdpAiZdLkxg
+Message-ID: <CABtUotP4Ay3HDkrZX_KcHQ=XHJ8wp+Q34yPTiRT65NMoO50hxw@mail.gmail.com>
+Subject: bert.c zeroes block_status, so the sysfs BERT copy looks empty to userspace
+To: "tony.luck@intel.com" <tony.luck@intel.com>, rafael@kernel.org
+Cc: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-Apologies missing your earlier point.
+Hello,
 
-Thanks for the patience.
+A usability trap I hit while decoding BERT records by hand, on a machine
+where the record is too large to print.
 
-  2026/9/10 18:32, Rafael J. Wysocki (Intel) :
-> On Thu, Sep 10, 2026 at 3:50 AM Li Jun <lijun01@kylinos.cn> wrote:
->> Replace `SIMPLE_DEV_PM_OPS` and `#ifdef CONFIG_PM_SLEEP`
->> boilerplate with the modern `DEFINE_SIMPLE_DEV_PM_OPS()`
->> macro in the acpi_button driver.
-> So again, this is not a replacement as it actively makes the kernel
-> waste memory in certain configurations.
->
->> Signed-off-by: Li Jun <lijun01@kylinos.cn>
-> I guess my previous comment that I didn't see any point in making
-> these changes was not clear enough.
->
-> I'm not going to apply this.
->
->> ---
->> Changes:
->> -Add pm_sleep_ptr for acpi_button_pm in acpi_button_driver.
->> -Fix the warning:
->>>> drivers/acpi/button.c:164:12: warning: function 'acpi_button_suspend' has internal linkage but is not defined [-Wundefined-internal]
->>       164 | static int acpi_button_suspend(struct device *dev);
->>           |            ^
->>     drivers/acpi/button.c:167:49: note: used here
->>       167 | static DEFINE_SIMPLE_DEV_PM_OPS(acpi_button_pm, acpi_button_suspend, acpi_button_resume);
->>           |                                                 ^
->>>> drivers/acpi/button.c:165:12: warning: function 'acpi_button_resume' has internal linkage but is not defined [-Wundefined-internal]
->>       165 | static int acpi_button_resume(struct device *dev);
->>           |            ^
->>     drivers/acpi/button.c:167:70: note: used here
->>       167 | static DEFINE_SIMPLE_DEV_PM_OPS(acpi_button_pm, acpi_button_suspend, acpi_button_resume);
->>           |                                                                      ^
->>     2 warnings generated.
->> ---
->>   drivers/acpi/button.c | 12 +++---------
->>   1 file changed, 3 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
->> index cdbb1023a8ee..1df7e268c4dd 100644
->> --- a/drivers/acpi/button.c
->> +++ b/drivers/acpi/button.c
->> @@ -161,14 +161,10 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
->>   static int acpi_button_probe(struct platform_device *pdev);
->>   static void acpi_button_remove(struct platform_device *pdev);
->>
->> -#ifdef CONFIG_PM_SLEEP
->>   static int acpi_button_suspend(struct device *dev);
->>   static int acpi_button_resume(struct device *dev);
->> -#else
->> -#define acpi_button_suspend NULL
->> -#define acpi_button_resume NULL
->> -#endif
->> -static SIMPLE_DEV_PM_OPS(acpi_button_pm, acpi_button_suspend, acpi_button_resume);
->> +
->> +static DEFINE_SIMPLE_DEV_PM_OPS(acpi_button_pm, acpi_button_suspend, acpi_button_resume);
->>
->>   static struct platform_driver acpi_button_driver = {
->>          .probe = acpi_button_probe,
->> @@ -176,7 +172,7 @@ static struct platform_driver acpi_button_driver = {
->>          .driver = {
->>                  .name = "acpi-button",
->>                  .acpi_match_table = button_device_ids,
->> -               .pm = &acpi_button_pm,
->> +               .pm = pm_sleep_ptr(&acpi_button_pm),
->>          },
->>   };
->>
->> @@ -502,7 +498,6 @@ static u32 acpi_button_event(void *data)
->>          return ACPI_INTERRUPT_HANDLED;
->>   }
->>
->> -#ifdef CONFIG_PM_SLEEP
->>   static int acpi_button_suspend(struct device *dev)
->>   {
->>          struct acpi_button *button = dev_get_drvdata(dev);
->> @@ -532,7 +527,6 @@ static int acpi_button_resume(struct device *dev)
->>          }
->>          return 0;
->>   }
->> -#endif
->>
->>   static int acpi_lid_input_open(struct input_dev *input)
->>   {
->> --
->> 2.25.1
->>
+The kernel logs:
+
+  BERT: [Hardware Error]: Skipped 1 error records
+  BERT: Total records found: 1
+
+and for oversized records the code points userspace at
+/sys/firmware/acpi/tables/data/BERT. But bert_print_all() clears
+block_status once a record has been handled, since the boot error source is
+one-time polled. Userspace reading that sysfs file afterwards therefore sees
+block_status == 0 while data_length and the Generic Error Data Entries are
+still intact.
+
+Anything that follows the spec and treats block_status == 0 as "no error
+records" will silently discard a real record. My own harvester did exactly
+that and labelled a FATAL SoC/PMC crashlog "empty BERT" for four days. The
+fix on my side was to ignore block_status and walk data_length.
+
+I do not know whether the right answer is to leave the sysfs copy alone or
+just to document it, and I am not attached to either. But since the kernel
+explicitly directs people to that file for exactly the records it did not
+print, a note somewhere would save the next person the same four days.
+
+Context, if it helps: https://bugzilla.kernel.org/show_bug.cgi?id=221923
+
+Thanks,
+
+>> DI Dr.techn. Marcel Moosbrugger, BSc
+>> Computer Science - Researcher - Communicator
+>> marcelmoos.com - linkedin.com/in/marcelmoos
