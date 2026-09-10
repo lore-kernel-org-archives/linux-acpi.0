@@ -1,346 +1,142 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C756455293A
-	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 17:14:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C0CC481AB5
+	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 17:22:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789060511; cv=none; b=QFl4PjDqj5YbvpF4Fta8UXTJAJlVHhb6gQcIOSriTtAxA/Gw1wai0FIR5QUcvrtA2wsxv3WKfnmolgxrab3F1Ov1AfNz/B6HR6nIAQkxdIv760/thF5RSVvdwN0L3/5xe3CBgCd5wkv9/StI1j3LzldJdkTKYeXqDOsp/ppcLSw=
+	t=1789060935; cv=none; b=QCkCRuBqBSYEBXqfbofeNtrxOevIR1atEC6ENMcNEDnyluD7MCkTjxSJwYZ7VJZtMvVoGnvr7vrPURNDWzGDxbXUppHDUmu07Ms1MH3Vgr9CA48QbQhfJHuIrgY5WThlnFRDkqCqtubiuG9+YpILWmGEEWz61hA/zWA8IvvTF7c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789060511; c=relaxed/simple;
-	bh=b+wcPJVDHniWrIIhs4dW6jTFcSBmZlFb6YpMZ3jWNAw=;
+	s=arc-20240116; t=1789060935; c=relaxed/simple;
+	bh=EMjQ/cbpO6/hENghx0S9DU8WaegQkrGP3alYAD4/qF0=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=UpIughuw7P5UUzn+5BRJrxFyREdHmaGBc+aO3ZGLmxz1V7cKS0eI2TNYwkUltQbak/pC7HRjFLY9rMbIRMqhj9EzSrPM8YDCDm0hNIJSBznikMWfvTQoZOLwge05sWYnmHlBY/qP4zdX74513Q8V1nZ1J/RjSbou8k5/T+R/1Ow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AI9IBGOe; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=fpx5on0OJ1KCWB9dsQahX6io8dKBd/htz7Ss5T9y8ATYrPBD1nXHkxcf4orqp0fD2wBNNqi211+b4/hifKUbFVBtEV0l5T0LWN5CuZWeXggepR6/L4er7s6Arji2rfB4fYFHkyqOLkQPjguCOxgEsOjVYwDg375wNt6LcZn5peg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SLlOw33m; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AI9IBGOe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AB511F008A4
-	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 17:14:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SLlOw33m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5743B1F00893
+	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 17:22:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789060496;
-	bh=4D0v1faP0HLzJ6MUBUx3J5vRSxmxBKBAtPUFBXzifTs=;
+	s=k20260515; t=1789060921;
+	bh=QtsclENzPssYj3LUtNUiHYqOvstB/F9Ryi6rxEBSWvM=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=AI9IBGOetvGCdQxLZbyOc0IGyAzaQH6iofPllKV9lZ16dkQOhyZE7VUmUshwX6kuK
-	 6nRciRMMqeBug6mdXe45dAyPurrc7wbPhSZYJz6cOsZHcp/7LqLpDSFcUUav23LcIL
-	 byK8BKnmiDtiMtHSITnScTqnfwdzg6Ep6qAn/VxsZkrZ4BopqoeYbUP+lakr4fVbx0
-	 paOqOGCbaQDhN6wlyfARrlsSu4js6BuLfcn2O592h4e6FUTRmV8rMR+h6ImYsTJkoe
-	 3xxuaJdfgS3zNp7s1UBZOc5H6vnkGoKRMEijit2yPDo54JyDJnx/Q2u388vyRx5BOD
-	 2lxPBX5s0jNyw==
-Received: by mail-lj1-f174.google.com with SMTP id 38308e7fff4ca-3a20f06cce6so130151fa.1
-        for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 10:14:56 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBwQEe2RKECdIKubEMaoMlMcUuS1FS2h/1DlLUecIAFDyYDpHE3Vi7l1gDInnzxytYW+dWpnWOx9Q0cK@vger.kernel.org
-X-Gm-Message-State: AFuF++krWbgWmi85h1HFD034XHgU6KCccrzYYikiDXzLHqa4ozXFFBiI
-	iUfU7vln7ycb8W5ookK9cd/o0FhignDvnvtLSctpriDXGq1jUSJxtDUp0rWwTdo6xwloab10ory
-	g1c8mpCgHclLBHyBdLVDHaRPy4HBqhjA=
-X-Received: by 2002:a05:651c:513:b0:3a3:29d8:8b00 with SMTP id
- 38308e7fff4ca-3a5910a8b1dmr5948481fa.10.1789060494759; Thu, 10 Sep 2026
- 10:14:54 -0700 (PDT)
+	b=SLlOw33mhQMJ63LfxOP/OP+I1/A1cY8NMbWm9P5/NTxX9fwG36NvgTOSNs8hLDV5A
+	 lTwYKhKxZ5xh9jSwvjp32TbsQ97xixd4OD+RjLSE2/3ERlAyelk0xMfnTI79S1BALG
+	 Ny6ARw0n+avzQelHwj+AaO5GadRFxkra5D+0QC7wwX+ngJbvXmC3Rfnhw5yFZVn48n
+	 EoKva0AchLiWeeEWBdbDjhPobrjnfY4zHFGqElmAaYs1Z69Av9WRcwHywk9YJjJMG7
+	 4MrWTDznr94hLtJnZuEQFsbI77fO8XZtMXRLaekyHwSOjAIWKFESsg4cJTDdib0ZsM
+	 72ct/cuBPFYJw==
+Received: by mail-lf2-f12.google.com with SMTP id 2adb3069b0e04-5b5e4f16f16so51814e87.0
+        for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 10:22:01 -0700 (PDT)
+X-Gm-Message-State: AFuF++m5r3g0AqQecw97v4AwLtzMbSmhfs0xqtWcKPN9g2DC3+myne8Z
+	uLqeU0gbfTLMVdI735LfIvnB4A7YiMDjedJOmL+OFVm0JSpUbbu9YFmi0gZ+zVIwLYQ3EWU6Omf
+	hels4gK8vcNT25yUqqT/OQe/MjN7OhpA=
+X-Received: by 2002:a05:6512:15a0:b0:5b8:9eed:8963 with SMTP id
+ 2adb3069b0e04-5b8a0325910mr167468e87.20.1789060919655; Thu, 10 Sep 2026
+ 10:21:59 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260830115644.2056983-1-christian.loehle@arm.com>
- <20260830115644.2056983-3-christian.loehle@arm.com> <e363804d-78d7-4f09-8d49-f70a4dfc6f71@arm.com>
- <CAJZ5v0j=n4uf=GFVDumb2v1sqcS_f293BG2iCD-Vmp2vpLC=xg@mail.gmail.com>
- <CAJZ5v0igEL-WvvCSadRkGDdZaXRJM0kPAH8i918T+FaDg9oZ5A@mail.gmail.com>
- <7985c629-8d36-4562-a789-074d35e9f260@arm.com> <CAJZ5v0jp9q-ZzOKXsOVpvF0ABytHXU9qeSdGyHdhLUL-cLX4sA@mail.gmail.com>
-In-Reply-To: <CAJZ5v0jp9q-ZzOKXsOVpvF0ABytHXU9qeSdGyHdhLUL-cLX4sA@mail.gmail.com>
+References: <CAPAw8HEMdsNN6WhizHkv2Orp2pkQ2-g009XCGFnKnhXoRhcKZQ@mail.gmail.com>
+In-Reply-To: <CAPAw8HEMdsNN6WhizHkv2Orp2pkQ2-g009XCGFnKnhXoRhcKZQ@mail.gmail.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Thu, 10 Sep 2026 19:13:42 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0ieZt_FSM4e=F_UjvN_oZbbiU_aHQgfFk2jifqW2Un5rw@mail.gmail.com>
-X-Gm-Features: AcwNN1UwmvWaURtLTfRGsNi2UQjSLEFvMpiv6wanCX_9loXfeyZne266g8BR468
-Message-ID: <CAJZ5v0ieZt_FSM4e=F_UjvN_oZbbiU_aHQgfFk2jifqW2Un5rw@mail.gmail.com>
-Subject: Re: [PATCH v6 02/15] ACPI: CPPC: Validate _CPC entry and control semantics
-To: Christian Loehle <christian.loehle@arm.com>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>, linux-pm@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	Jie Zhan <zhanjie9@hisilicon.com>, Lifeng Zheng <zhenglifeng1@huawei.com>, 
-	Pierre Gondois <pierre.gondois@arm.com>, Sumit Gupta <sumitg@nvidia.com>, 
-	Sudeep Holla <sudeep.holla@arm.com>, Ionela Voinescu <ionela.voinescu@arm.com>, 
-	zhongqiu.han@oss.qualcomm.com, Sashiko <sashiko-bot@kernel.org>
+Date: Thu, 10 Sep 2026 19:20:48 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0iOvjTz5viMUwAovjiMi80eaS-YxU8Uu5yL+2a4oggDWA@mail.gmail.com>
+X-Gm-Features: AcwNN1W612Xc95wBSeUTwMKpC5TAtJaLJRgDklSbz9hhud0pfBdxNh68HheI1TY
+Message-ID: <CAJZ5v0iOvjTz5viMUwAovjiMi80eaS-YxU8Uu5yL+2a4oggDWA@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: osl: use vsnprintf() in acpi_os_vprintf()
+To: Vlatko Kosturjak <vlatko.kosturjak@gmail.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Len Brown <lenb@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Sep 4, 2026 at 6:57=E2=80=AFPM Rafael J. Wysocki (Intel)
-<rafael@kernel.org> wrote:
+On Mon, Aug 31, 2026 at 6:51=E2=80=AFAM Vlatko Kosturjak
+<vlatko.kosturjak@gmail.com> wrote:
 >
-> On Thu, Sep 3, 2026 at 10:02=E2=80=AFPM Christian Loehle
-> <christian.loehle@arm.com> wrote:
-> >
-> > On 9/3/26 20:44, Rafael J. Wysocki (Intel) wrote:
-> > > On Thu, Sep 3, 2026 at 9:27=E2=80=AFPM Rafael J. Wysocki (Intel)
-> > > <rafael@kernel.org> wrote:
-> > >>
-> > >> On Sun, Aug 30, 2026 at 3:32=E2=80=AFPM Christian Loehle
-> > >> <christian.loehle@arm.com> wrote:
-> > >>>
-> > >>> On 8/30/26 12:56, Christian Loehle wrote:
-> > >>>> Writable _CPC controls are Register descriptors encoded as Buffer =
-objects.
-> > >>>> Integer entries represent fixed values or unsupported optional reg=
-isters;
-> > >>>> Autonomous Selection Integer 1 is the special immutable form which=
- enables
-> > >>>> operation without Desired Performance.
-> > >>>>
-> > >>>> The parser accepts arbitrary object types and cpc_write() assumes =
-that its
-> > >>>> argument contains a GAS. Malformed firmware can therefore make it =
-interpret
-> > >>>> an Integer union member as a register.
-> > >>>>
-> > >>>> Validate the portion of each encoding consumed by the driver: boun=
-d Integer
-> > >>>> DWORD forms to 32 bits, and require Buffer entries to start with a=
- complete
-> > >>>> Generic Register descriptor with the expected header. Continue tol=
-erating
-> > >>>> Integer 0 for an absent optional register and retain type checks i=
-n
-> > >>>> cpc_write() as defense in depth. Reject an attempt to disable immu=
-table
-> > >>>> Autonomous Selection instead of silently applying only the EPP par=
-t of the
-> > >>>> request.
-> > >>>>
-> > >>>> Capability registers are read into u64 temporaries but exposed thr=
-ough u32
-> > >>>> fields. Reject values above U32_MAX instead of allowing them to be
-> > >>>> truncated. In particular, a truncated Highest Performance value ca=
-n become
-> > >>>> a zero divisor in the performance-to-frequency conversion. Enforce=
- the
-> > >>>> required ordering from Highest through Nominal, Lowest Nonlinear, =
-and
-> > >>>> Lowest Performance, and constrain a present Guaranteed Performance=
- to the
-> > >>>> inclusive Lowest-to-Nominal range. Also reject reversed frequency =
-anchors
-> > >>>> and unequal frequency anchors with identical performance anchors. =
-Those
-> > >>>> invalid tuples otherwise make affine-conversion differences wrap o=
-r divide
-> > >>>> by zero.
-> > >>>>
-> > >>>> Check mandatory object presence separately from the Integer-zero c=
-onvention
-> > >>>> for absent optional fields. ACPI does not reserve zero in the abst=
-ract
-> > >>>> Lowest Performance scale, so accept a present Lowest Performance D=
-WORD of
-> > >>>> zero when distinct frequency anchors provide a usable nonzero phys=
-ical
-> > >>>> minimum. Retain the old rejection when that mapping is unavailable=
- and the
-> > >>>> fallback conversion would expose a 0 kHz cpufreq endpoint.
-> > >>>>
-> > >>>> Minimum Performance also defines zero as a real no-limit value, bu=
-t the
-> > >>>> exported cppc_set_perf() interface historically used zero to omit =
-a bound.
-> > >>>> Add explicit validity flags so callers can request zero without ch=
-anging
-> > >>>> that legacy convention. Populate the flags when reading the contro=
-ls and
-> > >>>> mark the bounds supplied by amd-pstate explicitly.
-> > >>>>
-> > >>>> Performance Limited is listed as a required Buffer, but the interf=
-ace does
-> > >>>> not depend on it to control performance and the specification perm=
-its a
-> > >>>> platform with no limiting indication to always report zero. Preser=
-ve
-> > >>>> the compatibility with firmware that represents that case using a =
-NULL
-> > >>>> register descriptor instead of disabling CPPC entirely.
-> > >>>>
-> > >>>> Emit an error when a present _CPC package fails parsing or initial=
-ization
-> > >>>> so such firmware and resource failures no longer silently suppress=
- cpufreq.
-> > >>>> Initialize malformed-package failures to -EINVAL and preserve spec=
-ific
-> > >>>> allocation, mapping, and unsupported-access errors in that diagnos=
-tic.
-> > >>>>
-> > >>>> Fixes: 337aadff8e45 ("ACPI: Introduce CPU performance controls usi=
-ng CPPC")
-> > >>>> Reported-by: Sashiko <sashiko-bot@kernel.org>
-> > >>>> Link: https://sashiko.dev/#/patchset/20260724134251.1632824-1-chri=
-stian.loehle%40arm.com
-> > >>>> Signed-off-by: Christian Loehle <christian.loehle@arm.com>
-> > >>>> ---
-> > >>>>  drivers/acpi/cppc_acpi.c     | 172 ++++++++++++++++++++++++++++++=
------
-> > >>>>  drivers/cpufreq/amd-pstate.c |  12 ++-
-> > >>>>  include/acpi/cppc_acpi.h     |   2 +
-> > >>>>  3 files changed, 159 insertions(+), 27 deletions(-)
-> > >>>>
-> > >>>> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> > >>>> index 3b8cdf88e31d..6f3ffa4a1845 100644
-> > >>>> --- a/drivers/acpi/cppc_acpi.c
-> > >>>> +++ b/drivers/acpi/cppc_acpi.c
-> > >>>> @@ -129,6 +129,21 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_=
-desc_ptr);
-> > >>>>                               !!(cpc)->cpc_entry.int_value :      =
-    \
-> > >>>>                               !IS_NULL_REG(&(cpc)->cpc_entry.reg))
-> > >>>>
-> > >>>> +static bool cpc_is_writable(const struct cpc_register_resource *c=
-pc)
-> > >>>> +{
-> > >>>> +     return cpc->type =3D=3D ACPI_TYPE_BUFFER &&
-> > >>>> +            !IS_NULL_REG(&cpc->cpc_entry.reg);
-> > >>>> +}
-> > >>>> +
-> > >>>> +static bool cpc_entry_present(const struct cpc_register_resource =
-*cpc)
-> > >>>> +{
-> > >>>> +     if (cpc->type =3D=3D ACPI_TYPE_INTEGER)
-> > >>>> +             return true;
-> > >>>> +
-> > >>>> +     return cpc->type =3D=3D ACPI_TYPE_BUFFER &&
-> > >>>> +            !IS_NULL_REG(&cpc->cpc_entry.reg);
-> > >>>> +}
-> > >>>> +
-> > >>>>  /*
-> > >>>>   * Each bit indicates the optionality of the register in per-cpu
-> > >>>>   * cpc_regs[] with the corresponding index. 0 means mandatory and=
- 1
-> > >>>> @@ -142,6 +157,29 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_=
-desc_ptr);
-> > >>>>   */
-> > >>>>  #define IS_OPTIONAL_CPC_REG(reg_idx) (REG_OPTIONAL & (1U << (reg_=
-idx)))
-> > >>>>
-> > >>>> +static bool cpc_integer_entry_valid(unsigned int reg_idx, u64 val=
-ue)
-> > >>>> +{
-> > >>>> +     switch (reg_idx) {
-> > >>>> +     case HIGHEST_PERF:
-> > >>>> +     case NOMINAL_PERF:
-> > >>>> +     case LOW_NON_LINEAR_PERF:
-> > >>>> +     case LOWEST_PERF:
-> > >>>> +     case CTR_WRAP_TIME:
-> > >>>> +     case REFERENCE_PERF:
-> > >>>> +     case LOWEST_FREQ:
-> > >>>> +     case NOMINAL_FREQ:
-> > >>>> +             return value <=3D U32_MAX;
-> > >>>
-> > >>>
-> > >>> Sashiko:
-> > >>> "Does this incorrectly restrict the counter wraparound time to 32 b=
-its?
-> > >>> The ACPI specification allows firmware to provide a 64-bit QWord in=
-teger
-> > >>> for the Counter Wraparound Time. The cppc_perf_fb_ctrs structure al=
-ready
-> > >>> models this as a 64-bit value internally
-> > >>> If firmware provides a valid 64-bit integer exceeding U32_MAX for t=
-his
-> > >>> register, cpc_integer_entry_valid() will return false and completel=
-y abort
-> > >>> CPPC initialization for the CPU. Can we remove this restriction for
-> > >>> CTR_WRAP_TIME?"
-> > >>
-> > >>> This is true. ACPI spec 6.6 and 6.5 (Table 8.23) describe it as
-> > >>> Integer (DWORD) or Buffer
-> > >>> The 64-bit internal representation is only for the case of firmware
-> > >>> providing it as Buffer.
-> > >
-> > > Sashiko is right, the table in the spec is wrong.  If it is Integer,
-> > > it is 64-bit.
-> > >
-> > > The size of an Integer in ASL cannot be restricted.
-> >
-> > Duh, thanks!
-> >
-> > >
-> > >>>
-> > >>>> +     case AUTO_SEL_ENABLE:
-> > >>>> +             return value <=3D 1;
-> > >>>> +     case DESIRED_PERF:
-> > >>>> +             /* Validated against Autonomous Selection after pars=
-ing. */
-> > >>>> +             return value =3D=3D 0;
-> > >>>> +     default:
-> > >>>> +             /* Tolerate the customary Integer 0 for an absent op=
-tion. */
-> > >>>> +             return value =3D=3D 0 && IS_OPTIONAL_CPC_REG(reg_idx=
-);
-> > >>>> +     }
-> > >>>> +}
-> > >>>> +
-> > >>> Sashiko:
-> > >>> "Does this incorrectly restrict the counter wraparound time to 32 b=
-its?
-> > >>> The ACPI specification allows firmware to provide a 64-bit QWord in=
-teger
-> > >>> for the Counter Wraparound Time. The cppc_perf_fb_ctrs structure al=
-ready
-> > >>> models this as a 64-bit value internally.
-> > >>> If firmware provides a valid 64-bit integer exceeding U32_MAX for t=
-his
-> > >>> register, cpc_integer_entry_valid() will return false and completel=
-y abort
-> > >>> CPPC initialization for the CPU. Can we remove this restriction for
-> > >>> CTR_WRAP_TIME?"
-> > >>
-> > >> It looks like you pasted the same comment twice.  Or did Sashiko hal=
-lucinate?
-> > >
-> > > Well, its other comment is actually different from the first one.  Le=
-t
-> > > me paste it:
-> >
-> > Apparently I hallucinated :)
-> >
-> > >
-> > > Will this strict rejection break CPPC initialization on compliant fir=
-mware
-> > > that provides non-zero integers for other optional capabilities?
-> > > For capability registers not explicitly listed in the switch statemen=
-t
-> > > above, such as GUARANTEED_PERF or TIME_WINDOW, the ACPI 6.5 specifica=
-tion
-> > > explicitly allows platforms to provide fixed non-zero values encoded =
-as
-> > > Integer objects.
-> > >
-> > > When firmware provides a valid non-zero integer for these optional
-> > > registers, this default case enforces that the value must be zero. Si=
-nce
-> > > acpi_cppc_processor_probe() fails and returns -EINVAL when this retur=
-ns
-> > > false, it will completely disable cpufreq and CPPC support for the CP=
-U.
-> > > Should we allow non-zero integer values for these other optional regi=
-sters?
-> > >
-> > >>> GUARANTEED_PERF and TIME_WINDOW: both are Buffer-only Register desc=
-riptors.
-> > >>> Nonzero Integer encodings are invalid and Integer 0 is tolerated be=
-cause
-> > >>> the previous parser allowed it too. I don't know of any platform de=
-scribing
-> > >>> this myself.
-> > >
-> > > Strictly speaking Integer 0 is not allowed, see
-> > >
-> > > https://uefi.org/specs/ACPI/6.6/08_Processor_Configuration_and_Contro=
-l.html#cpc-continuous-performance-control
-> >
-> > I'm happy to reject it too, I was just being careful here because I onl=
-y have
-> > a tiny subset of ACPI platforms to test this on with and it's for -fixe=
+> acpi_os_vprintf() formats every ACPICA diagnostic into a 512-byte static
+> buffer with an unbounded vsprintf():
+>
+>     static char buffer[512];
+>
+>     vsprintf(buffer, fmt, args);
+>
+> ACPICA interpolates table-derived namespace paths into its messages, so t=
+he
+> length is driven by table content. A malformed ACPI table can therefore
+> produce a diagnostic longer than the buffer and overwrite whatever follow=
 s
+> it.
 >
-> Instead of rejecting it entirely, you may log an FW_BUG message when
-> it is used, to avoid breaking legacy platforms that possibly used it.
+> From the System.map of an x86_64_defconfig build, acpi_ioremap_lock sits =
+624
+> bytes into that buffer - 112 bytes past its end - so bytes 624..631 of an
+> over-long message land on the mutex's owner field, which __mutex_lock() t=
+hen
+> dereferences.
+>
+> The overwritten bytes are attacker-influenced but not attacker-controlled=
+:
+> they are printable ASCII from a NUL-terminated string, so the resulting
+> pointer is always non-canonical and always faults. This is a reliable den=
+ial
+> of service, not a demonstrated pointer-control primitive.
+>
+> Because acpi_tb_load_namespace() parses the DSDT and every SSDT during
+> acpi_init(), a table supplied by firmware triggers this in PID 1 inside
+> do_one_initcall(), panicking the kernel before userspace exists.
+>
+> Bound the write with vsnprintf(). Truncating a diagnostic is strictly bet=
+ter
+> than corrupting adjacent kernel objects.
+>
+> Tested on pristine Linux 7.2.2 - tag: v7.2.2., Stock x86_64_defconfig
+> (no KASAN, no debug options), table supplied by firmware via
+> "qemu -acpitable":
+> [    0.022259] ACPI: SSDT 0x000000003FFE1C52 000640 (v01 _ASUS_
+> Notebook 00000005 MSFT 0100000D)
+> [    0.353684] Oops: general protection fault, probably for
+> non-canonical address
+>                0x41435f2e345f2e64: 0000 [#1] SMP NOPTI
+> [    0.353727] RIP: 0010:__mutex_lock.constprop.0+0xbd/0xa40
+> [    0.353727] RAX: 41435f2e345f2e30 RBX: 00000000fed00000
+> [    0.353727] R15: ffffffff8c248530
+> [    0.353727] Call Trace:
+> [    0.353727]  acpi_os_map_iomem
+> [    0.353727]  acpi_ex_system_memory_space_handler
+> [    0.353727]  acpi_ev_address_space_dispatch
+> [    0.353727]  acpi_ex_access_region
+> [    0.353727]  acpi_ex_read_data_from_field
+> [    0.353727]  acpi_ex_resolve_node_to_value
+> [    0.353727]  acpi_ds_evaluate_name_path
+> [    0.353727]  acpi_ps_parse_loop
+> [    0.353727]  acpi_ps_execute_method
+> [    0.354729] Kernel panic - not syncing: Attempted to kill init!
+> exitcode=3D0x00000009
+>
+> RAX is the corrupted owner; the faulting address is RAX + 0x34.
+> R15 matches acpi_ioremap_lock. On a KASAN build the overflow is
+> reported directly as:
+> BUG: KASAN: global-out-of-bounds in string.
+>
+> Signed-off-by: Vlatko Kosturjak <vlatko.kosturjak@gmail.com>
+> ---
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index ed2162a97..5b7aefb48 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -159,7 +159,7 @@ void __printf(1, 0) acpi_os_vprintf(const char
+> *fmt, va_list args)
+>  {
+>         static char buffer[512];
+>
+> -       vsprintf(buffer, fmt, args);
+> +       vsnprintf(buffer, sizeof(buffer), fmt, args);
+>
+>  #ifdef ENABLE_DEBUGGER
+>         if (acpi_in_debugger) {
 
-Still waiting for an update here and reviews from folks.
-
-If this is the only patch that needs to be updated, please just send
-an update of it alone.
+Applied as 7.4 material, thanks!
