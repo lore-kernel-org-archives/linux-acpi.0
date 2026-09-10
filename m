@@ -1,142 +1,105 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C0CC481AB5
-	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 17:22:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11B425581EC
+	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 17:22:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789060935; cv=none; b=QCkCRuBqBSYEBXqfbofeNtrxOevIR1atEC6ENMcNEDnyluD7MCkTjxSJwYZ7VJZtMvVoGnvr7vrPURNDWzGDxbXUppHDUmu07Ms1MH3Vgr9CA48QbQhfJHuIrgY5WThlnFRDkqCqtubiuG9+YpILWmGEEWz61hA/zWA8IvvTF7c=
+	t=1789060981; cv=none; b=G/aUM8/lH2BwXk0uxHqI1UbP970jd5pdM/tKpyz4Knsebr6yU++Yi3u4PvVO8Q2JGnxMXE7dB4CN5K88/obpByHXF89WxoNVv+al7zYO4lO5uHHp31Z+Su9KCDoWjhXlLNWvL+snOQsK+3YArlW7nOrpFz9Jo6sQHjzoLlgNUfk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789060935; c=relaxed/simple;
-	bh=EMjQ/cbpO6/hENghx0S9DU8WaegQkrGP3alYAD4/qF0=;
+	s=arc-20240116; t=1789060981; c=relaxed/simple;
+	bh=hqETN4V4lES92DA1ym1pqiDWGID/DKHOdXafLh2gBqI=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=fpx5on0OJ1KCWB9dsQahX6io8dKBd/htz7Ss5T9y8ATYrPBD1nXHkxcf4orqp0fD2wBNNqi211+b4/hifKUbFVBtEV0l5T0LWN5CuZWeXggepR6/L4er7s6Arji2rfB4fYFHkyqOLkQPjguCOxgEsOjVYwDg375wNt6LcZn5peg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SLlOw33m; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=MLEMcEhuxUqg+C24Sbb12zic57uCbmzHv23fYPmLofTp9HltpCXivC0QE0S9Imf1aST91DEG6O017Xwenyvx/LPDpkrRXJcmV0nbDdROYeHUssYZyA81rtKlvPzkGOaa+et57S89rCxNJ+FgywJWkZ4uiAftbVe1K/DjzfjMR8w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oJSpNk4Q; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SLlOw33m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5743B1F00893
-	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 17:22:01 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oJSpNk4Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D14751F00899
+	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 17:22:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789060921;
-	bh=QtsclENzPssYj3LUtNUiHYqOvstB/F9Ryi6rxEBSWvM=;
+	s=k20260515; t=1789060967;
+	bh=X0ILc7wnInlLytqmZSrBjOKShbJpcBGc1iP8l6Nsg0U=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=SLlOw33mhQMJ63LfxOP/OP+I1/A1cY8NMbWm9P5/NTxX9fwG36NvgTOSNs8hLDV5A
-	 lTwYKhKxZ5xh9jSwvjp32TbsQ97xixd4OD+RjLSE2/3ERlAyelk0xMfnTI79S1BALG
-	 Ny6ARw0n+avzQelHwj+AaO5GadRFxkra5D+0QC7wwX+ngJbvXmC3Rfnhw5yFZVn48n
-	 EoKva0AchLiWeeEWBdbDjhPobrjnfY4zHFGqElmAaYs1Z69Av9WRcwHywk9YJjJMG7
-	 4MrWTDznr94hLtJnZuEQFsbI77fO8XZtMXRLaekyHwSOjAIWKFESsg4cJTDdib0ZsM
-	 72ct/cuBPFYJw==
-Received: by mail-lf2-f12.google.com with SMTP id 2adb3069b0e04-5b5e4f16f16so51814e87.0
-        for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 10:22:01 -0700 (PDT)
-X-Gm-Message-State: AFuF++m5r3g0AqQecw97v4AwLtzMbSmhfs0xqtWcKPN9g2DC3+myne8Z
-	uLqeU0gbfTLMVdI735LfIvnB4A7YiMDjedJOmL+OFVm0JSpUbbu9YFmi0gZ+zVIwLYQ3EWU6Omf
-	hels4gK8vcNT25yUqqT/OQe/MjN7OhpA=
-X-Received: by 2002:a05:6512:15a0:b0:5b8:9eed:8963 with SMTP id
- 2adb3069b0e04-5b8a0325910mr167468e87.20.1789060919655; Thu, 10 Sep 2026
- 10:21:59 -0700 (PDT)
+	b=oJSpNk4Q+uYZZb1MQHCXw0zJNny2rFrsDVh7PqVqu4VceX+zRYW8Oc/CttA8K1bRo
+	 iTJXYjBp+A5fj1/JG57f1FrDoojw8/ugE0cck4vINXb2pY+Pyb5TojJS+RA5BF5R5t
+	 XaprpfV0+CKp800zs05VFQUuEH7KD56fxV+DSU+oNs36LfgJYsMfxYElwI+7KfipcU
+	 0xkMaedY+lO8Nyx/ZSLLwHTTh/rRo1ZlfXN+mWnuR3haSXTC09960BpZQcV5liAR88
+	 7DZIRnF5yAwaTxoGmVtRJbNw+rQ2OP8Xah9Z/2+CuiOHKeb6pqpgk6phIW/5lpmUTK
+	 gIuE7i6DxYHCQ==
+Received: by mail-lj1-f170.google.com with SMTP id 38308e7fff4ca-3a33307ecd9so78980741fa.2
+        for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 10:22:47 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBxu76JIxEVlqSpunMRW9qf/zlJREp+RCI/fnoHespWDAJ4tp5JPwtmzTyboEcg3rO3ebPRVikx5+NEb@vger.kernel.org
+X-Gm-Message-State: AFuF++l28fNG6SZKgY3G1Y/c7mfv7RyqtqMVhyoVmxkmIKd7xi7gcrfE
+	MQlrZnrq3mcJc4VJxf8muSODEFAEFNTjPtkxYwYek9j8a3LDzJgDwZJhfPjQRFjvAxGAfo5w13e
+	3SnSGzXMrP0bQznaKyNk4O76pj3pDcB0=
+X-Received: by 2002:a2e:bc82:0:b0:3a3:7681:6d60 with SMTP id
+ 38308e7fff4ca-3a376817530mr49434941fa.24.1789060966180; Thu, 10 Sep 2026
+ 10:22:46 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAPAw8HEMdsNN6WhizHkv2Orp2pkQ2-g009XCGFnKnhXoRhcKZQ@mail.gmail.com>
-In-Reply-To: <CAPAw8HEMdsNN6WhizHkv2Orp2pkQ2-g009XCGFnKnhXoRhcKZQ@mail.gmail.com>
+References: <20260821131530.3375820-1-ekffu200098@gmail.com>
+In-Reply-To: <20260821131530.3375820-1-ekffu200098@gmail.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Thu, 10 Sep 2026 19:20:48 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iOvjTz5viMUwAovjiMi80eaS-YxU8Uu5yL+2a4oggDWA@mail.gmail.com>
-X-Gm-Features: AcwNN1W612Xc95wBSeUTwMKpC5TAtJaLJRgDklSbz9hhud0pfBdxNh68HheI1TY
-Message-ID: <CAJZ5v0iOvjTz5viMUwAovjiMi80eaS-YxU8Uu5yL+2a4oggDWA@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: osl: use vsnprintf() in acpi_os_vprintf()
-To: Vlatko Kosturjak <vlatko.kosturjak@gmail.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Len Brown <lenb@kernel.org>
+Date: Thu, 10 Sep 2026 19:21:32 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jgc_Cb8Cgop=Zr+cu7ZgEvtFj=V=szT_0sfquNch3XHQ@mail.gmail.com>
+X-Gm-Features: AcwNN1XSTG3u4FewQ3cvvW-eEXM30vofm64UweitGiVDuj8gixypoJot8Yuqclg
+Message-ID: <CAJZ5v0jgc_Cb8Cgop=Zr+cu7ZgEvtFj=V=szT_0sfquNch3XHQ@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: MRRM: Use for_each_populated_zone() in get_node_num()
+To: Sang-Heon Jeon <ekffu200098@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Aug 31, 2026 at 6:51=E2=80=AFAM Vlatko Kosturjak
-<vlatko.kosturjak@gmail.com> wrote:
+On Fri, Aug 21, 2026 at 3:15=E2=80=AFPM Sang-Heon Jeon <ekffu200098@gmail.c=
+om> wrote:
 >
-> acpi_os_vprintf() formats every ACPICA diagnostic into a 512-byte static
-> buffer with an unbounded vsprintf():
+> get_node_num() iterates over the populated zones of every online node
+> with a nested loop. for_each_populated_zone() iterates over the same
+> zones in the same order.
 >
->     static char buffer[512];
+> So use for_each_populated_zone() instead and remove the unused
+> variable.
 >
->     vsprintf(buffer, fmt, args);
+> No functional change.
 >
-> ACPICA interpolates table-derived namespace paths into its messages, so t=
-he
-> length is driven by table content. A malformed ACPI table can therefore
-> produce a diagnostic longer than the buffer and overwrite whatever follow=
-s
-> it.
->
-> From the System.map of an x86_64_defconfig build, acpi_ioremap_lock sits =
-624
-> bytes into that buffer - 112 bytes past its end - so bytes 624..631 of an
-> over-long message land on the mutex's owner field, which __mutex_lock() t=
-hen
-> dereferences.
->
-> The overwritten bytes are attacker-influenced but not attacker-controlled=
-:
-> they are printable ASCII from a NUL-terminated string, so the resulting
-> pointer is always non-canonical and always faults. This is a reliable den=
-ial
-> of service, not a demonstrated pointer-control primitive.
->
-> Because acpi_tb_load_namespace() parses the DSDT and every SSDT during
-> acpi_init(), a table supplied by firmware triggers this in PID 1 inside
-> do_one_initcall(), panicking the kernel before userspace exists.
->
-> Bound the write with vsnprintf(). Truncating a diagnostic is strictly bet=
-ter
-> than corrupting adjacent kernel objects.
->
-> Tested on pristine Linux 7.2.2 - tag: v7.2.2., Stock x86_64_defconfig
-> (no KASAN, no debug options), table supplied by firmware via
-> "qemu -acpitable":
-> [    0.022259] ACPI: SSDT 0x000000003FFE1C52 000640 (v01 _ASUS_
-> Notebook 00000005 MSFT 0100000D)
-> [    0.353684] Oops: general protection fault, probably for
-> non-canonical address
->                0x41435f2e345f2e64: 0000 [#1] SMP NOPTI
-> [    0.353727] RIP: 0010:__mutex_lock.constprop.0+0xbd/0xa40
-> [    0.353727] RAX: 41435f2e345f2e30 RBX: 00000000fed00000
-> [    0.353727] R15: ffffffff8c248530
-> [    0.353727] Call Trace:
-> [    0.353727]  acpi_os_map_iomem
-> [    0.353727]  acpi_ex_system_memory_space_handler
-> [    0.353727]  acpi_ev_address_space_dispatch
-> [    0.353727]  acpi_ex_access_region
-> [    0.353727]  acpi_ex_read_data_from_field
-> [    0.353727]  acpi_ex_resolve_node_to_value
-> [    0.353727]  acpi_ds_evaluate_name_path
-> [    0.353727]  acpi_ps_parse_loop
-> [    0.353727]  acpi_ps_execute_method
-> [    0.354729] Kernel panic - not syncing: Attempted to kill init!
-> exitcode=3D0x00000009
->
-> RAX is the corrupted owner; the faulting address is RAX + 0x34.
-> R15 matches acpi_ioremap_lock. On a KASAN build the overflow is
-> reported directly as:
-> BUG: KASAN: global-out-of-bounds in string.
->
-> Signed-off-by: Vlatko Kosturjak <vlatko.kosturjak@gmail.com>
+> Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
 > ---
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index ed2162a97..5b7aefb48 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -159,7 +159,7 @@ void __printf(1, 0) acpi_os_vprintf(const char
-> *fmt, va_list args)
+>  drivers/acpi/acpi_mrrm.c | 14 ++++----------
+>  1 file changed, 4 insertions(+), 10 deletions(-)
+>
+> diff --git a/drivers/acpi/acpi_mrrm.c b/drivers/acpi/acpi_mrrm.c
+> index e99cbda83452..83934e2aa0d4 100644
+> --- a/drivers/acpi/acpi_mrrm.c
+> +++ b/drivers/acpi/acpi_mrrm.c
+> @@ -36,17 +36,11 @@ static u32 mrrm_mem_entry_num;
+>
+>  static int get_node_num(struct mrrm_mem_range_entry *e)
 >  {
->         static char buffer[512];
+> -       unsigned int nid;
+> +       struct zone *zone;
 >
-> -       vsprintf(buffer, fmt, args);
-> +       vsnprintf(buffer, sizeof(buffer), fmt, args);
+> -       for_each_online_node(nid) {
+> -               for (int z =3D 0; z < MAX_NR_ZONES; z++) {
+> -                       struct zone *zone =3D NODE_DATA(nid)->node_zones =
++ z;
+> -
+> -                       if (!populated_zone(zone))
+> -                               continue;
+> -                       if (zone_intersects(zone, PHYS_PFN(e->base), PHYS=
+_PFN(e->length)))
+> -                               return zone_to_nid(zone);
+> -               }
+> +       for_each_populated_zone(zone) {
+> +               if (zone_intersects(zone, PHYS_PFN(e->base), PHYS_PFN(e->=
+length)))
+> +                       return zone_to_nid(zone);
+>         }
 >
->  #ifdef ENABLE_DEBUGGER
->         if (acpi_in_debugger) {
+>         return -ENOENT;
+> --
 
 Applied as 7.4 material, thanks!
