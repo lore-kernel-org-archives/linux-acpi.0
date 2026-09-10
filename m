@@ -1,129 +1,191 @@
-Received: from mail2.g24.pair.com (mail2.g24.pair.com [216.92.166.58])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D980434CCE;
-	Thu, 10 Sep 2026 06:55:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.92.166.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6A7D30FF08
+	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 09:22:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789023323; cv=none; b=ibmdvrS7M06rWBoO67hi8G7VY60r4H7SSojDV2vPeIgc74DaPxQQoqy/mp6TN3U3i9jNhb3eZ8wnFxZxJQUAtlUWXxL7+1uOs99Kl6p5sIaggb6alHjjVRQdAA234brYDtGhvIn9DS+CGLqF6F0bp7P9FJmEpsqINzXR9SOVV48=
+	t=1789032165; cv=none; b=DXh5fA4v3+zMtwN1m5IzO6uUTh4LSwqp+4zb578+i/q0H7nKzzc83aLpc5zv1ED8k91da52eOoqAPflRe5ZQDGNaTDQMLau/qGrWhgwTM7YCbpu9sqWa1mM6n4dHj2rMifx1wU9Vt9/8uBkNRG+lET69igwaA6/wdcb0pW9wvMo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789023323; c=relaxed/simple;
-	bh=jj3z29Emallfy9K8rLv5NTGg0hJSm5DQQN0T91YQ7wk=;
-	h=Message-ID:Date:MIME-Version:To:Cc:From:Subject:Content-Type; b=Fg9lHI3qMwdUjmr2B/pus6R/kO5W9i36qvA4pc9i5K/FZQjspADC8MklLFGyXDVMas81LH0PsYjqmSyTr/ZWEGVUhq13W2mJsB1StHf3xugsyidhiSCEw352f+4KrITh8KA9L4EI1klEDuXvGIljJ12I+48Bw9y0dNtrUXlHWno=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=unspacy.com; spf=pass smtp.mailfrom=unspacy.com; arc=none smtp.client-ip=216.92.166.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=unspacy.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=unspacy.com
-Received: from mail2.g24.pair.com (localhost [127.0.0.1])
-	by mail2.g24.pair.com (Postfix) with ESMTP id D6FC9160226;
-	Thu, 10 Sep 2026 02:45:44 -0400 (EDT)
-Received: from [192.168.0.71] (1969776-static.lxtnkyaa.metronetinc.net [217.180.199.234])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mail2.g24.pair.com (Postfix) with ESMTPSA id 78B511601F4;
-	Thu, 10 Sep 2026 02:45:44 -0400 (EDT)
-Message-ID: <bf3a9544-6e49-4d5d-a01a-f1912b717d08@unspacy.com>
-Date: Thu, 10 Sep 2026 02:45:43 -0400
+	s=arc-20240116; t=1789032165; c=relaxed/simple;
+	bh=YR3UqnLLe1lsPwEIvVzghMm+1x/5ZdtNzH39Dc2YzcY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ScYoU/s1lgJIDQTOu2t16W2fOXcdYYprWpHs0cENpGn3fDLRTdXlTh0U7Sr0hnZL7MuuMaihLF47CJfQZWfIZ/FDiDp1xJwr6i5fRurQyMLj925m4fRQwnnzjO/yrH0esD020KJjsJcIx95O+tnhHOv7sw1yDFYvNiYj3L/uBWg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=SfQpCAKE; arc=none smtp.client-ip=198.175.65.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="SfQpCAKE"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1789032161; x=1820568161;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=YR3UqnLLe1lsPwEIvVzghMm+1x/5ZdtNzH39Dc2YzcY=;
+  b=SfQpCAKE6GhkfhKdl+xq0U92IYsBIXCHSWIQ63bNa69lwB3llDLe2l3m
+   B6f3lF6dMZlAqGe22+eJcJFLryE8Vg5KFF8ZFaPzq7BveIQRIbud9vKA2
+   19KnNFkJNFeznhmFzODl77rLWhCx8jc8I/LG0F+oRl2rKiuFUl7KvVlSk
+   WJGuMwIj1Jfp9J6s/ZTyVo8VaOZog0GyCWIM0tH0SLoCp8IZShpn12sLA
+   VM9hIj7rQQgHP49vZFF54AaimLohNHxu1neCLpIha1O/RKXlitHiFrDAN
+   pCNc8FUQY4zeSJ4Rerw1q+sU05xKXXnSW3gT/9a+7jh3BVbt63PpmhZrx
+   g==;
+X-CSE-ConnectionGUID: qmJ6NwRJTmmSlj1P5k4qQw==
+X-CSE-MsgGUID: dPW5eCHIRDq+IReyxzdoTA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11900"; a="89689416"
+X-IronPort-AV: E=Sophos;i="6.27,95,1787036400"; 
+   d="scan'208";a="89689416"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Sep 2026 02:22:40 -0700
+X-CSE-ConnectionGUID: f+TLnKNxR22eMCltUD6KbQ==
+X-CSE-MsgGUID: DlIcwFjOQ9WvyelE3BUZOg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,95,1787036400"; 
+   d="scan'208";a="296529848"
+Received: from ncintean-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.177])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Sep 2026 02:22:38 -0700
+Date: Thu, 10 Sep 2026 12:22:35 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: Mario Limonciello <mario.limonciello@amd.com>,
+	maciej.wieczor-retman@intel.com, pawel.chmielewski@intel.com,
+	lenb@kernel.org, linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev
+Subject: Re: [PATCH] ACPI: utils: Ignore leading root scope prefix in string
+ _UID match
+Message-ID: <aqJ22yK9h4ZHSo__@ashevche-desk.local>
+References: <20260831180214.2231161-1-mario.limonciello@amd.com>
+ <CAJZ5v0hgn+_L_yvEg0yo0vPk9_brbxsywyu_77tEyww4nV+eUg@mail.gmail.com>
+ <7f86bfc7-efda-4719-a0c2-fab04fba532f@amd.com>
+ <CAJZ5v0gFPcoC4nLFdjcfY5Ysk9Sw38r_rLpzWSxtVPTyTuh-0g@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Content-Language: en-US
-To: linux-integrity@vger.kernel.org
-Cc: peterhuewe@gmx.de, jarkko@kernel.org, jgg@ziepe.ca, rafael@kernel.org,
- lenb@kernel.org, linux-acpi@vger.kernel.org
-From: Sean Meadows <Hellfire@unspacy.com>
-Subject: [BUG] tpm_crb/Intel PTT: Late S3/S5/Reboot ACPI power management
- deadlock
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: mailmunge 3.10 on 216.92.166.58
+In-Reply-To: <CAJZ5v0gFPcoC4nLFdjcfY5Ysk9Sw38r_rLpzWSxtVPTyTuh-0g@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-Hello,
+On Fri, Sep 04, 2026 at 07:58:56PM +0200, Rafael J. Wysocki (Intel) wrote:
+> +Andy
 
-I am writing to report a reproducible power management bug where the
-system permanently hangs late in the ACPI S3 (sleep), S5 (shutdown), and
-soft reboot cycle.
+Thank you for Cc:ing me. And sorry for the late reply, too many emails
+in the box...
 
-The deadlock occurs at the absolute end of the platform teardown
-sequence; after the kernel has completely unmounted all local storage.
-Motherboard power rails remain fully active and fans spin continuously,
-requiring a physical power button reset. Because this happens post
-unmount and after the video terminates, standard runtime logs (pstore/
-dmesg) remain entirely empty.
+> On Fri, Sep 4, 2026 at 7:32 PM Mario Limonciello
+> <mario.limonciello@amd.com> wrote:
+> > On 9/4/26 08:26, Rafael J. Wysocki (Intel) wrote:
+> > > On Mon, Aug 31, 2026 at 8:02 PM Mario Limonciello
+> > > <mario.limonciello@amd.com> wrote:
+> > >>
+> > >> Firmware may express an ACPI namespace path used as a _UID with or
+> > >> without the leading root scope character ('\'). For example, an AMD
+> > >> IVRS IVHD ACPI HID device entry may carry a character UID of
+> > >> "\_SB.MHSP" while the corresponding device's _UID evaluates to
+> > >> "_SB.MHSP" (or vice versa).  This semantic difference is due to how
+> > >> Windows PnP enumerates and uses devices.
+> > >
+> > > Can you please elaborate a bit more?
+> > >
+> > > I would expect _UID to return the string without the leading
+> > > backslash, so where does the other one come from, exactly?
+> >
+> > It comes from the ACPI IVRS table.
+> >
+> > https://docs.amd.com/v/u/en-US/48882_3.11_IOMMU_PUB
 
-While sleep and shutdown hang forever, the soft reboot path has multiple 
-severe failure modes: hanging indefinitely, stalling for several minutes 
-before completing, or forcing a hard reset that corrupts the subsequent 
-POST phase. Standard kernel parameters like reboot=EFI, reboot=PCI, or 
-cold boot do not mitigate the issue.
+Link is behind SSO, which Intel employee most likely can't get :-)
 
-The deadlock does not happen immediately after a recent cold boot or
-reboot. The system must run for a number of hours before the condition
-occurs.
+> > p306-307 talk about this field.
+> >
+> > Here is a sample entry decoded with iasl -d
+> > (from BIOS on an affected system)
+> >
+> > [223h 0547 001h]               Subtable Type : F0 [Device Entry: ACPI
+> > HID Named Device]
+> > [224h 0548 002h]                   Device ID : 0068
+> > [226h 0550 001h] Data Setting (decoded below) : 40
+> >                                      INITPass : 0
+> >                                      EIntPass : 0
+> >                                       NMIPass : 0
+> >                                      Reserved : 0
+> >                                   System MGMT : 0
+> >                                    LINT0 Pass : 1
+> >                                    LINT1 Pass : 0
+> > [227h 0551 008h]                    ACPI HID : "MSFT0201"
+> > [22Fh 0559 008h]                    ACPI CID : 0000000000000000
+> > [237h 0567 001h]                  UID Format : 02
+> > [238h 0568 001h]                  UID Length : 09
+> > [239h 0569 009h]                         UID : "\_SB.XHSP"
 
-1. Reproduction
-The failure state can be made consistently repeatable via kernel
-initialization parameters and modprobe.d blacklist:
+As far as I can tell this is weird (very unusual) interpretation of UID field.
+Whoever created a specification should be informed about this.
 
-- Test A (Fail State): Booting with standard parameters. Triggering an
-S3 sleep, S5 shutdown, or reboot results in a guaranteed, hardware freeze.
+> > Setting this field to _SB.XHSP does fix the issue for Linux, but this
+> > has problems on Windows.  So my hope was to let \_SB.XHSP work for Linux
+> > too.
 
-- Test B (Pass State): Booting with the command line parameter:
-‘modprobe.blacklist=tpm_crb’ and modprobe.d conf with ‘blacklist tpm_crb’
-When the tpm_crb driver is completely prevented from initializing, the
-system executes S3 suspend, S5 shutdown, and reboot sequences flawlessly
-100% of the time.
+> So how does Linux process this table?  Maybe the leading backslash can
+> be removed in that path?
+> 
+> But I guess it may not help because _UID may contain a string with a
+> leading backslash.
+> 
+> > >> acpi_str_uid_match() compared the two strings verbatim, so such
+> > >> entries failed to match on the UID even though they refer to the same
+> > >> object. In the AMD IOMMU case (get_acpihid_device_id()) this caused
+> > >> the exact HID+UID match to be missed and the code to fall through to
+> > >> the HID-only path, spuriously raising a FW_BUG.
+> > >>
+> > >> Skip a single leading '\' on either string before comparing so that
+> > >> paths that differ only by the root scope prefix are treated as a
+> > >> match. The integer _UID path is unaffected.
+> > >
+> > > But this sort of assumes that the string returned by _UID will always
+> > > be a namespace path, but is that the case really?
+> >
+> > For IVRS entries this would be true since this is what is in the spec:
+> >
+> >  > If defined as a character string, the ACPI UID marks the instances of
+> >  > DMA-capable devices with the defined DeviceID (e.g. IOMMU visible
+> >  > Routing ID). It should match the ACPI device name space strings with
+> >  > unit number, but without a trailing \0 character (as the UID length
+> >  > specifies the size of the string already).
+> >
+> > But I don't know universally it would be true.
+> 
+> In general, they can be free-form strings AFAICS.
 
-- Other end users suffering from this problem have found a repeatable
-fix by going into the UEFI and disabling the PTT. My particular system
-lacks that option.
+Exactly, the semantic of the content is just arbitrary set of characters
+that is agreed to be unique (enough).
 
-2. Supporting Data
-This bug appears to be unique to the Intel PTT controllers powering the
-6th through 10th Generation Intel CPU families (Skylake through Comet
-Lake), spanning mobile, desktop, and HEDT platforms. The bulk of the
-data also implies that this isn’t isolated to a specific OEM.
+> > I suppose one possible modification could be to look for the length of
+> > the string being at least 2 on the string before incrementing the pointer.
+> 
+> I guess this change can be made because it will only possibly cause
+> problems when the only difference between the supplied UID and the
+> string returned by _UID is the leading backslash and they are not
+> supposed to match, which is unlikely to happen.
+> 
+> However, the kerneldoc comment of acpi_str_uid_match() needs to be
+> updated to mention this.
 
-- Bugzilla #217890:
-   chriscjsus: MSI GS40 6QE | Intel i7-6700HQ
-   mahasler: Intel NUC7i3BNB | Intel Core i3-7100U
-   Boris Carvajal: MSI Z370 Tomahawk | Intel i5-8400
-   Serhii Tsynailo: Intel i5-8250u laptop
-   Sergio: ASUS ZenBook UX310UQK | Intel i7-7500U
-   My System: ASUS ROG GL703VM | HM175 Chipset | Intel i7-7700HQ | MEI FW
-v11.9.1.3010 | Running Arch Linux vanilla stable kernel 7.2.4 (stock
-package)
+I don't see the direct question to me, I assume you want my opinion about
+the implementation. Ideally the specification has to be fixed, so we do not
+interpret UID as some "special" string. In a new version of the table
+specifications it can be amended with a new field, for example.
 
-- Community Threads:
-   Arch Forum (ID: 303082): Solved exclusively by disabling Intel PTT in
-BIOS (Gigabyte B460 | Intel 10th Gen)
-   Reddit (r/archlinux): Widespread tracking detailing identical S3/S5
-deadlocks (X299/Z370)
+If we need to solve the old behaviour, the skipping leading \ (and backslash
+only) might be good enough quirk to make sure that the rest of the callers
+(and possible future interpretations) won't be affected. TL;DR: Make quirk
+as narrow as possible to avoid false positive triggering.
 
-3. Additional Details
-An unmerged diagnostic patch submitted by another user (Adam Alves,
-Patchwork ID: 20240307000331.14848-2-adamoa@gmail.com) previously
-presumed that this late freeze on certain motherboards occurs because
-the driver leaves the fTPM/PTT hardware interface in an unreleased, non-
-zero locality state upon teardown. The author suggested that the
-platform firmware's pre-OS and ACPI transition environments expect the
-TPM to be sitting strictly in Locality 0, causing the firmware to enter
-an infinite timeout wait-state when control is passed back to it.
+-- 
+With Best Regards,
+Andy Shevchenko
 
-I am not qualified to audit the driver. Whether this belongs in the DMI,
-is a mistake in the driver logic, or is a bug in the PTT I can’t answer.
-I can only point to the unfailing success of a growing number of public
-end users who can instantly fix the problem by disabling the PTT in
-firmware or blacklisting the TPM driver. I have included the ACPI
-team in this e-mail in the hopes that they can provide additional clarity.
 
-I have never compiled a custom kernel before, but I am set up to
-reproduce this and am entirely willing to act as a tester for any
-diagnostic patches the maintainers would like to provide.
-
-Thank you for your time and patience,
-Sean
