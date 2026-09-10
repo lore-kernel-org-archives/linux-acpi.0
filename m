@@ -1,97 +1,63 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF0682FFDFC
-	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 00:55:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F351F507
+	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 01:50:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789001752; cv=none; b=jCKImfNLVujTX6jUl/dKnzuyS+zDKkgxC0uNQhtriUE5nvvRJDBguyTnreJM5a1Fp86/Ow66Jyk1bUZrG4UWWJttxzQovfak0AOQEzqLEwBI31Lf4P8w8CnTkzE10yV9nI2r53Xzuw0lSTDjI6wDyYvPYgRVyFtB3ttc49tFSAI=
+	t=1789005018; cv=none; b=JeC2R8EuL1EiOMnxZ2dfrUhMuvoASeHc3OXH2h3JPj3EVi7QOPmRpDEOiWYyH/KGZesf4hQW2uaMs82o230vncLW4wJ1Pa7+nzgerdICehqtkn19Yr4QQDJvSdGJCfL9h4LaDlps4QCMhuyEoLr2bsMozohhXRHKG7/FJmMWnmU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789001752; c=relaxed/simple;
-	bh=SNUeng/BOkTzRfB4VBOIQAX1w1b7DHzT0zxXmfeGcc0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Np4pumh8ryv6zX6+M3Bo7VTfR1EUfANgV9eY5FNOpuZjQkGZYyNQ0mHn1xVD/ZX90mCp2g4nQFz2fd+WWZEiPUCwFqkX8xyjc6DlEsU8n0CvEV7xeUbNIcAl7afhwgjEGwUdSiEs/C6edHY3p+EDfP8WDV98xIkm/vlEWlLF0JA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VoFEAOcN; arc=none smtp.client-ip=198.175.65.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VoFEAOcN"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1789001751; x=1820537751;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=SNUeng/BOkTzRfB4VBOIQAX1w1b7DHzT0zxXmfeGcc0=;
-  b=VoFEAOcNa59v+iY+y8aBMEiugPZOn0sq5U6Oq0O5uBlnM4VDCEfdOKG5
-   ATGIEVaUR4kYCaMwDWGWwTLZW+9eEi9d2PhKCN/EodBwARReJOp0PHCts
-   w5FZIhpnPUQ4NDED2osdO5dPJjibHNZqQ3crHu8ReYypBlA6Y9f6gnpJB
-   e7O+j+hOtptqhkj7FgyAv+L0lrfmeoP8pQe+g3F+COp/pM8j66JkC7n4B
-   AE/m8ylLq/CPGgtxE2ZqG5xeFkweQxGC+/e9Y/TnrVwc5Et2R9MIXsX/9
-   CMYIKEodyTtjDAqlkO1J+nLEhTnPorXOQUl3I9SRNE4nLbFj2NHKQtl8L
-   Q==;
-X-CSE-ConnectionGUID: TOw73lwqTSe01E4F/zMXBQ==
-X-CSE-MsgGUID: Ms6hEzHnTKKdWQ6O3KtM/w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11900"; a="93133281"
-X-IronPort-AV: E=Sophos;i="6.25,271,1779174000"; 
-   d="scan'208";a="93133281"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2026 17:55:51 -0700
-X-CSE-ConnectionGUID: dHAqgPlbSXmfdxpMdpq46A==
-X-CSE-MsgGUID: O1xENvRhSsuvse1238AnGg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.25,271,1779174000"; 
-   d="scan'208";a="275242206"
-Received: from lkp-server01.sh.intel.com (HELO a3e91e2cf319) ([10.239.97.150])
-  by orviesa004.jf.intel.com with ESMTP; 09 Sep 2026 17:55:49 -0700
-Received: from kbuild by a3e91e2cf319 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1x4T4s-000000001Ay-2r3O;
-	Thu, 10 Sep 2026 00:55:46 +0000
-Date: Thu, 10 Sep 2026 08:54:55 +0800
-From: kernel test robot <lkp@intel.com>
-To: Li Jun <lijun01@kylinos.cn>, rafael@kernel.org, lenb@kernel.org,
+	s=arc-20240116; t=1789005018; c=relaxed/simple;
+	bh=BOYWpn9J3VKyh8fNbYj3QGVD86VTduHrn8XhgrzNhbM=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=UstpTA6fxbSRqoMTKYBErmaNLkJD89S9jEFVlh1aqHrGfP9xDMI/UbEWyBJnXDcLP1vRW+uqE9+etwkegcT23aZt+smfMRAKzX09pflo9s/KCX69xytPZNKeSi3E89qjeuiefNPRMG82oLiPuLjIr13zzgIV82o7Q+It/52wHFg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
+X-UUID: f31b15a0acb911f19a56ed5b684f684d-20260910
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.3.19,REQID:41d013c3-648d-4a6d-8964-be5f38e9dd3d,IP:0,U
+	RL:0,TC:0,Content:-25,EDM:25,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTI
+	ON:release,TS:0
+X-CID-META: VersionHash:7db8b62,CLOUDID:57c6d4679a2ee0a1b0292a5a10c4baec,BulkI
+	D:nil,BulkQuantity:0,SF:102|850|865|898,TC:nil,Content:0|15|50|99,EDM:5,IP
+	:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OSA:0,AV:0,
+	LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
+X-CID-BVR: 2,SSN|SDN
+X-CID-BAS: 2,SSN|SDN,0,_
+X-CID-FACTOR: TF_CID_SPAM_SNR
+X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
+X-UUID: f31b15a0acb911f19a56ed5b684f684d-20260910
+X-User: lijun01@kylinos.cn
+Received: from localhost.localdomain [(10.44.16.150)] by mailgw.kylinos.cn
+	(envelope-from <lijun01@kylinos.cn>)
+	(Generic MTA with TLSv1.3 TLS_AES_256_GCM_SHA384 256/256)
+	with ESMTP id 994017250; Thu, 10 Sep 2026 09:50:07 +0800
+From: Li Jun <lijun01@kylinos.cn>
+To: lijun01@kylinos.cn,
+	rafael@kernel.org,
+	lenb@kernel.org,
 	linux-acpi@vger.kernel.org
-Cc: oe-kbuild-all@lists.linux.dev
-Subject: Re: [PATCH] ACPI: button: replace SIMPLE_DEV_PM_OPS with
- DEFINE_SIMPLE_DEV_PM_OPS
-Message-ID: <202609100827.qM0GkvjX-lkp@intel.com>
-References: <20260908014645.4165221-1-lijun01@kylinos.cn>
+Subject: [PATCH v2] ACPI: button: replace SIMPLE_DEV_PM_OPS with DEFINE_SIMPLE_DEV_PM_OPS
+Date: Thu, 10 Sep 2026 09:49:53 +0800
+Message-Id: <20260910014953.187180-1-lijun01@kylinos.cn>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260908014645.4165221-1-lijun01@kylinos.cn>
+Content-Transfer-Encoding: 8bit
 
-Hi Li,
+Replace `SIMPLE_DEV_PM_OPS` and `#ifdef CONFIG_PM_SLEEP`
+boilerplate with the modern `DEFINE_SIMPLE_DEV_PM_OPS()`
+macro in the acpi_button driver.
 
-kernel test robot noticed the following build warnings:
-
-[auto build test WARNING on rafael-pm/linux-next]
-[also build test WARNING on rafael-pm/bleeding-edge linus/master v7.3-rc2 next-20260909]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Li-Jun/ACPI-button-replace-SIMPLE_DEV_PM_OPS-with-DEFINE_SIMPLE_DEV_PM_OPS/20260908-094645
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-patch link:    https://lore.kernel.org/r/20260908014645.4165221-1-lijun01%40kylinos.cn
-patch subject: [PATCH] ACPI: button: replace SIMPLE_DEV_PM_OPS with DEFINE_SIMPLE_DEV_PM_OPS
-config: i386-randconfig-061-20260910 (https://download.01.org/0day-ci/archive/20260910/202609100827.qM0GkvjX-lkp@intel.com/config)
-compiler: clang version 22.1.3 (https://github.com/llvm/llvm-project e9846648fd6183ee6d8cbdb4502213fcf902a211)
-sparse: v0.6.5-rc1
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260910/202609100827.qM0GkvjX-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202609100827.qM0GkvjX-lkp@intel.com/
-
-All warnings (new ones prefixed by >>):
-
+Signed-off-by: Li Jun <lijun01@kylinos.cn>
+---
+Changes:
+-Add pm_sleep_ptr for acpi_button_pm in acpi_button_driver.
+-Fix the warning:
 >> drivers/acpi/button.c:164:12: warning: function 'acpi_button_suspend' has internal linkage but is not defined [-Wundefined-internal]
      164 | static int acpi_button_suspend(struct device *dev);
          |            ^
@@ -105,21 +71,56 @@ All warnings (new ones prefixed by >>):
      167 | static DEFINE_SIMPLE_DEV_PM_OPS(acpi_button_pm, acpi_button_suspend, acpi_button_resume);
          |                                                                      ^
    2 warnings generated.
+---
+ drivers/acpi/button.c | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-Kconfig warnings: (for reference only)
-   WARNING: unmet direct dependencies detected for SND_SOC_SDCA_HID
-   Depends on [n]: SOUND [=y] && SND [=m] && SND_SOC [=m] && SND_SOC_SDCA [=m] && (HID [=n]=y [=y] || HID [=n]=SND_SOC_SDCA [=m])
-   Selected by [m]:
-   - SND_SOC_RT766_SDCA_SDW [=m] && SOUND [=y] && SND [=m] && SND_SOC [=m] && SOUNDWIRE [=m] && SND_SOC_SDCA [=m]
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index cdbb1023a8ee..1df7e268c4dd 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -161,14 +161,10 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+ static int acpi_button_probe(struct platform_device *pdev);
+ static void acpi_button_remove(struct platform_device *pdev);
+ 
+-#ifdef CONFIG_PM_SLEEP
+ static int acpi_button_suspend(struct device *dev);
+ static int acpi_button_resume(struct device *dev);
+-#else
+-#define acpi_button_suspend NULL
+-#define acpi_button_resume NULL
+-#endif
+-static SIMPLE_DEV_PM_OPS(acpi_button_pm, acpi_button_suspend, acpi_button_resume);
++
++static DEFINE_SIMPLE_DEV_PM_OPS(acpi_button_pm, acpi_button_suspend, acpi_button_resume);
+ 
+ static struct platform_driver acpi_button_driver = {
+ 	.probe = acpi_button_probe,
+@@ -176,7 +172,7 @@ static struct platform_driver acpi_button_driver = {
+ 	.driver = {
+ 		.name = "acpi-button",
+ 		.acpi_match_table = button_device_ids,
+-		.pm = &acpi_button_pm,
++		.pm = pm_sleep_ptr(&acpi_button_pm),
+ 	},
+ };
+ 
+@@ -502,7 +498,6 @@ static u32 acpi_button_event(void *data)
+ 	return ACPI_INTERRUPT_HANDLED;
+ }
+ 
+-#ifdef CONFIG_PM_SLEEP
+ static int acpi_button_suspend(struct device *dev)
+ {
+ 	struct acpi_button *button = dev_get_drvdata(dev);
+@@ -532,7 +527,6 @@ static int acpi_button_resume(struct device *dev)
+ 	}
+ 	return 0;
+ }
+-#endif
+ 
+ static int acpi_lid_input_open(struct input_dev *input)
+ {
+-- 
+2.25.1
 
-
-vim +/acpi_button_suspend +164 drivers/acpi/button.c
-
-^1da177e4c3f41 Linus Torvalds    2005-04-16  163  
-e71eeb2a6bcc62 Rafael J. Wysocki 2014-07-23 @164  static int acpi_button_suspend(struct device *dev);
-1be532de834ab7 Rafael J. Wysocki 2012-06-27 @165  static int acpi_button_resume(struct device *dev);
-d02d5d6f0a061f Li Jun            2026-09-08  166  
-
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
