@@ -1,214 +1,144 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69784419318
-	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 10:57:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AEF043498E
+	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 11:03:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789037877; cv=none; b=UgY8CQYylzwLUP3lry1CEH4y21UCePB5h8X2zdoeS38COG8eVmTBaL6OT9wR7OyjhmCzs6wIMvHCR6D9+B4SA8yfSf3U9v7Isj5xFXikyJEyhj4ZtYpVru/uIOKA7RtQsMaCFEQuWM9Wk/TVMwWhbIUIdz14mA40YNvkyoU6O/k=
+	t=1789038226; cv=none; b=UYSxHsgUiULjZ4HBdcQD1snle23S7C6LX/Y0DxhkQAYU7J7iGk+juP7Rkt1r8tl9GoE4cyGDQVT3EEkDMgOzVhLWF7W/xxXLkyjJMcwjRso9QIPhGulJCQsYjZC6LtzT9VdNJqv4ebyEFs17gAC64v9d+czJ3n3tzevGAnFD6IE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789037877; c=relaxed/simple;
-	bh=UVr15BsXAEj6heXVyr+gv3vp9cLU9vPBS+f7O60WSds=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Ks827KrlGEKfG3XF4n49jHc7+8M2/CB3Yw1V89wUQOPYNmoZ30bsRvqujVES6L1yPVW2t8k+Yiutn4aCL31tCBO3jCqK/tnEXD1oeBmqpetD8sII1R6Vpgphu63uYphwXAF7btLy84BG8niEQiRdZWE/jzH6L4v9i6HrsmG2r7Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Sq2+Dd8a; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Sq2+Dd8a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19E161F00898
-	for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 10:57:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789037876;
-	bh=fq3Bb2asEEMP1p/DxlpgXHJ61gWl8ROH4kaSWZKRojI=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=Sq2+Dd8aMe7SCUg3ENbvWr4ur8VTQ4yEHpXczCcl2QHh32Eosm+F+S3apa4FIzNi/
-	 tHHteZwWONSPUvtz6oCSbTJneppqMlp8o6AJH3WACXwpUrIQ8Kd3eSHFMwLlChFRzT
-	 JPPpPd4LC5AcUKcoqTKEmbyjCI8Alcis++bQ44aE5kl/0nELoaUA+ahvbyMhEuFe5k
-	 uo/pXQK6kjIlLxmfNrKkVSI40x2TZ/QpdATKwOCb8Fxj0qfgUauQ5DwWOw4lWWaZM/
-	 j7HAp9M2YqIO/vgJ0D+fLlwE3Ei1M2gELcNSPiLAUcGrW7lmpINfBYn31609H6Rmdg
-	 glqkrZ5NNvjFg==
-Received: by mail-lj1-f178.google.com with SMTP id 38308e7fff4ca-3a49d2b18d5so13864351fa.3
-        for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2026 03:57:56 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvByrtkIxn7o9x9hsHeaUUiO/wb87pCNsrdY9IwwDZHAAyJkSaXLqMENm1UVMOomZV5kBAJs5NzA+r+Qs@vger.kernel.org
-X-Gm-Message-State: AFuF++lubP2wSKKOkAYCnWoRp03GS263LS/XdXjR5bK68HGGI6GwvJaX
-	FuHIVdu8MCiakSc/AjJklM2Z/7JbzZ91lf2y7W7z1PK5izTcWAi3ElR5644b4m1CIPc1M1wGyjV
-	PA4oO3KVaU1PVcb0jR4tLk4c6/5k+qp0=
-X-Received: by 2002:a05:651c:4ca:b0:3a3:42cf:c014 with SMTP id
- 38308e7fff4ca-3a371b03dddmr46198621fa.7.1789037874395; Thu, 10 Sep 2026
- 03:57:54 -0700 (PDT)
+	s=arc-20240116; t=1789038226; c=relaxed/simple;
+	bh=09m9BcpaN3q+ASCDSpZj070GBGLeq+f9Ppn2JgpSzYc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=FCCfSNdS6Ea9+uOYvh6vzrG4zh2HmLZQMLDqJVoAzgvE59y10VXz1flmg/T86LrRgarkoa1bNcC9/r3+WXyegrK/W7RMJvODw7ZqIjULRsZ43/7EBxAAjK+8iLX5eGmdx5LoDOYB0rWklcsFEMcLlpTqTZNcyBZr3Bw7RVdwMyg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
+X-UUID: 45777c7ead0711f19a56ed5b684f684d-20260910
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.3.19,REQID:641f06fe-aeb9-461f-a88d-18c79e238145,IP:0,U
+	RL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTION:
+	release,TS:0
+X-CID-META: VersionHash:7db8b62,CLOUDID:df30dabc3cffd7d9f198215724e963ed,BulkI
+	D:nil,BulkQuantity:0,SF:80|81|82|83|102|865|898,TC:nil,Content:0|15|50|99,
+	EDM:-3,IP:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OS
+	A:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
+X-CID-BVR: 2,SSN|SDN
+X-CID-BAS: 2,SSN|SDN,0,_
+X-CID-FACTOR: TF_CID_SPAM_SNR
+X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
+X-UUID: 45777c7ead0711f19a56ed5b684f684d-20260910
+X-User: lijun01@kylinos.cn
+Received: from [172.30.70.202] [(10.44.16.150)] by mailgw.kylinos.cn
+	(envelope-from <lijun01@kylinos.cn>)
+	(Generic MTA with TLSv1.3 TLS_AES_128_GCM_SHA256 128/128)
+	with ESMTP id 1667665250; Thu, 10 Sep 2026 19:03:36 +0800
+Message-ID: <efe67e88-35d8-4f51-8ff5-a95053562b23@kylinos.cn>
+Date: Thu, 10 Sep 2026 19:03:34 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260831180214.2231161-1-mario.limonciello@amd.com>
- <CAJZ5v0hgn+_L_yvEg0yo0vPk9_brbxsywyu_77tEyww4nV+eUg@mail.gmail.com>
- <7f86bfc7-efda-4719-a0c2-fab04fba532f@amd.com> <CAJZ5v0gFPcoC4nLFdjcfY5Ysk9Sw38r_rLpzWSxtVPTyTuh-0g@mail.gmail.com>
- <aqJ22yK9h4ZHSo__@ashevche-desk.local>
-In-Reply-To: <aqJ22yK9h4ZHSo__@ashevche-desk.local>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Thu, 10 Sep 2026 12:56:43 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0h-229tKZ-=eXpWrSD9Y+2YBa4cPNiYoeu54k=T412N2g@mail.gmail.com>
-X-Gm-Features: AcwNN1UoW-g5DwUzSiZo08kjEK4k5ZzmuDjZEQQ4h2Cu8wEt1GtD1GeNRezqbV4
-Message-ID: <CAJZ5v0h-229tKZ-=eXpWrSD9Y+2YBa4cPNiYoeu54k=T412N2g@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: utils: Ignore leading root scope prefix in string
- _UID match
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Mario Limonciello <mario.limonciello@amd.com>
-Cc: maciej.wieczor-retman@intel.com, pawel.chmielewski@intel.com, 
-	linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2] ACPI: button: replace SIMPLE_DEV_PM_OPS with
+ DEFINE_SIMPLE_DEV_PM_OPS
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+References: <20260910014953.187180-1-lijun01@kylinos.cn>
+ <CAJZ5v0gkhGdyoQ6t7yjY8LWJd12zVb9P1Ep3W1+kL48B=BgS5A@mail.gmail.com>
+Content-Language: en-US
+From: lijun <lijun01@kylinos.cn>
+In-Reply-To: <CAJZ5v0gkhGdyoQ6t7yjY8LWJd12zVb9P1Ep3W1+kL48B=BgS5A@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Thu, Sep 10, 2026 at 11:22=E2=80=AFAM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Fri, Sep 04, 2026 at 07:58:56PM +0200, Rafael J. Wysocki (Intel) wrote=
-:
-> > +Andy
->
-> Thank you for Cc:ing me. And sorry for the late reply, too many emails
-> in the box...
->
-> > On Fri, Sep 4, 2026 at 7:32=E2=80=AFPM Mario Limonciello
-> > <mario.limonciello@amd.com> wrote:
-> > > On 9/4/26 08:26, Rafael J. Wysocki (Intel) wrote:
-> > > > On Mon, Aug 31, 2026 at 8:02=E2=80=AFPM Mario Limonciello
-> > > > <mario.limonciello@amd.com> wrote:
-> > > >>
-> > > >> Firmware may express an ACPI namespace path used as a _UID with or
-> > > >> without the leading root scope character ('\'). For example, an AM=
-D
-> > > >> IVRS IVHD ACPI HID device entry may carry a character UID of
-> > > >> "\_SB.MHSP" while the corresponding device's _UID evaluates to
-> > > >> "_SB.MHSP" (or vice versa).  This semantic difference is due to ho=
-w
-> > > >> Windows PnP enumerates and uses devices.
-> > > >
-> > > > Can you please elaborate a bit more?
-> > > >
-> > > > I would expect _UID to return the string without the leading
-> > > > backslash, so where does the other one come from, exactly?
-> > >
-> > > It comes from the ACPI IVRS table.
-> > >
-> > > https://docs.amd.com/v/u/en-US/48882_3.11_IOMMU_PUB
->
-> Link is behind SSO, which Intel employee most likely can't get :-)
+Apologies missing your earlier point.
 
-Yeah, good point.
+Thanks for the patience.
 
-Link: tags should point to stuff that is available to everyone
-potentially interested.
-
-> > > p306-307 talk about this field.
-> > >
-> > > Here is a sample entry decoded with iasl -d
-> > > (from BIOS on an affected system)
-> > >
-> > > [223h 0547 001h]               Subtable Type : F0 [Device Entry: ACPI
-> > > HID Named Device]
-> > > [224h 0548 002h]                   Device ID : 0068
-> > > [226h 0550 001h] Data Setting (decoded below) : 40
-> > >                                      INITPass : 0
-> > >                                      EIntPass : 0
-> > >                                       NMIPass : 0
-> > >                                      Reserved : 0
-> > >                                   System MGMT : 0
-> > >                                    LINT0 Pass : 1
-> > >                                    LINT1 Pass : 0
-> > > [227h 0551 008h]                    ACPI HID : "MSFT0201"
-> > > [22Fh 0559 008h]                    ACPI CID : 0000000000000000
-> > > [237h 0567 001h]                  UID Format : 02
-> > > [238h 0568 001h]                  UID Length : 09
-> > > [239h 0569 009h]                         UID : "\_SB.XHSP"
+  2026/9/10 18:32, Rafael J. Wysocki (Intel) :
+> On Thu, Sep 10, 2026 at 3:50 AM Li Jun <lijun01@kylinos.cn> wrote:
+>> Replace `SIMPLE_DEV_PM_OPS` and `#ifdef CONFIG_PM_SLEEP`
+>> boilerplate with the modern `DEFINE_SIMPLE_DEV_PM_OPS()`
+>> macro in the acpi_button driver.
+> So again, this is not a replacement as it actively makes the kernel
+> waste memory in certain configurations.
 >
-> As far as I can tell this is weird (very unusual) interpretation of UID f=
-ield.
-> Whoever created a specification should be informed about this.
+>> Signed-off-by: Li Jun <lijun01@kylinos.cn>
+> I guess my previous comment that I didn't see any point in making
+> these changes was not clear enough.
 >
-> > > Setting this field to _SB.XHSP does fix the issue for Linux, but this
-> > > has problems on Windows.  So my hope was to let \_SB.XHSP work for Li=
-nux
-> > > too.
+> I'm not going to apply this.
 >
-> > So how does Linux process this table?  Maybe the leading backslash can
-> > be removed in that path?
-> >
-> > But I guess it may not help because _UID may contain a string with a
-> > leading backslash.
-> >
-> > > >> acpi_str_uid_match() compared the two strings verbatim, so such
-> > > >> entries failed to match on the UID even though they refer to the s=
-ame
-> > > >> object. In the AMD IOMMU case (get_acpihid_device_id()) this cause=
-d
-> > > >> the exact HID+UID match to be missed and the code to fall through =
-to
-> > > >> the HID-only path, spuriously raising a FW_BUG.
-> > > >>
-> > > >> Skip a single leading '\' on either string before comparing so tha=
-t
-> > > >> paths that differ only by the root scope prefix are treated as a
-> > > >> match. The integer _UID path is unaffected.
-> > > >
-> > > > But this sort of assumes that the string returned by _UID will alwa=
-ys
-> > > > be a namespace path, but is that the case really?
-> > >
-> > > For IVRS entries this would be true since this is what is in the spec=
-:
-> > >
-> > >  > If defined as a character string, the ACPI UID marks the instances=
- of
-> > >  > DMA-capable devices with the defined DeviceID (e.g. IOMMU visible
-> > >  > Routing ID). It should match the ACPI device name space strings wi=
-th
-> > >  > unit number, but without a trailing \0 character (as the UID lengt=
-h
-> > >  > specifies the size of the string already).
-> > >
-> > > But I don't know universally it would be true.
-> >
-> > In general, they can be free-form strings AFAICS.
->
-> Exactly, the semantic of the content is just arbitrary set of characters
-> that is agreed to be unique (enough).
->
-> > > I suppose one possible modification could be to look for the length o=
-f
-> > > the string being at least 2 on the string before incrementing the poi=
-nter.
-> >
-> > I guess this change can be made because it will only possibly cause
-> > problems when the only difference between the supplied UID and the
-> > string returned by _UID is the leading backslash and they are not
-> > supposed to match, which is unlikely to happen.
-> >
-> > However, the kerneldoc comment of acpi_str_uid_match() needs to be
-> > updated to mention this.
->
-> I don't see the direct question to me, I assume you want my opinion about
-> the implementation. Ideally the specification has to be fixed, so we do n=
-ot
-> interpret UID as some "special" string. In a new version of the table
-> specifications it can be amended with a new field, for example.
->
-> If we need to solve the old behaviour, the skipping leading \ (and backsl=
-ash
-> only) might be good enough quirk to make sure that the rest of the caller=
-s
-> (and possible future interpretations) won't be affected. TL;DR: Make quir=
-k
-> as narrow as possible to avoid false positive triggering.
-
-That is a good point either, but I think that if two UID strings
-differ only by a leading backslash, it is kind of reasonable to assume
-that they were intended to not differ (or conversely, it is hard to
-believe that someone would intentionally add a leading backslash to
-distinguish one UID string from another).
-
-So I'm going to apply this, but I will remove the Link: tag mentioned above=
-.
-
-Thanks for the feedback!
+>> ---
+>> Changes:
+>> -Add pm_sleep_ptr for acpi_button_pm in acpi_button_driver.
+>> -Fix the warning:
+>>>> drivers/acpi/button.c:164:12: warning: function 'acpi_button_suspend' has internal linkage but is not defined [-Wundefined-internal]
+>>       164 | static int acpi_button_suspend(struct device *dev);
+>>           |            ^
+>>     drivers/acpi/button.c:167:49: note: used here
+>>       167 | static DEFINE_SIMPLE_DEV_PM_OPS(acpi_button_pm, acpi_button_suspend, acpi_button_resume);
+>>           |                                                 ^
+>>>> drivers/acpi/button.c:165:12: warning: function 'acpi_button_resume' has internal linkage but is not defined [-Wundefined-internal]
+>>       165 | static int acpi_button_resume(struct device *dev);
+>>           |            ^
+>>     drivers/acpi/button.c:167:70: note: used here
+>>       167 | static DEFINE_SIMPLE_DEV_PM_OPS(acpi_button_pm, acpi_button_suspend, acpi_button_resume);
+>>           |                                                                      ^
+>>     2 warnings generated.
+>> ---
+>>   drivers/acpi/button.c | 12 +++---------
+>>   1 file changed, 3 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+>> index cdbb1023a8ee..1df7e268c4dd 100644
+>> --- a/drivers/acpi/button.c
+>> +++ b/drivers/acpi/button.c
+>> @@ -161,14 +161,10 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+>>   static int acpi_button_probe(struct platform_device *pdev);
+>>   static void acpi_button_remove(struct platform_device *pdev);
+>>
+>> -#ifdef CONFIG_PM_SLEEP
+>>   static int acpi_button_suspend(struct device *dev);
+>>   static int acpi_button_resume(struct device *dev);
+>> -#else
+>> -#define acpi_button_suspend NULL
+>> -#define acpi_button_resume NULL
+>> -#endif
+>> -static SIMPLE_DEV_PM_OPS(acpi_button_pm, acpi_button_suspend, acpi_button_resume);
+>> +
+>> +static DEFINE_SIMPLE_DEV_PM_OPS(acpi_button_pm, acpi_button_suspend, acpi_button_resume);
+>>
+>>   static struct platform_driver acpi_button_driver = {
+>>          .probe = acpi_button_probe,
+>> @@ -176,7 +172,7 @@ static struct platform_driver acpi_button_driver = {
+>>          .driver = {
+>>                  .name = "acpi-button",
+>>                  .acpi_match_table = button_device_ids,
+>> -               .pm = &acpi_button_pm,
+>> +               .pm = pm_sleep_ptr(&acpi_button_pm),
+>>          },
+>>   };
+>>
+>> @@ -502,7 +498,6 @@ static u32 acpi_button_event(void *data)
+>>          return ACPI_INTERRUPT_HANDLED;
+>>   }
+>>
+>> -#ifdef CONFIG_PM_SLEEP
+>>   static int acpi_button_suspend(struct device *dev)
+>>   {
+>>          struct acpi_button *button = dev_get_drvdata(dev);
+>> @@ -532,7 +527,6 @@ static int acpi_button_resume(struct device *dev)
+>>          }
+>>          return 0;
+>>   }
+>> -#endif
+>>
+>>   static int acpi_lid_input_open(struct input_dev *input)
+>>   {
+>> --
+>> 2.25.1
+>>
