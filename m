@@ -1,31 +1,31 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B6FA645C6E0;
-	Fri, 11 Sep 2026 11:29:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id ADF11470EA0;
+	Fri, 11 Sep 2026 11:29:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789126189; cv=none; b=K3I89pDBjeFsIvivgq3PRit/FpVB45+YW5sIiqALVZi3hjRLuULv2ivRKqwP/zIHNFpyDuJWnK4ZG/c9W7L6fKVWzbOLGrT7DVUri4+zJTpjT3MSuhLFbQiQ1fKszpq2dB+aPc71NlOGmb7PkdyMa1d8GlPWuXWS70wzgRSj2Fk=
+	t=1789126200; cv=none; b=I+MgABJCK50f6KMMBgpT3yR6kdC7zidvFesn0GNpiLKWRSVZMMteUdQKIIAgYlNtwiEUjwQ8yTw25TSaVKA8oeTgQuyNKIWvAiTpU7kim/iY+4Ewx2ilpSFWtKzAVkX6gwaSVh/UA3LgYjjr1qrdc2Jkjg7mkAgXjbIW0ByS9xM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789126189; c=relaxed/simple;
-	bh=M4revIK+Dmf/Tsm44umCSvkCVw0u21pBsAjjkKiLm3o=;
+	s=arc-20240116; t=1789126200; c=relaxed/simple;
+	bh=UR1VVkewxL3Q16Du1mTDtFye/bBzhJLs9txkfi7XVDc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=DgV41SGYErbMtolru/k1eC/uuwZ4e+d4v9Hb0l4b8WHBaz0vtJxxigc0kjLkFFn0Ep5NxHwop6p7Ozl3ZcaIAfW8USm1wk0gfit7R/N2rU8p9R9JmJp7zxbfClCBn+sISLIBrC2FEWfkLG9kY1aLkLesBLJO6DexbhAtO0W84+I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=ZtPImNRZ; arc=none smtp.client-ip=217.140.110.172
+	 MIME-Version; b=Dz0zaTGpQiDJEr+r/AjRW35LsxMwQONfzaz3XAFnEQ3uobDqMlE7cT/5TioQz3qtE3fpZ+Cz905KlScGmK9sNZD4woAzexAsYTRyj9/nnOSx8owWRp5jdK53pT7DZRX1QDq6R5WswQpIIkN97arj+jvKpOtArW05BeCSkTbHRZI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=rnBYidWe; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="ZtPImNRZ"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="rnBYidWe"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E730428C7;
-	Fri, 11 Sep 2026 04:29:21 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 4E2C62923;
+	Fri, 11 Sep 2026 04:29:36 -0700 (PDT)
 Received: from e142021.arm.com (unknown [10.57.6.75])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 687663F59E;
-	Fri, 11 Sep 2026 04:29:21 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 84D723F59E;
+	Fri, 11 Sep 2026 04:29:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1789126165; bh=M4revIK+Dmf/Tsm44umCSvkCVw0u21pBsAjjkKiLm3o=;
+	t=1789126179; bh=UR1VVkewxL3Q16Du1mTDtFye/bBzhJLs9txkfi7XVDc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=ZtPImNRZAlp639G/Tj4zj090WtV9ynY/Ak/N8gXrz2NGAvKBp+4CpRigtQ6gToP32
-	 mGemV3ilEbz0MVIAJe77y5c+KZfOAlSWbiHj5jfTcIuI0MXyAeGWoz3ZcpgF64JB97
-	 F4fu5+2n62ARZIe0L5+uAd6qhW+imthRB3+I/R+g=
+	b=rnBYidWeOp/A5snraSsVOvYFNrvEHisVzmaHpYZS3tUkt0hzTPDVP7vnQKDZG5C2v
+	 9gJJFVJGnsSknghHVlmvLMdn4orq75s99YFB7aJvHf/JafEsevX4LRaMrTNMc1u33A
+	 NGbHyQUOkRMfNzH6+GwTEjAJGE99IFNKEgx/VmQI=
 From: Andre Przywara <andre.przywara@arm.com>
 To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
 	Hanjun Guo <guohanjun@huawei.com>,
@@ -50,9 +50,9 @@ Cc: Jonathan Cameron <jic23@kernel.org>,
 	linux-acpi@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v10 09/14] arm_mpam: prepare mon_sel locking for MPAM-Fb
-Date: Fri, 11 Sep 2026 13:28:30 +0200
-Message-ID: <20260911112835.714162-10-andre.przywara@arm.com>
+Subject: [PATCH v10 12/14] arm_mpam: detect and enable MPAM-Fb PCC support
+Date: Fri, 11 Sep 2026 13:28:33 +0200
+Message-ID: <20260911112835.714162-13-andre.przywara@arm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260911112835.714162-1-andre.przywara@arm.com>
 References: <20260911112835.714162-1-andre.przywara@arm.com>
@@ -64,133 +64,293 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The MSC MON_SEL register needs to be accessed from hardirq for the overflow
-interrupt, and when taking an IPI to access these registers on platforms
-where MSCs are not accesible from every CPU. This makes an irqsave
-spinlock the obvious lock to protect these registers. On systems with
-MPAM-Fb mailbox MSC access it must be able to sleep, meaning a mutex must
-be used. So MPAM-Fb platforms cannot support an overflow interrupt easily.
-Clearly these two methods can't exist for one MSC at the same time.
+The Arm MPAM-Fb specification [1] describes a protocol to access MSC
+registers through a firmware interface. This requires a shared memory
+region to hold the message, and a mailbox to trigger the access.
+For ACPI this is wrapped as a PCC channel, described using existing
+ACPI abstractions.
 
-Change the mon_sel locking wrapper function to only use a spinlock when
-the MSC is accessed directly via MMIO. In case of MPAM-Fb, we use a
-mutex, but only if we are in a sleepable context. If that's not the
-case, we return an error. This should not happen, as MPAM-Fb by design
-does not require an MSC access to happen from a specific CPU, so there
-is no need for any IPIs or preemption disabling to satisfy CPU
-constraints. And since overflow interrupts are not supported at the moment
-anyway, we also wouldn't meet the other case.
-Bailing out early is already happening in rare occasions today.
+Add code to parse those PCC table descriptions associated with an MSC,
+and store the parsed information in the MSC struct.
+There can be multiple PCC channels, and each channel can serve multiple
+MSCs, so we need to keep track of the channel usage, using a list and
+a refcount.
+
+This will be used by the MPAM-Fb access wrapper code.
+
+[1] https://developer.arm.com/documentation/den0144/latest
 
 Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+Tested-by: Ritwick Sharma <ritwick.sharma@arm.com> # on Arm AGI CPU
 Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-Reviewed-by: Ben Horgan <ben.horgan@arm.com>
+Tested-by: Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>
+Reviewed-by: Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>
 Reviewed-by: Gavin Shan <gshan@redhat.com>
-Tested-by: Gavin Shan <gshan@redhat.com> # on NVIDIA Grace Hopper
 ---
- drivers/resctrl/mpam_devices.c  |  6 ++++-
- drivers/resctrl/mpam_internal.h | 43 +++++++++++++++++++++++++++------
- 2 files changed, 41 insertions(+), 8 deletions(-)
+ drivers/resctrl/Kconfig         |   1 +
+ drivers/resctrl/mpam_devices.c  | 119 +++++++++++++++++++++++++++++++-
+ drivers/resctrl/mpam_fb.c       |  41 +++++++++++
+ drivers/resctrl/mpam_internal.h |   2 +
+ 4 files changed, 161 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/resctrl/Kconfig b/drivers/resctrl/Kconfig
+index 9591d792736e5..3f81638f57be3 100644
+--- a/drivers/resctrl/Kconfig
++++ b/drivers/resctrl/Kconfig
+@@ -2,6 +2,7 @@ menuconfig ARM64_MPAM_DRIVER
+ 	bool "MPAM driver"
+ 	depends on ARM64 && ARM64_MPAM
+ 	select ACPI_MPAM if ACPI
++	select PCC if ACPI
+ 	select MAILBOX
+ 	help
+ 	  Memory System Resource Partitioning and Monitoring (MPAM) driver for
 diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-index eb26c25b9f970..e7c239a496f7a 100644
+index 14dc8461e4b8f..150a529458388 100644
 --- a/drivers/resctrl/mpam_devices.c
 +++ b/drivers/resctrl/mpam_devices.c
-@@ -2288,7 +2288,6 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
+@@ -20,14 +20,19 @@
+ #include <linux/irqdesc.h>
+ #include <linux/list.h>
+ #include <linux/lockdep.h>
++#include <linux/mailbox_client.h>
+ #include <linux/mutex.h>
+ #include <linux/platform_device.h>
+ #include <linux/printk.h>
++#include <linux/property.h>
+ #include <linux/srcu.h>
+ #include <linux/spinlock.h>
+ #include <linux/types.h>
+ #include <linux/workqueue.h>
+ 
++#include <acpi/pcc.h>
++#include <acpi/acpi_io.h>
++
+ #include "mpam_internal.h"
+ 
+ /* Values for the T241 errata workaround */
+@@ -50,6 +55,87 @@ static LIST_HEAD(mpam_all_msc);
+ 
+ struct srcu_struct mpam_srcu;
+ 
++/* PCC channels might be serving multiple MSCs, so keep a refcounted list. */
++static DEFINE_MUTEX(pcc_chan_list_lock);
++static LIST_HEAD(pcc_chan_list);
++
++static void mpam_pcc_chan_release(struct kref *ref)
++{
++	struct mpam_pcc_chan *cur = container_of(ref, struct mpam_pcc_chan,
++						 refcount);
++
++	pcc_mbox_free_channel(cur->pcc_chan);
++	list_del(&cur->pcc_chans);
++	mutex_destroy(&cur->pcc_chan_lock);
++	kfree(cur);
++}
++
++static struct mpam_pcc_chan *mpam_pcc_chan_get(struct device *dev,
++					       int subspace_id)
++{
++	struct mpam_pcc_chan *cur;
++
++	guard(mutex)(&pcc_chan_list_lock);
++
++	list_for_each_entry(cur, &pcc_chan_list, pcc_chans) {
++		if (cur->subspace_id == subspace_id) {
++			kref_get(&cur->refcount);
++
++			return cur;
++		}
++	}
++
++	cur = kzalloc_obj(*cur);
++	if (!cur)
++		return ERR_PTR(-ENOMEM);
++
++	cur->pcc_cl.tx_block = true;
++
++	cur->pcc_chan = pcc_mbox_request_channel(&cur->pcc_cl, subspace_id);
++	if (IS_ERR(cur->pcc_chan)) {
++		long err = PTR_ERR(cur->pcc_chan);
++
++		kfree(cur);
++		return ERR_PTR(err);
++	}
++
++	/*
++	 * Timeout based on the "nominal latency" in us, from the
++	 * PCC ACPI table. tx_tout is in ms.
++	 * Add some margin here to be on the safe side.
++	 */
++	cur->pcc_cl.tx_tout = DIV_ROUND_UP(cur->pcc_chan->latency * 5, 1000);
++
++	mutex_init(&cur->pcc_chan_lock);
++
++	cur->subspace_id = subspace_id;
++	kref_init(&cur->refcount);
++
++	list_add_tail(&cur->pcc_chans, &pcc_chan_list);
++
++	return cur;
++}
++
++static int mpam_pcc_chan_put(struct mpam_pcc_chan *pcc_chan)
++{
++	struct mpam_pcc_chan *cur, *tmp;
++
++	if (!pcc_chan)
++		return 0;
++
++	guard(mutex)(&pcc_chan_list_lock);
++
++	list_for_each_entry_safe(cur, tmp, &pcc_chan_list, pcc_chans) {
++		if (cur == pcc_chan) {
++			kref_put(&cur->refcount, mpam_pcc_chan_release);
++
++			return 0;
++		}
++	}
++
++	return -ENOENT;
++}
++
+ /*
+  * Number of MSCs that have been probed. Once all MSCs have been probed MPAM
+  * can be enabled.
+@@ -2285,6 +2371,8 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
+ 	if (!msc)
+ 		return;
+ 
++	mpam_pcc_chan_put(msc->pcc_chan);
++
+ 	mutex_lock(&mpam_list_lock);
+ 	mpam_msc_destroy(msc);
+ 	mutex_unlock(&mpam_list_lock);
+@@ -2295,7 +2383,7 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
+ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
+ {
+ 	int err;
+-	u32 tmp;
++	u32 pcc_subspace_id;
+ 	struct mpam_msc *msc;
+ 	struct resource *msc_res;
+ 	struct device *dev = &pdev->dev;
+@@ -2339,7 +2427,7 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
  	if (err)
  		return ERR_PTR(err);
  
--	mpam_mon_sel_lock_init(msc);
- 	msc->id = pdev->id;
- 	msc->pdev = pdev;
- 	INIT_LIST_HEAD_RCU(&msc->all_msc_list);
-@@ -2309,6 +2308,11 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
+-	if (device_property_read_u32(&pdev->dev, "pcc-channel", &tmp))
++	if (device_property_read_u32(dev, "pcc-channel", &pcc_subspace_id))
+ 		msc->iface = MPAM_IFACE_MMIO;
  	else
  		msc->iface = MPAM_IFACE_PCC;
- 
-+	/* Lock type depends on MSC interface used */
-+	err = mpam_mon_sel_lock_init(dev, msc);
-+	if (err)
-+		return ERR_PTR(err);
+@@ -2360,6 +2448,33 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
+ 		}
+ 		msc->mapped_hwpage_sz = msc_res->end - msc_res->start;
+ 		msc->mapped_hwpage = io;
++	} else if (msc->iface == MPAM_IFACE_PCC) {
++		u32 mpam_fb_msc_id;
 +
- 	if (msc->iface == MPAM_IFACE_MMIO) {
- 		void __iomem *io;
++		msc->pcc_chan = mpam_pcc_chan_get(dev, pcc_subspace_id);
++		if (IS_ERR(msc->pcc_chan)) {
++			pr_err("Failed to request MSC PCC channel\n");
++			return ERR_CAST(msc->pcc_chan);
++		}
++
++		err = mpam_fb_check_shared_buffer_size(msc);
++		if (err) {
++			mpam_pcc_chan_put(msc->pcc_chan);
++
++			return ERR_PTR(err);
++		}
++
++		err = mpam_fb_check_protocol_version(msc);
++		if (err) {
++			mpam_pcc_chan_put(msc->pcc_chan);
++
++			return ERR_PTR(err);
++		}
++
++		if (device_property_read_u32(&pdev->dev, "mpam-fb-msc-id",
++					     &mpam_fb_msc_id))
++			mpam_fb_msc_id = msc->id;
++		msc->mpam_fb_msc_id = mpam_fb_msc_id;
+ 	} else {
+ 		return ERR_PTR(-EINVAL);
+ 	}
+diff --git a/drivers/resctrl/mpam_fb.c b/drivers/resctrl/mpam_fb.c
+index 98212f761de38..8fc1d78a7b5ab 100644
+--- a/drivers/resctrl/mpam_fb.c
++++ b/drivers/resctrl/mpam_fb.c
+@@ -20,10 +20,15 @@
+ #define MPAM_FB_PROTOCOL_ID		0x1a
  
+ #define MPAM_PROTOCOL_VERSION_CMD	0x0
++#define MPAM_FB_VERSION_MAJOR_MASK		GENMASK_U32(31, 16)
++#define MPAM_FB_VERSION_MINOR_MASK		GENMASK_U32(15, 0)
++
+ #define MPAM_MSC_READ_CMD		0x4
+ #define MPAM_MSC_WRITE_CMD		0x5
+ 
+ #define MPAM_FB_PROT_HEADER_LEN		sizeof(u32)
++/* The longest message is MPAM_MSC_WRITE, with 4 parameters. */
++#define MPAM_FB_MAX_MSG_SIZE		(4 * sizeof(u32))
+ 
+ #define MPAM_FB_SUCCESS		 0
+ #define MPAM_FB_ERR_NOT_SUPPORTED	-1
+@@ -209,3 +214,39 @@ int mpam_fb_send_write_request(struct mpam_msc *msc, u16 reg, u32 value)
+ 	return mpam_fb_send_request(msc, msc->mpam_fb_msc_id, reg, &value,
+ 				    MPAM_MSC_WRITE_CMD);
+ }
++
++/* We only support MPAM-Fb protocol version 1.x */
++int mpam_fb_check_protocol_version(struct mpam_msc *msc)
++{
++	u32 version;
++	int ret;
++
++	ret = mpam_fb_send_request(msc, 0, 0, &version,
++				   MPAM_PROTOCOL_VERSION_CMD);
++	if (ret)
++		return ret;
++
++	if (FIELD_GET(MPAM_FB_VERSION_MAJOR_MASK, version) != 1) {
++		pr_err("Incompatible MPAM-Fb protocol version %d.%d\n",
++		       FIELD_GET(MPAM_FB_VERSION_MAJOR_MASK, version),
++		       FIELD_GET(MPAM_FB_VERSION_MINOR_MASK, version));
++
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++int mpam_fb_check_shared_buffer_size(struct mpam_msc *msc)
++{
++	int min_buffer_size = MPAM_FB_MAX_MSG_SIZE +
++			      sizeof(struct acpi_pcct_ext_pcc_shared_memory);
++
++	if (msc->pcc_chan->pcc_chan->shmem_size < min_buffer_size) {
++		pr_err("MPAM-Fb PCC channel size too small.\n");
++
++		return -ENOMEM;
++	}
++
++	return 0;
++}
 diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
-index 68a6cf2b9cc73..2414598100140 100644
+index e5a2804facd2d..314d3b48ca9fd 100644
 --- a/drivers/resctrl/mpam_internal.h
 +++ b/drivers/resctrl/mpam_internal.h
-@@ -126,6 +126,12 @@ struct mpam_msc {
- 	 */
- 	raw_spinlock_t		_mon_sel_lock;
- 	unsigned long		_mon_sel_flags;
-+	/*
-+	 * mon_sel_mutex is the mutex version of the _mon_sel_lock above.
-+	 * Always use the mpam_mon_sel_lock() helpers when taking the lock,
-+	 * as this will select the correct lock type automatically.
-+	 */
-+	struct mutex		mon_sel_mutex;
+@@ -538,6 +538,8 @@ static inline void mpam_resctrl_teardown_class(struct mpam_class *class) { }
+ /* MPAM-Fb Firmware-backed protocol wrappers */
+ int mpam_fb_send_read_request(struct mpam_msc *msc, u16 reg, u32 *result);
+ int mpam_fb_send_write_request(struct mpam_msc *msc, u16 reg, u32 value);
++int mpam_fb_check_protocol_version(struct mpam_msc *msc);
++int mpam_fb_check_shared_buffer_size(struct mpam_msc *msc);
  
- 	void __iomem		*mapped_hwpage;
- 	size_t			mapped_hwpage_sz;
-@@ -139,27 +145,50 @@ struct mpam_msc {
- /* Returning false here means accesses to mon_sel must fail and report an error. */
- static inline bool __must_check mpam_mon_sel_lock(struct mpam_msc *msc)
- {
--	/* Locking will require updating to support a firmware backed interface */
--	if (WARN_ON_ONCE(msc->iface != MPAM_IFACE_MMIO))
-+	if (msc->iface == MPAM_IFACE_MMIO) {
-+		raw_spin_lock_irqsave(&msc->_mon_sel_lock, msc->_mon_sel_flags);
-+
-+		return true;
-+	}
-+
-+	if (!preemptible())
- 		return false;
- 
--	raw_spin_lock_irqsave(&msc->_mon_sel_lock, msc->_mon_sel_flags);
-+	mutex_lock(&msc->mon_sel_mutex);
-+
- 	return true;
- }
- 
- static inline void mpam_mon_sel_unlock(struct mpam_msc *msc)
- {
--	raw_spin_unlock_irqrestore(&msc->_mon_sel_lock, msc->_mon_sel_flags);
-+	if (msc->iface == MPAM_IFACE_MMIO) {
-+		raw_spin_unlock_irqrestore(&msc->_mon_sel_lock,
-+					   msc->_mon_sel_flags);
-+
-+		return;
-+	}
-+
-+	mutex_unlock(&msc->mon_sel_mutex);
- }
- 
- static inline void mpam_mon_sel_lock_held(struct mpam_msc *msc)
- {
--	lockdep_assert_held_once(&msc->_mon_sel_lock);
-+	if (msc->iface == MPAM_IFACE_MMIO)
-+		lockdep_assert_held_once(&msc->_mon_sel_lock);
-+	else
-+		lockdep_assert_held_once(&msc->mon_sel_mutex);
- }
- 
--static inline void mpam_mon_sel_lock_init(struct mpam_msc *msc)
-+static inline int mpam_mon_sel_lock_init(struct device *dev,
-+					 struct mpam_msc *msc)
- {
--	raw_spin_lock_init(&msc->_mon_sel_lock);
-+	if (msc->iface == MPAM_IFACE_MMIO) {
-+		raw_spin_lock_init(&msc->_mon_sel_lock);
-+
-+		return 0;
-+	}
-+
-+	return devm_mutex_init(dev, &msc->mon_sel_mutex);
- }
- 
- DEFINE_GUARD(mon_sel, struct mpam_msc *,
+ /*
+  * MPAM MSCs have the following register layout. See:
 -- 
 2.43.0
 
