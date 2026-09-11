@@ -1,86 +1,142 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f72.google.com (mail-pj1-f72.google.com [209.85.216.72])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9241148A8B7;
-	Fri, 11 Sep 2026 13:09:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9A8148987C
+	for <linux-acpi@vger.kernel.org>; Fri, 11 Sep 2026 13:22:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.72
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789132158; cv=none; b=lhS6+bAzn3UEOme+xj7GgSkioRukFJ/vIgAqHgKqpKUs0KKrF72i8VC5UmV9fA5uN/jMSmSfMu9TIyTlMkbYSH4UfDzEaYpCpqPLSHgPNHkleh7gMzJH4uRHZPGbyVzl5sWrgBtf3joiZuIijdYiAZWeF3304PxNdEz0EpQy28c=
+	t=1789132966; cv=none; b=dZ9ZAx8NYm0evnkZyXT57H7HS4CCRNysvg08z0yWjVl0uPUkyNDDEo9rM20dls4yDY7nVVozwKT5f1Xi5f9TidGGku0hzN+TjzxdfMlJ1LRWKhCYO8Q+Cf3lCNgFEThcSIEq+CrnMMB9dHeZvRsfh7h2kZJRHtoHl/QWZ6A4yuI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789132158; c=relaxed/simple;
-	bh=AjqkbEsSKx+AHnfeBN3jPNP4+3pJ5U+cE3oJ7FLQYeI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=uBuW35ZKtCTDSN6dr3WNmgbW5oYK7nqjQ4D0JNzdpcFUGZ846QMMWzCEEknwI1YRyGwIOOp/ofBMoZCYp3IkBfj6j8sEE+pOc6EzSoRHlixdRTd+rVSJIdmbwDwPlGWuXfcacSqXwgnVE6igjWISNAiyWVEHzPB9VmFMkiBtIdQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oXWR4ml/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789132966; c=relaxed/simple;
+	bh=T/e2vgzi/yX3haBVonSYMOMOZ1YJ8sxvxQcGMOKmPKs=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=fqo+9tpSB1++Cw98BaCuwMZ5LcC0qhN7uNq4xV7OWQvjNPVnVT8C+60yjoOczG2R9XnZy66hkYlBOLMuAEllQnc0OxS/XV/2zjklFEHmKWmbEcpAtqsZeqfCjl3W0Fz3EvZiYR75ukYyp+RoWKHbmIin39vJ/Srig7QOi1Go7CM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--seanjc.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=RLwvSvK3; arc=none smtp.client-ip=209.85.216.72
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--seanjc.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oXWR4ml/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36E001F000FF;
-	Fri, 11 Sep 2026 13:09:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789132157;
-	bh=IPy5H6d0FeclZkOXLVARd1DU4ZcOXhR7FQMK5BIAGU8=;
-	h=From:To:Cc:Subject:Date;
-	b=oXWR4ml/F9cQofSBuIydw/msfHSjJXAQhEewCGK8SHQeIWqoQZECnji3tuKH7VEVL
-	 lPcLOfQn5FVPsnDT5RU6ObUz/LdG7r25nFb4HoZHgvgvSpXDBbRI+YQ6tVchkpWhWK
-	 iPoeTIF0iD+RobksIXSimZDTCejv2ef3UUcvFuZ3oAK+TOwgTXIXjU9aQkItzlqRI1
-	 Q9ZkxIh1r6lZi2ZJ6QLTsj8AU8TL/0kDH/3voVCaazkh0ueMz+yMt8bjlC3xGcUyeU
-	 D/cl6I7eedWTa0OQEzlxHx5a0FzBOJYVl+zEHadscWYP4oEsWgP393sXNr4BwuEuSb
-	 k0ibMQ5R8SdSw==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Daniel Lezcano <daniel.lezcano@kernel.org>, Hans de Goede <hansg@kernel.org>,
- LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>,
- Lukasz Luba <lukasz.luba@arm.com>, Armin Wolf <w_armin@gmx.de>
-Subject:
- [PATCH v1 00/10] ACPI: thermal: Register thermal class cooling devices under
- parents
-Date: Fri, 11 Sep 2026 15:00:07 +0200
-Message-ID: <1965933.tdWV9SEqCh@rafael.j.wysocki>
-Organization: Linux Kernel Development - Intel
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="RLwvSvK3"
+Received: by mail-pj1-f72.google.com with SMTP id 98e67ed59e1d1-38e1118e4abso1633821a91.0
+        for <linux-acpi@vger.kernel.org>; Fri, 11 Sep 2026 06:22:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1789132963; x=1789737763; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:references:mime-version
+         :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=kqAHaS5fsv9ERkHKe2Kmet0fUHotC014bD2kFqqX4to=;
+        b=RLwvSvK31Nx6W5e5cWd1Zwn3GrqgUoi6AhS072W/uylcwVwZ3gpe+kx6GEa9rIFlk0
+         FYF4erl5BDuLlexOocQCSN41l6ccwOOPma6v34CdMIG5khIVZqkDirlCdqv964QjHzjX
+         wPzKEn407qRm3Embbs+yCBCiSEJTY3Js8tzzleFdo1mBTOxt2yTNnE2xosV20WkoMQvM
+         wIayUAwD/BVN9hgLYwfzEr+DeuhSbiV33KL8FX8Bmqy/2DX9ttcVZLG7uRr6EAwczGFk
+         ZiDQLDEUQiAQ8XVcZzOaCJECezVH/N/QfYRIjvdt+E3bJGSQdWRG09uKOPUwfNDqFGFJ
+         twjA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1789132963; x=1789737763;
+        h=content-type:cc:to:from:subject:message-id:references:mime-version
+         :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=kqAHaS5fsv9ERkHKe2Kmet0fUHotC014bD2kFqqX4to=;
+        b=BHUSvTjld0tMszg6zsklFwJb+s5UCb9JKJz06Ss45CN2JuHqYslnv1f+F/IGCfXv0m
+         W7lAXeqCwdpwFBWQv9zhUg3pMxMW5ONsvhcBmFxwob56U1zyo82Vn6qvhyhKt1BcgoQz
+         v0hyrK+C3k4VgyXhYJujIJGGdPXKUS84YPN2H5eJBKyP08N0iIzqMlXHz17VOYyCLGHK
+         Lj5KEUDbQmnPZ6GybNgf1tHFtQ//8wDNVzMOjEHDol6YuTWt0b+vlMLQAk3HMzGIS73O
+         Pe/o4ih9/dckTrAEIttk+D6YvJukILdY1PFHJqs9RzNEHf0mxVBR4KtgIERwT2wbgeMZ
+         YZDw==
+X-Forwarded-Encrypted: i=1; AKwUvBy4k+U9/+1ram11SLerHmBwtsBy7UaHjTpaW7xA05A7+qT+v1QLo3Hc6d7qaAc+YHqlYh6dsfFpDloy@vger.kernel.org
+X-Gm-Message-State: AFuF++l+Erkrf6dq1SLeIJwAPLN8QTEv6esfKyB/4gKxlXX6suRd64tp
+	++qq618NsZpR1kzSg8b3LZUqT2O58izVJhFVCCDu/zkg5iMTxlwC8xC5eHA+oN9Xd+Ym/Xbl/s+
+	B8B6spQ==
+X-Received: from pjbmv13.prod.google.com ([2002:a17:90b:198d:b0:39d:8dae:7e6d])
+ (user=seanjc job=prod-delivery.src-stubby-dispatcher) by 2002:a17:90b:3c89:b0:398:e46e:ade3
+ with SMTP id 98e67ed59e1d1-39d9c39625dmr7169956a91.23.1789132962606; Fri, 11
+ Sep 2026 06:22:42 -0700 (PDT)
+Date: Fri, 11 Sep 2026 06:22:41 -0700
+In-Reply-To: <20260911074530.3140830-13-jgross@suse.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+References: <20260911074530.3140830-1-jgross@suse.com> <20260911074530.3140830-13-jgross@suse.com>
+Message-ID: <aqQAodJCAEZyeQ1k@google.com>
+Subject: Re: [PATCH v3 12/13] treewide: convert rdmsrq() from a macro to an
+ inline function
+From: Sean Christopherson <seanjc@google.com>
+To: Juergen Gross <jgross@suse.com>
+Cc: linux-kernel@vger.kernel.org, x86@kernel.org, 
+	linux-perf-users@vger.kernel.org, linux-hyperv@vger.kernel.org, 
+	kvm@vger.kernel.org, virtualization@lists.linux.dev, 
+	linux-edac@vger.kernel.org, linux-pci@vger.kernel.org, 
+	linux-pm@vger.kernel.org, linux-coco@lists.linux.dev, 
+	linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, linux-crypto@vger.kernel.org, 
+	linux-gpio@vger.kernel.org, linux-hwmon@vger.kernel.org, 
+	linux-mtd@lists.infradead.org, platform-driver-x86@vger.kernel.org, 
+	linux-fbdev@vger.kernel.org, Thomas Gleixner <tglx@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, 
+	Peter Zijlstra <peterz@infradead.org>, Arnaldo Carvalho de Melo <acme@kernel.org>, 
+	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@kernel.org>, 
+	Ian Rogers <irogers@google.com>, Adrian Hunter <adrian.hunter@intel.com>, 
+	James Clark <james.clark@linaro.org>, "K. Y. Srinivasan" <kys@microsoft.com>, 
+	Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>, 
+	Dexuan Cui <decui@microsoft.com>, Long Li <longli@microsoft.com>, 
+	Paolo Bonzini <pbonzini@redhat.com>, Ajay Kaher <ajay.kaher@broadcom.com>, 
+	Alexey Makhalov <alexey.makhalov@broadcom.com>, 
+	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, 
+	Josh Poimboeuf <jpoimboe@kernel.org>, Pawan Gupta <pawan.kumar.gupta@linux.intel.com>, 
+	Pu Wen <puwen@hygon.cn>, Tony Luck <tony.luck@intel.com>, 
+	Reinette Chatre <reinette.chatre@intel.com>, Dave Martin <Dave.Martin@arm.com>, 
+	James Morse <james.morse@arm.com>, Babu Moger <babu.moger@amd.com>, 
+	Tony W Wang-oc <TonyWWang-oc@zhaoxin.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, 
+	Andy Lutomirski <luto@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Pavel Machek <pavel@kernel.org>, Kiryl Shutsemau <kas@kernel.org>, 
+	Rick Edgecombe <rick.p.edgecombe@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, 
+	Len Brown <lenb@kernel.org>, Damien Le Moal <dlemoal@kernel.org>, Niklas Cassel <cassel@kernel.org>, 
+	David Airlie <airlied@redhat.com>, Olivia Mackall <olivia@selenic.com>, 
+	Herbert Xu <herbert@gondor.apana.org.au>, Viresh Kumar <viresh.kumar@linaro.org>, 
+	Huang Rui <ray.huang@amd.com>, Mario Limonciello <mario.limonciello@amd.com>, 
+	Perry Yuan <perry.yuan@amd.com>, K Prateek Nayak <kprateek.nayak@amd.com>, 
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Yazen Ghannam <yazen.ghannam@amd.com>, 
+	Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, Guenter Roeck <linux@roeck-us.net>, 
+	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, Artem Bityutskiy <dedekind1@gmail.com>, 
+	Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Miquel Raynal <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>, 
+	Vignesh Raghavendra <vigneshr@ti.com>, Ashok Raj <ashok.raj.linux@gmail.com>, 
+	Hans de Goede <hansg@kernel.org>, 
+	"Ilpo =?utf-8?B?SsOkcnZpbmVu?=" <ilpo.jarvinen@linux.intel.com>, 
+	Rajneesh Bhardwaj <irenic.rajneesh@gmail.com>, Xi Pardee <xi.pardee@linux.intel.com>, 
+	Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>, 
+	Lukasz Luba <lukasz.luba@arm.com>, Helge Deller <deller@gmx.de>, xen-devel@lists.xenproject.org, 
+	linux-geode@lists.infradead.org, Michael Kelley <mhklinux@outlook.com>
+Content-Type: text/plain; charset="us-ascii"
 
-Hi All,
+On Fri, Sep 11, 2026, Juergen Gross wrote:
+> Today rdmsrq() is a macro using its second parameter as the target for
+> storing the read MSR value.
+> 
+> Convert rdmsrq() to an inline function returning the MSR value.
+> 
+> The users have been converted using the following semantic patch:
+> 
+>   // Options: --include-headers
+> 
+>   virtual patch
+>   virtual report
+> 
+>   @@
+>   expression msr, val;
+>   @@
+>   (
+>   - rdmsrq(msr,val)
+>   + val = rdmsrq(msr)
+>   )
+> 
+> Signed-off-by: Juergen Gross <jgross@suse.com>
+> Acked-by: Damien Le Moal <dlemoal@kernel.org>      # ATA
+> Reviewed-by: Michael Kelley <mhklinux@outlook.com> # Hyper-V
+> ---
 
-This series generally changes the way in which thermal class cooling devices
-are used by ACPI device drivers registering them (ACPI processor, ACPI fan,
-and ACPI video) and by the ACPI thermal zone device driver.
-
-First, it causes the thermal class cooling devices to be registered under
-parents in specific locations within the device hierarchy which allows
-their relationships with other devices to be recognized more easily.  It
-also drops custom sysfs attributes registered by the users of the thermal
-class cooling devices because they are not particularly useful any more
-when those devices get proper parents.
-
-Second, it modifies the ACPI thermal zone device driver to use thermal class
-cooling device parent information for binding cooling devices to trip points
-in thermal zones, which was previously done with the help of the devdata
-pointers of the cooling devices and effectively prevented drivers from using
-the devdata pointers for their own purposes as originally intended.
-
-Finally, it updates the ACPI processor and ACPI fan drivers to use the
-devdata pointers of thermal class cooling devices in a bit more efficient
-way.
-
-The first two patches in the series are preliminary fixes preventing
-Sashiko from reporting "pre-existing issues" in the subsequent patches.
-
-The third patch is a thermal core update allowing thermal class cooling
-devices to be registered under proper parents.
-
-The other patches update the ACPI processor, ACPI video, and ACPI fan
-drivers as per the above.
-
-The details are covered by individual patch changelogs.
-
-Thanks!
-
-
-
+Acked-by: Sean Christopherson <seanjc@google.com>
