@@ -1,55 +1,55 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8CB0496D3E
-	for <linux-acpi@vger.kernel.org>; Fri, 11 Sep 2026 16:36:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84FE83DC4B8
+	for <linux-acpi@vger.kernel.org>; Fri, 11 Sep 2026 16:37:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789144601; cv=none; b=hOWvgJb+ANk8sFFp3hjJA6Nc28un/9p2zebxg8q2VWSRa/wdoiNzktFUtF7EczFVPjleSYTt7PLqxQ5sRiY3G181+BKfyK9u0TP4AM5yZR5Pw0xrG0kqiZK2+0BdCKI/Txlo9JNvGjvcEJJbo2BMU0Wk+l5+JKdJkqdq43wcwis=
+	t=1789144669; cv=none; b=EcaydxFjGrxudSha0niWxljp5Y0gxbkhPV6nsss45+anwlOZ2O76z2RrR8xJc9wetglUrsZNKCARovgs/FUGVQ1njo8z/vCg8e1QbGoZmbK9K3jp1QEHMiJbx9DX6MIjPBlQLrSMFY3PFK4rDudpyNuzxWh1TdNy2CQT6UF8EIk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789144601; c=relaxed/simple;
-	bh=3C4s74+fiXJ/Tb6yiCf0/1iEVRfCgm/jh1W3+HtsJ3c=;
+	s=arc-20240116; t=1789144669; c=relaxed/simple;
+	bh=+lCReAupk64gpiSe08ls12n1ChqHpulbb8/AvO34BAM=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=gTNS/Bs0Bu98sAZH7z2Ki3E+9YJkMXCVIb+IYs/2H4cxxYUF5doHHANfvEZfnadi0+wBxGQBMP8WzlsXAbjoot/DRd//t/V+lnQBjSPdL1+oAebBVCgBqyG+nlLE6HKKSmKG3APcKs9gunsaFpfuf9+qpjr+WGy4TtUlitxaO7g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TMZ17gME; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=DwjLmRkHMnN756G/SUm3W+JtPhMbvgORScjTvwufxbc3Ggzh89+iNHR3y3qCefe0VrbZXm2TSuev8IiFt/RXu/2lOtOZCuKDA0I4tBSeXmVQF6ogwY1BO1pBJdTNdwduAZj3eWOoqWg1o45+MQZ5Gl67HKm6KzYKw4JMPAW9sQ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b9c8atDJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TMZ17gME"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A49F1F0089E
-	for <linux-acpi@vger.kernel.org>; Fri, 11 Sep 2026 16:36:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b9c8atDJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BBCF1F00893
+	for <linux-acpi@vger.kernel.org>; Fri, 11 Sep 2026 16:37:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789144600;
-	bh=3C4s74+fiXJ/Tb6yiCf0/1iEVRfCgm/jh1W3+HtsJ3c=;
+	s=k20260515; t=1789144665;
+	bh=76wiPJRZNmxzN9bJyuSQ6Y894yEiZOjODjZ9CGS2wUI=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=TMZ17gMEE8s5IvageHa/O+f/XtGubOVZh4MhTDYMQ+a/3DNQbk0yZDrgtrW/Nsq7/
-	 oq5gtad/xl1qUlPZLlby3ug9t48hgOs1AfKPgrkQWGVHHtCG3hmwH4RS2Uo+LjrwhW
-	 wYBCP1UrB6fxudYEnWen9J1LGSVEP8kHHUGWghLGBkA4g/2dVpkPS/HXASyHIoS/Zj
-	 8+Mg6fEbPnVgPYotu71N2HdpaDWaPvJAd6Z1UuabI0BCxS6ygryv/3VlS+67irzOHY
-	 Cp3MpuhOXfFigsyaHOD8ebihn9dwqjnGpJBBSJ17wHgLnv/nczgkE/yVkW3rbZyzzo
-	 R9VSKduIno+Hw==
-Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5b808456308so1409664e87.0
-        for <linux-acpi@vger.kernel.org>; Fri, 11 Sep 2026 09:36:40 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBy4eF9QFKDCelS72eOsM/jnqEwWnrtl3+WxEuyQDRnrmqGEHPUEgoQBFV6o7abmQD72nNMHYRcDWqat@vger.kernel.org
-X-Gm-Message-State: AFuF++lpjTCrNMIQE+RnnW3UzP2+JhiLvRUoNpv6ePzjfvDXX6zbvdzx
-	pSk2zRixcnoLttOxVD/NQJeisjVFYusCT4+avqNPq5ghe3VmD/er0921dWvuDvnE1w3J+VuYonW
-	fQ9or64nqYXa5k960Szc6qrPPCRptb5U=
-X-Received: by 2002:a05:6512:1388:b0:5b4:57a9:7030 with SMTP id
- 2adb3069b0e04-5b8a030022emr1302589e87.22.1789144598708; Fri, 11 Sep 2026
- 09:36:38 -0700 (PDT)
+	b=b9c8atDJp6WErWuAC+PPlBJdw6sozmOniQXN7wexK760S5Ogtwn+JEbjDb2HUD5F4
+	 hSccTLiLj+jX7WTHQv1cPgB28XkSGtIV7ZM2Q5nTbaFIs9nWeMmS8AFpDwn9Hit6sn
+	 TQvWGBehP/oaA7Ud3gTzfP4I7SReoQs2psgAxVGVysacqaMcXvSgFK2fdmWNALNuMm
+	 smvTxCBSeneupvIxDQS+63+01OyUIPZzTnI+CcK1+1/ZVnhJRQoXxpv5ZzQbmkAZhL
+	 920D3822cHMJmWL58Fbi6WmodneKgwk8oov6YRgXqzbROeElbDekyLcjcGKnrxIzgv
+	 WzD5FczmCY/UQ==
+Received: by mail-lr2-f12.google.com with SMTP id 38308e7fff4ca-3a354118856so695371fa.1
+        for <linux-acpi@vger.kernel.org>; Fri, 11 Sep 2026 09:37:44 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBzy8DlSLhM+jL1bEIsgmwQBegetvzVsUiHeyUC8GQ/v4is+MbTZkLdSAFg+3JRlLdemVd/gBFqY7Xkf@vger.kernel.org
+X-Gm-Message-State: AFuF++mILtZGB9Z35UiVtRDvxB5uQxSEXbEAZP1yNvUp7N2ehEQZZ+jR
+	jDI+wkNhieuGmGm2049kxaV7yYZsw22f1NgpBJhpdrnb3wkq+R8z7TmCzVnO2uUwMVMTbGMyy8i
+	eLX+8aa1nCGRRZyHFTs0lidBG6S31EX0=
+X-Received: by 2002:a05:651c:31c6:b0:3a4:8913:a259 with SMTP id
+ 38308e7fff4ca-3a5a52919e6mr5885751fa.29.1789144663441; Fri, 11 Sep 2026
+ 09:37:43 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <1965933.tdWV9SEqCh@rafael.j.wysocki> <3429468.aeNJFYEL58@rafael.j.wysocki>
- <aqQr6bZjZziZVPyy@ashevche-desk.local>
-In-Reply-To: <aqQr6bZjZziZVPyy@ashevche-desk.local>
+References: <1965933.tdWV9SEqCh@rafael.j.wysocki> <2362345.iZASKD2KPV@rafael.j.wysocki>
+ <aqQtIMm-gdJoZAsq@ashevche-desk.local>
+In-Reply-To: <aqQtIMm-gdJoZAsq@ashevche-desk.local>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 11 Sep 2026 18:35:24 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gQq9ccqAG7V9op2397DCRQNTd1czSrb+1MUH2beG3WmQ@mail.gmail.com>
-X-Gm-Features: AcwNN1V8CKzRNX33jIWysP2iCQsd1ihJfAzZkt6oiefbfFP4XVPHk9H5IiXQu9I
-Message-ID: <CAJZ5v0gQq9ccqAG7V9op2397DCRQNTd1czSrb+1MUH2beG3WmQ@mail.gmail.com>
-Subject: Re: [PATCH v1 02/10] ACPI: video: Fix backlight unregistration ordering
+Date: Fri, 11 Sep 2026 18:36:28 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0j5B4LFbrhSuw0j=fLcY+cFFTEMvyt_ED-+9j1dvQEqLw@mail.gmail.com>
+X-Gm-Features: AcwNN1XwkLeDpYq1RpMmMI8qhb_p4hoakRby90KH9iWy3HgsTfIekcu5H-JCDAI
+Message-ID: <CAJZ5v0j5B4LFbrhSuw0j=fLcY+cFFTEMvyt_ED-+9j1dvQEqLw@mail.gmail.com>
+Subject: Re: [PATCH v1 04/10] ACPI: processor: thermal: Use thermal_cooling_device_create()
 To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
 	Daniel Lezcano <daniel.lezcano@kernel.org>, Hans de Goede <hansg@kernel.org>, 
@@ -58,31 +58,44 @@ Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Sep 11, 2026 at 6:27=E2=80=AFPM Andy Shevchenko
+On Fri, Sep 11, 2026 at 6:32=E2=80=AFPM Andy Shevchenko
 <andriy.shevchenko@linux.intel.com> wrote:
 >
-> On Fri, Sep 11, 2026 at 03:01:30PM +0200, Rafael J. Wysocki wrote:
+> On Fri, Sep 11, 2026 at 03:02:53PM +0200, Rafael J. Wysocki wrote:
 >
-> > In acpi_video_dev_unregister_backlight(), the sysfs interface of the
-> > cooling class device may access the brightness object under the
-> > backlight device's ACPI companion, so that object cannot be freed
-> > before unregistering the cooling class device.
+> > Instead of using thermal_cooling_device_register() for registering
+> > a cooling device in the ACPI processor driver, make it use
+> > thermal_cooling_device_create() and pass a pointer to the processor
+> > device representing the given CPU to that function as the cooling
+> > device's parent.  That will cause the cooling device's sysfs directory
+> > to be created under the parent's sysfs directory (among other things).
 > >
-> > Adjust the code to take that into account.
+> > Since creating a class device under a parent causes a "device" symbolic
+> > link from the sysfs directory of the class device to the sysfs director=
+y
+> > of the parent to appear automatically, remove the code creating the
+> > "device" symbolic link from the sysfs directory of the cooling device
+> > in question to the sysfs directory of the parent's companion ACPI
+> > device.  That ACPI device is reachable through the "firmware_node"
+> > symbolic link in the parent's sysfs directory regardless.
 > >
-> > Fixes:
+> > Moreover, since the cooling device is now located in sysfs under its
+> > parent and it can be easily identified as a cooling device, there is
+> > no need to create a "thermal_cooling" symbolic link from its parent's
+> > ACPI companion to it.  Accordingly, also remove the code creating that
+> > symbolic link.
+> >
+> > While at it, check for error pointer values in addition to checking
+> > for NULL in acpi_processor_thermal_exit() to avoid dereferncing them
 >
-> Fixes?
+> Typo: dereferencing
 
-I thought I added it, but clearly I didn't.
+Noted, thanks!
 
-It should be
+> > mistakenly.
+>
+> ...
+>
+> Is any user space ABI breakage expected as an outcome of this change?
 
-Fixes: 67b662e189f4 ("ACPI / video: seperate backlight control and
-event interface")
-
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-Will fix when applying unless there will be a v2.
-
-Thanks!
+Not really.
