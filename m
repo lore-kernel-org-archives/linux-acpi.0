@@ -1,142 +1,166 @@
-Received: from mail-pj1-f72.google.com (mail-pj1-f72.google.com [209.85.216.72])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9A8148987C
-	for <linux-acpi@vger.kernel.org>; Fri, 11 Sep 2026 13:22:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.72
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 48D1535C692;
+	Fri, 11 Sep 2026 14:26:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789132966; cv=none; b=dZ9ZAx8NYm0evnkZyXT57H7HS4CCRNysvg08z0yWjVl0uPUkyNDDEo9rM20dls4yDY7nVVozwKT5f1Xi5f9TidGGku0hzN+TjzxdfMlJ1LRWKhCYO8Q+Cf3lCNgFEThcSIEq+CrnMMB9dHeZvRsfh7h2kZJRHtoHl/QWZ6A4yuI=
+	t=1789136778; cv=none; b=ZR30kZVEVtDmUzolYmvigCoxd1H6NF85rv5q3vpUxkr1C9y0AoZTMvQ9ukdYsRRhwkEv/oguk+z/W00m9QUpCEs05Pid9k5jRXoLW5u02CXoTIYZ/qG+2PFYDNJJjaqj50YEiEdgN1X16CQOqae8yulLZPKWvqPBLuRnjOJOP2M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789132966; c=relaxed/simple;
-	bh=T/e2vgzi/yX3haBVonSYMOMOZ1YJ8sxvxQcGMOKmPKs=;
-	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=fqo+9tpSB1++Cw98BaCuwMZ5LcC0qhN7uNq4xV7OWQvjNPVnVT8C+60yjoOczG2R9XnZy66hkYlBOLMuAEllQnc0OxS/XV/2zjklFEHmKWmbEcpAtqsZeqfCjl3W0Fz3EvZiYR75ukYyp+RoWKHbmIin39vJ/Srig7QOi1Go7CM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--seanjc.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=RLwvSvK3; arc=none smtp.client-ip=209.85.216.72
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--seanjc.bounces.google.com
+	s=arc-20240116; t=1789136778; c=relaxed/simple;
+	bh=+dl+/CW2c5vdQ2DAyzIA0HbT6aXfdDkk/ZXevqf3xhY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=E65iQyffBb+ou/wuKq1VvLDZzmPbw8QZNMMWL+Wqe2F3hbBXnxFsGe+grDlcIeeCBs+3nxbb4voYnU2uHjwOC3lMdZUOD4m7QS3Xr/ifAfIJ9F+c/wy0XP9i6EFehwahfj/C3gHJReBn1uo+pe600otpynBhaLsTuvFUphXyK34=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=VJS9jdVj; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="RLwvSvK3"
-Received: by mail-pj1-f72.google.com with SMTP id 98e67ed59e1d1-38e1118e4abso1633821a91.0
-        for <linux-acpi@vger.kernel.org>; Fri, 11 Sep 2026 06:22:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1789132963; x=1789737763; darn=vger.kernel.org;
-        h=content-type:cc:to:from:subject:message-id:references:mime-version
-         :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=kqAHaS5fsv9ERkHKe2Kmet0fUHotC014bD2kFqqX4to=;
-        b=RLwvSvK31Nx6W5e5cWd1Zwn3GrqgUoi6AhS072W/uylcwVwZ3gpe+kx6GEa9rIFlk0
-         FYF4erl5BDuLlexOocQCSN41l6ccwOOPma6v34CdMIG5khIVZqkDirlCdqv964QjHzjX
-         wPzKEn407qRm3Embbs+yCBCiSEJTY3Js8tzzleFdo1mBTOxt2yTNnE2xosV20WkoMQvM
-         wIayUAwD/BVN9hgLYwfzEr+DeuhSbiV33KL8FX8Bmqy/2DX9ttcVZLG7uRr6EAwczGFk
-         ZiDQLDEUQiAQ8XVcZzOaCJECezVH/N/QfYRIjvdt+E3bJGSQdWRG09uKOPUwfNDqFGFJ
-         twjA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789132963; x=1789737763;
-        h=content-type:cc:to:from:subject:message-id:references:mime-version
-         :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=kqAHaS5fsv9ERkHKe2Kmet0fUHotC014bD2kFqqX4to=;
-        b=BHUSvTjld0tMszg6zsklFwJb+s5UCb9JKJz06Ss45CN2JuHqYslnv1f+F/IGCfXv0m
-         W7lAXeqCwdpwFBWQv9zhUg3pMxMW5ONsvhcBmFxwob56U1zyo82Vn6qvhyhKt1BcgoQz
-         v0hyrK+C3k4VgyXhYJujIJGGdPXKUS84YPN2H5eJBKyP08N0iIzqMlXHz17VOYyCLGHK
-         Lj5KEUDbQmnPZ6GybNgf1tHFtQ//8wDNVzMOjEHDol6YuTWt0b+vlMLQAk3HMzGIS73O
-         Pe/o4ih9/dckTrAEIttk+D6YvJukILdY1PFHJqs9RzNEHf0mxVBR4KtgIERwT2wbgeMZ
-         YZDw==
-X-Forwarded-Encrypted: i=1; AKwUvBy4k+U9/+1ram11SLerHmBwtsBy7UaHjTpaW7xA05A7+qT+v1QLo3Hc6d7qaAc+YHqlYh6dsfFpDloy@vger.kernel.org
-X-Gm-Message-State: AFuF++l+Erkrf6dq1SLeIJwAPLN8QTEv6esfKyB/4gKxlXX6suRd64tp
-	++qq618NsZpR1kzSg8b3LZUqT2O58izVJhFVCCDu/zkg5iMTxlwC8xC5eHA+oN9Xd+Ym/Xbl/s+
-	B8B6spQ==
-X-Received: from pjbmv13.prod.google.com ([2002:a17:90b:198d:b0:39d:8dae:7e6d])
- (user=seanjc job=prod-delivery.src-stubby-dispatcher) by 2002:a17:90b:3c89:b0:398:e46e:ade3
- with SMTP id 98e67ed59e1d1-39d9c39625dmr7169956a91.23.1789132962606; Fri, 11
- Sep 2026 06:22:42 -0700 (PDT)
-Date: Fri, 11 Sep 2026 06:22:41 -0700
-In-Reply-To: <20260911074530.3140830-13-jgross@suse.com>
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="VJS9jdVj"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E817316A3;
+	Fri, 11 Sep 2026 07:26:11 -0700 (PDT)
+Received: from [10.2.212.8] (e134344.arm.com [10.2.212.8])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A6E6C3F7B4;
+	Fri, 11 Sep 2026 07:26:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1789136775; bh=+dl+/CW2c5vdQ2DAyzIA0HbT6aXfdDkk/ZXevqf3xhY=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=VJS9jdVjdxrfhddtboM8//bjGARsasQc92yC8Z54x1d+/OrvhGyfbkqZaUzUr9DjW
+	 S2ERUo7sK1bp3dMpOWEtST2Im/BFbpoRDGPWoe7Qd2gSH41anUBYV5Hja3TSoKj1Xk
+	 DpMjfmQU9PjtvdHf/31WGNkVuM+weOxegDS2VvYs=
+Message-ID: <89a13b60-a1fe-442f-ab0d-b0d37a118ad1@arm.com>
+Date: Fri, 11 Sep 2026 15:26:11 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-References: <20260911074530.3140830-1-jgross@suse.com> <20260911074530.3140830-13-jgross@suse.com>
-Message-ID: <aqQAodJCAEZyeQ1k@google.com>
-Subject: Re: [PATCH v3 12/13] treewide: convert rdmsrq() from a macro to an
- inline function
-From: Sean Christopherson <seanjc@google.com>
-To: Juergen Gross <jgross@suse.com>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, 
-	linux-perf-users@vger.kernel.org, linux-hyperv@vger.kernel.org, 
-	kvm@vger.kernel.org, virtualization@lists.linux.dev, 
-	linux-edac@vger.kernel.org, linux-pci@vger.kernel.org, 
-	linux-pm@vger.kernel.org, linux-coco@lists.linux.dev, 
-	linux-acpi@vger.kernel.org, linux-ide@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, linux-crypto@vger.kernel.org, 
-	linux-gpio@vger.kernel.org, linux-hwmon@vger.kernel.org, 
-	linux-mtd@lists.infradead.org, platform-driver-x86@vger.kernel.org, 
-	linux-fbdev@vger.kernel.org, Thomas Gleixner <tglx@kernel.org>, 
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
-	Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, 
-	Peter Zijlstra <peterz@infradead.org>, Arnaldo Carvalho de Melo <acme@kernel.org>, 
-	Namhyung Kim <namhyung@kernel.org>, Mark Rutland <mark.rutland@arm.com>, 
-	Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@kernel.org>, 
-	Ian Rogers <irogers@google.com>, Adrian Hunter <adrian.hunter@intel.com>, 
-	James Clark <james.clark@linaro.org>, "K. Y. Srinivasan" <kys@microsoft.com>, 
-	Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>, 
-	Dexuan Cui <decui@microsoft.com>, Long Li <longli@microsoft.com>, 
-	Paolo Bonzini <pbonzini@redhat.com>, Ajay Kaher <ajay.kaher@broadcom.com>, 
-	Alexey Makhalov <alexey.makhalov@broadcom.com>, 
-	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, 
-	Josh Poimboeuf <jpoimboe@kernel.org>, Pawan Gupta <pawan.kumar.gupta@linux.intel.com>, 
-	Pu Wen <puwen@hygon.cn>, Tony Luck <tony.luck@intel.com>, 
-	Reinette Chatre <reinette.chatre@intel.com>, Dave Martin <Dave.Martin@arm.com>, 
-	James Morse <james.morse@arm.com>, Babu Moger <babu.moger@amd.com>, 
-	Tony W Wang-oc <TonyWWang-oc@zhaoxin.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, 
-	Andy Lutomirski <luto@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Pavel Machek <pavel@kernel.org>, Kiryl Shutsemau <kas@kernel.org>, 
-	Rick Edgecombe <rick.p.edgecombe@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, 
-	Len Brown <lenb@kernel.org>, Damien Le Moal <dlemoal@kernel.org>, Niklas Cassel <cassel@kernel.org>, 
-	David Airlie <airlied@redhat.com>, Olivia Mackall <olivia@selenic.com>, 
-	Herbert Xu <herbert@gondor.apana.org.au>, Viresh Kumar <viresh.kumar@linaro.org>, 
-	Huang Rui <ray.huang@amd.com>, Mario Limonciello <mario.limonciello@amd.com>, 
-	Perry Yuan <perry.yuan@amd.com>, K Prateek Nayak <kprateek.nayak@amd.com>, 
-	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Yazen Ghannam <yazen.ghannam@amd.com>, 
-	Linus Walleij <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, Guenter Roeck <linux@roeck-us.net>, 
-	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, Artem Bityutskiy <dedekind1@gmail.com>, 
-	Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Miquel Raynal <miquel.raynal@bootlin.com>, Richard Weinberger <richard@nod.at>, 
-	Vignesh Raghavendra <vigneshr@ti.com>, Ashok Raj <ashok.raj.linux@gmail.com>, 
-	Hans de Goede <hansg@kernel.org>, 
-	"Ilpo =?utf-8?B?SsOkcnZpbmVu?=" <ilpo.jarvinen@linux.intel.com>, 
-	Rajneesh Bhardwaj <irenic.rajneesh@gmail.com>, Xi Pardee <xi.pardee@linux.intel.com>, 
-	Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>, 
-	Lukasz Luba <lukasz.luba@arm.com>, Helge Deller <deller@gmx.de>, xen-devel@lists.xenproject.org, 
-	linux-geode@lists.infradead.org, Michael Kelley <mhklinux@outlook.com>
-Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v10 08/14] arm_mpam: propagate MSC access errors for
+ interrupt control
+To: Andre Przywara <andre.przywara@arm.com>,
+ Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
+ <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ James Morse <james.morse@arm.com>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+ Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+ Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+ Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
+ Niyas Sait <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
+ Ritwick Sharma <ritwick.sharma@arm.com>, Gavin Shan <gshan@redhat.com>,
+ linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-kernel@vger.kernel.org
+References: <20260911112835.714162-1-andre.przywara@arm.com>
+ <20260911112835.714162-9-andre.przywara@arm.com>
+Content-Language: en-US
+From: Ben Horgan <ben.horgan@arm.com>
+In-Reply-To: <20260911112835.714162-9-andre.przywara@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Fri, Sep 11, 2026, Juergen Gross wrote:
-> Today rdmsrq() is a macro using its second parameter as the target for
-> storing the read MSR value.
+Hi Andre,
+
+On 11/09/2026 12:28, Andre Przywara wrote:
+> Allow the functions dealing with interrupt registration and enablement
+> to check for and return errors, and propagate MSC read and write errors
+> from the lower level up.
+> This does not cover the IRQ handler yet, as this needs some more
+> attention.
 > 
-> Convert rdmsrq() to an inline function returning the MSR value.
-> 
-> The users have been converted using the following semantic patch:
-> 
->   // Options: --include-headers
-> 
->   virtual patch
->   virtual report
-> 
->   @@
->   expression msr, val;
->   @@
->   (
->   - rdmsrq(msr,val)
->   + val = rdmsrq(msr)
->   )
-> 
-> Signed-off-by: Juergen Gross <jgross@suse.com>
-> Acked-by: Damien Le Moal <dlemoal@kernel.org>      # ATA
-> Reviewed-by: Michael Kelley <mhklinux@outlook.com> # Hyper-V
+> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+> Reviewed-by: Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>
+
+Commenting here as this is the last error propagation patch. I think we need a clean boundary for
+the error propagation. As you said a while back I think we can propagate error for all non-static
+functions from mpam_devices.c and the callers can discard the errors if appropriate. For instance,
+mpam_reset_class_locked() should propagate any error.
+
+Thanks,
+
+Ben
+
 > ---
+>  drivers/resctrl/mpam_devices.c | 31 +++++++++++++++----------------
+>  1 file changed, 15 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
+> index 558efab75f911..eb26c25b9f970 100644
+> --- a/drivers/resctrl/mpam_devices.c
+> +++ b/drivers/resctrl/mpam_devices.c
+> @@ -1105,7 +1105,9 @@ static int mpam_msc_hw_probe(struct mpam_msc *msc)
+>  	}
+>  
+>  	/* Clear any stale errors */
+> -	mpam_msc_clear_esr(msc);
+> +	ret = mpam_msc_clear_esr(msc);
+> +	if (ret)
+> +		return ret;
+>  
+>  	spin_lock(&partid_max_lock);
+>  	mpam_partid_max = min(mpam_partid_max, msc->partid_max);
+> @@ -2668,9 +2670,7 @@ static int mpam_enable_msc_ecr(void *_msc)
+>  {
+>  	struct mpam_msc *msc = _msc;
+>  
+> -	__mpam_write_reg(msc, MPAMF_ECR, MPAMF_ECR_INTEN);
+> -
+> -	return 0;
+> +	return __mpam_write_reg(msc, MPAMF_ECR, MPAMF_ECR_INTEN);
+>  }
+>  
+>  /* This can run in mpam_disable(), and the interrupt handler on the same CPU */
+> @@ -2678,9 +2678,7 @@ static int mpam_disable_msc_ecr(void *_msc)
+>  {
+>  	struct mpam_msc *msc = _msc;
+>  
+> -	__mpam_write_reg(msc, MPAMF_ECR, 0);
+> -
+> -	return 0;
+> +	return __mpam_write_reg(msc, MPAMF_ECR, 0);
+>  }
+>  
+>  static irqreturn_t __mpam_irq_handler(int irq, struct mpam_msc *msc)
+> @@ -2777,11 +2775,13 @@ static int mpam_register_irqs(void)
+>  				return err;
+>  		}
+>  
+> -		mutex_lock(&msc->error_irq_lock);
+> -		msc->error_irq_req = true;
+> -		mpam_touch_msc(msc, mpam_enable_msc_ecr, msc);
+> -		msc->error_irq_hw_enabled = true;
+> -		mutex_unlock(&msc->error_irq_lock);
+> +		scoped_guard(mutex, &msc->error_irq_lock) {
+> +			msc->error_irq_req = true;
+> +			err = mpam_touch_msc(msc, mpam_enable_msc_ecr, msc);
+> +			if (err)
+> +				return err;
+> +			msc->error_irq_hw_enabled = true;
+> +		}
+>  	}
+>  
+>  	return 0;
+> @@ -2800,10 +2800,10 @@ static void mpam_unregister_irqs(void)
+>  		if (irq <= 0)
+>  			continue;
+>  
+> -		mutex_lock(&msc->error_irq_lock);
+> +		guard(mutex)(&msc->error_irq_lock);
+>  		if (msc->error_irq_hw_enabled) {
+> -			mpam_touch_msc(msc, mpam_disable_msc_ecr, msc);
+> -			msc->error_irq_hw_enabled = false;
+> +			if (!mpam_touch_msc(msc, mpam_disable_msc_ecr, msc))
+> +				msc->error_irq_hw_enabled = false;
+>  		}
+>  
+>  		if (msc->error_irq_req) {
+> @@ -2815,7 +2815,6 @@ static void mpam_unregister_irqs(void)
+>  			}
+>  			msc->error_irq_req = false;
+>  		}
+> -		mutex_unlock(&msc->error_irq_lock);
+>  	}
+>  }
+>  
 
-Acked-by: Sean Christopherson <seanjc@google.com>
