@@ -1,117 +1,118 @@
-Received: from mail-pj2-f12.google.com (mail-pj2-f12.google.com [74.125.227.140])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E91D638B7D2
-	for <linux-acpi@vger.kernel.org>; Sat, 12 Sep 2026 11:34:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.140
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CDB547124F
+	for <linux-acpi@vger.kernel.org>; Sat, 12 Sep 2026 13:36:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789212876; cv=none; b=ZD5kymRF/y9CDYnlYQPi369bH1Ur0zBm9DDgtReuzB/hQMu9qWjFREBV093HTHxmul2GPa/jMv04a4i9VtDuWFJrXvVvqN7dwbSn2AtnrLRauTSOBofd/SPaIZAY0nXEXr5JVn+VRx2MIkFXJ9qVAkqiGrEpQIEON0w6HPoqtys=
+	t=1789220167; cv=none; b=NeCQStJYZNqgET6OP0KrdqqJxW6CUe75BSX+/Z+Fy9WagNqSy9l07gZoTmdniqjEBABTa7CpVSCkfDltMIQ/CSyAgk+mHtd9ZQ8ens8hCtaa+YitCNr5N1baYjdHe2SAJqVtnkHJRnoZF7ZvSikSDYc9bl190vLFOUy074R6GlI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789212876; c=relaxed/simple;
-	bh=cC1YOs027YlAqZAqs9J6yM8CSZ469b20i+ByfNS783s=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=sUEsqp3SuOwthpEH7kfOW7CFc8rbz+i0QL3eBomURd+k9aak0wkgKU+p3ZGrX6N4SYV004QtJvloL3NIQLR78x7K/yQ1y432kjcHxX4j0zo5OhCvfQ7+WEGIj1T2ZsDNY230JQpY3HyK+mESI5pZw/PHJ5sQBoPwghegvoAOnOA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dO4U2jF+; arc=none smtp.client-ip=74.125.227.140
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1789220167; c=relaxed/simple;
+	bh=jDJyxuQSJq7yMmcZQK0ZnQpYDqlPQN9BTFZbhDw07n8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=f03OzqJW309cFm1teOLJTrma1YNWfJkSrm50lU3bUZN0MpudQKXe40jw9/vy2UIHkKiKAWGNw4WZa+Ll86xj4A/jaL1i9NzBwiN8w23Fq/hongG1RTekbhrE0HCywQKNsi23ME+J1Byz0LVyncrt+QsNAXbd2VEsRINy4gwYNI4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EqsiSjTl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dO4U2jF+"
-Received: by mail-pj2-f12.google.com with SMTP id 98e67ed59e1d1-396ccda24a3so473320a91.0
-        for <linux-acpi@vger.kernel.org>; Sat, 12 Sep 2026 04:34:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789212874; x=1789817674; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=AX3b+/Rd5JBxR9PSq0SxNQZUrSxVi/vmNM1MS2Zuudo=;
-        b=dO4U2jF+uWlD0zxfHqXNtLWuweFU8mwlmiEsl4RAgvLMD72o9K25yAm/sUbCEr4JKu
-         hG07vrMLF7lnBIb4dMfF+Ba3XHLPKkVZYLKphaOsih+VkEZJGPppu1/sbxoVrsCW9dPe
-         uW40yukbc0JrPxBuL6oP8C3DRbTkv7PZs1dF7rqaJqIdBh9VpZq2kjVRzXcKYkgHAiGX
-         pvVpajqzP2woWP683xa5j45OSQAhHOCRLNPgeB9bDAa0wpxWTy3FJw5V7oQjzeJfyjZ2
-         P1POKPF737kdsKt9LFBzRZLLFOIenJI6lpxhWz0EHzC2czOhkmlcTqv1lVbqOETUyyzd
-         lG4A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789212874; x=1789817674;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=AX3b+/Rd5JBxR9PSq0SxNQZUrSxVi/vmNM1MS2Zuudo=;
-        b=mTiAnBiRZym9lO0KkRJFvt7moEXmkPkUIdwoxenH7v/0S8eVy3opqdqZb1UHwqj/5d
-         Rde1WM0tBHKqk8BufmYGLtbpsiB0dTqLyfpTFE7Mgrm3f4HSe+zPcpjaYH815/axoNHI
-         app/x7CjEMM6i1rYjUG7NvqqymNbsveOX7do/Z9vR9W8z0EmyG0fENM+6mOnBscqXcrH
-         Bw3eEuQNSUEANnWDLSEfKpNSVVuHc0/wN/72CHdFWECBMdVimFuUYGhyKyhuq32uxmEM
-         lgUzgptZAVhGPmWcfIcmkEE7dFZUpKe4KHndkwHNuc8Fje4YioGeDXuPgzE2KHvYhO2p
-         LqQQ==
-X-Forwarded-Encrypted: i=1; AKwUvByL56XzE/2EJ3azvd68lO2P4c07G7zmr4/5EToFwLDnIP+TcwfvwXYaP+dblmY6qRjvOkbWJvOH2XU6@vger.kernel.org
-X-Gm-Message-State: AFuF++lg0pK3B4MUY3MOmZFOhYJ4vdZ5Gu6sTLstArq/iuuoc9g7t2qm
-	7B20mX0+9ziJ28MlT+TDQ/g01QJdSAL+dPAn2zMjuiJOUL1PqGMavs0p
-X-Gm-Gg: AYBFou3dGx3xYvlz/dMIHztgVtMWrxH2qIA4m4ylWLtMIrDPnc1uFmf7rSEHHMLv8Ap
-	Kb9ngvCgYAlMCRvgpCR595vW7LhWhqF6d/oS2HTiKRBnuFtVQGg3XhFYiJCdOcok6dXZl8dAgGd
-	VDtr3hQRhkkAyCHvXuGjKkaOcS3HcFoddHY1tkrKWKlmAxLjuez4q8NFOBoDqR9H8foUxSdZc42
-	SwxA1qR+mp2VXXDeKRn96PIYqq5X7g2Ic52+3cW+FgJ7bPwJ79KoEgVjAqFzpjNf7xGoOCVqLQ2
-	/g0oomKq97HFbLKScTKg1og3oMZ6q8WzOtWvE4SVc3RxNh0LCaut73vtU1TlyxlpwkXToAPCwte
-	EBHcvhxZDhs5EIM/2OS1qzvUk7H1S3NKZpn8PTlL0Ty5ecmgsMttPXbZKqVPDVlYoyJ8i2nWn0D
-	9zHho4MPrRnfPKdl651xJez77Kz4a5Bg1btqXgJXR2jVKVk5Md9H3SMA==
-X-Received: by 2002:a17:90b:1dc9:b0:38f:aab1:5148 with SMTP id 98e67ed59e1d1-39d9c0b79efmr15378795a91.13.1789212874173;
-        Sat, 12 Sep 2026 04:34:34 -0700 (PDT)
-Received: from lgs.. ([2001:250:5800:1002::de93])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-39d95752809sm10046220a91.13.2026.09.12.04.34.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 12 Sep 2026 04:34:33 -0700 (PDT)
-From: Guangshuo Li <lgs201920130244@gmail.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Guangshuo Li <lgs201920130244@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH] ACPI: SBS: Fix NULL pointer dereference on allocation failure
-Date: Sat, 12 Sep 2026 19:33:55 +0800
-Message-ID: <20260912113355.644238-1-lgs201920130244@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EqsiSjTl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 152741F00893
+	for <linux-acpi@vger.kernel.org>; Sat, 12 Sep 2026 13:36:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789220166;
+	bh=VIOMCRGrgf499RUPLB6ulTo6LJeLoQVad4u4CeQkZ10=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=EqsiSjTlJhtLWKCveTl9m96RwH2jOXg3RVcoDhG9wC9OpZZ363RaF3Ju72aBLbLNT
+	 b5yYGyGiw5rQDxHf0iB4sgRiUO3qc1jT/twqCbbn/utSeW85XTO04m3H2aqonPPtd2
+	 OBg4oVQ1CVi6tgFEJFxGD00vln2I0B3w/utnSWPNLj2Nhz065y+7k4KZCn/IXcArG4
+	 oubxtcccZvLt/K/UodEtH0AdYEnBfS8J2jQdxcG0NXvGCOqql9u9Zn3C5QfF5OToYM
+	 /3a9Ue+5VfSDs2j116UKffP0t3Xxb4kTc9GT3rcKCvLae7Z+4b4MqgPBZxleaAa4Hm
+	 HaqdjEruthwIg==
+Received: by mail-lr2-f12.google.com with SMTP id 38308e7fff4ca-3a306a4f735so3869081fa.1
+        for <linux-acpi@vger.kernel.org>; Sat, 12 Sep 2026 06:36:06 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBx7NTl1oWnd4E6+RtZoMsImHC0hqauHQpDoZYkktji1DOnK564mk9j+fYhZp6XJOrvaUbHE35XrjGvX@vger.kernel.org
+X-Gm-Message-State: AFuF++mZkCj0jQBt/HyL8K/JkIZfaqRSy5PFkDVfmXxrEaaXz+q8U6vf
+	kBWHntjlpU/d/A4yP8Tx9GnicGLvKr/JO74r36HpmtKiZM9xNJzuEnISmO8tHMvLd88DaNacK6d
+	CF3LZNBrws7c8YhFJIctpwSeevPvpm4k=
+X-Received: by 2002:a05:6512:3d0e:b0:5b7:6733:a216 with SMTP id
+ 2adb3069b0e04-5b8a8ebe48amr537213e87.10.1789220164432; Sat, 12 Sep 2026
+ 06:36:04 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <1965933.tdWV9SEqCh@rafael.j.wysocki> <951189ad-71b6-4776-8484-a207f1efe415@gmx.de>
+In-Reply-To: <951189ad-71b6-4776-8484-a207f1efe415@gmx.de>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Sat, 12 Sep 2026 15:34:48 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gLWT4x44Vbruaf0cKWp0jPTkLuh0pLQ29_O5vfNC4q_A@mail.gmail.com>
+X-Gm-Features: AcwNN1XLJyxVvs6LDrF1qngxz3f1oAUIQeurZ_7Ko4NDINm0cOQRh3m_J7CRT5Q
+Message-ID: <CAJZ5v0gLWT4x44Vbruaf0cKWp0jPTkLuh0pLQ29_O5vfNC4q_A@mail.gmail.com>
+Subject: Re: [PATCH v1 00/10] ACPI: thermal: Register thermal class cooling
+ devices under parents
+To: Armin Wolf <W_Armin@gmx.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Daniel Lezcano <daniel.lezcano@kernel.org>, Hans de Goede <hansg@kernel.org>, 
+	LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, 
+	Lukasz Luba <lukasz.luba@arm.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-acpi_sbs_probe() jumps to the common error path when kzalloc_obj()
-fails, but platform_set_drvdata() is only called after the allocation
-succeeds.
+On Fri, Sep 11, 2026 at 11:35=E2=80=AFPM Armin Wolf <W_Armin@gmx.de> wrote:
+>
+> Am 11.09.26 um 15:00 schrieb Rafael J. Wysocki:
+>
+> > Hi All,
+> >
+> > This series generally changes the way in which thermal class cooling de=
+vices
+> > are used by ACPI device drivers registering them (ACPI processor, ACPI =
+fan,
+> > and ACPI video) and by the ACPI thermal zone device driver.
+> >
+> > First, it causes the thermal class cooling devices to be registered und=
+er
+> > parents in specific locations within the device hierarchy which allows
+> > their relationships with other devices to be recognized more easily.  I=
+t
+> > also drops custom sysfs attributes registered by the users of the therm=
+al
+> > class cooling devices because they are not particularly useful any more
+> > when those devices get proper parents.
+> >
+> > Second, it modifies the ACPI thermal zone device driver to use thermal =
+class
+> > cooling device parent information for binding cooling devices to trip p=
+oints
+> > in thermal zones, which was previously done with the help of the devdat=
+a
+> > pointers of the cooling devices and effectively prevented drivers from =
+using
+> > the devdata pointers for their own purposes as originally intended.
+> >
+> > Finally, it updates the ACPI processor and ACPI fan drivers to use the
+> > devdata pointers of thermal class cooling devices in a bit more efficie=
+nt
+> > way.
+> >
+> > The first two patches in the series are preliminary fixes preventing
+> > Sashiko from reporting "pre-existing issues" in the subsequent patches.
+> >
+> > The third patch is a thermal core update allowing thermal class cooling
+> > devices to be registered under proper parents.
+> >
+> > The other patches update the ACPI processor, ACPI video, and ACPI fan
+> > drivers as per the above.
+> >
+> > The details are covered by individual patch changelogs.
+> >
+> > Thanks!
+>
+> Nice patch series, it looks mostly good to me.
 
-The error path calls acpi_sbs_remove(), which retrieves the unset
-driver data and dereferences the resulting NULL pointer when locking
-sbs->lock, causing a NULL pointer dereference.
+Thanks!
 
-Return -ENOMEM directly when the allocation fails, since no resources
-have been initialized at that point and there is nothing to clean up.
+> Do you plan something similar for thermal zones?
 
-This issue was found by manual code inspection.
-
-Fixes: 9460eaae2ee42 ("ACPI: SBS: Convert the driver to a platform one")
-Cc: stable@vger.kernel.org
-Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
----
- drivers/acpi/sbs.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index 86b7c7975852..4b84b3cd11e3 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -639,10 +639,8 @@ static int acpi_sbs_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 
- 	sbs = kzalloc_obj(struct acpi_sbs);
--	if (!sbs) {
--		result = -ENOMEM;
--		goto end;
--	}
-+	if (!sbs)
-+		return -ENOMEM;
- 
- 	mutex_init(&sbs->lock);
- 
--- 
-2.43.0
-
+I do overall, but that is a bit harder due to the hwmon involvement.
