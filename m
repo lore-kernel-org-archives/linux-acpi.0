@@ -1,115 +1,101 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0E7E3E0C75
-	for <linux-acpi@vger.kernel.org>; Sun, 13 Sep 2026 10:29:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 784433E0C73
+	for <linux-acpi@vger.kernel.org>; Sun, 13 Sep 2026 10:39:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789295370; cv=none; b=P6nm64GclUPIhGbOQJhGEc9qmxB5GCDDgDGKwm01sgfLR887lQoK+lTaQSN7pj3Vul/AUbk2hzLuFM283YWLxopKqWcEw0TdR7wzP7NlOIHnUTgY5OcwURzRBcuym6FeQVjkSFoW8L0pVfUGmelKg2Qk5cW9FW+CeRxL8w6fEKY=
+	t=1789295997; cv=none; b=N2tx8nWIofshA3X9kGtmvV3GV7XSiDCsFNEqfvQjZZOYyiBGaJQuH4GUBhUrS7tdmayGTqjvFsh8EBFnySyD9IfKfIn+4xCom4T9hBa6PWFfqXg8oR5iOp91M3/fybhomUwfGLhnQRUgkjTf59Hj5VUEClJ2hOJYlP8q7OtBmaY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789295370; c=relaxed/simple;
-	bh=NPQejoZxH6U4uow34Q9YSOqspglC0wK8sk9mkHf8cHs=;
+	s=arc-20240116; t=1789295997; c=relaxed/simple;
+	bh=tHR8MbHYnydo88nNqFpbUFuYlV+Az69Ygft7I7d7Z7E=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=f0MAtGBjwYtdSVgIbIGcQVTaylagX2tA4Ml/fEwgAQ3B9Q972pN09Ml7BVnOaNPS0LLdiHWmcw7C+FYNiJ2TXIdOD5LkP/uoftxbSdd/H5EaNWaFKkqdwZQVx4hX1SPhSJQSC6aBC8DIZ6QRhnmRokfWdTJzba3FkytT/STCbuU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ke4g7lVI; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=OxArjXKGhzeH4UitV7Twn/ADvXaSP4uWyTlwMFnbNUtaVQUe6L1OgWSjNx1J3TidA3LKXcCB99XjPoRX4o0SSGcW4Fcs7mVK1YxZq+1535KoyTwkrf42EmwQ0R+PTRb8DvPuYRmfWUCyfFctAsIxBky5xVtBk1ARF/CjYvcdDH8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I0qelsg8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ke4g7lVI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 331911F00899
-	for <linux-acpi@vger.kernel.org>; Sun, 13 Sep 2026 10:29:23 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I0qelsg8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C5F31F00898
+	for <linux-acpi@vger.kernel.org>; Sun, 13 Sep 2026 10:39:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789295363;
-	bh=NPQejoZxH6U4uow34Q9YSOqspglC0wK8sk9mkHf8cHs=;
+	s=k20260515; t=1789295995;
+	bh=tHR8MbHYnydo88nNqFpbUFuYlV+Az69Ygft7I7d7Z7E=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=ke4g7lVIYdPyccr90XDXtKVM9RnVSaeipOGatYapTyfSb7aKPB4wGy5ePTtT7a5Sy
-	 EEr8MnGWEZJCFO5pUe8AhmZf+sZtcTx4sPj4wvbtAb3iv+XcHTwJ0AaWugJXjtWDDi
-	 MqYvlJeKddIgSVrRKXNxJvmAYJnHaWPjChMewwwY4zkkxRK9UqVBhnD/LXDVUStNzG
-	 81csUhQ+VSoZq6juKPPR9NI2hCabPmKn0JTVtZUNHh/it4uaSFwrsV8nmHaNDaMB0Q
-	 nlnU9L6pIzNR0zA4rNPIcKie4XO2jqKFAZouGOl8dhTXFFBnzoAi4VV+A8ct97uYBK
-	 OB8Zbcpkef3bQ==
-Received: by mail-lf2-f12.google.com with SMTP id 2adb3069b0e04-5b5e4f13d76so1171070e87.3
-        for <linux-acpi@vger.kernel.org>; Sun, 13 Sep 2026 03:29:23 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBz0w8aVaegPLpGqogXZFT6aCcVv41obrA4bfcJSaYT8sUPWlk0IvsOeCJlUqCNx5PmRpi4jS0P60hPj@vger.kernel.org
-X-Gm-Message-State: AFuF++m5dVouTBJ4EQ0cgcmjjJ/VdGqpdLqfb2fRorj9NArKoeVn2R6+
-	NjWDz/6yt7IHIqvVNr3+CettQic1t7xyYtLIbI9nqYFZqTCu2gdPVvEHO4hyJoLHxPRXKiXp330
-	uWz+UWciB2nqwrKIrZrcxmSddugiAC7M=
-X-Received: by 2002:a05:6512:3f26:b0:5b6:1a7c:3b with SMTP id
- 2adb3069b0e04-5b8a8ed9e1amr1101836e87.62.1789295361526; Sun, 13 Sep 2026
- 03:29:21 -0700 (PDT)
+	b=I0qelsg8o0zKdJP0HVkXin8YAkigNM1TbFg9+/NjYO8GwClKgiohyrd7hAlvS5AiM
+	 E4Xk/AR0zoKz+5Kz1GgEKM4DninWm+4ZulXSMR08NwMvPyeQJ6jS+XiZIBqE/xJvR/
+	 SKAqVfdQtce0EPPoJx6eUUQMfi5HlzaClvAA4K5Pb/yo8TCqpu7wfHXnXgXR2k77eP
+	 pMHleAdMTtrpUz+f476mSReB2rZsU8CwpjdPJgunR8M6XwPpA9QsbzyqE373VYWbQg
+	 HGF1biDaEasMmF3rMaSy4nCcsSIDgwYJpahqsSXifmXJEAclGW9WPITMbzTzBId5p2
+	 xuNAyr/h0wAQg==
+Received: by mail-lf2-f13.google.com with SMTP id 2adb3069b0e04-5b5e4f16f15so1402379e87.3
+        for <linux-acpi@vger.kernel.org>; Sun, 13 Sep 2026 03:39:54 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBykOMEbDe1LYi84R9NY8NX15sGbx4HK2ssglzQ1o3SrBkwqGXdq+E9Xa1+V3lFHh8MTA5VypH0e1aPE@vger.kernel.org
+X-Gm-Message-State: AFuF++miSMdeGCgWwzBWjuszmkzNdWVdWMJNP/zRib+p1JosEvFVuTN6
+	Dwe6CBDTcumv1eUHwvL7v0AprlKWOAg+O2N7YAsjlZKmgE3fEXB3REbbJu+pZWmKT/Il1p+cdzd
+	2Vr3Dku/GQU1rgW8A95pL0aJcTa1ztrA=
+X-Received: by 2002:a05:6512:33d6:b0:5b0:113d:8ae5 with SMTP id
+ 2adb3069b0e04-5b8a02fa142mr4883555e87.10.1789295993364; Sun, 13 Sep 2026
+ 03:39:53 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <1965933.tdWV9SEqCh@rafael.j.wysocki> <2362345.iZASKD2KPV@rafael.j.wysocki>
- <aqQtIMm-gdJoZAsq@ashevche-desk.local> <CAJZ5v0j5B4LFbrhSuw0j=fLcY+cFFTEMvyt_ED-+9j1dvQEqLw@mail.gmail.com>
- <aqQwf3y66lPhTTyf@ashevche-desk.local> <CAJZ5v0jV-cMDt0Hhhw8Nnea1jhXfGVUajaomAmSUcmx2sZLb6Q@mail.gmail.com>
- <aqRDC2LZ7m3caTSn@ashevche-desk.local> <5b54b08a-4dfd-4efe-b646-821adcd235b2@gmx.de>
- <aqZbqbSsRlsjjRPB@ashevche-desk.local>
-In-Reply-To: <aqZbqbSsRlsjjRPB@ashevche-desk.local>
+References: <20260601194040.18223-1-miguel.vadillo@intel.com>
+ <6e450fa2-8b40-48b6-b0b0-a1c4b72a383d@leemhuis.info> <d7f4a573-1a2e-4274-8c8f-41d398592356@leemhuis.info>
+In-Reply-To: <d7f4a573-1a2e-4274-8c8f-41d398592356@leemhuis.info>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Sun, 13 Sep 2026 12:28:05 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0j9g9Vyam7PnrGikYyyrUwSFghPk6ecXVEm9PN8z8tOHg@mail.gmail.com>
-X-Gm-Features: AcwNN1U63AvT86RmZWiCAlpoR6cXXuhqPacNHrPEzHXrxMST4SeSvhw9HP-yqrY
-Message-ID: <CAJZ5v0j9g9Vyam7PnrGikYyyrUwSFghPk6ecXVEm9PN8z8tOHg@mail.gmail.com>
-Subject: Re: [PATCH v1 04/10] ACPI: processor: thermal: Use thermal_cooling_device_create()
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Armin Wolf <W_Armin@gmx.de>, "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, 
-	Linux ACPI <linux-acpi@vger.kernel.org>, Daniel Lezcano <daniel.lezcano@kernel.org>, 
-	Hans de Goede <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
-	Linux PM <linux-pm@vger.kernel.org>, Lukasz Luba <lukasz.luba@arm.com>
+Date: Sun, 13 Sep 2026 12:38:37 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gUJpgy5aaFfFqz273kE6kXkvZdHOAMGaOfVYK1pGFYsQ@mail.gmail.com>
+X-Gm-Features: AcwNN1U9mqIuU8DGcOAOBLtt3RB7sQ1rI2BqP9L0P-jjkEGcBXPxDq9INxt-0Io
+Message-ID: <CAJZ5v0gUJpgy5aaFfFqz273kE6kXkvZdHOAMGaOfVYK1pGFYsQ@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: scan: Honor _DEP for Intel CVS devices
+To: Thorsten Leemhuis <regressions@leemhuis.info>
+Cc: Miguel Vadillo <miguel.vadillo@intel.com>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org, 
+	sakari.ailus@linux.intel.com, mehdi.djait@linux.intel.com, wei.a.xu@intel.com, 
+	atul.raut@intel.com, 
+	Linux kernel regressions list <regressions@lists.linux.dev>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Sep 13, 2026 at 10:15=E2=80=AFAM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
+On Sun, Sep 13, 2026 at 10:30=E2=80=AFAM Thorsten Leemhuis
+<regressions@leemhuis.info> wrote:
 >
-> On Fri, Sep 11, 2026 at 11:14:09PM +0200, Armin Wolf wrote:
-> > Am 11.09.26 um 20:06 schrieb Andy Shevchenko:
-> > > On Fri, Sep 11, 2026 at 07:01:23PM +0200, Rafael J. Wysocki (Intel) w=
-rote:
-> > > > On Fri, Sep 11, 2026 at 6:47=E2=80=AFPM Andy Shevchenko
-> > > > <andriy.shevchenko@linux.intel.com> wrote:
-> > > > > On Fri, Sep 11, 2026 at 06:36:28PM +0200, Rafael J. Wysocki (Inte=
-l) wrote:
-> > > > > > On Fri, Sep 11, 2026 at 6:32=E2=80=AFPM Andy Shevchenko
-> > > > > > <andriy.shevchenko@linux.intel.com> wrote:
-> > > > > > > On Fri, Sep 11, 2026 at 03:02:53PM +0200, Rafael J. Wysocki w=
-rote:
->
-> ...
->
-> > > > > > > Is any user space ABI breakage expected as an outcome of this=
- change?
-> > > > > > Not really.
-> > > > > Maybe makes sense to state this clearly in the cover letter?
-> > > > I guess you specifically mean the manually created symbolic links i=
-n
-> > > > sysfs that get removed.
-> > > >
-> > > > If so, I'm not aware of anyone using them for anything, but the lac=
-k
-> > > > of observation is not proof of nonexistence.
-> > > Yes, I refer to the changes in the sysfs layout / presence / absence.
+> On 9/12/26 18:50, Thorsten Leemhuis wrote:
+> > On 6/1/26 21:40, Miguel Vadillo wrote:
+> >> CVS (Computer Vision Sensing) is an ACPI-enumerated device that sits
+> >> inline in the CSI-2 path between the camera sensor and Intel IPU.
+> >> On platforms where CVS is present, the camera sensor's ACPI node
+> >> declares a _DEP dependency on the CVS device.
+> >>
+> >> The CVS driver must be fully initialized before camera sensor drivers
+> >> probe, because CVS controls the CSI-2 link ownership handshake (via
+> >> GPIO REQ/RESP), the MIPI/CSI-2 lane configuration, and the camera
+> >> power domain. Without CVS ready, the sensor driver can bind but the
+> >> CSI-2 stream will not function correctly.
+> >>
+> >> The CVS driver calls acpi_dev_clear_dependencies() at the end of its
+> >> probe() to unblock waiting consumers once it is ready.
+> >>
+> >> Move the CVS HIDs from acpi_ignore_dep_ids[] to acpi_honor_dep_ids[]
+> >> so that camera sensor enumeration is deferred until the CVS driver has
+> >> finished probing, matching the behavior already in place for IVSC.
 > >
-> > AFAIK those custom sysfs attributes are not even documented under Docum=
-entation/ABI, and
-> > thermald also does not seem to use them. I thus think we can safely rem=
-ove them.
+> > TWIMC, there is a bug report where one or two people claim that this
+> > change caused a regression; the report is quite verbose (guess LLM
+> > assisted) and hard to grasp for me as outsider; requests for
+> > clarifications from my side were not really fruitful. Not sure what to
+> > make of this, but I thought I'd let you know; for details see:
+> >
+> > https://bugzilla.kernel.org/show_bug.cgi?id=3D221988
 >
-> There is Debian source code browser (that covers hundreds of OSS projects=
-) [1],
-> have you tried to seek any matches there? Otherwise the assumption that n=
-obody
-> uses them might be wrong even if they were never documented.
->
-> [1]: https://codesearch.debian.net/
+> For completeness, a report that is more straight forward to read (at
+> least for me) was now posted here:
+> https://lore.kernel.org/all/20260912185836.309071-1-manuel.knitza@googlem=
+ail.com/
 
-It is mostly relevant whether or not they are used by someone today
-and not whether or not they have ever been used at all.
+This doesn't seem to be about the same commit though as it mentions
+ipu-bridge.c which is not touched by the patch in question here.
 
-We'll find out.
-
-If anyone complains and they are unable to cope with that, adding
-"thermal_cooling" back should not be a problem (although I'd rather
-not do it unless absolutely necessary).
+Thanks!
