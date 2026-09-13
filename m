@@ -1,115 +1,147 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+Received: from relay.yourmailgateway.de (relay.yourmailgateway.de [185.244.194.184])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E64F939656D;
-	Sun, 13 Sep 2026 08:15:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 045F037998A;
+	Sun, 13 Sep 2026 08:30:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.244.194.184
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789287345; cv=none; b=Xu0Y7QzPw8MUVx4bgium5aLk0+Bh/8BqqmkJ7wuWu9+XOw/Akwu/AhELoQPT002M7GBPNsYj5hSxBn7tBgcQALGwHJ4jwagqbcTTS33Yz3HBFKmMxfrAW77171m6MXE+u2IRWGVl6wAUSWlj2BVZMptBUTuN53IadfHy+tCjvK8=
+	t=1789288257; cv=none; b=kpyfPS6uOnNoyBIqZBR9uKcLStwe16YBu0yByQwLgmIfkzoxTE+ZInHeuPCCMmzowHvtqI8XIqNtJ8dwov+bizfkudgvz//49DT3AaWI5WaQoqKQBqWl7Y8ElOkob26JVbh06cF6QA4xwDUowyO6O4UmCKJ7UVzkukMhRa2eYZo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789287345; c=relaxed/simple;
-	bh=8whL5rfu7ItpVPYbWw8d50VN3Lnehka9GqryvGSY4ek=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ErsKiJk6v7hsZzLW7yK4B90oFSwsHa1fD0mT6U5drGhbximByGC+IVyRRuGT8EavThr381hJluQ54rKKd1wxRJlEt6Ilqih41tZkJmiMStSnjVgKAaB6LSch5oeuDkAql0iU3bCvT32s4W6R3fK6x84yMA5hRZRbYOo87Z63d9E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=kA5xc+cj; arc=none smtp.client-ip=198.175.65.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1789288257; c=relaxed/simple;
+	bh=Z5z6bLqwiLc1VA1HLy5fnos6G9gmup/7LK7VZ8qLVGE=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
+	 In-Reply-To:Content-Type; b=dCG5m+H8O8V3J/9F9h0T8SB6e6R8vL5wffvPsCend1Ez3/DZSrJjDXFCPIoRBCHoreK3M/a8cU78jFA1QYDpbZgeK8UTYHB34++s54PgGbHPwqevy6rTmf5k7orTac91/MwsfSpSkNJuFQrkJxRTfga74UFWKGwC8jL6i1JMyyk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=leemhuis.info; spf=pass smtp.mailfrom=leemhuis.info; dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b=JshStNX9; arc=none smtp.client-ip=185.244.194.184
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=leemhuis.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=leemhuis.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="kA5xc+cj"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1789287344; x=1820823344;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=8whL5rfu7ItpVPYbWw8d50VN3Lnehka9GqryvGSY4ek=;
-  b=kA5xc+cjP9fO14rL5tVU+aK0lxGwRVU9nHJJonx8RF77vWu9gKtopw2c
-   wQc0LSltPLeX6xsoLFbag/1nuOC5hWzn24zJgCnsqvWAcDX31ggr+EPjw
-   DP5/qzMlLGb6p8lUXA0X5JcFv1SFNORSVCuILFZkDB4ubgInZNXUUhFTM
-   /8hnaV1vaWPy70B3A0ZUnBZB7gtfXHLfqjvJN/KfGGZ/ly3hTOCXFCkLe
-   AYbIVFlv857N1s+M5PtyFD6+l/imQY4hzUBF9tGfjVRnaXShZXYP1Z0RR
-   +rd9PrmtgOADCfhAzvawcKggHPyZFITHgOefvCzWDUJtQrjbiSiOyKXgp
-   Q==;
-X-CSE-ConnectionGUID: jIuG6uXNQj6TCFShrsOMmQ==
-X-CSE-MsgGUID: AOqMNMHRRaOuayB6QvtCBg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11903"; a="100012139"
-X-IronPort-AV: E=Sophos;i="6.27,100,1787036400"; 
-   d="scan'208";a="100012139"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Sep 2026 01:15:43 -0700
-X-CSE-ConnectionGUID: boYKGEARTvWRjz0uMCRndg==
-X-CSE-MsgGUID: uFkRTUl6REuTCmAbN0qRZw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,100,1787036400"; 
-   d="scan'208";a="268666557"
-Received: from abityuts-desk1.ger.corp.intel.com (HELO localhost) ([10.245.245.0])
-  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Sep 2026 01:15:40 -0700
-Date: Sun, 13 Sep 2026 11:15:37 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Armin Wolf <W_Armin@gmx.de>
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>,
-	Linux ACPI <linux-acpi@vger.kernel.org>,
-	Daniel Lezcano <daniel.lezcano@kernel.org>,
-	Hans de Goede <hansg@kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Linux PM <linux-pm@vger.kernel.org>,
-	Lukasz Luba <lukasz.luba@arm.com>
-Subject: Re: [PATCH v1 04/10] ACPI: processor: thermal: Use
- thermal_cooling_device_create()
-Message-ID: <aqZbqbSsRlsjjRPB@ashevche-desk.local>
-References: <1965933.tdWV9SEqCh@rafael.j.wysocki>
- <2362345.iZASKD2KPV@rafael.j.wysocki>
- <aqQtIMm-gdJoZAsq@ashevche-desk.local>
- <CAJZ5v0j5B4LFbrhSuw0j=fLcY+cFFTEMvyt_ED-+9j1dvQEqLw@mail.gmail.com>
- <aqQwf3y66lPhTTyf@ashevche-desk.local>
- <CAJZ5v0jV-cMDt0Hhhw8Nnea1jhXfGVUajaomAmSUcmx2sZLb6Q@mail.gmail.com>
- <aqRDC2LZ7m3caTSn@ashevche-desk.local>
- <5b54b08a-4dfd-4efe-b646-821adcd235b2@gmx.de>
+	dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b="JshStNX9"
+Received: from relay01-mors.netcup.net (localhost [127.0.0.1])
+	by relay01-mors.netcup.net (Postfix) with ESMTPS id 4hjLyr5JmBz967P;
+	Sun, 13 Sep 2026 10:28:36 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=leemhuis.info;
+	s=key2; t=1789288116;
+	bh=Z5z6bLqwiLc1VA1HLy5fnos6G9gmup/7LK7VZ8qLVGE=;
+	h=Date:Subject:From:To:Cc:References:In-Reply-To:From;
+	b=JshStNX9k56QwkYNjs8i8jFQJ5jhqklRtRH/BDlG8T8Yy3GIRRMx2xMJw9PJBRhc9
+	 t02H2f/aWCeaMSRiBWuoya+G5eeDOlRv09uLfISGHh6x2Yezq9K29X/nkFkNLTQdEO
+	 E62oXQUHGHgWwTt/d2gbSYE0bb18InjIJRxTa7YtTeU4nJU2T0ozcHkDwpelGlGi/s
+	 adZkWxZ3NCgAzwn5tVe/SegeDh7wzthDLtR3xg5q0pcNMI1nev5eUOqdEJPk9Zuyyo
+	 Ihs57OQ38vccA1miaJgtXli8Z0dnQR7fhXnF12kOexfhtOhsho/yqn4g/P2ko/pyO/
+	 qy813ZldYUP/g==
+Received: from policy02-mors.netcup.net (unknown [46.38.225.35])
+	by relay01-mors.netcup.net (Postfix) with ESMTPS id 4hjLxQ6gCJz7xL3;
+	Sun, 13 Sep 2026 10:27:22 +0200 (CEST)
+Received: from mxe9fb.netcup.net (unknown [10.243.12.53])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by policy02-mors.netcup.net (Postfix) with ESMTPS id 4hjLxP6yjJz8svb;
+	Sun, 13 Sep 2026 10:27:21 +0200 (CEST)
+Received: from [IPV6:2a02:8108:8984:1d00:a0cf:1912:4be:477f] (unknown [IPv6:2a02:8108:8984:1d00:a0cf:1912:4be:477f])
+	by mxe9fb.netcup.net (Postfix) with ESMTPSA id B1FB05F8E7;
+	Sun, 13 Sep 2026 10:27:16 +0200 (CEST)
+Authentication-Results: mxe9fb;
+        spf=pass (sender IP is 2a02:8108:8984:1d00:a0cf:1912:4be:477f) smtp.mailfrom=regressions@leemhuis.info smtp.helo=[IPV6:2a02:8108:8984:1d00:a0cf:1912:4be:477f]
+Received-SPF: pass (mxe9fb: connection is authenticated)
+Message-ID: <d7f4a573-1a2e-4274-8c8f-41d398592356@leemhuis.info>
+Date: Sun, 13 Sep 2026 10:27:15 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <5b54b08a-4dfd-4efe-b646-821adcd235b2@gmx.de>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] ACPI: scan: Honor _DEP for Intel CVS devices
+From: Thorsten Leemhuis <regressions@leemhuis.info>
+To: Miguel Vadillo <miguel.vadillo@intel.com>, linux-acpi@vger.kernel.org
+Cc: rafael@kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org,
+ linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+ mehdi.djait@linux.intel.com, wei.a.xu@intel.com, atul.raut@intel.com,
+ Linux kernel regressions list <regressions@lists.linux.dev>
+References: <20260601194040.18223-1-miguel.vadillo@intel.com>
+ <6e450fa2-8b40-48b6-b0b0-a1c4b72a383d@leemhuis.info>
+Content-Language: de-DE, en-US
+In-Reply-To: <6e450fa2-8b40-48b6-b0b0-a1c4b72a383d@leemhuis.info>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-PPP-Message-ID: 
+ <178928803725.1306370.15081822844060054080@mxe9fb.netcup.net>
+X-Rspamd-Server: rspamd-worker-8404
+X-Rspamd-Queue-Id: B1FB05F8E7
+X-NC-CID: c4Zsd3J8r7IoqcAnfSthMgCT2G7U/9e5HQYyWt7mswx8/zn/Kg0=
 
-On Fri, Sep 11, 2026 at 11:14:09PM +0200, Armin Wolf wrote:
-> Am 11.09.26 um 20:06 schrieb Andy Shevchenko:
-> > On Fri, Sep 11, 2026 at 07:01:23PM +0200, Rafael J. Wysocki (Intel) wrote:
-> > > On Fri, Sep 11, 2026 at 6:47 PM Andy Shevchenko
-> > > <andriy.shevchenko@linux.intel.com> wrote:
-> > > > On Fri, Sep 11, 2026 at 06:36:28PM +0200, Rafael J. Wysocki (Intel) wrote:
-> > > > > On Fri, Sep 11, 2026 at 6:32 PM Andy Shevchenko
-> > > > > <andriy.shevchenko@linux.intel.com> wrote:
-> > > > > > On Fri, Sep 11, 2026 at 03:02:53PM +0200, Rafael J. Wysocki wrote:
-
-...
-
-> > > > > > Is any user space ABI breakage expected as an outcome of this change?
-> > > > > Not really.
-> > > > Maybe makes sense to state this clearly in the cover letter?
-> > > I guess you specifically mean the manually created symbolic links in
-> > > sysfs that get removed.
-> > > 
-> > > If so, I'm not aware of anyone using them for anything, but the lack
-> > > of observation is not proof of nonexistence.
-> > Yes, I refer to the changes in the sysfs layout / presence / absence.
+On 9/12/26 18:50, Thorsten Leemhuis wrote:
+> On 6/1/26 21:40, Miguel Vadillo wrote:
+>> CVS (Computer Vision Sensing) is an ACPI-enumerated device that sits
+>> inline in the CSI-2 path between the camera sensor and Intel IPU.
+>> On platforms where CVS is present, the camera sensor's ACPI node
+>> declares a _DEP dependency on the CVS device.
+>>
+>> The CVS driver must be fully initialized before camera sensor drivers
+>> probe, because CVS controls the CSI-2 link ownership handshake (via
+>> GPIO REQ/RESP), the MIPI/CSI-2 lane configuration, and the camera
+>> power domain. Without CVS ready, the sensor driver can bind but the
+>> CSI-2 stream will not function correctly.
+>>
+>> The CVS driver calls acpi_dev_clear_dependencies() at the end of its
+>> probe() to unblock waiting consumers once it is ready.
+>>
+>> Move the CVS HIDs from acpi_ignore_dep_ids[] to acpi_honor_dep_ids[]
+>> so that camera sensor enumeration is deferred until the CVS driver has
+>> finished probing, matching the behavior already in place for IVSC.
 > 
-> AFAIK those custom sysfs attributes are not even documented under Documentation/ABI, and
-> thermald also does not seem to use them. I thus think we can safely remove them.
+> TWIMC, there is a bug report where one or two people claim that this
+> change caused a regression; the report is quite verbose (guess LLM
+> assisted) and hard to grasp for me as outsider; requests for
+> clarifications from my side were not really fruitful. Not sure what to
+> make of this, but I thought I'd let you know; for details see:
+> 
+> https://bugzilla.kernel.org/show_bug.cgi?id=221988
 
-There is Debian source code browser (that covers hundreds of OSS projects) [1],
-have you tried to seek any matches there? Otherwise the assumption that nobody
-uses them might be wrong even if they were never documented.
+For completeness, a report that is more straight forward to read (at
+least for me) was now posted here:
+https://lore.kernel.org/all/20260912185836.309071-1-manuel.knitza@googlemail.com/
 
-[1]: https://codesearch.debian.net/
+Cia, Thorsten
 
--- 
-With Best Regards,
-Andy Shevchenko
-
+>> Signed-off-by: Miguel Vadillo <miguel.vadillo@intel.com>
+>> ---
+>> Note: this patch has a functional dependency on the CVS driver and its
+>> IPU bridge support, which are queued in media-next for v7.2. Without
+>> those drivers, no code will call acpi_dev_clear_dependencies() for the
+>> CVS HIDs and camera sensors will remain deferred indefinitely.
+>>
+>> The CVS driver series (v5) can be found at:
+>>   https://lore.kernel.org/linux-media/20260527170531.383871-1-miguel.vadillo@intel.com/
+>>
+>>  drivers/acpi/scan.c | 5 +++--
+>>  1 file changed, 3 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+>> index 530547cda8b2..1463eb3a4f6e 100644
+>> --- a/drivers/acpi/scan.c
+>> +++ b/drivers/acpi/scan.c
+>> @@ -848,8 +848,6 @@ static bool acpi_info_matches_ids(struct acpi_device_info *info,
+>>  static const char * const acpi_ignore_dep_ids[] = {
+>>  	"PNP0D80", /* Windows-compatible System Power Management Controller */
+>>  	"INT33BD", /* Intel Baytrail Mailbox Device */
+>> -	"INTC10DE", /* Intel CVS LNL */
+>> -	"INTC10E0", /* Intel CVS ARL */
+>>  	"LATT2021", /* Lattice FW Update Client Driver */
+>>  	NULL
+>>  };
+>> @@ -861,6 +859,9 @@ static const char * const acpi_honor_dep_ids[] = {
+>>  	"INTC1095", /* IVSC (ADL) driver must be loaded to allow i2c access to camera sensors */
+>>  	"INTC100A", /* IVSC (RPL) driver must be loaded to allow i2c access to camera sensors */
+>>  	"INTC10CF", /* IVSC (MTL) driver must be loaded to allow i2c access to camera sensors */
+>> +	"INTC10DE", /* CVS (LNL) driver must be loaded to allow camera streaming */
+>> +	"INTC10E0", /* CVS (ARL) driver must be loaded to allow camera streaming */
+>> +	"INTC10E1", /* CVS (PTL) driver must be loaded to allow camera streaming */
+>>  	"RSCV0001", /* RISC-V PLIC */
+>>  	"RSCV0002", /* RISC-V APLIC */
+>>  	"RSCV0005", /* RISC-V SBI MPXY MBOX */
+> 
+> 
 
