@@ -1,113 +1,120 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
+Received: from outbound.mr.icloud.com (mr-2006a-snip4-11.eps.apple.com [57.103.70.73])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CB053F327B;
-	Sun, 13 Sep 2026 20:21:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70A503BED5F
+	for <linux-acpi@vger.kernel.org>; Sun, 13 Sep 2026 23:14:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=57.103.70.73
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789330908; cv=none; b=jUGpnc1K69UNGxynCo4yNjH68n0ObRdSSUVaHrLxrMgZMs8Hy/IhIszIsGRgFQ8S7pt90HjyI2lOBYxEcRT3RWCIIFZj1QaYRHt6kZaXMOAiyj48+Uw68a8/kWmfTvOiafnxddsVxl2BSYyE38zrYryNExmZ5UjYQDLLvveBlSs=
+	t=1789341256; cv=none; b=mx29rdjg6J3xZC3tn5TNJLm4iY41f2SJwg4RP/qEeAluq2KNIcjSm3wPgszr+TJYa3aqw9n3nnGtAKmMBFhb4RNQKY/qU9DDQKlrQPBjFiSuTZlFGb5DQ3/gUS0mRgi1OYgUGyO0gm0XAWsdivvGfYM3Ps5PffuBJfRYElEqeOQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789330908; c=relaxed/simple;
-	bh=Syp5jBipzovEBojlCn+siYKCwLE5/zN8iVHiuAEzAkU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TwigJqAj/5hEYGzEOrf/ghNdm0Zvv8oOO4dAveufhdfDSWxhNrRr3LgputR4j0JbNYTj15/Dr+X71cLBdZSsQvkIDV2EaipnHPO5ueZwFb56Fu9oRHVT50+LU0JMGx3oxJw1XsYqIImg6cTidNs66ZnB7Ir+E+EMZuzRJ4gy1VU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=E+Kfi1Zr; arc=none smtp.client-ip=198.175.65.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1789341256; c=relaxed/simple;
+	bh=0w47cWUOjkjFVtCMkAXNm3YPC6TP2IV9Iyn3Wincu0I=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZFI2fcuM3usN3aK7zp9ldR6oCkG62lUqzpLf2kfI91Bt8eQdIXkOGwIL47GqMRQD9vlm1X/hh7N6adjNcxITdapFjzEndA3MPVZEvF50N5BKhFeh7ENVwR/AfpyOCyKIS9G0E59ee7mN95bfYi7XSMCkVYuoJd/+tXh9zH1332o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brough.org; spf=pass smtp.mailfrom=brough.org; dkim=pass (2048-bit key) header.d=brough.org header.i=@brough.org header.b=Jm+laVyA; arc=none smtp.client-ip=57.103.70.73
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brough.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=brough.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="E+Kfi1Zr"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1789330907; x=1820866907;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=Syp5jBipzovEBojlCn+siYKCwLE5/zN8iVHiuAEzAkU=;
-  b=E+Kfi1ZrbfFL1S/+QILLohnFmD443/OSUxKsvpLsNailN3P8Nr06Yaup
-   stLwvFoWMg1ZalFImojsstm5LTGYXb3EapZ21pRzy39N49dNM5rjKyIqK
-   HY6ZxskIqAxSys8Zlk/0Y+XLm8z/leppm7YhOJqfOJRGwDsNU98hPldnS
-   AvKCk2I2+kI13riLThFoNRuog/Qzjfw9Zp6xkzXrGL13ywdevpehfsHcp
-   djkrobqbEZ7ZKETA2R6UXLFJ35BFdi1asgMraJbCf/cZKGBK67JMRrTz2
-   o0ESIDvzqlkCELqeiElfh4b4iOF8Th3jC+JAXi2yqTQrFBemonyrsSdb0
-   A==;
-X-CSE-ConnectionGUID: Q8xvPgfQTJSFz4iQ6fQe8Q==
-X-CSE-MsgGUID: sEJXCo0qRnGlYhZoumrvbg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11904"; a="100027025"
-X-IronPort-AV: E=Sophos;i="6.27,100,1787036400"; 
-   d="scan'208";a="100027025"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Sep 2026 13:21:47 -0700
-X-CSE-ConnectionGUID: AUYoZfzYT0eHXG0Ulfozsg==
-X-CSE-MsgGUID: DqLzj6ytSw+5VVMsox8Igw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,100,1787036400"; 
-   d="scan'208";a="272432754"
-Received: from fpallare-mobl4.ger.corp.intel.com (HELO kekkonen.fi.intel.com) ([10.245.245.20])
-  by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Sep 2026 13:21:44 -0700
-Received: from kekkonen.localdomain (localhost [IPv6:::1])
-	by kekkonen.fi.intel.com (Postfix) with SMTP id 902AD11F8E1;
-	Sun, 13 Sep 2026 23:21:48 +0300 (EEST)
-Date: Sun, 13 Sep 2026 23:21:48 +0300
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6 krs, Bertel Jungin Aukio 5, 02600 Espoo
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Thorsten Leemhuis <regressions@leemhuis.info>
-Cc: Miguel Vadillo <miguel.vadillo@intel.com>, linux-acpi@vger.kernel.org,
-	rafael@kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, mehdi.djait@linux.intel.com,
-	wei.a.xu@intel.com, atul.raut@intel.com,
-	Linux kernel regressions list <regressions@lists.linux.dev>
-Subject: Re: [PATCH] ACPI: scan: Honor _DEP for Intel CVS devices
-Message-ID: <aqcF3JmvMKDJSQaE@kekkonen.localdomain>
-References: <20260601194040.18223-1-miguel.vadillo@intel.com>
- <6e450fa2-8b40-48b6-b0b0-a1c4b72a383d@leemhuis.info>
- <d7f4a573-1a2e-4274-8c8f-41d398592356@leemhuis.info>
+	dkim=pass (2048-bit key) header.d=brough.org header.i=@brough.org header.b="Jm+laVyA"
+Received: from outbound.mr.icloud.com (unknown [127.0.0.2])
+	by p00-icloudmta-asmtp-us-west-2a-100-percent-7 (Postfix) with ESMTPS id 0D82918002B7;
+	Sun, 13 Sep 2026 23:14:11 +0000 (UTC)
+X-ICL-RepId: 01a09d0c-b98e-75c2-9447-ad0a1fe23170
+X-ICL-Out-Info: HUtFAUMHWwJACUgBTUQeDx5WFlZNRAJCTQhLBUMEXRxIDlYCWwdLVxQEElwfUwpcMFsKXBhQAxwfSx8TC1NWUAJWDVQFGQRAFxkKUFAGWxIYXBRcUFgeRhJWDV0JGQZAXlAbXwJCDxwTVhUTHUMZDysISgRDB0UCXgslEwlTVlACVg1UBRkEQBcZFVoJClcAQAtOA1QGWABDCEwCXRlfA0YASgFABkZYH0scUgN3CUAfTB9bQ1gZVU4ZDEodUlZRBUoMXABoD10dWBFd
+Dkim-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=brough.org; s=sig1; t=1789341253; x=1791933253; bh=J90IzbEPfYJ8bEa5LbJgDVVfJhUcZZuy0uPDYDbmzAM=; h=From:To:Subject:Date:Message-ID:MIME-Version:x-icloud-hme; b=Jm+laVyAyQXdlwLlqUM1cVoBHTWJ9nc9U1yOcHZvMBNOxK8o9kSvkKvetTfsYWsUIEjY6xp0tO9S1zNlxILI49AKFlImK2x13PlPFzVkwi0FyQ3N27FgcE909HbFtl6wsbVi14BvIN4InN1J0GaJkAV56QcV2zsLWBLMquJJa3/RKSkV6N3olCuGYqLVnegPkBymXVF7o54SYnYXvrigxgtnEdB006/Xqo6DHaaj0mFkU4aNWPBUEW4Lc2eHLYXyNt2YLk63iA+HnGdD91WPQthwqpC4O7FYljDZwyyENmL77bzrA5pytIoZ5/V+5sIDVdfzyK8aoASRIEtB5ts4bA==
+mail-alias-created-date: 1646594351620
+Received: from jb-desktop (unknown [17.156.200.36])
+	by p00-icloudmta-asmtp-us-west-2a-100-percent-7 (Postfix) with ESMTPSA id 3D60618002AB;
+	Sun, 13 Sep 2026 23:14:11 +0000 (UTC)
+From: Jordan Brough <jordan@brough.org>
+To: rafael@kernel.org,
+	rydberg@bitmath.org,
+	linux@roeck-us.net
+Cc: lenb@kernel.org,
+	maciej.wieczor-retman@intel.com,
+	pawel.chmielewski@intel.com,
+	linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev,
+	linux-hwmon@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 0/2] hwmon: (applesmc) add native charge_control_end_threshold support
+Date: Sun, 13 Sep 2026 17:14:08 -0600
+Message-ID: <20260913231410.416922-1-jordan@brough.org>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d7f4a573-1a2e-4274-8c8f-41d398592356@leemhuis.info>
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-ORIG-GUID: nJgR6IQ5KyDnnnKVBLRtVM350I-SXSJI
+X-Proofpoint-GUID: nJgR6IQ5KyDnnnKVBLRtVM350I-SXSJI
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTEzMDMzMyBTYWx0ZWRfX8cYpuD6ScL/f
+ snL87QLxhgK1wnP4bIDv7dAcVeIIifeSX483Go2Iy0SeueqN7oLhCXSBsLBTVP6K4eqAs40imVd
+ uuzcMELoB00zAS3ODpWlh+yZ8AX45C0sdwyOihV7SizofM+EekdQtl9u8Q7KDSQW4zUvg+IQ6dm
+ quMjUmOoaBY4/da+00kCYc1V/wCFwTrnAn85kfbZoliKtXX4wybBN+8on5PjMqp/u01B/x9wBRd
+ qdynuf7DwiVUWQAjGUTAAeOh3PIkoM3t9NNh5mD/SFyBexMAQGIVRYuFyqEA8fnyfb5xK64hw6W
+ uBZRU7cjbXfgAHaPHlGTWFuvwVO4DgikfK83tEELnIpL4qslSBV0XHWLm/We4g=
+X-Authority-Info-Out: v=2.4 cv=Dbcaa/tW c=1 sm=1 tr=0 ts=6aa72e44
+ cx=c_apl:c_pps:t_out a=9mRn2PO/+PIrVdEbaIuMPg==:117
+ a=9mRn2PO/+PIrVdEbaIuMPg==:17 a=VdqzKS8jKosA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=OLL_FvSJAAAA:8 a=F4DE6m3_W9dUK6_cFgAA:9 a=oIrB72frpwYPwTMnlWqB:22
+X-JNJ: AAAAAAABypms+LpuPwTaFByt30ldGBs8UXgNHIB+x0F2QVRTJv3Xq2sKXF9tRm12SORDSp+9MuxbzdLehHePj45A2L2uuwqgr625lON5Xu6EpZ0vNF4VROztUHnrOKJvCgb9c+zinGYOfGpl3r7iU2n2d+Ev7QBEkcYWWAohZ9ykkzTXSdyf49pLm1e1zaXt8t/WcisRvOfp/yK1EWEwGRVnA4LAII0YGaKD9DTzb57UZO6/oFN4nEPV5gwj0u6buNsRWUh5nGG3r78WqbWID5EO7JsN+/ti1N6ZimZWljpao70yFVteRt2d1G3OycCVg+ppWM1KpeNuBDA3iMxhBaJYI+bczV59vLt2Bzs+5auxS3+ydcEYtmZ/h5fA4nAwNP3+XlF7lByKetP0jX6zL10wNhW2BtUxbGFmeSXnXKjZWMTkAgqo8CpDek9YNb32c/lxM0CK81Hdg/mUHvQRIpzUyLhFd6kF6BBrU/XrClgH2vmqIxXcOGNDbYq8oiwCjkKujfzbb3byN7rlvGQuMOic944zAvknoIviOgMdbL/DLVzGi7xW1Lm1aweGa2PrwzOQKk3mWD/MeCbClnmF8G+zQJliWHTP8UTd+W2+JKfmm7V/N0M+qAHYD8ZfUvySk8L94QuqZToGLETC1fZFN6/PU1X3rzPNuxm3Lkkv8T7kbIDRGcVDYYg74kH+bogH+f5e8Oedv/PGIvEhTv/24N4Uc4wrACdTyzAJKMAT7LCUz14XWeaLK2jpJYqjmzq7iEcrixcF1F2EbuZRgxvDNmvCZ6Oso6smkUOVAH3pWGldkKMWpvSgm8cygbGp1/uD92RN0dxhuoDX+X6/NBvt6+c1dY7ApgUVRXvfqv1a7YMAJ6oR09rHTHgm5YR5u7YHU3WcCOLyVdXbVo0V/fnmQAwuDra/brWjpv8hOdrsecA/cgaJP1rs47LeQ+A7bwT+N/sqZd1coAaqngTYHzJHhsDecfqjsqh
+ 9qEkvF3OPjhrG4RqWMridK6mvlNE041q/YWzyjXyohSjaYgmDz7+f3wi2Pm94dh9JHN4kPuKpddC+TXI7PL5YUZDOv8sBFmRbl8DAZa3oXG8CmCZzXuIbDFEu4NEP14H2P1NNRZQ1am6xwZZvhf87HfT92Pjbhy74iIHyDYaAJs01leYlOFQlcS+4v7FjyoLsOBHczr7bzOem4eEN3VRQZQ7l366/xYukFYQbMsxo2xoK6zWnIGNhelyd7l+MmKxtIiWlQDxJQ3ghfDrTpNEybF11agbbRKn6+EM0KkQn31BDETxpaCUbqdY9eFD5x6VF1FhFO/3j4yszsuzVJQJvq+hPrPB9jCoCG72HDAEdc9XA31wlh0jyKg4sACHzofB/3CwtfScFM1FGUnwx9CcGeH9SDq0Z3B5mZ80uDVajkU2xqY4=
 
-Hi Thorsten,
+This series adds native charge-limit support to applesmc, so that
+generic userspace (UPower, KDE Powerdevil, GNOME Settings) can read
+and write a MacBook's charging cutoff through the standard
+charge_control_end_threshold sysfs attribute, with no vendor-specific
+userspace daemon required.
 
-On Sun, Sep 13, 2026 at 10:27:15AM +0200, Thorsten Leemhuis wrote:
-> On 9/12/26 18:50, Thorsten Leemhuis wrote:
-> > On 6/1/26 21:40, Miguel Vadillo wrote:
-> >> CVS (Computer Vision Sensing) is an ACPI-enumerated device that sits
-> >> inline in the CSI-2 path between the camera sensor and Intel IPU.
-> >> On platforms where CVS is present, the camera sensor's ACPI node
-> >> declares a _DEP dependency on the CVS device.
-> >>
-> >> The CVS driver must be fully initialized before camera sensor drivers
-> >> probe, because CVS controls the CSI-2 link ownership handshake (via
-> >> GPIO REQ/RESP), the MIPI/CSI-2 lane configuration, and the camera
-> >> power domain. Without CVS ready, the sensor driver can bind but the
-> >> CSI-2 stream will not function correctly.
-> >>
-> >> The CVS driver calls acpi_dev_clear_dependencies() at the end of its
-> >> probe() to unblock waiting consumers once it is ready.
-> >>
-> >> Move the CVS HIDs from acpi_ignore_dep_ids[] to acpi_honor_dep_ids[]
-> >> so that camera sensor enumeration is deferred until the CVS driver has
-> >> finished probing, matching the behavior already in place for IVSC.
-> > 
-> > TWIMC, there is a bug report where one or two people claim that this
-> > change caused a regression; the report is quite verbose (guess LLM
-> > assisted) and hard to grasp for me as outsider; requests for
-> > clarifications from my side were not really fruitful. Not sure what to
-> > make of this, but I thought I'd let you know; for details see:
-> > 
-> > https://bugzilla.kernel.org/show_bug.cgi?id=221988
-> 
-> For completeness, a report that is more straight forward to read (at
-> least for me) was now posted here:
-> https://lore.kernel.org/all/20260912185836.309071-1-manuel.knitza@googlemail.com/
+Patch 1 is a prerequisite: some Macs register their battery through
+the ACPI Smart Battery System driver (drivers/acpi/sbs.c) rather than
+the ACPI Control Method Battery driver, which is the only one with an
+existing hook mechanism for attaching extra power_supply properties.
+Patch 1 adds a parallel, purely additive hook mechanism to sbs.c so
+patch 2 can support both registration paths symmetrically.
 
-Thanks for the link, I've replied to the bug report.
+Patch 2 adds the actual charge_control_end_threshold support to
+applesmc, using the real SMC BCLM key (not the cosmetic BFCL key,
+which only controls the MagSafe LED color and does not affect
+charging behavior).
 
+Tested on a MacBookAir6,2 (SBS-registered battery): sysfs attribute
+appears, reads/writes round-trip correctly to the real SMC BCLM key,
+and this was verified end-to-end through KDE's charge-limit slider
+writing directly to sysfs. Also tested on a non-Mac laptop (CmBatt-
+registered battery, no BCLM key) to confirm both new hook
+registrations are true no-ops there, with no new sysfs attributes and
+no behavioral change.
+
+This was previously discussed on this list in 2020, proposed as a
+generic sysfs interface for reading/writing arbitrary SMC keys by
+name. Guenter raised concerns at the time about that approach adding
+non-standard code to the driver:
+
+  Link: https://www.spinics.net/lists/linux-hwmon/msg09839.html
+
+This series takes a different approach: it exposes only the specific,
+well-understood BCLM key through the standard power_supply_ext
+charge_control_end_threshold property, rather than a generic raw-key
+interface, and gates it at runtime on a probe of that specific key so
+it stays inert on any hardware that doesn't implement it.
+
+This is my first kernel submission; I'd welcome any correction on
+process or style along with the technical review.
+
+Jordan Brough (2):
+  ACPI: sbs: add battery hook mechanism for SBS-registered batteries
+  hwmon: (applesmc) add charge_control_end_threshold support
+
+ drivers/acpi/sbs.c       | 147 ++++++++++++++++++++++++++++++++++-
+ drivers/hwmon/applesmc.c | 164 +++++++++++++++++++++++++++++++++++++--
+ include/acpi/battery.h   |  16 ++++
+ 3 files changed, 321 insertions(+), 6 deletions(-)
+
+
+base-commit: fd73f4a6659897191fa0d40695fe370925dd3780
 -- 
-Kind regards,
+2.55.0
 
-Sakari Ailus
