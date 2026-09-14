@@ -1,271 +1,275 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5E4E1422E3F;
-	Mon, 14 Sep 2026 09:29:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79C14430301
+	for <linux-acpi@vger.kernel.org>; Mon, 14 Sep 2026 10:20:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789378192; cv=none; b=ke1udu8+LajvyXiR29pLJeBtKjbfJo0ecK6biFGMysDvEBw++uv/1GWHp7Mf1f5E5AuqUr3czIlys1LFtIx0PhH0DlJjSCMd5ruZbqSx0eZTpi3Bed5X7tUtf294LfnSSJmNYzioJ4eb8/fBXEDTY9SFCZNXStRyNuKRyCFRk4Y=
+	t=1789381201; cv=none; b=sEYI6oavgjfW/uQwzNWlG2KYtvd7gzsRirs/NrbRSK5/aTzyc5W/5OdLQOTqLKv5Ec5v6uurQhEsfX1dZSHHnlcyNDWHEFU1FhChv8Ti7SE5YY/qW9qe3VF+Jg56FKmm6siu8JcbOYcB2HXA8O1sw4nw415Ufk58ueGT0qshtw0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789378192; c=relaxed/simple;
-	bh=WgFDTRyIzj72ID3M8rCFA6KeJAl2VOfUbS2RSxda34M=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ozntfvyPWTljxwjOQPb4WVW5eWKvNjypWjSji9TKdsPgVLBQtvLy32v9tK/DWC+uI5auruwFLQd17h7AFUtJYukRv3GWHpaJJa/PrsCqKDu1NqHLikkeQaS1LyeDgrUlIFj5Ebl6w0bvhu+Ulx0VpDoRe6fqRUJ1SrcuCh9rnEg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=CqIni/X+; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1789381201; c=relaxed/simple;
+	bh=s1e/ociTMdVHbodmHGbhf8inhat519yZqvJY0OKPe8I=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=AgvsIHarSCE+XAef0WmHiI+Rm4tQWTshrmBs4Ld551/PeAFkRhFYgT2mL66jDhD30cFqee3MvGqtxxwXVKXCpvTSC5/Qbo9RfWpE26OnUlaODAfzIMFkOnLo/7CUtwy2aq1Sl/cg+/iP0iN8LbGyPFKoZm31HNVXpM6Wpb1xZ74=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lvuH/rMn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="CqIni/X+"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 9532F152B;
-	Mon, 14 Sep 2026 02:29:42 -0700 (PDT)
-Received: from [10.0.129.72] (unknown [10.0.129.72])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 82BDA3F59E;
-	Mon, 14 Sep 2026 02:29:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1789378186; bh=WgFDTRyIzj72ID3M8rCFA6KeJAl2VOfUbS2RSxda34M=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=CqIni/X+msMkTBJ38OtxnAmKm3vT4WfopjM7VTolXtMzfVTqCtuuwBWm8px50pxfY
-	 VKOgsxPcXTjc8cUIu0A0TnCmZjb+xok+KPMktvxetNwT+RUocshLNspgSFn3BWh7ja
-	 n4j2+vDS9RoW++2VD6TWPcOcL1vDP6Oot8PCnDWw=
-Message-ID: <92b9c67b-677c-4cfe-8055-13f8e3e9c2cf@arm.com>
-Date: Mon, 14 Sep 2026 10:29:35 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lvuH/rMn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D2191F0089A
+	for <linux-acpi@vger.kernel.org>; Mon, 14 Sep 2026 10:20:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789381200;
+	bh=w4e/SHlDd98D9BE8dWRPoAwVK/lCQ3ruuHyE9FBfpjE=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=lvuH/rMnftdqPCCblgZ9w8GJvrhbvk3kRlhXnAXrc+KA8P57DmNuTKK/AC9+yNKBn
+	 n7oWGpoEWJsnxJ2WnC/RP99X6QntnnoFQvC9Q511d8OWFuTkc+a3mlUf5qLh2SIlVC
+	 G/bdMtmtbuHB5MCxGXzVZDQOK0kjTYRZGlh7tPvb69a/odAC3WClrgnnPVQM4jX4uE
+	 7FTgGd9RwWoL2T2zCZVcQkemtDKarGXlouJazGmipLrRMzrD9LC3GTvFz3HgEyUu8L
+	 4YyN8aW3wi2KnB3rrvmGyX2yo/AJDm2TmEE3+Fx3FDN+L1vI8+NA5F0SGRB61VriZ5
+	 dIOekFh8v5VCQ==
+Received: by mail-lf2-f12.google.com with SMTP id 2adb3069b0e04-5b5e4f16f12so1999095e87.1
+        for <linux-acpi@vger.kernel.org>; Mon, 14 Sep 2026 03:20:00 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBxvz48NLad33QeM8Qdg3j1YGLOGhk6hiKbASdhvGbLaXb+zhiIoi6sNY/vL1Mk8G7dSNJVbFrai/8fd@vger.kernel.org
+X-Gm-Message-State: AFuF++lL35h7a+nOE3jgnnwK20tuAU/w8k1m2+Pj0Vy9tItLMr7rapgO
+	hHy3bMUQQ7IdQDaDulFRjwkL/DEIegpIjElT3ur8KP6N17QNRCvST5iBMwzVzjCQ0VXiCoRjtkV
+	Ng2S9ZwADVo2Jy2ka+7jlJj5Dv3mfRBs=
+X-Received: by 2002:a05:6512:1153:b0:5b8:9ee1:10fd with SMTP id
+ 2adb3069b0e04-5b8ae8a9343mr1043238e87.32.1789381198380; Mon, 14 Sep 2026
+ 03:19:58 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 02/15] ACPI: CPPC: Validate _CPC entry and control
- semantics
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>, linux-pm@vger.kernel.org,
- linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
- Jie Zhan <zhanjie9@hisilicon.com>, Lifeng Zheng <zhenglifeng1@huawei.com>,
- Pierre Gondois <pierre.gondois@arm.com>, Sumit Gupta <sumitg@nvidia.com>,
- Sudeep Holla <sudeep.holla@arm.com>,
- Ionela Voinescu <ionela.voinescu@arm.com>, zhongqiu.han@oss.qualcomm.com,
- Sashiko <sashiko-bot@kernel.org>
-References: <20260830115644.2056983-1-christian.loehle@arm.com>
- <20260830115644.2056983-3-christian.loehle@arm.com>
- <e363804d-78d7-4f09-8d49-f70a4dfc6f71@arm.com>
- <CAJZ5v0j=n4uf=GFVDumb2v1sqcS_f293BG2iCD-Vmp2vpLC=xg@mail.gmail.com>
- <CAJZ5v0igEL-WvvCSadRkGDdZaXRJM0kPAH8i918T+FaDg9oZ5A@mail.gmail.com>
- <7985c629-8d36-4562-a789-074d35e9f260@arm.com>
- <CAJZ5v0jp9q-ZzOKXsOVpvF0ABytHXU9qeSdGyHdhLUL-cLX4sA@mail.gmail.com>
- <CAJZ5v0ieZt_FSM4e=F_UjvN_oZbbiU_aHQgfFk2jifqW2Un5rw@mail.gmail.com>
-Content-Language: en-US
-From: Christian Loehle <christian.loehle@arm.com>
-In-Reply-To: <CAJZ5v0ieZt_FSM4e=F_UjvN_oZbbiU_aHQgfFk2jifqW2Un5rw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <1965933.tdWV9SEqCh@rafael.j.wysocki> <8729484.T7Z3S40VBb@rafael.j.wysocki>
+ <7ef819c3-5155-48fb-828a-48d9bd72e54b@gmx.de>
+In-Reply-To: <7ef819c3-5155-48fb-828a-48d9bd72e54b@gmx.de>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Mon, 14 Sep 2026 12:18:38 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0icBLqUiU4ZF=iY6TB92syM_c7xGBJ7Ag7DGt+f7THHRA@mail.gmail.com>
+X-Gm-Features: AcwNN1XkyKQvZYUoFYUG8vIqH7KV6lfSfcLng61fglctFWAGn98xXh1evhvoXMY
+Message-ID: <CAJZ5v0icBLqUiU4ZF=iY6TB92syM_c7xGBJ7Ag7DGt+f7THHRA@mail.gmail.com>
+Subject: Re: [PATCH v1 03/10] thermal: core: Introduce thermal_cooling_device_create()
+To: Armin Wolf <W_Armin@gmx.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Daniel Lezcano <daniel.lezcano@kernel.org>, Hans de Goede <hansg@kernel.org>, 
+	LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, 
+	Lukasz Luba <lukasz.luba@arm.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 9/10/26 18:13, Rafael J. Wysocki (Intel) wrote:
-> On Fri, Sep 4, 2026 at 6:57 PM Rafael J. Wysocki (Intel)
-> <rafael@kernel.org> wrote:
->>
->> On Thu, Sep 3, 2026 at 10:02 PM Christian Loehle
->> <christian.loehle@arm.com> wrote:
->>>
->>> On 9/3/26 20:44, Rafael J. Wysocki (Intel) wrote:
->>>> On Thu, Sep 3, 2026 at 9:27 PM Rafael J. Wysocki (Intel)
->>>> <rafael@kernel.org> wrote:
->>>>>
->>>>> On Sun, Aug 30, 2026 at 3:32 PM Christian Loehle
->>>>> <christian.loehle@arm.com> wrote:
->>>>>>
->>>>>> On 8/30/26 12:56, Christian Loehle wrote:
->>>>>>> Writable _CPC controls are Register descriptors encoded as Buffer objects.
->>>>>>> Integer entries represent fixed values or unsupported optional registers;
->>>>>>> Autonomous Selection Integer 1 is the special immutable form which enables
->>>>>>> operation without Desired Performance.
->>>>>>>
->>>>>>> The parser accepts arbitrary object types and cpc_write() assumes that its
->>>>>>> argument contains a GAS. Malformed firmware can therefore make it interpret
->>>>>>> an Integer union member as a register.
->>>>>>>
->>>>>>> Validate the portion of each encoding consumed by the driver: bound Integer
->>>>>>> DWORD forms to 32 bits, and require Buffer entries to start with a complete
->>>>>>> Generic Register descriptor with the expected header. Continue tolerating
->>>>>>> Integer 0 for an absent optional register and retain type checks in
->>>>>>> cpc_write() as defense in depth. Reject an attempt to disable immutable
->>>>>>> Autonomous Selection instead of silently applying only the EPP part of the
->>>>>>> request.
->>>>>>>
->>>>>>> Capability registers are read into u64 temporaries but exposed through u32
->>>>>>> fields. Reject values above U32_MAX instead of allowing them to be
->>>>>>> truncated. In particular, a truncated Highest Performance value can become
->>>>>>> a zero divisor in the performance-to-frequency conversion. Enforce the
->>>>>>> required ordering from Highest through Nominal, Lowest Nonlinear, and
->>>>>>> Lowest Performance, and constrain a present Guaranteed Performance to the
->>>>>>> inclusive Lowest-to-Nominal range. Also reject reversed frequency anchors
->>>>>>> and unequal frequency anchors with identical performance anchors. Those
->>>>>>> invalid tuples otherwise make affine-conversion differences wrap or divide
->>>>>>> by zero.
->>>>>>>
->>>>>>> Check mandatory object presence separately from the Integer-zero convention
->>>>>>> for absent optional fields. ACPI does not reserve zero in the abstract
->>>>>>> Lowest Performance scale, so accept a present Lowest Performance DWORD of
->>>>>>> zero when distinct frequency anchors provide a usable nonzero physical
->>>>>>> minimum. Retain the old rejection when that mapping is unavailable and the
->>>>>>> fallback conversion would expose a 0 kHz cpufreq endpoint.
->>>>>>>
->>>>>>> Minimum Performance also defines zero as a real no-limit value, but the
->>>>>>> exported cppc_set_perf() interface historically used zero to omit a bound.
->>>>>>> Add explicit validity flags so callers can request zero without changing
->>>>>>> that legacy convention. Populate the flags when reading the controls and
->>>>>>> mark the bounds supplied by amd-pstate explicitly.
->>>>>>>
->>>>>>> Performance Limited is listed as a required Buffer, but the interface does
->>>>>>> not depend on it to control performance and the specification permits a
->>>>>>> platform with no limiting indication to always report zero. Preserve
->>>>>>> the compatibility with firmware that represents that case using a NULL
->>>>>>> register descriptor instead of disabling CPPC entirely.
->>>>>>>
->>>>>>> Emit an error when a present _CPC package fails parsing or initialization
->>>>>>> so such firmware and resource failures no longer silently suppress cpufreq.
->>>>>>> Initialize malformed-package failures to -EINVAL and preserve specific
->>>>>>> allocation, mapping, and unsupported-access errors in that diagnostic.
->>>>>>>
->>>>>>> Fixes: 337aadff8e45 ("ACPI: Introduce CPU performance controls using CPPC")
->>>>>>> Reported-by: Sashiko <sashiko-bot@kernel.org>
->>>>>>> Link: https://sashiko.dev/#/patchset/20260724134251.1632824-1-christian.loehle%40arm.com
->>>>>>> Signed-off-by: Christian Loehle <christian.loehle@arm.com>
->>>>>>> ---
->>>>>>>  drivers/acpi/cppc_acpi.c     | 172 ++++++++++++++++++++++++++++++-----
->>>>>>>  drivers/cpufreq/amd-pstate.c |  12 ++-
->>>>>>>  include/acpi/cppc_acpi.h     |   2 +
->>>>>>>  3 files changed, 159 insertions(+), 27 deletions(-)
->>>>>>>
->>>>>>> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
->>>>>>> index 3b8cdf88e31d..6f3ffa4a1845 100644
->>>>>>> --- a/drivers/acpi/cppc_acpi.c
->>>>>>> +++ b/drivers/acpi/cppc_acpi.c
->>>>>>> @@ -129,6 +129,21 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
->>>>>>>                               !!(cpc)->cpc_entry.int_value :          \
->>>>>>>                               !IS_NULL_REG(&(cpc)->cpc_entry.reg))
->>>>>>>
->>>>>>> +static bool cpc_is_writable(const struct cpc_register_resource *cpc)
->>>>>>> +{
->>>>>>> +     return cpc->type == ACPI_TYPE_BUFFER &&
->>>>>>> +            !IS_NULL_REG(&cpc->cpc_entry.reg);
->>>>>>> +}
->>>>>>> +
->>>>>>> +static bool cpc_entry_present(const struct cpc_register_resource *cpc)
->>>>>>> +{
->>>>>>> +     if (cpc->type == ACPI_TYPE_INTEGER)
->>>>>>> +             return true;
->>>>>>> +
->>>>>>> +     return cpc->type == ACPI_TYPE_BUFFER &&
->>>>>>> +            !IS_NULL_REG(&cpc->cpc_entry.reg);
->>>>>>> +}
->>>>>>> +
->>>>>>>  /*
->>>>>>>   * Each bit indicates the optionality of the register in per-cpu
->>>>>>>   * cpc_regs[] with the corresponding index. 0 means mandatory and 1
->>>>>>> @@ -142,6 +157,29 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
->>>>>>>   */
->>>>>>>  #define IS_OPTIONAL_CPC_REG(reg_idx) (REG_OPTIONAL & (1U << (reg_idx)))
->>>>>>>
->>>>>>> +static bool cpc_integer_entry_valid(unsigned int reg_idx, u64 value)
->>>>>>> +{
->>>>>>> +     switch (reg_idx) {
->>>>>>> +     case HIGHEST_PERF:
->>>>>>> +     case NOMINAL_PERF:
->>>>>>> +     case LOW_NON_LINEAR_PERF:
->>>>>>> +     case LOWEST_PERF:
->>>>>>> +     case CTR_WRAP_TIME:
->>>>>>> +     case REFERENCE_PERF:
->>>>>>> +     case LOWEST_FREQ:
->>>>>>> +     case NOMINAL_FREQ:
->>>>>>> +             return value <= U32_MAX;
->>>>>>
->>>>>>
->>>>>> Sashiko:
->>>>>> "Does this incorrectly restrict the counter wraparound time to 32 bits?
->>>>>> The ACPI specification allows firmware to provide a 64-bit QWord integer
->>>>>> for the Counter Wraparound Time. The cppc_perf_fb_ctrs structure already
->>>>>> models this as a 64-bit value internally
->>>>>> If firmware provides a valid 64-bit integer exceeding U32_MAX for this
->>>>>> register, cpc_integer_entry_valid() will return false and completely abort
->>>>>> CPPC initialization for the CPU. Can we remove this restriction for
->>>>>> CTR_WRAP_TIME?"
->>>>>
->>>>>> This is true. ACPI spec 6.6 and 6.5 (Table 8.23) describe it as
->>>>>> Integer (DWORD) or Buffer
->>>>>> The 64-bit internal representation is only for the case of firmware
->>>>>> providing it as Buffer.
->>>>
->>>> Sashiko is right, the table in the spec is wrong.  If it is Integer,
->>>> it is 64-bit.
->>>>
->>>> The size of an Integer in ASL cannot be restricted.
->>>
->>> Duh, thanks!
->>>
->>>>
->>>>>>
->>>>>>> +     case AUTO_SEL_ENABLE:
->>>>>>> +             return value <= 1;
->>>>>>> +     case DESIRED_PERF:
->>>>>>> +             /* Validated against Autonomous Selection after parsing. */
->>>>>>> +             return value == 0;
->>>>>>> +     default:
->>>>>>> +             /* Tolerate the customary Integer 0 for an absent option. */
->>>>>>> +             return value == 0 && IS_OPTIONAL_CPC_REG(reg_idx);
->>>>>>> +     }
->>>>>>> +}
->>>>>>> +
->>>>>> Sashiko:
->>>>>> "Does this incorrectly restrict the counter wraparound time to 32 bits?
->>>>>> The ACPI specification allows firmware to provide a 64-bit QWord integer
->>>>>> for the Counter Wraparound Time. The cppc_perf_fb_ctrs structure already
->>>>>> models this as a 64-bit value internally.
->>>>>> If firmware provides a valid 64-bit integer exceeding U32_MAX for this
->>>>>> register, cpc_integer_entry_valid() will return false and completely abort
->>>>>> CPPC initialization for the CPU. Can we remove this restriction for
->>>>>> CTR_WRAP_TIME?"
->>>>>
->>>>> It looks like you pasted the same comment twice.  Or did Sashiko hallucinate?
->>>>
->>>> Well, its other comment is actually different from the first one.  Let
->>>> me paste it:
->>>
->>> Apparently I hallucinated :)
->>>
->>>>
->>>> Will this strict rejection break CPPC initialization on compliant firmware
->>>> that provides non-zero integers for other optional capabilities?
->>>> For capability registers not explicitly listed in the switch statement
->>>> above, such as GUARANTEED_PERF or TIME_WINDOW, the ACPI 6.5 specification
->>>> explicitly allows platforms to provide fixed non-zero values encoded as
->>>> Integer objects.
->>>>
->>>> When firmware provides a valid non-zero integer for these optional
->>>> registers, this default case enforces that the value must be zero. Since
->>>> acpi_cppc_processor_probe() fails and returns -EINVAL when this returns
->>>> false, it will completely disable cpufreq and CPPC support for the CPU.
->>>> Should we allow non-zero integer values for these other optional registers?
->>>>
->>>>>> GUARANTEED_PERF and TIME_WINDOW: both are Buffer-only Register descriptors.
->>>>>> Nonzero Integer encodings are invalid and Integer 0 is tolerated because
->>>>>> the previous parser allowed it too. I don't know of any platform describing
->>>>>> this myself.
->>>>
->>>> Strictly speaking Integer 0 is not allowed, see
->>>>
->>>> https://uefi.org/specs/ACPI/6.6/08_Processor_Configuration_and_Control.html#cpc-continuous-performance-control
->>>
->>> I'm happy to reject it too, I was just being careful here because I only have
->>> a tiny subset of ACPI platforms to test this on with and it's for -fixes
->>
->> Instead of rejecting it entirely, you may log an FW_BUG message when
->> it is used, to avoid breaking legacy platforms that possibly used it.
-> 
-> Still waiting for an update here and reviews from folks.
-> 
-> If this is the only patch that needs to be updated, please just send
-> an update of it alone.
+On Fri, Sep 11, 2026 at 11:04=E2=80=AFPM Armin Wolf <W_Armin@gmx.de> wrote:
+>
+> Am 11.09.26 um 15:02 schrieb Rafael J. Wysocki:
+>
+> > From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> >
+> > Currently, thermal cooling devices have no parents, but it would be
+> > generally useful to be able to create them under specific parents in
+> > the device hierarchy (for instance, it may help to identify the device
+> > representing the actual cooling hardware).
+> >
+> > To make that possible, add thermal_cooling_device_create() that will
+> > work like thermal_cooling_device_register() except that it will take
+> > an additional parent argument (which may be NULL).
+> >
+> > Redefine thermal_cooling_device_register() as a static inline wrapper
+> > around thermal_cooling_device_create().
+>
+> Hi,
+>
+> i like your idea with the new registration function, this gives us more t=
+ime
+> for migrating the other drivers. Should we mark the original function as
+> deprecated?
 
-I know, unfortunately I had to update some of the later patches, too.
-I'll send the entire series shortly.
-Thanks!
+Well, it's not a big deal if somebody uses it in new code IMV.
+
+> For the patch itself:
+>
+> Reviewed-by: Armin Wolf <W_Armin@gmx.de>
+
+Thank you (and thanks for all the reviews)!
+
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >   drivers/thermal/thermal_core.c | 28 ++++++++++++++++------------
+> >   drivers/thermal/thermal_core.h |  3 ++-
+> >   drivers/thermal/thermal_of.c   |  2 +-
+> >   include/linux/thermal.h        | 19 ++++++++++++++-----
+> >   4 files changed, 33 insertions(+), 19 deletions(-)
+> >
+> > diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_c=
+ore.c
+> > index 82e2f0d8a26d..ac928c199829 100644
+> > --- a/drivers/thermal/thermal_core.c
+> > +++ b/drivers/thermal/thermal_core.c
+> > @@ -1005,7 +1005,8 @@ thermal_cooling_device_alloc(const char *type, co=
+nst struct thermal_cooling_devi
+> >       return ERR_PTR(ret);
+> >   }
+> >
+> > -int thermal_cooling_device_add(struct thermal_cooling_device *cdev, vo=
+id *devdata)
+> > +int thermal_cooling_device_add(struct thermal_cooling_device *cdev,
+> > +                            struct device *parent, void *devdata)
+> >   {
+> >       unsigned long current_state;
+> >       int ret;
+> > @@ -1013,6 +1014,7 @@ int thermal_cooling_device_add(struct thermal_coo=
+ling_device *cdev, void *devdat
+> >       mutex_init(&cdev->lock);
+> >       INIT_LIST_HEAD(&cdev->thermal_instances);
+> >       cdev->updated =3D false;
+> > +     cdev->device.parent =3D parent;
+> >       cdev->device.class =3D &thermal_class;
+> >       cdev->device.release =3D thermal_cdev_release;
+> >       device_initialize(&cdev->device);
+> > @@ -1062,21 +1064,23 @@ int thermal_cooling_device_add(struct thermal_c=
+ooling_device *cdev, void *devdat
+> >   }
+> >
+> >   /**
+> > - * thermal_cooling_device_register() - register a new thermal cooling =
+device
+> > + * thermal_cooling_device_create() - register a new thermal cooling de=
+vice
+> > + * @parent:  parent device (optional).
+> >    * @type:   the thermal cooling device type.
+> >    * @devdata:        device private data.
+> >    * @ops:    standard thermal cooling devices callbacks.
+> >    *
+> > - * This interface function adds a new thermal cooling device (fan/proc=
+essor/...)
+> > - * to /sys/class/thermal/ folder as cooling_device[0-*]. It tries to b=
+ind itself
+> > - * to all the thermal zone devices registered at the same time.
+> > + * Allocate and register a new thermal cooling device under the given =
+parent (if
+> > + * not NULL) and with the given type, device data, and operations.  Du=
+ring the
+> > + * registration, it will be matched against all of the registered ther=
+mal zones
+> > + * and it will be bound to the matching ones.
+> >    *
+> > - * Return: a pointer to the created struct thermal_cooling_device or a=
+n
+> > - * ERR_PTR. Caller must check return value with IS_ERR*() helpers.
+> > + * Return: A pointer to the created struct thermal_cooling_device or a=
+n ERR_PTR.
+> > + * Callers must use IS_ERR*() helpers to check the return value.
+> >    */
+> > -struct thermal_cooling_device *
+> > -thermal_cooling_device_register(const char *type, void *devdata,
+> > -                             const struct thermal_cooling_device_ops *=
+ops)
+> > +struct thermal_cooling_device *thermal_cooling_device_create(
+> > +                     struct device *parent, const char *type, void *de=
+vdata,
+> > +                     const struct thermal_cooling_device_ops *ops)
+> >   {
+> >       struct thermal_cooling_device *cdev;
+> >       int ret;
+> > @@ -1085,13 +1089,13 @@ thermal_cooling_device_register(const char *typ=
+e, void *devdata,
+> >       if (IS_ERR(cdev))
+> >               return cdev;
+> >
+> > -     ret =3D thermal_cooling_device_add(cdev, devdata);
+> > +     ret =3D thermal_cooling_device_add(cdev, parent, devdata);
+> >       if (ret)
+> >               return ERR_PTR(ret);
+> >
+> >       return cdev;
+> >   }
+> > -EXPORT_SYMBOL_GPL(thermal_cooling_device_register);
+> > +EXPORT_SYMBOL_GPL(thermal_cooling_device_create);
+> >
+> >   static void thermal_cooling_device_release(void *data)
+> >   {
+> > diff --git a/drivers/thermal/thermal_core.h b/drivers/thermal/thermal_c=
+ore.h
+> > index e98b0aa5aacc..7ef7c6cab437 100644
+> > --- a/drivers/thermal/thermal_core.h
+> > +++ b/drivers/thermal/thermal_core.h
+> > @@ -270,7 +270,8 @@ void thermal_governor_update_tz(struct thermal_zone=
+_device *tz,
+> >   struct thermal_cooling_device *
+> >   thermal_cooling_device_alloc(const char *type, const struct thermal_c=
+ooling_device_ops *ops);
+> >
+> > -int thermal_cooling_device_add(struct thermal_cooling_device *cdev, vo=
+id *devdata);
+> > +int thermal_cooling_device_add(struct thermal_cooling_device *cdev,
+> > +                            struct device *parent, void *devdata);
+> >
+> >   /* Helpers */
+> >   #define for_each_trip_desc(__tz, __td)      \
+> > diff --git a/drivers/thermal/thermal_of.c b/drivers/thermal/thermal_of.=
+c
+> > index 0217a49b08ae..14dfac9359b8 100644
+> > --- a/drivers/thermal/thermal_of.c
+> > +++ b/drivers/thermal/thermal_of.c
+> > @@ -561,7 +561,7 @@ thermal_of_cooling_device_register(struct device_no=
+de *np, u32 cdev_id,
+> >       cdev->np =3D np;
+> >       cdev->cdev_id =3D cdev_id;
+> >
+> > -     ret =3D thermal_cooling_device_add(cdev, devdata);
+> > +     ret =3D thermal_cooling_device_add(cdev, NULL, devdata);
+> >       if (ret)
+> >               return ERR_PTR(ret);
+> >
+> > diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> > index 083b4f533933..306ad17aed89 100644
+> > --- a/include/linux/thermal.h
+> > +++ b/include/linux/thermal.h
+> > @@ -293,8 +293,9 @@ struct device *thermal_zone_device(struct thermal_z=
+one_device *tzd);
+> >   void thermal_zone_device_update(struct thermal_zone_device *,
+> >                               enum thermal_notify_event);
+> >
+> > -struct thermal_cooling_device *thermal_cooling_device_register(const c=
+har *,
+> > -             void *, const struct thermal_cooling_device_ops *);
+> > +struct thermal_cooling_device *thermal_cooling_device_create(
+> > +                     struct device *parent, const char *type, void *de=
+vdata,
+> > +                     const struct thermal_cooling_device_ops *ops);
+> >
+> >   struct thermal_cooling_device *
+> >   devm_thermal_cooling_device_register(struct device *dev, const char *=
+type, void *devdata,
+> > @@ -340,9 +341,9 @@ static inline void thermal_zone_device_update(struc=
+t thermal_zone_device *tz,
+> >                                             enum thermal_notify_event e=
+vent)
+> >   { }
+> >
+> > -static inline struct thermal_cooling_device *
+> > -thermal_cooling_device_register(const char *type, void *devdata,
+> > -     const struct thermal_cooling_device_ops *ops)
+> > +static inline struct thermal_cooling_device *thermal_cooling_device_cr=
+eate(
+> > +                     struct device *parent, const char *type, void *de=
+vdata,
+> > +                     const struct thermal_cooling_device_ops *ops)
+> >   { return ERR_PTR(-ENODEV); }
+> >
+> >   static inline struct thermal_cooling_device *
+> > @@ -391,4 +392,12 @@ static inline void thermal_pm_prepare(void) {}
+> >   static inline void thermal_pm_complete(void) {}
+> >   #endif /* CONFIG_THERMAL */
+> >
+> > +static inline struct thermal_cooling_device *thermal_cooling_device_re=
+gister(
+> > +                             const char *type, void *devdata,
+> > +                             const struct thermal_cooling_device_ops *=
+ops)
+> > +{
+> > +     return thermal_cooling_device_create(NULL, type, devdata, ops);
+> > +}
+> > +
+> > +
+> >   #endif /* __THERMAL_H__ */
