@@ -1,22 +1,23 @@
 Received: from mail.loongson.cn (mail.loongson.cn [114.242.206.163])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9E402421220;
-	Tue, 15 Sep 2026 03:34:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 64E0A41D208;
+	Tue, 15 Sep 2026 03:34:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=114.242.206.163
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789443249; cv=none; b=mv6KtVRTKbZzipBXyB8Jra6a+W2SBgTSc3IZ3nTxTx0UgitOWoxrsfAEDwHaqXfnrILPmfMVFqgy6LgXW98SJN05AxUbKK/LbNkxJ+tYINKo+ZRoYyNXMuU1Vfmt5p1/6lgAZfNFXrEA6GlB2zwwu7BCGuUZIOLSNModzfoYOx4=
+	t=1789443250; cv=none; b=uHjxpQ0V2iyoVDQLGxYA3IYgOzFdR4kHyM/hVzFsacB/xpBQ6TT4xi2sZoojsBvkR8LBxibtOVt32hcycFSIkXKVRmsFbUxPBnaMMKslDgjWl9JfxHmk+k7hXMTY56w+kg+8kWYCZp7jDhJ3hQfqvjyM4agoq318LeDaIHMqsXQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789443249; c=relaxed/simple;
-	bh=+wsaMgBHKiurcsb/ysm0Ny7fUCye6PLAEgFvZEBf/4Y=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=fKzqlq2cLJPcN6SCPJTos2F93mZ0X7hBwrNCTJhxACalSomUli3mZrd8xDLEaOhi7Gq3c7UL7T5x8ewShjTrSbEUjWLmGVf3rwYe4N9PA3SbJ+iWoZo1PB3nKnOMtnLRXC0h6oQB0UWFnhYazL/NC9qijw13a3mGGnk77eb25yo=
+	s=arc-20240116; t=1789443250; c=relaxed/simple;
+	bh=d/PzSr+pBWwRCmGUUPhTcFzuPPuRKZn8WKjlMX5ulvQ=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=JWi9kgI5vww039xEJNa0ikvu6GtQWdL/f73Rf9DdfAIoHjlD25N/Siw+el9v/EwEWtCuZXi8J//8B5CW7ATYuUrsKeqLEw/jNBbj5NsnF+wFFh2c3LpecwQbA+LOKDzDR5BHNiQhz9ze5Va7ap4jT7fCnWgrtkp3CL2tbK6w0/4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=loongson.cn; spf=pass smtp.mailfrom=loongson.cn; arc=none smtp.client-ip=114.242.206.163
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=loongson.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=loongson.cn
 Received: from loongson.cn (unknown [10.2.5.213])
-	by gateway (Coremail) with SMTP id _____8DxUNGhvKhqqBEMAA--.34885S3;
-	Tue, 15 Sep 2026 11:33:53 +0800 (CST)
+	by gateway (Coremail) with SMTP id _____8DxTtOnvKhquREMAA--.34799S3;
+	Tue, 15 Sep 2026 11:33:59 +0800 (CST)
 Received: from localhost.localdomain (unknown [10.2.5.213])
-	by front1 (Coremail) with SMTP id qMiowJAxHs+bvKhqkd0gAA--.36959S2;
-	Tue, 15 Sep 2026 11:33:48 +0800 (CST)
+	by front1 (Coremail) with SMTP id qMiowJDxDc+mvKhqk90gAA--.37043S2;
+	Tue, 15 Sep 2026 11:33:58 +0800 (CST)
 From: Bibo Mao <maobibo@loongson.cn>
 To: Huacai Chen <chenhuacai@kernel.org>,
 	"Rafael J . Wysocki" <rafael@kernel.org>,
@@ -28,10 +29,12 @@ Cc: Len Brown <lenb@kernel.org>,
 	linux-acpi@vger.kernel.org,
 	acpica-devel@lists.linux.dev,
 	lixianglai@loongson.cn
-Subject: [PATCH v3 0/4] ACPI: LoongArch: Add IOVT table support
-Date: Tue, 15 Sep 2026 11:26:23 +0800
-Message-Id: <20260915032627.2796747-1-maobibo@loongson.cn>
+Subject: [PATCH v3 4/4] MAINTAINERS: Add entry for drivers/acpi/loongarch
+Date: Tue, 15 Sep 2026 11:26:27 +0800
+Message-Id: <20260915032627.2796747-5-maobibo@loongson.cn>
 X-Mailer: git-send-email 2.39.3
+In-Reply-To: <20260915032627.2796747-1-maobibo@loongson.cn>
+References: <20260915032627.2796747-1-maobibo@loongson.cn>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -39,61 +42,54 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:qMiowJAxHs+bvKhqkd0gAA--.36959S2
+X-CM-TRANSID:qMiowJDxDc+mvKhqk90gAA--.37043S2
 X-CM-SenderInfo: xpdruxter6z05rqj20fqof0/
 X-Coremail-Antispam: 1Uk129KBjDUn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7KY7
 	ZEXasCq-sGcSsGvfJ3UbIjqfuFe4nvWSU5nxnvy29KBjDU0xBIdaVrnUUvcSsGvfC2Kfnx
 	nUUI43ZEXa7xR_UUUUUUUUU==
 
-I/O Virtualization Table is ACPI table for LoongArch IOMMU devices, it
-is merged on ACPI Spec 6.6, and it can be located at
-  https://www.loongson.cn/uploads/images/2024110517404135188.LoongArch-IO-Virtualization-Table-Specification.pdf
+ACPI defines few LoongArch specific tables which need parsing code
+added in drivers/acpi/loongarch. Add maintainer entries for this newly
+created folder.
 
-Here add IOVT table parsing on LoongArch system, it is for LoongArch
-IOMMU driver use in future.
+Signed-off-by: Bibo Mao <maobibo@loongson.cn>
 ---
-v2 ... v3:
-  1. Add separate patch with header file include/linux/acpi_iovt.h,
-     after it is merged in acpica tree.
-  2. Modify patch set since macro name is changed in acpi_iovt.h
-  3. Merge patch 1 and patch 2 together.
+ MAINTAINERS            | 9 +++++++++
+ arch/loongarch/Kconfig | 1 +
+ 2 files changed, 10 insertions(+)
 
-v1 ... v2:
-  1. Reorganize the patch, patch 1/4 are merged, patch 3/5/6 are merged,
-     add patch 2/8 are merged together.
-  2. Enrich error printk information in iovt_get_pci_iommu_fwnode().
----
-Bibo Mao (4):
-  ACPICA: actbl2.h: Add bit constants of the Flags field in the IOVT
-    IOMMU structure
-  ACPI: LoongArch: Add acpi_arch_[late]_init()
-  ACPI: scan: Add support for LoongArch in acpi_iommu_configure_id()
-  MAINTAINERS: Add entry for drivers/acpi/loongarch
-
- MAINTAINERS                     |   9 +
- arch/loongarch/Kconfig          |   1 +
- drivers/acpi/Kconfig            |   4 +
- drivers/acpi/Makefile           |   2 +-
- drivers/acpi/bus.c              |   2 +
- drivers/acpi/loongarch/Kconfig  |   7 +
- drivers/acpi/loongarch/Makefile |   3 +
- drivers/acpi/loongarch/init.c   |  16 ++
- drivers/acpi/loongarch/init.h   |   5 +
- drivers/acpi/loongarch/iovt.c   | 280 ++++++++++++++++++++++++++++++++
- drivers/acpi/scan.c             |   3 +
- include/acpi/actbl2.h           |   7 +
- include/linux/acpi.h            |   1 +
- include/linux/acpi_iovt.h       |  13 ++
- 14 files changed, 352 insertions(+), 1 deletion(-)
- create mode 100644 drivers/acpi/loongarch/Kconfig
- create mode 100644 drivers/acpi/loongarch/Makefile
- create mode 100644 drivers/acpi/loongarch/init.c
- create mode 100644 drivers/acpi/loongarch/init.h
- create mode 100644 drivers/acpi/loongarch/iovt.c
- create mode 100644 include/linux/acpi_iovt.h
-
-
-base-commit: 704340f1cd0dcef829eb62f5b48ae95a2ce17bdf
+diff --git a/MAINTAINERS b/MAINTAINERS
+index c2414447892c..e19be0c1654e 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -347,6 +347,15 @@ S:	Maintained
+ F:	drivers/acpi/riscv/
+ F:	include/linux/acpi_rimt.h
+ 
++ACPI FOR LoongArch (ACPI/LoongArch)
++M:	Bibo Mao <maobibo@loongson.cn>
++R:	Huacai Chen <chenhuacai@kernel.org>
++L:	linux-acpi@vger.kernel.org
++L:	loongarch@lists.linux.dev
++S:	Maintained
++F:	drivers/acpi/loongarch/
++F:	include/linux/acpi_iovt.h
++
+ ACPI PCC(Platform Communication Channel) MAILBOX DRIVER
+ M:	Sudeep Holla <sudeep.holla@kernel.org>
+ L:	linux-acpi@vger.kernel.org
+diff --git a/arch/loongarch/Kconfig b/arch/loongarch/Kconfig
+index 2067d1f2ad7a..d7f8e4fec952 100644
+--- a/arch/loongarch/Kconfig
++++ b/arch/loongarch/Kconfig
+@@ -6,6 +6,7 @@ config LOONGARCH
+ 	select ACPI_GENERIC_GSI if ACPI
+ 	select ACPI_MCFG if ACPI
+ 	select ACPI_HOTPLUG_CPU if ACPI_PROCESSOR && HOTPLUG_CPU
++	select ACPI_IOVT if ACPI
+ 	select ACPI_PPTT if ACPI
+ 	select ACPI_SYSTEM_POWER_STATES_SUPPORT	if ACPI
+ 	select ARCH_BINFMT_ELF_STATE
 -- 
 2.39.3
 
