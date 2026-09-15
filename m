@@ -1,374 +1,403 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.15.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E4364CE66A;
-	Tue, 15 Sep 2026 19:25:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789500325; cv=none; b=aPpY5iM0g3YcKadmsrIxQU4/Lmh7MsxihA6dYR+DNT59Y2ZVxpgHQ3Rq3I8g+bfr6eqXbePOT0QBL5Vqk+m1CJdIDCGG/Sz3EMWhijtwzsoDcETGzjR98X1MVRb2H1thAv3uipx+J9xamPXDUigeEgW3CTLRbWe6JPsQAK8uhTQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789500325; c=relaxed/simple;
-	bh=wSWL7biVBvzK7BJ/753cBEKcMB0azvZH12D3W7WWFCk=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Q6mx2tvqpC6C1JKL+OjzxBDEsWyH2tff4/VPdqWHQ02IJq5OiCw3ebQqLbC2E1khWPIB2nNmcBRiMzWbj9kEt2bGrDKzIIFrG8tIIKTSjidgfoesIyHryITVft3saLr5s/TRRZxc+vhuIXdkP303/A61zqkOg4n5Jhrn/VDuGDs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b=SK+iVnqL; arc=none smtp.client-ip=212.227.15.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78A6F36AB57;
+	Tue, 15 Sep 2026 22:02:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.13
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789509767; cv=fail; b=JzmKGSbS16MSURh7dcmMe/ZS2ZlH9fSLPAt+/wk8MWRKOHurwYPv0GFFQfBFJl23bIsyzUNnXPLW4sTzeJ6c3GgsfL/byuIeRfJcot12UzQOQQKHkKPMRW8rZALmjcPhq8UgN5qEj7hbqMoP4XBfkX1QJYzPY+4i8TEVrb384TM=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789509767; c=relaxed/simple;
+	bh=grFHafpHLlWDj+KGz3r1NkKFKnJcfBDMvcDdmReh0Z8=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=Y4byp8xdkyNQUMkYadOWG7+9ALLKceFhnItvjMDIshYMwvjvHn1E5kpTlE1+2JnCtgAmhu7uz3Magr+lLFOY7IyMsKAU+mwxNCNCH2Rqj4aYwnGw2Vl7Kum1UvEWQJkJiBB07+H7IvrsKy+QH5gBpo8j7gw976n5eM1tON+yN+A=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=llbovpfj; arc=fail smtp.client-ip=192.198.163.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b="SK+iVnqL"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1789500311; x=1790105111; i=w_armin@gmx.de;
-	bh=BBkYGmi94I4D7FYZrnZnY+yxsH4qY8YyvYy557xoJr0=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:To:Cc:
-	 References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:cc:content-transfer-encoding:
-	 content-type:date:from:message-id:mime-version:reply-to:subject:
-	 to;
-	b=SK+iVnqLyhnVYWWmTALCfIXOGvjeKPamEqIFd7Sh2DbsUzIknPprsZE4oWd+y0be
-	 wbfy8R8yJrNi1gpTmnT+/UNwnv75Yr6UiSZ7a0PuOfo6BCsLjhM9Qre7uSEuZ+t5q
-	 gOjR6pS1rc7puVvcqQDHB4yi8mdf8vzVRqhHjpSAk184tX45YLJkhhbLM2wL67+dE
-	 jp64gxP9cx1ZbckWJ/YOFNQpD+PKnF6dpwFMP5TNkxy4C0/3vu7aswdIH6vYckwEi
-	 CjInmWoGgxRsgc59eJCLKZEKt30wxyPXlsUjspIIUdpApB9QN2l4AENRUAwNTTt60
-	 G0BzBlHnfrQWDoa63w==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from client.hidden.invalid by mail.gmx.net (mrgmx005
- [212.227.17.190]) with ESMTPSA (Nemesis) id 1M7K3i-1x9q1q3HGG-005ZX9; Tue, 15
- Sep 2026 21:25:10 +0200
-Message-ID: <a3c2a1ea-7891-496d-9923-a2607afa1e2d@gmx.de>
-Date: Tue, 15 Sep 2026 21:25:09 +0200
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="llbovpfj"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1789509763; x=1821045763;
+  h=date:from:to:cc:subject:message-id:references:
+   content-transfer-encoding:in-reply-to:mime-version;
+  bh=grFHafpHLlWDj+KGz3r1NkKFKnJcfBDMvcDdmReh0Z8=;
+  b=llbovpfjg9BiI57wvwe7ci66WNFfttWPHo2Qkn/vtlRk7xoZ7hiibqsI
+   Db+dRj2FKE5qIu4LNiFCwYpTmgRmflRpQTgjwCv5+57OZWGSw1fkbY+PF
+   bpeqPuL/RE40GI58ocT+fZ7F+oAuixi9gbBQMQ7puogLafg9c8rUsncLs
+   QQ3O2lt/N+Kjid9NvluM90LG0Do8u731I6iB0M6zp/Xc/mDKye4ZMb2Hm
+   0mKFyiJsR9n3upiqtrW0EAuJwsEh6Y2B2nzFDfqHk0PiVoQ/p6nKDQto3
+   ndl/MiJ0f9V92qVVlxOrKtU/QCJ5Rak1VEj1NCqyCto3qz3hW6+47xuRM
+   Q==;
+X-CSE-ConnectionGUID: /o5RjN97Qo6X+b1z9x9GZw==
+X-CSE-MsgGUID: MGFl5XvPQZKwVbPuY8tvFg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11905"; a="92392829"
+X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
+   d="scan'208";a="92392829"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Sep 2026 15:02:42 -0700
+X-CSE-ConnectionGUID: 1ALTtZCxRuOFJbxGB7j+Bw==
+X-CSE-MsgGUID: vtE+2cSjSgezgP3JY8IT4g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
+   d="scan'208";a="298198831"
+Received: from fmsmsx902.amr.corp.intel.com ([10.18.126.91])
+  by fmviesa001.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Sep 2026 15:02:42 -0700
+Received: from FMSMSX901.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.46; Tue, 15 Sep 2026 15:02:41 -0700
+Received: from fmsedg901.ED.cps.intel.com (10.1.192.143) by
+ FMSMSX901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.46 via Frontend Transport; Tue, 15 Sep 2026 15:02:41 -0700
+Received: from CH4PR04CU002.outbound.protection.outlook.com (40.107.201.7) by
+ edgegateway.intel.com (192.55.55.81) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.46; Tue, 15 Sep 2026 15:02:38 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=mUfpMP6XuZKuuY5B3VLcFhkjm3l3Mp+n9iEHNMDo5d6tXo/RlyFKnE/2DN+Gx1tlhIIS3XwTq+5MxpHFl6QaownMrKzjf4GGXnber+yGKIgI0jq6vF3log21PhSdEtk90Dwjj3fp9y2FheG3JhATHnsuI6QcVPDMemoUsH4Bmssu38Oef1/lcRtYJifY5pyw2twObbt8soT9jm3d6FqGQmGMGMdMImIHQBO9Wcf1dRe2PINboKFyptQmoDKYmCPD9ASDzT9tgXcF1m/j2gcLpkGEIlZsxKSoM+Sh5+4xIUmeVfmgeLpGQLw3xEEEhdG7kKjGhc/tQXWwIOi3o5SNXA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=aGCCNUBL0K3IeZ66T47v3tKJZX1k+nUwndroroNVrC0=;
+ b=APW9Yt3g8HxUyaeQJkzwyIqQYkAzJQewH3PbkAfDLWo+ONOnmLGkBsFiiBkigYRN8ts3xKYUSFvme2zvlUg7f7Y+DubTkguADamAx/wrlwD610KsMqGaDLwPhbGT3ni2/F1P9bae1Y1jAVwl0m2eUd0/4WrdgxdFeOsDcl2322KySy3qzwZMmSoUg2v2nD93nVhQ9/sEaNdyAzIm+O4wxtug5XSolLtSbD1KnyQuLKICi2d5OWAbKyuQRAVRfNzE0w8OzBQ1kOiKnsr0iVsYliTDXpnTIVFlwYtvD3afr2nfU3S7P848Xq0DrJLXN28sZFc1Axr70MT7JLE1fOz2Bw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from IA0PR11MB7187.namprd11.prod.outlook.com (2603:10b6:208:441::12)
+ by CH8PR11MB9457.namprd11.prod.outlook.com (2603:10b6:610:2c3::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.406.12; Tue, 15 Sep
+ 2026 22:02:36 +0000
+Received: from IA0PR11MB7187.namprd11.prod.outlook.com
+ ([fe80::be96:3f58:953d:6565]) by IA0PR11MB7187.namprd11.prod.outlook.com
+ ([fe80::be96:3f58:953d:6565%4]) with mapi id 15.21.0406.007; Tue, 15 Sep 2026
+ 22:02:36 +0000
+Date: Tue, 15 Sep 2026 18:02:29 -0400
+From: Rodrigo Vivi <rodrigo.vivi@intel.com>
+To: Jani Nikula <jani.nikula@linux.intel.com>
+CC: Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>, "Armin
+ Wolf" <W_Armin@gmx.de>, "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+	"hansg@kernel.org" <hansg@kernel.org>, "platform-driver-x86@vger.kernel.org"
+	<platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>, "linux@weissschuh.net"
+	<linux@weissschuh.net>, "rafael@kernel.org" <rafael@kernel.org>,
+	"lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org"
+	<linux-acpi@vger.kernel.org>, "Koenig, Christian" <Christian.Koenig@amd.com>,
+	"airlied@gmail.com" <airlied@gmail.com>, "simona@ffwll.ch" <simona@ffwll.ch>,
+	"amd-gfx@lists.freedesktop.org" <amd-gfx@lists.freedesktop.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"patrik.r.jakobsson@gmail.com" <patrik.r.jakobsson@gmail.com>,
+	"maarten.lankhorst@linux.intel.com" <maarten.lankhorst@linux.intel.com>,
+	"mripard@kernel.org" <mripard@kernel.org>, "tzimmermann@suse.de"
+	<tzimmermann@suse.de>, "joonas.lahtinen@linux.intel.com"
+	<joonas.lahtinen@linux.intel.com>, "tursulin@ursulin.net"
+	<tursulin@ursulin.net>, "intel-gfx@lists.freedesktop.org"
+	<intel-gfx@lists.freedesktop.org>, "matthew.brost@intel.com"
+	<matthew.brost@intel.com>, "thomas.hellstrom@linux.intel.com"
+	<thomas.hellstrom@linux.intel.com>, "intel-xe@lists.freedesktop.org"
+	<intel-xe@lists.freedesktop.org>
+Subject: Re: [PATCH v3 2/3] ACPI: video: Remove CONFIG_X86 handling from
+ nvidia_wmi_ec_supported()
+Message-ID: <aqnAdfovLmD2O3wQ@intel.com>
+References: <20260724025959.142826-1-W_Armin@gmx.de>
+ <20260724025959.142826-3-W_Armin@gmx.de>
+ <BN9PR12MB514668975E87D570F50B2D91F7A82@BN9PR12MB5146.namprd12.prod.outlook.com>
+ <86d0e015-a8f4-4e10-a9b6-a9714d3e0f07@gmx.de>
+ <80c4bb47-936b-976b-6ba8-b366f7a455cf@linux.intel.com>
+ <11976ed3784675ad241646287a909286a42675a8@intel.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <11976ed3784675ad241646287a909286a42675a8@intel.com>
+X-ClientProxiedBy: SJ0PR05CA0174.namprd05.prod.outlook.com
+ (2603:10b6:a03:339::29) To IA0PR11MB7187.namprd11.prod.outlook.com
+ (2603:10b6:208:441::12)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1 03/10] thermal: core: Introduce
- thermal_cooling_device_create()
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Daniel Lezcano <daniel.lezcano@kernel.org>, Hans de Goede
- <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
- Linux PM <linux-pm@vger.kernel.org>, Lukasz Luba <lukasz.luba@arm.com>
-References: <1965933.tdWV9SEqCh@rafael.j.wysocki>
- <8729484.T7Z3S40VBb@rafael.j.wysocki>
- <7ef819c3-5155-48fb-828a-48d9bd72e54b@gmx.de>
- <CAJZ5v0icBLqUiU4ZF=iY6TB92syM_c7xGBJ7Ag7DGt+f7THHRA@mail.gmail.com>
-Content-Language: en-US
-From: Armin Wolf <W_Armin@gmx.de>
-In-Reply-To: <CAJZ5v0icBLqUiU4ZF=iY6TB92syM_c7xGBJ7Ag7DGt+f7THHRA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:dMrPfxTcse46cCbIvTJUwOIait7UkA4stBVGO9ThVblDyA6DJvO
- 78vBz6406xmLI0t8ANq7M/yACZQGK4F9mxmkwjktYL4H/vfmmZw74iNQupofugVuqqGqA2l
- 193XiI45wsDl7B3x0kLUAOlpWvuQCi7fQPBgo6WKjGMvSsKWIUJLw64emd9iSB5vbrBxDiW
- Sk9cO6WycL6bhBv3cf9AQ==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:laYf/41f5YE=;3Fwlziv54Sj+fFA1lfyYKzG20Ox
- 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
- UNZYBJJhDkZDx
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: IA0PR11MB7187:EE_|CH8PR11MB9457:EE_
+X-MS-Office365-Filtering-Correlation-Id: bf6a3c81-9896-48df-3139-08df13750d2c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|7416014|1800799024|23010399003|6133799003|10067099003|4143699003|11063799006|56012099006|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info: 1DkzVH+NazjgRhVl+1PB4kDZRKEVaMMDTBe1UlCjA4N6yhIe+qkvUnjuM5s7ZFgGc2bv2N1nT/4kvPCZkcthyyPwc6SyKsuqkkLiuve/ordnXbqEiEtIZndmI1PQ2FmHOXNHHC+LDosjHrrWcTHDbWIZPCJ3JjuzmBc92EexuyM4c6otpdH/dMdbLMpe8pyY47fiuO6LaqQUgtXaqRTaCBbp1g+dJAHyGpxHf4G1VDwewdzNc6WXRm4BWrFUfS7ohwNLUQf8gj4ES+rN9g6sxzMXICB45dmujqBq88ITOXmMq7cdmTcFk4H2Liij0w2dIhH/1HOGCAMKkQH4KS/k/bPRY0HRlbGh2KYiid+E6EeJTFkX7kHpkXuECCwvKCqeuNcAB2BTPsfEyyNHR9Etqznnp4e33h9my9TQs5zzKA3ipbsf4fM8HCfd/YcclQAfsBVjoRmb4A6Zn2RI+srb8ixdDy/iOTt0/8SNnAIn+5dq3EcbynXv+Mrl5pPw5H2hvSUf/9cnRGX0LOV3kvxCtjSabF30eLLWjJu3nnCMRCugJayLeN9MuStXQN10q3YGM6oVPp5e3i+0F74rMyiZNuENDpl6wN3mhpbMd8z+F/rOxQWbppD+j+1cLUIPStRgrTZzZP2QdbEkcoCEqgb4TZEqKr8A/W5fDq+lRmBVhpc=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:IA0PR11MB7187.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(7416014)(1800799024)(23010399003)(6133799003)(10067099003)(4143699003)(11063799006)(56012099006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?iso-8859-1?Q?IiIPdq0L2tYEC3TdaQml7TwvdNmQFnl6j0UaxIXBx8IAifkWGIQn13QH2k?=
+ =?iso-8859-1?Q?TmnLf4+iHUFg19iZgp/D97qKKKc2jX/dUDk0bnXfnSe/2gR+3V4K9oeL0N?=
+ =?iso-8859-1?Q?wdU0W3823m9LuXzVFUSYkJ4I/pInKcF0w1Ba/Bxv79eixZlZOKS4QCpeVS?=
+ =?iso-8859-1?Q?95ZRl5MbZ//9Gl+CPgsnZXtpDUPzZRelntcmXQp7/uXtwHGd8OSIM7ElbW?=
+ =?iso-8859-1?Q?At+Sw0so++O/SP04scJtvsmsnHG7yE5g6vUX+GmRj/THkqG5MLxSHfvy06?=
+ =?iso-8859-1?Q?QURmLhD2N7d704jU4LZcCnujtg0g3ihPrxvT1/Dbno3Grkc7FGJwjgYoF2?=
+ =?iso-8859-1?Q?slOeb+PQlzXTzKslDkgbzsmOfAhOaqlcZ7ag57Ea5iIfog0ZyjJNNnFa9b?=
+ =?iso-8859-1?Q?O0tSH1noaLBpGAIdYRHGMgKjQAhmDwNvzXuS9kQcniL6wQI1QwhNowiBRa?=
+ =?iso-8859-1?Q?hYZ2nN4a0TAE28Luihuq+OdA/8RqZDzRmPsMucChH7sgd229NagcUHSct2?=
+ =?iso-8859-1?Q?q5qMjb6WtrxK0NzK1ROGF5kJwLbZQzvHA8nqdRhf9+1WUoAgl5gCGjl1y6?=
+ =?iso-8859-1?Q?RhwkXDc94FWM9O3/RdCejjp49v5SHg6/ot91TFV+/IRMFZ9E0fIh345Og2?=
+ =?iso-8859-1?Q?Hp4ofMWMWGZD3Kgb5uMHsKg2tU0TKAyrBXUU2dOXhER6ZdnufygmdpAkyR?=
+ =?iso-8859-1?Q?bYPZtC0VGbv/GLJXje4Xgdzaplg80c0y8u1835448FXBm5637+IzhxlP+m?=
+ =?iso-8859-1?Q?EpcY3mdcmjquhVvW4+sD5xRmrvz+hv/s2wzFrwuazG0kEkjRHNPeac0kgV?=
+ =?iso-8859-1?Q?OKBb3aGcLrziH1jzeHMmdSduys1nYN+gf1TtzsS3I7AfpMW9zNNrTpNdgs?=
+ =?iso-8859-1?Q?BfVeFGDzekplL0vArW8goJTKg+mru7j8JsPhNZTR5hMjTmLklfaEuRqSCC?=
+ =?iso-8859-1?Q?FoJ+8iiDr9W5GMLY+zYbVsbIhznvGoJF7r/dhMgo5F6L4hl7LSfCGM6Pjg?=
+ =?iso-8859-1?Q?UzyF+bglp09wzAFRmoVfq/D1oC/cWc0DnETpJrWbxYWc2JKtATqYRKEwpP?=
+ =?iso-8859-1?Q?URlhEI0dlI+hBgBJsueFQG+w3kuZ2OnEGWlPvjrLr5R/LJrexbuLeZ03MX?=
+ =?iso-8859-1?Q?66spoVPUqGPg+3SBlvgNktl++PvyxWmNApUsjdP9j2yvMpl0Mm8WAdzLeX?=
+ =?iso-8859-1?Q?rjCMifGA4OBScbTEN7XyhwA/OM5frNP2Fb1FABFUlFGRAHZGsiRrQGWM3i?=
+ =?iso-8859-1?Q?5xhQWUjPkQ4wd7v78bt1MTjwlI7OmDddUgQ0TnD0MczidE/3fhBsUwdw3o?=
+ =?iso-8859-1?Q?zZaQuBNymIqVaB2YTRu4w7oIqvUkW/jlup7k/B2KNWUYds5XNeaOrPMZgL?=
+ =?iso-8859-1?Q?GfApVzpZDuD73uiWRVmRhdx4dy/MbFvQcSfMwuJUOdvebdlB6N3m0bSOL9?=
+ =?iso-8859-1?Q?Zr3E82yI67cAFJyPexXsY+5ibOIb0i7vq/Sg0GIqIZpGjAJ+a0JXPOoLII?=
+ =?iso-8859-1?Q?qPHBkrUkhWYf+AMJ1AYZVzEZw4NKNfpoGUg7Gi3bBYtbhNfWkhosqDrfGv?=
+ =?iso-8859-1?Q?RTpsJaOL7XdWxzmzpdwmitkQr3KEB8So5r/qNre3c2cruDfSLtDwzVGZEA?=
+ =?iso-8859-1?Q?CBCeoRw8YIvcdr1MJFDWWkLrGRI+0kiBJhoIcyLDZ1UNZuHiOEaJiNe7HF?=
+ =?iso-8859-1?Q?jqduQES1xlP1VGBr0cKb65P4q4Nfh99TejOXtLI/AMNknEW3RM/iF/SQYi?=
+ =?iso-8859-1?Q?VLKdbpF54p8K8qPBAYLQyVmP+Y0qDJjJWprX9v11s4XXaVv3ickm0aImDw?=
+ =?iso-8859-1?Q?P2Ls8/eRkg=3D=3D?=
+X-Exchange-RoutingPolicyChecked: dkjHo6tihsuJz3oCVgB+ezvDtJq7SI3kuAYmozCPkb98EaVQNOsn+KtzJOTy3dS2cUf9VKcb7gdVifyv61MeEIkGvayunMxLFqu2uyWSgJfPQw0WEX2G0haxH0YQMIhQIZ0cCTRhh/UIEIrrPeQR1g6w5WY5/RsIx44um//9OpBo+HI6iKrOkCC80Ps2rCIhIxf+7EAnfWjTOU9JedFn9n3CJA4wxlY6BGpxMTzNFTzPIMfz5//rs8al6JAkKJ5V1mXL3+Ny+wPn28cFVx+KejdAeFFOaZkjIWg1Hr8Jg08Ghq3YIzGH/0wN1VxooWd0BNX8tioZFUMqqsjqC5zMDQ==
+X-MS-Exchange-CrossTenant-Network-Message-Id: bf6a3c81-9896-48df-3139-08df13750d2c
+X-MS-Exchange-CrossTenant-AuthSource: IA0PR11MB7187.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Sep 2026 22:02:36.5424
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 84YrauZ7MLGrG4qx0FI/53P02EjAkOasrjFnOK6Px9t7Z9ixd1DwRh5kH0tOKn5xiUtF4Cka5AJ3Ax715JAKvQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH8PR11MB9457
+X-OriginatorOrg: intel.com
 
-Am 14.09.26 um 12:18 schrieb Rafael J. Wysocki (Intel):
+On Tue, Sep 15, 2026 at 03:31:29PM +0300, Jani Nikula wrote:
+> On Tue, 15 Sep 2026, Ilpo Järvinen <ilpo.jarvinen@linux.intel.com> wrote:
+> > GPU people heads up!!
+> >
+> > On Wed, 2 Sep 2026, Armin Wolf wrote:
+> >
+> >> Am 01.09.26 um 23:30 schrieb Deucher, Alexander:
+> >> 
+> >> > Public
+> >> > 
+> >> > > -----Original Message-----
+> >> > > From: Armin Wolf <W_Armin@gmx.de>
+> >> > > Sent: Thursday, July 23, 2026 11:00 PM
+> >> > > To: hansg@kernel.org; ilpo.jarvinen@linux.intel.com
+> >> > > Cc: platform-driver-x86@vger.kernel.org; linux-kernel@vger.kernel.org;
+> >> > > linux@weissschuh.net; rafael@kernel.org; lenb@kernel.org; linux-
+> >> > > acpi@vger.kernel.org; Deucher, Alexander <Alexander.Deucher@amd.com>;
+> >> > > Koenig, Christian <Christian.Koenig@amd.com>; airlied@gmail.com;
+> >> > > simona@ffwll.ch; amd-gfx@lists.freedesktop.org; dri-
+> >> > > devel@lists.freedesktop.org; patrik.r.jakobsson@gmail.com;
+> >> > > maarten.lankhorst@linux.intel.com; mripard@kernel.org;
+> >> > > tzimmermann@suse.de; jani.nikula@linux.intel.com;
+> >> > > joonas.lahtinen@linux.intel.com; rodrigo.vivi@intel.com;
+> >> > > tursulin@ursulin.net; intel-gfx@lists.freedesktop.org;
+> >> > > matthew.brost@intel.com; thomas.hellstrom@linux.intel.com; intel-
+> >> > > xe@lists.freedesktop.org
+> >> > > Subject: [PATCH v3 2/3] ACPI: video: Remove CONFIG_X86 handling from
+> >> > > nvidia_wmi_ec_supported()
+> >> > > 
+> >> > > The WMI-ACPI driver now supports architectures other than x86.
+> >> > > Remove the CONFIG_X86 handling from video-detect and the associated
+> >> > > drivers to simplify the resulting code.
+> >> > > 
+> >> > > Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+> >> > > Signed-off-by: Armin Wolf <W_Armin@gmx.de>
+> >> > > ---
+> >> > >   drivers/acpi/Kconfig               | 2 +-
+> >> > >   drivers/acpi/video_detect.c        | 8 --------
+> >> > >   drivers/gpu/drm/amd/amdgpu/Kconfig | 4 +---
+> >> > >   drivers/gpu/drm/gma500/Kconfig     | 1 -
+> >> > >   drivers/gpu/drm/i915/Kconfig       | 1 -
+> >> > >   drivers/gpu/drm/radeon/Kconfig     | 4 +---
+> >> > >   drivers/gpu/drm/xe/Kconfig         | 5 ++---
+> >> > >   drivers/platform/loongarch/Kconfig | 1 +
+> >> > >   8 files changed, 6 insertions(+), 20 deletions(-)
+> >> > > 
+> >> > > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig index
+> >> > > f165d14cf61a..cc1e58fa664b 100644
+> >> > > --- a/drivers/acpi/Kconfig
+> >> > > +++ b/drivers/acpi/Kconfig
+> >> > > @@ -224,7 +224,7 @@ config ACPI_VIDEO
+> >> > >        tristate "Video"
+> >> > >        depends on BACKLIGHT_CLASS_DEVICE
+> >> > >        depends on INPUT
+> >> > > -     depends on ACPI_WMI || !X86
+> >> > > +     depends on ACPI_WMI
+> >> > >        select THERMAL
+> >> > >        help
+> >> > >          This driver implements the ACPI Extensions For Display Adapters
+> >> > > diff
+> >> > > --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c index
+> >> > > 458efa4fe9d4..af9280b244f1 100644
+> >> > > --- a/drivers/acpi/video_detect.c
+> >> > > +++ b/drivers/acpi/video_detect.c
+> >> > > @@ -82,8 +82,6 @@ find_video(acpi_handle handle, u32 lvl, void *context,
+> >> > > void **rv)
+> >> > >        return AE_OK;
+> >> > >   }
+> >> > > 
+> >> > > -/* This depends on ACPI_WMI which is X86 only */ -#ifdef CONFIG_X86
+> >> > > static bool nvidia_wmi_ec_supported(void)  {
+> >> > >        struct wmi_brightness_args args = {
+> >> > > @@ -105,12 +103,6 @@ static bool nvidia_wmi_ec_supported(void)
+> >> > >         */
+> >> > >        return args.ret == WMI_BRIGHTNESS_SOURCE_EC;  } -#else -static bool
+> >> > > nvidia_wmi_ec_supported(void) -{
+> >> > > -     return false;
+> >> > > -}
+> >> > > -#endif
+> >> > > 
+> >> > >   /* Force to use vendor driver when the ACPI device is known to be
+> >> > >    * buggy */
+> >> > > diff --git a/drivers/gpu/drm/amd/amdgpu/Kconfig
+> >> > > b/drivers/gpu/drm/amd/amdgpu/Kconfig
+> >> > > index 12e4a41bf1f0..50305630f533 100644
+> >> > > --- a/drivers/gpu/drm/amd/amdgpu/Kconfig
+> >> > > +++ b/drivers/gpu/drm/amd/amdgpu/Kconfig
+> >> > > @@ -30,9 +30,7 @@ config DRM_AMDGPU
+> >> > >        # ACPI_VIDEO's dependencies must also be selected.
+> >> > >        select INPUT if ACPI
+> >> > >        select ACPI_VIDEO if ACPI
+> >> > > -     # On x86 ACPI_VIDEO also needs ACPI_WMI
+> >> > > -     select X86_PLATFORM_DEVICES if ACPI && X86
+> >> > The change below makes sense, but this one looks like it should remain
+> >> > unless X86_PLATFORM_DEVICES is handled some other way?
+> >> > 
+> >> > Alex
+> >> 
+> >> AFAIK the dependency on X86_PLATFORM_DEVICES was only necessary because
+> >> ACPI-WMI depended on it in the past.
+> >> By now ACPI-WMI neither depends on X86_PLATFORM_DEVICES or X86 anymore.
+> >
+> > Hi all,
+> >
+> > Could more GPU people besides Alex take a look on this. I'd want to make 
+> > progress with this series within this cycle but would prefer to have Acks 
+> > from GPU side.
+> 
+> I share the same concern with Alex. It seems to me we could now end up
+> with x86 configurations without X86_PLATFORM_DEVICES, which handle
+> e.g. backlight on a lot of platforms.
+> 
+> I think the safer option might be to go for:
+> 
+> 	depends on X86_PLATFORM_DEVICES || !X86
 
-> On Fri, Sep 11, 2026 at 11:04=E2=80=AFPM Armin Wolf <W_Armin@gmx.de> wro=
-te:
->> Am 11.09.26 um 15:02 schrieb Rafael J. Wysocki:
->>
->>> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
->>>
->>> Currently, thermal cooling devices have no parents, but it would be
->>> generally useful to be able to create them under specific parents in
->>> the device hierarchy (for instance, it may help to identify the device
->>> representing the actual cooling hardware).
->>>
->>> To make that possible, add thermal_cooling_device_create() that will
->>> work like thermal_cooling_device_register() except that it will take
->>> an additional parent argument (which may be NULL).
->>>
->>> Redefine thermal_cooling_device_register() as a static inline wrapper
->>> around thermal_cooling_device_create().
->> Hi,
->>
->> i like your idea with the new registration function, this gives us more=
- time
->> for migrating the other drivers. Should we mark the original function a=
-s
->> deprecated?
-> Well, it's not a big deal if somebody uses it in new code IMV.
+I also fail to see what is wrong with current xe's version
+that is getting dropped below:
 
-Ok.
+depends on X86_PLATFORM_DEVICES || !(X86 && ACPI)
 
->> For the patch itself:
->>
->> Reviewed-by: Armin Wolf <W_Armin@gmx.de>
-> Thank you (and thanks for all the reviews)!
->
->>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>> ---
->>>    drivers/thermal/thermal_core.c | 28 ++++++++++++++++------------
->>>    drivers/thermal/thermal_core.h |  3 ++-
->>>    drivers/thermal/thermal_of.c   |  2 +-
->>>    include/linux/thermal.h        | 19 ++++++++++++++-----
->>>    4 files changed, 33 insertions(+), 19 deletions(-)
->>>
->>> diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_=
-core.c
->>> index 82e2f0d8a26d..ac928c199829 100644
->>> --- a/drivers/thermal/thermal_core.c
->>> +++ b/drivers/thermal/thermal_core.c
->>> @@ -1005,7 +1005,8 @@ thermal_cooling_device_alloc(const char *type, c=
-onst struct thermal_cooling_devi
->>>        return ERR_PTR(ret);
->>>    }
->>>
->>> -int thermal_cooling_device_add(struct thermal_cooling_device *cdev, v=
-oid *devdata)
->>> +int thermal_cooling_device_add(struct thermal_cooling_device *cdev,
->>> +                            struct device *parent, void *devdata)
->>>    {
->>>        unsigned long current_state;
->>>        int ret;
->>> @@ -1013,6 +1014,7 @@ int thermal_cooling_device_add(struct thermal_co=
-oling_device *cdev, void *devdat
->>>        mutex_init(&cdev->lock);
->>>        INIT_LIST_HEAD(&cdev->thermal_instances);
->>>        cdev->updated =3D false;
->>> +     cdev->device.parent =3D parent;
->>>        cdev->device.class =3D &thermal_class;
->>>        cdev->device.release =3D thermal_cdev_release;
->>>        device_initialize(&cdev->device);
->>> @@ -1062,21 +1064,23 @@ int thermal_cooling_device_add(struct thermal_=
-cooling_device *cdev, void *devdat
->>>    }
->>>
->>>    /**
->>> - * thermal_cooling_device_register() - register a new thermal cooling=
- device
->>> + * thermal_cooling_device_create() - register a new thermal cooling d=
-evice
->>> + * @parent:  parent device (optional).
->>>     * @type:   the thermal cooling device type.
->>>     * @devdata:        device private data.
->>>     * @ops:    standard thermal cooling devices callbacks.
->>>     *
->>> - * This interface function adds a new thermal cooling device (fan/pro=
-cessor/...)
->>> - * to /sys/class/thermal/ folder as cooling_device[0-*]. It tries to =
-bind itself
->>> - * to all the thermal zone devices registered at the same time.
->>> + * Allocate and register a new thermal cooling device under the given=
- parent (if
->>> + * not NULL) and with the given type, device data, and operations.  D=
-uring the
->>> + * registration, it will be matched against all of the registered the=
-rmal zones
->>> + * and it will be bound to the matching ones.
->>>     *
->>> - * Return: a pointer to the created struct thermal_cooling_device or =
-an
->>> - * ERR_PTR. Caller must check return value with IS_ERR*() helpers.
->>> + * Return: A pointer to the created struct thermal_cooling_device or =
-an ERR_PTR.
->>> + * Callers must use IS_ERR*() helpers to check the return value.
->>>     */
->>> -struct thermal_cooling_device *
->>> -thermal_cooling_device_register(const char *type, void *devdata,
->>> -                             const struct thermal_cooling_device_ops =
-*ops)
->>> +struct thermal_cooling_device *thermal_cooling_device_create(
->>> +                     struct device *parent, const char *type, void *d=
-evdata,
->>> +                     const struct thermal_cooling_device_ops *ops)
->>>    {
->>>        struct thermal_cooling_device *cdev;
->>>        int ret;
->>> @@ -1085,13 +1089,13 @@ thermal_cooling_device_register(const char *ty=
-pe, void *devdata,
->>>        if (IS_ERR(cdev))
->>>                return cdev;
->>>
->>> -     ret =3D thermal_cooling_device_add(cdev, devdata);
->>> +     ret =3D thermal_cooling_device_add(cdev, parent, devdata);
->>>        if (ret)
->>>                return ERR_PTR(ret);
->>>
->>>        return cdev;
->>>    }
->>> -EXPORT_SYMBOL_GPL(thermal_cooling_device_register);
->>> +EXPORT_SYMBOL_GPL(thermal_cooling_device_create);
->>>
->>>    static void thermal_cooling_device_release(void *data)
->>>    {
->>> diff --git a/drivers/thermal/thermal_core.h b/drivers/thermal/thermal_=
-core.h
->>> index e98b0aa5aacc..7ef7c6cab437 100644
->>> --- a/drivers/thermal/thermal_core.h
->>> +++ b/drivers/thermal/thermal_core.h
->>> @@ -270,7 +270,8 @@ void thermal_governor_update_tz(struct thermal_zon=
-e_device *tz,
->>>    struct thermal_cooling_device *
->>>    thermal_cooling_device_alloc(const char *type, const struct thermal=
-_cooling_device_ops *ops);
->>>
->>> -int thermal_cooling_device_add(struct thermal_cooling_device *cdev, v=
-oid *devdata);
->>> +int thermal_cooling_device_add(struct thermal_cooling_device *cdev,
->>> +                            struct device *parent, void *devdata);
->>>
->>>    /* Helpers */
->>>    #define for_each_trip_desc(__tz, __td)      \
->>> diff --git a/drivers/thermal/thermal_of.c b/drivers/thermal/thermal_of=
-.c
->>> index 0217a49b08ae..14dfac9359b8 100644
->>> --- a/drivers/thermal/thermal_of.c
->>> +++ b/drivers/thermal/thermal_of.c
->>> @@ -561,7 +561,7 @@ thermal_of_cooling_device_register(struct device_n=
-ode *np, u32 cdev_id,
->>>        cdev->np =3D np;
->>>        cdev->cdev_id =3D cdev_id;
->>>
->>> -     ret =3D thermal_cooling_device_add(cdev, devdata);
->>> +     ret =3D thermal_cooling_device_add(cdev, NULL, devdata);
->>>        if (ret)
->>>                return ERR_PTR(ret);
->>>
->>> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
->>> index 083b4f533933..306ad17aed89 100644
->>> --- a/include/linux/thermal.h
->>> +++ b/include/linux/thermal.h
->>> @@ -293,8 +293,9 @@ struct device *thermal_zone_device(struct thermal_=
-zone_device *tzd);
->>>    void thermal_zone_device_update(struct thermal_zone_device *,
->>>                                enum thermal_notify_event);
->>>
->>> -struct thermal_cooling_device *thermal_cooling_device_register(const =
-char *,
->>> -             void *, const struct thermal_cooling_device_ops *);
->>> +struct thermal_cooling_device *thermal_cooling_device_create(
->>> +                     struct device *parent, const char *type, void *d=
-evdata,
->>> +                     const struct thermal_cooling_device_ops *ops);
->>>
->>>    struct thermal_cooling_device *
->>>    devm_thermal_cooling_device_register(struct device *dev, const char=
- *type, void *devdata,
->>> @@ -340,9 +341,9 @@ static inline void thermal_zone_device_update(stru=
-ct thermal_zone_device *tz,
->>>                                              enum thermal_notify_event=
- event)
->>>    { }
->>>
->>> -static inline struct thermal_cooling_device *
->>> -thermal_cooling_device_register(const char *type, void *devdata,
->>> -     const struct thermal_cooling_device_ops *ops)
->>> +static inline struct thermal_cooling_device *thermal_cooling_device_c=
-reate(
->>> +                     struct device *parent, const char *type, void *d=
-evdata,
->>> +                     const struct thermal_cooling_device_ops *ops)
->>>    { return ERR_PTR(-ENODEV); }
->>>
->>>    static inline struct thermal_cooling_device *
->>> @@ -391,4 +392,12 @@ static inline void thermal_pm_prepare(void) {}
->>>    static inline void thermal_pm_complete(void) {}
->>>    #endif /* CONFIG_THERMAL */
->>>
->>> +static inline struct thermal_cooling_device *thermal_cooling_device_r=
-egister(
->>> +                             const char *type, void *devdata,
->>> +                             const struct thermal_cooling_device_ops =
-*ops)
->>> +{
->>> +     return thermal_cooling_device_create(NULL, type, devdata, ops);
->>> +}
->>> +
->>> +
->>>    #endif /* __THERMAL_H__ */
+> 
+> in all of the cases that select/depend on X86_PLATFORM_DEVICES in drm.
+> 
+> The alternative is to find out, and handle the fallout, if any.
+> 
+> 
+> BR,
+> Jani.
+> 
+> 
+> >
+> >> > > -     select ACPI_WMI if ACPI && X86
+> >> > > +     select ACPI_WMI if ACPI
+> >> > >        help
+> >> > >          Choose this option if you have a recent AMD Radeon graphics card.
+> >> > > 
+> >> > > diff --git a/drivers/gpu/drm/gma500/Kconfig
+> >> > > b/drivers/gpu/drm/gma500/Kconfig index a2acaa699dd5..dc4c56638819
+> >> > > 100644
+> >> > > --- a/drivers/gpu/drm/gma500/Kconfig
+> >> > > +++ b/drivers/gpu/drm/gma500/Kconfig
+> >> > > @@ -11,7 +11,6 @@ config DRM_GMA500
+> >> > >        select ACPI_VIDEO if ACPI
+> >> > >        select BACKLIGHT_CLASS_DEVICE if ACPI
+> >> > >        select INPUT if ACPI
+> >> > > -     select X86_PLATFORM_DEVICES if ACPI
+> >> > >        select ACPI_WMI if ACPI
+> >> > >        help
+> >> > >          Say yes for an experimental 2D KMS framebuffer driver for the
+> >> > > diff --
+> >> > > git a/drivers/gpu/drm/i915/Kconfig b/drivers/gpu/drm/i915/Kconfig index
+> >> > > 5e939004b646..71426b9c91f0 100644
+> >> > > --- a/drivers/gpu/drm/i915/Kconfig
+> >> > > +++ b/drivers/gpu/drm/i915/Kconfig
+> >> > > @@ -28,7 +28,6 @@ config DRM_I915
+> >> > >        # but for select to work, need to select ACPI_VIDEO's dependencies,
+> >> > > ick
+> >> > >        select BACKLIGHT_CLASS_DEVICE if ACPI
+> >> > >        select INPUT if ACPI
+> >> > > -     select X86_PLATFORM_DEVICES if ACPI
+> >> > >        select ACPI_WMI if ACPI
+> >> > >        select ACPI_VIDEO if ACPI
+> >> > >        select SYNC_FILE
+> >> > > diff --git a/drivers/gpu/drm/radeon/Kconfig
+> >> > > b/drivers/gpu/drm/radeon/Kconfig index c479f0c0dd5c..3cd70aef770e
+> >> > > 100644
+> >> > > --- a/drivers/gpu/drm/radeon/Kconfig
+> >> > > +++ b/drivers/gpu/drm/radeon/Kconfig
+> >> > > @@ -25,9 +25,7 @@ config DRM_RADEON
+> >> > >        # ACPI_VIDEO's dependencies must also be selected.
+> >> > >        select INPUT if ACPI
+> >> > >        select ACPI_VIDEO if ACPI
+> >> > > -     # On x86 ACPI_VIDEO also needs ACPI_WMI
+> >> > > -     select X86_PLATFORM_DEVICES if ACPI && X86
+> >> > > -     select ACPI_WMI if ACPI && X86
+> >> > > +     select ACPI_WMI if ACPI
+> >> > >        help
+> >> > >          Choose this option if you have an ATI Radeon graphics card.
+> >> > > There
+> >> > >          are both PCI and AGP versions.  You don't need to choose this to
+> >> > > diff -
+> >> > > -git a/drivers/gpu/drm/xe/Kconfig b/drivers/gpu/drm/xe/Kconfig index
+> >> > > 4d7dcaff2b91..502c7b3c1f16 100644
+> >> > > --- a/drivers/gpu/drm/xe/Kconfig
+> >> > > +++ b/drivers/gpu/drm/xe/Kconfig
+> >> > > @@ -4,7 +4,6 @@ config DRM_XE
+> >> > >        depends on DRM && PCI
+> >> > >        depends on KUNIT || !KUNIT
+> >> > >        depends on INTEL_VSEC || !INTEL_VSEC
+> >> > > -     depends on X86_PLATFORM_DEVICES || !(X86 && ACPI)
+> >> > >        depends on PAGE_SIZE_4KB || COMPILE_TEST || BROKEN
+> >> > >        select INTERVAL_TREE
+> >> > >        # we need shmfs for the swappable backing store, and in particular
+> >> > > @@ -29,8 +28,8 @@ config DRM_XE
+> >> > >        # but for select to work, need to select ACPI_VIDEO's dependencies,
+> >> > > ick
+> >> > >        select BACKLIGHT_CLASS_DEVICE if ACPI
+> >> > >        select INPUT if ACPI
+> >> > > -     select ACPI_VIDEO if X86 && ACPI
+> >> > > -     select ACPI_WMI if X86 && ACPI
+> >> > > +     select ACPI_VIDEO if ACPI
+> >> > > +     select ACPI_WMI if ACPI
+> >> > >        select SYNC_FILE
+> >> > >        select CRC32
+> >> > >        select SND_HDA_I915 if SND_HDA_CORE
+> >> > > diff --git a/drivers/platform/loongarch/Kconfig
+> >> > > b/drivers/platform/loongarch/Kconfig
+> >> > > index 447528797d07..db7833842142 100644
+> >> > > --- a/drivers/platform/loongarch/Kconfig
+> >> > > +++ b/drivers/platform/loongarch/Kconfig
+> >> > > @@ -23,6 +23,7 @@ config LOONGSON_LAPTOP
+> >> > >        depends on INPUT
+> >> > >        depends on MACH_LOONGSON64
+> >> > >        select ACPI_VIDEO
+> >> > > +     select ACPI_WMI
+> >> > >        select INPUT_SPARSEKMAP
+> >> > >        default y
+> >> > >        help
+> >> > > --
+> >> > > 2.39.5
+> >> > 
+> >> 
+> 
+> -- 
+> Jani Nikula, Intel
