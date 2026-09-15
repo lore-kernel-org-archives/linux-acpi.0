@@ -1,167 +1,221 @@
-Received: from mx0a-002e3701.pphosted.com (mx0a-002e3701.pphosted.com [148.163.147.86])
+Received: from mout.gmx.net (mout.gmx.net [212.227.15.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87B9649E5E6;
-	Tue, 15 Sep 2026 17:56:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.147.86
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CA1143DEA1;
+	Tue, 15 Sep 2026 19:20:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789494980; cv=none; b=DB8NlwizsfdHQDYCC2tybaTcg9dV6M7Uf5a/XHEbo2TdU+nROr4yYXcTPIUQfTr9G0ihyb6MVTsAHxHIHsh0WEmWWzubyB3XiT198SH+Ee6qEsEYGxDnhYHS7eW/yIXKiksgUbDJUfXCl6uDgKC1SY7KNGgPmI8EB/6TnDbxgCA=
+	t=1789500057; cv=none; b=ZT+Wm4xYXt1P3PCUnYghvHPSO2BD9cnfJHekFTI386YrWIWSfo+e/HQ+QpxyTeLiAihelcHyUPN7+0i8y4pJGqoyVduSaQZGlF3whUS8Olas8QRvotWL4IW4IhCO7O3IRUNo+ft2x0Vhhm0kt1Vncjd/sH/tkv+tpv/1p0DZ0KQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789494980; c=relaxed/simple;
-	bh=EwzSM2YpKfya0JXRveWZ69rYR1xw5kgFdDFZ8hLc6HA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IIPXy0gSGUhChIq94CbuID7ItJHmRK71c23nHUqBiFdBbkhvEJHXtT9lz/KnjBrB2zsXFeJxelCam5q5hQC/IY0kH+DZ9L9KYagxaBAQVa5xUrIUTcq8O5MXdNJNVjNKElRSE6Nc8hdrdlpqCjwZELOJn5n4qsDseyx7n9+pUAs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=hpe.com; spf=pass smtp.mailfrom=hpe.com; dkim=pass (2048-bit key) header.d=hpe.com header.i=@hpe.com header.b=JtkvPdj9; arc=none smtp.client-ip=148.163.147.86
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=hpe.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hpe.com
+	s=arc-20240116; t=1789500057; c=relaxed/simple;
+	bh=3dYTqMTOtv3m5K5bwYPMulkTKBm7xa4wYqkVVTqK4qQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=a86tinHE+gvNQXQLL7kMhce2RZrLYWO33nJEEDP524gnLm9jD/qIiI3Bw8fAIEzzHwFIEUXPuBaM/nK19asRABdArbamqV2TbeYkMGg1U7LWo1YE0+gBlV6+FacTKl5FkCam7Q1uXah6RFd656HRzzEf2C8/ereaGIG4v6m+7yk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b=lbVTw9wb; arc=none smtp.client-ip=212.227.15.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=hpe.com header.i=@hpe.com header.b="JtkvPdj9"
-Received: from pps.filterd (m0150241.ppops.net [127.0.0.1])
-	by mx0a-002e3701.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68FHsVqr2942025;
-	Tue, 15 Sep 2026 17:55:13 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=hpe.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=pps0720; bh=PNlXKXX5IyXBrJN4ylgfbuPEUG
-	zQwPHtOwfHhk/bIe4=; b=JtkvPdj9EgRpDPcHrWl7UiRg4FD51sG7bJwVBqU6NW
-	Uf9ZBrOUOIdWZdWKf3O6D1LdCvuCCfHBVsothhkDzcEQvQqpUa+X3DE2tXlkrmaq
-	TwHA1tHiyDDO39sk9SEBf3lo8SVxRGAdRe/PmOH1oG2U32Ew1HRH3/0SvQnq+ooO
-	K2eGSGVE35K+NtUNjDt9OOnemYoYORplPC7JhdkdpeH9DTdCYMi3Gziqdeq3MRUw
-	O5s18X3g6ws5CMnEnGIjZAuhE5rAO37Xlpzok4myiSzSteUdQL3O4OYsdgwNOqRJ
-	wJibhZ7YuJ/A1lYAxITpmgTpsQD3Am432oLyRbNyZ3hw==
-Received: from p1lg14879.it.hpe.com (p1lg14879.it.hpe.com [16.230.97.200])
-	by mx0a-002e3701.pphosted.com (PPS) with ESMTPS id 4gq95pstj8-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Tue, 15 Sep 2026 17:55:12 +0000 (GMT)
-Received: from p1lg14885.dc01.its.hpecorp.net (unknown [10.119.18.236])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by p1lg14879.it.hpe.com (Postfix) with ESMTPS id 6BD1312EB9;
-	Tue, 15 Sep 2026 17:55:11 +0000 (UTC)
-Received: from HPE-5CG20646DK.localdomain (unknown [16.231.227.36])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(Client did not present a certificate)
-	by p1lg14885.dc01.its.hpecorp.net (Postfix) with ESMTPS id B4FBC805E88;
-	Tue, 15 Sep 2026 17:55:06 +0000 (UTC)
-Date: Tue, 15 Sep 2026 12:55:03 -0500
-From: Kyle Meyer <kyle.meyer@hpe.com>
-To: Michal Hocko <mhocko@suse.com>
-Cc: akpm@linux-foundation.org, corbet@lwn.net, david@redhat.com,
-        linmiaohe@huawei.com, shuah@kernel.org, tony.luck@intel.com,
-        jane.chu@oracle.com, jiaqiyan@google.com, Liam.Howlett@oracle.com,
-        bp@alien8.de, hannes@cmpxchg.org, jack@suse.cz,
-        joel.granados@kernel.org, laoar.shao@gmail.com,
-        lorenzo.stoakes@oracle.com, mclapinski@google.com,
-        nao.horiguchi@gmail.com, osalvador@suse.de, rafael.j.wysocki@intel.com,
-        rppt@kernel.org, russ.anderson@hpe.com, shawn.fan@intel.com,
-        surenb@google.com, vbabka@suse.cz, linux-acpi@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-kselftest@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v3] mm/memory-failure: Support disabling soft offline for
- HugeTLB pages
-Message-ID: <aqmGd0GGUCkbZpkZ@hpe.com>
-References: <aqiIEkrc6aDBOqRg@hpe.com>
- <aqkCbgHmMGxI_GLG@tiehlicka>
+	dkim=pass (2048-bit key) header.d=gmx.de header.i=w_armin@gmx.de header.b="lbVTw9wb"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
+	s=s31663417; t=1789500045; x=1790104845; i=w_armin@gmx.de;
+	bh=PPuFUINuhV/rG1wnVX8mHFYWiFz98IZCHupfwMFolm8=;
+	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:To:Cc:
+	 References:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding:cc:content-transfer-encoding:
+	 content-type:date:from:message-id:mime-version:reply-to:subject:
+	 to;
+	b=lbVTw9wbyX2NDL+nMPkPRqbIqQkdTCDsU1HF4oBQvqVU9ncdvu4QXtUzygtPVht6
+	 nnWZVQFsOSOVChsxcaRFe21yLfmcoqYHetcURbVZ3Smjye+ZWzgBj9Mxe+fTDyjBO
+	 6N3OY0bARFIE+whzSTxGksaUz6mmpdRxzRN3bSy5vRpHjej/NUHywjAb43bYaNR0O
+	 QHENFtJAsxRJO9d4hZvkp+qgfozXhq+IY1z0haPCCsVru3KTqbRR1lEQi+DXwBP6s
+	 hB3Krk8y4u8O3RwEhvAmNBRHnNXZM09JR2TBHE8DnvGS1lw+62K4HBjmC+d0ryBrI
+	 bNfm2AXiFVoIuTj7RQ==
+X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
+Received: from client.hidden.invalid by mail.gmx.net (mrgmx005
+ [212.227.17.190]) with ESMTPSA (Nemesis) id 1Mqb1W-1wSqBZ09Ee-00oqQe; Tue, 15
+ Sep 2026 21:20:45 +0200
+Message-ID: <77b1542a-5f3d-4d8f-bf97-67e2c2805927@gmx.de>
+Date: Tue, 15 Sep 2026 21:20:43 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aqkCbgHmMGxI_GLG@tiehlicka>
-X-Proofpoint-ORIG-GUID: ZGyhASJQPrkZtald6s-qe-XaJzb3rLwu
-X-Authority-Analysis: v=2.4 cv=SJ3Xx+vH c=1 sm=1 tr=0 ts=6aa98681 cx=c_pps
- a=5jkVtQsCUlC8zk5UhkBgHg==:117 a=5jkVtQsCUlC8zk5UhkBgHg==:17
- a=kj9zAlcOel0A:10 a=VdqzKS8jKosA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=gQcMVamqm3wCPoSYhaRC:22 a=_ZmgHqWwjZUDpi_pur5s:22 a=VwQbUJbxAAAA:8
- a=MvuuwTCpAAAA:8 a=OCHxr62PC90mTwIpeikA:9 a=CjuIK1q_8ugA:10
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTE1MDI2MCBTYWx0ZWRfX/bF3jfMe5L2R
- j63mU1nIBKQUtxaBXijRxEhjpUkMVc4zIvOsjeAo1gXa6d8EaQ3zY67L76NuqyOpj1PqfHtArmO
- 2vl0Zj/ywj1xKqs1a/mzZMNwlkOXYrqejAwJQ505r93PdMuHej9YKGoy+OOhjdgIGcbnHU5kPaU
- yvvrSCWy5ejLgHtdaE3GjSon0dkRbhoyLPGlPM5ivm10iaII7ndWeW/6v4Wb+WicsOGN6iGbq5y
- TmACnEazHYCmP+PBiUKK1AlL2cSjGIx6qbmqEPScHv5nRJqfghhw+WYCVTjioKj934H6QVwbEyn
- +l7ofYSeMOrVz1JhspzsrFr1N4lD/2CI+O885v1QKv5nzT3CrROQPCxW5DGn1rcxZV1AAEnv7EB
- 8HBx6GOAVf7DeSMdD7b3ATQFGeRAgDSkWYdpFHxj64RkQev4NJH17HwCiED+iffIRQ5Flebq0JV
- zWia0hniMaXW7l/WWHg==
-X-Proofpoint-Spam-Info: AW1haW4tMjYwOTE1MDI2MCBTYWx0ZWRfX63h0+WaHo6KX
- o28u0TT4xIFnPPwvxBVPnt73ZCm6PXqMR4K+TANuw3CaFV5L9FIl2AQlI4GVDKvAEj81K9dRKGJ
- DaYbaSq0UXlb+dnZCcP9Cbxr0DS1x+w=
-X-Proofpoint-GUID: ZGyhASJQPrkZtald6s-qe-XaJzb3rLwu
-X-HPE-SCL: -1
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-09-15_05,2026-09-15_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- suspectscore=0 priorityscore=1501 phishscore=0 adultscore=0 bulkscore=0
- clxscore=1015 lowpriorityscore=0 malwarescore=0 spamscore=0 impostorscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609150260
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v1 00/10] ACPI: thermal: Register thermal class cooling
+ devices under parents
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Daniel Lezcano <daniel.lezcano@kernel.org>, Hans de Goede
+ <hansg@kernel.org>, LKML <linux-kernel@vger.kernel.org>,
+ Linux PM <linux-pm@vger.kernel.org>, Lukasz Luba <lukasz.luba@arm.com>
+References: <1965933.tdWV9SEqCh@rafael.j.wysocki>
+ <951189ad-71b6-4776-8484-a207f1efe415@gmx.de>
+ <CAJZ5v0gLWT4x44Vbruaf0cKWp0jPTkLuh0pLQ29_O5vfNC4q_A@mail.gmail.com>
+Content-Language: en-US
+From: Armin Wolf <W_Armin@gmx.de>
+In-Reply-To: <CAJZ5v0gLWT4x44Vbruaf0cKWp0jPTkLuh0pLQ29_O5vfNC4q_A@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:pwNkncHwmr78olvv9wFxney+VYyEHmG2TGci576xDE5+P8w5q6z
+ XzAAh23+U0sibBFUS1jqnBeL21p370IMb9RaeolQDjv9CO3wttFKhdzEyoynRvKBwE7QvqE
+ 1K0Irnpv55vNk8KygnSWUrcKVv14Lj43IvGa6ie72CnfFTSG2qcxR/gfbjAhiWtd/Kja3kF
+ PGvxfdLQj5Wi2WrAjM28A==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:ZXObKeBDjWQ=;T3kMKJYT3OZECq3G9+bBpcVKmD5
+ 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
+ 0n+NFYkXx2ejcWGYzDzKD+
 
-On Tue, Sep 15, 2026 at 10:31:42AM +0200, Michal Hocko wrote:
-> On Mon 14-09-26 18:49:38, Kyle Meyer wrote:
-> > Soft offlining a HugeTLB page dissolves it, permanently reducing the
-> > HugeTLB page pool. This can be problematic for workloads that depend on
-> > a fixed number of HugeTLB pages.
-> > 
-> > Currently, soft offline must be disabled to prevent HugeTLB pages from
-> > being soft offlined.
-> > 
-> > This patch allows soft offline to be disabled for HugeTLB pages while
-> > remaining enabled for non-HugeTLB pages.
-> > 
-> > Commit 56374430c5dfc ("mm/memory-failure: userspace controls
-> > soft-offlining pages") introduced the following sysctl interface to
-> > control soft offline:
-> > 
-> > /proc/sys/vm/enable_soft_offline
-> > 
-> > The interface does not distinguish between page types:
-> > 
-> >     0 - Soft offline is disabled
-> >     1 - Soft offline is enabled
-> > 
-> > Convert enable_soft_offline to a bitmask and support disabling soft
-> > offline for HugeTLB pages:
-> > 
-> > Bits:
-> > 
-> >     0 - Enable soft offline
-> >     1 - Disable soft offline for HugeTLB pages
-> > 
-> > Supported values:
-> > 
-> >     0 - Soft offline is disabled
-> >     1 - Soft offline is enabled
-> >     3 - Soft offline is enabled (disabled for HugeTLB pages)
-> > 
-> > Existing behavior is preserved.
-> > 
-> > Update documentation and HugeTLB soft offline selftests.
-> 
-> This is adding a lot of user interfaces to control something you can
-> disable by config option for an admin only functionality.
+Am 12.09.26 um 15:34 schrieb Rafael J. Wysocki (Intel):
 
-I may be missing it, but I'm not aware of a config option that disables soft
-offline specifically for HugeTLB pages.
+> On Fri, Sep 11, 2026 at 11:35=E2=80=AFPM Armin Wolf <W_Armin@gmx.de> wro=
+te:
+>> Am 11.09.26 um 15:00 schrieb Rafael J. Wysocki:
+>>
+>>> Hi All,
+>>>
+>>> This series generally changes the way in which thermal class cooling d=
+evices
+>>> are used by ACPI device drivers registering them (ACPI processor, ACPI=
+ fan,
+>>> and ACPI video) and by the ACPI thermal zone device driver.
+>>>
+>>> First, it causes the thermal class cooling devices to be registered un=
+der
+>>> parents in specific locations within the device hierarchy which allows
+>>> their relationships with other devices to be recognized more easily.  =
+It
+>>> also drops custom sysfs attributes registered by the users of the ther=
+mal
+>>> class cooling devices because they are not particularly useful any mor=
+e
+>>> when those devices get proper parents.
+>>>
+>>> Second, it modifies the ACPI thermal zone device driver to use thermal=
+ class
+>>> cooling device parent information for binding cooling devices to trip =
+points
+>>> in thermal zones, which was previously done with the help of the devda=
+ta
+>>> pointers of the cooling devices and effectively prevented drivers from=
+ using
+>>> the devdata pointers for their own purposes as originally intended.
+>>>
+>>> Finally, it updates the ACPI processor and ACPI fan drivers to use the
+>>> devdata pointers of thermal class cooling devices in a bit more effici=
+ent
+>>> way.
+>>>
+>>> The first two patches in the series are preliminary fixes preventing
+>>> Sashiko from reporting "pre-existing issues" in the subsequent patches=
+.
+>>>
+>>> The third patch is a thermal core update allowing thermal class coolin=
+g
+>>> devices to be registered under proper parents.
+>>>
+>>> The other patches update the ACPI processor, ACPI video, and ACPI fan
+>>> drivers as per the above.
+>>>
+>>> The details are covered by individual patch changelogs.
+>>>
+>>> Thanks!
+>> Nice patch series, it looks mostly good to me.
+> Thanks!
+>
+>> Do you plan something similar for thermal zones?
+> I do overall, but that is a bit harder due to the hwmon involvement.
 
-> I fail to to see any actual justification for all of that. If an admin
-> can disolve a hugetlb page it has power to allocate a new one as well.
+I understand, maybe we can discuss this on the LPC.
 
-Allocating HugeTLB pages after boot is not guaranteed.
+Thanks,
+Armin Wolf
 
-> Not to menation that the whole soft offlining is mostly a testing
-> feature so adding a lot of fine grained configuration space seems
-> excessive to me.
-
-Can you elaborate on "mostly a testing feature"? For example, how does that
-apply to the BIOS/GHES path discussed here?
-
-https://lore.kernel.org/all/aMkOCmGBhZKhKPrI@hpe.com
-
-If you think this should be handled differently, I'm open to suggestions.
-
-Thanks for the feedback,
-Kyle Meyer
