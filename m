@@ -1,324 +1,128 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr2-f12.google.com (mail-wr2-f12.google.com [74.125.225.76])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04A6E395D8E;
-	Tue, 15 Sep 2026 12:31:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789475501; cv=none; b=NqlQTF7WHSBVd0aZWPhE/4RK89uAsYqhEnzEnZUIoupDhTcyi94Et4WQRpBtZG9hRjS8ToPJcO/KEY7x00gxlkk+p3gD2KCfUbLw6rOAqocWG0l59xn7d9k3f9BDOBZGkMII4xKkv2GZzff4/u6kuFD+mrMTMdPsyhLBhdp6Uqw=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789475501; c=relaxed/simple;
-	bh=32KwHaouwkg2IFwHsP/xenwquCRjaCAgeCXIRNVazDA=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=uvIQcbpPf4DB4LQbE+JEgBr6JMwHJqp0bnOq/ZGsPWZsUfUTVLE1sSjOO11j9PCvmClXKqP0Yr3ceU9ab8dSkpNADA82i3R+9WMvw+7yYKjdXSU5KXeqDLfPffZURx3ryPJPlcPTnCLeh7II9JNbPy3k6b57JOsKMrpt8i6dm7A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=hJ+lJtZG; arc=none smtp.client-ip=198.175.65.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9FFA4A3874
+	for <linux-acpi@vger.kernel.org>; Tue, 15 Sep 2026 12:56:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.225.76
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789476977; cv=pass; b=IaBInUm8YMU3Sub0SLp1T1b6qlVRZA+Gg/ytFSWSq++XxvqDxWNEuAArBne3hLWljmRBsn1PgHvFIbfF3CK53StqADPixwDGU0UQ/VUo4YNuPTQepguQUpndVpy0VUr/v0fG6VV/tH96y4TXVlempPXLBm7GqJf/wLXr34Oh47M=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789476977; c=relaxed/simple;
+	bh=ywCk8ctzfLByvEShjkO8Y9JAFwBqQUBwzshad/GakFg=;
+	h=From:MIME-Version:Date:Message-ID:Subject:To:Cc:Content-Type; b=X+Wcos1zSLX63UM6wzWKjKgRUiNl1hs9kU0AS0C+51BUktJxSQrZKYlTvhq1kZrWFHrLGOjReihYna0RDxqyYGzdTdcXxQkvRYoQFo+HrkI8mjILNV8kKw0r0u0i9Tg/dRRIrhvFZtKLbzNFFTY+vD13CcQz4Y0NN2TIdGjpIJo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eeDpNhNq; arc=pass smtp.client-ip=74.125.225.76
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="hJ+lJtZG"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1789475499; x=1821011499;
-  h=from:to:cc:subject:in-reply-to:references:date:
-   message-id:mime-version:content-transfer-encoding;
-  bh=32KwHaouwkg2IFwHsP/xenwquCRjaCAgeCXIRNVazDA=;
-  b=hJ+lJtZGPKUSn/L2DsFexOyf2JqhQaDaOwVNlMmc9pU/uK+IrMD4mRQJ
-   d4+SSKP/HhuFeM7ZyTqq05YWWj35cGG1smah6h5RJQd8LLuX326RgujVE
-   0YUIK/Og4VxzpZHyOITPsRAZ6ZZGlOfC0RDj/JPIrUapT8l5kLIeOoPbY
-   p8rpQx5InDr1kXNoUma9Gqa3kp6pz2NRT/Xf9WuzaQmMsT+dvrWitiIU9
-   6TMLUZMYM7cMrOZAF74qCLRltYyLRUIdaUjXWYptXA8IWkUNqIwl7xSmv
-   W6FNaGRUuEhe0ZGe+UfLXE1NIdp85wFUXSqPm8409w93TxidMQQopCPnf
-   Q==;
-X-CSE-ConnectionGUID: k+trTBR6SoerRQah2+hdcA==
-X-CSE-MsgGUID: 8Moda+stRkOxeUBSdu4pPw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11905"; a="89678868"
-X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
-   d="scan'208";a="89678868"
-Received: from fmviesa009.fm.intel.com ([10.60.135.149])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Sep 2026 05:31:38 -0700
-X-CSE-ConnectionGUID: 5CzhA7o5R7Oo8KIgkAMvug==
-X-CSE-MsgGUID: JuygdXRlSY+0CJx23WbFTg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
-   d="scan'208";a="266786085"
-Received: from abityuts-desk1.ger.corp.intel.com (HELO localhost) ([10.245.245.243])
-  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Sep 2026 05:31:32 -0700
-From: Jani Nikula <jani.nikula@linux.intel.com>
-To: Ilpo =?utf-8?Q?J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, Armin
- Wolf <W_Armin@gmx.de>
-Cc: "Deucher, Alexander" <Alexander.Deucher@amd.com>, "hansg@kernel.org"
- <hansg@kernel.org>, "platform-driver-x86@vger.kernel.org"
- <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org"
- <linux-kernel@vger.kernel.org>, "linux@weissschuh.net"
- <linux@weissschuh.net>, "rafael@kernel.org" <rafael@kernel.org>,
- "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org"
- <linux-acpi@vger.kernel.org>, "Koenig, Christian"
- <Christian.Koenig@amd.com>, "airlied@gmail.com" <airlied@gmail.com>,
- "simona@ffwll.ch" <simona@ffwll.ch>, "amd-gfx@lists.freedesktop.org"
- <amd-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org"
- <dri-devel@lists.freedesktop.org>, "patrik.r.jakobsson@gmail.com"
- <patrik.r.jakobsson@gmail.com>, "maarten.lankhorst@linux.intel.com"
- <maarten.lankhorst@linux.intel.com>, "mripard@kernel.org"
- <mripard@kernel.org>, "tzimmermann@suse.de" <tzimmermann@suse.de>,
- "joonas.lahtinen@linux.intel.com" <joonas.lahtinen@linux.intel.com>,
- "rodrigo.vivi@intel.com" <rodrigo.vivi@intel.com>, "tursulin@ursulin.net"
- <tursulin@ursulin.net>, "intel-gfx@lists.freedesktop.org"
- <intel-gfx@lists.freedesktop.org>, "matthew.brost@intel.com"
- <matthew.brost@intel.com>, "thomas.hellstrom@linux.intel.com"
- <thomas.hellstrom@linux.intel.com>, "intel-xe@lists.freedesktop.org"
- <intel-xe@lists.freedesktop.org>
-Subject: Re: [PATCH v3 2/3] ACPI: video: Remove CONFIG_X86 handling from
- nvidia_wmi_ec_supported()
-In-Reply-To: <80c4bb47-936b-976b-6ba8-b366f7a455cf@linux.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park,
- 6 krs Bertel Jungin Aukio 5, 02600 Espoo, Finland
-References: <20260724025959.142826-1-W_Armin@gmx.de>
- <20260724025959.142826-3-W_Armin@gmx.de>
- <BN9PR12MB514668975E87D570F50B2D91F7A82@BN9PR12MB5146.namprd12.prod.outlook.com>
- <86d0e015-a8f4-4e10-a9b6-a9714d3e0f07@gmx.de>
- <80c4bb47-936b-976b-6ba8-b366f7a455cf@linux.intel.com>
-Date: Tue, 15 Sep 2026 15:31:29 +0300
-Message-ID: <11976ed3784675ad241646287a909286a42675a8@intel.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eeDpNhNq"
+Received: by mail-wr2-f12.google.com with SMTP id ffacd0b85a97d-484366874b0so1812605f8f.2
+        for <linux-acpi@vger.kernel.org>; Tue, 15 Sep 2026 05:56:15 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1789476974; cv=none;
+        d=google.com; s=arc-20260327;
+        b=M1xoPKbmfKWo/zwJWUXrdx5TeLsFGnDlh7/CdG8dnpg1umpBo/BtRyhnm/Y2DTOPj1
+         mJ4pR6uiltbiDgAgrVuAE/F9Vk+CtEhfj018qjNFcQhXYgFPMtXtYt1wfDIA7wCaqz/f
+         XqQU3vLOEDGMGuaw6+stzUDMPOShHuHGL/0yQZg3KYw5ESYIFjItDUPcgCUwM30X4Yl7
+         CFtJlw5+X3tLXHzyd8V02+/gls+nSO9az7bl5CVnj2PhFBuQJXTaoc1OvgGjAY25yhiA
+         nc0ZvNZ7KDROlH8j1liskcJvFOCPjNY6rsypIUw+oNWIM26L/mxTlQpF7emvgNKYE+4d
+         VL3Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:mime-version:from:dkim-signature;
+        bh=P28SmSmKGpaCkTVR8wBuCYwuCl+D5JhrOzIJE7Pi2gM=;
+        fh=mIB+3pUfRHZc/QiEZq0dp8FR9lu44L3/JnPU89X5Tko=;
+        b=cNvjcJnxdiE2O1HZMuLS4e5lrTe5ipaOALN5fuIBqqoVH08UUJymJapZnUmapsAd0U
+         nIvQ/SuYfmBMLGUWG4VsJL2lIp+HlB922CEhxj4+BlCpQNwf0hMQNpZqYo2zsZhlshf0
+         WR625NlEvmLWfnGQaHku1QYcZqnaZaH4gjyki1auZmFVujUviKpvzOzXgS2otgqmjvH1
+         LtLbl47wW6Ti351+PJ/Jv+28tSg51X0rFcvAYqRozaZVRBbygoeDatBIPHxBIVb6Bmo0
+         /HiBLmbJaP8o5rSSYc7b/A+AIXxXP13EnqmlOm0moJLuFt4a1cuvB5xxRxwk26TGqLky
+         AoMQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1789476974; x=1790081774; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:mime-version:from:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=P28SmSmKGpaCkTVR8wBuCYwuCl+D5JhrOzIJE7Pi2gM=;
+        b=eeDpNhNqMYiLVS5NGWLOQCTjPSXcSGesb4WDnQE97FIr8WDtXtMHBwpe6n0HU7bLIC
+         vw+m3YK+x8KX3wAzmD9WnpvbPfP9e8quGqhIvsA5JrGaYzuPe1CxobPKLNLxWBX350R6
+         xBQ42iV+Et0BET0QY7g7QnXrRDZZOT+qFAIddmEHvNrsOEfS6SYxsI930Oja+UjeNx49
+         NqrMiaMjYgrqdl4/1iQecKXPKiVNfnQ2Q+Ppo0fFiGQ8CozTC907Q8ESUVs2MGqXV2Cp
+         d8oaMjnIvpdP5umeMkTG3kFJwFqiVHTcddBvy5pdSRe2GzITRmZBcf92x1/vSwUt6LlM
+         MzQA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1789476974; x=1790081774;
+        h=content-type:cc:to:subject:message-id:date:mime-version:from
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=P28SmSmKGpaCkTVR8wBuCYwuCl+D5JhrOzIJE7Pi2gM=;
+        b=fFqgtOIKocqaZRJ2ni0j2ZCQt1hBvGtuxUpfgnHdSV2UG+Gqr2HdLVEOdYLLhEEYbw
+         Q2WqGGvamjgl1V2VS/8EK9CbJRp98CeHiJ1OqBeA0LUNZnUVZSmGAFygoug9sTW3Kaix
+         b++4zzn19BHn6YVH1xlW/bSu0QqTnLuveprMqpLIAgRD2VSzBcuHg10uJ3QplS6EWKNN
+         yE4Ent74i1892YfIo3dxsFTx01NvthlSQ6HocT27/vDvPekB10YdabWqt2A58qB/Q2aZ
+         gEZ85NPNatOpESF1Tr0NMRqw1ht0TRBh/N8GSxKHhaoo4x8MViBEDelFr3/0/a+dJUEN
+         vaEA==
+X-Gm-Message-State: AFuF++nFlO6GpR0rl1NL5fR4OhzP484J+w2rz+StthTI1qnam2c1aHjB
+	ylTgMjZ3/0XbmvBPzrshvYDelulXmYQZEjPiS6oLrwQ9qL0zCaW11EMTKHc2xHQDa/3pxEcOeOM
+	nRD5iHSrgjDYYquYEqO/udzjMa4wMXO3ec7x3YJ0WjxNQ
+X-Gm-Gg: AYBFou2rfHUVFUA+vhLRINL4jvX7DGLFsglOHcCDOVDyRFw8/DdABRTlQmSJqPpJBsy
+	fG2T28xgCOLR3zWwkatOerXrdAfujDukMakKTWkGoKACZJzt3JyDHx4ex0vSnvJX3ntT51ypLVa
+	SrViTFqPgoBmW7jKF+tcrDWVzJ6CDbFMBug9ofQmzmQqjScBMeRHm5zvLGkAiyAd1lUn8hpX22P
+	m1nHAoWiSJboeYvXfxxR0Q3LvvBGWe5y8o2QDXpM4kOa3vG3vuQKQ9UH/zan5R3RLgHLgoQBde2
+	qlR0CQwsMk7Nyrvkti1zN6tSIUF0/38eIUzbDbC2sVdTRC1tkJjXng==
+X-Received: by 2002:a5d:5f88:0:b0:487:72f:fb42 with SMTP id
+ ffacd0b85a97d-487072ffc70mr7287306f8f.14.1789476973811; Tue, 15 Sep 2026
+ 05:56:13 -0700 (PDT)
+Received: from 830778650420 named unknown by gmailapi.google.com with
+ HTTPREST; Tue, 15 Sep 2026 05:56:13 -0700
+Received: from 830778650420 named unknown by gmailapi.google.com with
+ HTTPREST; Tue, 15 Sep 2026 05:56:13 -0700
+From: Ruslan Vagner <rusya92266@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Date: Tue, 15 Sep 2026 05:56:13 -0700
+X-Gm-Features: AcwNN1WFpcBD6ITFW6cXO0dG90ph8PME3pbH4DMJAvt4ZwX5EgMci31_bLdJoKI
+Message-ID: <CAF9RqJ4ip_egVwRKnwn3=X-Qxuwz0u_9pNrgfujBw8RSf2DTPQ@mail.gmail.com>
+Subject: [PATCH] ACPI: sysfs: use strscpy() instead of strcpy()
+To: linux-acpi@vger.kernel.org
+Cc: rafael@kernel.org, lenb@kernel.org, Ruslan Vagner <rusya92266@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, 15 Sep 2026, Ilpo J=C3=A4rvinen <ilpo.jarvinen@linux.intel.com> wro=
-te:
-> GPU people heads up!!
->
-> On Wed, 2 Sep 2026, Armin Wolf wrote:
->
->> Am 01.09.26 um 23:30 schrieb Deucher, Alexander:
->>=20
->> > Public
->> >=20
->> > > -----Original Message-----
->> > > From: Armin Wolf <W_Armin@gmx.de>
->> > > Sent: Thursday, July 23, 2026 11:00 PM
->> > > To: hansg@kernel.org; ilpo.jarvinen@linux.intel.com
->> > > Cc: platform-driver-x86@vger.kernel.org; linux-kernel@vger.kernel.or=
-g;
->> > > linux@weissschuh.net; rafael@kernel.org; lenb@kernel.org; linux-
->> > > acpi@vger.kernel.org; Deucher, Alexander <Alexander.Deucher@amd.com>;
->> > > Koenig, Christian <Christian.Koenig@amd.com>; airlied@gmail.com;
->> > > simona@ffwll.ch; amd-gfx@lists.freedesktop.org; dri-
->> > > devel@lists.freedesktop.org; patrik.r.jakobsson@gmail.com;
->> > > maarten.lankhorst@linux.intel.com; mripard@kernel.org;
->> > > tzimmermann@suse.de; jani.nikula@linux.intel.com;
->> > > joonas.lahtinen@linux.intel.com; rodrigo.vivi@intel.com;
->> > > tursulin@ursulin.net; intel-gfx@lists.freedesktop.org;
->> > > matthew.brost@intel.com; thomas.hellstrom@linux.intel.com; intel-
->> > > xe@lists.freedesktop.org
->> > > Subject: [PATCH v3 2/3] ACPI: video: Remove CONFIG_X86 handling from
->> > > nvidia_wmi_ec_supported()
->> > >=20
->> > > The WMI-ACPI driver now supports architectures other than x86.
->> > > Remove the CONFIG_X86 handling from video-detect and the associated
->> > > drivers to simplify the resulting code.
->> > >=20
->> > > Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
->> > > Signed-off-by: Armin Wolf <W_Armin@gmx.de>
->> > > ---
->> > >   drivers/acpi/Kconfig               | 2 +-
->> > >   drivers/acpi/video_detect.c        | 8 --------
->> > >   drivers/gpu/drm/amd/amdgpu/Kconfig | 4 +---
->> > >   drivers/gpu/drm/gma500/Kconfig     | 1 -
->> > >   drivers/gpu/drm/i915/Kconfig       | 1 -
->> > >   drivers/gpu/drm/radeon/Kconfig     | 4 +---
->> > >   drivers/gpu/drm/xe/Kconfig         | 5 ++---
->> > >   drivers/platform/loongarch/Kconfig | 1 +
->> > >   8 files changed, 6 insertions(+), 20 deletions(-)
->> > >=20
->> > > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig index
->> > > f165d14cf61a..cc1e58fa664b 100644
->> > > --- a/drivers/acpi/Kconfig
->> > > +++ b/drivers/acpi/Kconfig
->> > > @@ -224,7 +224,7 @@ config ACPI_VIDEO
->> > >        tristate "Video"
->> > >        depends on BACKLIGHT_CLASS_DEVICE
->> > >        depends on INPUT
->> > > -     depends on ACPI_WMI || !X86
->> > > +     depends on ACPI_WMI
->> > >        select THERMAL
->> > >        help
->> > >          This driver implements the ACPI Extensions For Display Adap=
-ters
->> > > diff
->> > > --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c in=
-dex
->> > > 458efa4fe9d4..af9280b244f1 100644
->> > > --- a/drivers/acpi/video_detect.c
->> > > +++ b/drivers/acpi/video_detect.c
->> > > @@ -82,8 +82,6 @@ find_video(acpi_handle handle, u32 lvl, void *cont=
-ext,
->> > > void **rv)
->> > >        return AE_OK;
->> > >   }
->> > >=20
->> > > -/* This depends on ACPI_WMI which is X86 only */ -#ifdef CONFIG_X86
->> > > static bool nvidia_wmi_ec_supported(void)  {
->> > >        struct wmi_brightness_args args =3D {
->> > > @@ -105,12 +103,6 @@ static bool nvidia_wmi_ec_supported(void)
->> > >         */
->> > >        return args.ret =3D=3D WMI_BRIGHTNESS_SOURCE_EC;  } -#else -s=
-tatic bool
->> > > nvidia_wmi_ec_supported(void) -{
->> > > -     return false;
->> > > -}
->> > > -#endif
->> > >=20
->> > >   /* Force to use vendor driver when the ACPI device is known to be
->> > >    * buggy */
->> > > diff --git a/drivers/gpu/drm/amd/amdgpu/Kconfig
->> > > b/drivers/gpu/drm/amd/amdgpu/Kconfig
->> > > index 12e4a41bf1f0..50305630f533 100644
->> > > --- a/drivers/gpu/drm/amd/amdgpu/Kconfig
->> > > +++ b/drivers/gpu/drm/amd/amdgpu/Kconfig
->> > > @@ -30,9 +30,7 @@ config DRM_AMDGPU
->> > >        # ACPI_VIDEO's dependencies must also be selected.
->> > >        select INPUT if ACPI
->> > >        select ACPI_VIDEO if ACPI
->> > > -     # On x86 ACPI_VIDEO also needs ACPI_WMI
->> > > -     select X86_PLATFORM_DEVICES if ACPI && X86
->> > The change below makes sense, but this one looks like it should remain
->> > unless X86_PLATFORM_DEVICES is handled some other way?
->> >=20
->> > Alex
->>=20
->> AFAIK the dependency on X86_PLATFORM_DEVICES was only necessary because
->> ACPI-WMI depended on it in the past.
->> By now ACPI-WMI neither depends on X86_PLATFORM_DEVICES or X86 anymore.
->
-> Hi all,
->
-> Could more GPU people besides Alex take a look on this. I'd want to make=
-=20
-> progress with this series within this cycle but would prefer to have Acks=
-=20
-> from GPU side.
+strcpy() is deprecated in the kernel. Use strscpy() with the
+compile-time known size of the trace_method_name buffer. The existing
+length check already rejects overlong input, so behavior is unchanged.
 
-I share the same concern with Alex. It seems to me we could now end up
-with x86 configurations without X86_PLATFORM_DEVICES, which handle
-e.g. backlight on a lot of platforms.
+Signed-off-by: Ruslan Vagner <rusya92266@gmail.com>
+---
+ drivers/acpi/sysfs.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-I think the safer option might be to go for:
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index dd4a99f09efe..a99373547126 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -11,6 +11,7 @@
+ #include <linux/kernel.h>
+ #include <linux/kstrtox.h>
+ #include <linux/moduleparam.h>
++#include <linux/string.h>
 
-	depends on X86_PLATFORM_DEVICES || !X86
+ #include "internal.h"
 
-in all of the cases that select/depend on X86_PLATFORM_DEVICES in drm.
+@@ -181,10 +182,10 @@ static int param_set_trace_method_name(const char *val,
 
-The alternative is to find out, and handle the fallout, if any.
+ 	/* This is a hack.  We can't kmalloc in early boot. */
+ 	if (is_abs_path)
+-		strcpy(trace_method_name, val);
++		strscpy(trace_method_name, val, sizeof(trace_method_name));
+ 	else {
+ 		trace_method_name[0] = '\\';
+-		strcpy(trace_method_name+1, val);
++		strscpy(trace_method_name + 1, val, sizeof(trace_method_name) - 1);
+ 	}
 
-
-BR,
-Jani.
-
-
->
->> > > -     select ACPI_WMI if ACPI && X86
->> > > +     select ACPI_WMI if ACPI
->> > >        help
->> > >          Choose this option if you have a recent AMD Radeon graphics=
- card.
->> > >=20
->> > > diff --git a/drivers/gpu/drm/gma500/Kconfig
->> > > b/drivers/gpu/drm/gma500/Kconfig index a2acaa699dd5..dc4c56638819
->> > > 100644
->> > > --- a/drivers/gpu/drm/gma500/Kconfig
->> > > +++ b/drivers/gpu/drm/gma500/Kconfig
->> > > @@ -11,7 +11,6 @@ config DRM_GMA500
->> > >        select ACPI_VIDEO if ACPI
->> > >        select BACKLIGHT_CLASS_DEVICE if ACPI
->> > >        select INPUT if ACPI
->> > > -     select X86_PLATFORM_DEVICES if ACPI
->> > >        select ACPI_WMI if ACPI
->> > >        help
->> > >          Say yes for an experimental 2D KMS framebuffer driver for t=
-he
->> > > diff --
->> > > git a/drivers/gpu/drm/i915/Kconfig b/drivers/gpu/drm/i915/Kconfig in=
-dex
->> > > 5e939004b646..71426b9c91f0 100644
->> > > --- a/drivers/gpu/drm/i915/Kconfig
->> > > +++ b/drivers/gpu/drm/i915/Kconfig
->> > > @@ -28,7 +28,6 @@ config DRM_I915
->> > >        # but for select to work, need to select ACPI_VIDEO's depende=
-ncies,
->> > > ick
->> > >        select BACKLIGHT_CLASS_DEVICE if ACPI
->> > >        select INPUT if ACPI
->> > > -     select X86_PLATFORM_DEVICES if ACPI
->> > >        select ACPI_WMI if ACPI
->> > >        select ACPI_VIDEO if ACPI
->> > >        select SYNC_FILE
->> > > diff --git a/drivers/gpu/drm/radeon/Kconfig
->> > > b/drivers/gpu/drm/radeon/Kconfig index c479f0c0dd5c..3cd70aef770e
->> > > 100644
->> > > --- a/drivers/gpu/drm/radeon/Kconfig
->> > > +++ b/drivers/gpu/drm/radeon/Kconfig
->> > > @@ -25,9 +25,7 @@ config DRM_RADEON
->> > >        # ACPI_VIDEO's dependencies must also be selected.
->> > >        select INPUT if ACPI
->> > >        select ACPI_VIDEO if ACPI
->> > > -     # On x86 ACPI_VIDEO also needs ACPI_WMI
->> > > -     select X86_PLATFORM_DEVICES if ACPI && X86
->> > > -     select ACPI_WMI if ACPI && X86
->> > > +     select ACPI_WMI if ACPI
->> > >        help
->> > >          Choose this option if you have an ATI Radeon graphics card.
->> > > There
->> > >          are both PCI and AGP versions.  You don't need to choose th=
-is to
->> > > diff -
->> > > -git a/drivers/gpu/drm/xe/Kconfig b/drivers/gpu/drm/xe/Kconfig index
->> > > 4d7dcaff2b91..502c7b3c1f16 100644
->> > > --- a/drivers/gpu/drm/xe/Kconfig
->> > > +++ b/drivers/gpu/drm/xe/Kconfig
->> > > @@ -4,7 +4,6 @@ config DRM_XE
->> > >        depends on DRM && PCI
->> > >        depends on KUNIT || !KUNIT
->> > >        depends on INTEL_VSEC || !INTEL_VSEC
->> > > -     depends on X86_PLATFORM_DEVICES || !(X86 && ACPI)
->> > >        depends on PAGE_SIZE_4KB || COMPILE_TEST || BROKEN
->> > >        select INTERVAL_TREE
->> > >        # we need shmfs for the swappable backing store, and in parti=
-cular
->> > > @@ -29,8 +28,8 @@ config DRM_XE
->> > >        # but for select to work, need to select ACPI_VIDEO's depende=
-ncies,
->> > > ick
->> > >        select BACKLIGHT_CLASS_DEVICE if ACPI
->> > >        select INPUT if ACPI
->> > > -     select ACPI_VIDEO if X86 && ACPI
->> > > -     select ACPI_WMI if X86 && ACPI
->> > > +     select ACPI_VIDEO if ACPI
->> > > +     select ACPI_WMI if ACPI
->> > >        select SYNC_FILE
->> > >        select CRC32
->> > >        select SND_HDA_I915 if SND_HDA_CORE
->> > > diff --git a/drivers/platform/loongarch/Kconfig
->> > > b/drivers/platform/loongarch/Kconfig
->> > > index 447528797d07..db7833842142 100644
->> > > --- a/drivers/platform/loongarch/Kconfig
->> > > +++ b/drivers/platform/loongarch/Kconfig
->> > > @@ -23,6 +23,7 @@ config LOONGSON_LAPTOP
->> > >        depends on INPUT
->> > >        depends on MACH_LOONGSON64
->> > >        select ACPI_VIDEO
->> > > +     select ACPI_WMI
->> > >        select INPUT_SPARSEKMAP
->> > >        default y
->> > >        help
->> > > --
->> > > 2.39.5
->> >=20
->>=20
-
---=20
-Jani Nikula, Intel
+ 	/* Restore the original tracer state */
+-- 
+2.54.0.windows.1
