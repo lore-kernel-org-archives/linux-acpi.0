@@ -1,357 +1,390 @@
-Received: from mail-ej2-f12.google.com (mail-ej2-f12.google.com [74.125.228.140])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012035.outbound.protection.outlook.com [40.93.195.35])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D72943BE179
-	for <linux-acpi@vger.kernel.org>; Tue, 15 Sep 2026 08:31:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.140
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789461109; cv=none; b=N15nFondorfpT9R2FNIjJ6UHAAEqLAFhOX7SL1Q9GH1n4dzFqHgYPctxFHJJZyv2UfclA1NkTskPfHtiV6GqxkM50K55kqMTF7uJV6FMHW53HpvifljdULI3uEjLq9/NariMAkeoG5VXTEkfmE5cwLJCZFOeuYauw0oi15bW1VI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789461109; c=relaxed/simple;
-	bh=Wj1rYYk5eAXwBvucNre4TjfpPQdXYZM0DWC4mH7g9mk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pd6aKrP5hQm8F/XA3563dt1Nf3f9yYBqIRv7RXmS1xsJKZcD5cj3qB/0aXfbQI9euKjepBj+pq9cqb8O+ZAdLY3iHVi7JDDrbT1f0SU8mtlD78EABoVyEFG2hUPteabaOGg3g9V/f//u3g00rf/Z8Xeg6w7+9Jbyer1pzd1Vvzc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=VZpjbEeT; arc=none smtp.client-ip=74.125.228.140
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E8834BB5BB;
+	Tue, 15 Sep 2026 12:06:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.35
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789473968; cv=fail; b=Fd4UUSpxWgEBT/QtXIqaT3dwbGj62HlGc6b66bTkX1ydESIUe/V1h5JkahfwyAnFF4/8Yi6ki+QGfPpA7L0+yFDvKjK6kUUDlob8/P409Vcj9Pyfm81GoaGxY9LEQjZyzQM54y+qVgWZxDUhIbYQGMhqwZderAKRIXQl/M7spKs=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789473968; c=relaxed/simple;
+	bh=j07Wd3/Awrw65l1zesqG1SGxVwicOpWt7BRb54sSOtg=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=RDI+JineR4KAGiqiLpvQK6EB01q/sf6Z8jVtffNFyDb44GAAQiU756Jk6/jgeTndrXtFUJQ0OQqFKxkHv50Wmf6nd5HJFo1b/2q6TmLrsU84oivhLOnGRQHfXL2aW+zZUGtSS5rRw4uvjd18Qn4KSE92tFrxHJMrCd5aS37jLNE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Hbn6P5yD; arc=fail smtp.client-ip=40.93.195.35
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="VZpjbEeT"
-Received: by mail-ej2-f12.google.com with SMTP id a640c23a62f3a-c254f6c7a56so426863366b.1
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Sep 2026 01:31:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1789461104; x=1790065904; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=srZnYOZh38wMRO1+hbACREA44r35OdzHMy0XMVlEyHw=;
-        b=VZpjbEeTgtK41A7t4oW26nQjbyOW2cKW7HVAp/AE1DoBxv2I/oKGZNbaQodQKgyztX
-         /mrpwRY87ciQ+PJfyQe1dSvxNbsB72CUkdK+QtjuK70i+nbGkR9W/XYJiElg9lfca++2
-         qFVFkZPTH/JRJXbyxOE05UEq/r32xAoP2WnIV0Oli8eF9Eqfbnh/5SbFEtNDxMp9+Xry
-         wUPo2NIAaR5WaoaHjUpAwZp9V9yi+6b7VV5nBJICkruMWpBKe1kbngntQiCIgoGwAnpY
-         X6bNASsAfWseYcATthNENpViqF1ZvkSvgWmosl33E4dHZ93N4ieXJeMGMfZ+z1sKbil8
-         dOSQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789461104; x=1790065904;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=srZnYOZh38wMRO1+hbACREA44r35OdzHMy0XMVlEyHw=;
-        b=R1btZ7cBr3ExHntLEFeENVMAetaUipk/E81AeS6fNzvGj2m2Egrbm27yEwr3SzcNFY
-         kXQfsqt864Z6C/+BYIjs83euP6dVd6zUhdpH5yRCsRWvPW2OT7tuEP9LZk8fLUjQHxzX
-         ix55OKYIGFkua4yb+6YkzT+zdqCq+w7hqKigfEGCSlSNxNgtXuKfoCOIVEILy/d71pJL
-         /qLfhHSwPdNwoWcFHkTxo/vhdDJEdkv7ySLpln3kcoYtarpz0MA+73HGG7TIy3jEszjS
-         H2AsJLRGosDI1rzWs31AlKLFX4QI1OkHQ0hmKopt4ZFRGY30eAGF8JsLMGk629bp71Xe
-         Toug==
-X-Forwarded-Encrypted: i=1; AKwUvBxDLugXcI7p9JZPWVWoFkxO2qrFg1SmFRPT3Ru6dkVuapGlmf92DqNWD82ANcKywqsVQxr/WXAWvWZP@vger.kernel.org
-X-Gm-Message-State: AFuF++kVg9ozdGNmtSH0r3+DNxoe4PpCJ4OyX3+QcMC8X/i++9ZtY6CB
-	5+Vhnw2W66f7hEZ4Pf15SjvCrpE+MzELTndYOs3VvdTgRB67SN1Pt0hNHRkSVH4f55g=
-X-Gm-Gg: AYBFou1tq0ZfGdsftbgOp6lhbCNNvdh+ranthledffstZZOhwLI1G2I+DJkXZ3oSgTu
-	KpRp68VJogTll+JpgHQSO27gPKQSYM2WmweloN0iRzL1zV+SSpVtfBAtvOrcJ/SLmxrBDML+vQ8
-	K1zxainTpC07HFtWR2FxLyfA9aM6//kJCaune0rahEW6P1916In89K8Dr0MLfwC0YjdpBk4n1xR
-	l6aXOiFkD4eXpAJP3sru02+9n0vAsC0OW98755lp8QpLczOK1YWAdY0mfa+Qj8c3lgIDgx7vtQd
-	A6mllEHPzYYQUeE9vhu5j2yQeolYBPfqHp7uzEgQvkQ1152BsTupTc4crQqOS6jheJNA3uUMq7l
-	eVo+gtbhbkTbpImItO2h6oVh5SlFyUP9Vu99uxqyFIbCtEdUQeZMb9zOhFJmnjTKOwxOV09PRRo
-	9A6PJociNZX5cLHQkvDfGOiiIsWBE0SmH+RizcjnW/98jn74Lqfs4TrJ03U+dN
-X-Received: by 2002:a17:907:3f1a:b0:c21:601:6501 with SMTP id a640c23a62f3a-c29b86059e6mr437931366b.20.1789461103956;
-        Tue, 15 Sep 2026 01:31:43 -0700 (PDT)
-Received: from localhost ([2a02:aa7:4656:2314:c23c:9eda:81d:3])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c296613c3ebsm529983366b.57.2026.09.15.01.31.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 15 Sep 2026 01:31:43 -0700 (PDT)
-Date: Tue, 15 Sep 2026 10:31:42 +0200
-From: Michal Hocko <mhocko@suse.com>
-To: Kyle Meyer <kyle.meyer@hpe.com>
-Cc: akpm@linux-foundation.org, corbet@lwn.net, david@redhat.com,
-	linmiaohe@huawei.com, shuah@kernel.org, tony.luck@intel.com,
-	jane.chu@oracle.com, jiaqiyan@google.com, Liam.Howlett@oracle.com,
-	bp@alien8.de, hannes@cmpxchg.org, jack@suse.cz,
-	joel.granados@kernel.org, laoar.shao@gmail.com,
-	lorenzo.stoakes@oracle.com, mclapinski@google.com,
-	nao.horiguchi@gmail.com, osalvador@suse.de,
-	rafael.j.wysocki@intel.com, rppt@kernel.org, russ.anderson@hpe.com,
-	shawn.fan@intel.com, surenb@google.com, vbabka@suse.cz,
-	linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
-	linux-mm@kvack.org
-Subject: Re: [PATCH v3] mm/memory-failure: Support disabling soft offline for
- HugeTLB pages
-Message-ID: <aqkCbgHmMGxI_GLG@tiehlicka>
-References: <aqiIEkrc6aDBOqRg@hpe.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Hbn6P5yD"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=kEwnfst6TH+OG9HvDVsxwwHfCwZEmq8vXPjOn1jOCO4/+Y/z3sfsXArMv197Vtvr4KYMjXeRNhUmjjLh+60Q5DlyuPpHfWdjv6o6RxmfIiRKkCMh5IwMNqQYHUQ0lCyj/NtZbpFA5v9GGfNvcfZjI4uu+Z8YWPmRT7/RJHUpj/bCY99V/vJsWVjMJ1d5QxvKwC5wbLZR43DQ0oiRB+d+XSlUeGufvmUMBvVlQ/ZpsWBht4AVbjRMYNCKideB1u+h+xblrQilzN9JX1Jx+fryiQuEM9vtEyjynJOxOa9S6ncp5bNiAE2O47XHBszo56W4l/Nh9elXF/GR+B8F2EzTMA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=3aAXjEcV3/PLh/HNyxN74MVtJRkIGNHp0R7X7X3xlIM=;
+ b=Y/2Vmk//ndAOHks7FRPWHiZjPy3k+9/ikyqty0zxyGAaGWoiKfCMiID2rLW5EZuucWOZSPww8MrT4n2hEDaHwHn6Q+jceeUontXz/zWkWtA+UjUH0OEU+poYKxGeXVgm5oK3O64k+mEtJzewgJnmEeSv+TJKgW6LbxIM0eUbpWLxT4jbEO7oWYHROX6v/ONSyyJ5lVRjY0l4f0jpp6nP52H1QSduK4Phupm2jivfVNUM8HZi8UabrWyd66VXSdDPu3UVIleSbBxB2FBuLrf8buQIh0S9mJnxJ+BLhcdtRJcfHhoro9jvCwPGRVMP2upwFweMOtLGIW8lMDgXi9TnEQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=3aAXjEcV3/PLh/HNyxN74MVtJRkIGNHp0R7X7X3xlIM=;
+ b=Hbn6P5yDVA9kg9PV1daES6SOHFFvfRccy9+sQK3ZK6TOhP9f/3Rbf8pF3HpHVOEMONlesiX8DAwnF3e3Q5DC28Ylcq6TdTpgCAsiSroy1hH//4NaHtdTc/D65Pi1IKeLcCcw2BhYpyLHFi90+pmTMuWbkpXOQ5oK9K5vo7yFMtARbHlXM/4AXx6lK/eHySLW6PmdX5l9egtvtqoQLin/7zS+LUrQzG0VzS/JPMO7fhSDWzcLngPcmlN0Pf2mJKkHnCM7CjNm1rSv10SE/g3urKYu5EhHoBnLXeOCMB36wozkBAnSIyYjTyuFdqmcx6M1KD4v759z8o8fJ0/hfWR9Rw==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from DM4PR12MB5246.namprd12.prod.outlook.com (2603:10b6:5:399::17)
+ by IA0PR12MB7676.namprd12.prod.outlook.com (2603:10b6:208:432::5) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.406.12; Tue, 15 Sep
+ 2026 12:06:01 +0000
+Received: from DM4PR12MB5246.namprd12.prod.outlook.com
+ ([fe80::9c9e:30a1:5456:c485]) by DM4PR12MB5246.namprd12.prod.outlook.com
+ ([fe80::9c9e:30a1:5456:c485%4]) with mapi id 15.21.0428.008; Tue, 15 Sep 2026
+ 12:06:01 +0000
+Message-ID: <753b98a6-b3f7-431b-a867-eccbfd15d357@nvidia.com>
+Date: Tue, 15 Sep 2026 17:35:48 +0530
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v4 1/4] cpufreq: CPPC: Keep the policy across CPU hotplug
+To: Jie Zhan <zhanjie9@hisilicon.com>, rafael@kernel.org,
+ viresh.kumar@linaro.org, pierre.gondois@arm.com, christian.loehle@arm.com,
+ ionela.voinescu@arm.com, zhenglifeng1@huawei.com, lenb@kernel.org,
+ saket.dumbre@intel.com, ray.huang@amd.com, mario.limonciello@amd.com,
+ perry.yuan@amd.com, kprateek.nayak@amd.com, linux-kernel@vger.kernel.org,
+ linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
+ acpica-devel@lists.linux.dev, linux-tegra@vger.kernel.org
+Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
+ ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
+References: <20260806200857.601152-1-sumitg@nvidia.com>
+ <20260806200857.601152-2-sumitg@nvidia.com>
+ <c30ddb21-2c97-4b9f-bae6-b29e30aa5e5e@hisilicon.com>
+Content-Language: en-US
+From: Sumit Gupta <sumitg@nvidia.com>
+In-Reply-To: <c30ddb21-2c97-4b9f-bae6-b29e30aa5e5e@hisilicon.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: PN4P287CA0125.INDP287.PROD.OUTLOOK.COM
+ (2603:1096:c01:2b2::7) To DM4PR12MB5246.namprd12.prod.outlook.com
+ (2603:10b6:5:399::17)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aqiIEkrc6aDBOqRg@hpe.com>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DM4PR12MB5246:EE_|IA0PR12MB7676:EE_
+X-MS-Office365-Filtering-Correlation-Id: cddd7b44-cc32-4bf1-6982-08df1321b583
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|7416014|376014|1800799024|366016|6133799003|18002099003|22082099003|921020|4143699003|11063799006|10067099003|56012099006;
+X-Microsoft-Antispam-Message-Info:
+	Dib/00qK2iihgDyYkMbrDNAzi3r5YZU7NradXvBcr6Oa1Hrui49qAhe9Mgcf2ggbcyj5wxzKUwx+Iah/WZWXV7GVxmDPRg9MRE5JGYc1i97QetsTfiT1ytZHWmhjkC1G/Wsh3gk8nb/hqr4evX1SfH27cz9NLCurfBriDc1kvMFyjsh512oO9udlAH/QiJyRSZBjn7546hNXD441O93wCBd+DbPaUjT4DjFR8yKlbmQ7obI7zs+ZLUtL5w7/z+eZteNHN8BpTU9TZ+H9ceah8uCBV0AX+srZjcpZ8dpTokoC9u55MZlogmEKD1g0itj4IBS5rGnCs8MjoFMgw8ZcyFHz/yay6WI1fSLTgDDKfO3UR2zWnS1I+BaQxWJc6M0gGY+fO14yoRkkF6bc+032/2UlxsY5D3h/K2VlOiWayph4JXD7IWxFS67cLxM3F1lqJHrb91mszkoERWcCv1PAaBl00mKMiBsOFUrNiKLvIAxEmLAEcys4fjIgj/BiT+nt806l/OebHycLfsZ3wcezI94Lw3voyBuG8MnCGuEiZAlGCLdaEYHKSvucbwFsY+1sfPy9MZB3KGEWVpjw1ywdb8Je1HIXdNkA2mTbWuzE74nC/ZcRJFXH2vYeVlLHZB0jd5Ldt97TSeh46vG9NKoe3YNSRYj2GTtkdM3GRbNxyacrBahE7USdLebAp9OA/jq4Z0+qD4bIMKPxav7uaD8VNA==
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR12MB5246.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(7416014)(376014)(1800799024)(366016)(6133799003)(18002099003)(22082099003)(921020)(4143699003)(11063799006)(10067099003)(56012099006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?Q3pEanJQMFI5ZHE0bkc5bFZXNkFxb3R0OEVQTDJ5SmhKdG5QSFpIQnRlalZH?=
+ =?utf-8?B?c1RxZlRUZ0VXcWdzdzVObWd1MjA0clNFV0VKZE9qNFNTUDRzdk4yTGRCTkQ2?=
+ =?utf-8?B?aUMrWHVxUU40czhWNnBhb1dGcURMcUdaQU8vd2M3Unk4WEFsbW83T2tOK2ky?=
+ =?utf-8?B?SjJwVW9td2F2SzY0elJvcGpUc3NGUVhYVE82V2R1aXROOFpnRTh6TmNvUGRW?=
+ =?utf-8?B?STYvOGUrbDhPRXRQN2R3ZEpuUnl1aFJHeTdzMVVGeEpQUmtSNGE0VEZmNktY?=
+ =?utf-8?B?enpIc044Q2IyWk1VYStyZjBEak92NmZ0Q1RVU0lxbUR4R05vYWNlUFZoakta?=
+ =?utf-8?B?Tm9YanllS1ZjOEtSYlVZWjdCMytORk9kS0s2NnJ6T2NMN2lwb1RCdW9YTUwz?=
+ =?utf-8?B?S0JETGllUEdDOXlJT1JYUURBSWNCandLUWhMK1J4T1FjNTlDNUVZYzhwMmVJ?=
+ =?utf-8?B?SE9TcU1ndjFJUnJwbGdOMGNoYTB1NTd6RTU5UU5TbVBsL3NBSkJaTmtYWGYx?=
+ =?utf-8?B?VHJ6VkN3bG5yUDVxZnFId0x0ZkhSU1RLYm8xRm1NNGF4SkhwY3V5Zis2anBO?=
+ =?utf-8?B?ZWw0aENOQmlhQTdtYzZ4QVVDMElqK1g3Qm44QXRSdm1uclNxblk1SXFTdzN2?=
+ =?utf-8?B?aGIzSitvVWQzclczekVjT1V3b3lMMkp3Z3JKRDNYNUtkQy90cWIyVDJNVng0?=
+ =?utf-8?B?U1NwSFNNYUMzcjlBaUlWRXN5a0RNT29aOUd3czRzb0dnVmNvMzU3aFhHRHNP?=
+ =?utf-8?B?S29EZVVtL05QTFdCbktDVnF0YWI3VlRVZHlyTGdKV0pTKzhxOFUwSTl3N1hG?=
+ =?utf-8?B?TFJlQy9samgyU2hobFNIdHJudGptNkxWdmpJaTQvZE95NHB1S2hBSHl1bXdB?=
+ =?utf-8?B?TmxYNFJqNnBUNnBPN3p1aU9aZk4vcjBjQ2k2Q0Z3M1FXYmxzdC9JQWx6Ukd4?=
+ =?utf-8?B?VXd1NEpXODRpY3Nxc1RoK3VyaDZiQ3RVS3ZBVnV5cCswdlF3RnEzWkhHUjNG?=
+ =?utf-8?B?cFRHWm9yWlp4UU40RmFmSW1TNEd5Sk03WTZEM0pOdGF5VUVMUGd3THJhNUpC?=
+ =?utf-8?B?T0RWK1ZKU3BwdTBvV0NMWlcxS21SWGl5blA4dHZ0aWh3Uk1aYmRuQjJWa0J4?=
+ =?utf-8?B?OTdkSytTL0NndlBFYnZTVGY5RENLbkVyQW1ha2NHWVpDZitQVDkyZ0VyK1hx?=
+ =?utf-8?B?WC9qTEhwQlhPem1IWUY5Q1BjekN2UDFNWlBlaHh6Z3ovZndwM2NoS2RQdmVy?=
+ =?utf-8?B?eUluT21nUVVJa2psV05HR3BoTVYzakdvT21tMkhLMkQ1NW9waWEzTE1aa0lk?=
+ =?utf-8?B?aU1tc3RWUCt2MVdibDNad2wxUkNNZGFMSUtRRFpDNDFrRnA0ZElwZTRwUTFF?=
+ =?utf-8?B?bVM1a3BxcFFSUTRHNlNGT1lqMUptc2RrSExlOEY3R0NnWXlLQTlGZFZjM24v?=
+ =?utf-8?B?VVRWdkNYNTBXdTZzTUJ4bUVjRjFUQXVQV0FlbFdxd244OWZiSEd6U250WWNk?=
+ =?utf-8?B?TUdJbmZvb0doWnZiZVF3eE9ycHZVblJWMW9JMnp4NU1sOVQrSGFOSzl4TGQ1?=
+ =?utf-8?B?MjFOUnBIZXVMMTBuRFBsUmlnSlNqbXNZZjRzbXJhWEw4bG9ORmh4UEtLUmEr?=
+ =?utf-8?B?L1UyVjNLcjVlYy9BREhFRE9jUENsZUg5UFVIWkpJNWVNbXRHSnBRSGxWMlNy?=
+ =?utf-8?B?d0x1K1RFZkZBR3k3ak9WM01Ob0swM2pTODdMTm1SemdaUVNJMEN2T3NPVVU3?=
+ =?utf-8?B?ZkJkaGlJdTFad3lzSm1QSzk2V0VzZEg4MDJaTTBXNFRONGloSUNnTm9qR05M?=
+ =?utf-8?B?Z0Z5NCtBMDJ6eU9VT3RieTB4QkN2N2M2cElXcDFNblBHT2p3SWJpT2gzajdM?=
+ =?utf-8?B?QTkrMkpob3hwYjNzSHpKeE14Q2h5WERML1F0bUU5SXJaMGpVQ25BSUJsZWtJ?=
+ =?utf-8?B?ZXREMHlSclZtdjhuMmQxUXpObnFIcEhSWi80N29vWlk5aFlPNi9qN3RwNVVK?=
+ =?utf-8?B?ODJjMGMyWFhvdE8xSkM0YTJmQ1FXOTJRVlVUcUc0VmJIVmJTYzFCbFdzQSsr?=
+ =?utf-8?B?OXFJZTBUbThzbVFxYmxnMytEcTZoTDZ3aFR0MHlqdVdTT0N0bEZKNDJKc291?=
+ =?utf-8?B?NGgydVVUbVNCVnJvSUpIblBlbnFCY0RjMjNZT0h3cnpKRXZPYzZjQktOM0VF?=
+ =?utf-8?B?UFMxS01qVzRiOFpwQ0ZNd1ljME9LKytoWXZOVVBtZTdiaFFSSWt3USt3YVJP?=
+ =?utf-8?B?aVFoaFZoS1BQR2h6QkU1SW5LNFo1UHVyYW51UVJLMUZIVGRCeTRnOFVFSzZO?=
+ =?utf-8?Q?hlXnzhpQz0zj7DAQdh?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: cddd7b44-cc32-4bf1-6982-08df1321b583
+X-MS-Exchange-CrossTenant-AuthSource: DM4PR12MB5246.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Sep 2026 12:06:01.3912
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: f8yusCO4QKZQjS79bOqTFUu8uf3f+JcQl+EImSxYwR+ojIEftTLxL8zxEoXWq0rp8l3rnoPRvkY32QBvsDJsYw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR12MB7676
 
-On Mon 14-09-26 18:49:38, Kyle Meyer wrote:
-> Soft offlining a HugeTLB page dissolves it, permanently reducing the
-> HugeTLB page pool. This can be problematic for workloads that depend on
-> a fixed number of HugeTLB pages.
-> 
-> Currently, soft offline must be disabled to prevent HugeTLB pages from
-> being soft offlined.
-> 
-> This patch allows soft offline to be disabled for HugeTLB pages while
-> remaining enabled for non-HugeTLB pages.
-> 
-> Commit 56374430c5dfc ("mm/memory-failure: userspace controls
-> soft-offlining pages") introduced the following sysctl interface to
-> control soft offline:
-> 
-> /proc/sys/vm/enable_soft_offline
-> 
-> The interface does not distinguish between page types:
-> 
->     0 - Soft offline is disabled
->     1 - Soft offline is enabled
-> 
-> Convert enable_soft_offline to a bitmask and support disabling soft
-> offline for HugeTLB pages:
-> 
-> Bits:
-> 
->     0 - Enable soft offline
->     1 - Disable soft offline for HugeTLB pages
-> 
-> Supported values:
-> 
->     0 - Soft offline is disabled
->     1 - Soft offline is enabled
->     3 - Soft offline is enabled (disabled for HugeTLB pages)
-> 
-> Existing behavior is preserved.
-> 
-> Update documentation and HugeTLB soft offline selftests.
 
-This is adding a lot of user interfaces to control something you can
-disable by config option for an admin only functionality.
-I fail to to see any actual justification for all of that. If an admin
-can disolve a hugetlb page it has power to allocate a new one as well.
-Not to menation that the whole soft offlining is mostly a testing
-feature so adding a lot of fine grained configuration space seems
-excessive to me.
 
-> Suggested-by: Tony Luck <tony.luck@intel.com>
-> Signed-off-by: Kyle Meyer <kyle.meyer@hpe.com>
-> ---
+On 01/09/26 13:54, Jie Zhan wrote:
+> External email: Use caution opening links or attachments
 > 
-> Tony's patch:
-> * https://lore.kernel.org/all/20250904155720.22149-1-tony.luck@intel.com
 > 
-> v1:
-> * https://lore.kernel.org/all/aMGkAI3zKlVsO0S2@hpe.com
+> Hi Sumit,
 > 
-> v1 -> v2:
-> * Make the interface extensible, as suggested by David.
-> * Preserve existing behavior, as suggested by Jiaqi and David.
-> * https://lore.kernel.org/all/aMiu_Uku6Y5ZbuhM@hpe.com
+> Sorry for catching up late.
 > 
-> v2 -> v3:
-> * Minor documentation updates.
-> * Use page_folio(page) instead of pfn_folio(pfn) for HugeTLB page check.
+> A few questions inline.
 > 
-> ---
->  .../ABI/testing/sysfs-memory-page-offline     |  3 +++
->  Documentation/admin-guide/sysctl/vm.rst       | 27 +++++++++++++++----
->  mm/memory-failure.c                           | 17 +++++++++---
->  .../selftests/mm/hugetlb-soft-offline.c       | 19 ++++++++++---
->  4 files changed, 54 insertions(+), 12 deletions(-)
-> 
-> diff --git a/Documentation/ABI/testing/sysfs-memory-page-offline b/Documentation/ABI/testing/sysfs-memory-page-offline
-> index 00f4e35f916f..19aa539fb910 100644
-> --- a/Documentation/ABI/testing/sysfs-memory-page-offline
-> +++ b/Documentation/ABI/testing/sysfs-memory-page-offline
-> @@ -20,6 +20,9 @@ Description:
->  		number, or a error when the offlining failed.  Reading
->  		the file is not allowed.
->  
-> +		Soft-offline can be controlled via sysctl:
-> +		Documentation/admin-guide/sysctl/vm.rst
-> +
->  What:		/sys/devices/system/memory/hard_offline_page
->  Date:		Sep 2009
->  KernelVersion:	2.6.33
-> diff --git a/Documentation/admin-guide/sysctl/vm.rst b/Documentation/admin-guide/sysctl/vm.rst
-> index 5b318d17aa4b..ee1941e44643 100644
-> --- a/Documentation/admin-guide/sysctl/vm.rst
-> +++ b/Documentation/admin-guide/sysctl/vm.rst
-> @@ -309,16 +309,33 @@ physical memory) vs performance / capacity implications in transparent and
->  HugeTLB cases.
->  
->  For all architectures, enable_soft_offline controls whether to soft offline
-> -memory pages.  When set to 1, kernel attempts to soft offline the pages
-> -whenever it thinks needed.  When set to 0, kernel returns EOPNOTSUPP to
-> -the request to soft offline the pages.  Its default value is 1.
-> +memory pages.
->  
-> -It is worth mentioning that after setting enable_soft_offline to 0, the
-> +enable_soft_offline is a bitmask:
-> +
-> +Bits::
-> +
-> +	0 - Enable soft offline
-> +	1 - Disable soft offline for HugeTLB pages
-> +
-> +Supported values::
-> +
-> +	0 - Soft offline is disabled
-> +	1 - Soft offline is enabled
-> +	3 - Soft offline is enabled (disabled for HugeTLB pages)
-> +
-> +The default value is 1.
-> +
-> +If soft offline is disabled for the requested page type, EOPNOTSUPP is returned.
-> +
-> +It is worth mentioning that after disabling soft offline, the
->  following requests to soft offline pages will not be performed:
->  
-> +- Request to soft offline pages from sysfs.
-> +
->  - Request to soft offline pages from RAS Correctable Errors Collector.
->  
-> -- On ARM, the request to soft offline pages from GHES driver.
-> +- Request to soft offline pages from GHES driver.
->  
->  - On PARISC, the request to soft offline pages from Page Deallocation Table.
->  
-> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-> index a8b03e2920ba..6c4ce39f46df 100644
-> --- a/mm/memory-failure.c
-> +++ b/mm/memory-failure.c
-> @@ -69,11 +69,14 @@
->  #include "page_alloc.h"
->  #include "internal.h"
->  
-> +#define SOFT_OFFLINE_ENABLED		BIT(0)
-> +#define SOFT_OFFLINE_SKIP_HUGETLB	BIT(1)
-> +
->  static int sysctl_memory_failure_early_kill __read_mostly;
->  
->  static int sysctl_memory_failure_recovery __read_mostly = 1;
->  
-> -static int sysctl_enable_soft_offline __read_mostly = 1;
-> +static int sysctl_enable_soft_offline __read_mostly = SOFT_OFFLINE_ENABLED;
->  
->  static int sysctl_panic_on_unrecoverable_mf __read_mostly;
->  
-> @@ -157,7 +160,7 @@ static const struct ctl_table memory_failure_table[] = {
->  		.mode		= 0644,
->  		.proc_handler	= proc_dointvec_minmax,
->  		.extra1		= SYSCTL_ZERO,
-> -		.extra2		= SYSCTL_ONE,
-> +		.extra2		= SYSCTL_THREE,
->  	},
->  	{
->  		.procname	= "panic_on_unrecoverable_memory_failure",
-> @@ -2982,12 +2985,20 @@ int soft_offline_page(unsigned long pfn, int flags)
->  		return -EIO;
->  	}
->  
-> -	if (!sysctl_enable_soft_offline) {
-> +	if (!(sysctl_enable_soft_offline & SOFT_OFFLINE_ENABLED)) {
->  		pr_info_once("disabled by /proc/sys/vm/enable_soft_offline\n");
->  		put_ref_page(pfn, flags);
->  		return -EOPNOTSUPP;
->  	}
->  
-> +	if (sysctl_enable_soft_offline & SOFT_OFFLINE_SKIP_HUGETLB) {
-> +		if (folio_test_hugetlb(page_folio(page))) {
-> +			pr_info_once("disabled for HugeTLB pages by /proc/sys/vm/enable_soft_offline\n");
-> +			put_ref_page(pfn, flags);
-> +			return -EOPNOTSUPP;
-> +		}
-> +	}
-> +
->  	mutex_lock(&mf_mutex);
->  
->  	if (PageHWPoison(page)) {
-> diff --git a/tools/testing/selftests/mm/hugetlb-soft-offline.c b/tools/testing/selftests/mm/hugetlb-soft-offline.c
-> index bc202e4ed2bd..9837c315a81e 100644
-> --- a/tools/testing/selftests/mm/hugetlb-soft-offline.c
-> +++ b/tools/testing/selftests/mm/hugetlb-soft-offline.c
-> @@ -5,6 +5,8 @@
->   *   offlining failed with EOPNOTSUPP.
->   * - if enable_soft_offline = 1, a hugepage should be dissolved and
->   *   nr_hugepages/free_hugepages should be reduced by 1.
-> + * - if enable_soft_offline = 3, HugeTLB pages should stay intact and soft
-> + *   offlining failed with EOPNOTSUPP.
->   *
->   * The test allocates 8 default hugepages
->   */
-> @@ -31,6 +33,9 @@
->  
->  #define EPREFIX " !!! "
->  
-> +#define SOFT_OFFLINE_ENABLED		(1 << 0)
-> +#define SOFT_OFFLINE_SKIP_HUGETLB	(1 << 1)
-> +
->  static int do_soft_offline(int fd, size_t len, int expect_errno)
->  {
->  	char *filemap = NULL;
-> @@ -55,6 +60,7 @@ static int do_soft_offline(int fd, size_t len, int expect_errno)
->  	ksft_print_msg("Allocated %#lx bytes of hugetlb pages\n", len);
->  
->  	hwp_addr = filemap + len / 2;
-> +	errno = 0;
->  	ret = madvise(hwp_addr, pagesize, MADV_SOFT_OFFLINE);
->  	ksft_print_msg("MADV_SOFT_OFFLINE %p ret=%d, errno=%d\n",
->  		       hwp_addr, ret, errno);
-> @@ -82,7 +88,7 @@ static int set_enable_soft_offline(int value)
->  	char cmd[256] = {0};
->  	FILE *cmdfile = NULL;
->  
-> -	if (value != 0 && value != 1)
-> +	if (value < 0 || value > 3)
->  		return -EINVAL;
->  
->  	sprintf(cmd, "echo %d > /proc/sys/vm/enable_soft_offline", value);
-> @@ -128,13 +134,17 @@ static int create_hugetlbfs_file(struct statfs *file_stat)
->  static void test_soft_offline_common(int enable_soft_offline)
->  {
->  	int fd;
-> -	int expect_errno = enable_soft_offline ? 0 : EOPNOTSUPP;
-> +	int expect_errno = 0;
->  	struct statfs file_stat;
->  	unsigned long hugepagesize_kb = 0;
->  	unsigned long nr_hugepages_before = 0;
->  	unsigned long nr_hugepages_after = 0;
->  	int ret;
->  
-> +	if (!(enable_soft_offline & SOFT_OFFLINE_ENABLED) ||
-> +	    (enable_soft_offline & SOFT_OFFLINE_SKIP_HUGETLB))
-> +		expect_errno = EOPNOTSUPP;
-> +
->  	ksft_print_msg("Test soft-offline when enabled_soft_offline=%d\n",
->  		       enable_soft_offline);
->  
-> @@ -165,7 +175,7 @@ static void test_soft_offline_common(int enable_soft_offline)
->  	// No need for the hugetlbfs file from now on.
->  	close(fd);
->  
-> -	if (enable_soft_offline) {
-> +	if (expect_errno == 0) {
->  		if (nr_hugepages_before != nr_hugepages_after + 1) {
->  			ksft_test_result_fail("MADV_SOFT_OFFLINE should reduced 1 hugepage\n");
->  			return;
-> @@ -190,8 +200,9 @@ int main(int argc, char **argv)
->  	if (!hugetlb_setup_default(8))
->  		ksft_exit_skip("not enough hugetlb pages\n");
->  
-> -	ksft_set_plan(2);
-> +	ksft_set_plan(3);
->  
-> +	test_soft_offline_common(3);
->  	test_soft_offline_common(1);
->  	test_soft_offline_common(0);
->  
-> -- 
-> 2.51.0
+> Regards,
+> Jie
 
--- 
-Michal Hocko
-SUSE Labs
+
+Hi Jie,
+
+Thanks for the review and sorry for the late reply.
+
+
+> 
+> On 8/7/2026 4:08 AM, Sumit Gupta wrote:
+>> Without online()/offline() callbacks, the cpufreq core fully tears
+>> down a policy during exit() when its last online CPU is offlined, and
+>> rebuilds it during init() when it comes back.
+>>
+>> Add lightweight online()/offline() callbacks so the core instead keeps
+>> the policy live and reuses the driver's cpu_data across CPU hotplug.
+>> This avoids re-reading the CPPC capabilities on every offline/online,
+>> making CPU hotplug faster.
+>>
+>> Move what init() and exit() did on hotplug into the new callbacks:
+>>
+>>    - offline() requests the lowest desired performance, as exit() did.
+>>    - online() re-enables CPPC and restores the performance controls, as
+>>      the platform may have reset them. Failures are logged, not returned,
+>>      as the core would free the policy.
+>>    - online() also resyncs the frequency invariance counters, so that the
+>>      first tick does not measure across the offline window.
+>>
+>> The restore in online() uses cppc_set_perf(), which writes MIN before
+>> MAX. If the platform lowered MAX while the CPU was offline, writing the
+>> saved MIN could briefly leave MIN above MAX on registers not accessed
+>> through PCC, as PCC delivers the writes in one transaction. Raise MAX
+>> ahead of the restore when the saved MIN is above it.
+>>
+>> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
+>> ---
+>>   drivers/cpufreq/cppc_cpufreq.c | 128 +++++++++++++++++++++++++++++++++
+>>   1 file changed, 128 insertions(+)
+>>
+>> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+>> index 80893844353c..4b3da9a3e122 100644
+>> --- a/drivers/cpufreq/cppc_cpufreq.c
+>> +++ b/drivers/cpufreq/cppc_cpufreq.c
+>> @@ -211,6 +211,29 @@ static void cppc_cpufreq_cpu_fie_exit(struct cpufreq_policy *policy)
+>>        }
+>>   }
+>>
+>> +/*
+>> + * Resync the counter snapshot, as the policy is kept across CPU hotplug and
+>> + * the first tick after online would otherwise span the offline window.
+>> + */
+>> +static void cppc_cpufreq_cpu_fie_resync(struct cpufreq_policy *policy)
+>> +{
+>> +     struct cppc_freq_invariance *cppc_fi;
+>> +     int cpu, ret;
+>> +
+>> +     if (fie_disabled)
+>> +             return;
+>> +
+>> +     /* policy->cpus still holds related_cpus here, so skip offline CPUs. */
+>> +     for_each_cpu_and(cpu, policy->cpus, cpu_online_mask) {
+>> +             cppc_fi = &per_cpu(cppc_freq_inv, cpu);
+>> +
+>> +             ret = cppc_get_perf_ctrs(cpu, &cppc_fi->prev_perf_fb_ctrs);
+>> +             if (ret)
+>> +                     pr_debug("%s: failed to read perf counters for cpu:%d: %d\n",
+>> +                              __func__, cpu, ret);
+>> +     }
+>> +}
+>> +
+>>   static void cppc_fie_kworker_init(void)
+>>   {
+>>        struct sched_attr attr = {
+>> @@ -281,6 +304,10 @@ static inline void cppc_cpufreq_cpu_fie_exit(struct cpufreq_policy *policy)
+>>   {
+>>   }
+>>
+>> +static inline void cppc_cpufreq_cpu_fie_resync(struct cpufreq_policy *policy)
+>> +{
+>> +}
+>> +
+>>   static inline void cppc_freq_invariance_init(void)
+>>   {
+>>   }
+>> @@ -735,6 +762,105 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
+>>        return ret;
+>>   }
+>>
+>> +/*
+>> + * With offline() defined, the cpufreq core keeps the policy alive when
+>> + * a CPU is hotplugged out.
+>> + */
+>> +static int cppc_cpufreq_cpu_offline(struct cpufreq_policy *policy)
+>> +{
+>> +     struct cppc_cpudata *cpu_data = policy->driver_data;
+>> +     struct cppc_perf_ctrls perf_ctrls = cpu_data->perf_ctrls;
+>> +     unsigned int cpu = policy->cpu;
+>> +     int ret;
+>> +
+>> +     /*
+>> +      * Request the lowest desired performance while the policy has no online
+>> +      * CPU. Zeroing MIN and MAX makes cppc_set_perf() leave them unchanged.
+>> +      */
+>> +     perf_ctrls.desired_perf = cpu_data->perf_caps.lowest_perf;
+>> +     perf_ctrls.min_perf = 0;
+>> +     perf_ctrls.max_perf = 0;
+>> +
+>> +     ret = cppc_set_perf(cpu, &perf_ctrls);
+>> +     if (ret)
+>> +             pr_debug("Err setting perf value:%u on CPU:%u. ret:%d\n",
+>> +                      cpu_data->perf_caps.lowest_perf, cpu, ret);
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +/*
+>> + * Raise MAX ahead of the full restore when the requested MIN is above the
+>> + * current MAX. cppc_set_perf() writes MIN before MAX, so the platform would
+>> + * otherwise briefly see MIN above MAX on registers not accessed through PCC.
+>> + * Lowering MAX is safe, as the MIN written first is never above it.
+>> + */
+>> +static int
+>> +cppc_cpufreq_prepare_perf_restore(unsigned int cpu,
+>> +                               const struct cppc_perf_ctrls *target)
+>> +{
+>> +     struct cppc_perf_ctrls cur = {}, prep = {};
+>> +     int ret;
+>> +
+>> +     ret = cppc_get_perf(cpu, &cur);
+>> +     if (ret)
+>> +             return ret;
+>> +
+>> +     if (!cur.max_perf || target->min_perf <= cur.max_perf)
+>> +             return 0;
+>> +
+>> +     prep.desired_perf = target->desired_perf;
+>> +     prep.min_perf = 0;      /* Zero leaves MIN unchanged. */
+>> +     prep.max_perf = target->max_perf;
+>> +
+>> +     return cppc_set_perf(cpu, &prep);
+>> +}
+>> +
+>> +/*
+>> + * Restore what the CPU may have lost while offline, as the platform may have
+>> + * disabled CPPC and reset the performance controls. Never fail the callback,
+>> + * or the core would free the policy and leave the CPU without cpufreq. The
+>> + * governor redoes the control writes, so they are best effort, unlike the
+>> + * enable, which only a later online() can retry.
+> Sorry, I don't quite understand the last sentence.
+
+
+Will rewrite in v5 as below:
+
+  Report failures without returning them, or the core would free the
+  policy and leave the CPU without cpufreq. A failed write to the
+  performance controls is not fatal, as the governor's next request
+  programs them again. A failed CPPC enable stops the restore, as the
+  writes that follow may not reach the platform.
+
+>> + */
+>> +static int cppc_cpufreq_cpu_online(struct cpufreq_policy *policy)
+>> +{
+>> +     struct cppc_cpudata *cpu_data = policy->driver_data;
+>> +     unsigned int cpu = policy->cpu;
+>> +     int ret;
+>> +
+>> +     cppc_cpufreq_cpu_fie_resync(policy);
+>> +
+>> +     ret = cppc_set_enable(cpu, true);
+>> +     if (ret && ret != -EOPNOTSUPP) {
+>> +             pr_warn("Failed to re-enable CPPC for CPU%u (%d)\n", cpu, ret);
+>> +             return 0;
+>> +     }
+>> +
+>> +     /*
+>> +      * The platform may reset the controls while the CPU is offline, so
+>> +      * recompute min/max, clamp desired_perf into range, and reprogram them.
+>> +      */
+>> +     cppc_cpufreq_update_perf_limits(cpu_data, policy);
+>> +
+>> +     cpu_data->perf_ctrls.desired_perf =
+>> +             clamp_t(u32, cpu_data->perf_ctrls.desired_perf,
+>> +                     cpu_data->perf_ctrls.min_perf,
+>> +                     cpu_data->perf_ctrls.max_perf);
+>> +
+>> +     ret = cppc_cpufreq_prepare_perf_restore(cpu, &cpu_data->perf_ctrls);
+> Actually, I don't quite think this is necessary?
+> 
+> The motivation of doing this is fair (as mentioned in v3), but what's the
+> real consequence of transiently setting min_perf larger than max_perf?
+> Platforms should be able to handle this.
+> 
+> Even if we have to fix it, it's supposed to be done in cppc_acpi.c.  The
+> current ABI wraps many things up.  cppc_get_perf() reads 4 values -
+> min_perf, max_perf, energy_perf, auto_sel.  cppc_set_perf writes 3
+> values - desired_perf, min_perf, max_perf.  The cppc_cpufreq driver would
+> be able to handle performance setting cleaner if those are separated.
+> 
+> I don't suggest we complicate the driver for now?
+
+Agreed that it is not hotplug specific and can be done in the
+generic API.
+
+cppc_set_perf() would have to know the programmed MIN and MAX to pick
+the write order. Separate accessors would let it read only those two,
+but that would add a read before every write, including fast_switch().
+Caching what was last written would avoid that, but the platform can
+reset the registers while the CPU is offline or suspended.
+
+I added this in response to Christian's comment on v3 [1], so I would
+prefer to keep it here for now. If the generic fix is still wanted, I
+can send the core API changes separately and we can discuss it there.
+
+>> +     if (ret)
+>> +             pr_debug("Failed to reorder perf restore on CPU%u (%d)\n",
+>> +                      cpu, ret);
+>> +
+>> +     ret = cppc_set_perf(cpu, &cpu_data->perf_ctrls);
+>> +     if (ret)
+>> +             pr_debug("Failed to reapply perf request on CPU%u (%d)\n",
+>> +                      cpu, ret);
+>> +
+>> +     return 0;
+>> +}
+>> +
+>>   static void cppc_cpufreq_cpu_exit(struct cpufreq_policy *policy)
+>>   {
+>>        struct cppc_cpudata *cpu_data = policy->driver_data;
+> For neatness, can we place the above functions after cppc_cpufreq_cpu_exit()?
+> such that the order of source functions would be the same as the following
+> structure, i.e. init, exit, online, offline, and perhaps, suspend, resume.
+
+Will change the order in v5, matching cppc_cpufreq_driver.
+
+Thanks,
+Sumit
+
+....
+
