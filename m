@@ -1,359 +1,167 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 39FD74AC173;
-	Tue, 15 Sep 2026 16:33:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mx0a-002e3701.pphosted.com (mx0a-002e3701.pphosted.com [148.163.147.86])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87B9649E5E6;
+	Tue, 15 Sep 2026 17:56:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.147.86
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789490023; cv=none; b=KvJkG5VBO+JJZRXa1wVzHOp1/1qk05oZCKHDCYTOuIcdzA/RGX+s4767PmDAOUreHQjWQTt6pPEI0dtKlikKt8k2BB3taENWJT3D2XOpqt7iUCpp2T/Qs+Rx41YPlxNqUyAKN0XRL0/Yw+2UVwjdC8S5a0qEs9CYdK8i0EaXJX4=
+	t=1789494980; cv=none; b=DB8NlwizsfdHQDYCC2tybaTcg9dV6M7Uf5a/XHEbo2TdU+nROr4yYXcTPIUQfTr9G0ihyb6MVTsAHxHIHsh0WEmWWzubyB3XiT198SH+Ee6qEsEYGxDnhYHS7eW/yIXKiksgUbDJUfXCl6uDgKC1SY7KNGgPmI8EB/6TnDbxgCA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789490023; c=relaxed/simple;
-	bh=xx9eB9u6r/WPdeitcGw2Om+PjZvqR8Z+lIOP5XRrVY8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Ptxm9eXAM7O42ANfwimejrUQ/tODky/gG3oP4yMcf0MwkDLUmhELQNRNu2JU/o50cdKFVB96rz+I5qhlWkGThOe7Zr9shqO2bt/Ah4AEqfRSMFcGFjmjZ0Zh0JGjJiDG2W+/cekq+fxSuquJgJxiibqAdvWrkn7rJgsykx4dhLo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=vqwxgydT; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1789494980; c=relaxed/simple;
+	bh=EwzSM2YpKfya0JXRveWZ69rYR1xw5kgFdDFZ8hLc6HA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=IIPXy0gSGUhChIq94CbuID7ItJHmRK71c23nHUqBiFdBbkhvEJHXtT9lz/KnjBrB2zsXFeJxelCam5q5hQC/IY0kH+DZ9L9KYagxaBAQVa5xUrIUTcq8O5MXdNJNVjNKElRSE6Nc8hdrdlpqCjwZELOJn5n4qsDseyx7n9+pUAs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=hpe.com; spf=pass smtp.mailfrom=hpe.com; dkim=pass (2048-bit key) header.d=hpe.com header.i=@hpe.com header.b=JtkvPdj9; arc=none smtp.client-ip=148.163.147.86
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=hpe.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hpe.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="vqwxgydT"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D36A3153B;
-	Tue, 15 Sep 2026 09:33:36 -0700 (PDT)
-Received: from [10.2.212.8] (e134344.arm.com [10.2.212.8])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id D028F3F882;
-	Tue, 15 Sep 2026 09:33:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1789490020; bh=xx9eB9u6r/WPdeitcGw2Om+PjZvqR8Z+lIOP5XRrVY8=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=vqwxgydT5NzhSN2Z0f9rmyeFnEtco07D31rIA9SQlSfdE/XzlJiHZkDflSA7mNkJc
-	 Rt7eAFb/2C7+ukOgRoKB0XBmy5vieAWEpflOB33ervcsvf9gWWnmmoGnXFejOYsblI
-	 35ZRlK1YmKTVj3O/JeUwKO91ZaT0TwGXhFYXSGAM=
-Message-ID: <e78cf6bc-2180-48ae-a384-aebf82f38832@arm.com>
-Date: Tue, 15 Sep 2026 17:33:36 +0100
+	dkim=pass (2048-bit key) header.d=hpe.com header.i=@hpe.com header.b="JtkvPdj9"
+Received: from pps.filterd (m0150241.ppops.net [127.0.0.1])
+	by mx0a-002e3701.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68FHsVqr2942025;
+	Tue, 15 Sep 2026 17:55:13 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=hpe.com; h=cc
+	:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=pps0720; bh=PNlXKXX5IyXBrJN4ylgfbuPEUG
+	zQwPHtOwfHhk/bIe4=; b=JtkvPdj9EgRpDPcHrWl7UiRg4FD51sG7bJwVBqU6NW
+	Uf9ZBrOUOIdWZdWKf3O6D1LdCvuCCfHBVsothhkDzcEQvQqpUa+X3DE2tXlkrmaq
+	TwHA1tHiyDDO39sk9SEBf3lo8SVxRGAdRe/PmOH1oG2U32Ew1HRH3/0SvQnq+ooO
+	K2eGSGVE35K+NtUNjDt9OOnemYoYORplPC7JhdkdpeH9DTdCYMi3Gziqdeq3MRUw
+	O5s18X3g6ws5CMnEnGIjZAuhE5rAO37Xlpzok4myiSzSteUdQL3O4OYsdgwNOqRJ
+	wJibhZ7YuJ/A1lYAxITpmgTpsQD3Am432oLyRbNyZ3hw==
+Received: from p1lg14879.it.hpe.com (p1lg14879.it.hpe.com [16.230.97.200])
+	by mx0a-002e3701.pphosted.com (PPS) with ESMTPS id 4gq95pstj8-1
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Tue, 15 Sep 2026 17:55:12 +0000 (GMT)
+Received: from p1lg14885.dc01.its.hpecorp.net (unknown [10.119.18.236])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by p1lg14879.it.hpe.com (Postfix) with ESMTPS id 6BD1312EB9;
+	Tue, 15 Sep 2026 17:55:11 +0000 (UTC)
+Received: from HPE-5CG20646DK.localdomain (unknown [16.231.227.36])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(Client did not present a certificate)
+	by p1lg14885.dc01.its.hpecorp.net (Postfix) with ESMTPS id B4FBC805E88;
+	Tue, 15 Sep 2026 17:55:06 +0000 (UTC)
+Date: Tue, 15 Sep 2026 12:55:03 -0500
+From: Kyle Meyer <kyle.meyer@hpe.com>
+To: Michal Hocko <mhocko@suse.com>
+Cc: akpm@linux-foundation.org, corbet@lwn.net, david@redhat.com,
+        linmiaohe@huawei.com, shuah@kernel.org, tony.luck@intel.com,
+        jane.chu@oracle.com, jiaqiyan@google.com, Liam.Howlett@oracle.com,
+        bp@alien8.de, hannes@cmpxchg.org, jack@suse.cz,
+        joel.granados@kernel.org, laoar.shao@gmail.com,
+        lorenzo.stoakes@oracle.com, mclapinski@google.com,
+        nao.horiguchi@gmail.com, osalvador@suse.de, rafael.j.wysocki@intel.com,
+        rppt@kernel.org, russ.anderson@hpe.com, shawn.fan@intel.com,
+        surenb@google.com, vbabka@suse.cz, linux-acpi@vger.kernel.org,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-kselftest@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH v3] mm/memory-failure: Support disabling soft offline for
+ HugeTLB pages
+Message-ID: <aqmGd0GGUCkbZpkZ@hpe.com>
+References: <aqiIEkrc6aDBOqRg@hpe.com>
+ <aqkCbgHmMGxI_GLG@tiehlicka>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v10 12/14] arm_mpam: detect and enable MPAM-Fb PCC support
-To: Andre Przywara <andre.przywara@arm.com>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
- <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- James Morse <james.morse@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
-Cc: Jonathan Cameron <jic23@kernel.org>,
- Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
- Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
- Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
- Niyas Sait <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
- Ritwick Sharma <ritwick.sharma@arm.com>, Gavin Shan <gshan@redhat.com>,
- linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-kernel@vger.kernel.org
-References: <20260911112835.714162-1-andre.przywara@arm.com>
- <20260911112835.714162-13-andre.przywara@arm.com>
-Content-Language: en-US
-From: Ben Horgan <ben.horgan@arm.com>
-In-Reply-To: <20260911112835.714162-13-andre.przywara@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aqkCbgHmMGxI_GLG@tiehlicka>
+X-Proofpoint-ORIG-GUID: ZGyhASJQPrkZtald6s-qe-XaJzb3rLwu
+X-Authority-Analysis: v=2.4 cv=SJ3Xx+vH c=1 sm=1 tr=0 ts=6aa98681 cx=c_pps
+ a=5jkVtQsCUlC8zk5UhkBgHg==:117 a=5jkVtQsCUlC8zk5UhkBgHg==:17
+ a=kj9zAlcOel0A:10 a=VdqzKS8jKosA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=gQcMVamqm3wCPoSYhaRC:22 a=_ZmgHqWwjZUDpi_pur5s:22 a=VwQbUJbxAAAA:8
+ a=MvuuwTCpAAAA:8 a=OCHxr62PC90mTwIpeikA:9 a=CjuIK1q_8ugA:10
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTE1MDI2MCBTYWx0ZWRfX/bF3jfMe5L2R
+ j63mU1nIBKQUtxaBXijRxEhjpUkMVc4zIvOsjeAo1gXa6d8EaQ3zY67L76NuqyOpj1PqfHtArmO
+ 2vl0Zj/ywj1xKqs1a/mzZMNwlkOXYrqejAwJQ505r93PdMuHej9YKGoy+OOhjdgIGcbnHU5kPaU
+ yvvrSCWy5ejLgHtdaE3GjSon0dkRbhoyLPGlPM5ivm10iaII7ndWeW/6v4Wb+WicsOGN6iGbq5y
+ TmACnEazHYCmP+PBiUKK1AlL2cSjGIx6qbmqEPScHv5nRJqfghhw+WYCVTjioKj934H6QVwbEyn
+ +l7ofYSeMOrVz1JhspzsrFr1N4lD/2CI+O885v1QKv5nzT3CrROQPCxW5DGn1rcxZV1AAEnv7EB
+ 8HBx6GOAVf7DeSMdD7b3ATQFGeRAgDSkWYdpFHxj64RkQev4NJH17HwCiED+iffIRQ5Flebq0JV
+ zWia0hniMaXW7l/WWHg==
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTE1MDI2MCBTYWx0ZWRfX63h0+WaHo6KX
+ o28u0TT4xIFnPPwvxBVPnt73ZCm6PXqMR4K+TANuw3CaFV5L9FIl2AQlI4GVDKvAEj81K9dRKGJ
+ DaYbaSq0UXlb+dnZCcP9Cbxr0DS1x+w=
+X-Proofpoint-GUID: ZGyhASJQPrkZtald6s-qe-XaJzb3rLwu
+X-HPE-SCL: -1
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-09-15_05,2026-09-15_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ suspectscore=0 priorityscore=1501 phishscore=0 adultscore=0 bulkscore=0
+ clxscore=1015 lowpriorityscore=0 malwarescore=0 spamscore=0 impostorscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609150260
 
-Hi Andre,
-
-On 11/09/2026 12:28, Andre Przywara wrote:
-> The Arm MPAM-Fb specification [1] describes a protocol to access MSC
-> registers through a firmware interface. This requires a shared memory
-> region to hold the message, and a mailbox to trigger the access.
-> For ACPI this is wrapped as a PCC channel, described using existing
-> ACPI abstractions.
+On Tue, Sep 15, 2026 at 10:31:42AM +0200, Michal Hocko wrote:
+> On Mon 14-09-26 18:49:38, Kyle Meyer wrote:
+> > Soft offlining a HugeTLB page dissolves it, permanently reducing the
+> > HugeTLB page pool. This can be problematic for workloads that depend on
+> > a fixed number of HugeTLB pages.
+> > 
+> > Currently, soft offline must be disabled to prevent HugeTLB pages from
+> > being soft offlined.
+> > 
+> > This patch allows soft offline to be disabled for HugeTLB pages while
+> > remaining enabled for non-HugeTLB pages.
+> > 
+> > Commit 56374430c5dfc ("mm/memory-failure: userspace controls
+> > soft-offlining pages") introduced the following sysctl interface to
+> > control soft offline:
+> > 
+> > /proc/sys/vm/enable_soft_offline
+> > 
+> > The interface does not distinguish between page types:
+> > 
+> >     0 - Soft offline is disabled
+> >     1 - Soft offline is enabled
+> > 
+> > Convert enable_soft_offline to a bitmask and support disabling soft
+> > offline for HugeTLB pages:
+> > 
+> > Bits:
+> > 
+> >     0 - Enable soft offline
+> >     1 - Disable soft offline for HugeTLB pages
+> > 
+> > Supported values:
+> > 
+> >     0 - Soft offline is disabled
+> >     1 - Soft offline is enabled
+> >     3 - Soft offline is enabled (disabled for HugeTLB pages)
+> > 
+> > Existing behavior is preserved.
+> > 
+> > Update documentation and HugeTLB soft offline selftests.
 > 
-> Add code to parse those PCC table descriptions associated with an MSC,
-> and store the parsed information in the MSC struct.
-> There can be multiple PCC channels, and each channel can serve multiple
-> MSCs, so we need to keep track of the channel usage, using a list and
-> a refcount.
-> 
-> This will be used by the MPAM-Fb access wrapper code.
-> 
-> [1] https://developer.arm.com/documentation/den0144/latest
-> 
-> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
-> Tested-by: Ritwick Sharma <ritwick.sharma@arm.com> # on Arm AGI CPU
-> Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-> Tested-by: Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>
-> Reviewed-by: Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>
-> Reviewed-by: Gavin Shan <gshan@redhat.com>
-> ---
->  drivers/resctrl/Kconfig         |   1 +
->  drivers/resctrl/mpam_devices.c  | 119 +++++++++++++++++++++++++++++++-
->  drivers/resctrl/mpam_fb.c       |  41 +++++++++++
->  drivers/resctrl/mpam_internal.h |   2 +
->  4 files changed, 161 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/resctrl/Kconfig b/drivers/resctrl/Kconfig
-> index 9591d792736e5..3f81638f57be3 100644
-> --- a/drivers/resctrl/Kconfig
-> +++ b/drivers/resctrl/Kconfig
-> @@ -2,6 +2,7 @@ menuconfig ARM64_MPAM_DRIVER
->  	bool "MPAM driver"
->  	depends on ARM64 && ARM64_MPAM
->  	select ACPI_MPAM if ACPI
-> +	select PCC if ACPI
->  	select MAILBOX
->  	help
->  	  Memory System Resource Partitioning and Monitoring (MPAM) driver for
-> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-> index 14dc8461e4b8f..150a529458388 100644
-> --- a/drivers/resctrl/mpam_devices.c
-> +++ b/drivers/resctrl/mpam_devices.c
-> @@ -20,14 +20,19 @@
->  #include <linux/irqdesc.h>
->  #include <linux/list.h>
->  #include <linux/lockdep.h>
-> +#include <linux/mailbox_client.h>
->  #include <linux/mutex.h>
->  #include <linux/platform_device.h>
->  #include <linux/printk.h>
-> +#include <linux/property.h>
->  #include <linux/srcu.h>
->  #include <linux/spinlock.h>
->  #include <linux/types.h>
->  #include <linux/workqueue.h>
->  
-> +#include <acpi/pcc.h>
-> +#include <acpi/acpi_io.h>
-> +
->  #include "mpam_internal.h"
->  
->  /* Values for the T241 errata workaround */
-> @@ -50,6 +55,87 @@ static LIST_HEAD(mpam_all_msc);
->  
->  struct srcu_struct mpam_srcu;
->  
-> +/* PCC channels might be serving multiple MSCs, so keep a refcounted list. */
-> +static DEFINE_MUTEX(pcc_chan_list_lock);
-> +static LIST_HEAD(pcc_chan_list);
-> +
-> +static void mpam_pcc_chan_release(struct kref *ref)
-> +{
-> +	struct mpam_pcc_chan *cur = container_of(ref, struct mpam_pcc_chan,
-> +						 refcount);
-> +
-> +	pcc_mbox_free_channel(cur->pcc_chan);
-> +	list_del(&cur->pcc_chans);
-> +	mutex_destroy(&cur->pcc_chan_lock);
-> +	kfree(cur);
-> +}
-> +
-> +static struct mpam_pcc_chan *mpam_pcc_chan_get(struct device *dev,
-> +					       int subspace_id)
-> +{
-> +	struct mpam_pcc_chan *cur;
-> +
-> +	guard(mutex)(&pcc_chan_list_lock);
-> +
-> +	list_for_each_entry(cur, &pcc_chan_list, pcc_chans) {
-> +		if (cur->subspace_id == subspace_id) {
-> +			kref_get(&cur->refcount);
-> +
-> +			return cur;
-> +		}
-> +	}
-> +
-> +	cur = kzalloc_obj(*cur);
-> +	if (!cur)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	cur->pcc_cl.tx_block = true;
-> +
-> +	cur->pcc_chan = pcc_mbox_request_channel(&cur->pcc_cl, subspace_id);
-> +	if (IS_ERR(cur->pcc_chan)) {
-> +		long err = PTR_ERR(cur->pcc_chan);
-> +
-> +		kfree(cur);
-> +		return ERR_PTR(err);
-> +	}
-> +
-> +	/*
-> +	 * Timeout based on the "nominal latency" in us, from the
-> +	 * PCC ACPI table. tx_tout is in ms.
-> +	 * Add some margin here to be on the safe side.
-> +	 */
-> +	cur->pcc_cl.tx_tout = DIV_ROUND_UP(cur->pcc_chan->latency * 5, 1000);
-> +
-> +	mutex_init(&cur->pcc_chan_lock);
-> +
-> +	cur->subspace_id = subspace_id;
-> +	kref_init(&cur->refcount);
-> +
-> +	list_add_tail(&cur->pcc_chans, &pcc_chan_list);
-> +
-> +	return cur;
-> +}
-> +
-> +static int mpam_pcc_chan_put(struct mpam_pcc_chan *pcc_chan)
-> +{
-> +	struct mpam_pcc_chan *cur, *tmp;
-> +
-> +	if (!pcc_chan)
-> +		return 0;
-> +
-> +	guard(mutex)(&pcc_chan_list_lock);
-> +
-> +	list_for_each_entry_safe(cur, tmp, &pcc_chan_list, pcc_chans) {
-> +		if (cur == pcc_chan) {
-> +			kref_put(&cur->refcount, mpam_pcc_chan_release);
-> +
-> +			return 0;
-> +		}
-> +	}
-> +
-> +	return -ENOENT;
-> +}
-> +
->  /*
->   * Number of MSCs that have been probed. Once all MSCs have been probed MPAM
->   * can be enabled.
-> @@ -2285,6 +2371,8 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
->  	if (!msc)
->  		return;
->  
-> +	mpam_pcc_chan_put(msc->pcc_chan);
-> +
+> This is adding a lot of user interfaces to control something you can
+> disable by config option for an admin only functionality.
 
-I think this should be in mpam_msc_destroy() so we don't leak the channel on mpam_disable().
+I may be missing it, but I'm not aware of a config option that disables soft
+offline specifically for HugeTLB pages.
 
-Thanks,
+> I fail to to see any actual justification for all of that. If an admin
+> can disolve a hugetlb page it has power to allocate a new one as well.
 
-Ben
+Allocating HugeTLB pages after boot is not guaranteed.
 
->  	mutex_lock(&mpam_list_lock);
->  	mpam_msc_destroy(msc);
->  	mutex_unlock(&mpam_list_lock);
-> @@ -2295,7 +2383,7 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
->  static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
->  {
->  	int err;
-> -	u32 tmp;
-> +	u32 pcc_subspace_id;
->  	struct mpam_msc *msc;
->  	struct resource *msc_res;
->  	struct device *dev = &pdev->dev;
-> @@ -2339,7 +2427,7 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
->  	if (err)
->  		return ERR_PTR(err);
->  
-> -	if (device_property_read_u32(&pdev->dev, "pcc-channel", &tmp))
-> +	if (device_property_read_u32(dev, "pcc-channel", &pcc_subspace_id))
->  		msc->iface = MPAM_IFACE_MMIO;
->  	else
->  		msc->iface = MPAM_IFACE_PCC;
-> @@ -2360,6 +2448,33 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
->  		}
->  		msc->mapped_hwpage_sz = msc_res->end - msc_res->start;
->  		msc->mapped_hwpage = io;
-> +	} else if (msc->iface == MPAM_IFACE_PCC) {
-> +		u32 mpam_fb_msc_id;
-> +
-> +		msc->pcc_chan = mpam_pcc_chan_get(dev, pcc_subspace_id);
-> +		if (IS_ERR(msc->pcc_chan)) {
-> +			pr_err("Failed to request MSC PCC channel\n");
-> +			return ERR_CAST(msc->pcc_chan);
-> +		}
-> +
-> +		err = mpam_fb_check_shared_buffer_size(msc);
-> +		if (err) {
-> +			mpam_pcc_chan_put(msc->pcc_chan);
-> +
-> +			return ERR_PTR(err);
-> +		}
-> +
-> +		err = mpam_fb_check_protocol_version(msc);
-> +		if (err) {
-> +			mpam_pcc_chan_put(msc->pcc_chan);
-> +
-> +			return ERR_PTR(err);
-> +		}
-> +
-> +		if (device_property_read_u32(&pdev->dev, "mpam-fb-msc-id",
-> +					     &mpam_fb_msc_id))
-> +			mpam_fb_msc_id = msc->id;
-> +		msc->mpam_fb_msc_id = mpam_fb_msc_id;
->  	} else {
->  		return ERR_PTR(-EINVAL);
->  	}
-> diff --git a/drivers/resctrl/mpam_fb.c b/drivers/resctrl/mpam_fb.c
-> index 98212f761de38..8fc1d78a7b5ab 100644
-> --- a/drivers/resctrl/mpam_fb.c
-> +++ b/drivers/resctrl/mpam_fb.c
-> @@ -20,10 +20,15 @@
->  #define MPAM_FB_PROTOCOL_ID		0x1a
->  
->  #define MPAM_PROTOCOL_VERSION_CMD	0x0
-> +#define MPAM_FB_VERSION_MAJOR_MASK		GENMASK_U32(31, 16)
-> +#define MPAM_FB_VERSION_MINOR_MASK		GENMASK_U32(15, 0)
-> +
->  #define MPAM_MSC_READ_CMD		0x4
->  #define MPAM_MSC_WRITE_CMD		0x5
->  
->  #define MPAM_FB_PROT_HEADER_LEN		sizeof(u32)
-> +/* The longest message is MPAM_MSC_WRITE, with 4 parameters. */
-> +#define MPAM_FB_MAX_MSG_SIZE		(4 * sizeof(u32))
->  
->  #define MPAM_FB_SUCCESS		 0
->  #define MPAM_FB_ERR_NOT_SUPPORTED	-1
-> @@ -209,3 +214,39 @@ int mpam_fb_send_write_request(struct mpam_msc *msc, u16 reg, u32 value)
->  	return mpam_fb_send_request(msc, msc->mpam_fb_msc_id, reg, &value,
->  				    MPAM_MSC_WRITE_CMD);
->  }
-> +
-> +/* We only support MPAM-Fb protocol version 1.x */
-> +int mpam_fb_check_protocol_version(struct mpam_msc *msc)
-> +{
-> +	u32 version;
-> +	int ret;
-> +
-> +	ret = mpam_fb_send_request(msc, 0, 0, &version,
-> +				   MPAM_PROTOCOL_VERSION_CMD);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (FIELD_GET(MPAM_FB_VERSION_MAJOR_MASK, version) != 1) {
-> +		pr_err("Incompatible MPAM-Fb protocol version %d.%d\n",
-> +		       FIELD_GET(MPAM_FB_VERSION_MAJOR_MASK, version),
-> +		       FIELD_GET(MPAM_FB_VERSION_MINOR_MASK, version));
-> +
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +int mpam_fb_check_shared_buffer_size(struct mpam_msc *msc)
-> +{
-> +	int min_buffer_size = MPAM_FB_MAX_MSG_SIZE +
-> +			      sizeof(struct acpi_pcct_ext_pcc_shared_memory);
-> +
-> +	if (msc->pcc_chan->pcc_chan->shmem_size < min_buffer_size) {
-> +		pr_err("MPAM-Fb PCC channel size too small.\n");
-> +
-> +		return -ENOMEM;
-> +	}
-> +
-> +	return 0;
-> +}
-> diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
-> index e5a2804facd2d..314d3b48ca9fd 100644
-> --- a/drivers/resctrl/mpam_internal.h
-> +++ b/drivers/resctrl/mpam_internal.h
-> @@ -538,6 +538,8 @@ static inline void mpam_resctrl_teardown_class(struct mpam_class *class) { }
->  /* MPAM-Fb Firmware-backed protocol wrappers */
->  int mpam_fb_send_read_request(struct mpam_msc *msc, u16 reg, u32 *result);
->  int mpam_fb_send_write_request(struct mpam_msc *msc, u16 reg, u32 value);
-> +int mpam_fb_check_protocol_version(struct mpam_msc *msc);
-> +int mpam_fb_check_shared_buffer_size(struct mpam_msc *msc);
->  
->  /*
->   * MPAM MSCs have the following register layout. See:
+> Not to menation that the whole soft offlining is mostly a testing
+> feature so adding a lot of fine grained configuration space seems
+> excessive to me.
 
+Can you elaborate on "mostly a testing feature"? For example, how does that
+apply to the BIOS/GHES path discussed here?
+
+https://lore.kernel.org/all/aMkOCmGBhZKhKPrI@hpe.com
+
+If you think this should be handled differently, I'm open to suggestions.
+
+Thanks for the feedback,
+Kyle Meyer
