@@ -1,62 +1,61 @@
-Received: from mail-pj2-f13.google.com (mail-pj2-f13.google.com [74.125.227.141])
+Received: from mail-pj2-f43.google.com (mail-pj2-f43.google.com [74.125.227.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8045346A5E2
-	for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2026 07:58:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.141
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 921AC463B69
+	for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2026 07:58:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789545546; cv=none; b=KBVyp1s5z4XAnBKlLtG3k4zOIWhd/SjUDW1FGn2JaUhzqAc4DmNEyTa29cCyEeiKbqg6l//j7p/vmu0v3xYWVsjIRl9IZidzQ9cmrgGOWRQRckQPSBkZa+upJM1A63SnNDxG6jg3XF/pWBgH8OeUodnU3DE5J0mPgsPZjrpGT8U=
+	t=1789545555; cv=none; b=NWJB3qEs2Q+uuEKJuLB4xGFPmppSD7I2NGOvzsqFoRCC6QwjgkVKsAJt/mJb+H8kDE0gvVTv0SpQuGqeqIfwrDXe8XSu7XPLHHVHvGKAoTZl1XeLSgbqPOh2+LwCtLcJv1qqajkIcUM4xECLDexwHpLW0/jwLjKz1OzBL1r1sbI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789545546; c=relaxed/simple;
-	bh=PPQwnBevhndYutuKDdDvehHKW7FqGHGO5QlRVDsedNs=;
+	s=arc-20240116; t=1789545555; c=relaxed/simple;
+	bh=/ZoutxQ0ZJmBlGurPpdzCW+RhJfBFL4vY9B17VjHF/E=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=kbZtRfFJvQnTyr1ArAogt9ikg12UaNX6Npo1rT3PT0h4oPnLZV0Mtu+XoiP1yvX40NxJd/ehgMafPGDq866DZQEgYtOQsSVcXncUheGz0BuLTjmaNp7w3RJHxUOtPpK0wH02PluW/E7Nm/AhOOnxVnTi6m3Koy+t/kQpBgvsSqY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=Ipq2ISt0; arc=none smtp.client-ip=74.125.227.141
+	 MIME-Version; b=bZ+Cktalt//1YSxyft3eaWJuFx+ueLw05fc0Qn70Bm2NCX5wnx97ml0Q3WqNpZjZDpWOrojr26ZWu+Rjq8TwPiOkbP5sKUhZzKvCugpQl77OizckiciQzAg4y+T5GgfIqxzKF+9V2cQpaalyYuee1hRLP/cz2NUsW4ZPPlYOk3s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=FBTGVx+X; arc=none smtp.client-ip=74.125.227.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="Ipq2ISt0"
-Received: by mail-pj2-f13.google.com with SMTP id 98e67ed59e1d1-396ccd5cf03so555982a91.1
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2026 00:58:52 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="FBTGVx+X"
+Received: by mail-pj2-f43.google.com with SMTP id 98e67ed59e1d1-39b910bdf2eso403214a91.2
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2026 00:58:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1789545528; x=1790150328; darn=vger.kernel.org;
+        d=chromium.org; s=google; t=1789545534; x=1790150334; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=SWwi8XOZ6LU+PxR6btCprbkiTyl3Q4dICGc4z937Hmk=;
-        b=Ipq2ISt0pOHBw/MedOHquRdKJL8cr81NU8lTbtIi0375m9EvnwtQ5Cu0+JLOohQWAH
-         Z2yAczKbLMHtbCZ1JR5dvkvOPKbIZp1zWutKzSKJouwlTG0iavUXgS6XXeUJucT/9HoF
-         LmR92+Lbp15SkFfG87C9Q9+StcoQp2bKXq/oQ=
+        bh=FWq5hvO3hBRGVn3uOxsC9S/weGAcU55UsXVnM8MhFFA=;
+        b=FBTGVx+XreBB0No3JY3I1ljaehiVfYG95okspG0lIcfJ0ts3QzC1LMLHABTdX2yWWp
+         9PWU/Ydh3Q+uKRyFcruT0v8o4FC17PT3WMMrKYJgcaRtDafztky3V1p6FKZnq9xp9V6t
+         Ospvv7BQNp1T2bA4cyb4AUR/7wmr/dmYv5J8E=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789545528; x=1790150328;
+        d=1e100.net; s=20260707; t=1789545534; x=1790150334;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=SWwi8XOZ6LU+PxR6btCprbkiTyl3Q4dICGc4z937Hmk=;
-        b=WWvitkJd1vAj5ob+3c3HlxvuB7bewx923oInzqhoMkt6goHEllFOu+AV2z21jNneiG
-         wWRkq/PSxvMO+mqGBvO8JXG93Ov4fZihe2UGhkGwL33keBKkOp2MqtTcIaTdWOSGHrT2
-         0xqKT8hQHMMlbjUQ2SmVM1946unl/mR3ntPKO1l5lSbGFsyhXxgVxV1b6+JIsNtW8mgC
-         czI37cGS1esJ4fk0sCWS0B8mkXah/BV7ZMlPP0LKKTLC7R8+yG72B6vvCO+YLYQRcqEP
-         Yr3Hjym4BtPauNzGMFfT6oGvribDKgUmFwibtv3SqEB7vDyuVDoIFIM/V1DcAIkUx17w
-         6VWA==
-X-Forwarded-Encrypted: i=1; AKwUvBzI+e7l0DeA8JCIXoMtI2RVT/PSSDUJ28OCedkJS4jeElysGDUqQXiH5TdN4wWjxz5saMAZ1D203eXe@vger.kernel.org
-X-Gm-Message-State: AFuF++n6GKi78tynjQPAUih2ornop7zo6Buc26USBMQsYpCerDtUINvb
-	kBgIN0Em+wwiNOvQLHiOsIVxrvnG51gHMrnc1ph59JHBHBgpVDQvG53Jasg4VLAaA6EHXBkxsVe
-	QHDM=
-X-Gm-Gg: AYBFou3S5fEp8WOS6wU1dMrmjB39diAQzzQwPaN9RiiP1bYZoUKzb+RX/LWbE9tzMsl
-	UMzPlULsQFmJjcaGxDpeyji7Qy1auk219AavICTXCUI25vQ6mzAr/WFZbUCaKKXYORoxhqyFBrI
-	MWwJb1isWGEpRJqyaRqQZNnt63fqg/oE7tLoznP7ZvamvoCngl4AqLMBJ18rYejkmM1jZIbPWdo
-	wbMbYxj3qrRgZdktcaGGwGAfH7o25lb84THzuWAeSXrLX/mfczSsnFTHISfaPHrptacToNlxAMu
-	+Z6Cm6JmXk1EvxTIUAIcmQleqdVNQ07FiINAqlHy4gvmfrGEXwuktkoaDUO/U29DRZ0Qm9W8lOw
-	sM+oo9+TbHISh61aMo/ZwqdsE1Ul15DLE+/wyObi7MEinNauFckRd/HQ0+rye+AIAYSRYzAYZ23
-	RNJsllJivMQzhTuqVlhIReLMvcwWILUiqC+aBDS6YtUg1xj7tAkKtm5umawV5Ullt+cmLCFDnfN
-	q7P7iazE17mlp4xyJjv+zb+61h7f5FEHJGOVlTLbloOUwlsqYROKlYc2287TqTT+cYS
-X-Received: by 2002:a17:90b:39a3:b0:39e:233f:cee9 with SMTP id 98e67ed59e1d1-39e233fd063mr2563733a91.11.1789545528600;
-        Wed, 16 Sep 2026 00:58:48 -0700 (PDT)
+        bh=FWq5hvO3hBRGVn3uOxsC9S/weGAcU55UsXVnM8MhFFA=;
+        b=DqGUZnvo3uWv/VQJRemH+zzfW5NOG1FOhRUKt+2p4a2ndeGfGNzacjOrAxXWv/d7Ny
+         wje4dER3on7idF/ZU/BOsc0bQPELImbAjhC24eYE8ZMmwnMV9ss9Xfx45R/CPYQ5pQc2
+         BXMusGPQmr54lTu3K5SeVNbZjOhkXNcCzTQz/ERecAQ5bks1eFweXXCKBjifm2KKQEDp
+         NuecKsE2hr4RuDtYHlOoX0uh7z3Xe7xzPK3wAVIvqlqJ3z8NKf07522NM7V3trTFiROs
+         XHBdcJU/Pe4JmGVgh38mvh+5lKt+bIAv4VvHwOCs7AnNNPzim1QoNeghTVDLv13Gzxjw
+         b+2w==
+X-Forwarded-Encrypted: i=1; AKwUvByrVJOginLqI7py2UNe0RGLm7g/H4meIlj9Lpt1F1SsQwV2ekUCSbEozj2Rf9zftDL/loY55Hw8eoGo@vger.kernel.org
+X-Gm-Message-State: AFuF++kl5GRSltDi3glPvaqmSf9nro9lAnDdKakyFMMqDFxgjOaianY0
+	g6KDBbeOODRHmL0V6WK6J5gGqHGhBA7av+Os0rXbh2mBxaiwZyUJ6YJzp4dYOKjbyQ==
+X-Gm-Gg: AYBFou2TEfrdlIFENzAUv3lo5IzjnHDeqtZl4ebMj9fRMMveOMjpgb8CMYDlevInPqb
+	sVAt7VlSrEIdmfydykMHSA5ocHQITVB/56prH4mxli3rF+k40a6A2YnnWpxXcRLa28f15xP+4M5
+	lHxitPGWw/jthzeg1emMwomqCj6X9YRNCs0u0E1D9pwiCYJobWMaRCK9lMfgy2U8jyb1mr9qRUi
+	f+v2OfOrtBcoUaG6tRQWBP4duq0vWkOFUQuXEQVpyQd2kLAdHLA/IoKvzblIsCjq2tMrUhQb/Lf
+	dIR/h8M4wkCe6yToKl0A3TqryeUqcF1Eq6yznD8Rr5D19REGvHXe1zxdFbV2c9N52uQ1zpZqEpB
+	g4hKLb9e3XLO7Lxgx/wGUylFXpqN7AWKdyq6MTSHdICjy0Vba5Tv/JGkyMGO2xeZHDOob0tYugD
+	IABBRj7vbFdL7cc3jHlNxVW0mD6KZVTJhRZRxpIgalExzrYf3TAK3waF33lc1NyFRKGM3IwWJqE
+	mBRjvMHi4L1xd+kdLGdDswTfR8MHg+Mgmc4ffuwgNL6H6hwBHrUmXpZs3OX/7YYb/QY
+X-Received: by 2002:a17:90b:2d4f:b0:39e:1b0c:4773 with SMTP id 98e67ed59e1d1-39e1df86c10mr4199444a91.0.1789545534152;
+        Wed, 16 Sep 2026 00:58:54 -0700 (PDT)
 Received: from wenst-7875.tpe.corp.google.com ([2a00:79e0:203d:7:1f62:7622:5d61:2578])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-39e1b7acba2sm4348197a91.16.2026.09.16.00.58.43
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-39e1b7acba2sm4348197a91.16.2026.09.16.00.58.48
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 16 Sep 2026 00:58:47 -0700 (PDT)
+        Wed, 16 Sep 2026 00:58:53 -0700 (PDT)
 From: Chen-Yu Tsai <wenst@chromium.org>
 To: Bartosz Golaszewski <brgl@kernel.org>,
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -83,9 +82,9 @@ Cc: Chen-Yu Tsai <wenst@chromium.org>,
 	Manivannan Sadhasivam <mani@kernel.org>,
 	Alan Stern <stern@rowland.harvard.edu>,
 	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Subject: [PATCH v9 05/15] usb: hub: Return actual error from hub_configure() in hub_probe()
-Date: Wed, 16 Sep 2026 15:57:31 +0800
-Message-ID: <20260916075745.3549953-6-wenst@chromium.org>
+Subject: [PATCH v9 06/15] usb: hub: Associate port@ fwnode with USB port device
+Date: Wed, 16 Sep 2026 15:57:32 +0800
+Message-ID: <20260916075745.3549953-7-wenst@chromium.org>
 X-Mailer: git-send-email 2.55.0.1032.g73a4cd73de-goog
 In-Reply-To: <20260916075745.3549953-1-wenst@chromium.org>
 References: <20260916075745.3549953-1-wenst@chromium.org>
@@ -97,71 +96,99 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The addition of power sequencing descriptor handling in the USB hub code
-requires dealing with deferred probing from pwrseq_get(). The power
-sequencing provider may not yet be available when the USB hub probes.
+When a USB hub port is connected to a connector in a firmware node
+graph, the port itself has a node in the graph.
 
-Return the actual error code from hub_configure() when it fails, so that
-the driver core can notice the deferred probe request.
+Associate the port's firmware node with the USB port's device,
+usb_port::dev. This is used in later changes for the M.2 slot power
+sequencing provider to match against the requesting port.
 
-Also rewrite this section into the standard error handling pattern:
+To avoid potential conflicts with ACPI firmware nodes and then causing
+power management issues, only assign the firmware node if the hub's
+firmware node is not an ACPI firmware node.
 
-    if (error) {
-        # handle error
-        return error;
-    }
-
-    # do more work
-    return 0;
-
-Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
 ---
+Changes since v5:
+- Added extra |struct fwnode_handle *| local variables to shorten lines
+  (Andy)
+- Added comment about passing fwnode_graph_get_port_by_id() return value
+  directly to device_set_node() (Andy)
+
+Changes since v4:
+- Dropped unused |hdev| variable
+- Added flags for fwnode_graph_get_port_by_id() with
+  FWNODE_GRAPH_DEVICE_DISABLED so that even incomplete
+  ports can be connected
+
+Changes since v3:
+- Added missing fwnode_handle_put()
+
 Changes since v2:
-- Rewrite into standard error handling pattern
-
-Changes since v1:
-- Moved "int ret" declaration in hub_configure() over here from the next
-  patch
+- Skip assignment if hub firmware node is ACPI node
 ---
- drivers/usb/core/hub.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ drivers/usb/core/port.c | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index a4ec79a06a5c..707eeee198b0 100644
---- a/drivers/usb/core/hub.c
-+++ b/drivers/usb/core/hub.c
-@@ -1875,6 +1875,7 @@ static int hub_probe(struct usb_interface *intf, const struct usb_device_id *id)
- 	struct usb_host_interface *desc;
- 	struct usb_device *hdev;
- 	struct usb_hub *hub;
-+	int ret;
+diff --git a/drivers/usb/core/port.c b/drivers/usb/core/port.c
+index b4452b665f59..c0a51d9b06a6 100644
+--- a/drivers/usb/core/port.c
++++ b/drivers/usb/core/port.c
+@@ -7,6 +7,7 @@
+  * Author: Lan Tianyu <tianyu.lan@intel.com>
+  */
  
- 	desc = intf->cur_altsetting;
- 	hdev = interface_to_usbdev(intf);
-@@ -2006,14 +2007,15 @@ static int hub_probe(struct usb_interface *intf, const struct usb_device_id *id)
- 		usb_set_interface(hdev, 0, 0);
- 	}
++#include <linux/acpi.h>
+ #include <linux/kstrtox.h>
+ #include <linux/slab.h>
+ #include <linux/string_choices.h>
+@@ -358,6 +359,11 @@ static void usb_port_device_release(struct device *dev)
+ {
+ 	struct usb_port *port_dev = to_usb_port(dev);
  
--	if (hub_configure(hub, &desc->endpoint[0].desc) >= 0) {
--		onboard_dev_create_pdevs(hdev, &hub->onboard_devs);
--
--		return 0;
-+	ret = hub_configure(hub, &desc->endpoint[0].desc);
-+	if (ret < 0) {
-+		hub_disconnect(intf);
-+		return ret;
- 	}
- 
--	hub_disconnect(intf);
--	return -ENODEV;
-+	onboard_dev_create_pdevs(hdev, &hub->onboard_devs);
-+
-+	return 0;
++	/*
++	 * At this point ACPI nodes and swnodes have been removed by
++	 * device_platform_notify_remove() in device_del().
++	 */
++	fwnode_handle_put(dev_fwnode(dev));
+ 	kfree(port_dev->req);
+ 	kfree(port_dev);
  }
+@@ -754,6 +760,7 @@ int usb_hub_create_port_device(struct usb_hub *hub, int port1)
+ {
+ 	struct usb_port *port_dev;
+ 	struct usb_device *hdev = hub->hdev;
++	struct fwnode_handle *fwnode = dev_fwnode(&hdev->dev);
+ 	int retval;
  
- static int
+ 	port_dev = kzalloc_obj(*port_dev);
+@@ -782,6 +789,24 @@ int usb_hub_create_port_device(struct usb_hub *hub, int port1)
+ 	port_dev->dev.driver = &usb_port_driver;
+ 	dev_set_name(&port_dev->dev, "%s-port%d", dev_name(&hub->hdev->dev),
+ 			port1);
++
++	/*
++	 * ACPI FW nodes are associated later when device_register() happens.
++	 * Skip assigning one here to avoid potential conflicts.
++	 */
++	if (!is_acpi_node(fwnode)) {
++		struct fwnode_handle *port;
++
++		/*
++		 * fwnode_graph_get_port_by_id() returns either a valid fwnode handle
++		 * or NULL. Passing NULL to device_set_node() clears any associated
++		 * fwnode. It is effectively a no-op here, since no fwnode has been
++		 * assigned to the newly created device yet.
++		 */
++		port = fwnode_graph_get_port_by_id(fwnode, port1, FWNODE_GRAPH_DEVICE_DISABLED);
++		device_set_node(&port_dev->dev, port);
++	}
++
+ 	mutex_init(&port_dev->status_lock);
+ 	retval = device_register(&port_dev->dev);
+ 	if (retval) {
 -- 
 2.55.0.1032.g73a4cd73de-goog
 
