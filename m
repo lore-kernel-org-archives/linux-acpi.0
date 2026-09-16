@@ -1,176 +1,172 @@
-Received: from mail-ej2-f12.google.com (mail-ej2-f12.google.com [74.125.228.140])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012038.outbound.protection.outlook.com [40.93.195.38])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCE0647F2ED
-	for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2026 08:52:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.140
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789548752; cv=none; b=igpQpsOklWBPAkKfHnqkmybuZWFwFcgGvBvNHc4Ew8FAu6SykI7GG6c3rCPrSZZzMCDDsQmha4eZir4aFofm+zbqVOPJNd6j2jZL2wfjvjaiEGAj9rHp8hW3/T0Kfgxgr3KYysPfUZ8JF88XFWL7DYMmZD8jKvZcwdmZl4ca6K0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789548752; c=relaxed/simple;
-	bh=jQe43yJCJSdBQPYhkUb4CHVlXYabrmzIiAW+OtPpy4c=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hU6svzlHuSGU66NzDvbORSW7buMdMj4ElqQMLhkCO6IHAWf5Z8ARG1BMapBClg1c3f1se9JsqodttMPWl3YI1KsIfmkrEp8OTSRjfCA0REcjpPt2bGkUOG1LZEMXAVZkpP37x9h0FQhg4jeXuWqG7BGy4JJKgrGlLD5ngjnHYqo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=fEqDAcyK; arc=none smtp.client-ip=74.125.228.140
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C6014D0A1C;
+	Wed, 16 Sep 2026 10:38:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.38
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789555158; cv=fail; b=sxkqNQbpyLgf/qY4s1kJ6aFJoI93m2dLpa8sfzzKmZsLneffd1Iesbv6U1btEtG7lQaWr9WpstidzERPp2wVTtUUhhKdG7BgKaEBgTSQjEOG8cyhjeIyWSHDygGiTlyhluC/fIjbFzU5R51tOkNW1wkDBsLMGqVAMTc9jVGTPgc=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789555158; c=relaxed/simple;
+	bh=JwVRPJhh0PZYPCy8j56bjc9hENFxPtD7QGy1AlU+MP4=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=RxYTFw5ISGmApdepu1toThMhW/por9s+tg8hhetF72YeqIo8tIUQ0jJslZ9F0u0JW9zlfNlZTRrsUfYanhDTpxbD2EXESiNA8kK0e5+p1gRUdKPpWp2dBYcxlXoLIKainqysEoNCry3xOMUGBMx39ju5Xtp8kOuVQDw2bPngGgs=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=XavbEm0J; arc=fail smtp.client-ip=40.93.195.38
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="fEqDAcyK"
-Received: by mail-ej2-f12.google.com with SMTP id a640c23a62f3a-c254f9f0b1eso124807866b.1
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2026 01:52:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1789548742; x=1790153542; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=2LBbelDPdAVQ0Ns+BBW49QmFOaM2BGUlkuMpM25cdq0=;
-        b=fEqDAcyKNp+DJ1SwWiq1SfYEyZRUgBbvXAUy6MDKVrcwjAIHREkhioM+ZQCirDQ4cc
-         EttlU3c2HkkbbYmFFp/uoqam1pLAKWbJhLDfnagViBSzT/WPOECIbhfWgmRgiXOQ94A5
-         NMJebi+kxBCWrfibB/+VSa0l+HkSpQ1m+HilG4QUz54rYaZ+XvY7Zni0Mcyv/Nr+gtXL
-         o7G1Esip5+5FD4/02R95+w/Rz3o0vlb3/5Gx8l6HWP4nOi4Wn4+zApWl1dUv8wuS4h6z
-         d22Cy6QopW/s7q6LcFpXqDqV0zfEHQLupfKVLuQ0IdwWWZ9r3g/4X0DtaadnCEPLmdAm
-         p1ig==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789548742; x=1790153542;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=2LBbelDPdAVQ0Ns+BBW49QmFOaM2BGUlkuMpM25cdq0=;
-        b=g5OawduMP7xkdAfetdDonfACGaE1m8JegyGogNLLI+84ljh18ovh8IIGMiumLV6HPE
-         W3MVJPZ+ggKqCuxEDTzuw239lRzQyh7OJHmQmHFgtJ/nWZbc+XPpC4lffmw/+iO0BdCa
-         5NTUCpiFcQKCnPXvJXjAZ/arpHVqUIA5q5gGw4rmApfWcOez0W8t8jxsWg9ISZGO+CaT
-         HVAtXNRgoE8/jzaTilP7il79I3f1ymNNnfecA1yMXougQQ1sqJ5zVu6Q6RSLGtt9ry8K
-         BG6V66CBxfIIa6vLpskfiNDyDfQCyeZm6i6sfNRDkHOq1ajoucEcwZBvd7vp20b6b2qq
-         YYbg==
-X-Forwarded-Encrypted: i=1; AKwUvBx4zeymuPdGM9H0l8H0Kh59yuvl6lr7OgX8xbelgGfaMgm7eMBAMbYc8bcjX6+Fv8jmVI8MRGZyDpw5@vger.kernel.org
-X-Gm-Message-State: AFuF++ndFxQ/VFsHOL420gnXMBmZzacf6zhxTnWQuMAS8rOIS6QV40z5
-	S2+cA+P+TCi2eW1uHypM4rDBEx86XI/+3i+DUBIAXsZ8e93SJsi5cvcch6+uQetLZyo=
-X-Gm-Gg: AYBFou2f/R9L6/fErYC4+quq6YzjXEZiGIKGoseWNMUApUpDstzTbSb2ImRDk3N1yYr
-	d9DWgkl/Hq6FDVFZ695D8Q27UhAbHUoHMtfUn1SZryJwSyA5J7/4lO9KIf87+NZ3retW1nWrD/w
-	IpB4xpzTmWpckX1iWZz+v3EaixdvPFfyMFP4nhqFxdpAInjX7NLVRNCwFhpuSpBWeZW8+NjHH1h
-	mOJi3/yE8jHdCebbikiQI3Wr7pichw+YGUMO4MhDIkB8CbGjGFnsWwHIChHcJvu5YXCui8nk2/h
-	V989U0mah0+aDzOcreDapcPYxey05I5qRwJgxsviTgeEAPj7QcoM0tIKApXo54lted9ls9GIphE
-	GuMT40grLjr5SgWAg9AEET3629mbt0mU01DvmIvJFhtf/k45o3UxZfKT0eIQ5aPli1O8RtQ7PqO
-	PjFxpqX6BOnYGgMT1ANnSJk9CqBl+AJ6vWJi9jfA9P313ilDBzogFgVCgkUssu
-X-Received: by 2002:a17:907:928a:b0:c29:4d81:c5f0 with SMTP id a640c23a62f3a-c29e51b1ad7mr218786066b.6.1789548741687;
-        Wed, 16 Sep 2026 01:52:21 -0700 (PDT)
-Received: from localhost ([2a02:aa7:4656:2314:c23c:9eda:81d:3])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c29de68fafdsm93069566b.63.2026.09.16.01.52.21
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 16 Sep 2026 01:52:21 -0700 (PDT)
-Date: Wed, 16 Sep 2026 10:52:20 +0200
-From: Michal Hocko <mhocko@suse.com>
-To: Kyle Meyer <kyle.meyer@hpe.com>
-Cc: akpm@linux-foundation.org, corbet@lwn.net, david@redhat.com,
-	linmiaohe@huawei.com, shuah@kernel.org, tony.luck@intel.com,
-	jane.chu@oracle.com, jiaqiyan@google.com, Liam.Howlett@oracle.com,
-	bp@alien8.de, hannes@cmpxchg.org, jack@suse.cz,
-	joel.granados@kernel.org, laoar.shao@gmail.com,
-	lorenzo.stoakes@oracle.com, mclapinski@google.com,
-	nao.horiguchi@gmail.com, osalvador@suse.de,
-	rafael.j.wysocki@intel.com, rppt@kernel.org, russ.anderson@hpe.com,
-	shawn.fan@intel.com, surenb@google.com, vbabka@suse.cz,
-	linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
-	linux-mm@kvack.org
-Subject: Re: [PATCH v3] mm/memory-failure: Support disabling soft offline for
- HugeTLB pages
-Message-ID: <aqpYxAktjexhaMGc@tiehlicka>
-References: <aqiIEkrc6aDBOqRg@hpe.com>
- <aqkCbgHmMGxI_GLG@tiehlicka>
- <aqmGd0GGUCkbZpkZ@hpe.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="XavbEm0J"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=IUDApUm8CdLkbX66+jvuspTmo/VRy8FlhsIMCvAE7y+qU1He4ozXk1vbnJeS04gOSlhoUL3qn385/gYX+Lh+wpVRMRZWL9MklIV70xksGBFPB8Lnq8Ik32z9qCyvZ0wM8Tp9K3vDvE/S4HDacyFN7uHP/63OSeyC4L2PKUY4sTJSmakg78zjxaSW50TWdsXeT0NaW0nT9/eDg/U/2Qf3g8Dksdr5PibK7598RCQmnsXqRKFD1dc7toz1U9DGOwxlsZYe7/JQxMviaiIBOY0mG18qZMwKAP2NXC5xNK0ZaZf7AuhjbtqjQICotRuEKmMtb1OD8+87dQ8l5j7lk9uSMQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=8y3yUNUqla45/a5+5F505QtsFee8olmyJa14mnO7m4s=;
+ b=iEAOqA7O3CV6Znm58VJPU8n+bBE5ZUiMU6sL8Ytd73Zv7EV5w+ovUj5CTvBcSShaQt5gvBg5mA7U6JSVPqjjU6eTkK9UcroNJnp9ml9IF8faqAAmYSFK5oZrQCXVJLknPIIPrLeL+QKtr9ru7tAnUrQbtmJGPw6KyS2eQDKkPar4+y/erf6zwRth6GYw5icDgCYJ0OHMVHQ/NRLFFdpRI43POtC0jZaTHJ7vOLPkzZIaTKNwtXf8DFqJokMO90fe9HZ7LR39knrvVTi43ZUuzisAAHHsxEXCcUKjLY7YMEAHGPzeX7o1WMIftqrdLO7ESC26MlSi4iVNp+Jo+4xh7Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=8y3yUNUqla45/a5+5F505QtsFee8olmyJa14mnO7m4s=;
+ b=XavbEm0Jj5hgk2BP6R3VJqrskjPQwcbyLhodG4ntxz1zG6QL9lF83QdxcmURIyk0/Ga05FVsCSjzn8Kdqh3AHcwSjJ2VEYzSD3SrURuN++K7ZEy84UUx+eXaR/zjHorPOUEsnYnFpMJuDA4PYCISeIPL6WNNlVJWqPqi6aTK4XaiUYbZmDMVxQD0x5MitG63AOS1R4ZD0WQY9f/AqbpsPQf9HXcJpp/jdM587ciZtBGy7iGASaW6ac7URUYHB3DW4TkTZCHZuDYs3FQksrMSJ2E74OgRQEa0r/rEdlrSAaa17EbpfPc8Q2wB3m1GY7B/kMGgFEarQhM8oH/HZbPU+Q==
+Received: from SJ0PR03CA0356.namprd03.prod.outlook.com (2603:10b6:a03:39c::31)
+ by DM4PR12MB6279.namprd12.prod.outlook.com (2603:10b6:8:a3::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.406.12; Wed, 16 Sep
+ 2026 10:38:51 +0000
+Received: from SJ1PEPF000026C5.namprd04.prod.outlook.com
+ (2603:10b6:a03:39c:cafe::58) by SJ0PR03CA0356.outlook.office365.com
+ (2603:10b6:a03:39c::31) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.428.11 via Frontend Transport; Wed,
+ 16 Sep 2026 10:38:51 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ SJ1PEPF000026C5.mail.protection.outlook.com (10.167.244.102) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.428.7 via Frontend Transport; Wed, 16 Sep 2026 10:38:50 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Wed, 16 Sep
+ 2026 03:38:31 -0700
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.46; Wed, 16 Sep
+ 2026 03:38:31 -0700
+Received: from sumitg-l4t.nvidia.com (10.127.8.14) by mail.nvidia.com
+ (10.129.68.6) with Microsoft SMTP Server id 15.2.2562.46 via Frontend
+ Transport; Wed, 16 Sep 2026 03:38:24 -0700
+From: Sumit Gupta <sumitg@nvidia.com>
+To: <rafael@kernel.org>, <viresh.kumar@linaro.org>, <pierre.gondois@arm.com>,
+	<christian.loehle@arm.com>, <ionela.voinescu@arm.com>,
+	<zhenglifeng1@huawei.com>, <zhanjie9@hisilicon.com>, <lenb@kernel.org>,
+	<ray.huang@amd.com>, <mario.limonciello@amd.com>, <perry.yuan@amd.com>,
+	<kprateek.nayak@amd.com>, <linux-kernel@vger.kernel.org>,
+	<linux-pm@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+	<acpica-devel@lists.linux.dev>, <linux-tegra@vger.kernel.org>
+CC: <treding@nvidia.com>, <jonathanh@nvidia.com>, <vsethi@nvidia.com>,
+	<ksitaraman@nvidia.com>, <sanjayc@nvidia.com>, <mochs@nvidia.com>,
+	<bbasu@nvidia.com>, <sumitg@nvidia.com>
+Subject: [PATCH v5 0/4] cpufreq: CPPC: Preserve OSPM-set registers across hotplug and unload
+Date: Wed, 16 Sep 2026 16:08:16 +0530
+Message-ID: <20260916103820.1760297-1-sumitg@nvidia.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aqmGd0GGUCkbZpkZ@hpe.com>
+X-NVConfidentiality: public
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SJ1PEPF000026C5:EE_|DM4PR12MB6279:EE_
+X-MS-Office365-Filtering-Correlation-Id: 52f9773c-bea2-47a0-bc1a-08df13deb29f
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|82310400026|1800799024|36860700016|7416014|376014|6133799003|18002099003|13003099007|10067099003|921020|56012099006|11063799006;
+X-Microsoft-Antispam-Message-Info:
+	pJtVTidvZSt7IZzouh27off7ft8Hw6e+GfvMd9rKf3FZr1OFf3j0NUiXrkJg8SFeoA831daPPu6hnDQ2wCfwqlde2wm8TLaCnRsYSZsThtD5WAEvxveNVVSFY5vmrXW7VastKmy4ahBSnbRuC2RmORRmsc9FpTTo9JaS9vfj2Uqlock0w+3SenwqMvy/X7HdUR6ANCbxB3nZRQxYTM1jV0R3z6I8/yBxvpPSnKS82zLR6bNl7/YgP03qqpCpgHSFVqO+afsWM6gleIMDHNkDkZfXhsfr23DMFbx5VTqKuBOgY+eMKFfujh5YLu8HObzSdAO4GqITideUOtMJhWu+GyUdVh/idXcbyTBwiYiTjoaeZaRpme8dwEdG6rpoFlvMeRHVu9py9hhYrxRDXRhofw/dqcsVHaAzXINkCW7GQD+P7F4fMNhnYBAC9SYCCIMi2vEqt10oD1zrq4I/Z6CcOGRAt5vyCZoRIsxnLOTkvMDMcQwuQ4/gbndHZSXAwc/QT+LnSNtFe2sOfhYABiicpcTVJC963LmnUycdEhEHaMekvjLlS+DQrvvmvxbLKTek1evA2LreuUKNgU75ryfU2MZPM2X6UzyrwKeG1g9hIHlHBQ9DTWW36S2mYWylpcAzMnwvV893CkNje8+0ZU+jwvEuuJ85ha/fBWGKBJr6ACCNSQi2CoYcYqMy/DpQdoxdZblhPDezKbAW3GNo6xYF65Kv7BCprzy2IaJSyZETMabDMXhaMVq3HvyKVkl+q/cc
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(82310400026)(1800799024)(36860700016)(7416014)(376014)(6133799003)(18002099003)(13003099007)(10067099003)(921020)(56012099006)(11063799006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	aO/Qq/KWB+RiIHuIqmiK+qEv/VvMa6MmytgkIMiGZAcT1yyvs3VvUVXYmQJDAkILg/i13WZMrhKl4P/gFSOm7oxvkoRh1PZA1RMzKJQAlDH2Mpe2kskblOCY6qX8DVaTPNc4tMAB/PL+5TCLKsiypEQiJMmt2iL0HWgNooraCEUUCuUiednlmKxdYQwzZ9ivUkA/Ed38yghSY5W8lp8utEloCnfZbwskEFJ4abNzYBW342LFO9U2f0vyKolsQFQxPMb8wEZ7MhZ0f4QnGSjsi7+6Rz8bbBV2tJsTkC9excqBqwkjM8ECJntlRVmF/V1QYgVXbkWMzHJRqDGgfq/g4Wc++BblVCgKCp0rDOZgSrhvQZeaUi+JqU5BiQr/Z4JGMOJIFAslUN7WKZ5AaJVuylM7naIaF9yi+bnMUuH8X+Fd475GTHbJNOMzmhYM0Zko
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Sep 2026 10:38:50.9062
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 52f9773c-bea2-47a0-bc1a-08df13deb29f
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	SJ1PEPF000026C5.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB6279
 
-On Tue 15-09-26 12:55:03, Kyle Meyer wrote:
-> On Tue, Sep 15, 2026 at 10:31:42AM +0200, Michal Hocko wrote:
-> > On Mon 14-09-26 18:49:38, Kyle Meyer wrote:
-> > > Soft offlining a HugeTLB page dissolves it, permanently reducing the
-> > > HugeTLB page pool. This can be problematic for workloads that depend on
-> > > a fixed number of HugeTLB pages.
-> > > 
-> > > Currently, soft offline must be disabled to prevent HugeTLB pages from
-> > > being soft offlined.
-> > > 
-> > > This patch allows soft offline to be disabled for HugeTLB pages while
-> > > remaining enabled for non-HugeTLB pages.
-> > > 
-> > > Commit 56374430c5dfc ("mm/memory-failure: userspace controls
-> > > soft-offlining pages") introduced the following sysctl interface to
-> > > control soft offline:
-> > > 
-> > > /proc/sys/vm/enable_soft_offline
-> > > 
-> > > The interface does not distinguish between page types:
-> > > 
-> > >     0 - Soft offline is disabled
-> > >     1 - Soft offline is enabled
-> > > 
-> > > Convert enable_soft_offline to a bitmask and support disabling soft
-> > > offline for HugeTLB pages:
-> > > 
-> > > Bits:
-> > > 
-> > >     0 - Enable soft offline
-> > >     1 - Disable soft offline for HugeTLB pages
-> > > 
-> > > Supported values:
-> > > 
-> > >     0 - Soft offline is disabled
-> > >     1 - Soft offline is enabled
-> > >     3 - Soft offline is enabled (disabled for HugeTLB pages)
-> > > 
-> > > Existing behavior is preserved.
-> > > 
-> > > Update documentation and HugeTLB soft offline selftests.
-> > 
-> > This is adding a lot of user interfaces to control something you can
-> > disable by config option for an admin only functionality.
-> 
-> I may be missing it, but I'm not aware of a config option that disables soft
-> offline specifically for HugeTLB pages.
+This series keeps the CPPC cpufreq policy alive across CPU hotplug and
+preserves the OSPM-set CPPC registers (Energy Performance Preference,
+Autonomous Activity Window, Autonomous Selection - set via sysfs).
 
-No, there is none. And IMHO there shouldn't be any. We do not want
-config nor runtime option for any random type of page to be soft
-offlined. You can disable the whole feature. If we need to enforce a
-boot time parameter then I can be convinced about usefulness because
-distro kernels need to enable config to be generally available but there
-are usecases where this might be better disabled during runtime.
+Without online()/offline() callbacks, the core tears a policy down when
+its last CPU goes offline and rebuilds it on the way back, re-reading the
+CPPC capabilities each time. The values written to these registers can
+be lost:
 
-> > I fail to to see any actual justification for all of that. If an admin
-> > can disolve a hugetlb page it has power to allocate a new one as well.
-> 
-> Allocating HugeTLB pages after boot is not guaranteed.
+ - Across CPU hotplug or suspend/resume: the platform may reset them
+   while the CPU is offline.
+ - On driver unload: the driver-written value is left in the register
+   instead of returning to its pre-driver state.
 
-yes, and so what?
+Handle these with:
 
-> > Not to menation that the whole soft offlining is mostly a testing
-> > feature so adding a lot of fine grained configuration space seems
-> > excessive to me.
-> 
-> Can you elaborate on "mostly a testing feature"? For example, how does that
-> apply to the BIOS/GHES path discussed here?
-> 
-> https://lore.kernel.org/all/aMkOCmGBhZKhKPrI@hpe.com
+ - Patch 1: adds online()/offline() callbacks so the core keeps policy
+   alive across CPU hotplug instead of tearing it down and rebuilding it.
+ - Patch 2: makes the autonomous selection register helpers take a u64.
+ - Patch 3: adds a table-driven mechanism that captures each register's
+   firmware value at init(), restores it from offline(), and reapplies
+   the OSPM-set value from online().
+ - Patch 4: extends the same save/restore to system suspend/resume.
 
-OK, so apparently there are some BIOSes which abuse this feature to
-mimic a real HW poisoning. This doesn't change the overall picture
-though
+v4[4] -> v5:
+ - Patch 1:
+   - offline() stops the frequency invariance updates and online()
+     restarts them, replacing the resync that raced with tick. (Sashiko)
+   - reorder the functions to match cppc_cpufreq_driver. (Jie Zhan)
+ - Patch 3:
+   - reapply the OSPM-set registers even when the performance control
+     write fails. (Sashiko)
+ - Patch 4:
+   - suspend() stops the frequency invariance updates too, completing the
+     patch 1 change for a policy whose CPUs stay online.
 
-> If you think this should be handled differently, I'm open to suggestions.
+Sumit Gupta (4):
+  cpufreq: CPPC: Keep the policy across CPU hotplug
+  ACPI: CPPC: Make autonomous selection helpers take a u64
+  cpufreq: CPPC: Preserve OSPM-set registers across hotplug and unload
+  cpufreq: CPPC: Preserve OSPM-set registers across suspend/resume
 
-Yes, do not treat hugetlb pages any special. In case there is a HW
-related problem which decides to offline portion of the hugetlb page
-then bad for you. It wouldn't be too much different if this was handled
-through a real HW poisoning.
+ drivers/acpi/cppc_acpi.c       |  20 +-
+ drivers/cpufreq/amd-pstate.c   |   2 +-
+ drivers/cpufreq/cppc_cpufreq.c | 378 ++++++++++++++++++++++++++++++++-
+ include/acpi/cppc_acpi.h       |   8 +-
+ 4 files changed, 381 insertions(+), 27 deletions(-)
+
+[1] v1: https://lore.kernel.org/lkml/20260623095403.3407436-1-sumitg@nvidia.com/
+[2] v2: https://lore.kernel.org/lkml/20260716153820.2007095-1-sumitg@nvidia.com/
+[3] v3: https://lore.kernel.org/lkml/20260724215937.3368276-1-sumitg@nvidia.com/
+[4] v4: https://lore.kernel.org/lkml/20260806200857.601152-1-sumitg@nvidia.com/
+
 -- 
-Michal Hocko
-SUSE Labs
+2.34.1
+
