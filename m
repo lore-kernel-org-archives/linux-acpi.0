@@ -1,273 +1,98 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj2-f12.google.com (mail-pj2-f12.google.com [74.125.227.140])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7608F49A3D6;
-	Wed, 16 Sep 2026 19:42:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1674548CD7C
+	for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2026 23:47:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.140
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789587796; cv=none; b=D6OtzztA5PlG9KZsR12eTkh5f+vgU7ynalCqkIDKx2lg5RWnVW2LqmWLeRtS4fU36t+n+hsCECd0vLol/p5GImSL7Pd3usaMg+r5nbuaNWmnYQFwDtfkO7LOUETKMmEdTMuuM6UdGu86N8Z9h82XmAzAdjXp00mVBHVQU053FO0=
+	t=1789602477; cv=none; b=YhOaA/5k1F4l9sLrJ9i1PD+XBMD4H524WN0HWrn9fnH0yxnKL+31HJC01cJ6wp5ex8eqSZuTOjgQB0zoIN8QCSwj5S/3RUL0pjvNMVc4Wf0bR291m8w1GCj//KGCjVRiqSuPwS0RvOWrR0cu1TbTE9UFzD3sLSoQZeXRgj38Eks=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789587796; c=relaxed/simple;
-	bh=Ft9BS3kW++D232pIP3ML+6ilnOrWbdzA1OUA42XDh1Q=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=oSGiOkn/sYiyb1c+voknB/XfZQ6+r2OvgnvYVnCHI5FjYw7VLUWLyY1i+Oqy1hGQ0VbdIbMVOmvwrTpe7YA/6BAPcmmWXxibzl0aszGo5Vmorlb3Rm+5EZcLsHyQLA4HPDdoM6I86TbuKh1p04IgRP3GM1gWSzsuRwGryAXM530=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=M02+kOlI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789602477; c=relaxed/simple;
+	bh=8ZZmEzmRY5l1Bk+XRrbRnE93cR7GfxYZTezIz2U6scs=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=GQw1mkxqnpPXAm8Um2vEoMCi9feDKQJ1GjltnvttmuBjk3p8gUvCegOFMhqY72FVqCQ3Ij4DIDvaBbunqbY6+uajfz1F6mf/2ePsXWAudqvxGzy7VqafLjTmNjOHhamPUDU9mHSZlSLr8aT1mScwbmP+P1ButuQTlsEK0ybjjz4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu; spf=pass smtp.mailfrom=asu.edu; dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b=AuhR4CaE; arc=none smtp.client-ip=74.125.227.140
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asu.edu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="M02+kOlI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 570A21F000FF;
-	Wed, 16 Sep 2026 19:42:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789587777;
-	bh=/UNh8tCi96JXByL1XoKefV6unJDt7ze/TrpH88Glt7c=;
-	h=From:To:Cc:Subject:Date;
-	b=M02+kOlIDM3VCtgBZcC4LVrF79XkK+/hkvHDfsVCiUASa9bzpfCG747G/0toM9qmR
-	 qqXp+X4Bl1WwfXg8VwAdmfzaN7vNyg8R5juFrX+OGSJ/Xb6oo72QyR2CG0sKr97Loo
-	 ZbJZfU2/QVAI+/dKm75bhUHraL7YdFaejMP9dx1ch9XTk4D523rK9reuFca+p17mcz
-	 K3gXcPQ8InLlDINpsQhWNgswMzD4KWxcPmvNTeIR5rX/kfMrrCb175imiBTPChRbpW
-	 oc1o81AsPl30uE2TBs25vacHlHsmiG6UqFdmLjH+kOWxBaaIOn10CrwDyVyUNwVhJs
-	 LKh8VUuH163Vg==
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: Armin Wolf <w_armin@gmx.de>, Linux PM <linux-pm@vger.kernel.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- LKML <linux-kernel@vger.kernel.org>
-Subject:
- [PATCH v1][linux-next] ACPI: fan: Use __free() to simplify AML error handling
-Date: Wed, 16 Sep 2026 21:42:54 +0200
-Message-ID: <6029013.DvuYhMxLoT@rafael.j.wysocki>
-Organization: Linux Kernel Development - Intel
+	dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b="AuhR4CaE"
+Received: by mail-pj2-f12.google.com with SMTP id 98e67ed59e1d1-396ccafb752so208453a91.0
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2026 16:47:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=asu.edu; s=google; t=1789602475; x=1790207275; darn=vger.kernel.org;
+        h=content-disposition:content-type:mime-version:message-id:subject:cc
+         :to:from:date:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=8ZZmEzmRY5l1Bk+XRrbRnE93cR7GfxYZTezIz2U6scs=;
+        b=AuhR4CaEQLs6pHHrXZ1fJX0VwJHDwk8ESqCuamxrr5LsbfM/OPxm1+1RkeGst14S5R
+         P5bdUHRvCwIhMDr+2NAr2xYn0iE2TiBtVn+qQ/v5MLDXvQmB96sJ8FNhU9I4sBBjtI93
+         8aHI4FuaCNUuICbTmBiAVl5UCJZ8oX09N2I4iPACHCGj3P19avuDyWO9uHCIwV5FTSCi
+         kyglARG9Jcdi86P54OjhehZK8+MTetAEBUgpOjv2U2+43GQIpiQ3hx9Q82f7jv6PM8K/
+         ge82122gmdyNeuze2J+K6C0jzZD2JQ+y3qqi2/DwlPhBKa+u5is/oT3PR9ATgifCSlJq
+         lFZw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1789602475; x=1790207275;
+        h=content-disposition:content-type:mime-version:message-id:subject:cc
+         :to:from:date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=8ZZmEzmRY5l1Bk+XRrbRnE93cR7GfxYZTezIz2U6scs=;
+        b=KcGn/kQHNHVySDnnsxZi+jnlQhNKDi96+DCETzYeStN88WVG3pjVjJk4wmP3q1dXlT
+         /wIVkOzbZ4KnKXaJxii4Ex4BmLK2bjIFlQdFx7FFHlJLxhsiYfC9Oa5IEIdqDwlHi2Gy
+         FJdOcft8pnA0hmC8k1aEy3A9P5zL3FDEXeg02uE1VhFsbatv8Yn0Fbes0QCMz19knOcj
+         wi46hGEd8FaH86kUmw9rHP/MKr15oUv5o8UgSXcMTC6T14OnBOPBCnYMVfBzEbPDs2T2
+         y2XUQgS/iR+0DjVOTI/BWdTXoYJfUPqFaOzGtZNBeC3zH8SUqwflRZep/c+/IpyZGFw7
+         HDQQ==
+X-Forwarded-Encrypted: i=1; AKwUvBz9tK5LZTS6VTi1M3r8zbOGI3aR5J6uoKl6L98tALWA8ObuhY2HRaA8WjL+59pLP4oYp1dLdrXyL9ny@vger.kernel.org
+X-Gm-Message-State: AFuF++meC8ajsqS0aBV8wdfF+6IzNTCI8SXXF7Fwn2pFbll6zo6n2hhJ
+	nXCZfzI5aDCThExE1aLeXADq2i25Cjl2SdSSQXZ+NB+pRPzKqbgAZ0O0fG9QnL6S0A==
+X-Gm-Gg: AYBFou1L5HXObHch/rKf07LbNYt+m4GklKzNtfjO0Qx7Fgvn6X3M4LOQkEj+2GE69Be
+	/hbDGka3jsesqAriJSq5ZoCDoDO7r+T7XyWtl0/H6nx8pQZCg1DMMuPmyervs8sb8IlBB2Qki9b
+	2ZXs8OFPdH/RRtIXIC9t8cSdUVTcvC8SgVwMf6E/h4Kl+bKOL3hbNIeaEH7eVMfuftASWC5+cGy
+	sl9wF1NJaPdkDn/ngl23A82kLZmDisiOO2AcASyBfv5XlXCEYiGS/L42Jl/c7NzlZ9UbLll3C0s
+	Ttz7h6D7VwPF95SWSzi5k81mJ2DkJD+apdn02IKH5kmnkQacugwOMTs6PlJ7sc2bwMCTmvOixZj
+	f8645kx3tiLPFn0f6X78T7HDfwcTg/nBHRKIoI+r2tgHBMrhFYIWKuL3qPZV1HbyyCvXPJtWvZ4
+	Xj5Vh4sag6h3qNzelInIX/Hxk5ro3l2oDYWjD/B2kG/hlxvQ6a1xdxcA7m9Lm/FXqRuuXkl+eGI
+	phWHC2UEfMfqzjRWR8FVPNeLYk647OTnOo=
+X-Received: by 2002:a17:90b:5624:b0:39e:b7:cbef with SMTP id 98e67ed59e1d1-39e1e5612d3mr14829775a91.25.1789602475478;
+        Wed, 16 Sep 2026 16:47:55 -0700 (PDT)
+Received: from p1 (209-147-138-4.nat.asu.edu. [209.147.138.4])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-14395d5d0f3sm9085370c88.12.2026.09.16.16.47.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 16 Sep 2026 16:47:55 -0700 (PDT)
+Date: Wed, 16 Sep 2026 16:47:53 -0700
+From: Xiang Mei <xmei5@asu.edu>
+To: stable@vger.kernel.org
+Cc: rafael@kernel.org, maciej.wieczor-retman@intel.com, 
+	pawel.chmielewski@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, 
+	acpica-devel@lists.linux.dev, bestswngs@gmail.com
+Subject: [STABLE REQUEST] ACPICA: Fix NULL pointer dereference in
+ acpi_ns_custom_package()
+Message-ID: <ztqdpwmbpfusfens334indnsykgejamscwhv6dylk6xckr5uyg@scsb6egwneel>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Hi stable team,
 
-Introduce acpi_object_free for freeing union acpi_object objects
-allocated by AML and use it for simplifying AML error handling in
-the ACPI fan driver.
+Could you please consider backporting upstream commit
 
-While at it, update the driver to use consistent error values across
-all function using the union acpi_object data type.
+f8d14b7bb0063bbbd86c0e4d73edb8cea7b362bc
+("ACPICA: Fix NULL pointer dereference in acpi_ns_custom_package()")
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+for 6.18.y, 6.12.y, 6.6.y, 6.1.y, 5.15.y, and 5.10.y.
 
-Applies on top of
+It prevents a NULL pointer dereference when firmware supplies a _BIX
+package containing an unresolvable first element.
 
-https://lore.kernel.org/linux-acpi/1965933.tdWV9SEqCh@rafael.j.wysocki/
+The fix has been in mainline since May 27 but is still absent from the
+longterm branches.
 
-which is in linux-next now.
+The upstream commit applies cleanly to all of these branches.
 
----
- drivers/acpi/fan_core.c |   80 ++++++++++++++++++------------------------------
- include/linux/acpi.h    |    2 +
- 2 files changed, 32 insertions(+), 50 deletions(-)
-
---- a/drivers/acpi/fan_core.c
-+++ b/drivers/acpi/fan_core.c
-@@ -71,37 +71,29 @@ static int fan_get_max_state(struct ther
- int acpi_fan_get_fst(acpi_handle handle, struct acpi_fan_fst *fst)
- {
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--	union acpi_object *obj;
- 	acpi_status status;
--	int ret = 0;
- 
- 	status = acpi_evaluate_object(handle, "_FST", NULL, &buffer);
- 	if (ACPI_FAILURE(status))
--		return -EIO;
-+		return -ENXIO;
- 
--	obj = buffer.pointer;
-+	union acpi_object *obj __free(acpi_object_free) = buffer.pointer;
- 	if (!obj)
- 		return -ENODATA;
- 
--	if (obj->type != ACPI_TYPE_PACKAGE || obj->package.count != 3) {
--		ret = -EPROTO;
--		goto err;
--	}
-+	if (obj->type != ACPI_TYPE_PACKAGE || obj->package.count != 3)
-+		return -EPROTO;
- 
- 	if (obj->package.elements[0].type != ACPI_TYPE_INTEGER ||
- 	    obj->package.elements[1].type != ACPI_TYPE_INTEGER ||
--	    obj->package.elements[2].type != ACPI_TYPE_INTEGER) {
--		ret = -EPROTO;
--		goto err;
--	}
-+	    obj->package.elements[2].type != ACPI_TYPE_INTEGER)
-+		return -EPROTO;
- 
- 	fst->revision = obj->package.elements[0].integer.value;
- 	fst->control = obj->package.elements[1].integer.value;
- 	fst->speed = obj->package.elements[2].integer.value;
- 
--err:
--	kfree(obj);
--	return ret;
-+	return 0;
- }
- 
- static int fan_get_state_acpi4(struct acpi_fan *fan, unsigned long *state)
-@@ -237,25 +229,22 @@ static int acpi_fan_get_fif(struct acpi_
- 	struct acpi_buffer format = { sizeof("NNNN"), "NNNN" };
- 	u64 fields[4];
- 	struct acpi_buffer fif = { sizeof(fields), fields };
--	union acpi_object *obj;
- 	acpi_status status;
- 
- 	status = acpi_evaluate_object(device->handle, "_FIF", NULL, &buffer);
- 	if (ACPI_FAILURE(status))
--		return status;
-+		return -ENXIO;
- 
--	obj = buffer.pointer;
-+	union acpi_object *obj __free(acpi_object_free) = buffer.pointer;
- 	if (!obj || obj->type != ACPI_TYPE_PACKAGE) {
- 		dev_err(&device->dev, "Invalid _FIF data\n");
--		status = -EINVAL;
--		goto err;
-+		return -ENODATA;
- 	}
- 
- 	status = acpi_extract_package(obj, &format, &fif);
- 	if (ACPI_FAILURE(status)) {
- 		dev_err(&device->dev, "Invalid _FIF element\n");
--		status = -EINVAL;
--		goto err;
-+		return -ENODATA;
- 	}
- 
- 	fan->fif.revision = fields[0];
-@@ -269,9 +258,8 @@ static int acpi_fan_get_fif(struct acpi_
- 	/* If step size > 9, change to 9 (by spec valid values 1-9) */
- 	else if (fan->fif.step_size > 9)
- 		fan->fif.step_size = 9;
--err:
--	kfree(obj);
--	return status;
-+
-+	return 0;
- }
- 
- static int acpi_fan_speed_cmp(const void *a, const void *b)
-@@ -285,27 +273,24 @@ static int acpi_fan_get_fps(struct devic
- {
- 	struct acpi_fan *fan = acpi_driver_data(device);
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--	union acpi_object *obj;
- 	acpi_status status;
- 	int i;
- 
- 	status = acpi_evaluate_object(device->handle, "_FPS", NULL, &buffer);
- 	if (ACPI_FAILURE(status))
--		return status;
-+		return -ENXIO;
- 
--	obj = buffer.pointer;
-+	union acpi_object *obj __free(acpi_object_free) = buffer.pointer;
- 	if (!obj || obj->type != ACPI_TYPE_PACKAGE || obj->package.count < 2) {
- 		dev_err(&device->dev, "Invalid _FPS data\n");
--		status = -EINVAL;
--		goto err;
-+		return -ENODATA;
- 	}
- 
- 	fan->fps_count = obj->package.count - 1; /* minus revision field */
- 	fan->fps = devm_kcalloc(dev, fan->fps_count, sizeof(*fan->fps), GFP_KERNEL);
--	if (!fan->fps) {
--		status = -ENOMEM;
--		goto err;
--	}
-+	if (!fan->fps)
-+		return -ENOMEM;
-+
- 	for (i = 0; i < fan->fps_count; i++) {
- 		struct acpi_buffer format = { sizeof("NNNNN"), "NNNNN" };
- 		struct acpi_buffer fps = { offsetof(struct acpi_fan_fps, name),
-@@ -314,7 +299,7 @@ static int acpi_fan_get_fps(struct devic
- 					      &format, &fps);
- 		if (ACPI_FAILURE(status)) {
- 			dev_err(&device->dev, "Invalid _FPS element\n");
--			goto err;
-+			return -ENODATA;
- 		}
- 	}
- 
-@@ -322,9 +307,7 @@ static int acpi_fan_get_fps(struct devic
- 	sort(fan->fps, fan->fps_count, sizeof(*fan->fps),
- 	     acpi_fan_speed_cmp, NULL);
- 
--err:
--	kfree(obj);
--	return status;
-+	return 0;
- }
- 
- static int acpi_fan_dsm_init(struct device *dev)
-@@ -338,8 +321,6 @@ static int acpi_fan_dsm_init(struct devi
- 	};
- 	struct acpi_fan *fan = dev_get_drvdata(dev);
- 	acpi_handle fan_handle = fan->adev->handle;
--	union acpi_object *obj;
--	int ret = 0;
- 
- 	if (!acpi_check_dsm(fan_handle, &acpi_fan_microsoft_guid, 0,
- 			    BIT(ACPI_FAN_DSM_GET_TRIP_POINT_GRANULARITY) |
-@@ -348,20 +329,19 @@ static int acpi_fan_dsm_init(struct devi
- 
- 	dev_info(dev, "Using Microsoft fan extensions\n");
- 
--	obj = acpi_evaluate_dsm_typed(fan_handle, &acpi_fan_microsoft_guid, 0,
--				      ACPI_FAN_DSM_GET_TRIP_POINT_GRANULARITY, &dummy,
--				      ACPI_TYPE_INTEGER);
-+	union acpi_object *obj __free(acpi_object_free) =
-+		acpi_evaluate_dsm_typed(fan_handle, &acpi_fan_microsoft_guid, 0,
-+					ACPI_FAN_DSM_GET_TRIP_POINT_GRANULARITY,
-+					&dummy, ACPI_TYPE_INTEGER);
- 	if (!obj)
--		return -EIO;
-+		return -ENXIO;
- 
- 	if (obj->integer.value > U32_MAX)
--		ret = -EOVERFLOW;
--	else
--		fan->fan_trip_granularity = obj->integer.value;
-+		return -EOVERFLOW;
- 
--	kfree(obj);
-+	fan->fan_trip_granularity = obj->integer.value;
- 
--	return ret;
-+	return 0;
- }
- 
- static int acpi_fan_dsm_set_trip_points(struct device *dev, u64 upper, u64 lower)
-@@ -392,7 +372,7 @@ static int acpi_fan_dsm_set_trip_points(
- 
- 	obj = acpi_evaluate_dsm(fan->adev->handle, &acpi_fan_microsoft_guid,
- 				0, ACPI_FAN_DSM_SET_TRIP_POINTS, &in);
--	kfree(obj);
-+	ACPI_FREE(obj);
- 
- 	return 0;
- }
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -27,6 +27,8 @@ struct irq_domain_ops;
- #include <acpi/acpi.h>
- #include <acpi/acpi_numa.h>
- 
-+DEFINE_FREE(acpi_object_free, union acpi_object *, if (_T) ACPI_FREE(_T));
-+
- #ifdef	CONFIG_ACPI
- 
- #include <linux/list.h>
-
-
-
+Thanks,
+Xiang
