@@ -1,176 +1,427 @@
-Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 894B236A02F
-	for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2026 12:18:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=205.220.180.131
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789561126; cv=pass; b=W3uTbRGd53xQC+YWOk8sdlhxK7qtG05f5JEKxtsPpiOLHfBp162SK3AvdrO+h9V3qCOvh6NXJIbCttLCrgJ+yG+MmBBFTMyGpXtAoLy7ogTo0QQ2Fb/Q1FffYZgSLaGGwlQQXhwA7kkRX6qvI58ChbdolPkiZdnjdN+rMnnD37U=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789561126; c=relaxed/simple;
-	bh=cFuJnI/gnjp4xLrzIqNiRkV0rShV5E0vA0XrCKp3Nm4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=QFexxBHrigweBD0sO+3kYtSnXK/5j7qwDkDxLHVfpa+PBvvlFKBUPJAwLsjuxHcKPrzebNG+mdV+npwj5QApPMr9uZ1tnRLqiTAzQY093/dtV+ojmaibUx8UCfjLQqI6453/PTd7xf19KQKuulxslW40WXDJDfauH3SbaagQskM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=k9V8GFXW; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=Rzwis56F; arc=pass smtp.client-ip=205.220.180.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2453635AC05;
+	Wed, 16 Sep 2026 12:20:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789561234; cv=none; b=aNgC+AExmSAosuaz/boRDbQ/UxMznrUBxqCspRX2EiCey9EfLR89D6S9ygX3YRZX5ivtbKGI5ZrJowNCuHTTWbYFpZ/l6XAqgGRVSZr0ZeDh623AMESAVmYCgy+PLBfa6yyZGOCLMc9SQexxHWXgYisF4LENGvFgkjk/Gy3uMjM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789561234; c=relaxed/simple;
+	bh=0OgQU2jHRRT1xL5IV57LG2VHT69lgAMQSJtJadVUyKY=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=ueVugugD4wqJ94WPW/iQqIJwC+JVLq657N1tuQepDmOtbCq5UKr59pDRyfcXOQvvyRFklUya9p5v6EoSDc8Yo4GNvRkqIRozhH1sWF49n/h6m9Zl9uw5H5Lx9kTGoe8a+kx7UqvOknozj4AlmRgzpcvgk9MIVxZwTiE/Y8apiaM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=du7UTTsj; arc=none smtp.client-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="k9V8GFXW";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="Rzwis56F"
-Received: from pps.filterd (m0279871.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68G930rf2822830
-	for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2026 12:18:44 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:to; s=
-	qcppdkim1; bh=SZBupEoFPUauIn4/x4mdIDMsjjahDV5vgXK9nZDkKoc=; b=k9
-	V8GFXWHIdnHp6Y4RnNpVLDr67AHxIWYMsbp2wmPOzH94cRlXMQtwXV7xIZ+9BXR0
-	0nR/078w0RDY5npb796BNWhMuXLAAqG6YK8dtpYEurKNfXq7Fa/7aD8tX3wFdkE0
-	6OHdaRuZIiumN1U6y20TE8eyAsSsgbwWzLMle0j74mNUcOwU9w13bLZnbHclBNtu
-	moDljfiHU5n5r9RW2PtAkTPiqmbehLJGMTTfkBwrO4AQzmgh35DJCUDpox7iqzDr
-	mGAcBB8eoI1ibcz/V3z+ZnEVL93hmW3Yer9TFDNbRPMORE3IkU6KVJOQnmPVv+Jg
-	lOWWtHO7wLNgrboDzF0g==
-Received: from mail-yw1-f198.google.com (mail-yw1-f198.google.com [209.85.128.198])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4gqfvfjrr1-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2026 12:18:44 +0000 (GMT)
-Received: by mail-yw1-f198.google.com with SMTP id 00721157ae682-8848dc67d24so63341747b3.1
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2026 05:18:44 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1789561124; cv=none;
-        d=google.com; s=arc-20260327;
-        b=i12Jc6JpT6NVZqmHG8Zj3ETFIFhRrrDXNiqjvlQ6DRWDGyJzkzOw61jqT9puuv0DSz
-         UEoRB4BoZAw8CKdordErSGpZj+LqKDmSYa1d+hum7Tkqsyv/n4L1oJLZPazPIolJk+qZ
-         CGCEjCcnbknCcRmrUWrTxPEpc2axY1G8mHyViO9D4AGT8QRN+F9KtHpEEmQXOxEuSXj0
-         67f+YHWBkCt/KLCoXxXb+oFsQMgWoLXJI48gCfihhLa5zkcjDQQ2VIyjX6L8c3Pt3h0P
-         rcwXSTRncg/X46UzRjM/ufSW/GN2l6Dk1RCVHlYp2Ey86XQUaSGC6uhIt1GJEySe3ra6
-         L+wQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :reply-to:in-reply-to:references:mime-version:dkim-signature;
-        bh=SZBupEoFPUauIn4/x4mdIDMsjjahDV5vgXK9nZDkKoc=;
-        fh=USI3l6CTC8O6f0EETlUb7hRzZ4fOw/SgD7BB3qYG9S0=;
-        b=B28dI5n+XEhJKjbJthswl5fhXvuEbVUI88zPt+HZW0Oe2hIv5Dph73piHxhYZvVpWK
-         o3EXLiKut5lyN+Mbbs6CF2ANrxaVyx+yEZLeay6xzJCqr+mWJZl4Hgbw2vMvevIw+d17
-         6yZXFxE1AdqvDq0PgYkzfAPtBCJqlxbHkqxpodFrjoqHAahyzGWmmROh1j8OCkb6o0Zu
-         H0ZVEPeshtRMap0c54qPHfMsOIWmWHG9QA2d/0kOEaT1HWLp5BmQcP+12AVrd5OdxsiP
-         1LmyBKtuPfKS4OgSeAXfL0TGXbhEQmnZC5LtQ5Av4xMlherDB8xw/+tboIGIgVh5zckk
-         2dPw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1789561124; x=1790165924; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:reply-to:in-reply-to:references:mime-version:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=SZBupEoFPUauIn4/x4mdIDMsjjahDV5vgXK9nZDkKoc=;
-        b=Rzwis56FgaH8sujtwXImMu/XGDRDKeezaqOXX4/gVotf/qrkyG4CIbW2IM9Kry41r6
-         6wUAlNTVMUqlmGopM9lUQWEEEH1FxKkIG+8KR+LsKvMSOObSC7YXPjAaEUdVDQrNktOd
-         gXKUOE41/eJ0Gky14BIgtCO6Hl3TQGcnmhssPJ8/MKCs4FE307bGqFmUIlkiw7LUJ6Tr
-         frcxBfFLytAv98EbiTO9xyFx3nky7jwPIJRBlZRCA0oQjei1vc3E8i28MPqp0askr0EU
-         7nieIxT8E5bhcUn+DXSSl35qBmaTpGOnzc8N+3Qhuaop4ioJnaF99VXiUiRwTtmHrbRf
-         /FQQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789561124; x=1790165924;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:reply-to:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=SZBupEoFPUauIn4/x4mdIDMsjjahDV5vgXK9nZDkKoc=;
-        b=2ZK6iBGWtwOMHVclQeq+L+rN7jOpnvcR61oqkiHHu9Ck8e02DK4wW1bbClFQJTAez2
-         2Fs0N9NLk0mTqvggh80lDeWIKKa0/sYKMlEsvszV8ZUN6qOHvXSdgiBEDSaJV8R9LiYc
-         +D629qrUvYFAbfc+ZxnH/thJ9+As7tC4vQPMT9OKIMMWnSs0Mx98MtdOe/gbyENKvdJW
-         9c0fpAF2Q6J0+Aycgt4uKlwqsnewOczTdyGa2+kxEoXC4Etbgm6XJJEotRJw+FSAH9F2
-         O0lvx3f5VTk/UHXxDzi1wUeVFXWXLgACeLgxVs3FVzGZERLwVW07ZVLvRgvNerel5z7o
-         gvyA==
-X-Forwarded-Encrypted: i=1; AKwUvBzg7Xfk1VXa/fueKvXiXAh4MBB+CQGCM7Nb+v4o1AabLjTzk/iiu3IQi41OfezYgrCm2SPLZmfYZUZb@vger.kernel.org
-X-Gm-Message-State: AFuF++kqLCui1uX6/uQkW/t2258Zw/FSovJSpp3vcJFa8th4/VpY7pO0
-	UQPIDLJ38DSz6mhI7SsGbmMMmZbkRnEUEZhOiS6CiZtkappwXCLxx+eRvVR8ousVC+Ho19LF8lw
-	6NPpSqMSTiEM3ISxt0xGaDs6Sfx2t55Mbmi4M43+8jIpJNqNoGNGkpypliJbGVrNMUnnpvTbIb8
-	0WODw66mKE2fK8lu0sxLBCf5fdFJ828N4QCToS7KI=
-X-Gm-Gg: AYBFou135cu1jycdiitr//CVs7YiLlBfzbvhEnT6ZfE4qiU1lVHQ+rZV6Lui4jmNdng
-	FS5KHFrgX5jT3UMJiZHFFPekDKu22aDvCP2d+ZoUR0CyOrABYQ3HumAK9bFZ0TgxRr8y3J3a3p5
-	7dSAw6VAy8t9/sUx7RIYfxgUIY9Dc02PvEjpailX9vNPuHzpPx7dcHjYnBCzY=
-X-Received: by 2002:a05:690c:34c9:b0:873:5bb2:6c12 with SMTP id 00721157ae682-892265e7601mr6043587b3.60.1789561123669;
-        Wed, 16 Sep 2026 05:18:43 -0700 (PDT)
-X-Received: by 2002:a05:690c:34c9:b0:873:5bb2:6c12 with SMTP id
- 00721157ae682-892265e7601mr6043477b3.60.1789561123293; Wed, 16 Sep 2026
- 05:18:43 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="du7UTTsj"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1789561232; x=1821097232;
+  h=date:from:to:cc:subject:message-id;
+  bh=0OgQU2jHRRT1xL5IV57LG2VHT69lgAMQSJtJadVUyKY=;
+  b=du7UTTsj/vJ5IQv+OMz/hURyj7Pj6oyXlipqAr9Vw0Dx7949CBkNTJnw
+   L5e4jivy99OEH7/VYGUASpbqrm8pScOMzkic3Jg/uDbUKDrT7dq1EzArf
+   06bc2vigPg0eBUzO8sEN6sm0F6EtBWImxipvns0+7xzqMO0QGIVfQ+VCO
+   AW4THS3IjfL9Wfq1cgBkkoz5to/1DcNTNUtFOtbgxB6Gq7lRthLIN81l8
+   YaYeq/13UAGVlCsDmV4en32W0gSbCpcXHqEjq1/VyQcZIz/jReZZYawLT
+   LerRAVG9jMzcOUySav1cj2KSprxHgD6jXya3Op+R0XGrSJUAutTe00dJj
+   A==;
+X-CSE-ConnectionGUID: 1o9bSnP0SLOKJWusFr+JcA==
+X-CSE-MsgGUID: Pvcs1x6IRRmCaP+BlzNUwQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11905"; a="93761822"
+X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
+   d="scan'208";a="93761822"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Sep 2026 05:20:31 -0700
+X-CSE-ConnectionGUID: PwfSNSeASGW9bwrvB9xYJw==
+X-CSE-MsgGUID: IhNZVQczQhicLYGDrzmhWg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
+   d="scan'208";a="277451403"
+Received: from lkp-server01.sh.intel.com (HELO 462990a40a85) ([10.239.97.150])
+  by orviesa005.jf.intel.com with ESMTP; 16 Sep 2026 05:20:29 -0700
+Received: from kbuild by 462990a40a85 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1x6ocl-0000000063l-2oYP;
+	Wed, 16 Sep 2026 12:20:27 +0000
+Date: Wed, 16 Sep 2026 20:20:05 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD REGRESSION
+ c4effca721d9748be701b3c3b8a666b380b2a4e5
+Message-ID: <202609162001.DINb6CUz-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20260916112545.887461-1-xiangwencheng@lanxincomputing.com>
-In-Reply-To: <20260916112545.887461-1-xiangwencheng@lanxincomputing.com>
-Reply-To: sunilvl@oss.qualcomm.com
-From: Sunil V L <sunilvl@oss.qualcomm.com>
-Date: Wed, 16 Sep 2026 17:48:31 +0530
-X-Gm-Features: AcwNN1W_xPwCRH9HhXLAxBaZmSSff5vjkIMgObB2TpK3jfnwJHHIzxaUu74RxEQ
-Message-ID: <CAB19ukHfFXmuPEaWdNPvFRkvMGpDQfVEpCHfqsHL20tpBytQRA@mail.gmail.com>
-Subject: Re: [PATCH] riscv: iommu: ask for ACS to be enabled
-To: BillXiang <xiangwencheng@lanxincomputing.com>
-Cc: sunilvl@ventanamicro.com, rafael@kernel.org, lenb@kernel.org,
-        pjw@kernel.org, palmer@dabbelt.com, aou@eecs.berkeley.edu,
-        alex@ghiti.fr, linux-acpi@vger.kernel.org,
-        linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
-        iommu@lists.linux.dev, tjeznach@rivosinc.com,
-        luxu.kernel@bytedance.com, guoren@linux.alibaba.com, jgg@nvidia.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-X-Authority-Analysis: v=2.4 cv=JYkpPkKV c=1 sm=1 tr=0 ts=6aaa8924 cx=c_pps
- a=g1v0Z557R90hA0UpD/5Yag==:117 a=IkcTkHD0fZMA:10 a=VdqzKS8jKosA:10
- a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=3WHJM1ZQz_JShphwDgj5:22 a=D19gQVrFAAAA:8 a=4BKX8IsyAAAA:8
- a=RP7urAqO3HFMDD4ElOsA:9 a=QEXdDO2ut3YA:10 a=MFSWADHSvvjO3QEy5MdX:22
- a=W4TVW4IDbPiebHqcZpNg:22 a=bflBWynC2lygM3eL1Mvi:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTE2MDE2MiBTYWx0ZWRfXx5zFAZEUtvMj
- /8XglqYMQWntOSoHntJbs92kVG8N0pTmP6XhRU5N1VyjRos/QjAqvOOcavwoM36zPhfD9qNUmKx
- VDu5DyPBp2+iL8YEUOIRH52w+XiUY6jIORsb6LGdJo/ffaZ6KciOGUA47fraG8qp7G19ygPbBMp
- Te32T92o00lTP54sesP/amowGleYCP0hX4lSdtE3/Dnbsi6GymbfN/heNyLCf2etHZvBzBqK2yC
- tqfad9P0iXdRZdhMg7eDNwunCXiSwupvf3tO0YASSyaz49djXkFZPm0HkgWUfwvEmaLzgpF1tNB
- Vol+kmknugk/morG97+C5wtK5wASbyOZ7r+oHW4TlJRCFWnHZ/NPdYoCdoHra4loCpazsSeK3WU
- fXzBbPyXPP3sMZ4oTfrsyQ1A6p91I5MrFgcE6QFeoqRsuerRudPEmgqVl+vBt+sDKwkfBnOpAAa
- sDoaCbS8g5+K25HjFMw==
-X-Proofpoint-GUID: 9MdSVbCwbs44CntEj0_ZMCyEmVFPyQ8e
-X-Proofpoint-ORIG-GUID: 9MdSVbCwbs44CntEj0_ZMCyEmVFPyQ8e
-X-Proofpoint-Spam-Info: AW1haW4tMjYwOTE2MDE2MiBTYWx0ZWRfXwy5roGBdBU5o
- JrFGeJF6fUArJ4dlxlUoyZhtQrkNiPBihEiT05xMPQT6eCx1kyI/xn/Pg2eimiYTDtM741x8Qny
- bHqpIJMTw4pZF+tSmLBvCpPfmHKYBzc=
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-09-15_05,2026-09-15_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- lowpriorityscore=0 phishscore=0 impostorscore=0 priorityscore=1501
- spamscore=0 malwarescore=0 adultscore=0 clxscore=1015 bulkscore=0
- suspectscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2609040000
- definitions=main-2609160162
 
-On Wed, Sep 16, 2026 at 5:15=E2=80=AFPM BillXiang
-<xiangwencheng@lanxincomputing.com> wrote:
->
-> Make sure ACS will be enabled during PCI probe
->
-> Signed-off-by: BillXiang <xiangwencheng@lanxincomputing.com>
-> ---
->  drivers/acpi/riscv/rimt.c | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/acpi/riscv/rimt.c b/drivers/acpi/riscv/rimt.c
-> index e4538fa6c2c8..30d2d0211d5e 100644
-> --- a/drivers/acpi/riscv/rimt.c
-> +++ b/drivers/acpi/riscv/rimt.c
-> @@ -525,4 +525,5 @@ void __init riscv_acpi_rimt_init(void)
->
->                 return;
->         }
-> +       pci_request_acs();
->  }
->
-There is already a patch in the mailing list for this.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: c4effca721d9748be701b3c3b8a666b380b2a4e5  Merge branch 'acpi-pri-dev' into bleeding-edge
 
-https://lkml.org/lkml/2026/9/3/1930
+Error/Warning (recently discovered and may have been fixed):
 
-Thanks,
-Sunil
+    https://lore.kernel.org/oe-kbuild-all/202609150550.ZyqBeGWm-lkp@intel.com
+    https://lore.kernel.org/oe-kbuild-all/202609160705.vk4ADT7O-lkp@intel.com
+    https://lore.kernel.org/oe-kbuild-all/202609160802.42lSCDhD-lkp@intel.com
+
+    drivers/thunderbolt/acpi.c:31:6: warning: variable 'dev' is used uninitialized whenever 'if' condition is true [-Wsometimes-uninitialized]
+    sound/soc/loongson/loongson_card.c:206:17: error: incompatible integer to pointer conversion initializing 'struct device *' with an expression of type 'int' [-Wint-conversion]
+    sound/soc/loongson/loongson_card.c:206:46: error: call to undeclared function 'acpi_bus_get_primary_device'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+    sound/soc/loongson/loongson_card.c:206:46: error: implicit declaration of function 'acpi_bus_get_primary_device'; did you mean 'acpi_get_gpe_device'? [-Werror=implicit-function-declaration]
+    sound/soc/loongson/loongson_card.c:206:46: warning: initialization of 'struct device *' from 'int' makes pointer from integer without a cast [-Wint-conversion]
+    sound/soc/loongson/loongson_card.c:206:53: error: implicit declaration of function 'acpi_bus_get_primary_device' [-Werror=implicit-function-declaration]
+    sound/soc/loongson/loongson_card.c:206:53: error: implicit declaration of function 'acpi_bus_get_primary_device' [-Wimplicit-function-declaration]
+    sound/soc/loongson/loongson_card.c:206:53: error: initialization of 'struct device *' from 'int' makes pointer from integer without a cast [-Wint-conversion]
+    sound/soc/loongson/loongson_card.c:206:53: warning: initialization of 'struct device *' from 'int' makes pointer from integer without a cast [-Wint-conversion]
+
+Error/Warning ids grouped by kconfigs:
+
+recent_errors
+|-- alpha-allyesconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:error:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- arc-allmodconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:error:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- arc-allyesconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:error:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- arc-randconfig-001-20260916
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:warning:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- arm-allyesconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:error:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- csky-allmodconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:error:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- i386-randconfig-051-20260915
+|   `-- drivers-thunderbolt-acpi.c:warning:variable-dev-is-used-uninitialized-whenever-if-condition-is-true
+|-- i386-randconfig-053-20260915
+|   `-- drivers-thunderbolt-acpi.c:warning:variable-dev-is-used-uninitialized-whenever-if-condition-is-true
+|-- i386-randconfig-r051-20260915
+|   `-- drivers-thunderbolt-acpi.c:warning:variable-dev-is-used-uninitialized-whenever-if-condition-is-true
+|-- m68k-allmodconfig
+|   `-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|-- m68k-allyesconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:error:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- microblaze-allyesconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:error:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- nios2-allmodconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:warning:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- openrisc-allmodconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:error:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- parisc-allmodconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:error:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- parisc-allyesconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:error:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- parisc-randconfig-r122-20260916
+|   `-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|-- powerpc-allmodconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:error:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- powerpc64-randconfig-002-20260916
+|   |-- sound-soc-loongson-loongson_card.c:error:call-to-undeclared-function-acpi_bus_get_primary_device-ISO-C99-and-later-do-not-support-implicit-function-declarations
+|   `-- sound-soc-loongson-loongson_card.c:error:incompatible-integer-to-pointer-conversion-initializing-struct-device-with-an-expression-of-type-int
+|-- powerpc64-randconfig-r112-20260916
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:warning:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- s390-allmodconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:call-to-undeclared-function-acpi_bus_get_primary_device-ISO-C99-and-later-do-not-support-implicit-function-declarations
+|   `-- sound-soc-loongson-loongson_card.c:error:incompatible-integer-to-pointer-conversion-initializing-struct-device-with-an-expression-of-type-int
+|-- s390-allyesconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:error:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- sh-allmodconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:error:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- sh-allyesconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:error:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- sparc64-allmodconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:call-to-undeclared-function-acpi_bus_get_primary_device-ISO-C99-and-later-do-not-support-implicit-function-declarations
+|   `-- sound-soc-loongson-loongson_card.c:error:incompatible-integer-to-pointer-conversion-initializing-struct-device-with-an-expression-of-type-int
+|-- um-allmodconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:call-to-undeclared-function-acpi_bus_get_primary_device-ISO-C99-and-later-do-not-support-implicit-function-declarations
+|   `-- sound-soc-loongson-loongson_card.c:error:incompatible-integer-to-pointer-conversion-initializing-struct-device-with-an-expression-of-type-int
+|-- um-allyesconfig
+|   |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+|   `-- sound-soc-loongson-loongson_card.c:error:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+|-- x86_64-rhel-9.4-rust
+|   `-- drivers-thunderbolt-acpi.c:warning:variable-dev-is-used-uninitialized-whenever-if-condition-is-true
+`-- xtensa-allyesconfig
+    |-- sound-soc-loongson-loongson_card.c:error:implicit-declaration-of-function-acpi_bus_get_primary_device
+    `-- sound-soc-loongson-loongson_card.c:error:initialization-of-struct-device-from-int-makes-pointer-from-integer-without-a-cast
+
+elapsed time: 2485m
+
+configs tested: 252
+configs skipped: 4
+
+tested configs:
+alpha                             allnoconfig    gcc-16.1.0
+alpha                            allyesconfig    gcc-16.1.0
+alpha                               defconfig    gcc-16.1.0
+alpha                randconfig-r073-20260915    gcc-14.3.0
+arc                              allmodconfig    clang-24
+arc                               allnoconfig    gcc-16.1.0
+arc                              allyesconfig    clang-24
+arc                                 defconfig    gcc-16.1.0
+arc                 nsimosci_hs_smp_defconfig    clang-20
+arc                   randconfig-001-20260916    clang-24
+arc                   randconfig-002-20260916    clang-24
+arc                  randconfig-r071-20260915    gcc-14.3.0
+arm                               allnoconfig    gcc-16.1.0
+arm                              allyesconfig    clang-24
+arm                                 defconfig    gcc-16.1.0
+arm                           h3600_defconfig    gcc-16.1.0
+arm                   randconfig-001-20260916    clang-24
+arm                   randconfig-002-20260916    clang-24
+arm                   randconfig-003-20260916    clang-24
+arm                   randconfig-004-20260916    clang-24
+arm                  randconfig-r051-20260915    clang-19
+arm                  randconfig-r052-20260915    gcc-9.5.0
+arm                  randconfig-r062-20260915    clang-24
+arm                  randconfig-r133-20260916    gcc-16.1.0 sparse
+arm                           tegra_defconfig    clang-20
+arm64                            allmodconfig    clang-24
+arm64                             allnoconfig    gcc-16.1.0
+arm64                               defconfig    gcc-16.1.0
+arm64                 randconfig-001-20260916    gcc-16.1.0
+arm64                 randconfig-002-20260916    gcc-16.1.0
+arm64                 randconfig-003-20260916    gcc-16.1.0
+arm64                 randconfig-004-20260916    gcc-16.1.0
+arm64                randconfig-r062-20260915    gcc-8.5.0
+csky                             allmodconfig    gcc-16.1.0
+csky                              allnoconfig    gcc-16.1.0
+csky                                defconfig    gcc-16.1.0
+csky                  randconfig-001-20260916    gcc-16.1.0
+csky                  randconfig-002-20260916    gcc-16.1.0
+csky                 randconfig-r054-20260915    gcc-15.2.0
+csky                 randconfig-r111-20260916    clang-24 sparse
+hexagon                          allmodconfig    gcc-16.1.0
+hexagon                           allnoconfig    gcc-16.1.0
+hexagon                             defconfig    gcc-16.1.0
+hexagon               randconfig-001-20260916    gcc-16.1.0
+hexagon               randconfig-002-20260916    gcc-16.1.0
+i386                             allmodconfig    clang-22
+i386                              allnoconfig    gcc-16.1.0
+i386                             allyesconfig    clang-22
+i386        buildonly-randconfig-001-20260916    clang-22
+i386        buildonly-randconfig-002-20260916    clang-22
+i386        buildonly-randconfig-003-20260916    clang-22
+i386        buildonly-randconfig-004-20260916    clang-22
+i386        buildonly-randconfig-005-20260916    clang-22
+i386        buildonly-randconfig-006-20260916    clang-22
+i386                                defconfig    gcc-16.1.0
+i386                  randconfig-001-20260916    gcc-14
+i386                  randconfig-002-20260916    gcc-14
+i386                  randconfig-003-20260916    gcc-14
+i386                  randconfig-004-20260916    gcc-14
+i386                  randconfig-005-20260916    gcc-14
+i386                  randconfig-006-20260916    gcc-14
+i386                  randconfig-007-20260916    gcc-14
+i386                  randconfig-011-20260916    clang-22
+i386                  randconfig-012-20260916    clang-22
+i386                  randconfig-013-20260916    clang-22
+i386                  randconfig-014-20260916    clang-22
+i386                  randconfig-015-20260916    clang-22
+i386                  randconfig-016-20260916    clang-22
+i386                  randconfig-017-20260916    clang-22
+i386                  randconfig-051-20260915    clang-22
+i386                  randconfig-052-20260915    clang-22
+i386                  randconfig-053-20260915    clang-22
+i386                  randconfig-054-20260915    clang-22
+i386                  randconfig-141-20260915    clang-22
+i386                 randconfig-r051-20260915    gcc-9.5.0
+i386                 randconfig-r131-20260916    gcc-16.1.0 sparse
+loongarch                        allmodconfig    clang-24
+loongarch                         allnoconfig    gcc-16.1.0
+loongarch                           defconfig    clang-24
+loongarch             randconfig-001-20260916    gcc-16.1.0
+loongarch             randconfig-002-20260916    gcc-16.1.0
+loongarch            randconfig-r052-20260915    gcc-15.2.0
+loongarch            randconfig-r053-20260915    clang-19
+loongarch            randconfig-r062-20260915    gcc-13
+loongarch            randconfig-r111-20260916    gcc-12.5.0 sparse
+loongarch            randconfig-r121-20260916    gcc-12.5.0 sparse
+m68k                             allmodconfig    gcc-16.1.0
+m68k                              allnoconfig    gcc-16.1.0
+m68k                             allyesconfig    clang-24
+m68k                                defconfig    clang-24
+m68k                       m5329evb_defconfig    clang-20
+m68k                 randconfig-r061-20260915    clang-24
+m68k                 randconfig-r064-20260915    gcc-13
+microblaze                        allnoconfig    gcc-16.1.0
+microblaze                       allyesconfig    gcc-16.1.0
+microblaze                          defconfig    clang-24
+microblaze           randconfig-r053-20260915    gcc-9.5.0
+microblaze           randconfig-r073-20260915    gcc-8.5.0
+mips                             allmodconfig    gcc-16.1.0
+mips                              allnoconfig    gcc-16.1.0
+mips                             allyesconfig    gcc-16.1.0
+mips                           ip22_defconfig    gcc-16.1.0
+mips                 randconfig-r054-20260915    gcc-9.5.0
+mips                 randconfig-r064-20260915    gcc-8.5.0
+mips                 randconfig-r113-20260916    clang-24 sparse
+mips                 randconfig-r123-20260916    gcc-12.5.0 sparse
+mips                           rs90_defconfig    gcc-16.1.0
+mips                        vocore2_defconfig    clang-20
+nios2                            allmodconfig    clang-20
+nios2                             allnoconfig    clang-24
+nios2                               defconfig    clang-24
+nios2                 randconfig-001-20260916    gcc-16.1.0
+nios2                 randconfig-002-20260916    gcc-16.1.0
+nios2                randconfig-r063-20260915    gcc-13
+openrisc                         allmodconfig    clang-20
+openrisc                          allnoconfig    clang-24
+openrisc                            defconfig    gcc-16.1.0
+openrisc             randconfig-r071-20260915    gcc-14.3.0
+openrisc             randconfig-r134-20260916    gcc-16.1.0 sparse
+parisc                           allmodconfig    gcc-16.1.0
+parisc                            allnoconfig    clang-24
+parisc                           allyesconfig    clang-17
+parisc                              defconfig    gcc-16.1.0
+parisc                randconfig-001-20260916    clang-24
+parisc                randconfig-002-20260916    clang-24
+parisc               randconfig-r052-20260915    clang-19
+parisc               randconfig-r122-20260916    gcc-12.5.0 sparse
+parisc               randconfig-r132-20260916    gcc-11.5.0 sparse
+parisc64                         alldefconfig    clang-20
+parisc64                            defconfig    clang-24
+powerpc                          allmodconfig    gcc-16.1.0
+powerpc                           allnoconfig    clang-24
+powerpc                        cell_defconfig    gcc-16.1.0
+powerpc                   currituck_defconfig    clang-20
+powerpc                 linkstation_defconfig    gcc-16.1.0
+powerpc                     mpc512x_defconfig    clang-20
+powerpc               randconfig-001-20260916    clang-24
+powerpc               randconfig-002-20260916    clang-24
+powerpc              randconfig-r053-20260915    gcc-15.2.0
+powerpc              randconfig-r063-20260915    clang-24
+powerpc              randconfig-r064-20260915    clang-24
+powerpc              randconfig-r071-20260915    clang-24
+powerpc              randconfig-r072-20260915    gcc-9.5.0
+powerpc              randconfig-r113-20260916    gcc-12.5.0 sparse
+powerpc              randconfig-r122-20260916    clang-24 sparse
+powerpc                         wii_defconfig    gcc-16.1.0
+powerpc64             randconfig-001-20260916    clang-24
+powerpc64             randconfig-002-20260916    clang-24
+powerpc64            randconfig-r054-20260915    clang-19
+powerpc64            randconfig-r071-20260915    gcc-10.5.0
+powerpc64            randconfig-r112-20260916    gcc-12.5.0 sparse
+riscv                            allmodconfig    clang-24
+riscv                             allnoconfig    clang-24
+riscv                            allyesconfig    clang-24
+riscv                               defconfig    gcc-16.1.0
+riscv                 randconfig-001-20260916    gcc-16.1.0
+riscv                 randconfig-002-20260916    gcc-16.1.0
+riscv                randconfig-r053-20260915    clang-24
+riscv                randconfig-r072-20260915    clang-19
+s390                             allmodconfig    clang-17
+s390                              allnoconfig    clang-24
+s390                             allyesconfig    gcc-16.1.0
+s390                                defconfig    gcc-16.1.0
+s390                  randconfig-001-20260916    gcc-16.1.0
+s390                  randconfig-002-20260916    gcc-16.1.0
+s390                 randconfig-r051-20260915    gcc-15.2.0
+s390                 randconfig-r064-20260915    gcc-13
+s390                 randconfig-r072-20260915    gcc-9.5.0
+s390                 randconfig-r073-20260915    clang-19
+s390                 randconfig-r133-20260916    gcc-11.5.0 sparse
+sh                               allmodconfig    gcc-16.1.0
+sh                                allnoconfig    clang-24
+sh                               allyesconfig    clang-17
+sh                                  defconfig    gcc-14
+sh                          lboxre2_defconfig    gcc-16.1.0
+sh                    randconfig-001-20260916    gcc-16.1.0
+sh                    randconfig-002-20260916    gcc-16.1.0
+sh                   randconfig-r054-20260915    clang-24
+sh                   randconfig-r123-20260916    clang-24 sparse
+sh                          sdk7786_defconfig    clang-20
+sh                           se7751_defconfig    gcc-16.1.0
+sparc                             allnoconfig    clang-24
+sparc                               defconfig    gcc-16.1.0
+sparc                 randconfig-001-20260916    gcc-14.3.0
+sparc                 randconfig-002-20260916    gcc-14.3.0
+sparc                randconfig-r063-20260915    gcc-13
+sparc64                          allmodconfig    clang-20
+sparc64                             defconfig    gcc-14
+sparc64               randconfig-001-20260916    gcc-14.3.0
+sparc64               randconfig-002-20260916    gcc-14.3.0
+sparc64              randconfig-r112-20260916    clang-24 sparse
+sparc64              randconfig-r134-20260916    gcc-11.5.0 sparse
+um                               allmodconfig    clang-17
+um                                allnoconfig    clang-24
+um                               allyesconfig    gcc-16.1.0
+um                                  defconfig    gcc-14
+um                             i386_defconfig    gcc-14
+um                    randconfig-001-20260916    gcc-14.3.0
+um                    randconfig-002-20260916    gcc-14.3.0
+um                   randconfig-r052-20260915    clang-24
+um                   randconfig-r072-20260915    clang-17
+um                   randconfig-r121-20260916    clang-24 sparse
+um                   randconfig-r132-20260916    gcc-16.1.0 sparse
+um                           x86_64_defconfig    gcc-14
+x86_64                            allnoconfig    clang-24
+x86_64                              defconfig    gcc-14
+x86_64                                  kexec    clang-22
+x86_64                randconfig-001-20260916    clang-22
+x86_64                randconfig-002-20260916    clang-22
+x86_64                randconfig-003-20260916    clang-22
+x86_64                randconfig-004-20260916    clang-22
+x86_64                randconfig-005-20260916    clang-22
+x86_64                randconfig-006-20260916    clang-22
+x86_64                randconfig-011-20260916    gcc-14
+x86_64                randconfig-012-20260916    gcc-14
+x86_64                randconfig-013-20260916    gcc-14
+x86_64                randconfig-014-20260916    gcc-14
+x86_64                randconfig-015-20260916    gcc-14
+x86_64                randconfig-016-20260916    gcc-14
+x86_64                randconfig-071-20260916    gcc-14
+x86_64                randconfig-072-20260916    gcc-14
+x86_64                randconfig-073-20260916    gcc-14
+x86_64                randconfig-074-20260916    gcc-14
+x86_64                randconfig-075-20260916    gcc-14
+x86_64                randconfig-076-20260916    gcc-14
+x86_64                randconfig-101-20260915    clang-22
+x86_64                randconfig-102-20260915    clang-22
+x86_64                randconfig-103-20260915    clang-22
+x86_64                randconfig-104-20260915    clang-22
+x86_64                randconfig-161-20260915    clang-22
+x86_64               randconfig-r061-20260915    gcc-13
+x86_64               randconfig-r063-20260915    gcc-8.5.0
+x86_64               randconfig-r073-20260915    gcc-14
+x86_64                               rhel-9.4    clang-22
+x86_64                           rhel-9.4-bpf    clang-22
+x86_64                           rhel-9.4-bpf    gcc-14
+x86_64                          rhel-9.4-func    clang-22
+x86_64                    rhel-9.4-kselftests    clang-22
+x86_64                         rhel-9.4-kunit    clang-22
+x86_64                         rhel-9.4-kunit    gcc-14
+x86_64                           rhel-9.4-ltp    clang-22
+x86_64                           rhel-9.4-ltp    gcc-14
+x86_64                          rhel-9.4-rust    clang-22
+x86_64                          rhel-9.4-rust    clang-22
+xtensa                            allnoconfig    clang-24
+xtensa                           allyesconfig    clang-20
+xtensa                randconfig-001-20260916    gcc-14.3.0
+xtensa                randconfig-002-20260916    gcc-14.3.0
+xtensa               randconfig-r051-20260915    clang-24
+xtensa               randconfig-r061-20260915    gcc-8.5.0
+xtensa               randconfig-r062-20260915    gcc-13
+xtensa               randconfig-r131-20260916    gcc-11.5.0 sparse
+
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
