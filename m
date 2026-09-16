@@ -1,61 +1,62 @@
 Received: from mail-pj2-f13.google.com (mail-pj2-f13.google.com [74.125.227.141])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E24B63D25A3
-	for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2026 07:58:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8045346A5E2
+	for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2026 07:58:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.141
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789545539; cv=none; b=rt1JkKOmepfNNRaSwGTCVZ+d26tM63cs2u1BwwtdHTYNh87gdhgW1PxLtfsoOG01Zf9PO4SgcrMfM6mJkYKRKlQtuNHUw2TAxjkUPb4GhP/J/xNfT2BUDTnwjNM43MYrKJlFMybtt1VRK65vp3FPrQ2fWntUqGzqvln3wY80quU=
+	t=1789545546; cv=none; b=KBVyp1s5z4XAnBKlLtG3k4zOIWhd/SjUDW1FGn2JaUhzqAc4DmNEyTa29cCyEeiKbqg6l//j7p/vmu0v3xYWVsjIRl9IZidzQ9cmrgGOWRQRckQPSBkZa+upJM1A63SnNDxG6jg3XF/pWBgH8OeUodnU3DE5J0mPgsPZjrpGT8U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789545539; c=relaxed/simple;
-	bh=L6VSMNKkPXg4l9VS1SCcav8nfu3ymTFtfF0ofUQlcoE=;
+	s=arc-20240116; t=1789545546; c=relaxed/simple;
+	bh=PPQwnBevhndYutuKDdDvehHKW7FqGHGO5QlRVDsedNs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ANcy8vRXDGlSLT5lHceEoW1LQqv82HafsxN0fFvBP0JnJ6O7IvSpEq6+F++aU6Tqu+cUnTZRnBVJbVaDhbGRGoc+hcj0rHc567ZYMrnmbhHuKGIRjl8Ikmem58hhZL70KVzIXIqaa5OkX03/xNm+BJYEmIkvfCZntA8g/ajpvv0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=GBzusWew; arc=none smtp.client-ip=74.125.227.141
+	 MIME-Version; b=kbZtRfFJvQnTyr1ArAogt9ikg12UaNX6Npo1rT3PT0h4oPnLZV0Mtu+XoiP1yvX40NxJd/ehgMafPGDq866DZQEgYtOQsSVcXncUheGz0BuLTjmaNp7w3RJHxUOtPpK0wH02PluW/E7Nm/AhOOnxVnTi6m3Koy+t/kQpBgvsSqY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=Ipq2ISt0; arc=none smtp.client-ip=74.125.227.141
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="GBzusWew"
-Received: by mail-pj2-f13.google.com with SMTP id 98e67ed59e1d1-398a1676000so460581a91.2
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2026 00:58:40 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="Ipq2ISt0"
+Received: by mail-pj2-f13.google.com with SMTP id 98e67ed59e1d1-396ccd5cf03so555982a91.1
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Sep 2026 00:58:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1789545518; x=1790150318; darn=vger.kernel.org;
+        d=chromium.org; s=google; t=1789545528; x=1790150328; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Fm2NU1dVk2SpuJ0fFyLgsSQpwqAtZZWxE/JzixP9q9s=;
-        b=GBzusWewVtBHhHke5RksqATpbU0/huc+d336SYPaxyosNfiesaXKtV1JgWg0Jzote7
-         f0roi3BJSDAhn5jtc4jwhwyBeYGHfyAaASrTMR2G8i1AtFJNbyzNkh27gYu5wvEWIyZC
-         /AasNZCngh+Vrs6oFwRqMyrj3mTU0TGUCj3Zc=
+        bh=SWwi8XOZ6LU+PxR6btCprbkiTyl3Q4dICGc4z937Hmk=;
+        b=Ipq2ISt0pOHBw/MedOHquRdKJL8cr81NU8lTbtIi0375m9EvnwtQ5Cu0+JLOohQWAH
+         Z2yAczKbLMHtbCZ1JR5dvkvOPKbIZp1zWutKzSKJouwlTG0iavUXgS6XXeUJucT/9HoF
+         LmR92+Lbp15SkFfG87C9Q9+StcoQp2bKXq/oQ=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789545518; x=1790150318;
+        d=1e100.net; s=20260707; t=1789545528; x=1790150328;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Fm2NU1dVk2SpuJ0fFyLgsSQpwqAtZZWxE/JzixP9q9s=;
-        b=iEtblU1e5XaHT9nIVw8ioyBfjqIO6663Xyb6/dw00HpZZ8qoHu52AcXijaLozwForq
-         HeiDPlc+8ql915+cPY3CCu+BVDctV8yfUz6X4sjzy3ZpmIDF7lHBO+vpsia3rgt979WH
-         SRa77tRnxkLat+vYXigAkSL8Bl6cLUaxK8+Z551blK3R6PQpR/mV6ULDB72eh/g0gFHT
-         ZhlBNUYhl8mQ1Bd8UVMKoBuGP/6jy5HsQiFJgDQHatDKhrMuo1/IB9Jl5E11RjKw9mL0
-         EI3BhRN0MK60V5ZpbQ1OV63CUYdWZKsrvi6zKCV9+5a6HS4VDRJByMhpYjBRjJbCXr05
-         j8hg==
-X-Forwarded-Encrypted: i=1; AKwUvBwps2XGJPStho5XFjoR6Mw8b1CSyxD53w/mwSmyOghNKM4Clh5dDiPyHMRsN0kjdHRajNyIDKhtrTjV@vger.kernel.org
-X-Gm-Message-State: AFuF++naF5LaYtyICf/MbIhANHbr6zWWWr3iedBKWWYpTTEVlUgQGS5P
-	LUNW+N+u/bjKXX6iEqk3O1tJfPIJjdP156kYtaB8OnzhalzmFvJ15wmuN+iHFIsRLA==
-X-Gm-Gg: AYBFou3WO/6HsCTpPye+UEhvmiQMDBXqUaTu7lo1lTt/UyTL7uReaS98YBlzUv4Ffhw
-	BuUR71ETN7uAZosiZEDKcsQauVZJdgXZwJJ42DneGf2q/f3ygOKMV2GEkEMbmCksr+RuyIZwmal
-	KxdF9NfbHMIHv1znf9tnl8fGJEMEPDKtCFTukdFYEFVgWV9AjVDQnHMjOCUfz7YaMydi1O+UI/x
-	GD0ERkveNcFOBlTroeUSzZ65dqcB5p28aRfGLk2pFCWWwUx8nNG4p85UjhnjNscqOqzH1DJqLM/
-	IxSNR82yz6rvdPWLS/s1m0Br0uyUVY44jR0HHc+EWxqVBOVMwssZrdjcM+KEd6LKQgx/hBR/OE6
-	+278nFOjkZd0R7JzHOa4Gi6l5uFQSKJ4oYMq7VVDLsdYjyScKQ/bjzBbBkDxv5QMbQfhXi9lyyk
-	kfSnMlO2AWqrboucgkOAfR8pNLGsW9y9M6UjTjBb9fLiy1Y3x4iVUILAHwM58Pa5/TGgC9HU7df
-	gfT8sL+j6XMcWW8fINAPhAXdabvHqllW8rmjFMjkPNWT/yj0AGI36IZgw==
-X-Received: by 2002:a17:90b:2885:b0:39d:f130:8f13 with SMTP id 98e67ed59e1d1-39e1e4d3357mr4064349a91.21.1789545517871;
-        Wed, 16 Sep 2026 00:58:37 -0700 (PDT)
+        bh=SWwi8XOZ6LU+PxR6btCprbkiTyl3Q4dICGc4z937Hmk=;
+        b=WWvitkJd1vAj5ob+3c3HlxvuB7bewx923oInzqhoMkt6goHEllFOu+AV2z21jNneiG
+         wWRkq/PSxvMO+mqGBvO8JXG93Ov4fZihe2UGhkGwL33keBKkOp2MqtTcIaTdWOSGHrT2
+         0xqKT8hQHMMlbjUQ2SmVM1946unl/mR3ntPKO1l5lSbGFsyhXxgVxV1b6+JIsNtW8mgC
+         czI37cGS1esJ4fk0sCWS0B8mkXah/BV7ZMlPP0LKKTLC7R8+yG72B6vvCO+YLYQRcqEP
+         Yr3Hjym4BtPauNzGMFfT6oGvribDKgUmFwibtv3SqEB7vDyuVDoIFIM/V1DcAIkUx17w
+         6VWA==
+X-Forwarded-Encrypted: i=1; AKwUvBzI+e7l0DeA8JCIXoMtI2RVT/PSSDUJ28OCedkJS4jeElysGDUqQXiH5TdN4wWjxz5saMAZ1D203eXe@vger.kernel.org
+X-Gm-Message-State: AFuF++n6GKi78tynjQPAUih2ornop7zo6Buc26USBMQsYpCerDtUINvb
+	kBgIN0Em+wwiNOvQLHiOsIVxrvnG51gHMrnc1ph59JHBHBgpVDQvG53Jasg4VLAaA6EHXBkxsVe
+	QHDM=
+X-Gm-Gg: AYBFou3S5fEp8WOS6wU1dMrmjB39diAQzzQwPaN9RiiP1bYZoUKzb+RX/LWbE9tzMsl
+	UMzPlULsQFmJjcaGxDpeyji7Qy1auk219AavICTXCUI25vQ6mzAr/WFZbUCaKKXYORoxhqyFBrI
+	MWwJb1isWGEpRJqyaRqQZNnt63fqg/oE7tLoznP7ZvamvoCngl4AqLMBJ18rYejkmM1jZIbPWdo
+	wbMbYxj3qrRgZdktcaGGwGAfH7o25lb84THzuWAeSXrLX/mfczSsnFTHISfaPHrptacToNlxAMu
+	+Z6Cm6JmXk1EvxTIUAIcmQleqdVNQ07FiINAqlHy4gvmfrGEXwuktkoaDUO/U29DRZ0Qm9W8lOw
+	sM+oo9+TbHISh61aMo/ZwqdsE1Ul15DLE+/wyObi7MEinNauFckRd/HQ0+rye+AIAYSRYzAYZ23
+	RNJsllJivMQzhTuqVlhIReLMvcwWILUiqC+aBDS6YtUg1xj7tAkKtm5umawV5Ullt+cmLCFDnfN
+	q7P7iazE17mlp4xyJjv+zb+61h7f5FEHJGOVlTLbloOUwlsqYROKlYc2287TqTT+cYS
+X-Received: by 2002:a17:90b:39a3:b0:39e:233f:cee9 with SMTP id 98e67ed59e1d1-39e233fd063mr2563733a91.11.1789545528600;
+        Wed, 16 Sep 2026 00:58:48 -0700 (PDT)
 Received: from wenst-7875.tpe.corp.google.com ([2a00:79e0:203d:7:1f62:7622:5d61:2578])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-39e1b7acba2sm4348197a91.16.2026.09.16.00.58.32
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-39e1b7acba2sm4348197a91.16.2026.09.16.00.58.43
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 16 Sep 2026 00:58:37 -0700 (PDT)
+        Wed, 16 Sep 2026 00:58:47 -0700 (PDT)
 From: Chen-Yu Tsai <wenst@chromium.org>
 To: Bartosz Golaszewski <brgl@kernel.org>,
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -81,11 +82,10 @@ Cc: Chen-Yu Tsai <wenst@chromium.org>,
 	linux-kernel@vger.kernel.org,
 	Manivannan Sadhasivam <mani@kernel.org>,
 	Alan Stern <stern@rowland.harvard.edu>,
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
-	Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
-Subject: [PATCH v9 03/15] power: sequencing: Add pwrseq_get_state()
-Date: Wed, 16 Sep 2026 15:57:29 +0800
-Message-ID: <20260916075745.3549953-4-wenst@chromium.org>
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Subject: [PATCH v9 05/15] usb: hub: Return actual error from hub_configure() in hub_probe()
+Date: Wed, 16 Sep 2026 15:57:31 +0800
+Message-ID: <20260916075745.3549953-6-wenst@chromium.org>
 X-Mailer: git-send-email 2.55.0.1032.g73a4cd73de-goog
 In-Reply-To: <20260916075745.3549953-1-wenst@chromium.org>
 References: <20260916075745.3549953-1-wenst@chromium.org>
@@ -97,112 +97,71 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The power sequencing consumer API already does power on state tracking
-internally. Expose the state to consumers through pwrseq_get_state()
-so that they don't have to reimplement it locally.
+The addition of power sequencing descriptor handling in the USB hub code
+requires dealing with deferred probing from pwrseq_get(). The power
+sequencing provider may not yet be available when the USB hub probes.
 
-Instead of just on/off and error codes, the function can also return
-"unknown" state. This is in anticipation for "uncontrollable" power
-sequencers (such as GPIOs left unconnected).
+Return the actual error code from hub_configure() when it fails, so that
+the driver core can notice the deferred probe request.
 
-Acked-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Reviewed-by: Manivannan Sadhasivam <manivannan.sadhasivam@oss.qualcomm.com>
+Also rewrite this section into the standard error handling pattern:
+
+    if (error) {
+        # handle error
+        return error;
+    }
+
+    # do more work
+    return 0;
+
+Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
 ---
-Changes since v7:
-- Adapted to pwrseq_enable/disable() rename
-
-Changes since v6:
-- Changed to pwrseq_get_state() with enum return value
-
-Changes since v5:
-- Reverted back to returning -EINVAL if descriptor is NULL
-
-Changes since v4:
-- Make pwrseq_power_is_on() return 1 if descriptor is NULL, i.e. if
-  the descriptor is optional, matching the other pwrseq consumer APIs
-
-Changes since v3:
-- Added missing stub function for !POWER_SEQUENCING
-
 Changes since v2:
-- New patch
+- Rewrite into standard error handling pattern
 
-Needs to go in with "usb: hub: Power on connected M.2 E-key connectors"
-as it is a build time dependency. Bartosz wants the change on an
-immutable branch to pull into the pwrseq tree.
+Changes since v1:
+- Moved "int ret" declaration in hub_configure() over here from the next
+  patch
 ---
- drivers/power/sequencing/core.c | 19 +++++++++++++++++++
- include/linux/pwrseq/consumer.h | 12 ++++++++++++
- 2 files changed, 31 insertions(+)
+ drivers/usb/core/hub.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/power/sequencing/core.c b/drivers/power/sequencing/core.c
-index 3076b3879af9..8e06fe77fd6a 100644
---- a/drivers/power/sequencing/core.c
-+++ b/drivers/power/sequencing/core.c
-@@ -971,6 +971,25 @@ int pwrseq_disable(struct pwrseq_desc *desc)
- }
- EXPORT_SYMBOL_GPL(pwrseq_disable);
+diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+index a4ec79a06a5c..707eeee198b0 100644
+--- a/drivers/usb/core/hub.c
++++ b/drivers/usb/core/hub.c
+@@ -1875,6 +1875,7 @@ static int hub_probe(struct usb_interface *intf, const struct usb_device_id *id)
+ 	struct usb_host_interface *desc;
+ 	struct usb_device *hdev;
+ 	struct usb_hub *hub;
++	int ret;
  
-+/**
-+ * pwrseq_get_state() - Queries the last requested state of the power sequencer.
-+ * @desc: Descriptor referencing the power sequencer.
-+ *
-+ * This returns the last requested state of the power sequencer.
-+ *
-+ * Returns:
-+ * On success, PWRSEQ_STATE_ON for on and PWRSEQ_STATE_OFF for off;
-+ * negative error number on failure.
-+ */
-+int pwrseq_get_state(struct pwrseq_desc *desc)
-+{
-+	if (!desc)
-+		return -EINVAL;
+ 	desc = intf->cur_altsetting;
+ 	hdev = interface_to_usbdev(intf);
+@@ -2006,14 +2007,15 @@ static int hub_probe(struct usb_interface *intf, const struct usb_device_id *id)
+ 		usb_set_interface(hdev, 0, 0);
+ 	}
+ 
+-	if (hub_configure(hub, &desc->endpoint[0].desc) >= 0) {
+-		onboard_dev_create_pdevs(hdev, &hub->onboard_devs);
+-
+-		return 0;
++	ret = hub_configure(hub, &desc->endpoint[0].desc);
++	if (ret < 0) {
++		hub_disconnect(intf);
++		return ret;
+ 	}
+ 
+-	hub_disconnect(intf);
+-	return -ENODEV;
++	onboard_dev_create_pdevs(hdev, &hub->onboard_devs);
 +
-+	return desc->powered_on ? PWRSEQ_STATE_ON : PWRSEQ_STATE_OFF;
-+}
-+EXPORT_SYMBOL_GPL(pwrseq_get_state);
-+
- /**
-  * pwrseq_to_device() - Get the pwrseq device pointer from a descriptor.
-  * @desc: Descriptor referencing the power sequencer.
-diff --git a/include/linux/pwrseq/consumer.h b/include/linux/pwrseq/consumer.h
-index 16fad5f3e3ab..e2a2991b20c2 100644
---- a/include/linux/pwrseq/consumer.h
-+++ b/include/linux/pwrseq/consumer.h
-@@ -11,6 +11,12 @@
- struct device;
- struct pwrseq_desc;
- 
-+enum {
-+	PWRSEQ_STATE_UNKNOWN,
-+	PWRSEQ_STATE_ON,
-+	PWRSEQ_STATE_OFF,
-+};
-+
- #if IS_ENABLED(CONFIG_POWER_SEQUENCING)
- 
- struct pwrseq_desc * __must_check
-@@ -22,6 +28,7 @@ devm_pwrseq_get(struct device *dev, const char *target);
- 
- int pwrseq_enable(struct pwrseq_desc *desc);
- int pwrseq_disable(struct pwrseq_desc *desc);
-+int pwrseq_get_state(struct pwrseq_desc *desc);
- 
- struct device *pwrseq_to_device(struct pwrseq_desc *desc);
- 
-@@ -53,6 +60,11 @@ static inline int pwrseq_disable(struct pwrseq_desc *desc)
- 	return -ENOSYS;
++	return 0;
  }
  
-+static inline int pwrseq_get_state(struct pwrseq_desc *desc)
-+{
-+	return -ENOSYS;
-+}
-+
- static inline struct device *pwrseq_to_device(struct pwrseq_desc *desc)
- {
- 	return NULL;
+ static int
 -- 
 2.55.0.1032.g73a4cd73de-goog
 
