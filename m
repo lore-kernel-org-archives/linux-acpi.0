@@ -1,89 +1,102 @@
-Received: from sg-3-26.ptr.tlmpb.com (sg-3-26.ptr.tlmpb.com [101.45.255.26])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from canpmsgout05.his.huawei.com (canpmsgout05.his.huawei.com [113.46.200.220])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 162B32F8E9E
-	for <linux-acpi@vger.kernel.org>; Thu, 17 Sep 2026 02:05:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=101.45.255.26
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37DCD351C2E;
+	Thu, 17 Sep 2026 02:13:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.220
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789610740; cv=none; b=trPlQlQBRrlmImj7ZY17q40ZxTLMy3xoP6UIyBAXDDBtoGnAfzKZu85YbgaGo3ZJWFAiQ9LFQSGPNQaEX5zIRxHJr9ZQ4Mr/vrdiZ46as/OZ1gykJqwLwwsjI4NjmB2qghZMwYjCUY3LRrR74BYeqYYqBl6c4y7+NymeVybfpXo=
+	t=1789611207; cv=none; b=qnArnxgCAQoxTYZSWo+z7zHQeoEIZ8do0mG4SwuIjFb73mlRlmhBM0fTNs6sTPSmJHKqi+rtC22LE+greFzBnFfUsmms488j42lH484guO2R+WAz70XlcEsDK13D0V0Lz8dKEFaC+1nNGrXT+D1nVZ8gTbCjEaQ64cfOoiipWCg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789610740; c=relaxed/simple;
-	bh=Sxo18wVPwpf/v7g9jFtkgFrSGUWSgHhvfTGebiRsIiw=;
-	h=To:From:Message-Id:In-Reply-To:References:Cc:Date:Mime-Version:
-	 Subject:Content-Type; b=B3cJK9yVGlanbO4H9OftZJj7/yZvh83AqnGtQ0yR8dlM8U1z5MlvETSd7PTPczGYIvYhTDMMvsKt8SximsZNj8u0ieLT0R09HqbIppXzr3CXhhOQ3+p7tZXUHVQdRBf8Y+idNK2rcjxooP9x0jbxAFOE95QScCvw4iX6q81ezzY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lanxincomputing.com; spf=pass smtp.mailfrom=lanxincomputing.com; dkim=pass (2048-bit key) header.d=lanxincomputing-com.20200927.dkim.feishu.cn header.i=@lanxincomputing-com.20200927.dkim.feishu.cn header.b=ZOHHsQWN; arc=none smtp.client-ip=101.45.255.26
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lanxincomputing.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lanxincomputing.com
+	s=arc-20240116; t=1789611207; c=relaxed/simple;
+	bh=Ito34hIZ5NPw9kRJ6XsglDhkv2eNuqKtvpYi3myN748=;
+	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=HwUIynKRwY51AN33Ol++SC1Q4wDjBjS8BjRbpaeIQtYG1L24wpwadk8gMMugqoWqtreU9kfUZAoWfOLkFoyy6lYayG0NdjN/mxHDJ+mbAvHRBNQp1XE4xHX2HmiXy6wWPoD/mTbSyl7GU1W11qRe+TJk6V5aG8ec8hoVjAiveJ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=u6a9FiNd; arc=none smtp.client-ip=113.46.200.220
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lanxincomputing-com.20200927.dkim.feishu.cn header.i=@lanxincomputing-com.20200927.dkim.feishu.cn header.b="ZOHHsQWN"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
- s=s1; d=lanxincomputing-com.20200927.dkim.feishu.cn; t=1789610681;
-  h=from:subject:mime-version:from:date:message-id:subject:to:cc:
- reply-to:content-type:mime-version:in-reply-to:message-id;
- bh=MDsxntRODNgCNG5JeXxth+hLjZlO+v0hDLmbatGO5VY=;
- b=ZOHHsQWNLvwCwEhdCsM/C9JomXOtgnrFDj1+3cJ6/rkHTmhUkSskYuoPEJk1jtBM9dtInx
- VPD+jWws9PczK6VryHCTfyR2evDV7YDD9boDNM4H2NpqMzLcnBjQ1gR89AJl+9FIjVhaeD
- Ajm1aI3XYLYKuWtoXDpesVtuzJrQS/sY4S10lhwytLMFHO6GDimhwnWfsI8Ar12j5HWb1t
- J5IC5gP9Z8t0mjCffMuvmU5TN+eH1nHuAiqO/Zd/nZQNCmiBJWz0ot/Hm5UApMCX23YSZe
- 7PQfinFj5JU6+96lQmphMLhc3uuTb+GNzU637BKEVGMqsAAXepoMwC0lelxsQA==
-User-Agent: Mozilla Thunderbird
-To: <sunilvl@oss.qualcomm.com>
-From: "BillXiang" <xiangwencheng@lanxincomputing.com>
-Message-Id: <9d469f95-73b4-4a0a-9c35-80a655a53225@lanxincomputing.com>
-X-Original-From: BillXiang <xiangwencheng@lanxincomputing.com>
-In-Reply-To: <CAB19ukHfFXmuPEaWdNPvFRkvMGpDQfVEpCHfqsHL20tpBytQRA@mail.gmail.com>
-References: <20260916112545.887461-1-xiangwencheng@lanxincomputing.com> <CAB19ukHfFXmuPEaWdNPvFRkvMGpDQfVEpCHfqsHL20tpBytQRA@mail.gmail.com>
-Cc: <sunilvl@ventanamicro.com>, <rafael@kernel.org>, <lenb@kernel.org>, 
-	<pjw@kernel.org>, <palmer@dabbelt.com>, <aou@eecs.berkeley.edu>, 
-	<alex@ghiti.fr>, <linux-acpi@vger.kernel.org>, 
-	<linux-riscv@lists.infradead.org>, <linux-kernel@vger.kernel.org>, 
-	<iommu@lists.linux.dev>, <tjeznach@rivosinc.com>, 
-	<luxu.kernel@bytedance.com>, <guoren@linux.alibaba.com>, 
-	<jgg@nvidia.com>
-Date: Thu, 17 Sep 2026 10:04:34 +0800
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="u6a9FiNd"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=NY/KaMce+VjwVt0dOR8ch7NEguPF4WSe3KMxe/KFxiI=;
+	b=u6a9FiNdZ6v2gLFp7ofUcRzMJ5gMtkpaKpnr32U9lXNn0lGb/zM+n9vbfzS1BdqVqhaToZS0e
+	F3EcZqb1AY1CXT8bNb/1sid9A0qp0OrB99RRCJYMlhe5UR6UDvtgoEY7g5SU9/oCy0pRLOLiw0M
+	07kYSQHr/yvbAU0iEmS0Gwc=
+Received: from mail.maildlp.com (unknown [172.19.162.140])
+	by canpmsgout05.his.huawei.com (SkyGuard) with ESMTPS id 4hlfC40zL1z12LHk;
+	Thu, 17 Sep 2026 10:02:08 +0800 (CST)
+Received: from whupemk200014.china.huawei.com (unknown [7.152.185.79])
+	by mail.maildlp.com (Postfix) with ESMTPS id DB7F2203C1;
+	Thu, 17 Sep 2026 10:13:15 +0800 (CST)
+Received: from [10.174.179.24] (10.174.179.24) by
+ whupemk200014.china.huawei.com (7.152.185.79) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Thu, 17 Sep 2026 10:13:13 +0800
+Subject: Re: [PATCH v4 1/3] RAS: Fix inverted context info bounds check in ARM
+ processor errors
+To: Abbott Liu <liuwenliang@huawei.com>, <tony.luck@intel.com>,
+	<bp@alien8.de>, <ardb@kernel.org>, <mchehab+huawei@kernel.org>,
+	<rafael.j.wysocki@intel.com>, <jic23@kernel.org>,
+	<jason@os.amperecomputing.com>, <danielf@os.amperecomputing.com>,
+	<luoshengwei@huawei.com>, <linux-edac@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+CC: <yangzhuohao1@huawei.com>, <douzhaolei@huawei.com>,
+	<zouyipeng@huawei.com>, <wangbing6@huawei.com>, <nixiaoming@huawei.com>, ACPI
+ Devel Maling List <linux-acpi@vger.kernel.org>
+References: <20260909112832.805314-1-liuwenliang@huawei.com>
+ <20260909112832.805314-2-liuwenliang@huawei.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Message-ID: <46b53a0e-b2f8-d179-113d-0b7030e78058@huawei.com>
+Date: Thu, 17 Sep 2026 10:13:13 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Language: en-US
-Subject: Re: [PATCH] riscv: iommu: ask for ACS to be enabled
-Content-Type: text/plain; charset=UTF-8
-Received: from [127.0.0.1] ([123.120.5.129]) by smtp.feishu.cn with ESMTPS; Thu, 17 Sep 2026 10:04:37 +0800
-Content-Transfer-Encoding: quoted-printable
-X-Lms-Return-Path: <lba+26aab4ab7+977e05+vger.kernel.org+xiangwencheng@lanxincomputing.com>
+MIME-Version: 1.0
+In-Reply-To: <20260909112832.805314-2-liuwenliang@huawei.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: kwepems200002.china.huawei.com (7.221.188.68) To
+ whupemk200014.china.huawei.com (7.152.185.79)
 
-On 9/16/2026 8:18 PM, Sunil V L wrote:
-> On Wed, Sep 16, 2026 at 5:15=E2=80=AFPM BillXiang
-> <xiangwencheng@lanxincomputing.com> wrote:
->>
->> Make sure ACS will be enabled during PCI probe
->>
->> Signed-off-by: BillXiang <xiangwencheng@lanxincomputing.com>
->> ---
->>   drivers/acpi/riscv/rimt.c | 1 +
->>   1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/acpi/riscv/rimt.c b/drivers/acpi/riscv/rimt.c
->> index e4538fa6c2c8..30d2d0211d5e 100644
->> --- a/drivers/acpi/riscv/rimt.c
->> +++ b/drivers/acpi/riscv/rimt.c
->> @@ -525,4 +525,5 @@ void __init riscv_acpi_rimt_init(void)
->>
->>                  return;
->>          }
->> +       pci_request_acs();
->>   }
->>
-> There is already a patch in the mailing list for this.
->=20
-> https://lkml.org/lkml/2026/9/3/1930
->=20
-> Thanks,
-> Sunil
+On 2026/9/9 19:28, Abbott Liu wrote:
+> Commit 87880af2d24e ("APEI/GHES: ARM processor Error: don't go past
+> allocated memory") added bounds checks for malformed ARM processor
+> error records but contained a bug:
+> 
+>    In log_arm_hw_error(), the ctx_info bounds check is inverted. The
+>    condition "sz + (long)ctx_info - (long)err >= err->section_length"
+>    adds ctx_info->size when the context header is already past the end
+>    of the section instead of when it is within bounds. So change the
+>    comparison to <=.
+> 
+> Fixes: 87880af2d24e ("APEI/GHES: ARM processor Error: don't go past allocated memory")
+> Signed-off-by: Abbott Liu <liuwenliang@huawei.com>
+> ---
+>   drivers/ras/ras.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
+> index 03df3db62334..2540538a16a8 100644
+> --- a/drivers/ras/ras.c
+> +++ b/drivers/ras/ras.c
+> @@ -74,7 +74,7 @@ void log_arm_hw_error(struct cper_sec_proc_arm *err, const u8 sev)
+>   	for (n = 0; n < err->context_info_num; n++) {
+>   		sz = sizeof(struct cper_arm_ctx_info);
+>   
+> -		if (sz + (long)ctx_info - (long)err >= err->section_length)
+> +		if (sz + (long)ctx_info - (long)err <= err->section_length)
+>   			sz += ctx_info->size;
+>   
+>   		ctx_info = (struct cper_arm_ctx_info *)((long)ctx_info + sz);
+> 
 
-Thank you for pointing that out. Please just ignore my commit.
+Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
 
---
-BillXiang
+Thanks
+Hanjun
