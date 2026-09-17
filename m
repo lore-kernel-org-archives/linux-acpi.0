@@ -1,167 +1,476 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9DAF48E0F8;
-	Thu, 17 Sep 2026 09:45:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 343CB4A4842;
+	Thu, 17 Sep 2026 10:26:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789638334; cv=none; b=p3idrs+KK/ip+GjXO3rAbi+ZG2p+ISVT5tRgMkiSLl5EYSUShBY+N9kXX0haVBla+dHEHWk0nKDux8Tht7HHgDVfA7XR0mdyBzm/1abv+tyUZk2rsXcg0FgruDSWVUq0F1Q1E5RDIV+8jp+ET6diQNttiOFkmAPAaINzs8pzYS0=
+	t=1789640810; cv=none; b=cnvJq6WpYOaaIHa9TbIdbpK+fKmkxqpMIf8rctWlsoc6Mf1UbS0Hel6JQjecbDq/RpTUSioJCZEr/71JfODid+gP32AcHfwf4uqkI7IITujTWSUQn+ZB5tfGMfLBNF4e/KBEc/ZOmXs22U/x3KW2dOBaAKfDCEue4hEH+RZ1QJE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789638334; c=relaxed/simple;
-	bh=y22wJkti9DqaMPblYZq9v9YHFdSya0naiwkihbBqB3I=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=bzVhZ+XWML/4aW1r6xjp5yaf93i7cpGHvo4zLtlcTzvplEgpuPtAlz8hYxFsmTnIDQ7qkg4bZ3q38x2+/3VvRhPS2+ftFI6em8YtAog8uIVbXMHa4BV0zEYUljMKZb8xcyntY0O7KVVsJ8FDNmdshB8uoSBaW5ORwOyVTYkHDzQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=G7bMbgTm; arc=none smtp.client-ip=192.198.163.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1789640810; c=relaxed/simple;
+	bh=uqYX6zvZNL5fA6XNusYbIz02xhoytzKBM/nOCfSErak=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Xc3KVTGoxQezqnVwRwfCw563PPQPSiWt6/k1b+TCgQG9H5Sq9319xUzO1+UbvxkMQNzQX2fi/IKcX2gd1cGb11yqp3UJvPPyVZyAjh5ApSWl3jP+p3L3FLZu7Ft1hOYaaeUI9sj4RY0165ek7xG5M0IKEZ+d2gbAq+5xOY+N0aM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=PVmp1wTl; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="G7bMbgTm"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1789638328; x=1821174328;
-  h=date:from:to:cc:subject:message-id;
-  bh=y22wJkti9DqaMPblYZq9v9YHFdSya0naiwkihbBqB3I=;
-  b=G7bMbgTm76xHgBNJYk5xmVgLBwJf+Kw1iRdS+xb8zYzaKKTbnSo5f7eR
-   V+3Vswz0ukgtgJIsl6F6K+i/VnZ8xAgEFsglyuWh20Xenr/AeydbT/RJe
-   WvdCSA149SCzu5qsrDpdnKIBomSyZfluAVZl62tQS2KCvIEbjEB1UW+j0
-   8fissJipq8hNgUgFAzUhNHDFRL5dwbr89Fvu9+4/81kkATzOfmhxbfsQt
-   nJOuWkirN0YM37WlVaMH5PEMYLIs7bAD9eVt++Om+pSeeMLjjx5k77iV6
-   ldZ2iI/PIh910WTmFO/EqIuQ29O1trhM8H2XgZrYFzftZXKhV5XFa5JXW
-   Q==;
-X-CSE-ConnectionGUID: CwbSiuQER5i7wHaRAiwWHw==
-X-CSE-MsgGUID: PajmsyGHRpWD4AJzDStaUg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11905"; a="115578898"
-X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
-   d="scan'208";a="115578898"
-Received: from fmviesa004.fm.intel.com ([10.60.135.144])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Sep 2026 02:45:24 -0700
-X-CSE-ConnectionGUID: bXfcfhBzQ9GBr5Dzz6WXKw==
-X-CSE-MsgGUID: iHXioVXTSZ6+FQbdpsR8WQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
-   d="scan'208";a="275635449"
-Received: from igk-lkp-server01.igk.intel.com (HELO fe5626a770c0) ([10.211.93.152])
-  by fmviesa004.fm.intel.com with ESMTP; 17 Sep 2026 02:45:22 -0700
-Received: from kbuild by fe5626a770c0 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1x78gC-000000000Xc-2W4l;
-	Thu, 17 Sep 2026 09:45:20 +0000
-Date: Thu, 17 Sep 2026 11:44:30 +0200
-From: kernel test robot <lkp@intel.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: oe-kbuild-all@lists.linux.dev, linux-acpi@vger.kernel.org,
- linux-pm@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge 84/106]
- drivers/bluetooth/btintel.c:2725:14: error: implicit declaration of function
- 'acpi_has_method'; did you mean 'acpi_has_watchdog'?
-Message-ID: <202609171147.kpmULcuM-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="PVmp1wTl"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 8CBAD1A9A;
+	Thu, 17 Sep 2026 03:26:42 -0700 (PDT)
+Received: from [10.57.50.144] (unknown [10.57.50.144])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 57E773F882;
+	Thu, 17 Sep 2026 03:26:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1789640806; bh=uqYX6zvZNL5fA6XNusYbIz02xhoytzKBM/nOCfSErak=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=PVmp1wTlmIrm2MUposaA1SHThULWIW5DGWcIv3a1262IAyFWEiLfEN8gGYQ9KYiRh
+	 6vJdqKyYij0CNtNfePoDfFSoH74eR2qYu7QtBDLEDJz8q3PRkSewp5bdIj6AEHfMRt
+	 0nE7UKSP/kgVaQ6bltGUfs7USOmc+KHWyc3roD6k=
+Message-ID: <feacb7a1-1d40-4798-9b41-ae8cba62ccd3@arm.com>
+Date: Thu, 17 Sep 2026 11:26:41 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v7 02/20] ACPI: CPPC: Validate _CPC entry and control
+ semantics
+To: "Rafael J . Wysocki" <rafael@kernel.org>,
+ Viresh Kumar <viresh.kumar@linaro.org>
+Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>,
+ Jie Zhan <zhanjie9@hisilicon.com>, Lifeng Zheng <zhenglifeng1@huawei.com>,
+ Pierre Gondois <pierre.gondois@arm.com>, Sumit Gupta <sumitg@nvidia.com>,
+ Sudeep Holla <sudeep.holla@arm.com>,
+ Ionela Voinescu <ionela.voinescu@arm.com>, zhongqiu.han@oss.qualcomm.com,
+ Sashiko <sashiko-bot@kernel.org>
+References: <20260916162805.1039247-1-christian.loehle@arm.com>
+ <20260916162805.1039247-3-christian.loehle@arm.com>
+Content-Language: en-US
+From: Christian Loehle <christian.loehle@arm.com>
+In-Reply-To: <20260916162805.1039247-3-christian.loehle@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-head:   7d81fd7f1644e8172350caa5b32aa00e57050ec0
-commit: b732fbc37b8eaacdb07b9463a45728b5152e1028 [84/106] ACPI: bus: Use acpi/acpi_bus.h without CONFIG_ACPI
-config: sh-allmodconfig (https://download.01.org/0day-ci/archive/20260917/202609171147.kpmULcuM-lkp@intel.com/config)
-compiler: sh4-linux-gcc (GCC) 16.1.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260917/202609171147.kpmULcuM-lkp@intel.com/reproduce)
+On 9/16/26 17:27, Christian Loehle wrote:
+> Writable _CPC controls are Register descriptors encoded as Buffer objects.
+> Integer entries represent fixed values or legacy placeholders for
+> unsupported optional registers; Autonomous Selection Integer 1 is the
+> special immutable form which enables operation without Desired Performance.
+> 
+> The parser accepts arbitrary object types and cpc_write() assumes that its
+> argument contains a GAS. Malformed firmware can therefore make it interpret
+> an Integer union member as a register.
+> 
+> Validate the portion of each encoding consumed by the driver: bound Integer
+> capabilities stored in u32 fields to U32_MAX, and require Buffer entries to
+> start with a complete Generic Register descriptor with the expected header.
+> Do not restrict an Integer Counter Wraparound Time. Both AML Integers and
+> the kernel interface are 64-bit, despite the DWORD annotation in the ACPI
+> table. Continue tolerating Integer 0 placeholders for absent optional
+> Buffer registers to avoid breaking legacy platforms. Report their invalid
+> encoding as a firmware bug. Retain type checks in cpc_write() as defense in
+> depth. Reject an attempt to disable immutable Autonomous Selection instead
+> of silently applying only the EPP part of the request.
+> 
+> Capability registers are read into u64 temporaries but exposed through u32
+> fields. Reject values above U32_MAX instead of allowing them to be
+> truncated. In particular, a truncated Highest Performance value can become
+> a zero divisor in the performance-to-frequency conversion. Enforce the
+> required ordering from Highest through Nominal, Lowest Nonlinear, and
+> Lowest Performance, and constrain a present Guaranteed Performance to the
+> inclusive Lowest-to-Nominal range. Also reject reversed frequency anchors
+> and unequal frequency anchors with identical performance anchors. Those
+> invalid tuples otherwise make affine-conversion differences wrap or divide
+> by zero.
+> 
+> Check mandatory object presence separately from the Integer-zero convention
+> for absent optional fields.
+> 
+> Reject Minimum and Maximum Performance readbacks above U32_MAX before
+> narrowing them. A truncated minimum could otherwise become an explicit
+> zero update when cppc-cpufreq writes the initial controls back to the
+> platform.
+> 
+> Minimum Performance also defines zero as a real no-limit value, but the
+> exported cppc_set_perf() interface historically used zero to omit a bound.
+> Add a minimum-valid flag so callers can request zero without changing that
+> legacy convention. Set it when reading a supported Minimum Performance
+> register, preserving zero across cppc-cpufreq initialization and exit.
+> Keep zero-as-omit for Maximum Performance, whose no-limit encoding is all
+> ones, not zero. Initialize amd-pstate's control structure with the new flag
+> clear: its shared-memory backend does not record bios_min_perf, so its
+> zero-valued restore requests must remain omitted.
+> 
+> Performance Limited is listed as a required Buffer, but the interface does
+> not depend on it to control performance and the specification permits a
+> platform with no limiting indication to always report zero. Preserve
+> compatibility with firmware that represents that case using a NULL register
+> descriptor instead of disabling CPPC entirely.
+> 
+> Emit an error when a present _CPC package fails parsing or initialization
+> so such firmware and resource failures no longer silently suppress cpufreq.
+> Initialize malformed-package failures to -EINVAL and preserve specific
+> allocation, mapping, and unsupported-access errors in that diagnostic.
+> 
+> Fixes: 337aadff8e45 ("ACPI: Introduce CPU performance controls using CPPC")
+> Reported-by: Sashiko <sashiko-bot@kernel.org>
+> Link: https://sashiko.dev/#/patchset/20260724134251.1632824-1-christian.loehle%40arm.com
+> Suggested-by: Rafael J. Wysocki <rafael@kernel.org>
+> Signed-off-by: Christian Loehle <christian.loehle@arm.com>
+> ---
+>  drivers/acpi/cppc_acpi.c     | 183 +++++++++++++++++++++++++++++++----
+>  drivers/cpufreq/amd-pstate.c |  10 +-
+>  include/acpi/cppc_acpi.h     |   2 +
+>  3 files changed, 169 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 3b8cdf88e31d..965ac29ab8b1 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -129,6 +129,21 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
+>  				!!(cpc)->cpc_entry.int_value :		\
+>  				!IS_NULL_REG(&(cpc)->cpc_entry.reg))
+>  
+> +static bool cpc_is_writable(const struct cpc_register_resource *cpc)
+> +{
+> +	return cpc->type == ACPI_TYPE_BUFFER &&
+> +	       !IS_NULL_REG(&cpc->cpc_entry.reg);
+> +}
+> +
+> +static bool cpc_entry_present(const struct cpc_register_resource *cpc)
+> +{
+> +	if (cpc->type == ACPI_TYPE_INTEGER)
+> +		return true;
+> +
+> +	return cpc->type == ACPI_TYPE_BUFFER &&
+> +	       !IS_NULL_REG(&cpc->cpc_entry.reg);
+> +}
+> +
+>  /*
+>   * Each bit indicates the optionality of the register in per-cpu
+>   * cpc_regs[] with the corresponding index. 0 means mandatory and 1
+> @@ -142,6 +157,36 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
+>   */
+>  #define IS_OPTIONAL_CPC_REG(reg_idx) (REG_OPTIONAL & (1U << (reg_idx)))
+>  
+> +static bool cpc_integer_entry_valid(unsigned int reg_idx, u64 value,
+> +				    bool *legacy_null)
+> +{
+> +	*legacy_null = false;
+> +
+> +	switch (reg_idx) {
+> +	case HIGHEST_PERF:
+> +	case NOMINAL_PERF:
+> +	case LOW_NON_LINEAR_PERF:
+> +	case LOWEST_PERF:
+> +	case REFERENCE_PERF:
+> +	case LOWEST_FREQ:
+> +	case NOMINAL_FREQ:
+> +		return value <= U32_MAX;
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202609171147.kpmULcuM-lkp@intel.com/
+Sashiko:
+"Does this code accidentally omit GUARANTEED_PERF from the whitelist?
+According to the ACPI specification (Section 8.4.6.1.1), the firmware can
+provide Guaranteed Performance as a non-zero Integer. Because it is missing
+from this switch statement, valid non-zero integer values for this register
+will be rejected here, causing CPPC initialization to fail on compliant
+platforms."
+So first of all 8.4.6.1.1 doesn't describe the type at all.
 
-All errors (new ones prefixed by >>):
+We have
+8.4.6.1 _CPC (Continuous Performance Control)
+describing
+GuaranteedPerformanceRegister, // Buffer (Resource Descriptor)
+(i.e. no Integer)
+and
+Table 8.23: Continuous Performance Control Package Values
+Guaranteed Performance Register Buffer
+(i.e. Integer)
 
-   drivers/bluetooth/btintel.c: In function 'btintel_set_dsm_reset_method':
->> drivers/bluetooth/btintel.c:2725:14: error: implicit declaration of function 'acpi_has_method'; did you mean 'acpi_has_watchdog'? [-Wimplicit-function-declaration]
-    2725 |         if (!acpi_has_method(handle, "_PRR")) {
-         |              ^~~~~~~~~~~~~~~
-         |              acpi_has_watchdog
+The 'finding' is deliberate behavior and correct.
 
 
-vim +2725 drivers/bluetooth/btintel.c
+> +	case CTR_WRAP_TIME:
+> +		/* AML Integers and the kernel interface are both 64-bit. */
+> +		return true;
+> +	case AUTO_SEL_ENABLE:
+> +		return value <= 1;
+> +	case DESIRED_PERF:
+> +		/* Validated against Autonomous Selection after parsing. */
+> +		*legacy_null = value == 0;
+> +		return *legacy_null;
+> +	default:
+> +		/* Tolerate legacy Integer 0 placeholders for absent options. */
+> +		*legacy_null = value == 0 && IS_OPTIONAL_CPC_REG(reg_idx);
+> +		return *legacy_null;
+> +	}
+> +}
+> +
+>  /*
+>   * Arbitrary Retries in case the remote processor is slow to respond
+>   * to PCC commands. Keeping it high enough to cover emulators where
+> @@ -150,6 +195,8 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
+>  #define NUM_RETRIES 500ULL
+>  
+>  #define OVER_16BTS_MASK ~0xFFFFULL
+> +#define CPC_GENERIC_REGISTER_DESCRIPTOR 0x82
+> +#define CPC_GENERIC_REGISTER_LENGTH (sizeof(struct cpc_reg) - 3)
+>  
+>  #define define_one_cppc_ro(_name)		\
+>  static struct kobj_attribute _name =		\
+> @@ -773,8 +820,10 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+>  	acpi_handle handle = pr->handle;
+>  	unsigned int num_ent, i, cpc_rev;
+>  	int pcc_subspace_id = -1;
+> +	bool cpc_present = false;
+>  	acpi_status status;
+>  	int ret = -ENODATA;
+> +	int err;
+>  
+>  	if (!osc_sb_cppc2_support_acked) {
+>  		pr_debug("CPPC v2 _OSC not acked\n");
+> @@ -791,6 +840,8 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+>  		ret = -ENODEV;
+>  		goto out_buf_free;
+>  	}
+> +	cpc_present = true;
+> +	ret = -EINVAL;
+>  
+>  	out_obj = (union acpi_object *) output.pointer;
+>  	if (out_obj->package.count < 2) {
+> @@ -871,11 +922,38 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+>  		cpc_obj = &out_obj->package.elements[i];
+>  
+>  		if (cpc_obj->type == ACPI_TYPE_INTEGER)	{
+> -			cpc_ptr->cpc_regs[i-2].type = ACPI_TYPE_INTEGER;
+> -			cpc_ptr->cpc_regs[i-2].cpc_entry.int_value = cpc_obj->integer.value;
+> +			bool legacy_null;
+> +
+> +			if (!cpc_integer_entry_valid(i - 2,
+> +						     cpc_obj->integer.value,
+> +						     &legacy_null)) {
+> +				pr_debug("Invalid Integer _CPC register %u for CPU:%d\n",
+> +					 i - 2, pr->id);
+> +				ret = -EINVAL;
+> +				goto out_free;
+> +			}
+> +			if (legacy_null)
+> +				pr_warn_once(FW_BUG "_CPC register %u uses Integer 0 for an absent Buffer\n",
+> +					     i - 2);
 
-8f0a3786f56d9f Kiran K 2023-06-11  2705  
-8f0a3786f56d9f Kiran K 2023-06-11  2706  static void btintel_set_dsm_reset_method(struct hci_dev *hdev,
-8f0a3786f56d9f Kiran K 2023-06-11  2707  					 struct intel_version_tlv *ver_tlv)
-8f0a3786f56d9f Kiran K 2023-06-11  2708  {
-8f0a3786f56d9f Kiran K 2023-06-11  2709  	struct btintel_data *data = hci_get_priv(hdev);
-8f0a3786f56d9f Kiran K 2023-06-11  2710  	acpi_handle handle = ACPI_HANDLE(GET_HCIDEV_DEV(hdev));
-8f0a3786f56d9f Kiran K 2023-06-11  2711  	u8 reset_payload[4] = {0x01, 0x00, 0x01, 0x00};
-8f0a3786f56d9f Kiran K 2023-06-11  2712  	union acpi_object *obj, argv4;
-8f0a3786f56d9f Kiran K 2023-06-11  2713  	enum {
-8f0a3786f56d9f Kiran K 2023-06-11  2714  		RESET_TYPE_WDISABLE2,
-8f0a3786f56d9f Kiran K 2023-06-11  2715  		RESET_TYPE_VSEC
-8f0a3786f56d9f Kiran K 2023-06-11  2716  	};
-8f0a3786f56d9f Kiran K 2023-06-11  2717  
-8f0a3786f56d9f Kiran K 2023-06-11  2718  	handle = ACPI_HANDLE(GET_HCIDEV_DEV(hdev));
-8f0a3786f56d9f Kiran K 2023-06-11  2719  
-8f0a3786f56d9f Kiran K 2023-06-11  2720  	if (!handle) {
-8f0a3786f56d9f Kiran K 2023-06-11  2721  		bt_dev_dbg(hdev, "No support for bluetooth device in ACPI firmware");
-8f0a3786f56d9f Kiran K 2023-06-11  2722  		return;
-8f0a3786f56d9f Kiran K 2023-06-11  2723  	}
-8f0a3786f56d9f Kiran K 2023-06-11  2724  
-8f0a3786f56d9f Kiran K 2023-06-11 @2725  	if (!acpi_has_method(handle, "_PRR")) {
-8f0a3786f56d9f Kiran K 2023-06-11  2726  		bt_dev_err(hdev, "No support for _PRR ACPI method");
-8f0a3786f56d9f Kiran K 2023-06-11  2727  		return;
-8f0a3786f56d9f Kiran K 2023-06-11  2728  	}
-8f0a3786f56d9f Kiran K 2023-06-11  2729  
-8f0a3786f56d9f Kiran K 2023-06-11  2730  	switch (ver_tlv->cnvi_top & 0xfff) {
-8f0a3786f56d9f Kiran K 2023-06-11  2731  	case 0x910: /* GalePeak2 */
-8f0a3786f56d9f Kiran K 2023-06-11  2732  		reset_payload[2] = RESET_TYPE_VSEC;
-8f0a3786f56d9f Kiran K 2023-06-11  2733  		break;
-8f0a3786f56d9f Kiran K 2023-06-11  2734  	default:
-8f0a3786f56d9f Kiran K 2023-06-11  2735  		/* WDISABLE2 is the default reset method */
-8f0a3786f56d9f Kiran K 2023-06-11  2736  		reset_payload[2] = RESET_TYPE_WDISABLE2;
-8f0a3786f56d9f Kiran K 2023-06-11  2737  
-8f0a3786f56d9f Kiran K 2023-06-11  2738  		if (!acpi_check_dsm(handle, &btintel_guid_dsm, 0,
-8f0a3786f56d9f Kiran K 2023-06-11  2739  				    BIT(DSM_SET_WDISABLE2_DELAY))) {
-8f0a3786f56d9f Kiran K 2023-06-11  2740  			bt_dev_err(hdev, "No dsm support to set reset delay");
-8f0a3786f56d9f Kiran K 2023-06-11  2741  			return;
-8f0a3786f56d9f Kiran K 2023-06-11  2742  		}
-8f0a3786f56d9f Kiran K 2023-06-11  2743  		argv4.integer.type = ACPI_TYPE_INTEGER;
-8f0a3786f56d9f Kiran K 2023-06-11  2744  		/* delay required to toggle BT power */
-8f0a3786f56d9f Kiran K 2023-06-11  2745  		argv4.integer.value = 160;
-8f0a3786f56d9f Kiran K 2023-06-11  2746  		obj = acpi_evaluate_dsm(handle, &btintel_guid_dsm, 0,
-8f0a3786f56d9f Kiran K 2023-06-11  2747  					DSM_SET_WDISABLE2_DELAY, &argv4);
-8f0a3786f56d9f Kiran K 2023-06-11  2748  		if (!obj) {
-8f0a3786f56d9f Kiran K 2023-06-11  2749  			bt_dev_err(hdev, "Failed to call dsm to set reset delay");
-8f0a3786f56d9f Kiran K 2023-06-11  2750  			return;
-8f0a3786f56d9f Kiran K 2023-06-11  2751  		}
-8f0a3786f56d9f Kiran K 2023-06-11  2752  		ACPI_FREE(obj);
-8f0a3786f56d9f Kiran K 2023-06-11  2753  	}
-8f0a3786f56d9f Kiran K 2023-06-11  2754  
-8f0a3786f56d9f Kiran K 2023-06-11  2755  	bt_dev_info(hdev, "DSM reset method type: 0x%02x", reset_payload[2]);
-8f0a3786f56d9f Kiran K 2023-06-11  2756  
-8f0a3786f56d9f Kiran K 2023-06-11  2757  	if (!acpi_check_dsm(handle, &btintel_guid_dsm, 0,
-8f0a3786f56d9f Kiran K 2023-06-11  2758  			    DSM_SET_RESET_METHOD)) {
-8f0a3786f56d9f Kiran K 2023-06-11  2759  		bt_dev_warn(hdev, "No support for dsm to set reset method");
-8f0a3786f56d9f Kiran K 2023-06-11  2760  		return;
-8f0a3786f56d9f Kiran K 2023-06-11  2761  	}
-8f0a3786f56d9f Kiran K 2023-06-11  2762  	argv4.buffer.type = ACPI_TYPE_BUFFER;
-8f0a3786f56d9f Kiran K 2023-06-11  2763  	argv4.buffer.length = sizeof(reset_payload);
-8f0a3786f56d9f Kiran K 2023-06-11  2764  	argv4.buffer.pointer = reset_payload;
-8f0a3786f56d9f Kiran K 2023-06-11  2765  
-8f0a3786f56d9f Kiran K 2023-06-11  2766  	obj = acpi_evaluate_dsm(handle, &btintel_guid_dsm, 0,
-8f0a3786f56d9f Kiran K 2023-06-11  2767  				DSM_SET_RESET_METHOD, &argv4);
-8f0a3786f56d9f Kiran K 2023-06-11  2768  	if (!obj) {
-8f0a3786f56d9f Kiran K 2023-06-11  2769  		bt_dev_err(hdev, "Failed to call dsm to set reset method");
-8f0a3786f56d9f Kiran K 2023-06-11  2770  		return;
-8f0a3786f56d9f Kiran K 2023-06-11  2771  	}
-8f0a3786f56d9f Kiran K 2023-06-11  2772  	ACPI_FREE(obj);
-8f0a3786f56d9f Kiran K 2023-06-11  2773  	data->acpi_reset_method = btintel_acpi_reset_method;
-8f0a3786f56d9f Kiran K 2023-06-11  2774  }
-8f0a3786f56d9f Kiran K 2023-06-11  2775  
+Sashiko:
+"Is this FW_BUG warning spurious?
+The ACPI specification explicitly states that if a platform does not support
+an optional register, the field must be an Integer with a value of 0 or a
+Buffer containing a null register descriptor. Printing a FW_BUG warning here
+incorrectly flags spec-compliant Integer 0 absent fields as firmware bugs."
 
-:::::: The code at line 2725 was first introduced by commit
-:::::: 8f0a3786f56d9fa4b308bdbd54757a51145dbb7a Bluetooth: btintel: Add support to reset bluetooth via ACPI DSM
+This is wrong, the ACPI spec doesn't state that. No FW_BUG is printed if the platform
+uses the null register descriptor (like the ACPI spec specifies in 8.4.6.1).
+We tolerate Integer 0 for compatibility reasons and log it as an appropriate FW_BUG.
+Also see v6 review:
+https://lore.kernel.org/lkml/CAJZ5v0jp9q-ZzOKXsOVpvF0ABytHXU9qeSdGyHdhLUL-cLX4sA@mail.gmail.com/
 
-:::::: TO: Kiran K <kiran.k@intel.com>
-:::::: CC: Luiz Augusto von Dentz <luiz.von.dentz@intel.com>
+> +			cpc_ptr->cpc_regs[i - 2].type = ACPI_TYPE_INTEGER;
+> +			cpc_ptr->cpc_regs[i - 2].cpc_entry.int_value = cpc_obj->integer.value;
+>  		} else if (cpc_obj->type == ACPI_TYPE_BUFFER) {
+> +			if (cpc_obj->buffer.length < sizeof(*gas_t)) {
+> +				pr_debug("Invalid register descriptor for CPU:%d\n",
+> +					 pr->id);
+> +				ret = -EINVAL;
+> +				goto out_free;
+> +			}
+> +
+>  			gas_t = (struct cpc_reg *)
+>  				cpc_obj->buffer.pointer;
+> +			if (gas_t->descriptor != CPC_GENERIC_REGISTER_DESCRIPTOR ||
+> +			    gas_t->length != CPC_GENERIC_REGISTER_LENGTH) {
+> +				pr_debug("Invalid register resource for CPU:%d\n",
+> +					 pr->id);
+> +				ret = -EINVAL;
+> +				goto out_free;
+> +			}
+>  
+>  			/*
+>  			 * The PCC Subspace index is encoded inside
+> @@ -886,8 +964,11 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+>  			if (gas_t->space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
+>  				if (pcc_subspace_id < 0) {
+>  					pcc_subspace_id = gas_t->access_width;
+> -					if (pcc_data_alloc(pcc_subspace_id))
+> +					err = pcc_data_alloc(pcc_subspace_id);
+> +					if (err) {
+> +						ret = err;
+>  						goto out_free;
+> +					}
+>  				} else if (pcc_subspace_id != gas_t->access_width) {
+>  					pr_debug("Mismatched PCC ids in _CPC for CPU:%d\n",
+>  						 pr->id);
+> @@ -900,14 +981,18 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+>  
+>  					if (!osc_cpc_flexible_adr_space_confirmed) {
+>  						pr_debug("Flexible address space capability not supported\n");
+> +						ret = -EOPNOTSUPP;
+>  						if (!cpc_supported_by_cpu())
+>  							goto out_free;
+> +						ret = -EINVAL;
+>  					}
+>  
+>  					access_width = GET_BIT_WIDTH(gas_t) / 8;
+>  					addr = ioremap(gas_t->address, access_width);
+> -					if (!addr)
+> +					if (!addr) {
+> +						ret = -ENOMEM;
+>  						goto out_free;
+> +					}
+>  					cpc_ptr->cpc_regs[i-2].sys_mem_vaddr = addr;
+>  				}
+>  			} else if (gas_t->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
+> @@ -929,14 +1014,17 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+>  				}
+>  				if (!osc_cpc_flexible_adr_space_confirmed) {
+>  					pr_debug("Flexible address space capability not supported\n");
+> +					ret = -EOPNOTSUPP;
+>  					if (!cpc_supported_by_cpu())
+>  						goto out_free;
+> +					ret = -EINVAL;
+>  				}
+>  			} else {
+>  				if (gas_t->space_id != ACPI_ADR_SPACE_FIXED_HARDWARE || !cpc_ffh_supported()) {
+>  					/* Support only PCC, SystemMemory, SystemIO, and FFH type regs. */
+>  					pr_debug("Unsupported register type (%d) in _CPC\n",
+>  						 gas_t->space_id);
+> +					ret = -EOPNOTSUPP;
+>  					goto out_free;
+>  				}
+>  			}
+> @@ -961,15 +1049,35 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+>  	}
+>  	per_cpu(cpu_pcc_subspace_idx, pr->id) = pcc_subspace_id;
+>  
+> +	/*
+> +	 * Performance Limited is required by the specification, but tolerate a
+> +	 * NULL descriptor used by firmware which cannot report limiting events.
+> +	 * CPPC control does not depend on this status.
+> +	 */
+> +	for (i = 0; i < num_ent - 2; i++) {
+> +		if (i != DESIRED_PERF && i != PERF_LIMITED &&
+> +		    !IS_OPTIONAL_CPC_REG(i) &&
+> +		    !cpc_entry_present(&cpc_ptr->cpc_regs[i])) {
+> +			pr_debug("CPU:%d lacks mandatory _CPC register %u\n",
+> +				 pr->id, i);
+> +			ret = -EINVAL;
+> +			goto out_free;
+> +		}
+> +	}
+> +
+>  	/*
+>  	 * In CPPC v1, DESIRED_PERF is mandatory. In CPPC v2, it is optional
+>  	 * only when AUTO_SEL_ENABLE is supported.
+>  	 */
+> -	if (!CPC_SUPPORTED(&cpc_ptr->cpc_regs[DESIRED_PERF]) &&
+> +	if (!cpc_is_writable(&cpc_ptr->cpc_regs[DESIRED_PERF]) &&
+>  	    (!osc_sb_cppc2_support_acked ||
+> -	     !CPC_SUPPORTED(&cpc_ptr->cpc_regs[AUTO_SEL_ENABLE])))
+> -		pr_warn("Desired perf. register is mandatory if CPPC v2 is not supported "
+> -			"or autonomous selection is disabled\n");
+> +	     cpc_ptr->cpc_regs[AUTO_SEL_ENABLE].type != ACPI_TYPE_INTEGER ||
+> +	     cpc_ptr->cpc_regs[AUTO_SEL_ENABLE].cpc_entry.int_value != 1)) {
+> +		pr_debug("CPU:%d lacks a writable Desired Performance register\n",
+> +			 pr->id);
+> +		ret = -EINVAL;
+> +		goto out_free;
+> +	}
+>  
+>  	/*
+>  	 * Initialize the remaining cpc_regs as unsupported.
+> @@ -1037,6 +1145,8 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+>  	kfree(cpc_ptr);
+>  
+>  out_buf_free:
+> +	if (cpc_present)
+> +		pr_err("CPU%d: failed to initialize _CPC: %d\n", pr->id, ret);
+>  	kfree(output.pointer);
+>  	return ret;
+>  }
+> @@ -1217,11 +1327,18 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
+>  	u64 prev_val;
+>  	void __iomem *vaddr = NULL;
+>  	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu);
+> -	struct cpc_reg *reg = &reg_res->cpc_entry.reg;
+> +	struct cpc_reg *reg;
+>  	struct cpc_desc *cpc_desc;
+>  	unsigned long flags;
+>  	bool locked = false;
+>  
+> +	if (reg_res->type != ACPI_TYPE_BUFFER)
+> +		return -EOPNOTSUPP;
+> +
+> +	reg = &reg_res->cpc_entry.reg;
+> +	if (IS_NULL_REG(reg))
+> +		return -EOPNOTSUPP;
+> +
+>  	size = GET_BIT_WIDTH(reg);
+>  
+>  	if (IS_ENABLED(CONFIG_HAS_IOPORT) &&
+> @@ -1364,7 +1481,9 @@ static int cppc_get_reg_val(int cpu, enum cppc_regs reg_idx, u64 *val)
+>  
+>  	reg = &cpc_desc->cpc_regs[reg_idx];
+>  
+> -	if ((reg->type == ACPI_TYPE_INTEGER && IS_OPTIONAL_CPC_REG(reg_idx) &&
+> +	/* Desired may be absent for immutable autonomous selection. */
+> +	if ((reg->type == ACPI_TYPE_INTEGER &&
+> +	     (IS_OPTIONAL_CPC_REG(reg_idx) || reg_idx == DESIRED_PERF) &&
+>  	     !reg->cpc_entry.int_value) || (reg->type != ACPI_TYPE_INTEGER &&
+>  	     IS_NULL_REG(&reg->cpc_entry.reg))) {
+>  		pr_debug("CPC register is not supported\n");
+> @@ -1415,7 +1534,7 @@ static int cppc_set_reg_val(int cpu, enum cppc_regs reg_idx, u64 val)
+>  	reg = &cpc_desc->cpc_regs[reg_idx];
+>  
+>  	/* if a register is writeable, it must be a buffer and not null */
+> -	if ((reg->type != ACPI_TYPE_BUFFER) || IS_NULL_REG(&reg->cpc_entry.reg)) {
+> +	if (!cpc_is_writable(reg)) {
+>  		pr_debug("CPC register is not supported\n");
+>  		return -EOPNOTSUPP;
+>  	}
+> @@ -1505,7 +1624,7 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+>  	struct cpc_register_resource *highest_reg, *lowest_reg,
+>  		*lowest_non_linear_reg, *nominal_reg, *reference_reg,
+>  		*guaranteed_reg, *low_freq_reg = NULL, *nom_freq_reg = NULL;
+> -	u64 high, low, guaranteed, nom, ref, min_nonlinear,
+> +	u64 high, low, guaranteed = 0, nom, ref, min_nonlinear,
+>  	    low_f = 0, nom_f = 0;
+>  	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
+>  	struct cppc_pcc_data *pcc_ss_data = NULL;
+> @@ -1588,7 +1707,12 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+>  		goto out_err;
+>  	perf_caps->lowest_nonlinear_perf = min_nonlinear;
+>  
+> -	if (!high || !low || !nom || !ref || !min_nonlinear) {
+> +	if (!high || !low || !nom || !ref || !min_nonlinear ||
+> +	    high > U32_MAX || low > U32_MAX || guaranteed > U32_MAX ||
+> +	    nom > U32_MAX || ref > U32_MAX || min_nonlinear > U32_MAX ||
+> +	    high < nom || nom < min_nonlinear || min_nonlinear < low ||
+> +	    (CPC_SUPPORTED(guaranteed_reg) &&
+> +	     (guaranteed < low || guaranteed > nom))) {
+>  		ret = -EFAULT;
+>  		goto out_err;
+>  	}
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Sashiko:
+"Can this check fail on platforms where Guaranteed Performance is provided as
+an integer?
+If probe succeeds, legacy code in cppc_get_perf_caps() forces the local
+guaranteed value to 0 when the type is ACPI_TYPE_INTEGER. However,
+CPC_SUPPORTED(guaranteed_reg) still evaluates to true, so the new bounds
+check (guaranteed < low) will evaluate as (0 < low), returning -EFAULT."
+
+(also see above)
+We only accept 0 (as an absent buffer) and then CPC_SUPPORTED(guaranteed_reg)
+evaluates to false.
+
+
+> [snip]
