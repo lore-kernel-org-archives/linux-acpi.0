@@ -1,148 +1,99 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B5C6379C3E;
-	Thu, 17 Sep 2026 02:14:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E5B13033D8;
+	Thu, 17 Sep 2026 06:44:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789611274; cv=none; b=JMGAdMUWUh5B74UfJGgOJRvNs/KDiH8EOKipudetXwOzV6KCmzu7JnPBj3jXYdieTnv3/GjZC4d3AjwIRDMnTIvKoaGMwiFCHiYLDJPlQd3J0VTCGxvoW6ZjfTPeJ2U49r7NlrmlKRM0EmGvHFLrl6jOiQTlGa4rSq7BOgp78ls=
+	t=1789627457; cv=none; b=aG53miIbqPRHW06kYGxOCVjAm1jJpzTTAwyHFwAJ/Tqy/9Ua/reRQDPSjq1PjVS43fRPOIszL0uiGxU66+Ub3QV53NOVXCz0WbirELw994/40oXn5J+BFC8IAzx/AFmchLhxwWq8DkRXQ8YrvF64+JCCETUlpSQbCCz7KLJSdoU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789611274; c=relaxed/simple;
-	bh=GqxAlTZz0NqrzuMUZJ+b0UwuxHIMC/Nm/d2kNrr3NLY=;
-	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
-	 In-Reply-To:Content-Type; b=Flqbfy4k6n0orz2eHgUhRUUr3okwUDFTpfJIEXw9wfUT7q7Z9HYqCmsI3BnOMkVgvT2U+i2N//qpX87IWtEx9LOT1flJZPOOKpT/qj/a15pgfsCH9KETNXn1jpq+h8DWI0oBt+YVx3Vkf0UqT7ERbC/RD6bCGdcrdKYFA7pbeQY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=X1l3EFXC; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=X1l3EFXC; arc=none smtp.client-ip=45.249.212.187
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1789627457; c=relaxed/simple;
+	bh=kKeXnN0zIIBMSYYU6iSXfCRynVVy2++cIQKazYFUdO8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=mevWJuxTV6qTkA/efiQi3V76i/Iv0MnimwR5EIkmzZvQLdpyZwxzZwiealTvtsIrB1rPCkwVrbbqxUZC475pMEGP5nFtbk87U5SZby7MjIQFwdWR/VvGHDf25iHGsxUXHEbuePjfr7kMiUn/dq38fbm9qb5/2DSQ3wTPJWbboGU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=m1tHXk3F; arc=none smtp.client-ip=192.198.163.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="X1l3EFXC";
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="X1l3EFXC"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=IYRc1XP4apk0bziWvvCWjelPNrXlOohILCKMvg7fKR8=;
-	b=X1l3EFXCPZi5re2DqWbcoupTkMTXFQvdAk/Fu4owIV1civSd2VpGzBINs5mWqquP541rKpv5U
-	1P7wRmIg/Rq3a8lkBTHYs02sx7oruILy2KCCd8UcEx5iC3j6ww1SK4jmHWQCOCSRxZChszNtept
-	Gd78nBy429mMKW4GDJ1yAOk=
-Received: from canpmsgout03.his.huawei.com (unknown [172.19.92.159])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTPS id 4hlfS51SNsz1BFt7;
-	Thu, 17 Sep 2026 10:13:25 +0800 (CST)
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=IYRc1XP4apk0bziWvvCWjelPNrXlOohILCKMvg7fKR8=;
-	b=X1l3EFXCPZi5re2DqWbcoupTkMTXFQvdAk/Fu4owIV1civSd2VpGzBINs5mWqquP541rKpv5U
-	1P7wRmIg/Rq3a8lkBTHYs02sx7oruILy2KCCd8UcEx5iC3j6ww1SK4jmHWQCOCSRxZChszNtept
-	Gd78nBy429mMKW4GDJ1yAOk=
-Received: from mail.maildlp.com (unknown [172.19.163.0])
-	by canpmsgout03.his.huawei.com (SkyGuard) with ESMTPS id 4hlfCW5jJFzpStW;
-	Thu, 17 Sep 2026 10:02:31 +0800 (CST)
-Received: from whupemk200014.china.huawei.com (unknown [7.152.185.79])
-	by mail.maildlp.com (Postfix) with ESMTPS id 8E76440561;
-	Thu, 17 Sep 2026 10:14:18 +0800 (CST)
-Received: from [10.174.179.24] (10.174.179.24) by
- whupemk200014.china.huawei.com (7.152.185.79) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Thu, 17 Sep 2026 10:14:16 +0800
-Subject: Re: [PATCH v4 2/3] RAS: Fix out-of-bounds read when tracing arm_event
-To: Abbott Liu <liuwenliang@huawei.com>, <tony.luck@intel.com>,
-	<bp@alien8.de>, <ardb@kernel.org>, <mchehab+huawei@kernel.org>,
-	<rafael.j.wysocki@intel.com>, <jic23@kernel.org>,
-	<jason@os.amperecomputing.com>, <danielf@os.amperecomputing.com>,
-	<luoshengwei@huawei.com>, <linux-edac@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
-CC: <yangzhuohao1@huawei.com>, <douzhaolei@huawei.com>,
-	<zouyipeng@huawei.com>, <wangbing6@huawei.com>, <nixiaoming@huawei.com>, ACPI
- Devel Maling List <linux-acpi@vger.kernel.org>
-References: <20260909112832.805314-1-liuwenliang@huawei.com>
- <20260909112832.805314-3-liuwenliang@huawei.com>
-From: Hanjun Guo <guohanjun@huawei.com>
-Message-ID: <6783acb8-61ef-3990-dfc2-1d2bad30d805@huawei.com>
-Date: Thu, 17 Sep 2026 10:14:15 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
- Thunderbird/68.6.0
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="m1tHXk3F"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1789627456; x=1821163456;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=kKeXnN0zIIBMSYYU6iSXfCRynVVy2++cIQKazYFUdO8=;
+  b=m1tHXk3FHIjn8PDbxjXn7wMMR+FgDHBzgRB89IpM+NbrnDrrSXUiwT4A
+   5rpu6MoqkP4x9zbP6mtGJA8b/uT/8oGoVYMAkXoYDo+SwmfPHLvlW6rEc
+   kynGFELxUbKb/QnyLmRl7XMrwAK5EpakCOlJuaWyOOkbe3t1nFpsp6/jW
+   YUfRn5BVu/EvTD3Z6LOeEIrr5/mR/bIU9sn1TYuEDcJdrWoLZed+TEV5p
+   vdEUueWzQfnaYFKb67z34/DXYdlV1Roohz6sf3KBasdqd7Wz8BCpmgSJ5
+   rkWVflSUfRb2t+v3L4BbxJw/Z2dRO8WmfMUCm5ehpbq+QnFID8OkVeGQ9
+   Q==;
+X-CSE-ConnectionGUID: KJmU9cf4R3iLlkIWFDuwsw==
+X-CSE-MsgGUID: QCVRqtw4QjOHkCRcp01juw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11905"; a="77580794"
+X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
+   d="scan'208";a="77580794"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Sep 2026 23:44:15 -0700
+X-CSE-ConnectionGUID: M3eLIZyxSO67kS4EbnJDkQ==
+X-CSE-MsgGUID: /xNhXOuXQgmgSrEfv/zvIA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
+   d="scan'208";a="269905779"
+Received: from abityuts-desk1.ger.corp.intel.com (HELO localhost) ([10.245.245.11])
+  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Sep 2026 23:44:10 -0700
+Date: Thu, 17 Sep 2026 09:44:07 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Armin Wolf <w_armin@gmx.de>,
+	Linux PM <linux-pm@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v1][linux-next] ACPI: fan: Use __free() to simplify AML
+ error handling
+Message-ID: <aquMNwJmB0p15TTv@ashevche-desk.local>
+References: <6029013.DvuYhMxLoT@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20260909112832.805314-3-liuwenliang@huawei.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems200002.china.huawei.com (7.221.188.68) To
- whupemk200014.china.huawei.com (7.152.185.79)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6029013.DvuYhMxLoT@rafael.j.wysocki>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On 2026/9/9 19:28, Abbott Liu wrote:
-> The vsei_len < 0 error path did not verify the pei_len and ctx_len.
-> When vsei_len is negative, section_length is too small to hold the
-> full record, yet pei_len and ctx_len were derived from
-> err_info_num/context_info_num and may describe regions beyond the
-> (long)err .. err + section_length buffer. To prevent trace_arm_event
-> from reading past the allocated record, sanitize the parameters:
-> recalculate ctx_len and pei_len based on section_length, limit them,
-> and set the corresponding pointers to NULL and lengths to 0 when
-> there is no remaining space.
+On Wed, Sep 16, 2026 at 09:42:54PM +0200, Rafael J. Wysocki wrote:
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 > 
-> pei_len and ctx_len become s32 so that the recalculated lengths can
-> be checked for negative values.
+> Introduce acpi_object_free for freeing union acpi_object objects
+> allocated by AML and use it for simplifying AML error handling in
+> the ACPI fan driver.
 > 
-> Fixes: 05954511b73e ("RAS: Report all ARM processor CPER information to userspace")
-> Signed-off-by: Abbott Liu <liuwenliang@huawei.com>
+> While at it, update the driver to use consistent error values across
+> all function using the union acpi_object data type.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->   drivers/ras/ras.c | 22 ++++++++++++++++++----
->   1 file changed, 18 insertions(+), 4 deletions(-)
 > 
-> diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
-> index 2540538a16a8..085fe2d980e5 100644
-> --- a/drivers/ras/ras.c
-> +++ b/drivers/ras/ras.c
-> @@ -58,10 +58,10 @@ void log_arm_hw_error(struct cper_sec_proc_arm *err, const u8 sev)
->   	struct cper_arm_err_info *err_info;
->   	struct cper_arm_ctx_info *ctx_info;
->   	u8 *ven_err_data;
-> -	u32 ctx_len = 0;
-> +	s32 ctx_len = 0;
->   	int n, sz, cpu;
->   	s32 vsei_len;
-> -	u32 pei_len;
-> +	s32 pei_len;
->   	u8 *pei_err, *ctx_err;
->   
->   	pei_len = sizeof(struct cper_arm_err_info) * err->err_info_num;
-> @@ -87,14 +87,28 @@ void log_arm_hw_error(struct cper_sec_proc_arm *err, const u8 sev)
->   		pr_warn(FW_BUG "section length is too small\n");
->   		pr_warn(FW_BUG "firmware-generated error record is incorrect\n");
->   		vsei_len = 0;
-> +		ven_err_data = NULL;
-> +
-> +		ctx_len = err->section_length - (sizeof(struct cper_sec_proc_arm) + pei_len);
-> +		if (ctx_len < 0) {
-> +			ctx_len = 0;
-> +			ctx_err = NULL;
-> +
-> +			pei_len = err->section_length - sizeof(struct cper_sec_proc_arm);
-> +			if (pei_len < 0) {
-> +				pei_len = 0;
-> +				pei_err = NULL;
-> +			}
-> +		}
-> +	} else {
-> +		ven_err_data = (u8 *)ctx_info;
->   	}
-> -	ven_err_data = (u8 *)ctx_info;
->   
->   	cpu = GET_LOGICAL_INDEX(err->mpidr);
->   	if (cpu < 0)
->   		cpu = -1;
->   
-> -	trace_arm_event(err, pei_err, pei_len, ctx_err, ctx_len,
-> +	trace_arm_event(err, pei_err, (u32)pei_len, ctx_err, (u32)ctx_len,
->   			ven_err_data, (u32)vsei_len, sev, cpu);
->   }
+> Applies on top of
+> 
+> https://lore.kernel.org/linux-acpi/1965933.tdWV9SEqCh@rafael.j.wysocki/
+> 
+> which is in linux-next now.
+> 
+> ---
+>  drivers/acpi/fan_core.c |   80 ++++++++++++++++++------------------------------
+>  include/linux/acpi.h    |    2 +
+>  2 files changed, 32 insertions(+), 50 deletions(-)
 
-Reviewed-by: Hanjun Guo <guohanjun@huawei.com>
+Statistics says for itself, nice cleanup!
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Thanks
-Hanjun
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
