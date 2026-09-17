@@ -1,99 +1,86 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E5B13033D8;
-	Thu, 17 Sep 2026 06:44:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9422479CD;
+	Thu, 17 Sep 2026 06:57:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789627457; cv=none; b=aG53miIbqPRHW06kYGxOCVjAm1jJpzTTAwyHFwAJ/Tqy/9Ua/reRQDPSjq1PjVS43fRPOIszL0uiGxU66+Ub3QV53NOVXCz0WbirELw994/40oXn5J+BFC8IAzx/AFmchLhxwWq8DkRXQ8YrvF64+JCCETUlpSQbCCz7KLJSdoU=
+	t=1789628268; cv=none; b=W6bc3xUm0lioCZROZtileqV/KK2I/sxAu2NFlvTEGm6W20L66QXhmLRHv0KCBGBCyugp+tGiRnkSPAYVaPj9BECMMndN746HreHzFXZr0wb+Q+o2WNBwAENnjWUVsfCki7/JiG7qFr26UaR/MbxD8c6/Dawnvll4SmSVRmYMbVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789627457; c=relaxed/simple;
-	bh=kKeXnN0zIIBMSYYU6iSXfCRynVVy2++cIQKazYFUdO8=;
+	s=arc-20240116; t=1789628268; c=relaxed/simple;
+	bh=d+j6sRCIMCL7jTmbiPfcwJKDQLoJglY1jAVWQeOicMU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mevWJuxTV6qTkA/efiQi3V76i/Iv0MnimwR5EIkmzZvQLdpyZwxzZwiealTvtsIrB1rPCkwVrbbqxUZC475pMEGP5nFtbk87U5SZby7MjIQFwdWR/VvGHDf25iHGsxUXHEbuePjfr7kMiUn/dq38fbm9qb5/2DSQ3wTPJWbboGU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=m1tHXk3F; arc=none smtp.client-ip=192.198.163.16
+	 Content-Type:Content-Disposition:In-Reply-To; b=DF7t7JRaXEMqzp8gAzfcC/FU8Xyg00TgSe0nkYmO1NWmotNJn0hzvau44IRnDsZiuemD75WEDCYia5a9BYolsd1OyHIJVWD0Ybv0vwSMlnGorSCzsB1T1WRAzq24Gs+UfLJOsZdzJVA7SIuKVp3yXpDdHx+HP+UyAGcyE81MAzs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=hIQGS9Sv; arc=none smtp.client-ip=192.198.163.17
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="m1tHXk3F"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="hIQGS9Sv"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1789627456; x=1821163456;
+  t=1789628266; x=1821164266;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=kKeXnN0zIIBMSYYU6iSXfCRynVVy2++cIQKazYFUdO8=;
-  b=m1tHXk3FHIjn8PDbxjXn7wMMR+FgDHBzgRB89IpM+NbrnDrrSXUiwT4A
-   5rpu6MoqkP4x9zbP6mtGJA8b/uT/8oGoVYMAkXoYDo+SwmfPHLvlW6rEc
-   kynGFELxUbKb/QnyLmRl7XMrwAK5EpakCOlJuaWyOOkbe3t1nFpsp6/jW
-   YUfRn5BVu/EvTD3Z6LOeEIrr5/mR/bIU9sn1TYuEDcJdrWoLZed+TEV5p
-   vdEUueWzQfnaYFKb67z34/DXYdlV1Roohz6sf3KBasdqd7Wz8BCpmgSJ5
-   rkWVflSUfRb2t+v3L4BbxJw/Z2dRO8WmfMUCm5ehpbq+QnFID8OkVeGQ9
+  bh=d+j6sRCIMCL7jTmbiPfcwJKDQLoJglY1jAVWQeOicMU=;
+  b=hIQGS9SvFiqfsTfoOTuSpf9TLkG2+zp9VF+H6SO3wHnPgdge162dxkmn
+   eE/jO8JqqlklCl/gO03d1ZQfI0rryeFT8pYNTniAjtIKpiCV7k5K/c4QD
+   QgSkfN49cnNX/D7zTAzMN6AE4UmdlzcpDbEBvugahK8ZxXU4qZFMhDAGQ
+   K6EhJ8zx7YsBVVUoWtKKSMlt7ZTbxM/qHXefGkh/hEmOmiOPopTVhxlwR
+   3x2PrTMPDN/4/0YpXIFZmmNGta6eTLCes24YjynK8sApI0H4yWmaVynee
+   IbA0h1owfnXcWIa+mJ1c6vwmP9Kuz37YbHQXtV4ddCvWtbb2JAhVRP+PV
    Q==;
-X-CSE-ConnectionGUID: KJmU9cf4R3iLlkIWFDuwsw==
-X-CSE-MsgGUID: QCVRqtw4QjOHkCRcp01juw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11905"; a="77580794"
+X-CSE-ConnectionGUID: Pogs9a6PSoehKzVoH+aoeg==
+X-CSE-MsgGUID: 1raFZF/3SYif3UgVtZG71Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11905"; a="89887009"
 X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
-   d="scan'208";a="77580794"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Sep 2026 23:44:15 -0700
-X-CSE-ConnectionGUID: M3eLIZyxSO67kS4EbnJDkQ==
-X-CSE-MsgGUID: /xNhXOuXQgmgSrEfv/zvIA==
+   d="scan'208";a="89887009"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Sep 2026 23:57:45 -0700
+X-CSE-ConnectionGUID: dsrwRVcxSZqijTofHs19BA==
+X-CSE-MsgGUID: JwSfN43XQ7u08exarL/CWg==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
-   d="scan'208";a="269905779"
-Received: from abityuts-desk1.ger.corp.intel.com (HELO localhost) ([10.245.245.11])
-  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Sep 2026 23:44:10 -0700
-Date: Thu, 17 Sep 2026 09:44:07 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Armin Wolf <w_armin@gmx.de>,
-	Linux PM <linux-pm@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v1][linux-next] ACPI: fan: Use __free() to simplify AML
- error handling
-Message-ID: <aquMNwJmB0p15TTv@ashevche-desk.local>
-References: <6029013.DvuYhMxLoT@rafael.j.wysocki>
+Received: from black.igk.intel.com ([10.91.253.5])
+  by fmviesa003.fm.intel.com with ESMTP; 16 Sep 2026 23:57:43 -0700
+Received: by black.igk.intel.com (Postfix, from userid 1001)
+	id 1CB0599; Thu, 17 Sep 2026 08:57:43 +0200 (CEST)
+Date: Thu, 17 Sep 2026 08:57:43 +0200
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Wentao Liang <vulab@iscas.ac.cn>
+Cc: andy.shevchenko@gmail.com, linux-acpi@vger.kernel.org,
+	linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org,
+	westeri@kernel.org, wsa+renesas@sang-engineering.com,
+	stable@vger.kernel.org
+Subject: Re: [PATCH] i2c: acpi: Fix adapter reference leak in
+ i2c_acpi_new_device_by_fwnode()
+Message-ID: <20260917065743.GZ106095@black.igk.intel.com>
+References: <20260916155507.2074970-1-vulab@iscas.ac.cn>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <6029013.DvuYhMxLoT@rafael.j.wysocki>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+In-Reply-To: <20260916155507.2074970-1-vulab@iscas.ac.cn>
 
-On Wed, Sep 16, 2026 at 09:42:54PM +0200, Rafael J. Wysocki wrote:
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> 
-> Introduce acpi_object_free for freeing union acpi_object objects
-> allocated by AML and use it for simplifying AML error handling in
-> the ACPI fan driver.
-> 
-> While at it, update the driver to use consistent error values across
-> all function using the union acpi_object data type.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
-> 
-> Applies on top of
-> 
-> https://lore.kernel.org/linux-acpi/1965933.tdWV9SEqCh@rafael.j.wysocki/
-> 
-> which is in linux-next now.
-> 
-> ---
->  drivers/acpi/fan_core.c |   80 ++++++++++++++++++------------------------------
->  include/linux/acpi.h    |    2 +
->  2 files changed, 32 insertions(+), 50 deletions(-)
+Hi,
 
-Statistics says for itself, nice cleanup!
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+On Wed, Sep 16, 2026 at 03:55:07PM +0000, Wentao Liang wrote:
+> i2c_acpi_find_adapter_by_handle() returns the adapter with a reference
+> obtained via get_device() in bus_find_device(), which the caller is
+> responsible for dropping. i2c_new_client_device() stores the adapter
+> pointer without taking a reference and does not release the caller's
+> reference on any path, so the reference is leaked.
+> 
+> Drop the adapter device reference after creating the client, like
+> i2c_acpi_notify() does.
+> 
+> Fixes: 53f8f7c5cf14 ("i2c: break out ACPI support into separate file")
 
--- 
-With Best Regards,
-Andy Shevchenko
+I don't think this is right. The issue existed already before the move.
 
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
 
+Acked-by: Mika Westerberg <westeri@kernel.org>
