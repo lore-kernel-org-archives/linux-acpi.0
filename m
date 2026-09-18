@@ -1,136 +1,197 @@
-Received: from ks5.debiolley.be (ks5.debiolley.be [91.121.65.211])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.6])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EFDB483BD4
-	for <linux-acpi@vger.kernel.org>; Fri, 18 Sep 2026 10:04:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.121.65.211
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 313724BF950;
+	Fri, 18 Sep 2026 10:43:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.6
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789725872; cv=none; b=CSoYDheQVjg81/N6XePEvFt4B3mVCEZ6IzW6y/N+6QjmPqA6gQ34NwffY/8j6a7k+vh9gM40B14dFKzpoU/ih9UP/Tcmy/5ZQ/lN3r3bDr4Dg2nZwa3w7hmKyJBXaDkT3oBAmUqDHQdJF86oPEc+c7pEclSUjYwvo4A3epDKs00=
+	t=1789728193; cv=none; b=Fs3MM2PNW96jBJ5IkpwGFDcfEyS2If08BGEB+/qwD3SyG+d+C46qH+EWemRs9Ikky7Pmw/Rs50Wctdiv38x4DS7zv/LEEuxdt0ZCnRVRaIIu0y0KF8de/ZRLJ9K15pdqCADDqOQpUT//0nVoX5KbSIdU1DJ7ewjKu3NVLWyzygY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789725872; c=relaxed/simple;
-	bh=hmYpp6BFTNK1eHfBBGNzDBFUFqsmDC9Af6DNScMkCwU=;
-	h=MIME-Version:Date:From:To:Cc:Subject:Message-ID:Content-Type; b=gmE5DIRAJquK/bb2KV7LZ3gqeYXVRHBNKPtuihm/qgxuZQTxnrWyoyUVwWF7igvyD4j2ZN1PTiQK/U13S3Ru2+4liqrJj2vskuLNGUQ0FNy/aXDCBUIkPqS3zgBud/vkQtdoV3cPqbzN23K/t0jjFuquZm0O6zXNjo6zpj2aDPE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=debiolley.be; spf=pass smtp.mailfrom=debiolley.be; dkim=pass (4096-bit key) header.d=debiolley.be header.i=@debiolley.be header.b=cf15Giy/; arc=none smtp.client-ip=91.121.65.211
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=debiolley.be
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debiolley.be
+	s=arc-20240116; t=1789728193; c=relaxed/simple;
+	bh=BpzpvWMW+Kltm7l2DwODGS/qgmlr/2OVqYMl3RGVofE=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=d1/jKWZsebRl8N8dCnWtv6KhAw5RYlJ/vEHGWDDmQgBmnYPLIzWuut/ON7+G1SYtdRbN7N93Az2hsWLFz/S2RTyFXxh/lAubmf8029LfiA8uxQLdqG+i+o9iPMuXT7fPMdErC0k9D7b7amfZYSUVXrmeCdccy1pIWMaJp7kopOk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=eXQyhZlA; arc=none smtp.client-ip=192.198.163.6
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=debiolley.be header.i=@debiolley.be header.b="cf15Giy/"
-Received: from ks5.debiolley.be (localhost [127.0.0.1])
-	by ks5.debiolley.be (Postfix) with ESMTP id 0AA984A0D9E0;
-	Fri, 18 Sep 2026 11:57:52 +0200 (CEST)
-Received: from debiolley.be (localhost [127.0.0.1])
-	(Authenticated sender: benoit@debiolley.be)
-	by ks5.debiolley.be (Postfix) with ESMTPA id AB0E94A031D0;
-	Fri, 18 Sep 2026 11:57:51 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=debiolley.be;
-	s=default; t=1789725471;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=YvNXOsBE1bPW/z7cS8AwTGSLWQ99KZm3CV30WMRrzbU=;
-	b=cf15Giy/yQzWXvt3/exMybobeeMtRfKGRlC3gKrmkitxaA768xqOx/RT3WIcZJIg8ckKnB
-	6ai3IMX2ymtejJeRwOLuYQcNWUYBH3SJoyeSS3DJyHocBSwcqq0WVrUKx0MkNLBPalbH3r
-	Ec+ReMF5696C9ZVaFKwwiMauT1L/CY0nBDgJNRJg7QhABjiRw9fw17XhLezm6V1yMT6Wkf
-	jf+l4ijcDXKrUU1zAH5oi4tV4dU8dniDg8spmlfkCwdNJwKqzAQW4+U7rK1+LbEczp7kJA
-	pcezMGi9WGWq3h2CBij0Bj4C/BA9/el5wIobpmG/4mb9mXY/mMYmYAf8Bm3LSpD12xuyJc
-	DHwGXBQ9REAuvXDvRc+rzgJGLZTZy7Y5vI+eclM6Kj3p8W1ggSGShGMHmf0wZRJc61fumr
-	nFqXmvHDq1dPTCERrl9vBA0fXUKFhOgES2sKfrcaRtFfm2JJ4C+cdkg82aXpRC9vcYsC30
-	USV11ekMWO5WqogDDNjMKKyIAbNRQDNJFhoPFnrlThclWXP1HKLeBPXcVFsz38YjI1GNDF
-	Uh/bQeJG6VhH6BV2a5VuvS46ykIZu9V8nsxMNejf83O4EafBzKOk5iU9yALWUcZQAkS95W
-	qlzsxxDXSrItLXeKnAbbpwhDRJ7KcIScbZ9bAJ1w0fOuZJsSOcOiw=
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="eXQyhZlA"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1789728189; x=1821264189;
+  h=from:to:cc:subject:in-reply-to:references:date:
+   message-id:mime-version:content-transfer-encoding;
+  bh=BpzpvWMW+Kltm7l2DwODGS/qgmlr/2OVqYMl3RGVofE=;
+  b=eXQyhZlAEoi08zj0HjIA9o06vP6qKfDlynn4ivAD6Y1KOSyEeobX1na7
+   I24Mcxo8VYE11eHWDEDRZiFCtumsS4EWSPw5v1feU45+VzAdeP+Gx/gR4
+   DDPzv98MA3y015K/Ss9grGI3/K+cpwOQ3gQL35mHcZfjJ4cWOU+ZJqMkj
+   ipofU5yio33Vj8jkqdKcQ1/V5h5UO0c3JfCVSygZjM8YZVYJ0g6qTd+4E
+   OiM5TQx4w9RiAXOE7qYN/f6f0isWR+9FMTs7n2eTYuLNIldJzwTDTuKtH
+   AkaTnumjuOB/Fc98pYmJVsE54/++TtomhyaoPcLzx6RKZRrSIvmmMumfy
+   Q==;
+X-CSE-ConnectionGUID: DONVChe/T+CP++Qyodhy6Q==
+X-CSE-MsgGUID: c1spzVxuS/2qAQDAJ4RSJA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11905"; a="740710"
+X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
+   d="scan'208";a="740710"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by fmvoesa116.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Sep 2026 03:43:06 -0700
+X-CSE-ConnectionGUID: 7a2p/7Y0SNqX+d3aCxCuNg==
+X-CSE-MsgGUID: 6+NdPYf/Rkm0/R2EYyVUkw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
+   d="scan'208";a="297813291"
+Received: from slindbla-desk.ger.corp.intel.com (HELO localhost) ([10.245.245.216])
+  by fmviesa002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Sep 2026 03:43:00 -0700
+From: Jani Nikula <jani.nikula@linux.intel.com>
+To: Hans de Goede <hansg@kernel.org>, Armin Wolf <W_Armin@gmx.de>, Ilpo
+ =?utf-8?Q?J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc: "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+ "platform-driver-x86@vger.kernel.org"
+ <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org"
+ <linux-kernel@vger.kernel.org>, "linux@weissschuh.net"
+ <linux@weissschuh.net>, "rafael@kernel.org" <rafael@kernel.org>,
+ "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org"
+ <linux-acpi@vger.kernel.org>, "Koenig, Christian"
+ <Christian.Koenig@amd.com>, "airlied@gmail.com" <airlied@gmail.com>,
+ "simona@ffwll.ch" <simona@ffwll.ch>, "amd-gfx@lists.freedesktop.org"
+ <amd-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org"
+ <dri-devel@lists.freedesktop.org>, "patrik.r.jakobsson@gmail.com"
+ <patrik.r.jakobsson@gmail.com>, "maarten.lankhorst@linux.intel.com"
+ <maarten.lankhorst@linux.intel.com>, "mripard@kernel.org"
+ <mripard@kernel.org>, "tzimmermann@suse.de" <tzimmermann@suse.de>,
+ "joonas.lahtinen@linux.intel.com" <joonas.lahtinen@linux.intel.com>,
+ "rodrigo.vivi@intel.com" <rodrigo.vivi@intel.com>, "tursulin@ursulin.net"
+ <tursulin@ursulin.net>, "intel-gfx@lists.freedesktop.org"
+ <intel-gfx@lists.freedesktop.org>, "matthew.brost@intel.com"
+ <matthew.brost@intel.com>, "thomas.hellstrom@linux.intel.com"
+ <thomas.hellstrom@linux.intel.com>, "intel-xe@lists.freedesktop.org"
+ <intel-xe@lists.freedesktop.org>
+Subject: Re: [PATCH v3 2/3] ACPI: video: Remove CONFIG_X86 handling from
+ nvidia_wmi_ec_supported()
+In-Reply-To: <06550473-63c2-4a3e-a5ad-7e23d7b6b050@kernel.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park,
+ 6 krs Bertel Jungin Aukio 5, 02600 Espoo, Finland
+References: <20260724025959.142826-1-W_Armin@gmx.de>
+ <20260724025959.142826-3-W_Armin@gmx.de>
+ <BN9PR12MB514668975E87D570F50B2D91F7A82@BN9PR12MB5146.namprd12.prod.outlook.com>
+ <86d0e015-a8f4-4e10-a9b6-a9714d3e0f07@gmx.de>
+ <80c4bb47-936b-976b-6ba8-b366f7a455cf@linux.intel.com>
+ <11976ed3784675ad241646287a909286a42675a8@intel.com>
+ <3ef68773-e07e-437a-98fb-a3c5fc08539c@gmx.de>
+ <62d7da838e7042df8456e76190db792093065b57@intel.com>
+ <06550473-63c2-4a3e-a5ad-7e23d7b6b050@kernel.org>
+Date: Fri, 18 Sep 2026 13:42:57 +0300
+Message-ID: <d696d85c44930d2124054ce11a06d3096c0db04a@intel.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Date: Fri, 18 Sep 2026 11:57:51 +0200
-From: benoit@debiolley.be
-To: linux-acpi@vger.kernel.org
-Cc: rafael@kernel.org, lenb@kernel.org
-Subject: ACPI: enumeration of devices declaring only _CID (no _HID/_ADR)
-Message-ID: <41d7284368586f7590bfbbe7996d171d@debiolley.be>
-X-Sender: benoit@debiolley.be
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Fri, 18 Sep 2026, Hans de Goede <hansg@kernel.org> wrote:
+> Hi,
+>
+> On 16-Sep-26 09:16, Jani Nikula wrote:
+>> On Wed, 16 Sep 2026, Armin Wolf <W_Armin@gmx.de> wrote:
+>>> Am 15.09.26 um 14:31 schrieb Jani Nikula:
+>>>
+>>>> On Tue, 15 Sep 2026, Ilpo J=C3=A4rvinen <ilpo.jarvinen@linux.intel.com=
+> wrote:
+>>>>> GPU people heads up!!
+>>>>>
+>>>>> On Wed, 2 Sep 2026, Armin Wolf wrote:
+>>>>>
+>>>>>> Am 01.09.26 um 23:30 schrieb Deucher, Alexander:
+>>>>>>>> diff --git a/drivers/gpu/drm/amd/amdgpu/Kconfig
+>>>>>>>> b/drivers/gpu/drm/amd/amdgpu/Kconfig
+>>>>>>>> index 12e4a41bf1f0..50305630f533 100644
+>>>>>>>> --- a/drivers/gpu/drm/amd/amdgpu/Kconfig
+>>>>>>>> +++ b/drivers/gpu/drm/amd/amdgpu/Kconfig
+>>>>>>>> @@ -30,9 +30,7 @@ config DRM_AMDGPU
+>>>>>>>>         # ACPI_VIDEO's dependencies must also be selected.
+>>>>>>>>         select INPUT if ACPI
+>>>>>>>>         select ACPI_VIDEO if ACPI
+>>>>>>>> -     # On x86 ACPI_VIDEO also needs ACPI_WMI
+>>>>>>>> -     select X86_PLATFORM_DEVICES if ACPI && X86
+>>>>>>> The change below makes sense, but this one looks like it should rem=
+ain
+>>>>>>> unless X86_PLATFORM_DEVICES is handled some other way?
+>>>>>>>
+>>>>>>> Alex
+>>>>>> AFAIK the dependency on X86_PLATFORM_DEVICES was only necessary beca=
+use
+>>>>>> ACPI-WMI depended on it in the past.
+>>>>>> By now ACPI-WMI neither depends on X86_PLATFORM_DEVICES or X86 anymo=
+re.
+>>>>> Hi all,
+>>>>>
+>>>>> Could more GPU people besides Alex take a look on this. I'd want to m=
+ake
+>>>>> progress with this series within this cycle but would prefer to have =
+Acks
+>>>>> from GPU side.
+>>>> I share the same concern with Alex. It seems to me we could now end up
+>>>> with x86 configurations without X86_PLATFORM_DEVICES, which handle
+>>>> e.g. backlight on a lot of platforms.
+>>>>
+>>>> I think the safer option might be to go for:
+>>>>
+>>>> 	depends on X86_PLATFORM_DEVICES || !X86
+>>>>
+>>>> in all of the cases that select/depend on X86_PLATFORM_DEVICES in drm.
+>>>>
+>>>> The alternative is to find out, and handle the fallout, if any.
+>>>>
+>>>>
+>>>> BR,
+>>>> Jani.
+>>>
+>>> Alright, should i leave the original "select X86_PLATFORM_DEVICES if ..=
+." statements
+>>> as-is or should is change them to "depends on X86_PLATFORM_DEVICES || !=
+X86" everywhere?
+>>=20
+>> There are some places that depends on X86_PLATFORM_DEVICES. I think it's
+>> almost always a mistake to have some places select and some places
+>> depends on, and select should anyway be used with care. I'd go for
+>> depends on.
+>
+> I'm a bit late to the party here, sorry.
+>
+> Note that X86_PLATFORM_DEVICES is an option which enables / disables
+> a menu and does nothing more.
+>
+> Enabling it or depending on it by itself does nothing.
+>
+> The select used to be there since it must be selected to be able
+> to select ACPI_WMI (which is no longer the case after this series).
+>
+> To depends on in XE was probably copy pasted from the existing
+> select-s and then changed to a depends and already was a completely
+> no-op since depending on ACPI_WMI was enough as that itself
+> dependend on ACPI_WMI.
+>
+> As for X86_PLATFORM_DEVICES being needed for some backlight
+> interfaces, depending on it by itself does not result in those
+> interfaces being there. That requires enabling the actual drivers
+> providing those interfaces.
+>
+> And I don't think that the GPU drivers should start depending
+> on those since that will become very unyielding.
+>
+> TL;DR: I believe Armin's original patch is fine and this is
+> a welcome cleanup / simplification of the DRM drivers Kconfig
+> bits.
 
-On an Acer One 10 S1003 (Intel Atom x5-Z8350, Cherry Trail, Insyde BIOS V1.19)
-the internal SDIO WiFi is never enumerated by Linux, while it works under
-Windows. The root cause is a firmware bug, but I would like to ask whether the
-kernel could reasonably be more lenient about it.
+Your explanation makes sense, thanks.
 
-The SDIO host controller the WiFi chip sits on is declared like this:
+BR,
+Jani.
 
-    Device (SDHB)
-    {
-        Name (WADR, Zero)
-        Name (WHID, "80860F14")
-        Name (AHID, "INT33BB")
-        Name (_CID, "PNP0D40")
-        Name (_DDN, "Intel(R) SDIO Controller - 80862295")
-        Name (_UID, 0x02)
-        ...
-        Method (_STA, 0, NotSerialized)
-        {
-            If (((SI0A == Zero) || (SD2D == One))) { Return (Zero) }
-            Return (0x0F)
-        }
-        Method (_CRS, 0, NotSerialized) { ... }   /* valid MMIO + IRQ */
-    }
 
-It declares neither _HID nor _ADR, only _CID. Its two siblings SDHA (eMMC) and
-SHC1 (SD card) both declare _HID "80860F14" and are enumerated normally.
-
-iasl flags it when recompiling the untouched table:
-
-    DSDT.dsl 9134:  Device (SDHB)
-    Error 6141 - Missing dependency ^ (Device object requires a _HID or _ADR)
-
-So this is firmware violating the spec. The node is otherwise complete and
-functional: _STA returns 0x0F, and _CRS returns a valid MMIO range plus IRQ.
-
-What happens on Linux: acpi_set_pnp_ids() sets pnp->type.platform_id only in
-the ACPI_VALID_HID branch, never for _CID. acpi_bus_attach() then calls
-acpi_default_enumeration() only when platform_id is set, so no platform device
-is created. sdhci-acpi is never probed, no MMC host is created, the SDIO bus is
-never scanned and brcmfmac never loads. The device is visible in sysfs with
-hid=PNP0D40 (taken from _CID) and status=15, but with no physical_node and no
-driver bound:
-
-    $ cat /sys/bus/acpi/devices/PNP0D40:00/status
-    15
-    $ ls /sys/bus/acpi/devices/PNP0D40:00/
-    device:1e  device:1f  hid  modalias  path  power  power_state  status
-    subsystem  uevent  uid
-    (no physical_node, no driver)
-
-sdhci-acpi does list PNP0D40 in both sdhci_acpi_ids[] and sdhci_acpi_uids[], so
-it would have bound had a platform device existed.
-
-Adding "Name (_HID, \"80860F14\")" to that node via a patched DSDT loaded
-through CONFIG_ACPI_TABLE_UPGRADE is sufficient to make it work: sdhci-acpi
-binds, the SDIO card is found, brcmfmac loads and the interface comes up.
-(The _HID value is not invented: the node already carries WHID = "80860F14"
-alongside AHID = "INT33BB", evidently its "Windows" and "Android" identities,
-and its existing _UID = 2 maps to sdhci_acpi_slot_int_sdio, which is correct.)
-
-    mmc2: SDHCI controller on ACPI [80860F14:01] using ADMA
-    mmc2: new high speed SDIO card at address 0001
-    brcmfmac: brcmf_fw_alloc_request: using brcm/brcmfmac43430a0-sdio
-              for chip BCM43430/0
-
-My question: would it be acceptable for acpi_default_enumeration() to fall back
-to _CID when a device declares no _HID and no _ADR but does have _STA and _CRS?
-Windows evidently enumerates such nodes, and a DSDT override is a heavy
-workaround to ask of users for what is a single missing name in the firmware.
-
-I appreciate there may be good reasons not to relax this, in which case please
-treat the report as documentation of the failure mode: it is silent, with no
-error anywhere in dmesg, and took a full DSDT disassembly to find.
-
-I am happy to test patches on this hardware.
-
-Reported on 6.14.0-35-generic (Ubuntu/Mint), but the relevant logic in
-drivers/acpi/scan.c is unchanged in current mainline.
+--=20
+Jani Nikula, Intel
