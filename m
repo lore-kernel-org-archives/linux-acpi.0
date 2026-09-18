@@ -1,181 +1,249 @@
-Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE9ED35C69D;
-	Fri, 18 Sep 2026 13:55:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4E8239CCF4
+	for <linux-acpi@vger.kernel.org>; Fri, 18 Sep 2026 14:38:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789739710; cv=none; b=Lc2TiSuLnBoFxpaU1T2FxHm16nGNGWv0Ul17I4DLZTUyTTzN3fyKTbVGsmvgNAgYGMdY4izRBGK4l3ek7ym0NpFf+ROfCMJowXqdUPUuIWJSVfvrz1NIEbL1xfMv7F0lZnEa9lmxXZ3PpGdXPbjL5hj8ygh0BRkk3FB/1KXTQA8=
+	t=1789742282; cv=none; b=Xdtas5jSI/LZOjxvfPOhrH0eq9Ga0tVwTaxj8xJCsNVSJMYoVkd8s6o2qNhoZwrgNgfqlLSWtd3nPzJpa8suABvr31lmn3UdiMJ7C3HcLX+eHNmL/VdNgcJbXjYV4cYK3Q9w30X+BngKfRCV8HKLluapACvJ+/ciGwOVz8j8B2Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789739710; c=relaxed/simple;
-	bh=te7/qahIKl/ZjT4+vvlMeaMmZN/2FNifFVb4EixyiLA=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=L9dpso62wdsaXIGIR9psk5LJJYmyNebf8CS6I3YJxJteSuSbmiLme5IvNptuZrh5Fosr7IrcHoG1IW9jy60Mq6XiSmL+TUny8cXH3McU32vBFS70t9Q7lXZ3Gu4p4z9cZnctqR2mCIIcT4kx10kaP74TUecRuKHScGiMJ2KVe2I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=XkpM/MGP; arc=none smtp.client-ip=213.97.179.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
+	s=arc-20240116; t=1789742282; c=relaxed/simple;
+	bh=4ZilZJNHHY87uCtwLNAsqLEpobd2WFMMgoU4Rj3aqPI=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=ZVu+zD0YPDC9LVhQ0vVDkaNP1T/GS0Qk4H/Du2lm0zN9GVq6Ol9ZZABcMlsJ5jugMVeWqjWDUXiPz1EW76yvHB8fK74RKxNT5dR/ClTd8iNClweEj6vn4ar7siaFUriY2/IBwmH3rBk6QNZ5iOvEJaDoqh0ACokKD7UeUzC74go=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=m2dv6BPy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="XkpM/MGP"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:From:Reply-To; bh=lkKMrxqvVDVTk7WISHQu8FkHxXnnnC67kQoP6Dx9eis=; b=
-	XkpM/MGP4RUfKaaK39SemxroXS/MVzPouQ9rB7t046CHL4EnGyxPg7/Zhzk9yOsZFIDmZVuy7x15+
-	APZLYJjPS07HWlxtpZ//XxmJEfH16oBZoUjMw+V7xhT8uLghClIO5Cuv4dt4lOp6j4rSpnQ/Yab4B
-	DB5VQjnWdSx91QiGiyW4k/+a1rv6NT0UecgE9ZrX3X/DB73Zv7ZQvME6FjEsxPb46RS3gC6UbjlMk
-	YVcNUOBqEdVbon7WWgffVctBA79MbDN4x+FYx4rnEXISCbfQRmUhtbqCtI80Kma+PQ35B7zEJb3aF
-	ULLCUF30ULLf1upHzBMTzrt98+rXxZa3Tg==;
-Received: from [49.36.127.125] (helo=uajain)
-	by fanzine2.igalia.com with esmtpsa 
-	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
-	id 1x7Z3M-003yEB-9l; Fri, 18 Sep 2026 15:55:00 +0200
-From: Umang Jain <uajain@igalia.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	kernel-dev@igalia.com,
-	Umang Jain <uajain@igalia.com>
-Subject: [PATCH] acpi: battery: Handle Valve steamdeck devices quirk
-Date: Fri, 18 Sep 2026 19:26:28 +0530
-Message-ID: <20260918135628.2322188-1-uajain@igalia.com>
-X-Mailer: git-send-email 2.55.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="m2dv6BPy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 708341F0089A
+	for <linux-acpi@vger.kernel.org>; Fri, 18 Sep 2026 14:38:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789742280;
+	bh=KBw1bExSXtsJEi/GDDkJ47SHkVdg0QHT3EHGaCOfe8o=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=m2dv6BPyx3Zy0FMn6TPuVg7/QX11VEhW37M9oxxdKp0jNtCn17z/OrIpFaV/c10vJ
+	 Wb8255I3NUyDZSP0NtNYbHkOgKimMPPu9LGMjgs1XaFefwD5l11n58XV94KQoFi0FY
+	 OdoEUzjtdG3sOL5VhWAjcV7u6opNo3CXZh5pWdJLny8dJ2wqQgBEjxt6d8tdncdY0X
+	 r2yUAJOFHG7mpFrxJcr9xDqYaz/OteVE3u9Ybb1TIZOdtVDokQ6svAY8y4tG5byVI0
+	 mH/b1Tlk+H/xlq0fv9GEPDU/QL7VR9podspu67YlGNX46TjUsu6ZzgK+uMw0+iwh49
+	 JQ0nzmAcAd+0Q==
+Received: by mail-lr2-f12.google.com with SMTP id 38308e7fff4ca-3a5d4688decso8098681fa.2
+        for <linux-acpi@vger.kernel.org>; Fri, 18 Sep 2026 07:38:00 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBwYk9ckCB4p5goE3WjQ2npyET4QGr4lTEQqNRGZd78YU420FGrn9n/ZLU5pPMNhpQndICBC2Al+RdO/@vger.kernel.org
+X-Gm-Message-State: AFuF++kHiu/ws0Ztxwh22kHGBnRCj3kEQsNBVnRgh4JKbjk+8EKvnLHh
+	8e95f+8Oni6P5CxIN57G7YgJTqNnNxdIsa56kvXMSdxoesaETtXcxYjRTKAZMfq/EE/izSAEG3o
+	G6XJPpi2uHfnsRZJ1IidNtT6kiM7ttVE=
+X-Received: by 2002:a2e:be1b:0:b0:39a:da70:2c77 with SMTP id
+ 38308e7fff4ca-3a5fbf05d53mr6133881fa.3.1789742278585; Fri, 18 Sep 2026
+ 07:37:58 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260819085528.575-2-baorliu@amd.com> <20260917143116.445-1-baorliu@amd.com>
+In-Reply-To: <20260917143116.445-1-baorliu@amd.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Fri, 18 Sep 2026 16:36:31 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jb7QNF32To0AoOBxXHObUAS7QCrFAGObFJU1=VtOqm+w@mail.gmail.com>
+X-Gm-Features: AcwNN1V21dznaWjpABNHjALTzsqliOCTgu4KiEbEf1Vn8RT6Yw4NYIp6-UdFsSY
+Message-ID: <CAJZ5v0jb7QNF32To0AoOBxXHObUAS7QCrFAGObFJU1=VtOqm+w@mail.gmail.com>
+Subject: Re: [PATCH v3] ACPI: button: Report wakeup key only for power button wakeups
+To: "Baorui.Liu" <baorliu@amd.com>
+Cc: rafael@kernel.org, lenb@kernel.org, robert.moore@intel.com, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	acpica-devel@lists.linuxfoundation.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Valve steamdeck devices can report battery status as
-charging, even when low-powered power supply is connected
-to the device. The battery status is reported as charging
-through sysfs, even though in reality, it is discharging.
+On Thu, Sep 17, 2026 at 4:31=E2=80=AFPM Baorui.Liu <baorliu@amd.com> wrote:
+>
+> The ACPI button driver reports KEY_WAKEUP from the Power Button input
+> device to let userspace know that the system was resumed by a power
+> button wakeup.
+>
+> However, reporting KEY_WAKEUP from generic system resume paths can make
+> userspace observe a Power Button wakeup even when the system was resumed
+> by a different wake source.
+>
+> This is reproducible on an AMD Android 15 Xen guest. With a kernel
+> without this fix, a non-power-button S3 resume:
+>
+>   echo mem > /sys/power/state
+>   xl trigger android s3resume
+>
+> makes the Power Button input device report KEY_WAKEUP. The same test on
+> a kernel with this fix no longer reports KEY_WAKEUP from the Power Button
+> input device.
+>
+> Track whether a power button event/notify is observed while the ACPI
+> button device is suspended, and report KEY_WAKEUP on resume only in that
+> case. Do not synthesize a Power Button input event from generic ACPI
+> sleep resume code.
+>
+> Signed-off-by: Baorui.Liu <baorliu@amd.com>
 
-To handle this case, first we introduce a battery quirk
-for steamdeck devices ACPI_BATTERY_QUIRK_VALVE_STEAMDECK.
-Additionally, it has been found that on such devices,
-Battery Charge Time ("_BCT") is reported accurately, hence
-use that information for report charging vs discharging status.
-Battery Charge Time with an eligible power supply unit will have
-valid values whereas with a low-powered supply unit, it shall report
-ACPI_BATTERY_VALUE_UNKNOWN. Use this as a differentiator to
-determine, whether the battery of steamdeck devices is really
-charging or not.
+Please see
 
-Signed-off-by: Umang Jain <uajain@igalia.com>
----
- drivers/acpi/battery.c | 42 +++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 41 insertions(+), 1 deletion(-)
+https://sashiko.dev/#/patchset/20260917143116.445-1-baorliu%40amd.com
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 670853ec3a4d..db611f3302c4 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -76,6 +76,7 @@ MODULE_DEVICE_TABLE(acpi, battery_device_ids);
- enum {
- 	ACPI_BATTERY_ALARM_PRESENT,
- 	ACPI_BATTERY_XINFO_PRESENT,
-+	ACPI_BATTERY_BCT_PRESENT,
- 	ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY,
- 	/* On Lenovo Thinkpad models from 2010 and 2011, the power unit
- 	 * switches between mWh and mAh depending on whether the system
-@@ -94,6 +95,14 @@ enum {
- 	 * on a full charge, but showing degradation in full charge cap.
- 	 */
- 	ACPI_BATTERY_QUIRK_DEGRADED_FULL_CHARGE,
-+	/*
-+	 * Valve steamdeck devices can get discharged even when battery status
-+	 * is charging. This happens typically low power supply unit is
-+	 * connected. To accurate determine this scenario, we shall read
-+	 * battery charge time ("_BCT") to know whether the steamdeck is
-+	 * really charging with the power supply unit.
-+	 */
-+	ACPI_BATTERY_QUIRK_VALVE_STEAMDECK,
- };
- 
- struct acpi_battery {
-@@ -110,6 +119,7 @@ struct acpi_battery {
- 
- 	struct mutex property_lock; /* Protects properties below. */
- 	unsigned long update_time;
-+	unsigned long long charge_time;
- 	int revision;
- 	int rate_now;
- 	int capacity_now;
-@@ -234,7 +244,7 @@ static int acpi_battery_get_property(struct power_supply *psy,
- 					: POWER_SUPPLY_STATUS_DISCHARGING;
- 				return 0;
- 			}
--		else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
-+		else if (battery->state & ACPI_BATTERY_STATE_CHARGING) {
- 			/* Check the rate and capacity to validate the status. */
- 			if (!acpi_battery_is_full(battery) ||
- 			    (battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN &&
-@@ -244,6 +254,12 @@ static int acpi_battery_get_property(struct power_supply *psy,
- 				/* Full and zero rate. */
- 				val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
- 			}
-+
-+			if (test_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags) &&
-+			    test_bit(ACPI_BATTERY_BCT_PRESENT, &battery->flags) &&
-+			    battery->charge_time == ACPI_BATTERY_VALUE_UNKNOWN)
-+				val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
-+		}
- 		else if (battery->state & ACPI_BATTERY_STATE_CHARGE_LIMITING)
- 			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
- 		else if (acpi_battery_is_charged(battery))
-@@ -613,6 +629,10 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
- 	int result = 0;
- 	acpi_status status = 0;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
-+	struct acpi_object_list args = { 1, &arg0 };
-+
-+	arg0.integer.value = 100;
- 
- 	lockdep_assert_held(&battery->property_lock);
- 
-@@ -638,6 +658,15 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
- 	battery->update_time = jiffies;
- 	kfree(buffer.pointer);
- 
-+	if (test_bit(ACPI_BATTERY_BCT_PRESENT, &battery->flags)) {
-+		status = acpi_evaluate_integer(battery->device->handle, "_BCT",
-+					       &args, &battery->charge_time);
-+		if (ACPI_FAILURE(status))
-+			acpi_handle_info(battery->device->handle,
-+					 "_BCT evaluation failed: %s",
-+					 acpi_format_exception(status));
-+	}
-+
- 	/* For buggy DSDTs that report negative 16-bit values for either
- 	 * charging or discharging current and/or report 0 as 65536
- 	 * due to bad math.
-@@ -1057,6 +1086,15 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
- 		set_bit(ACPI_BATTERY_QUIRK_DEGRADED_FULL_CHARGE, &battery->flags);
- 		battery->capacity_now = battery->full_charge_capacity;
- 	}
-+
-+	if (dmi_name_in_vendors("Valve")) {
-+		const char *name;
-+
-+		name = dmi_get_system_info(DMI_PRODUCT_NAME);
-+		if ((name && (!strncmp("Jupiter", name, 7))) ||
-+		    (name && (!strncmp("Galileo", name, 7))))
-+			set_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags);
-+	}
- }
- 
- static int acpi_battery_update(struct acpi_battery *battery, bool resume)
-@@ -1083,6 +1121,8 @@ static int acpi_battery_update(struct acpi_battery *battery, bool resume)
- 			if (result)
- 				return result;
- 			acpi_battery_init_alarm(battery);
-+			if (acpi_has_method(battery->device->handle, "_BCT"))
-+				set_bit(ACPI_BATTERY_BCT_PRESENT, &battery->flags);
- 		}
- 
- 		result = acpi_battery_get_state(battery);
--- 
-2.55.0
+and tell me what you think.
 
+Thanks!
+
+> ---
+>  drivers/acpi/button.c | 13 ++++++++++++-
+>  drivers/acpi/sleep.c  | 41 -----------------------------------------
+>  2 files changed, 12 insertions(+), 42 deletions(-)
+>
+> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+> index cdbb1023a8ee..7a708fe351fb 100644
+> --- a/drivers/acpi/button.c
+> +++ b/drivers/acpi/button.c
+> @@ -191,6 +191,7 @@ struct acpi_button {
+>         bool last_state;
+>         ktime_t last_time;
+>         bool suspended;
+> +       bool wakeup_pending;
+>         bool lid_state_initialized;
+>         bool gpe_enabled;
+>  };
+> @@ -476,6 +477,9 @@ static void acpi_button_notify(acpi_handle handle, u3=
+2 event, void *data)
+>
+>         acpi_pm_wakeup_event(button->dev);
+>
+> +       if (button->type =3D=3D ACPI_BUTTON_TYPE_POWER && button->suspend=
+ed)
+> +               button->wakeup_pending =3D true;
+> +
+>         if (button->suspended || event =3D=3D ACPI_BUTTON_NOTIFY_WAKE)
+>                 return;
+>
+> @@ -498,6 +502,11 @@ static void acpi_button_notify_run(void *data)
+>
+>  static u32 acpi_button_event(void *data)
+>  {
+> +       struct acpi_button *button =3D data;
+> +
+> +       if (button->type =3D=3D ACPI_BUTTON_TYPE_POWER && button->suspend=
+ed)
+> +               button->wakeup_pending =3D true;
+> +
+>         acpi_os_execute(OSL_NOTIFY_HANDLER, acpi_button_notify_run, data)=
+;
+>         return ACPI_INTERRUPT_HANDLED;
+>  }
+> @@ -508,6 +517,7 @@ static int acpi_button_suspend(struct device *dev)
+>         struct acpi_button *button =3D dev_get_drvdata(dev);
+>
+>         button->suspended =3D true;
+> +       button->wakeup_pending =3D false;
+>         return 0;
+>  }
+>
+> @@ -523,12 +533,13 @@ static int acpi_button_resume(struct device *dev)
+>                 acpi_lid_initialize_state(button);
+>         }
+>
+> -       if (button->type =3D=3D ACPI_BUTTON_TYPE_POWER) {
+> +       if (button->type =3D=3D ACPI_BUTTON_TYPE_POWER && button->wakeup_=
+pending) {
+>                 input =3D button->input;
+>                 input_report_key(input, KEY_WAKEUP, 1);
+>                 input_sync(input);
+>                 input_report_key(input, KEY_WAKEUP, 0);
+>                 input_sync(input);
+> +               button->wakeup_pending =3D false;
+>         }
+>         return 0;
+>  }
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index 132a9df98471..7296e4bb0e4d 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -104,8 +104,6 @@ u32 acpi_target_system_state(void)
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_target_system_state);
+>
+> -static bool pwr_btn_event_pending;
+> -
+>  /*
+>   * The ACPI specification wants us to save NVS memory regions during hib=
+ernation
+>   * and to restore them during the subsequent resume.  Windows does that =
+also for
+> @@ -484,7 +482,6 @@ static int acpi_pm_prepare(void)
+>   */
+>  static void acpi_pm_finish(void)
+>  {
+> -       struct acpi_device *pwr_btn_adev;
+>         u32 acpi_state =3D acpi_target_sleep_state;
+>
+>         acpi_ec_unblock_transactions();
+> @@ -503,23 +500,6 @@ static void acpi_pm_finish(void)
+>         acpi_target_sleep_state =3D ACPI_STATE_S0;
+>
+>         acpi_resume_power_resources();
+> -
+> -       /* If we were woken with the fixed power button, provide a small
+> -        * hint to userspace in the form of a wakeup event on the fixed p=
+ower
+> -        * button device (if it can be found).
+> -        *
+> -        * We delay the event generation til now, as the PM layer require=
+s
+> -        * timekeeping to be running before we generate events. */
+> -       if (!pwr_btn_event_pending)
+> -               return;
+> -
+> -       pwr_btn_event_pending =3D false;
+> -       pwr_btn_adev =3D acpi_dev_get_first_match_dev(ACPI_BUTTON_HID_POW=
+ERF,
+> -                                                   NULL, -1);
+> -       if (pwr_btn_adev) {
+> -               pm_wakeup_event(&pwr_btn_adev->dev, 0);
+> -               acpi_dev_put(pwr_btn_adev);
+> -       }
+>  }
+>
+>  /**
+> @@ -626,27 +606,6 @@ static int acpi_suspend_enter(suspend_state_t pm_sta=
+te)
+>         /* Reprogram control registers */
+>         acpi_leave_sleep_state_prep(acpi_state);
+>
+> -       /* ACPI 3.0 specs (P62) says that it's the responsibility
+> -        * of the OSPM to clear the status bit [ implying that the
+> -        * POWER_BUTTON event should not reach userspace ]
+> -        *
+> -        * However, we do generate a small hint for userspace in the form=
+ of
+> -        * a wakeup event. We flag this condition for now and generate th=
+e
+> -        * event later, as we're currently too early in resume to be able=
+ to
+> -        * generate wakeup events.
+> -        */
+> -       if (ACPI_SUCCESS(status) && (acpi_state =3D=3D ACPI_STATE_S3)) {
+> -               acpi_event_status pwr_btn_status =3D ACPI_EVENT_FLAG_DISA=
+BLED;
+> -
+> -               acpi_get_event_status(ACPI_EVENT_POWER_BUTTON, &pwr_btn_s=
+tatus);
+> -
+> -               if (pwr_btn_status & ACPI_EVENT_FLAG_STATUS_SET) {
+> -                       acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
+> -                       /* Flag for later */
+> -                       pwr_btn_event_pending =3D true;
+> -               }
+> -       }
+> -
+>         /*
+>          * Disable all GPE and clear their status bits before interrupts =
+are
+>          * enabled. Some GPEs (like wakeup GPEs) have no handlers and thi=
+s can
+> --
+> 2.34.1
+>
