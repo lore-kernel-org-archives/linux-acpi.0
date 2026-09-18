@@ -1,401 +1,138 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7436F47CC73;
-	Thu, 17 Sep 2026 23:05:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 795A13839A9;
+	Fri, 18 Sep 2026 01:28:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789686358; cv=none; b=rourqucWWzFPvAvL6BiBrQd0pbDggy3vO3P4Xe4Ya2mKuXDPrdJJDZMThSIjlSaGJ2NiOiZ6D8icB9KMHZpx61dC4gYeqdBNDTn93j3heBEbR/PIwpA85hiHCypLJpyLmJA/Idgr6nqC4AtqgLOj7qEj+zUtB+MsxB60HYWBzls=
+	t=1789694893; cv=none; b=hBZYBTWvG2GvPberVfZU2ky2W4b6apIiALhgrNYBmgi6HT4ytHW96W2ZIVEGwEKtfdOKdQ3wFNo7vKJ689XZgmKnmWzcxGS6D2Hyl1+/dQ6Egq5NGIMNvZwfGjeemTD2CLOYiO8nvSmFsUoFRaE8VdH8XlrqgMWITwblhr/V7P4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789686358; c=relaxed/simple;
-	bh=5VIKYhYjDgWjRc1wSCgLrMa7vsIPJl7iFXaZONPXlKw=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=Zwz+UIlt9GjJprqCAT2fJuVMdTLvvb197A+/mFltyzQ55CLjzi0O30REnixQADF4MDtomiXdDwor2Q5ipNpmA1sd3rE5aPXsa+lTLm/VDW/+msH4k593tf16DycWMyC4R/wQZJOiDkXJszpVt0RbdKoDLxvliv8siK6XUkRPnNI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Hqdn6ugO; arc=none smtp.client-ip=192.198.163.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1789694893; c=relaxed/simple;
+	bh=GgAZmgmQpSQCaYRytpAvepaHzxj/8+VNT3qaswZN4+0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=mpxImw02NbCp1VSOLoViWBEv+3WbFIGXVwmdWoPKIgqj+7jH7DNwsHs08EFMYy/7Hd1eDLQ3pTffCTaSO4257WjXDpsQjtLudqTG6u6uObJcLp1f13+g6UVHfHdzLgUVEi3M0jFAsuNbrvY+5gk1nNKFkt6poyr8RkmyiAPE8tE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nI0y3TNG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Hqdn6ugO"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1789686352; x=1821222352;
-  h=date:from:to:cc:subject:message-id;
-  bh=5VIKYhYjDgWjRc1wSCgLrMa7vsIPJl7iFXaZONPXlKw=;
-  b=Hqdn6ugOokdwrYpDJ/Gv4rTw4nnXpdyOhKEU8OExAtf/J16ShPVGMBle
-   zb/2H6fOuS4QOEUZZEzt4UV4Sft3JFBVDuSCosawNQm3az+9IvyVgi6qA
-   x7lseRPmktbrUxQW2nhAbXRPSEpvH9yIrrW4iy90DSPWoo677b+r0XErk
-   i76jXQl6ZfsEHpVwsvzOMfvnzXexbUO/JXo0sxY/gbFHxKr9A1hfTIFTD
-   xESUDZX0+HNuv+j3f0q/swB6H7V9bVAT2gVwG4Vg8HasQXSYgs2geJ2+F
-   ScNNOYXuON7lV9XCAvzlX9qGYViL5MSwOJeanMC3fAj1wJtHVDWWRiIRJ
-   w==;
-X-CSE-ConnectionGUID: 8mVJNMWFRh6E/GNrnFZOVg==
-X-CSE-MsgGUID: uTCEHVsRSbq4Mb8iV9wRxg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11905"; a="89295172"
-X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
-   d="scan'208";a="89295172"
-Received: from fmviesa011.fm.intel.com ([10.60.135.151])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Sep 2026 16:05:48 -0700
-X-CSE-ConnectionGUID: aOTxkUL4RAOjU3Dnls/4ng==
-X-CSE-MsgGUID: Tdbp8LQJSGy8IUmIjgfVyQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
-   d="scan'208";a="2293631"
-Received: from lkp-server01.sh.intel.com (HELO 462990a40a85) ([10.239.97.150])
-  by fmviesa011.fm.intel.com with ESMTP; 17 Sep 2026 16:05:47 -0700
-Received: from kbuild by 462990a40a85 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1x7LAm-000000008f7-2YPo;
-	Thu, 17 Sep 2026 23:05:44 +0000
-Date: Fri, 18 Sep 2026 07:05:39 +0800
-From: kernel test robot <lkp@intel.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge] BUILD REGRESSION
- 7d81fd7f1644e8172350caa5b32aa00e57050ec0
-Message-ID: <202609180725.EUIk48d3-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nI0y3TNG"
+Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 21CE01F000FF;
+	Fri, 18 Sep 2026 01:28:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1789694891;
+	bh=nF5U1y1muTP0LW49SJYENgz9dPB+9qce3Bdy11JKD0A=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=nI0y3TNGLzZieCm7ebIAwEZM4n6utzderY9ypcb2BPm92KFszEcFQdfrgbRIIX2IB
+	 TFEkGQyjyJK1icqau7KXwHIrAocUrdm1zN5U211ZcDx+irUaHgah3p6kU6MANvle+J
+	 YRDKfCJ8EQ68kXtgTsnTlpkQLf+BGfWI+V6VdGRY7CgCf2qdcmj4EqZtW2MS0QH6Nd
+	 c+dm1gJkgnfRKN9UHW2hR+bPQZtzpPngFBpkS2ApBAr+Z3HieMwEsCGx3Rq4LYSJdG
+	 KkOgUQ3jb/TE4VRe/47HSPdLKmpeLUu+pO3G8JktDsSaGkobBSJNYRZbtOjVt3jFnc
+	 VyF84sD+bmRfQ==
+Date: Fri, 18 Sep 2026 04:28:07 +0300
+From: Jarkko Sakkinen <jarkko@kernel.org>
+To: Sean Meadows <Hellfire@unspacy.com>
+Cc: linux-integrity@vger.kernel.org, peterhuewe@gmx.de, jgg@ziepe.ca,
+	rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [BUG] tpm_crb/Intel PTT: Late S3/S5/Reboot ACPI power management
+ deadlock
+Message-ID: <aqyTpzk3jcarEMVS@kernel.org>
+References: <bf3a9544-6e49-4d5d-a01a-f1912b717d08@unspacy.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <bf3a9544-6e49-4d5d-a01a-f1912b717d08@unspacy.com>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: 7d81fd7f1644e8172350caa5b32aa00e57050ec0  Merge branch 'pm-tools' into bleeding-edge
+On Thu, Sep 10, 2026 at 02:45:43AM -0400, Sean Meadows wrote:
+> Hello,
+> 
+> I am writing to report a reproducible power management bug where the
+> system permanently hangs late in the ACPI S3 (sleep), S5 (shutdown), and
+> soft reboot cycle.
+> 
+> The deadlock occurs at the absolute end of the platform teardown
+> sequence; after the kernel has completely unmounted all local storage.
+> Motherboard power rails remain fully active and fans spin continuously,
+> requiring a physical power button reset. Because this happens post
+> unmount and after the video terminates, standard runtime logs (pstore/
+> dmesg) remain entirely empty.
+> 
+> While sleep and shutdown hang forever, the soft reboot path has multiple
+> severe failure modes: hanging indefinitely, stalling for several minutes
+> before completing, or forcing a hard reset that corrupts the subsequent POST
+> phase. Standard kernel parameters like reboot=EFI, reboot=PCI, or cold boot
+> do not mitigate the issue.
+> 
+> The deadlock does not happen immediately after a recent cold boot or
+> reboot. The system must run for a number of hours before the condition
+> occurs.
+> 
+> 1. Reproduction
+> The failure state can be made consistently repeatable via kernel
+> initialization parameters and modprobe.d blacklist:
+> 
+> - Test A (Fail State): Booting with standard parameters. Triggering an
+> S3 sleep, S5 shutdown, or reboot results in a guaranteed, hardware freeze.
+> 
+> - Test B (Pass State): Booting with the command line parameter:
+> ‘modprobe.blacklist=tpm_crb’ and modprobe.d conf with ‘blacklist tpm_crb’
+> When the tpm_crb driver is completely prevented from initializing, the
+> system executes S3 suspend, S5 shutdown, and reboot sequences flawlessly
+> 100% of the time.
+> 
+> - Other end users suffering from this problem have found a repeatable
+> fix by going into the UEFI and disabling the PTT. My particular system
+> lacks that option.
+> 
+> 2. Supporting Data
+> This bug appears to be unique to the Intel PTT controllers powering the
+> 6th through 10th Generation Intel CPU families (Skylake through Comet
+> Lake), spanning mobile, desktop, and HEDT platforms. The bulk of the
+> data also implies that this isn’t isolated to a specific OEM.
+> 
+> - Bugzilla #217890:
+>   chriscjsus: MSI GS40 6QE | Intel i7-6700HQ
+>   mahasler: Intel NUC7i3BNB | Intel Core i3-7100U
+>   Boris Carvajal: MSI Z370 Tomahawk | Intel i5-8400
+>   Serhii Tsynailo: Intel i5-8250u laptop
+>   Sergio: ASUS ZenBook UX310UQK | Intel i7-7500U
+>   My System: ASUS ROG GL703VM | HM175 Chipset | Intel i7-7700HQ | MEI FW
+> v11.9.1.3010 | Running Arch Linux vanilla stable kernel 7.2.4 (stock
+> package)
+> 
+> - Community Threads:
+>   Arch Forum (ID: 303082): Solved exclusively by disabling Intel PTT in
+> BIOS (Gigabyte B460 | Intel 10th Gen)
+>   Reddit (r/archlinux): Widespread tracking detailing identical S3/S5
+> deadlocks (X299/Z370)
+> 
+> 3. Additional Details
+> An unmerged diagnostic patch submitted by another user (Adam Alves,
+> Patchwork ID: 20240307000331.14848-2-adamoa@gmail.com) previously
+> presumed that this late freeze on certain motherboards occurs because
+> the driver leaves the fTPM/PTT hardware interface in an unreleased, non-
+> zero locality state upon teardown. The author suggested that the
+> platform firmware's pre-OS and ACPI transition environments expect the
+> TPM to be sitting strictly in Locality 0, causing the firmware to enter
+> an infinite timeout wait-state when control is passed back to it.
+> 
+> I am not qualified to audit the driver. Whether this belongs in the DMI,
+> is a mistake in the driver logic, or is a bug in the PTT I can’t answer.
+> I can only point to the unfailing success of a growing number of public
+> end users who can instantly fix the problem by disabling the PTT in
+> firmware or blacklisting the TPM driver. I have included the ACPI
+> team in this e-mail in the hopes that they can provide additional clarity.
+> 
+> I have never compiled a custom kernel before, but I am set up to
+> reproduce this and am entirely willing to act as a tester for any
+> diagnostic patches the maintainers would like to provide.
+> 
+> Thank you for your time and patience,
+> Sean
 
-Error/Warning (recently discovered and may have been fixed):
+Has this appeared within some timeframe or has been like this "forever"?
 
-    https://lore.kernel.org/oe-kbuild-all/202609171147.kpmULcuM-lkp@intel.com
-    https://lore.kernel.org/oe-kbuild-all/202609172243.uPgiesDR-lkp@intel.com
-
-    drivers/bluetooth/btintel.c:2725:14: error: implicit declaration of function 'acpi_has_method'; did you mean 'acpi_has_watchdog'? [-Wimplicit-function-declaration]
-    drivers/bluetooth/btintel.c:2725:7: error: call to undeclared function 'acpi_has_method'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
-    drivers/bluetooth/btintel.c:2725:7: error: implicit declaration of function 'acpi_has_method'; did you mean 'acpi_has_watchdog'? [-Werror=implicit-function-declaration]
-    drivers/bluetooth/btintel.c:2729:14: error: implicit declaration of function 'acpi_has_method'; did you mean 'acpi_has_watchdog'? [-Wimplicit-function-declaration]
-    drivers/bluetooth/btintel.c:2729:7: error: call to undeclared function 'acpi_has_method'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
-    drivers/bluetooth/btintel.c:2769:7: error: call to undeclared function 'acpi_has_method'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
-    drivers/bluetooth/btintel.c:2769:7: error: implicit declaration of function 'acpi_has_method'; did you mean 'acpi_has_watchdog'? [-Werror=implicit-function-declaration]
-
-Error/Warning ids grouped by kconfigs:
-
-recent_errors
-|-- alpha-allyesconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- arc-allmodconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- arc-allyesconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- arc-randconfig-1000-20260917
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- arc-randconfig-r1307-20260918
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- arm-allyesconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- arm64-randconfig-1002-20260917
-|   `-- drivers-bluetooth-btintel.c:error:call-to-undeclared-function-acpi_has_method-ISO-C99-and-later-do-not-support-implicit-function-declarations
-|-- csky-allmodconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- hexagon-allmodconfig
-|   `-- drivers-bluetooth-btintel.c:error:call-to-undeclared-function-acpi_has_method-ISO-C99-and-later-do-not-support-implicit-function-declarations
-|-- hexagon-randconfig-1000-20260918
-|   `-- drivers-bluetooth-btintel.c:error:call-to-undeclared-function-acpi_has_method-ISO-C99-and-later-do-not-support-implicit-function-declarations
-|-- hexagon-randconfig-1001-20260917
-|   `-- drivers-bluetooth-btintel.c:error:call-to-undeclared-function-acpi_has_method-ISO-C99-and-later-do-not-support-implicit-function-declarations
-|-- m68k-allmodconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- m68k-allyesconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- microblaze-allyesconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- mips-allmodconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- mips-allyesconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- nios2-allmodconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- nios2-randconfig-1000-20260917
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- openrisc-allmodconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- parisc-allmodconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- parisc-allyesconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- parisc-randconfig-1001-20260918
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- powerpc-allmodconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- powerpc64-randconfig-1000-20260918
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- riscv-randconfig-1000-20260917
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- sh-allmodconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- sh-allyesconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- sh-randconfig-1001-20260917
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- sh-randconfig-1001-20260918
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- sparc-randconfig-1000-20260917
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- sparc-randconfig-1000-20260918
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- sparc-randconfig-1001-20260918
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- sparc64-allmodconfig
-|   `-- drivers-bluetooth-btintel.c:error:call-to-undeclared-function-acpi_has_method-ISO-C99-and-later-do-not-support-implicit-function-declarations
-|-- sparc64-randconfig-1000-20260918
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- um-allmodconfig
-|   `-- drivers-bluetooth-btintel.c:error:call-to-undeclared-function-acpi_has_method-ISO-C99-and-later-do-not-support-implicit-function-declarations
-|-- um-allyesconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-|-- xtensa-allyesconfig
-|   `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-`-- xtensa-randconfig-1001-20260918
-    `-- drivers-bluetooth-btintel.c:error:implicit-declaration-of-function-acpi_has_method
-
-elapsed time: m
-
-configs tested: 234
-configs skipped: 9
-
-tested configs:
-alpha                             alldefconfig    gcc-16.1.0
-alpha                              allnoconfig    gcc-16.1.0
-alpha                             allyesconfig    gcc-16.1.0
-alpha                                defconfig    gcc-16.1.0
-alpha                randconfig-r1304-20260917    clang-21   sparse
-arc                               allmodconfig    clang-24
-arc                                allnoconfig    gcc-16.1.0
-arc                               allyesconfig    gcc-16.1.0
-arc                                  defconfig    gcc-16.1.0
-arc                   randconfig-1000-20260917    gcc-15.2.0
-arc                   randconfig-1000-20260918    gcc-16.1.0
-arc                   randconfig-1001-20260917    gcc-15.2.0
-arc                   randconfig-1001-20260918    gcc-16.1.0
-arc                         vdk_hs38_defconfig    clang-24
-arm                                allnoconfig    gcc-16.1.0
-arm                               allyesconfig    clang-24
-arm                                  defconfig    gcc-16.1.0
-arm                   randconfig-1000-20260917    gcc-15.2.0
-arm                   randconfig-1000-20260918    gcc-16.1.0
-arm                   randconfig-1001-20260917    gcc-15.2.0
-arm                   randconfig-1001-20260918    gcc-16.1.0
-arm                   randconfig-1002-20260917    gcc-15.2.0
-arm                   randconfig-1002-20260918    gcc-16.1.0
-arm                   randconfig-1003-20260917    gcc-15.2.0
-arm                   randconfig-1003-20260918    gcc-16.1.0
-arm                  randconfig-r1308-20260917    gcc-13.4.0 sparse
-arm                          s5pv210_defconfig    clang-24
-arm64                              allnoconfig    gcc-16.1.0
-arm64                                defconfig    gcc-16.1.0
-arm64                 randconfig-1000-20260917    gcc-11.5.0
-arm64                 randconfig-1001-20260917    gcc-11.5.0
-arm64                 randconfig-1002-20260917    gcc-11.5.0
-arm64                 randconfig-1003-20260917    gcc-11.5.0
-arm64                randconfig-r1306-20260917    clang-18   sparse
-csky                              allmodconfig    gcc-16.1.0
-csky                               allnoconfig    gcc-16.1.0
-csky                                 defconfig    gcc-16.1.0
-csky                  randconfig-1000-20260917    gcc-11.5.0
-csky                  randconfig-1001-20260917    gcc-11.5.0
-csky                 randconfig-r1309-20260917    clang-18   sparse
-hexagon                           allmodconfig    gcc-16.1.0
-hexagon                            allnoconfig    gcc-16.1.0
-hexagon                              defconfig    gcc-16.1.0
-hexagon               randconfig-1000-20260917    clang-24
-hexagon               randconfig-1001-20260917    clang-24
-hexagon              randconfig-r1300-20260917    clang-21   sparse
-hexagon              randconfig-r1307-20260917    clang-18   sparse
-hexagon              randconfig-r2100-20260917    clang-24
-hexagon              randconfig-r2102-20260917    clang-24
-i386                              allmodconfig    clang-22
-i386                               allnoconfig    gcc-16.1.0
-i386                              allyesconfig    clang-22
-i386        buildonly-randconfig-1000-20260917    gcc-13
-i386        buildonly-randconfig-1001-20260917    gcc-13
-i386        buildonly-randconfig-1002-20260917    gcc-13
-i386        buildonly-randconfig-1003-20260917    gcc-13
-i386        buildonly-randconfig-1004-20260917    gcc-13
-i386        buildonly-randconfig-1005-20260917    gcc-13
-i386                                 defconfig    gcc-16.1.0
-i386                  randconfig-1000-20260917    clang-22
-i386                  randconfig-1001-20260917    clang-22
-i386                  randconfig-1002-20260917    clang-22
-i386                  randconfig-1003-20260917    clang-22
-i386                  randconfig-1004-20260917    clang-22
-i386                  randconfig-1005-20260917    clang-22
-i386                  randconfig-1006-20260917    clang-22
-i386                  randconfig-1007-20260917    clang-22
-i386                  randconfig-1008-20260917    clang-22
-i386                  randconfig-1009-20260917    clang-22
-i386                  randconfig-1010-20260917    clang-22
-i386                  randconfig-1011-20260917    clang-22
-i386                  randconfig-1012-20260917    clang-22
-i386                  randconfig-1013-20260917    clang-22
-i386                  randconfig-1300-20260917    gcc-14     sparse
-i386                  randconfig-1301-20260917    gcc-14     sparse
-i386                  randconfig-1302-20260917    gcc-14     sparse
-i386                  randconfig-2100-20260917    gcc-14
-i386                  randconfig-2101-20260917    gcc-14
-i386                  randconfig-2102-20260917    gcc-14
-i386                  randconfig-2103-20260917    clang-22
-loongarch                          allnoconfig    gcc-16.1.0
-loongarch                            defconfig    clang-24
-loongarch             randconfig-1000-20260917    clang-24
-loongarch             randconfig-1001-20260917    clang-24
-loongarch            randconfig-r1309-20260917    gcc-13.4.0 sparse
-m68k                              allmodconfig    gcc-16.1.0
-m68k                               allnoconfig    gcc-16.1.0
-m68k                              allyesconfig    clang-24
-m68k                          amcore_defconfig    gcc-16.1.0
-m68k                          apollo_defconfig    gcc-16.1.0
-m68k                                 defconfig    clang-24
-m68k                         m5272c3_defconfig    gcc-16.1.0
-m68k                         mvme147_defconfig    gcc-16.1.0
-microblaze                         allnoconfig    gcc-16.1.0
-microblaze                        allyesconfig    gcc-16.1.0
-microblaze                           defconfig    clang-24
-mips                              allmodconfig    gcc-16.1.0
-mips                               allnoconfig    gcc-16.1.0
-mips                              allyesconfig    gcc-16.1.0
-mips                   cavium_octeon_defconfig    gcc-16.1.0
-mips                            gcw0_defconfig    clang-24
-mips                       malta_kvm_defconfig    gcc-16.1.0
-mips                         omega2p_defconfig    clang-24
-mips                 randconfig-r2201-20260917    gcc-14.3.0
-nios2                             allmodconfig    clang-20
-nios2                              allnoconfig    clang-24
-nios2                                defconfig    clang-24
-nios2                 randconfig-1000-20260917    clang-24
-nios2                 randconfig-1001-20260917    clang-24
-openrisc                          allmodconfig    clang-20
-openrisc                           allnoconfig    clang-24
-openrisc                             defconfig    gcc-16.1.0
-openrisc             randconfig-r1308-20260917    clang-18   sparse
-parisc                            allmodconfig    gcc-16.1.0
-parisc                             allnoconfig    clang-24
-parisc                            allyesconfig    clang-17
-parisc                               defconfig    gcc-16.1.0
-parisc                randconfig-1000-20260917    gcc-11.5.0
-parisc                randconfig-1000-20260918    gcc-8.5.0
-parisc                randconfig-1001-20260917    gcc-11.5.0
-parisc                randconfig-1001-20260918    gcc-8.5.0
-parisc               randconfig-r1302-20260917    clang-21   sparse
-parisc               randconfig-r2202-20260917    gcc-10.5.0
-parisc64                             defconfig    clang-24
-powerpc                           allmodconfig    gcc-16.1.0
-powerpc                            allnoconfig    clang-24
-powerpc                        ebony_defconfig    clang-24
-powerpc                       ep88xc_defconfig    gcc-16.1.0
-powerpc                           g5_defconfig    clang-24
-powerpc                      kmeter1_defconfig    gcc-16.1.0
-powerpc               randconfig-1000-20260917    gcc-11.5.0
-powerpc               randconfig-1000-20260918    gcc-8.5.0
-powerpc               randconfig-1001-20260917    gcc-11.5.0
-powerpc               randconfig-1001-20260918    gcc-8.5.0
-powerpc                   storcenter_defconfig    gcc-16.1.0
-powerpc                         warp_defconfig    gcc-16.1.0
-powerpc64             randconfig-1000-20260917    gcc-11.5.0
-powerpc64             randconfig-1000-20260918    gcc-8.5.0
-powerpc64             randconfig-1001-20260917    gcc-11.5.0
-powerpc64             randconfig-1001-20260918    gcc-8.5.0
-powerpc64            randconfig-r1305-20260917    clang-21   sparse
-riscv                              allnoconfig    clang-24
-riscv                             allyesconfig    clang-24
-riscv                                defconfig    gcc-16.1.0
-riscv              nommu_k210_sdcard_defconfig    clang-24
-riscv                 randconfig-1000-20260917    clang-17
-riscv                 randconfig-1001-20260917    clang-17
-s390                              allmodconfig    clang-17
-s390                               allnoconfig    clang-24
-s390                              allyesconfig    gcc-16.1.0
-s390                                 defconfig    gcc-16.1.0
-s390                  randconfig-1000-20260917    clang-17
-s390                  randconfig-1001-20260917    clang-17
-sh                                allmodconfig    gcc-16.1.0
-sh                                 allnoconfig    clang-24
-sh                                allyesconfig    clang-17
-sh                                   defconfig    gcc-14
-sh                          ecovec24_defconfig    gcc-16.1.0
-sh                    randconfig-1000-20260917    clang-17
-sh                    randconfig-1001-20260917    clang-17
-sh                            se7750_defconfig    clang-24
-sparc                              allnoconfig    clang-24
-sparc                                defconfig    gcc-16.1.0
-sparc                 randconfig-1000-20260917    clang-17
-sparc                 randconfig-1001-20260917    clang-17
-sparc                randconfig-r1306-20260917    gcc-13.4.0 sparse
-sparc                randconfig-r1307-20260917    gcc-13.4.0 sparse
-sparc64                           allmodconfig    clang-20
-sparc64                              defconfig    gcc-14
-sparc64               randconfig-1000-20260917    clang-17
-sparc64               randconfig-1001-20260917    clang-17
-sparc64              randconfig-r1301-20260917    clang-21   sparse
-sparc64              randconfig-r1303-20260917    clang-21   sparse
-sparc64              randconfig-r2101-20260917    clang-24
-um                                allmodconfig    clang-17
-um                                 allnoconfig    clang-24
-um                                allyesconfig    gcc-16.1.0
-um                                   defconfig    gcc-14
-um                              i386_defconfig    gcc-14
-um                    randconfig-1000-20260917    clang-17
-um                    randconfig-1001-20260917    clang-17
-um                            x86_64_defconfig    gcc-14
-x86_64                            allmodconfig    clang-22
-x86_64                             allnoconfig    clang-24
-x86_64                            allyesconfig    clang-22
-x86_64      buildonly-randconfig-1000-20260917    gcc-14
-x86_64      buildonly-randconfig-1001-20260917    gcc-14
-x86_64      buildonly-randconfig-1002-20260917    gcc-14
-x86_64      buildonly-randconfig-1003-20260917    gcc-14
-x86_64      buildonly-randconfig-1004-20260917    gcc-14
-x86_64      buildonly-randconfig-1005-20260917    gcc-14
-x86_64                               defconfig    gcc-14
-x86_64                                   kexec    clang-22
-x86_64                randconfig-1000-20260917    clang-22
-x86_64                randconfig-1001-20260917    clang-22
-x86_64                randconfig-1002-20260917    clang-22
-x86_64                randconfig-1003-20260917    clang-22
-x86_64                randconfig-1004-20260917    clang-22
-x86_64                randconfig-1005-20260917    clang-22
-x86_64                randconfig-1006-20260917    clang-22
-x86_64                randconfig-1007-20260917    clang-22
-x86_64                randconfig-1008-20260917    clang-22
-x86_64                randconfig-1009-20260917    clang-22
-x86_64                randconfig-1010-20260917    clang-22
-x86_64                randconfig-1011-20260917    clang-22
-x86_64                randconfig-1012-20260917    clang-22
-x86_64                randconfig-1013-20260917    clang-22
-x86_64                randconfig-1014-20260917    clang-22
-x86_64                randconfig-1015-20260917    clang-22
-x86_64                randconfig-1016-20260917    clang-22
-x86_64                randconfig-1017-20260917    clang-22
-x86_64                randconfig-1300-20260917    gcc-14     sparse
-x86_64                randconfig-1301-20260917    gcc-14     sparse
-x86_64                randconfig-1302-20260917    gcc-14     sparse
-x86_64                randconfig-2100-20260917    clang-22
-x86_64                randconfig-2101-20260917    gcc-14
-x86_64                randconfig-2102-20260917    gcc-14
-x86_64                randconfig-2103-20260917    gcc-13
-x86_64                randconfig-2200-20260917    gcc-14
-x86_64                                rhel-9.4    clang-22
-x86_64                            rhel-9.4-bpf    gcc-14
-x86_64                           rhel-9.4-func    clang-22
-x86_64                     rhel-9.4-kselftests    clang-22
-x86_64                          rhel-9.4-kunit    gcc-14
-x86_64                            rhel-9.4-ltp    gcc-14
-x86_64                           rhel-9.4-rust    clang-22
-xtensa                            alldefconfig    gcc-16.1.0
-xtensa                             allnoconfig    clang-24
-xtensa                            allyesconfig    clang-20
-xtensa                   cadence_csp_defconfig    gcc-16.1.0
-xtensa                           iss_defconfig    gcc-16.1.0
-xtensa                randconfig-1000-20260917    clang-17
-xtensa                randconfig-1001-20260917    clang-17
-xtensa               randconfig-r2103-20260917    gcc-15.2.0
-
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+BR, Jarkko
