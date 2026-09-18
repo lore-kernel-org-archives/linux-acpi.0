@@ -1,137 +1,122 @@
-Received: from mx0a-002e3701.pphosted.com (mx0a-002e3701.pphosted.com [148.163.147.86])
+Received: from BL0PR03CU003.outbound.protection.outlook.com (mail-eastusazon11012040.outbound.protection.outlook.com [52.101.53.40])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D07533D512;
-	Fri, 18 Sep 2026 16:04:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.147.86
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789747482; cv=none; b=NwYFaXNwQr079cHx8TQOTwOLsg65G9ROITATDufOdmytga3A5GbERwE1HixuEpZCio40kQzl2qk1FZo3E09Pib61pTkZLNWeR9/PpTmH+Fj0cxznwJMRgNo1y6zcTHz5IojfYHtE1tsLF00D9Sfcl7nqm67UJULtpXa1yJhvVQ8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789747482; c=relaxed/simple;
-	bh=51g3UiLKuZWC9PyMufAfpqPt9Y6edxCPWQ0wUSLjpJ0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QhH3JiFkuz7UCt1hRumKICGxw558I97F8viecK1ahFnpJAXdyqw/mB/F52dJEVdF3IsN57vnPHUiWLTLsem1tFogCybljqVgAdvlcu1szuUcOtJdgHd1GUf6ElNeV7j+lqwpQW0DPD73tPNldWQ4yHp5/L28vlI3O83ZrwrSWao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=hpe.com; spf=pass smtp.mailfrom=hpe.com; dkim=pass (2048-bit key) header.d=hpe.com header.i=@hpe.com header.b=IHfsqH0i; arc=none smtp.client-ip=148.163.147.86
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=hpe.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hpe.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9D184F403F;
+	Fri, 18 Sep 2026 16:15:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.53.40
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1789748145; cv=fail; b=njJWldtIXlQ0Lf3lRs5o/wL7VfvXDFWRaMH0SdLy64JLEo+gmcCbByeJvxFU8Ui0Jg4TRx+s1AYsKlmMoFpv8Q4n6XdP2r3Ziv9Rp9SJ6S2jOu4BDMpcceOpU1nWuCr4LeSZuM7b8hsP0W2e0vxidgREjf2WJQhtvB5q3ezqjZQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1789748145; c=relaxed/simple;
+	bh=QLG64Lk9Qo+wSa/UoMfS9Cd32ZbWvo/1GRFToRmYhMI=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=auRCnbdDK3OpvMCtpgeD5VtxV6CI5gWhEy8Jy5Py0iKk1SWZCpbbLRSZ0CY6QDAAavy+fUbEb1dnK1x9Vvqg9+bOlDmsX1qeKvrraqxV4ILxR1+RyE8Iang86ytjuEviPm8uqyBDL3XSFL0kg26o6bLr09/CSG1gDKjvWOYsxa4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=RFFq/k7K; arc=fail smtp.client-ip=52.101.53.40
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=hpe.com header.i=@hpe.com header.b="IHfsqH0i"
-Received: from pps.filterd (m0148663.ppops.net [127.0.0.1])
-	by mx0a-002e3701.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68IDNBXQ515911;
-	Fri, 18 Sep 2026 16:03:13 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=hpe.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=pps0720; bh=uc4FCppFKvSYMEFUJD+GdMcIgx
-	fJPxqNRU0X+NKpVX8=; b=IHfsqH0ij+X+9h6dvxnKG+ln+4UgfkXSOrbSG2AMVN
-	3sAGXfDLckP+TodrXje4alDDMWqYZuWX9mY2/kKVIQNp8Lf7gvusxAbtarGjP7e3
-	nE46s84zQGcdMeD0F+i9pODg/yXV0R6XK5FaZbeuQDPNTf4F7gI/v4J/i5UIyInj
-	+zMM88w2fFRPSSTCkHdKcJCP25XMHdWw3GtwcqY9tQqPsMnsteWLS043RECtiu7+
-	9dT3MLQlm6zj3ihi3vAxuPSRHxj+ZTGXkiJZb5qTE6R3CVXbfbH/FM0/0gaYCDKE
-	odEEvTaWp4+bJik5jc7FoNK7I5XHRwE/YruFWbpr+img==
-Received: from p1lg14878.it.hpe.com (p1lg14878.it.hpe.com [16.230.97.204])
-	by mx0a-002e3701.pphosted.com (PPS) with ESMTPS id 4gs4bkbj1q-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Fri, 18 Sep 2026 16:03:12 +0000 (GMT)
-Received: from p1lg14886.dc01.its.hpecorp.net (unknown [10.119.18.237])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by p1lg14878.it.hpe.com (Postfix) with ESMTPS id 2BE6DD2E3;
-	Fri, 18 Sep 2026 16:03:10 +0000 (UTC)
-Received: from HPE-5CG20646DK.localdomain (unknown [16.231.227.36])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(Client did not present a certificate)
-	by p1lg14886.dc01.its.hpecorp.net (Postfix) with ESMTPS id E6C9280AA61;
-	Fri, 18 Sep 2026 16:03:04 +0000 (UTC)
-Date: Fri, 18 Sep 2026 11:03:00 -0500
-From: Kyle Meyer <kyle.meyer@hpe.com>
-To: Michal Hocko <mhocko@suse.com>,
-        "David Hildenbrand (Arm)" <david@kernel.org>
-Cc: akpm@linux-foundation.org, corbet@lwn.net, linmiaohe@huawei.com,
-        shuah@kernel.org, tony.luck@intel.com, jane.chu@oracle.com,
-        jiaqiyan@google.com, Liam.Howlett@oracle.com, bp@alien8.de,
-        hannes@cmpxchg.org, jack@suse.cz, joel.granados@kernel.org,
-        laoar.shao@gmail.com, lorenzo.stoakes@oracle.com,
-        mclapinski@google.com, nao.horiguchi@gmail.com, osalvador@suse.de,
-        rafael.j.wysocki@intel.com, rppt@kernel.org, russ.anderson@hpe.com,
-        shawn.fan@intel.com, surenb@google.com, vbabka@suse.cz,
-        linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org,
-        linux-mm@kvack.org
-Subject: Re: [PATCH v3] mm/memory-failure: Support disabling soft offline for
- HugeTLB pages
-Message-ID: <aq1gtOOUqU1-RJJu@hpe.com>
-References: <aqiIEkrc6aDBOqRg@hpe.com>
- <aqkCbgHmMGxI_GLG@tiehlicka>
- <aqmGd0GGUCkbZpkZ@hpe.com>
- <aqpYxAktjexhaMGc@tiehlicka>
- <ad36cd54-7319-4bb4-bf8f-9fcc7b009158@kernel.org>
- <aqqXbwglwYTyTuUG@tiehlicka>
- <36480c86-fc59-4387-91a4-cad839f502f2@kernel.org>
- <aqqdlndHq9vHeX8s@tiehlicka>
- <67b63b36-82c9-45d4-8dd3-1bec2823a123@kernel.org>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="RFFq/k7K"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=sFZmHfNS813zXdNc/XEnSnNOfy/WKHzyFBORA0fGwwn9/8S/yJh5/na9xCenmL19QZzATX5f2jgxu3e0DPz3IzVvG2IkMxL9PN9cOG/VI2ArFVKqPvyWk43ril2MXt+bdeoHKMeDfqiL6j6y5q16SmfyFhlMa9plMm/Rymvu/Ba+sILk+IBhKBSNsDmcElWKPPNhbKrcBZnSXpI2YeJvmPpcwy58oIOFUDheehV60NxciwaXHQFtIe4QQ4NKP3iRWZ9OEhL9ttRpqHmjeRuNaPcN96hh0YztwnnsLbA+IHZTSQOaJZ6exk2HZxsksX5fcZkhpxMA4ssKDdIZAPD3lg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=QLG64Lk9Qo+wSa/UoMfS9Cd32ZbWvo/1GRFToRmYhMI=;
+ b=LbokbbF1iEsW66AZuMO0j3uM4CAnZ+w6ZjAUEDV9oQgy22jbLy4ke48sAnQipeh5vjc3GdXxKmm7D6AJJdtW+Ch6u0/DwF+hJIGQd8VnBEAI5JMRD1KrkjqSkVHaSYIio2d0eXpXn1ez0rr8ARri834w0xkNNLL0NEjjMGrGVMK4NEXqQmLO7rjayw3mDrBwX3qvb6SrFZ4pPHzZRnmLb3LsMLZyoLH3Go0H0pJEwndudO5VlwaPIc4OZJF4wSZ+X+9T6a1uxwkNwDxqaub+MxyMmngrNrDbKXgFRLxBEoAZkpoGdKUGOzRaOtIHpMwt/WobJ88tU1YR/8SUqG+FrA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.160) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=QLG64Lk9Qo+wSa/UoMfS9Cd32ZbWvo/1GRFToRmYhMI=;
+ b=RFFq/k7KOo8H67N6n2wEBf9+5RBhU3UM7a3NgmYzIgDsBpi++HRcIwabNiP3Vb/88iBOydXe81lna2hmk4w1l4Piu57TVy+ibLl3UKAIH0UTnqtXO5Z1XFisfqALlKVyCelAwItnv6qRViFvAgk3EtQkQwoVfoZZ4AaDkKsVolyFvbGTcM4t8mcBv2RIOOxex2BaelXZ//qMgMhMI7TGQaSHWhjMAgnWpwxAaV4HgkBPZlss1tJgzTQebGA7w0TDQ8Uw91qLHvSUiSHFAa8rnq2D0eK59aUdZYj4kDqhqy1XkNPcI7CUmBC9kSG4rRPHg0FK9jVw6NH32+Ya6/bWdw==
+Received: from DS7PR03CA0322.namprd03.prod.outlook.com (2603:10b6:8:2b::29) by
+ IA1PR12MB8519.namprd12.prod.outlook.com (2603:10b6:208:44c::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.428.13; Fri, 18 Sep
+ 2026 16:15:32 +0000
+Received: from CO1PEPF000066EB.namprd05.prod.outlook.com
+ (2603:10b6:8:2b:cafe::85) by DS7PR03CA0322.outlook.office365.com
+ (2603:10b6:8:2b::29) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.428.13 via Frontend Transport; Fri,
+ 18 Sep 2026 16:15:31 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.160) by
+ CO1PEPF000066EB.mail.protection.outlook.com (10.167.249.7) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.451.8 via Frontend Transport; Fri, 18 Sep 2026 16:15:31 +0000
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
+ (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Fri, 18 Sep
+ 2026 09:14:58 -0700
+Received: from rnnvmail203.nvidia.com (10.129.68.9) by rnnvmail202.nvidia.com
+ (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Fri, 18 Sep
+ 2026 09:14:58 -0700
+Received: from dgx-1v-42.nvidia.com (10.127.8.11) by mail.nvidia.com
+ (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49 via Frontend
+ Transport; Fri, 18 Sep 2026 09:14:58 -0700
+From: Jamie Nguyen <jamien@nvidia.com>
+To: Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
+	<guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>, "Catalin
+ Marinas" <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, "Rafael J
+ . Wysocki" <rafael@kernel.org>
+CC: Len Brown <lenb@kernel.org>, Dat Mach <dmach@nvidia.com>,
+	<linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>, Jamie Nguyen <jamien@nvidia.com>
+Subject: Re: [PATCH v2 0/3] ACPI: arm64: FFH Operation Region support for FF-A (offset 2)
+Date: Fri, 18 Sep 2026 09:14:57 -0700
+Message-ID: <20260918161457.1441579-1-jamien@nvidia.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260901192906.133670-1-jamien@nvidia.com>
+References: <20260901192906.133670-1-jamien@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <67b63b36-82c9-45d4-8dd3-1bec2823a123@kernel.org>
-X-Proofpoint-GUID: L_WdTr3DFK_IidRpPlCXthNiuHl9BS72
-X-Proofpoint-Spam-Info: AW1haW4tMjYwOTE4MDIyOSBTYWx0ZWRfX6ClIMWsv6mB4
- 0IlWT184tZaynkzSZIDoNoAERHmTUSCeSWT2G9DqDmAPWikkEJHU7Z+OCK8WjidX8Tiyh8hpvlw
- lKCwvXrpUS4ES7gMjdNHX3dLER0LLD4=
-X-Authority-Analysis: v=2.4 cv=EvhHPicA c=1 sm=1 tr=0 ts=6aad60c0 cx=c_pps
- a=UObrlqRbTUrrdMEdGJ+KZA==:117 a=UObrlqRbTUrrdMEdGJ+KZA==:17
- a=kj9zAlcOel0A:10 a=VdqzKS8jKosA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=gQcMVamqm3wCPoSYhaRC:22 a=6_mrDcixewTG61oOsKN3:22 a=RfWlH6W0a2UdQScw0pgA:9
- a=CjuIK1q_8ugA:10
-X-Proofpoint-ORIG-GUID: L_WdTr3DFK_IidRpPlCXthNiuHl9BS72
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTE4MDIyOSBTYWx0ZWRfX3Q0UtYojvFKu
- 3/JDEpX/5OkGU3VRG+md1cX5CgLjCC94TPLncGqJLs73047ibKMKLQPBDZ5i/WqWvhAkdWbnn/W
- ZVEppZupoRXP1uUhtBcyQnOhEnhotct8Wgu+2kew7fd+WS627izPZKIkFIvXRhUx+JHE6SM0CPj
- uSdlHm/QaKrlX23yGf2d7hQW6mu/x6TOkwGOOhw3AeYC3NQZPNbEbGdIpR84ISXLxLfqtqGWubo
- XIeEycNeUpkkOsXfYZbkL4KBKH7y/UH+3D0btomS9BAXq7sYko+BxUHc+ieZdkyIJgApL/W6Ssd
- 2sug4u2chH3zdAP2QKIZpQLTW7DMqM+Riuo36V3c38q2lhelThRXpensQbEUaM9bUYC6l9pPetd
- N2/N4mA+n5OydnDCvJjB9m0CSrUFBvwPOti+oQ9RtzHfUCjERQeo1Xddenp9+Z0UqUSXay7BFjM
- DRiMhlch8smkwEXvt8A==
-X-HPE-SCL: -1
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-09-18_04,2026-09-16_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 adultscore=0 malwarescore=0 spamscore=0 phishscore=0
- lowpriorityscore=0 impostorscore=0 bulkscore=0 suspectscore=0 clxscore=1011
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609180229
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CO1PEPF000066EB:EE_|IA1PR12MB8519:EE_
+X-MS-Office365-Filtering-Correlation-Id: c8c4e1b9-59cd-492f-8ad5-08df15a01017
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|7416014|1800799024|82310400026|23010399003|36860700016|22082099003|18002099003|11063799006|10067099003|56012099006;
+X-Microsoft-Antispam-Message-Info:
+	25DUMHU7mqUGzsbIpiAucpyDDE8yLmL49f8jB92neeey7i7/p9iMsnfCgnEc+0nW8B2kiFv1qRYYoptS0Lx8t7XCKHXzDHYs20gEy2shgj8fHq7xsK4w73T4k+4IBUtvzGPOVAJc+PeDjyqklJ3MySuWkzOvCtoJueDoTnG5fZWHQhSBZqBkY7lJ8xeDRGFb8As8mF43zY0RP47Fruq1rXRMrthkt5DwEfCD4hgv4JJgeQXmaqa/eR4+KEksSeSrTQtP77pyRAqAN6urH7In2Sy1BYxFnJY6stfqdz++Ql2XU94/rOsiSNLimANRc3Lk4TJCxy6u9xx16Vk0pyfGG6UmtpBVnURZRT0Q4m5njzZyz8sjeP6JfC4FqajkAa8pfnEmTOeOzLs+bYrMa0hCJkzYPSPrc2xsYPiRYePmAOrFY+Tuavu4VwP5YByp9NymckCJ6DbPVKcoxXOJ4if7VzJjMuGXwFQIpnTE9tFxyoa51sVPQ5pXkfX6+Ug/bgK87eFcaP0obDuRlItLaRG7c9KV5M+hjmoKPPfyHnQzD/DgPmsYdKk1eQhXq5x2+wgCN352wh1o6SB0lXAwZdL1XN/AMSnD8e132l8v/Js6AtNXt0LdnlXsHq8qSwMA8+ITE//3lkB21/Ah011j4SLLh8j2xcmB6PKgg7s0xJmZh4awgfCO77LRbl5IUxIMPkLh94I/s4hMYWp+3AJZVeAqnw==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(7416014)(1800799024)(82310400026)(23010399003)(36860700016)(22082099003)(18002099003)(11063799006)(10067099003)(56012099006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	aSpvSnw1tzSt3WNF8kd6GlUmslmKxvJvhUMr/SLsnf1pRgM7ZoNjlsFtb4eGRECd1wlvdSb+m1E1Om134xGmVd5Dy6yPPUxRmGLvMh+Y7NwzzWOMIqY/lsKI4BBTMq4eSyioKESP0Kme6BhDXQJ2dyWtECns1NKXzh9Gz3dZ46uI+uJ+yiSqvaWNsQRFdcq/oAnoB8jVBSTdzEso4F5ui/pjyxL/CwhKQ7nf0JSi9Us2EG4a5n1of3+IFT7mKolykZiVGpYfkqoCCG/Ap6H8Y5v2QrwV0FqtwiQprDb2Ai3iSv+UlNzVQfTH1stxJQOtOH+ld2nZFR84weM75NGG3TdNBQf/BOCogRNd4L5CJSHMpM7CocvuSbBh4cgOFv+2ZU9Nhu7UF/lxkiwv1rrhCwcSJ9GVrAVXFxqUpu2qPeIymofATq48526SXdt/4hd+
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Sep 2026 16:15:31.7904
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: c8c4e1b9-59cd-492f-8ad5-08df15a01017
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	CO1PEPF000066EB.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB8519
 
-On Wed, Sep 16, 2026 at 04:30:46PM +0200, David Hildenbrand (Arm) wrote:
-> On 9/16/26 15:45, Michal Hocko wrote:
-> > On Wed 16-09-26 15:28:01, David Hildenbrand wrote:
-> >> On 9/16/26 15:19, Michal Hocko wrote:
-> >>>
-> >>> Yes, no dispute on that. But we have HW poisoning for exactly that
-> >>> purpose, no?
-> >>
-> >> Well, that tells you that the page content is effectively gone and should be
-> >> tried to be recovered / migrated away. Unless I am messing up terminology here.
-> > 
-> > Maybe it is me messing up the terminology...
-> > But I guess we have established that whether soft offlining is being
-> > abused or not, excluding hugetlb through a configuration is just a wrong
-> > thing to do.
-> 
-> Yes, it's odd that you wouldn't want to evacuate hugetlb but everything else.
-
-Thanks for the feedback, Michal and David.
-
-I'll drop this series.
-
-It sounds like the consensus is to keep soft offline behavior the same across
-page types.
+Gentle ping on this. The series still applies cleanly to v7.3-rc1 and
+current linux-next, and I'm happy to respin if you'd prefer anything
+changed.
 
 Thanks,
-Kyle Meyer
+Jamie
