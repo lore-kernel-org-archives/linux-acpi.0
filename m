@@ -1,96 +1,129 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
+Received: from relay.yourmailgateway.de (relay.yourmailgateway.de [188.68.63.162])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A22922853FD;
-	Fri, 18 Sep 2026 05:57:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF27E39795E;
+	Fri, 18 Sep 2026 06:20:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=188.68.63.162
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789711022; cv=none; b=db1o7K0S3nIsI3w7CjthYKNsdZJef+hZDZdJiTvHoYOgyWmeEMC+DjG9+0P2DLe5pj7kyH+DLpMzLKU4TVlZyW2OGWRGPWR5vSuq0r902M4kRYP3/FCxjCkq21f+C3jsXEbpu0OyvfdhXzZCMeezYc1YcDU5WA3XukFkFYNszd4=
+	t=1789712458; cv=none; b=B7QIFAuok0r4DffvEVJblcBJe45nRpDD6+ulyUk9HgsmhaEYvBqkaRPQ8EOBf63De0R60QGdNqNrSveBKaDaywNdWktykV/QGmV311XaRWaDzk53Ply/WofeF+16OlayRRlKQuBiZZHy0XhC8/WOXAmpXX9bjESE285M/BAd0eE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789711022; c=relaxed/simple;
-	bh=Ug1YYs1QoG5a0cLyLRgAfW0LHixvwk05lM/CTrnNHHk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=l4jFWDQaNwJW8nRBbezkEFk3kFQ/TdompJYoyv949b89F6XmhhWZ08sKb1Izi/04hhXbXPGWP4yRwiA7DUwG0rrY+2xrjy5QAF+Wj0O47ItgaA7U64X/SHHPOk4V6aYOrkupF5zMbFZUMlVp5LrH3FYmxZQvJm0PJNswdC6PY2M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=i7bgDJZs; arc=none smtp.client-ip=192.198.163.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1789712458; c=relaxed/simple;
+	bh=lD7NqqKM7Dgj4jRMfiv+WMvMH2wkE10YCf13FtRvoFg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=K6ynKhH99pv31dMPPUOAMj9J0aVz7R6oKT/QXopdIqfpDmYGkbRFschB9KqCmP4t4seH1DxOCMwHDExdPPvE+02HPvv4X5Uk0UTymNSERpcw65uBVElxNJTUB4imCIJlOZT/1IXr4KyfR7PgezugwszHWubcPymsHMczpX+EOrM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=leemhuis.info; spf=pass smtp.mailfrom=leemhuis.info; dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b=DivEk2k/; arc=none smtp.client-ip=188.68.63.162
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=leemhuis.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=leemhuis.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="i7bgDJZs"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1789711020; x=1821247020;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=Ug1YYs1QoG5a0cLyLRgAfW0LHixvwk05lM/CTrnNHHk=;
-  b=i7bgDJZsO16TSpV8KQP3gKpnOovYgsBUyRlpLqBWWhAowmjOQZDRF/6t
-   K9VG9bYjquf/9aHeVaQHmsXfmOM88M1CyRoL+Yo1HUo5EKyaiZi5I6e5f
-   luzAaxLwqSbFq1FuFivz44jxGxhErE8rXEaRxyQ+zaNk+7dE+MX15bv9V
-   owBuACV0WZshQgBRMQ0Gll2XSeihX1CEEeaN1+ANy1pk6j1atGK3j/sCg
-   cN1JpNKa0qOYTvLWzcku/bPr/3feH47YA2Al3F7mpsfhc81g1X1QMiWrF
-   beMmOo5paP8L7uO6jwD2kGOMenhmm4uw8hRF/D7YzP1RaEyD9+fFBPAGO
-   A==;
-X-CSE-ConnectionGUID: WagMAFepQMytKC6pOKfyuw==
-X-CSE-MsgGUID: kxbWuQRNQY+3fMezksnUMg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11905"; a="90326751"
-X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
-   d="scan'208";a="90326751"
-Received: from fmviesa013.fm.intel.com ([10.60.135.153])
-  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Sep 2026 22:57:00 -0700
-X-CSE-ConnectionGUID: U3QRh2jRRqWdopq5s0ua8Q==
-X-CSE-MsgGUID: 55OnJffxSEancRpCOmUhyw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
-   d="scan'208";a="2629668"
-Received: from black.igk.intel.com ([10.91.253.5])
-  by fmviesa013.fm.intel.com with ESMTP; 17 Sep 2026 22:56:59 -0700
-Received: by black.igk.intel.com (Postfix, from userid 1001)
-	id 6136D99; Fri, 18 Sep 2026 07:56:53 +0200 (CEST)
-Date: Fri, 18 Sep 2026 07:56:53 +0200
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-To: Yuqi Xu <xuyuqiabc@gmail.com>
-Cc: westeri@kernel.org, andi.shyti@kernel.org, linux-i2c@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] i2c: acpi: Add ELAN0662 to
- i2c_acpi_force_100khz_device_ids
-Message-ID: <20260918055653.GD106095@black.igk.intel.com>
-References: <20260918054109.23550-1-xuyuqiabc@gmail.com>
+	dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b="DivEk2k/"
+Received: from mors-relay-8201.netcup.net (localhost [127.0.0.1])
+	by mors-relay-8201.netcup.net (Postfix) with ESMTPS id 4hmMv41BMxz43LL;
+	Fri, 18 Sep 2026 08:20:48 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=leemhuis.info;
+	s=key2; t=1789712448;
+	bh=lD7NqqKM7Dgj4jRMfiv+WMvMH2wkE10YCf13FtRvoFg=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=DivEk2k/bI3KdBETZhD7Dzh60wMJSNm6vZ9aH6iXyFP/zJhQd5FD0XfBbUGAwksM1
+	 wtRWM75feWifIb+JyYg65PsUu7mZjAyr9nisTJZ7M63mhMtFZduwOsmb6gjZ970BFS
+	 7mO/Dbe9gAo7fpb+IvVp3G1lF+oiHykixUClGkeId3hAMRLmMbcZRQfHsNUhj7RwYc
+	 jxUPlOQOeRn+mTcLANpbq7jxDqUDLglHTDBARAeD4nLMeiowwc0WrD3IG1mY085vjT
+	 /h83FXmq1YZ8iNsTGGB9IPmQZwG+aNEmElh345OCB2Jl/mQ0Yv3klhh5P3hPZlr3+I
+	 04y4I00YJ0fOA==
+Received: from policy01-mors.netcup.net (unknown [46.38.225.35])
+	by mors-relay-8201.netcup.net (Postfix) with ESMTPS id 4hmMv40TLMz43BZ;
+	Fri, 18 Sep 2026 08:20:48 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at policy01-mors.netcup.net
+X-Spam-Flag: NO
+X-Spam-Score: -2.901
+X-Spam-Level: 
+Received: from mxe9fb.netcup.net (unknown [10.243.12.53])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by policy01-mors.netcup.net (Postfix) with ESMTPS id 4hmMv31cb9z8tbR;
+	Fri, 18 Sep 2026 08:20:47 +0200 (CEST)
+Received: from [IPV6:2a02:8108:8984:1d00:a0cf:1912:4be:477f] (unknown [IPv6:2a02:8108:8984:1d00:a0cf:1912:4be:477f])
+	by mxe9fb.netcup.net (Postfix) with ESMTPSA id 644165F995;
+	Fri, 18 Sep 2026 08:20:46 +0200 (CEST)
+Authentication-Results: mxe9fb;
+        spf=pass (sender IP is 2a02:8108:8984:1d00:a0cf:1912:4be:477f) smtp.mailfrom=regressions@leemhuis.info smtp.helo=[IPV6:2a02:8108:8984:1d00:a0cf:1912:4be:477f]
+Received-SPF: pass (mxe9fb: connection is authenticated)
+Message-ID: <42ec4a58-2cc6-4c6c-9d00-705bbe77f400@leemhuis.info>
+Date: Fri, 18 Sep 2026 08:20:45 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260918054109.23550-1-xuyuqiabc@gmail.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [REGRESSION] NVIDIA dGPU never enters D3cold since Linux 7.3
+ merge window
+To: jackpilot <jackpilot27@protonmail.com>,
+ "regressions@lists.linux.dev" <regressions@lists.linux.dev>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+ "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+ "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+References: 
+ <uz7NywYQwAzrOgqWjIeyjuTn3PalBrqAsBKcD81tQNJCCFw2j5yG6zQ9cH_PiHiUBOxOoms_MPh6g9FmBmsD80RVXLf8zSQZ4QXP24Z9dv4=@protonmail.com>
+From: Thorsten Leemhuis <regressions@leemhuis.info>
+Content-Language: de-DE, en-US
+In-Reply-To: 
+ <uz7NywYQwAzrOgqWjIeyjuTn3PalBrqAsBKcD81tQNJCCFw2j5yG6zQ9cH_PiHiUBOxOoms_MPh6g9FmBmsD80RVXLf8zSQZ4QXP24Z9dv4=@protonmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-PPP-Message-ID: <178971244669.243502.16932713889909070992@mxe9fb.netcup.net>
+X-NC-CID: UYec9lk8x3O7c3nC0qK2yGSTDqHpVLGqXH3X0YyfM7VJkpeV9e8=
 
-On Fri, Sep 18, 2026 at 01:41:09PM +0800, Yuqi Xu wrote:
-> The ELAN0662 touchpad (04F3:317C) in the Lenovo ThinkBook 14 G4+ ARA
-> (21D0) intermittently stutters and drops touches. libinput discards
-> invalid touch coordinates and logs (rate limited to five messages per
-> 24 hours):
+On 9/14/26 05:06, jackpilot wrote:
 > 
->   libinput error: event6 - ELAN0662:00 04F3:317C Touchpad: kernel
->   bug: Touch jump detected and discarded.
 > 
-> The ACPI DSDT describes the touchpad's I2cSerialBus resource on an
-> AMDI0010 controller with a connection speed of 0x00061A80 (400 kHz),
-> and the kernel does not lower it for this device, so the touchpad runs
-> at 400 kHz. This is the same issue previously fixed for ELAN06FA and
-> ELAN0678.
+> Since upgrading past 7.2.4, my NVIDIA dGPU no longer entersD3cold/runtime suspend and stays permanently active. Confirmed
+> regression, not present on 7.2.4, present on both 7.3-rc1 and
+> 7.3-rc2.
 > 
-> Forcing the bus to 100 kHz was tested with a DSDT override on the
-> affected machine, and the kernel confirmed the override:
-> 
->   ACPI: Table Upgrade: override [DSDT-LENOVO-CB-01]
-> 
-> Before the change libinput discarded three touch jumps within about a
-> minute of touchpad use; after the change no touch jumps were logged
-> during more than an hour of normal use. The patch itself was not build
-> tested; the behaviour was validated through the ACPI table override
-> above.
-> 
-> Assisted-by: DeepSeek:deepseek-v4.1-flash
-> Signed-off-by: Yuqi Xu <xuyuqiabc@gmail.com>
+> Hardware: ASUS ROG Zephyrus G16 (GU605MI), Intel Core Ultra 9
+> 185H (Meteor Lake), NVIDIA RTX 4070 Max-Q / AD106M, nvidia-open
+> 615.71.09 driver (unchanged across all tested kernels).
 
-Acked-by: Mika Westerberg (Intel) <westeri@kernel.org>
+Thx for the report. Please reproduce without out-of-tree drivers. If the
+kernel then shows the problem as well, you likely need to do a git
+bisection with a vanilla setup to identify which change caused this:
+https://docs.kernel.org/admin-guide/bug-bisect.html
+https://docs.kernel.org/admin-guide/verify-bugs-and-bisect-regressions.html
+
+Ciao, Thorsten
+
+> Last known good: 7.2.4
+> First known bad:  7.3-rc1
+> 
+> Evidence (/proc/driver/nvidia/gpus/0000:01:00.0/power):
+>   7.2.4:    Runtime D3 status: Enabled (fine-grained)
+>   7.3-rc1:  Runtime D3 status: Not supported
+>   7.3-rc2:  Runtime D3 status: Not supported
+> 
+> Same output from /sys/bus/pci/devices/0000:01:00.0/power/
+> runtime_status, power/control, power_state confirms the device
+> sits at active/auto/D0 permanently on the broken kernels, and
+> suspended/auto/D3cold on the working one. No processes hold
+> /dev/nvidia* open in the broken state, ruling out a userspace
+> handle as the cause.
+> 
+> I haven't been able to bisect further since the regression is
+> already present at rc1, meaning the change is somewhere in the
+> 7.3 merge window. While investigating I came across an in-progress
+> ACPI series that touches related territory (PCI devices getting
+> stuck referencing power resources during early enumeration):
+> https://lore.kernel.org/linux-acpi/2295263.irdbgypaU6@rafael.j.wysocki/
+> but I want to be clear I haven't confirmed this is the same
+> mechanism, I checked dmesg for the specific _DEP/INT3472
+> trigger it describes and found no matches, so it may well be
+> unrelated. Mentioning it only in case it's a useful lead.
+> 
+> Note: tested on CachyOS's cachyos-rc kernel build (patches:
+> https://github.com/CachyOS/linux-cachyos), not vanilla. Happy
+> to test a vanilla build or apply patches if that would help
+> narrow this down.
+> 
+> 
+
