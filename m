@@ -1,121 +1,130 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66340318EC5
-	for <linux-acpi@vger.kernel.org>; Sat, 19 Sep 2026 14:19:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07E6C1ACEDE;
+	Sat, 19 Sep 2026 16:27:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789827566; cv=none; b=UTmB/i+BfKgti+YwOyAeJ9js//VfWCW1U0qKKfyCt8FNofWbFOVXfog6wkM9eiAx0qjMf/OlIgS2TSA/dRGyCxLI5p3s1Gzx308mM1DK9pHrnTJWQaRKVqrMf/3Kv3ZPpjqZR3rlo5tiamHiGGaD2FumLZ3QWgFg9PRruGjI8u0=
+	t=1789835225; cv=none; b=KSBthpi2C1PMGVUKkYOdTbtc5C3AnJhPoVOwlflTMwMECvu/uRD09O1KYa6eaUKUY7qCiV5fX2Bai/RmeDAWj0tNtztObTzOknnQociESdBjz7yfsE7JgOQB/GrVBjuQGUPohvNUJkHzkErbL7CO30drrVuT54AslIpfwl+q8v0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789827566; c=relaxed/simple;
-	bh=/uQ99vUQtjbQarfdJLlDAvWZrnwsEPm4Ad8wyjZcGDs=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=uML+Le0eZML7LRilQpu1AS0dHkGiePYqKwS9PBGDraT8ZLSrEf3c23sjhytuRYVG70bgUAgsNseCgOTHctPx+wJJeKd2G/0nI7to4v78hEC3DwMLCM56Qv7s06rQr6qk60+jtXKaff1+7ml2XZzh6I4e3mglgeq7FD/i9kva0Bs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kXKlfFdZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789835225; c=relaxed/simple;
+	bh=gMG/ycsZEmlaAH6XbU1mHxZDiRkqecqn/AJn+2IQXbI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=I7PYJMrh/012EXPz1Epu1bhH+18MyJ8DGT8oG6tAUkIOiVt0Sa/yI2KmCesdH4AYcVREYwInH5iU84bzGoLziMu9w+IcEZ8Qy5Ezcmx6EhpdsfKxcMNzNL3lwqA9SHeaF+8D3X+Q10eNscIDdZMu7ONWR+5G4becBUw5BGSPrFE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=XqPignpK; arc=none smtp.client-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kXKlfFdZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BC2C1F0089A
-	for <linux-acpi@vger.kernel.org>; Sat, 19 Sep 2026 14:19:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789827565;
-	bh=0xY1KKBPrXrqE6vxKVzmss2EmA6q2njOUlJk68SzIKk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=kXKlfFdZBQZdw3ZJ40yUP+1qzuW6JHxO/cAXzUSnlw8n6PWT36ek3vV9u1TQzhpaq
-	 TcwGHd8Lri16UlRjQyQTnHL8VfftFAJ2KHHAH9gQF7J2fxcLioKjd/A59U0SUlZX8w
-	 gCHfuBc7uaYeqdYYu72kEffhVyhisC2vsmQEisOlv4waSDkusqz6XV8ZU1FKquFDup
-	 uJkTz/6gGt8YXxnHG3r5L70Zsq3SBPcZPLPA4IGw2UzAZwDgtTYIPc4QtiLc/f/6QJ
-	 dvN7ykt7bXfTA65WDT7X30nuI0EGw9Lype5uLhEuCNFTsh833vUGpy1o0x5imozAyr
-	 pEiXADRRE63Qw==
-Received: by mail-ed2-f12.google.com with SMTP id 4fb4d7f45d1cf-6a9984f9a59so2347213a12.0
-        for <linux-acpi@vger.kernel.org>; Sat, 19 Sep 2026 07:19:25 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBzXJyYCIKMfvOwuIdMH6t8C7gWHHcuvVN0MeZL6EStcSs3ccJ/Ri7nR5XfIBSwJMuo9f9pwvnzLk0J1@vger.kernel.org
-X-Gm-Message-State: AFuF++lqOHemLN1pEvVfZCCkxp/yaq1+6PfeorVnXxMaYU9VwRHW5zSF
-	1qBL5zdBkVFtjZC0AFcujbIjMng2nHdajCa/5JadW2aVdN7hC4Y2gyTGQVCOCtrh/xSn84cF9OU
-	2geClhiD12YmbdW86qIKVS+yEYxKbyS8=
-X-Received: by 2002:a05:6402:46c6:b0:6aa:96f:bb2f with SMTP id
- 4fb4d7f45d1cf-6aa5312510emr3704633a12.12.1789827563834; Sat, 19 Sep 2026
- 07:19:23 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="XqPignpK"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1789835223; x=1821371223;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=gMG/ycsZEmlaAH6XbU1mHxZDiRkqecqn/AJn+2IQXbI=;
+  b=XqPignpKzkh5rDYX2w/GpEZfpxLBioyBnCkf6dhomboshZK3NCj3u5w0
+   rbDY9qIjgCiJoeLaGAOUINfyMrNbF8eER3x6zGsOgfnILWQ2FBHDsOYyZ
+   QnbBkNRaMMe5+tYj4qdSQIl77xy6RRqm88yPpPKTk58La8evOUoAed4ad
+   wkpClgh8JwdnNt33zhH2wuO1rYtDb88+VZwUBnZHPX0QMvUJq2El5i+Lj
+   JEICBp8fM74e3/xYL57YOX/qS3M8OZwPAsUwENfjx3XmK80/M02u9EDBr
+   ef8S9aR0kSB6YUENRxGmLZEp3ydVCWSBS11S/D+dmfkcWdwNb8MaQAwB5
+   g==;
+X-CSE-ConnectionGUID: MZ9cIuRBQb+PEVkKTJRMDg==
+X-CSE-MsgGUID: PHBhK8wwRK+8tXtKpaBEww==
+X-IronPort-AV: E=McAfee;i="6800,10657,11910"; a="94187222"
+X-IronPort-AV: E=Sophos;i="6.27,111,1787036400"; 
+   d="scan'208";a="94187222"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Sep 2026 09:27:02 -0700
+X-CSE-ConnectionGUID: HwIPKBcIQK+joo342LZEiw==
+X-CSE-MsgGUID: fuS4YiYGT3y5IpPli07tYA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,111,1787036400"; 
+   d="scan'208";a="272186113"
+Received: from skuppusw-desk2.jf.intel.com ([10.165.154.101])
+  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Sep 2026 09:27:02 -0700
+From: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Rafael J Wysocki <rafael@kernel.org>,
+	Guixin Liu <kanie@linux.alibaba.com>,
+	Olof Johansson <olof@lixom.net>
+Subject: [PATCH v13 0/5] Simplify PCIe native ownership
+Date: Sat, 19 Sep 2026 09:26:50 -0700
+Message-ID: <20260919162655.3499010-1-sathyanarayanan.kuppuswamy@linux.intel.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260915032627.2796747-1-maobibo@loongson.cn> <20260915032627.2796747-5-maobibo@loongson.cn>
-In-Reply-To: <20260915032627.2796747-5-maobibo@loongson.cn>
-From: Huacai Chen <chenhuacai@kernel.org>
-Date: Sat, 19 Sep 2026 22:19:15 +0800
-X-Gmail-Original-Message-ID: <CAAhV-H5TEPKXjZNDzObDJmpa=GHeeVZv+1ry0=uZHiWCXCqL5Q@mail.gmail.com>
-X-Gm-Features: AcwNN1VrM5r2Ez9d6qSwRfJyq-pHPMNjcZBLi5imstkm5cd_5EE3eqBzArPuVB8
-Message-ID: <CAAhV-H5TEPKXjZNDzObDJmpa=GHeeVZv+1ry0=uZHiWCXCqL5Q@mail.gmail.com>
-Subject: Re: [PATCH v3 4/4] MAINTAINERS: Add entry for drivers/acpi/loongarch
-To: Bibo Mao <maobibo@loongson.cn>
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>, 
-	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>, 
-	Pawel Chmielewski <pawel.chmielewski@intel.com>, Len Brown <lenb@kernel.org>, 
-	linux-kernel@vger.kernel.org, loongarch@lists.linux.dev, 
-	linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, 
-	lixianglai@loongson.cn
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Hi, Bibo,
+This revives Bjorn's v12 from November 2020, rebased onto v7.3-rc3.
 
-On Tue, Sep 15, 2026 at 11:34=E2=80=AFAM Bibo Mao <maobibo@loongson.cn> wro=
-te:
->
-> ACPI defines few LoongArch specific tables which need parsing code
-> added in drivers/acpi/loongarch. Add maintainer entries for this newly
-> created folder.
->
-> Signed-off-by: Bibo Mao <maobibo@loongson.cn>
-> ---
->  MAINTAINERS            | 9 +++++++++
->  arch/loongarch/Kconfig | 1 +
->  2 files changed, 10 insertions(+)
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index c2414447892c..e19be0c1654e 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -347,6 +347,15 @@ S: Maintained
->  F:     drivers/acpi/riscv/
->  F:     include/linux/acpi_rimt.h
->
-> +ACPI FOR LoongArch (ACPI/LoongArch)
-Similar to others, I think this should be: ACPI FOR LOONGARCH (ACPI/LoongAr=
-ch).
+  https://lore.kernel.org/all/20201126011816.711106-1-helgaas@kernel.org/
 
-> +M:     Bibo Mao <maobibo@loongson.cn>
-> +R:     Huacai Chen <chenhuacai@kernel.org>
-If this series can be merged to the loongarch tree, then it is better
-to mark me as M.
+The goal is unchanged.  Decide who owns each PCIe port service in one
+place, when we interpret the _OSC results in acpi_pci_root_create(), so
+that everywhere else only has to look at host_bridge->native_X.  For AER
+specifically, host_bridge->native_aer becomes the single answer to the
+question "may Linux touch the AER Capability?".  Today callers each have
+to remember to also test pcie_ports_native and pci_aer_available().
 
-> +L:     linux-acpi@vger.kernel.org
-> +L:     loongarch@lists.linux.dev
-> +S:     Maintained
-> +F:     drivers/acpi/loongarch/
-> +F:     include/linux/acpi_iovt.h
-> +
->  ACPI PCC(Platform Communication Channel) MAILBOX DRIVER
->  M:     Sudeep Holla <sudeep.holla@kernel.org>
->  L:     linux-acpi@vger.kernel.org
-> diff --git a/arch/loongarch/Kconfig b/arch/loongarch/Kconfig
-> index 2067d1f2ad7a..d7f8e4fec952 100644
-> --- a/arch/loongarch/Kconfig
-> +++ b/arch/loongarch/Kconfig
-> @@ -6,6 +6,7 @@ config LOONGARCH
->         select ACPI_GENERIC_GSI if ACPI
->         select ACPI_MCFG if ACPI
->         select ACPI_HOTPLUG_CPU if ACPI_PROCESSOR && HOTPLUG_CPU
-> +       select ACPI_IOVT if ACPI
->         select ACPI_PPTT if ACPI
->         select ACPI_SYSTEM_POWER_STATES_SUPPORT if ACPI
->         select ARCH_BINFMT_ELF_STATE
-I think this part should be in Patch#2.
+I posted v11.  Bjorn took it over at v12, split the _OSC changes in two
+and deferred the "pcie_ports=dpc-native" work.  The v12 review comments
+were agreed but never respun, and the series stalled.  v13 is that
+respin.  Each patch carries its own changelog.
+
+  https://lore.kernel.org/r/cover.1603766889.git.sathyanarayanan.kuppuswamy@linux.intel.com
+
+Bjorn suggested reviving it in response to Guixin Liu's report that
+"pcie_ports=native" no longer enables DPC.  The DPC service binds on
+host_bridge->native_aer, and that flag did not reflect the command line,
+so DPC stayed off when firmware retained AER control.  Patch 4 fixes it
+by making the flag reflect it.
+
+  https://lore.kernel.org/linux-pci/20260901064554.2178688-1-kanie@linux.alibaba.com/
+
+Patch 4 has a side effect worth calling out.  drivers/cxl/core/ras.c did
+not exist in 2020 and tests host_bridge->native_aer with no
+pcie_ports_native fallback, so it has been quietly ignoring
+"pcie_ports=native".  Centralizing the check fixes that.
+
+Two things are left for later, to keep this series a cleanup.
+
+ * pci_aer_available() stays in the DPC arm of
+   get_port_device_capability(), because "pcie_ports=dpc-native" still
+   needs it there.
+ * We still gate the DPC service on native_aer and ignore
+   OSC_PCI_EXPRESS_DPC_CONTROL, as Bjorn noted in the v12 cover letter.
+   Fixing it changes behavior, so it wants its own patch.
+
+Bjorn Helgaas (2):
+  PCI/DPC: Ignore devices with no AER Capability
+  PCI: Centralize pci_aer_available() checking
+
+Kuppuswamy Sathyanarayanan (3):
+  PCI: Assume control of portdrv-related features only when portdrv
+    enabled
+  PCI/ACPI: Tidy _OSC control bit checking
+  PCI/ACPI: Centralize pcie_ports_native checking
+
+ drivers/acpi/pci_root.c           | 73 ++++++++++++++++++++++++-------
+ drivers/pci/hotplug/pciehp_core.c |  2 +-
+ drivers/pci/pci-acpi.c            |  3 --
+ drivers/pci/pcie/aer.c            |  6 +--
+ drivers/pci/pcie/aer_cxl_rch.c    |  2 +-
+ drivers/pci/pcie/dpc.c            |  3 ++
+ drivers/pci/pcie/err.c            |  2 +-
+ drivers/pci/pcie/portdrv.c        |  7 ++-
+ drivers/pci/probe.c               |  8 ++--
+ 9 files changed, 75 insertions(+), 31 deletions(-)
 
 
-Huacai
-> --
-> 2.39.3
->
+base-commit: fd73f4a6659897191fa0d40695fe370925dd3780
+-- 
+2.43.0
+
