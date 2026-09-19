@@ -1,54 +1,54 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45DFA257827
-	for <linux-acpi@vger.kernel.org>; Sat, 19 Sep 2026 14:18:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66340318EC5
+	for <linux-acpi@vger.kernel.org>; Sat, 19 Sep 2026 14:19:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789827509; cv=none; b=k1+QBT0WWwIrcFA5m4fgU1Xv6Sn+g3GnJnuHsVEqtfqnM1VGt5RLNPo23FEsTlv/KkKOks8W8ivUoRu6420/F5K6WXmBW8cWoJJu1fd4N4UTU9nPOgYKiiLfMuGIo2Yg6SU7Gz6cGIyyMp1aRxk4ym8kdJL94NJR8hBmO2aWlsQ=
+	t=1789827566; cv=none; b=UTmB/i+BfKgti+YwOyAeJ9js//VfWCW1U0qKKfyCt8FNofWbFOVXfog6wkM9eiAx0qjMf/OlIgS2TSA/dRGyCxLI5p3s1Gzx308mM1DK9pHrnTJWQaRKVqrMf/3Kv3ZPpjqZR3rlo5tiamHiGGaD2FumLZ3QWgFg9PRruGjI8u0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789827509; c=relaxed/simple;
-	bh=s9WEmNzJ7PugC/DnlPgjpnmqVNq+rDZInzavzbgSbhY=;
+	s=arc-20240116; t=1789827566; c=relaxed/simple;
+	bh=/uQ99vUQtjbQarfdJLlDAvWZrnwsEPm4Ad8wyjZcGDs=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=SveG/g6kiHOzbSjpccxvWGT57vZnC3V+ttSrVoN6Ielw7cSuhvkiH1ysYSzHdPUuQue/DtFPRtBoM1M1ctlUPDMUolTvB4SCqKkBKS7rHrrMKlMZGRE01f+7DCfsMvU66dwfCboBPFPOYMZAE7ckbVbpYFrbk87hLY+xdabc88A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mgBNarYW; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=uML+Le0eZML7LRilQpu1AS0dHkGiePYqKwS9PBGDraT8ZLSrEf3c23sjhytuRYVG70bgUAgsNseCgOTHctPx+wJJeKd2G/0nI7to4v78hEC3DwMLCM56Qv7s06rQr6qk60+jtXKaff1+7ml2XZzh6I4e3mglgeq7FD/i9kva0Bs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kXKlfFdZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mgBNarYW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E24AA1F0089E
-	for <linux-acpi@vger.kernel.org>; Sat, 19 Sep 2026 14:18:27 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kXKlfFdZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BC2C1F0089A
+	for <linux-acpi@vger.kernel.org>; Sat, 19 Sep 2026 14:19:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1789827507;
-	bh=mZmhTSapLBy8zr+eL8Hk3MA6COYZAIlxVl61QR3Tv94=;
+	s=k20260515; t=1789827565;
+	bh=0xY1KKBPrXrqE6vxKVzmss2EmA6q2njOUlJk68SzIKk=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=mgBNarYWfjhlA0GGZctJwWkSmimae+JQil1hmwHDE2Syps0opVNtDQaHGOte0nean
-	 +crges24kzyJJ3utD6HHE4ugV4Cgern8kzVNLVXQldyrK+c8hUWlHVQ3puurtbeBxG
-	 dPK7MO1y+eN4FTeRbxWsm4/ibTv+6/y8hYQGHMdOZhelXpEL+9+QoxiuU/YHTyneYu
-	 tgmZpKXYn/jH5t0+R1iJGi8JdbDw16b3biuUp6a7EBBGC0FMgpjf5untZuRK5SGd2h
-	 ZY1bvQU48XhU7LKSOqz+28NjlBPtLVZAR3krGM5ELgelr7jBn6o5XEyDYlrNxff+h1
-	 8CuaH4X2k+S6Q==
-Received: by mail-ed2-f12.google.com with SMTP id 4fb4d7f45d1cf-6a605844571so2102533a12.3
-        for <linux-acpi@vger.kernel.org>; Sat, 19 Sep 2026 07:18:27 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBxTc05l4yyW9/smjyH3K7roT6cDFmT9oKs4emMKtQmzuwbttRkw/+6ElD2C7TPgy4cMgUyFSxxeMDLU@vger.kernel.org
-X-Gm-Message-State: AFuF++nlyh4WLUswK9VbFAzNkf+9nJEZCnWCb6rkyYn/S4FBr+mc7wAl
-	U81mdKnZOtB+GTYovY52/KqCr36fA7M5jgX/6bKtdx2KxUuzrJzMWC3dXcZEUyCj0mdsiDrO9VV
-	zX3+vQKXzI/m1aP/QdPe8sdmed5wqNO4=
-X-Received: by 2002:a05:6402:320a:b0:6aa:fc6:f684 with SMTP id
- 4fb4d7f45d1cf-6aa545f7720mr4366093a12.9.1789827506526; Sat, 19 Sep 2026
- 07:18:26 -0700 (PDT)
+	b=kXKlfFdZBQZdw3ZJ40yUP+1qzuW6JHxO/cAXzUSnlw8n6PWT36ek3vV9u1TQzhpaq
+	 TcwGHd8Lri16UlRjQyQTnHL8VfftFAJ2KHHAH9gQF7J2fxcLioKjd/A59U0SUlZX8w
+	 gCHfuBc7uaYeqdYYu72kEffhVyhisC2vsmQEisOlv4waSDkusqz6XV8ZU1FKquFDup
+	 uJkTz/6gGt8YXxnHG3r5L70Zsq3SBPcZPLPA4IGw2UzAZwDgtTYIPc4QtiLc/f/6QJ
+	 dvN7ykt7bXfTA65WDT7X30nuI0EGw9Lype5uLhEuCNFTsh833vUGpy1o0x5imozAyr
+	 pEiXADRRE63Qw==
+Received: by mail-ed2-f12.google.com with SMTP id 4fb4d7f45d1cf-6a9984f9a59so2347213a12.0
+        for <linux-acpi@vger.kernel.org>; Sat, 19 Sep 2026 07:19:25 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBzXJyYCIKMfvOwuIdMH6t8C7gWHHcuvVN0MeZL6EStcSs3ccJ/Ri7nR5XfIBSwJMuo9f9pwvnzLk0J1@vger.kernel.org
+X-Gm-Message-State: AFuF++lqOHemLN1pEvVfZCCkxp/yaq1+6PfeorVnXxMaYU9VwRHW5zSF
+	1qBL5zdBkVFtjZC0AFcujbIjMng2nHdajCa/5JadW2aVdN7hC4Y2gyTGQVCOCtrh/xSn84cF9OU
+	2geClhiD12YmbdW86qIKVS+yEYxKbyS8=
+X-Received: by 2002:a05:6402:46c6:b0:6aa:96f:bb2f with SMTP id
+ 4fb4d7f45d1cf-6aa5312510emr3704633a12.12.1789827563834; Sat, 19 Sep 2026
+ 07:19:23 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260915032627.2796747-1-maobibo@loongson.cn> <20260915032627.2796747-4-maobibo@loongson.cn>
-In-Reply-To: <20260915032627.2796747-4-maobibo@loongson.cn>
+References: <20260915032627.2796747-1-maobibo@loongson.cn> <20260915032627.2796747-5-maobibo@loongson.cn>
+In-Reply-To: <20260915032627.2796747-5-maobibo@loongson.cn>
 From: Huacai Chen <chenhuacai@kernel.org>
-Date: Sat, 19 Sep 2026 22:18:16 +0800
-X-Gmail-Original-Message-ID: <CAAhV-H71irZnQ2hYmsewC6_fZEjnwBm6VJVcKqTsjJGW2xZDBA@mail.gmail.com>
-X-Gm-Features: AcwNN1XVpEQjqs5UQSPxVXGpkwvoDUFcEbBrZM5YbTr3iIGSGV74GLw8Ro5J2RU
-Message-ID: <CAAhV-H71irZnQ2hYmsewC6_fZEjnwBm6VJVcKqTsjJGW2xZDBA@mail.gmail.com>
-Subject: Re: [PATCH v3 3/4] ACPI: scan: Add support for LoongArch in acpi_iommu_configure_id()
+Date: Sat, 19 Sep 2026 22:19:15 +0800
+X-Gmail-Original-Message-ID: <CAAhV-H5TEPKXjZNDzObDJmpa=GHeeVZv+1ry0=uZHiWCXCqL5Q@mail.gmail.com>
+X-Gm-Features: AcwNN1VrM5r2Ez9d6qSwRfJyq-pHPMNjcZBLi5imstkm5cd_5EE3eqBzArPuVB8
+Message-ID: <CAAhV-H5TEPKXjZNDzObDJmpa=GHeeVZv+1ry0=uZHiWCXCqL5Q@mail.gmail.com>
+Subject: Re: [PATCH v3 4/4] MAINTAINERS: Add entry for drivers/acpi/loongarch
 To: Bibo Mao <maobibo@loongson.cn>
 Cc: "Rafael J . Wysocki" <rafael@kernel.org>, 
 	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>, 
@@ -64,145 +64,58 @@ Hi, Bibo,
 On Tue, Sep 15, 2026 at 11:34=E2=80=AFAM Bibo Mao <maobibo@loongson.cn> wro=
 te:
 >
-> acpi_iommu_configure_id() currently supports only IORT and VIOT. Add
-> support for IOVT as well.
+> ACPI defines few LoongArch specific tables which need parsing code
+> added in drivers/acpi/loongarch. Add maintainer entries for this newly
+> created folder.
 >
 > Signed-off-by: Bibo Mao <maobibo@loongson.cn>
-> Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
 > ---
->  drivers/acpi/loongarch/iovt.c | 61 +++++++++++++++++++++++++++++++++++
->  drivers/acpi/scan.c           |  3 ++
->  include/linux/acpi_iovt.h     | 13 ++++++++
->  3 files changed, 77 insertions(+)
->  create mode 100644 include/linux/acpi_iovt.h
+>  MAINTAINERS            | 9 +++++++++
+>  arch/loongarch/Kconfig | 1 +
+>  2 files changed, 10 insertions(+)
 >
-> diff --git a/drivers/acpi/loongarch/iovt.c b/drivers/acpi/loongarch/iovt.=
-c
-> index 302ca6a75905..df14ce48eac6 100644
-> --- a/drivers/acpi/loongarch/iovt.c
-> +++ b/drivers/acpi/loongarch/iovt.c
-> @@ -1,6 +1,7 @@
->  // SPDX-License-Identifier: GPL-2.0-only
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index c2414447892c..e19be0c1654e 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -347,6 +347,15 @@ S: Maintained
+>  F:     drivers/acpi/riscv/
+>  F:     include/linux/acpi_rimt.h
 >
->  #include <linux/acpi.h>
-> +#include <linux/acpi_iovt.h>
->  #include <linux/pci.h>
->  #include "init.h"
->
-> @@ -217,3 +218,63 @@ void __init acpi_iovt_late_init(void)
->         iovt_init_devices(hdr);
->         acpi_put_table(hdr);
->  }
+> +ACPI FOR LoongArch (ACPI/LoongArch)
+Similar to others, I think this should be: ACPI FOR LOONGARCH (ACPI/LoongAr=
+ch).
+
+> +M:     Bibo Mao <maobibo@loongson.cn>
+> +R:     Huacai Chen <chenhuacai@kernel.org>
+If this series can be merged to the loongarch tree, then it is better
+to mark me as M.
+
+> +L:     linux-acpi@vger.kernel.org
+> +L:     loongarch@lists.linux.dev
+> +S:     Maintained
+> +F:     drivers/acpi/loongarch/
+> +F:     include/linux/acpi_iovt.h
 > +
-> +static int iovt_pci_dev_iommu_init(struct pci_dev *pdev, u16 dev_id, voi=
-d *data)
-> +{
-> +       u32 sbdf;
-> +       struct iovt_fwnode *np;
-> +       struct device *aliased_dev =3D data;
-> +       u32 domain =3D pci_domain_nr(pdev->bus);
-> +       struct iovt_device_entry *entry;
-> +       bool found =3D false;
-> +
-> +       list_for_each_entry(np, &iovt_fwnode_list, list) {
-> +               if (domain !=3D np->segment)
-> +                       continue;
-> +
-> +               /* We're not translating ourself */
-> +               if (dev_id =3D=3D np->devid)
-> +                       return -EINVAL;
-> +
-> +               if (np->flag & ACPI_IOVT_IOMMU_MAGAGE_BY_SEGMENT) {
-> +                       found =3D true;
-> +                       break;
-> +               }
-> +
-> +               list_for_each_entry(entry, &np->ep_list, list) {
-> +                       if (dev_id < entry->start_devid)
-> +                               continue;
-> +
-> +                       if (dev_id > entry->end_devid)
-> +                               continue;
-> +
-> +                       found =3D true;
-> +                       break;
-> +               }
-> +
-> +               if (found)
-> +                       break;
-> +       }
-> +
-> +       if (!found)
-> +               return -ENODEV;
-> +
-> +       sbdf =3D (domain << 16) + dev_id;
-> +       return acpi_iommu_fwspec_init(aliased_dev, sbdf, np->fwnode);
-> +}
-> +
-> +/*
-> + * iovt_iommu_configure_id - Set-up IOMMU configuration for a device.
-> + *
-> + * @dev: device to configure
-> + * @id_in: optional input id const value pointer
-> + *
-> + * Returns: 0 on success, <0 on failure
-> + */
-> +int iovt_iommu_configure_id(struct device *dev, const u32 *id_in)
-> +{
-> +       if (!dev_is_pci(dev))
-> +               return -ENODEV;
-> +
-> +       return pci_for_each_dma_alias(to_pci_dev(dev), iovt_pci_dev_iommu=
-_init, dev);
-> +}
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 163a3cccf197..f2f155a65ea9 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -13,6 +13,7 @@
->  #include <linux/kernel.h>
->  #include <linux/acpi.h>
->  #include <linux/acpi_iort.h>
-> +#include <linux/acpi_iovt.h>
->  #include <linux/acpi_rimt.h>
->  #include <linux/acpi_viot.h>
->  #include <linux/iommu.h>
-> @@ -1628,6 +1629,8 @@ static int acpi_iommu_configure_id(struct device *d=
-ev, const u32 *id_in)
->                 err =3D rimt_iommu_configure_id(dev, id_in);
->         if (err && err !=3D -EPROBE_DEFER)
->                 err =3D viot_iommu_configure(dev);
-> +       if (err && err !=3D -EPROBE_DEFER)
-> +               err =3D iovt_iommu_configure_id(dev, id_in);
-We call our acpi_arch_late_init() before acpi_viot_init(), so I think
-it is better to also call iovt_iommu_configure_id() before
-viot_iommu_configure().
+>  ACPI PCC(Platform Communication Channel) MAILBOX DRIVER
+>  M:     Sudeep Holla <sudeep.holla@kernel.org>
+>  L:     linux-acpi@vger.kernel.org
+> diff --git a/arch/loongarch/Kconfig b/arch/loongarch/Kconfig
+> index 2067d1f2ad7a..d7f8e4fec952 100644
+> --- a/arch/loongarch/Kconfig
+> +++ b/arch/loongarch/Kconfig
+> @@ -6,6 +6,7 @@ config LOONGARCH
+>         select ACPI_GENERIC_GSI if ACPI
+>         select ACPI_MCFG if ACPI
+>         select ACPI_HOTPLUG_CPU if ACPI_PROCESSOR && HOTPLUG_CPU
+> +       select ACPI_IOVT if ACPI
+>         select ACPI_PPTT if ACPI
+>         select ACPI_SYSTEM_POWER_STATES_SUPPORT if ACPI
+>         select ARCH_BINFMT_ELF_STATE
+I think this part should be in Patch#2.
 
 
 Huacai
->
->         mutex_unlock(&iommu_probe_device_lock);
->
-> diff --git a/include/linux/acpi_iovt.h b/include/linux/acpi_iovt.h
-> new file mode 100644
-> index 000000000000..25a846b96260
-> --- /dev/null
-> +++ b/include/linux/acpi_iovt.h
-> @@ -0,0 +1,13 @@
-> +/* SPDX-License-Identifier: GPL-2.0-only */
-> +
-> +#ifndef __ACPI_IOVT_H__
-> +#define __ACPI_IOVT_H__
-> +
-> +#if defined(CONFIG_IOMMU_API) && defined(CONFIG_ACPI_IOVT)
-> +int iovt_iommu_configure_id(struct device *dev, const u32 *id_in);
-> +#else
-> +static inline int iovt_iommu_configure_id(struct device *dev, const u32 =
-*id_in)
-> +{ return -ENODEV; }
-> +#endif
-> +
-> +#endif
 > --
 > 2.39.3
 >
