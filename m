@@ -1,101 +1,181 @@
-Received: from mail-pz2-f42.google.com (mail-pz2-f42.google.com [74.125.228.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from canpmsgout12.his.huawei.com (canpmsgout12.his.huawei.com [113.46.200.227])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 371B343498F
-	for <linux-acpi@vger.kernel.org>; Mon, 21 Sep 2026 08:14:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.228.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD76C33A9E8;
+	Mon, 21 Sep 2026 09:41:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.227
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789978461; cv=none; b=IVRayww5V34T8p2VghBLSkyMQvX32Iq2XWyhFI6ZAj5MkrOkJsmc5bx/aBtIT+eyQQkzEMB+QGTk4dk6E+R7K5ke+AsR7MHqECzTm3BpiWn2lXDBJuA+nJeR2AVZMd2dyVQOeW3P3xJWZqNnZ7dvyBFHmigQSSKBDdqeUEk8EDc=
+	t=1789983685; cv=none; b=YGGnj0TMOAESCwbLpwyvb52UmlUjQe9yfBC/p3hbJRB+0Z2HV2QfwktUMXPgQJMzUkWpP9KLplxIw2TI+LLm/LtBGhyrrxXEUHJ9Az1A866OifRUZehyDDjSbNwIsw9wywLKzeScJ1tfOD8mPLT8UvUlJo4xp5zrJQSb6HE6i3E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789978461; c=relaxed/simple;
-	bh=85+Cs9zYb8roYh0bxNfZfDi+ho4myyS5fVQBONCwrPc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=lEaWzOtR1mcS1+vOsfLtBYYxuUNp4FUgAyHjMdFrBkuU91m5BrNAnfXFstdPa/1k7OElT2RrA3O/yFt+t3DA99poInCVrnriQ5NOFZ4GArcRgS+OcTSrKuMAjlwozYda2R2sNi3mx6BEQxIIjUL5giOb46l1pDM0a8Y2+ggxwBQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Ovv4TDMs; arc=none smtp.client-ip=74.125.228.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1789983685; c=relaxed/simple;
+	bh=LdPP824Z4tSnZp+/gkJ2fVeFAP4lRzI1VKHcEKIxk7s=;
+	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
+	 In-Reply-To:Content-Type; b=dX7JV/7fe8ZqqO0IUCpaI1dcZ73/AukecTgFXpwbsz5mCpxFblH4o+4ciGlI5dy/EjZvtmQVt1Wk4ntAydDVQI8UBiuONsC2r3rICVoaoqUq1MqmYiBpVklUj8R3Nz8XIOB4TERDJnqIfzxjxEB5RLyL5NRALtQv/M8eEalb5/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=mF3DSM58; arc=none smtp.client-ip=113.46.200.227
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ovv4TDMs"
-Received: by mail-pz2-f42.google.com with SMTP id 41be03b00d2f7-cc433d52421so1465708a12.3
-        for <linux-acpi@vger.kernel.org>; Mon, 21 Sep 2026 01:14:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1789978459; x=1790583259; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=0WaGH6iNK5Mh0P70RN5intWLsRpMiCzE4Pn1BuX1Z48=;
-        b=Ovv4TDMsEpxjYZIADdeQG44we5nUYR2ET568jRtmQPlX8IqwkTeCv206k9EBUs/g3v
-         JnJCvjz4kMbViBdOVUX6dZ1CfXsVxCa5w8nuDYDB3H4vtePTdPC1XjeGu4njC9vXoKS1
-         oVqv4CYGj4vIfUVrC46CDfwLDLPTcPUMduW20wx5cxqdLINjvYAW3VWPXLpuqZyUzu8G
-         VEk5giulvwTmegnxBJTzLTZrG+e25+CvFhHBbN2RdBsZCwPCD1A1v40J1VijzjmHpFQs
-         Qb0SIzBvz5guxDCgpY6viTQACoi6yfH/FzNBKK8W8EqKXzpYx5GBhT3NBNGDIs6ma9yb
-         BD8w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1789978459; x=1790583259;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=0WaGH6iNK5Mh0P70RN5intWLsRpMiCzE4Pn1BuX1Z48=;
-        b=CWeLIJzBrX/I+pbR93pau2oqcVx7m58oHtVQmVff/3RrIULqKu/t7AUJjjIRNWq9c0
-         9xSUEMPO3bHHK/Czq5yceP7itKg604zCPebS1V+Cj77Smfrt4dSkuo71Pyczp1WvuHWh
-         rula2RGkijKtME+ihPZSToKLOtoRAtoYdEk2fpZS+2yX5wSw6Tzr5FqPzezelSq0c4+E
-         LN4AojTozSIYSDmXy5SN49dPNXgfpJCrzrZ7qVUAkBi2VvZ8iyiKC231C5GdNsMyy3ts
-         oYacyy6soqpaKW+FuqXNnEGaNn/PNOGo4mlK1srwq6KvZL0YX2ly/AtV6TCNrXhJKvdH
-         X/bw==
-X-Forwarded-Encrypted: i=1; AKwUvBzcckGm9+Q/5c7m9KnJ525wsK5Xl3N+INrcJKZkyPZ9nyM3jI2+5I+gORlpuLXzBWTKTvJxAgS/f+P3@vger.kernel.org
-X-Gm-Message-State: AFuF++lSG2FG5OAKpJ5tOvNWxofzS0ZMnJMwBDBIEw73t03N4+4TbbrY
-	TGqWmlr4Tbd+VxDWXlsNcaNlIn13VQl22YHqK+mt/Qk9Qc3rUuy2UCOgJ264lRMiBs8=
-X-Gm-Gg: AYBFou2BZzxPjkXcLHrscZGGLAxCrDa6cVh+dH4jvdUVtZ1W7RlMfnJus58MjPTneh+
-	5jwCux6T5a2s1EN24RGiQEMmOofcvptszDydKiO5sFFb1rzXLNI5j2q/TeUDqBX0m9aPpjZxBzb
-	iT+NE6uDFIVJ2Sq2NRWyr85rE3vm8b8AK1gXzS/5dQWjnB7+uoNk0vQuZeeReuI605CKI+zj+yZ
-	1DoCbvNHmAPR/gDfZIfgF/u+SkK9oqQZNG5Pnn+l3FOnzoTyr819OjOgob8vmKukyYs2osLKNil
-	EIGuQEkWnpRKTx521ocMqj+r+DtTDawGgSsHhMqt6tJFHVnMH/X5LwOBKkUjoAjJ26ab0uwWLV4
-	ZhLB130r//ry5aoNLGAWzr8U2csLw2zp7dJtSoKrGH4OsPYMZxxiIMItp575iMeTWWtMw2mDlUL
-	fOllBWoWUDpSHQj88jImcWYFo0TIXe4T1mPybvGuESmuEU4tQ/cY7eApj/L7f3Wm78wrqDaYtoZ
-	RrMWYPGYc4Dug8h
-X-Received: by 2002:a17:90b:3c06:b0:3a0:352d:4cb5 with SMTP id 98e67ed59e1d1-3a0352d5614mr5695017a91.13.1789978459486;
-        Mon, 21 Sep 2026 01:14:19 -0700 (PDT)
-Received: from G15-5520.SRMIST.EDU.IN ([103.4.222.252])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-33c331433besm27742255eec.16.2026.09.21.01.14.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 21 Sep 2026 01:14:19 -0700 (PDT)
-From: Lalit Shankar Chowdhury <lalitshankarch@gmail.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	linux-acpi@vger.kernel.org (open list:ACPI),
-	linux-kernel@vger.kernel.org (open list)
-Cc: Lalit Shankar Chowdhury <lalitshankarch@gmail.com>
-Subject: [PATCH] ACPI: use IS_ENABLED() to simplify built-in or module checks
-Date: Mon, 21 Sep 2026 08:14:11 +0000
-Message-ID: <20260921081411.4819-1-lalitshankarch@gmail.com>
-X-Mailer: git-send-email 2.53.0
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="mF3DSM58"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=ALgdzPpL+d5iGiTM4u8eiBjjv1/dqGxtZxieX6YLc34=;
+	b=mF3DSM58SovSu16LW40YbPOsYmFVvTLh0MnsbWOBwDW734nHimzz4ZzNWf7wPGecmNLQ8QF88
+	blk2aJmHMH4AceVUSAMjAmlEkIzbXtxBKht00q9PUzucBH0fq0VMy4lH8qRJfMc6+WYlotpSN7j
+	yX1i9VUqRP2I+MZva9fp5pM=
+Received: from mail.maildlp.com (unknown [172.19.163.200])
+	by canpmsgout12.his.huawei.com (SkyGuard) with ESMTPS id 4hpHyH4LLzznTZf;
+	Mon, 21 Sep 2026 17:30:15 +0800 (CST)
+Received: from whupemk200014.china.huawei.com (unknown [7.152.185.79])
+	by mail.maildlp.com (Postfix) with ESMTPS id C24E240563;
+	Mon, 21 Sep 2026 17:41:17 +0800 (CST)
+Received: from [10.174.179.24] (10.174.179.24) by
+ whupemk200014.china.huawei.com (7.152.185.79) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Mon, 21 Sep 2026 17:41:16 +0800
+Subject: Re: [PATCH v2 1/3] firmware: arm_ffa: Split the response out of
+ ffa_msg_send_direct_req2()
+To: Jamie Nguyen <jamien@nvidia.com>, Lorenzo Pieralisi
+	<lpieralisi@kernel.org>, Sudeep Holla <sudeep.holla@kernel.org>, Catalin
+ Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, "Rafael J .
+ Wysocki" <rafael@kernel.org>
+CC: Len Brown <lenb@kernel.org>, Dat Mach <dmach@nvidia.com>,
+	<linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>
+References: <20260901192906.133670-1-jamien@nvidia.com>
+ <20260901192906.133670-2-jamien@nvidia.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Message-ID: <348dfed7-6aa2-77a2-a0a9-3aeed22f46b8@huawei.com>
+Date: Mon, 21 Sep 2026 17:41:15 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.6.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260901192906.133670-2-jamien@nvidia.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
+ whupemk200014.china.huawei.com (7.152.185.79)
 
-Replace the remaining built-in/module check for CONFIG_ACPI_WMI
-with IS_ENABLED() macro.
+Hi Jamie,
 
-Signed-off-by: Lalit Shankar Chowdhury <lalitshankarch@gmail.com>
----
- include/linux/acpi.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 2026/9/2 3:29, Jamie Nguyen wrote:
+> ffa_msg_send_direct_req2() uses one buffer for both the request and the
+> response, and it only ever reports a callee side FFA_ERROR as a translated
+> errno. The ACPI FFH Operation Region handler added later in this series
+> can work with neither. It has to hand every response register back to AML,
+> including on the paths where the call failed.
+> 
+> Move the body into __ffa_msg_send_direct_req2(). It writes the response to
+> a buffer of its own, returns X1-X3 through @resp_regs, and separates three
+> outcomes: success, a callee that returned FFA_ERROR (-EIO, with the FF-A
+> error code left in @resp_regs[1]), and anything else (-EPROTO).
+> 
+> ffa_msg_send_direct_req2() sits on top of that as a wrapper. It copies to
+> the caller's buffer only on success and returns the same errnos it did
+> before, so ffa_sync_send_receive2() and its users are untouched.
+> 
+> No functional change.
+> 
+> Assisted-by: Claude:claude-opus-5
 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index ddacac812094..b590f520dc57 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -434,7 +434,7 @@ extern acpi_handle ec_get_handle(void);
- 
- extern bool acpi_is_pnp_device(struct acpi_device *);
- 
--#if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
-+#if IS_ENABLED(CONFIG_ACPI_WMI)
- 
- typedef void (*wmi_notify_handler) (union acpi_object *data, void *context);
- 
--- 
-2.53.0
+Assited-by: LLM
 
+The kernel document was updated for this, please update the
+rest of two patches as well.
+
+> Co-developed-by: Dat Mach <dmach@nvidia.com>
+> Signed-off-by: Dat Mach <dmach@nvidia.com>
+> Signed-off-by: Jamie Nguyen <jamien@nvidia.com>
+> ---
+>   drivers/firmware/arm_ffa/driver.c | 51 ++++++++++++++++++++++++++-----
+>   1 file changed, 44 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/firmware/arm_ffa/driver.c b/drivers/firmware/arm_ffa/driver.c
+> index 8654b3365c9b6..3236cd0a731ab 100644
+> --- a/drivers/firmware/arm_ffa/driver.c
+> +++ b/drivers/firmware/arm_ffa/driver.c
+> @@ -560,8 +560,20 @@ static int ffa_msg_send2(struct ffa_device *dev, u16 src_id, void *buf, size_t s
+>   	return retval;
+>   }
+>   
+> -static int ffa_msg_send_direct_req2(u16 src_id, u16 dst_id, const uuid_t *uuid,
+> -				    struct ffa_send_direct_data2 *data)
+> +/*
+> + * Sends @req and reports the callee's X1-X3 through @resp_regs and its
+> + * X4-X17 through @resp, both unconditionally, so that a caller bound by
+> + * DEN0048D section 2.3.1.2 can copy every register back to AML even when the
+> + * callee returned FFA_ERROR. Keeping the response out of @req leaves the
+> + * caller free to decide when, if ever, to overwrite its own buffer. Returns
+> + * -EIO for FFA_ERROR (the FF-A error code is left in @resp_regs[1] as X2) and
+> + * -EPROTO for an unexpected response; both mean the call was made. Callers
+> + * that only need an errno should use ffa_msg_send_direct_req2().
+> + */
+> +static int __ffa_msg_send_direct_req2(u16 src_id, u16 dst_id, const uuid_t *uuid,
+> +				      const struct ffa_send_direct_data2 *req,
+> +				      struct ffa_send_direct_data2 *resp,
+> +				      u64 resp_regs[3])
+>   {
+>   	u32 src_dst_ids = PACK_TARGET_INFO(src_id, dst_id);
+>   	union {
+> @@ -574,21 +586,46 @@ static int ffa_msg_send_direct_req2(u16 src_id, u16 dst_id, const uuid_t *uuid,
+>   		.a2 = le64_to_cpu(uuid_regs.regs[0]),
+>   		.a3 = le64_to_cpu(uuid_regs.regs[1]),
+>   	};
+> -	memcpy((void *)&args + offsetof(ffa_value_t, a4), data, sizeof(*data));
+> +	memcpy((void *)&args + offsetof(ffa_value_t, a4), req, sizeof(*req));
+>   
+>   	invoke_ffa_fn(args, &ret);
+>   
+>   	ffa_msg_send_wait_for_completion(&ret);
+
+As you noted in the cover letter, the AML thread will stall here if no
+response, block the ACPI interpreter and the ACPI global lock when
+the field is Lock-flagged, so do we have some warnings if that happened?
+
+>   
+> +	resp_regs[0] = ret.a1;
+> +	resp_regs[1] = ret.a2;
+> +	resp_regs[2] = ret.a3;
+> +	memcpy(resp, (void *)&ret + offsetof(ffa_value_t, a4), sizeof(*resp));
+> +
+>   	if (ret.a0 == FFA_ERROR)
+> -		return ffa_to_linux_errno((int)ret.a2);
+> +		return -EIO;
+> +
+> +	if (ret.a0 == FFA_MSG_SEND_DIRECT_RESP2)
+> +		return 0;
+> +
+> +	return -EPROTO;
+> +}
+>   
+> -	if (ret.a0 == FFA_MSG_SEND_DIRECT_RESP2) {
+> -		memcpy(data, (void *)&ret + offsetof(ffa_value_t, a4), sizeof(*data));
+> +static int ffa_msg_send_direct_req2(u16 src_id, u16 dst_id, const uuid_t *uuid,
+> +				    struct ffa_send_direct_data2 *data)
+> +{
+> +	struct ffa_send_direct_data2 resp;
+> +	u64 resp_regs[3];
+> +	int ret;
+> +
+> +	ret = __ffa_msg_send_direct_req2(src_id, dst_id, uuid, data, &resp,
+> +					 resp_regs);
+> +	if (!ret) {
+> +		*data = resp;
+>   		return 0;
+>   	}
+>   
+> -	return -EINVAL;
+> +	if (ret == -EIO)
+> +		return ffa_to_linux_errno((int)resp_regs[1]);
+
+resp_regs[1] is confusing, comment here it links to X1 register
+is better.
+
+Thanks
+Hanjun
