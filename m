@@ -1,249 +1,137 @@
-Received: from fhigh-a2-smtp.messagingengine.com (fhigh-a2-smtp.messagingengine.com [103.168.172.153])
+Received: from SA9PR02CU001.outbound.protection.outlook.com (mail-southcentralusazon11013071.outbound.protection.outlook.com [40.93.196.71])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A50F54BA1DD;
-	Mon, 21 Sep 2026 16:44:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.153
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790009078; cv=none; b=Igrt/A2ZDI4hRbW+aQaX9+/OT/Q8epUtrFHTL1qhK/IE7UKRldYTgSXE9YnInhz2xTvRXhlX3mGUQkY3ZLlhfj9SHip5GrQ3qAm6kDV18yo/viOjcuOnseeEb02PUyjMhQJMubeuX4/AR7HZRETLSg0kEark1M+aXzmC5OT9TTY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790009078; c=relaxed/simple;
-	bh=QZzmOJOPv/EoQdxGPQOL62qo+b2IzGIc3h5IrZH5pbA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=STBjewHi+x3KAHSOW3WCuFSMBbdNH+Dpkx437AI7TczZ5GFQ9oF80o82n57rTVMiDPMYnhQkWRP3n3njaHasexGTN3zvh3fli1SZiOz0mARnSd5iQa3oMHjOdTONBlhq5OtVBG9CJpa90073gv3u/gvsZLF14Av9XUghph7ZG/I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=invisiblethingslab.com; spf=pass smtp.mailfrom=invisiblethingslab.com; dkim=pass (2048-bit key) header.d=invisiblethingslab.com header.i=@invisiblethingslab.com header.b=ETOnTJrW; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=VKcMeiVt; arc=none smtp.client-ip=103.168.172.153
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=invisiblethingslab.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=invisiblethingslab.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25EEC4B0CA3;
+	Mon, 21 Sep 2026 17:50:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.196.71
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790013006; cv=fail; b=ea+Hjh7TBjUH9684mtkkKB0cIJxJvQmLgYw7800HmnGn0ahROt8+/Df9tiGohc4S9i8J/moRIgnbgupdMGbAFDrDVrgJt59ISzAql0hi5ZynCxjjKpSzQR4ARkO30O6YeBz2JPb1ATlEIHgtvZ31QrTw8M/kGYxFBfQyFSl0lZI=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790013006; c=relaxed/simple;
+	bh=nq1BA0mIbs3VbaO0uX99y0RXvgFsfMfBlqZ2Vbq7c4A=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=i49vI6n5tLn77W/ICa6UdIEkk1SYOcRPbZv30UIJYqrng1GN//3Z8sf2YiAPUr07O2u2H3xLfe7FPYjDgfdrDMr+cLXBXWr9gzfgcpGGA4mJQesLQaVRjqAQpFD4VOTYKVNS6Rh1mX3CCq64MbEXsUCi2L+Wy2dEQ6MuMqDPiGw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=ulHQliaq; arc=fail smtp.client-ip=40.93.196.71
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=invisiblethingslab.com header.i=@invisiblethingslab.com header.b="ETOnTJrW";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="VKcMeiVt"
-Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
-	by mailfhigh.phl.internal (Postfix) with ESMTP id C92B914000BD;
-	Mon, 21 Sep 2026 12:44:35 -0400 (EDT)
-Received: from phl-frontend-03 ([10.202.2.162])
-  by phl-compute-05.internal (MEProxy); Mon, 21 Sep 2026 12:44:35 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	invisiblethingslab.com; h=cc:cc:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm1; t=1790009075;
-	 x=1790095475; bh=zjivBsa9hsRYHRNcFKFS9TSN3LLieSyZGZ06Ds3oU04=; b=
-	ETOnTJrWCFgnFf/C6RW39dzZVGm9alXCueR8hrIYvyhVK8RxNGOJ3OBhs38QifwK
-	Gd/b0d8HjsrrNbRIEKPqx/2AZwA8lrpMeqkU9fgFMkFLA1an3zIpHfKWcYIsn0CI
-	aKtNx2/7C4QYRxoPxjGafhTx+EInGybRln/BP8LTVlQevCgBsVu5GpS6RIvARYlD
-	dFRTcZvm06/nhqQ3uj6a1EBIltNrr7VfTvD1ct1HsppWzC9XyaD3jh2/85aWS5vC
-	txPKZ3eIWTWEIne68UlhLAOTEkaXyBUCKK211Mpdcr/Z85aKHUv1AdkFpifKBbjH
-	jNIULI84Px6RykN2jLUoHQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:content-type:date:date
-	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=
-	1790009075; x=1790095475; bh=zjivBsa9hsRYHRNcFKFS9TSN3LLieSyZGZ0
-	6Ds3oU04=; b=VKcMeiVtck82x1r/UyvCXPeKBPcVIOpbiLym7cqzPvPhJLsdZp1
-	9s+QNXETbUNvzxGoGahycJ7vl1NOZ045Vvl+lF58R7PcoLvhGtv9g9lQFTKe0xka
-	IL9yBbYA3v8iaW8ZB9xuc9hIc1+XR1N8qYSrCLIhKrNUyrhWPu9X+KyFBMuP0uCm
-	9RsBxp6aM4gF/lPyXboPKE8bnOsMI3s7kcF5HKhdkLD2WVzir4SuEXpzeRHjYyy/
-	uceQqwtXZWhQKJ2mvaDFAJMtcgStz9u6RGqkfikyY7n/LxaTpDGgIVEPkzI+ES1z
-	QU45+tsWIgJiLG6lggy9LF9WgS/CAl/ZStw==
-X-ME-Sender: <xms:816xahJ1LXzvp-yUi51Wp_yPlvOBzkMZQGoT40iBcnuMYf6HQYFQgQ>
-    <xme:816xaiG6rUwTFXAUUl5CCiPAfcinsSTWArg-r2yZw1WuyNyZl776JOkszTL823t0t
-    rDFSHFIzASozQwuI9FCltLtOOCBcmhU4a2QkETLoedAXjomRw>
-X-ME-Received: <xmr:816xat8VHnFPJuKWO2gnQin-jdnfpxHhIl7PMeLxLfgGEC8fi8DQMYL5aszSmTrLY5txy0FdhpUAxvEzasxUsAkVtPuTCSQkQXvJ7klAPGo>
-X-ME-Proxy-Cause: dmFkZTEeJuUSXcXeoFym2RhUCdnjC1hVcyJNbiXzRJfWYXLtKAJXYGAPCakl5qcp6/SKXs
-    MGNNYK1DQXRQ2t//wFMwqiisHDJwLqn7jO49xQPd0WPBSlYe9lDssGROHDQsS8Bk7FlTe6
-    0EvM8fIU92OKf3+3Gigm9Qce8DcAbAIPunT5xFIRRF3Ty8X1bTicArUlkdPTZol/UiwrKd
-    Hobiz/pIFccJHnBJIevVebKUXyOh1TNjvla/N5w0hybdKG7+G/uRJtzwe5hkpZvwhe8zUR
-    2+UHThMzf4dYYKG+me1Y9hzKWbr+1QfhRSj7X745j7VRthIymvfnGMWTNMvihukkwdkZl+
-    qHJZYmWrhaTHFuidDeOXKl58oQjIrx8ft2kjCTJdv/Q4FvyJ4tprsGwOBViHTQREvOU+Xe
-    a16oR2BSKbPhYqK61AcYux0Y71upCmsQiYMaql4UhguxQE1QfvDkh+iz9MIpgmPqWSiaqn
-    bwMcE4vt5kvoLHIkEVw8zx2GdJ3213MnEjFRH4vW4CjcZ6+uSS4YGiDlAlmCsMXxvguEDv
-    18N/psr8ZwybdP1rujQDtYLnfDep6bjEx8oioZ/A6UfJ8+mw5/yQpC30VzG4PhYCYqkbk9
-    FRaVrq5qGyQEBQTDZpgAPeYS6mPpd6ZgO0JPOPln4Vv9dzAyne0/GJjgpNTg
-X-ME-Proxy: <xmx:816xaiJgq853xS5tN-BLCraQiqOkZKbLFnWVYo3D-1TMXudqaXoXpg>
-    <xmx:816xart2tdtEtBCWdWYvKd3bB2StsRBrJzqdjkusdlX1AoKswkRamA>
-    <xmx:816xapB2H6u-tVayBeTar35szQVWML6bFau1oEinGM6HrePo5mZgNw>
-    <xmx:816xajMUUcH--87Ycu2a5W1iaMiwwU_5sxvdhziSshYNCq5DHrJjwg>
-    <xmx:816xagAoWBUPSw0s7yC1piPv0zpMXd7gPP4Srdym09Jee9u61TWOtbr9>
-Feedback-ID: i1568416f:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
- 21 Sep 2026 12:44:33 -0400 (EDT)
-Date: Mon, 21 Sep 2026 18:44:31 +0200
-From: Marek =?utf-8?Q?Marczykowski-G=C3=B3recki?= <marmarek@invisiblethingslab.com>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: Support TRINITY <support@trinity-net.com>,
-	regressions <regressions@lists.linux.dev>,
-	linux-acpi <linux-acpi@vger.kernel.org>,
-	linux-pm <linux-pm@vger.kernel.org>,
-	xen-devel <xen-devel@lists.xenproject.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	Huisong Li <lihuisong@huawei.com>
-Subject: Re: [REGRESSION] ACPI processor/cpuidle change in 6.18.52 breaks
- bare-metal Xen dom0 boot
-Message-ID: <arFe7-xa3HtCUOHs@mail-itl>
-References: <905771062.272724286.1789919301858.JavaMail.zimbra@trinity-net.com>
- <CAJZ5v0gg7kBtEhagR9SYKaPNstPC6aSyP7W4xBjP1r-kzbcH1A@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="ulHQliaq"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=kwFLKAjz5eGUF8d6vQHjq8tZZsahcDGQUeUwe7e2G7hefqMf7V5yfC1RAagVl5TIUFAOI4L8inUgBzNpZK75vE00cg+ggeIoLUut+bF8n0iLJAHVZBY3z8ZtYrjqKH10z5ZIMy0yCg7QjkQdG4XpI/H7D7CaiE3d1DszV5VbPJ0THSSQAdrBuKWD54QAd35YCqs9c2K4A6dnXJVVInlwTEVZ6a/f2R34nzCbEMxTj8f4x3HFjA+uttEdexmcyQTU3HDFagxGYvDfbeBI3GinmgekSyMSYLh74UYBrGGgM753k+XUar6Go3tejghIE0smQVBX066hk38zs6N/TVenng==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=mZBDS/fjV8mTU4sbd8xKsPOs2kwUo6QT2nm+gOvROos=;
+ b=E66U9oUmjlfSrucRRLHg3Hj1ilvmeto2lFVQk60lkQv227yeQgzbwbgbtDC2n7xbG8kImYJffpcXCuvkL236lI1zeD2/CWk9j3/og6u32qD5NyUAmEOQuMX79TmaH7HzIMEFHnH3aNnt4ACRJTjFKMsdIadKCQrj526xYl14VF19hQ+zUHdZ+A1gcg08hmNaFXTOeIz2dxP28tkDcDGF5T5aC8nObLXYPXs9WT/9s4ti7vcbVVq1TkpLMiR7MBWDSh62PLFT2jxq9oJ/WLU9hhhKbnRCj9tcUwspmc/kWdID2wmeknJny4P0V2L/gLvs38yWuzm/tWJshyT4zWRkZQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=huawei.com smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=mZBDS/fjV8mTU4sbd8xKsPOs2kwUo6QT2nm+gOvROos=;
+ b=ulHQliaqROhRVxhrylCScxNaaNmQBYgCp756ufEUwew+z5eQerR9SwgTMPAvA8m9dGY9lBdZsmxCLT9/MCHVpsi9rt6CqrO65HNI3xL0u+loi02mIZEUwuM+QzSS22ebAMzfTJRUEKhNiwZxGlXmyqWWXgYGqudWmjaX9QI632Qiu1AShl8DuxKTK+j+RN5NIeHKR6bymaW/7vzmSM9B85dJtLvXizGhcsKcNpgGMv5BpI2j6/7VJ5odl+SBOu7qmeLFljTPt6kGA7AHx0O10fjZFdms7nIXLW/VA7s95UwD8XNxTJC8gjwtINqh0qBXnVwn+MQm0smXEvhgATTK1g==
+Received: from CH0PR03CA0298.namprd03.prod.outlook.com (2603:10b6:610:e6::33)
+ by DS3PR12MB086197.namprd12.prod.outlook.com (2603:10b6:8:60a::16) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.428.16; Mon, 21 Sep
+ 2026 17:50:00 +0000
+Received: from BL02EPF0002992B.namprd02.prod.outlook.com
+ (2603:10b6:610:e6:cafe::47) by CH0PR03CA0298.outlook.office365.com
+ (2603:10b6:610:e6::33) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.428.16 via Frontend Transport; Mon,
+ 21 Sep 2026 17:50:00 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ BL02EPF0002992B.mail.protection.outlook.com (10.167.249.56) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.451.8 via Frontend Transport; Mon, 21 Sep 2026 17:49:59 +0000
+Received: from rnnvmail205.nvidia.com (10.129.68.10) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Mon, 21 Sep
+ 2026 10:49:42 -0700
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail205.nvidia.com
+ (10.129.68.10) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Mon, 21 Sep
+ 2026 10:49:42 -0700
+Received: from dgx-1v-42.nvidia.com (10.127.8.11) by mail.nvidia.com
+ (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49 via Frontend
+ Transport; Mon, 21 Sep 2026 10:49:41 -0700
+From: Jamie Nguyen <jamien@nvidia.com>
+To: Hanjun Guo <guohanjun@huawei.com>
+CC: Lorenzo Pieralisi <lpieralisi@kernel.org>, Sudeep Holla
+	<sudeep.holla@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, "Will
+ Deacon" <will@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown
+	<lenb@kernel.org>, Dat Mach <dmach@nvidia.com>, <linux-acpi@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 1/3] firmware: arm_ffa: Split the response out of ffa_msg_send_direct_req2()
+Date: Mon, 21 Sep 2026 10:49:40 -0700
+Message-ID: <20260921174941.2406319-1-jamien@nvidia.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <348dfed7-6aa2-77a2-a0a9-3aeed22f46b8@huawei.com>
+References: <20260901192906.133670-1-jamien@nvidia.com> <20260901192906.133670-2-jamien@nvidia.com> <348dfed7-6aa2-77a2-a0a9-3aeed22f46b8@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="Lth3KI9EydCmQGrl"
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gg7kBtEhagR9SYKaPNstPC6aSyP7W4xBjP1r-kzbcH1A@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BL02EPF0002992B:EE_|DS3PR12MB086197:EE_
+X-MS-Office365-Filtering-Correlation-Id: 49609326-cbb2-4ba9-bf30-08df1808c177
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|23010399003|7416014|376014|36860700016|82310400026|10067099003|11063799006|4143699003|56012099006|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	4ZpiIJ1T0mI4291frd7kXARohmO+1x3OUq/T0ZjkyJOvaNCgzfFdBIgBRBCmxRzx+Ie2n+hmM+rXbwqKR56lc+Ld+XFPZrbm7Y+nTkTjhikYNZ4f1GGUzt7ycQvh6Gw7D9YDcyyGjuBmCSIFFq2VbR73T4rO/JaiXPiDmIvhBXdHEVbbKE+ehPbhW4tDGcpgeBdnQrfl4LCbPlZyzUS3AifD5i1EWN4aol70eUGQvzF7L9wLOnj4aUmPTmYBCW8oa8LbRNkTRnDUYM2raCBKZE0gAqagsct+tt+3IL9tV/fUXPWBRANKm8qMqzJlxx1DcDw9k42aIXFO8AJv6hbFL8av3lUOdjzmrBme2jbGi2y9uO/PEEkfS8Qsgcu6sT7qVOj819b7X58+d3tD5PyZpzTzNRDUiMXx5stQg+RXB5Qbs2OCga2V9CVxPV1ml/biXWfD9vNFy/TcpnYV3SwseztUpVbfM8myImLtWycXcLmYSoK6Rhu3Mbb9GJe6Bw+CpzWBsUrH1A6ya4xfNfihDXgwFwYwVRU+XDWncS3S6bzEmjBh5u+9yzFVUNzkQ7d3Ij4cBYgZKhMriHEUR7qN4xDvFLL4q8fmuV7c6lSA7lBAn1ad5fA0lSjEf5MCQ1MSaPdY8iBNoxE6Gi3/K580HpFysld6qwa//9OaWbEmdnn/VPRAgCJHxkTBC+2vI0eZ8he/GjktrJ+/1wOcdjmFQw==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(23010399003)(7416014)(376014)(36860700016)(82310400026)(10067099003)(11063799006)(4143699003)(56012099006)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	zdmKmly1dVyjIQ4lG8/hCiza1/DOMUybpRxyUM4Z8cN91vFlJ86PYlL3ZksA2O7UWYpjaVgwVl4nhF0b8YOtVOZRLT9OSuKFgNqVls34xnypI/KPXhyloTMg4fGZgJHid4D6Axd4Ykpaw4e++MoD6XXRQMI7jQJ/DIFx5wviYRVr30HqqYJsK8TWBSv66xufUYgo62HxZp268FQF1HcVJ0DAaW8wrBF1njyT0CXhAn0lE5pf4g27YmqMWPE3T2GBf27nPejGK3bXxLu1+DSU4LNuHEUShN1n7Px8ESzmQCYTsIvF6usjbWEMFlp+J2T/p6FqQMVOZUvC1owpiiygJnuNC3I2l5mf8AbUz4Cd2nVB2tl6CLpYUpws/Xzx3lYldMGw7BzdSx1J1VYyqzzpY19cbwWLY4tVRvGAK0Ev7nK6REyIuJ+wPuS4OjY9Qs5U
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Sep 2026 17:49:59.2679
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 49609326-cbb2-4ba9-bf30-08df1808c177
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BL02EPF0002992B.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS3PR12MB086197
 
---Lth3KI9EydCmQGrl
-Content-Type: text/plain; protected-headers=v1; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Date: Mon, 21 Sep 2026 18:44:31 +0200
-From: Marek =?utf-8?B?PT91dGYtOD9RP01hcmN6eWtvd3NraS1HPUMzPUIzcmVja2k/PQ==?= <marmarek@invisiblethingslab.com>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: Support TRINITY <support@trinity-net.com>,
-	regressions <regressions@lists.linux.dev>,
-	linux-acpi <linux-acpi@vger.kernel.org>,
-	linux-pm <linux-pm@vger.kernel.org>,
-	xen-devel <xen-devel@lists.xenproject.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	Huisong Li <lihuisong@huawei.com>
-Subject: Re: [REGRESSION] ACPI processor/cpuidle change in 6.18.52 breaks
- bare-metal Xen dom0 boot
+> The kernel document was updated for this, please update the
+> rest of two patches as well.
 
-On Mon, Sep 21, 2026 at 05:26:55PM +0200, Rafael J. Wysocki (Intel) wrote:
-> On Sun, Sep 20, 2026 at 5:48=E2=80=AFPM Support TRINITY <support@trinity-=
-net.com> wrote:
-> >
-> > Hello,
-> >
-> > I am reporting a bare-metal Xen dom0 boot regression seen with Linux 6.=
-18.52.
-> >
-> > On affected systems, Linux 6.18.51 boots successfully as Xen dom0 on ba=
-re metal, while Linux 6.18.52 consistently black-screens before dom0 usersp=
-ace/networking comes up.
-> >
-> > #regzbot introduced: v6.18.51..v6.18.52
-> > #regzbot title: ACPI processor/cpuidle lifecycle change breaks bare-met=
-al Xen dom0 boot
-> > #regzbot link: https://gitlab.alpinelinux.org/alpine/aports/-/work_item=
-s/18447
-> >
-> > Tested results:
-> >
-> > Linux 6.18.51-r0, Xen dom0, bare metal: boots
-> > Linux 6.18.52-r0, Xen dom0, bare metal: black screen before userspace/n=
-etwork
->=20
-> I'm wondering what's special about Xen dom0 bare metal.
->=20
-> Does adding processor=3Dnocst to the kernel command line help, by any cha=
-nce?
+I'll update all three patches to use:
 
-It does not.
+    Assisted-by: LLM
 
-> The patch is essentially a revert of commit 13ebeef6a1b9 ("ACPI:
-> processor: idle: Optimize ACPI idle driver registration") which I'd
-> rather not do without knowing what exactly is going on.
->=20
-> At this point it looks like a missing check somewhere or similar, so
-> it would be good to find out where exactly it crashes.
+> As you noted in the cover letter, the AML thread will stall here if no
+> response, block the ACPI interpreter and the ACPI global lock when
+> the field is Lock-flagged, so do we have some warnings if that happened?
 
-I can reproduce the crash, I get this:
+There's no warning today. Would a rate-limited warning after a prolonged
+wait be useful here? I'm hesitant because that would also affect non-ACPI
+callers of this helper, and I don't believe FF-A defines a threshold after
+which the wait is abnormal.
 
-[    3.525669] BUG: kernel NULL pointer dereference, address: 0000000000000=
-008
-[    3.525677] #PF: supervisor read access in kernel mode
-[    3.525681] #PF: error_code(0x0000) - not-present page
-[    3.525685] PGD 0 P4D 0=20
-[    3.525688] Oops: Oops: 0000 [#1] SMP NOPTI
-[    3.525693] CPU: 0 UID: 0 PID: 21 Comm: cpuhp/0 Not tainted 6.18.52-1.qu=
-bes.23.fc41.x86_64 #1 PREEMPT(full)=20
-[    3.525700] Hardware name: Micro-Star International Co., Ltd. MS-7E06/PR=
-O Z790-P WIFI (MS-7E06), BIOS Dasharo (coreboot+UEFI) v0.9.1 01/17/2024
-[    3.525706] RIP: e030:cpuidle_register_device+0xd2/0x350
-[    3.525714] Code: 00 00 8b 55 04 49 89 c5 49 89 d4 81 fa ff 1f 00 00 0f =
-87 68 02 00 00 48 8b 04 d5 c0 a0 19 82 48 83 3c 18 00 0f 85 ad 48 12 ff <49=
-> 8b 7d 08 48 89 14 24 e8 31 73 30 ff 84 c0 0f 84 72 01 00 00 41
-[    3.525723] RSP: e02b:ffffc90040133db8 EFLAGS: 00010246
-[    3.525727] RAX: ffff888235f5c000 RBX: ffffffff834d4d40 RCX: 00000000000=
-00000
-[    3.525732] RDX: 0000000000000000 RSI: 0000000000000007 RDI: ffff888101c=
-39c00
-[    3.525736] RBP: ffff888101c39c00 R08: 4ec4ec4ec4ec4ec5 R09: ffff888101c=
-39c00
-[    3.525740] R10: ffffc90040133df8 R11: 0000000000000000 R12: 00000000000=
-00000
-[    3.525744] R13: 0000000000000000 R14: 0000000000000000 R15: ffffffff834=
-d4d40
-[    3.525752] FS:  0000000000000000(0000) GS:ffff888235f5c000(0000) knlGS:=
-0000000000000000
-[    3.525757] CS:  e030 DS: 0000 ES: 0000 CR0: 0000000080050033
-[    3.525761] CR2: 0000000000000008 CR3: 000000000242c000 CR4: 00000000000=
-50660
-[    3.525768] Call Trace:
-[    3.525771]  <TASK>
-[    3.525775]  acpi_processor_power_init+0xde/0x150
-[    3.525782]  ? __pfx_acpi_soft_cpu_online+0x10/0x10
-[    3.525787]  acpi_soft_cpu_online+0x123/0x170
-[    3.525792]  cpuhp_invoke_callback+0x134/0x470
-[    3.525797]  ? __pfx_smpboot_thread_fn+0x10/0x10
-[    3.525802]  cpuhp_thread_fun+0xa2/0x170
-[    3.525806]  smpboot_thread_fn+0xf3/0x220
-[    3.525810]  kthread+0xfc/0x240
-[    3.525814]  ? __pfx_kthread+0x10/0x10
-[    3.525818]  ? __pfx_kthread+0x10/0x10
-[    3.525822]  ret_from_fork+0x158/0x170
-[    3.525827]  ? __pfx_kthread+0x10/0x10
-[    3.525830]  ret_from_fork_asm+0x1a/0x30
-[    3.525835]  </TASK>
-[    3.525837] Modules linked in:
-[    3.525842] CR2: 0000000000000008
-[    3.525845] ---[ end trace 0000000000000000 ]---
-[    3.525849] RIP: e030:cpuidle_register_device+0xd2/0x350
-[    3.525854] Code: 00 00 8b 55 04 49 89 c5 49 89 d4 81 fa ff 1f 00 00 0f =
-87 68 02 00 00 48 8b 04 d5 c0 a0 19 82 48 83 3c 18 00 0f 85 ad 48 12 ff <49=
-> 8b 7d 08 48 89 14 24 e8 31 73 30 ff 84 c0 0f 84 72 01 00 00 41
-[    3.525862] RSP: e02b:ffffc90040133db8 EFLAGS: 00010246
-[    3.525866] RAX: ffff888235f5c000 RBX: ffffffff834d4d40 RCX: 00000000000=
-00000
-[    3.525870] RDX: 0000000000000000 RSI: 0000000000000007 RDI: ffff888101c=
-39c00
-[    3.525874] RBP: ffff888101c39c00 R08: 4ec4ec4ec4ec4ec5 R09: ffff888101c=
-39c00
-[    3.525878] R10: ffffc90040133df8 R11: 0000000000000000 R12: 00000000000=
-00000
-[    3.525882] R13: 0000000000000000 R14: 0000000000000000 R15: ffffffff834=
-d4d40
-[    3.525889] FS:  0000000000000000(0000) GS:ffff888235f5c000(0000) knlGS:=
-0000000000000000
-[    3.525894] CS:  e030 DS: 0000 ES: 0000 CR0: 0000000080050033
-[    3.525898] CR2: 0000000000000008 CR3: 000000000242c000 CR4: 00000000000=
-50660
-[    3.525904] Kernel panic - not syncing: Fatal exception
-[    3.525931] Kernel Offset: disabled
+> resp_regs[1] is confusing, comment here it links to X1 register
+> is better.
 
-And I have also another data point: Linux 7.2.6 is _not_ affected. And
-similarly, Linux 7.3-rc3 works fine (haven't tried -rc4 yet).
+I'll clarify that resp_regs[1] is X2; resp_regs[0] is X1.
 
---=20
-Best Regards,
-Marek Marczykowski-G=C3=B3recki
-Invisible Things Lab
-
---Lth3KI9EydCmQGrl
-Content-Type: application/pgp-signature; name=signature.asc
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEEhrpukzGPukRmQqkK24/THMrX1ywFAmqxXu8ACgkQ24/THMrX
-1yxeNAf8CqjSP8UmFu0EwOUBtvbUXkkKyQgSNjKPFIYIh4LYPPhWtXqrWzp3GKn4
-1QbwQSmgEPWpJjLi5/zkNGpJ75gPkJbzDCcD82D39fYjcncHWfD2LCh7LHHOM94J
-1z+dqF6L6llqEgeKxcFNDX8eWopBznsp5XNv0wVtYAlt9Qdl89FGYg5qsFecbwno
-aDEuUVfT46CQ6+6+eY/mNyifgQcNlFnmShIOR0OXjKghsOzNwU+Geyin3/Kylh/g
-9adNQ+eNkUod/gidhUZxUS0O2Q3ZDlM2CHnkItGEWj3vu8OTsvUZrBcussfKnPHD
-60t/CiN4kdY1vKqB0SqRGgKmVy4d9w==
-=n6Pq
------END PGP SIGNATURE-----
-
---Lth3KI9EydCmQGrl--
+I'll address these in v3.  Thanks!
