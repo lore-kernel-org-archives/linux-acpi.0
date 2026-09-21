@@ -1,322 +1,190 @@
-Received: from canpmsgout08.his.huawei.com (canpmsgout08.his.huawei.com [113.46.200.223])
+Received: from relay.yourmailgateway.de (relay.yourmailgateway.de [188.68.63.162])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C79BC45A28B;
-	Mon, 21 Sep 2026 09:54:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.223
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCE2E2E1746;
+	Mon, 21 Sep 2026 10:01:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=188.68.63.162
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789984477; cv=none; b=kfeZlpla2fxulA/8wcC1MoKZ3GgtofbQdc4Z+6SxICGvcmMzWjVU5DthcFm5HnvIl+/ik8Yk5qtEjhnxOIcqpQHh3Yf7uTX3plm4YNT2d+/j9P3I+MDoiGZI/Z56swe83xXWTCT0CQ4fXZjghorlrZvAOoZ5oDm4RtROz6vqU74=
+	t=1789984892; cv=none; b=tLm7ltO/8PbLqIyF4Eu0+cMQDhCAPLnBQrvF1oM3XNGg4+3PGwXh2oIlpXSDZFmg6cb8v5CrgTSRvA83KyOIrnCAb7zILw+OyklEtAdNQN/hg+juGU8NKz+XdIZazVheSU3XQ4VvEPzdXySFJu6enI4k5uBKMxyLM3QvRirANtI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789984477; c=relaxed/simple;
-	bh=OAwdXyfVas7QpTQPW+CfXHr3lOSEvjjt1khnkrh06p8=;
-	h=Subject:To:CC:References:From:Message-ID:Date:MIME-Version:
-	 In-Reply-To:Content-Type; b=W0zSXq+xwj/dZLuySMEnqgfhxNKEj5QFkl8CtJr4Q8fQlz6TY8+HH3bI2PROMwvErO57DOhR1eKvKAxFoVkGFwairTXr6twP4EFp2qzaRyRJ4R4g2Fb5FL4UAfrnZm0mksxLyD34c0nWteXuTBEfpmW7RXeXDJGWgRwjdFDbQAk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=AM8SilRn; arc=none smtp.client-ip=113.46.200.223
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1789984892; c=relaxed/simple;
+	bh=8EDrVz3B5Ui9t+59/tsVLp1aP1KLxbEoqN01RrOD6w8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=XMq8IQ8U64QovbxYwKaSsqBEE5kEPc/dWwK1GRaRBNzNnWWmXg14CW+iwH4Qsva275cPFZyU76sxhpiKdXc7EgzgTEZ21iKLh66TMzVR7ZQt3n8p4N5JfOS2FI6TtW52n1LmPmht75LXJ6DdM2ad6xiQEiYv0tLqbWpv50cti9o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=leemhuis.info; spf=pass smtp.mailfrom=leemhuis.info; dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b=N+muyZXc; arc=none smtp.client-ip=188.68.63.162
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=leemhuis.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=leemhuis.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="AM8SilRn"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=+Mcd4no3UbI4LZC3U6cjCroRtcCSEmK+AcwHgX1z/10=;
-	b=AM8SilRnwAQhIli30+gdRB7/GoUQZvPgxLBbtFpQpmguu+Cs3UBMlPZIHmaOO+2wnlPYT2h1V
-	tAzOXIh+42kdWcT9wKEQ45L96Joo/3glCIEMjzXQdHFRsZ2o4AcXh/f6Vxvam9FIN9K4rTKJwm8
-	J7lFm/cxQ6oiExkwihUz/hM=
-Received: from mail.maildlp.com (unknown [172.19.163.163])
-	by canpmsgout08.his.huawei.com (SkyGuard) with ESMTPS id 4hpJFW5gx5zmV8f;
-	Mon, 21 Sep 2026 17:43:27 +0800 (CST)
-Received: from whupemk200014.china.huawei.com (unknown [7.152.185.79])
-	by mail.maildlp.com (Postfix) with ESMTPS id B8C804048B;
-	Mon, 21 Sep 2026 17:54:29 +0800 (CST)
-Received: from [10.174.179.24] (10.174.179.24) by
- whupemk200014.china.huawei.com (7.152.185.79) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Mon, 21 Sep 2026 17:54:28 +0800
-Subject: Re: [PATCH v2 2/3] ACPI: arm64: Add support for the FF-A FFH
- Operation Region (offset 2)
-To: Jamie Nguyen <jamien@nvidia.com>, Lorenzo Pieralisi
-	<lpieralisi@kernel.org>, Sudeep Holla <sudeep.holla@kernel.org>, Catalin
- Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, "Rafael J .
- Wysocki" <rafael@kernel.org>
-CC: Len Brown <lenb@kernel.org>, Dat Mach <dmach@nvidia.com>,
-	<linux-acpi@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
-	<linux-kernel@vger.kernel.org>
-References: <20260901192906.133670-1-jamien@nvidia.com>
- <20260901192906.133670-3-jamien@nvidia.com>
-From: Hanjun Guo <guohanjun@huawei.com>
-Message-ID: <6ed517b2-90e8-8654-757e-6c0730b7d321@huawei.com>
-Date: Mon, 21 Sep 2026 17:54:27 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
- Thunderbird/68.6.0
+	dkim=pass (2048-bit key) header.d=leemhuis.info header.i=@leemhuis.info header.b="N+muyZXc"
+Received: from mors-relay-8201.netcup.net (localhost [127.0.0.1])
+	by mors-relay-8201.netcup.net (Postfix) with ESMTPS id 4hpJdV2sb7z4NRn;
+	Mon, 21 Sep 2026 12:00:46 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=leemhuis.info;
+	s=key2; t=1789984846;
+	bh=8EDrVz3B5Ui9t+59/tsVLp1aP1KLxbEoqN01RrOD6w8=;
+	h=Date:Subject:To:References:From:In-Reply-To:From;
+	b=N+muyZXc8ymigm1X4WJYdQfg2FAM32UXD62GkYAoXAwUrk7y9wSeo8wrc/kijMJRV
+	 y5tWKY3o2n02jG8BFKiSIVU0+QItf44A8F/uAvgSzG094QdLpHkIhB2vYGkX46B20i
+	 VN8otbW9QVGTprs7yAikun99LjJZdMuY8JvNPtYmNbSMCRCvzKBQOTZyd8gdjxZZ5l
+	 DyvixvqPU0uzZ2XY48NNI84277giq0riOIyvt5KdUAjXgXxXqYHUF2UnaCKvpjyJhB
+	 wokbeEO1V5wZCwoLz8JbmY9fO/UzY31upQSqXV2mNt9yhCmfs119MpbQUfndGp34Ma
+	 0jJsS2X3dDAMA==
+Received: from policy01-mors.netcup.net (unknown [46.38.225.35])
+	by mors-relay-8201.netcup.net (Postfix) with ESMTPS id 4hpJdV27C2z4NRh;
+	Mon, 21 Sep 2026 12:00:46 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at policy01-mors.netcup.net
+X-Spam-Flag: NO
+X-Spam-Score: -2.898
+X-Spam-Level: 
+Received: from mxe9fb.netcup.net (unknown [10.243.12.53])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by policy01-mors.netcup.net (Postfix) with ESMTPS id 4hpJdS65cXz8td8;
+	Mon, 21 Sep 2026 12:00:44 +0200 (CEST)
+Received: from [IPV6:2a02:8108:8984:1d00:a0cf:1912:4be:477f] (unknown [IPv6:2a02:8108:8984:1d00:a0cf:1912:4be:477f])
+	by mxe9fb.netcup.net (Postfix) with ESMTPSA id 5AA1A5FA21;
+	Mon, 21 Sep 2026 12:00:39 +0200 (CEST)
+Authentication-Results: mxe9fb;
+        spf=pass (sender IP is 2a02:8108:8984:1d00:a0cf:1912:4be:477f) smtp.mailfrom=regressions@leemhuis.info smtp.helo=[IPV6:2a02:8108:8984:1d00:a0cf:1912:4be:477f]
+Received-SPF: pass (mxe9fb: connection is authenticated)
+Message-ID: <8aaad113-1952-4655-978d-0cdd8b048064@leemhuis.info>
+Date: Mon, 21 Sep 2026 12:00:37 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20260901192906.133670-3-jamien@nvidia.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-GB
+User-Agent: Mozilla Thunderbird
+Subject: Re: [REGRESSION] ACPI processor/cpuidle change in 6.18.52 breaks
+ bare-metal Xen dom0 boot
+To: Support TRINITY <support@trinity-net.com>,
+ regressions <regressions@lists.linux.dev>,
+ linux-acpi <linux-acpi@vger.kernel.org>, linux-pm
+ <linux-pm@vger.kernel.org>, stable <stable@vger.kernel.org>,
+ xen-devel <xen-devel@lists.xenproject.org>,
+ linux-kernel <linux-kernel@vger.kernel.org>
+References: 
+ <905771062.272724286.1789919301858.JavaMail.zimbra@trinity-net.com>
+From: Thorsten Leemhuis <regressions@leemhuis.info>
+Content-Language: de-DE, en-US
+In-Reply-To: 
+ <905771062.272724286.1789919301858.JavaMail.zimbra@trinity-net.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
- whupemk200014.china.huawei.com (7.152.185.79)
+X-PPP-Message-ID: <178998483973.134331.13310613659725459518@mxe9fb.netcup.net>
+X-Rspamd-Server: rspamd-worker-8404
+X-Rspamd-Queue-Id: 5AA1A5FA21
+X-NC-CID: jHAYD1xjKcSrG8HKUMDccnDoibkQCgWtGfye6GROeeyolTZ1i1c=
 
-On 2026/9/2 3:29, Jamie Nguyen wrote:
-> Arm DEN0048D (Functional Fixed Hardware Specification v1.3, March 2026)
-> added a third FFH Operation Region flavour. An Operation Region declared
-> with an Offset of 0x2 triggers an FFA_MSG_SEND_DIRECT_REQ2 call instead of
-> a bare SMC or HVC, and each 64-bit field of the region is one register,
-> starting at X0:
-> 
->    X0		call status, populated by OSPM on return
->    X1		Bits[15:0] receiver endpoint ID, or zero to have OSPM
-> 		resolve it from the service UUID
->    X2-X3		service UUID of the callee partition, written by ACPI
-> 		platform firmware using ToUUID()
->    X4-X17	message payload, X4 is always present
-> 
-> DEN0048D recommends Offset 0x2 for new platforms, since not every OSPM
-> implements Offsets 0x0 and 0x1. Linux implements both and rejects anything
-> else, so AML using the recommended encoding simply fails today.
-> 
-> Add the Operation Region side of it. Region length validation, the X0-X17
-> layout, the ToUUID() to FF-A UUID byte order conversion and the DEN0048D
-> table 3 status codes all live here; they are ACPI semantics, not FF-A
-> ones. The call itself goes out through a small set of ops that the FF-A
-> driver registers. That indirection is needed because this file is built
-> in, while CONFIG_ARM_FFA_TRANSPORT is a tristate.
-> 
-> Anything that stops the call being made comes back to AML in the X0 status
-> field: a malformed region length, or a null service UUID when AML has
-> asked OSPM to find the endpoint itself. Once the call has gone out every
-> register is copied back, whatever the outcome, which is what DEN0048D
-> requires. That also takes care of table 3, because FFA_ERROR reports the
-> FF-A error code in X2 and FFH_FFA_CALL_FAILED wants it in the same place.
-> A response that is neither FFA_ERROR nor FFA_MSG_SEND_DIRECT_RESP2 is
-> handled the same way; the call did complete.
-> 
-> Assisted-by: Claude:claude-opus-5
-> Co-developed-by: Dat Mach <dmach@nvidia.com>
-> Signed-off-by: Dat Mach <dmach@nvidia.com>
-> Signed-off-by: Jamie Nguyen <jamien@nvidia.com>
-> ---
->   drivers/acpi/arm64/ffh.c | 185 +++++++++++++++++++++++++++++++++++++++
->   include/linux/acpi.h     |  41 +++++++++
->   2 files changed, 226 insertions(+)
-> 
-> diff --git a/drivers/acpi/arm64/ffh.c b/drivers/acpi/arm64/ffh.c
-> index 04380bab193df..9f8a508cf2d4a 100644
-> --- a/drivers/acpi/arm64/ffh.c
-> +++ b/drivers/acpi/arm64/ffh.c
-> @@ -1,7 +1,9 @@
->   // SPDX-License-Identifier: GPL-2.0-only
->   #include <linux/acpi.h>
->   #include <linux/arm-smccc.h>
-> +#include <linux/rwsem.h>
->   #include <linux/slab.h>
-> +#include <linux/uuid.h>
->   
->   /*
->    * Implements ARM64 specific callbacks to support ACPI FFH Operation Region as
-> @@ -62,6 +64,183 @@ static bool acpi_ffh_smccc_owner_allowed(u32 fid)
->   	return false;
->   }
->   
-> +/*
-> + * FFH Operation Regions declared with an Offset of 0x2 trigger an
-> + * FFA_MSG_SEND_DIRECT_REQ2 call, as described in Arm DEN0048D (Functional
-> + * Fixed Hardware Specification v1.3) section 2.3.1.2. Every 64-bit field of
-> + * the region maps to one register, ordered from X0:
-> + *
-> + *   X0		status, one of the ACPI_FFH_FFA_* codes below, populated by
-> + *		OSPM on return
-> + *   X1		Bits[15:0] hold the receiver endpoint ID, or zero to have OSPM
-> + *		resolve it from the service UUID
-> + *   X2-X3	service UUID of the callee partition, written by ACPI platform
-> + *		firmware with the ToUUID() ASL operator
-> + *   X4-X17	message payload, X4 is always present
-> + *
-> + * The region Length is "32 + 8 * N" bytes with 1 <= N <= 14, which is X0-X4
-> + * at minimum and X0-X17 at most.
-> + */
-> +#define ACPI_FFH_FFA_HDR_REGS		4	/* X0 - X3 */
-> +#define ACPI_FFH_FFA_MAX_PAYLOAD_REGS	14	/* X4 - X17 */
-> +#define ACPI_FFH_FFA_UUID_OFFSET	(2 * sizeof(u64))
-> +#define ACPI_FFH_FFA_MIN_LENGTH		((ACPI_FFH_FFA_HDR_REGS + 1) * sizeof(u64))
-> +#define ACPI_FFH_FFA_MAX_LENGTH		\
-> +	((ACPI_FFH_FFA_HDR_REGS + ACPI_FFH_FFA_MAX_PAYLOAD_REGS) * sizeof(u64))
-> +
-> +/* DEN0048D table 3, FFH Operation Region status codes for FFA calls */
-> +#define ACPI_FFH_FFA_CALL_FAILED		1
-> +#define ACPI_FFH_FFA_SUCCESS			0
-> +#define ACPI_FFH_FFA_NOT_SUPPORTED		(-1)
-> +#define ACPI_FFH_FFA_INVALID_PARAMETERS		(-2)
-> +#define ACPI_FFH_FFA_OUT_OF_MEMORY		(-3)
-> +#define ACPI_FFH_FFA_UNSPECIFIED_ERROR		(-4)
-> +
-> +static const struct acpi_ffh_ffa_ops *ffa_ops;
-> +static DECLARE_RWSEM(ffa_ops_sem);
-> +
-> +int acpi_ffh_ffa_register(const struct acpi_ffh_ffa_ops *ops)
-> +{
-> +	int ret = 0;
-> +
-> +	if (!ops || !ops->partition_id || !ops->direct_req2)
-> +		return -EINVAL;
-> +
-> +	down_write(&ffa_ops_sem);
-> +	if (ffa_ops)
-> +		ret = -EBUSY;
-> +	else
-> +		ffa_ops = ops;
-> +	up_write(&ffa_ops_sem);
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_ffh_ffa_register);
-> +
-> +void acpi_ffh_ffa_unregister(const struct acpi_ffh_ffa_ops *ops)
-> +{
-> +	down_write(&ffa_ops_sem);
-> +	if (ffa_ops == ops)
-> +		ffa_ops = NULL;
-> +	up_write(&ffa_ops_sem);
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_ffh_ffa_unregister);
-> +
-> +/*
-> + * ToUUID() emits the UUID in mixed-endian (EFI GUID) byte order whereas FF-A
-> + * expects the RFC4122 layout, which is exactly a guid_t to uuid_t conversion.
-> + */
-> +static void acpi_ffh_ffa_uuid(uuid_t *uuid, const u8 *aml_buf)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < UUID_SIZE; i++)
-> +		uuid->b[i] = aml_buf[guid_index[i]];
-> +}
-> +
-> +static int acpi_ffh_ffa_status(int err)
-> +{
-> +	switch (err) {
-> +	case 0:
-> +		return ACPI_FFH_FFA_SUCCESS;
-> +	case -EIO:
-> +	case -EPROTO:
-> +		return ACPI_FFH_FFA_CALL_FAILED;
-> +	case -EOPNOTSUPP:
-> +		return ACPI_FFH_FFA_NOT_SUPPORTED;
-> +	case -EINVAL:
-> +	case -ENOENT:
-> +	case -ENODEV:
-> +	case -ENOTUNIQ:
-> +		return ACPI_FFH_FFA_INVALID_PARAMETERS;
-> +	case -ENOMEM:
-> +		return ACPI_FFH_FFA_OUT_OF_MEMORY;
-> +	default:
-> +		return ACPI_FFH_FFA_UNSPECIFIED_ERROR;
-> +	}
-> +}
-> +
-> +static bool acpi_ffh_ffa_length_valid(u64 length)
-> +{
-> +	return length >= ACPI_FFH_FFA_MIN_LENGTH &&
-> +	       length <= ACPI_FFH_FFA_MAX_LENGTH &&
-> +	       !(length % sizeof(u64));
-> +}
-> +
-> +static void acpi_ffh_ffa_handler(struct acpi_ffh_info *info, void *value)
-> +{
-> +	int status = ACPI_FFH_FFA_INVALID_PARAMETERS;
-> +	u64 resp_regs[3] = {};
-> +	unsigned int nr_payload;
-> +	u64 *regs = value;
-> +	uuid_t uuid;
-> +	u16 dst_id;
-> +	int ret;
-> +
-> +	if (!acpi_ffh_ffa_length_valid(info->length))
-> +		goto out;
-> +
-> +	nr_payload = info->length / sizeof(u64) - ACPI_FFH_FFA_HDR_REGS;
-> +
-> +	acpi_ffh_ffa_uuid(&uuid, (u8 *)value + ACPI_FFH_FFA_UUID_OFFSET);
-> +
-> +	down_read(&ffa_ops_sem);
-> +	if (!ffa_ops) {
-> +		status = ACPI_FFH_FFA_NOT_SUPPORTED;
-> +		goto out_unlock;
-> +	}
-> +
-> +	/*
-> +	 * A zero receiver endpoint ID means ACPI platform firmware expects
-> +	 * OSPM to derive it from the service UUID.
-> +	 */
-> +	dst_id = regs[1] & GENMASK(15, 0);
-> +	if (!dst_id) {
-> +		/*
-> +		 * A null UUID means "every partition" to
-> +		 * FFA_PARTITION_INFO_GET, so reject it here rather than let a
-> +		 * bare read of the Operation Region, which arrives as a zeroed
-> +		 * buffer, resolve to an arbitrary endpoint.
-> +		 */
-> +		if (uuid_is_null(&uuid))
-> +			goto out_unlock;
-> +
-> +		ret = ffa_ops->partition_id(&uuid, &dst_id);
-> +		if (ret) {
-> +			status = acpi_ffh_ffa_status(ret);
-> +			goto out_unlock;
-> +		}
-> +	}
-> +
-> +	ret = ffa_ops->direct_req2(dst_id, &uuid, regs + ACPI_FFH_FFA_HDR_REGS,
-> +				   nr_payload, resp_regs);
-> +	status = acpi_ffh_ffa_status(ret);
-> +
-> +	/*
-> +	 * DEN0048D asks for the response registers to be copied back. That also
-> +	 * takes care of table 3: FFA_ERROR reports the FF-A error code in X2,
-> +	 * which is exactly where FFH_FFA_CALL_FAILED wants it. -EIO and -EPROTO
-> +	 * both mean the call completed, so the registers hold the callee's
-> +	 * response and not AML's own request.
-> +	 */
-> +	if (!ret || ret == -EIO || ret == -EPROTO) {
-> +		regs[1] = resp_regs[0];
-> +		regs[2] = resp_regs[1];
-> +		regs[3] = resp_regs[2];
-> +	}
-> +
-> +out_unlock:
-> +	up_read(&ffa_ops_sem);
-> +out:
-> +	/*
-> +	 * DEN0048D describes this field as 64 bits wide and gives the table 3
-> +	 * codes as signed values, so sign extend rather than write a narrower
-> +	 * quantity. 0xfffe or 0xfffffffe would read back as a positive number
-> +	 * in a 64-bit AML comparison.
-> +	 */
-> +	regs[0] = (u64)(s64)status;
-> +}
-> +
->   int acpi_ffh_address_space_arch_handler(acpi_integer *value, void *region_context)
->   {
->   	int ret = 0;
-> @@ -99,6 +278,12 @@ int acpi_ffh_address_space_arch_handler(acpi_integer *value, void *region_contex
->   			ffh_ctxt->invoke_ffh64_fn(r, r);
->   			memcpy(value, r, ffh_ctxt->info.length);
->   		}
-> +	} else if (ffh_ctxt->info.offset == 2) {
-> +		/* FFA_MSG_SEND_DIRECT_REQ2 call */
-> +		if (ffh_ctxt->info.length < sizeof(u64))
-> +			ret = AE_ERROR;
+On 9/20/26 17:48, Support TRINITY wrote:
+>
+> I am reporting a bare-metal *Xen* dom0 boot regression seen with *Linux
+> 6.18.52.*
 
-There is a acpi_ffh_ffa_length_valid() check in acpi_ffh_ffa_handler(),
-is it a duplicated one here?
+Thx for the report. There is one somewhat important detail that was
+missing (hope I didn't miss it):
 
-> +		else
-> +			acpi_ffh_ffa_handler(&ffh_ctxt->info, value);
+Is latest 7.3-rc also affected? And if it is: does that partial revert
+help there, too?
 
-Thanks
-Hanjun
+Ciao, Thorsten
+> On affected systems, Linux 6.18.51 boots successfully as Xen dom0 on
+> bare metal, while Linux 6.18.52 *consistently black-screens before dom0
+> userspace/networking comes up.*
+> 
+> #regzbot introduced: v6.18.51..v6.18.52
+> #regzbot title: ACPI processor/cpuidle lifecycle change breaks bare-
+> metal Xen dom0 boot
+> #regzbot link: https://gitlab.alpinelinux.org/alpine/aports/-/
+> work_items/18447 <https://gitlab.alpinelinux.org/alpine/aports/-/
+> work_items/18447>
+> 
+> Tested results:
+> 
+>   * Linux 6.18.51-r0, Xen dom0, bare metal: boots
+>   * Linux 6.18.52-r0, Xen dom0, bare metal: black screen before
+>     userspace/network
+>   * Linux 6.18.52-r0, Xen domU: boots
+>   * Linux 6.18.52-r0 with Xenbus notifier change reverted: still fails
+>   * Linux 6.18.52-r0 with only ACPI processor/cpuidle changes reverted:
+>     boots
+>   * Linux 6.18.52-r0 with refined ACPI idle lifecycle patch: boots
+> 
+> Affected hardware tested:
+> 
+>   * Intel Core i7-4785T thin mini-ITX, 16 GB DDR3
+>   * Intel N305 thin mini-ITX, 16 GB DDR5
+>   * Supermicro / Intel Xeon E5-1650, 32 GB DDR3
+> 
+> The successful boot used the regular Xen command line:
+> 
+> multiboot2 /boot/xen.gz cpufreq=xen:performance
+> module2 /boot/vmlinuz-lts modules=loop,squashfs,sd-mod,usb-storage,xfs quiet
+> module2 /boot/initramfs-lts
+> 
+> No IOMMU workaround, serial console parameter, debug parameter, storage
+> workaround, or Xen command-line change was required.
+> 
+> The regression was narrowed to *ACPI processor/cpuidle* changes between
+> 6.18.51 and 6.18.52, specifically the idle-driver registration lifecycle.
+> 
+> The working 6.18.51-style behavior registers the ACPI idle driver from
+> *acpi_processor_power_init()* and unregisters it from
+> *acpi_processor_power_exit().*
+> 
+> The failing 6.18.52 behavior registers the ACPI idle driver globally
+> from *acpi_processor_driver_init()* before *driver_register().*
+> 
+> A first ACPI-only revert confirmed the regression source. A refined
+> candidate patch was then prepared to preserve the working ACPI idle
+> lifecycle while keeping unrelated 6.18.52 safety fixes, including:
+> 
+>   * _LPI bounds checks
+>   * cpufreq notifier cleanup on *acpi_processor_driver_init()* failure
+> 
+> The refined candidate patch modifies only:
+> 
+>   * *drivers/acpi/processor_driver.c*
+>   * *drivers/acpi/processor_idle.c*
+>   * *include/acpi/processor.h*
+> 
+> It does not modify Xen, Xenbus, IOMMU, APIC, PCI/ASPM, intel_idle,
+> syscore, USB, storage, XFS, networking, printk, or the cpuidle core API.
+> 
+> The earlier cpuidle_disabled() workaround is not included.
+> 
+> The refined patch has been rebuilt and boot-tested successfully as Xen
+> dom0 on bare metal on TRINITY-EDGE.
+> 
+> This issue is currently visible to *Alpine* users because the *Alpine
+> v3.24 *stable repository contains:
+> 
+> alpine-release 3.24.2-r0
+> *linux-lts 6.18.52-r0*
+> 
+> Systems tracking Alpine 3.24 stable / latest-stable may therefore
+> receive Linux 6.18.52 as the default LTS kernel.
+> 
+> Attachments:
+> 
+>   * revert-acpi-idle-registration-lifecycle.patch
+>   * APKBUILD
+> 
+> The original Alpine report is here:
+> 
+> https://gitlab.alpinelinux.org/alpine/aports/-/work_items/18447
+> <https://gitlab.alpinelinux.org/alpine/aports/-/work_items/18447>
+> 
+> Please let me know if this should be submitted as a formal patch with
+> Signed-off-by, or if there is a better upstream fix/dependency that
+> should be backported instead.
+> 
+> Regards,
+> 
+> *Tony BONNIN*
+> 
+
+
+#regzbot introduced: 6cffb59ee50ea4
