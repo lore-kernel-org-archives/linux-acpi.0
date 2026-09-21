@@ -1,92 +1,81 @@
-Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13E723655CD;
-	Mon, 21 Sep 2026 06:06:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF0E730D404;
+	Mon, 21 Sep 2026 06:21:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789970818; cv=none; b=bct/REUoDyey9sOpwVqonIGUQJAXqFzVxVfPbqo6Naw0KfSEhJBUzJ5Vxco1IxSmUKtL3T8j4D+jzUoBUL8mYoSWkRfzFbiNPOWycIL+36lBuoKfrCcMq8WTulMFXgPriciY570DdUpNFdPzerXCTKW0sTGy2yz8a3P5jam9Tt4=
+	t=1789971671; cv=none; b=QbMB+UOfktDwNjP4L/GyjlX28DCQ6CVSukYZGs/+9P3ItX/XW7AuynNg77LETLebp2TIIHPOV+6++569x8wd3TooitEh029nYiGVNZGS1KSgArUtXnCwf4R0cDdfhdnU1Ovq7imAoCwyH2sluIegj34OggCvQSSM4EjTtQi0YfE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789970818; c=relaxed/simple;
-	bh=Ke4ZswJ0Hoq/8i7ZGRi/IbZ7Ys1Lh4boTKClq491ZLc=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Fibxl9ZQtOGAGODFMptFhUvPqD+xpXgXnGKaigdrZWoZRfu9mCWewMfmpRhL1JI37UeNbfyplrMHUxnWcstJzXv8SotMW91zsdCGLLUmMs4HEfzpUpPvGw5bYifoS4zzWg34I6DqpXLW69i+m7RULdPg1dKHQ2/eXjP1ifT2muI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
-X-UUID: 9fa3b658b58211f19a56ed5b684f684d-20260921
-X-CID-CACHE: Type:Local,Time:202609211347+08,HitQuantity:1
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.3.19,REQID:b91cf450-e138-4cb7-bbb5-0f1ea261bb91,IP:0,U
-	RL:0,TC:0,Content:-25,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTIO
-	N:release,TS:-25
-X-CID-META: VersionHash:7db8b62,CLOUDID:f07779d0f31c8e52d033408c8019fe43,BulkI
-	D:nil,BulkQuantity:0,SF:82|83|102|136|850|865|898,TC:nil,Content:0|15|50|9
-	9,EDM:-3|-100,IP:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,O
-	SI:0,OSA:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
-X-CID-BVR: 2,SSN|SDN
-X-CID-BAS: 2,SSN|SDN,0,_
-X-CID-FACTOR: TF_CID_SPAM_SNR
-X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
-X-UUID: 9fa3b658b58211f19a56ed5b684f684d-20260921
-X-User: luriwen@kylinos.cn
-Received: from localhost.localdomain [(10.44.16.150)] by mailgw.kylinos.cn
-	(envelope-from <luriwen@kylinos.cn>)
-	(Generic MTA with TLSv1.3 TLS_AES_256_GCM_SHA384 256/256)
-	with ESMTP id 1250999981; Mon, 21 Sep 2026 14:06:45 +0800
-From: Riwen Lu <luriwen@kylinos.cn>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: Riwen Lu <luriwen@kylinos.cn>,
-	Len Brown <lenb@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5] ACPI: PM: Introduce CONFIG_ACPI_S2IDLE for platform-independent S2Idle support
-Date: Mon, 21 Sep 2026 14:06:42 +0800
-Message-Id: <20260921060642.1931677-1-luriwen@kylinos.cn>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <CAJZ5v0jpwjNk9pmKN41Dh6Q9GcRJo7xQ-JJTSEviqF_HiU=XrQ@mail.gmail.com>
-References: 
+	s=arc-20240116; t=1789971671; c=relaxed/simple;
+	bh=GokSPDn7Weo8FUjDTfA/UdlvauRG4Bu66u5qticJdms=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=K6KM1HWRiUb9S5EYiXDvCIVnb/XVFYdnOmD7KUDuvqWU7JJxiCFUDOkLIzNnvb/5ykipwD8IcDfS92mUyqrGa0mmO/ESiGGkL8ddOgOdMGCRSZZyz9v00esHCF2ezbdQgBHoXrRLxhNpw1HdnAejqqy52ainpxETKKy0QNt0rXQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ef0NKugI; arc=none smtp.client-ip=192.198.163.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ef0NKugI"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1789971669; x=1821507669;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=GokSPDn7Weo8FUjDTfA/UdlvauRG4Bu66u5qticJdms=;
+  b=ef0NKugI0umeI2tSW5yr6L6XcWswTWkPLb1oOjEB3aCgis2BI81WroJf
+   WsUIaMraz2Jv/qRGAEVl2c/gkaQ6afcJ1GZRwDQUC/ZXLsaJscXJqBFm0
+   67dDcwh/1wNKMjhc9685e40W5HiZIZ/nwkAyrDH+RTLap3IBQ8S/dOH/d
+   O2kfCEW6N5MAZyUTAPcO7XMFJlxPc8Us5tygR+WcAe41wfa5bakB0dAfQ
+   A0btg9C9YvozgCygfN3Ll1AsF6+qe4/DdUAqJKdYMZff8Ut6jnboXwi57
+   JB2McFqQDjS63GV45qEQnUtMZa/oYVYxu8hIHx+uKQee7pauCux4nXWYX
+   w==;
+X-CSE-ConnectionGUID: /usgXOdkRmK9NCfbopQ5+Q==
+X-CSE-MsgGUID: Y43/Ny1WRMav3gb9QCx7Yg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11911"; a="101058783"
+X-IronPort-AV: E=Sophos;i="6.27,114,1787036400"; 
+   d="scan'208";a="101058783"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Sep 2026 23:21:08 -0700
+X-CSE-ConnectionGUID: 6BaG3wQESymV/CwYbxPI/A==
+X-CSE-MsgGUID: 032XlPM4TVuyNL/Qk6ek2Q==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,114,1787036400"; 
+   d="scan'208";a="272672014"
+Received: from black.igk.intel.com ([10.91.253.5])
+  by fmviesa008.fm.intel.com with ESMTP; 20 Sep 2026 23:21:06 -0700
+Received: by black.igk.intel.com (Postfix, from userid 1001)
+	id 133A399; Mon, 21 Sep 2026 08:21:01 +0200 (CEST)
+Date: Mon, 21 Sep 2026 08:21:01 +0200
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Mateo Borda <mateob226@gmail.com>
+Cc: Mika Westerberg <westeri@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Linus Walleij <linusw@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>, linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] gpiolib: acpi: Add quirk for Lenovo IdeaPad Slim 3 15ABR8
+Message-ID: <20260921062101.GP106095@black.igk.intel.com>
+References: <20260920173904.6221-1-mateob226@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260920173904.6221-1-mateob226@gmail.com>
 
-Hi Rafael,
+On Sun, Sep 20, 2026 at 02:39:04PM -0300, Mateo Borda wrote:
+> On the Lenovo IdeaPad Slim 3 15ABR8 (82XM), the touchscreen
+> (GTCH7503:00) GPIO interrupt on pin 10 is armed as a wake source. As
+> soon as the system enters s2idle suspend the interrupt fires, causing
+> an immediate spurious resume, so suspend is unusable.
+> 
+> Disabling wakeup for the device via sysfs or booting with
+> gpiolib_acpi.ignore_wake=GTCH7503:00@10 avoids the problem, so add
+> a DMI quirk that ignores wakeup on that pin.
+> 
+> Signed-off-by: Mateo Borda <mateob226@gmail.com>
 
-Gentle ping on this thread.
-
-Having reworked the patch based on your feedback, I believe the main
-problem with v5 was the new user-visible Kconfig option together with
-the conditional select: an s2idle toggle is not something users or
-distros should ever need to set.  Before posting the next revision,
-I'd like to align with you on one of two directions:
-
-(a) Keep the code split into drivers/acpi/s2idle.c, but turn
-    ACPI_S2IDLE into a hidden symbol:
-
-        config ACPI_S2IDLE
-                bool
-                depends on SUSPEND
-                default y
-
-    following the existing ACPI_LPIT pattern.  No prompt, no select
-    and no arch changes: arm64 gets s2idle automatically.
-
-(b) Don't split sleep.c at all.  Have arm64 select
-    ACPI_SYSTEM_POWER_STATES_SUPPORT and add two tiny stubs in
-    arch/arm64 for the S3-only references in sleep.c.
-    acpi_sleep_state_supported() already rejects all firmware
-    S-states on HW-reduced platforms, so only s2idle becomes
-    functional.  This is 16 lines in total with no code motion, but
-    the symbol name becomes loose and /proc/acpi/* would appear on
-    arm64.
-
-I slightly prefer (a).  Unless you prefer (b) or have a different
-direction in mind, I'll post (a) as v6 next week.
-
-Thanks!
-
-Riwen
+Acked-by: Mika Westerberg <westeri@kernel.org>
