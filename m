@@ -1,127 +1,131 @@
-Received: from 1.mo564.mail-out.ovh.net (1.mo564.mail-out.ovh.net [178.33.106.226])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2BD34F85D9
-	for <linux-acpi@vger.kernel.org>; Mon, 21 Sep 2026 18:44:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.33.106.226
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93C2D5012B5;
+	Mon, 21 Sep 2026 18:59:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790016295; cv=none; b=uhN8huOeYV07VM3rmFDxhRn0P97sr8z9ZDHPDdngw9LgJfRuV+bI9wSMLzwCl9M5FRKWTsVzYN0Ov/sSlKVIs6xyZMFTDs71DLEsKD0qH8TjCrBiM76pw7luna1QGDO14YnGbmoRWwjEeXQE32RAzwnyI7uz/NhEoZMxlBdmPDA=
+	t=1790017176; cv=none; b=s7mpzqQdB9qTYoG/L7G2opjcFm5/rIPOMUl5sHnFO4H8t6buOGyizVPLxzwBTfs/IbeR/nODrSaQwVyj6uG9MgOvarOcwzx2m6053+miM2ix3j+igWvO3H4Kzgl1AV8MMRogOBefqyMq6tvb/hxuZJ50zBazorAEvFj/9ZP4KcE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790016295; c=relaxed/simple;
-	bh=IevpoNZUdNHiZNaAd8TIxxp6Ai1AoI8OzFr7NwXjpT8=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 MIME-Version:Content-Type; b=GxIlvh/G+0L0z8nzp7YQY8Faj8vLboD1ed5Ufc333mXbREipxDBB/EtQcKVE0jy+PIk43StK4VxPh5+DFTAdKO4c2PPKTdm5AOsSLbhSyMnY8ypGw8cfG7oX1Qx97KKae9enSt10/2qyINwns0MqoGdCh0n9/TosBMiYmDSuJ24=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=trinity-net.com; spf=pass smtp.mailfrom=trinity-net.com; dkim=pass (2048-bit key) header.d=trinity-net.com header.i=@trinity-net.com header.b=SWCas21S; arc=none smtp.client-ip=178.33.106.226
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=trinity-net.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=trinity-net.com
+	s=arc-20240116; t=1790017176; c=relaxed/simple;
+	bh=pEJgGk0cH37LV0k9pah/ONK+RZwICyiK2i1EslabjcY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=MOof0kFgeyFVVTOiMu81SgxU7Q8SEMLzBtVRpTMZ1C8Kw8ztFD477QRjIG6rL3Ny8RPJ7SpW44JrH0QuDLKh8Lh4IgYHnpgeYB3MM3ny9tw+5ZG5vAnfAo6MuhXj5f1gkr6/Y4Ae+mfUWeyRwvRp7omkURzzDxF1QhYQLw6QoLw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=CqLC9M2N; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=trinity-net.com header.i=@trinity-net.com header.b="SWCas21S"
-Received: from director2.derp.mail-out.ovh.net (director2.derp.mail-out.ovh.net [79.137.60.36])
-	by mo564.mail-out.ovh.net (Postfix) with ESMTPS id 4hpWwY16nJz87rB;
-	Mon, 21 Sep 2026 18:29:33 +0000 (UTC)
-Received: from director2.derp.mail-out.ovh.net (director2.derp.mail-out.ovh.net. [127.0.0.1])
-        by director2.derp.mail-out.ovh.net (inspect_sender_mail_agent) with SMTP
-        for <marmarek@invisiblethingslab.com>; Mon, 21 Sep 2026 18:29:33 +0000 (UTC)
-Received: from mta7.priv.ovhmail-u1.ea.mail.ovh.net (unknown [10.109.231.30])
-	by director2.derp.mail-out.ovh.net (Postfix) with ESMTPS id 4hpWwY0Jt5z1xp3;
-	Mon, 21 Sep 2026 18:29:33 +0000 (UTC)
-Received: from mailstore7.priv.ovhmail-u1.ea.mail.ovh.net (unknown [10.1.8.7])
-	by mta7.priv.ovhmail-u1.ea.mail.ovh.net (Postfix) with ESMTP id 2C3E3B81C5B;
-	Mon, 21 Sep 2026 18:29:32 +0000 (UTC)
-Date: Mon, 21 Sep 2026 18:29:32 +0000 (UTC)
-From: Support TRINITY <support@trinity-net.com>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: 
-	Marek =?utf-8?Q?Marczykowski-G=C3=B3recki?= <marmarek@invisiblethingslab.com>, 
-	"Rafael J. Wysocki (Intel)" <rafael@kernel.org>, 
-	regressions <regressions@lists.linux.dev>, 
-	linux-acpi <linux-acpi@vger.kernel.org>, 
-	linux-pm <linux-pm@vger.kernel.org>, 
-	xen-devel <xen-devel@lists.xenproject.org>, 
-	linux-kernel <linux-kernel@vger.kernel.org>, 
-	Stable <stable@vger.kernel.org>
-Message-ID: <1909296988.289641012.1790015372050.JavaMail.zimbra@trinity-net.com>
-In-Reply-To: <CAJZ5v0geSD8ig9_kcrPZp9FEzF+Oh34HV4F_aqyGF89TYVjDzw@mail.gmail.com>
-References: <905771062.272724286.1789919301858.JavaMail.zimbra@trinity-net.com> <CAJZ5v0gg7kBtEhagR9SYKaPNstPC6aSyP7W4xBjP1r-kzbcH1A@mail.gmail.com> <arFe7-xa3HtCUOHs@mail-itl> <750088883.289173062.1790012799166.JavaMail.zimbra@trinity-net.com> <CAJZ5v0geSD8ig9_kcrPZp9FEzF+Oh34HV4F_aqyGF89TYVjDzw@mail.gmail.com>
-Subject: Re: [REGRESSION] ACPI processor/cpuidle change in 6.18.52 breaks
- bare-metal Xen dom0 boot
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="CqLC9M2N"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1790017174; x=1821553174;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=pEJgGk0cH37LV0k9pah/ONK+RZwICyiK2i1EslabjcY=;
+  b=CqLC9M2NY/x0wcSL3nm2Xl76LPvACoP3DF+DS2ex/1f2eC1O/XwO5eOs
+   54Z1oY8mqUObZNrfYmjTvtA3tJQJVuMyk30Iyny62NEiMXi59WLROrZ0Q
+   fhy6UITsIYT/IHfrnQgWHbDmIHlKpO1y2ljxpFhBKjRMGqYAlphJtM/pU
+   6SOPMFhWE/X2aUZY1adgaJWxKCCfMnF3qmAxTQTP7L2bOfO4u15TUtg9Q
+   mVrDahpdgLxU3yila4pSRMF0rVdIWHxocvzyQCPMrLF/at6TvfqA7YJ/c
+   CHKbI2m17f7k3PxfAbPQ3ZvnpAHcGZtkf6x2e4frct8rWZRAIzNSRxkis
+   Q==;
+X-CSE-ConnectionGUID: VLayl7JiR0qLOvCgcNGMuA==
+X-CSE-MsgGUID: U6p3klJcTfavYMwIhV2U/Q==
+X-IronPort-AV: E=McAfee;i="6800,10657,11912"; a="108059005"
+X-IronPort-AV: E=Sophos;i="6.27,115,1787036400"; 
+   d="scan'208";a="108059005"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Sep 2026 11:59:33 -0700
+X-CSE-ConnectionGUID: BsuX840qSi+2vC0YrmPdRw==
+X-CSE-MsgGUID: kPAoAqbfTPu69ShvAQyqJw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,115,1787036400"; 
+   d="scan'208";a="280861595"
+Received: from soc-pf446t5c.clients.intel.com (HELO [10.24.80.90]) ([10.24.80.90])
+  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Sep 2026 11:59:32 -0700
+Message-ID: <ebfa2423-f393-414b-a6ca-021747992bae@linux.intel.com>
+Date: Mon, 21 Sep 2026 11:59:31 -0700
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-X-Authenticated-User: support@trinity-net.com
-Thread-Topic: ACPI processor/cpuidle change in 6.18.52 breaks bare-metal Xen dom0 boot
-Thread-Index: NJLEBWSSWTxHlP+F8t+OBJCvRxFPqg==
-x-ovh-tracer-id: 8614541665962587675
-X-VR-SPAMSTATE: OK
-X-VR-SPAMSCORE: -100
-X-VR-SPAMCAUSE: dmFkZTGlMSjzMXFz4ipw5mo6C1GD1JTY1bhHZVs/p5Nv78Znzkhq/k5NZSemwOJrLkzTGnUzuV0P/CTidewhj7HXiC0xfdN+5BaQEY8b3Kwct82UB6zjNGfqm7kJb4ttjwgACxdgPLh28GyRgxbQdrzMMGLFU4TEKIBs/Hh/ceN1Ms8ygaAkZa73h/yWpK10Zk+rPH2CFV4DqCBe6v/FcGsC5wPEGnDFVYlvd9IBdmSLOpOraDnlklBSiGLwer90wPuuQCpMujjVvhFtN0P1Oz74+OkrfJx/Jy5A4CUoHvG19uKnRaPEM3CpSTQsCAUgou9SCvuq9JVZsKk9ivIous6fBlSjZ7Z7/Jjn5OzVnC++aJqeBliXUKmxjzvGg2M6Fd0m0BF5aPPVc2cc37vdPCpjL5mXCfVqvzWz4U18syj1KDv4yjaiMSHUk46h3992+zDjBAWdKcBQ6W7VWeiG9YtWP5EimiGuAjzW05zdL4fyq5avG/IGV9b4I/zT3euOpFSSmXC60MqmO9zIXqVc3KJH753bxtVK4VKSCbhNwoX2cX3XzYsiLX8Yvh8tULu32jL5zJ423LULpLitttfsvYREBBOP4sKgzZmb719gBBRa/EV02sDW8ufbUjS6z10SAS7esMwLu1EOHzNBh3dEpP0E4RRroixZggB5S1JvVPhXSCiYtA
-DKIM-Signature: a=rsa-sha256; bh=IevpoNZUdNHiZNaAd8TIxxp6Ai1AoI8OzFr7NwXjpT8=;
- c=relaxed/relaxed; d=trinity-net.com; h=From; s=ovhmo-selector-1;
- t=1790015373; v=1;
- b=SWCas21S6jgUkey7Pctwpi5A1HH+1Teaj1FMFU60FF+y6ADgSfJkAx0zCroA2Q+A+PuHs1+s
- 1g0+8j4nyaGafOo/4es9hi5OFB+M5U7l00jYO38PRNAQNnGL+DcOBaBlcMynflLysfjtgbK9STj
- K7peWk5eJEJs2dHYQ+PzyDaJ+nfqJR8HQc7Nq2xTzZ7Z3Di2xncyVKULZt/8C/VfSmKy1tVV3be
- lVhVJS16oZDxnDLi4BwQgPWxE1DXQLXMexKnIjff0a+HNED62AYx0U8TabTrTaztf4RhgVRR7Gd
- x4HFNYwju0WotFHLv5drWc7SVfZOP++XWpGv89qzL33hw==
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v13 2/5] PCI: Assume control of portdrv-related features
+ only when portdrv enabled
+To: Lukas Wunner <lukas@wunner.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org,
+ linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+ Rafael J Wysocki <rafael@kernel.org>, Guixin Liu <kanie@linux.alibaba.com>,
+ Olof Johansson <olof@lixom.net>
+References: <20260919162655.3499010-1-sathyanarayanan.kuppuswamy@linux.intel.com>
+ <20260919162655.3499010-3-sathyanarayanan.kuppuswamy@linux.intel.com>
+ <aq96cULSmdeBzd3D@wunner.de>
+Content-Language: en-US
+From: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+In-Reply-To: <aq96cULSmdeBzd3D@wunner.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Hello,
+Hi,
 
-Thank you, that makes sense and matches the behavior I observed.
+On 9/19/2026 11:17 PM, Lukas Wunner wrote:
+> On Sat, Sep 19, 2026 at 09:26:52AM -0700, Kuppuswamy Sathyanarayanan wrote:
+>> +++ b/drivers/pci/probe.c
+>> @@ -668,12 +668,14 @@ static void pci_init_host_bridge(struct pci_host_bridge *bridge)
+>>  	 * may implement its own AER handling and use _OSC to prevent the
+>>  	 * OS from interfering.
+>>  	 */
+>> +#ifdef CONFIG_PCIEPORTBUS
+>>  	bridge->native_aer = 1;
+>>  	bridge->native_pcie_hotplug = 1;
+>> -	bridge->native_shpc_hotplug = 1;
+>>  	bridge->native_pme = 1;
+>> -	bridge->native_ltr = 1;
+>>  	bridge->native_dpc = 1;
+>> +#endif
+>> +	bridge->native_ltr = 1;
+>> +	bridge->native_shpc_hotplug = 1;
+>>  	bridge->domain_nr = PCI_DOMAIN_NR_NOT_SET;
+> 
+> How about (e.g.)
+> 
+>  	bridge->native_pcie_hotplug = IS_ENABLED(CONFIG_PCIEPORTBUS);
+> 
+> instead of using #ifdef?  That's the preferred style according to
+> section 21 of Documentation/process/coding-style.rst
 
-The Alpine 6.18.52 kernel fails as Xen dom0, while restoring the previous
-ACPI idle registration lifecycle makes it boot again. That is consistent
-with 13ebeef6a1b9 being present in 6.18.y without the later dependency
-that avoids calling acpi_processor_power_init() in the !cpuidle_get_driver(=
-)
-case.
+Good point, will fix in v14.  I will use a local variable for it so the
+fields keep their current order and the diff stays small:
 
-I will try testing 6.18.52 with commit 0089ce1c056a ("ACPI: processor:
-Update cpuidle driver check in __acpi_processor_start()") applied,
-instead of using my lifecycle revert.
+	bool port_services = IS_ENABLED(CONFIG_PCIEPORTBUS);
 
-If that boots successfully on the affected Alpine Xen dom0 hosts, I will
-report the result here.
+	bridge->native_aer = port_services;
+	bridge->native_pcie_hotplug = port_services;
+	bridge->native_shpc_hotplug = 1;
+	bridge->native_pme = port_services;
+	bridge->native_ltr = 1;
+	bridge->native_dpc = port_services;
 
-Thanks,
-Tony
+> 
+>>  	bridge->native_cxl_error = 1;
+> 
+> Hm, this one depends on CONFIG_PCIEAER I believe.
+> (But Terry Bowman is the expert.)
 
+I don't think it does. The only consumer is cxl_event_config() in
+drivers/cxl/pci.c. CXL_PCI doesn't depend on PCIEAER.
 
------Message original-----
-De: Rafael J. Wysocki (Intel) <rafael@kernel.org>
-=C3=A0: Support TRINITY <support@trinity-net.com>
-Cc: Marek Marczykowski-G=C3=B3recki <marmarek@invisiblethingslab.com>; Rafa=
-el J. Wysocki (Intel) <rafael@kernel.org>; regressions <regressions@lists.l=
-inux.dev>; linux-acpi <linux-acpi@vger.kernel.org>; linux-pm <linux-pm@vger=
-.kernel.org>; xen-devel <xen-devel@lists.xenproject.org>; linux-kernel <lin=
-ux-kernel@vger.kernel.org>; Stable <stable@vger.kernel.org>
-Envoy=C3=A9: lundi 21 septembre 2026 20:07 CEST
-Sujet : Re: [REGRESSION] ACPI processor/cpuidle change in 6.18.52 breaks ba=
-re-metal Xen dom0 boot
+Terry, please correct me if I'm wrong.
 
 
-On Mon, Sep 21, 2026 at 7:46=E2=80=AFPM Support TRINITY <support@trinity-ne=
-t.com> wrote:
->
-> Hello,
->
-> Thank you, this matches what I see on the affected Alpine Xen dom0
-> systems.
->
-> I also tested Linux 6.18.52 with processor=3Dnocst on the Linux kernel
->
-> Result: it still fails with the same black screen before dom0 userspace
-> and networking come up.
->
-> Marek's trace looks consistent with the failure mode I isolated: the
-> crash happens from acpi_processor_power_init() while registering the
-> cpuidle device.
+> 
+> Thanks,
+> 
+> Lukas
 
-I think I know what the problem is, see
+-- 
+Sathyanarayanan Kuppuswamy
+Linux Kernel Developer
 
-https://lore.kernel.org/linux-acpi/CAJZ5v0h4giv53a2mPvJYT=3DfvBTj7vVXs=3Db7=
-+qC2Q2L35qSTOSA@mail.gmail.com/
