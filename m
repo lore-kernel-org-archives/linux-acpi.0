@@ -1,102 +1,108 @@
-Received: from canpmsgout10.his.huawei.com (canpmsgout10.his.huawei.com [113.46.200.225])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC1732E4257;
-	Mon, 21 Sep 2026 01:29:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.225
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08D362D8796;
+	Mon, 21 Sep 2026 04:50:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789954167; cv=none; b=eS4Cr73NgP3J9xBNhlJ3hnabwL6iLWdfwKmjJRCzlHCr5ezN+qkIdsyMX6L2zEftVUZQpf+/oJs1Y/eSXP1RQMrunFRnXBChHyzvoZ0W3g9mGB7deAxVlJeHrzJjLvoEVELPDl3O2G6uYa3cNhbFeV1KtXN1/IikNfUELyloeNg=
+	t=1789966210; cv=none; b=bJWyv7ZKj6kgHjaPQG4e/0bCxV1b9liDI8HlXy0WokORDqE97QH6CO1hybR7sfzymsuDp7G79GaOxs7B8G+ajiycRFiyXd1fRKnc0AGs9WGs8TK0tT4npEfw0EweOtjdDXz3vBlj9FhHTiGIe0w09NACM8u31oqBfs8Kvtmbzls=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789954167; c=relaxed/simple;
-	bh=DAE219f5tMZqeDu8ckq5EAa+nuR3kmP7HERcmmGKrgU=;
-	h=From:To:CC:Subject:Date:Message-ID:Content-Type:MIME-Version; b=cPSwgAWYAa5RISuUlAhHBHzTMHdA/NtVGSjMieQr0LJ4bdrvjE9MM0He8ugLc4IzYYCUbloU6UDeXwzTLK94DwAzFKOKjzKD7YoJ0ZcAOuJscOL2euBVCiDhVrSGJYU7k1JpDnoVRtivt8Zn4+VapHw2MiPPIHPAkfJMgtIR2Fs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=MRXcAnYA; arc=none smtp.client-ip=113.46.200.225
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1789966210; c=relaxed/simple;
+	bh=j/KDQ7bOWT0f2Mzsl08+HcCJ5z+z/Gk9uDtBHhO1UuM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=dsjMIQ/7GpeYE0yu5YaYmsNcwy3XQ/M7ggRwY2KqiXvIjBcKxf2Kze9LTusKetvd2gbh9f2w06c4ViHR58NcpnC7bYj2YNnqDWOQKXNHBmLoosnNOZ1LE06u1KLC7z1eSspo41lLhgOAXV114g3HeY0uyj2WqNSb+wdI3hHng+w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=nZKNbYm6; arc=none smtp.client-ip=192.198.163.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="MRXcAnYA"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=DAE219f5tMZqeDu8ckq5EAa+nuR3kmP7HERcmmGKrgU=;
-	b=MRXcAnYA4g4fGFuw364CKUio8yQbFlDtFNfoBeaxFhTCHMUe3BszjYis6BvIb3W+lGaKrrfKz
-	0QksJ2iPklKTDvoWE9XskWvjSz5aQZyEYawFWuXL5cWhsHDiZ+6BE39Pi9Bl2RayhMQv7R6YTt7
-	zd+MyaPvESvY4d8XgLVwd54=
-Received: from mail.maildlp.com (unknown [172.19.163.163])
-	by canpmsgout10.his.huawei.com (SkyGuard) with ESMTPS id 4hp52Y0Gvpz1K9D2;
-	Mon, 21 Sep 2026 09:18:13 +0800 (CST)
-Received: from kwepemf200007.china.huawei.com (unknown [7.202.181.233])
-	by mail.maildlp.com (Postfix) with ESMTPS id BD0464057A;
-	Mon, 21 Sep 2026 09:29:14 +0800 (CST)
-Received: from kwepemf100015.china.huawei.com (7.202.181.14) by
- kwepemf200007.china.huawei.com (7.202.181.233) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.46; Mon, 21 Sep 2026 09:29:14 +0800
-Received: from kwepemf100015.china.huawei.com ([7.202.181.14]) by
- kwepemf100015.china.huawei.com ([7.202.181.14]) with mapi id 15.02.2562.045;
- Mon, 21 Sep 2026 09:29:14 +0800
-From: "Liuwenliang (Abbott Liu)" <liuwenliang@huawei.com>
-To: "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "tony.luck@intel.com"
-	<tony.luck@intel.com>, "bp@alien8.de" <bp@alien8.de>, "ardb@kernel.org"
-	<ardb@kernel.org>, "mchehab+huawei@kernel.org" <mchehab+huawei@kernel.org>,
-	"rafael.j.wysocki@intel.com" <rafael.j.wysocki@intel.com>, "jic23@kernel.org"
-	<jic23@kernel.org>, "jason@os.amperecomputing.com"
-	<jason@os.amperecomputing.com>, "danielf@os.amperecomputing.com"
-	<danielf@os.amperecomputing.com>, luoshengwei <luoshengwei@huawei.com>,
-	"linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-CC: "yangzhuohao (A)" <yangzhuohao1@huawei.com>, douzhaolei
-	<douzhaolei@huawei.com>, zouyipeng <zouyipeng@huawei.com>, Wangbing
-	<wangbing6@huawei.com>, Nixiaoming <nixiaoming@huawei.com>, "ACPI Devel
- Maling List" <linux-acpi@vger.kernel.org>, "Liuwenliang (Abbott Liu)"
-	<liuwenliang@huawei.com>
-Subject: Re: [PATCH v4 1/3] RAS: Fix inverted context info bounds check in ARM
- processor errors
-Thread-Topic: [PATCH v4 1/3] RAS: Fix inverted context info bounds check in
- ARM processor errors
-Thread-Index: Ad1JaIeBlTuG+PDBTjeySqUEELugtg==
-Date: Mon, 21 Sep 2026 01:29:14 +0000
-Message-ID: <d581dbd171c04e33a358863de0840f78@huawei.com>
-Accept-Language: en-US
-Content-Language: zh-CN
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="nZKNbYm6"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1789966208; x=1821502208;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=j/KDQ7bOWT0f2Mzsl08+HcCJ5z+z/Gk9uDtBHhO1UuM=;
+  b=nZKNbYm67lgUsURa+sjuqmANXOmNcLnxVFqnY/2NC7r/XM8axTZL1RNi
+   LaqYlksd5ZqS2Myf9hTgMUDjFGI9EXAGThN9QnrCby/+MFVL2pP7WCPCO
+   dmwku9Xq5mo42PHfMX+j05Z18jAFYQX2OnL6wyG2ztfs7WSsHouYkcWgp
+   hASecek6mEg7x6d+Vv+zEsC38lQvH03UmeFayLfENbri4EvrRTG2f4FQs
+   5i3YNXPqPntTq1PyGrLXXTSXIwg6krCcwbKWLXcBA3TW+u2dPReXB610J
+   z8lcfpz8c9uhCWY9xmEPgZM+l63PLmRiquu2sRTpmo9dKWKu4Jy+1OFCk
+   Q==;
+X-CSE-ConnectionGUID: QNbBArkxQ3qaXBEVgtxlow==
+X-CSE-MsgGUID: giq4nzOpQca4F0vr8ka8TQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11911"; a="101804484"
+X-IronPort-AV: E=Sophos;i="6.27,114,1787036400"; 
+   d="scan'208";a="101804484"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Sep 2026 21:50:04 -0700
+X-CSE-ConnectionGUID: PqLy8kP3Tn2HzljFuWvJTw==
+X-CSE-MsgGUID: voYTxHdSSH+0L+7g4NUM9A==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,114,1787036400"; 
+   d="scan'208";a="271633218"
+Received: from black.igk.intel.com ([10.91.253.5])
+  by fmviesa010.fm.intel.com with ESMTP; 20 Sep 2026 21:49:56 -0700
+Received: by black.igk.intel.com (Postfix, from userid 1001)
+	id 791E599; Mon, 21 Sep 2026 06:49:55 +0200 (CEST)
+Date: Mon, 21 Sep 2026 06:49:55 +0200
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Pawel Zalewski <pzalewski@thegoodpenguin.co.uk>
+Cc: Andi Shyti <andi.shyti@kernel.org>,
+	Mika Westerberg <westeri@kernel.org>,
+	Shyam Sundar S K <shyam-sundar.s-k@amd.com>,
+	Elie Morisse <syniurge@gmail.com>,
+	Benson Leung <bleung@chromium.org>,
+	Guenter Roeck <groeck@chromium.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Wolfram Sang <wsa+renesas@sang-engineering.com>,
+	Devyn Liu <liudingyuan@h-partners.com>,
+	Oleksij Rempel <o.rempel@pengutronix.de>,
+	Pengutronix Kernel Team <kernel@pengutronix.de>,
+	Frank Li <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>,
+	Fabio Estevam <festevam@gmail.com>,
+	Binbin Zhou <zhoubinbin@loongson.cn>,
+	Khalil Blaiech <kblaiech@nvidia.com>,
+	Asmaa Mnebhi <asmaa@nvidia.com>,
+	Mukesh Kumar Savaliya <mukesh.savaliya@oss.qualcomm.com>,
+	Viken Dadhaniya <viken.dadhaniya@oss.qualcomm.com>,
+	Ard Biesheuvel <ardb@kernel.org>,
+	Laxman Dewangan <ldewangan@nvidia.com>,
+	Dmitry Osipenko <digetx@gmail.com>,
+	Thierry Reding <thierry.reding@kernel.org>,
+	Jonathan Hunter <jonathanh@nvidia.com>,
+	Israel Cepeda <israel.a.cepeda.lopez@intel.com>,
+	Hans de Goede <hansg@kernel.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Hu <hanshu@zhaoxin.com>, George Cherian <gcherian@marvell.com>,
+	linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, chrome-platform@lists.linux.dev,
+	imx@lists.linux.dev, linux-arm-kernel@lists.infradead.org,
+	linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org
+Subject: Re: [PATCH 1/2] i2c: i2c-core-acpi: use named initializers for
+ acpi_device_id
+Message-ID: <20260921044955.GK106095@black.igk.intel.com>
+References: <20260918-acpi-i2c-v1-0-caf4bea4886c@thegoodpenguin.co.uk>
+ <20260918-acpi-i2c-v1-1-caf4bea4886c@thegoodpenguin.co.uk>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260918-acpi-i2c-v1-1-caf4bea4886c@thegoodpenguin.co.uk>
 
-SGkgSGFuanVuLA0KDQpUaGFuayB5b3UgZm9yIHRoZSByZXZpZXcuDQoNCk9uIDIwMjYvOS8xNyAx
-MDoxMywgSGFuanVuIEd1byB3cm90ZToNCj4gT24gMjAyNi85LzkgMTk6MjgsIEFiYm90dCBMaXUg
-d3JvdGU6DQo+ID4gQ29tbWl0IDg3ODgwYWYyZDI0ZSAoIkFQRUkvR0hFUzogQVJNIHByb2Nlc3Nv
-ciBFcnJvcjogZG9uJ3QgZ28gcGFzdA0KPiA+IGFsbG9jYXRlZCBtZW1vcnkiKSBhZGRlZCBib3Vu
-ZHMgY2hlY2tzIGZvciBtYWxmb3JtZWQgQVJNIHByb2Nlc3Nvcg0KPiA+IGVycm9yIHJlY29yZHMg
-YnV0IGNvbnRhaW5lZCBhIGJ1ZzoNCj4gPg0KPiA+ICAgIEluIGxvZ19hcm1faHdfZXJyb3IoKSwg
-dGhlIGN0eF9pbmZvIGJvdW5kcyBjaGVjayBpcyBpbnZlcnRlZC4gVGhlDQo+ID4gICAgY29uZGl0
-aW9uICJzeiArIChsb25nKWN0eF9pbmZvIC0gKGxvbmcpZXJyID49IGVyci0+c2VjdGlvbl9sZW5n
-dGgiDQo+ID4gICAgYWRkcyBjdHhfaW5mby0+c2l6ZSB3aGVuIHRoZSBjb250ZXh0IGhlYWRlciBp
-cyBhbHJlYWR5IHBhc3QgdGhlIGVuZA0KPiA+ICAgIG9mIHRoZSBzZWN0aW9uIGluc3RlYWQgb2Yg
-d2hlbiBpdCBpcyB3aXRoaW4gYm91bmRzLiBTbyBjaGFuZ2UgdGhlDQo+ID4gICAgY29tcGFyaXNv
-biB0byA8PS4NCj4gPg0KPiA+IEZpeGVzOiA4Nzg4MGFmMmQyNGUgKCJBUEVJL0dIRVM6IEFSTSBw
-cm9jZXNzb3IgRXJyb3I6IGRvbid0IGdvIHBhc3QgYWxsb2NhdGVkIG1lbW9yeSIpDQo+ID4gU2ln
-bmVkLW9mZi1ieTogQWJib3R0IExpdSA8bGl1d2VubGlhbmdAaHVhd2VpLmNvbT4NCj4gPiAtLS0N
-Cj4gPiAgIGRyaXZlcnMvcmFzL3Jhcy5jIHwgMiArLQ0KPiA+ICAgMSBmaWxlIGNoYW5nZWQsIDEg
-aW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVy
-cy9yYXMvcmFzLmMgYi9kcml2ZXJzL3Jhcy9yYXMuYw0KPiA+IGluZGV4IDAzZGYzZGI2MjMzNC4u
-MjU0MDUzOGExNmE4IDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvcmFzL3Jhcy5jDQo+ID4gKysr
-IGIvZHJpdmVycy9yYXMvcmFzLmMNCj4gPiBAQCAtNzQsNyArNzQsNyBAQCB2b2lkIGxvZ19hcm1f
-aHdfZXJyb3Ioc3RydWN0IGNwZXJfc2VjX3Byb2NfYXJtICplcnIsIGNvbnN0IHU4IHNldikNCj4g
-PiAgIAlmb3IgKG4gPSAwOyBuIDwgZXJyLT5jb250ZXh0X2luZm9fbnVtOyBuKyspIHsNCj4gPiAg
-IAkJc3ogPSBzaXplb2Yoc3RydWN0IGNwZXJfYXJtX2N0eF9pbmZvKTsNCj4gPg0KPiA+IC0JCWlm
-IChzeiArIChsb25nKWN0eF9pbmZvIC0gKGxvbmcpZXJyID49IGVyci0+c2VjdGlvbl9sZW5ndGgp
-DQo+ID4gKwkJaWYgKHN6ICsgKGxvbmcpY3R4X2luZm8gLSAobG9uZyllcnIgPD0gZXJyLT5zZWN0
-aW9uX2xlbmd0aCkNCj4gPiAgIAkJCXN6ICs9IGN0eF9pbmZvLT5zaXplOw0KPiA+DQo+ID4gICAJ
-CWN0eF9pbmZvID0gKHN0cnVjdCBjcGVyX2FybV9jdHhfaW5mbyAqKSgobG9uZyljdHhfaW5mbyAr
-IHN6KTsNCj4gPg0KPg0KPiBSZXZpZXdlZC1ieTogSGFuanVuIEd1byA8Z3VvaGFuanVuQGh1YXdl
-aS5jb20+DQoNClRoYW5rcywgSSB3aWxsIGFkZCB5b3VyIFJldmlld2VkLWJ5IHRhZyBpbiB2NSwg
-dGhlcmUgd2lsbCBiZSBubyBjb2RlIGNoYW5nZXMgaW4NCnRoYXQgdmVyc2lvbiwgc28gdGhlIHRh
-ZyByZW1haW5zIHZhbGlkLg0KDQo+DQo+IFRoYW5rcw0KPiBIYW5qdW4NCg==
+On Fri, Sep 18, 2026 at 02:01:50PM +0100, Pawel Zalewski wrote:
+> Use a designated initializer for the acpi_device_id fields which makes the
+> code more readable and consistent with how lists are initialized in the
+> rest of the kernel code base. Also drop explicitly setting fields to 0
+> where it is redundant.
+> 
+> Unify the list terminator to have a single space between the brackets and
+> no trailing comma.
+> 
+> Signed-off-by: Pawel Zalewski <pzalewski@thegoodpenguin.co.uk>
+
+Acked-by: Mika Westerberg <westeri@kernel.org>
