@@ -1,93 +1,59 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC348321457;
-	Tue, 22 Sep 2026 14:30:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74C9E3EAC74;
+	Tue, 22 Sep 2026 14:35:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790087429; cv=none; b=cXuNdENwqQO/ExNpWsLcBPR5gG647FUI4LcKJKTVBzoDrztqEBLzDfmu3D6qqi1/+x7OJeAkILPZl35MdmCpCN+Fnkgywa8d3l0hhrmIqYarG7IWX8fOjeEqRy6BTy/wba99naSuC0L/SPGEHHFdebI30jllXrPDTtIRcxhJu4I=
+	t=1790087701; cv=none; b=RelK4ouvXdDW0CMIjBk/7zF2J9WqwSYs1l+pd3mdK9sNgQaaMcshjQ1SviJUvLCvQEWLM+nsaJxvpvYGV69+nf30ASbajS8DOZG65Sq+5Hpie71KJ9Z3lnS7v2YDZPhzG+0tqtzGp+jYdLJE4/zQ91VtuyOFKHXind2wRN7JvKI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790087429; c=relaxed/simple;
-	bh=mXahkIv2RJHhzfh7U3pfRJZ3jKnnu9sUzp7Ckf7hw/I=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TEzH0d8Kd3YKEsrYP034kIqlezgXuE2J7oBYEB91qqUvdgWUG7/0qXf82x/E4gRoSGO8oFVhQc89fQZRTsd/eXwTUVNhLnx7cwvWB0u8LEcpGZnxTtdyAh9BOLpCK0SbjNxBekJWxz02EJ1e/r10qeaWHWlUjQxOjf/hd2BDT2E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=mLa2OR3h; arc=none smtp.client-ip=192.198.163.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1790087701; c=relaxed/simple;
+	bh=KlbmuMxkLkoxuH6oBTyGHj5Wu5Zm16Y5Kw/5vSn8XIg=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=i958nEEj+knnAz9IoYvTJQOQSNi93pennVhiz+LcnqJEJLQiloyjxtKaGrkgUUvdu4WFqe5Vc5HWhFeZ3hVFCCwXpQiSP2StgYRwlftcCgXOqxC9Q1IgvFw/qvhmL3G5w1J3q23jjo5ODKzrFy0K+NWcvd9WLrBgIivdv6Uy4B0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DhgkK8MU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="mLa2OR3h"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1790087428; x=1821623428;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=mXahkIv2RJHhzfh7U3pfRJZ3jKnnu9sUzp7Ckf7hw/I=;
-  b=mLa2OR3hT75J0uGy7kqF52QX+ambp/+PbQpKNfKnXnRYndeVV1af0Zq/
-   N7K9BhLEPpmvrVfG7S/6Rm4Yh6fUqzAuutqpl2rSU4HCzcTl3gRi9Uwa4
-   OR69SLR66wQ6Ua5hnT1ppTwjVHcGsYMMyzjs1L+Xr0K/3zE1h8/ekLwRb
-   UVAxmej9rhpvZiDBrLR0qj7zW+Psz2LHfq7hhxos+nnFg4Ubs5OkcYwJ2
-   xgUZFugalXMWOW7KdcigGV/JC46uTdYIFbBWm3Trr1O56AzccsrCYraCi
-   c57ZbENDCnLC4gNJUNAg+8UDdiTKnLKvqCTKV2FLViSwXljf9ixyUdPja
-   w==;
-X-CSE-ConnectionGUID: tThuKSKBRf+zRQNRoA934g==
-X-CSE-MsgGUID: SVJCC6QHSre59xQ3y0DHFw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11913"; a="101282188"
-X-IronPort-AV: E=Sophos;i="6.27,116,1787036400"; 
-   d="scan'208";a="101282188"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2026 07:30:21 -0700
-X-CSE-ConnectionGUID: I/VCzjL/REmW6DwByGaEEg==
-X-CSE-MsgGUID: m5yp+WLeSfWV6BjZ7FzIOQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,116,1787036400"; 
-   d="scan'208";a="299420640"
-Received: from black.igk.intel.com ([10.91.253.5])
-  by fmviesa002.fm.intel.com with ESMTP; 22 Sep 2026 07:30:14 -0700
-Received: by black.igk.intel.com (Postfix, from userid 1001)
-	id AAEC199; Tue, 22 Sep 2026 16:30:12 +0200 (CEST)
-Date: Tue, 22 Sep 2026 16:30:12 +0200
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Ard Biesheuvel <ardb@kernel.org>,
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
-	linux-efi@vger.kernel.org, Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Mark Pearson <mpearson-lenovo@squebb.ca>,
-	"Derek J. Clark" <derekjohn.clark@gmail.com>,
-	Hans de Goede <hansg@kernel.org>,
-	Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>,
-	platform-driver-x86@vger.kernel.org,
-	David Rhodes <david.rhodes@cirrus.com>,
-	Richard Fitzgerald <rf@opensource.cirrus.com>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
-	linux-sound@vger.kernel.org, Shenghao Ding <shenghao-ding@ti.com>,
-	Kevin Lu <kevin-lu@ti.com>, Baojun Xu <baojun.xu@ti.com>,
-	Sen Wang <sen@ti.com>, Vijendar Mukunda <Vijendar.Mukunda@amd.com>,
-	Venkata Prasad Potturu <venkataprasad.potturu@amd.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>,
-	Cezary Rojewski <cezary.rojewski@intel.com>,
-	Peter Ujfalusi <peter.ujfalusi@linux.intel.com>,
-	Bard Liao <yung-chuan.liao@linux.intel.com>,
-	Kai Vehmanen <kai.vehmanen@linux.intel.com>,
-	Pierre-Louis Bossart <pierre-louis.bossart@linux.dev>,
-	Binbin Zhou <zhoubinbin@loongson.cn>,
-	Andreas Noever <andreas.noever@gmail.com>,
-	Mika Westerberg <westeri@kernel.org>,
-	Yehezkel Bernat <YehezkelShB@gmail.com>
-Subject: Re: [PATCH v1 09/17] thunderbolt: Switch to use
- acpi_bus_get_primary_device()
-Message-ID: <20260922143012.GG106095@black.igk.intel.com>
-References: <7995179.EvYhyI6sBW@rafael.j.wysocki>
- <1941270.atdPhlSkOF@rafael.j.wysocki>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DhgkK8MU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 499E61F000FF;
+	Tue, 22 Sep 2026 14:34:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790087700;
+	bh=KlbmuMxkLkoxuH6oBTyGHj5Wu5Zm16Y5Kw/5vSn8XIg=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date;
+	b=DhgkK8MUcycLpRmE6lKgjwUAQSEMQlBlYhu8F0yUAhEOaR3ya3vwei4H3JmHqqqCV
+	 yCRLObzvCszsYxMELOFj91Vxv6hQXsiKkVqBXRzKTXgUoORkELo/PnBv7NK2sZLvyU
+	 OluB9RoD9ac8FGdL3meQeq6eVCLjlD/h+99ZYq0pUSZ0XUkAzdmpcbSk+jJ8tkaqCT
+	 fkgKY8PkKUjugPCXUBb9Yl5q03WyxZtkTSl9ewmIR24j/yJc3HP4CLvRbMp5/PNwbj
+	 MriE240BfaQUp5tespqgyhztYV3IGo+Iz3Hi19TIy44b5Up3rRFygj3ijWwPZK7Sbz
+	 TB9a3XOMhA9hA==
+From: Andreas Hindborg <a.hindborg@kernel.org>
+To: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <linux@weissschuh.net>, Breno Leitao
+ <leitao@debian.org>, Miguel Ojeda <ojeda@kernel.org>, Boqun Feng
+ <boqun@kernel.org>, Gary Guo <gary@garyguo.net>, =?utf-8?Q?Bj=C3=B6rn?= Roy
+ Baron
+ <bjorn3_gh@protonmail.com>, Benno Lossin <lossin@kernel.org>, Alice Ryhl
+ <aliceryhl@google.com>, Trevor Gross <tmgross@umich.edu>, Danilo Krummrich
+ <dakr@kernel.org>, Daniel Almeida <daniel.almeida@collabora.com>, Tamir
+ Duberstein <tamird@kernel.org>, Alexandre Courbot <acourbot@nvidia.com>,
+ Onur =?utf-8?Q?=C3=96zkan?= <work@onurozkan.dev>, Matthew Brost
+ <matthew.brost@intel.com>,
+ Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>,
+ Rodrigo Vivi
+ <rodrigo.vivi@intel.com>, David Airlie <airlied@gmail.com>, Simona Vetter
+ <simona@ffwll.ch>, Dan Williams <djbw@kernel.org>, "Rafael J. Wysocki"
+ <rafael@kernel.org>, Len Brown <lenb@kernel.org>
+Cc: rust-for-linux@vger.kernel.org, linux-kernel@vger.kernel.org,
+ intel-xe@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+ linux-coco@lists.linux.dev, linux-acpi@vger.kernel.org, Thomas
+ =?utf-8?Q?Wei=C3=9Fschuh?=
+ <linux@weissschuh.net>
+Subject: Re: [PATCH 0/6] configfs: Allow the registration of const struct
+ configfs_attribute
+In-Reply-To: <20260716-configfs-const-base-v1-0-c545a4053cb5@weissschuh.net>
+References: <bHvLFyR13nE7HUTBaSLSUZOfB-goGIQLnTtXl9nIQ_beVuvnPA2GpKpdWw-JM4MamQAdiSxOnCc_msKnwqqISw==@protonmail.internalid>
+ <20260716-configfs-const-base-v1-0-c545a4053cb5@weissschuh.net>
+Date: Tue, 22 Sep 2026 16:34:46 +0200
+Message-ID: <87tsnh2w3d.fsf@t14s.mail-host-address-is-not-set>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -95,21 +61,25 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1941270.atdPhlSkOF@rafael.j.wysocki>
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 21, 2026 at 09:51:06PM +0200, Rafael J. Wysocki wrote:
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> 
-> Replace acpi_get_first_physical_node() that is slated for removal
-> with acpi_bus_get_primary_device() that takes a reference to the
-> device it is about to return.
-> 
-> This addresses a potential use-after-free that may occur if the
-> device returned by acpi_get_first_physical_node() is removed right
-> after dropping its ACPI companion's physical_node_lock in that
-> function.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Thomas Wei=C3=9Fschuh <linux@weissschuh.net> writes:
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> The attribute structure defined in driver code never need to be
+> modified. Allow them to be marked as const.
+>
+> Signed-off-by: Thomas Wei=C3=9Fschuh <linux@weissschuh.net>
+
+For the rust parts:
+
+Acked-by: Andreas Hindborg <a.hindborg@kernel.org>
+
+@Breno, will you take the entire series through your tree?
+
+
+Best regards,
+Andreas Hindborg
+
+
+
+
