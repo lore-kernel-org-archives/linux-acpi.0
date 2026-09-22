@@ -1,148 +1,590 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11148548548;
-	Tue, 22 Sep 2026 12:50:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 683F43C454F
+	for <linux-acpi@vger.kernel.org>; Tue, 22 Sep 2026 13:08:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790081429; cv=none; b=roEWxC8IgqCZ2ISln8rHBpOTfMaVlE0PK0wz+WLE6mt1GjxsNiziHMrraBDQ3v+ug/HLk2qXKh4x800vUIaFvdw0EELmCbUehj0hE74vdkERlPPMqk140flsYa09V2+v9Y5W2cr3OI7YOgy/hpKnv7i2FBA615zuB52PFw2oyV8=
+	t=1790082518; cv=none; b=Q9kvXPOJRefvLeTQVtfF08UMxbMqQ3wA8DE5ueIgibOOLsvhC7tPoSeU0QgdxSj/BR87rWJ9Su+fCFsv2Jhc50WebmMwGVNXOxFaDFNV/BNnG1TmRDYS5JHucUjUt62yTczBz1ImxvfKTU5S8pPPJa9K8L3NDU+HyPhopxnnwhs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790081429; c=relaxed/simple;
-	bh=8UCgto53PpbzKbL4qGPd2JQxwKoYO+AmuFHXUf/Lc5w=;
-	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=fxbTS+6O6uFHaiJDjh/GA++SqdBAxTCTdxzn1avrVs90bsX9u0Jh7m+l5KBihpIEUJQbZmrpTZnl+bamiETFxv9cyVY/jLfy/+qXBJcYCqNEozIShkhZQz2pvS5lOCnnhStYAwXJcW3AHV+ShHYmLWe+Ji9/f2zTgygBDftRHiU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Ax6rctVO; arc=none smtp.client-ip=192.198.163.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1790082518; c=relaxed/simple;
+	bh=XDvs73JEy4YKJ3xI09CFbH0vjnY23kj5NZqhBSZ0vDA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=BxR+dxP9+oyTyDYoMWq2GrI4WmQsT6Y+i7vm7tuMCQ21BoDX1qC8pYQEBjPYvd9k55Bh2YKF+SuCoPQlE1X68AdKt3R/WSinGr4EVBfa/usp9DTUHO+1VvFTV6RjEFk5cJd7vivrkHtliu1IQ+8kn78pR5dfDHiWs3FIQRGrpPw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=htTVBU2T; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Ax6rctVO"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1790081427; x=1821617427;
-  h=from:date:to:cc:subject:in-reply-to:message-id:
-   references:mime-version:content-id;
-  bh=8UCgto53PpbzKbL4qGPd2JQxwKoYO+AmuFHXUf/Lc5w=;
-  b=Ax6rctVOwLVHpuCnqfq+X2GqjzZu9ctTsnH1GvoTImEAokMJYVY4yLKL
-   F80AncHDCrrhF6+Y/EdeoknPQVnAogqfCD1fqAnzou5gJNraOhorMnp1h
-   2zB5woPyLowTQqPkqNeO/2unmmA8BdZ7xxspu7UCiYHV2U/Rk4ugCKGOX
-   7QYFOSx5OSc4YkIMZ/jZOkfd4bRkBTNWfViQaOuICXXdrJvLkh9bvTani
-   zMkps2v9bKK3ZjPsoLksRJR/vzzJchI6BeUQ4pjUCqvNRde/CzXArad2R
-   45l+TW4OvuF3Qjw+XeTQrihD2wrYQYHw22grRldLlaAn8JNJeg60TtN+Q
-   A==;
-X-CSE-ConnectionGUID: 1nLUxBF7TdujDtedbosO/g==
-X-CSE-MsgGUID: JMmZL8DxRKazWsXAv12liw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11912"; a="94509504"
-X-IronPort-AV: E=Sophos;i="6.27,116,1787036400"; 
-   d="scan'208";a="94509504"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2026 05:50:26 -0700
-X-CSE-ConnectionGUID: HkEa0gd0RZ+cnyIro7LRgQ==
-X-CSE-MsgGUID: ymEdX1ORQUutXFOq6Y/9Ng==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,116,1787036400"; 
-   d="scan'208";a="272319629"
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.80])
-  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2026 05:50:14 -0700
-From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Date: Tue, 22 Sep 2026 15:50:07 +0300 (EEST)
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-cc: Linux ACPI <linux-acpi@vger.kernel.org>, 
-    LKML <linux-kernel@vger.kernel.org>, 
-    Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-    Mika Westerberg <mika.westerberg@linux.intel.com>, 
-    Lorenzo Pieralisi <lpieralisi@kernel.org>, 
-    Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>, 
-    linux-arm-kernel@lists.infradead.org, Ard Biesheuvel <ardb@kernel.org>, 
-    Ilias Apalodimas <ilias.apalodimas@linaro.org>, linux-efi@vger.kernel.org, 
-    Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>, 
-    "Joerg Roedel (AMD)" <joro@8bytes.org>, 
-    Mark Pearson <mpearson-lenovo@squebb.ca>, 
-    "Derek J. Clark" <derekjohn.clark@gmail.com>, 
-    Hans de Goede <hansg@kernel.org>, platform-driver-x86@vger.kernel.org, 
-    David Rhodes <david.rhodes@cirrus.com>, 
-    Richard Fitzgerald <rf@opensource.cirrus.com>, 
-    Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
-    linux-sound@vger.kernel.org, Shenghao Ding <shenghao-ding@ti.com>, 
-    Kevin Lu <kevin-lu@ti.com>, Baojun Xu <baojun.xu@ti.com>, 
-    Sen Wang <sen@ti.com>, Vijendar Mukunda <Vijendar.Mukunda@amd.com>, 
-    Venkata Prasad Potturu <venkataprasad.potturu@amd.com>, 
-    Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, 
-    Cezary Rojewski <cezary.rojewski@intel.com>, 
-    Peter Ujfalusi <peter.ujfalusi@linux.intel.com>, 
-    Bard Liao <yung-chuan.liao@linux.intel.com>, 
-    Kai Vehmanen <kai.vehmanen@linux.intel.com>, 
-    Pierre-Louis Bossart <pierre-louis.bossart@linux.dev>, 
-    Binbin Zhou <zhoubinbin@loongson.cn>, 
-    Andreas Noever <andreas.noever@gmail.com>, 
-    Mika Westerberg <westeri@kernel.org>, 
-    Yehezkel Bernat <YehezkelShB@gmail.com>
-Subject: Re: [PATCH v1 05/17] platform/x86: yogabook: Switch to use
- acpi_bus_get_primary_device()
-In-Reply-To: <1973238.CQOukoFCf9@rafael.j.wysocki>
-Message-ID: <5d1b4f76-6cb4-385c-016c-4753c3f046cf@linux.intel.com>
-References: <7995179.EvYhyI6sBW@rafael.j.wysocki> <1973238.CQOukoFCf9@rafael.j.wysocki>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="htTVBU2T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D24311F0089A
+	for <linux-acpi@vger.kernel.org>; Tue, 22 Sep 2026 13:08:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790082516;
+	bh=dtKSaYNybbuVIWzvAwOFjsM6oYgukInOsGXNCqfyEwo=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=htTVBU2TCEmd1CtgpddvKAI9Ya1+lEcp3BC92XqalRJtLTqtwThHgCL3Hm5BdgpNR
+	 vPj/iABtBD0w6uCSFLJGi7MLmH2qGDrwX2sMSSCwP7n/tPtQxgTkgZQVaYDffV1GoS
+	 nQ+zGFkid2QfdvFu8sHCBtFFt4+2R8dwmjvFx4I245WFzVsaiBPX9QiCvwfIPPYo0k
+	 bkFed7J1UvXBp5do+teGSIdBDfq9PIE/06utztKS0VVwvM2M97zAr2yiY8V1nxooeO
+	 3dh9Tn/ISd8V6vQyXUX9wWiSbm9yIH3szWm89DZaqmHPz7leMM28HgErlWOxyRBOy4
+	 owojN5G9gIRCg==
+Received: by mail-lr2-f13.google.com with SMTP id 38308e7fff4ca-3a318299b93so35939771fa.0
+        for <linux-acpi@vger.kernel.org>; Tue, 22 Sep 2026 06:08:35 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBxojsekgPq4ZFMATmG+fsJQUKYIKN3GcILlked9+/v2hP/Cm51yyOF1IeuaPbzshT6dpeiRQp4lMGTv@vger.kernel.org
+X-Gm-Message-State: AFuF++kBMsxDhYdP3npsHoWJ7CgMp7Vy7J8auxBpD4HePJ/MLMXKA31e
+	JSCZj7fNfFHFh4KLvQo3z54ci87QhMCYoI8vvEHxCnbrLOd6mEKJN91/yuBH2hOcz2VEcT8IM2H
+	XfdMxO7GykrUhRvEYLW465lz1Iv+kOOg=
+X-Received: by 2002:a05:651c:1503:b0:3a2:fda9:34fd with SMTP id
+ 38308e7fff4ca-3a5fbec15ecmr31018991fa.9.1790082513680; Tue, 22 Sep 2026
+ 06:08:33 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; BOUNDARY="8323328-1309644265-1790081383=:1233"
-Content-ID: <4fd4f1cf-4cbd-5eb8-1a79-0891e6bcc942@linux.intel.com>
+References: <20260918175052.85461-1-jordan@brough.org> <20260918175052.85461-2-jordan@brough.org>
+In-Reply-To: <20260918175052.85461-2-jordan@brough.org>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Tue, 22 Sep 2026 15:07:01 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gM8YUJZa=FR1=kr=cfe51zt6TJk60ibjZSnJ+tnpTGcQ@mail.gmail.com>
+X-Gm-Features: AcwNN1WOr_tMZwh9YG_OEze1vmkQnJ7QsHvEZpUx9Fku7T4MiH7ZogSUlPuAwKs
+Message-ID: <CAJZ5v0gM8YUJZa=FR1=kr=cfe51zt6TJk60ibjZSnJ+tnpTGcQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] ACPI: battery: add unified battery hook mechanism
+ for ACPI and SBS batteries
+To: Jordan Brough <jordan@brough.org>
+Cc: Jean Delvare <jdelvare@suse.com>, Guenter Roeck <linux@roeck-us.net>, 
+	"Rafael J . Wysocki" <rafael@kernel.org>, =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>, 
+	Henrik Rydberg <rydberg@bitmath.se>, linux-hwmon@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---8323328-1309644265-1790081383=:1233
-Content-Type: text/plain; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <bd368910-f979-56c9-1934-b22a9abc6ee9@linux.intel.com>
-
-On Mon, 21 Sep 2026, Rafael J. Wysocki wrote:
-
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
->=20
-> Replace acpi_get_first_physical_node() that is slated for removal
-> with acpi_bus_get_primary_device() that takes a reference to the
-> device it is about to return.
->=20
-> This addresses a potential use-after-free that may occur if the
-> device returned by acpi_get_first_physical_node() is removed right
-> after dropping its ACPI companion's physical_node_lock in that
-> function.
->=20
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Fri, Sep 18, 2026 at 7:51=E2=80=AFPM Jordan Brough <jordan@brough.org> w=
+rote:
+>
+> drivers/acpi/battery.c provides a battery_hook_register()/unregister()
+> mechanism that lets other drivers (e.g. platform and hwmon drivers
+> exposing vendor-specific charge control) attach extra power_supply
+> properties to an ACPI Control Method Battery (HID PNP0C0A).
+>
+> Some machines instead expose their battery through the ACPI Smart
+> Battery System (HID ACPI0002, "SBS") driver in drivers/acpi/sbs.c,
+> which has had no equivalent hook point.
+>
+> Extract the battery hooking implementation out of drivers/acpi/battery.c
+> into a shared helper in drivers/acpi/battery_hook.c, built directly into
+> the ACPI core (acpi.o). Both drivers/acpi/battery.c and drivers/acpi/sbs.=
+c
+> now register their power_supply devices with this shared hook
+> infrastructure via battery_hook_add_battery() and
+> battery_hook_remove_battery().
+>
+> This unifies the hooking interface across both battery drivers so
+> callers only need to register a single struct acpi_battery_hook without
+> needing to know or care whether the underlying hardware exposes a Control
+> Method Battery or an SBS battery.
+>
+> Suggested-by: Thomas Wei=C3=9Fschuh <linux@weissschuh.net>
+> Signed-off-by: Jordan Brough <jordan@brough.org>
 > ---
->  drivers/platform/x86/lenovo/yogabook.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/platform/x86/lenovo/yogabook.c b/drivers/platform/x8=
-6/lenovo/yogabook.c
-> index 1a4b2ab1f35d..8a91d440724b 100644
-> --- a/drivers/platform/x86/lenovo/yogabook.c
-> +++ b/drivers/platform/x86/lenovo/yogabook.c
-> @@ -353,13 +353,13 @@ static int yogabook_wmi_probe(struct wmi_device *wd=
-ev, const void *context)
->  =09=09goto error_put_devs;
->  =09}
-> =20
-> -=09data->kbd_dev =3D get_device(acpi_get_first_physical_node(data->kbd_a=
-dev));
-> +=09data->kbd_dev =3D acpi_bus_get_primary_device(data->kbd_adev);
->  =09if (!data->kbd_dev || !data->kbd_dev->driver) {
->  =09=09r =3D -EPROBE_DEFER;
->  =09=09goto error_put_devs;
->  =09}
-> =20
-> -=09data->dig_dev =3D get_device(acpi_get_first_physical_node(data->dig_a=
-dev));
-> +=09data->dig_dev =3D acpi_bus_get_primary_device(data->dig_adev);
->  =09if (!data->dig_dev || !data->dig_dev->driver) {
->  =09=09r =3D -EPROBE_DEFER;
->  =09=09goto error_put_devs;
+>  drivers/acpi/Makefile       |   1 +
+>  drivers/acpi/battery.c      | 165 +-----------------------------------
+>  drivers/acpi/battery_hook.c | 112 ++++++++++++++++++++++++
+>  drivers/acpi/sbs.c          |   8 +-
+>  include/acpi/battery.h      |  10 +++
+>  5 files changed, 133 insertions(+), 163 deletions(-)
+>  create mode 100644 drivers/acpi/battery_hook.c
+>
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index d1b0affb844..57413f2a09e 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -28,6 +28,7 @@ obj-$(CONFIG_ACPI)            +=3D acpi.o \
+>  # All the builtin files are in the "acpi." module_param namespace.
+>  acpi-y                         +=3D osi.o osl.o utils.o reboot.o
+>  acpi-y                         +=3D nvs.o
+> +acpi-y                         +=3D battery_hook.o
 
-Reviewed-by: Ilpo J=E4rvinen <ilpo.jarvinen@linux.intel.com>
+s/battery_hook/battery_hooks/
 
---=20
- i.
---8323328-1309644265-1790081383=:1233--
+And surely it need not be compiled in without any users built at least
+as modules.
+
+>
+>  # Power management related files
+>  acpi-y                         +=3D wakeup.o
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 670853ec3a4..9b6af528bfe 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -105,7 +105,7 @@ struct acpi_battery {
+>         struct kfifo acpi_notif_fifo;
+>         struct delayed_work acpi_notif_dwork;
+>         struct notifier_block pm_nb;
+> -       struct list_head list;
+> +       struct acpi_battery_hook_device hook_dev;
+
+struct acpi_battery_hooks_list_entry hooks_list_entry;
+
+>         unsigned long flags;
+>
+>         struct mutex property_lock; /* Protects properties below. */
+> @@ -744,164 +744,6 @@ static struct attribute *acpi_battery_attrs[] =3D {
+>  };
+>  ATTRIBUTE_GROUPS(acpi_battery);
+>
+> -/*
+> - * The Battery Hooking API
+> - *
+> - * This API is used inside other drivers that need to expose
+> - * platform-specific behaviour within the generic driver in a
+> - * generic way.
+> - *
+> - */
+> -
+> -static LIST_HEAD(acpi_battery_list);
+> -static LIST_HEAD(battery_hook_list);
+> -static DEFINE_MUTEX(hook_mutex);
+> -
+> -static void battery_hook_unregister_unlocked(struct acpi_battery_hook *h=
+ook)
+> -{
+> -       struct acpi_battery *battery;
+> -
+> -       /*
+> -        * In order to remove a hook, we first need to
+> -        * de-register all the batteries that are registered.
+> -        */
+> -       list_for_each_entry(battery, &acpi_battery_list, list) {
+> -               if (!hook->remove_battery(battery->bat, hook))
+> -                       power_supply_changed(battery->bat);
+> -       }
+> -       list_del_init(&hook->list);
+> -
+> -       pr_info("hook unregistered: %s\n", hook->name);
+> -}
+> -
+> -void battery_hook_unregister(struct acpi_battery_hook *hook)
+> -{
+> -       mutex_lock(&hook_mutex);
+> -       /*
+> -        * Ignore already unregistered battery hooks. This might happen
+> -        * if a battery hook was previously unloaded due to an error when
+> -        * adding a new battery.
+> -        */
+> -       if (!list_empty(&hook->list))
+> -               battery_hook_unregister_unlocked(hook);
+> -
+> -       mutex_unlock(&hook_mutex);
+> -}
+> -EXPORT_SYMBOL_GPL(battery_hook_unregister);
+> -
+> -void battery_hook_register(struct acpi_battery_hook *hook)
+> -{
+> -       struct acpi_battery *battery;
+> -
+> -       mutex_lock(&hook_mutex);
+> -       list_add(&hook->list, &battery_hook_list);
+> -       /*
+> -        * Now that the driver is registered, we need
+> -        * to notify the hook that a battery is available
+> -        * for each battery, so that the driver may add
+> -        * its attributes.
+> -        */
+> -       list_for_each_entry(battery, &acpi_battery_list, list) {
+> -               if (hook->add_battery(battery->bat, hook)) {
+> -                       /*
+> -                        * If a add-battery returns non-zero,
+> -                        * the registration of the hook has failed,
+> -                        * and we will not add it to the list of loaded
+> -                        * hooks.
+> -                        */
+> -                       pr_err("hook failed to load: %s", hook->name);
+> -                       battery_hook_unregister_unlocked(hook);
+> -                       goto end;
+> -               }
+> -
+> -               power_supply_changed(battery->bat);
+> -       }
+> -       pr_info("new hook: %s\n", hook->name);
+> -end:
+> -       mutex_unlock(&hook_mutex);
+> -}
+> -EXPORT_SYMBOL_GPL(battery_hook_register);
+> -
+> -static void devm_battery_hook_unregister(void *data)
+> -{
+> -       struct acpi_battery_hook *hook =3D data;
+> -
+> -       battery_hook_unregister(hook);
+> -}
+> -
+> -int devm_battery_hook_register(struct device *dev, struct acpi_battery_h=
+ook *hook)
+> -{
+> -       battery_hook_register(hook);
+> -
+> -       return devm_add_action_or_reset(dev, devm_battery_hook_unregister=
+, hook);
+> -}
+> -EXPORT_SYMBOL_GPL(devm_battery_hook_register);
+> -
+> -/*
+> - * This function gets called right after the battery sysfs
+> - * attributes have been added, so that the drivers that
+> - * define custom sysfs attributes can add their own.
+> - */
+> -static void battery_hook_add_battery(struct acpi_battery *battery)
+> -{
+> -       struct acpi_battery_hook *hook_node, *tmp;
+> -
+> -       mutex_lock(&hook_mutex);
+> -       INIT_LIST_HEAD(&battery->list);
+> -       list_add(&battery->list, &acpi_battery_list);
+> -       /*
+> -        * Since we added a new battery to the list, we need to
+> -        * iterate over the hooks and call add_battery for each
+> -        * hook that was registered. This usually happens
+> -        * when a battery gets hotplugged or initialized
+> -        * during the battery module initialization.
+> -        */
+> -       list_for_each_entry_safe(hook_node, tmp, &battery_hook_list, list=
+) {
+> -               if (hook_node->add_battery(battery->bat, hook_node)) {
+> -                       /*
+> -                        * The notification of the hook has failed, to
+> -                        * prevent further errors we will unload the hook=
+.
+> -                        */
+> -                       pr_err("error in hook, unloading: %s",
+> -                                       hook_node->name);
+> -                       battery_hook_unregister_unlocked(hook_node);
+> -               }
+> -       }
+> -       mutex_unlock(&hook_mutex);
+> -}
+> -
+> -static void battery_hook_remove_battery(struct acpi_battery *battery)
+> -{
+> -       struct acpi_battery_hook *hook;
+> -
+> -       mutex_lock(&hook_mutex);
+> -       /*
+> -        * Before removing the hook, we need to remove all
+> -        * custom attributes from the battery.
+> -        */
+> -       list_for_each_entry(hook, &battery_hook_list, list) {
+> -               hook->remove_battery(battery->bat, hook);
+> -       }
+> -       /* Then, just remove the battery from the list */
+> -       list_del(&battery->list);
+> -       mutex_unlock(&hook_mutex);
+> -}
+> -
+> -static void __exit battery_hook_exit(void)
+> -{
+> -       struct acpi_battery_hook *hook;
+> -       struct acpi_battery_hook *ptr;
+> -       /*
+> -        * At this point, the acpi_bus_unregister_driver()
+> -        * has called remove for all batteries. We just
+> -        * need to remove the hooks.
+> -        */
+> -       list_for_each_entry_safe(hook, ptr, &battery_hook_list, list) {
+> -               battery_hook_unregister(hook);
+> -       }
+> -       mutex_destroy(&hook_mutex);
+> -}
+> -
+>  static int sysfs_add_battery(struct acpi_battery *battery)
+>  {
+>         struct power_supply_config psy_cfg =3D {
+> @@ -957,7 +799,7 @@ static int sysfs_add_battery(struct acpi_battery *bat=
+tery)
+>                 battery->bat =3D NULL;
+>                 return result;
+>         }
+> -       battery_hook_add_battery(battery);
+> +       battery_hook_add_battery(&battery->hook_dev, battery->bat);
+
+acpi_battery_add_hooks(&battery->hooks_list_entry, battery->bat);
+
+>         return 0;
+>  }
+>
+> @@ -966,7 +808,7 @@ static void sysfs_remove_battery(struct acpi_battery =
+*battery)
+>         if (!battery->bat)
+>                 return;
+>
+> -       battery_hook_remove_battery(battery);
+> +       battery_hook_remove_battery(&battery->hook_dev);
+
+acpi_battery_remove_hooks(...)
+
+>         power_supply_unregister(battery->bat);
+>         battery->bat =3D NULL;
+>  }
+> @@ -1476,7 +1318,6 @@ static int __init acpi_battery_init(void)
+>  static void __exit acpi_battery_exit(void)
+>  {
+>         platform_driver_unregister(&acpi_battery_driver);
+> -       battery_hook_exit();
+>  }
+>
+>  module_init(acpi_battery_init);
+> diff --git a/drivers/acpi/battery_hook.c b/drivers/acpi/battery_hook.c
+> new file mode 100644
+> index 00000000000..308d10c940e
+> --- /dev/null
+> +++ b/drivers/acpi/battery_hook.c
+> @@ -0,0 +1,112 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * ACPI Battery Hooking API
+
+s/Hooking/Hooks/
+
+> + *
+> + * Provides a common registration and notification framework for drivers
+> + * that attach platform-specific properties or extensions to ACPI-regist=
+ered
+> + * batteries (both ACPI Control Method batteries and Smart Battery Syste=
+ms).
+
+"Provides helpers for registering and unregistering battery hooks for
+drivers that use platform-specific extensions to ACPI-enumerated
+batteries (both ACPI Control Method batteries and Smart Battery System
+batteries)."
+
+> + */
+> +
+> +#include <linux/device.h>
+> +#include <linux/export.h>
+> +#include <linux/list.h>
+> +#include <linux/mutex.h>
+> +#include <linux/power_supply.h>
+> +#include <acpi/battery.h>
+> +
+> +static LIST_HEAD(acpi_battery_list);
+> +static LIST_HEAD(battery_hook_list);
+> +static DEFINE_MUTEX(hook_mutex);
+> +
+> +static void battery_hook_unregister_unlocked(struct acpi_battery_hook *h=
+ook)
+
+Please add acpi_ prefix to all function names here and below.
+
+> +{
+> +       struct acpi_battery_hook_device *hook_dev;
+
+struct acpi_battery_hooks_list_entry *entry;
+
+and analogously below.
+
+> +
+> +       list_for_each_entry(hook_dev, &acpi_battery_list, list) {
+> +               if (!hook->remove_battery(hook_dev->battery, hook))
+> +                       power_supply_changed(hook_dev->battery);
+> +       }
+> +       list_del_init(&hook->list);
+> +
+> +       pr_info("hook unregistered: %s\n", hook->name);
+> +}
+> +
+> +void battery_hook_unregister(struct acpi_battery_hook *hook)
+> +{
+> +       mutex_lock(&hook_mutex);
+
+This code is different from the code removed from battery.c, so please
+use mutex locking guards in it.
+
+> +       if (!list_empty(&hook->list))
+> +               battery_hook_unregister_unlocked(hook);
+> +       mutex_unlock(&hook_mutex);
+> +}
+> +EXPORT_SYMBOL_GPL(battery_hook_unregister);
+> +
+> +void battery_hook_register(struct acpi_battery_hook *hook)
+> +{
+> +       struct acpi_battery_hook_device *hook_dev;
+> +
+> +       mutex_lock(&hook_mutex);
+> +       list_add(&hook->list, &battery_hook_list);
+> +
+> +       list_for_each_entry(hook_dev, &acpi_battery_list, list) {
+> +               if (hook->add_battery(hook_dev->battery, hook)) {
+> +                       pr_err("hook failed to load: %s\n", hook->name);
+> +                       battery_hook_unregister_unlocked(hook);
+> +                       goto end;
+> +               }
+> +
+> +               power_supply_changed(hook_dev->battery);
+> +       }
+> +       pr_info("new hook: %s\n", hook->name);
+> +end:
+> +       mutex_unlock(&hook_mutex);
+> +}
+> +EXPORT_SYMBOL_GPL(battery_hook_register);
+> +
+> +static void devm_battery_hook_unregister(void *data)
+> +{
+> +       struct acpi_battery_hook *hook =3D data;
+> +
+> +       battery_hook_unregister(hook);
+> +}
+> +
+> +int devm_battery_hook_register(struct device *dev, struct acpi_battery_h=
+ook *hook)
+
+devm_acpi_battery_hook_register(...)
+
+> +{
+> +       battery_hook_register(hook);
+> +
+> +       return devm_add_action_or_reset(dev, devm_battery_hook_unregister=
+, hook);
+> +}
+> +EXPORT_SYMBOL_GPL(devm_battery_hook_register);
+> +
+> +void battery_hook_add_battery(struct acpi_battery_hook_device *hook_dev,
+> +                             struct power_supply *battery)
+
+void acpi_battery_add_hooks(struct acpi_battery_hooks_list_entry *entry,
+
+and analogously for the removal function below.
+
+> +{
+> +       struct acpi_battery_hook *hook_node, *tmp;
+> +
+> +       hook_dev->battery =3D battery;
+> +       mutex_lock(&hook_mutex);
+> +       INIT_LIST_HEAD(&hook_dev->list);
+> +       list_add(&hook_dev->list, &acpi_battery_list);
+> +
+> +       list_for_each_entry_safe(hook_node, tmp, &battery_hook_list, list=
+) {
+> +               if (hook_node->add_battery(hook_dev->battery, hook_node))=
+ {
+> +                       pr_err("error in hook, unloading: %s\n", hook_nod=
+e->name);
+> +                       battery_hook_unregister_unlocked(hook_node);
+> +               }
+> +       }
+> +       mutex_unlock(&hook_mutex);
+> +}
+> +EXPORT_SYMBOL_GPL(battery_hook_add_battery);
+
+Use a symbol export namespace for this.
+
+> +
+> +void battery_hook_remove_battery(struct acpi_battery_hook_device *hook_d=
+ev)
+> +{
+> +       struct acpi_battery_hook *hook;
+> +
+> +       mutex_lock(&hook_mutex);
+> +       list_for_each_entry(hook, &battery_hook_list, list)
+> +               hook->remove_battery(hook_dev->battery, hook);
+> +
+> +       list_del(&hook_dev->list);
+> +       hook_dev->battery =3D NULL;
+> +       mutex_unlock(&hook_mutex);
+> +}
+> +EXPORT_SYMBOL_GPL(battery_hook_remove_battery);
+
+And for this too.
+
+> diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+> index 86b7c797585..a2f27c0d233 100644
+> --- a/drivers/acpi/sbs.c
+> +++ b/drivers/acpi/sbs.c
+> @@ -10,6 +10,7 @@
+>  #define pr_fmt(fmt) "ACPI: " fmt
+>
+>  #include <linux/init.h>
+> +#include <linux/list.h>
+>  #include <linux/slab.h>
+>  #include <linux/module.h>
+>  #include <linux/moduleparam.h>
+> @@ -54,6 +55,7 @@ struct acpi_battery {
+>         struct power_supply *bat;
+>         struct power_supply_desc bat_desc;
+>         struct acpi_sbs *sbs;
+> +       struct acpi_battery_hook_device hook_dev;
+
+struct acpi_battery_hooks_list_entry hooks_list_entry;
+
+>         unsigned long update_time;
+>         char name[8];
+>         char manufacturer_name[ACPI_SBS_BLOCK_MAX];
+> @@ -555,6 +557,8 @@ static int acpi_battery_add(struct acpi_sbs *sbs, int=
+ id)
+>                 goto end;
+>         }
+>
+> +       battery_hook_add_battery(&battery->hook_dev, battery->bat);
+
+acpi_battery_add_hooks(&battery->hook_list_entry, battery->bat);
+
+> +
+>        end:
+>         pr_info("%s [%s]: Battery Slot [%s] (battery %s)\n",
+>                ACPI_SBS_DEVICE_NAME, acpi_device_bid(sbs->device),
+> @@ -566,8 +570,10 @@ static void acpi_battery_remove(struct acpi_sbs *sbs=
+, int id)
+>  {
+>         struct acpi_battery *battery =3D &sbs->battery[id];
+>
+> -       if (battery->bat)
+> +       if (battery->bat) {
+> +               battery_hook_remove_battery(&battery->hook_dev);
+
+acpi_battery_remove_hooks(...);
+
+>                 power_supply_unregister(battery->bat);
+> +       }
+>  }
+>
+>  static int acpi_charger_add(struct acpi_sbs *sbs)
+> diff --git a/include/acpi/battery.h b/include/acpi/battery.h
+> index c93f16dfb94..df5087c0529 100644
+> --- a/include/acpi/battery.h
+> +++ b/include/acpi/battery.h
+> @@ -3,6 +3,7 @@
+>  #define __ACPI_BATTERY_H
+>
+>  #include <linux/device.h>
+> +#include <linux/list.h>
+>  #include <linux/power_supply.h>
+>
+>  #define ACPI_BATTERY_CLASS "battery"
+> @@ -18,8 +19,17 @@ struct acpi_battery_hook {
+>         struct list_head list;
+>  };
+>
+> +struct acpi_battery_hook_device {
+
+struct acpi_battery_hooks_list_entry {
+
+> +       struct power_supply *battery;
+> +       struct list_head list;
+
+struct list_head list_entry;
+struct power_supply *battery;
+
+> +};
+> +
+>  void battery_hook_register(struct acpi_battery_hook *hook);
+>  void battery_hook_unregister(struct acpi_battery_hook *hook);
+>  int devm_battery_hook_register(struct device *dev, struct acpi_battery_h=
+ook *hook);
+>
+> +void battery_hook_add_battery(struct acpi_battery_hook_device *hook_dev,
+> +                             struct power_supply *battery);
+> +void battery_hook_remove_battery(struct acpi_battery_hook_device *hook_d=
+ev);
+> +
+>  #endif
+> --
+
+HTH
