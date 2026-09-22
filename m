@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 185164248DC;
-	Tue, 22 Sep 2026 12:47:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A8E83C3F64;
+	Tue, 22 Sep 2026 12:48:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790081240; cv=none; b=ZBuSV2r3gsEFOzs2epPGt+93qpIpWzij+Gfyd872kPhyMPGOOcwuWbcT+BFiaAz/8OjQzMwY/zVwVuDG7CimwBV4MJBwQcv1nf072DN6U6OoPn6B/3cUMCtE4DJfg+OgsV+a0ixDGfQ5dhcSRT9L6hERAHpq1Fn0OzqiqcHOYc4=
+	t=1790081317; cv=none; b=gpKOK79vd/acaoxuBzBJuMc0YvFhudxGs8Z85eZpdcGISpmXLcHp/9qTOSOfp+NjICOtWzq3JKBEEWBf3OopYD1jnb11ZuvKvuQ3Ih+whKXceLnquyqtxACfkuI1JzRQd1Ppbqr/W5AciEzVs2pahWQkjF8HzGcjN/RJbjcCPf8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790081240; c=relaxed/simple;
-	bh=8ZKyqOu0mEmRU4MJJjqfKU5OT/hrxhKmNGxrkJ1omVE=;
+	s=arc-20240116; t=1790081317; c=relaxed/simple;
+	bh=qpF5www/qPUXSNZo2UHhbjLD5x+pblk2MWF/eef8p7I=;
 	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=jTHODBDjbrTfN+qVeWhfHPHtTPKmSeObFYVu+C3PwUiBbR+S75bR+0I6qpzaWwTfkB1077Op+OzGZWejsbTM9cPH1kQAn+phVrAwBOfrxafuZfBFjRASlhAQRxh0eaM82YiVbQeE5s1r73G+qefImF7OdWBEA0CTuljSZ9kLa/Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=W8tUvca5; arc=none smtp.client-ip=192.198.163.12
+	 MIME-Version:Content-Type; b=azoQk3oGWinAO0AB7OKRFful7+ftCUZPqaOfZuhnY8piNkn0rnF8zNg9u6dWJCpXFqvaYwjvdPL3LuTmNc80j2WfNpbzeKvCo47786D+RRGE8RfXjicoc85xIUakNgF+rnhpoqdaGcpCOCG59Omi6xnYlb4DsPPhEyiYIz3DCUM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ggRV/+t6; arc=none smtp.client-ip=192.198.163.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="W8tUvca5"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ggRV/+t6"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1790081238; x=1821617238;
+  t=1790081315; x=1821617315;
   h=from:date:to:cc:subject:in-reply-to:message-id:
    references:mime-version;
-  bh=8ZKyqOu0mEmRU4MJJjqfKU5OT/hrxhKmNGxrkJ1omVE=;
-  b=W8tUvca5PHakNVU8W3KdzzvE0tupjrBHcBYq7mWmCNvvzo2dZlTE+5ZE
-   GE6IsywKUUP9K+YwIRfUU7qVELFGEHd/bkVvcWUzoqN1qmxTzafPTcbtu
-   OZkUu5zYfywIp+Sp8IgFF+E4cF42/yeqQP+4FwMzeDseUF0y6VY9EXsUP
-   /EfAQaJvRkp8IQ+/BudyKZObao6Yv+hte28+9qKD+zWydQVsEMzRI1eND
-   p8pU5bO6BxsFhkzUCVg0fkxyuZ7a9hpPLz+/bAYXGi8BigZXPq5ad6Klm
-   W4FBDVXx0TDjs6eHegtpalGJWsxZV3jQVfQodlSa7RD8WmGvNlllO+liG
+  bh=qpF5www/qPUXSNZo2UHhbjLD5x+pblk2MWF/eef8p7I=;
+  b=ggRV/+t6rkMcSi5yHn4cGG0U2Fon7SDCUFWO0eLQjBmP3h4j17DENuqq
+   2IfALFjN2ZHnHpItjBh7hSpb1WuZI/kXFNbFMb0p5wcXDLlaGKGj5wDu1
+   D2kTCcdsUOtxoUaYM/w1Tkfz0nls7kC+4ssUOj8XGPjInjwfM837nFPOL
+   /1EYotmCXPC9lhfFxOe4QTorb5/kAlZt0sTAX4q3pMuJvGjJzu0rqGD4h
+   6KLnyKHtOA2IBuXfv9RV/jcNIryeAaqHyW7TSkybxwrgK7Fd4q9FxCrkE
+   T2mqR3Y0vcwnfxE0LbOb3WfYF2r0+DlzlP7dCHPSJJQWgmX+E0LHIeLBS
    A==;
-X-CSE-ConnectionGUID: CtV3F+JGRmOcwzbDpOboog==
-X-CSE-MsgGUID: pc0tHu51RJqcmwNb4FXOXg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11912"; a="94509130"
+X-CSE-ConnectionGUID: rRJf5XnETuSTdOb9egAF5A==
+X-CSE-MsgGUID: AXvh3yyRSwiJkczHEbOSgg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11912"; a="90796977"
 X-IronPort-AV: E=Sophos;i="6.27,116,1787036400"; 
-   d="scan'208";a="94509130"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2026 05:47:15 -0700
-X-CSE-ConnectionGUID: ZNKd8pjLSDqm/Bu8+RVLxA==
-X-CSE-MsgGUID: Y5imD72iRmm/cXg8yK2ddw==
+   d="scan'208";a="90796977"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2026 05:48:34 -0700
+X-CSE-ConnectionGUID: I61J/lMPR6yWm2SobW9uzQ==
+X-CSE-MsgGUID: Y5GxCWZmT3qY5hE+HY8CAQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,116,1787036400"; 
-   d="scan'208";a="272318929"
+   d="scan'208";a="301039531"
 Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.80])
-  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2026 05:47:02 -0700
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2026 05:48:21 -0700
 From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Date: Tue, 22 Sep 2026 15:46:56 +0300 (EEST)
+Date: Tue, 22 Sep 2026 15:48:19 +0300 (EEST)
 To: "Rafael J. Wysocki" <rafael@kernel.org>
 cc: Linux ACPI <linux-acpi@vger.kernel.org>, 
     LKML <linux-kernel@vger.kernel.org>, 
@@ -76,23 +76,23 @@ cc: Linux ACPI <linux-acpi@vger.kernel.org>,
     Andreas Noever <andreas.noever@gmail.com>, 
     Mika Westerberg <westeri@kernel.org>, 
     Yehezkel Bernat <YehezkelShB@gmail.com>
-Subject: Re: [PATCH v1 08/17] platform/x86: x86-android-tablets: Use
+Subject: Re: [PATCH v1 06/17] platform/x86: serdev_helpers: Switch to use
  acpi_bus_get_primary_device()
-In-Reply-To: <3912360.MHq7AAxBmi@rafael.j.wysocki>
-Message-ID: <b5e7637d-e189-6ac7-6e47-9f4a21aab2ca@linux.intel.com>
-References: <7995179.EvYhyI6sBW@rafael.j.wysocki> <3912360.MHq7AAxBmi@rafael.j.wysocki>
+In-Reply-To: <2720286.Lt9SDvczpP@rafael.j.wysocki>
+Message-ID: <5fa97997-ae1f-0ff3-918c-e3195164c2ef@linux.intel.com>
+References: <7995179.EvYhyI6sBW@rafael.j.wysocki> <2720286.Lt9SDvczpP@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="8323328-1698044991-1790081216=:1233"
+Content-Type: multipart/mixed; boundary="8323328-1862122475-1790081299=:1233"
 
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
---8323328-1698044991-1790081216=:1233
+--8323328-1862122475-1790081299=:1233
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 
@@ -111,41 +111,29 @@ On Mon, 21 Sep 2026, Rafael J. Wysocki wrote:
 >=20
 > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->  drivers/platform/x86/x86-android-tablets/core.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  drivers/platform/x86/serdev_helpers.h | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
 >=20
-> diff --git a/drivers/platform/x86/x86-android-tablets/core.c b/drivers/pl=
-atform/x86/x86-android-tablets/core.c
-> index cfff7f5eac5d..2c262f117235 100644
-> --- a/drivers/platform/x86/x86-android-tablets/core.c
-> +++ b/drivers/platform/x86/x86-android-tablets/core.c
-> @@ -390,7 +390,6 @@ static int gpio_secondary_fwnode_init(struct device *=
-parent,
->  {
->  =09const struct software_node *const *swnode;
->  =09struct fwnode_handle *fwnode;
-> -=09struct device *phys_dev;
->  =09int ret;
+> diff --git a/drivers/platform/x86/serdev_helpers.h b/drivers/platform/x86=
+/serdev_helpers.h
+> index 57eac75805e2..20267e1941f1 100644
+> --- a/drivers/platform/x86/serdev_helpers.h
+> +++ b/drivers/platform/x86/serdev_helpers.h
+> @@ -74,8 +74,7 @@ get_serdev_controller(const char *serial_ctrl_hid,
+>  =09=09return ERR_PTR(-ENODEV);
+>  =09}
 > =20
->  =09if (!node_group)
-> @@ -418,7 +417,8 @@ static int gpio_secondary_fwnode_init(struct device *=
-parent,
->  =09=09if (WARN_ON(!fwnode))
->  =09=09=09return -ENOENT;
-> =20
-> -=09=09phys_dev =3D acpi_get_first_physical_node(to_acpi_device(dev));
-> +=09=09struct device *phys_dev __free(put_device) =3D
-> +=09=09=09=09acpi_bus_get_primary_device(to_acpi_device(dev));
->  =09=09if (!phys_dev)
->  =09=09=09return dev_err_probe(parent, -ENODEV,
->  =09=09=09=09=09     "No physical device for ACPI GPIO dev: %pfwP\n",
+> -=09/* get_first_physical_node() returns a weak ref */
+> -=09parent =3D get_device(acpi_get_first_physical_node(adev));
+> +=09parent =3D acpi_bus_get_primary_device(adev);
+>  =09acpi_dev_put(adev);
+>  =09if (!parent) {
+>  =09=09pr_err("error could not get %s/%s serial-ctrl physical node\n",
 >=20
-
-Seems to be based on the latest code,
 
 Reviewed-by: Ilpo J=C3=A4rvinen <ilpo.jarvinen@linux.intel.com>
 
 --=20
  i.
 
---8323328-1698044991-1790081216=:1233--
+--8323328-1862122475-1790081299=:1233--
