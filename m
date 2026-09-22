@@ -1,131 +1,84 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 634BD3BB674;
-	Tue, 22 Sep 2026 12:08:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6BA353D0A4
+	for <linux-acpi@vger.kernel.org>; Tue, 22 Sep 2026 12:09:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790078896; cv=none; b=h+8QO4ZjBOFC/+qwj9dF5ubuFtDJ+qrKeLxb810T05mtEb/z5AS2p/cEUhWdY+XAgPiRvLRS16g8+b40wjh+71dirioxaDw/jPRnFG8hA7mHvOAyQCINdL9hEEQjGGUABRyMZ5CEZDFQYTndMqIrunUpQ/Nxde0C5kofSygwx5E=
+	t=1790078972; cv=none; b=a6F0N/zaPBod6bFBp7Pq7SS8R5SPTxuFCXJ+Vw5sn+fbdhvW1+uY4xkOwQ2cA6YBbcIay4ZZFAJbgKx1nf9v+oel7lYUG8FYOc97rKTOelSeTlTm2XFc+1tcaTzrGkFMZCcCs35sV4Zk++LtiECvyetX46yLT3rjHLqH3V2nuCs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790078896; c=relaxed/simple;
-	bh=0V9QC5n66fxyrdOYIu3O1xDoMNMpJyxrUXQCyoLIADk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=C5JHj1NOR2xh8zAXLB0zE2fyAhqJ+HredLU1wCUTttWcAxJSBHiSMn/zUVQI2TsZ2WkLtdnBiVzzmVBa1yUNXoxVSGTa93v3rm9iOBI1nW/b32a0E81PnbItbQZXsM1k2hGbr4eU4Zw+Td+ilyPu7bVvzOzQWpXvUvihtgkq/SY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e+HMGv5y; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790078972; c=relaxed/simple;
+	bh=gqKwaL+/AcGiqt0SEqNOonv02Mge4jL0jxPzbOQ6yJc=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=nJCFQ/A1x3tMvtzluzkSlCSYZD+rinWFeoyVtXnRD+idTlLai5ECbtZeIKy+qh3Q9uVLPED12iyzuvN4NFhp3Iauortz/ivxkccW7oIIMj9FURJRcyaSlE2vksk0L5ywlR8bDMk/3XxK1MoclRjI7Ri7xYv7u6EgRFjbWp6NlZY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aUd7oCph; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e+HMGv5y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDD921F000FF;
-	Tue, 22 Sep 2026 12:08:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aUd7oCph"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 606B71F00899
+	for <linux-acpi@vger.kernel.org>; Tue, 22 Sep 2026 12:09:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790078895;
-	bh=kXoL83CqDwawCQcGd4wj6mNy8UhWSLsG+qfCKX0fOHs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=e+HMGv5ypUo6olYaLz0UQBOEuJmYWFktyjpLYyVxtunfS2ShuLKW3M2avb+9GO4qO
-	 BKbLeXBR0bQG5aX2pmlrtqwolsUVcvH3h1tJrs/xgpVvYMupyMmBFZgKxcaGqCYGqj
-	 gIWpyV8+OLTyuG+L7VR5geeSdWZxMIwhEHRJblSj9WSaTrRuv6sOpHMQmkHz1GbWP4
-	 zCKSW0zQxv+keerFrmN/YQkBdX6247xt9EgtXRechlKXX4GcuHHmReSMHF4CzmznE5
-	 gOVnHxvn7dlE04/t7VCGZ2ZpMcpK7zAVU/o9ykkcj2WmsGxEUn74+LUPSSLG07Vo6+
-	 iCb/9VqJp9NZg==
-Date: Tue, 22 Sep 2026 13:08:11 +0100
-From: Sudeep Holla <sudeep.holla@kernel.org>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	acpica-devel@lists.linux.dev, Saket Dumbre <saket.dumbre@intel.com>
-Subject: Re: [PATCH v2 1/4] ACPICA: Fix PCC OperationRegion command offsets
-Message-ID: <20260922-lime-hornet-of-culture-5a1fff@sudeepholla>
-References: <20260722131553.2117835-1-sudeep.holla@kernel.org>
- <20260722131553.2117835-2-sudeep.holla@kernel.org>
- <CAJZ5v0hdxtuEbFQdwRe=T+Q2xRki+uN9PP7PPw7AdW4Obe3fqA@mail.gmail.com>
- <20260813-demonic-athletic-manul-e1d7bb@sudeepholla>
- <CAJZ5v0gMU1NjMKgEUMW6cmU7uquPyES2TejZVQqkwDH5C6FWvw@mail.gmail.com>
- <CAJZ5v0gqo_n39PGnBkB-5ozE_dQyau4t=5OxvdnZxu4D+ivhHQ@mail.gmail.com>
+	s=k20260515; t=1790078970;
+	bh=gqKwaL+/AcGiqt0SEqNOonv02Mge4jL0jxPzbOQ6yJc=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=aUd7oCph+9i8ACVufMzt89mdZPx3sPvEVZR1YbHK1v/rQDJfyT1G/JEF1Xpkuihv6
+	 WejvVmeXEKX00xGTJQMuntZc/bsNTfVVb9jobxmwY3wgnbIYG87xwiVIy1IvK+cgDU
+	 9SoDO66pTcRjDGUzDMikTtWnFnYIni+wGpwEWDJI08ta0E5UoPUaaNSaQeYAZV6ojF
+	 zuPmle+uEOaiTNpUVUzUSY9qlKLt4xE9A/2U0bPo9XSZLZFo2DQdjGB5Npkjtk8qDE
+	 CZbtp4mng1tU35xNVlqSSyxh5d/T0tlohMtvKJ+KNhgKspQ0JitAYo0HiclGZ2u9Wd
+	 /Q4Sgm/4/X1Kw==
+Received: by mail-lf2-f12.google.com with SMTP id 2adb3069b0e04-5b5e4f1b845so3334025e87.1
+        for <linux-acpi@vger.kernel.org>; Tue, 22 Sep 2026 05:09:30 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBwFt6QcPwMuViUk2eaemXdcXLMWLlotkskr0Ihv2bygFEkxauyWG88+uwglYuDfMvJMWymhO9yaX3Cn@vger.kernel.org
+X-Gm-Message-State: AFuF++kqESCxB5FjgWjdEzr1i4PQzrEeXsf/FWbPqaTreKmdpVh8Hw8+
+	q0AWPi7J1ML3AnYyZdCcmiYU4ZGpKnDkmExueTcIf7SOInGwjvbTmpBf9pSkfc1AS6hZWidPDYu
+	CBr3k6K6fXPprpJzMNFOIc4oPWaTYzKs=
+X-Received: by 2002:a05:6512:3f26:b0:5b0:129c:ed85 with SMTP id
+ 2adb3069b0e04-5b8c1833735mr4656415e87.1.1790078968689; Tue, 22 Sep 2026
+ 05:09:28 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJZ5v0gqo_n39PGnBkB-5ozE_dQyau4t=5OxvdnZxu4D+ivhHQ@mail.gmail.com>
+References: <20260501165542.GA491695@bhelgaas> <561131dd-0e42-437a-9724-a036238a9bb4@gmx.net>
+ <5f716613-d996-46db-96ec-6c0251219922@gmx.net> <449c834d-d115-4242-aa5a-43daa085f178@leemhuis.info>
+ <81ac70ae-c51e-4960-8dd3-bed47ceafafb@gmx.net> <012b3ebc-62f0-402e-afa9-02712e67e72a@leemhuis.info>
+ <86030fc1-473b-4695-a2f3-c30b5f19614c@gmx.net>
+In-Reply-To: <86030fc1-473b-4695-a2f3-c30b5f19614c@gmx.net>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Tue, 22 Sep 2026 14:07:56 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0iw9Jrdv2MaCu5Dou3Ust5L-YsEMWDpZPP58-ag_pbZSg@mail.gmail.com>
+X-Gm-Features: AcwNN1UGH85E-0STnNRfBuN9iOHz5RK2V5gbiUx9oFANBoJIrdCdCHY4pgwi5FY
+Message-ID: <CAJZ5v0iw9Jrdv2MaCu5Dou3Ust5L-YsEMWDpZPP58-ag_pbZSg@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: PM: Add quirk for Acer Swift 3 SF314-56G (MX250)
+To: lxuser <dittrich.m@gmx.net>
+Cc: rafael@kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, 
+	regressions@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 22, 2026 at 01:50:46PM +0200, Rafael J. Wysocki (Intel) wrote:
-> On Thu, Aug 13, 2026 at 11:13 AM Rafael J. Wysocki (Intel)
-> <rafael@kernel.org> wrote:
-> >
-> > On Thu, Aug 13, 2026 at 5:00 AM Sudeep Holla <sudeep.holla@kernel.org> wrote:
-> > >
-> > > On Wed, Aug 05, 2026 at 06:46:15PM +0200, Rafael J. Wysocki (Intel) wrote:
-> > > > On Wed, Jul 22, 2026 at 3:16 PM Sudeep Holla <sudeep.holla@kernel.org> wrote:
-> > > > >
-> > > > > ACPI 6.3, section 5.5.2.4.7.3, states that the PCC Operation
-> > > > > Region is associated with the region of shared memory that follows the
-> > > > > PCC signature.
-> > > > >
-> > > > > The generic and extended PCC shared memory layouts include the 4-byte
-> > > > > signature at offset 0, so their raw shared memory COMMAND fields are at
-> > > > > offsets 4 and 12 respectively. Since AML field offsets for the PCC
-> > > > > OperationRegion are relative to the region after that signature, ACPICA
-> > > > > must look for those COMMAND fields at OperationRegion offsets 0 and 8.
-> > > > >
-> > > > > Adjust the generic and master subspace command checks to use those
-> > > > > OperationRegion-relative offsets. Otherwise writes to the COMMAND field
-> > > > > can fail to invoke the PCC address space handler at the offset described
-> > > > > by the PCC OperationRegion definition.
-> > > > >
-> > > > > Fixes: aa6ec56b574d ("ACPICA: ACPI 6.3: add PCC operation region support for AML interpreter")
-> > > > > Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
-> > > > > ---
-> > > > >  drivers/acpi/acpica/exfield.c | 11 ++++++-----
-> > > > >  1 file changed, 6 insertions(+), 5 deletions(-)
-> > > > >
-> > > > > diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
-> > > > > index 9a55524ed8f4..a7fac63938b3 100644
-> > > > > --- a/drivers/acpi/acpica/exfield.c
-> > > > > +++ b/drivers/acpi/acpica/exfield.c
-> > > > > @@ -45,12 +45,13 @@ static const u8 acpi_protocol_lengths[] = {
-> > > > >
-> > > > >  /*
-> > > > >   * The following macros determine a given offset is a COMD field.
-> > > > > - * According to the specification, generic subspaces (types 0-2) contains a
-> > > > > - * 2-byte COMD field at offset 4 and master subspaces (type 3) contains a 4-byte
-> > > > > - * COMD field starting at offset 12.
-> > > > > + * According to the specification, the PCC OperationRegion begins after
-> > > > > + * the PCC signature. The raw shared memory COMD offsets of 4 for generic
-> > > > > + * subspaces (types 0-2) and 12 for master subspaces (type 3) therefore
-> > > > > + * appear at OperationRegion offsets 0 and 8.
-> > > > >   */
-> > > > > -#define GENERIC_SUBSPACE_COMMAND(a)     (4 == a || a == 5)
-> > > > > -#define MASTER_SUBSPACE_COMMAND(a)      (12 <= a && a <= 15)
-> > > > > +#define GENERIC_SUBSPACE_COMMAND(a)     ((a) < 2)
-> > > > > +#define MASTER_SUBSPACE_COMMAND(a)      (((a) - 8) < 4)
-> > > > >
-> > > > >  /*******************************************************************************
-> > > > >   *
-> > > > > --
-> > > >
-> > > > Can you please see the corresponding upstream ACPICA pull request?
-> > > > There are concerns regarding it.
-> > > >
-> > >
-> > > Sorry for the delay in response, currently I am on vacation and don't
-> > > have all the setup to validate anything. I will follow up once I am back.
-> > > It is OK to miss v7.3
-> >
-> > OK, I'll wait then, thanks!
-> 
-> A new version of this has been applied upstream:
-> 
-> https://github.com/open-acpica/acpica/commit/57a2afa78dbe3580e19307aedd19f32388512094
-> 
-> so can you please rebase and resend the series?
-> 
+On Fri, Sep 18, 2026 at 8:49=E2=80=AFAM lxuser <dittrich.m@gmx.net> wrote:
 >
+> Dear Rafael,
+>
+> the Acer Swift 3 SF314-56G with NVIDIA GeForce MX250 (bios V1.14)
+> suffers from an ACPI power resource regression where the power resource
+> controlling the dGPU is incorrectly marked as unused and turned off
+> during initialization.
+> This causes the GPU to enter D3cold state, making it inaccessible to the
+> NVIDIA driver.
+>
+> The symptom was:
+> nvidia 0000:02:00.0: Unable to change power state from D3cold to D0,
+> device inaccessible
+>
+> This commit adds a DMI quirk to prevent the power resource from being
+> turned off, similar to the existing Thunderobot ZERO quirk (cd7ef20ba8c6e=
+9).
 
-Sure, I will do that. Thanks for the reminder.
+I would have applied your patch, but I need the same information in
+the Signed-off-by tag and the email From: header (preferably, your
+full name followed by the email address).
 
--- 
-Regards,
-Sudeep
+Thanks!
