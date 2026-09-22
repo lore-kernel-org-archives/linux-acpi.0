@@ -1,127 +1,94 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5216D55294B;
-	Tue, 22 Sep 2026 14:43:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C27D05581F7;
+	Tue, 22 Sep 2026 15:17:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790088207; cv=none; b=vGrYhPs69cu6GLVYAL1Xx4mucgVTlGvdiGEp/CudxQ6uZNcLjDa8jpauxsRL96vDWhkWiBjLEYN6/A531Uc6ch9YjmYlnAe9tMSjpoJm3T4ZUGKTG1ciQYzwtoJnMO6T73MymQf+L/KLbJb6zqCioXUBRYjLSUW5UPwl0KoMbrg=
+	t=1790090262; cv=none; b=T0O25ZtgIYWEeunEchxFNdc84BqdTFZ/dumgsUQMrvgphl07a1aKLc8YjOFsTR4N9DiNQUIpPTyXfSdE/aZUJaXA9Ntp17UYcszbN8Yv0/Jk0ZOXZwtlRUvi0Xv1RQ/TtmS/1hjssIv9i25qolJupFXlSeTfmhajzNGnYeoVlRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790088207; c=relaxed/simple;
-	bh=fULks90RtRceuUJcZ14mCt0FNHR9InBzFoqOp+OXWTc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gg4G27DqEXG53E659OO5OFTuwtTTCOv/pL/q+owYSjbTMKN7DCL/K9Iuv70s6wVvE8/VhCOoUq94UfFD8J3fYa8ftA3OLup45bXdrdIpzrzZQsX+FTTrRS37/O7WV/ivBIPF/ip6s/M+5HeR+7g/8yZitanZ5UZR2sWKa2HP4h0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XxAdzG3R; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790090262; c=relaxed/simple;
+	bh=WJQlexOEFB2+rLfSFe39873Vz8dqsCQdE/Ket6GyZWs=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=f8udFSj5E2qoZnNTwzdRi399XWi0SZeGFkmt6py+urAVnjcJpJU58aBh5WgVrXMi/aKHwqgkznxw1RE8lvpErwcXr3q9t+UY9OjdUBpzdW9eesDLZSclNs1RI4v3JF5vHIPenPNZRr/HmaVfz1yrLDxoM1e9SfoeFx90TuNqeZg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=rbbtwE1o; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XxAdzG3R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE59B1F00893;
-	Tue, 22 Sep 2026 14:43:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790088206;
-	bh=zCyrRMfzhOIUjv0cKHPXUvAY98WsF24GT8xrQP9NKeA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=XxAdzG3RTXxdk/YJm2LOd84q8jrbORu6DuxM+ywzC5a77eSlriMkubfJBH3Z+aamh
-	 3Qt5DTOBnV590HIghQt2sniXF4zy+ZmAZ+nk0ujecHUFS7JZgWRH7e4ZhTW+XIdk3B
-	 /wFLKUM/Bqt5K6op3yPiAplmPFRho2glMZxX/YS7tgJSTIjfggvGdVEl7kaV94HTLH
-	 gbjGeT1AuGwEcmZk8ucM7D++zS3zOBZudkMMLKJNP8XEbiytzSUmefNJKgaCQKc0av
-	 D2x1ipZmzX0ubDMW9ZAtBLT6jbEhNWE1ILsZgzP/tTM6FJNU9xZDoevoy+ZOkhW47p
-	 dzVK+bdub1izQ==
-From: Sudeep Holla <sudeep.holla@kernel.org>
-To: linux-acpi@vger.kernel.org,
-	acpica-devel@lists.linux.dev
-Cc: Sudeep Holla <sudeep.holla@kernel.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	Pawel Chmielewski <pawel.chmielewski@intel.com>,
-	Huisong Li <lihuisong@huawei.com>
-Subject: [PATCH v3 4/4] ACPI: PCC: Cache OpRegion command timeout
-Date: Tue, 22 Sep 2026 15:43:02 +0100
-Message-ID: <20260922144302.3847593-5-sudeep.holla@kernel.org>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20260922144302.3847593-1-sudeep.holla@kernel.org>
-References: <20260922144302.3847593-1-sudeep.holla@kernel.org>
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="rbbtwE1o"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id AAA3E1576;
+	Tue, 22 Sep 2026 08:17:35 -0700 (PDT)
+Received: from [10.2.212.23] (e121345-lin.cambridge.arm.com [10.2.212.23])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A3B5E3F86F;
+	Tue, 22 Sep 2026 08:17:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1790090259; bh=WJQlexOEFB2+rLfSFe39873Vz8dqsCQdE/Ket6GyZWs=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=rbbtwE1ovFBalioA6W+2gPtB+Lf+eeY2UhEbfO4cyQAl6aEdNz/ibBXCm8yq2qud/
+	 4Louz5/9Gmmuqn+m4/QJHqLBdKAqr3l3GaqDV/UlaAGU2bLOrCwwsvMCkOhwAMZ9FL
+	 QonY6Pasx3dWe8xeQ5MvLOTFa1SK5C7RpOGceWT4=
+Message-ID: <7d0fa712-bbc4-441c-90c2-38e9faeee228@arm.com>
+Date: Tue, 22 Sep 2026 16:17:37 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] ACPI: Provide !ACPI stub for acpi_device_uid()
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <513319f19ed6b0b6d4c76dc517074531966b98f5.1789745223.git.robin.murphy@arm.com>
+ <CAJZ5v0j72dht4wiVcoFmk2Rt1pvPL7Yrr_29jihzfKAb3Pu24g@mail.gmail.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Content-Language: en-GB
+In-Reply-To: <CAJZ5v0j72dht4wiVcoFmk2Rt1pvPL7Yrr_29jihzfKAb3Pu24g@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-The PCC OperationRegion handler computes the same command completion
-wait timeout each time it sends a command. The timeout is derived from
-static channel properties, so compute it once when the PCC channel is
-set up and store the millisecond value in the mailbox client timeout
-field.
+On 22/09/2026 12:40 pm, Rafael J. Wysocki (Intel) wrote:
+> On Fri, Sep 18, 2026 at 5:27 PM Robin Murphy <robin.murphy@arm.com> wrote:
+>>
+>> While the likes of acpi_dev_uid_to_integer() and acpi_dev_uid_match()
+>> already have stubs for !ACPI, the basic acpi_device_uid() getter does
+>> not. As with acpi_device_hid(), add one for the convenience of portable
+>> drivers who just want the string itself - in fact they are so much alike
+>> that we can simply alias the exact same stub definition.
+>>
+>> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+>> ---
+>>   include/acpi/acpi_bus.h | 1 +
+>>   1 file changed, 1 insertion(+)
+>>
+>> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+>> index 1a45e0d521d8..ed309ea4785d 100644
+>> --- a/include/acpi/acpi_bus.h
+>> +++ b/include/acpi/acpi_bus.h
+>> @@ -963,6 +963,7 @@ static inline const char *acpi_device_hid(struct acpi_device *device)
+>>   {
+>>          return "";
+>>   }
+>> +#define acpi_device_uid acpi_device_hid
+>>
+>>   static inline bool
+>>   acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld_info **pld)
+>> --
+> 
+> Sashiko has reservations that look valid:
+> 
+> https://sashiko.dev/#/patchset/513319f19ed6b0b6d4c76dc517074531966b98f5.1789745223.git.robin.murphy%40arm.com
 
-Use the cached timeout when waiting for the OperationRegion command to
-complete. This keeps the timeout calculation in one place and avoids
-recomputing it for every command.
+Oops, indeed apparently I missed that acpi_device_pnp::unique_id isn't 
+actually const - it probably should be IMO, but that would be a whole 
+other patch.
 
-Reviewed-by: Huisong Li <lihuisong@huawei.com>
-Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
----
- drivers/acpi/acpi_pcc.c | 22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+FWIW I can't see that the return value itself actually matters here 
+since !ACPI code couldn't have a valid acpi_device to legitimately call 
+this with at runtime. In fact even for compile-testing, references 
+should usually be under a condition like has_acpi_companion() which 
+would lead to them getting DCE's under !ACPI without needing the stub - 
+this was really just for completeness to shut up annoying Sashiko noise 
+on that point.
 
-diff --git a/drivers/acpi/acpi_pcc.c b/drivers/acpi/acpi_pcc.c
-index 57d13b25c1d6..345f233d77cd 100644
---- a/drivers/acpi/acpi_pcc.c
-+++ b/drivers/acpi/acpi_pcc.c
-@@ -50,10 +50,11 @@ static acpi_status
- acpi_pcc_address_space_setup(acpi_handle region_handle, u32 function,
- 			     void *handler_context,  void **region_context)
- {
--	struct pcc_data *data;
- 	struct acpi_pcc_info *ctx = handler_context;
- 	struct pcc_mbox_chan *pcc_chan;
-+	struct pcc_data *data;
- 	acpi_status ret;
-+	u64 usecs_lat;
- 
- 	if (function == ACPI_REGION_DEACTIVATE) {
- 		data = *region_context;
-@@ -103,6 +104,16 @@ acpi_pcc_address_space_setup(acpi_handle region_handle, u32 function,
- 		goto err_free_channel;
- 	}
- 
-+	/*
-+	 * pcc_chan->latency is just a Nominal value. In reality the remote
-+	 * processor could be much slower to reply. So add an arbitrary
-+	 * amount of wait on top of Nominal.
-+	 */
-+	usecs_lat = PCC_CMD_WAIT_RETRIES_NUM * pcc_chan->latency;
-+	data->cl.tx_tout = DIV_ROUND_UP_ULL(usecs_lat, 1000);
-+	if (!data->cl.tx_tout)
-+		data->cl.tx_tout = 1;
-+
- 	*region_context = data;
- 	return AE_OK;
- 
-@@ -121,7 +132,6 @@ acpi_pcc_address_space_handler(u32 function, acpi_physical_address addr,
- {
- 	struct pcc_data *data = region_context;
- 	void __iomem *pcc_opregion;
--	u64 usecs_lat;
- 	int ret;
- 
- 	pcc_opregion = data->pcc_chan->shmem + PCC_SIGNATURE_SIZE;
-@@ -135,14 +145,8 @@ acpi_pcc_address_space_handler(u32 function, acpi_physical_address addr,
- 	if (ret < 0)
- 		return AE_ERROR;
- 
--	/*
--	 * pcc_chan->latency is just a Nominal value. In reality the remote
--	 * processor could be much slower to reply. So add an arbitrary
--	 * amount of wait on top of Nominal.
--	 */
--	usecs_lat = PCC_CMD_WAIT_RETRIES_NUM * data->pcc_chan->latency;
- 	ret = wait_for_completion_timeout(&data->done,
--						usecs_to_jiffies(usecs_lat));
-+					  msecs_to_jiffies(data->cl.tx_tout));
- 	if (ret == 0) {
- 		pr_err("PCC command executed timeout!\n");
- 		return AE_TIME;
--- 
-2.43.0
-
+Thanks,
+Robin.
