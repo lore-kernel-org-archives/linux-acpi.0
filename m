@@ -1,221 +1,131 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4C4F53D9C6
-	for <linux-acpi@vger.kernel.org>; Tue, 22 Sep 2026 12:06:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 634BD3BB674;
+	Tue, 22 Sep 2026 12:08:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790078780; cv=none; b=uY6GBGFTRo5XZGyTzGziiEJliclNsi6HMyImic3/6gxEipQi5oYPCAnTROnbCDZd7TPbByp/iQnWkLANhUDgqSPhdP4sSNeIGKQKmVnT3weeRESWiLo9/sWcfBgsYOynnzJ07moSsY9HVbvWvMTVnGlWH5IRmIJkLm7SlI19VR0=
+	t=1790078896; cv=none; b=h+8QO4ZjBOFC/+qwj9dF5ubuFtDJ+qrKeLxb810T05mtEb/z5AS2p/cEUhWdY+XAgPiRvLRS16g8+b40wjh+71dirioxaDw/jPRnFG8hA7mHvOAyQCINdL9hEEQjGGUABRyMZ5CEZDFQYTndMqIrunUpQ/Nxde0C5kofSygwx5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790078780; c=relaxed/simple;
-	bh=qrBPaEhoOlbrbf6cdxY2nGBDf1vM6ryopde2Igiaum4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=DQ82CVqfEjW7FX04kW+gBUYZLChituhhA7cLO8ZRzgyzXovvF3hnqd2AAczhnd3Azyh/lWNocqfwRxFnujiIL9wzK6Pc3pzcP0A98MLqgbwCSt1WV1ior3p/UIflZshx+YJX/Hvxx2Z5w6ajL2LVdldhrCqBfnYepnj65vjO2Ao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=URdN5Hcj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790078896; c=relaxed/simple;
+	bh=0V9QC5n66fxyrdOYIu3O1xDoMNMpJyxrUXQCyoLIADk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=C5JHj1NOR2xh8zAXLB0zE2fyAhqJ+HredLU1wCUTttWcAxJSBHiSMn/zUVQI2TsZ2WkLtdnBiVzzmVBa1yUNXoxVSGTa93v3rm9iOBI1nW/b32a0E81PnbItbQZXsM1k2hGbr4eU4Zw+Td+ilyPu7bVvzOzQWpXvUvihtgkq/SY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e+HMGv5y; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="URdN5Hcj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7446A1F00893
-	for <linux-acpi@vger.kernel.org>; Tue, 22 Sep 2026 12:06:18 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e+HMGv5y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDD921F000FF;
+	Tue, 22 Sep 2026 12:08:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790078778;
-	bh=ugr5bJ4okbW7Q03V27ZXeHgo+ECEOTsTbRB2dpi47to=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=URdN5HcjCBLlngsvTzJw+1pN+4qhBJGakkxuO+2iKYqCbiVPHbuJz0JXIopo2xvMa
-	 7iz41qsZQAE0uxhB7gh3FFUYZKl2z6tAdbIdLwNZzJJyTY42AU/1dYqU2b6wvQ9dBX
-	 ZsQKJuudGQSoWelagCceHTxUM9BG2McDKhkqPV51TiTcNWPLKNAV8Hb1nISVIfTyuJ
-	 BNCXnbonukV6p0OwrVxlHCQRepz3J3A5sLGDn7zTpUcrWTJP5ReF8hpSlaUsBrvW0m
-	 xyLsppVHdJVEtFxl5szsUESZ6c7/7a3v6tpqlF0lW1KfiS6EM+hhoHEZRlzEuR2/Kh
-	 87lkDJvPyg6Lw==
-Received: by mail-lr2-f12.google.com with SMTP id 38308e7fff4ca-3a2ff00b8d8so32918361fa.1
-        for <linux-acpi@vger.kernel.org>; Tue, 22 Sep 2026 05:06:18 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBycwYQRBVp/iQeMX2ZlTvZgfTmsuTnfT/02xoEXCsIS1aLgj+U4NRRfB1s2xtW8ITiUMlblzmpBeMyl@vger.kernel.org
-X-Gm-Message-State: AFuF++nsNOGTdDMUpuYx+kDmtwOJMEjO12B50uV43lJTLpGyJO4alge4
-	EWV5Msog4WxChjIEbmhMosl3fC8XRwSyDWrKx6DY4yEjjoySjVKcWuaoyjhoNXZw4/gJLM9DyV7
-	mAFy/B3a5LBEQdqxMGKgdGK2BvlM5z58=
-X-Received: by 2002:a2e:bc12:0:b0:3a5:e541:4205 with SMTP id
- 38308e7fff4ca-3a5fbbc2f6bmr32004331fa.0.1790078776798; Tue, 22 Sep 2026
- 05:06:16 -0700 (PDT)
+	s=k20260515; t=1790078895;
+	bh=kXoL83CqDwawCQcGd4wj6mNy8UhWSLsG+qfCKX0fOHs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=e+HMGv5ypUo6olYaLz0UQBOEuJmYWFktyjpLYyVxtunfS2ShuLKW3M2avb+9GO4qO
+	 BKbLeXBR0bQG5aX2pmlrtqwolsUVcvH3h1tJrs/xgpVvYMupyMmBFZgKxcaGqCYGqj
+	 gIWpyV8+OLTyuG+L7VR5geeSdWZxMIwhEHRJblSj9WSaTrRuv6sOpHMQmkHz1GbWP4
+	 zCKSW0zQxv+keerFrmN/YQkBdX6247xt9EgtXRechlKXX4GcuHHmReSMHF4CzmznE5
+	 gOVnHxvn7dlE04/t7VCGZ2ZpMcpK7zAVU/o9ykkcj2WmsGxEUn74+LUPSSLG07Vo6+
+	 iCb/9VqJp9NZg==
+Date: Tue, 22 Sep 2026 13:08:11 +0100
+From: Sudeep Holla <sudeep.holla@kernel.org>
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	acpica-devel@lists.linux.dev, Saket Dumbre <saket.dumbre@intel.com>
+Subject: Re: [PATCH v2 1/4] ACPICA: Fix PCC OperationRegion command offsets
+Message-ID: <20260922-lime-hornet-of-culture-5a1fff@sudeepholla>
+References: <20260722131553.2117835-1-sudeep.holla@kernel.org>
+ <20260722131553.2117835-2-sudeep.holla@kernel.org>
+ <CAJZ5v0hdxtuEbFQdwRe=T+Q2xRki+uN9PP7PPw7AdW4Obe3fqA@mail.gmail.com>
+ <20260813-demonic-athletic-manul-e1d7bb@sudeepholla>
+ <CAJZ5v0gMU1NjMKgEUMW6cmU7uquPyES2TejZVQqkwDH5C6FWvw@mail.gmail.com>
+ <CAJZ5v0gqo_n39PGnBkB-5ozE_dQyau4t=5OxvdnZxu4D+ivhHQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260918135628.2322188-1-uajain@igalia.com>
-In-Reply-To: <20260918135628.2322188-1-uajain@igalia.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 22 Sep 2026 14:04:44 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jW5PEkjchBT-JxJUiK1v=1Pr4pn8_KfLrNM1QFap1M4A@mail.gmail.com>
-X-Gm-Features: AcwNN1Ww060CyThxNKR8k5L6iMGzWZxVKaOjKTRT2NhCSerdb0Rx_D79RRnUke0
-Message-ID: <CAJZ5v0jW5PEkjchBT-JxJUiK1v=1Pr4pn8_KfLrNM1QFap1M4A@mail.gmail.com>
-Subject: Re: [PATCH] acpi: battery: Handle Valve steamdeck devices quirk
-To: Umang Jain <uajain@igalia.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, kernel-dev@igalia.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJZ5v0gqo_n39PGnBkB-5ozE_dQyau4t=5OxvdnZxu4D+ivhHQ@mail.gmail.com>
 
-On Fri, Sep 18, 2026 at 3:55=E2=80=AFPM Umang Jain <uajain@igalia.com> wrot=
-e:
+On Tue, Sep 22, 2026 at 01:50:46PM +0200, Rafael J. Wysocki (Intel) wrote:
+> On Thu, Aug 13, 2026 at 11:13 AM Rafael J. Wysocki (Intel)
+> <rafael@kernel.org> wrote:
+> >
+> > On Thu, Aug 13, 2026 at 5:00 AM Sudeep Holla <sudeep.holla@kernel.org> wrote:
+> > >
+> > > On Wed, Aug 05, 2026 at 06:46:15PM +0200, Rafael J. Wysocki (Intel) wrote:
+> > > > On Wed, Jul 22, 2026 at 3:16 PM Sudeep Holla <sudeep.holla@kernel.org> wrote:
+> > > > >
+> > > > > ACPI 6.3, section 5.5.2.4.7.3, states that the PCC Operation
+> > > > > Region is associated with the region of shared memory that follows the
+> > > > > PCC signature.
+> > > > >
+> > > > > The generic and extended PCC shared memory layouts include the 4-byte
+> > > > > signature at offset 0, so their raw shared memory COMMAND fields are at
+> > > > > offsets 4 and 12 respectively. Since AML field offsets for the PCC
+> > > > > OperationRegion are relative to the region after that signature, ACPICA
+> > > > > must look for those COMMAND fields at OperationRegion offsets 0 and 8.
+> > > > >
+> > > > > Adjust the generic and master subspace command checks to use those
+> > > > > OperationRegion-relative offsets. Otherwise writes to the COMMAND field
+> > > > > can fail to invoke the PCC address space handler at the offset described
+> > > > > by the PCC OperationRegion definition.
+> > > > >
+> > > > > Fixes: aa6ec56b574d ("ACPICA: ACPI 6.3: add PCC operation region support for AML interpreter")
+> > > > > Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
+> > > > > ---
+> > > > >  drivers/acpi/acpica/exfield.c | 11 ++++++-----
+> > > > >  1 file changed, 6 insertions(+), 5 deletions(-)
+> > > > >
+> > > > > diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
+> > > > > index 9a55524ed8f4..a7fac63938b3 100644
+> > > > > --- a/drivers/acpi/acpica/exfield.c
+> > > > > +++ b/drivers/acpi/acpica/exfield.c
+> > > > > @@ -45,12 +45,13 @@ static const u8 acpi_protocol_lengths[] = {
+> > > > >
+> > > > >  /*
+> > > > >   * The following macros determine a given offset is a COMD field.
+> > > > > - * According to the specification, generic subspaces (types 0-2) contains a
+> > > > > - * 2-byte COMD field at offset 4 and master subspaces (type 3) contains a 4-byte
+> > > > > - * COMD field starting at offset 12.
+> > > > > + * According to the specification, the PCC OperationRegion begins after
+> > > > > + * the PCC signature. The raw shared memory COMD offsets of 4 for generic
+> > > > > + * subspaces (types 0-2) and 12 for master subspaces (type 3) therefore
+> > > > > + * appear at OperationRegion offsets 0 and 8.
+> > > > >   */
+> > > > > -#define GENERIC_SUBSPACE_COMMAND(a)     (4 == a || a == 5)
+> > > > > -#define MASTER_SUBSPACE_COMMAND(a)      (12 <= a && a <= 15)
+> > > > > +#define GENERIC_SUBSPACE_COMMAND(a)     ((a) < 2)
+> > > > > +#define MASTER_SUBSPACE_COMMAND(a)      (((a) - 8) < 4)
+> > > > >
+> > > > >  /*******************************************************************************
+> > > > >   *
+> > > > > --
+> > > >
+> > > > Can you please see the corresponding upstream ACPICA pull request?
+> > > > There are concerns regarding it.
+> > > >
+> > >
+> > > Sorry for the delay in response, currently I am on vacation and don't
+> > > have all the setup to validate anything. I will follow up once I am back.
+> > > It is OK to miss v7.3
+> >
+> > OK, I'll wait then, thanks!
+> 
+> A new version of this has been applied upstream:
+> 
+> https://github.com/open-acpica/acpica/commit/57a2afa78dbe3580e19307aedd19f32388512094
+> 
+> so can you please rebase and resend the series?
+> 
 >
-> Valve steamdeck devices can report battery status as
-> charging, even when low-powered power supply is connected
-> to the device. The battery status is reported as charging
-> through sysfs, even though in reality, it is discharging.
->
-> To handle this case, first we introduce a battery quirk
-> for steamdeck devices ACPI_BATTERY_QUIRK_VALVE_STEAMDECK.
-> Additionally, it has been found that on such devices,
-> Battery Charge Time ("_BCT") is reported accurately, hence
-> use that information for report charging vs discharging status.
-> Battery Charge Time with an eligible power supply unit will have
-> valid values whereas with a low-powered supply unit, it shall report
-> ACPI_BATTERY_VALUE_UNKNOWN. Use this as a differentiator to
-> determine, whether the battery of steamdeck devices is really
-> charging or not.
->
-> Signed-off-by: Umang Jain <uajain@igalia.com>
 
-Please add _BCT support as a separate patch and the quirk on top of it.
+Sure, I will do that. Thanks for the reminder.
 
-Thanks!
-
-> ---
->  drivers/acpi/battery.c | 42 +++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 41 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index 670853ec3a4d..db611f3302c4 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -76,6 +76,7 @@ MODULE_DEVICE_TABLE(acpi, battery_device_ids);
->  enum {
->         ACPI_BATTERY_ALARM_PRESENT,
->         ACPI_BATTERY_XINFO_PRESENT,
-> +       ACPI_BATTERY_BCT_PRESENT,
->         ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY,
->         /* On Lenovo Thinkpad models from 2010 and 2011, the power unit
->          * switches between mWh and mAh depending on whether the system
-> @@ -94,6 +95,14 @@ enum {
->          * on a full charge, but showing degradation in full charge cap.
->          */
->         ACPI_BATTERY_QUIRK_DEGRADED_FULL_CHARGE,
-> +       /*
-> +        * Valve steamdeck devices can get discharged even when battery s=
-tatus
-> +        * is charging. This happens typically low power supply unit is
-> +        * connected. To accurate determine this scenario, we shall read
-> +        * battery charge time ("_BCT") to know whether the steamdeck is
-> +        * really charging with the power supply unit.
-> +        */
-> +       ACPI_BATTERY_QUIRK_VALVE_STEAMDECK,
->  };
->
->  struct acpi_battery {
-> @@ -110,6 +119,7 @@ struct acpi_battery {
->
->         struct mutex property_lock; /* Protects properties below. */
->         unsigned long update_time;
-> +       unsigned long long charge_time;
->         int revision;
->         int rate_now;
->         int capacity_now;
-> @@ -234,7 +244,7 @@ static int acpi_battery_get_property(struct power_sup=
-ply *psy,
->                                         : POWER_SUPPLY_STATUS_DISCHARGING=
-;
->                                 return 0;
->                         }
-> -               else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
-> +               else if (battery->state & ACPI_BATTERY_STATE_CHARGING) {
->                         /* Check the rate and capacity to validate the st=
-atus. */
->                         if (!acpi_battery_is_full(battery) ||
->                             (battery->rate_now !=3D ACPI_BATTERY_VALUE_UN=
-KNOWN &&
-> @@ -244,6 +254,12 @@ static int acpi_battery_get_property(struct power_su=
-pply *psy,
->                                 /* Full and zero rate. */
->                                 val->intval =3D POWER_SUPPLY_STATUS_NOT_C=
-HARGING;
->                         }
-> +
-> +                       if (test_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, =
-&battery->flags) &&
-> +                           test_bit(ACPI_BATTERY_BCT_PRESENT, &battery->=
-flags) &&
-> +                           battery->charge_time =3D=3D ACPI_BATTERY_VALU=
-E_UNKNOWN)
-> +                               val->intval =3D POWER_SUPPLY_STATUS_DISCH=
-ARGING;
-> +               }
->                 else if (battery->state & ACPI_BATTERY_STATE_CHARGE_LIMIT=
-ING)
->                         val->intval =3D POWER_SUPPLY_STATUS_NOT_CHARGING;
->                 else if (acpi_battery_is_charged(battery))
-> @@ -613,6 +629,10 @@ static int acpi_battery_get_state(struct acpi_batter=
-y *battery)
->         int result =3D 0;
->         acpi_status status =3D 0;
->         struct acpi_buffer buffer =3D { ACPI_ALLOCATE_BUFFER, NULL };
-> +       union acpi_object arg0 =3D { ACPI_TYPE_INTEGER };
-> +       struct acpi_object_list args =3D { 1, &arg0 };
-> +
-> +       arg0.integer.value =3D 100;
->
->         lockdep_assert_held(&battery->property_lock);
->
-> @@ -638,6 +658,15 @@ static int acpi_battery_get_state(struct acpi_batter=
-y *battery)
->         battery->update_time =3D jiffies;
->         kfree(buffer.pointer);
->
-> +       if (test_bit(ACPI_BATTERY_BCT_PRESENT, &battery->flags)) {
-> +               status =3D acpi_evaluate_integer(battery->device->handle,=
- "_BCT",
-> +                                              &args, &battery->charge_ti=
-me);
-> +               if (ACPI_FAILURE(status))
-> +                       acpi_handle_info(battery->device->handle,
-> +                                        "_BCT evaluation failed: %s",
-> +                                        acpi_format_exception(status));
-> +       }
-> +
->         /* For buggy DSDTs that report negative 16-bit values for either
->          * charging or discharging current and/or report 0 as 65536
->          * due to bad math.
-> @@ -1057,6 +1086,15 @@ static void acpi_battery_quirks(struct acpi_batter=
-y *battery)
->                 set_bit(ACPI_BATTERY_QUIRK_DEGRADED_FULL_CHARGE, &battery=
-->flags);
->                 battery->capacity_now =3D battery->full_charge_capacity;
->         }
-> +
-> +       if (dmi_name_in_vendors("Valve")) {
-> +               const char *name;
-> +
-> +               name =3D dmi_get_system_info(DMI_PRODUCT_NAME);
-> +               if ((name && (!strncmp("Jupiter", name, 7))) ||
-> +                   (name && (!strncmp("Galileo", name, 7))))
-> +                       set_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &batt=
-ery->flags);
-> +       }
->  }
->
->  static int acpi_battery_update(struct acpi_battery *battery, bool resume=
-)
-> @@ -1083,6 +1121,8 @@ static int acpi_battery_update(struct acpi_battery =
-*battery, bool resume)
->                         if (result)
->                                 return result;
->                         acpi_battery_init_alarm(battery);
-> +                       if (acpi_has_method(battery->device->handle, "_BC=
-T"))
-> +                               set_bit(ACPI_BATTERY_BCT_PRESENT, &batter=
-y->flags);
->                 }
->
->                 result =3D acpi_battery_get_state(battery);
-> --
-> 2.55.0
->
+-- 
+Regards,
+Sudeep
