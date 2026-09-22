@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58D8E541E75;
-	Tue, 22 Sep 2026 14:43:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D5CC43DEB9;
+	Tue, 22 Sep 2026 14:43:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790088202; cv=none; b=YXM65whkuAXIxhxvghC0rFnvZcNc+hdMus9LJbN0wo8wIfUwP+6zeD8BOfBWiTbhsju9HH6KrwSLg3dxeeAn15k1q+odNncuNB7MXmQjvJAHS5lHwFfLcTj6V+suXM9YhEE6eyoqUxsgyERyATqA2VevGqKJ95aZhG29UKCWwS0=
+	t=1790088204; cv=none; b=UbiqQ6mjBkiYFKvLfI7jX8Hk/gQOWFJ3UwUaCqcmjC6anyKk1VO1JFt1NZhCFrOdOh463ksvxJIkMQHLZXmyc8++N4u7FedSLMR0KYA61t8Ja9r9Fju1BF4rUd370dTt3EDwc53iWYardrvC5YrOG7T3tR+vZeH6en2Oimm1e34=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790088202; c=relaxed/simple;
-	bh=pLPnqFLcynT1BOiqoEAlB1OAxwBqqxr0L8FF6ripdvs=;
+	s=arc-20240116; t=1790088204; c=relaxed/simple;
+	bh=vDGO4jkVYgbdguQucCUIyH2yN1ariNn8DCcJSyEvg3M=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=E0O+vsShIe19kwBMwcalUHcCTts0HAFDw5KzQHi27hiOXsseLEa2g1EGnX8Tddp3HiYLNJBSCkZgtf76JU8AESG3Ka19o1jvM71btxcjBebriYl66h1TRhv5H5YIn4hAkRcGOI5q7Sh6l1JlsYhjVuY/29djwsmnIMnr4e+/7ZI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QzPydhTd; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version; b=Yh18QiZzcGTfw7dmuDiJcnb8aeTD1IYMm2AjCBJdf6uu0bvKoXtRJjiIKon0iAEM3ogr6aVdNDTOMJx/rEyaV/M0vYALbjNJw70tqtbx7ei1XgRzhICY9J/+WEhS8nWulUZ66gcGtQgJ9JZ8e/m4C8ZEkWuFJ+ARK9bCL/SOawg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NPwRH4Vc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QzPydhTd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 619211F00893;
-	Tue, 22 Sep 2026 14:43:19 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NPwRH4Vc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73ECE1F008A0;
+	Tue, 22 Sep 2026 14:43:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790088201;
-	bh=k1F5xSUM54UoGD1Xm5fjSbFOiSkAkrYtmMVgD3VjAzw=;
+	s=k20260515; t=1790088202;
+	bh=MKhiqHv4U+5kPiwfByYM3WQ7bJnspf8MaWtepG3bUBc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=QzPydhTdYJgum7d70BzYNneetvTdHALbFaIIrrwHzrKcXRCMsMpxk9tEBF/UEqnSf
-	 nyUFqgbvUNAyAWCQWNQ71YsImZ/i9RDbh3e9CknDniaA1VL/8E6cVs0zEHMUEdiuTS
-	 oHffC70Ul0CMgDlpxIn/TV6OLPIvnQZWL3kk6LKKRR/9BV/CXQAIvDM7I/qJ3XL+9F
-	 gZoejP1pieT0qwihmzOBHv2tRoKt8Vzw9IOKof5H3t3KHE82UpalSyz+/WaYMdSHgj
-	 5t2OMlOZlCyg+oR8jvqhlAmHoy8Ug/gvLeWY1OLWrJeKvPfNk5pwxwz4lR6KNBfaDc
-	 g2GHRlxb1Rfcw==
+	b=NPwRH4Vc9Y6f0AOwbM+u4n3vFKgtvAQrAHvZbrn491y4XlF7HGHqq8V1+AQqBWCgx
+	 xRapjD7r+4C5atSoTxtyY3mrXBW1hBPXSP1Ob+Mk2qeFJNv32uI9wJogKsVzO6Y6WV
+	 r3jwI5kBabqmCmgNgWuShdcYNlmTKB9kakzNMtklD+bKVstF06smAijwqwGFPNEcTC
+	 JgxmJBtteYJBT8O2zHTEJ962GLVbDi3AZTE56Feve/cXU4k+5UautaTiFFlEX19gII
+	 HP2SZeOe2MCeZtCasCl+TzpBeJ60LO5FuHVxPJTH259Rn+C0cGMG4ukO5zb4MfL67I
+	 vFmFiI7nWQdmg==
 From: Sudeep Holla <sudeep.holla@kernel.org>
 To: linux-acpi@vger.kernel.org,
 	acpica-devel@lists.linux.dev
@@ -34,9 +34,9 @@ Cc: Sudeep Holla <sudeep.holla@kernel.org>,
 	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
 	Pawel Chmielewski <pawel.chmielewski@intel.com>,
 	Huisong Li <lihuisong@huawei.com>
-Subject: [PATCH v3 1/4] ACPICA: Fix PCC OperationRegion command offsets
-Date: Tue, 22 Sep 2026 15:42:59 +0100
-Message-ID: <20260922144302.3847593-2-sudeep.holla@kernel.org>
+Subject: [PATCH v3 2/4] ACPI: PCC: Preserve shared memory signature in OpRegion handler
+Date: Tue, 22 Sep 2026 15:43:00 +0100
+Message-ID: <20260922144302.3847593-3-sudeep.holla@kernel.org>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260922144302.3847593-1-sudeep.holla@kernel.org>
 References: <20260922144302.3847593-1-sudeep.holla@kernel.org>
@@ -48,51 +48,104 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-ACPI 6.3, section 5.5.2.4.7.3, states that the PCC Operation
-Region is associated with the region of shared memory that follows the
-PCC signature.
+ACPI 6.3 introduced PCC OperationRegions. Section 5.5.2.4.7.3,
+"Declaring message fields within a PCC OperationRegion", states that,
+for all PCC subspace types, the PCC Operation Region pertains to the
+region of PCC subspace that succeeds the PCC signature. Its length
+therefore excludes the 4-byte signature.
 
-The generic and extended PCC shared memory layouts include the 4-byte
-signature at offset 0, so their raw shared memory COMMAND fields are at
-offsets 4 and 12 respectively. Since AML field offsets for the PCC
-OperationRegion are relative to the region after that signature, ACPICA
-must look for those COMMAND fields at OperationRegion offsets 0 and 8.
+The PCC address space handler currently copies the OperationRegion
+buffer to and from the start of the shared memory. This overwrites or
+exposes the platform-populated signature and omits the final four bytes
+of the OperationRegion.
 
-Adjust the generic and master subspace command checks to use those
-OperationRegion-relative offsets. Otherwise writes to the COMMAND field
-can fail to invoke the PCC address space handler at the offset described
-by the PCC OperationRegion definition.
+Offset the copies by the size of the signature and reject an
+OperationRegion that does not fit in the remaining shared memory.
 
-Link: https://github.com/open-acpica/acpica/pull/1205
-Fixes: a4849944e80f ("ACPI 6.3: add PCC operation region support for AML interpreter")
+The example added by commit 77e2a04745ff ("ACPI: PCC: Implement
+OperationRegion handler for the PCC Type 3 subtype") incorrectly
+included the signature as an OperationRegion field. A Type 3
+OperationRegion containing a 100-byte communication area is declared
+as follows:
+
+OperationRegion (PFRM, PCC, 2, 0x70)
+Field (PFRM, ByteAcc, NoLock, Preserve)
+{
+    FLGS,   32,
+    LEN,    32,
+    CMD,    32,
+    DATA,   800
+}
+
+This contains three 32-bit fields followed by a 100-byte DATA field.
+The fields correspond to the Type 3 shared memory layout in ACPI 6.3,
+Table 14-372, after excluding its 4-byte signature.
+
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Fixes: 77e2a04745ff ("ACPI: PCC: Implement OperationRegion handler for the PCC Type 3 subtype")
+Reviewed-by: Huisong Li <lihuisong@huawei.com>
 Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
 ---
- drivers/acpi/acpica/exfield.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/acpi/acpi_pcc.c | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
-index 9a55524ed8f4..50317fe0cbd5 100644
---- a/drivers/acpi/acpica/exfield.c
-+++ b/drivers/acpi/acpica/exfield.c
-@@ -45,12 +45,13 @@ static const u8 acpi_protocol_lengths[] = {
- 
- /*
-  * The following macros determine a given offset is a COMD field.
-- * According to the specification, generic subspaces (types 0-2) contains a
-- * 2-byte COMD field at offset 4 and master subspaces (type 3) contains a 4-byte
-- * COMD field starting at offset 12.
-+ * According to the specification, the PCC OperationRegion begins after
-+ * the PCC signature. The raw shared memory COMD offsets of 4 for generic
-+ * subspaces (types 0-2) and 12 for master subspaces (type 3) therefore
-+ * appear at OperationRegion offsets 0 and 8.
+diff --git a/drivers/acpi/acpi_pcc.c b/drivers/acpi/acpi_pcc.c
+index 438c67189511..9881c9ee293d 100644
+--- a/drivers/acpi/acpi_pcc.c
++++ b/drivers/acpi/acpi_pcc.c
+@@ -28,6 +28,7 @@
+  * to PCC commands
   */
--#define GENERIC_SUBSPACE_COMMAND(a)     (4 == a || a == 5)
--#define MASTER_SUBSPACE_COMMAND(a)      (12 <= a && a <= 15)
-+#define GENERIC_SUBSPACE_COMMAND(a)     (0 == a || a == 1)
-+#define MASTER_SUBSPACE_COMMAND(a)      (8 <= a && a <= 11)
+ #define PCC_CMD_WAIT_RETRIES_NUM	500ULL
++#define PCC_SIGNATURE_SIZE		sizeof(u32)
  
- /*******************************************************************************
-  *
+ struct pcc_data {
+ 	struct pcc_mbox_chan *pcc_chan;
+@@ -74,6 +75,14 @@ acpi_pcc_address_space_setup(acpi_handle region_handle, u32 function,
+ 	}
+ 
+ 	pcc_chan = data->pcc_chan;
++	if (pcc_chan->shmem_size < PCC_SIGNATURE_SIZE ||
++	    ctx->length > pcc_chan->shmem_size - PCC_SIGNATURE_SIZE) {
++		pr_err("PCC channel-%d shared memory is too small.\n",
++		       ctx->subspace_id);
++		ret = AE_AML_REGION_LIMIT;
++		goto err_free_channel;
++	}
++
+ 	if (!pcc_chan->mchan->mbox->txdone_irq) {
+ 		pr_err("This channel-%d does not support interrupt.\n",
+ 		       ctx->subspace_id);
+@@ -97,14 +106,17 @@ acpi_pcc_address_space_handler(u32 function, acpi_physical_address addr,
+ 			       u32 bits, acpi_integer *value,
+ 			       void *handler_context, void *region_context)
+ {
+-	int ret;
+ 	struct pcc_data *data = region_context;
++	void __iomem *pcc_opregion;
+ 	u64 usecs_lat;
++	int ret;
++
++	pcc_opregion = data->pcc_chan->shmem + PCC_SIGNATURE_SIZE;
+ 
+ 	reinit_completion(&data->done);
+ 
+-	/* Write to Shared Memory */
+-	memcpy_toio(data->pcc_chan->shmem, (void *)value, data->ctx.length);
++	/* Write to the PCC OperationRegion after the shared memory signature. */
++	memcpy_toio(pcc_opregion, (void *)value, data->ctx.length);
+ 
+ 	ret = mbox_send_message(data->pcc_chan->mchan, NULL);
+ 	if (ret < 0)
+@@ -125,7 +137,7 @@ acpi_pcc_address_space_handler(u32 function, acpi_physical_address addr,
+ 
+ 	mbox_chan_txdone(data->pcc_chan->mchan, ret);
+ 
+-	memcpy_fromio(value, data->pcc_chan->shmem, data->ctx.length);
++	memcpy_fromio(value, pcc_opregion, data->ctx.length);
+ 
+ 	return AE_OK;
+ }
 -- 
 2.43.0
 
