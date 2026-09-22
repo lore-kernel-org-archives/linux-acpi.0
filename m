@@ -1,139 +1,175 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mail2.g24.pair.com (mail2.g24.pair.com [216.92.166.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E74651A13B;
-	Tue, 22 Sep 2026 08:47:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36D0141A571;
+	Tue, 22 Sep 2026 08:50:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.92.166.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790066825; cv=none; b=mOQEh/CMigo/sj2nhzVf+zmjawNZf7/DLPJx140AVj+V3moQD6FqFyT8NAXRCRP2Ei9B/52W4dnPfC5mwdRQSqazOAKxXyWYEK2ga7BNDu+yz7w+/9NOduafwmGnj0JQS1GBMriBNRoLBazFakT/EMm1Eq0twpMjMx7pKU/Q928=
+	t=1790067022; cv=none; b=k37pwQfVtc0OYU20f70+5cK+Uly9x2NcxYoJkjBlZlFAqdny4eDCIjA2/x3MR+2KUgCVh+3uCyqpTLxOOTL7NpFS+RkZbTR3Ilk3/B3I6cbsVIirPBeg3rH9KoIVMD3sXAen7+Gz1veJkwo6A5GULpZm1drebpkLRNNIVxv5Hvw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790066825; c=relaxed/simple;
-	bh=V5qw8MoSNcM+bGVK2QswyocmxOoD9O9Av2nEmh1uZLc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=KMYXhL5OovV78W2CAXIv3g3kc3OmeJ8KojqXRzHqd5/3sQKZFUU60xw1fMhz+uS0bLiO6Kcdxe6FA7MC72XhNgO7kzPdJAfzp+gwgeWwzjRFR/EM8MQG5bruDXm1MUGmOQgepS4ginEBQZFLDnbBlaCpCww+yRHDHdT67+Q0jJw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=b1/V7Sqs; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="b1/V7Sqs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E6E71F00893;
-	Tue, 22 Sep 2026 08:47:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790066823;
-	bh=024UKuRDI5/VbeqGV5UeGGlIhQ+AaGozhVsQGZ0ZvBM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=b1/V7SqsQ1JPANMx2UcQSx/57Lolu5s3EBU52BsacvpU5aLebkSERqS0Hj9puN8Lj
-	 yi+zNrXR9coPd+ABJnp1xayLl+DvfIYXt81k7omFsa2aN4YFVl83N9c9qMWqB/qNwF
-	 kJ0xGy0EBnoitd252KTbSSOwm35vQtrg+d4Y7DOaQLsw0JbtC37HNhpVy5v4EUlRjd
-	 hRySyzhjGGpjiDtHwpG3O0cDj1RdpK6fqfbO4HkRu4+FONJyos+TPVLFsck90sxqPn
-	 SQAXyXlKyLO+vOhdOASbLYuM2SKZP8fAEv4WbN2km2y6LyK+bBixtqb0BXHH1uEo+z
-	 JRdlLtsC75fmQ==
-Date: Tue, 22 Sep 2026 09:46:59 +0100
-From: Sudeep Holla <sudeep.holla@kernel.org>
-To: Jamie Nguyen <jamien@nvidia.com>
-Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Dat Mach <dmach@nvidia.com>,
-	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 0/3] ACPI: arm64: FFH Operation Region support for
- FF-A (offset 2)
-Message-ID: <20260922-purring-fennec-of-exercise-bbce5e@sudeepholla>
-References: <20260901192906.133670-1-jamien@nvidia.com>
+	s=arc-20240116; t=1790067022; c=relaxed/simple;
+	bh=wpvmLOaXYHQPVaAlU4cnQEsqRgkfN+9BTYHawKmnlJc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=J8seuYyAFPd9WFIY+0yrUBL8Zj6tuJIzyJ7hxIqut3LueQTQoXCSBBTq1k8w4V3DCdVLlz5AE0cX+9BIUPqKwgBdvvvIoOKMXYcZoPOYEu/sopc1++/YzKbjF8GpZ+rzZLEnDUPsMNfUUPo8IX14K5T5+ucMhZWf/MJSbbU427Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=unspacy.com; spf=pass smtp.mailfrom=unspacy.com; arc=none smtp.client-ip=216.92.166.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=unspacy.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=unspacy.com
+Received: from mail2.g24.pair.com (localhost [127.0.0.1])
+	by mail2.g24.pair.com (Postfix) with ESMTP id 1028A160226;
+	Tue, 22 Sep 2026 04:42:49 -0400 (EDT)
+Received: from [192.168.0.71] (1969776-static.lxtnkyaa.metronetinc.net [217.180.199.234])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mail2.g24.pair.com (Postfix) with ESMTPSA id A45371601FA;
+	Tue, 22 Sep 2026 04:42:48 -0400 (EDT)
+Message-ID: <54425edf-3ca1-4f99-9166-40f9cc3dfff6@unspacy.com>
+Date: Tue, 22 Sep 2026 04:42:47 -0400
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260901192906.133670-1-jamien@nvidia.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [BUG] tpm_crb/Intel PTT: Late S3/S5/Reboot ACPI power management
+ deadlock
+To: Jarkko Sakkinen <jarkko@kernel.org>
+Cc: linux-integrity@vger.kernel.org, peterhuewe@gmx.de, jgg@ziepe.ca,
+ rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
+References: <bf3a9544-6e49-4d5d-a01a-f1912b717d08@unspacy.com>
+ <aqyTpzk3jcarEMVS@kernel.org>
+Content-Language: en-US
+From: Sean Meadows <Hellfire@unspacy.com>
+In-Reply-To: <aqyTpzk3jcarEMVS@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: mailmunge 3.10 on 216.92.166.58
 
-On Tue, Sep 01, 2026 at 12:29:03PM -0700, Jamie Nguyen wrote:
-> Arm DEN0048D (Functional Fixed Hardware Specification v1.3), published in
-> March 2026, adds a third FFH Operation Region flavour:
+On 9/17/26 21:28, Jarkko Sakkinen wrote:
+> On Thu, Sep 10, 2026 at 02:45:43AM -0400, Sean Meadows wrote:
+>> Hello,
+>>
+>> I am writing to report a reproducible power management bug where the
+>> system permanently hangs late in the ACPI S3 (sleep), S5 (shutdown), and
+>> soft reboot cycle.
+>>
+>> The deadlock occurs at the absolute end of the platform teardown
+>> sequence; after the kernel has completely unmounted all local storage.
+>> Motherboard power rails remain fully active and fans spin continuously,
+>> requiring a physical power button reset. Because this happens post
+>> unmount and after the video terminates, standard runtime logs (pstore/
+>> dmesg) remain entirely empty.
+>>
+>> While sleep and shutdown hang forever, the soft reboot path has multiple
+>> severe failure modes: hanging indefinitely, stalling for several minutes
+>> before completing, or forcing a hard reset that corrupts the subsequent POST
+>> phase. Standard kernel parameters like reboot=EFI, reboot=PCI, or cold boot
+>> do not mitigate the issue.
+>>
+>> The deadlock does not happen immediately after a recent cold boot or
+>> reboot. The system must run for a number of hours before the condition
+>> occurs.
+>>
+>> 1. Reproduction
+>> The failure state can be made consistently repeatable via kernel
+>> initialization parameters and modprobe.d blacklist:
+>>
+>> - Test A (Fail State): Booting with standard parameters. Triggering an
+>> S3 sleep, S5 shutdown, or reboot results in a guaranteed, hardware freeze.
+>>
+>> - Test B (Pass State): Booting with the command line parameter:
+>> ‘modprobe.blacklist=tpm_crb’ and modprobe.d conf with ‘blacklist tpm_crb’
+>> When the tpm_crb driver is completely prevented from initializing, the
+>> system executes S3 suspend, S5 shutdown, and reboot sequences flawlessly
+>> 100% of the time.
+>>
+>> - Other end users suffering from this problem have found a repeatable
+>> fix by going into the UEFI and disabling the PTT. My particular system
+>> lacks that option.
+>>
+>> 2. Supporting Data
+>> This bug appears to be unique to the Intel PTT controllers powering the
+>> 6th through 10th Generation Intel CPU families (Skylake through Comet
+>> Lake), spanning mobile, desktop, and HEDT platforms. The bulk of the
+>> data also implies that this isn’t isolated to a specific OEM.
+>>
+>> - Bugzilla #217890:
+>>    chriscjsus: MSI GS40 6QE | Intel i7-6700HQ
+>>    mahasler: Intel NUC7i3BNB | Intel Core i3-7100U
+>>    Boris Carvajal: MSI Z370 Tomahawk | Intel i5-8400
+>>    Serhii Tsynailo: Intel i5-8250u laptop
+>>    Sergio: ASUS ZenBook UX310UQK | Intel i7-7500U
+>>    My System: ASUS ROG GL703VM | HM175 Chipset | Intel i7-7700HQ | MEI FW
+>> v11.9.1.3010 | Running Arch Linux vanilla stable kernel 7.2.4 (stock
+>> package)
+>>
+>> - Community Threads:
+>>    Arch Forum (ID: 303082): Solved exclusively by disabling Intel PTT in
+>> BIOS (Gigabyte B460 | Intel 10th Gen)
+>>    Reddit (r/archlinux): Widespread tracking detailing identical S3/S5
+>> deadlocks (X299/Z370)
+>>
+>> 3. Additional Details
+>> An unmerged diagnostic patch submitted by another user (Adam Alves,
+>> Patchwork ID: 20240307000331.14848-2-adamoa@gmail.com) previously
+>> presumed that this late freeze on certain motherboards occurs because
+>> the driver leaves the fTPM/PTT hardware interface in an unreleased, non-
+>> zero locality state upon teardown. The author suggested that the
+>> platform firmware's pre-OS and ACPI transition environments expect the
+>> TPM to be sitting strictly in Locality 0, causing the firmware to enter
+>> an infinite timeout wait-state when control is passed back to it.
+>>
+>> I am not qualified to audit the driver. Whether this belongs in the DMI,
+>> is a mistake in the driver logic, or is a bug in the PTT I can’t answer.
+>> I can only point to the unfailing success of a growing number of public
+>> end users who can instantly fix the problem by disabling the PTT in
+>> firmware or blacklisting the TPM driver. I have included the ACPI
+>> team in this e-mail in the hopes that they can provide additional clarity.
+>>
+>> I have never compiled a custom kernel before, but I am set up to
+>> reproduce this and am entirely willing to act as a tester for any
+>> diagnostic patches the maintainers would like to provide.
+>>
+>> Thank you for your time and patience,
+>> Sean
 > 
->   https://developer.arm.com/documentation/den0048/latest/
+> Has this appeared within some timeframe or has been like this "forever"?
 > 
-> An Operation Region declared with an Offset of 0x2 triggers an
-> FFA_MSG_SEND_DIRECT_REQ2 call instead of a bare SMC or HVC:
-> 
->   OperationRegion (AFFH, FFixedHW, 2, 40)
->   Field (AFFH, BufferAcc, NoLock, Preserve) { FFAD, 320 }
-> 
-> Each 64-bit field is one register, ordered from X0. X0 carries the call
-> status on return, X1[15:0] the receiver endpoint ID (or zero, which asks
-> OSPM to resolve it from the UUID), X2-X3 the service UUID written with
-> ToUUID(), and X4-X17 the payload. The region Length is 32 + 8 * N bytes
-> with 1 <= N <= 14, so X0-X4 at minimum and X0-X17 at most.
-> 
-> The spec recommends offset 0x2 for new platforms on the grounds that not
-> every OSPM implements offsets 0x0 and 0x1. Linux has had both since v6.2
-> but nothing for 0x2, so AML using the recommended encoding currently gets
-> AE_ERROR back.
-> 
-> These patches implement it. I could not find any prior posting of this on
-> linux-acpi or linux-arm-kernel, so apologies if I have missed one and
-> duplicated someone's work.
-> 
-> All three patches are co-developed with Dat Mach.
-> 
-> Design
-> ------
-> 
-> drivers/acpi/arm64/ffh.c holds the DEN0048D side: region length
-> validation, the X0-X17 layout, the ToUUID() to FF-A UUID byte order
-> conversion, and the table 3 status codes. drivers/firmware/arm_ffa/ holds
-> the FF-A side: resolving a service UUID to an endpoint, and the call
-> itself, including the FFA_YIELD and FFA_INTERRUPT re-invocation DEN0048D
-> asks for.
->
+> BR, Jarkko
 
-I have concerns regarding the new dependency on the FF-A driver.
+Hi Jarkko,
 
-Could you clarify how the build and runtime behavior are protected when the
-FF-A driver is disabled? The current patchset introduces a strict dependency
-without explicit configuration checks or guards, which will likely cause
-compilation or execution failures in environments where FF-A is not enabled.
+Regarding whether this has been a bug forever, I suspect the answer is
+yes, though with a few caveats. My pacman.log shows I made the shift
+from Windows to Arch Linux in August 2022. Vaguely I recall reboots, S3,
+and S5 working initially, but I am an unreliable narrator after dealing
+with this issue for years - and the various technical threads I
+referenced do note regressions cropping up across the 6.x kernel series.
 
-> The two talk through an ops structure the FF-A driver registers rather
-> than a direct call, because ffh.c is built in under a bool Kconfig symbol
-> while CONFIG_ARM_FFA_TRANSPORT is a tristate. Unregistration takes the
-> rwsem for writing, so it cannot race with an access already in flight.
-> 
+I also need to update my previous notes regarding blacklisting tpm_crb.
+It is not a complete fix; rather, it extends the timeframe of the
+failure from hours to days, but the deadlock will eventually happen
+anyway. That leaves the only foolproof fixes as running Windows or
+having a UEFI that allows disabling the PTT.
 
-We need to explicitly document the reasons for establishing a hard dependency
-between the ACPI FFH and the FF-A driver. In my view, this FFH mechanism (0x2)
-simply issues an SMC call with the FFA_MSG_SEND_DIRECT_REQ2 FID. While I
-understand the specification assigns extra responsibility to the OSPM to
-populate the partition ID, are there any other technical justifications for
-this tight coupling?
+My working hypothesis is that these older PTT implementations require a
+specific state cleanup during OS teardown. Since the issue occurs even
+without the driver loaded, the problem isn't isolated to driver
+teardown; rather, it implies that background ACPI firmware routines
+interact with the PTT, gradually desynchronizing the hardware state 
+until the final power-down handoff traps it.
 
-> None of what the handler needs was reachable through the existing
-> ffa_device interface. ffa_sync_send_receive2() always addresses
-> dev->vm_id, so a receiver endpoint ID supplied by AML cannot be honoured.
-> UUID to endpoint resolution had no in-kernel user at all. And
-> ffa_msg_send_direct_req2() throws away the response registers DEN0048D
-> wants copied back to AML. Patch 1 splits those out, leaving what existing
-> callers see unchanged.
->
+My testing hasn't stopped. I am currently trying to modify my UEFI to
+force-disable the PTT, though customizing the ROM and flashing it with a
+CH341A programmer and micrograbbers is slow, tedious work. I am also
+hampered by the Asus UEFI being very fragile and the hidden TPM options
+tested so far turning out to be dead entries.
 
-I see above as one reason why they need to be separate.
+As I noted before, I am fully prepared to test patches or gather
+hardware data, though I suspect this laptop lacks any accessible serial
+debugging headers to catch logs post-unmount.
 
-> Testing
-> -------
-> 
-> Built on arm64 with CONFIG_ACPI_FFH=y and CONFIG_ARM_FFA_TRANSPORT both =y
-> and =m, and with CONFIG_ACPI_FFH=n, W=1 clean. Every patch builds on its
-> own.
-> 
+Thank you for your time and patience,
 
-How about CONFIG_ARM_FFA_TRANSPORT=n and CONFIG_ACPI_FFH=y ? Is that
-blocked in someway I am failing to see ?
-
--- 
-Regards,
-Sudeep
+Sean
