@@ -1,218 +1,151 @@
-Received: from canpmsgout12.his.huawei.com (canpmsgout12.his.huawei.com [113.46.200.227])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A17EB5476C9;
-	Tue, 22 Sep 2026 12:43:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.227
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 185164248DC;
+	Tue, 22 Sep 2026 12:47:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790081039; cv=none; b=IxTZ22zKY42vYxhcTBAg8wZRMrZQmA4s06lN9ErWYnAv/MHJUha29HQoy5WxwdpbzPfjmXLsmbDMRTwrNJJQCmz3HARNYnQtm4NNBAb08uVmdPK8pmKGu8wKBg4TyfhUKOq5Mv/uqczGAx/uLp9wUTFsLcEZ41kMAR5xt+lK0JU=
+	t=1790081240; cv=none; b=ZBuSV2r3gsEFOzs2epPGt+93qpIpWzij+Gfyd872kPhyMPGOOcwuWbcT+BFiaAz/8OjQzMwY/zVwVuDG7CimwBV4MJBwQcv1nf072DN6U6OoPn6B/3cUMCtE4DJfg+OgsV+a0ixDGfQ5dhcSRT9L6hERAHpq1Fn0OzqiqcHOYc4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790081039; c=relaxed/simple;
-	bh=N4HtkiWf7I6T2lTSMu8KrEBHfC1CNXw2MeRawSnuvXU=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ER++QxDI7+37RuOAtKSOLUJAQ/bckzaVE6brCaN9AUN+SVo6GfzsxBsOZCWD8dl7spgRmPdEKZTcysmbRTcCr+C60ifyEyW/69DR51DmovFsp3/kh5vfr60VbIuDSjMnouvt3GoQ8lCYjamyP1/PRR12uvJOSOc0hBVL9wYoDAY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=A6MLL1lL; arc=none smtp.client-ip=113.46.200.227
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	s=arc-20240116; t=1790081240; c=relaxed/simple;
+	bh=8ZKyqOu0mEmRU4MJJjqfKU5OT/hrxhKmNGxrkJ1omVE=;
+	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=jTHODBDjbrTfN+qVeWhfHPHtTPKmSeObFYVu+C3PwUiBbR+S75bR+0I6qpzaWwTfkB1077Op+OzGZWejsbTM9cPH1kQAn+phVrAwBOfrxafuZfBFjRASlhAQRxh0eaM82YiVbQeE5s1r73G+qefImF7OdWBEA0CTuljSZ9kLa/Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=W8tUvca5; arc=none smtp.client-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="A6MLL1lL"
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=uuTlAjbFVG3K4wNEikSMGRwn8CiTCyTwtRqd8LgITfc=;
-	b=A6MLL1lLoqRqLjMnIUrkIz7uyVDYEI7+6iMBwg379KlmGhDk2YI4eNS+GqCXAfUABQafn2U9p
-	k5VwnFEKgWv6vb/w2CNZrvQOGeiOxdDzfuxq9C5JYIKiIW6RBiO/lRBs+NB+Uo26BE3mTyy9vEe
-	zicGgEAClSO49nqGfFRLpLY=
-Received: from mail.maildlp.com (unknown [172.19.162.92])
-	by canpmsgout12.his.huawei.com (SkyGuard) with ESMTPS id 4hpzyP0v8lznTWH;
-	Tue, 22 Sep 2026 20:32:45 +0800 (CST)
-Received: from kwepemf100001.china.huawei.com (unknown [7.202.181.215])
-	by mail.maildlp.com (Postfix) with ESMTPS id A739A40586;
-	Tue, 22 Sep 2026 20:43:46 +0800 (CST)
-Received: from localhost.localdomain (10.50.163.32) by
- kwepemf100001.china.huawei.com (7.202.181.215) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Tue, 22 Sep 2026 20:43:45 +0800
-From: Lifeng Zheng <zhenglifeng1@huawei.com>
-To: <rafael@kernel.org>, <viresh.kumar@linaro.org>, <saket.dumbre@intel.com>,
-	<lenb@kernel.org>, <ionela.voinescu@arm.com>, <zhanjie9@hisilicon.com>,
-	<pierre.gondois@arm.com>, <sumitg@nvidia.com>
-CC: <linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-pm@vger.kernel.org>, <acpica-devel@lists.linux.dev>,
-	<linuxarm@huawei.com>, <yubowen8@huawei.com>, <zhangpengjie2@huawei.com>,
-	<wangzhi12@huawei.com>, <linhongye@h-partners.com>, <zhenglifeng1@huawei.com>
-Subject: [PATCH v4 6/8] ACPI: CPPC: Factor out cpc_read_reg() and cpc_write_reg()
-Date: Tue, 22 Sep 2026 20:41:19 +0800
-Message-ID: <20260922124121.3426219-7-zhenglifeng1@huawei.com>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20260922124121.3426219-1-zhenglifeng1@huawei.com>
-References: <20260922124121.3426219-1-zhenglifeng1@huawei.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="W8tUvca5"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1790081238; x=1821617238;
+  h=from:date:to:cc:subject:in-reply-to:message-id:
+   references:mime-version;
+  bh=8ZKyqOu0mEmRU4MJJjqfKU5OT/hrxhKmNGxrkJ1omVE=;
+  b=W8tUvca5PHakNVU8W3KdzzvE0tupjrBHcBYq7mWmCNvvzo2dZlTE+5ZE
+   GE6IsywKUUP9K+YwIRfUU7qVELFGEHd/bkVvcWUzoqN1qmxTzafPTcbtu
+   OZkUu5zYfywIp+Sp8IgFF+E4cF42/yeqQP+4FwMzeDseUF0y6VY9EXsUP
+   /EfAQaJvRkp8IQ+/BudyKZObao6Yv+hte28+9qKD+zWydQVsEMzRI1eND
+   p8pU5bO6BxsFhkzUCVg0fkxyuZ7a9hpPLz+/bAYXGi8BigZXPq5ad6Klm
+   W4FBDVXx0TDjs6eHegtpalGJWsxZV3jQVfQodlSa7RD8WmGvNlllO+liG
+   A==;
+X-CSE-ConnectionGUID: CtV3F+JGRmOcwzbDpOboog==
+X-CSE-MsgGUID: pc0tHu51RJqcmwNb4FXOXg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11912"; a="94509130"
+X-IronPort-AV: E=Sophos;i="6.27,116,1787036400"; 
+   d="scan'208";a="94509130"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2026 05:47:15 -0700
+X-CSE-ConnectionGUID: ZNKd8pjLSDqm/Bu8+RVLxA==
+X-CSE-MsgGUID: Y5imD72iRmm/cXg8yK2ddw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,116,1787036400"; 
+   d="scan'208";a="272318929"
+Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.80])
+  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2026 05:47:02 -0700
+From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Date: Tue, 22 Sep 2026 15:46:56 +0300 (EEST)
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+cc: Linux ACPI <linux-acpi@vger.kernel.org>, 
+    LKML <linux-kernel@vger.kernel.org>, 
+    Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+    Mika Westerberg <mika.westerberg@linux.intel.com>, 
+    Lorenzo Pieralisi <lpieralisi@kernel.org>, 
+    Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>, 
+    linux-arm-kernel@lists.infradead.org, Ard Biesheuvel <ardb@kernel.org>, 
+    Ilias Apalodimas <ilias.apalodimas@linaro.org>, linux-efi@vger.kernel.org, 
+    Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>, 
+    "Joerg Roedel (AMD)" <joro@8bytes.org>, 
+    Mark Pearson <mpearson-lenovo@squebb.ca>, 
+    "Derek J. Clark" <derekjohn.clark@gmail.com>, 
+    Hans de Goede <hansg@kernel.org>, platform-driver-x86@vger.kernel.org, 
+    David Rhodes <david.rhodes@cirrus.com>, 
+    Richard Fitzgerald <rf@opensource.cirrus.com>, 
+    Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+    linux-sound@vger.kernel.org, Shenghao Ding <shenghao-ding@ti.com>, 
+    Kevin Lu <kevin-lu@ti.com>, Baojun Xu <baojun.xu@ti.com>, 
+    Sen Wang <sen@ti.com>, Vijendar Mukunda <Vijendar.Mukunda@amd.com>, 
+    Venkata Prasad Potturu <venkataprasad.potturu@amd.com>, 
+    Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, 
+    Cezary Rojewski <cezary.rojewski@intel.com>, 
+    Peter Ujfalusi <peter.ujfalusi@linux.intel.com>, 
+    Bard Liao <yung-chuan.liao@linux.intel.com>, 
+    Kai Vehmanen <kai.vehmanen@linux.intel.com>, 
+    Pierre-Louis Bossart <pierre-louis.bossart@linux.dev>, 
+    Binbin Zhou <zhoubinbin@loongson.cn>, 
+    Andreas Noever <andreas.noever@gmail.com>, 
+    Mika Westerberg <westeri@kernel.org>, 
+    Yehezkel Bernat <YehezkelShB@gmail.com>
+Subject: Re: [PATCH v1 08/17] platform/x86: x86-android-tablets: Use
+ acpi_bus_get_primary_device()
+In-Reply-To: <3912360.MHq7AAxBmi@rafael.j.wysocki>
+Message-ID: <b5e7637d-e189-6ac7-6e47-9f4a21aab2ca@linux.intel.com>
+References: <7995179.EvYhyI6sBW@rafael.j.wysocki> <3912360.MHq7AAxBmi@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
- kwepemf100001.china.huawei.com (7.202.181.215)
+Content-Type: multipart/mixed; boundary="8323328-1698044991-1790081216=:1233"
 
-cppc_get_reg_val() and cppc_set_reg_val() combine two responsibilities:
-looking up the per-CPU cpc_desc and then performing the actual register
-read/write (including null/optional checks and PCC handling).
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Split out the register I/O logic into cpc_read_reg() and cpc_write_reg()
-that accept a struct cpc_register_resource pointer directly.  This allows
-callers that already hold a register reference -- such as the upcoming
-Resource Priority accessors -- to read or write a register without going
-through the per-CPU descriptor lookup by index.
+--8323328-1698044991-1790081216=:1233
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Also rename the PCC wrappers from cppc_get/set_reg_val_in_pcc() to
-cpc_read/write_in_pcc() to align with the new naming convention.
+On Mon, 21 Sep 2026, Rafael J. Wysocki wrote:
 
-Signed-off-by: Lifeng Zheng <zhenglifeng1@huawei.com>
----
- drivers/acpi/cppc_acpi.c | 89 ++++++++++++++++++++++++++--------------
- 1 file changed, 58 insertions(+), 31 deletions(-)
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+>=20
+> Replace acpi_get_first_physical_node() that is slated for removal
+> with acpi_bus_get_primary_device() that takes a reference to the
+> device it is about to return.
+>=20
+> This addresses a potential use-after-free that may occur if the
+> device returned by acpi_get_first_physical_node() is removed right
+> after dropping its ACPI companion's physical_node_lock in that
+> function.
+>=20
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/platform/x86/x86-android-tablets/core.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/platform/x86/x86-android-tablets/core.c b/drivers/pl=
+atform/x86/x86-android-tablets/core.c
+> index cfff7f5eac5d..2c262f117235 100644
+> --- a/drivers/platform/x86/x86-android-tablets/core.c
+> +++ b/drivers/platform/x86/x86-android-tablets/core.c
+> @@ -390,7 +390,6 @@ static int gpio_secondary_fwnode_init(struct device *=
+parent,
+>  {
+>  =09const struct software_node *const *swnode;
+>  =09struct fwnode_handle *fwnode;
+> -=09struct device *phys_dev;
+>  =09int ret;
+> =20
+>  =09if (!node_group)
+> @@ -418,7 +417,8 @@ static int gpio_secondary_fwnode_init(struct device *=
+parent,
+>  =09=09if (WARN_ON(!fwnode))
+>  =09=09=09return -ENOENT;
+> =20
+> -=09=09phys_dev =3D acpi_get_first_physical_node(to_acpi_device(dev));
+> +=09=09struct device *phys_dev __free(put_device) =3D
+> +=09=09=09=09acpi_bus_get_primary_device(to_acpi_device(dev));
+>  =09=09if (!phys_dev)
+>  =09=09=09return dev_err_probe(parent, -ENODEV,
+>  =09=09=09=09=09     "No physical device for ACPI GPIO dev: %pfwP\n",
+>=20
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 53c71888108d..2c2b25ec3e27 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -1374,7 +1374,7 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
- 	return ret_val;
- }
- 
--static int cppc_get_reg_val_in_pcc(int cpu, struct cpc_register_resource *reg, u64 *val)
-+static int cpc_read_in_pcc(int cpu, struct cpc_register_resource *reg, u64 *val)
- {
- 	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu);
- 	struct cppc_pcc_data *pcc_ss_data = NULL;
-@@ -1399,35 +1399,52 @@ static int cppc_get_reg_val_in_pcc(int cpu, struct cpc_register_resource *reg, u
- 	return ret;
- }
- 
--static int cppc_get_reg_val(int cpu, enum cppc_regs reg_idx, u64 *val)
-+/**
-+ * cpc_read_reg - Read value from a register element that may be Integer or Buffer.
-+ * @cpu: CPU number.
-+ * @reg: Pointer to the CPC register element.
-+ * @val: Output value.
-+ *
-+ * Return: 0 on success, -EOPNOTSUPP if null/unsupported, negative on error.
-+ */
-+static int cpc_read_reg(int cpu, struct cpc_register_resource *reg, u64 *val)
- {
--	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpu);
--	struct cpc_register_resource *reg;
--
- 	if (val == NULL)
- 		return -EINVAL;
- 
--	if (!cpc_desc) {
--		pr_debug("No CPC descriptor for CPU:%d\n", cpu);
--		return -ENODEV;
--	}
--
--	reg = &cpc_desc->cpc_regs[reg_idx];
--
--	if ((reg->type == ACPI_TYPE_INTEGER && reg->optional &&
--	     !reg->cpc_entry.int_value) || (reg->type != ACPI_TYPE_INTEGER &&
--	     IS_NULL_REG(&reg->cpc_entry.reg))) {
--		pr_debug("CPC register is not supported\n");
--		return -EOPNOTSUPP;
-+	if (reg->type == ACPI_TYPE_INTEGER) {
-+		if (reg->optional && !reg->cpc_entry.int_value)
-+			goto err_unsupported;
-+	} else if (reg->type == ACPI_TYPE_BUFFER) {
-+		if (IS_NULL_REG(&reg->cpc_entry.reg))
-+			goto err_unsupported;
-+	} else {
-+		goto err_unsupported;
- 	}
- 
- 	if (CPC_IN_PCC(reg))
--		return cppc_get_reg_val_in_pcc(cpu, reg, val);
-+		return cpc_read_in_pcc(cpu, reg, val);
- 
- 	return cpc_read(cpu, reg, val);
-+
-+err_unsupported:
-+	pr_debug("CPC register is not supported\n");
-+	return -EOPNOTSUPP;
-+}
-+
-+static int cppc_get_reg_val(int cpu, enum cppc_regs reg_idx, u64 *val)
-+{
-+	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpu);
-+
-+	if (!cpc_desc) {
-+		pr_debug("No CPC descriptor for CPU:%d\n", cpu);
-+		return -ENODEV;
-+	}
-+
-+	return cpc_read_reg(cpu, &cpc_desc->cpc_regs[reg_idx], val);
- }
- 
--static int cppc_set_reg_val_in_pcc(int cpu, struct cpc_register_resource *reg, u64 val)
-+static int cpc_write_in_pcc(int cpu, struct cpc_register_resource *reg, u64 val)
- {
- 	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu);
- 	struct cppc_pcc_data *pcc_ss_data = NULL;
-@@ -1452,18 +1469,16 @@ static int cppc_set_reg_val_in_pcc(int cpu, struct cpc_register_resource *reg, u
- 	return ret;
- }
- 
--static int cppc_set_reg_val(int cpu, enum cppc_regs reg_idx, u64 val)
-+/**
-+ * cpc_write_reg - Write a CPC register.
-+ * @cpu: CPU number.
-+ * @reg: Pointer to the CPC register resource.
-+ * @val: Value to write.
-+ *
-+ * Return: 0 on success, negative error code otherwise.
-+ */
-+static int cpc_write_reg(int cpu, struct cpc_register_resource *reg, u64 val)
- {
--	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpu);
--	struct cpc_register_resource *reg;
--
--	if (!cpc_desc) {
--		pr_debug("No CPC descriptor for CPU:%d\n", cpu);
--		return -ENODEV;
--	}
--
--	reg = &cpc_desc->cpc_regs[reg_idx];
--
- 	/* if a register is writeable, it must be a buffer and not null */
- 	if ((reg->type != ACPI_TYPE_BUFFER) || IS_NULL_REG(&reg->cpc_entry.reg)) {
- 		pr_debug("CPC register is not supported\n");
-@@ -1471,11 +1486,23 @@ static int cppc_set_reg_val(int cpu, enum cppc_regs reg_idx, u64 val)
- 	}
- 
- 	if (CPC_IN_PCC(reg))
--		return cppc_set_reg_val_in_pcc(cpu, reg, val);
-+		return cpc_write_in_pcc(cpu, reg, val);
- 
- 	return cpc_write(cpu, reg, val);
- }
- 
-+static int cppc_set_reg_val(int cpu, enum cppc_regs reg_idx, u64 val)
-+{
-+	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpu);
-+
-+	if (!cpc_desc) {
-+		pr_debug("No CPC descriptor for CPU:%d\n", cpu);
-+		return -ENODEV;
-+	}
-+
-+	return cpc_write_reg(cpu, &cpc_desc->cpc_regs[reg_idx], val);
-+}
-+
- /**
-  * cppc_get_desired_perf - Get the desired performance register value.
-  * @cpunum: CPU from which to get desired performance.
--- 
-2.33.0
+Seems to be based on the latest code,
 
+Reviewed-by: Ilpo J=C3=A4rvinen <ilpo.jarvinen@linux.intel.com>
+
+--=20
+ i.
+
+--8323328-1698044991-1790081216=:1233--
