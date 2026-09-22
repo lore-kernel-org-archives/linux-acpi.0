@@ -1,148 +1,198 @@
-Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazolkn19013092.outbound.protection.outlook.com [52.103.20.92])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-vs2-f40.google.com (mail-vs2-f40.google.com [74.125.227.40])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C2B73F0AB8;
-	Tue, 22 Sep 2026 12:29:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.103.20.92
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790080147; cv=fail; b=Q9CAYlztbQSmrdtTrQJG04pg4MjfRSOQo5f63n8gv5+L8gHSAgYRwPYZMOPXM7fkHarDF7RZ042J4VNzzpYlzpV/TBfIItjrkvjDG+hLFScC1fH3x9jLIhD8NU4ipNf16/Ig+etRa7Jq+7j2EqL/PPQkP8Y9tMHvFN4nAueE/JE=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790080147; c=relaxed/simple;
-	bh=WGhuF7CCJrdD1xW3hM2yO3LwiCvTovFux3LbvEaaQS0=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=QVMR4l+1KiswYm0+DpWm08uUq2xMZm0yy8Z2H6TTHMzUtPLR2791XlLbTSQ77dh/AwIXgPRaq+LUB7LXbv5eFHlyCkKPDNZ2H48juHHsgfwhh7RQwsx1/U6wv88Srmu57oRA+2cS3Yy2rWLVTSqJGnMw7RL8GLc3k99p8EdKmc8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=outlook.it; spf=pass smtp.mailfrom=outlook.it; dkim=pass (2048-bit key) header.d=OUTLOOK.IT header.i=@OUTLOOK.IT header.b=JP35+9kl; arc=fail smtp.client-ip=52.103.20.92
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=outlook.it
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=outlook.it
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61F26542EE8
+	for <linux-acpi@vger.kernel.org>; Tue, 22 Sep 2026 12:40:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.40
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790080804; cv=none; b=Yzi6Vivjrutvhsp8wF//Uy4QEPM/afUmJVL20V0R6ZlDrH05hL5r5GFkuOmQfjTjXADt9gyp0JzdPaLnN5cC5WIa8HwsbgEN1AAhvw/0/8Xc+m7XrgiNkCFT1nu/uUlp+FXSZdqBS6P3wA59ZbHm8yJmi/r5QetUYbTnhibM02g=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790080804; c=relaxed/simple;
+	bh=wFmJBrwWil7bpAeYIpoN4GzUL1HvXOt5ldn6IIIiFHY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=M6Vul1G8kCk9QCc6ZAwk03kmzGNGFX2gAEshghWyARzraS7X2qQNefpFW4cFXc1GiyFmsKN1nT8hkWVJiz2rsR9/WPpwpm5Y19OyTBdfqSmJNnx0DCh2khKA6ETGfAwZLwlNxRHqtiV+qbX5hA4E9G8hsO/F9EMYUM8gy1NAGTI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ieee.org; spf=pass smtp.mailfrom=ieee.org; dkim=pass (1024-bit key) header.d=ieee.org header.i=@ieee.org header.b=O2oXCldz; arc=none smtp.client-ip=74.125.227.40
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ieee.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ieee.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=OUTLOOK.IT header.i=@OUTLOOK.IT header.b="JP35+9kl"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Wp2AHBa200nKZ9DIwT7wuw/8KhJStQvGFppPORo+ccx/HNBJ0x4srIslgU9JdwG8SXjwtAeg46JRXnNPTLZJRdgSKWYPFaFln4jPvOWV1+/Xk91HK9fmnTwS+KqE2mcQZloqfRA5AH7TWC/wG3lQ9OBNMLzUFg+DGs6BWnfLQAzeRWKf4thgEutZM1IyohT7uT5mU67e1dxL5STDPp1CldaEbuuay8/ysZP4SaokNtSrME1Qj2TjBxPEXTLr9J1xAT0Km0vOdqsvQWzL32ZH+tw11QOmS+Df1YYprw0SMagOd0Iav5duxxE38Sv7lcVMA+JhmupsKDwUUPZkwFvU6A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=WGhuF7CCJrdD1xW3hM2yO3LwiCvTovFux3LbvEaaQS0=;
- b=ILaDS8l6WZVQ7zUU+yZCYw7Yf0hmmSF+hGRZm3Umqea2x/5WHqpbBSs59xahIDp0nGEMHK8++3IKC8eMiiipF5bzko2Ot4aamT7krJggXqr8EteZlAy15H6jYxFp07xv1IxLfAEOVdrCsdGDwD6UO4JYnTg+xRLJgfJaVzEcrbBPkvzsUt1XF1cvJ1iusRvgDZS6KGWg2zfzQEGP6ValdJf2a4E3fvDgbFrIJrnF/xyzISRyp5usk5GqyB5k58NQYbNPe2t25/FwaB14y0OQRwoNJ6CF8nZJSm77YfDwdfORaLR5erL55uPFqspGXOr5TNDiKcB4Ui6nJ41O/+0Slw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
- dkim=none; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=OUTLOOK.IT;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=WGhuF7CCJrdD1xW3hM2yO3LwiCvTovFux3LbvEaaQS0=;
- b=JP35+9klh1bynioyKhnYo5xkiwTYc8yzX6t2n7mqG1rGUk45DEyuK6IZmhtdWLNF5ji+ZcATqaiKFpvP0uGyhPgIdC498RtLeYP/LPgFyI/nndmtedp9ycpSaMN8iTws2R/EtO8nmxxMyuBPB3As4l6qmMXr+bk9gIc2bDpOp4TuSa6AqECZlpnMK3ZFk8C4aVw/ygCkZVHXikiF3X4nn3d0/3n9jo5JDILlt6sq0R4bQqHkOHaKC13b7OtpDZJBiobbBuICOUY219cF4pmjvR23Z2xdoy1wnPN4ls6NI8GhbOX44B1JMqwa0PN84G79sCtncDevudxa6wghw82oZQ==
-Received: from SN6PR19MB2303.namprd19.prod.outlook.com (2603:10b6:805:56::19)
- by MW3PR19MB4329.namprd19.prod.outlook.com (2603:10b6:303:4f::22) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.428.16; Tue, 22 Sep
- 2026 12:27:01 +0000
-Received: from SN6PR19MB2303.namprd19.prod.outlook.com
- ([fe80::805c:7f80:c69f:876a]) by SN6PR19MB2303.namprd19.prod.outlook.com
- ([fe80::805c:7f80:c69f:876a%5]) with mapi id 15.21.0451.012; Tue, 22 Sep 2026
- 12:27:01 +0000
-From: Marco Giunta <marco_giunta@outlook.it>
-To: rafael@kernel.org
-Cc: linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-efi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-sound@vger.kernel.org,
-	perex@perex.cz,
-	platform-driver-x86@vger.kernel.org,
-	tiwai@suse.com,
-	Marco Giunta <marco_giunta@outlook.it>
-Subject: Re: [PATCH v1 11/17] ALSA: hda: aw88399: Switch to use acpi_bus_get_primary_device()
-Date: Tue, 22 Sep 2026 14:26:47 +0200
-Message-ID:
- <SN6PR19MB23030375FC66A5E8F4296C9AFC832@SN6PR19MB2303.namprd19.prod.outlook.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <2568518.jE0xQCEvom@rafael.j.wysocki>
-References: <2568518.jE0xQCEvom@rafael.j.wysocki>
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: ZR0P278CA0033.CHEP278.PROD.OUTLOOK.COM
- (2603:10a6:910:1c::20) To SN6PR19MB2303.namprd19.prod.outlook.com
- (2603:10b6:805:56::19)
-X-Microsoft-Original-Message-ID:
- <20260922122647.21518-1-marco_giunta@outlook.it>
+	dkim=pass (1024-bit key) header.d=ieee.org header.i=@ieee.org header.b="O2oXCldz"
+Received: by mail-vs2-f40.google.com with SMTP id 71dfb90a1353d-5c9a1536864so2849968e0c.2
+        for <linux-acpi@vger.kernel.org>; Tue, 22 Sep 2026 05:40:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ieee.org; s=google; t=1790080799; x=1790685599; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=o9blDfaIlaDE7zWOzf7sAkl81n8mIgiGQIMLz8R8dVg=;
+        b=O2oXCldzJ3LpA4QHBbXInqG6gPFkiSS8IpezgH8R+ZrmCNrQGw2qZ3cz2HJXPR/LD3
+         nDnwu+h/q1ydJlARyj62co9tTwdWIgt6A4ziEIgZPoWy6ktNQVyLZgBsOE9UYoUt4d3f
+         ApfWcUtfyoMebnbxzEyQSfJL5IYMdQPZlYtb0=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790080799; x=1790685599;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=o9blDfaIlaDE7zWOzf7sAkl81n8mIgiGQIMLz8R8dVg=;
+        b=dlTTwB0OUmwv/pXrizT0pCp5b4cWEXLCq9VSoQ0meOkvSRticrmVnUQH2oVuiukj+J
+         4udLVcuE9SGNiqto1VpLOkWPLwe7oJrvzg5ir9iE/1dSl9yn2WtJsVlUDuFSZ6r9QeQ7
+         5mxAsrgRG5O+D3k4J14nbCS58FplrJFpr8ANtVcCW6dDSyk7HxlKkMo4dhckoQT0zxTI
+         hv96CqoQKwmKCP8NnWi67tSDiKKQvl4b7gqio9fnTSj9eiJV9LS3TT6Doahw43JfeRq6
+         Od4INi3J81qmSu7Zb3zM9zcqv6UH7mQVq8Hk2ys+1qp45sl+O4adsRfhmviTXFUNbmuH
+         Ho2Q==
+X-Forwarded-Encrypted: i=1; AKwUvBxdZxz5tB8vyEbwjnIHwjjeKHwHVN7rVtNVwTDgR7Nbr97Ta2IYaUNTCWo6K7XCcVCsiDOoCrrvcTYJ@vger.kernel.org
+X-Gm-Message-State: AFuF++ngjp0poizq8f+wC8I1+sk99xQ3oeOSatxW3qTTEUgInokFaxan
+	C402WcE2i/zlS2MeNJ8fn6BiOiCxd5K6Ko2YA2VS1ejOvaUW68pxYUBM9UAOLQuyuw==
+X-Gm-Gg: AYBFou1DEYLWsRyKU+1mIPVq+BYOqRnqTSYonxLxzZnk/cKAEPCgN9AZ59AS+tq9Rk3
+	EfZkxkReb+FJjVz+3lI3ySvY0KMYsI5SVxnRVcfD0SVtPrQcvFUESNH4fIrPC2te2k+Sg1/ri2d
+	eTLOvf92Flmr++W4ZJ3TfF4Tfj6cxIP4DLddNteaireHhiMPig4erIrn/XpZ7IC3Vt0aqT669oj
+	Ri1hWf96Y28jzfP7Ace1IRKN3ZZmKnN9X8hyOoqX+5WG8d57iYHQfvYC6c0e8//Is2YEAeqSJfL
+	UZ6ygh7f5Lcqz9aF0RoPOnrn0emKvpN6Rp+2nDlUT2yZ99vnN3yt9pMJ4mZKN4nofQMyKhakuOq
+	aL77f0FWetHNIK3SvRtHEI3hP9OJZTG1zTRQwIY5KTo0rztFXB4YHP/NKlBAK1IqWRGva8MIde+
+	W2m9z2BguAfA7Yk6QlCjj5NvfFiKdKZORj7NW8RWrkEYR4H4M/I3Z1S6buZbgVzwNMkTl4q6QAX
+	7VZ
+X-Received: by 2002:a05:6122:e22b:b0:5c9:a60c:2736 with SMTP id 71dfb90a1353d-5c9b598e442mr8405960e0c.14.1790080799199;
+        Tue, 22 Sep 2026 05:39:59 -0700 (PDT)
+Received: from [172.22.22.28] ([73.62.185.64])
+        by smtp.googlemail.com with ESMTPSA id 6a1803df08f44-91402535ce1sm14566906d6.48.2026.09.22.05.39.48
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 22 Sep 2026 05:39:53 -0700 (PDT)
+Message-ID: <d2052425-3fb4-4104-b1ed-f2d53e5a710d@ieee.org>
+Date: Tue, 22 Sep 2026 07:39:47 -0500
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SN6PR19MB2303:EE_|MW3PR19MB4329:EE_
-X-MS-Office365-Filtering-Correlation-Id: 5fe0b0eb-8d24-4224-19a4-08df18a4ccce
-X-Microsoft-Antispam:
-	BCL:0;ARA:14566002|25010399006|55001999006|41001999006|24021099003|8022599003|19110799012|15080799012|23021999003|5072599009|8060799015|12091999003|31101999003|2607281247196008|3071699003|440099028|3412199025|1710799026;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?rcLCBO8HS5dA/K0sfFiqOV3uJvv0hfwHRWeQVvLjX2reI74nt/5KZx8sTHUi?=
- =?us-ascii?Q?n/62mpv8V9g2E3pmBP0Nqi0yCz8PnsLpUiTxRenbdSEpHjwdFfp4EZ6CviPW?=
- =?us-ascii?Q?fhsGcyG56igTFgasLLnOon1rDTEmDHn5FnMxtvq3l7sKIJs6JBHW3XYF2WL1?=
- =?us-ascii?Q?hUIs/5eLzrrLRmF9iaK6pyK56PC5f2TYN2MHSg1PbcXitlaiil81zbY69VCW?=
- =?us-ascii?Q?RWUyHW6MboJu495EHIfA5izs8jZ6VFozVxxnqxnCqR1oCPXUFK/W20YcOLrZ?=
- =?us-ascii?Q?WJ7gtRKOLPGYOPOl5ip+72SBMqNxadwtVNNZKPy4a/4ZkeU34fXof7jq9jjt?=
- =?us-ascii?Q?qb5spOci422AsHKCh66VrzaXXSsY51S1Hei6gFDJXtLLIJt+M84nyGEkQiet?=
- =?us-ascii?Q?MCuFM0R1MeKyJAqY1oDtyhXlxV+kr7hSOcLBaRckKEm2MNHhohvEZoOEQMSF?=
- =?us-ascii?Q?Q9W8bUOOJarrI+S14TsaYP2hzQlJOFAyUP8BBPX5KdQItdqgA9l5cEaB8z7g?=
- =?us-ascii?Q?XQ2gvCb+qj3VlCEuN8PnDlDXCwIG8gwmPUs97OLG3g/bVoZdCTxh6G0I+4ty?=
- =?us-ascii?Q?Mz90nzfhBYUCDgXgNwk4l2HZ1L8Hi9YQ1ZsQ71KWXjC/o/kSiXnqNpIXbxF4?=
- =?us-ascii?Q?JU+0DnNTLKZ685/RFVsB8cB3w93LklnC52KB7rumDH0n5I37EOuZkY3k2+An?=
- =?us-ascii?Q?7OGA+YyOgFrRlvSEKw7LMYnvJ1A7RAIYqt4KZQo5pdFlJGXICx0skPBlAuRh?=
- =?us-ascii?Q?X8DDwKBYx7x9HrgoqlchUHzSAbZnLUUMDQ7L657on/Nv5bYs6pxhv/Dtv1jk?=
- =?us-ascii?Q?S5lpdNjL4v7H+/915AZItFXqk17YEGX+KVLLgTDdlQdg0XBLlCUamBnKRy60?=
- =?us-ascii?Q?xDdV3aTgK6rkwJSDbGJfPeodnsMpYOR+NCj6nYhsCxJY+LItkB5ZrPRqLuoN?=
- =?us-ascii?Q?3sZDHWItd6CVThBDUeQl1/B1WNqlRl6HjUT1GP0enL68epY3fhCBod40Is2R?=
- =?us-ascii?Q?NcE2/RpQ3ttdPk0mRK6EINI4a1mjXlq06qPfgmw+Duh59yw0Jv0pDS0zteHD?=
- =?us-ascii?Q?Hie+W/N04lKpnXSr3O3zrAsjtfC7NA=3D=3D?=
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?rZwEDOhBaJWkNt87YHY0pcx/D5j+hF6TwfF3cf84rFEWjhCfuCyiNkTZObWq?=
- =?us-ascii?Q?6PobSg6rEmb44ksbZ2r0TjlWDqptCGE5G2vBD81yPv7pS/dT9xuGnte6u/MY?=
- =?us-ascii?Q?/r125T9rBMMBHafQgGwDRgYGVohOyoDWB+PvwZeAaU1RsCo7keIvXZ/mMSAV?=
- =?us-ascii?Q?t0EyCpOdW2ksYBCrA+WjiGpdwWH7mEPmRlYk33O0nXfbtjgPyCuOsEdMC4QK?=
- =?us-ascii?Q?k+iKScYxvwtvEvPcLsitVSSgBSLJxCqdMKQW9BbjPr57r5SzXSkf5qi1u7LH?=
- =?us-ascii?Q?1LG6XR8PsezHZWYhRxSQuS/QVpaGFZ1upCm1iZGQ/B2OOKF2DrlzBkrDKpFJ?=
- =?us-ascii?Q?66dzjCzzL5qtrzAxQ2hMqPhmA90CHWtUPht/pNFj5Iav8eg0niBzMAbrOexK?=
- =?us-ascii?Q?Fl+19sg4P6KiIT4AYdhViz9GdEXJpoacf3rvoefeUSu10ck5QEKlfgkUJ1uI?=
- =?us-ascii?Q?S0Dqic35ko8R3k5vNxk7s8oIrSCoBBEaEAOtY4HaiLQbzwRQovS0TnXCNymN?=
- =?us-ascii?Q?0dMEijOWkvWM/o4UnA83uK9P62s6BAIEZUkCy8suhhlqnxPjAQFpHt8D8iaJ?=
- =?us-ascii?Q?XYpi5DnDc85Fd1sHwgann/PM7oEPQqPoA65CyeMQ6mwCb7We3qQGZmluCB73?=
- =?us-ascii?Q?EepiwMcdg6oO8HsygaSF6mZazYw1VZnTwfRf1fbVX/yvJa6PvMhRAUuMrzJ0?=
- =?us-ascii?Q?NCeZgp/C2XwbIWGvOqmpzEQQE5SlXNemcclgAeccst7ImlS6akj+v2GkoA0q?=
- =?us-ascii?Q?zifxL+x6M5YnhReV51f7vagN/ibMM/Eo/j5xf48syvd7kyqeRAPUpjOfydI2?=
- =?us-ascii?Q?Vq6v4B4OKMc7SDtcHLoC3hhysktEDfHpSqULfxVF19wkOfwuhNsWwALhZIVe?=
- =?us-ascii?Q?2M6dAFfh4olkMWP5ggxOwywLfGTHPzhe0ZX5Jj0i1qhgQ2uIZu/8Fi3pPIkD?=
- =?us-ascii?Q?IpmuDGpPxwK90keXkkmDUBAP7govrxniIu7dHzvYkNwgPW4lBhfqZE1BEU5V?=
- =?us-ascii?Q?vWYq6Takl1m8mgqpdlB9AV+joJ9dMDAhzgpl8NEsUKybVvIQpjlgNBRbJBbq?=
- =?us-ascii?Q?fe5DNfOpZPw0wfQms3h6WX1vbry356+emJVLlpLY8pJHR0BRLOH6UOXRN5/p?=
- =?us-ascii?Q?eGUGD9u8KShPILlnFL7wmyBIezN0+XkQx8hu7TiCc9wb7fw96tsFuLzTAmYT?=
- =?us-ascii?Q?5a+ACWF7gmJt/9Vo7icuF24iVxu+LZKljgs12KJfiE/4fTPgfcR7z+U+hnHw?=
- =?us-ascii?Q?xsqziWVODxwoN5wiTJCLJPNuTu/JbkWkyDVggZETrjVCvAObs/3Ib9s0X3qu?=
- =?us-ascii?Q?51AsdtY0db7hi+CpM+g3rBr/tp8Qws+YY63AnZJrWKUOlWTvD3uuL0A+lnMs?=
- =?us-ascii?Q?neMmlFwlqtdqI4caJqGi/lAmL6kt?=
-X-OriginatorOrg: sct-15-20-9412-4-msonline-outlook-990eb.templateTenant
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5fe0b0eb-8d24-4224-19a4-08df18a4ccce
-X-MS-Exchange-CrossTenant-AuthSource: SN6PR19MB2303.namprd19.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Sep 2026 12:27:01.2660
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
-X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg:
-	00000000-0000-0000-0000-000000000000
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW3PR19MB4329
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 1/3] umh, treewide: Explicitly include linux/umh.h
+ where needed
+To: Petr Pavlu <petr.pavlu@suse.com>, Tony Luck <tony.luck@intel.com>,
+ Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@kernel.org>,
+ Ingo Molnar <mingo@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>,
+ x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
+ Philipp Reisner <philipp.reisner@linbit.com>,
+ Lars Ellenberg <lars.ellenberg@linbit.com>,
+ =?UTF-8?Q?Christoph_B=C3=B6hmwalder?= <christoph.boehmwalder@linbit.com>,
+ Jens Axboe <axboe@kernel.dk>, Johan Hovold <johan@kernel.org>,
+ Alex Elder <elder@kernel.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>,
+ Michal Januszewski <spock@gentoo.org>, Helge Deller <deller@gmx.de>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ Trond Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>,
+ Chuck Lever <cel@kernel.org>, Jeff Layton <jlayton@kernel.org>,
+ NeilBrown <neil@brown.name>, Olga Kornievskaia <okorniev@redhat.com>,
+ Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>,
+ Mark Fasheh <mark@fasheh.com>, Joel Becker <jlbec@evilplan.org>,
+ Joseph Qi <joseph.qi@linux.alibaba.com>, Tejun Heo <tj@kernel.org>,
+ Johannes Weiner <hannes@cmpxchg.org>, =?UTF-8?Q?Michal_Koutn=C3=BD?=
+ <mkoutny@suse.com>, Luis Chamberlain <mcgrof@kernel.org>,
+ Daniel Gomez <da.gomez@kernel.org>, Sami Tolvanen <samitolvanen@google.com>,
+ Aaron Tomlin <atomlin@atomlin.com>, Pavel Machek <pavel@kernel.org>,
+ Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>,
+ Danilo Krummrich <dakr@kernel.org>, Nikolay Aleksandrov
+ <razor@blackwall.org>, Ido Schimmel <idosch@nvidia.com>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Simon Horman <horms@kernel.org>, David Howells <dhowells@redhat.com>,
+ Jarkko Sakkinen <jarkko@kernel.org>, Paul Moore <paul@paul-moore.com>,
+ James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>,
+ Kentaro Takeda <takedakn@nttdata.co.jp>,
+ Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org,
+ drbd-dev@lists.linux.dev, linux-block@vger.kernel.org,
+ greybus-dev@lists.linaro.org, linuxppc-dev@lists.ozlabs.org,
+ linux-acpi@vger.kernel.org, linux-fbdev@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linux-fsdevel@vger.kernel.org,
+ linux-nfs@vger.kernel.org, ocfs2-devel@lists.linux.dev,
+ cgroups@vger.kernel.org, linux-modules@vger.kernel.org,
+ linux-pm@vger.kernel.org, driver-core@lists.linux.dev,
+ bridge@lists.linux.dev, netdev@vger.kernel.org, keyrings@vger.kernel.org,
+ linux-security-module@vger.kernel.org
+References: <20260911-module-include-kmod-v3-0-6ebccc3e0731@suse.com>
+ <20260911-module-include-kmod-v3-1-6ebccc3e0731@suse.com>
+Content-Language: en-US
+From: Alex Elder <elder@ieee.org>
+In-Reply-To: <20260911-module-include-kmod-v3-1-6ebccc3e0731@suse.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
->
-> Replace acpi_get_first_physical_node() that is slated for removal
-> with acpi_bus_get_primary_device() that takes a reference to the
-> device it is about to return.
->
-> This addresses a potential use-after-free that may occur if the
-> device returned by acpi_get_first_physical_node() is removed right
-> after dropping its ACPI companion's physical_node_lock in that
-> function.
+On 9/11/26 9:46 AM, Petr Pavlu wrote:
+> The usermode helper declarations were previously provided by linux/kmod.h
+> but commit c1f3fa2a4fde ("kmod: split off umh headers into its own file")
+> moved them to linux/umh.h in 2017.
+> 
+> Add explicit includes of linux/umh.h to files that use usermode helpers and
+> remove linux/kmod.h where it is no longer needed.
+> 
+> Signed-off-by: Petr Pavlu <petr.pavlu@suse.com>
+> ---
+>   arch/x86/kernel/cpu/mce/dev-mcelog.c | 2 +-
+>   drivers/block/drbd/drbd_nl.c         | 1 +
+>   drivers/greybus/svc_watchdog.c       | 1 +
 
-Acked-by: Marco Giunta <marco_giunta@outlook.it>
+For Greybus:
+
+Acked-by: Alex Elder <elder@riscstar.com>
+
+>   drivers/macintosh/windfarm_core.c    | 1 +
+>   drivers/pnp/pnpbios/core.c           | 2 +-
+>   drivers/video/fbdev/uvesafb.c        | 1 +
+>   fs/coredump.c                        | 2 +-
+>   fs/nfs/cache_lib.c                   | 2 +-
+>   fs/nfsd/nfs4layouts.c                | 2 +-
+>   fs/nfsd/nfs4recover.c                | 1 +
+>   fs/ocfs2/stackglue.c                 | 1 +
+>   kernel/cgroup/cgroup-v1.c            | 2 +-
+>   kernel/module/kmod.c                 | 1 +
+>   kernel/power/process.c               | 2 +-
+>   kernel/reboot.c                      | 2 +-
+>   kernel/umh.c                         | 2 +-
+>   lib/kobject_uevent.c                 | 2 +-
+>   net/bridge/br_stp_if.c               | 2 +-
+>   security/keys/request_key.c          | 2 +-
+>   security/tomoyo/common.h             | 2 +-
+>   20 files changed, 20 insertions(+), 13 deletions(-)
+> 
+> diff --git a/arch/x86/kernel/cpu/mce/dev-mcelog.c b/arch/x86/kernel/cpu/mce/dev-mcelog.c
+> index 053555206d81..af4e76babe7a 100644
+> --- a/arch/x86/kernel/cpu/mce/dev-mcelog.c
+> +++ b/arch/x86/kernel/cpu/mce/dev-mcelog.c
+> @@ -11,7 +11,7 @@
+>   
+>   #include <linux/miscdevice.h>
+>   #include <linux/slab.h>
+> -#include <linux/kmod.h>
+> +#include <linux/umh.h>
+>   #include <linux/poll.h>
+>   
+>   #include "internal.h"
+> diff --git a/drivers/block/drbd/drbd_nl.c b/drivers/block/drbd/drbd_nl.c
+> index b77f901fc3ef..6f5d059394b3 100644
+> --- a/drivers/block/drbd/drbd_nl.c
+> +++ b/drivers/block/drbd/drbd_nl.c
+> @@ -14,6 +14,7 @@
+>   #define pr_fmt(fmt)	KBUILD_MODNAME ": " fmt
+>   
+>   #include <linux/module.h>
+> +#include <linux/umh.h>
+>   #include <linux/drbd.h>
+>   #include <linux/in.h>
+>   #include <linux/fs.h>
+> diff --git a/drivers/greybus/svc_watchdog.c b/drivers/greybus/svc_watchdog.c
+> index 16e6de5e9eff..b318eb34bcca 100644
+> --- a/drivers/greybus/svc_watchdog.c
+> +++ b/drivers/greybus/svc_watchdog.c
+> @@ -7,6 +7,7 @@
+>   
+>   #include <linux/delay.h>
+>   #include <linux/suspend.h>
+> +#include <linux/umh.h>
+>   #include <linux/workqueue.h>
+>   #include <linux/greybus.h>
+>   
+. . .
