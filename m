@@ -1,84 +1,107 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6BA353D0A4
-	for <linux-acpi@vger.kernel.org>; Tue, 22 Sep 2026 12:09:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from mail.loongson.cn (mail.loongson.cn [114.242.206.163])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id E5122541460;
+	Tue, 22 Sep 2026 12:18:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=114.242.206.163
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790078972; cv=none; b=a6F0N/zaPBod6bFBp7Pq7SS8R5SPTxuFCXJ+Vw5sn+fbdhvW1+uY4xkOwQ2cA6YBbcIay4ZZFAJbgKx1nf9v+oel7lYUG8FYOc97rKTOelSeTlTm2XFc+1tcaTzrGkFMZCcCs35sV4Zk++LtiECvyetX46yLT3rjHLqH3V2nuCs=
+	t=1790079506; cv=none; b=bURetWaEMUojm5I9/V77rlD/hYmeaRFevWgNLhL5XATuq1fBHrYKO3zQWGNpI4ElAnY9GcRpl5BzF+KLWs0pPlSglSWDhhxBhZ1AO4TNnzgrcF2/cvqGdh9PTP70d7UcmXu6wX3oTgZRqL9dlwR+L4jMYLSHsru/C/sRtIRSKSQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790078972; c=relaxed/simple;
-	bh=gqKwaL+/AcGiqt0SEqNOonv02Mge4jL0jxPzbOQ6yJc=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=nJCFQ/A1x3tMvtzluzkSlCSYZD+rinWFeoyVtXnRD+idTlLai5ECbtZeIKy+qh3Q9uVLPED12iyzuvN4NFhp3Iauortz/ivxkccW7oIIMj9FURJRcyaSlE2vksk0L5ywlR8bDMk/3XxK1MoclRjI7Ri7xYv7u6EgRFjbWp6NlZY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aUd7oCph; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aUd7oCph"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 606B71F00899
-	for <linux-acpi@vger.kernel.org>; Tue, 22 Sep 2026 12:09:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790078970;
-	bh=gqKwaL+/AcGiqt0SEqNOonv02Mge4jL0jxPzbOQ6yJc=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=aUd7oCph+9i8ACVufMzt89mdZPx3sPvEVZR1YbHK1v/rQDJfyT1G/JEF1Xpkuihv6
-	 WejvVmeXEKX00xGTJQMuntZc/bsNTfVVb9jobxmwY3wgnbIYG87xwiVIy1IvK+cgDU
-	 9SoDO66pTcRjDGUzDMikTtWnFnYIni+wGpwEWDJI08ta0E5UoPUaaNSaQeYAZV6ojF
-	 zuPmle+uEOaiTNpUVUzUSY9qlKLt4xE9A/2U0bPo9XSZLZFo2DQdjGB5Npkjtk8qDE
-	 CZbtp4mng1tU35xNVlqSSyxh5d/T0tlohMtvKJ+KNhgKspQ0JitAYo0HiclGZ2u9Wd
-	 /Q4Sgm/4/X1Kw==
-Received: by mail-lf2-f12.google.com with SMTP id 2adb3069b0e04-5b5e4f1b845so3334025e87.1
-        for <linux-acpi@vger.kernel.org>; Tue, 22 Sep 2026 05:09:30 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBwFt6QcPwMuViUk2eaemXdcXLMWLlotkskr0Ihv2bygFEkxauyWG88+uwglYuDfMvJMWymhO9yaX3Cn@vger.kernel.org
-X-Gm-Message-State: AFuF++kqESCxB5FjgWjdEzr1i4PQzrEeXsf/FWbPqaTreKmdpVh8Hw8+
-	q0AWPi7J1ML3AnYyZdCcmiYU4ZGpKnDkmExueTcIf7SOInGwjvbTmpBf9pSkfc1AS6hZWidPDYu
-	CBr3k6K6fXPprpJzMNFOIc4oPWaTYzKs=
-X-Received: by 2002:a05:6512:3f26:b0:5b0:129c:ed85 with SMTP id
- 2adb3069b0e04-5b8c1833735mr4656415e87.1.1790078968689; Tue, 22 Sep 2026
- 05:09:28 -0700 (PDT)
+	s=arc-20240116; t=1790079506; c=relaxed/simple;
+	bh=hg8WJ1umGhHtMg7e2zKZXqIrOo/tFdLKj9L+KyJYFvs=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=aVtN8bJ/miYSkff9zuK8P7n1G2GrUw7EfLoc8tW8qrnlXSwh25kYo5mrRbogOrFOPz7NOdrzhqes5wTV77Txlu6kTCc99vrjU3S6TEBzUAEbq+SlmH5o2meId7gubntc5SvrCPqFphfT6JWD7Chr+MotC5uCfBeeM4AKbv0OTGc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=loongson.cn; spf=pass smtp.mailfrom=loongson.cn; arc=none smtp.client-ip=114.242.206.163
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=loongson.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=loongson.cn
+Received: from loongson.cn (unknown [10.2.5.213])
+	by gateway (Coremail) with SMTP id _____8AxXdIMcrJqRKAOAA--.42879S3;
+	Tue, 22 Sep 2026 20:18:20 +0800 (CST)
+Received: from localhost.localdomain (unknown [10.2.5.213])
+	by front1 (Coremail) with SMTP id qMiowJBx6c0LcrJqysAjAA--.44690S2;
+	Tue, 22 Sep 2026 20:18:19 +0800 (CST)
+From: Bibo Mao <maobibo@loongson.cn>
+To: Huacai Chen <chenhuacai@kernel.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
+	Pawel Chmielewski <pawel.chmielewski@intel.com>
+Cc: Len Brown <lenb@kernel.org>,
+	linux-kernel@vger.kernel.org,
+	loongarch@lists.linux.dev,
+	linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev,
+	lixianglai@loongson.cn
+Subject: [PATCH v4 0/4] ACPI: LoongArch: Add IOVT table support
+Date: Tue, 22 Sep 2026 20:10:54 +0800
+Message-Id: <20260922121058.972734-1-maobibo@loongson.cn>
+X-Mailer: git-send-email 2.39.3
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260501165542.GA491695@bhelgaas> <561131dd-0e42-437a-9724-a036238a9bb4@gmx.net>
- <5f716613-d996-46db-96ec-6c0251219922@gmx.net> <449c834d-d115-4242-aa5a-43daa085f178@leemhuis.info>
- <81ac70ae-c51e-4960-8dd3-bed47ceafafb@gmx.net> <012b3ebc-62f0-402e-afa9-02712e67e72a@leemhuis.info>
- <86030fc1-473b-4695-a2f3-c30b5f19614c@gmx.net>
-In-Reply-To: <86030fc1-473b-4695-a2f3-c30b5f19614c@gmx.net>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 22 Sep 2026 14:07:56 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iw9Jrdv2MaCu5Dou3Ust5L-YsEMWDpZPP58-ag_pbZSg@mail.gmail.com>
-X-Gm-Features: AcwNN1UGH85E-0STnNRfBuN9iOHz5RK2V5gbiUx9oFANBoJIrdCdCHY4pgwi5FY
-Message-ID: <CAJZ5v0iw9Jrdv2MaCu5Dou3Ust5L-YsEMWDpZPP58-ag_pbZSg@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: PM: Add quirk for Acer Swift 3 SF314-56G (MX250)
-To: lxuser <dittrich.m@gmx.net>
-Cc: rafael@kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, 
-	regressions@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:qMiowJBx6c0LcrJqysAjAA--.44690S2
+X-CM-SenderInfo: xpdruxter6z05rqj20fqof0/
+X-Coremail-Antispam: 1Uk129KBjDUn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7KY7
+	ZEXasCq-sGcSsGvfJ3UbIjqfuFe4nvWSU5nxnvy29KBjDU0xBIdaVrnUUvcSsGvfC2Kfnx
+	nUUI43ZEXa7xR_UUUUUUUUU==
 
-On Fri, Sep 18, 2026 at 8:49=E2=80=AFAM lxuser <dittrich.m@gmx.net> wrote:
->
-> Dear Rafael,
->
-> the Acer Swift 3 SF314-56G with NVIDIA GeForce MX250 (bios V1.14)
-> suffers from an ACPI power resource regression where the power resource
-> controlling the dGPU is incorrectly marked as unused and turned off
-> during initialization.
-> This causes the GPU to enter D3cold state, making it inaccessible to the
-> NVIDIA driver.
->
-> The symptom was:
-> nvidia 0000:02:00.0: Unable to change power state from D3cold to D0,
-> device inaccessible
->
-> This commit adds a DMI quirk to prevent the power resource from being
-> turned off, similar to the existing Thunderobot ZERO quirk (cd7ef20ba8c6e=
-9).
+I/O Virtualization Table is ACPI table for LoongArch IOMMU devices, it
+is merged on ACPI Spec 6.6, and it can be located at
+  https://www.loongson.cn/uploads/images/2024110517404135188.LoongArch-IO-Virtualization-Table-Specification.pdf
 
-I would have applied your patch, but I need the same information in
-the Signed-off-by tag and the email From: header (preferably, your
-full name followed by the email address).
+Here add IOVT table parsing on LoongArch system, it is for LoongArch
+IOMMU driver use in future.
+---
+v3 ... v4:
+  1. Move kernel option ACPI_IOVT from patch 4 to patch 2.
+  2. Move function call with iovt_iommu_configure_id() before function
+     viot_iommu_configure() in acpi_iommu_configure_id().
+  3. Rename LoongArch with LOONGARCH like other architecture in file
+     MAINTAINERS.
+  4. Set Huacai as one of Maintainers.
 
-Thanks!
+v2 ... v3:
+  1. Add separate patch with header file include/linux/acpi_iovt.h,
+     after it is merged in acpica tree.
+  2. Modify patch set since macro name is changed in acpi_iovt.h
+  3. Merge patch 1 and patch 2 together.
+
+v1 ... v2:
+  1. Reorganize the patch, patch 1/4 are merged, patch 3/5/6 are merged,
+     add patch 2/8 are merged together.
+  2. Enrich error printk information in iovt_get_pci_iommu_fwnode().
+---
+Bibo Mao (4):
+  ACPICA: actbl2.h: Add bit constants of the Flags field in the IOVT
+    IOMMU structure
+  ACPI: LoongArch: Add acpi_arch_[late]_init()
+  ACPI: scan: Add support for LoongArch in acpi_iommu_configure_id()
+  MAINTAINERS: Add entry for drivers/acpi/loongarch
+
+ MAINTAINERS                     |   9 +
+ arch/loongarch/Kconfig          |   1 +
+ drivers/acpi/Kconfig            |   4 +
+ drivers/acpi/Makefile           |   2 +-
+ drivers/acpi/bus.c              |   2 +
+ drivers/acpi/loongarch/Kconfig  |   7 +
+ drivers/acpi/loongarch/Makefile |   3 +
+ drivers/acpi/loongarch/init.c   |  16 ++
+ drivers/acpi/loongarch/init.h   |   5 +
+ drivers/acpi/loongarch/iovt.c   | 280 ++++++++++++++++++++++++++++++++
+ drivers/acpi/scan.c             |   3 +
+ include/acpi/actbl2.h           |   7 +
+ include/linux/acpi.h            |   1 +
+ include/linux/acpi_iovt.h       |  13 ++
+ 14 files changed, 352 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/acpi/loongarch/Kconfig
+ create mode 100644 drivers/acpi/loongarch/Makefile
+ create mode 100644 drivers/acpi/loongarch/init.c
+ create mode 100644 drivers/acpi/loongarch/init.h
+ create mode 100644 drivers/acpi/loongarch/iovt.c
+ create mode 100644 include/linux/acpi_iovt.h
+
+
+base-commit: 93f51579e7df248780214094418f205253383cc5
+-- 
+2.39.3
+
