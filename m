@@ -1,134 +1,82 @@
-Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7871459AD7;
-	Wed, 23 Sep 2026 08:28:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79F0743CE73;
+	Wed, 23 Sep 2026 09:18:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790152095; cv=none; b=PdbHo4KNfVvy5LbiRQGmILHMH8VBukNNDbG9GK5qIoGHc1VToqXcU15Gp/MnQA/1xmp68WAF8MQCBiyYBZYPNxxht86raeViiE13awGcXz+Q4vXcCyis2grANdUpPcU73/kLzCkc38YZBHsdrM2Cno4nIXN+M8vLzuRnsE6JDMQ=
+	t=1790155132; cv=none; b=HZvuo2jm7XhmOk8/rQrO66JB9pJCKUwyoBWniplJ/XPP6V22uizKHpqoQTC7n7I2vBY+MKld/0ugMbqzSgN0Bo4we6qBdP8mGRjL43hwoV7O+akhF5SmDys8wl1/Ncxd7GotXbga0cHTi2UCrNpdzduxJ0v60I+vHlVk6isXfds=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790152095; c=relaxed/simple;
-	bh=xu7eCm2wiUuwwsp1Sp08fp54ex+WHpBjB1zNRo8zEhU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=TWeYrc/h+JC0S/pjORJd9iC2q74oChAqSDaPLIQAbulYT5IKgxsdkIHgLM+gOgzmTnNoD5ax50vxAh5MqZReY22TbE8kbEZOqJKUwqm1G6QeI12kJ7W9M/AsiBlgXbl9J55igu/7H2D5812j0bSd7tFswI0jxLs3+ktCmsctEkU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=BLg1XGCW; arc=none smtp.client-ip=213.97.179.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
+	s=arc-20240116; t=1790155132; c=relaxed/simple;
+	bh=eVp6fwKjIF5ae8xOEXp35e6ZqGnoPZc0pRkkDiNLY+4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=lF8krtkWp4IoaLWG+8196JvuxTrL1Jzsn0CGLBg+0mWC2O7/Q80YhAKLzr5kPnXBBgLL7dYFRfssWuIXdxhUZfhxALlnILF69G22RsYejkbvZA705qV45a/0MzB8httnEmGur8DgREFHiFOyl14w0WGe1pzqydhs1tqphXy/jQ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=W/Aw4x+l; arc=none smtp.client-ip=82.195.75.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debian.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="BLg1XGCW"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:From:Reply-To; bh=dyhhoglvo+ZbD/vcPTks6f8e4VSzeedt6wF9tqF0GA0=; b=
-	BLg1XGCW3TgCF8ScoU7nq+filpmn0jEI6//pADk8uYKtrCMFGFjPV0QIvpsXjQ5DKJqHvY2kYELph
-	0g8Y5Rv0ECSqB+m707rxs3IjLgYfmwGiECUxs6PwMb6I/TlQrAngHyWJEd8QTlu8wv9eOmtHe2hyD
-	SXuTfSDFQGQnFWHpzQIygy47UhWlYL2R9KHw0RLNw6WwPAgYY0RVql8y69XCwlHUwb5ISpKLD0Gmo
-	uCompj4zDFwI92pH5o3i4BlXVJy8QFUNoGLyD/KUEX8IJ/JcxQPreOGO8/K2m1fZ7SYamcZyiZheU
-	twI9yvOJmfLLl8zou46dolmwpGdyuGpzAQ==;
-Received: from [49.36.127.125] (helo=uajain)
-	by fanzine2.igalia.com with esmtpsa 
-	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
-	id 1x9IKi-00628i-FF; Wed, 23 Sep 2026 10:28:04 +0200
-From: Umang Jain <uajain@igalia.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	kernel-dev@igalia.com,
-	Umang Jain <uajain@igalia.com>
-Subject: [PATCH v2 2/2] acpi: battery: Handle Valve steamdeck devices quirk
-Date: Wed, 23 Sep 2026 13:59:32 +0530
-Message-ID: <20260923082932.1049270-3-uajain@igalia.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20260923082932.1049270-1-uajain@igalia.com>
-References: <20260923082932.1049270-1-uajain@igalia.com>
+	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="W/Aw4x+l"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
+	s=smtpauto.stravinsky; h=X-Debian-User:In-Reply-To:Content-Transfer-Encoding:
+	Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:
+	Reply-To:Content-ID:Content-Description;
+	bh=SsCuNzmgxLzWx+3uyAmSPHK7VGXvDorQ27xP2xLHmRU=; b=W/Aw4x+lFhUAQTP4c1VKEhBS/V
+	qQflp8IYrQAl8pv8CXmzSueYbdQlbdGtXcPdQ6DlaDUXAGXRQVGzdfG3JAIkiAF418cINcv429Tf9
+	x0ddKXyg6vz556gpQ9U42oZA9RFYGH1aRVGNrbf9w5HYZUCFub35v3qmsgiBnKlKSfMIvcll254oS
+	YCpye6/uqCSTorgSOcScAAxT79pJ8GFHpJPvun6H42jKJJ6NDqsPAcU4twDQX5edks3WAWRUSerMV
+	QNODJ4x6htkGgcBvscwpFfG5tvqjQ9L6qGkFLrkEd5ErTwKSyQ8LkFBre7lRovikJDyL3K+WAs28c
+	LYLh35Sw==;
+Received: from authenticated-user
+	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+	(Exim 4.96)
+	(envelope-from <leitao@debian.org>)
+	id 1x9J7B-003ePq-0r;
+	Wed, 23 Sep 2026 09:18:09 +0000
+Date: Wed, 23 Sep 2026 02:18:02 -0700
+From: Breno Leitao <leitao@debian.org>
+To: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <linux@weissschuh.net>, 
+	Miguel Ojeda <ojeda@kernel.org>, Boqun Feng <boqun@kernel.org>, Gary Guo <gary@garyguo.net>, 
+	=?utf-8?B?QmrDtnJu?= Roy Baron <bjorn3_gh@protonmail.com>, Benno Lossin <lossin@kernel.org>, 
+	Alice Ryhl <aliceryhl@google.com>, Trevor Gross <tmgross@umich.edu>, 
+	Danilo Krummrich <dakr@kernel.org>, Daniel Almeida <daniel.almeida@collabora.com>, 
+	Tamir Duberstein <tamird@kernel.org>, Alexandre Courbot <acourbot@nvidia.com>, 
+	Onur =?utf-8?B?w5Z6a2Fu?= <work@onurozkan.dev>, Matthew Brost <matthew.brost@intel.com>, 
+	Thomas =?utf-8?Q?Hellstr=C3=B6m?= <thomas.hellstrom@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, 
+	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, Dan Williams <djbw@kernel.org>, 
+	"Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, rust-for-linux@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, intel-xe@lists.freedesktop.org, dri-devel@lists.freedesktop.org, 
+	linux-coco@lists.linux.dev, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH 0/6] configfs: Allow the registration of const struct
+ configfs_attribute
+Message-ID: <arOZOVyT_F1nUvS1@gmail.com>
+References: <bHvLFyR13nE7HUTBaSLSUZOfB-goGIQLnTtXl9nIQ_beVuvnPA2GpKpdWw-JM4MamQAdiSxOnCc_msKnwqqISw==@protonmail.internalid>
+ <20260716-configfs-const-base-v1-0-c545a4053cb5@weissschuh.net>
+ <87tsnh2w3d.fsf@t14s.mail-host-address-is-not-set>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <87tsnh2w3d.fsf@t14s.mail-host-address-is-not-set>
+X-Debian-User: leitao
 
-Valve steamdeck devices can report battery status as
-charging, even when low-powered power supply is connected
-to the device. The battery status is reported as charging
-through sysfs, even though in reality, it is discharging.
+On Tue, Sep 22, 2026 at 04:34:46PM +0200, Andreas Hindborg wrote:
+> Thomas Weiﬂschuh <linux@weissschuh.net> writes:
+> 
+> > The attribute structure defined in driver code never need to be
+> > modified. Allow them to be marked as const.
+> >
+> > Signed-off-by: Thomas Weiﬂschuh <linux@weissschuh.net>
+> 
+> For the rust parts:
+> 
+> Acked-by: Andreas Hindborg <a.hindborg@kernel.org>
+> 
+> @Breno, will you take the entire series through your tree?
 
-To handle this case, we introduce a battery quirk for steamdeck
-devices ACPI_BATTERY_QUIRK_VALVE_STEAMDECK. Additionally, it has been
-found that on such devices, Battery Charge Time ("_BCT") is reported
-accurately, hence use that information for report charging vs
-discharging status. Battery Charge Time("_BCT") with an eligible power
-supply unit will have valid values whereas with a low-powered supply
-unit, it shall report ACPI_BATTERY_VALUE_UNKNOWN. Use this as a
-differentiator to determine, whether the battery of steamdeck devices
-is really charging or not.
-
-Signed-off-by: Umang Jain <uajain@igalia.com>
----
- drivers/acpi/battery.c | 28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index a1b7a821abaf..8defafd2b7c7 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -95,6 +95,14 @@ enum {
- 	 * on a full charge, but showing degradation in full charge cap.
- 	 */
- 	ACPI_BATTERY_QUIRK_DEGRADED_FULL_CHARGE,
-+	/*
-+	 * Valve steamdeck devices can get discharged even when battery status
-+	 * is charging. This happens typically when low power supply unit is
-+	 * connected. To accurately determine this scenario, we shall read
-+	 * battery charge time ("_BCT"). This is the key differentiator to
-+	 * determine whether the steamdeck is actually charging or not.
-+	 */
-+	ACPI_BATTERY_QUIRK_VALVE_STEAMDECK,
- };
- 
- struct acpi_battery {
-@@ -236,7 +244,7 @@ static int acpi_battery_get_property(struct power_supply *psy,
- 					: POWER_SUPPLY_STATUS_DISCHARGING;
- 				return 0;
- 			}
--		else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
-+		else if (battery->state & ACPI_BATTERY_STATE_CHARGING) {
- 			/* Check the rate and capacity to validate the status. */
- 			if (!acpi_battery_is_full(battery) ||
- 			    (battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN &&
-@@ -246,6 +254,12 @@ static int acpi_battery_get_property(struct power_supply *psy,
- 				/* Full and zero rate. */
- 				val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
- 			}
-+
-+			if (test_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags) &&
-+			    test_bit(ACPI_BATTERY_BCT_PRESENT, &battery->flags) &&
-+			    battery->charge_time == ACPI_BATTERY_VALUE_UNKNOWN)
-+				val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
-+		}
- 		else if (battery->state & ACPI_BATTERY_STATE_CHARGE_LIMITING)
- 			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
- 		else if (acpi_battery_is_charged(battery))
-@@ -1072,6 +1086,18 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
- 		set_bit(ACPI_BATTERY_QUIRK_DEGRADED_FULL_CHARGE, &battery->flags);
- 		battery->capacity_now = battery->full_charge_capacity;
- 	}
-+
-+	if (test_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags))
-+		return;
-+
-+	if (dmi_name_in_vendors("Valve")) {
-+		const char *name;
-+
-+		name = dmi_get_system_info(DMI_PRODUCT_NAME);
-+		if ((name && (!strncmp("Jupiter", name, 7))) ||
-+		    (name && (!strncmp("Galileo", name, 7))))
-+			set_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags);
-+	}
- }
- 
- static int acpi_battery_update(struct acpi_battery *battery, bool resume)
--- 
-2.55.0
-
+Yes, I can take the whole series through my tree.
