@@ -1,33 +1,33 @@
 Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AD1E470E8B;
-	Wed, 23 Sep 2026 08:28:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7871459AD7;
+	Wed, 23 Sep 2026 08:28:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790152094; cv=none; b=efVTiPeQ90UdkMA+PotRZaGeJqQhcm5urwy3p7bep/kzldhsu21pWfNXJa+RfTeVErlsGa7O4Lbyy1sFwzeos3yxG55ShLHChKxVywwjhCKEt3HqkHH/zxXNm1TqgKVdqJtBJUaLIhMRQXPdqY/w4+Lrgy+1Ygku/4UUf8h9x/M=
+	t=1790152095; cv=none; b=PdbHo4KNfVvy5LbiRQGmILHMH8VBukNNDbG9GK5qIoGHc1VToqXcU15Gp/MnQA/1xmp68WAF8MQCBiyYBZYPNxxht86raeViiE13awGcXz+Q4vXcCyis2grANdUpPcU73/kLzCkc38YZBHsdrM2Cno4nIXN+M8vLzuRnsE6JDMQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790152094; c=relaxed/simple;
-	bh=vBKofHIxKgFnl5oFh8wqyoczYxMd0lYKmIxJgCAxYqY=;
+	s=arc-20240116; t=1790152095; c=relaxed/simple;
+	bh=xu7eCm2wiUuwwsp1Sp08fp54ex+WHpBjB1zNRo8zEhU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=WiGPYD08PiAZxWd+OXvihBRt/vHRXs/KJuSBRkH31N5RYShRvReI/KqDa4zq/2doRd7VCFDXAwEpiDp82KtNJIXQFccWgvUDwin/ZN9C1wPVLokFzkkcWMA+uXC5jAR5KSxICIV6DIuNrTDfYZSUpU+XFcoxeTVrCBDxF9KyhHc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=VRSTjQJO; arc=none smtp.client-ip=213.97.179.56
+	 MIME-Version; b=TWeYrc/h+JC0S/pjORJd9iC2q74oChAqSDaPLIQAbulYT5IKgxsdkIHgLM+gOgzmTnNoD5ax50vxAh5MqZReY22TbE8kbEZOqJKUwqm1G6QeI12kJ7W9M/AsiBlgXbl9J55igu/7H2D5812j0bSd7tFswI0jxLs3+ktCmsctEkU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=BLg1XGCW; arc=none smtp.client-ip=213.97.179.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="VRSTjQJO"
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="BLg1XGCW"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
 	s=20170329; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:From:Reply-To; bh=FiSHWoM+FuPAUXumNSwVLaBlcQXePNtuGBaf/1AwqjA=; b=
-	VRSTjQJOrBz34fkWC83aRPEPmmKKifeu/cnTYfkr9c+Y3ZoeO/opHZLLU7nMUBJueW2n4n6OmDCaR
-	Kjet5IMI6IFdgfrRIID2kVeZDXC0AkKWqG7xd7vp2bfrB/7t7O7pcclPQBaDzyPRhsEKUg6kV3gx8
-	/sNsQDT128Soncr3szhe3QsVnTFED7+EQ8UINoX2YbmysWG+iS3weEesS8XPN14JznpS4BBWreUW8
-	Wtio8OWpEq5qXIIsaF1FujMKsNx4UkZWsG0otpqQPXroLTuIq0gAiwlbmq5i7P2X9HLtKfj6mhGg/
-	KYFNf1pojdP2Qo/DZJ04BMVCd5Fj+OCtjQ==;
+	Cc:To:From:From:Reply-To; bh=dyhhoglvo+ZbD/vcPTks6f8e4VSzeedt6wF9tqF0GA0=; b=
+	BLg1XGCW3TgCF8ScoU7nq+filpmn0jEI6//pADk8uYKtrCMFGFjPV0QIvpsXjQ5DKJqHvY2kYELph
+	0g8Y5Rv0ECSqB+m707rxs3IjLgYfmwGiECUxs6PwMb6I/TlQrAngHyWJEd8QTlu8wv9eOmtHe2hyD
+	SXuTfSDFQGQnFWHpzQIygy47UhWlYL2R9KHw0RLNw6WwPAgYY0RVql8y69XCwlHUwb5ISpKLD0Gmo
+	uCompj4zDFwI92pH5o3i4BlXVJy8QFUNoGLyD/KUEX8IJ/JcxQPreOGO8/K2m1fZ7SYamcZyiZheU
+	twI9yvOJmfLLl8zou46dolmwpGdyuGpzAQ==;
 Received: from [49.36.127.125] (helo=uajain)
 	by fanzine2.igalia.com with esmtpsa 
 	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
-	id 1x9IKg-00628i-Bv; Wed, 23 Sep 2026 10:28:02 +0200
+	id 1x9IKi-00628i-FF; Wed, 23 Sep 2026 10:28:04 +0200
 From: Umang Jain <uajain@igalia.com>
 To: "Rafael J. Wysocki" <rafael@kernel.org>,
 	Len Brown <lenb@kernel.org>
@@ -35,9 +35,9 @@ Cc: linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	kernel-dev@igalia.com,
 	Umang Jain <uajain@igalia.com>
-Subject: [PATCH v2 1/2] acpi: battery: Query Battery charge time ("_BCT") method
-Date: Wed, 23 Sep 2026 13:59:31 +0530
-Message-ID: <20260923082932.1049270-2-uajain@igalia.com>
+Subject: [PATCH v2 2/2] acpi: battery: Handle Valve steamdeck devices quirk
+Date: Wed, 23 Sep 2026 13:59:32 +0530
+Message-ID: <20260923082932.1049270-3-uajain@igalia.com>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20260923082932.1049270-1-uajain@igalia.com>
 References: <20260923082932.1049270-1-uajain@igalia.com>
@@ -49,71 +49,86 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add plumbing for querying the Battery Charge Time ("_BCT") method.
-If present, set ACPI_BATTERY_BCT_PRESENT in battery flags to denote
-that the method is supported in ACPI.
+Valve steamdeck devices can report battery status as
+charging, even when low-powered power supply is connected
+to the device. The battery status is reported as charging
+through sysfs, even though in reality, it is discharging.
+
+To handle this case, we introduce a battery quirk for steamdeck
+devices ACPI_BATTERY_QUIRK_VALVE_STEAMDECK. Additionally, it has been
+found that on such devices, Battery Charge Time ("_BCT") is reported
+accurately, hence use that information for report charging vs
+discharging status. Battery Charge Time("_BCT") with an eligible power
+supply unit will have valid values whereas with a low-powered supply
+unit, it shall report ACPI_BATTERY_VALUE_UNKNOWN. Use this as a
+differentiator to determine, whether the battery of steamdeck devices
+is really charging or not.
 
 Signed-off-by: Umang Jain <uajain@igalia.com>
 ---
- drivers/acpi/battery.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/acpi/battery.c | 28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 670853ec3a4d..a1b7a821abaf 100644
+index a1b7a821abaf..8defafd2b7c7 100644
 --- a/drivers/acpi/battery.c
 +++ b/drivers/acpi/battery.c
-@@ -76,6 +76,7 @@ MODULE_DEVICE_TABLE(acpi, battery_device_ids);
- enum {
- 	ACPI_BATTERY_ALARM_PRESENT,
- 	ACPI_BATTERY_XINFO_PRESENT,
-+	ACPI_BATTERY_BCT_PRESENT,
- 	ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY,
- 	/* On Lenovo Thinkpad models from 2010 and 2011, the power unit
- 	 * switches between mWh and mAh depending on whether the system
-@@ -110,6 +111,7 @@ struct acpi_battery {
+@@ -95,6 +95,14 @@ enum {
+ 	 * on a full charge, but showing degradation in full charge cap.
+ 	 */
+ 	ACPI_BATTERY_QUIRK_DEGRADED_FULL_CHARGE,
++	/*
++	 * Valve steamdeck devices can get discharged even when battery status
++	 * is charging. This happens typically when low power supply unit is
++	 * connected. To accurately determine this scenario, we shall read
++	 * battery charge time ("_BCT"). This is the key differentiator to
++	 * determine whether the steamdeck is actually charging or not.
++	 */
++	ACPI_BATTERY_QUIRK_VALVE_STEAMDECK,
+ };
  
- 	struct mutex property_lock; /* Protects properties below. */
- 	unsigned long update_time;
-+	unsigned long long charge_time;
- 	int revision;
- 	int rate_now;
- 	int capacity_now;
-@@ -613,6 +615,10 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
- 	int result = 0;
- 	acpi_status status = 0;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
-+	struct acpi_object_list args = { 1, &arg0 };
+ struct acpi_battery {
+@@ -236,7 +244,7 @@ static int acpi_battery_get_property(struct power_supply *psy,
+ 					: POWER_SUPPLY_STATUS_DISCHARGING;
+ 				return 0;
+ 			}
+-		else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
++		else if (battery->state & ACPI_BATTERY_STATE_CHARGING) {
+ 			/* Check the rate and capacity to validate the status. */
+ 			if (!acpi_battery_is_full(battery) ||
+ 			    (battery->rate_now != ACPI_BATTERY_VALUE_UNKNOWN &&
+@@ -246,6 +254,12 @@ static int acpi_battery_get_property(struct power_supply *psy,
+ 				/* Full and zero rate. */
+ 				val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
+ 			}
 +
-+	arg0.integer.value = 100;
- 
- 	lockdep_assert_held(&battery->property_lock);
- 
-@@ -638,6 +644,15 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
- 	battery->update_time = jiffies;
- 	kfree(buffer.pointer);
- 
-+	if (test_bit(ACPI_BATTERY_BCT_PRESENT, &battery->flags)) {
-+		status = acpi_evaluate_integer(battery->device->handle, "_BCT",
-+					       &args, &battery->charge_time);
-+	if (ACPI_FAILURE(status))
-+		acpi_handle_info(battery->device->handle,
-+				 "_BCT evaluation failed: %s",
-+				 acpi_format_exception(status));
++			if (test_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags) &&
++			    test_bit(ACPI_BATTERY_BCT_PRESENT, &battery->flags) &&
++			    battery->charge_time == ACPI_BATTERY_VALUE_UNKNOWN)
++				val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
++		}
+ 		else if (battery->state & ACPI_BATTERY_STATE_CHARGE_LIMITING)
+ 			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
+ 		else if (acpi_battery_is_charged(battery))
+@@ -1072,6 +1086,18 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
+ 		set_bit(ACPI_BATTERY_QUIRK_DEGRADED_FULL_CHARGE, &battery->flags);
+ 		battery->capacity_now = battery->full_charge_capacity;
+ 	}
++
++	if (test_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags))
++		return;
++
++	if (dmi_name_in_vendors("Valve")) {
++		const char *name;
++
++		name = dmi_get_system_info(DMI_PRODUCT_NAME);
++		if ((name && (!strncmp("Jupiter", name, 7))) ||
++		    (name && (!strncmp("Galileo", name, 7))))
++			set_bit(ACPI_BATTERY_QUIRK_VALVE_STEAMDECK, &battery->flags);
 +	}
-+
- 	/* For buggy DSDTs that report negative 16-bit values for either
- 	 * charging or discharging current and/or report 0 as 65536
- 	 * due to bad math.
-@@ -1083,6 +1098,8 @@ static int acpi_battery_update(struct acpi_battery *battery, bool resume)
- 			if (result)
- 				return result;
- 			acpi_battery_init_alarm(battery);
-+			if (acpi_has_method(battery->device->handle, "_BCT"))
-+				set_bit(ACPI_BATTERY_BCT_PRESENT, &battery->flags);
- 		}
+ }
  
- 		result = acpi_battery_get_state(battery);
+ static int acpi_battery_update(struct acpi_battery *battery, bool resume)
 -- 
 2.55.0
 
