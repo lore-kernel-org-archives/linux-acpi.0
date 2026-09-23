@@ -1,28 +1,28 @@
-Received: from BN8PR05CU002.outbound.protection.outlook.com (mail-eastus2azon11011009.outbound.protection.outlook.com [52.101.57.9])
+Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11011050.outbound.protection.outlook.com [40.107.208.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2737458039C;
-	Wed, 23 Sep 2026 20:12:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.57.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEC8C580386;
+	Wed, 23 Sep 2026 20:12:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.208.50
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790194365; cv=fail; b=rl/Dw0FI+iLJ/pTqtVnkAn+w3Fsi8OCZ5xm4NJOz4d0NN9BSP+niaBtB1HWAVQHdciF1ewYpvJ/fPNHeigCVrCgW8sTCZAy6q0/NPM49yj8CgDZ6Xc9x60i+b32exq0VWSBOm6dEnEvRxF/SgLA2Ik9/uxWLNtaDFEuQkvsgZys=
+	t=1790194370; cv=fail; b=YEsQLs0EptutvCVQD/LFRSfPMBldkHQVrHVtVTJiQFZtlFgj8CpGoHGJVoiC/zl3/MaWMHNQANTgkQLb0n28a7UR/VJ74OIf/3voyTUfLLW5hT8NzEaoO/+zRvaipdIxmfczNj35zx9qUpDA2I5jVcUeOYG1OrB3IcdZtdwNIck=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790194365; c=relaxed/simple;
-	bh=fk0xYIDKobMi2S5sIUECEP+pbheHaWgMoHFV/IKdZDE=;
+	s=arc-20240116; t=1790194370; c=relaxed/simple;
+	bh=P4iJygIWJ06Xvr/Sdk1vmPl28R3t67XzrljBOghJcjs=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=YnWnKURxuk9QtoTqS5rgpT1blWJrXt6chyPA3/WpqGWsVG7MCm+/F2biygOTHSwwSunT4NfKB/q2iW9x0c3Sum30gKLn2wLIi2poCheurqJhhhtu1ieuiL5LeB/rZgBffJFT5lUIhojsU9/uNaA3nq9BdlHKkcjwnAatZwwBjkM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=n4ZO+2zW; arc=fail smtp.client-ip=52.101.57.9
+	 MIME-Version:Content-Type; b=SBW0EoglTOl2GmCya9AxlYZD4pkqF1gwChWX4A454QS1dkQYDIVP8nz8scwUL7jfO/uCaDNISChME75h8LHeYvOXmh4Rwk5QnMEWiuSZJjPOr3eQ7jdMSxmQfgmCY10N3mmMlCDBdUhNdTvkKS8jufUWzNML6NSfXWxOM4orqbk=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=s4WSMI3Y; arc=fail smtp.client-ip=40.107.208.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="n4ZO+2zW"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="s4WSMI3Y"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=EeNNZOP39hVHda29Y4vwVq+KpOw4GKzwa+6pjC8zogtJzFRfaO0Ani2S37Ul2hsMG+pRAnQEdw+3q9T95uEyfM1oCoA2RlddxE3CySuY5MHAb5blGf73BCTBVZdZhn4204qbvRLhKu8VqGfGPS9gjqv+dhbN8llkQ4LQ1DFqgA9qMPzJNrZNHj3yyODZG4ygcCWp5jA8nlD8m2hlkvCb8AUeYGW3Q3N5XKP8bzgoZy8GqLx3zuR90gx0QNhTaVAQW9/raUJaQqswk5Ls0L2p+DIksuhLcd+156kqKDGotog0fOXJOooo8ugFop8BTtpz3xffTIgS04dPSPnrC+PMcQ==
+ b=NyHOARpdhR1ng/7yDiiyBJ1dT0GE3nd3JghxJKhIOjYcg1xxxoGp0irIJbSfnY6X77pIyeShCA6WvFum+vREMyRqKSskdYjR2ew+voJ8QmRAjZnVUxE+85gVDV6Y5PkcbQK2Cnp2i+aaWV9wCDPvMdQo38N5skat0yZIe6qpJ0C87fij3/gba8SMRthpHqR/MPwq6bCkhLk9Dc5AcBTH1R5o5sUUT/60cdHMO3oPi4On6koDkkA2MB/0rMCkBYoavzsAuDPlFfqcbIFkGCRNai+KSRpeAUbWv4zZr7hK7W4tcEb/bpnFD1ToeWsOluo5ZTZsyb9SSK+YVSLk/bYKQA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=VsC1g08M1fvxjug9Rzx1i5VK+34r21OocCah8hmWzJw=;
- b=eKAJ/4QGI5j/2yhEJU26dIK5BMc+n58umhfkempclYM2ipwrY/xW4Eg1WIAK8XtKQljJjx95qqY+htJjZXfrMM6QTSOIG49TfsJpQeBWnau1ac50O/a6yEktAbETtlkpUQ1dz8VMu364nuI5wQFgH5XuVAyhy4tf9LppJUd3BFnBWW675jKuAoUvPqN1eAA62AqwqGaS/1FJZyD/gF30DzkYSiJm35cjAsu3DbO4rlTw1U+gfHzpSOA+dKaQSbtnpPsZ7edHtCey8yCymSMt7qw0tNw3kBI4wE7cjjyEREc3PaZ4B4ZYa0vwBEREseYZQYSMMJzWaFDqPyxegST0jg==
+ bh=umtw04yLgXussBOqZyYk6WWuw6V4MxU7f6dKWKQ3n44=;
+ b=wOUUJkTzZidJCt2Ou8hDxXDeHu28di+PMqC+z/hUgPOTaRgLIMFM3b4E2FUcdHfX3Ap/OvMUfapGL05oebPQkcesFyk73ZUy8yAMbviJZKMRB55acCgqK6S7gFsyVYw26G3hvAKbngj57CcX/iIuymuLYIg6WrribZdwdfUolRtzPNOl3YYy5pLtz6/UDWA2PHLxEo1HFL+3hCVpe1TXf4h1BYBp0kNKERRHdDrRVGJ8jMKSLaOo8/cULEDR1/dLUNrLmgtut0DTfHxCr/Ul4s3B+RmZ7okSDhQ4ZO4X3f7iTrpNsU7sR8cR/MewX/oUdRFGKgWlrZgOKQgNoJm0SQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -30,18 +30,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=VsC1g08M1fvxjug9Rzx1i5VK+34r21OocCah8hmWzJw=;
- b=n4ZO+2zWgnmCOW32fDdIERGfwuAuMEwdIOkAh9n9/uZudE8dwnxLh778MpYK/ezHMvKKHg2UcHhAN0u3k7fuS8Ny55JUPKjzeMshAmJ8EgBdFV/G6CCMEwlHdMM5Kv0jO5yxo6AwJfle6SvK9s8k15QmKw1CX8FIblYm03+Y9axUMjgf6dMeucJW54Vyccro5xoxBTo8lFmXG6YTsSKXZMBbri6V23ig/adqozKf++nC03N+am3G4WrYI3KIiIidwKiCGq+Cqgx8i38HRMpOmLdQoDXlbIVecANc4ygIBPtZnFjnYHYdRiHe+UKwbexB8mrnVD6woe8T4v5YMDmmlw==
-Received: from PH8PR22CA0019.namprd22.prod.outlook.com (2603:10b6:510:2d1::28)
- by MW6PR12MB8661.namprd12.prod.outlook.com (2603:10b6:303:23f::5) with
+ bh=umtw04yLgXussBOqZyYk6WWuw6V4MxU7f6dKWKQ3n44=;
+ b=s4WSMI3YLL6lQxSYbQHdgIO39CJxEIw2dhgntpFq5sWH/md3YJ68dJMT2zavrU+/mETJ3rwDZ4pjGtJ4nlMoPVCWt79QATHJOKdh/goYuLsDZwqeif/CdVZpvDGWr+E9PTr1yiQZctBHE+wqBvg3GowsOA22gi2eO+OKrIF6zbeIXkOPm2hckfKLDlf+//dF0cXcQQVa6gynAfufcV9/4LzoP8CQIZDdilEhYxyUxZIs+hEoqnMEUNObBAra2Z2s+FqsRN5GSBSeqWd8QuX9JCLDT5J3mFL8LCJ2iGhablT/IEowwCL2qEUghGqlla6e4Ha+uzZ6lnWu6nKIl5B0OA==
+Received: from MW4PR03CA0224.namprd03.prod.outlook.com (2603:10b6:303:b9::19)
+ by SJ0PR12MB7458.namprd12.prod.outlook.com (2603:10b6:a03:48d::13) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.14; Wed, 23 Sep
- 2026 20:12:25 +0000
-Received: from CO1PEPF00012E66.namprd05.prod.outlook.com
- (2603:10b6:510:2d1::4) by PH8PR22CA0019.outlook.office365.com
- (2603:10b6:510:2d1::28) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.451.16 via Frontend Transport; Wed,
- 23 Sep 2026 20:12:24 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.17; Wed, 23 Sep
+ 2026 20:12:29 +0000
+Received: from CO1PEPF00012E64.namprd05.prod.outlook.com
+ (2603:10b6:303:b9:cafe::7b) by MW4PR03CA0224.outlook.office365.com
+ (2603:10b6:303:b9::19) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.451.14 via Frontend Transport; Wed,
+ 23 Sep 2026 20:12:28 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -49,20 +49,20 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.117.161 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.117.161) by
- CO1PEPF00012E66.mail.protection.outlook.com (10.167.249.75) with Microsoft
+ CO1PEPF00012E64.mail.protection.outlook.com (10.167.249.73) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.451.8 via Frontend Transport; Wed, 23 Sep 2026 20:12:24 +0000
-Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
+ 15.21.451.8 via Frontend Transport; Wed, 23 Sep 2026 20:12:28 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
  (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Wed, 23 Sep
- 2026 13:11:57 -0700
-Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail203.nvidia.com
- (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
+ 2026 13:12:03 -0700
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Wed, 23 Sep
- 2026 13:11:57 -0700
+ 2026 13:12:02 -0700
 Received: from Asurada-Nvidia.nvidia.com (10.127.8.10) by mail.nvidia.com
  (10.129.68.6) with Microsoft SMTP Server id 15.2.2562.49 via Frontend
- Transport; Wed, 23 Sep 2026 13:11:56 -0700
+ Transport; Wed, 23 Sep 2026 13:12:01 -0700
 From: Nicolin Chen <nicolinc@nvidia.com>
 To: Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>, "Joerg
  Roedel" <joro@8bytes.org>, Bjorn Helgaas <bhelgaas@google.com>, "Jason
@@ -74,9 +74,9 @@ CC: "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
 	<linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
 	<linux-pci@vger.kernel.org>, <linux-cxl@vger.kernel.org>,
 	<vsethi@nvidia.com>, Shuai Xue <xueshuai@linux.alibaba.com>
-Subject: [PATCH v6 05/17] iommu: Pass in reset result to pci_dev_reset_iommu_done()
-Date: Wed, 23 Sep 2026 13:11:24 -0700
-Message-ID: <bf5ccc916593357c640cd7fcdffabfb46fdf4c64.1790188510.git.nicolinc@nvidia.com>
+Subject: [PATCH v6 09/17] iommu/arm-smmu-v3: Introduce per-cmdq cmdq_err_handler callback
+Date: Wed, 23 Sep 2026 13:11:28 -0700
+Message-ID: <805f64a69c8a6e9aca32d66a0fbe60f333e40865.1790188510.git.nicolinc@nvidia.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <cover.1790188510.git.nicolinc@nvidia.com>
 References: <cover.1790188510.git.nicolinc@nvidia.com>
@@ -91,324 +91,167 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CO1PEPF00012E66:EE_|MW6PR12MB8661:EE_
-X-MS-Office365-Filtering-Correlation-Id: efeb44c3-091f-407d-ade5-08df19aefbc0
+X-MS-TrafficTypeDiagnostic: CO1PEPF00012E64:EE_|SJ0PR12MB7458:EE_
+X-MS-Office365-Filtering-Correlation-Id: 2c598164-44d5-4505-1155-08df19aefe33
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|36860700016|1800799024|7416014|23010399003|376014|10067099003|56012099006|11063799006|6133799003|22082099003|18002099003;
+	BCL:0;ARA:13230040|1800799024|7416014|376014|23010399003|82310400026|36860700016|11063799006|56012099006|10067099003|18002099003|22082099003|6133799003;
 X-Microsoft-Antispam-Message-Info:
-	nGADxUZlgNhCQypSfUS5pNbvi8v7EWo7h73VUK7XZve8AmgC9MgHyEBxqN1qt4A/HNjouDdJCWZdNX+m84BMku9IZbC8HhQumzj7IdGCN/PIRMHXQBNnOpWevHpPudtgh4i8XACG4XLezGzrZOHz04fA1seP2OA0laWRxLIUtXXZJI6EqoRm8Sq9FG/vfqRMpWVzFO3EmNMHMrHTwqs53U4tNX11khrVUk+KD0xI9N829aXiRB6oMsYP8OUCRXlm26B33v7Cmwgxz9d2AQQWyxikP7Zt4wZj+09CUjX/u/GnSvqwxyV2jLWqgrdY8dbRqDJ2Q82+4BsH9uX0kOeCuHET6V0nwGxT5S9InY/JgMPYfNBaH4uT9n/CiJ15MGBRATkuA9VwOJN9YWngD/SAuNJeh8yQYIjAb7GNov5fYKIvKdREnNrlbILhw6ayYksD5DAbSwmEdwDbqDpe0ZifbDnQq/qbCmiJM8jTd94cK2yoFHhk80xUiQZXUUXnw1xbeox25o6zUzPUGCBxH1ff4EhStrxE763CeZ9HpkWTsEWO6RkBEa/MzzuQEyIPwnTEUfzuBA/23vncl9gaNchf3+Jp/1b05sSSVKRMcYD7bq8YMusK2/wmhorgSolVBTtLM0ie6karsJ7n8krzGM6DVER2DMdSau/PQA520gVZnumej05M1gJsxiL9xPSv6rvrjc9VRa+balWlyNItQ/WghQ==
+	QlHBhWrzq/YwqsinlytInJ1U90yl9XQDLqKqBFY85/xkFUlKdJxM6zkswCnEPZeF5KZSW1KtHZy96LxzN8zHaMy0wxQ8nfPuJMqH6Fsi+Z8DBxxz7oPsC48cEBJNekKHYxQ2F8Z7iIHzKr9MzNMco0Exvi2nWTRUctb5RBVs3bXoFhzq+MGQReEnNiKB05gnsQGv9Px313i5wiXIQi7GCLzbLd+fMlH4B872XIwReezAZ4XuEk3/qEQHtqUKtMTt+l5vAvGzSooCQIKxRxV7olsTsSYMbPfBrwyXFApRJnzgE2oHEjZ99yQW5IYO0kVeZUBx4raP4L9IycBsyCsyjrECxbYHDkHl9L8iz/yIax43vKsW5qfkQ0bwlo6m+vGYfN51zoBiRqkoQWNhgaSHKB2fKLLrIB0iT/KiJ/BEIZJevWU7I4tmjnm4yAG4vOnhca8t+ZFhSSsZeG1TMeq1N3RyCMEvoCqS6z2RIrIZ2wD4POnd2LKIVa6JuKIMu+BnwHYw/P5Sw91Nswog2PcvnCzAO+tBHFYm9t78K03ryR652rZRGCBMsFg6hry2QcUfx4g+ZPaO7EHkxJOq98kqjScmDTHqfo4Tk3KeXzo8IQanwMWsjP229d7C7zwuJDpIJU5eYgywQv+47A7pFed0chSTZeMxN1S1wmnEvY5eQsW09UOrsdbp7k9dOBfCN1Z/5+mBKavFfZuY76Pt9pVyKw==
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(82310400026)(36860700016)(1800799024)(7416014)(23010399003)(376014)(10067099003)(56012099006)(11063799006)(6133799003)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(23010399003)(82310400026)(36860700016)(11063799006)(56012099006)(10067099003)(18002099003)(22082099003)(6133799003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	/zkk8M6aw/6RMbjBq5OhSHGUnRrJbtP7xwq6vDjG1Vlz1WmX30FTuXAdD0BHJ9Qit+XnqHS7T/lZXaKB4eYcjEy9rtNl1khpo7jTnHKVMIwZnA3UjqSXYar9RAY0g5QPdHA0gJhDH49uarbdXXl4eDNXF0U6Z3H5XrmPKGkAw8g8e1EVh4L3Q2mq1RCvfBRxhy0QdbqHUML2Bbcqvq92w/GNEyRZEVntRyz9vxVS7tU9QcjBaXreKZpj0JKK/CvUpDdZ8FcvCvS44gPdsUxb6VbJtGCp9CJaKuumEiuqj+H+2ktYO2Mb7a/AJ3pz6/1V5OVo+8NDSHicmUz8GC5yO3HN9jhL6n/ZrxAi5YUVw1QUww6QgUxYL134GBexJ3JBr95QOdkfQWSWFhWyHBtdWeTUcZGAMGetYMfeaE4frpTTqVUqNfvCPl9cfGqQAkUJ
+	H9TQv6/8Vs22Rv5idH7ZNY0BQI+EPQroE5ua7omUmFHig29u5IbRd86B98RHjYzWO7RU8AiVQQeNKijm2lPIEXbf70vNYHDonpVsIl4gX2kTzvQLHD80jQtByiz3PUCVLmxx0Tf4wwTlO0o/0rHlPV+jTOGZ05b6sP/0WbtN52vi4OaPu+8KDlx5HVH601hpvriKqB06EYoG/uMQ8iGgy0RiV42ImJ5uXwIxT+6RdPOeqGhUzy1ZlfcFM23HNQoGQh1ODV4p0sf2WgP8UNmFWM76/QXD1hhmPGP5Vds/XbNeRitEn+DpK5QMtbUyKlTMB97fMiXU+VK7Mplw3GIbue5NWbsorfR2z3uJf7lQ9nFAEnscAZWLFL7bljwzHrsRGduxO+qlWP6CPF+0EKSwoZ/tdYSbe5hP9NrCtl2JQb/OxZRpiJwCgVJCnuoD+PNb
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Sep 2026 20:12:24.7695
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Sep 2026 20:12:28.8727
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: efeb44c3-091f-407d-ade5-08df19aefbc0
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2c598164-44d5-4505-1155-08df19aefe33
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	CO1PEPF00012E66.namprd05.prod.outlook.com
+	CO1PEPF00012E64.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW6PR12MB8661
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB7458
 
-IOMMU drivers handle ATC cache maintenance. They may encounter ATC-related
-errors (e.g., ATC invalidation timeout), indicating that the ATC cache may
-have stale entries that can corrupt the memory. In this case, IOMMU driver
-has no choice but to block the device's ATS function and wait for a device
-recovery.
+A subsequent change will need arm_smmu_cmdq_issue_cmdlist() to co-clear a
+pending CMDQ_ERR after a CMD_SYNC poll timeout. And this needs to be done
+for both smmu->cmdq and tegra241-cmdq.
 
-The pci_dev_reset_iommu_done() called at the end of a reset function could
-serve as a reliable signal to the IOMMU subsystem that the physical device
-cache is completely clean. However, the function is called unconditionally
-even if the reset operation had actually failed, which would re-attach the
-faulty device back to a normal translation domain. And this will leave the
-system highly exposed, creating vulnerabilities for data corruption:
-    IOMMU blocks RID/ATS
-    pci_reset_function():
-        pci_dev_reset_iommu_prepare(); // Block RID/ATS
-        __reset(); // Failed (ATC is still stale)
-        pci_dev_reset_iommu_done(); // Unblock RID/ATS (ah-ha)
+Add a cmdq_err_handler and a paired cmdq_err_lock to struct arm_smmu_cmdq.
+arm_smmu_gerror_handler() now takes the per-cmdq cmdq_err_lock when acking
+CMDQ_ERR. It already covers a concurrent ack from cmdq_err_handler via its
+existing early-exit on no-active-bits.
 
-Instead, pass in @reset_result to pci_dev_reset_iommu_done() from callers:
-    IOMMU blocks RID/ATS
-    pci_reset_function():
-        pci_dev_reset_iommu_prepare(); // Block RID/ATS
-        rc = __reset();
-        pci_dev_reset_iommu_done(rc); // Unblock or quarantine
+Impl functions and caller will be added in the subsequent change.
 
-On a successful reset, done() restores the device to its RID/PASID domains
-and decrements group->recovery_cnt. On failure, the device remains blocked,
-and concurrent domain attachment will be rejected until a successful reset.
-
-Note: -ENOTTY is overloaded with different meanings by PCI reset functions.
-Some of them indicate "reset was not attempted", while others indicate "try
-the next reset method and the current method failed". IOMMU that must react
-these two outcomes separately has no choice but to keep the device blocked
-on -ENOTTY as well. Leave an inline FIXME and warning.
-
-This introduces a new situation where a blocked device is being unplugged.
-Decrement the group->recovery_cnt accordingly. Such a device stays on the
-group->blocking_domain, so hand that to the release_domain attach_dev() as
-the old domain in place of group->domain.
-
-Suggested-by: Kevin Tian <kevin.tian@intel.com>
-Reviewed-by: Lu Baolu <baolu.lu@linux.intel.com>
+Assisted-by: LLM
 Signed-off-by: Nicolin Chen <nicolinc@nvidia.com>
 ---
- include/linux/iommu.h  |  5 ++--
- drivers/iommu/iommu.c  | 65 +++++++++++++++++++++++++++++++++++++++---
- drivers/pci/pci-acpi.c |  2 +-
- drivers/pci/pci.c      | 10 +++----
- drivers/pci/quirks.c   |  2 +-
- 5 files changed, 71 insertions(+), 13 deletions(-)
+ drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.h    | 12 ++++++++++--
+ drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c    | 17 +++++++++++++----
+ drivers/iommu/arm/arm-smmu-v3/tegra241-cmdqv.c |  2 +-
+ 3 files changed, 24 insertions(+), 7 deletions(-)
 
-diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-index ac43b8b93f14a..78d53f1024db1 100644
---- a/include/linux/iommu.h
-+++ b/include/linux/iommu.h
-@@ -1224,7 +1224,7 @@ void iommu_free_global_pasid(ioasid_t pasid);
+diff --git a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.h b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.h
+index b8c3fd7aeea45..ca8f52142b07f 100644
+--- a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.h
++++ b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.h
+@@ -698,6 +698,10 @@ struct arm_smmu_queue_poll {
+ 	bool				wfe;
+ };
  
- /* PCI device reset functions */
- int pci_dev_reset_iommu_prepare(struct pci_dev *pdev);
--void pci_dev_reset_iommu_done(struct pci_dev *pdev);
-+void pci_dev_reset_iommu_done(struct pci_dev *pdev, int reset_result);
- #else /* CONFIG_IOMMU_API */
++struct arm_smmu_cmdq;
++typedef void (*arm_smmu_cmdq_err_fn)(struct arm_smmu_device *smmu,
++				     struct arm_smmu_cmdq *cmdq);
++
+ struct arm_smmu_cmdq {
+ 	struct arm_smmu_queue		q;
+ 	atomic_long_t			*valid_map;
+@@ -705,6 +709,10 @@ struct arm_smmu_cmdq {
+ 	atomic_t			lock;
+ 	unsigned long			*atc_sync_timeouts;
+ 	bool				(*supports_cmd)(struct arm_smmu_cmd *cmd);
++
++	/* Drain a pending CMDQ_ERR; will hold cmdq_err_lock with irqsave */
++	arm_smmu_cmdq_err_fn		cmdq_err_handler;
++	raw_spinlock_t			cmdq_err_lock;
+ };
  
- struct iommu_ops {};
-@@ -1554,7 +1554,8 @@ static inline int pci_dev_reset_iommu_prepare(struct pci_dev *pdev)
+ static inline bool arm_smmu_cmdq_supports_cmd(struct arm_smmu_cmdq *cmdq,
+@@ -1170,8 +1178,8 @@ int arm_smmu_init_one_queue(struct arm_smmu_device *smmu,
+ 			    struct arm_smmu_queue *q, void __iomem *page,
+ 			    unsigned long prod_off, unsigned long cons_off,
+ 			    size_t dwords, const char *name);
+-int arm_smmu_cmdq_init(struct arm_smmu_device *smmu,
+-		       struct arm_smmu_cmdq *cmdq);
++int arm_smmu_cmdq_init(struct arm_smmu_device *smmu, struct arm_smmu_cmdq *cmdq,
++		       arm_smmu_cmdq_err_fn cmdq_err_handler);
+ 
+ static inline bool arm_smmu_master_canwbs(struct arm_smmu_master *master)
+ {
+diff --git a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
+index 24f286e994e6e..409ee1be76815 100644
+--- a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
++++ b/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3.c
+@@ -2367,13 +2367,18 @@ static irqreturn_t arm_smmu_gerror_handler(int irq, void *dev)
+ {
+ 	u32 gerror, gerrorn, active;
+ 	struct arm_smmu_device *smmu = dev;
++	unsigned long flags;
++
++	raw_spin_lock_irqsave(&smmu->cmdq.cmdq_err_lock, flags);
+ 
+ 	gerror = readl_relaxed(smmu->base + ARM_SMMU_GERROR);
+ 	gerrorn = readl_relaxed(smmu->base + ARM_SMMU_GERRORN);
+ 
+ 	active = gerror ^ gerrorn;
+-	if (!(active & GERROR_ERR_MASK))
++	if (!(active & GERROR_ERR_MASK)) {
++		raw_spin_unlock_irqrestore(&smmu->cmdq.cmdq_err_lock, flags);
+ 		return IRQ_NONE; /* No errors pending */
++	}
+ 
+ 	dev_warn(smmu->dev,
+ 		 "unexpected global error reported (0x%08x), this could be serious\n",
+@@ -2382,6 +2387,7 @@ static irqreturn_t arm_smmu_gerror_handler(int irq, void *dev)
+ 	if (active & GERROR_SFM_ERR) {
+ 		/* SMMU is being disabled, so other errors don't matter */
+ 		writel(gerror, smmu->base + ARM_SMMU_GERRORN);
++		raw_spin_unlock_irqrestore(&smmu->cmdq.cmdq_err_lock, flags);
+ 		dev_err(smmu->dev, "device has entered Service Failure Mode!\n");
+ 		arm_smmu_device_disable(smmu);
+ 		return IRQ_HANDLED;
+@@ -2409,6 +2415,7 @@ static irqreturn_t arm_smmu_gerror_handler(int irq, void *dev)
+ 		arm_smmu_cmdq_skip_err(smmu);
+ 
+ 	writel(gerror, smmu->base + ARM_SMMU_GERRORN);
++	raw_spin_unlock_irqrestore(&smmu->cmdq.cmdq_err_lock, flags);
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -4529,13 +4536,15 @@ int arm_smmu_init_one_queue(struct arm_smmu_device *smmu,
  	return 0;
  }
  
--static inline void pci_dev_reset_iommu_done(struct pci_dev *pdev)
-+static inline void pci_dev_reset_iommu_done(struct pci_dev *pdev,
-+					    int reset_result)
+-int arm_smmu_cmdq_init(struct arm_smmu_device *smmu,
+-		       struct arm_smmu_cmdq *cmdq)
++int arm_smmu_cmdq_init(struct arm_smmu_device *smmu, struct arm_smmu_cmdq *cmdq,
++		       arm_smmu_cmdq_err_fn cmdq_err_handler)
  {
- }
- #endif /* CONFIG_IOMMU_API */
-diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
-index 344288e930c40..a921f0ccb11c0 100644
---- a/drivers/iommu/iommu.c
-+++ b/drivers/iommu/iommu.c
-@@ -76,6 +76,7 @@ struct iommu_group {
- enum blocked_reason {
- 	BLOCKED_NONE = 0, /* Not blocked */
- 	BLOCKED_RESETTING, /* PCI reset in flight */
-+	BLOCKED_RESET_FAILED, /* PCI reset failed */
- };
+ 	unsigned int nents = 1 << cmdq->q.llq.max_n_shift;
  
- struct group_device {
-@@ -589,7 +590,8 @@ static void iommu_deinit_device(struct device *dev, bool blocked)
- 			release_domain = ops->identity_domain;
+ 	atomic_set(&cmdq->owner_prod, 0);
+ 	atomic_set(&cmdq->lock, 0);
++	raw_spin_lock_init(&cmdq->cmdq_err_lock);
++	cmdq->cmdq_err_handler = cmdq_err_handler;
  
- 		release_domain->ops->attach_dev(release_domain, dev,
--						group->domain);
-+						blocked ? group->blocking_domain :
-+							  group->domain);
- 	}
+ 	cmdq->valid_map = (atomic_long_t *)devm_bitmap_zalloc(smmu->dev, nents,
+ 							      GFP_KERNEL);
+@@ -4575,7 +4584,7 @@ static int arm_smmu_init_queues(struct arm_smmu_device *smmu)
+ 	if (ret)
+ 		return ret;
  
- 	if (ops->release_device)
-@@ -764,6 +766,9 @@ static void __iommu_group_remove_device(struct device *dev)
- 		if (device->dev != dev)
- 			continue;
+-	ret = arm_smmu_cmdq_init(smmu, &smmu->cmdq);
++	ret = arm_smmu_cmdq_init(smmu, &smmu->cmdq, NULL);
+ 	if (ret)
+ 		return ret;
  
-+		/* Must drop the recovery_cnt when removing a blocked device */
-+		if (blocked && !WARN_ON(group->recovery_cnt == 0))
-+			group->recovery_cnt--;
- 		list_del(&device->list);
- 		__iommu_group_free_device(group, device);
- 		if (dev_has_iommu(dev))
-@@ -4027,7 +4032,12 @@ EXPORT_SYMBOL_NS_GPL(iommu_replace_group_handle, "IOMMUFD_INTERNAL");
-  * reset is finished, pci_dev_reset_iommu_done() can restore everything.
-  *
-  * Caller must use pci_dev_reset_iommu_prepare() with pci_dev_reset_iommu_done()
-- * before/after the core-level reset routine, to decrement the recovery_cnt.
-+ * before/after the core-level reset routine. On a successful reset, done() will
-+ * decrement group->recovery_cnt and restore domains. On a failure, recovery_cnt
-+ * is left intact and the device stays blocked.
-+ *
-+ * Callers must skip pci_dev_reset_iommu_prepare/done() entirely when no reset
-+ * is attempted (e.g. probe mode).
-  *
-  * Return: 0 on success or negative error code if the preparation failed.
-  *
-@@ -4057,6 +4067,10 @@ int pci_dev_reset_iommu_prepare(struct pci_dev *pdev)
- 	if (gdev->reset_depth++)
- 		return 0;
+diff --git a/drivers/iommu/arm/arm-smmu-v3/tegra241-cmdqv.c b/drivers/iommu/arm/arm-smmu-v3/tegra241-cmdqv.c
+index 6644075c1431e..a595769e7ecd6 100644
+--- a/drivers/iommu/arm/arm-smmu-v3/tegra241-cmdqv.c
++++ b/drivers/iommu/arm/arm-smmu-v3/tegra241-cmdqv.c
+@@ -676,7 +676,7 @@ static int tegra241_vcmdq_alloc_smmu_cmdq(struct tegra241_vcmdq *vcmdq)
+ 	q->q_base = q->base_dma & VCMDQ_ADDR;
+ 	q->q_base |= FIELD_PREP(VCMDQ_LOG2SIZE, q->llq.max_n_shift);
  
-+	/* Device might be already blocked for a quarantine */
-+	if (gdev->blocked)
-+		return 0;
-+
- 	ret = __iommu_group_alloc_blocking_domain(group);
- 	if (ret) {
- 		gdev->reset_depth--;
-@@ -4138,20 +4152,28 @@ static bool group_device_dma_alias_is_blocked(struct iommu_group *group,
- /**
-  * pci_dev_reset_iommu_done() - Restore IOMMU after a PCI device reset is done
-  * @pdev: PCI device that has finished a reset routine
-+ * @reset_result: Return code from the reset routine
-  *
-  * After a PCIe device finishes a reset routine, it wants to restore its IOMMU
-  * activity, including new translation and cache invalidation, by re-attaching
-  * all RID/PASID of the device back to the domains retained in the core-level
-  * structure.
-  *
-- * Caller must pair it with a successful pci_dev_reset_iommu_prepare().
-+ * This is a pairing function for pci_dev_reset_iommu_prepare(). Caller passes
-+ * the reset return value to @reset_result. On a failed reset, the device will
-+ * remain blocked as a quarantine measure, with group->recovery_cnt intact, to
-+ * protect system memory until a subsequent successful reset.
-+ *
-+ * Callers must skip pci_dev_reset_iommu_prepare/done() entirely when no reset
-+ * is attempted (e.g. probe mode).
-  *
-  * Note that, although unlikely, there is a risk that re-attaching domains might
-  * fail due to some unexpected happening like OOM.
-  */
--void pci_dev_reset_iommu_done(struct pci_dev *pdev)
-+void pci_dev_reset_iommu_done(struct pci_dev *pdev, int reset_result)
- {
- 	struct iommu_group *group = pdev->dev.iommu_group;
-+	enum blocked_reason old_blocked;
- 	struct group_device *gdev;
- 	unsigned long pasid;
- 	void *entry;
-@@ -4174,6 +4196,37 @@ void pci_dev_reset_iommu_done(struct pci_dev *pdev)
- 	if (WARN_ON(!group->blocking_domain))
- 		return;
- 
-+	/*
-+	 * A reset failure implies that the device might be unreliable. E.g. its
-+	 * device cache might retain stale entries, which might result in memory
-+	 * corruption. Thus, do not unblock the device until a successful reset.
-+	 */
-+	if (reset_result) {
-+		/*
-+		 * FIXME: the int-return values from the PCI reset functions are
-+		 * not consistent: some reset functions use -ENOTTY to indicate
-+		 * "no reset was attempted" (in which case IOMMU should revert a
-+		 * prepare), while others use -ENOTTY to indicate "reset failed;
-+		 * try the next reset method" (in which case IOMMU should keep
-+		 * the device blocked). Without fixing the PCI return result, we
-+		 * cannot tell the difference between the two cases. Warn it.
-+		 */
-+		if (reset_result == -ENOTTY)
-+			dev_warn_ratelimited(
-+				&pdev->dev,
-+				"Reset may have been skipped. Keep it blocked conservatively\n");
-+		else
-+			dev_err_ratelimited(
-+				&pdev->dev,
-+				"Reset failed. Keep it blocked to protect memory\n");
-+		if (gdev->blocked == BLOCKED_RESETTING)
-+			gdev->blocked = BLOCKED_RESET_FAILED;
-+		return;
-+	}
-+
-+	if (WARN_ON(!gdev->blocked))
-+		return;
-+
- 	if (group_device_dma_alias_is_blocked(group, gdev)) {
- 		/*
- 		 * FIXME: DMA aliased devices share the same RID, which would be
-@@ -4204,6 +4257,7 @@ void pci_dev_reset_iommu_done(struct pci_dev *pdev)
- 	 * the correct domain in iommu_driver_get_domain_for_dev() that might be
- 	 * called in a set_dev_pasid callback function.
- 	 */
-+	old_blocked = gdev->blocked;
- 	gdev->blocked = BLOCKED_NONE;
- 
- 	/*
-@@ -4225,6 +4279,9 @@ void pci_dev_reset_iommu_done(struct pci_dev *pdev)
- 
- 	if (!WARN_ON(group->recovery_cnt == 0))
- 		group->recovery_cnt--;
-+
-+	if (old_blocked > BLOCKED_RESETTING)
-+		pci_info(pdev, "Device is unblocked after successful reset\n");
- }
- EXPORT_SYMBOL_GPL(pci_dev_reset_iommu_done);
- 
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index 42d545edd7fad..0afb7075bfc86 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -977,7 +977,7 @@ int pci_dev_acpi_reset(struct pci_dev *dev, bool probe)
- 		ret = -ENOTTY;
- 	}
- 
--	pci_dev_reset_iommu_done(dev);
-+	pci_dev_reset_iommu_done(dev, ret);
- 	return ret;
+-	return arm_smmu_cmdq_init(smmu, cmdq);
++	return arm_smmu_cmdq_init(smmu, cmdq, NULL);
  }
  
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index a6e0ecfd207a7..b58eec5e82ca8 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -4423,7 +4423,7 @@ int pcie_flr(struct pci_dev *dev)
- 
- 	ret = pci_dev_wait(dev, "FLR", PCIE_RESET_READY_POLL_MS);
- done:
--	pci_dev_reset_iommu_done(dev);
-+	pci_dev_reset_iommu_done(dev, ret);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(pcie_flr);
-@@ -4501,7 +4501,7 @@ static int pci_af_flr(struct pci_dev *dev, bool probe)
- 
- 	ret = pci_dev_wait(dev, "AF_FLR", PCIE_RESET_READY_POLL_MS);
- done:
--	pci_dev_reset_iommu_done(dev);
-+	pci_dev_reset_iommu_done(dev, ret);
- 	return ret;
- }
- 
-@@ -4555,7 +4555,7 @@ static int pci_pm_reset(struct pci_dev *dev, bool probe)
- 	pci_dev_d3_sleep(dev);
- 
- 	ret = pci_dev_wait(dev, "PM D3hot->D0", PCIE_RESET_READY_POLL_MS);
--	pci_dev_reset_iommu_done(dev);
-+	pci_dev_reset_iommu_done(dev, ret);
- 	return ret;
- }
- 
-@@ -5011,7 +5011,7 @@ static int pci_reset_bus_function(struct pci_dev *dev, bool probe)
- 	rc = pci_parent_bus_reset(dev, probe);
- done:
- 	if (!probe)
--		pci_dev_reset_iommu_done(dev);
-+		pci_dev_reset_iommu_done(dev, rc);
- 	return rc;
- }
- 
-@@ -5064,7 +5064,7 @@ static int cxl_reset_bus_function(struct pci_dev *dev, bool probe)
- 		pci_write_config_word(bridge, dvsec + PCI_DVSEC_CXL_PORT_CTL,
- 				      reg);
- 
--	pci_dev_reset_iommu_done(dev);
-+	pci_dev_reset_iommu_done(dev, rc);
- 	return rc;
- }
- 
-diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index 7858a063929d9..64ffc44a6cff2 100644
---- a/drivers/pci/quirks.c
-+++ b/drivers/pci/quirks.c
-@@ -4263,7 +4263,7 @@ static int __pci_dev_specific_reset(struct pci_dev *dev, bool probe,
- 
- 	ret = i->reset(dev, probe);
- 	if (!probe)
--		pci_dev_reset_iommu_done(dev);
-+		pci_dev_reset_iommu_done(dev, ret);
- 	return ret;
- }
- 
+ /* VINTF Logical VCMDQ Resource Helpers */
 -- 
 2.43.0
 
