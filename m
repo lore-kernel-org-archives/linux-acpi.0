@@ -1,74 +1,73 @@
-Received: from mail-wm2-f13.google.com (mail-wm2-f13.google.com [74.125.225.141])
+Received: from mail-wr2-f12.google.com (mail-wr2-f12.google.com [74.125.225.76])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA4035335B9
-	for <linux-acpi@vger.kernel.org>; Wed, 23 Sep 2026 13:56:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.141
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97192486B8C
+	for <linux-acpi@vger.kernel.org>; Wed, 23 Sep 2026 14:41:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.76
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790171777; cv=none; b=JwYTfLpv6aKzQLep805kH/dxsC1u15HqTGSHKG7Y1Du9obUc4zdQbXDIYBI/249ixw/rUD8haz2c6F3ElkpS3QNsVI18uu+kRCoMB5UNx3grnh1fOnxXnuvsvU167fnvOZ/2rbHoLT0mmNXP91Y3xPuW5v8cLySWSc3tRA/ia8I=
+	t=1790174521; cv=none; b=RSsDayaDhxL1M/IlfHkeJhaNi9tZzJ6ZVUunspwOQSg95q96bmeKRNJMzlRWhf65lUdm/Cx+Iwo/K/Rb3XPy8kJC4LvEq0ng4FGc/VKOP2+YF52sfLgPOS6661CihfTMMMDfuXtEz99ZQx83M9y20Ade68J0sXTz6xqbh5fnPnQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790171777; c=relaxed/simple;
-	bh=PIteZWa4n/4/s6b1grr7aq1+OnmO5GHcHgcavBmaE0o=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qqx/Mf9HP0Dr9VGbe7KRk98b/H3KO3UeUGfWMu3fk2ubFyXw0mot0UcC1Q7KYV4PPi68n7w+S3VaQYirY3qI01qT+hWLgOFm2Jy+H0xkID+U08nw/g38RWhvkoc5Fgt2F3+HNQphP7U8guLsprwiKsgDAb4jDj4tpkyzAiIDiSA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Fl6ME6gI; arc=none smtp.client-ip=74.125.225.141
+	s=arc-20240116; t=1790174521; c=relaxed/simple;
+	bh=7l9FJzN2Q/11oP4/2plIomY2L5fL5NSBP9Fh/Mm5DjA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Meb65lfrF8zcwIwY0ET5OZ1mTePXHamE3PIWY3z5dRZ86faexPdKEkVTDcuenS9p5GANBoLvAn+RSVenp3WN7end9QPEcJqbSO6DUfGEEW6Zn2hTC8GFZoYU33ONjrci9Tc5BqXm8dutEGYRhDtvb3LPI4JEyqsAO/B0VwxUGsg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=InrXPSXJ; arc=none smtp.client-ip=74.125.225.76
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Fl6ME6gI"
-Received: by mail-wm2-f13.google.com with SMTP id 5b1f17b1804b1-49e7c6dbc60so563645e9.3
-        for <linux-acpi@vger.kernel.org>; Wed, 23 Sep 2026 06:56:15 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="InrXPSXJ"
+Received: by mail-wr2-f12.google.com with SMTP id ffacd0b85a97d-482f633ecdeso871110f8f.2
+        for <linux-acpi@vger.kernel.org>; Wed, 23 Sep 2026 07:41:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790171774; x=1790776574; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1790174518; x=1790779318; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Q1gZqZtvclwtxTtPXDls2VJoXIxSgk6dbY9BElBRXA4=;
-        b=Fl6ME6gIzOD9ogwBC1tdCf3YRdOn0GU5uVeoMmxw7tQt5aclgxgOcJ3JLKdkVtRugQ
-         YVcnypZChfYchCjVBZ2CyaRABOCPk908E4zfA9JZh7TdZlgJE2gzpcLOacbJF+MTmi0L
-         U78D+KmJUipiHw104z5FhSdlab3wfTSpOrLpxyruf/MG7mkM15xfk71/JHg0D66raiQm
-         ZuFDGhceIMS8CIFbO0S+3Nni93qfKnvFZG7xxVOu7Twc0l2ierdfhdV5GnkMSCUwDYjw
-         eEYpUHczoaIS6fIo0mYs6PoO7T+bCRRJpXG0UI0GOFMKdqf9pj6sU/WbKGhnzwl3OG/z
-         83cw==
+        bh=IQ2M0aHQjyvXWIrWaD61ZPwAoFJN+F19bNvFZPbBx2c=;
+        b=InrXPSXJTFZp08Y8iH8UkeHIwpElpw5wHTw2vCaX0BB1xfVg1Ebo2oZ6L4oMAieav8
+         EUaLyNaH+LBvgBchBVkPMUauJRP6+Gx2erUo0i7R4gA32xdqdyxDukNRSc4vn3OFpZ7e
+         SVLUsTx6wYN5pjp31Ji3dN8sZuSrqZJmctX9VO/747/BKsBgx+ubniLW7tcudBfhcAmd
+         zyK4V9tz37jUHKfQyrI6LZYOLipEoMZSsyouai9Rismg5+y96YdzYOCWO+0KH5j9Jodc
+         J9HooF7xR1GWgpK0Xi2hoTgyzLsmO0ImUTM17InOKOjCyRPLschHARBDwEqyEvh674yx
+         x3uw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790171774; x=1790776574;
+        d=1e100.net; s=20260707; t=1790174518; x=1790779318;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=Q1gZqZtvclwtxTtPXDls2VJoXIxSgk6dbY9BElBRXA4=;
-        b=uQwd0mpSPyhPi5WOX9n4CiHgaZZdzpyfrjVM6Q/QbjnhrtZXhnCxFgGBQdMxEUHgMJ
-         LtsCo/cPYb6VsnXXdUomJpWumtFUQvqtYtI0A7BxxZGO/03OCPBp2CXSK1S0KbK5pWZK
-         FnrYIQ4r3lQojmaaZGHzdqqsLW2lPhmRrcx2qAdLzDOl2zSufYYL7aYNvIex0Rx2Diq9
-         8QO/KDN/Kq3mVXVIEb6yzIATmw2Own7P/8kIm43VND4r78Mq2RCXZcpNltrxTRIcmWWX
-         zVUl0tfHFDfTZJSPaJaoZFwyp0hIPY77GfzaLW0nBZ/mNwZerwggm1eYRuCfVaxLayM8
-         sxOA==
-X-Forwarded-Encrypted: i=1; AKwUvBxx3bAxMO0L1SSLVoZWwVccnn/z8uGThnFiQSyD8MOu4kYehc7bYTMAFa4Hb1bPrsJvQP8G4jiSNAOQ@vger.kernel.org
-X-Gm-Message-State: AFuF++lEXSdB6YU3JXxMUzV18c+XJcdPEiNOAWfXVRELa3F4BXmhUj/K
-	c1f+kGl+OEtf/aRAzD8/xlZIbkdmevgININwrNl1WxA8wm8QzK5RMWiq
-X-Gm-Gg: AYBFou0gypUItDoW08We3fr+m5bMfPTjDUdOVah4UVX0Q2f6AiHInlQ2ZU7sZQTFQvE
-	B7LLbYAqifPxIZ9/yKWkWp13N+BUwIRFrxek9OJS7CSe8dtUra3/dahDJwHMK1/BaVxDa3sesop
-	BAgCTA5Ueb6NH4cU9nWvsmMI8bWQORAR9banJctiuDsYnX0aYKUe3njkrrvEIyEPh/JKebX7GqI
-	y3GL/Www7zJuYw2D/jMpViqVCA7CAzmULnzFFW/7rRUP/1elHnsTJDr6qaWOR8LclTzC+/9aDc5
-	gQvdaFHRblAFIEsrzGHqSHt1dFRE8AycOOPq4jRsqrfBjag6Pd2O8vdHQnetzg7+b4KFiXkWv7f
-	dBnXC4k13mhpLXGUmo+BoQYq8SlmAzyQGPm+SHJNS216P+hHw88uA6ys/pQ0WFJYSR//wL19cE0
-	GDa7UiyK4bSEvotvR87hpuQIr+IDOM0abIw1bxTcs/mhLHruGI0qtj7oGkFC02PJWpaZEBzMRNF
-	xBVzWIpHsuFggVrQXWFmfX7sGNAi3yKnabcPjN3FFgToaweR9FlxkjYZxrjgy+a/i4rTx+GQh7y
-	+dm4eR1Rupo=
-X-Received: by 2002:a05:600c:a16:b0:49e:745d:5768 with SMTP id 5b1f17b1804b1-49fdec989e7mr36910135e9.0.1790171773804;
-        Wed, 23 Sep 2026 06:56:13 -0700 (PDT)
-Received: from ast-epyc5.inf.ethz.ch (ast-epyc4.inf.ethz.ch. [129.132.161.179])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-49fde1aa057sm78208155e9.13.2026.09.23.06.56.13
+        bh=IQ2M0aHQjyvXWIrWaD61ZPwAoFJN+F19bNvFZPbBx2c=;
+        b=A7i1cEihltV1B3rTdkoB4W9CpzlmQlv/Nh9jLlp3sDXpnG7jQ84KEul4vj3SBi4fWG
+         ZOwMmjHXc08ztbNl3viE/NLZalJJq0okfylehjko+FmMaqPem53bgBF9skLeAE2nH3sv
+         Yki+v1gySzXXV+BNG+10oM0ihYO34TDryPuzmki5dfVda61OlYEOxE/vQqvbAIq8jEiF
+         zpvMznq9L8xapLQbz4tklYDdOLuuURGOYXyAIr6vdGKtivmvb4fuKuqLz2h0wUQjF+ha
+         +I+EfyewD7yN/E6IA+q5yy5gjxYBPpqKf2TWfDUsrwQaiD+UAD9M8Fo69dUaAd8QY6uM
+         mWzA==
+X-Forwarded-Encrypted: i=1; AKwUvBx1SwZghfhwoUeJAPoBs95XvIvjUndwAI4cs2KJ2BWrF107L5NKAMYe2n04V2S9l5BPEj/dZqFVTbKO@vger.kernel.org
+X-Gm-Message-State: AFuF++mm1u/nqJMpjL24zSQlWDjhgyY9KWzDRvr1Xlu3Iu7ZBNMIj0SB
+	B5QzUNPSzPTqDOawmu+qFDVJGCwZfWey1vBFj9gSrd8wSisxArYogGZK
+X-Gm-Gg: AYBFou0RaQrAzI8O17wpK/ax3Bl6d1y16POagIIPdYMgBRluvbIV/OkmBZtvUIQE8Vp
+	fMAHF1mHuy3giyMXIhM4JRSg1n5RSbVLTLqwz2Jz2q7S/ajtMQKsyvyj61O/CF0JJjIvElQ4ci/
+	l8d6KNq/yCbZSkupRFzVF63WLJAkDMXbvvVsHGSheY3eXTIY4Qb3yYigE08LBMHSg2jHuj6GYYp
+	aLSFb8A1TwOfA8U6H6J+E+wk1HPpnfDHmKBZzcbVLKszGMTJhVe3EJmzTHFL/dVIzWG4I1P2CGA
+	y8yQZO7qYliZAYTp8wSGzTZXMFXl4Sy2jzoEYVGk/RG5mhB52LHv0o67aSaNsEe7jyRSCcGIkwp
+	LwDPLOmSNGziC4CU88BFf+/zU+t1S/VrcsvAU2OXd9IN5j1qQnhh4XWmbkJkG/c13Y5HsVn0u8y
+	06CL+hCC1+QHaTaGUpU4o8rjC3rnCg2HCZqYPUXNJMpSdqezKyFleqWEt1P7/m0EbhVk6JnGE4I
+	6YpfkyggS13
+X-Received: by 2002:a05:6000:3102:b0:488:6078:8aef with SMTP id ffacd0b85a97d-4886706f935mr4671548f8f.20.1790174517606;
+        Wed, 23 Sep 2026 07:41:57 -0700 (PDT)
+Received: from fedora ([213.55.185.164])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4886848636asm7050899f8f.6.2026.09.23.07.41.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 23 Sep 2026 06:56:13 -0700 (PDT)
-From: Zijing Yin <yzjaurora@gmail.com>
-To: acpica-devel@lists.linux.dev
-Cc: Zijing Yin <yzjaurora@gmail.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	Pawel Chmielewski <pawel.chmielewski@intel.com>,
-	linux-acpi@vger.kernel.org
-Subject: [PATCH] dispatcher: Fix NULL pointer dereference in AcpiDsTerminateControlMethod()
-Date: Wed, 23 Sep 2026 06:56:02 -0700
-Message-ID: <20260923135604.428982-1-yzjaurora@gmail.com>
-X-Mailer: git-send-email 2.43.0
+        Wed, 23 Sep 2026 07:41:57 -0700 (PDT)
+From: Michal Szpakowski <michi.szpakowski@gmail.com>
+To: linux-hwmon@vger.kernel.org
+Cc: Henrik Rydberg <rydberg@bitmath.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jean Delvare <jdelvare@suse.com>,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] hwmon: (applesmc) Expose the SMC battery charge limit
+Date: Wed, 23 Sep 2026 16:41:17 +0200
+Message-ID: <20260923144117.295450-1-michi.szpakowski@gmail.com>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -77,118 +76,261 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-If AcpiUtCreateThreadState() fails in AcpiPsParseAml(), the error path
-calls AcpiDsTerminateControlMethod() before WalkState->Thread is set.
-A top-level method invocation creates its walk state without a thread,
-so for a Serialized method the sync level restore dereferences NULL:
+Intel Macs keep a battery charge limit inside the SMC, in the key BCLM
+(one byte, percent). The SMC enforces it on its own: charging stops at
+the limit and the value survives reboots and operating systems, so the
+only thing an OS has to do is write it. On macOS the tool "bclm" does
+that; on Linux there has been no way, because applesmc exposes keys
+read-only through key_at_index.
 
-    WalkState->Thread->CurrentSyncLevel =
-        MethodDesc->Method.Mutex->Mutex.OriginalSyncLevel;
+Expose it as the standard charge_control_end_threshold property on the
+battery through a power supply extension, so UPower and the desktops
+that read that property pick it up without knowing anything about
+Apple. The battery of an Intel Mac is an ACPI Smart Battery handled by
+the sbs driver, which the ACPI battery hooks do not cover, so the
+supply is found by walking the registered supplies; should it register
+after applesmc, its first property-change notification attaches the
+extension. Nothing happens on machines whose SMC lacks the key. Writes
+are read back, because the SMC silently drops values it does not
+accept; 100 disables the cap.
 
-I ran into this while fuzzing Linux, where reading the "status" sysfs
-attribute of an ACPI device with a Serialized _STA oopses when that
-allocation fails:
+Tested on a MacBookPro13,1 (2016, 13", no Touch Bar): with the limit at
+80 and the charger attached, charging ran at a steady 1.55 A and stopped
+at 79% of charge_full with status "Full" and current 0, and the limit
+read back 80 after a reboot.
 
-  Oops: general protection fault, probably for non-canonical address 0xdffffc0000000001
-  KASAN: null-ptr-deref in range [0x0000000000000008-0x000000000000000f]
-  RIP: 0010:acpi_ds_terminate_control_method+0x7ae/0xa80
-  Call Trace:
-   <TASK>
-   acpi_ps_parse_aml+0xece/0x1170
-   acpi_ps_execute_method+0x5c4/0xe90
-   acpi_ns_evaluate+0x633/0x16d0
-   acpi_evaluate_object+0x4ca/0xdf0
-   acpi_evaluate_integer+0xdd/0x230
-   status_show+0xa0/0x120
-   </TASK>
-
-For a top-level call, AcpiDsBeginMethodExecution() gets no walk state
-and does not take OriginalSyncLevel from a thread. Here there is no
-thread to restore it to either, so skip the restore when
-WalkState->Thread is NULL, but keep releasing the mutex, since
-AcpiDsBeginMethodExecution() did acquire it.
-
-Fixes: 2107ff8b75d3 ("Fix possible memory leak on error in parser.")
-Signed-off-by: Zijing Yin <yzjaurora@gmail.com>
+Signed-off-by: Michal Szpakowski <michi.szpakowski@gmail.com>
 ---
-On Linux with fault injection, 3 of 3 boots oopsed without this patch
-and none did with it. It also reproduces in acpiexec by making
-AcpiUtCreateThreadState() fail once for a Serialized method.
+ drivers/hwmon/Kconfig    |  4 +++-
+ drivers/hwmon/applesmc.c | 134 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 137 insertions(+), 1 deletion(-)
 
-Reproducer (gcc -static; needs CONFIG_FAULT_INJECTION, CONFIG_FAILSLAB
-and CONFIG_FAULT_INJECTION_DEBUG_FS, run as root). It reads every ACPI
-device's "status" attribute with the Nth allocation forced to fail, N
-counting down from 128. On QEMU the CPU _STA methods are Serialized:
-
-	#include <dirent.h>
-	#include <fcntl.h>
-	#include <stdio.h>
-	#include <unistd.h>
-
-	int main(void)
-	{
-		char path[512], buf[256];
-		struct dirent *e;
-		int fd, nth, n, failed = 0;
-		DIR *d;
-
-		/* let fail-nth fail GFP_KERNEL allocations too */
-		fd = open("/sys/kernel/debug/failslab/ignore-gfp-wait", O_WRONLY);
-		if (fd < 0 || write(fd, "N", 1) != 1) {
-			perror("failslab/ignore-gfp-wait");
-			return 1;
-		}
-		close(fd);
-
-		d = opendir("/sys/bus/acpi/devices");
-		while (d && (e = readdir(d))) {
-			snprintf(path, sizeof(path), "/sys/bus/acpi/devices/%s/status",
-				 e->d_name);
-			for (n = 128; n >= 1; n--) {
-				fd = open(path, O_RDONLY);
-				if (fd < 0)
-					break;
-				nth = open("/proc/thread-self/fail-nth", O_WRONLY);
-				dprintf(nth, "%d", n);
-				if (read(fd, buf, sizeof(buf)) < 0)
-					failed++;
-				dprintf(nth, "0");
-				close(nth);
-				close(fd);
-			}
-		}
-		printf("done, %d reads failed\n", failed);
-		return 0;
-	}
-
-If you prefer a GitHub PR for this, I can open one.
-
- source/components/dispatcher/dsmethod.c | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
-
-diff --git a/source/components/dispatcher/dsmethod.c b/source/components/dispatcher/dsmethod.c
-index caad11543..96d92454e 100644
---- a/source/components/dispatcher/dsmethod.c
-+++ b/source/components/dispatcher/dsmethod.c
-@@ -866,8 +866,17 @@ AcpiDsTerminateControlMethod (
-             MethodDesc->Method.Mutex->Mutex.AcquisitionDepth--;
-             if (!MethodDesc->Method.Mutex->Mutex.AcquisitionDepth)
-             {
--                WalkState->Thread->CurrentSyncLevel =
--                    MethodDesc->Method.Mutex->Mutex.OriginalSyncLevel;
-+                /*
-+                 * There is no thread state if AcpiPsParseAml() failed to
-+                 * create one. AcpiDsBeginMethodExecution() did not take
-+                 * OriginalSyncLevel from a thread in that case, and there
-+                 * is no thread to restore it to now.
-+                 */
-+                if (WalkState->Thread)
-+                {
-+                    WalkState->Thread->CurrentSyncLevel =
-+                        MethodDesc->Method.Mutex->Mutex.OriginalSyncLevel;
-+                }
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -368,13 +368,15 @@
+ config SENSORS_APPLESMC
+ 	tristate "Apple SMC (Motion sensor, light sensor, keyboard backlight)"
+ 	depends on INPUT && X86
++	depends on POWER_SUPPLY
+ 	select NEW_LEDS
+ 	select LEDS_CLASS
+ 	help
+ 	  This driver provides support for the Apple System Management
+ 	  Controller, which provides an accelerometer (Apple Sudden Motion
+ 	  Sensor), light sensors, temperature sensors, keyboard backlight
+-	  control and fan control.
++	  control, fan control and, on machines whose SMC has the BCLM key,
++	  a battery charge limit exposed as charge_control_end_threshold.
  
-                 AcpiOsReleaseMutex (
-                     MethodDesc->Method.Mutex->Mutex.OsMutex);
-
-base-commit: 98bbab7dbae0ff7941c4cf08d46f5d30978f809e
+ 	  Only Intel-based Apple's computers are supported (MacBook Pro,
+ 	  MacBook, MacMini).
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -33,6 +33,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/err.h>
+ #include <linux/bits.h>
++#include <linux/power_supply.h>
+ 
+ /* data port used by Apple SMC */
+ #define APPLESMC_DATA_PORT	0x300
+@@ -64,6 +65,8 @@
+ 
+ #define CLAMSHELL_KEY		"MSLD" /* r-o ui8 (unused) */
+ 
++#define CHARGE_LIMIT_KEY	"BCLM" /* r/w ui8, percent */
++
+ #define MOTION_SENSOR_X_KEY	"MO_X" /* r-o sp78 (2 bytes) */
+ #define MOTION_SENSOR_Y_KEY	"MO_Y" /* r-o sp78 (2 bytes) */
+ #define MOTION_SENSOR_Z_KEY	"MO_Z" /* r-o sp78 (2 bytes) */
+@@ -130,6 +133,7 @@
+ 	int num_light_sensors;		/* number of light sensors */
+ 	bool has_accelerometer;		/* has motion sensor */
+ 	bool has_key_backlight;		/* has keyboard backlight */
++	bool has_charge_limit;		/* has battery charge limit */
+ 	bool init_complete;		/* true when fully initialized */
+ 	struct applesmc_entry *cache;	/* cached key entries */
+ 	const char **index;		/* temperature key index */
+@@ -621,6 +625,9 @@
+ 	ret = applesmc_has_key(BACKLIGHT_KEY, &s->has_key_backlight);
+ 	if (ret)
+ 		return ret;
++	ret = applesmc_has_key(CHARGE_LIMIT_KEY, &s->has_charge_limit);
++	if (ret)
++		return ret;
+ 
+ 	s->num_light_sensors = left_light_sensor + right_light_sensor;
+ 	s->init_complete = true;
+@@ -669,6 +676,155 @@
+ }
+ 
+ /* Device model stuff */
++/*
++ * Battery charge limit
++ *
++ * The SMC key BCLM holds the maximum charge level in percent and the SMC
++ * enforces it by itself: charging stops there and the value is kept across
++ * reboots; 100 means no limit. It is the setting the macOS tool "bclm"
++ * writes. Expose it as charge_control_end_threshold on the battery through
++ * a power supply extension. The battery of an Intel Mac is an ACPI Smart
++ * Battery (sbs), which the ACPI battery hooks do not cover, so the battery
++ * is found by walking the registered supplies; if it is not there yet when
++ * this driver loads, the first property-change notification from it does
++ * the job.
++ */
++static const enum power_supply_property applesmc_battery_props[] = {
++	POWER_SUPPLY_PROP_CHARGE_CONTROL_END_THRESHOLD,
++};
++
++static int applesmc_battery_get_property(struct power_supply *psy,
++					 const struct power_supply_ext *ext,
++					 void *data,
++					 enum power_supply_property psp,
++					 union power_supply_propval *val)
++{
++	u8 limit;
++	int ret;
++
++	if (psp != POWER_SUPPLY_PROP_CHARGE_CONTROL_END_THRESHOLD)
++		return -EINVAL;
++
++	ret = applesmc_read_key(CHARGE_LIMIT_KEY, &limit, 1);
++	if (ret)
++		return ret;
++
++	val->intval = limit;
++	return 0;
++}
++
++static int applesmc_battery_set_property(struct power_supply *psy,
++					 const struct power_supply_ext *ext,
++					 void *data,
++					 enum power_supply_property psp,
++					 const union power_supply_propval *val)
++{
++	u8 limit, readback;
++	int ret;
++
++	if (psp != POWER_SUPPLY_PROP_CHARGE_CONTROL_END_THRESHOLD)
++		return -EINVAL;
++	if (val->intval < 1 || val->intval > 100)
++		return -EINVAL;
++
++	limit = val->intval;
++	ret = applesmc_write_key(CHARGE_LIMIT_KEY, &limit, 1);
++	if (ret)
++		return ret;
++
++	/* The SMC silently ignores values it does not accept. */
++	ret = applesmc_read_key(CHARGE_LIMIT_KEY, &readback, 1);
++	if (ret)
++		return ret;
++	if (readback != limit)
++		return -EINVAL;
++
++	return 0;
++}
++
++static int applesmc_battery_property_is_writeable(struct power_supply *psy,
++						  const struct power_supply_ext *ext,
++						  void *data,
++						  enum power_supply_property psp)
++{
++	return psp == POWER_SUPPLY_PROP_CHARGE_CONTROL_END_THRESHOLD;
++}
++
++static const struct power_supply_ext applesmc_battery_ext = {
++	.name = "applesmc-charge-limit",
++	.properties = applesmc_battery_props,
++	.num_properties = ARRAY_SIZE(applesmc_battery_props),
++	.get_property = applesmc_battery_get_property,
++	.set_property = applesmc_battery_set_property,
++	.property_is_writeable = applesmc_battery_property_is_writeable,
++};
++
++static struct power_supply *applesmc_battery;	/* the extended supply */
++static DEFINE_MUTEX(applesmc_battery_mutex);
++
++static int applesmc_battery_extend(struct power_supply *psy, void *data)
++{
++	int ret;
++
++	if (psy->desc->type != POWER_SUPPLY_TYPE_BATTERY)
++		return 0;
++
++	ret = power_supply_register_extension(psy, &applesmc_battery_ext,
++					      &pdev->dev, NULL);
++	if (ret)
++		return ret;
++
++	get_device(&psy->dev);
++	applesmc_battery = psy;
++	return 1;	/* one battery is enough, stop walking */
++}
++
++static void applesmc_battery_attach(struct work_struct *work)
++{
++	mutex_lock(&applesmc_battery_mutex);
++	if (!applesmc_battery)
++		power_supply_for_each_psy(NULL, applesmc_battery_extend);
++	mutex_unlock(&applesmc_battery_mutex);
++}
++
++static DECLARE_WORK(applesmc_battery_work, applesmc_battery_attach);
++
++static int applesmc_battery_notify(struct notifier_block *nb,
++				   unsigned long event, void *data)
++{
++	if (event == PSY_EVENT_PROP_CHANGED && !applesmc_battery)
++		schedule_work(&applesmc_battery_work);
++	return NOTIFY_OK;
++}
++
++static struct notifier_block applesmc_battery_nb = {
++	.notifier_call = applesmc_battery_notify,
++};
++
++static void applesmc_battery_init(void)
++{
++	if (!smcreg.has_charge_limit)
++		return;
++	power_supply_reg_notifier(&applesmc_battery_nb);
++	applesmc_battery_attach(NULL);
++}
++
++static void applesmc_battery_exit(void)
++{
++	if (!smcreg.has_charge_limit)
++		return;
++	power_supply_unreg_notifier(&applesmc_battery_nb);
++	cancel_work_sync(&applesmc_battery_work);
++	mutex_lock(&applesmc_battery_mutex);
++	if (applesmc_battery) {
++		power_supply_unregister_extension(applesmc_battery,
++						  &applesmc_battery_ext);
++		power_supply_put(applesmc_battery);
++		applesmc_battery = NULL;
++	}
++	mutex_unlock(&applesmc_battery_mutex);
++}
++
+ static int applesmc_probe(struct platform_device *dev)
+ {
+ 	int ret;
+@@ -1369,6 +1525,8 @@
+ 		goto out_light_ledclass;
+ 	}
+ 
++	applesmc_battery_init();
++
+ 	return 0;
+ 
+ out_light_ledclass:
+@@ -1398,6 +1556,7 @@
+ 
+ static void __exit applesmc_exit(void)
+ {
++	applesmc_battery_exit();
+ 	hwmon_device_unregister(hwmon_dev);
+ 	applesmc_release_key_backlight();
+ 	applesmc_release_light_sensor();
