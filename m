@@ -1,94 +1,80 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 503695293E2
-	for <linux-acpi@vger.kernel.org>; Wed, 23 Sep 2026 14:57:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03723394EBA
+	for <linux-acpi@vger.kernel.org>; Wed, 23 Sep 2026 15:02:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790175430; cv=none; b=lHiwcn3P+QmsbzxuUxIgPWpDQli8vTdE8AFlstOS0GFJ4lKQXhaKxWB40VHQ4wkW3bHdRohQVU+I0zkbwVyAgU8kGS+shqJGhCoPczX5PSTg6iO+lAj2LD8s9riBqxUStGS4nkvFOct29XxvY2oJ31lg139MLC2xaWUdu+mCDck=
+	t=1790175770; cv=none; b=mIAUYwWRXejITAwGuy7f7PilZO5rWLPLpe8/p8UxezqKtP+e2yBQfnK8UnU6uc2KC8TZTpijzpnFINS1N2n6oVFTwKCQ45/P+BAYxHUUjLIz8Dixfg2N/mz+MZn/46tZlY06yRwvze6GlbgOkyYw6pl8SaU3zo+FhcuJXuldXCk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790175430; c=relaxed/simple;
-	bh=os/qN9BUZ4QVqN4bK5cJrrbTTGEtih9hSlzZqIq8h90=;
+	s=arc-20240116; t=1790175770; c=relaxed/simple;
+	bh=qCzxaJJFHfprXQbh4vmH4wgYmFJYPzKzETaM7jXQlBI=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=KYFnQniuyczgpVtCFMmQieQhJ9actDR57m52kVMXJ7Pxt0kKKw2UIuCn5Sw6Dz0EB/Sv8/W0gtg1RxJGHAdLbV4kqD7Kx4vAtXJ8NTTGGZEN780L8k2HJH9ZG2Gv5IeTOQEeX2L2BG4tYPw3f0aQJ7EeDA6stmrP5A/AdYQwXSI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=j1VGCx4K; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=l5KPwoqZjWGjCF5UforBDX9ZmfKyRTTJM/uItpvou6hl0eMWpfdc2gFAtp2ST0uD3jddlGfSC+oF6KcvxaVpKH2z3eS43vMghD7epQmiIj50mWYMTXgALrZwjU9groUKIUQDhg0n6Ol/79bAoWvlwoPg7IIHLjD9qgeKZqX8RQQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e7tQZmpc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="j1VGCx4K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 099741F00893
-	for <linux-acpi@vger.kernel.org>; Wed, 23 Sep 2026 14:57:09 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e7tQZmpc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F52E1F00893
+	for <linux-acpi@vger.kernel.org>; Wed, 23 Sep 2026 15:02:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790175429;
-	bh=k+k4gHg4jDXaVj8Qgc9B7QiB1Jx+hfHTeBdjxkQSEvQ=;
+	s=k20260515; t=1790175768;
+	bh=qCzxaJJFHfprXQbh4vmH4wgYmFJYPzKzETaM7jXQlBI=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=j1VGCx4KnFfFocpD8GiMIu2ji2Bx+cORoHOFyzy3JyUQM4TOSkSejTywe78koD1R8
-	 Uc6UMfZq8+g3LAM0uUd4GUyYBzICpbUmOW4jFZGB0VVtS2Lb3ORPooXJwdR/WWmXCL
-	 GLJtt3wPb6NZCMHSZxs0RrpQ5MMw9BQuAu19ykkdQD7wY4h2o3/nJUz5aKOMd4lttN
-	 rCkjyj7R1mRp6Xe5E+3GCJz3CkFWE+JKHyXQB5wocozucKn97Pq7/q2Bih/1rqeWXK
-	 1KKbGS3mIUSgwVGKs3T1k+22tg3vSwPYlbpLn97Ap4b7jUkJRJJe89pjzc/hSljbZi
-	 PvuO3ewEIicKw==
-Received: by mail-lj1-f174.google.com with SMTP id 38308e7fff4ca-3a2015bbfceso15326971fa.1
-        for <linux-acpi@vger.kernel.org>; Wed, 23 Sep 2026 07:57:08 -0700 (PDT)
-X-Gm-Message-State: AFuF++m0ymVOyfXrd8VFpec6akzDawi0XIlR62NBHCVLMbZsuwYqsBlW
-	5fU4IJEIuSa5EuXsULggI2ePnNpncYBWm8hA8FWPbPuhig0ZCvHOLDrbzRyaqAUcHhFXqiygSpc
-	rgXQmOU5fDhYBrFDbdjud3nx5EmGc/x8=
-X-Received: by 2002:a2e:b8d6:0:b0:3a3:61ec:43c7 with SMTP id
- 38308e7fff4ca-3a624dd9052mr14893691fa.24.1790175427369; Wed, 23 Sep 2026
- 07:57:07 -0700 (PDT)
+	b=e7tQZmpc/tHQEy07WZhyEAyTFWB7a1IMF01kHmnd4maBvCD5EFe+nevyuOpjdQuxn
+	 UUMxOgzmut6ghdtzyClLxICO2pXHeRyIfl67bfFRYfWOX6oV52F7ZQ5H5gzK21BjEa
+	 Mwk4bP70XX9hIFDOOPe+RHQkOJsxecdKaw+0b9uK6bh7HB5dxEfrwdy6NUyurh+VAb
+	 Gtbci4fKu5gxYHKXEdwzs+hzzd28ag5jZQuCbz7Q9+sq9iB/51g2z00V7v6CmC/n9+
+	 PmjoS8+WF/kSJvzZDuWlXQbc9P++F6R3NLPdvAHPC5k/jaChNp5/F3T/IdSaJ332M6
+	 kYfLLuEkh18pg==
+Received: by mail-lr2-f12.google.com with SMTP id 38308e7fff4ca-3a2ff176d5eso8048231fa.0
+        for <linux-acpi@vger.kernel.org>; Wed, 23 Sep 2026 08:02:48 -0700 (PDT)
+X-Gm-Message-State: AFuF++mCeyftUHX1SU6/sOrpi+8N+oxEq4f31JIERQeBb+tW3cUffHHo
+	A5LWLOsficm59l8DbFYry4k3TJ9TC0VU+f66RUg5gJu3twbg9UjlF7k+syn4CqsLM+4DrmA2SeE
+	bZB1oguFj7nyJEtsT5t9LyUvF23f57N0=
+X-Received: by 2002:a2e:b8d5:0:b0:3a4:99ed:beac with SMTP id
+ 38308e7fff4ca-3a630614d0cmr7434701fa.4.1790175766981; Wed, 23 Sep 2026
+ 08:02:46 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260921081411.4819-1-lalitshankarch@gmail.com>
- <CAJZ5v0gvYn3ga6vL3BYt+5GFRheg_sjF8AX_HBXfHaLv+tPGKA@mail.gmail.com> <50986455-fb18-4c92-9c3b-74d625f3f6fa@gmx.de>
-In-Reply-To: <50986455-fb18-4c92-9c3b-74d625f3f6fa@gmx.de>
+References: <20260501165542.GA491695@bhelgaas> <561131dd-0e42-437a-9724-a036238a9bb4@gmx.net>
+ <5f716613-d996-46db-96ec-6c0251219922@gmx.net> <449c834d-d115-4242-aa5a-43daa085f178@leemhuis.info>
+ <81ac70ae-c51e-4960-8dd3-bed47ceafafb@gmx.net> <012b3ebc-62f0-402e-afa9-02712e67e72a@leemhuis.info>
+ <86030fc1-473b-4695-a2f3-c30b5f19614c@gmx.net> <CAJZ5v0iw9Jrdv2MaCu5Dou3Ust5L-YsEMWDpZPP58-ag_pbZSg@mail.gmail.com>
+ <e61e7c84-344a-44cd-ba99-53f23739a774@gmx.net> <CAJZ5v0im31nB_R5cL8QWMgjr4_cuoX482d_XY9bFCqsbXZGi6A@mail.gmail.com>
+In-Reply-To: <CAJZ5v0im31nB_R5cL8QWMgjr4_cuoX482d_XY9bFCqsbXZGi6A@mail.gmail.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 23 Sep 2026 16:55:32 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jUovbnwqkobdnn2xtPvNHZkjJr_wsUNGyBX4X=2-U-_A@mail.gmail.com>
-X-Gm-Features: AclHuK-5Qf023LX0aSxq1cXU_7s3AcrkOpncZluGdAhuJqgz8MSBZiyMjuFieYs
-Message-ID: <CAJZ5v0jUovbnwqkobdnn2xtPvNHZkjJr_wsUNGyBX4X=2-U-_A@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: use IS_ENABLED() to simplify built-in or module checks
-To: Armin Wolf <W_Armin@gmx.de>, Lalit Shankar Chowdhury <lalitshankarch@gmail.com>
-Cc: "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Date: Wed, 23 Sep 2026 17:01:13 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hnDVzQoZSv9w2cd--UapwWrLr7R+hK5+gZKHUSxX=O5g@mail.gmail.com>
+X-Gm-Features: AclHuK-skz_B-BkpRNH4pUyxow8wShQzSEmaWBJMxY9DW_q-o4f2W69-gNTriUY
+Message-ID: <CAJZ5v0hnDVzQoZSv9w2cd--UapwWrLr7R+hK5+gZKHUSxX=O5g@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: PM: Add quirk for Acer Swift 3 SF314-56G (MX250)
+To: Matthias Dittrich <dittrich.m@gmx.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 22, 2026 at 9:40=E2=80=AFPM Armin Wolf <W_Armin@gmx.de> wrote:
+On Tue, Sep 22, 2026 at 6:41=E2=80=AFPM Rafael J. Wysocki (Intel)
+<rafael@kernel.org> wrote:
 >
-> Am 22.09.26 um 18:43 schrieb Rafael J. Wysocki (Intel):
->
-> > +Armin
+> On Tue, Sep 22, 2026 at 6:06=E2=80=AFPM Matthias Dittrich <dittrich.m@gmx=
+.net> wrote:
 > >
-> > On Mon, Sep 21, 2026 at 10:14=E2=80=AFAM Lalit Shankar Chowdhury
-> > <lalitshankarch@gmail.com> wrote:
-> >> Replace the remaining built-in/module check for CONFIG_ACPI_WMI
-> >> with IS_ENABLED() macro.
+> > Dear Rafael,
+> >
+> > i checked the patch THUNDEROBOT patch with "Signed-off-by: Zhai Can
+> > <bczhc0@126.com>" I copied the format in my patch file:
+> >
+> > From: Matthias Dittrich <dittrich.m@gmx.net>
+> > Signed-off-by: Matthias Dittrich <dittrich.m@gmx.net>
+> >
+> > The corrected file "acer-swift3-quirk-final2.patch" is attached.
+> >
+> > I hope this is ok?
 >
-> Reviewed-by: Armin Wolf <W_Armin@gmx.de>
+> It's fine, thanks!
 
-Applied as 7.4 material, thanks!
-
-> >> Signed-off-by: Lalit Shankar Chowdhury <lalitshankarch@gmail.com>
-> >> ---
-> >>   include/linux/acpi.h | 2 +-
-> >>   1 file changed, 1 insertion(+), 1 deletion(-)
-> >>
-> >> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> >> index ddacac812094..b590f520dc57 100644
-> >> --- a/include/linux/acpi.h
-> >> +++ b/include/linux/acpi.h
-> >> @@ -434,7 +434,7 @@ extern acpi_handle ec_get_handle(void);
-> >>
-> >>   extern bool acpi_is_pnp_device(struct acpi_device *);
-> >>
-> >> -#if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
-> >> +#if IS_ENABLED(CONFIG_ACPI_WMI)
-> >>
-> >>   typedef void (*wmi_notify_handler) (union acpi_object *data, void *c=
-ontext);
-> >>
-> >> --
-> >> 2.53.0
-> >>
-> >>
+And now applied as 7.4 material, thanks!
