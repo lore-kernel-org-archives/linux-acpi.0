@@ -1,160 +1,95 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 476E04BB260
-	for <linux-acpi@vger.kernel.org>; Thu, 24 Sep 2026 18:46:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB4C43A2E25;
+	Thu, 24 Sep 2026 18:49:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790275593; cv=none; b=HfW3/XY1qB7eSbb0keV9y9c/pFY1GzWRC9wLkFfAWvrEQvNIG4dpgbHll8rrbqOaN6KnSPISyiIvTgawm306ySSjqwpRJncwSyE3tN9GgxpuAIR5XGQkYuQNX7sLaK7wh7Bvwif42i0n+aFKTBezk/Ac1gdk3CjwseevCT8a8Xc=
+	t=1790275745; cv=none; b=Ldv1TjD8+ZP4j4x7nTEfKc8plR3PT9byvGPZq44UMUgMMwbLywYk5xlNh3L3pTYqWPjFPk7Tsx9pshlPfwQb+8DniZVe/7iohTCOZ5jgWO3S5zpyUM3mg+aPSsws7q4FWnMmwaRRqaD3+XbRX1fsR8yZTXXX+ldDxZhS3quyzw4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790275593; c=relaxed/simple;
-	bh=XiJZu2DJ7QOUt/Amb86cxy51pfeARMzjxUXP6+qjxhk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=GVtm5NbY91zfYQTkmNDqyujR8BH62lz3k9pAOQtV+AtuV0Aeo8PS9lctnYXlz2LRd2n5ylXlamO0c/o/hPztv21opgYEh9LefrTjy2/lYOjK1YH42SFoqQMjjv5KIyt+dK9UFMBsn0eE+1laJSPUxkdFjzD29rnMkobHMev5knU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OQiD8401; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790275745; c=relaxed/simple;
+	bh=qbXlu9pxtBcIF5GUtwTt4z2CEJGAnbNkgAFYxn9ZLVo=;
+	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
+	 MIME-Version:Content-Type; b=u9x1LXJgmBfA4xOv5fn3eFWOKhB5xYIb6MaCabfHdL/S1HxcqhawddqaP2QzTB1pXfn1oSedykUkj9QVGmGZe3w3/Hc2uyBzkU+qciXb9Pcp5TDXwGVmt6fskheodAkEUGeIScPp5wLMneSpSK7UEJvpYGsiY+0OVEE5Ih7k6C0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=L/EtBNB6; arc=none smtp.client-ip=192.198.163.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OQiD8401"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C800D1F00898
-	for <linux-acpi@vger.kernel.org>; Thu, 24 Sep 2026 18:46:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790275580;
-	bh=S94iqHBHbR3PvK8lSesl73AJ9uh+LF5R5k+adzWkj+c=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=OQiD8401dZXebvoU5pYyRnSTY0AqolBIOmzrLQpVla+dz+i1WHwuXx/W44ddTwzjT
-	 qyMnyGq/ytRwmimhSD95jJgF/kLGzZsByRnjZceXLvAaKezhsp1WrxjaVKSYmnOgQ3
-	 T/kLuPzfB6RGt50qNmnTOGWoGYD9b/vA8zrqJQLcLG0t/dQgaqnc92EWo4uaVs0/H8
-	 u19pXVNZOHmN+rrCybdgnyo8Sa2+xB4rBPxt2KscF4+d6OSmUI63ymk+sFSKt/CnzS
-	 XntbEi/S3tL3Gi+KV9DwWCpO9MioQXTISmtkhBC5UpTU+JlAlfNeITInNDYpOytZ4w
-	 nboE5PzYBekSg==
-Received: by mail-lr2-f24.google.com with SMTP id 38308e7fff4ca-3a2ff163f65so497741fa.1
-        for <linux-acpi@vger.kernel.org>; Thu, 24 Sep 2026 11:46:20 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBxL4L1mhyVi9Asa0kpl93FMgWm917HkOn120QjZhusUt6ghK22Ii2BSgOUos9HZoDHVKKfYlwqsqR29@vger.kernel.org
-X-Gm-Message-State: AFuF++mh98kETAzhbx93/vogKyhy9Xp5QrK/jQIzb3PPTxAKjy1zzoRB
-	hId62W1h3EmAHKn2FH7VVnGxr0jhnAXYroKDb+e6Oo8NE0Rl9R/7+Rr23ieVcHukAfC5k5ioE/y
-	A4m3jBKdb514T0df5mUKIzq3jFNx+lN8=
-X-Received: by 2002:a2e:bc20:0:b0:3a6:3946:3a23 with SMTP id
- 38308e7fff4ca-3a63dd9f008mr7438381fa.11.1790275578960; Thu, 24 Sep 2026
- 11:46:18 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="L/EtBNB6"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1790275743; x=1821811743;
+  h=from:to:cc:in-reply-to:references:subject:message-id:
+   date:mime-version:content-transfer-encoding;
+  bh=qbXlu9pxtBcIF5GUtwTt4z2CEJGAnbNkgAFYxn9ZLVo=;
+  b=L/EtBNB6/SYYXzHOpnZ7haHVdGoH5a0czPnNb9jkkxNbG7rWfwjz9D4O
+   yCW4mRo9GCLBySZQIvVXE8y8so4TuKl6Vv6o/p8Y/sE9mCcAVdflanZ4K
+   rs8ewniP1Nv7m1QCcq9KNOjxyHFenw0W2XQtdFkgkwbkiL35WmMKziDIj
+   6O2ltFlyZFd4kGFCYN4UCL2+kYfn5TeuDUcvGspSFyq1YfvaVQwKo2fkd
+   OH4O/JLTvAZzFZta+YuiFo5+grywKlaSRDyhuWhfiuPaf/B8Bkk3Lo2GM
+   +8uvXs5TRQqDt2TZDdfGF4HgFlSspKMpI5jIEdvi6ta8CBVBSldHJ4b9Y
+   g==;
+X-CSE-ConnectionGUID: RalM+7xhS9S4J2t/q+4xsQ==
+X-CSE-MsgGUID: /HrnAZ+6SRK2yLLQf1DXog==
+X-IronPort-AV: E=McAfee;i="6800,10657,11915"; a="91078643"
+X-IronPort-AV: E=Sophos;i="6.27,121,1787036400"; 
+   d="scan'208";a="91078643"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2026 11:49:01 -0700
+X-CSE-ConnectionGUID: hoVVPbKKSpWru9fQGPkNUg==
+X-CSE-MsgGUID: eRQ0xAR3QwuUv1FU6SeaYg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,121,1787036400"; 
+   d="scan'208";a="277871611"
+Received: from black.igk.intel.com ([10.91.253.5])
+  by orviesa005.jf.intel.com with ESMTP; 24 Sep 2026 11:48:59 -0700
+Received: from black.igk.intel.com (localhost [IPv6:::1])
+	by black.igk.intel.com (Postfix) with ESMTP id 4D25480;
+	Thu, 24 Sep 2026 20:48:58 +0200 (CEST)
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Mika Westerberg <westeri@kernel.org>, Linus Walleij <linusw@kernel.org>, 
+ Bartosz Golaszewski <brgl@kernel.org>, Mateo Borda <mateob226@gmail.com>
+Cc: linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, 
+ linux-kernel@vger.kernel.org
+In-Reply-To: <20260920173904.6221-1-mateob226@gmail.com>
+References: <20260920173904.6221-1-mateob226@gmail.com>
+Subject: Re: [PATCH] gpiolib: acpi: Add quirk for Lenovo IdeaPad Slim 3
+ 15ABR8
+Message-Id: <179027573830.858703.6021707310357678684.b4-ty@b4>
+Date: Thu, 24 Sep 2026 20:48:58 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <6329043.lOV4Wx5bFT@rafael.j.wysocki> <SN6PR02MB41577ECCDB3E757B8859AE7FD4822@SN6PR02MB4157.namprd02.prod.outlook.com>
- <SN6PR02MB41575266A4580339E186E5D9D4812@SN6PR02MB4157.namprd02.prod.outlook.com>
-In-Reply-To: <SN6PR02MB41575266A4580339E186E5D9D4812@SN6PR02MB4157.namprd02.prod.outlook.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Thu, 24 Sep 2026 20:44:42 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0i2oawbWzrVro1gGx2=hYOhjXPNJWDJ6LsNCq1WOxfHGQ@mail.gmail.com>
-X-Gm-Features: AclHuK_kDP1jb-vmJEQTklCk_QMTq01kgGxRdse_GLImA2Vr_OAjJ9A1FRmmPhA
-Message-ID: <CAJZ5v0i2oawbWzrVro1gGx2=hYOhjXPNJWDJ6LsNCq1WOxfHGQ@mail.gmail.com>
-Subject: Re: [PATCH v2] driver core/ACPI: Introduce companion_bus_register()
-To: Michael Kelley <mhklinux@outlook.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Linux on Hyper-V List <linux-hyperv@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
-	LKML <linux-kernel@vger.kernel.org>, 
-	Linux Driver Core Development <driver-core@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.16.0
 
-On Thu, Sep 24, 2026 at 8:23=E2=80=AFPM Michael Kelley <mhklinux@outlook.co=
-m> wrote:
->
-> From: Michael Kelley <mhklinux@outlook.com> Sent: Wednesday, September 23=
-, 2026 10:06 AM
-> >
-> > From: Rafael J. Wysocki <rafael@kernel.org> Sent: Wednesday, September =
-9, 2026 9:41 AM
-> > >
-> > > The ACPI bus type does not allow drivers to be registered, so the sys=
-fs
-> > > attributes related to drivers created for it and its devices are
-> > > useless, and its drivers/ directory is always empty.  All of that is
-> > > confusing and wasteful.
-> > >
-> > > To allow skipping the creation of those sysfs attributes, introduce a
-> > > "companion" bus type concept and add a special registration function =
-for
-> > > registering "companion" bus types, companion_bus_register().
-> > >
-> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
-> > As a heads up, this patch breaks Linux guests booting on Hyper-V.
-> > Something goes wrong in the VMBus driver getting loaded and
-> > initialized (drivers/hv/vmbus_drv.c). It may be that the VMBus
-> > driver is doing something wrong or making an invalid assumption.
-> > I'll debug the problem today or tomorrow, but any insight you can
-> > offer would be appreciated. I'm working with linux-next20260921.
->
-> Here's what I've learned so far:
->
-> 1) The problem is apparently due to systemd-udevd being unable
-> to load modules with the VMBus bus driver or any of the
-> individual drivers for VMBus devices.
->
-> 2) I'm testing on Ubuntu 20.04 with systemd version 245. The
-> problem reproduces on a different 20.04 instance. But everything
-> works correctly on Ubuntu 24.04 with systemd version 255.
->
-> 3) If the VMBus bus driver and key VMBus device drivers are
-> compiled as built-in instead of as modules, the Ubuntu 20.04 system
-> will boot.
->
-> 4) If I keep your patch, but change companion_bus_register() to
-> pass "true" as the second argument instead of "false", then the
-> /sys/bus/acpi/drivers directory is created as before, and everything
-> works. Also, only adding back the .match function as you suggested
-> does not make any difference.
->
-> 5) The VMBus bus is enumerated in the ACPI DSDT. The individual
-> synthetic devices that are logically on VMBus are not -- they are
-> "offered" by Hyper-V to the guest at runtime via a custom protocol.
-> The synthetic devices end up with paths like:
->
-> /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/<some GUID>
 
-Which is rather unfortunate.
+On Sun, 20 Sep 2026 14:39:04 -0300, Mateo Borda wrote:
+> On the Lenovo IdeaPad Slim 3 15ABR8 (82XM), the touchscreen
+> (GTCH7503:00) GPIO interrupt on pin 10 is armed as a wake source. As
+> soon as the system enters s2idle suspend the interrupt fires, causing
+> an immediate spurious resume, so suspend is unusable.
+> 
+> Disabling wakeup for the device via sysfs or booting with
+> gpiolib_acpi.ignore_wake=GTCH7503:00@10 avoids the problem, so add
+> a DMI quirk that ignores wakeup on that pin.
+> 
+> [...]
 
-They should appear under the MSFT1000:00 platform device corresponding
-to the ACPI device with the same name.
+Applied, thanks!
 
-Anyway, it looks like older systemd may be thinking that they are ACPI
-devices and may be looking for drivers in /sys/bus/acpi/drivers/.
+[1/1] gpiolib: acpi: Add quirk for Lenovo IdeaPad Slim 3 15ABR8
+      commit: 8d37f20173a2760718bb02b58bafc5a7cac93d67
 
-To kind of check that this is the case, can you replace "use_drivers"
-with "true" in the first check in bus_register_internal() only (with
-the $subject patch applied, of course)?  That would leave the
-"drivers" directory in place, but it would skip the creation of the
-probe files.
+Best regards,
+-- 
+With Best Regards,
+Andy Shevchenko
 
-> My conclusion is that for some reason, the older system-udevd has
-> a dependency on the /sys/bus/acpi/drivers directory being present.
-> This isn't a kernel problem per se, but there's an implicit ABI of sorts
-> that assumes the existence of the "drivers" directory.
->
-> To confirm all this more precisely, I'm trying to find a clever way
-> to get an strace of systemd-udevd when it errors out due to the
-> missing "drivers" directory, and somehow relate that back to the
-> git history of systemd-udevd.
->
-> Thoughts?
 
-Well, the fact of life is that it can't cope with the changes made by
-the $subject patch, but maybe we can get away with a simpler one, so
-please check the above.
 
-I'll drop the $subject patch from linux-next at least for now.
 
-BTW, do you know why vmbus_acpi_add() does this:
-
-ACPI_COMPANION_SET(&device->dev, device);
-
-which essentially attempts to make an ACPI device become an ACPI
-companion of itself and is useless and broken?
-
-If this is done to work around something, there may be a design issue
-in that driver.
-
-Thanks!
