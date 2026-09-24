@@ -1,31 +1,31 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E43504A13AF;
-	Thu, 24 Sep 2026 15:28:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D049649E5C2;
+	Thu, 24 Sep 2026 15:29:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790263736; cv=none; b=qxkBH0wyV7O7qu0t23hvq+f44O3HfnPJk8J8rQbYmMCNfFy9YC0riM+041kG/OgCAOCioGqfE5YxqePKTbjZopUOeB5JnXYG4crjfvzzIYI7uVXeMWxAyKhG1JohhSDtYs4BEZi2dPqcp5NBJBjnmG0TxGJJKtvemg93AaUBA/E=
+	t=1790263744; cv=none; b=p2op7ZV90w9jXz7boRj70/3uAmMsNaCQsSpJlQGpJH/6CRjugXPpEKqabIF/XGf5MdWUTUfZAqyM2zAL3EVV/SVHK+2svpBmXfSFcteUgIzqtPh9pVUZFvirt3Yb+JBdAGbtXr2C+ibJGroa9TXMWY1CwaqJLUMmLxNMvKIpvo4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790263736; c=relaxed/simple;
-	bh=tV3gLmdj46JrcPvGnrYdoLxgsZp2pmyHv+oxJsoBQ+8=;
+	s=arc-20240116; t=1790263744; c=relaxed/simple;
+	bh=ednoOePGVW1sykn3VGIVtNz9LP2Jute7Y1pUUhwMwWA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Ury0AwzkN0/G1ZFKzu96uQK4yp3hOpGrMubIq/M5yrLcpIWGpc+CGRhDUVLb+wXITpmmngS6mISXpmmwmg9I1dxqUMTiopqfnKrjojhs0aKklNJSMBkOEL+g21cvqLg1L/PSyFParpFdho0zc13aIKP2SrH+rGdbIveQ5hRszQg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=cDOS9g46; arc=none smtp.client-ip=217.140.110.172
+	 MIME-Version; b=Nya/V4fjK0jYIGUN07aLq3DhKegtaaouls0mCZuWkBUwNF8CVCl3+Fj8qbmM02FOKsTEcsxXSYbbX/5o3pXUeDZWnreJB4+YYeegRZ3lnv5g7e25/sxcS5sIO+YkVU7QzFDCFJ0SmidTdQWDCr4khdhTNrv3r+7fAdZ517W9g4E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=WWcfxLP5; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="cDOS9g46"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="WWcfxLP5"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id A599A1D14;
-	Thu, 24 Sep 2026 08:28:50 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 927311D6F;
+	Thu, 24 Sep 2026 08:28:58 -0700 (PDT)
 Received: from e142021.arm.com (unknown [10.57.8.50])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 453173FAB1;
-	Thu, 24 Sep 2026 08:28:46 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A5BB33F86F;
+	Thu, 24 Sep 2026 08:28:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1790263734; bh=tV3gLmdj46JrcPvGnrYdoLxgsZp2pmyHv+oxJsoBQ+8=;
+	t=1790263742; bh=ednoOePGVW1sykn3VGIVtNz9LP2Jute7Y1pUUhwMwWA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=cDOS9g46BRU8apeGek0JhfberlQKhWqYvaFTZwJeasB7aACnRBbRDvKfLnRdacIvS
-	 FZCRZKDsHwE5e40pup3CBzUaqYqlrrPQShmUnnaWheX324e/iO5yeE9IMlOuSKfoDL
-	 fxoRfVgHvKCjSBWJe/7CXh57QsGh0ZoaC41r9kdM=
+	b=WWcfxLP5NuofZdrVkv4ILVBZg8S9mc2XZE5NyvZYhLfRnUsjY5cNWg8rjINAS+xn3
+	 vAlsZfusC0wjQ98GFF2/0oXMqPnNsr4w+Qt5LbzNQ/ltRVucVpljPeCawWLbt5LoEh
+	 LW2VY0QF4Y+XSX4PA1BmyyKbJCpzCqf7zX2usDl8=
 From: Andre Przywara <andre.przywara@arm.com>
 To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
 	Hanjun Guo <guohanjun@huawei.com>,
@@ -50,9 +50,9 @@ Cc: Jonathan Cameron <jic23@kernel.org>,
 	linux-acpi@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v11 08/13] arm_mpam: propagate MSC access errors for interrupt control
-Date: Thu, 24 Sep 2026 17:27:34 +0200
-Message-ID: <20260924152739.2865510-9-andre.przywara@arm.com>
+Subject: [PATCH v11 09/13] arm_mpam: propagate MSC access errors in mpam_reset_class_locked()
+Date: Thu, 24 Sep 2026 17:27:35 +0200
+Message-ID: <20260924152739.2865510-10-andre.przywara@arm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260924152739.2865510-1-andre.przywara@arm.com>
 References: <20260924152739.2865510-1-andre.przywara@arm.com>
@@ -64,96 +64,88 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Allow the functions dealing with interrupt registration and enablement
-to check for and return errors, and propagate MSC read and write errors
-from the lower level up.
-This does not cover the IRQ handler yet, as this needs some more
-attention.
+The mpam_reset_ris() function can return an error, propagate this up
+through mpam_reset_component_locked() to mpam_reset_class_locked(),
+which is exported. The external caller is a void function, so cannot
+really handle the error at the moment, but at least we report everything
+on the MPAM interface side.
 
 Signed-off-by: Andre Przywara <andre.przywara@arm.com>
-Reviewed-by: Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>
 ---
- drivers/resctrl/mpam_devices.c | 31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ drivers/resctrl/mpam_devices.c  | 24 ++++++++++++++++++------
+ drivers/resctrl/mpam_internal.h |  2 +-
+ 2 files changed, 19 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-index 558efab75f911..eb26c25b9f970 100644
+index eb26c25b9f970..6d1fda949a05c 100644
 --- a/drivers/resctrl/mpam_devices.c
 +++ b/drivers/resctrl/mpam_devices.c
-@@ -1105,7 +1105,9 @@ static int mpam_msc_hw_probe(struct mpam_msc *msc)
- 	}
+@@ -2994,7 +2994,7 @@ static void mpam_enable_once(void)
+ 	       mpam_partid_max + 1, mpam_pmg_max + 1);
+ }
  
- 	/* Clear any stale errors */
--	mpam_msc_clear_esr(msc);
-+	ret = mpam_msc_clear_esr(msc);
-+	if (ret)
-+		return ret;
- 
- 	spin_lock(&partid_max_lock);
- 	mpam_partid_max = min(mpam_partid_max, msc->partid_max);
-@@ -2668,9 +2670,7 @@ static int mpam_enable_msc_ecr(void *_msc)
+-static void mpam_reset_component_locked(struct mpam_component *comp)
++static int mpam_reset_component_locked(struct mpam_component *comp)
  {
- 	struct mpam_msc *msc = _msc;
+ 	struct mpam_vmsc *vmsc;
  
--	__mpam_write_reg(msc, MPAMF_ECR, MPAMF_ECR_INTEN);
--
--	return 0;
-+	return __mpam_write_reg(msc, MPAMF_ECR, MPAMF_ECR_INTEN);
+@@ -3008,26 +3008,38 @@ static void mpam_reset_component_locked(struct mpam_component *comp)
+ 				 srcu_read_lock_held(&mpam_srcu)) {
+ 		struct mpam_msc *msc = vmsc->msc;
+ 		struct mpam_msc_ris *ris;
++		int ret;
+ 
+ 		list_for_each_entry_srcu(ris, &vmsc->ris, vmsc_list,
+ 					 srcu_read_lock_held(&mpam_srcu)) {
+-			if (!ris->in_reset_state)
+-				mpam_touch_msc(msc, mpam_reset_ris, ris);
++			if (!ris->in_reset_state) {
++				ret = mpam_touch_msc(msc, mpam_reset_ris, ris);
++				if (ret)
++					return ret;
++			}
+ 			ris->in_reset_state = true;
+ 		}
+ 	}
++
++	return 0;
  }
  
- /* This can run in mpam_disable(), and the interrupt handler on the same CPU */
-@@ -2678,9 +2678,7 @@ static int mpam_disable_msc_ecr(void *_msc)
+-void mpam_reset_class_locked(struct mpam_class *class)
++int mpam_reset_class_locked(struct mpam_class *class)
  {
- 	struct mpam_msc *msc = _msc;
+ 	struct mpam_component *comp;
++	int ret;
  
--	__mpam_write_reg(msc, MPAMF_ECR, 0);
--
--	return 0;
-+	return __mpam_write_reg(msc, MPAMF_ECR, 0);
+ 	lockdep_assert_cpus_held();
+ 
+ 	guard(srcu)(&mpam_srcu);
+ 	list_for_each_entry_srcu(comp, &class->components, class_list,
+-				 srcu_read_lock_held(&mpam_srcu))
+-		mpam_reset_component_locked(comp);
++				 srcu_read_lock_held(&mpam_srcu)) {
++		ret = mpam_reset_component_locked(comp);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
  }
  
- static irqreturn_t __mpam_irq_handler(int irq, struct mpam_msc *msc)
-@@ -2777,11 +2775,13 @@ static int mpam_register_irqs(void)
- 				return err;
- 		}
+ static void mpam_reset_class(struct mpam_class *class)
+diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
+index 68a6cf2b9cc73..09f8168fb4d2c 100644
+--- a/drivers/resctrl/mpam_internal.h
++++ b/drivers/resctrl/mpam_internal.h
+@@ -465,7 +465,7 @@ void mpam_enable(struct work_struct *work);
+ void mpam_disable(struct work_struct *work);
  
--		mutex_lock(&msc->error_irq_lock);
--		msc->error_irq_req = true;
--		mpam_touch_msc(msc, mpam_enable_msc_ecr, msc);
--		msc->error_irq_hw_enabled = true;
--		mutex_unlock(&msc->error_irq_lock);
-+		scoped_guard(mutex, &msc->error_irq_lock) {
-+			msc->error_irq_req = true;
-+			err = mpam_touch_msc(msc, mpam_enable_msc_ecr, msc);
-+			if (err)
-+				return err;
-+			msc->error_irq_hw_enabled = true;
-+		}
- 	}
+ /* Reset all the RIS in a class under cpus_read_lock() */
+-void mpam_reset_class_locked(struct mpam_class *class);
++int mpam_reset_class_locked(struct mpam_class *class);
  
- 	return 0;
-@@ -2800,10 +2800,10 @@ static void mpam_unregister_irqs(void)
- 		if (irq <= 0)
- 			continue;
- 
--		mutex_lock(&msc->error_irq_lock);
-+		guard(mutex)(&msc->error_irq_lock);
- 		if (msc->error_irq_hw_enabled) {
--			mpam_touch_msc(msc, mpam_disable_msc_ecr, msc);
--			msc->error_irq_hw_enabled = false;
-+			if (!mpam_touch_msc(msc, mpam_disable_msc_ecr, msc))
-+				msc->error_irq_hw_enabled = false;
- 		}
- 
- 		if (msc->error_irq_req) {
-@@ -2815,7 +2815,6 @@ static void mpam_unregister_irqs(void)
- 			}
- 			msc->error_irq_req = false;
- 		}
--		mutex_unlock(&msc->error_irq_lock);
- 	}
- }
- 
+ int mpam_apply_config(struct mpam_component *comp, u16 partid,
+ 		      struct mpam_config *cfg);
 -- 
 2.43.0
 
