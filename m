@@ -1,176 +1,121 @@
-Received: from mail-vs2-f12.google.com (mail-vs2-f12.google.com [74.125.227.12])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from BYAPR05CU005.outbound.protection.outlook.com (mail-westusazon11010046.outbound.protection.outlook.com [52.101.85.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B6A4485930
-	for <linux-acpi@vger.kernel.org>; Thu, 24 Sep 2026 13:29:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.227.12
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790256565; cv=none; b=Rey6CzHH3XbzsJkX8z4ggnPTpUuK7hfxa9QRf/fHlT41tlqOA8fMmV/JaaJO58Km9tkce/l+AH/CBNWowOGbN3qWp3zNfbm1/2vNBNEhC2+rYG4zzuTgj69vO1rPt/ezJ3se03/c2nQZkTCNAYRTWivJTPVbsp2iMSeFEPFGg6I=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790256565; c=relaxed/simple;
-	bh=2b3dzNDHb6p5o6L8IhZiMGWrYX5yxOgf7BIMickiWCE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=VoUcTlNYhut8C/WRA4cUGfV/EPiV+Y/644kXvRku6AnDbF1s7/hmGA3aZODuowiztR7eMXvioaWgLQaGOvssLKRvFHUHMkZ2DL3QiJtQR/A2hWLELrhFZp8DHSSuYVGWT52S8fxjeN0flVxecLPcH/z8Faw6pD3zuBACpkRbIhs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nuaVf9dk; arc=none smtp.client-ip=74.125.227.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7BAA4A2616;
+	Thu, 24 Sep 2026 15:24:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.85.46
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790263445; cv=fail; b=c5US+DWRFb/SZTZIr35ReIhQu9cxXk11z/XmyeP8fFSB2qYBjDgdTvuFktaFzxMj5lucgd5atNSdmISH3UIpRy0wL/hImj6uRzC59JllrYyj+f4YNtYJKf+ToaJqkgHlC0GItORksMhZSdq8O+F3/A+FbjpDzJTZ29nqQh3cmdQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790263445; c=relaxed/simple;
+	bh=ehoJ+mfr8kJorxUxvDBirt/C95AcbTFpySKnWqn9GGE=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=GHKAX7AlapZKjYLZKdeTzK2D77VkPsmX1K9p/sMTTAKPBFaXrUhXUJlMFDsYQCyeEQ53uS7Qh0cYUX6y+KXrSdk1PbAB7JS12+QSyv4m3lEks5npgvCRRoVriXwLEkY4ooocV41XGrSV2nHfx4zoKBmFoSfdHD48t3TNzaHh6DY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=ZXVTFxXq; arc=fail smtp.client-ip=52.101.85.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nuaVf9dk"
-Received: by mail-vs2-f12.google.com with SMTP id 71dfb90a1353d-5c67e512ee6so752277e0c.1
-        for <linux-acpi@vger.kernel.org>; Thu, 24 Sep 2026 06:29:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790256555; x=1790861355; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:message-id:date
-         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=WiOjRaKfF0vUqv8jQnQqyvZEh2gZF6+fO0ZCS3cuQxg=;
-        b=nuaVf9dkdi7WZPWlERMIf6U+9X8w+G3PFxIHFIcQ05JEufsj6KQMuqiJCBurGUmnMt
-         kIhPAXY3sTE7AMFJ3ksHi09WPngEe0eQoYF06C0KH+D+7Bnqxe6cQq3Ai9TheDg1/02R
-         ViZe+wC1q/VrcgXTx69U7m6mdzxfTHPVjww66mew2jEuFb8ZjEf3qQBDePIlYQ8MGPhP
-         tLQ8E393ah1Y2O7ST5iw6x0O7T64qeG7+UEZGRvSW8uHyE2F0ZWNnyPNFD1XkPIPeJxc
-         32XAsMZfNHxNsooDmTDtTY5TRnX1IzfTBo8QHELMS5IcJ50lNPvYZbZr+guu/5sO2YWk
-         h+pA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790256555; x=1790861355;
-        h=content-transfer-encoding:content-type:mime-version:message-id:date
-         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=WiOjRaKfF0vUqv8jQnQqyvZEh2gZF6+fO0ZCS3cuQxg=;
-        b=QookTUtEJLY0oiiJ7QU/u3PWP/4xuS53v54inpOG8ltD8KbBnDkOK8X2sQr9QFtsmN
-         BgJkLok7Liwg9YCV5kZYQGjhrnGcxYxDTmJw+v/8I2MrOhtl1TvBdvYKRRqppdPJe3DO
-         1JS4JwekSy+KjTmPLlSfcEzlqSwIaQcTjZrYUP6kEtxZ78iWro4O06SNp4YUyp5iyWz7
-         Pwk8k3bgwXAddzPFkqf8dSkJLKzH0XYvi3bWvtnv8v5YReC0YbjWI1QHbbdk2OY9xlBX
-         UZ4qfwCUtX9cWdVvEeKsu6UkZfdyVXFtT2A0RLS0mN67wsM/ByD0inbFF5aRyAzk3Lsa
-         c24g==
-X-Forwarded-Encrypted: i=1; AKwUvBxfsr+OB0IBQb4xBzp4NPYbCBhUG2AANYtY3owjCX15m2ev2pRGTsC2NmkJ5sO73Km06l07og++x236@vger.kernel.org
-X-Gm-Message-State: AFuF++kDetguzuOD7Jfg5a/pJbmDzYFALjVfbwwi+pOwKTkRq5vEL0aw
-	TUqVnbWvqamDEoWK0E5TYDkiKt5K9jOvYjzF0Rbt83MozUs0Qvrs971cQb7RvNG8
-X-Gm-Gg: AYBFou2Gnnh5cdeBZ3jQvSsTuzdXjf/tYbTER/+mpCDV2u9+7VXOX7MvyHL8Z+0cTUc
-	EeIG0lIck7Raa8mEYFcKL0EYsRSeHzWGtoSt1rZASF1VXTQqeIeS7VIeCx50VtfRj/poSwDvL1P
-	GXItjn1/k9AMYotQTt1BLGYX0nlt4Y+ce/XDNa5PlIVUhdvH21AsRQ4LD1aaKCdyjxN+ruwR2I1
-	4PcZstiLPcQVQaCZ5jNHsKWBCaXakVZgo8nD1lMGCBZIcCJGmi62wsVhecxh+o1barL4Ka9q6p7
-	7xNX6XEJnXD2KyZoqaLZxViQBkrDC2a7i/wm9BxPleTfvTLh+sbrGS+/Y351xUw2oHq7OmsWL/1
-	mSB/ZvjYRrM9voWx6fAgijfg7ISTIF9J008fjpRRHvIRvqEiWwj96woif79ExtVRHbzlRRtAIeM
-	AA0a4akqisQHNTbs9m0vrEdiK3w1QJkIxoqGYXJtAMSrBnoj+pZoH5RGScbDm1wlWmVex4yLkdf
-	mKZRbZhSg==
-X-Received: by 2002:a05:6122:2985:b0:5c9:a60d:3278 with SMTP id 71dfb90a1353d-5cb0b583951mr1377425e0c.12.1790256555017;
-        Thu, 24 Sep 2026 06:29:15 -0700 (PDT)
-Received: from maclinux ([2803:c600:9110:8ba5:43a9:9b8b:ebdc:6411])
-        by smtp.gmail.com with ESMTPSA id 71dfb90a1353d-5c9f03c7d18sm6571974e0c.1.2026.09.24.06.29.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 24 Sep 2026 06:29:14 -0700 (PDT)
-From: =?UTF-8?q?Francisco=20Beltr=C3=A1n=20Millal=C3=A9n?= <fbeltranmillalen@gmail.com>
-To: rafael@kernel.org,
-	bhelgaas@google.com,
-	linux-acpi@vger.kernel.org,
-	linux-pci@vger.kernel.org
-Cc: lenb@kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] ACPI: PCI: take native PME control on Apple machines
-Date: Thu, 24 Sep 2026 10:28:59 -0300
-Message-ID: <20260924132859.24751-1-fbeltranmillalen@gmail.com>
-X-Mailer: git-send-email 2.55.0
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="ZXVTFxXq"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=pGRO5Y4fuUL8+QsjVnYKKDCfTd+2hykEGEozhHgdBRXevWA276N4mFJPDOHBWAayETBz3B3737u5WZFaWu5pVkkaC1ADr5J64LmsI02PIzZ9Ht1+1Mywhsc5XcETzYU60KASz3TCKVK+Goih3+UnFKCftFHpTdAfupzwpdBktF37yIoxYPf0JMevHfM6vKHcoJhzI5Kk/JlocjxQItIgXN45grMvNkUkQ7DgSm1PToCl9/wTs/gzNIbJtCM3WqeKtF5L6e6+WyQ2lpLyglN7SRIxGicOEzHTPOLdsF2FDLgtqj0Yt5GhP2KplfSTLwu6H9qZkYUvZ7GR56REIJncTQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ehoJ+mfr8kJorxUxvDBirt/C95AcbTFpySKnWqn9GGE=;
+ b=XkZ5WrhEnKodXYIIr+XIb1KXsVfHCkWrOI5ilc2dZdD/6Y5odsZo+LUh9f1mdAqE4vMcBN85+hOxXAeDfNV6WtS0uJCDy1tyqIE2+hDvx3GWhO3eqEgfXy3cYFl49+p4IFHJtuw0Wkk8N4ua8kVwqcUp0SjuA3UjZ4CBJgb+jZw+hSJvsfiy4m7j6ihKfky2/cPKU8Hiuik02DSrCs/3Hx8gQHglJ7yFor16d/AOUnRqybRb+1fNcxsBQltaPXukLczO+rlFB+p31g9Eu564dzRUvfKV0+girUT+JUBHjsyfHcjLS5Leu6jt3DZUAKJI/AEmykU8W1xuwRFApI/JYw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ehoJ+mfr8kJorxUxvDBirt/C95AcbTFpySKnWqn9GGE=;
+ b=ZXVTFxXqK3wGxEfKVJooQy13o0mT1iVF5G06x+gUe67o19yCH8pf8F0x2Llxd3ybTlI/ENFqcNuS/DUCUYVH6IbdTaY0KclvQV9klKGuY4kvHqoWhFUYxfpoPFznZ5QtQC9NSr4bFezt9MjpqtPOEyp3wIdGwhKs0741ZeL37s4GZwAGOInW+oDkPnZ/+l28iH8FoRQ+jkDZYRWz+N4wiyw686khRoBGwPasFpsTbxa7WrvjaKWbOGCd3KmAAQkfd+FAlTQSPtFRara+NJf6qJjM8JCqqXgdSmMO/QsPbfE1+IR4ekK8Wvb8/Oc11Nz9CGloIFvzdjq5h8VQ6zolYQ==
+Received: from PH8P221CA0002.NAMP221.PROD.OUTLOOK.COM (2603:10b6:510:2d8::27)
+ by PH7PR12MB6537.namprd12.prod.outlook.com (2603:10b6:510:1f2::18) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.14; Thu, 24 Sep
+ 2026 15:23:43 +0000
+Received: from SJ1PEPF00001CDE.namprd05.prod.outlook.com
+ (2603:10b6:510:2d8:cafe::76) by PH8P221CA0002.outlook.office365.com
+ (2603:10b6:510:2d8::27) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.451.18 via Frontend Transport; Thu,
+ 24 Sep 2026 15:23:43 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ SJ1PEPF00001CDE.mail.protection.outlook.com (10.167.242.6) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.451.8 via Frontend Transport; Thu, 24 Sep 2026 15:23:43 +0000
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Thu, 24 Sep
+ 2026 08:23:22 -0700
+Received: from rnnvmail205.nvidia.com (10.129.68.10) by rnnvmail204.nvidia.com
+ (10.129.68.6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Thu, 24 Sep
+ 2026 08:23:21 -0700
+Received: from dgx-1v-42.nvidia.com (10.127.8.11) by mail.nvidia.com
+ (10.129.68.10) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49 via Frontend
+ Transport; Thu, 24 Sep 2026 08:23:21 -0700
+From: Jamie Nguyen <jamien@nvidia.com>
+To: Sudeep Holla <sudeep.holla@kernel.org>
+CC: Jamie Nguyen <jamien@nvidia.com>, Lorenzo Pieralisi
+	<lpieralisi@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, Catalin Marinas
+	<catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, "Rafael J. Wysocki"
+	<rafael@kernel.org>, Len Brown <lenb@kernel.org>, Dat Mach
+	<dmach@nvidia.com>, <linux-acpi@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 0/3] ACPI: arm64: FFH Operation Region support for FF-A (offset 2)
+Date: Thu, 24 Sep 2026 08:23:21 -0700
+Message-ID: <20260924152321.3864148-1-jamien@nvidia.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260924-tall-oryx-of-attraction-23ada5@sudeepholla>
+References: <20260901192906.133670-1-jamien@nvidia.com> <20260922-purring-fennec-of-exercise-bbce5e@sudeepholla> <20260922155211.676134-1-jamien@nvidia.com> <20260922-exuberant-earwig-of-opportunity-4fecff@sudeepholla> <20260923124050.3270801-1-jamien@nvidia.com> <20260923-lurking-pony-of-fascination-ac6c49@sudeepholla> <20260923173240.3710620-1-jamien@nvidia.com> <20260924-tall-oryx-of-attraction-23ada5@sudeepholla>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SJ1PEPF00001CDE:EE_|PH7PR12MB6537:EE_
+X-MS-Office365-Filtering-Correlation-Id: 4203a373-c07f-45fb-1f4a-08df1a4fd1f4
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|36860700016|82310400026|1800799024|376014|7416014|10067099003|11063799006|18002099003|4143699003|56012099006|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	6HZJj13oc3sg5lmfmy/LjDEUn4cPy26eba8N5didOruxAkKEUyCP/WBEQz+xy4izz+6LJitK+/qrN2eMLudCtMg9sIT2y79t2bHRERduZja19rXGQaMsZpfpYPJEMh0+/IRbG+hPTZOaAEo/m2H5oRaADNDEgGovvrkR1EM+JWjPYYtgVgKqv+QRTZAwWId2b4s0dfeigvsJt4EzUOwnZvWzwqQWyvgIPlDsSNjO4eJeMWdflW/BJm1dIxNL895BIlZ/j19N7LNl6H6yzi1ariZkRSRRoI6yd+aU3cedq6HOJcYHS1d7/tzm6n6CWvUGOeMZ3e9y/VMn0n3tgjQssr8N8SzeXvuE4NV/xQLQC0T1Pnw0eRU0LL8Feeqk+hgHueWKD8hZZ75z/5Fd2un6kHWgSKkiwoxSFe9EAVys/pIiYYUv8+cTk/ssAURpuWxnD429oVkABtjpo0IHUz/RKrULUACb3g+4H8WmeexUGSUvCVhvzS8G9qdfzlLlZVnaSN06UEPu7VmL0RMzs6LmV83RsJ9P63LvzUibQek5Ifky+fEtvHNF31HM9ghRQYms3G3qoUPRsecQKgzxdm8Z8UZuJDy3TPySLB99SjJihRJr3KoBM5v0kFLWHjEYcfohiuwVXRX183IjaHFPgeSgIy2kUjd+9U3cNWohXX82jn7OozAHp/nzQ10ahfxLJETbR1FHFJOelavXO0ncRO6jKQ==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(36860700016)(82310400026)(1800799024)(376014)(7416014)(10067099003)(11063799006)(18002099003)(4143699003)(56012099006)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	Xt83RhRB4oPbCZBjhUZ29LnrvW+gfMVitzjJZd/aE/7LBolUS6TMJorzHslv60zkx/+XkW/IDHIEg8PIMWRTwNY8fHo+X5Ar3TME4hlGTh8V0B7BNEYe/KFd6Jbi1F6lQAPRvVN7U1bJ1XuksFGb4hUA7r0RP6zKeV1dJPBMPCXcQ/hfLaGz8xt0+3V8Buw7y/QrW1bCtEIWIfjix1aOG8ITRlSAvWLe0TBgVxHiWDlUGh4XXseIHy85+YyTC5ONpfKKOwQvT9iqZC1b7TOXDT2pfUBW3ho9UB40qJniWswIfHu2bJIZdvcHxig+uCaWqYEOKB0J5kOCgtzSN7GWIavOnNnmQFJz7SemBIMO5ki59qlRa6AX9fi2iXKBiWsCRg0VBN4zXPNLttq2cg+Q3fZWHCwl5XhYLD9oqZtO35gZqCxklL9M1N1Eucjqkdzg
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Sep 2026 15:23:43.5806
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4203a373-c07f-45fb-1f4a-08df1a4fd1f4
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	SJ1PEPF00001CDE.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB6537
 
-Since commit 7bc5a2bad0b8 ("ACPI: Support _OSI("Darwin") correctly")
-negotiate_os_control() skips the _OSC handshake on Apple machines and
-hardcodes the set of features the OS takes over, because those firmwares
-return failure once _OSI("Darwin") has been acknowledged.  The hardcoded
-set is ~OSC_PCI_EXPRESS_PME_CONTROL, i.e. everything except PME.  No
-reason was given for leaving PME out.
+On Thu, Sep 24, 2026 at 10:39:24AM +0100, Sudeep Holla wrote:
+> Which version of FF-A is being deployed on your platforms?
 
-The result is that host_bridge->native_pme stays 0, so portdrv never
-registers the PME service for any root port.  A PCIe device that
-runtime suspends still arms PME# (the PCI core enables it because
-pci_dev_run_wake() only looks at capability), asserts it when it needs
-attention, and is never resumed: no service handles the root port
-interrupt, and the polling fallback in pci_pme_list_scan() skips the
-device whenever the bridge above it is runtime suspended, which is
-exactly when the device itself is suspended.
-
-On a MacBookPro14,3 this silently breaks USB-C hotplug.  Both xHCI
-controllers sit inside the Thunderbolt (Alpine Ridge) switches and
-runtime suspend to D3hot when idle, together with their parent
-bridges.  Plugging a SuperSpeed device in is then never noticed:
-
-  0000:7d:00.0 suspended, PMCSR 0x8103 (D3hot, PME_En=1, PME_Status=1)
-  ... no kernel message at all, for minutes ...
-
-The device only appears once something else resumes the controller,
-which makes it look intermittent.  The firmware on this machine does not
-handle PME on behalf of the OS either: XHC2/XHC3 declare _PRW returning
-GPE 0x6D, that GPE is enabled and has never fired, and its _L6D handler
-notifies PWRB, XHC1 and HDEF only - never XHC2 or XHC3.
-
-With PME control taken, the root port PME interrupt is serviced and the
-controller is resumed as soon as something is plugged in.
-
-Use calculate_control() for the assumed set rather than open coding it:
-that is by definition the set that would have been requested, it drops a
-magic constant, and on a kernel built without some of those features it
-no longer claims control of services the OS cannot provide.
-
-Note this also makes pme_is_native() true for pciehp (drivers/pci/
-hotplug/pciehp_core.c), so hotplug ports now disable their interrupt
-across suspend and clear spurious events on resume, as they do on every
-non-Apple machine.  x86_apple_machine covers Macs back to 2006, so this
-reaches models that were never tested with native PME.
-
-Tested on a MacBookPro14,3, 6.18.49, with a USB 3.1 SATA enclosure:
-
-  - before: plugged in at 09:20 with 0000:7d:00.0 runtime suspended, still
-    invisible at 09:21 with PME_Status latched at 1; only appeared when
-    0000:7d:00.0 was forced to power/control=on.
-  - with pcie_ports=native (which reaches the same code path in
-    get_port_device_capability()): pcie_pme bound to 5 root ports, and the
-    same enclosure enumerated in the same second it was plugged in, 66 s
-    after the controller had suspended, with nothing forced.
-  - with this patch, nothing forced: pcie_pme bound to 5 root ports and the
-    _OSC line now reads "OS assumes control of [PCIeHotplug SHPCHotplug PME
-    AER PCIeCapability LTR DPC]".  The enclosure was unplugged at 20:42:13,
-    0000:7d:00.0 runtime suspended to D3hot, and on plugging it back in at
-    20:43:06 (53 s later) the root port took a PME interrupt and the device
-    enumerated in the same second.
-  - wifi, internal keyboard, touchbar and audio all came up; 66 warnings
-    and 45 errors during boot, against 65/43 on the distribution kernel.
-
-One rough edge, reproducible on both boots: the port driver logs
-"PME: Spurious native interrupt!" right before the device is resumed.
-pcie_pme_handle_request() falls back to pcie_pme_walk_bus() when the root
-port reports its own requester ID without PCI_PM_CTRL_PME_STATUS set, and
-that walk skips PCIe devices, so the xHCI is never attributed.  The device
-is still resumed and the wakeup works, but attributing PMEs from PCIe
-devices behind a switch looks like a separate shortcoming; it is not
-addressed here.
-
-Boot with pcie_ports=native also showed no new AER/DPC activity and
-slightly fewer warnings than a boot without it, so taking the remaining
-control bit does not appear to disturb anything else on this machine.
-
-Fixes: 7bc5a2bad0b8 ("ACPI: Support _OSI("Darwin") correctly")
-Signed-off-by: Francisco Beltrán Millalén <fbeltranmillalen@gmail.com>
----
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -568,9 +568,14 @@
- 	 * Apple always return failure on _OSC calls when _OSI("Darwin") has
- 	 * been called successfully. We know the feature set supported by the
- 	 * platform, so avoid calling _OSC at all
-+	 *
-+	 * Assume control of the same features that would have been requested,
-+	 * PCIe PME included.  Leaving PME out disables the PME service for
-+	 * every root port, and nothing takes over: a device that runtime
-+	 * suspends asserts PME# and is never resumed.
- 	 */
- 	if (x86_apple_machine) {
--		root->osc_control_set = ~OSC_PCI_EXPRESS_PME_CONTROL;
-+		root->osc_control_set = calculate_control();
- 		decode_osc_control(root, "OS assumes control of",
- 				   root->osc_control_set);
- 		return;
+We have platforms with FF-A firmware versions 1.1, 1.2 and 1.3. The
+platform I have been using to test offset 2 reports FF-A 1.3.
