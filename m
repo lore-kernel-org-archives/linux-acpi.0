@@ -1,80 +1,74 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6EE04A6CFE;
-	Thu, 24 Sep 2026 16:01:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C830E4AA402;
+	Thu, 24 Sep 2026 16:07:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790265665; cv=none; b=YG97wuc3ypU35vWV8+iTt+XlT+FFI5Ia9t3W7a5ziaasi3dfWCoxypCCxA2ZCgIanNQLiNWvbO3QXT8jIA6Q1sMYz0qEC8g7aUDnihOG1NE+paz8dxk7L7hGxjFj0mSu4lmvMM8iVGjSyW7GwyrctHD2rDY9hGdcD7i0Ow7Pe9w=
+	t=1790266029; cv=none; b=k1cCw09URzqcWJgcCxp3Nsj/l1RPEsXf/AoIzCOWe9pAPXuK1YqrDflmjY80S2FFhyRAVSpDuDKQCP7pDw60NKV0S7S/1HpnWusWc1BBICk9N4MbdifJPt490N3MONutonBe4x1xCQQiPVb6Qb66l0SNVfbESw851x3TgNrYN+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790265665; c=relaxed/simple;
-	bh=Bo2UGHOYNYLWF9uIzmRC0ZazwugY4B830c/mPkLPNZo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=b9AmQxdH1O+RPxRkBMnmItXDkksHU8dPAd1+Qbuybfjgi9qqcZCIr/YqxoCyWUAD8pFyGxfyl/62Yoi8QZUFZWUZlQRp/hf3eG07jDcvZm+LbgYzTKmr353yiuBYkrJ45CAAtnW6FTX1mqsKuQwJkiZLTANmKrhpeZVGbZJT9Tc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EgNVmBjm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790266029; c=relaxed/simple;
+	bh=lXl6Nd0R/QjR9+3nhjJRhokfXwa/kgcoL2aX7Pp/xSU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=SCal2Ekrqhnwe2TdZdMV9iANcXNJKcplF+g/QkF2Hu+5U5iisnQERAnhH/ZnMS9kXsEeZH7pvR3MPA/Td+V5SZ1XCmznt/DTXu7paDhLk5e68ZGlKRzbPtrtvR7v86ZupVjG7vMBS3CZlY8bE0t8VYeXJI3JEHMR8easgsCgjLY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dgRoCIE2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EgNVmBjm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 292391F00893;
-	Thu, 24 Sep 2026 16:01:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dgRoCIE2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8ACD91F000FF;
+	Thu, 24 Sep 2026 16:07:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790265663;
-	bh=LK4pmZuRDKEBTXXexxgFUW4f2mz0iU8rh4lCyzxrJVQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=EgNVmBjmvusupVvrrpoqlf4g9GmEf99gYZclehKG69Q0l//nphw7eDfCi2b0ILgHW
-	 9nxioZdk++JKV/NRZeDmG3FYdO7MXog9FKXxX310lS3n9eosuTYTdDs1GxubQjR5IP
-	 6kGL649rwdh59IdyyCnC3jisd34b7LCAKeLT7Tn7SsY3I5qhLAiA7K2pH6z2e261hU
-	 9vKKIMmeYvpDF3EM3H8qig9/gXvGJYAvomsmJEFW+uHlT0KD25q21kC3rMCQiVAQ6f
-	 L9FA6Qb+Hc0zZlpUh67dquybwuUTj61z/9LfUe0qh5YgKdzxx8d1ZvBAoI2W72fUJe
-	 XOwv4KDvQ7Mnw==
-From: "Mario Limonciello (AMD)" <superm1@kernel.org>
-To: =?UTF-8?q?Rafael=20J=20=2E=20Wysocki=20=E2=8F=8E?= <rafael@kernel.org>
-Cc: linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-pm@vger.kernel.org,
-	K Prateek Nayak <kprateek.nayak@amd.com>,
-	x86@kernel.org,
-	Mario Limonciello <mario.limonciello@amd.com>
-Subject: [PATCH v3 3/3] cpufreq/amd-pstate: Get Highest Freq for a CPU
-Date: Thu, 24 Sep 2026 11:00:52 -0500
-Message-ID: <20260924160052.2858456-4-superm1@kernel.org>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260924160052.2858456-1-superm1@kernel.org>
-References: <20260924160052.2858456-1-superm1@kernel.org>
+	s=k20260515; t=1790266028;
+	bh=UQQt5zTm31incgpPNU6yRG9PMJPNleN1QlXN71hH4eE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=dgRoCIE2qmrh6A7OlazIDECGB6B7PK1iK+ZENbVSoaqbUZm64tkS/cgNcy2HldiGU
+	 Nopce9obSu7P5dapJP88xrCJoNrgFBUYBjgREOdnULW6qKvGc6a0eYBr+j/XnzMGFz
+	 oDo2HA6WXhDInySGdkm3aalp0O3cA020pqJ9JbP87ZP1xsN+jdsVt1DU6/OVDT36JF
+	 eFnZDOOWDXQw+wpKWC0wECZmtysonFz4wV/mINcvDpi7a8iwg+OIlN7MnvGHWCxQio
+	 R8hhQJF4oroUcqF7dzqNVT7ORKFhtOqSvkSxxX/+lA242rRy9UXlKKQoI/hcIxCu+6
+	 P+7NkWUxEOZlQ==
+Date: Thu, 24 Sep 2026 17:07:04 +0100
+From: Sudeep Holla <sudeep.holla@kernel.org>
+To: Jamie Nguyen <jamien@nvidia.com>
+Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>, Dat Mach <dmach@nvidia.com>,
+	linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 0/3] ACPI: arm64: FFH Operation Region support for
+ FF-A (offset 2)
+Message-ID: <20260924-private-bobcat-from-wonderland-0db8f6@sudeepholla>
+References: <20260901192906.133670-1-jamien@nvidia.com>
+ <20260922-purring-fennec-of-exercise-bbce5e@sudeepholla>
+ <20260922155211.676134-1-jamien@nvidia.com>
+ <20260922-exuberant-earwig-of-opportunity-4fecff@sudeepholla>
+ <20260923124050.3270801-1-jamien@nvidia.com>
+ <20260923-lurking-pony-of-fascination-ac6c49@sudeepholla>
+ <20260923173240.3710620-1-jamien@nvidia.com>
+ <20260924-tall-oryx-of-attraction-23ada5@sudeepholla>
+ <20260924152321.3864148-1-jamien@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260924152321.3864148-1-jamien@nvidia.com>
 
-From: Mario Limonciello <mario.limonciello@amd.com>
+On Thu, Sep 24, 2026 at 08:23:21AM -0700, Jamie Nguyen wrote:
+> On Thu, Sep 24, 2026 at 10:39:24AM +0100, Sudeep Holla wrote:
+> > Which version of FF-A is being deployed on your platforms?
+> 
+> We have platforms with FF-A firmware versions 1.1, 1.2 and 1.3. The
+> platform I have been using to test offset 2 reports FF-A 1.3.
+> 
 
-If the highest frequency is known for a CPU, use this instead of
-trying to calculate by linear interpolation.
+Thanks, will think a bit on this and see what is the best way to progress.
 
-Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
----
- drivers/cpufreq/amd-pstate.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/cpufreq/amd-pstate.c b/drivers/cpufreq/amd-pstate.c
-index 496e0342c1c90..2a0cbfe21a67d 100644
---- a/drivers/cpufreq/amd-pstate.c
-+++ b/drivers/cpufreq/amd-pstate.c
-@@ -1102,8 +1102,10 @@ static int amd_pstate_init_freq(struct amd_cpudata *cpudata)
- 
- 	WRITE_ONCE(cpudata->nominal_freq, nominal_freq);
- 
--	/* max_freq is calculated according to (nominal_freq * highest_perf)/nominal_perf */
--	max_freq = perf_to_freq(perf, nominal_freq, perf.highest_perf);
-+	/* try to look up from BIOS/quirk first, fall back to (nominal_freq * highest_perf)/nominal_perf */
-+	max_freq = amd_get_max_frequency(cpudata->cpu) * 1000;
-+	if (!max_freq)
-+		max_freq = perf_to_freq(perf, nominal_freq, perf.highest_perf);
- 	WRITE_ONCE(cpudata->max_freq, max_freq);
- 
- 	lowest_nonlinear_freq = perf_to_freq(perf, nominal_freq, perf.lowest_nonlinear_perf);
 -- 
-2.53.0
-
+Regards,
+Sudeep
