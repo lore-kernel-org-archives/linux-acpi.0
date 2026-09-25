@@ -1,176 +1,92 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB13E43F4DA
-	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 20:25:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7799850AC35;
+	Fri, 25 Sep 2026 23:13:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790367905; cv=none; b=d2quoNJALRVadnTKVbfG6LWt4sxYmE2AnrFQC5/+pI9vwdGACwMSeM6t1yYGS8QW3peog4cJ2azZyNb9I4meO/7QlglJaith0sHTRTeAggxJP1nIEEOii2k1pjDQUyTxQYTVdEP1TXW1P8SB+qT7xnJr3w6kb2lardce8n9KeCc=
+	t=1790377998; cv=none; b=ew+v2qw1cFsK0kyCqF4dBfbAPHSPR8oa2NZQHLS/4TT1kfAtaZXG/YTm7EZYDJE9qvIww8J2zr4tx7rkupV3MT021L+JQvnqSpWa/QcCoSXBlBKS75oQfPd7A8eXtWHvp7bFScPPT/VLvMVxFPWkNyR6h6DmKe3iFK+G2jXZKwo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790367905; c=relaxed/simple;
-	bh=ONfzlMwZUmt9iQP0GdhJWz6HRCumIiMG2gc58uPgNpM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=O2f3x+klh2f4RNZPphBXcOiSjYS/C/KKohZzMtrYvj02WM6YYzn+8MfPeVPxzpe9hdojBZWBJUpc5TUxJkZRfoaAuwPjgRvgd4fIGqG9AB0dj41fTnTwQVXKChLm0YAEdna8vEjwNsqOTjNq6cW+BK2A3w4CODrH+qam9y9ctT0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jGn3yQGo; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790377998; c=relaxed/simple;
+	bh=e1j5V/L0VzspKNk78JWsm8355AhsJzdZja1i2Yc21cM=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=lZxyQqj+H2GGOTDdW3gy4SQ/XISCjoj8yKXTgDmiYWZnjBDuD9spmU4OJ72BSi23tn5XZ1U4InCKyzJYtAaPzlXddnkwYq1FoEW5OfV9rqym1RRBeusaknjsrOD9NJWEUU36XJCW+/DZ7ORRA1s6Ekkm3DYuC2vvkEG6mrpI04I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QanQH2jI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jGn3yQGo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 670461F000FF
-	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 20:25:03 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QanQH2jI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11D4D1F000FF;
+	Fri, 25 Sep 2026 23:13:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790367903;
-	bh=WNQees8/ehGot81631VV5fQVbOPJSRm59MHRcSjht10=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=jGn3yQGookNeaQk/WwM3h8B906jLy4vTACkjht1SDqGucEZ9thWqH7V92mT+lsTP6
-	 zHE0Ds5BpIqcfevi7utJZifH8N483Xj80nyzIOhOwwwwjWAeoCLbX20hFFxN37h+Ja
-	 qqIdh6kQ0sTBREyfvNINbQGViPL44H5GUuXxjVHaBc6Eh1LVdQXcuMasbqKMsURgTc
-	 LRPAx2NkvzFRS72WJ3FubNCldpt7kIheGJSp0J3l0z7ju377cn0P9iPYUvriSpW23F
-	 6rzleVti+v8AptG2Q6DyRdK2v2aRSp+gflygpQ+VzN2OSxLKhCxiUM4InQmqdCNGAZ
-	 ScAibf+CxO+dw==
-Received: by mail-lf2-f12.google.com with SMTP id 2adb3069b0e04-5b8e6ec4e0bso975302e87.1
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 13:25:03 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvByJD/TmowZAlNwsUFlzaI/dXnyQsPhOpN1w3KadY1m0b6NSszgE4ts2XfJIl1g0dOxd1xnwRN0ba7qC@vger.kernel.org
-X-Gm-Message-State: AFuF++l8BpqpmqvFBmu3qjO8BNVIBHRpQmwJnMVW7dHSp7+M7xQAqf63
-	LD7svlfuIL7CvjAXCsk2wGywdo1Xj+7TMX+R/H2HaolxPK3JUkpyieSwMpnq/oApN4MrigtvyCu
-	MozWXx3MqeaDv/uh9R7uCj9RMZV+YnLo=
-X-Received: by 2002:a05:6512:b1a:b0:5b8:ed7d:8b42 with SMTP id
- 2adb3069b0e04-5b8ed7d8bc7mr577236e87.39.1790367901803; Fri, 25 Sep 2026
- 13:25:01 -0700 (PDT)
+	s=k20260515; t=1790377995;
+	bh=4zdOp4OInhQs1N3FTnInrZQD8rBPlTXBdjpw6h1ZL/c=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=QanQH2jICPlqPLsXjriL30mgkc+t/HLU0FDAcsKhv8A2cyVXjF0UjtKLT8gjwKjlK
+	 r5OF3xA/kA8PiTKAZwefA7GSmOzTJOxmMn66F2EayD6f+dnJRVrXNqXAZpTTLfRvMg
+	 UvlnCF3+fRVCRUpBCHDDTBWzXjh+yOey61zjZzFOmhEqQ8xdxPjI2Lenr1Zxa2VMuN
+	 Z+SOMaemdK1J/WL5UzMbw7NgD6lwW08zTaTu7BdyWUjsFe/0b07hg5QcOr2ImSUihy
+	 t+TxrnNbn4nG2J/Vx1nTA7OpF5dlbUpVjljJfoNXWBvk96lQuKWm3yOGEW81tWTzvj
+	 dZ/gTr5T/uGew==
+Date: Sat, 26 Sep 2026 00:13:11 +0100
+From: Jonathan Cameron <jic23@kernel.org>
+To: Nicolin Chen <nicolinc@nvidia.com>
+Cc: Will Deacon <will@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+ "Joerg Roedel" <joro@8bytes.org>, Bjorn Helgaas <bhelgaas@google.com>,
+ "Jason Gunthorpe" <jgg@nvidia.com>, "Rafael J . Wysocki"
+ <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Pranjal Shrivastava
+ <praan@google.com>, Mostafa Saleh <smostafa@google.com>, Lu Baolu
+ <baolu.lu@linux.intel.com>, Kevin Tian <kevin.tian@intel.com>,
+ <linux-arm-kernel@lists.infradead.org>, <iommu@lists.linux.dev>,
+ <linux-kernel@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+ <linux-pci@vger.kernel.org>, <linux-cxl@vger.kernel.org>,
+ <vsethi@nvidia.com>, Shuai Xue <xueshuai@linux.alibaba.com>
+Subject: Re: [PATCH v6 02/17] PCI/CXL: Probe the underlying bus reset in
+ cxl_reset_bus_function()
+Message-ID: <20260926001311.7c4be583@jic23-hlaptop>
+In-Reply-To: <a05695c1dcb0682425bad7b8387cd24ad71e2d9d.1790188510.git.nicolinc@nvidia.com>
+References: <cover.1790188510.git.nicolinc@nvidia.com>
+	<a05695c1dcb0682425bad7b8387cd24ad71e2d9d.1790188510.git.nicolinc@nvidia.com>
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260922124121.3426219-1-zhenglifeng1@huawei.com>
-In-Reply-To: <20260922124121.3426219-1-zhenglifeng1@huawei.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 25 Sep 2026 22:23:24 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jko6SjZ2642DryhSMZyPgatvG442m7y1E8J7TcxvtOKA@mail.gmail.com>
-X-Gm-Features: AclHuK9frkW9y83b_87zzoPb_5_iwomW9wqA2MKboLGqOzwuRlqnR5CdgiySfqg
-Message-ID: <CAJZ5v0jko6SjZ2642DryhSMZyPgatvG442m7y1E8J7TcxvtOKA@mail.gmail.com>
-Subject: Re: [PATCH v4 0/8] ACPI: CPPC: Resource Priority Register support and
- sysfs interface
-To: Lifeng Zheng <zhenglifeng1@huawei.com>, Christian Loehle <christian.loehle@arm.com>
-Cc: viresh.kumar@linaro.org, ionela.voinescu@arm.com, zhanjie9@hisilicon.com, 
-	pierre.gondois@arm.com, sumitg@nvidia.com, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linuxarm@huawei.com, 
-	yubowen8@huawei.com, zhangpengjie2@huawei.com, wangzhi12@huawei.com, 
-	linhongye@h-partners.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-+Christian
+On Wed, 23 Sep 2026 13:11:21 -0700
+Nicolin Chen <nicolinc@nvidia.com> wrote:
 
-Christian, can you have a look at this, please?
+> cxl_reset_bus_function() reports "supported" to a probe after checking only
+> that the upstream bridge carries a CXL port DVSEC. The underlying bus reset
+> can still be unavailable, e.g. on a bus shared with other devices, so both
+> the reset_methods[] array and the reset_method sysfs node end up listing a
+> "cxl_bus" that is guaranteed to fail with -ENOTTY when it is attempted.
+> 
+> Probe the underlying pci_dev_reset_slot_function() and then, if it is not
+> applicable, pci_parent_bus_reset(). These are the same two checks that the
+> actual reset runs, so a shared-bus CXL device no longer advertises a method
+> that can never succeed.
+> 
+> Probing via pci_reset_bus_function() would not work: its cxl_sbr_masked()
+> check rejects every CXL port with a masked SBR, while the do-reset path in
+> this function unmasks the SBR before resetting. Such a port would wrongly
+> probe as unsupported.
+> 
+> Move the port control register read above the probe branch as well, so that
+> probe runs the same checks. That read asserts no reset, and a failure means
+> the device cannot be reset this way, which is a probe-time answer.
+> 
+> Also pass an explicit PCI_RESET_DO_RESET at the do-reset call site, since
+> probe is always false at that point.
+> 
+> Fixes: 53c49b6e6dd2e ("PCI/CXL: Add 'cxl_bus' reset method for devices below CXL Ports")
+> Assisted-by: LLM
+> Signed-off-by: Nicolin Chen <nicolinc@nvidia.com>
+Nice clear explanation and it looks like the code does what that says,
+so I'm fine with this.
 
-On Tue, Sep 22, 2026 at 2:43=E2=80=AFPM Lifeng Zheng <zhenglifeng1@huawei.c=
-om> wrote:
->
-> This series implements support for the CPPC v4 Resource Priority Register
-> mechanism defined in ACPI 6.6, Section 8.4.6.1.2.7, and exposes it to
-> userspace via sysfs.
->
-> Resource Priority allows OSPM to control the relative priority among
-> processors for shared resources. OSPM can utilize these sysfs interfaces
-> to configure resource priorities, allowing resources to be preferentially
-> allocated to more important tasks.
->
-> The controlled resource types include processor boost, throttle, L2 cache=
-,
-> L3 cache, and memory bandwidth.  Each Resource Priority group consists of=
-:
->
->   - CONTROLLED_RESOURCES: which resource types the group affects
->   - ENABLE_VALUE / ENABLE_REGISTER: enable/disable the group
->   - PRIORITY_COUNT / PRIORITY_REGISTER: read/write the priority level
->
-> The patch series is organized in three parts:
->
->   - patches 1-4 extend the CPPC data structures and _CPC parser to handle
->     Package-type entries and parse Resource Priority sub-packages into
->     structured descriptors.
->
->   - patches 5-7 refactor existing register I/O helpers to support direct
->     register access and add accessor functions for Resource Priority
->     attributes (enable, priority count, priority value).
->
->   - patch 8 creates a "resource_priority" sysfs hierarchy under each
->     cpufreq policy to expose the Resource Priority attributes to userspac=
-e.
->
-> Changelog:
-> v4:
->  - Patch 7: Set *num_resources to 0 when controlled resources number
->    invalid in cppc_get_resource_priority_resources(), therefore, the call=
-er
->    will not read the unassigned `resources` pointer.
->  - Patch 8: Remove kfree() from the error path of
->    cppc_create_res_prio_sysfs() because cppc_res_prio_release() will do i=
-t.
->
-> v3:
->  - Patch 2: Add the (i - 2) =3D=3D RESOURCE_PRIORITY condition back to en=
-sure
->    the new code behaves the same as the original.
->  - Patch 4: Assign -ENODATA to ret when an unexpected ACPI_TYPE_PACKAGE
->    appears.
->  - Patch 5: Initialize the `optional` field of the remaining cpc_regs to
->    true so that they are treated as unsupported.
->  - Patch 8: Call cppc_cpufreq_cpu_fie_exit() and set perf to lowest_perf
->    when cppc_create_res_prio_sysfs() fails. Call kobject_put() and kfree(=
-)
->    when kobject_init_and_add() fails in cppc_create_res_prio_sysfs().
->  - Link: https://lore.kernel.org/all/20260812015217.74598-1-zhenglifeng1@=
-huawei.com/
->
-> v2:
->  - Patch 1: Revert changes to the CPC_SUPPORTED() macro.
->  - Link: https://lore.kernel.org/all/20260804085042.4118193-1-zhenglifeng=
-1@huawei.com/
->
-> v1:
->  - Link: https://lore.kernel.org/all/20260717024502.3520445-1-zhenglifeng=
-1@huawei.com/
->
-> ---
->
-> RFC: sysfs placement
->
-> The sysfs interface is currently placed under /sys/devices/system/cpu/cpu=
-freq/
-> (i.e. the cpufreq policy directory). I am unsure whether this is the best
-> location and would appreciate reviewer feedback.
->
-> The concern is that Resource Priority covers resource types beyond CPU
-> frequency control:
->
->   - PROCESSOR_BOOST, PROCESSOR_THROTTLE -- clearly CPU-frequency related
->   - L2_CACHE, L3_CACHE -- cache partitioning, not frequency
->   - MEMORY_BANDWIDTH -- memory QoS, not frequency
->
-> Placing the attributes under cpufreq makes sense for boost/throttle but
-> feels semantically wrong for cache and memory bandwidth resources.
->
-> I would appreciate feedback on whether cpufreq is the right home for
-> this interface, or whether a different location would be more appropriate=
-.
->
-> Lifeng Zheng (8):
->   ACPI: CPPC: Prepare cpc_register_resource for Package-type entries
->   ACPI: CPPC: Refactor element parsing into parse_cpc_element()
->   ACPI: CPPC: Refactor resource cleanup into free_reg_resource()
->   ACPI: CPPC: Parse Resource Priority Register entries from _CPC package
->   ACPI: CPPC: Store optional flag in cpc_register_resource
->   ACPI: CPPC: Factor out cpc_read_reg() and cpc_write_reg()
->   ACPI: CPPC: Add Resource Priority accessors
->   cpufreq: cppc: Expose Resource Priority attributes via sysfs
->
->  drivers/acpi/cppc_acpi.c       | 719 +++++++++++++++++++++++++++------
->  drivers/cpufreq/cppc_cpufreq.c | 281 ++++++++++++-
->  include/acpi/cppc_acpi.h       |  60 +++
->  3 files changed, 930 insertions(+), 130 deletions(-)
->
-> --
-> 2.33.0
->
->
+Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+
+
