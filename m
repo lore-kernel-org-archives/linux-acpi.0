@@ -1,107 +1,95 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAC614CB8C1
-	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 15:27:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B27A44D37D8
+	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 15:33:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790350040; cv=none; b=nqPHwuP8CqvAi9Bg31VCIM+uaigZE3MAsQ10n0pltZYvFKmyuB2MqUCnHOPc8UEIrrKuJea2u7WvIVRvTP1LLhhOQJoulaW+lnd3TgRnllXZwnLQvK3WlAeg7TVkZ2NdcIm4r5y4yaf2ZfB8/YYY8WQ9QZf1IDR0P7LFpuPRfn4=
+	t=1790350404; cv=none; b=lLi3I0Ej0j6baZ6+YOG+LIojp4QPr7rQsM10nJoSonCKGdSAqMs/1r2ZCKGxNeE58lvuQKKlsCPqxhXvqvvnvSbF+eyGPS0CHmXGJJYW/9E0X796ctKdGsOhclZ5bnoezqIF24IxT2fHtO2C49sl+wy+0oT1EkNaXp1B43tZlW4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790350040; c=relaxed/simple;
-	bh=CTTVNGvVtCnxXuvD5t5Y/UDySaO0cOSeZAlvJb8EOXk=;
+	s=arc-20240116; t=1790350404; c=relaxed/simple;
+	bh=jbNVAk+OkDb7djIuHrzYgHW689hWDBX8CwCo7YvnX/o=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=C1DgBNNVRqkbyoT4F0JxW+Yb4u7I9ISeW2VMLk8Eu2SbwVSetyEsV3nGfQ3mjETaGj0beo5YfqOoSRlKQDu0d95OGc1DZO0faRNUyC87zcvUKMXIAQH+qCrKbHjse1WwxqeqiBKGmylU+Yk8gYHZteOfVaQnSp1ckv54k8+35UE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MftZaHoJ; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=g0t+ebEy6+eze8+vNkivjEcVfKpD/5KZ2GZ9m7RX3YpGOw8799hoAjtvpvC85V7t70dmY1rP1ArBaf9xSxGAECJe/XT9BjL30xkE+fo7ah3PequGQPQwkv8OecNZYdigtgifxLyCH8A7nkWpJnaSIA5B6jBnLH4cfeu6h+RU47g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QJEOptSo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MftZaHoJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77D621F0089F
-	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 15:27:18 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QJEOptSo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6402D1F0089A
+	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 15:33:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790350038;
-	bh=S905qpe/M9FIOpIybvjAEeePlogpnKgd9+0hpRRjHLw=;
+	s=k20260515; t=1790350402;
+	bh=46Ao4VjYR8dIxW1+9XEQXLH/O/o/q50obgWXmJ78FCM=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=MftZaHoJm53vj1ooWxzuDT9r0d5VK1jJK1na9gJGOT8BtMEH4TRnmWWf/l5w7KX7c
-	 zgNoAX8/+ze4EydbXkrrWE391Fo4VMLXkG33aX62qHxF5vSfbEVKyDZpn8y+yTClKx
-	 cA02vqwYbdbmXd9nyjGsFiSxpDflhL0yemgVt3Y4rdUQd/iH3F8KI+1vEoaK/h0PUP
-	 yrzWu70YtiKqf59d4Pu2jW7vc7lZc075tU1IgDLbi+74L1mFVBWD15Y5HkC+IM+R8f
-	 diR97/FFEuOHBf4arAgclZv43sWvJ7Rps5aBD6Z1GNHDDLl6cdv0jm2uRlQbJCRF3e
-	 t1K97casd+GqA==
-Received: by mail-lr2-f35.google.com with SMTP id 38308e7fff4ca-3a64e7f48e0so8143681fa.0
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 08:27:18 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBwAj6LRfWGO3QLK/p23poEN6QYrXur1r5Oktg/h8wW8aYhN3zSNVMb97C85NNnntp2Xi79b8lWNv09s@vger.kernel.org
-X-Gm-Message-State: AFuF++lQjTvSe8GBTNgoKgKhZn1BbOUHmuDOfX/zsHy6LEGb6GldLHfG
-	628HNPQxW/scodThndaspNGGZc5zg7hP5lexgT+4MA2w6WIknUKSwdfeQ5oGK+3c1k9cGwDNMbT
-	G3UT6b9C3bQNItMVhCSRsJmK7n5lyqsE=
-X-Received: by 2002:a05:651c:1541:b0:3a6:1694:81d7 with SMTP id
- 38308e7fff4ca-3a63c070554mr15078381fa.8.1790350036861; Fri, 25 Sep 2026
- 08:27:16 -0700 (PDT)
+	b=QJEOptSoTA53O7Vlu0uIrHHjF0vHyi+PX3kGmaQv0Q7SfbS5tJ9xauoPuV7+fVvkg
+	 cAlP9MFfbCZxUxj+PggCqKIRQPcdOSgGWfG3s42R9xp4QJjaGJq1mtPC3r9VXc741k
+	 O3Pu9HvSmkiFueUO+wHFXRLg0QBclbmb67iWeWuGQhrUHy5k72d+POaqMJvQK3rX7Q
+	 /1X1dyyELzx4Y6pRPLM0FOJizBQiUuvqobhqlSwp3UKR5dbKyFzYPiu382ZI0k3dGN
+	 cUGMbKA5z6EtonXI+qJAyl2BEPbqKLOudqj/ciDxMuI4xTGEJg2go2Lw9c6FRhFmn/
+	 bDb1VV/q7t10A==
+Received: by mail-lr2-f35.google.com with SMTP id 38308e7fff4ca-3a60ed65bc8so8505471fa.1
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 08:33:22 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvByen5Q0K2hzX0boa2lWhg479bS9wGYByTFpL2oxPYRVjyZRqh9khHTcOPGy30pURbb9zQJefT+NcjX0@vger.kernel.org
+X-Gm-Message-State: AFuF++nmtAuSQ0gGcNFkDQbm5wLQ76FvFqX2MBDB9mHEpZcq+g4c1dwO
+	2e6dipI4dGgWOsAwp3DQZvf6eZuHNgx4WKKo8UT8qzWMvkTTHVycQb80qkarke0NXc345YiuFK+
+	Cj/Dp21/w83OBuZqIacml+tcgJ0hXsMU=
+X-Received: by 2002:a2e:be11:0:b0:3a3:2ff2:f818 with SMTP id
+ 38308e7fff4ca-3a63c30cc59mr17816311fa.13.1790350400829; Fri, 25 Sep 2026
+ 08:33:20 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260925132031.4073551-1-mario.limonciello@amd.com>
-In-Reply-To: <20260925132031.4073551-1-mario.limonciello@amd.com>
+References: <12985239.O9o76ZdvQC@rafael.j.wysocki> <DLOD6E6L35CN.KDDA9DEG9WP0@kernel.org>
+In-Reply-To: <DLOD6E6L35CN.KDDA9DEG9WP0@kernel.org>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 25 Sep 2026 17:25:39 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gaQjZcUyT5jeKOBc+Hik4f+JD7r1r5RwYb24S79hoprw@mail.gmail.com>
-X-Gm-Features: AclHuK9ZDRF-ZfCO2D7N0Di9wh4yXaRTwNUIe5YLhyv92jvpH7btM4jKmXoml1M
-Message-ID: <CAJZ5v0gaQjZcUyT5jeKOBc+Hik4f+JD7r1r5RwYb24S79hoprw@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: Add stub for acpi_find_child_device()
-To: Mario Limonciello <mario.limonciello@amd.com>
-Cc: rafael@kernel.org, lenb@kernel.org, Arnd Bergmann <arnd@arndb.de>, 
-	Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@linux.intel.com>, 
-	Bard Liao <yung-chuan.liao@linux.intel.com>, Daniel Baluta <daniel.baluta@nxp.com>, 
-	Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
-	Vijendar Mukunda <Vijendar.Mukunda@amd.com>, Kai Vehmanen <kai.vehmanen@linux.intel.com>, 
-	Pierre-Louis Bossart <pierre-louis.bossart@linux.dev>, sound-open-firmware@alsa-project.org, 
-	linux-acpi@vger.kernel.org
+Date: Fri, 25 Sep 2026 17:31:43 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0iVCs8qtfHcT9ZMEVSzjPVQqaLPpP3HXuFVWUy72nPwXQ@mail.gmail.com>
+X-Gm-Features: AclHuK_BTeX0TEHJmDgkOdFgecHf8SrpoMQgEO6UlwU0dLvUHLE7J3ttsfhnS-o
+Message-ID: <CAJZ5v0iVCs8qtfHcT9ZMEVSzjPVQqaLPpP3HXuFVWUy72nPwXQ@mail.gmail.com>
+Subject: Re: [PATCH v3] driver core/ACPI: Introduce companion_bus_register()
+To: Danilo Krummrich <dakr@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Linux Driver Core Development <driver-core@lists.linux.dev>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
+	LKML <linux-kernel@vger.kernel.org>, Michael Kelley <mhklinux@outlook.com>, 
+	Hyper-V List <linux-hyperv@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Sep 25, 2026 at 3:20=E2=80=AFPM Mario Limonciello
-<mario.limonciello@amd.com> wrote:
+On Fri, Sep 25, 2026 at 1:34=E2=80=AFPM Danilo Krummrich <dakr@kernel.org> =
+wrote:
 >
-> Provide a NULL-returning stub when CONFIG_ACPI is disabled so callers can
-> be compiled without ACPI support.
+> On Fri Sep 25, 2026 at 11:23 AM CEST, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > The ACPI bus type does not allow drivers to be matched to devices, so
+> > the sysfs attributes related to drivers created for it are useless and
+> > their existence is confusing.
+> >
+> > Moreover, it is better to prevent drivers from being registered and
+> > looked up for a bus like that.
+> >
+> > To allow skipping the creation of those sysfs attributes and preventing
+> > driver registration and lookup for the ACPI bus type, introduce a
+> > "companion" bus type concept and add a special registration function
+> > for registering "companion" bus types, companion_bus_register().
+> >
+> > The "drivers" directory under the ACPI bus type is still needed because
+> > there are versions of systemd that depend on it [1].
 >
-> Reported-by: Arnd Bergmann <arnd@arndb.de>
-> Closes: https://lore.kernel.org/linux-sound/20260925131104.118993-1-arnd@=
-kernel.org/
-> Suggested-by: Arnd Bergmann <arnd@arndb.de>
-> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
-> ---
-> Cc: Liam Girdwood <lgirdwood@gmail.com>
-> Cc: Peter Ujfalusi <peter.ujfalusi@linux.intel.com>
-> Cc: Bard Liao <yung-chuan.liao@linux.intel.com>
-> Cc: Daniel Baluta <daniel.baluta@nxp.com>
-> Cc: Mark Brown <broonie@kernel.org>
-> Cc: Jaroslav Kysela <perex@perex.cz>
-> Cc: Takashi Iwai <tiwai@suse.com>
-> Cc: Vijendar Mukunda <Vijendar.Mukunda@amd.com>
-> Cc: Kai Vehmanen <kai.vehmanen@linux.intel.com>
-> Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.dev>
-> Cc: sound-open-firmware@alsa-project.org
-> ---
->  include/linux/acpi.h | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index ddacac8120947..710f38193d44c 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -843,6 +843,7 @@ extern bool cmos_rtc_platform_device_present;
->  #define ACPI_COMPANION_SET(dev, adev)  do { } while (0)
->  #define ACPI_HANDLE(dev)               (NULL)
->  #define ACPI_HANDLE_FWNODE(fwnode)     (NULL)
-> +#define acpi_find_child_device(...)    (NULL)
+> Maybe we should also add a brief note above kset_create_and_add("drivers"=
+, ...)
+> why we retain the directory even if !use_drivers.
 
-Can you please add it to acpi/acpi_bus.h, on top of the current linux-next?
+Yeah, won't hurt.  I'll add one, or somebody will try to "fix" it in the fu=
+ture.
 
-The function is originally declared in that file.
-
+> > Link: https://lore.kernel.org/linux-acpi/SN6PR02MB41575266A4580339E186E=
+5D9D4812@SN6PR02MB4157.namprd02.prod.outlook.com/ [1]
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 >
->  /* Get rid of the -Wunused-variable for adev */
->  #define acpi_dev_uid_match(adev, uid2)                 (adev && false)
-> --
+> Reviewed-by: Danilo Krummrich <dakr@kernel.org>
+
+Thanks!
