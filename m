@@ -1,138 +1,107 @@
-Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5402F4A4EE7;
-	Fri, 25 Sep 2026 15:09:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAC614CB8C1
+	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 15:27:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790348987; cv=none; b=rxgM+cpBPrXZShUcZmU1h9hf6KELaTuvA5Kkas8gAxptverU2s1HbBkmwQOfDJsjyf+KqD3dWm4U3wtP0VNmaEDs1/0eqo/QFlFg/k2C1ban7QLEbVEhP3EYX03HZxS9bin6VbCnLsv0eBXUFGC9BWP8E2CqbCNmrTnH9E57rKY=
+	t=1790350040; cv=none; b=nqPHwuP8CqvAi9Bg31VCIM+uaigZE3MAsQ10n0pltZYvFKmyuB2MqUCnHOPc8UEIrrKuJea2u7WvIVRvTP1LLhhOQJoulaW+lnd3TgRnllXZwnLQvK3WlAeg7TVkZ2NdcIm4r5y4yaf2ZfB8/YYY8WQ9QZf1IDR0P7LFpuPRfn4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790348987; c=relaxed/simple;
-	bh=VW/XrB+qV68/FcIQ5eMC74++xgOoT9nZOvKItukui0g=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=ZclRZGW7eYpacRvk7SCO6s+th6G4Wil9RTKuNT4XqweN6B+ibi/cSf1G2YLlRydq1bwivzKFMTxjMqtpbx2Opmym6kmNZMuupGsSDjBVgOyTtZJ/qm1Gi+D7LBamVGfC7JRgRiOUevGhoJKSd0Zm1RGaZFzDos4djK4zPUcABHk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=hobvotZH; arc=none smtp.client-ip=82.195.75.108
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debian.org
+	s=arc-20240116; t=1790350040; c=relaxed/simple;
+	bh=CTTVNGvVtCnxXuvD5t5Y/UDySaO0cOSeZAlvJb8EOXk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=C1DgBNNVRqkbyoT4F0JxW+Yb4u7I9ISeW2VMLk8Eu2SbwVSetyEsV3nGfQ3mjETaGj0beo5YfqOoSRlKQDu0d95OGc1DZO0faRNUyC87zcvUKMXIAQH+qCrKbHjse1WwxqeqiBKGmylU+Yk8gYHZteOfVaQnSp1ckv54k8+35UE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MftZaHoJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="hobvotZH"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
-	s=smtpauto.stravinsky; h=X-Debian-User:Cc:To:Message-Id:
-	Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:From:
-	Reply-To:Content-ID:Content-Description:In-Reply-To:References;
-	bh=8ZsRdp36EZWb0DJkYc8BpcrrbAf/mTTeVBAJoAH0lws=; b=hobvotZHAGf8k17uWJCa0M633j
-	Xgu23JcquGP8lXWipCmZh/G5kobCcsQQgbPcHmuGoMq96+PQL+Jad5Ov52BpZ7TFaGP0d0jOSmGWj
-	6kiqbW57/z7+9gDCZlJxAb5O4dOE/JVX2ZKWKt8xx3MWpWEum2UudXPmjoR32fXhHqY5ifLUsQOTb
-	sUBNeBh8euK5zvvxWA405zJ5cIHTdHnqODY/WrLKnjJnYtN9o3DyO6Kav1EFwCUs9a2/93UMT5QLu
-	6tIiG1WpkOTSbEA+Gd7Nk9H0+EuCUZuNf3rAtEHNd2MvyT9Tj6pmN4LpdWSlSaaJkQ+67idAKuFMp
-	dpCZQ1NQ==;
-Received: from authenticated-user
-	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-	(Exim 4.96)
-	(envelope-from <leitao@debian.org>)
-	id 1xA7Y7-005OBd-3C;
-	Fri, 25 Sep 2026 15:09:20 +0000
-From: Breno Leitao <leitao@debian.org>
-Date: Fri, 25 Sep 2026 08:09:11 -0700
-Subject: [PATCH] ACPI: APEI: accumulate the queued flag across error
- sections
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MftZaHoJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77D621F0089F
+	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 15:27:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790350038;
+	bh=S905qpe/M9FIOpIybvjAEeePlogpnKgd9+0hpRRjHLw=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=MftZaHoJm53vj1ooWxzuDT9r0d5VK1jJK1na9gJGOT8BtMEH4TRnmWWf/l5w7KX7c
+	 zgNoAX8/+ze4EydbXkrrWE391Fo4VMLXkG33aX62qHxF5vSfbEVKyDZpn8y+yTClKx
+	 cA02vqwYbdbmXd9nyjGsFiSxpDflhL0yemgVt3Y4rdUQd/iH3F8KI+1vEoaK/h0PUP
+	 yrzWu70YtiKqf59d4Pu2jW7vc7lZc075tU1IgDLbi+74L1mFVBWD15Y5HkC+IM+R8f
+	 diR97/FFEuOHBf4arAgclZv43sWvJ7Rps5aBD6Z1GNHDDLl6cdv0jm2uRlQbJCRF3e
+	 t1K97casd+GqA==
+Received: by mail-lr2-f35.google.com with SMTP id 38308e7fff4ca-3a64e7f48e0so8143681fa.0
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 08:27:18 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBwAj6LRfWGO3QLK/p23poEN6QYrXur1r5Oktg/h8wW8aYhN3zSNVMb97C85NNnntp2Xi79b8lWNv09s@vger.kernel.org
+X-Gm-Message-State: AFuF++lQjTvSe8GBTNgoKgKhZn1BbOUHmuDOfX/zsHy6LEGb6GldLHfG
+	628HNPQxW/scodThndaspNGGZc5zg7hP5lexgT+4MA2w6WIknUKSwdfeQ5oGK+3c1k9cGwDNMbT
+	G3UT6b9C3bQNItMVhCSRsJmK7n5lyqsE=
+X-Received: by 2002:a05:651c:1541:b0:3a6:1694:81d7 with SMTP id
+ 38308e7fff4ca-3a63c070554mr15078381fa.8.1790350036861; Fri, 25 Sep 2026
+ 08:27:16 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260925-ghes-queued-accumulate-v1-1-df50553957d4@debian.org>
-X-B4-Tracking: v=1; b=H4sIAJaOtmoC/yXMQQ6CMBBG4auQWTsJlEDEqxgXZfoDYxS1Q4kJ4
- e5WXX6L9zYyRIXRqdgoYlXTx5xRHQqSyc8jWEM2udK1ZecaHicYvxISAnuRdE83v4CbrpKjl7q
- vXaAcPyMGff/G58vflvorZPneaN8/uRej5noAAAA=
-X-Change-ID: 20260925-ghes-queued-accumulate-591c8ac3b32d
-To: "Rafael J. Wysocki" <rafael@kernel.org>, 
- Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, 
- Hanjun Guo <guohanjun@huawei.com>, 
- Mauro Carvalho Chehab <mchehab@kernel.org>, 
- Shuai Xue <xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>, 
- James Morse <james.morse@arm.com>, Xiaofei Tan <tanxiaofei@huawei.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, 
- linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-mm@kvack.org, kernel-team@meta.com, stable@vger.kernel.org, 
- Breno Leitao <leitao@debian.org>
-X-Mailer: b4 0.15-dev-47773
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2558; i=leitao@debian.org;
- h=from:subject:message-id; bh=VW/XrB+qV68/FcIQ5eMC74++xgOoT9nZOvKItukui0g=;
- b=owEBbQKS/ZANAwAIATWjk5/8eHdtAcsmYgBqto6cfmYO00v2L5iB3D85pOjejWCOxbWqEF6kF
- qwUy4rKhbuJAjMEAAEIAB0WIQSshTmm6PRnAspKQ5s1o5Of/Hh3bQUCaraOnAAKCRA1o5Of/Hh3
- bWocEACQACuoZbczHAR3Rz/S8hB7WnO0Vizvw1vb4qil7D1UuTHVGfBa5Yq/CEMt0OpJ/5hTy8D
- wkUu/gKIGVue2gswaJh5dy1CkheOC0xhz1sWpOaBV7ppyuIJ794lQEBhfyknXQslfc5FwHdEGVV
- ssJHzJANQ0WPGcvnJYgm9p+oK46hGKpURxGvDDRET0+YJuqa9simwd0l3IHB5jgILRn7OC6F3PP
- 0NTjURh1DrHb02TzaoCFNc9obI1TavcnYT6VY9NFBWFVsTKB5sRxbACa74lwHKh9eyeGOP7VaDZ
- 2R/B/WJI6ztT4r+OUBKcc0TeTO0MaAtLFgcJRlH0SG1uKrNx4S5YqM/4WGEdsu91HTVXBIKL0YJ
- jBiHe5BJRu0rT3+6gVO0Maax1MVE4FHFvcIU+8ZE9y9zc7fMZ0W4Gnd4XEbQK4SlQABU6qJndEl
- 6/ytsZNye/i3lNsWC7OrGYguBBqlt0DxKL1W6+vOZhm4PFlGKeZlTLbBu79BeAfoPcY5ebJ674t
- nHVRmSgk+4LVl6GM6YtyxKsN1jyYc1kAnE0vMyEDV04Wq8U6UmBHoMyYTnRKEuzUddfKZJLGb78
- j5I9HMLf221Of0Rp/rI+40pxpvJDkxoDiwcYY/txMHa1Dys3Sbi8moPMPz2K/rwQ6Lx/HCBee5l
- AuiUvgm0Z2A0+2w==
-X-Developer-Key: i=leitao@debian.org; a=openpgp;
- fpr=AC8539A6E8F46702CA4A439B35A3939FFC78776D
-X-Debian-User: leitao
+References: <20260925132031.4073551-1-mario.limonciello@amd.com>
+In-Reply-To: <20260925132031.4073551-1-mario.limonciello@amd.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Fri, 25 Sep 2026 17:25:39 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gaQjZcUyT5jeKOBc+Hik4f+JD7r1r5RwYb24S79hoprw@mail.gmail.com>
+X-Gm-Features: AclHuK9ZDRF-ZfCO2D7N0Di9wh4yXaRTwNUIe5YLhyv92jvpH7btM4jKmXoml1M
+Message-ID: <CAJZ5v0gaQjZcUyT5jeKOBc+Hik4f+JD7r1r5RwYb24S79hoprw@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: Add stub for acpi_find_child_device()
+To: Mario Limonciello <mario.limonciello@amd.com>
+Cc: rafael@kernel.org, lenb@kernel.org, Arnd Bergmann <arnd@arndb.de>, 
+	Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@linux.intel.com>, 
+	Bard Liao <yung-chuan.liao@linux.intel.com>, Daniel Baluta <daniel.baluta@nxp.com>, 
+	Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+	Vijendar Mukunda <Vijendar.Mukunda@amd.com>, Kai Vehmanen <kai.vehmanen@linux.intel.com>, 
+	Pierre-Louis Bossart <pierre-louis.bossart@linux.dev>, sound-open-firmware@alsa-project.org, 
+	linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-ghes_do_proc() walks every error section of a CPER record, and
-ghes_handle_arm_hw_error() walks every error-info entry of an ARM
-processor section.  Both assign to "queued" instead of OR-ing into it,
-so only the last iteration counts: a later section or entry that queues
-no memory-failure work clears the flag an earlier one set.
+On Fri, Sep 25, 2026 at 3:20=E2=80=AFPM Mario Limonciello
+<mario.limonciello@amd.com> wrote:
+>
+> Provide a NULL-returning stub when CONFIG_ACPI is disabled so callers can
+> be compiled without ACPI support.
+>
+> Reported-by: Arnd Bergmann <arnd@arndb.de>
+> Closes: https://lore.kernel.org/linux-sound/20260925131104.118993-1-arnd@=
+kernel.org/
+> Suggested-by: Arnd Bergmann <arnd@arndb.de>
+> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+> ---
+> Cc: Liam Girdwood <lgirdwood@gmail.com>
+> Cc: Peter Ujfalusi <peter.ujfalusi@linux.intel.com>
+> Cc: Bard Liao <yung-chuan.liao@linux.intel.com>
+> Cc: Daniel Baluta <daniel.baluta@nxp.com>
+> Cc: Mark Brown <broonie@kernel.org>
+> Cc: Jaroslav Kysela <perex@perex.cz>
+> Cc: Takashi Iwai <tiwai@suse.com>
+> Cc: Vijendar Mukunda <Vijendar.Mukunda@amd.com>
+> Cc: Kai Vehmanen <kai.vehmanen@linux.intel.com>
+> Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.dev>
+> Cc: sound-open-firmware@alsa-project.org
+> ---
+>  include/linux/acpi.h | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index ddacac8120947..710f38193d44c 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -843,6 +843,7 @@ extern bool cmos_rtc_platform_device_present;
+>  #define ACPI_COMPANION_SET(dev, adev)  do { } while (0)
+>  #define ACPI_HANDLE(dev)               (NULL)
+>  #define ACPI_HANDLE_FWNODE(fwnode)     (NULL)
+> +#define acpi_find_child_device(...)    (NULL)
 
-Instead of reassigning the variable at every time, just do an `OR`, so,
-if there was a single match, it will return "queued" as set.
+Can you please add it to acpi/acpi_bus.h, on top of the current linux-next?
 
-The comment above the check says "If no memory failure
-work is queued", which is the semantics this patch implements. I.e, only
-SIGBUS if there are queue was not handled at all. If we want to SIGBUS
-if any event was not handled/queued at all, we will need something more
-sophisticated.
+The function is originally declared in that file.
 
-Fixes: 7f17b4a121d0 ("ACPI: APEI: Kick the memory_failure() queue for synchronous errors")
-Fixes: ccb5ecdc2dde ("ACPI: APEI: fix synchronous external aborts in user-mode")
-Cc: stable@vger.kernel.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
----
- drivers/acpi/apei/ghes.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index fe10ab0e02f68..ec2d5ca51db02 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -603,7 +603,7 @@ static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdata,
- 		 * and don't filter out 'corrected' error here.
- 		 */
- 		if (is_cache && has_pa) {
--			queued = ghes_do_memory_failure(err_info->physical_fault_addr, flags);
-+			queued |= ghes_do_memory_failure(err_info->physical_fault_addr, flags);
- 			p += err_info->length;
- 			continue;
- 		}
-@@ -951,11 +951,11 @@ static void ghes_do_proc(struct ghes *ghes,
- 			atomic_notifier_call_chain(&ghes_report_chain, sev, mem_err);
- 
- 			arch_apei_report_mem_error(sev, mem_err);
--			queued = ghes_handle_memory_failure(gdata, sev, sync);
-+			queued |= ghes_handle_memory_failure(gdata, sev, sync);
- 		} else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
- 			ghes_handle_aer(gdata);
- 		} else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
--			queued = ghes_handle_arm_hw_error(gdata, sev, sync);
-+			queued |= ghes_handle_arm_hw_error(gdata, sev, sync);
- 		} else if (guid_equal(sec_type, &CPER_SEC_CXL_PROT_ERR)) {
- 			struct cxl_cper_sec_prot_err *prot_err = acpi_hest_get_payload(gdata);
- 
-
----
-base-commit: 587858367581b9c55c3690f4e63382ad622719d4
-change-id: 20260925-ghes-queued-accumulate-591c8ac3b32d
-
-Best regards,
---  
-Breno Leitao <leitao@debian.org>
-
+>
+>  /* Get rid of the -Wunused-variable for adev */
+>  #define acpi_dev_uid_match(adev, uid2)                 (adev && false)
+> --
