@@ -1,140 +1,93 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA9CF4D9573
-	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 16:39:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11DD44E8E0D
+	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 16:40:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790354372; cv=none; b=FJ1ASU8Q1fsyS+iXD0vJ5Bc9L7LO2aiYFC9frYZKyhCrNBf2CWkXo0dFgtvAOiNvokJkNH/jyyyvF36OTLo9k8XiH8/Lr9+A9AlhF7RqDiXqwVByLvSd1ILx6L6LT+KPsN+WFV30N03h16os2Q9vLfF75Uat6zgWL1LirZXVIus=
+	t=1790354425; cv=none; b=h4sTvAWegI9znqyfUqx3gBF/LYFF5AzhD1v2h8qpTLAcT4Sayf7CDdPbuAYCoX0lI5bkzzaaqqxeOa1s1UBnNeHXRYHZwO/+WUpd12qxfTbx/n7dGm4LgqNmrCYiDAKSzaGy4vFDcCDILvFSkySr5Be45BXUPkHc2hsjZ1QfBJM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790354372; c=relaxed/simple;
-	bh=VXvBcHnM4+6Ep/7SdRUR1l/yH/QrZzmxp8xss1L1aTM=;
+	s=arc-20240116; t=1790354425; c=relaxed/simple;
+	bh=LnFCumRPW5KkkTADLpdYawZ4Ym7zY4tKFvbDYPg3oPo=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=hzDBC857PLJBpV6E33VZCr0CWwYdsvW0Ixktr2F0hkjJn+8ovfbT1yw98AkczD60v+y9Wcbgd9wxI9BGSn7B5z2jWrSVivOsaHjOScZIiPMJJp23JCdVFwhj5ak4FBMek/81SGIT5VW0H1H/YYe3nvdqiKWX7DH+NQG977MQid8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XnBTjN/z; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=sldHIwnuTnA/qr40gLMvC43OHMKA7wqD7ivjRyKnn45awQVqsrOGc7V8SClqvpgSSaTzU1NkrcGvbgEkUSEsO8J1IJ85lABK4Qus46yMn1bBcy+lDi6OIcCgy0czxqNcuKzkFv16n9g5jXGSrIGadKOtI7xhJQonqpR8Uf0iAUc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Da4kxrr7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XnBTjN/z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A008C1F008A0
-	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 16:39:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Da4kxrr7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6E141F0089E
+	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 16:40:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790354351;
-	bh=vkRCPkME5XSadj4AHmXSFOzDwTfbfBKlvl6TXo6HoyE=;
+	s=k20260515; t=1790354406;
+	bh=LnFCumRPW5KkkTADLpdYawZ4Ym7zY4tKFvbDYPg3oPo=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=XnBTjN/zQu9dwFIYGYkLdWvUer5UkJ9Gd9xVyftCkRhm+UYkuwGAtZB30hVT5A0Tx
-	 nY28P9oEzeoaIymoQoAeJnMcVqhhUBoCDK871Vid9WlobUZDEA5ytIUV+XBSidIaPO
-	 h173ny/1TgUyzj7B8C+oP7X3nScKNQiaiYqXZ8qkLJBWIAENyzVLwX0SlF2aoqw3/r
-	 CSb3F/WJ+MO9wFuKBc7F1CizUg3Ty8l3X8a9tJDwlTzP9fSqZZ/0GeobA1xNx9HCbz
-	 Uz5ZrJAM+rv0ypxTCxfAoN1rdX3DTFtxcuM3t4/6E+LffEDx+hDAdadpClDJxuqT8o
-	 SRCUnGaY9aC+g==
-Received: by mail-lr2-f12.google.com with SMTP id 38308e7fff4ca-3a5919af2eeso7952501fa.3
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 09:39:11 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBwuyZt1DwUlmDmwCEB6CTIv0/Wse8ApVUL8N/kWEktXcm3OSb3SWr1HASt4h7QmyrHtGwAoQzDqJEQR@vger.kernel.org
-X-Gm-Message-State: AFuF++kLBNwgsCiFnYgoOg5AH8fgV3BV+VSY+h0Hs2dzGEqmz3bcy7NH
-	FEbG2SpdsDE5gf40FABuGpQ+U8OmeZvJICP31EbNmcb93NuuXdEeEKPo6Gsqsa+W7/ZmklkqeLJ
-	6kOY8ReoYmqeGYJXajxtCLnsejCyMoBE=
-X-Received: by 2002:a2e:bc0d:0:b0:3a6:4c3d:976e with SMTP id
- 38308e7fff4ca-3a64c3d98afmr7197051fa.18.1790354349866; Fri, 25 Sep 2026
- 09:39:09 -0700 (PDT)
+	b=Da4kxrr7dMbJ32AyfEX245OU5vO+hGYp+YxW5c6M2i8h8OVAwUI7Cbu3rS49JXuM6
+	 a5mRllx20Kf7Gu/kdQ/IyGqoaboeBvciomnz1Ltjll/+/PTVGyrDaqe1+gA0Y47xvO
+	 DJoQAKx1nVc374htNwc85lEzwp/HzzgNsyWcivEgs6GNNsa4xQ7SR0aSNCwfjftMEj
+	 cccMdGVqXQl6XIqK2VHbFzt3jUe8mCt6GpGV5NYIZku/bFtx+d0J3lOdzd8Fxf8KZk
+	 7R6CbsVHXoMTRatNOkm3PicYGfrsVqIju8y1V2ITIroph3ga0NTfCm9KmL9d0MlWCD
+	 TaRaThs668h0A==
+Received: by mail-lr2-f35.google.com with SMTP id 38308e7fff4ca-3a64dff7acfso8457941fa.3
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 09:40:06 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBzgaKFNk8cE5jUya43gajs1ZwOENFqDgfZalQiCmzHlcci5PHS+cjTyBUGAWxGsbmXQazOpQn4D51tv@vger.kernel.org
+X-Gm-Message-State: AFuF++mF2S22CzMzUINCC7piScMc1VRMdLbj1N150rlnUNmDUhzfqu/Y
+	2VfH1fC+bdFRqsUchAnJeD5QepY7kKNqvdi6HBddigjcN8VeluVsqudqr0MmtivXD7opRnPWFIQ
+	KJLGc5i//Zds1QVdHKacgV0tKq2rLH6k=
+X-Received: by 2002:a05:651c:154a:b0:3a3:74b9:8a79 with SMTP id
+ 38308e7fff4ca-3a63c30cb49mr16943651fa.18.1790354405251; Fri, 25 Sep 2026
+ 09:40:05 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260807214837.863209-1-sumitg@nvidia.com>
-In-Reply-To: <20260807214837.863209-1-sumitg@nvidia.com>
+References: <12985239.O9o76ZdvQC@rafael.j.wysocki> <SN6PR02MB415753ABAFF3119B85B4DEEFD4802@SN6PR02MB4157.namprd02.prod.outlook.com>
+In-Reply-To: <SN6PR02MB415753ABAFF3119B85B4DEEFD4802@SN6PR02MB4157.namprd02.prod.outlook.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 25 Sep 2026 18:37:32 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0hhQCGmC8CGKdK_dZT6mUMZv29rgt=GbAp2aC06mH2x2Q@mail.gmail.com>
-X-Gm-Features: AclHuK8JgmU9wKlzoPxfpY5SooBBwN2lxAQ83ILHIy_wG82UGJTwLeYbKyosu6Q
-Message-ID: <CAJZ5v0hhQCGmC8CGKdK_dZT6mUMZv29rgt=GbAp2aC06mH2x2Q@mail.gmail.com>
-Subject: Re: [PATCH v7 0/3] ACPI / cpufreq: CPPC: Add ospm_nominal_perf support
-To: Sumit Gupta <sumitg@nvidia.com>, pierre.gondois@arm.com, zhanjie9@hisilicon.com, 
-	zhenglifeng1@huawei.com
-Cc: viresh.kumar@linaro.org, christian.loehle@arm.com, ionela.voinescu@arm.com, 
-	mario.limonciello@amd.com, linux-kernel@vger.kernel.org, 
-	linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-tegra@vger.kernel.org, treding@nvidia.com, jonathanh@nvidia.com, 
-	vsethi@nvidia.com, ksitaraman@nvidia.com, sanjayc@nvidia.com, 
-	mochs@nvidia.com, bbasu@nvidia.com
+Date: Fri, 25 Sep 2026 18:38:26 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0iT49TDwYFHOpeSgci3dEySae-ggdwYFeh4YnAY=qD2Zg@mail.gmail.com>
+X-Gm-Features: AclHuK92Clwh4unR71Db_V9est7mnsRaI26kEfG495yOxv53OK9E3laP1v2FN2s
+Message-ID: <CAJZ5v0iT49TDwYFHOpeSgci3dEySae-ggdwYFeh4YnAY=qD2Zg@mail.gmail.com>
+Subject: Re: [PATCH v3] driver core/ACPI: Introduce companion_bus_register()
+To: Michael Kelley <mhklinux@outlook.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
+	Linux Driver Core Development <driver-core@lists.linux.dev>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux ACPI <linux-acpi@vger.kernel.org>, 
+	LKML <linux-kernel@vger.kernel.org>, Hyper-V List <linux-hyperv@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Aug 7, 2026 at 11:49=E2=80=AFPM Sumit Gupta <sumitg@nvidia.com> wro=
-te:
+On Fri, Sep 25, 2026 at 6:38=E2=80=AFPM Michael Kelley <mhklinux@outlook.co=
+m> wrote:
 >
-> This series adds support for the OSPM Nominal Performance register
-> (ACPI 6.6, Section 8.4.6.1.2.6) to the CPPC ACPI and cpufreq drivers.
+> From: Rafael J. Wysocki <rafael@kernel.org> Sent: Friday, September 25, 2=
+026 2:24 AM
+> >
+> > The ACPI bus type does not allow drivers to be matched to devices, so
+> > the sysfs attributes related to drivers created for it are useless and
+> > their existence is confusing.
+> >
+> > Moreover, it is better to prevent drivers from being registered and
+> > looked up for a bus like that.
+> >
+> > To allow skipping the creation of those sysfs attributes and preventing
+> > driver registration and lookup for the ACPI bus type, introduce a
+> > "companion" bus type concept and add a special registration function
+> > for registering "companion" bus types, companion_bus_register().
+> >
+> > The "drivers" directory under the ACPI bus type is still needed because
+> > there are versions of systemd that depend on it [1].
+> >
+> > Link: https://lore.kernel.org/linux-acpi/SN6PR02MB41575266A4580339E186E=
+5D9D4812@SN6PR02MB4157.namprd02.prod.outlook.com/ [1]
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 >
-> Unlike the read-only Nominal Performance register, OSPM Nominal
-> Performance is writable and lets OSPM request a nominal level below
-> the platform-reported nominal. The platform treats performance above
-> this level as boost and below as throttle for its power and thermal
-> decisions.
+> Tested this against 7.3.0-rc2, running on my Ubuntu 20.04 instance
+> with the older systemd, and as a Hyper-V guest. The VM booted
+> as expected, whereas the boot failed with v2 of this patch.
 >
->  - Patch 1: adds cppc_set_ospm_nominal_perf() and
->    cppc_ospm_nominal_perf_supported().
->
->  - Patch 2: adds the per-policy ospm_nominal_freq attribute in kHz, and
->    tracks the register in the OSPM-set save/restore table. The register
->    cannot be read back, so the attribute is write-only.
->
->  - Patch 3: reflects the OSPM nominal in the cpufreq policy, so that
->    boost and the frequency limits stay consistent with the register.
->
-> This series applies on top of the following series, which provides the
-> save/restore table that patch 2 hooks into:
->   cpufreq: CPPC: Preserve OSPM-set registers across hotplug and unload
->   https://lore.kernel.org/lkml/20260806200857.601152-1-sumitg@nvidia.com/
->
-> v6[6] -> v7:
->  - Split patch 1 into an ACPI patch and a cpufreq patch.
->  - Patch 1:
->    - drop cppc_get_ospm_nominal_perf(), as the register is write-only.
->    - add cppc_ospm_nominal_perf_supported(), sharing the setter's
->      writable check via the new cpc_reg_writable() helper.
->  - Patch 2:
->    - make ospm_nominal_freq write-only, and track the requested value
->      in software instead of reading the register back.
->    - place the register before auto_sel in the save/restore table.
->  - Patch 3:
->    - rename *_reflect_nominal() to *_update_nominal_limits().
->    - do not fail the sysfs write when cppc_cpufreq_update_nominal_limits(=
-)
->      fails to update the QoS limit.
->    - skip the limit update while boost is enabled.
->    - make cppc_cpufreq_effective_nominal() take the value from the
->      software-tracked state, so it returns it directly and cannot fail.
->    - init() checks cppc_ospm_nominal_perf_supported() directly, instead
->      of using cppc_cpufreq_effective_nominal().
->
-> Sumit Gupta (3):
->   ACPI: CPPC: Add ospm_nominal_perf support
->   cpufreq: CPPC: Add ospm_nominal_freq attribute
->   cpufreq: CPPC: Reflect the OSPM nominal in boost and limits
->
->  .../ABI/testing/sysfs-devices-system-cpu      |  24 ++++
->  drivers/acpi/cppc_acpi.c                      |  48 ++++++-
->  drivers/cpufreq/cppc_cpufreq.c                | 135 +++++++++++++++++-
->  include/acpi/cppc_acpi.h                      |  10 ++
->  4 files changed, 208 insertions(+), 9 deletions(-)
->
-> v6: https://lore.kernel.org/lkml/20260717215330.2215058-1-sumitg@nvidia.c=
-om/
-> v5: https://lore.kernel.org/lkml/20260615185934.2383514-1-sumitg@nvidia.c=
-om/
-> v4: https://lore.kernel.org/lkml/20260527194626.185286-1-sumitg@nvidia.co=
-m/
-> v3: https://lore.kernel.org/lkml/20260514194822.1841748-1-sumitg@nvidia.c=
-om/
-> v2: https://lore.kernel.org/lkml/20260430142430.755437-1-sumitg@nvidia.co=
-m/
-> v1: https://lore.kernel.org/lkml/20260427051823.280419-1-sumitg@nvidia.co=
-m/
+> Tested-by: Michael Kelley <mhklinux@outlook.com>
+> Reviewed-by: Michael Kelley <mhklinux@outlook.com>
 
-Dear CPPC cpufreq driver reviewers, please let me know what you think.
-
-This is not going to go in without any comments from anyone, as far as
-I'm concerned.
-
-Thanks!
+Thank you!
