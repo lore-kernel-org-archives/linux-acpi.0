@@ -1,146 +1,142 @@
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013065.outbound.protection.outlook.com [40.93.201.65])
+Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2703D3C9ED0
-	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 13:20:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.65
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790342465; cv=fail; b=CDhWmfFUcieadXdypL4aFp29NwuWuz3xsifuoh1/jXbJ6U/trT1QIrrvIHART4UXiMfVXkaFUJ5xSdIHLes2KZJgn9rRt9sxXNmPceRXQbueoYpwB71RgKKTwTxwF3Zy6PWZ1uWz+UViELUJtL54XTWgVyRZ57ySe9w7eAHhsJI=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790342465; c=relaxed/simple;
-	bh=WdMN0tRBD6x0tpD0EsKDP0MlWo2ZidwUkekYCpApx2g=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=IIuXDyqghaSErvwT/ogc10H/B11IOAVc0qNCIV0ssMfx5jHpnmwRdehfOXZzIUSM9rQqp1vtU9yZ7hBoimVvr34zwYhUy/RhL6AKgEB9DAvaz1wHkXg4KvfX7BBQZU8k/ikOrC1qiK0fIt8nb1j+o18Qv6nCEIxnrDI4iyysFIo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=yPZN8ekN; arc=fail smtp.client-ip=40.93.201.65
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3ED734AF173;
+	Fri, 25 Sep 2026 14:35:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790346951; cv=none; b=VLWfulM8P9gVLdySiGmg3lSqdumb0QjbBCBVnijygRpGS0/TVQQ3hQIiOYY5fIcyRkxWG2LQcAmvTU65wsvlXpzWEbmTFUPaTgLPu8FbidCYsP8XOBONXtjkwt5ppP2wSgNS9eUy/YtR7ApHRNCbeeHWS2Ok5fSgt7xBK2qMvek=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790346951; c=relaxed/simple;
+	bh=yHlZ1EUgFp3f3yl/TRtS424OOtXdRMOYcISBfVBaLDI=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=gJ2APTCfMzSAAXXZZPF4jLWhEFrOsyzfjOj4yYghEe8UpEtA4adz0UCOXFCeHf9h926GwnqmI/rVcJAlPYIqCaN8KdH70gKOt+tfJE9ZBYOzAMZvuDSygc+33MW3c3VqALIkorOLWBOywf1RPZuRYJj0DXFFXzn3IjUUCyjkA7o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=jS0qw6ME; arc=none smtp.client-ip=82.195.75.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debian.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="yPZN8ekN"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=M2QRTCWEru3KaQlIwcWr/36YCtJWsocvT8cpjQ0IQCD4ASCO6Bgpj2GU6tSUykGP8eM7oFOiiuEUhC6xkNoJiItnvXn/Hq4hLc/ND3EyIWYzQVUQHpAXrALmd0MvQpqGXm45d9ba18JCnZNpQVxFv5TT4phIK+0W/XcRNPO7c5YSFGPhYT1xY4Sqgx2dxBKKeFBy19Z77YeFMpUz2kCzTz84vgfu3lfGzR4HOh0w5HQV1qcF5sz8pfiNJFWo/bdoXjh+YvfgUtqxEBbo3xV8mIMsu0+7/pKJM7A44Pn5bz+0JeT8MVzYIdmlsTGawLSyn1PrrNrEdApJ19Gv4RQzFA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=qCYILF4d6v980vNW7NeCIDprWMKs+K6vj45GeGBWyyw=;
- b=ZTpEmtqOTVoFS7y0KAGP/aQXIwl3NXtMIopulscEvKC+CYXf1YNcIRYNmKbXuDMqgG0lnTI2YPx1ihafme5nu+Bm+G0tJcjh0HlPsh49V3WLuLyx4ta7IqnJg6Ks7uvoYp8NA/gkG+PZuVA5NOZVDda/J9eE6a2f/QY5fNExVliU4UDGpkYa3guIoDEPv8NLpnES200T80qYYlyRFGFgQ8LaXDNYnzpErTp6Ufcmb7vaWr9WZHsen26sIu3gVjo7/cqk/Dubv7L3xtEfpoSIq5xejUJxACEHgCOzKr/JrefSI1NcXJHH3yL+8gvIf8T3cMHie40lqxtalqh0T8QhIg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=kernel.org smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=qCYILF4d6v980vNW7NeCIDprWMKs+K6vj45GeGBWyyw=;
- b=yPZN8ekNtDsMLQoMm3xxCvSi25GqgSmBHijXar7VRk2LOIBctGv+dJ1pMoIG/fODurbofp2rm7IrFJExE9XmoffJ4Pr9Sx1S5advyAcgyIU9HdbLk5VAwX8bt6Qk8AdYkHy0EpYkpj3CQLYIKHxnKFnT9pgN9moIvOBN7cgaBjk=
-Received: from BLAPR03CA0053.namprd03.prod.outlook.com (2603:10b6:208:32d::28)
- by SJ1PR12MB6099.namprd12.prod.outlook.com (2603:10b6:a03:45e::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.428.22; Fri, 25 Sep
- 2026 13:20:47 +0000
-Received: from BL6PEPF00020E62.namprd04.prod.outlook.com
- (2603:10b6:208:32d:cafe::4b) by BLAPR03CA0053.outlook.office365.com
- (2603:10b6:208:32d::28) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.428.11 via Frontend Transport; Fri,
- 25 Sep 2026 13:20:47 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 165.204.84.17) smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
-Received: from satlexmb07.amd.com (165.204.84.17) by
- BL6PEPF00020E62.mail.protection.outlook.com (10.167.249.23) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.451.8 via Frontend Transport; Fri, 25 Sep 2026 13:20:47 +0000
-Received: from aus0006770c4n-lx01.amd.com (10.180.168.240) by
- satlexmb07.amd.com (10.181.42.216) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.49; Fri, 25 Sep 2026 08:20:46 -0500
-From: Mario Limonciello <mario.limonciello@amd.com>
-To: <rafael@kernel.org>, <lenb@kernel.org>
-CC: Mario Limonciello <mario.limonciello@amd.com>, Arnd Bergmann
-	<arnd@arndb.de>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi
-	<peter.ujfalusi@linux.intel.com>, Bard Liao
-	<yung-chuan.liao@linux.intel.com>, Daniel Baluta <daniel.baluta@nxp.com>,
-	Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, "Takashi
- Iwai" <tiwai@suse.com>, Vijendar Mukunda <Vijendar.Mukunda@amd.com>, "Kai
- Vehmanen" <kai.vehmanen@linux.intel.com>, Pierre-Louis Bossart
-	<pierre-louis.bossart@linux.dev>, <sound-open-firmware@alsa-project.org>,
-	<linux-acpi@vger.kernel.org>
-Subject: [PATCH] ACPI: Add stub for acpi_find_child_device()
-Date: Fri, 25 Sep 2026 08:20:30 -0500
-Message-ID: <20260925132031.4073551-1-mario.limonciello@amd.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="jS0qw6ME"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
+	s=smtpauto.stravinsky; h=X-Debian-User:Cc:To:Message-Id:
+	Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:From:
+	Reply-To:Content-ID:Content-Description:In-Reply-To:References;
+	bh=MSoHIOJ6rvzFSfecsi2inhTSF41NREEAhtQztx+1lM4=; b=jS0qw6ME24TMzorHz6+HFxZd2E
+	g94xZpNqztxSM7qhOpm8pU3hvzCXrDAAfus5giu1Kx34B0eeLtwiO6dYGiiQQ8NDkca5vDzdBYqLI
+	vmruQYz9g8ZhgwBscMQpGIQmsREygnhUnh719NEywYnNGGwNoCS1VFtN8PQOl+edrYR8A3CVYm6L6
+	UYSKAVvZORim3W1jEWwaNaGopzSNAOUvcTjsfdHBROoYmwldHk6RCm8GDaQ0NV+YfdWZTGrh0lvDd
+	5VGi9wwSpAxW3Fhj+xoTnZBhlivy6u8ztAaHvvzvgbLP/YgWLEOZSNk37KYIPQGZucfPt379FlH5G
+	Gv0TkrJA==;
+Received: from authenticated-user
+	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+	(Exim 4.96)
+	(envelope-from <leitao@debian.org>)
+	id 1xA71J-005N46-0i;
+	Fri, 25 Sep 2026 14:35:26 +0000
+From: Breno Leitao <leitao@debian.org>
+Date: Fri, 25 Sep 2026 07:35:10 -0700
+Subject: [PATCH v2] ACPICA: Fix memory leak at acpi_ds_create_field()
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
- (10.181.42.216)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL6PEPF00020E62:EE_|SJ1PR12MB6099:EE_
-X-MS-Office365-Filtering-Correlation-Id: 2706faf3-1d81-4eeb-6e39-08df1b07cfae
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700016|1800799024|376014|7416014|82310400026|23010399003|13003099007|10067099003|11063799006|56012099006|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	YlCKjg0mfwHHd4Cm9GQt3PZu3ul/PjTXGP7U7Gyz82xGKCghnXmFVeb4yH+oQJep35enQH/lLfN9mmQopYWgteafifitINJMn2WPD1umjlLirKDi3FBdHprnC1Lh4PZ0t6ZvGxYStuolXyvt9DMudZ4BRjeUnQq0LO9vuqOK9xiLE1PF3Nwr4GvHuZzS7tAiJjKeq9aHOJArZSxeWCwpGjHbEqa+lc28FqPiAb8RkASDzKYvRcOpp3vgnATS3vEnd8pESWRwa2M9al+qZ8R1GJdiSh4WsZwJwlxH3cw7cAJhrojPj4x64uAyYcXwN32whBcQlTiw8mYSsOds4PHBvpHzUPeUNCnQYZk/ceAj7Gl+6dKt+bZupttsf/5OKmk/dCsXDqkYkgSf1CQFpFIzlwl0zNACxuaZtz0TyHps6xm9iTettM+fl+MxZ9zmvN/TfW9MY+7/QgDc99Js9RmNyI5t4vzJOSP4qhszKzJnKAyKmXYEh/9R9XqjpVWMyCpO7tGepj/hQGVqKdxX3Y1MKz5dtbzjfKz9+t5Hb+CPspSdDbpaL8mFvHwEQXbv/EsDWAe3zLjKlEB0SIeFlE2uN0IEyBLNz0pZ/LH78jLqd6HEH1A577wy+wh7Dy6yWztlOWQhtS+Z78/2o8xHoLqch3eAsJ7fm2F2i4nWXORH1JA=
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(36860700016)(1800799024)(376014)(7416014)(82310400026)(23010399003)(13003099007)(10067099003)(11063799006)(56012099006)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	V0Eryn8MsZ2fQ6jBlr81KT4uhsIQ+PyFal6RPBmPlv6xo786r2fCy3szCr6vrSFJJLmf4nCjluR7R87WDNj0ShHR+I5N1+kTZCeBBIwL7K9tjFsDsyIOGKLIYsaZH7CTUq8C5/eV9PDJixLeLSE96HExLoR3j7Enpz5YQY9M436m+Jpivw800PI+jUA/lfSj1HJVHVPvRKPuWgvNDt8IsXvUGbmXCk+co4/myyrzGNslmXZLNYepu0207nOvXn7eCsLUPnUsxagn53sMLOnhGG2omxxXzFS9xgcX7EscR11MlMeEOWT0Y0/JHAmTvNjXjiv0wnFK2QbboIBl+B5pOBu+5xD0Yxy8216kKKUOPeGLhWiAP6jOfdS0HINfrQbvkAyiUgRmdTPBJ0nNO4iCQKTK8K0RiXuNzxNiqYCTXgJnahTdqLjrjzseQduL3AU9
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Sep 2026 13:20:47.2508
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2706faf3-1d81-4eeb-6e39-08df1b07cfae
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BL6PEPF00020E62.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ1PR12MB6099
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260925-acpica-pcc-field-leak-v2-1-e37008e715af@debian.org>
+X-B4-Tracking: v=1; b=H4sIAJ2GtmoC/4XNTQqDMBBA4auEWTvFKIk2K+9RXORnokNFQ1KkR
+ bx7qRfo9i2+d0ChzFTAiAMy7Vx4W8GIphLgZ7tOhBzACGjqRte9bNH6xN5i8h4j0xJwIfvEPup
+ OR6Vkd3dQCUiZIr8v9zFWAmYury1/rs0uf/WfuEuU2AbtVazJKdUNgRzb9bblCcbzPL/9xi07u
+ wAAAA==
+X-Change-ID: 20260813-acpica-pcc-field-leak-8f676f55179b
+To: "Rafael J. Wysocki" <rafael@kernel.org>, 
+ Saket Dumbre <saket.dumbre@intel.com>, Len Brown <lenb@kernel.org>, 
+ Sudeep Holla <sudeep.holla@kernel.org>, Bob Moore <robert.moore@intel.com>, 
+ Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>, 
+ Pawel Chmielewski <pawel.chmielewski@intel.com>, 
+ Erik Kaneda <erik.kaneda@intel.com>, Kyle Pelton <kyle.d.pelton@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, 
+ linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev, 
+ linux-kernel@vger.kernel.org, thepacketgeek@gmail.com, kernel-team@meta.com, 
+ Breno Leitao <leitao@debian.org>
+X-Mailer: b4 0.16-dev-f8e9d
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2256; i=leitao@debian.org;
+ h=from:subject:message-id; bh=yHlZ1EUgFp3f3yl/TRtS424OOtXdRMOYcISBfVBaLDI=;
+ b=owEBbQKS/ZANAwAIATWjk5/8eHdtAcsmYgBqtoanJuJAgsa8tBq5G55PA0VKyCpTyymfhwzVy
+ Ls7sIC2ZwWJAjMEAAEIAB0WIQSshTmm6PRnAspKQ5s1o5Of/Hh3bQUCaraGpwAKCRA1o5Of/Hh3
+ bTodD/9D45UTf99NRPB6oKj3d36ON+h4MqFPHv7nMUT1ZCXv/fuuJyhjmZB2BOVqsWXUFER63+U
+ RguDiOj4hZq+tnLcTDUpwebWbWegjP0lbOWA0zuH6Y3phYV/+AGbAfO4I+lHPjHtpvSNHq4k765
+ q87Ko3IBjbg4/qNPZ0zV11FDOvJxsyS5QmJ02xghLUrUDCza5SexGQPw1yRaRhz5tSR5wrwL40y
+ 4yilrBceGe9pNmy7L2m02OY9cErPDC76uyPDv7B4eXI/AshgkQD2zWJe0qO8DCeSss+/SY+Ed1A
+ 2rb16iXFGt5anp/G5euYowwrxg1bJgYENYzp0x1fOdxraqq6RXwGP6hCG2eeijDLLKEsSOSB3Ui
+ nhhNnH+aZ30rKkRPI3ZYAkcDZB5vAuYpSAt+hx8hlE+Cap0OImK4DaPWeeR7z4RtMI46KS6o5s7
+ uqmBzu0BQN0/+axAw1jVwjLsv5QZ3mUlt8J6l3zpRBM9/ZrEMr9FQ4rI4PHQJZhP2Kb4YeT2jju
+ dG5ugrF0/qRP+30hx/BfbH0rl3OrCa1MfrDYJvdOct21/N52g9sstX0NfptQogCARVIeEWvVxzc
+ nc1yq1gcxVPSP4tzJEeosAMYzolghDZN/NfOQ2pQhCy3QA/nrtcykCHxSfV9lPR7owE9gHEYUqt
+ PvmTB4CJq1Kfk/g==
+X-Developer-Key: i=leitao@debian.org; a=openpgp;
+ fpr=AC8539A6E8F46702CA4A439B35A3939FFC78776D
+X-Debian-User: leitao
 
-Provide a NULL-returning stub when CONFIG_ACPI is disabled so callers can
-be compiled without ACPI support.
+acpi_ds_create_field() allocates internal_pcc_buffer for operation
+regions in the PCC address space.
 
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Closes: https://lore.kernel.org/linux-sound/20260925131104.118993-1-arnd@kernel.org/
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+The function runs once per field, so a second field on the
+same region overwrites the pointer and orphans the previous buffer.
+
+The matching ACPI_FREE() in acpi_ut_delete_internal_obj() only ever sees
+the last one.
+
+An arm64 platform whose SSDT declares regions with multiple fields each
+leaks two buffers at boot, as detected by kmemleak:
+
+  unreferenced object 0xffff000051e65400 (size 192):
+    comm "swapper/0", pid 1, jiffies 4294668436
+    backtrace (crc 0):
+      __kmalloc_noprof
+      acpi_ds_create_field
+      acpi_ds_load2_end_op
+      acpi_ds_exec_end_op
+      acpi_ps_parse_loop
+      acpi_ps_parse_aml
+      acpi_ns_load_table
+      acpi_load_tables
+      acpi_init
+
+Do not allocate a region if it was previously allocated before,
+preserving the current design, but, not leaking memory.
+
+Fixes: aa6ec56b574d ("ACPICA: ACPI 6.3: add PCC operation region support for AML interpreter")
+Link: https://github.com/open-acpica/acpica/commit/c71849d476bb5f97ca1867849e893368e12a69e6
+Signed-off-by: Breno Leitao <leitao@debian.org>
 ---
-Cc: Liam Girdwood <lgirdwood@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@linux.intel.com>
-Cc: Bard Liao <yung-chuan.liao@linux.intel.com>
-Cc: Daniel Baluta <daniel.baluta@nxp.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.com>
-Cc: Vijendar Mukunda <Vijendar.Mukunda@amd.com>
-Cc: Kai Vehmanen <kai.vehmanen@linux.intel.com>
-Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.dev>
-Cc: sound-open-firmware@alsa-project.org
+Changes in v2:
+- Got the fix into ACPI CA first, and now respining this one with the
+  Link to ACPI CA change.
+- Link to v1: https://patch.msgid.link/20260813-acpica-pcc-field-leak-v1-1-3d6c5f0eb557@debian.org
 ---
- include/linux/acpi.h | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/acpica/dsfield.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index ddacac8120947..710f38193d44c 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -843,6 +843,7 @@ extern bool cmos_rtc_platform_device_present;
- #define ACPI_COMPANION_SET(dev, adev)	do { } while (0)
- #define ACPI_HANDLE(dev)		(NULL)
- #define ACPI_HANDLE_FWNODE(fwnode)	(NULL)
-+#define acpi_find_child_device(...)	(NULL)
+diff --git a/drivers/acpi/acpica/dsfield.c b/drivers/acpi/acpica/dsfield.c
+index d7d56cc600d318..f7e503bf57c87c 100644
+--- a/drivers/acpi/acpica/dsfield.c
++++ b/drivers/acpi/acpica/dsfield.c
+@@ -522,7 +522,8 @@ acpi_ds_create_field(union acpi_parse_object *op,
+ 	}
  
- /* Get rid of the -Wunused-variable for adev */
- #define acpi_dev_uid_match(adev, uid2)			(adev && false)
--- 
-2.43.0
+ 	if (info.region_node->object->region.space_id ==
+-	    ACPI_ADR_SPACE_PLATFORM_COMM) {
++	    ACPI_ADR_SPACE_PLATFORM_COMM &&
++	    !region_node->object->field.internal_pcc_buffer) {
+ 		region_node->object->field.internal_pcc_buffer =
+ 		    ACPI_ALLOCATE_ZEROED(info.region_node->object->region.
+ 					 length);
+
+---
+base-commit: 4c253ac4b29b8c6cc6fdef8f92d4facde62e63b9
+change-id: 20260813-acpica-pcc-field-leak-8f676f55179b
+
+Best regards,
+--  
+Breno Leitao <leitao@debian.org>
 
