@@ -1,195 +1,138 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5552E4BD34B;
-	Fri, 25 Sep 2026 15:05:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5402F4A4EE7;
+	Fri, 25 Sep 2026 15:09:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790348740; cv=none; b=rROTptzc/nYL3ysP1f+vU3rsNHWnTPSh5oxuZImhh4bTIBKF//kCG3t2/u0l6wROJIbtlwWrmwEucyejvP83AQVuUt4F8G7TD5LqG7vbA3ITiAYTHzDmhrOkizbsBKT7pwyXVwD1OsuYVfsSqUwji16lTdsOCRRtGQV0lsM6y0U=
+	t=1790348987; cv=none; b=rxgM+cpBPrXZShUcZmU1h9hf6KELaTuvA5Kkas8gAxptverU2s1HbBkmwQOfDJsjyf+KqD3dWm4U3wtP0VNmaEDs1/0eqo/QFlFg/k2C1ban7QLEbVEhP3EYX03HZxS9bin6VbCnLsv0eBXUFGC9BWP8E2CqbCNmrTnH9E57rKY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790348740; c=relaxed/simple;
-	bh=Ez+PajV45ntCnBvpFQYVxb6qXBbrJ/8R8rOVSnv88lA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=T3AXGjedOZOcQsiq7oYEcv/daysHXPwGqLVmUvROe5FfuCQemuM1x1VgT+4G1wwURBPoR0QDFXCmOrAKQm4Pcy39VU2reAMORPl6OjqvRNpN7/mqb18UG5K9uYgWMQN0X/QTyuzbQ/57Mzws5o8BUSj2REdPmzWD/DjX3UFQtUQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Zmc2i8w5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790348987; c=relaxed/simple;
+	bh=VW/XrB+qV68/FcIQ5eMC74++xgOoT9nZOvKItukui0g=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=ZclRZGW7eYpacRvk7SCO6s+th6G4Wil9RTKuNT4XqweN6B+ibi/cSf1G2YLlRydq1bwivzKFMTxjMqtpbx2Opmym6kmNZMuupGsSDjBVgOyTtZJ/qm1Gi+D7LBamVGfC7JRgRiOUevGhoJKSd0Zm1RGaZFzDos4djK4zPUcABHk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=hobvotZH; arc=none smtp.client-ip=82.195.75.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debian.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Zmc2i8w5"
-Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id B420D1F000FF;
-	Fri, 25 Sep 2026 15:05:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790348724;
-	bh=ZS7d5mturpa1Uxy0hoSuU+tlY5LaNK+P84DFQE9LUM8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Zmc2i8w5iSEedzxTpw6gVE7g3DhZ8VcsGpI9gbNrJ3xjPwPSCAenpgeE06XR92Hrj
-	 I0GV7+4djle5puKOxh1W+NCR6ZQikXl+8IxQrWtxPGGgwlqytO2j0IuekKn/XEcP6o
-	 4MfnfCBHFvocoC2aUU4vOxwfFvqdnLUGwpHzWHWQDgAorUmi9cXcFMpXUAQ3+30Qvu
-	 XZcmgMFBqiDzTq1gXPUCWvvlsvT3z/KVTSLaTba8Ni2KUIzELL3yoQU3WOvvPtM6Fw
-	 t2QjqQYbAvDTMDkupGpAv94o6dnAlUgjJ/uNK5UcOJ30Ni1Q+pfN3AP/1pBerERQqQ
-	 iM7ktLsdhfUdQ==
-Date: Fri, 25 Sep 2026 18:05:20 +0300
-From: Jarkko Sakkinen <jarkko@kernel.org>
-To: Sean Meadows <Hellfire@unspacy.com>
-Cc: linux-integrity@vger.kernel.org, peterhuewe@gmx.de, jgg@ziepe.ca,
-	rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org,
-	Adam Alves <adamoa@gmail.com>
-Subject: Re: [BUG] tpm_crb/Intel PTT: Late S3/S5/Reboot ACPI power management
- deadlock
-Message-ID: <araNsEodZ3NXf9qT@kernel.org>
-References: <bf3a9544-6e49-4d5d-a01a-f1912b717d08@unspacy.com>
- <aqyTpzk3jcarEMVS@kernel.org>
- <54425edf-3ca1-4f99-9166-40f9cc3dfff6@unspacy.com>
+	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="hobvotZH"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
+	s=smtpauto.stravinsky; h=X-Debian-User:Cc:To:Message-Id:
+	Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:From:
+	Reply-To:Content-ID:Content-Description:In-Reply-To:References;
+	bh=8ZsRdp36EZWb0DJkYc8BpcrrbAf/mTTeVBAJoAH0lws=; b=hobvotZHAGf8k17uWJCa0M633j
+	Xgu23JcquGP8lXWipCmZh/G5kobCcsQQgbPcHmuGoMq96+PQL+Jad5Ov52BpZ7TFaGP0d0jOSmGWj
+	6kiqbW57/z7+9gDCZlJxAb5O4dOE/JVX2ZKWKt8xx3MWpWEum2UudXPmjoR32fXhHqY5ifLUsQOTb
+	sUBNeBh8euK5zvvxWA405zJ5cIHTdHnqODY/WrLKnjJnYtN9o3DyO6Kav1EFwCUs9a2/93UMT5QLu
+	6tIiG1WpkOTSbEA+Gd7Nk9H0+EuCUZuNf3rAtEHNd2MvyT9Tj6pmN4LpdWSlSaaJkQ+67idAKuFMp
+	dpCZQ1NQ==;
+Received: from authenticated-user
+	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+	(Exim 4.96)
+	(envelope-from <leitao@debian.org>)
+	id 1xA7Y7-005OBd-3C;
+	Fri, 25 Sep 2026 15:09:20 +0000
+From: Breno Leitao <leitao@debian.org>
+Date: Fri, 25 Sep 2026 08:09:11 -0700
+Subject: [PATCH] ACPI: APEI: accumulate the queued flag across error
+ sections
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <54425edf-3ca1-4f99-9166-40f9cc3dfff6@unspacy.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260925-ghes-queued-accumulate-v1-1-df50553957d4@debian.org>
+X-B4-Tracking: v=1; b=H4sIAJaOtmoC/yXMQQ6CMBBG4auQWTsJlEDEqxgXZfoDYxS1Q4kJ4
+ e5WXX6L9zYyRIXRqdgoYlXTx5xRHQqSyc8jWEM2udK1ZecaHicYvxISAnuRdE83v4CbrpKjl7q
+ vXaAcPyMGff/G58vflvorZPneaN8/uRej5noAAAA=
+X-Change-ID: 20260925-ghes-queued-accumulate-591c8ac3b32d
+To: "Rafael J. Wysocki" <rafael@kernel.org>, 
+ Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, 
+ Hanjun Guo <guohanjun@huawei.com>, 
+ Mauro Carvalho Chehab <mchehab@kernel.org>, 
+ Shuai Xue <xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>, 
+ James Morse <james.morse@arm.com>, Xiaofei Tan <tanxiaofei@huawei.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, 
+ linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-mm@kvack.org, kernel-team@meta.com, stable@vger.kernel.org, 
+ Breno Leitao <leitao@debian.org>
+X-Mailer: b4 0.15-dev-47773
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2558; i=leitao@debian.org;
+ h=from:subject:message-id; bh=VW/XrB+qV68/FcIQ5eMC74++xgOoT9nZOvKItukui0g=;
+ b=owEBbQKS/ZANAwAIATWjk5/8eHdtAcsmYgBqto6cfmYO00v2L5iB3D85pOjejWCOxbWqEF6kF
+ qwUy4rKhbuJAjMEAAEIAB0WIQSshTmm6PRnAspKQ5s1o5Of/Hh3bQUCaraOnAAKCRA1o5Of/Hh3
+ bWocEACQACuoZbczHAR3Rz/S8hB7WnO0Vizvw1vb4qil7D1UuTHVGfBa5Yq/CEMt0OpJ/5hTy8D
+ wkUu/gKIGVue2gswaJh5dy1CkheOC0xhz1sWpOaBV7ppyuIJ794lQEBhfyknXQslfc5FwHdEGVV
+ ssJHzJANQ0WPGcvnJYgm9p+oK46hGKpURxGvDDRET0+YJuqa9simwd0l3IHB5jgILRn7OC6F3PP
+ 0NTjURh1DrHb02TzaoCFNc9obI1TavcnYT6VY9NFBWFVsTKB5sRxbACa74lwHKh9eyeGOP7VaDZ
+ 2R/B/WJI6ztT4r+OUBKcc0TeTO0MaAtLFgcJRlH0SG1uKrNx4S5YqM/4WGEdsu91HTVXBIKL0YJ
+ jBiHe5BJRu0rT3+6gVO0Maax1MVE4FHFvcIU+8ZE9y9zc7fMZ0W4Gnd4XEbQK4SlQABU6qJndEl
+ 6/ytsZNye/i3lNsWC7OrGYguBBqlt0DxKL1W6+vOZhm4PFlGKeZlTLbBu79BeAfoPcY5ebJ674t
+ nHVRmSgk+4LVl6GM6YtyxKsN1jyYc1kAnE0vMyEDV04Wq8U6UmBHoMyYTnRKEuzUddfKZJLGb78
+ j5I9HMLf221Of0Rp/rI+40pxpvJDkxoDiwcYY/txMHa1Dys3Sbi8moPMPz2K/rwQ6Lx/HCBee5l
+ AuiUvgm0Z2A0+2w==
+X-Developer-Key: i=leitao@debian.org; a=openpgp;
+ fpr=AC8539A6E8F46702CA4A439B35A3939FFC78776D
+X-Debian-User: leitao
 
-On Tue, Sep 22, 2026 at 04:42:47AM -0400, Sean Meadows wrote:
-> On 9/17/26 21:28, Jarkko Sakkinen wrote:
-> > On Thu, Sep 10, 2026 at 02:45:43AM -0400, Sean Meadows wrote:
-> > > Hello,
-> > > 
-> > > I am writing to report a reproducible power management bug where the
-> > > system permanently hangs late in the ACPI S3 (sleep), S5 (shutdown), and
-> > > soft reboot cycle.
-> > > 
-> > > The deadlock occurs at the absolute end of the platform teardown
-> > > sequence; after the kernel has completely unmounted all local storage.
-> > > Motherboard power rails remain fully active and fans spin continuously,
-> > > requiring a physical power button reset. Because this happens post
-> > > unmount and after the video terminates, standard runtime logs (pstore/
-> > > dmesg) remain entirely empty.
-> > > 
-> > > While sleep and shutdown hang forever, the soft reboot path has multiple
-> > > severe failure modes: hanging indefinitely, stalling for several minutes
-> > > before completing, or forcing a hard reset that corrupts the subsequent POST
-> > > phase. Standard kernel parameters like reboot=EFI, reboot=PCI, or cold boot
-> > > do not mitigate the issue.
-> > > 
-> > > The deadlock does not happen immediately after a recent cold boot or
-> > > reboot. The system must run for a number of hours before the condition
-> > > occurs.
-> > > 
-> > > 1. Reproduction
-> > > The failure state can be made consistently repeatable via kernel
-> > > initialization parameters and modprobe.d blacklist:
-> > > 
-> > > - Test A (Fail State): Booting with standard parameters. Triggering an
-> > > S3 sleep, S5 shutdown, or reboot results in a guaranteed, hardware freeze.
-> > > 
-> > > - Test B (Pass State): Booting with the command line parameter:
-> > > ‘modprobe.blacklist=tpm_crb’ and modprobe.d conf with ‘blacklist tpm_crb’
-> > > When the tpm_crb driver is completely prevented from initializing, the
-> > > system executes S3 suspend, S5 shutdown, and reboot sequences flawlessly
-> > > 100% of the time.
-> > > 
-> > > - Other end users suffering from this problem have found a repeatable
-> > > fix by going into the UEFI and disabling the PTT. My particular system
-> > > lacks that option.
-> > > 
-> > > 2. Supporting Data
-> > > This bug appears to be unique to the Intel PTT controllers powering the
-> > > 6th through 10th Generation Intel CPU families (Skylake through Comet
-> > > Lake), spanning mobile, desktop, and HEDT platforms. The bulk of the
-> > > data also implies that this isn’t isolated to a specific OEM.
-> > > 
-> > > - Bugzilla #217890:
-> > >    chriscjsus: MSI GS40 6QE | Intel i7-6700HQ
-> > >    mahasler: Intel NUC7i3BNB | Intel Core i3-7100U
-> > >    Boris Carvajal: MSI Z370 Tomahawk | Intel i5-8400
-> > >    Serhii Tsynailo: Intel i5-8250u laptop
-> > >    Sergio: ASUS ZenBook UX310UQK | Intel i7-7500U
-> > >    My System: ASUS ROG GL703VM | HM175 Chipset | Intel i7-7700HQ | MEI FW
-> > > v11.9.1.3010 | Running Arch Linux vanilla stable kernel 7.2.4 (stock
-> > > package)
-> > > 
-> > > - Community Threads:
-> > >    Arch Forum (ID: 303082): Solved exclusively by disabling Intel PTT in
-> > > BIOS (Gigabyte B460 | Intel 10th Gen)
-> > >    Reddit (r/archlinux): Widespread tracking detailing identical S3/S5
-> > > deadlocks (X299/Z370)
-> > > 
-> > > 3. Additional Details
-> > > An unmerged diagnostic patch submitted by another user (Adam Alves,
-> > > Patchwork ID: 20240307000331.14848-2-adamoa@gmail.com) previously
-> > > presumed that this late freeze on certain motherboards occurs because
-> > > the driver leaves the fTPM/PTT hardware interface in an unreleased, non-
-> > > zero locality state upon teardown. The author suggested that the
-> > > platform firmware's pre-OS and ACPI transition environments expect the
-> > > TPM to be sitting strictly in Locality 0, causing the firmware to enter
-> > > an infinite timeout wait-state when control is passed back to it.
-> > > 
-> > > I am not qualified to audit the driver. Whether this belongs in the DMI,
-> > > is a mistake in the driver logic, or is a bug in the PTT I can’t answer.
-> > > I can only point to the unfailing success of a growing number of public
-> > > end users who can instantly fix the problem by disabling the PTT in
-> > > firmware or blacklisting the TPM driver. I have included the ACPI
-> > > team in this e-mail in the hopes that they can provide additional clarity.
-> > > 
-> > > I have never compiled a custom kernel before, but I am set up to
-> > > reproduce this and am entirely willing to act as a tester for any
-> > > diagnostic patches the maintainers would like to provide.
-> > > 
-> > > Thank you for your time and patience,
-> > > Sean
-> > 
-> > Has this appeared within some timeframe or has been like this "forever"?
-> > 
-> > BR, Jarkko
-> 
-> Hi Jarkko,
-> 
-> Regarding whether this has been a bug forever, I suspect the answer is
-> yes, though with a few caveats. My pacman.log shows I made the shift
-> from Windows to Arch Linux in August 2022. Vaguely I recall reboots, S3,
-> and S5 working initially, but I am an unreliable narrator after dealing
-> with this issue for years - and the various technical threads I
-> referenced do note regressions cropping up across the 6.x kernel series.
-> 
-> I also need to update my previous notes regarding blacklisting tpm_crb.
-> It is not a complete fix; rather, it extends the timeframe of the
-> failure from hours to days, but the deadlock will eventually happen
-> anyway. That leaves the only foolproof fixes as running Windows or
-> having a UEFI that allows disabling the PTT.
-> 
-> My working hypothesis is that these older PTT implementations require a
-> specific state cleanup during OS teardown. Since the issue occurs even
-> without the driver loaded, the problem isn't isolated to driver
-> teardown; rather, it implies that background ACPI firmware routines
-> interact with the PTT, gradually desynchronizing the hardware state until
-> the final power-down handoff traps it.
-> 
-> My testing hasn't stopped. I am currently trying to modify my UEFI to
-> force-disable the PTT, though customizing the ROM and flashing it with a
-> CH341A programmer and micrograbbers is slow, tedious work. I am also
-> hampered by the Asus UEFI being very fragile and the hidden TPM options
-> tested so far turning out to be dead entries.
-> 
-> As I noted before, I am fully prepared to test patches or gather
-> hardware data, though I suspect this laptop lacks any accessible serial
-> debugging headers to catch logs post-unmount.
-> 
-> Thank you for your time and patience,
+ghes_do_proc() walks every error section of a CPER record, and
+ghes_handle_arm_hw_error() walks every error-info entry of an ARM
+processor section.  Both assign to "queued" instead of OR-ing into it,
+so only the last iteration counts: a later section or entry that queues
+no memory-failure work clears the flag an earlier one set.
 
-Thanks for providing the information.
+Instead of reassigning the variable at every time, just do an `OR`, so,
+if there was a single match, it will return "queued" as set.
 
-Bugzilla bug under discussion: https://bugzilla.kernel.org/show_bug.cgi?id=217890
+The comment above the check says "If no memory failure
+work is queued", which is the semantics this patch implements. I.e, only
+SIGBUS if there are queue was not handled at all. If we want to SIGBUS
+if any event was not handled/queued at all, we will need something more
+sophisticated.
 
-I also found fix attempt of which 3rd version somehow went past me:
+Fixes: 7f17b4a121d0 ("ACPI: APEI: Kick the memory_failure() queue for synchronous errors")
+Fixes: ccb5ecdc2dde ("ACPI: APEI: fix synchronous external aborts in user-mode")
+Cc: stable@vger.kernel.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+---
+ drivers/acpi/apei/ghes.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-https://lore.kernel.org/all/20240308145313.40932-1-adamoa@gmail.com/
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index fe10ab0e02f68..ec2d5ca51db02 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -603,7 +603,7 @@ static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdata,
+ 		 * and don't filter out 'corrected' error here.
+ 		 */
+ 		if (is_cache && has_pa) {
+-			queued = ghes_do_memory_failure(err_info->physical_fault_addr, flags);
++			queued |= ghes_do_memory_failure(err_info->physical_fault_addr, flags);
+ 			p += err_info->length;
+ 			continue;
+ 		}
+@@ -951,11 +951,11 @@ static void ghes_do_proc(struct ghes *ghes,
+ 			atomic_notifier_call_chain(&ghes_report_chain, sev, mem_err);
+ 
+ 			arch_apei_report_mem_error(sev, mem_err);
+-			queued = ghes_handle_memory_failure(gdata, sev, sync);
++			queued |= ghes_handle_memory_failure(gdata, sev, sync);
+ 		} else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
+ 			ghes_handle_aer(gdata);
+ 		} else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
+-			queued = ghes_handle_arm_hw_error(gdata, sev, sync);
++			queued |= ghes_handle_arm_hw_error(gdata, sev, sync);
+ 		} else if (guid_equal(sec_type, &CPER_SEC_CXL_PROT_ERR)) {
+ 			struct cxl_cper_sec_prot_err *prot_err = acpi_hest_get_payload(gdata);
+ 
 
-Does this or disabling hwrng sort out the issue?
+---
+base-commit: 587858367581b9c55c3690f4e63382ad622719d4
+change-id: 20260925-ghes-queued-accumulate-591c8ac3b32d
 
-I got one other idea too with no empirical basis (just hypothesis):
-perhaps release memory mapping on suspend could help firmware.
+Best regards,
+--  
+Breno Leitao <leitao@debian.org>
 
-> 
-> Sean
-
-Br, Jarkko
