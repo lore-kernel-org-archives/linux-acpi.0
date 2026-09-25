@@ -1,131 +1,176 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F21063C454E
-	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 19:25:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB13E43F4DA
+	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 20:25:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790364319; cv=none; b=Ram6/G+jd1hzIGxRVNcMsRhEKyCKssqquQ/KStrHyo9Etj5zCN628uVodVXAUdqpgkeD2WpDmrLWCY3jYDsZwudcaEk2LQzncbf9lUNmZU29oCSFrouhMHJ1+d1Y5XKXi9ncIhGBD6Wtt6uTV2xxoulAgnQgQYONQYlrajwptp8=
+	t=1790367905; cv=none; b=d2quoNJALRVadnTKVbfG6LWt4sxYmE2AnrFQC5/+pI9vwdGACwMSeM6t1yYGS8QW3peog4cJ2azZyNb9I4meO/7QlglJaith0sHTRTeAggxJP1nIEEOii2k1pjDQUyTxQYTVdEP1TXW1P8SB+qT7xnJr3w6kb2lardce8n9KeCc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790364319; c=relaxed/simple;
-	bh=orOQIuMWgmNfpyVvSBIiKDXXIfxlvVwi1uDc6JpnOnE=;
+	s=arc-20240116; t=1790367905; c=relaxed/simple;
+	bh=ONfzlMwZUmt9iQP0GdhJWz6HRCumIiMG2gc58uPgNpM=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=eOdFzBCQDisqbc69DuiicR3EppWngj8A6FjPU8f3u9kCe8NLmv+KcxxZdaodu6/QRQdzb2/49/75j44dnDhSw5er5C6o7IBtGspUUj7HFXicCZ3RXgFra4PUnAjXAxTbaCkj0LJtrMCRl9ekMnyg9ZcL3e9qkNapdIhxGhKGCds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SgMhPCgS; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=O2f3x+klh2f4RNZPphBXcOiSjYS/C/KKohZzMtrYvj02WM6YYzn+8MfPeVPxzpe9hdojBZWBJUpc5TUxJkZRfoaAuwPjgRvgd4fIGqG9AB0dj41fTnTwQVXKChLm0YAEdna8vEjwNsqOTjNq6cW+BK2A3w4CODrH+qam9y9ctT0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jGn3yQGo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SgMhPCgS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E44A1F0089D
-	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 19:25:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jGn3yQGo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 670461F000FF
+	for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 20:25:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790364317;
-	bh=nBf4LR0QybGxODUVGWLYzoR9YycS12OFozmgvcTcyzc=;
+	s=k20260515; t=1790367903;
+	bh=WNQees8/ehGot81631VV5fQVbOPJSRm59MHRcSjht10=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=SgMhPCgS1g/SBrRAXC8/7WLHaXSM2aK4ZHjIgziO+Y1yxNb0kRKuGqhqLKFt4ivnU
-	 ESvmWhh8cb3ASdcq9bciF2ZUUCnRpAJ+osXj13vUizJB8bBqrCyj+MYcXwsF50SOFh
-	 eYIUau2uDrZQrg9AigBLcithA5eKQWoCmSHzA4LoSXR8C/Xo/9DKbTteAl6ZuHpk3j
-	 Hhm7ReTPekFizzh+KnWlu7NscYt5+j4GIbyDURUfiVvDrnlUzbAQuQI7mJzQJonR1G
-	 wkXhIwRaPfL6f7SLxQ3InNFxsXbBdfhAcaT28SkpfgUgQq9fRokW1pK44HuKIAtqkv
-	 uOvEYVmuAC0iQ==
-Received: by mail-lr2-f34.google.com with SMTP id 38308e7fff4ca-3a651f928d9so6097271fa.0
-        for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 12:25:17 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBwMOlxed9j6XoVeuulSpZicM9N6wr14NjOubZ3N9C2yA9p+KsGl6o08unPnMkDCn3ojk3R3w8gK7YjZ@vger.kernel.org
-X-Gm-Message-State: AFuF++nM5P3KO8ETESeuvWyD9d3G4dniubaC05SmrzEtRv8N8uLSGRND
-	U+IsPhDi+qf7mvsFPsrqyCfjL/pX3umIbrXnNlx6IfaSTkn340yijFcpYs4nYH+c6LpTNFK3u/5
-	lRK3pVDKDF5MMJukFahQUScoz39brCsI=
-X-Received: by 2002:a05:651c:418e:b0:3a6:553d:cb1c with SMTP id
- 38308e7fff4ca-3a6553dce4cmr4861551fa.12.1790364316036; Fri, 25 Sep 2026
- 12:25:16 -0700 (PDT)
+	b=jGn3yQGookNeaQk/WwM3h8B906jLy4vTACkjht1SDqGucEZ9thWqH7V92mT+lsTP6
+	 zHE0Ds5BpIqcfevi7utJZifH8N483Xj80nyzIOhOwwwwjWAeoCLbX20hFFxN37h+Ja
+	 qqIdh6kQ0sTBREyfvNINbQGViPL44H5GUuXxjVHaBc6Eh1LVdQXcuMasbqKMsURgTc
+	 LRPAx2NkvzFRS72WJ3FubNCldpt7kIheGJSp0J3l0z7ju377cn0P9iPYUvriSpW23F
+	 6rzleVti+v8AptG2Q6DyRdK2v2aRSp+gflygpQ+VzN2OSxLKhCxiUM4InQmqdCNGAZ
+	 ScAibf+CxO+dw==
+Received: by mail-lf2-f12.google.com with SMTP id 2adb3069b0e04-5b8e6ec4e0bso975302e87.1
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2026 13:25:03 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvByJD/TmowZAlNwsUFlzaI/dXnyQsPhOpN1w3KadY1m0b6NSszgE4ts2XfJIl1g0dOxd1xnwRN0ba7qC@vger.kernel.org
+X-Gm-Message-State: AFuF++l8BpqpmqvFBmu3qjO8BNVIBHRpQmwJnMVW7dHSp7+M7xQAqf63
+	LD7svlfuIL7CvjAXCsk2wGywdo1Xj+7TMX+R/H2HaolxPK3JUkpyieSwMpnq/oApN4MrigtvyCu
+	MozWXx3MqeaDv/uh9R7uCj9RMZV+YnLo=
+X-Received: by 2002:a05:6512:b1a:b0:5b8:ed7d:8b42 with SMTP id
+ 2adb3069b0e04-5b8ed7d8bc7mr577236e87.39.1790367901803; Fri, 25 Sep 2026
+ 13:25:01 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260916103820.1760297-1-sumitg@nvidia.com>
-In-Reply-To: <20260916103820.1760297-1-sumitg@nvidia.com>
+References: <20260922124121.3426219-1-zhenglifeng1@huawei.com>
+In-Reply-To: <20260922124121.3426219-1-zhenglifeng1@huawei.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Fri, 25 Sep 2026 21:23:38 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0hXcRSj5ufpLTAgTSYtFDCXRQL3bJ5wNLtfRMrvHfo9ow@mail.gmail.com>
-X-Gm-Features: AclHuK9qDYz-k5dcjQxp54XHZKMEw0rv2InbPBzQTUFY63R1_VmtSqKrupNEn6Q
-Message-ID: <CAJZ5v0hXcRSj5ufpLTAgTSYtFDCXRQL3bJ5wNLtfRMrvHfo9ow@mail.gmail.com>
-Subject: Re: [PATCH v5 0/4] cpufreq: CPPC: Preserve OSPM-set registers across
- hotplug and unload
-To: Sumit Gupta <sumitg@nvidia.com>, pierre.gondois@arm.com, zhenglifeng1@huawei.com, 
-	zhanjie9@hisilicon.com
-Cc: viresh.kumar@linaro.org, christian.loehle@arm.com, ionela.voinescu@arm.com, 
-	ray.huang@amd.com, mario.limonciello@amd.com, perry.yuan@amd.com, 
-	kprateek.nayak@amd.com, linux-kernel@vger.kernel.org, 
-	linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	acpica-devel@lists.linux.dev, linux-tegra@vger.kernel.org, treding@nvidia.com, 
-	jonathanh@nvidia.com, vsethi@nvidia.com, ksitaraman@nvidia.com, 
-	sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
+Date: Fri, 25 Sep 2026 22:23:24 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jko6SjZ2642DryhSMZyPgatvG442m7y1E8J7TcxvtOKA@mail.gmail.com>
+X-Gm-Features: AclHuK9frkW9y83b_87zzoPb_5_iwomW9wqA2MKboLGqOzwuRlqnR5CdgiySfqg
+Message-ID: <CAJZ5v0jko6SjZ2642DryhSMZyPgatvG442m7y1E8J7TcxvtOKA@mail.gmail.com>
+Subject: Re: [PATCH v4 0/8] ACPI: CPPC: Resource Priority Register support and
+ sysfs interface
+To: Lifeng Zheng <zhenglifeng1@huawei.com>, Christian Loehle <christian.loehle@arm.com>
+Cc: viresh.kumar@linaro.org, ionela.voinescu@arm.com, zhanjie9@hisilicon.com, 
+	pierre.gondois@arm.com, sumitg@nvidia.com, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linuxarm@huawei.com, 
+	yubowen8@huawei.com, zhangpengjie2@huawei.com, wangzhi12@huawei.com, 
+	linhongye@h-partners.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 16, 2026 at 12:39=E2=80=AFPM Sumit Gupta <sumitg@nvidia.com> wr=
-ote:
++Christian
+
+Christian, can you have a look at this, please?
+
+On Tue, Sep 22, 2026 at 2:43=E2=80=AFPM Lifeng Zheng <zhenglifeng1@huawei.c=
+om> wrote:
 >
-> This series keeps the CPPC cpufreq policy alive across CPU hotplug and
-> preserves the OSPM-set CPPC registers (Energy Performance Preference,
-> Autonomous Activity Window, Autonomous Selection - set via sysfs).
+> This series implements support for the CPPC v4 Resource Priority Register
+> mechanism defined in ACPI 6.6, Section 8.4.6.1.2.7, and exposes it to
+> userspace via sysfs.
 >
-> Without online()/offline() callbacks, the core tears a policy down when
-> its last CPU goes offline and rebuilds it on the way back, re-reading the
-> CPPC capabilities each time. The values written to these registers can
-> be lost:
+> Resource Priority allows OSPM to control the relative priority among
+> processors for shared resources. OSPM can utilize these sysfs interfaces
+> to configure resource priorities, allowing resources to be preferentially
+> allocated to more important tasks.
 >
->  - Across CPU hotplug or suspend/resume: the platform may reset them
->    while the CPU is offline.
->  - On driver unload: the driver-written value is left in the register
->    instead of returning to its pre-driver state.
+> The controlled resource types include processor boost, throttle, L2 cache=
+,
+> L3 cache, and memory bandwidth.  Each Resource Priority group consists of=
+:
 >
-> Handle these with:
+>   - CONTROLLED_RESOURCES: which resource types the group affects
+>   - ENABLE_VALUE / ENABLE_REGISTER: enable/disable the group
+>   - PRIORITY_COUNT / PRIORITY_REGISTER: read/write the priority level
 >
->  - Patch 1: adds online()/offline() callbacks so the core keeps policy
->    alive across CPU hotplug instead of tearing it down and rebuilding it.
->  - Patch 2: makes the autonomous selection register helpers take a u64.
->  - Patch 3: adds a table-driven mechanism that captures each register's
->    firmware value at init(), restores it from offline(), and reapplies
->    the OSPM-set value from online().
->  - Patch 4: extends the same save/restore to system suspend/resume.
+> The patch series is organized in three parts:
 >
-> v4[4] -> v5:
->  - Patch 1:
->    - offline() stops the frequency invariance updates and online()
->      restarts them, replacing the resync that raced with tick. (Sashiko)
->    - reorder the functions to match cppc_cpufreq_driver. (Jie Zhan)
->  - Patch 3:
->    - reapply the OSPM-set registers even when the performance control
->      write fails. (Sashiko)
->  - Patch 4:
->    - suspend() stops the frequency invariance updates too, completing the
->      patch 1 change for a policy whose CPUs stay online.
+>   - patches 1-4 extend the CPPC data structures and _CPC parser to handle
+>     Package-type entries and parse Resource Priority sub-packages into
+>     structured descriptors.
 >
-> Sumit Gupta (4):
->   cpufreq: CPPC: Keep the policy across CPU hotplug
->   ACPI: CPPC: Make autonomous selection helpers take a u64
->   cpufreq: CPPC: Preserve OSPM-set registers across hotplug and unload
->   cpufreq: CPPC: Preserve OSPM-set registers across suspend/resume
+>   - patches 5-7 refactor existing register I/O helpers to support direct
+>     register access and add accessor functions for Resource Priority
+>     attributes (enable, priority count, priority value).
 >
->  drivers/acpi/cppc_acpi.c       |  20 +-
->  drivers/cpufreq/amd-pstate.c   |   2 +-
->  drivers/cpufreq/cppc_cpufreq.c | 378 ++++++++++++++++++++++++++++++++-
->  include/acpi/cppc_acpi.h       |   8 +-
->  4 files changed, 381 insertions(+), 27 deletions(-)
+>   - patch 8 creates a "resource_priority" sysfs hierarchy under each
+>     cpufreq policy to expose the Resource Priority attributes to userspac=
+e.
 >
-> [1] v1: https://lore.kernel.org/lkml/20260623095403.3407436-1-sumitg@nvid=
-ia.com/
-> [2] v2: https://lore.kernel.org/lkml/20260716153820.2007095-1-sumitg@nvid=
-ia.com/
-> [3] v3: https://lore.kernel.org/lkml/20260724215937.3368276-1-sumitg@nvid=
-ia.com/
-> [4] v4: https://lore.kernel.org/lkml/20260806200857.601152-1-sumitg@nvidi=
-a.com/
+> Changelog:
+> v4:
+>  - Patch 7: Set *num_resources to 0 when controlled resources number
+>    invalid in cppc_get_resource_priority_resources(), therefore, the call=
+er
+>    will not read the unassigned `resources` pointer.
+>  - Patch 8: Remove kfree() from the error path of
+>    cppc_create_res_prio_sysfs() because cppc_res_prio_release() will do i=
+t.
+>
+> v3:
+>  - Patch 2: Add the (i - 2) =3D=3D RESOURCE_PRIORITY condition back to en=
+sure
+>    the new code behaves the same as the original.
+>  - Patch 4: Assign -ENODATA to ret when an unexpected ACPI_TYPE_PACKAGE
+>    appears.
+>  - Patch 5: Initialize the `optional` field of the remaining cpc_regs to
+>    true so that they are treated as unsupported.
+>  - Patch 8: Call cppc_cpufreq_cpu_fie_exit() and set perf to lowest_perf
+>    when cppc_create_res_prio_sysfs() fails. Call kobject_put() and kfree(=
+)
+>    when kobject_init_and_add() fails in cppc_create_res_prio_sysfs().
+>  - Link: https://lore.kernel.org/all/20260812015217.74598-1-zhenglifeng1@=
+huawei.com/
+>
+> v2:
+>  - Patch 1: Revert changes to the CPC_SUPPORTED() macro.
+>  - Link: https://lore.kernel.org/all/20260804085042.4118193-1-zhenglifeng=
+1@huawei.com/
+>
+> v1:
+>  - Link: https://lore.kernel.org/all/20260717024502.3520445-1-zhenglifeng=
+1@huawei.com/
+>
+> ---
+>
+> RFC: sysfs placement
+>
+> The sysfs interface is currently placed under /sys/devices/system/cpu/cpu=
+freq/
+> (i.e. the cpufreq policy directory). I am unsure whether this is the best
+> location and would appreciate reviewer feedback.
+>
+> The concern is that Resource Priority covers resource types beyond CPU
+> frequency control:
+>
+>   - PROCESSOR_BOOST, PROCESSOR_THROTTLE -- clearly CPU-frequency related
+>   - L2_CACHE, L3_CACHE -- cache partitioning, not frequency
+>   - MEMORY_BANDWIDTH -- memory QoS, not frequency
+>
+> Placing the attributes under cpufreq makes sense for boost/throttle but
+> feels semantically wrong for cache and memory bandwidth resources.
+>
+> I would appreciate feedback on whether cpufreq is the right home for
+> this interface, or whether a different location would be more appropriate=
+.
+>
+> Lifeng Zheng (8):
+>   ACPI: CPPC: Prepare cpc_register_resource for Package-type entries
+>   ACPI: CPPC: Refactor element parsing into parse_cpc_element()
+>   ACPI: CPPC: Refactor resource cleanup into free_reg_resource()
+>   ACPI: CPPC: Parse Resource Priority Register entries from _CPC package
+>   ACPI: CPPC: Store optional flag in cpc_register_resource
+>   ACPI: CPPC: Factor out cpc_read_reg() and cpc_write_reg()
+>   ACPI: CPPC: Add Resource Priority accessors
+>   cpufreq: cppc: Expose Resource Priority attributes via sysfs
+>
+>  drivers/acpi/cppc_acpi.c       | 719 +++++++++++++++++++++++++++------
+>  drivers/cpufreq/cppc_cpufreq.c | 281 ++++++++++++-
+>  include/acpi/cppc_acpi.h       |  60 +++
+>  3 files changed, 930 insertions(+), 130 deletions(-)
 >
 > --
-
-Dear CPPC cpufreq driver reviewers, I need your input on this series.
-
-It is not going to be applied without any input from anyone.
-
-Thanks!
+> 2.33.0
+>
+>
