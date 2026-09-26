@@ -1,121 +1,165 @@
-Received: from mail-wr2-f35.google.com (mail-wr2-f35.google.com [74.125.225.99])
+Received: from mail-wr2-f12.google.com (mail-wr2-f12.google.com [74.125.225.76])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D3C940F750
-	for <linux-acpi@vger.kernel.org>; Sat, 26 Sep 2026 11:26:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.99
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 210BE2AEE1
+	for <linux-acpi@vger.kernel.org>; Sat, 26 Sep 2026 13:25:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.76
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790422011; cv=none; b=IozFIwyxxDRw0Cc6Fa6pk9lang4/VDpttNKtvpsfFtNN66QOtd41/At/fJPAjIMrY/4VCy/9rV7g2z5QGUoSUJcif/wi6NpGMSJk6WEc3zRkIDLcGcqSqdEmZVWvYH2Q/VMKKb/b5ed+L44YuKTlb1bAw9nIvHn9xYR8CHQK2dY=
+	t=1790429136; cv=none; b=nGovsFfLF71VqrOEai+2gYwh+Bupi8A6O9cIlpn4t45lkow1NqGmPYUMmuB4FuM/yz/As51To1oBwiE7YWK/PG6vgesn7YkKdZR+WSmfq6Lp763xMVWkDehAjzJ3gM5Oe/6ldAIsi0PgTSS5w3Nt7fclEApQHTGsZ8eBNO8Rgro=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790422011; c=relaxed/simple;
-	bh=1009E+OV49y9ei1QpwSQlS0Y23MikCdVe5F5Y36Ggls=;
-	h=Message-ID:From:To:Cc:Subject:Date:MIME-Version:Content-Type; b=Ho0yDbVtKn+l9YCF3IuOMw8v31+uZoMJC5FSCsYAuAixz/7ZnvHjNB24NpsYQTy/dU/K7OlYCLBwwEliRyox3dRmUnDtO4/PilB1fZ2oeGkStdpG+w3I6pk737wVZx7EqZwXU0MrjbiJsPupGNl/jzUzPNzipz3O4rbxCb2w30A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QTph+3Su; arc=none smtp.client-ip=74.125.225.99
+	s=arc-20240116; t=1790429136; c=relaxed/simple;
+	bh=h++JxUoiT79qLtfzaUJKt0vl4kQpI0eEtljsYu158ig=;
+	h=Message-ID:Date:To:From:Subject:Content-Type:MIME-Version; b=GFC3O6lhZPpDG0awSk1yr8gh0GHlgEWboFXFYe0jqCmJP0LIRsKMgFXWXjXpCQCJchVNiqfhS6pJzEddDwlLZIWQhy1qxfaCcfNc7mzJpyHtgbo5C9oXYrT+A2mWuqmM/4ysxw/L6BrOI0OFbHAHmqAMsDl6426X63pCSahv0v0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jH4uDbcp; arc=none smtp.client-ip=74.125.225.76
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QTph+3Su"
-Received: by mail-wr2-f35.google.com with SMTP id ffacd0b85a97d-4887f6cf16bso916541f8f.0
-        for <linux-acpi@vger.kernel.org>; Sat, 26 Sep 2026 04:26:49 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jH4uDbcp"
+Received: by mail-wr2-f12.google.com with SMTP id ffacd0b85a97d-482f63546c5so1448912f8f.2
+        for <linux-acpi@vger.kernel.org>; Sat, 26 Sep 2026 06:25:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790422007; x=1791026807; darn=vger.kernel.org;
-        h=content-type:mime-version:date:subject:reply-to:cc:to:from
-         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=sHPaExtfhluSdFU0L46Z8nZGmiV0E/2V9Ek+p9fDWZM=;
-        b=QTph+3SuY9X7QpKZJF7A9o1vCffV/4nZPtqS4DhbpLFWPasGqyYny19CSHrNVUf0J2
-         0xH7Wl7Alb0y6OMhsnyXOahXX5gwPTWP396rxgw7LtkI+I4xXu+0ZB4MtGqvevEoOikh
-         jOj8P+dOftkdpfBZpVnLMN3QWgNRdKuckVOqi9PtXR3BqfXI+kBjCMraEBcBt1gt23dD
-         QuRkqDvGcJPxplqCkTFFiGjdWCZ9rWJ0kPHIaM20WfXA0fRDjdUd+Irvc4IIzL1m/F3P
-         jwKIp3juqwY+vyet6p79W7yv2LfIbpbF11ytnF2gEs85yAXdmqt5xveLw8k5jWehxppZ
-         jUIQ==
+        d=gmail.com; s=20251104; t=1790429133; x=1791033933; darn=vger.kernel.org;
+        h=mime-version:content-transfer-encoding:content-type:subject:from:to
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=LOZ9gIso2IWRspMbFidmgoNekkhNnEACrO3NY9FMDeI=;
+        b=jH4uDbcpIyTY6rwC8xhA1eAtrO1TeVR4WMkl55jNWhGCh3fYBwVwdR0JznWcxG3wiY
+         5RMj8Tq/PXKABpLzfzYu+y/urjTu+9SPluVIYA0KhuwXrSYd37ZVh6pyUavya0ekzPO1
+         l2jsHh745EkXekgUZLJS+orHfH+kMg+hJbB6c8JJjmMr1BelDtrtGPkA66x3Br7/EXxF
+         30/qY3HqWi70qsujYQnZaM7vv3OE6lJ/trbrQ1ugCDZDChaK7R44eo1nAIQ23Bd6Vsjp
+         UVXfCDEpjxp88NOfHAMDOY8RaS6AYfNY8hGheMv+krtryVyyMFXdz2kids94qUNtThLx
+         2U5w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790422007; x=1791026807;
-        h=content-type:mime-version:date:subject:reply-to:cc:to:from
-         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=1e100.net; s=20260707; t=1790429133; x=1791033933;
+        h=mime-version:content-transfer-encoding:content-type:subject:from:to
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=sHPaExtfhluSdFU0L46Z8nZGmiV0E/2V9Ek+p9fDWZM=;
-        b=ALg7IBzu4Lzvef3NFiGArPVAL9swTBBLO5UtKxd2HP0/qRtVJ7DGmKkGfoGOX0U3u9
-         e1vSqjmfTUftprtabryMB3BNS0zDHt4xI90CyZ/TYm9mL7dZGEOMX2XXToNviPodUrCH
-         Z2lHaL3U9fb8AUfHBssq/WjfwrzI8X0HlhPMLg+1UNb+TJMZR/j/ThhtWkQvwNNSKvVf
-         azSsjlAl4ZqaXLxyDU+kayg6DKiwGIcBN4yzb8/4xM59ToXCUoK7L93ItYeHM/Av2CD8
-         URdliXNeouhnfQJKKWz7Pod9Juh8FMKNBXKSPYs8oqogYqAahmfwDp3wGEydZTeXYk5+
-         +ezQ==
-X-Gm-Message-State: AFq9FYIMVRRN+Y7v3SBlVGokVZejuIVyqkvwKK3QaJNrc3imzuVmaatl
-	n+A57ok+I+XEivBEH6yWv2R1Eonlldk8hL4JmPIoUUYhx+i/e5EiKfJavunC+Q==
-X-Gm-Gg: AYBFou1ktSWdkO6CDrnVUiWG71LhCQYSagDRZRQ0cJaHOCx1wBrrrNIG9MM6WC3wMnr
-	0x1/7XzMFrLRRB4v7S1H4GO2JmpETG/aufEu4W84MqVDgV5YE83tFIsj/3+8LLOzqZ0HQ53D1o9
-	prxsjuP5AIhiHkUe7ESoKIcgDLpOfym0tBobM4vXDAczOERSpKTbaPQQrVm7qFTe5GkzupSSfli
-	hZCWtAfGBIji8eJQWAjP0ETBXJzJOyXBM2uCgD+zFlo+UNgnCpQK2lmCkOdJnf4MNjXWvfks0X5
-	n8f5hpNKhOcsLvJKHQtm+73SvlrfZy6qspfdD5m6qaUAY6rFZIhqZ5vcXTnmJ2GvDE7RFG10yKR
-	3+CJOC78am05WHEfiBiw1QhLsjgHW/WMKE8lcGuGMKhg2mWQtlF0KVWzZZOIZIhjz0LURwkj+es
-	NDNUiUeudm4FUTMuWd9zQQOFgYQfttAHIZtIgxUOxBd1twBOerCYDeS1UUtnSrnPE2CXQZts2OW
-	xr3IZtz80oOQw+nHdepWnrhuLyOkoIQLELa+Z639vY=
-X-Received: by 2002:a05:6000:4a1d:b0:487:1470:52d9 with SMTP id ffacd0b85a97d-4887d9fa527mr8926154f8f.3.1790422007420;
-        Sat, 26 Sep 2026 04:26:47 -0700 (PDT)
-Received: from bugreport.eml (211.red-79-146-43.dynamicip.rima-tde.net. [79.146.43.211])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4887a84205esm13310130f8f.37.2026.09.26.04.26.46
+        bh=LOZ9gIso2IWRspMbFidmgoNekkhNnEACrO3NY9FMDeI=;
+        b=2niz3eNdEWJg7pPAmdJvD8bZZbcGnbF+oLcYRt5jaQ/2DhXJnuOOb/ue+7JddISlYv
+         gHnpTLZukHZ4ePdiEdkJDzL+jASNnZ+rf84aMlIyO2/++7wdqlqh+KMZEb/l9HibH+yB
+         2Lp7tN2STYptwZocktJH2sm9/zhvE+YaBMritcMq/s3UlxToO6JFF7RvZCBf2PpSaAF4
+         ga4xAHdktmSz/7SdAHWbuTJJSVro05yQuj0TB40JYXnBZH8oOewXI08k4mSUscOWiwYu
+         WYsLIECGHzUi9zO6csnhpnCXGkyK/O9YnKZrY9hoPu1Wqelskthr1YOaQriVIfWaCLDs
+         OE9w==
+X-Gm-Message-State: AFq9FYLufkStafFxzQ+lxNkwATX0OFmuJgPxBzy6TTKHX/PFJFiKHbMS
+	zSQ24U0cT/eJKsmJjHo5SI2Re8+CJsykJa5GBMF+eTuAl9UhPVjjEEIhE/OcCw==
+X-Gm-Gg: AYBFou2Bh093E0tooXgzkfKcZOZRQuHAh8tTaAO7KPGs+ipWAMojOHof+VEdFm7d/ui
+	V6GS21+6cVBqB9YcG+lh53VjqMiHRoowynFRRWbIGUbK26+Cg+hHhtfjpQdPpCHDdCsaAdW3P1+
+	INANwCSv5w3gCTlajDq+Pl3FEc4rLBY+rgBTrQBcmGFfAvRyCsz6PMUB+are6ZHZwPkqPKrhJfJ
+	yEHdMgQ4akFwOa0SE3lg19t05HIdyM94DveLmbnlu03e3L4+A5ZE8LnyxS2LgyfRnnjAYjZPOQe
+	2CEAkYS3yxvFNmyQfvvaO3cHCC6q2qiewKOtU5SjeFvOYjzYBZwtNUyC223ndf6+Vlze2lUBMbI
+	ksiwjm9uEDuRqHgLYEAyc+bcxwhtUi6IjwF9CckqynO8rEG6UpTf1EQAWYhxXyuEDYe2h4bYT2U
+	6FPHXWCR6e4ndODnkTcVtb0jZVOyvkmlNi32lngbMRN2vE0FiIcYvtm3ZabXzCqKXy8Rm2TxCUr
+	+w0SeTsHMeHzDO4uKWo6FMK4fRdJJEImOB8I8tFpg==
+X-Received: by 2002:a05:6000:98f:b0:488:8823:f9ec with SMTP id ffacd0b85a97d-488882404c7mr3238244f8f.34.1790429133297;
+        Sat, 26 Sep 2026 06:25:33 -0700 (PDT)
+Received: from [172.23.0.2] (211.red-79-146-43.dynamicip.rima-tde.net. [79.146.43.211])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4887a6470b7sm13988743f8f.27.2026.09.26.06.25.32
+        for <linux-acpi@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 26 Sep 2026 04:26:47 -0700 (PDT)
-Message-ID: <6ab7abf7.09148f95.17f923.ff4b@mx.google.com>
-From: calvitohq@gmail.com
+        Sat, 26 Sep 2026 06:25:33 -0700 (PDT)
+Message-ID: <6ab7c7cd.aec4f0e4.3a9f4c.54b2@mx.google.com>
+Date: Sat, 26 Sep 2026 06:25:33 -0700 (PDT)
 To: linux-acpi@vger.kernel.org
-Cc: platform-driver-x86@vger.kernel.org
-Reply-To: soytucalvitofavorito@icloud.com
-Subject: [BUG] ACPI battery: BAT1 status "Not charging" and capacity frozen at 99% while discharging (ASUS TUF A16 FA608UMI)
-Date: Sat, 26 Sep 2026 13:25:00 +0200
+From: calvitohq@gmail.com
+Subject: [PATCH] ACPI: battery: Force "Discharging" status on battery for ASUS
+ TUF Gaming A16
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 
-Hi,
+From: Marco <soytucalvitofavorito@icloud.com>
 
-On an ASUS TUF Gaming A16 (FA608UMI), running on battery, the ACPI
-battery reports status "Not charging" and the capacity stays frozen at
-99% even though the battery is actively discharging (~11 W measured via
-current_now). Expected status while on battery is "Discharging".
+On the ASUS TUF Gaming A16 (FA608UMI), after AC is unplugged the ACPI
+_BST status word reports neither the charging nor the discharging bit
+set, so the battery driver reports "Not charging" (and UPower
+"fully-charged") even though the battery is actively discharging
+(current_now stays positive).
 
-Hardware:
-- DMI: ASUS TUF Gaming A16, product FA608UMI (1.0), board FA608UMI
-- CPU: AMD Ryzen 7 260 w/ Radeon 780M Graphics
+This is the same class of firmware bug as the ASUS Vivobook 18
+M1807HA (Launchpad bug 2152185), where the status flips between
+"Full"/"Not charging"/"Discharging". Add a DMI quirk that, when the
+system is running on battery, forces a computed "Full" or
+"Not charging" status to "Discharging".
 
-Software:
-- Distro: Bazzite (Fedora 44 atomic)
-- Kernel: 7.2.4-ogc3.1.fc44.x86_64
+Based on the M1807HA quirk patch by Norman Becker.
 
-Symptom:
-With AC offline (ACAD/online=0), repeated reads give a stable (not
-oscillating) "Not charging":
+Signed-off-by: Marco <soytucalvitofavorito@icloud.com>
+---
+ drivers/acpi/battery.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-  /sys/class/power_supply/BAT1/status       -> "Not charging" (stable)
-  /sys/class/power_supply/BAT1/capacity     -> 99 (frozen; no change over ~40 min)
-  /sys/class/power_supply/BAT1/current_now  -> 617000 (~0.62 A, ~11 W drain)
-  /sys/class/power_supply/BAT1/charge_now   -> 4379000 (frozen)
-  /sys/class/power_supply/BAT1/charge_full  -> 4424000
-
-UPower consequently reports state "fully-charged", percentage 99% and a
-bogus "time to empty", so the desktop shows no meaningful percentage
-while actually discharging.
-
-This looks related to the existing report for the ASUS Vivobook 18
-M1807HA (Launchpad bug 2152185), where status oscillates between
-"Discharging"/"Not charging" while on battery due to inconsistent ACPI
-_BST values. Here it is stuck rather than oscillating.
-
-dmesg shows:
-  ACPI: battery: Slot [BAT1] (battery present)
-  ACPI: battery: new hook: ASUS Battery Extension
-
-I suspect this needs a DMI-matched quirk in drivers/acpi/battery.c to
-force "Discharging" when no AC supply is online, as suggested in that
-earlier report.
-
-I have the DSDT/SSDT (acpidump) available if needed, and I'm happy to
-test patches.
-
-Thanks,
-Marco
-
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -58,6 +58,7 @@
+ static int battery_bix_broken_package;
+ static int battery_notification_delay_ms;
+ static int battery_ac_is_broken;
++static bool battery_force_discharging;
+ static unsigned int cache_time =3D 1000;
+ module_param(cache_time, uint, 0644);
+ MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+@@ -192,6 +193,19 @@
+ 		battery->full_charge_capacity < battery->design_capacity;
+ }
+=20
++static void acpi_battery_force_discharging_fix_status(union power_supply_pro=
+pval *val)
++{
++	if (!battery_force_discharging)
++		return;
++
++	if (power_supply_is_system_supplied())
++		return;
++
++	if (val->intval =3D=3D POWER_SUPPLY_STATUS_FULL ||
++	    val->intval =3D=3D POWER_SUPPLY_STATUS_NOT_CHARGING)
++		val->intval =3D POWER_SUPPLY_STATUS_DISCHARGING;
++}
++
+ static int acpi_battery_get_property(struct power_supply *psy,
+ 				     enum power_supply_property psp,
+ 				     union power_supply_propval *val)
+@@ -250,6 +264,7 @@
+ 			val->intval =3D POWER_SUPPLY_STATUS_FULL;
+ 		else
+ 			val->intval =3D POWER_SUPPLY_STATUS_NOT_CHARGING;
++		acpi_battery_force_discharging_fix_status(val);
+ 		break;
+ 	case POWER_SUPPLY_PROP_PRESENT:
+ 		val->intval =3D acpi_battery_present(battery);
+@@ -1258,6 +1273,13 @@
+ 	return 0;
+ }
+=20
++static int __init
++battery_force_discharging_quirk(const struct dmi_system_id *d)
++{
++	battery_force_discharging =3D true;
++	return 0;
++}
++
+ static const struct dmi_system_id bat_dmi_table[] __initconst =3D {
+ 	{
+ 		/* NEC LZ750/LS */
+@@ -1294,6 +1316,15 @@
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "Surface Go 3"),
+ 		},
+ 	},
++	{
++		/* ASUS TUF Gaming A16 FA608UMI */
++		.callback =3D battery_force_discharging_quirk,
++		.matches =3D {
++			DMI_MATCH(DMI_SYS_VENDOR, "ASUS"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "TUF Gaming A16 FA608UMI"),
++			DMI_MATCH(DMI_BOARD_NAME, "FA608UMI"),
++		},
++	},
+ 	{},
+ };
+=20
