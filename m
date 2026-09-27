@@ -1,165 +1,162 @@
-Received: from mail-wr2-f12.google.com (mail-wr2-f12.google.com [74.125.225.76])
+Received: from mail-wm2-f13.google.com (mail-wm2-f13.google.com [74.125.225.141])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 210BE2AEE1
-	for <linux-acpi@vger.kernel.org>; Sat, 26 Sep 2026 13:25:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.76
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECB75231A3B
+	for <linux-acpi@vger.kernel.org>; Sun, 27 Sep 2026 01:42:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.141
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790429136; cv=none; b=nGovsFfLF71VqrOEai+2gYwh+Bupi8A6O9cIlpn4t45lkow1NqGmPYUMmuB4FuM/yz/As51To1oBwiE7YWK/PG6vgesn7YkKdZR+WSmfq6Lp763xMVWkDehAjzJ3gM5Oe/6ldAIsi0PgTSS5w3Nt7fclEApQHTGsZ8eBNO8Rgro=
+	t=1790473367; cv=none; b=SUtxoCPAEdLjLdrpAa7TI6zgPlTMF0cOFjAZFMs6j84wJfFCDJyJyqrEYoEFu9O1r6aD4WmXf7RnLjmaHC15L88z5JRfMvkxnGVkpKDMAFA2NvtUbo67bgqRmR/tNJoTQSBcuOAtIh26Ck8S6hGRBGwFdeYH8THSak2roeBHhbo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790429136; c=relaxed/simple;
-	bh=h++JxUoiT79qLtfzaUJKt0vl4kQpI0eEtljsYu158ig=;
-	h=Message-ID:Date:To:From:Subject:Content-Type:MIME-Version; b=GFC3O6lhZPpDG0awSk1yr8gh0GHlgEWboFXFYe0jqCmJP0LIRsKMgFXWXjXpCQCJchVNiqfhS6pJzEddDwlLZIWQhy1qxfaCcfNc7mzJpyHtgbo5C9oXYrT+A2mWuqmM/4ysxw/L6BrOI0OFbHAHmqAMsDl6426X63pCSahv0v0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jH4uDbcp; arc=none smtp.client-ip=74.125.225.76
+	s=arc-20240116; t=1790473367; c=relaxed/simple;
+	bh=MUz2w9T6IPyLJD/sYBCRSOg5qWq2x/IjxuRNkNDt/F8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=blCDXaQdvTMrAMhKXMpg1SUpM797ZeW3fXgcDEuXxAjYaX1IOlNVG+8DIPHbHO6n0jSBpZR6C/bRKR+jUITVB730pEm2KgcMXKBXXxIdtdiZtJA42Rc6b4oo70OjyH4ql4ISWcijGpQFMDUfgqlviiERoC+QFNzwvH7eGrzSuCQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Kzski0ug; arc=none smtp.client-ip=74.125.225.141
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jH4uDbcp"
-Received: by mail-wr2-f12.google.com with SMTP id ffacd0b85a97d-482f63546c5so1448912f8f.2
-        for <linux-acpi@vger.kernel.org>; Sat, 26 Sep 2026 06:25:34 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Kzski0ug"
+Received: by mail-wm2-f13.google.com with SMTP id 5b1f17b1804b1-49b912df756so15492005e9.3
+        for <linux-acpi@vger.kernel.org>; Sat, 26 Sep 2026 18:42:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790429133; x=1791033933; darn=vger.kernel.org;
-        h=mime-version:content-transfer-encoding:content-type:subject:from:to
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=LOZ9gIso2IWRspMbFidmgoNekkhNnEACrO3NY9FMDeI=;
-        b=jH4uDbcpIyTY6rwC8xhA1eAtrO1TeVR4WMkl55jNWhGCh3fYBwVwdR0JznWcxG3wiY
-         5RMj8Tq/PXKABpLzfzYu+y/urjTu+9SPluVIYA0KhuwXrSYd37ZVh6pyUavya0ekzPO1
-         l2jsHh745EkXekgUZLJS+orHfH+kMg+hJbB6c8JJjmMr1BelDtrtGPkA66x3Br7/EXxF
-         30/qY3HqWi70qsujYQnZaM7vv3OE6lJ/trbrQ1ugCDZDChaK7R44eo1nAIQ23Bd6Vsjp
-         UVXfCDEpjxp88NOfHAMDOY8RaS6AYfNY8hGheMv+krtryVyyMFXdz2kids94qUNtThLx
-         2U5w==
+        d=gmail.com; s=20251104; t=1790473363; x=1791078163; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=BobMbsh0X9XKX3XYpDfcOJwdkHyKyJ9cvn88xx/myf4=;
+        b=Kzski0ugP8diN8rXQc+akIjnztiqoYTCp5BbuEHxYdAin8iOj9YotY01kjO0c26jC+
+         PJ8AAABXGNWQaJ5yl5R5TddCMTzzQnuucZUhqWPk6kcBRXYSP6EMDsHDvFFXveEceCyZ
+         Q2yohXcCl8mxPYTjkt6rE8MZ6+uJM3M0uWZ0JcYTHIDgfGe4yUAN0nYBAPDLnb9Zmijl
+         Rial8NZCqGCWPk9w4l4KFCYpxgQeaovYI7gLmpxDwt49LXd04hudxmaf4hDYXBPm4aAK
+         vWi2NfV4Jtasy+IDO8QoWB5K1T1lQlCAYLgyRBXyKPdHc/PkRu97VuS5WkFxKfULwA+E
+         oLNg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790429133; x=1791033933;
-        h=mime-version:content-transfer-encoding:content-type:subject:from:to
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=1e100.net; s=20260707; t=1790473363; x=1791078163;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=LOZ9gIso2IWRspMbFidmgoNekkhNnEACrO3NY9FMDeI=;
-        b=2niz3eNdEWJg7pPAmdJvD8bZZbcGnbF+oLcYRt5jaQ/2DhXJnuOOb/ue+7JddISlYv
-         gHnpTLZukHZ4ePdiEdkJDzL+jASNnZ+rf84aMlIyO2/++7wdqlqh+KMZEb/l9HibH+yB
-         2Lp7tN2STYptwZocktJH2sm9/zhvE+YaBMritcMq/s3UlxToO6JFF7RvZCBf2PpSaAF4
-         ga4xAHdktmSz/7SdAHWbuTJJSVro05yQuj0TB40JYXnBZH8oOewXI08k4mSUscOWiwYu
-         WYsLIECGHzUi9zO6csnhpnCXGkyK/O9YnKZrY9hoPu1Wqelskthr1YOaQriVIfWaCLDs
-         OE9w==
-X-Gm-Message-State: AFq9FYLufkStafFxzQ+lxNkwATX0OFmuJgPxBzy6TTKHX/PFJFiKHbMS
-	zSQ24U0cT/eJKsmJjHo5SI2Re8+CJsykJa5GBMF+eTuAl9UhPVjjEEIhE/OcCw==
-X-Gm-Gg: AYBFou2Bh093E0tooXgzkfKcZOZRQuHAh8tTaAO7KPGs+ipWAMojOHof+VEdFm7d/ui
-	V6GS21+6cVBqB9YcG+lh53VjqMiHRoowynFRRWbIGUbK26+Cg+hHhtfjpQdPpCHDdCsaAdW3P1+
-	INANwCSv5w3gCTlajDq+Pl3FEc4rLBY+rgBTrQBcmGFfAvRyCsz6PMUB+are6ZHZwPkqPKrhJfJ
-	yEHdMgQ4akFwOa0SE3lg19t05HIdyM94DveLmbnlu03e3L4+A5ZE8LnyxS2LgyfRnnjAYjZPOQe
-	2CEAkYS3yxvFNmyQfvvaO3cHCC6q2qiewKOtU5SjeFvOYjzYBZwtNUyC223ndf6+Vlze2lUBMbI
-	ksiwjm9uEDuRqHgLYEAyc+bcxwhtUi6IjwF9CckqynO8rEG6UpTf1EQAWYhxXyuEDYe2h4bYT2U
-	6FPHXWCR6e4ndODnkTcVtb0jZVOyvkmlNi32lngbMRN2vE0FiIcYvtm3ZabXzCqKXy8Rm2TxCUr
-	+w0SeTsHMeHzDO4uKWo6FMK4fRdJJEImOB8I8tFpg==
-X-Received: by 2002:a05:6000:98f:b0:488:8823:f9ec with SMTP id ffacd0b85a97d-488882404c7mr3238244f8f.34.1790429133297;
-        Sat, 26 Sep 2026 06:25:33 -0700 (PDT)
-Received: from [172.23.0.2] (211.red-79-146-43.dynamicip.rima-tde.net. [79.146.43.211])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4887a6470b7sm13988743f8f.27.2026.09.26.06.25.32
-        for <linux-acpi@vger.kernel.org>
+        bh=BobMbsh0X9XKX3XYpDfcOJwdkHyKyJ9cvn88xx/myf4=;
+        b=KUPYbG14BNJkvrsIX9ZnABM/MkeayrrtDTFH/RAXbM2GegnKctES29S/mC7JadYt58
+         z6NfEsRCHuzDJgtyfPSr5ZtaJPNEornSY+pwj6bwtEgtLc8q9g6G8HgjeDAQMjrgilkL
+         17nDXOogHYbC5PkpeZT4zqIABsbBsdYn+IahKxVG3Tro9iH6jtxNT0oDrH83d0bttOxx
+         eSKCHm91y3bXfKMD7bwAHhpkGIL6MVa5iuMtghE0jAvWLr42rgPKuKFCtXKoOhS280cn
+         T2fHq2LSZDR7/Msiigkz/6oah0yFG9unpR4idmjAAKfn1pcJ828HdegG4pwmdPQLpxJ8
+         jtEA==
+X-Forwarded-Encrypted: i=1; AKwUvBwyprh6SMamVj6K/fBpJD0saqJEe2Qb+DlSI91wNClqUtG/NyGpRmVpgjvq41hAdBcYrm1/f1f60LJ/@vger.kernel.org
+X-Gm-Message-State: AFuF++niTFp67wa/s7q/Nm62K1YDx6YQrjAxxEH9nk/8NSqNdmf3Kjtb
+	JqavegaA7lsRfMyTbbqt7XzGcQI9gOtzTGi1Xj3i+rnnaVVSQSLdVrxc
+X-Gm-Gg: AYBFou37SU/h9fJZ4LqtrO/FzhrtWmeNJPZh/FJuiJbGqbGDnmpt7vmegZx0pPZmTs9
+	Ab7cH+ACOkZruZYgoVTX/p4Vlvc8PM7ScDQfF2f87r2fJLA+IJwfF7+sPSVUl6zKuyX8EjwMoIU
+	epXBpNFKIvK9NIFptxR3e4OnXwde6LrUzPJMVRROUzKT9o6ZzVF6lroVHwYJ2Gzct9w2xy3MSp6
+	TEqXkPF991ZizrlyxvT8tVBognvkTdFkorDTJe5gIebaneDS2zzdn0hxzE+DB/US//cAbTsxn1s
+	6GgBH96zAsSNRHaV0q+Ew89fBcXdyflCHpFn/6MIZDqHfhrsMr5IMROWrPZS8/13LSxQSC2bbxw
+	DSE1l+s8CgveNPhelOE3jRqkVIZy7BCwDZTdbjkeY8OTWkcaI3/IIzBoatbrY+TNtevImohEQ+g
+	DCCyevgmrNxUfuk53WFqfOCDADyUmi1fV7OKjMI1EYvLLVB09qGVY5FAnRT9ZLFCfz6TYMWe4=
+X-Received: by 2002:a05:600c:3514:b0:49f:ce72:e931 with SMTP id 5b1f17b1804b1-49fe6701e7emr165732325e9.35.1790473363268;
+        Sat, 26 Sep 2026 18:42:43 -0700 (PDT)
+Received: from ASUS ([85.105.252.11])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a001778312sm44267655e9.8.2026.09.26.18.42.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 26 Sep 2026 06:25:33 -0700 (PDT)
-Message-ID: <6ab7c7cd.aec4f0e4.3a9f4c.54b2@mx.google.com>
-Date: Sat, 26 Sep 2026 06:25:33 -0700 (PDT)
-To: linux-acpi@vger.kernel.org
-From: calvitohq@gmail.com
-Subject: [PATCH] ACPI: battery: Force "Discharging" status on battery for ASUS
- TUF Gaming A16
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+        Sat, 26 Sep 2026 18:42:42 -0700 (PDT)
+From: Bartu Alev <bartualev@gmail.com>
+To: Linus Walleij <linusw@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Mika Westerberg <westeri@kernel.org>
+Cc: Mario Limonciello <superm1@kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Bartu Alev <bartualev@gmail.com>
+Subject: [PATCH] gpiolib: acpi: Ignore AC adapter wakeup on ASUS FA507
+Date: Sun, 27 Sep 2026 04:42:12 +0300
+Message-ID: <20260927014212.302743-1-bartualev@gmail.com>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-From: Marco <soytucalvitofavorito@icloud.com>
+The ASUS TUF Gaming A15 FA507 wakes from s2idle whenever the AC
+adapter is plugged in or unplugged.
 
-On the ASUS TUF Gaming A16 (FA608UMI), after AC is unplugged the ACPI
-_BST status word reports neither the charging nor the discharging bit
-set, so the battery driver reports "Not charging" (and UPower
-"fully-charged") even though the battery is actively discharging
-(current_now stays positive).
+In the CPMGPIO0 SSDT, GPIO pin 23 (0x0017) is declared in the
+\_SB.GPIO._AEI resource template as:
 
-This is the same class of firmware bug as the ASUS Vivobook 18
-M1807HA (Launchpad bug 2152185), where the status flips between
-"Full"/"Not charging"/"Discharging". Add a DMI quirk that, when the
-system is running on battery, forces a computed "Full" or
-"Not charging" status to "Discharging".
+    GpioInt (Edge, ActiveBoth, ExclusiveAndWake, PullNone, 0x0000,
+             "\\_SB.GPIO", 0x00, ResourceConsumer, ,)
+             { 0x0017 }
 
-Based on the M1807HA quirk patch by Norman Becker.
+and the corresponding \_SB.GPIO._EVT handler issues a device wake
+notification for the AC adapter on pin 23 events:
 
-Signed-off-by: Marco <soytucalvitofavorito@icloud.com>
+    Case (0x17)
+    {
+        Notify (\_SB.ACAD, 0x02) // Device Wake
+        Sleep (0x05)
+        Notify (\_SB.ACAD, 0x80) // Status Change
+    }
+
+Both AC plug and unplug transitions therefore trigger a spurious
+wakeup from s2idle. Add an ignore_wake quirk for this pin.
+
+Signed-off-by: Bartu Alev <bartualev@gmail.com>
 ---
- drivers/acpi/battery.c | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+Hi,
 
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -58,6 +58,7 @@
- static int battery_bix_broken_package;
- static int battery_notification_delay_ms;
- static int battery_ac_is_broken;
-+static bool battery_force_discharging;
- static unsigned int cache_time =3D 1000;
- module_param(cache_time, uint, 0644);
- MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
-@@ -192,6 +193,19 @@
- 		battery->full_charge_capacity < battery->design_capacity;
- }
-=20
-+static void acpi_battery_force_discharging_fix_status(union power_supply_pro=
-pval *val)
-+{
-+	if (!battery_force_discharging)
-+		return;
-+
-+	if (power_supply_is_system_supplied())
-+		return;
-+
-+	if (val->intval =3D=3D POWER_SUPPLY_STATUS_FULL ||
-+	    val->intval =3D=3D POWER_SUPPLY_STATUS_NOT_CHARGING)
-+		val->intval =3D POWER_SUPPLY_STATUS_DISCHARGING;
-+}
-+
- static int acpi_battery_get_property(struct power_supply *psy,
- 				     enum power_supply_property psp,
- 				     union power_supply_propval *val)
-@@ -250,6 +264,7 @@
- 			val->intval =3D POWER_SUPPLY_STATUS_FULL;
- 		else
- 			val->intval =3D POWER_SUPPLY_STATUS_NOT_CHARGING;
-+		acpi_battery_force_discharging_fix_status(val);
- 		break;
- 	case POWER_SUPPLY_PROP_PRESENT:
- 		val->intval =3D acpi_battery_present(battery);
-@@ -1258,6 +1273,13 @@
- 	return 0;
- }
-=20
-+static int __init
-+battery_force_discharging_quirk(const struct dmi_system_id *d)
-+{
-+	battery_force_discharging =3D true;
-+	return 0;
-+}
-+
- static const struct dmi_system_id bat_dmi_table[] __initconst =3D {
- 	{
- 		/* NEC LZ750/LS */
-@@ -1294,6 +1316,15 @@
- 			DMI_MATCH(DMI_PRODUCT_NAME, "Surface Go 3"),
+I tested this quirk on my FA507NV and it completely resolves the
+s2idle wake issue.
+
+FA507 ACPI disassembly:
+https://gitlab.com/voidvore/reverse-engineering/-/blob/fa507/fa507/FA507NV_FA507NV.318/disassembly/ssdt26-cpmgpio0.dsl#L263-269
+
+FA506 (same pin 23 handler):
+https://gitlab.com/asus-linux/reverse-engineering/-/blob/master/FA506NCR_FA506NCR.304/disassembly/ssdt8.dsl#L263-268
+
+GA403UI (same pin 23 handler):
+https://gitlab.com/asus-linux/reverse-engineering/-/blob/master/uncategorized/GA403UI/ssdt18.dsl#L267-273
+
+I have one question: this issue is probably present across the whole
+TUF series. If I acpidump more TUF models in the future and they all map
+to the same GPIO pin, should the quirk list the board names one by
+one (FA507, FA506, FA707, ...) or match on the product family ('ASUS TUF
+Gaming A15', 'ASUS TUF Gaming A16' or 'ASUS TUF Gaming')?
+
+The DMI outputs on my FA507NV laptop are as follows:
+
+  board_name:     FA507NV
+  board_vendor:   ASUSTeK COMPUTER INC.
+  product_family: ASUS TUF Gaming A15
+  product_name:   ASUS TUF Gaming A15 FA507NV_FA507NV
+  
+Thanks,
+Bartu
+
+ drivers/gpio/gpiolib-acpi-quirks.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/gpio/gpiolib-acpi-quirks.c b/drivers/gpio/gpiolib-acpi-quirks.c
+index a0116f004975..6d56ea0d0581 100644
+--- a/drivers/gpio/gpiolib-acpi-quirks.c
++++ b/drivers/gpio/gpiolib-acpi-quirks.c
+@@ -392,6 +392,15 @@ static const struct dmi_system_id gpiolib_acpi_quirks[] __initconst = {
+ 			.ignore_wake = "VEN_0488:00@355",
  		},
  	},
 +	{
-+		/* ASUS TUF Gaming A16 FA608UMI */
-+		.callback =3D battery_force_discharging_quirk,
-+		.matches =3D {
-+			DMI_MATCH(DMI_SYS_VENDOR, "ASUS"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "TUF Gaming A16 FA608UMI"),
-+			DMI_MATCH(DMI_BOARD_NAME, "FA608UMI"),
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "FA507"),
++		},
++		.driver_data = &(struct acpi_gpiolib_dmi_quirk) {
++			.ignore_wake = "AMDI0030:00@23",
 +		},
 +	},
- 	{},
+ 	{} /* Terminating entry */
  };
-=20
+ 
+-- 
+2.55.0
+
