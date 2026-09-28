@@ -1,254 +1,182 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 46708547052;
-	Mon, 28 Sep 2026 15:19:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 261594E3ED9;
+	Mon, 28 Sep 2026 16:15:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790608756; cv=none; b=Tp+qUA1SZUbbJcWeAvCaKfWhY3qIkfVnc3YsPcjq6U/5mIIVGDTT9f2mx6n1KGR9Oq4lAn4c26czPfXUUstBOfWvAiMrNFdt8iY0K3WP3+Z0Pjm59pQh3zKm0F25/T/eZRgfXzpmsoGn7wFksJdTe8cwATJEp5Gb60G7AXx8/uA=
+	t=1790612154; cv=none; b=kKHK3Cc0J6Qk4kvQ2nis3OxjN0S+fKrSrCYidn5KnRKfwmccwD4RwqoWof3iqAhfou0ATD2t0HjZ7G1S/XtHishzpXU/qAqhFsdPKlWTuPnKCnarBbOujkEGr9gaR0lYLwFxs8iHwegUv9LfZgc90mOgWjo6EYYUlYXaQidJZRs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790608756; c=relaxed/simple;
-	bh=2GOz34l7ZuP2xTH5AFBhWdZi4hxnXdSdFJDa738reiw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=t32UUqPRmqGfhtgsYxDXTDv2tlK1jBCkCIAzbG/Xd53A0sV+hC+wRuo1NOhFYU36bQdz1ltcpcUl8BJEP1DqrL0I+gzrxQUGDw2gNwFIbbIQuKPnnlyK6GAwGtieM2C23N9X6K6eM74x0XVQ1s2sNaSL6zYT2Ha94pBSYZQk/Ts=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=Kny/YJ5o; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1790612154; c=relaxed/simple;
+	bh=NBi35zgVWB8MqkxkWlsVFiB0wIq4HnqVXz0vrvfr3U4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=pyxLxBx8QxSk4Lfn3Tn53BYCSyw8tJQD5dBeRWKipGgMHcmjJi35hr4e9WbS2B6fLf8kv/cqhVMWaJG71eqh9teBOyuPJxPYm4EqNGGif9xQ3+ZvIF5fmq+3+X1J1TSKJaqngNBHqX+YeFZU71pY7dKqSarGN9+q11sUEL6RSFg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=E7TBTail; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="Kny/YJ5o"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 21EBD1C00;
-	Mon, 28 Sep 2026 08:19:10 -0700 (PDT)
-Received: from [10.57.52.74] (unknown [10.57.52.74])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 7E2863F763;
-	Mon, 28 Sep 2026 08:19:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1790608753; bh=2GOz34l7ZuP2xTH5AFBhWdZi4hxnXdSdFJDa738reiw=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=Kny/YJ5oWUrrfV/Q4MoRVHD86LDnzNEJIqygb9EPX3QquEUWdoOjXcnYV5GHomBpM
-	 lir1QWlRR15n7TXBflYGtjczGLSt7dBkZOqHqBT4pO+UXTal6gCnOFDhVqK9yEqaOA
-	 UQ2tUhgqBnEbvxbOXjb2l9PHnFTunyJeAyehhNoE=
-Message-ID: <e539dce2-1b2a-45cc-9ea8-1ab0e0f11972@arm.com>
-Date: Mon, 28 Sep 2026 16:19:07 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="E7TBTail"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B11C1F000FF;
+	Mon, 28 Sep 2026 16:15:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790612145;
+	bh=l63NqOrmYS7OWhnyJ46rzvQOga2GpeIrimZGoJ6BZws=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=E7TBTailbJXOF3b09WyFbluQXA60619reCTcV7CQ8hJeZCyDd6THls1fDs19vu297
+	 rR8SB4jBUdSOQTOpSseq0eWB41RvN0qZxgmRWpVKttlRSOeEIH2zcQaW2s1qEQs69+
+	 7GHhCbXYaYZwxllF7ZgNBetbO0b5OTBSLiFcOwWXoZ70fNgQIn9EVOG7QvsjSN86h9
+	 bR9/gaur1nLKsyx/xu1xCgSsZcueblotdLbcBhLHDeKYXMNEY3/kvd0/mYVIRkENTn
+	 OTrF6qIVtKG2xPxWS4ltlL1jAN4ULI0HH5IKQvP7EWRacMLtO9t5xcrqInQ+Ur/f3K
+	 t5632UFq8n2PQ==
+Date: Mon, 28 Sep 2026 18:15:37 +0200
+From: Lorenzo Pieralisi <lpieralisi@kernel.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <maz@kernel.org>,
+	Daniel Lezcano <daniel.lezcano@kernel.org>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Wim Van Sebroeck <wim@linux-watchdog.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	driver-core@lists.linux.dev, linux-watchdog@vger.kernel.org
+Subject: Re: [PATCH RFC 02/11] ACPI: Introduce irq_get() for static fwnodes
+Message-ID: <arqSqcoWAkhy-8do@red-moon>
+References: <20260925-acpi-static-table-irq-probe-defer-v1-0-2c62125d0085@kernel.org>
+ <20260925-acpi-static-table-irq-probe-defer-v1-2-2c62125d0085@kernel.org>
+ <arZDwutoadki7tiZ@ashevche-desk.local>
+ <arZNL9BnTGK0Klwc@red-moon>
+ <arZS4vwxps01dGb7@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v7 2/3] cpufreq: CPPC: Add ospm_nominal_freq attribute
-To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
- viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
- zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, lenb@kernel.org,
- saket.dumbre@intel.co, mario.limonciello@amd.com,
- linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
- linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
- linux-tegra@vger.kernel.org
-Cc: treding@nvidia.com, jonathanh@nvidia.com, vsethi@nvidia.com,
- ksitaraman@nvidia.com, sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
-References: <20260807214837.863209-1-sumitg@nvidia.com>
- <20260807214837.863209-3-sumitg@nvidia.com>
-Content-Language: en-US
-From: Christian Loehle <christian.loehle@arm.com>
-In-Reply-To: <20260807214837.863209-3-sumitg@nvidia.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <arZS4vwxps01dGb7@ashevche-desk.local>
 
-On 8/7/26 22:48, Sumit Gupta wrote:
-> OSPM Nominal Performance (ACPI 6.6, Section 8.4.6.1.2.6) lets the OS
-> request a nominal performance level below the platform-reported one. The
-> platform treats performance above that level as boosted and below it as
-> throttled for its power and thermal decisions. A lower value moves that
-> boundary down, so sustained work runs at a lower point while the range
-> above it remains available as boost.
+On Fri, Sep 25, 2026 at 01:54:26PM +0300, Andy Shevchenko wrote:
+> On Fri, Sep 25, 2026 at 12:30:07PM +0200, Lorenzo Pieralisi wrote:
+> > On Fri, Sep 25, 2026 at 12:49:54PM +0300, Andy Shevchenko wrote:
+> > > On Fri, Sep 25, 2026 at 09:48:01AM +0200, Lorenzo Pieralisi wrote:
 > 
-> Expose it as a per-policy cpufreq attribute in kHz, matching the unit
-> convention of the other frequency attributes:
+> ...
 > 
->   /sys/devices/system/cpu/cpuX/cpufreq/ospm_nominal_freq
+> > > > +static int acpi_static_fwnode_read_u32_prop_index(const struct fwnode_handle *fwnode,
+> > > > +						  const char *propname,
+> > > > +						  unsigned int index, u32 *value)
+> > > > +{
+> > > > +	u32 *values;
+> > > > +	int ret, count;
+> > > > +
+> > > > +	count = fwnode_property_count_u32(fwnode, propname);
+> > > > +	if (count < 0)
+> > > > +		return count;
+> > > > +
+> > > > +	if (index >= count)
+> > > > +		return -ENOENT;
+> > > > +
+> > > > +	values = kcalloc(count, sizeof(*values), GFP_KERNEL);
+> > > > +	if (!values)
+> > > > +		return -ENOMEM;
+> > > > +
+> > > > +	ret = fwnode_property_read_u32_array(fwnode, propname, values, count);
+> > > > +	if (!ret)
+> > > > +		*value = values[index];
+> > > 
+> > > Use standard pattern, id est
+> > > 
+> > > 	if (ret)
+> > > 		...
+> > > 
+> > > > +	kfree(values);
+> > > 
+> > > You want to use __free()
+> > > 
+> > > > +	return ret;
+> > > > +}
+> > > 
+> > > I believe the whole approach is suboptimal, if you wish get indexed value (but why?)
+> > 
+> > Why what (that's what the irq_get() interface requires ?) I agree it is
+> > suboptimal - the whole point of the series is an RFC on using properties
+> > to store GSI number/flags, then how to read them we will optimize it
+> > when/if we agree that's the approach to be taken.
 > 
-> The attribute is write-only as the register cannot be read back. Writes
-> are converted with cppc_khz_to_perf() and rejected unless they fall in
-> [Lowest Performance, Nominal Performance].
+> Why to have indexed APIs. The callers usually do not want a single item from an
+> array, they want all of them or a big pile (exception is the array of strings,
+> but we have matching functions for that).
 > 
-> Also track the register in the OSPM-set save/restore table, so a
-> requested value survives CPU hotplug and suspend/resume. The store
-> handler records the request rather than init() capturing a firmware
-> value, and driver unload reverts the register to the platform-reported
-> Nominal Performance.
-> 
-> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
-> ---
->  .../ABI/testing/sysfs-devices-system-cpu      | 24 +++++++
->  drivers/cpufreq/cppc_cpufreq.c                | 70 +++++++++++++++++--
->  2 files changed, 90 insertions(+), 4 deletions(-)
-> 
-> diff --git a/Documentation/ABI/testing/sysfs-devices-system-cpu b/Documentation/ABI/testing/sysfs-devices-system-cpu
-> index 82d10d556cc8..59aafcb2af97 100644
-> --- a/Documentation/ABI/testing/sysfs-devices-system-cpu
-> +++ b/Documentation/ABI/testing/sysfs-devices-system-cpu
-> @@ -346,6 +346,30 @@ Description:	Performance Limited
->  
->  		This file is only present if the cppc-cpufreq driver is in use.
->  
-> +What:		/sys/devices/system/cpu/cpuX/cpufreq/ospm_nominal_freq
-> +Date:		August 2026
-> +Contact:	linux-pm@vger.kernel.org
-> +Description:	OSPM Nominal Performance (kHz), write-only
+> As per approach, this patch is against device property and I don't think we are
+> going to agree on the approach taken in *this* patch.
 
-IMO exposing this as write-only feels an awkward interface, when we can just
-return (-EOPNOTSUPP, requested_val, or <unset>)?
+Coming back to this, what is needed here is a way to stash the GSI number,
+flags and name in stardard storage (like OF nodes IRQ properties, ACPI objects
+_CRS, etc).
 
-> +
-> +		OSPM uses this attribute to request a nominal performance level
-> +		lower than the platform-reported nominal. The platform treats
-> +		performance above this level as boost and below as throttle for
-> +		power and thermal decisions.
-> +
-> +		Write a value in kHz, between the frequencies corresponding to
-> +		Lowest Performance and Nominal Performance. The register cannot
-> +		be read back, so this attribute has no read side.
-> +
-> +		Note that tasks may be migrated from one CPU to another by the
-> +		scheduler's load-balancing algorithm, and if different OSPM
-> +		Nominal Performance values are set for those CPUs (through
-> +		different cpufreq policies), that may lead to undesirable
-> +		outcomes. To avoid such issues it is better to set the same
-> +		value across all policies, or to pin every task potentially
-> +		sensitive to it to a specific CPU.
-> +
-> +		This file is only present if the cppc-cpufreq driver is in use.
-> +
->  What:		/sys/devices/system/cpu/cpu*/cache/index3/cache_disable_{0,1}
->  Date:		August 2008
->  KernelVersion:	2.6.27
-> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-> index 32f38b0c492b..fe714e71826a 100644
-> --- a/drivers/cpufreq/cppc_cpufreq.c
-> +++ b/drivers/cpufreq/cppc_cpufreq.c
-> @@ -33,11 +33,13 @@ static struct cpufreq_driver cppc_cpufreq_driver;
->   * reapplied from online() across CPU hotplug, and the firmware value is
->   * restored from offline().
->   *
-> - * Autonomous Selection (auto_sel) is kept first, as writes to the registers
-> - * listed after it only have meaning while autonomous selection is enabled.
-> + * Autonomous Selection (auto_sel) splits the list: the registers before it are
-> + * independent of it, and those after it have meaning only while autonomous
-> + * selection is enabled. Place a new register on the matching side.
->   */
->  enum cppc_saved_reg_id {
-> -	CPPC_SAVED_AUTO_SEL,
-> +	CPPC_SAVED_OSPM_NOMINAL_PERF,
-> +	CPPC_SAVED_AUTO_SEL,	/* Entries below need auto_sel enabled. */
->  	CPPC_SAVED_EPP,
->  	CPPC_SAVED_AUTO_ACT_WINDOW,
->  	CPPC_NR_SAVED_REGS,
-> @@ -50,6 +52,11 @@ struct cppc_saved_reg {
->  };
->  
->  static const struct cppc_saved_reg cppc_saved_regs[CPPC_NR_SAVED_REGS] = {
-> +	/* Write-only: the requested value is tracked in software. */
-> +	[CPPC_SAVED_OSPM_NOMINAL_PERF] = {
-> +		.name = "ospm_nominal_perf",
-> +		.set = cppc_set_ospm_nominal_perf,
-> +	},
->  	[CPPC_SAVED_AUTO_SEL] = {
->  		.name = "auto_sel",
->  		.get = cppc_get_auto_sel,
-> @@ -79,6 +86,9 @@ enum cppc_saved_type {
->   *                   could not be read
->   *   requested_val - value in effect when the policy last went offline,
->   *                   reapplied at online(). U64_MAX if none
-> + *
-> + * A write-only register cannot be read back, so its store handler sets
-> + * firmware_val and requested_val instead of init() and offline().
->   */
->  struct cppc_saved_vals {
->  	u64 firmware_val;
-> @@ -135,7 +145,17 @@ static void cppc_cpufreq_save_regs(struct cpufreq_policy *policy,
->  		st->suspend_regs_handled = false;
->  
->  	for (i = 0; i < CPPC_NR_SAVED_REGS; i++) {
-> -		if (cppc_saved_regs[i].get(cpu, &val))
-> +		const struct cppc_saved_reg *reg = &cppc_saved_regs[i];
-> +
-> +		/*
-> +		 * A write-only register cannot be read back. It has no
-> +		 * firmware value to capture, and its requested value comes
-> +		 * from the store handler, so do not overwrite it here.
-> +		 */
-> +		if (!reg->get && saved_type == CPPC_SAVED_REQUESTED)
-> +			continue;
-> +
-> +		if (!reg->get || reg->get(cpu, &val))
->  			val = U64_MAX;
->  
->  		if (saved_type == CPPC_SAVED_FIRMWARE) {
-> @@ -197,6 +217,12 @@ static void cppc_cpufreq_apply_saved_regs(struct cpufreq_policy *policy,
->  	u64 auto_sel, val;
->  	int i;
->  
-> +	/* Registers before auto_sel do not depend on it. */
-> +	for (i = 0; i < CPPC_SAVED_AUTO_SEL; i++) {
-> +		val = cppc_cpufreq_saved_reg_value(st, i, saved_type);
-> +		cppc_cpufreq_write_saved_reg(cpu, i, val, saved_type);
-> +	}
-> +
->  	auto_sel = cppc_cpufreq_saved_reg_value(st, CPPC_SAVED_AUTO_SEL,
->  						saved_type);
->  
-> @@ -1385,11 +1411,46 @@ static int cppc_get_perf_limited_filtered(int cpu, u64 *perf_limited)
->  CPPC_CPUFREQ_ATTR_RW_U64(perf_limited, cppc_get_perf_limited_filtered,
->  			 cppc_set_perf_limited)
->  
-> +static ssize_t store_ospm_nominal_freq(struct cpufreq_policy *policy,
-> +				       const char *buf, size_t count)
-> +{
-> +	struct cppc_cpudata *cpu_data = policy->driver_data;
-> +	struct cppc_saved_vals *st;
-> +	unsigned int freq_khz;
-> +	u32 perf;
-> +	int ret;
-> +
-> +	ret = kstrtouint(buf, 0, &freq_khz);
-> +	if (ret)
-> +		return ret;
-> +
-> +	perf = cppc_khz_to_perf(&cpu_data->perf_caps, freq_khz);
-> +	if (perf < cpu_data->perf_caps.lowest_perf ||
-> +	    perf > cpu_data->perf_caps.nominal_perf)
-> +		return -EINVAL;
-> +
-> +	ret = cppc_set_ospm_nominal_perf(policy->cpu, perf);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/*
-> +	 * Track the request in software: requested_val is reapplied across
-> +	 * hotplug, and firmware_val makes the register revert to the platform
-> +	 * Nominal on driver unload, since the value cannot be read back.
-> +	 */
-> +	st = &cppc_cpufreq_policy_state(policy)->regs[CPPC_SAVED_OSPM_NOMINAL_PERF];
-> +	st->requested_val = perf;
-> +	st->firmware_val = cpu_data->perf_caps.nominal_perf;
-> +
-> +	return count;
-> +}
-> +
->  cpufreq_freq_attr_ro(freqdomain_cpus);
->  cpufreq_freq_attr_rw(auto_select);
->  cpufreq_freq_attr_rw(auto_act_window);
->  cpufreq_freq_attr_rw(energy_performance_preference_val);
->  cpufreq_freq_attr_rw(perf_limited);
-> +cpufreq_freq_attr_wo(ospm_nominal_freq);
->  
->  static struct freq_attr *cppc_cpufreq_attr[] = {
->  	&freqdomain_cpus,
-> @@ -1397,6 +1458,7 @@ static struct freq_attr *cppc_cpufreq_attr[] = {
->  	&auto_act_window,
->  	&energy_performance_preference_val,
->  	&perf_limited,
-> +	&ospm_nominal_freq,
->  	NULL,
->  };
->  
+To give you some background, I thought about adding an array of:
 
+GSI [number, flags, name]
+
+to the ACPI static fwnode itself. Then basically the irq_get() API has got
+all the information it needs from the primary fwnode; while doing that I
+thought that this might have been a bit like reinventing software nodes
+(granted, software node properties are ways more general that what I suggest
+above and I don't expect any other property to be ever added to static fwnodes)
+that's why I put together the series as it is, precisely to understand what's
+best.
+
+When you say "against device property", what do you mean precisely ?
+
+I suppose you mean that this approach goes against software node properties
+usage guidelines ?
+
+Anyway, again, it is just to provide some context, we are talking about
+a bunch of platform devices, it is nice to have a generic solution but
+it has to be simple enough too given its scope, I understand very well
+your concern with this approach as-is - it is there to find a way
+forward together and show what the problem is.
+
+Thanks,
+Lorenzo
+
+> > > it needs to be retrieved as that in the guts of ACPI. Allocating memory for the whole
+> > > array to retrieve a single element is simply wrong.
+> 
+> ...
+> 
+> > > > +#define ACPI_IRQ_PROP_GSI		"linux,acpi-gsi"
+> > > > +#define ACPI_IRQ_PROP_GSI_TRIGGER	"linux,acpi-gsi-trigger"
+> > > > +#define ACPI_IRQ_PROP_GSI_POLARITY	"linux,acpi-gsi-polarity"
+> > > 
+> > > Oh... This sounds like a big ugly hack.
+> > 
+> > That does not help much I am afraid.
+> > 
+> > What's a ugly hack ? Property names ? Using properties for this purpose ?
+> 
+> Yes, properties started with "linux," for some core functionality.
+> Yes, using properties for this also doesn't sound right. I think the problem
+> here is in the table specifications or somewhere that deep. That's why we
+> ended up in this series.
+> 
+> > Again, it is an RFC for this specific reason and I mentioned that in the
+> > cover letter, thank you for your inputs.
+> 
+> And here we have a discussion started :-)
+> 
+> P.S. Looks like I was too quick to jump into this thread. I will wait for
+> others to share their view on all this.
+> 
+> -- 
+> With Best Regards,
+> Andy Shevchenko
+> 
+> 
