@@ -1,167 +1,234 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3524F3D47DA;
-	Tue, 29 Sep 2026 14:44:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E997052CCD6
+	for <linux-acpi@vger.kernel.org>; Tue, 29 Sep 2026 16:35:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790693075; cv=none; b=h7UOYMlzZAp+DjMIhdkoRm/2WHV3KcLj0gXi4UqOuXgM3ibF2PoXRwVKbXFrqDyJBOJ5hq2Q6VnxUgds6KHa0dty5dVeONarumZWwEbWDjrT3PwkV7foMN3TLJmUA5SnPeXVXqk/uQS9gslR7se94rRCLcu12NSS69tqZvGNQRk=
+	t=1790699726; cv=none; b=IDPm3++Q8UldohP/4E1JYRRDYIxGnDBNkotkgQHLjX/uy3KBCYhhaJc4BIj2GAB/cr5UqJm7zwwQYSsWLI5e8S42KEubFk+wHg938SB6LXmsyaGOdlalLvuk2X6IvnGZ3uPui8/SzkPqo2HoVzquWUBZFLdU9TFqldgGHl5xen0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790693075; c=relaxed/simple;
-	bh=IBivVthD/Ugs6+e9U2MOvI4k1mQbfDqv4RyAKNSKTok=;
-	h=Date:Message-ID:From:To:Cc:Subject:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=a6VXee63Fsd8NAEFKPScRKJdI+RjXYcFjR76d1AEYCHXlXzooEtOA4MdGnWKXcDtNttoFfu7yQQaOY/tOIZaGfJCVuETaZEYYb/e/oFYms97x61FlBu195XIl2YPr4wdYPpFCEKJBNm+nd6of8AcmKTrSGDpM4GN9qu0T9y//sc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=HsyNOqIL; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=kcbJtTWw; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=A+V53BaP; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=vH5vAmfl; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1790699726; c=relaxed/simple;
+	bh=47rwlglKSQxfxEDXXmuEm44Dq/NXlBUlHanQleCqj5o=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=SEPdATAFCCpELBlPpHxgWdfX8gh+/jHnvP+Xt5HzVfZx8GSyR/rZrnE2kUqwcuUGnkVhg9EgX5VQCMtD5fVHuq24svLrfOxo83qwJrqrzUKaD6mhN6ctqdvO/mB5USvMn+W7NpOYWqmMfuWSaFv3azhRZC+eTJtyYMjldzQvBNQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=ThElj4IK; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=ZVOxXvYG; arc=none smtp.client-ip=205.220.180.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="HsyNOqIL";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="kcbJtTWw";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="A+V53BaP";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="vH5vAmfl"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id BC17021D20;
-	Tue, 29 Sep 2026 14:44:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790693056; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=YILb/eLgFyt3BW9U3MzwkC5amjY5rBbHrDWNoL5EAGo=;
-	b=HsyNOqILQHuPvpxJXvxaHajvIxE04B6AU6CAFEP/MHUkNRbyldugk3D6K3HudxMlRqoW12
-	JOORELwX/96kCam0deFqXlfBN2QVDjH/oKOSGBq8ZdSNzzsm7FWCccSiJpiLj6KsDRtVOB
-	MltIvy21zTUP1bX9hJEK0EdxQ6EbJSw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790693056;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=YILb/eLgFyt3BW9U3MzwkC5amjY5rBbHrDWNoL5EAGo=;
-	b=kcbJtTWwfzCABmFI8ItuisGt4roWB76CcoD/x0Jj2FQN/GwBKA7akGb1baZiQwrjdITIky
-	gw6/Fs+R9av2jOBg==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1790693052; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=YILb/eLgFyt3BW9U3MzwkC5amjY5rBbHrDWNoL5EAGo=;
-	b=A+V53BaPm9ZrUzV/V0uEwhwIYW4vTQKqJyR8EQxhpr2CkdQnVWOWSS/qN9hQM29CKpgk8j
-	jNl8mW9a/C7tRvCsLAT5ouGWAs8sqC824rs0lsRnBfB8W2Vkz9Q+B0o0zMsXjwi10d8apY
-	kS1RmNhSRyVTix2F00009KYY1WVtfZc=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1790693052;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=YILb/eLgFyt3BW9U3MzwkC5amjY5rBbHrDWNoL5EAGo=;
-	b=vH5vAmfl9nGd/kah3RnT6+O6S8dcfUHOJEQMpaYox6EoyBUQfDUe3KpuP8ihrTmM2rme75
-	0NU4iNvYnxpBKCAA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 6A9C1133F1;
-	Tue, 29 Sep 2026 14:44:12 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id uFQ6EbzOu2oRbwAAD6G6ig
-	(envelope-from <tiwai@suse.de>); Tue, 29 Sep 2026 14:44:12 +0000
-Date: Tue, 29 Sep 2026 16:44:12 +0200
-Message-ID: <87tsn8yv5v.wl-tiwai@suse.de>
-From: Takashi Iwai <tiwai@suse.de>
-To: Stefan Binding <sbinding@opensource.cirrus.com>
-Cc: Takashi Iwai <tiwai@suse.de>,	Ilya Pavlukhin <i.pavluhin@ya.ru>,	Takashi
- Iwai <tiwai@suse.com>,	Jaroslav Kysela <perex@perex.cz>,	David Rhodes
- <david.rhodes@cirrus.com>,	Richard Fitzgerald <rf@opensource.cirrus.com>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,	Len Brown <lenb@kernel.org>,	Hans
- de Goede <hansg@kernel.org>,	Ilpo =?ISO-8859-1?Q?J=E4rvinen?=
- <ilpo.jarvinen@linux.intel.com>,	linux-sound@vger.kernel.org,
-	patches@opensource.cirrus.com,	linux-acpi@vger.kernel.org,
-	platform-driver-x86@vger.kernel.org,	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 0/4] Add support for the bass speakers of Lenovo Yoga Slim 7 Carbon 14ACN6
-In-Reply-To: <764f8a2d-c949-4297-bb26-af0ba791f331@opensource.cirrus.com>
-References: <20260920092808.17234-1-i.pavluhin@ya.ru>
-	<87a4p02xxs.wl-tiwai@suse.de>
-	<764f8a2d-c949-4297-bb26-af0ba791f331@opensource.cirrus.com>
-User-Agent: Wanderlust/2.15.9 (Almost Unreal) Emacs/30.2 Mule/6.0
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="ThElj4IK";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="ZVOxXvYG"
+Received: from pps.filterd (m0279873.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68TFUPUG708107
+	for <linux-acpi@vger.kernel.org>; Tue, 29 Sep 2026 16:35:24 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	QFiMMBdl/YpceHjKDolf2xod3hSnCtpF9Xk21w7Nw2A=; b=ThElj4IKoevghTAa
+	4XiJQlDhMIyY1XUHykZQSTSS+vlsvajzHyW34tKwk4T9H9WSo+o2LtEABTw84mK9
+	i3/s+pnm1hl7EYJzsVlfJHpyDFqlhsgxn8Iq81MzIoMOhD3BQvtzw7ofgQCzv8aj
+	N6sVj1wB9vLTCew2UKGNpE7GAVjXCK30YIF4ywcxdOBLiqny2OwUEPx2jtBYS46K
+	loqvi279e8mMjRHAZU6kLRlBRtxFEvekfAzbxfRCf/elUqmSUMMyBCmG0/bkW24b
+	PB/w7WQJbrbQV4V7i+FWCl8GJ5xPHiQVikoRdv5mCEkV45TUc1wZSQnFjh8k7ws5
+	1LVvQQ==
+Received: from mail-pg1-f197.google.com (mail-pg1-f197.google.com [209.85.215.197])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4h0g1kraks-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Tue, 29 Sep 2026 16:35:23 +0000 (GMT)
+Received: by mail-pg1-f197.google.com with SMTP id 41be03b00d2f7-cc1b8088202so3064236a12.3
+        for <linux-acpi@vger.kernel.org>; Tue, 29 Sep 2026 09:35:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1790699723; x=1791304523; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:organization
+         :references:in-reply-to:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=QFiMMBdl/YpceHjKDolf2xod3hSnCtpF9Xk21w7Nw2A=;
+        b=ZVOxXvYGI8R+LkJHOsuZsOq5oihaPepdALpGlygGb/FgALKuAjSlwxmZ9U6E9RVKMc
+         v+clKeGCQ7YkyoFSA6sGYyqjthuMnLLD2mWPoFkeCBENBbcMzWV+eLK5ijXM0GJOopUN
+         Xlth8kS7WHsgen8WJQQeAl4qREqZ9XQptUhIXSQodd7AvvfFidsSFve4O46/y6Ma1Wln
+         BKP+lVBsWHhHwcaXVFIwah3xxdVQ3ZPoSIWVo7MRhH/ORj04pv03r3C4MzVLO3b7Hh1r
+         Dqu3dy6oikL0EPJ87VsLx7kdpShmIsUxnNGG5a9wfQF3XRFM/ZCmd+L7KWzS0OPgbecO
+         dRuA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790699723; x=1791304523;
+        h=content-transfer-encoding:content-type:mime-version:organization
+         :references:in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=QFiMMBdl/YpceHjKDolf2xod3hSnCtpF9Xk21w7Nw2A=;
+        b=mzEjgCrmL4xWIOQb03wAMJG8HPOWxxKcXZdNzscdrKxNzzvIqUDsY5cvf49+esYRL/
+         IB7TDerdh9AqpO03Iz08Hjz/3FWusPuYSqcaTg3/oSqo8DItpluG4SmLSp6qG8JYo3SW
+         T6sVImQigbdWbDMgzrWA3gJHRfd4X1u85ZYXaaJoqnJXaDPh9c5E+TKTT7B/WfdFGv8o
+         ySWLRvSCHU2ZPScaR4isq2AjSFekmXSYIG51S1jd5w1/F7hkgIhrxSM7rrTvLHoHqQnv
+         v6GCdIKd42mYx2txlCBRkLq5Lx1C8OfLbnnA7CGzwF8M4m6bug9+4tbBI4NlMa6SprRj
+         Xl2A==
+X-Forwarded-Encrypted: i=1; AKwUvBxCdXOUFe8PBGUSgQ/uaHODLXtGjwJUkzyNNO4Xov4Q1hrDx6QcCoByl9OKHxxrH7J9L5VjI6sm8w1V@vger.kernel.org
+X-Gm-Message-State: AFq9FYJXOnHHCdNTdZwz2kjktlnqzAJ1OmXA7VvkTTEEccE5yr7UVBD4
+	zJ9J3bNt7AT51yweMwcaA6RAHRrskH/dXUjROqIOHNcsykDprq70HDbqh3Mgi+TKtEF0jWoVxvl
+	2oJzVUHhmJiHwetpy3FdELzyZIcXobxWiGwEfW2Njl9wr2UetAg4ZRYxt3XWEKDxI
+X-Gm-Gg: AYBFou1c7mvTpza+C1MEz6A8Yk9oU/kG3Gz1cVQtdQ4avsDamP8KAXk0C5aN4ajxdEm
+	ZpgsOc5l4nClU9cmcX/ClbWjO6cPk9Ogs6+YZ1ljPhxZ3az+mzq2v2UAZN3++n77bjjPRX2W7Xr
+	WX/1bPhNYsfLkGsuXqHl5Og334SXLxb7TBNS5fVlTkxDFij55HV/4nSurnUgFTPIduIgPLmVJXd
+	HscVXMYiNxnGTNzMC2Y8WikUsUGMvIUBX46/3l7+vnxH6gWqeiD10e9bAra3SomlmYDBG2kMT91
+	mxPHf7kpCZOyYa6FzxtQ4xS9dF00gROPZfahE7qfoz3svyQZ3XL5FfEof0cN4lCnN6luO9IH/SV
+	kVlGCNO2LOKi74Z/WYnHerERNw3hrGCPZokjeevZ9C9hqbIRxk0ChQYA=
+X-Received: by 2002:a17:903:26c5:b0:2dd:c0ff:e727 with SMTP id d9443c01a7336-2df7dfd63f0mr145703335ad.57.1790699722883;
+        Tue, 29 Sep 2026 09:35:22 -0700 (PDT)
+X-Received: by 2002:a17:903:26c5:b0:2dd:c0ff:e727 with SMTP id d9443c01a7336-2df7dfd63f0mr145703055ad.57.1790699722348;
+        Tue, 29 Sep 2026 09:35:22 -0700 (PDT)
+Received: from localhost (i-global254.qualcomm.com. [199.106.103.254])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2df90fbb201sm60790195ad.9.2026.09.29.09.35.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 29 Sep 2026 09:35:21 -0700 (PDT)
+Date: Tue, 29 Sep 2026 09:35:16 -0700
+From: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+To: Pierre Gondois <pierre.gondois@arm.com>
+Cc: linux-kernel@vger.kernel.org, James Morse <james.morse@arm.com>,
+        Mark
+ Brown <broonie@kernel.org>, Thomas Gleixner <tglx@kernel.org>,
+        Ingo Molnar
+ <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen
+ <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H. Peter Anvin"
+ <hpa@zytor.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown
+ <lenb@kernel.org>,
+        Tony Luck <tony.luck@intel.com>, Hanjun Guo
+ <guohanjun@huawei.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Shuai
+ Xue <xueshuai@linux.alibaba.com>,
+        Maciej Wieczor-Retman
+ <maciej.wieczor-retman@intel.com>,
+        Pawel Chmielewski
+ <pawel.chmielewski@intel.com>,
+        Yazen Ghannam <yazen.ghannam@amd.com>, Radu
+ Rendec <radu@rendec.net>,
+        Avadhut Naik <avadhut.naik@amd.com>, Kees Cook
+ <kees@kernel.org>,
+        Dave Jiang <dave.jiang@intel.com>,
+        "Fabio M. De
+ Francesco" <fabio.m.de.francesco@linux.intel.com>,
+        Breno Leitao
+ <leitao@debian.org>, Terry Bowman <terry.bowman@amd.com>,
+        Dan Williams
+ <djbw@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
+        Morduan Zang
+ <zhangdandan@uniontech.com>, linux-acpi@vger.kernel.org,
+        linux-edac@vger.kernel.org, acpica-devel@lists.linux.dev
+Subject: Re: [RFC PATCH 0/6] CPER: Add Memory Error Section 2 support
+Message-ID: <20260929093516.00003781@oss.qualcomm.com>
+In-Reply-To: <20260929074659.2587216-1-pierre.gondois@arm.com>
+References: <20260929074659.2587216-1-pierre.gondois@arm.com>
+Organization: Qualcomm
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.51; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0 (generated by SEMI-EPG 1.14.7 - "Harue")
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-X-Spamd-Result: default: False [-3.30 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_TLS_ALL(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[16];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FREEMAIL_ENVRCPT(0.00)[ya.ru];
-	URIBL_BLOCKED(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:mid];
-	FROM_HAS_DN(0.00)[];
-	FREEMAIL_CC(0.00)[suse.de,ya.ru,suse.com,perex.cz,cirrus.com,opensource.cirrus.com,kernel.org,linux.intel.com,vger.kernel.org];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Score: -3.30
-X-Spam-Level: 
-X-Spam-Flag: NO
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-GUID: zX-yYkLYJTibqWQ4wiBxxXKu3Wb8HW1X
+X-Proofpoint-ORIG-GUID: zX-yYkLYJTibqWQ4wiBxxXKu3Wb8HW1X
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTI5MDA2NiBTYWx0ZWRfXzb8DaBHgBnuC
+ VSzpJ7JAg7KpKKR0/kKVeIkrUQZA8V78iDuVIGi5BuTQZDGuEbvJaQ76opvVNUZ+y78hq3wwfCA
+ nfDvIWenBXLksmtewCAn12FNl0eCZpk=
+X-Authority-Analysis: v=2.4 cv=Ysia1IYX c=1 sm=1 tr=0 ts=6abbe8cb cx=c_pps
+ a=rz3CxIlbcmazkYymdCej/Q==:117 a=JYp8KDb2vCoCEuGobkYCKw==:17
+ a=kj9zAlcOel0A:10 a=VdqzKS8jKosA:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=rJkE3RaqiGZ5pbrm-msn:22
+ a=7CQSdrXTAAAA:8 a=XM342pYOwZ3m7ahhEzQA:9 a=CjuIK1q_8ugA:10
+ a=bFCP_H2QrGi7Okbo017w:22 a=a-qgeE7W1pNrGK8U0ZQC:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTI5MDA2NiBTYWx0ZWRfX+rWJlk/UBStb
+ wrvFFjzM5ntXNYbpZ1rMOA0WYHoba/W6ty/a0gEN1lDLbUmSL8+NWrVL/Sfa5SbPiHd6Oicf9Bv
+ t4BnhcNMzSlMn6kZQUJ8xoETQIvkYjLXrbVv+9qwDZHvkyq/eBMeRr7L/0lHdVKFG9yMHg8IAUv
+ PxTG4oFP9qccdSUw/FUTa3jBhlrDcDxNdhrdshP0mBnPM0DkvxB4xUSwmd9y1anVNTGHOVC+zRQ
+ IFNlaleaikIZ9WtrfNHKTyM29JuvlPrXpeRvI7FBK2kMUj4urZr2TVfKVWbO2NslHtzprq+1cKZ
+ Si0j8oF31M3mMhPv2i0YCikMVH1N/ehassEnkBaKPnUKrKeyEWT6antUS7ba0S03XyG3ZswQG79
+ oaZlhIW7rRh+iDeldpABntwN/Vtg3OvinoIXq2ksZQkmYrVSCVjFomTKe9FWp5L1BwaiHm7xM2s
+ LIwvnzgibzoni92EhMw==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-09-29_04,2026-09-21_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ impostorscore=0 spamscore=0 suspectscore=0 phishscore=0 adultscore=0
+ malwarescore=0 lowpriorityscore=0 priorityscore=1501 clxscore=1015
+ bulkscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
+ adjust=0 reason=mlx scancount=1 engine=8.22.0-2609040000
+ definitions=main-2609290066
 
-On Tue, 29 Sep 2026 16:30:42 +0200,
-Stefan Binding wrote:
+On Tue, 29 Sep 2026 09:45:59 +0200
+Pierre Gondois <pierre.gondois@arm.com> wrote:
+
+> Add support for Memory Error Section 2 records.
 > 
-> On 29/09/2026 10:45, Takashi Iwai wrote:
-> > On Sun, 20 Sep 2026 11:28:04 +0200,
-> > Ilya Pavlukhin wrote:
-> >> The Lenovo Yoga Slim 7 Carbon 14ACN6 (82L0, Ryzen 5000) has four
-> >> speakers. The two tweeters are driven directly by the ALC287, the two
-> >> bass speakers by a pair of CS35L41 amplifiers on I2C. On Linux only
-> >> the tweeters work [1].
-> >>
-> >> The amplifiers are described by ACPI HID CLSA0102, without _DSD, in a
-> >> single node with both I2C addresses, the same way as CLSA0100/CLSA0101
-> >> on the Legion 7. Patches 1-3 add CLSA0102 next to them. The Windows
-> >> Cirrus driver configures CLSA0102 with an external speaker supply, so
-> >> external boost is used.
-> >>
-> >> Patch 4 adds the codec quirk. The ALC287 only clocks the I2S bus to the
-> >> amplifiers while pin 0x17 is enabled, and the BIOS marks that pin as
-> >> unconnected.
-> >>
-> >> Tested on a Yoga Slim 7 Carbon 14ACN6 (BIOS H5CN42WW) with all four
-> >> speakers playing. The DSP firmware (cs35l41-dsp1-spk-prot-17aa3856*)
-> >> is not in linux-firmware yet. For testing it was taken from the Lenovo
-> >> Windows driver package (tuning "Lenovo-S760-17AA383D"). Without it the
-> >> driver falls back to the default spk-prot firmware.
-> >>
-> >> [1] https://bugzilla.kernel.org/show_bug.cgi?id=215632
-> >>
-> >> Ilya Pavlukhin (4):
-> >>   ACPI: scan: Add CLSA0102 to the serial bus ignore list
-> >>   platform/x86: serial-multi-instantiate: Add CLSA0102
-> >>   ALSA: hda: cs35l41: Add support for CLSA0102
-> >>   ALSA: hda/realtek: Add quirk for Lenovo Yoga Slim 7 Carbon 14ACN6
-> > I can take the series, but before that, I'd like hear a confirmation
-> > from Cirrus people.
+> Extend cper_mem_err_compact to hold both legacy and section-2 records.
+> Add a common parser and convert the CPER, GHES, EDAC, extlog and x86 APEI
+> paths to use it.
 > 
-> Looks all OK to me.
-> I'm going to send up firmware to linux-firmware for this laptop shortly.
+> The extlog_mem_event payload layout changes with this series.
+> Compatibility with existing userspace decoders still needs to be
+> addressed. More specifically, the rasdaemon relies on the current
+> struct cper_mem_err_compact definition.
+> Either:
+> A-
+> this patchset should not modify struct cper_mem_err_compact and
+> create a new structure to handle Memory Error Section 2 events,
+> but this would ignore the similarities of Memory Error Section (1)/2
+> B-
+> userspace should not rely on the struct cper_mem_err_compact
+> layout. extlog_mem_event trace events should instead emit data
+> that relies on the actual layout of the CPER records, as defined
+> in the ACPI spec.
+> 
+> I am looking for guidance on how to handle the above question.
+> Current implementation lean toward B, but emits data in the trace
+> event that maps the new/updated struct cper_mem_err_compact.
 
-Thanks for confirmation.
+My initial thought is a no to modifying the usespace ABI.
 
-Now I applied all patches to sound git tree for-next branch.
+It isn't particularly painful to just have separate handling code
+for the new record.  Unfortunately the ext_log tracepoints don't
+split out the fields in a fashion that would let you change
+the structure.  Other RAS tracepoints do it field by field which
+would have been possible to augment - even then it would have
+required care to deal with field size changes.
+
+It may be worth considering a much more 'expanded' tracepoint for
+memory error section 2 to reduce similar future extension problems.
+That is express ever field and don't use a compact structure at all.
+
+Mauro, perhaps you can give input on what works better over the
+long term?
 
 
-Takashi
+Jonathan
+
+> 
+> Pierre Gondois (6):
+>   ACPI: extlog: fix extlog_mem_event build issue
+>   cper: add Memory Error Section 2 structures
+>   cper: extend cper_mem_err_compact struct
+>   cper: add helpers to handle Memory Error Section 2
+>   x86/mce/apei: switch cper_sec_mem_err struct users to compact CPER
+>     records
+>   cper: make cper_mem_err_pack() static
+> 
+>  arch/x86/include/asm/mce.h     |   4 +-
+>  arch/x86/kernel/acpi/apei.c    |   2 +-
+>  arch/x86/kernel/cpu/mce/apei.c |   2 +-
+>  drivers/acpi/acpi_extlog.c     |  23 +++-
+>  drivers/acpi/apei/apei-base.c  |   2 +-
+>  drivers/acpi/apei/ghes.c       |  20 +--
+>  drivers/edac/ghes_edac.c       |  26 ++--
+>  drivers/firmware/efi/cper.c    | 219 +++++++++++++++++++++++++++------
+>  include/acpi/apei.h            |   2 +-
+>  include/linux/cper.h           |  58 +++++++--
+>  include/ras/ras_event.h        |   4 +-
+>  11 files changed, 283 insertions(+), 79 deletions(-)
+> 
+> --
+> 2.43.0
+
