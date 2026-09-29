@@ -1,31 +1,31 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B764F3ACA65;
-	Tue, 29 Sep 2026 07:48:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 579EA388899;
+	Tue, 29 Sep 2026 07:48:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790668090; cv=none; b=JXDzPtLRcXSrBlYFohgxd+VcaXiEkgDcom+06yAeggKbXBZ+cNiQXTfGJZh8KfCMfq0N7sQZae0wUCpkWuqOi5bsngd/lUxeYSZSVVrq0lSmmdpSPvQEhz2/zFZ4IGBKGGQvi9rt1Bn8rNsmcPt+Dh9CQH4wk8i/G0d0QrPoMZU=
+	t=1790668103; cv=none; b=ow6hqPBVBkco6+qiPDObQ6f7OaPb9xCQkOtlpaqIdRCjjtf57MUb0OjkkwjFxJTSUUO8YuxbSzs5ozJD1JCyZF+h+5NOne0oa7HP1E4y9mtgdWqyDFKG/NfKMGk96772RSXU0b2K3oc8oYYptJnT93/SJDyAHM014Rr8j7LQvkg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790668090; c=relaxed/simple;
-	bh=QhdoheglfZU1xEIJYQWDAG5Js026GvE/3h7aT0ahMoI=;
+	s=arc-20240116; t=1790668103; c=relaxed/simple;
+	bh=vFhISTpXi6uAjuoqrvgRe3vns/Fa3qEIx2JdYjXZe1w=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=CE8dAv/c9CClYUmHa7huZ/wzY2mQr8kr6Nx4L/A5ATSz27+SchnCeq4pOf7nRoU1h/E7hxoR5KQHBR5Fz0upN2FMguXysAamuHRnolg4s68z1H+bjanPRxRzEAsmnSKqJiIbtUOnKR7TlHJ2W07Urch5OaFxgHvldvjHxCFQGfA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=kiAThnZ6; arc=none smtp.client-ip=217.140.110.172
+	 MIME-Version; b=KWrcVBZ62QmIBxJR7sHxDAh2zBcUWECgTQs0+gPeF1j0LpqArGCqyxe4AO6gYrJt8MEXxSk3bBMOMKOuje0Wz+DM+tVviizIFmPU5FjED+RutxWxVd7J30yheyMQV0n8/6O0ZBGnHJ8YYsGjMnPaEhcnyzQxlBltjRVCrbh21mg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=F4SCDeRk; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="kiAThnZ6"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="F4SCDeRk"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C62C51576;
-	Tue, 29 Sep 2026 00:48:04 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6687D1655;
+	Tue, 29 Sep 2026 00:48:17 -0700 (PDT)
 Received: from e135073.nice.arm.com (e135073.arm.com [10.34.125.6])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 9D0843F85F;
-	Tue, 29 Sep 2026 00:48:01 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 533EF3FA1F;
+	Tue, 29 Sep 2026 00:48:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1790668088; bh=QhdoheglfZU1xEIJYQWDAG5Js026GvE/3h7aT0ahMoI=;
+	t=1790668100; bh=vFhISTpXi6uAjuoqrvgRe3vns/Fa3qEIx2JdYjXZe1w=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=kiAThnZ6LK/u3ugl1Pzz7Hy7+DxJlRGOSU8O3haeLBCJcxH7/QKc+Y2dO7HU36xD+
-	 3BG/duvPrW4UwP5lgOzJpSye8ur2VQBS0MoaY1lotg9JPGGqZRv0LGLReYrBnAoOO9
-	 RYXSOV5uImvm1tlBwUCyDWW8zTr8h1NMVYkzpGvI=
+	b=F4SCDeRkcnaSVbKVE1Ti0Y7W3iba/N5DZbUNkF3yW7kGmFPrgsGYQoGTBbPmvGNra
+	 8XrHuoJspjDpJW11zC1URSJy4nK68X3drOkLDSmqbwXgRxDwm3jgu5GIfZyhFtFF0Q
+	 nmM0hw8OX9TQzAWuGV0+VQB/67zNraTFuI/m0n2Y=
 From: Pierre Gondois <pierre.gondois@arm.com>
 To: linux-kernel@vger.kernel.org
 Cc: James Morse <james.morse@arm.com>,
@@ -59,9 +59,9 @@ Cc: James Morse <james.morse@arm.com>,
 	linux-acpi@vger.kernel.org,
 	linux-edac@vger.kernel.org,
 	acpica-devel@lists.linux.dev
-Subject: [RFC PATCH 3/6] cper: extend cper_mem_err_compact struct
-Date: Tue, 29 Sep 2026 09:46:02 +0200
-Message-ID: <20260929074659.2587216-4-pierre.gondois@arm.com>
+Subject: [RFC PATCH 4/6] cper: add helpers to handle Memory Error Section 2
+Date: Tue, 29 Sep 2026 09:46:03 +0200
+Message-ID: <20260929074659.2587216-5-pierre.gondois@arm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260929074659.2587216-1-pierre.gondois@arm.com>
 References: <20260929074659.2587216-1-pierre.gondois@arm.com>
@@ -73,126 +73,196 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Extend cper_mem_err_compact struct to prepare for:
-- additional support of Memory Error Section 2
-- widening the usage of cper_mem_err_compact struct for both
-  Memory Error Section 2 and Memory Error Section (1)
-
-Remove the extended field which contains Memory Error Section (1)
-additional bits that can now fit in the larger (u32) fields.
-Add fields that were previously not populated (physical_addr, ...)
-to prepare for using this cper_mem_err_compact struct for both
-Memory Error sections.
+Add helpers to parse Memory Error Section 2 CPER records.
+Memory Error Section (1)/2 can be parsed indistinctly into a
+cper_mem_err_compact struct.
 
 Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
 ---
- drivers/firmware/efi/cper.c | 21 ++++++++++++---------
- include/linux/cper.h        | 22 ++++++++++++++--------
- 2 files changed, 26 insertions(+), 17 deletions(-)
+ drivers/firmware/efi/cper.c | 141 ++++++++++++++++++++++++++++++++++++
+ include/linux/cper.h        |   4 +
+ 2 files changed, 145 insertions(+)
 
 diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-index 06b4fdb59917a..6285b67e8fcd9 100644
+index 6285b67e8fcd9..cfcd01e3f47bf 100644
 --- a/drivers/firmware/efi/cper.c
 +++ b/drivers/firmware/efi/cper.c
-@@ -325,12 +325,8 @@ int cper_mem_err_location(struct cper_mem_err_compact *mem, char *msg)
- 			       mem->bank & CPER_MEM_BANK_ADDRESS_MASK);
- 	if (mem->validation_bits & CPER_MEM_VALID_DEVICE)
- 		n += scnprintf(msg + n, len - n, "device:%d ", mem->device);
--	if (mem->validation_bits & (CPER_MEM_VALID_ROW | CPER_MEM_VALID_ROW_EXT)) {
--		u32 row = mem->row;
--
--		row |= cper_get_mem_extension(mem->validation_bits, mem->extended);
--		n += scnprintf(msg + n, len - n, "row:%d ", row);
--	}
-+	if (mem->validation_bits & (CPER_MEM_VALID_ROW | CPER_MEM_VALID_ROW_EXT))
-+		n += scnprintf(msg + n, len - n, "row:%d ", mem->row);
- 	if (mem->validation_bits & CPER_MEM_VALID_COLUMN)
- 		n += scnprintf(msg + n, len - n, "column:%d ", mem->column);
- 	if (mem->validation_bits & CPER_MEM_VALID_BIT_POSITION)
-@@ -347,7 +343,7 @@ int cper_mem_err_location(struct cper_mem_err_compact *mem, char *msg)
- 			       mem->target_id);
- 	if (mem->validation_bits & CPER_MEM_VALID_CHIP_ID)
- 		n += scnprintf(msg + n, len - n, "chip_id:%d ",
--			       mem->extended >> CPER_MEM_CHIP_ID_SHIFT);
-+			       mem->chip_id);
-
- 	return n;
+@@ -370,6 +370,28 @@ int cper_dimm_err_location(struct cper_mem_err_compact *mem, char *msg)
  }
-@@ -362,7 +358,7 @@ int cper_dimm_err_location(struct cper_mem_err_compact *mem, char *msg)
- 		return 0;
+ EXPORT_SYMBOL_GPL(cper_dimm_err_location);
 
- 	len = CPER_REC_LEN;
--	dmi_memdev_name(mem->mem_dev_handle, &bank, &device);
-+	dmi_memdev_name((u16)mem->mem_dev_handle, &bank, &device);
- 	if (bank && device)
- 		n = snprintf(msg, len, "DIMM location: %s %s ", bank, device);
- 	else
-@@ -377,6 +373,7 @@ EXPORT_SYMBOL_GPL(cper_dimm_err_location);
- void cper_mem_err_pack(const struct cper_sec_mem_err *mem,
- 		       struct cper_mem_err_compact *cmem)
- {
++static void cper_mem_err_old_pack(const struct cper_sec_mem_err_old *mem,
++				  struct cper_mem_err_compact *cmem)
++{
 +	memset(cmem, 0, sizeof(*cmem));
- 	cmem->validation_bits = mem->validation_bits;
- 	cmem->node = mem->node;
- 	cmem->card = mem->card;
-@@ -384,15 +381,21 @@ void cper_mem_err_pack(const struct cper_sec_mem_err *mem,
- 	cmem->bank = mem->bank;
- 	cmem->device = mem->device;
- 	cmem->row = mem->row;
-+	cmem->row |= cper_get_mem_extension(mem->validation_bits, mem->extended);
- 	cmem->column = mem->column;
- 	cmem->bit_pos = mem->bit_pos;
- 	cmem->requestor_id = mem->requestor_id;
- 	cmem->responder_id = mem->responder_id;
- 	cmem->target_id = mem->target_id;
--	cmem->extended = mem->extended;
- 	cmem->rank = mem->rank;
- 	cmem->mem_array_handle = mem->mem_array_handle;
- 	cmem->mem_dev_handle = mem->mem_dev_handle;
++	cmem->validation_bits = mem->validation_bits;
++	cmem->node = mem->node;
++	cmem->card = mem->card;
++	cmem->module = mem->module;
++	cmem->bank = mem->bank;
++	cmem->device = mem->device;
++	cmem->row = mem->row;
++	cmem->column = mem->column;
++	cmem->bit_pos = mem->bit_pos;
++	cmem->requestor_id = mem->requestor_id;
++	cmem->responder_id = mem->responder_id;
++	cmem->target_id = mem->target_id;
 +	cmem->error_status = mem->error_status;
 +	cmem->physical_addr = mem->physical_addr;
 +	cmem->physical_addr_mask = mem->physical_addr_mask;
 +	cmem->error_type = mem->error_type;
-+	if (mem->validation_bits & CPER_MEM_VALID_CHIP_ID)
-+		cmem->chip_id = mem->extended >> CPER_MEM_CHIP_ID_SHIFT;
++}
++
+ void cper_mem_err_pack(const struct cper_sec_mem_err *mem,
+ 		       struct cper_mem_err_compact *cmem)
+ {
+@@ -399,6 +421,125 @@ void cper_mem_err_pack(const struct cper_sec_mem_err *mem,
  }
  EXPORT_SYMBOL_GPL(cper_mem_err_pack);
 
++static void cper_mem_err2_pack(const struct cper_sec_mem_err2 *mem,
++			       struct cper_mem_err_compact *cmem)
++{
++	u64 valid = mem->validation_bits;
++
++	memset(cmem, 0, sizeof(*cmem));
++	/*
++	 * Memory Error Section 2 uses different validation bit assignments
++	 * from the legacy section starting at bit 10.  Translate them to the
++	 * assignments used by struct cper_mem_err_compact and its consumers.
++	 */
++	cmem->validation_bits = valid & GENMASK_ULL(9, 0);
++	if (valid & BIT_ULL(10))
++		cmem->validation_bits |= CPER_MEM_VALID_RANK_NUMBER;
++	if (valid & BIT_ULL(11))
++		cmem->validation_bits |= CPER_MEM_VALID_BIT_POSITION;
++	if (valid & BIT_ULL(12))
++		cmem->validation_bits |= CPER_MEM_VALID_CHIP_ID;
++	if (valid & BIT_ULL(13))
++		cmem->validation_bits |= CPER_MEM_VALID_ERROR_TYPE;
++	if (valid & BIT_ULL(14))
++		cmem->validation_bits |= CPER_MEM_VALID_STATUS;
++	if (valid & BIT_ULL(15))
++		cmem->validation_bits |= CPER_MEM_VALID_REQUESTOR_ID;
++	if (valid & BIT_ULL(16))
++		cmem->validation_bits |= CPER_MEM_VALID_RESPONDER_ID;
++	if (valid & BIT_ULL(17))
++		cmem->validation_bits |= CPER_MEM_VALID_TARGET_ID;
++	if (valid & BIT_ULL(18))
++		cmem->validation_bits |= CPER_MEM_VALID_CARD_HANDLE;
++	if (valid & BIT_ULL(19))
++		cmem->validation_bits |= CPER_MEM_VALID_MODULE_HANDLE;
++	if (valid & BIT_ULL(20))
++		cmem->validation_bits |= CPER_MEM_VALID_BANK_GROUP;
++	if (valid & BIT_ULL(21))
++		cmem->validation_bits |= CPER_MEM_VALID_BANK_ADDRESS;
++	cmem->node = mem->node;
++	cmem->card = mem->card;
++	cmem->module = mem->module;
++	cmem->bank = mem->bank;
++	cmem->device = mem->device;
++	cmem->row = mem->row;
++	cmem->column = mem->column;
++	cmem->bit_pos = mem->bit_pos;
++	cmem->requestor_id = mem->requestor_id;
++	cmem->responder_id = mem->responder_id;
++	cmem->target_id = mem->target_id;
++	cmem->rank = mem->rank;
++	cmem->mem_array_handle = mem->mem_array_handle;
++	cmem->mem_dev_handle = mem->mem_dev_handle;
++	cmem->error_status = mem->error_status;
++	cmem->physical_addr = mem->physical_addr;
++	cmem->physical_addr_mask = mem->physical_addr_mask;
++	cmem->chip_id = mem->chip_id;
++	cmem->status = mem->status;
++	cmem->error_type = mem->error_type;
++	cmem->is_section2 = 1;
++
++	if ((cmem->validation_bits & CPER_MEM_VALID_CARD_HANDLE) &&
++	    cmem->mem_array_handle > U16_MAX) {
++		pr_warn(FW_WARN "Memory Error Section 2 card handle 0x%x exceeds SMBIOS range\n",
++			cmem->mem_array_handle);
++		cmem->mem_array_handle = 0;
++		cmem->validation_bits &= ~CPER_MEM_VALID_CARD_HANDLE;
++	}
++
++	if ((cmem->validation_bits & CPER_MEM_VALID_MODULE_HANDLE) &&
++	    cmem->mem_dev_handle > U16_MAX) {
++		pr_warn(FW_WARN "Memory Error Section 2 module handle 0x%x exceeds SMBIOS range\n",
++			cmem->mem_dev_handle);
++		cmem->mem_dev_handle = 0;
++		cmem->validation_bits &= ~CPER_MEM_VALID_MODULE_HANDLE;
++	}
++}
++
++bool cper_sec_is_platform_mem(const guid_t *sec_type)
++{
++	return guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM) ||
++	       guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM2);
++}
++EXPORT_SYMBOL_GPL(cper_sec_is_platform_mem);
++
++int cper_mem_err_parse(const guid_t *sec_type, const void *mem, size_t len,
++		       struct cper_mem_err_compact *cmem)
++{
++	memset(cmem, 0, sizeof(*cmem));
++
++	if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM2)) {
++		const struct cper_sec_mem_err2 *mem2 = mem;
++
++		if (len < sizeof(*mem2))
++			return -EINVAL;
++
++		cper_mem_err2_pack(mem2, cmem);
++		return 0;
++	}
++
++	if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM)) {
++		const struct cper_sec_mem_err_old *old = mem;
++
++		if (len < sizeof(*old))
++			return -EINVAL;
++
++		if (len < sizeof(struct cper_sec_mem_err)) {
++			u64 old_valid_mask = CPER_MEM_VALID_RANK_NUMBER - 1;
++
++			cper_mem_err_old_pack(old, cmem);
++			cmem->validation_bits &= old_valid_mask;
++			return 0;
++		}
++
++		cper_mem_err_pack(mem, cmem);
++		return 0;
++	}
++
++	return -EINVAL;
++}
++EXPORT_SYMBOL_GPL(cper_mem_err_parse);
++
+ const char *cper_mem_err_unpack(struct trace_seq *p,
+ 				struct cper_mem_err_compact *cmem)
+ {
 diff --git a/include/linux/cper.h b/include/linux/cper.h
-index 170bb15f616d0..b5e2a0d115ca2 100644
+index b5e2a0d115ca2..ac236043ce859 100644
 --- a/include/linux/cper.h
 +++ b/include/linux/cper.h
-@@ -542,17 +542,23 @@ struct cper_mem_err_compact {
- 	u16	card;
- 	u16	module;
- 	u16	bank;
--	u16	device;
--	u16	row;
--	u16	column;
--	u16	bit_pos;
-+	u32	device;
-+	u32	row;
-+	u32	column;
-+	u32	bit_pos;
- 	u64	requestor_id;
- 	u64	responder_id;
- 	u64	target_id;
--	u16	rank;
--	u16	mem_array_handle;
--	u16	mem_dev_handle;
--	u8      extended;
-+	u32	rank;
-+	u32	mem_array_handle;
-+	u32	mem_dev_handle;
-+	u64	error_status;
-+	u64	physical_addr;
-+	u64	physical_addr_mask;
-+	u8	chip_id;
-+	u8	status;
-+	u8	error_type;
-+	u8	is_section2;
- };
+@@ -265,6 +265,7 @@ enum {
+ #define CPER_MEM_VALID_BANK_GROUP		0x80000
+ #define CPER_MEM_VALID_BANK_ADDRESS		0x100000
+ #define CPER_MEM_VALID_CHIP_ID			0x200000
++#define CPER_MEM_VALID_STATUS			0x400000
 
- static inline u32 cper_get_mem_extension(u64 mem_valid, u8 mem_extended)
+ #define CPER_MEM_EXT_ROW_MASK			0x3
+ #define CPER_MEM_EXT_ROW_SHIFT			16
+@@ -628,6 +629,9 @@ int cper_bits_to_str(char *buf, int buf_size, unsigned long bits,
+ 		     const char * const strs[], unsigned int strs_size);
+ void cper_mem_err_pack(const struct cper_sec_mem_err *,
+ 		       struct cper_mem_err_compact *);
++bool cper_sec_is_platform_mem(const guid_t *sec_type);
++int cper_mem_err_parse(const guid_t *sec_type, const void *mem, size_t len,
++		       struct cper_mem_err_compact *cmem);
+ const char *cper_mem_err_unpack(struct trace_seq *,
+ 				struct cper_mem_err_compact *);
+ void cper_print_proc_arm(const char *pfx,
 --
 2.43.0
