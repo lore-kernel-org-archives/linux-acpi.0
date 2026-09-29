@@ -1,31 +1,31 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id EABCD3A4F33;
-	Tue, 29 Sep 2026 07:48:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 43D82388899;
+	Tue, 29 Sep 2026 07:48:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790668116; cv=none; b=L1MtYLqOjID2FyPXeXa2aWGb2oxsdaY/taAnMBGwSmZJEWFeJU6W0wlfrGBoePJ0WpSiV+d4OyfnqJA2KveUqiOPduRE5VDzlAQQd42uM9iPS4M36pb3VAEyDzbEBa/+gv4FCqMEjjUjNnspt2WZBelE7WUGSALDprM0JrIdTLU=
+	t=1790668128; cv=none; b=s+hAolM6w1AwTaimYCQn8dynYcGPTvZqm19uHDrD+gjasVDyKcQH7ZYgSa6w402h5+vON1nBXWxsAkjG3kJZSJknt++EqmrY8gdILj5CHVi8EmqU1jOgT1EGBwUe1n6A+Imobpv5LLriDGEvuWrBSXiie9YOoMMGhCswVGBa8Ng=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790668116; c=relaxed/simple;
-	bh=ZWwzNe7f+uqIX+H7OyeffBhU5yAhmeDeY/svSjV9ZMY=;
+	s=arc-20240116; t=1790668128; c=relaxed/simple;
+	bh=3LWKKd7tUGCVa4QEx7TKGiPJJE2RNNPRyN0LVyZ0eeU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=NS5cz9vbOqL2LiSC54wfqCltMr9qrwJb6RHjxrfZGDQHBRoz/X/A9ZdLLknyPYa73Mi/sfsRHddTW9/rhPsMfQzpOFML7c0LgbZULsltnoPcrrzmsEbj7wDXqcf0StPE80oL2sOLRsdUE73MOfMKfAHkItTjOCoclm9TTBvtdZY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=Vqoeygdh; arc=none smtp.client-ip=217.140.110.172
+	 MIME-Version; b=mcjVrNUth1bOYuuZuJ1HzysMmZ1W/Vj7oprq+/3CHrUbFH6iZzvJfGbrfBAvkfHm9m0Sz7E2uDrwuVZqZHSsHgtBsPLQv/xYqY1maDRLX5fp+eglytPfWiXtZeGoZKwZsHjTeYBmMQliQnMxEFFtaT+RqTUcDztK+/FlAmgzOFc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=KAGJE1gu; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="Vqoeygdh"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="KAGJE1gu"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id DE18C1684;
-	Tue, 29 Sep 2026 00:48:29 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 0E0C11756;
+	Tue, 29 Sep 2026 00:48:42 -0700 (PDT)
 Received: from e135073.nice.arm.com (e135073.arm.com [10.34.125.6])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 0240B3F85F;
-	Tue, 29 Sep 2026 00:48:26 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 4FFB43F85F;
+	Tue, 29 Sep 2026 00:48:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1790668113; bh=ZWwzNe7f+uqIX+H7OyeffBhU5yAhmeDeY/svSjV9ZMY=;
+	t=1790668125; bh=3LWKKd7tUGCVa4QEx7TKGiPJJE2RNNPRyN0LVyZ0eeU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Vqoeygdhzs1Lr6Y1Xs9B4dHri39YFPXDYOfAuxTgqtJMoEIxXgSidOX63YWf26WC6
-	 huqN337JBYtNT0yYgcD1Q0v7EkpCwawVuXCO4WeHVigl5laoeeKtzIeotl43st+IwB
-	 n3nyBJhrPS6rcArBFpVFZ19LgR5oL4EEHAs0VCqo=
+	b=KAGJE1guM8tSj/FYLI+ar12bc0IqmQX7KmrPvlrzpKqCqCkrhOU6fC+1lGB0M2LWW
+	 kUAgTwtqy3P8AM99nue4w2zJFxmU1QR/INWk9WrOJfYhjRWWQhKnFe4nqo/6AfXajI
+	 o5bk4Khmg0eyhJEW+q5xmG0tVbtRrZWM1ClTvVJY=
 From: Pierre Gondois <pierre.gondois@arm.com>
 To: linux-kernel@vger.kernel.org
 Cc: James Morse <james.morse@arm.com>,
@@ -60,9 +60,9 @@ Cc: James Morse <james.morse@arm.com>,
 	linux-acpi@vger.kernel.org,
 	linux-edac@vger.kernel.org,
 	acpica-devel@lists.linux.dev
-Subject: [RFC PATCH 5/6] x86/mce/apei: switch cper_sec_mem_err struct users to compact CPER records
-Date: Tue, 29 Sep 2026 09:46:04 +0200
-Message-ID: <20260929074659.2587216-6-pierre.gondois@arm.com>
+Subject: [RFC PATCH 6/6] cper: make cper_mem_err_pack() static
+Date: Tue, 29 Sep 2026 09:46:05 +0200
+Message-ID: <20260929074659.2587216-7-pierre.gondois@arm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260929074659.2587216-1-pierre.gondois@arm.com>
 References: <20260929074659.2587216-1-pierre.gondois@arm.com>
@@ -74,343 +74,50 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Convert the GHES, EDAC and x86 APEI memory error paths to consume
-struct cper_mem_err_compact instead of raw legacy CPER memory error
-sections.
-
-This switches the users over to the common parsed representation,
-allowing them to handle both legacy platform memory sections and
-Memory Error Section 2 without duplicating format-specific logic.
+Make cper_mem_err_pack() local to cper.c and drop its public
+declaration as it is only used in the local file.
 
 Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
 ---
- arch/x86/include/asm/mce.h     |  4 +--
- arch/x86/kernel/acpi/apei.c    |  2 +-
- arch/x86/kernel/cpu/mce/apei.c |  2 +-
- drivers/acpi/acpi_extlog.c     |  9 +++---
- drivers/acpi/apei/apei-base.c  |  2 +-
- drivers/acpi/apei/ghes.c       | 20 ++++++++-----
- drivers/edac/ghes_edac.c       | 26 ++++++++---------
- drivers/firmware/efi/cper.c    | 52 +++++++++++++++++++---------------
- include/acpi/apei.h            |  2 +-
- include/ras/ras_event.h        |  4 +--
- 10 files changed, 68 insertions(+), 55 deletions(-)
+ drivers/firmware/efi/cper.c | 5 ++---
+ include/linux/cper.h        | 2 --
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/arch/x86/include/asm/mce.h b/arch/x86/include/asm/mce.h
-index e575b702063d0..76cff0d9d0308 100644
---- a/arch/x86/include/asm/mce.h
-+++ b/arch/x86/include/asm/mce.h
-@@ -330,9 +330,9 @@ extern void (*deferred_error_int_vector)(void);
-  * Used by APEI to report memory error via /dev/mcelog
-  */
-
--struct cper_sec_mem_err;
-+struct cper_mem_err_compact;
- extern void apei_mce_report_mem_error(int corrected,
--				      struct cper_sec_mem_err *mem_err);
-+				      struct cper_mem_err_compact *mem_err);
-
- /*
-  * Enumerate new IP types and HWID values in AMD processors which support
-diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
-index e21419e686eb3..7b914204b6ab4 100644
---- a/arch/x86/kernel/acpi/apei.c
-+++ b/arch/x86/kernel/acpi/apei.c
-@@ -39,7 +39,7 @@ int arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data)
- 	return 1;
- }
-
--void arch_apei_report_mem_error(int sev, struct cper_sec_mem_err *mem_err)
-+void arch_apei_report_mem_error(int sev, struct cper_mem_err_compact *mem_err)
- {
- #ifdef CONFIG_X86_MCE
- 	apei_mce_report_mem_error(sev, mem_err);
-diff --git a/arch/x86/kernel/cpu/mce/apei.c b/arch/x86/kernel/cpu/mce/apei.c
-index 0a89947e47bc8..a46bc1325c951 100644
---- a/arch/x86/kernel/cpu/mce/apei.c
-+++ b/arch/x86/kernel/cpu/mce/apei.c
-@@ -26,7 +26,7 @@
-
- #include "internal.h"
-
--void apei_mce_report_mem_error(int severity, struct cper_sec_mem_err *mem_err)
-+void apei_mce_report_mem_error(int severity, struct cper_mem_err_compact *mem_err)
- {
- 	struct mce_hw_err err;
- 	struct mce *m;
-diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
-index 699534b6a732d..6f1f1b8ecf924 100644
---- a/drivers/acpi/acpi_extlog.c
-+++ b/drivers/acpi/acpi_extlog.c
-@@ -181,7 +181,7 @@ extlog_cxl_cper_handle_prot_err(struct cxl_cper_sec_prot_err *prot_err,
- }
-
- static void
--extlog_mem_err_event(struct cper_sec_mem_err *mem, u32 err_seq,
-+extlog_mem_err_event(struct cper_mem_err_compact *mem, u32 err_seq,
- 		     const guid_t *fru_id, const char *fru_text, u8 sev)
- {
- #if defined(CONFIG_ACPI_EXTLOG) || defined(CONFIG_ACPI_EXTLOG_MODULE)
-@@ -234,10 +234,11 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
- 		else
- 			fru_text = "";
- 		sec_type = (guid_t *)gdata->section_type;
--		if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM)) {
--			struct cper_sec_mem_err *mem = acpi_hest_get_payload(gdata);
-+		if (cper_sec_is_platform_mem(sec_type)) {
-+			struct cper_mem_err_compact mem;
-
--			if (gdata->error_data_length >= sizeof(*mem))
-+			if (!cper_mem_err_parse(sec_type, acpi_hest_get_payload(gdata),
-+						gdata->error_data_length, &mem))
- 				extlog_mem_err_event(&mem, err_seq, fru_id,
- 						     fru_text,
- 						     (u8)gdata->error_severity);
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index 7a06d30bd40e9..c2b731054f329 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -768,7 +768,7 @@ int __weak arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr,
- EXPORT_SYMBOL_GPL(arch_apei_enable_cmcff);
-
- void __weak arch_apei_report_mem_error(int sev,
--				       struct cper_sec_mem_err *mem_err)
-+				       struct cper_mem_err_compact *mem_err)
- {
- }
- EXPORT_SYMBOL_GPL(arch_apei_report_mem_error);
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index fe10ab0e02f68..b0368e55856ef 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -529,11 +529,11 @@ static bool ghes_do_memory_failure(u64 physical_addr, int flags)
- }
-
- static bool ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata,
-+				       struct cper_mem_err_compact *mem_err,
- 				       int sev, bool sync)
- {
- 	int flags = -1;
- 	int sec_sev = ghes_severity(gdata->error_severity);
--	struct cper_sec_mem_err *mem_err = acpi_hest_get_payload(gdata);
-
- 	if (!(mem_err->validation_bits & CPER_MEM_VALID_PA))
- 		return false;
-@@ -915,7 +915,7 @@ static void ghes_log_hwerr(int sev, guid_t *sec_type)
- 		return;
- 	}
-
--	if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM)) {
-+	if (cper_sec_is_platform_mem(sec_type)) {
- 		hwerr_log_error_type(HWERR_RECOV_MEMORY);
- 		return;
- 	}
-@@ -945,13 +945,19 @@ static void ghes_do_proc(struct ghes *ghes,
- 			fru_text = gdata->fru_text;
-
- 		ghes_log_hwerr(sev, sec_type);
--		if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM)) {
--			struct cper_sec_mem_err *mem_err = acpi_hest_get_payload(gdata);
-+		if (cper_sec_is_platform_mem(sec_type)) {
-+			struct cper_mem_err_compact mem_err;
-
--			atomic_notifier_call_chain(&ghes_report_chain, sev, mem_err);
-+			if (cper_mem_err_parse(sec_type, acpi_hest_get_payload(gdata),
-+					       gdata->error_data_length, &mem_err)) {
-+				pr_warn(FW_WARN "memory error section length is too small\n");
-+				continue;
-+			}
-
--			arch_apei_report_mem_error(sev, mem_err);
--			queued = ghes_handle_memory_failure(gdata, sev, sync);
-+			atomic_notifier_call_chain(&ghes_report_chain, sev, &mem_err);
-+
-+			arch_apei_report_mem_error(sev, &mem_err);
-+			queued = ghes_handle_memory_failure(gdata, &mem_err, sev, sync);
- 		} else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
- 			ghes_handle_aer(gdata);
- 		} else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
-diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
-index d80c88818691c..ae4c92463e305 100644
---- a/drivers/edac/ghes_edac.c
-+++ b/drivers/edac/ghes_edac.c
-@@ -242,7 +242,7 @@ static void ghes_scan_system(void)
- 	system_scanned = true;
- }
-
--static int print_mem_error_other_detail(const struct cper_sec_mem_err *mem, char *msg,
-+static int print_mem_error_other_detail(struct cper_mem_err_compact *mem, char *msg,
- 					const char *location, unsigned int len)
- {
- 	u32 n;
-@@ -255,13 +255,15 @@ static int print_mem_error_other_detail(const struct cper_sec_mem_err *mem, char
-
- 	n += scnprintf(msg + n, len - n, "APEI location: %s ", location);
-
--	if (!(mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS))
--		goto out;
--
--	n += scnprintf(msg + n, len - n, "status(0x%016llx): ", mem->error_status);
--	n += scnprintf(msg + n, len - n, "%s ", cper_mem_err_status_str(mem->error_status));
-+	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS) {
-+		n += scnprintf(msg + n, len - n, "status(0x%016llx): ", mem->error_status);
-+		n += scnprintf(msg + n, len - n, "%s ",
-+			       cper_mem_err_status_str(mem->error_status));
-+	}
-+	if (mem->validation_bits & CPER_MEM_VALID_STATUS)
-+		n += scnprintf(msg + n, len - n, "section_status:0x%02x ",
-+			       mem->status);
-
--out:
- 	msg[n] = '\0';
-
- 	return n;
-@@ -270,8 +272,7 @@ static int print_mem_error_other_detail(const struct cper_sec_mem_err *mem, char
- static int ghes_edac_report_mem_error(struct notifier_block *nb,
- 				      unsigned long val, void *data)
- {
--	struct cper_sec_mem_err *mem_err = (struct cper_sec_mem_err *)data;
--	struct cper_mem_err_compact cmem;
-+	struct cper_mem_err_compact *mem_err = data;
- 	struct edac_raw_error_desc *e;
- 	struct mem_ctl_info *mci;
- 	unsigned long sev = val;
-@@ -348,14 +349,13 @@ static int ghes_edac_report_mem_error(struct notifier_block *nb,
-
- 	/* Memory error location, mapped on e->location */
- 	p = e->location;
--	cper_mem_err_pack(mem_err, &cmem);
--	p += cper_mem_err_location(&cmem, p);
-+	p += cper_mem_err_location(mem_err, p);
-
- 	if (mem_err->validation_bits & CPER_MEM_VALID_MODULE_HANDLE) {
- 		struct dimm_info *dimm;
-
--		p += cper_dimm_err_location(&cmem, p);
--		dimm = find_dimm_by_handle(mci, mem_err->mem_dev_handle);
-+		p += cper_dimm_err_location(mem_err, p);
-+		dimm = find_dimm_by_handle(mci, (u16)mem_err->mem_dev_handle);
- 		if (dimm) {
- 			e->top_layer = dimm->idx;
- 			strscpy(e->label, dimm->label);
 diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-index cfcd01e3f47bf..e0ba2ca498e75 100644
+index e0ba2ca498e75..066359c549aff 100644
 --- a/drivers/firmware/efi/cper.c
 +++ b/drivers/firmware/efi/cper.c
-@@ -555,36 +555,41 @@ const char *cper_mem_err_unpack(struct trace_seq *p,
- 	return ret;
+@@ -392,8 +392,8 @@ static void cper_mem_err_old_pack(const struct cper_sec_mem_err_old *mem,
+ 	cmem->error_type = mem->error_type;
  }
 
--static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem,
--	int len)
-+static void cper_print_mem(const char *pfx, const guid_t *sec_type,
-+			   const void *mem, int len)
+-void cper_mem_err_pack(const struct cper_sec_mem_err *mem,
+-		       struct cper_mem_err_compact *cmem)
++static void cper_mem_err_pack(const struct cper_sec_mem_err *mem,
++			      struct cper_mem_err_compact *cmem)
  {
- 	struct cper_mem_err_compact cmem;
- 	char rcd_decode_str[CPER_REC_LEN];
-
- 	/* Don't trust UEFI 2.1/2.2 structure with bad validation bits */
--	if (len == sizeof(struct cper_sec_mem_err_old) &&
--	    (mem->validation_bits & ~(CPER_MEM_VALID_RANK_NUMBER - 1))) {
-+	if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM) &&
-+	    len == sizeof(struct cper_sec_mem_err_old) &&
-+	    (((const struct cper_sec_mem_err_old *)mem)->validation_bits &
-+	     ~(CPER_MEM_VALID_RANK_NUMBER - 1))) {
- 		pr_err(FW_WARN "valid bits set for fields beyond structure\n");
- 		return;
- 	}
--	if (mem->validation_bits & CPER_MEM_VALID_ERROR_STATUS)
-+
-+	if (cper_mem_err_parse(sec_type, mem, len, &cmem))
-+		return;
-+
-+	if (cmem.validation_bits & CPER_MEM_VALID_ERROR_STATUS)
- 		printk("%s error_status: %s (0x%016llx)\n",
--		       pfx, cper_mem_err_status_str(mem->error_status),
--		       mem->error_status);
--	if (mem->validation_bits & CPER_MEM_VALID_PA)
-+		       pfx, cper_mem_err_status_str(cmem.error_status),
-+		       cmem.error_status);
-+	if (cmem.validation_bits & CPER_MEM_VALID_PA)
- 		printk("%s""physical_address: 0x%016llx\n",
--		       pfx, mem->physical_addr);
--	if (mem->validation_bits & CPER_MEM_VALID_PA_MASK)
-+		       pfx, cmem.physical_addr);
-+	if (cmem.validation_bits & CPER_MEM_VALID_PA_MASK)
- 		printk("%s""physical_address_mask: 0x%016llx\n",
--		       pfx, mem->physical_addr_mask);
--	cper_mem_err_pack(mem, &cmem);
-+		       pfx, cmem.physical_addr_mask);
- 	if (cper_mem_err_location(&cmem, rcd_decode_str))
- 		printk("%s%s\n", pfx, rcd_decode_str);
--	if (mem->validation_bits & CPER_MEM_VALID_ERROR_TYPE) {
--		u8 etype = mem->error_type;
--		printk("%s""error_type: %d, %s\n", pfx, etype,
--		       cper_mem_err_type_str(etype));
--	}
-+	if (cmem.validation_bits & CPER_MEM_VALID_ERROR_TYPE)
-+		printk("%s""error_type: %d, %s\n", pfx, cmem.error_type,
-+		       cper_mem_err_type_str(cmem.error_type));
-+	if (cmem.validation_bits & CPER_MEM_VALID_STATUS)
-+		printk("%s""status: 0x%02x\n", pfx, cmem.status);
- 	if (cper_dimm_err_location(&cmem, rcd_decode_str))
- 		printk("%s%s\n", pfx, rcd_decode_str);
+ 	memset(cmem, 0, sizeof(*cmem));
+ 	cmem->validation_bits = mem->validation_bits;
+@@ -419,7 +419,6 @@ void cper_mem_err_pack(const struct cper_sec_mem_err *mem,
+ 	if (mem->validation_bits & CPER_MEM_VALID_CHIP_ID)
+ 		cmem->chip_id = mem->extended >> CPER_MEM_CHIP_ID_SHIFT;
  }
-@@ -784,13 +789,14 @@ cper_estatus_print_section(const char *pfx, struct acpi_hest_generic_data *gdata
- 			cper_print_proc_generic(newpfx, proc_err);
- 		else
- 			goto err_section_too_small;
--	} else if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM)) {
--		struct cper_sec_mem_err *mem_err = acpi_hest_get_payload(gdata);
--
-+	} else if (cper_sec_is_platform_mem(sec_type)) {
- 		printk("%s""section_type: memory error\n", newpfx);
--		if (gdata->error_data_length >=
--		    sizeof(struct cper_sec_mem_err_old))
--			cper_print_mem(newpfx, mem_err,
-+		if ((guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM) &&
-+		     gdata->error_data_length >= sizeof(struct cper_sec_mem_err_old)) ||
-+		    (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM2) &&
-+		     gdata->error_data_length >= sizeof(struct cper_sec_mem_err2)))
-+			cper_print_mem(newpfx, sec_type,
-+				       acpi_hest_get_payload(gdata),
- 				       gdata->error_data_length);
- 		else
- 			goto err_section_too_small;
-diff --git a/include/acpi/apei.h b/include/acpi/apei.h
-index dc60f7db5524f..5aabf92bd867d 100644
---- a/include/acpi/apei.h
-+++ b/include/acpi/apei.h
-@@ -51,7 +51,7 @@ ssize_t erst_read_record(u64 record_id, struct cper_record_header *record,
- int erst_clear(u64 record_id);
+-EXPORT_SYMBOL_GPL(cper_mem_err_pack);
 
- int arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data);
--void arch_apei_report_mem_error(int sev, struct cper_sec_mem_err *mem_err);
-+void arch_apei_report_mem_error(int sev, struct cper_mem_err_compact *mem_err);
-
- #endif
- #endif
-diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
-index fdb785fa4613a..921089912fbfb 100644
---- a/include/ras/ras_event.h
-+++ b/include/ras/ras_event.h
-@@ -24,7 +24,7 @@
-
- #if defined(CONFIG_ACPI_EXTLOG) || defined(CONFIG_ACPI_EXTLOG_MODULE)
- TRACE_EVENT(extlog_mem_event,
--	TP_PROTO(struct cper_sec_mem_err *mem,
-+	TP_PROTO(struct cper_mem_err_compact *mem,
- 		 u32 err_seq,
- 		 const guid_t *fru_id,
- 		 const char *fru_text,
-@@ -61,7 +61,7 @@ TRACE_EVENT(extlog_mem_event,
- 			__entry->pa_mask_lsb = ~0;
- 		__entry->fru_id = *fru_id;
- 		__assign_str(fru_text);
--		cper_mem_err_pack(mem, &__entry->data);
-+		__entry->data = *mem;
- 	),
-
- 	TP_printk("{%d} %s error: %s physical addr: %016llx (mask lsb: %x) %sFRU: %pUl %.20s",
+ static void cper_mem_err2_pack(const struct cper_sec_mem_err2 *mem,
+ 			       struct cper_mem_err_compact *cmem)
+diff --git a/include/linux/cper.h b/include/linux/cper.h
+index ac236043ce859..dac8e0b83a9fa 100644
+--- a/include/linux/cper.h
++++ b/include/linux/cper.h
+@@ -627,8 +627,6 @@ void cper_print_bits(const char *prefix, unsigned int bits,
+ 		     const char * const strs[], unsigned int strs_size);
+ int cper_bits_to_str(char *buf, int buf_size, unsigned long bits,
+ 		     const char * const strs[], unsigned int strs_size);
+-void cper_mem_err_pack(const struct cper_sec_mem_err *,
+-		       struct cper_mem_err_compact *);
+ bool cper_sec_is_platform_mem(const guid_t *sec_type);
+ int cper_mem_err_parse(const guid_t *sec_type, const void *mem, size_t len,
+ 		       struct cper_mem_err_compact *cmem);
 --
 2.43.0
