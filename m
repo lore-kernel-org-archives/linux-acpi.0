@@ -1,31 +1,31 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 28007282F0C;
-	Tue, 29 Sep 2026 07:47:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B764F3ACA65;
+	Tue, 29 Sep 2026 07:48:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790668077; cv=none; b=bzgrwH45UnaSBBJ3lDB+hA9MErnuLlmM04ABAi5J3EySqiwRGppUlygOr7UwVAPpgXvWj5wE3vP0mdC9NuDX+Ij14ZJOMViSJfUzkYvspBHjjDFDSGOh1rLBP4AnRo1Hg17+FvljamFonwfbdIyy3MqRuBHqAtRmXQwh+DXt8B4=
+	t=1790668090; cv=none; b=JXDzPtLRcXSrBlYFohgxd+VcaXiEkgDcom+06yAeggKbXBZ+cNiQXTfGJZh8KfCMfq0N7sQZae0wUCpkWuqOi5bsngd/lUxeYSZSVVrq0lSmmdpSPvQEhz2/zFZ4IGBKGGQvi9rt1Bn8rNsmcPt+Dh9CQH4wk8i/G0d0QrPoMZU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790668077; c=relaxed/simple;
-	bh=R7fWRgbHF/X1CbGxX0zY/n0lChhaSe2lXpFDKyPvOIA=;
+	s=arc-20240116; t=1790668090; c=relaxed/simple;
+	bh=QhdoheglfZU1xEIJYQWDAG5Js026GvE/3h7aT0ahMoI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=JpQD17ywaIb4XaUgyJcVHbn8IE8a7byhRUJHEqG7fkcJ8Nf8oQzX7MoaeUZh19omL5MnLXpl06f44up4SMaPVaPwQ2l+GtUy5OmkhQ05eA+QSBQOtCnUHDJ/DSAiB4KFlTYeD4ubHENRUyJL8NYiRkXzdtmpUlqbbBOup9bTinw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=VLQazKZA; arc=none smtp.client-ip=217.140.110.172
+	 MIME-Version; b=CE8dAv/c9CClYUmHa7huZ/wzY2mQr8kr6Nx4L/A5ATSz27+SchnCeq4pOf7nRoU1h/E7hxoR5KQHBR5Fz0upN2FMguXysAamuHRnolg4s68z1H+bjanPRxRzEAsmnSKqJiIbtUOnKR7TlHJ2W07Urch5OaFxgHvldvjHxCFQGfA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=kiAThnZ6; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="VLQazKZA"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="kiAThnZ6"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1E9A6152B;
-	Tue, 29 Sep 2026 00:47:52 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C62C51576;
+	Tue, 29 Sep 2026 00:48:04 -0700 (PDT)
 Received: from e135073.nice.arm.com (e135073.arm.com [10.34.125.6])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 56F0A3F85F;
-	Tue, 29 Sep 2026 00:47:49 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 9D0843F85F;
+	Tue, 29 Sep 2026 00:48:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1790668075; bh=R7fWRgbHF/X1CbGxX0zY/n0lChhaSe2lXpFDKyPvOIA=;
+	t=1790668088; bh=QhdoheglfZU1xEIJYQWDAG5Js026GvE/3h7aT0ahMoI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=VLQazKZAsRZ3PCaFrUOLou46wyESeIsFOTlEgD+BzXjnOq/HicL8By5H/9T3G8iES
-	 RTJJkk/8xyMN7jV7hzd1BOpcLgMz08ks6BFCRH+1DCQIoDVDlByOqKwG7tXYILWMxV
-	 4AWIzUKIZm8CnPWS5+T8/fMcGWgf49VPGm7/eJzk=
+	b=kiAThnZ6LK/u3ugl1Pzz7Hy7+DxJlRGOSU8O3haeLBCJcxH7/QKc+Y2dO7HU36xD+
+	 3BG/duvPrW4UwP5lgOzJpSye8ur2VQBS0MoaY1lotg9JPGGqZRv0LGLReYrBnAoOO9
+	 RYXSOV5uImvm1tlBwUCyDWW8zTr8h1NMVYkzpGvI=
 From: Pierre Gondois <pierre.gondois@arm.com>
 To: linux-kernel@vger.kernel.org
 Cc: James Morse <james.morse@arm.com>,
@@ -59,9 +59,9 @@ Cc: James Morse <james.morse@arm.com>,
 	linux-acpi@vger.kernel.org,
 	linux-edac@vger.kernel.org,
 	acpica-devel@lists.linux.dev
-Subject: [RFC PATCH 2/6] cper: add Memory Error Section 2 structures
-Date: Tue, 29 Sep 2026 09:46:01 +0200
-Message-ID: <20260929074659.2587216-3-pierre.gondois@arm.com>
+Subject: [RFC PATCH 3/6] cper: extend cper_mem_err_compact struct
+Date: Tue, 29 Sep 2026 09:46:02 +0200
+Message-ID: <20260929074659.2587216-4-pierre.gondois@arm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260929074659.2587216-1-pierre.gondois@arm.com>
 References: <20260929074659.2587216-1-pierre.gondois@arm.com>
@@ -73,60 +73,126 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add CPER Memory Error Section 2 definitions to the CPER headers.
+Extend cper_mem_err_compact struct to prepare for:
+- additional support of Memory Error Section 2
+- widening the usage of cper_mem_err_compact struct for both
+  Memory Error Section 2 and Memory Error Section (1)
+
+Remove the extended field which contains Memory Error Section (1)
+additional bits that can now fit in the larger (u32) fields.
+Add fields that were previously not populated (physical_addr, ...)
+to prepare for using this cper_mem_err_compact struct for both
+Memory Error sections.
 
 Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
 ---
- include/linux/cper.h | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ drivers/firmware/efi/cper.c | 21 ++++++++++++---------
+ include/linux/cper.h        | 22 ++++++++++++++--------
+ 2 files changed, 26 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
+index 06b4fdb59917a..6285b67e8fcd9 100644
+--- a/drivers/firmware/efi/cper.c
++++ b/drivers/firmware/efi/cper.c
+@@ -325,12 +325,8 @@ int cper_mem_err_location(struct cper_mem_err_compact *mem, char *msg)
+ 			       mem->bank & CPER_MEM_BANK_ADDRESS_MASK);
+ 	if (mem->validation_bits & CPER_MEM_VALID_DEVICE)
+ 		n += scnprintf(msg + n, len - n, "device:%d ", mem->device);
+-	if (mem->validation_bits & (CPER_MEM_VALID_ROW | CPER_MEM_VALID_ROW_EXT)) {
+-		u32 row = mem->row;
+-
+-		row |= cper_get_mem_extension(mem->validation_bits, mem->extended);
+-		n += scnprintf(msg + n, len - n, "row:%d ", row);
+-	}
++	if (mem->validation_bits & (CPER_MEM_VALID_ROW | CPER_MEM_VALID_ROW_EXT))
++		n += scnprintf(msg + n, len - n, "row:%d ", mem->row);
+ 	if (mem->validation_bits & CPER_MEM_VALID_COLUMN)
+ 		n += scnprintf(msg + n, len - n, "column:%d ", mem->column);
+ 	if (mem->validation_bits & CPER_MEM_VALID_BIT_POSITION)
+@@ -347,7 +343,7 @@ int cper_mem_err_location(struct cper_mem_err_compact *mem, char *msg)
+ 			       mem->target_id);
+ 	if (mem->validation_bits & CPER_MEM_VALID_CHIP_ID)
+ 		n += scnprintf(msg + n, len - n, "chip_id:%d ",
+-			       mem->extended >> CPER_MEM_CHIP_ID_SHIFT);
++			       mem->chip_id);
+
+ 	return n;
+ }
+@@ -362,7 +358,7 @@ int cper_dimm_err_location(struct cper_mem_err_compact *mem, char *msg)
+ 		return 0;
+
+ 	len = CPER_REC_LEN;
+-	dmi_memdev_name(mem->mem_dev_handle, &bank, &device);
++	dmi_memdev_name((u16)mem->mem_dev_handle, &bank, &device);
+ 	if (bank && device)
+ 		n = snprintf(msg, len, "DIMM location: %s %s ", bank, device);
+ 	else
+@@ -377,6 +373,7 @@ EXPORT_SYMBOL_GPL(cper_dimm_err_location);
+ void cper_mem_err_pack(const struct cper_sec_mem_err *mem,
+ 		       struct cper_mem_err_compact *cmem)
+ {
++	memset(cmem, 0, sizeof(*cmem));
+ 	cmem->validation_bits = mem->validation_bits;
+ 	cmem->node = mem->node;
+ 	cmem->card = mem->card;
+@@ -384,15 +381,21 @@ void cper_mem_err_pack(const struct cper_sec_mem_err *mem,
+ 	cmem->bank = mem->bank;
+ 	cmem->device = mem->device;
+ 	cmem->row = mem->row;
++	cmem->row |= cper_get_mem_extension(mem->validation_bits, mem->extended);
+ 	cmem->column = mem->column;
+ 	cmem->bit_pos = mem->bit_pos;
+ 	cmem->requestor_id = mem->requestor_id;
+ 	cmem->responder_id = mem->responder_id;
+ 	cmem->target_id = mem->target_id;
+-	cmem->extended = mem->extended;
+ 	cmem->rank = mem->rank;
+ 	cmem->mem_array_handle = mem->mem_array_handle;
+ 	cmem->mem_dev_handle = mem->mem_dev_handle;
++	cmem->error_status = mem->error_status;
++	cmem->physical_addr = mem->physical_addr;
++	cmem->physical_addr_mask = mem->physical_addr_mask;
++	cmem->error_type = mem->error_type;
++	if (mem->validation_bits & CPER_MEM_VALID_CHIP_ID)
++		cmem->chip_id = mem->extended >> CPER_MEM_CHIP_ID_SHIFT;
+ }
+ EXPORT_SYMBOL_GPL(cper_mem_err_pack);
 
 diff --git a/include/linux/cper.h b/include/linux/cper.h
-index 440b35e459e53..170bb15f616d0 100644
+index 170bb15f616d0..b5e2a0d115ca2 100644
 --- a/include/linux/cper.h
 +++ b/include/linux/cper.h
-@@ -198,6 +198,10 @@ enum {
- #define CPER_SEC_PLATFORM_MEM						\
- 	GUID_INIT(0xA5BC1114, 0x6F64, 0x4EDE, 0xB8, 0x63, 0x3E, 0x83,	\
- 		  0xED, 0x7C, 0x83, 0xB1)
-+/* Platform Memory 2 */
-+#define CPER_SEC_PLATFORM_MEM2						\
-+	GUID_INIT(0x61EC04FC, 0x48E6, 0xD813, 0x25, 0xC9, 0x8D, 0xAA,	\
-+		  0x44, 0x75, 0x0B, 0x12)
- #define CPER_SEC_PCIE							\
- 	GUID_INIT(0xD995E954, 0xBBC1, 0x430F, 0xAD, 0x91, 0xB4, 0x4D,	\
- 		  0xCB, 0x3C, 0x6F, 0x35)
-@@ -506,6 +510,32 @@ struct cper_sec_mem_err {
- 	u16	mem_dev_handle;		/* "module handle" in UEFI 2.4 */
- };
-
-+/* Memory Error Section 2, UEFI v2.11 sec N.2.6 */
-+struct cper_sec_mem_err2 {
-+	u64	validation_bits;
-+	u64	error_status;
-+	u64	physical_addr;
-+	u64	physical_addr_mask;
-+	u16	node;
-+	u16	card;
-+	u16	module;
-+	u16	bank;
+@@ -542,17 +542,23 @@ struct cper_mem_err_compact {
+ 	u16	card;
+ 	u16	module;
+ 	u16	bank;
+-	u16	device;
+-	u16	row;
+-	u16	column;
+-	u16	bit_pos;
 +	u32	device;
 +	u32	row;
 +	u32	column;
-+	u32	rank;
 +	u32	bit_pos;
+ 	u64	requestor_id;
+ 	u64	responder_id;
+ 	u64	target_id;
+-	u16	rank;
+-	u16	mem_array_handle;
+-	u16	mem_dev_handle;
+-	u8      extended;
++	u32	rank;
++	u32	mem_array_handle;
++	u32	mem_dev_handle;
++	u64	error_status;
++	u64	physical_addr;
++	u64	physical_addr_mask;
 +	u8	chip_id;
-+	u8	error_type;
 +	u8	status;
-+	u8	reserved;
-+	u64	requestor_id;
-+	u64	responder_id;
-+	u64	target_id;
-+	u32	mem_array_handle;	/* "card handle" */
-+	u32	mem_dev_handle;		/* "module handle" */
-+};
-+
- struct cper_mem_err_compact {
- 	u64	validation_bits;
- 	u16	node;
++	u8	error_type;
++	u8	is_section2;
+ };
+
+ static inline u32 cper_get_mem_extension(u64 mem_valid, u8 mem_extended)
 --
 2.43.0
