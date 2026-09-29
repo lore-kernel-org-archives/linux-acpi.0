@@ -1,31 +1,30 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 038AA513557;
-	Tue, 29 Sep 2026 10:30:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A4B954FDA44;
+	Tue, 29 Sep 2026 10:30:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790677828; cv=none; b=HXOnZJY9JVW2wLwXFcRztZtntjBNE7IFvLLTGp0PyFw7rIr2m4LXAOhnndaaHDpPIBuBAm8346KG4UiUoa3/nyFIczKB5A6qbz7ATtWmQAZI/qSktMX4R52qFUyDvWC4xbJkZhZK8I73YsSQOEwaULyIjg7XLnTi41FzhIkGQNY=
+	t=1790677834; cv=none; b=dIoknO0JSuKKEu8MlsIPLdATKr69uqlQIblSP4J6StC1N/YrUb+KyP9W4YlTcM7yTuHWeSqNGhJymbS4CiPxVUTlguy4+n2EDD6S3DQrzhIpy+1mD0Sc0j1N6lu8A7p1G2/hGSuWz/Knk/WXUlnBzGMRkM8bNargcv0OmN09C0s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790677828; c=relaxed/simple;
-	bh=xS8x1mldMghmrCSOEjbKLPjPW9hVvNYyF4FyTD+8fDc=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=QswgGlU0wpw3l7AfYd0w/J6Oj9iMD7sJw3nA8WZorGaDzjZcf9/zjMkHxsZYNygiMb22GJxFL/RtdweX4oZF8cHqmjOa13JA110voUaKkg/xsI9W0yegKbER+KkT7apR9czOwWtUCriklfbJwDfFeTSc9d587iF6deVnLADmwn4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=ny5icgY/; arc=none smtp.client-ip=217.140.110.172
+	s=arc-20240116; t=1790677834; c=relaxed/simple;
+	bh=Tpveh4XNU6D/ngwovmJo5878W7WdVBobXm56TA+n/Bo=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=LrqR4VID9EGdoBeKrs0aOKNfF/RMMpwa/TJP9qByLyoC4zbZ1uiEiNAT3VZft2tLgo4EDwpfr4buIU4Fp12/ko7bsP/cli+mxtl4PiuT31pA7rtEkt/aWtQn9Izbz1SIly+w9pM0KlLJt8L+cStBSLclPy+DMb04rIRpzAtbswQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=rZyfygmT; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="ny5icgY/"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="rZyfygmT"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C8A5A1595;
-	Tue, 29 Sep 2026 03:30:14 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B72CD1516;
+	Tue, 29 Sep 2026 03:30:03 -0700 (PDT)
 Received: from e127648.arm.com (unknown [10.57.52.74])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 57BB03F86F;
-	Tue, 29 Sep 2026 03:30:13 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 423703F86F;
+	Tue, 29 Sep 2026 03:30:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1790677818; bh=xS8x1mldMghmrCSOEjbKLPjPW9hVvNYyF4FyTD+8fDc=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=ny5icgY/6wAajRcWWshF6pD/dlrxscwre83V70t8Z+QS9lavePjuegP5dordCs5JQ
-	 FF2KtCe8e/BrEizuQhnIHq1AaO3lD4rwQV8UuSzWgY0K07dHHhS3A/3dhkHZ7qkglQ
-	 a0PE170Ac1tWSpePf7Yv+EUlgLb+eJZ1zKZS37cU=
+	t=1790677807; bh=Tpveh4XNU6D/ngwovmJo5878W7WdVBobXm56TA+n/Bo=;
+	h=From:To:Cc:Subject:Date:From;
+	b=rZyfygmTRgWWSHwMAJpjZSZbToSmZ5vlhLIkvgdoWWwwRW/Qs2i9L14hx7MyJERan
+	 xOlu6yHQ1Q1zJi9q2BBUosTZDEx2/rxfsWXK12sVwtbbcHFWmMNB9lypSWwJgrEn31
+	 fN0GAs3sa/5INS7FtjROdytVPpdS4OMh21g9j/Qs=
 From: Christian Loehle <christian.loehle@arm.com>
 To: rafael@kernel.org
 Cc: zhenglifeng1@huawei.com,
@@ -57,12 +56,10 @@ Cc: zhenglifeng1@huawei.com,
 	Shuah Khan <skhan@linuxfoundation.org>,
 	Randy Dunlap <rdunlap@infradead.org>,
 	Christian Loehle <christian.loehle@arm.com>
-Subject: [PATCH 2/3] cpufreq: CPPC: Resolve frequencies to performance levels
-Date: Tue, 29 Sep 2026 11:29:56 +0100
-Message-Id: <20260929102957.2591657-3-christian.loehle@arm.com>
+Subject: [PATCH 0/3] cpufreq: Resolve CPPC frequencies to performance levels
+Date: Tue, 29 Sep 2026 11:29:54 +0100
+Message-Id: <20260929102957.2591657-1-christian.loehle@arm.com>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20260929102957.2591657-1-christian.loehle@arm.com>
-References: <20260929102957.2591657-1-christian.loehle@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -71,400 +68,52 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Different kHz requests can select the same CPPC performance level.
-Implement ->resolve_freq() so governors such as schedutil can skip
-redundant writes.
+For table-based cpufreq drivers, the core resolves requests to supported
+frequency-table entries before governors such as schedutil compare them
+with their cached target. Different kHz requests selecting the same entry
+therefore need not reach the driver again.
 
-Precompute the affine conversion and invert its integer rounding directly.
-Share bounded conversions with ->target() and ->fast_switch(), choosing the
-first performance level when several share a kHz value. Recompute limits
-from each policy snapshot to avoid caching sysfs-shared mutable controls.
+Table-less cppc-cpufreq lacks this resolution: the core returns the requested
+kHz value even if firmware exposes only a few CPPC performance levels.
+Different requests can miss the governor's cache yet program the same
+Desired Performance value. The tested ARM AGI CPU exposes only 61 levels,
+with bounds visible at:
 
-Cap intervals at or below nominal kHz at Nominal Performance, excluding
-boosted levels that alias it. Unchanged frequency limits then imply
-unchanged performance limits across boost toggles.
+  /sys/devices/system/cpu/cpuX/acpi_cppc/{lowest,highest}_perf
 
-After clamping to CPU limits, snap the limits to supported frequencies.
-If none lies in the interval, collapse both limits to the highest supported
-frequency not above its maximum, as frequency-table verification does.
+Add ->resolve_freq() so table-less ->target() drivers can canonicalize
+requests without constructing a frequency table. CPPC resolves requests
+before sugov_update_next_freq(), allowing its existing cache to skip
+equivalent requests. Raw limit notifications still trigger
+reconsideration, but only changed resolved limits force a driver update.
+Failed limit writes remain pending for retry.
 
-Signed-off-by: Christian Loehle <christian.loehle@arm.com>
----
- drivers/cpufreq/cppc_cpufreq.c | 257 ++++++++++++++++++++++++++++++---
- 1 file changed, 239 insertions(+), 18 deletions(-)
+Testing on an ARM AGI CPU (61 distinct CPPC levels) with schedutil gives
+the following end-to-end results across 16 iterations:
 
-diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-index 4ea444ff889e..fa85efb9f701 100644
---- a/drivers/cpufreq/cppc_cpufreq.c
-+++ b/drivers/cpufreq/cppc_cpufreq.c
-@@ -18,8 +18,10 @@
- #include <linux/cpufreq.h>
- #include <linux/irq_work.h>
- #include <linux/kthread.h>
-+#include <linux/math64.h>
- #include <linux/mutex.h>
- #include <linux/time.h>
-+#include <linux/units.h>
- #include <linux/vmalloc.h>
- #include <uapi/linux/sched/types.h>
- 
-@@ -29,6 +31,24 @@
- 
- static struct cpufreq_driver cppc_cpufreq_driver;
- 
-+struct cppc_perf_freq_map {
-+	s64 offset;
-+	u64 multiplier;
-+	u32 divisor;
-+};
-+
-+struct cppc_cpufreq_data {
-+	struct cppc_cpudata cpu_data;
-+	struct cppc_perf_freq_map map;
-+	unsigned int nominal_khz;
-+};
-+
-+static struct cppc_cpufreq_data *
-+cppc_cpufreq_data(struct cppc_cpudata *cpu_data)
-+{
-+	return container_of(cpu_data, struct cppc_cpufreq_data, cpu_data);
-+}
-+
- #ifdef CONFIG_ACPI_CPPC_CPUFREQ_FIE
- static enum {
- 	FIE_UNSET = -1,
-@@ -302,11 +322,159 @@ static inline void cppc_freq_invariance_exit(void)
- }
- #endif /* CONFIG_ACPI_CPPC_CPUFREQ_FIE */
- 
-+/* Precompute the affine mapping used by cppc_perf_to_khz(). */
-+static void cppc_cpufreq_init_perf_map(struct cppc_perf_caps *caps,
-+				       struct cppc_perf_freq_map *map)
-+{
-+	if (caps->lowest_freq && caps->nominal_freq) {
-+		if (caps->lowest_freq == caps->nominal_freq) {
-+			map->multiplier = (u64)caps->nominal_freq * KHZ_PER_MHZ;
-+			map->divisor = caps->nominal_perf;
-+			map->offset = 0;
-+		} else {
-+			map->multiplier = (u64)(caps->nominal_freq -
-+					   caps->lowest_freq) * KHZ_PER_MHZ;
-+			map->divisor = caps->nominal_perf - caps->lowest_perf;
-+			map->offset = (s64)caps->nominal_freq * KHZ_PER_MHZ -
-+				div64_u64(caps->nominal_perf * map->multiplier,
-+					  map->divisor);
-+		}
-+	} else {
-+		map->multiplier = cppc_get_dmi_max_khz();
-+		map->divisor = caps->highest_perf;
-+		map->offset = 0;
-+	}
-+}
-+
-+static unsigned int
-+cppc_cpufreq_perf_to_khz(const struct cppc_perf_freq_map *map, u32 perf)
-+{
-+	s64 freq = map->offset + div64_u64(perf * map->multiplier,
-+					    map->divisor);
-+
-+	return freq > 0 ? freq : 0;
-+}
-+
-+/*
-+ * Invert integer-kHz rounding: L finds the first level at or above the
-+ * target frequency, H the last at or below it, within the supplied bounds.
-+ */
-+static u32 cppc_cpufreq_perf_for_freq(const struct cppc_perf_freq_map *map,
-+				      unsigned int target_freq,
-+				      u32 min_perf, u32 max_perf,
-+				      unsigned int relation)
-+{
-+	s64 scaled_freq = (s64)target_freq - map->offset;
-+	u64 perf;
-+
-+	switch (relation) {
-+	case CPUFREQ_RELATION_L:
-+		if (!target_freq || scaled_freq <= 0)
-+			perf = 0;
-+		else
-+			perf = mul_u64_u64_div_u64_roundup(scaled_freq,
-+							   map->divisor,
-+							   map->multiplier);
-+		break;
-+
-+	case CPUFREQ_RELATION_H:
-+		if (scaled_freq < 0) {
-+			perf = 0;
-+		} else {
-+			perf = mul_u64_u64_div_u64_roundup(scaled_freq + 1,
-+							   map->divisor,
-+							   map->multiplier);
-+			perf--;
-+		}
-+		break;
-+
-+	default:
-+		WARN_ON_ONCE(1);
-+		return min_perf;
-+	}
-+
-+	return clamp_t(u64, perf, min_perf, max_perf);
-+}
-+
-+static void cppc_cpufreq_perf_limits(struct cppc_perf_caps *caps,
-+				     struct cppc_cpufreq_data *data,
-+				     unsigned int min_freq,
-+				     unsigned int max_freq,
-+				     u32 *min_perf, u32 *max_perf)
-+{
-+	u32 policy_max_perf;
-+
-+	/* Do not include boosted levels that alias the nominal frequency. */
-+	policy_max_perf = max_freq <= data->nominal_khz ?
-+			  caps->nominal_perf : caps->highest_perf;
-+	*min_perf = cppc_cpufreq_perf_for_freq(&data->map, min_freq,
-+					       caps->lowest_perf,
-+					       policy_max_perf,
-+					       CPUFREQ_RELATION_L);
-+	*max_perf = cppc_cpufreq_perf_for_freq(&data->map, max_freq,
-+					       caps->lowest_perf,
-+					       policy_max_perf,
-+					       CPUFREQ_RELATION_H);
-+}
-+
-+static unsigned int
-+cppc_cpufreq_resolve_freq(struct cpufreq_policy *policy,
-+			  unsigned int target_freq,
-+			  unsigned int min_freq,
-+			  unsigned int max_freq,
-+			  unsigned int relation)
-+{
-+	struct cppc_cpudata *cpu_data = policy->driver_data;
-+	struct cppc_perf_caps *caps = &cpu_data->perf_caps;
-+	struct cppc_cpufreq_data *data = cppc_cpufreq_data(cpu_data);
-+	const struct cppc_perf_freq_map *map = &data->map;
-+	u32 min_perf, max_perf, perf;
-+
-+	cppc_cpufreq_perf_limits(caps, data, min_freq, max_freq,
-+				 &min_perf, &max_perf);
-+	if (WARN_ON_ONCE(min_perf > max_perf))
-+		return cppc_cpufreq_perf_to_khz(map, max_perf);
-+
-+	switch (relation) {
-+	case CPUFREQ_RELATION_L:
-+	case CPUFREQ_RELATION_H:
-+		perf = cppc_cpufreq_perf_for_freq(map, target_freq,
-+						  min_perf, max_perf, relation);
-+		break;
-+	case CPUFREQ_RELATION_C: {
-+		u32 lower = cppc_cpufreq_perf_for_freq(map, target_freq,
-+							min_perf, max_perf,
-+							CPUFREQ_RELATION_H);
-+		u32 upper = cppc_cpufreq_perf_for_freq(map, target_freq,
-+							min_perf, max_perf,
-+							CPUFREQ_RELATION_L);
-+		unsigned int lower_freq = cppc_cpufreq_perf_to_khz(map, lower);
-+		unsigned int upper_freq = cppc_cpufreq_perf_to_khz(map, upper);
-+
-+		if (lower_freq >= target_freq)
-+			perf = lower;
-+		else if (upper_freq <= target_freq)
-+			perf = upper;
-+		else if (target_freq - lower_freq < upper_freq - target_freq)
-+			perf = lower;
-+		else
-+			perf = upper;
-+		break;
-+	}
-+	default:
-+		WARN_ON_ONCE(1);
-+		return target_freq;
-+	}
-+
-+	return cppc_cpufreq_perf_to_khz(map, perf);
-+}
-+
- static void cppc_cpufreq_get_perf_limits(struct cppc_cpudata *cpu_data,
- 					 struct cpufreq_policy *policy,
- 					 u32 *min_perf, u32 *max_perf)
- {
- 	struct cppc_perf_caps *caps = &cpu_data->perf_caps;
-+	struct cppc_cpufreq_data *data = cppc_cpufreq_data(cpu_data);
- 	unsigned int min_freq, max_freq;
- 	u32 min, max;
- 
-@@ -315,11 +483,11 @@ static void cppc_cpufreq_get_perf_limits(struct cppc_cpudata *cpu_data,
- 	if (unlikely(min_freq > max_freq))
- 		min_freq = max_freq;
- 
--	min = cppc_khz_to_perf(caps, min_freq);
--	max = cppc_khz_to_perf(caps, max_freq);
-+	cppc_cpufreq_perf_limits(caps, data, min_freq, max_freq,
-+				 &min, &max);
- 
--	*min_perf = clamp_t(u32, min, caps->lowest_perf, caps->highest_perf);
--	*max_perf = clamp_t(u32, max, caps->lowest_perf, caps->highest_perf);
-+	*min_perf = min(min, max);
-+	*max_perf = max;
- }
- 
- static void cppc_cpufreq_update_perf_limits(struct cppc_cpudata *cpu_data,
-@@ -330,6 +498,26 @@ static void cppc_cpufreq_update_perf_limits(struct cppc_cpudata *cpu_data,
- 				     &cpu_data->perf_ctrls.max_perf);
- }
- 
-+static unsigned int
-+cppc_cpufreq_update_perf_ctrls(struct cppc_cpudata *cpu_data,
-+			       struct cpufreq_policy *policy,
-+			       unsigned int target_freq)
-+{
-+	struct cppc_cpufreq_data *data = cppc_cpufreq_data(cpu_data);
-+	u32 min_perf, max_perf, desired_perf;
-+
-+	cppc_cpufreq_get_perf_limits(cpu_data, policy, &min_perf, &max_perf);
-+	/* Use the first level when several share the same integer-kHz value. */
-+	desired_perf = cppc_cpufreq_perf_for_freq(&data->map, target_freq,
-+						  min_perf, max_perf,
-+						  CPUFREQ_RELATION_L);
-+	cpu_data->perf_ctrls.min_perf = min_perf;
-+	cpu_data->perf_ctrls.max_perf = max_perf;
-+	cpu_data->perf_ctrls.desired_perf = desired_perf;
-+
-+	return cppc_cpufreq_perf_to_khz(&data->map, desired_perf);
-+}
-+
- static int cppc_cpufreq_set_target(struct cpufreq_policy *policy,
- 				   unsigned int target_freq,
- 				   unsigned int relation)
-@@ -339,12 +527,9 @@ static int cppc_cpufreq_set_target(struct cpufreq_policy *policy,
- 	struct cpufreq_freqs freqs;
- 	int ret = 0;
- 
--	cpu_data->perf_ctrls.desired_perf =
--			cppc_khz_to_perf(&cpu_data->perf_caps, target_freq);
--	cppc_cpufreq_update_perf_limits(cpu_data, policy);
--
- 	freqs.old = policy->cur;
--	freqs.new = target_freq;
-+	freqs.new = cppc_cpufreq_update_perf_ctrls(cpu_data, policy,
-+						   target_freq);
- 
- 	cpufreq_freq_transition_begin(policy, &freqs);
- 	ret = cppc_set_perf(cpu, &cpu_data->perf_ctrls);
-@@ -361,13 +546,12 @@ static unsigned int cppc_cpufreq_fast_switch(struct cpufreq_policy *policy,
- 					      unsigned int target_freq)
- {
- 	struct cppc_cpudata *cpu_data = policy->driver_data;
-+	unsigned int resolved_freq;
- 	unsigned int cpu = policy->cpu;
--	u32 desired_perf;
- 	int ret;
- 
--	desired_perf = cppc_khz_to_perf(&cpu_data->perf_caps, target_freq);
--	cpu_data->perf_ctrls.desired_perf = desired_perf;
--	cppc_cpufreq_update_perf_limits(cpu_data, policy);
-+	resolved_freq = cppc_cpufreq_update_perf_ctrls(cpu_data, policy,
-+						       target_freq);
- 
- 	ret = cppc_set_perf(cpu, &cpu_data->perf_ctrls);
- 	if (ret) {
-@@ -376,12 +560,39 @@ static unsigned int cppc_cpufreq_fast_switch(struct cpufreq_policy *policy,
- 		return 0;
- 	}
- 
--	return target_freq;
-+	return resolved_freq;
- }
- 
- static int cppc_verify_policy(struct cpufreq_policy_data *policy)
- {
-+	struct cpufreq_policy *cur_policy;
-+	struct cppc_cpudata *cpu_data;
-+	struct cppc_cpufreq_data *data;
-+	struct cppc_perf_caps *caps;
-+	unsigned int min_freq, max_freq;
-+	u32 min_perf, max_perf;
-+
- 	cpufreq_verify_within_cpu_limits(policy);
-+
-+	cur_policy = cpufreq_cpu_get_raw(policy->cpu);
-+	if (WARN_ON_ONCE(!cur_policy || !cur_policy->driver_data))
-+		return -ENODEV;
-+
-+	cpu_data = cur_policy->driver_data;
-+	data = cppc_cpufreq_data(cpu_data);
-+	caps = &cpu_data->perf_caps;
-+	cppc_cpufreq_perf_limits(caps, data, policy->min, policy->max,
-+				 &min_perf, &max_perf);
-+	min_freq = cppc_cpufreq_perf_to_khz(&data->map, min_perf);
-+	max_freq = cppc_cpufreq_perf_to_khz(&data->map, max_perf);
-+
-+	/* Favor the maximum if no supported frequency lies in the interval. */
-+	if (min_perf > max_perf || min_freq > policy->max ||
-+	    max_freq < policy->min)
-+		min_freq = max_freq;
-+
-+	policy->min = min_freq;
-+	policy->max = max_freq;
- 	return 0;
- }
- 
-@@ -618,12 +829,14 @@ static void populate_efficiency_class(void)
- 
- static struct cppc_cpudata *cppc_cpufreq_get_cpu_data(unsigned int cpu)
- {
-+	struct cppc_cpufreq_data *data;
- 	struct cppc_cpudata *cpu_data;
- 	int ret;
- 
--	cpu_data = kzalloc_obj(struct cppc_cpudata);
--	if (!cpu_data)
-+	data = kzalloc_obj(struct cppc_cpufreq_data);
-+	if (!data)
- 		goto out;
-+	cpu_data = &data->cpu_data;
- 
- 	if (!zalloc_cpumask_var(&cpu_data->shared_cpu_map, GFP_KERNEL))
- 		goto free_cpu;
-@@ -640,6 +853,10 @@ static struct cppc_cpudata *cppc_cpufreq_get_cpu_data(unsigned int cpu)
- 		goto free_mask;
- 	}
- 
-+	cppc_cpufreq_init_perf_map(&cpu_data->perf_caps, &data->map);
-+	data->nominal_khz = cppc_cpufreq_perf_to_khz(&data->map,
-+						     cpu_data->perf_caps.nominal_perf);
-+
- 	ret = cppc_get_perf(cpu, &cpu_data->perf_ctrls);
- 	if (ret) {
- 		pr_debug("Err reading CPU%d perf ctrls: ret:%d\n", cpu, ret);
-@@ -651,7 +868,7 @@ static struct cppc_cpudata *cppc_cpufreq_get_cpu_data(unsigned int cpu)
- free_mask:
- 	free_cpumask_var(cpu_data->shared_cpu_map);
- free_cpu:
--	kfree(cpu_data);
-+	kfree(data);
- out:
- 	return NULL;
- }
-@@ -659,9 +876,12 @@ static struct cppc_cpudata *cppc_cpufreq_get_cpu_data(unsigned int cpu)
- static void cppc_cpufreq_put_cpu_data(struct cpufreq_policy *policy)
- {
- 	struct cppc_cpudata *cpu_data = policy->driver_data;
-+	struct cppc_cpufreq_data *data;
-+
-+	data = container_of(cpu_data, struct cppc_cpufreq_data, cpu_data);
- 
- 	free_cpumask_var(cpu_data->shared_cpu_map);
--	kfree(cpu_data);
-+	kfree(data);
- 	policy->driver_data = NULL;
- }
- 
-@@ -1056,6 +1276,7 @@ static struct cpufreq_driver cppc_cpufreq_driver = {
- 	.flags = CPUFREQ_CONST_LOOPS | CPUFREQ_NEED_UPDATE_LIMITS,
- 	.verify = cppc_verify_policy,
- 	.target = cppc_cpufreq_set_target,
-+	.resolve_freq = cppc_cpufreq_resolve_freq,
- 	.get = cppc_cpufreq_get_rate,
- 	.fast_switch = cppc_cpufreq_fast_switch,
- 	.init = cppc_cpufreq_cpu_init,
+  schbench -m 2 -t 31 -F 256 -n 5 -R 18000 -r 60 -w 20 -i 60
+
+  metric                         baseline       resolve-freq      change
+  median p99                    3364 us          3280 us          -2.5%
+  mean of run p99s              3664.2 us        3299.0 us       -10.0%
+  worst run p99                 4360 us          3500 us         -19.7%
+  median throughput             16431.08 RPS     16460.69 RPS     +0.2%
+
+In an instrumented run of the same workload, cppc_set_perf() calls fell
+from 1,136,868 to 866,703, a 23.8% reduction.
+
+Christian Loehle (3):
+  cpufreq: Add a driver frequency resolution callback
+  cpufreq: CPPC: Resolve frequencies to performance levels
+  cpufreq: Skip updates for unchanged resolved limits
+
+ Documentation/admin-guide/pm/cpufreq.rst |   4 +
+ Documentation/cpu-freq/cpu-drivers.rst   |  19 ++
+ drivers/cpufreq/cppc_cpufreq.c           | 257 +++++++++++++++++++++--
+ drivers/cpufreq/cpufreq.c                |  99 +++++++--
+ include/linux/cpufreq.h                  |  11 +
+ kernel/sched/cpufreq_schedutil.c         |  19 +-
+ 6 files changed, 359 insertions(+), 50 deletions(-)
+
+
+base-commit: 6375e61c01e93e35ee7acd336a689ac1fae4b509
