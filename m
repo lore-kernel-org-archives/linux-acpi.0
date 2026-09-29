@@ -1,31 +1,31 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 02EEC3AD53F;
-	Tue, 29 Sep 2026 07:47:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 28007282F0C;
+	Tue, 29 Sep 2026 07:47:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790668065; cv=none; b=T/WTlO48L/jImMhJiBquHNcXhufpc+Yc4bCy3xL/6Z3FtLmsNAZDRFz68AcMWPo2N1fRqNSi89s6nYtl+7eUtqSrSKJi4WJkZihE0MU+ILnUGIAghvMGzGZlPTvcQz/zvaksswWJXX+UlsGUYzGh5RMMLaSarcz9acPGN6/lWZg=
+	t=1790668077; cv=none; b=bzgrwH45UnaSBBJ3lDB+hA9MErnuLlmM04ABAi5J3EySqiwRGppUlygOr7UwVAPpgXvWj5wE3vP0mdC9NuDX+Ij14ZJOMViSJfUzkYvspBHjjDFDSGOh1rLBP4AnRo1Hg17+FvljamFonwfbdIyy3MqRuBHqAtRmXQwh+DXt8B4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790668065; c=relaxed/simple;
-	bh=GqMAN+RnRu6qMuk/PQyyIscqhPvbIDcWurHJXsBBKkU=;
+	s=arc-20240116; t=1790668077; c=relaxed/simple;
+	bh=R7fWRgbHF/X1CbGxX0zY/n0lChhaSe2lXpFDKyPvOIA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rtYWw9u4kYWuLKml+lx4RV7rSGeQIRyqiXcAnvy1lxApiG7jXZCg5cO1VXBB9/kIolfS+oT+9rTA7HgG9h2L7sNo1zx4qDDpG1gKjcShUE4eyXwTSRpAwesaqF3odzhs0BNhN+sTggjnjhHhtSnP1cgNqNkymX/blL+U2IjOxHw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=m/L2W+RI; arc=none smtp.client-ip=217.140.110.172
+	 MIME-Version; b=JpQD17ywaIb4XaUgyJcVHbn8IE8a7byhRUJHEqG7fkcJ8Nf8oQzX7MoaeUZh19omL5MnLXpl06f44up4SMaPVaPwQ2l+GtUy5OmkhQ05eA+QSBQOtCnUHDJ/DSAiB4KFlTYeD4ubHENRUyJL8NYiRkXzdtmpUlqbbBOup9bTinw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=VLQazKZA; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="m/L2W+RI"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="VLQazKZA"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D1843143D;
-	Tue, 29 Sep 2026 00:47:39 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1E9A6152B;
+	Tue, 29 Sep 2026 00:47:52 -0700 (PDT)
 Received: from e135073.nice.arm.com (e135073.arm.com [10.34.125.6])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id D63FC3F85F;
-	Tue, 29 Sep 2026 00:47:36 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 56F0A3F85F;
+	Tue, 29 Sep 2026 00:47:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1790668063; bh=GqMAN+RnRu6qMuk/PQyyIscqhPvbIDcWurHJXsBBKkU=;
+	t=1790668075; bh=R7fWRgbHF/X1CbGxX0zY/n0lChhaSe2lXpFDKyPvOIA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=m/L2W+RI01NuB/lbq1TH9jK2oOWw6CU4XxsRDOUKIAath8QO8plYQXu7dQ39CiWHb
-	 e9oxlhpWkoyybcGntuhay6TfClx6wbSSkbpCebrJQcajTV7Qe1/roexy602yVhv7Y6
-	 c6aEwTlgLbD7Y4P/+qIO7PcrFNkmwhDN/qUTU8Do=
+	b=VLQazKZAsRZ3PCaFrUOLou46wyESeIsFOTlEgD+BzXjnOq/HicL8By5H/9T3G8iES
+	 RTJJkk/8xyMN7jV7hzd1BOpcLgMz08ks6BFCRH+1DCQIoDVDlByOqKwG7tXYILWMxV
+	 4AWIzUKIZm8CnPWS5+T8/fMcGWgf49VPGm7/eJzk=
 From: Pierre Gondois <pierre.gondois@arm.com>
 To: linux-kernel@vger.kernel.org
 Cc: James Morse <james.morse@arm.com>,
@@ -47,7 +47,6 @@ Cc: James Morse <james.morse@arm.com>,
 	Pawel Chmielewski <pawel.chmielewski@intel.com>,
 	Yazen Ghannam <yazen.ghannam@amd.com>,
 	Avadhut Naik <avadhut.naik@amd.com>,
-	Radu Rendec <radu@rendec.net>,
 	Kees Cook <kees@kernel.org>,
 	Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>,
 	Dave Jiang <dave.jiang@intel.com>,
@@ -60,9 +59,9 @@ Cc: James Morse <james.morse@arm.com>,
 	linux-acpi@vger.kernel.org,
 	linux-edac@vger.kernel.org,
 	acpica-devel@lists.linux.dev
-Subject: [RFC PATCH 1/6] ACPI: extlog: fix extlog_mem_event build issue
-Date: Tue, 29 Sep 2026 09:46:00 +0200
-Message-ID: <20260929074659.2587216-2-pierre.gondois@arm.com>
+Subject: [RFC PATCH 2/6] cper: add Memory Error Section 2 structures
+Date: Tue, 29 Sep 2026 09:46:01 +0200
+Message-ID: <20260929074659.2587216-3-pierre.gondois@arm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20260929074659.2587216-1-pierre.gondois@arm.com>
 References: <20260929074659.2587216-1-pierre.gondois@arm.com>
@@ -74,48 +73,60 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-With CONFIG_ACPI_EXTLOG=n and with the following command:
-make -j4 drivers/acpi/acpi_extlog.o drivers/acpi/
-
-trace_extlog_mem_event() is not defined. Add a extlog_mem_err_event()
-wrapper to fix the build issue.
+Add CPER Memory Error Section 2 definitions to the CPER headers.
 
 Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
 ---
- drivers/acpi/acpi_extlog.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ include/linux/cper.h | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
-index 7ad3b36013cc6..699534b6a732d 100644
---- a/drivers/acpi/acpi_extlog.c
-+++ b/drivers/acpi/acpi_extlog.c
-@@ -180,6 +180,15 @@ extlog_cxl_cper_handle_prot_err(struct cxl_cper_sec_prot_err *prot_err,
- #endif
- }
+diff --git a/include/linux/cper.h b/include/linux/cper.h
+index 440b35e459e53..170bb15f616d0 100644
+--- a/include/linux/cper.h
++++ b/include/linux/cper.h
+@@ -198,6 +198,10 @@ enum {
+ #define CPER_SEC_PLATFORM_MEM						\
+ 	GUID_INIT(0xA5BC1114, 0x6F64, 0x4EDE, 0xB8, 0x63, 0x3E, 0x83,	\
+ 		  0xED, 0x7C, 0x83, 0xB1)
++/* Platform Memory 2 */
++#define CPER_SEC_PLATFORM_MEM2						\
++	GUID_INIT(0x61EC04FC, 0x48E6, 0xD813, 0x25, 0xC9, 0x8D, 0xAA,	\
++		  0x44, 0x75, 0x0B, 0x12)
+ #define CPER_SEC_PCIE							\
+ 	GUID_INIT(0xD995E954, 0xBBC1, 0x430F, 0xAD, 0x91, 0xB4, 0x4D,	\
+ 		  0xCB, 0x3C, 0x6F, 0x35)
+@@ -506,6 +510,32 @@ struct cper_sec_mem_err {
+ 	u16	mem_dev_handle;		/* "module handle" in UEFI 2.4 */
+ };
 
-+static void
-+extlog_mem_err_event(struct cper_sec_mem_err *mem, u32 err_seq,
-+		     const guid_t *fru_id, const char *fru_text, u8 sev)
-+{
-+#if defined(CONFIG_ACPI_EXTLOG) || defined(CONFIG_ACPI_EXTLOG_MODULE)
-+	trace_extlog_mem_event(mem, err_seq, fru_id, fru_text, sev);
-+#endif
-+}
++/* Memory Error Section 2, UEFI v2.11 sec N.2.6 */
++struct cper_sec_mem_err2 {
++	u64	validation_bits;
++	u64	error_status;
++	u64	physical_addr;
++	u64	physical_addr_mask;
++	u16	node;
++	u16	card;
++	u16	module;
++	u16	bank;
++	u32	device;
++	u32	row;
++	u32	column;
++	u32	rank;
++	u32	bit_pos;
++	u8	chip_id;
++	u8	error_type;
++	u8	status;
++	u8	reserved;
++	u64	requestor_id;
++	u64	responder_id;
++	u64	target_id;
++	u32	mem_array_handle;	/* "card handle" */
++	u32	mem_dev_handle;		/* "module handle" */
++};
 +
- static int extlog_print(struct notifier_block *nb, unsigned long val,
- 			void *data)
- {
-@@ -229,8 +238,9 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
- 			struct cper_sec_mem_err *mem = acpi_hest_get_payload(gdata);
-
- 			if (gdata->error_data_length >= sizeof(*mem))
--				trace_extlog_mem_event(mem, err_seq, fru_id, fru_text,
--						       (u8)gdata->error_severity);
-+				extlog_mem_err_event(&mem, err_seq, fru_id,
-+						     fru_text,
-+						     (u8)gdata->error_severity);
- 		} else if (guid_equal(sec_type, &CPER_SEC_CXL_PROT_ERR)) {
- 			struct cxl_cper_sec_prot_err *prot_err =
- 				acpi_hest_get_payload(gdata);
+ struct cper_mem_err_compact {
+ 	u64	validation_bits;
+ 	u16	node;
 --
 2.43.0
