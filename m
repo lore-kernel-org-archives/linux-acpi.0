@@ -1,30 +1,31 @@
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id C19D13AC0ED;
-	Tue, 29 Sep 2026 07:47:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 02EEC3AD53F;
+	Tue, 29 Sep 2026 07:47:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790668054; cv=none; b=SYdJBMZdurD9M+UTtQJlkMICIoZcoK4A5xx1ZbbxPrcW7dapR8IuCS2N/ai9UwsCqjFtttmHyN1EmlbL5aYNR4Zp/1MWQEVM2pCm4S6M7/aOD9RTxHfU0O/f4E246MkHjr5EmaVuOp/7wThefkj/+vW5pq4dfehpYyzFKXMsuEo=
+	t=1790668065; cv=none; b=T/WTlO48L/jImMhJiBquHNcXhufpc+Yc4bCy3xL/6Z3FtLmsNAZDRFz68AcMWPo2N1fRqNSi89s6nYtl+7eUtqSrSKJi4WJkZihE0MU+ILnUGIAghvMGzGZlPTvcQz/zvaksswWJXX+UlsGUYzGh5RMMLaSarcz9acPGN6/lWZg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790668054; c=relaxed/simple;
-	bh=QwSDynEDcWQm3aLun7Hfo/CqbjaZBjKkYlZmZf7yul0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=sMr1QxO7MLWly3RUvtMbTA6EmLbB6jnF4av7xEJCyFbH0oofjpcBj0zpSfJdjwJYyukRbANJvDlD2kvKBVCkwOkwMTUg1+fPewhjIm7NvxUQsTc47UO62fVw7tL+ACFiDN7zlHToIG0hpuzhnA6Qz3iZf1UlW1yrtj0BJs96Abg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=dzLMd+0S; arc=none smtp.client-ip=217.140.110.172
+	s=arc-20240116; t=1790668065; c=relaxed/simple;
+	bh=GqMAN+RnRu6qMuk/PQyyIscqhPvbIDcWurHJXsBBKkU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=rtYWw9u4kYWuLKml+lx4RV7rSGeQIRyqiXcAnvy1lxApiG7jXZCg5cO1VXBB9/kIolfS+oT+9rTA7HgG9h2L7sNo1zx4qDDpG1gKjcShUE4eyXwTSRpAwesaqF3odzhs0BNhN+sTggjnjhHhtSnP1cgNqNkymX/blL+U2IjOxHw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=m/L2W+RI; arc=none smtp.client-ip=217.140.110.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="dzLMd+0S"
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="m/L2W+RI"
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6FFD5497;
-	Tue, 29 Sep 2026 00:47:27 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D1843143D;
+	Tue, 29 Sep 2026 00:47:39 -0700 (PDT)
 Received: from e135073.nice.arm.com (e135073.arm.com [10.34.125.6])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 0F4F43F85F;
-	Tue, 29 Sep 2026 00:47:23 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id D63FC3F85F;
+	Tue, 29 Sep 2026 00:47:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1790668050; bh=QwSDynEDcWQm3aLun7Hfo/CqbjaZBjKkYlZmZf7yul0=;
-	h=From:To:Cc:Subject:Date:From;
-	b=dzLMd+0SqQNR08byUbRkNHnJceTvQCMpQRfBTZV6qeggNC8A2+gxOdXwMIcHyfAXD
-	 gcZrVqcB0H+JEYFGAACJQrGMcQvhLpfEp6+h34FuDNPl3LP20+2KvvwViFT0eoZqPe
-	 dGZ+ShgATNxHmTIcKjz650BKb8RFHi3OIqfvUXho=
+	t=1790668063; bh=GqMAN+RnRu6qMuk/PQyyIscqhPvbIDcWurHJXsBBKkU=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=m/L2W+RI01NuB/lbq1TH9jK2oOWw6CU4XxsRDOUKIAath8QO8plYQXu7dQ39CiWHb
+	 e9oxlhpWkoyybcGntuhay6TfClx6wbSSkbpCebrJQcajTV7Qe1/roexy602yVhv7Y6
+	 c6aEwTlgLbD7Y4P/+qIO7PcrFNkmwhDN/qUTU8Do=
 From: Pierre Gondois <pierre.gondois@arm.com>
 To: linux-kernel@vger.kernel.org
 Cc: James Morse <james.morse@arm.com>,
@@ -45,8 +46,8 @@ Cc: James Morse <james.morse@arm.com>,
 	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
 	Pawel Chmielewski <pawel.chmielewski@intel.com>,
 	Yazen Ghannam <yazen.ghannam@amd.com>,
-	Radu Rendec <radu@rendec.net>,
 	Avadhut Naik <avadhut.naik@amd.com>,
+	Radu Rendec <radu@rendec.net>,
 	Kees Cook <kees@kernel.org>,
 	Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>,
 	Dave Jiang <dave.jiang@intel.com>,
@@ -59,10 +60,12 @@ Cc: James Morse <james.morse@arm.com>,
 	linux-acpi@vger.kernel.org,
 	linux-edac@vger.kernel.org,
 	acpica-devel@lists.linux.dev
-Subject: [RFC PATCH 0/6] CPER: Add Memory Error Section 2 support
-Date: Tue, 29 Sep 2026 09:45:59 +0200
-Message-ID: <20260929074659.2587216-1-pierre.gondois@arm.com>
+Subject: [RFC PATCH 1/6] ACPI: extlog: fix extlog_mem_event build issue
+Date: Tue, 29 Sep 2026 09:46:00 +0200
+Message-ID: <20260929074659.2587216-2-pierre.gondois@arm.com>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260929074659.2587216-1-pierre.gondois@arm.com>
+References: <20260929074659.2587216-1-pierre.gondois@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -71,52 +74,48 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add support for Memory Error Section 2 records.
+With CONFIG_ACPI_EXTLOG=n and with the following command:
+make -j4 drivers/acpi/acpi_extlog.o drivers/acpi/
 
-Extend cper_mem_err_compact to hold both legacy and section-2 records.
-Add a common parser and convert the CPER, GHES, EDAC, extlog and x86 APEI
-paths to use it.
+trace_extlog_mem_event() is not defined. Add a extlog_mem_err_event()
+wrapper to fix the build issue.
 
-The extlog_mem_event payload layout changes with this series.
-Compatibility with existing userspace decoders still needs to be
-addressed. More specifically, the rasdaemon relies on the current
-struct cper_mem_err_compact definition.
-Either:
-A-
-this patchset should not modify struct cper_mem_err_compact and
-create a new structure to handle Memory Error Section 2 events,
-but this would ignore the similarities of Memory Error Section (1)/2
-B-
-userspace should not rely on the struct cper_mem_err_compact
-layout. extlog_mem_event trace events should instead emit data
-that relies on the actual layout of the CPER records, as defined
-in the ACPI spec.
+Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
+---
+ drivers/acpi/acpi_extlog.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-I am looking for guidance on how to handle the above question.
-Current implementation lean toward B, but emits data in the trace
-event that maps the new/updated struct cper_mem_err_compact.
+diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
+index 7ad3b36013cc6..699534b6a732d 100644
+--- a/drivers/acpi/acpi_extlog.c
++++ b/drivers/acpi/acpi_extlog.c
+@@ -180,6 +180,15 @@ extlog_cxl_cper_handle_prot_err(struct cxl_cper_sec_prot_err *prot_err,
+ #endif
+ }
 
-Pierre Gondois (6):
-  ACPI: extlog: fix extlog_mem_event build issue
-  cper: add Memory Error Section 2 structures
-  cper: extend cper_mem_err_compact struct
-  cper: add helpers to handle Memory Error Section 2
-  x86/mce/apei: switch cper_sec_mem_err struct users to compact CPER
-    records
-  cper: make cper_mem_err_pack() static
++static void
++extlog_mem_err_event(struct cper_sec_mem_err *mem, u32 err_seq,
++		     const guid_t *fru_id, const char *fru_text, u8 sev)
++{
++#if defined(CONFIG_ACPI_EXTLOG) || defined(CONFIG_ACPI_EXTLOG_MODULE)
++	trace_extlog_mem_event(mem, err_seq, fru_id, fru_text, sev);
++#endif
++}
++
+ static int extlog_print(struct notifier_block *nb, unsigned long val,
+ 			void *data)
+ {
+@@ -229,8 +238,9 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
+ 			struct cper_sec_mem_err *mem = acpi_hest_get_payload(gdata);
 
- arch/x86/include/asm/mce.h     |   4 +-
- arch/x86/kernel/acpi/apei.c    |   2 +-
- arch/x86/kernel/cpu/mce/apei.c |   2 +-
- drivers/acpi/acpi_extlog.c     |  23 +++-
- drivers/acpi/apei/apei-base.c  |   2 +-
- drivers/acpi/apei/ghes.c       |  20 +--
- drivers/edac/ghes_edac.c       |  26 ++--
- drivers/firmware/efi/cper.c    | 219 +++++++++++++++++++++++++++------
- include/acpi/apei.h            |   2 +-
- include/linux/cper.h           |  58 +++++++--
- include/ras/ras_event.h        |   4 +-
- 11 files changed, 283 insertions(+), 79 deletions(-)
-
+ 			if (gdata->error_data_length >= sizeof(*mem))
+-				trace_extlog_mem_event(mem, err_seq, fru_id, fru_text,
+-						       (u8)gdata->error_severity);
++				extlog_mem_err_event(&mem, err_seq, fru_id,
++						     fru_text,
++						     (u8)gdata->error_severity);
+ 		} else if (guid_equal(sec_type, &CPER_SEC_CXL_PROT_ERR)) {
+ 			struct cxl_cper_sec_prot_err *prot_err =
+ 				acpi_hest_get_payload(gdata);
 --
 2.43.0
