@@ -1,264 +1,387 @@
-Received: from mout02.posteo.de (mout02.posteo.de [185.67.36.66])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 393B433B6F1
-	for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 15:33:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.67.36.66
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id BFC474E780D;
+	Wed, 30 Sep 2026 15:57:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790782421; cv=none; b=hEUlnss4kbiNYYN4AaGNYrmpVWscnLrl/6UnvvAydb0yAh4t4xjx77sPQAeIqBsnLDF0soIT0b8lYkI3N7ZXMZk2AdkcoYZGzCT5Z1U+1glrKB9BWbqwf8Jvqtzk9PjJ6S6vpcWzPWupBxLTkStIN8377Cyek6Gh+Ce/TsHXGnU=
+	t=1790783886; cv=none; b=kduJ2vI5L6Sk1D55MXjX/mRxmb09rYW1NXWjjGT9Nvv7yVIZcusT/pH2P5y/2zW96vqCuagJHo3hmq2q3osC7sMf6MKtNQ7HUiD9cyT/5nlXXDwnJEPjX3x7ANef/jlGEIUBw6JaXittBvOfVQ2zUo2Ue0pPV1O545r+p/g+HOU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790782421; c=relaxed/simple;
-	bh=GF3qJ28po4tzQKhOOmc1ZjYhXtmA/fVN39S6nEBHPRI=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=ra6tinejXpi+YKPPz4X0mW9OaDkxfTCUlqjXAV82oHYLSRI5CHA5SdOqnR4A9q8r9uR7GSdATe0xBvjB5b8U5WMsuFX2RGbYqf4WMOuH1TZXMcexrrRtnwnfH3uSJTK/MPwXSKz6EJgpcICDqtO1yreQa+3UVR3gpFozNzUsGVY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de; spf=pass smtp.mailfrom=posteo.de; dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b=YlSUyJKY; arc=none smtp.client-ip=185.67.36.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
+	s=arc-20240116; t=1790783886; c=relaxed/simple;
+	bh=5jZg6iv6NWVEGrlBgZMC0jVgzD5L0hoB5RF/9I6xxy4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=FNcpEmmOLYipCVK1FGQZee2o4dxWgXbGnhwYn/B8yVU5g9fQwyZQcu7LvXuz0qzL8/sAX50k3SDjWG2N0Qb2yCYE6EwuE5zHcvgg2ke/LT2a9ZMjspMnDa0Fo7BX+IxZ1W0SI27Ek9fCnQhMYGgi7ulc8oTI/ErJfD+1qPMcD8Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=Mn63Vh0C; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=posteo.de header.i=@posteo.de header.b="YlSUyJKY"
-Received: from submission (posteo.de [185.67.36.169]) 
-	by mout02.posteo.de (Postfix) with ESMTPS id 530AC240104
-	for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 17:33:31 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de;
-	s=1984.8680eb; t=1790782411;
-	bh=4KZfnZZWUgpacNaNvWb37H6nYeezWlIgqRQQEVtr3Zc=;
-	h=From:Date:Subject:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:Message-Id:To:Cc:Autocrypt:OpenPGP:From;
-	b=YlSUyJKYIpbHJ50TtBkxm74jrB0lfD9DhChK3MGWXp1SPMU4zcFlG0/yaDvGd1dnM
-	 fcF8GibA2Zgv+9BC53yUY0ffAqA0YR4k2bJ1ofw7HCid9SNrbvGMMQmXHDv16Gcs7D
-	 6lIC9UTxpKX5052h3F4TL/fRwYgKGlVCzFD7N8RuhnCtVOd7nKJjcbOqX5b/a706Gh
-	 g007QfKoypluU01hgC3mptJS1dOZHLdE64EnunDGG333Ci0UomkuHimXvtIvfWzCvb
-	 mIY9amZa8FpJAEyAGcXaoD02lFax9SsEF60f3d5h9kSsIOHxANE6VMmtwUveL2hQy+
-	 D1jQ7N/7f3OPA==
-Received: from customer (localhost [127.0.0.1])
-	by submission (posteo.de) with ESMTPSA id 4hvzbG3q93z6tyf;
-	Wed, 30 Sep 2026 17:33:30 +0200 (CEST)
-From: Markus Probst <markus.probst@posteo.de>
-Date: Wed, 30 Sep 2026 15:33:31 +0000
-Subject: [PATCH RESEND v4] ACPI: SPCR: Support UART clock frequency field
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="Mn63Vh0C"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id B2BAB497;
+	Wed, 30 Sep 2026 08:57:54 -0700 (PDT)
+Received: from [192.168.178.24] (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 9397F3F86F;
+	Wed, 30 Sep 2026 08:57:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1790783878; bh=5jZg6iv6NWVEGrlBgZMC0jVgzD5L0hoB5RF/9I6xxy4=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=Mn63Vh0CEm3S32fZ4038kKfpiBheiqU0mMpwlQMmGIeN9U+6ixpZS/XvdEfw+GM6a
+	 DVVv2DH54oNeXf5FFOv/9LiZwPUZwI0I+Q2QyRanwiHKl9HYBIPOb9njPNGLLRfPLP
+	 VxkYsrB3ZDONpR8iJT2BlB41SIf+9q0xetCUnTwU=
+Message-ID: <c094216a-cef8-437f-90ba-a1c60384e1ce@arm.com>
+Date: Wed, 30 Sep 2026 17:57:50 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v11 02/13] arm_mpam: propagate MSC access errors for
+ hw_probe functions
+To: Ben Horgan <ben.horgan@arm.com>, Lorenzo Pieralisi
+ <lpieralisi@kernel.org>, Hanjun Guo <guohanjun@huawei.com>,
+ Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ James Morse <james.morse@arm.com>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+ Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+ Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+ Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
+ Niyas Sait <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
+ Ritwick Sharma <ritwick.sharma@arm.com>, Gavin Shan <gshan@redhat.com>,
+ linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-kernel@vger.kernel.org
+References: <20260924152739.2865510-1-andre.przywara@arm.com>
+ <20260924152739.2865510-3-andre.przywara@arm.com>
+ <4cc35ee7-c4d3-40c0-b1f9-24ef5a2f5844@arm.com>
+Content-Language: en-GB
+From: Andre Przywara <andre.przywara@arm.com>
+In-Reply-To: <4cc35ee7-c4d3-40c0-b1f9-24ef5a2f5844@arm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <20260930-acpi_spcr-v4-1-ab649aa1f09c@posteo.de>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
- Jiri Slaby <jirislaby@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
- Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, 
- linux-acpi@vger.kernel.org, Markus Probst <markus.probst@posteo.de>
-X-Developer-Signature: v=1; a=openpgp-sha256; l=6200;
- i=markus.probst@posteo.de; h=from:subject:message-id;
- bh=GF3qJ28po4tzQKhOOmc1ZjYhXtmA/fVN39S6nEBHPRI=;
- b=owEBiQJ2/ZANAwAIATR2H/jnrUPSAcsmYgBqvSvKFi07fAaGbO91OnxOyzL/xJ1SWeUKGIYOK
- RxkAon479aJAk8EAAEIADkWIQSCdBjE9KxY53IwxHM0dh/4561D0gUCar0ryhsUgAAAAAAEAA5t
- YW51MiwyLjUrMS4xMiwyLDIACgkQNHYf+OetQ9KZhg//YZVNysLcXV/5KG8JMHy8OdJaNhz5FIm
- 03Xmvro/oqzi71pxT/K0zCi/Wk5DVlvzKj0dtV/jUtQpG7UPRUUJmESSbh0hHCsOvpJnLJ+hwac
- 0oQMFcCTo8Mgnx8ckiqJyf5DTGL/22d7CWBo7MsvyivhmZf/51E/DFQMC1OgdpFP3ZB/AJRl2oN
- jUo9/OOFnr7d9IURst8yu6Lr2XdJsbeu/+RDxXHolY28tMz4816n8N7YrFgK9mooMbIjs1J0/DZ
- LXeil9JEpu/rfNq65A2CSXrGPhmunQjZ2DhT4c15pSoj8H/IrNkt8ZxMPP7Mn4ix+CW1Tkuppul
- sBDTr1ag6x3gLkCzt+7Inutp1ooBQeEQppj+AYkGHAgQ+jmT7Bbe1lSxiqbn/jflS/YvPPIFYtE
- ddIMmmZF2UBHlZ1lNBkIG7ul77AEvkeLYXxuNzYZWf5xZnpTx51qsykJN3MZKcKKUc/Rj+Bq9UP
- y8pVncgMeakEvi4xrn6H3SEtjFWGenoa8/YdRY3iG72mXuyZgDApTv8MhNL5FNSGnH75Go7Jiqy
- 96n9iBYBMa7s91QPnYHq2ZMFnPAIjLtkQ781kNAMwO9S+wDjrjrSLRI6bq2gtvH5r2fKRVWcLE/
- zAandPdwCWRKbQY4j3XtC+4F2HnOXGBiRFAqIjTPRBda0PT9LVcQ=
-X-Developer-Key: i=markus.probst@posteo.de; a=openpgp;
- fpr=827418C4F4AC58E77230C47334761FF8E7AD43D2
-Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
-  keydata=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
-  aBeNN4ijKZchBXHPgVx+YtWRHfcm4l8=
-OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
 
-Prior to this patch, we assume the uart clock frequency is 1843200 Hz in
-the early console. This behaviour results in garbage console output if the
-actual uart clock frequency differs.
+Hi Ben,
 
-The UART Clock Frequency field was added in the Microsoft Serial Port
-Console Redirection (SPCR) specification revision 1.08. If present, use it
-to configure the serial port with the correct uart clock frequency.
-Fallback to old behaviour if missing.
+On 9/30/26 16:01, Ben Horgan wrote:
+> Hi Andre,
+> 
+> On 24/09/2026 16:27, Andre Przywara wrote:
+>> Allow the functions probing for MSC hardware and features to return an
+>> error, and propagate read and write errors from the lower level up.
+>> This uses some "scoped cleanup" functions like scoped_guard() and
+>> ACQUIRE() to avoid the complexity of error handling when a lock has been
+>> taken. Since the mon_sel_lock is a bit special (even more so in an
+>> upcoming patch), we define a new GUARD type for it.
+>>
+>> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+>> Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+>> Reviewed-by: Ben Horgan <ben.horgan@arm.com>
+>> Reviewed-by: Gavin Shan <gshan@redhat.com>
+>> Tested-by: Gavin Shan <gshan@redhat.com> # on NVIDIA Grace Hopper
+>> ---
+>>   drivers/resctrl/mpam_devices.c  | 126 +++++++++++++++++++++-----------
+>>   drivers/resctrl/mpam_internal.h |   4 +
+>>   2 files changed, 87 insertions(+), 43 deletions(-)
+>>
+>> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
+>> index c7686d3799653..22069e7f7bb05 100644
+>> --- a/drivers/resctrl/mpam_devices.c
+>> +++ b/drivers/resctrl/mpam_devices.c
+>> @@ -798,38 +798,46 @@ static bool mpam_ris_hw_probe_csu_nrdy(struct mpam_msc_ris *ris)
+>>   	bool can_set, can_clear;
+>>   	struct mpam_msc *msc = ris->vmsc->msc;
+>>   
+>> -	if (WARN_ON_ONCE(!mpam_mon_sel_lock(msc)))
+>> +	ACQUIRE(mon_sel_lock, guard)(msc);
+>> +	if (ACQUIRE_ERR(mon_sel_lock, &guard))
+>>   		return false;
+>>   
+>>   	mon_sel = FIELD_PREP(MSMON_CFG_MON_SEL_MON_SEL, 0) |
+>>   		  FIELD_PREP(MSMON_CFG_MON_SEL_RIS, ris->ris_idx);
+>> -	mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel);
+>> +	if (mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel))
+>> +		return false;
+>>   
+>>   	/* Hardware might ignore nrdy if it's not enabled */
+>>   	ctl_val = MSMON_CFG_CSU_CTL_TYPE_CSU;
+>>   	ctl_val |= MSMON_CFG_x_CTL_MATCH_PARTID;
+>>   	ctl_val |= MSMON_CFG_x_CTL_MATCH_PMG;
+>>   	ctl_val |= MSMON_CFG_x_CTL_EN;
+>> -	mpam_write_monsel_reg(msc, CFG_CSU_FLT, 0);
+>> -	mpam_write_monsel_reg(msc, CFG_CSU_CTL, ctl_val);
+>> +	if (mpam_write_monsel_reg(msc, CFG_CSU_FLT, 0))
+>> +		return false;
+>> +	if (mpam_write_monsel_reg(msc, CFG_CSU_CTL, ctl_val))
+>> +		return false;
+>>   
+>> -	_mpam_write_monsel_reg(msc, MSMON_CSU, MSMON___NRDY);
+>> -	_mpam_read_monsel_reg(msc, MSMON_CSU, &now);
+>> +	if (_mpam_write_monsel_reg(msc, MSMON_CSU, MSMON___NRDY))
+>> +		return false;
+>> +	if (_mpam_read_monsel_reg(msc, MSMON_CSU, &now))
+>> +		return false;
+>>   	can_set = now & MSMON___NRDY;
+>>   
+>> -	_mpam_write_monsel_reg(msc, MSMON_CSU, 0);
+>> +	if (_mpam_write_monsel_reg(msc, MSMON_CSU, 0))
+>> +		return false;
+>>   	/* Configuration change to try and coax hardware into setting nrdy */
+>> -	mpam_write_monsel_reg(msc, CFG_CSU_FLT, 0x1);
+>> -	_mpam_read_monsel_reg(msc, MSMON_CSU, &now);
+>> +	if (mpam_write_monsel_reg(msc, CFG_CSU_FLT, 0x1))
+>> +		return false;
+>> +	if (_mpam_read_monsel_reg(msc, MSMON_CSU, &now))
+>> +		return false;
+>>   	can_clear = !(now & MSMON___NRDY);
+>> -	mpam_mon_sel_unlock(msc);
+>>   
+>>   	return (!can_set || !can_clear);
+>>   }
+> 
+> I've had a look at the Sashiko reports [1] for these patches. I'll call out the things that I feel
+> need answering.
+> 
+> As sashiko says, mpam_ris_hw_probe_csu_nrdy(), this swallows the error rather than propagating. It
+> would be better if this returned success/error and the answer to whether or not the h/w supports
+> nrdy separately. As we make other accesses to the msc later it is unlikely this will ever cause a
+> failing probe to report success though.
 
-Add function `setup_earlycon_with_uartclk` to set uart clock frequency
-while still allowing to reuse the same console string with
-`add_preferred_console`.
+Well, what I could offer is to make mpam_ris_hw_probe_csu_nrdy() return 
+an int, with negative values meaning an error, 0 meaning false, and 1 
+being true.
+Then, in the caller, do:
+	err = mpam_ris_hw_probe_csu_nrdy(ris);
+	if (err < 0)
+		return err;
+	hw_managed = err;
 
-Link: https://learn.microsoft.com/en-us/windows-hardware/drivers/serports/serial-port-console-redirection-table
-Signed-off-by: Markus Probst <markus.probst@posteo.de>
----
-Changes in v4:
-- merge patches together
-- rewrite commit message
-- Link to v3: https://patch.msgid.link/20260615-acpi_spcr-v3-0-9a59ebad74ea@posteo.de
+I think a fairly straight-forward change, does this sound OK?
 
-Changes in v3:
-- add separate function for earlycon with uartclk
-- Link to v2: https://patch.msgid.link/20260525-acpi_spcr-v2-0-c042089d73ca@posteo.de
-
-Changes in v2:
-- fix uart_clk_freq possibly being interpreted as parity/bits/flow
-- Link to v1: https://patch.msgid.link/20260505-acpi_spcr-v1-1-fd4bc6f4eb53@posteo.de
----
- drivers/acpi/spcr.c           |  3 ++-
- drivers/tty/serial/earlycon.c | 17 ++++++++++++-----
- include/linux/serial_core.h   | 11 +++++++++--
- 3 files changed, 23 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-index 73cb933fdc89..c79c809f49d4 100644
---- a/drivers/acpi/spcr.c
-+++ b/drivers/acpi/spcr.c
-@@ -228,7 +228,8 @@ int __init acpi_parse_spcr(bool enable_earlycon, bool enable_console)
- 	pr_info("console: %s\n", opts);
- 
- 	if (enable_earlycon)
--		setup_earlycon(opts);
-+		setup_earlycon_with_uartclk(opts,
-+					    table->header.revision >= 3 ? table->uart_clk_freq : 0);
- 
- 	if (enable_console)
- 		err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
-diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
-index ab9af37f6cda..5a20fe9e3fb6 100644
---- a/drivers/tty/serial/earlycon.c
-+++ b/drivers/tty/serial/earlycon.c
-@@ -135,11 +135,14 @@ static int __init parse_options(struct earlycon_device *device, char *options)
- 	return 0;
- }
- 
--static int __init register_earlycon(char *buf, const struct earlycon_id *match)
-+static int __init register_earlycon(char *buf, unsigned int uart_clk_freq,
-+				    const struct earlycon_id *match)
- {
- 	int err;
- 	struct uart_port *port = &early_console_dev.port;
- 
-+	port->uartclk = uart_clk_freq;
-+
- 	/* On parsing error, pass the options buf to the setup function */
- 	if (buf && !parse_options(&early_console_dev, buf))
- 		buf = NULL;
-@@ -163,8 +166,9 @@ static int __init register_earlycon(char *buf, const struct earlycon_id *match)
- }
- 
- /**
-- *	setup_earlycon - match and register earlycon console
-- *	@buf:	earlycon param string
-+ *	setup_earlycon_with_uartclk - match and register earlycon console
-+ *	@buf:			      earlycon param string
-+ *	@uart_clk_freq:		      uart clock frequency in Hz or 0 for BASE_BAUD*16
-  *
-  *	Registers the earlycon console matching the earlycon specified
-  *	in the param string @buf. Acceptable param strings are of the form
-@@ -177,10 +181,13 @@ static int __init register_earlycon(char *buf, const struct earlycon_id *match)
-  *	<options> string in the 'options' parameter; all other forms set
-  *	the parameter to NULL.
-  *
-+ *	If the uart clock frequency is specified in the 'options' parameter,
-+ *	the value of the param @uart_clk_freq will be ignored.
-+ *
-  *	Returns 0 if an attempt to register the earlycon was made,
-  *	otherwise negative error code
-  */
--int __init setup_earlycon(char *buf)
-+int __init setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq)
- {
- 	const struct earlycon_id *match;
- 	bool empty_compatible = true;
-@@ -209,7 +216,7 @@ int __init setup_earlycon(char *buf)
- 		} else
- 			buf = NULL;
- 
--		return register_earlycon(buf, match);
-+		return register_earlycon(buf, uart_clk_freq, match);
- 	}
- 
- 	if (empty_compatible) {
-diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-index bdc214386e4a..9b2bcd4295a9 100644
---- a/include/linux/serial_core.h
-+++ b/include/linux/serial_core.h
-@@ -1099,11 +1099,18 @@ int of_setup_earlycon(const struct earlycon_id *match, unsigned long node,
- 
- #ifdef CONFIG_SERIAL_EARLYCON
- extern bool earlycon_acpi_spcr_enable __initdata;
--int setup_earlycon(char *buf);
-+int setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq);
- #else
- static const bool earlycon_acpi_spcr_enable EARLYCON_USED_OR_UNUSED;
--static inline int setup_earlycon(char *buf) { return 0; }
-+static inline int setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq)
-+{
-+	return 0;
-+}
- #endif
-+static inline int setup_earlycon(char *buf)
-+{
-+	return setup_earlycon_with_uartclk(buf, 0);
-+}
- 
- /* Variant of uart_console_registered() when the console_list_lock is held. */
- static inline bool uart_console_registered_locked(struct uart_port *port)
-
----
-base-commit: 237a1c39e8dfd3e1c6f1f023eea37a48ec04cc63
-change-id: 20260430-acpi_spcr-61902fd923f2
------BEGIN PGP SIGNATURE-----
-
-iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmqOIQQbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyAAoJEDR2H/jnrUPSt08QALWMim65nIIS428BheYg
-aq6BqxDGGqORhlf7aCFGTtNaeNDsu1Tny7sNTe+TEXpKl+AwoFTJ+4+bxl50AYyp
-8Niod0JGjEoxkQKsU/aScvCvEvMuPXOABfUGFtzieNpfswU2n6LHjywy+RP1mTEn
-aPP1arQGGGhe5b5lvolREN0VbGvymtiLr6P+qOhs76ib/dkOegq2/njBX7UlQ7Fy
-dIQo1A/NayUn5F7VWQKUz6ZHLX9bVZYSe2gstKpl5C8Ybwfaj/HgeT1TAdMoQ2K/
-KG0HgcWwIyoIaIms+yED6WSQKJwexx4zn/t2w/Qi2eSVF6WSqNdY3rrHf3sY3luj
-g5wYs2AvNnGjQU6iNGs7DLwwasHgqwZcOwRIdTvY8z3UP5Wpj5y01a+dJJG378zR
-cZhEQUmDn21jBlJvpqSKUoNRZc1L/8uNfQLbnOMVBNOUBXIQ9Z29j2IkqGsYeTG8
-uUndjyA/2SlEU29w2G6/MnJykNiW4oMxryXabXvh8dXc+SPQkUIM71ivo4y2/HgM
-3XGz9l+cgJk61F0oAHtzie7MorsEGVLMA2n4TpibkUCLRIjK3e5QvEBDHZILWHPA
-k2b8dkF2cdu8Q4nbI3PzXUFzuq/rsBpncSvYd/zDQrEMxzhNUVmuX7B9Ws7I0P36
-VKkGQqUFJNNx7LLynD7XaJ7l
-=nupY
------END PGP SIGNATURE-----
--- 
-Markus Probst <markus.probst@posteo.de>
+Cheers,
+Andre
+> 
+> Thanks,
+> 
+> Ben
+> 
+> [1] https://sashiko.dev/#/patchset/20260924152739.2865510-1-andre.przywara%40arm.com
+> 
+>>   
+>> -static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>> +static int mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>>   {
+>> -	int err;
+>> +	int fw_has_nrdy_err, err;
+>>   	struct mpam_msc *msc = ris->vmsc->msc;
+>>   	struct device *dev = &msc->pdev->dev;
+>>   	struct mpam_props *props = &ris->props;
+>> @@ -842,7 +850,9 @@ static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>>   	if (FIELD_GET(MPAMF_IDR_HAS_CCAP_PART, ris->idr)) {
+>>   		u32 ccap_features;
+>>   
+>> -		mpam_read_partsel_reg(msc, CCAP_IDR, &ccap_features);
+>> +		err = mpam_read_partsel_reg(msc, CCAP_IDR, &ccap_features);
+>> +		if (err)
+>> +			return err;
+>>   
+>>   		props->cmax_wd = FIELD_GET(MPAMF_CCAP_IDR_CMAX_WD, ccap_features);
+>>   		if (props->cmax_wd &&
+>> @@ -867,7 +877,9 @@ static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>>   	if (FIELD_GET(MPAMF_IDR_HAS_CPOR_PART, ris->idr)) {
+>>   		u32 cpor_features;
+>>   
+>> -		mpam_read_partsel_reg(msc, CPOR_IDR, &cpor_features);
+>> +		err = mpam_read_partsel_reg(msc, CPOR_IDR, &cpor_features);
+>> +		if (err)
+>> +			return err;
+>>   
+>>   		props->cpbm_wd = FIELD_GET(MPAMF_CPOR_IDR_CPBM_WD, cpor_features);
+>>   		if (props->cpbm_wd)
+>> @@ -877,8 +889,9 @@ static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>>   	/* Memory bandwidth partitioning */
+>>   	if (FIELD_GET(MPAMF_IDR_HAS_MBW_PART, ris->idr)) {
+>>   		u32 mbw_features;
+>> -
+>> -		mpam_read_partsel_reg(msc, MBW_IDR, &mbw_features);
+>> +		err = mpam_read_partsel_reg(msc, MBW_IDR, &mbw_features);
+>> +		if (err)
+>> +			return err;
+>>   
+>>   		/* portion bitmap resolution */
+>>   		props->mbw_pbm_bits = FIELD_GET(MPAMF_MBW_IDR_BWPBM_WD, mbw_features);
+>> @@ -907,8 +920,9 @@ static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>>   	/* Priority partitioning */
+>>   	if (FIELD_GET(MPAMF_IDR_HAS_PRI_PART, ris->idr)) {
+>>   		u32 pri_features;
+>> -
+>> -		mpam_read_partsel_reg(msc, PRI_IDR, &pri_features);
+>> +		err = mpam_read_partsel_reg(msc, PRI_IDR, &pri_features);
+>> +		if (err)
+>> +			return err;
+>>   
+>>   		props->intpri_wd = FIELD_GET(MPAMF_PRI_IDR_INTPRI_WD, pri_features);
+>>   		if (props->intpri_wd && FIELD_GET(MPAMF_PRI_IDR_HAS_INTPRI, pri_features)) {
+>> @@ -929,20 +943,24 @@ static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>>   	if (FIELD_GET(MPAMF_IDR_HAS_MSMON, ris->idr)) {
+>>   		u32 msmon_features;
+>>   
+>> -		mpam_read_partsel_reg(msc, MSMON_IDR, &msmon_features);
+>> +		err = mpam_read_partsel_reg(msc, MSMON_IDR, &msmon_features);
+>> +		if (err)
+>> +			return err;
+>>   
+>>   		/*
+>>   		 * If the firmware max-nrdy-us property is missing, the
+>>   		 * CSU counters can't be used. Should we wait forever?
+>>   		 */
+>> -		err = device_property_read_u32(&msc->pdev->dev,
+>> -					       "arm,not-ready-us",
+>> -					       &msc->nrdy_usec);
+>> +		fw_has_nrdy_err = device_property_read_u32(&msc->pdev->dev,
+>> +							   "arm,not-ready-us",
+>> +							   &msc->nrdy_usec);
+>>   
+>>   		if (FIELD_GET(MPAMF_MSMON_IDR_MSMON_CSU, msmon_features)) {
+>>   			u32 csumonidr;
+>>   
+>> -			mpam_read_partsel_reg(msc, CSUMON_IDR, &csumonidr);
+>> +			err = mpam_read_partsel_reg(msc, CSUMON_IDR, &csumonidr);
+>> +			if (err)
+>> +				return err;
+>>   
+>>   			props->num_csu_mon = FIELD_GET(MPAMF_CSUMON_IDR_NUM_MON, csumonidr);
+>>   			if (props->num_csu_mon) {
+>> @@ -960,7 +978,7 @@ static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>>   				 * Accept the missing firmware property if NRDY appears
+>>   				 * un-implemented.
+>>   				 */
+>> -				if (err && hw_managed)
+>> +				if (fw_has_nrdy_err && hw_managed)
+>>   					dev_err_once(dev, "Counters are not usable because not-ready timeout was not provided by firmware.");
+>>   			}
+>>   		}
+>> @@ -968,7 +986,9 @@ static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>>   			bool has_long;
+>>   			u32 mbwumon_idr;
+>>   
+>> -			mpam_read_partsel_reg(msc, MBWUMON_IDR, &mbwumon_idr);
+>> +			err = mpam_read_partsel_reg(msc, MBWUMON_IDR, &mbwumon_idr);
+>> +			if (err)
+>> +				return err;
+>>   
+>>   			props->num_mbwu_mon = FIELD_GET(MPAMF_MBWUMON_IDR_NUM_MON, mbwumon_idr);
+>>   			if (props->num_mbwu_mon) {
+>> @@ -1001,16 +1021,22 @@ static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>>   		u16 partid_max;
+>>   		u32 nrwidr;
+>>   
+>> -		mpam_read_partsel_reg(msc, PARTID_NRW_IDR, &nrwidr);
+>> +		err = mpam_read_partsel_reg(msc, PARTID_NRW_IDR, &nrwidr);
+>> +		if (err)
+>> +			return err;
+>> +
+>>   		partid_max = FIELD_GET(MPAMF_PARTID_NRW_IDR_INTPARTID_MAX, nrwidr);
+>>   
+>>   		mpam_set_feature(mpam_feat_partid_nrw, props);
+>>   		msc->partid_max = min(msc->partid_max, partid_max);
+>>   	}
+>> +
+>> +	return 0;
+>>   }
+>>   
+>>   static int mpam_msc_hw_probe(struct mpam_msc *msc)
+>>   {
+>> +	int ret;
+>>   	u64 idr;
+>>   	u16 partid_max;
+>>   	u8 ris_idx, pmg_max;
+>> @@ -1025,11 +1051,15 @@ static int mpam_msc_hw_probe(struct mpam_msc *msc)
+>>   	}
+>>   
+>>   	/* Grab an IDR value to find out how many RIS there are */
+>> -	mutex_lock(&msc->part_sel_lock);
+>> -	mpam_msc_read_idr(msc, &idr);
+>> -	mpam_read_partsel_reg(msc, IIDR, &msc->iidr);
+>> +	scoped_guard(mutex, &msc->part_sel_lock) {
+>> +		ret = mpam_msc_read_idr(msc, &idr);
+>> +		if (ret)
+>> +			return ret;
+>>   
+>> -	mutex_unlock(&msc->part_sel_lock);
+>> +		ret = mpam_read_partsel_reg(msc, IIDR, &msc->iidr);
+>> +		if (ret)
+>> +			return ret;
+>> +	}
+>>   
+>>   	mpam_enable_quirks(msc);
+>>   
+>> @@ -1040,10 +1070,15 @@ static int mpam_msc_hw_probe(struct mpam_msc *msc)
+>>   	msc->pmg_max = FIELD_GET(MPAMF_IDR_PMG_MAX, idr);
+>>   
+>>   	for (ris_idx = 0; ris_idx <= msc->ris_max; ris_idx++) {
+>> -		mutex_lock(&msc->part_sel_lock);
+>> -		__mpam_part_sel(ris_idx, 0, msc);
+>> -		mpam_msc_read_idr(msc, &idr);
+>> -		mutex_unlock(&msc->part_sel_lock);
+>> +		scoped_guard(mutex, &msc->part_sel_lock) {
+>> +			ret = __mpam_part_sel(ris_idx, 0, msc);
+>> +			if (ret)
+>> +				return ret;
+>> +
+>> +			ret = mpam_msc_read_idr(msc, &idr);
+>> +			if (ret)
+>> +				return ret;
+>> +		}
+>>   
+>>   		partid_max = FIELD_GET(MPAMF_IDR_PARTID_MAX, idr);
+>>   		pmg_max = FIELD_GET(MPAMF_IDR_PMG_MAX, idr);
+>> @@ -1051,17 +1086,22 @@ static int mpam_msc_hw_probe(struct mpam_msc *msc)
+>>   		msc->pmg_max = min(msc->pmg_max, pmg_max);
+>>   		msc->has_extd_esr = FIELD_GET(MPAMF_IDR_HAS_EXTD_ESR, idr);
+>>   
+>> -		mutex_lock(&mpam_list_lock);
+>> -		ris = mpam_get_or_create_ris(msc, ris_idx);
+>> -		mutex_unlock(&mpam_list_lock);
+>> -		if (IS_ERR(ris))
+>> -			return PTR_ERR(ris);
+>> +		scoped_guard(mutex, &mpam_list_lock) {
+>> +			ris = mpam_get_or_create_ris(msc, ris_idx);
+>> +			if (IS_ERR(ris))
+>> +				return PTR_ERR(ris);
+>> +		}
+>>   		ris->idr = idr;
+>>   
+>> -		mutex_lock(&msc->part_sel_lock);
+>> -		__mpam_part_sel(ris_idx, 0, msc);
+>> -		mpam_ris_hw_probe(ris);
+>> -		mutex_unlock(&msc->part_sel_lock);
+>> +		scoped_guard(mutex, &msc->part_sel_lock) {
+>> +			ret = __mpam_part_sel(ris_idx, 0, msc);
+>> +			if (ret)
+>> +				return ret;
+>> +
+>> +			ret = mpam_ris_hw_probe(ris);
+>> +			if (ret)
+>> +				return ret;
+>> +		}
+>>   	}
+>>   
+>>   	/* Clear any stale errors */
+>> diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
+>> index def0e3a65c230..68a6cf2b9cc73 100644
+>> --- a/drivers/resctrl/mpam_internal.h
+>> +++ b/drivers/resctrl/mpam_internal.h
+>> @@ -162,6 +162,10 @@ static inline void mpam_mon_sel_lock_init(struct mpam_msc *msc)
+>>   	raw_spin_lock_init(&msc->_mon_sel_lock);
+>>   }
+>>   
+>> +DEFINE_GUARD(mon_sel, struct mpam_msc *,
+>> +	     mpam_mon_sel_lock(_T), mpam_mon_sel_unlock(_T));
+>> +DEFINE_GUARD_COND(mon_sel, _lock, mpam_mon_sel_lock(_T), _RET);
+>> +
+>>   /* Bits for mpam features bitmaps */
+>>   enum mpam_device_features {
+>>   	mpam_feat_cpor_part,
+> 
 
