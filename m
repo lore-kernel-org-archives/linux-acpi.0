@@ -1,137 +1,171 @@
-Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazon11013048.outbound.protection.outlook.com [40.107.201.48])
+Received: from outbound.st.icloud.com (st-2002i-snip4-11.eps.apple.com [57.103.78.73])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 524A451DE1D;
-	Wed, 30 Sep 2026 21:54:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.201.48
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790805274; cv=fail; b=TNi3fZ2IseDqFTLZ2bqq5PBWiIWjC6aheN2nepGea9HlpQ2r6cCnaVOfLiThpXqRolsOVhUl2ujfF0XzgWfSDtmunHRxmMG4FJOIu1VzHQJpCZl5cpqy/eFVVb/ihOMahvrvotmr5XJXx4D5I7oNBlsz4UpFPYDn25J+vS43dPk=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790805274; c=relaxed/simple;
-	bh=IoNLJdkQFdZjdR9qgC4+xNXeg9J7JP+ZDPzzMjmsXR0=;
-	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=X3/RmxIqK2MpjJBwT5WFdfSftNK9xgHvHpoUJSKjCxdD30B5KbjpM2xfnuwUMBB4RiBA3AqEjODS0jp6IPctz3ZhsrMnpVKm3eG9D5RrRFXD70c5QxIiQr94C+k64TvDsMND7tIUiumevQnH4o2+7g02XZ6sWk9yDSpdPL81qX8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=LNQgccY0; arc=fail smtp.client-ip=40.107.201.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73A413CF210
+	for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 22:26:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=57.103.78.73
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790807219; cv=none; b=GFONISh2/BTIvOVGcK5WPRnR66QqiovOIV8s9ynmC6wpHXSxWDdwEtVMouhXeP6edCD1B4cZj++G6h3sposqwcW7uvxcKeVVFZ6sxdLRSw4YXXERWcugwEJ8SCpj3GigstyZL+6qBYC1Yt4PWzROnJG78D9rU/Oe+G3ch0x4Dtk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790807219; c=relaxed/simple;
+	bh=hmEdMg6wTnd34APfEfu5j/0oYZY/XEIo7DobIEh6zug=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=cqyJ/sGzloEwLfBJGJ71L/7mNKUNDA3rN9m5HWJi4BmhCs23UCFkOcmzz/i1HShF7aw8A2jUZ9z/FE4RJZFkC6FwFAZs7habh9xpthQyGGqSYb+JwySINtqby4eg1kTQH092Kvqvk6tGOJDcL9/ySj6b8qxYI48Lqc+dbCjG7TU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brough.org; spf=pass smtp.mailfrom=brough.org; dkim=pass (2048-bit key) header.d=brough.org header.i=@brough.org header.b=CQXqvMK7; arc=none smtp.client-ip=57.103.78.73
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brough.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=brough.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="LNQgccY0"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=Jw0Dn4Nc4/kY/cNRqo7s3SEn6GavU8HnYmXwBDXcexzHQL4HwI9gf760isNCbhyMXhnpTYXXblpFAILSLxNpFvejNMuco3gyaWRCCL524eYr+MVUl3YY3o6Rc48SZwsvhenCkQ00BrTD/1s+ttuVTUXtIS2MjoV1FBymLkQ1zbdLSDn5LWRZxsiAA5jdTAmeh3+BZTmefVNkTA3nnDuwgtg+067TSo+mck3+lT9m6AL5FCJcAoJNokaDZ4Dn8qRJRaFKgkAAZ4e4APNvYsllw8GnmZdpVq6JbGS45p2o0hmH90/IrjL9ny4rSx4PCKB54cbGmMzjsuugafwXDXOW3A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=JcOqY4Pel09HBXPMhcwHnw+1XkvdEjT127/73eGmgq8=;
- b=UEtI59icNSbbGAsOh1kdVtgZqrdi0ZXjX1rtI/80ink1XGkrAoyRxOrSuQIlWk0xcY/pEaXB+7aUBgCSP7FXSTnHSiwAZy0jadT+QJjzTIjyJsDD4LoLXwghyaz4I3INw/z4U7ijLOWjRbdtGdACUh+YHJRxaeGY2pmSK78OJRkvlgdKSI0a0sHhHYNoYCrPQlbJQavcKU/VDnp4OLe2B0agaQvUkDfyeEhm5WM5dSXlvtnRz6Sce61KnenBoMOIcgud6KLcpEpVLuOnd/ZwuEGSw+0I+z/+VBrS51rNdMbDYYgj9Trs0bKoOUYpkjIUnSLlDpEhWDlF0x6dz9qEiA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.233) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=JcOqY4Pel09HBXPMhcwHnw+1XkvdEjT127/73eGmgq8=;
- b=LNQgccY0vYCotn3oWmHT0bQ+VbIML+8XAIrwSc5sgoQh3Lrvq3NNJtzQWEyPxoA1Xu2Gh9azsPURdpyXDLLqMKNGMXs6k3dPmghdKA+EdCzbSdb7c3VSzQM9qheTBn9aAyMtkUIWo4veLhEYp9QtJkKuuaO6ywCOkWsTVL8FJa9QaBBx69VvAhzhvfO8SewiKaSaSAP3ZgdCLJvGYFcD3rP7MExuoqUMq8psn/2HRzdSxKU7IW9XhPxsU3Hr7tfVghA9urx5zw1rLEU3/e8zcTUAyDvuK5KBPU3xHrtisfFtbXKUuzwT5c6ixoYlidguSuyTyO0UU9qmFOj2JbtmEw==
-Received: from SN7PR04CA0201.namprd04.prod.outlook.com (2603:10b6:806:126::26)
- by MW4PR12MB6949.namprd12.prod.outlook.com (2603:10b6:303:208::19) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.472.15; Wed, 30 Sep
- 2026 21:54:22 +0000
-Received: from SA2PEPF00003F66.namprd04.prod.outlook.com
- (2603:10b6:806:126:cafe::3e) by SN7PR04CA0201.outlook.office365.com
- (2603:10b6:806:126::26) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.472.16 via Frontend Transport; Wed,
- 30 Sep 2026 21:54:20 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 216.228.118.233) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.233) by
- SA2PEPF00003F66.mail.protection.outlook.com (10.167.248.41) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.472.14 via Frontend Transport; Wed, 30 Sep 2026 21:54:20 +0000
-Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
- (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Wed, 30 Sep
- 2026 14:54:03 -0700
-Received: from drhqmail203.nvidia.com (10.126.190.182) by
- drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.49; Wed, 30 Sep 2026 14:54:03 -0700
-Received: from nvidia.com (10.127.8.11) by mail.nvidia.com (10.126.190.182)
- with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49 via Frontend
- Transport; Wed, 30 Sep 2026 14:54:01 -0700
-Date: Wed, 30 Sep 2026 14:53:59 -0700
-From: Nicolin Chen <nicolinc@nvidia.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-CC: Linux ACPI <linux-acpi@vger.kernel.org>, <iommu@lists.linux.dev>,
-	<linux-arm-kernel@lists.infradead.org>, LKML <linux-kernel@vger.kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Sudeep Holla
-	<sudeep.holla@kernel.org>, Ard Biesheuvel <ardb@kernel.org>, Ilias Apalodimas
-	<ilias.apalodimas@linaro.org>, <linux-efi@vger.kernel.org>, Will Deacon
-	<will@kernel.org>, "Joerg Roedel (AMD)" <joro@8bytes.org>, Jaroslav Kysela
-	<perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, Robin Murphy
-	<robin.murphy@arm.com>, David Rhodes <david.rhodes@cirrus.com>, "Richard
- Fitzgerald" <rf@opensource.cirrus.com>, <linux-sound@vger.kernel.org>,
-	<patches@opensource.cirrus.com>, Shenghao Ding <shenghao-ding@ti.com>, "Kevin
- Lu" <kevin-lu@ti.com>, Baojun Xu <baojun.xu@ti.com>, Sen Wang <sen@ti.com>
-Subject: Re: [PATCH v2 2/5] iommu/arm-smmu-v3: Switch to use
- acpi_bus_get_primary_device()
-Message-ID: <ar2E99SG6nJK/Csk@nvidia.com>
-References: <4766532.LvFx2qVVIh@rafael.j.wysocki>
- <3636226.QJadu78ljV@rafael.j.wysocki>
+	dkim=pass (2048-bit key) header.d=brough.org header.i=@brough.org header.b="CQXqvMK7"
+Received: from outbound.st.icloud.com (unknown [127.0.0.2])
+	by p00-icloudmta-asmtp-us-east-1a-10-percent-0 (Postfix) with ESMTPS id 7EE541800548;
+	Wed, 30 Sep 2026 22:26:53 +0000 (UTC)
+X-ICL-RepId: 01a0f46d-8573-7e4c-8e3e-9f51fa919291
+X-ICL-Out-Info: HUtFAUMHWwJACUgATUQeDx5WFlZNRAJCTQhLBUMEXRxIDlYCWwdLVxQEElwfUwpcMFsKXBhQAxwfSx8TC1NWUAJWDVQFGQRAFxkKUFAGWhIYXBRcUFgeRhJWDV0JGRhGXlAbXwJCDxwTVhUTHUMZDysISgRDB0UCXgslEwlTVlACVg1UBRkEQBcZFVoJClcAQAtOA1QEWwBCC04GXRlaCkgKQANYGlofGlYKVwxZK1ACVg1UBRkEQBcHWEcURw4PE0wLRwJaNFYfVBlaAw==
+Dkim-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=brough.org; s=sig1; t=1790807215; x=1793399215; bh=Ik3YPnPwNm4KQVJBOqdf88VvdIj/yJ6gOH3tmGf/EYQ=; h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type:x-icloud-hme; b=CQXqvMK7UAh37BVDsuuZ82hJAgWSxtkeYhj/CwLbiVDfZ6Lwkp2Zet1ad4tttmYYG+Dnt9UBsH30+J5jpNwBogshKlZDHKHPQhhkfuo/CV4P0EykHOEXTXtNM8zv5hEScN/vTXvuYYctbazuU7nHweguEUZk4+Z80mQjbYMV5KM2f4Ipu6FikX29yVEU8DYeS+U1q8kk/nTO1DKWQFTIzHrnnZ/N9UcuGZTvuR11dX1eAYaLtqpdiDy5SYameA7P/YZuhpz1is4+oMkskWKqZ66kB0WBtVXNX7SPEIsa/5jUKj10DAccMbNqCBfGCXbViWy5iXqx0VsNT8AtnoOg9A==
+mail-alias-created-date: 1646594351620
+Received: from jb-desktop (unknown [17.156.216.30])
+	by p00-icloudmta-asmtp-us-east-1a-10-percent-0 (Postfix) with ESMTPSA id C9D8E180016B;
+	Wed, 30 Sep 2026 22:26:51 +0000 (UTC)
+From: Jordan Brough <jordan@brough.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Henrik Rydberg <rydberg@bitmath.org>
+Cc: Jordan Brough <jordan@brough.org>,
+	chrome-platform@lists.linux.dev,
+	ibm-acpi-devel@lists.sourceforge.net,
+	linux-acpi@vger.kernel.org,
+	linux-hwmon@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-pm@vger.kernel.org,
+	platform-driver-x86@vger.kernel.org
+Subject: [PATCH v3 0/3] hwmon: (applesmc) add charge_control_end_threshold support
+Date: Wed, 30 Sep 2026 16:26:32 -0600
+Message-ID: <20260930222650.1883805-1-jordan@brough.org>
+X-Mailer: git-send-email 2.56.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <3636226.QJadu78ljV@rafael.j.wysocki>
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA2PEPF00003F66:EE_|MW4PR12MB6949:EE_
-X-MS-Office365-Filtering-Correlation-Id: 45b8fb49-1de2-434b-4ab2-08df1f3d61ec
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|82310400026|36860700016|1800799024|7416014|23010399003|10067099003|56012099006|11063799006|4143699003|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	+UzUlv4rzrjoBpgt94HZwEwbdi3XapHjLfCeVOqxVn/YTdzqN38xDxUOSjNkA+++vVhLXg/cVcp0rToJReIjdo6TyOGWDOrDrAXGgCf5zFWo3LXky/Zc9HSXYYdStirx0Mh0i4LFeM4IQmvdNjjiLgNh3TwtkHcZ+++W8dEnj06uo1xkx0GsKFkrapexPCEszDpmN5QsUg403/FQ7te6vYHXFFa+XyJLHQ3mM+Xnx3EO1wFru8mUNkkEiYJE7gKLvP/+HY4JkhmLG3+jNBo3xt68N1i4CXzSXRZtRbqQUFrkTm4HZz9l2EV7MFeOcx8U+yA0bsO7ik1xiC4vLN8/L8c6OMRToVoqv8htHX5U8oC9VPr8AYv2aPZIgnQswrwSc/fsRetF4hL3XVT4i3tIk0kx9s7pAqw8ihfhXp1IlNfCjv22yCjJor22RXAgqYF2JwYOFOeEXB5OThvty4o3QpbQMc8Rk2tCFdm0tHT5whWIYUcoE3Cyddg2Uj+xR3jNA3j2vvdhHsnFCWyE+koT+b0HCqdC2XVhxrWEjkDYx3T7v3yLoyVuBUtn/awtOd9EucfN10q7KK7Q+6ScDtQNTCB1qMIHxALacxbE/6Oq6r8gKMtKvZcd2rdVYLDNslS83pCP8LQaSeBHvWnhbP7k+p/6qsygg+VOji6d1z/FulSMUygEN6AtwsRGnDwBsU5AYL8fi1C99T5Y0iiGVawOGw==
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(82310400026)(36860700016)(1800799024)(7416014)(23010399003)(10067099003)(56012099006)(11063799006)(4143699003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	eBjgD+aQuSD39KZLc2fZvdmAOMavwT3wm38oevmw/OP2LGEXvAsEshXdF7PBpfwAyJc3gWPKaJuxLDEtGo8WelYiBQQRgqStY/eNp+bi11sefpCDwly19U/rjeKhX2wQVzP878kxM0ZXvKNFsHTzeQOK6jvoOZMWi5LreqMxh7zmFKGNC4rEA6KmSLc99vUtDJ7YzRlMcW3aZU1q0wDo0b9Veo2gNrC3Ke6B1A1nfzB83AdnvyWA1KSdqnCXEaWDHzDSdd4bDJEgubWKDZNNHbgsfxHxQ4mgNG36sZnjntsolz1MfeNGlJlhiN1Ztr10FvurTVLG+2F4xFVeCf5rUViGw6OxniN/IvZICGK/31AInqEWWAVXUetyuXIA2MHuN76NIU4OvOesel+wGZfaR04RIvLPbt2CL9PlKW886lrM790TzYx7j3MN5uROUikG
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Sep 2026 21:54:20.5165
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 45b8fb49-1de2-434b-4ab2-08df1f3d61ec
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	SA2PEPF00003F66.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB6949
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Authority-Info-Out: v=2.4 cv=Np/cssdJ c=1 sm=1 tr=0 ts=6abd8cae
+ cx=c_apl:c_pps:t_out a=oyWFxbOnq+dmhQrAPgaJYA==:117
+ a=oyWFxbOnq+dmhQrAPgaJYA==:17 a=IkcTkHD0fZMA:10 a=VdqzKS8jKosA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=VwQbUJbxAAAA:8 a=gFGppuTrAAAA:8
+ a=3KJn3nblrUCwOSVLmvsA:9 a=QEXdDO2ut3YA:10 a=_Y0xhhAoguY4gwfEQMhp:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTMwMDA5MSBTYWx0ZWRfX4kTtyWo45inW
+ ZKuMuSqHwF0HMBtKGMuyS0k+gGO3i3p4jcBfyB+m0PS0KDuyd6oR2q3mhWJG0UAthNmXtVTC1dS
+ Bxd1vx4tD1o+kYqg+3Tq3PTFbk79ysOLr2dixehCaosjBtemRQLtiAVDItKGE+KadahBrP+0hnZ
+ u3hKBGrAi2ZFM0te26zh06oFafqYyBCVvLF74HBL6pXYN9oBZpIpkgUGA4CImn6irdww0JkLMlL
+ tIvnJXz9UWCrjCyuGB1WzBBZ3mhGDZP9Y8pX5GyrMDjaENJIz66LKHG//LPafv76ltM1X1GC9gy
+ +wrVgBllZufzmFSUVWqYkBdBfDUSwT/zsmCfTytYwdh/f3SMc4Jbj/dLabFu4s=
+X-Proofpoint-GUID: Ma3gpkMd9Du3364tovKf4jTfmQzGwxXq
+X-Proofpoint-ORIG-GUID: Ma3gpkMd9Du3364tovKf4jTfmQzGwxXq
+X-JNJ: AAAAAAABiS5yuYAq9u12fjzs8oQBYVjKUij4JSpuJom/DzWsqS5bePJkXTwavM57wDHNibPbIcti86nuffyH/zUyXoUpgz+zUsuGkXaZ7qVrLkISF0uNzM8PyzA2Q3L3+uvqA/QPCHIRk0GBRFSchrrIbcwWq26CYFt5aru9TjPMw5cKmMN0Twr4fbLZamK7uX4yEbRSucrJ8uYCvDFI9wrAYepj+Bt0Hcjlz5XhNy/hUrm5FEV+Uq7us129niXyKvshXyov6YV056wBipxhlfxFQnSZHDkpC4ODZTOstj0BupXQOgXd6uncck8mzmjbN9/FlYGWCsLUdlRM2HDCSp8IcH2bwr6VhKRZYw7ikCBPPLsIcN2V+RvcsisvK19MTjU9t/xYB8GUB3/e4TW+tQ4NNh2oAHbngtWZM7gG/5PBHNs5YuGjYnPHF7fHFAFo8wACSLIQzWiR2VeUq21FUHk2m7x68t5/SkNjVMFLcaBdQm8QbwmyJKG2LhSHPWkWr720frM0SdrQskPUR7r1YdMwIeDLVPZOWtEYpBMEiBK52yp4Z5t+FnpLTCK3eGksiro5h66wn/0YX9HoXDhJp7gmb8fQ4vaIuSDyYErGHKIx9PBuiSW3HbcfoEOdxamJbvMffEntUzkXAzriXlTwPOhKn6JOhy3trIfjC4pnJZMfM4dSHZxfO4CCPiOcYBwyQhLFGK6GfkQM8ukQ7Q9J3p533uq1GvTsI2MF3UFtfCk2mPn1XZWN8KgeraxKcr3eETqASRMX4lDp+013vs8zykp4MNtqwTScP0I+hkUKVgCgHEo2gusmyWgvpY71Vdyr3+NGt2Fdmly65wpn0ti1ePG0rZPWrfgw6BWNYAlx4qV1+Q7yEuKw7RhjzHuIzsWs742XGupdtQJbvy3dS0Hz+OJdRi2KI7Qy3DIzSuFbGutsl88l1TAoCMt43gJhfib5Yk21tyLTSLv6lIor3WNM6YLMtwWOH3c
+ vTYhrNjUJLylUp2FOXHed+0aSMeEaJ5l9eVxUkWteXxlAACX8zM1GAxL6KPfo1IAfy4dMgdxX771dsMWrlN3Cxe2yeFyX2ci5yI5BJokyQU4raz5TzTmmUORGcmBhqeCZuHKsF0/ns2fkGxeXN/DieaxN/dugqghPifjFwakdlTm22q3fdXcSCrmYnybLqXJVfb7dBrPIIM1eggfyj0CctD9uBUs/lvHOcLXiEzLC9AJtD3nWjM8zOQ0uYTy0U1kfjjFoo/H5qiULCq6JAPluat92tB+DlBS9UqZBJQ8fFad1/K8TZeQBo+VGsTrGb9cDyIzMT0LopaTiOVSutta77bR51ZuBdnfLbWxYS3oAKMAIUuYHH3eESoI9eOuQB7XdhgmNrA/c8nobnOtyw1P1MNrjK6xyPvOTrZaOELo7hzxpgIYz8cc=
 
-On Wed, Sep 30, 2026 at 08:43:03PM +0200, Rafael J. Wysocki wrote:
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> 
-> Replace acpi_get_first_physical_node() that is slated for removal
-> with acpi_bus_get_primary_device() that takes a reference to the
-> device it is about to return.
-> 
-> This addresses a potential use-after-free that may occur if the
-> device returned by acpi_get_first_physical_node() is removed right
-> after dropping its ACPI companion's physical_node_lock in that
-> function.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
- 
-Reviewed-by: Nicolin Chen <nicolinc@nvidia.com>
+This series adds charge_control_end_threshold to the applesmc driver for
+Intel MacBooks, using the power_supply extension API.
+
+Some of these machines have an SBS battery (drivers/acpi/sbs.c), which,
+unlike battery.c, has no battery hook mechanism. Patch 2 moves the hook code
+into a helper that both drivers use, and patch 3 adds the applesmc support.
+Patch 1 is the acpi_ prefix rename of the existing hook functions that Rafael
+asked for; it is separate because it touches 18 callers in other subsystems.
+
+The series is based on linux-pm's bleeding-edge branch (4c18627a1dfb). Patch
+3 depends on patch 2, so the series would need to go in through the ACPI
+tree with an ack from the hwmon side, or I can resend patch 3 once patches 1
+and 2 are in, whichever is easier.
+
+Changes in v3 (thanks to Rafael for the review):
+- Patch 1 is new: acpi_ prefix for the exported hook functions, with their
+  callers updated.
+- Patch 2:
+  - Renamed battery_hook.c to battery_hooks.c, built only when ACPI_BATTERY
+    or ACPI_SBS is, through a hidden ACPI_BATTERY_HOOKS symbol that both
+    select.
+  - Renamed the struct and the new functions as suggested, exported the new
+    functions in the ACPI_BATTERY_HOOKS namespace, used mutex guards and
+    updated the file header.
+  - battery_hook_exit() is gone, so hooks now stay registered across a
+    reload of battery.ko or sbs.ko.
+- Patch 3:
+  - BFCL is only written when the SMC has the key, and the BCLM write is read
+    back, at the suggestion of Michal Szpakowski, whose MacBookPro13,1 has no
+    BFCL.
+  - No BFCL margin at a limit of 100.
+  - The lower limit of 20 is conservative: 20 works and 10 is not accepted
+    on the hardware I tried, but I did not find the exact floor. I am happy
+    to change it.
+  - Dropped the applesmc_hooked_battery tracking and the mutex in
+    applesmc_bat_get_property().
+  - The hook is only registered when CONFIG_ACPI_BATTERY_HOOKS is reachable.
+
+Testing:
+- MacBookAir6,2 (SBS battery), on an earlier revision: limits from 20 to 100
+  match the SMC keys, charging stops at the limit, repeated module reloads
+  caused no errors, and the threshold was unchanged after a suspend/resume.
+- MacBookPro13,1 (SBS battery, no BFCL), by Michal Szpakowski, before the
+  acpi_ rename: valid limits read back exactly, invalid ones are rejected,
+  applesmc reload and an acpi-sbs unbind/rebind re-attach the attribute, and
+  charging stops at the limit.
+- Lenovo ideapad FLEX 4-1480 (Control Method battery, ideapad_laptop), on
+  Fedora's 7.2.7 kernel with the series applied on top (a rebase of the
+  patches, not this exact tree): the ideapad_laptop hook registers and its
+  charge_types attribute appears on BAT1, charge_types can be read and
+  written back unchanged, 25 battery unbind/bind cycles re-attach it each
+  time, and unloading and reloading ideapad_laptop removes and re-adds it.
+  There were no warnings in dmesg. That kernel did not have lockdep
+  enabled.
+- Built and linked with ACPI_BATTERY and ACPI_SBS as y/m/n and applesmc as
+  y/m, and an x86 allmodconfig build of the touched files with W=1 shows no
+  warnings; each patch builds on its own.
+- Applies with git am on linux-pm bleeding-edge, and with git am --3way on
+  hwmon-next.
+
+Link: https://lore.kernel.org/r/20260918175052.85461-1-jordan@brough.org [v2]
+Link: https://lore.kernel.org/r/20260913231410.416922-1-jordan@brough.org [v1]
+
+
+Jordan Brough (3):
+  ACPI: battery: add acpi_ prefix to the battery hook API
+  ACPI: battery: add unified battery hook mechanism for ACPI and SBS
+    batteries
+  hwmon: (applesmc) add charge_control_end_threshold support
+
+ drivers/acpi/Kconfig                         |   5 +
+ drivers/acpi/Makefile                        |   1 +
+ drivers/acpi/battery.c                       | 166 +------------------
+ drivers/acpi/battery_hooks.c                 | 159 ++++++++++++++++++
+ drivers/acpi/sbs.c                           |   8 +-
+ drivers/hwmon/Kconfig                        |   1 +
+ drivers/hwmon/applesmc.c                     | 146 ++++++++++++++++
+ drivers/platform/x86/asus-wmi.c              |   4 +-
+ drivers/platform/x86/ayaneo-ec.c             |   2 +-
+ drivers/platform/x86/dell/dell-laptop.c      |   4 +-
+ drivers/platform/x86/dell/dell-wmi-ddv.c     |   2 +-
+ drivers/platform/x86/fujitsu-laptop.c        |   4 +-
+ drivers/platform/x86/huawei-wmi.c            |   4 +-
+ drivers/platform/x86/lenovo/ideapad-laptop.c |   4 +-
+ drivers/platform/x86/lenovo/thinkpad_acpi.c  |   4 +-
+ drivers/platform/x86/lenovo/wmi-other.c      |   4 +-
+ drivers/platform/x86/lg-laptop.c             |   4 +-
+ drivers/platform/x86/msi-ec.c                |   4 +-
+ drivers/platform/x86/oxpec.c                 |   2 +-
+ drivers/platform/x86/samsung-galaxybook.c    |   3 +-
+ drivers/platform/x86/samsung-laptop.c        |   4 +-
+ drivers/platform/x86/system76_acpi.c         |   4 +-
+ drivers/platform/x86/toshiba_acpi.c          |   4 +-
+ drivers/platform/x86/uniwill/uniwill-acpi.c  |   2 +-
+ drivers/power/supply/cros_charge-control.c   |   2 +-
+ include/acpi/battery.h                       |  16 +-
+ 26 files changed, 367 insertions(+), 196 deletions(-)
+ create mode 100644 drivers/acpi/battery_hooks.c
+
+
+base-commit: 4c18627a1dfbfe537580f831e60218644c94ce12
+-- 
+2.56.0
+
