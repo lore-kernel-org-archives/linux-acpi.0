@@ -1,287 +1,143 @@
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F2C85187E2
-	for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 17:13:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DBDF2E7386;
+	Wed, 30 Sep 2026 18:45:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790788401; cv=none; b=MT5GB4cLGd41jqMeGxa4FaPh0SSLP9YoQXAhV6yv9odTrLD6kpD4inOIiCTowIpEVUxv+/amIM6GXb3VeFBpiq8MIDidqK/krDQ37YTE74rAGbAn8yexbMQTx921tsCeYUjiwzzrX6Ff/L5UMBf0q+jURLNUrb+QUt3Dk+oOX2A=
+	t=1790793914; cv=none; b=dH3dqZK33iwZ6EpUn+lLgCWTIupomniC2EPxMjmQIT54pw6kQ2xbpYOgBl1hb7G/G2fDdTt1VG/wN8qdu0ZbeoQ1LD5cFB4HvDW55UtKpIjxIddROcZRxg+IJLW2OEy8O+gIt0G0pHGEIhrPiPr1kKGkgSb7ZqQHFG/9dO68MR4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790788401; c=relaxed/simple;
-	bh=mTbMS1Q6x0ikZ7WhZzFqZfSUagkt7vofDYssUYGqQKs=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=TPLMTowGfMHIqWb846LFzSwBbDHTTcs06ku5Ocdkndltxz4TwBfauKjFLub5hgjK0gAqjfieIWg5V4lYbyPufmW+l88t9W8Wh9lcwk8yxJ+YcCwBzVpg5GNXG4tX3rP/ps9bELFJ5SNg0GQfZJD2X3Z2463QF6H6+wnMoRAiE0M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=T9GCeUXw; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=ZUhvFA+D; arc=none smtp.client-ip=205.220.168.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	s=arc-20240116; t=1790793914; c=relaxed/simple;
+	bh=bxB1scayv8b4zz5zP1qNakxI8SCbU+g1DMqQRKDjTmY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=O6VC6e/54ImxCwVQpz2i6QfHqJBIhJ8ryyxSocKa0fQzxE90qRteSwmUsYh8bXaMUzhJLec7uSRub6ktvyDW9bRvPVvqhUiIs6CysyAnLCbSAlbwt0rrHRFN5Wswb4Vd8GWXXatYdu9VUXHJ220bZF/dVRAM9Nnt7g3PPu9MI4M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=W1oPMbDZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="T9GCeUXw";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="ZUhvFA+D"
-Received: from pps.filterd (m0279863.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68UDxqPF3930112
-	for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 17:13:19 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	RIlPm6pWDwXvYMREQpH7upT+sWXfZsWEKBokElxA+N4=; b=T9GCeUXwxuB0S8FV
-	7hamSltKIsDOypIJKVts7D13C1aYuJU0nUA6dP6NsWPFldrG4eCrcR/nd7Z42sCT
-	Lw12RNy7k1N8b3kpBkyO2NS1wWHfCL5fPDoJ2dv8yX+uY+WHW+GynCYA/KDdK2QM
-	a1b+IM+8jUAgSgMukGkHma/7gQzfXoOngSV5Xw9eH+caoEKmUZgWXlels+OM4IU+
-	XDRkoymieASsHv5V6DZbcruNx15kSRrdfrTo86Dd2FEf28+nLiBSqhbh2D9JF20U
-	7Y2Pa+ML8Qc5HUaowjQ2Hbz9bidKsJzoi3e/4rqmt/bMlb6ANn4+yZVGfPG407Od
-	Qj8dkQ==
-Received: from mail-pj1-f71.google.com (mail-pj1-f71.google.com [209.85.216.71])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4h0w142v69-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 17:13:19 +0000 (GMT)
-Received: by mail-pj1-f71.google.com with SMTP id 98e67ed59e1d1-39deda201bcso9095576a91.2
-        for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 10:13:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1790788399; x=1791393199; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:organization
-         :references:in-reply-to:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to:content-type;
-        bh=RIlPm6pWDwXvYMREQpH7upT+sWXfZsWEKBokElxA+N4=;
-        b=ZUhvFA+Dm2r+BniVP6xEemqsBFXJns7mmMbXJegdWQ2OBdCk554BZLLkhugFpG4KWR
-         VYmko/MQah8DbRq6t2I+wNXcZFAZcMIa81DMmVMGJW/IlSpTViGdW29ALQ9Yh8Pq8yq6
-         0Z90sUDGa9VxOl2CesUSB4q2icSpvOtfOn4L2MN3IcpDOrYu6L01PvhROtx5oXWx21A9
-         rdSkmg1AH+bDXR43OzVVIiN8VusXyDGt0iBClGjabe2Md73YeJ6ju6tHEEyunud7Ruz7
-         x0UGxTyJr/cEzu8EsjsnzFMcHWabJ9/4M5+S9tl5082tTcieHqBU0O/WsREVCXxyRWa0
-         gwVQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790788399; x=1791393199;
-        h=content-transfer-encoding:content-type:mime-version:organization
-         :references:in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=RIlPm6pWDwXvYMREQpH7upT+sWXfZsWEKBokElxA+N4=;
-        b=l4yJji4zk84q/Ls0B6KkvRUjnvPnNca94fJIl6fCH75kjMVsk1y6pJobUNZpnX+5gm
-         FjR39BOaDe/p4ScxlBC9r3POy5L5JKjOw71tX6STtnFmBwtflUDmIMDx86L/PXl/xxAm
-         /mIP7yYFlyAT1/kVqPfkK8z39P96QJVIwfpBp3xEHDrzkar+FNvXEf5x8qSev+USbEoj
-         eJzYdZG45ieehoMrAKD/BnEdJl/QHQ5tGKoBpR2+1nRZke8I8BFLPa5zgy6EfGXQz9qS
-         LY//TrONGKW8u5NgUoVRsZ3MRXD6/9C0vnBtKHrHHMnAFd2Kdw9tX07f2hQOXp3B/Xep
-         D7Jw==
-X-Forwarded-Encrypted: i=1; AKwUvBwR+xnlRhQwBbWXKe6rpU9B495EehvT8wS+hf/l1KHARpKANNWQetTAXt5wvq+WOBpgu+ErlfzVvfUC@vger.kernel.org
-X-Gm-Message-State: AFq9FYLDhltoHXQA5133m5ZKOvfiNgTfNOcQz00A070vgRIOXSl90PUT
-	TNoEkHbH+l+sHa6g844CRqRtgvo50p333D9fy68kUdEO3OrtK2ZFrfr3TL2H/3fy3DAMi+ug0C5
-	4/6P445M4M9ZXWvKW+Gax5R5SECGIi0E6dselJavfatJ9jmwJfzSBJH0KKtdzCWJn
-X-Gm-Gg: AYBFou23hAgqX0gh5m7yn8BD9QuzyZFEHHBlB1ZIrw7XxkswGB8uyNsdpdhkF0glReE
-	ygQkEhFqCJBZfXMTroHlEwGz02amMEfDcIwt7rgb0O51jvyku1gCgUqnKrgemewpPOqcpwHtRDQ
-	3+gryW1KSgHyRp6VrdB21Bte31qwY5nJPo6ZwvZWEVWOXN2z0TgZDzjhKIpnq4RRxvtRygDXzaR
-	McTLI4WMMbYryD1ISm1aNKSrMUSzXlOOukU3lHsd6nuMhZ6ZITZgsdIfD+nn38AhCoiZjnjblBa
-	zMSToI/EAgtJHqpVLv4gUn4bIzlAxR/IZZD6xjl+Slc1TwtDJTqfhmxORMSgmkbQv/77YvB+o1w
-	ns/cMOQh2cHnpOFKW8oOTPRvxbsmTH+wILSv4xTy6ZAMsuY9mYrzWhY8=
-X-Received: by 2002:a17:90b:4a8e:b0:3a4:bda6:16d0 with SMTP id 98e67ed59e1d1-3a4d1913daemr1778301a91.55.1790788398661;
-        Wed, 30 Sep 2026 10:13:18 -0700 (PDT)
-X-Received: by 2002:a17:90b:4a8e:b0:3a4:bda6:16d0 with SMTP id 98e67ed59e1d1-3a4d1913daemr1778192a91.55.1790788396385;
-        Wed, 30 Sep 2026 10:13:16 -0700 (PDT)
-Received: from localhost (i-global254.qualcomm.com. [199.106.103.254])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3a4f478e750sm199420a91.13.2026.09.30.10.13.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 30 Sep 2026 10:13:15 -0700 (PDT)
-Date: Wed, 30 Sep 2026 10:13:08 -0700
-From: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-To: Lorenzo Pieralisi <lpieralisi@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        "Rafael J. Wysocki"
- <rafael@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>, Marc Zyngier
- <maz@kernel.org>,
-        Daniel Lezcano <daniel.lezcano@kernel.org>,
-        Thomas
- Gleixner <tglx@kernel.org>,
-        Greg Kroah-Hartman
- <gregkh@linuxfoundation.org>,
-        Danilo Krummrich <dakr@kernel.org>, Hanjun
- Guo <guohanjun@huawei.com>,
-        Sudeep Holla <sudeep.holla@kernel.org>,
-        Wim Van
- Sebroeck <wim@linux-watchdog.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Catalin Marinas
- <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, Bartosz
- Golaszewski <brgl@kernel.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, driver-core@lists.linux.dev,
-        linux-watchdog@vger.kernel.org
-Subject: Re: [PATCH RFC 02/11] ACPI: Introduce irq_get() for static fwnodes
-Message-ID: <20260930101308.00002fb5@oss.qualcomm.com>
-In-Reply-To: <arqSqcoWAkhy-8do@red-moon>
-References: <20260925-acpi-static-table-irq-probe-defer-v1-0-2c62125d0085@kernel.org>
-	<20260925-acpi-static-table-irq-probe-defer-v1-2-2c62125d0085@kernel.org>
-	<arZDwutoadki7tiZ@ashevche-desk.local>
-	<arZNL9BnTGK0Klwc@red-moon>
-	<arZS4vwxps01dGb7@ashevche-desk.local>
-	<arqSqcoWAkhy-8do@red-moon>
-Organization: Qualcomm
-X-Mailer: Claws Mail 4.4.0 (GTK 3.24.51; x86_64-w64-mingw32)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="W1oPMbDZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B73E1F00898;
+	Wed, 30 Sep 2026 18:45:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1790793913;
+	bh=az8uo1MSqUUzA+uFMs11FJL351K6zE7Q4oadgfzKqQU=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=W1oPMbDZDb9X3TZvQnW9wpA+7P3OTh5oyRYCj0nYgsvRzds8UZIOUN7twv+Mp6LN7
+	 oTNJM+Kk/F8odvVkjaF3gA8jkdxhQUxjpJRli8QHEXNK+fqUNy8MU2ih2fMaIe86+6
+	 Rr4g3q64Vm4QU1NIT1M39hSbR7Wy/HCsGrs1YxSPP3kHZ26trjQ8pUvReERPEkThcI
+	 vIIaNzZRCL0J/7jY0NqE7eN7Njxpf1S/qmB71J5AjVKEouBf+mtKGP53iSnQRJPZ3b
+	 WdwEHlhFfzY+GWieOF6xABzlTsycghPfsrbOc3hql+K1XifVYK0zy63HkFmL+0q02q
+	 l5oWVukBQOM+g==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Sudeep Holla <sudeep.holla@kernel.org>, linux-arm-kernel@lists.infradead.org,
+ Ard Biesheuvel <ardb@kernel.org>,
+ Ilias Apalodimas <ilias.apalodimas@linaro.org>, linux-efi@vger.kernel.org,
+ Will Deacon <will@kernel.org>, "Joerg Roedel (AMD)" <joro@8bytes.org>,
+ Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
+ Robin Murphy <robin.murphy@arm.com>, iommu@lists.linux.dev,
+ David Rhodes <david.rhodes@cirrus.com>,
+ Richard Fitzgerald <rf@opensource.cirrus.com>, linux-sound@vger.kernel.org,
+ patches@opensource.cirrus.com, Shenghao Ding <shenghao-ding@ti.com>,
+ Kevin Lu <kevin-lu@ti.com>, Baojun Xu <baojun.xu@ti.com>,
+ Sen Wang <sen@ti.com>
+Subject: [PATCH v2 5/5] ACPI: bus: Drop acpi_get_first_physical_node()
+Date: Wed, 30 Sep 2026 20:45:01 +0200
+Message-ID: <4537440.ejJDZkT8p0@rafael.j.wysocki>
+Organization: Linux Kernel Development - Intel
+In-Reply-To: <4766532.LvFx2qVVIh@rafael.j.wysocki>
+References: <4766532.LvFx2qVVIh@rafael.j.wysocki>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-Spam-Info: AW1haW4tMjYwOTMwMDA2OCBTYWx0ZWRfXx66KC/1ZtXOA
- c2LgR53AZsvPrEtfUYXECsioArZ0PG4DpEZTebmWLiUqfUPPD+wo6kbY55NtA9yomlV1743l06T
- z5/qtFjBHMEhLoaWS22bus8BcghUTVY=
-X-Proofpoint-GUID: rGl6l6zMRAlFQy7TDtS_Gnpu3drX4POm
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTMwMDA2OCBTYWx0ZWRfX9UyZ5GK0MNeD
- xtXJrv2Blf38UPBOBEvQPaZ/MmMlwMR6oyl3ES/g1XZ4qOtrULanbyFoy4bICZiH0OrvX9qNoq+
- fqI2z8xzWqqolHrWivExK97U5V3DcHBZUxAV78shUWpjFJov/zWk9Mw0+7TWo5xmYH+mBkqStiH
- 0W/bsLv3N53NFxcrVqc1JgJUe1hYtVmPVNvZcsgCDJvEibBMEiaOdTxpF1gHbVO+QWW9BBIrDYA
- V9zYSodZxSMeHzIxQaTTw35FQJ5bMGUAVRrOySBHl0FGOIyMcxisZ9nVBv3wQCKVGu0sFWH+EpI
- pqQlt4yU49kloQAGiNcrb3sIpfPsZWmltLGMCCmAK2L0s2LPiW/OVSA68SNHTwbvhXTcoymmmP/
- kl1kpOJxnnTbbUNMCVwk5M5Ex7kf0hcbeKXu4VN2S97mqCt1qnHbQgE4UWw9DlQrpKbQSurmfAC
- 64sMgY82nmxUfRk1QfA==
-X-Authority-Analysis: v=2.4 cv=J8Q/fwnS c=1 sm=1 tr=0 ts=6abd432f cx=c_pps
- a=UNFcQwm+pnOIJct1K4W+Mw==:117 a=JYp8KDb2vCoCEuGobkYCKw==:17
- a=kj9zAlcOel0A:10 a=VdqzKS8jKosA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=yOCtJkima9RkubShWh1s:22
- a=VwQbUJbxAAAA:8 a=u08uBHW3MJJG4PD1gAcA:9 a=CjuIK1q_8ugA:10
- a=uKXjsCUrEbL0IQVhDsJ9:22
-X-Proofpoint-ORIG-GUID: rGl6l6zMRAlFQy7TDtS_Gnpu3drX4POm
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-09-30_03,2026-09-21_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- impostorscore=0 lowpriorityscore=0 malwarescore=0 phishscore=0 clxscore=1015
- bulkscore=0 priorityscore=1501 suspectscore=0 adultscore=0 spamscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2609040000 definitions=main-2609300068
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
 
-On Mon, 28 Sep 2026 18:15:37 +0200
-Lorenzo Pieralisi <lpieralisi@kernel.org> wrote:
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-> On Fri, Sep 25, 2026 at 01:54:26PM +0300, Andy Shevchenko wrote:
-> > On Fri, Sep 25, 2026 at 12:30:07PM +0200, Lorenzo Pieralisi wrote:  
-> > > On Fri, Sep 25, 2026 at 12:49:54PM +0300, Andy Shevchenko wrote:  
-> > > > On Fri, Sep 25, 2026 at 09:48:01AM +0200, Lorenzo Pieralisi wrote:  
-> > 
-> > ...
-> >   
-> > > > > +static int acpi_static_fwnode_read_u32_prop_index(const struct fwnode_handle *fwnode,
-> > > > > +						  const char *propname,
-> > > > > +						  unsigned int index, u32 *value)
-> > > > > +{
-> > > > > +	u32 *values;
-> > > > > +	int ret, count;
-> > > > > +
-> > > > > +	count = fwnode_property_count_u32(fwnode, propname);
-> > > > > +	if (count < 0)
-> > > > > +		return count;
-> > > > > +
-> > > > > +	if (index >= count)
-> > > > > +		return -ENOENT;
-> > > > > +
-> > > > > +	values = kcalloc(count, sizeof(*values), GFP_KERNEL);
-> > > > > +	if (!values)
-> > > > > +		return -ENOMEM;
-> > > > > +
-> > > > > +	ret = fwnode_property_read_u32_array(fwnode, propname, values, count);
-> > > > > +	if (!ret)
-> > > > > +		*value = values[index];  
-> > > > 
-> > > > Use standard pattern, id est
-> > > > 
-> > > > 	if (ret)
-> > > > 		...
-> > > >   
-> > > > > +	kfree(values);  
-> > > > 
-> > > > You want to use __free()
-> > > >   
-> > > > > +	return ret;
-> > > > > +}  
-> > > > 
-> > > > I believe the whole approach is suboptimal, if you wish get indexed value (but why?)  
-> > > 
-> > > Why what (that's what the irq_get() interface requires ?) I agree it is
-> > > suboptimal - the whole point of the series is an RFC on using properties
-> > > to store GSI number/flags, then how to read them we will optimize it
-> > > when/if we agree that's the approach to be taken.  
-> > 
-> > Why to have indexed APIs. The callers usually do not want a single item from an
-> > array, they want all of them or a big pile (exception is the array of strings,
-> > but we have matching functions for that).
-> > 
-> > As per approach, this patch is against device property and I don't think we are
-> > going to agree on the approach taken in *this* patch.  
-> 
-> Coming back to this, what is needed here is a way to stash the GSI number,
-> flags and name in stardard storage (like OF nodes IRQ properties, ACPI objects
-> _CRS, etc).
-> 
-> To give you some background, I thought about adding an array of:
-> 
-> GSI [number, flags, name]
-> 
-> to the ACPI static fwnode itself. Then basically the irq_get() API has got
-> all the information it needs from the primary fwnode; while doing that I
-> thought that this might have been a bit like reinventing software nodes
-> (granted, software node properties are ways more general that what I suggest
-> above and I don't expect any other property to be ever added to static fwnodes)
-> that's why I put together the series as it is, precisely to understand what's
-> best.
-> 
-> When you say "against device property", what do you mean precisely ?
-> 
-> I suppose you mean that this approach goes against software node properties
-> usage guidelines ?
+Fold acpi_get_first_physical_node() into acpi_primary_dev_companion()
+that is its only remaining caller and drop its signature from the
+header file.
 
-For what it's worth I like it.  Clean (ish) solution for a messy problem.
-May well be some details that can be done differently though.
+No intentional functional impact.
 
-Just to provide a counter point to Andy :)
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reviewed-by: Sudeep Holla <sudeep.holla@kernel.org>
+---
 
-Jonathan
+v1 -> v2:
+   * Add R-by from Sudeep
+
+---
+ drivers/acpi/bus.c   | 20 +++++---------------
+ include/linux/acpi.h |  7 -------
+ 2 files changed, 5 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 808c6746be14..cc6989d88645 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -809,24 +809,14 @@ struct device *acpi_bus_get_primary_device(struct acpi_device *adev)
+ }
+ EXPORT_SYMBOL_GPL(acpi_bus_get_primary_device);
+ 
+-/**
+- * acpi_get_first_physical_node - Find first physical node of an ACPI device
+- * @adev:	ACPI device in question
+- *
+- * Return: First physical node of ACPI device @adev
+- */
+-struct device *acpi_get_first_physical_node(struct acpi_device *adev)
+-{
+-	guard(mutex)(&adev->physical_node_lock);
+-
+-	return primary_physical_device(adev);
+-}
+-EXPORT_SYMBOL_GPL(acpi_get_first_physical_node);
+-
+ static struct acpi_device *acpi_primary_dev_companion(struct acpi_device *adev,
+ 						      const struct device *dev)
+ {
+-	const struct device *phys_dev = acpi_get_first_physical_node(adev);
++	const struct device *phys_dev;
++
++	guard(mutex)(&adev->physical_node_lock);
++
++	phys_dev = primary_physical_device(adev);
+ 
+ 	return phys_dev && phys_dev == dev ? adev : NULL;
+ }
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index ba5234bd93a2..6f69819f9c9a 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -105,8 +105,6 @@ static inline const char *acpi_dev_name(struct acpi_device *adev)
+ 	return dev_name(&adev->dev);
+ }
+ 
+-struct device *acpi_get_first_physical_node(struct acpi_device *adev);
+-
+ enum acpi_irq_model_id {
+ 	ACPI_IRQ_MODEL_PIC = 0,
+ 	ACPI_IRQ_MODEL_IOAPIC,
+@@ -938,11 +936,6 @@ static inline const char *acpi_dev_name(struct acpi_device *adev)
+ 	return NULL;
+ }
+ 
+-static inline struct device *acpi_get_first_physical_node(struct acpi_device *adev)
+-{
+-	return NULL;
+-}
+-
+ static inline void acpi_early_init(void) { }
+ static inline void acpi_subsystem_init(void) { }
+ 
+-- 
+2.51.0
 
 
-> 
-> Anyway, again, it is just to provide some context, we are talking about
-> a bunch of platform devices, it is nice to have a generic solution but
-> it has to be simple enough too given its scope, I understand very well
-> your concern with this approach as-is - it is there to find a way
-> forward together and show what the problem is.
-> 
-> Thanks,
-> Lorenzo
-> 
-> > > > it needs to be retrieved as that in the guts of ACPI. Allocating memory for the whole
-> > > > array to retrieve a single element is simply wrong.  
-> > 
-> > ...
-> >   
-> > > > > +#define ACPI_IRQ_PROP_GSI		"linux,acpi-gsi"
-> > > > > +#define ACPI_IRQ_PROP_GSI_TRIGGER	"linux,acpi-gsi-trigger"
-> > > > > +#define ACPI_IRQ_PROP_GSI_POLARITY	"linux,acpi-gsi-polarity"  
-> > > > 
-> > > > Oh... This sounds like a big ugly hack.  
-> > > 
-> > > That does not help much I am afraid.
-> > > 
-> > > What's a ugly hack ? Property names ? Using properties for this purpose ?  
-> > 
-> > Yes, properties started with "linux," for some core functionality.
-> > Yes, using properties for this also doesn't sound right. I think the problem
-> > here is in the table specifications or somewhere that deep. That's why we
-> > ended up in this series.
-> >   
-> > > Again, it is an RFC for this specific reason and I mentioned that in the
-> > > cover letter, thank you for your inputs.  
-> > 
-> > And here we have a discussion started :-)
-> > 
-> > P.S. Looks like I was too quick to jump into this thread. I will wait for
-> > others to share their view on all this.
-> > 
-> > -- 
-> > With Best Regards,
-> > Andy Shevchenko
-> > 
-> >   
-> 
+
 
