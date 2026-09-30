@@ -1,102 +1,276 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 522CB1917CD;
-	Tue, 29 Sep 2026 22:25:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 244AC293458
+	for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 00:38:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790720728; cv=none; b=ZB9uqkfnBo+DPZCUROoiyHfDwDicuFWfK9hYpM9VqKFjwKR9VHiI1N02oevUMvTE5Xavbk6rWbZ7kpJbsRYtTeYArS/QRvMfBwLoFZ0h/RYm/GtboT1B/Jy+EfSEMw6c5WwiTt5yxLLoAogDGBcAKg5azuLVnrYTSqsmoSgBNh4=
+	t=1790728691; cv=none; b=bU5bMf5O2KkqT84PYyBkjIkqSRI5Ivq8mK3aQW6QejAHk1eBGCdhxO8V6Rf0hMLpt4PAqBfsY+slww81FHfRK2cxDM16OD7lJiwrckMmYFzCmn86FbYXE2RVmxfmhMIgpeysNSOhsPK2YJ6w4LQwx7wccGNP8xGlAlmthJsR7vU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790720728; c=relaxed/simple;
-	bh=vDOPVQN8b1p8lmYnEVIbK2Q9J47ViR/ntcYltsxD2TQ=;
+	s=arc-20240116; t=1790728691; c=relaxed/simple;
+	bh=lDQv8VNO6G/soX/VtU2MWJkebNPtrgeVeBYGPflNv8c=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=kij5+oUrmLhkyxRvBORWTCIif8YvejvIqagaUJ2RXg23YCtUZb8y2F2ZUh1aPR+De3pe5uDDUZ4DCl030ppO2vIxniLu8P3JCkMlsWUlvgSrvn6jU3MPFzuCjnCgmnxNOO2TWlDf4hjh+lyiOwzrUS8OQUlJOgmXSrCPEdG1uuc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=n0V0z091; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=s/muKyFRZtWS+UeUR/w1e3ShoCJhNw0TWbQMfz2wFQoX5S49TQqoxgN9Hr4IOPSllM39IL43zKqavGqmIHwH8imzePF8ukIZZIBTblIWPEyLETEB1R7rIMLWL2K2PwxacN9dIA/MLzB5V6MWjoSiHjNsL06FGbQspVOqVzQH+lA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=a5CGJ63s; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=DMgrflcf; arc=none smtp.client-ip=205.220.180.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="n0V0z091"
-Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 6217D1F000FF;
-	Tue, 29 Sep 2026 22:25:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790720726;
-	bh=3SZuw5cQDBPZfrMBfSK7dageK4m/f3nOjUwtVB4JX1E=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=n0V0z091s23MgsIIFYrO9om50tjzUJBaMVWKSb9jdVvKz35jmoCjdE8kUkgWmzYuO
-	 hS21Fko4CkYMU0tigikTph27WjaKLnatKjgxbNtLHUQfGp5fSBM7FhcY8aY2dhEyMm
-	 7DiTS5u6v74GECC0h1JQ/LEnxq8EgnnuvQF2CQRwWnDon8ku34vayiuRrSxZPNWFat
-	 W81zDckv3TM6+3A2+WPFHYo6rXGmxIvBGje7jgxkVpkKdZFEDFRzOxY9qhgjroXK3A
-	 bjstIG0AZci9J0Xk7D3tgGYfMmCCneHlfyxtdWCT7T6b3SkmQKW4bKfILhJ0VXt4gR
-	 AwPz5puuIgw0A==
-Date: Wed, 30 Sep 2026 01:25:23 +0300
-From: Jarkko Sakkinen <jarkko@kernel.org>
-To: Sean Meadows <Hellfire@unspacy.com>
-Cc: linux-integrity@vger.kernel.org, peterhuewe@gmx.de, jgg@ziepe.ca,
-	rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org,
-	Adam Alves <adamoa@gmail.com>
-Subject: Re: [BUG] tpm_crb/Intel PTT: Late S3/S5/Reboot ACPI power management
- deadlock
-Message-ID: <arw609M6mDiqhQwJ@kernel.org>
-References: <bf3a9544-6e49-4d5d-a01a-f1912b717d08@unspacy.com>
- <aqyTpzk3jcarEMVS@kernel.org>
- <54425edf-3ca1-4f99-9166-40f9cc3dfff6@unspacy.com>
- <araNsEodZ3NXf9qT@kernel.org>
- <0e8f93d0-3da9-4af0-ac12-b3670acdcf79@unspacy.com>
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="a5CGJ63s";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="DMgrflcf"
+Received: from pps.filterd (m0279873.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 68TNPncY1746048
+	for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 00:38:09 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-type:date:from:in-reply-to:message-id:mime-version
+	:references:subject:to; s=qcppdkim1; bh=DihlMyvHEyVrVer9hDXtw89b
+	IAPj1z5S1SGkXU3ZFzU=; b=a5CGJ63sjO8ovHEMsXAudd/im6jBlkmBPClNu3/A
+	3DUskr40A0eTyQkOcUh/Qvn2KJ/9P8JF2DOHpoySV5rmce3213gAGsfFPfYctJqN
+	ck8RXSvaGxPSc88VpB/6g6v4xePBeD7hqrslAwaXG8HyW0f9kscfOK+fO3Cnp0il
+	iw1LBbaH09sPHRJhBqkQWIIX2rV/IouRt0JHAew80kEHFeEhsRpPv8nl2MY2qJvB
+	I2RYLgM8BJ4D7EFq+ryaNsHt/jzGuOEI3jmHote/9Wue4mVPlC8nD43zVNfm6c8M
+	jFQW/g9La5zqpIVvFL2sP5Alm1lxkKdHgrSvXSL1xvI8Cg==
+Received: from mail-dl1-f71.google.com (mail-dl1-f71.google.com [74.125.82.71])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4h0g1kt3py-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 00:38:08 +0000 (GMT)
+Received: by mail-dl1-f71.google.com with SMTP id a92af1059eb24-139b62317d0so1529563c88.0
+        for <linux-acpi@vger.kernel.org>; Tue, 29 Sep 2026 17:38:08 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1790728688; x=1791333488; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=DihlMyvHEyVrVer9hDXtw89bIAPj1z5S1SGkXU3ZFzU=;
+        b=DMgrflcfec/kN5X8OGPHdrFh50XcVsDLvtT22ZNdzMU5+UVUqlAuOPkZQM8zUNCsGm
+         VNmQp7zbQGfn75u7oJTxbpfm36ESf7G0m51Ayrjmh5sBUU8BeJY3iv2ydi/BpU+ZmLYn
+         fRzzygHfKTjA8FX0PN0FFhH/fFD+xcnMGLDLMV2CsoY5qvT2GARgsJjXfxUhl8IHtTug
+         GQw1uMNHWIg4cbUYawd/M1eGpCY9Fw12rg3uq5KaLFYcs8pEvs8wQ7ZyS+/KJwyqkL/y
+         2yx05OFEaCSc4tYMJM7MjPB4Bj5xEXMN7Go+NOMl9EOTRZsGDSmF4sq2lGBpRFe2SKgz
+         mDaw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790728688; x=1791333488;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=DihlMyvHEyVrVer9hDXtw89bIAPj1z5S1SGkXU3ZFzU=;
+        b=v9h060AtHB0mTDBhvtFAeV/TLBy+ONa1RZitVAWY7ryZtUJyPlQCDxpdrdkDwNQzCY
+         dNI3SCobJZrI+pgF6msyrkYxOUT1MJ25dvWhGaUUzCUfjclaXN5qQb47vth/U9fXVnyJ
+         lTB1Yo60i61rGPCDOYH1Tp15xo13JmTP0qAxfnPyyi0XhtOy6ezBSRnR7xwYCekp6G8Q
+         kwCNFmAQBzHDY8CK6Qx6PCoemO+ogg3aao1PTil78jq/4Y/tq/Qs0+lCKMpexFVMAbHJ
+         qe7VgEOUTWf67evwRwaQPVA0ZXC8UEsWwcE+p0RoF4/4ay8kaUaE16vUScyJp5uDMMVE
+         QZ9Q==
+X-Forwarded-Encrypted: i=1; AKwUvByBTyqli2uuLjiL05Mc9MVU3UrxRCcnxS4o1jNOjurj5bnBeuU84VvgIDBuvDkRkv6rvI+CCc4dqe7E@vger.kernel.org
+X-Gm-Message-State: AFuF++l2wWv5ge4wpYQy/PfwreS82FSXfDnAnc5btIgVOX+RktG7kQ3j
+	qMtqZGOxnJrzVWUee3rSjZ7VVObC8jRQuNtUxXDZn8mdpknhNRYr903g78iVmyHNoNo/oiPsevF
+	xW0Pc1j32CAOYaBLhk4RSzCfvyUvrDrPvRGzcFBXfWVBebiOm74XwWXvrmCpbOnIO
+X-Gm-Gg: AYBFou0p+mgmCjWGOiWmYyWY7axTbkRDaPxom+2FxumSxRkx3kVAbCO7TFufvC1/688
+	9aK2lZRlvx5+JJUj9mN4A5VBw+yxCkR75q6vxQ8f6eqT8LhGdcT13PjUoiSZPlXgJrdrfEhpiLl
+	VdVunPlbOBWgE2qdSpi4S2t0+0PZA2kIT/6ztsgQrgQOMKRZVrAZxVMMtq63xSMh9q/wc2h/0EE
+	aoG1LEzw8LJ6KfnXrfXPMjQMn+n2DLAVzBjbp7P+43iH3InWBPh1+tJzpGWkVxAnpQ/DjGGnFgb
+	01VyacwRGMy3NzQVA6PogitGCgJjq1JyT7R1HVdcg3lzsgS4xEda8OoLRT+Xt1NQI/KUmDDwECp
+	EfzXr5/MNiyn2eAFjJz0RIWU+Wod6fK9KLiIpt2f7EwNs2/DS
+X-Received: by 2002:a05:7022:f401:b0:143:868a:20c1 with SMTP id a92af1059eb24-14ca00a17c2mr1398054c88.46.1790728687769;
+        Tue, 29 Sep 2026 17:38:07 -0700 (PDT)
+X-Received: by 2002:a05:7022:f401:b0:143:868a:20c1 with SMTP id a92af1059eb24-14ca00a17c2mr1397989c88.46.1790728686996;
+        Tue, 29 Sep 2026 17:38:06 -0700 (PDT)
+Received: from hu-ashoraj-lv.qualcomm.com (Global_NAT1.qualcomm.com. [129.46.96.20])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-14c60c55d41sm1917754c88.1.2026.09.29.17.38.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 29 Sep 2026 17:38:06 -0700 (PDT)
+Date: Tue, 29 Sep 2026 17:38:04 -0700
+From: Ashok Raj <ashok.raj@oss.qualcomm.com>
+To: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <maz@kernel.org>,
+        Daniel Lezcano <daniel.lezcano@kernel.org>,
+        Thomas Gleixner <tglx@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Danilo Krummrich <dakr@kernel.org>, Hanjun Guo <guohanjun@huawei.com>,
+        Sudeep Holla <sudeep.holla@kernel.org>,
+        Wim Van Sebroeck <wim@linux-watchdog.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, driver-core@lists.linux.dev,
+        linux-watchdog@vger.kernel.org, Ashok Raj <ashok.raj@oss.qualcomm.com>
+Subject: Re: [PATCH RFC 02/11] ACPI: Introduce irq_get() for static fwnodes
+Message-ID: <arxZ7BAya5ntRi6t@hu-ashoraj-lv.qualcomm.com>
+References: <20260925-acpi-static-table-irq-probe-defer-v1-0-2c62125d0085@kernel.org>
+ <20260925-acpi-static-table-irq-probe-defer-v1-2-2c62125d0085@kernel.org>
+ <arr3IhF0bwN4uzUP@hu-ashoraj-lv.qualcomm.com>
+ <art5m5QPXAOAvkvW@red-moon>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <0e8f93d0-3da9-4af0-ac12-b3670acdcf79@unspacy.com>
+In-Reply-To: <art5m5QPXAOAvkvW@red-moon>
+X-Proofpoint-GUID: eO4AujYfzv2T_e6UdaUCTHnsulxeqoh5
+X-Proofpoint-ORIG-GUID: eO4AujYfzv2T_e6UdaUCTHnsulxeqoh5
+X-Proofpoint-Spam-Info: AW1haW4tMjYwOTMwMDAwMSBTYWx0ZWRfX0pMbBx93jITs
+ OkGrmmdMDNrZjjEgjvt28K+XKGY80cPgu5WmcjgSkIgU1CvW2s894wioofNf7/Eenh1Gasn8BuJ
+ 900DAIQzRFR6FEjkLX+KEeY8e5+Jxis=
+X-Authority-Analysis: v=2.4 cv=Ysia1IYX c=1 sm=1 tr=0 ts=6abc59f0 cx=c_pps
+ a=JYo30EpNSr/tUYqK9jHPoA==:117 a=ouPCqIW2jiPt+lZRy3xVPw==:17
+ a=IkcTkHD0fZMA:10 a=VdqzKS8jKosA:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=rJkE3RaqiGZ5pbrm-msn:22
+ a=VwQbUJbxAAAA:8 a=QyXUC8HyAAAA:8 a=EUspDBNiAAAA:8 a=p-kz3MFidYKym44KqwAA:9
+ a=QEXdDO2ut3YA:10 a=Fk4IpSoW4aLDllm1B1p-:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwOTMwMDAwMSBTYWx0ZWRfX0SCbg6zE7bue
+ nKuojH3uTbRdQuexuP8lkSdRFBAt2q46OC4g2wJb181ua1n/KoqVujiJpSCXem2WblFQ9KZeL+L
+ 5tErUhaoXiLOUaI2KN9zwsqYrqkqhc9xQEPIBFDiMsUKJrxz8h1IEzWIKw2NQY+MUDI4yAz/1LH
+ uVmzTdTzE0KEaiMEhXXwzgFhFLI3ikdTGywPh8wFO4gg+c8xD3bHVA9nO5tlAZtemAZ1hqP2UD8
+ K5af6CKigtZ4wiaSAfvpZ7KdN+EnvXBhgg8qjYMecMkeLJgsq7htMjox8KEtlgkhRamVMFczg6R
+ t4mp8muxyIOITTxCiANt+FIJzjaWQhIKNZSrH3ux4o2b3Mq3dkpX6Dfr/xZmRJAjgyY8E/QpRyC
+ uMeU9SJZhRRcxwk3HIKeeE51LXgSDiW9hj2KC8ZGIomkwncKDkpM94EvxflEpwFKSp7QV8pAhzj
+ Ak4rxGIoTdfTHKO8AqQ==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-09-29_05,2026-09-21_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ impostorscore=0 spamscore=0 suspectscore=0 phishscore=0 adultscore=0
+ malwarescore=0 lowpriorityscore=0 priorityscore=1501 clxscore=1015
+ bulkscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
+ adjust=0 reason=mlx scancount=1 engine=8.22.0-2609040000
+ definitions=main-2609300001
 
-On Tue, Sep 29, 2026 at 01:44:29PM -0400, Sean Meadows wrote:
+On Tue, Sep 29, 2026 at 10:40:59AM +0200, Lorenzo Pieralisi wrote:
+> On Mon, Sep 28, 2026 at 04:24:18PM -0700, Ashok Raj wrote:
+> > 
+> > On Fri, Sep 25, 2026 at 09:48:01AM +0200, Lorenzo Pieralisi wrote:
+> > > To describe and map GSIs for firmware nodes created out of ACPI static
+> > > table entries in a uniform way it is required to define some standard
+> > > properties and attach them to ACPI static fwnode as secondary nodes.
+> > > 
+> > > Define properties names to describe GSIs and their trigger-mode/polarity,
+> > > and implement an irq_get() callback for static fwnodes so that core code
+> > > can retrieve and map IRQs for ACPI static fwnodes in standard manner.
+> > > 
+> > > An empty stub for property_read_string_array() is also added, so that
+> > > the fwnode_irq_get_byname() interface falls back (through
+> > > fwnode_property_read_string_array()) to the secondary
+> > > fwnode to grab the "interrupt-names" property.
+> > > 
+> > > Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
+> > > Cc: Bartosz Golaszewski <brgl@kernel.org>
+> > > Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> > > ---
+> > >  drivers/acpi/property.c | 69 ++++++++++++++++++++++++++++++++++++++++++++++++-
+> > >  include/linux/acpi.h    |  4 +++
+> > >  2 files changed, 72 insertions(+), 1 deletion(-)
+> > > 
+> > > diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> > > index 8ee5a1f0eb48..c609100c08db 100644
+> > > --- a/drivers/acpi/property.c
+> > > +++ b/drivers/acpi/property.c
+> > > @@ -1766,7 +1766,74 @@ static int acpi_fwnode_irq_get(const struct fwnode_handle *fwnode,
+> > >  
+> > >  DECLARE_ACPI_FWNODE_OPS(acpi_device_fwnode_ops);
+> > >  DECLARE_ACPI_FWNODE_OPS(acpi_data_fwnode_ops);
+> > > -const struct fwnode_operations acpi_static_fwnode_ops;
+> > > +
+> > > +static int acpi_static_fwnode_read_u32_prop_index(const struct fwnode_handle *fwnode,
+> > > +						  const char *propname,
+> > > +						  unsigned int index, u32 *value)
+> > > +{
+> > > +	u32 *values;
+> > > +	int ret, count;
+> > > +
+> > > +	count = fwnode_property_count_u32(fwnode, propname);
+> > > +	if (count < 0)
+> > > +		return count;
+> > > +
+> > > +	if (index >= count)
+> > > +		return -ENOENT;
+> > > +
+> > > +	values = kcalloc(count, sizeof(*values), GFP_KERNEL);
+> > > +	if (!values)
+> > > +		return -ENOMEM;
+> > > +
+> > > +	ret = fwnode_property_read_u32_array(fwnode, propname, values, count);
+> > > +	if (!ret)
+> > > +		*value = values[index];
+> > > +
+> > 
+> > You lookup with a propname, and then qualify with and index? is it
+> > possible to have the different index but same propname? 
 > 
-> On 9/25/26 11:05, Jarkko Sakkinen wrote:
-> > 
-> > Thanks for providing the information.
-> > 
-> > Bugzilla bug under discussion: https://bugzilla.kernel.org/
-> > show_bug.cgi? id=217890
-> > 
-> > I also found fix attempt of which 3rd version somehow went past me:
-> > 
-> > https://lore.kernel.org/all/20240308145313.40932-1-adamoa@gmail.com/
-> > 
-> > Does this or disabling hwrng sort out the issue?
-> > 
-> > I got one other idea too with no empirical basis (just hypothesis): perhaps
-> > release memory mapping on suspend could help firmware.
-> > 
-> > 
-> > Br, Jarkko
-> 
-> Acknowledged.
-> 
-> Disabling HWRNG via kernel cmdline failed, and since my research implied
-> that path would require a custom kernel, I shifted my efforts toward
-> forward-porting Mr. Alves's 2024 patch to 7.2.7. It took some work, but
-> I have successfully compiled it and got it booting on my machine.
-> 
-> The patch appears to sort out the issue so far, but I'm only 43 hours
-> into the test. As we discussed previously, this bug can take days to
-> manifest, so I will reply again once I cross a week of sleep cycles
-> without a crash.
-> 
-> I also have a USB3 debug cable on the way in hope of capturing the
-> hardware state during the power transition. That said, if Mr. Alves's
-> patch continues to work as well as it has so far, there may not be any
-> need for that.
-> 
-> Sean
+> What is the question :) ? It is to retrieve a property value at a specific
+> index.
 
-There's a commit with title "tpm: Call cmd_ready/go_idle for each command
-transmission", which is strongest contender to make a difference to this
-long running issue.
+Gah... I'm wondering what was my question as well :-)
 
-I.e. I think it will improve firmware behavior given full release of
-resources per TPM command.
+See below: acpi_static_fwnode_irq_get() calls this read_string_array() multiple
+times from within the same function.. 
 
-I'm including it to v7.4 pull request.
+Sorry for the terse message, apologies.
+> 
+> > Alternately you can send the list to caller and they can use the ones
+> > they need?
+> > 
+> > 
+> > > +	kfree(values);
+> > > +	return ret;
+> > > +}
+> > > +
+> > > +static int acpi_static_fwnode_read_string_array(const struct fwnode_handle *fwnode,
+> > > +						const char *propname,
+> > > +						const char **val, size_t nval)
+> > > +{
+> > > +	/* Route string handling to secondary software nodes */
+> > > +	return -EINVAL;
+> > > +}
+> > > +
+> > > +static int acpi_static_fwnode_irq_get(const struct fwnode_handle *fwnode,
+> > > +				      unsigned int index)
+> > > +{
+> > > +	u32 gsi, trigger, polarity;
+> > > +	int ret;
+> > > +
+> > > +	if (!fwnode->secondary)
+> > > +		return -ENODEV;
+> > > +
+> > > +	fwnode = fwnode->secondary;
+> > > +
+> > > +	ret = acpi_static_fwnode_read_u32_prop_index(fwnode, ACPI_IRQ_PROP_GSI,
+> > > +						index, &gsi);
+> > > +	if (ret)
+> > > +		return ret == -ENOENT ? -ENXIO : ret;
+> > > +
+> > > +	ret = acpi_static_fwnode_read_u32_prop_index(fwnode, ACPI_IRQ_PROP_GSI_TRIGGER,
+> > > +						index, &trigger);
+> > > +	if (ret)
+> > > +		return ret == -ENOENT ? -ENXIO : ret;
+> > > +
+> > > +	ret = acpi_static_fwnode_read_u32_prop_index(fwnode, ACPI_IRQ_PROP_GSI_POLARITY,
+> > > +						index, &polarity);
 
-Br, Jarkko
+For each of the above calls for read_u32_prop_index() the allocation,
+copy a value and does free it. 
+
+Instead you could read the whole array, and just get each value and
+discard it once? 
+
+> > > +	if (ret)
+> > > +		return ret == -ENOENT ? -ENXIO : ret;
+> > 
+> > Consolidate return to one place? 
+> 
+> Yes it can (and trigger and polarity can be just one property "flags", FWIW),
+> if we agree that's what will do, which I doubt.
+> 
+> Thanks,
+> Lorenzo
+
+-- 
+/ashok.raj
+ashok.raj@oss.qualcomm.com
+Qualcomm Inc
