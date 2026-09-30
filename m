@@ -1,363 +1,322 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id BB40C51C062;
-	Wed, 30 Sep 2026 14:15:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEF644BB267;
+	Wed, 30 Sep 2026 15:09:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790777749; cv=none; b=OmOd4UzW5kPY0OVMMBbKK+04gDzN9GzcoloAXYAvC2A54c0e7QjWiQXqd1sL2gpIA9y6xbEf1l+5eaDdj5I73Z2dE0QLbyDMiRT1V8m2LwNM+iL6qtJZ8Y7W90BOrIAmtzYiOT2If1tvEsQpDUFdDffeol1BHRf+c/s68Al0Ta4=
+	t=1790780998; cv=none; b=BnM2F1c4ul6DsEklNLdcWJyGTRo3l/seLZ3FQ1O20wnttnQrUvVCmC6xBxZytikBrJiA6SqI6cUbdbj/HZCBjr3u4+sqHZKVeww2V0nL6TJtIJwYwGe4xutBEdDdOreDdf8ppge4zkE7HMUnvCusUSBQgmeNkwrDFwUjiyXJPmI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790777749; c=relaxed/simple;
-	bh=vDWF5G0lIwPoJzQI1u/hugVznqU7gHK6xG1nsgA8RLY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=rbeMyqZE4f91iohE0xtJ49NgzfD0DmHyDucH2nmalE7OQx+R8+cAtlzo9NF/RyWJwAzi9ArIxkYsNvykAOFjJN5dGM4gOZgm5HksNbjPLWxNkbeIPjZczV1nZXZnZDVPxyITZ9hJuCPkEw2nzNhPA9sFqv0PypFBbzktsGeSJso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=WFG/mpem; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1790780998; c=relaxed/simple;
+	bh=1Hqv9Dh7b3fluIJb0TCtIkKQHg95NN7x1M0xsc9WDZA=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=gk0TSmkKYeVMQFwybIkaXWq1qjuMZAqeuUCyqrZy/hXvLcA6QSJHu2ZXFre3QwvmaH1yJwNLzn+FLzDLClYeiJtuEkwLv1t+2AQHcYp5Kj32C4n8+SxzuLnwf66B5kQyNReLeFCF02KkBKEcOPXUgleeBVtQCI8bSCUoe5WgPPY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=HJK3ljNK; arc=none smtp.client-ip=198.175.65.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="WFG/mpem"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id AF1BD497;
-	Wed, 30 Sep 2026 07:15:32 -0700 (PDT)
-Received: from [10.2.212.8] (e134344.arm.com [10.2.212.8])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 6E6B93F85F;
-	Wed, 30 Sep 2026 07:15:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1790777736; bh=vDWF5G0lIwPoJzQI1u/hugVznqU7gHK6xG1nsgA8RLY=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=WFG/mpem8Vg11fQi7+Gvhuxm6QbWE1RVRLCuCZh6TPv4g8QK5C3o/y1fQT9nYvYoB
-	 Th3oxZsaJUNZ3op9ReWn37Fv+MJUVl2ujNJqfr7nRxRW6yooPQd+jJbwCXvfXxFLTW
-	 gsYMUuuo5IhAjp2m4M3NTiqINY13rXGhMM7v2sEo=
-Message-ID: <ca45592b-0b63-45ef-8afe-0a6f50eb73bf@arm.com>
-Date: Wed, 30 Sep 2026 15:15:32 +0100
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="HJK3ljNK"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1790780995; x=1822316995;
+  h=date:from:to:cc:subject:message-id;
+  bh=1Hqv9Dh7b3fluIJb0TCtIkKQHg95NN7x1M0xsc9WDZA=;
+  b=HJK3ljNK2B8pbu+zyQNDzOtHvpIfhxENBRbhhqZiiDXm4/uIYKyfQ1ij
+   W/n9cfA7SuL3prHiQDOZdupHpqtdz5NchClB4FHzxu9pnIZ6bnYChqyDy
+   FotX07ijToXGE6/toG9nD+4Iz3BvbROp61xhrw6GMRaA94Ywct/8g5TbM
+   cqH+bkrsMB7Zc3wjcJgy2CFRG57YWSN737j6WdTk+1BPszPyBahsYQgnX
+   AUzZ8ssZnfKiJ71gO7SyrvjB1HWAMGpSA1H3SPWs3DL2E0MDDF8H5+NJj
+   9im5mjivOOGaZqnQoD2LK2u0fl9FtP9QBoRt/IeOKrfTDtyqIjvM6sGRq
+   A==;
+X-CSE-ConnectionGUID: CQTrDgrLQ1S58GYM/BLSCw==
+X-CSE-MsgGUID: FiMhiw16Q822r4OHJlr0tw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11921"; a="113310477"
+X-IronPort-AV: E=Sophos;i="6.27,132,1787036400"; 
+   d="scan'208";a="113310477"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Sep 2026 08:09:52 -0700
+X-CSE-ConnectionGUID: H2URTYJtTJ6bQgqxo7f6yA==
+X-CSE-MsgGUID: /FbXrbjbRsezdkyG/UbMSw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,132,1787036400"; 
+   d="scan'208";a="303652720"
+Received: from lkp-server01.sh.intel.com (HELO 462990a40a85) ([10.239.97.150])
+  by fmviesa001.fm.intel.com with ESMTP; 30 Sep 2026 08:09:50 -0700
+Received: from kbuild by 462990a40a85 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xBvwJ-00000000Qmi-1hof;
+	Wed, 30 Sep 2026 15:09:47 +0000
+Date: Wed, 30 Sep 2026 23:09:33 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
+ 4397d72f5f625c2c312fb902f257dbc29c36f84a
+Message-ID: <202609302329.lZuDeMba-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v11 13/13] arm_mpam: detect and enable MPAM-Fb PCC support
-To: Andre Przywara <andre.przywara@arm.com>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
- <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
- Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- James Morse <james.morse@arm.com>,
- Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
-Cc: Jonathan Cameron <jic23@kernel.org>,
- Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
- Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
- Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
- Niyas Sait <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
- Ritwick Sharma <ritwick.sharma@arm.com>, Gavin Shan <gshan@redhat.com>,
- linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-kernel@vger.kernel.org
-References: <20260924152739.2865510-1-andre.przywara@arm.com>
- <20260924152739.2865510-14-andre.przywara@arm.com>
-Content-Language: en-US
-From: Ben Horgan <ben.horgan@arm.com>
-In-Reply-To: <20260924152739.2865510-14-andre.przywara@arm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 
-Hi Andre,
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+branch HEAD: 4397d72f5f625c2c312fb902f257dbc29c36f84a  Merge branch 'acpi-driver-next' into testing
 
-On 24/09/2026 16:27, Andre Przywara wrote:
-> The Arm MPAM-Fb specification [1] describes a protocol to access MSC
-> registers through a firmware interface. This requires a shared memory
-> region to hold the message, and a mailbox to trigger the access.
-> For ACPI this is wrapped as a PCC channel, described using existing
-> ACPI abstractions.
-> 
-> Add code to parse those PCC table descriptions associated with an MSC,
-> and store the parsed information in the MSC struct.
-> There can be multiple PCC channels, and each channel can serve multiple
-> MSCs, so we need to keep track of the channel usage, using a list and
-> a refcount.
-> 
-> This will be used by the MPAM-Fb access wrapper code.
-> 
-> [1] https://developer.arm.com/documentation/den0144/latest
-> 
-> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
-> Tested-by: Ritwick Sharma <ritwick.sharma@arm.com> # on Arm AGI CPU
-> Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-> Tested-by: Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>
-> Reviewed-by: Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>
-> Reviewed-by: Gavin Shan <gshan@redhat.com>
-> ---
->  drivers/resctrl/Kconfig         |   1 +
->  drivers/resctrl/mpam_devices.c  | 119 +++++++++++++++++++++++++++++++-
->  drivers/resctrl/mpam_fb.c       |  41 +++++++++++
->  drivers/resctrl/mpam_internal.h |   2 +
->  4 files changed, 161 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/resctrl/Kconfig b/drivers/resctrl/Kconfig
-> index 9591d792736e5..f5ff9b1f6c48e 100644
-> --- a/drivers/resctrl/Kconfig
-> +++ b/drivers/resctrl/Kconfig
-> @@ -2,6 +2,7 @@ menuconfig ARM64_MPAM_DRIVER
->  	bool "MPAM driver"
->  	depends on ARM64 && ARM64_MPAM
->  	select ACPI_MPAM if ACPI
-> +	select PCC if ACPI
->  	select MAILBOX
->  	help
->  	  Memory System Resource Partitioning and Monitoring (MPAM) driver for
-> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
-> index ce20dc44d5d40..ca7e0fe75f24f 100644
-> --- a/drivers/resctrl/mpam_devices.c
-> +++ b/drivers/resctrl/mpam_devices.c
-> @@ -20,14 +20,19 @@
->  #include <linux/irqdesc.h>
->  #include <linux/list.h>
->  #include <linux/lockdep.h>
-> +#include <linux/mailbox_client.h>
->  #include <linux/mutex.h>
->  #include <linux/platform_device.h>
->  #include <linux/printk.h>
-> +#include <linux/property.h>
->  #include <linux/srcu.h>
->  #include <linux/spinlock.h>
->  #include <linux/types.h>
->  #include <linux/workqueue.h>
->  
-> +#include <acpi/pcc.h>
-> +#include <acpi/acpi_io.h>
-> +
->  #include "mpam_internal.h"
->  
->  /* Values for the T241 errata workaround */
-> @@ -50,6 +55,87 @@ static LIST_HEAD(mpam_all_msc);
->  
->  struct srcu_struct mpam_srcu;
->  
-> +/* PCC channels might be serving multiple MSCs, so keep a refcounted list. */
-> +static DEFINE_MUTEX(pcc_chan_list_lock);
-> +static LIST_HEAD(pcc_chan_list);
-> +
-> +static void mpam_pcc_chan_release(struct kref *ref)
-> +{
-> +	struct mpam_pcc_chan *cur = container_of(ref, struct mpam_pcc_chan,
-> +						 refcount);
-> +
-> +	pcc_mbox_free_channel(cur->pcc_chan);
-> +	list_del(&cur->pcc_chans);
-> +	mutex_destroy(&cur->pcc_chan_lock);
-> +	kfree(cur);
-> +}
-> +
-> +static struct mpam_pcc_chan *mpam_pcc_chan_get(struct device *dev,
-> +					       int subspace_id)
-> +{
-> +	struct mpam_pcc_chan *cur;
-> +
-> +	guard(mutex)(&pcc_chan_list_lock);
-> +
-> +	list_for_each_entry(cur, &pcc_chan_list, pcc_chans) {
-> +		if (cur->subspace_id == subspace_id) {
-> +			kref_get(&cur->refcount);
-> +
-> +			return cur;
-> +		}
-> +	}
-> +
-> +	cur = kzalloc_obj(*cur);
-> +	if (!cur)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	cur->pcc_cl.tx_block = true;
-> +
-> +	cur->pcc_chan = pcc_mbox_request_channel(&cur->pcc_cl, subspace_id);
-> +	if (IS_ERR(cur->pcc_chan)) {
-> +		long err = PTR_ERR(cur->pcc_chan);
-> +
-> +		kfree(cur);
-> +		return ERR_PTR(err);
-> +	}
-> +
-> +	/*
-> +	 * Timeout based on the "nominal latency" in us, from the
-> +	 * PCC ACPI table. tx_tout is in ms.
-> +	 * Add some margin here to be on the safe side.
-> +	 */
-> +	cur->pcc_cl.tx_tout = DIV_ROUND_UP(cur->pcc_chan->latency * 5, 1000);
-> +
-> +	mutex_init(&cur->pcc_chan_lock);
-> +
-> +	cur->subspace_id = subspace_id;
-> +	kref_init(&cur->refcount);
-> +
-> +	list_add_tail(&cur->pcc_chans, &pcc_chan_list);
-> +
-> +	return cur;
-> +}
-> +
-> +static int mpam_pcc_chan_put(struct mpam_pcc_chan *pcc_chan)
-> +{
-> +	struct mpam_pcc_chan *cur, *tmp;
-> +
-> +	if (!pcc_chan)
-> +		return 0;
-> +
-> +	guard(mutex)(&pcc_chan_list_lock);
-> +
-> +	list_for_each_entry_safe(cur, tmp, &pcc_chan_list, pcc_chans) {
-> +		if (cur == pcc_chan) {
-> +			kref_put(&cur->refcount, mpam_pcc_chan_release);
-> +
-> +			return 0;
-> +		}
-> +	}
-> +
-> +	return -ENOENT;
-> +}
-> +
->  /*
->   * Number of MSCs that have been probed. Once all MSCs have been probed MPAM
->   * can be enabled.
-> @@ -2272,6 +2358,8 @@ static void mpam_msc_destroy(struct mpam_msc *msc)
->  	list_for_each_entry_safe(ris, tmp, &msc->ris, msc_list)
->  		mpam_ris_destroy(ris);
->  
-> +	mpam_pcc_chan_put(msc->pcc_chan);
-> +
+elapsed time: 1051m
 
-Last one from Sashiko [1] and I haven't spotted anything else either in the patches or from giving
-it a go on the arm agi cpu. :)
+configs tested: 245
+configs skipped: 3
 
-Does the mpam_pcc_chan_put() need to go after the list_del_rcu() and wait for a srcu synchronization
-to avioid a race between iterating through the list while acessing the msc and tearing down the channel.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Thanks,
+tested configs:
+alpha                              allnoconfig    gcc-16.1.0
+alpha                             allyesconfig    gcc-16.1.0
+alpha                                defconfig    gcc-16.1.0
+arc                               allmodconfig    clang-24
+arc                                allnoconfig    gcc-16.1.0
+arc                               allyesconfig    clang-24
+arc                                  defconfig    gcc-16.1.0
+arc                         nsim_700_defconfig    gcc-16.1.0
+arc                   randconfig-1000-20260930    gcc-11.5.0
+arc                   randconfig-1001-20260930    gcc-11.5.0
+arc                  randconfig-r2302-20260929    gcc-8.5.0  sparse
+arm                                allnoconfig    gcc-16.1.0
+arm                               allyesconfig    clang-24
+arm                                  defconfig    gcc-16.1.0
+arm                       integrator_defconfig    clang-24
+arm                             mmp2_defconfig    gcc-16.1.0
+arm                             qcom_defconfig    clang-24
+arm                   randconfig-1000-20260930    gcc-11.5.0
+arm                   randconfig-1001-20260930    gcc-11.5.0
+arm                   randconfig-1002-20260930    gcc-11.5.0
+arm                   randconfig-1003-20260930    gcc-11.5.0
+arm                  randconfig-r2103-20260929    gcc-15.2.0 cocci
+arm                  randconfig-r2106-20260929    gcc-10.5.0 cocci
+arm                  randconfig-r2305-20260929    gcc-8.5.0  sparse
+arm                            sama5_defconfig    gcc-16.1.0
+arm                         spear6xx_defconfig    gcc-16.1.0
+arm64                             allmodconfig    clang-24
+arm64                              allnoconfig    gcc-16.1.0
+arm64                                defconfig    gcc-16.1.0
+arm64                 randconfig-1000-20260930    gcc-16.1.0
+arm64                 randconfig-1001-20260930    gcc-16.1.0
+arm64                 randconfig-1002-20260930    gcc-16.1.0
+arm64                 randconfig-1003-20260930    gcc-16.1.0
+csky                              allmodconfig    gcc-16.1.0
+csky                               allnoconfig    gcc-16.1.0
+csky                                 defconfig    gcc-16.1.0
+csky                  randconfig-1000-20260930    gcc-16.1.0
+csky                  randconfig-1001-20260930    gcc-16.1.0
+csky                 randconfig-r2307-20260929    clang-22   sparse
+csky                 randconfig-r2309-20260929    clang-22   sparse
+hexagon                           allmodconfig    gcc-16.1.0
+hexagon                            allnoconfig    gcc-16.1.0
+hexagon                              defconfig    gcc-16.1.0
+hexagon               randconfig-1000-20260930    clang-24
+hexagon               randconfig-1001-20260930    clang-24
+i386                              alldefconfig    gcc-16.1.0
+i386                              allmodconfig    clang-22
+i386                               allnoconfig    gcc-16.1.0
+i386                              allyesconfig    clang-22
+i386        buildonly-randconfig-1000-20260930    gcc-14
+i386        buildonly-randconfig-1001-20260930    gcc-14
+i386        buildonly-randconfig-1002-20260930    gcc-14
+i386        buildonly-randconfig-1003-20260930    gcc-14
+i386        buildonly-randconfig-1004-20260930    gcc-14
+i386        buildonly-randconfig-1005-20260930    gcc-14
+i386                                 defconfig    gcc-16.1.0
+i386                  randconfig-1000-20260930    gcc-14
+i386                  randconfig-1001-20260930    gcc-14
+i386                  randconfig-1002-20260930    gcc-14
+i386                  randconfig-1003-20260930    gcc-14
+i386                  randconfig-1004-20260930    gcc-14
+i386                  randconfig-1005-20260930    gcc-14
+i386                  randconfig-1006-20260930    gcc-14
+i386                  randconfig-1007-20260930    clang-22
+i386                  randconfig-1008-20260930    clang-22
+i386                  randconfig-1009-20260930    clang-22
+i386                  randconfig-1010-20260930    clang-22
+i386                  randconfig-1011-20260930    clang-22
+i386                  randconfig-1012-20260930    clang-22
+i386                  randconfig-1013-20260930    clang-22
+i386                  randconfig-2100-20260929    clang-22   cocci
+i386                  randconfig-2101-20260929    clang-22   cocci
+i386                  randconfig-2102-20260929    clang-22   cocci
+i386                  randconfig-2103-20260929    clang-22   cocci
+i386                  randconfig-2200-20260929    gcc-14     smatch
+i386                  randconfig-2300-20260929    gcc-14     sparse
+i386                  randconfig-2301-20260929    gcc-14     sparse
+i386                  randconfig-2302-20260929    gcc-14     sparse
+i386                 randconfig-r2104-20260929    gcc-10.5.0 cocci
+loongarch                         allmodconfig    clang-24
+loongarch                          allnoconfig    gcc-16.1.0
+loongarch                            defconfig    clang-24
+loongarch             randconfig-1000-20260930    clang-24
+loongarch             randconfig-1001-20260930    clang-24
+loongarch            randconfig-r2200-20260929    clang-24   smatch
+m68k                              allmodconfig    gcc-16.1.0
+m68k                               allnoconfig    gcc-16.1.0
+m68k                              allyesconfig    clang-24
+m68k                           atari_defconfig    clang-24
+m68k                           atari_defconfig    gcc-16.1.0
+m68k                                 defconfig    clang-24
+m68k                        m5475evb_defconfig    gcc-16.1.0
+m68k                 randconfig-r2304-20260929    gcc-8.5.0  sparse
+m68k                 randconfig-r2306-20260929    clang-22   sparse
+microblaze                         allnoconfig    gcc-16.1.0
+microblaze                        allyesconfig    gcc-16.1.0
+microblaze                           defconfig    clang-24
+microblaze           randconfig-r2300-20260929    gcc-8.5.0  sparse
+mips                              allmodconfig    gcc-16.1.0
+mips                               allnoconfig    gcc-16.1.0
+mips                              allyesconfig    gcc-16.1.0
+mips                         bcm63xx_defconfig    clang-24
+mips                           malta_defconfig    clang-24
+mips                       maltasmvp_defconfig    gcc-16.1.0
+mips                         qi_lb60_defconfig    clang-24
+mips                         qi_lb60_defconfig    gcc-16.1.0
+nios2                             allmodconfig    clang-20
+nios2                              allnoconfig    clang-24
+nios2                                defconfig    clang-24
+nios2                 randconfig-1000-20260930    clang-24
+nios2                 randconfig-1001-20260930    clang-24
+openrisc                          allmodconfig    clang-20
+openrisc                           allnoconfig    clang-24
+openrisc                             defconfig    gcc-16.1.0
+openrisc             randconfig-r2107-20260929    gcc-10.5.0 cocci
+parisc                            allmodconfig    gcc-16.1.0
+parisc                             allnoconfig    clang-24
+parisc                            allyesconfig    clang-17
+parisc                               defconfig    gcc-16.1.0
+parisc                randconfig-1000-20260930    gcc-8.5.0
+parisc                randconfig-1001-20260930    gcc-8.5.0
+parisc               randconfig-r2100-20260929    gcc-15.2.0 cocci
+parisc64                             defconfig    clang-24
+powerpc                           allmodconfig    gcc-16.1.0
+powerpc                            allnoconfig    clang-24
+powerpc                  canyonlands_defconfig    gcc-16.1.0
+powerpc                         fsp2_defconfig    gcc-16.1.0
+powerpc                       ppc64e_defconfig    gcc-16.1.0
+powerpc               randconfig-1000-20260930    gcc-8.5.0
+powerpc               randconfig-1001-20260930    gcc-8.5.0
+powerpc              randconfig-r2102-20260929    gcc-15.2.0 cocci
+powerpc              randconfig-r2201-20260929    gcc-10.5.0 smatch
+powerpc                      tqm8548_defconfig    gcc-16.1.0
+powerpc64             randconfig-1000-20260930    gcc-8.5.0
+powerpc64             randconfig-1001-20260930    gcc-8.5.0
+riscv                             allmodconfig    clang-24
+riscv                              allnoconfig    clang-24
+riscv                             allyesconfig    clang-24
+riscv                                defconfig    gcc-16.1.0
+riscv                     nommu_k210_defconfig    clang-24
+riscv                 randconfig-1000-20260930    gcc-16.1.0
+riscv                 randconfig-1001-20260930    gcc-16.1.0
+riscv                 randconfig-2000-20260929    gcc-11.5.0
+riscv                 randconfig-2001-20260929    gcc-11.5.0
+riscv                randconfig-r2101-20260929    gcc-15.2.0 cocci
+riscv                randconfig-r2202-20260929    clang-24   smatch
+s390                              allmodconfig    clang-17
+s390                               allnoconfig    clang-24
+s390                              allyesconfig    gcc-16.1.0
+s390                                 defconfig    gcc-16.1.0
+s390                  randconfig-1000-20260930    gcc-16.1.0
+s390                  randconfig-1001-20260930    gcc-16.1.0
+s390                  randconfig-2000-20260929    gcc-11.5.0
+s390                  randconfig-2001-20260929    gcc-11.5.0
+s390                 randconfig-r2105-20260929    gcc-10.5.0 cocci
+sh                                allmodconfig    gcc-16.1.0
+sh                                 allnoconfig    clang-24
+sh                                allyesconfig    clang-17
+sh                                   defconfig    gcc-14
+sh                         edosk7760_defconfig    clang-24
+sh                              espt_defconfig    gcc-16.1.0
+sh                             hp6xx_defconfig    gcc-16.1.0
+sh                    randconfig-1000-20260930    gcc-16.1.0
+sh                    randconfig-1001-20260930    gcc-16.1.0
+sh                    randconfig-2000-20260929    gcc-11.5.0
+sh                    randconfig-2001-20260929    gcc-11.5.0
+sh                           urquell_defconfig    gcc-16.1.0
+sparc                              allnoconfig    clang-24
+sparc                                defconfig    gcc-16.1.0
+sparc                 randconfig-1000-20260930    clang-22
+sparc                 randconfig-1001-20260930    clang-22
+sparc                 randconfig-2000-20260929    gcc-12.5.0
+sparc                 randconfig-2001-20260929    gcc-12.5.0
+sparc                randconfig-r2301-20260929    gcc-8.5.0  sparse
+sparc64                           allmodconfig    clang-20
+sparc64                              defconfig    gcc-14
+sparc64               randconfig-1000-20260930    clang-22
+sparc64               randconfig-1001-20260930    clang-22
+sparc64               randconfig-2000-20260929    gcc-12.5.0
+sparc64               randconfig-2001-20260929    gcc-12.5.0
+sparc64              randconfig-r2303-20260929    gcc-8.5.0  sparse
+um                                allmodconfig    clang-17
+um                                 allnoconfig    clang-24
+um                                allyesconfig    gcc-16.1.0
+um                                   defconfig    gcc-14
+um                              i386_defconfig    gcc-14
+um                    randconfig-1000-20260930    clang-22
+um                    randconfig-1001-20260930    clang-22
+um                    randconfig-2000-20260929    gcc-12.5.0
+um                    randconfig-2001-20260929    gcc-12.5.0
+um                            x86_64_defconfig    gcc-14
+x86_64                             allnoconfig    clang-24
+x86_64                            allyesconfig    clang-22
+x86_64      buildonly-randconfig-1000-20260930    clang-22
+x86_64      buildonly-randconfig-1001-20260930    clang-22
+x86_64      buildonly-randconfig-1002-20260930    clang-22
+x86_64      buildonly-randconfig-1003-20260930    clang-22
+x86_64      buildonly-randconfig-1004-20260930    clang-22
+x86_64      buildonly-randconfig-1005-20260930    clang-22
+x86_64                               defconfig    gcc-14
+x86_64                                   kexec    clang-22
+x86_64                randconfig-1000-20260930    gcc-14
+x86_64                randconfig-1001-20260930    gcc-14
+x86_64                randconfig-1002-20260930    gcc-14
+x86_64                randconfig-1003-20260930    gcc-14
+x86_64                randconfig-1004-20260930    gcc-14
+x86_64                randconfig-1005-20260930    gcc-14
+x86_64                randconfig-1006-20260930    gcc-14
+x86_64                randconfig-1007-20260930    gcc-14
+x86_64                randconfig-1008-20260930    gcc-14
+x86_64                randconfig-1009-20260930    gcc-14
+x86_64                randconfig-1010-20260930    gcc-14
+x86_64                randconfig-1011-20260930    gcc-14
+x86_64                randconfig-1012-20260930    clang-22
+x86_64                randconfig-1013-20260930    clang-22
+x86_64                randconfig-1014-20260930    clang-22
+x86_64                randconfig-1015-20260930    clang-22
+x86_64                randconfig-1016-20260930    clang-22
+x86_64                randconfig-1017-20260930    clang-22
+x86_64                randconfig-2100-20260929    clang-22   cocci
+x86_64                randconfig-2101-20260929    clang-22   cocci
+x86_64                randconfig-2102-20260929    clang-22   cocci
+x86_64                randconfig-2103-20260929    clang-22   cocci
+x86_64                randconfig-2200-20260929    clang-22   smatch
+x86_64                randconfig-2300-20260929    gcc-14     sparse
+x86_64                randconfig-2301-20260929    gcc-14     sparse
+x86_64                randconfig-2302-20260929    gcc-14     sparse
+x86_64               randconfig-r2308-20260929    clang-22   sparse
+x86_64                                rhel-9.4    clang-22
+x86_64                            rhel-9.4-bpf    clang-22
+x86_64                            rhel-9.4-bpf    gcc-14
+x86_64                           rhel-9.4-func    clang-22
+x86_64                     rhel-9.4-kselftests    clang-22
+x86_64                          rhel-9.4-kunit    clang-22
+x86_64                          rhel-9.4-kunit    gcc-14
+x86_64                            rhel-9.4-ltp    clang-22
+x86_64                            rhel-9.4-ltp    gcc-14
+x86_64                           rhel-9.4-rust    clang-22
+x86_64                           rhel-9.4-rust    clang-22
+xtensa                             allnoconfig    clang-24
+xtensa                            allyesconfig    clang-20
+xtensa                randconfig-1000-20260930    clang-22
+xtensa                randconfig-1001-20260930    clang-22
+xtensa                randconfig-2000-20260929    gcc-12.5.0
+xtensa                randconfig-2001-20260929    gcc-12.5.0
 
-Ben
-
->  	list_del_rcu(&msc->all_msc_list);
->  	platform_set_drvdata(pdev, NULL);
->  
-> @@ -2295,7 +2383,7 @@ static void mpam_msc_drv_remove(struct platform_device *pdev)
->  static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
->  {
->  	int err;
-> -	u32 tmp;
-> +	u32 pcc_subspace_id;
->  	struct mpam_msc *msc;
->  	struct resource *msc_res;
->  	struct device *dev = &pdev->dev;
-> @@ -2339,7 +2427,7 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
->  	if (err)
->  		return ERR_PTR(err);
->  
-> -	if (device_property_read_u32(&pdev->dev, "pcc-channel", &tmp))
-> +	if (device_property_read_u32(dev, "pcc-channel", &pcc_subspace_id))
->  		msc->iface = MPAM_IFACE_MMIO;
->  	else
->  		msc->iface = MPAM_IFACE_PCC;
-> @@ -2360,6 +2448,33 @@ static struct mpam_msc *do_mpam_msc_drv_probe(struct platform_device *pdev)
->  		}
->  		msc->mapped_hwpage_sz = msc_res->end - msc_res->start;
->  		msc->mapped_hwpage = io;
-> +	} else if (msc->iface == MPAM_IFACE_PCC) {
-> +		u32 mpam_fb_msc_id;
-> +
-> +		msc->pcc_chan = mpam_pcc_chan_get(dev, pcc_subspace_id);
-> +		if (IS_ERR(msc->pcc_chan)) {
-> +			pr_err("Failed to request MSC PCC channel\n");
-> +			return ERR_CAST(msc->pcc_chan);
-> +		}
-> +
-> +		err = mpam_fb_check_shared_buffer_size(msc);
-> +		if (err) {
-> +			mpam_pcc_chan_put(msc->pcc_chan);
-> +
-> +			return ERR_PTR(err);
-> +		}
-> +
-> +		err = mpam_fb_check_protocol_version(msc);
-> +		if (err) {
-> +			mpam_pcc_chan_put(msc->pcc_chan);
-> +
-> +			return ERR_PTR(err);
-> +		}
-> +
-> +		if (device_property_read_u32(&pdev->dev, "mpam-fb-msc-id",
-> +					     &mpam_fb_msc_id))
-> +			mpam_fb_msc_id = msc->id;
-> +		msc->fb_id = mpam_fb_msc_id;
->  	} else {
->  		return ERR_PTR(-EINVAL);
->  	}
-> diff --git a/drivers/resctrl/mpam_fb.c b/drivers/resctrl/mpam_fb.c
-> index 8298fcedd2be7..d90888944abbd 100644
-> --- a/drivers/resctrl/mpam_fb.c
-> +++ b/drivers/resctrl/mpam_fb.c
-> @@ -20,10 +20,15 @@
->  #define MPAM_FB_PROTOCOL_ID		0x1a
->  
->  #define MPAM_PROTOCOL_VERSION_CMD	0x0
-> +#define MPAM_FB_VERSION_MAJOR_MASK		GENMASK_U32(31, 16)
-> +#define MPAM_FB_VERSION_MINOR_MASK		GENMASK_U32(15, 0)
-> +
->  #define MPAM_MSC_READ_CMD		0x4
->  #define MPAM_MSC_WRITE_CMD		0x5
->  
->  #define MPAM_FB_PROT_HEADER_LEN		sizeof(u32)
-> +/* The longest message is MPAM_MSC_WRITE, with 4 parameters. */
-> +#define MPAM_FB_MAX_MSG_SIZE		(4 * sizeof(u32))
->  
->  #define MPAM_FB_SUCCESS		 0
->  #define MPAM_FB_ERR_NOT_SUPPORTED	-1
-> @@ -210,3 +215,39 @@ int mpam_fb_send_write_request(struct mpam_msc *msc, u16 reg, u32 value)
->  	return mpam_fb_send_request(msc, msc->fb_id, reg, &value,
->  				    MPAM_MSC_WRITE_CMD);
->  }
-> +
-> +/* We only support MPAM-Fb protocol version 1.x */
-> +int mpam_fb_check_protocol_version(struct mpam_msc *msc)
-> +{
-> +	u32 version;
-> +	int ret;
-> +
-> +	ret = mpam_fb_send_request(msc, 0, 0, &version,
-> +				   MPAM_PROTOCOL_VERSION_CMD);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (FIELD_GET(MPAM_FB_VERSION_MAJOR_MASK, version) != 1) {
-> +		pr_err("Incompatible MPAM-Fb protocol version %d.%d\n",
-> +		       FIELD_GET(MPAM_FB_VERSION_MAJOR_MASK, version),
-> +		       FIELD_GET(MPAM_FB_VERSION_MINOR_MASK, version));
-> +
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +int mpam_fb_check_shared_buffer_size(struct mpam_msc *msc)
-> +{
-> +	int min_buffer_size = MPAM_FB_MAX_MSG_SIZE +
-> +			      sizeof(struct acpi_pcct_ext_pcc_shared_memory);
-> +
-> +	if (msc->pcc_chan->pcc_chan->shmem_size < min_buffer_size) {
-> +		pr_err("MPAM-Fb PCC channel size too small.\n");
-> +
-> +		return -ENOMEM;
-> +	}
-> +
-> +	return 0;
-> +}
-> diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
-> index 99057d6abee1e..ee7c3953a9b6c 100644
-> --- a/drivers/resctrl/mpam_internal.h
-> +++ b/drivers/resctrl/mpam_internal.h
-> @@ -538,6 +538,8 @@ static inline void mpam_resctrl_teardown_class(struct mpam_class *class) { }
->  /* MPAM-Fb Firmware-backed protocol wrappers */
->  int mpam_fb_send_read_request(struct mpam_msc *msc, u16 reg, u32 *result);
->  int mpam_fb_send_write_request(struct mpam_msc *msc, u16 reg, u32 value);
-> +int mpam_fb_check_protocol_version(struct mpam_msc *msc);
-> +int mpam_fb_check_shared_buffer_size(struct mpam_msc *msc);
->  
->  /*
->   * MPAM MSCs have the following register layout. See:
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
