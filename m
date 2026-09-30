@@ -1,215 +1,368 @@
-Received: from mail-dl2-f36.google.com (mail-dl2-f36.google.com [74.125.229.164])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 589414AD7F6
-	for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 11:16:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.229.164
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5C2BF4E4317;
+	Wed, 30 Sep 2026 14:01:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790766984; cv=none; b=Wzre9PHYrum5kCGPtCPsU8d2r5cjrDSXidx0xmxlYjIBgzM5IwK3mRVKf9i0dWwEEwmc5hpaiirVsRJH7h43Gv4BBpKf1qWkRzMzQmYq54lbko5HsVZ/E+d6EI5jm2LUGqd8+zLtXgMse/X3AG98paO1rWeoGYe34yiaR5kNUhw=
+	t=1790776937; cv=none; b=VTwHmDVLBNC5Lft6sYKoS1EBNQPXbxQPwrKYuMYhXzT/PN8yYSda1eV7G9Zt9QXONnQIQIwiNlwZfZ8rA+TC66fhzXWdwV5K9aIXYpAbV0aXp4+h5kJt2wb4TNASkTzHFPiCODHQhdzRwPScC6ooJpGe8DV6YZG16ZsIqxc/7o0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790766984; c=relaxed/simple;
-	bh=//2HNXquIk9ck0FFhAaqhWFA7k65CQmAWL5qNBLX90E=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=lAUGEfQwCIjwagkSlCSJWCODF7EbNQ3lwyzjv9fTkcjH1tLyadUHkpakONGiXWdX9QU0WLigqOvOlapYAB9DLr/LKU98a5ISk380YP5tR1IzMeEcQK1o4MfCpxNhjSjRIcKkAt0YjufG6/K1bijKD5tZROZmL3acm9VYsNmhgX8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Szt+ujd/; arc=none smtp.client-ip=74.125.229.164
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1790776937; c=relaxed/simple;
+	bh=EZ89Fm9plmALyyCq9f/yNwwTgbNrl+9IoYkTg1Ivj78=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=iQP61JnNDCMsK+IKXh4S9CSRtcLont+X75MnV9cr4fUjnhUru/orTQNyOy86uiOgHmjttpWDiiq5veffoztTAAE2UehA9r6lVBHtMM5BlyLVAy3CfuMeqBxtAUpISlkfnmtqk4NP6HTiMLji5NrJ+OXsPfrgiqBgELOUVTbw0ls=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=U3KPkqtj; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Szt+ujd/"
-Received: by mail-dl2-f36.google.com with SMTP id a92af1059eb24-14373bcc010so4654601c88.1
-        for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 04:16:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790766982; x=1791371782; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=AChnIhzvWEr/iAcPIjM9g8N+/d4nHDoh5cD1dZYc2VY=;
-        b=Szt+ujd/+EoUWO6fa2YbIqh+F0z7Uuospa2wb/wa7EGpfEJqwFVtA9q+wP1fokDfS3
-         ZSVChFyyQ5QGbSPDJYx9HHF9IX/+wPJF6zCnBvOXXLETG+TX4uj1edftR4noqzMzcsZu
-         tBZyesKwAS7g87haMCYZkz+N/SBH8eJaNM/YPadLGTPH5caMvg9rsbyuouK08p7HBOBk
-         dqr5ZgRbhc38mY6VB+SsQZaa9CqpXPXp8zPBiJqW77TVvVYZr4ujf6AtyD+O+FeIK3H+
-         afB29gZthDTdiDSN31q0H2EKaab2D9Ajszb659YPugx5B2H7EVsfIf0XSPNX5Y1QE4Zd
-         itQw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790766982; x=1791371782;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=AChnIhzvWEr/iAcPIjM9g8N+/d4nHDoh5cD1dZYc2VY=;
-        b=eZXbAVHs9UlbmUc5aZEcYpL4yIlPgxgE2xdTHiU7/q1SBj8SalR/TYBA2Dbr1YbNXB
-         cVBIBFp+d93fxAEshbOoHRceY8iVGamDfzPFzBWOwsA/9fCyIs3wMg2im0vnj4VCU6Sd
-         qWum/2rzcow1yYP1OHNsHlc2fNNq06izpLJmq/jZ7yK7CRlkPuSmFQxp1F71QHE6Rkfa
-         NxvOscmtkzozYZARSVJAZSjuPif5hMSMgidE5gRbKiyVeKWvvkXtDZbGANixu1SAoPzZ
-         wTw7zuCUffI1ZC+fOke9trCDpTo6ROv9gMh+FtofKPcetXGuvcog0l1dzxdywbUgHTP1
-         WjCg==
-X-Forwarded-Encrypted: i=1; AKwUvBzn7T9JQ9SN92zZV0Fibq1kp3dg6PhFrWpSO5mmuQcfpIyAxz6x/gWobknaz3nTd7H1LgM5VKkoOtHT@vger.kernel.org
-X-Gm-Message-State: AFuF++mKIOw6qghLvp/O2JS4Qs5abLU9LLjrYdiMUXg/3EBoRwj1aS78
-	D/5VWeRcr9dF1WlWXMxjfT+yIvS24hvvQr1HUIS9bhY4jRbZey2G5JVL
-X-Gm-Gg: AYBFou3ZtjeClbrV8Ysm7msB5v1qHsLmjyLIaNb4yQc1RvtWiVp72zc/T/GSXl+cgqN
-	MuG87NuIoxy9GFXf1/gQ3Tf1J1TA9z/4GKUhEJkBl9JVXL4xDp0Xs7KNg3U5Dhh9hZqZQI2mAnn
-	SIavKIZ3fqBTxtdBQJWWkqCVMDULbaw7nBq4r/Ml4elkqUwUBTNTJeOyNEFLSQ+uKPOvbPA2T6V
-	Hg0MwHu7RMKPTGfkjDi9LoPKx4CX8I6oQiiYTxGIL/V6NfACwPGdl1apb5kByKFtC7Scs+WBo8f
-	XoiHCvAjuOIf/haJl4QTntkF4Y3DhwUBZZmoypCAdFWHWGYQhxYNdhicywusbnngkYNumSq28u4
-	sa8IuTKfsNWZ86zULYaZK1w4+jsbb6lpQ+JTSNhRsEuHSG4toIvZXS0c5n4QAC7CyW1356rRJ6T
-	J/BTD++IsoVhBaqAZhvm8lZEY70/SH5KQx7JOrPL1Zpi5fZD4lA8uGV/CwLaQ8nU/nUZIxziLtj
-	4abl894+symbbNPO6rHwTlcqLnZ9885A8OtPgUXeVF84N2DjAPlYY/5ymesXOvyGIZ4jvZKvvhe
-	WjLto33ft1Tk8Zq7rUfCO1ssNMAAHVuQVYI=
-X-Received: by 2002:a05:7022:e11:b0:141:4951:f150 with SMTP id a92af1059eb24-14d327112dcmr1792750c88.18.1790766982048;
-        Wed, 30 Sep 2026 04:16:22 -0700 (PDT)
-Received: from rahuls-x2elite ([110.226.112.135])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-14d090a9b07sm3525955c88.14.2026.09.30.04.16.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 30 Sep 2026 04:16:21 -0700 (PDT)
-From: Rahul Pon <theflyingrahul@gmail.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>,
-	Linus Walleij <linusw@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	linux-gpio@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] ACPI: GED: Support GpioInt event resources
-Date: Wed, 30 Sep 2026 16:45:05 +0530
-Message-ID: <20260930111505.1108-1-theflyingrahul@gmail.com>
-X-Mailer: git-send-email 2.55.0.windows.5
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="U3KPkqtj"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id AB117497;
+	Wed, 30 Sep 2026 07:01:47 -0700 (PDT)
+Received: from [10.2.212.8] (e134344.arm.com [10.2.212.8])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 4D9203F86F;
+	Wed, 30 Sep 2026 07:01:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1790776911; bh=EZ89Fm9plmALyyCq9f/yNwwTgbNrl+9IoYkTg1Ivj78=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=U3KPkqtjupeYAimDJeyZphk2u3aAye/K2ii9jOV93izfEWqQMwCygB4V500l/jmvV
+	 ZK6AzF8PxCidMSv7V2CFW9zT0QTzCX8O/WLrn6KeDNCqoDzbS2vatSrL1p0cUC8wps
+	 HCwViFRog+leL8VSHFTE5GmUb6HinbKCB7Uc5gT8=
+Message-ID: <4cc35ee7-c4d3-40c0-b1f9-24ef5a2f5844@arm.com>
+Date: Wed, 30 Sep 2026 15:01:46 +0100
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v11 02/13] arm_mpam: propagate MSC access errors for
+ hw_probe functions
+To: Andre Przywara <andre.przywara@arm.com>,
+ Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo
+ <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+ Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+ James Morse <james.morse@arm.com>,
+ Reinette Chatre <reinette.chatre@intel.com>, Fenghua Yu <fenghuay@nvidia.com>
+Cc: Jonathan Cameron <jic23@kernel.org>,
+ Srivathsa L Rao <srivathsa.rao@oss.qualcomm.com>,
+ Ganapatrao Kulkarni <ganapatrao.kulkarni@oss.qualcomm.com>,
+ Trilok Soni <tsoni@quicinc.com>, Srinivas Ramana <sramana@qti.qualcomm.com>,
+ Niyas Sait <niyas.sait@arm.com>, Lee Trager <lee@trager.us>,
+ Ritwick Sharma <ritwick.sharma@arm.com>, Gavin Shan <gshan@redhat.com>,
+ linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-kernel@vger.kernel.org
+References: <20260924152739.2865510-1-andre.przywara@arm.com>
+ <20260924152739.2865510-3-andre.przywara@arm.com>
+Content-Language: en-US
+From: Ben Horgan <ben.horgan@arm.com>
+In-Reply-To: <20260924152739.2865510-3-andre.przywara@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-The Generic Event Device accepts only Interrupt and ExtendedInterrupt
-resources in _CRS. Some ACPI firmware signals GED events through GPIO
-controllers instead: the HP OmniBook 5 16-bf1xxx (Snapdragon X2) describes
-its lid (LIGE) and embedded-controller event device (ECGE) as ACPI0013 with
-GpioInt resources, and both currently fail to probe with "unable to parse
-IRQ resource".
+Hi Andre,
 
-Handle GpioInt resources: get the Linux IRQ with acpi_dev_gpio_irq_get(),
-which applies the trigger and polarity and returns -EPROBE_DEFER until the
-GPIO controller is registered, and evaluate _EVT with the GPIO pin number,
-as done for GSIs above 255. GpioIo resources are skipped. On a failed walk,
-free the events already requested and propagate the GPIO error (including
--EPROBE_DEFER) instead of -EINVAL.
+On 24/09/2026 16:27, Andre Przywara wrote:
+> Allow the functions probing for MSC hardware and features to return an
+> error, and propagate read and write errors from the lower level up.
+> This uses some "scoped cleanup" functions like scoped_guard() and
+> ACQUIRE() to avoid the complexity of error handling when a lock has been
+> taken. Since the mon_sel_lock is a bit special (even more so in an
+> upcoming patch), we define a new GUARD type for it.
+> 
+> Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+> Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+> Reviewed-by: Ben Horgan <ben.horgan@arm.com>
+> Reviewed-by: Gavin Shan <gshan@redhat.com>
+> Tested-by: Gavin Shan <gshan@redhat.com> # on NVIDIA Grace Hopper
+> ---
+>  drivers/resctrl/mpam_devices.c  | 126 +++++++++++++++++++++-----------
+>  drivers/resctrl/mpam_internal.h |   4 +
+>  2 files changed, 87 insertions(+), 43 deletions(-)
+> 
+> diff --git a/drivers/resctrl/mpam_devices.c b/drivers/resctrl/mpam_devices.c
+> index c7686d3799653..22069e7f7bb05 100644
+> --- a/drivers/resctrl/mpam_devices.c
+> +++ b/drivers/resctrl/mpam_devices.c
+> @@ -798,38 +798,46 @@ static bool mpam_ris_hw_probe_csu_nrdy(struct mpam_msc_ris *ris)
+>  	bool can_set, can_clear;
+>  	struct mpam_msc *msc = ris->vmsc->msc;
+>  
+> -	if (WARN_ON_ONCE(!mpam_mon_sel_lock(msc)))
+> +	ACQUIRE(mon_sel_lock, guard)(msc);
+> +	if (ACQUIRE_ERR(mon_sel_lock, &guard))
+>  		return false;
+>  
+>  	mon_sel = FIELD_PREP(MSMON_CFG_MON_SEL_MON_SEL, 0) |
+>  		  FIELD_PREP(MSMON_CFG_MON_SEL_RIS, ris->ris_idx);
+> -	mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel);
+> +	if (mpam_write_monsel_reg(msc, CFG_MON_SEL, mon_sel))
+> +		return false;
+>  
+>  	/* Hardware might ignore nrdy if it's not enabled */
+>  	ctl_val = MSMON_CFG_CSU_CTL_TYPE_CSU;
+>  	ctl_val |= MSMON_CFG_x_CTL_MATCH_PARTID;
+>  	ctl_val |= MSMON_CFG_x_CTL_MATCH_PMG;
+>  	ctl_val |= MSMON_CFG_x_CTL_EN;
+> -	mpam_write_monsel_reg(msc, CFG_CSU_FLT, 0);
+> -	mpam_write_monsel_reg(msc, CFG_CSU_CTL, ctl_val);
+> +	if (mpam_write_monsel_reg(msc, CFG_CSU_FLT, 0))
+> +		return false;
+> +	if (mpam_write_monsel_reg(msc, CFG_CSU_CTL, ctl_val))
+> +		return false;
+>  
+> -	_mpam_write_monsel_reg(msc, MSMON_CSU, MSMON___NRDY);
+> -	_mpam_read_monsel_reg(msc, MSMON_CSU, &now);
+> +	if (_mpam_write_monsel_reg(msc, MSMON_CSU, MSMON___NRDY))
+> +		return false;
+> +	if (_mpam_read_monsel_reg(msc, MSMON_CSU, &now))
+> +		return false;
+>  	can_set = now & MSMON___NRDY;
+>  
+> -	_mpam_write_monsel_reg(msc, MSMON_CSU, 0);
+> +	if (_mpam_write_monsel_reg(msc, MSMON_CSU, 0))
+> +		return false;
+>  	/* Configuration change to try and coax hardware into setting nrdy */
+> -	mpam_write_monsel_reg(msc, CFG_CSU_FLT, 0x1);
+> -	_mpam_read_monsel_reg(msc, MSMON_CSU, &now);
+> +	if (mpam_write_monsel_reg(msc, CFG_CSU_FLT, 0x1))
+> +		return false;
+> +	if (_mpam_read_monsel_reg(msc, MSMON_CSU, &now))
+> +		return false;
+>  	can_clear = !(now & MSMON___NRDY);
+> -	mpam_mon_sel_unlock(msc);
+>  
+>  	return (!can_set || !can_clear);
+>  }
 
-Tested on the HP OmniBook 5 16-bf1xxx: lid close/open run _EVT and reach
-the ACPI button driver and logind.
+I've had a look at the Sashiko reports [1] for these patches. I'll call out the things that I feel
+need answering.
 
-Assisted-by: LLM
-Signed-off-by: Rahul Pon <theflyingrahul@gmail.com>
----
- drivers/acpi/evged.c | 46 +++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 43 insertions(+), 3 deletions(-)
+As sashiko says, mpam_ris_hw_probe_csu_nrdy(), this swallows the error rather than propagating. It
+would be better if this returned success/error and the answer to whether or not the h/w supports
+nrdy separately. As we make other accesses to the msc later it is unlikely this will ever cause a
+failing probe to report success though.
 
-diff --git a/drivers/acpi/evged.c b/drivers/acpi/evged.c
-index 5c35cbc7f6..478172ede7 100644
---- a/drivers/acpi/evged.c
-+++ b/drivers/acpi/evged.c
-@@ -43,6 +43,8 @@
- struct acpi_ged_device {
- 	struct device *dev;
- 	struct list_head event_list;
-+	unsigned int gpio_index;
-+	int error;
- };
- 
- struct acpi_ged_event {
-@@ -76,7 +78,7 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
- 	struct device *dev = geddev->dev;
- 	acpi_handle handle = ACPI_HANDLE(dev);
- 	acpi_handle evt_handle;
--	struct resource r;
-+	struct resource r = {};
- 	struct acpi_resource_irq *p = &ares->data.irq;
- 	struct acpi_resource_extended_irq *pext = &ares->data.extended_irq;
- 	char ev_name[5];
-@@ -85,6 +87,33 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
- 	if (ares->type == ACPI_RESOURCE_TYPE_END_TAG)
- 		return AE_OK;
- 
-+	if (ares->type == ACPI_RESOURCE_TYPE_GPIO) {
-+		struct acpi_resource_gpio *agpio;
-+		int ret;
-+
-+		/* GpioIo resources are not event sources. */
-+		if (!acpi_gpio_get_irq_resource(ares, &agpio))
-+			return AE_OK;
-+
-+		/* The GPIO core applies the GpioInt trigger and polarity. */
-+		ret = acpi_dev_gpio_irq_get(ACPI_COMPANION(dev), geddev->gpio_index++);
-+		if (ret < 0) {
-+			geddev->error = ret;
-+			return AE_ERROR;
-+		}
-+		irq = ret;
-+		gsi = agpio->pin_table[0];
-+		if (agpio->shareable == ACPI_SHARED)
-+			r.flags |= IORESOURCE_IRQ_SHAREABLE;
-+
-+		/* As for GSIs above 255, GPIO-signaled events use _EVT. */
-+		if (ACPI_FAILURE(acpi_get_handle(handle, "_EVT", &evt_handle))) {
-+			dev_err(dev, "cannot locate _EVT method\n");
-+			return AE_ERROR;
-+		}
-+		goto request;
-+	}
-+
- 	if (!acpi_dev_resource_interrupt(ares, 0, &r)) {
- 		dev_err(dev, "unable to parse IRQ resource\n");
- 		return AE_ERROR;
-@@ -115,6 +144,7 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
- 		return AE_ERROR;
- 	}
- 
-+request:
- 	event = devm_kzalloc(dev, sizeof(*event), GFP_KERNEL);
- 	if (!event)
- 		return AE_ERROR;
-@@ -138,6 +168,8 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
- 	return AE_OK;
- }
- 
-+static void acpi_ged_free_events(struct acpi_ged_device *geddev);
-+
- static int ged_probe(struct platform_device *pdev)
- {
- 	struct acpi_ged_device *geddev;
-@@ -152,6 +184,10 @@ static int ged_probe(struct platform_device *pdev)
- 	acpi_ret = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), "_CRS",
- 				       acpi_ged_request_interrupt, geddev);
- 	if (ACPI_FAILURE(acpi_ret)) {
-+		acpi_ged_free_events(geddev);
-+		if (geddev->error)
-+			return dev_err_probe(&pdev->dev, geddev->error,
-+					     "unable to get GPIO event IRQ\n");
- 		dev_err(&pdev->dev, "unable to parse the _CRS record\n");
- 		return -EINVAL;
- 	}
-@@ -160,9 +196,8 @@ static int ged_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static void ged_shutdown(struct platform_device *pdev)
-+static void acpi_ged_free_events(struct acpi_ged_device *geddev)
- {
--	struct acpi_ged_device *geddev = platform_get_drvdata(pdev);
- 	struct acpi_ged_event *event, *next;
- 
- 	list_for_each_entry_safe(event, next, &geddev->event_list, node) {
-@@ -173,6 +208,11 @@ static void ged_shutdown(struct platform_device *pdev)
- 	}
- }
- 
-+static void ged_shutdown(struct platform_device *pdev)
-+{
-+	acpi_ged_free_events(platform_get_drvdata(pdev));
-+}
-+
- static void ged_remove(struct platform_device *pdev)
- {
- 	ged_shutdown(pdev);
+Thanks,
 
-base-commit: 551c722f40809618230001baccf219193e22fc5a
--- 
-2.53.0
+Ben
+
+[1] https://sashiko.dev/#/patchset/20260924152739.2865510-1-andre.przywara%40arm.com
+
+>  
+> -static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+> +static int mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>  {
+> -	int err;
+> +	int fw_has_nrdy_err, err;
+>  	struct mpam_msc *msc = ris->vmsc->msc;
+>  	struct device *dev = &msc->pdev->dev;
+>  	struct mpam_props *props = &ris->props;
+> @@ -842,7 +850,9 @@ static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>  	if (FIELD_GET(MPAMF_IDR_HAS_CCAP_PART, ris->idr)) {
+>  		u32 ccap_features;
+>  
+> -		mpam_read_partsel_reg(msc, CCAP_IDR, &ccap_features);
+> +		err = mpam_read_partsel_reg(msc, CCAP_IDR, &ccap_features);
+> +		if (err)
+> +			return err;
+>  
+>  		props->cmax_wd = FIELD_GET(MPAMF_CCAP_IDR_CMAX_WD, ccap_features);
+>  		if (props->cmax_wd &&
+> @@ -867,7 +877,9 @@ static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>  	if (FIELD_GET(MPAMF_IDR_HAS_CPOR_PART, ris->idr)) {
+>  		u32 cpor_features;
+>  
+> -		mpam_read_partsel_reg(msc, CPOR_IDR, &cpor_features);
+> +		err = mpam_read_partsel_reg(msc, CPOR_IDR, &cpor_features);
+> +		if (err)
+> +			return err;
+>  
+>  		props->cpbm_wd = FIELD_GET(MPAMF_CPOR_IDR_CPBM_WD, cpor_features);
+>  		if (props->cpbm_wd)
+> @@ -877,8 +889,9 @@ static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>  	/* Memory bandwidth partitioning */
+>  	if (FIELD_GET(MPAMF_IDR_HAS_MBW_PART, ris->idr)) {
+>  		u32 mbw_features;
+> -
+> -		mpam_read_partsel_reg(msc, MBW_IDR, &mbw_features);
+> +		err = mpam_read_partsel_reg(msc, MBW_IDR, &mbw_features);
+> +		if (err)
+> +			return err;
+>  
+>  		/* portion bitmap resolution */
+>  		props->mbw_pbm_bits = FIELD_GET(MPAMF_MBW_IDR_BWPBM_WD, mbw_features);
+> @@ -907,8 +920,9 @@ static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>  	/* Priority partitioning */
+>  	if (FIELD_GET(MPAMF_IDR_HAS_PRI_PART, ris->idr)) {
+>  		u32 pri_features;
+> -
+> -		mpam_read_partsel_reg(msc, PRI_IDR, &pri_features);
+> +		err = mpam_read_partsel_reg(msc, PRI_IDR, &pri_features);
+> +		if (err)
+> +			return err;
+>  
+>  		props->intpri_wd = FIELD_GET(MPAMF_PRI_IDR_INTPRI_WD, pri_features);
+>  		if (props->intpri_wd && FIELD_GET(MPAMF_PRI_IDR_HAS_INTPRI, pri_features)) {
+> @@ -929,20 +943,24 @@ static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>  	if (FIELD_GET(MPAMF_IDR_HAS_MSMON, ris->idr)) {
+>  		u32 msmon_features;
+>  
+> -		mpam_read_partsel_reg(msc, MSMON_IDR, &msmon_features);
+> +		err = mpam_read_partsel_reg(msc, MSMON_IDR, &msmon_features);
+> +		if (err)
+> +			return err;
+>  
+>  		/*
+>  		 * If the firmware max-nrdy-us property is missing, the
+>  		 * CSU counters can't be used. Should we wait forever?
+>  		 */
+> -		err = device_property_read_u32(&msc->pdev->dev,
+> -					       "arm,not-ready-us",
+> -					       &msc->nrdy_usec);
+> +		fw_has_nrdy_err = device_property_read_u32(&msc->pdev->dev,
+> +							   "arm,not-ready-us",
+> +							   &msc->nrdy_usec);
+>  
+>  		if (FIELD_GET(MPAMF_MSMON_IDR_MSMON_CSU, msmon_features)) {
+>  			u32 csumonidr;
+>  
+> -			mpam_read_partsel_reg(msc, CSUMON_IDR, &csumonidr);
+> +			err = mpam_read_partsel_reg(msc, CSUMON_IDR, &csumonidr);
+> +			if (err)
+> +				return err;
+>  
+>  			props->num_csu_mon = FIELD_GET(MPAMF_CSUMON_IDR_NUM_MON, csumonidr);
+>  			if (props->num_csu_mon) {
+> @@ -960,7 +978,7 @@ static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>  				 * Accept the missing firmware property if NRDY appears
+>  				 * un-implemented.
+>  				 */
+> -				if (err && hw_managed)
+> +				if (fw_has_nrdy_err && hw_managed)
+>  					dev_err_once(dev, "Counters are not usable because not-ready timeout was not provided by firmware.");
+>  			}
+>  		}
+> @@ -968,7 +986,9 @@ static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>  			bool has_long;
+>  			u32 mbwumon_idr;
+>  
+> -			mpam_read_partsel_reg(msc, MBWUMON_IDR, &mbwumon_idr);
+> +			err = mpam_read_partsel_reg(msc, MBWUMON_IDR, &mbwumon_idr);
+> +			if (err)
+> +				return err;
+>  
+>  			props->num_mbwu_mon = FIELD_GET(MPAMF_MBWUMON_IDR_NUM_MON, mbwumon_idr);
+>  			if (props->num_mbwu_mon) {
+> @@ -1001,16 +1021,22 @@ static void mpam_ris_hw_probe(struct mpam_msc_ris *ris)
+>  		u16 partid_max;
+>  		u32 nrwidr;
+>  
+> -		mpam_read_partsel_reg(msc, PARTID_NRW_IDR, &nrwidr);
+> +		err = mpam_read_partsel_reg(msc, PARTID_NRW_IDR, &nrwidr);
+> +		if (err)
+> +			return err;
+> +
+>  		partid_max = FIELD_GET(MPAMF_PARTID_NRW_IDR_INTPARTID_MAX, nrwidr);
+>  
+>  		mpam_set_feature(mpam_feat_partid_nrw, props);
+>  		msc->partid_max = min(msc->partid_max, partid_max);
+>  	}
+> +
+> +	return 0;
+>  }
+>  
+>  static int mpam_msc_hw_probe(struct mpam_msc *msc)
+>  {
+> +	int ret;
+>  	u64 idr;
+>  	u16 partid_max;
+>  	u8 ris_idx, pmg_max;
+> @@ -1025,11 +1051,15 @@ static int mpam_msc_hw_probe(struct mpam_msc *msc)
+>  	}
+>  
+>  	/* Grab an IDR value to find out how many RIS there are */
+> -	mutex_lock(&msc->part_sel_lock);
+> -	mpam_msc_read_idr(msc, &idr);
+> -	mpam_read_partsel_reg(msc, IIDR, &msc->iidr);
+> +	scoped_guard(mutex, &msc->part_sel_lock) {
+> +		ret = mpam_msc_read_idr(msc, &idr);
+> +		if (ret)
+> +			return ret;
+>  
+> -	mutex_unlock(&msc->part_sel_lock);
+> +		ret = mpam_read_partsel_reg(msc, IIDR, &msc->iidr);
+> +		if (ret)
+> +			return ret;
+> +	}
+>  
+>  	mpam_enable_quirks(msc);
+>  
+> @@ -1040,10 +1070,15 @@ static int mpam_msc_hw_probe(struct mpam_msc *msc)
+>  	msc->pmg_max = FIELD_GET(MPAMF_IDR_PMG_MAX, idr);
+>  
+>  	for (ris_idx = 0; ris_idx <= msc->ris_max; ris_idx++) {
+> -		mutex_lock(&msc->part_sel_lock);
+> -		__mpam_part_sel(ris_idx, 0, msc);
+> -		mpam_msc_read_idr(msc, &idr);
+> -		mutex_unlock(&msc->part_sel_lock);
+> +		scoped_guard(mutex, &msc->part_sel_lock) {
+> +			ret = __mpam_part_sel(ris_idx, 0, msc);
+> +			if (ret)
+> +				return ret;
+> +
+> +			ret = mpam_msc_read_idr(msc, &idr);
+> +			if (ret)
+> +				return ret;
+> +		}
+>  
+>  		partid_max = FIELD_GET(MPAMF_IDR_PARTID_MAX, idr);
+>  		pmg_max = FIELD_GET(MPAMF_IDR_PMG_MAX, idr);
+> @@ -1051,17 +1086,22 @@ static int mpam_msc_hw_probe(struct mpam_msc *msc)
+>  		msc->pmg_max = min(msc->pmg_max, pmg_max);
+>  		msc->has_extd_esr = FIELD_GET(MPAMF_IDR_HAS_EXTD_ESR, idr);
+>  
+> -		mutex_lock(&mpam_list_lock);
+> -		ris = mpam_get_or_create_ris(msc, ris_idx);
+> -		mutex_unlock(&mpam_list_lock);
+> -		if (IS_ERR(ris))
+> -			return PTR_ERR(ris);
+> +		scoped_guard(mutex, &mpam_list_lock) {
+> +			ris = mpam_get_or_create_ris(msc, ris_idx);
+> +			if (IS_ERR(ris))
+> +				return PTR_ERR(ris);
+> +		}
+>  		ris->idr = idr;
+>  
+> -		mutex_lock(&msc->part_sel_lock);
+> -		__mpam_part_sel(ris_idx, 0, msc);
+> -		mpam_ris_hw_probe(ris);
+> -		mutex_unlock(&msc->part_sel_lock);
+> +		scoped_guard(mutex, &msc->part_sel_lock) {
+> +			ret = __mpam_part_sel(ris_idx, 0, msc);
+> +			if (ret)
+> +				return ret;
+> +
+> +			ret = mpam_ris_hw_probe(ris);
+> +			if (ret)
+> +				return ret;
+> +		}
+>  	}
+>  
+>  	/* Clear any stale errors */
+> diff --git a/drivers/resctrl/mpam_internal.h b/drivers/resctrl/mpam_internal.h
+> index def0e3a65c230..68a6cf2b9cc73 100644
+> --- a/drivers/resctrl/mpam_internal.h
+> +++ b/drivers/resctrl/mpam_internal.h
+> @@ -162,6 +162,10 @@ static inline void mpam_mon_sel_lock_init(struct mpam_msc *msc)
+>  	raw_spin_lock_init(&msc->_mon_sel_lock);
+>  }
+>  
+> +DEFINE_GUARD(mon_sel, struct mpam_msc *,
+> +	     mpam_mon_sel_lock(_T), mpam_mon_sel_unlock(_T));
+> +DEFINE_GUARD_COND(mon_sel, _lock, mpam_mon_sel_lock(_T), _RET);
+> +
+>  /* Bits for mpam features bitmaps */
+>  enum mpam_device_features {
+>  	mpam_feat_cpor_part,
 
