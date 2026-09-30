@@ -1,134 +1,207 @@
-Received: from mail-lj1-f170.google.com (mail-lj1-f170.google.com [209.85.208.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DDC034FF5D
-	for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 01:54:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FB673BB113;
+	Wed, 30 Sep 2026 06:22:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790733281; cv=none; b=S4YkRYfu9/2CJGhG7Shcp1KMt8Rb3aLNySiUoXWWRzn022CtjBQiR7V98jMBg/BzVPs6DfvoBPDoDFyP6P6fZwefssv5/W+D34Db5lHxnBAzNgjkzdccfwNULHQJk2VCLVi3Wg09CCe8yK8wPagoRLUlsqbwgYmbYqBospWIy6U=
+	t=1790749373; cv=none; b=bH0rbZghmIkKbEPsCvPzsv/6HLSDLALnMtzmK1rNcmMfvMAjzZbhU3svvue8ghIm4Io51q4A6Q2Rs3id1WdOrt8eWNmMyxKsI07KVeu08GWANJeVMUHdFzMWj85u841F+JLimNggx1f/lBQCAwYabRYtn+Tx8IhjtCMCm+Oi7M0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790733281; c=relaxed/simple;
-	bh=22EAsRtIugCfhz8Or01nJdxLPEtPClXMezlZkuUu8nQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=nxi2My6o2jFEUbnvT2iIU+ByBBJnjd4mPs4KTsHi6qsZ8XxqgYqSfmbwVyiEE5b5Hi7J+HC/lltJDboyHc8/9+JnltQxusRaHa0MXjE2AsFYnhpoCoKe8/X3dsMVrsk+G7bhXreG/TX0674K2tNpP9Z0BA6YdzmLmlnOm/dKxSQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jMwvgBIH; arc=none smtp.client-ip=209.85.208.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1790749373; c=relaxed/simple;
+	bh=rtNUZwDU+3thMLtaT2oI+T5OiKsS3YLtKp2NBRhe4uQ=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=Fh4eeBr5XWv1Q6wbhROY7iUtJTLAA16LF6sZkxzLcQnLsvdFxQKJurq/ObkK8aznoZvMFryWhes2Df2samTmh7ioTlwU6R+g0mHQg4z9ttgAmVTO2ehg9b1NvYH2XBzuI4wDbG4S5SY5KHRtiiRUPWiq+usWgJmg4GPCPcmyu7s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bGeH0kKD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jMwvgBIH"
-Received: by mail-lj1-f170.google.com with SMTP id 38308e7fff4ca-3a5a0703ae7so11571561fa.0
-        for <linux-acpi@vger.kernel.org>; Tue, 29 Sep 2026 18:54:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790733278; x=1791338078; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=89ZecEDPkVxdgfsZnGb4glnfiTdHK0W7K/z1VS8tLk0=;
-        b=jMwvgBIHDI7N2ckgImodf/JjyRvyjVqsJNmQALqdLPva55m/2Kk2L+86/bo1TZLOhJ
-         UbDdKR8n3iki4El2hQrAWxjsuU785sfBICUzR6GvoWzctD5/ZrWhVkjC9g+I4OBodzMh
-         Mrkqdn2qGH+SRxywjEGqBiYgnUjGu3FGdJPiFZzTZ1Zx5yGXPERFdi6lYVmddE8zkh7a
-         /hj5D9JOqvw/LS6Mr4N2zZz6G8HtNd0mCqrAno6ciE/5l649uHzQ/L0jT7RrWvF/cUk8
-         IcxvLsEbkUmCR5EU0cHcO4SfoOtJKKk9htqzJAUjzygTO7zCPPF0kIrzQ1zbLc/Q5yOa
-         NddA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790733278; x=1791338078;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=89ZecEDPkVxdgfsZnGb4glnfiTdHK0W7K/z1VS8tLk0=;
-        b=S3h2neQrDOFMjJFHMWiJ5jE8UcLrxIeuBq9JkhsHUAFxFyJ4/0EOIgM7H7st5Ml7Kg
-         Gg6p/VClXgjyo7MovuM94HVij9OP+H5hjPXYremSkH5d85HtbVUCWniaDuy1TBjoV7fP
-         IxFAf5h7repYrcRi3flpbq2A3BZrbjGzK84sqGOVk1x89nSiudcfp+0rTwF14wHW5AcA
-         HX4A7ybO1sNGqG+8zi4B9WrfFB49BGqTDAEnCp23NpyS+Dq7CuLgH95pv6rBPgV7HlY+
-         rmiYscDw1m4/ZI2K7ormF626CNHgC+nud0tc9Ck+XtV99o6mTb2yJfZPAtk+pEUzhBKx
-         joiQ==
-X-Gm-Message-State: AFq9FYL6B8p1pxT+jrZmO6DPJgmlt8aAP/rtVqXV5frsjk4qT7xMy5Qe
-	7hlZbHAjU46l4CnjNoNcbDs8Oc92BIJTuodVCtTpI/6MK0GFiKvCfwRX
-X-Gm-Gg: AYBFou1oOpl2cIxN1RSCELiTCZo2cEh1y0W3OH9cbhyq6tUkhS9ERu/Gqt5hargIULJ
-	Deu4EZMNSG/KFuPp7+Ml9c0+xHmKQWhNCj8QZFTskLQ+BH+zhECqj6sSycKm+KN7B2wy7Uuun9e
-	WbVVMSKiRViKFXrPodEqqDnX5koVXjeYNfqQtYr21LgRGUYQlFzxwU27ZIAP9+rdyavB+PcdJB8
-	kGtq2foNzewV9/ly9R9QMuvODBSwglCaJi7tv/+gI5rPhBaGIPR0vZbHruDxU4AlyJckInWQidy
-	YkkTb03dhvsWZozUx3C/AOTJgFGRotTHDkQZ3ycegaeYjlJEYUyahhfXlTBqmV7CACgR+P7BncF
-	f0X0zyPKKfG8f4RE0uSl37dtH2Lh2vVwzONgZTXXTM7+xjdk66DeVtF5W6MX3PdWMdFexdsGM2a
-	6NUC6doHfrDI2avOZS3tpcTHLNSKtm4eQGf0o4PCareqdKsY2JVI4bLk2cM2fazRAb+CFRCcOJF
-	PzH+er8sGLNSCnwHrlz7UxZL5A4gFAfLyMner0E/jVDX8Y4tyb8VGFO1AMLeNeNd5N7
-X-Received: by 2002:a2e:a902:0:b0:3a7:635c:d56c with SMTP id 38308e7fff4ca-3a7791d7277mr62711fa.7.1790733278024;
-        Tue, 29 Sep 2026 18:54:38 -0700 (PDT)
-Received: from wildarch.lan ([109.72.228.33])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5ba3b867f6asm347507e87.75.2026.09.29.18.54.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 29 Sep 2026 18:54:37 -0700 (PDT)
-From: Anton Karasev <uselessfire@gmail.com>
-To: W_Armin@gmx.de,
-	martiya.ar@gmail.com,
-	platform-driver-x86@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	qby140326@gmail.com,
-	ilpo.jarvinen@linux.intel.com,
-	hansg@kernel.org
-Subject: Re: [BUG] Redmi Book Pro 16 2024 platform_profile write fails on Linux 7.1.7
-Date: Wed, 30 Sep 2026 04:54:36 +0300
-Message-ID: <20260930015436.3095516-1-uselessfire@gmail.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <3b58a0ae-f050-4dd5-80f6-bf2cdfc20318@gmx.de>
-References: <CAM-sYPpgNU+tmfHKWg0KHfVF8f-K8oaNvfYwj-vaUGsEvf1tjg@mail.gmail.com> <3b58a0ae-f050-4dd5-80f6-bf2cdfc20318@gmx.de>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bGeH0kKD"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id A0924C2BCF4;
+	Wed, 30 Sep 2026 06:22:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1790749372;
+	bh=rtNUZwDU+3thMLtaT2oI+T5OiKsS3YLtKp2NBRhe4uQ=;
+	h=From:Date:Subject:To:Cc:Reply-To:From;
+	b=bGeH0kKDlTtTTuLXt3hLKT0R5IZOUQapWAtWvPPGsECfw+k2or+CYOQEfjrJgQ7Jx
+	 0XPzagQVBujJFD/ysBjLKziheXirJhz71OQSOMa24XmIr4vVCVxukT+/yDT4xeCPhp
+	 IaFZNb9lHywEE+hshdwF1V7bLz1Hef+yzHaEK/N5Y0nLo6vFkmJ4yLVZtslYpt3SM2
+	 sOZT2zroUYh4n3rSdOclufgvj2p7qqrscImzW037fB126diNwIUvgYNrhUHXlkIXF4
+	 rsqOxznVsIiDdc1suIjo8BZUUE+K0nXnpvTjnjCnb1f+HfKBO4yCta6YiOoz03r/hI
+	 AtikSsURca8sQ==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E90FCA5FB1;
+	Wed, 30 Sep 2026 06:22:52 +0000 (UTC)
+From: Waqar Gulzar via B4 Relay <devnull+iamwaqargulzar.gmail.com@kernel.org>
+Date: Wed, 30 Sep 2026 11:22:49 +0500
+Subject: [PATCH] HID: i2c-hid-acpi: restore touchscreen IRQ routing on HP
+ OmniBook X Flip 16
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20260930-b4-elan2514-irq-route-v1-1-44671bf01d05@gmail.com>
+X-B4-Tracking: v=1; b=H4sIALiqvGoC/yXMQQqDMBBA0avIrDsQY7TaqxQXJk7siEQ7URHEu
+ zdtl2/x/wmRhCnCIztBaOfIc0jIbxm4VxcGQu6TQStdqaZQaA3S1AVd5gZZ3ijzthL2tb4b73y
+ tSgupXYQ8H7/vs/07bnYkt35ncF0fk1cS8nkAAAA=
+X-Change-ID: 20260930-b4-elan2514-irq-route-d8274fcf805b
+To: Jiri Kosina <jikos@kernel.org>, Benjamin Tissoires <bentiss@kernel.org>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-acpi@vger.kernel.org, stable@vger.kernel.org, 
+ Waqar Gulzar <iamwaqargulzar@gmail.com>
+X-Mailer: b4 0.16.0
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1790749371; l=5531;
+ i=iamwaqargulzar@gmail.com; s=20260930; h=from:subject:message-id;
+ bh=i/kcWiyvC9sOaZJ1/0neMN3dO4OBwcexqs5ODF8WpnE=;
+ b=587x1mpxQN0x62TTKWKXtPdtKnrhddDQKiq2/8MFrl7x+g6GrAgLnUMYhz2h4sdOnNmRDDYel
+ 8PYX7GrgiGMDHCTLbK1KdvQrU2RjE1InqS+UeAijEHn1IxH/SdGfWKW
+X-Developer-Key: i=iamwaqargulzar@gmail.com; a=ed25519;
+ pk=SaQhB3EnN6qioo4wuu0rBv6REy1Nx9hz3QOh3Qp9xtk=
+X-Endpoint-Received: by B4 Relay for iamwaqargulzar@gmail.com/20260930 with
+ auth_id=1083
+X-Original-From: Waqar Gulzar <iamwaqargulzar@gmail.com>
+Reply-To: iamwaqargulzar@gmail.com
 
-Hi Armin,
+From: Waqar Gulzar <iamwaqargulzar@gmail.com>
 
-I have the same machine as Martiya (Redmi Book Pro 16 2024, DMI
-XIAOMI / TM2309, BIOS RMAMT6B0P0B0B, which is the latest BIOS Xiaomi
-publishes for this model). In case it is useful to have it on the list,
-here is its full acpidump (all tables, acpidump -o):
+On the HP OmniBook X Flip 16 the ELAN2514 touchscreen interrupt is a
+GPIO pad (GPP_E_18) routed directly to the IO-APIC. The firmware's
+touchscreen power resource does
 
-  https://bugzilla.kernel.org/attachment.cgi?id=310971
+    PTPL._ON:  \_SB.SGRA (TPI2, TPIP)        // TPIP = T0IP = 0
+    PTPL._OFF: \_SB.SGRA (TPI2, TPIP ^ 1)
 
-What the tables say about the Mifs interface on this BIOS, and what I
-verified on the machine:
+while the device's _INI enables routing with SGRA (GPLI, T0IP ^ 1).
+So _ON clears PADCFG0.GPIROUTIOXAPIC and disconnects the pad from the
+IO-APIC. Linux evaluates _ON at probe and on every D3->D0 transition
+(Windows apparently does not while _STA already reports the resource
+on), after which the level-triggered IRQ never deasserts:
 
-- The method is \_SB.PC00.WMID.WMAA, in the SSDT with OEM Table ID
-  XMCC1806. It implements only command 0x08 (GET and SET), 0x0a
-  subcommand 5, and 0x10 (GET subcommands 1-3, SET subcommand 2 only).
-  Other command IDs answer 0xE000, including WMI_FN_SYSTEM_AC_TYPE,
-  which your "Treat WMI_FN_SYSTEM_AC_TYPE as optional" patch now
-  handles; unhandled subcommands mostly return status 0.
+  - ~630 interrupts/s while idle, nearly every read returns 0xffff
+  - frames shifted by a leading 0xff, "incomplete report (67/7167)"
+  - stylus reports arrive at ~25 Hz instead of the native ~268 Hz
+  - touch stalls and false stylus proximity
 
-- The SET branches set only the return code and leave the function id
-  at 0; only the GET branches fill it in. So on this BIOS "Detect failed
-  function calls" reports every SET as failed with -ENOMSG, although the
-  firmware applies it -- the same as Chris reported for the Xiaomi Book
-  Pro 14 in "Only check the function id of GET responses". Verified with
-  the for-next driver built for 7.2.7: every profile write failed with
-  -ENOMSG while the EC mode changed; with Chris's patch on top, all of
-  them succeed.
+Re-enable the routing through the firmware's own \_SB.SGRA helper from
+the power_up hook, which runs at probe and on resume before the HID
+reset.
 
-- The mode values are not the Bitland ones. SET of 0x08 stores the value
-  in the EC register QFAN as is, and NTDP in the DSDT maps QFAN to the
-  DPTF variable \_SB.ODV1: 0/1 balanced (ODV1 0), 2 quiet (2), 3
-  performance/Turbo (1), 4 full speed/Geek (4). With your two patches
-  the AC type check now passes on AC, and the value "performance" writes
-  (3) happens to be Turbo here; "balanced-performance" writes 1, which is
-  balanced, and after Fn+K to balanced (QFAN 1) platform_profile reads
-  back balanced-performance. On battery performance is still refused by
-  power_supply_is_system_supplied(), although the firmware accepts Turbo
-  there.
+Tested on board 8DA1 (BIOS F.20): idle interrupts drop from ~630/s to
+0 after boot and after s2idle resume, and pen and touch behave as on
+Windows. Board 8DA0 is the other board ID of this model and is reported
+to have the same firmware code, so it is included, but it has not been
+tested because I do not have access to one.
 
-- Command 0x10 is the battery interface on this firmware (subcommand 2
-  is the 80 % charge protection), which makes the existing kb_mode
-  attribute dangerous: writing "fixed" to it turns charge protection off.
-  Verified on the machine.
+Link: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/2142384
+Link: https://github.com/testyfishy/hp-omnibook-flip16-touchscreen-fix
+Link: https://github.com/iamwaqargulzar/hp-omnibook-x-flip-16-linux-touchscreen-pen-fix
+Cc: stable@vger.kernel.org
+Signed-off-by: Waqar Gulzar <iamwaqargulzar@gmail.com>
+---
+The HP OmniBook X Flip 16 firmware disconnects the ELAN2514 touchscreen
+interrupt from the IO-APIC in its power resource _ON method, which Linux
+runs at probe and resume. This patch re-enables the routing through the
+firmware's own helper from i2c-hid-acpi's power_up hook.
 
-I have put the details, including the test results, in a reply to
-[PATCH v6 5/5] of the redmi-wmi merge series, since that is where the
-per-machine table is being discussed. I am happy to test patches on
-this model.
+Tested on board 8DA1 with BIOS F.20 on Linux 7.2.8, including s2idle
+resume. The 8DA0 entry is untested (I do not have that board).
 
-Thanks,
-Anton Karasev
+Full analysis, ACPI excerpts, and Windows/Linux traces:
+https://github.com/iamwaqargulzar/hp-omnibook-x-flip-16-linux-touchscreen-pen-fix
+---
+ drivers/hid/i2c-hid/i2c-hid-acpi.c | 58 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
+
+diff --git a/drivers/hid/i2c-hid/i2c-hid-acpi.c b/drivers/hid/i2c-hid/i2c-hid-acpi.c
+index 9371db200..b6348ee3d 100644
+--- a/drivers/hid/i2c-hid/i2c-hid-acpi.c
++++ b/drivers/hid/i2c-hid/i2c-hid-acpi.c
+@@ -21,6 +21,7 @@
+ 
+ #include <linux/acpi.h>
+ #include <linux/device.h>
++#include <linux/dmi.h>
+ #include <linux/i2c.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -55,6 +56,60 @@ static void i2c_hid_acpi_restore_sequence(struct i2chid_ops *ops)
+ 	i2c_hid_acpi_get_descriptor(ihid_acpi->adev);
+ }
+ 
++/*
++ * HP OmniBook X Flip 16 (boards 8DA0/8DA1): the touchscreen power resource
++ * \_SB.PC00.I2C4.PTPL._ON writes the wrong value to the GPIROUTIOXAPIC bit
++ * of the touchscreen interrupt pad, disconnecting it from the IO-APIC. The
++ * level-triggered interrupt then never deasserts, the controller is read
++ * continuously (~630 reads/s while idle) and it cannot deliver pen reports
++ * at its native rate. Windows does not run _ON while the resource already
++ * reports on, so it is not affected. Linux runs _ON at probe and on every
++ * resume, so re-enable the routing with the firmware's own helper before
++ * the HID reset.
++ */
++static const struct dmi_system_id i2c_hid_acpi_irq_route_dmi[] = {
++	{
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "8DA0"),
++		},
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "8DA1"),
++		},
++	},
++	{ }
++};
++
++static int i2c_hid_acpi_restore_irq_route(struct i2chid_ops *ops)
++{
++	struct i2c_hid_acpi *ihid_acpi = container_of(ops, struct i2c_hid_acpi, ops);
++	union acpi_object args[2];
++	struct acpi_object_list arg_list = { ARRAY_SIZE(args), args };
++	unsigned long long pad;
++	acpi_status status;
++
++	status = acpi_evaluate_integer(NULL, "\\GPLI", NULL, &pad);
++	if (ACPI_FAILURE(status))
++		return 0;
++
++	args[0].type = ACPI_TYPE_INTEGER;
++	args[0].integer.value = pad;
++	args[1].type = ACPI_TYPE_INTEGER;
++	args[1].integer.value = 1;
++
++	status = acpi_evaluate_object(NULL, "\\_SB.SGRA", &arg_list, NULL);
++	if (ACPI_FAILURE(status))
++		acpi_handle_warn(acpi_device_handle(ihid_acpi->adev),
++				 "failed to restore interrupt routing: %s\n",
++				 acpi_format_exception(status));
++
++	/* Never fail probe or resume because of this workaround */
++	return 0;
++}
++
+ static void i2c_hid_acpi_shutdown_tail(struct i2chid_ops *ops)
+ {
+ 	struct i2c_hid_acpi *ihid_acpi = container_of(ops, struct i2c_hid_acpi, ops);
+@@ -85,6 +140,9 @@ static int i2c_hid_acpi_probe(struct i2c_client *client)
+ 	ihid_acpi->adev = adev;
+ 	ihid_acpi->ops.shutdown_tail = i2c_hid_acpi_shutdown_tail;
+ 	ihid_acpi->ops.restore_sequence = i2c_hid_acpi_restore_sequence;
++	if (acpi_dev_hid_uid_match(ihid_acpi->adev, "ELAN2514", NULL) &&
++	    dmi_check_system(i2c_hid_acpi_irq_route_dmi))
++		ihid_acpi->ops.power_up = i2c_hid_acpi_restore_irq_route;
+ 
+ 	acpi_device_fix_up_power(adev);
+ 
+
+---
+base-commit: 145c2b2e9a5c0f794fb4009bcb072ab19f8ccfcd
+change-id: 20260930-b4-elan2514-irq-route-d8274fcf805b
+
+Best regards,
+--  
+Waqar Gulzar <iamwaqargulzar@gmail.com>
+
+
