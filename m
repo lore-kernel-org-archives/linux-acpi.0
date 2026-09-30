@@ -1,93 +1,150 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk2-f41.google.com (mail-qk2-f41.google.com [74.125.230.233])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06C2D4F405C
-	for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 20:22:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790799761; cv=none; b=N0Rw+qjpz0YJUVGv21n8Zv91vKdt4vD2NvpfaMgKIUy6Qq0Y9xSUcpvMGEZLlLtqSTPMg54yU/UY9nubVUi9px7EPEMOJ3EikfuLQ0/0MXA+xHf2zG3TyTFWaJJ+OtkpwAKqbEHP19o+uTm7WuM8lrzbJlWlcQ5Et5O+zbr4soU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790799761; c=relaxed/simple;
-	bh=fo7ptHyG+tnhAXsNDsN1giB7oOY5HkLN0hn/ghVCrng=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Eyj6mFeZMmS8oz+AgEcu6ApH8ARbykiyv/jhSaGMJ8aTTghNo81p54JmdqXJvKTkIH5n4l7fIgWuKLigSUgmadbpodDHBDWXFsyga/0eh7+geH5y947hkt0kNzRUfprCE4WitQZFIrDb3oUgQS0wvbJoVhYHWPbq7o7iLdtDPxM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=D2//S1D4; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4269511E80
+	for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 20:41:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.230.233
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790800882; cv=pass; b=HMqacBN4YJ2ved8g/15yS8W+c+9ROrQldY9oL0LFD3xlSEltv+fd45mkBWZOWY2aYXod55Q764yYQfiaVbnf8q7qgeGfj3/y5prcfF+nQ3pAcHUQAJcQ1M2Su8MXmKDdqxLpIHCSnUWVrC5TqzHhGbwiFjpcMktHB6rCKkggXTY=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790800882; c=relaxed/simple;
+	bh=4ZgBL9At6wAfTG1eapgAa5Mkts6axxE7nn1CIos/pc0=;
+	h=MIME-Version:In-Reply-To:References:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=igwxii6Saf8CklS6aRy14WTTLHYbBQFHSiYzP9IG7lZ9J2rUGk5MGe0lcQzGC24yUKUsGBC1wXAvdYdhDJM3hIZTaxLvC8OR3EP8QZyrlINHCDmlI3vfasKdXMt6lxD8LfilxeFw67yx1oENt9P7XHm+vPXk4rbMO2NFkvUq4jo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=L/2M+WH9; arc=pass smtp.client-ip=74.125.230.233
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="D2//S1D4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9A161F00898
-	for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 20:22:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790799757;
-	bh=fo7ptHyG+tnhAXsNDsN1giB7oOY5HkLN0hn/ghVCrng=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=D2//S1D4E4clN2WDOS7AQ/nU3fsyWubsuSQJiWA/aegLoRV/ra3M21K1jiBI/9eeP
-	 ytyDGumt7SPzQg+f6QrJancpOEKj1YNGI16gatcJhrQYWxRuPs497WNS18bA7tra8T
-	 VLNu+rplaB2whFlA7asglYsB8Dp06is/89i3QAuf0oquuC3Ev5odg8mWQy5+BJwD/q
-	 49N5bu5tAdbVU2fgjTWogRWeuHrPN1NnbcamzBaHwCQAw2is3zvUuSoGSLoNd/+WdV
-	 jb/LHQ/a3fxeauZSOwioSUN8wQsqsHq0/QRBLmh3TtFhd6pnHXhgNZ0Eo9IbQ4v4zs
-	 3QWpEi4J+BDYw==
-Received: by mail-lr2-f34.google.com with SMTP id 38308e7fff4ca-3a772de44c5so11061661fa.1
-        for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 13:22:37 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBy8pOG7StK/r7/cvIAWyyZ4X/yYT96DbBnmhiBgMFiIo8x45QQ5VBSSlmvOXEEwFwWhU/p2bfPrScWn@vger.kernel.org
-X-Gm-Message-State: AFq9FYJntZgYrNnh8fZndb6I+jCxrhbpdEixcWG4VVQRPeZjGkfEe+9i
-	SbMSa7/Xog5xoDeJx3gmZ9BfDYLMFPr7Pgf36M8dYR6p2Cmp0Hqoay61lwzAc4C38rVUcK22M9E
-	06tCCuy5I5GrSFe2Ac5/goILJg8tZfNI=
-X-Received: by 2002:a05:651c:a387:10b0:3a6:4726:7c5d with SMTP id
- 38308e7fff4ca-3a7791aec2amr5600681fa.14.1790799756662; Wed, 30 Sep 2026
- 13:22:36 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="L/2M+WH9"
+Received: by mail-qk2-f41.google.com with SMTP id d75a77b69052e-532d8b454e1so9409681cf.2
+        for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 13:41:20 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1790800880; cv=none;
+        d=google.com; s=arc-20260327;
+        b=EEUENRBJhgg653SApmM4lRgFXprLPxJDD1wb/wcpYYHTvIiWuZYoPBYfcWJ5bVb8Ee
+         AjAhEBsq+BNJ95/8W6lXmgYmfk6afOz+DXqiuf+GldinmESQXVWUgAbYJhqYr9wGdgOq
+         Y6wkXtHQDye5jWPHufLkaLkJclKEW3V1yLO0//+4fY58pM7Kc3ZoSpc3MkcV9XT681d2
+         s9Ab88OCiC/mZ3u6Xke/TTckDObma7Qo4kjccRH2MY8oaBvJsaSlglJvBi5NdTZQxLfz
+         OnQ5Kj5735aG0GGmg34DuparUUAl3e+UimbDB6SkUy0V3BN89dxTwgDMydMiHw/2C1B9
+         +MBg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:references:in-reply-to
+         :mime-version:dkim-signature;
+        bh=4ZgBL9At6wAfTG1eapgAa5Mkts6axxE7nn1CIos/pc0=;
+        fh=khRdyQmRy3TKLxenTcW8J9AADHKuZLpsXnPuVSMr2Hk=;
+        b=dQqxfwBB6xaS4WXeIQZ2z6LqzAy5V6bjKYwjfIjQEXdGOLwwQOnfsUaTri/L2DX6bf
+         xzUQ9LlCLDOa27aXxx7sHdPpKr7ztkkGyGJVU5yZqr3J3MrI5WIrJF2I2LzLavSDPHY4
+         LcmA3u3vT6H69p1EBSv6oyNjI+NXdkJpUJ58KggjK/fu9dsUwSZ8c0s+VRsEeTJ/PI8k
+         ftz9mzEKgeicOdaXXjmzW0Ucg5n7qgQQldEddrQ1HY2a7Sd9vjEI7JZWSXCULbLM1YKH
+         o4lsz1vI6PcpdDRH49svgkU23YP2bPN17YlpTg7/RIEPD/WdKDthCBp724Ec8wcKsLIU
+         YfQQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1790800880; x=1791405680; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:references
+         :in-reply-to:mime-version:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=4ZgBL9At6wAfTG1eapgAa5Mkts6axxE7nn1CIos/pc0=;
+        b=L/2M+WH9BPjv3gBD5XuIqtyyXziAr4FnWX7HFBXQkcgKBgza39T3xHpRgd45MH3Yho
+         m0IJ0RrwHj6ce65/bHh/+gnj6kGSAqVY5UzfeSP90mguYnQPqxrgzpj4NuG/mkkguSfK
+         GO20mK3/CfAVZC+agSrxGG954CwlKBllgMIfS5jdx4KuPpv/VtHD34Au88+wdYf6OMw5
+         aDMSlHCwgEbKdeZTeiAhD4yXj0k4181yD7xQ2lapkug21sn1JRoi7Hy8etE+VbC48ZCv
+         Lb6kqDzGt0FGySjuHzbMccaoEJgsmQmtPq+DYK2K5GZBJjAUQSBCuabsU/9gzs5PDyZk
+         BNzA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790800880; x=1791405680;
+        h=content-type:cc:to:subject:message-id:date:from:references
+         :in-reply-to:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=4ZgBL9At6wAfTG1eapgAa5Mkts6axxE7nn1CIos/pc0=;
+        b=M+rBWIA9WcGjmj0w3axg9/pYd1/pBEXlFK7vOEXVlnnsNvBjUoH53HBZMEH5hSrUIS
+         CnjCy+m1a73yg5A6Gg8WU2rKO8AueQuXPYNlsnp/DU3Y/0yvc/hcwYoWrzrrbGizi0g5
+         2LJXcayY3Q/pxTQyB8roM9tCjgr1hpQAa6QnANBOFerbEvzKZE/8+jAENmJbev2TDLjr
+         OW/FfFCVXjVpNyp5z/tMvtbK9zN44ixf1V96CTWdTx5atVXClUWRmvMJAMXsYAugK5DY
+         qim4rorXw1aKljQ0Qt+JUEjXVqI0emVBCm9uwPnIR+GfF38tR5X6fulcD7RQtnAeTURl
+         VKww==
+X-Forwarded-Encrypted: i=1; AKwUvBzC6Imy0cyCfbMyeIbq888kboxf9Jh55bh8Tz9BG0fIfpOt8Vy5RLxOmUtMZWMvk7Vk6kzyGoLQ1Umr@vger.kernel.org
+X-Gm-Message-State: AFuF++klBvLZIKW5bcBpE17qxrRvuw5vs2iH5M25ZA8SZgFrUQWUsFuj
+	UbGyM/wudxQtKKTuDwtXu6eowBLPu5peFMIbG6NcUdDbFRJDnpM5xjUTWqJgbUUhxmu6d2Sy1FK
+	09GhNcrpMB31ylY4DGvO+zy3L8iNjmi8=
+X-Gm-Gg: AYBFou0WA1EZzdKBTvzmmWKROLngBFtVLOWYQ2nv8m8QTPY+WqE4ArhMwsiHu9BziTl
+	iHgQWtxyETSrFanDimyBhbho0IGb+rxJrx80XQpPZ1Lx/h3GOI6T5Wqr48PLs0FjqsFCBm5WXrs
+	pD/mA65t9hJfNvgsyCgDf6YKCdS4Wkjvv16XoDZzu1HMmX3J4Z+I9GdE2P8w2EQgBl/lAQ9GgRK
+	Z16FgHk8JQpKyM4gSLFiWusuW5ZwE/NH1K4BmbWZnc6WK5Z05pcXobdVC05AtwQEowVk0pKopuJ
+	HoNRCTLo53jekbJrv9t4UGhPDHCbd27VhmiP+4HsbYzAlTSxpvlXlrTS/dyC8YGP4GT+5uq0ob5
+	FszEmT3jcx8KytfKZKF5nnCTBU0EeR0eUSae/xCcA
+X-Received: by 2002:ac8:7fd1:0:b0:52e:3991:84c8 with SMTP id
+ d75a77b69052e-5337433c972mr47060651cf.2.1790800879485; Wed, 30 Sep 2026
+ 13:41:19 -0700 (PDT)
+Received: from 77377267392 named unknown by gmailapi.google.com with HTTPREST;
+ Wed, 30 Sep 2026 16:41:18 -0400
+Received: from 77377267392 named unknown by gmailapi.google.com with HTTPREST;
+ Wed, 30 Sep 2026 16:41:18 -0400
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260930111505.1108-1-theflyingrahul@gmail.com>
-In-Reply-To: <20260930111505.1108-1-theflyingrahul@gmail.com>
-From: Linus Walleij <linusw@kernel.org>
-Date: Wed, 30 Sep 2026 22:22:22 +0200
-X-Gmail-Original-Message-ID: <CAD++jL=45ZdTbHsLDTAmTt3f+=VBVK014TLJyd5Drdba3V=dSQ@mail.gmail.com>
-X-Gm-Features: AclHuK-W8ctlswVDSA5k2LnKOTD2F2jW84eCsuIgLPSKz2kwZeTcb2gNv9ENqzk
-Message-ID: <CAD++jL=45ZdTbHsLDTAmTt3f+=VBVK014TLJyd5Drdba3V=dSQ@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: GED: Support GpioInt event resources
-To: Rahul Pon <theflyingrahul@gmail.com>, Andy Shevchenko <andy@kernel.org>, 
-	Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
-	Bartosz Golaszewski <brgl@kernel.org>, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org, 
+In-Reply-To: <aqfyj9saFPR2K8j2@ashevche-desk.local>
+References: <20260913095111.2543502-1-miguelgarciaroman8@gmail.com> <aqfyj9saFPR2K8j2@ashevche-desk.local>
+From: =?UTF-8?B?TWlndWVsIEdhcmPDrWEgUm9tw6Fu?= <miguelgarciaroman8@gmail.com>
+Date: Wed, 30 Sep 2026 16:41:18 -0400
+X-Gm-Features: AclHuK9Ie7lhPgTp1aQTn9gk8FsouNbrLOg2hwfGPxPNkd7QeiClVQ6hAoric8s
+Message-ID: <CABKbRo+zGanUe4uJU1HC=Nwm6E4j6DUh55pEgvng3U3AmaOPQw@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: device-id: document struct acpi_device_id
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: rafael@kernel.org, u.kleine-koenig@baylibre.com, kmehltretter@gmail.com, 
+	corbet@lwn.net, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, 
 	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 30, 2026 at 1:16=E2=80=AFPM Rahul Pon <theflyingrahul@gmail.com=
-> wrote:
+Thanks Andy, agreed on both points. For v2, I'll use
+ACPI_DEVICE_CLASS() in the commit message and move the drafting and
+validation notes below the --- separator.
 
-> The Generic Event Device accepts only Interrupt and ExtendedInterrupt
-> resources in _CRS. Some ACPI firmware signals GED events through GPIO
-> controllers instead: the HP OmniBook 5 16-bf1xxx (Snapdragon X2) describe=
-s
-> its lid (LIGE) and embedded-controller event device (ECGE) as ACPI0013 wi=
-th
-> GpioInt resources, and both currently fail to probe with "unable to parse
-> IRQ resource".
+Miguel
+
+
+On Mon, 14 Sep 2026 16:11:43 +0300, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+> On Sun, Sep 13, 2026 at 11:51:05AM +0200, Miguel Garcia wrote:
+> > struct acpi_device_id lacks kernel-doc, so extracting documentation from
+> > its header describes ACPI_DEVICE_CLASS but not the matching table entry.
 >
-> Handle GpioInt resources: get the Linux IRQ with acpi_dev_gpio_irq_get(),
-> which applies the trigger and polarity and returns -EPROBE_DEFER until th=
-e
-> GPIO controller is registered, and evaluate _EVT with the GPIO pin number=
-,
-> as done for GSIs above 255. GpioIo resources are skipped. On a failed wal=
-k,
-> free the events already requested and propagate the GPIO error (including
-> -EPROBE_DEFER) instead of -EINVAL.
+> ACPI_DEVICE_CLASS()
 >
-> Tested on the HP OmniBook 5 16-bf1xxx: lid close/open run _EVT and reach
-> the ACPI button driver and logind.
+> > Document the four members, ID and class-code matching, and the table
+> > terminator. This complements the pending documentation header-split
+> > update without changing its include directives.
 >
-> Assisted-by: LLM
-> Signed-off-by: Rahul Pon <theflyingrahul@gmail.com>
-
-I don't understand the patch at all, but I understand that Andy or Mika mus=
-t
-review it otherwise it's not going anywhere, so looping them in.
-
-Yours,
-Linus Walleij
+> > An LLM drafted this comment and changelog after being asked to address
+> > the missing documentation noted in the header-split discussion. The
+> > field descriptions were checked against the ACPI matching code. The
+> > extracted documentation passes kernel-doc and a focused Sphinx HTML
+> > build with warnings treated as errors; checkpatch reports no warnings.
+>
+> This paragraph is more for the comment, no need to include as is into
+> the commit message.
+>
+> ...
+>
+> > +/**
+> > + * struct acpi_device_id - ACPI device matching table entry
+> > + * @id: NUL-terminated hardware ID (_HID) or compatible ID (_CID) to match.
+> > + * @driver_data: Data private to the driver.
+>
+> > + * @cls: PCI-defined class, subclass and programming interface code (_CLS).
+> > + * @cls_msk: Mask selecting the class-code fields to match.
+>
+> Hmm... The only driver which uses this is AHCI. Yeah, that's fine, of course,
+> but might be that in the future we can replace that with a traditional list of
+> _HID:s, who knows...
+>
+> > + * Use @id for ID matching or ACPI_DEVICE_CLASS() for class-code matching.
+> > + * Terminate the table with an entry whose @id is empty and @cls is zero.
+> > + */
+>
+> --
+> With Best Regards,
+> Andy Shevchenko
