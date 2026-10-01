@@ -1,87 +1,136 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4A6B509EE4;
-	Thu,  1 Oct 2026 13:47:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E76B4B7A39;
+	Thu,  1 Oct 2026 14:28:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790862435; cv=none; b=icueJBr6kLMaN/utWDlvYXfcDFk6xhQc0KTX0/8GCI27kCrMTU2hjIBKdn2em8Yp+tvuLt+PH9cbh5akdOdXDOXmloZxjmaLCk3X+40oR/BnNYKzlB9i2vDNmgWptzWN/5eFXzPVxbGMFoBmgv2Wx98SiwKwy4jh86QDGU25CWs=
+	t=1790864935; cv=none; b=nZW91l3VHmg86ToBc5rkGBgYgcBJMAWBwn+qGS2vCzNfqNewrEHZuPrT7LNVbhP+SbH+iacTURjhwDyN4+r8KuHMenPq3SVkAU/MLMzW2i3VjbxeMUnxB0mjdQ3Z1MM+BhoE2xFXgUgKr5QMMboSY1cv2JIDRrTd+2Dy52rKwtw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790862435; c=relaxed/simple;
-	bh=LRHJAJ//qK4zk5OywvnZY+1YB/70Tz1Iq3n2t0jyays=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=MwgODolvkV9/YBsJoJyCRmzMTDVEAJy46D7Q9k4l0n7xO9Mu5638d8uXqcibwlZRqKpzj7hJP5DqmDUfXFyonhUcSV3ib6eIivikRKP6htK3IWXCqh03OedJthNxxUer3bNEm0KDnjqbUvgcbFr/FmpDlYntpJm8WjKu3guQg6k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=O5s1UsAr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790864935; c=relaxed/simple;
+	bh=LeDPnBgrM7pNQ8OlNZHsJRQR3r2PXLGLegBZ2Qsqzf8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=mZbZwH5dFMaAt+mv0syt1EHFmVemFqzQZIqMu6tf9BULz6SUwGnk97VdrzUdm0VIMBXY//8bseKsaMbkBZgDHwD+/cIrzeKV2e35Z8H/Lg2A+/bHWIFqiP3Ahf91lROIysZdacV//rKWd3GOOtPUX/ONfOfwi52m2GdY/lZdALs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=wkEnM30G; arc=none smtp.client-ip=185.246.84.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="O5s1UsAr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 202351F000FF;
-	Thu,  1 Oct 2026 13:47:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790862434;
-	bh=bnMoeykuBZptdA3ds37XtwuD8lIdtRVgD7fPQTAPgf8=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=O5s1UsArXOSPxdyHpqke7ocbx389Ztd7tE2kzQudZOuwWhvh5K1trVpaCYfiVbBvi
-	 o0oWe0B0quz5w/JnezKzkYeeoGm1qtPAKVaMXUiZkWA66YjVjWnkyxtcScGe0KSDwk
-	 KbPaHigeWOh4loRna77wiA8sLl7MKotQ4XjGjtoLe4wp8kp7Hco3H3UxGlG9fYJp0/
-	 IiGV/15KHQxF8QDe2C7e2KKghI06cEkfHv9otCW2rkCYTajU/Csb4PNHqLoZFybKV2
-	 V8MD7+C+cBYHp2QiIpBXBnRBI2GhxF36exeVzgLa/qSIhkLe5Exard8gr2xluK01cB
-	 +Yf9tbhF1IHZQ==
-Message-ID: <ca33c615-e429-49b1-b1f5-fa25a879a6fa@kernel.org>
-Date: Thu, 1 Oct 2026 08:47:12 -0500
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="wkEnM30G"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 398C11A10B5;
+	Thu,  1 Oct 2026 14:28:47 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 03A5060341;
+	Thu,  1 Oct 2026 14:28:47 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 116E0103281D4;
+	Thu,  1 Oct 2026 16:28:37 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1790864924; h=from:subject:date:message-id:to:cc:mime-version:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=kAb7NHjVc8QoTRTxUb1OG7thf2F5YhXlem84GhsJqnE=;
+	b=wkEnM30GLwNzp9ft92ngDRC8drPC5uK41nKojW1TWpeLLYZGkAaNjlpx85V+RBL9CFm2ba
+	62w05gkvwxelutRCl4tp9Mu72PN9uuOpnGqcatm8n7OP9Mm9laO5fs+U3Iydhh6hpOBcNm
+	mC6i4DMT3QOo8v6ExQ+91jdjg1j4FPnztZaC8lnIxfQHhapJu+d2/Jths2DhbTM7uHUNhb
+	pq0ylYMhE3L2rZbCvY+LygXM0Z2GH147YHxBjwJwvOMfb+5H2ESI3+H70X077bR0QF8dRH
+	Z72/qn+a1h1axu3pw3nMIRQh4L9bXoQn76KEz9zs8cVxohflNkhmso7kcaneEA==
+From: Herve Codina <herve.codina@bootlin.com>
+To: Richard Cheng <icheng@nvidia.com>,
+	Andrew Lunn <andrew@lunn.ch>,
+	Rob Herring <robh@kernel.org>,
+	Saravana Kannan <saravanak@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Charles Keepax <ckeepax@opensource.cirrus.com>,
+	Richard Fitzgerald <rf@opensource.cirrus.com>,
+	David Rhodes <david.rhodes@cirrus.com>,
+	Linus Walleij <linusw@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dan Williams <djbw@kernel.org>,
+	Ira Weiny <iweiny@kernel.org>,
+	Li Ming <ming.li@zohomail.com>,
+	Herve Codina <herve.codina@bootlin.com>,
+	Lizhi Hou <lizhi.hou@amd.com>
+Cc: driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	linux-pci@vger.kernel.org,
+	linux-sound@vger.kernel.org,
+	patches@opensource.cirrus.com,
+	linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-cxl@vger.kernel.org,
+	Allan Nielsen <allan.nielsen@microchip.com>,
+	Horatiu Vultur <horatiu.vultur@microchip.com>,
+	Daniel Machon <daniel.machon@microchip.com>,
+	Steen Hegelund <steen.hegelund@microchip.com>,
+	Luca Ceresoli <luca.ceresoli@bootlin.com>,
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+	stable@vger.kernel.org,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Subject: [PATCH v12 01/10] driver core: fw_devlink: Introduce fw_devlink_set_device()
+Date: Thu,  1 Oct 2026 16:28:01 +0200
+Message-ID: <20261001142815.277550-2-herve.codina@bootlin.com>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20261001142815.277550-1-herve.codina@bootlin.com>
+References: <20261001142815.277550-1-herve.codina@bootlin.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 3/3] cpufreq/amd-pstate: Get Highest Freq for a CPU
-Content-Language: en-US
-To: Christian Loehle <christian.loehle@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-pm@vger.kernel.org, K Prateek Nayak <kprateek.nayak@amd.com>,
- x86@kernel.org, Mario Limonciello <mario.limonciello@amd.com>,
- =?UTF-8?Q?Rafael_J_=2E_Wysocki_=E2=8F=8E?= <rafael@kernel.org>
-References: <20260924160052.2858456-1-superm1@kernel.org>
- <20260924160052.2858456-4-superm1@kernel.org>
- <5b748ac7-26da-4010-bfc8-014a0c97abe2@arm.com>
-From: Mario Limonciello <superm1@kernel.org>
-In-Reply-To: <5b748ac7-26da-4010-bfc8-014a0c97abe2@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-Last-TLS-Session-Version: TLSv1.3
 
-On 10/1/26 05:03, Christian Loehle wrote:
-> On 9/24/26 17:00, Mario Limonciello (AMD) wrote:
->> From: Mario Limonciello <mario.limonciello@amd.com>
->>
->> If the highest frequency is known for a CPU, use this instead of
->> trying to calculate by linear interpolation.
->>
->> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
->> ---
->>   drivers/cpufreq/amd-pstate.c | 6 ++++--
->>   1 file changed, 4 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/cpufreq/amd-pstate.c b/drivers/cpufreq/amd-pstate.c
->> index 496e0342c1c90..2a0cbfe21a67d 100644
->> --- a/drivers/cpufreq/amd-pstate.c
->> +++ b/drivers/cpufreq/amd-pstate.c
->> @@ -1102,8 +1102,10 @@ static int amd_pstate_init_freq(struct amd_cpudata *cpudata)
->>   
->>   	WRITE_ONCE(cpudata->nominal_freq, nominal_freq);
->>   
->> -	/* max_freq is calculated according to (nominal_freq * highest_perf)/nominal_perf */
->> -	max_freq = perf_to_freq(perf, nominal_freq, perf.highest_perf);
->> +	/* try to look up from BIOS/quirk first, fall back to (nominal_freq * highest_perf)/nominal_perf */
->> +	max_freq = amd_get_max_frequency(cpudata->cpu) * 1000;
->> +	if (!max_freq)
->> +		max_freq = perf_to_freq(perf, nominal_freq, perf.highest_perf);
-> 
-> Don't you need to align freq_to_perf() (or the callers) for the BIOS-overwrite case too?
-> amd_pstate_update_min_max_limit() still uses the nominal-based conversion for policy->max,
-> so the new maximum frequency maps back to highest_perf on each core type?
-> (and we end up with max_limit_perf < highest_perf if the BIOS-overwrite values are below
-> the interpolation result.)
-> 
-> 
-That's an excellent finding, thanks.
+Setting fwnode->dev is specific to fw_devlink.
+
+In order to avoid having a direct 'fwnode->dev = dev;' in several
+place in the kernel, introduce fw_devlink_set_device() helper to perform
+this operation.
+
+Having this helper allows to hide the fwnode devlink related stuff
+behind the helper.
+
+Cc: stable@vger.kernel.org
+Signed-off-by: Herve Codina <herve.codina@bootlin.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Ulf Hansson <ulf.hansson@linaro.org>
+Reviewed-by: Charles Keepax <ckeepax@opensource.cirrus.com>
+Reviewed-by: Richard Cheng <icheng@nvidia.com>
+Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+---
+Cc stable because used by other patches with Fixes + Cc stable
+---
+ include/linux/fwnode.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index a9dcaf7e7076..3ce49575cf82 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -260,4 +260,10 @@ void fw_devlink_purge_absent_suppliers(struct fwnode_handle *fwnode);
+ void fw_devlink_refresh_fwnode(struct fwnode_handle *fwnode);
+ bool fw_devlink_is_strict(void);
+ 
++static inline void fw_devlink_set_device(struct fwnode_handle *fwnode,
++					 struct device *dev)
++{
++	fwnode->dev = dev;
++}
++
+ #endif
+-- 
+2.55.0
+
