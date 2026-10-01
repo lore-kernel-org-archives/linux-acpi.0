@@ -1,227 +1,165 @@
-Received: from mail-yx2-f13.google.com (mail-yx2-f13.google.com [74.125.224.141])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AFD744E055
-	for <linux-acpi@vger.kernel.org>; Thu,  1 Oct 2026 10:53:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.141
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790852032; cv=pass; b=C8X+jeSBbiPM1fOimBlHY5ePSlEJkqKCSRXxudxQAOxz8BiAGe7vjokWlXh5/aNn0YWJcn/nxbpnuqznmYc2M8Zfc/3M90X8sCqanaulerubSbsBwWqQqs90HTBQACMZCi7ULRgJBNRW0xZikUIdX4MB1aQ190+oZW+tAP3uA7k=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790852032; c=relaxed/simple;
-	bh=Fs1edfuHx1in4X4WdK3upBMt8kh7e3INqc862LZOi+0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=AIcptElLpMaimJsswJqWUTtF1EdwAoRNS9JgB233HUSeRPJDBbY/5RPkiUUR6pY1QkBFdv0O92+0vrBpP2m6ihITNndviafhGscx3E6SBgVNOYKSQIWiR1ZnQgntGJN/zIfIMyxGDZd2nbw/THAUutRCrvRAOkvw607Nmj/8e+Y=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=FAbj7CJM; arc=pass smtp.client-ip=74.125.224.141
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 15D024E9C02;
+	Thu,  1 Oct 2026 11:07:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790852849; cv=none; b=aZr4aV8DjVZGBh63LiFkIKRSWQS7C8pEo7jC4K9rlZfY5Kw+tDZV59vQkHmwP1U3kInfX2i8VBWg2+NavuPj9qyw1x/xpliNmEPExyhkuEtQwK6qtx4aiOCUHiadIFe5YvL7o1BU/d/jBuBj1i+mcaaVJA/LPnQYOz4ps0pJjn4=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790852849; c=relaxed/simple;
+	bh=4DAiayNigTX+g+3g54tMOjDfHo5LSjI4E5QwkB1TMt8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Sb+O2xYwFHK+btGeFbEZKDfqqHZkFfd/TQhbSoE031G3bKbTiaRnQC87r/mt8+k1mjn+l8eS1G4yZMIiVV+wLFRTVAUVuuB7IE5Krbe0KNx0ofVWl5nv0ZZy9QMbo6ePAIWy8OxtiW/dw+rHhiO6dKiEIXjR/0dm0RKPcykFsQw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=SEqbRqgr; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="FAbj7CJM"
-Received: by mail-yx2-f13.google.com with SMTP id 956f58d0204a3-671563fb8beso6306843d50.3
-        for <linux-acpi@vger.kernel.org>; Thu, 01 Oct 2026 03:53:49 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1790852028; cv=none;
-        d=google.com; s=arc-20260327;
-        b=U2/7XNiqW7fOvG4uiddkxok/1sbVRn/fZaafjBMXypr/Sta8wBJT1aHx9W30IquE8J
-         gar0664p2bXlxC7b36JTxe4xYMHLX24SSfVW2DH5vUwEKqwyVz5HwrTfqoZ5Ec9cBWri
-         ZucoHPPVhtHzO15JGUbE4bE1vAPQ9hc13NMvdnpGg1roeKQbC7aPHHONGvg3szujjgQx
-         C72fEsqEnH9X9hdL0VimuTsc5KYr3hhQseC7dn/1VFvwczTqH32l3U11bvp9pqB/EPoU
-         9c5+o35PBq8+PX4oVTQi3zsWdEyYyjnDJ5gMDPyHHdAP+k6HWVFCQ2hN6J3EC+JDotUk
-         VgkQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=vEbjjiBAb1Gv1/q3JktK2vYVX0s4JpnfBYopaxaaLpw=;
-        fh=CHVrE18mw5DtOXSsQ0H0oi1HCAmPNM9kmB4q76wZxzw=;
-        b=sad5D7d38rfBnfzPtLVmwJ94FTQBX7QZHELhssD0Dt8A9p93t/O99bngypaBLpglYG
-         Peh2XJiZswYboG27H07DQgdMvjFtZDOw3GB56zeNzKFOOL9jeq96hsMCE+hUZoNo20Zm
-         Z9MBvtSloUHCSwLLVXoRdNuxap+4D50HG4OY8eLFv/hTjmRrH9TKvKvV9onaydPOue4R
-         ndQaPkCGUIPkwMkP1JiEvEx8fbD4hD+hDXo9H516mxyniFM0wk5O3T8JHuNbWN31raBq
-         UYThC6gdYDP6SIiEc43Kp8zpq3vU39LGviNx2Aw8ZoU/nSLIlH68b8gDu3iB6XdsNLG6
-         sDng==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1790852028; x=1791456828; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=vEbjjiBAb1Gv1/q3JktK2vYVX0s4JpnfBYopaxaaLpw=;
-        b=FAbj7CJMgab72MHHmfF2iW2O3xqNR2anisVVFAtjFiL8Qh2Pe5qy3EyOrrPogoYZG0
-         bHFeHvcH710U1lLtLuR3jI9u641NZFI/ayhqFd8MJYamxB6t0hvhIGtP6038fE2n9VNh
-         aGUR74pT+Qqo5mbpidnVPdUTQ8clM7IBi2Ymc=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790852028; x=1791456828;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=vEbjjiBAb1Gv1/q3JktK2vYVX0s4JpnfBYopaxaaLpw=;
-        b=i0V15XkBev5qgf192+QJWcJoSJ2aNHSiw0VZDVUk2mWJ8bJLcN9kFxXYkooIbXWVMp
-         1uifJ2bojnE03SbjbTXY6DRBF6u2MR33NICQGIiQ78bOtMvJBP0g158XLQcEdlr3BJn9
-         48J8nito32d3YUHFhCiWMUuJkCbOuql+IbcsOAM2BGD5TqEFxBmZLNkubZwPNHJruYcz
-         Zw/YpvSmuZsIZIdd1tplFVW6VkhLtKLIH8EtpXyfPmS6M24OKakrcbVBLmT85tT5r1Am
-         KOO/9/orVHYPoqO5nKTYLbnqBgQMPZYnEJpdlNtHlENS0vvGY2C7mM9hOyW2weL0DdRu
-         HMIA==
-X-Gm-Message-State: AFq9FYJec/fSkvOUaoTE3LedAtUsdU0PIeakumdDev3Gmj9Hp7Gr65Wz
-	1NPiRGZCA8b0SIkQK6prKw4SjsuwqLJx8rSPqS/GNvi8rrRlBzevNFqEEM6ou+Fm8e044ZrDTYB
-	oHRdDyW2GJgBLf6jRjNk+XUZJzddZGdL6HeZMATfz
-X-Gm-Gg: AYBFou11kacRVNPz/BTtNXKxhgnCD861lqD6Hp8XJIKEu6Ofpmfq5jWx3ern17Qrh4i
-	sxlzFcXgcM5TOSeMPPr8VqOitC8bi17TBwiSrJ8a0YKzEzTce0KON1IKM/5UOYQjpx86ZzzR9FY
-	NqemYor8E9BejgmunRpwA8qUGo4z0ex86K6OUY+guik+Nb61eEOpmYP02nix/Cx0NHBZvz9JO85
-	0nbElFot49mdylQpDLLCyWgHh4IokQzy55IMW2yIvYUfdykVnQj4P5N6sJ/kiTvA3U/je/g3RP8
-	TABqflNw9iB4qJxdK1UhqQwOqPknRoZeWnOSL4Q9pnw9qTuJQ1kY8ilJA8qe3xUES09lhDJKweg
-	5H4YmqITI2Q==
-X-Received: by 2002:a05:690e:4105:b0:676:9954:81ef with SMTP id
- 956f58d0204a3-676995489a9mr323421d50.14.1790852028003; Thu, 01 Oct 2026
- 03:53:48 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="SEqbRqgr"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id EF42A497;
+	Thu,  1 Oct 2026 04:07:22 -0700 (PDT)
+Received: from e142392.cambridge.arm.com (usa-sjc-imap-foss1.foss.arm.com [10.121.207.14])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id C2D2C3F86F;
+	Thu,  1 Oct 2026 04:07:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1790852846; bh=4DAiayNigTX+g+3g54tMOjDfHo5LSjI4E5QwkB1TMt8=;
+	h=From:To:Cc:Subject:Date:From;
+	b=SEqbRqgr7Bz+660L1PCMbE8pEbH+yVGsLlw5/TUkc5VwETrtJn6CmW4YF7beKF14p
+	 c5OJ8EJID75s14rq1YkXHLWwROvttTARh7Wx3BMQ8iUhi3T0p3mrJP+2kAdoAw4ilH
+	 PIzHvnnvNV9qlJG5latOLHXa/5+9amrEMabHoYbQ=
+From: =?UTF-8?q?Kristina=20Mart=C5=A1enko?= <kristina.martsenko@arm.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-acpi@vger.kernel.org,
+	kvmarm@lists.linux.dev,
+	linux-efi@vger.kernel.org
+Cc: Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ryan Roberts <ryan.roberts@arm.com>,
+	David Hildenbrand <david@kernel.org>,
+	Lorenzo Stoakes <ljs@kernel.org>,
+	Linu Cherian <linu.cherian@arm.com>,
+	Anshuman Khandual <anshuman.khandual@arm.com>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Marc Zyngier <maz@kernel.org>,
+	Oliver Upton <oupton@kernel.org>,
+	Fuad Tabba <fuad.tabba@linux.dev>,
+	Joey Gouly <joey.gouly@arm.com>,
+	Steffen Eiden <seiden@linux.ibm.com>,
+	Suzuki K Poulose <suzuki.poulose@arm.com>,
+	Zenghui Yu <yuzenghui@huawei.com>,
+	Ard Biesheuvel <ardb@kernel.org>,
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>
+Subject: [RFC 00/12] arm64: Add support for TLBI domains
+Date: Thu,  1 Oct 2026 12:06:43 +0100
+Message-ID: <20261001110655.461473-1-kristina.martsenko@arm.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260916075745.3549953-1-wenst@chromium.org> <20260916075745.3549953-7-wenst@chromium.org>
-In-Reply-To: <20260916075745.3549953-7-wenst@chromium.org>
-From: Chen-Yu Tsai <wenst@chromium.org>
-Date: Thu, 1 Oct 2026 18:53:36 +0800
-X-Gm-Features: AclHuK_wafiRDk696txMZ3q8q7Qaz4NsP-wYkipLMPcHq1r5tW6zotnKrD-_NRc
-Message-ID: <CAGXv+5GdBUafk6niG-UMDx=z6LJQ6iHAWhDpm1Ly2ce6CQDaxg@mail.gmail.com>
-Subject: Re: [PATCH v9 06/15] usb: hub: Associate port@ fwnode with USB port device
-To: Bartosz Golaszewski <brgl@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
-	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
-	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
-	Matthias Brugger <matthias.bgg@gmail.com>, 
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, 
-	devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org, 
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
-	Manivannan Sadhasivam <mani@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, 
-	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Wed, Sep 16, 2026 at 3:58=E2=80=AFPM Chen-Yu Tsai <wenst@chromium.org> w=
-rote:
->
-> When a USB hub port is connected to a connector in a firmware node
-> graph, the port itself has a node in the graph.
->
-> Associate the port's firmware node with the USB port's device,
-> usb_port::dev. This is used in later changes for the M.2 slot power
-> sequencing provider to match against the requesting port.
->
-> To avoid potential conflicts with ACPI firmware nodes and then causing
-> power management issues, only assign the firmware node if the hub's
-> firmware node is not an ACPI firmware node.
->
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-> Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
-> ---
-> Changes since v5:
-> - Added extra |struct fwnode_handle *| local variables to shorten lines
->   (Andy)
-> - Added comment about passing fwnode_graph_get_port_by_id() return value
->   directly to device_set_node() (Andy)
->
-> Changes since v4:
-> - Dropped unused |hdev| variable
-> - Added flags for fwnode_graph_get_port_by_id() with
->   FWNODE_GRAPH_DEVICE_DISABLED so that even incomplete
->   ports can be connected
->
-> Changes since v3:
-> - Added missing fwnode_handle_put()
->
-> Changes since v2:
-> - Skip assignment if hub firmware node is ACPI node
-> ---
->  drivers/usb/core/port.c | 25 +++++++++++++++++++++++++
->  1 file changed, 25 insertions(+)
->
-> diff --git a/drivers/usb/core/port.c b/drivers/usb/core/port.c
-> index b4452b665f59..c0a51d9b06a6 100644
-> --- a/drivers/usb/core/port.c
-> +++ b/drivers/usb/core/port.c
-> @@ -7,6 +7,7 @@
->   * Author: Lan Tianyu <tianyu.lan@intel.com>
->   */
->
-> +#include <linux/acpi.h>
->  #include <linux/kstrtox.h>
->  #include <linux/slab.h>
->  #include <linux/string_choices.h>
-> @@ -358,6 +359,11 @@ static void usb_port_device_release(struct device *d=
-ev)
->  {
->         struct usb_port *port_dev =3D to_usb_port(dev);
->
-> +       /*
-> +        * At this point ACPI nodes and swnodes have been removed by
-> +        * device_platform_notify_remove() in device_del().
-> +        */
-> +       fwnode_handle_put(dev_fwnode(dev));
->         kfree(port_dev->req);
->         kfree(port_dev);
->  }
-> @@ -754,6 +760,7 @@ int usb_hub_create_port_device(struct usb_hub *hub, i=
-nt port1)
->  {
->         struct usb_port *port_dev;
->         struct usb_device *hdev =3D hub->hdev;
-> +       struct fwnode_handle *fwnode =3D dev_fwnode(&hdev->dev);
->         int retval;
->
->         port_dev =3D kzalloc_obj(*port_dev);
-> @@ -782,6 +789,24 @@ int usb_hub_create_port_device(struct usb_hub *hub, =
-int port1)
->         port_dev->dev.driver =3D &usb_port_driver;
->         dev_set_name(&port_dev->dev, "%s-port%d", dev_name(&hub->hdev->de=
-v),
->                         port1);
-> +
-> +       /*
-> +        * ACPI FW nodes are associated later when device_register() happ=
-ens.
-> +        * Skip assigning one here to avoid potential conflicts.
-> +        */
-> +       if (!is_acpi_node(fwnode)) {
-> +               struct fwnode_handle *port;
-> +
-> +               /*
-> +                * fwnode_graph_get_port_by_id() returns either a valid f=
-wnode handle
-> +                * or NULL. Passing NULL to device_set_node() clears any =
-associated
-> +                * fwnode. It is effectively a no-op here, since no fwnod=
-e has been
-> +                * assigned to the newly created device yet.
-> +                */
-> +               port =3D fwnode_graph_get_port_by_id(fwnode, port1, FWNOD=
-E_GRAPH_DEVICE_DISABLED);
+Hi,
 
-After AI hinted, I found some dwc3 hardware to test this on.
+This series allows the kernel to use TLBI domains. TLBI domains (FEAT_TLBID) is
+an Arm architecture feature that enables a TLB invalidation to target a subset
+of CPUs instead of the whole system. It can improve performance on systems with
+many CPUs. TLBID is not yet part of the Arm Architecture Reference Manual but
+some of it is described in the latest XML [1].
 
-"port1" needs to be remapped using usb_hcd_find_raw_port_number() when the
-hub is the root hub. Otherwise both HS and SS ports end up getting the
-same port node, which is incorrect.
+The goal of this series is to send TLBI commands only to the CPUs where a
+process has run (i.e. where its page tables have been installed). The last
+patch explains a bit about how it works. This is an RFC since I'm not familiar
+with the kernel's TLB/mm code and I'd like feedback on whether the general
+approach is correct.
 
-Same needs to be done for "usb_of_get_connect_type(hdev, port1)" some
-lines above the diff context.
+A few notes and open questions:
 
-This mapping is currently only done in usb_acpi_get_companion_for_port()
-and usb_alloc_dev().
+  * Domains are described in a new "TLBI" ACPI table. This is not yet part of
+    the ACPI specification. There was an initial proposal [2] but this series
+    uses a newer WIP version of the table that aims to be published by the end
+    of the year.
+
+  * There is currently no device tree binding since the feature is mainly meant
+    for server-class systems.
+
+  * It's also possible to use TLBI domains to limit a KVM guest's TLB
+    invalidations to CPUs where the guest has run. I'll try to include that in
+    the next version. This series only disables domains for guests.
+
+  * With this series a long-running process may eventually run on all CPUs and
+    just issue broadcast TLBIs. It may be worth periodically reducing the set
+    of CPUs but it's not clear when.
+
+  * There are currently no performance numbers since there is no hardware with
+    this feature yet.
+
+  * The series has been tested on an Arm FVP which supports the TLBID
+    architecture but does not have any domains (except domain 0).
+
+Any feedback is welcome.
+
+Thanks,
+Kristina
+
+[1] https://support.arm.com/architectures/a-profile-architecture#Downloads
+[2] https://github.com/tianocore/edk2/issues/11999
 
 
-> +               device_set_node(&port_dev->dev, port);
-> +       }
-> +
->         mutex_init(&port_dev->status_lock);
->         retval =3D device_register(&port_dev->dev);
->         if (retval) {
-> --
-> 2.55.0.1032.g73a4cd73de-goog
->
+Kristina Martšenko (12):
+  arm64: sysreg: Add definitions for FEAT_TLBID
+  arm64: Detect FEAT_TLBID
+  KVM: arm64: Hide TLBID from guest sysregs
+  KVM: arm64: Hide TLBID from guest instructions
+  ACPICA: Add TLBI table definition
+  ACPI: TLBI: Parse domains from table
+  arm64: tlbid: Set up CPU domain bitmaps
+  efi/arm: Check return value of init_new_context()
+  arm64: tlbid: Track the TLBI domain of a task
+  arm64: Support TLBIP instructions
+  arm64: tlbid: Pass domain to TLBI instructions
+  arm64: tlbid: Add documentation
+
+ Documentation/arch/arm64/booting.rst    |  10 ++
+ arch/arm64/Kconfig                      |  12 ++
+ arch/arm64/include/asm/acpi.h           |  10 ++
+ arch/arm64/include/asm/cpu.h            |   1 +
+ arch/arm64/include/asm/cpufeature.h     |  15 ++
+ arch/arm64/include/asm/el2_setup.h      |  76 +++++++-
+ arch/arm64/include/asm/kvm_emulate.h    |   5 +
+ arch/arm64/include/asm/mmu.h            |  13 ++
+ arch/arm64/include/asm/mmu_context.h    |   9 +-
+ arch/arm64/include/asm/tlbflush.h       | 219 +++++++++++++++++-------
+ arch/arm64/kernel/cpufeature.c          |  25 +++
+ arch/arm64/kernel/cpuinfo.c             |   3 +
+ arch/arm64/kvm/config.c                 |   6 +
+ arch/arm64/kvm/emulate-nested.c         |   1 +
+ arch/arm64/kvm/hyp/include/hyp/switch.h |   7 +-
+ arch/arm64/kvm/hyp/nvhe/tlb.c           |   2 +-
+ arch/arm64/kvm/hyp/vhe/tlb.c            |   4 +-
+ arch/arm64/kvm/sys_regs.c               |   3 +
+ arch/arm64/mm/Makefile                  |   1 +
+ arch/arm64/mm/context.c                 |   6 +-
+ arch/arm64/mm/tlbid.c                   | 210 +++++++++++++++++++++++
+ arch/arm64/tools/cpucaps                |   1 +
+ arch/arm64/tools/sysreg                 |  53 +++++-
+ drivers/acpi/arm64/Kconfig              |   3 +
+ drivers/acpi/arm64/Makefile             |   1 +
+ drivers/acpi/arm64/init.c               |   2 +
+ drivers/acpi/arm64/init.h               |   1 +
+ drivers/acpi/arm64/tlbi.c               | 196 +++++++++++++++++++++
+ drivers/firmware/efi/arm-runtime.c      |   3 +-
+ include/acpi/actbl2.h                   |  32 ++++
+ 30 files changed, 858 insertions(+), 72 deletions(-)
+ create mode 100644 arch/arm64/mm/tlbid.c
+ create mode 100644 drivers/acpi/arm64/tlbi.c
+
+
+base-commit: 93f51579e7df248780214094418f205253383cc5
+-- 
+2.43.0
+
