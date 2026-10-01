@@ -1,123 +1,227 @@
-Received: from desiato.infradead.org (desiato.infradead.org [90.155.92.199])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yx2-f13.google.com (mail-yx2-f13.google.com [74.125.224.141])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3DC03C196B;
-	Thu,  1 Oct 2026 10:35:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.92.199
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790850918; cv=none; b=lqoJr+HSK+/IHHNfFpcsNs9+YyFEbTaIWbJh2GlpbCSuttPE2ggzNuqJw+2/dvFU4slFPChBUh3HlRWtZDw1e+kWZBHbxKacK4Olbu040EaUxkMjK0T4Q+f6I5d8UgqhPk74RP1XiA3u7+AmOiwoCjQwwyjalcPmOvTWCtpSiwY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790850918; c=relaxed/simple;
-	bh=wyY4uqF8oVkqJJ4SU1baP5QoiyjE4zdP/Pl/JeO4cp0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZMYi/flz0czgg6LxeOz0depq9H5jLYDixhCL1d8FtoIPIrlDTzNgZMcyPdN5aPFJifmyNPmQrnDQOZserXdSE6M7CEr1TRMYVGtXOXzhNa3EU4S6z1t4Wdqux3Ilv7mPKtCwKGwFuHgCl38y/zAX1R+wOyB8EKe2sfvArT8Of74=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=oPjEY3kJ; arc=none smtp.client-ip=90.155.92.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AFD744E055
+	for <linux-acpi@vger.kernel.org>; Thu,  1 Oct 2026 10:53:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.141
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790852032; cv=pass; b=C8X+jeSBbiPM1fOimBlHY5ePSlEJkqKCSRXxudxQAOxz8BiAGe7vjokWlXh5/aNn0YWJcn/nxbpnuqznmYc2M8Zfc/3M90X8sCqanaulerubSbsBwWqQqs90HTBQACMZCi7ULRgJBNRW0xZikUIdX4MB1aQ190+oZW+tAP3uA7k=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790852032; c=relaxed/simple;
+	bh=Fs1edfuHx1in4X4WdK3upBMt8kh7e3INqc862LZOi+0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=AIcptElLpMaimJsswJqWUTtF1EdwAoRNS9JgB233HUSeRPJDBbY/5RPkiUUR6pY1QkBFdv0O92+0vrBpP2m6ihITNndviafhGscx3E6SBgVNOYKSQIWiR1ZnQgntGJN/zIfIMyxGDZd2nbw/THAUutRCrvRAOkvw607Nmj/8e+Y=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=FAbj7CJM; arc=pass smtp.client-ip=74.125.224.141
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="oPjEY3kJ"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=desiato.20200630; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=xbJhgquatt87upvJf0Ak4lxdnZtpIeSb+aDtxb1CtgI=; b=oPjEY3kJQ4HBOpowg0quk/3xk2
-	74VjW7/qKOuV51Z2N4Xm67I+IYiudxcplzOcQ2MxYPrU0hIQVib0HqYSQGlKUE50MyldkVXDz66r3
-	WCObSwGLljzoDs9jRbVWEDa2bm08+LmAG27Ff2EUlCydIo5a6mV0Pi50lL0JnDiNkoniOfyHENxoK
-	s2Fs4nUvuRETCwm1YJfnvMZPbeA0FwuSVQDB7kYziJNhLiqKfGFwwyFz0iXYfqAD2NFhdeUPUTwqB
-	k71/r34eUL5HHZ4nPBmrLMfejkYUAceiku7ubqqoK3laOZXNEUhD65XiuNw220gcN7vsPhnLkRrik
-	fK9B0FqQ==;
-Received: from 77-249-17-252.cable.dynamic.v4.ziggo.nl ([77.249.17.252] helo=noisy.programming.kicks-ass.net)
-	by desiato.infradead.org with esmtpsa (Exim 4.99.2 #2 (Red Hat Linux))
-	id 1xCE7i-00000004qdd-30Wm;
-	Thu, 01 Oct 2026 10:34:46 +0000
-Received: by noisy.programming.kicks-ass.net (Postfix, from userid 1000)
-	id B5CE9300446; Thu, 01 Oct 2026 12:34:44 +0200 (CEST)
-Date: Thu, 1 Oct 2026 12:34:44 +0200
-From: Peter Zijlstra <peterz@infradead.org>
-To: Christian Loehle <christian.loehle@arm.com>
-Cc: rafael@kernel.org, zhenglifeng1@huawei.com,
-	zhongqiu.han@oss.qualcomm.com, viresh.kumar@linaro.org,
-	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org,
-	Mario Limonciello <mario.limonciello@amd.com>,
-	K Prateek Nayak <kprateek.nayak@amd.com>,
-	Huang Rui <ray.huang@amd.com>, Perry Yuan <perry.yuan@amd.com>,
-	"Gautham R . Shenoy" <gautham.shenoy@amd.com>,
-	Vanshidhar Konda <vanshikonda@os.amperecomputing.com>,
-	Shubhang Kaushik <sh@gentwo.org>,
-	Pierre Gondois <pierre.gondois@arm.com>,
-	Beata Michalska <beata.michalska@arm.com>,
-	Dietmar Eggemann <dietmar.eggemann@arm.com>,
-	Ionela Voinescu <ionela.voinescu@arm.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Lukasz Luba <lukasz.luba@arm.com>,
-	Jeremy Linton <jeremy.linton@arm.com>, jonathanh@nvidia.com,
-	zhanjie9@hisilicon.com,
-	Vincent Guittot <vincent.guittot@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: [PATCH 0/3] cpufreq: Resolve CPPC frequencies to performance
- levels
-Message-ID: <20261001103444.GU4120091@noisy.programming.kicks-ass.net>
-References: <20260929102957.2591657-1-christian.loehle@arm.com>
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="FAbj7CJM"
+Received: by mail-yx2-f13.google.com with SMTP id 956f58d0204a3-671563fb8beso6306843d50.3
+        for <linux-acpi@vger.kernel.org>; Thu, 01 Oct 2026 03:53:49 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1790852028; cv=none;
+        d=google.com; s=arc-20260327;
+        b=U2/7XNiqW7fOvG4uiddkxok/1sbVRn/fZaafjBMXypr/Sta8wBJT1aHx9W30IquE8J
+         gar0664p2bXlxC7b36JTxe4xYMHLX24SSfVW2DH5vUwEKqwyVz5HwrTfqoZ5Ec9cBWri
+         ZucoHPPVhtHzO15JGUbE4bE1vAPQ9hc13NMvdnpGg1roeKQbC7aPHHONGvg3szujjgQx
+         C72fEsqEnH9X9hdL0VimuTsc5KYr3hhQseC7dn/1VFvwczTqH32l3U11bvp9pqB/EPoU
+         9c5+o35PBq8+PX4oVTQi3zsWdEyYyjnDJ5gMDPyHHdAP+k6HWVFCQ2hN6J3EC+JDotUk
+         VgkQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=vEbjjiBAb1Gv1/q3JktK2vYVX0s4JpnfBYopaxaaLpw=;
+        fh=CHVrE18mw5DtOXSsQ0H0oi1HCAmPNM9kmB4q76wZxzw=;
+        b=sad5D7d38rfBnfzPtLVmwJ94FTQBX7QZHELhssD0Dt8A9p93t/O99bngypaBLpglYG
+         Peh2XJiZswYboG27H07DQgdMvjFtZDOw3GB56zeNzKFOOL9jeq96hsMCE+hUZoNo20Zm
+         Z9MBvtSloUHCSwLLVXoRdNuxap+4D50HG4OY8eLFv/hTjmRrH9TKvKvV9onaydPOue4R
+         ndQaPkCGUIPkwMkP1JiEvEx8fbD4hD+hDXo9H516mxyniFM0wk5O3T8JHuNbWN31raBq
+         UYThC6gdYDP6SIiEc43Kp8zpq3vU39LGviNx2Aw8ZoU/nSLIlH68b8gDu3iB6XdsNLG6
+         sDng==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1790852028; x=1791456828; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=vEbjjiBAb1Gv1/q3JktK2vYVX0s4JpnfBYopaxaaLpw=;
+        b=FAbj7CJMgab72MHHmfF2iW2O3xqNR2anisVVFAtjFiL8Qh2Pe5qy3EyOrrPogoYZG0
+         bHFeHvcH710U1lLtLuR3jI9u641NZFI/ayhqFd8MJYamxB6t0hvhIGtP6038fE2n9VNh
+         aGUR74pT+Qqo5mbpidnVPdUTQ8clM7IBi2Ymc=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790852028; x=1791456828;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=vEbjjiBAb1Gv1/q3JktK2vYVX0s4JpnfBYopaxaaLpw=;
+        b=i0V15XkBev5qgf192+QJWcJoSJ2aNHSiw0VZDVUk2mWJ8bJLcN9kFxXYkooIbXWVMp
+         1uifJ2bojnE03SbjbTXY6DRBF6u2MR33NICQGIiQ78bOtMvJBP0g158XLQcEdlr3BJn9
+         48J8nito32d3YUHFhCiWMUuJkCbOuql+IbcsOAM2BGD5TqEFxBmZLNkubZwPNHJruYcz
+         Zw/YpvSmuZsIZIdd1tplFVW6VkhLtKLIH8EtpXyfPmS6M24OKakrcbVBLmT85tT5r1Am
+         KOO/9/orVHYPoqO5nKTYLbnqBgQMPZYnEJpdlNtHlENS0vvGY2C7mM9hOyW2weL0DdRu
+         HMIA==
+X-Gm-Message-State: AFq9FYJec/fSkvOUaoTE3LedAtUsdU0PIeakumdDev3Gmj9Hp7Gr65Wz
+	1NPiRGZCA8b0SIkQK6prKw4SjsuwqLJx8rSPqS/GNvi8rrRlBzevNFqEEM6ou+Fm8e044ZrDTYB
+	oHRdDyW2GJgBLf6jRjNk+XUZJzddZGdL6HeZMATfz
+X-Gm-Gg: AYBFou11kacRVNPz/BTtNXKxhgnCD861lqD6Hp8XJIKEu6Ofpmfq5jWx3ern17Qrh4i
+	sxlzFcXgcM5TOSeMPPr8VqOitC8bi17TBwiSrJ8a0YKzEzTce0KON1IKM/5UOYQjpx86ZzzR9FY
+	NqemYor8E9BejgmunRpwA8qUGo4z0ex86K6OUY+guik+Nb61eEOpmYP02nix/Cx0NHBZvz9JO85
+	0nbElFot49mdylQpDLLCyWgHh4IokQzy55IMW2yIvYUfdykVnQj4P5N6sJ/kiTvA3U/je/g3RP8
+	TABqflNw9iB4qJxdK1UhqQwOqPknRoZeWnOSL4Q9pnw9qTuJQ1kY8ilJA8qe3xUES09lhDJKweg
+	5H4YmqITI2Q==
+X-Received: by 2002:a05:690e:4105:b0:676:9954:81ef with SMTP id
+ 956f58d0204a3-676995489a9mr323421d50.14.1790852028003; Thu, 01 Oct 2026
+ 03:53:48 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260929102957.2591657-1-christian.loehle@arm.com>
+References: <20260916075745.3549953-1-wenst@chromium.org> <20260916075745.3549953-7-wenst@chromium.org>
+In-Reply-To: <20260916075745.3549953-7-wenst@chromium.org>
+From: Chen-Yu Tsai <wenst@chromium.org>
+Date: Thu, 1 Oct 2026 18:53:36 +0800
+X-Gm-Features: AclHuK_wafiRDk696txMZ3q8q7Qaz4NsP-wYkipLMPcHq1r5tW6zotnKrD-_NRc
+Message-ID: <CAGXv+5GdBUafk6niG-UMDx=z6LJQ6iHAWhDpm1Ly2ce6CQDaxg@mail.gmail.com>
+Subject: Re: [PATCH v9 06/15] usb: hub: Associate port@ fwnode with USB port device
+To: Bartosz Golaszewski <brgl@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Daniel Scally <djrscally@gmail.com>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, 
+	Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+Cc: linux-acpi@vger.kernel.org, driver-core@lists.linux.dev, 
+	linux-pm@vger.kernel.org, linux-usb@vger.kernel.org, 
+	devicetree@vger.kernel.org, linux-mediatek@lists.infradead.org, 
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 
+	Manivannan Sadhasivam <mani@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, 
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 29, 2026 at 11:29:54AM +0100, Christian Loehle wrote:
-> For table-based cpufreq drivers, the core resolves requests to supported
-> frequency-table entries before governors such as schedutil compare them
-> with their cached target. Different kHz requests selecting the same entry
-> therefore need not reach the driver again.
-> 
-> Table-less cppc-cpufreq lacks this resolution: the core returns the requested
-> kHz value even if firmware exposes only a few CPPC performance levels.
-> Different requests can miss the governor's cache yet program the same
-> Desired Performance value. The tested ARM AGI CPU exposes only 61 levels,
-> with bounds visible at:
-> 
->   /sys/devices/system/cpu/cpuX/acpi_cppc/{lowest,highest}_perf
-> 
-> Add ->resolve_freq() so table-less ->target() drivers can canonicalize
-> requests without constructing a frequency table. CPPC resolves requests
-> before sugov_update_next_freq(), allowing its existing cache to skip
-> equivalent requests. Raw limit notifications still trigger
-> reconsideration, but only changed resolved limits force a driver update.
-> Failed limit writes remain pending for retry.
-> 
-> Testing on an ARM AGI CPU (61 distinct CPPC levels) with schedutil gives
-> the following end-to-end results across 16 iterations:
-> 
->   schbench -m 2 -t 31 -F 256 -n 5 -R 18000 -r 60 -w 20 -i 60
-> 
->   metric                         baseline       resolve-freq      change
->   median p99                    3364 us          3280 us          -2.5%
->   mean of run p99s              3664.2 us        3299.0 us       -10.0%
->   worst run p99                 4360 us          3500 us         -19.7%
->   median throughput             16431.08 RPS     16460.69 RPS     +0.2%
-> 
-> In an instrumented run of the same workload, cppc_set_perf() calls fell
-> from 1,136,868 to 866,703, a 23.8% reduction.
-> 
-> Christian Loehle (3):
->   cpufreq: Add a driver frequency resolution callback
->   cpufreq: CPPC: Resolve frequencies to performance levels
->   cpufreq: Skip updates for unchanged resolved limits
-> 
->  Documentation/admin-guide/pm/cpufreq.rst |   4 +
->  Documentation/cpu-freq/cpu-drivers.rst   |  19 ++
->  drivers/cpufreq/cppc_cpufreq.c           | 257 +++++++++++++++++++++--
->  drivers/cpufreq/cpufreq.c                |  99 +++++++--
->  include/linux/cpufreq.h                  |  11 +
->  kernel/sched/cpufreq_schedutil.c         |  19 +-
->  6 files changed, 359 insertions(+), 50 deletions(-)
+On Wed, Sep 16, 2026 at 3:58=E2=80=AFPM Chen-Yu Tsai <wenst@chromium.org> w=
+rote:
+>
+> When a USB hub port is connected to a connector in a firmware node
+> graph, the port itself has a node in the graph.
+>
+> Associate the port's firmware node with the USB port's device,
+> usb_port::dev. This is used in later changes for the M.2 slot power
+> sequencing provider to match against the requesting port.
+>
+> To avoid potential conflicts with ACPI firmware nodes and then causing
+> power management issues, only assign the firmware node if the hub's
+> firmware node is not an ACPI firmware node.
+>
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> Signed-off-by: Chen-Yu Tsai <wenst@chromium.org>
+> ---
+> Changes since v5:
+> - Added extra |struct fwnode_handle *| local variables to shorten lines
+>   (Andy)
+> - Added comment about passing fwnode_graph_get_port_by_id() return value
+>   directly to device_set_node() (Andy)
+>
+> Changes since v4:
+> - Dropped unused |hdev| variable
+> - Added flags for fwnode_graph_get_port_by_id() with
+>   FWNODE_GRAPH_DEVICE_DISABLED so that even incomplete
+>   ports can be connected
+>
+> Changes since v3:
+> - Added missing fwnode_handle_put()
+>
+> Changes since v2:
+> - Skip assignment if hub firmware node is ACPI node
+> ---
+>  drivers/usb/core/port.c | 25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
+>
+> diff --git a/drivers/usb/core/port.c b/drivers/usb/core/port.c
+> index b4452b665f59..c0a51d9b06a6 100644
+> --- a/drivers/usb/core/port.c
+> +++ b/drivers/usb/core/port.c
+> @@ -7,6 +7,7 @@
+>   * Author: Lan Tianyu <tianyu.lan@intel.com>
+>   */
+>
+> +#include <linux/acpi.h>
+>  #include <linux/kstrtox.h>
+>  #include <linux/slab.h>
+>  #include <linux/string_choices.h>
+> @@ -358,6 +359,11 @@ static void usb_port_device_release(struct device *d=
+ev)
+>  {
+>         struct usb_port *port_dev =3D to_usb_port(dev);
+>
+> +       /*
+> +        * At this point ACPI nodes and swnodes have been removed by
+> +        * device_platform_notify_remove() in device_del().
+> +        */
+> +       fwnode_handle_put(dev_fwnode(dev));
+>         kfree(port_dev->req);
+>         kfree(port_dev);
+>  }
+> @@ -754,6 +760,7 @@ int usb_hub_create_port_device(struct usb_hub *hub, i=
+nt port1)
+>  {
+>         struct usb_port *port_dev;
+>         struct usb_device *hdev =3D hub->hdev;
+> +       struct fwnode_handle *fwnode =3D dev_fwnode(&hdev->dev);
+>         int retval;
+>
+>         port_dev =3D kzalloc_obj(*port_dev);
+> @@ -782,6 +789,24 @@ int usb_hub_create_port_device(struct usb_hub *hub, =
+int port1)
+>         port_dev->dev.driver =3D &usb_port_driver;
+>         dev_set_name(&port_dev->dev, "%s-port%d", dev_name(&hub->hdev->de=
+v),
+>                         port1);
+> +
+> +       /*
+> +        * ACPI FW nodes are associated later when device_register() happ=
+ens.
+> +        * Skip assigning one here to avoid potential conflicts.
+> +        */
+> +       if (!is_acpi_node(fwnode)) {
+> +               struct fwnode_handle *port;
+> +
+> +               /*
+> +                * fwnode_graph_get_port_by_id() returns either a valid f=
+wnode handle
+> +                * or NULL. Passing NULL to device_set_node() clears any =
+associated
+> +                * fwnode. It is effectively a no-op here, since no fwnod=
+e has been
+> +                * assigned to the newly created device yet.
+> +                */
+> +               port =3D fwnode_graph_get_port_by_id(fwnode, port1, FWNOD=
+E_GRAPH_DEVICE_DISABLED);
 
-No objection to the kernel/sched/ change. I'm assuming rjw or other
-cpufreq maintainer will take this?
+After AI hinted, I found some dwc3 hardware to test this on.
+
+"port1" needs to be remapped using usb_hcd_find_raw_port_number() when the
+hub is the root hub. Otherwise both HS and SS ports end up getting the
+same port node, which is incorrect.
+
+Same needs to be done for "usb_of_get_connect_type(hdev, port1)" some
+lines above the diff context.
+
+This mapping is currently only done in usb_acpi_get_companion_for_port()
+and usb_alloc_dev().
+
+
+> +               device_set_node(&port_dev->dev, port);
+> +       }
+> +
+>         mutex_init(&port_dev->status_lock);
+>         retval =3D device_register(&port_dev->dev);
+>         if (retval) {
+> --
+> 2.55.0.1032.g73a4cd73de-goog
+>
