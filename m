@@ -1,199 +1,218 @@
-Received: from mail-dl2-f43.google.com (mail-dl2-f43.google.com [74.125.229.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11012000.outbound.protection.outlook.com [40.107.200.0])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA478377A9F
-	for <linux-acpi@vger.kernel.org>; Thu,  1 Oct 2026 04:27:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.229.171
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790828837; cv=none; b=dE+SuzLJnv41UCb70920WcgNSda1oU40gJ3tG3L5dzElo5WxZha2BVUFDUfCD8mkb5D7k2RmXtXwhspUFkr+qHalPnhNZOpvjFYRSM7kuHPA0FdnLl5Gw/oo5mm0oM++xxe1nQFFPpa0bRBQxghEsUYuO6BakCGsRGxgwFWqqFM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790828837; c=relaxed/simple;
-	bh=rPzbXjcoFnVql4gRTl5oLUsjZaMf4eenmRAkOFsr2S4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fUthDamH+BhnLghzbsGHvASQHVwZg84QaHubf8X1gFyLEIhv6AQ04LO9K7DJs8dNvrCkZW6KKHSckH1oq4SOorCOLyEXYdePShII+lzAvGZUiNVIzSWWB+8Vnl6m6dDQ8T1h/gbuqXFdGSeHZjLL/VOENBosw9biI5tXhOgG5NE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Idk3mBrF; arc=none smtp.client-ip=74.125.229.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11E152E7378;
+	Thu,  1 Oct 2026 06:14:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.200.0
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790835244; cv=fail; b=E4jokZXmVbarySeFPHdT2IA8/LQknMJwIWFhXpz+kqhUZ3DHAxNMS97PGTAtpZU6pusAU90T4dJi56B22da8p4uWIj/zX3mtY4r08OPp/iqvjWJFWtMGPikCdV1DsbRCqc28+bVwqO1YxMrR3yL+WBg0A0uaO7FT94U7FfYzoq8=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790835244; c=relaxed/simple;
+	bh=FwCq25PbQQXjnRpHOiGJxIcyzqLAC58CBGaAFAz4+rI=;
+	h=Content-Type:Date:Message-Id:Cc:From:To:Subject:References:
+	 In-Reply-To:MIME-Version; b=Gv9iOt2fhTg7ceOk7MIZ7M9AiXnvzHVPxGLfhmlLeX6REV3vTZJidu7PPQOleHOuRWVeHW0M/Al/zpN6aFj1DAsNMkFWrAfYDHkukjmY8qSl1L7rjC3TOpHdU0NvuHTNmo7gM77XgqwXEInHLvK0UCcosVrE3t2IYXfxgOjYUu4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=tvE0yXkP; arc=fail smtp.client-ip=40.107.200.0
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Idk3mBrF"
-Received: by mail-dl2-f43.google.com with SMTP id a92af1059eb24-142dd04edb5so10185114c88.2
-        for <linux-acpi@vger.kernel.org>; Wed, 30 Sep 2026 21:27:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790828835; x=1791433635; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=9A6rq3RuonmAhdkjSfW3Ew3B0bFGrJGb84aoG+EWNd4=;
-        b=Idk3mBrFrorc1gkiTROhhQl/g3ANI6APcpd3kn82RAXZncq3ucZ5mGfW0KK3k9Jx8O
-         KxgdfuLTt3BsdecHqjPwD/WMjmh5MFnkJrMAHyD6qaLYIQc3ewCpZNjQtP/wj+WV5rti
-         6i35GTWaDhnJbgyuVvOGqqIbUpsdPzuVZf+zlC0IyqoZUzQ0yS+0AO6ovb/ZJ60++1qS
-         fQiuR42bdCxs4o9VLg2tERvWaEJ1jlYpbAnnGyf0x6ObyZ/dkFH4vDeIW3ONXxVHqCAQ
-         ryovsoAWAJh470eCFFMgbe39CYiRUkckrGA0YhAU4pPHoCCKg3xRZkTVDqehNYwdf+f5
-         9fRQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790828835; x=1791433635;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=9A6rq3RuonmAhdkjSfW3Ew3B0bFGrJGb84aoG+EWNd4=;
-        b=w5ovoJrpfhHUhHko6GpLT2JXGtkttHRhsGEjsLAPMXIY6B4YN0RQOiOncbUuOf722i
-         LinRF2iOQpH44+VqSt5ifgPD8Ly2OpKsHd5R8P5oKjgFbFaa3r8C57Yk1CQPbZzVRtw0
-         JbXmGaqIvJdQXPJwTrxM84iCXuUI54NOI++j26VDHDq8ipU1zsvjyGVhdDhyucIBohA5
-         Nqj5KVHuAtIKgfNarhtIal46BwgjjT350Fm815T3ZZ6TMS7yzsjHzXm9iSa262C3hISJ
-         gI0tT/n1iDPc2nEfQoopV0En+VZi/dSxw3jcwhEwKWUH+xCixVhYDpfKV5hYYPSFXQCe
-         zZCQ==
-X-Forwarded-Encrypted: i=1; AKwUvBycOCN2IR5ZkZh6NTWxdhAGw7L5QVJPVBtJOm/JUJlU0fUESmtWGZlm62oSrhX9DAxlC3zDa6UDSm/k@vger.kernel.org
-X-Gm-Message-State: AFuF++lU5jfoq5TPHQI457P/nE4RiFEX05inKIwVF75sp/Z3ZYspv9+A
-	J3z/t9htHNwm/9w8uGC62GAg3TJdl4GtTnAAE8KbBXC0dXFx390dPeU0
-X-Gm-Gg: AYBFou37btvhngKIXFeSLyC7gCUr5ce4AeNwQ3XpCbK9LGEUOCYc+bnOAIjkovjjI7C
-	br46QHbnmuDLjsoeAIGTYff00w2c/34EWCQcnWEs+xq1lsn8FvPEad9pcYuDXu3ofx9cf+E/pdD
-	QeLyxKU83KNxzx+HLo3APxp8+BAE56uIpg/sP3VYH9tLPg1Q/Xl0/rk9kFP0UCC9yjU92Go/pik
-	2+JmE8otdfC8kuv6ojmTuMRPD8aA3jAJjRjAVmOSDnWpK6DuIHRzfJmlPGkuszUsm0u4wvbzRsX
-	uRCNXbbqkeIKBWYuDfaSBjMI0kMTLpwIQhHtei2sPucv+h14EpslY4IFPEKVSvt6d0Xh9Pi8BXL
-	HCTGdjrsu3Qay1uW7YVILJriXNs/HSzwTL+vClYTR3WSCBrLP1fgGJB7PNNpaZYVwE51Jy/9uIJ
-	0FO4yZNnNgmfRHOp2Slk8t1TCxrPAHnB0IbJsGGOhFuLvbkfRFcPapnOKVEsytqTd+L5yPN6KOV
-	HzrDAPX6MFudCQaTMxGdlLpHEZGJZ9qFsCZf1IQjnKLqgD1CY9FxoHpdMT3eMxzcS0v3EMEnqJA
-	zFW49bYhi9DE1PGwNA82ZVV34lcoEmb5DZ30
-X-Received: by 2002:a05:701b:2515:b0:13c:ec65:7bca with SMTP id a92af1059eb24-14d31f58017mr4110288c88.13.1790828834553;
-        Wed, 30 Sep 2026 21:27:14 -0700 (PDT)
-Received: from rahuls-x2elite ([157.51.37.69])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-14df44d4f00sm3637768c88.14.2026.09.30.21.27.08
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 30 Sep 2026 21:27:13 -0700 (PDT)
-From: Rahul Pon <theflyingrahul@gmail.com>
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Linus Walleij <linusw@kernel.org>,
-	Mika Westerberg <westeri@kernel.org>,
-	Andy Shevchenko <andy@kernel.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	linux-gpio@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] ACPI: GED: Support GpioInt event resources
-Date: Thu,  1 Oct 2026 09:57:02 +0530
-Message-ID: <20261001042702.2249-1-theflyingrahul@gmail.com>
-X-Mailer: git-send-email 2.55.0.windows.5
-In-Reply-To: <20261001040420.GB176164@black.igk.intel.com>
-References: <20260930111505.1108-1-theflyingrahul@gmail.com> <CAD++jL=45ZdTbHsLDTAmTt3f+=VBVK014TLJyd5Drdba3V=dSQ@mail.gmail.com> <20261001040420.GB176164@black.igk.intel.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="tvE0yXkP"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=BvgsUHRulLqK9osnkirGNwGOFyjH9r8zFkhZ701KhOyn3cRDbPFVAEJU/hO7owYbWy0wwyeVOOJTHHV5ePAZbNF7V3XhrBOczH7nXtetVJp3jSKpECQPqRyWqcvfK4K0GGAe7MesYZLOtaf1g895CiJMAEmp3p/RyOZyxhnNycNuZVBvrkgNGdTEZcpfFqk2LTyGvji1K5RhZM/Onqojp4QJTJYJgD4j4R6Tc164MhHwBBYE610slsw5E2Tj/pWbtMlVBtx26tAaNc/JZetSFhIPWF4JiJvoSd2BrHEItN5RRfFGSaJ3dvPpLWXJMLT4HtbkLbAE61C3wWxUuTL0dg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=1fmZ+60cZ0vzwZtSJFzIuASHU5ixn5a5APInx/xrgbM=;
+ b=iyi3O11Qmm4bve8HCmg80lZ3jR7PNy/aF+AWbuHZw75RPx+RXmmpCoraxzJDpcNCKqslsBY//DXMVvUDc2/yO/DaKBdDNu9p7rt4+49pfUPaWxJWUTEseo/edKHISwDLqp9jzlMCN7u9WsdOlYkl1/zQgYsBlClNqbBTYLbNNncF+cEd/KIaIVdASdHypno4TP5u2JomCxDo3/oHW7tc2p3ocNK+m0OchNAXu9edF40rIsQQWfJa9yTs02V8jA+ZcApdnkes0PtvF66c59U8pQhMQfATFvsCJUSueGchH/ECmndDQHaoveMdBMh2a9DpgxJj57Bn+3m2Ujf4+zsvgw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=1fmZ+60cZ0vzwZtSJFzIuASHU5ixn5a5APInx/xrgbM=;
+ b=tvE0yXkPZGx+YtR0WKSVi1F2BSwXr2sk3lcQKANPPvXFusXeszQh9iQRUt2IPAt4AU6vHyzeS2yWfaNNzrzGeBkT42Cjg5rKHTbCMfWLPil5EAXrujNNgflcat7scrEnWsUJ2HTAHWzpjwSeWUSkiBKFzKrDTdeAn9ZOGqN0w7eUtwfwaULQwgFcEci9BQQvbramXb0We+fJaCMKBYCObhi/Y8KErXY+Mf35BAPUTCbGVha+UnU2RH1YAH6hLpG5a9Ct7tomTkJhOvQ05i6W9L/MLWsguDG40WRG+/sSwEAoq54wrsRLuEioR3/gk4pjPOAIgKRzc6u3bHqg1WLFXA==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from CHAPR12MB999224.namprd12.prod.outlook.com
+ (2603:10b6:610:302::6) by DM4PR12MB5724.namprd12.prod.outlook.com
+ (2603:10b6:8:5f::9) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.26; Thu, 1 Oct
+ 2026 06:13:57 +0000
+Received: from CHAPR12MB999224.namprd12.prod.outlook.com
+ ([fe80::e6c2:bda3:91c7:9d17]) by CHAPR12MB999224.namprd12.prod.outlook.com
+ ([fe80::e6c2:bda3:91c7:9d17%3]) with mapi id 15.21.0472.015; Thu, 1 Oct 2026
+ 06:13:57 +0000
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Thu, 01 Oct 2026 14:13:49 +0800
+Message-Id: <DLTA3UZV3REO.38GIFKJFC8B58@nvidia.com>
+Cc: <tony.luck@intel.com>, <bp@alien8.de>, <guohanjun@huawei.com>,
+ <mchehab@kernel.org>, <xueshuai@linux.alibaba.com>, <lenb@kernel.org>,
+ <kees@kernel.org>, <gustavoars@kernel.org>,
+ <linux-hardening@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+ "Kai-Heng Feng" <kaihengf@nvidia.com>, <ashok.raj@oss.qualcomm.com>
+From: "Kai-Heng Feng" <kaihengf@nvidia.com>
+To: <rafael@kernel.org>, <linux-acpi@vger.kernel.org>
+Subject: Re: [PATCH v3 0/3] ACPI: APEI: GHES: Add NVIDIA Vera CPER decoding
+X-Mailer: aerc 0.22.0
+References: <20260724122054.36162-1-kaihengf@nvidia.com>
+ <20260804122318.88193-1-kaihengf@nvidia.com>
+In-Reply-To: <20260804122318.88193-1-kaihengf@nvidia.com>
+X-ClientProxiedBy: SI1PR02CA0002.apcprd02.prod.outlook.com
+ (2603:1096:4:1f7::16) To CHAPR12MB999224.namprd12.prod.outlook.com
+ (2603:10b6:610:302::6)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CHAPR12MB999224:EE_|DM4PR12MB5724:EE_
+X-MS-Office365-Filtering-Correlation-Id: ab01d7d0-ccb6-4836-2e80-08df1f832d9d
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|7416014|1800799024|23010399003|366016|4143699003|10067099003|11063799006|5023799004|6133799003|3023799007|56012099006|22082099003|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	rYaMsSwie2knk5mr6pmIL/0YeHQphOfsgn3oo0EYpqVzqs2lkcvQ7gR2YSWEqJU+uIwUtAUbc6f6Z4xEripQatKo78+J38/ER8Ql9U7Iv8TB/+4CS4DxWCoanfy9KmzCtwrCgL9rUkcs56OM8YwjdCun/s4qeUFo/8+xRqXplUBVWl6VoqxTzTBJDL+Sa/H+MvX1RzzyaW9QuTVnDqUfJpGwS2sqO3bFV7YP4qGYi8L2bgTiWwnBvnDMk6hwu5aZqt4ACIdrITyf23vDGHZ8US5bWS+1qOAAzy2dtNRud70071jDxR0OmYODL1Tmsg4d4F7hLiVWa8tQpQN9m9h+OutZDS4qgZl/AL1/75jF5cLMos76IeHcbqB/4pEogFIQEluOGRCmLIc7Bs4LFvheq3fT7rGZRHw0cwK52O8vHbbx7pYcJJKSWXkgNqtJRvUwSdoCp51KDkX/0kq/dV29FdEgJuB/qaaprCep+2zlSd/QjoKrfGI5EPbc+l9Mn+NpFBTBovVyo/T7Y5or+bPNSjd5PwVPLfyjzxUAJp1ZFUIGMtdD1nQqsNmrBbUvwFU1/sQwRtwZdE7T2+QppCPdDJeV52lhCxNk4/5oxgpumF+F2AE+ffI43Sc9j1yaWV7gatMKxyhE1LtS91ybKlY3ioIS3lnBLRNskpuBl2ytjAI=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CHAPR12MB999224.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(7416014)(1800799024)(23010399003)(366016)(4143699003)(10067099003)(11063799006)(5023799004)(6133799003)(3023799007)(56012099006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?eUJwbVdGQ0xRZUpROTYxQm5zVllac1JOSk0yNXhrZzFUSzl1RGdDZzUwWnhS?=
+ =?utf-8?B?V0tPbGVIeWxNb1lFcmlnd0NNRmpzRFF4MGM2ZjFWenBQeml4WGt3TEcyL2Za?=
+ =?utf-8?B?TERQemNzb0hhMlNjWFVVVVRtNExwUXRPM21QVlVscDIwQU04QjByU21Xb3Q3?=
+ =?utf-8?B?NU1mT0xFMjRJb0QycXNuTUlsRW9qWTFqcEZpYzRJR0YxQXRjd1BlUDl5b3NB?=
+ =?utf-8?B?RnBLYTdYYXlsMWNPZzh4Y1lJaUFPY0pyVyttS1NsS1BtbnpPRTBtdnpiN1RN?=
+ =?utf-8?B?enpncFNNTEJpTmNNZkdQT2xZVStNSk1TZlB5cVhyNFM3NjgwcWNFVzdvcUxV?=
+ =?utf-8?B?WmdYcG1CaEdWTDJweDFtSTNuQUdRRkhkM0N3VnJKcE4zMGFYZTlvQk11VWky?=
+ =?utf-8?B?ZCtucUJubm0yeGxiUTFDT3k4WXY2Y1NLUlUxRzVNZHA2OS8ySmNUMzdRMDZU?=
+ =?utf-8?B?aDRrZzlJcDdHYWNoeEt5SzljcHA5K0dJMVpmQlRSak0vYUdhUUhjN1dEdU15?=
+ =?utf-8?B?OExqNS92K2F3QnZmTm53ZHpvRlB5N2FmQ2VvT3RDMC9ZK2tTcHZZY2MzbW84?=
+ =?utf-8?B?aUcwd1VnUDhWZElGdi9ncERmbGlySzA5SS9aSnpNd2Y1VkUycHFJcE9lWEkv?=
+ =?utf-8?B?NCthZzFYWmZ3bmJvNXd0SlNIN0xyb2N5NE9QTjNENEYyd2FBMmJLYUZlWklN?=
+ =?utf-8?B?RWEvR0twNktpMUV5MEx1R0V1cnh6aS9zRGhCSEVCUzBCNkFNUWJ4Q0I5c05t?=
+ =?utf-8?B?S1hSK3ErSCtCOURjMDQ1bnBpbldOM3pSa01relFuODFuS1lxelFhdzc0blcy?=
+ =?utf-8?B?U21GaHp4blFnNGpnZXhsbDQ5UTViUkJOV1pZNVFOUEhKMzVVcUhxdGJrY3RC?=
+ =?utf-8?B?SC96UmRSeHJoQ0VpZC9hUEl0azV5a0MxOVE2L2VoQytlTFJIa3lYYmFnTEdB?=
+ =?utf-8?B?NHFET1h5cEJuZmdKL0ZYclY1ZEt3N1ZwUGR3RG1xZGxTRjJ4aXh0Wi9sWTNw?=
+ =?utf-8?B?RmhjRnpkUldPdmEwVmU1TXprWUlYNjlmeXFQcXNqdUtSaUVhSFQ1QXFXdlJI?=
+ =?utf-8?B?ZEdST1M4SFdZeUVveVFrVkZVcU51bTlPYWJmc3h2YndHendjakxFVUdmQWJ2?=
+ =?utf-8?B?ZWx5S1crZ0NrVXllUFc2S1NtakFQMWhOS0gyZzlnYUxFMmVJZ0Y5SE41b25P?=
+ =?utf-8?B?UUdZR1Q1ak1yQjV3dk1YU3NZdFdOZ3Q2U3VuQ3Y1OGRGdlBjSFRQcUgwUWdS?=
+ =?utf-8?B?ZDdPY1VPaGx4ZVdMNXN3UlJXcnllR0w4SklTcjRiUkd5UXc5OUJYMmZqSW5D?=
+ =?utf-8?B?Yit2bE52VGY2L1ArbElTTlBzOGV0bjBldHdJNlp2VElYMGxnOVRUVGt1OUNk?=
+ =?utf-8?B?dXI4aVYrRFdKaWZ1cVZ1TDJrM2gxVDdJZ09LV0hIYUtKY3ZRdWR3Qm5WRXdG?=
+ =?utf-8?B?L2xlUlBidHRGcnVOQ3VjZ253Wjg4QndMYjg4TVpseVV6Q1FOanROcGpkSFp6?=
+ =?utf-8?B?L2o2Rlpnb3hFb1lwc3JFSXRaa2drdU5rUjhHM1FTdkZadW5RTkNxYmVzaWhw?=
+ =?utf-8?B?ejZQb1E2bC91VFZtRDFQT3ZnMGNlVFNyMmlzWE9jZTlkakFvYkhwbVFTc1F6?=
+ =?utf-8?B?MTFmOHBuQng0OXJHYlRLMGZob3lHVEtJaUx5ekZ3dG9aYVRxaDdLY1pXMjNO?=
+ =?utf-8?B?TGJmNzFXbnQvR0svUVJabVR2UEpKQ2tRUjhZN2o0UUFuOURFQzFSTEJUL3BH?=
+ =?utf-8?B?aG5QenI2V0VIdndzcXc0VE8wa2d0N0JmVEJNSkhFZnRTT0hkWndSWjJuOU16?=
+ =?utf-8?B?NjZER3JlUWtsemRwdC9RamlDbVMxZzNVandYZWNQQmFYVlcwenBWZVpNN1ZI?=
+ =?utf-8?B?S005MU5JMm1YaFhiWVBzYW54SWJnQnU1eFlMMm1EVG9adjJWcEVUbENlZ2lj?=
+ =?utf-8?B?cU1KbVN3OU9mV1g0RFlpbDlIcmhzNUYzd0VGMHZ5ancwNlpGNmF4ZWRCQzIv?=
+ =?utf-8?B?SWVhV3dyU0tsa2M1M1FjYjRvQzkycWpiV1FVRzlaNHltRmFUL3cwMmtINFE5?=
+ =?utf-8?B?TlkwdFlBb1Q2UFZTMHdGYVM1M2cvcVNyaDlvUHdqeEM0YXpnazdtNEdFVE91?=
+ =?utf-8?B?Y3JkS1I0VjE5L2FVTWVObVY2N1d5Zy9UeXlsSGNJdHozQ3IzbG03dk1BNGxW?=
+ =?utf-8?B?bTdwaldpeDFHTUQwZ1JHbGI0cWNhYjhCZnV2SkgrMzdyam1nWnp2LzhmY0V2?=
+ =?utf-8?B?ZXByaEdnYW10WGR5dHFQdHI5ZHdvQWVUSnFjdWxnd1R5bEk5aGY4YzJkbHMw?=
+ =?utf-8?B?Wm1lUUpTVWM3V1RPaFZzaERwZnU2dlVPWlhQeFY0RUpiK0JmZWltUT09?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: ab01d7d0-ccb6-4836-2e80-08df1f832d9d
+X-MS-Exchange-CrossTenant-AuthSource: CHAPR12MB999224.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Oct 2026 06:13:57.7465
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: sDadKqIdCNFDKLv/B37mmmBb2xH0GY6RxhsXVCdVVNFDX0yYeZMHmtL7Diwb2MQ3iR+xhFd4tRWQgXrCpnsl8A==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB5724
 
-Hi Mika,
+On Tue Aug 4, 2026 at 8:23 PM CST, Kai-Heng Feng wrote:
+> The NVIDIA GHES driver currently decodes the vendor CPER section used by
+> Grace systems. Vera uses a different section GUID and event layout.
+>
+> Refactor the Grace path into testable decode and print helpers, add the V=
+era
+> event decoder, and cover both formats with KUnit. The Vera parser follows
+> the extensible CPU information and event-context wire contracts: it accep=
+ts
+> new minor versions and extended information headers, validates every one =
+of
+> the wire format's 0 to 255 contexts without allocation, and retains a val=
+id
+> prefix when a later context is malformed.
+>
+> Printing walks the validated raw context span a second time. It limits
+> verbose output to 16 contexts and 32 key/value entries per section while
+> still validating the complete record. Existing one-context output remains
+> unchanged.
+>
+> The companion ras-tools series adds a fail-closed NVIDIA EINJ validator f=
+or
+> the non-fatal Grace CMET-INFO and Vera CMET-NULL samples.
+>
+> Changes since v2:
+>  - Move EINJ tooling out of the kernel series and into ras-tools.
+>  - Follow the Vera CtxSize padding and alignment contract while retaining
+>    the legacy opaque-context encoding.
+>  - Accept compatible CPU information extensions and validate the complete
+>    8-bit context count with an allocation-free cursor.
+>  - Bound verbose context and entry output independently, while reporting
+>    omitted contexts and entries.
+>  - Add wire-layout assertions, partial-context handling, severity-aware
+>    diagnostics, and 52 Grace/Vera KUnit cases.
+>
+> Verification:
+>  - x86_64 KUnit: 52/52 passed.
+>  - ARM64 KASAN+UBSAN KUnit under QEMU/HVF: 52/52 passed.
+>  - ARM64 GCC and Clang, built-in and module configurations, W=3D1: passed=
+.
+>  - ARM64 GCC full Image link: passed.
+>  - ARM64 sparse C=3D2 with __CHECK_ENDIAN__: passed (one unrelated existi=
+ng
+>    arm64 vDSO declaration warning).
+>  - Strict source checkpatch and git diff --check: passed.
+>  - The raw live sections were decoded independently by libcper at commit
+>    b83878a4aca9: Vera as an 80-byte CPU CMET-NULL event with one empty
+>    type-1 context, and Grace as a 544-byte CMET-INFO section with 32
+>    registers.
+>  - Vera live EINJ: a real 80-byte CMET-NULL CPER from GHES source 8193,
+>    event type/subtype 0, one 16-byte context, and zero entries (not the
+>    firmware-rejection record seen with the old selector).
+>  - Grace live EINJ: a real 544-byte CMET-INFO CPER from GHES source 896,
+>    severity 3, with all 32 register addresses decoded in order.
+>  - Both live runs reached the runner's PASS gate with empty tool stderr,
+>    captured the raw tracepoint record, and restored every EINJ control
+>    byte-for-byte.
+>
+> Kai-Heng Feng (3):
+>   ACPI: APEI: GHES: Refactor Grace decoder helpers
+>   ACPI: APEI: GHES: Add NVIDIA Vera decoder
+>   ACPI: APEI: GHES: Add Grace and Vera KUnit coverage
 
-On Thu, Oct 01, 2026 at 06:04:20AM +0200, Mika Westerberg wrote:
-> ACPI GED specifically is supposed to use interrupts only (hence the name,
-> Interrupt -signaled ACPI events). I think this one should really use the
-> GPIO signaled ACPI events instead and probably just has the ACPI0013 there
-> by accident. Can you share the ASL around this device?
-
-Sure, below. iasl shows the _CRS buffers as raw bytes; the GpioInt
-lines are decoded from them and recompile to the same bytes.
-
-The lid device:
-
-    Device (LIGE)
-    {
-        Name (_HID, "ACPI0013")
-        Name (_UID, One)
-        Name (_DEP, Package (0x03)
-        {
-            \_SB.GIO0, ,
-            \_SB.LID0, ,
-            \_SB.IC10,
-        })
-        Name (EEDP, Buffer (0x03)
-        {
-             0xFF
-        })
-        CreateByteField (EEDP, Zero, STAT)
-        CreateField (EEDP, 0x10, 0x08, DBUF)
-        Name (LIDG, Zero)
-        Method (_CRS, 0, NotSerialized)
-        {
-            Name (RBUF, Buffer (0x25)
-            {
-                /* 0000 */  0x8C, 0x20, 0x00, 0x01, 0x00, 0x01, 0x00, 0x1D,
-                /* 0008 */  0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x17, 0x00,
-                /* 0010 */  0x00, 0x19, 0x00, 0x23, 0x00, 0x00, 0x00, 0xC0,
-                /* 0018 */  0x03, 0x5C, 0x5F, 0x53, 0x42, 0x2E, 0x47, 0x49,
-                /* 0020 */  0x4F, 0x30, 0x00, 0x79, 0x00
-            })
-            /* RBUF decodes to:
-             * GpioInt (Edge, ActiveBoth, SharedAndWake, PullNone, 0x0000,
-             *          "\\_SB.GIO0", 0x00, ResourceConsumer, ,) { 960 }
-             */
-            Return (RBUF)
-        }
-
-        Method (_EVT, 1, NotSerialized)
-        {
-            If ((\_SB.IC10.AVBL == One))
-            {
-                Sleep (0x05)
-                Acquire (\_SB.ECMX, 0xFFFF)
-                EEDP = \_SB.IC10.CMB2
-                Release (\_SB.ECMX)
-                LIDG = DBUF
-                If ((LIDG & 0x04))
-                {
-                    \_SB.LID0.LIDB = One
-                    \_SB.GPU0.LIDB = One
-                    Notify (\_SB.LID0, 0x80)
-                }
-                Else
-                {
-                    \_SB.LID0.LIDB = \_SB.GIO0.LIDR
-                    \_SB.GPU0.LIDB = \_SB.GIO0.LIDR
-                    Notify (\_SB.LID0, 0x80)
-                    If ((\_SB.LID0.LIDB == Zero))
-                    {
-                        \_SB.WMID.GWMT (0x08, One)
-                    }
-
-                    If ((\_SB.LID0.LIDB == One))
-                    {
-                        \_SB.WMID.GWMT (0x08, 0x02)
-                    }
-                }
-            }
-            Else
-            {
-                \_SB.LID0.LIDB = \_SB.GIO0.LIDR
-                \_SB.GPU0.LIDB = \_SB.GIO0.LIDR
-                Notify (\_SB.LID0, 0x80)
-            }
-        }
-    }
-
-The EC event device, ECGE, is another ACPI0013 with one GpioInt:
-
-    GpioInt (Edge, ActiveLow, Exclusive, PullUp, 0x0000,
-             "\\_SB.GIO0", 0x00, ResourceConsumer, ,) { 768 }
-
-The GPIO controller (GIO0, QCOM0F0C) does have GPIO-signaled events.
-Its _AEI lists one pin:
-
-    GpioInt (Edge, ActiveHigh, Exclusive, PullNone, 0x01F4,
-             "\\_SB.GIO0", 0x00, ResourceConsumer, ,) { 126 }
-
-Its _EVT handles that pin (0x7E, a Notify to the GPU) and also pin 0x5C
-with the same EC read and lid Notify as LIGE's _EVT, but _AEI does not
-list 0x5C. So on this firmware the lid is signaled only through LIGE.
-
-Either way, please drop this patch, and disregard the v2 plan in my
-other reply. Looking at it again, it has no upstream user: GIO0 has no
-ACPI driver in mainline, and my lid test used an out-of-tree bring-up
-driver for it. Mainline supports these laptops through the device tree,
-where the lid is a gpio-keys switch and no GED is involved.
-
-Sorry for the noise.
+A gentle ping on this series...
 
 Thanks,
-Rahul
+Kai-Heng
+
+>
+>  MAINTAINERS                                   |    2 +-
+>  drivers/acpi/apei/Kconfig                     |   24 +-
+>  drivers/acpi/apei/Makefile                    |    1 +
+>  drivers/acpi/apei/ghes-nvidia-test-fixtures.h |  233 +++
+>  drivers/acpi/apei/ghes-nvidia-test.c          | 1274 +++++++++++++++++
+>  drivers/acpi/apei/ghes-nvidia.c               |  767 +++++++++-
+>  drivers/acpi/apei/ghes-nvidia.h               |  109 ++
+>  7 files changed, 2364 insertions(+), 46 deletions(-)
+>  create mode 100644 drivers/acpi/apei/ghes-nvidia-test-fixtures.h
+>  create mode 100644 drivers/acpi/apei/ghes-nvidia-test.c
+>  create mode 100644 drivers/acpi/apei/ghes-nvidia.h
+>
+>
+> base-commit: 848acc8ffe1b7cd5f1bf427b93069becfebc2c9d
+
+
