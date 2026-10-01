@@ -1,88 +1,123 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B457C472531;
-	Thu,  1 Oct 2026 10:03:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from desiato.infradead.org (desiato.infradead.org [90.155.92.199])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3DC03C196B;
+	Thu,  1 Oct 2026 10:35:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.92.199
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790848987; cv=none; b=l7ClV9K6cHVolqwXwZM92IhIWuR7Fe3LNKR6gNGbn//86DsQ4tO7b6HYu6hM7tIxrv2VN+d2qu9PCTFB1YkEEDJvmW6f/qB+e0qBdzPl1CFb4CW4a7DZvm7DX1IZ6ywfIOuW6gWL2Vc26+D2yJQ8dze9ffyiNhK6hdSQmsgkVoM=
+	t=1790850918; cv=none; b=lqoJr+HSK+/IHHNfFpcsNs9+YyFEbTaIWbJh2GlpbCSuttPE2ggzNuqJw+2/dvFU4slFPChBUh3HlRWtZDw1e+kWZBHbxKacK4Olbu040EaUxkMjK0T4Q+f6I5d8UgqhPk74RP1XiA3u7+AmOiwoCjQwwyjalcPmOvTWCtpSiwY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790848987; c=relaxed/simple;
-	bh=esFJv3tzq3GjLICQ3vHBhZdmoY4Nkj+8PiOnbXfPFS0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=BSUKW1/W+eWZTlZxwEK3zvliTim9VfgshkbmwqIfm4DlHpUr67cy4mg/BACQmMf5dH5YsoBY3ka0LCXd+C1zzkNxz1SD/j9vU2CzVohJfE17ot6kxPxkpjFZhao0gGwKvQJQ2BSFtxs2QaSH8P5KkLJ/QYVJpxl6tJAvFYWaVp8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=LADWCU1+; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1790850918; c=relaxed/simple;
+	bh=wyY4uqF8oVkqJJ4SU1baP5QoiyjE4zdP/Pl/JeO4cp0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZMYi/flz0czgg6LxeOz0depq9H5jLYDixhCL1d8FtoIPIrlDTzNgZMcyPdN5aPFJifmyNPmQrnDQOZserXdSE6M7CEr1TRMYVGtXOXzhNa3EU4S6z1t4Wdqux3Ilv7mPKtCwKGwFuHgCl38y/zAX1R+wOyB8EKe2sfvArT8Of74=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=oPjEY3kJ; arc=none smtp.client-ip=90.155.92.199
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="LADWCU1+"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 553FF497;
-	Thu,  1 Oct 2026 03:03:01 -0700 (PDT)
-Received: from [10.0.130.165] (e127648.arm.com [10.0.130.165])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 73F0A3F86F;
-	Thu,  1 Oct 2026 03:03:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1790848984; bh=esFJv3tzq3GjLICQ3vHBhZdmoY4Nkj+8PiOnbXfPFS0=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=LADWCU1+h7wROBYy3JPnb2C+1EeR88NOYHy/RK6j+e4WArcop+CsQEvpLXVmtTf6P
-	 iV8WYMsDgeycdq/qMhmQ4mr1UpKVOchR7oWE0v05HA7uv0nbjdhYmWBMoekk7sySIk
-	 ozIqJe/JAfw3ImpogjcKvDPTzJvIOCLx3+ldb9+I=
-Message-ID: <5b748ac7-26da-4010-bfc8-014a0c97abe2@arm.com>
-Date: Thu, 1 Oct 2026 11:03:01 +0100
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="oPjEY3kJ"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=desiato.20200630; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=xbJhgquatt87upvJf0Ak4lxdnZtpIeSb+aDtxb1CtgI=; b=oPjEY3kJQ4HBOpowg0quk/3xk2
+	74VjW7/qKOuV51Z2N4Xm67I+IYiudxcplzOcQ2MxYPrU0hIQVib0HqYSQGlKUE50MyldkVXDz66r3
+	WCObSwGLljzoDs9jRbVWEDa2bm08+LmAG27Ff2EUlCydIo5a6mV0Pi50lL0JnDiNkoniOfyHENxoK
+	s2Fs4nUvuRETCwm1YJfnvMZPbeA0FwuSVQDB7kYziJNhLiqKfGFwwyFz0iXYfqAD2NFhdeUPUTwqB
+	k71/r34eUL5HHZ4nPBmrLMfejkYUAceiku7ubqqoK3laOZXNEUhD65XiuNw220gcN7vsPhnLkRrik
+	fK9B0FqQ==;
+Received: from 77-249-17-252.cable.dynamic.v4.ziggo.nl ([77.249.17.252] helo=noisy.programming.kicks-ass.net)
+	by desiato.infradead.org with esmtpsa (Exim 4.99.2 #2 (Red Hat Linux))
+	id 1xCE7i-00000004qdd-30Wm;
+	Thu, 01 Oct 2026 10:34:46 +0000
+Received: by noisy.programming.kicks-ass.net (Postfix, from userid 1000)
+	id B5CE9300446; Thu, 01 Oct 2026 12:34:44 +0200 (CEST)
+Date: Thu, 1 Oct 2026 12:34:44 +0200
+From: Peter Zijlstra <peterz@infradead.org>
+To: Christian Loehle <christian.loehle@arm.com>
+Cc: rafael@kernel.org, zhenglifeng1@huawei.com,
+	zhongqiu.han@oss.qualcomm.com, viresh.kumar@linaro.org,
+	linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org,
+	Mario Limonciello <mario.limonciello@amd.com>,
+	K Prateek Nayak <kprateek.nayak@amd.com>,
+	Huang Rui <ray.huang@amd.com>, Perry Yuan <perry.yuan@amd.com>,
+	"Gautham R . Shenoy" <gautham.shenoy@amd.com>,
+	Vanshidhar Konda <vanshikonda@os.amperecomputing.com>,
+	Shubhang Kaushik <sh@gentwo.org>,
+	Pierre Gondois <pierre.gondois@arm.com>,
+	Beata Michalska <beata.michalska@arm.com>,
+	Dietmar Eggemann <dietmar.eggemann@arm.com>,
+	Ionela Voinescu <ionela.voinescu@arm.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Lukasz Luba <lukasz.luba@arm.com>,
+	Jeremy Linton <jeremy.linton@arm.com>, jonathanh@nvidia.com,
+	zhanjie9@hisilicon.com,
+	Vincent Guittot <vincent.guittot@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: [PATCH 0/3] cpufreq: Resolve CPPC frequencies to performance
+ levels
+Message-ID: <20261001103444.GU4120091@noisy.programming.kicks-ass.net>
+References: <20260929102957.2591657-1-christian.loehle@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 3/3] cpufreq/amd-pstate: Get Highest Freq for a CPU
-To: "Mario Limonciello (AMD)" <superm1@kernel.org>,
- =?UTF-8?Q?Rafael_J_=2E_Wysocki_=E2=8F=8E?= <rafael@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-pm@vger.kernel.org, K Prateek Nayak <kprateek.nayak@amd.com>,
- x86@kernel.org, Mario Limonciello <mario.limonciello@amd.com>
-References: <20260924160052.2858456-1-superm1@kernel.org>
- <20260924160052.2858456-4-superm1@kernel.org>
-Content-Language: en-US
-From: Christian Loehle <christian.loehle@arm.com>
-In-Reply-To: <20260924160052.2858456-4-superm1@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260929102957.2591657-1-christian.loehle@arm.com>
 
-On 9/24/26 17:00, Mario Limonciello (AMD) wrote:
-> From: Mario Limonciello <mario.limonciello@amd.com>
+On Tue, Sep 29, 2026 at 11:29:54AM +0100, Christian Loehle wrote:
+> For table-based cpufreq drivers, the core resolves requests to supported
+> frequency-table entries before governors such as schedutil compare them
+> with their cached target. Different kHz requests selecting the same entry
+> therefore need not reach the driver again.
 > 
-> If the highest frequency is known for a CPU, use this instead of
-> trying to calculate by linear interpolation.
+> Table-less cppc-cpufreq lacks this resolution: the core returns the requested
+> kHz value even if firmware exposes only a few CPPC performance levels.
+> Different requests can miss the governor's cache yet program the same
+> Desired Performance value. The tested ARM AGI CPU exposes only 61 levels,
+> with bounds visible at:
 > 
-> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
-> ---
->  drivers/cpufreq/amd-pstate.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
+>   /sys/devices/system/cpu/cpuX/acpi_cppc/{lowest,highest}_perf
 > 
-> diff --git a/drivers/cpufreq/amd-pstate.c b/drivers/cpufreq/amd-pstate.c
-> index 496e0342c1c90..2a0cbfe21a67d 100644
-> --- a/drivers/cpufreq/amd-pstate.c
-> +++ b/drivers/cpufreq/amd-pstate.c
-> @@ -1102,8 +1102,10 @@ static int amd_pstate_init_freq(struct amd_cpudata *cpudata)
->  
->  	WRITE_ONCE(cpudata->nominal_freq, nominal_freq);
->  
-> -	/* max_freq is calculated according to (nominal_freq * highest_perf)/nominal_perf */
-> -	max_freq = perf_to_freq(perf, nominal_freq, perf.highest_perf);
-> +	/* try to look up from BIOS/quirk first, fall back to (nominal_freq * highest_perf)/nominal_perf */
-> +	max_freq = amd_get_max_frequency(cpudata->cpu) * 1000;
-> +	if (!max_freq)
-> +		max_freq = perf_to_freq(perf, nominal_freq, perf.highest_perf);
+> Add ->resolve_freq() so table-less ->target() drivers can canonicalize
+> requests without constructing a frequency table. CPPC resolves requests
+> before sugov_update_next_freq(), allowing its existing cache to skip
+> equivalent requests. Raw limit notifications still trigger
+> reconsideration, but only changed resolved limits force a driver update.
+> Failed limit writes remain pending for retry.
+> 
+> Testing on an ARM AGI CPU (61 distinct CPPC levels) with schedutil gives
+> the following end-to-end results across 16 iterations:
+> 
+>   schbench -m 2 -t 31 -F 256 -n 5 -R 18000 -r 60 -w 20 -i 60
+> 
+>   metric                         baseline       resolve-freq      change
+>   median p99                    3364 us          3280 us          -2.5%
+>   mean of run p99s              3664.2 us        3299.0 us       -10.0%
+>   worst run p99                 4360 us          3500 us         -19.7%
+>   median throughput             16431.08 RPS     16460.69 RPS     +0.2%
+> 
+> In an instrumented run of the same workload, cppc_set_perf() calls fell
+> from 1,136,868 to 866,703, a 23.8% reduction.
+> 
+> Christian Loehle (3):
+>   cpufreq: Add a driver frequency resolution callback
+>   cpufreq: CPPC: Resolve frequencies to performance levels
+>   cpufreq: Skip updates for unchanged resolved limits
+> 
+>  Documentation/admin-guide/pm/cpufreq.rst |   4 +
+>  Documentation/cpu-freq/cpu-drivers.rst   |  19 ++
+>  drivers/cpufreq/cppc_cpufreq.c           | 257 +++++++++++++++++++++--
+>  drivers/cpufreq/cpufreq.c                |  99 +++++++--
+>  include/linux/cpufreq.h                  |  11 +
+>  kernel/sched/cpufreq_schedutil.c         |  19 +-
+>  6 files changed, 359 insertions(+), 50 deletions(-)
 
-Don't you need to align freq_to_perf() (or the callers) for the BIOS-overwrite case too?
-amd_pstate_update_min_max_limit() still uses the nominal-based conversion for policy->max,
-so the new maximum frequency maps back to highest_perf on each core type?
-(and we end up with max_limit_perf < highest_perf if the BIOS-overwrite values are below
-the interpolation result.)
-
-
->  	WRITE_ONCE(cpudata->max_freq, max_freq);
->  
->  	lowest_nonlinear_freq = perf_to_freq(perf, nominal_freq, perf.lowest_nonlinear_perf);
-
+No objection to the kernel/sched/ change. I'm assuming rjw or other
+cpufreq maintainer will take this?
