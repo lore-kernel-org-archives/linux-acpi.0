@@ -1,70 +1,78 @@
-Received: from mail-dy1-f174.google.com (mail-dy1-f174.google.com [74.125.82.174])
+Received: from mail-qk2-f13.google.com (mail-qk2-f13.google.com [74.125.230.205])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8253949F137
-	for <linux-acpi@vger.kernel.org>; Sat,  3 Oct 2026 16:40:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 254373815E6
+	for <linux-acpi@vger.kernel.org>; Sat,  3 Oct 2026 22:29:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.230.205
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791045639; cv=none; b=e/WRr6zI3SYxJZ5RezYePjs/pSD096ghgL1O3gSrY+T9jDjXrXaWn2JlEU2O0TLmmdos7GXHh3NAZ/ItCqFd+RhrRfwvI6hPTFwoVqTOd0tPGPaHqiSn1L7XtygcGVJvMhU/Xi7f4Lhy2b6BjZ+gYrmebkFkAWT0p8JRy/XLPow=
+	t=1791066561; cv=none; b=ews3qDFGZAtKvTxruuEx+6rKFrhStAqsYr5XDLXiVK+zy8dyl2F6Im0+sKvwC7/Th4hyeY5iRpPUj/nMNFxozhBC4kdxJg+JOWC7uG+aQDahOjWLKrhNLySPFz/SQYpPPHCWGvcFDWLfOnr/GHL1Mk6LPknRg8U/JQbfb7VmKF4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791045639; c=relaxed/simple;
-	bh=XCtwfy+HsyCBzUEJZQGsfEPf1/p+pFFaeKMa/muG3zw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=A8CjMiF+C19SAvK3ZM/pac8PB48Kzye/IEgkRRe83EWzGKgS7dHqrLxTA5O2awRIasfRoXeIoj6xtzoH9+9lW7X2/iW4lUQSFjaKgAnO/l/39gOSC6TE4u3Hd9uSISsEEa7qN2I5vbEvFGyrhRX9nCb85tL8XQoxU2+7/Kpr6fo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LZGysHo+; arc=none smtp.client-ip=74.125.82.174
+	s=arc-20240116; t=1791066561; c=relaxed/simple;
+	bh=poqId5qHz6ksF9unZawVCMAK8JVyHldDpw2wkuxUWqg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=NyHULo5b3rQEBnd6BhyVfzpAv/JjKvjNsSV7O4dyGCNBf4P93mE89NwHAmMo4JagOM2lf69m51TA68YeZEK4TrNNNA3MWI8/lfb0oVoWQjSxsgBBFn0xa4wBwsFX3U0Z+971450LzhghZs73UNOJNSuCzV8FF/FSUBlqP05XVnc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SVoC6klj; arc=none smtp.client-ip=74.125.230.205
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LZGysHo+"
-Received: by mail-dy1-f174.google.com with SMTP id 5a478bee46e88-33fb4680717so966043eec.1
-        for <linux-acpi@vger.kernel.org>; Sat, 03 Oct 2026 09:40:37 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SVoC6klj"
+Received: by mail-qk2-f13.google.com with SMTP id af79cd13be357-939ca12ab70so58581885a.1
+        for <linux-acpi@vger.kernel.org>; Sat, 03 Oct 2026 15:29:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791045636; x=1791650436; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1791066559; x=1791671359; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=T1SycGCsAYEA1OfPrGG/qg1fDqfdjLPEyIDB48vQpa8=;
-        b=LZGysHo+pajBaNfnXd3MFHIJcpVszuZHaiCkXV9OnKtKnyqBpF6ajRuc5IEZFuTElE
-         BtAxS47pSCNoTaCffXqBDHtRFM67d5S9Ek23XaDMaA3WnX9X7kml7/aucylb0+c59sD3
-         EuKE9Nkllo7UsnIoYrVKIGqX+acQRvDquVCPlyHNmBnz1A7bpTJBN1RAdHIOIwwMnmH0
-         DBxVnbjemVS6yXls0H+N9NHCw6BZzc4uiAQxHS7qV2yk0uj71PVgk62r/4VIQj3/Lg3J
-         8Fyb9a2WtwO1Ynz5VMlVXmBigswClUIeifkI2m0NNiSXXVmcIoJmWjvJ32Bq06Xdi5av
-         KaUA==
+        bh=Z6BWckxqNOzx6GZ/iwpqxlB6xcNOWQfGZLizbnT6FFM=;
+        b=SVoC6kljKYrjZ8SjwPl6LM8tYXPAmNN+qEE0N3eHX7BR0ePfoDw65x7V6X2wsYkaoi
+         Vi1gRnioWJuH9DSdU4utuZ6aYJznI+CKHIFZZ41euuShjw//hSLSf/DCIQoRIHkBo5ZL
+         ZtqbfMRUxQBuDtvkG2s0orKwgZvzg+i35WI8o3IsruWzf9d5z9YiBZRA65JK4upwZ23+
+         pWCAG93vurycm8sH1EE4dq5OPYBLLr/2q3KuAmiO7tQZSruwO460wkPolUVj7+R8/kSK
+         1IJ64J2jlXvBPXXMtQed8RR1sOWr4W2+DrDCZq8wow8Ae6VCHW5iNep0kkxAq65dsfMP
+         0JIw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791045636; x=1791650436;
+        d=1e100.net; s=20260707; t=1791066559; x=1791671359;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=T1SycGCsAYEA1OfPrGG/qg1fDqfdjLPEyIDB48vQpa8=;
-        b=kHFemwMKZMbQqTyEN20uAdrQkaqSnnSY5kj2tkJAqrrJe/XPsQK3QGNdfX2ejUbwUk
-         L4g+tO/tcBW52AvWVpqMrnGjHGDomzYTsEi1oKCsJBeGcU+fT49vQpBBon4+h3O2XAf3
-         qJbsH08nt2RrcKY1izKp80ujyoG6RoZJ1s5jywuQXuxb1yYBxnVe0ncbD4qjZJcc4IAc
-         UWjQvItb7+UomDXRcvWAStPggAAe8nF4UxWwXCsy48mbrrgk8iyk+n5dTbErKwlrxFyI
-         xJiKPlj9PZde7CcX6lqVLIKyo6PXNVJb8N3JmYxj7YBkWMNhKrpEqsVeTRx/Fe3AHei5
-         RTVA==
-X-Forwarded-Encrypted: i=1; AKwUvBzZNVp3HabGL9LNr7YNFwRQBLRY1ANkqY0B+SvKG8bJXUSgbnkXbdS72SuPDhBQhyX6YTNI+QdaAYCf@vger.kernel.org
-X-Gm-Message-State: AFuF++nhJBH9TAVSTrh4RzqqkYPSVdxI3jxfBQ8EA1PVo1LuHq5/ocQd
-	XTsl/kjF1ZUTw4AVqo34RCf5Rvf5Sd0tQjOrpqR1opDDLQnGWS5qWtVo8ib0q2kyLIz4jg==
-X-Gm-Gg: AYBFou0UZTgD4QZ/uH3CkzHTYbJZZS3e7drqdgFnYXlXVo7nnDK2mQVq584GOdfSurz
-	gaohs2OVeEuZuvWjMTCOV45J+EIwtb5DKhGyjqNIgRez7VB2r4sEPOg5S8no6mCkQtm/fUHqonz
-	1w7vD1/G/EiIxalmYwOjuquMjn11zqbtbfDPiYDm3Ar2zejyxIdyXLdIed3awsT40wG2/F8wxhI
-	Q0kQmOhSeGx+Xf6tWapHZD4pPSyX9R7nV+A3H0toGEPWs7P3ReR83YuGue8cqcdr7Hg23/y3RTm
-	JGWU5kVVD7KDF9U/Vs904XkiEDQsPJbF4DozS0QhkC/3TDXb8HTXS/DzP43FezA/CNIyIswcOtS
-	kBiFd7kOKsp3LZ/2q+fGUCq0uj5qEpiPLYniZXmjoQkwFsXPu7p6UrpR5mPT0utIOHhaou+cX18
-	oDbp8Y5S0V0C8jIP6E/RJwJEMI8J1ytkAp6kcAah1cMXzAq4Mwxy3E4q/UdxZCfOQPrKMQRVHcP
-	j3TCovN
-X-Received: by 2002:a05:701b:4253:10b0:148:306c:971 with SMTP id a92af1059eb24-151c3aa07dbmr4520821c88.22.1791045636270;
-        Sat, 03 Oct 2026 09:40:36 -0700 (PDT)
-Received: from Vibhor-ThinkPad ([2401:4900:8833:f3a7:6702:207d:bfc:f0f6])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-151fa751693sm18483744c88.2.2026.10.03.09.40.34
+        bh=Z6BWckxqNOzx6GZ/iwpqxlB6xcNOWQfGZLizbnT6FFM=;
+        b=KujS3+8wHhPumqyXYoYrXSgHLiehjDKyH0UpOihgy01PvTVCaK8yI4EzpZ5+1JWXOq
+         z8otxHkTxcAIN10xTfxiVYoYo3jYx/Hf3Eka1o7MubhTEPW5L3Ly1KV2obHdq0HYlBKJ
+         7lWszsyCrlXw1t1LvlkqdV4e0lfTaQPqsa7jsWvTpBzc43yIvb0Ej9IXKqAeNbe4pSJO
+         0Bt41IEYZbLGWBZ1FMKSbnL2m956D+X41kslDX4uJxLq05/KrB806nz3qyJyejvNr6kT
+         IcNTbXkcZ1mHCfm0YhgsAiJdzsXKKVKpgGGmEFPcC/Ay9NLhderd7ZuNQdE9lGxQsLQr
+         qKKA==
+X-Forwarded-Encrypted: i=1; AKwUvBzU/7QxdukOI65HpxjVV6RbLhSBka3tAQZb85X/LSMyfGVG/B+bSNWRP2shGyt/f74NIraxYswVYnIu@vger.kernel.org
+X-Gm-Message-State: AFuF++kXky5ley6jzj/SjLn2qa63uFyDMjy/PkanMhTe3pw1sRWIR9UU
+	6/XN1FayneET2XPlcZ/TI5h2kuxkZOtW3Ro27cb9taXfRIfmFoKC583R
+X-Gm-Gg: AYBFou1JularvbZlVscZ1UHqDwajxb3UvWoWA146Js7pGdkqQj3bj2RBn2IwnReEfeS
+	mJIY/O9NTf916pZKD1x6Vzas27Ooh+0dYNeUjzWmDVNEz1nJCp4WAT1o/ZQyu5IGeT9cwIxwIsZ
+	pZwlyvXaUV+wId2YLRyCoxV4OfibzmHfd0p3LUH7nMWwX9jyN6OXKBzgO5NO2cT6MWW6E2rM+tI
+	jTWS/KlAOuaWgA41QAZVipSWWKmwSxFt0xcFVpiqORmhwC4IBuy1a9v8C9aNKuUVOsKooHcSb12
+	+icRDnVzVl9XzBAGwGVIP+qh8+99BfNzfl1NkS/Z6DXmytLdXAHx0yZORUkbVyvZCvEmSChlYAv
+	T5426ztmMIMJWLk2UYW3K2QMtiTNvsn2scj8sgh7wfWzCh7gXNZaoJC6eTNZgXqAge2PyrCrWHD
+	/jqJwHoeCOg0qeYOUiFeurTDybYOCELFnb4uEh0Yd3eQXeURwnRTazTmnKCLGsLjC1V+4aCkV3r
+	KNZPo6XejE8EBdBoANxSNQe81CO+CAgQNoa8+wjVrj63TvRhPnpe0GsFYvz6cQv7Us/N+PWkrOi
+	LcK/iJ4NTe5Bqw==
+X-Received: by 2002:a05:620a:1a03:b0:93e:4594:f5bb with SMTP id af79cd13be357-93e4595079dmr1022393185a.59.1791066558815;
+        Sat, 03 Oct 2026 15:29:18 -0700 (PDT)
+Received: from pointbeachlab-yoga.lan (ool-457df6e1.dyn.optonline.net. [69.125.246.225])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-93cca297e84sm539341985a.37.2026.10.03.15.29.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 03 Oct 2026 09:40:35 -0700 (PDT)
-From: Vibhor Goel <vibhor1102@gmail.com>
-To: rafael@kernel.org
-Cc: lenb@kernel.org,
+        Sat, 03 Oct 2026 15:29:17 -0700 (PDT)
+From: James Fairweather <james.a.fairweather@gmail.com>
+To: =?UTF-8?q?=C5=81ukasz=20Bartosik?= <ukaszb@chromium.org>,
+	Andrei Kuchynski <akuchynski@chromium.org>,
+	Jameson Thies <jthies@google.com>,
+	Benson Leung <bleung@chromium.org>,
+	Tzung-Bi Shih <tzungbi@kernel.org>
+Cc: James Fairweather <james.a.fairweather@gmail.com>,
+	chrome-platform@lists.linux.dev,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
 	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] ACPI: dock: Retry probing battery docks after hotplug
-Date: Sat,  3 Oct 2026 22:10:19 +0530
-Message-ID: <20261003164019.11195-1-vibhor1102@gmail.com>
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH] platform/chrome: cros_usbpd_notify: Only use parent drvdata when parent is GOOG0004
+Date: Sat,  3 Oct 2026 18:28:53 -0400
+Message-ID: <20261003222855.23707-1-james.a.fairweather@gmail.com>
 X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -74,71 +82,126 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-On a ThinkPad T480 booted with the removable battery absent, reinserting
-that battery can leave BAT1 missing from /sys/class/power_supply even
-after firmware sends an ACPI add notification.
+cros_usbpd_notify_probe_acpi() takes the EC device pointer from
+dev_get_drvdata(dev->parent) and assumes it is a struct cros_ec_device.
+That only holds when GOOG0003 is a child of GOOG0004. On older devices
+without that hierarchy, such as Google Nami, GOOG0003 and GOOG0004 are
+siblings under the ACPI EC (PNP0C09):
 
-The battery dock platform device already exists, but its driver did not
-bind while the battery was absent. During hotplug, acpi_bus_scan()
-updates the ACPI device and attempts to attach it on the ACPI bus.
-acpi_create_platform_device() does not create another platform device
-because the existing physical node is still associated with the ACPI
-device. Consequently, the existing platform device remains unbound.
+  PNP0C09:00 (acpi-ec)
+  |-- GOOG0003:00 (cros-usbpd-notify-acpi)
+  `-- GOOG0004:00 (cros_ec_lpcs)
 
-Retry probing the battery dock platform device after hotplug_dock_devices()
-has refreshed the ACPI state. Restrict this to battery docks. If the
-platform device is already bound, device_initial_probe() leaves that
-binding in place.
+Before commit db65a06d10b3 ("ACPI: EC: Convert the driver to a platform
+one") the parent platform device had no driver data, so the driver
+warned and continued without an EC pointer, as intended for these
+devices. Since that commit the ACPI EC driver stores its struct acpi_ec
+there, so the driver treats a struct acpi_ec as a struct cros_ec_device
+and calls cros_ec_cmd() on it for every USB-C PD host event. Plugging
+or unplugging a charger then intermittently oopses, followed by soft
+lockups and a hung system:
 
-Signed-off-by: Vibhor Goel <vibhor1102@gmail.com>
+  BUG: unable to handle page fault for address: ffffffff9cf03220
+  #PF: supervisor write access in kernel mode
+  Hardware name: Google Nami/Nami, BIOS  09/19/2019
+  Workqueue: kacpi_notify acpi_os_execute_deferred
+  RIP: 0010:native_queued_spin_lock_slowpath+0x29d/0x330
+  Call Trace:
+   _raw_spin_lock_irqsave+0x59/0x80
+   __mutex_lock.constprop.0+0x129/0x930
+   cros_ec_cmd_xfer+0x2a/0xf0 [cros_ec_proto]
+   cros_ec_cmd_xfer_status+0x1a/0x90 [cros_ec_proto]
+   cros_ec_cmd+0xb7/0x140 [cros_ec_proto]
+   cros_usbpd_get_event_and_notify+0x42/0xc0 [cros_usbpd_notify]
+   acpi_ev_notify_dispatch+0x4e/0x70
+   acpi_os_execute_deferred+0x1a/0x30
+
+Only read the parent's driver data when the parent's ACPI node is
+GOOG0004, and otherwise continue without an EC pointer. While at it,
+drop the reference taken by fwnode_get_parent().
+
+Fixes: db65a06d10b3 ("ACPI: EC: Convert the driver to a platform one")
+Cc: stable@vger.kernel.org
+Assisted-by: claude-opus-5-5 checkpatch
+Signed-off-by: James Fairweather <james.a.fairweather@gmail.com>
 ---
-Tested on a dual-battery ThinkPad T480 with an aftermarket external pack.
+Tested on a Google Nami-based Chromebook (BIOS 09/19/2019)
+running a 7.2.5 distro kernel (linux-omarchy 7.2.5-3). The unpatched
+driver oopsed twice in two days, each time on a charger plug/unplug.
+With this patch built as a module against that kernel, the probe logs
+"Couldn't get Chrome EC device pointer." (confirming GOOG0003's parent
+is not GOOG0004 here), and 12 charger unplug/replug cycles produced no
+oops, with charging negotiating 20V/3.5A as before.
 
-On Fedora 7.2.8-200.fc44.x86_64, tracing showed the firmware add
-notification, a successful ACPI rescan, and no attachment attempt for the
-existing dock.0 platform device. A subsequent manual bind registered BAT1.
+Not done: I have not boot-tested a full chrome-platform for-next kernel;
+the change was built and run as an out-of-tree module on 7.2.5, where
+this function is identical apart from a comment typo fix. Only Nami
+hardware was tested. Because the original crash is intermittent, the
+clean run shows the fix doesn't regress charging rather than proving
+the absence of the crash; the main evidence is the probe warning above
+plus the oops register state (the qspinlock tail encodes CPU 74 on an
+8-CPU machine, i.e. a non-lock word was being treated as a lock).
 
-On patched upstream v7.2.8, booting with BAT1 absent and then triggering a
-firmware add notification automatically called device_initial_probe(),
-bound acpi-battery and registered BAT1. UPower detected the battery too.
-Removal and reinsertion after binding also worked, without a second driver
-probe. Both captures completed without trace-buffer loss.
+AI assistance: the crash was diagnosed and the patch and changelog were
+written with Claude Opus 5.5 (Claude Code), from the journal oops traces,
+the sysfs device hierarchy and the driver source. I reviewed the change
+and ran the test above.
 
-Physical reinsertion initially produced no add notification on this pack;
-toggling charger mains while leaving the battery untouched triggered one.
-This patch addresses Linux handling after that notification. The initial
-notification behavior is outside its scope.
+ drivers/platform/chrome/cros_usbpd_notify.c | 39 +++++++++++----------
+ 1 file changed, 21 insertions(+), 18 deletions(-)
 
-The baseline and patched kernels differ in configuration and Fedora
-patches. The traces identify the missing attachment operation and show the
-new call resolving it; this was not a same-source unpatched comparison.
-
-Built the kernel and all 221 configured modules, booted with Secure Boot
-enabled, and tested on the physical laptop. The patch was developed with
-AI assistance and reviewed and tested by me.
-
- drivers/acpi/dock.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index d7f3a8912..748df19d9 100644
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -445,6 +445,14 @@ int dock_notify(struct acpi_device *adev, u32 event)
- 				break;
- 			}
- 			hotplug_dock_devices(ds, event);
-+			/*
-+			 * The dock platform device already exists when an empty battery
-+			 * bay becomes occupied, but its driver may not have bound while
-+			 * the battery was absent.  Retry after the ACPI scan updates its
-+			 * status, since the scan only attaches the ACPI device.
-+			 */
-+			if (ds->flags & DOCK_IS_BAT)
-+				device_initial_probe(&ds->dock_device->dev);
- 			complete_dock(ds);
- 			dock_event(ds, event, DOCK_EVENT);
- 			acpi_evaluate_lck(ds->handle, 1);
+diff --git a/drivers/platform/chrome/cros_usbpd_notify.c b/drivers/platform/chrome/cros_usbpd_notify.c
+index 6f5eea493..25da31ec1 100644
+--- a/drivers/platform/chrome/cros_usbpd_notify.c
++++ b/drivers/platform/chrome/cros_usbpd_notify.c
+@@ -110,26 +110,29 @@ static int cros_usbpd_notify_probe_acpi(struct platform_device *pdev)
+ 	if (!pdnotify)
+ 		return -ENOMEM;
+ 
+-	/* Get the EC device pointer needed to talk to the EC. */
+-	ec_dev = dev_get_drvdata(dev->parent);
+-	if (!ec_dev) {
+-		/*
+-		 * We continue even for older devices which don't have the
+-		 * correct device hierarchy, namely, GOOG0003 is a child
+-		 * of GOOG0004. If GOOG0003 is a child of GOOG0004 and we
+-		 * can't get a pointer to the Chrome EC device, defer the
+-		 * probe function.
+-		 */
+-		parent_fwnode = fwnode_get_parent(dev->fwnode);
+-		if (parent_fwnode) {
+-			parent_adev = to_acpi_device_node(parent_fwnode);
+-			if (parent_adev &&
+-			    acpi_dev_hid_match(parent_adev, CREC_DRV_NAME)) {
+-				return -EPROBE_DEFER;
+-			}
++	/*
++	 * Get the EC device pointer needed to talk to the EC. The parent's
++	 * driver data is only a struct cros_ec_device when GOOG0003 is a
++	 * child of GOOG0004. On older devices without that hierarchy the
++	 * parent may be bound to an unrelated driver (e.g. the ACPI EC
++	 * driver for PNP0C09), so don't touch its driver data and continue
++	 * without an EC pointer. If GOOG0003 is a child of GOOG0004 and we
++	 * can't get a pointer to the Chrome EC device yet, defer the probe.
++	 */
++	ec_dev = NULL;
++	parent_fwnode = fwnode_get_parent(dev->fwnode);
++	parent_adev = to_acpi_device_node(parent_fwnode);
++	if (parent_adev && acpi_dev_hid_match(parent_adev, CREC_DRV_NAME)) {
++		ec_dev = dev_get_drvdata(dev->parent);
++		if (!ec_dev) {
++			fwnode_handle_put(parent_fwnode);
++			return -EPROBE_DEFER;
+ 		}
+-		dev_warn(dev, "Couldn't get Chrome EC device pointer.\n");
+ 	}
++	fwnode_handle_put(parent_fwnode);
++
++	if (!ec_dev)
++		dev_warn(dev, "Couldn't get Chrome EC device pointer.\n");
+ 
+ 	pdnotify->dev = dev;
+ 	pdnotify->ec = ec_dev;
 -- 
 2.55.0
 
