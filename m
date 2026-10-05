@@ -1,93 +1,79 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 688BC471D1C;
-	Mon,  5 Oct 2026 11:07:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from mta0.migadu.com (out-188.mta0.migadu.com [91.218.175.188])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 564F84BD365
+	for <linux-acpi@vger.kernel.org>; Mon,  5 Oct 2026 15:37:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791198474; cv=none; b=QpaQfISYg/T7cfLucW2AcgigRvWFR4jTSoHfSG3yfJjMsb33iLMugSnqlvVPQMzNCXLbr/iWIMPMw3eY0OteQLe/1QTSNBKOGQCNvxkWEk3FbF7WRErsjXAK9AKxh3Fnsbr3eKuap65Jzs8+37NlUL0oKPMxqV+EsOCXzSHM/UM=
+	t=1791214652; cv=none; b=JmZt6et8j+n6Y45oS7TV8TKB+4ECI99wW9Ci1y89wYX6AAhHFGlQe1OJBgglNB/vKM0jCxFYAYfc8kstR/yNMaCTMildg9rzOoLl0yrYllJQzjH041QMNDJPT9vQ4xhgedDXFBKj8BxdqrZdVwO5vLEDxywUDXTbvSn4vxX5IHw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791198474; c=relaxed/simple;
-	bh=OstHisGp7P6hgz4/0D89NdgTFhwBoAjGYPB++ZUdrsQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Qm4USnRHf/q9mykQQSfZ9IvBMfr77RvYidb8lOhc+srxQOMlNrV6K+ZrzvvmCXZab7mEGfWEQEdytchxFv5sbcdjx1EVWdfCWe0TX5XmJ2lxjWs9rhuVbg8Hp58QdfFJby5DU6c+A3YucmhHI2YZKsIgwFYTEpq7zXiTWXEI0pE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=huznAKYd; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1791214652; c=relaxed/simple;
+	bh=bDlB6kOKtLXIGeumaAwwjZulO8maw2MLX2GjrFszKSw=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=rplYXUeIDKeafWj5jm2HCCb/V9fN1ySnyRCaaf1en6YO6t8FDAtZaxXa0pHBhsSm3yTknfX9AjYJBrDOeMKEr7S00gdB6HwQWJpbpRZc0mf4E76qBYMbUe6h4BukSrgjkOikZP8Utq7KOD8TzAezEa5odcwgiCouhg5HEgFEPa4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Kve9ve6I; arc=none smtp.client-ip=91.218.175.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="huznAKYd"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 81EA2152B;
-	Mon,  5 Oct 2026 04:07:49 -0700 (PDT)
-Received: from arm.com (usa-sjc-mx-foss1.foss.arm.com [172.31.20.19])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 9F9B13F86F;
-	Mon,  5 Oct 2026 04:07:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1791198472; bh=OstHisGp7P6hgz4/0D89NdgTFhwBoAjGYPB++ZUdrsQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=huznAKYddU0oZFKAUlCcQ1STeT/7wXvr3I03BhqGvib3xpajTRxhfLH9R4n0xbL3S
-	 kIEIw7UozOwAKAYis3taxahTMvipmp7uuojl2U657r8N7zaBJ5NTsf4aP8uJ8+p+Rb
-	 BYYgwF3ME4VdyiRufVFi72RJCpQxDxT6c94/F8TA=
-Date: Mon, 5 Oct 2026 12:07:46 +0100
-From: Catalin Marinas <catalin.marinas@arm.com>
-To: Zi Yan <ziy@nvidia.com>
-Cc: Kristina =?utf-8?Q?Mart=C5=A1enko?= <kristina.martsenko@arm.com>,
-	linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
-	kvmarm@lists.linux.dev, linux-efi@vger.kernel.org,
-	Will Deacon <will@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
-	Ryan Roberts <ryan.roberts@arm.com>,
-	David Hildenbrand <david@kernel.org>,
-	Lorenzo Stoakes <ljs@kernel.org>,
-	Linu Cherian <linu.cherian@arm.com>,
-	Anshuman Khandual <anshuman.khandual@arm.com>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>,
-	Fuad Tabba <fuad.tabba@linux.dev>, Joey Gouly <joey.gouly@arm.com>,
-	Steffen Eiden <seiden@linux.ibm.com>,
-	Suzuki K Poulose <suzuki.poulose@arm.com>,
-	Zenghui Yu <yuzenghui@huawei.com>, Ard Biesheuvel <ardb@kernel.org>,
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>, linux-mm@kvack.org
-Subject: Re: [RFC 00/12] arm64: Add support for TLBI domains
-Message-ID: <asOE8NSHH3Jnv7AJ@arm.com>
-References: <20261001110655.461473-1-kristina.martsenko@arm.com>
- <DLW95E2XWSVT.8W90FW4WG6K8@nvidia.com>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Kve9ve6I"
+X-Envelope-To: linux-acpi@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=bDlB6kOKtLXIGeumaAwwjZulO8maw2MLX2GjrFszKSw=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1791214648; v=1; x=1791819448;
+ b=Kve9ve6IPa5E2gUaNjgSt7x9Fnle3o4nUGCrcaGVNM9H96KvcWA+cH/JNJ6Mn7X2tOaOGuhH
+ CMJ+fXnQWbl+aC91mfE6ZatY+WHgu3d4PAT+pGQCb2WUedIcemno5ZGY7ztgZd6DWXhpyWvQD53
+ y7Miic2v7mHzCFjjvMk1zBuo=
+X-Envelope-To: linux-acpi@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id b363de8b825e4f9b;
+	Mon, 05 Oct 2026 15:37:28 +0000
+X-Mizu-Trace-ID: b363de8b825e4f9b
+X-Migadu-Flow: FLOW_OUT
+From: Fuad Tabba <fuad.tabba@linux.dev>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>,
+	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
+	Pawel Chmielewski <pawel.chmielewski@intel.com>,
+	linux-acpi@vger.kernel.org,
+	acpica-devel@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	Fuad Tabba <tabba@google.com>
+Subject: [PATCH 0/2] ACPI: tools: Fix stale headers in incremental builds
+Date: Mon,  5 Oct 2026 16:37:21 +0100
+Message-Id: <20261005153723.2644331-1-fuad.tabba@linux.dev>
+X-Mailer: git-send-email 2.39.5
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <DLW95E2XWSVT.8W90FW4WG6K8@nvidia.com>
 
-On Sun, Oct 04, 2026 at 02:06:48PM -0400, Zi Yan wrote:
-> On Thu Oct 1, 2026 at 7:06 AM EDT, Kristina Martšenko wrote:
-> > This series allows the kernel to use TLBI domains. TLBI domains (FEAT_TLBID) is
-> > an Arm architecture feature that enables a TLB invalidation to target a subset
-> > of CPUs instead of the whole system. It can improve performance on systems with
-> > many CPUs. TLBID is not yet part of the Arm Architecture Reference Manual but
-> > some of it is described in the latest XML [1].
-> >
-> > The goal of this series is to send TLBI commands only to the CPUs where a
-> > process has run (i.e. where its page tables have been installed). The last
-> 
-> IIUC, mm_cpumask() is used to store this information on x86 and other
-> archs. I see you put this information in tlbid_domains of mm_context_t
-> from patch 9, although in the form of tlb id domains. I wonder why not
-> make arm64 also update mm_cpumask() like x86 and other archs and derive
-> the tlbid domains based on mm_cpumask() and a cpu-to-domain mapping
-> (added in patch 7).
+Hi folks,
 
-One reason is that it's cheaper to compute the tlbi domains at context
-switch time (bitmap-and IIRC) than working from mm_cpumask() every time
-we do a TLBI.
+Two fixes for incremental builds of the ACPI tools, which compile
+against old headers after a header changes. The first replaces the
+copy of include/acpi with a link, so the tools see the current headers.
+The second adds dependency files, so objects that include a changed
+header are rebuilt.
 
-That said, suggestions for a quick algorithm are welcome. Subject to the
-race conditions Will mentioned, we could use the mm_cpumask() for a
-quick check if we ever ran on that CPU and avoid recomputing the tlbi
-domains.
+I found these while fixing the same kind of bug in the KVM selftests'
+sysreg header [1].
+
+Based on Linux 7.3-rc5 (72d3fcf802c45).
+
+Cheers,
+/fuad
+
+[1] https://lore.kernel.org/all/20260922071945.693714-1-fuad.tabba@linux.dev/
+
+Fuad Tabba (2):
+  ACPI: tools: Link include/acpi instead of copying it
+  ACPI: tools: Rebuild objects when a header they include changes
+
+ tools/power/acpi/Makefile.rules | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
 -- 
-Catalin
+2.39.5
+
