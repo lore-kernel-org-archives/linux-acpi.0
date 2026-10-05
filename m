@@ -1,126 +1,234 @@
-Received: from mail-wm2-f12.google.com (mail-wm2-f12.google.com [74.125.225.140])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B6FF4CB8B9
-	for <linux-acpi@vger.kernel.org>; Mon,  5 Oct 2026 17:50:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.140
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73E0648097E;
+	Mon,  5 Oct 2026 18:04:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791222628; cv=none; b=q9bo0J+3b87Drpesf7LcwmfOP4T2rHCq80ErPlzdUk5REm5uwv11xPal6j321h2QiSfotbBYjHzuFaDtE9AWDNg1gIM02V8Fvey6jeh5LY+5GQNHPHCTgX/YkGbUZfrPVqG3iENX2010JCzfpsfyKEKfdRbnLA1dEAViIZeoWdA=
+	t=1791223468; cv=none; b=hZzASZQAXgxCqJh27WsxbG9wfNOLrDxJzDzEzHRP/inI7ro+3X52XWeFBXNgUn4WPS7dlK5AxlZVoSeYc5ky3lKYYa5fgb3ywaXZJ7eJy13CWGJvpXk8gIUQ2s/DV0wDN0hMmCzhudDBZ5cn2WEHHLmW0klieBPa/0AE5lk0P1s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791222628; c=relaxed/simple;
-	bh=uC4N6kDGNZ60H4Z6vYY8qHWcXEtUdvHlfqRDVS4CX/I=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=KNka/JONL0Ni2PMEWSd8MmLzKfoovQlXehost/XUocxFh3uH6DTFeT/1asBDwT1JAHaLdSgvu3tiUWc+C8Kxv99SnZHgn0OlUYh17awUjZswrFO7SfF4kWHztUFtBx6nL3ygxO/Crv2PB/rDIk/Ri3TLVzGmBvBq9LamPIxGCYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Cit0tw1o; arc=none smtp.client-ip=74.125.225.140
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1791223468; c=relaxed/simple;
+	bh=h/CtaGN11E0t8u67h1ojFVZ6txNrQpPjPFLOVlAhaAw=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
+	 In-Reply-To:Content-Type; b=uQ6GXsQ4vJG4UlxbxiPzNZDbc80n7TthwqSBdnDaDi4FCSXSErWEwLYZK3410zzyZWlnDk1prdz4iSYYgKGDABCmpgDk8dCZaVg3Z1BCvZfy7uLo8hprmvPi0ax6tD12y/ef/I5E5adlytkzBygkP1fNLHrJmDVJdgEqIk1ZN8A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=m4mw0icx; arc=none smtp.client-ip=192.198.163.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Cit0tw1o"
-Received: by mail-wm2-f12.google.com with SMTP id 5b1f17b1804b1-4a1742171d5so4928995e9.1
-        for <linux-acpi@vger.kernel.org>; Mon, 05 Oct 2026 10:50:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791222626; x=1791827426; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=DqwXYeDMzOLK6QDykmnpHzDSXaAWN0zurPaKYTPdxsM=;
-        b=Cit0tw1ohsJQqY19oa0wcy5XxR3yldZjHvgl0Dk9zpWCPMPTuJbo4oejfu+52INTvO
-         XMZFVvX+nacRoxN0RjhaVVdxr3sNxlbp4tPvrkBhih7yjfiXNbjULSkaywopRwXPTPQW
-         v9RVuVUkGFA+T7Koqrt8XciilHcoWIyfmROy1lJQqyJ03cGWnAuR3KHbzix82vSGBf2x
-         m1UYg3u7tNL34HxRBIQf5HueoiCzWL+0530/HaXLQIkRpznlqgoAGscezN++J9CDkuoo
-         QWu0AuuiwBhzkQEuVZLfg65kgIEmDCcYL22S5LaevpNDYO9393ZuwIrrDp3q1kGU3SW2
-         dM7Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791222626; x=1791827426;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=DqwXYeDMzOLK6QDykmnpHzDSXaAWN0zurPaKYTPdxsM=;
-        b=hjaIy/XeCTrhOGrW+6wARB49XOy/Idw+a4pN2km3kmSgeeJ20AzmZ8NCBzUBtZvbbl
-         BXT0PbUHZlG/+OtZ9DAKuxSbgbvz03wN60wvcI2shjFTUmWN8V8c78R2Qpx78aVlsXBK
-         XYVEMjljbxy0XclcqMu9ShECrsTwMm5olxsbjMOUZNIVv7v62GxsK41P6DULaSjpL5kp
-         1nWVw6lpFyzKb7ZDrJ/CE+S9M5LYFp6z9t8w+u5LF+M1PC6x1KXLt6+qQM0H2ynGAhZu
-         584L49P6qKne4edBKkH7giv/JMdqhRebyEk3g62+DO+r2k0pJ96FHy/5NMVSN7zqKJHs
-         ScNA==
-X-Forwarded-Encrypted: i=1; AKwUvBwGfoDmi3oO2km51vplS5z/S6dn0UMCQnnV2RWbKNPY331yf8t9Ap5J2jZ7i5ODAx4Cox4q1ZEhYUFG@vger.kernel.org
-X-Gm-Message-State: AFuF++meWcrG5HUW7UIIuLQNlHN+OIIbVrDHDTu/V1y8jytVc98/MGwi
-	qkkmuJyY3913WeHt65wppPECAtux3pHy3f4d9MOjJwIdBb8EfTmd3RQeuIOHm5BOjegHvsJY
-X-Gm-Gg: AYBFou1pbbJgpc/IUhEMbRbFQm54d37dhy9Uqjsq0Mik2QJM5kqSsuBWH8uwH07j9Ta
-	A72O7Lk/gG1gmY4MJLguouCRwwpLKy3Ao34SkfPZhUTaqKLGmcJlkPa1MPfY592bQKLrDOWw4UM
-	GHj4u23uqmljkQCUjcabbEvPGkOGOUOZp3dNhTArkE9H4jqGTky5WsRI4nPMz9LGf4k364Cl0ZB
-	+t+pan6fHUBJaMgxCVNf/k4Yt09rpiZalLxXhLIQ+tZuAy0xH84S4fGCqyqfPLKsnsHgWUC2MaA
-	vSbBhOTv5eDrso9Cahduj03/zROBgpFph+5j+RiZVLlff5d+3boYTJyax84fNduQmW5Vx5pBde7
-	wEv7hmZnxjx1DyCN+d+LGArtKnt9O/HG9ANPldr49QMkNoIObk2etU+8Y38tLJm0aPrPvN26W5L
-	jMPMVZIdNH2b1uZgGlFecVepBF8nZITqFyfiQbUZ3t/bF6FDklBnFzZIrXDaaJ+tVz
-X-Received: by 2002:a05:600c:1546:b0:49f:bc43:9e96 with SMTP id 5b1f17b1804b1-4a027572e12mr206653365e9.8.1791222625570;
-        Mon, 05 Oct 2026 10:50:25 -0700 (PDT)
-Received: from kali ([159.146.69.107])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a178daa062sm5570555e9.8.2026.10.05.10.50.24
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 05 Oct 2026 10:50:25 -0700 (PDT)
-From: Hakan Abay <hakan.abay84@gmail.com>
-To: "Rafael J . Wysocki" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Hakan Abay <hakan.abay84@gmail.com>
-Subject: [PATCH] ACPI: PM: Add unused power resource quirk for Casper Excalibur G900
-Date: Mon,  5 Oct 2026 20:49:39 +0300
-Message-ID: <20261005174939.53873-1-hakan.abay84@gmail.com>
-X-Mailer: git-send-email 2.53.0
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="m4mw0icx"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1791223466; x=1822759466;
+  h=message-id:date:mime-version:subject:from:to:cc:
+   references:in-reply-to:content-transfer-encoding;
+  bh=h/CtaGN11E0t8u67h1ojFVZ6txNrQpPjPFLOVlAhaAw=;
+  b=m4mw0icx8ccFTEO6caopBnRBS2uP7v73Vww+cQbbqXanCK8sHOxiTqao
+   gKks/ZSlaWqj7no7+u2gu6Qz0O2I6VCbfFFw69cVLqRwLN81D3tffaxsR
+   2mqFiMXuSm7hZdpFc+DY9R58pkAvdpxjw3t/NEJh8DqeFJ5CYTy5zG7mb
+   fPDaILnPqfJJ+Qd2xVriCFeuDmaK9hsMd37M7Lwyjgx6bnHyoJ2l6Azo7
+   BCV+Cvi0Hb5ZposmA5SHr4UjH8jBbNGScz4k9B99TWdjfnqwWRZymm3QD
+   VGs5O5BZR49ZqgYOgihCwsVNPUkMc7fw5yFuyr/tTyzD4470T46qYAZDW
+   w==;
+X-CSE-ConnectionGUID: FFRqdM5rSNaGQkR6gQ12kg==
+X-CSE-MsgGUID: eZG9amjkTeGxg7NREU4MnA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11926"; a="102572820"
+X-IronPort-AV: E=Sophos;i="6.27,142,1787036400"; 
+   d="scan'208";a="102572820"
+Received: from fmviesa012.fm.intel.com ([10.60.135.152])
+  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Oct 2026 11:04:25 -0700
+X-CSE-ConnectionGUID: ZbI86zzuTv2F+PtGYO9lvQ==
+X-CSE-MsgGUID: aN3h9SmsRSqs7dIlnRhkXw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,142,1787036400"; 
+   d="scan'208";a="941975"
+Received: from soc-pf446t5c.clients.intel.com (HELO [10.24.80.90]) ([10.24.80.90])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Oct 2026 11:04:25 -0700
+Message-ID: <f8a4a8f1-f2c6-46d2-ba5f-370f12b73afd@linux.intel.com>
+Date: Mon, 5 Oct 2026 11:04:25 -0700
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v15 4/4] PCI: Centralize pci_aer_available() checking
+From: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+To: bhelgaas@google.com
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, rafael@kernel.org, lukas@wunner.de,
+ terry.bowman@amd.com, kanie@linux.alibaba.com, olof@lixom.net
+References: <20261002211828.1293177-1-sathyanarayanan.kuppuswamy@linux.intel.com>
+ <20261002211828.1293177-5-sathyanarayanan.kuppuswamy@linux.intel.com>
+Content-Language: en-US
+In-Reply-To: <20261002211828.1293177-5-sathyanarayanan.kuppuswamy@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On the Casper Excalibur G900, the NVIDIA discrete GPU and the second
-NVMe device become inaccessible when unused ACPI power resources are
-turned off during initialization.
+Hi Bjorn,
 
-The failure is similar to the THUNDEROBOT ZERO case addressed by
-commit cd7ef20ba8c6 ("ACPI: PM: Add unused power resource quirk for THUNDEROBOT ZERO").
+On 10/2/2026 2:18 PM, Kuppuswamy Sathyanarayanan wrote:
+> From: Bjorn Helgaas <bhelgaas@google.com>
+> 
+> "pci=noaer" tells us not to use AER.  pci_aer_available() reports that,
+> and it also reports the other cases where the OS cannot use AER at all,
+> namely CONFIG_PCIEAER=n and MSI being unavailable.
+> 
+> Set host_bridge->native_aer from pci_aer_available() when we initialize
+> the host bridge, so callers only have to look at native_aer and we do not
+> have to test pci_aer_available() separately in each of them.
+> 
+> Do this in pci_init_host_bridge() rather than in acpi_pci_root_create()
+> so it also covers host bridges that are not described by ACPI and never
+> reach acpi_pci_root_create().
+> 
+> This subsumes the CONFIG_PCIEPORTBUS check for native_aer, since
+> pci_aer_available() is false when CONFIG_PCIEAER=n and PCIEAER depends on
+> PCIEPORTBUS.
+> 
+> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> Co-developed-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+> Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+> ---
 
-Without the quirk, the NVIDIA GPU and the second NVMe device are left
-inaccessible in D3cold and attempts to transition them back to D0 fail.
+Sashiko's comment [1] looks valid to me. quirk_disable_all_msi() calls
+pci_no_msi() during pci_bus_add_devices(), after native_aer has been
+set. That leaves native_aer stale. At boot, pcie_aer_init() checks
+pci_aer_available() again, so the AER driver still won't register. But
+other native_aer users see the stale value.
 
-Add a DMI quirk for the affected Casper Excalibur G900 with NLCC 001
-mainboard to leave unused ACPI power resources on.
+The patch below clears native_aer in pci_no_msi(). Would you like a v16
+with it before this patch, or would you rather fold it in?
 
-With the quirk applied, the second NVMe device remains accessible. The
-NVIDIA GPU can enter D3cold while idle and subsequently return to D0
-for accelerated rendering.
+[1] https://lore.kernel.org/linux-pci/20261003013359.A38F61F00898@smtp.kernel.org/
 
-Link: https://bugs.kali.org/view.php?id=9891
-Assisted-by: LLM
-Signed-off-by: Hakan Abay <hakan.abay84@gmail.com>
----
- drivers/acpi/power.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+Author: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+Date:   Mon Oct 5 10:29:19 2026 -0700
 
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 23a4e207a01e..2e79defca42b 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -1121,6 +1121,18 @@ static const struct dmi_system_id dmi_leave_unused_power_resources_on[] = {
- 		}
- 
- 	},
-+	{
-+		/*
-+		 * CASPER EXCALIBUR G900 laptop: Keep unused ACPI power
-+		 * resources on to prevent the NVIDIA dGPU and NVMe #2
-+		 * from becoming inaccessible.
-+		 */
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "CASPER BILGISAYAR SISTEMLERI"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "EXCALIBUR G900"),
-+			DMI_MATCH(DMI_BOARD_NAME, "NLCC 001"),
-+		},
-+	},
- 	{}
- };
- 
+    PCI/AER: Clear native_aer when MSI is disabled after host bridge init
+
+    pci_aer_available() reports that AER is unusable when MSI is disabled.
+    A quirk such as quirk_disable_all_msi() can call pci_no_msi() during
+    enumeration, after pci_init_host_bridge() and the _OSC negotiation have
+    already set host_bridge->native_aer. In that case native_aer stays set
+    even though the OS can no longer use AER.
+
+    Clear native_aer on all registered host bridges when MSI is disabled.
+    Host bridges added later start with native_aer cleared because
+    pci_aer_available() is already false. _OSC negotiation and
+    "pcie_ports=native" can only clear native_aer, so they cannot set it
+    again.
+
+    This keeps native_aer accurate so callers can rely on it instead of
+    checking pci_aer_available() separately.
+
+    Reported-by: sashiko-bot@kernel.org
+    Closes: https://lore.kernel.org/linux-pci/20261003013359.A38F61F00898@smtp.kernel.org/
+    Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+
+diff --git a/drivers/pci/msi/msi.c b/drivers/pci/msi/msi.c
+index 80a9db417dc8..911e61fbda31 100644
+--- a/drivers/pci/msi/msi.c
++++ b/drivers/pci/msi/msi.c
+@@ -995,4 +995,5 @@ EXPORT_SYMBOL(msi_desc_to_pci_dev);
+ void pci_no_msi(void)
+ {
+        pci_msi_enable = false;
++       pci_aer_no_msi();
+ }
+diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+index ba3c3fddddc2..11f47d5fda21 100644
+--- a/drivers/pci/pci.h
++++ b/drivers/pci/pci.h
+@@ -1331,6 +1331,7 @@ static inline void of_pci_remove_host_bridge_node(struct pci_host_bridge *bridge
+
+ #ifdef CONFIG_PCIEAER
+ void pci_no_aer(void);
++void pci_aer_no_msi(void);
+ void pci_aer_init(struct pci_dev *dev);
+ void pci_aer_exit(struct pci_dev *dev);
+ extern const struct attribute_group aer_stats_attr_group;
+@@ -1342,6 +1343,7 @@ void pci_save_aer_state(struct pci_dev *dev);
+ void pci_restore_aer_state(struct pci_dev *dev);
+ #else
+ static inline void pci_no_aer(void) { }
++static inline void pci_aer_no_msi(void) { }
+ static inline void pci_aer_init(struct pci_dev *d) { }
+ static inline void pci_aer_exit(struct pci_dev *d) { }
+ static inline void pci_aer_clear_fatal_status(struct pci_dev *dev) { }
+diff --git a/drivers/pci/pcie/aer.c b/drivers/pci/pcie/aer.c
+index e84dd686582a..494fdd20798d 100644
+--- a/drivers/pci/pcie/aer.c
++++ b/drivers/pci/pcie/aer.c
+@@ -154,6 +154,19 @@ bool pci_aer_available(void)
+        return !pcie_aer_disable && pci_msi_enabled();
+ }
+
++/*
++ * AER depends on MSI (see pci_aer_available()).  If MSI is disabled after
++ * host bridges have been initialized, e.g., by a quirk, the OS can no
++ * longer use AER on them.
++ */
++void pci_aer_no_msi(void)
++{
++       struct pci_bus *bus = NULL;
++
++       while ((bus = pci_find_next_bus(bus)))
++               pci_find_host_bridge(bus)->native_aer = 0;
++}
++
+ #ifdef CONFIG_PCIE_ECRC
+
+ #define ECRC_POLICY_DEFAULT 0          /* ECRC set by BIOS */
+
+
+> Changes since v14
+> 
+>  * No change.
+> 
+> v14 posting
+> https://lore.kernel.org/r/20260922204548.3884906-1-sathyanarayanan.kuppuswamy@linux.intel.com
+> 
+> Changes since v13
+> 
+>  * No change.
+> 
+> v13 posting
+> https://lore.kernel.org/r/20260919162655.3499010-1-sathyanarayanan.kuppuswamy@linux.intel.com
+> 
+>  drivers/pci/pcie/portdrv.c | 3 +--
+>  drivers/pci/probe.c        | 2 +-
+>  2 files changed, 2 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/pci/pcie/portdrv.c b/drivers/pci/pcie/portdrv.c
+> index 32fc623dd410..9f8c6dd434c5 100644
+> --- a/drivers/pci/pcie/portdrv.c
+> +++ b/drivers/pci/pcie/portdrv.c
+> @@ -239,8 +239,7 @@ static int get_port_device_capability(struct pci_dev *dev)
+>  #ifdef CONFIG_PCIEAER
+>  	if ((pci_pcie_type(dev) == PCI_EXP_TYPE_ROOT_PORT ||
+>               pci_pcie_type(dev) == PCI_EXP_TYPE_RC_EC) &&
+> -	    dev->aer_cap && pci_aer_available() &&
+> -	    host->native_aer)
+> +	    dev->aer_cap && host->native_aer)
+>  		services |= PCIE_PORT_SERVICE_AER;
+>  #endif
+>  
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index 1e487a213eb0..e1ca8096bcd5 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -670,7 +670,7 @@ static void pci_init_host_bridge(struct pci_host_bridge *bridge)
+>  	 * may implement its own AER handling and use _OSC to prevent the
+>  	 * OS from interfering.
+>  	 */
+> -	bridge->native_aer = port_services;
+> +	bridge->native_aer = pci_aer_available();
+>  	bridge->native_pcie_hotplug = port_services;
+>  	bridge->native_shpc_hotplug = 1;
+>  	bridge->native_pme = port_services;
+
 -- 
-2.53.0
+Sathyanarayanan Kuppuswamy
+Linux Kernel Developer
 
