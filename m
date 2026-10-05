@@ -1,183 +1,242 @@
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013004.outbound.protection.outlook.com [40.93.201.4])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9811C490C10;
-	Mon,  5 Oct 2026 18:14:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.201.4
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791224048; cv=fail; b=bnzpLfgwdWQE1yod4mpyKViiDLrTPtzQPtr22obDqlQmHemtN8ZTXr7EIIVDdlEnV3YgvhieFsmOMgedP7Vja3iuiFmaCHrIyr02uE2s/Oq3aiMs00eCWpAtrOjstlhLNruiPZr1T6pNDN7VRjlnDJeQJrcKQvDau0+6fLV8l9w=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791224048; c=relaxed/simple;
-	bh=fqv4wAFN5hhj+vjq7T8uWvopMzxW3L2IbSGP67DpKxo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=pX90zFKr2SZ4ZkTDUp0h1uJ3/EH8+1kPXh8U3aSlJPiA+z6UbhOvTBRt2Z/4GQmwFyk8v+hQ6GcRBzavZwyXKmIhTJ9xtQLDiM2epQB9IS8/EpGewzLK/4yUvnZYo7lgOtZ/hzAQvyHCFT/70mYUJbDGJJSUOfqOLJfDIFTHPqI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=GPC6gkoK; arc=fail smtp.client-ip=40.93.201.4
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCDC342589D;
+	Mon,  5 Oct 2026 22:40:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791240022; cv=none; b=sjGwp+OoE3gxsnoCjqGaGAqpA39gTyVokiFJurfWCFP7LRPJtyef76aEGejAx0D1Zy3fLECYat0AF7M93Kdru1MvPmpFZxSbpUINInjEcyovqp0TVfxC+f98cAxLeguFzWxnQN2Jfu4QxpAqBCAhjDWco3woyhuhqanzC7RxsaQ=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791240022; c=relaxed/simple;
+	bh=UM0Xi/JZd4N2y5und5uHDw0FoxFZgGSZxQcAIEPVTj8=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=snp7p4T3F/SwRCOna0WZTxuXddQkkMbL1gO6t17Rv6G4i9zZ/zmWutEjuZ3dI0R99DBuYcRq5YDgdOPa89c0d0wKd/XiB5HSFzFDjd4W6iRgPVs8z67pSEIfDBol9526TGN1FX6jx78Kuu8gZwGP6g6GMTfYXIxegOiRxwgEkFc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Rro2lZur; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="GPC6gkoK"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=hyaqYLauyAO3NY32hL0TF6fLI+nlOjMIvg1fE9IanB0/RX5QjbgOIK2G19Fe4sSznnWvj9vPNBScoTkQOeYwC4Xv3HTq70qK1hB6w7hSD5csfE+zSq+iPVaC2zL22OUEtKI/YB7/M60IP1TCbYV7KnHFSMAhuZZnp1UAucoBfCrGqXRaP2zcF+wGgXhHQ7EdGBXbN1p0p/LJOuUzx9iT5qcjTQsGXlnHYl5k4sEwJ6SSHDUWhwydYXUWOPMKazDh1b0NcISBvbMB8dnYsOBMyNLg046taFFKFEZsRvqesXGsI6KXAFOv+Aan25csdb/KMHjVvhnsYCE+lQP6quvrrQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=fqv4wAFN5hhj+vjq7T8uWvopMzxW3L2IbSGP67DpKxo=;
- b=u9uYs1bOwftcGH2hyShHPhZpPWxJv6vP33+jqdVuDRcb10CJo6s66xHdIjQJDMMFFcRFDtbYUS20+kFSwlEZWmRXGihq21nSNrNCs9e7IHccOM9C1YdvF9Ug4+KDKllOt+w+qva1uGNhBU54q6IAqaN8BoYYRfOTw0gAcvL9aPBQZpyGJvSiAQNGvfrrPOdF+FKcHEQ3e2Bmu/bHcuAzkBk1PGS6o1qc28f6lY8sQYK388ZEZrUOOj9PEJl6T4DggbfBoE55AghVNk4iThGnFM9WdrTLYorWvpO3hXSSt594yPsgHgdcH7ZBa8nlVfa0rV1+pySbYvFvVOKFnZk36g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=fqv4wAFN5hhj+vjq7T8uWvopMzxW3L2IbSGP67DpKxo=;
- b=GPC6gkoKOvnFQnrrN8t1qLc8eyWYTKWnu6q5TrQHz9TbTQveVmM0kX7C1euWek+faWdx8XCfywhQqCH5sK4Fd+OzmyLjHxP8hhJIoTkt7LUk8ZRiB6Xw3fw1b33h79gLk6rikWbBzymnMe+a81h5zR8FxtSWi51/Uhbfu9q+YgDIPHvXFliTCe39tmXWUd+u12TL/uQH/zW5Vv2hE1BlD+AtSqNb7BkKHc1qpVOMGOckK68B0IPffnFsBzfjvkq+yT4PUkKp98GpM6Fiz4iAEt9wAViyOt5MZmO8vO7jRMdAMeDunL7PAtimYZE/ypZ5jPoI+dQYckChVBkzZlvfqw==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from IA0PR12MB8374.namprd12.prod.outlook.com (2603:10b6:208:40e::7)
- by MN2PR12MB4080.namprd12.prod.outlook.com (2603:10b6:208:1d9::16) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.472.20; Mon, 5 Oct
- 2026 18:13:59 +0000
-Received: from IA0PR12MB8374.namprd12.prod.outlook.com
- ([fe80::d85f:4c87:ae84:3f16]) by IA0PR12MB8374.namprd12.prod.outlook.com
- ([fe80::d85f:4c87:ae84:3f16%6]) with mapi id 15.21.0472.016; Mon, 5 Oct 2026
- 18:13:59 +0000
-From: Zi Yan <ziy@nvidia.com>
-To: Will Deacon <will@kernel.org>
-Cc: =?utf-8?q?Kristina_Mart=C5=A1enko?= <kristina.martsenko@arm.com>,
- linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
- kvmarm@lists.linux.dev, linux-efi@vger.kernel.org,
- Catalin Marinas <catalin.marinas@arm.com>,
- Mark Rutland <mark.rutland@arm.com>, Ryan Roberts <ryan.roberts@arm.com>,
- David Hildenbrand <david@kernel.org>, Lorenzo Stoakes <ljs@kernel.org>,
- Linu Cherian <linu.cherian@arm.com>,
- Anshuman Khandual <anshuman.khandual@arm.com>,
- Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo <guohanjun@huawei.com>,
- Sudeep Holla <sudeep.holla@kernel.org>, Marc Zyngier <maz@kernel.org>,
- Oliver Upton <oupton@kernel.org>, Fuad Tabba <fuad.tabba@linux.dev>,
- Joey Gouly <joey.gouly@arm.com>, Steffen Eiden <seiden@linux.ibm.com>,
- Suzuki K Poulose <suzuki.poulose@arm.com>, Zenghui Yu <yuzenghui@huawei.com>,
- Ard Biesheuvel <ardb@kernel.org>,
- Ilias Apalodimas <ilias.apalodimas@linaro.org>, linux-mm@kvack.org
-Subject: Re: [RFC 00/12] arm64: Add support for TLBI domains
-Date: Mon, 05 Oct 2026 14:13:57 -0400
-X-Mailer: MailMate (3.0r7032)
-Message-ID: <4DB4935E-4381-4FC5-8B0A-BBCAF55C7D53@nvidia.com>
-In-Reply-To: <asND3-Wnb2hiDAop@willie-the-truck>
-References: <20261001110655.461473-1-kristina.martsenko@arm.com>
- <DLW95E2XWSVT.8W90FW4WG6K8@nvidia.com> <asND3-Wnb2hiDAop@willie-the-truck>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-X-MS-Reactions: disallow
-X-ClientProxiedBy: BL1PR13CA0274.namprd13.prod.outlook.com
- (2603:10b6:208:2bc::9) To IA0PR12MB8374.namprd12.prod.outlook.com
- (2603:10b6:208:40e::7)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Rro2lZur"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E87A1F000FF;
+	Mon,  5 Oct 2026 22:40:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791240018;
+	bh=52nVtOT3G96Gyj6QO/uH5eYOSdEZZOHfDTfAvP2bxYM=;
+	h=Date:From:To:Cc:Subject:In-Reply-To;
+	b=Rro2lZurrQcJdOyMQc20jesiEhuFoPZb6BQ6qKb7uEoct654EueJMu0TykAZHB60+
+	 viHM9cri9eWZiV46OhTFZryolsYxfLrm1r/vGivNIS2Qpu3+Wb5utX3k0QlCvlxDo/
+	 J7Olx5SgznrUowN0vHNgYta7p46YElTV/y20UTQFLV7T/Q6fz9s7sEzpnEaND1lNke
+	 eotAHlFErkIjV6ZrwS99Rh3BOI4hV3pKY/kQuoiQSKS06cubh5kQZluu8Svp0eg3xS
+	 lFIKPbHuCezxam+NSidQIEPAgOfyg0C3Q0BD4fCF0BwZzxMp1N4F0b0pJU/OrtwjQo
+	 lP2JV7NDr107w==
+Date: Mon, 5 Oct 2026 17:40:16 -0500
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>
+Cc: bhelgaas@google.com, linux-pci@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	lukas@wunner.de, terry.bowman@amd.com, kanie@linux.alibaba.com,
+	olof@lixom.net, Koichiro Den <den@valinux.co.jp>,
+	Manivannan Sadhasivam <mani@kernel.org>,
+	Frank Li <Frank.li@nxp.com>,
+	Brian Norris <briannorris@chromium.org>
+Subject: Re: [PATCH v15 4/4] PCI: Centralize pci_aer_available() checking
+Message-ID: <20261005224016.GA630371@bhelgaas>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: IA0PR12MB8374:EE_|MN2PR12MB4080:EE_
-X-MS-Office365-Filtering-Correlation-Id: c7b5e4fc-56c9-44fc-ebc8-08df230c6d88
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|1800799024|376014|7416014|23010399003|11063799006|56012099006|4143699003|10067099003|22082099003|18002099003|3023799007;
-X-Microsoft-Antispam-Message-Info:
-	1Scs5rf/wDSp2ycutRhIqusg2T0HcitIlZrOFuX8JxTFMjuXU7GTUKwryURX5run0+5J8wIgsNmDBGME3yUs7e0K32RAR6MNC/wbr9D4i0w6b0OpHm7iVWFviQw2QkkLc0Af3Vl4waCYafiFMO81ixqFmDYm2k1c8gjqdoyjxiLcePdEBjs0DpKGFUsDwY9jcie7NsAo7KOjgtZa2jJHgBZbBGWQtUNEMLbTaVB9vZ+NGLuU/Oc6i7OV+r9TWPa9uoBSZWbbhRQbuSe25+DI/UfYZmCjH2JoGTThoMSsdifWbUJhG9Y+Ku5bj/3WXoZj0Ua17irGNA7LVX8uKVOZV6jefBku4Jf3OETryMuX2wWEQA2CF5CuB8EaxNCc3LVMeJW5iFQ11RJoEZxb7I2NXAZhebjmnuG8f6ky6AHK1A2tcn0+40B2VtFk6YUZZcHpSfmagvmbjcEIwwuANiNnyb4mRkRIqohbZq5mBg/D1aEeiH4DTYo7ki3g2zDgDSFQlNSZIFDiVlCkTjSMEfQiMwG2beClMMQi0OeYXo/L1YyZO7HBtGjPOEkfAbikiESoB+ApXBLQJEKGHFdFizKMBBZs/DOP/BKEhcJ/tgAxUf8WJAcJSSyvW4MzNDoZd8bPlPAE7oyxQjSIXkJDfuUcJhVeKCfGH1h6QAzTnpuiIWY=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:IA0PR12MB8374.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014)(7416014)(23010399003)(11063799006)(56012099006)(4143699003)(10067099003)(22082099003)(18002099003)(3023799007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?eHgzYnY1b2ZJY3ZrSUc1dWx6dm1DakZWNHVncnpzSUg5UTQxUUFmWTIwQk81?=
- =?utf-8?B?N0tVWDZsS2VWMzZvUDZBUG1sdjQ1Vk1hZG5OYk9CT21ZQVc3Ti9hb04vVG8z?=
- =?utf-8?B?L0NjOU85dXRWYUpBZE00UlUvVzVqV2llTkVhMitmWVNBTDNyWUlOaGsyU2VT?=
- =?utf-8?B?NktFQUpNeld5Q3l4UzhJWjFwd1BBWmxKRDdMbU91aFVzRW5VWUdncEUrdDdq?=
- =?utf-8?B?eFg5R3BYRjd5UHNBQ3VTYSthVnlweVJwSEVPd1djNTk0bzVlR0pEa0Rhdzcx?=
- =?utf-8?B?bks0QVI1dzN4eDhYckFZQmoxMk5LYVZxZGFBQk1WUEdrT3RjQTVFNDUxZG90?=
- =?utf-8?B?N3BzUW1WNk5SWXF5WFpxTnJhR1RkellBT0Jjd2ZwWTdKVDJkOVBzeVpGVHpW?=
- =?utf-8?B?eURTRkJReGNVYTNOYUtSSjd5Tkd4aXp3ckFFSjE5MWkvS2NWRnJXbXRGMGRl?=
- =?utf-8?B?NkdHR20wbTlCZlM1aGFKZHR6QkR2TVdzRTZ0dE9rZFE5RitkYlRoM3pneXkx?=
- =?utf-8?B?Y0RiNEVXSEEvTG9sNWxiN1cxWVlpNzlwdm1LcnpueVBDdXppZWp4TTJITG1n?=
- =?utf-8?B?cGQ4TFFDWEpGMTB3MnBNSHRXL0lQM0pZU21LZ2c5azNKNGFDNUtiRFBTaWJm?=
- =?utf-8?B?aGUrQkNrQnNXWHh2TXF6Q0s5WUNiSEQycEwrQi9nRE1FR2VVdnVYZVdOTHVL?=
- =?utf-8?B?RCtRVDliTUwyaGFRMzJmQS9UaHRKTmU2Y1kzVkg1MC80bTNGS0FVZm9YUWpz?=
- =?utf-8?B?S25tVUYyU2RoNDNtcnFFd29rWGhXQnF4VUk3ZWpZbVo4cDZVWWxTTjBzeXpK?=
- =?utf-8?B?TDgwNHJKNm95L0RSV1E4Mm44RXU1VXZwWkRJYnpodXpTYWJkem4yTHd1V21q?=
- =?utf-8?B?WmlZTnZBYXp4dHlOdzFTbFZsOVF4cGxVLzRCODZyQWNpNk5NWjhad0pVNGV2?=
- =?utf-8?B?UFhha1NsY3VkZEJ2RnFwY2dqck1BT3VkSlJxRGd5WkFKWEdzKytPV0wwT1Y4?=
- =?utf-8?B?QVl2c0FKRTdPbE81VGRtSVhtSVl5R3kzdi9TVGU4K3ZYa0RCTDNDQThLcjdk?=
- =?utf-8?B?MVNoSzR2alRQaHFZcE9pMlIwRERVTzRKYVF6cTM4aytRL1ZpNk9wRHBmYzVx?=
- =?utf-8?B?VmJ0VGVHT29MWlZaS3NLYU41TXRnaHpRZzJiaitPT1ZMWWxiS3Z2b1VxSktC?=
- =?utf-8?B?NWkrUmhtaTZzcXBKbzZsZ3JVSE1kRDkrT3BSSWhZOHErUUhicU9Ua1lEQ1BT?=
- =?utf-8?B?SEhCa0g4NUVraUFSck4wc3BVMjA5bW8zc095ZEtib2lJUE9zMVZiTXg1cnpK?=
- =?utf-8?B?cDcxeE9QNWVveXFOTGxBT2ExTEpGZVR2TUJQWEUyZyt5dUNucTRpSkl0NW5H?=
- =?utf-8?B?dCtBMzR3V2dsRDg4NUk1akRWMHRoZ1VhNjJKc0l6ZFJUOHZ0MWx4eFJLRU1E?=
- =?utf-8?B?S0xzWk5jTVIvWlZhL09RZlZDaHh4NCtKVStLSE9BaEVBL21JRmpYaldPRk5P?=
- =?utf-8?B?YXkrODN3b2Q1cEs3U0tkNXRETnNELzdPTTJKZnZvcGEzNmo2NDR2SXMrRzRE?=
- =?utf-8?B?QVZ2RXFhYjVnT3p5UVhqVzJ4TXo1eERMQmREOWp0NGo5SjIvalhhSXd5YUNR?=
- =?utf-8?B?eSt1U3A5czNtM1FuSWFnYlIwYXJTNktDNnFNa0ZlelNxdkJWQlliNTdYcDhZ?=
- =?utf-8?B?U3RubGVmbW1xWEx6bk9Jcy9ObWFSdko1cytOUkxWUkhpV1hIN2Q3MDkxTWtE?=
- =?utf-8?B?ODJURkFSczNSUy9uVjRjUDFzdDZTSUxXN2NLNkVTZGUxa3dHN0ZNK0Rtemd4?=
- =?utf-8?B?R2U3N044ZUdlTW1pY1Q1b2ZuQm5OdUtZczdhbm4rQ2trOW8yRDE2RGtoZFpZ?=
- =?utf-8?B?dmprUzQvTXRIbnZBYWFXWTg0MUFIU1FCS1Vici9zZm5YL0luZitJdTRTQXl6?=
- =?utf-8?B?dnJwK0djYklLcEp6REJNUElTRHdWUHl2Qk9OZGxpVWJ6aW9MNEt5d1dQdXJ6?=
- =?utf-8?B?K09LTlJMcEcvZEFWYVdhdTV0clZLZ3pSY0ZZZ1RKZnYyV3AyNk5oL3QvOHRS?=
- =?utf-8?B?YjBrVW56YS9WMXlpNkJZWXlzdUZCQkJXMExnTDkxTjhFVmlxRGFCRWN0Y3FW?=
- =?utf-8?B?L0V2aWZUbmZGRnFSZkxBdTVTNDQ4aTNVL0VBTDVQaXE0WGF6V3gzODlGb3BC?=
- =?utf-8?B?cXhDWm80QzdYZjVGa05Rb2MwcHdkMnlrL2x3anVYNDRnZ2hRUmZQdVlzeWJU?=
- =?utf-8?B?N0JBZU1ELzVFVzRHZEVCWE9pV25LdDNmMkNRS2s0c0NDRWk3TUFZcGY5d1NT?=
- =?utf-8?Q?Aky9uxdbUqOcxH/fzD?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c7b5e4fc-56c9-44fc-ebc8-08df230c6d88
-X-MS-Exchange-CrossTenant-AuthSource: IA0PR12MB8374.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Oct 2026 18:13:59.6078
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: V9obrgPESDeqnlaixAeZnXZGbDbYlIeMT02ga+Uh4kElYHPnyxGhtSXkB0DSNm2v
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB4080
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <f8a4a8f1-f2c6-46d2-ba5f-370f12b73afd@linux.intel.com>
 
-On 5 Oct 2026, at 2:29, Will Deacon wrote:
+[cc->to: Rafael, insight on f1a7bfaf6bb9 ("PCI: PCIe AER: Introduce pci_aer_available()")]
+[+cc Koichiro, Mani, Frank, Brian]
 
-> On Sun, Oct 04, 2026 at 02:06:48PM -0400, Zi Yan wrote:
->> On Thu Oct 1, 2026 at 7:06 AM EDT, Kristina Martšenko wrote:
->>> This series allows the kernel to use TLBI domains. TLBI domains (FEAT_TLBID) is
->>> an Arm architecture feature that enables a TLB invalidation to target a subset
->>> of CPUs instead of the whole system. It can improve performance on systems with
->>> many CPUs. TLBID is not yet part of the Arm Architecture Reference Manual but
->>> some of it is described in the latest XML [1].
->>>
->>> The goal of this series is to send TLBI commands only to the CPUs where a
->>> process has run (i.e. where its page tables have been installed). The last
->>
->> IIUC, mm_cpumask() is used to store this information on x86 and other
->> archs. I see you put this information in tlbid_domains of mm_context_t
->> from patch 9, although in the form of tlb id domains. I wonder why not
->> make arm64 also update mm_cpumask() like x86 and other archs and derive
->> the tlbid domains based on mm_cpumask() and a cpu-to-domain mapping
->> (added in patch 7).
->
-> Historically, maintaining mm_cpumask() was a horrible source of contention
-> when we looked at it in the past. Maybe that's no longer true, but it
+On Mon, Oct 05, 2026 at 11:04:25AM -0700, Kuppuswamy Sathyanarayanan wrote:
+> Hi Bjorn,
+> 
+> On 10/2/2026 2:18 PM, Kuppuswamy Sathyanarayanan wrote:
+> > From: Bjorn Helgaas <bhelgaas@google.com>
+> > 
+> > "pci=noaer" tells us not to use AER.  pci_aer_available() reports that,
+> > and it also reports the other cases where the OS cannot use AER at all,
+> > namely CONFIG_PCIEAER=n and MSI being unavailable.
+> > 
+> > Set host_bridge->native_aer from pci_aer_available() when we initialize
+> > the host bridge, so callers only have to look at native_aer and we do not
+> > have to test pci_aer_available() separately in each of them.
+> > 
+> > Do this in pci_init_host_bridge() rather than in acpi_pci_root_create()
+> > so it also covers host bridges that are not described by ACPI and never
+> > reach acpi_pci_root_create().
+> > 
+> > This subsumes the CONFIG_PCIEPORTBUS check for native_aer, since
+> > pci_aer_available() is false when CONFIG_PCIEAER=n and PCIEAER depends on
+> > PCIEPORTBUS.
+> > 
+> > Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> > Co-developed-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+> > Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+> > ---
+> 
+> Sashiko's comment [1] looks valid to me. quirk_disable_all_msi() calls
+> pci_no_msi() during pci_bus_add_devices(), after native_aer has been
+> set. That leaves native_aer stale. At boot, pcie_aer_init() checks
+> pci_aer_available() again, so the AER driver still won't register. But
+> other native_aer users see the stale value.
+> 
+> The patch below clears native_aer in pci_no_msi(). Would you like a v16
+> with it before this patch, or would you rather fold it in?
 
-Do you have a pointer to the cost you have in mind? LLM can only finds some
-overhead reduction work done by Rik for x86[1][2].
+I agree that looks like an issue.
 
-[1] https://lore.kernel.org/all/20180716190337.26133-8-riel@surriel.com/T/#u
-[2] https://lore.kernel.org/all/20241114152723.1294686-2-riel@surriel.com/
+But I'm not sure it's legit for pci_aer_available() to depend on MSI
+being available in the first place.  I think AER should work with
+INTx, and I think there are systems where we should use AER with INTx,
+e.g.,
 
-BTW, patch 9 is updating tlbid domains unconditionally. It can be optimized
-in the same way as Rik did for x86 mm_cpumask(), read the tlbid domain first
-and only update if CPU is in a new domain.
+  https://lore.kernel.org/linux-pci/20260928165230.3397664-14-den@valinux.co.jp/
+  https://lore.kernel.org/linux-pci/20250702223841.GA1905230@bhelgaas/t/#u
 
-> would be good to see some numbers if we want to start keeping that thing
-> accurate on arm64.
+I'm not sure if anything would break if we just removed the
+pci_msi_enabled() check from pci_aer_available().
 
+If it wouldn't break anything, I'd rather remove that test than try to
+fix the issue by adding pci_aer_no_msi() as below.
 
-Best Regards,
-Yan, Zi
+pci_aer_available() was added by f1a7bfaf6bb9 ("PCI: PCIe AER:
+Introduce pci_aer_available()"), and the MSI check was there from the
+beginning.
+
+> [1] https://lore.kernel.org/linux-pci/20261003013359.A38F61F00898@smtp.kernel.org/
+> 
+> Author: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+> Date:   Mon Oct 5 10:29:19 2026 -0700
+> 
+>     PCI/AER: Clear native_aer when MSI is disabled after host bridge init
+> 
+>     pci_aer_available() reports that AER is unusable when MSI is disabled.
+>     A quirk such as quirk_disable_all_msi() can call pci_no_msi() during
+>     enumeration, after pci_init_host_bridge() and the _OSC negotiation have
+>     already set host_bridge->native_aer. In that case native_aer stays set
+>     even though the OS can no longer use AER.
+> 
+>     Clear native_aer on all registered host bridges when MSI is disabled.
+>     Host bridges added later start with native_aer cleared because
+>     pci_aer_available() is already false. _OSC negotiation and
+>     "pcie_ports=native" can only clear native_aer, so they cannot set it
+>     again.
+> 
+>     This keeps native_aer accurate so callers can rely on it instead of
+>     checking pci_aer_available() separately.
+> 
+>     Reported-by: sashiko-bot@kernel.org
+>     Closes: https://lore.kernel.org/linux-pci/20261003013359.A38F61F00898@smtp.kernel.org/
+>     Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+> 
+> diff --git a/drivers/pci/msi/msi.c b/drivers/pci/msi/msi.c
+> index 80a9db417dc8..911e61fbda31 100644
+> --- a/drivers/pci/msi/msi.c
+> +++ b/drivers/pci/msi/msi.c
+> @@ -995,4 +995,5 @@ EXPORT_SYMBOL(msi_desc_to_pci_dev);
+>  void pci_no_msi(void)
+>  {
+>         pci_msi_enable = false;
+> +       pci_aer_no_msi();
+>  }
+> diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+> index ba3c3fddddc2..11f47d5fda21 100644
+> --- a/drivers/pci/pci.h
+> +++ b/drivers/pci/pci.h
+> @@ -1331,6 +1331,7 @@ static inline void of_pci_remove_host_bridge_node(struct pci_host_bridge *bridge
+> 
+>  #ifdef CONFIG_PCIEAER
+>  void pci_no_aer(void);
+> +void pci_aer_no_msi(void);
+>  void pci_aer_init(struct pci_dev *dev);
+>  void pci_aer_exit(struct pci_dev *dev);
+>  extern const struct attribute_group aer_stats_attr_group;
+> @@ -1342,6 +1343,7 @@ void pci_save_aer_state(struct pci_dev *dev);
+>  void pci_restore_aer_state(struct pci_dev *dev);
+>  #else
+>  static inline void pci_no_aer(void) { }
+> +static inline void pci_aer_no_msi(void) { }
+>  static inline void pci_aer_init(struct pci_dev *d) { }
+>  static inline void pci_aer_exit(struct pci_dev *d) { }
+>  static inline void pci_aer_clear_fatal_status(struct pci_dev *dev) { }
+> diff --git a/drivers/pci/pcie/aer.c b/drivers/pci/pcie/aer.c
+> index e84dd686582a..494fdd20798d 100644
+> --- a/drivers/pci/pcie/aer.c
+> +++ b/drivers/pci/pcie/aer.c
+> @@ -154,6 +154,19 @@ bool pci_aer_available(void)
+>         return !pcie_aer_disable && pci_msi_enabled();
+>  }
+> 
+> +/*
+> + * AER depends on MSI (see pci_aer_available()).  If MSI is disabled after
+> + * host bridges have been initialized, e.g., by a quirk, the OS can no
+> + * longer use AER on them.
+> + */
+> +void pci_aer_no_msi(void)
+> +{
+> +       struct pci_bus *bus = NULL;
+> +
+> +       while ((bus = pci_find_next_bus(bus)))
+> +               pci_find_host_bridge(bus)->native_aer = 0;
+> +}
+> +
+>  #ifdef CONFIG_PCIE_ECRC
+> 
+>  #define ECRC_POLICY_DEFAULT 0          /* ECRC set by BIOS */
+> 
+> 
+> > Changes since v14
+> > 
+> >  * No change.
+> > 
+> > v14 posting
+> > https://lore.kernel.org/r/20260922204548.3884906-1-sathyanarayanan.kuppuswamy@linux.intel.com
+> > 
+> > Changes since v13
+> > 
+> >  * No change.
+> > 
+> > v13 posting
+> > https://lore.kernel.org/r/20260919162655.3499010-1-sathyanarayanan.kuppuswamy@linux.intel.com
+> > 
+> >  drivers/pci/pcie/portdrv.c | 3 +--
+> >  drivers/pci/probe.c        | 2 +-
+> >  2 files changed, 2 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/pci/pcie/portdrv.c b/drivers/pci/pcie/portdrv.c
+> > index 32fc623dd410..9f8c6dd434c5 100644
+> > --- a/drivers/pci/pcie/portdrv.c
+> > +++ b/drivers/pci/pcie/portdrv.c
+> > @@ -239,8 +239,7 @@ static int get_port_device_capability(struct pci_dev *dev)
+> >  #ifdef CONFIG_PCIEAER
+> >  	if ((pci_pcie_type(dev) == PCI_EXP_TYPE_ROOT_PORT ||
+> >               pci_pcie_type(dev) == PCI_EXP_TYPE_RC_EC) &&
+> > -	    dev->aer_cap && pci_aer_available() &&
+> > -	    host->native_aer)
+> > +	    dev->aer_cap && host->native_aer)
+> >  		services |= PCIE_PORT_SERVICE_AER;
+> >  #endif
+> >  
+> > diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> > index 1e487a213eb0..e1ca8096bcd5 100644
+> > --- a/drivers/pci/probe.c
+> > +++ b/drivers/pci/probe.c
+> > @@ -670,7 +670,7 @@ static void pci_init_host_bridge(struct pci_host_bridge *bridge)
+> >  	 * may implement its own AER handling and use _OSC to prevent the
+> >  	 * OS from interfering.
+> >  	 */
+> > -	bridge->native_aer = port_services;
+> > +	bridge->native_aer = pci_aer_available();
+> >  	bridge->native_pcie_hotplug = port_services;
+> >  	bridge->native_shpc_hotplug = 1;
+> >  	bridge->native_pme = port_services;
+> 
+> -- 
+> Sathyanarayanan Kuppuswamy
+> Linux Kernel Developer
+> 
