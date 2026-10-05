@@ -1,82 +1,89 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 908272D0C72;
-	Mon,  5 Oct 2026 03:41:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44A6E3290B1;
+	Mon,  5 Oct 2026 06:30:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791171675; cv=none; b=r//7GwIdsCrDT3d/ucAtN4fuicY/sfns0iHdLQBXC/2z5mxLaIDo8FUmSc0bQh7TgrdlRvBC8waRjkgoVhmlb8WV5FpBv519SAMBNLsOeRfgUoiDv/Aze0ogDw131AxLbm+37eenF3rX9hrMZupa1Z6iTorewBOXb2rXGpz/CJg=
+	t=1791181801; cv=none; b=EJ/9qSyTe5KJyVfH1h/PGe9UTMm2EZhA+7GK2u3QByFztwfKSK/P8Av3a2h+wrhY9xdYaWNollaK/2ovM1Cy1zmL0JLVjiqNuWMbps9QNKM8qlbFmC02V1j1kPqTaClgDuhYwEYqwF0rhnUVSAOZFbf6bEJ3IKGyAxxKmV3fmK8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791171675; c=relaxed/simple;
-	bh=a/I5W75Wzj4Vi2hL0gaTgGCWcVuhYNZC2fvTbQdp26Q=;
+	s=arc-20240116; t=1791181801; c=relaxed/simple;
+	bh=TyO4u2KWK78c9gO8VxFyI8mKQKwpEe8Vs33LhFo7sMQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tYJDV74vpyJhrIiEWnPI5faDECiD7udB8fY11S54rv9+W+Ef8pVCBBxKoa5LuUDGyO8FvNwvdsI5RwT0lIeRZVoBMtjh10Uin0N5/2kRCl8oOaq4o3L2NztlZdKWoo/30l2klLrGyam+PuRDNwJMlwMBAONsVb1LLRi9hPvIpm4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NnmbBDdB; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=A4OoGk+gVtpOF0uP1cQAwEV+bAo4wvV1IESpfwBCuSOMjbvzbSmotwYmxb3dwXAuVwneEsE8ZmfQ41FBz7/1lrcBF+cwdfupfotdf/0vjCqk+t72LD3QbSQZCkEUIG6bAcpiNRCNOeMgyRRtRe0O/qWg8CiHMvLlLgY3IjTfSnw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gFHs0RI0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NnmbBDdB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 601D31F000FF;
-	Mon,  5 Oct 2026 03:41:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gFHs0RI0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E65B1F00893;
+	Mon,  5 Oct 2026 06:29:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791171674;
-	bh=/++80sm8ie9dA37rGV3zbq1wVFGW3yfdcVqabOTu/MA=;
+	s=k20260515; t=1791181800;
+	bh=NMXP+3HOcHF428TlVrg2cs9+rmnJKLTevmDSSnYryBQ=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=NnmbBDdBs7MeM4iT9Xab0exrvDBwqVJGZRd22IpZ/iyM0aRPZ3C7Tz7ciLTCehgma
-	 LWDOwfDyZR9UxlTqBf7e8aPHABRpTi/olsJQpES2YhfvKHPpsuN3JrRjThRT7tZx1I
-	 ZTrHNBnH2slrBLk5zhsyp2lkDS3bDOR8cxG0jusrv5KIJqiTQGkumza5q7y8SJluAI
-	 QTqEoN3mgCRkiPEnWP9lcAu83FpWWjeugHvaQujSABBWeiPrgRsEZxseSm0BsSIufn
-	 1fOlmze0nD8otivmtpzwrZV8ZEI42IOjSc+mgLR+RIETvQHxzyGIZ9xhrBGSDvFEO6
-	 AAWv+hFMrnsYg==
-Date: Mon, 5 Oct 2026 03:41:10 +0000
-From: Tzung-Bi Shih <tzungbi@kernel.org>
-To: James Fairweather <james.a.fairweather@gmail.com>
-Cc: =?utf-8?Q?=C5=81ukasz?= Bartosik <ukaszb@chromium.org>,
-	Andrei Kuchynski <akuchynski@chromium.org>,
-	Jameson Thies <jthies@google.com>,
-	Benson Leung <bleung@chromium.org>, chrome-platform@lists.linux.dev,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org, stiraspo@gmail.com
-Subject: Re: [PATCH] platform/chrome: cros_usbpd_notify: Only use parent
- drvdata when parent is GOOG0004
-Message-ID: <asMcVmEa67BUmQ3D@google.com>
-References: <20261003222855.23707-1-james.a.fairweather@gmail.com>
+	b=gFHs0RI0vQiYN70xLjJK6AIYAhKscdvLrr5shld7PhX2KZychrY1pspfUyGMIyjgR
+	 mbkFt9Cb7WMu6rmV0YK7D6FB1RqQpIwcnjbvH/a8zwzdISBXeDxfcPXSds6DBbys25
+	 UPDLmNmI5IR8DhAvnAxyD7B0lABLUqOm8rN5+XVq/cKEJprw7em17Xe35a7kBMxQnj
+	 2nIkE+qQq91I2LBKt5owi+zYqepp7uqZU1R5dNPMIPeduKfGwHtf9JvyuvaHBtbPLX
+	 oSWkiCiwB41mvjZxskSm+7HDZWrGWb6aVcllIiebe2luvrsOd4VQUN7q9UO4HkfmtL
+	 EZb5je/2vyG6w==
+Date: Mon, 5 Oct 2026 07:29:51 +0100
+From: Will Deacon <will@kernel.org>
+To: Zi Yan <ziy@nvidia.com>
+Cc: Kristina =?utf-8?Q?Mart=C5=A1enko?= <kristina.martsenko@arm.com>,
+	linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
+	kvmarm@lists.linux.dev, linux-efi@vger.kernel.org,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ryan Roberts <ryan.roberts@arm.com>,
+	David Hildenbrand <david@kernel.org>,
+	Lorenzo Stoakes <ljs@kernel.org>,
+	Linu Cherian <linu.cherian@arm.com>,
+	Anshuman Khandual <anshuman.khandual@arm.com>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>,
+	Fuad Tabba <fuad.tabba@linux.dev>, Joey Gouly <joey.gouly@arm.com>,
+	Steffen Eiden <seiden@linux.ibm.com>,
+	Suzuki K Poulose <suzuki.poulose@arm.com>,
+	Zenghui Yu <yuzenghui@huawei.com>, Ard Biesheuvel <ardb@kernel.org>,
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>, linux-mm@kvack.org
+Subject: Re: [RFC 00/12] arm64: Add support for TLBI domains
+Message-ID: <asND3-Wnb2hiDAop@willie-the-truck>
+References: <20261001110655.461473-1-kristina.martsenko@arm.com>
+ <DLW95E2XWSVT.8W90FW4WG6K8@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20261003222855.23707-1-james.a.fairweather@gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <DLW95E2XWSVT.8W90FW4WG6K8@nvidia.com>
 
-On Sat, Oct 03, 2026 at 06:28:53PM -0400, James Fairweather wrote:
-> Only read the parent's driver data when the parent's ACPI node is
-> GOOG0004, and otherwise continue without an EC pointer. While at it,
-> drop the reference taken by fwnode_get_parent().
+On Sun, Oct 04, 2026 at 02:06:48PM -0400, Zi Yan wrote:
+> On Thu Oct 1, 2026 at 7:06 AM EDT, Kristina Martšenko wrote:
+> > This series allows the kernel to use TLBI domains. TLBI domains (FEAT_TLBID) is
+> > an Arm architecture feature that enables a TLB invalidation to target a subset
+> > of CPUs instead of the whole system. It can improve performance on systems with
+> > many CPUs. TLBID is not yet part of the Arm Architecture Reference Manual but
+> > some of it is described in the latest XML [1].
+> >
+> > The goal of this series is to send TLBI commands only to the CPUs where a
+> > process has run (i.e. where its page tables have been installed). The last
+> 
+> IIUC, mm_cpumask() is used to store this information on x86 and other
+> archs. I see you put this information in tlbid_domains of mm_context_t
+> from patch 9, although in the form of tlb id domains. I wonder why not
+> make arm64 also update mm_cpumask() like x86 and other archs and derive
+> the tlbid domains based on mm_cpumask() and a cpu-to-domain mapping
+> (added in patch 7).
 
-Because of this, I'll add "Fixes: e4ee0bb077cd ..." as well when applying
-the patch.
+Historically, maintaining mm_cpumask() was a horrible source of contention
+when we looked at it in the past. Maybe that's no longer true, but it
+would be good to see some numbers if we want to start keeping that thing
+accurate on arm64.
 
-> Tested on a Google Nami-based Chromebook (BIOS 09/19/2019)
-> running a 7.2.5 distro kernel (linux-omarchy 7.2.5-3). The unpatched
-> driver oopsed twice in two days, each time on a charger plug/unplug.
-> With this patch built as a module against that kernel, the probe logs
-> "Couldn't get Chrome EC device pointer." (confirming GOOG0003's parent
-> is not GOOG0004 here), and 12 charger unplug/replug cycles produced no
-> oops, with charging negotiating 20V/3.5A as before.
-
-Hi James,
-
-Thanks for looking into this.
-
-Sergey Tiraspolsky ran into the same issue on a Pixelbook (Eve) and sent a
-patch shortly before yours [1].  However, because your patch also catches
-and resolves the preexisting fwnode reference leak, I plan to proceed with
-your patch.
-
-When applying, I plan to credit Sergey's earlier report by adding a
-"Reported-by" tag.  I've also CC'd Sergey and invited testing on Eve if
-feasible.
-
-[1] https://lore.kernel.org/all/20261003204623.18124-1-stiraspo@gmail.com/
+Will
