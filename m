@@ -1,201 +1,135 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 90FC530E82B;
-	Tue,  6 Oct 2026 16:19:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D688737F8CC;
+	Tue,  6 Oct 2026 17:51:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791303571; cv=none; b=mKxikgE1xpyRESAro9wNsdSUPaAJ7mp2a5LxBQqEyDYZ7zpB4+D/l89DpB+NZh8ufvih7iHro19e0zJmsRvpEa2BRcxb3ublG0yDHr42Vgak9jTc/ETfgf/X8LH9jW52NXCn7hH4TAOwjcx4+zw5DW/MhM0wn4c4sUPi68CzQSU=
+	t=1791309081; cv=none; b=eKVFN8xkP2LuMpEFV8jDT9DD7il9wfIUDg5zz8EakoCsT/4ZamiR4Zq1qa2BYFARNFMdhlvuVH8LvhurThOVvZed1eyPaikv/1r7vYh0planXEAs3Zmn0k4KWRlr3M8YRx7kovXkj/3J4pchq+PN4LIMUgwfiqCWWUEd0n2hjpk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791303571; c=relaxed/simple;
-	bh=XNv7I0MkTwHx+tdM3j/fp7moNAcgOO1BV5Xs65yK//M=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=DkITGr80rEHhTwFtd30+ANPaDD+syt13n6blTpU4FwEJSu5RtGuRvfwaao59jpVwI/Tg86Jj13JizKhCJZhS9UUl6KlvS1qh3M767oraHuLEvwO7SWb40z6VxVbF7hU/KfzdV1W1PzUZ2l4ZQ7whOXVLdlVPK9I+hDMj7uSkq04=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=u6IGDAwb; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1791309081; c=relaxed/simple;
+	bh=YCIWOEMqw5vnxpxLy0Thc2k827fNlKN8XlUl9ggovKA=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=NXtxueMVCi5V81on3pkNyoPbDURGshuxmM0BFWrarduqv3DP8unN7BJCYLVBFW/jCDNYlzN3J5R1GMwRNOXjGoI4mR2KM8735EkfiodSJA8gPAllDjWg6k9IkcxPXfp0Owqa3jFr+Cm3Gc+t4yQmmPSSYoA6/jA+OoG3hQzTDFQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Io9suqr9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="u6IGDAwb"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 42FE9143D;
-	Tue,  6 Oct 2026 09:19:24 -0700 (PDT)
-Received: from [10.2.212.23] (e121345-lin.cambridge.arm.com [10.2.212.23])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 2730B3F66F;
-	Tue,  6 Oct 2026 09:19:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1791303567; bh=XNv7I0MkTwHx+tdM3j/fp7moNAcgOO1BV5Xs65yK//M=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=u6IGDAwbX+uzfksBglkc459aOBENYG3WKamYJZ2EUmHMu5c2qyLb2JfJki+0kRs5y
-	 w2i0OHp7bOzXi8oRnzEcPBhVMGQV0kYHt0qyv0g59LHLeeIvgLzCYZFal4GzYagEoB
-	 o0DQvByaa1Bs3yoLzwzcvNh+k7oPl3/SBX12MkiQ=
-Message-ID: <d1720b63-65bf-4019-bc19-1852555f7993@arm.com>
-Date: Tue, 6 Oct 2026 17:19:23 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Io9suqr9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 477F41F0089B;
+	Tue,  6 Oct 2026 17:51:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791309079;
+	bh=DLzFusgAR+EaFuTDmWuvGcyuHWPBSJyvcNUT9zpN7iA=;
+	h=Date:From:To:Cc:Subject:In-Reply-To;
+	b=Io9suqr9xmCwO2tHoXRfPwutODp7EkqpvTEOu5g7TjKNSWZ6BfdPc18d8OJARyHHR
+	 CfWhD2m4h4+JXYJpOcWlRFKP64xrNjEDT5PhSK47umJCpLkU+frVU5NB+JTmFrActV
+	 P+6t1ShAuksUOF3tRx0hBWqGM2Gs+1xAFRFiH7Jj2egkkE38d+9VwREj61HZri8wsM
+	 MfewaHQ1yjzD2l9qGQB661nt/CCvE0Mn1ByjKTE9gkPcKBWvrfTp2+PboPv2AOqTbJ
+	 Bn0xrLOcELJ26AkaKFYDdxQYSauYolUwtAIfFxe44hegLvZ9I/VYIzx1vnvT5qyKBY
+	 5du1VXDL9UFgw==
+Date: Tue, 6 Oct 2026 12:51:18 -0500
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+Cc: bhelgaas@google.com, linux-pci@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	rafael@kernel.org, lukas@wunner.de, terry.bowman@amd.com,
+	kanie@linux.alibaba.com, olof@lixom.net
+Subject: Re: [PATCH v15 0/4] Simplify PCIe native ownership
+Message-ID: <20261006175118.GA695965@bhelgaas>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RFC 02/11] ACPI: Introduce irq_get() for static fwnodes
-To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
- Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <maz@kernel.org>,
- Daniel Lezcano <daniel.lezcano@kernel.org>, Thomas Gleixner
- <tglx@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Danilo Krummrich <dakr@kernel.org>, Hanjun Guo <guohanjun@huawei.com>,
- Sudeep Holla <sudeep.holla@kernel.org>,
- Wim Van Sebroeck <wim@linux-watchdog.org>, Guenter Roeck
- <linux@roeck-us.net>, Catalin Marinas <catalin.marinas@arm.com>,
- Will Deacon <will@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>,
- linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, driver-core@lists.linux.dev,
- linux-watchdog@vger.kernel.org
-References: <20260925-acpi-static-table-irq-probe-defer-v1-0-2c62125d0085@kernel.org>
- <20260925-acpi-static-table-irq-probe-defer-v1-2-2c62125d0085@kernel.org>
- <arZDwutoadki7tiZ@ashevche-desk.local> <arZNL9BnTGK0Klwc@red-moon>
- <arZS4vwxps01dGb7@ashevche-desk.local> <arqSqcoWAkhy-8do@red-moon>
-From: Robin Murphy <robin.murphy@arm.com>
-Content-Language: en-GB
-In-Reply-To: <arqSqcoWAkhy-8do@red-moon>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261002211828.1293177-1-sathyanarayanan.kuppuswamy@linux.intel.com>
 
-On 28/09/2026 5:15 pm, Lorenzo Pieralisi wrote:
-> On Fri, Sep 25, 2026 at 01:54:26PM +0300, Andy Shevchenko wrote:
->> On Fri, Sep 25, 2026 at 12:30:07PM +0200, Lorenzo Pieralisi wrote:
->>> On Fri, Sep 25, 2026 at 12:49:54PM +0300, Andy Shevchenko wrote:
->>>> On Fri, Sep 25, 2026 at 09:48:01AM +0200, Lorenzo Pieralisi wrote:
->>
->> ...
->>
->>>>> +static int acpi_static_fwnode_read_u32_prop_index(const struct fwnode_handle *fwnode,
->>>>> +						  const char *propname,
->>>>> +						  unsigned int index, u32 *value)
->>>>> +{
->>>>> +	u32 *values;
->>>>> +	int ret, count;
->>>>> +
->>>>> +	count = fwnode_property_count_u32(fwnode, propname);
->>>>> +	if (count < 0)
->>>>> +		return count;
->>>>> +
->>>>> +	if (index >= count)
->>>>> +		return -ENOENT;
->>>>> +
->>>>> +	values = kcalloc(count, sizeof(*values), GFP_KERNEL);
->>>>> +	if (!values)
->>>>> +		return -ENOMEM;
->>>>> +
->>>>> +	ret = fwnode_property_read_u32_array(fwnode, propname, values, count);
->>>>> +	if (!ret)
->>>>> +		*value = values[index];
->>>>
->>>> Use standard pattern, id est
->>>>
->>>> 	if (ret)
->>>> 		...
->>>>
->>>>> +	kfree(values);
->>>>
->>>> You want to use __free()
->>>>
->>>>> +	return ret;
->>>>> +}
->>>>
->>>> I believe the whole approach is suboptimal, if you wish get indexed value (but why?)
->>>
->>> Why what (that's what the irq_get() interface requires ?) I agree it is
->>> suboptimal - the whole point of the series is an RFC on using properties
->>> to store GSI number/flags, then how to read them we will optimize it
-I>>> when/if we agree that's the approach to be taken.
->>
->> Why to have indexed APIs. The callers usually do not want a single item from an
->> array, they want all of them or a big pile (exception is the array of strings,
->> but we have matching functions for that).
->>
->> As per approach, this patch is against device property and I don't think we are
->> going to agree on the approach taken in *this* patch.
+On Fri, Oct 02, 2026 at 02:18:24PM -0700, Kuppuswamy Sathyanarayanan wrote:
+> This revives Bjorn's v12 from November 2020, rebased onto v7.3-rc3.
 > 
-> Coming back to this, what is needed here is a way to stash the GSI number,
-> flags and name in stardard storage (like OF nodes IRQ properties, ACPI objects
-> _CRS, etc).
+>   https://lore.kernel.org/all/20201126011816.711106-1-helgaas@kernel.org/
 > 
-> To give you some background, I thought about adding an array of:
+> The goal is unchanged.  Decide who owns each PCIe port service in one
+> place, when we interpret the _OSC results in acpi_pci_root_create(), so
+> that everywhere else only has to look at host_bridge->native_X.  For AER
+> specifically, host_bridge->native_aer becomes the single answer to the
+> question "may Linux touch the AER Capability?".  Today callers each have
+> to remember to also test pcie_ports_native and pci_aer_available().
 > 
-> GSI [number, flags, name]
+> I posted v11.  Bjorn took it over at v12, split the _OSC changes in two
+> and deferred the "pcie_ports=dpc-native" work.  The v12 review comments
+> were agreed but never respun, and the series stalled.  v13 was that
+> respin.
 > 
-> to the ACPI static fwnode itself. Then basically the irq_get() API has got
-> all the information it needs from the primary fwnode; while doing that I
-> thought that this might have been a bit like reinventing software nodes
-> (granted, software node properties are ways more general that what I suggest
-> above and I don't expect any other property to be ever added to static fwnodes)
-> that's why I put together the series as it is, precisely to understand what's
-> best.
+>   https://lore.kernel.org/r/cover.1603766889.git.sathyanarayanan.kuppuswamy@linux.intel.com [v11]
 > 
-> When you say "against device property", what do you mean precisely ?
+> Bjorn suggested reviving it in response to Guixin Liu's report that
+> "pcie_ports=native" no longer enables DPC.  The DPC service binds on
+> host_bridge->native_aer, and that flag did not reflect the command line,
+> so DPC stayed off when firmware retained AER control.  Patch 3 fixes it
+> by making the flag reflect it.
 > 
-> I suppose you mean that this approach goes against software node properties
-> usage guidelines ?
+>   https://lore.kernel.org/linux-pci/20260901064554.2178688-1-kanie@linux.alibaba.com/
 > 
-> Anyway, again, it is just to provide some context, we are talking about
-> a bunch of platform devices, it is nice to have a generic solution but
-> it has to be simple enough too given its scope, I understand very well
-> your concern with this approach as-is - it is there to find a way
-> forward together and show what the problem is.
+> Patch 3 has a side effect worth calling out.  drivers/cxl/core/ras.c did
+> not exist in 2020 and tests host_bridge->native_aer with no
+> pcie_ports_native fallback, so it has been quietly ignoring
+> "pcie_ports=native".  Centralizing the check fixes that.
+> 
+> Binding the DPC service on host_bridge->native_dpc, rather than on
+> native_aer, is left for a separate patch on top of Lukas's series that
+> removes the DPC/AER dependency, as agreed with Bjorn.  That change
+> alters behavior, so it does not belong in this cleanup.
+> 
+>   https://lore.kernel.org/r/cover.1790531238.git.lukas@wunner.de
+>   https://lore.kernel.org/r/20261001221408.GA2731929@bhelgaas
+> 
+> Changes since v14:
+>   * Patch 3: fold "pcie_ports=dpc-native" into the _OSC control mask as
+>     well, so host_bridge->native_dpc and the "OS native features" line
+>     reflect it (Bjorn).
+>   * Picked up Guixin's Reviewed-by on patch 3.
+> 
+> v14 posting
+> https://lore.kernel.org/r/20260922204548.3884906-1-sathyanarayanan.kuppuswamy@linux.intel.com
+> 
+> Changes since v13:
+>   * Lukas suggested dropping AER cap check fix (patch 1 of v13). He has
+>     a series underway to fix it cleanly (removing DPC/AER dependency).
+>     So dropped the patch as suggested.
+>     https://lore.kernel.org/r/aq95LGUHL-pnmTlr@wunner.de
+>   * Addressed use of IS_ENABLED(CONFIG_PCIEPORTBUS) instead of #ifdef
+>     (Lukas).
+>   * Added Fixes tag in patch 3 (Guixin Liu).
+>   * Added Acks from Rafael.
+> 
+> v13 posting
+> https://lore.kernel.org/r/20260919162655.3499010-1-sathyanarayanan.kuppuswamy@linux.intel.com
+> 
+> Bjorn Helgaas (1):
+>   PCI: Centralize pci_aer_available() checking
+> 
+> Kuppuswamy Sathyanarayanan (3):
+>   PCI: Assume control of portdrv-related features only when portdrv
+>     enabled
+>   PCI/ACPI: Tidy _OSC control bit checking
+>   PCI/ACPI: Centralize pcie_ports_native checking
+> 
+>  drivers/acpi/pci_root.c           | 78 +++++++++++++++++++++++++------
+>  drivers/pci/hotplug/pciehp_core.c |  2 +-
+>  drivers/pci/pci-acpi.c            |  3 --
+>  drivers/pci/pcie/aer.c            |  6 +--
+>  drivers/pci/pcie/aer_cxl_rch.c    |  2 +-
+>  drivers/pci/pcie/err.c            |  2 +-
+>  drivers/pci/pcie/portdrv.c        |  7 ++-
+>  drivers/pci/pcie/portdrv.h        |  2 -
+>  drivers/pci/probe.c               | 10 ++--
+>  include/linux/pci.h               |  2 +
+>  10 files changed, 80 insertions(+), 34 deletions(-)
 
-I guess software node properties look inviting in theory since they're a 
-ready-made mechanism for effectively attaching arbitrary data to a 
-fwnode, however looking at patches 6-7 and the amount of boilerplate 
-involved in the reality, I'm inclined to think that a dedicated 
-structure for static nodes is probably the best and most efficient 
-compromise here. The redundancy argument rather falls apart once we end 
-up creating copies of those contentiously-made-up property name strings 
-for every node, especially given that any one of those alone is probably 
-already more than the amount of actual data we need per node...
+I put the first three patches on pci/portdrv for v7.4, thanks!
 
-Perhaps the "purest" option might be to just store a function pointer in 
-the fwnode wrapper for each static table type to provide its own 
-internal irq_get() callback, so not stashing intermediate GSI data at 
-all, but I suspect that might end up being more work overall.
-
-Cheers,
-Robin.
-
-> 
-> Thanks,
-> Lorenzo
-> 
->>>> it needs to be retrieved as that in the guts of ACPI. Allocating memory for the whole
->>>> array to retrieve a single element is simply wrong.
->>
->> ...
->>
->>>>> +#define ACPI_IRQ_PROP_GSI		"linux,acpi-gsi"
->>>>> +#define ACPI_IRQ_PROP_GSI_TRIGGER	"linux,acpi-gsi-trigger"
->>>>> +#define ACPI_IRQ_PROP_GSI_POLARITY	"linux,acpi-gsi-polarity"
->>>>
->>>> Oh... This sounds like a big ugly hack.
->>>
->>> That does not help much I am afraid.
->>>
->>> What's a ugly hack ? Property names ? Using properties for this purpose ?
->>
->> Yes, properties started with "linux," for some core functionality.
->> Yes, using properties for this also doesn't sound right. I think the problem
->> here is in the table specifications or somewhere that deep. That's why we
->> ended up in this series.
->>
->>> Again, it is an RFC for this specific reason and I mentioned that in the
->>> cover letter, thank you for your inputs.
->>
->> And here we have a discussion started :-)
->>
->> P.S. Looks like I was too quick to jump into this thread. I will wait for
->> others to share their view on all this.
->>
->> -- 
->> With Best Regards,
->> Andy Shevchenko
->>
->>
-
+I deferred the last ("PCI: Centralize pci_aer_available() checking")
+while we sort out the MSI/AER question, but I want to make sure we get
+the rest in v7.4.
