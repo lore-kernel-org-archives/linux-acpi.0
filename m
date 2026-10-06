@@ -1,45 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B379D3E1CE5;
-	Tue,  6 Oct 2026 10:28:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DA4445C6F7;
+	Tue,  6 Oct 2026 13:44:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791282495; cv=none; b=EpZhWo7n4CZDv4EhNDm6JMZPPayBiYailp4OdwEvyge1atB3PRJJ+6jZ7bBgbqnfDEg0pwRFEv8k27F5EPVVkJ+696pSYJsz/+uHjvEUOe51u2I8ifQ64xsLfsETzfTD11nF/b+5gYqDeF0zOeIkAIQ9QzZZwSoLdv4YjLpeGu4=
+	t=1791294256; cv=none; b=J0b5Zg5eMX+b5w1hrjjdpGSESQ7wToVHx3+ZrhZD7CnDd0J2OxRw60wQ6uI8qX0g1nZvvT0sKmhGodXNLkk8KXfYyDFFwK0HfvBveSncPkL/Bujh2U02r7gb/gjQHVJ6jpvXQvfS1uv7/LeEn7i/iceNW/4Z2V5VBfv6fFfqwj0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791282495; c=relaxed/simple;
-	bh=KvpUgO4CgeM1LxzsybrYaeIDHm7F18kJgkihCFrt5GI=;
+	s=arc-20240116; t=1791294256; c=relaxed/simple;
+	bh=Zt0bdOBPA8dmWgU5ONDLL8zAtEPO24VrWMtL0RB7Wls=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=YPoNx6zxze6PhiIlCLUYra0vVrZuUUdwOzHoXB/sxgi/3IzFOI77oLHAqTb0NAIcKeYqOCmjESEqeiiY1hziTec7z7FAe7qF12gc3zMJvAxYkgOi9Mr20aFgAKTvDmB5pmGGBozpQMtyXAaEFpmkVk/7OJlEFaKcN3nRGQ99K0Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jmqQzSdI; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=dVwMHad7i9wlVx54dW051lQ6oMZYajFalcGb4QVfH4li16S52XLbvDV9P6MkSGRNZWQIDDdQRYiz0UGpJju3Hds/ITSp5p2JsLwtmvxD/U0S+1V0IQYvHODQxyBs3rj6vfezAXl+xtfxlm8EfZ+FxQnTahwJ6vQ0Dlkuf5WZjn8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WDpj8AgR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jmqQzSdI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3CC11F000FF;
-	Tue,  6 Oct 2026 10:28:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WDpj8AgR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FFCB1F000FF;
+	Tue,  6 Oct 2026 13:44:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791282494;
-	bh=2VKeccy7Y9xSH924RYBehid8QY5Hd3vjaKP5BDtP67Y=;
+	s=k20260515; t=1791294254;
+	bh=vdrdHKe5zrnvY3ZqJBJ6V4F335WxUSRWLrLw5yayRaA=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=jmqQzSdIPW98aNTxfz2htTGb0Rv/ruboCNOSP/lDkG3cSJdXuuGVLFnlFh78Y576g
-	 Px78bpg/CoQjVDc/LiMsFJv4euPUicb3/D0cv8xhaXK1+l3U70/fRlSV99Hdv62YqH
-	 wICVD8rdDsGSPP7uJrXaSpZGvoiJUpXO0a4CsnFOoy7B4ByNKvwpFTuLIcwdg7tuWA
-	 etn0lIavufOFJgX1cG1+Pvqxb0qpVZIv2dwYvJ196GnoRtW0PCkm0c6LKyAi2R6Ll6
-	 7d+yQxxh64cM/TPzCCDbQ8zhURiDTjcfqWlamyTd1vpZ1CHlelqlNZmU0cUecb1TqG
-	 6Mo+tshn92iXA==
-Date: Tue, 6 Oct 2026 10:28:10 +0000
-From: Tzung-Bi Shih <tzungbi@kernel.org>
-To: James Fairweather <james.a.fairweather@gmail.com>
-Cc: =?utf-8?Q?=C5=81ukasz?= Bartosik <ukaszb@chromium.org>,
-	Andrei Kuchynski <akuchynski@chromium.org>,
-	Jameson Thies <jthies@google.com>,
-	Benson Leung <bleung@chromium.org>, chrome-platform@lists.linux.dev,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [PATCH] platform/chrome: cros_usbpd_notify: Only use parent
- drvdata when parent is GOOG0004
-Message-ID: <asTNOr4A_dD5Kiq9@google.com>
-References: <20261003222855.23707-1-james.a.fairweather@gmail.com>
+	b=WDpj8AgRB2zANACesdtZzXafOdX8uIhPkGdWe5JU/72r740QlFrfPKU9i52v1sFok
+	 q4RX8NodFrKBDvZ/PhRJGQSiXXJYVFFuVb2F9Ti0uS6jhoP9MZsecUuWVEy3Fc9jif
+	 C7ZmwIpSbtVz8S93cPdm7AiVJa0UaO3RKspFnPfqxZY7GWx6MyG5g2tAzTUn4vOOpj
+	 1UknckZAwoA84iWs4GNXvoXZkxEMCu7ibYWk6GUFwMOB6lrijlthPAGx1iX8JpvThU
+	 bB/CdjWSGbdjhKy4IJGKhfAtvanahy6j35VkcL7w5VX5ZMpntVPMos14wgS7n8HEHE
+	 +FoB6evTDjI6Q==
+Date: Tue, 6 Oct 2026 15:44:11 +0200
+From: Andi Shyti <andi.shyti@kernel.org>
+To: prinn.dev@pm.me
+Cc: Mika Westerberg <westeri@kernel.org>, linux-i2c@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] i2c: acpi: Force ASUE140D touchpads to 100 kHz
+Message-ID: <asT6nqQMz13beDyW@zenone.zhora.eu>
+References: <20261004-i2c-acpi-asue140d-100khz-v1-1-cc2dbad00470@pm.me>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -48,26 +42,46 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261003222855.23707-1-james.a.fairweather@gmail.com>
+In-Reply-To: <20261004-i2c-acpi-asue140d-100khz-v1-1-cc2dbad00470@pm.me>
 
-On Sat, Oct 03, 2026 at 06:28:53PM -0400, James Fairweather wrote:
-> cros_usbpd_notify_probe_acpi() takes the EC device pointer from
-> dev_get_drvdata(dev->parent) and assumes it is a struct cros_ec_device.
-> That only holds when GOOG0003 is a child of GOOG0004. On older devices
-> without that hierarchy, such as Google Nami, GOOG0003 and GOOG0004 are
-> siblings under the ACPI EC (PNP0C09):
+Hi Harinn,
+
+next time, please...
+
+On Sun, Oct 04, 2026 at 05:59:53PM +0700, Harinn via B4 Relay wrote:
+> From: Harinn <prinn.dev@pm.me>
 > 
->   PNP0C09:00 (acpi-ec)
->   |-- GOOG0003:00 (cros-usbpd-notify-acpi)
->   `-- GOOG0004:00 (cros_ec_lpcs)
+> The ASUE140D touchpad on the ASUS Zenbook UX3404VC (BIOS UX3404VC.303)
+> starts lagging shortly after boot when the bus runs at the 400 kHz the
+> DSDT asks for, and only recovers after rebinding i2c-hid. Forcing
+> 100 kHz fixes it.
 > 
-> [...]
+> Signed-off-by: Harinn <prinn.dev@pm.me>
 
-Applied to
+... try to use your full name and ...
 
-    https://git.kernel.org/pub/scm/linux/kernel/git/chrome-platform/linux.git for-next
+> ---
+>  drivers/i2c/i2c-core-acpi.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+> index 8f3bdd50186e..e5b27375af31 100644
+> --- a/drivers/i2c/i2c-core-acpi.c
+> +++ b/drivers/i2c/i2c-core-acpi.c
+> @@ -371,6 +371,7 @@ static const struct acpi_device_id i2c_acpi_force_100khz_device_ids[] = {
+>  	 * the device works without issues on Windows at what is expected to be
+>  	 * a 400KHz frequency. The root cause of the issue is not known.
+>  	 */
+> +	{ "ASUE140D", 0 },
 
-[1/1] platform/chrome: cros_usbpd_notify: Only use parent drvdata when parent is GOOG0004
-      commit: ca75b38b1a3c2eabe81d231dae4ea180cf6287cd
+... develop your patches on top of the -next branch or i2c/i2c.
+Your patch has a little conflict I had to fix.
 
-Thanks!
+I pushed your patch in i2c/i2c.
+
+Thanks,
+Andi
+
+>  	{ "DLL0945", 0 },
+>  	{ "ELAN0678", 0 },
+>  	{ "ELAN06FA", 0 },
