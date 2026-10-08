@@ -1,286 +1,234 @@
-Received: from mail-oi1-f199.google.com (mail-oi1-f199.google.com [209.85.167.199])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CF8D3A5E78
-	for <linux-acpi@vger.kernel.org>; Thu,  8 Oct 2026 03:12:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.199
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2592F3D333E;
+	Thu,  8 Oct 2026 07:15:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791429155; cv=none; b=Z8DXGAKI4FasuJHmxOet72VpUlLiiKW9hY2hAyRigIZ9KXPlhk6/UiUlqihtMxPEiNm01upoiOs/yoM8p4oQGlRrP2EKNZcrJVnoiWcLDoci1XAijEHjmQiAVqiMKZxyBzKSVk4XHU63/sO/qyt0RnkCbVeepiOvSy1u+Qx258o=
+	t=1791443703; cv=none; b=lpOxQ+J1sxfUvY7rLxHGnfKmfrWo/f7sgFfvbhTWmMp9L1aiCBj97C3W+ipUKw/g5v5FL4vpVArRwLy0FNs7u/whvmbhVC/Ey7+ha0DX6xN9kLiywlugUEUdb8Sj5UH0OMQG9fvLlNzmPu/ESwWiwgaGLR2gCV5p+fksJZ/IQ+g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791429155; c=relaxed/simple;
-	bh=0WtJGUa2Ei1qT4G2+P8o7gdOU6/Tk4RPwU5TXDvYfXU=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=erwIt5gHWlQFtF4YCMKFGNUePM8MddwicItJjTTEqlmFEcmDdUqEGAxd7UQuKeb463GsfXZwoHaTVBY/9EyRacbtV/SN1enPMqQNAp7u0rhh+Yj0FKBNi1ShH45NqABlv6nI7TbWAgst0g4na4j+2/QGNR93l9qE0onZBa3Kqw0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.167.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oi1-f199.google.com with SMTP id 5614622812f47-4c7f887ac6bso3957908b6e.3
-        for <linux-acpi@vger.kernel.org>; Wed, 07 Oct 2026 20:12:33 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791429153; x=1792033953;
-        h=content-type:to:from:subject:message-id:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=k4GFIqZuYztypf5nVdacwFxbDWwpq1vZGFNBg/M0eKc=;
-        b=HO7+hZX6wwviU1KakmX2OQA25UDKL3AvH2IJYWylgTQHzh9+XgUZkgLTGg272emcWf
-         pQGPg5zgbn1XE63PRUv/mcZ0ZVtqIKd6Qj56YE1HGmB9JU+rgIANoq9zicEg1eS9dUSv
-         HIZ0I2Ij01jKRh4pQEat1afnwlsNDcrCSM5RplCvwdXmrebuVg+eL0dTlEStWTtnqWMU
-         2cJuORuxI/QFBItPTd4N16+/3Cr8i6RUmFqcf3H7rzvoPNyUynY7e43vlgSEaXfJVBLO
-         4baxgiHj0zNZNp5w/WddegGX5oXvlB79h7PsAXNn9CKSX8KkdYs1ap7dNbIdikMvW+6p
-         jFuQ==
-X-Forwarded-Encrypted: i=1; AKwUvBxkht3ZETiD6SIhsWbn4TFD5lFyTrCd6jVaOUru3zq5GRmrwZWBuwI952totu383AsGTi78Zhml1Tgf@vger.kernel.org
-X-Gm-Message-State: AFuF++mg25yx6b7vW2lJH/rxdmzBZ5ViELnuL5OLM98uifgob0EqFh4E
-	ewmrWyyFv/X7IbhuK1b1cl+8AbVnKMP/DOWGHZOfO0cGtv6hPtXdEGKfOOkxLG6jMj0agyW7FlI
-	3ul4cpCynt4jJOpmmq0Yoj9LsEAjAUZtOFznxnbyfsC2GQg4Co7bDwLwGkNs=
+	s=arc-20240116; t=1791443703; c=relaxed/simple;
+	bh=sPxiaboHQchn4nvhFErblERPqLn7pzmsM5Fh+QOZZ48=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=h8eVEvxquBf/0hoCInbiNSGImiVtg1653HB6vu818ndTTDCZPJwIV3fm7JrWtn4rXuXaC4ExGyRMYAE5mbyX/ED4miys2sVHEeaT7UCzCCYdOWeLdmxkz69jTXWpZ4O3khOxUnxyaWCiaAqM0L+K9TkNHpkTW/J2EdtDpQyR2Hw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WQy6LKyA; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WQy6LKyA"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 81FA8C2BCC7;
+	Thu,  8 Oct 2026 07:15:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1791443702;
+	bh=sPxiaboHQchn4nvhFErblERPqLn7pzmsM5Fh+QOZZ48=;
+	h=From:Date:Subject:To:Cc:Reply-To:From;
+	b=WQy6LKyAtzrHgD/8lRGW+fB94uSwQ2BcIAeOzl11ikfmZDw6YJy/kj+3YiO2rL3ca
+	 t+i8EOBebD7omXlZrVY7DI2NVr6vqAMm07EY5EAP8cgWBRJ5jWNqNet+AgVAkhHGEg
+	 2xeEav7eJm+OfznXOdVy7x9OxzZMKJlpk1M2WxLFeemh4p/KA9gMXG4a7jkN/WzP+j
+	 cRqky6H5+JVB7/6oOLvrWGf6rb19Y8AJFnMdFJ+fwoFc+BI3G4m3kTVy8kNX9an+y1
+	 CLkz7WduclslN4ltNyoe646UEw8NlE1coeQ35J808Lc9gGjYDwH+QbNEGhccLzhMjH
+	 kwzoqRLtVywOA==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B4A1CA600E;
+	Thu,  8 Oct 2026 07:15:02 +0000 (UTC)
+From: Waqar Gulzar via B4 Relay <devnull+iamwaqargulzar.gmail.com@kernel.org>
+Date: Thu, 08 Oct 2026 12:15:01 +0500
+Subject: [PATCH v2] HID: i2c-hid-acpi: restore touchscreen IRQ routing on
+ HP OmniBook Flip laptops
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6808:138e:b0:4d6:9113:25b0 with SMTP id
- 5614622812f47-4fc4739b36emr4054169b6e.51.1791429152951; Wed, 07 Oct 2026
- 20:12:32 -0700 (PDT)
-Date: Wed, 07 Oct 2026 20:12:32 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6ac70a20.a36481ec.1ba24c.0006.GAE@google.com>
-Subject: [syzbot] [acpica?] KASAN: slab-use-after-free Read in acpi_ns_check_package_list
-From: syzbot <syzbot+eb4f9a996f9ad47f435d@syzkaller.appspotmail.com>
-To: acpica-devel@lists.linux.dev, lenb@kernel.org, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, rafael@kernel.org, robert.moore@intel.com, 
-	saket.dumbre@intel.com, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20261008-b4-elan2514-irq-route-v2-1-432d95eb7348@gmail.com>
+X-B4-Tracking: v=1; b=H4sIAPRCx2oC/4WNTQ6CMBBGr0Jm7Zi2lh9deQ/DgpYpjEGqLRAN4
+ e4CHsDlS973vhkiBaYIl2SGQBNH9v0K6pCAbau+IeR6ZVBCZeJ8Emg0Ulf1KpUaObww+HEgrAu
+ Va2ddIVID6/YZyPF7797KH8fR3MkOW2wzWo6DD5/9eJKb9+9jkihR6yyXxglZi/TaPCrujtY/o
+ FyW5QtMscxuzAAAAA==
+X-Change-ID: 20260930-b4-elan2514-irq-route-d8274fcf805b
+To: Jiri Kosina <jikos@kernel.org>, Benjamin Tissoires <bentiss@kernel.org>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-acpi@vger.kernel.org, stable@vger.kernel.org, 
+ Waqar Gulzar <iamwaqargulzar@gmail.com>
+X-Mailer: b4 0.16.0
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1791443700; l=6715;
+ i=iamwaqargulzar@gmail.com; s=20260930; h=from:subject:message-id;
+ bh=7Fnwx/BOp4ha3EW9HMMdAzjRcB5AydGK0F0fLjOu1CU=;
+ b=PM15xATBt61NyYOs5vyUNiNgedZHChppMgjYDCQc+2vuLIJjemu3nDFSjFXEem7kwPishGYp9
+ eMSBF7lD8caBwo3dXJ1+EoEMrsc8lUyl0o/Z8X+5EU30AA5WQc7O8/9
+X-Developer-Key: i=iamwaqargulzar@gmail.com; a=ed25519;
+ pk=SaQhB3EnN6qioo4wuu0rBv6REy1Nx9hz3QOh3Qp9xtk=
+X-Endpoint-Received: by B4 Relay for iamwaqargulzar@gmail.com/20260930 with
+ auth_id=1083
+X-Original-From: Waqar Gulzar <iamwaqargulzar@gmail.com>
+Reply-To: iamwaqargulzar@gmail.com
 
-Hello,
+From: Waqar Gulzar <iamwaqargulzar@gmail.com>
 
-syzbot found the following issue on:
+On the HP OmniBook X Flip 16, OmniBook 7 Flip 16 and OmniBook X Flip 14
+the ELAN2514 touchscreen interrupt is a GPIO pad (GPP_E_18) routed
+directly to the IO-APIC. The firmware's touchscreen power resource does
 
-HEAD commit:    f5098b6bae76 Linux 7.2-rc5
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=10dfc6b9580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=f221a1b5d497ed15
-dashboard link: https://syzkaller.appspot.com/bug?extid=eb4f9a996f9ad47f435d
-compiler:       gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44
-userspace arch: i386
+    PTPL._ON:  \_SB.SGRA (TPI2, TPIP)        // TPIP = T0IP = 0
+    PTPL._OFF: \_SB.SGRA (TPI2, TPIP ^ 1)
 
-Unfortunately, I don't have any reproducer for this issue yet.
+while the device's _INI enables routing with SGRA (GPLI, T0IP ^ 1).
+So _ON clears PADCFG0.GPIROUTIOXAPIC and disconnects the pad from the
+IO-APIC. Linux evaluates _ON at probe and on every D3->D0 transition
+(Windows apparently does not while _STA already reports the resource
+on), after which the level-triggered IRQ never deasserts:
 
-Downloadable assets:
-disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/d900f083ada3/non_bootable_disk-f5098b6b.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/29f89292ccd5/vmlinux-f5098b6b.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/6b54f72b862e/bzImage-f5098b6b.xz
+  - ~630 interrupts/s while idle, nearly every read returns 0xffff
+  - frames shifted by a leading 0xff, "incomplete report (67/7167)"
+  - stylus reports arrive at ~25 Hz instead of the native ~268 Hz
+  - touch stalls and false stylus proximity
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+eb4f9a996f9ad47f435d@syzkaller.appspotmail.com
+Re-enable the routing through the firmware's own \_SB.SGRA helper from
+the power_up hook, which runs at probe and on resume before the HID
+reset.
 
-ACPI Error: AE_NO_MEMORY, 
-Could not update object reference count (20260408/utdelete-651)
-==================================================================
-BUG: KASAN: slab-use-after-free in acpi_ns_check_object_type+0x5c8/0x760 drivers/acpi/acpica/nspredef.c:202
-Read of size 1 at addr ffff888020923688 by task kworker/u33:8/1163
+Tested with this patch on the OmniBook X Flip 16 (board 8DA1, BIOS
+F.20): idle interrupts drop from ~630/s to 0 after boot and after
+s2idle resume, and pen and touch behave as on Windows.
 
-CPU: 3 UID: 0 PID: 1163 Comm: kworker/u33:8 Not tainted syzkaller #0 PREEMPT(full) 
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-Workqueue: async async_run_entry_fn
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x100/0x190 lib/dump_stack.c:120
- print_address_description mm/kasan/report.c:378 [inline]
- print_report+0x13d/0x4b0 mm/kasan/report.c:482
- kasan_report+0xdf/0x1c0 mm/kasan/report.c:595
- acpi_ns_check_object_type+0x5c8/0x760 drivers/acpi/acpica/nspredef.c:202
- acpi_ns_check_package_list+0x6c6/0xaf0 drivers/acpi/acpica/nsprepkg.c:495
- acpi_ns_check_package+0xac4/0x1740 drivers/acpi/acpica/nsprepkg.c:295
- acpi_ns_check_return_value+0x38d/0x420 drivers/acpi/acpica/nspredef.c:136
- acpi_ns_evaluate+0x69e/0x1670 drivers/acpi/acpica/nseval.c:261
- acpi_ut_evaluate_object+0xf7/0x610 drivers/acpi/acpica/uteval.c:60
- acpi_rs_get_prt_method_data+0xa0/0x150 drivers/acpi/acpica/rsutils.c:446
- acpi_get_irq_routing_table+0xb8/0x140 drivers/acpi/acpica/rsxface.c:137
- acpi_pci_irq_find_prt_entry+0x179/0xdd0 drivers/acpi/pci_irq.c:215
- acpi_pci_irq_lookup+0x8e/0x6b0 drivers/acpi/pci_irq.c:299
- acpi_pci_irq_enable+0x1f5/0x6f0 drivers/acpi/pci_irq.c:414
- pcibios_enable_device+0xb6/0xe0 arch/x86/pci/common.c:699
- do_pci_enable_device+0x21f/0x4a0 drivers/pci/pci.c:1998
- pci_enable_device_flags+0x27c/0x370 drivers/pci/pci.c:2089
- usb_hcd_pci_probe+0x56/0xcb0 drivers/usb/core/hcd-pci.c:184
- ehci_pci_probe+0x35/0x50 drivers/usb/host/ehci-pci.c:385
- local_pci_probe+0xdd/0x1b0 drivers/pci/pci-driver.c:332
- pci_call_probe+0x176/0x800 drivers/pci/pci-driver.c:394
- __pci_device_probe drivers/pci/pci-driver.c:455 [inline]
- pci_device_probe+0x1cd/0x370 drivers/pci/pci-driver.c:489
- call_driver_probe drivers/base/dd.c:628 [inline]
- really_probe+0x241/0xa60 drivers/base/dd.c:706
- __driver_probe_device+0x20e/0x450 drivers/base/dd.c:868
- driver_probe_device+0x4a/0x140 drivers/base/dd.c:898
- __device_attach_driver+0x1df/0x320 drivers/base/dd.c:1026
- bus_for_each_drv+0x159/0x1e0 drivers/base/bus.c:500
- __device_attach_async_helper+0x1d1/0x2b0 drivers/base/dd.c:1055
- async_run_entry_fn+0x9f/0x580 kernel/async.c:129
- process_one_work+0xa23/0x1940 kernel/workqueue.c:3322
- process_scheduled_works kernel/workqueue.c:3405 [inline]
- worker_thread+0x5ef/0xe50 kernel/workqueue.c:3486
- kthread+0x370/0x450 kernel/kthread.c:436
- ret_from_fork+0x72b/0xd50 arch/x86/kernel/process.c:158
- ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
- </TASK>
+The same faulty _ON, the same pad and the same ~630/s storm were
+confirmed by other owners on the OmniBook 7 Flip 16 (board 8DA0, BIOS
+F.08) and the OmniBook X Flip 14 (board 8D9F, BIOS F.08). On both,
+correcting the _ON value through an ACPI table override stops the storm
+(routing bit set, 0 interrupts/s idle, also after s2idle), which is the
+same correction this patch applies at runtime.
 
-Allocated by task 1:
- kasan_save_stack+0x30/0x50 mm/kasan/common.c:57
- kasan_save_track+0x14/0x30 mm/kasan/common.c:78
- unpoison_slab_object mm/kasan/common.c:340 [inline]
- __kasan_slab_alloc+0x89/0x90 mm/kasan/common.c:366
- kasan_slab_alloc include/linux/kasan.h:253 [inline]
- slab_post_alloc_hook mm/slub.c:4584 [inline]
- slab_alloc_node mm/slub.c:4917 [inline]
- kmem_cache_alloc_noprof+0x26b/0x6a0 mm/slub.c:4931
- acpi_ut_allocate_object_desc_dbg+0x86/0x240 drivers/acpi/acpica/utobject.c:359
- acpi_ut_create_internal_object_dbg+0x51/0x260 drivers/acpi/acpica/utobject.c:69
- acpi_ds_build_internal_object+0x173/0x790 drivers/acpi/acpica/dsobject.c:94
- acpi_ds_build_internal_package_obj+0x481/0xe60 drivers/acpi/acpica/dspkginit.c:202
- acpi_ds_eval_data_object_operands+0x2fd/0x640 drivers/acpi/acpica/dsopcode.c:638
- acpi_ds_exec_end_op+0xe41/0x1e60 drivers/acpi/acpica/dswexec.c:617
- acpi_ps_parse_loop+0x5e1/0x26e0 drivers/acpi/acpica/psloop.c:553
- acpi_ps_parse_aml+0x81e/0x1120 drivers/acpi/acpica/psparse.c:489
- acpi_ps_execute_table+0x393/0x500 drivers/acpi/acpica/psxface.c:295
- acpi_ns_execute_table+0x596/0x970 drivers/acpi/acpica/nsparse.c:116
- acpi_ns_parse_table+0xcb/0x160 drivers/acpi/acpica/nsparse.c:268
- acpi_ns_load_table+0xc9/0x490 drivers/acpi/acpica/nsload.c:71
- acpi_tb_load_namespace+0x2b0/0x8f0 drivers/acpi/acpica/tbxfload.c:158
- acpi_load_tables+0x89/0x160 drivers/acpi/acpica/tbxfload.c:59
- acpi_bus_init drivers/acpi/bus.c:1479 [inline]
- acpi_init+0x146/0x840 drivers/acpi/bus.c:1592
- do_one_initcall+0x11d/0x700 init/main.c:1347
- do_initcall_level init/main.c:1409 [inline]
- do_initcalls init/main.c:1425 [inline]
- do_basic_setup init/main.c:1445 [inline]
- kernel_init_freeable+0x6ea/0x7b0 init/main.c:1658
- kernel_init+0x1f/0x1e0 init/main.c:1548
- ret_from_fork+0x72b/0xd50 arch/x86/kernel/process.c:158
- ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=220854
+Link: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/2142384
+Link: https://github.com/testyfishy/hp-omnibook-flip16-touchscreen-fix
+Link: https://github.com/iamwaqargulzar/hp-omnibook-x-flip-16-linux-touchscreen-pen-fix
+Cc: stable@vger.kernel.org
+Signed-off-by: Waqar Gulzar <iamwaqargulzar@gmail.com>
+---
+The firmware of the HP OmniBook X Flip 16, OmniBook 7 Flip 16 and
+OmniBook X Flip 14 disconnects the ELAN2514 touchscreen interrupt from
+the IO-APIC in its power resource _ON method, which Linux runs at probe
+and resume. This patch re-enables the routing through the firmware's own
+helper from i2c-hid-acpi's power_up hook.
 
-Freed by task 1163:
- kasan_save_stack+0x30/0x50 mm/kasan/common.c:57
- kasan_save_track+0x14/0x30 mm/kasan/common.c:78
- kasan_save_free_info+0x3b/0x70 mm/kasan/generic.c:584
- poison_slab_object mm/kasan/common.c:253 [inline]
- __kasan_slab_free+0x5f/0x80 mm/kasan/common.c:285
- kasan_slab_free include/linux/kasan.h:235 [inline]
- slab_free_hook mm/slub.c:2677 [inline]
- slab_free mm/slub.c:6377 [inline]
- kmem_cache_free+0x127/0x6b0 mm/slub.c:6504
- acpi_os_release_object+0x1c/0x30 drivers/acpi/osl.c:1661
- acpi_ut_delete_object_desc+0xea/0x130 drivers/acpi/acpica/utobject.c:402
- acpi_ut_delete_internal_obj drivers/acpi/acpica/utdelete.c:316 [inline]
- acpi_ut_update_ref_count.part.0+0x510/0x2250 drivers/acpi/acpica/utdelete.c:436
- acpi_ut_update_ref_count drivers/acpi/acpica/utdelete.c:374 [inline]
- acpi_ut_update_object_reference+0x258/0x800 drivers/acpi/acpica/utdelete.c:553
- acpi_ut_remove_reference drivers/acpi/acpica/utdelete.c:740 [inline]
- acpi_ut_remove_reference+0x192/0x1d0 drivers/acpi/acpica/utdelete.c:710
- acpi_ds_clear_implicit_return drivers/acpi/acpica/dsutils.c:55 [inline]
- acpi_ds_clear_implicit_return+0x137/0x220 drivers/acpi/acpica/dsutils.c:34
- acpi_ds_exec_end_control_op+0x319/0xf60 drivers/acpi/acpica/dscontrol.c:226
- acpi_ds_exec_end_op+0xff7/0x1e60 drivers/acpi/acpica/dswexec.c:462
- acpi_ps_parse_loop+0x5e1/0x26e0 drivers/acpi/acpica/psloop.c:553
- acpi_ps_parse_aml+0x81e/0x1120 drivers/acpi/acpica/psparse.c:489
- acpi_ps_execute_method+0x5c4/0xe90 drivers/acpi/acpica/psxface.c:190
- acpi_ns_evaluate+0x640/0x1670 drivers/acpi/acpica/nseval.c:205
- acpi_ut_evaluate_object+0xf7/0x610 drivers/acpi/acpica/uteval.c:60
- acpi_rs_get_prt_method_data+0xa0/0x150 drivers/acpi/acpica/rsutils.c:446
- acpi_get_irq_routing_table+0xb8/0x140 drivers/acpi/acpica/rsxface.c:137
- acpi_pci_irq_find_prt_entry+0x179/0xdd0 drivers/acpi/pci_irq.c:215
- acpi_pci_irq_lookup+0x8e/0x6b0 drivers/acpi/pci_irq.c:299
- acpi_pci_irq_enable+0x1f5/0x6f0 drivers/acpi/pci_irq.c:414
- pcibios_enable_device+0xb6/0xe0 arch/x86/pci/common.c:699
- do_pci_enable_device+0x21f/0x4a0 drivers/pci/pci.c:1998
- pci_enable_device_flags+0x27c/0x370 drivers/pci/pci.c:2089
- usb_hcd_pci_probe+0x56/0xcb0 drivers/usb/core/hcd-pci.c:184
- ehci_pci_probe+0x35/0x50 drivers/usb/host/ehci-pci.c:385
- local_pci_probe+0xdd/0x1b0 drivers/pci/pci-driver.c:332
- pci_call_probe+0x176/0x800 drivers/pci/pci-driver.c:394
- __pci_device_probe drivers/pci/pci-driver.c:455 [inline]
- pci_device_probe+0x1cd/0x370 drivers/pci/pci-driver.c:489
- call_driver_probe drivers/base/dd.c:628 [inline]
- really_probe+0x241/0xa60 drivers/base/dd.c:706
- __driver_probe_device+0x20e/0x450 drivers/base/dd.c:868
- driver_probe_device+0x4a/0x140 drivers/base/dd.c:898
- __device_attach_driver+0x1df/0x320 drivers/base/dd.c:1026
- bus_for_each_drv+0x159/0x1e0 drivers/base/bus.c:500
- __device_attach_async_helper+0x1d1/0x2b0 drivers/base/dd.c:1055
- async_run_entry_fn+0x9f/0x580 kernel/async.c:129
- process_one_work+0xa23/0x1940 kernel/workqueue.c:3322
- process_scheduled_works kernel/workqueue.c:3405 [inline]
- worker_thread+0x5ef/0xe50 kernel/workqueue.c:3486
- kthread+0x370/0x450 kernel/kthread.c:436
- ret_from_fork+0x72b/0xd50 arch/x86/kernel/process.c:158
- ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+Tested with the patch on board 8DA1 (BIOS F.20), Linux 7.2.8,
+including s2idle resume. Boards 8DA0 and 8D9F were confirmed by their
+owners to have the same faulty _ON and storm, and to be fixed by the
+equivalent ACPI table correction (kernel bugzilla 220854).
 
-The buggy address belongs to the object at ffff888020923680
- which belongs to the cache Acpi-Operand of size 72
-The buggy address is located 8 bytes inside of
- freed 72-byte region [ffff888020923680, ffff8880209236c8)
+Full analysis, ACPI excerpts, and Windows/Linux traces:
+https://github.com/iamwaqargulzar/hp-omnibook-x-flip-16-linux-touchscreen-pen-fix
+---
+Changes in v2:
+- Add board 8D9F (OmniBook X Flip 14): same faulty _ON, confirmed by
+  its owner in bugzilla 220854.
+- Fix the description of 8DA0: it is the OmniBook 7 Flip 16, a sibling
+  model, not another board ID of the X Flip 16; now confirmed by its
+  owner as well.
+- Subject and commit message now name all three models; add the
+  bugzilla link.
+- Link to v1: https://patch.msgid.link/20260930-b4-elan2514-irq-route-v1-1-44671bf01d05@gmail.com
+---
+ drivers/hid/i2c-hid/i2c-hid-acpi.c | 65 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
 
-The buggy address belongs to the physical page:
-page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x20923
-flags: 0xfff00000000000(node=0|zone=1|lastcpupid=0x7ff)
-page_type: f5(slab)
-raw: 00fff00000000000 ffff88801bc4da40 dead000000000100 dead000000000122
-raw: 0000000000000000 0000000800270027 00000000f5000000 0000000000000000
-page dumped because: kasan: bad access detected
-page_owner tracks the page as allocated
-page last allocated via order 0, migratetype Unmovable, gfp_mask 0xd2cc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 1, tgid 1 (swapper/0), ts 2238826461, free_ts 0
- set_page_owner include/linux/page_owner.h:32 [inline]
- post_alloc_hook+0xfd/0x120 mm/page_alloc.c:1859
- prep_new_page mm/page_alloc.c:1867 [inline]
- get_page_from_freelist+0xf48/0x3530 mm/page_alloc.c:3946
- __alloc_frozen_pages_noprof+0x299/0x2dc0 mm/page_alloc.c:5304
- alloc_slab_page mm/slub.c:3266 [inline]
- allocate_slab mm/slub.c:3380 [inline]
- new_slab+0xa2/0x640 mm/slub.c:3426
- refill_objects+0xe3/0x410 mm/slub.c:7310
- refill_sheaf mm/slub.c:2804 [inline]
- __pcs_replace_empty_main+0x376/0x680 mm/slub.c:4675
- alloc_from_pcs mm/slub.c:4773 [inline]
- slab_alloc_node mm/slub.c:4905 [inline]
- kmem_cache_alloc_noprof+0x46e/0x6a0 mm/slub.c:4931
- acpi_ut_allocate_object_desc_dbg+0x86/0x240 drivers/acpi/acpica/utobject.c:359
- acpi_ut_create_internal_object_dbg+0x51/0x260 drivers/acpi/acpica/utobject.c:69
- acpi_ds_build_internal_package_obj+0xa8c/0xe60 drivers/acpi/acpica/dspkginit.c:92
- acpi_ds_eval_data_object_operands+0x2fd/0x640 drivers/acpi/acpica/dsopcode.c:638
- acpi_ds_exec_end_op+0xe41/0x1e60 drivers/acpi/acpica/dswexec.c:617
- acpi_ps_parse_loop+0x5e1/0x26e0 drivers/acpi/acpica/psloop.c:553
- acpi_ps_parse_aml+0x81e/0x1120 drivers/acpi/acpica/psparse.c:489
- acpi_ps_execute_table+0x393/0x500 drivers/acpi/acpica/psxface.c:295
- acpi_ns_execute_table+0x596/0x970 drivers/acpi/acpica/nsparse.c:116
-page_owner free stack trace missing
-
-Memory state around the buggy address:
- ffff888020923580: 00 00 fc fc fc fc 00 00 00 00 00 00 00 00 00 fc
- ffff888020923600: fc fc fc fa fb fb fb fb fb fb fb fb fc fc fc fc
->ffff888020923680: fa fb fb fb fb fb fb fb fb fc fc fc fc 00 00 00
-                      ^
- ffff888020923700: 00 00 00 00 00 00 fc fc fc fc fa fb fb fb fb fb
- ffff888020923780: fb fb fb fc fc fc fc 00 00 00 00 00 00 00 00 00
-==================================================================
-
+diff --git a/drivers/hid/i2c-hid/i2c-hid-acpi.c b/drivers/hid/i2c-hid/i2c-hid-acpi.c
+index 9371db200..b307d9a3d 100644
+--- a/drivers/hid/i2c-hid/i2c-hid-acpi.c
++++ b/drivers/hid/i2c-hid/i2c-hid-acpi.c
+@@ -21,6 +21,7 @@
+ 
+ #include <linux/acpi.h>
+ #include <linux/device.h>
++#include <linux/dmi.h>
+ #include <linux/i2c.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -55,6 +56,67 @@ static void i2c_hid_acpi_restore_sequence(struct i2chid_ops *ops)
+ 	i2c_hid_acpi_get_descriptor(ihid_acpi->adev);
+ }
+ 
++/*
++ * HP OmniBook X Flip 14 (board 8D9F), OmniBook 7 Flip 16 (8DA0) and
++ * OmniBook X Flip 16 (8DA1): the touchscreen power resource
++ * \_SB.PC00.I2C4.PTPL._ON writes the wrong value to the GPIROUTIOXAPIC bit
++ * of the touchscreen interrupt pad, disconnecting it from the IO-APIC. The
++ * level-triggered interrupt then never deasserts, the controller is read
++ * continuously (~630 reads/s while idle) and it cannot deliver pen reports
++ * at its native rate. Windows does not run _ON while the resource already
++ * reports on, so it is not affected. Linux runs _ON at probe and on every
++ * resume, so re-enable the routing with the firmware's own helper before
++ * the HID reset.
++ */
++static const struct dmi_system_id i2c_hid_acpi_irq_route_dmi[] = {
++	{
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "8D9F"),
++		},
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "8DA0"),
++		},
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
++			DMI_EXACT_MATCH(DMI_BOARD_NAME, "8DA1"),
++		},
++	},
++	{ }
++};
++
++static int i2c_hid_acpi_restore_irq_route(struct i2chid_ops *ops)
++{
++	struct i2c_hid_acpi *ihid_acpi = container_of(ops, struct i2c_hid_acpi, ops);
++	union acpi_object args[2];
++	struct acpi_object_list arg_list = { ARRAY_SIZE(args), args };
++	unsigned long long pad;
++	acpi_status status;
++
++	status = acpi_evaluate_integer(NULL, "\\GPLI", NULL, &pad);
++	if (ACPI_FAILURE(status))
++		return 0;
++
++	args[0].type = ACPI_TYPE_INTEGER;
++	args[0].integer.value = pad;
++	args[1].type = ACPI_TYPE_INTEGER;
++	args[1].integer.value = 1;
++
++	status = acpi_evaluate_object(NULL, "\\_SB.SGRA", &arg_list, NULL);
++	if (ACPI_FAILURE(status))
++		acpi_handle_warn(acpi_device_handle(ihid_acpi->adev),
++				 "failed to restore interrupt routing: %s\n",
++				 acpi_format_exception(status));
++
++	/* Never fail probe or resume because of this workaround */
++	return 0;
++}
++
+ static void i2c_hid_acpi_shutdown_tail(struct i2chid_ops *ops)
+ {
+ 	struct i2c_hid_acpi *ihid_acpi = container_of(ops, struct i2c_hid_acpi, ops);
+@@ -85,6 +147,9 @@ static int i2c_hid_acpi_probe(struct i2c_client *client)
+ 	ihid_acpi->adev = adev;
+ 	ihid_acpi->ops.shutdown_tail = i2c_hid_acpi_shutdown_tail;
+ 	ihid_acpi->ops.restore_sequence = i2c_hid_acpi_restore_sequence;
++	if (acpi_dev_hid_uid_match(ihid_acpi->adev, "ELAN2514", NULL) &&
++	    dmi_check_system(i2c_hid_acpi_irq_route_dmi))
++		ihid_acpi->ops.power_up = i2c_hid_acpi_restore_irq_route;
+ 
+ 	acpi_device_fix_up_power(adev);
+ 
 
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+base-commit: 145c2b2e9a5c0f794fb4009bcb072ab19f8ccfcd
+change-id: 20260930-b4-elan2514-irq-route-d8274fcf805b
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+Best regards,
+--  
+Waqar Gulzar <iamwaqargulzar@gmail.com>
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
 
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
