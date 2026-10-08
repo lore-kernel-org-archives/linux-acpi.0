@@ -1,127 +1,161 @@
-Received: from mail2.g24.pair.com (mail2.g24.pair.com [216.92.166.58])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 683F83F787E;
-	Thu,  8 Oct 2026 21:56:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.92.166.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A13AB364EB2;
+	Thu,  8 Oct 2026 23:29:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791496580; cv=none; b=esGCPuRg1N7XielnjdnwcWSUGVhXPWrXtAx4P6sXhINmBY5zDte1Py498tl/ahVOBb90M6IrKXY28FT1srcBBs1rn8fJf4OyDGrjLN9/asixgtjAYn++QZMU7xtI0yjPGoQJIlIHj1ilITLmYTz4OizJ1F/ngyE5mujVjX7xjx0=
+	t=1791502155; cv=none; b=YfLc+kOgpL/uKAsFsuOQfa3JQMiwwgcpTHP5Ubey30axDGdooscFer+2r1ZW1Rg4WhqjUwRIppI8K6gTOlU3dKYubCfrYTIVOi3p1DuELZKNxorlTE3+B706z6VU1fpmwNAaOv2TMybOPDJDqmS0ifOgxquSxD32QKfbCdENEYw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791496580; c=relaxed/simple;
-	bh=iciqArxOAYo5A6JswSaQCT2gUlousAWTH8BqX695PPU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=BmNdD+vWbtlKqM7Hwbqf47M6y4sGYid/abmYwcWq8vv4oHQ6+U58bPNn5lKTonVtoritIrTHp1KNcsyi4I+VrB4FkmnUkABuHZ69x8CJPDM95A5pbmsUmDCQCLPzBIUtS7SxJFUqR6Yr2eNouKKXPEvHEJa/y1hZIqlXf9qoEh8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=unspacy.com; spf=pass smtp.mailfrom=unspacy.com; arc=none smtp.client-ip=216.92.166.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=unspacy.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=unspacy.com
-Received: from mail2.g24.pair.com (localhost [127.0.0.1])
-	by mail2.g24.pair.com (Postfix) with ESMTP id AE6F1168206;
-	Thu,  8 Oct 2026 17:56:11 -0400 (EDT)
-Received: from [192.168.0.71] (1969776-static.lxtnkyaa.metronetinc.net [217.180.199.234])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mail2.g24.pair.com (Postfix) with ESMTPSA id 3C8FB164A5B;
-	Thu,  8 Oct 2026 17:56:11 -0400 (EDT)
-Message-ID: <2db92c1a-815c-4db2-adfa-3708152ec8f2@unspacy.com>
-Date: Thu, 8 Oct 2026 17:56:10 -0400
+	s=arc-20240116; t=1791502155; c=relaxed/simple;
+	bh=DAtdyRwAmVz4SjXPJjh/cQOiY0fPuVX/i36Eo1ZKfiI=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=kBfNvKx2trh3zn1frgDELnvXImI8hLGgGRSM/Ev8DAnJNElNE8jtWywkSwLIC2FR0LSc2J+5Yd7Q+Ys9/3CVsd3dsx/0GuS3kF2WX/CZLh6Y6tBQFtZ9+m8qtli++71s6pLzwdOSFmzoNGxIw6CgHezhwgTbgGKqu7sMaHlXPgg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I3q7B99t; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I3q7B99t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E9BD1F000FF;
+	Thu,  8 Oct 2026 23:29:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791502154;
+	bh=Ts+cEh9XJnlZdfjN2hdl+FRuRgOhRs788AdZMXx3O6g=;
+	h=Date:From:To:Cc:Subject:In-Reply-To;
+	b=I3q7B99tllw7LSLon9/At9Vu7MHrdpTYoh285t5CSmHiGhHZlSYD3NHcg2zCjvZoL
+	 kKcXpdVjnKrjyws3zyXtQD3AflEfZIEQdJ+KyNae+kyDNUPaO+UFZf8/vCe0NQIz2i
+	 GOGthldRhh9cB9G7AfyAm510GsBeyO/0izFreIwxKHiMMJpfTMLDSsB5w13i8I7rmj
+	 HQFDqAob92DteoZJlIEYZk7YzM5yk1+LWShf/qOJfcRLHn7qXH2gRaY2YSOdz6wx1k
+	 8I3EbRfXysmezEAFrfZuBQEJ3aW62W8seCoo68Val1JSY/kcvzJdNV+LfEKPYujBYU
+	 cZ1vJl1KZejUA==
+Date: Thu, 8 Oct 2026 18:29:12 -0500
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Francisco =?utf-8?B?QmVsdHLDoW4gTWlsbGFsw6lu?= <fbeltranmillalen@gmail.com>
+Cc: rafael@kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org,
+	linux-pci@vger.kernel.org, lenb@kernel.org,
+	linux-kernel@vger.kernel.org, Darrell Gum <d@rrell.co>,
+	Matthew Garrett <mjg59@srcf.ucam.org>,
+	Andreas Noever <andreas.noever@gmail.com>,
+	Mika Westerberg <westeri@kernel.org>,
+	Yehezkel Bernat <YehezkelShB@gmail.com>,
+	Lukas Wunner <lukas@wunner.de>, linux-usb@vger.kernel.org
+Subject: Re: [PATCH] ACPI: PCI: take native PME control on Apple machines
+Message-ID: <20261008232912.GA940274@bhelgaas>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [BUG] tpm_crb/Intel PTT: Late S3/S5/Reboot ACPI power management
- deadlock
-To: Mario Limonciello <mario.limonciello@amd.com>,
- Jarkko Sakkinen <jarkko@kernel.org>
-Cc: linux-integrity@vger.kernel.org, peterhuewe@gmx.de, jgg@ziepe.ca,
- rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org,
- Adam Alves <adamoa@gmail.com>
-References: <bf3a9544-6e49-4d5d-a01a-f1912b717d08@unspacy.com>
- <aqyTpzk3jcarEMVS@kernel.org>
- <54425edf-3ca1-4f99-9166-40f9cc3dfff6@unspacy.com>
- <araNsEodZ3NXf9qT@kernel.org>
- <0e8f93d0-3da9-4af0-ac12-b3670acdcf79@unspacy.com>
- <arw609M6mDiqhQwJ@kernel.org>
- <723ff551-7852-4d57-ab1e-787a1a195759@unspacy.com>
- <asfXObGNaZ9Z8CwN@kernel.org> <ca2d299b-4153-4b0b-a60e-7fe64f9dbdef@amd.com>
-Content-Language: en-US
-From: Sean Meadows <Hellfire@unspacy.com>
-In-Reply-To: <ca2d299b-4153-4b0b-a60e-7fe64f9dbdef@amd.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: mailmunge 3.10 on 216.92.166.58
+In-Reply-To: <20260924132859.24751-1-fbeltranmillalen@gmail.com>
 
-On 10/8/26 16:00, Mario Limonciello wrote:
->> The patch I pointed out this in bugzilla but the patch I had in mind
->> is:
->> 
->> "tpm: Call cmd_ready/go_idle for each command transmission"
->> 
->> Link: https://git.kernel.org/pub/scm/linux/kernel/git/jarkko/linux- 
->> tpmdd.git/commit/?id=9154aa6c4b789d23e59d599c330cab2c4e915401
->> 
->> The reason is that the commit message highlight a bit similar issues
->> as reported in the bug.
->> 
->> Note commit IDs do change in my master branch so best is to look it
->> up from:
->> 
->> https://git.kernel.org/pub/scm/linux/kernel/git/jarkko/linux- tpmdd.git/
->> log/
->> 
->> Right another reason is that then the driver always the TPM in the
->> state as it is when the driver starts.
->> 
->> I'm not sure about Windows but neither disregard it as sometimes we
->> do pick behavior basing it on how Window does it. I'd still try
->> Mario's patch at first.
+[+cc Matthew (author of 7bc5a2bad0b8), Darrell, Andreas, Mika,
+Yehezkel, Lukas, linux-usb]
 
-Checking my notes, I cherry-picked commit 
-19931faa1d75fb858d86aaf5b0e79d34a2379094, which I understood to be v3 of 
-the patch.
+On Thu, Sep 24, 2026 at 10:28:59AM -0300, Francisco Beltrán Millalén wrote:
+> Since commit 7bc5a2bad0b8 ("ACPI: Support _OSI("Darwin") correctly")
+> negotiate_os_control() skips the _OSC handshake on Apple machines and
+> hardcodes the set of features the OS takes over, because those firmwares
+> return failure once _OSI("Darwin") has been acknowledged.  The hardcoded
+> set is ~OSC_PCI_EXPRESS_PME_CONTROL, i.e. everything except PME.  No
+> reason was given for leaving PME out.
 
-Assuming I made a mistake there, I've started from scratch and applied 
-commit 9154aa6c4b789d23e59d599c330cab2c4e915401 instead, which should be v6.
+It's clear there *was* a reason, but I don't know either.  Maybe
+Matthew will remember?
 
-Once the compile and install are complete, it will take at least a 
-couple of days of testing to determine whether it prevents the corrupted 
-state.
-
-> FWIW the issue my patch fixed manifested at bootup; but I definitely agree
-> with Jarkko's hypothesis that it could apply to other TPM implementations
-> and at different times.
+> The result is that host_bridge->native_pme stays 0, so portdrv never
+> registers the PME service for any root port.  A PCIe device that
+> runtime suspends still arms PME# (the PCI core enables it because
+> pci_dev_run_wake() only looks at capability), asserts it when it needs
+> attention, and is never resumed: no service handles the root port
+> interrupt, and the polling fallback in pci_pme_list_scan() skips the
+> device whenever the bridge above it is runtime suspended, which is
+> exactly when the device itself is suspended.
 > 
-> When you tested Adam's patch I would like to point out it only 
-> automatically applies to one board: "TUF GAMING B460M-PLUS".
+> On a MacBookPro14,3 this silently breaks USB-C hotplug.  Both xHCI
+> controllers sit inside the Thunderbolt (Alpine Ridge) switches and
+> runtime suspend to D3hot when idle, together with their parent
+> bridges.  Plugging a SuperSpeed device in is then never noticed:
 > 
-> If that doesn't match your board you would need to set 
-> tpm.sleep_locality_preserve=1 for it to apply.
+>   0000:7d:00.0 suspended, PMCSR 0x8103 (D3hot, PME_En=1, PME_Status=1)
+>   ... no kernel message at all, for minutes ...
 > 
-> If you're sure my patch alone isn't enough to fix it you might try 
-> combining patches and setting that.
+> The device only appears once something else resumes the controller,
+> which makes it look intermittent.  The firmware on this machine does not
+> handle PME on behalf of the OS either: XHC2/XHC3 declare _PRW returning
+> GPE 0x6D, that GPE is enabled and has never fired, and its _L6D handler
+> notifies PWRB, XHC1 and HDEF only - never XHC2 or XHC3.
+> 
+> With PME control taken, the root port PME interrupt is serviced and the
+> controller is resumed as soon as something is plugged in.
+> 
+> Use calculate_control() for the assumed set rather than open coding it:
+> that is by definition the set that would have been requested, it drops a
+> magic constant, and on a kernel built without some of those features it
+> no longer claims control of services the OS cannot provide.
+> 
+> Note this also makes pme_is_native() true for pciehp (drivers/pci/
+> hotplug/pciehp_core.c), so hotplug ports now disable their interrupt
+> across suspend and clear spurious events on resume, as they do on every
+> non-Apple machine.  x86_apple_machine covers Macs back to 2006, so this
+> reaches models that were never tested with native PME.
+> 
+> Tested on a MacBookPro14,3, 6.18.49, with a USB 3.1 SATA enclosure:
+> 
+>   - before: plugged in at 09:20 with 0000:7d:00.0 runtime suspended, still
+>     invisible at 09:21 with PME_Status latched at 1; only appeared when
+>     0000:7d:00.0 was forced to power/control=on.
+>   - with pcie_ports=native (which reaches the same code path in
+>     get_port_device_capability()): pcie_pme bound to 5 root ports, and the
+>     same enclosure enumerated in the same second it was plugged in, 66 s
+>     after the controller had suspended, with nothing forced.
+>   - with this patch, nothing forced: pcie_pme bound to 5 root ports and the
+>     _OSC line now reads "OS assumes control of [PCIeHotplug SHPCHotplug PME
+>     AER PCIeCapability LTR DPC]".  The enclosure was unplugged at 20:42:13,
+>     0000:7d:00.0 runtime suspended to D3hot, and on plugging it back in at
+>     20:43:06 (53 s later) the root port took a PME interrupt and the device
+>     enumerated in the same second.
+>   - wifi, internal keyboard, touchbar and audio all came up; 66 warnings
+>     and 45 errors during boot, against 65/43 on the distribution kernel.
+> 
+> One rough edge, reproducible on both boots: the port driver logs
+> "PME: Spurious native interrupt!" right before the device is resumed.
+> pcie_pme_handle_request() falls back to pcie_pme_walk_bus() when the root
+> port reports its own requester ID without PCI_PM_CTRL_PME_STATUS set, and
+> that walk skips PCIe devices, so the xHCI is never attributed.  The device
+> is still resumed and the wakeup works, but attributing PMEs from PCIe
+> devices behind a switch looks like a separate shortcoming; it is not
+> addressed here.
+> 
+> Boot with pcie_ports=native also showed no new AER/DPC activity and
+> slightly fewer warnings than a boot without it, so taking the remaining
+> control bit does not appear to disturb anything else on this machine.
+> 
+> Fixes: 7bc5a2bad0b8 ("ACPI: Support _OSI("Darwin") correctly")
+> Signed-off-by: Francisco Beltrán Millalén <fbeltranmillalen@gmail.com>
 
-When I ported Mr. Alves's patch forward, I altered it to enable globally 
-rather than targeting a specific board, so I was cognizant of that 
-hardware-matching pitfall. After booting, I also verified via `cat 
-/sys/...` that the parameter was live.
+I don't object from a PCI standpoint, but Rafael generally takes care
+of acpi/pci_root.c.  I would again suggest putting some of the commit
+log detail below "---" and relying on the https://patch.msgid.link/
+tag Rafael adds.
 
-That said, I am not entirely confident that Mr. Alves's patch is the 
-correct path forward. Even he discovered that it merely extended the 
-time until failure:
-
-https://lore.kernel.org/all/
-CAHwaaX8bWOFW2bi6tKpxgf2Cp_vKg5Eqhq618VEur98s+OmD=A@mail.gmail.com/
-
-His last message on the topic indicated he was heading in a different
-direction—stating he would submit a separate patch if it bore fruit. As
-far as I can tell, that follow-up patch never materialized, though I
-cannot say whether he simply got busy or if it ultimately failed to
-solve the problem:
-
-https://lore.kernel.org/all/CAHwaaX-
-j37rq4+DCNSRAgPmeQmrYZiX2sLv4ugBjPJSj9LPxcg@mail.gmail.com/#t
-
-Sean
+> ---
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -568,9 +568,14 @@
+>  	 * Apple always return failure on _OSC calls when _OSI("Darwin") has
+>  	 * been called successfully. We know the feature set supported by the
+>  	 * platform, so avoid calling _OSC at all
+> +	 *
+> +	 * Assume control of the same features that would have been requested,
+> +	 * PCIe PME included.  Leaving PME out disables the PME service for
+> +	 * every root port, and nothing takes over: a device that runtime
+> +	 * suspends asserts PME# and is never resumed.
+>  	 */
+>  	if (x86_apple_machine) {
+> -		root->osc_control_set = ~OSC_PCI_EXPRESS_PME_CONTROL;
+> +		root->osc_control_set = calculate_control();
+>  		decode_osc_control(root, "OS assumes control of",
+>  				   root->osc_control_set);
+>  		return;
