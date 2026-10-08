@@ -1,148 +1,111 @@
-Received: from mail-ot1-f52.google.com (mail-ot1-f52.google.com [209.85.210.52])
+Received: from mail-pj1-f45.google.com (mail-pj1-f45.google.com [209.85.216.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1CFA378822
-	for <linux-acpi@vger.kernel.org>; Thu,  8 Oct 2026 18:50:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.210.52
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791485425; cv=pass; b=EBN6Bw/SLxyrskyFcIobub2E0n0JN9Lag6eHpppuxZ34dmlA35e/ugrECTwP2gBvEej+0qhD+BxetXytmcCZeTziOV/aVTUEHpI5kDq9duh0VTtkqvaRu3GzyFJVUJC0l5oEiNDSBleFeL/GsaNDPlii8rvj8yo1iF5SxBaAZtk=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791485425; c=relaxed/simple;
-	bh=lr8M7fmxQx+oenGID2VdP5yfHKsvKNwWZtz8MlvHV6k=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=IvfYs53h+kCB0HfSER9Z9p4tx9zeZC74eN1Lx2NbCp/xqfxtFqNh9WY4zcAIlhc7J0TmLCAfyGaaY/Q6XeRye+7Oc2w3+OSOJ5TCtoqMHUvqCvRxkxmhr3IuE7+fsfmTB5aNf71H17zvji50Kw1xhCSiuXqcbVkGPPDK1o2vKEQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Omizmiq5; arc=pass smtp.client-ip=209.85.210.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 497F84F4053
+	for <linux-acpi@vger.kernel.org>; Thu,  8 Oct 2026 18:55:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.45
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791485750; cv=none; b=JKDFQJ3z+vp89kKtkCxEbMBwZvmn61TOyRA6FtwF+QE4qRABGVk70H+xGjD3vv0U1yD6OiquZ1FZmPly5vrZovq/wUnllJ14p8ji6I9SOZRbxX06uFs83opiSWnXNXa81yefzRTjcuafom79Xngi6uWVu6pDrh/XyZJzwwV24V4=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791485750; c=relaxed/simple;
+	bh=IgB3sZHNZ2GnpYpDmh39i8B9BgxADBtTRCiRUlW7RBs=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=qGtFCwmCyEC1pEHi28uZGU0WC5r6zzO88S1CTOfZGSPG23OkzwelHKuCD+XmaKlNJUAiW+9g9I9b7PPDYctuJkLUKbVGcuS97ijkxKuzq365THbfefY9SsjwcNW8vwapuPJoQGUUEQvEJDp4NvE0g/Kkp6/LyG1Kkfx2ZpPVuOE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rrell.co; spf=pass smtp.mailfrom=rrell.co; dkim=pass (2048-bit key) header.d=rrell.co header.i=@rrell.co header.b=hnlbnynh; arc=none smtp.client-ip=209.85.216.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rrell.co
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rrell.co
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Omizmiq5"
-Received: by mail-ot1-f52.google.com with SMTP id 46e09a7af769-82109f51565so1610378a34.2
-        for <linux-acpi@vger.kernel.org>; Thu, 08 Oct 2026 11:50:20 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791485420; cv=none;
-        d=google.com; s=arc-20260327;
-        b=rDpjT1dk8QkmJXDhXr40wWJF9V5wYH+tDPLxUguGbRuN2X5DtnochCoVuYrWDqqAUW
-         ZQuLYqz1vQYRjYmUzysTCtmwTheVy8AYuBYcxxeOzBp1RaKYvgN2i9feBqPBdSQ4xe2h
-         Xbrf0T4ljO6PsSkTzF5qgwBuOWmSe7UR6uJ0LXl5mW/Of4JenhSX4udRbvaHVrBqRa1a
-         ugvI6+FqlrU0IPt8ZicydFioMLlaopDswR2m/Xgb7Uq+aYWH15kL+HcI5Zz2gtlAYGrp
-         +2W4WglBON30ogWNfoGKYB9gPlGP0ziU/vwgcHIq1JJV0OMFDIerCAVq5EFPYWWpQgdk
-         XJKA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=HUuHUTe3yEqV1MPJyew4xZgwaSUycY+L6akjTIcM0eo=;
-        fh=Bw8EacQd2CgAZsxDBbVF9xnP8ZOl/H4yrIUCO6DDCGE=;
-        b=X7OHPgkmoYYKADneLfoFs6Q/+6X2G3+VFu8KHMhOrdmPP8r8MKu64KCEYKD/oO/z+U
-         MqZPfZK5Kj6x9YLRG79WLghZCYJQG6SW/paEgzVEduzF44K4LGzyr62Xfg0Y8C8F8WLq
-         hccqd90Q3TmIcqBh1mkbZ6ZJfydrhxDRWdgWSLmh1f2Y3KNi599oPHCS6/DVbPIw1Czk
-         t2Zh+AR4wTOHBEv8A4OBjYDYT9I9vZZKGzV4f0pWft6bacLIT3MEl94uTYKV4R7MSMpo
-         ODcoESDs2TnmeOM84LRn26gqstHhm8BAO36Si/8vA6oX9HjXu9KR6+ZSQ7crRosRiOfC
-         4IdQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=rrell.co header.i=@rrell.co header.b="hnlbnynh"
+Received: by mail-pj1-f45.google.com with SMTP id 98e67ed59e1d1-3a6cf104827so2159820a91.3
+        for <linux-acpi@vger.kernel.org>; Thu, 08 Oct 2026 11:55:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791485420; x=1792090220; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+        d=rrell.co; s=google; t=1791485749; x=1792090549; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=HUuHUTe3yEqV1MPJyew4xZgwaSUycY+L6akjTIcM0eo=;
-        b=Omizmiq5kZD2GJIYcjN5Z1UlkdIXv+r+rTOY1/VbtxY4WeYAI5gkIPlvbvki1uJfcU
-         Z6h/3z2ll+vxeJ26AFdNi4EnbUF9DMHnopFSs9KsZIi/UpwN6chmQsGOgHx1BkLUz61t
-         ZTKZQWZYRIQQb0EDPAAcCKbvrHJEL8dzIbREJ21QUC+HbRkEhsQnvvNIUxJLbaWzuqEv
-         KQ9UA6TKp7GoVEwezvh4U+lPnKeWTYBsQW9VdGXTiGHUZIFh2b1JHPZT0SoS7mKG+AyN
-         qKgqQsFh9AlcsPTK8ukKIuR7qQbKdBM3XsItH0z0cPag+NfcHjW0IYsFMMzLJNhhBtJZ
-         SDSQ==
+        bh=IgB3sZHNZ2GnpYpDmh39i8B9BgxADBtTRCiRUlW7RBs=;
+        b=hnlbnynhgEH+/YQ8wKGSrgMpsk5IoIcrcfS6uRXLrd5NZ40XmGepTnUpGynHJ6fY0f
+         VXgzDTiFv1kpoFV5gQQg0vvc6CDEJMY6W4XLFYPYgfaS+OZ0Bg9nTjB7IbwKPL0VW3Kf
+         A52vSdUDzOTxJF0MgI//OhOwv+Up6L6SCH3KC1TCkJ4lsnT4bM7BEZD1m958frarRwvn
+         LWWBjrYevGwKdwzo21zPkoxQRgF+8mp6rBaIHFtY3zEAFDlWyL7TOR1eS5hqFrddKtb5
+         qp4Hs3NCQvFpP8gYbMGrvd/mSkSTOAIhUXawj0FgkcDm8oPpsBR8BT2oj2eYW4MCvAMQ
+         8bHQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791485420; x=1792090220;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
+        d=1e100.net; s=20260707; t=1791485749; x=1792090549;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=HUuHUTe3yEqV1MPJyew4xZgwaSUycY+L6akjTIcM0eo=;
-        b=JemJ7+GjZk+FltxniVlGQyfwpLuiH/Omz2JUxlxblIdJ7O2vSOiRT0eO87DumOMl9w
-         u80CZNGtAkeYhXl01ejItAQ8FIDiI43pugY5C/unzF8cGSJfvJCuVwsOWcPWBmY7gyxv
-         LMd75NMutmnckgTQdUyOfu+OcS9rfDQAbSWARiAZF+3fBhFM5zHyBddHzUT5KVlECWmj
-         itIClSW7F8aQYtteALxPugk4hOIWx0C3tsOMsmWTniT2pQDx5Psvh83zHZvnentynQ4E
-         YVpACka83VeKklfcNS410OiLlPOxzMr8kvQ/h+IRbYLobkZjQ/npU+6eZ9oQDIr4ecSq
-         T8pw==
-X-Forwarded-Encrypted: i=1; AKwUvByWtApOOvjDgqDgNtyctgJyVK5J1wLzpDwP6ocWu9ptFj/tv4hkYnWWFMLUnIOEbSYHozc/9YyYxjb7@vger.kernel.org
-X-Gm-Message-State: AFuF++n1xF9vax21oIdUSz3Yguv8aRNhs8KyiTNNwGT1GI1m771xI8kj
-	joECTOfA9eUA//aBUwfgbw3rrnsRTvbpYzbVgP1XwurNprzBDNYm5HRryTN3/41lSngHR/snYKA
-	+i54eHq6ny4mcRWa7P84e/0rEvpk1BSw=
-X-Gm-Gg: AYBFou2LAekhyOlrZaBmBy0nu8BtH/+NlK9y2PzOPrA1kSiona2cNJ1nVxhMWGuzKg+
-	MeG8qIyJZ9zEpGPEhTt+KnxD1e/rVqvqHUzQTM2PXF50jp47RbIDOpxNfnobZaFfsWaCCHZGaW3
-	pqytparvV5hLqp8uHKQoSTdPUbsJHHa4bKcS/dAdllcHBRgcXcn8+ucdVjKEmJutQe4cC0paQm4
-	gMd1Wq0HKGiWzfLUfnh3aAnZFLkFTcTloxZakHv5pM2ex4x4BWEpjyaZ0F88S5DdneQ7hmyI9+i
-	5ohhtR62ZEdhTGCPSkyIuRI6Q88FLJeePEDQenUNtW/xaRKPd545sEY=
-X-Received: by 2002:a05:6830:398e:b0:829:2af1:a07e with SMTP id
- 46e09a7af769-82acce646e4mr6427817a34.3.1791485419594; Thu, 08 Oct 2026
- 11:50:19 -0700 (PDT)
+        bh=IgB3sZHNZ2GnpYpDmh39i8B9BgxADBtTRCiRUlW7RBs=;
+        b=ESXlqQMl1aAFBcCnwg5rgmnLXcMJ0u8bTFiNRED3Lr46CKG1RG71+KcLdriMMbW11P
+         Jm14/spuivUf35eS24/bnOpB8YBXxGD5yoo0ZEsx9K0ZNKqepAi4E5pRLeZvOsZlKY3l
+         sXDbMxiZJjTFlNVWFFym4cvd0KMocRbDUMP8sCJwC/3UKZpAyacW6bgJbu46HnSH4uH1
+         8PKpUHtgLLaPfbsiQ4lI7w8T6kIIbfwHUrmrJvAWbuVWb1HGva+DCpd5Pn9DHBOYWf64
+         wcHucc9EH95Z/CKLOObhrC/q+ip2iVyBlGHMLbOHdMbt5xarGFusEJgBSYVWq1HOVkjc
+         uV1w==
+X-Forwarded-Encrypted: i=1; AKwUvByDS3HDWoAnSUWN9XHRnn1+6n2tVRcUnta/n3DdFcx6WNm9MhWPvVqkb/yWCsu+Uidr9F+j++LS92Wk@vger.kernel.org
+X-Gm-Message-State: AFq9FYIYDt6qOt0CtP9G+fXDMrBG52Bemw0YOv9aAJfDTSVDNV6HQUd7
+	i/HBqUSJv6Xon7NF/tD/KMLBE0sXoCq2XEYKMFJk8oQyjiHfXAQGoXujOFV/DXgOsAk=
+X-Gm-Gg: AYBFou0JCpW/01ltGjW8NYdb4KJXa4n+3uLmPwLh77dUGnCrinyTAfUYR2Jy9RfHGLf
+	eYSxeSpX1TUJWM8VkmVj/PYtXDF2azbHG+H2v8XZCc+vfm6/Y5HKflQ9geAkCQlOggEWSHMv6eG
+	baJX3kSxc0ziftsdpqxknSFqF5Tj1lkaBbQ5w8Usn6ZgsMFVPcYyrgFx6aNZzC6dWJVjFP+/sSs
+	PRRVy0uFdwBWaSvAdTVgNaOlUU6xKhO3I/Gha0wOZHacHkbooluZKR2Z7uXrPlyX4vlvCTbfgOF
+	kRCE3f9ey70Xl+9/Iu0JS2WZOHhobnWeXp8ZnzBC2DKV2YJJc3He/CVPpKU1kLio34cWuq5/Rnm
+	hmTaBGm+WIc1wAk9WA2JeTxzHlTAr06P8tyWeVKqH5tSabP0zFzbpTQK90Hnufnt5qoD+i5XBTM
+	yiZYh9+kZp7yj2yaYhz2EVXMbCl88CHLlX8ep4dcGLtJL+LR0tNTK7GYm1vOX9RlsnjvTa0GQUT
+	XdJMw==
+X-Received: by 2002:a17:90b:28ce:b0:3a6:582e:5e17 with SMTP id 98e67ed59e1d1-3ab36d2514bmr5568a91.48.1791485748615;
+        Thu, 08 Oct 2026 11:55:48 -0700 (PDT)
+Received: from omarchy.tailc658b0.ts.net ([172.92.210.157])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3ab3690474esm54003a91.0.2026.10.08.11.55.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 08 Oct 2026 11:55:48 -0700 (PDT)
+From: Darrell Gum <d@rrell.co>
+To: =?UTF-8?q?Francisco=20Beltr=C3=A1n=20Millal=C3=A9n?= <fbeltranmillalen@gmail.com>
+Cc: rafael@kernel.org,
+	bhelgaas@google.com,
+	linux-acpi@vger.kernel.org,
+	linux-pci@vger.kernel.org,
+	lenb@kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] ACPI: PCI: take native PME control on Apple machines
+Date: Thu,  8 Oct 2026 11:55:45 -0700
+Message-ID: <20261008185546.86200-1-d@rrell.co>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20260924132859.24751-1-fbeltranmillalen@gmail.com>
+References: <20260924132859.24751-1-fbeltranmillalen@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260726212812.89266-1-shijujose2008@gmail.com>
- <20260726212812.89266-2-shijujose2008@gmail.com> <20261005235021.GBasQ3vXTivT3NLbBq@fat_crate.local>
- <asU7svV8g2Hb5DZl@hu-ashoraj-lv.qualcomm.com> <20261008030603.GAascImzt4cv8Gz49p@fat_crate.local>
- <CAG4KcRLhN9=6xeT4qfqKLFdukiZLUc7akGcWwXJUU1-qrfxTUQ@mail.gmail.com> <20261008174114.GAasfVutvsmAk8JGsD@fat_crate.local>
-In-Reply-To: <20261008174114.GAasfVutvsmAk8JGsD@fat_crate.local>
-From: Shiju Jose <shijujose2008@gmail.com>
-Date: Thu, 8 Oct 2026 19:50:07 +0100
-X-Gm-Features: AclHuK-7nYIEHIpgx3dw55yERdZIxrZ2s_no432HghoTK3RqssmmaR0vXdDXvqQ
-Message-ID: <CAG4KcRLx69BK+aw+exUzPe+BW8exFM2LLvN9pEr-+1BoGVhFXg@mail.gmail.com>
-Subject: Re: [PATCH v23 1/2] ACPI:RAS2: Add driver for the ACPI RAS2 feature table
-To: Borislav Petkov <bp@alien8.de>
-Cc: Ashok Raj <ashok.raj@oss.qualcomm.com>, rafael@kernel.org, 
-	akpm@linux-foundation.org, rppt@kernel.org, dferguson@amperecomputing.com, 
-	linux-edac@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, 
-	linux-doc@vger.kernel.org, tony.luck@intel.com, lenb@kernel.org, 
-	Yazen.Ghannam@amd.com, mchehab@kernel.org, jic23@kernel.org, 
-	linuxarm@huawei.com, rientjes@google.com, jiaqiyan@google.com, 
-	Jon.Grimm@amd.com, dave.hansen@linux.intel.com, naoya.horiguchi@nec.com, 
-	james.morse@arm.com, jthoughton@google.com, somasundaram.a@hpe.com, 
-	erdemaktas@google.com, pgonda@google.com, duenwen@google.com, 
-	gthelen@google.com, wschwartz@amperecomputing.com, wbs@os.amperecomputing.com, 
-	nifan.cxl@gmail.com, tanxiaofei@huawei.com, prime.zeng@hisilicon.com, 
-	roberto.sassu@huawei.com, kangkang.shen@futurewei.com, 
-	wanghuiqiang@huawei.com, ashoraj@qti.qualcomm.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Thu, Oct 8, 2026 at 6:42=E2=80=AFPM Borislav Petkov <bp@alien8.de> wrote=
-:
->
-> Shiju,
->
-> On Thu, Oct 08, 2026 at 08:18:14AM +0100, Shiju Jose wrote:
-> > Thanks Ashok for reporting this issue.
-> >
-> > I debug this. nows_txdone used to set before requesting the channel
-> > until v16 and was changed in v17
-> > following a review comment by claude.
-> > Found this issue occurs when txdone_poll set and  setting nows_txdone
-> > before requesting the channel, solved.
-> > In my test setup,  I missed this issue, because txdone_irq was set in
-> > pcc_mbox_probe()
-> > with the acpi pcct flag set to ACPI_PCCT_DOORBELL by the firmware.
->
-> What?!? I can barely understand what you're writing here.
->
-> And tell me, how many times do I need to remind you not to top-post on pu=
-blic
-> mailing lists?
->
-> Geez.
+On Thu, 24 Sep 2026 10:28:59 -0300, Francisco Beltrán Millalén wrote:
+> Since commit 7bc5a2bad0b8 ("ACPI: Support _OSI("Darwin") correctly")
+[...]
 
-Sorry. I meant the issue occurred when setting the PCC signalling mode
-as polling for the RAS2 PCC
-(In include/acpi/actbl2.h struct acpi_table_pcct: flags).
+Tested on a second MacBookPro14,3 on 7.2.5 (Omarchy's linux-omarchy
+7.2.5-3). Your PCI/PM v2 series and the Alpine Ridge quirk were
+applied as well. The full report is in reply to the series:
+https://lore.kernel.org/all/20260930141914.6678-1-fbeltranmillalen@gmail.com/
 
-Regards,
-Shiju
->
-> --
-> Regards/Gruss,
->     Boris.
->
-> https://people.kernel.org/tglx/notes-about-netiquette
+Stock 7.2.5: with both Thunderbolt xHCIs (8086:15d4 at 07:00.0 and
+7d:00.0) runtime-suspended, plugging a USB 3 stick into any USB-C port
+produced no kernel messages at all. With power/control=on, it
+enumerated at SuperSpeed immediately.
+
+With this patch, _OSC reads "OS assumes control of [PCIeHotplug
+SHPCHotplug PME AER PCIeCapability LTR DPC]". With both controllers
+left at power/control=auto, the same stick enumerated at SuperSpeed
+within about 1 s, and 7d:00.0 runtime-resumed on its own. A later
+run gave the same result: about 1 s when plugged in before a lid-close
+S3, and about 3 s for a replug about 2 min after resume, still with
+power/control=auto.
+
+The patches were tested together, not bisected. This is the result
+that maps most directly onto this one patch.
+
+Tested-by: Darrell Gum <d@rrell.co>
