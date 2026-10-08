@@ -1,64 +1,47 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2E984D0CF8;
-	Wed,  7 Oct 2026 16:58:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E43A820010A;
+	Thu,  8 Oct 2026 02:52:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791392334; cv=none; b=rAn7q6Yy9dWjpnh3WVF9Y4oFnrVVH/3CXWpKQOzy4x6LveZV+VEMJueaQFQ1yH5ckNvVPVmuJEH55jZvtRWywoapBSg/XEUvQpwTPeus1tlCp+t69FUvUgcLeRUKCkrKXM5/CQQ2aUzr1tZAKWd2nqUxJaY+FCW1EjNVzV0OEys=
+	t=1791427925; cv=none; b=EIWcnpblBNRBqe0ysw7kHwrHZYvyLzc+WejIgXROYRTmI79Zj2KnGoNum0OHHyoHgk3zRRxDvWxI4ffYUtEdQLjPGCx9mRfAocQn5Msv8mu2f4wYzCoATXN2E06Bac1WWyw/bDNY4QWA4pHpkRfTMcoZK0D7lxbJ8JYMHBiAklg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791392334; c=relaxed/simple;
-	bh=mzJi3orogIGD7T3yXH92+hYqZf+52aZSC5oykeP8yRc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=AVj9Y2fHLfEAJutbaApbbhG1+W9qAqxvW8eMPMla16cH7bkqwu5+0nXPKpxCDZHzLYh491ikOJrr1Ry3+SKgZbrNJEkiwcrYKYwsaS7VJgPQb8z6KtQ6BplWQxTW/JTym4gV8vPa4H5n3Mgp0LTUpoLgEiaAr9HsFztzd5T1r18=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Mx05ItYW; arc=none smtp.client-ip=198.175.65.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Mx05ItYW"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1791392333; x=1822928333;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=mzJi3orogIGD7T3yXH92+hYqZf+52aZSC5oykeP8yRc=;
-  b=Mx05ItYWLT9W3i1XYuLW2grOtZAXfnjP8w3QNa/H3FOG0hx/NfRDmczY
-   61XmI2dN3MBhb4j03k2WKb43ESBIboWqTy5hV7lJ4QBq9pOJauEMImDDM
-   x3o0wyNJBHQrXvELGxAL6z6L2pnTkIKPZOBAXArSuPnmxJ/rgv5a6upye
-   LwzTVbyfGPGTo7tvJ+foRpgRHXzTUaCl756bs4KsSRr7oydEYBb3TNpWi
-   2bzd2yNFIPLCwF8z8A1veBaARXwmoZtmIGfpFzROaStKBNKBBfbzGTGTQ
-   KLc1pGMerPjseRDu6XGaicUuZpvwX65C+DBDQOg9lrLma3y3NMQGms+lX
-   Q==;
-X-CSE-ConnectionGUID: HIG6zL/2RNqS5eHA30EZnA==
-X-CSE-MsgGUID: wbU0z2zPQUiQc/EhU5Dwig==
-X-IronPort-AV: E=McAfee;i="6800,10657,11928"; a="263233"
-X-IronPort-AV: E=Sophos;i="6.27,144,1787036400"; 
-   d="scan'208";a="263233"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2026 09:58:47 -0700
-X-CSE-ConnectionGUID: DlAqlhDeR56R+f6FsVlhxw==
-X-CSE-MsgGUID: vzQLT4BBTgCUoNehECu+8g==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,144,1787036400"; 
-   d="scan'208";a="306958468"
-Received: from skuppusw-desk2.jf.intel.com ([10.165.154.101])
-  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2026 09:58:47 -0700
-From: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>,
-	Lukas Wunner <lukas@wunner.de>,
-	Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
-	Oliver O'Halloran <oohall@gmail.com>,
-	Len Brown <lenb@kernel.org>,
-	linux-pci@vger.kernel.org,
+	s=arc-20240116; t=1791427925; c=relaxed/simple;
+	bh=+xbwlBBvR9CRiHYs+WTpCuPJVQXQl/8Ej0dbvlQqk9I=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=SHmqK1tEL2nTy+G4qyvcPDS0scxWDeE+rpw15G5JaR4i9R3t8Aqd2ApKhtzJGpDGQwWGC3i+QnSTdnnyw/X+CqJjwsY7e7tn0ibP4iRmc85z6GoiaQ3wXsdL+if/Z755mreBrA6Us5Z91WujzccqTllyXwOvSH5BvJ9F2787UTA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
+X-UUID: 386840b4c2c311f19a56ed5b684f684d-20261008
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.3.19,REQID:e253ccb0-8e6f-48d8-82de-b7ddf1079c75,IP:0,U
+	RL:0,TC:0,Content:-5,EDM:25,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTIO
+	N:release,TS:20
+X-CID-META: VersionHash:7db8b62,CLOUDID:3019ea6ce21a8533f5a7e2926d08123e,BulkI
+	D:nil,BulkQuantity:0,SF:102|850|865|898,TC:nil,Content:0|15|50|99,EDM:5,IP
+	:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OSA:0,AV:0,
+	LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
+X-CID-BVR: 2,SSN|SDN
+X-CID-BAS: 2,SSN|SDN,0,_
+X-CID-FACTOR: TF_CID_SPAM_SNR
+X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
+X-UUID: 386840b4c2c311f19a56ed5b684f684d-20261008
+X-User: luriwen@kylinos.cn
+Received: from localhost.localdomain [(10.44.16.150)] by mailgw.kylinos.cn
+	(envelope-from <luriwen@kylinos.cn>)
+	(Generic MTA with TLSv1.3 TLS_AES_256_GCM_SHA384 256/256)
+	with ESMTP id 718248067; Thu, 08 Oct 2026 10:51:54 +0800
+From: Riwen Lu <luriwen@kylinos.cn>
+To: rafael@kernel.org
+Cc: luriwen@kylinos.cn,
+	lenb@kernel.org,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH 4/4] PCI/portdrv: Bind DPC service based on host_bridge->native_dpc
-Date: Wed,  7 Oct 2026 09:58:40 -0700
-Message-ID: <20261007165840.1604136-5-sathyanarayanan.kuppuswamy@linux.intel.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261007165840.1604136-1-sathyanarayanan.kuppuswamy@linux.intel.com>
-References: <20261007165840.1604136-1-sathyanarayanan.kuppuswamy@linux.intel.com>
+Subject: [PATCH] ACPI: PM: sleep: Drop unused sleep_no_lps0 define
+Date: Thu,  8 Oct 2026 10:51:52 +0800
+Message-Id: <20261008025152.153073-1-luriwen@kylinos.cn>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -67,89 +50,32 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-get_port_device_capability() binds the DPC service if the port has a DPC
-capability and either "pcie_ports=dpc-native" was given or the OS
-controls AER.  This repeats decisions that are already made elsewhere.
-It also ignores host_bridge->native_dpc, which is meant to say whether
-the OS owns DPC.
+The sleep_no_lps0 stub define in the !CONFIG_ACPI_SLEEP branch of
+sleep.c has no users left in that file: the LPS0 code consuming it
+was moved to drivers/acpi/x86/s2idle.c by commit fef98671194b ("ACPI:
+PM: s2idle: Move x86-specific code to the x86 directory"), which has
+its own static module parameter of the same name, so the define is
+no longer used.
 
-Make host_bridge->native_dpc the single decider:
+Drop it.
 
-  - In acpi_pci_root_create(), assume DPC control whenever _OSC grants
-    AER control.  PCI Firmware r3.3, sec 4.5.2.4, requires platforms to
-    retain AER if they retain DPC.  Put the other way, firmware that
-    grants AER does not keep DPC.  PCIe r7.0 sec 6.2.11 recommends that
-    the OS link control of DPC to control of AER.  Commit 97ca178c899d
-    ("PCI/DPC: Allow DPC on all Downstream Ports when OS controls AER")
-    relied on this link.  Keeping it means DPC still works with firmware
-    that predates the _OSC DPC control bit.  Such firmware grants AER but
-    masks DPC.  The OS cannot tell such firmware from firmware that
-    retains DPC on purpose, so log a message when it assumes DPC control
-    that _OSC did not grant.  Only do this if the OS requested DPC
-    control, i.e., if CONFIG_PCIE_DPC is enabled.
-
-  - "pcie_ports=native" and "pcie_ports=dpc-native" are already folded
-    into the _OSC control mask, so they are reflected in native_dpc.
-
-Then bind the DPC service if the port has a DPC capability and
-host_bridge->native_dpc is set.
-
-The only change in behavior is for firmware that grants DPC control but
-retains AER control.  PCI Firmware r3.3, sec 4.5.2.4, does not forbid
-this.  The OS now uses DPC there because firmware granted it.  With
-Lukas's series, the DPC driver no longer depends on the AER driver.
-
-Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+Signed-off-by: Riwen Lu <luriwen@kylinos.cn>
 ---
- drivers/acpi/pci_root.c    | 16 ++++++++++++++++
- drivers/pci/pcie/portdrv.c |  6 +-----
- 2 files changed, 17 insertions(+), 5 deletions(-)
+ drivers/acpi/sleep.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 5c674d5b6bb8..b380b6d8874d 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -1056,6 +1056,22 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
- 	ctrl = root->osc_control_set;
- 	ext_ctrl = root->osc_ext_control_set;
- 
-+	/*
-+	 * PCI Firmware r3.3, sec 4.5.2.4, requires platforms to retain AER
-+	 * if they retain DPC.  Put the other way, firmware that grants AER
-+	 * does not keep DPC.  PCIe r7.0 sec 6.2.11 recommends that the OS
-+	 * link control of DPC to control of AER.  Firmware that predates
-+	 * the _OSC DPC control bit grants AER without DPC, so assume control
-+	 * of DPC whenever we control AER.
-+	 */
-+	if (IS_ENABLED(CONFIG_PCIE_DPC) &&
-+	    (ctrl & OSC_PCI_EXPRESS_AER_CONTROL) &&
-+	    !(ctrl & OSC_PCI_EXPRESS_DPC_CONTROL)) {
-+		decode_osc_control(root, "OS assuming control (AER granted) of",
-+				   OSC_PCI_EXPRESS_DPC_CONTROL);
-+		ctrl |= OSC_PCI_EXPRESS_DPC_CONTROL;
-+	}
-+
- 	/*
- 	 * If the user specified "pcie_ports=native", use the PCIe port
- 	 * services regardless of what _OSC says, i.e., proceed as though the
-diff --git a/drivers/pci/pcie/portdrv.c b/drivers/pci/pcie/portdrv.c
-index b77680fd3b75..f1beb440a3dc 100644
---- a/drivers/pci/pcie/portdrv.c
-+++ b/drivers/pci/pcie/portdrv.c
-@@ -258,12 +258,8 @@ static int get_port_device_capability(struct pci_dev *dev)
- 		pcie_pme_interrupt_enable(dev, false);
- 	}
- 
--	/*
--	 * With dpc-native, allow Linux to use DPC even if it doesn't have
--	 * permission to use AER.
--	 */
- 	if (pci_find_ext_capability(dev, PCI_EXT_CAP_ID_DPC) &&
--	    (pcie_ports_dpc_native || host->native_aer))
-+	    host->native_dpc)
- 		services |= PCIE_PORT_SERVICE_DPC;
- 
- 	/* Enable bandwidth control if more than one speed is supported. */
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 132a9df98471..a94bac4422d4 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -548,7 +548,6 @@ static void acpi_pm_end(void)
+ 	acpi_sleep_tts_switch(acpi_target_sleep_state);
+ }
+ #else /* !CONFIG_ACPI_SLEEP */
+-#define sleep_no_lps0	(1)
+ #define acpi_target_sleep_state	ACPI_STATE_S0
+ #define acpi_sleep_default_s3	(1)
+ static inline void acpi_sleep_dmi_check(void) {}
 -- 
-2.43.0
+2.25.1
 
