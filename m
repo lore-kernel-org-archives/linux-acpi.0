@@ -1,81 +1,122 @@
-Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
+Received: from mail.alien8.de (mail.alien8.de [65.109.113.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E43A820010A;
-	Thu,  8 Oct 2026 02:52:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D47731ED7C;
+	Thu,  8 Oct 2026 03:07:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.109.113.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791427925; cv=none; b=EIWcnpblBNRBqe0ysw7kHwrHZYvyLzc+WejIgXROYRTmI79Zj2KnGoNum0OHHyoHgk3zRRxDvWxI4ffYUtEdQLjPGCx9mRfAocQn5Msv8mu2f4wYzCoATXN2E06Bac1WWyw/bDNY4QWA4pHpkRfTMcoZK0D7lxbJ8JYMHBiAklg=
+	t=1791428827; cv=none; b=QSCgv9IEHrv0hrUVlD7CTMS+pk4Ujd5H7IlmXJWc6+15SS/FteVY1FBvC50r4CBQxw8arCTgZXxqcwNzE5YVRd99Y6/WVaHVnKLr2peNrwRxrBH7wO065zWrCEmYjOdAlK5bjruCO8bg/6JrkyOYSoFoHAKDMxgRx+utyRLsuCA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791427925; c=relaxed/simple;
-	bh=+xbwlBBvR9CRiHYs+WTpCuPJVQXQl/8Ej0dbvlQqk9I=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=SHmqK1tEL2nTy+G4qyvcPDS0scxWDeE+rpw15G5JaR4i9R3t8Aqd2ApKhtzJGpDGQwWGC3i+QnSTdnnyw/X+CqJjwsY7e7tn0ibP4iRmc85z6GoiaQ3wXsdL+if/Z755mreBrA6Us5Z91WujzccqTllyXwOvSH5BvJ9F2787UTA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
-X-UUID: 386840b4c2c311f19a56ed5b684f684d-20261008
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.3.19,REQID:e253ccb0-8e6f-48d8-82de-b7ddf1079c75,IP:0,U
-	RL:0,TC:0,Content:-5,EDM:25,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTIO
-	N:release,TS:20
-X-CID-META: VersionHash:7db8b62,CLOUDID:3019ea6ce21a8533f5a7e2926d08123e,BulkI
-	D:nil,BulkQuantity:0,SF:102|850|865|898,TC:nil,Content:0|15|50|99,EDM:5,IP
-	:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OSA:0,AV:0,
-	LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
-X-CID-BVR: 2,SSN|SDN
-X-CID-BAS: 2,SSN|SDN,0,_
-X-CID-FACTOR: TF_CID_SPAM_SNR
-X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
-X-UUID: 386840b4c2c311f19a56ed5b684f684d-20261008
-X-User: luriwen@kylinos.cn
-Received: from localhost.localdomain [(10.44.16.150)] by mailgw.kylinos.cn
-	(envelope-from <luriwen@kylinos.cn>)
-	(Generic MTA with TLSv1.3 TLS_AES_256_GCM_SHA384 256/256)
-	with ESMTP id 718248067; Thu, 08 Oct 2026 10:51:54 +0800
-From: Riwen Lu <luriwen@kylinos.cn>
-To: rafael@kernel.org
-Cc: luriwen@kylinos.cn,
-	lenb@kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] ACPI: PM: sleep: Drop unused sleep_no_lps0 define
-Date: Thu,  8 Oct 2026 10:51:52 +0800
-Message-Id: <20261008025152.153073-1-luriwen@kylinos.cn>
-X-Mailer: git-send-email 2.25.1
+	s=arc-20240116; t=1791428827; c=relaxed/simple;
+	bh=IzLKLBvBJvQ90dp5Fr7AoL4y/c6CHUQCMulASK2sAN4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=USw+jF66sv5sVGFfhpwMd34JkFYog5ZJWF2y9pFwh2xj+G/0Z3dPbKeAuzZITx6JEm2XsAYmOO79NpSzFf4+wGK4vqL1H2VHC/722KJLwwJg9Z/jqRMq0DECzTcyzKfg6GfQp+Bndg2VM02XNPIK/BcLjSYIPzdsVVOXiF4Ywds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de; spf=pass smtp.mailfrom=alien8.de; dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b=MTvM4QRE; arc=none smtp.client-ip=65.109.113.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=alien8.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=alien8.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (4096-bit key) header.d=alien8.de header.i=@alien8.de header.b="MTvM4QRE"
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTP id BE0B840E00E5;
+	Thu,  8 Oct 2026 03:06:54 +0000 (UTC)
+X-Virus-Scanned: Debian amavisd-new at mail.alien8.de
+Authentication-Results: mail.alien8.de (amavisd-new); dkim=pass (4096-bit key)
+	header.d=alien8.de
+Received: from mail.alien8.de ([127.0.0.1])
+	by localhost (mail.alien8.de [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP id mgqvtUb_NHYt; Thu,  8 Oct 2026 03:06:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=alien8;
+	t=1791428804; bh=cyhM1nUNozz0bBiV0uhM/z9n5mfCAa1GSAZkjkT7ZwA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=MTvM4QRENWPPyXa1ccOMqG0xWEftwSJsaexQPCdfxBkXP7aZz3Em5whU2pQk5U3et
+	 G+uyGfmeEELkGkv+0ctFdA81yHntZDUoz4GPNiRNbGWn5VIaI7rw28qh8cX08XPtY0
+	 m3V+1VmUS2w/Ua3WMxQzU38Kc6eCVUT1YCfM7qq+Uq2x45slABOTqqLuA+FNRdHTMg
+	 gOfTMGMnSd+YlKNdxUoyIdYWOWwKGJOBMLiVSZAzhO3EZTFBHKOFduhuvZhHzIywWv
+	 aK3/lZ3bo5qaaeSkaegusJbhR+Ij2ZdbsRvOEB5Exrbwlnt1WhZgmrWgGAgVDQg7Rh
+	 p8LBRs2ECOzNSXNfJGtnTqEmy2XqWiUglM1iHXsNTo/T7LcVABevxKWAXggygRJUN8
+	 WndUwCBiS7EvIW77HYvqxGuTi1tPhLBGCuBkVCDzEskMRaviNtXGckj9unOsth17KZ
+	 DsjhwknwklTzWaCtfOR9k1uvCQgcJ/QuBCfEsSDJGuycQ2GeLCPG+31za9DrnM3r9Y
+	 9OI5AdS0SYsRO1sUZnE6vX3sk2Q/a9iu2TtHC/326UTNyOvlUSoHNclJf0WEkMcfYp
+	 uQtJUSOhCCCJIlpg8tKX4tYXYfBgAxG8kVbecegnZmJI+es8vUz6myXMDT3AgzcbqQ
+	 JVbpZWFtomeYaCZJInqDT6xs=
+Received: from stx.tnic (unknown [IPv6:2600:1700:38ca:c00::3a])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest SHA256)
+	(No client certificate requested)
+	by mail.alien8.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id C1C9940E021A;
+	Thu,  8 Oct 2026 03:06:06 +0000 (UTC)
+Date: Wed, 7 Oct 2026 20:06:03 -0700
+From: Borislav Petkov <bp@alien8.de>
+To: Ashok Raj <ashok.raj@oss.qualcomm.com>
+Cc: shijujose2008@gmail.com, rafael@kernel.org, akpm@linux-foundation.org,
+	rppt@kernel.org, dferguson@amperecomputing.com,
+	linux-edac@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-mm@kvack.org, linux-doc@vger.kernel.org, tony.luck@intel.com,
+	lenb@kernel.org, Yazen.Ghannam@amd.com, mchehab@kernel.org,
+	jic23@kernel.org, linuxarm@huawei.com, rientjes@google.com,
+	jiaqiyan@google.com, Jon.Grimm@amd.com, dave.hansen@linux.intel.com,
+	naoya.horiguchi@nec.com, james.morse@arm.com, jthoughton@google.com,
+	somasundaram.a@hpe.com, erdemaktas@google.com, pgonda@google.com,
+	duenwen@google.com, gthelen@google.com,
+	wschwartz@amperecomputing.com, wbs@os.amperecomputing.com,
+	nifan.cxl@gmail.com, tanxiaofei@huawei.com,
+	prime.zeng@hisilicon.com, roberto.sassu@huawei.com,
+	kangkang.shen@futurewei.com, wanghuiqiang@huawei.com,
+	ashoraj@qti.qualcomm.com
+Subject: Re: [PATCH v23 1/2] ACPI:RAS2: Add driver for the ACPI RAS2 feature
+ table
+Message-ID: <20261008030603.GAascImzt4cv8Gz49p@fat_crate.local>
+References: <20260726212812.89266-1-shijujose2008@gmail.com>
+ <20260726212812.89266-2-shijujose2008@gmail.com>
+ <20261005235021.GBasQ3vXTivT3NLbBq@fat_crate.local>
+ <asU7svV8g2Hb5DZl@hu-ashoraj-lv.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <asU7svV8g2Hb5DZl@hu-ashoraj-lv.qualcomm.com>
 
-The sleep_no_lps0 stub define in the !CONFIG_ACPI_SLEEP branch of
-sleep.c has no users left in that file: the LPS0 code consuming it
-was moved to drivers/acpi/x86/s2idle.c by commit fef98671194b ("ACPI:
-PM: s2idle: Move x86-specific code to the x86 directory"), which has
-its own static module parameter of the same name, so the define is
-no longer used.
+On Tue, Oct 06, 2026 at 11:19:30AM -0700, Ashok Raj wrote:
+> > +static int register_pcc_channel(struct ras2_mem_ctx *ras2_ctx, int pcc_id)
+> > +{
+> > +	struct pcc_mbox_chan *pcc_chan;
+> > +	struct ras2_sspcc *sspcc;
+> > +	int ret;
+> > +
+> > +	if (pcc_id < 0)
+> > +		return -EINVAL;
+> > +
+> > +	sspcc = sspcc_get(pcc_id);
+> > +	if (sspcc) {
+> > +		ras2_ctx->sspcc	    = sspcc;
+> > +		ras2_ctx->comm_addr = sspcc->comm_addr;
+> > +		ras2_ctx->dev	    = sspcc->pcc_chan->mchan->mbox->dev;
+> > +		ras2_ctx->pcc_lock  = &sspcc->pcc_lock;
+> > +
+> > +		return 0;
+> > +	}
+> > +
+> > +	sspcc = kzalloc(sizeof(*sspcc), GFP_KERNEL);
+> > +	if (!sspcc)
+> > +		return -ENOMEM;
+> > +
+> 	__mbox_bind_client() reads knows_txdone at bind time to promote the
+> 	channel off MBOX_TXDONE_BY_POLL. It must be set before requesting the
+> 	channel, otherwise the channel stays on polling and mbox_client_txdone()
+> 	later hits the mailbox core's "Client can't run the TX ticker" guard.
+> 
+> 	sspcc->mbox_client.knows_txdone = true;
 
-Drop it.
+Yah, I can see that happening but I don't have the hw to even poke at this.
 
-Signed-off-by: Riwen Lu <luriwen@kylinos.cn>
----
- drivers/acpi/sleep.c | 1 -
- 1 file changed, 1 deletion(-)
+Shiju, what's up?
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 132a9df98471..a94bac4422d4 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -548,7 +548,6 @@ static void acpi_pm_end(void)
- 	acpi_sleep_tts_switch(acpi_target_sleep_state);
- }
- #else /* !CONFIG_ACPI_SLEEP */
--#define sleep_no_lps0	(1)
- #define acpi_target_sleep_state	ACPI_STATE_S0
- #define acpi_sleep_default_s3	(1)
- static inline void acpi_sleep_dmi_check(void) {}
 -- 
-2.25.1
+Regards/Gruss,
+    Boris.
 
+https://people.kernel.org/tglx/notes-about-netiquette
