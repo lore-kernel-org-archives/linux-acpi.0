@@ -1,234 +1,177 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f49.google.com (mail-oo1-f49.google.com [209.85.161.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2592F3D333E;
-	Thu,  8 Oct 2026 07:15:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791443703; cv=none; b=lpOxQ+J1sxfUvY7rLxHGnfKmfrWo/f7sgFfvbhTWmMp9L1aiCBj97C3W+ipUKw/g5v5FL4vpVArRwLy0FNs7u/whvmbhVC/Ey7+ha0DX6xN9kLiywlugUEUdb8Sj5UH0OMQG9fvLlNzmPu/ESwWiwgaGLR2gCV5p+fksJZ/IQ+g=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791443703; c=relaxed/simple;
-	bh=sPxiaboHQchn4nvhFErblERPqLn7pzmsM5Fh+QOZZ48=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=h8eVEvxquBf/0hoCInbiNSGImiVtg1653HB6vu818ndTTDCZPJwIV3fm7JrWtn4rXuXaC4ExGyRMYAE5mbyX/ED4miys2sVHEeaT7UCzCCYdOWeLdmxkz69jTXWpZ4O3khOxUnxyaWCiaAqM0L+K9TkNHpkTW/J2EdtDpQyR2Hw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WQy6LKyA; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 609463D4131
+	for <linux-acpi@vger.kernel.org>; Thu,  8 Oct 2026 07:18:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.161.49
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791443912; cv=pass; b=SkD2Hcmbuk+blS/HXTnuCDQRgK6BhEBfeCVwyeXMFeN1zW6LINsf7QxUzkOMMxPVCwzKAz8EQgGdNkliag1roJV1B1kX4I267dU6o8HuqRKnEMpC76akoRYYfiKWr09vvWZxmINNghSoMvmqMz+tstdSOSq30az/WFscdJqNBn0=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791443912; c=relaxed/simple;
+	bh=mEfZs82VT+qdUvxddu4QZb3styi2rIzs8l6ABw4Qllo=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Yek9x4v17APW6MQu7ozQ5TNzCghrIFfotB+fADRKN4nvrzIslEEoi3HC0dEn9EDyURl0QwjiRo2gQ+RpPhIdTs1kJu/BO7Mx732HTah5eQyTzOKkI4njSSWzA6NxRz60e2WJwbbb/6CJvnzhbt3vyM1LxbJ489X+pdBtK5QQ1AQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=l8r4URmw; arc=pass smtp.client-ip=209.85.161.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WQy6LKyA"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 81FA8C2BCC7;
-	Thu,  8 Oct 2026 07:15:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1791443702;
-	bh=sPxiaboHQchn4nvhFErblERPqLn7pzmsM5Fh+QOZZ48=;
-	h=From:Date:Subject:To:Cc:Reply-To:From;
-	b=WQy6LKyAtzrHgD/8lRGW+fB94uSwQ2BcIAeOzl11ikfmZDw6YJy/kj+3YiO2rL3ca
-	 t+i8EOBebD7omXlZrVY7DI2NVr6vqAMm07EY5EAP8cgWBRJ5jWNqNet+AgVAkhHGEg
-	 2xeEav7eJm+OfznXOdVy7x9OxzZMKJlpk1M2WxLFeemh4p/KA9gMXG4a7jkN/WzP+j
-	 cRqky6H5+JVB7/6oOLvrWGf6rb19Y8AJFnMdFJ+fwoFc+BI3G4m3kTVy8kNX9an+y1
-	 CLkz7WduclslN4ltNyoe646UEw8NlE1coeQ35J808Lc9gGjYDwH+QbNEGhccLzhMjH
-	 kwzoqRLtVywOA==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B4A1CA600E;
-	Thu,  8 Oct 2026 07:15:02 +0000 (UTC)
-From: Waqar Gulzar via B4 Relay <devnull+iamwaqargulzar.gmail.com@kernel.org>
-Date: Thu, 08 Oct 2026 12:15:01 +0500
-Subject: [PATCH v2] HID: i2c-hid-acpi: restore touchscreen IRQ routing on
- HP OmniBook Flip laptops
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l8r4URmw"
+Received: by mail-oo1-f49.google.com with SMTP id 006d021491bc7-6df1eeb43feso1122588eaf.1
+        for <linux-acpi@vger.kernel.org>; Thu, 08 Oct 2026 00:18:30 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791443909; cv=none;
+        d=google.com; s=arc-20260327;
+        b=HAmpPf4LzvTARNLDrQw1rh08L3Kbra9jn9sLHkax3xMWTTDzNcAUYxxiCe918eAIeD
+         clPo/5221DCZ2DkTRAHi2KHgp39lNoK715bD0Xf5xsZcn6/NQQx4YsCl6YlrtNyermo+
+         2d7gnBOSNq/oi0J9cnbnM2JGj2vztvTfNzWyRtCRFjlN1AX5NQQRnBOnyigksuTt5dAH
+         fn4bv7EQCNh/tImQ4gqKmx34lzUdIEOgbRQMyaYx7cxonIvPxIwRW6Olkyh/v/pcxD04
+         +BEpy/acbk3UtaX0evuA6FS+6nPW5XMNNk3xlJ01QUmcBusoE7dS6fumNtgMmgQijFRf
+         uKuw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=70ywZ2AyEe7ncaX3K+b5VsGq7joUvo2qDjp4zFNieZQ=;
+        fh=zA4iivPTjqldcJVTl8zWZHiBjiadlS81QeRJHuFhlyk=;
+        b=Ye38OAs+fbYbmtziclDVHflI3ouaZHPHDQZOQA08DjoXBHnvcxEAtCzNsan2eCn+uN
+         CvB4r5tsEyYcxufkTkmM0y8Ua4ObiP9er2SGpB9FC4kZODqfKZQ9SqOuz6/KZDjQnjIK
+         PchOAk/MgzOLG0pLnVolDTsH6W3lA/uxP7XhrDoQyiI5T6ni9CKESPHCze0troctpEhd
+         dTd78zxai1nKrEcyomjFMjqxVp7VlGPfli5Rg8jncB8mwpH+QQQDdtRz9eOG5LRP/oHu
+         MbnbTnKwRHwy9BgrpuKiM0iqrzejdaZ2EoecR8Prf5Ujt2a8wH27+64kCmFB5h6heXvN
+         3AVQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1791443909; x=1792048709; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=70ywZ2AyEe7ncaX3K+b5VsGq7joUvo2qDjp4zFNieZQ=;
+        b=l8r4URmwE6Pqf05rXr098yyUPpb0lPIsiCToQANmesWZw04HT6qBAsBWeE63M2Ftd2
+         6ZnU0ZFm5fVVkw9PJ7zeU2S0ubWbK8a8dtxjz9anI4pN8sWr9WjYll7VIJdgWxUKRZcE
+         CzYAE/e7oyx73INhV9UZr9cCz+4zHyK48ShE5TNmNK/eo7+ZH+lmBR7Yd0QMqwwf/RFJ
+         Qp09hJzek5jHZZTgE0RIawPjlk1BAkm8EqCdTW5lVyJAwuOkwrNozXmI97OiNX98g4ja
+         GI0Eait86lFnirEPX+RrTGL88K1JaT+amRpGPzg1DUNmHtsPURU7feScxkskttJ8LVpN
+         AztQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791443909; x=1792048709;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=70ywZ2AyEe7ncaX3K+b5VsGq7joUvo2qDjp4zFNieZQ=;
+        b=IJ3hrtihoenolpzr4eUYIb+P0nm8nMbtpSpvgdL5jhU1dnr3EJ4v/Qvke6FsRG7xDR
+         v+tObku3vkK83k20DWZ3eBTIESCaParNdQMokeGqffCkSttbtsmwqtFR6P6BYlc8Ynyc
+         touo/qShpWJgDDh0verGpXn7haplPFHROIiz21gQmPN7WPPOWe0Y2mEi6q5U0/RcbuUG
+         LsQaYWTD3C90gvUJHkBhh/4YVjUvZboSW4yG+qQyTGMTW+355xJjPZ3BRtLmh4cAD5as
+         FT5C41DHV9BTnI7dQNHEuH+iQ90uJMoHWx8fRdUHaLv8vHTEPFTn7GV1wcoYbJHTnDdr
+         c2/A==
+X-Forwarded-Encrypted: i=1; AKwUvByqVSXa1PE/OkBv6nL6EFobJWHilz78qnf94iR2IsYCb0p7K53xL3aVEVq+8Vrgn70MhhCVyKnVSf+M@vger.kernel.org
+X-Gm-Message-State: AFuF++kSZhSy7jJvpvRWPlvPrQ7kj8mDVmLTYDqXoKZ1Qm4Qn4feeSzs
+	YOg+p7aO29u+9HmxvTXqO8etBSMFBKy0kI8l0SNnH+c27AfMJLWvBoJIkuj5YbNyiaVyPVc135s
+	YxeBQK5MzakdCczuHdLY4pey1BcscPdY=
+X-Gm-Gg: AYBFou22LHbzf02++R/W6dyhwiz0c1YlGl4G6LKoWCPQEInB47lV1K9VpLKz96LxXdM
+	D1+WC2AgEXPsMnHbqkGWMKcZlG4DezvZRpWaWv+P+5Te5TDRvyYeqcUyFAHJP5ySFMGaac29452
+	BSl9XLFcl9FhgsfSAZ35sjimXf1D2qm0/m0pIoDKvvOXmv6ndav6S4js44bv5KKpyKZuKfDVTP+
+	R4ijoqc1YA8Ub9HLRvarXipGrpuOcJe9Q32fWFtFPJsXaFoPgVvXfRZyIfbU6V8pt+/KWDXbzwJ
+	2IuHArfC4xwK+xh1v2qRSYH+9aWw4tVM+8/nQVh91gVOw2bTFCecGfJvsDzHMFmpfA==
+X-Received: by 2002:a05:6820:618:b0:6e4:1587:d2b9 with SMTP id
+ 006d021491bc7-6e7aaecda5cmr4190773eaf.35.1791443909157; Thu, 08 Oct 2026
+ 00:18:29 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261008-b4-elan2514-irq-route-v2-1-432d95eb7348@gmail.com>
-X-B4-Tracking: v=1; b=H4sIAPRCx2oC/4WNTQ6CMBBGr0Jm7Zi2lh9deQ/DgpYpjEGqLRAN4
- e4CHsDlS973vhkiBaYIl2SGQBNH9v0K6pCAbau+IeR6ZVBCZeJ8Emg0Ulf1KpUaObww+HEgrAu
- Va2ddIVID6/YZyPF7797KH8fR3MkOW2wzWo6DD5/9eJKb9+9jkihR6yyXxglZi/TaPCrujtY/o
- FyW5QtMscxuzAAAAA==
-X-Change-ID: 20260930-b4-elan2514-irq-route-d8274fcf805b
-To: Jiri Kosina <jikos@kernel.org>, Benjamin Tissoires <bentiss@kernel.org>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-acpi@vger.kernel.org, stable@vger.kernel.org, 
- Waqar Gulzar <iamwaqargulzar@gmail.com>
-X-Mailer: b4 0.16.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1791443700; l=6715;
- i=iamwaqargulzar@gmail.com; s=20260930; h=from:subject:message-id;
- bh=7Fnwx/BOp4ha3EW9HMMdAzjRcB5AydGK0F0fLjOu1CU=;
- b=PM15xATBt61NyYOs5vyUNiNgedZHChppMgjYDCQc+2vuLIJjemu3nDFSjFXEem7kwPishGYp9
- eMSBF7lD8caBwo3dXJ1+EoEMrsc8lUyl0o/Z8X+5EU30AA5WQc7O8/9
-X-Developer-Key: i=iamwaqargulzar@gmail.com; a=ed25519;
- pk=SaQhB3EnN6qioo4wuu0rBv6REy1Nx9hz3QOh3Qp9xtk=
-X-Endpoint-Received: by B4 Relay for iamwaqargulzar@gmail.com/20260930 with
- auth_id=1083
-X-Original-From: Waqar Gulzar <iamwaqargulzar@gmail.com>
-Reply-To: iamwaqargulzar@gmail.com
+References: <20260726212812.89266-1-shijujose2008@gmail.com>
+ <20260726212812.89266-2-shijujose2008@gmail.com> <20261005235021.GBasQ3vXTivT3NLbBq@fat_crate.local>
+ <asU7svV8g2Hb5DZl@hu-ashoraj-lv.qualcomm.com> <20261008030603.GAascImzt4cv8Gz49p@fat_crate.local>
+In-Reply-To: <20261008030603.GAascImzt4cv8Gz49p@fat_crate.local>
+From: Shiju Jose <shijujose2008@gmail.com>
+Date: Thu, 8 Oct 2026 08:18:14 +0100
+X-Gm-Features: AclHuK_Pa4PSN7Ovd8UjVYuZheIOrKSyX750Qa13rdRkYN_uBxTlt7ZeUcurB5c
+Message-ID: <CAG4KcRLhN9=6xeT4qfqKLFdukiZLUc7akGcWwXJUU1-qrfxTUQ@mail.gmail.com>
+Subject: Re: [PATCH v23 1/2] ACPI:RAS2: Add driver for the ACPI RAS2 feature table
+To: Borislav Petkov <bp@alien8.de>
+Cc: Ashok Raj <ashok.raj@oss.qualcomm.com>, rafael@kernel.org, 
+	akpm@linux-foundation.org, rppt@kernel.org, dferguson@amperecomputing.com, 
+	linux-edac@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, 
+	linux-doc@vger.kernel.org, tony.luck@intel.com, lenb@kernel.org, 
+	Yazen.Ghannam@amd.com, mchehab@kernel.org, jic23@kernel.org, 
+	linuxarm@huawei.com, rientjes@google.com, jiaqiyan@google.com, 
+	Jon.Grimm@amd.com, dave.hansen@linux.intel.com, naoya.horiguchi@nec.com, 
+	james.morse@arm.com, jthoughton@google.com, somasundaram.a@hpe.com, 
+	erdemaktas@google.com, pgonda@google.com, duenwen@google.com, 
+	gthelen@google.com, wschwartz@amperecomputing.com, wbs@os.amperecomputing.com, 
+	nifan.cxl@gmail.com, tanxiaofei@huawei.com, prime.zeng@hisilicon.com, 
+	roberto.sassu@huawei.com, kangkang.shen@futurewei.com, 
+	wanghuiqiang@huawei.com, ashoraj@qti.qualcomm.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-From: Waqar Gulzar <iamwaqargulzar@gmail.com>
+Hi Boris, Hi Ashok,
 
-On the HP OmniBook X Flip 16, OmniBook 7 Flip 16 and OmniBook X Flip 14
-the ELAN2514 touchscreen interrupt is a GPIO pad (GPP_E_18) routed
-directly to the IO-APIC. The firmware's touchscreen power resource does
+Thanks Ashok for reporting this issue.
 
-    PTPL._ON:  \_SB.SGRA (TPI2, TPIP)        // TPIP = T0IP = 0
-    PTPL._OFF: \_SB.SGRA (TPI2, TPIP ^ 1)
+I debug this. nows_txdone used to set before requesting the channel
+until v16 and was changed in v17
+following a review comment by claude.
+Found this issue occurs when txdone_poll set and  setting nows_txdone
+before requesting the channel, solved.
+In my test setup,  I missed this issue, because txdone_irq was set in
+pcc_mbox_probe()
+with the acpi pcct flag set to ACPI_PCCT_DOORBELL by the firmware.
 
-while the device's _INI enables routing with SGRA (GPLI, T0IP ^ 1).
-So _ON clears PADCFG0.GPIROUTIOXAPIC and disconnects the pad from the
-IO-APIC. Linux evaluates _ON at probe and on every D3->D0 transition
-(Windows apparently does not while _STA already reports the resource
-on), after which the level-triggered IRQ never deasserts:
-
-  - ~630 interrupts/s while idle, nearly every read returns 0xffff
-  - frames shifted by a leading 0xff, "incomplete report (67/7167)"
-  - stylus reports arrive at ~25 Hz instead of the native ~268 Hz
-  - touch stalls and false stylus proximity
-
-Re-enable the routing through the firmware's own \_SB.SGRA helper from
-the power_up hook, which runs at probe and on resume before the HID
-reset.
-
-Tested with this patch on the OmniBook X Flip 16 (board 8DA1, BIOS
-F.20): idle interrupts drop from ~630/s to 0 after boot and after
-s2idle resume, and pen and touch behave as on Windows.
-
-The same faulty _ON, the same pad and the same ~630/s storm were
-confirmed by other owners on the OmniBook 7 Flip 16 (board 8DA0, BIOS
-F.08) and the OmniBook X Flip 14 (board 8D9F, BIOS F.08). On both,
-correcting the _ON value through an ACPI table override stops the storm
-(routing bit set, 0 interrupts/s idle, also after s2idle), which is the
-same correction this patch applies at runtime.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=220854
-Link: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/2142384
-Link: https://github.com/testyfishy/hp-omnibook-flip16-touchscreen-fix
-Link: https://github.com/iamwaqargulzar/hp-omnibook-x-flip-16-linux-touchscreen-pen-fix
-Cc: stable@vger.kernel.org
-Signed-off-by: Waqar Gulzar <iamwaqargulzar@gmail.com>
----
-The firmware of the HP OmniBook X Flip 16, OmniBook 7 Flip 16 and
-OmniBook X Flip 14 disconnects the ELAN2514 touchscreen interrupt from
-the IO-APIC in its power resource _ON method, which Linux runs at probe
-and resume. This patch re-enables the routing through the firmware's own
-helper from i2c-hid-acpi's power_up hook.
-
-Tested with the patch on board 8DA1 (BIOS F.20), Linux 7.2.8,
-including s2idle resume. Boards 8DA0 and 8D9F were confirmed by their
-owners to have the same faulty _ON and storm, and to be fixed by the
-equivalent ACPI table correction (kernel bugzilla 220854).
-
-Full analysis, ACPI excerpts, and Windows/Linux traces:
-https://github.com/iamwaqargulzar/hp-omnibook-x-flip-16-linux-touchscreen-pen-fix
----
-Changes in v2:
-- Add board 8D9F (OmniBook X Flip 14): same faulty _ON, confirmed by
-  its owner in bugzilla 220854.
-- Fix the description of 8DA0: it is the OmniBook 7 Flip 16, a sibling
-  model, not another board ID of the X Flip 16; now confirmed by its
-  owner as well.
-- Subject and commit message now name all three models; add the
-  bugzilla link.
-- Link to v1: https://patch.msgid.link/20260930-b4-elan2514-irq-route-v1-1-44671bf01d05@gmail.com
----
- drivers/hid/i2c-hid/i2c-hid-acpi.c | 65 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 65 insertions(+)
-
-diff --git a/drivers/hid/i2c-hid/i2c-hid-acpi.c b/drivers/hid/i2c-hid/i2c-hid-acpi.c
-index 9371db200..b307d9a3d 100644
---- a/drivers/hid/i2c-hid/i2c-hid-acpi.c
-+++ b/drivers/hid/i2c-hid/i2c-hid-acpi.c
-@@ -21,6 +21,7 @@
- 
- #include <linux/acpi.h>
- #include <linux/device.h>
-+#include <linux/dmi.h>
- #include <linux/i2c.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-@@ -55,6 +56,67 @@ static void i2c_hid_acpi_restore_sequence(struct i2chid_ops *ops)
- 	i2c_hid_acpi_get_descriptor(ihid_acpi->adev);
- }
- 
-+/*
-+ * HP OmniBook X Flip 14 (board 8D9F), OmniBook 7 Flip 16 (8DA0) and
-+ * OmniBook X Flip 16 (8DA1): the touchscreen power resource
-+ * \_SB.PC00.I2C4.PTPL._ON writes the wrong value to the GPIROUTIOXAPIC bit
-+ * of the touchscreen interrupt pad, disconnecting it from the IO-APIC. The
-+ * level-triggered interrupt then never deasserts, the controller is read
-+ * continuously (~630 reads/s while idle) and it cannot deliver pen reports
-+ * at its native rate. Windows does not run _ON while the resource already
-+ * reports on, so it is not affected. Linux runs _ON at probe and on every
-+ * resume, so re-enable the routing with the firmware's own helper before
-+ * the HID reset.
-+ */
-+static const struct dmi_system_id i2c_hid_acpi_irq_route_dmi[] = {
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
-+			DMI_EXACT_MATCH(DMI_BOARD_NAME, "8D9F"),
-+		},
-+	},
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
-+			DMI_EXACT_MATCH(DMI_BOARD_NAME, "8DA0"),
-+		},
-+	},
-+	{
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "HP"),
-+			DMI_EXACT_MATCH(DMI_BOARD_NAME, "8DA1"),
-+		},
-+	},
-+	{ }
-+};
-+
-+static int i2c_hid_acpi_restore_irq_route(struct i2chid_ops *ops)
-+{
-+	struct i2c_hid_acpi *ihid_acpi = container_of(ops, struct i2c_hid_acpi, ops);
-+	union acpi_object args[2];
-+	struct acpi_object_list arg_list = { ARRAY_SIZE(args), args };
-+	unsigned long long pad;
-+	acpi_status status;
-+
-+	status = acpi_evaluate_integer(NULL, "\\GPLI", NULL, &pad);
-+	if (ACPI_FAILURE(status))
-+		return 0;
-+
-+	args[0].type = ACPI_TYPE_INTEGER;
-+	args[0].integer.value = pad;
-+	args[1].type = ACPI_TYPE_INTEGER;
-+	args[1].integer.value = 1;
-+
-+	status = acpi_evaluate_object(NULL, "\\_SB.SGRA", &arg_list, NULL);
-+	if (ACPI_FAILURE(status))
-+		acpi_handle_warn(acpi_device_handle(ihid_acpi->adev),
-+				 "failed to restore interrupt routing: %s\n",
-+				 acpi_format_exception(status));
-+
-+	/* Never fail probe or resume because of this workaround */
-+	return 0;
-+}
-+
- static void i2c_hid_acpi_shutdown_tail(struct i2chid_ops *ops)
- {
- 	struct i2c_hid_acpi *ihid_acpi = container_of(ops, struct i2c_hid_acpi, ops);
-@@ -85,6 +147,9 @@ static int i2c_hid_acpi_probe(struct i2c_client *client)
- 	ihid_acpi->adev = adev;
- 	ihid_acpi->ops.shutdown_tail = i2c_hid_acpi_shutdown_tail;
- 	ihid_acpi->ops.restore_sequence = i2c_hid_acpi_restore_sequence;
-+	if (acpi_dev_hid_uid_match(ihid_acpi->adev, "ELAN2514", NULL) &&
-+	    dmi_check_system(i2c_hid_acpi_irq_route_dmi))
-+		ihid_acpi->ops.power_up = i2c_hid_acpi_restore_irq_route;
- 
- 	acpi_device_fix_up_power(adev);
- 
-
----
-base-commit: 145c2b2e9a5c0f794fb4009bcb072ab19f8ccfcd
-change-id: 20260930-b4-elan2514-irq-route-d8274fcf805b
-
-Best regards,
---  
-Waqar Gulzar <iamwaqargulzar@gmail.com>
+Thanks,
+Shiju
 
 
+On Thu, Oct 8, 2026 at 4:06=E2=80=AFAM Borislav Petkov <bp@alien8.de> wrote=
+:
+>
+> On Tue, Oct 06, 2026 at 11:19:30AM -0700, Ashok Raj wrote:
+> > > +static int register_pcc_channel(struct ras2_mem_ctx *ras2_ctx, int p=
+cc_id)
+> > > +{
+> > > +   struct pcc_mbox_chan *pcc_chan;
+> > > +   struct ras2_sspcc *sspcc;
+> > > +   int ret;
+> > > +
+> > > +   if (pcc_id < 0)
+> > > +           return -EINVAL;
+> > > +
+> > > +   sspcc =3D sspcc_get(pcc_id);
+> > > +   if (sspcc) {
+> > > +           ras2_ctx->sspcc     =3D sspcc;
+> > > +           ras2_ctx->comm_addr =3D sspcc->comm_addr;
+> > > +           ras2_ctx->dev       =3D sspcc->pcc_chan->mchan->mbox->dev=
+;
+> > > +           ras2_ctx->pcc_lock  =3D &sspcc->pcc_lock;
+> > > +
+> > > +           return 0;
+> > > +   }
+> > > +
+> > > +   sspcc =3D kzalloc(sizeof(*sspcc), GFP_KERNEL);
+> > > +   if (!sspcc)
+> > > +           return -ENOMEM;
+> > > +
+> >       __mbox_bind_client() reads knows_txdone at bind time to promote t=
+he
+> >       channel off MBOX_TXDONE_BY_POLL. It must be set before requesting=
+ the
+> >       channel, otherwise the channel stays on polling and mbox_client_t=
+xdone()
+> >       later hits the mailbox core's "Client can't run the TX ticker" gu=
+ard.
+> >
+> >       sspcc->mbox_client.knows_txdone =3D true;
+>
+> Yah, I can see that happening but I don't have the hw to even poke at thi=
+s.
+>
+> Shiju, what's up?
+>
+> --
+> Regards/Gruss,
+>     Boris.
+>
+> https://people.kernel.org/tglx/notes-about-netiquette
