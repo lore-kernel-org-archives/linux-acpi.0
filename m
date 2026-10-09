@@ -1,85 +1,76 @@
-Received: from mail-dy1-f171.google.com (mail-dy1-f171.google.com [74.125.82.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from CH5PR02CU005.outbound.protection.outlook.com (mail-northcentralusazon11012058.outbound.protection.outlook.com [40.107.200.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CC764D09F6
-	for <linux-acpi@vger.kernel.org>; Fri,  9 Oct 2026 12:14:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.171
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791548077; cv=none; b=IIo9TWP7sendBhJoirEncTsBj5f3IJ9jAWD5EwZscsdc7LK7tSAoSre4QLqgbWIu8GwiASWbXVPeR50yDKSpQQWive2iVaGgSkM+G81EH7ePM0ews+zMLxp/C74DqCy/WXxUnVCULNB5EUJlytqko51IQVFYouefaCTZ0YtSKhk=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791548077; c=relaxed/simple;
-	bh=0wp4vMpTTbKxmOcrBbd4LZZUzPZPjqMgHGJhHKYOOwI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=BhM+47QvMjqVGsV57+fv2FMOgrnq2AkP9zEGAzAbmGSI/2mOnBPuxqakA2ksnr4wEpn4CeQZ5JcSOdONGPQpGS9SBn9dEJgffMWW3/dn0hBPCOsyazMXqK/2grsYN9ia4KtvQMquzFgA//TBQyin9K5Ug9Ypv+gKnmiRliTCYCk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Z9nmZpe4; arc=none smtp.client-ip=74.125.82.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31CD839934C;
+	Fri,  9 Oct 2026 23:30:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.200.58
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791588623; cv=fail; b=Tiq9hUr/Nm5mx61ViMRGEYqxjfOfntfubuKjJXfi9qmBF+yq448vqeAuO6kORjIiBA4rZRyZhs6qy+LT5ef0w5UuYaa7/5gm47NUtd6TUE1YXzpkF3rV3uDWLRVBMKrFQKoT3yAC2v53VvKbQFQ8v6VS+XnNWSyZopXpm/DlO+k=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791588623; c=relaxed/simple;
+	bh=GQ9l//ATkngfewmWYXCFWBnVSW4bDyNK3BDAQgOiCbo=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=XTyqrD6R5QW2I+lYpo7qEJzZH0bTpZZ1hn16BOJLx6fATQSJaVCtSwP72gUfnju7TbcE500D2MLXtcByB2ceyZbnSOhmPUkAKv2Jmvb1F7RZf5bJmJTfCfH3MAI7F8HlSbMCPUhnP+kfyoGFL7nSt3onBzy0nx6JGgzszejTNYw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=dVPbQdN2; arc=fail smtp.client-ip=40.107.200.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Z9nmZpe4"
-Received: by mail-dy1-f171.google.com with SMTP id 5a478bee46e88-3515f9a5d25so3043245eec.0
-        for <linux-acpi@vger.kernel.org>; Fri, 09 Oct 2026 05:14:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791548067; x=1792152867; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=a1/r00KwLC71l7qD8SlMXbKms6f/x3lGEnJZwDjSrz8=;
-        b=Z9nmZpe4CrdMXiwTD8nj+ROgWtOqY0nySjUqKYHV10R6zGopaxoyIgPED7KYucoePl
-         xaM6O8nyG2MsLaFaeXXX7HQICqDHsx1XzlavOp51nPPMwP1JQCr355/nYaaC70heC9FC
-         vNm2jpr3KJl55hrZCmL8YDkz4MhiMhYaPA2aw2E7nFqWVIUg290H3XyGFlvjcxVdhn5Y
-         eQAnuNyVNMkmsRksYbjr97vIQCPg5WSRzO9XBYdGyIGd+lHZ7uA0/SSKZ75q4aFGgc8r
-         nsfv/lm4kuE8MF7WjhdikAk6AU3U0RN+hOGQmAzPhDYWd/PZtQn0E9t7i4Qw55ms5bDP
-         urQg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791548067; x=1792152867;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=a1/r00KwLC71l7qD8SlMXbKms6f/x3lGEnJZwDjSrz8=;
-        b=C7UBxqQwniloFOu2Cj8b/skS7Cr/eHN2J1lELvWHEyAMd4GvJfxQUq+EffsUDIBsSp
-         rNBGzTMp9zYMoF5U0Ly25czv6tnm9HcuKmAtzOXmnwKO1R0bwqUTnOoyA9yO1U5UmOAv
-         Bf0yF+w+FrI5VUv38WHrV7F7TZyUN3gEBkA/jV3Uq8ty8zbwfecJer97d3XF9UJb9e5C
-         sSbkep4ZhkHSANcG7N0DzhpWimo0q5RadsGUcW/ZZunI4kp0mN1s7o4V/JUsJwOKYgNX
-         O+eqps1rvD+DmqK2Ibw6xKd1XQjlshED9dDcWrkwhTfSdcMOmwKVEjtTSpuh6F/vDdeA
-         aV8w==
-X-Forwarded-Encrypted: i=1; AKwUvBzonEphbAU9NUsb3uX1a8Asx5tj6EnKKsUWHiDTg4c6jMOr0/9NMSv6jdf9vrB6tsgYn2vBAT717Vyo@vger.kernel.org
-X-Gm-Message-State: AFuF++k5OjTBBXf/1ncuG55jmBq7EtVFmXAf8hfKWdxJ14UVg3dgcnN0
-	9a+9Jn8ZESpJJqovU5lx60ivHMuyhuPE0u2L8Z2aov9EK4OoyqyVM/N5
-X-Gm-Gg: AYBFou0Fcm7Fl1CKY9zKwQTiW1cQCjLx9ltZSq/qTXNsb2z6LGVgCtaaYz6tzW6PHaY
-	IxkUNZAcjmA80eYrEk0mi/GcXLhNpyPzn4hMojwyPI7GotDXomDZkMwqTCKrDTU/43x3Ni6G7yw
-	z5uGW088RKYMS8BmgdWz89JqIhZh226TOuU4xE9LX/Ds9t9BcmkGLeHQFUweyNFqZzL/kBF019f
-	xanF5k3WPbn2iq1Lvj/8lVPOHVM2QEqruelu/qTocub94yDnB7UMS13CBgkGd2QucirXRuK32J+
-	p/8sgWiey1QNeccJ7dIqD9FTDPPQA+IOTMMKMj7WeGooQbYKQRQvtIqPbJ1a5gkhdjlGbV0BQod
-	vO0TgtFIv0dCVgQoAlNBpH9oUy0Syb+ij3ZUBE3AGwoUMoWzq/7aoJFI/DhOFberSAcGfCNaCx2
-	oYlAAN9MMZmumX9uuUdh8RJDTjbLAfdIzGYpZlVoB7u5yZHiP6QdS9byrenhSoolOLvaOAiMvi8
-	RWPFZv4
-X-Received: by 2002:a05:7301:4b09:b0:351:2958:1740 with SMTP id 5a478bee46e88-3537e088bf1mr2376765eec.37.1791548066814;
-        Fri, 09 Oct 2026 05:14:26 -0700 (PDT)
-Received: from maclinux ([2803:c600:9110:8ba5:1c75:eeaa:b22f:20dc])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3537ca1ba7esm6895458eec.7.2026.10.09.05.14.23
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 09 Oct 2026 05:14:26 -0700 (PDT)
-From: =?UTF-8?q?Francisco=20Beltr=C3=A1n=20Millal=C3=A9n?= <fbeltranmillalen@gmail.com>
-To: mjg59@srcf.ucam.org
-Cc: helgaas@kernel.org,
-	rafael@kernel.org,
-	bhelgaas@google.com,
-	linux-acpi@vger.kernel.org,
-	linux-pci@vger.kernel.org,
-	lenb@kernel.org,
-	linux-kernel@vger.kernel.org,
-	d@rrell.co,
-	andreas.noever@gmail.com,
-	westeri@kernel.org,
-	YehezkelShB@gmail.com,
-	lukas@wunner.de,
-	linux-usb@vger.kernel.org
-Subject: Re: [PATCH] ACPI: PCI: take native PME control on Apple machines
-Date: Fri,  9 Oct 2026 09:14:13 -0300
-Message-ID: <20261009121413.23538-1-fbeltranmillalen@gmail.com>
-X-Mailer: git-send-email 2.56.0
-In-Reply-To: <asikbIuZUZsgmU52@srcf.ucam.org>
-References: <asikbIuZUZsgmU52@srcf.ucam.org>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="dVPbQdN2"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=Et9ooWSKAWjIxWCIWy9O5+ndh9f/UoUC2vSWkSbVy48EFUBYLCXenf8S77BM/2Vd4cZFZwsyoBShcufMIcVgNy1H7yQz0nMhb85oAk+uXXze3vt/YRBkkgZiQ0RHELOyu4ea5woXPd5BVyUoCkEcAdp0Q6d3az4QEHlU3fAkGsEoYeS9LyrqGPWXZm6bRITS/W4hMGoM6cQQvCxrz7xEEiJFCDJQisjJ4AecTUFStANrJ8PSWQKdQ8HAkkSnaRQdSRTTFPXhrNQI9KAxvR0lsuNbegOr9MTDMMoOH3iZyZrDQ7f2hE1R9lbdfGz7hevi2bZ6LtbpuOATLU8eg9LN5w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=22DsjoN+ZO3vVdHXjOMDUZmrAzuXkxhiNN9HqvQq/E0=;
+ b=bAfrAFgTK018Zt8rb1LdA4xZFDbTZiR4xdL/i+yE4vSjn+yvMFQe3d5FsyE7uJH+27FaZFRSoMKdX/jgvOIwOGdk1qnktDUIsTZ6hWOe7nanq3bdzS+zLfA28cKaeNvvypziDlClDXfQHzNAT7f095dG/rpa4NmN0T5wpFuzQ/hBqR69UvaOdKcPJGwFR0874MJHUvD7bYdSSZL5BypLDM98WsMqCoxoelFMFywXuxKev7LK3Q988ncOzqFz/UmUoFgB9DMqRh+GjYsbgYvSPL45RKoYM6Ncaqyt0RgR5LiamzcA7vS+RBbkPmOMzoY3sPjD7ZA89rACDkYIVoHwbw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=22DsjoN+ZO3vVdHXjOMDUZmrAzuXkxhiNN9HqvQq/E0=;
+ b=dVPbQdN27PMvUdXysa6yWGPQtaaIIcpuQGCZJDuV7C5s5Z/x2h3/tpprilBD8FoaqQ5JSb1clMPCsBRhXpVDLn5YxIBRDz5d44P/c2A7vpWtC2dxP1N1hKT7TgkltmysobCwyshpTphbqJL0J/g8+Vz+JgnWCZEk9JlzG1nBgsW52yViBnAiRSuSjO29egEkgnXX/OAsqHH/lIA7wRv8FMn8cxlVPHARS3wbHB2xjsCMursLzHoUbEOi6pkGdPobmnceb2nfNVacTYyBFljdI23D4ZKuByQYqTxgOHwbjERWhnOeXUDmte+n92wrq0rWwFyWJID9Z7s+rSxteLotbg==
+Received: from SJ0PR03CA0096.namprd03.prod.outlook.com (2603:10b6:a03:333::11)
+ by BY5PR12MB4113.namprd12.prod.outlook.com (2603:10b6:a03:207::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.496.17; Fri, 9 Oct
+ 2026 23:30:16 +0000
+Received: from SJ1PEPF000037BA.namprd05.prod.outlook.com
+ (2603:10b6:a03:333:cafe::92) by SJ0PR03CA0096.outlook.office365.com
+ (2603:10b6:a03:333::11) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.428.11 via Frontend Transport; Fri, 9
+ Oct 2026 23:30:16 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ SJ1PEPF000037BA.mail.protection.outlook.com (10.167.244.199) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.522.6 via Frontend Transport; Fri, 9 Oct 2026 23:30:16 +0000
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Fri, 9 Oct
+ 2026 16:29:56 -0700
+Received: from rnnvmail203.nvidia.com (10.129.68.9) by rnnvmail204.nvidia.com
+ (10.129.68.6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Fri, 9 Oct
+ 2026 16:29:56 -0700
+Received: from dgx-1v-42.nvidia.com (10.127.8.11) by mail.nvidia.com
+ (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49 via Frontend
+ Transport; Fri, 9 Oct 2026 16:29:56 -0700
+From: Jamie Nguyen <jamien@nvidia.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+CC: Len Brown <lenb@kernel.org>, <linux-acpi@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+Subject: [PATCH] ACPI: sysfs: Expose BDAT data region
+Date: Fri, 9 Oct 2026 16:29:55 -0700
+Message-ID: <20261009232955.866131-1-jamien@nvidia.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -87,39 +78,155 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SJ1PEPF000037BA:EE_|BY5PR12MB4113:EE_
+X-MS-Office365-Filtering-Correlation-Id: a3189ad7-aa55-43b0-18b1-08df265d463e
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|82310400026|376014|1800799024|36860700016|6133799003|18002099003|10067099003|13003099007|261009223027099002|11063799006|56012099006;
+X-Microsoft-Antispam-Message-Info:
+	J+fU/55fdZKtIw+0lHdhjppwyFIZMJsB8tLVidsVmPyYKhsiat5suXAkdbdh1tHRzfLIWZcBvdNacwIBt4GDhubu+TPR4w/vhzuT8KL+r+KbzQNXnmY5pv/1cPNuF+lnmUVQoKIEsiOyuZUfbMVI8fRl7XxG6Vg5GQg0BYoK62VuxieLI0TxFOJ+vI2GrKW2/xz8hzZYd4nwW5GW+PRoP5M6ev34MiTELi8YUCKRhimDMzYVpU485Gk4SZ5lXVEjctqdhbayuN5XBjmME7BUF2MP5gB9kH97pmOY0jLpAOReV30BGGa7VSlI906YKDkS42WpVQmzzn+XTVjZ5/BnJxDDPMTh3CM6bGJO75lmPtmjiG/OQ5A+cwaOqbsg/I86flIU3j2bVF9MUtVLWFeZaNG06aoFTswRjaK3q6W5ZR0XMnFsr8j7O24TqHbE5qE7nu+fu6ikZglGHs5iArqO8AKxQcW7YH3+5CJ5riqYb+/gH9U6gYrkyjnqRZ9gpem7QOeSoLEYgdBsvPNdKlSlUuqjQ+RWNy6emzt0ykr5IM+t7iAChpAiaxcTOHO6Hq2513Gv1FsUkzR9jYoIKhH1t8OT4X3jPMC9cvx6l5ovl056ptFG4G0MtXKc3AeS7m2gZeN5j69a/D4G2+wm0ECSDkdDzudGFZI8FVpXyiqz6sgqEu2bNvLsP2+MuSkBWJogk2BK/zi5c2x6PVF2JgzGLg==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(23010399003)(82310400026)(376014)(1800799024)(36860700016)(6133799003)(18002099003)(10067099003)(13003099007)(261009223027099002)(11063799006)(56012099006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	9WsJ5K30AvWy/rqfzMXxZffVBQ0BVNZpykOAA6Fl68g98d3Rmrr22uwUkkd117VNRl5ot2zwKnTt6SaAhPDZj3pYTG+Axi4IMIWNdQBtKjtvqhpPnN1aHJtjzYWIAopMd/Ac1TSKjZ8F7AimSWUdv6icKLIpIJ9awH7ITUDwXJ2E89eGSf1ueXS1TiE9AxaWD9XMHQEWNDPV4u8BIzGN1BAqWZVdez/OOS12nMXWMWSBASuAMxWDKQazRFc4BEMBAM1QSbXysKllHXCS0JPPS0T8tMkCLUxNrEFMokcRCoVa8ndhBNz/HLqGy8EASPa9nFAn3RRj2Q8BLjdjo9njGkX+4taMxNchwutgFcej2Jss3R+H5+vH9dsdu7Qg3hspQ1/6Fs+2wHr9oMuorMb6ZN02cIxaqECt76FxXVchBTGb6z3PdTPIwBgCB6B0KKJ9
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Oct 2026 23:30:16.0558
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: a3189ad7-aa55-43b0-18b1-08df265d463e
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	SJ1PEPF000037BA.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY5PR12MB4113
 
-Hi Matthew,
+The BIOS Data ACPI Table (BDAT) points to a firmware data structure that
+carries memory training results and other boot-time data. The table is
+only a pointer: /sys/firmware/acpi/tables/BDAT holds the ACPI header and
+a Generic Address Structure, and the data itself lives in reserved
+memory.
 
-Thanks for going back that far, and for the explanation.
+Expose the data as /sys/firmware/acpi/tables/data/BDAT, as is already
+done for BERT and CCEL. Unlike those tables, BDAT carries no length, so
+check the "BDATHEAD" signature at the start of the data structure and
+take the size from its BiosDataStructSize field. Reject sizes smaller
+than that header, and document the new file in Documentation/ABI.
 
-On Fri, Oct 09, 2026 at 01:23:08AM -0700, Matthew Garrett wrote:
-> I /think/ this was the set of parameters that my machine would hand over
-> via _OSC if we hadn't called _OSI("Darwin") - but it was over a decade
-> ago so I can't promise that's the case. I think this probably needs to
-> be tested on some older machines as well just to ensure there's no weird
-> breakage as a result, but if PME is actually hooked up and there's no
-> SMM managing it instead I think that's fine.
+The BDAT specification is published by the UEFI Forum [1].
 
-On the MacBookPro14,3 both conditions seem to hold.  With the patch, the
-root port takes the PME interrupt as soon as a device is plugged in, and
-the controller is resumed in the same second.  Without it, nothing picks
-the event up: the controller stays suspended for over a minute with
-PME_Status set, the GPE the firmware declares for those two xHCI
-controllers never fires, and its handler doesn't notify them anyway.  I
-can't look at SMM directly, but if the firmware were handling the event
-itself, the controller would have been woken without the patch, and it
-never was.  Darrell saw the same fix on his MacBookPro14,3.
+Link: https://uefi.org/sites/default/files/resources/BDAT_Spec_v4_0_9%20%282%29.pdf # [1]
+Assisted-by: LLM
+Signed-off-by: Jamie Nguyen <jamien@nvidia.com>
+---
+Tested on an arm64 server (64K pages):
 
-You're right that older Macs should be tested, and I don't have any: the
-patch has only run on my machine and Darrell's, both MacBookPro14,3.
-Two things make me think the risk is small.  Handling PME natively
-doesn't turn off the firmware's own wake path, so if an older Mac does
-use a GPE for this, that keeps working.  The only side effect I would
-expect is the PME driver logging "Spurious native interrupt".  And on
-these machines the kernel already takes over hotplug and AER without
-asking the firmware, so PME would be treated the same way as the rest.
-If anyone on Cc has an older Mac and can try it, I'd be glad to hear how
-it goes.
+- The file matches a /dev/mem dump of the data region taken in the same
+  boot, byte for byte, and decodes with valid CRCs.
+- With lockdown=integrity, /dev/mem is refused and the file still reads.
+- Malformed BDAT tables loaded via initrd table upgrade (test-only change
+  adding BDAT to table_sigs[]) are rejected without creating a file: no
+  "BDATHEAD" signature, size below the header, non-memory address space,
+  zero address, and a table shorter than struct acpi_table_bdat.
 
-Thanks again,
-Francisco
+ Documentation/ABI/testing/sysfs-firmware-acpi | 12 +++++
+ drivers/acpi/sysfs.c                          | 49 +++++++++++++++++++
+ 2 files changed, 61 insertions(+)
+
+diff --git a/Documentation/ABI/testing/sysfs-firmware-acpi b/Documentation/ABI/testing/sysfs-firmware-acpi
+index fa33dda331f2440..5fb50a72d468f5c 100644
+--- a/Documentation/ABI/testing/sysfs-firmware-acpi
++++ b/Documentation/ABI/testing/sysfs-firmware-acpi
+@@ -275,3 +275,15 @@ Description:
+ 
+ 		remote_region_id: ID associated with access by agents
+ 		non-local to this range of addresses.
++
++What:		/sys/firmware/acpi/tables/data/BDAT
++Date:		October 2026
++Contact:	Jamie Nguyen <jamien@nvidia.com>
++Description:
++		The BIOS data structure referenced by the ACPI BDAT (BIOS Data
++		ACPI Table). It starts with a "BDATHEAD" header and holds data
++		published by firmware, such as memory training results. The
++		file size is the structure size given in that header.
++
++		The format is defined by the BDAT Interface Specification,
++		published by the UEFI Forum. The file is readable by root only.
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index dd4a99f09efea65..9d02733013996be 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -473,12 +473,61 @@ static int acpi_ccel_data_init(void *th, struct acpi_data_attr *data_attr)
+ 	return sysfs_create_bin_file(tables_data_kobj, &data_attr->attr);
+ }
+ 
++/*
++ * The BDAT table only holds the address of the BIOS data structure. Its
++ * size is in the structure's own header ("BDAT Interface Specification"
++ * v4.0, section 4).
++ */
++struct acpi_bdat_data_header {
++	char signature[8];	/* "BDATHEAD" */
++	u32 size;		/* whole structure, including this header */
++	u16 crc16;
++	u16 reserved;
++	u16 primary_version;
++	u16 secondary_version;
++	u32 oem_offset;
++	u32 reserved1;
++	u32 reserved2;
++} __packed;
++
++static int acpi_bdat_data_init(void *th, struct acpi_data_attr *data_attr)
++{
++	struct acpi_table_bdat *bdat = th;
++	struct acpi_bdat_data_header hdr;
++	void __iomem *base;
++
++	if (bdat->header.length < sizeof(struct acpi_table_bdat) ||
++	    bdat->gas.space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY ||
++	    !bdat->gas.address)
++		goto err;
++
++	base = acpi_os_map_iomem(bdat->gas.address, sizeof(hdr));
++	if (!base)
++		goto err;
++	memcpy_fromio(&hdr, base, sizeof(hdr));
++	acpi_os_unmap_iomem(base, sizeof(hdr));
++
++	if (memcmp(hdr.signature, "BDATHEAD", sizeof(hdr.signature)) ||
++	    hdr.size < sizeof(hdr))
++		goto err;
++
++	data_attr->addr = bdat->gas.address;
++	data_attr->attr.size = hdr.size;
++
++	return sysfs_create_bin_file(tables_data_kobj, &data_attr->attr);
++
++err:
++	kfree(data_attr);
++	return -EINVAL;
++}
++
+ static struct acpi_data_obj {
+ 	char *name;
+ 	int (*fn)(void *, struct acpi_data_attr *);
+ } acpi_data_objs[] = {
+ 	{ ACPI_SIG_BERT, acpi_bert_data_init },
+ 	{ ACPI_SIG_CCEL, acpi_ccel_data_init },
++	{ ACPI_SIG_BDAT, acpi_bdat_data_init },
+ };
+ 
+ #define NUM_ACPI_DATA_OBJS ARRAY_SIZE(acpi_data_objs)
+
+base-commit: af32da41b0327b9c6a37856ba82b6760d6c8d10e
+-- 
+2.43.0
+
