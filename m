@@ -1,186 +1,231 @@
-Received: from GVXPR05CU001.outbound.protection.outlook.com (mail-swedencentralazon11013042.outbound.protection.outlook.com [52.101.83.42])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 540D546AA99;
-	Fri,  9 Oct 2026 06:46:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.83.42
-ARC-Seal:i=3; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791528393; cv=fail; b=fMcEB4KRDmwdXLOcA7EwnKDGuLU9npjGepMl0i6N+Mh/gOx8GO73x1wXHl/OEyPTjM1ZEBEh72ndxadyIcsIrVAnbTofZDqtsCZTZVSwGW8SSFCDdFnXH5XQPHeHJnDRFwgnOHP7hu1mQYfU+m2YTv2Mwzg3lELlTAXLjE7xtEM=
-ARC-Message-Signature:i=3; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791528393; c=relaxed/simple;
-	bh=N/qca6p5Lj3EwV8V/m+WtaPw3CAvMhgqJevONAaL0lw=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=b4HvDCCPPWX/F2+u9sw2O57fsJOVDZPZzGiHcsdw+PkOTr6sExevU5uE4OnUlbOueiMVDioIjiigB12+koeZdlCOwht6y1X92bTVn/PFqUWUvXRdl7i1qQXHKvKqKvkVtKEHcWb40DUjxun3xDkOmMjePGuBH6nQRrB0auQbEe8=
-ARC-Authentication-Results:i=3; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=rjNFxm6a; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=rjNFxm6a; arc=fail smtp.client-ip=52.101.83.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CF9D3CB2C7;
+	Fri,  9 Oct 2026 07:57:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791532642; cv=none; b=Msn2katlG7XzE6ERLYE7Gho3QEbzM+8w6iDe1YrToS1w7xtalI3njf8LLFYPrfCPAllz5Nrp4Khf6eV59q5E48QyrlR7TUthUIG60PwNFgDr89aI4iel1TLY/Lx7jnzE9OadwxMPPXLElm31/0YfqF9QAdnKcz9vG6kjeISwSck=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791532642; c=relaxed/simple;
+	bh=OVgnTlwhqjp5woUBmZR8Z1/tP1JnGEu9IxPV5ssVSmM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=umrX/8tSUyt4nBVNXeZttGDHToxDMT5sw5kZVyRPZ2YYp5pr28ck69Cqp9wE8GVY4W2oEx9AOXpRIe9ELs/C0NjjqTMPb58LPSg82EetbstN2XqG9gIGzYPV3pS1M4T/KSEIm+Tg06NoJOAgRmWQFwfguR0xLuUeKdCtFAVSwSU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iXBkcs1o; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="rjNFxm6a";
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="rjNFxm6a"
-ARC-Seal: i=2; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=pass;
- b=vktFTw4qWW8oE+sG9x5qR8D9ef8mSFpgfTQbBAYXxomYQ1nY22cPztVIq+Crzw9ve6GO5WMKQkW3cxKjneiG1AC0JDh8aXNalXqMF7QWqncS1ZxHf9KQ/ZgHD/eYQwvaSST4yF0sgrStEnLGs7OUQIUuFo8js7zW7WHbgx4P17S/gD861xZGylN5B17u4K1Lnv8Kdvx8JiQULTIFVNTx8nMVVuol12zS026OOEsWsM1EVUlJcX4Lw1HbII7iPbZKdl36DKOa+Ii6AJmhjoDtjemA226Ld2mJmdNNXmChM6y2RmhTNjHeqIz1ZSRN4avnXMhBB3d+LKXXaXXX31MCwg==
-ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=yFsUPJB6SaaXKKKx0UYaUjZbPCut9YkVSHYZInHzZW8=;
- b=KMXsFW6y2uPfv95QpTUhUj1/4ykCTRiwMi5BPbJRRTca6N8f4nqnJ45ViLKDZhjWRXECdW8NDDszWdkiooffEm43puMARio0OzJth9hNL58iGboXN+dLeirazPgPKMibDXJoduVOjaIupdAg70ZlSEeBZTFnepEABR90BxZ5G4Afhcy62We/l2nmnOKEGkVkd1Z3HcKxgeRVZ7nAZLQNXONvKaxSo67n6uNe1MhNxZcotaXOOowiJQFCE6oGJYMa8O1LSULYhz+xh6LWNO4KaQ24nMUHtoW0cGZ1Nm1C4LxawxiL68UXgaBsgK2VST6bdQHUy/11ddmVyG6PUAyTtg==
-ARC-Authentication-Results: i=2; mx.microsoft.com 1; spf=pass (sender ip is
- 4.158.2.129) smtp.rcpttodomain=kernel.org smtp.mailfrom=arm.com; dmarc=pass
- (p=none sp=none pct=100) action=none header.from=arm.com; dkim=pass
- (signature was verified) header.d=arm.com; arc=pass (0 oda=1 ltdi=1
- spf=[1,1,smtp.mailfrom=arm.com] dkim=[1,1,header.d=arm.com]
- dmarc=[1,1,header.from=arm.com])
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arm.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=yFsUPJB6SaaXKKKx0UYaUjZbPCut9YkVSHYZInHzZW8=;
- b=rjNFxm6avSxOXgKoEfadcRktdnAczJa8X3cNaSV+XIKODP8vHhIaBnGtBYv3YZ2sbqpKBJfoJ57uFrbn/A0u33iW0eFa6QpwfU/UVdQxdxQRsgadc6HRLLtTuyc69kPy8kTJjke3bXwJJoJaQo0YZAXf7Aa3zvUbFjdHN4pTVuw=
-Received: from ZR2P278CA0061.CHEP278.PROD.OUTLOOK.COM (2603:10a6:910:52::19)
- by AM9PR08MB5924.eurprd08.prod.outlook.com (2603:10a6:20b:282::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.6; Fri, 9 Oct 2026
- 06:46:23 +0000
-Received: from MI3PEPF00008493.eurprd03.prod.outlook.com
- (2603:10a6:910:52:cafe::98) by ZR2P278CA0061.outlook.office365.com
- (2603:10a6:910:52::19) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.496.5 via Frontend Transport; Fri, 9
- Oct 2026 06:46:23 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 4.158.2.129) smtp.mailfrom=arm.com; dkim=pass (signature was verified)
- header.d=arm.com;dmarc=pass action=none header.from=arm.com;
-Received-SPF: Pass (protection.outlook.com: domain of arm.com designates
- 4.158.2.129 as permitted sender) receiver=protection.outlook.com;
- client-ip=4.158.2.129; helo=outbound-uk1.az.dlp.m.darktrace.com; pr=C
-Received: from outbound-uk1.az.dlp.m.darktrace.com (4.158.2.129) by
- MI3PEPF00008493.mail.protection.outlook.com (10.167.240.154) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.522.6
- via Frontend Transport; Fri, 9 Oct 2026 06:46:23 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=mnpUyiAxA0CzCHPjksihZAsMXB5xpMF0HBfwP6FwkSoBoI+GkO6ScyB0T/ytZBgkMt45swx4Xw56bqkfTcs05sMFTq/bptgS20soZyeKWCt5vJA8L5JXmc5hUKoXNPf9ykTsOEmIHMhGg5d8aVRAqK42MZkGlmi5bDJePtCXJ5nIgMXmvq4mQeqYZWoJu5AUIcyP/3loyH8lgQZmEG/FPI+k1M+Tvd94E0k1Gup1DWIIL6glhYYCbumjDotHz7XG2zfraa4iw7vsVNqKCZw21MLPb/jXfAscF25VXKSjjId8BUiLi+Pt/MeUgrPGOY9RjvjhskFl2sEfdntCWqAU0Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=yFsUPJB6SaaXKKKx0UYaUjZbPCut9YkVSHYZInHzZW8=;
- b=OecB9/J03L210liakdxrV2DWHaRskKnlllNcXDDS/0YOFmPTZp0nUpELdBMx47hWXl6cDCoYLmVFNZaHCF9KIMh3eQK6D7UpY07vsYo1g6RVTlHkepPReqBIkQKlMstTwE8sKSXP2RLuYOVHFbJk/js1jDq9U8tND6QxhUFELrHU4m59Tj4/roQVTgfyRu9KbVSQ8+pGRN4xXHWDlGRCVkAPMyvQa+FRZ9EuUuG482OY4ZYHB0xtn5kWOsrXVN2TFB3x1Vc6X5cmtT0PQGMFUPwdwUTPwyFomGSjIowaEGRGigeefV9BK5aR3PCFEGXhCAipvILYhojNMKeMavQPrA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=arm.com; dmarc=pass action=none header.from=arm.com; dkim=pass
- header.d=arm.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arm.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=yFsUPJB6SaaXKKKx0UYaUjZbPCut9YkVSHYZInHzZW8=;
- b=rjNFxm6avSxOXgKoEfadcRktdnAczJa8X3cNaSV+XIKODP8vHhIaBnGtBYv3YZ2sbqpKBJfoJ57uFrbn/A0u33iW0eFa6QpwfU/UVdQxdxQRsgadc6HRLLtTuyc69kPy8kTJjke3bXwJJoJaQo0YZAXf7Aa3zvUbFjdHN4pTVuw=
-Authentication-Results-Original: mx.microsoft.com 1; dkim=none (message not
- signed) header.d=none;dmarc=none action=none header.from=arm.com;
-Received: from VI0PR08MB10391.eurprd08.prod.outlook.com (2603:10a6:800:20c::6)
- by AMBPR08MB711877.eurprd08.prod.outlook.com (2603:10a6:20b:78a::21) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.496.15; Fri, 9 Oct
- 2026 06:45:50 +0000
-Received: from VI0PR08MB10391.eurprd08.prod.outlook.com
- ([fe80::fa6b:9ba8:5c2f:ac91]) by VI0PR08MB10391.eurprd08.prod.outlook.com
- ([fe80::fa6b:9ba8:5c2f:ac91%4]) with mapi id 15.21.0522.002; Fri, 9 Oct 2026
- 06:45:50 +0000
-Message-ID: <dc46b576-fa33-4475-b69b-70bd8cb53f1c@arm.com>
-Date: Fri, 9 Oct 2026 08:45:47 +0200
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/2] MAINTAINERS: cpufreq: Replace CPPC reviewer
-To: Christian Loehle <christian.loehle@arm.com>, rafael@kernel.org
-Cc: zhenglifeng1@huawei.com, zhongqiu.han@oss.qualcomm.com,
- viresh.kumar@linaro.org, linux-kernel@vger.kernel.org,
- linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- Mario Limonciello <mario.limonciello@amd.com>,
- K Prateek Nayak <kprateek.nayak@amd.com>, Huang Rui <ray.huang@amd.com>,
- Perry Yuan <perry.yuan@amd.com>,
- Vanshidhar Konda <vanshikonda@os.amperecomputing.com>,
- Shubhang Kaushik <sh@gentwo.org>, Beata Michalska <beata.michalska@arm.com>,
- Dietmar Eggemann <dietmar.eggemann@arm.com>,
- Ionela Voinescu <ionela.voinescu@arm.com>,
- Sudeep Holla <sudeep.holla@kernel.org>, Lukasz Luba <lukasz.luba@arm.com>,
- Jeremy Linton <jeremy.linton@arm.com>, jonathanh@nvidia.com,
- zhanjie9@hisilicon.com
-References: <20261008212832.354382-1-christian.loehle@arm.com>
- <20261008212832.354382-2-christian.loehle@arm.com>
-Content-Language: en-US
-From: Pierre Gondois <pierre.gondois@arm.com>
-In-Reply-To: <20261008212832.354382-2-christian.loehle@arm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: PA7P264CA0191.FRAP264.PROD.OUTLOOK.COM
- (2603:10a6:102:376::18) To VI0PR08MB10391.eurprd08.prod.outlook.com
- (2603:10a6:800:20c::6)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iXBkcs1o"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 888031F000FF;
+	Fri,  9 Oct 2026 07:57:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791532632;
+	bh=7JwBUaKiDw3DL4V1VblyqY4NlQUKc0x+WHZ55mtpZGk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=iXBkcs1ozdItQ91Qzqsd9bSnGiaVHmmQXgWX31nAahFHARHVMlRC01fE/XmvxTcaB
+	 AxmiA9IBMQT1BEgvXWlPPqAKWJ1DK7wtvu/u33eqUlFHZ5HJ518T+j+TlvK48tFoO+
+	 vcoithhATsDmOJrOHoFlumiaZLTwOKF1O3v+Lusa8xnFhppIegGSvCTuXkY1zQ1Z+N
+	 sEAtMFWBHxxprOVTOQq9vwB98xCsb0zzQaYeZTpImM/zWsPiBhtxLWuBeTdah0I/Tv
+	 OcXDTvxQXr65PFPpvxoqiA5WZgehZIlTzQeKPoKAWYRsJm6Zpg939xRbs8gJnnBjV6
+	 IaytI+HxCZvKg==
+Date: Fri, 9 Oct 2026 09:57:02 +0200
+From: Lorenzo Pieralisi <lpieralisi@kernel.org>
+To: Robin Murphy <robin.murphy@arm.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <maz@kernel.org>,
+	Daniel Lezcano <daniel.lezcano@kernel.org>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Wim Van Sebroeck <wim@linux-watchdog.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	driver-core@lists.linux.dev, linux-watchdog@vger.kernel.org
+Subject: Re: [PATCH RFC 02/11] ACPI: Introduce irq_get() for static fwnodes
+Message-ID: <asieTvinZ7c2QpQm@red-moon>
+References: <20260925-acpi-static-table-irq-probe-defer-v1-0-2c62125d0085@kernel.org>
+ <20260925-acpi-static-table-irq-probe-defer-v1-2-2c62125d0085@kernel.org>
+ <arZDwutoadki7tiZ@ashevche-desk.local>
+ <arZNL9BnTGK0Klwc@red-moon>
+ <arZS4vwxps01dGb7@ashevche-desk.local>
+ <arqSqcoWAkhy-8do@red-moon>
+ <d1720b63-65bf-4019-bc19-1852555f7993@arm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-TrafficTypeDiagnostic:
-	VI0PR08MB10391:EE_|AMBPR08MB711877:EE_|MI3PEPF00008493:EE_|AM9PR08MB5924:EE_
-X-MS-Office365-Filtering-Correlation-Id: ee2de2a6-0375-4b39-9e4c-08df25d108c3
-x-checkrecipientrouted: true
-NoDisclaimer: true
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam-Untrusted:
- BCL:0;ARA:13230040|376014|23010399003|7416014|366016|1800799024|56012099006|10067099003|4143699003|11063799006|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info-Original:
- 0ENzvph9VrD5tQtmpC9RG/ntCPf9c3JtyDs538Ya6I4cD94MXW5R5MN9Q8a10MjWv7ue+Mms2f/spNOw6JruLSQ7QDZ00VnEnWErtgWdgZSv4dCxYzlXayBHDAVUVB2qM7UVFGvOpgan0WcPsl8vrjQsEoTfMfN4GfCn0tJwtN9DHLE7iLdCmpm9o/N7i1I9EttVnLGi/IprLLHODHr4NEtbAgIA5/JQvCCFkOqb4Jq1zVMrHP68XJNirFYscX4qDMJLpK+zuPb7y2CbuTltP2/mPKNkYlz9nDxN3wzKAX3kH9+k6pwjw2cMiHRwOfbaQUvnWS2apw9jcS3SIUb5Z5eoDo909xqR+rXLmUxpDo2rZC6qryChyqPDzgpskgxrPXnHg9wM35QsrpRppCdSVbQtY6d3HJCrd/e/9hnYSpAi14tZIqKGp3M5J7/EPheoGdPQHJFsszvh4z1JddZpp+ZscW9YogoxtBKBNHUZV/Hoi9RQLaeOi2L5/2NgqNh6kpeTXOltgHssgcBICbOlAWNDYdD4gh6IB8NlAkIxrIHxme3ZFO7h52dhM1c0QYp3EaY6c3mOc9L5cMZaB0yIWFK+5QedHhNSe0gXi+/v8YOxwAVBZ9iBGyJahT82WDFVdeVEZcT/4Xj5LTEuvXcLsUsx9c4QMkfAMtbgKGzlBdM=
-X-Forefront-Antispam-Report-Untrusted:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:VI0PR08MB10391.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(23010399003)(7416014)(366016)(1800799024)(56012099006)(10067099003)(4143699003)(11063799006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-X-Exchange-RoutingPolicyChecked:
- H15d+k+CBKL/98Egww+98l5DaKi1orv1/1fzEuzyXPeL05XC3XLajloVOVbEDp8EMCsmieydpGBa1DER77d0zHcCdlX1h6Gw+bB7WXGoJKL712IpleNYhqslBgZQ86iDELhmYj/iZNMXMNOMRld53E7LnP0jHL/IspJoQQr4GdJAjffw2WZmyvZCDZdHzVNxSirELtTWw00Vekh/WQ2wdI+b5F/IujuAtyVgjO5sOy7w+jMOedpOk/rFSfmj/13SjHD5E1AtSX15cIF5hSDBagSHrrETUHn/MySrSFcxeFqia3TgP0qlGdEPrMAVXf1jNr+ikxlag0webOUjrq7vDQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AMBPR08MB711877
-X-EOPAttributedMessage: 0
-X-MS-Exchange-Transport-CrossTenantHeadersStripped:
- MI3PEPF00008493.eurprd03.prod.outlook.com
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id-Prvs:
-	07e9e75b-6d7d-4a1b-904c-08df25d0f4b0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|14060799003|36860700016|23010399003|35042699022|376014|82310400026|7416014|56012099006|10067099003|4143699003|11063799006|22082099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	L2bJfl8YsUurPPetvjyonS/yZgM52aj273vmRqiH7z9cEpy3UOlBVoRwt2xyYLinxvfyrRvAuPm12/kmezT3LcrKlS1vDjSCOr+JUQLBRDZKy6z4waVTp/YkCvEoOSutlVGXdpUkxA8HgGiyAQCrkldDoSlkpVSCRnK8pcS3JfFtK/C/lO+wNKAicI2iLuS5YIpWd/juFNZYyDaEWVcZwO0xlAWFpdpgPnOugLAhbJaMmhtsSqz0ZmjOg6mtlN6XyleKR3eo5AOUhR9WHmWXY2JAi0aAulodwXh6JbQe8IvVjgYyHHSb5Q8rR+Lo4sFUGtpv5FnyBZj+4ceYo6ZJ0Za1qD+5TyR9RxOkU1RtBlf/6onNeH7phL5HUubWd/zEq8AEQNRswbCD1TfuMsRhDEiwb0sTseA4HQ9D65jPiQI/PbobwK45E9G5j77jT+/IJkbCYLlbd50buJHzU0nAktJYAwg2qcbr0hyo7GJtGAMa26PpHb9hIIn+vkMNoqPOYZYgr5zLXNMikfB7fFQ1d1/JVew6wMPHO3KY8+AdmHwMbxXfWD0nrR6wIwsZ+uV4XWVY9nyijczT8/xzztUkpdslOTqjoUmkexmZaOXphoNNthGDheYPOQS7I4kh29g3G4CsNKHchsKWd4E3hvtnGoo5nw5U89umZahdFVdsE1zDBpjiRDywx47xbPtIORP/K8atbtMMWp6U3ftZCurvnA==
-X-Forefront-Antispam-Report:
-	CIP:4.158.2.129;CTRY:GB;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:outbound-uk1.az.dlp.m.darktrace.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(14060799003)(36860700016)(23010399003)(35042699022)(376014)(82310400026)(7416014)(56012099006)(10067099003)(4143699003)(11063799006)(22082099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	U18ln+gkOXmKbnNZ0yc0Mz0c8aZxnOXD82AYVI2YGsC0CLDdcvSjieqDPIT0xFDVjOYAc07WZuGYy6ELElmmuPkcJF9fOBk3OD1vpV4mCyycYMQ9GrqBwZXmeJ/pKyzVvqIIURGaoxwQuUtt3YzxOw1i78TZQUo5aw3mrPLaE6mpZmVELgzH3ZuJUPSPevL2MIvmmHRwRYDOCfvNm8cPC9p156ThNG9uiG6YabtKDSSAVhBSrCYbXnd8BucQcedQB/YsrAA3y/TbdkQ9CYWuVcArRu/gttQWjTRhjly9IH/muy8GfAkgLsFojzx4cFBbJ4hFmXRg9A+yPZY5E1bnv7TeDIL9YoCcj1wID3Kpb/E2Z8QRB0gl9xaEsU3j3TUYum2EGUv9Ve5HH5vq7VHETS0rafZNsD/Og0Yn5gzm0BwO85SsMmjyR78yf8mJpjHq
-X-OriginatorOrg: arm.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Oct 2026 06:46:23.3748
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: ee2de2a6-0375-4b39-9e4c-08df25d108c3
-X-MS-Exchange-CrossTenant-Id: f34e5979-57d9-4aaa-ad4d-b122a662184d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f34e5979-57d9-4aaa-ad4d-b122a662184d;Ip=[4.158.2.129];Helo=[outbound-uk1.az.dlp.m.darktrace.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	MI3PEPF00008493.eurprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM9PR08MB5924
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <d1720b63-65bf-4019-bc19-1852555f7993@arm.com>
 
-Hi Christian,
+On Tue, Oct 06, 2026 at 05:19:23PM +0100, Robin Murphy wrote:
+> On 28/09/2026 5:15 pm, Lorenzo Pieralisi wrote:
+> > On Fri, Sep 25, 2026 at 01:54:26PM +0300, Andy Shevchenko wrote:
+> > > On Fri, Sep 25, 2026 at 12:30:07PM +0200, Lorenzo Pieralisi wrote:
+> > > > On Fri, Sep 25, 2026 at 12:49:54PM +0300, Andy Shevchenko wrote:
+> > > > > On Fri, Sep 25, 2026 at 09:48:01AM +0200, Lorenzo Pieralisi wrote:
+> > > 
+> > > ...
+> > > 
+> > > > > > +static int acpi_static_fwnode_read_u32_prop_index(const struct fwnode_handle *fwnode,
+> > > > > > +						  const char *propname,
+> > > > > > +						  unsigned int index, u32 *value)
+> > > > > > +{
+> > > > > > +	u32 *values;
+> > > > > > +	int ret, count;
+> > > > > > +
+> > > > > > +	count = fwnode_property_count_u32(fwnode, propname);
+> > > > > > +	if (count < 0)
+> > > > > > +		return count;
+> > > > > > +
+> > > > > > +	if (index >= count)
+> > > > > > +		return -ENOENT;
+> > > > > > +
+> > > > > > +	values = kcalloc(count, sizeof(*values), GFP_KERNEL);
+> > > > > > +	if (!values)
+> > > > > > +		return -ENOMEM;
+> > > > > > +
+> > > > > > +	ret = fwnode_property_read_u32_array(fwnode, propname, values, count);
+> > > > > > +	if (!ret)
+> > > > > > +		*value = values[index];
+> > > > > 
+> > > > > Use standard pattern, id est
+> > > > > 
+> > > > > 	if (ret)
+> > > > > 		...
+> > > > > 
+> > > > > > +	kfree(values);
+> > > > > 
+> > > > > You want to use __free()
+> > > > > 
+> > > > > > +	return ret;
+> > > > > > +}
+> > > > > 
+> > > > > I believe the whole approach is suboptimal, if you wish get indexed value (but why?)
+> > > > 
+> > > > Why what (that's what the irq_get() interface requires ?) I agree it is
+> > > > suboptimal - the whole point of the series is an RFC on using properties
+> > > > to store GSI number/flags, then how to read them we will optimize it
+> I>>> when/if we agree that's the approach to be taken.
+> > > 
+> > > Why to have indexed APIs. The callers usually do not want a single item from an
+> > > array, they want all of them or a big pile (exception is the array of strings,
+> > > but we have matching functions for that).
+> > > 
+> > > As per approach, this patch is against device property and I don't think we are
+> > > going to agree on the approach taken in *this* patch.
+> > 
+> > Coming back to this, what is needed here is a way to stash the GSI number,
+> > flags and name in stardard storage (like OF nodes IRQ properties, ACPI objects
+> > _CRS, etc).
+> > 
+> > To give you some background, I thought about adding an array of:
+> > 
+> > GSI [number, flags, name]
+> > 
+> > to the ACPI static fwnode itself. Then basically the irq_get() API has got
+> > all the information it needs from the primary fwnode; while doing that I
+> > thought that this might have been a bit like reinventing software nodes
+> > (granted, software node properties are ways more general that what I suggest
+> > above and I don't expect any other property to be ever added to static fwnodes)
+> > that's why I put together the series as it is, precisely to understand what's
+> > best.
+> > 
+> > When you say "against device property", what do you mean precisely ?
+> > 
+> > I suppose you mean that this approach goes against software node properties
+> > usage guidelines ?
+> > 
+> > Anyway, again, it is just to provide some context, we are talking about
+> > a bunch of platform devices, it is nice to have a generic solution but
+> > it has to be simple enough too given its scope, I understand very well
+> > your concern with this approach as-is - it is there to find a way
+> > forward together and show what the problem is.
+> 
+> I guess software node properties look inviting in theory since they're a
+> ready-made mechanism for effectively attaching arbitrary data to a fwnode,
+> however looking at patches 6-7 and the amount of boilerplate involved in the
+> reality, I'm inclined to think that a dedicated structure for static nodes
+> is probably the best and most efficient compromise here. The redundancy
+> argument rather falls apart once we end up creating copies of those
+> contentiously-made-up property name strings for every node, especially given
+> that any one of those alone is probably already more than the amount of
+> actual data we need per node...
+> 
+> Perhaps the "purest" option might be to just store a function pointer in the
+> fwnode wrapper for each static table type to provide its own internal
+> irq_get() callback, so not stashing intermediate GSI data at all, but I
+> suspect that might end up being more work overall.
 
-Thanks a lot for this,
+Hi Rafael, Robin,
 
-Reviewed-by: Pierre Gondois <pierre.gondois@arm.com>
+I have not started prototyping it yet but I have got a question as a
+follow-up to our chat at LPC about crafting an ACPI device for the static
+table entries and sort out the probe dependencies using autodep.
 
-On 10/8/26 23:28, Christian Loehle wrote:
-> Take over CPPC cpufreq review duties from Pierre Gondois. Thanks to
-> Pierre for his reviews and contributions to the driver.
->
-> Signed-off-by: Christian Loehle <christian.loehle@arm.com>
-> ---
->   MAINTAINERS | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 65e8a4b5c90b..3064942ef05c 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -6765,7 +6765,7 @@ M:	"Rafael J. Wysocki" <rafael@kernel.org>
->   M:	Viresh Kumar <viresh.kumar@linaro.org>
->   R:	Jie Zhan <zhanjie9@hisilicon.com>
->   R:	Lifeng Zheng <zhenglifeng1@huawei.com>
-> -R:	Pierre Gondois <pierre.gondois@arm.com>
-> +R:	Christian Loehle <christian.loehle@arm.com>
->   R:	Sumit Gupta <sumitg@nvidia.com>
->   L:	linux-pm@vger.kernel.org
->   S:	Maintained
+After spur of the moment reaction during the session, I now remember I
+thought about crafting an ACPI device for the static table entries and
+started digging then bumped into acpi_add_single_object() as you
+suggested.
+
+The point though is: what about the acpi_handle and the AML required to
+sort out the dependencies using the _CRS ? We have got the info to fill
+the _CRS coming from static table entries (MMIO, GSI) but I am not sure how I
+can form a full-fledged ACPI namespace object in the kernel, without
+that in place I am not sure how the autodep mechanism can possibly
+work.
+
+I need to have a deeper look into this next week but I wanted to ask first
+whether there was something I missed - most likely.
+
+Thanks !
+Lorenzo
+
+> 
+> Cheers,
+> Robin.
+> 
+> > 
+> > Thanks,
+> > Lorenzo
+> > 
+> > > > > it needs to be retrieved as that in the guts of ACPI. Allocating memory for the whole
+> > > > > array to retrieve a single element is simply wrong.
+> > > 
+> > > ...
+> > > 
+> > > > > > +#define ACPI_IRQ_PROP_GSI		"linux,acpi-gsi"
+> > > > > > +#define ACPI_IRQ_PROP_GSI_TRIGGER	"linux,acpi-gsi-trigger"
+> > > > > > +#define ACPI_IRQ_PROP_GSI_POLARITY	"linux,acpi-gsi-polarity"
+> > > > > 
+> > > > > Oh... This sounds like a big ugly hack.
+> > > > 
+> > > > That does not help much I am afraid.
+> > > > 
+> > > > What's a ugly hack ? Property names ? Using properties for this purpose ?
+> > > 
+> > > Yes, properties started with "linux," for some core functionality.
+> > > Yes, using properties for this also doesn't sound right. I think the problem
+> > > here is in the table specifications or somewhere that deep. That's why we
+> > > ended up in this series.
+> > > 
+> > > > Again, it is an RFC for this specific reason and I mentioned that in the
+> > > > cover letter, thank you for your inputs.
+> > > 
+> > > And here we have a discussion started :-)
+> > > 
+> > > P.S. Looks like I was too quick to jump into this thread. I will wait for
+> > > others to share their view on all this.
+> > > 
+> > > -- 
+> > > With Best Regards,
+> > > Andy Shevchenko
+> > > 
+> > > 
+> 
