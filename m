@@ -1,231 +1,97 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f225.google.com (mail-yw1-f225.google.com [209.85.128.225])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CF9D3CB2C7;
-	Fri,  9 Oct 2026 07:57:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 499B83C9880
+	for <linux-acpi@vger.kernel.org>; Fri,  9 Oct 2026 08:23:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.225
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791532642; cv=none; b=Msn2katlG7XzE6ERLYE7Gho3QEbzM+8w6iDe1YrToS1w7xtalI3njf8LLFYPrfCPAllz5Nrp4Khf6eV59q5E48QyrlR7TUthUIG60PwNFgDr89aI4iel1TLY/Lx7jnzE9OadwxMPPXLElm31/0YfqF9QAdnKcz9vG6kjeISwSck=
+	t=1791534192; cv=none; b=QoB5UN2hGwdSqP+bWtYgFvmMaWUjJ/jD08qURr0pCbpqxJFwmbWiObCXJbHY0qhuJJC85bsWKaR0mTXGrlyx36iJTiFvGOYXPtYyPlWxYkWerY6xE5mmSCb/zEAFONr+1Ko8iSaOc4wpfrBdYCa8G2JXkNHFEdCV/Z1JcgkGQEs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791532642; c=relaxed/simple;
-	bh=OVgnTlwhqjp5woUBmZR8Z1/tP1JnGEu9IxPV5ssVSmM=;
+	s=arc-20240116; t=1791534192; c=relaxed/simple;
+	bh=mHjuxP8No/svkLEibCC62pe0HCMEBgSlND5KAB66MxY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=umrX/8tSUyt4nBVNXeZttGDHToxDMT5sw5kZVyRPZ2YYp5pr28ck69Cqp9wE8GVY4W2oEx9AOXpRIe9ELs/C0NjjqTMPb58LPSg82EetbstN2XqG9gIGzYPV3pS1M4T/KSEIm+Tg06NoJOAgRmWQFwfguR0xLuUeKdCtFAVSwSU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iXBkcs1o; arc=none smtp.client-ip=100.103.45.18
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iXBkcs1o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 888031F000FF;
-	Fri,  9 Oct 2026 07:57:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791532632;
-	bh=7JwBUaKiDw3DL4V1VblyqY4NlQUKc0x+WHZ55mtpZGk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=iXBkcs1ozdItQ91Qzqsd9bSnGiaVHmmQXgWX31nAahFHARHVMlRC01fE/XmvxTcaB
-	 AxmiA9IBMQT1BEgvXWlPPqAKWJ1DK7wtvu/u33eqUlFHZ5HJ518T+j+TlvK48tFoO+
-	 vcoithhATsDmOJrOHoFlumiaZLTwOKF1O3v+Lusa8xnFhppIegGSvCTuXkY1zQ1Z+N
-	 sEAtMFWBHxxprOVTOQq9vwB98xCsb0zzQaYeZTpImM/zWsPiBhtxLWuBeTdah0I/Tv
-	 OcXDTvxQXr65PFPpvxoqiA5WZgehZIlTzQeKPoKAWYRsJm6Zpg939xRbs8gJnnBjV6
-	 IaytI+HxCZvKg==
-Date: Fri, 9 Oct 2026 09:57:02 +0200
-From: Lorenzo Pieralisi <lpieralisi@kernel.org>
-To: Robin Murphy <robin.murphy@arm.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <maz@kernel.org>,
-	Daniel Lezcano <daniel.lezcano@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Sudeep Holla <sudeep.holla@kernel.org>,
-	Wim Van Sebroeck <wim@linux-watchdog.org>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	driver-core@lists.linux.dev, linux-watchdog@vger.kernel.org
-Subject: Re: [PATCH RFC 02/11] ACPI: Introduce irq_get() for static fwnodes
-Message-ID: <asieTvinZ7c2QpQm@red-moon>
-References: <20260925-acpi-static-table-irq-probe-defer-v1-0-2c62125d0085@kernel.org>
- <20260925-acpi-static-table-irq-probe-defer-v1-2-2c62125d0085@kernel.org>
- <arZDwutoadki7tiZ@ashevche-desk.local>
- <arZNL9BnTGK0Klwc@red-moon>
- <arZS4vwxps01dGb7@ashevche-desk.local>
- <arqSqcoWAkhy-8do@red-moon>
- <d1720b63-65bf-4019-bc19-1852555f7993@arm.com>
+	 Content-Type:Content-Disposition:In-Reply-To; b=PpC4qmAEqR/DelNYEjixsjeKV7qRo1/HvXLKcF41o/DAB+qRrLdKZrUlW3L7BxOgWPOHb73z5nUIXOL1fC/90IC/cRHDt8MCbdWhInlez/uv+5OwGmZsZvARhZ0tUqsKX+pTywC4KxKO4jgestrOc/SY8z8kzPYlXZ+D3BxJivM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=srcf.ucam.org; spf=pass smtp.mailfrom=cavan.codon.org.uk; arc=none smtp.client-ip=209.85.128.225
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=srcf.ucam.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cavan.codon.org.uk
+Received: by mail-yw1-f225.google.com with SMTP id 00721157ae682-8ae8541a2f0so41165387b3.3
+        for <linux-acpi@vger.kernel.org>; Fri, 09 Oct 2026 01:23:10 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791534189; x=1792138989;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=U8iFS6pM3tthaseRuGrSd+8pptlyySe0KSW3rDNx01Y=;
+        b=pCmVPD7Vh69N4fskQ3WNXgVLfX3LnLZ2jOhhZN+D2+S4OVCDlKYbU/FrOxLHCSl6Do
+         RVqpvQpQuFvWijOHekKBni2lfgf787ZgF9IOfiqqZg2X1w+Db4XhL4DDbIXRsJqlfR2e
+         p23ZdU88cmALVuzHwBQRYEtLVIb4D7WVWrdiCET16EyLzNlxT/8AevpsvvtC+adHhlX9
+         rEm9741cMJvt7MC0JzK6NODjxfmpEXZyJUP73FiXADbMU2wKpppancgHrF76lFo6XLJk
+         OIQRKGoDR21yQoaSB0x9odx2+LmK7Y/PhNeKpfji19Fz6KOjW8ISUQxrtbxw6n2xgAZd
+         hZhg==
+X-Forwarded-Encrypted: i=1; AKwUvBxjAIGUdfAHWVPJNI0MDHGXld4Eu/o1I1SQEJz9GuJN432ry+Ud1jxu3/v6mjxxFP1yGtsZKVbbWeiO@vger.kernel.org
+X-Gm-Message-State: AFq9FYLheX0EpmCIVmc2Ir39ObBSQ7HQ57Z3XHpStu47s6pkLEa8GmNI
+	Mjf/BBan50GrcfQFxzunFGH6b4ry+ZPDgWEnD+Z/w9aVrHcktqZP0n25LsIPTFiVH8eMaVrxHo7
+	+E6en/outOxUbO5vu6boBVp2gGnw4iwdQJ5lHnGrJv2M8x2Tk/mth
+X-Gm-Gg: AYBFou0USUz+OYLotDaDW6Pv/JLIqshDVZNDPV4sjPL2Zqp3Q9QGDMlZBhVEY+PJlBL
+	3kQDOX600KppoEg24aZTi0qJeP1S1/TA6UtZ3WvMBwEySaXz+gBrskjAQ5MVufGzeqt0RFuZCek
+	JTxaX7b45fqH6fleYekrQ1im7G16PYYWgRGs96BNAoyEQZ6vOGk7IxHYMYp/ueo+5sjxECUY7bW
+	G7N6sAapM2eVP818Rfu7xSmhRhFkyx4Wp0fIH6EZ7RlOEBM+QZrJRqbQpatx/SGCXKKm5nERx7k
+	ym7G5CPQNhhHsNpfZ4gE6x9+g3EdDpez6B6wTj5l4ePzUeN0GvDfPC2vLMq/CaajPZ4YJ1ccuN3
+	kceM=
+X-Received: by 2002:a05:690c:4142:b0:8ae:6740:99a with SMTP id 00721157ae682-8b07ed4e93amr3514097b3.30.1791534189243;
+        Fri, 09 Oct 2026 01:23:09 -0700 (PDT)
+Received: from cavan.codon.org.uk ([2607:f598:b99a:160:8a88:88ff:fe88:8788])
+        by smtp-relay.gmail.com with ESMTPS id 00721157ae682-8b07f329510sm59467b3.43.2026.10.09.01.23.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 09 Oct 2026 01:23:09 -0700 (PDT)
+X-Relaying-Domain: codon.org.uk
+Received: by cavan.codon.org.uk (Postfix, from userid 1000)
+	id 27EC31286282; Fri, 09 Oct 2026 01:23:08 -0700 (PDT)
+Date: Fri, 9 Oct 2026 01:23:08 -0700
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Francisco =?iso-8859-1?Q?Beltr=E1n_Millal=E9n?= <fbeltranmillalen@gmail.com>,
+	rafael@kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org,
+	linux-pci@vger.kernel.org, lenb@kernel.org,
+	linux-kernel@vger.kernel.org, Darrell Gum <d@rrell.co>,
+	Andreas Noever <andreas.noever@gmail.com>,
+	Mika Westerberg <westeri@kernel.org>,
+	Yehezkel Bernat <YehezkelShB@gmail.com>,
+	Lukas Wunner <lukas@wunner.de>, linux-usb@vger.kernel.org
+Subject: Re: [PATCH] ACPI: PCI: take native PME control on Apple machines
+Message-ID: <asikbIuZUZsgmU52@srcf.ucam.org>
+References: <20260924132859.24751-1-fbeltranmillalen@gmail.com>
+ <20261008232912.GA940274@bhelgaas>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <d1720b63-65bf-4019-bc19-1852555f7993@arm.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20261008232912.GA940274@bhelgaas>
 
-On Tue, Oct 06, 2026 at 05:19:23PM +0100, Robin Murphy wrote:
-> On 28/09/2026 5:15 pm, Lorenzo Pieralisi wrote:
-> > On Fri, Sep 25, 2026 at 01:54:26PM +0300, Andy Shevchenko wrote:
-> > > On Fri, Sep 25, 2026 at 12:30:07PM +0200, Lorenzo Pieralisi wrote:
-> > > > On Fri, Sep 25, 2026 at 12:49:54PM +0300, Andy Shevchenko wrote:
-> > > > > On Fri, Sep 25, 2026 at 09:48:01AM +0200, Lorenzo Pieralisi wrote:
-> > > 
-> > > ...
-> > > 
-> > > > > > +static int acpi_static_fwnode_read_u32_prop_index(const struct fwnode_handle *fwnode,
-> > > > > > +						  const char *propname,
-> > > > > > +						  unsigned int index, u32 *value)
-> > > > > > +{
-> > > > > > +	u32 *values;
-> > > > > > +	int ret, count;
-> > > > > > +
-> > > > > > +	count = fwnode_property_count_u32(fwnode, propname);
-> > > > > > +	if (count < 0)
-> > > > > > +		return count;
-> > > > > > +
-> > > > > > +	if (index >= count)
-> > > > > > +		return -ENOENT;
-> > > > > > +
-> > > > > > +	values = kcalloc(count, sizeof(*values), GFP_KERNEL);
-> > > > > > +	if (!values)
-> > > > > > +		return -ENOMEM;
-> > > > > > +
-> > > > > > +	ret = fwnode_property_read_u32_array(fwnode, propname, values, count);
-> > > > > > +	if (!ret)
-> > > > > > +		*value = values[index];
-> > > > > 
-> > > > > Use standard pattern, id est
-> > > > > 
-> > > > > 	if (ret)
-> > > > > 		...
-> > > > > 
-> > > > > > +	kfree(values);
-> > > > > 
-> > > > > You want to use __free()
-> > > > > 
-> > > > > > +	return ret;
-> > > > > > +}
-> > > > > 
-> > > > > I believe the whole approach is suboptimal, if you wish get indexed value (but why?)
-> > > > 
-> > > > Why what (that's what the irq_get() interface requires ?) I agree it is
-> > > > suboptimal - the whole point of the series is an RFC on using properties
-> > > > to store GSI number/flags, then how to read them we will optimize it
-> I>>> when/if we agree that's the approach to be taken.
-> > > 
-> > > Why to have indexed APIs. The callers usually do not want a single item from an
-> > > array, they want all of them or a big pile (exception is the array of strings,
-> > > but we have matching functions for that).
-> > > 
-> > > As per approach, this patch is against device property and I don't think we are
-> > > going to agree on the approach taken in *this* patch.
-> > 
-> > Coming back to this, what is needed here is a way to stash the GSI number,
-> > flags and name in stardard storage (like OF nodes IRQ properties, ACPI objects
-> > _CRS, etc).
-> > 
-> > To give you some background, I thought about adding an array of:
-> > 
-> > GSI [number, flags, name]
-> > 
-> > to the ACPI static fwnode itself. Then basically the irq_get() API has got
-> > all the information it needs from the primary fwnode; while doing that I
-> > thought that this might have been a bit like reinventing software nodes
-> > (granted, software node properties are ways more general that what I suggest
-> > above and I don't expect any other property to be ever added to static fwnodes)
-> > that's why I put together the series as it is, precisely to understand what's
-> > best.
-> > 
-> > When you say "against device property", what do you mean precisely ?
-> > 
-> > I suppose you mean that this approach goes against software node properties
-> > usage guidelines ?
-> > 
-> > Anyway, again, it is just to provide some context, we are talking about
-> > a bunch of platform devices, it is nice to have a generic solution but
-> > it has to be simple enough too given its scope, I understand very well
-> > your concern with this approach as-is - it is there to find a way
-> > forward together and show what the problem is.
+On Thu, Oct 08, 2026 at 06:29:12PM -0500, Bjorn Helgaas wrote:
+> [+cc Matthew (author of 7bc5a2bad0b8), Darrell, Andreas, Mika,
+> Yehezkel, Lukas, linux-usb]
 > 
-> I guess software node properties look inviting in theory since they're a
-> ready-made mechanism for effectively attaching arbitrary data to a fwnode,
-> however looking at patches 6-7 and the amount of boilerplate involved in the
-> reality, I'm inclined to think that a dedicated structure for static nodes
-> is probably the best and most efficient compromise here. The redundancy
-> argument rather falls apart once we end up creating copies of those
-> contentiously-made-up property name strings for every node, especially given
-> that any one of those alone is probably already more than the amount of
-> actual data we need per node...
+> On Thu, Sep 24, 2026 at 10:28:59AM -0300, Francisco Beltrán Millalén wrote:
+> > Since commit 7bc5a2bad0b8 ("ACPI: Support _OSI("Darwin") correctly")
+> > negotiate_os_control() skips the _OSC handshake on Apple machines and
+> > hardcodes the set of features the OS takes over, because those firmwares
+> > return failure once _OSI("Darwin") has been acknowledged.  The hardcoded
+> > set is ~OSC_PCI_EXPRESS_PME_CONTROL, i.e. everything except PME.  No
+> > reason was given for leaving PME out.
 > 
-> Perhaps the "purest" option might be to just store a function pointer in the
-> fwnode wrapper for each static table type to provide its own internal
-> irq_get() callback, so not stashing intermediate GSI data at all, but I
-> suspect that might end up being more work overall.
+> It's clear there *was* a reason, but I don't know either.  Maybe
+> Matthew will remember?
 
-Hi Rafael, Robin,
-
-I have not started prototyping it yet but I have got a question as a
-follow-up to our chat at LPC about crafting an ACPI device for the static
-table entries and sort out the probe dependencies using autodep.
-
-After spur of the moment reaction during the session, I now remember I
-thought about crafting an ACPI device for the static table entries and
-started digging then bumped into acpi_add_single_object() as you
-suggested.
-
-The point though is: what about the acpi_handle and the AML required to
-sort out the dependencies using the _CRS ? We have got the info to fill
-the _CRS coming from static table entries (MMIO, GSI) but I am not sure how I
-can form a full-fledged ACPI namespace object in the kernel, without
-that in place I am not sure how the autodep mechanism can possibly
-work.
-
-I need to have a deeper look into this next week but I wanted to ask first
-whether there was something I missed - most likely.
-
-Thanks !
-Lorenzo
-
-> 
-> Cheers,
-> Robin.
-> 
-> > 
-> > Thanks,
-> > Lorenzo
-> > 
-> > > > > it needs to be retrieved as that in the guts of ACPI. Allocating memory for the whole
-> > > > > array to retrieve a single element is simply wrong.
-> > > 
-> > > ...
-> > > 
-> > > > > > +#define ACPI_IRQ_PROP_GSI		"linux,acpi-gsi"
-> > > > > > +#define ACPI_IRQ_PROP_GSI_TRIGGER	"linux,acpi-gsi-trigger"
-> > > > > > +#define ACPI_IRQ_PROP_GSI_POLARITY	"linux,acpi-gsi-polarity"
-> > > > > 
-> > > > > Oh... This sounds like a big ugly hack.
-> > > > 
-> > > > That does not help much I am afraid.
-> > > > 
-> > > > What's a ugly hack ? Property names ? Using properties for this purpose ?
-> > > 
-> > > Yes, properties started with "linux," for some core functionality.
-> > > Yes, using properties for this also doesn't sound right. I think the problem
-> > > here is in the table specifications or somewhere that deep. That's why we
-> > > ended up in this series.
-> > > 
-> > > > Again, it is an RFC for this specific reason and I mentioned that in the
-> > > > cover letter, thank you for your inputs.
-> > > 
-> > > And here we have a discussion started :-)
-> > > 
-> > > P.S. Looks like I was too quick to jump into this thread. I will wait for
-> > > others to share their view on all this.
-> > > 
-> > > -- 
-> > > With Best Regards,
-> > > Andy Shevchenko
-> > > 
-> > > 
-> 
+I /think/ this was the set of parameters that my machine would hand over 
+via _OSC if we hadn't called _OSI("Darwin") - but it was over a decade 
+ago so I can't promise that's the case. I think this probably needs to 
+be tested on some older machines as well just to ensure there's no weird 
+breakage as a result, but if PME is actually hooked up and there's no 
+SMM managing it instead I think that's fine.
