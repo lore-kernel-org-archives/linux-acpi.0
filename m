@@ -1,88 +1,104 @@
-Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F38A2358363;
-	Sat, 10 Oct 2026 16:57:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 297EA3AC0C7;
+	Sat, 10 Oct 2026 19:39:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791651456; cv=none; b=QR5p+fd1M5dyti7bqh4M2ZP+xwULNFlMl/o2wGO2DxZtAOtb5hTVrpTnBarIox3eUFeSnzWNsQ+dS6RP0jzaEo2W+Y/YfjQ7rUOWQyp2RvwtdxhfVc3h0pinmhQalLg7qgqQbdf2sh9xiSr0QBtkpQlM/T65Sj2wh/XPBZfqtO0=
+	t=1791661192; cv=none; b=IYLE8FNy3vmXzdDjDL7vW3JWJ+iJhNhSmT2utc1jmvZG7NKIUXBzooMNzxPAfQx2cnOu+Xj6ZlkeSiOKlTtttOrE9f7QdiKfurAgtqTCl/6DpA82Ja3lKfXFO2E4KDtWKfq4oPChlAORsI+7l/ir1gkSn7zAcFrfHJqY8n8G1aE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791651456; c=relaxed/simple;
-	bh=xhTYnGblJA77kFkvCzBxWJNz9tLDWTaedthDQ/dHmdM=;
-	h=MIME-Version:Date:From:To:Cc:Subject:In-Reply-To:References:
-	 Message-ID:Content-Type; b=jM/Go/txVbGpj470JkIoZ71vfgtQXWuYxlalSWbNmpJBOmivBNJfRZhUxaJDXD5F00/7WlK94JXmjlsIPcxO6PQj8Pit4zI0TMTi1uqbEI0cppoM5QkPSxi5EZHekxscQlnbKdtBvnWWbuIk8TY9j1lezPna+TRhMj8YONQCDjU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=P1KiAUDE; arc=none smtp.client-ip=213.97.179.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
+	s=arc-20240116; t=1791661192; c=relaxed/simple;
+	bh=iGMy9enOx+BTKgwp1/8l029b+Wumi67NriI0g300cxM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=laTqmrvvPWPRWY3QoBGq41muvLgsUwhSnvU7x+HzRy+KxJtUI1KfQt5ILXrAw76OgkOJEoI73o6XveE182VcJRZv0h3LhLWFUtXh1UqAN7z+b+O8Pt2ME9S6BKaFM1WDotoIqyzLLZKuwDMPKHWv5pIgLX07EC5uEQ04zvrwQ04=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aGwVzcXl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="P1KiAUDE"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=Content-Transfer-Encoding:Content-Type:Message-ID:Subject:Cc:To
-	:From:Date:MIME-Version:From:Reply-To;
-	bh=uyvlqAyPwFNwTNzIPT341jkn+EeFo16897kGjTZjlmE=; b=P1KiAUDEJloVQYbw0BwMrHXMXK
-	b4kA0S8nZojWf9quHP2FQ47Xwa4QVG4MwCOxGWl0PwAaXJJ+4VjUD1IPCpcxarKkgMcHHHxXMxTYC
-	yj8uF/JOq+eutY81DdEk3c70SJUtfWPsi87M10E3yZw1RFZq7fzuFHv6IJo/aHwo3dupDu2haQKH5
-	caeS8FjI5Ws0Yraf9Z1e6zsaGU2YOcOEdg8I5UMwa1qBXtDzuuFMiBpTTjmcKgBa5H+3EpJsjCIRw
-	JCJwWyIno+Dt4xFREkpYsVEBGGnyQ6vq09iyGFbgKEpRBOHirfkhXAABcK/7IZXiZEgtK7+X+Md1w
-	9qqXS29w==;
-Received: from maestria.local.igalia.com ([192.168.10.14] helo=mail.igalia.com)
-	by fanzine2.igalia.com with esmtps 
-	(Cipher TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
-	id 1xFaNv-00FaCk-VR; Sat, 10 Oct 2026 18:57:23 +0200
-Received: from webmail.service.igalia.com ([192.168.21.45])
-	by mail.igalia.com with esmtp (Exim)
-	id 1xFaNv-004HGp-0S;
-	Sat, 10 Oct 2026 18:57:23 +0200
-Received: from localhost ([127.0.0.1] helo=webmail.igalia.com)
-	by webmail.service.igalia.com with esmtp (Exim 4.98.2)
-	(envelope-from <uajain@igalia.com>)
-	id 1xFaNv-00000008bp9-05sn;
-	Sat, 10 Oct 2026 18:57:23 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aGwVzcXl"
+Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id CFC7B1F000FF;
+	Sat, 10 Oct 2026 19:39:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791661189;
+	bh=tXbN/9hLFylAPC7SUbP8nwWT95vIm1INIDPcU0xOsCg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=aGwVzcXl8NLeLivaSQnMQhhNFHEUTRieaOPpEvk0G31Q8Vi9amdD9NQv8TvetUiGh
+	 rWm8mYHTLsazo4q7zQV83F2XLanHfkqaoKDW6vqRNfkGay9jpOtdfDI0T6TrNIJ7ka
+	 a1g1mZwQwQ7riAOS9ZHVIYXWjOCwevpFAWFIEF42eOboah7Q0n01ldT0qqYynxHuM8
+	 FrCuLTrAiPB27wXlXdH8SY9nZRt7R+Di+Y9B9IYwNz5tknMmjNpbMXS5wr9XWjXGzZ
+	 1BdJO/ibiYrWkrLSuI7dLuQ1uA2x+971rB2gfdIx0t2tEGjqfYT4oV08SGxXtRD6ik
+	 pRWUJ1WljiMxA==
+Date: Sat, 10 Oct 2026 22:39:45 +0300
+From: Jarkko Sakkinen <jarkko@kernel.org>
+To: Sean Meadows <Hellfire@unspacy.com>
+Cc: Mario Limonciello <mario.limonciello@amd.com>,
+	linux-integrity@vger.kernel.org, peterhuewe@gmx.de, jgg@ziepe.ca,
+	rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org,
+	Adam Alves <adamoa@gmail.com>
+Subject: Re: [BUG] tpm_crb/Intel PTT: Late S3/S5/Reboot ACPI power management
+ deadlock
+Message-ID: <asqUgaKpEJbo8g87@kernel.org>
+References: <bf3a9544-6e49-4d5d-a01a-f1912b717d08@unspacy.com>
+ <aqyTpzk3jcarEMVS@kernel.org>
+ <54425edf-3ca1-4f99-9166-40f9cc3dfff6@unspacy.com>
+ <araNsEodZ3NXf9qT@kernel.org>
+ <0e8f93d0-3da9-4af0-ac12-b3670acdcf79@unspacy.com>
+ <arw609M6mDiqhQwJ@kernel.org>
+ <723ff551-7852-4d57-ab1e-787a1a195759@unspacy.com>
+ <asfXObGNaZ9Z8CwN@kernel.org>
+ <ca2d299b-4153-4b0b-a60e-7fe64f9dbdef@amd.com>
+ <2db92c1a-815c-4db2-adfa-3708152ec8f2@unspacy.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Date: Sat, 10 Oct 2026 18:57:23 +0200
-From: Umang Jain <uajain@igalia.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 0/2] acpi: battery: Query BCT method and steamdeck
-In-Reply-To: <20260923082932.1049270-1-uajain@igalia.com>
-References: <20260923082932.1049270-1-uajain@igalia.com>
-Message-ID: <cbcc76769b0e1bb6272399176b1cf41a@igalia.com>
-X-Sender: uajain@igalia.com
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-Spam-Report: NO, Score=-4.9, Tests=ALL_TRUSTED=-3,BAYES_00=-1.9,KAM_DMARC_STATUS=0.005
-X-Spam-Score: -48
-X-Spam-Bar: ----
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2db92c1a-815c-4db2-adfa-3708152ec8f2@unspacy.com>
 
-Hello,
+On Thu, Oct 08, 2026 at 05:56:10PM -0400, Sean Meadows wrote:
+> On 10/8/26 16:00, Mario Limonciello wrote:
+> > > The patch I pointed out this in bugzilla but the patch I had in mind
+> > > is:
+> > > 
+> > > "tpm: Call cmd_ready/go_idle for each command transmission"
+> > > 
+> > > Link: https://git.kernel.org/pub/scm/linux/kernel/git/jarkko/linux-
+> > > tpmdd.git/commit/?id=9154aa6c4b789d23e59d599c330cab2c4e915401
+> > > 
+> > > The reason is that the commit message highlight a bit similar issues
+> > > as reported in the bug.
+> > > 
+> > > Note commit IDs do change in my master branch so best is to look it
+> > > up from:
+> > > 
+> > > https://git.kernel.org/pub/scm/linux/kernel/git/jarkko/linux- tpmdd.git/
+> > > log/
+> > > 
+> > > Right another reason is that then the driver always the TPM in the
+> > > state as it is when the driver starts.
+> > > 
+> > > I'm not sure about Windows but neither disregard it as sometimes we
+> > > do pick behavior basing it on how Window does it. I'd still try
+> > > Mario's patch at first.
+> 
+> Checking my notes, I cherry-picked commit
+> 19931faa1d75fb858d86aaf5b0e79d34a2379094, which I understood to be v3 of the
+> patch.
+> 
+> Assuming I made a mistake there, I've started from scratch and applied
+> commit 9154aa6c4b789d23e59d599c330cab2c4e915401 instead, which should be v6.
+> 
+> Once the compile and install are complete, it will take at least a couple of
+> days of testing to determine whether it prevents the corrupted state.
 
-Gentle ping for some review?
+So the gist why I believe that this might have effect is that every
+transmit reverts the state to the initial state. That should erase
+any weird state that firmware might be in (usually not that great
+quality code).
 
-Thanks,
-Umang
+I think Mario's patch is good overall for the stability. It looks to
+me that we are catching some weird state inside firmware where
+we don't have direct visibility. Or this is my guess at least.
 
-On 2026-09-23 10:29, Umang Jain wrote:
-> Short series to query Battery charge time ("_BCT") from ACPI tables
-> (1/2).
-> 
-> Patch 2/2 handles the case where steamdeck devices can report "Charging"
-> even when low power PSU is connected which is discharging the device.
-> 
-> Changes in v2:
-> - comment improvements
-> - split off BCT method handling into separate patch
-> 
-> v1:
-> https://lore.kernel.org/all/20260918135628.2322188-1-uajain@igalia.com/
-> 
-> Umang Jain (2):
->   acpi: battery: Query Battery charge time ("_BCT") method
->   acpi: battery: Handle Valve steamdeck devices quirk
-> 
->  drivers/acpi/battery.c | 45 +++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 44 insertions(+), 1 deletion(-)
+Br, Jarkko
