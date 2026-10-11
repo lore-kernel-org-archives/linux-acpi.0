@@ -1,104 +1,135 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 297EA3AC0C7;
-	Sat, 10 Oct 2026 19:39:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C63563CAA47
+	for <linux-acpi@vger.kernel.org>; Sun, 11 Oct 2026 05:45:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791661192; cv=none; b=IYLE8FNy3vmXzdDjDL7vW3JWJ+iJhNhSmT2utc1jmvZG7NKIUXBzooMNzxPAfQx2cnOu+Xj6ZlkeSiOKlTtttOrE9f7QdiKfurAgtqTCl/6DpA82Ja3lKfXFO2E4KDtWKfq4oPChlAORsI+7l/ir1gkSn7zAcFrfHJqY8n8G1aE=
+	t=1791697526; cv=none; b=mzLgCQrZ5vGlMs6Qgz1jAYZQ0pFgOjquPNFR8l6H0vN+9/8Nb1h/8KsGfDTtGIzkggZO8bV5kk91jcDaGsRFxhiTXyIqjG50QfcxBVSBp59+xdicH4aJhV0ReniZg1+WdizA7uA/dsL40wr0pKxCHUC2ABwF1cwQLpbxFmXizdc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791661192; c=relaxed/simple;
-	bh=iGMy9enOx+BTKgwp1/8l029b+Wumi67NriI0g300cxM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=laTqmrvvPWPRWY3QoBGq41muvLgsUwhSnvU7x+HzRy+KxJtUI1KfQt5ILXrAw76OgkOJEoI73o6XveE182VcJRZv0h3LhLWFUtXh1UqAN7z+b+O8Pt2ME9S6BKaFM1WDotoIqyzLLZKuwDMPKHWv5pIgLX07EC5uEQ04zvrwQ04=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aGwVzcXl; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791697526; c=relaxed/simple;
+	bh=cwdjm+qGqXqoq4C2oRIh5rJbqUVvPrBpnDTCDO+on5Y=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=eGGf5qYgW18dy+0YhzMDbaBCD5TsVXcvyhCDzENX5gRqLNpVWoI3EN1mNltpV1Ima0SnlNO6RXDpvU6Qw/qoSo2C8+KMAHE+1hduGVPD1RgfB3DlyDAHZNYD+pUsz9qdi+fAXxz0QgWeduoICyz8GKpEO20aBEIT++/CZR/iyjg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mIi8xZeg; arc=none smtp.client-ip=209.85.216.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aGwVzcXl"
-Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id CFC7B1F000FF;
-	Sat, 10 Oct 2026 19:39:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791661189;
-	bh=tXbN/9hLFylAPC7SUbP8nwWT95vIm1INIDPcU0xOsCg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=aGwVzcXl8NLeLivaSQnMQhhNFHEUTRieaOPpEvk0G31Q8Vi9amdD9NQv8TvetUiGh
-	 rWm8mYHTLsazo4q7zQV83F2XLanHfkqaoKDW6vqRNfkGay9jpOtdfDI0T6TrNIJ7ka
-	 a1g1mZwQwQ7riAOS9ZHVIYXWjOCwevpFAWFIEF42eOboah7Q0n01ldT0qqYynxHuM8
-	 FrCuLTrAiPB27wXlXdH8SY9nZRt7R+Di+Y9B9IYwNz5tknMmjNpbMXS5wr9XWjXGzZ
-	 1BdJO/ibiYrWkrLSuI7dLuQ1uA2x+971rB2gfdIx0t2tEGjqfYT4oV08SGxXtRD6ik
-	 pRWUJ1WljiMxA==
-Date: Sat, 10 Oct 2026 22:39:45 +0300
-From: Jarkko Sakkinen <jarkko@kernel.org>
-To: Sean Meadows <Hellfire@unspacy.com>
-Cc: Mario Limonciello <mario.limonciello@amd.com>,
-	linux-integrity@vger.kernel.org, peterhuewe@gmx.de, jgg@ziepe.ca,
-	rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org,
-	Adam Alves <adamoa@gmail.com>
-Subject: Re: [BUG] tpm_crb/Intel PTT: Late S3/S5/Reboot ACPI power management
- deadlock
-Message-ID: <asqUgaKpEJbo8g87@kernel.org>
-References: <bf3a9544-6e49-4d5d-a01a-f1912b717d08@unspacy.com>
- <aqyTpzk3jcarEMVS@kernel.org>
- <54425edf-3ca1-4f99-9166-40f9cc3dfff6@unspacy.com>
- <araNsEodZ3NXf9qT@kernel.org>
- <0e8f93d0-3da9-4af0-ac12-b3670acdcf79@unspacy.com>
- <arw609M6mDiqhQwJ@kernel.org>
- <723ff551-7852-4d57-ab1e-787a1a195759@unspacy.com>
- <asfXObGNaZ9Z8CwN@kernel.org>
- <ca2d299b-4153-4b0b-a60e-7fe64f9dbdef@amd.com>
- <2db92c1a-815c-4db2-adfa-3708152ec8f2@unspacy.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mIi8xZeg"
+Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-3a7cfe8f761so1898261a91.1
+        for <linux-acpi@vger.kernel.org>; Sat, 10 Oct 2026 22:45:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1791697524; x=1792302324; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=GYbDo/zUvFvs+Is128rbwFgaN3wZJhNxTKIxQmY6kWQ=;
+        b=mIi8xZego4z1b0FYoZ0P7hiKpnuW4PlcsANdRSE2Jz5PGn5zhiLpgquCXOXpfTVlwF
+         0qU966pn1E5K5B4qXM0IeeNnBnKrVBwiEc4FUNeFkhhTxBafPPRmJmAOVjh+5Kwj4mMF
+         oGIt58W6jkvaP6OCU2DGFxitzYdVOYL7iytYbamHERQ/KEZyS5viWblPwt1t3ThKjN0e
+         ZJ8aKB7hoObSxWVWymfNiwaR8criWbrQeHyzT6DBbnMwWstJ/YSaaSXYmf+rE7k6Vn8R
+         BB9MXZw6QY1J3sJ5p7X0JRABXDhUSNPkM5OPPsFFfbrS9cM84sPGQ7xIXMqApIxz+gKZ
+         I3Tw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791697524; x=1792302324;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=GYbDo/zUvFvs+Is128rbwFgaN3wZJhNxTKIxQmY6kWQ=;
+        b=ukguRuOZnRHpb5ol3ABLrJGX+euA/SrJ7ug1Dukom//4Yb/ZY5eCT6En6q4EsEff8K
+         1hPFw8ywwc+v8uV03i+OBzFE5dgPUrr2472GWv3sTS4LDQiH2WfE21M6ZeuoIrRf33Tx
+         /Aozs8W76QNIbOxmIVjd4pH+aE/fG29696/tKBrwVmIgaEpu5knxR6GzrHBxGCcTVrnW
+         d2J/1K50MNnMzRjDYiljB7v58+EUw5FhNoUtFcA0GJ5LgW1tiGYussKun26GbYUSFD1K
+         SL67GXEnYY5SYSQobE2dw8cEweJVLHgPL0wUmc9KYpudttyBY9j51AoKIq/mL2dNw3+s
+         Z2Jg==
+X-Forwarded-Encrypted: i=1; AKwUvBwkKcktCSs6NUvZqx4fWzgzXryHWGpRxo4e04aUPXGhv2dQhhle+XudCXHUV3HrpFc/mrn4AvmGvPIv@vger.kernel.org
+X-Gm-Message-State: AFq9FYIxarQXlM1iAa9PzAwfgONhGMa243hPCjgQxqh99000qXdGVYqN
+	w/aqaUdRyisuala7kQYFOfqwD2uvEtiOKy4KVdPxpmYwiS8M5Q1TXJKJ
+X-Gm-Gg: AYBFou14QKkoivsvp+LRKDL6+OA3jBCJm2Mfdx6CW6IxEZtcaEXcS/pdGtolwSENcDl
+	QzlcI98pLKaHvvoyCHlXywBp7RaF2C9QQkxZubQEbPgpRbt3eGSsWws4JiepRK6a04zZElaDxQ5
+	a7Y0IkMFpFFYhSGuQijWhAiwk//w0MLlpCRAd4TjPTnQNhmqqcNAMsHBQxwj3S7zDYuq9F/5lCW
+	J/2whTCHc2uRXC6VIdC9D3aNVhZsx4EC8a/GDFDX57js681BcGTl+l338ctY5PA5OBFP1+04S1/
+	WTwJCEcE0l3EkCcU5dTjszFM0f17Z7VIRkBw60Rrk2vFLbBUL0q7vD5lDr1Ct2miCFass6M3SoQ
+	Cg6eYNIrSAJex2j+Wh5lL3wItPLlIUJOgjM1cwXVm3ehAiwu/+ZUrgBS21nB1PVaVoKwUfNSl/x
+	S+f1W/GeJyyMypb9tAB9zpQJapwhUYrFAbGPSeRFzASlBNsIQS9c9offZQFNBGCw==
+X-Received: by 2002:a17:90a:5185:b0:3a0:bf71:eccf with SMTP id 98e67ed59e1d1-3ab3a9533ecmr2447914a91.14.1791697524040;
+        Sat, 10 Oct 2026 22:45:24 -0700 (PDT)
+Received: from DESKTOP-P1UN4LN ([2a09:bac5:d459:263c::3cf:35])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3ab393efd88sm6669981a91.3.2026.10.10.22.45.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 10 Oct 2026 22:45:23 -0700 (PDT)
+From: lofm2605 <lofm2605@gmail.com>
+To: "Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	VU TUNG LAM <lofm2605@gmail.com>
+Subject: [PATCH] ACPI: PM: Add unused power resource quirk for THUNDEROBOT 911Pro
+Date: Sun, 11 Oct 2026 12:44:55 +0700
+Message-ID: <20261011054455.1472-1-lofm2605@gmail.com>
+X-Mailer: git-send-email 2.55.0.windows.5
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2db92c1a-815c-4db2-adfa-3708152ec8f2@unspacy.com>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Oct 08, 2026 at 05:56:10PM -0400, Sean Meadows wrote:
-> On 10/8/26 16:00, Mario Limonciello wrote:
-> > > The patch I pointed out this in bugzilla but the patch I had in mind
-> > > is:
-> > > 
-> > > "tpm: Call cmd_ready/go_idle for each command transmission"
-> > > 
-> > > Link: https://git.kernel.org/pub/scm/linux/kernel/git/jarkko/linux-
-> > > tpmdd.git/commit/?id=9154aa6c4b789d23e59d599c330cab2c4e915401
-> > > 
-> > > The reason is that the commit message highlight a bit similar issues
-> > > as reported in the bug.
-> > > 
-> > > Note commit IDs do change in my master branch so best is to look it
-> > > up from:
-> > > 
-> > > https://git.kernel.org/pub/scm/linux/kernel/git/jarkko/linux- tpmdd.git/
-> > > log/
-> > > 
-> > > Right another reason is that then the driver always the TPM in the
-> > > state as it is when the driver starts.
-> > > 
-> > > I'm not sure about Windows but neither disregard it as sometimes we
-> > > do pick behavior basing it on how Window does it. I'd still try
-> > > Mario's patch at first.
-> 
-> Checking my notes, I cherry-picked commit
-> 19931faa1d75fb858d86aaf5b0e79d34a2379094, which I understood to be v3 of the
-> patch.
-> 
-> Assuming I made a mistake there, I've started from scratch and applied
-> commit 9154aa6c4b789d23e59d599c330cab2c4e915401 instead, which should be v6.
-> 
-> Once the compile and install are complete, it will take at least a couple of
-> days of testing to determine whether it prevents the corrupted state.
+From: VU TUNG LAM <lofm2605@gmail.com>
 
-So the gist why I believe that this might have effect is that every
-transmit reverts the state to the initial state. That should erase
-any weird state that firmware might be in (usually not that great
-quality code).
+On the THUNDEROBOT 911Pro laptop (board NLCC, BIOS TP127), the NVMe
+drive in the CPU-attached M.2 slot (0000:02:00.0, behind root port
+00:01.1) and the discrete NVIDIA GPU (0000:01:00.0) are inaccessible
+after boot:
 
-I think Mario's patch is good overall for the stability. It looks to
-me that we are catching some weird state inside firmware where
-we don't have direct visibility. Or this is my guess at least.
+  nvme 0000:02:00.0: Unable to change power state from D3cold to D0, device inaccessible
+  nvme 0000:02:00.0: error -ENODEV: probe failed
+  snd_hda_intel 0000:01:00.1: Unable to change power state from D3cold to D0, device inaccessible
 
-Br, Jarkko
+Both devices are enumerated normally and work under Windows. This is
+the same symptom as on the THUNDEROBOT ZERO, a sibling Tiger Lake-H +
+RTX 3060 model, which was fixed by commit cd7ef20ba8c6 ("ACPI: PM: Add
+unused power resource quirk for THUNDEROBOT ZERO"). The SSDT with OEM
+Table ID "TglH_Rvp" on this machine defines PXP_ power resources in the
+same way, but the existing quirk only matches product names containing
+"ZERO".
+
+Add a DMI entry for the 911Pro so that its unused power resources are
+left on, as is done for the ZERO.
+
+Fixes: a1224f34d72a ("ACPI: PM: Check states of power resources during initialization")
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=222118
+Assisted-by: LLM
+Signed-off-by: LamVU <lofm2605@gmail.com>
+---
+Not tested: I have not been able to build and boot a kernel with this
+change yet. The failure was observed with Ubuntu's 7.0.0-31-generic
+kernel, which already contains cd7ef20ba8c6. I can test a patched
+kernel and boot with dyndbg="file drivers/acpi/power.c +p" if needed.
+
+ drivers/acpi/power.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -1121,6 +1121,20 @@ static const struct dmi_system_id dmi_leave_unused_power_resources_on[] = {
+ 		}
+ 
+ 	},
++	{
++		/*
++		 * THUNDEROBOT 911Pro (board NLCC): same SSDT bug as the
++		 * THUNDEROBOT ZERO above. Power resource 'PXP' is turned off
++		 * as unused during initialization, which makes the NVMe drive
++		 * in the CPU-attached M.2 slot and the NVIDIA dGPU
++		 * inaccessible.
++		 */
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "THUNDEROBOT"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "911Pro"),
++			DMI_MATCH(DMI_BOARD_NAME, "NLCC"),
++		},
++	},
+ 	{}
+ };
+ 
