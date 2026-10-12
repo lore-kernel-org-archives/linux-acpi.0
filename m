@@ -1,257 +1,186 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4412A38C423;
-	Mon, 12 Oct 2026 22:18:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D383836654C;
+	Mon, 12 Oct 2026 22:51:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791843526; cv=none; b=B+G8+u9waSRARyOqDTKWyebuQm2cGQc0WLxLIDh/pUXbWJwzuKSeZ/7HhNblJrImrXBR968DwxTg79CWd5qT++1NWz/mMRuEeX2ml1v8w+rk9l6c3r6SyVmUQ10xwI/nUAkh/uJpcwk183e2LAcQXry71bOizHOkhH0qAhPYGjU=
+	t=1791845517; cv=none; b=PkMki2XpPJlvs0xHgVdUesh3+LeRY+F/ouC3ODaOWTUclrQ/5uIwyNb1YCmJxTz5NFUjlFmxcsiJL8CQGHpyFq2gIIDjQrwMOmjHuiZaiYLO2/m8Wxsp42rERywUrfXvNPtRPxf9PXaOXhFEmqCDBdgOEHB+wBehrMKlINlhZCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791843526; c=relaxed/simple;
-	bh=6q1dtZ4mFmGnR51E/lgbvW0mQS6LBiXKQ/GO0QIZaYE=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To; b=bX0l3WjkLUmKHrlhwxgBy7lFAeS/31SFV3Ub20F1jjmA2tcvZsWdR2m8DiGBq/2rMrN22gGXyfIrFsfaBnItjk2wy2xB/UhybKAiVyqojCCy5niZ12NKgha+VjT+99wcSFa7BglIhzxrpXpqzwKC41PVXKpSyFBxIKFeN/ktN3Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WRzyh2Na; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791845517; c=relaxed/simple;
+	bh=QNgm7YRCtg9UCfQ6U6AMDUC6DRY84cGS/wMi47wdjm4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=UwfDpizwht5eybZyot1Cn2oxdhH5G2n9UTNU935gmscADKe1KhEPy21WCl0yEI8HGZyDF0Ewc2gqn2JbKSNKMkkr2VB6PeihwtAsbX/c1gRZvaC2NaoAkAm/RX1/Us1GNiHCI73S5mIBE5cpUZ8kqwnx8GIgs8UeAtg87EMwNs8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=Bu66h0lE; arc=none smtp.client-ip=178.21.23.139
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WRzyh2Na"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F2381F0089B;
-	Mon, 12 Oct 2026 22:18:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791843524;
-	bh=SdztuT0CNnTRxqqFV8Jd29fRStGataYciuWQTe88Lno=;
-	h=Date:From:To:Cc:Subject:In-Reply-To;
-	b=WRzyh2NaOnyCk+x5vq84UE/CiaqgreCrQ8DcuAFs/hjqCahoZ4AxVCtVbPKnxbnEi
-	 SBXeYwTir5rsEnH8CYXbue+kf8thLFgZNZt0VZqttar8BlzicVrBs5P6se/tdOuAmr
-	 LDyvVM5UK63bLnT2Wd1+CybjUfwJD7CPWdD1SEf166OleHqPvLvMbwdM8rZWHa5Rj8
-	 NI3uwFN0mtNGxrp417pLAUBZHKwn2nWh3Ndckz+eX+n+K97yTbdSnLG2nCHxWlrJTd
-	 JVh6Y8xoPxJebFf0RufXiLajj9ZPnKdzV1HHVvqPjugiLuy2nFyfmUZ2KmzAt2+m+C
-	 v4a8yj+vUCr5Q==
-Date: Mon, 12 Oct 2026 17:18:43 -0500
-From: Bjorn Helgaas <helgaas@kernel.org>
-To: Herve Codina <herve.codina@bootlin.com>
-Cc: Richard Cheng <icheng@nvidia.com>, Andrew Lunn <andrew@lunn.ch>,
-	Rob Herring <robh@kernel.org>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Charles Keepax <ckeepax@opensource.cirrus.com>,
-	Richard Fitzgerald <rf@opensource.cirrus.com>,
-	David Rhodes <david.rhodes@cirrus.com>,
-	Linus Walleij <linusw@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>, Len Brown <lenb@kernel.org>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dan Williams <djbw@kernel.org>, Ira Weiny <iweiny@kernel.org>,
-	Li Ming <ming.li@zohomail.com>, Lizhi Hou <lizhi.hou@amd.com>,
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
-	linux-pci@vger.kernel.org, linux-sound@vger.kernel.org,
-	patches@opensource.cirrus.com, linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-cxl@vger.kernel.org,
-	Allan Nielsen <allan.nielsen@microchip.com>,
-	Horatiu Vultur <horatiu.vultur@microchip.com>,
-	Daniel Machon <daniel.machon@microchip.com>,
-	Steen Hegelund <steen.hegelund@microchip.com>,
-	Luca Ceresoli <luca.ceresoli@bootlin.com>,
-	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-	stable+noautosel@kernel.org
-Subject: Re: [PATCH v13 10/10] PCI: of: Avoid np->data usage for the node
- changeset
-Message-ID: <20261012221843.GA1409528@bhelgaas>
+	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="Bu66h0lE"
+Received: from mail01.layka.lan (localhost [127.0.0.1])
+	by disroot.org (Postfix) with ESMTP id E315C80B79;
+	Tue, 13 Oct 2026 00:51:52 +0200 (CEST)
+X-Virus-Scanned: SPAM Filter at disroot.org
+Received: from layka.disroot.org ([127.0.0.1])
+ by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
+ id ce-YODz7OvAK; Tue, 13 Oct 2026 00:51:51 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
+	t=1791845511; bh=QNgm7YRCtg9UCfQ6U6AMDUC6DRY84cGS/wMi47wdjm4=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=Bu66h0lEs93Df0+ytSVXdDJkOlzLttYod9x7Mr4nohwXykcmPAJtVSl77z9dMn5u3
+	 68DvZD+UTGjMsizVSUN3yLHQf8BPDJsP4PKeySv4KT9D+3NJmBdRJFxLHl64FSFBLC
+	 9wVRbSti7//SM5l4Xyeaoi8glySbWvFLvgHEc2WcQR/ySoGnHoqlm8PcqR80/FIxfp
+	 AO7mIM1z2T5sScu2yNcfuPM4K4kA9H0JlMPZ9WOe0xMLBPoRmHQpO/+o0N3ubruplL
+	 TyJEn2pFYViiY4PPSBJXTqX109AuBn0ln7D3lcWICMUA5tKwFHi44oQKPKOokk3Oeh
+	 BY2GgJy/o7s8Q==
+From: =?UTF-8?q?Ali=20Ahmet=20Memi=C5=9F?= <aliamemis@disroot.org>
+To: "Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>,
+	Armin Wolf <W_Armin@gmx.de>,
+	Charis Stratakis <c.stratakis@proton.me>,
+	linux-acpi@vger.kernel.org,
+	linux-pm@vger.kernel.org,
+	regressions@lists.linux.dev,
+	Mark Pearson <mpearson-lenovo@squebb.ca>,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH] ACPI: battery: Re-read battery information in the complete callback
+Date: Tue, 13 Oct 2026 01:46:57 +0300
+Message-ID: <20261012225141.13683-1-aliamemis@disroot.org>
+In-Reply-To: <37N_jFulf7n-Z55NfKfE71C_wVPxYvZ0xD_iRUg2fXu7TypDiF5PStQ6siSfVBih6fThg5WoPes8U5ZQpfVm_teMFcUGXFxz2DdMbfSWuws=@proton.me>
+References: <37N_jFulf7n-Z55NfKfE71C_wVPxYvZ0xD_iRUg2fXu7TypDiF5PStQ6siSfVBih6fThg5WoPes8U5ZQpfVm_teMFcUGXFxz2DdMbfSWuws=@proton.me>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261012142826.159178-11-herve.codina@bootlin.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Mon, Oct 12, 2026 at 04:28:24PM +0200, Herve Codina wrote:
-> of_pci_remove_node() and of_pci_remove_host_bridge_node() check
-> whether the node is dynamic but not whether it has valid private data.
-> 
-> During the node creation, an OF changeset is used and this changeset is
-> stored in np->data to be available for removal functions.
-> 
-> If, for instance, a PCI host bridge is created using a device-tree
-> overlay, the related node will have the dynamic flag set but np->data
-> will be NULL. This leads to NULL pointer dereferences.
-> 
-> Checking for a non-NULL np->data pointer to determine if the node has
-> been created by the PCI node creation process is not enough. Indeed,
-> on some platforms like PowerPC, the OF_RECONFIG_ATTACH_NODE notifier
-> (e.g., in the pci_dn_reconfig_notifier() function) intercepts node
-> additions and populates np->data with its own structure, such as a
-> struct pci_dn. In that case, np->data is not NULL but it is not related
-> to our changeset stored during the PCI node process creation.
-> 
-> Avoid the usage of np->data to store the changeset used during the PCI
-> node creation. Store our changeset in a more relevant structure: either
-> struct pci_dev when the node is created for a PCI device or struct
-> pci_host_bridge when the node is created for the PCI host bridge.
-> 
-> With that done, no ambiguity remains on removal. Indeed, this changeset,
-> if non-NULL, is the one used during PCI node creation. Check and use
-> this changeset on the removal process.
-> 
-> Fixes: 407d1a51921e ("PCI: Create device tree node for bridge")
-> Fixes: 1f340724419e ("PCI: of: Create device tree PCI host bridge node")
-> Cc: <stable+noautosel@kernel.org> # Issue not triggered but could be a problem
-> Signed-off-by: Herve Codina <herve.codina@bootlin.com>
+Since commit d33e89d12295 ("thermal: core: Suspend thermal zones later
+and resume them earlier"), thermal zones are resumed from dpm_complete(),
+before the PM_POST_SUSPEND notifier that re-reads _BIX and _BST. On
+ThinkPad P1 Gen2 and P53, INT3403 _TMP calls \GTST which switches the EC
+page selector (HIID) without taking the BATM mutex used by the battery
+methods. ACPICA releases the interpreter lock around EC accesses so the
+two methods interleave and _BIX often returns temperature page data
+after resume.
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Evaluate _BIX and _BST in the complete callback, which runs before
+dpm_complete() resumes thermal zones and leave only the sysfs
+re-registration to the notifier.
 
-> ---
->  drivers/pci/of.c    | 32 ++++++++++++++++++++------------
->  include/linux/pci.h | 11 +++++++++++
->  2 files changed, 31 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/pci/of.c b/drivers/pci/of.c
-> index 0a5797652e18..fbed24a244d0 100644
-> --- a/drivers/pci/of.c
-> +++ b/drivers/pci/of.c
-> @@ -732,15 +732,20 @@ void of_pci_remove_node(struct pci_dev *pdev)
->  {
->  	struct device_node *np;
->  
-> +	if (!pdev->cset)
-> +		return;
-> +
->  	np = pci_device_to_OF_node(pdev);
-> -	if (!np || !of_node_check_flag(np, OF_DYNAMIC))
-> +	if (!np)
->  		return;
->  
->  	fw_devlink_set_device(&np->fwnode, NULL);
->  	device_remove_of_node(&pdev->dev);
-> -	of_changeset_revert(np->data);
-> -	of_changeset_destroy(np->data);
-> +	of_changeset_revert(pdev->cset);
-> +	of_changeset_destroy(pdev->cset);
->  	of_node_put(np);
-> +	kfree(pdev->cset);
-> +	pdev->cset = NULL;
->  }
->  
->  void of_pci_make_dev_node(struct pci_dev *pdev)
-> @@ -800,18 +805,17 @@ void of_pci_make_dev_node(struct pci_dev *pdev)
->  	if (ret)
->  		goto out_clear_devlink_dev;
->  
-> -	np->data = cset;
-> -
->  	ret = device_add_of_node(&pdev->dev, np);
->  	if (ret)
->  		goto out_revert_cset;
->  
-> +	pdev->cset = cset;
-> +
->  	kfree(name);
->  
->  	return;
->  
->  out_revert_cset:
-> -	np->data = NULL;
->  	of_changeset_revert(cset);
->  out_clear_devlink_dev:
->  	fw_devlink_set_device(&np->fwnode, NULL);
-> @@ -828,16 +832,21 @@ void of_pci_remove_host_bridge_node(struct pci_host_bridge *bridge)
->  {
->  	struct device_node *np;
->  
-> +	if (!bridge->cset)
-> +		return;
-> +
->  	np = pci_bus_to_OF_node(bridge->bus);
-> -	if (!np || !of_node_check_flag(np, OF_DYNAMIC))
-> +	if (!np)
->  		return;
->  
->  	fw_devlink_set_device(&np->fwnode, NULL);
->  	device_remove_of_node(&bridge->bus->dev);
->  	device_remove_of_node(&bridge->dev);
-> -	of_changeset_revert(np->data);
-> -	of_changeset_destroy(np->data);
-> +	of_changeset_revert(bridge->cset);
-> +	of_changeset_destroy(bridge->cset);
->  	of_node_put(np);
-> +	kfree(bridge->cset);
-> +	bridge->cset = NULL;
->  }
->  
->  void of_pci_make_host_bridge_node(struct pci_host_bridge *bridge)
-> @@ -899,8 +908,6 @@ void of_pci_make_host_bridge_node(struct pci_host_bridge *bridge)
->  	if (ret)
->  		goto out_clear_devlink_dev;
->  
-> -	np->data = cset;
-> -
->  	/* Add the of_node to host bridge and the root bus */
->  	ret = device_add_of_node(&bridge->dev, np);
->  	if (ret)
-> @@ -910,6 +917,8 @@ void of_pci_make_host_bridge_node(struct pci_host_bridge *bridge)
->  	if (ret)
->  		goto out_remove_bridge_dev_of_node;
->  
-> +	bridge->cset = cset;
-> +
->  	kfree(name);
->  
->  	return;
-> @@ -917,7 +926,6 @@ void of_pci_make_host_bridge_node(struct pci_host_bridge *bridge)
->  out_remove_bridge_dev_of_node:
->  	device_remove_of_node(&bridge->dev);
->  out_revert_cset:
-> -	np->data = NULL;
->  	of_changeset_revert(cset);
->  out_clear_devlink_dev:
->  	fw_devlink_set_device(&np->fwnode, NULL);
-> diff --git a/include/linux/pci.h b/include/linux/pci.h
-> index d31a8d107b1e..7b0ba9ec7b5c 100644
-> --- a/include/linux/pci.h
-> +++ b/include/linux/pci.h
-> @@ -339,6 +339,9 @@ struct pcie_link_state;
->  struct pci_sriov;
->  struct pci_p2pdma;
->  struct rcec_ea;
-> +#ifdef CONFIG_PCI_DYNAMIC_OF_NODES
-> +struct of_changeset;
-> +#endif
->  
->  /* struct pci_dev - describes a PCI device
->   *
-> @@ -598,6 +601,10 @@ struct pci_dev {
->  	u8		tph_mode;	/* TPH mode */
->  	u8		tph_req_type;	/* TPH requester type */
->  #endif
-> +
-> +#ifdef CONFIG_PCI_DYNAMIC_OF_NODES
-> +	struct of_changeset *cset; /* Changeset used for OF node creation */
-> +#endif
->  };
->  
->  static inline struct pci_dev *pci_physfn(struct pci_dev *dev)
-> @@ -670,6 +677,10 @@ struct pci_host_bridge {
->  	unsigned int	broken_l1ss_resume:1;	/* Resuming from L1SS during
->  						   system suspend is broken */
->  
-> +#ifdef CONFIG_PCI_DYNAMIC_OF_NODES
-> +	struct of_changeset *cset; /* Changeset used for OF node creation */
-> +#endif
-> +
->  	/* Resource alignment requirements */
->  	resource_size_t (*align_resource)(struct pci_dev *dev,
->  			const struct resource *res,
-> -- 
-> 2.55.0
-> 
+Fixes: d33e89d12295 ("thermal: core: Suspend thermal zones later and resume them earlier")
+Reported-by: Charis Stratakis <c.stratakis@proton.me>
+Closes: https://lore.kernel.org/all/37N_jFulf7n-Z55NfKfE71C_wVPxYvZ0xD_iRUg2fXu7TypDiF5PStQ6siSfVBih6fThg5WoPes8U5ZQpfVm_teMFcUGXFxz2DdMbfSWuws=@proton.me/
+Cc: stable@vger.kernel.org
+Signed-off-by: Ali Ahmet Memiş <aliamemis@disroot.org>
+---
+Ran into this (report) while reading the EC firmware of my T490.
+The P1 Gen2 EC has the same single page selector.
+
+Tested on 7.3-rc7 with an SSDT that makes a thermal zone keep calling a
+copy of the P1 Gen2 \GTST after resume.  _BIX was broken after 5 of 5
+resumes without the patch and 0 of 5 with it.
+
+Doing it in the resume callback also works but _BIX takes about 75 ms
+there right after resume against about 35 ms here (and by the complete
+callback all operation region providers have resumed too).
+
+ drivers/acpi/battery.c | 62 ++++++++++++++++++++++++++++--------------
+ 1 file changed, 42 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 670853ec3a4d..34f2e78c4314 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -107,6 +107,7 @@ struct acpi_battery {
+ 	struct notifier_block pm_nb;
+ 	struct list_head list;
+ 	unsigned long flags;
++	bool resume_reregister;
+ 
+ 	struct mutex property_lock; /* Protects properties below. */
+ 	unsigned long update_time;
+@@ -1209,29 +1210,15 @@ static int battery_notify(struct notifier_block *nb,
+ 	if (mode == PM_POST_SUSPEND || mode == PM_POST_HIBERNATION) {
+ 		guard(mutex)(&battery->update_lock);
+ 
+-		if (!acpi_battery_present(battery))
++		if (!battery->resume_reregister)
+ 			return 0;
+ 
+-		if (battery->bat) {
+-			acpi_battery_refresh(battery);
+-		} else {
+-			int result;
+-
+-			scoped_guard(mutex, &battery->property_lock) {
+-				result = acpi_battery_get_info(battery);
+-				if (result)
+-					return result;
+-			}
++		battery->resume_reregister = false;
+ 
+-			result = sysfs_add_battery(battery);
+-			if (result)
+-				return result;
+-		}
++		if (battery->bat)
++			sysfs_remove_battery(battery);
+ 
+-		scoped_guard(mutex, &battery->property_lock) {
+-			acpi_battery_init_alarm(battery);
+-			acpi_battery_get_state(battery);
+-		}
++		return sysfs_add_battery(battery);
+ 	}
+ 
+ 	return 0;
+@@ -1450,7 +1437,42 @@ static int acpi_battery_resume(struct device *dev)
+ 	return 0;
+ }
+ 
+-static DEFINE_SIMPLE_DEV_PM_OPS(acpi_battery_pm, NULL, acpi_battery_resume);
++static void acpi_battery_complete(struct device *dev)
++{
++	struct acpi_battery *battery = dev_get_drvdata(dev);
++
++	if (!battery)
++		return;
++
++	guard(mutex)(&battery->update_lock);
++
++	if (!acpi_battery_present(battery))
++		return;
++
++	/*
++	 * Evaluate _BIX and _BST here before thermal zones are resumed, as
++	 * some firmware shares the EC window with _TMP without locking.
++	 */
++	guard(mutex)(&battery->property_lock);
++
++	if (battery->bat) {
++		int power_unit = battery->power_unit;
++
++		acpi_battery_get_info(battery);
++		if (power_unit != battery->power_unit)
++			battery->resume_reregister = true;
++	} else if (!acpi_battery_get_info(battery)) {
++		battery->resume_reregister = true;
++	}
++
++	acpi_battery_init_alarm(battery);
++	acpi_battery_get_state(battery);
++}
++
++static const struct dev_pm_ops acpi_battery_pm = {
++	SYSTEM_SLEEP_PM_OPS(NULL, acpi_battery_resume)
++	.complete = pm_sleep_ptr(acpi_battery_complete),
++};
+ 
+ static struct platform_driver acpi_battery_driver = {
+ 	.probe = acpi_battery_probe,
+-- 
+2.55.0
+
