@@ -1,75 +1,61 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B096384CDA;
-	Mon, 12 Oct 2026 22:55:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43CF73A5440;
+	Mon, 12 Oct 2026 22:58:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791845716; cv=none; b=INOb+qzCO4tRAYWH4VoGG1gPuQoFZXLSYhImDuteX6sQXNYu5a6Luot93fqVz0/n4fF1AthI2Seg+H0L5ybt2azVWyX2Az7s2E49XaUJgaYNrx73xQMCPVA+dc64UnmN2Lv7XydwNzPA+UfrUPyRZJFXrUqQ/q7iVZKXlVJpu+0=
+	t=1791845935; cv=none; b=Jmupq1dqqTg5BUJSmD8aQkZvo7xfHeFyMF7m4c4xXqneBDTWpLBCYd46kNfM4dxx9bVjrqbEgvgxEdp+rNGfDvwixO/y3IUqhlY2BaHbXQw9uYGuZlx0f9GDxi/u6GXDfPnILOh3OEizxy2kEIMAs+2AzBaOxtDonv66cpbQgfM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791845716; c=relaxed/simple;
-	bh=mzwEaypCwzwTdzF/5CWu6gt+vWvFYueUIderpRNUGEI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Gq64P3HcpeqO5gwhPS9PC6fjufata2Vehb06Am7OZdbUD1E6XxkmIOHOC31jYzQhi72Iu3zzCwB0WdVxje73ts8/DrxcOicvRDwIByrPPGwfibovlhvPFd1pwFz6px0GnYSQ0Im0UaHibtDIbQh7V8sPoIniH+4BRyITjT8YIHI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hMl0uiV+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791845935; c=relaxed/simple;
+	bh=HEEje7McDOxETsPcHD0Fa1nv4xRG1TwxJAGb1MDDAus=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=tNxZqL0fUGS/2WTW4IDr3qxI2f8phzj42YDOhFOoVW+YINwJV1fSBzfaqmyvvPImeIWz4qXWmWu8+5yQj/j2X56wv5ZUeLmelIlUkVMOGrAM4Qw4cA+ks/L+H7SCUEmmrFhrELqrikq6qOiifflR+wWOfira4prii9QDWTH9tWI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=DlTbccM1; arc=none smtp.client-ip=178.21.23.139
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hMl0uiV+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B8EE1F0089B;
-	Mon, 12 Oct 2026 22:55:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791845715;
-	bh=F4gL4AuSV3iViioxl00z0ZJvZKon3k2zQeY4DYfAv1k=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=hMl0uiV+6WOvPPohkLGx1abAsT+eYk+Gbl1hlY1aiPWtBx/+pS0MZW1NkLDr/W2RR
-	 1rW9c6FMcf7dGuDVQwAiH+KyQ/jcBDjBtM8CgV3U1ZedlER9wV3BLwgZ/uvIS0RrVy
-	 7OoDi++i28I0n+csOLJqvg1gEb8etoS/+UtnGZy5ByZUIXmXNhrf4p+q+5Gc20Bgpv
-	 HHw/j3TXiFPBbPFl8sqAMi7t7PtEnpvr+f7psZ09ilYVbqSn/PvSD/9YqeCqMRdmgU
-	 51wXmJJmf0QEvAgPyHRKv5ORLo7Hi+bvH6M25MbOr8rRfAa0Qv9lFAunA320JN6+n3
-	 oy9VVRpObGWrg==
-Date: Tue, 13 Oct 2026 00:55:13 +0200
-From: Andi Shyti <andi.shyti@kernel.org>
-To: Hans de Goede <johannes.goede@oss.qualcomm.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, 
-	linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH 2/2] i2c: acpi: Add AttribRawBytes accessor-type support
- to OpRegion handler
-Message-ID: <as1gYyr53eIxdzZV@zenone.zhora.eu>
-References: <20260919193642.43058-1-johannes.goede@oss.qualcomm.com>
- <20260919193642.43058-2-johannes.goede@oss.qualcomm.com>
+	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="DlTbccM1"
+Received: from mail01.layka.lan (localhost [127.0.0.1])
+	by disroot.org (Postfix) with ESMTP id CD26280D5F;
+	Tue, 13 Oct 2026 00:58:52 +0200 (CEST)
+X-Virus-Scanned: SPAM Filter at disroot.org
+Received: from layka.disroot.org ([127.0.0.1])
+ by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
+ id n7j6skB5oEUT; Tue, 13 Oct 2026 00:58:52 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
+	t=1791845932; bh=HEEje7McDOxETsPcHD0Fa1nv4xRG1TwxJAGb1MDDAus=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=DlTbccM10HWjMz1OL+3wToVKcE7x8qHI01ipL8K1aqtOEG27M++Rjk6uukzGRs1B5
+	 vKHahqOL7EL6trBrwl3ntH1ljhq/xtL6DVUEWXuukiTHWiiOQEm6OVFuCvG8WoPpC2
+	 DDsnoIeARStHj5Gg2L8NwcfKuU0R6Zinq1wBbZ+pEP5BoitjBN+desxVNUgH1BnAbM
+	 kXOqGH1oEjMZcFaM9kfRUe27MDBwov9FhSfGsTrqxNHWYC4lTXurgKpcJBkALUzhqp
+	 aHquQibydzMgV65DpUK2Sdu2MEaL0uqa065cLb4TRgJt2BahS9qVOQt7QoQAQiKNug
+	 uZXfOcQj37FlQ==
+From: =?UTF-8?q?Ali=20Ahmet=20Memi=C5=9F?= <aliamemis@disroot.org>
+To: Charis Stratakis <c.stratakis@proton.me>
+Cc: "Rafael J . Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Armin Wolf <W_Armin@gmx.de>,
+	linux-acpi@vger.kernel.org,
+	linux-pm@vger.kernel.org,
+	regressions@lists.linux.dev,
+	Mark Pearson <mpearson-lenovo@squebb.ca>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] ACPI: battery: Re-read battery information in the complete callback
+Date: Tue, 13 Oct 2026 01:58:40 +0300
+Message-ID: <20261012225841.15260-1-aliamemis@disroot.org>
+In-Reply-To: <20261012225141.13683-1-aliamemis@disroot.org>
+References: <37N_jFulf7n-Z55NfKfE71C_wVPxYvZ0xD_iRUg2fXu7TypDiF5PStQ6siSfVBih6fThg5WoPes8U5ZQpfVm_teMFcUGXFxz2DdMbfSWuws=@proton.me> <20261012225141.13683-1-aliamemis@disroot.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260919193642.43058-2-johannes.goede@oss.qualcomm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Hi Hans,
+Hi Charis, could you test this on the P1 Gen2?
 
-...
-
-> +	case ACPI_GSB_ACCESS_ATTRIB_RAW_BYTES:
-> +		if (action == ACPI_READ)
-> +			status = i2c_master_recv(client, gsb->data, info->access_length);
-> +		else
-> +			status = i2c_master_send(client, gsb->data, info->access_length);
-> +
-> +		if (status >= 0) {
-> +			gsb->len = status;
-> +			status = 0;
-> +		}
-
-We should also check whether status != info->access_length.
-
-Andi
-
-> +		break;
-> +
->  	default:
->  		dev_warn(&adapter->dev, "protocol 0x%02x not supported for client 0x%02x\n",
->  			 accessor_type, client->addr);
-> -- 
-> 2.55.0
-> 
+(Resending with the lists in Cc, the first one only went to you.)
