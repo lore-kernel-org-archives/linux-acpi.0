@@ -1,54 +1,57 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01C1D52CCC3
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 17:49:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2197B51DDF4
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 17:51:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.171.202.116
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791913746; cv=none; b=dbzgZN7oYgMyl9e1sd1HBfrJi7gkKxOFx3c4szpKPtXVBqFHGRwR3d4aSfMbhEZX9D6y7Jt4R85Abs8gIdySCyo0FsDN8OPwH2TceuVOyVjyTssQ2cD9oEy4DjxL9m1BQ5a/zzBhItH3QD/XMjXpJhMvOv3iL0OzkokKAqwMFKY=
+	t=1791913872; cv=none; b=TdwGeiuoZ9+YZtrRA5cjpgEGlBP2KXk4WENxCHtBbl71vacM2hUfd7JDQxSvFSLyUYvhx8iqyK2+aQPIE+xnUzs8NXyzAfGcdizMS0EvWu9Cf7wbitXaD5aGgfxTwlLY5+TvOKIDJWSNmFRtMKpIFwPimqG9ggUJvDPARJCR+6E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791913746; c=relaxed/simple;
-	bh=coh97i91GMzxgaGzGrlbpw70oGHkJw68wM+Zt07XG1w=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ihyA40/hOfMLTDto/70KGLzDnozWkcuFk6sHV3RHZB/4hS2EbpyiNTJXdax8lnny6+AL1ntE/1W67Ugk+H83KVyznHJT1pnGsPetEgW+tAFq+svf4sODXhAk3vYQ+sNeWupQ2C3RtgrZW3Ynxk8Iyy9wynhamckkLhMlyFRYBxs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=aw6ckeqC; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=Wkzof3rD; arc=none smtp.client-ip=185.246.84.56
+	s=arc-20240116; t=1791913872; c=relaxed/simple;
+	bh=0ZVSDy/LDJO97vC3tLuh4OT4TgC75qZZvsTx5NjlANs=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=IRCArT/3gCLtrh/8eYXAjLlK3gHY7Z3FkxrfuDlu9bamS7T0G+XMmLvIYqUzrF43CiWsRysG75TlN9ksqUj8EJ+X/of4jmu8HdWwdWahUSgScj43iEOKBrOk8lfm3WLrh66+3tfsAYzi6ZCe5t+SaFoyQz+EPwJqGtaQlqa1zsQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=FfXxcgiR; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=Hoko8MzG; arc=none smtp.client-ip=185.171.202.116
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="aw6ckeqC";
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="Wkzof3rD"
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="FfXxcgiR";
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="Hoko8MzG"
 Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id 5E66E1A1218
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 17:49:03 +0000 (UTC)
+	by smtpout-04.galae.net (Postfix) with ESMTPS id 43609C653FB
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 17:52:02 +0000 (UTC)
 Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 2C7D560362
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 17:49:03 +0000 (UTC)
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 94F3260362
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 17:51:06 +0000 (UTC)
 Received: by mail.galae.net (Postcow, from userid 0)
-	id B6E9E11D71873; Tue, 13 Oct 2026 19:48:20 +0200 (CEST)
+	id 40A7D11D7183E; Tue, 13 Oct 2026 19:48:44 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1791913742; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding; bh=wUOs5uXVmY1mRqqy3/QemKBbWww+Uoitwg1gZJXQ6Tg=;
-	b=aw6ckeqCEyB9kVN2NY7VkgVInsGi9E5RsXDCI41YV3a7HniV+dCvtUqVJdGmqM6eZSZLOM
-	JLS1j1j2VC8El3sLrjQwLdnflRwXbjN1mK2mMLaXIhQycWY+lCTFMFswpOKDrhS8fO1tUP
-	3E4a6FVVB2cbLVnONh23YjmgXf1rez2Mr2doXIdZ0cJ5qRuHGr1V5PHUa1o9UqAtdMShrP
-	+qVfyYrS/9hoh/VxKgAr82sEYS6YcFZIvRe+jt311fI/gvE4wOqsPS5xY2E2jti6XfszGi
-	C+Q/qiVTdO80eRB8so96cbOwlQbqjEGWGc4SCk7/jqyQgGwjf0COSVSi9h2cUw==
+	t=1791913866; h=from:subject:date:message-id:to:cc:mime-version:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=Na0mRyoPGBmF35tlBiCSnNCwVd3XJHe2sy4GlOzuQp0=;
+	b=FfXxcgiRiWap9iWSc3+Dfa0bud4sYSD4j3F0zBltet2I7IrNMtFoxB54GZzHS9LI7Ivqj6
+	Ex0PfdghZ26Xf7o+trUqIm09cGE2Dt07da+up5JJcTgNfZz8h4q6UcqHWm8II98bFLCkBt
+	QOZLISio7XOw4NOMl6TiVd1TROeRgUX1xMHrS27LEV/dCWyB8U80rNLE2cy/7fsGZ2W3sn
+	iKSDgHmnHxZH91gGhp+eJikKayAFv1t11ouI8MpTuxcDRd/z3hQpaAtE7ogYNabbugF/Lr
+	OvgTeROVcD6TM6+ftl0JkPp06lCbpumKZ+8earY1z8p8wMnMoVQxvRoVA2IEQA==
 Authentication-Results: mail.galae.net;
 	none
 Received: from mail.galae.net ([172.22.1.253])
 	by 9e7fea892943 with LMTP
-	id +DDUG6XuzGof6hAAtaWaaQ
+	id ELtXHsnuzGpsHhEAtaWaaQ
 	(envelope-from <herve.codina@bootlin.com>)
-	for <herve.codina@bootlin.com>; Mon, 12 Oct 2026 16:28:53 +0200
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id E780111D70508;
-	Mon, 12 Oct 2026 16:28:34 +0200 (CEST)
+	for <herve.codina@bootlin.com>; Mon, 12 Oct 2026 16:29:29 +0200
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 7B30C11D708B4;
+	Mon, 12 Oct 2026 16:29:21 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1791815330; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding; bh=wUOs5uXVmY1mRqqy3/QemKBbWww+Uoitwg1gZJXQ6Tg=;
-	b=Wkzof3rD5kKIsOEnRGDp7BVqKeR2NLQY2ze9BkjKCjB5QmBIA++Z9+Y6MhDw8UAa35Svg5
-	7Ukcj+YB9/Qpx93I4NVY6Lm+YpRxajp1iVVOLDfgmdrwy2SX2D0UuNP+BBo84Yu36ngRYo
-	lZohkHjBtsxFR1rmVtCl+jhIGH9Z3PqPSyeAMdBja3kfu8lEvSnTgyevgnY+yHVEUwrGtJ
-	CsgPL9tpndp1sOi4EgOyif9Bs2F2VkeprFPZ4X8bAP28Zz4fWnWgWbBYcfwNxKn3OBdai/
-	7KhMuBb7CqhWVMStvYFupmc3rDQYDoX7D0uVfzCk65jFcbDVngqIf6eiJDpuvg==
+	t=1791815366; h=from:subject:date:message-id:to:cc:mime-version:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=Na0mRyoPGBmF35tlBiCSnNCwVd3XJHe2sy4GlOzuQp0=;
+	b=Hoko8MzG9YghdjWsMWH1FG4mdeE/idc52QjtW1XaQfKmNgmixcNvP3Pwk4fBeEW4N16R4W
+	feLtxyVvVPxmHPbqNm/sBeN4FFHtZtWeUJiUtNJwWjaCsu0ZN8ANNlOPGEVvqckN6s+Jgi
+	30cPR0fZaP8wxQKKl3Nywue5xddaFrE2/kO7ELLwk24WVdyMRi6eDX8OCjUTfaD1TNrf7i
+	va6HuIV/ZR5QNI8g6PwjngDZkHJI5H9ftwx8RqK5x0OVseGjQMoxUOoF2c9Cf3G3RUDi4l
+	gv9/CNL6tYLEK5ZGZ/M4uwItriXO1INSIMphGPtlQm/L1jKUhJlBO4YkS2pB5g==
 From: Herve Codina <herve.codina@bootlin.com>
 To: Richard Cheng <icheng@nvidia.com>,
 	Andrew Lunn <andrew@lunn.ch>,
@@ -91,212 +94,78 @@ Cc: driver-core@lists.linux.dev,
 	Daniel Machon <daniel.machon@microchip.com>,
 	Steen Hegelund <steen.hegelund@microchip.com>,
 	Luca Ceresoli <luca.ceresoli@bootlin.com>,
-	Thomas Petazzoni <thomas.petazzoni@bootlin.com>
-Subject: [PATCH v13 00/10] lan966x pci device: Add support for SFPs, PCI part
-Date: Mon, 12 Oct 2026 16:28:14 +0200
-Message-ID: <20261012142826.159178-1-herve.codina@bootlin.com>
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+	Jonathan Cameron <jonathan.cameron@huawei.com>,
+	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Subject: [PATCH v13 04/10] cxl/test: Use device_set_node()
+Date: Mon, 12 Oct 2026 16:28:18 +0200
+Message-ID: <20261012142826.159178-5-herve.codina@bootlin.com>
 X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20261012142826.159178-1-herve.codina@bootlin.com>
+References: <20261012142826.159178-1-herve.codina@bootlin.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-Last-TLS-Session-Version: TLSv1.3
 X-Last-TLS-Session-Version: None
-X-Rspamd-Queue-Id: B6E9E11D71873
-X-Spamd-Result: default: False [-1.38 / 30.00];
-	BAYES_HAM(-3.38)[94.10%];
-	MID_CONTAINS_FROM(1.00)[];
+X-Rspamd-Queue-Id: 40A7D11D7183E
+X-Spamd-Result: default: False [2.42 / 30.00];
 	DATE_IN_PAST(1.00)[27];
+	MID_CONTAINS_FROM(1.00)[];
+	R_MISSING_CHARSET(0.50)[];
 	MIME_GOOD(-0.10)[text/plain];
 	RCVD_NO_TLS_LAST(0.10)[];
+	BAYES_HAM(-0.08)[58.67%];
 	PREVIOUSLY_DELIVERED(0.00)[herve.codina@bootlin.com];
 	RCVD_VIA_SMTP_AUTH(0.00)[];
 	BCC(0.00)[];
-	DKIM_SIGNED(0.00)[bootlin.com:s=dkim];
+	NEURAL_HAM(-0.00)[-1.000];
 	ARC_NA(0.00)[];
 	MIME_TRACE(0.00)[0:+];
 	FORWARDED(0.00)[herve.codina@bootlin.com];
-	RCPT_COUNT_TWELVE(0.00)[42];
+	RCPT_COUNT_TWELVE(0.00)[44];
 	TO_MATCH_ENVRCPT_SOME(0.00)[];
-	FREEMAIL_TO(0.00)[nvidia.com,lunn.ch,kernel.org,linuxfoundation.org,google.com,opensource.cirrus.com,cirrus.com,linux.intel.com,gmail.com,stgolabs.net,intel.com,zohomail.com,bootlin.com,amd.com];
+	DKIM_SIGNED(0.00)[bootlin.com:s=dkim];
 	TO_DN_SOME(0.00)[];
-	RECEIVED_HELO_LOCALHOST(0.00)[];
-	URIBL_BLOCKED(0.00)[bootlin.com:mid,localhost:rdns,localhost:helo];
-	FROM_HAS_DN(0.00)[];
 	RCVD_COUNT_TWO(0.00)[2];
-	NEURAL_HAM(-0.00)[-1.000];
+	URIBL_BLOCKED(0.00)[qualcomm.com:email,localhost:rdns,localhost:helo,bootlin.com:mid,bootlin.com:email,nvidia.com:email,intel.com:email,huawei.com:email];
+	FREEMAIL_TO(0.00)[nvidia.com,lunn.ch,kernel.org,linuxfoundation.org,google.com,opensource.cirrus.com,cirrus.com,linux.intel.com,gmail.com,stgolabs.net,intel.com,zohomail.com,bootlin.com,amd.com];
 	FROM_EQ_ENVFROM(0.00)[];
+	RECEIVED_HELO_LOCALHOST(0.00)[];
+	FROM_HAS_DN(0.00)[];
 	MAILCOW_DOMAIN_HEADER_FROM(0.00)[bootlin.com]
 
-Hi,
+The code set directly dev->fwnode.
 
-Previously, I sent a big picture series adding support for SFP ports
-available on the LAN966x PCI device [0].
+Use the dedicated helper to perform this operation.
 
-In this series patches touch several parts and sub-system in the kernel.
-Reviews have be done and it makes sense to split the series and send
-parts separately.
+Signed-off-by: Herve Codina <herve.codina@bootlin.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Richard Cheng <icheng@nvidia.com>
+Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+---
+ tools/testing/cxl/test/cxl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-This current series is the extraction of patches related to issues in
-the PCI subsystem. It has to be seen as a continuation of the big
-picture series but related to this specific core part.
-
-Patches 1 to 6 introduce and use fw_devlink_set_device() in already
-existing code. No functional change but the introduction of the
-fw_devlink_set_device() wrapper.
-
-Patch 7 avoids a dangling pointer.
-
-Patches 8 and 9 fix fw_devlink issues specific to PCI and the
-device-tree nodes created during enumeration.
-
-Patch 10 avoids the usage of np->data and adds guards to prevent
-incorrect nodes removal.
-
-[0] https://lore.kernel.org/all/20260325143555.451852-1-herve.codina@bootlin.com/
-
-Best regards,
-Hervé
-
-Changes:
-
-v12 -> v13
-  v12: https://lore.kernel.org/all/20261001142815.277550-1-herve.codina@bootlin.com/
-
-  - Patches 1 to 9
-    No changes
-
-  - Patch 10
-    Split a test condition into two distinct checks as suggested by
-    Andy. No functional change but readability improvement. Split done
-    in both of_pci_remove_node() and of_pci_remove_host_bridge_node().
-
-v11 -> v12
-  v11: https://lore.kernel.org/all/20260909080114.591938-1-herve.codina@bootlin.com/
-
-  - Patches 1 to 7
-    Add 'Reviewed-by: Bartosz Golaszewski'
-
-  - Patches 8 and 9
-    No changes
-
-  - Patch 10
-    Add a NULL check for the retrieved OF node in removal functions to
-    avoid any NULL pointer dereferences.
-    Robustify the guard setting cset to NULL after freeing it.
-    Those issues have been reported by Shashiko:
-    https://lore.kernel.org/all/20260909081755.444E91F00A3A@smtp.kernel.org/
-
-v10 -> v11
-  v10: https://lore.kernel.org/all/20260717145147.823749-1-herve.codina@bootlin.com/
-
-  Rebase on top of v7.3-rc1
-
-  - Patches 1 to 5
-    Add 'Reviewed-by: Richard Cheng'
-
-  - Patches 6, 7 and 8
-    Add 'Reviewed-by: Richard Cheng'
-    Add 'Acked-by: Manivannan Sadhasivam'
-
-  - Patch 9
-    Add 'Reviewed-by: Richard Cheng'
-
-  - Patch 10
-    Rework removing np->data usage in the PCI devicetree node creation
-    and removal.
-
-v9 -> v10
-  v9: https://lore.kernel.org/all/20260708100302.517792-1-herve.codina@bootlin.com/
-
-  - Patches 1 to 6
-    No changes
-
-  - Patch 7
-    Clear fwnode->dev also on error path.
-
-  - Patch 8
-    Clear fwnode->dev also on error path.
-
-  - Patch 9
-    No changes
-
-  - Patch 10 (New patch in v10)
-    Guard against node removal with incorrect np->data.
-
-v8 -> v9
-  v8: https://lore.kernel.org/all/20260630102804.413563-1-herve.codina@bootlin.com/
-
-  - Patch 7 (new patch in v9)
-    Clear fwnode->dev during root bridge node removal (avoid a dangling
-    pointer).
-
-  - Patch 8 (patch 7 in v8)
-    Clear fwnode->dev during PCI device node removal.
-
-v7 -> v8
-  v7: https://lore.kernel.org/all/20260511155930.34604-1-herve.codina@bootlin.com/
-
-  Rebase on top of v7.2-rc1
-
-  - patches 4 and 5
-    Add 'Reviewed-by: Andy Shevchenko'
-
-  - Other Patches
-    No other changes
-
-v6 -> v7
-
-  Rebase on top of v7.1-rc1
-
-  - Patch 1
-     Add Cc stable. Needed for patches 11 and 12
-
-  - Patches 2 to 5
-    No changes
-
-  - Patch 6
-     Add Cc stable. Needed for patch 13
-     Add 'Acked-by: Bjorn Helgaas'
-
-  - Patch 7
-     Fix a typo in commit log
-     Add Fixes tag + Cc stable
-     Add 'Acked-by: Bjorn Helgaas'
-
-  - Patch 8
-     Add Fixes tag + Cc stable
-     Add 'Acked-by: Bjorn Helgaas'
-Older iterations:
-  Patches 6 to 13 in the big picture series
-  https://lore.kernel.org/all/20260325143555.451852-1-herve.codina@bootlin.com/
-
-Herve Codina (10):
-  driver core: fw_devlink: Introduce fw_devlink_set_device()
-  drivers: core: Use fw_devlink_set_device()
-  pinctrl: cs42l43: Use fw_devlink_set_device()
-  cxl/test: Use device_set_node()
-  cxl/test: Use fw_devlink_set_device()
-  PCI: of: Use fw_devlink_set_device()
-  PCI: of: Clear fwnode->dev during root bridge node removal and error
-    path
-  PCI: of: Set fwnode device of newly created PCI device nodes
-  PCI: of: Remove fwnode_dev_initialized() call for a PCI root bridge
-    node
-  PCI: of: Avoid np->data usage for the node changeset
-
- drivers/base/core.c                      |  4 +-
- drivers/pci/of.c                         | 52 ++++++++++++++++--------
- drivers/pinctrl/cirrus/pinctrl-cs42l43.c |  2 +-
- include/linux/fwnode.h                   |  6 +++
- include/linux/pci.h                      | 11 +++++
- tools/testing/cxl/test/cxl.c             |  4 +-
- 6 files changed, 58 insertions(+), 21 deletions(-)
-
+diff --git a/tools/testing/cxl/test/cxl.c b/tools/testing/cxl/test/cxl.c
+index 62bd92b3be45..547ebc97bf59 100644
+--- a/tools/testing/cxl/test/cxl.c
++++ b/tools/testing/cxl/test/cxl.c
+@@ -1677,7 +1677,7 @@ static void mock_companion(struct acpi_device *adev, struct device *dev)
+ {
+ 	device_initialize(&adev->dev);
+ 	fwnode_init(&adev->fwnode, NULL);
+-	dev->fwnode = &adev->fwnode;
++	device_set_node(dev, &adev->fwnode);
+ 	adev->fwnode.dev = dev;
+ }
+ 
 -- 
 2.55.0
 
