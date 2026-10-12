@@ -1,324 +1,123 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from BL2PR02CU003.outbound.protection.outlook.com (mail-eastusazon11011003.outbound.protection.outlook.com [52.101.52.3])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEFD74D17B0
-	for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 18:21:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791829283; cv=none; b=LeceJiIAxYz+4cfPKmwQpXRZpfwTPYKWbFIfiXGQoSedZ/Y9Cac6WG99vKyfKGMovIeig3SWFr0RoAXcBL3xEQ+2PK8+a3gYXajB7K42L0lhuS2CjLNHQfVK3loXPLKjOzYimISs7LEVMUydbW6o/PFd++E94fvdKdw40qIwdL4=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791829283; c=relaxed/simple;
-	bh=RnY8lPHIFP3jmQr3m+6xqpYC8Mv4DIN5BZGA5Z0IwSI=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=jUmE7yQjOHbNS7CjAU15tes1td5niiRIBRcC5z5J6qQ/AQWaeo94SL+ivKBYgjJMO0MbIl5dkOgDPP69yqAWXqlEYanaChDun1eBf12/8AgxKic47g/7I2To5FVBQQj03+YwD8vrhlMle7JXYS6XQ5Yo7iSbZeQJz3g4uFoo+GA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nytZ1PIK; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B6924DAF93;
+	Mon, 12 Oct 2026 18:43:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.52.3
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791830633; cv=fail; b=KM9uyaCBxYGAvaryRMYo6O+u47uxxAl3+D/dEwST9IYwLVrv+3i1cfIIaApc7Nqh6i26qIqI2e2lTiGrXftIjbuWzPTDTRWstarPsB2FhFjGfK5OsCwnNsAmpJP1H38THKGAMx5za9Idc9U1PkR/+IB24tgs0Qud7BjJBJPAZy8=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791830633; c=relaxed/simple;
+	bh=bvdITlXxXRs9+bE1z27dUqm2hDNvQ4h8RL3okI6zm0k=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=u5jmLW15vT8mxG9Kp12czdjSVl93JLdNQJ+VTvM0m4TSrR5M0J3rvGtk6I5P0F+uz1o0QLE49gCaAhoWID3eQoMjuHaQ6J+d+/JTOkuVe1oNYF18qqfzpRmW4Fapl3ieQYSk416RBPmUllpv4zF/vVNu3lk9mh1YwQh2NR6sgX4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=NauwYn5b; arc=fail smtp.client-ip=52.101.52.3
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nytZ1PIK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A1D71F008A2
-	for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 18:21:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791829281;
-	bh=GCKWXxEM7wbFA/APNv4BotWXro/we/hiP8BlFU4oiJg=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=nytZ1PIKnwCbPznACBxrltd7zXVnlXHe7vXlu4KnDV6S4JEkc++0mecKRXOgWTKAA
-	 BmYLzxnqv/rRXhkR4HLdhBWE/JEl0NpxOJF5n95GLHBXY2UANSSZWvEGPxolIxWX47
-	 ibW3X9hontKkdy+xyhO24vF/agUqArY/XeLlzYmxJ+iFfwCyeaNuFTvRf8Y36sX8sz
-	 tvV02kCdP3y305fAN2kHYF+abE2OQY6fN43pGf3HhoqXmp0THtt8+yA9H48kAU7QZC
-	 DEuzu83sPzYYTenAad1Dydub/KMExPXUsF2V4o885i0Lydm3l+PEx2VtuPq+/xlRQj
-	 IuQdtxEh+Immg==
-Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5b8b3c8c4bbso4960192e87.0
-        for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 11:21:21 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBwJB8X2V6cl6W6Rl8nbpVCdMWSYl+xTjDbR5AR+aYKJXC7xKruzjLOk2kZDfaWEq3sfSm0/0y9lS7SS@vger.kernel.org
-X-Gm-Message-State: AFq9FYIssDWiS4trBjFTSqhT6bNibtgMisKqBD3JghGQf40xGx7uh3gm
-	vb00sbQmTJ6MhgSnSBkJT0kGXepr5xNXMNdqyY4ucXZgP0K7mt6Ok99qEvt9RgPVTiDiRSbC6Ap
-	3X+kvXfAdiLuXFLa0TNOMHC1oYWHXqDE=
-X-Received: by 2002:a05:6512:158b:b0:5bc:db4b:930e with SMTP id
- 2adb3069b0e04-5bcdd5317a8mr3088103e87.28.1791829279852; Mon, 12 Oct 2026
- 11:21:19 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="NauwYn5b"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=UrgV7xdQ1c9P7ZzYSvudENuWrgQvt9pZs0yBmt3TB9oFPkkllRnKrHbVaAQ9o7iJrK5htPt8SdayuQOGGsrjY6gqRbIFU2i5GcMbSk+COnzm+4fdquYdCb3Nf9n8684y4XIJ3VMJx2VmF8ptgoiQRQRSnqw+Aq+bP0rQ+z46TIqW9R7cUZ5UtnJF648LslXGXmo7VTbqzCn1g+tQa/i2FIgX/gZA1en0KiRqtiowySFKXdMwxYWXI+R0pCWXz48+MFe/Q7jxULXmusk+XzjjyHikL64Om/+X5YedF7DomW4BqBJIIg08Ev1fN3rZqRHkpNay03HvtyTjAawPTJFRfw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=bvdITlXxXRs9+bE1z27dUqm2hDNvQ4h8RL3okI6zm0k=;
+ b=QZ73VwpH0IsLcJ2G8KfBakGDcjrtdmN/PfmYJRkNIENN9PJIA5tYf/ja02AhlYGYxnLVnVk8FC9WPzqZ2B8eGXhJXAzou4dOfX7S8N4hJE5r7GVtdI512mG5iTT6FxO/TopJpXOPDAUnHmX3LTcoZ7jWtS/Y6kR16Bxd/7xmlKxgPdzaOP0pjl+NjJnh9K8jDMqFTsO/mIUda246Fo41cM69B4QCz3wBRbbJWozMCVFKUYaIsqLwtaNAKLMpxW0gyrsGMy9VVinz58n5YjJl3igARB80t8oV0AhTV+CwqejyvXiyGtPneHrCQl1qPilgWxgfVtRJbCIGNwxA3kwGcw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=bvdITlXxXRs9+bE1z27dUqm2hDNvQ4h8RL3okI6zm0k=;
+ b=NauwYn5bgz0HUZ+qqQKjlO355S7DBVkUUgP+pukr75y8SRkOW18yZ/oNrBsPK26/TN3daGj12tANJCHrOr0DulSrcKu82MZ9seUq5vb9aFb/EgN3zLfFoo9BUKlf5BkRi6D6WqJZ3Jf9frLJc0Ql3UWM/88B3Icj+J6l6iElh2nUhLftqrOLfrZAQ8ZSNVuNLXaQBeVlPCcIsHpawuN5EjwbJFnJ0gT3DtRIQlWKP+sWv0zsv/fJHmiKkLy5pBmfDrcYq3qJoHLRzj3MeC9pqvAqE4sYj7InjECHYW8ngAMdDuzGXbHCV34YBh/su1aFRdDK8oeaNHaBkuk7zfbVJA==
+Received: from DS7PR05CA0062.namprd05.prod.outlook.com (2603:10b6:8:57::8) by
+ SJ2PR12MB9239.namprd12.prod.outlook.com (2603:10b6:a03:55e::8) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.496.20; Mon, 12 Oct 2026 18:43:38 +0000
+Received: from DS8PEPF000000E1.namprd05.prod.outlook.com
+ (2603:10b6:8:57:cafe::a3) by DS7PR05CA0062.outlook.office365.com
+ (2603:10b6:8:57::8) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.522.4 via Frontend Transport; Mon, 12
+ Oct 2026 18:43:38 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 216.228.117.161) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ DS8PEPF000000E1.mail.protection.outlook.com (10.167.23.197) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.522.6 via Frontend Transport; Mon, 12 Oct 2026 18:43:38 +0000
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Mon, 12 Oct
+ 2026 11:43:13 -0700
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by rnnvmail202.nvidia.com
+ (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Mon, 12 Oct
+ 2026 11:43:13 -0700
+Received: from dgx-1v-42.nvidia.com (10.127.8.11) by mail.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49 via Frontend
+ Transport; Mon, 12 Oct 2026 11:43:13 -0700
+From: Jamie Nguyen <jamien@nvidia.com>
+To: Sudeep Holla <sudeep.holla@kernel.org>
+CC: Jamie Nguyen <jamien@nvidia.com>, Lorenzo Pieralisi
+	<lpieralisi@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, Catalin Marinas
+	<catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, "Rafael J. Wysocki"
+	<rafael@kernel.org>, Len Brown <lenb@kernel.org>, Dat Mach
+	<dmach@nvidia.com>, <linux-acpi@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 0/3] ACPI: arm64: FFH Operation Region support for FF-A (offset 2)
+Date: Mon, 12 Oct 2026 11:43:12 -0700
+Message-ID: <20261012184312.3177093-1-jamien@nvidia.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260924-private-bobcat-from-wonderland-0db8f6@sudeepholla>
+References: <20260901192906.133670-1-jamien@nvidia.com> <20260922-purring-fennec-of-exercise-bbce5e@sudeepholla> <20260922155211.676134-1-jamien@nvidia.com> <20260922-exuberant-earwig-of-opportunity-4fecff@sudeepholla> <20260923124050.3270801-1-jamien@nvidia.com> <20260923-lurking-pony-of-fascination-ac6c49@sudeepholla> <20260923173240.3710620-1-jamien@nvidia.com> <20260924-tall-oryx-of-attraction-23ada5@sudeepholla> <20260924152321.3864148-1-jamien@nvidia.com> <20260924-private-bobcat-from-wonderland-0db8f6@sudeepholla>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260922024232.816-1-baorliu@amd.com> <20261012060847.486-1-baorliu@amd.com>
-In-Reply-To: <20261012060847.486-1-baorliu@amd.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Mon, 12 Oct 2026 20:19:16 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0h_136ACZzxQ=MdvRx_7iYRu3L3z1tY01ONfkSz5JEXzw@mail.gmail.com>
-X-Gm-Features: AclHuK_tHMLoic4JTE_J6o2cp2lr4wxlud2cMNMVANjSB0lQNuZd5IoVuv9XxXI
-Message-ID: <CAJZ5v0h_136ACZzxQ=MdvRx_7iYRu3L3z1tY01ONfkSz5JEXzw@mail.gmail.com>
-Subject: Re: [PATCH v5] ACPI: button: Report wakeup key only for power button wakeups
-To: "Baorui.Liu" <baorliu@amd.com>
-Cc: rafael@kernel.org, lenb@kernel.org, robert.moore@intel.com, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	acpica-devel@lists.linuxfoundation.org, kernel test robot <lkp@intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DS8PEPF000000E1:EE_|SJ2PR12MB9239:EE_
+X-MS-Office365-Filtering-Correlation-Id: b6d9e58b-5c4c-4e44-1d4a-08df2890bade
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|23010399003|36860700016|7416014|82310400026|376014|10067099003|261009223027099003|4143699003|11063799006|22082099003|18002099003|56012099006;
+X-Microsoft-Antispam-Message-Info:
+	BMrwyFMx10nfsL4OTzNDwuKImqSHS+tSKPkNOYD7aCWLcBMsH5ELk2I1bLB3v78TgKj6kAAzdI840HDNpoQQ/OrzMI5n2b1Jf1wJxUJrOUlRM/oLrlQ6qHWjnjLWFKdBezCpGnMNZjgeQdgcQI9aoXSh2+TniM4dGZ6pLaiyDNuMhgFoYbdovee3H2uQtwFioRpm/ivEbeHVxf8ILapAg1Tu9gq0vdCXbieuU5DV3e+42M7q/mpYd6ZOtyzk+xqGzMmXO05VN1i5o3D+W3tuMDyy9a5PX6BPRgJVURYen/ab1QE/B49AWW61JHf7DR49tUfU8ST5HH95FwWGH6hPF1VJfZOusO5cp4WbBbLdZjYdPYpdatcUhOGWDmdgslrM1DAF9hWoToD4xn/1MLTOw0PPsPyK6zAcE9XfnVp71XwyRR1nGdT4SnjmyKs5Et25uI2tlmRW9fLk9y6oB0Fwz9LgVssaYvC0Sw5uwWXnYkB8hju2dHSBWNmGna7Vb5XhQtfJUCtXbum5I1pBa8uH0xc48TMJQxI6dQ2RGArvK1ggwfMn3ia3ZmJz09GHRxr33ZqIq3F5vqEXht4gnlw/PoFakK2h+rAOo6MhqIA9191z9V0hMtjp/w7TThFHrH62ozGmW+X83CBXTybomqWN9EAlEMQ3dXDuPZEjkgukbTfR1GrfZb/5v+Dai4K4xQgcvARrazK/fXb52EPnhSWDxw==
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(23010399003)(36860700016)(7416014)(82310400026)(376014)(10067099003)(261009223027099003)(4143699003)(11063799006)(22082099003)(18002099003)(56012099006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	tg0rldpDK5Ys+YxQWL8khRoCbBXKnvcaWcVRFr+57/a/oumTfGtRqDkZUeF3YEP5k4dFQLTH2fIwYnWp4SqFoe49ygQpMUhLkh1ylyKjUeFrL1WyZUd+siVAJjiIx85nDlLgZiMQsZrNnOqUE9hOBd7FCbP5SBkePXcvIV2RpshExKKn/VVrKCAtMrAtXKIjiN7Q1+4yIoJRBDef8NRwUJTTG8vkRx0I+dkJIzmvSx1j25sJmSekt763saGV4Pg8boTfY8BNRCuQDAgq6zYCoDbXDCQ2sz2KsBQ0g1qZEuvUv6PY3QX6lgdjxU69HtOYTRFngB/NfCJMSxhvOfgVyZCJfY28+cXz2ZjVkOxHmtgdtg8oLoU8KsZjKhIuWJB1sdG/FwIfJfyoknSf8WR5EjKdpijiyQZVctDmXgJ/ixrfeCcA3pJ1h/dSb9tR0hZc
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Oct 2026 18:43:38.4049
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: b6d9e58b-5c4c-4e44-1d4a-08df2890bade
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	DS8PEPF000000E1.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR12MB9239
 
-On Mon, Oct 12, 2026 at 8:09=E2=80=AFAM Baorui.Liu <baorliu@amd.com> wrote:
->
-> The ACPI button driver reports KEY_WAKEUP from the Power Button input
-> device to let userspace know that the system was resumed by a power
-> button wakeup.
->
-> However, reporting KEY_WAKEUP from generic system resume paths can make
-> userspace observe a Power Button wakeup even when the system was resumed
-> by a different wake source.
->
-> This is reproducible on an AMD Android 15 Xen guest. With a kernel
-> without this fix, a non-power-button S3 resume:
->
->   echo mem > /sys/power/state
->   xl trigger android s3resume
->
-> makes the Power Button input device report KEY_WAKEUP. The same test on
-> a kernel with this fix no longer reports KEY_WAKEUP from the Power Button
-> input device.
->
-> Track whether a power button event/notify is observed while the ACPI
-> button device is suspended, and report KEY_WAKEUP on resume only in that
-> case.
->
-> When the fixed power-button status bit is set during early S3 resume,
-> clear it to avoid a deferred KEY_POWER delivery to userspace, and mark
-> wakeup_pending so button resume can still report KEY_WAKEUP. Also clear
-> wakeup_pending before setting suspended to avoid a race with a power
-> button SCI during suspend entry.
->
-> Declare acpi_button_power_wakeup_pending() with IS_REACHABLE so that
-> CONFIG_ACPI_BUTTON=3Dm does not leave an unresolved reference in built-in
-> sleep.c.
->
-> Reported-by: kernel test robot <lkp@intel.com>
-> Closes: https://lore.kernel.org/r/202609290454.LJrhMCb3-lkp@intel.com/
-> Signed-off-by: Baorui.Liu <baorliu@amd.com>
-> ---
-> Changes since v4:
-> - Fix LKP build ERROR when CONFIG_ACPI_BUTTON=3Dm by declaring
->   acpi_button_power_wakeup_pending() with IS_REACHABLE().
+On Thu, Sep 24, 2026 at 05:07:04PM +0100, Sudeep Holla wrote:
+> Thanks, will think a bit on this and see what is the best way to progress.
 
-Please see the Sashiko feedback on this patch:
-
-https://sashiko.dev/#/patchset/20261012060847.486-1-baorliu%40amd.com
-
-and let me know what you think about it.
-
-Thanks!
-
->  drivers/acpi/button.c | 46 ++++++++++++++++++++++++++++++++++++++++++-
->  drivers/acpi/sleep.c  | 27 +++++++++++--------------
->  include/acpi/button.h | 13 ++++++++++++
->  3 files changed, 70 insertions(+), 16 deletions(-)
->
-> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> index cdbb1023a8ee..c07de417df5d 100644
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -191,6 +191,7 @@ struct acpi_button {
->         bool last_state;
->         ktime_t last_time;
->         bool suspended;
-> +       bool wakeup_pending;
->         bool lid_state_initialized;
->         bool gpe_enabled;
->  };
-> @@ -397,6 +398,34 @@ static void acpi_lid_forget(struct acpi_device *adev=
-)
->  }
->
->  /* Driver Interface */
-> +/**
-> + * acpi_button_power_wakeup_pending - Mark fixed power button wakeup pen=
-ding.
-> + *
-> + * Used when the fixed power-button status bit is observed and cleared d=
-uring
-> + * early S3 resume, so KEY_WAKEUP can still be reported from button resu=
-me
-> + * without delivering a deferred KEY_POWER to userspace.
-> + */
-> +void acpi_button_power_wakeup_pending(void)
-> +{
-> +       struct acpi_device *adev;
-> +       struct device *phys_dev;
-> +       struct acpi_button *button;
-> +
-> +       adev =3D acpi_dev_get_first_match_dev(ACPI_BUTTON_HID_POWERF, NUL=
-L, -1);
-> +       if (!adev)
-> +               return;
-> +
-> +       phys_dev =3D acpi_get_first_physical_node(adev);
-> +       if (phys_dev) {
-> +               button =3D dev_get_drvdata(phys_dev);
-> +               if (button && button->type =3D=3D ACPI_BUTTON_TYPE_POWER)
-> +                       button->wakeup_pending =3D true;
-> +       }
-> +
-> +       acpi_dev_put(adev);
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_button_power_wakeup_pending);
-> +
->  int acpi_lid_open(void)
->  {
->         guard(mutex)(&acpi_lid_lock);
-> @@ -476,6 +505,9 @@ static void acpi_button_notify(acpi_handle handle, u3=
-2 event, void *data)
->
->         acpi_pm_wakeup_event(button->dev);
->
-> +       if (button->type =3D=3D ACPI_BUTTON_TYPE_POWER && button->suspend=
-ed)
-> +               button->wakeup_pending =3D true;
-> +
->         if (button->suspended || event =3D=3D ACPI_BUTTON_NOTIFY_WAKE)
->                 return;
->
-> @@ -498,6 +530,11 @@ static void acpi_button_notify_run(void *data)
->
->  static u32 acpi_button_event(void *data)
->  {
-> +       struct acpi_button *button =3D data;
-> +
-> +       if (button->type =3D=3D ACPI_BUTTON_TYPE_POWER && button->suspend=
-ed)
-> +               button->wakeup_pending =3D true;
-> +
->         acpi_os_execute(OSL_NOTIFY_HANDLER, acpi_button_notify_run, data)=
-;
->         return ACPI_INTERRUPT_HANDLED;
->  }
-> @@ -507,6 +544,12 @@ static int acpi_button_suspend(struct device *dev)
->  {
->         struct acpi_button *button =3D dev_get_drvdata(dev);
->
-> +       /*
-> +        * Clear wakeup_pending before marking suspended. Otherwise a pow=
-er
-> +        * button SCI between the two stores could set wakeup_pending and=
- then
-> +        * be overwritten here, losing a real wakeup.
-> +        */
-> +       button->wakeup_pending =3D false;
->         button->suspended =3D true;
->         return 0;
->  }
-> @@ -523,12 +566,13 @@ static int acpi_button_resume(struct device *dev)
->                 acpi_lid_initialize_state(button);
->         }
->
-> -       if (button->type =3D=3D ACPI_BUTTON_TYPE_POWER) {
-> +       if (button->type =3D=3D ACPI_BUTTON_TYPE_POWER && button->wakeup_=
-pending) {
->                 input =3D button->input;
->                 input_report_key(input, KEY_WAKEUP, 1);
->                 input_sync(input);
->                 input_report_key(input, KEY_WAKEUP, 0);
->                 input_sync(input);
-> +               button->wakeup_pending =3D false;
->         }
->         return 0;
->  }
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index 132a9df98471..30e268987e37 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -22,6 +22,7 @@
->  #include <linux/syscore_ops.h>
->  #include <asm/io.h>
->  #include <trace/events/power.h>
-> +#include <acpi/button.h>
->
->  #include "internal.h"
->  #include "sleep.h"
-> @@ -504,12 +505,11 @@ static void acpi_pm_finish(void)
->
->         acpi_resume_power_resources();
->
-> -       /* If we were woken with the fixed power button, provide a small
-> -        * hint to userspace in the form of a wakeup event on the fixed p=
-ower
-> -        * button device (if it can be found).
-> -        *
-> -        * We delay the event generation til now, as the PM layer require=
-s
-> -        * timekeeping to be running before we generate events. */
-> +       /*
-> +        * If woken by the fixed power button, provide a wakeup event on =
-that
-> +        * device. KEY_WAKEUP input reporting is handled by the button dr=
-iver
-> +        * via wakeup_pending; do not synthesize KEY_POWER here.
-> +        */
->         if (!pwr_btn_event_pending)
->                 return;
->
-> @@ -626,14 +626,11 @@ static int acpi_suspend_enter(suspend_state_t pm_st=
-ate)
->         /* Reprogram control registers */
->         acpi_leave_sleep_state_prep(acpi_state);
->
-> -       /* ACPI 3.0 specs (P62) says that it's the responsibility
-> -        * of the OSPM to clear the status bit [ implying that the
-> -        * POWER_BUTTON event should not reach userspace ]
-> -        *
-> -        * However, we do generate a small hint for userspace in the form=
- of
-> -        * a wakeup event. We flag this condition for now and generate th=
-e
-> -        * event later, as we're currently too early in resume to be able=
- to
-> -        * generate wakeup events.
-> +       /*
-> +        * ACPI 3.0 (P62): OSPM should clear the fixed power-button statu=
-s bit
-> +        * so the event does not reach userspace as KEY_POWER. Remember t=
-hat a
-> +        * power-button wake occurred so button resume can report KEY_WAK=
-EUP
-> +        * and acpi_pm_finish() can emit a PM wakeup event.
->          */
->         if (ACPI_SUCCESS(status) && (acpi_state =3D=3D ACPI_STATE_S3)) {
->                 acpi_event_status pwr_btn_status =3D ACPI_EVENT_FLAG_DISA=
-BLED;
-> @@ -642,8 +639,8 @@ static int acpi_suspend_enter(suspend_state_t pm_stat=
-e)
->
->                 if (pwr_btn_status & ACPI_EVENT_FLAG_STATUS_SET) {
->                         acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
-> -                       /* Flag for later */
->                         pwr_btn_event_pending =3D true;
-> +                       acpi_button_power_wakeup_pending();
->                 }
->         }
->
-> diff --git a/include/acpi/button.h b/include/acpi/button.h
-> index af2fce5d2ee3..c909c00664c7 100644
-> --- a/include/acpi/button.h
-> +++ b/include/acpi/button.h
-> @@ -15,4 +15,17 @@ static inline int acpi_lid_open(void)
->  }
->  #endif /* IS_ENABLED(CONFIG_ACPI_BUTTON) */
->
-> +/*
-> + * sleep.c is built-in and calls this helper. Use IS_REACHABLE so that w=
-hen
-> + * CONFIG_ACPI_BUTTON=3Dm the call site gets an inline stub instead of a=
-n
-> + * unresolved vmlinux link reference (0day/LKP ERROR).
-> + */
-> +#if IS_REACHABLE(CONFIG_ACPI_BUTTON)
-> +extern void acpi_button_power_wakeup_pending(void);
-> +#else
-> +static inline void acpi_button_power_wakeup_pending(void)
-> +{
-> +}
-> +#endif /* IS_REACHABLE(CONFIG_ACPI_BUTTON) */
-> +
->  #endif /* ACPI_BUTTON_H */
->
-> base-commit: 4a819ee5f2834330656d6ac168c4c8cf27fdeec2
-> --
-> 2.34.1
->
+One further data point: our platforms using offset 2 for a TPM DSM have
+an FF-A 1.2 SPMC. I'd like to keep 1.2 support if possible, since
+FFA_MSG_SEND_DIRECT_REQ2 was added in 1.2. How would you handle version
+negotiation in ffh.c when the transport may already have negotiated a
+version?
