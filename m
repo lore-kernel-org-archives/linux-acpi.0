@@ -1,38 +1,38 @@
 Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A586348CD55;
-	Mon, 12 Oct 2026 14:29:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98A1D37F8D7;
+	Mon, 12 Oct 2026 14:29:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.85.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791815351; cv=none; b=ssxgHNB91pyzKqepQ8TvKIV9g49L5dNdRFT4tiee6/hTSo9foxRzIAa3pFXg4LAlylr8D2uFhlbVPpKBraMqqxtu8Thgu6CwZBlJ/FHuEEYeYz96F4EH5xHUKe2CE4DGQfxtC96yNCVkVuxIvr6ydYBUHw9xno3F6hk6pOWF4lc=
+	t=1791815361; cv=none; b=PU5be83EVYiySMHfe3U//x2GTXJtmDRtXIjbbeTpBMfHQ779GOJJI0EEunRqrWRwMEAT1akIBlPa8cHwzcq3Kl/A31Qmx1+tR2FvVw3IbakAv66fp6/1KNKZgDWBMw7EQRug0SSWkbgBi21D85gsQGY2+aMLoN82O8UPZ3I8ozU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791815351; c=relaxed/simple;
-	bh=LeDPnBgrM7pNQ8OlNZHsJRQR3r2PXLGLegBZ2Qsqzf8=;
+	s=arc-20240116; t=1791815361; c=relaxed/simple;
+	bh=n72riOFT9zMszPdIbWgnFahKIsx4JheiYt11aqPFJ4U=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=nvyqM7kWChZkfouMT28MUz9fayCz7R8o1KzaZhprVjb1y580XEJFFJYF5Pi3I8A9jD3n9vsjyvRjdrpqDKYy1GBXcblzXLbCpck8x/jVADWXuYW4LaLSUq3EYjvJYt9Hj1no8w29tEWzByLqivpdyxb8YAt6ixf9grlGn1N72vw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=FjGgQOgH; arc=none smtp.client-ip=185.246.85.4
+	 MIME-Version; b=ctyOotblAtDnZkqVDWVH6iFB/pRd4GeHggIQIaR0rHh4bMbts+UyVenSRgYCuSq2rna/EDbdK1JAbMR+hDekdHGFZXpElzO/ZCwycu5QWyICmJraJ/MBoYZuKV+XtH7NrntXDSgSeuc0qsupomBKbC6EizK7PpR5uB38+jq0OuE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=a5en31sF; arc=none smtp.client-ip=185.246.85.4
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="FjGgQOgH"
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="a5en31sF"
 Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-03.galae.net (Postfix) with ESMTPS id 40C1E4E411A5;
-	Mon, 12 Oct 2026 14:29:08 +0000 (UTC)
+	by smtpout-03.galae.net (Postfix) with ESMTPS id 523094E411F7;
+	Mon, 12 Oct 2026 14:29:17 +0000 (UTC)
 Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 0F22E601A6;
-	Mon, 12 Oct 2026 14:29:08 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id F37FF11D708B4;
-	Mon, 12 Oct 2026 16:28:50 +0200 (CEST)
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 25116601A6;
+	Mon, 12 Oct 2026 14:29:17 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 9529711D70C51;
+	Mon, 12 Oct 2026 16:29:04 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1791815339; h=from:subject:date:message-id:to:cc:mime-version:
+	t=1791815350; h=from:subject:date:message-id:to:cc:mime-version:
 	 content-transfer-encoding:in-reply-to:references;
-	bh=kAb7NHjVc8QoTRTxUb1OG7thf2F5YhXlem84GhsJqnE=;
-	b=FjGgQOgHcTUDDGnIbSuozwmNqeMTRdBQVZaPNnUfhfNiHolctNHx1hOE21Ll6aYc6zsp1v
-	tYfEnkKxdGOOtY680hMNAcNEJaM9GkRVagicVm8ou5DFrd5VuLmwgGbbtWaPBFa0nRcAW7
-	iuGKxtDnIWPKwfwaYZObdeJ9zckNqniI+KLN1vyuvrXhXy0sCRuVe0N2R2v06p+hCVJxzJ
-	Oxu6iH3orqfi6ElTPOegR+Wj2TpZlYb7tN7T2IqKprgAnyueowX5lDSHa/Zsq+QxXiQiAc
-	GNRjXOfG2P+7tWArtGJk8xGwxsp+opS6e8tVRR7Xqp4HXMpqP3lAkPgm74kLIg==
+	bh=LEz6fW5lydZExsmSIK9gCH0i3AJi/eLpRMeT4JJOYIA=;
+	b=a5en31sFtY36sewI1cQm/PvxYZivlvd53cCrweL0zm/URMGftFqsV1DZXBfwbuTH0e9ov1
+	r7PABM1Eglkfz6mwnMPnO9o+/DpkMvC3LbHeHcPClWNnMIiZj8aa+XV40SKB47BQ57dyOV
+	lCitia2dwRNb/QGZ4MIEIt3VIzr8uh6U6jbjg+uXVKgic7MDueWfX8yIIZAClED6LwRxhX
+	XrdAW3GIuWrthaSK35MWGD0tGrSna7zEq5Um128Jhces7W9sTMHbf962aFzXmFiYEo3MA+
+	GRT3rAPoMZK6Cg/ZNfa/edlJum6+5VOZrmn/OruFx8Lx0KPBk66Hz0uAZjnhyQ==
 From: Herve Codina <herve.codina@bootlin.com>
 To: Richard Cheng <icheng@nvidia.com>,
 	Andrew Lunn <andrew@lunn.ch>,
@@ -76,12 +76,11 @@ Cc: driver-core@lists.linux.dev,
 	Steen Hegelund <steen.hegelund@microchip.com>,
 	Luca Ceresoli <luca.ceresoli@bootlin.com>,
 	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-	stable@vger.kernel.org,
 	Ulf Hansson <ulf.hansson@linaro.org>,
 	Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Subject: [PATCH v13 01/10] driver core: fw_devlink: Introduce fw_devlink_set_device()
-Date: Mon, 12 Oct 2026 16:28:15 +0200
-Message-ID: <20261012142826.159178-2-herve.codina@bootlin.com>
+Subject: [PATCH v13 02/10] drivers: core: Use fw_devlink_set_device()
+Date: Mon, 12 Oct 2026 16:28:16 +0200
+Message-ID: <20261012142826.159178-3-herve.codina@bootlin.com>
 X-Mailer: git-send-email 2.55.0
 In-Reply-To: <20261012142826.159178-1-herve.codina@bootlin.com>
 References: <20261012142826.159178-1-herve.codina@bootlin.com>
@@ -94,43 +93,42 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Last-TLS-Session-Version: TLSv1.3
 
-Setting fwnode->dev is specific to fw_devlink.
+The code set directly fwnode->dev field.
 
-In order to avoid having a direct 'fwnode->dev = dev;' in several
-place in the kernel, introduce fw_devlink_set_device() helper to perform
-this operation.
+Use the dedicated fw_devlink_set_device() helper to perform this
+operation.
 
-Having this helper allows to hide the fwnode devlink related stuff
-behind the helper.
-
-Cc: stable@vger.kernel.org
 Signed-off-by: Herve Codina <herve.codina@bootlin.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Reviewed-by: Ulf Hansson <ulf.hansson@linaro.org>
-Reviewed-by: Charles Keepax <ckeepax@opensource.cirrus.com>
 Reviewed-by: Richard Cheng <icheng@nvidia.com>
 Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 ---
-Cc stable because used by other patches with Fixes + Cc stable
----
- include/linux/fwnode.h | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/base/core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index a9dcaf7e7076..3ce49575cf82 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -260,4 +260,10 @@ void fw_devlink_purge_absent_suppliers(struct fwnode_handle *fwnode);
- void fw_devlink_refresh_fwnode(struct fwnode_handle *fwnode);
- bool fw_devlink_is_strict(void);
+diff --git a/drivers/base/core.c b/drivers/base/core.c
+index 4c0c373998a1..3268e9350c86 100644
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -3754,7 +3754,7 @@ int device_add(struct device *dev)
+ 	 * device and the driver sync_state callback is called for this device.
+ 	 */
+ 	if (dev->fwnode && !dev->fwnode->dev) {
+-		dev->fwnode->dev = dev;
++		fw_devlink_set_device(dev->fwnode, dev);
+ 		fw_devlink_link_device(dev);
+ 	}
  
-+static inline void fw_devlink_set_device(struct fwnode_handle *fwnode,
-+					 struct device *dev)
-+{
-+	fwnode->dev = dev;
-+}
-+
- #endif
+@@ -3929,7 +3929,7 @@ void device_del(struct device *dev)
+ 	device_unlock(dev);
+ 
+ 	if (dev->fwnode && dev->fwnode->dev == dev)
+-		dev->fwnode->dev = NULL;
++		fw_devlink_set_device(dev->fwnode, NULL);
+ 
+ 	/* Notify clients of device removal.  This call must come
+ 	 * before dpm_sysfs_remove().
 -- 
 2.55.0
 
