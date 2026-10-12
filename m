@@ -1,91 +1,162 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA0D449BD83
-	for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 15:37:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C5C94A0926
+	for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 15:56:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791819438; cv=none; b=DUH2K0+b9CwQpOz2oBQt4aGCXEADFLHutSUaHz8vdHLXr85ztdUg8CxXbzUsipivxLeFMIVZ+R+FHfF4WqU3SyW8Bvr/63+BNZpklCmZrhrIpqinVMnAestZmef0WVRzJGEBdnGwPdvS5feYjqD0MnPJ64syWwNVoG0/j8mHz44=
+	t=1791820601; cv=none; b=G+gqluTVnUqHotEuFjZkEPwdWzF8T9whOM6M/ijofX9hu6/hiVv5v0AQvNOf8xrwYiCwwn8wRUMu95Wdx0w2weF0W4PruQQFH8hGLe5HHX+Sadfrv88Cyqep/4Ej49eFU4fM/7SSCiV7Ff+hTw3xux292/BBTv3D3+1+Tgpm8NM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791819438; c=relaxed/simple;
-	bh=Ny6CnJcMREGWOqOHnwVu++VYZE8mUIUwqMU0hWC+Llw=;
+	s=arc-20240116; t=1791820601; c=relaxed/simple;
+	bh=kiTVYqjYoNRgRbJej4/OC0B4WreCYsggVOX6+jGeCyE=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=pICdtyA8Vnu1l6MDNgnaLe2KieZuDtZhSKJZhhajyeLL2d9kjqAl5HMOCUqT8TZ1p5pSN1Hl4OTtOvHww979nBre41leJ4+IO/uyoZzpC0tNtaOxxHl9iS9s2GZVnAVP8bxMXuCaxFAEkcPFoegbMV5qaGphRtxjr/le5gqa+O0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FnV4OwTk; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=Sn6HzJWti2P2CJqGiA39p7tqmBNOtL/VOVZ6Z0wu+UhMP0E3cFII+BCtKW4zW3++2Zib9uf1HDBdgNqB8/WrmsZmY2l61oQHfOLIMHr0o5+qN/BdnDHZWEUH1/cu8opts71tT5cjhI1bbyPvfDH4JQPEprAwuVk/B4VMqgGSXIk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BX2O/dME; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FnV4OwTk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D23DC1F0089E
-	for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 15:37:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BX2O/dME"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 471C11F0089B
+	for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 15:56:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791819437;
-	bh=0LtWcDpcoANXJxp8BUzLrX4nuAiYWSXUb2UN4CsRl44=;
+	s=k20260515; t=1791820600;
+	bh=RRzUnGM8DJxXtxqBDwULmqaThFPL3NI3XYRr4akMeCY=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=FnV4OwTkZA/UNOS5Ux4gh2FK0Pqev8vsp2jMe/kCyc0LAycKwKRjIOP/dmsMCl/Uk
-	 xI/S3z7UvSkvHPrE9BKs8TfHLfuxE/lQQ3eJooU5E0U+8vBoDnuj7K/E/djyTtbZlI
-	 0EJSdzRxP64LUpDt/K0SdHckNJOr1gxQmFeeZjdOFgkv5n+t4lJis3K8NkyucUSkkN
-	 dmMyS55Fm9znnm8c0pcjjqTHYX1enVN88XVTpvCOYFMSJNuZ2Ruwqhu2xD5tkJpeQi
-	 00AqKHvOvAtlmUnjuw5G7mo/bpytNYAppPwvQxgr9RHAWZlkA56W48uHhG4sELbzjf
-	 mXF4N8abeSmLQ==
-Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-5bccb867d6fso1356631e87.0
-        for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 08:37:17 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvByInn/KfqjFBZXIcyLgNWLpSEOaYRqU7ankO2UGg5s8zS3vEoi2AZbkJMAyfPZdW+tlZS5+HoJd6Zow@vger.kernel.org
-X-Gm-Message-State: AFq9FYIXqTvhAGue90AVrRwi3vxVOoZ0sCyRexck+EEmNrNUTFzPgjXo
-	vtJxpah3H7V8RFzXc2TX5+qxAazWDwFCZ/mXpb4HwaU3zmui4uGRYrrRCzJ/9wgqFRRNV0n0HZA
-	jueSorMXWkFBrNbtnfXz016tq8QBdEx0=
-X-Received: by 2002:a05:6512:1592:b0:5bc:b5ea:94b2 with SMTP id
- 2adb3069b0e04-5bcde8db1damr3599793e87.59.1791819436162; Mon, 12 Oct 2026
- 08:37:16 -0700 (PDT)
+	b=BX2O/dMEQ2uT6/M+d0sdwWEDxX7QY20f7CXltyLUrl6KiMQKJpr/d/pAKI6iX8z9j
+	 2Z/eaJHcZn/MLkvJU1Vaw93zOlH+cZ/zHj5Hvpg/W37DrIfVh2nhO1YhDkMN8qBl/a
+	 AH4sPWswc/MRGwp6Ep1ktFcoLZoQibXeZxUNnGscgpinh5dEFGFv7hnjQsR1wWDhR5
+	 dyhroRMrRwZFuGxEWR1VtN3I9A2L48dqFWP7/0GZQiRWEiC5LO6GqqvcmijOWoh0C0
+	 dVRD9WrjaD6CWhHdmh+ZljwvMTvguO1wrp5vQo7RqrHZFqUEDp46Tkrtgk+3cf0FjN
+	 k5GHOZLxWRsVg==
+Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-5bcdab9a82bso2287446e87.3
+        for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 08:56:40 -0700 (PDT)
+X-Gm-Message-State: AFq9FYIrU8kzgTKTEtjiurTVdnIYE5EweS7WZJjvBLn+h+r6BZAkuTNQ
+	630KlDWGsZAfgR4bvYg50ech+a1QofreXTjbHLWC2f7/pXwpmE9p32kVVIX0/cIkHpOz8mb3Y9A
+	lpQdT08l6QttTGYubRHt/x0oY0gTUZLI=
+X-Received: by 2002:a05:6512:108c:b0:5b8:bc5e:b57a with SMTP id
+ 2adb3069b0e04-5bcde8d0388mr3384224e87.50.1791820598641; Mon, 12 Oct 2026
+ 08:56:38 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260925155846.2381956-1-yaojiale02@163.com>
-In-Reply-To: <20260925155846.2381956-1-yaojiale02@163.com>
+References: <6ab7c7cd.aec4f0e4.3a9f4c.54b2@mx.google.com>
+In-Reply-To: <6ab7c7cd.aec4f0e4.3a9f4c.54b2@mx.google.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Mon, 12 Oct 2026 17:35:11 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0hjijTBTcUWW_esn414CNenNuBN9Viv+boqYX=fSnuQpw@mail.gmail.com>
-X-Gm-Features: AclHuK_MhwdXrrCVuVtKNaYGnMohUwJfio5uZBGpMkVRF1pokHTd6KvPAgrMm3U
-Message-ID: <CAJZ5v0hjijTBTcUWW_esn414CNenNuBN9Viv+boqYX=fSnuQpw@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: PCI: link: clear driver_data before free
-To: Jiale Yao <yaojiale02@163.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
-	Andrew Morton <akpm@linux-foundation.org>, Pavel Machek <pavel@suse.cz>, linux-pci@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Mon, 12 Oct 2026 17:54:29 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0iZVEng-jFtpwDySfFe3TnM3p+x2YVZ17ttHMbDzgheAA@mail.gmail.com>
+X-Gm-Features: AclHuK8M4Jx9ovoG5lFXQJQDaWFHG1Q-lfdNBwGCf58BE3gWMj-g3EbFKBdBjXY
+Message-ID: <CAJZ5v0iZVEng-jFtpwDySfFe3TnM3p+x2YVZ17ttHMbDzgheAA@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: battery: Force "Discharging" status on battery for
+ ASUS TUF Gaming A16
+To: calvitohq@gmail.com
+Cc: linux-acpi@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Sep 25, 2026 at 5:59=E2=80=AFPM Jiale Yao <yaojiale02@163.com> wrot=
-e:
+On Sat, Sep 26, 2026 at 3:25=E2=80=AFPM <calvitohq@gmail.com> wrote:
 >
-> acpi_pci_link_remove() frees the link object without clearing the ACPI
-> device's driver_data pointer. The ACPI device survives hot-removal and
-> can later be retrieved by acpi_fetch_acpi_dev(), leaving callers with a
-> dangling pointer.
+> From: Marco <soytucalvitofavorito@icloud.com>
 >
-> Clear driver_data before freeing the link.
+> On the ASUS TUF Gaming A16 (FA608UMI), after AC is unplugged the ACPI
+> _BST status word reports neither the charging nor the discharging bit
+> set, so the battery driver reports "Not charging" (and UPower
+> "fully-charged") even though the battery is actively discharging
+> (current_now stays positive).
 >
-> Fixes: db89b4f0dbab ("ACPI: catch calls of acpi_driver_data on pointer of=
- wrong type")
-> Signed-off-by: Jiale Yao <yaojiale02@163.com>
+> This is the same class of firmware bug as the ASUS Vivobook 18
+> M1807HA (Launchpad bug 2152185), where the status flips between
+> "Full"/"Not charging"/"Discharging". Add a DMI quirk that, when the
+> system is running on battery, forces a computed "Full" or
+> "Not charging" status to "Discharging".
+>
+> Based on the M1807HA quirk patch by Norman Becker.
+>
+> Signed-off-by: Marco <soytucalvitofavorito@icloud.com>
 > ---
->  drivers/acpi/pci_link.c | 1 +
->  1 file changed, 1 insertion(+)
+>  drivers/acpi/battery.c | 27 +++++++++++++++++++++++++++
+>  1 file changed, 27 insertions(+)
 >
-> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-> index e6ed13aee48d..84bfcdf242dd 100644
-> --- a/drivers/acpi/pci_link.c
-> +++ b/drivers/acpi/pci_link.c
-> @@ -787,6 +787,7 @@ static void acpi_pci_link_remove(struct acpi_device *=
-device)
->         list_del(&link->list);
->         mutex_unlock(&acpi_link_lock);
->
-> +       device->driver_data =3D NULL;
->         kfree(link);
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -58,6 +58,7 @@
+>  static int battery_bix_broken_package;
+>  static int battery_notification_delay_ms;
+>  static int battery_ac_is_broken;
+> +static bool battery_force_discharging;
+>  static unsigned int cache_time =3D 1000;
+>  module_param(cache_time, uint, 0644);
+>  MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+> @@ -192,6 +193,19 @@
+>                 battery->full_charge_capacity < battery->design_capacity;
 >  }
 >
-> --
+> +static void acpi_battery_force_discharging_fix_status(union power_supply=
+_propval *val)
+> +{
+> +       if (!battery_force_discharging)
+> +               return;
+> +
+> +       if (power_supply_is_system_supplied())
+> +               return;
+> +
 
-Applied as 7.4 material, thanks!
+The two checks above can be combined.
+
+> +       if (val->intval =3D=3D POWER_SUPPLY_STATUS_FULL ||
+> +           val->intval =3D=3D POWER_SUPPLY_STATUS_NOT_CHARGING)
+
+What about POWER_SUPPLY_STATUS_CHARGING?
+
+> +               val->intval =3D POWER_SUPPLY_STATUS_DISCHARGING;
+> +}
+> +
+>  static int acpi_battery_get_property(struct power_supply *psy,
+>                                      enum power_supply_property psp,
+>                                      union power_supply_propval *val)
+> @@ -250,6 +264,7 @@
+>                         val->intval =3D POWER_SUPPLY_STATUS_FULL;
+>                 else
+>                         val->intval =3D POWER_SUPPLY_STATUS_NOT_CHARGING;
+> +               acpi_battery_force_discharging_fix_status(val);
+
+Also it looks like you want the status to be
+POWER_SUPPLY_STATUS_DISCHARGING always if battery_force_discharging is
+set and power_supply_is_system_supplied() returns 'false' which can be
+checked upfront in the POWER_SUPPLY_PROP_STATUS case.
+
+>                 break;
+>         case POWER_SUPPLY_PROP_PRESENT:
+>                 val->intval =3D acpi_battery_present(battery);
+> @@ -1258,6 +1273,13 @@
+>         return 0;
+>  }
+>
+> +static int __init
+> +battery_force_discharging_quirk(const struct dmi_system_id *d)
+> +{
+> +       battery_force_discharging =3D true;
+> +       return 0;
+> +}
+> +
+>  static const struct dmi_system_id bat_dmi_table[] __initconst =3D {
+>         {
+>                 /* NEC LZ750/LS */
+> @@ -1294,6 +1316,15 @@
+>                         DMI_MATCH(DMI_PRODUCT_NAME, "Surface Go 3"),
+>                 },
+>         },
+> +       {
+> +               /* ASUS TUF Gaming A16 FA608UMI */
+> +               .callback =3D battery_force_discharging_quirk,
+> +               .matches =3D {
+> +                       DMI_MATCH(DMI_SYS_VENDOR, "ASUS"),
+> +                       DMI_MATCH(DMI_PRODUCT_NAME, "TUF Gaming A16 FA608=
+UMI"),
+> +                       DMI_MATCH(DMI_BOARD_NAME, "FA608UMI"),
+> +               },
+> +       },
+>         {},
+>  };
+>
+>
