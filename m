@@ -1,432 +1,135 @@
-Received: from mail-dy1-f179.google.com (mail-dy1-f179.google.com [74.125.82.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 884C5433E81
-	for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 17:49:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC4C14BEE20
+	for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 17:53:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791827358; cv=none; b=PRvu4lhBjgoR4seO/VH9okvlsF/7Fb+VjuUDK8R8nbTg1OByCOmhWuny9LaGLuOY0MKdRIJW+xkgevqoeizjZdKp9XTJr6x8S1sBiXL8zXl4QB+Hqr52On5HqcKFtcbTTuRzB4JhdvINDdgWVtKeiRaNdTKBRX9AsVpwb9QPG0U=
+	t=1791827601; cv=none; b=PfSQ6CfhyBscPYh2OPzjerOFIYeZcEykGBQq85b9c//i8TRIJyXjkc6LO5aCQuEf49GVya0t/6zGmhNUHgpHE6vKVexpnjAYkC1IcOETlH89h7HNxRA0a1yBZEyuJ5JWkWUOyFxOtqyiDKeVcGSf+E3+w8+Bi7ngYpzN7cBv0DY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791827358; c=relaxed/simple;
-	bh=+p6mIZJLsnJJpJhjGph5KNIN4Zqhw2PM9via/Xo5SMg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ho6QYXDQ62NgZ1fWUjirZjS0spR0QfI/8VO7t/G5hc1B7l1Z7JmEXO1iITO6z0YveFZ8eqB7FXOK9NAWU+AF9Jo1mhXMiZR9kk/BT2Vz+FFs2tbo+HQEf/g/2RQ9vovEm0MCGk8IFB+v52NPahJlnw7ghVtJjXEu0RGj+y9dypA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jJJZN70b; arc=none smtp.client-ip=74.125.82.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1791827601; c=relaxed/simple;
+	bh=5yEKgPOGicpMxBFlJWtx7YufLwPyGaBoBvclQixlx9w=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=amk6Gzjzispisckxr/kzoAmdxt0JWsfxIDdwX2TvulI2ruZFSH+Dr9u9/8BXfQA0PSSvABza7aalQAIwlwB6i+JhW97XB+BFh3ZK1+/NOWUuZbrVI9VSjdpFujVd0EtOiylGRFpgpzhnZvLScAsUGp7QSzsVMea5IOLRuDeOC+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gX2Mf2H+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jJJZN70b"
-Received: by mail-dy1-f179.google.com with SMTP id 5a478bee46e88-35b2c599f43so177202eec.0
-        for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 10:49:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791827356; x=1792432156; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=nkpzXz06/wF4egpTsHtzmtlxzFAdhJtNDN5qIdF/hQQ=;
-        b=jJJZN70b4IgweDf8jguirCTUHubmqZ0KfKL2fbrBJ00nr9gHDvUAFVZRIfcIuRuVm7
-         ENbAo6h/1n8XnZ7Kpho1T6JyxOU71+KEoX/gawQFGaEd/VpJR+XgUm4AHyP+Bzag+dF/
-         knVtsQhT/aAI8NEzNUCwXLuiGOj51hBrXaCjJIqS8naqarpI8hiOXku661mlszjuBh3o
-         M9zA9RAbU32r+wEMZAH862U5tDB3jedA23+w9jb8KETv0bd+Q4we+mKj9enuNPF1lzCl
-         MNTUf2himh9UcJxZimLCAtFZ7m9RjG0nSpaIezb3mFvTqc73wU/6GHW7bSycrZ/C6F9F
-         kFBA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791827356; x=1792432156;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=nkpzXz06/wF4egpTsHtzmtlxzFAdhJtNDN5qIdF/hQQ=;
-        b=zcO/Azil25sI7Ixkj17M4emnn/u63MUe5dHZcf4N0Dt+dJYGjN4F16FrNtqXF3mmCd
-         9EjDcLOMvd3ltDd60YtiLSQm2KdT6Oh6p/eLlCSHr9ZsJw6BrlZFpq5zwpzIjwbyfO77
-         X2tkoSz+c3WP33ix1CtclJPR/ChW91ztifuBmthxoHwxckkvfTDtwTVoJVYJJE9k5E4h
-         KtA9jvuHrutYFZ5myPZhOAuFKombV2kKEtyTnmjPD1SJEzl1n+rsPe5lY9q/RuzIcmjR
-         DhafOCDsrS2e+EbQK5R/KQBI4ru6PPagbaoUA7yed1HBoHhef2vYnv2Z/QYkflCmbzyX
-         pQ5w==
-X-Forwarded-Encrypted: i=1; AKwUvBxEKXcDKbdqlq/dJCIJpMflTazseSvgkJSJwPtKQiiuhA0J8gOfbMXUobcw4A6WaZz1qUfK96UrSOCq@vger.kernel.org
-X-Gm-Message-State: AFq9FYKLr+Sdkui28qWuAKAKMWzeisHK9JNMab0zK94BWgicdadw2OPL
-	4rto5EgWFBPuSBoKhI7Eu+8Rhki9xsXu8jqQZxmGm3xLY+AvT3jkr0IQ
-X-Gm-Gg: AYBFou1zMpCPns05rPEBEXdLmYSqK0mJFeYcYvFu/g3eaRbHvWi3B6QSsDgyMzmrzyU
-	MBGL56rilstCS3eJThDVwGHAXZuhg6U1Dg88Su8omFkAEqvS0E+0av2v8hMqRfc5yB9Uk9iqzhT
-	eSMi5Svw7sUSBWU8A9BfSM/RZl40oJAUyJNA7T4mi1AR1QnXvKvXVM5igSvqxra8uyi6tYvs2Pw
-	x6MXuTYJTb/MrbsnLq8pkQd0mM27JE8Juonnclee4KUlwvsndeBTGCNRn+MA+TzltJBLF7IJIRj
-	T6UiJ2VGEi/xQK03eBYtQxD5yIcIRQmxkAM2iEVLnaM/4cpAVTFVGDuQDISN5SshOqbAgZfhds5
-	xIVpfMEVRPNu7XmQInLbiQxNglYpbKhDSK/r1YBX5mnY9kHrRUw7SXdkjwHjusUXAdIyYqbCO+0
-	d6rEs3nXngqXQTrU8kWtKvByQ7rUTxygnfztsTyhswd0lndY2GJ+rghZ/EkefU2yDytceXN3tIK
-	LV5nBK91yp2oKiRqmDgZd4U152RtzsquDM4EGlhWa2DmzPXH5GPVa0mpVqerXBYEY8Ut/VXFMc7
-	x5k=
-X-Received: by 2002:a05:7300:ea83:b0:359:8540:19d1 with SMTP id 5a478bee46e88-35985401c49mr6418998eec.15.1791827355322;
-        Mon, 12 Oct 2026 10:49:15 -0700 (PDT)
-Received: from archlinux ([2405:201:1b:20ef:268a:fa82:9f05:61a5])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3537c61eaa0sm39612287eec.0.2026.10.12.10.49.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 12 Oct 2026 10:49:14 -0700 (PDT)
-Date: Mon, 12 Oct 2026 23:19:09 +0530
-From: Krishna Chomal <krishna.chomal108@gmail.com>
-To: Lorenzo Collevecchio <lorenzocollevecchio17@gmail.com>
-Cc: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-hwmon@vger.kernel.org, W_Armin@gmx.de
-Subject: Re: hp-wmi: WHCM AE_AML_OPERAND_TYPE and fan init -22 on HP OmniBook
- 5 16-ag1xxx (board 8DF4)
-Message-ID: <as0bOFOoaaw-smyB@archlinux>
-References: <CAPvUaSo1D+1Tvk3-4TMiXw-ScBtY8Mu0FzO7R_EG6zrjYfjYqg@mail.gmail.com>
- <asxTYBiGy6lf6-Ki@archlinux>
- <CAPvUaSo-ubCOCYYPadY1C23y1Fd_AAhQLuVKWRa6F1XVh6mk_Q@mail.gmail.com>
- <asz7WqGzukhkYHGD@archlinux>
- <CAPvUaSrbWrBuvAi3R02xC8w8M5Yh97pVd3-+FBXLp3mPgG5cUQ@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gX2Mf2H+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C382A1F0089B
+	for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 17:53:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791827600;
+	bh=/y391TGDcvyQwXbh4hH2fOqRNprRkLpGxVrH7rsjr/U=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=gX2Mf2H+wdyhnGuKdQPEYnpgiXR6tGyRSYVFAj0MCv9xyMDq4vtC9NvpKqUgg5rDn
+	 cmyHy5ciRusumFmB/fifmDygC3dPav7JTjzV4Yho56kHWPOII1qlpLUyJgKL5doDOM
+	 cZD017xDd0YwSJjuptuLBXCDr4ztqZJN1ag+HPqIwstltmWGEUN+hXGHdgLqWPKZ7l
+	 0SIYH4Li68+kSQjp3SeOCLxni3/L6BvGPclTTkvkw7hJpwOkn2rjmlvq6KQmR71sXp
+	 ahoztaFy4i24oc5YkX5Jj0/ulDnmSYGVasGzBr9aDXsZPnU+2u9p5fYZ7J+5pJQYp5
+	 BPgrlCSY7DoWA==
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5ba3fba0080so1346334e87.1
+        for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 10:53:20 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvByHTkKEcpk1hwKtradir43fAAkfvCkLTm5bBFibV83bFfbLA+3kaMg4QrXygNaTfTcwmpeTD7zGMxTX@vger.kernel.org
+X-Gm-Message-State: AFq9FYJvC9C+gv8/pLHMC7kZ1euRLXXzD40Y89s4sl1KI+0B2kZie7O8
+	PY+3263wPw5YKFu8fCxiPHW+OUW5qj1UER8aRvbbaWXg5bUFbERqqnw//yUOZAcrZCLwlblBa+A
+	U8kQ5X6B0HF43jWjddpnPR/vOk4Fjb1o=
+X-Received: by 2002:a05:6512:1284:b0:5bc:b728:324 with SMTP id
+ 2adb3069b0e04-5bcde6be018mr3241540e87.12.1791827598373; Mon, 12 Oct 2026
+ 10:53:18 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Disposition: inline
-In-Reply-To: <CAPvUaSrbWrBuvAi3R02xC8w8M5Yh97pVd3-+FBXLp3mPgG5cUQ@mail.gmail.com>
+References: <179095238036.1979087.7916496223328936920.acpi-device-id-docs-v2@gmail.com>
+In-Reply-To: <179095238036.1979087.7916496223328936920.acpi-device-id-docs-v2@gmail.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Mon, 12 Oct 2026 19:51:14 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0irqbrMDNikcFmTRyakWvcLjDxB5y1vOymwZnp4kM8jqg@mail.gmail.com>
+X-Gm-Features: AclHuK9FQpA2UeIcQN6SBcLM8QgiLSCr43agXt6T5sZ9fbUoTPP4BGhwhasdvfs
+Message-ID: <CAJZ5v0irqbrMDNikcFmTRyakWvcLjDxB5y1vOymwZnp4kM8jqg@mail.gmail.com>
+Subject: Re: [PATCH v2] ACPI: device-id: document struct acpi_device_id
+To: miguelgarciaroman8@gmail.com
+Cc: rafael@kernel.org, u.kleine-koenig@baylibre.com, kmehltretter@gmail.com, 
+	andriy.shevchenko@linux.intel.com, corbet@lwn.net, linux-acpi@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 12, 2026 at 06:04:37PM +0200, Lorenzo Collevecchio wrote:
->Subject: Re: hp-wmi: WHCM AE_AML_OPERAND_TYPE and fan init -22 on HP
->OmniBook 5 16-ag1xxx (board 8DF4)
+On Fri, Oct 2, 2026 at 4:47=E2=80=AFPM Miguel Garcia via B4 Relay
+<devnull+miguelgarciaroman8.gmail.com@kernel.org> wrote:
 >
->Hi Krishna,
+> From: Miguel Garcia <miguelgarciaroman8@gmail.com>
 >
->Thanks for the patch. Results below.
+> struct acpi_device_id lacks kernel-doc, so extracting documentation from
+> its header describes ACPI_DEVICE_CLASS() but not the matching table entry=
+.
 >
->Base and adaptation:
->I used drivers/platform/x86/hp/hp-wmi.c from stable v7.2.9, built out
->of tree against 7.2.9-2-cachyos. Your diff did not apply cleanly: hunk
->1 failed, because my hp_wmi_hwmon_is_visible() uses
->is_victus_s_thermal_profile() and hp_wmi_get_fan_speed_victus_s()
->rather than the helpers in your context lines. Hunks 2 and 3 applied
->with offsets of about -230 lines. So I made these changes by hand:
->  - declared int fan_speed in hp_wmi_hwmon_is_visible()
->  - added your pr_info() and the fan_speed variable in the non-Victus
->hwmon_fan branch
->  - added the fan_count <= 0 early return in hp_wmi_hwmon_init()
->I did NOT add the hwmon_pwm_enable check in is_visible(), since the
->early return in init already prevents hwmon registration. If you want
->me to test against a different tree, tell me which one.
+> Document the four members, ID and class-code matching, and the table
+> terminator. This complements the documentation header-split work
+> without changing its include directives.
 >
->Test: normal boot (hp_bioscfg not blacklisted), then rmmod hp_wmi and
->insmod the patched module. Output of dmesg | grep -i -E
->"hp.wmi|WHCM|WQB|fan", showing the stock boot first and then the
->reload at about 5156 s:
+> Link: https://lore.kernel.org/all/aqEWUBf1pewPP_K2@monoceros/
+> Assisted-by: LLM
+> Signed-off-by: Miguel Garcia <miguelgarciaroman8@gmail.com>
+> ---
+> Changes in v2:
+> - Use ACPI_DEVICE_CLASS() in the commit message, as requested by Andy.
+> - Move the drafting and validation notes below the commit message.
+> - Describe the related header-split work without assuming its status.
+> - No change to the source diff.
 >
->[    6.453093] ACPI Error: Aborting method \_SB.WMID.WHCM ...
->(AE_AML_OPERAND_TYPE)
->[    6.655089] ACPI Error: Aborting method \_SB.WMID.WHCM ...
->(AE_AML_OPERAND_TYPE)
->[    6.857553] ACPI Error: Aborting method \_SB.WMID.WHCM ...
->(AE_AML_OPERAND_TYPE)
->[    6.857581] hp-wmi hp-wmi: Failed to apply initial fan settings: -22
->[    7.262812] hp_wmi: Registered as platform profile handler
->[    7.308567] ACPI Error: Aborting method \_SB.WMID.WQBC ...
->(AE_AML_OPERAND_VALUE)
->[    7.309182] ACPI Error: Aborting method \_SB.WMID.WQBE ...
->(AE_AML_OPERAND_VALUE)
->[ 5156.582212] hp_wmi: loading out-of-tree module taints kernel.
->[ 5156.582224] hp_wmi: module verification failed: signature and/or
->required key missing - tainting kernel
->[ 5157.203181] input: HP WMI hotkeys as /devices/virtual/input/input27
->[ 5157.614765] ACPI Error: Aborting method \_SB.WMID.WHCM ...
->(AE_AML_OPERAND_TYPE)
->[ 5158.026462] hp_wmi: Registered as platform profile handler
+> v1: https://lore.kernel.org/r/20260913095111.2543502-1-miguelgarciaroman8=
+@gmail.com/
 >
->What I see with the patched module:
->  - "Failed to apply initial fan settings: -22" is gone.
->  - /sys/devices/platform/hp-wmi/hwmon/ does not exist any more, so
->pwm1_enable is hidden as you expected.
->  - Only one WHCM error is logged after the reload instead of three. I
->do not know which call produces it; I am guessing it is the fan count
->query.
->  - No "channel = ... | fan_speed = ..." lines appear, because no
->hwmon device is registered once fan_count <= 0, so is_visible() never
->runs. If you want to see the fan speed query result, the print would
->have to go somewhere that runs in this case. I can test a modified
->patch.
->  - WQBC/WQBE do not appear in the reload because only hp_wmi was
->reloaded (hp_bioscfg stayed loaded).
->  - The platform profile still registers with quiet balanced performance.
+> An LLM drafted this comment and changelog after being asked to address
+> the missing documentation noted in the header-split discussion. The
+> field descriptions were checked against the ACPI matching code. The
+> extracted documentation passes kernel-doc and a focused Sphinx HTML
+> build with warnings treated as errors; checkpatch reports no warnings.
 >
->Fan Always On in the BIOS was off during all my tests.
+>  include/linux/device-id/acpi.h | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
 >
->Fan behaviour, in case it is useful: on a cold boot with a 2-core
->stress-ng load, the CPU went from 46 C to 80 C in about 18 seconds
->while acpi_fan fan1_input stayed at 0 RPM (Fan Always On off). I
->stopped the test at 80 C. I can send the full log, and I can retest
->with Fan Always On enabled if you want.
+> diff --git a/include/linux/device-id/acpi.h b/include/linux/device-id/acp=
+i.h
+> index 65800cefd..8c3b30ebf 100644
+> --- a/include/linux/device-id/acpi.h
+> +++ b/include/linux/device-id/acpi.h
+> @@ -9,6 +9,16 @@ typedef unsigned long kernel_ulong_t;
 >
->Happy to test further patches.
+>  #define ACPI_ID_LEN    16
+>
+> +/**
+> + * struct acpi_device_id - ACPI device matching table entry
+> + * @id: NUL-terminated hardware ID (_HID) or compatible ID (_CID) to mat=
+ch.
 
-My fault, sorry. I should have clarified earlier that my patch was
-based off of pdx86 tree[1] (master branch). Regarding the patch yes,
-by mistake I ended up disabling the whole hwmon device (not what we
-want). Let's register the hwmon device first then later handle the fan
-logic optionally with the count guards.
+This should be
 
-Now hwmon should be available but pwm1_enable will be hidden. Also,
-fan{1,2}_input is expected to be visible, I am not sure why it isn't
-showing up for your device.
++ * @id: NUL-terminated ACPI or PNP device ID (as defined by the ACPI
+specification) to match.
 
-(as usual, rest all errors would be same)
+> + * @driver_data: Data private to the driver.
+> + * @cls: PCI-defined class, subclass and programming interface code (_CL=
+S).
+> + * @cls_msk: Mask selecting the class-code fields to match.
+> + *
+> + * Use @id for ID matching or ACPI_DEVICE_CLASS() for class-code matchin=
+g.
 
-diff --git a/drivers/platform/x86/hp/hp-wmi.c b/drivers/platform/x86/hp/hp-wmi.c
-index b2773fc1aca4..422d65d5c514 100644
---- a/drivers/platform/x86/hp/hp-wmi.c
-+++ b/drivers/platform/x86/hp/hp-wmi.c
-@@ -2679,8 +2679,14 @@ static umode_t hp_wmi_hwmon_is_visible(const void *data,
-  				       enum hwmon_sensor_types type,
-  				       u32 attr, int channel)
-  {
-+	int fan_count;
-+	int fan_speed;
-+
-  	switch (type) {
-  	case hwmon_pwm:
-+		fan_count = hp_wmi_get_fan_count_userdefine_trigger();
-+		if (attr == hwmon_pwm_enable && fan_count <= 0)
-+			return 0;
-  		if (attr == hwmon_pwm_input && !hp_wmi_fan_control_supported())
-  			return 0;
-  		return 0644;
-@@ -2689,7 +2695,9 @@ static umode_t hp_wmi_hwmon_is_visible(const void *data,
-  			if (hp_wmi_get_active_fan_speed(channel) >= 0)
-  				return 0444;
-  		} else {
--			if (hp_wmi_get_fan_speed(channel) >= 0)
-+			fan_speed = hp_wmi_get_fan_speed(channel);
-+			pr_info("channel = %d | fan_speed = %d\n", channel, fan_speed);
-+			if (fan_speed >= 0)
-  				return 0444;
-  		}
-  		break;
-@@ -2905,6 +2913,7 @@ static int hp_wmi_hwmon_init(void)
-  	struct device *dev = &hp_wmi_platform_dev->dev;
-  	struct hp_wmi_hwmon_priv *priv;
-  	struct device *hwmon;
-+	int fan_count;
-  	int ret;
-  
-  	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
-@@ -2915,11 +2924,17 @@ static int hp_wmi_hwmon_init(void)
-  	if (ret)
-  		return ret;
-  
-+	hwmon = devm_hwmon_device_register_with_info(dev, "hp", priv,
-+						     &chip_info, NULL);
-+
-+	fan_count = hp_wmi_get_fan_count_userdefine_trigger();
-+	pr_info("fan_count = %d\n", fan_count);
-+	if (fan_count <= 0)
-+		return 0;
-+
-  	ret = hp_wmi_setup_fan_settings(priv);
-  	if (ret)
-  		return ret;
--	hwmon = devm_hwmon_device_register_with_info(dev, "hp", priv,
--						     &chip_info, NULL);
-  
-  	if (IS_ERR(hwmon)) {
-  		dev_err(dev, "Could not register hp hwmon device\n");
+I would say here
 
-[1]: https://git.kernel.org/pub/scm/linux/kernel/git/pdx86/platform-drivers-x86.git
+"Either @id is used for device ID matching, or @cls along with
+@cls_mask is used for class-code matching via ACPI_DEVICE_CLASS()."
 
->Thanks,
->Lorenzo
->
->Il giorno lun 12 ott 2026 alle ore 17:24 Krishna Chomal
-><krishna.chomal108@gmail.com> ha scritto:
->>
->> On Mon, Oct 12, 2026 at 10:08:43AM +0200, Lorenzo Collevecchio wrote:
->> >Hi Armin, Krishna,
->> >
->> >Thanks for the quick replies.
->> >
->> >acpidump:
->> >https://gist.github.com/CollevecchioLorenzo/aef5917d9775629d48618bd42cb5f5e2
->> >
->> >I booted 7.2.9-2-cachyos with modprobe.blacklist=hp_bioscfg
->> >(confirmed in /proc/cmdline; hp_bioscfg is not loaded). Counts of
->> >each message in dmesg, before and after:
->> >
->> >  WHCM AE_AML_OPERAND_TYPE:                 3 before, 3 after
->> >  "Failed to apply initial fan settings: -22": 1 before, 1 after
->> >  WQBC / WQBE AE_AML_OPERAND_VALUE:         1/1 before, 0/0 after
->> >
->> >So the WQBC/WQBE errors come from hp_bioscfg, as you suspected. The
->> >WHCM errors and the -22 are not caused by it: they still occur with
->> >hp_bioscfg blacklisted, right before "hp_wmi: Registered as platform
->> >profile handler".
->> >
->> >Windows, as you asked (Krishna):
->> >- The Windows power mode setting exists, but that is standard
->> >  Windows, i didn't check for HP specific.
->> >- Omen Gaming Hub offers a performance mode
->> >  option on this laptop.
->>
->> Interesting, what choices does it offer you? Eco/Balanced/Performance?
->> Or something else?
->>
->> >- The BIOS has a "Fan Always On" setting. I had it turned off
->> >
->> >Happy to test any patch or run further commands.
->>
->> Can you apply the following diff and share the output of:
->> # dmesg | grep "hp_wmi"
->>
->> Expected results:
->> - No "failed to apply initial fan settings: -22" in dmesg
->> - pwm1_enable should be hidden
->>
->> Note:
->> - I have also added a debug print to get fan speed query result. From your
->>    acpidump, it looks like a stub implementation returning all zeros buffer
->>    (0 RPM) which should have made fan{1,2}_input visible but it's interesting
->>    that it isn't visible; the dmesg log should help us gain more insight.
->> - All other errors in dmesg may (will) be same, as this patch isn't
->>    intended to solve them.
->>
->> diff --git a/drivers/platform/x86/hp/hp-wmi.c b/drivers/platform/x86/hp/hp-wmi.c
->> index 3ec6047c0f89..ee51790549ed 100644
->> --- a/drivers/platform/x86/hp/hp-wmi.c
->> +++ b/drivers/platform/x86/hp/hp-wmi.c
->> @@ -2705,8 +2705,14 @@ static umode_t hp_wmi_hwmon_is_visible(const void *data,
->>                                        enum hwmon_sensor_types type,
->>                                        u32 attr, int channel)
->>   {
->> +       int fan_count;
->> +       int fan_speed;
->> +
->>         switch (type) {
->>         case hwmon_pwm:
->> +               fan_count = hp_wmi_get_fan_count_userdefine_trigger();
->> +               if (attr == hwmon_pwm_enable && fan_count <= 0)
->> +                       return 0;
->>                 if (attr == hwmon_pwm_input && !hp_wmi_fan_control_supported())
->>                         return 0;
->>                 return 0644;
->> @@ -2715,7 +2721,9 @@ static umode_t hp_wmi_hwmon_is_visible(const void *data,
->>                         if (hp_wmi_get_active_fan_speed(channel) >= 0)
->>                                 return 0444;
->>                 } else {
->> -                       if (hp_wmi_get_fan_speed(channel) >= 0)
->> +                       fan_speed = hp_wmi_get_fan_speed(channel);
->> +                       pr_info("channel = %d | fan_speed = %d\n", channel, fan_speed);
->> +                       if (fan_speed >= 0)
->>                                 return 0444;
->>                 }
->>                 break;
->> @@ -2931,8 +2939,13 @@ static int hp_wmi_hwmon_init(void)
->>         struct device *dev = &hp_wmi_platform_dev->dev;
->>         struct hp_wmi_hwmon_priv *priv;
->>         struct device *hwmon;
->> +       int fan_count;
->>         int ret;
->>
->> +       fan_count = hp_wmi_get_fan_count_userdefine_trigger();
->> +       if (fan_count <= 0)
->> +               return 0;
->> +
->>         priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
->>         if (!priv)
->>                 return -ENOMEM;
->>
->>
->> >Thanks,
->> >Lorenzo
->> >
->> >
->> >
->> >
->> >Il giorno lun 12 ott 2026 alle ore 06:03 Krishna Chomal
->> ><krishna.chomal108@gmail.com> ha scritto:
->> >>
->> >> +Armin Wolf
->> >>
->> >> On Sun, Oct 11, 2026 at 06:03:25PM +0200, Lorenzo Collevecchio wrote:
->> >> >Hello,
->> >> >
->> >> >I am seeing hp-wmi fan interface failures on an HP OmniBook 5
->> >> >16-ag1xxx. This is not a gaming model.
->> >>
->> >> Hi Lorenzo,
->> >>
->> >> Thanks for reporting.
->> >>
->> >> >Hardware:
->> >> >  product_name: HP OmniBook 5 Laptop 16-ag1xxx (16-AG1002SL)
->> >> >  board_name:   8DF4
->> >> >  BIOS:         F.12, 04/10/2026 (no newer firmware listed on LVFS for
->> >> >this machine)
->> >> >  Kernel:       7.2.9-2-cachyos (also tested 6.18.55-2-cachyos-lts;
->> >> >ACPICA 20250807 vs 20260408)
->> >> >
->> >> >Symptoms:
->> >> >1. At boot, \_SB.WMID.WHCM (called via WMAA) fails three times with
->> >> >   "AE_AML_OPERAND_TYPE: Needed [Buffer/String/Package], found
->> >> >[Integer]" while resolving operands for [Index].
->> >>
->> >> This is likely due to hp-bioscfg instead of hp-wmi.
->> >>
->> >> >2. Immediately afterwards: "hp-wmi hp-wmi: Failed to apply initial fan
->> >> >settings: -22".
->> >>
->> >> Ah yes! This is because we are currently enabling fan control for ALL
->> >> devices. If you share your acpidump, I can check if we should use the
->> >> HPWMI_FAN_COUNT_GET_QUERY to decide whether to allow pwm1_enable or not.
->> >>
->> >> >3. Later: "Attempt to CreateField of length zero" in \_SB.WMID.WQBC
->> >> >and WQBE (AE_AML_OPERAND_VALUE).
->> >>
->> >> This is also likely due to hp-bioscfg. Try booting with kernel cmdline
->> >> parameter "modprobe.blacklist=hp_bioscfg" and see if these disappear.
->> >> That will help us narrow down the scope. But in any case, I think Armin
->> >> Wolf will have to help here since I am not familiar with bioscfg anyway.
->> >>
->> >> >4. hp_wmi still registers as a platform profile handler (quiet
->> >> >balanced performance).
->> >>
->> >> This is because 8DF4 is not present in any whitelists, so it takes a
->> >> fallback path and uses legacy WMI queries. Honestly, I am not sure if
->> >> platform profile should be registered for OmniBook devices. Could you
->> >> let me know if Omen Gaming Hub on Windows allows you to switch
->> >> performance modes or there is no option for this?
->> >>
->> >> >5. /sys/devices/platform/hp-wmi/hwmon/*/ contains only pwm1_enable
->> >> >(rw); there is no pwm1 and no fan1_input.
->> >>
->> >> Intended.
->> >>
->> >> * pwm1_enable - As said, this is because we are currently (incorrectly)
->> >>                  enabling fan control for all devices.
->> >> * pwm1 - Absent because manual fan control must be unavailable on this
->> >>           board.
->> >> * fan1_input - Absent because get fan speed query must be failing.
->> >>
->> >> >6. On the LTS kernel the same WHCM error repeats about every 2.2 s
->> >> >while something polls the hp hwmon device (277 times between 551 s and
->> >> >1165 s uptime).
->> >> >7. ACPI thermal: "Invalid critical threshold (-274000)" and "No valid
->> >> >trip points!" for thermal zone TSZ0.
->> >> >
->> >> >Fan behaviour:
->> >> >- acpi_fan (acpi-fan PNP0C0B, "Using Microsoft fan extensions")
->> >> >exposes fan1_input. It sometimes shows about 2400 RPM and sometimes 0
->> >> >RPM.
->> >> >- The fan works normally under Windows on the same machine.
->> >> >- I once saw the CPU around 95 C with the fan apparently stopped on
->> >> >Linux; I have not been able to reproduce it yet and am collecting a
->> >> >temperature/RPM log.
->> >> >
->> >> >I suspect the WMI query path the driver uses for fan settings is not
->> >> >implemented by this firmware, so hp-wmi should probably not attempt it
->> >> >on board 8DF4. I would be glad to test patches or provide acpidump
->> >> >output, WMI GUID listings or any other data.
->> >>
->> >> acpidump would be helpful.
->> >>
->> >> Thanks,
->> >> Krishna
->> >>
->> >> >Thanks,
->> >> >Lorenzo
+> + * Terminate the table with an entry whose @id is empty and @cls is zero=
+.
+
+s/is empty/represents an empty string/
+
+> + */
+>  struct acpi_device_id {
+>         __u8 id[ACPI_ID_LEN];
+>         kernel_ulong_t driver_data;
+> --
