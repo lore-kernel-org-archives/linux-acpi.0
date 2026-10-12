@@ -1,61 +1,60 @@
-Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43CF73A5440;
-	Mon, 12 Oct 2026 22:58:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB3E43BFE2A;
+	Mon, 12 Oct 2026 23:00:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791845935; cv=none; b=Jmupq1dqqTg5BUJSmD8aQkZvo7xfHeFyMF7m4c4xXqneBDTWpLBCYd46kNfM4dxx9bVjrqbEgvgxEdp+rNGfDvwixO/y3IUqhlY2BaHbXQw9uYGuZlx0f9GDxi/u6GXDfPnILOh3OEizxy2kEIMAs+2AzBaOxtDonv66cpbQgfM=
+	t=1791846019; cv=none; b=enZDsanu6D9qJROTO6zY/EfyR8aOOiZ8Un97cNL8Mo9fgZmP8lWC/CxT4w1TMdj5W/C6blj4Cn8x4Vtbi6cm3o5T/BADHxXQbs3lsu1dCquOrpi9CllqnHn2SfxxREfOrLbRl/ipsnB4zFIY05i291hfO2hIjTNT/JLd+TnFmbw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791845935; c=relaxed/simple;
-	bh=HEEje7McDOxETsPcHD0Fa1nv4xRG1TwxJAGb1MDDAus=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=tNxZqL0fUGS/2WTW4IDr3qxI2f8phzj42YDOhFOoVW+YINwJV1fSBzfaqmyvvPImeIWz4qXWmWu8+5yQj/j2X56wv5ZUeLmelIlUkVMOGrAM4Qw4cA+ks/L+H7SCUEmmrFhrELqrikq6qOiifflR+wWOfira4prii9QDWTH9tWI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=DlTbccM1; arc=none smtp.client-ip=178.21.23.139
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
+	s=arc-20240116; t=1791846019; c=relaxed/simple;
+	bh=i6jQmc/wB/VM2tnEtplz39PtttnBTeuG6oO+0KpryLY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=lMV8+xQZ6nK3bT41mDszg3hx5UwH44/HFBOXPXF9/pc1b4jW+C5C9zlmmK1KNZmWjpkzPvZiQ4pUNcYk5u6k+QFFfbyyTLclUOKQ0BnTGS9d7ICJDUGdfOGZsiHizxOppbiXVQmD84zuTYBhvco36jDV2x0D+faLTD9VYhKbiIA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dQn8T06l; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="DlTbccM1"
-Received: from mail01.layka.lan (localhost [127.0.0.1])
-	by disroot.org (Postfix) with ESMTP id CD26280D5F;
-	Tue, 13 Oct 2026 00:58:52 +0200 (CEST)
-X-Virus-Scanned: SPAM Filter at disroot.org
-Received: from layka.disroot.org ([127.0.0.1])
- by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
- id n7j6skB5oEUT; Tue, 13 Oct 2026 00:58:52 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
-	t=1791845932; bh=HEEje7McDOxETsPcHD0Fa1nv4xRG1TwxJAGb1MDDAus=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=DlTbccM10HWjMz1OL+3wToVKcE7x8qHI01ipL8K1aqtOEG27M++Rjk6uukzGRs1B5
-	 vKHahqOL7EL6trBrwl3ntH1ljhq/xtL6DVUEWXuukiTHWiiOQEm6OVFuCvG8WoPpC2
-	 DDsnoIeARStHj5Gg2L8NwcfKuU0R6Zinq1wBbZ+pEP5BoitjBN+desxVNUgH1BnAbM
-	 kXOqGH1oEjMZcFaM9kfRUe27MDBwov9FhSfGsTrqxNHWYC4lTXurgKpcJBkALUzhqp
-	 aHquQibydzMgV65DpUK2Sdu2MEaL0uqa065cLb4TRgJt2BahS9qVOQt7QoQAQiKNug
-	 uZXfOcQj37FlQ==
-From: =?UTF-8?q?Ali=20Ahmet=20Memi=C5=9F?= <aliamemis@disroot.org>
-To: Charis Stratakis <c.stratakis@proton.me>
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Armin Wolf <W_Armin@gmx.de>,
-	linux-acpi@vger.kernel.org,
-	linux-pm@vger.kernel.org,
-	regressions@lists.linux.dev,
-	Mark Pearson <mpearson-lenovo@squebb.ca>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] ACPI: battery: Re-read battery information in the complete callback
-Date: Tue, 13 Oct 2026 01:58:40 +0300
-Message-ID: <20261012225841.15260-1-aliamemis@disroot.org>
-In-Reply-To: <20261012225141.13683-1-aliamemis@disroot.org>
-References: <37N_jFulf7n-Z55NfKfE71C_wVPxYvZ0xD_iRUg2fXu7TypDiF5PStQ6siSfVBih6fThg5WoPes8U5ZQpfVm_teMFcUGXFxz2DdMbfSWuws=@proton.me> <20261012225141.13683-1-aliamemis@disroot.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dQn8T06l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CB831F0089B;
+	Mon, 12 Oct 2026 23:00:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791846018;
+	bh=cKbK670BPsD3+hA6EKODcaXQfB1loIyE47EON/gG+v4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=dQn8T06lB06d0l1CymZPujOhbi34TfSDzHZSjMksWrwfPU2Ney5vy3xvbvnJi+e7w
+	 1QBEHByTvqGtNfy2Ph2ZtUiFOvbchyiwbr5CtbhbTz/DGSgT13OinHksIXD2fGYXED
+	 SsRQoMSXmr5DQipBGzHhi6rBardx0ei269C3zc2H5vL6j5IOF6AoblE3M68O4dZN2F
+	 VjXOyuBoLyW16+H3wLMzKqzG+VCOV8fKEjgyx2AKn+9VoXSeq6NFzq9RGP1urc+4MG
+	 3zovy4ERT6AZfuDnwUq4y7so3E9Hrf/cYY8PKPH+wIL9XHWB4KnVLiDM4Kq2ASSf41
+	 sbWGGvGlBKcLw==
+Date: Tue, 13 Oct 2026 01:00:15 +0200
+From: Andi Shyti <andi.shyti@kernel.org>
+To: Hans de Goede <johannes.goede@oss.qualcomm.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, 
+	linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH 1/2] i2c: acpi: Use I2C_M_DMA_SAFE in
+ acpi_gsb_i2c_[read|write]_bytes()
+Message-ID: <as1mUr7fMVVjBRRT@zenone.zhora.eu>
+References: <20260919193642.43058-1-johannes.goede@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260919193642.43058-1-johannes.goede@oss.qualcomm.com>
 
-Hi Charis, could you test this on the P1 Gen2?
+Hi Hans,
 
-(Resending with the lists in Cc, the first one only went to you.)
+On Sat, Sep 19, 2026 at 09:36:41PM +0200, Hans de Goede wrote:
+> The main read / write "buffer" is kzalloc()ed and as such is safe to
+> directly use for DMA (unlike stack mem). Add the I2C_M_DMA_SAFE flag
+> to the transfers using these buffers.
+> 
+> Signed-off-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
+
+while we sort out patch 2, I pushed just this patch in i2c/i2c.
+
+Thanks,
+Andi
