@@ -1,149 +1,142 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89B9026656D;
-	Mon, 12 Oct 2026 08:13:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DE1F37B019;
+	Mon, 12 Oct 2026 13:38:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791792796; cv=none; b=HSP1UfJenvFomPMrx372Ekz8UyCxIdeuULjMDQ0nBB+R2A/pXPf9Ebqyu1IACnKdmojNUiZZKrwFrN11h+VBSnZfj43v0OImQHzBRmAlzgMNR7wT71ptEpiQHVYwZGZirzNxcAJNZjeJrpy/qu90UvvAt6LFDSWTe5zIgBYnyF0=
+	t=1791812325; cv=none; b=uY1LhZNsKackukGOlb5fuk7jIZ1qwGx6SC3GVl8j4wTCL5+YIyFzPxk0F2p5xsc704I/lUEOBhxy03BjzoSsgQdh6GifFywb10Sr2MSWL+38zsnC05PH6+QRiaVv3gkiLB3U1neL56pliRUAcr4vY++dQGYGPAwpqXvFELCvoQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791792796; c=relaxed/simple;
-	bh=M5qhdkNX6HuYcI4QIpPMoJekstICwco7ZRjc5Z+NNhU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TYJetVE9C04BVaLHwQcvQLDpOu0w1pmdVYZETfz28ZB/YvVsyfUSZBnxGfegrC91MTTSGn7zDyjk8s60Jxs8eujzmRvYpAXadXGjdrmQRmHeZaHMqBDKnmAF92wsdFeYcDLP7M8uT6qY3uJZhjCBaZgqlGFbjYoKnpb/sRHzQlI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=cl5Uqivr; arc=none smtp.client-ip=148.163.158.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1791812325; c=relaxed/simple;
+	bh=dEptTwNX9Sq3lL7fDHLWKReZfufeO69vQyYwqPmjcPs=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=TL/gXxKq5pOEH6kB1/f4JJSSnAA0iDBbTbywYueYTvKjwknEK6fPi1KxBBvquhtCEUYmH8HFHTZHVUgzmBjxf0QOWPTtoFyImTZflPm4xeEc7ur3Z6nyGNRY3Xf1OqE2dhL3pw1aB2UuRG6Q7r+FRmRSWX+YHryj/6IigX6eoCY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=P2oKD/iu; arc=none smtp.client-ip=185.246.84.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="cl5Uqivr"
-Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69C5EmS23321957;
-	Mon, 12 Oct 2026 08:12:57 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pp1; bh=ZxHVu7
-	GobJPZCWFXgNE6sdDlKYaMqd7ltRWpUKF/Se4=; b=cl5UqivrYvF4GUvBe0cMrs
-	92o7XxCOEY1GZa9Q1LnU4RlQvXiHkkxdNoRHuk3PYKEIryxD5XIl7n77BHNrQjE/
-	CT1t48l4st5fklimCyxWnc1f5c2FQ7UVb7Mq4L0YS3vT67x8Dnuqpr7YIWppBIX1
-	VXIuvHKBeDr6KIyzK0+9ayVMPZO/egPYSiXjC4RgPFjE1GW5Y3llPztWuhTvXobf
-	JK53kdyXxQi+9FUFvFJQ/6a0Igwrd4yEg+EI+owYQ1Bw6HvZU1fh2LRkejFvmg7t
-	i3bcIQBosp7sc6mWrIsWfAjk1zLyk8Ve1fgarEgii2Pu3qpY24wwycY3ldBpkDpw
-	==
-Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4h7dwhqk9y-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Mon, 12 Oct 2026 08:12:57 +0000 (GMT)
-Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma13.dal12v.mail.ibm.com (8.18.1.11/8.18.1.11) with ESMTP id 69C54w833726492;
-	Mon, 12 Oct 2026 08:12:56 GMT
-Received: from smtprelay04.fra02v.mail.ibm.com ([9.218.2.228])
-	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 4h81wfv4j4-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 12 Oct 2026 08:12:56 +0000 (GMT)
-Received: from smtpav04.fra02v.mail.ibm.com (smtpav04.fra02v.mail.ibm.com [10.20.54.103])
-	by smtprelay04.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 69C8CsEQ12779888
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 12 Oct 2026 08:12:54 GMT
-Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 8147220043;
-	Mon, 12 Oct 2026 08:12:54 +0000 (GMT)
-Received: from smtpav04.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 3621020040;
-	Mon, 12 Oct 2026 08:12:54 +0000 (GMT)
-Received: from osiris (unknown [9.224.76.185])
-	by smtpav04.fra02v.mail.ibm.com (Postfix) with ESMTPS;
-	Mon, 12 Oct 2026 08:12:54 +0000 (GMT)
-Date: Mon, 12 Oct 2026 10:12:54 +0200
-From: Steffen Eiden <seiden@linux.ibm.com>
-To: Kristina =?utf-8?Q?Mart=C5=A1enko?= <kristina.martsenko@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
-        kvmarm@lists.linux.dev, linux-efi@vger.kernel.org,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, Mark Rutland <mark.rutland@arm.com>,
-        Ryan Roberts <ryan.roberts@arm.com>,
-        David Hildenbrand <david@kernel.org>, Lorenzo Stoakes <ljs@kernel.org>,
-        Linu Cherian <linu.cherian@arm.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Hanjun Guo <guohanjun@huawei.com>,
-        Sudeep Holla <sudeep.holla@kernel.org>, Marc Zyngier <maz@kernel.org>,
-        Oliver Upton <oupton@kernel.org>, Fuad Tabba <fuad.tabba@linux.dev>,
-        Joey Gouly <joey.gouly@arm.com>,
-        Suzuki K Poulose <suzuki.poulose@arm.com>,
-        Zenghui Yu <yuzenghui@huawei.com>, Ard Biesheuvel <ardb@kernel.org>,
-        Ilias Apalodimas <ilias.apalodimas@linaro.org>
-Subject: Re: [RFC 03/12] KVM: arm64: Hide TLBID from guest sysregs
-Message-ID: <20261012081254.483793-A-seiden@linux.ibm.com>
-References: <20261001110655.461473-1-kristina.martsenko@arm.com>
- <20261001110655.461473-4-kristina.martsenko@arm.com>
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="P2oKD/iu"
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 50A681A11E6;
+	Mon, 12 Oct 2026 13:38:35 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 15458601A6;
+	Mon, 12 Oct 2026 13:38:35 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 6D22611D70B5E;
+	Mon, 12 Oct 2026 15:38:12 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1791812308; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=kSIOvrEHM3a5XmLq4o4Vz8QQhg7cfJBqO8WQZOEPSfo=;
+	b=P2oKD/iuYLKPKxVYgo/dXPzK7+3qO4HQVVCArAfXy2xfTIIGffN6Fz+//KdG8xo1hHy/N0
+	6hZ5EDXqnUQIGoGdQsdjAdoTJGgeeftYKc3CSnMnPeUqF6CUYL8cNy5VQ+0a17A8yiZXXV
+	s8bkbQwSZEC6UknOCygjtOUU771kiei44of8lPuAHohnuzWe+SoNo9JqYZjpSpIYd8dxPr
+	yaBTD2/kVXCXFaLlbCCv/eEZi1SFlxCDHKRNp2ax5v5kByo9s61c8u9fExUmGYUWkESU2B
+	vtBm3N6rv+3fUXsb5M4Q/x6D756ZiWWywR1bwuxC7b5+VIMx+dpl6AqCsJBG1g==
+Date: Mon, 12 Oct 2026 15:38:11 +0200
+From: Herve Codina <herve.codina@bootlin.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Richard Cheng <icheng@nvidia.com>, Andrew Lunn <andrew@lunn.ch>, Rob
+ Herring <robh@kernel.org>, Saravana Kannan <saravanak@kernel.org>, Greg
+ Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki"
+ <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, Bjorn Helgaas
+ <bhelgaas@google.com>, Charles Keepax <ckeepax@opensource.cirrus.com>,
+ Richard Fitzgerald <rf@opensource.cirrus.com>, David Rhodes
+ <david.rhodes@cirrus.com>, Linus Walleij <linusw@kernel.org>, Daniel Scally
+ <djrscally@gmail.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+ Sakari Ailus <sakari.ailus@linux.intel.com>, Bartosz Golaszewski
+ <brgl@kernel.org>, Len Brown <lenb@kernel.org>, Davidlohr Bueso
+ <dave@stgolabs.net>, Jonathan Cameron <jic23@kernel.org>, Dave Jiang
+ <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Dan Williams <djbw@kernel.org>,
+ Ira Weiny <iweiny@kernel.org>, Li Ming <ming.li@zohomail.com>, Lizhi Hou
+ <lizhi.hou@amd.com>, driver-core@lists.linux.dev,
+ linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
+ linux-sound@vger.kernel.org, patches@opensource.cirrus.com,
+ linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-cxl@vger.kernel.org, Allan Nielsen <allan.nielsen@microchip.com>,
+ Horatiu Vultur <horatiu.vultur@microchip.com>, Daniel Machon
+ <daniel.machon@microchip.com>, Steen Hegelund
+ <steen.hegelund@microchip.com>, Luca Ceresoli <luca.ceresoli@bootlin.com>,
+ Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+ stable+noautosel@kernel.org
+Subject: Re: [PATCH v12 10/10] PCI: of: Avoid np->data usage for the node
+ changeset
+Message-ID: <20261012153811.2cdcaf89@bootlin.com>
+In-Reply-To: <ar62bJzBEAhGL2iu@ashevche-desk.local>
+References: <20261001142815.277550-1-herve.codina@bootlin.com>
+	<20261001142815.277550-11-herve.codina@bootlin.com>
+	<ar62bJzBEAhGL2iu@ashevche-desk.local>
+Organization: Bootlin
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-redhat-linux-gnu)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20261001110655.461473-4-kristina.martsenko@arm.com>
-X-TM-AS-GCONF: 00
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDEyMDAzMCBTYWx0ZWRfXwppdWWnupKZm
- R5YMszWuISLyqitb5l6P4CFHM1PSLZbI2vFgULl0Ezon7SDFxNi6TtsKy/2QF+EgiKDaanozKpV
- riftcLPbkcFymJV/YWaHqI6e6+8vxbM60twnDLkkevRDaR+xi9rhVwUxizMtS4XvYNNpDoKdTeB
- ZVF3lydm8vAwBBLOyL09b6gDa9sgidnka7ZchMinvuyuKKduJQd/InGs1zbj1fRjHKlfYA77b5J
- ezd2Eo5WUQO3n7uSSw10zHmhmG4PMqHW1vJo+UiqWDjAzRVjn9t+Dx/d9uOVdaOFTQkpeRZLUr9
- iFhaOLwmGpPNu711xbvelXxryzFOBe43mMrRJHJ8EAXirMGUWWpZ6Hmjw3qJ1sGBdxaC33yZDlV
- gtbT/LyTGpA7sZdEG8cD0Zsd2WmBUk70d2RbRMylEmUGcgQagN2pYpxi8wtfIQQmUtEjO1V/SSD
- Llpdp2aEjhwLkgpu9Wg==
-X-Proofpoint-GUID: 8WRxpz4LaIopRuMISbZzH7WHNCyEDW2E
-X-Proofpoint-ORIG-GUID: 8WRxpz4LaIopRuMISbZzH7WHNCyEDW2E
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDEyMDAzMCBTYWx0ZWRfXxbNOPlqJaejr
- VwcYq80OnPhGOgQVe5J3o4GitrvU6jbbx4zmHB3S1PzoX3pEh6kHjUEe2Dr6yCsnfEC3JA/w8LD
- wIRGEC2vLHyRR58cGJZJ5aTVymA06Zc=
-X-Authority-Analysis: v=2.4 cv=btHZl0ai c=1 sm=1 tr=0 ts=6acc9689 cx=c_pps
- a=AfN7/Ok6k8XGzOShvHwTGQ==:117 a=AfN7/Ok6k8XGzOShvHwTGQ==:17
- a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10 a=VkNPw1HP01LnGYTKEx00:22
- a=RnoormkPH1_aCDwRdu11:22 a=Y2IxJ9c9Rs8Kov3niI8_:22 a=9Dg5do3rMOcXWvYwyOwA:9
- a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-10-12_02,2026-10-09_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- bulkscore=0 malwarescore=0 phishscore=0 impostorscore=0 adultscore=0
- lowpriorityscore=0 priorityscore=1501 clxscore=1011 spamscore=0
- suspectscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2610080000
- definitions=main-2610120030
+X-Last-TLS-Session-Version: TLSv1.3
 
-On Thu, Oct 01, 2026 at 12:06:46PM +0100, Kristina Martšenko wrote:
-> Don't expose FEAT_TLBID to guests. It wouldn't be useful in the general
-> case since a guest doesn't know which domains exist and its vCPUs can be
-> moved between any physical CPUs.
-> 
-> Try to hide TLBID sysregs and sysreg fields from the guest:
-> 
->   * Report the feature as not supported in the ID register
->     ID_AA64MMFR4_EL1.TLBID.
-> 
->   * Configure the TLBIDIDR_EL1 sysreg to UNDEF via the FGU mechanism.
->     Sanitize a nested hypervisor's HFGRTR2.nTLBIDIDR.
-> 
->   * Sanitize a nested hypervisor's HCRX.{VTLBIDEn,VTLBIDOSEn,FNB}.
-> 
->   * VTLBID{OS}<n>_EL2 registers are VNCR-backed and not exposed to
->     guests (apart from being able to read/write into the VNCR page) so
->     no need to handle them in sys_reg_descs or elsewhere.
-> 
->   * The guest is free to set SCTLR2_EL{1,2}.TLBOSNIS, which shouldn't
->     matter to KVM.
->
+Hi Andy,
 
-What confuse me where a bit that you wrote 'try to hide'.
-For me this indicates that the hiding process may not be successful.
-For me the code looks like it will always succeddin hiding the feature
-from the guest, no? Did I miss anything?
+On Thu, 1 Oct 2026 22:37:16 +0300
+Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
 
-Same for the next patch.
+> On Thu, Oct 01, 2026 at 04:28:10PM +0200, Herve Codina wrote:
+> > of_pci_remove_node() and of_pci_remove_host_bridge_node() check
+> > whether the node is dynamic but not whether it has valid private data.
+> > 
+> > During the node creation, an OF changeset is used and this changeset is
+> > stored in np->data to be available for removal functions.
+> > 
+> > If, for instance, a PCI host bridge is created using a device-tree
+> > overlay, the related node will have the dynamic flag set but np->data
+> > will be NULL. This leads to NULL pointer dereferences.
+> > 
+> > Checking for a non-NULL np->data pointer to determine if the node has
+> > been created by the PCI node creation process is not enough. Indeed,
+> > on some platforms like PowerPC, the OF_RECONFIG_ATTACH_NODE notifier
+> > (e.g., in the pci_dn_reconfig_notifier() function) intercepts node
+> > additions and populates np->data with its own structure, such as a
+> > struct pci_dn. In that case, np->data is not NULL but it is not related
+> > to our changeset stored during the PCI node process creation.
+> > 
+> > Avoid the usage of np->data to store the changeset used during the PCI
+> > node creation. Store our changeset in a more relevant structure: either
+> > struct pci_dev when the node is created for a PCI device or struct
+> > pci_host_bridge when the node is created for the PCI host bridge.
+> > 
+> > With that done, no ambiguity remains on removal. Indeed, this changeset,
+> > if non-NULL, is the one used during PCI node creation. Check and use
+> > this changeset on the removal process.  
+> 
+> ...
+> 
+> >  void of_pci_remove_node(struct pci_dev *pdev)  
+> 
+> >  	struct device_node *np;
+> >  
+> >  	np = pci_device_to_OF_node(pdev);
+> > -	if (!np || !of_node_check_flag(np, OF_DYNAMIC))
+> > +	if (!pdev->cset || !np)
+> >  		return;  
+> 
+> Wouldn't be better to split this conditional to two?
+> 
+> 	if (!pdev->cset)
+> 		return;
+> 
+> 	np = pci_device_to_OF_node(pdev);
+> 	if (!np)
+> 		return;
 
-	Steffen
+Yes indeed, this will improve readability. I will update in the next
+iteration.
 
+Also I will perform the same kind of modification in
+of_pci_remove_host_bridge_node(), the same kind of check is present.
+
+Best regards,
+Hervé
