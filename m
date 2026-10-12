@@ -1,148 +1,100 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 207E448F83E;
-	Mon, 12 Oct 2026 14:30:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C85D83F326A
+	for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 14:38:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791815406; cv=none; b=GjbHsGWx/5tkkrAEJRunnk+6cMIejJjI825V3uyVGTb4ONNPNIUkq6HESzjbQUsu2RGTn0ZQcxsZ/3Rxiq2C0TgJ2+YCHpQ+voaG2hdyMTvf/8GSZO4/sS8k9MC91L+9DielNn/xsHiyj0pAf/5y9iQ3SmtcdJjDKtfx51spyfo=
+	t=1791815919; cv=none; b=i9pQRwvQHXXAT+obcs8Qr0u5omjI7EyHXlAb3h/+x168hFYQmDmupf22d6XBRgxpGRGmzTyEcze+vy9ULeRA7ffAKKSYJPSWyejbnhZoDysiabXJBy3+8QTlqM6m6OwcZX3ENPcfsVEBXDDWJmqSX/FZwpvUNt0zODO7AqgEcXw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791815406; c=relaxed/simple;
-	bh=JyaYp74hyva8mz2RggMjk+t8RJI4RaB768yDtXt9oRA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=RXvRIYwnalpKNQ4N/GAnziIsD4qVzoDO2oIMq11zxOHyNgBB8SHlD9AZgDMMMbEVR3Ub5ap7/iA/P0moVVXB8i6qAeLCqabx9VxgMRyHXtMCTTOF9VillsStnuvasCW3Zv4VTjLriC9Ji9SRVnLNH/567So5nSGzlICq6ew9OII=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=2P1uCRnC; arc=none smtp.client-ip=185.246.84.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	s=arc-20240116; t=1791815919; c=relaxed/simple;
+	bh=N1/l8Kla8P7IehtK8R0KBpqpGIIP3xRru5dPvuwTpUc=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=WsJ9ZLWfxvX0MH4i8HHjm3XeS/Nh8fKgyNBAX81BcarI8HkrXgyuWsF5dYi44PbPMGbW9D5lwd38aNO3cxjFr6+9fhEdvv4HkzlhobA86eAGMVpOmebw/Za7+QgJQaBh49fvvPXhw/bZiaf+oAP8hIQpeAOf4pxvLfiFtTdjrj8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=N3gB+sVL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="2P1uCRnC"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id B83DE1A1122;
-	Mon, 12 Oct 2026 14:30:03 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 777A1601A6;
-	Mon, 12 Oct 2026 14:30:03 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id AA4FF11D70508;
-	Mon, 12 Oct 2026 16:29:52 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1791815396; h=from:subject:date:message-id:to:cc:mime-version:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=I1e0hByJo0lwlUNMu1e3zjHq/L3qiW6+OWE+PPvPOK4=;
-	b=2P1uCRnCsO3Do3ZrcvAShPBPCxTJpHhZ6h65FLDvjj1LaicvmYuNq2DsrCcZeLr/iJvxs9
-	rR60DlGNvC0pwpodOUG3dbA6mzlPbGZR6EfumyT3dA3r3h6/xdkc/D3Y1Xvtak1aeMx0pz
-	22xk5i9RJaIXaJtP4uWeK1zgCSpfbpbBtPzazxD0CIyGWWNDoFlahteBaTnmzTUfIPVCd/
-	HeaWg+hEp4doOil+nv+xeHcy/w73W3pwFQtI2PlXa3dj1KwLlIug5yWVlC3MLkFdvnXjQP
-	vnixOKQkA6mfbQaB8NiN75dd1/62w+sp4hZ60v28xTwyUB2OXqEH5Ad+NR451A==
-From: Herve Codina <herve.codina@bootlin.com>
-To: Richard Cheng <icheng@nvidia.com>,
-	Andrew Lunn <andrew@lunn.ch>,
-	Rob Herring <robh@kernel.org>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Charles Keepax <ckeepax@opensource.cirrus.com>,
-	Richard Fitzgerald <rf@opensource.cirrus.com>,
-	David Rhodes <david.rhodes@cirrus.com>,
-	Linus Walleij <linusw@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dan Williams <djbw@kernel.org>,
-	Ira Weiny <iweiny@kernel.org>,
-	Li Ming <ming.li@zohomail.com>,
-	Herve Codina <herve.codina@bootlin.com>,
-	Lizhi Hou <lizhi.hou@amd.com>
-Cc: driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	linux-pci@vger.kernel.org,
-	linux-sound@vger.kernel.org,
-	patches@opensource.cirrus.com,
-	linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-cxl@vger.kernel.org,
-	Allan Nielsen <allan.nielsen@microchip.com>,
-	Horatiu Vultur <horatiu.vultur@microchip.com>,
-	Daniel Machon <daniel.machon@microchip.com>,
-	Steen Hegelund <steen.hegelund@microchip.com>,
-	Luca Ceresoli <luca.ceresoli@bootlin.com>,
-	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-	stable@vger.kernel.org
-Subject: [PATCH v13 09/10] PCI: of: Remove fwnode_dev_initialized() call for a PCI root bridge node
-Date: Mon, 12 Oct 2026 16:28:23 +0200
-Message-ID: <20261012142826.159178-10-herve.codina@bootlin.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20261012142826.159178-1-herve.codina@bootlin.com>
-References: <20261012142826.159178-1-herve.codina@bootlin.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="N3gB+sVL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F0601F0089D
+	for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 14:38:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791815918;
+	bh=tuPxZXuGLU7wX3l3pKMP81CnZG4Db7ko04WR+gDObKM=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=N3gB+sVLglxV1K+/5Z+DJ9Fu2/7soPIUqCVSC80c0NMqo7I4PxDqAN8ajMtJd6j40
+	 NUOA1MOAzQ3H6xPVJt5sW/t88+VtzyySuxAbui7MfKbYx9NpY+clMh9YaFoHC67zuu
+	 B0bhgNTv/1RdvzWTN5fPFWGM3xdWVA8j+PoZZvTsmpMxnFGXw8q4k9cB2Z8VMSPwGr
+	 Z2pjUa4bMLRkuvGYBx2lDmMA6pjY0mCGxw4tbhhy7ZRA9h+iG+Fr3S0nmZwgJjyfue
+	 Sxh/ZbD/s8THBWmUeB7B9ueWUl1j9rI07wx0Cgnxn681isHmTYGnroXcOxuer2Lo+K
+	 mi2RhUFqmuKfQ==
+Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-5ba7ed32ccdso2346753e87.0
+        for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2026 07:38:38 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBxwR8qZ3ZIWRBS9sD4XDd1fwo10XT9wJDjv6QvuCKlZhVEcsqv7HuUSvGaPEFS7R9Q5+g9aHyJyYn9j@vger.kernel.org
+X-Gm-Message-State: AFq9FYKAg3xfAsXRr3wr9gTlu35kDBBMgllC4k2kaQAqNaFitegrummt
+	k2Evh7ur/Zi5I8mtUo9hkrg1tMvtSeKM6zzbjdTPElGNOiyPfkPGCeoRbY5JqWSEBNirYumu9+k
+	oAxCu/jUzmuIgb34XZLbErIR6wRLb0rA=
+X-Received: by 2002:a05:6512:31ca:b0:5b8:efa9:b822 with SMTP id
+ 2adb3069b0e04-5bcde8d0c43mr3653296e87.52.1791815917004; Mon, 12 Oct 2026
+ 07:38:37 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Last-TLS-Session-Version: TLSv1.3
+References: <20261007165840.1604136-1-sathyanarayanan.kuppuswamy@linux.intel.com>
+ <20261007165840.1604136-4-sathyanarayanan.kuppuswamy@linux.intel.com>
+In-Reply-To: <20261007165840.1604136-4-sathyanarayanan.kuppuswamy@linux.intel.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Mon, 12 Oct 2026 16:36:32 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gURgKAU9tvgMhy9KvUEKWLrPSUA5mCd4hs+9ZfrZsbnw@mail.gmail.com>
+X-Gm-Features: AclHuK8WHhhyNVu1g8Iokcs3OmI2nvd96ZylRDnDO6gW49A3hr0YCq8qwXXEib8
+Message-ID: <CAJZ5v0gURgKAU9tvgMhy9KvUEKWLrPSUA5mCd4hs+9ZfrZsbnw@mail.gmail.com>
+Subject: Re: [PATCH 3/4] PCI/ACPI: Request DPC control only together with AER control
+To: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael@kernel.org>, 
+	Lukas Wunner <lukas@wunner.de>, Mahesh J Salgaonkar <mahesh@linux.ibm.com>, 
+	"Oliver O'Halloran" <oohall@gmail.com>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-During the instantiation of devices described by a device-tree overlay
-applied on a PCI device, devlink displays the following kind of debug
-messages instead of creating the expected links:
-   'Not linking xxxx - might never become dev'
+On Wed, Oct 7, 2026 at 6:58=E2=80=AFPM Kuppuswamy Sathyanarayanan
+<sathyanarayanan.kuppuswamy@linux.intel.com> wrote:
+>
+> PCI Firmware r3.3, sec 4.5.2.4, requires the OS to request AER control
+> when it requests DPC control.  calculate_control() requests DPC control
+> whenever CONFIG_PCIE_DPC is enabled, even if it does not request AER
+> control, e.g., with "pci=3Dnoaer" or when MSI is disabled.
+>
+> Request DPC control only if AER control is also requested.
+>
+> Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@lin=
+ux.intel.com>
 
-Without those expected links, the device removal order cannot be
-correct.
+Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
 
-Those debug traces are printed by fw_devlink_create_devlink(). In our
-use case, they are all printed because the supplier of the link has at
-least one of its ancestor with its fwnode flag FWNODE_FLAG_INITIALIZED
-set.
-
-The culprit ancestor is the PCI root bridge.
-
-The fwnode related to the PCI root bridge is created dynamically by the
-of_pci_make_host_bridge_node() function. During this creation
-fwnode_dev_initialized() is called which set the FWNODE_FLAG_INITIALIZED
-flag.
-
-Calling fwnode_dev_initialized() tells devlink that the device related
-to this node is handled out of the driver core. This is not correct in
-our case. Indeed the device related to this firmware node is handled
-using driver core mechanisms and is fully compliant devlink
-expectations.
-
-Simply remove the fwnode_dev_initialized() call. With that done, the
-devlink debug messages are no more displayed and links that were missing
-are correctly created.
-
-Fixes: 1f340724419e ("PCI: of: Create device tree PCI host bridge node")
-Cc: stable@vger.kernel.org
-Signed-off-by: Herve Codina <herve.codina@bootlin.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-Reviewed-by: Richard Cheng <icheng@nvidia.com>
----
- drivers/pci/of.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/pci/of.c b/drivers/pci/of.c
-index 8914bfa25dc1..0a5797652e18 100644
---- a/drivers/pci/of.c
-+++ b/drivers/pci/of.c
-@@ -894,7 +894,6 @@ void of_pci_make_host_bridge_node(struct pci_host_bridge *bridge)
- 	 */
- 	of_node_set_flag(np, OF_POPULATED);
- 	fw_devlink_set_device(&np->fwnode, &bridge->dev);
--	fwnode_dev_initialized(&np->fwnode, true);
- 
- 	ret = of_changeset_apply(cset);
- 	if (ret)
--- 
-2.55.0
-
+> ---
+>  drivers/acpi/pci_root.c | 6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index b0e0b33e3254..5c674d5b6bb8 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -516,8 +516,12 @@ static u32 calculate_control(void)
+>          * the PCI Firmware Spec, r3.2, sec 4.5.1, table 4-5,
+>          * OSC_PCI_EXPRESS_DPC_CONTROL indicates the OS supports both DPC
+>          * and EDR.  EDR is always built with DPC on ACPI systems.
+> +        *
+> +        * PCI Firmware r3.3, sec 4.5.2.4, requires the OS to request AER
+> +        * control while requesting DPC control.
+>          */
+> -       if (IS_ENABLED(CONFIG_PCIE_DPC))
+> +       if (IS_ENABLED(CONFIG_PCIE_DPC) &&
+> +           (control & OSC_PCI_EXPRESS_AER_CONTROL))
+>                 control |=3D OSC_PCI_EXPRESS_DPC_CONTROL;
+>
+>         return control;
+> --
+> 2.43.0
+>
