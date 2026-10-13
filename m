@@ -1,290 +1,188 @@
-Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dy1-f178.google.com (mail-dy1-f178.google.com [74.125.82.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6100A4562BB
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 09:33:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F8433B993A
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 10:14:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791884002; cv=none; b=SelcAq+pEjhqUsWykRsFssm8ho1O3QN9/XR0u4armWhAO0TGCugIfsdlO1k6yJieeB4GW/OSMFyUcnxr3I/6daob948AFUUd7vKlDT2jBpdc9EM3SXkJxLSZKjIuRe/qt401X1uRrZDDiYzDkuQeqIAg+nqlTOX07cwK793cS/8=
+	t=1791886490; cv=none; b=Ko16p3iPse95c4LVMZqlVpmLfJSuxxJ3PBZH/sN+UYGQjBXVdJLnjK7HBQ7h4R0lJbcY4V5nxqGeQm42slnJt2JnC9MyQf8zw1WEwshiQlqIRGOCcJhYzO3d/8P2+p7u1i6Y0X/PrmC0Co2OAmXaL0hrf4v/7lGuL5SxJbg732M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791884002; c=relaxed/simple;
-	bh=GpEWMCk465fYWaNMRjPWrbrqSW8S7SvqvlTNLoxTTKo=;
-	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:References:
-	 In-Reply-To:Content-Type; b=iBKkRUFY8FUvMdD6Hs/JE3v4GcHGDj31Oou471RNM4ZuXcTKKgfag3TAYSiEWAyA61UGl8dus0wxVWcXzR/zbr3YmTHT4WxiUOZRi0GG2EqiLeHIag/KDhqE0tJwnVyY4Wi9XiWPODm1JbhltprpGIY7GoGctr+yyXG7/ZKJxWQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=Jizr1LoY; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=Dkt52Ko7; arc=none smtp.client-ip=205.220.180.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	s=arc-20240116; t=1791886490; c=relaxed/simple;
+	bh=oDmYbs9ld2ED1TV9AIIfvBhHDWWoC40K7g2n0kUxjfA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=GBj7iPZ2ozj1TPFDVRoeT8GdY552iXzOgkW9xNzeEFIiuIDGooWz/v+ykdVHS/Gk5tU5eVahQnS2kzcNCx1q1r7BeRQj7DpNXEJNNTv5Sv/vnIWIKTlWqiLGcwymhc80Z5wkxIudH0wrrQYo5qfm5N5oaYHiHW3to75nyIjmDqU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=miwRqZlx; arc=none smtp.client-ip=74.125.82.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="Jizr1LoY";
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="Dkt52Ko7"
-Received: from pps.filterd (m0279873.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69D7wrs63907983
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 09:33:16 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	N6B9+bIi044eikoFbvIIj7OQGZrIoMeOPnSHN7hdqGA=; b=Jizr1LoYfw/RKTvj
-	QqxAneSHDFIqbfoYSSFJ/IszjW/GVKt5bdKWEyq37JLbyH7f7sXTOQXVRYlZTr+F
-	lbI1as7naq5+Byhc56uf0hQzKXTVvI9o3N3il29c9eW0VeJioY6NE5om2pzn8pel
-	OwlV6/fj+Xx3aLQouOWkSWp50qcpfkbumesjxw0Dp+0hCGFBMC3lIa+pygVcRFUX
-	mQxqOuttPR569tsf24gmvZX04fiXMwBKcDJizbwgTQgHSAdRds6xVBukZYpH5fpx
-	Hl918YEj2sZQ3AQJ8bhM6yTfASDWcVKIcTdR33Yopi5FyK+b3bEAW1NLqDENZXto
-	zSlwLQ==
-Received: from mail-qk1-f200.google.com (mail-qk1-f200.google.com [209.85.222.200])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4h95xqtsx3-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 09:33:15 +0000 (GMT)
-Received: by mail-qk1-f200.google.com with SMTP id af79cd13be357-93a1de6d5c3so639111585a.3
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 02:33:15 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="miwRqZlx"
+Received: by mail-dy1-f178.google.com with SMTP id 5a478bee46e88-33c2520ad38so6391443eec.1
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 03:14:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1791883995; x=1792488795; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:content-language
-         :references:cc:to:subject:from:user-agent:mime-version:date
-         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=N6B9+bIi044eikoFbvIIj7OQGZrIoMeOPnSHN7hdqGA=;
-        b=Dkt52Ko7astTpwcb/VajyW15VOfUjpS8OlUJynnVCO2gdT4cNefXWcIQKnb0dcxLf9
-         WeA7TWqqc+CweRmVhYomy7lHF3gfiZ9VIuq7HBYngJbT488abR9Fp5zLI42J3fs2nP6X
-         +hGO5Tlll2XkisH3xad4OIggT1mBUgX2xLnoLbrix1YFUTy3pRYGjOT/Rkag60NqOQzn
-         AAicuCmePc2a4hO6x0EbE4N5QNOXnTFl+yT4m5IlSgtjJ1Z/liPNEgOGLstaXhmILVEG
-         FKwRuRDW1zxTCX1YPO8PGNFJEFXt1itKiLgwpG0+rhrfOJDE+jwcyXhnsrNHFhbI9SJx
-         nxWA==
+        d=gmail.com; s=20251104; t=1791886487; x=1792491287; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=Vk1RYHI0RSh76ko1CjG27QOrqWrkV0BB5GGJ+bVwEJI=;
+        b=miwRqZlxo97t4AsE3jbIVru73SRrQVTId5nBToO8pgZB3X7BfP8FAnc4gj9zVWX4q+
+         2fN9mB8LS7KEmrSM2/V6HrhTBd7AFh7TEP/4REbOQLLxcS/XT/GQIcawxTAdsY6Q00go
+         M3KtOnD+EtpSZJluWsFrrjjYj9PWS8ggyebCI0X5vfPPzNBG3DTi7w2bGtEgCSz42dPp
+         yeU7htlmLjBRtn/bj+QyLHLZpwemaQcncMynGDiOqYjNGCS9ZpAxRDrK8srEyKH8y/ia
+         FT+ae8OcYrB6FddWu2Sw5JD1IkBDJ+FMaqPQCOdft2SH0fZa8bl334H/ZVDMUURq8XeX
+         Mypw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791883995; x=1792488795;
-        h=content-transfer-encoding:content-type:in-reply-to:content-language
-         :references:cc:to:subject:from:user-agent:mime-version:date
-         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=1e100.net; s=20260707; t=1791886487; x=1792491287;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=N6B9+bIi044eikoFbvIIj7OQGZrIoMeOPnSHN7hdqGA=;
-        b=1vbGL2wnyEvDJZyDynnYIYhLqS28AWYz8btwBju2AS2W2d9EQY7RFiV/TPhy4ojV5Y
-         gyL0ZC4De9YFlxL+mhUSArYEs43a+uFN/iAStkIxlooWW75E15J5eSS1WYoY4PbY6u84
-         G2f0jCVvKv0fOeRFJuxqKZe2yzZtNa5KQfLSP91A0aickelK5zoKmsdNiOskmDSnhQq1
-         NBG20f5FfR7xwCSHWkDAc2ZvfsBkzr7NCfB0/sqS3GkyQ3Q5ouBrVs6rYMcYdHaBR0/M
-         /xYX+dT5MWwWm3O6jzhLk6xIWxTD3/QUsd3cnyZmAwo5ZtdPZLxwf5ALsgSD7eBetIev
-         QQyQ==
-X-Forwarded-Encrypted: i=1; AKwUvByHn/+wPCO731Urg+drxzVyDRIso0FvKBRw+BE3sCaPJLXMyUYb7iRqVLC0uS9OJ6jorp6XYVGY5t3X@vger.kernel.org
-X-Gm-Message-State: AFq9FYK3K/kP5xEBMzM4s/lSsoG4Yp8DaFUroMin/nULk1cL0pu3WK97
-	EoCt1Ch/ympkZDYk0TCM2SUumlvmPB9YurR8uxfLyY/BA0Glpq1Y+yoE7TOu+p4rKlo6YNeEy6m
-	auqkmc6fFhPRewwPbVFgKJBoQoshX6m6DiBzo3I+dTf+s5yrj2Sh+AWQN4qhkjMJ3
-X-Gm-Gg: AYBFou2LzT50C4xgiVY70FNShOcBmL4ZuQe/PJ628mAb5GB+HbUafQI3LvQDWfsfTjw
-	hQ42ohbWnel3DvMKVYuaLh0F8tE+6ZOHaFFACuEulSueVMseZpDE4kt6//5c787tCniROjt+/QK
-	arlyqGZbAcM4+npTCUvVOSvH1U5Id0XtbJnfbMCNuCr81iczgAkSJvw9RE2QuHuXMWZKmqAUBTK
-	jJW52wdWJ1iTerlPp/XIC3DasPtxFv0JxCoGGMCbCUagChQFhwb69WfcDUE3TbOyLG2WsuUh9W/
-	VvTS+eFm9y1n3Vrk4WyN0ALpSPCWp9t/2qQ5cWq3/gX5/5CzPstNBqAWnXPlY1fmc7LoxUIr6oO
-	AY4VZIXkmbGXPQXNbx8xSYoKDVXNgpnTMDMRfU+kEfHoExP2tHXwnWrh0xGAIxtkUSh8F2OEzw8
-	qOrIyarZq+2+d8XYPoU0tJe0qH7DCeGeX9CFm5hiq3DisPl3Mb1ikFS3HNgPz2YXgBnw==
-X-Received: by 2002:a05:620a:4510:b0:93e:c12c:f13a with SMTP id af79cd13be357-93ec12d0631mr1790186085a.68.1791883995055;
-        Tue, 13 Oct 2026 02:33:15 -0700 (PDT)
-X-Received: by 2002:a05:620a:4510:b0:93e:c12c:f13a with SMTP id af79cd13be357-93ec12d0631mr1790182785a.68.1791883994619;
-        Tue, 13 Oct 2026 02:33:14 -0700 (PDT)
-Received: from ?IPV6:2001:1c00:c32:7800:5bfa:a036:83f0:f9ec? (2001-1c00-0c32-7800-5bfa-a036-83f0-f9ec.cable.dynamic.v6.ziggo.nl. [2001:1c00:c32:7800:5bfa:a036:83f0:f9ec])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b1c27f0f3esm2346702a12.27.2026.10.13.02.33.12
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 13 Oct 2026 02:33:13 -0700 (PDT)
-Message-ID: <fb993dd3-ee56-4e3d-aa16-573f011518f1@oss.qualcomm.com>
-Date: Tue, 13 Oct 2026 11:33:11 +0200
+        bh=Vk1RYHI0RSh76ko1CjG27QOrqWrkV0BB5GGJ+bVwEJI=;
+        b=Q71Rpc5dEH0lJfXVmhv/rb8izouZpbtIh3BfBGf7AaCTfHtlEXApvLhHdiFtbh1t5h
+         0VbYvQTRe5emr8KBpQVSFm9OZ2BTcWive5cQ096EWPpsuwyjihJIt5Ex95ADro7Rw5hU
+         77PNTnOqsq30mg3Z0lOZWlamifcCNad9Fs3Wiv28TrUOyS7wCntFsa4++QaTQ+rynh5a
+         PudQyLAJq6eg+Q9mt52+eXISZ9t5IcQKk2ZtZbHqYhTWjPjsLBbk0K1ReCgDJS2z2s1D
+         3MngHvcR1GB2X1/+zHGp7UHXO2LOsdwKJDRln0KRhW5raLgQULgRoooRr6a/IBKM3yZS
+         P9Xg==
+X-Forwarded-Encrypted: i=1; AKwUvByleuEejDUwPFmEdf98MdyKPn8E0g08EBTDCi677FOWbUX30rmYZYhmgtqDpVD2DrrqzEfoTpNYmDVR@vger.kernel.org
+X-Gm-Message-State: AFq9FYIfn8rZwipYyh+DCg090ygvHT8OP5AJl91Wlv1BfdRhUsdY0hie
+	WHXjzP41RembNEkCHjh1GF8Y8mIyxFDj+8UgoIy74+UlpS7n9wv6PXQ=
+X-Gm-Gg: AYBFou2zXpJWl1GyYvxsU2PJvlh47zr5yP9IUk21NlbgKQCGp7LsWNW7rtuzMlsixgQ
+	KmH4tXC5wv6J136LBKDnutS5rhQfGprfvoX51rDwuSgBv+oE73gYCpGsRWOorN+tDVFzzziS1gO
+	r+QaCa73+How+mVAc51Cq33XF9YHRP8ZV/JgjeOH5cvKEI9OCuOiNOmaO4xSuUhDBGro4nLhKSi
+	/K16vn0v3+sirTTlNgRgiWJQJ99F8/vzpOGHYFGXEq7QyigFovfUCKUoYV5BkjOKSJtNQYAKTiu
+	B4+4kA6i0afcpK+NTm/DN/WHpvET7qiKnyiUtCO8J8r+uKeSPhVjtg6y9qjxuEeJNyCk/csBQie
+	ddpoIJ6Ar48nh2FhULqcQ/YLqzzrjjipLPUxqSnckWi7V1MyNlVfT66KW6YcQzuvAXs1VKu/BA5
+	GDLGxicjojLkFoQDzgZ/gvt24BuLOSJkgC8Q3OlBo9G2JAnhFHSrCfS3KyHjfOLnazjl1VSzqA/
+	bK28EoSsBFZmR22zWywsZqB74h5yoVAg9I=
+X-Received: by 2002:a05:7301:470e:b0:35c:73ca:a1e0 with SMTP id 5a478bee46e88-35c73caae65mr2099669eec.15.1791886486576;
+        Tue, 13 Oct 2026 03:14:46 -0700 (PDT)
+Received: from at-Standard-PC-Q35-ICH9-2009 ([223.228.14.162])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-35b690af3easm13650379eec.1.2026.10.13.03.14.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 13 Oct 2026 03:14:45 -0700 (PDT)
+From: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>
+To: 
+Cc: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] ACPI: processor: Use Apple-specific methods for P/C-states
+Date: Tue, 13 Oct 2026 06:14:30 -0400
+Message-ID: <20261013101432.9712-1-atharvatiwarilinuxdev@gmail.com>
+X-Mailer: git-send-email 2.55.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-From: johannes.goede@oss.qualcomm.com
-Subject: Re: [PATCH] ACPI: battery: Re-read battery information in the
- complete callback
-To: =?UTF-8?Q?Ali_Ahmet_Memi=C5=9F?= <aliamemis@disroot.org>,
-        "Rafael J . Wysocki" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Armin Wolf <W_Armin@gmx.de>,
-        Charis Stratakis <c.stratakis@proton.me>, linux-acpi@vger.kernel.org,
-        linux-pm@vger.kernel.org, regressions@lists.linux.dev,
-        Mark Pearson <mpearson-lenovo@squebb.ca>, linux-kernel@vger.kernel.org,
-        stable@vger.kernel.org
-References: <37N_jFulf7n-Z55NfKfE71C_wVPxYvZ0xD_iRUg2fXu7TypDiF5PStQ6siSfVBih6fThg5WoPes8U5ZQpfVm_teMFcUGXFxz2DdMbfSWuws=@proton.me>
- <20261012225141.13683-1-aliamemis@disroot.org>
-Content-Language: en-US, nl
-In-Reply-To: <20261012225141.13683-1-aliamemis@disroot.org>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDEzMDAzNyBTYWx0ZWRfX218XkZtHuKnA
- NeMyGu41ea9I3qNIS5M7+KgVN5fCpGH6i6X94eNdEEqNy57ZhIxm1TpaeSiV2aet3e4TLIMG43t
- pom2s00P0sVzF++fl26lPJksJJYPGeK3u2yezpszx99Iu28GRZpNQksmaj/DM3ak9ozmXIJRpPh
- xnmMdTJDlmN8XmNDlgtXhYflwjfEcUxLlCzKkgsaHEDkTUReJ1ypDxnfe6gjxaH0xlWTb+TIent
- YstbY1eo13MmXLHwBywop3v6qRFmKtv008f0fcBJg273dcuVn9ByDveAaRmmd0Lt2MY/jz2m3pm
- c14W8D5InbPSqHcu5ea9o44WmT2yIEFfjnx+DN3P56i5vPn321IV2Nue6KVpuTKtf9T5Ov8mike
- aWwh+MIgPXaRyIot4FItUQqS4/0UkWdPJQbuwic2XwBoXzQHP7NSPxXiMsgUw1BReGiEXQ9YLJH
- B9P8kNoms5dq/lj2+JA==
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDEzMDAzNyBTYWx0ZWRfX/Avsnafpj+5X
- VKPTnCca2ixJnaWsjamevH6mKPb98ZJLdVX4+P1AHMh/8IknQ3cZq9hlxoFTSAgyPR9Op/WUx51
- nkxjttOUc6wQZs7HbSAZVvOmNaG6v8A=
-X-Proofpoint-ORIG-GUID: 73H8uwiQgjIAIopfbwBU8De_dzSYvkoR
-X-Authority-Analysis: v=2.4 cv=EP+TQFZC c=1 sm=1 tr=0 ts=6acdfadb cx=c_pps
- a=hnmNkyzTK/kJ09Xio7VxxA==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
- a=660iZSQnnn4A:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=u7WPNUs3qKkmUXheDGA7:22 a=rJkE3RaqiGZ5pbrm-msn:22 a=VwQbUJbxAAAA:8
- a=LpNgXrTXAAAA:8 a=-CJwA2ej0K7jv6hoTRcA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
- a=PEH46H7Ffwr30OY-TuGO:22 a=LqOpv0_-CX5VL_7kjZO3:22
-X-Proofpoint-GUID: 73H8uwiQgjIAIopfbwBU8De_dzSYvkoR
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
- definitions=2026-10-13_01,2026-10-09_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- impostorscore=0 suspectscore=0 phishscore=0 clxscore=1015 spamscore=0
- malwarescore=0 priorityscore=1501 bulkscore=0 adultscore=0 lowpriorityscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2610080000 definitions=main-2610130037
 
-Hi,
+Use APSS and ACST instead of _PSS and _CST when available on Intel Macs.
+These methods are used in X86PlatformPlugin.kext, and when not found we
+fallback to generic _PSS and _CST methods.
 
-On 13-Oct-26 00:46, Ali Ahmet Memiş wrote:
-> Since commit d33e89d12295 ("thermal: core: Suspend thermal zones later
-> and resume them earlier"), thermal zones are resumed from dpm_complete(),
-> before the PM_POST_SUSPEND notifier that re-reads _BIX and _BST. On
-> ThinkPad P1 Gen2 and P53, INT3403 _TMP calls \GTST which switches the EC
-> page selector (HIID) without taking the BATM mutex used by the battery
-> methods. ACPICA releases the interpreter lock around EC accesses
+Signed-off-by: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>
+---
+ drivers/acpi/acpi_processor.c    | 22 +++++++++++++++++-----
+ drivers/acpi/processor_perflib.c | 10 ++++++++++
+ 2 files changed, 27 insertions(+), 5 deletions(-)
 
-I'm wondering if this "ACPICA releases the interpreter lock around EC
-accesses" is not the real problem here. Recently I've learned / heard
-from a trusted source that Windows ACPI subsystem is very much single
-threaded. So it is nice that ACPI has these mutexes and other stuff
-to support multi-threading but as long as Windows ACPI interpreter is
-not multi-threaded I think we may need to consider to copy Windows
-behavior.
-
-So maybe the EC accesses should keep the interpreter lock locked during
-EC accesses.
-
-And even go futher and maybe we need to introduce a big-acpi-lock,
-which I guess the interpreter lock more or less is? And just serialize
-all ACPI accesses since most ACPI tables clearly do not handle
-multi-threaded access to ACPI methods well ?
-
-Another example of multi-threaded ACPI calls causing problems is:
-
-https://bugzilla.kernel.org/show_bug.cgi?id=221065
-
-Regards,
-
-Hans
-
-
-
-> so the
-> two methods interleave and _BIX often returns temperature page data
-> after resume.
-> > Evaluate _BIX and _BST in the complete callback, which runs before
-> dpm_complete() resumes thermal zones and leave only the sysfs
-> re-registration to the notifier.
-> 
-> Fixes: d33e89d12295 ("thermal: core: Suspend thermal zones later and resume them earlier")
-> Reported-by: Charis Stratakis <c.stratakis@proton.me>
-> Closes: https://lore.kernel.org/all/37N_jFulf7n-Z55NfKfE71C_wVPxYvZ0xD_iRUg2fXu7TypDiF5PStQ6siSfVBih6fThg5WoPes8U5ZQpfVm_teMFcUGXFxz2DdMbfSWuws=@proton.me/
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Ali Ahmet Memiş <aliamemis@disroot.org>
-> ---
-> Ran into this (report) while reading the EC firmware of my T490.
-> The P1 Gen2 EC has the same single page selector.
-> 
-> Tested on 7.3-rc7 with an SSDT that makes a thermal zone keep calling a
-> copy of the P1 Gen2 \GTST after resume.  _BIX was broken after 5 of 5
-> resumes without the patch and 0 of 5 with it.
-> 
-> Doing it in the resume callback also works but _BIX takes about 75 ms
-> there right after resume against about 35 ms here (and by the complete
-> callback all operation region providers have resumed too).
-> 
->  drivers/acpi/battery.c | 62 ++++++++++++++++++++++++++++--------------
->  1 file changed, 42 insertions(+), 20 deletions(-)
-> 
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index 670853ec3a4d..34f2e78c4314 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -107,6 +107,7 @@ struct acpi_battery {
->  	struct notifier_block pm_nb;
->  	struct list_head list;
->  	unsigned long flags;
-> +	bool resume_reregister;
->  
->  	struct mutex property_lock; /* Protects properties below. */
->  	unsigned long update_time;
-> @@ -1209,29 +1210,15 @@ static int battery_notify(struct notifier_block *nb,
->  	if (mode == PM_POST_SUSPEND || mode == PM_POST_HIBERNATION) {
->  		guard(mutex)(&battery->update_lock);
->  
-> -		if (!acpi_battery_present(battery))
-> +		if (!battery->resume_reregister)
->  			return 0;
->  
-> -		if (battery->bat) {
-> -			acpi_battery_refresh(battery);
-> -		} else {
-> -			int result;
-> -
-> -			scoped_guard(mutex, &battery->property_lock) {
-> -				result = acpi_battery_get_info(battery);
-> -				if (result)
-> -					return result;
-> -			}
-> +		battery->resume_reregister = false;
->  
-> -			result = sysfs_add_battery(battery);
-> -			if (result)
-> -				return result;
-> -		}
-> +		if (battery->bat)
-> +			sysfs_remove_battery(battery);
->  
-> -		scoped_guard(mutex, &battery->property_lock) {
-> -			acpi_battery_init_alarm(battery);
-> -			acpi_battery_get_state(battery);
-> -		}
-> +		return sysfs_add_battery(battery);
->  	}
->  
->  	return 0;
-> @@ -1450,7 +1437,42 @@ static int acpi_battery_resume(struct device *dev)
->  	return 0;
->  }
->  
-> -static DEFINE_SIMPLE_DEV_PM_OPS(acpi_battery_pm, NULL, acpi_battery_resume);
-> +static void acpi_battery_complete(struct device *dev)
-> +{
-> +	struct acpi_battery *battery = dev_get_drvdata(dev);
-> +
-> +	if (!battery)
-> +		return;
-> +
-> +	guard(mutex)(&battery->update_lock);
-> +
-> +	if (!acpi_battery_present(battery))
-> +		return;
-> +
-> +	/*
-> +	 * Evaluate _BIX and _BST here before thermal zones are resumed, as
-> +	 * some firmware shares the EC window with _TMP without locking.
-> +	 */
-> +	guard(mutex)(&battery->property_lock);
-> +
-> +	if (battery->bat) {
-> +		int power_unit = battery->power_unit;
-> +
-> +		acpi_battery_get_info(battery);
-> +		if (power_unit != battery->power_unit)
-> +			battery->resume_reregister = true;
-> +	} else if (!acpi_battery_get_info(battery)) {
-> +		battery->resume_reregister = true;
-> +	}
-> +
-> +	acpi_battery_init_alarm(battery);
-> +	acpi_battery_get_state(battery);
-> +}
-> +
-> +static const struct dev_pm_ops acpi_battery_pm = {
-> +	SYSTEM_SLEEP_PM_OPS(NULL, acpi_battery_resume)
-> +	.complete = pm_sleep_ptr(acpi_battery_complete),
-> +};
->  
->  static struct platform_driver acpi_battery_driver = {
->  	.probe = acpi_battery_probe,
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index 00775b91b..37beb1a2e 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -18,6 +18,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/pci.h>
++#include <linux/platform_data/x86/apple.h>
+ #include <linux/platform_device.h>
+ 
+ #include <acpi/processor.h>
+@@ -837,27 +838,38 @@ int acpi_processor_evaluate_cst(acpi_handle handle, u32 cpu,
+ 	acpi_status status;
+ 	u64 count;
+ 	int last_index = 0;
+-	int i, ret = 0;
++	int i, ret = 0, base = 0;
+ 
++	if (x86_apple_machine) {
++		status = acpi_evaluate_object(handle, "ACST", NULL, &buffer);
++		if (ACPI_SUCCESS(status)) {
++			base = 1; /* ACST is a 4 field variable we need to skip the first field */
++			goto success;
++		}
++
++		buffer.length = ACPI_ALLOCATE_BUFFER;
++		buffer.pointer = NULL;
++	}
+ 	status = acpi_evaluate_object(handle, "_CST", NULL, &buffer);
+ 	if (ACPI_FAILURE(status)) {
+ 		acpi_handle_debug(handle, "No _CST\n");
+ 		return -ENODEV;
+ 	}
++success:
+ 
+ 	cst = buffer.pointer;
+ 
+ 	/* There must be at least 2 elements. */
+-	if (!cst || cst->type != ACPI_TYPE_PACKAGE || cst->package.count < 2) {
++	if (!cst || cst->type != ACPI_TYPE_PACKAGE || cst->package.count < base + 2) {
+ 		acpi_handle_warn(handle, "Invalid _CST output\n");
+ 		ret = -EFAULT;
+ 		goto end;
+ 	}
+ 
+-	count = cst->package.elements[0].integer.value;
++	count = cst->package.elements[base].integer.value;
+ 
+ 	/* Validate the number of C-states. */
+-	if (count < 1 || count != cst->package.count - 1) {
++	if (count < 1 || count != cst->package.count - 1 - base) {
+ 		acpi_handle_warn(handle, "Inconsistent _CST data\n");
+ 		ret = -EFAULT;
+ 		goto end;
+@@ -882,7 +894,7 @@ int acpi_processor_evaluate_cst(acpi_handle handle, u32 cpu,
+ 
+ 		memset(&cx, 0, sizeof(cx));
+ 
+-		element = &cst->package.elements[i];
++		element = &cst->package.elements[base + i];
+ 		if (element->type != ACPI_TYPE_PACKAGE) {
+ 			acpi_handle_info(handle, "_CST C%d type(%x) is not package, skip...\n",
+ 					 i, element->type);
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index fdf55c285..4b9e17d65 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -17,6 +17,7 @@
+ #include <linux/cpufreq.h>
+ #include <linux/slab.h>
+ #include <linux/acpi.h>
++#include <linux/platform_data/x86/apple.h>
+ #include <acpi/processor.h>
+ #ifdef CONFIG_X86
+ #include <asm/cpufeature.h>
+@@ -323,11 +324,20 @@ static int acpi_processor_get_performance_states(struct acpi_processor *pr)
+ 	int i;
+ 	int last_invalid = -1;
+ 
++	if (x86_apple_machine) {
++		status = acpi_evaluate_object(pr->handle, "APSS", NULL, &buffer);
++		if (ACPI_SUCCESS(status))
++			goto success;
++
++		buffer.length = ACPI_ALLOCATE_BUFFER;
++		buffer.pointer = NULL;
++	}
+ 	status = acpi_evaluate_object(pr->handle, "_PSS", NULL, &buffer);
+ 	if (ACPI_FAILURE(status)) {
+ 		acpi_evaluation_failure_warn(pr->handle, "_PSS", status);
+ 		return -ENODEV;
+ 	}
++success:
+ 
+ 	pss = buffer.pointer;
+ 	if (!pss || pss->type != ACPI_TYPE_PACKAGE) {
+-- 
+2.55.0
 
