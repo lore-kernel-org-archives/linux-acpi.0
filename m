@@ -1,166 +1,179 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B251F51DAFC;
-	Tue, 13 Oct 2026 16:34:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C232E3BE16A
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 17:23:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791909288; cv=none; b=Xc/iu20JDQny9bgQ0FU0oiICNG/bdE03fVLjXhJLiOG24hm8jDFxeB9LB6iMdJALPn/eKIQhOW+Z13IPsdcTfZxcfNw9ZkxHBvWfkv3Z6gsqaPbup3JLXNfTVwJDEQu73IrX/3vYCCAUsEPnrenfRvmDGqPI6koncxWk6ZNAYMg=
+	t=1791912184; cv=none; b=io0kmydwOEqFUlhikbmgkpf1KaN26khW7cYKNXk5ALHTbxhfDKaPNRb0taLcZ5HrVT1NhQ8ZhfXuJqnj9IKezFo/1JjXxsAuonIKlaBo0JRwGCi6urOstbBA54LsA6VlUWupot5fvxijlPmDNn9/WSozYbXO5UZsiglrZ0nKNBo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791909288; c=relaxed/simple;
-	bh=Mc1DTfLGY7pcGFzCEyyWDlJ/Z2hxsqSiFDGUw49GIf4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=ICntaY/VV06RQVaHU+YEcFD5q83I9RHCmS9LI5L98qZQoC9DdxWYlVURDBiwOlKvIwV6bW8VAV60XUGraBuaLSkitQ4oK1JdSGcyfIBZ72oiA41O3oWCknL74TTYpoVXKHO58Nqv4rlcaVa96G5FIx4vxdvfk7Ow20aN8z5aXo4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JnlevLRw; arc=none smtp.client-ip=198.175.65.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1791912184; c=relaxed/simple;
+	bh=6oHp6iOgu3vSfUvFoKGR28aA37BnryUeRpYDhY2R2Vw=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=EHrvArwXSWmdcdKPsF6kjJQZa+qvaatR+xyq9b2s9cb08v8v5qhA7m40wvZk6TT8wWLqiPoUW39j7K/cV5BuxRebZi1Aomnz4dcMGH9HLSKb203vyoRRu/5XmuEskoMVcAZ7K/N3XayftKIQp7HPhQ/kG5XQweyWKwQArrRSsg4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bM4vImJe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JnlevLRw"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1791909286; x=1823445286;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=Mc1DTfLGY7pcGFzCEyyWDlJ/Z2hxsqSiFDGUw49GIf4=;
-  b=JnlevLRwGMvkYVM+DhPc09SchQTO7Hmc1A/XikrUpTg7/bf1ncRQO1E2
-   8Y/FCwJsWFmYniH1jPrmF78VP8RxUlSZedZ1nnifXOGTzkGOG3OxPsNhl
-   IRRXSqrRsAhSDiezhCmGPZfVCH3hket5JQo6XYrtzFWpjt3mWq+Sue3o2
-   y4gAbbHJnaJOTQIyhzhAz3vKieGPYXOyV1PniWAIW1GCnZf3bd2RWrJf4
-   uTich7XzV1Ya+pJZL/Su1YJHdopd4TX5JdOyY5Ew82F3egsSrwtzrCyHf
-   lvxAiLnrGErdqcROgXg2EKVtMTmvzrTTX5yC90u2Q+DyBWrq65leM2sDh
-   A==;
-X-CSE-ConnectionGUID: +JKn5hHhQ7G7UCz/1AsONg==
-X-CSE-MsgGUID: D856ylNlQMSTg6No/FjAMQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11934"; a="673383"
-X-IronPort-AV: E=Sophos;i="6.27,156,1787036400"; 
-   d="scan'208";a="673383"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2026 09:34:46 -0700
-X-CSE-ConnectionGUID: YHDZeawZTy2M6ADHtkUGjA==
-X-CSE-MsgGUID: 9ys0i9A1R4CmLucPxOFa8A==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,156,1787036400"; 
-   d="scan'208";a="1528330"
-Received: from soc-pf446t5c.clients.intel.com (HELO [10.24.80.90]) ([10.24.80.90])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2026 09:34:45 -0700
-Message-ID: <4723da77-acb2-4063-93d5-bf1cefd6b6e5@linux.intel.com>
-Date: Tue, 13 Oct 2026 09:34:44 -0700
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bM4vImJe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A52E21F0089B
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 17:23:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791912182;
+	bh=58vcH4XOh3Uxb0/yHZpvGzQapqHFOqeDk7/phElXVhw=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=bM4vImJeNOabcnbRhYbq9bIHyCVf6FStYaRomHk+BwpDrO8rxLv/G/eqw/PQT4a4O
+	 9zdDaMeFWhCffixJHEoQ6Q01mBo+I89j+lWWvCy4PB/z8l/10Bgo6hgo34ToVcVrI9
+	 Lzj1m/uhPzx5smipyd+L9dSHjKU/91/R1Q/wFVbcCRmCsP3dWI2LNSG3bpFYPuKExD
+	 +PfJTT7QOVaDF//gYqAjKu3nnXEGnLaCTOA0lJy0pSuWStN4EVTJNFIPls9OifnZsE
+	 JFwN3qFYqyRdnLx5JdVtMARHzUV+xTCOwQq5U9UFMW5wvo61rg264FFxbda+3yxpcZ
+	 LskmvOEsJjBXg==
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5bb7ae22913so2017915e87.3
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 10:23:02 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBytIuxQznGwId2zBGcnLpHnFm+3nmKLX2zwVCuDEQGzT++jpUHslsIM8mL1nzgY55rAy1J/JQ8zbMsQ@vger.kernel.org
+X-Gm-Message-State: AFq9FYITilbg5xDGZafzvVdgEDXJpxnUBQStkroxPBp1FT/UDft9kdyk
+	9bVErVTKVzHnIuACM1HG82oo6etsAYlf+V1inFgkVUMtFK71aK0XZtPrUFQtzjQ2+65DJlJGEoX
+	94pUME7pJ4kjuWD8Kh5jEKpxuI+2kAb8=
+X-Received: by 2002:a05:6512:1389:b0:5b8:f3d5:f301 with SMTP id
+ 2adb3069b0e04-5bcde35148bmr4362168e87.6.1791912181025; Tue, 13 Oct 2026
+ 10:23:01 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 0/4] PCI/DPC: Decide DPC ownership with
- host_bridge->native_dpc
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>,
- "Rafael J . Wysocki" <rafael@kernel.org>, Lukas Wunner <lukas@wunner.de>,
- Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
- Oliver O'Halloran <oohall@gmail.com>, Len Brown <lenb@kernel.org>,
- linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20261012232018.GA1428722@bhelgaas>
-Content-Language: en-US
-From: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-In-Reply-To: <20261012232018.GA1428722@bhelgaas>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <37N_jFulf7n-Z55NfKfE71C_wVPxYvZ0xD_iRUg2fXu7TypDiF5PStQ6siSfVBih6fThg5WoPes8U5ZQpfVm_teMFcUGXFxz2DdMbfSWuws=@proton.me>
+ <20261012225141.13683-1-aliamemis@disroot.org> <fb993dd3-ee56-4e3d-aa16-573f011518f1@oss.qualcomm.com>
+ <CAJZ5v0gS4agVUkCO6M=VW4Wi2y1-s+k23bpzmX9aAZ0Rsv4z9Q@mail.gmail.com> <044e9df4-1399-4ceb-80f8-f7cfe031d04f@oss.qualcomm.com>
+In-Reply-To: <044e9df4-1399-4ceb-80f8-f7cfe031d04f@oss.qualcomm.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Tue, 13 Oct 2026 19:20:55 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0isCM3K3U6HSdDnvXzBX41AgQMFYxqLx3KvMA0W_91-ew@mail.gmail.com>
+X-Gm-Features: AclHuK8Dko4T7OiAi5h3jqpw8o-XWUajlqhmOiANoa1OJ9welDWIOCCTNuHuWCM
+Message-ID: <CAJZ5v0isCM3K3U6HSdDnvXzBX41AgQMFYxqLx3KvMA0W_91-ew@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: battery: Re-read battery information in the
+ complete callback
+To: johannes.goede@oss.qualcomm.com
+Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, =?UTF-8?Q?Ali_Ahmet_Memi=C5=9F?= <aliamemis@disroot.org>, 
+	Len Brown <lenb@kernel.org>, Armin Wolf <W_Armin@gmx.de>, 
+	Charis Stratakis <c.stratakis@proton.me>, linux-acpi@vger.kernel.org, 
+	linux-pm@vger.kernel.org, regressions@lists.linux.dev, 
+	Mark Pearson <mpearson-lenovo@squebb.ca>, linux-kernel@vger.kernel.org, 
+	stable@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Bjorn,
+Hi Hans,
 
-On 10/12/2026 4:20 PM, Bjorn Helgaas wrote:
-> On Wed, Oct 07, 2026 at 09:58:36AM -0700, Kuppuswamy Sathyanarayanan wrote:
->> This series makes host_bridge->native_dpc the single decider for whether
->> Linux uses DPC, as Bjorn asked during the review of "Simplify PCIe native
->> ownership".
->>
->>   https://lore.kernel.org/r/20261001221408.GA2731929@bhelgaas
->>
->> Today the DPC service binds on host_bridge->native_aer, AER availability
->> and "pcie_ports=dpc-native".  host_bridge->native_dpc is only consulted
->> by pci_dpc_recovered().  After this series, native_dpc is the end result
->> of everything that decides DPC ownership, and portdrv binds the DPC
->> service on it.
->>
->> The series applies on top of two others:
->>
->>   - pci/portdrv, which has patches 1-3 of v15 of "Simplify PCIe native
->>     ownership".  They fold "pcie_ports=native" and "pcie_ports=dpc-native"
->>     into the _OSC control mask, so native_dpc already reflects the
->>     command line.
->>
->>     https://lore.kernel.org/r/20261002211828.1293177-1-sathyanarayanan.kuppuswamy@linux.intel.com
->>
->>   - Lukas's "Error reporting for AER-incapable devices".  It removes the
->>     AER Capability requirement from the DPC driver.
->>
->>     https://lore.kernel.org/r/cover.1790531238.git.lukas@wunner.de
-> 
-> My impression was that Lukas planned to tweak a couple things in that
-> series, e.g., https://lore.kernel.org/all/arltOHrdHdokyfC9@wunner.de
-> 
-> Does this actually depend on Lukas' series?  If so, can we include the
-> relevant patch here?
+On Tue, Oct 13, 2026 at 3:36=E2=80=AFPM <johannes.goede@oss.qualcomm.com> w=
+rote:
+>
+> Hi Rafael,
+>
+> On 13-Oct-26 13:58, Rafael J. Wysocki (Intel) wrote:
+> > On Tue, Oct 13, 2026 at 11:33=E2=80=AFAM <johannes.goede@oss.qualcomm.c=
+om> wrote:
+> >>
+> >> Hi,
+> >>
+> >> On 13-Oct-26 00:46, Ali Ahmet Memi=C5=9F wrote:
+> >>> Since commit d33e89d12295 ("thermal: core: Suspend thermal zones late=
+r
+> >>> and resume them earlier"), thermal zones are resumed from dpm_complet=
+e(),
+> >>> before the PM_POST_SUSPEND notifier that re-reads _BIX and _BST. On
+> >>> ThinkPad P1 Gen2 and P53, INT3403 _TMP calls \GTST which switches the=
+ EC
+> >>> page selector (HIID) without taking the BATM mutex used by the batter=
+y
+> >>> methods. ACPICA releases the interpreter lock around EC accesses
+> >>
+> >> I'm wondering if this "ACPICA releases the interpreter lock around EC
+> >> accesses" is not the real problem here.
+> >
+> > Yes, it most likely is.
+> >
+> > What actually happens is that ACPICA drops the interpreter lock and
+> > the namespace lock in several cases listed in the
+> > acpi_ex_exit_interpreter() documentation comment, the majority of
+> > which involve having to wait.
+> >
+> > The bottom line though is that the interpreter and namespace locks
+> > cannot be expected to be held throughout AML evaluation because it is
+> > not known in advance if any of the cases in question will appear.
+> >
+> >> Recently I've learned / heard
+> >> from a trusted source that Windows ACPI subsystem is very much single
+> >> threaded. So it is nice that ACPI has these mutexes and other stuff
+> >> to support multi-threading but as long as Windows ACPI interpreter is
+> >> not multi-threaded I think we may need to consider to copy Windows
+> >> behavior.
+> >
+> > This is also my conclusion, at least to some extent.
+> >
+> > The problem with it though is that in some cases parallel evaluation
+> > of AML is actually useful.  For example, say two PCI devices are
+> > powered up at the same time and AML waits for each of them.  The async
+> > suspend/resume aligns those waits to take place simultaneously instead
+> > of serializing them which allows some time to be saved.
+> >
+> >> So maybe the EC accesses should keep the interpreter lock locked durin=
+g
+> >> EC accesses.
+> >
+> > The problem here is that it is hard to say in advance whether or not
+> > _BIX or _BST will access the EC and whether or not that will clash
+> > with _TMP evaluation for a seemingly unrelated thermal zone.
+> >
+> >> And even go further and maybe we need to introduce a big-acpi-lock,
+> >> which I guess the interpreter lock more or less is? And just serialize
+> >> all ACPI accesses since most ACPI tables clearly do not handle
+> >> multi-threaded access to ACPI methods well ?
+> >
+> > I would be inclined to do so except for device power management
+> > methods, that is _ON, _OFF, and _PSx, that are not the problematic
+> > ones, at least as far as I know.
+>
+> That sounds like a reasonable compromise which should fix both
+> this case as well as help with bko221065 .
+>
+> >> Another example of multi-threaded ACPI calls causing problems is:
+> >>
+> >> https://bugzilla.kernel.org/show_bug.cgi?id=3D221065
+> >
+> > Right.
+> >
+> > So I guess the idea would be to add locking to acpi_evaluate_object()?
+>
+> Yes that seems like a nice single point of entry to do this where
+> all the various helpers eventually end up.
 
-It applies and builds on pci/portdrv without Lukas's series. It only
-depends on his first two patches, which are DPC fixes. The rework he
-mentioned is for patches 6 and 7, and this series doesn't need those.
+That, of course, would require updating ACPICA code and I'm not sure
+if doing it upstream is useful.  For example, if some hosts already
+use locking around acpi_evaluate_object(), this modification won't
+help them and it will certainly be a change in behavior.
 
-  PCI/DPC: Avoid access to non-existent AER capability
-  PCI/DPC: Reinstate support for AER-incapable ports
+This means that we'll likely end up with a Linux-specific divergence
+from the upstream which can be lived with, but it won't be nice.
 
-dpc_probe() still returns -ENOTSUPP unless the OS owns AER or
-"pcie_ports=dpc-native" is given. Without Lukas's patch 2, portdrv
-creates the DPC service from native_dpc, but dpc_probe() then rejects it
-when firmware grants DPC and retains AER. So the change in patch 4 would
-not take effect. Lukas's patch 2 needs his patch 1, because the DPC
-driver uses the AER capability without checking that it exists.
+> > An alternative might be to introduce an "exclusive" variant of
+> > acpi_evaluate_object() with built-in locking and use it in the cases
+> > that are known-problematic.
+>
+> So here we have _TMP and _BIX / _BST and in bko221065 we have
+> a bunch of again batteyr methods + UCSI racing. I'm afraid if
+> we add something like acpi_evaluate_object_exclusive() we'll end
+> up eventually using that almost everywhere.
 
-If Lukas has no objections, I can include Lukas 2 patches part of v2.
+While I think that your concern is valid, this can be done without
+touching the ACPICA code at all.
 
-> 
->> Patch 1 removes CONFIG_PCIE_EDR, which was another knob in deciding
->> whether to request DPC control in _OSC.
->>
->> Patch 2 stops requiring pci_aer_available() to bind the DPC service,
->> since the DPC driver does not depend on MSI or on the AER driver.
->>
->> Patch 3 requests DPC control only together with AER control, as PCI
->> Firmware r3.3, sec 4.5.2.4, requires.
->>
->> Patch 4 binds the DPC service on host_bridge->native_dpc and logs a
->> message when the OS assumes DPC control that _OSC did not grant.
->>
->> Kuppuswamy Sathyanarayanan (4):
->>   PCI/EDR: Remove CONFIG_PCIE_EDR
->>   PCI/portdrv: Don't require AER to bind DPC service
->>   PCI/ACPI: Request DPC control only together with AER control
->>   PCI/portdrv: Bind DPC service based on host_bridge->native_dpc
->>
->>  drivers/acpi/pci_root.c    | 26 +++++++++++++++++++++++---
->>  drivers/pci/pcie/Kconfig   |  9 ---------
->>  drivers/pci/pcie/Makefile  |  5 ++++-
->>  drivers/pci/pcie/dpc.c     |  5 +++--
->>  drivers/pci/pcie/portdrv.c |  7 +------
->>  include/linux/pci-acpi.h   |  4 ++--
->>  6 files changed, 33 insertions(+), 23 deletions(-)
->>
->>
->> base-commit: 4fe37866b0d92cdc45b62954a76489a9d9f8bd73
->> prerequisite-patch-id: e0eafcb39f15c38f3acfa601dfce07a6f0832ce1
->> prerequisite-patch-id: 83e8185612e785fad80790d4a0c20fa68ab12ce7
->> prerequisite-patch-id: 8e9e2b06f55249ff57c7d7f43918ee82f79d1450
->> prerequisite-patch-id: 78ad13a1c423c3ee50122237c4bd0fdedf2d1e00
->> prerequisite-patch-id: 0c4b9d46eea86635c431382aef2bf576a3bb5691
->> prerequisite-patch-id: 2d1a35309e750427352c6fe0d9bb62c4453c6252
->> prerequisite-patch-id: c1ed9c8ac6123e0a65ae0d7ba3183dd46477edf7
->> -- 
->> 2.43.0
->>
+Also, we don't actually know how many "bad" cases there are and so far
+we have identified a few.  If they are not too widespread, changing
+behavior everywhere for everyone may not be adequate.
 
--- 
-Sathyanarayanan Kuppuswamy
-Linux Kernel Developer
+> Maybe do things the other way around and serializing all the calls
+> by default and adding an acpi_evaluate_object_unlocked() to be used
+> in cases where we want the speedup of multi-threading like
+> the _ON, _OFF and _PSx you mentioned above ?
 
+Yes, depending on which way is more practical, that can be done.
