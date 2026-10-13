@@ -1,160 +1,231 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BFAD4F68DF;
-	Tue, 13 Oct 2026 13:21:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BABFF5012AE
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 13:36:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791897707; cv=none; b=JBFSA27yf6ER9qSU2xkZtR21KjdAbx8BkYmTd6csE0jydeaBjw99h/g1SiutxCbaQ/zTtDKYcoNIPggcvYQNcIfj9XjHm9RkGRgqIs+riRwzEQRR5EtOYgCpFRP82ipqpb6JIBihdCAyql7D7wjHfOAoOkWWbiFuJ6xHf1sWzFk=
+	t=1791898578; cv=none; b=OV2nZRfSfxTQETY8iOlgP5SW2Tz47J3xrwQNSkl6u+oZ1x2zF/gq43d++tjaZ/KILthJN9fjtVWHDRNDsQ1EkXX7v5xqsXJcVk8ZgPjjMWBANlGZMKli5ESpIxzwq3WdNNCT+KZdoWx+GNLhchMobBbWvWpKnsFZD5X8ado5khg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791897707; c=relaxed/simple;
-	bh=phRW5ewg23xc34NdzY7oGXso7g+/z4XfVbWkRQUireU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tb8NOls8sgNQ4pmHeZcdT90G8jB3Lmp6dGDefCdTV+yLnUVEzC2jy5BWQPD9UVLbDtJQ04hfq2Xk0OKkyS8bkGIeEfH5FJK/Wq7YL8uVm3I8U8tck2rm7MfjDHEb9fHTyovO12IzA8B7Oh9okUWtXP0S5Sn8V3er9JPL7JZOUA8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=TfK6ZSCY; arc=none smtp.client-ip=198.175.65.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1791898578; c=relaxed/simple;
+	bh=Lgk9ryxB4wlwUpPpSqjkNiShbk84CUmjVZpN3Z805q8=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:References:
+	 In-Reply-To:Content-Type; b=Tx3Agm90N0UTI437UvbW6/ERlWtcq5ufLSmNcAf0OCNcfMQNOCycfZlxwyHxXRVo+aIjd3gxiYarlmsHepIjPay55WLBo89Yc0hlnkUw/5mbO7pocTfdyj/SPY7AP8V7JaAYR/cUOve3rQmNN0dh4yroQMAluVPEiTxXZ7UKeVI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=EnpB4CIG; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=GWxCrU/0; arc=none smtp.client-ip=205.220.180.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="TfK6ZSCY"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1791897707; x=1823433707;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=phRW5ewg23xc34NdzY7oGXso7g+/z4XfVbWkRQUireU=;
-  b=TfK6ZSCYWNnu8pF/RP4SjmzG9/mFmE9BsR64Je4SCFn738Y1uyteZIx6
-   nshhKpGUiXkPwPMs6bIg8gw8TDt1PRvd+iyEVRBcnBE0DcR0GySjf5Eep
-   nTg5FmHYi0cjTrBheb/QvOIbBDlVIY9gO2+s9IlVSN1qSLueCuJ6nrVyE
-   i3R5v9UhIechcetDoSv36luiiePEF/S0N1uELIBOC6xgX3inl8fVBWFN7
-   +0/aHosiI5U6khIvsJ6DQSiQAi+meTLZUbsxtxpPQEaSD2fsORVdBXaxZ
-   Wktm5ceJ7XqF63K/C+5L5pV5s6tQHwCE9gW/LSfxvYiTzZHwxzkYfHAN7
-   g==;
-X-CSE-ConnectionGUID: aRA31wk5QyS9kZr6FKuvCg==
-X-CSE-MsgGUID: ToG7hwrcRs6hIIERJtlpEw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11933"; a="615651"
-X-IronPort-AV: E=Sophos;i="6.27,155,1787036400"; 
-   d="scan'208";a="615651"
-Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2026 06:21:46 -0700
-X-CSE-ConnectionGUID: PEMlfMdWQJ2+PwqCvYuhlA==
-X-CSE-MsgGUID: 1Mt+akoCQkmW95aZdby4nA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,155,1787036400"; 
-   d="scan'208";a="1249797"
-Received: from ncintean-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.48])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2026 06:21:43 -0700
-Date: Tue, 13 Oct 2026 16:21:41 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Eduardo Ruiz Duarte <toorandom@gmail.com>,
-	Bartosz Golaszewski <brgl@kernel.org>
-Cc: sakari.ailus@linux.intel.com, bingbu.cao@intel.com, djrscally@gmail.com,
-	heikki.krogerus@linux.intel.com, tian.shu.qiu@intel.com,
-	lixu.zhang@intel.com, linux-media@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: ipu-bridge: hold a reference on the IVSC software
- node
-Message-ID: <as4wZeHPziPV3nKU@ashevche-desk.local>
-References: <20261011131518.48838-1-toorandom@gmail.com>
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="EnpB4CIG";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="GWxCrU/0"
+Received: from pps.filterd (m0279869.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69DDUroG302898
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 13:36:15 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	XHPs2aSg7qSq8sMw0lMTSM9cUyOJg6fhbZjMyvCBsuk=; b=EnpB4CIGyiyHOCa/
+	WJm8PKkFr7sbTbIFH25UjbupMh8sqKOQHk2Euz9Su4u859F3Dt18GjHbaFbXe49g
+	pqkvtglbzqJ7X4BZd3Qsm55k685ADZXtLuv17lARW9VdbbUwFZz1M7oPeTisU+AA
+	VlMNvpBgQaVpvhRdWdpYY4bSZSBTJheXZMXdyNprtO39lbNtEgpO86k053vRr6EV
+	Xf88FwqlkYpYtR0LqdEW1JNg1Zv23mPV1y4aqpd4sSWPQ8PvonXXgzFyrCUZpLPd
+	QhvqN4dkFd7qBP0s7qMWAsj5ztTv58e2Ikkajdkgns/QoPiRUTxJ5Kz1gqiHuh+d
+	RKsowg==
+Received: from mail-qk1-f197.google.com (mail-qk1-f197.google.com [209.85.222.197])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4h98sqb51a-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 13:36:15 +0000 (GMT)
+Received: by mail-qk1-f197.google.com with SMTP id af79cd13be357-93ae8e7e546so627260585a.1
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 06:36:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1791898575; x=1792503375; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:content-language
+         :references:cc:to:subject:from:user-agent:mime-version:date
+         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=XHPs2aSg7qSq8sMw0lMTSM9cUyOJg6fhbZjMyvCBsuk=;
+        b=GWxCrU/05w7AD857SvT8dlB6WVAfiPmwBpoyQWl+4qDpxUqiNCCaJfnxE0fC0Pg0Qt
+         4+TNpMhE0yoghwSpkOq/uick3D69XbiqPIKtiOl7etTctEqC+i/Pnci5zGxJ8xIhBmX4
+         HU2lMe8bjX/soF5umjIFIGxPpr/AUn8044c8O/kIc4kjdkcnc2BA2OYB92rbNH0F+1as
+         SBxYUVlxpRf+4taICqgRzlS9gijD63WAXNB9pJ127iKgl/viuzL9+LOq/lPgf83gEG4O
+         KfG4oDRrY9Wv7XIX3Ws8IC6cwH/mB5Zj0pQRN34x40FVhQSbusfcHokkpXkoeLHIsyFM
+         i2Mg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791898575; x=1792503375;
+        h=content-transfer-encoding:content-type:in-reply-to:content-language
+         :references:cc:to:subject:from:user-agent:mime-version:date
+         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=XHPs2aSg7qSq8sMw0lMTSM9cUyOJg6fhbZjMyvCBsuk=;
+        b=b2WGBEK5yaSoavdynMQ9GZqxjpL2Q2GS6sCSGa5kqyTFD9aJ9eNd80Ap0VWtZ1NqoZ
+         94x2e1q4i0nMMKOGwbtrzJxWSy/UIoqv3wCGt4W3d/VuT2XIC9t5WIz0P5nRK1oI+PC0
+         1c6F4DaXR2X9IsZsnOQcKkm45wDyQI6nNc5RnnX2lawhAhiJYGu5UkqyiZATZmiKWE/T
+         6Cn+rTMZ//GxNLskpez56RsnQLFK4iLVl+X+JWLmaaiwhaIDREHBhQBImHGv7FH0LOCT
+         ShoZuDK/cQ6Ltvxb4dT6OPyLIiHe1DEEDORiE4F2fBbUyNTavxIdOKBi446TR7bPqYPf
+         72Tw==
+X-Forwarded-Encrypted: i=1; AKwUvBwIAQc3+t1VzkE7bLI12AHEn0c4UYM8J5jbk0+Drrlva+CRBSFLzuTg2w5K6j74hXZVNAUIymKTlJux@vger.kernel.org
+X-Gm-Message-State: AFq9FYK5X9PZb53PP585KfL8U0nS5pXoVjYmKRr4Hwg3Wt64n8MVSBRj
+	99epxtn4DhvQRBt+bYdj8d1tHfBT2S7zhSiFw5qQ5Pnc51EMEdcNuD/vD97q9psS7jOrUwfFKpO
+	vTUn7r38PVG5YiFn1op7d2SYyZO6Me71iFbg1Akggn7qZp+pbapT21tz43fdX3bsD
+X-Gm-Gg: AYBFou245/7fGKyf+a7/QA/wOXMRfWDa0DnG483Cjwvvx+GXh5/SfRC9OsjwcfXZ5xg
+	nXAphCdFcxLXZp4WB6mb/H076+MGwJUU8OR6zbciDi9KVedgZZb5KETEGZuoSuYpLKQC6Z8/4p1
+	92FzHiPeUIMdy8HU5mw/u1gZ848JvSY3e6x6Ib0G7YitXzhBnsQrw3t+4qnZlQb2lBQOelz/OKa
+	+8ziBn7HP7oa1yQ7+RzT81Tr831ougmklkEocjDkqSBsgaEU/W/zfO24boVDRCrTlab+dteQp+2
+	piz25ienOBScuWcF1OjzdeH4BT33SSZnmBWfSNGj+wDlGW56/32ncuPO79sM3OS8PCmcy68AxmV
+	iJCxpwJILAaPA66BwU23u/jwaDczq2T2ZUoHW5spiful2vF05edzOyUIuzcmewXK4gNY3Yv1XA4
+	WMj2s/1ne5Z9Hf9le+zLKUsH06kAQTYbvGaPLjNl5n1QrD8EDDTI4w9PTiytEgOLhELQ==
+X-Received: by 2002:a05:620a:3705:b0:93e:4ede:893c with SMTP id af79cd13be357-93ebd1dff48mr1978374585a.14.1791898574759;
+        Tue, 13 Oct 2026 06:36:14 -0700 (PDT)
+X-Received: by 2002:a05:620a:3705:b0:93e:4ede:893c with SMTP id af79cd13be357-93ebd1dff48mr1978366785a.14.1791898574001;
+        Tue, 13 Oct 2026 06:36:14 -0700 (PDT)
+Received: from ?IPV6:2001:1c00:c32:7800:5bfa:a036:83f0:f9ec? (2001-1c00-0c32-7800-5bfa-a036-83f0-f9ec.cable.dynamic.v6.ziggo.nl. [2001:1c00:c32:7800:5bfa:a036:83f0:f9ec])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b1c27f0f3esm2632349a12.27.2026.10.13.06.36.12
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 13 Oct 2026 06:36:13 -0700 (PDT)
+Message-ID: <044e9df4-1399-4ceb-80f8-f7cfe031d04f@oss.qualcomm.com>
+Date: Tue, 13 Oct 2026 15:36:11 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261011131518.48838-1-toorandom@gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+User-Agent: Mozilla Thunderbird
+From: johannes.goede@oss.qualcomm.com
+Subject: Re: [PATCH] ACPI: battery: Re-read battery information in the
+ complete callback
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: =?UTF-8?Q?Ali_Ahmet_Memi=C5=9F?= <aliamemis@disroot.org>,
+        Len Brown <lenb@kernel.org>, Armin Wolf <W_Armin@gmx.de>,
+        Charis Stratakis <c.stratakis@proton.me>, linux-acpi@vger.kernel.org,
+        linux-pm@vger.kernel.org, regressions@lists.linux.dev,
+        Mark Pearson <mpearson-lenovo@squebb.ca>, linux-kernel@vger.kernel.org,
+        stable@vger.kernel.org
+References: <37N_jFulf7n-Z55NfKfE71C_wVPxYvZ0xD_iRUg2fXu7TypDiF5PStQ6siSfVBih6fThg5WoPes8U5ZQpfVm_teMFcUGXFxz2DdMbfSWuws=@proton.me>
+ <20261012225141.13683-1-aliamemis@disroot.org>
+ <fb993dd3-ee56-4e3d-aa16-573f011518f1@oss.qualcomm.com>
+ <CAJZ5v0gS4agVUkCO6M=VW4Wi2y1-s+k23bpzmX9aAZ0Rsv4z9Q@mail.gmail.com>
+Content-Language: en-US, nl
+In-Reply-To: <CAJZ5v0gS4agVUkCO6M=VW4Wi2y1-s+k23bpzmX9aAZ0Rsv4z9Q@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDEzMDA1NCBTYWx0ZWRfX19ag7gcGhd3v
+ oFJ5LFWI+5SZ70osldcxuDRKgC1n6kJwNf/kWYW2gVFBoLLm1BFImstkYdD7o0QQ99zudyct6vJ
+ IfO9EdMKORWhAeexIurdyEQ/dIAAvxW/XXNMz1r9T9vHJa+di6s6s4eWEnTcOHU4aa99oIMZwUC
+ 596nbVsf3QF6dmPF2/PGiJJe24fDfFESAiqTK2vzqnF7TLisfca55aAdX28RRrg6j95VTEDv2hb
+ GZuRjLNuz0Oxf/U/qAKS+5suyGDZPUyOVbNXektXiwcLOXLHlsFfqgsS3e4bHvEHpj+QpWK0Ltc
+ /hNN1fsDRxSz38ZPr/U4yimaujcctHcqK1M0heZFHRW4JzBqcSv0LIJeHvMf+iYIr2eVazdbvG3
+ QullpQBxK0n4BnqB1PH77UC/GvJwRGjcKhfgRt4CwXDjeLC2ztUDqvcWAucTtaVFxCuJw1Lf3ON
+ d424YodJWidWHMudzIQ==
+X-Authority-Analysis: v=2.4 cv=JN+uIMKb c=1 sm=1 tr=0 ts=6ace33cf cx=c_pps
+ a=50t2pK5VMbmlHzFWWp8p/g==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
+ a=660iZSQnnn4A:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=u7WPNUs3qKkmUXheDGA7:22 a=_glEPmIy2e8OvE2BGh3C:22 a=VwQbUJbxAAAA:8
+ a=EUspDBNiAAAA:8 a=MZlWtUBn__QG1sgtjpgA:9 a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10
+ a=IoWCM6iH3mJn3m4BftBB:22
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDEzMDA1NCBTYWx0ZWRfXwvmMrVjCwXY4
+ kivOV1ZmxNQK4XcZqpgAG8qYKs/nnwWxUXGTuc1jsmaxtLyDIiQ9IWJ+L4O5hhc11pWi5rFxzUg
+ XqbhYGdTmF3JuOBGWXmwKyPAD6MKlNg=
+X-Proofpoint-ORIG-GUID: PdgKbKLLTAytHACQYDZE9-2RUKINXCU2
+X-Proofpoint-GUID: PdgKbKLLTAytHACQYDZE9-2RUKINXCU2
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-10-13_01,2026-10-09_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ spamscore=0 bulkscore=0 priorityscore=1501 adultscore=0 suspectscore=0
+ phishscore=0 impostorscore=0 lowpriorityscore=0 clxscore=1015 malwarescore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2610080000 definitions=main-2610130054
 
-+Cc: Bart for the double check of the approach. This sounds like it might need
-to be fixed in driver core (software node implementation).
+Hi Rafael,
 
-On Sun, Oct 11, 2026 at 03:15:18PM +0200, Eduardo Ruiz Duarte wrote:
-> ipu_bridge_instantiate_ivsc() attaches the IVSC software node to the mei-csi
-> device with set_secondary_fwnode(), but never takes a reference on it, while
-> the driver core unconditionally drops one when that device goes away.
+On 13-Oct-26 13:58, Rafael J. Wysocki (Intel) wrote:
+> On Tue, Oct 13, 2026 at 11:33 AM <johannes.goede@oss.qualcomm.com> wrote:
+>>
+>> Hi,
+>>
+>> On 13-Oct-26 00:46, Ali Ahmet Memiş wrote:
+>>> Since commit d33e89d12295 ("thermal: core: Suspend thermal zones later
+>>> and resume them earlier"), thermal zones are resumed from dpm_complete(),
+>>> before the PM_POST_SUSPEND notifier that re-reads _BIX and _BST. On
+>>> ThinkPad P1 Gen2 and P53, INT3403 _TMP calls \GTST which switches the EC
+>>> page selector (HIID) without taking the BATM mutex used by the battery
+>>> methods. ACPICA releases the interpreter lock around EC accesses
+>>
+>> I'm wondering if this "ACPICA releases the interpreter lock around EC
+>> accesses" is not the real problem here.
 > 
-> device_add() calls software_node_notify(), which does a kobject_get() on the
-> swnode behind dev_fwnode(dev). device_del() calls
-> software_node_notify_remove(), which does the matching kobject_put() -- and
-> that put sits *outside* the "if (swnode->managed)" block, so it runs for every
-> device whose fwnode is a software node, managed or not:
+> Yes, it most likely is.
 > 
-> 	sysfs_remove_link(&swnode->kobj, dev_name(dev));
-> 	sysfs_remove_link(&dev->kobj, "software_node");
-> 	kobject_put(&swnode->kobj);
+> What actually happens is that ACPICA drops the interpreter lock and
+> the namespace lock in several cases listed in the
+> acpi_ex_exit_interpreter() documentation comment, the majority of
+> which involve having to wait.
 > 
-> 	if (swnode->managed) {
-> 		set_secondary_fwnode(dev, NULL);
-> 		kobject_put(&swnode->kobj);
-> 	}
+> The bottom line though is that the interpreter and namespace locks
+> cannot be expected to be held throughout AML evaluation because it is
+> not known in advance if any of the cases in question will appear.
 > 
-> csi_dev is the mei-csi device, which the MEI client bus has already added by
-> the time ipu_bridge_instantiate_ivsc() runs. The add-side get therefore never
-> happens for this node, but the del-side put always does.
+>> Recently I've learned / heard
+>> from a trusted source that Windows ACPI subsystem is very much single
+>> threaded. So it is nice that ACPI has these mutexes and other stuff
+>> to support multi-threading but as long as Windows ACPI interpreter is
+>> not multi-threaded I think we may need to consider to copy Windows
+>> behavior.
 > 
-> On hardware where the MEI bus resets -- which it does on every s2idle and S4
-> resume on a Dell XPS 13 9340 -- mei-csi is destroyed and recreated each cycle,
-> so the node loses one reference per resume. INTC10CF-N starts at 3: one for its
-> own registration plus one for each of its two port children, since
-> kobject_add() of a child takes a reference on the parent. The third resume
-> therefore frees it, software_node_find_by_name() starts returning NULL, and
-> isys walks the fwnode graph into freed memory:
+> This is also my conclusion, at least to some extent.
 > 
->   refcount_t: addition on 0; use-after-free
->   WARNING: lib/refcount.c:25 at refcount_warn_saturate+0x7e/0xb0
->    kobject_get+0x94/0xb0
->    software_node_graph_get_port_parent+0x89/0xd0
->    fwnode_graph_get_port_parent+0x70/0xd0
->    fwnode_graph_get_endpoint_by_id+0x93/0x280
->    isys_notifier_init+0x92/0x180 [intel_ipu6_isys]
->    isys_register_devices+0x3c9/0x4e0 [intel_ipu6_isys]
->    isys_probe+0x3df/0x500 [intel_ipu6_isys]
->    auxiliary_bus_probe+0x4c/0x70
->    ...
->    deferred_probe_work_func+0xa5/0x110
+> The problem with it though is that in some cases parallel evaluation
+> of AML is actually useful.  For example, say two PCI devices are
+> powered up at the same time and AML waits for each of them.  The async
+> suspend/resume aligns those waits to take place simultaneously instead
+> of serializing them which allows some time to be saved.
 > 
-> followed by an underflow and a saturate on the same kobject, and the camera
-> never comes back.
+>> So maybe the EC accesses should keep the interpreter lock locked during
+>> EC accesses.
 > 
-> Take a reference so the attachment owns one, balancing the put the core will do
-> when csi_dev is destroyed. Where csi_dev is never destroyed this leaks a single
-> kobject reference, which is what the lifetime of the node already assumes.
+> The problem here is that it is hard to say in advance whether or not
+> _BIX or _BST will access the EC and whether or not that will clash
+> with _TMP evaluation for a seemingly unrelated thermal zone.
 > 
-> Found while making the camera survive hibernation on a Dell XPS 13 9340
-> (ov02c10 behind an INTC10CF IVSC); with suspend-then-hibernate the first cycle
-> burns two resumes, so the failure consistently showed up on the second
-> hibernation. Tested on 7.0.0-1015-oem: two consecutive hibernations with the
-> node alive throughout and no refcount warnings, where before the second one
-> hung the machine.
+>> And even go further and maybe we need to introduce a big-acpi-lock,
+>> which I guess the interpreter lock more or less is? And just serialize
+>> all ACPI accesses since most ACPI tables clearly do not handle
+>> multi-threaded access to ACPI methods well ?
 > 
-> Signed-off-by: Eduardo Ruiz Duarte <toorandom@gmail.com>
-> ---
->  drivers/media/pci/intel/ipu-bridge.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> --- a/drivers/media/pci/intel/ipu-bridge.c
-> +++ b/drivers/media/pci/intel/ipu-bridge.c
-> @@ -765,6 +765,15 @@
->  	if (!fwnode)
->  		return -ENODEV;
->  
-> +	/*
-> +	 * Balance the kobject_put() that software_node_notify_remove() will do
-> +	 * on this node when csi_dev is destroyed. That put is unconditional,
-> +	 * while the matching get in software_node_notify() only happens at
-> +	 * device_add() time -- and csi_dev was added before we got here, so it
-> +	 * never ran for this node.
-> +	 */
-> +	fwnode_handle_get(fwnode);
-> +
->  	set_secondary_fwnode(sensor->csi_dev, fwnode);
->  
->  	return 0;
+> I would be inclined to do so except for device power management
+> methods, that is _ON, _OFF, and _PSx, that are not the problematic
+> ones, at least as far as I know.
 
--- 
-With Best Regards,
-Andy Shevchenko
+That sounds like a reasonable compromise which should fix both
+this case as well as help with bko221065 .
+
+>> Another example of multi-threaded ACPI calls causing problems is:
+>>
+>> https://bugzilla.kernel.org/show_bug.cgi?id=221065
+> 
+> Right.
+> 
+> So I guess the idea would be to add locking to acpi_evaluate_object()?
+
+Yes that seems like a nice single point of entry to do this where
+all the various helpers eventually end up.
+
+> An alternative might be to introduce an "exclusive" variant of
+> acpi_evaluate_object() with built-in locking and use it in the cases
+> that are known-problematic.
+
+So here we have _TMP and _BIX / _BST and in bko221065 we have
+a bunch of again batteyr methods + UCSI racing. I'm afraid if
+we add something like acpi_evaluate_object_exclusive() we'll end
+up eventually using that almost everywhere.
+
+Maybe do things the other way around and serializing all the calls
+by default and adding an acpi_evaluate_object_unlocked() to be used
+in cases where we want the speedup of multi-threading like
+the _ON, _OFF and _PSx you mentioned above ?
+
+Regards,
+
+Hans
+
 
 
