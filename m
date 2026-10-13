@@ -1,92 +1,134 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F007F3F8ED8;
-	Tue, 13 Oct 2026 11:38:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3592D4F30CF
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 12:00:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791891541; cv=none; b=fpVcLmiTL2LiutLdmPeeVkmnSFL/UukYc8X2CuWT31U6jXHCBYAhl8K9g7LW9ha5FCUX29DXdpT8rqqLoEQoFPJvBxozqkOVW/i95IBOPjLAtJVWdNmbjsfT2y/iQQtkgKqzNI3BqcFBtt0M6OdRhF0wtp0OqHIkIV6HulscF4w=
+	t=1791892824; cv=none; b=E3qVkqCayc5P7VKivCxmTK6jpawOQrn2UneJbw4uPn960js9TWr4ImDFNtT09Wv7WGVPwuJwI5rQXXdb2ZXFb8SaS8W8OB1uiV18DfmqrPykSnjULtpWL/kTLiXnUzrpoVWrrcjf87b1gXhwHH5S5COqVKgN85LQ2Xsk0m15ZSI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791891541; c=relaxed/simple;
-	bh=YFsUef0f38ac/+8b1qLSfSN9685amM3deilBErx/gTM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=e8Gk+Et0Xg451K+CJfr5jqJ42nrnDpiE/fA+2bqrC7eaRCIGHydeXGpKW3mXqLBeUoATa61GLwB4jK8orFeIpzCRnrRJxXBq3grkSsy7oriNXjiw6pdcR7GCZGVWdFQWGUtkjiDaYK39If2X72iUiPZI8HwVvLqlno5xiNqGpzs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=ZkfFpE8K; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791892824; c=relaxed/simple;
+	bh=lsBHDyCfIWhi3VwWkUb2uLpFXgL/GQX1v3gq+h23/wI=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=qCidzUd2/N2E4d7QZGKmgfCCKOSPGFUIgUOAmJL9NvVwwSV5yMJw27THnK3APnweFXYmhes1NJ3ydYSBpmDLNNMasL6KANHuLeekuTbBc7OeTpKQ1cHg18o37rohVAgv4RCcWNhB8HjsnbT6EXq8xm7S5fFXZ1zAuaBXpg5ET8Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Czf3JnBC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="ZkfFpE8K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F02111F00893;
-	Tue, 13 Oct 2026 11:38:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
-	s=korg; t=1791891539;
-	bh=P5s1qW3zZcChHW3VhOHAkmvlfucncjuOWhArdg/PEzw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=ZkfFpE8KdXIvNqzBbwSpfzKEh9DQtukW1FykWQ77AlxRz5p5KOoVi7dAMNfyLVH9F
-	 6z1uURP6uN/LCFu00SoJnh2nfNC+3BTELjZt8zfya4kplgHxHRPMbxzkAK5lFxyfxT
-	 gIU1FJhYQtqASy/bF3mQRuo15QWaHztjjFdQBhCo=
-Date: Tue, 13 Oct 2026 13:39:04 +0200
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Adrian Ambrozewicz <aambrozewicz@nvidia.com>
-Cc: Donald Shannon <donalds@nvidia.com>, Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Linus Walleij <linusw@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>, Lee Jones <lee@kernel.org>,
-	Pavel Machek <pavel@kernel.org>, Andi Shyti <andi.shyti@kernel.org>,
-	Mark Brown <broonie@kernel.org>, Jiri Slaby <jirislaby@kernel.org>,
-	Corey Minyard <corey@minyard.net>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans de Goede <hansg@kernel.org>, Lixu Zhang <lixu.zhang@intel.com>,
-	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
-	Oliver Neukum <oneukum@suse.com>,
-	Quan Nguyen <quan@os.amperecomputing.com>,
-	Andrew Jeffery <andrew@codeconstruct.com.au>,
-	linux-usb@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-leds@vger.kernel.org,
-	linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org,
-	linux-serial@vger.kernel.org,
-	openipmi-developer@lists.sourceforge.net,
-	linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 00/11] Add NVIDIA LSTP USB adapter drivers
-Message-ID: <2026101310-scuttle-unison-d4c3@gregkh>
-References: <20261012-lstp-usb-adapter-v1-0-aambrozewicz@nvidia.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Czf3JnBC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BB031F008A3
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 12:00:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1791892823;
+	bh=mwF5fDDf9ldJfUewdzwZbaLTxq4SylhnnpsHOc72+Xg=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=Czf3JnBCYxZBG/6gPVggkFvvfxaAgRfFRxVp96bGfuYwwxRvnU3Q4TgkrZ62MWBFN
+	 nqclFv6aFFWBSDx3FuVz1GUzQ2NjiFZjzeWa12m84XOxzAIiqxP66PWBPR9beCOWCQ
+	 iEQj7jBfqGz3jykbcepuz0XCzBE7x1vyreRA863RdJFxkgE3D4yG3eUHHSRchG6PXG
+	 6hHzyt+8a/3/xPLxG+Fy3i8z2Se+IY8LHFYi0gy1zxSdALQqxYOgXaY2IhEXmyA0Pc
+	 dpEv1pVNSSvFTZWzai4Mp+PHeNy4l0vJsajxus8f7t7HLP6nT1SfBrem1Ei5nxZl17
+	 sTZiiWCFMmR/g==
+Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-5bce4e278baso2942322e87.0
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 05:00:23 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvByMacUERc/2zxYef0EZ9xzswnPN323gHZoCDg4QvnyxeGcd0ev2wIIBqF5KiYhkaIkKvRYKr8+2IPUR@vger.kernel.org
+X-Gm-Message-State: AFq9FYLxsR3LyQNZNTvaiJhSxm28A5y6TDeMF+XguPn8w3OyoCHvyieV
+	iHUZAWgyuK6V+pS0pE77E2ZRMzSH2TDl8fl7FAc717DmiDMkQJpoSfvSRA9UNJSwtZdsHiyzwq/
+	3yhsYqVfGu3LOR6evCm96uaXvlXmdpO0=
+X-Received: by 2002:a05:6512:304b:b0:5bc:b4e5:37f2 with SMTP id
+ 2adb3069b0e04-5bcdd501368mr3713074e87.18.1791892820950; Tue, 13 Oct 2026
+ 05:00:20 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261012-lstp-usb-adapter-v1-0-aambrozewicz@nvidia.com>
+References: <37N_jFulf7n-Z55NfKfE71C_wVPxYvZ0xD_iRUg2fXu7TypDiF5PStQ6siSfVBih6fThg5WoPes8U5ZQpfVm_teMFcUGXFxz2DdMbfSWuws=@proton.me>
+ <20261012225141.13683-1-aliamemis@disroot.org> <fb993dd3-ee56-4e3d-aa16-573f011518f1@oss.qualcomm.com>
+In-Reply-To: <fb993dd3-ee56-4e3d-aa16-573f011518f1@oss.qualcomm.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Tue, 13 Oct 2026 13:58:15 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0gS4agVUkCO6M=VW4Wi2y1-s+k23bpzmX9aAZ0Rsv4z9Q@mail.gmail.com>
+X-Gm-Features: AclHuK_C_dbr3KeIp2vqfLebsjNfIQiI7_fB5E-myb508s6cuKhwC9dTzsMdEoA
+Message-ID: <CAJZ5v0gS4agVUkCO6M=VW4Wi2y1-s+k23bpzmX9aAZ0Rsv4z9Q@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: battery: Re-read battery information in the
+ complete callback
+To: johannes.goede@oss.qualcomm.com
+Cc: =?UTF-8?Q?Ali_Ahmet_Memi=C5=9F?= <aliamemis@disroot.org>, 
+	"Rafael J . Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Armin Wolf <W_Armin@gmx.de>, 
+	Charis Stratakis <c.stratakis@proton.me>, linux-acpi@vger.kernel.org, 
+	linux-pm@vger.kernel.org, regressions@lists.linux.dev, 
+	Mark Pearson <mpearson-lenovo@squebb.ca>, linux-kernel@vger.kernel.org, 
+	stable@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 12, 2026 at 08:35:58PM +0300, Adrian Ambrozewicz wrote:
-> This series adds drivers for the NVIDIA LSTP USB adapter: a USB core
-> driver and GPIO, LED, I2C, SPI, UART and BMC-side IPMI function drivers,
-> with their device tree bindings, an ACPI description document and the
-> sysfs ABI.
-> 
-> What LSTP is
-> ------------
-> 
-> LSTP (Low-Speed Transport Protocol or Low-Speed Tunnelling Protocol) is
-> a vendor-specific USB interface (class 0xff, subclass 0x3f) that
-> multiplexes several low-speed "channels" over one pair of bulk
-> endpoints. It is implemented by NVIDIA's SMA, an MCU (0955:cf11), and
-> by other vendors' parts: two hub/bridge chips have it built in
-> (0424:4940, 174c:2214). Boards use it to
-> reach SPI flash, I2C sensors, GPIOs and LEDs, a UART and a host-to-BMC
-> IPMI path, on both BMCs and host systems.
+On Tue, Oct 13, 2026 at 11:33=E2=80=AFAM <johannes.goede@oss.qualcomm.com> =
+wrote:
+>
+> Hi,
+>
+> On 13-Oct-26 00:46, Ali Ahmet Memi=C5=9F wrote:
+> > Since commit d33e89d12295 ("thermal: core: Suspend thermal zones later
+> > and resume them earlier"), thermal zones are resumed from dpm_complete(=
+),
+> > before the PM_POST_SUSPEND notifier that re-reads _BIX and _BST. On
+> > ThinkPad P1 Gen2 and P53, INT3403 _TMP calls \GTST which switches the E=
+C
+> > page selector (HIID) without taking the BATM mutex used by the battery
+> > methods. ACPICA releases the interpreter lock around EC accesses
+>
+> I'm wondering if this "ACPICA releases the interpreter lock around EC
+> accesses" is not the real problem here.
 
-Also, if you really want to do this in a dynamic way, use greybus, as
-that is EXPLICITLY what it was designed for, and is patent-free (i.e.
-unencumbered, and we already support it in the kernel.)  Please don't
-reinvent the wheel/spec just because no one did any prior-art
-research...
+Yes, it most likely is.
 
-thanks,
+What actually happens is that ACPICA drops the interpreter lock and
+the namespace lock in several cases listed in the
+acpi_ex_exit_interpreter() documentation comment, the majority of
+which involve having to wait.
 
-greg k-h
+The bottom line though is that the interpreter and namespace locks
+cannot be expected to be held throughout AML evaluation because it is
+not known in advance if any of the cases in question will appear.
+
+> Recently I've learned / heard
+> from a trusted source that Windows ACPI subsystem is very much single
+> threaded. So it is nice that ACPI has these mutexes and other stuff
+> to support multi-threading but as long as Windows ACPI interpreter is
+> not multi-threaded I think we may need to consider to copy Windows
+> behavior.
+
+This is also my conclusion, at least to some extent.
+
+The problem with it though is that in some cases parallel evaluation
+of AML is actually useful.  For example, say two PCI devices are
+powered up at the same time and AML waits for each of them.  The async
+suspend/resume aligns those waits to take place simultaneously instead
+of serializing them which allows some time to be saved.
+
+> So maybe the EC accesses should keep the interpreter lock locked during
+> EC accesses.
+
+The problem here is that it is hard to say in advance whether or not
+_BIX or _BST will access the EC and whether or not that will clash
+with _TMP evaluation for a seemingly unrelated thermal zone.
+
+> And even go further and maybe we need to introduce a big-acpi-lock,
+> which I guess the interpreter lock more or less is? And just serialize
+> all ACPI accesses since most ACPI tables clearly do not handle
+> multi-threaded access to ACPI methods well ?
+
+I would be inclined to do so except for device power management
+methods, that is _ON, _OFF, and _PSx, that are not the problematic
+ones, at least as far as I know.
+
+> Another example of multi-threaded ACPI calls causing problems is:
+>
+> https://bugzilla.kernel.org/show_bug.cgi?id=3D221065
+
+Right.
+
+So I guess the idea would be to add locking to acpi_evaluate_object()?
+
+An alternative might be to introduce an "exclusive" variant of
+acpi_evaluate_object() with built-in locking and use it in the cases
+that are known-problematic.
