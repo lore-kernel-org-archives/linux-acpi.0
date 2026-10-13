@@ -1,179 +1,134 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from fout-b6-smtp.messagingengine.com (fout-b6-smtp.messagingengine.com [202.12.124.149])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C232E3BE16A
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 17:23:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40F1C52269C
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 17:23:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.149
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791912184; cv=none; b=io0kmydwOEqFUlhikbmgkpf1KaN26khW7cYKNXk5ALHTbxhfDKaPNRb0taLcZ5HrVT1NhQ8ZhfXuJqnj9IKezFo/1JjXxsAuonIKlaBo0JRwGCi6urOstbBA54LsA6VlUWupot5fvxijlPmDNn9/WSozYbXO5UZsiglrZ0nKNBo=
+	t=1791912185; cv=none; b=LIJc3T0Zj6e324a8IuhzOFmhZLxoGV8KKq3fzskC0/fQiLngUoacze/srgP2AUZyWphTlbfIHDVcDd60v75aF/iPy+4GlLFlPvNgR/WsltUNbu1DBrcPkZdy9kgJqiqibTWpwxj60DvOi8MgyART8MhUHEVB4bq1ozAZlOLGKWQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791912184; c=relaxed/simple;
-	bh=6oHp6iOgu3vSfUvFoKGR28aA37BnryUeRpYDhY2R2Vw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=EHrvArwXSWmdcdKPsF6kjJQZa+qvaatR+xyq9b2s9cb08v8v5qhA7m40wvZk6TT8wWLqiPoUW39j7K/cV5BuxRebZi1Aomnz4dcMGH9HLSKb203vyoRRu/5XmuEskoMVcAZ7K/N3XayftKIQp7HPhQ/kG5XQweyWKwQArrRSsg4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bM4vImJe; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791912185; c=relaxed/simple;
+	bh=FPhD9ffWsuT6nz+M1b9LWG6gr1ud8CZdaBviPnSmlZ8=;
+	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type; b=aLrtpaPRt03zFu7p4EzquGGAHnTRk+jNk7wW4/dLk1v0TZoly6TM+6guxol7w8BBYuPI2f0fnSdhZavJgtHij2MEIWKGVLZMl8H8vzItLNR9iCcngFVW/4lBnjf/ceXbgq56Aadm0TtorWU/9nZv3D/Fb6jLnDfXdTnWPYXT5LY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=MqU5W01C; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=MXSUiBhn; arc=none smtp.client-ip=202.12.124.149
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bM4vImJe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A52E21F0089B
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 17:23:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791912182;
-	bh=58vcH4XOh3Uxb0/yHZpvGzQapqHFOqeDk7/phElXVhw=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=bM4vImJeNOabcnbRhYbq9bIHyCVf6FStYaRomHk+BwpDrO8rxLv/G/eqw/PQT4a4O
-	 9zdDaMeFWhCffixJHEoQ6Q01mBo+I89j+lWWvCy4PB/z8l/10Bgo6hgo34ToVcVrI9
-	 Lzj1m/uhPzx5smipyd+L9dSHjKU/91/R1Q/wFVbcCRmCsP3dWI2LNSG3bpFYPuKExD
-	 +PfJTT7QOVaDF//gYqAjKu3nnXEGnLaCTOA0lJy0pSuWStN4EVTJNFIPls9OifnZsE
-	 JFwN3qFYqyRdnLx5JdVtMARHzUV+xTCOwQq5U9UFMW5wvo61rg264FFxbda+3yxpcZ
-	 LskmvOEsJjBXg==
-Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5bb7ae22913so2017915e87.3
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 10:23:02 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBytIuxQznGwId2zBGcnLpHnFm+3nmKLX2zwVCuDEQGzT++jpUHslsIM8mL1nzgY55rAy1J/JQ8zbMsQ@vger.kernel.org
-X-Gm-Message-State: AFq9FYITilbg5xDGZafzvVdgEDXJpxnUBQStkroxPBp1FT/UDft9kdyk
-	9bVErVTKVzHnIuACM1HG82oo6etsAYlf+V1inFgkVUMtFK71aK0XZtPrUFQtzjQ2+65DJlJGEoX
-	94pUME7pJ4kjuWD8Kh5jEKpxuI+2kAb8=
-X-Received: by 2002:a05:6512:1389:b0:5b8:f3d5:f301 with SMTP id
- 2adb3069b0e04-5bcde35148bmr4362168e87.6.1791912181025; Tue, 13 Oct 2026
- 10:23:01 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="MqU5W01C";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="MXSUiBhn"
+Received: from ams-compute-02.internal (ams-compute-02.internal [10.64.2.62])
+	by mailfout.stl.internal (Postfix) with ESMTP id 409961D000C2
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 13:23:03 -0400 (EDT)
+Received: from ams-imap-03 ([10.64.2.23])
+  by ams-compute-02.internal (MEProxy); Tue, 13 Oct 2026 13:23:03 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+	:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm1; t=1791912177;
+	 x=1791998577; bh=hS+qW1UQlVePGqIuKEKUuB6UIO/AI0dB5jkfcB1qbck=; b=
+	MqU5W01CRjiCM9rI8jQDnsnpQOhXvs2twy2N77PTz7GpiFFJ1QYLw2PGcN27rDqV
+	82o+dYLcrfjQc1jGo3NEbcDNL0t7MT0n9qdWKAiax/JhRs/Y/G5T+dMFNUpPDwNH
+	dtGT0dgEo+ZXI5pAu32v2HD+mUeytpjDDAg/HAw3bldSw0xNBNNyV5wIG/Lyr1YD
+	S/vAfH2Yru32MLW7Y14X3Vc0HTSZLUI7n01Kz0HlTNCUn/oR5gW5YA8wvwBQjRKy
+	s6uNKCFWEzmn5rzCm5N2QyIjEbeGq49WOM1QHYT/eG3HSQS0PJlCQuEZCuHDfSUC
+	h00pW1u9gxd5Sx6jcrE89Q==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1791912177; x=
+	1791998577; bh=hS+qW1UQlVePGqIuKEKUuB6UIO/AI0dB5jkfcB1qbck=; b=M
+	XSUiBhnWHuQzwhGDm8nsaYrYVCseWnABH4XdT8pIANkyjhQfTdmrOgeEq2ol9397
+	7p+96ZZfMMZCJZwz2XgCjnlVnIqcQSIDHaz7FnUd0u7Vo1a0kjQg82jv8fAArurG
+	BlLaRrlYfOUkc/dkz5HUkxAVywyZD6WwkVGZ76+A508QI/O7vCctCzvIJCIDkB0T
+	cTvHI5/p6OsQEdcMUItPiDiS4GZ+krFuBr5a3+q/zIok4rdDkQv+P1wclyG4a3dq
+	pOzkoeU3huWZdYXTa5zefnFgTMzt7dDJ/4RG3QLdTyOU8fLrLYWfcPcg+j3gf3/L
+	vGfyQN7yJA313N38MNLZQ==
+X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-06;
+	repo=github.com/dkim2wg/interop; date=2026-10-04; sw=lmtpprox;
+	action=sign d=arndb.de a=rsa-sha256;
+DKIM2-Signature: i=1; m=1; t=1791912177; d=arndb.de;
+	mf=PGFybmRAYXJuZGIuZGU+;
+	rt=PGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnPg==;
+	s=fm1:rsa-sha256:AZGkidDIwOsMmBvKHEinRJw+iGL1+DRbKQ9UXdJld0rRAIf
+	cWOdveWrbbzJQHNRREdo0Zn4uQnbdR4zFYyUTc+xOtGFq7kxXpG6v18YXXJ5HB9t
+	WKH2GyS6U4WBJrOpcoyFAi0JtVmVXsvJ/+pzwbL/IgBHUp7Hxmqp6/C6G+ZKEkfv
+	lafuNNyvveo8h+Aqy/tlwb3cSxDyGlwTOFOK3wB1TErOUFTZT/CV50Ow+0FjMAgd
+	ihqvuaiYeVug8uLkibY3VjlcFtn/Ri9Raw8q+ZkDllKtE4m7QlVG1xHOLCrAe5MZ
+	96+dPKAkDUQ+iRMGmEVTjGpomAncBqtLfAzAFJQ==;
+X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-06;
+	repo=github.com/dkim2wg/interop; date=2026-10-04; sw=lmtpprox;
+	action=mi-m=1; hc=12;
+	hn=cc,content-transfer-encoding,content-type,date,feedback-id,
+	from,in-reply-to,message-id,mime-version,references,subject,to;
+Message-Instance: m=1; h=sha256:oZom5o/iezk5oczVBlgZAdby/ePS/EmvxfPVKjfndZU=:FPhD9ffWsuT6nz+M1b9LWG6gr1ud8CZdaBviPnSmlZ8=;
+X-ME-Sender: <xms:72jOahNNMSXZR0T7sW8fbo-qtEKIM7TmUjzeTc5XxvJnPkj5vIQ-OA>
+    <xme:72jOauy2T4Q4zFTAgVPRT4U_dyBbL5t90_TEfA76-wCdoGnYk8UuRtTuyl7pf4pkX
+    T5ZhxW9ziFDHQpXl4Lu6Ao2CaqEVcSAqyoujFjyPYibGUKiCN2hmfdn>
+X-ME-Proxy-Cause: dmFkZTER14THpZh+OBkvXnHUH8+jwzP/jo3zDW19YD/663+030AVqUF3ibyrM5gqg6OznS
+    qN36Na38t0R/OlIEUa1di5k5DqlLqaEtO44cdxP3yuyOdDaSCJ++RH+Kw7XC8AGc9vG6xA
+    LNjrjLuolzYXxuJUE3WNZJA9vX3leKG2KAN4SXvtlmeBcCeJd+uDdctMLXlvY5IEFUsX2y
+    MMtdmyTx/gGugSyLgjiftgztjrUykNVUlm48UkS9VLlCbe7H2rQJIkBmay1swYdKKcp9mE
+    HbvGDbdyXT4QJ7i5g4WPqQAhw4j/tTVDnB/h3O4Sq18tnYqG3AQ+hjgn0Wev7JvxQlu5iJ
+    pxKZAUiOtKLb5d9qkyqGj2ayesf6UtmIgIjzHsUxRQrtP4k0T+VMnu5EG9eKTZjy4a8A/1
+    0xydyt8TsnhAl8rQh3QmjTTtGPkoed5JUgLnCXrUp5GKjFPbIY3cgtIjVYYnKuNa4edb3A
+    aoDfxMDPoO05PUDdKiKn2jZ5vxSfW2KooWIE57T8hcRX6uF4ShaB0yd+M1VTIn9AEXKISC
+    Sz/XHJXI93GjqQRCsHmJKaXuL/m0hYp7IkU9e3lDNlsVgyz1qEC8m9H/cVBQ0PX0jDokyy
+    2rOxBW5LMyX0Dye66ilMDQK3r5FZMDGnJ6FI2D8iwrlBS1NGV2LqCmeLOfQw
+X-ME-Proxy: <xmx:8GjOapP-1Hf3BV8okHkUe5NwRlpw5nlEIv1VbVCsEHLdPIv6dwv8pQ>
+    <xmx:8GjOaohduAN1nM9tuoxNBsOVdLXMOsd6PSnR2m7B_Ke_knC5VaiXMg>
+    <xmx:8GjOass7jtZQ1FUz6RSW3140Jmo0VyrzLmOueOMHJa51_V8eWJS6uQ>
+    <xmx:8GjOasjY4H37UaxeUMh8qy3i_zuYHmnN6jlT-AGGTrxKinaw8P8jXw>
+    <xmx:8WjOakJ7TJazOR1kQ_WHgD8rqsHy77Xo9zQPz1LPKR7OgMowAU3gE_tR>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.ams.internal (Postfix, from userid 501)
+	id 042BB32A008E; Tue, 13 Oct 2026 13:22:55 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <37N_jFulf7n-Z55NfKfE71C_wVPxYvZ0xD_iRUg2fXu7TypDiF5PStQ6siSfVBih6fThg5WoPes8U5ZQpfVm_teMFcUGXFxz2DdMbfSWuws=@proton.me>
- <20261012225141.13683-1-aliamemis@disroot.org> <fb993dd3-ee56-4e3d-aa16-573f011518f1@oss.qualcomm.com>
- <CAJZ5v0gS4agVUkCO6M=VW4Wi2y1-s+k23bpzmX9aAZ0Rsv4z9Q@mail.gmail.com> <044e9df4-1399-4ceb-80f8-f7cfe031d04f@oss.qualcomm.com>
-In-Reply-To: <044e9df4-1399-4ceb-80f8-f7cfe031d04f@oss.qualcomm.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 13 Oct 2026 19:20:55 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0isCM3K3U6HSdDnvXzBX41AgQMFYxqLx3KvMA0W_91-ew@mail.gmail.com>
-X-Gm-Features: AclHuK8Dko4T7OiAi5h3jqpw8o-XWUajlqhmOiANoa1OJ9welDWIOCCTNuHuWCM
-Message-ID: <CAJZ5v0isCM3K3U6HSdDnvXzBX41AgQMFYxqLx3KvMA0W_91-ew@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: battery: Re-read battery information in the
- complete callback
-To: johannes.goede@oss.qualcomm.com
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, =?UTF-8?Q?Ali_Ahmet_Memi=C5=9F?= <aliamemis@disroot.org>, 
-	Len Brown <lenb@kernel.org>, Armin Wolf <W_Armin@gmx.de>, 
-	Charis Stratakis <c.stratakis@proton.me>, linux-acpi@vger.kernel.org, 
-	linux-pm@vger.kernel.org, regressions@lists.linux.dev, 
-	Mark Pearson <mpearson-lenovo@squebb.ca>, linux-kernel@vger.kernel.org, 
-	stable@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-ThreadId: Ar0hN4MWufik
+Date: Tue, 13 Oct 2026 19:22:23 +0200
+From: "Arnd Bergmann" <arnd@arndb.de>
+To: "Thierry Reding" <thierry.reding@kernel.org>, arm <arm@kernel.org>,
+ soc@kernel.org
+Cc: "Jon Hunter" <jonathanh@nvidia.com>, linux-tegra@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org,
+ "Rafael J. Wysocki" <rafael@kernel.org>, "Len Brown" <lenb@kernel.org>,
+ linux-acpi@vger.kernel.org
+Message-Id: <928b3eaf-32da-43a9-9ca5-d59ef8a3b330@app.fastmail.com>
+In-Reply-To: <20261003095924.1370238-4-thierry.reding@kernel.org>
+References: <20261003095924.1370238-1-thierry.reding@kernel.org>
+ <20261003095924.1370238-4-thierry.reding@kernel.org>
+Subject: Re: [GIT PULL 4/7] firmware/tegra: Changes for v7.4-rc1
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Hi Hans,
-
-On Tue, Oct 13, 2026 at 3:36=E2=80=AFPM <johannes.goede@oss.qualcomm.com> w=
-rote:
+On Sat, Oct 3, 2026, at 11:59, Thierry Reding wrote:
+> ----------------------------------------------------------------
+> firmware/tegra: Changes for v7.4-rc1
 >
-> Hi Rafael,
+> The bulk of this adds ACPI support to BPMP as well as a mechanism to
+> throttle bandwidth for various high speed interconnects. Some smaller
+> cleanup and typofixes are also included.
 >
-> On 13-Oct-26 13:58, Rafael J. Wysocki (Intel) wrote:
-> > On Tue, Oct 13, 2026 at 11:33=E2=80=AFAM <johannes.goede@oss.qualcomm.c=
-om> wrote:
-> >>
-> >> Hi,
-> >>
-> >> On 13-Oct-26 00:46, Ali Ahmet Memi=C5=9F wrote:
-> >>> Since commit d33e89d12295 ("thermal: core: Suspend thermal zones late=
-r
-> >>> and resume them earlier"), thermal zones are resumed from dpm_complet=
-e(),
-> >>> before the PM_POST_SUSPEND notifier that re-reads _BIX and _BST. On
-> >>> ThinkPad P1 Gen2 and P53, INT3403 _TMP calls \GTST which switches the=
- EC
-> >>> page selector (HIID) without taking the BATM mutex used by the batter=
-y
-> >>> methods. ACPICA releases the interpreter lock around EC accesses
-> >>
-> >> I'm wondering if this "ACPICA releases the interpreter lock around EC
-> >> accesses" is not the real problem here.
-> >
-> > Yes, it most likely is.
-> >
-> > What actually happens is that ACPICA drops the interpreter lock and
-> > the namespace lock in several cases listed in the
-> > acpi_ex_exit_interpreter() documentation comment, the majority of
-> > which involve having to wait.
-> >
-> > The bottom line though is that the interpreter and namespace locks
-> > cannot be expected to be held throughout AML evaluation because it is
-> > not known in advance if any of the cases in question will appear.
-> >
-> >> Recently I've learned / heard
-> >> from a trusted source that Windows ACPI subsystem is very much single
-> >> threaded. So it is nice that ACPI has these mutexes and other stuff
-> >> to support multi-threading but as long as Windows ACPI interpreter is
-> >> not multi-threaded I think we may need to consider to copy Windows
-> >> behavior.
-> >
-> > This is also my conclusion, at least to some extent.
-> >
-> > The problem with it though is that in some cases parallel evaluation
-> > of AML is actually useful.  For example, say two PCI devices are
-> > powered up at the same time and AML waits for each of them.  The async
-> > suspend/resume aligns those waits to take place simultaneously instead
-> > of serializing them which allows some time to be saved.
-> >
-> >> So maybe the EC accesses should keep the interpreter lock locked durin=
-g
-> >> EC accesses.
-> >
-> > The problem here is that it is hard to say in advance whether or not
-> > _BIX or _BST will access the EC and whether or not that will clash
-> > with _TMP evaluation for a seemingly unrelated thermal zone.
-> >
-> >> And even go further and maybe we need to introduce a big-acpi-lock,
-> >> which I guess the interpreter lock more or less is? And just serialize
-> >> all ACPI accesses since most ACPI tables clearly do not handle
-> >> multi-threaded access to ACPI methods well ?
-> >
-> > I would be inclined to do so except for device power management
-> > methods, that is _ON, _OFF, and _PSx, that are not the problematic
-> > ones, at least as far as I know.
->
-> That sounds like a reasonable compromise which should fix both
-> this case as well as help with bko221065 .
->
-> >> Another example of multi-threaded ACPI calls causing problems is:
-> >>
-> >> https://bugzilla.kernel.org/show_bug.cgi?id=3D221065
-> >
-> > Right.
-> >
-> > So I guess the idea would be to add locking to acpi_evaluate_object()?
->
-> Yes that seems like a nice single point of entry to do this where
-> all the various helpers eventually end up.
+> ----------------------------------------------------------------
+> Aniruddha Rao (6):
+>       firmware: tegra: bpmp: Move channel initialization to helper
+>       firmware: tegra: bpmp: Add ACPI support
 
-That, of course, would require updating ACPICA code and I'm not sure
-if doing it upstream is useful.  For example, if some hosts already
-use locking around acpi_evaluate_object(), this modification won't
-help them and it will certainly be a change in behavior.
+[adding ACPI maintainers to Cc]
 
-This means that we'll likely end up with a Linux-specific divergence
-from the upstream which can be lived with, but it won't be nice.
+I'd like some clarification about the process here, as I see that the
+ACPI support patch ee98ea41ee3f ("firmware: tegra: bpmp: Add ACPI support")
+only has a signoff from both of you and no other review tag.
 
-> > An alternative might be to introduce an "exclusive" variant of
-> > acpi_evaluate_object() with built-in locking and use it in the cases
-> > that are known-problematic.
->
-> So here we have _TMP and _BIX / _BST and in bko221065 we have
-> a bunch of again batteyr methods + UCSI racing. I'm afraid if
-> we add something like acpi_evaluate_object_exclusive() we'll end
-> up eventually using that almost everywhere.
+Where is the ACPI binding documentation for this driver, and who is
+responsible for reviewing it?
 
-While I think that your concern is valid, this can be done without
-touching the ACPICA code at all.
-
-Also, we don't actually know how many "bad" cases there are and so far
-we have identified a few.  If they are not too widespread, changing
-behavior everywhere for everyone may not be adequate.
-
-> Maybe do things the other way around and serializing all the calls
-> by default and adding an acpi_evaluate_object_unlocked() to be used
-> in cases where we want the speedup of multi-threading like
-> the _ON, _OFF and _PSx you mentioned above ?
-
-Yes, depending on which way is more practical, that can be done.
+      Arnd
