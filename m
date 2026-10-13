@@ -1,107 +1,77 @@
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010006.outbound.protection.outlook.com [52.101.193.6])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB4CA5304D1
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 17:51:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.246.84.56
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791913895; cv=none; b=UFG7jdNlgsl8t0zYs4G9ZZPz/9IrSlSynIRlA3uA69x+YiibdDzjJdbs7LbfvznM/jpBbL5NJJStnhI0ipQjEay/MrsaAXee5hAxOQUJf+gezVT0CQQAaQ1Xq2K9VNaW+odgVc8WwteFJXK54sJz/6ugFCZQ3DTNYjBoEXL0bUQ=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791913895; c=relaxed/simple;
-	bh=Bwpuvl8v0DRrGDDmnSEGPwnGjwFO+duZvJ5OSkkepIA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=p5IqVZjRwD6lJCgUHM5PmB67PptSyqRQeUtMb3bVxyiHItsf/WEwkBa5q+WKAwZIEfAfcGAmAmU8mUwVVCGaoXpTCZWbD2kMsdNPh9hBsHvynLr3Wql3uQVwCkbwaIqFCeZg1VmqQ0w5UFrZLiQpDgzSaYi11U5YYYuCEjCAalE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com; spf=pass smtp.mailfrom=bootlin.com; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=wzeWFaAB; dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b=fpb1hr7N; arc=none smtp.client-ip=185.246.84.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB18252F28E;
+	Tue, 13 Oct 2026 18:08:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.193.6
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791914917; cv=fail; b=n4Mi4BgHGZrdXnCEY3dmcKio8eLLNTN1wV83+hTEnRB2PlNpqkZDbChjeMjU3FoFvvU1nS/daNPd+Tri8Imh78ZLHNowpIfXWLuWep7qwLqzmZHFsOrrG/ggujSonbtBrvZqaoUS08ul7CgJ1rcPjsWvY4Bl88WZMu2hBlyr34g=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791914917; c=relaxed/simple;
+	bh=JnFrKGG7pHERl8QfIKLhemrAJB6HEjM50WSfitq6E2o=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=WU8Yt8ZWkj3xYV8u/o6cMptBVjQQvjEK3D0lRTFuH6hhReCk6FZ8DbD3goWsXB3U1RlFVWiBtZgQRrZJijw51EQtuURXujPpMCQBomuawJ0gk0ICsladwNe8zhByHO3wxHWyG436011yB9g5D+MmilNiXHzYpF7LUYNJFUG9MlM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=UMFD54uN; arc=fail smtp.client-ip=52.101.193.6
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="wzeWFaAB";
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.b="fpb1hr7N"
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id 76A961A1219
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 17:51:32 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 4C7F260362
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 17:51:32 +0000 (UTC)
-Received: by mail.galae.net (Postcow, from userid 0)
-	id DA72411D7183E; Tue, 13 Oct 2026 19:48:28 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1791913892; h=from:subject:date:message-id:to:cc:mime-version:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=wTOKh4nIHZqwf3cVaUyxYykTracYnxATB6MngAZuVpg=;
-	b=wzeWFaABUr6blRRNcPTRnlZuM3Ws9xaZ0DroJE8NIP3gPpjgNkbEUzsSN4gWxe4SaW+9wx
-	ROU3ak8uE9rqgw/dPp4OSNtPdQIO8X8st/uvGNG1R8vgnXolNH0dbRluam3w3/KGSogCGP
-	bxA5eeB6GMMVNT95r4+m2g2Ggrc9PYmGoFFQX1xOZhqQnSKJW5s7zIzW1YOvGxVPYW6t8f
-	qn/gEhUzKGVRQ2m22MeXBGCoaD7ZwGmrQHcSgVfeS1OHrx9bhDZRE01H9d/t4e+TjLXwTJ
-	8aG+aQAg2jx3fwURZG98pEqt0uYYFbV6mureMzfAyR6lT914nVcwbrm5pbvv9A==
-Authentication-Results: mail.galae.net;
-	none
-Received: from mail.galae.net ([172.22.1.253])
-	by 9e7fea892943 with LMTP
-	id GBPVCfbuzGpsHhEAtaWaaQ
-	(envelope-from <herve.codina@bootlin.com>)
-	for <herve.codina@bootlin.com>; Mon, 12 Oct 2026 16:30:14 +0200
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 8AD4311D70C51;
-	Mon, 12 Oct 2026 16:30:01 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1791815406; h=from:subject:date:message-id:to:cc:mime-version:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=wTOKh4nIHZqwf3cVaUyxYykTracYnxATB6MngAZuVpg=;
-	b=fpb1hr7N5FKf3AOacO3sWQY50VoGoTDhl6XpnKKsP+N1rNJotDlAPkYvS3EojucBZrQl47
-	LKo/RdgnHDpPCd61+sArj1yjY1AG5Ga+Qi91iP58KeVsu8hTonC2HIJb7HHEsBUir94q5u
-	syxDSRK0G2G1aEDFqq9JS9KpaaRsudPoCtZRGWIMs2FWRAEpMbMIvw8vzOcPpTZ7bmwGHt
-	oZCaR1FYf4/HcsY+8c7mrY4at31g372EjjutdfQNHUad60a2K6NB0hZt2s4MmA+CSZ/YIo
-	WNWq6sdkOUpTTV05aXt0HUO+PFTQ+STdMpOw0sQWHvFE5FDZJXFIIHG+44p7JA==
-From: Herve Codina <herve.codina@bootlin.com>
-To: Richard Cheng <icheng@nvidia.com>,
-	Andrew Lunn <andrew@lunn.ch>,
-	Rob Herring <robh@kernel.org>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Charles Keepax <ckeepax@opensource.cirrus.com>,
-	Richard Fitzgerald <rf@opensource.cirrus.com>,
-	David Rhodes <david.rhodes@cirrus.com>,
-	Linus Walleij <linusw@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dan Williams <djbw@kernel.org>,
-	Ira Weiny <iweiny@kernel.org>,
-	Li Ming <ming.li@zohomail.com>,
-	Herve Codina <herve.codina@bootlin.com>,
-	Lizhi Hou <lizhi.hou@amd.com>
-Cc: driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	linux-pci@vger.kernel.org,
-	linux-sound@vger.kernel.org,
-	patches@opensource.cirrus.com,
-	linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-cxl@vger.kernel.org,
-	Allan Nielsen <allan.nielsen@microchip.com>,
-	Horatiu Vultur <horatiu.vultur@microchip.com>,
-	Daniel Machon <daniel.machon@microchip.com>,
-	Steen Hegelund <steen.hegelund@microchip.com>,
-	Luca Ceresoli <luca.ceresoli@bootlin.com>,
-	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-	stable+noautosel@kernel.org
-Subject: [PATCH v13 10/10] PCI: of: Avoid np->data usage for the node changeset
-Date: Mon, 12 Oct 2026 16:28:24 +0200
-Message-ID: <20261012142826.159178-11-herve.codina@bootlin.com>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20261012142826.159178-1-herve.codina@bootlin.com>
-References: <20261012142826.159178-1-herve.codina@bootlin.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="UMFD54uN"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=hW54JZZ2PKy5w3jprk6/5l6N4iwEWYUty7SdbIbAidiyGQjLT28IJP7wc9OeG0pYUHsQwR2FNQJikO0cm8SAmnIkeeDQo/iB+RMA4wCQCuksQOmzWvu42oi2uYi9nelZkIV4kvn6Y++nXg/fZ2V28rRx8OTiPQxNCLt5hDTwgBAD92fL9ieelT5Wi/3Z6JOAQFp5dcY7eqd2y1vlIiuMM/kVlr+ltLog1VbDk/YSSHldD4IGaN6uRBZdXqKbdnTnLGpt/I3jffGWIpvFtAbreWbCMzOvYejhL48dBITMx58cuBwyzW9+x6XGrfGII0Ytyy9bPckIr03BClRWtu7viA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=daUDSWrRVMo8Xfby+UjdjuNPKchpgW22ixsXC0ATRDc=;
+ b=JaL/9cOFpAJvSxlhxjlH/L/XFv3V0yLDugzZG4wCg3Bo5P+VmHPHvuQEYB6JgiElgZMraZ+9YdXSweiP7b8UGbav5OduFeqB9kMfvkFYyf4KK8ViTZXX8aORO/ZAXdTIi6pVXDFHL9sQ2wMGDgVQj2ycaldFay/9c0cG8SPyqCI98Z4QSmOAab5s26lZmwO+DiiVONF35NtTCx5+ZQx0ZRBSeIfsgYl1XdQBaBHpPBWhkcERVWwIn91ZbDoQ0WvWAH8BabQV91KlSZwUOjR66TOr/gzpX+p3h4R59seaFzZdVAtm/ABBctLfQ7cmzdaxqR8Y2lw1kWAzIGhzv37c9g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.118.233) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=daUDSWrRVMo8Xfby+UjdjuNPKchpgW22ixsXC0ATRDc=;
+ b=UMFD54uNzoUsidpR4xsJo91bHiPGegnkst6245bCxvoL36l6Ieph+FW2Y+CQE0GgxK+RKlPzOi3qDOASj4XlqqiS6z19Rke//rJRbe180PyCz3mMGYPXuhdDHnPtzlUe31FNSUURiJ6TMMz2u86mkI0oqQzG3YLpem/UdwoZ+1siRf+QBvdi38E4IJ/dE4d2OUXTIjRPIL1jQz9hV1WkYlVln1/5xalab/egO7VXBpHA4yscP644hXclxUjFCuWJlgTxQAlL00MQmClWAivPMWvoix4gYCjdhmRKGc53P22OkOLAgW2/ykb2E+BmN0zcSjIbn0lkChMytmNmLLf8eA==
+Received: from CY5P221CA0130.NAMP221.PROD.OUTLOOK.COM (2603:10b6:930:1f::16)
+ by LV8PR12MB9642.namprd12.prod.outlook.com (2603:10b6:408:295::7) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.12; Tue, 13 Oct
+ 2026 18:07:57 +0000
+Received: from CY8PEPF00000053.namprd05.prod.outlook.com
+ (2603:10b6:930:1f:cafe::1c) by CY5P221CA0130.outlook.office365.com
+ (2603:10b6:930:1f::16) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.496.5 via Frontend Transport; Tue, 13
+ Oct 2026 18:07:54 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 216.228.118.233) smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.233) by
+ CY8PEPF00000053.mail.protection.outlook.com (10.167.247.57) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.522.6 via Frontend Transport; Tue, 13 Oct 2026 18:07:53 +0000
+Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
+ (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49; Tue, 13 Oct
+ 2026 11:07:29 -0700
+Received: from drhqmail202.nvidia.com (10.126.190.181) by
+ drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.49; Tue, 13 Oct 2026 11:07:29 -0700
+Received: from dgx-1v-42.nvidia.com (10.127.8.11) by mail.nvidia.com
+ (10.126.190.181) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.49 via Frontend
+ Transport; Tue, 13 Oct 2026 11:07:29 -0700
+From: Jamie Nguyen <jamien@nvidia.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+CC: Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, "Punit
+ Agrawal" <punitagrawal@gmail.com>, <linux-acpi@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+Subject: [PATCH] ACPI: sysfs: Map only the requested range in acpi_data_show()
+Date: Tue, 13 Oct 2026 11:07:28 -0700
+Message-ID: <20261013180728.957618-1-jamien@nvidia.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -109,209 +79,108 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Last-TLS-Session-Version: TLSv1.3
-X-Last-TLS-Session-Version: None
-X-Rspamd-Queue-Id: DA72411D7183E
-X-Spamd-Result: default: False [2.48 / 30.00];
-	BAYES_HAM(-1.52)[85.14%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	MID_CONTAINS_FROM(1.00)[];
-	DATE_IN_PAST(1.00)[27];
-	R_MISSING_CHARSET(0.50)[];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_NO_TLS_LAST(0.10)[];
-	BCC(0.00)[];
-	FREEMAIL_TO(0.00)[nvidia.com,lunn.ch,kernel.org,linuxfoundation.org,google.com,opensource.cirrus.com,cirrus.com,linux.intel.com,gmail.com,stgolabs.net,intel.com,zohomail.com,bootlin.com,amd.com];
-	DKIM_SIGNED(0.00)[bootlin.com:s=dkim];
-	MAILCOW_DOMAIN_HEADER_FROM(0.00)[bootlin.com];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	FORWARDED(0.00)[herve.codina@bootlin.com];
-	RCPT_COUNT_TWELVE(0.00)[43];
-	PREVIOUSLY_DELIVERED(0.00)[herve.codina@bootlin.com];
-	RECEIVED_HELO_LOCALHOST(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	TAGGED_RCPT(0.00)[noautosel];
-	NEURAL_HAM(-0.00)[-1.000];
-	URIBL_BLOCKED(0.00)[bootlin.com:mid,bootlin.com:email,localhost:rdns,localhost:helo];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_SOME(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_HAS_DN(0.00)[]
+Content-Type: text/plain
+X-NV-OnPremToCloud: ExternallySecured
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CY8PEPF00000053:EE_|LV8PR12MB9642:EE_
+X-MS-Office365-Filtering-Correlation-Id: b7341465-f674-4ab1-a39b-08df2954e698
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|36860700016|23010399003|376014|1800799024|82310400026|56012099006|11063799006|261009223027099003|10067099003|18002099003|4133799003;
+X-Microsoft-Antispam-Message-Info:
+	p9ywvpJOU1FXt9f16TSO0JXl0FaF6XaCVxDcPDBbWPXOqzIbyS8/FZZsaE6CDXG9lFSXMlJ1dWXTfWZdqX9HG5WCR3eCmeDoAaAyoLlgk+xVtd+IvaYagm6cqMMENJ4wXLVH3yHCjTI2RofmXdvFs8dPZHTh9Z85EsdwAWSlQkjEn1PsbyxymqP2MJJPhLcDha+FQwBIQIH5BuMXKVlB5sa/dNFJd+rg4FNS3wfGAJH+oQjxOEkg26TW03cf43r3USH34Y1vjyx6zx2FBddeaR/1rq9Ov/A9g1dDeBkdpoPqOmsfS6iE0S0i4AO6WeECXh5BoXYpFeokYEuptvPrH6VeP0Rm7qevc0qFQhulzLu3rnQsfLEENpi2ChTJrnFFWbif6QWQTKEvHr2I9lcfj3cuI/SMmuDjpCUyklR/r2UtR+CSdLtn8mcPHRebDwZSkkpyEPWm7HrDgiNEfY5IsLiEy3Pa8PbZqCMC4HKRbSvy4wiwduW59XyKG7LQCxieG0RUp+v8nJ8D1l20GIYJ7OBJ8pkQPsptH/23d+9wiHY2YtshN5UdAR/AtqfQN+ij2JQZCL4apCw5BPKHyxQTsh9gzgoz58Nx7vkBS8/0ACE/Y/ihT5N5kmBnp/WJXHv3Rh9rO1I147OhW6zTF4GskEnJ+GWQclraEmyEIkXxOD02tqOy7k58GJJoPPQxpieIzP+S79Cks9UKd5/ADTHTzg==
+X-Forefront-Antispam-Report:
+	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(36860700016)(23010399003)(376014)(1800799024)(82310400026)(56012099006)(11063799006)(261009223027099003)(10067099003)(18002099003)(4133799003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	TufFLlwmhaycK83VpEA+iix6Qy9Zzxli78Z3dhaXLCk43g2Qab7N9q+vqP/KWSXLOmTEuCy0Krf53Td8XxzNQ9aohTS6raLBkR0Xmar26yzPvSsDhrZAwZgqAPG2gWoQ+ylLCsXDXKB+JxfKqUGyNaUeowf0h9gmjJ9Ea0YBPtufHNIi1xiPFpM9ScIeFlWF0lN4NuEhYzOywCwG/pAJosFHl9KFavuUxuwhLZq3f83SxKXE3/78dlBsXUTTTgFsBF7rTPHNPBFbDXwul9Zrug4kPFLXaaH6n21njRGzasZ4XvV9LGO8FNFusVWPnJ3/iuWicRpajQ2b16D+GGgrYClgFOh7xAK9JiHQ+dApBEEvGj1mFGgeZmONEoPBXbuupGE+l6h5QI5txADyJf492ZeUgXO5izrCZ1q8RRhiNB4L8NL7Ye1p9ND5+pUWuijY
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Oct 2026 18:07:53.0810
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: b7341465-f674-4ab1-a39b-08df2954e698
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	CY8PEPF00000053.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV8PR12MB9642
 
-of_pci_remove_node() and of_pci_remove_host_bridge_node() check
-whether the node is dynamic but not whether it has valid private data.
+acpi_data_show() maps the whole data region on every read(), although
+it copies at most count bytes and sysfs passes at most PAGE_SIZE bytes
+per call. acpi_os_unmap_iomem() defers the iounmap until after an RCU
+grace period, so a process reading one of these files in a loop keeps
+many full-size mappings in flight.
 
-During the node creation, an OF changeset is used and this changeset is
-stored in np->data to be available for removal functions.
+Map only the range being read. acpi_os_map_iomem() rounds the mapping
+to page boundaries, so each mapping is now at most two pages, whatever
+the size of the region.
 
-If, for instance, a PCI host bridge is created using a device-tree
-overlay, the related node will have the dynamic flag set but np->data
-will be NULL. This leads to NULL pointer dereferences.
+A malformed table can describe a region that wraps around the end of
+the physical address space. acpi_os_map_iomem() doesn't check for that,
+and its lookup of existing mappings then matches an unrelated mapping,
+with or without this change. Fail reads of such a region before mapping
+anything.
 
-Checking for a non-NULL np->data pointer to determine if the node has
-been created by the PCI node creation process is not enough. Indeed,
-on some platforms like PowerPC, the OF_RECONFIG_ATTACH_NODE notifier
-(e.g., in the pci_dn_reconfig_notifier() function) intercepts node
-additions and populates np->data with its own structure, such as a
-struct pci_dn. In that case, np->data is not NULL but it is not related
-to our changeset stored during the PCI node process creation.
-
-Avoid the usage of np->data to store the changeset used during the PCI
-node creation. Store our changeset in a more relevant structure: either
-struct pci_dev when the node is created for a PCI device or struct
-pci_host_bridge when the node is created for the PCI host bridge.
-
-With that done, no ambiguity remains on removal. Indeed, this changeset,
-if non-NULL, is the one used during PCI node creation. Check and use
-this changeset on the removal process.
-
-Fixes: 407d1a51921e ("PCI: Create device tree node for bridge")
-Fixes: 1f340724419e ("PCI: of: Create device tree PCI host bridge node")
-Cc: <stable+noautosel@kernel.org> # Issue not triggered but could be a problem
-Signed-off-by: Herve Codina <herve.codina@bootlin.com>
+Assisted-by: LLM
+Signed-off-by: Jamie Nguyen <jamien@nvidia.com>
 ---
- drivers/pci/of.c    | 32 ++++++++++++++++++++------------
- include/linux/pci.h | 11 +++++++++++
- 2 files changed, 31 insertions(+), 12 deletions(-)
+As discussed on the BDAT v2 thread:
+https://lore.kernel.org/r/CAJZ5v0ixQ_5jmrfm4mz50tZtCEq6nJt1b2eMoBdhr0f3AY+k7w@mail.gmail.com
 
-diff --git a/drivers/pci/of.c b/drivers/pci/of.c
-index 0a5797652e18..fbed24a244d0 100644
---- a/drivers/pci/of.c
-+++ b/drivers/pci/of.c
-@@ -732,15 +732,20 @@ void of_pci_remove_node(struct pci_dev *pdev)
- {
- 	struct device_node *np;
+This doesn't depend on that series and applies on its own.
+
+Tested on an arm64 server with 4K and 64K pages, with the BDAT v2
+series applied:
+
+- The BERT and BDAT data files match /dev/mem when read whole, byte by
+  byte, page by page, and across page boundaries.
+- Each read maps at most two pages. With 4K pages, looping full reads
+  of the 90754-byte BDAT file kept at most 167 MiB of vmalloc space
+  mapped (1740 MiB before), and looping 1-byte reads at most 355 MiB
+  (3090 MiB before).
+- Malformed BERT tables loaded via initrd table upgrade, with regions
+  that wrap around the end of the physical address space, fail every
+  read with -EINVAL.
+
+ drivers/acpi/sysfs.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index dd4a99f09efea65..138009659a7b55f 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -419,6 +419,7 @@ static ssize_t acpi_data_show(struct file *filp, struct kobject *kobj,
+ 	struct acpi_data_attr *data_attr;
+ 	void __iomem *base;
+ 	ssize_t size;
++	u64 end;
  
-+	if (!pdev->cset)
-+		return;
+ 	data_attr = container_of(bin_attr, struct acpi_data_attr, attr);
+ 	size = data_attr->attr.size;
+@@ -432,13 +433,17 @@ static ssize_t acpi_data_show(struct file *filp, struct kobject *kobj,
+ 	if (count > size - offset)
+ 		count = size - offset;
+ 
+-	base = acpi_os_map_iomem(data_attr->addr, size);
++	/* acpi_os_map_iomem() can't handle a range that wraps around */
++	if (check_add_overflow(data_attr->addr, size, &end))
++		return -EINVAL;
 +
- 	np = pci_device_to_OF_node(pdev);
--	if (!np || !of_node_check_flag(np, OF_DYNAMIC))
-+	if (!np)
- 		return;
++	base = acpi_os_map_iomem(data_attr->addr + offset, count);
+ 	if (!base)
+ 		return -ENOMEM;
  
- 	fw_devlink_set_device(&np->fwnode, NULL);
- 	device_remove_of_node(&pdev->dev);
--	of_changeset_revert(np->data);
--	of_changeset_destroy(np->data);
-+	of_changeset_revert(pdev->cset);
-+	of_changeset_destroy(pdev->cset);
- 	of_node_put(np);
-+	kfree(pdev->cset);
-+	pdev->cset = NULL;
+-	memcpy_fromio(buf, base + offset, count);
++	memcpy_fromio(buf, base, count);
+ 
+-	acpi_os_unmap_iomem(base, size);
++	acpi_os_unmap_iomem(base, count);
+ 
+ 	return count;
  }
- 
- void of_pci_make_dev_node(struct pci_dev *pdev)
-@@ -800,18 +805,17 @@ void of_pci_make_dev_node(struct pci_dev *pdev)
- 	if (ret)
- 		goto out_clear_devlink_dev;
- 
--	np->data = cset;
--
- 	ret = device_add_of_node(&pdev->dev, np);
- 	if (ret)
- 		goto out_revert_cset;
- 
-+	pdev->cset = cset;
-+
- 	kfree(name);
- 
- 	return;
- 
- out_revert_cset:
--	np->data = NULL;
- 	of_changeset_revert(cset);
- out_clear_devlink_dev:
- 	fw_devlink_set_device(&np->fwnode, NULL);
-@@ -828,16 +832,21 @@ void of_pci_remove_host_bridge_node(struct pci_host_bridge *bridge)
- {
- 	struct device_node *np;
- 
-+	if (!bridge->cset)
-+		return;
-+
- 	np = pci_bus_to_OF_node(bridge->bus);
--	if (!np || !of_node_check_flag(np, OF_DYNAMIC))
-+	if (!np)
- 		return;
- 
- 	fw_devlink_set_device(&np->fwnode, NULL);
- 	device_remove_of_node(&bridge->bus->dev);
- 	device_remove_of_node(&bridge->dev);
--	of_changeset_revert(np->data);
--	of_changeset_destroy(np->data);
-+	of_changeset_revert(bridge->cset);
-+	of_changeset_destroy(bridge->cset);
- 	of_node_put(np);
-+	kfree(bridge->cset);
-+	bridge->cset = NULL;
- }
- 
- void of_pci_make_host_bridge_node(struct pci_host_bridge *bridge)
-@@ -899,8 +908,6 @@ void of_pci_make_host_bridge_node(struct pci_host_bridge *bridge)
- 	if (ret)
- 		goto out_clear_devlink_dev;
- 
--	np->data = cset;
--
- 	/* Add the of_node to host bridge and the root bus */
- 	ret = device_add_of_node(&bridge->dev, np);
- 	if (ret)
-@@ -910,6 +917,8 @@ void of_pci_make_host_bridge_node(struct pci_host_bridge *bridge)
- 	if (ret)
- 		goto out_remove_bridge_dev_of_node;
- 
-+	bridge->cset = cset;
-+
- 	kfree(name);
- 
- 	return;
-@@ -917,7 +926,6 @@ void of_pci_make_host_bridge_node(struct pci_host_bridge *bridge)
- out_remove_bridge_dev_of_node:
- 	device_remove_of_node(&bridge->dev);
- out_revert_cset:
--	np->data = NULL;
- 	of_changeset_revert(cset);
- out_clear_devlink_dev:
- 	fw_devlink_set_device(&np->fwnode, NULL);
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index d31a8d107b1e..7b0ba9ec7b5c 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -339,6 +339,9 @@ struct pcie_link_state;
- struct pci_sriov;
- struct pci_p2pdma;
- struct rcec_ea;
-+#ifdef CONFIG_PCI_DYNAMIC_OF_NODES
-+struct of_changeset;
-+#endif
- 
- /* struct pci_dev - describes a PCI device
-  *
-@@ -598,6 +601,10 @@ struct pci_dev {
- 	u8		tph_mode;	/* TPH mode */
- 	u8		tph_req_type;	/* TPH requester type */
- #endif
-+
-+#ifdef CONFIG_PCI_DYNAMIC_OF_NODES
-+	struct of_changeset *cset; /* Changeset used for OF node creation */
-+#endif
- };
- 
- static inline struct pci_dev *pci_physfn(struct pci_dev *dev)
-@@ -670,6 +677,10 @@ struct pci_host_bridge {
- 	unsigned int	broken_l1ss_resume:1;	/* Resuming from L1SS during
- 						   system suspend is broken */
- 
-+#ifdef CONFIG_PCI_DYNAMIC_OF_NODES
-+	struct of_changeset *cset; /* Changeset used for OF node creation */
-+#endif
-+
- 	/* Resource alignment requirements */
- 	resource_size_t (*align_resource)(struct pci_dev *dev,
- 			const struct resource *res,
 -- 
-2.55.0
+2.43.0
 
