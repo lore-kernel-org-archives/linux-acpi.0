@@ -1,120 +1,166 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FC20513554;
-	Tue, 13 Oct 2026 15:51:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B251F51DAFC;
+	Tue, 13 Oct 2026 16:34:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791906667; cv=none; b=K1Z+xoWtl1D1WAuGNcqAsihoQo3Wmuwa4qF5TBq+z+U90ZfHpaBWEgnPjjVtKi/HG+qXEAcFQjeX5TF5UmKsS07z6g3rlvabaA0UIIfpP8ii+Vh4pKo9nw1g4JADy1hBe2sW+8gggdJ7NXYf8gHE8osEkjbiY7RVvat3f5v0nD8=
+	t=1791909288; cv=none; b=Xc/iu20JDQny9bgQ0FU0oiICNG/bdE03fVLjXhJLiOG24hm8jDFxeB9LB6iMdJALPn/eKIQhOW+Z13IPsdcTfZxcfNw9ZkxHBvWfkv3Z6gsqaPbup3JLXNfTVwJDEQu73IrX/3vYCCAUsEPnrenfRvmDGqPI6koncxWk6ZNAYMg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791906667; c=relaxed/simple;
-	bh=r3dPIqJVZRDrga/MJbTb3/5uaWkSC7+Lc43sA/eq0hQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IZC6z0ETHKyvLJVwguzUtl2+mIGS8+3LQdWuBhRwzILCAQLXqAhFHA1Q7xzxU82nmGWy7Dv9IOg5lxb1ltgX0U9f/V0d57SuKNajirpdsHRfeYi9W73//0RBO9qQZm9u56FEbFRONwqWIPH/GSVKUB6liKGA6EAVCPW95juRh1M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=M7k7sMsx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791909288; c=relaxed/simple;
+	bh=Mc1DTfLGY7pcGFzCEyyWDlJ/Z2hxsqSiFDGUw49GIf4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=ICntaY/VV06RQVaHU+YEcFD5q83I9RHCmS9LI5L98qZQoC9DdxWYlVURDBiwOlKvIwV6bW8VAV60XUGraBuaLSkitQ4oK1JdSGcyfIBZ72oiA41O3oWCknL74TTYpoVXKHO58Nqv4rlcaVa96G5FIx4vxdvfk7Ow20aN8z5aXo4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JnlevLRw; arc=none smtp.client-ip=198.175.65.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="M7k7sMsx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 230E81F000FF;
-	Tue, 13 Oct 2026 15:51:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791906665;
-	bh=MJ86ar7ft1Sjd5oHlVMjY4gwK71NzHJf7v8T3vhrJ3o=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=M7k7sMsxNzFfFxydRPey+N/9CCSkwmN5DyNYLRN5dFgRPYd43mfp0TWbfEdFgtY/w
-	 H00/6MvApVWWBqq6LDZx7/+XInjZmbM5zuio3/3YukuSPwX35+4v+bZT4srhksV8Y/
-	 8bn1MH/mlIp1/ryVdV5wSZQDhrWJpceSWiOoCDwcWL+D5pwOATLTjZsmlUmRJ4pMfD
-	 kLlwAqKnCSGxhK43xZgCQAZ5VYC99wMNctVqXBsraoV+Tk46krOgTi1shEbqCtFfVL
-	 Yf1Ycg8KCjLzBo9AnqlKiK7HQ47FXsYThbecmNPzqLxcksT0Py5AI5nA/VimCa4vcF
-	 VB7t70b3CeeaA==
-Date: Tue, 13 Oct 2026 17:51:03 +0200
-From: Thierry Reding <thierry.reding@kernel.org>
-To: Pawel Zalewski <pzalewski@thegoodpenguin.co.uk>
-Cc: Andi Shyti <andi.shyti@kernel.org>, 
-	Mika Westerberg <westeri@kernel.org>, Shyam Sundar S K <shyam-sundar.s-k@amd.com>, 
-	Elie Morisse <syniurge@gmail.com>, Benson Leung <bleung@chromium.org>, 
-	Guenter Roeck <groeck@chromium.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>, 
-	Devyn Liu <liudingyuan@h-partners.com>, Oleksij Rempel <o.rempel@pengutronix.de>, 
-	Pengutronix Kernel Team <kernel@pengutronix.de>, Frank Li <Frank.Li@nxp.com>, 
-	Sascha Hauer <s.hauer@pengutronix.de>, Fabio Estevam <festevam@gmail.com>, 
-	Binbin Zhou <zhoubinbin@loongson.cn>, Khalil Blaiech <kblaiech@nvidia.com>, 
-	Asmaa Mnebhi <asmaa@nvidia.com>, Mukesh Kumar Savaliya <mukesh.savaliya@oss.qualcomm.com>, 
-	Viken Dadhaniya <viken.dadhaniya@oss.qualcomm.com>, Ard Biesheuvel <ardb@kernel.org>, 
-	Laxman Dewangan <ldewangan@nvidia.com>, Dmitry Osipenko <digetx@gmail.com>, 
-	Jonathan Hunter <jonathanh@nvidia.com>, Israel Cepeda <israel.a.cepeda.lopez@intel.com>, 
-	Hans de Goede <hansg@kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, 
-	Hans Hu <hanshu@zhaoxin.com>, George Cherian <gcherian@marvell.com>, linux-i2c@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, chrome-platform@lists.linux.dev, 
-	imx@lists.linux.dev, linux-arm-kernel@lists.infradead.org, 
-	linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org
-Subject: Re: [PATCH 1/2] i2c: i2c-core-acpi: use named initializers for
- acpi_device_id
-Message-ID: <as5TMuJUE3H7bcFX@orome>
-References: <20260918-acpi-i2c-v1-0-caf4bea4886c@thegoodpenguin.co.uk>
- <20260918-acpi-i2c-v1-1-caf4bea4886c@thegoodpenguin.co.uk>
- <as5S4eXw9_olPYTK@orome>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JnlevLRw"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1791909286; x=1823445286;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=Mc1DTfLGY7pcGFzCEyyWDlJ/Z2hxsqSiFDGUw49GIf4=;
+  b=JnlevLRwGMvkYVM+DhPc09SchQTO7Hmc1A/XikrUpTg7/bf1ncRQO1E2
+   8Y/FCwJsWFmYniH1jPrmF78VP8RxUlSZedZ1nnifXOGTzkGOG3OxPsNhl
+   IRRXSqrRsAhSDiezhCmGPZfVCH3hket5JQo6XYrtzFWpjt3mWq+Sue3o2
+   y4gAbbHJnaJOTQIyhzhAz3vKieGPYXOyV1PniWAIW1GCnZf3bd2RWrJf4
+   uTich7XzV1Ya+pJZL/Su1YJHdopd4TX5JdOyY5Ew82F3egsSrwtzrCyHf
+   lvxAiLnrGErdqcROgXg2EKVtMTmvzrTTX5yC90u2Q+DyBWrq65leM2sDh
+   A==;
+X-CSE-ConnectionGUID: +JKn5hHhQ7G7UCz/1AsONg==
+X-CSE-MsgGUID: D856ylNlQMSTg6No/FjAMQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11934"; a="673383"
+X-IronPort-AV: E=Sophos;i="6.27,156,1787036400"; 
+   d="scan'208";a="673383"
+Received: from fmviesa007.fm.intel.com ([10.60.135.147])
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2026 09:34:46 -0700
+X-CSE-ConnectionGUID: YHDZeawZTy2M6ADHtkUGjA==
+X-CSE-MsgGUID: 9ys0i9A1R4CmLucPxOFa8A==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,156,1787036400"; 
+   d="scan'208";a="1528330"
+Received: from soc-pf446t5c.clients.intel.com (HELO [10.24.80.90]) ([10.24.80.90])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2026 09:34:45 -0700
+Message-ID: <4723da77-acb2-4063-93d5-bf1cefd6b6e5@linux.intel.com>
+Date: Tue, 13 Oct 2026 09:34:44 -0700
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="ta66zshbuz6aaek2"
-Content-Disposition: inline
-In-Reply-To: <as5S4eXw9_olPYTK@orome>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 0/4] PCI/DPC: Decide DPC ownership with
+ host_bridge->native_dpc
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>,
+ "Rafael J . Wysocki" <rafael@kernel.org>, Lukas Wunner <lukas@wunner.de>,
+ Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
+ Oliver O'Halloran <oohall@gmail.com>, Len Brown <lenb@kernel.org>,
+ linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+References: <20261012232018.GA1428722@bhelgaas>
+Content-Language: en-US
+From: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+In-Reply-To: <20261012232018.GA1428722@bhelgaas>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
+Hi Bjorn,
 
---ta66zshbuz6aaek2
-Content-Type: text/plain; protected-headers=v1; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Subject: Re: [PATCH 1/2] i2c: i2c-core-acpi: use named initializers for
- acpi_device_id
-MIME-Version: 1.0
+On 10/12/2026 4:20 PM, Bjorn Helgaas wrote:
+> On Wed, Oct 07, 2026 at 09:58:36AM -0700, Kuppuswamy Sathyanarayanan wrote:
+>> This series makes host_bridge->native_dpc the single decider for whether
+>> Linux uses DPC, as Bjorn asked during the review of "Simplify PCIe native
+>> ownership".
+>>
+>>   https://lore.kernel.org/r/20261001221408.GA2731929@bhelgaas
+>>
+>> Today the DPC service binds on host_bridge->native_aer, AER availability
+>> and "pcie_ports=dpc-native".  host_bridge->native_dpc is only consulted
+>> by pci_dpc_recovered().  After this series, native_dpc is the end result
+>> of everything that decides DPC ownership, and portdrv binds the DPC
+>> service on it.
+>>
+>> The series applies on top of two others:
+>>
+>>   - pci/portdrv, which has patches 1-3 of v15 of "Simplify PCIe native
+>>     ownership".  They fold "pcie_ports=native" and "pcie_ports=dpc-native"
+>>     into the _OSC control mask, so native_dpc already reflects the
+>>     command line.
+>>
+>>     https://lore.kernel.org/r/20261002211828.1293177-1-sathyanarayanan.kuppuswamy@linux.intel.com
+>>
+>>   - Lukas's "Error reporting for AER-incapable devices".  It removes the
+>>     AER Capability requirement from the DPC driver.
+>>
+>>     https://lore.kernel.org/r/cover.1790531238.git.lukas@wunner.de
+> 
+> My impression was that Lukas planned to tweak a couple things in that
+> series, e.g., https://lore.kernel.org/all/arltOHrdHdokyfC9@wunner.de
+> 
+> Does this actually depend on Lukas' series?  If so, can we include the
+> relevant patch here?
 
-On Tue, Oct 13, 2026 at 05:48:58PM +0200, Thierry Reding wrote:
-> On Fri, Sep 18, 2026 at 02:01:50PM +0100, Pawel Zalewski wrote:
-> > Use a designated initializer for the acpi_device_id fields which makes =
-the
-> > code more readable and consistent with how lists are initialized in the
-> > rest of the kernel code base. Also drop explicitly setting fields to 0
-> > where it is redundant.
-> >=20
-> > Unify the list terminator to have a single space between the brackets a=
-nd
-> > no trailing comma.
-> >=20
-> > Signed-off-by: Pawel Zalewski <pzalewski@thegoodpenguin.co.uk>
-> > ---
-> >  drivers/i2c/i2c-core-acpi.c | 14 +++++++-------
-> >  1 file changed, 7 insertions(+), 7 deletions(-)
->=20
-> Reviewed-by: Thierry Reding <treding@nvidia.com>
+It applies and builds on pci/portdrv without Lukas's series. It only
+depends on his first two patches, which are DPC fixes. The rework he
+mentioned is for patches 6 and 7, and this series doesn't need those.
 
-Nevermind, I realized too late that this popped up in my inbox because
-of Andi's message saying the patches were applied.
+  PCI/DPC: Avoid access to non-existent AER capability
+  PCI/DPC: Reinstate support for AER-incapable ports
 
-Thierry
+dpc_probe() still returns -ENOTSUPP unless the OS owns AER or
+"pcie_ports=dpc-native" is given. Without Lukas's patch 2, portdrv
+creates the DPC service from native_dpc, but dpc_probe() then rejects it
+when firmware grants DPC and retains AER. So the change in patch 4 would
+not take effect. Lukas's patch 2 needs his patch 1, because the DPC
+driver uses the AER capability without checking that it exists.
 
---ta66zshbuz6aaek2
-Content-Type: application/pgp-signature; name="signature.asc"
+If Lukas has no objections, I can include Lukas 2 patches part of v2.
 
------BEGIN PGP SIGNATURE-----
+> 
+>> Patch 1 removes CONFIG_PCIE_EDR, which was another knob in deciding
+>> whether to request DPC control in _OSC.
+>>
+>> Patch 2 stops requiring pci_aer_available() to bind the DPC service,
+>> since the DPC driver does not depend on MSI or on the AER driver.
+>>
+>> Patch 3 requests DPC control only together with AER control, as PCI
+>> Firmware r3.3, sec 4.5.2.4, requires.
+>>
+>> Patch 4 binds the DPC service on host_bridge->native_dpc and logs a
+>> message when the OS assumes DPC control that _OSC did not grant.
+>>
+>> Kuppuswamy Sathyanarayanan (4):
+>>   PCI/EDR: Remove CONFIG_PCIE_EDR
+>>   PCI/portdrv: Don't require AER to bind DPC service
+>>   PCI/ACPI: Request DPC control only together with AER control
+>>   PCI/portdrv: Bind DPC service based on host_bridge->native_dpc
+>>
+>>  drivers/acpi/pci_root.c    | 26 +++++++++++++++++++++++---
+>>  drivers/pci/pcie/Kconfig   |  9 ---------
+>>  drivers/pci/pcie/Makefile  |  5 ++++-
+>>  drivers/pci/pcie/dpc.c     |  5 +++--
+>>  drivers/pci/pcie/portdrv.c |  7 +------
+>>  include/linux/pci-acpi.h   |  4 ++--
+>>  6 files changed, 33 insertions(+), 23 deletions(-)
+>>
+>>
+>> base-commit: 4fe37866b0d92cdc45b62954a76489a9d9f8bd73
+>> prerequisite-patch-id: e0eafcb39f15c38f3acfa601dfce07a6f0832ce1
+>> prerequisite-patch-id: 83e8185612e785fad80790d4a0c20fa68ab12ce7
+>> prerequisite-patch-id: 8e9e2b06f55249ff57c7d7f43918ee82f79d1450
+>> prerequisite-patch-id: 78ad13a1c423c3ee50122237c4bd0fdedf2d1e00
+>> prerequisite-patch-id: 0c4b9d46eea86635c431382aef2bf576a3bb5691
+>> prerequisite-patch-id: 2d1a35309e750427352c6fe0d9bb62c4453c6252
+>> prerequisite-patch-id: c1ed9c8ac6123e0a65ae0d7ba3183dd46477edf7
+>> -- 
+>> 2.43.0
+>>
 
-iQIzBAABCgAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAmrOU2cACgkQ3SOs138+
-s6EkQg//Q94g8lhAZ9FF1mSkUo8+4iAGe4AwVPaHJcaAsp/d3MMwLNgGHDNCCUTg
-G+wEpoEVHWYXoLXJdfApoubX1HNKCyZixOydZMuy/vyjfKK8d24WoUwsrruWKNoC
-Qr6q3NbnPuILsnE6wQDTVdRqZ5iJlmJKMwdL9zfnVqM3bLVwpDqLWA7QkJrqsNY+
-XJcQw62QQ2bvNUYmnEMs96w/3hFC5bQeQkZcRFHxT5YaZwH7n8XX3hvrMUqPUclG
-PWzaf3rRgKJvhonQNuJSHjaSbHTtBt1uuxV/RncTBbTqczCwADWg+huMeyInDKNG
-9jZddMF5telzFS0C6Qm320brFB2ZzTRmjHM+2QzdwwnIN48mkmpy3lwdzBDIsd1O
-aHW2OyY2zyfp3NG+HeVuBNWw3ctMLcffAk5pdZeVvW15ZaAYUMBFd6xMDS40I4TX
-6zJCJz7BRWHyAxLcuIK90E5LgVatIVCJvHGaYnwGPWgGan7CvL3WC+bGGu9u5huD
-LdxQ8jbuT81xOMrbWy9h8so1N+3KjZXMnz12Z2TD8mK+BJpgZt52vXOSzmNWB5Jt
-O1f8qDoslIrvaisD5tgoXZmn9NhZquYjFl1HqpnHxWpBK4rCW0fzIcMO1vByl8eF
-cwD+MtMt4inGeVuyn7CCI4ntQKPY1jGEF0X9EwXGBBfcYoocK/A=
-=H7B1
------END PGP SIGNATURE-----
+-- 
+Sathyanarayanan Kuppuswamy
+Linux Kernel Developer
 
---ta66zshbuz6aaek2--
