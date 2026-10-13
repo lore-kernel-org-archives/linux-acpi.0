@@ -1,56 +1,56 @@
-Received: from mail-dy1-f197.google.com (mail-dy1-f197.google.com [74.125.82.197])
+Received: from mail-dl1-f69.google.com (mail-dl1-f69.google.com [74.125.82.69])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F3E2565116
-	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 22:40:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.197
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 349EA563FC7
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 22:40:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.69
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791931245; cv=none; b=O3fdDdbA163BNKvDDt24piDYICRrwwT3iDh+sS7vO+J71jKmM1gjUqWURhZc8UQfWGFbAXmSAdB69360SwXy+yb//2dQCIuhVrHMz99rE28KKOmiQwF3Q2rDQkIgHbymUIAHwL5epVwVdyttWGSEZq1BQiVB3NyEHp47mBFEBAg=
+	t=1791931245; cv=none; b=GAmUGEH6+capOjWyVhsDTtUakXQU2XvN7c9sHX71Ui74SKBhl5NB4yXz2t0b/5pSL6qRcJvah0uVHW3uJqv9nPaDODDhYLDUKH18JXTWY3QHt2buuRQrGjvccBSvlr5UUUp3XPpaka0awatJmMFfvqzrBsoZLlqAzRPToK6QrRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791931245; c=relaxed/simple;
-	bh=8Gue2D8FQmaltlyoDbMsbnZp55Xg5g8xWwVlxRKB8Ck=;
+	bh=tPRKbYfVHQfak8O9UULn1z1wTu0bqCitWqFM3f53KeA=;
 	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=MgQoz7uppJCJ/KRWUOmiJU31w6oVPiN2rjw2Barxrbj/4qkUdFUtozXXGsJeJSL5xC+HpXwBwJZCv8GLoSwwMQQ0O5YloMWVd0bo0WKYjZ+3+WzV5FBDsugkXFjHA10QeIzC1GckOA3OicpAewiKBgWwO49tKOR4M2w0K6J5csg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--irogers.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=ZWV98jcY; arc=none smtp.client-ip=74.125.82.197
+	 To:Cc:Content-Type; b=ohZDRay/JPZi8XuFnq9fMCCxS3ZZLJLthKblKGrPDvykD0mAjB6YtuQ0vWN0l6eSVuKmEsKSSJdgLeEUbOxlAluEUgPQ6kx7NH6u1YS4iT9kHJTtHhopBEmZA4hrxAW/h32K/H7NfzDtmk4me3fpWRzIC61V69gJI1GZexiLl+0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--irogers.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=Zoe65Zyi; arc=none smtp.client-ip=74.125.82.69
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--irogers.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="ZWV98jcY"
-Received: by mail-dy1-f197.google.com with SMTP id 5a478bee46e88-30bcb065bfdso6716585eec.0
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 15:40:35 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Zoe65Zyi"
+Received: by mail-dl1-f69.google.com with SMTP id a92af1059eb24-1663fb7e005so4564894c88.0
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 15:40:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1791931234; x=1792536034; darn=vger.kernel.org;
+        d=google.com; s=20251104; t=1791931236; x=1792536036; darn=vger.kernel.org;
         h=content-type:cc:to:from:subject:message-id:references:mime-version
          :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=E3db36lwsPWQArDIHzP6eqDHTacNJpd6D0FMiQjZlVc=;
-        b=ZWV98jcY/50MxlpiMwoYnmY1n4YvJtOk+rT8XI/OmufLQR5Amr4Vk3VAdes3hHDbFo
-         VKG30N23ySfWBaWevMZmeYfsd9nmiDgzS0h02OiOovN50aXws7b4hYaPyE1zu0Rq0PzI
-         uO7ErpxAFnUJiBrUpE64Sw2fATq+0IuktR80StoD4oJkoSL0dnkYwBAFyQfo7GzTrIyT
-         roOvI+4m53FJCNOQZA0Ql2N8nugOVjGYb8UKWTGULvdv0HurWyPQcwHn7iao0uirl+qu
-         jR1PQPCrf86LhtDglQEKhVJvs+OJjaEsvjXM78JtWDB7GE90g0kOuFAs3MstkAXUaLSj
-         KxDg==
+        bh=5eLIAAx2L+9DvCRKYW0jDBbtdiyv3jUNIhafttj/B0g=;
+        b=Zoe65ZyiGdxsjl3hWc0yoCpyOBzWezy5F9wDqmgtx4L67w2KhG9hNha1UwQuQsv0qQ
+         m6QdJ/pBLnXPApsn5OAOMozTz3Cb5WMGx/jt0VD5ZMaKwEBkgK9fxqpFJG4voLty2wbx
+         qf1K2civQ4fQLcT/X5qP+jqTPFZEauxjbzpBSIyzn4XJtji5Y39dJObjBJitTvIbO/Dn
+         75S9UBdrMkpvtP/B1jZLqNNkYrI4OZRtU4HCsUKNW1Mx6DK99EVfpvOD9v7KRjWzdI6N
+         75ReC/20iNlLQQaqr4+TdllF01e+nBy5nR9OteikeNJCIjWoUDOttjSi6yKXfCR7Yjz8
+         ItmA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791931234; x=1792536034;
+        d=1e100.net; s=20260707; t=1791931236; x=1792536036;
         h=content-type:cc:to:from:subject:message-id:references:mime-version
          :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=E3db36lwsPWQArDIHzP6eqDHTacNJpd6D0FMiQjZlVc=;
-        b=Fre1Nt69L4DI5MXTPQ/AKjXGVol8gP278vdJTZyqDeEYa5FR3mzLC7C66PHlaZZ0eI
-         azuO9UG2lEcf/Ts60+FiTm8Nx6nvb+etir+y/l8QBDlrDh+0FU1IhHlJHUE3GFvIAv7G
-         gSx1fin6YGO0aUb+OOn8ucKujGBKMLGKazOgVMnd9JPL0ivnt5f3RcY1XYAPq5mFt3+K
-         aReu4Tix/Z5PcjbMn894UUz73bXLBtLd5EMm1BWgakmwbKVWfPPhqqaFECUj1w73mx+w
-         igL9MnLIC+xDFmbEuYye2ujYNvnj+ggglypkI429MHyDpbLK0aPLrLYKTktaLvxnVKWc
-         wCCQ==
-X-Forwarded-Encrypted: i=1; AKwUvBxqyFy/+1nN/lhQfLmhuX+Q5D1zASyhISDSw2sTH6PdAqsaYdCRAIv2SV0Dt8e/+7kXf8CNof+s1D2j@vger.kernel.org
-X-Gm-Message-State: AFq9FYJrfIOjqUkAz5xJ1dt8K0PgJ7QHzlThow2z4Y3mre6+rC8Uzbi1
-	HvNhrIa9enEv713qzmfCJqGMnYIFWJgDvZxCpQCyx9FzXI6U17Dpwh9Kig+KngTEkvvmWlkpiS/
-	M0rKeWw0RGg==
-X-Received: from dybmd37.prod.google.com ([2002:a05:7301:1825:b0:351:1da6:c2e7])
- (user=irogers job=prod-delivery.src-stubby-dispatcher) by 2002:a05:7301:78cb:b0:351:515b:4e85
- with SMTP id 5a478bee46e88-3537e088bd7mr19706222eec.16.1791931230851; Tue, 13
- Oct 2026 15:40:30 -0700 (PDT)
-Date: Tue, 13 Oct 2026 15:39:43 -0700
+        bh=5eLIAAx2L+9DvCRKYW0jDBbtdiyv3jUNIhafttj/B0g=;
+        b=xBjrP1GTwJmHNt/qfIUW3fPfx5KNMQ1nQKly1HCBie9N99DGJq92SUNPjrWP2m7vpT
+         66YPV6jPI9+p8yssT2hhklYOu6knc5vddrCjP1Xl/H9fWF1/WP2WoXy1Jfj+8x5c9g50
+         rwpXEILdPxJLRXpI/PqEUeJBCLoi/lQokf4Oyz3KJqavUetDxjQtwi1ac+/2ZYwCJaD1
+         Ut924tpeFitoFOL5kxEiHiwqJTwkvr52k1wKvBcAm59/Al9K6bfJfmkPUabXTBQz2LT4
+         +EbrNTcD2gm7tNeGlvJDG4OlhBEJxcdvdofZh7j29zgIdQOvvKT/m6kRY4TOeADB0m9C
+         mFqA==
+X-Forwarded-Encrypted: i=1; AKwUvBxlUZD0R4KuCK6Dg7aoVMIGC2SoqByptBK6knbFzFIDfY/oAS1e4864/E1eXeUVItfTFxT6lpjgATp0@vger.kernel.org
+X-Gm-Message-State: AFq9FYLVmD7RofLs3iajL93Nk70Mzw0PvYiYwCa7JqkSBAHMyRbG6ZcE
+	D3Ps/ZjIgUFwILBgePOldffQ9cpN98kfRXlM+1IVJr8Pn15Vjw5JsXyOTKi4e8FqFPeOdODqejs
+	E9qeiIDgZ0A==
+X-Received: from dlbuu9.prod.google.com ([2002:a05:7022:7e89:b0:16c:bd18:1ee2])
+ (user=irogers job=prod-delivery.src-stubby-dispatcher) by 2002:a05:701b:231b:b0:165:55e2:2d69
+ with SMTP id a92af1059eb24-16a640fcc35mr21018967c88.46.1791931235508; Tue, 13
+ Oct 2026 15:40:35 -0700 (PDT)
+Date: Tue, 13 Oct 2026 15:39:45 -0700
 In-Reply-To: <20261013223946.1836757-1-irogers@google.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
@@ -60,9 +60,9 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
 References: <20261013223946.1836757-1-irogers@google.com>
 X-Mailer: git-send-email 2.56.0.385.gd3acb90ef8-goog
-Message-ID: <20261013223946.1836757-9-irogers@google.com>
-Subject: [PATCH 08/11] s390/sclp_mem: Allocate struct sclp_mem dynamically and
- add kobject release
+Message-ID: <20261013223946.1836757-11-irogers@google.com>
+Subject: [PATCH 10/11] drm/amdkfd: Free queue in procfs_queue_type kobject
+ release callback
 From: Ian Rogers <irogers@google.com>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rafael@kernel.org>, 
 	Danilo Krummrich <dakr@kernel.org>, Miguel Ojeda <ojeda@kernel.org>, Kees Cook <kees@kernel.org>, 
@@ -91,176 +91,76 @@ Cc: Nick Desaulniers <ndesaulniers@google.com>, Bill Wendling <morbo@google.com>
 	Ian Rogers <irogers@google.com>
 Content-Type: text/plain; charset="UTF-8"
 
-sclp_init_mem() allocated a single array of struct sclp_mem with
-kzalloc_objs() and registered each embedded kobject using a kobj_type
-without a .release callback. Allocate each struct sclp_mem individually
-with kzalloc_obj() instead and add sclp_mem_release() to free it.
+struct queue embeds a struct kobject (q->kobj) for procfs entries, but
+procfs_queue_type had no .release callback and uninit_queue() freed q
+immediately after kfd_procfs_del_queue() called kobject_put(&q->kobj).
+With CONFIG_DEBUG_KOBJECT_RELEASE=y, this causes a use-after-free.
 
-Fixes: ff18dcb19aab ("s390/sclp: Add support for dynamic (de)configuration of memory")
+Add kfd_procfs_queue_release() to free struct queue from the kobject
+release callback, change kfd_procfs_del_queue() to only remove the
+kobject from sysfs via kobject_del(), and drop the final reference in
+uninit_queue() via kobject_put().
+
+Fixes: 6d220a7e7971 ("drm/amdkfd: Add queue information to sysfs")
 Assisted-by: Antigravity:gemini-3.1-pro
 Signed-off-by: Ian Rogers <irogers@google.com>
 ---
- drivers/s390/char/sclp_mem.c | 73 +++++++++++++++++-------------------
- 1 file changed, 34 insertions(+), 39 deletions(-)
+ drivers/gpu/drm/amd/amdkfd/kfd_process.c | 10 ++++++++--
+ drivers/gpu/drm/amd/amdkfd/kfd_queue.c   |  5 ++++-
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/s390/char/sclp_mem.c b/drivers/s390/char/sclp_mem.c
-index 6df1926d4c62..f7c161e0d836 100644
---- a/drivers/s390/char/sclp_mem.c
-+++ b/drivers/s390/char/sclp_mem.c
-@@ -49,11 +49,6 @@ struct sclp_mem {
- #endif
+diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_process.c b/drivers/gpu/drm/amd/amdkfd/kfd_process.c
+index 0a7c1900da95..6099cb893573 100644
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_process.c
++++ b/drivers/gpu/drm/amd/amdkfd/kfd_process.c
+@@ -510,7 +510,15 @@ static const struct sysfs_ops procfs_queue_ops = {
+ 	.show = kfd_procfs_queue_show,
  };
  
--struct sclp_mem_arg {
--	struct sclp_mem *sclp_mems;
--	struct kset *kset;
--};
--
- struct assign_storage_sccb {
- 	struct sccb_header header;
- 	u16 rn;
-@@ -304,7 +299,15 @@ static ssize_t sclp_memmap_on_memory_store(struct kobject *kobj, struct kobj_att
- 	return rc ? rc : count;
- }
- 
-+static void sclp_mem_release(struct kobject *kobj)
++static void kfd_procfs_queue_release(struct kobject *kobj)
 +{
-+	struct sclp_mem *sclp_mem = container_of(kobj, struct sclp_mem, kobj);
++	struct queue *q = container_of(kobj, struct queue, kobj);
 +
-+	kfree(sclp_mem);
++	kfree(q);
 +}
 +
- static const struct kobj_type ktype = {
-+	.release = sclp_mem_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
+ static const struct kobj_type procfs_queue_type = {
++	.release = kfd_procfs_queue_release,
+ 	.sysfs_ops = &procfs_queue_ops,
+ 	.default_groups = procfs_queue_groups,
  };
- 
-@@ -321,36 +324,40 @@ static struct attribute_group sclp_mem_attr_group = {
- 	.attrs = sclp_mem_attrs,
- };
- 
--static int sclp_create_mem(struct sclp_mem *sclp_mem, struct kset *kset,
--			   unsigned int id, bool config, bool memmap_on_memory)
-+static int sclp_create_mem(struct kset *kset, unsigned int id, bool config,
-+			   bool memmap_on_memory)
- {
-+	struct sclp_mem *sclp_mem;
- 	int rc;
- 
-+	sclp_mem = kzalloc_obj(*sclp_mem);
-+	if (!sclp_mem)
-+		return -ENOMEM;
- 	sclp_mem->memmap_on_memory = memmap_on_memory;
- 	sclp_mem->config = config;
- #ifdef CONFIG_KASAN
- 	sclp_mem->early_shadow_mapped = config;
- #endif
- 	sclp_mem->id = id;
--	kobject_init(&sclp_mem->kobj, &ktype);
--	rc = kobject_add(&sclp_mem->kobj, &kset->kobj, "memory%d", id);
--	if (rc)
-+	rc = kobject_init_and_add(&sclp_mem->kobj, &ktype, &kset->kobj,
-+				  "memory%d", id);
-+	if (rc) {
-+		kobject_put(&sclp_mem->kobj);
- 		return rc;
--	return sysfs_create_group(&sclp_mem->kobj, &sclp_mem_attr_group);
-+	}
-+	rc = sysfs_create_group(&sclp_mem->kobj, &sclp_mem_attr_group);
-+	if (rc) {
-+		kobject_put(&sclp_mem->kobj);
-+		return rc;
-+	}
-+	return 0;
- }
- 
- static int sclp_create_configured_mem(struct memory_block *mem, void *argument)
- {
--	struct sclp_mem *sclp_mems;
--	struct sclp_mem_arg *arg;
--	struct kset *kset;
--	unsigned int id;
-+	struct kset *kset = argument;
- 
--	id = mem->dev.id;
--	arg = (struct sclp_mem_arg *)argument;
--	sclp_mems = arg->sclp_mems;
--	kset = arg->kset;
--	return sclp_create_mem(&sclp_mems[id], kset, id, true, false);
-+	return sclp_create_mem(kset, mem->dev.id, true, false);
- }
- 
- static void __init align_to_block_size(unsigned long *start,
-@@ -368,8 +375,7 @@ static void __init align_to_block_size(unsigned long *start,
- 	*size = size_align;
- }
- 
--static int __init sclp_create_standby_mems_merged(struct sclp_mem *sclp_mems,
--						  struct kset *kset, u16 rn)
-+static int __init sclp_create_standby_mems_merged(struct kset *kset, u16 rn)
- {
- 	unsigned long start, size, addr, block_size;
- 	static u16 first_rn, num;
-@@ -394,7 +400,7 @@ static int __init sclp_create_standby_mems_merged(struct sclp_mem *sclp_mems,
- 		goto skip_add;
- 	for (addr = start; addr < start + size; addr += block_size) {
- 		id = addr / block_size;
--		rc = sclp_create_mem(&sclp_mems[id], kset, id, false,
-+		rc = sclp_create_mem(kset, id, false,
- 				     mhp_supports_memmap_on_memory());
- 		if (rc)
- 			break;
-@@ -405,45 +411,34 @@ static int __init sclp_create_standby_mems_merged(struct sclp_mem *sclp_mems,
- 	return rc;
- }
- 
--static int __init sclp_create_standby_mems(struct sclp_mem *sclp_mems, struct kset *kset)
-+static int __init sclp_create_standby_mems(struct kset *kset)
- {
- 	struct memory_increment *incr;
- 	int rc = 0;
- 
- 	list_for_each_entry(incr, &sclp_mem_list, list) {
- 		if (incr->standby)
--			rc = sclp_create_standby_mems_merged(sclp_mems, kset, incr->rn);
-+			rc = sclp_create_standby_mems_merged(kset, incr->rn);
- 		if (rc)
- 			return rc;
+@@ -550,7 +558,6 @@ int kfd_procfs_add_queue(struct queue *q)
+ 	if (ret < 0) {
+ 		pr_warn("Creating proc/<pid>/queues/%u failed",
+ 			q->properties.queue_id);
+-		kobject_put(&q->kobj);
+ 		return ret;
  	}
--	return sclp_create_standby_mems_merged(sclp_mems, kset, 0);
-+	return sclp_create_standby_mems_merged(kset, 0);
+ 
+@@ -699,7 +706,6 @@ void kfd_procfs_del_queue(struct queue *q)
+ 		return;
+ 
+ 	kobject_del(&q->kobj);
+-	kobject_put(&q->kobj);
  }
  
- static int __init sclp_init_mem(void)
+ int kfd_process_create_wq(void)
+diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_queue.c b/drivers/gpu/drm/amd/amdkfd/kfd_queue.c
+index 15eeaaebbbcd..8d1afc5b47e2 100644
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_queue.c
++++ b/drivers/gpu/drm/amd/amdkfd/kfd_queue.c
+@@ -83,7 +83,10 @@ int init_queue(struct queue **q, const struct queue_properties *properties)
+ 
+ void uninit_queue(struct queue *q)
  {
--	const unsigned long block_size = memory_block_size_bytes();
--	unsigned int max_sclp_mems;
--	struct sclp_mem *sclp_mems;
--	struct sclp_mem_arg arg;
- 	struct kset *kset;
- 	int rc;
- 
--	max_sclp_mems = roundup(sclp.rnmax * sclp.rzm, block_size) / block_size;
--	/* Allocate memory for all blocks ahead of time. */
--	sclp_mems = kzalloc_objs(struct sclp_mem, max_sclp_mems);
--	if (!sclp_mems)
--		return -ENOMEM;
- 	kset = kset_create_and_add("memory", NULL, firmware_kobj);
- 	if (!kset)
- 		return -ENOMEM;
- 	/* Initial memory is in the "configured" state already. */
--	arg.sclp_mems = sclp_mems;
--	arg.kset = kset;
--	rc = for_each_memory_block(&arg, sclp_create_configured_mem);
-+	rc = for_each_memory_block(kset, sclp_create_configured_mem);
- 	if (rc)
- 		return rc;
- 	/* Standby memory is "deconfigured". */
--	return sclp_create_standby_mems(sclp_mems, kset);
-+	return sclp_create_standby_mems(kset);
+-	kfree(q);
++	if (q && q->kobj.state_initialized)
++		kobject_put(&q->kobj);
++	else
++		kfree(q);
  }
  
- static void __init insert_increment(u16 rn, int standby, int assigned)
+ #if IS_ENABLED(CONFIG_HSA_AMD_SVM)
 -- 
 2.56.0.385.gd3acb90ef8-goog
 
