@@ -1,136 +1,195 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 685FD568FDA
-	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 18:27:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77F1541B8F6;
+	Wed, 14 Oct 2026 19:06:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792002480; cv=none; b=NnMKppAR5QV4UH1y/DktpEspRZj34ggCPqyLmKuJj2mDMfZJW0kJ2n40+4oojWBHp8/0UcstbJBdynUysa2YNfM3G7DGsTlcAssHs8POUAIF9VIPNN7D5wEABOJ/deh1gn+yc7fWE2VFYlPLjpAXn+0xjGULQfWlbkneoXTV6yw=
+	t=1792004762; cv=none; b=T66qCe7Oxqk9cdoMC1UqVgxSyjoBunbAMswojSPSfnD4SShEyM8V1OtDmmwwzbptu7Vseviy0peiY+ijJ+zlixs2/llr8oNvr4akiHY04lNwcPV37BL3xyjDgnzjUxQ5qk/MKt6vZtlKs6s9iFWBrElt7j2LgFpisu2i/yWfm0I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792002480; c=relaxed/simple;
-	bh=nAroKvIACtGOnopAxFWfh9fbac/LyBnxMxfOk2f9qtQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=dbEwCIgBx+fr+zyU2zskjT+dXsIeoXw6sOFjNcqLUrDHueksNX6WG/JXaqgbhN7LQ5E9T2iSMOUaUiXMmFiKqyFCcEEsPn2qf1UvfojVfJqKydy4rLZ8HKWdt+ViUAXDCOS+OY0mub9AftHUkTDuJr+r/rdL/zjBW3KeJ9VMgbY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UlLNBEfw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792004762; c=relaxed/simple;
+	bh=cFFwZgxIAz797KN9F08BtOyHGb4+W9+w5rCoIbeC920=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=gPHnoX4Z/SUISGZ9bnKeRMVKNmYjJLxZeBmcX82isH8qdaFXruEvM+XMfbqYDdJy4i6IPwIHJlRTZ5jonMB3sJBjYY2pZM5pzRJnKVQX+PEN0zbe1U9HXX3onw25UurFpf8Ob/kOCoUEw18eBHxjtWmJDUXT+F0+gjVEruN+zak=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=kAteC5Qt; arc=none smtp.client-ip=178.21.23.139
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UlLNBEfw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E06D51F000C4
-	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 18:27:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792002477;
-	bh=YSe10uDOb6rtPjA4PiXDX2T2zkuaMNvu+zSLR+jhY4A=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=UlLNBEfwG9nPSdPav/0OWYsj892BH3DzagMvnhzHAvFKHfvdhp9uHpW6Y5E+wSfQG
-	 U/cXbHqxFXuAOJjPdEoVQzfGfkA5nKE8GWfLMi+7uS8SAmuSN7O+0avixeYniG5Z5V
-	 v9T1xKzkqRM+jbwFcLe9LCMSeWS2/oDM7jKx/uTbDfEb/g9Tt8p74ODrNOMLEHt8cn
-	 Dupp6nU/XWMUcjMQurFsV72CqtIZXyCfnkNzWRDA8ErJeLknOxLFGdaCoqTh+vAq5S
-	 4fIpHs7NP4HQTw/pICBWiXx++LybeOy9Hcgu+/eKey0Vq9zkvjIo0erXjqmCc1qLdS
-	 TBgOi3uZ/8nTw==
-Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5bcdab9a82bso5192830e87.3
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 11:27:57 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBxlh1fkZ1PrvRiTzfDN05HkbBjQm0ehT50JCmQSL77YF98S3GAEzVq0rnrbNPeKsEguEE3vlS6dxtoz@vger.kernel.org
-X-Gm-Message-State: AFq9FYJbW1PjQZId7ConUImN8ZacqZhxYYlu01FDLvHDxnYKBMCdrpZN
-	IXsB9qgSDKfmqYD7uX0PYOYeGZSstSKolhO1dh4A5eiI5Beg186YgYWURawKMA5mVnN3FGrEnc6
-	IP8wXGEJVnnqRA4u3DWWFIuxCcWMokCs=
-X-Received: by 2002:a05:6512:1290:b0:5ba:3c46:bc4e with SMTP id
- 2adb3069b0e04-5bcde8c1f26mr6311591e87.47.1792002476317; Wed, 14 Oct 2026
- 11:27:56 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="kAteC5Qt"
+Received: from mail01.layka.lan (localhost [127.0.0.1])
+	by disroot.org (Postfix) with ESMTP id E6A3C808E7;
+	Wed, 14 Oct 2026 21:05:58 +0200 (CEST)
+X-Virus-Scanned: SPAM Filter at disroot.org
+Received: from layka.disroot.org ([127.0.0.1])
+ by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
+ id 6ZC3vkLDG1jv; Wed, 14 Oct 2026 21:05:58 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
+	t=1792004758; bh=cFFwZgxIAz797KN9F08BtOyHGb4+W9+w5rCoIbeC920=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=kAteC5QtrGz/GVo1zrZ1jt4775cQVl5d1ftvY+T0NoDSV4zOscnh8BTl0wC+rvQgX
+	 qsbK367oRJ/MiK6rCJN5IwgQ3gbqlhfT3RweFbntZgsAVSMyPqdU8KbqtsQ+0nX8Ra
+	 b0HjgKGH82JkuDcjrqcx2BA591TNmeaZFEPGn/nAxApij2QUFD9QsZ+qff5hbk8Q1J
+	 suLPk5sT/9eRNrghcYBzkJKuUNDFkrywyc9h+wMGTPg6rqBFmqQ63DrKOpzWznb7Zl
+	 waPH/qt20oFHVN29mKraz7ijuBGQ/amVJRZHSqNlaGFHtWJxdq3xWhrtFWZS7RZtDX
+	 76jrYcoh97ohw==
+From: =?UTF-8?q?Ali=20Ahmet=20Memi=C5=9F?= <aliamemis@disroot.org>
+To: "Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Hans de Goede <johannes.goede@oss.qualcomm.com>,
+	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Len Brown <lenb@kernel.org>,
+	Ike Panhc <ikepanhc@gmail.com>,
+	"Derek J . Clark" <derekjohn.clark@gmail.com>,
+	Mark Pearson <mpearson-lenovo@squebb.ca>,
+	Rong Zhang <i@rong.moe>,
+	Armin Wolf <W_Armin@gmx.de>,
+	Avraham Hollander <anhollander516@gmail.com>,
+	=?UTF-8?q?Jeffrey=20W=C3=A4lti?= <jeffrey@waelti.dev>,
+	Rick <rickk1166@gmail.com>,
+	linux-acpi@vger.kernel.org,
+	platform-driver-x86@vger.kernel.org,
+	linux-usb@vger.kernel.org,
+	acpica-devel@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 1/4] ACPI: utils: Add acpi_evaluate_dsm_exclusive()
+Date: Wed, 14 Oct 2026 22:04:53 +0300
+Message-ID: <20261014190544.150093-2-aliamemis@disroot.org>
+In-Reply-To: <20261014190544.150093-1-aliamemis@disroot.org>
+References: <20261014190544.150093-1-aliamemis@disroot.org>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261013074245.4327-1-krittikunwongnin@gmail.com>
-In-Reply-To: <20261013074245.4327-1-krittikunwongnin@gmail.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 14 Oct 2026 20:25:48 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0hdtMx2QGadPQdcn28=YR=ApNWttTU5tCPoRYmweZbWmA@mail.gmail.com>
-X-Gm-Features: AclHuK8OY2yNweAZuBpywP457DFYTBO-ran8UrM_Hy3vYE7dmh3IxJuLlz6yQ9E
-Message-ID: <CAJZ5v0hdtMx2QGadPQdcn28=YR=ApNWttTU5tCPoRYmweZbWmA@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: PM: Add Acer Aspire A515-53G to dmi_leave_unused_power_resources_on
-To: Krittikun Wongnin <krittikunwongnin@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	Lukas Wunner <lukas@wunner.de>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Tue, Oct 13, 2026 at 9:43=E2=80=AFAM Krittikun Wongnin
-<krittikunwongnin@gmail.com> wrote:
->
-> On the Acer Aspire A515-53G (Whiskey Lake + NVIDIA GeForce MX230), the
-> dGPU behind root port RP05 (00:1c.4) falls off the bus during boot and
-> is unusable until the next power cycle:
->
->   nvidia 0000:02:00.0: Unable to change power state from D3cold to D0, de=
-vice inaccessible
->   NVRM: The NVIDIA GPU 0000:02:00.0 ... has fallen off the bus
->
-> The firmware ships two SSDTs which both provide power management for
-> the dGPU:
->
->  - One SSDT defines \_SB.PCI0.RP05.PC01 together with
->    RP05._PR0/_PR2/_PR3 =3D { PC01 }.
->
->  - A second SSDT defines \_SB.PCI0.RP05.PCRP (_STA initially One,
->    _OFF calls \_SB.PCI0.HGOF, which puts the link into L2/L3 and drops
->    the dGPU power enable GPIO) and its own RP05._PR0/_PR2/_PR3/_S0W.
->    The latter fail to load:
->
->      ACPI BIOS Error (bug): Failure creating named object [\_SB.PCI0.RP05=
-._PR0], AE_ALREADY_EXISTS
->
-> As a result PCRP is not referenced by any device and
-> acpi_turn_off_unused_power_resources() turns it off right after the
-> ACPI namespace scan. This cuts power to the dGPU, but PC01 still
-> believes it is on, so its _ON method is a no-op when the PCI core later
-> tries to bring the GPU back to D0.
->
-> Windows does not turn off unused power resources, so the dGPU works
-> there.
->
-> Add the machine to dmi_leave_unused_power_resources_on, like the
-> THUNDEROBOT ZERO which has a similar SSDT bug. With this change the
-> dGPU stays on the bus and the nvidia driver binds. Runtime PM of the
-> dGPU is unaffected, as it is handled through PC01: with no driver
-> bound and power/control set to auto, RP05 reaches D3cold and the GPU
-> comes back to D0 on resume.
->
-> Link: https://lore.kernel.org/r/CADS-TgDQ1G8vrTQLJeQ3RTBVFTyMe0C+5p2=3DUB=
-KS=3DEFCDFuaxw@mail.gmail.com/
-> Signed-off-by: Krittikun Wongnin <krittikunwongnin@gmail.com>
-> ---
->  drivers/acpi/power.c | 13 +++++++++++++
->  1 file changed, 13 insertions(+)
->
-> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> index 23a4e207a..cf36dee56 100644
-> --- a/drivers/acpi/power.c
-> +++ b/drivers/acpi/power.c
-> @@ -1121,6 +1121,19 @@ static const struct dmi_system_id dmi_leave_unused=
-_power_resources_on[] =3D {
->                 }
->
->         },
-> +       {
-> +               /*
-> +                * Acer Aspire A515-53G: Two SSDTs both define power reso=
-urces
-> +                * for the dGPU root port RP05 ('PC01' and 'PCRP'). Only =
-PC01 ends
-> +                * up in RP05's _PR0/_PR3, so 'PCRP' is shut down on
-> +                * initialization, cutting power to the NVIDIA dGPU behin=
-d the
-> +                * back of 'PC01' and making the dGPU unavailable.
-> +                */
-> +               .matches =3D {
-> +                       DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
-> +                       DMI_MATCH(DMI_PRODUCT_NAME, "Aspire A515-53G"),
-> +               },
-> +       },
->         {}
->  };
->
-> --
+Add an exclusive variant of acpi_evaluate_dsm() for _DSM methods that
+are known to break when interleaved with other AML.
 
-Applied as 7.4 material, thanks!
+Signed-off-by: Ali Ahmet Memiş <aliamemis@disroot.org>
+---
+ drivers/acpi/utils.c    | 54 +++++++++++++++++++++++++++--------------
+ include/acpi/acpi_bus.h |  3 +++
+ include/linux/acpi.h    |  8 ++++++
+ 3 files changed, 47 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index f28680424f14..32689c901564 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -799,23 +799,9 @@ acpi_status acpi_evaluate_reg(acpi_handle handle, u8 space_id, u32 function)
+ }
+ EXPORT_SYMBOL(acpi_evaluate_reg);
+ 
+-/**
+- * acpi_evaluate_dsm - evaluate device's _DSM method
+- * @handle: ACPI device handle
+- * @guid: GUID of requested functions, should be 16 bytes
+- * @rev: revision number of requested function
+- * @func: requested function number
+- * @argv4: the function specific parameter
+- *
+- * Evaluate device's _DSM method with specified GUID, revision id and
+- * function number. Caller needs to free the returned object.
+- *
+- * Though ACPI defines the fourth parameter for _DSM should be a package,
+- * some old BIOSes do expect a buffer or an integer etc.
+- */
+-union acpi_object *
+-acpi_evaluate_dsm(acpi_handle handle, const guid_t *guid, u64 rev, u64 func,
+-		  union acpi_object *argv4)
++static union acpi_object *
++__acpi_evaluate_dsm(acpi_handle handle, const guid_t *guid, u64 rev, u64 func,
++		    union acpi_object *argv4, bool exclusive)
+ {
+ 	acpi_status ret;
+ 	struct acpi_buffer buf = {ACPI_ALLOCATE_BUFFER, NULL};
+@@ -840,7 +826,10 @@ acpi_evaluate_dsm(acpi_handle handle, const guid_t *guid, u64 rev, u64 func,
+ 		params[3].package.elements = NULL;
+ 	}
+ 
+-	ret = acpi_evaluate_object(handle, "_DSM", &input, &buf);
++	if (exclusive)
++		ret = acpi_evaluate_object_exclusive(handle, "_DSM", &input, &buf);
++	else
++		ret = acpi_evaluate_object(handle, "_DSM", &input, &buf);
+ 	if (ACPI_SUCCESS(ret))
+ 		return (union acpi_object *)buf.pointer;
+ 
+@@ -851,8 +840,37 @@ acpi_evaluate_dsm(acpi_handle handle, const guid_t *guid, u64 rev, u64 func,
+ 
+ 	return NULL;
+ }
++
++/**
++ * acpi_evaluate_dsm - evaluate device's _DSM method
++ * @handle: ACPI device handle
++ * @guid: GUID of requested functions, should be 16 bytes
++ * @rev: revision number of requested function
++ * @func: requested function number
++ * @argv4: the function specific parameter
++ *
++ * Evaluate device's _DSM method with specified GUID, revision id and
++ * function number. Caller needs to free the returned object.
++ *
++ * Though ACPI defines the fourth parameter for _DSM should be a package,
++ * some old BIOSes do expect a buffer or an integer etc.
++ */
++union acpi_object *
++acpi_evaluate_dsm(acpi_handle handle, const guid_t *guid, u64 rev, u64 func,
++		  union acpi_object *argv4)
++{
++	return __acpi_evaluate_dsm(handle, guid, rev, func, argv4, false);
++}
+ EXPORT_SYMBOL(acpi_evaluate_dsm);
+ 
++union acpi_object *
++acpi_evaluate_dsm_exclusive(acpi_handle handle, const guid_t *guid, u64 rev,
++			    u64 func, union acpi_object *argv4)
++{
++	return __acpi_evaluate_dsm(handle, guid, rev, func, argv4, true);
++}
++EXPORT_SYMBOL_GPL(acpi_evaluate_dsm_exclusive);
++
+ /**
+  * acpi_check_dsm - check if _DSM method supports requested functions.
+  * @handle: ACPI device handle
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index e7a671dba624..e9859fdf76e8 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -66,6 +66,9 @@ bool acpi_dock_match(acpi_handle handle);
+ bool acpi_check_dsm(acpi_handle handle, const guid_t *guid, u64 rev, u64 funcs);
+ union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const guid_t *guid,
+ 			u64 rev, u64 func, union acpi_object *argv4);
++union acpi_object *acpi_evaluate_dsm_exclusive(acpi_handle handle,
++			const guid_t *guid, u64 rev, u64 func,
++			union acpi_object *argv4);
+ #ifdef CONFIG_ACPI
+ bool
+ acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld_info **pld);
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index ddacac812094..6a798d5bde5c 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1042,6 +1042,14 @@ static inline union acpi_object *acpi_evaluate_dsm(acpi_handle handle,
+ 	return NULL;
+ }
+ 
++static inline union acpi_object *acpi_evaluate_dsm_exclusive(acpi_handle handle,
++							     const guid_t *guid,
++							     u64 rev, u64 func,
++							     union acpi_object *argv4)
++{
++	return NULL;
++}
++
+ static inline union acpi_object *acpi_evaluate_dsm_typed(acpi_handle handle,
+ 							 const guid_t *guid,
+ 							 u64 rev, u64 func,
+-- 
+2.55.0
+
