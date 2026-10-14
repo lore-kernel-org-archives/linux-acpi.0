@@ -1,37 +1,37 @@
 Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99C9B439F98;
-	Wed, 14 Oct 2026 19:06:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79A2F43303E;
+	Wed, 14 Oct 2026 19:06:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792004768; cv=none; b=s1Im3yqKoeJ30+o2Cod/fHm2wxkIlOLg1x6uQoYRAa0QFkps3fyPXA0lCNjnFjYfh+TXPYl6r9j129lxPf9QuIqypT5ApqHA1Zevoz+o5zg39hLKNMyrlSEEw7QIo3h2CWAdGC4K5ue4r7SFz1WJ5vYXuxiPNrGMQvPFNCdi4R8=
+	t=1792004767; cv=none; b=f3/3i5eEroUPkDR/0Rw1GAIAzXvuGklM4ATeHJivyhm65+vGqmik4hST6uLmqyDAU81hpty8AAYUjzko2r5nsPWNJGohJUR1hvg3UBAJtTxp2MnvRt7FWPRDWWEUpx1IxeE5kW7XOguQmbAcf4Ruok7VGYxSgI8BvFUa0Kk7tNY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792004768; c=relaxed/simple;
-	bh=iOMqq/Aql5HQYwy8RDlMxfLS6GIra/wB+BM0yO3d7vY=;
+	s=arc-20240116; t=1792004767; c=relaxed/simple;
+	bh=T0HGTTse7JgGal4jEjqGboGEfv+qM3L0V+D9r39mdWc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=F8cpRzHeGOoaY+A1rv8eweoq8tgzRXtvywBLrLTFSYP0iknHO9JJIM7IypRE9kBVo1Mx3SAhjsCCjkfeugXMW17h+PqXfNB53nUGEL/J1QJRqtAjWb6PhDCCLSqCdTwTBDsGIgVJApLfajYyC+0HkEk8OuM4T4MLtFica4WW+9g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=K75KS2X3; arc=none smtp.client-ip=178.21.23.139
+	 MIME-Version:Content-Type; b=UFYqz5/xpi1IC8NFLnBOy5LHTU3LMsudQT076frMzNfVC6AsxxcggLyXRx79HZL7KkjRxU+TAkeov4D4G401ATSjjignLOYWnX6Bc4Ejm1J83ckIsZNv6iY7x9XoiaKJSbUSc9pCNShMkBB1n5jECAIHfREpbBctozsa4dPiibs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=NaG/A/50; arc=none smtp.client-ip=178.21.23.139
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="K75KS2X3"
+	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="NaG/A/50"
 Received: from mail01.layka.lan (localhost [127.0.0.1])
-	by disroot.org (Postfix) with ESMTP id F02C182BB0;
-	Wed, 14 Oct 2026 21:06:02 +0200 (CEST)
+	by disroot.org (Postfix) with ESMTP id D395E82B59;
+	Wed, 14 Oct 2026 21:06:01 +0200 (CEST)
 X-Virus-Scanned: SPAM Filter at disroot.org
 Received: from layka.disroot.org ([127.0.0.1])
  by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
- id oneN6XmYC5wJ; Wed, 14 Oct 2026 21:06:02 +0200 (CEST)
+ id oDC2TBvo-w5v; Wed, 14 Oct 2026 21:06:00 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
-	t=1792004762; bh=iOMqq/Aql5HQYwy8RDlMxfLS6GIra/wB+BM0yO3d7vY=;
+	t=1792004760; bh=T0HGTTse7JgGal4jEjqGboGEfv+qM3L0V+D9r39mdWc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=K75KS2X3r6b+ZpJogUU2BFHMOcLORNJpR7RHjPvVDOxybqcSxnUWluNpPL02Xc09V
-	 /z/zd/SYs5pYjeB1tfkJb0qt3G8c92mkQ9ktsSRazsf4V06SmukD4RoAkQMYnMfJLq
-	 eiJGj41NKYhrbS+ptZexxEyMD9SchrXVHLqSLCO6Ur/xiWrHpZxfu+5tnKCxdEj4rp
-	 jwbFHITaOofHMZeP0zeU+lPodfqtK/cwIFLibbiaxXtyUHs/tvgPoHzXwYfDiYcPqB
-	 4wP9y2mCpcMS57fk0fwCyUYOpXXr1XDowihra8bIAnf4Arho9jhtImN5a05WkYl7qO
-	 uW1zcKCqqyNSQ==
+	b=NaG/A/50h7MLW1yTvKoP8jNkxVwrJ47N10iOYjxTEaFnquwIX/u9aZMTgmYHNKbFE
+	 u8mPx+6K1RYuo0W2VpR4H/3vC0zuL34sFS7qgViccX5s/8u2iWEL4bDItEqJfUxXyQ
+	 LcbaJ0wl7QWUXSIzuUD3UL9VBBhdbkUnaMszKtrLqDywLWBalo8ljUw/VXholBln5i
+	 PVSKMDlwjn2NLO//0L2lbNHX3ajzax6GI2zKXGS9Kvvs042W6rMbNf0dGPaEkuMOtO
+	 AU9GluV6LcPd8Q4Ur4YWFTtlX/7IQGasz0m779XVMmNlg2wZzV7cc7VaWTsH+Vqitj
+	 4Zt0eTj5dEB4w==
 From: =?UTF-8?q?Ali=20Ahmet=20Memi=C5=9F?= <aliamemis@disroot.org>
 To: "Rafael J . Wysocki" <rafael@kernel.org>
 Cc: Hans de Goede <johannes.goede@oss.qualcomm.com>,
@@ -52,9 +52,9 @@ Cc: Hans de Goede <johannes.goede@oss.qualcomm.com>,
 	linux-usb@vger.kernel.org,
 	acpica-devel@lists.linux.dev,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH 4/4] platform/x86: ideapad-laptop: Evaluate ACPI methods exclusively
-Date: Wed, 14 Oct 2026 22:04:56 +0300
-Message-ID: <20261014190544.150093-5-aliamemis@disroot.org>
+Subject: [PATCH 3/4] usb: typec: ucsi: acpi: Evaluate _DSM exclusively
+Date: Wed, 14 Oct 2026 22:04:55 +0300
+Message-ID: <20261014190544.150093-4-aliamemis@disroot.org>
 In-Reply-To: <20261014190544.150093-1-aliamemis@disroot.org>
 References: <20261014190544.150093-1-aliamemis@disroot.org>
 Precedence: bulk
@@ -66,76 +66,38 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-On some Lenovo IdeaPad and Yoga models, GBMD, SBMC, SALS and DYTC hold a
-shared AML mutex while waiting for the EC to finish a command, long
-enough for the UCSI and _Qxx methods waiting on it to time out.
+On some Lenovo IdeaPad and Yoga models, the UCSI _DSM accesses the EC 25
+times through helpers that take a shared AML mutex with a 1 s timeout
+and return 0 when it times out, so UCSI commands fail under contention
+with the battery and ideapad methods.
 
-Evaluate all methods with the exclusive helpers.
+Evaluate the _DSM with acpi_evaluate_dsm_exclusive().
 
 Link: https://bugzilla.kernel.org/show_bug.cgi?id=221065
 Signed-off-by: Ali Ahmet Memiş <aliamemis@disroot.org>
 ---
- drivers/platform/x86/lenovo/ideapad-laptop.c | 21 ++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+ drivers/usb/typec/ucsi/ucsi_acpi.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/platform/x86/lenovo/ideapad-laptop.c b/drivers/platform/x86/lenovo/ideapad-laptop.c
-index 8213524504ee..9fb842e6383d 100644
---- a/drivers/platform/x86/lenovo/ideapad-laptop.c
-+++ b/drivers/platform/x86/lenovo/ideapad-laptop.c
-@@ -297,12 +297,18 @@ static void ideapad_shared_exit(struct ideapad_private *priv)
- #define IDEAPAD_EC_POLL_MIN_US 150
- #define IDEAPAD_EC_POLL_MAX_US 300
- 
-+/*
-+ * Some of these methods hold an AML mutex shared with the UCSI and EC
-+ * query methods for long enough for those to time out, so evaluate all
-+ * of them exclusively.
-+ */
- static int eval_int(acpi_handle handle, const char *name, unsigned long *res)
+diff --git a/drivers/usb/typec/ucsi/ucsi_acpi.c b/drivers/usb/typec/ucsi/ucsi_acpi.c
+index 5697ccc24ec3..0b9aaf317d2b 100644
+--- a/drivers/usb/typec/ucsi/ucsi_acpi.c
++++ b/drivers/usb/typec/ucsi/ucsi_acpi.c
+@@ -30,8 +30,12 @@ static int ucsi_acpi_dsm(struct ucsi_acpi *ua, int func)
  {
- 	unsigned long long result;
- 	acpi_status status;
+ 	union acpi_object *obj;
  
--	status = acpi_evaluate_integer(handle, (char *)name, NULL, &result);
-+	status = acpi_evaluate_integer_exclusive(handle, (char *)name, NULL,
-+						 &result);
- 	if (ACPI_FAILURE(status))
- 		return -EIO;
- 
-@@ -324,7 +330,8 @@ static int eval_int_with_arg(acpi_handle handle, const char *name, unsigned long
- 	in_obj.type = ACPI_TYPE_INTEGER;
- 	in_obj.integer.value = arg;
- 
--	status = acpi_evaluate_integer(handle, (char *)name, &params, &result);
-+	status = acpi_evaluate_integer_exclusive(handle, (char *)name, &params,
-+						 &result);
- 	if (ACPI_FAILURE(status))
- 		return -EIO;
- 
-@@ -336,7 +343,13 @@ static int eval_int_with_arg(acpi_handle handle, const char *name, unsigned long
- 
- static int exec_simple_method(acpi_handle handle, const char *name, unsigned long arg)
- {
--	acpi_status status = acpi_execute_simple_method(handle, (char *)name, arg);
-+	union acpi_object in_obj = { .type = ACPI_TYPE_INTEGER };
-+	struct acpi_object_list params = { .count = 1, .pointer = &in_obj };
-+	acpi_status status;
-+
-+	in_obj.integer.value = arg;
-+	status = acpi_evaluate_object_exclusive(handle, (char *)name, &params,
-+						NULL);
- 
- 	return ACPI_FAILURE(status) ? -EIO : 0;
- }
-@@ -394,7 +407,7 @@ static int eval_vpcw(acpi_handle handle, unsigned long cmd, unsigned long data)
- 	in_obj[1].type = ACPI_TYPE_INTEGER;
- 	in_obj[1].integer.value = data;
- 
--	status = acpi_evaluate_object(handle, "VPCW", &params, NULL);
-+	status = acpi_evaluate_object_exclusive(handle, "VPCW", &params, NULL);
- 	if (ACPI_FAILURE(status))
- 		return -EIO;
- 
+-	obj = acpi_evaluate_dsm(ACPI_HANDLE(ua->dev), &ua->guid, 1, func,
+-				NULL);
++	/*
++	 * On some Lenovo laptops the _DSM times out on the AML mutex it
++	 * shares with the battery and platform methods.
++	 */
++	obj = acpi_evaluate_dsm_exclusive(ACPI_HANDLE(ua->dev), &ua->guid, 1,
++					  func, NULL);
+ 	if (!obj) {
+ 		dev_err(ua->dev, "%s: failed to evaluate _DSM %d\n",
+ 			__func__, func);
 -- 
 2.55.0
 
