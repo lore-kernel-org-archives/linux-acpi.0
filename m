@@ -1,135 +1,179 @@
-Received: from codeconstruct.com.au (pi.codeconstruct.com.au [203.29.241.158])
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7C4C3E1233;
-	Wed, 14 Oct 2026 03:38:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.29.241.158
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791949136; cv=none; b=ia1zdMsxggXJWKa6fS1oYKxkptVnHZ4/OOEb6F4o9YhmKApfsTJjSyTMrFst55R/H3inygQRJkYwztJk1XYTPcW1sUAFC26gNuK0J2M55hA/qUCS9TKXak8abPkn/0hf3g69wLrs4jac7uyYMx53yke1N9w4JK6LElY9qxpYw34=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791949136; c=relaxed/simple;
-	bh=wWv4sUHIfZP1ItvggJvpQO6/iSgwS9YDTUDmw+IVWVY=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=B0cq4Jn3nZA7W8B+EQO7UkPAv9TRgMHrDbMOV6IBzb6yoXfwjYfOQPWma77Zela3GZL2EX1gy+PcI987jMR4AsQ/gfop0pVedQtmmBxlZyZ53CEmRGHHUFLDdxOIR8Rj5h5i2PDshsUwsFuKvZiY1KTOaLhoBXhjvNs5+L4g1Kw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=codeconstruct.com.au; spf=pass smtp.mailfrom=codeconstruct.com.au; dkim=pass (2048-bit key) header.d=codeconstruct.com.au header.i=@codeconstruct.com.au header.b=k4KKl8pH; arc=none smtp.client-ip=203.29.241.158
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=codeconstruct.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=codeconstruct.com.au
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8143B37D104
+	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 04:12:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=205.220.168.131
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791951161; cv=pass; b=jmOEyXJTGzlPRMsiUsyW4/zSQuh3bCYMasP1J3SGp5fqwILhklkgWfkPiYCYeEWewRs0BszvcwdJRob3IdposZcHkwEoljY/+Mavukf6iHh/4ZevFIBVpkfvGuYwYynWU2DxSI37feyctr9yebkfI0hNVnBSUF3/i6EhsjZhgts=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791951161; c=relaxed/simple;
+	bh=l8OShMunAP6CnTzML3fBuG0pGlsaDFB/65p8ok5Q4Lc=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=OC+21I+fyau/e5KNlCIKcJA/IraY6zcrfyCfHkVyfJtlmJ2uajXR8Wk76dWP2QXB6umwA7hJxPHPmED6ZFh3NQd3RN766z0ZYwbId4WkQKyg+/wX2M/gHpkxL/3rbHEozxmesq1YFjs5mSBG2TKW4uAMUV2Po6TUuUBEyUPAH2Y=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=SQpxAFcS; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=EknhqSZd; arc=pass smtp.client-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=codeconstruct.com.au header.i=@codeconstruct.com.au header.b="k4KKl8pH"
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="SQpxAFcS";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="EknhqSZd"
+Received: from pps.filterd (m0279865.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69E2TjeQ3001160
+	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 04:12:38 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:reply-to:subject:to; s=
+	qcppdkim1; bh=0IToitMTYp/Rl/u3v1Im6m2B2/IkDFAQrOa2qxOYerA=; b=SQ
+	pxAFcS+1SQ+AskTGAEMjYX4fMsFRgqxpslh90yM7fF594sep6OqAVAwInsXHsgow
+	BL4dDj70qgx0yW/FdzUvYhHMO8SUBiok8zHTz6DSJBKyC0S4es+UWv/sZjUvtB1Q
+	TxV5RCv2MGp+BxeFreqNTpTU7fXT2tpYrpmdEw6b7ZTBhWvN23zZqH0oOurCfQvy
+	G3APDC2Bjgke2qis/y9PITSOfzrkrgKQsfmbESyB0b/xsLDCdGh6NNcuY6CZemZl
+	CrTd8bOlb+4yZjuzD+VH5KQ6O+MpmOgd1goEeBssdRzvh3c8oFP+RtOb4dtVAjRx
+	RRaASqepXNhztxsusPNw==
+Received: from mail-yw1-f200.google.com (mail-yw1-f200.google.com [209.85.128.200])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4h9sbet3ng-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 04:12:38 +0000 (GMT)
+Received: by mail-yw1-f200.google.com with SMTP id 00721157ae682-8b0ab72a6e8so30273427b3.0
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2026 21:12:38 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791951157; cv=none;
+        d=google.com; s=arc-20260327;
+        b=qb5sPm+1dyrtr8MW1WjGU8vBYyYgv/f184usaFuwboRYaZZ+bz4JEjl3Yod+TGkCtS
+         I/i6eI/8APbJR65Ho1OB6WEWc+ZNf0nCKcbI0NTSVWenYb/YxKREIX28M4FFNsjCpdP7
+         5FnYxBrsHe9E1ebZoST89dJH1IVg4oFg4b5tVeLd9pRtAaJge0z/lD09KkD1dryAe8dY
+         uESc8EAntdaaQC57cFa11YR0WgFQ0WZM8VitxrmMLA6PYjZL6GXDDkPpaSorpdFjPFuK
+         sEUMpu8jooB2zC+7OPOLgwj4VPWMExJf1GEIutOB6LOhiN1SDDgqJJZS1AN5gkw7hAa3
+         n9eQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :reply-to:in-reply-to:references:mime-version:dkim-signature;
+        bh=0IToitMTYp/Rl/u3v1Im6m2B2/IkDFAQrOa2qxOYerA=;
+        fh=eSqurMF6EonsqYeHD6A52Wlu1GYYDKlFoPPVajjQL0c=;
+        b=cZrbSMq878VIz2H2C11N7nnWu7DrNRE/6uZJrhxZknwGuYbHvwpZcO+tnz+HmLWgCh
+         09q85ctnvX3ON0qnYUjCa4pejQt7wXkOM/ogEjHsi965K/kbx2Yr1i82TVnwaNQ37RdH
+         2J5uNaROPzu514Kfpbu+cfBjwb6Tu60/KE15fNdws/jtvHR6VcKn/b55nXeif+wJFLzQ
+         r58NcPVyvaj9bo/zWXuwSUOMknwD74ynMCznMJtRzST8Ng51b17gVbljk1woTiSl1lvl
+         PLwOJr8kEeYtaQq+XrqmBlDW5lb70G8l7vK47P1jRRhWfufNA9HgP47/AqecX6K+treV
+         sooA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=codeconstruct.com.au; s=2022a; t=1791949128;
-	bh=Xr9nv3pCAuQ1Ufx1N8P/5BzbOX8F4y0Yex+Y2BlP8fQ=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=k4KKl8pHFsg+eNdE9MoTQ1h16nqPhHKpCXWBVqVXLPW2ix4UmoIThsHCX7B5m0yz1
-	 YD4+Dp2SK2s0tl4YQFuFWE6axcJgIvHT2y2Zg9A2fOd+XN2eACiZoGBvUPrX88CBVy
-	 O1CQHTPFNjSbjQtIF556KtYdPeq6ArLQO2/JzZrY5fQWtrllS2yRvzRwx2HWMGK7WI
-	 K4tK6wLG4c0gPqybPKIbjWmNtY5ozYr63SKhMIzFc9zGB+f0bP0Uz1z/fYNLXvXh++
-	 Ly3MYuRRGsYymcj/L7Gnq07y5bYrM+nhYKw6ReTpvrtLCR3OemkUW5hyh9GBz7kNyu
-	 yksHmIU1++rcA==
-Received: from pecola.lan (unknown [159.196.93.152])
-	by mail.codeconstruct.com.au (Postfix) with ESMTPSA id 3FD926CEE0;
-	Wed, 14 Oct 2026 11:38:46 +0800 (AWST)
-Message-ID: <c569c912141e9da7530121b8b2fc81527e0518a4.camel@codeconstruct.com.au>
-Subject: Re: [PATCH 00/11] Add NVIDIA LSTP USB adapter drivers
-From: Jeremy Kerr <jk@codeconstruct.com.au>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Adrian Ambrozewicz
-	 <aambrozewicz@nvidia.com>
-Cc: Donald Shannon <donalds@nvidia.com>, Rob Herring <robh@kernel.org>, 
- Krzysztof Kozlowski	 <krzk+dt@kernel.org>, Conor Dooley
- <conor+dt@kernel.org>, Linus Walleij	 <linusw@kernel.org>, Bartosz
- Golaszewski <brgl@kernel.org>, Lee Jones	 <lee@kernel.org>, Pavel Machek
- <pavel@kernel.org>, Andi Shyti	 <andi.shyti@kernel.org>, Mark Brown
- <broonie@kernel.org>, Jiri Slaby	 <jirislaby@kernel.org>, Corey Minyard
- <corey@minyard.net>, "Rafael J. Wysocki"	 <rafael@kernel.org>, Len Brown
- <lenb@kernel.org>, Jonathan Corbet <corbet@lwn.net>,  Ilpo
- =?ISO-8859-1?Q?J=E4rvinen?=	 <ilpo.jarvinen@linux.intel.com>, Sakari Ailus
- <sakari.ailus@linux.intel.com>,  Hans de Goede <hansg@kernel.org>, Lixu
- Zhang <lixu.zhang@intel.com>, Danilo Krummrich <dakr@kernel.org>,  Johan
- Hovold <johan@kernel.org>, Oliver Neukum <oneukum@suse.com>, Quan Nguyen
- <quan@os.amperecomputing.com>,  Andrew Jeffery
- <andrew@codeconstruct.com.au>, linux-usb@vger.kernel.org,
- devicetree@vger.kernel.org, 	linux-gpio@vger.kernel.org,
- linux-leds@vger.kernel.org, 	linux-i2c@vger.kernel.org,
- linux-spi@vger.kernel.org, 	linux-serial@vger.kernel.org,
- openipmi-developer@lists.sourceforge.net, 	linux-acpi@vger.kernel.org,
- linux-doc@vger.kernel.org, 	driver-core@lists.linux.dev,
- linux-kernel@vger.kernel.org
-Date: Wed, 14 Oct 2026 11:38:45 +0800
-In-Reply-To: <2026101310-scuttle-unison-d4c3@gregkh>
-References: <20261012-lstp-usb-adapter-v1-0-aambrozewicz@nvidia.com>
-	 <2026101310-scuttle-unison-d4c3@gregkh>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.56.2-0+deb13u1 
+        d=oss.qualcomm.com; s=google; t=1791951157; x=1792555957; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:reply-to:in-reply-to:references:mime-version:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=0IToitMTYp/Rl/u3v1Im6m2B2/IkDFAQrOa2qxOYerA=;
+        b=EknhqSZdA02RjdPCdSlEE1sx7b/lKuo/EOOTg4GgHLOtey5qWTpLO/I1+0SlmOhSzY
+         Oe3UP91lqEvde47yCSF1+ITa8aXYeQMjudEfLSCjnI5Rma/l1eAPqgfIFUBzg7tfpJvn
+         K8Vv0TtqJTtrGx0kXDkPoo5CIvxUgjc1eGn6pBB/s10fNK3xO7dPt3nqXFj/LS74tu/m
+         dECyzsMAI/wCFKS6r7H2YWcVgAOYehm//I5LS8q4sWFFvIyBI02uxhbNH0jX+VJierBX
+         laCVYLuTMl9QdG7SmTnuYA3ghwO0udl8ZfF/kMqalrvGWSWt5dWtBMzfvvyvnJpIea6j
+         BhKw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791951157; x=1792555957;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:reply-to:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=0IToitMTYp/Rl/u3v1Im6m2B2/IkDFAQrOa2qxOYerA=;
+        b=qsTzYzOB/g3NTmNDdN3addc+ZqJkauBrw35mhnzkNmTtolxBkQ3bopAiGPuZTOvcqV
+         7KRXhLB0cbtCekmqnUid4mwJMyelK/CdUkeWY6T9n+l0wr6BAsc78PDLi9vAbF7Mf3zf
+         MFeQ7tijJBDHaDaCYwXQqbjHJ37KqjVFpkG6b8a4yyYlKmQLgi8niZ+tUBOPQd0ixFZD
+         L0OYo7RszxKZp4mcRav442kZId94eNHxUja9NikpGx4BgTVCgOwIAPzM43jJi763lgDs
+         P3Wu5bRSV9zIh1DCoQYvTpshJef3Vn0X9nK3eixX5cIsDV6yCSZ7fP6NReRVjdKvnei0
+         oATg==
+X-Forwarded-Encrypted: i=1; AKwUvBxhtK5MnJgk1IM3vr2qn86QNVUrjFZVLXfh5Qj2q1GCTOZiX69n9mrf63jqOJI5oIowc5XYGP2h80lI@vger.kernel.org
+X-Gm-Message-State: AFq9FYJ54o01FSr+mBDYvzooZeXT/EY9HINnt4PLs8DctkHHPVh0QMWy
+	GUKRTTJgHb84L6Kdosvyk9/OS6sud6SmANhgO6afjA2YYIb+ZQteM25fGFYMgu40dOyi3HH1ylK
+	i67XG52L63YQW6MI24YL8HZWugyjMAu6IPGhMzJvy38afro1XWGRPwnLAmlKsSvI1PHhFljAKF+
+	4NitItcufFfns2/apMT2j0l18FzTYWFu+rfD/pOLg=
+X-Gm-Gg: AYBFou2gZIvUEcqVuBdhyoL/7BKQQeA32JzRkebQ1iwpfpLf3i7teH98eG3toUio7Xh
+	CwWWwnKJ/2EdMUoxs5mCfVpjQsIt23e5Mt/zvwBVjbxgJe0uBDJV+t48GLxojkEAVljsfeGZR5E
+	PwOkTkTsBkNfwX9Di0zAN/TvXBVtxl217HMBs8oCYDYGY41jQB2O7P6wcnbKE=
+X-Received: by 2002:a05:690e:128c:b0:679:8835:a554 with SMTP id 956f58d0204a3-6798835b6f3mr595920d50.94.1791951157067;
+        Tue, 13 Oct 2026 21:12:37 -0700 (PDT)
+X-Received: by 2002:a05:690e:128c:b0:679:8835:a554 with SMTP id
+ 956f58d0204a3-6798835b6f3mr595910d50.94.1791951156684; Tue, 13 Oct 2026
+ 21:12:36 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+References: <20260903140031.3684-1-fangyu.yu@linux.alibaba.com>
+In-Reply-To: <20260903140031.3684-1-fangyu.yu@linux.alibaba.com>
+Reply-To: sunilvl@oss.qualcomm.com
+From: Sunil V L <sunilvl@oss.qualcomm.com>
+Date: Wed, 14 Oct 2026 09:42:25 +0530
+X-Gm-Features: AclHuK86voQc4FUtiCdkEZEAZb2HJ7wq0GZX-kU_HOfP197uYVxA3KPb_kIuB4o
+Message-ID: <CAB19ukELrF5wf3vKaPhoCLWmzGDExv1mZQAyEs8K6uq-zxqsKQ@mail.gmail.com>
+Subject: Re: [PATCH v2] ACPI: RIMT: Enable PCI ACS for root complexes mapped
+ to an IOMMU
+To: fangyu.yu@linux.alibaba.com
+Cc: rafael@kernel.org, lenb@kernel.org, pjw@kernel.org, palmer@dabbelt.com,
+        aou@eecs.berkeley.edu, alex@ghiti.fr, guoren@kernel.org,
+        linux-acpi@vger.kernel.org, iommu@lists.linux.dev,
+        linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+X-Proofpoint-ORIG-GUID: BMwLvCqbsHaM-z8ZBrwnP2OJlvgKgS5o
+X-Proofpoint-GUID: BMwLvCqbsHaM-z8ZBrwnP2OJlvgKgS5o
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDE0MDAxNiBTYWx0ZWRfX3tUT//a5vTIw
+ p8j6eZwjQrR2SuFo6qpBHL/qxSzc6dOBdaLK94Z2bW8r8C39ubUadaF5jy7+BawskUGOAb0gxxs
+ 8jjjqGrjsHHj1c/kpP8qFyQvwafPdXzhE7KYEMICSBoWnAfwVmC9AwOHea5brTBac5YyCTxYMzE
+ 9iRQtbJebjrAr/ORCeDrTBIVneemKD85lkmmJidrnVhMI49NldJXbvK29KP1NihLpxrbsUR1T3F
+ DGX3Hn3a+EvIHcGTq/mmEOAwsrHjEgVPFW7r794Pyx+CKuXk/3mha3zGJdK7hj3zTt2N8Mph5rZ
+ i8u45LpA0AFo18mumMQp5a2dpgyqJlF38T4TZjzMvCsEOkFpBzSuvqdz7g65Mv0alNFwoiwm/07
+ K0MfxjQjT87eeV3jWjPmAYnVJECSxxWX1gsjzuZXqsvO03lXIR6v7a9vt3lZd6T3uN3UQN+bik6
+ eyPDeMe6ts+OTRa5Gbg==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDE0MDAxNiBTYWx0ZWRfX32grwDzoc+qi
+ hB8evKazyAtE43nq6BajcqgvHyMYXTblCVKtYz5q0SuSk5vXm0/PU7kk6eESS+kXNFrv6xf6TPD
+ PCtNCFy6risg3iatPbWFouJxVWvvRG8=
+X-Authority-Analysis: v=2.4 cv=U7AHnuru c=1 sm=1 tr=0 ts=6acf0136 cx=c_pps
+ a=NMvoxGxYzVyQPkMeJjVPKg==:117 a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10
+ a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
+ a=Um2Pa8k9VHT-vaBCBUpS:22 a=SRrdq9N9AAAA:8 a=EUspDBNiAAAA:8
+ a=N72Xn8VYRMkAawgvMsQA:9 a=QEXdDO2ut3YA:10 a=kLokIza1BN8a-hAJ3hfR:22
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-10-13_01,2026-10-09_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ clxscore=1015 priorityscore=1501 malwarescore=0 lowpriorityscore=0
+ adultscore=0 impostorscore=0 bulkscore=0 phishscore=0 suspectscore=0
+ spamscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
+ adjust=0 reason=mlx scancount=1 engine=8.22.0-2610080000
+ definitions=main-2610140016
 
-Hi Adrian & Greg,
+Hi Rafael,
 
-> > This series adds drivers for the NVIDIA LSTP USB adapter: a USB core
-> > driver and GPIO, LED, I2C, SPI, UART and BMC-side IPMI function drivers=
-,
-> > with their device tree bindings, an ACPI description document and the
-> > sysfs ABI.
+On Thu, Sep 3, 2026 at 7:30=E2=80=AFPM <fangyu.yu@linux.alibaba.com> wrote:
+>
+> From: Fangyu Yu <fangyu.yu@linux.alibaba.com>
+>
+> Mirror the ACPI IORT solution used on arm64 (see iort_enable_acs())
+> by scanning the RIMT table for PCIe root complex nodes during
+> riscv_acpi_rimt_init(), which runs before ACPI PCI enumeration. If a
+> root complex node's ID mapping points at an IOMMU node, call
+> pci_request_acs() immediately, so pci_acs_enable is already set by
+> the time any PCI device is scanned and pci_enable_acs() runs.
+>
+> Only one call to pci_request_acs() is needed regardless of how many
+> root complexes are found, so track that with a static acs_enabled
+> flag, same as iort_enable_acs() does.
+>
+> Signed-off-by: Fangyu Yu <fangyu.yu@linux.alibaba.com>
+> Reviewed-by: Sunil V L <sunilvl@oss.qualcomm.com>
+>
+> ---
+> Changes in v2 (Suggested by Sunil):
+>     - Check the RIMT node type in riscv_acpi_rimt_init() and invoke
+>       rimt_enable_acs() only for PCIe root-complex nodes.
+> ---
+>  drivers/acpi/riscv/rimt.c | 58 +++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 58 insertions(+)
+>
+Could you please take this patch via ACPI tree?
 
-Adrian, what is the plan for this coexisting with the recently-released
-OBMF-ICP spec[1], which implements almost identical functionality (and
-apparently with less DT/ACPI description requirements)
-
-... NVIDIA also being a primary contributor to OBMF-ICP.
-
-[1]: https://www.opencompute.org/wp-content/uploads/2026/10/obmf-icp-1-0-0.=
-pdf
-
-> > What LSTP is
-> > ------------
-> >=20
-> > LSTP (Low-Speed Transport Protocol or Low-Speed Tunnelling Protocol) is
-> > a vendor-specific USB interface (class 0xff, subclass 0x3f) that
-> > multiplexes several low-speed "channels" over one pair of bulk
-> > endpoints. It is implemented by NVIDIA's SMA, an MCU (0955:cf11), and
-> > by other vendors' parts: two hub/bridge chips have it built in
-> > (0424:4940, 174c:2214). Boards use it to
-> > reach SPI flash, I2C sensors, GPIOs and LEDs, a UART and a host-to-BMC
-> > IPMI path, on both BMCs and host systems.
->=20
-> Also, if you really want to do this in a dynamic way, use greybus, as
-> that is EXPLICITLY what it was designed for, and is patent-free (i.e.
-> unencumbered, and we already support it in the kernel.)=C2=A0 Please don'=
-t
-> reinvent the wheel/spec just because no one did any prior-art
-> research...
-
-With this, we now have three similar facilities:
-
- - greybus - I assume there are implementations about, but more on the
-   mobile side?
- - LSTP - with an NVIDIA implementation
- - OBMF-ICP - with a few vendors' early implementations
-
-There are differences between greybus and OBMF-ICP that may justify
-support for both (primarily: static channel support means OBMF-ICP is
-simpler to implement). I understand that OBMF-ICP also has reasonable IP
-protections for implementations. However, it's going to be difficult to
-justify both LSTP and OBMF-ICP implementations living in the kernel.
-
-Adrian: I could see LSTP being implemented as a set of divergences from
-an OBMF-ICP-standard driver, but I'm not yet across why you need static
-configuration. If we do need support for both in the kernel, I can take
-a look at how that could work.
-
-FWIW, we did raise greybus as an approach to various HW vendors; I
-assume there were reasons behind OBMF-ICP, and assume some prior-art
-assesment was involved, but I don't have specifics for those reasons.
-
-HW peeps: This would be an excellent opportunity for elaboration on the
-motivation there, either for LSTP or OBMF-OCP.
-
-Cheers,
-
-
-Jeremy
+Thanks,
+Sunil
