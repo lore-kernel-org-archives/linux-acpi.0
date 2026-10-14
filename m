@@ -1,211 +1,181 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10B66369D7B
-	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 15:08:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C9A25581FC
+	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 15:30:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791990501; cv=none; b=Y/ZgfwQ95fjectloGKVC+nsIIk9mR+FeNf/8kXPhPHjYWqkWPNp3M6nvKg/PQUPky0yNyQnBFPzOPnt58HCiezseJSriM3zYVdBgv9u9Jw1QmeTtWWIbzqQG75Q+CsXWbZF/TtrnKR3dkOBjwPI8wkxjt2fUPpZohf/a+vfVp30=
+	t=1791991814; cv=none; b=mfoKUeiSQXHC27L8bKdxB2xd2agA+FBN6+VzmGuwbu5EiN/iiRW5YSzabptHsWZFGQT3qK4U4cKPVQaO/20QFgk2VtZmm6jjScsM1ajDQu/tXXMGvp+eEz0KJa+E3nJVYd6L+GeKG6zdIz90GLDYVRGCNWLcWCGLWJ38BV/aZ8g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791990501; c=relaxed/simple;
-	bh=OrVR4ICDaqIMRFPXX7OWuZx/GX2al5sZl9xwPRxED5Y=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=YCvCRx1be178CzzP2zQYm/uaZTfI2fKK7GDrYt5yHja/3RrYoayOywVLfwOarHuy6Cc7CWvb87rk2Vc4zJdXgvvNQME6Z0YygJqbIjuwk8mzeIVEEym2g4A7MyuGwl0lT6aZmnIXok9WlzF50L/ZGTexbIaScBVRtIiKjzDr2Xk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XD2nmMtP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791991814; c=relaxed/simple;
+	bh=BDhIdaDKZ9lplDbcye0C+desv6HoQGR8gmQmNwSxBNk=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:References:
+	 In-Reply-To:Content-Type; b=FLiEVpXEFPjfw8rrxdqj3EtZhhMneDGRY5bvR6HQAfWG8cH6SdKo38fF30BJTIPV585i51GHgS3Ma1g3pRmORm8ggTRzBOeWduHf0T9A2MyRbfB2Rd+4hurYFlkAipPhCsmvH/2S0IbF2TJu+FYioq94yxTY/TscBYGyxMoZq10=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=Jq2VNivX; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=aChsYQml; arc=none smtp.client-ip=205.220.180.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XD2nmMtP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5D2A1F000CB
-	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 15:08:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1791990497;
-	bh=ljk9MNy1mrOZMOuTAp5WT6L4E5edUdTWjdqXrdRQBe4=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=XD2nmMtPGm6s8KO2i0KDKogYIhqcbBzXqw3iBp5uSmdKK7S2k6V+CArmJIEl1/KyI
-	 gYcNtC2LPq/H3zjOiGOg23l6GMybqupTm/+iYCYkOBZue6Gedwk/5c/anI1E/6nxcR
-	 kmg6bdrog0KfyUAGjMk7L8b7/iJbGGTvQab9KLkAizjPF8g5mUpB7DcjNVjqlSAzsb
-	 dS89Oe/1CCLTXApGBES6GU0K42kWL3rSVTKqKq/CWDgDWl4ENi637yKc1dB4BP8sp3
-	 OPbbzYq3fb/CeYEBZWfuOV9nWW27R9vQFf22bhge9/NEhy4A/9DhYlCG0TvcBOiARc
-	 XWzzUQZSMQovA==
-Received: by mail-lf1-f54.google.com with SMTP id 2adb3069b0e04-5ba7ed32ccdso710615e87.0
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 08:08:17 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBwgjtV0GwgHs26WbLR5K6BaDAgzacr3cWDWr718+RSVp2azgnWPK962GjYDbzC5vAVUbt2gPs313DWe@vger.kernel.org
-X-Gm-Message-State: AFq9FYIUKbEDZwuFSLGbn/8WzFDX0jyhXpZ3ThuN9HRazzCP8VXPAn7F
-	6ThCfAvV+dN8VN8Byz2AmAbzX69ypQC3Bz3ziGJdkV7PiLeB5n4QKdwbD3TbWtz5HQLCbiQncnF
-	XMYNS4+xD6Yx1B6FQqPcFPCY5w5Us95E=
-X-Received: by 2002:a05:6512:3f0f:b0:5bb:7c7c:c4e with SMTP id
- 2adb3069b0e04-5bcde8e65f9mr6142561e87.63.1791990495980; Wed, 14 Oct 2026
- 08:08:15 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="Jq2VNivX";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="aChsYQml"
+Received: from pps.filterd (m0279869.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69EEb0Hp905391
+	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 15:30:12 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	ZcsKSAXIsUoQvwuqGKNRF/KRcejBeBzxtNR/efR58HI=; b=Jq2VNivXr3uxGVSS
+	MTyjKe0JLetyBXmtG3dKPr8Mv5ytFzQ8CaYshGhBD8RUObMdL+Qfo0KWl4YGeZb8
+	qBkq1npT0hLsfr8d8exMyjeKAGHJDnWfkV4UjumTHja2ozm+rRopIYU2t1r0IqS9
+	Ik28zgkBqH9vO++pbHEdD1y1VfCnL0LsfmoY03OLTOrGJ1PWE30fMZGQk0qa99Lm
+	FKAJI605j9r0HiRE4ewKJtWByl6/+UP+OsEPiFbtVPtYigNpCclMlerV7li6KA6h
+	ejjs6Nyam98T8r/sIqDI9vUiNKWk5qYMAvN/dgSWPPKeO67vHfol0zY78YbfM0oO
+	fCdBgw==
+Received: from mail-qk1-f200.google.com (mail-qk1-f200.google.com [209.85.222.200])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4ha42p29vq-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 15:30:11 +0000 (GMT)
+Received: by mail-qk1-f200.google.com with SMTP id af79cd13be357-93caf7856ffso870955485a.3
+        for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 08:30:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1791991806; x=1792596606; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:content-language
+         :references:cc:to:subject:from:user-agent:mime-version:date
+         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=ZcsKSAXIsUoQvwuqGKNRF/KRcejBeBzxtNR/efR58HI=;
+        b=aChsYQmlmMeC3Fg6gfWG4aaew297x14xX1Hh0wIxSUC3P6yjQ/CCjrhEswKrK5fEgD
+         jMPYR+/ZjC5GSOt6hxrbaMoun8wRw8lVebIPKpqa9pLuzjr/IXTIy/kSq8Fzazr31rqM
+         p7LJpfETqOcyfIkODATlRO6Jy9yYYr0BRZPkDBsPUMQlzLIyrdhUdDrI2pRD1guayq0e
+         3z77xhC3lpy1zicUaUAPcO8SNFz7WddZMhvOuZFeqouHfvQyBNOLnYsAhohPdu2d40+1
+         pxgUPgneLJ13CQc5VGbENR3vVlO3B5OOmQx0PClCGnCI/2TPHZjqReR+d2Pot8uHhzZ7
+         konQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791991806; x=1792596606;
+        h=content-transfer-encoding:content-type:in-reply-to:content-language
+         :references:cc:to:subject:from:user-agent:mime-version:date
+         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=ZcsKSAXIsUoQvwuqGKNRF/KRcejBeBzxtNR/efR58HI=;
+        b=DpsrMkzQzv1R4rXrXS+oHtkE9dSvViEEDJFUAq7BXRKhG8iAllRKcOzs1bsRwEZ+lA
+         XsEzf/lPVIbC4GW8YIKbeZdplpYAZYJxW/BxSZG0Kq0N13OitGAMm0U0jEEcFjkGNfyf
+         ZOFEaBPlAiMTOSlc3VUXoGlr+pr2E+SyWXqrQyGlTrzAweysqgYfPUpBf5xOh+hFqDlL
+         aC5vkon55UW06+JtAMU38omTjpyQoYGDemHnGG5Om7OGn+5LtzEcPza5K4YT/gQbbzpY
+         fcaiqG3qteKQA6FsMEXEowityV9la269USHLiGEkD5TZQNx2tie/ZLX7h0RvvboDzspa
+         XV+Q==
+X-Forwarded-Encrypted: i=1; AKwUvBy8X0W8dmTzzVIX9QVWgVE6WMaXFSXWE8vJ+zyNty6ljGPNz+HjJqYC2ZEFdLUyvMPIJ9PIb1axNhzX@vger.kernel.org
+X-Gm-Message-State: AFq9FYIYiX0q3JLve+c6VDaitY8qh9Aq0C5UKyHvkC++9X2C/fd439li
+	mq7/5DLmqZfejgljMFnTNkKpSicMwpzvscBHBtGvusrnnsZbFAtdh9sHzcW9QWxQGLbsWGv6cdH
+	c8kwdgSQv9j1c1JDnXtxTFsrxPNHePqeOYH6xC4YiqUsYjkgHGJp/rbPLsAZ5f2c2
+X-Gm-Gg: AYBFou3RedzHKX199QaRAXjdR7FEZOfAjczzRE6DOOmm2hhKH1NS/UPVhuwFuHEVn7m
+	S8BKdxR5c+W5J15q5IfIqjMQlSiBaC/IjTgdcDjd7aTSwe2GQcS6DpWSfI36E+pQ286UibhBVN0
+	458De/S7Sl7ojG9SXAwbKVirp6608nZkZDoL7+et6pNCD0DinDouu0Uae2yHW4QoCIMzscTDCvv
+	E+SGDIwKldqSFCs89iRp8iLvdLuY3K5pM7nO+S8Zn6gg6XCiHG2UvAS5Jl3mNyTlocsMM92tx+p
+	2JU3k4CUl0rcE4WM6bjPCAAxogMYzdtJTKj6tlHtv5PYN7kE0yBbcFcxjsfmMgRYjeEjF/G+A1V
+	mqFMvL9JR+S4J42Ao/vdu9+UyW14jXlSGSSRqVHY6+Wi9rBtmjmRGemvLXTvoZvBiYMS+cETv4c
+	MfqWqdSPm5hn20YBKbzqolW4ottZCqMApSJH8FJ9qzxULF3j7IZanYMRGIQfdP0Q+iBEQ=
+X-Received: by 2002:a05:620a:2b90:b0:93e:561c:5bce with SMTP id af79cd13be357-93ebd295d73mr2493797685a.55.1791991806168;
+        Wed, 14 Oct 2026 08:30:06 -0700 (PDT)
+X-Received: by 2002:a05:620a:2b90:b0:93e:561c:5bce with SMTP id af79cd13be357-93ebd295d73mr2493791485a.55.1791991805667;
+        Wed, 14 Oct 2026 08:30:05 -0700 (PDT)
+Received: from ?IPV6:2001:1c00:c32:7800:5bfa:a036:83f0:f9ec? (2001-1c00-0c32-7800-5bfa-a036-83f0-f9ec.cable.dynamic.v6.ziggo.nl. [2001:1c00:c32:7800:5bfa:a036:83f0:f9ec])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b203762b86sm1331732a12.3.2026.10.14.08.30.02
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 14 Oct 2026 08:30:02 -0700 (PDT)
+Message-ID: <8be1a245-6061-4f86-9223-0da18d5e423a@oss.qualcomm.com>
+Date: Wed, 14 Oct 2026 17:30:01 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <37N_jFulf7n-Z55NfKfE71C_wVPxYvZ0xD_iRUg2fXu7TypDiF5PStQ6siSfVBih6fThg5WoPes8U5ZQpfVm_teMFcUGXFxz2DdMbfSWuws=@proton.me>
- <20261012225141.13683-1-aliamemis@disroot.org> <fb993dd3-ee56-4e3d-aa16-573f011518f1@oss.qualcomm.com>
- <CAJZ5v0gS4agVUkCO6M=VW4Wi2y1-s+k23bpzmX9aAZ0Rsv4z9Q@mail.gmail.com>
- <044e9df4-1399-4ceb-80f8-f7cfe031d04f@oss.qualcomm.com> <CAJZ5v0isCM3K3U6HSdDnvXzBX41AgQMFYxqLx3KvMA0W_91-ew@mail.gmail.com>
- <b64b8092-93d7-4873-a55f-422b8e70cc04@oss.qualcomm.com>
-In-Reply-To: <b64b8092-93d7-4873-a55f-422b8e70cc04@oss.qualcomm.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 14 Oct 2026 17:06:08 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0j4xiDYBGA0LsUq4esJCzYBXjsmmXb1ZJvLcUZqDp+yuQ@mail.gmail.com>
-X-Gm-Features: AclHuK9xOO3fl-25LwE2ScVkTnZoEmEEqpNoPfQjqZjGkNfKWcVggqNMlzc8seE
-Message-ID: <CAJZ5v0j4xiDYBGA0LsUq4esJCzYBXjsmmXb1ZJvLcUZqDp+yuQ@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: battery: Re-read battery information in the
- complete callback
-To: johannes.goede@oss.qualcomm.com
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, =?UTF-8?Q?Ali_Ahmet_Memi=C5=9F?= <aliamemis@disroot.org>, 
-	Len Brown <lenb@kernel.org>, Armin Wolf <W_Armin@gmx.de>, 
-	Charis Stratakis <c.stratakis@proton.me>, linux-acpi@vger.kernel.org, 
-	linux-pm@vger.kernel.org, regressions@lists.linux.dev, 
-	Mark Pearson <mpearson-lenovo@squebb.ca>, linux-kernel@vger.kernel.org, 
-	stable@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+From: Hans de Goede <johannes.goede@oss.qualcomm.com>
+Subject: Re: [PATCH 0/3] ACPI: Serialize battery methods and INT3403 _TMP
+To: =?UTF-8?Q?Ali_Ahmet_Memi=C5=9F?= <aliamemis@disroot.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+        Daniel Lezcano <daniel.lezcano@kernel.org>,
+        Zhang Rui <rui.zhang@intel.com>, Lukasz Luba <lukasz.luba@arm.com>,
+        Armin Wolf <W_Armin@gmx.de>, Rong Zhang <i@rong.moe>,
+        Charis Stratakis <c.stratakis@proton.me>, linux-acpi@vger.kernel.org,
+        linux-pm@vger.kernel.org, acpica-devel@lists.linux.dev,
+        linux-kernel@vger.kernel.org
+References: <20261014132703.93355-1-aliamemis@disroot.org>
+ <24b2e368-f0bb-484c-bf88-b9ce3125180f@oss.qualcomm.com>
+ <20261014150537.121547-1-aliamemis@disroot.org>
+Content-Language: en-US, nl
+In-Reply-To: <20261014150537.121547-1-aliamemis@disroot.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDE0MDA2MSBTYWx0ZWRfX30lmpNNvstqJ
+ RtcLd/BLKFC4CUr7nmGzRCxQjWcRCiVZ2ZNW3aYYYgRenWCbEuLGsWCwE5z07mcNdvQj5xL7ncj
+ NlOzKJ80yGrPbXJ3arheD4Zd343d33o=
+X-Proofpoint-ORIG-GUID: T9AjSIYYHCRpX06n_HQt1C82hbWLZWUM
+X-Authority-Analysis: v=2.4 cv=aeb0Dhot c=1 sm=1 tr=0 ts=6acfa003 cx=c_pps
+ a=hnmNkyzTK/kJ09Xio7VxxA==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
+ a=660iZSQnnn4A:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=u7WPNUs3qKkmUXheDGA7:22 a=_glEPmIy2e8OvE2BGh3C:22 a=iUgqFhfxAQh3BSJQTYcA:9
+ a=3ZKOabzyN94A:10 a=QEXdDO2ut3YA:10 a=PEH46H7Ffwr30OY-TuGO:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDE0MDA2MSBTYWx0ZWRfX0/UHYZPm5oOQ
+ /SWOTsqHO2PsAk09mMkr83PAKQXK9gCdKaoF2FOCIiImVqFglKY85KPAi8IxiOY0jIKx+xxxUTZ
+ iug/Kh0UkyKsLtwM3fLimz++xbpYprpdLPnF/axHNsbjBOD0sk8L2MZJkMHOpnLRfWwjjyVOnSz
+ biZEtPr2kcO6/6abRqEUWVgbv6izxkOG+bumurmHF9wsTYnG58Sh7Ky9DUUnunPsuRM8WTPtzFB
+ FjwqvImqUrIYcFb8zdx5nxT+akIvnV4g4PQecg8ySodi0ltjGXWtoJ1fli08S1fRsuW60HShkON
+ UTxri1Yqm3F8QN2cbEvO4W3lWMhFtDGyBrTzXkwjoezf2ngCL2IbjlLVWlXb6NooNG3cGR1MSoU
+ NYKU3h57mHHIhBkWjmL+FdSPJbE51ueYxjbMLmuoqWigvQb9Xi477kbt2emcgyidt3q59sEh5Ss
+ SLdR2miXqcYvwEqlRUg==
+X-Proofpoint-GUID: T9AjSIYYHCRpX06n_HQt1C82hbWLZWUM
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-10-13_01,2026-10-14_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ adultscore=0 bulkscore=0 lowpriorityscore=0 impostorscore=0 suspectscore=0
+ spamscore=0 priorityscore=1501 malwarescore=0 clxscore=1015 phishscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2610080000 definitions=main-2610140061
 
-Hi Hans,
+Hi,
 
-On Wed, Oct 14, 2026 at 11:58=E2=80=AFAM <johannes.goede@oss.qualcomm.com> =
-wrote:
->
-> Hi Rafael,
->
-> On 13-Oct-26 19:20, Rafael J. Wysocki (Intel) wrote:
-> > Hi Hans,
-> >
-> > On Tue, Oct 13, 2026 at 3:36=E2=80=AFPM <johannes.goede@oss.qualcomm.co=
-m> wrote:
-> >>
-> >> Hi Rafael,
-> >>
-> >> On 13-Oct-26 13:58, Rafael J. Wysocki (Intel) wrote:
-> >>> On Tue, Oct 13, 2026 at 11:33=E2=80=AFAM <johannes.goede@oss.qualcomm=
-.com> wrote:
-> >>>>
-> >>>> Hi,
-> >>>>
-> >>>> On 13-Oct-26 00:46, Ali Ahmet Memi=C5=9F wrote:
-> >>>>> Since commit d33e89d12295 ("thermal: core: Suspend thermal zones la=
-ter
-> >>>>> and resume them earlier"), thermal zones are resumed from dpm_compl=
-ete(),
-> >>>>> before the PM_POST_SUSPEND notifier that re-reads _BIX and _BST. On
-> >>>>> ThinkPad P1 Gen2 and P53, INT3403 _TMP calls \GTST which switches t=
-he EC
-> >>>>> page selector (HIID) without taking the BATM mutex used by the batt=
-ery
-> >>>>> methods. ACPICA releases the interpreter lock around EC accesses
-> >>>>
-> >>>> I'm wondering if this "ACPICA releases the interpreter lock around E=
-C
-> >>>> accesses" is not the real problem here.
-> >>>
-> >>> Yes, it most likely is.
-> >>>
-> >>> What actually happens is that ACPICA drops the interpreter lock and
-> >>> the namespace lock in several cases listed in the
-> >>> acpi_ex_exit_interpreter() documentation comment, the majority of
-> >>> which involve having to wait.
-> >>>
-> >>> The bottom line though is that the interpreter and namespace locks
-> >>> cannot be expected to be held throughout AML evaluation because it is
-> >>> not known in advance if any of the cases in question will appear.
-> >>>
-> >>>> Recently I've learned / heard
-> >>>> from a trusted source that Windows ACPI subsystem is very much singl=
-e
-> >>>> threaded. So it is nice that ACPI has these mutexes and other stuff
-> >>>> to support multi-threading but as long as Windows ACPI interpreter i=
-s
-> >>>> not multi-threaded I think we may need to consider to copy Windows
-> >>>> behavior.
-> >>>
-> >>> This is also my conclusion, at least to some extent.
-> >>>
-> >>> The problem with it though is that in some cases parallel evaluation
-> >>> of AML is actually useful.  For example, say two PCI devices are
-> >>> powered up at the same time and AML waits for each of them.  The asyn=
-c
-> >>> suspend/resume aligns those waits to take place simultaneously instea=
-d
-> >>> of serializing them which allows some time to be saved.
-> >>>
-> >>>> So maybe the EC accesses should keep the interpreter lock locked dur=
-ing
-> >>>> EC accesses.
-> >>>
-> >>> The problem here is that it is hard to say in advance whether or not
-> >>> _BIX or _BST will access the EC and whether or not that will clash
-> >>> with _TMP evaluation for a seemingly unrelated thermal zone.
-> >>>
-> >>>> And even go further and maybe we need to introduce a big-acpi-lock,
-> >>>> which I guess the interpreter lock more or less is? And just seriali=
-ze
-> >>>> all ACPI accesses since most ACPI tables clearly do not handle
-> >>>> multi-threaded access to ACPI methods well ?
-> >>>
-> >>> I would be inclined to do so except for device power management
-> >>> methods, that is _ON, _OFF, and _PSx, that are not the problematic
-> >>> ones, at least as far as I know.
-> >>
-> >> That sounds like a reasonable compromise which should fix both
-> >> this case as well as help with bko221065 .
-> >>
-> >>>> Another example of multi-threaded ACPI calls causing problems is:
-> >>>>
-> >>>> https://bugzilla.kernel.org/show_bug.cgi?id=3D221065
-> >>>
-> >>> Right.
-> >>>
-> >>> So I guess the idea would be to add locking to acpi_evaluate_object()=
-?
-> >>
-> >> Yes that seems like a nice single point of entry to do this where
-> >> all the various helpers eventually end up.
-> >
-> > That, of course, would require updating ACPICA code and I'm not sure
-> > if doing it upstream is useful.  For example, if some hosts already
-> > use locking around acpi_evaluate_object(), this modification won't
-> > help them and it will certainly be a change in behavior.
-> >
-> > This means that we'll likely end up with a Linux-specific divergence
-> > from the upstream which can be lived with, but it won't be nice.
->
-> Ah, I see.
->
-> >>> An alternative might be to introduce an "exclusive" variant of
-> >>> acpi_evaluate_object() with built-in locking and use it in the cases
-> >>> that are known-problematic.
-> >>
-> >> So here we have _TMP and _BIX / _BST and in bko221065 we have
-> >> a bunch of again batteyr methods + UCSI racing. I'm afraid if
-> >> we add something like acpi_evaluate_object_exclusive() we'll end
-> >> up eventually using that almost everywhere.
-> >
-> > While I think that your concern is valid, this can be done without
-> > touching the ACPICA code at all.
->
-> Not needing to touch ACPICA is a valid concern. So I agree lets go
-> with a wrapper for paths which we know need to be serialized for now.
->
-> And then add that around the battery methods + _TMP + UCSI methods
-> for starters I guess ?
+On 14-Oct-26 17:05, Ali Ahmet Memiş wrote:
+> On Wed, Oct 14, 2026 at 03:45:10PM +0200, Hans de Goede wrote:
+>> Hmm, I wonder if we should export the lock added in patch 1/3 and
+>> then also take that in the ACPI EC interrupt handler ?
+>>
+>> The ACPI code already uses a threaded IRQ handler for both EC GPIO
+>> IRQs and GPEs so sleeping in the handler should be ok.
+> 
+> Sleeping is fine, but the interrupt handler completes the EC
+> transactions, so taking the lock there would deadlock an exclusive
+> _BST.  Doing it in acpi_ec_event_processor() where the _Qxx methods
+> are evaluated, works though.
 
-Yes.
+Ack, doing it there sounds good to me.
 
-> ###
->
-> Should we also stop releasing the interpreter lock in the EC code?
+> With the brightness key queries also
+> running the \GTST copy, 283 of 891 _BST reads were broken without it
+> and 0 of 804 with it.
 
-Which EC code do you mean in particular?
+Nice :)
+>> I'm just thinking that if we're going to do this it would be nice to
+>> cover the bko221065 UCSI case too.
+> 
+> UCSI and _Qxx alone aren't enough there.  I emulated the ECMT users
+> from the 83DR tables and the EC helpers kept waiting up to ~680 ms of
+> their 1 s timeout behind GBMD/SBMC until the ideapad methods were
+> exclusive too.
+> 
+>> Note this is something which can be done on top of this set.
+> 
+> I can send a series on top of this one for the EC queries, UCSI and
+> ideapad if that sounds good.
 
-> All these things (battery, _TMP, UCSI) seem to have in common that
-> they might talk to the EC in some cases?
+That sounds great, thank you so much for looking into this.
 
-Yes, they are EC-based in many cases.
+We should probably ask the reporters of bko221065 to test
+the 2 series combined and see if this finally closes that issue
+for real.
 
-> Where as e.g. your powering-up of PCI slots example is unlikely to
-> talk to the EC ?
+Regards,
 
-Yup.
+Hans
+
+
