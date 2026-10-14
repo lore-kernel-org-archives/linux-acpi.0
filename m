@@ -1,82 +1,83 @@
-Received: from mail-qt1-f170.google.com (mail-qt1-f170.google.com [209.85.160.170])
+Received: from mail-dy1-f181.google.com (mail-dy1-f181.google.com [74.125.82.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE0993D7D9F
-	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 16:41:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5C00551982
+	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 16:44:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.82.181
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791996102; cv=pass; b=D5wWBSn8G6+0MsO5k+7BpkyuVHrewCb2uRYRUwk/WHJbKVrD65wrYTXIrdDROAAK6SgRYxIkQBs4Q/5KOkayAY2x9wDrgJZZrnvJvrXfWgS1iG9IUvayGArWCR9nw4TWiv9hdsJ6XmULcNnl99lTMdMJ8HlueIHkfeDatPwimsM=
+	t=1791996274; cv=pass; b=AXk9iz/wzuMe0UMmlVKnBm7HTu7hOA6tQE1SiarkyZFr4pw6X96jsBZJae+IDbF837WsNt+ET5xK+eHjRQRg2akGVyY81mXCT1vKMFxrbePXD2UInX6lY6fAfkwcAO/epCGDGoenBph9pDRDJCuWpyk74JB5dNe8Q3CuhI/UAUo=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791996102; c=relaxed/simple;
-	bh=3mwSDPTFjJGkaatL1Lo6Mh8o6JdUk3CgZRH07sGguXo=;
+	s=arc-20240116; t=1791996274; c=relaxed/simple;
+	bh=lG5fR4/c9rTkKwB+dH11HXxHn5DhiwcqDirk4k17QlI=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Av+NPMRDoIQwd4ENzDxLbq1XYwpMcgGAOcDvCW3aCrv5mXH7AaK0J6J+SEepvWWHFj/Jl4Hi4R8s6kvIObzjIGLm3pyu/UIbRalc5X5+O4QQbdiOAVI7SqqOfH2xRfBu8JucIFpTqOEID+U7t3eU+5/reekoq7mFZ1wh1n0vBJg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=CwJ71fpf; arc=pass smtp.client-ip=209.85.160.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	 To:Cc:Content-Type; b=uBDomy56JEj/XYTvkoab6gapc5MTyaHl2+H8UD3EJi86JVzxmOxNMAUYGAqrBlhaj30CNaDYcwv2RTJXSJE0j/11xITf9XmsZsVBOMZF1hmkMXXe2gK+rBg7mZFjGrFZ5uOnb0ZICl+iJIdITfWrG8xtxYaLB3vwPEmisJSk0LE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dG5LMeCX; arc=pass smtp.client-ip=74.125.82.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="CwJ71fpf"
-Received: by mail-qt1-f170.google.com with SMTP id d75a77b69052e-533202fe429so1289061cf.0
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 09:41:40 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1791996100; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dG5LMeCX"
+Received: by mail-dy1-f181.google.com with SMTP id 5a478bee46e88-3513f217933so38843eec.2
+        for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 09:44:32 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791996272; cv=none;
         d=google.com; s=arc-20260327;
-        b=sWvZoEN8QBVEa6fFvjxhdcxrvX2LhJif/ch5rxJ8CNSXqLTB7OtT8CB5UUArv1mwvi
-         hMb537QXELcGfe96l+LhF6Z+HI4ggZaFsNtEMngo+nhvPJEAl3pkh3p8VQO7Bf4KM9VS
-         norIqel1Wvgk6rMBRnnXjbEPeVANt6RXhnUif9cLxy2esr8FBL4ChvdKT/PndBFjhLJF
-         Cdkw8OjAkqPyq8G0h+Z3mrq0FLU4Zfi5JNa7XmEAUaXreMPJ/IydYB9qubrVXqVt2BR4
-         7+zMShaMPg4HxT78K3Jd26yg/OtL/evwSKG6Y0Cwkt+pnYJv7SKVgEB0n5ewq589PE8p
-         ntdw==
+        b=VYlIOKWVnQIBPfSlvhgEc89BP/Y0TZIqwUzz+ogQ3aiNB8zh6FKOc1z4i9rX9E8wKp
+         UXE07MtxpwLuJX3th/2Om/VwVCi1JLI63vVP+tKzHtBAoOMIwhCaX83jFeC+mzHR/kgf
+         nDKQM3fgUq2EC8It4IzKXWyWiMImEudDV8Ear626PDXQthSTpmDNwdmDHI6WaKEBtAYG
+         Y+K22+LvmD60soT2SMBU5OfO6/WaaBeWihxTqNYVj5TSnWaduPiyHBYUoybEWAwMAEOr
+         YCvr8PLypMmxp0V+Da2zF82/2hFL94Z5ApDim6NyPNQePpaobnI7/NtXGeG96K1cYyty
+         Wftw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=NIItl0pCQ/aBq2U1h8kgQBz3yZb99mdO46VMaoMNnUw=;
-        fh=eyYkxOEt8IGexR1HKucxTDpSEpv2OlSvUljD0YNBBzc=;
-        b=JlAqRyNin3Sque5liuxiogyNUD7JzBJ5H3+Tp1DVxbDZDPTEv4b5iucuuDhvtmd8Uc
-         cPTSdWDhpQX4YqOztC27FfIwcgDBdxnfvYO+QYjMjZdnO4yDWMM030CWwI2fVMXEbtMb
-         ItMJdU+gShhMab4z+53qkgBlAATg09hyGRNySAgGKCf5wFxKwyHp95xVVM3m1wssqSyl
-         s8cXPsp/zwgZ72toIUL8aG6owwIi27u70q3D0+sDWdrK/Kocz8c55gewkMVTY+zu+zxl
-         754aC7CzT0KESBfPdEBthyl/bkFvlAbib5PbnOSKKNbGrqEXwYI8+XmG1hkTGOI5LQ2q
-         /e3Q==;
+        bh=lG5fR4/c9rTkKwB+dH11HXxHn5DhiwcqDirk4k17QlI=;
+        fh=RiEibKH0r6Z8DRLeFLZo+oKuikRACc6DZ78sxunThbE=;
+        b=I4Qax/pZiH8hfa377EuhkKCKD0zXPgEmWNrr0lg4eFP7g1Wvqqtis/IoIQat4Yvakj
+         8bBAzzL4sH365MgON/fWdIdjy/wjBqA9Az9Wc8qsj21iY1mK1zXqQJyNFgXTmXvbRrPn
+         kBgHF8D+olEuNyWwAa8MPeOK1RIsGbP2gJ/3q6JdSJMf2MlzXI325dbA3Re0XD8q/9Fr
+         OBBZmKdUkiQLCqdMlEzUvmX9cKDm21BXUuKQgz3fHE1uGocSO81Fw8Ud4H+uCSrHjrfS
+         5FOC7fVgqW9rvYGQ6IfWVj7lQUbIyXJFouMMlt+Xf0aqxiucfSOri/WkbXGy+rJNmTWY
+         e3tQ==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1791996100; x=1792600900; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1791996272; x=1792601072; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=NIItl0pCQ/aBq2U1h8kgQBz3yZb99mdO46VMaoMNnUw=;
-        b=CwJ71fpf5+y9d7FQ5OPj4VQUkMx2Y/zScgcoVC0/m0gnttZZ9zBV8PLxtewfJ7QlOt
-         HdHW+QAJO8C7LzxX1RK1fDcK3aE6a8ij8n/ALNgPB+b8ixDq3LloP/oXBEekqZcRjsme
-         z2xA1D6muW/HSIYtm+iOl3j/uL6rYVbik2sHrK8yCS8DEISS21ww6jYWHuc5//ZMKDtl
-         D6uqMZxBfmoHSlQ3Jm44uS/8JfohOg/NIsx95xWOopwyvLPy88h06ZpGFP5UoquuC3g8
-         JGeeaYZgrJzcLd6TMzRpF94huSlRi5W/P+XLETSE3Y5rvBDUvb1hLPqRHcbHcqe+49F7
-         z6pA==
+        bh=lG5fR4/c9rTkKwB+dH11HXxHn5DhiwcqDirk4k17QlI=;
+        b=dG5LMeCXSiSbpubk/BTMkvWJ2dvIK7jFfkGhSVKuiPvEccVQI9eRP/pY4aiG8kSDk8
+         sybScDEKYa9pUjoob3fVfnbNdFtdkBXsSjpfjP+bPyBK5Chd00x6HJJ7X+HteLAY7JfU
+         o4429zXiiE7e1UOccLBxgzcZh+G/nI2B8bjb9YKWi7iAEGL16Iblz9B6MpdkbUl3G+Fk
+         3lPFokI++jDRZ0Cwvj1/64bOOygK5BR8VGYFxRHD7siF53FrkARVocKqUOcShcj0hkn2
+         gYiKlI7ykCQvFk94TVoBL/XLbOsKN6gefpMbeBOS/eufSnZP21bV5ckiClL1WUdGnm6v
+         +u4g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791996100; x=1792600900;
+        d=1e100.net; s=20260707; t=1791996272; x=1792601072;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=NIItl0pCQ/aBq2U1h8kgQBz3yZb99mdO46VMaoMNnUw=;
-        b=rll4j8nJdR2an7JD5LTLtWlY/SvjJygkrXKF7YIADaybeLRwIQdHGKdL1p5LfmB0fs
-         Ave2/98r2wwfsL0iEyiLU+/AuNcu536vdlEXsBWwfC+PzIk2iUH9phQJybL5grjh988D
-         mBwLDJuOK7Td6C5eVMdhZyf86Amc1ZEBMunvqq8n55Sl98sexOguxjqul0TDQ5FkqWlG
-         uTtE8aJU65nRbbE1pDcIZQAhzJ8CULnXkVeJhA/iyTwqLFD49hSQQRIG9QFT71GP9YSx
-         +3hmMJ5MyXzCJvfHeucu4CENQY0AseoRoB3YJqUiAM6nIZ2xWAg9+hrcrBs1dF3Fe961
-         Cgxw==
-X-Forwarded-Encrypted: i=1; AKwUvBwsvwWjWBUt821IdYLGZ58t2iGzaMdv5DUIlWcnivHOApD3m9Tk/D2btKa51GRvc1TVkMfplIvwwuYt@vger.kernel.org
-X-Gm-Message-State: AFq9FYI8rMac2+gOvTiqN06+2SOKAt+0U+AzL96KLFSVp7boEOikgOqR
-	C75Dw9aI8tegkq360VGozourJrkJnHGblpQ3pbBILKUbQTLNPyD0Oi1s9Txm2xsnHvBZbUggg+F
-	ilkHBqqX/1eRBNiMLkqakT+3jiKLMoYJ6j5syyAgt
-X-Gm-Gg: AYBFou0WNuqHjwgVVrpgh0OQIG2+x9s1oy9TBDsNcKiHZdDanmwrrNAfpUx3/roHVL8
-	9M22yC+9By9TjONHjQruRtpAnqBhNmeVDbEZydmFbKd8wNU7Dzuh+uXYYxbeX//JX79EQHSPvoh
-	48pTLB9MfxRJwPCahf45PAXYFV+X+MkNfGm4IVX4Dwwqqee7MAohtiHrbp+G4olxGJmT1iVIvln
-	pf5CyoElZBTI++M9oqQhr3yzLyWpxOWyDE0Lp2BgjIWaPTluk/x8CQFFIiZnzkN0LAhO705D34T
-	G44VWHKDzw/wJVHRbbCbOckMD125f8mtmKFzr5KUyDp16/jaBoFws0BCHI5ckmBHaEBaesMaLap
-	ZisOC2y0egA==
-X-Received: by 2002:a05:622a:1108:b0:533:9746:9a86 with SMTP id
- d75a77b69052e-5360573c96fmr14813151cf.5.1791996097367; Wed, 14 Oct 2026
- 09:41:37 -0700 (PDT)
+        bh=lG5fR4/c9rTkKwB+dH11HXxHn5DhiwcqDirk4k17QlI=;
+        b=b9BrqwsTcD8d0Vpi+3+lc3V0eHRfcV2y0vshRnMi/S8mFHDwull4Kv6sp6xynZTmJO
+         +QeHT6jtJ7OdR0YKTtxOni0OQC3/Rht/bvlfNn5Tkkobfhe0WqRoJ45JDg4+12tzYkzt
+         7qH2vsNiCWL6jiXlGrbbSrik/sEopeiO2xd2QI+2zW2rPCokoiM00ekIEb5qI5IRCnJl
+         GJOFBuHX5UtcBpPNoaIABdXBx/WTsM14kthUQy/J1JRsSS/8E5rs+ZRhtutujNvMB1jW
+         MxrOZtEkOEnltEOljzD92KDINOw8sUGXaenZqzfDDsf7Q9ExLLEHMdkbiZKLg8Er3Hb2
+         AUMw==
+X-Forwarded-Encrypted: i=1; AKwUvBzq7oUyugsoIfWXvo5bt+XyeEDc8KeLyozDpcBd+SZxBmnHLGwV33VRzVd5fC/L4UREXpMzbjQ6/4JT@vger.kernel.org
+X-Gm-Message-State: AFq9FYI6gbqe3TfRMcneNgeYbUukXF4fvFJxx3ycALPDU2QCZH/eNaKp
+	3uurH9tzVbMv6tV6ascenC6lySF23j3alLA1Gje1cReelALLJDRMKga/jwG1qW0XsVOpdUWjb6f
+	a25jIJgkwob2rC/tLEznneRa3lRpP/9g=
+X-Gm-Gg: AYBFou3v1kWpeugiTYUovAGwMbeyqIyTlRgsTKeEQyPuMrkVgF8Ez4ncyYw1B84i+R3
+	EBqTqYVPdwPR3gzh4IEp76H4VijbwpoG2LEifXRaX5gV4D1M9uWcEfXEo+nAuOxabJt7ntzr02C
+	P5Gb73oq/FZR7vSo1h01i4rZ37RKM0i+3bSVqPSemgj2G1/7jZXm/fgAJj5lk91sxqJGyfU/ynK
+	7VGgG+gEhxDKAWYsq9/kXxEFYO9ICj1fxgi3XsD7Je01w22wsff7aluLe9RJagtvYtmu+haidxV
+	QUYbhxZjf0CSFHibVrh08wWtmsqqUC9Q45VlShH3+TiGM6QWA4HId8f2sTwAhEodM3A/+irVQbx
+	hgy+d/mnBwpYSciUeR2sECc08pqrbGkbzGtcJOIynWat5iab8xrzsZ1JFKkkWH5IU4cICZGiN3H
+	uUnVu3I5ZO8whiRysHs9mJeao4hLxLRmE5jKTn3dA5GU9ApdLcpCQ=
+X-Received: by 2002:a05:7301:5413:b0:358:c9f3:b055 with SMTP id
+ 5a478bee46e88-358c9f3b260mr28158500eec.1.1791996271702; Wed, 14 Oct 2026
+ 09:44:31 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -86,13 +87,13 @@ MIME-Version: 1.0
 References: <20261013223946.1836757-1-irogers@google.com> <2026101425-why-boring-4f2d@gregkh>
  <202610140932.5F9CFCE5@keescook>
 In-Reply-To: <202610140932.5F9CFCE5@keescook>
-From: Ian Rogers <irogers@google.com>
-Date: Wed, 14 Oct 2026 09:41:25 -0700
-X-Gm-Features: AclHuK8_g-YOJgMR77fEpf5RTsveF4u_ERdXz6lvoN6wh_uF7KP8ZsaUSV1ti8A
-Message-ID: <CAP-5=fVLWh4uay2HGy6DOpZmtTr5WAd-TehAkN+P-pQgq_BZhg@mail.gmail.com>
+From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Date: Wed, 14 Oct 2026 18:44:18 +0200
+X-Gm-Features: AclHuK_d31yoge0njHjovdIQh7JfJY6W-PLjzMLBq14NjY-schAqigzEJUAQwG8
+Message-ID: <CANiq72=4WQ1B1oCSW=69u_Z=FFLE56hYCqDwWr+poQdzSTS31A@mail.gmail.com>
 Subject: Re: [PATCH 00/11] kobject: Require explicit initialization of struct kobj_type::release
-To: Kees Cook <kees@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rafael@kernel.org>, 
+To: Kees Cook <kees@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Ian Rogers <irogers@google.com>, "Rafael J . Wysocki" <rafael@kernel.org>, 
 	Danilo Krummrich <dakr@kernel.org>, Miguel Ojeda <ojeda@kernel.org>, 
 	Nathan Chancellor <nathan@kernel.org>, Nick Desaulniers <ndesaulniers@google.com>, 
 	Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, 
@@ -119,57 +120,7 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rafae
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 14, 2026 at 9:37=E2=80=AFAM Kees Cook <kees@kernel.org> wrote:
->
-> On Wed, Oct 14, 2026 at 07:36:41AM +0200, Greg Kroah-Hartman wrote:
-> > On Tue, Oct 13, 2026 at 03:39:35PM -0700, Ian Rogers wrote:
-> > > Clang supports the 'require_explicit_initialization' attribute on str=
-uct
-> > > fields to enforce that the field is explicitly initialized when an
-> > > aggregate object is constructed, emitting -Wuninitialized-explicit-in=
-it
-> > > (enabled by default) if the field is omitted.
-> > >
-> > > Following discussion at the Linux Plumbers Conference [1], this serie=
-s
-> > > introduces __require_explicit_initialization in
-> > > include/linux/compiler_attributes.h and applies it to
-> > > struct kobj_type::release.
-> >
-> > Cool, sorry I missed that talk.
->
-> Yeah, I'm really liking these compile-time checks. :)
->
-> >
-> > > As Documentation/core-api/kobject.rst notes:
-> > >   "One important point cannot be overstated: every kobject must have =
-a
-> > >   release() method, and the kobject must persist (in a consistent sta=
-te)
-> > >   until that method is called. If these constraints are not met, the =
-code
-> > >   is flawed."
-> > >
-> > > Annotating struct kobj_type::release caught 30 struct kobj_type
-> > > definitions across the tree that omitted .release:
-> > > - Patches 2-10 fix 10 struct kobj_type definitions where dynamically
-> > >   allocated kobjects, ksets, or enclosing structures were either leak=
-ed on
-> > >   kobject_put() or freed prematurely before kobject release (risking =
-a
-> > >   use-after-free when CONFIG_DEBUG_KOBJECT_RELEASE=3Dy).
-> > > - Patch 11 annotates struct kobj_type::release with
-> > >   __require_explicit_initialization and explicitly sets .release =3D =
-NULL
-> > >   (with explanatory comments) on the remaining legacy struct kobj_typ=
-e
-> > >   definitions whose kobjects are static, per-CPU, or embedded in devm=
-- or
-> > >   parent-managed structures.
-> >
-> > Sounds great, but let's fix up the users before adding the attribute.
-> > Looks like some of these need another version so it might take a bit of
-> > time to get them all merged.
+On Wed, Oct 14, 2026 at 6:37=E2=80=AFPM Kees Cook <kees@kernel.org> wrote:
 >
 > I'd really like to have the attribute available, and I've got at least
 > one user I can apply today that don't require fix-ups (seq_file), so
@@ -179,14 +130,18 @@ e
 > other subsystems to be able to use it. And the kobj fixups can continue
 > in parallel. Does that sounds okay?
 
-I'm happy with that. I'm working to address/incorporate the other
-feedback for a v2 of this series, but I can drop individual patches
-that have already been merged. Thanks, everyone, for the positive
-reception in getting this landed, I plan to follow up with patch
-series for the other uses I found.
+Of course, please feel free to pick it up (with the small tweak I
+requested) if you have a user.
 
-Thanks!
-Ian
+And if you don't pick the user, I could still pick the first patch up
+through the compiler attributes tree if you and other folks want to
+use it after -rc1.
 
-> --
-> Kees Cook
+Greg: adding the attribute itself should be safe and would unblock
+others that may want to "protect" themselves, without having to wait
+for every potential user to get fixed (but of course I agree they
+should get fixed -- we should not forget about them, if that is your
+concern).
+
+Cheers,
+Miguel
