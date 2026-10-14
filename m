@@ -1,114 +1,136 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9692560ADB
-	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 18:13:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 685FD568FDA
+	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 18:27:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792001592; cv=none; b=dFVJ3/w+oP/ECU1tyLaAJvVR7uQi+K6+WIKUZ5FG8wGC/7vo1qn++A7Y0HSv2Hn1jISiz1QuyG0xWwHmMxxwOYZTnVn02TsBkBipaS9UtpfJz6j3GRYKQI224deibB35WCE/Dc/78+CdgDcKvQOLDt56N/1NgjN9989ND5sPBNA=
+	t=1792002480; cv=none; b=NnMKppAR5QV4UH1y/DktpEspRZj34ggCPqyLmKuJj2mDMfZJW0kJ2n40+4oojWBHp8/0UcstbJBdynUysa2YNfM3G7DGsTlcAssHs8POUAIF9VIPNN7D5wEABOJ/deh1gn+yc7fWE2VFYlPLjpAXn+0xjGULQfWlbkneoXTV6yw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792001592; c=relaxed/simple;
-	bh=qCVt23NPLz+BzoAjfmW00Y/LFtzE1ShjP0EoMBiCiHs=;
+	s=arc-20240116; t=1792002480; c=relaxed/simple;
+	bh=nAroKvIACtGOnopAxFWfh9fbac/LyBnxMxfOk2f9qtQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=pJUBhGcyGx6QeJbuffATv9ynAcq1sfzCZR4CuHbDkBOravjfincuVyiy9eHswy4sslT1anyALHngRPDe9B9Mhmp4+SYiRMOGeaqVYU906zvkLbLDO3bVPljI3hnHAf7z27GEHFSrsGt/7gw0yJCP4klcy9VN2hW76nUrDalARuI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hImGocuO; arc=none smtp.client-ip=100.103.45.18
+	 To:Cc:Content-Type; b=dbEwCIgBx+fr+zyU2zskjT+dXsIeoXw6sOFjNcqLUrDHueksNX6WG/JXaqgbhN7LQ5E9T2iSMOUaUiXMmFiKqyFCcEEsPn2qf1UvfojVfJqKydy4rLZ8HKWdt+ViUAXDCOS+OY0mub9AftHUkTDuJr+r/rdL/zjBW3KeJ9VMgbY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UlLNBEfw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hImGocuO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AF811F000C7
-	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 18:13:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UlLNBEfw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E06D51F000C4
+	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 18:27:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792001591;
-	bh=sFBK0Ld7Sq4nf3GX+t6/QlOXpIDT+j0rm9SIXjlrgZg=;
+	s=k20260515; t=1792002477;
+	bh=YSe10uDOb6rtPjA4PiXDX2T2zkuaMNvu+zSLR+jhY4A=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=hImGocuO0FaryyRAUlKb9/7Pj/W7gJ3wvJ27cp2EvfQJh5zcRFirWV+xdXEekwRYt
-	 BNM2Y/BfQ0WNy7VMYeCiY3M0nAQCsV/U21s23xNoZF3QgBS1+HRUYpovRFgWG1KNmw
-	 PcteKm19GHYj4Urx0sLJUJ3O//hdDdsS/VV0pV1wZsHGvRCf/BdpPNVyOX2pYtF9T4
-	 IXHCO1ydVqLTqQMLJCzOs89sjte7v46LC2990TvqL0fpTFyvCWk/yYRj5DbtkQqgC2
-	 CnOLleCuLSJvfVU9BqTcRqq/o9KztwYJWkfCJ4wJl2blbD7peNHIsIY8hRpXfxJMkl
-	 VKKg3Q12OOx3A==
-Received: by mail-lf1-f46.google.com with SMTP id 2adb3069b0e04-5bce4e278baso1431002e87.0
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 11:13:11 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBzTESY/KtCUIri5bLdz6FuAKJpIaE9KR/ArCG2qlTbhP6pDTvd8Tx8RFsOnvBALpkRsrr43sozYACHE@vger.kernel.org
-X-Gm-Message-State: AFq9FYKJ92shfpl8l5sRElD+JwKpiR0OH7MqNF3lWkcKzmSS5yY1a8lu
-	u491DdBZGUCs4j8KiRnBgazjkbKVSZ5+ifp4AXtxASSjqdLGXthG0Kqd3NSdacRMevPrlCVhVWX
-	GYzBBvr78CFzvY86LSqCqIlfPLQRz11U=
-X-Received: by 2002:ac2:51c8:0:b0:5bc:f2d3:f949 with SMTP id
- 2adb3069b0e04-5be37942bc8mr721935e87.25.1792001589751; Wed, 14 Oct 2026
- 11:13:09 -0700 (PDT)
+	b=UlLNBEfwG9nPSdPav/0OWYsj892BH3DzagMvnhzHAvFKHfvdhp9uHpW6Y5E+wSfQG
+	 U/cXbHqxFXuAOJjPdEoVQzfGfkA5nKE8GWfLMi+7uS8SAmuSN7O+0avixeYniG5Z5V
+	 v9T1xKzkqRM+jbwFcLe9LCMSeWS2/oDM7jKx/uTbDfEb/g9Tt8p74ODrNOMLEHt8cn
+	 Dupp6nU/XWMUcjMQurFsV72CqtIZXyCfnkNzWRDA8ErJeLknOxLFGdaCoqTh+vAq5S
+	 4fIpHs7NP4HQTw/pICBWiXx++LybeOy9Hcgu+/eKey0Vq9zkvjIo0erXjqmCc1qLdS
+	 TBgOi3uZ/8nTw==
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5bcdab9a82bso5192830e87.3
+        for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 11:27:57 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBxlh1fkZ1PrvRiTzfDN05HkbBjQm0ehT50JCmQSL77YF98S3GAEzVq0rnrbNPeKsEguEE3vlS6dxtoz@vger.kernel.org
+X-Gm-Message-State: AFq9FYJbW1PjQZId7ConUImN8ZacqZhxYYlu01FDLvHDxnYKBMCdrpZN
+	IXsB9qgSDKfmqYD7uX0PYOYeGZSstSKolhO1dh4A5eiI5Beg186YgYWURawKMA5mVnN3FGrEnc6
+	IP8wXGEJVnnqRA4u3DWWFIuxCcWMokCs=
+X-Received: by 2002:a05:6512:1290:b0:5ba:3c46:bc4e with SMTP id
+ 2adb3069b0e04-5bcde8c1f26mr6311591e87.47.1792002476317; Wed, 14 Oct 2026
+ 11:27:56 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260923082932.1049270-1-uajain@igalia.com> <20260923082932.1049270-2-uajain@igalia.com>
- <CAJZ5v0i0UPcGiiAxNbjUnzn=8D2jcTCo_wtM8aMbOKhqb37EDA@mail.gmail.com> <497522185b0d5edd0898edab04934d2a@igalia.com>
-In-Reply-To: <497522185b0d5edd0898edab04934d2a@igalia.com>
+References: <20261013074245.4327-1-krittikunwongnin@gmail.com>
+In-Reply-To: <20261013074245.4327-1-krittikunwongnin@gmail.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 14 Oct 2026 20:11:02 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0jmFT_eV+f9majTDTCLV4m0eNCR5RurdpcAqrFYYZQrGA@mail.gmail.com>
-X-Gm-Features: AclHuK8OWDKJgitWmaduupJ1CDDdVRxSuDyCn1-asoiak_irYygGw2Sb06VwtQM
-Message-ID: <CAJZ5v0jmFT_eV+f9majTDTCLV4m0eNCR5RurdpcAqrFYYZQrGA@mail.gmail.com>
-Subject: Re: [PATCH v2 1/2] acpi: battery: Query Battery charge time ("_BCT") method
-To: Umang Jain <uajain@igalia.com>
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, kernel-dev@igalia.com
+Date: Wed, 14 Oct 2026 20:25:48 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hdtMx2QGadPQdcn28=YR=ApNWttTU5tCPoRYmweZbWmA@mail.gmail.com>
+X-Gm-Features: AclHuK8OY2yNweAZuBpywP457DFYTBO-ran8UrM_Hy3vYE7dmh3IxJuLlz6yQ9E
+Message-ID: <CAJZ5v0hdtMx2QGadPQdcn28=YR=ApNWttTU5tCPoRYmweZbWmA@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: PM: Add Acer Aspire A515-53G to dmi_leave_unused_power_resources_on
+To: Krittikun Wongnin <krittikunwongnin@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	Lukas Wunner <lukas@wunner.de>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 14, 2026 at 7:31=E2=80=AFPM Umang Jain <uajain@igalia.com> wrot=
-e:
+On Tue, Oct 13, 2026 at 9:43=E2=80=AFAM Krittikun Wongnin
+<krittikunwongnin@gmail.com> wrote:
 >
-> On 2026-10-12 17:15, Rafael J. Wysocki (Intel) wrote:
-> > On Wed, Sep 23, 2026 at 10:28=E2=80=AFAM Umang Jain <uajain@igalia.com>=
- wrote:
-> >>
-> >> Add plumbing for querying the Battery Charge Time ("_BCT") method.
-> >> If present, set ACPI_BATTERY_BCT_PRESENT in battery flags to denote
-> >> that the method is supported in ACPI.
-> >>
-> >> Signed-off-by: Umang Jain <uajain@igalia.com>
-> >> ---
-> >>  drivers/acpi/battery.c | 17 +++++++++++++++++
-> >>  1 file changed, 17 insertions(+)
-> >>
-> >> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> >> index 670853ec3a4d..a1b7a821abaf 100644
-> >> --- a/drivers/acpi/battery.c
-> >> +++ b/drivers/acpi/battery.c
-> >> @@ -76,6 +76,7 @@ MODULE_DEVICE_TABLE(acpi, battery_device_ids);
-> >>  enum {
-> >>         ACPI_BATTERY_ALARM_PRESENT,
-> >>         ACPI_BATTERY_XINFO_PRESENT,
-> >> +       ACPI_BATTERY_BCT_PRESENT,
-> >>         ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY,
-> >>         /* On Lenovo Thinkpad models from 2010 and 2011, the power uni=
-t
-> >>          * switches between mWh and mAh depending on whether the syste=
-m
-> >> @@ -110,6 +111,7 @@ struct acpi_battery {
-> >>
-> >>         struct mutex property_lock; /* Protects properties below. */
-> >>         unsigned long update_time;
-> >> +       unsigned long long charge_time;
-> >
-> > This doesn't need to be unsigned long long.  As per the spec, unsigned
-> > int should be sufficient.
+> On the Acer Aspire A515-53G (Whiskey Lake + NVIDIA GeForce MX230), the
+> dGPU behind root port RP05 (00:1c.4) falls off the bus during boot and
+> is unusable until the next power cycle:
 >
-> Last thing before I send out v3, this is the function param-type for the
-> acpi_evaluate_integer()
+>   nvidia 0000:02:00.0: Unable to change power state from D3cold to D0, de=
+vice inaccessible
+>   NVRM: The NVIDIA GPU 0000:02:00.0 ... has fallen off the bus
 >
-> In include/acpi/acpi_bus.h,
+> The firmware ships two SSDTs which both provide power management for
+> the dGPU:
 >
-> acpi_status
-> acpi_evaluate_integer(acpi_handle handle,
->                       acpi_string pathname,
->                       struct acpi_object_list *arguments, unsigned long l=
-ong *data);
+>  - One SSDT defines \_SB.PCI0.RP05.PC01 together with
+>    RP05._PR0/_PR2/_PR3 =3D { PC01 }.
+>
+>  - A second SSDT defines \_SB.PCI0.RP05.PCRP (_STA initially One,
+>    _OFF calls \_SB.PCI0.HGOF, which puts the link into L2/L3 and drops
+>    the dGPU power enable GPIO) and its own RP05._PR0/_PR2/_PR3/_S0W.
+>    The latter fail to load:
+>
+>      ACPI BIOS Error (bug): Failure creating named object [\_SB.PCI0.RP05=
+._PR0], AE_ALREADY_EXISTS
+>
+> As a result PCRP is not referenced by any device and
+> acpi_turn_off_unused_power_resources() turns it off right after the
+> ACPI namespace scan. This cuts power to the dGPU, but PC01 still
+> believes it is on, so its _ON method is a no-op when the PCI core later
+> tries to bring the GPU back to D0.
+>
+> Windows does not turn off unused power resources, so the dGPU works
+> there.
+>
+> Add the machine to dmi_leave_unused_power_resources_on, like the
+> THUNDEROBOT ZERO which has a similar SSDT bug. With this change the
+> dGPU stays on the bus and the nvidia driver binds. Runtime PM of the
+> dGPU is unaffected, as it is handled through PC01: with no driver
+> bound and power/control set to auto, RP05 reaches D3cold and the GPU
+> comes back to D0 on resume.
+>
+> Link: https://lore.kernel.org/r/CADS-TgDQ1G8vrTQLJeQ3RTBVFTyMe0C+5p2=3DUB=
+KS=3DEFCDFuaxw@mail.gmail.com/
+> Signed-off-by: Krittikun Wongnin <krittikunwongnin@gmail.com>
+> ---
+>  drivers/acpi/power.c | 13 +++++++++++++
+>  1 file changed, 13 insertions(+)
+>
+> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+> index 23a4e207a..cf36dee56 100644
+> --- a/drivers/acpi/power.c
+> +++ b/drivers/acpi/power.c
+> @@ -1121,6 +1121,19 @@ static const struct dmi_system_id dmi_leave_unused=
+_power_resources_on[] =3D {
+>                 }
+>
+>         },
+> +       {
+> +               /*
+> +                * Acer Aspire A515-53G: Two SSDTs both define power reso=
+urces
+> +                * for the dGPU root port RP05 ('PC01' and 'PCRP'). Only =
+PC01 ends
+> +                * up in RP05's _PR0/_PR3, so 'PCRP' is shut down on
+> +                * initialization, cutting power to the NVIDIA dGPU behin=
+d the
+> +                * back of 'PC01' and making the dGPU unavailable.
+> +                */
+> +               .matches =3D {
+> +                       DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+> +                       DMI_MATCH(DMI_PRODUCT_NAME, "Aspire A515-53G"),
+> +               },
+> +       },
+>         {}
+>  };
+>
+> --
 
-Yes, so you need an unsigned long long for calling that function, but
-then you can copy the value to a variable of a different type (a u32,
-say) if the given object is defined to return a value within the scope
-of that type.  Of course, you should validate the returned value
-before doing so, but it generally needs to be validated before being
-used anyway.
+Applied as 7.4 material, thanks!
