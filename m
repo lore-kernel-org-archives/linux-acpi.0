@@ -1,193 +1,138 @@
-Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.4])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCCC8175A5;
-	Wed, 14 Oct 2026 01:33:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A86E21FC0;
+	Wed, 14 Oct 2026 01:50:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791941596; cv=none; b=sig1/04a3UUD69kXRRvn3B2C2WBkhpe8NGepqv4bjp8ai36vkk6rnaN0YQvbICy2hbX5Xlj3Q8ahhLoKapzaU3H+NSsL/pUyttCGyfeFfg89fdV/LzlFFQihr/n6rvyCJTJcuY8vwOcCtgSLBvJtpbjlYf90QEPzec+zk5a+8Xk=
+	t=1791942659; cv=none; b=gVXl43bbo7tesnHeFyLbRTPqLOXmTNaFOeMoDCg/WaQt2+YLUYe/JL0h7JLqMlwDEfACJ+ArXf2do41ort9Pj2S5eMKXw3wGdJjkqnvuChPpW6FCzUGxhBV77X7Pt2ZcaVk0/cr1TBx+3MAfoRVAKZMzPhadIUqDoyMuowQOm14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791941596; c=relaxed/simple;
-	bh=NWnE0cMzkmnyUbateolzE8wHOGvvE7dxDjnvCLoOV/0=;
-	h=From:Subject:To:Cc:Date:Message-ID:MIME-Version:Content-Type; b=RqJ3CNf1l/0yWU3geBjSmEu0R/7qRP7XsNFxMQ3ilF/Zqiuea05Yu0ghRwxuvABmnRvZblHm+4kIiBnMnl5UrRhS/TJB0RT9yqc55/NcpaQt3I4vlqSXDuiPHa+QX62yzbYQjYebhEK+y5LV36XxlK9c5iniJ0ZXglWbEUg+VsQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
-X-UUID: 34d838a4c76f11f19a56ed5b684f684d-20261014
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.3.19,REQID:d7038ee9-ac65-4eaa-b156-a47cc7d832b6,IP:0,U
-	RL:0,TC:0,Content:-25,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTIO
-	N:release,TS:-25
-X-CID-META: VersionHash:7db8b62,CLOUDID:ab31c7ee28aad40c3eb20528a3f911a8,BulkI
-	D:nil,BulkQuantity:0,SF:83|102|136|865|898,TC:0,Content:0|14|51|99|100|101
-	|102|116|156,EDM:40|-100,IP:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:
-	nil,COL:0,OSI:0,OSA:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
-X-CID-BVR: 2,SSN|SDN
-X-CID-BAS: 2,SSN|SDN,0,_
-X-CID-FACTOR: TF_CID_SPAM_SNR
-X-CID-RHF: 20453CB31B369A67E398D48F3899EA1A
-X-UUID: 34d838a4c76f11f19a56ed5b684f684d-20261014
-Received: from node2 [(10.44.16.64)] by mailgw.kylinos.cn
-	(envelope-from <liujinlong@kylinos.cn>)
-	(Generic MTA)
-	with ESMTP id 1885641984; Wed, 14 Oct 2026 09:33:06 +0800
-Received: from node2 (localhost [127.0.0.1])
-	by node2 (NSMail) with SMTP id 8CE9F6C03960D;
-	Wed, 14 Oct 2026 09:33:06 +0800 (CST)
-Received: by node2 (NSMail, from userid 10001)
-	id AA3796C039606; Wed, 14 Oct 2026 09:31:53 +0800 (CST)
-From: =?UTF-8?B?5YiY6YeR6b6Z?= <liujinlong@kylinos.cn>
-Subject: =?UTF-8?B?5Zue5aSNOiBSZTogW1BBVENIXSBBQ1BJOiBidXR0b246IFN1cHBvcnQgc2VwYXJhdGUgcHJlc3MgYW5kIHJlbGVhc2UgZXZlbnRz?=
-To: =?UTF-8?B?UmFmYWVsIEouIFd5c29ja2kgKEludGVsKQ==?= <rafael@kernel.org>
-Cc: =?UTF-8?B?TGVuIEJyb3du?= <lenb@kernel.org>,
-	=?UTF-8?B?bGludXgtYWNwaQ==?= <linux-acpi@vger.kernel.org>,
-	=?UTF-8?B?bGludXgta2VybmVs?= <linux-kernel@vger.kernel.org>,
-	=?UTF-8?B?bGl1amlubG9uZw==?= <liujinlong@kylinos.cn>
-Date: Wed, 14 Oct 2026 09:31:53 +0800
-X-Mailer: NSMAIL 8.2
-Message-ID: <4oondq2thaaj-4oot1wdkden0@nsmail8.2--kylin--1>
-X-Israising: 0
-X-Seclevel-1: 0
-X-Seclevel: 0
-X-Delaysendtime: Wed, 14 Oct 2026 09:31:53 +0800
+	s=arc-20240116; t=1791942659; c=relaxed/simple;
+	bh=+B+uyvx9Iw9ATQqOyIU5cndaMT4KyQf+Zz6HrXr9nbw=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=o/2nEAuXzS4g/WWBAcXW89QzJl4isBieRp11IHzl9rRoGwrnh4Pl364HnHipS/kO1tyqvcfScmyz2wRtmSd42Te8LYHbRWQTW2krOYprNYRHZ6GoUvf3+80FWiNhDBShlvg60oY5HUm0fpJ+j4BafzcjImIfI8Ju1t/HTjWkZ0E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=acNEavqO; arc=none smtp.client-ip=220.197.31.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="acNEavqO"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=kw
+	rMt3W8ZV1DNCUMW2T5/dYRmEwoznw1MEYsa+uUAc0=; b=acNEavqOH5qKArs3Qc
+	r/1oE5mrHTFAARCvOUAObQGDeYME6fDwQ0aAeD3HUnuCHzpLclqYgpZY8iYPpuiq
+	74G8zrMIqlmcsyP7WWikpPlOAheZQLwOF81skGNCVSfa06RaxEs1VEdjnBONUz0m
+	ytlREP1A2e/Qp3DKYEdYqIIAM=
+Received: from localhost.localdomain (unknown [])
+	by gzsmtp2 (Coremail) with SMTP id PSgvCgDnIMPr385qTgZdEA--.54482S2;
+	Wed, 14 Oct 2026 09:50:36 +0800 (CST)
+From: liujinlong176@163.com
+To: rafael@kernel.org
+Cc: lenb@kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	liujinlong <liujinlong@kylinos.cn>
+Subject: [PATCH v2] ACPI: button: Evaluate _PSB to determine power button state
+Date: Wed, 14 Oct 2026 09:50:34 +0800
+Message-Id: <20261014015034.2248352-1-liujinlong176@163.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20261013063856.1755787-1-liujinlong176@163.com>
+References: <20261013063856.1755787-1-liujinlong176@163.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary=nsmail-4twksxfnka5a-4twoparjjv4v
-X-ns-mid: webmail-6acedb89-4pip83it
-X-ope-from: <liujinlong@kylinos.cn>
-X-receipt: 0
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:PSgvCgDnIMPr385qTgZdEA--.54482S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxJFy7urWkAw4ftrWfWw18Grg_yoW5Wr4Upr
+	Z8KayS93y5Kan7X3Wavr1UuryYk34xKr15GrsrAa4fZa15WryrArZrtryjva1UC3s2qa1q
+	qa1DtFs0kF4UA3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jozuXUUUUU=
+X-CM-SenderInfo: xolxyxxqor0wqrxwqiywtou0bp/xtbC5wyBlGrO3+x89gAA3j
 
-This message is in MIME format.
+From: liujinlong <liujinlong@kylinos.cn>
 
---nsmail-4twksxfnka5a-4twoparjjv4v
-Content-Type: text/html; charset="UTF-8"
-Content-Transfer-Encoding: base64
+The ACPI button driver always synthesizes a press followed by an
+immediate release upon receiving a 0x80 notify.  This prevents
+userspace from determining the actual duration of a power button
+press.
 
-PGRpdiBzdHlsZT0iZm9udC1mYW1pbHk6TWljcm9zb2Z0IFlhSGVpO2ZvbnQt
-c2l6ZToxNHB4O2NvbG9yOiMwMDAwMDA7IiBjbGFzcz0ibF9ub2RlX2hhc19j
-b2xvciI+PGRpdj5PbiBXZWQsIE9jdCAxNCwgMjAyNiBhdCAxOjMxIEFNIFJh
-ZmFlbCBKLiBXeXNvY2tpICZsdDtyYWZhZWxAa2VybmVsLm9yZyZndDsgd3Jv
-dGU6PC9kaXY+CjxkaXY+Jmd0OzwvZGl2Pgo8ZGl2PiZndDsgWW91J2QgbmVl
-ZCB0byB1cGRhdGUgdGhlIEFDUEkgc3BlY2lmaWNhdGlvbiBmaXJzdCBhcyB0
-aGF0J3Mgd2hlcmUgdGhlPC9kaXY+CjxkaXY+Jmd0OyBub3RpZmljYXRpb24g
-dmFsdWVzIGFyZSBkZWZpbmVkLjwvZGl2Pgo8ZGl2PiZuYnNwOzwvZGl2Pgo8
-ZGl2PlRoYW5rIHlvdSBmb3IgdGhlIHJldmlldywgUmFmYWVsLjwvZGl2Pgo8
-ZGl2PiZuYnNwOzwvZGl2Pgo8ZGl2PllvdSdyZSByaWdodC4mbmJzcDsgSSds
-bCBkcm9wIHRoZSBuZXcgbm90aWZ5IHZhbHVlcyBhbmQgdGFrZSBhIGRpZmZl
-cmVudDwvZGl2Pgo8ZGl2PmFwcHJvYWNoIGluIHYyOiBldmFsdWF0ZSBhIF9Q
-U0IgY29udHJvbCBtZXRob2Qgd2hlbiB0aGUgZXhpc3RpbmcgMHg4MDwvZGl2
-Pgo8ZGl2Pm5vdGlmaWNhdGlvbiBpcyByZWNlaXZlZCB0byBkZXRlcm1pbmUg
-dGhlIHJlYWwgYnV0dG9uIHN0YXRlLiZuYnNwOyBObyBBQ1BJPC9kaXY+Cjxk
-aXY+c3BlY2lmaWNhdGlvbiBjaGFuZ2UgaXMgbmVlZGVkLCBhbmQgaWYgX1BT
-QiBpcyBhYnNlbnQgdGhlIGN1cnJlbnQ8L2Rpdj4KPGRpdj5wcmVzcytyZWxl
-YXNlIGJlaGF2aW9yIGlzIHByZXNlcnZlZC48L2Rpdj4KPGRpdj4mbmJzcDs8
-L2Rpdj4KPGRpdj5JJ2xsIHNlbmQgdjIgc2hvcnRseS48L2Rpdj4KPHA+Jm5i
-c3A7PC9wPgo8ZGl2IGlkPSJzaWduYXR1cmVUb3AiPjwvZGl2Pgo8ZGl2IGlk
-PSJjczJjX3JlIiBzdHlsZT0ibWFyZ2luLWxlZnQ6IDAuNWVtOyBwYWRkaW5n
-LWxlZnQ6IDAuNWVtOyBib3JkZXItbGVmdDogMXB4IHNvbGlkICNjYWNhY2E7
-IC13ZWJraXQtdXNlci1tb2RpZnk6IHJlYWQtb25seTsgLW1vei11c2VyLW1v
-ZGlmeTogcmVhZC1vbmx5OyAtbXMtdXNlci1tb2RpZnk6IHJlYWQtb25seTsg
-LW8tdXNlci1tb2RpZnk6IHJlYWQtb25seTsiPjxicj48YnI+PGJyPgo8ZGl2
-IHN0eWxlPSJiYWNrZ3JvdW5kLWNvbG9yOiAjZjhmOGY4OyBwYWRkaW5nOiA4
-cHggMTBweDsgZm9udC1mYW1pbHk6IE1pY3Jvc29mdCBZYUhlaTsgZm9udC1z
-aXplOiAxNHB4OyBjb2xvcjogIzAwMDsiPjxzdHJvbmc+5Li7Jm5ic3A7Jm5i
-c3A7Jm5ic3A76aKY77yaPC9zdHJvbmc+PHNwYW4gaWQ9ImNzMmNfc3ViamVj
-dCI+UmU6IFtQQVRDSF0gQUNQSTogYnV0dG9uOiBTdXBwb3J0IHNlcGFyYXRl
-IHByZXNzIGFuZCByZWxlYXNlIGV2ZW50czwvc3Bhbj4gPGJyPjxzdHJvbmc+
-5pelJm5ic3A7Jm5ic3A7Jm5ic3A75pyf77yaPC9zdHJvbmc+PHNwYW4gaWQ9
-ImNzMmNfZGF0ZSI+MjAyNuW5tDEw5pyIMTTml6UwMTozMTwvc3Bhbj4gPGJy
-PjxzdHJvbmc+5Y+R5Lu25Lq677yaPC9zdHJvbmc+PHNwYW4gaWQ9ImNzMmNf
-ZnJvbSI+UmFmYWVsIEouIFd5c29ja2kgKEludGVsKTwvc3Bhbj4gPGJyPjxz
-dHJvbmc+5pS25Lu25Lq677yaPC9zdHJvbmc+PHNwYW4gaWQ9ImNzMmNfdG8i
-IHN0eWxlPSJ3b3JkLWJyZWFrOiBicmVhay1hbGw7Ij5saXVqaW5sb25nMTc2
-LFJhZmFlbCBKLiBXeXNvY2tpIChJbnRlbCk8L3NwYW4+IDxicj48c3Ryb25n
-PuaKhOmAgeS6uu+8mjwvc3Ryb25nPjxzcGFuIGlkPSJjczJjX3RvIiBzdHls
-ZT0id29yZC1icmVhazogYnJlYWstYWxsOyI+UmFmYWVsIEogLiBXeXNvY2tp
-LExlbiBCcm93bixsaW51eC1hY3BpLGxpbnV4LWtlcm5lbDwvc3Bhbj48L2Rp
-dj4KPGJyPgo8ZGl2IGlkPSJjczJjX2NvbnRlbnQiPk9uIFR1ZSwgT2N0IDEz
-LCAyMDI2IGF0IDg6MznigK9BTSAmbHQ7bGl1amlubG9uZzE3NkAxNjMuY29t
-Jmd0OyB3cm90ZTogJmd0OyAmZ3Q7IEZyb206IGxpdWppbmxvbmcgJmx0O2xp
-dWppbmxvbmdAa3lsaW5vcy5jbiZndDsgJmd0OyAmZ3Q7IFRoZSBBQ1BJIGJ1
-dHRvbiBkcml2ZXIgb25seSByZWNvZ25pemVzIG5vdGlmeSB2YWx1ZSAweDgw
-IGFuZCAmZ3Q7IGFsd2F5cyBzeW50aGVzaXplcyBhIHByZXNzIGZvbGxvd2Vk
-IGJ5IGFuIGltbWVkaWF0ZSByZWxlYXNlLiAmZ3Q7IFRoaXMgbWFrZXMgaXQg
-aW1wb3NzaWJsZSBmb3IgdXNlcnNwYWNlIHRvIGRldGVybWluZSB0aGUgYWN0
-dWFsICZndDsgZHVyYXRpb24gb2YgYSBwb3dlciBidXR0b24gcHJlc3MuICZn
-dDsgJmd0OyBBZGQgdHdvIG5ldyBub3RpZnkgdmFsdWVzLCAweDgxIGFuZCAw
-eDgyLCB0aGF0IGZpcm13YXJlIGNhbiB1c2UgJmd0OyB0byByZXBvcnQgdGhl
-IHByZXNzIGFuZCB0aGUgcmVsZWFzZSBzZXBhcmF0ZWx5LiBUaGUgMHg4MCBw
-YXRoICZndDsgaXMgdW5jaGFuZ2VkIGZvciBjb21wYXRpYmlsaXR5IHdpdGgg
-ZXhpc3RpbmcgZmlybXdhcmUuIFlvdSdkIG5lZWQgdG8gdXBkYXRlIHRoZSBB
-Q1BJIHNwZWNpZmljYXRpb24gZmlyc3QgYXMgdGhhdCdzIHdoZXJlIHRoZSBu
-b3RpZmljYXRpb24gdmFsdWVzIGFyZSBkZWZpbmVkLiAmZ3Q7IE1vdmUgdGhl
-IG5vdGlmeSB2YWx1ZSBkZWZpbml0aW9ucyB0byBpbmNsdWRlL2FjcGkvYnV0
-dG9uLmggc28gJmd0OyB0aGV5IGNhbiBiZSBzaGFyZWQgYmV0d2VlbiB0aGUg
-ZHJpdmVyIGFuZCBvdGhlciB1c2Vycy4gJmd0OyAmZ3Q7IFNpZ25lZC1vZmYt
-Ynk6IGxpdWppbmxvbmcgJmx0O2xpdWppbmxvbmdAa3lsaW5vcy5jbiZndDsg
-Jmd0OyAtLS0gJmd0OyBkcml2ZXJzL2FjcGkvYnV0dG9uLmMgfCAyNCArKysr
-KysrKysrKysrKysrKystLS0tLS0gJmd0OyBpbmNsdWRlL2FjcGkvYnV0dG9u
-LmggfCA0ICsrKysgJmd0OyAyIGZpbGVzIGNoYW5nZWQsIDIyIGluc2VydGlv
-bnMoKyksIDYgZGVsZXRpb25zKC0pICZndDsgJmd0OyBkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy9hY3BpL2J1dHRvbi5jIGIvZHJpdmVycy9hY3BpL2J1dHRvbi5j
-ICZndDsgaW5kZXggY2RiYjEwMjNhOGVlLi5iNzJlZDlmYzQyOWQgMTAwNjQ0
-ICZndDsgLS0tIGEvZHJpdmVycy9hY3BpL2J1dHRvbi5jICZndDsgKysrIGIv
-ZHJpdmVycy9hY3BpL2J1dHRvbi5jICZndDsgQEAgLTI2LDcgKzI2LDYgQEAg
-Jmd0OyAjZGVmaW5lIEFDUElfQlVUVE9OX0ZJTEVfU1RBVEUgInN0YXRlIiAm
-Z3Q7ICNkZWZpbmUgQUNQSV9CVVRUT05fVFlQRV9VTktOT1dOIDB4MDAgJmd0
-OyAjZGVmaW5lIEFDUElfQlVUVE9OX05PVElGWV9XQUtFIDB4MDIgJmd0OyAt
-I2RlZmluZSBBQ1BJX0JVVFRPTl9OT1RJRllfU1RBVFVTIDB4ODAgJmd0OyAm
-Z3Q7ICNkZWZpbmUgQUNQSV9CVVRUT05fQ0xBU1NfUE9XRVIgImJ1dHRvbi9w
-b3dlciIgJmd0OyAjZGVmaW5lIEFDUElfQlVUVE9OX0RFVklDRV9OQU1FX1BP
-V0VSICJQb3dlciBCdXR0b24iICZndDsgQEAgLTQ2NSw3ICs0NjQsOCBAQCBz
-dGF0aWMgdm9pZCBhY3BpX2J1dHRvbl9ub3RpZnkoYWNwaV9oYW5kbGUgaGFu
-ZGxlLCB1MzIgZXZlbnQsIHZvaWQgKmRhdGEpICZndDsgJmd0OyBzd2l0Y2gg
-KGV2ZW50KSB7ICZndDsgY2FzZSBBQ1BJX0JVVFRPTl9OT1RJRllfU1RBVFVT
-OiAmZ3Q7IC0gYnJlYWs7ICZndDsgKyBjYXNlIEFDUElfQlVUVE9OX05PVElG
-WV9QUkVTUzogJmd0OyArIGNhc2UgQUNQSV9CVVRUT05fTk9USUZZX1JFTEVB
-U0U6ICZndDsgY2FzZSBBQ1BJX0JVVFRPTl9OT1RJRllfV0FLRTogJmd0OyBi
-cmVhazsgJmd0OyBkZWZhdWx0OiAmZ3Q7IEBAIC00ODIsMTAgKzQ4MiwyMiBA
-QCBzdGF0aWMgdm9pZCBhY3BpX2J1dHRvbl9ub3RpZnkoYWNwaV9oYW5kbGUg
-aGFuZGxlLCB1MzIgZXZlbnQsIHZvaWQgKmRhdGEpICZndDsgaW5wdXQgPSBi
-dXR0b24tJmd0O2lucHV0OyAmZ3Q7IGtleWNvZGUgPSB0ZXN0X2JpdChLRVlf
-U0xFRVAsIGlucHV0LSZndDtrZXliaXQpID8gS0VZX1NMRUVQIDogS0VZX1BP
-V0VSOyAmZ3Q7ICZndDsgLSBpbnB1dF9yZXBvcnRfa2V5KGlucHV0LCBrZXlj
-b2RlLCAxKTsgJmd0OyAtIGlucHV0X3N5bmMoaW5wdXQpOyAmZ3Q7IC0gaW5w
-dXRfcmVwb3J0X2tleShpbnB1dCwga2V5Y29kZSwgMCk7ICZndDsgLSBpbnB1
-dF9zeW5jKGlucHV0KTsgJmd0OyArIHN3aXRjaCAoZXZlbnQpIHsgJmd0OyAr
-IGNhc2UgQUNQSV9CVVRUT05fTk9USUZZX1NUQVRVUzogJmd0OyArIGlucHV0
-X3JlcG9ydF9rZXkoaW5wdXQsIGtleWNvZGUsIDEpOyAmZ3Q7ICsgaW5wdXRf
-c3luYyhpbnB1dCk7ICZndDsgKyBpbnB1dF9yZXBvcnRfa2V5KGlucHV0LCBr
-ZXljb2RlLCAwKTsgJmd0OyArIGlucHV0X3N5bmMoaW5wdXQpOyAmZ3Q7ICsg
-YnJlYWs7ICZndDsgKyBjYXNlIEFDUElfQlVUVE9OX05PVElGWV9QUkVTUzog
-Jmd0OyArIGlucHV0X3JlcG9ydF9rZXkoaW5wdXQsIGtleWNvZGUsIDEpOyAm
-Z3Q7ICsgaW5wdXRfc3luYyhpbnB1dCk7ICZndDsgKyBicmVhazsgJmd0OyAr
-IGNhc2UgQUNQSV9CVVRUT05fTk9USUZZX1JFTEVBU0U6ICZndDsgKyBpbnB1
-dF9yZXBvcnRfa2V5KGlucHV0LCBrZXljb2RlLCAwKTsgJmd0OyArIGlucHV0
-X3N5bmMoaW5wdXQpOyAmZ3Q7ICsgYnJlYWs7ICZndDsgKyB9ICZndDsgJmd0
-OyBhY3BpX2J1c19nZW5lcmF0ZV9uZXRsaW5rX2V2ZW50KGJ1dHRvbi0mZ3Q7
-Y2xhc3MsIGRldl9uYW1lKCZhbXA7ZGV2aWNlLSZndDtkZXYpLCAmZ3Q7IGV2
-ZW50LCArK2J1dHRvbi0mZ3Q7cHVzaGVkKTsgJmd0OyBkaWZmIC0tZ2l0IGEv
-aW5jbHVkZS9hY3BpL2J1dHRvbi5oIGIvaW5jbHVkZS9hY3BpL2J1dHRvbi5o
-ICZndDsgaW5kZXggYWYyZmNlNWQyZWUzLi44MzJmMWEzMDg4MjggMTAwNjQ0
-ICZndDsgLS0tIGEvaW5jbHVkZS9hY3BpL2J1dHRvbi5oICZndDsgKysrIGIv
-aW5jbHVkZS9hY3BpL2J1dHRvbi5oICZndDsgQEAgLTYsNiArNiwxMCBAQCAm
-Z3Q7ICNkZWZpbmUgQUNQSV9CVVRUT05fSElEX0xJRCAiUE5QMEMwRCIgJmd0
-OyAjZGVmaW5lIEFDUElfQlVUVE9OX0hJRF9TTEVFUCAiUE5QMEMwRSIgJmd0
-OyAmZ3Q7ICsjZGVmaW5lIEFDUElfQlVUVE9OX05PVElGWV9TVEFUVVMgMHg4
-MCAmZ3Q7ICsjZGVmaW5lIEFDUElfQlVUVE9OX05PVElGWV9QUkVTUyAweDgx
-ICZndDsgKyNkZWZpbmUgQUNQSV9CVVRUT05fTk9USUZZX1JFTEVBU0UgMHg4
-MiAmZ3Q7ICsgJmd0OyAjaWYgSVNfRU5BQkxFRChDT05GSUdfQUNQSV9CVVRU
-T04pICZndDsgZXh0ZXJuIGludCBhY3BpX2xpZF9vcGVuKHZvaWQpOyAmZ3Q7
-ICNlbHNlICZndDsgLS0gJmd0OyAyLjI1LjEgJmd0OyAmZ3Q7ICZndDsgTm8g
-dmlydXMgZm91bmQgJmd0OyBDaGVja2VkIGJ5IEhpbGxzdG9uZSBOZXR3b3Jr
-IEFudGlWaXJ1cyAmZ3Q7ICZsdDsvbGl1amlubG9uZ0BreWxpbm9zLmNuJmd0
-OyZsdDsvbGl1amlubG9uZ0BreWxpbm9zLmNuJmd0OyZsdDsvbGl1amlubG9u
-ZzE3NkAxNjMuY29tJmd0OzwvZGl2Pgo8L2Rpdj4KPHA+Jm5ic3A7PC9wPgo8
-cD4mbmJzcDs8L3A+CjxkaXYgaWQ9InNpZ25hdHVyZUJvbSI+PC9kaXY+PC9k
-aXY+
+When the 0x80 notification is received, evaluate the _PSB control
+method if present.  If _PSB returns 1, report only a key press; if
+it returns 0, report only a key release.  If _PSB is not available,
+fall back to the existing press+release behavior for compatibility
+with firmware that does not implement it.
 
---nsmail-4twksxfnka5a-4twoparjjv4v--
+Signed-off-by: liujinlong <liujinlong@kylinos.cn>
+
+--- changes in v2:
+ - Dropped the new ACPI notify values 0x81/0x82 per Rafael's
+   feedback, as they would require an ACPI specification update.
+ - Instead, evaluate the _PSB control method upon receiving the
+   existing 0x80 notification to determine the real button state.
+ - No longer touches include/acpi/button.h.
+---
+ drivers/acpi/button.c | 29 +++++++++++++++++++++++++----
+ 1 file changed, 25 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index cdbb1023a8ee..2d079703899b 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -456,12 +456,25 @@ static void acpi_lid_notify(acpi_handle handle, u32 event, void *data)
+ 	acpi_lid_update_state(button, true);
+ }
+ 
++static int acpi_button_evaluate_state(acpi_handle handle)
++{
++	unsigned long long state;
++	acpi_status status;
++
++	status = acpi_evaluate_integer(handle, "_PSB", NULL, &state);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	return !!state;
++}
++
+ static void acpi_button_notify(acpi_handle handle, u32 event, void *data)
+ {
+ 	struct acpi_button *button = data;
+ 	struct acpi_device *device = button->adev;
+ 	struct input_dev *input;
+ 	int keycode;
++	int state;
+ 
+ 	switch (event) {
+ 	case ACPI_BUTTON_NOTIFY_STATUS:
+@@ -482,10 +495,18 @@ static void acpi_button_notify(acpi_handle handle, u32 event, void *data)
+ 	input = button->input;
+ 	keycode = test_bit(KEY_SLEEP, input->keybit) ? KEY_SLEEP : KEY_POWER;
+ 
+-	input_report_key(input, keycode, 1);
+-	input_sync(input);
+-	input_report_key(input, keycode, 0);
+-	input_sync(input);
++	state = acpi_button_evaluate_state(device->handle);
++	if (state < 0) {
++		/* No _PSB method, synthesize a press+release */
++		input_report_key(input, keycode, 1);
++		input_sync(input);
++		input_report_key(input, keycode, 0);
++		input_sync(input);
++	} else {
++		/* _PSB returns 1 = pressed, 0 = released */
++		input_report_key(input, keycode, state ? 1 : 0);
++		input_sync(input);
++	}
+ 
+ 	acpi_bus_generate_netlink_event(button->class, dev_name(&device->dev),
+ 					event, ++button->pushed);
+-- 
+2.25.1
+
+
+No virus found
+		Checked by Hillstone Network AntiVirus
+
