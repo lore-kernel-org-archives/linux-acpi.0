@@ -1,301 +1,278 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
+Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AC93214A84;
-	Wed, 14 Oct 2026 13:32:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB08B5208DB
+	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 13:39:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791984794; cv=none; b=UjSnOIP/fbuCrsaPwwZHeZxqeCD9+K0CVFnAigmQLDIGw6jeFJGwgKYuXR4q+snE0U/l/Yn6+YN/AAQ055a5SsptfJnoPGxBwrpcAxyExcebGOEOKjEJq6tZfZgRJP+jfCPV535ObZbijKctfYNhL1xf4rzk2Hwq6ONhsbJxNoc=
+	t=1791985163; cv=none; b=oj8sf5B9uDa105hPL3b6ss+M9PmYDJwfNji0PsQyTsJKUW3kGgusHqHW9RDYBNljIXYOLr6VZ22SZGaeOqzcozr+lHoGIOT62gQc8OlQ1k4HRv3Iy8veO+I3XEnltkzo7fqU68kMJELzD+Y44Kw5C1UbBbz1tleaXcxp6lkucVo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791984794; c=relaxed/simple;
-	bh=vkpl7Pfj4hHNm30sUMoHv41uQE31BXc+c1uPmB91SDY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gau7WTnqcQr8xdriMBezf/Z9poQ8jnI4pJiwqlWYqphHrAB3KlE8CuPMJtBmAkPOYJC1WSlu7dbKpHG+rfOAY6rZMBL33zeS2MvxboUZCOAvcAjlb/kuMDuxokiCrWhFqV6to4tN9xYwZPB1Nz8IQhcQ/O+RtASpY6pq5ly7ye8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=E6bayUBB; arc=none smtp.client-ip=192.198.163.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1791985163; c=relaxed/simple;
+	bh=aMjQnFM3wpRrDRUEzrRbcrPNUCkg3e/4O8PTerEkdFE=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:References:
+	 In-Reply-To:Content-Type; b=UfW+3Sd/oPg5fBioUYzjKzpUYVO7Cc6k1QL3iaIhpgkPAi6D5xrReBNUzZJmioVHzpNNvShLrunmU+roWk3PVpQBxP3LAn1ZaFkC/lQKF7RCTWi2kU1r1PGb1vEp6cREroIuXgVOxwD+LzHhkTafKp5TMXNPbp6N885OLWQYy64=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=daQzY6Pi; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=B3GumGDw; arc=none smtp.client-ip=205.220.180.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="E6bayUBB"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1791984779; x=1823520779;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=vkpl7Pfj4hHNm30sUMoHv41uQE31BXc+c1uPmB91SDY=;
-  b=E6bayUBBvnXLjojt3vXXXhHZMkkDokghRlMf+WuCyg5dztvARpHPsIBf
-   9ZUkpz63cYfTKelopFXQhu5zwewoPvRy2jFe+2uwxOH0B5craBjSQQf9P
-   tMXZn3vYQWZwfR4V6njP2Pf7Brn1/6Ws8jnIfZmyqDAd9XKZWlhlZT/di
-   cWHYCDFeqJCElglhmCe2pRJ+lBe9YCpVvrYnZXWi6Z1ZdxSGHV11sm+iE
-   OSI4yAJyGIIeyJCoQFYCdZrryYSe9c1Q40RI/USFTwJA5UVyn6HLT/MHt
-   CtYWvsR9iKSi41A0eioERrWiatmYaZ0yxJ9DZjKo9GIVbRIF+QXoqTXsF
-   A==;
-X-CSE-ConnectionGUID: VCDLDMPLShmAvJbj9QJz8w==
-X-CSE-MsgGUID: mxtbH+0uQxSDaqaJGzekyg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11934"; a="720955"
-X-IronPort-AV: E=Sophos;i="6.27,157,1787036400"; 
-   d="scan'208";a="720955"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Oct 2026 06:32:58 -0700
-X-CSE-ConnectionGUID: Hd7qV+eRRNm9cEZcWaZZHw==
-X-CSE-MsgGUID: +mWI3I5hTBu1BnrIFFD5Kw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,157,1787036400"; 
-   d="scan'208";a="1505167"
-Received: from smoticic-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.236])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Oct 2026 06:32:53 -0700
-Date: Wed, 14 Oct 2026 16:32:50 +0300
-From: Andy Shevchenko <andriy.shevchenko@intel.com>
-To: Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Cc: Hans de Goede <hansg@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>,
-	Mario Limonciello <mario.limonciello@amd.com>,
-	Maciej Grochowski <Maciej.Grochowski@sony.com>,
-	Nikolas Joshua Britton <nbritton@exabit.io>,
-	Geramy Loveless <gloveless@jqluv.com>,
-	Eric Auger <eauger@redhat.com>,
-	Alexey Fomenko <alexey.fomenko@intel.com>,
-	Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org,
-	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
-	Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Bradley Morgan <brads@mainlining.org>,
-	Kai-Heng Feng <kaihengf@nvidia.com>, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v3 8/8] PCI/quirks: Avoid certain address on Genoa systems
-Message-ID: <as-EghzVdmmbMGPI@ashevche-desk.local>
-References: <20261013224010.GA1589480@bhelgaas>
- <f823d264-8b9d-422e-bfaf-388957fbc2fa@kernel.org>
- <as9eqFRuiMgG-fhG@ashevche-desk.local>
- <92d10658-15af-c9b0-5e4a-69992920fd1b@linux.intel.com>
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="daQzY6Pi";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="B3GumGDw"
+Received: from pps.filterd (m0279868.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69E9eBSJ3696119
+	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 13:39:20 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	dZRaRstQy3PLCF0tdj3ZFW+VIDVHpNYipeJXq7D4zHg=; b=daQzY6PiPI94Csn2
+	a8j3G6L+SvsY3Vv1q0jLRAHcOrhK7NGVJKfLVahWMWTf+A0fWBIDWbiSs9cBUIGJ
+	7c6NEHNvGzohqOMIkB26WzkRoHCvjsekoQEzKFU7vTZtwQdyDmG9kBRN14BjPuZc
+	bvc20kMriQT6DcNBFDRdZYl+KGFgzOxQmtgTnovPf5dehlyVUaAt4WN2u36lb7CY
+	Y4Zd1QkRN3YR1b7yjT1aK48/OJllfvO5ZiltKttH32r7AegMJoHkwR+tF8AoJQ5F
+	PWGOWhpIibmQFNpWB/ScngR/xDSRsnKj2WxRoYGJnVu8Gi43zZw78SDK0uzkshKf
+	/HSNCA==
+Received: from mail-qk1-f199.google.com (mail-qk1-f199.google.com [209.85.222.199])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4ha7aegwmw-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 13:39:20 +0000 (GMT)
+Received: by mail-qk1-f199.google.com with SMTP id af79cd13be357-93caf6c528aso721910885a.0
+        for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 06:39:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1791985160; x=1792589960; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:content-language
+         :references:cc:to:subject:from:user-agent:mime-version:date
+         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=dZRaRstQy3PLCF0tdj3ZFW+VIDVHpNYipeJXq7D4zHg=;
+        b=B3GumGDw+ueR1heeGTngrxwhhGXMRFITlrLVgf67+ENBI+ckafUdqkBWOdLEFsidNE
+         nhDdGQ+fSS7pRjL+zHR8SC7WjygRhCNap+ycpDONgbPx2FomI0ScPQygvARAm6wsdar2
+         2W0ijUcGpSMDudvXG/XSs6bPRNbn+MHQim6rvVpNLb1cvlu2D+ThDKbNyav2D0zGazEP
+         iuNjFiaSxIAxEWkcU1DXNKlRfWOPxoVN+NQqwqpeVIC1QACIRT1oqRL63GY3OooEkJVq
+         8jWk42KvbhSwCZZUpOE/uLpASrXsqfHC/J5+bTl4mGT4kIsqxcBcLhHhsvBzIkJ18IBX
+         DdWw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791985160; x=1792589960;
+        h=content-transfer-encoding:content-type:in-reply-to:content-language
+         :references:cc:to:subject:from:user-agent:mime-version:date
+         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=dZRaRstQy3PLCF0tdj3ZFW+VIDVHpNYipeJXq7D4zHg=;
+        b=AKnzinRm4+gW3GkXohtlJkP6UUl1b6S3Z+1AS2IPn0B4+XL3av2RTtVJ8jkswjvmOX
+         OfUpmG8Xefub21KSdIhBpbJ3hjC9Jid2IPJdA6cfB/Uk6QANtZqim3RXSMC2rEoko73t
+         trGMrPfop7qPwmXvLUHtLx/0H2q7WysO98BjlM3qJcWaEVL8HfLoNhgDni7N8wA1n8xI
+         2j8EeXasAxf4nK9nqMaXehJYnw/CEjfO7XUtQpo5oWvp59NXeJnUAbOI/tiI9sY9xIz6
+         a5QC9Oahwb7Li6ETQJc5krd4/DRdwG4NXGaDC3vtD/rPopNxS0t1aCrInOfUSTC9gWUw
+         +oMg==
+X-Forwarded-Encrypted: i=1; AKwUvByTjK5uUZKnHXxLuAOZ6rvDTGEN70CGcz5JxsbTWE8yGg65ff3Q9P1msSJ6SorSqh1uqXgkUe1grct/@vger.kernel.org
+X-Gm-Message-State: AFq9FYJAKwGVRmWj5W8nwYgXVKC86acMAYp63CI3av+s2XjMYG+ap4Ju
+	SIxHj8Y1yh2r9gIKtzAkDyl8W3py2dRrBPPPoNPOHZNiGlZg9Ln50mRhsVOh8doeGTWIf8R5yfR
+	1IT6dg3Q6v8xseBvZ0eeTD4s8MFC9VrqGGrN9AO+eOOEkosm+69PpTxWO+9MTSQV0
+X-Gm-Gg: AYBFou2LxANRxoO8WMJf3uGEyOdgZsBBSnyOQqdk74pNNLdNqUOVI7LvBtG5n7sX5U0
+	MF/y+/JreML3i7aUswejaxyUw7fb9+Vq0kozrNdJgKl6liJvu3hDxVDQV3iybqsuUr63DNfFMmB
+	obofeTBOydpA4gFBVTC+03nGx4qIFIqoLKcfpuOB5/4vXButpPqgjshSgHJyY0VVajk7zfUGSs/
+	oqp6gwC5Q/0nka70pp3hN1e98ef/09WdSMyI5gTnoaMPxo6sEQfRPF2AUZXb5RQtjdLsTKyPHzl
+	pMSCNOfLW8uO5BwTmrMDI+XP8Q85BDlSs403DU/v3MbMlsdZ0XKw3Vsbdc1PXHIAdA8Sm3ynIqu
+	xo3aWBYUKGCx0dp4HIBHUSIYnOdQNPYYk2kVktoaTOT3r5yfpMPF9hasX9WqcDQUscqrIMuwpsI
+	FDWPGZbiN+aIiijI4dm7OnKk3ALQKud0rZMT4gDTPFOsUmJkAoqSkZazEakqKH2FQoyg==
+X-Received: by 2002:a05:620a:454f:b0:93e:d364:c9ee with SMTP id af79cd13be357-93ed364ea97mr1793887985a.74.1791985159866;
+        Wed, 14 Oct 2026 06:39:19 -0700 (PDT)
+X-Received: by 2002:a05:620a:454f:b0:93e:d364:c9ee with SMTP id af79cd13be357-93ed364ea97mr1793882285a.74.1791985159157;
+        Wed, 14 Oct 2026 06:39:19 -0700 (PDT)
+Received: from ?IPV6:2001:1c00:c32:7800:5bfa:a036:83f0:f9ec? (2001-1c00-0c32-7800-5bfa-a036-83f0-f9ec.cable.dynamic.v6.ziggo.nl. [2001:1c00:c32:7800:5bfa:a036:83f0:f9ec])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b203865c2csm1125698a12.21.2026.10.14.06.39.17
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 14 Oct 2026 06:39:18 -0700 (PDT)
+Message-ID: <55d42852-adb9-47cd-a7d7-d5d9a533f442@oss.qualcomm.com>
+Date: Wed, 14 Oct 2026 15:39:17 +0200
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+User-Agent: Mozilla Thunderbird
+From: Hans de Goede <johannes.goede@oss.qualcomm.com>
+Subject: Re: [PATCH 1/3] ACPI: utils: Add exclusive AML evaluation helpers
+To: =?UTF-8?Q?Ali_Ahmet_Memi=C5=9F?= <aliamemis@disroot.org>,
+        "Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@kernel.org>,
+        Zhang Rui <rui.zhang@intel.com>, Lukasz Luba <lukasz.luba@arm.com>,
+        Armin Wolf <W_Armin@gmx.de>, Rong Zhang <i@rong.moe>,
+        Charis Stratakis <c.stratakis@proton.me>, linux-acpi@vger.kernel.org,
+        linux-pm@vger.kernel.org, acpica-devel@lists.linux.dev,
+        linux-kernel@vger.kernel.org, stable@vger.kernel.org
+References: <20261014132703.93355-1-aliamemis@disroot.org>
+ <20261014133013.94097-1-aliamemis@disroot.org>
+Content-Language: en-US, nl
+In-Reply-To: <20261014133013.94097-1-aliamemis@disroot.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <92d10658-15af-c9b0-5e4a-69992920fd1b@linux.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+X-Proofpoint-ORIG-GUID: nXxHYfvznojq00yfBckPUUrfHeqKmGPl
+X-Proofpoint-GUID: nXxHYfvznojq00yfBckPUUrfHeqKmGPl
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDE0MDA1NCBTYWx0ZWRfX7prf2YrO7r+v
+ BgHzSVEZnnc/iXc8QBcBhK8cK6qfegUTcEt8yEtUCF0qQzj70kddHqMu97wDLwSo1n3FvjzMd9Y
+ B6Y8yJmz+KlqSDoj+fK3IwIeQgm10cM=
+X-Authority-Analysis: v=2.4 cv=NctzRGD4 c=1 sm=1 tr=0 ts=6acf8608 cx=c_pps
+ a=HLyN3IcIa5EE8TELMZ618Q==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
+ a=660iZSQnnn4A:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=u7WPNUs3qKkmUXheDGA7:22 a=ZpdpYltYx_vBUK5n70dp:22 a=VwQbUJbxAAAA:8
+ a=LpNgXrTXAAAA:8 a=EUspDBNiAAAA:8 a=opHQSxscGNBN5THkUysA:9 a=3ZKOabzyN94A:10
+ a=QEXdDO2ut3YA:10 a=bTQJ7kPSJx9SKPbeHEYW:22 a=LqOpv0_-CX5VL_7kjZO3:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDE0MDA1NCBTYWx0ZWRfXyehYN0A5FU9Y
+ e6ZSyl7F/uY2icbsfxe661p1W/JWhRYTpePITtwfSC2YK9kLkTuB57LGi4Y1iEEZgmEARagnQwc
+ Lrk+Iau3/G2irq/sCtzm9lUUxmLBxZlEtpRT7wNMcRiKlfQWNqAUmun5TrQrInPjzndOc58eXiu
+ lHKP9ZqpmnoVWguVR/J/ac4sG3HLWuF6B10p/Z7lLpklfDtgwdOvOFPws/it/AGRC2T8+nwRIy4
+ yDLzP0+QY7+TlGAMZ26Bim7draqu0QLpTaHuE7g0x8ndH39DMh9ywf8x8I63s8PaPQcvhKc/Ai/
+ YaVMEXDlOMA6gvuhZH/Y1WP628fnYi+IHCDG6/8OA8Te0+5eAPQFQkzxbLSMGspIzRv9hSbykgr
+ 5jTiV01uKNsBPPHEIoWxkJQ9b2g0ruXowBYCS7BBAIsxspwXZZ71iozueebcoSNLRpvAN/TrygO
+ KbjPQxdpTUBSHdR0zmQ==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-10-13_01,2026-10-09_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501 clxscore=1015 suspectscore=0 lowpriorityscore=0
+ spamscore=0 phishscore=0 impostorscore=0 bulkscore=0 malwarescore=0
+ adultscore=0 classifier=typeunknown authscore=0 authtc= authcc=
+ route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2610080000
+ definitions=main-2610140054
 
-On Wed, Oct 14, 2026 at 02:17:36PM +0300, Ilpo J‰rvinen wrote:
-> On Wed, 14 Oct 2026, Andy Shevchenko wrote:
-> > On Wed, Oct 14, 2026 at 11:34:44AM +0200, Hans de Goede wrote:
-> > > On 14-Oct-26 00:40, Bjorn Helgaas wrote:
-> > > > On Tue, Oct 13, 2026 at 01:59:23PM -0500, Mario Limonciello wrote:
-> > > >> On 10/13/26 12:26, Ilpo J‰rvinen wrote:
-> > > >>> On Tue, 13 Oct 2026, Mario Limonciello wrote:
-> > > >>>> On 10/13/26 12:00, Mario Limonciello wrote:
-> > > >>>>> On 10/13/26 08:09, Ilpo J‰rvinen wrote:
-> > > >>>>>> While testing the resource placement changes, tests hit a case where
-> > > >>>>>> igb fails to probe when BAR 0 is placed at 0x9c000000:
-> > > >>>>>>
-> > > >>>>>>  ††† 90000000-9cffffff : PCI Bus 0000:a0
-> > > >>>>>>  †† -† 90000000-902fffff : PCI Bus 0000:a1
-> > > >>>>>>  †† -††† 90000000-900fffff : 0000:a1:00.0
-> > > >>>>>>  †† -††††† 90000000-900fffff : igb
-> > > >>>>>>  †† -††† 90100000-901fffff : 0000:a1:00.0
-> > > >>>>>>  †† -††† 90200000-90203fff : 0000:a1:00.0
-> > > >>>>>>  †† -††††† 90200000-90203fff : igb
-> > > >>>>>>  †† +† 9be00000-9c0fffff : PCI Bus 0000:a1
-> > > >>>>>>  †† +††† 9be00000-9befffff : 0000:a1:00.0
-> > > >>>>>>  †† +††† 9bf00000-9bf03fff : 0000:a1:00.0
-> > > >>>>>>  †† +††† 9c000000-9c0fffff : 0000:a1:00.0
-> > > >>>>>>  ††††† 9c100000-9c17ffff : amd_iommu
-> > > >>>>>>  ††††† 9c180000-9c1803ff : IOAPIC 8
-> > > >>>>>>
-> > > >>>>>>  †† -†††††† Region 0: Memory at 90000000 (32-bit, non-prefetchable)
-> > > >>>>>> [size=1M]
-> > > >>>>>>  †† -†††††† Region 3: Memory at 90200000 (32-bit, non-prefetchable)
-> > > >>>>>> [size=16K]
-> > > >>>>>>  †† -†††††† Expansion ROM at 90100000 [disabled] [size=1M]
-> > > >>>>>>  †† +†††††† Region 0: Memory at 9c000000 (32-bit, non-prefetchable)
-> > > >>>>>> [size=1M]
-> > > >>>>>>  †† +†††††† Region 3: Memory at 9bf00000 (32-bit, non-prefetchable)
-> > > >>>>>> [size=16K]
-> > > >>>>>>  †† +†††††† Expansion ROM at 9be00000 [disabled] [size=1M]
-> > > >>>>>>
-> > > >>>>>> igb 0000:a1:00.0 0000:a1:00.0 (uninitialized): PCIe link lost
-> > > >>>>>> ------------[ cut here ]------------
-> > > >>>>>> igb: Failed to read reg 0x18!
-> > > >>>>>> WARNING: drivers/net/ethernet/intel/igb/igb_main.c:724 at
-> > > >>>>>> igb_rd32.cold+0x3c/0x4f [igb], CPU#32: kworker/32:1/706
-> > > >>>>>> ...
-> > > >>>>>>  † igb_get_invariants_82575+0xff/0xf00 [igb]
-> > > >>>>>>  † igb_probe+0x3c8/0x1190 [igb]
-> > > >>>>>>  † local_pci_probe+0x3b/0x80
-> > > >>>>>>
-> > > >>>>>> It turns out there is a 64kB iomem black hole at 9c000000 that returns
-> > > >>>>>> ~0 and this is where igb's BAR 0 resides. If another BAR of the same
-> > > >>>>>> card is placed into that address, it is similarly black holed.
-> > > >>>>>>
-> > > >>>>>> Mark the problematic 64kB range reserved using a quirk bound to the
-> > > >>>>>> bridge found in the problematic system.
-> > > >>>>>>
-> > > >>>>>> Closes: https://bugzilla.kernel.org/show_bug.cgi?id=222074
-> > > >>>>>> Suggested-by: Mario Limonciello <mario.limonciello@amd.com>
-> > > >>>>>> Signed-off-by: Ilpo J‰rvinen <ilpo.jarvinen@linux.intel.com>
-> > > >>>>>> ---
-> > > >>>>>> Cc: Borislav Petkov <bp@alien8.de>
-> > > >>>>>>
-> > > >>>>>> As an alternative to this, I've also tested reverting the commit
-> > > >>>>>> 07eab0901ede ("efi/x86: Remove EfiMemoryMappedIO from E820 map") and
-> > > >>>>>> that also resolves the issue by retaining "9c000000-9cffffff : Reserved"
-> > > >>>>>> entry in the resource tree.
-> > > >>>>>>
-> > > >>>>>> ---
-> > > >>>>>>  † arch/x86/pci/fixup.c | 36 ++++++++++++++++++++++++++++++++++++
-> > > >>>>>>  † 1 file changed, 36 insertions(+)
-> > > >>>>>>
-> > > >>>>>> diff --git a/arch/x86/pci/fixup.c b/arch/x86/pci/fixup.c
-> > > >>>>>> index b301c6c8df75..cc463bf492b6 100644
-> > > >>>>>> --- a/arch/x86/pci/fixup.c
-> > > >>>>>> +++ b/arch/x86/pci/fixup.c
-> > > >>>>>> @@ -822,6 +822,42 @@ DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_AMD, 0x1571,
-> > > >>>>>> pci_amd_enable_64bit_bar);
-> > > >>>>>>  † DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_AMD, 0x15b1,
-> > > >>>>>> pci_amd_enable_64bit_bar);
-> > > >>>>>>  † DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_AMD, 0x1601,
-> > > >>>>>> pci_amd_enable_64bit_bar);
-> > > >>>>>> +/*
-> > > >>>>>> + * TODO: Remove when/if root cause is found.
-> > > >>>>>> + *
-> > > >>>>>> + * Genoa appears to have a 64kB iomem black hole starting at 0x9c000000
-> > > >>>>>> + * address for which all reads return ~0 blocking an overlapping BAR from
-> > > >>>>>> + * working.
-> > > >>>>>> + *
-> > > >>>>>> + * Work around the problem by reserving the space prior to making any
-> > > >>>>>> iomem
-> > > >>>>>> + * allocations that could overlap with the black hole.
-> > > >>>>>> + */
-> > > >>>>>> +static struct resource genoa_black_hole =
-> > > >>>>>> DEFINE_RES_MEM_NAMED(0x9c000000,
-> > > >>>>>> +†††††††††††††††††††††††††††††††††† SZ_64K,
-> > > >>>>>> +†††††††††††††††††††††††††††††††††† "reserved");
-> > > >>>>>> +
-> > > >>>>>> +static void genoa_iomem_black_hole(struct pci_dev *dev)
-> > > >>>>>> +{
-> > > >>>>>> +††† struct resource *r;
-> > > >>>>>> +
-> > > >>>>>> +††† pci_bus_for_each_resource(dev->bus, r) {
-> > > >>>>>> +††††††† if (!r || !r->flags || !resource_assigned(r))
-> > > >>>>>> +††††††††††† continue;
-> > > >>>>>> +
-> > > >>>>>> +††††††† if (!__resource_contains_unbound(r, &genoa_black_hole))
-> > > >>>>>> +††††††††††† continue;
-> > > >>>>>> +
-> > > >>>>>> +††††††† if (resource_assigned(&genoa_black_hole))
-> > > >>>>>> +††††††††††† pci_dbg(dev, "iomem black hole workaround already
-> > > >>>>>> applied\n");
-> > > >>>>>> +††††††† else if (!insert_resource(r, &genoa_black_hole))
-> > > >>>>>> +††††††††††† pci_info(dev, "iomem black hole workaround enabled\n");
-> > > >>>>>> +††††††† else
-> > > >>>>>> +††††††††††† pci_dbg(dev, "iomem black hole workaround add failed\n");
-> > > >>>>>> +††††††† return;
-> > > >>>>>> +††† }
-> > > >>>>>> +}
-> > > >>>>>> +DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_AMD, 0x14ab,
-> > > >>>>>> genoa_iomem_black_hole);
-> > > >>>>>> +
-> > > >>>>>>  † #define RS690_LOWER_TOP_OF_DRAM2††† 0x30
-> > > >>>>>>  † #define RS690_LOWER_TOP_OF_DRAM2_VALID††† 0x1
-> > > >>>>>>  † #define RS690_UPPER_TOP_OF_DRAM2††† 0x31
-> > > >>>>>
-> > > >>>>> I guess it's good we know the root cause is 07eab0901ede. If we're going
-> > > >>>>> down the path of making holes in that we may well put the hole in
-> > > >>>>> efi_remove_e820_mmio() like this (attached).
-> > > >>>>
-> > > >>>> I don't really like that though.  If Genoa is affected I would expect plenty
-> > > >>>> of other machines are too they just haven't been found yet.
-> > > >>>
-> > > >>> That's what I'm worried as well. My own testing can only cover very little
-> > > >>> ground here.
-> > > >>>
-> > > >>>> Can we roll back 07eab0901ede and add quirks for the busted machines instead?
-> > > >>
-> > > >> I had an agent dig through all the reports linked in 07eab0901ede and
-> > > >> drafted up what should be the remaining quirks for a revert.
-> > > >>
-> > > >> https://git.kernel.org/pub/scm/linux/kernel/git/superm1/linux.git/log/?h=superm1/genoa-mess
-> > > >>
-> > > >> Bjorn, thoughts on this?  I'll send it out if that's the way we want
-> > > >> to go (or Ilpo feel free to subsume into your series as it's only
-> > > >> really exposed by your series at the moment)
-> > > > 
-> > > > I would LOVE it if we can use those patches because it's way less
-> > > > magic than 07eab0901ede is.
-> > > > 
-> > > > But I'm frankly terrified to touch it because I'm skeptical that two
-> > > > more quirks are enough.  I just expect that whatever strategy BIOS
-> > > > uses to build these maps is likely to be used on many models.  I do
-> > > > hate 07eab0901ede though, so I would love to see it gone.
-> > > 
-> > > It has been about 4 years since we came up with 07eab0901ede IIRC we
-> > > had a huge email thread with a whole bunch of attempts at fixing
-> > > the issue in a generic manner.
-> > > 
-> > > IIRC some of those attempts tried to identify the exact problematic
-> > > issue the quirks try to fix where there is an EFI MMIO reservation
-> > > covering the entire bridge window.
-> > > 
-> > > Maybe we can dig through the old thread and see if with the knowledge
-> > > we have now one of the previous attempts of fixing it from the thread
-> > > is better?
-> > > 
-> > > I agree that needing to go back to quirks is likely going to be painful
-> > > and break a whole bunch of other systems. IIRC 07eab0901ede fixed
-> > > a whole bunch of laptops having issues around the time not just
-> > > the Clevo NL4XLU and Lenovo Yoga C940. But this info might be spread
-> > > over various bugzilla entries, etc. + some models where likely never
-> > > reported but just fixed in time for users to not report things.
-> > > 
-> > > I also wonder if given we only have this magic black-hole on geneo/zen4
-> > > if it would not be better to go with Mario's original approach here ?
-> > > Esp. since Mario's quirk is chipset based where as the other problems
-> > > seem to be model/product based so that is 1 quirk vs many quirks.
-> > 
-> > Can we simply change the algo of allocating resources to follow what Windows
-> > does?
-> 
-> I've no idea what it does.
-> 
-> You seem to simplify things to just being about direction of allocation 
-> but there are other constraints, most importantly alignment ones.
-> 
-> There are many cases where there simply isn't any extra room to play with
-> so the algorithm must produce as tight packing as possible.
-> 
-> The assignment step is greedy that could easily lead us into dead ends 
-> where not all resources can be assigned because something was placed such 
-> that it is on the way. This series of mine tries to make placement such 
-> that it maximizes success possibility of subsequent assignments (leaving 
-> the best free space candidate for future assignments). Side-effect of 
-> these changes is that more allocations do happen at the tail (to maximize 
-> the alignment order of the free space, that is usually larger at the left 
-> edge/start of the window). So maybe you actually end up getting what you
-> wish in many cases.
-> 
-> Retrying anything in controlled manner is also challenging. This might be 
-> fixable on medium term by holding some setup structure across algorithm 
-> "tries" but currently we hold nothing else than what's in the struct 
-> resource and in/not-in-resource-tree information.
-> 
-> Changing anything in this area hasn't been easy at all because almost 
-> everything seems to break something (in part it's my own bugs but there 
-> are also many cases I just could not foresee nor encounter in my tests).
-> 
-> So I'm sorry don't think any large scale rewrite would be viable.
+Hi,
 
-I understand. Thanks for providing the explanation for the reason behind
-your series.
+On 14-Oct-26 15:30, Ali Ahmet Memi≈ü wrote:
+> ACPICA drops the interpreter lock while AML waits, for example around EC
+> accesses, so two methods can run interleaved. Some firmware relies on
+> methods not interleaving, for instance by switching an EC page selector
+> without taking the AML mutex that the other users of that page hold.
+> 
+> Add acpi_evaluate_object_exclusive() and acpi_evaluate_integer_exclusive()
+> which serialize the evaluation under a global mutex, for callers that are
+> known to be affected.
+> 
+> Suggested-by: Rafael J. Wysocki <rafael@kernel.org>
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Ali Ahmet Memi≈ü <aliamemis@disroot.org>
 
--- 
-With Best Regards,
-Andy Shevchenko
+Thanks, patch looks good to me:
 
+Reviewed-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
+
+Regards,
+
+Hans
+
+
+> ---
+>  drivers/acpi/utils.c    | 56 +++++++++++++++++++++++++++++++++++++----
+>  include/acpi/acpi_bus.h |  8 ++++++
+>  2 files changed, 59 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> index d499b72574ab..f28680424f14 100644
+> --- a/drivers/acpi/utils.c
+> +++ b/drivers/acpi/utils.c
+> @@ -10,6 +10,7 @@
+>  
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+> +#include <linux/mutex.h>
+>  #include <linux/slab.h>
+>  #include <linux/init.h>
+>  #include <linux/types.h>
+> @@ -243,10 +244,34 @@ acpi_extract_package(union acpi_object *package,
+>  
+>  EXPORT_SYMBOL(acpi_extract_package);
+>  
+> -acpi_status
+> -acpi_evaluate_integer(acpi_handle handle,
+> -		      acpi_string pathname,
+> -		      struct acpi_object_list *arguments, unsigned long long *data)
+> +static DEFINE_MUTEX(acpi_exclusive_eval_lock);
+> +
+> +/**
+> + * acpi_evaluate_object_exclusive - Evaluate an object without interleaving
+> + * @handle: ACPI handle of the object or its scope.
+> + * @pathname: Path of the object relative to @handle.
+> + * @arguments: Arguments to pass, or NULL.
+> + * @buffer: Buffer for the return value, or NULL.
+> + *
+> + * Same as acpi_evaluate_object(), but serialized with other exclusive
+> + * evaluations.  Use it only for methods known to break when interleaved.
+> + */
+> +acpi_status acpi_evaluate_object_exclusive(acpi_handle handle,
+> +					   acpi_string pathname,
+> +					   struct acpi_object_list *arguments,
+> +					   struct acpi_buffer *buffer)
+> +{
+> +	guard(mutex)(&acpi_exclusive_eval_lock);
+> +
+> +	return acpi_evaluate_object(handle, pathname, arguments, buffer);
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_evaluate_object_exclusive);
+> +
+> +static acpi_status __acpi_evaluate_integer(acpi_handle handle,
+> +					   acpi_string pathname,
+> +					   struct acpi_object_list *arguments,
+> +					   unsigned long long *data,
+> +					   bool exclusive)
+>  {
+>  	acpi_status status = AE_OK;
+>  	union acpi_object element;
+> @@ -257,7 +282,12 @@ acpi_evaluate_integer(acpi_handle handle,
+>  
+>  	buffer.length = sizeof(union acpi_object);
+>  	buffer.pointer = &element;
+> -	status = acpi_evaluate_object(handle, pathname, arguments, &buffer);
+> +	if (exclusive)
+> +		status = acpi_evaluate_object_exclusive(handle, pathname,
+> +							arguments, &buffer);
+> +	else
+> +		status = acpi_evaluate_object(handle, pathname, arguments,
+> +					      &buffer);
+>  	if (ACPI_FAILURE(status)) {
+>  		acpi_util_eval_error(handle, pathname, status);
+>  		return status;
+> @@ -275,8 +305,24 @@ acpi_evaluate_integer(acpi_handle handle,
+>  	return AE_OK;
+>  }
+>  
+> +acpi_status
+> +acpi_evaluate_integer(acpi_handle handle,
+> +		      acpi_string pathname,
+> +		      struct acpi_object_list *arguments, unsigned long long *data)
+> +{
+> +	return __acpi_evaluate_integer(handle, pathname, arguments, data, false);
+> +}
+>  EXPORT_SYMBOL(acpi_evaluate_integer);
+>  
+> +acpi_status acpi_evaluate_integer_exclusive(acpi_handle handle,
+> +					    acpi_string pathname,
+> +					    struct acpi_object_list *arguments,
+> +					    unsigned long long *data)
+> +{
+> +	return __acpi_evaluate_integer(handle, pathname, arguments, data, true);
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_evaluate_integer_exclusive);
+> +
+>  int acpi_get_local_u64_address(acpi_handle handle, u64 *addr)
+>  {
+>  	acpi_status status;
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index a10a591c18b2..e7a671dba624 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -32,6 +32,14 @@ acpi_status
+>  acpi_evaluate_integer(acpi_handle handle,
+>  		      acpi_string pathname,
+>  		      struct acpi_object_list *arguments, unsigned long long *data);
+> +acpi_status acpi_evaluate_object_exclusive(acpi_handle handle,
+> +					   acpi_string pathname,
+> +					   struct acpi_object_list *arguments,
+> +					   struct acpi_buffer *buffer);
+> +acpi_status acpi_evaluate_integer_exclusive(acpi_handle handle,
+> +					    acpi_string pathname,
+> +					    struct acpi_object_list *arguments,
+> +					    unsigned long long *data);
+>  bool acpi_evaluate_reference(acpi_handle handle, acpi_string pathname,
+>  			     struct acpi_object_list *arguments,
+>  			     struct acpi_handle_list *list);
+> 
+> base-commit: 24a19b953e2a3d0ea5a8c4951a0ab8f32720c907
 
