@@ -1,116 +1,114 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C76A33630BF;
-	Wed, 14 Oct 2026 17:44:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9692560ADB
+	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 18:13:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791999898; cv=none; b=Dc1TYLYG+fNLL87FnhtG13ALZqiONB0+tF1fWo03zLBNGw9n5iEsQkEq8gfnXVCVc+S7sDEijtkIsCilXPcYK8GokYEWTRd90+dN2tsduVkrIHitGHEqqW9ut27DVAgVNncqJGgdIVKwY8lcMnl5sxhzmURR7cviu7Dq80Vl0S8=
+	t=1792001592; cv=none; b=dFVJ3/w+oP/ECU1tyLaAJvVR7uQi+K6+WIKUZ5FG8wGC/7vo1qn++A7Y0HSv2Hn1jISiz1QuyG0xWwHmMxxwOYZTnVn02TsBkBipaS9UtpfJz6j3GRYKQI224deibB35WCE/Dc/78+CdgDcKvQOLDt56N/1NgjN9989ND5sPBNA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791999898; c=relaxed/simple;
-	bh=4AbmuGaQmg8yTQKRE3P7KnMLvr6mh8Ei2C0jhRF37cs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fFyM7PKc95k5I4lS7+DWzH7JUT+y8I9oppGvPmdAcjTcKUOlkozhPLghs6o3ajntIJS29Ae5HyIN0fMSOw0uDGNyuccBThGaMTxJ/XLBkEy0A3TjftpIMiwLG9x3+svr71Q+esWlnsfqAOsZcOZaEs604gIbpcptj4VkR4MLm+g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=Y/JbqQJU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792001592; c=relaxed/simple;
+	bh=qCVt23NPLz+BzoAjfmW00Y/LFtzE1ShjP0EoMBiCiHs=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=pJUBhGcyGx6QeJbuffATv9ynAcq1sfzCZR4CuHbDkBOravjfincuVyiy9eHswy4sslT1anyALHngRPDe9B9Mhmp4+SYiRMOGeaqVYU906zvkLbLDO3bVPljI3hnHAf7z27GEHFSrsGt/7gw0yJCP4klcy9VN2hW76nUrDalARuI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hImGocuO; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="Y/JbqQJU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 330F01F000C4;
-	Wed, 14 Oct 2026 17:44:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
-	s=korg; t=1791999896;
-	bh=sTxxFIiD6mgFs2UdEY1I8MyQnekZZiyPvhQw7RuhHrg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Y/JbqQJUIEWFLFscjenxW9GCe5wNUa4lKG/qtufKEMdVe8I7JjwbgDqX5hbrhnbnk
-	 g11pdaabApMfzBMkfpM3w5n1u6n4ty6P15W2DYuVy6e5rpnrYB4vdZc0i3KcsTyQQY
-	 TKLv1ClTGNe42312p3oiyQs34X3dYVxDiKaB2oxQ=
-Date: Wed, 14 Oct 2026 19:45:00 +0200
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Cc: Kees Cook <kees@kernel.org>, Ian Rogers <irogers@google.com>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>, Miguel Ojeda <ojeda@kernel.org>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Nick Desaulniers <ndesaulniers@google.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Madhavan Srinivasan <maddy@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Nicholas Piggin <npiggin@gmail.com>,
-	Christophe Leroy <chleroy@kernel.org>,
-	Nayna Jain <nayna@linux.ibm.com>,
-	Yoshinori Sato <ysato@users.sourceforge.jp>,
-	Rich Felker <dalias@libc.org>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Viresh Kumar <viresh.kumar@linaro.org>,
-	David Teigland <teigland@redhat.com>,
-	Alexander Aring <aahringo@redhat.com>,
-	Juergen Gross <jgross@suse.com>,
-	Stefano Stabellini <sstabellini@kernel.org>,
-	Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Sven Schnelle <svens@linux.ibm.com>,
-	Richard Weinberger <richard@nod.at>,
-	Zhihao Cheng <chengzhihao1@huawei.com>,
-	Felix Kuehling <Felix.Kuehling@amd.com>,
-	Alex Deucher <alexander.deucher@amd.com>,
-	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-	driver-core@lists.linux.dev, llvm@lists.linux.dev,
-	linux-hardening@vger.kernel.org, linux-doc@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
-	linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
-	gfs2@lists.linux.dev, xen-devel@lists.xenproject.org,
-	linux-s390@vger.kernel.org, linux-mtd@lists.infradead.org,
-	amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 00/11] kobject: Require explicit initialization of struct
- kobj_type::release
-Message-ID: <2026101434-scam-padding-87a5@gregkh>
-References: <20261013223946.1836757-1-irogers@google.com>
- <2026101425-why-boring-4f2d@gregkh>
- <202610140932.5F9CFCE5@keescook>
- <CANiq72=4WQ1B1oCSW=69u_Z=FFLE56hYCqDwWr+poQdzSTS31A@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hImGocuO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AF811F000C7
+	for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 18:13:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792001591;
+	bh=sFBK0Ld7Sq4nf3GX+t6/QlOXpIDT+j0rm9SIXjlrgZg=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=hImGocuO0FaryyRAUlKb9/7Pj/W7gJ3wvJ27cp2EvfQJh5zcRFirWV+xdXEekwRYt
+	 BNM2Y/BfQ0WNy7VMYeCiY3M0nAQCsV/U21s23xNoZF3QgBS1+HRUYpovRFgWG1KNmw
+	 PcteKm19GHYj4Urx0sLJUJ3O//hdDdsS/VV0pV1wZsHGvRCf/BdpPNVyOX2pYtF9T4
+	 IXHCO1ydVqLTqQMLJCzOs89sjte7v46LC2990TvqL0fpTFyvCWk/yYRj5DbtkQqgC2
+	 CnOLleCuLSJvfVU9BqTcRqq/o9KztwYJWkfCJ4wJl2blbD7peNHIsIY8hRpXfxJMkl
+	 VKKg3Q12OOx3A==
+Received: by mail-lf1-f46.google.com with SMTP id 2adb3069b0e04-5bce4e278baso1431002e87.0
+        for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2026 11:13:11 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBzTESY/KtCUIri5bLdz6FuAKJpIaE9KR/ArCG2qlTbhP6pDTvd8Tx8RFsOnvBALpkRsrr43sozYACHE@vger.kernel.org
+X-Gm-Message-State: AFq9FYKJ92shfpl8l5sRElD+JwKpiR0OH7MqNF3lWkcKzmSS5yY1a8lu
+	u491DdBZGUCs4j8KiRnBgazjkbKVSZ5+ifp4AXtxASSjqdLGXthG0Kqd3NSdacRMevPrlCVhVWX
+	GYzBBvr78CFzvY86LSqCqIlfPLQRz11U=
+X-Received: by 2002:ac2:51c8:0:b0:5bc:f2d3:f949 with SMTP id
+ 2adb3069b0e04-5be37942bc8mr721935e87.25.1792001589751; Wed, 14 Oct 2026
+ 11:13:09 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CANiq72=4WQ1B1oCSW=69u_Z=FFLE56hYCqDwWr+poQdzSTS31A@mail.gmail.com>
+References: <20260923082932.1049270-1-uajain@igalia.com> <20260923082932.1049270-2-uajain@igalia.com>
+ <CAJZ5v0i0UPcGiiAxNbjUnzn=8D2jcTCo_wtM8aMbOKhqb37EDA@mail.gmail.com> <497522185b0d5edd0898edab04934d2a@igalia.com>
+In-Reply-To: <497522185b0d5edd0898edab04934d2a@igalia.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Wed, 14 Oct 2026 20:11:02 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jmFT_eV+f9majTDTCLV4m0eNCR5RurdpcAqrFYYZQrGA@mail.gmail.com>
+X-Gm-Features: AclHuK8OWDKJgitWmaduupJ1CDDdVRxSuDyCn1-asoiak_irYygGw2Sb06VwtQM
+Message-ID: <CAJZ5v0jmFT_eV+f9majTDTCLV4m0eNCR5RurdpcAqrFYYZQrGA@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] acpi: battery: Query Battery charge time ("_BCT") method
+To: Umang Jain <uajain@igalia.com>
+Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, kernel-dev@igalia.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 14, 2026 at 06:44:18PM +0200, Miguel Ojeda wrote:
-> On Wed, Oct 14, 2026 at 6:37 PM Kees Cook <kees@kernel.org> wrote:
+On Wed, Oct 14, 2026 at 7:31=E2=80=AFPM Umang Jain <uajain@igalia.com> wrot=
+e:
+>
+> On 2026-10-12 17:15, Rafael J. Wysocki (Intel) wrote:
+> > On Wed, Sep 23, 2026 at 10:28=E2=80=AFAM Umang Jain <uajain@igalia.com>=
+ wrote:
+> >>
+> >> Add plumbing for querying the Battery Charge Time ("_BCT") method.
+> >> If present, set ACPI_BATTERY_BCT_PRESENT in battery flags to denote
+> >> that the method is supported in ACPI.
+> >>
+> >> Signed-off-by: Umang Jain <uajain@igalia.com>
+> >> ---
+> >>  drivers/acpi/battery.c | 17 +++++++++++++++++
+> >>  1 file changed, 17 insertions(+)
+> >>
+> >> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> >> index 670853ec3a4d..a1b7a821abaf 100644
+> >> --- a/drivers/acpi/battery.c
+> >> +++ b/drivers/acpi/battery.c
+> >> @@ -76,6 +76,7 @@ MODULE_DEVICE_TABLE(acpi, battery_device_ids);
+> >>  enum {
+> >>         ACPI_BATTERY_ALARM_PRESENT,
+> >>         ACPI_BATTERY_XINFO_PRESENT,
+> >> +       ACPI_BATTERY_BCT_PRESENT,
+> >>         ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY,
+> >>         /* On Lenovo Thinkpad models from 2010 and 2011, the power uni=
+t
+> >>          * switches between mWh and mAh depending on whether the syste=
+m
+> >> @@ -110,6 +111,7 @@ struct acpi_battery {
+> >>
+> >>         struct mutex property_lock; /* Protects properties below. */
+> >>         unsigned long update_time;
+> >> +       unsigned long long charge_time;
 > >
-> > I'd really like to have the attribute available, and I've got at least
-> > one user I can apply today that don't require fix-ups (seq_file), so
-> > if Miguel is okay with it, I'd like to snag patch 1 and send it with
-> > my seq_file "first user" for this coming merge window so it's available
-> > starting with v7.4-rc1, and we don't end up needing to wait 10 weeks for
-> > other subsystems to be able to use it. And the kobj fixups can continue
-> > in parallel. Does that sounds okay?
-> 
-> Of course, please feel free to pick it up (with the small tweak I
-> requested) if you have a user.
-> 
-> And if you don't pick the user, I could still pick the first patch up
-> through the compiler attributes tree if you and other folks want to
-> use it after -rc1.
-> 
-> Greg: adding the attribute itself should be safe and would unblock
-> others that may want to "protect" themselves, without having to wait
-> for every potential user to get fixed (but of course I agree they
-> should get fixed -- we should not forget about them, if that is your
-> concern).
+> > This doesn't need to be unsigned long long.  As per the spec, unsigned
+> > int should be sufficient.
+>
+> Last thing before I send out v3, this is the function param-type for the
+> acpi_evaluate_integer()
+>
+> In include/acpi/acpi_bus.h,
+>
+> acpi_status
+> acpi_evaluate_integer(acpi_handle handle,
+>                       acpi_string pathname,
+>                       struct acpi_object_list *arguments, unsigned long l=
+ong *data);
 
-I agree, not a problem to add the attribute now as long as it doesn't
-break the build.
-
-thanks,
-
-greg k-h
+Yes, so you need an unsigned long long for calling that function, but
+then you can copy the value to a variable of a different type (a u32,
+say) if the given object is defined to return a value within the scope
+of that type.  Of course, you should validate the returned value
+before doing so, but it generally needs to be validated before being
+used anyway.
