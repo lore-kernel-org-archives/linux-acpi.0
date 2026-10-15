@@ -1,304 +1,248 @@
-Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from PH7PR06CU001.outbound.protection.outlook.com (mail-westus3azon11010004.outbound.protection.outlook.com [52.101.201.4])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 792CA480348
-	for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 20:13:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45F9A45D92B;
+	Thu, 15 Oct 2026 20:25:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.201.4
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792095196; cv=pass; b=bNduNFP5wtOUllYqN8MCsTlm3VrwjmcIlhfU8m5LiyiOZcaC8hPaoVGwt3lmgI7hZQrwgfI3Bya3zV4sAB7XYFnO3NBa1W+zpbT5a7+nNV1NHoqibbVZsB8KrNkwdnYgktNE9ERomPfCNik1ILvoyqdGc95m9hDfk7t1OgvK6Sk=
+	t=1792095927; cv=fail; b=SjL3fNJF138XW9wjlDgpQ12Sy3r8wTaWL1InNy7toUyPqC4429gbpuq4fNdebjgKtBK3EmlfoAU6Fq9kOjx8XOUsbUfXs64xXMexuAUQrmG3V8U6aDHWOS47a1KLEcXniKIHAJ03PVv5v16ulmWuYwrsLlQ7XfqjrKd9iGSajVo=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792095196; c=relaxed/simple;
-	bh=VhazBpOhj0QlIU3lekCy/9/OQJm95CHgExxNIn9AYpA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=YUuIZHiuilI/Kkk0x31LhinFPUWw9AVZ/+8MDrtH+mcwJUNWwMv+XbLha6F3wmItEM2KhmPrNPOGVPUtaPiY40HRMl1/uGfLCCJL3qCjpwlQjcZSwllDOp2Xtb7qsLVn5KUyTPHiH2qvubmn6r8k/wkTiWEiTxTUcisLSeQh+8Y=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Kz82OO8m; arc=pass smtp.client-ip=209.85.218.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1792095927; c=relaxed/simple;
+	bh=qZhjvwSqjUh7IO/ikXSXzWwYCEHS6GS0unoogFm0NW4=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=eoHH5aHKOFftTbAGGYUNBXTx7M49nnz4HXWbxrf30TSN9AdGVKldwBbm+Z7D1ri6SLwHBxcet6fZlRyeho2cxwvJU/FM6qm3eV194T8hC1jPLw5YiTppxY71hptP7KNLQ/YvlXNFTWjEt8U7XSBnjz1ElSdl1ynB7Q5IY5UvEro=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=GvZXaCxK; arc=fail smtp.client-ip=52.101.201.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Kz82OO8m"
-Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-c3f8d72d7ceso160738466b.3
-        for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 13:13:14 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1792095193; cv=none;
-        d=google.com; s=arc-20260327;
-        b=piIGSf8X/rOLlUqbwYViBv1jkG1zf33eoKa1ukPJLBbhR3uT+0sNlAAwqiD/A8cZML
-         lZkyQU6vwGuUXgavQlz82i8Kl9HTYTqBJlUfgSwIxXRT3STXErkMhqV7NXulf8i5z5PG
-         r3wOYpOgrvhfKkl5YqLoEr3CUEYhJ/kdBOpOVvGa449JowspBjcESyzCl/7I1YPMlsui
-         6u/ygl+CEvaUIjeuSePDZuyVp8H1tshiLrVys++ZoCE6SBfhVqFKAf79/LeMN6xOBn/l
-         4wHeBzukBAN5PoTyZflRhTlzys03ncy5RwbzqiEtNlPQJ1OM/i1vXQkJWjFQxAyEqZ1/
-         wRXw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=g/o0v0Yr+auOrsddBv1qaqTGOkbqMwX+D9s2+D5scD4=;
-        fh=vACVmN9rZVjRNI+ak5L9kVTGm6ED/PAoMCeNA3/c1AY=;
-        b=EN1gvf9MWmG/r3g5oOxADxrUDdV7vG2alxss/G0C6P1QO8MMbpDQEDvp2FVcDoW5Zv
-         Zg7foX0wYL/qD6AxhqHrslNCZIOhMJvdC0w7DBiIA9c24UqzHesT7jnBGoduFdsJhOA+
-         39JZfcdlK8epC58dYPEI7ksZu1pmpwVfc0VLn7W9xA5YKtlQhdyXp1H8L96Kd20pLPl2
-         3R0wOj9QaJzq1pOM1TMpaThpwRVNPw+Ejnm78F3iqW7vRVf7s+4MuuorpBOdyn1GMzB7
-         Yij9TVy5ZZk8O1CyP5Y3304tPr46z0rleCXHsPEz3Q8h1K9l1057WzMbHiYTkPQPH5HJ
-         LeJQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792095193; x=1792699993; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=g/o0v0Yr+auOrsddBv1qaqTGOkbqMwX+D9s2+D5scD4=;
-        b=Kz82OO8m5E1yYRnNfx2+mtQ9PpOqwY04VaODSP3nmT1fyZaaLUBMxNPNoJLlALDsg3
-         DT9k08YRWAfMaKO1yKzAcUN27StDFB6CeYBfRhXITwsFCibpDOt7wnXkBH3xr4M69hNw
-         0WvzCMvyxLHqASZ0Mj7kcVv/n9YHZeTIMg9DlixZJAMnaECpBUTS1z3Fa4FWz+VBepVS
-         VgHtDQ1oy+SYHQhe4DWZs8NRzbIuQq57/mqMPAzCoU6JtAzManTIRh70Fl1QCNVUwlAH
-         /RdAJDtLU6Ppu6+HGiflFVaI+VEwJj8S2DAQQwo1erjDHm2ZEi767BV7a8xoGWZVDRm6
-         1fpw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792095193; x=1792699993;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=g/o0v0Yr+auOrsddBv1qaqTGOkbqMwX+D9s2+D5scD4=;
-        b=fLA8kX5561Gs3n5ZqlhhG71FkeUmYyh0GjrVn7Xk7m3gMq8Y3erWVGciaR2piMl5+q
-         +MV/6pCasZUDxfvE7xDoeCT0CcK9ZY6S/XQ9o1ar/uqxW81CZscXy2gAgENvoKzOetot
-         pkCQRz0/ytOdMS1LbyS7iuvURuO+cu04enjgjSbGICE65nkA2wc4mbMgPQEv2R6VUWSb
-         +eX218W+X6mej7KFiKpuiqwMVGqfFqPjdheNP0KdQwEoV2F2BstIjM0ynBcAcDaORLL6
-         z/aGkPOUWK2AHjONNtusuxC40FTBQkbOi6xwNiBHyq8eWSv97GqsJH/Q3oC0aW8MVJ3H
-         kjBQ==
-X-Forwarded-Encrypted: i=1; AKwUvBxJCkSeBJtyjL0hgE8IXfOIn/q+SlfUpBfotYPMoR6fH4VSD42muXEqYxeQScM7gHo0le/bHgZE6Cql@vger.kernel.org
-X-Gm-Message-State: AFq9FYJX0M2KMzGPxXugraf7FKnHttPT6Ma5FehH1GFMljaiR18WYlz1
-	SOQBEGtIvS/nOREm4BKQaCliZjSp8PgoJL7McCbSyUdaq4BCAzNlT9TQ3DWfURhZbx+Z+mPl+ap
-	/yrC2nYf9cC+aWrFQFTA2JrVuNID5XVY=
-X-Gm-Gg: AYBFou1FPk3c9LnFRMuP77fUngqXlgUMGakaHKNAcvI7jgEOF669mtddH4IPrdKTmVX
-	CLoEzkOCQQIh7TtN6fZPjqoG7J3gzAT8lLRSRWX0uzhoupXvqlgRHHowAZ/9YEJJX4KVwIYbzaT
-	dZw8J31BU+Uzm+OtTv0wMbHtfm65CBJGXaImenzWXRuRNE36ENQ3xYBn8du5tz+/uH2PpKP9fdw
-	51F6Wn9RxG3qL1Zlc75U0OZ/NdY6xl4wfKnOWNjrdNAKpRpxIENHjxMcDs76TIB7m3XM/430Sv/
-	LexhehcJ+Y3sRR4VXrelBa2S99+Vb8gsfjtvQOoTvjrIqg2wUlSKYSU=
-X-Received: by 2002:a17:907:c23:b0:c2e:4e08:19b5 with SMTP id
- a640c23a62f3a-c31a9d08813mr1787531366b.8.1792095192447; Thu, 15 Oct 2026
- 13:13:12 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="GvZXaCxK"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=r3suzpvhEtJwpCgBP88QnSNZdrkwC1LxLZZXSc1jbeFn5H8QpCj+0FGLJ3TRWuEgi4fjj2g+FvRu9e26jwxes0OVFGuW/bZ56tbb/DQm+scYHgRyhQrk4WpKrfR0rA9wu8PkTm3HLYKzlxcTaHW2wba3T1qrU5PUcYus6aYryY97G+p909ozw9X3vF8shfFU1e/bfgFxY5PQUlZJi1noPpdFeqOwtAvTDPMj4LithaMj1us/A8nTpmBlYWRbUmSGCUilhFJEivdFMGQATTkBGK5EOtbtTG66kWrHL8breW7f+44Baj6EkSittHFxoy4rOxUC410dmDBPwF/S6/TrkQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=8ofcBaSiG9GOvkD3xO2mPodTDI6yWISij+GCvjA/hsY=;
+ b=s+PHw3HTCrp621YrunbGKt0H0fsTwBKMpLoaWaomsWZDX1jlKYUPSBJ6xcmOgTbvWbQncsl9kLp5+ncbHaNlqF9H498a+obY+VknjAIEVwkYz2/HNCGR6T26QUa7vtEVBrBvbAo0CM9P54pNwkIs4i2EBPzkEjtn0IQxxp6xohmUDC3XXCszzQQJ3MIn8n38LxIFHyi9IQukOmUne/XFjI3S0yxmQznWsG7NBSHL5fSWTtgV/eDjbI6qZmtiGgrd4Rbx6rxFWCYSIjIfzmbucENn57kdt8vX1gzELJSllqaWd/nyXfrSXrQngrx7PZAh/HMnrhzrulypPZXhJec/1Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=8ofcBaSiG9GOvkD3xO2mPodTDI6yWISij+GCvjA/hsY=;
+ b=GvZXaCxKVjpbLGivaU7OTR6+EK6Atnt+CM+qGuGrA/+CaX+hUAGoJdqaFwC4nGuL/ZX8Z3J6iAOH+7VdJkFqFs2V1rjm3PWj9y4oTCJHLNsoIibqERNwuOj4aIzfhPaY04lyjES27Bb5fJZE/vVqUjjAL2Jug2tVHSty8EPGQNg=
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from PH8PR12MB6914.namprd12.prod.outlook.com (2603:10b6:510:1cb::21)
+ by DS0PR12MB8785.namprd12.prod.outlook.com (2603:10b6:8:14c::18) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.451.24; Thu, 15 Oct
+ 2026 20:25:21 +0000
+Received: from PH8PR12MB6914.namprd12.prod.outlook.com
+ ([fe80::2893:177a:72b0:6000]) by PH8PR12MB6914.namprd12.prod.outlook.com
+ ([fe80::2893:177a:72b0:6000%7]) with mapi id 15.21.0522.012; Thu, 15 Oct 2026
+ 20:25:21 +0000
+Message-ID: <4284d6d4-244d-4d49-bbdb-f1bda89fc1e8@amd.com>
+Date: Thu, 15 Oct 2026 15:25:17 -0500
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] drm/amdgpu: Gate VFCT bus fallback on pci=realloc
+Content-Language: en-US
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: alexander.deucher@amd.com, christian.koenig@amd.com, airlied@gmail.com,
+ simona@ffwll.ch, bhelgaas@google.com,
+ Reza Nikzad Chaleshori <rezanikzadch@gmail.com>,
+ amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+ linux-pci@vger.kernel.org, Alex Williamson <alex@shazbot.org>,
+ =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+ Lukas Wunner <lukas@wunner.de>, linux-acpi@vger.kernel.org
+References: <20261015194828.GA1775177@bhelgaas>
+From: Mario Limonciello <mario.limonciello@amd.com>
+In-Reply-To: <20261015194828.GA1775177@bhelgaas>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: BN0PR04CA0101.namprd04.prod.outlook.com
+ (2603:10b6:408:ec::16) To PH8PR12MB6914.namprd12.prod.outlook.com
+ (2603:10b6:510:1cb::21)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAAUQFRPW-rbcZV-=qV1NMjF_358sdJTiGvQuRxRqAsehY+J9Qg@mail.gmail.com>
- <atEaguJD7dh7xNs0@ashevche-desk.local> <atEb6FN6ZbKI9xgf@ashevche-desk.local>
- <51c151fd-31cb-4ebe-8f3b-eb7634e68c31@amd.com> <4ba482fe-8b34-48ad-9d13-99ab532cbd97@app.fastmail.com>
-In-Reply-To: <4ba482fe-8b34-48ad-9d13-99ab532cbd97@app.fastmail.com>
-From: Nikodem Sanecki <nikodemsanecki@gmail.com>
-Date: Thu, 15 Oct 2026 21:13:05 +0100
-X-Gm-Features: AclHuK_6IVWJuTXkQAqot5n8Si7rebYbfwRNkP4YoTlgAmN-6AwE1BlCMyJKGZ0
-Message-ID: <CAAUQFRPDq6zdyySWtGM8i_uq-iZJK1qpvCvxTrRweLmS2+-AMg@mail.gmail.com>
-Subject: Re: ThinkPad L13 Gen 2 AMD (21AB): Caps Lock LED broken by ACPI GPIO
- 11 interrupt conflict
-To: Mark Pearson <mpearson-lenovo@squebb.ca>
-Cc: "Limonciello, Mario" <mario.limonciello@amd.com>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Abduvaliy Abdulazizov <abduvaliy.hbai@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
-	Mika Westerberg <westeri@kernel.org>, linux-gpio@vger.kernel.org, 
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH8PR12MB6914:EE_|DS0PR12MB8785:EE_
+X-MS-Office365-Filtering-Correlation-Id: 4d443704-34f8-4bd9-1216-08df2afa6faf
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|366016|23010399003|7416014|1800799024|260925022911599003|260925021911599003|10067099003|260925021311599003|22082099003|261009223027099003|11063799006|6133799003|56012099006|18002099003;
+X-Microsoft-Antispam-Message-Info:
+	JNFDgrAm9lZWpj5oLE2TFRC6uoYpcXhsN9TwoMNbSuDxBdPpsJfJfCKtvbc101D1CeozlnmGcu6fFlDtbFfgEzpAlYqP/YzdOUblJux0aKR8y+TkNXuTkk2LZWN8dh9BQTS5JQHfAZ9E/Tde9mVPec5/l8GrWfpinfhhy7fOVzd7c6InfvdBpTjdI3jCss6q/fYDdgFMxyBGKOtCWA+6QEQO8yNShe0Z3gN6gFMIponkrd7Q6EASoqEF1H7xftE0SuG1S7U+ars8EkWn8E3l8QK82getG62ow8NlyzNO6+IO6xAKAB0WzZswEESfb/DU0NHIGlkpsghnc2NBDL7VSJvXcOVe8W91nYPdssHB75FXg1pOhgCdE4isblxUJNTNO3hzxAQYrhXbmLrnTjmDAyiQ4yfxDJDZgroXmVI9AlVoecZVRUj3K/VhSVPecs0z1hnWw0a9zfs3m6J5wPXHHdcVVZROtOGosbXzmDJNQhTksSCJX6ARqDe46KqTrzMX1H/DQfhBykozOUh5+WrRSWEUHe//D/cYqvk6hgrUIAgkBE2fvprA+sgHKgkW4F9dyo8AXvZNwhrWke+GFKQuc/HsXWzUo31AT9FXqOww4z2yObAQQxqiDX2z3TrwQytY
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR12MB6914.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(23010399003)(7416014)(1800799024)(260925022911599003)(260925021911599003)(10067099003)(260925021311599003)(22082099003)(261009223027099003)(11063799006)(6133799003)(56012099006)(18002099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?T3VKa2gvRGg4dkJzNCtEK1Zwci9FODlMc1BwVGp5R0VrV2drY2xzaXNJUGlQ?=
+ =?utf-8?B?dGdmdXdhRVhTQjNTSXRRZTdockVhYjljOHE4L3ozTTI0bU1pZWJjaUM5NjZZ?=
+ =?utf-8?B?MmVheTdEbnZPS0VPa0JKdzlTanU4aUxZbWtrY2M1WTJHMkhZclIrbXNwdDdy?=
+ =?utf-8?B?dDRkTGlqNVFhNW1qYTgyNDJJWW9zdG4rVHdYM05leWorcW9JS0U5d3ZyWDE1?=
+ =?utf-8?B?NDhwbWE5UDh6ejNjZUdaUG5sVENQcnRXbVJPT1pLTnhZZVYzSUZTNlBMSTM5?=
+ =?utf-8?B?ZlFJcFQ4OUlOa3JEa2JZMkRISXJxNVJQRE5oenNtQXNDaUlsZ2RQZHFDaWh5?=
+ =?utf-8?B?clE0TEcyekhqY3hpYnd6TzQwQmg0V1JENnljYjlDSHg2bUh4LzhWQk45aFkr?=
+ =?utf-8?B?K09WeitUNEg4cFhUMk9nelBtbE5CMTZTTk0vTGtYc0FYVEw1VzRER2FZK3Az?=
+ =?utf-8?B?ZlcyU2k1eEFNNXRNb2kvNWtEUEdzTE11WVJLbG5FK1huZlpnc2xpWWpidkV0?=
+ =?utf-8?B?UVRmSHFwVXlCdkNrZ0I0YjN0ajhFZHFJcVluemk0Z05YUmR0aERPRXN6ZnNi?=
+ =?utf-8?B?SCsrUFlRc0gwNGluWnVpNEhTU2ZZMldJdFh2STVFS0xrcmpxNytFTzZlSDFn?=
+ =?utf-8?B?dW1wd01DK0pRcFdQNXJNZ0hIK0pObFo2S045eWtoY3JrNjFKYU4wRmFYYXVZ?=
+ =?utf-8?B?NVZRZXFRbzMyQi85eTFCaEdCenNuVjg4Z2ZTTFliQ0ZDZHdSOTVWUXVHMnI3?=
+ =?utf-8?B?cDdxZ1kxdkd0RUU5VG5RR1o0UXBweEdJcjh4d0lZYlVQZTJtUDlrQS9FdGxF?=
+ =?utf-8?B?U2tLT21QRWVwZ1JoMDJhWnhBVEhPcUxXdW1sSGhIVm1WSzBjZVJzR0dkM2Vt?=
+ =?utf-8?B?MUtkMENHaHVSQ0I3ckQwM2FLQWtMOGVVby9CRU1wTmgxZC9yYy9TUE1hbFl3?=
+ =?utf-8?B?bEpLRyt1cW5nMDZLeHZwU2FueFVUK3JERjVUVXNuWHlRd1B3cTJWeEtuMDR0?=
+ =?utf-8?B?dEdLUUdNSXNxTGZmemxqeG8xVndDLzBEN1JvNnRpZWowQkVWaVFSM2ZWVUJl?=
+ =?utf-8?B?Tlk1cWd5QmROTzg4RXFpQ1dYeS96aStsNzJ2MWh4MDFlSG9JSUxhc2hVcWlu?=
+ =?utf-8?B?dGxiY2pScnFuRENTaTNScWZNRXRreUl0R1JmeDZpUGYyZmJRSG81NlZETFdG?=
+ =?utf-8?B?Q1JWYnBhdS96WE1ibVBaNFZrOW8ySjVFL0p6bDM0dU1vbkFSWVd3TUI2WWdB?=
+ =?utf-8?B?QThuUDNiQmR6RkVhSy80aTlKL0xKSFdpVkFDUXY3bll4NmJmZ1ZjKzBVY1Y2?=
+ =?utf-8?B?YUZLR3F2YUF2dUpNTTA1RzVMMi95NWRjVFd4d1U0OXRCTzk2SEd1UG5hWk9E?=
+ =?utf-8?B?dEs1Zkt3ZG92TEtyMGJVSWRLZ0xiaGxjRnhvOUVlald3MFdIeWFpaU91aWo1?=
+ =?utf-8?B?aEx3NWRkRTRCL0V1MGlCMDhnNDVsRjd0ZFYvdUZKR1l0c2pJK2ZPRzN2eU81?=
+ =?utf-8?B?QmdSQk95TmtPaVdlVFcvRFpHOTNxQ1h2L0VoZ3Z4WkxOeWxRb050eGF1d1ZM?=
+ =?utf-8?B?eUNPUW9WeSsxVXFsL1YwZGpCeVRjTWZ3WVBjc3BQelo0RHRKNFRBVkxWSEhH?=
+ =?utf-8?B?ZTlNSTlyNzkrdnlPaEVTTkw5VmsrN1BoUSs4WnRJMVdqRldhL0hrY2E4Y3V4?=
+ =?utf-8?B?azdPRHlGNmNuTlMrSFhGeUozam94WXY2U0RBWDNGRjlFb3JMdGtaWHMxTmJM?=
+ =?utf-8?B?ckNMcDNueENJa3hHTkZiZFU2bXZaR1Z3TVd4ODZOcURwc3ZxRkxMbnBiQ0pY?=
+ =?utf-8?B?aWcrYzZpdEU3T1VGQ3JBSTAvR2tqRi95UmcrWXorVEU2WUVmZzA3SGlkWDh4?=
+ =?utf-8?B?WXZDZlpkNGZuZ2xWNHNsWFBuQVorUitIMXUzTHE2ZDBXL1EzOVhZQ1pXTkxN?=
+ =?utf-8?B?eWRSaWFlNkFZQ1pTbDd0M21YK0dINGxjK3VHeDVSMVV3bXZIalJlMHQ2TlRW?=
+ =?utf-8?B?cXRPZ2xucndVSnJzeitzeWlneDN4YmtUb1FKaEc0aE9SbkJBT2loVFdVVUFI?=
+ =?utf-8?B?Ym5KMWcyWS85aW5hSlpQZEQzNkk1dWNoaTR3MW5oT2RwNHlqVW9aNzFRWUs2?=
+ =?utf-8?B?ZzAxUHcyUjFsTUhpUjdnQ1lWa1lTTlFabnM3aGMwaWl4WHRQWlBjRU5LNXht?=
+ =?utf-8?B?VEIzT3YzdGsrZFpheS9yY0ZxK0dyMVBqM0tsaDNQeWVxQkNwZ2h4c2JIZExY?=
+ =?utf-8?B?WU9oSFlldUxxOFptUzBTZ3EwMGREaDM1S3BCU09ka1RpSU5sZklwb0ZBL1o0?=
+ =?utf-8?B?YnRxdVJua2M3WVhEMHBNakNWcXc3VzZveE0ybTNNR3FtYnBFSW9Fdz09?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4d443704-34f8-4bd9-1216-08df2afa6faf
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR12MB6914.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Oct 2026 20:25:21.5896
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: FztyKrPtpZGJAEBELrPHIwp/3QRwU8G1dDzDsoG8zsdCQGQYz9SNZWpQxyPREabYymq/C9xUiDgtDWBY+k9iXA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB8785
 
-Thank you for looking into this.
 
-I've checked Lenovo's website. My installed BIOS is R1QET54W (1.40),
-which matches the latest advertised version. The version history on
-their website appears inconsistent, though.
 
-I also have the sanitised ACPI excerpts and diagnostic logs ready.
-Given that a patch has now been submitted, would a kernel Bugzilla
-report with these artifacts still be useful?
+On 10/15/26 14:48, Bjorn Helgaas wrote:
+> [+cc Alex, Ilpo, Lukas, linux-acpi]
+> 
+> On Thu, Oct 15, 2026 at 07:48:42AM -0500, Mario Limonciello wrote:
+>> The soft filter system introduced by commit 11c141672045f ("drm/amdgpu:
+>> Fix VFCT bus number matching with soft filter") has a deficiency that
+>> it won't work when there are multiple GPUs of the exact same model.
+>>
+>> As it was introduced specifically to help the case of pci=realloc, gate
+>> it to only run when that's in use.
+>>
+>> Fixes: 11c141672045f ("drm/amdgpu: Fix VFCT bus number matching with soft filter")
+>> Reported-by: Reza Nikzad Chaleshori <rezanikzadch@gmail.com>
+>> Closes: https://lore.kernel.org/amd-gfx/20261014080523.186533-1-rezanikzadch@gmail.com/
+>> Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+>> ---
+>>   drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c | 15 ++++++++-------
+>>   drivers/pci/setup-bus.c                  |  5 +++++
+>>   include/linux/pci.h                      |  1 +
+>>   3 files changed, 14 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c
+>> index 08ed1eb695586..75af9a59671ae 100644
+>> --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c
+>> +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c
+>> @@ -384,12 +384,10 @@ static bool amdgpu_read_disabled_bios(struct amdgpu_device *adev)
+>>    * @vhdr: VFCT image header to check
+>>    *
+>>    * VFCT entries contain the PCI bus number as recorded during BIOS POST.
+>> - * On systems where the kernel renumbers PCI buses (e.g. pci=realloc or
+>> - * resource conflicts), the runtime bus number may differ from the POST
+>> - * value.  Match by device identity (vendor + device + function) and use
+>> - * the bus number as a preference: exact bus match is preferred, but when
+>> - * the bus numbers disagree we accept the entry if the device identity
+>> - * matches.
+>> + * On systems where the user requested PCI resource reallocation, the
+>> + * runtime bus number may differ from the POST value. Match by device
+>> + * identity (vendor + device + function), but only treat the bus number as
+>> + * a preference when pci=realloc was explicitly requested.
+> 
+> This is a generic problem, isn't it?
+> 
+> I think any table from firmware that has PCI bus numbers in it could
+> trip over issues like this.  Seems like we need a more generic
+> solution.
+> 
 
-Happy to help with any further testing.
+Yeah; it's a generic issue which was triggered by pci=realloc which is 
+why I did a soft filter in 11c141672045f.
 
-Thanks,
-Nikodem
+But this causes problems when you have two (or more) of the exact same 
+device.  You might match the wrong thing.
 
-On Thu, Oct 15, 2026 at 8:25=E2=80=AFPM Mark Pearson <mpearson-lenovo@squeb=
-b.ca> wrote:
->
->
-> On Thu, Oct 15, 2026, at 2:48 PM, Mario Limonciello wrote:
-> > On 10/15/26 13:31, Andy Shevchenko wrote:
-> >> On Thu, Oct 15, 2026 at 09:25:10PM +0300, Andy Shevchenko wrote:
-> >>> +Cc: Dmitry (as it might be related to keyboard configuration), other=
-s for
-> >>> the previously reported same IRQ on the same GPIO controller but for =
-some
-> >>> camera stuff.
-> >>>
-> >>> On Thu, Oct 15, 2026 at 03:13:02PM +0100, Nikodem Sanecki wrote:
-> >>>> Hello,
-> >>>>
-> >>>> I'm reporting a Caps Lock LED issue on my Lenovo ThinkPad L13 Gen 2 =
-AMD
-> >>>> running Arch Linux. I found a workaround that completely fixes it, a=
-nd I
-> >>>> hope the findings might help implement a permanent kernel fix.
-> >>>>
-> >>>> *A quick note:* This is my first time using Linux, and I'm a complet=
-e
-> >>>> beginner when it comes to kernel development. I used ChatGPT (GPT-6)=
- to
-> >>>> guide the troubleshooting process, analyse my laptop's ACPI firmware=
-, and
-> >>>> interpret the results. I personally ran the diagnostic commands and
-> >>>> verified the observed behaviour, but the technical explanation below=
- is
-> >>>> AI-assisted. Please correct me if any of the analysis is inaccurate.
-> >>>> Problem
-> >>>>
-> >>>> Under Linux, the physical Caps Lock indicator LED never illuminates,=
- even
-> >>>> though the Caps Lock key itself works normally.
-> >>>>
-> >>>> The LED works correctly under Windows and during certain stages of b=
-oot, so
-> >>>> the hardware itself is functional.
-> >>>>
-> >>>> After investigating, GPT-6 identified what appears to be a conflict
-> >>>> involving GPIO 11 on the AMD AMDI0030 controller.
-> >>>>
-> >>>> Booting Arch Linux with this kernel parameter completely fixes the p=
-roblem:
-> >>>>
-> >>>> gpiolib_acpi.ignore_interrupt=3DAMDI0030:00@11
-> >>>>
-> >>>> The Caps Lock LED now works normally, and I haven't noticed any othe=
-r
-> >>>> hardware issues.
-> >>>> System information
-> >>>>
-> >>>>     -
-> >>>>
-> >>>>     Device: Lenovo ThinkPad L13 Gen 2 AMD
-> >>>>     -
-> >>>>
-> >>>>     DMI product name: 21AB004LSP
-> >>>>     -
-> >>>>
-> >>>>     DMI product version/family: ThinkPad L13 Gen 2a
-> >>>>     -
-> >>>>
-> >>>>     DMI vendor: LENOVO
-> >>>>     -
-> >>>>
-> >>>>     DMI product SKU: LENOVO_MT_21AB_BU_Think_FM_ThinkPad L13 Gen 2a
-> >>>>     -
-> >>>>
-> >>>>     Kernel: 7.2.9-arch1-1
-> >>>>     -
-> >>>>
-> >>>>     Distribution: Arch Linux
-> >>>>     -
-> >>>>
-> >>>>     BIOS: R1QET54W (1.40)
-> >>>>     -
-> >>>>
-> >>>>     BIOS date: 2026-04-14
-> >>>>     -
-> >>>>
-> >>>>     DSDT OEM ID: LENOVO
-> >>>>     -
-> >>>>
-> >>>>     DSDT OEM Table ID: TP-R1Q
-> >>>>
-> >>>> Diagnostic findings
-> >>>>
-> >>>> The following is GPT-6's analysis of the diagnostic output and decom=
-piled
-> >>>> ACPI tables.
-> >>>>
-> >>>> *1. Linux sends the correct keyboard LED commands*
-> >>>>
-> >>>> Using bpftrace, we observed that atkbd_set_leds() consistently retur=
-ned 0.
-> >>>>
-> >>>> Tracing ps2_command() for command 0x10ED produced:
-> >>>>
-> >>>> SETLEDS: value=3D4, caps=3D1
-> >>>> SETLEDS: value=3D0, caps=3D0
-> >>>> SETLEDS: value=3D4, caps=3D1
-> >>>> SETLEDS: value=3D0, caps=3D0
-> >>>>
-> >>>> The driver reports success and sends the expected Caps Lock states, =
-but the
-> >>>> physical indicator stays off.
-> >>>>
-> >>>> *2. The embedded controller tracks Caps Lock correctly*
-> >>>>
-> >>>> The DSDT defines the CPLS field at EC offset 0x0F, bit 7.
-> >>>>
-> >>>> Reading that byte through the read-only ec_sys interface showed it c=
-hanging
-> >>>> from 0x00 to 0x80 when Caps Lock was toggled.
-> >>>>
-> >>>> Enabling dynamic debugging in drivers/acpi/ec.c confirmed that each =
-Caps
-> >>>> Lock press triggered EC query 0x78, which was scheduled, started and
-> >>>> stopped successfully.
-> >>>>
-> >>>> *3. Lenovo's firmware controls GPIO 11*
-> >>>>
-> >>>> The DSDT contains:
-> >>>>
-> >>>> Method (_Q78, 0, NotSerialized)
-> >>>> {
-> >>>>      If (CPLS)
-> >>>>      {
-> >>>>          WFIO (0x0B, 0x00)
-> >>>>      }
-> >>>>      Else
-> >>>>      {
-> >>>>          WFIO (0x0B, 0x01)
-> >>>>      }
-> >>>> }
-> >>>>
-> >>>> The WFIO method writes bit 22 using WMEM(), targeting address 0xFED8=
-1500 +
-> >>>> (11 * 4) =3D 0xFED8152C.
-> >>>>
-> >>>> This appears to control the Caps Lock indicator using GPIO 11.
-> >>>>
-> >>>> *4. The same GPIO is declared as an ACPI interrupt*
-> >>>>
-> >>>> In SSDT12, _SB.GPIO._AEI declares GPIO 11 as an edge-triggered, acti=
-ve-low,
-> >>>> exclusive wake interrupt.
-> >>>>
-> >>>> Its _EVT handler includes:
-> >>>>
-> >>>> Case (0x0B)
-> >>>> {
-> >>>>      MSTP (0x3911)
-> >>>>      Notify (\_SB.PCI0.GPP1, 0x00) // Bus Check
-> >>
-> >> This looks like some GPIO related notification. I dunno what Windows d=
-river does.
-> >> Mario?
-> >>
-> >
-> > Honestly - this sounds like a copy / paste BIOS bug that they copied th=
-e
-> > SSDT from one system and didn't change it.
-> >
-> > I would think quirking it makes sense if the BIOS isn't going to be fix=
-ed.
-> >
-> > Before we go much further can you check if this is the latest BIOS?
-> > Check Lenovo's website, in case it wasn't brought to LVFS.
-> >
-> > Also; Mark can you ask BIOS guys to look this over?
-> >
-> > It sure seems like GPIO 11 shouldn't be in _AEI.
-> >
-> Yep - created internal ticket LO-4711
-> Just a note though - the platform was not in the Linux program (and is ra=
-ther old) - so my expectations of getting a fix is rather low I'm afraid
->
-> I'd get the quirk ready, and if I don't get any feedback from the FW team=
- by next week go ahead with that.
->
-> Mark
+>>    *
+>>    * Returns: 0 on match, -ENODEV on no match
+>>    */
+>> @@ -409,7 +407,10 @@ static int amdgpu_acpi_vfct_match(struct amdgpu_device *adev,
+>>   	if (vhdr->PCIBus == adev->pdev->bus->number)
+>>   		return 0;
+>>   
+>> -	/* Bus mismatch but device identity matches (PCI renumbering case) */
+>> +	/* Allow bus renumbering only when the user requested pci=realloc. */
+>> +	if (!pci_realloc_enabled_by_user())
+>> +		return -ENODEV;
+>> +
+>>   	dev_notice(adev->dev,
+>>   		   "VFCT bus number mismatch: table %u != runtime %u, matching by device identity (vendor 0x%04x device 0x%04x)\n",
+>>   		   vhdr->PCIBus, adev->pdev->bus->number,
+>> diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+>> index ed16ef7c26fa7..d9450585082c0 100644
+>> --- a/drivers/pci/setup-bus.c
+>> +++ b/drivers/pci/setup-bus.c
+>> @@ -1799,6 +1799,11 @@ static bool pci_realloc_enabled(enum enable_type enable)
+>>   	return enable >= user_enabled;
+>>   }
+>>   
+>> +bool pci_realloc_enabled_by_user(void)
+>> +{
+>> +	return pci_realloc_enable == user_enabled;
+>> +}
+> 
+> I don't like this.  I think the same bus renumbering can happen in the
+> "auto_enabled" case, and I don't think we set pci_realloc_enable in
+> that case.
+> 
+> But more generally, I think ultimately the PCI core should be able to
+> reassign bus numbers arbitrarily to accommodate hotplugs (given the
+> appropriate driver support to tolerate that, of course).
+> 
+
+Could we keep track of the original perhaps?  Then drivers can know what 
+it was reassigned from?
+
+>>   #if defined(CONFIG_PCI_IOV) && defined(CONFIG_PCI_REALLOC_ENABLE_AUTO)
+>>   static int iov_resources_unassigned(struct pci_dev *dev, void *data)
+>>   {
+>> diff --git a/include/linux/pci.h b/include/linux/pci.h
+>> index d31a8d107b1ef..844734da9250f 100644
+>> --- a/include/linux/pci.h
+>> +++ b/include/linux/pci.h
+>> @@ -610,6 +610,7 @@ static inline struct pci_dev *pci_physfn(struct pci_dev *dev)
+>>   }
+>>   
+>>   struct pci_dev *pci_alloc_dev(struct pci_bus *bus);
+>> +bool pci_realloc_enabled_by_user(void);
+>>   
+>>   #define	to_pci_dev(n) container_of(n, struct pci_dev, dev)
+>>   #define for_each_pci_dev(d) while ((d = pci_get_device(PCI_ANY_ID, PCI_ANY_ID, d)) != NULL)
+>> -- 
+>> 2.43.0
+>>
+
