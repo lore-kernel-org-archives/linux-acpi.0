@@ -1,221 +1,302 @@
-Received: from sender5-pp-e109.zoho.com (sender5-pp-e109.zoho.com [165.173.182.109])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C0874EC66E;
-	Thu, 15 Oct 2026 13:53:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=165.173.182.109
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58FCD52E079
+	for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 14:21:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.43
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792072421; cv=pass; b=RmYYkLeRSd+0Oy5z3SvBlOlpc4mzpZ5SHbeoqKhVcr0yC+FiQAwQH/ycdKDaFFzT9Cj7KyXIplzxgDqqBKiI96tsvln+5qBLItsIYv3owwC0sdAdEfcO6cETKg6T5CqH7e6EYOeQaD6hIF9skQNjeOLMD7NnAKyPfNrfc2WeWNM=
+	t=1792074088; cv=pass; b=RySAjTQKztIymQtIxYY83lWnpBwSzcNeQ6h8RUf+pyQnhuufIPJ4RsSkGTDfyuKRjdau4lEB5ZrYkfIrBnaYHJlgD7avqhGPrA3E0S3Irs7eYgeZ0xoelV+HGsMnH0ht+cLWzbkfquvUsYcFbB8g5Pv7DdNuRH2kiQEZXjjQZt8=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792072421; c=relaxed/simple;
-	bh=zE4YjEh8QdPFxQ8eU7lNWqwB+b6PsSS01RvbHBDYggE=;
-	h=Message-ID:Subject:From:To:Cc:In-Reply-To:References:Content-Type:
-	 Date:MIME-Version; b=b6WTl/3IQ7pSdjnIGKlFAqYubFOsGcO2w4nkqJPxeXWHbYgrMJru6pVCMAyJhNQgc/K1r+vfrOEdSp6f1mBNPyvEcFmC8o66Uerq3ehhSekfGCRVD4+qpo9X+jcong2YsmM7UTCtFQqy4k/7C89P5foX5b5KPXJPsY+y9Tzk8Jo=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=rong.moe; spf=pass smtp.mailfrom=rong.moe; dkim=pass (2048-bit key) header.d=rong.moe header.i=i@rong.moe header.b=iOzVcVmo; arc=pass smtp.client-ip=165.173.182.109
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=rong.moe
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rong.moe
+	s=arc-20240116; t=1792074088; c=relaxed/simple;
+	bh=HayAmmLBI/WF/AkMleopvPrrdy1dOmE7xAMyDaxUghs=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=rqbB3CWNrlReAovcPZOXZvJ6fOLYBR14EdzJiePOZXjFKhX+YNzjzF+4xzvSWIAte0V04Dfnc8fGEh8VskH7Qi2yi8bkksAUbRoENwTLHtVu6JHISWR/t9yjOSfvsD1EnjhLwucZR7uhrhKFcG/hgfFtRnuycI7MY2IPN/D+2L4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=a9t4XZf4; arc=pass smtp.client-ip=209.85.218.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rong.moe header.i=i@rong.moe header.b="iOzVcVmo"
-ARC-Seal: i=1; a=rsa-sha256; t=1792072407; cv=none; 
-	d=zohomail.com; s=zohoarc; 
-	b=L6MZoV8wPfRvlFCHOlpgbrtcOUa7C8NKrZBTXfaUfSlTFHCDAqCELv2ziHorUvL4V/uYgjyugM8Y/k8UZfQNfYaRE3K3MwlneOB0gz8ePO8MiBMnCA0t14FOmnweXgZUIetaZr/4XbuFJvAOKJojb/P9O32AchblXCrcvykaW2Y=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1792072407; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=c6Mv732sGbNbJsbq5B//QerhX6BlAafCTrC6wqDiTrk=; 
-	b=JlgZ8VCGFh51MVLWeq9aSRg/b9FNO9tSkwRYXM00xM8eyZg2Q1QZbG53YXG1nLnA1+XwYqzDZQ27Ho9O4zGYgz6pavN3lwf5yF0WEVB8urYISJK/pvHshW2B5DrA/qPpKaT8oFvP8at9vROUAjTgJiG4k7YQSe6dzXjmEK0XWCg=
-ARC-Authentication-Results: i=1; mx.zohomail.com;
-	dkim=pass  header.i=rong.moe;
-	spf=pass  smtp.mailfrom=i@rong.moe;
-	dmarc=pass header.from=<i@rong.moe>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1792072407;
-	s=zmail2048; d=rong.moe; i=i@rong.moe;
-	h=Message-ID:Subject:Subject:From:From:To:To:Cc:Cc:In-Reply-To:Content-Type:Content-Transfer-Encoding:Date:Date:MIME-Version:Message-Id:Reply-To;
-	bh=c6Mv732sGbNbJsbq5B//QerhX6BlAafCTrC6wqDiTrk=;
-	b=iOzVcVmop1ZDRYHMs7zrhy9RboHR2oXvps/W/02Va8v1v5pEENsRGv66iLM8+B5v
-	TnnE5aN4SvI0jykHry+s7W1B448oyTV47MDPSVT3qmcQzf06GMvb3KAzoQZfazZ0Vxv
-	QiBkNg+hhbYg4U9zlb2O2vUPIuREMrAQcWCSfXmpkobdlNPrMpdxpWJQYbeQcnrPWUc
-	7227t6Hw+n2wFWAOpZqsv/sheICup5FGPQ7OJ3JUACA6YREYvqTqxw9yg8WMlaaX/K6
-	+rhNwRLA9yD23HjK21KM38qHJMIsMaLCxQ7giu9zejCV5NGDGOcAB8Ktt1e2uzBvfH2
-	WFIsurUEAA==
-Received: by smtp.zohomail.com with SMTPS id 1792072403278583.9180743363034;
-	Thu, 15 Oct 2026 06:53:23 -0700 (PDT)
-Message-ID: <db52af80e3d52f16a609071db79a29e012f4fcd9.camel@rong.moe>
-Subject: Re: [PATCH 0/3] ACPI: Serialize battery methods and INT3403 _TMP
-From: Rong Zhang <i@rong.moe>
-To: Hans de Goede <johannes.goede@oss.qualcomm.com>, Ali Ahmet
- =?gb2312?Q?Memi=810=946?=
-	 <aliamemis@disroot.org>, "Rafael J . Wysocki" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Daniel Lezcano
- <daniel.lezcano@kernel.org>,  Zhang Rui <rui.zhang@intel.com>, Lukasz Luba
- <lukasz.luba@arm.com>, Armin Wolf <W_Armin@gmx.de>,  Charis Stratakis
- <c.stratakis@proton.me>, linux-acpi@vger.kernel.org,
- linux-pm@vger.kernel.org, 	acpica-devel@lists.linux.dev,
- linux-kernel@vger.kernel.org
-In-Reply-To: <7ecfd94c-7083-4d76-a5f7-490ba1e650d7@oss.qualcomm.com>
-References: <20261014132703.93355-1-aliamemis@disroot.org>
-	 <58586fa666f09c209f9d7fe8c692a8bdda6d4410.camel@rong.moe>
-	 <7ecfd94c-7083-4d76-a5f7-490ba1e650d7@oss.qualcomm.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Date: Thu, 15 Oct 2026 21:48:13 +0800
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="a9t4XZf4"
+Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-c263415982eso695610866b.0
+        for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 07:21:26 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1792074084; cv=none;
+        d=google.com; s=arc-20260327;
+        b=MbrEJi7sO15FENxWw/KaNxOiLEJuT/zsU5zQywcoe8RnJZoWAExZD+WbsZS3Gy1AEX
+         7O6zAS2T51TJWrgkYIQ9BaI84u8P4EMcegsYW8IYprPYG9E9+XSJElkapKvVlOTq05zJ
+         Lfcms7xzsPA7uRnR6r16Z5Gub2fKfs4xb9a+oW/Wjne/hX0PFst626u3jm5O7DHMfBqa
+         sHAFB1MOQE7ybD7uvQDzDzrNVkMzpAjs0xHrMwZWDOz9JhkwXl9y3gKoatq4b2xKJWcb
+         oq90ihzAgUI0VsN6aP08xhWWcEus1wcM2m3cESmvXwAi+HuVA3fSqxnTBKknQ6jGHMb3
+         i/jQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=/8EK0KxjKp+jZTxkjps+lH3/bw/OLb+7lXjV6iL/Kg0=;
+        fh=hM5OexnVYy/8jq6aX4MvEuDpUUNLQgdoWzpAFEHH3y0=;
+        b=gMAGNFmHffIA5O0fdUGppDLkghR2Plvwp3N/o0CensldN2Bt7QksWORBBNblRF7H4P
+         N/uHehWllCKtEpgsUxWJcaxe4TzVX8pA+eKKsUa+SPVdypAQTulr8hBTLXaGlO0VHDkG
+         qMKs8OFzNEzfx58jtLFjZhJLIhkeIVnk21lnVV3s3fpBf0eln3T6zeRuzj6S7zMFR1Yj
+         +4JC6QycFSotANhUqWGNdfi6uOJ3jWZKEXWFG5BaesPlMO/ne+5NATpIUWgBn3Ye6Jls
+         CFkEPNMC8ddGY1opq0BVC96aZzjH0LpS0uUgK98Cs/IUpGpdO+ijUuFLRU/FvidUiUlC
+         R3KQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1792074084; x=1792678884; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=/8EK0KxjKp+jZTxkjps+lH3/bw/OLb+7lXjV6iL/Kg0=;
+        b=a9t4XZf4lD2RH6Opnxarq8DY5cG8RuKSSxlox17uQS16Q1eTCERhSxvhLUPsiFVY/f
+         2AQI7VRn7qPkDK+U8qg7Ch0yWttplnGd91uu1yYM1uCqcFo0/Nhxodg8OTgOps649y71
+         q+g6QY0RlacumowbPGNj4m/JvCtA++xWMxxpXvTld8gtjTWCC6GumNaCSzxiOTIcC2nG
+         TMu5r/6RrUgRRK91kFx4fnzueF0RQlJrDbaGOVC1/JMeDfpwwMOLbwMddjg9ztlCOTAH
+         C2zgFqGRrRgx6ag6Gmsb/0oBDV/SyncCiJKM20np9K2b/lqEDe3Bd8rsNDuteF2nO1mk
+         7sQw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792074084; x=1792678884;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=/8EK0KxjKp+jZTxkjps+lH3/bw/OLb+7lXjV6iL/Kg0=;
+        b=hMR59A3YyQ0W9RaunVOqalihKKR28D4NC/ufO70k0dFMw6GFcZZw5ds6qnaGOcNDY8
+         tehrqxjC+fzGoF0C5NAeHESZ/63oC+kcphl5BVTOaJvhEDRdlSFOkWsW3raHbgdiJgTy
+         Kz++67dOFeTapxe7UTK8iI4ye2RC1+hapMwVI9gInuLDgVubKA+tHgR6DQ5R4OVeo3s4
+         S3lxWnwS59dA6nrHPyv36INNuuBAMV32PL/KihpWYfx5IhiRQ33T1qKBwSwH5Zg1Mktf
+         8Pj2UscipaDGBAA52cV5Uhgujq08HDwVvhDZvqXwI7bpOTkixQJi7kPEAUpuxj1XrpKx
+         tDRw==
+X-Forwarded-Encrypted: i=1; AKwUvByNRPNdvhjqDDxzHzoOY9dbewmE/Dho09YyxgCO3txetkK+LsHvY9BmcJB3aWDdDclgrQ5IWrIbvd8+@vger.kernel.org
+X-Gm-Message-State: AFq9FYJjorCHhUnZvpn2/HcdVEd2hKGk54/7E2NDHlHBpSf6vgJ7t6PW
+	gtdIHOgedcTUvLnQpH6jP2gnBD/Rw6rHvtU9XnUXX4Wr1w8q8s9wHHptt6LlHaU3BwYQob4KpaV
+	5OEcQYsh6ZlOdsdYbTkf46aciLsOmE0s=
+X-Gm-Gg: AYBFou1cuK/Mq/553vkssQQ76dGXnHXF0UOwj2UZQ5hFfgge7SIb8F215pIsI4YllOL
+	k+to2QSXQsUUOsJ/vz3fXGUIfn0OumXFKQHXW8LP851GBtHOUGpjo5NclRIM2E5fhtfH8I4xPSN
+	0xK8b0M/61j4WuGtNcRSt5/YS6/4fGTOJgYUuOev2VpF2xYZFzva9J9AEjMh7fz6ObPV7r0VAAZ
+	PrQGYm3BGuMSbl7jcZpSvsUe71/OFA8r8G5MTzME6blOGooIp/zH6sGJjx7PEbhiYmV33cGv0dH
+	9YN3l9dyv1efa8IUolT/HjnWH1FLilC1vM33vYpTecjqUoTmautyQ0bOOZksXQau088NHiA44lO
+	rryvc8Q6vCg==
+X-Received: by 2002:a17:907:7ba3:b0:c29:f5d5:5aa1 with SMTP id
+ a640c23a62f3a-c31aa097acdmr1897928666b.43.1792074084318; Thu, 15 Oct 2026
+ 07:21:24 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Evolution 3.56.2-10+b1 
-X-ZohoMailClient: External
+From: Nikodem Sanecki <nikodemsanecki@gmail.com>
+Date: Thu, 15 Oct 2026 15:21:11 +0100
+X-Gm-Features: AclHuK-uMeM2OT-1SvHDE5B8L4CFd9ifGhVLzzenOjl_5vJC1fOzzee1rHAuyPI
+Message-ID: <CAAUQFROUNCJo7EUn4eiDxSTd6pfPcQDP1_ma0G2k73DJtMnNVw@mail.gmail.com>
+Subject: Hello, I'm reporting a Caps Lock LED issue on my Lenovo ThinkPad L13
+ Gen 2 AMD running Arch Linux. I found a workaround that completely fixes it,
+ and I hope the findings might help implement a permanent kernel fix. **A
+ quick note:** This is my first time using Linux, and I'm a complete beginner
+ when it comes to kernel development. I used ChatGPT (GPT-6) to guide the
+ troubleshooting process, analyse my laptop's ACPI firmware, and interpret the
+ results. I personally ran the diagnostic commands and verified the observed
+ behaviour, but the technical explanation below is AI-assisted. Please correct
+ me if any of the analysis is inaccurate. ## Problem Under Linux, the physical
+ Caps Lock indicator LED never illuminates, even though the Caps Lock key
+ itself works normally. The LED works correctly under Windows and during
+ certain stages of boot, so the hardware itself is functional. After
+ investigating, GPT-6 identified what appears to be a conflict involving GPIO
+ 11 on the AMD AMDI0...
+To: westeri@kernel.org, andriy.shevchenko@linux.intel.com
+Cc: linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Hans,
+Resending this report in plain text because my original email was
+rejected by the linux-gpio and linux-kernel mailing lists for
+containing HTML formatting. Apologies if you received the original
+message twice.
 
-On Thu, 2026-10-15 at 15:13 +0200, Hans de Goede wrote:
-> Hi,
->=20
-> On 15-Oct-26 13:45, Rong Zhang wrote:
-> > Hi Ali,
-> >=20
-> > Thanks for working on this!
-> >=20
-> > The series is generally in a good shape. I just have a few minor
-> > comments.
-> >=20
-> > On Wed, 2026-10-14 at 16:26 +0300, Ali Ahmet Memi=C5=9F wrote:
-> > > As discussed in [1], add exclusive variants of acpi_evaluate_object()
-> > > and acpi_evaluate_integer() and use them for the battery methods and
-> > > INT3403 _TMP, which interleave badly on ThinkPad P1 Gen2 and P53.
-> > >=20
-> > > UCSI (bko221065) is not converted. =C2=A0
-> > >=20
-> >=20
-> > Please leave a link to the bko bug, so that readers don't need to
-> > assemble the link themselves.
-> >=20
-> > > There the contention is on a
-> >=20
-> > After carefully auditing the ASL code again, I've just found the root
-> > cause of the mutex acquisition timeout.
-> >=20
-> > It's hard to notice, but \_SB.PCI0.LPC0.EC0.RDER being declared as
-> > "Serialized" causes an ABBA deadlock:
-> >=20
-> > Thread 1 (battery)                         Thread 2 (ideapad-laptop)
-> > -----------------------------------------  ----------------------------=
------------
-> > serialize \_SB.BAT0._BIX                   serialize \_SB.PCI0.LPC0.EC0=
-.VPC0.GBMD
-> > evaluate \_SB.BAT0._BIX                    evaluate \_SB.PCI0.LPC0.EC0.=
-VPC0.GBMD
-> >   acquire ECMT [A]
-> >   serialize \_SB.PCI0.LPC0.EC0.RDIF          serialize \_SB.PCI0.LPC0.E=
-C0.RDER [B]
-> >   evaluate \_SB.PCI0.LPC0.EC0.RDIF           evaluate \_SB.PCI0.LPC0.EC=
-0.RDER
-> >     serialize \_SB.PCI0.LPC0.EC0.RDER [B]      acquire ECMT [A]
-> >=20
-> > That's why merging battery notifications significantly reduced the
-> > frequency of mutex acquisition timeout.
-> >=20
-> > > firmware AML mutex that _Qxx EC queries also take, which a wrapper
-> > > around acpi_evaluate_object() cannot cover, and Rong's notification
-> > > merging in 7.3 already reduces it on the battery side.
-> >=20
-> > Lock contention is not the root cause, and EC queries and UCSI _DSM are
-> > just innocent victims of the ABBA deadlock.
->=20
-> Hmm, ok so since \_SB.BAT0._BIX takes ECMT itself instead of relying
-> on \_SB.PCI0.LPC0.EC0.RDER taking it (1),=C2=A0
->=20
 
-I guess the intent of holding ECMT in _BIX was to prevent race conditions
-in multi-threaded interpreters. IOW, the firmware authors probably took
-multi-threaded interpreter into their consideration.
+Hello,
 
-        If ((Acquire (^^PCI0.LPC0.EC0.ECMT, 0x2000) =3D=3D 0x00))
-        {
-            If (((^^PCI0.LPC0.EC0.BTDV && ^^PCI0.LPC0.EC0.BTFC) && ^^PCI0.L=
-PC0.EC0.BTDC))
-            {
-                BPK1 [0x01] =3D 0x00
-                Local0 =3D ^^PCI0.LPC0.EC0.BTDC /* \_SB_.PCI0.LPC0.EC0_.BTD=
-C */
-                Local0 *=3D 0x0A
-                BPK1 [0x02] =3D Local0
-                Local0 =3D ^^PCI0.LPC0.EC0.BTFC /* \_SB_.PCI0.LPC0.EC0_.BTF=
-C */
-                Local0 *=3D 0x0A
-                BPK1 [0x03] =3D Local0
-                BPK1 [0x05] =3D ^^PCI0.LPC0.EC0.BTDV /* \_SB_.PCI0.LPC0.EC0=
-_.BTDV */
-                Local0 =3D ^^PCI0.LPC0.EC0.BTFC /* \_SB_.PCI0.LPC0.EC0_.BTF=
-C */
-                Local0 *=3D 0x0A
-                Local0 *=3D 0x0A
-                Divide (Local0, 0x64, Local1, Local2)
-                BPK1 [0x06] =3D Local2
-                Local0 =3D ^^PCI0.LPC0.EC0.BTFC /* \_SB_.PCI0.LPC0.EC0_.BTF=
-C */
-                Local0 *=3D 0x0A
-                Local0 *=3D 0x02
-                Divide (Local0, 0x64, Local1, Local2)
-                BPK1 [0x07] =3D Local2
-                BPK1 [0x08] =3D ^^PCI0.LPC0.EC0.BTCC /* \_SB_.PCI0.LPC0.EC0=
-_.BTCC */
-                BPK1 [0x09] =3D 0x251C
-            }
+I'm reporting a Caps Lock LED issue on my Lenovo ThinkPad L13 Gen 2
+AMD running Arch Linux. I found a workaround that completely fixes it,
+and I hope the findings might help implement a permanent kernel fix.
 
-            BPK1 [0x10] =3D ToString (^^PCI0.LPC0.EC0.RDIF (0x01), Ones)
-            ToDecimalString (^^PCI0.LPC0.EC0.BTSN, Local0)
-            BPK1 [0x11] =3D ToBuffer (Local0)
-            BPK1 [0x12] =3D ToString (^^PCI0.LPC0.EC0.RDIF (0x02), Ones)
-            BPK1 [0x13] =3D ToString (^^PCI0.LPC0.EC0.RDIF (0x03), Ones)
-            Release (^^PCI0.LPC0.EC0.ECMT)
-        }
+A quick note: This is my first time using Linux, and I'm a complete
+beginner when it comes to kernel development. I used ChatGPT (GPT-6)
+to guide the troubleshooting process, analyse my laptop's ACPI
+firmware, and interpret the results. I personally ran the diagnostic
+commands and verified the observed behaviour, but the technical
+explanation below is AI-assisted. Please correct me if any of the
+analysis is inaccurate.
 
-> this means that not just
-> the ideapad-laptop GBMD method call but anything calling
-> \_SB.PCI0.LPC0.EC0.RDER may cause this abba dead-lock, right?
-> Are we sure nothing else is calling  \_SB.PCI0.LPC0.EC0.RDER ?
+Problem
 
-I checked all code paths with ECMT involved, and concluded a call graph
-with all faulty methods:
+Under Linux, the physical Caps Lock indicator LED never illuminates,
+even though the Caps Lock key itself works normally.
 
-                      ideapad-laptop
-                            |
-                            v
-   battery                 GBMD
-     |                      |
-     v                      v
-   _BIX -> ECMT -> RDIF -> RDER -> ECMT
-                    ^       ^
-                    |       |
-    +---------------+-------+
-    |
-   GSBI -> ECMT -> SMTE/SMTF -> ECMT
+The LED works correctly under Windows and during certain stages of
+boot, so the hardware itself is functional.
 
-GSBI: \_SB.PCI0.LPC0.EC0.VPC0.GSBI
-SMTE: \_SB.PCI0.LPC0.EC0.VPC0.SMTE
-SMTF: \_SB.PCI0.LPC0.EC0.VPC0.SMTF
+After investigating, GPT-6 identified what appears to be a conflict
+involving GPIO 11 on the AMD AMDI0030 controller.
 
-All methods in the graph are never called by any method or driver that is
-not in the graph.
+Booting Arch Linux with this kernel parameter completely fixes the problem:
 
-So battery and ideapad-laptop are the only drivers that could potentially
-trigger the ABBA deadlock.
+gpiolib_acpi.ignore_interrupt=AMDI0030:00@11
 
->=20
-> Regards,
->=20
-> Hans
->=20
->=20
-> 1) I guess ACPI mutexes may be taken nested from the same thread
+The Caps Lock LED now works normally, and I haven't noticed any other
+hardware issues.
 
-Right. ACPI mutexes are re-entrant. IMO it's a broken design by
-encouraging firmware authors to write broken ASL code.
+System information
 
-Thanks,
-Rong
+Device: Lenovo ThinkPad L13 Gen 2 AMD
 
->=20
->=20
+DMI product name: 21AB004LSP
+
+DMI product version/family: ThinkPad L13 Gen 2a
+
+DMI vendor: LENOVO
+
+DMI product SKU: LENOVO_MT_21AB_BU_Think_FM_ThinkPad L13 Gen 2a
+
+Kernel: 7.2.9-arch1-1
+
+Distribution: Arch Linux
+
+BIOS: R1QET54W (1.40)
+
+BIOS date: 2026-04-14
+
+DSDT OEM ID: LENOVO
+
+DSDT OEM Table ID: TP-R1Q
+
+Diagnostic findings
+
+The following is GPT-6's analysis of the diagnostic output and
+decompiled ACPI tables.
+
+1. Linux sends the correct keyboard LED commands
+
+Using bpftrace, we observed that atkbd_set_leds() consistently returned 0.
+
+Tracing ps2_command() for command 0x10ED produced:
+
+SETLEDS: value=4, caps=1
+SETLEDS: value=0, caps=0
+SETLEDS: value=4, caps=1
+SETLEDS: value=0, caps=0
+
+The driver reports success and sends the expected Caps Lock states,
+but the physical indicator stays off.
+
+2. The embedded controller tracks Caps Lock correctly
+
+The DSDT defines the CPLS field at EC offset 0x0F, bit 7.
+
+Reading that byte through the read-only ec_sys interface showed it
+changing from 0x00 to 0x80 when Caps Lock was toggled.
+
+Enabling dynamic debugging in drivers/acpi/ec.c confirmed that each
+Caps Lock press triggered EC query 0x78, which was scheduled, started
+and stopped successfully.
+
+3. Lenovo's firmware controls GPIO 11
+
+The DSDT contains:
+
+Method (_Q78, 0, NotSerialized)
+{
+    If (CPLS)
+    {
+        WFIO (0x0B, 0x00)
+    }
+    Else
+    {
+        WFIO (0x0B, 0x01)
+    }
+}
+
+The WFIO method writes bit 22 using WMEM(), targeting address
+0xFED81500 + (11 * 4) = 0xFED8152C.
+
+This appears to control the Caps Lock indicator using GPIO 11.
+
+4. The same GPIO is declared as an ACPI interrupt
+
+In SSDT12, _SB.GPIO._AEI declares GPIO 11 as an edge-triggered,
+active-low, exclusive wake interrupt.
+
+Its _EVT handler includes:
+
+Case (0x0B)
+{
+    MSTP (0x3911)
+    Notify (\_SB.PCI0.GPP1, 0x00) // Bus Check
+}
+
+This appears to conflict with the firmware's use of GPIO 11 as an output.
+
+5. GPIO registers confirm the suspected conflict
+
+Without the workaround, /sys/kernel/debug/gpio showed:
+
+#11 ... input ... 0x457a00
+#11 ... input ... 0x057a00
+
+Pressing Caps Lock changed bit 22, but bit 23 (output enable) remained cleared.
+
+After booting with:
+
+gpiolib_acpi.ignore_interrupt=AMDI0030:00@11
+
+The result was:
+
+#11 ... output ... 0xc50000
+
+The output-enable bit was now set, and the physical Caps Lock LED
+worked flawlessly.
+
+The system was already using atkbd.reset=1 for a separate
+keyboard-backlight problem. That parameter alone had not fixed the
+Caps Lock LED.
+
+Possible explanation
+
+GPT-6's interpretation is that Linux's ACPI GPIO handling configures
+GPIO 11 as an interrupt input because of the firmware's _AEI
+declaration.
+
+That disables the output driver, even though the firmware continues
+updating the GPIO output-value bit when Caps Lock changes.
+
+Ignoring the interrupt allows the pin to remain configured as an
+output, restoring the indicator.
+
+Related upstream fix
+
+This seems very similar to the Acer Nitro V 16S AI issue addressed by:
+
+6da1f3437435c82eaa15b121022474bb358ffe20
+
+"gpiolib: acpi: Ignore GPIO 11 interrupt on Acer Nitro V 16S AI"
+
+https://lists.openwall.net/linux-kernel/2026/10/02/1029
+
+However, there is an important difference.
+
+On my ThinkPad, the GPIO 11 _EVT handler issues a PCIe bus-check
+notification. I therefore don't know whether permanently ignoring the
+interrupt could interfere with PCIe-related events, hot-plugging or
+wake behaviour.
+
+So far, normal use with the workaround appears unaffected, but I
+haven't exhaustively tested those scenarios.
+
+Question
+
+Would a DMI-specific gpiolib ACPI quirk be appropriate for this
+ThinkPad, or should the conflicting GPIO declaration be handled
+differently because of the PCIe notification?
+
+I can provide the relevant decompiled DSDT/SSDT excerpts, additional
+diagnostic logs, or test a proposed fix if that would help.
+
+Thanks very much for your time, and apologies if I've misunderstood
+any of the technical details. I'm happy to run further tests with
+guidance.
+
+Best regards
