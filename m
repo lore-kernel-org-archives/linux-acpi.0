@@ -1,144 +1,283 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C5FC3EC835
-	for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 18:31:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B4D33F4DC7;
+	Thu, 15 Oct 2026 18:31:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792089068; cv=none; b=YwJEYoEnk8Hld+4iBREimDhLZMOwnRTc1J4zGG2FQ1RhacV+0u9AMLU0WA/ZT1hpqqWeglTjCN+Mfua79ePVAehDXAZrJfnZVsXrU5Apj6lANm3Kb0AIwm8Zayjf+2xXRYHZlBVNwuxjFVRTiV1kdKZqa6bEq7g3SRLgiPjYChg=
+	t=1792089074; cv=none; b=Y9ZQeakzWZIaem1dy0eFuhvFzV+eaTGsdYyRc48O9l5xA8xN5Y7xNaFkEYMh8Tezp/AjzV7zoa8Vx41LZVggZFSAuPgQZnpyFKAjf/xn1xAKA9j36LI3YcwkCIT5iiu1gbnx4cjf9Iz6BiHeYe4Vmr3a+1PUJbPDUpmzNLhEUDo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792089068; c=relaxed/simple;
-	bh=WwGnwcHskgM3EetwXmkd48OzFCSGP4i35ilFH5glfp4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ACoU0ANRi96vsa87TqyK0eNu9tkBbow9ECctw+jqbw/tjkqT8b0SwzhI3GJLB0L5+rVOsVRKo6as968aj5EigOP3WQ3+EVUyYlqVD2suRefOX9DdEoChn+KV2SbyR8GhaTbRL5ty0Yl5Jg/syuRSj7n9Qk5K88vP2ooNdATRoHg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XBzd29L1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792089074; c=relaxed/simple;
+	bh=J8ZK4lfx4Bc0KT6ZdKMMtkNqCt7gAzAX8aDMXcnLiVc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=g6XD+QBISd1rHIdNLbsYM2HuMtSdNI4EBx998CXeGw2JOoLj3+imDzbPJHIxQlqeb4ztkIM7xZa9LJFJHxikxYudebYCevBhUP+/ZRguXvvFtPMyUxfGUHXYr49FLYJyUfF8oDsbPLewHhRNYIEAIi7LYMnwLHRSEvjKUjLH2lI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=V0GiD2FG; arc=none smtp.client-ip=192.198.163.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XBzd29L1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5A2A1F000C5
-	for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 18:31:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792089065;
-	bh=lI+uqg8EMQcZsSC3OjJscDI9aW6osjP+ZbZzkckEOnU=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=XBzd29L1AmEo9u6t5Zz1TTIcaWVhJ0JrkJirYolX/Lg/FeWGaBM4mMojg+Mp0YsE6
-	 hIyBWUXzXrENdZupkW+lOAPDihkuePySI3JYv9BXOek7bkazPO2Y4+59/zEDSlu9Zc
-	 7Xn9NjV8NvQ7VPGm9jfxSRYKVx0fpswubSPJj02H/Nhja6up14fS+8JGS7OkkOyxeR
-	 hoscbmzzRqTQ+b0K635Y+GYYGWwUivQ5/H2408yGBnOD9kANhVlw1mZ2xxMkcEvmvQ
-	 vyZHmx4HpoKvrkXRxoX9GfhX13sFyshZ9VVjY9k+TupleGvPXEBG82/Hymlq1Wxe0q
-	 e1y/QVGFbr3jQ==
-Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5be3db57938so870389e87.0
-        for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 11:31:05 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvByjHvR/8uB+BSWkn1eEGcUfc+QgVnHr+eayb684k7jD9VVtlkSii8OXDP6/wdIgOKXyiXxYvlYI+OR0@vger.kernel.org
-X-Gm-Message-State: AFq9FYLgNdD+9y0qp0SkGHmNuwmQWqY7pVHUcOegHM4MfGMrA98w9Emu
-	AXgrW0GOONK+w7w/LVmBc4ZA/EW6WzHmTcIqKyIySXwz6NcKkEsukVnzODVI+MNWIvdcBNXavsW
-	PopyK1T5Hm1ptw301mDC0jm3AshJ+udA=
-X-Received: by 2002:a05:6512:3053:b0:5ba:3db3:698c with SMTP id
- 2adb3069b0e04-5bcde6bbaf3mr6893395e87.57.1792089064039; Thu, 15 Oct 2026
- 11:31:04 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="V0GiD2FG"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1792089069; x=1823625069;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=J8ZK4lfx4Bc0KT6ZdKMMtkNqCt7gAzAX8aDMXcnLiVc=;
+  b=V0GiD2FG/tN/z2jVZ1ApH4eiFKiHLHKHubQPP4kVslXd7fokvRI3Aa4W
+   e0Jnn8Ar8vyhZYY6VDdpkRJbVP6zvjMfllfnDjxNWe9REzPHBJFqPHAQY
+   IXXYu9GrndUJmEcdib4/8kY6UQC5tZ8WideNEIC2w6fq+ZG7E4HcjnYhF
+   995PanRDgXuLzBqDmisiEAwk83BozEtod+iI6Kz80grSsxYRoFUQioZeN
+   oY93pnA/xfdIXUuy2tkplqDsX1gJYQLRqJQjGjqZFavNegKAIDcyS9xeG
+   X1nHnYN9JcS00Mpv5Oyvn+HwJ1I0D7EXgavOKJNq8DSbF6T5S4ZKzG/7Z
+   Q==;
+X-CSE-ConnectionGUID: Sh/E9mMUSQe/SJ5c25s5Lg==
+X-CSE-MsgGUID: VgEuMaY+S4e3iVedApo3Rw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11936"; a="889509"
+X-IronPort-AV: E=Sophos;i="6.27,160,1787036400"; 
+   d="scan'208";a="889509"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Oct 2026 11:31:08 -0700
+X-CSE-ConnectionGUID: 7rGUEy19Qi+heaAU5rgqjA==
+X-CSE-MsgGUID: hUFvj3i7SmeILuknU3DXaw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,160,1787036400"; 
+   d="scan'208";a="1833441"
+Received: from abityuts-desk1.ger.corp.intel.com (HELO localhost) ([10.245.244.117])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Oct 2026 11:31:06 -0700
+Date: Thu, 15 Oct 2026 21:31:04 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Nikodem Sanecki <nikodemsanecki@gmail.com>,
+	Abduvaliy Abdulazizov <abduvaliy.hbai@gmail.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Mario Limonciello <mario.limonciello@amd.com>
+Cc: westeri@kernel.org, linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: ThinkPad L13 Gen 2 AMD (21AB): Caps Lock LED broken by ACPI GPIO
+ 11 interrupt conflict
+Message-ID: <atEb6FN6ZbKI9xgf@ashevche-desk.local>
+References: <CAAUQFRPW-rbcZV-=qV1NMjF_358sdJTiGvQuRxRqAsehY+J9Qg@mail.gmail.com>
+ <atEaguJD7dh7xNs0@ashevche-desk.local>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20261014132500.3817549-1-daniel.lezcano@oss.qualcomm.com>
- <20261014132500.3817549-4-daniel.lezcano@oss.qualcomm.com>
- <c751e18d-57e9-4ce6-95dc-1bf53a7a4808@gmx.de> <CAJZ5v0jQQsXP4v7dymuHZhy2oVjPwV9eXhqV4bGPUgMyGyUsUQ@mail.gmail.com>
- <1cba0f2a-38cd-42b2-a773-9dca5d7519e5@app.fastmail.com>
-In-Reply-To: <1cba0f2a-38cd-42b2-a773-9dca5d7519e5@app.fastmail.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Thu, 15 Oct 2026 20:28:54 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0gJ05mX20k-j1EmsWHnmiALRRPueezJJ4=c_KAv1-Kvqw@mail.gmail.com>
-X-Gm-Features: AclHuK9PQk4H_44N2P55JHFKHDueiRJwLshOEGgFuD9B5ad6_ERK3ctWReCsiQQ
-Message-ID: <CAJZ5v0gJ05mX20k-j1EmsWHnmiALRRPueezJJ4=c_KAv1-Kvqw@mail.gmail.com>
-Subject: Re: [PATCH v1 3/4] platform profile: Add firmware-neutral aggregate
- sysfs interface
-To: Mark Pearson <mpearson-lenovo@squebb.ca>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Armin Wolf <W_Armin@gmx.de>, 
-	Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>, Hans de Goede <hansg@kernel.org>, 
-	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
-	Viresh Kumar <viresh.kumar@linaro.org>, =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
-	Maximilian Luz <luzmaximilian@gmail.com>, Shyam Sundar S K <Shyam-sundar.S-k@amd.com>, 
-	"Derek J . Clark" <derekjohn.clark@gmail.com>, Daniel Lezcano <daniel.lezcano@kernel.org>, 
-	Zhang Rui <rui.zhang@intel.com>, Lukasz Luba <lukasz.luba@arm.com>, 
-	Jai Luthra <jai.luthra@ideasonboard.com>, Greg KH <gregkh@linuxfoundation.org>, 
-	Jack Wu <jackbb_wu@compal.com>, Mario Limonciello <superm1@kernel.org>, 
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-pm@vger.kernel.org, 
-	"platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, Kurt Borja <kuurtb@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <atEaguJD7dh7xNs0@ashevche-desk.local>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Thu, Oct 15, 2026 at 8:05=E2=80=AFPM Mark Pearson <mpearson-lenovo@squeb=
-b.ca> wrote:
->
->
-> On Thu, Oct 15, 2026, at 7:30 AM, Rafael J. Wysocki (Intel) wrote:
-> > On Wed, Oct 14, 2026 at 11:31=E2=80=AFPM Armin Wolf <W_Armin@gmx.de> wr=
-ote:
-> >>
-> >> Am 14.10.26 um 15:24 schrieb Daniel Lezcano:
-> >>
-> >> > The per-provider class interface is firmware-independent, but system=
--
-> >> > wide profile selection is only exposed under /sys/firmware/acpi.
-> >> >
-> >> > Add /sys/kernel/platform_profile/{choices,profile}, sharing the exis=
-ting
-> >> > aggregate callbacks and semantics with the legacy interface. Keep
-> >> > attributes hidden until a provider is registered and remove them aft=
-er
-> >> > the last provider.
-> >> >
-> >> > Notify both aggregate frontends on profile changes. Also notify the
-> >> > provider class device on a direct profile write, matching its docume=
-nted
-> >> > POLLPRI ABI. Restore aggregate visibility after a failed registratio=
-n.
-> >>
-> >> IMHO the aggregate sysfs interface only exists for backwards-compatibi=
-lity,
-> >> so i would be very happy if you could just make the associated code op=
-tional
-> >> and instead teach platform-profiles-daemon to use the individual class=
- devices
-> >> instead.
-> >
-> > It is not just a matter of opinion AFAICS, the aggregate interface has
-> > been regarded as legacy for quite a while (see commit 778b94d7ac17
-> > "ACPI: platform_profile: Add support for hidden choices" for example)
-> > and it was retained exactly for backwards compatibility reasons IIRC.
-> >
-> > I'm with Armin on this.
-> >
-> > Thanks!
->
-> I don't think we can get rid of the legacy aggregate interface - which I =
-think is what you and Armin are asking for?
-> What does making it optional mean?
+On Thu, Oct 15, 2026 at 09:25:10PM +0300, Andy Shevchenko wrote:
+> +Cc: Dmitry (as it might be related to keyboard configuration), others for
+> the previously reported same IRQ on the same GPIO controller but for some
+> camera stuff.
+> 
+> On Thu, Oct 15, 2026 at 03:13:02PM +0100, Nikodem Sanecki wrote:
+> > Hello,
+> > 
+> > I'm reporting a Caps Lock LED issue on my Lenovo ThinkPad L13 Gen 2 AMD
+> > running Arch Linux. I found a workaround that completely fixes it, and I
+> > hope the findings might help implement a permanent kernel fix.
+> > 
+> > *A quick note:* This is my first time using Linux, and I'm a complete
+> > beginner when it comes to kernel development. I used ChatGPT (GPT-6) to
+> > guide the troubleshooting process, analyse my laptop's ACPI firmware, and
+> > interpret the results. I personally ran the diagnostic commands and
+> > verified the observed behaviour, but the technical explanation below is
+> > AI-assisted. Please correct me if any of the analysis is inaccurate.
+> > Problem
+> > 
+> > Under Linux, the physical Caps Lock indicator LED never illuminates, even
+> > though the Caps Lock key itself works normally.
+> > 
+> > The LED works correctly under Windows and during certain stages of boot, so
+> > the hardware itself is functional.
+> > 
+> > After investigating, GPT-6 identified what appears to be a conflict
+> > involving GPIO 11 on the AMD AMDI0030 controller.
+> > 
+> > Booting Arch Linux with this kernel parameter completely fixes the problem:
+> > 
+> > gpiolib_acpi.ignore_interrupt=AMDI0030:00@11
+> > 
+> > The Caps Lock LED now works normally, and I haven't noticed any other
+> > hardware issues.
+> > System information
+> > 
+> >    -
+> > 
+> >    Device: Lenovo ThinkPad L13 Gen 2 AMD
+> >    -
+> > 
+> >    DMI product name: 21AB004LSP
+> >    -
+> > 
+> >    DMI product version/family: ThinkPad L13 Gen 2a
+> >    -
+> > 
+> >    DMI vendor: LENOVO
+> >    -
+> > 
+> >    DMI product SKU: LENOVO_MT_21AB_BU_Think_FM_ThinkPad L13 Gen 2a
+> >    -
+> > 
+> >    Kernel: 7.2.9-arch1-1
+> >    -
+> > 
+> >    Distribution: Arch Linux
+> >    -
+> > 
+> >    BIOS: R1QET54W (1.40)
+> >    -
+> > 
+> >    BIOS date: 2026-04-14
+> >    -
+> > 
+> >    DSDT OEM ID: LENOVO
+> >    -
+> > 
+> >    DSDT OEM Table ID: TP-R1Q
+> > 
+> > Diagnostic findings
+> > 
+> > The following is GPT-6's analysis of the diagnostic output and decompiled
+> > ACPI tables.
+> > 
+> > *1. Linux sends the correct keyboard LED commands*
+> > 
+> > Using bpftrace, we observed that atkbd_set_leds() consistently returned 0.
+> > 
+> > Tracing ps2_command() for command 0x10ED produced:
+> > 
+> > SETLEDS: value=4, caps=1
+> > SETLEDS: value=0, caps=0
+> > SETLEDS: value=4, caps=1
+> > SETLEDS: value=0, caps=0
+> > 
+> > The driver reports success and sends the expected Caps Lock states, but the
+> > physical indicator stays off.
+> > 
+> > *2. The embedded controller tracks Caps Lock correctly*
+> > 
+> > The DSDT defines the CPLS field at EC offset 0x0F, bit 7.
+> > 
+> > Reading that byte through the read-only ec_sys interface showed it changing
+> > from 0x00 to 0x80 when Caps Lock was toggled.
+> > 
+> > Enabling dynamic debugging in drivers/acpi/ec.c confirmed that each Caps
+> > Lock press triggered EC query 0x78, which was scheduled, started and
+> > stopped successfully.
+> > 
+> > *3. Lenovo's firmware controls GPIO 11*
+> > 
+> > The DSDT contains:
+> > 
+> > Method (_Q78, 0, NotSerialized)
+> > {
+> >     If (CPLS)
+> >     {
+> >         WFIO (0x0B, 0x00)
+> >     }
+> >     Else
+> >     {
+> >         WFIO (0x0B, 0x01)
+> >     }
+> > }
+> > 
+> > The WFIO method writes bit 22 using WMEM(), targeting address 0xFED81500 +
+> > (11 * 4) = 0xFED8152C.
+> > 
+> > This appears to control the Caps Lock indicator using GPIO 11.
+> > 
+> > *4. The same GPIO is declared as an ACPI interrupt*
+> > 
+> > In SSDT12, _SB.GPIO._AEI declares GPIO 11 as an edge-triggered, active-low,
+> > exclusive wake interrupt.
+> > 
+> > Its _EVT handler includes:
+> > 
+> > Case (0x0B)
+> > {
+> >     MSTP (0x3911)
+> >     Notify (\_SB.PCI0.GPP1, 0x00) // Bus Check
 
-"Optional" means "not required to be present" AFAIAC.  Which means
-making it possible to have a system without that interface and still
-exposing the class device platform profile interface.  For example,
-when ACPI is disabled.
+This looks like some GPIO related notification. I dunno what Windows driver does.
+Mario?
 
-> Reading through the patch series it seemed quite reasonable to me to move=
- it out from under ACPI but still have the old interface working.
+> > }
+> > 
+> > This appears to conflict with the firmware's use of GPIO 11 as an output.
+> > 
+> > *5. GPIO registers confirm the suspected conflict*
+> > 
+> > Without the workaround, /sys/kernel/debug/gpio showed:
+> > 
+> > #11 ... input ... 0x457a00
+> > #11 ... input ... 0x057a00
+> > 
+> > Pressing Caps Lock changed bit 22, but bit 23 (output enable) remained
+> > cleared.
+> > 
+> > After booting with:
+> > 
+> > gpiolib_acpi.ignore_interrupt=AMDI0030:00@11
+> > 
+> > The result was:
+> > 
+> > #11 ... output ... 0xc50000
+> > 
+> > The output-enable bit was now set, and the physical Caps Lock LED worked
+> > flawlessly.
+> > 
+> > The system was already using atkbd.reset=1 for a separate
+> > keyboard-backlight problem. That parameter alone had not fixed the Caps
+> > Lock LED.
+> > Possible explanation
+> > 
+> > GPT-6's interpretation is that Linux's ACPI GPIO handling configures GPIO
+> > 11 as an interrupt input because of the firmware's _AEI declaration.
+> > 
+> > That disables the output driver, even though the firmware continues
+> > updating the GPIO output-value bit when Caps Lock changes.
+> > 
+> > Ignoring the interrupt allows the pin to remain configured as an output,
+> > restoring the indicator.
+> > Related upstream fix
+> > 
+> > This seems very similar to the Acer Nitro V 16S AI issue addressed by:
+> > 
+> > 6da1f3437435c82eaa15b121022474bb358ffe20
+> > 
+> > "gpiolib: acpi: Ignore GPIO 11 interrupt on Acer Nitro V 16S AI"
+> > 
+> > https://lists.openwall.net/linux-kernel/2026/10/02/1029
+> > 
+> > However, there is an important difference.
+> > 
+> > On my ThinkPad, the GPIO 11 _EVT handler issues a PCIe bus-check
+> > notification. I therefore don't know whether permanently ignoring the
+> > interrupt could interfere with PCIe-related events, hot-plugging or wake
+> > behaviour.
+> > 
+> > So far, normal use with the workaround appears unaffected, but I haven't
+> > exhaustively tested those scenarios.
+> > Question
+> > 
+> > Would a DMI-specific gpiolib ACPI quirk be appropriate for this ThinkPad,
+> > or should the conflicting GPIO declaration be handled differently because
+> > of the PCIe notification?
+> > 
+> > I can provide the relevant decompiled DSDT/SSDT excerpts, additional
+> > diagnostic logs, or test a proposed fix if that would help.
 
-This just means moving things around without a particular gain IMV.
+Please do via some kind of file sharing service and reply with an URL to that.
 
-> What are the alternatives?
+> > Thanks very much for your time, and apologies if I've misunderstood any of
+> > the technical details. I'm happy to run further tests with guidance.
 
-As per the above, retain it as is for systems where ACPI is enabled
-and do not expose it at all otherwise.
+-- 
+With Best Regards,
+Andy Shevchenko
 
-> User space (and users) are still using the aggregate interface in my expe=
-rience
 
-They do use the legacy aggregate interface, but they would need to be
-taught to use the new aggregate interface located elsewhere.  However,
-they may as well be taught to use the class device platform profile
-interface directly, may they not?
-
-IMV, adding a new aggregate interface with all of the problems that
-the legacy aggregate interface has would be a mistake.
