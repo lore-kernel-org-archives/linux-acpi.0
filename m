@@ -1,120 +1,103 @@
-Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74A2751AFE0
-	for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 09:55:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 689654CE689
+	for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 11:32:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792058118; cv=none; b=RT6zX0+zBVCU+GxxswB6MlC05CSUDs3hE1w/8/pOiug47oFRKLJB0CKobqBxdvWlxn+x8vgekG8yb7P4rVKf7WPjQsSX6Y0sff+kEPDvMCG45EG7IA+1ssVxILPEtBZ1f54x3AmOjn+uXrPldINBWD0cOUDjntwItNO77LFiv1k=
+	t=1792063939; cv=none; b=J8nEdb+mbDku4gsZ09j45qnsTMzQ2tUWpC2sH2WmSRUF9+UYhouie7/jdf48F39O+ixTLfbanUU4HNzIH8lQFL2iLk/HxBvSIWEupaXTMKZ4yZVwuX7oY8tpVu5y9r8NVshWtqpvT4S9UUMAg85GRRCha0HesB5Tr3A2fKhgvWc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792058118; c=relaxed/simple;
-	bh=JLGAow2rLUO/+TKOPOX0VJmztAPGduP307ghbO3dOEI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=KW01BkuEnHEGiLE1sIYF5HOLVJloM4Gfo53PqwKiI0fcmy4REA/C67d+RM4/uPiKHRS3PM9Gqfl7WThAwT+3l48jDLrVtTlA7I/Pf8MzB4fnl5jmc1mqsTHXBUsvwoMlSAWrcT1BBwgurxHuEBQFk79HCip96HfdlOafvWflV+Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=rjV9QYzv; arc=none smtp.client-ip=209.85.160.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1792063939; c=relaxed/simple;
+	bh=/qTM632djo7wozLrYC0vwPo30eUKp/12hQOtYJOpW2k=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=DHGGjXp3OmYzXx1jK8EY3Njpb+HqbXg6fOx6GyT/IQcZMXT1JE0mK1ahWIGNubAfStAuY4XTrf5jQKclQZ+Z/5iBT4h83lZKSQARmqUhG3Vm8w+YVAVW3b+yg6jHZL/ptUZ36FTVQxUUG3VvxNMPHf/780W8EkN6ZLYPUBqCGqk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BUPVD4Hx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rjV9QYzv"
-Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-53391786e55so83097771cf.2
-        for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 02:55:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792058112; x=1792662912; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=FaMd1QSYMqEo5wIiy4wQAPVusgGd/ylNS3r3kXBy7sc=;
-        b=rjV9QYzvJMPx4FYBxMEwoe/VqHo0fj9IqklI3SEAkS4+Dzagc00P3KLWV78SuopmeF
-         yXqu0bRHT2nXtDgUlGeev3n6XalrLHQjZeWITiFuSSWF/zdPZJh1yL5Gv7Nc9PtKDkRO
-         PQY5/BnLXFghyXKWGlR6kU4FBz7+iT6XjQ5iv7eX23RGREMrGF8yjId2O5Ruv0BxexAz
-         HV4H4TuvpdnY5GVqbvXjqAiifeGRs/kSLCbbYdr5VhOyhMIrlyCOrX4gr93BDugT8/l3
-         u//zaNCJGDDzmefMEWtC7DxxVBls8fwdITWx3gY0Z3lZmqWCK5CFOL0iDefbpAWf5bww
-         L3PQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792058112; x=1792662912;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=FaMd1QSYMqEo5wIiy4wQAPVusgGd/ylNS3r3kXBy7sc=;
-        b=AyC8QoO//8jGEL+mEsDCkQcHqKNmHtj+Q73Xayxrk+BVjFtlQ4tpL6HD7fRh5/qYNq
-         z2TQIw1M0qUslJUK0YqxEbFj+ZTnJHSRFKggZ9mIYBUSCl3Kts1HqYyW+eTAC7RtFWfp
-         7a2/y91k1a4TOdRyv0ku4+k5WPfLYWI9fzeY00nxeOwMHyazHr1IeoXvYcFw3g6hg+6o
-         hhggPf7b5hBDInqrxvMcg/WgYaBSN5n0VZ6EkDHjyBEoc8sITrYfD3aALdzsj/Vp/eVt
-         npENhQ8uIENYKafqNO1Qzm9UdVoiIU90XN1XXK9GLuju/ZAT7KBRuhB8WU3JaBaSlgYc
-         W1nQ==
-X-Forwarded-Encrypted: i=1; AKwUvBzQT4EGH9U+25RmB7ncBDOqa7c80LRvEvqR+YNR3csn1QY+XozI9+GfufbZrGRqFBnyg3pmCfkm2HQ6@vger.kernel.org
-X-Gm-Message-State: AFq9FYLAAyO/Kv5+11wWaDD/y/nXLeSmgj6OS6DDKCSBi5tXgU81BpMT
-	Yu5Ev1De4giY/u6rSZpQrQ7/WRX+TXutDWhwRVcs+DdoCe689qaZXMvp
-X-Gm-Gg: AYBFou04phYyyoCRLtEZMaUZK1a7WmugvAcH6+UVh5WKW3FuDsCJe+sp1usbpzkXsFi
-	MbLhWuNB7lFDtjCPk11Y6pIUBwWipbZr3+5XaIHbxjw+GT+Lg4Ar1svAsFDlIJ3In8IcKa8F4iI
-	8EvSgfB1VgAQ0bd8Hin8BY9VffkA/Ucof/t/3+tbHAf5eDZI6fNv56C2/fEjJ7/nkm9W7REZQHZ
-	eRABRGPyhWRIsfCYIgp+f04xTNPS1NYua92E/JhVR5nL7Vk1Yf2cIk1xGIhhQ8jbtlO/5qdEKA+
-	6wscVzGDYzoAxszntztP0my0iKPYtAdMS8+Hci66wgpHTxanne2dJdz7Bm1hQE+9Fa+DK35a0E6
-	xGFUTkR0Ri3HxHlP3tw7Qx9kZ9Vqszijelhq8/Xlb8U1bPB0meI2Nsq/j8OrL2N4uoCtniWlPgF
-	egyqFATGCZaWRwu4vvozBrXk0eEc6i8AVymx3n4NDyjgTo/EIK+AwhraFFrjhcbCUlqYKLi3jN7
-	yith4H0+P2xFwAqN8y15LYOFJCN19fnKWBRiSCO26Lw
-X-Received: by 2002:ac8:5d8d:0:b0:532:d6bd:1b3b with SMTP id d75a77b69052e-5359fbb3ad8mr327227621cf.52.1792058112058;
-        Thu, 15 Oct 2026 02:55:12 -0700 (PDT)
-Received: from [192.168.60.5] ([207.115.103.98])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5361269f364sm21663911cf.2.2026.10.15.02.55.09
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 15 Oct 2026 02:55:11 -0700 (PDT)
-Message-ID: <2df90a2a-770b-4439-9d01-bd8105084719@gmail.com>
-Date: Thu, 15 Oct 2026 17:55:07 +0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BUPVD4Hx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CD441F000C8
+	for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 11:32:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792063937;
+	bh=/qTM632djo7wozLrYC0vwPo30eUKp/12hQOtYJOpW2k=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=BUPVD4HxCLIXFFHjU8vUePl2t6xx2FOPXd8le9NfCpzSB2B50Jhso/DiHQqrJ+uMK
+	 v07GqY8xDx6QrueVa1SKsbIUSOcsbVCXV2F0i34e5gETVsxi/HWs9hTzQsxPCCnYSb
+	 /Am9dHIYtUGfm/pjKlbGzrJ6gE5TLM0wqSlVg+pIPHqwuGhI/+a3Jeyozo3z5O+2Y7
+	 gYPUPARtC245UZBJDpKejlU91GmCGhSHiujq0cLXBg8vKcYW2lRJVKn88Im9AQwasY
+	 wXpXEwXdNgC6gm5FMXYUJ2DIJoBvTu67UY7lPilecvZpphbV3nzo8F/lrHcvOfIPN9
+	 2sOcCMabTJ27w==
+Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5bcb1f1358aso3560122e87.1
+        for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 04:32:17 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvByN43FgBT1uCOaxiTCerXGq/rpHm/KleocKPjh1e3oHtLu+c/61FRgfM3JxYRz0zaXs7ZmlkAcR9qIE@vger.kernel.org
+X-Gm-Message-State: AFq9FYKIpXW2xfV8jzorqidde9oMGmX4brOH8Ojs5GOkCwjsRKXRSqNi
+	AbteoZsU9SZwIwXLN9zRz5xrHOVOpkoRKtlgtPiAvhQq1ECOIETQPc1IZttbzF6Ts08mOKQ5aVj
+	gVT4y4C8r0xJShWLDgfovhyHZWp8fLfs=
+X-Received: by 2002:a05:6512:10d3:b0:5b8:99b1:fa26 with SMTP id
+ 2adb3069b0e04-5bcde6c08b5mr7566012e87.30.1792063935419; Thu, 15 Oct 2026
+ 04:32:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v3] platform/x86: panasonic-laptop: Add
- platform_profile support
-To: Wu Zhipeng <zepwu@foxmail.com>
-Cc: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org,
- Ilpo Jarvinen <ilpo.jarvinen@linux.intel.com>,
- Hans de Goede <hansg@kernel.org>, Hans de Goede <hdegoede@redhat.com>,
- Kenneth Chan <kenneth.t.chan@gmail.com>
-References: <20261007190446.38862-1-alexyeo362@gmail.com>
- <tencent_7F39F02728B55CE3B1878AAB51BAA0FE2D07@qq.com>
-Content-Language: en-US
-From: Alex Yeo <alexyeo362@gmail.com>
-In-Reply-To: <tencent_7F39F02728B55CE3B1878AAB51BAA0FE2D07@qq.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20261014132500.3817549-1-daniel.lezcano@oss.qualcomm.com>
+ <20261014132500.3817549-4-daniel.lezcano@oss.qualcomm.com> <c751e18d-57e9-4ce6-95dc-1bf53a7a4808@gmx.de>
+In-Reply-To: <c751e18d-57e9-4ce6-95dc-1bf53a7a4808@gmx.de>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Thu, 15 Oct 2026 13:30:05 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jQQsXP4v7dymuHZhy2oVjPwV9eXhqV4bGPUgMyGyUsUQ@mail.gmail.com>
+X-Gm-Features: AclHuK-MrNhF7fxhSV-bdpZ8WBZksbpNF_88y0eoYHFmpjizETXDqP6cb1yw0WU
+Message-ID: <CAJZ5v0jQQsXP4v7dymuHZhy2oVjPwV9eXhqV4bGPUgMyGyUsUQ@mail.gmail.com>
+Subject: Re: [PATCH v1 3/4] platform profile: Add firmware-neutral aggregate
+ sysfs interface
+To: Armin Wolf <W_Armin@gmx.de>, Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>, 
+	Hans de Goede <hansg@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
+	Viresh Kumar <viresh.kumar@linaro.org>, =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+	Maximilian Luz <luzmaximilian@gmail.com>, Shyam Sundar S K <Shyam-sundar.S-k@amd.com>, 
+	Mark Pearson <mpearson-lenovo@squebb.ca>, "Derek J. Clark" <derekjohn.clark@gmail.com>, 
+	Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>, 
+	Lukasz Luba <lukasz.luba@arm.com>, Jai Luthra <jai.luthra@ideasonboard.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jack Wu <jackbb_wu@compal.com>, 
+	"Mario Limonciello (AMD)" <superm1@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
+	Kurt Borja <kuurtb@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Wu,
+On Wed, Oct 14, 2026 at 11:31=E2=80=AFPM Armin Wolf <W_Armin@gmx.de> wrote:
+>
+> Am 14.10.26 um 15:24 schrieb Daniel Lezcano:
+>
+> > The per-provider class interface is firmware-independent, but system-
+> > wide profile selection is only exposed under /sys/firmware/acpi.
+> >
+> > Add /sys/kernel/platform_profile/{choices,profile}, sharing the existin=
+g
+> > aggregate callbacks and semantics with the legacy interface. Keep
+> > attributes hidden until a provider is registered and remove them after
+> > the last provider.
+> >
+> > Notify both aggregate frontends on profile changes. Also notify the
+> > provider class device on a direct profile write, matching its documente=
+d
+> > POLLPRI ABI. Restore aggregate visibility after a failed registration.
+>
+> IMHO the aggregate sysfs interface only exists for backwards-compatibilit=
+y,
+> so i would be very happy if you could just make the associated code optio=
+nal
+> and instead teach platform-profiles-daemon to use the individual class de=
+vices
+> instead.
 
-Thanks for testing the patch on a CF-SV1.
-While the fan curve was observed to change, it is interesting to note 
-that the CPU wattage appears to stay the same after an unlock.
+It is not just a matter of opinion AFAICS, the aggregate interface has
+been regarded as legacy for quite a while (see commit 778b94d7ac17
+"ACPI: platform_profile: Add support for hidden choices" for example)
+and it was retained exactly for backwards compatibility reasons IIRC.
 
-Based on the data, pkg max temp is a bit low which does indicate the 
-possible presence of a firmware level power limit.
+I'm with Armin on this.
 
-If you do find the time to test,
-may I ask if you have thermal and power data when running Windows?
-
-Initial observations that have resulted in the creation of this patch 
-series were made with a power meter (can be a watt meter from the wall 
-or a watt meter from a USB-C PD monitor).
-
-On the SR4, maximum on Linux was around 42W, while Windows had spikes 
-that went up to ~60W (on the AC charger) or ~80W on a 100W USB-C PD 
-charger. (in addition to the higher CPU temps with all settings on both 
-Windows and Panasonic utilities set to performance)
-
-Application of this patch on Linux with TLP set to performance resulted 
-in similar observations when testing.
-
-Additionally, may I ask if you have tested to see if thermald affects 
-the fan or power setting?
-
-Running it once in my case with the defaults has resulted in power being 
-unlocked until next reboot. This change can be observed with both 
-turbostat and a watt meter when plugged in.
-
-The DMI quirk code is appreciated but I'd like to clarify the power 
-unlock part first before including it.
+Thanks!
