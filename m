@@ -1,188 +1,245 @@
-Received: from mail-dl1-f43.google.com (mail-dl1-f43.google.com [74.125.82.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D942358B6B2
-	for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 20:45:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5176F59C973
+	for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 20:48:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792097103; cv=none; b=Kvzvl2quJX6mer190YxzxJtxBUjXLqLZq53mV0eTBwbdS3vgcJ9Upar8Jl3bWzCWe82fO6A7EhVizlaysybLJxu4JDIPj+U111wfhClde9MwprrtGdKkRuWDFCpC7Y2Q8oRfEPbCshl6vCAk3VdCnbqqWiWzUZLZs7+h+K4yzvw=
+	t=1792097322; cv=none; b=l4V0Y6+Dostid4Iwg80nOD+6Gvhn2gvWRyG9m6KGokI2BkeyZKaXF3UQ1QzoUUdKLwM5z2PVyGf6O+nD7LXqQNDMXL19EVccVM6OcuyBwVcn25aynEDgIqCZUSFZrWHs6MrE4WnYH9FSOw2BgX/OWH+0WUzoyZwKdj+VE04bW84=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792097103; c=relaxed/simple;
-	bh=YUrSrx3nORZjCfUb1kowBqtj+wacaINHUxJG3uHwC28=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=kAcI8WvrqHgiX6FT9hDNFsw1fbD+jWXeF/4pe5yFSMbfmvHbYRoXbDfG7YEqCx74SARMGVloSusA5lGjP26tXjEbZC87UYTlYn3TnBVotiq0zUlWktNwAUwJv9KjaZSkg4Ro1nlo/6zWVuvhcB12/BeqQnY2/nMutXagGYjPmkg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=S3lJ8A6C; arc=none smtp.client-ip=74.125.82.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1792097322; c=relaxed/simple;
+	bh=xaEjKs9uYoaK1rWbKH1mNgyaJjN0O2ZtD6LiYw3mop8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=SywaKZv9Awly3aL0SjvPy3Soi3erO37igJkWoU3aDgPhvVVIcDiMS9TBS6wpra3jtyfz8hVirzoElGGaZUiVLhbuEbKRoU51XQyL9NULtLaXckfH8NpZenBYoyt7HJczNNwQHGsKe+VXfQONtJYasPAE9Okfajo7lIFDQzE1EYU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=N4Hj8kNE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="S3lJ8A6C"
-Received: by mail-dl1-f43.google.com with SMTP id a92af1059eb24-15354aa70e8so1150600c88.1
-        for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 13:45:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792097100; x=1792701900; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=o2O5F6+HI/RIGbJQtd9sQGMunBjZHyF+3elLXX+sKSI=;
-        b=S3lJ8A6CCiWhEgOLkEBjEvvdXGaU3FM2LOGF/Mj/VLAmbPOHevyUNvCbSOYZFmPH4K
-         QwAsHyEoxHd32o/cCP8x4Qr59JmStan7Sv0zqOeiEyxQbhn6c1fx8RSZkmFOyhGjoeyH
-         NEBeFLaxax09izCC9NJ+cAl1zU5YyrCnTLbPZvwuTtjtRK8WQSACbzF4WAZeofQIOgPi
-         ZRjGHQGJ0hOOO4zdYQGSeUaoIYzsHLlkuTOcP6exmN5QzW6Epie3IfFdTpv2pIwfIUKo
-         1PZme+7CfB6lhzbv8qBcPaR0xYNaBgEKouJdjgnpa4tPLpPl5c31opAEWSsChqgSzjuf
-         z3Tg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792097100; x=1792701900;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=o2O5F6+HI/RIGbJQtd9sQGMunBjZHyF+3elLXX+sKSI=;
-        b=Bv0byxB7BLc1h8sKQg2vd3b0E1OVjEOOwcDNCZBH69AvOPiEEhROIIkEBkpHioTcWa
-         LXdnWeTkm/ZZJ/0Gaej8rmGvpW/swDZufbmOH9Cxr2UrqAQKkb2DTUxdvJNGl5fqnk+j
-         KmjK7qAfQ4r2k6lE2YfcSKWMDF7r0DTpxCZKr7NMzgohx9PkXTXVnD0cIR56FG0DLDP1
-         D+GmTA3FFWc69ykraSl/JrDkTYtj1rH+LvQyo3kiddoYvBoR++FUtmpjs1eIgdl3IKGF
-         RBbYExwJxVsK2z1MhbQw2LvSXitO1V2yzfOp3gt04thQrr2H2C/hV19t/EP8cJ4BNU1D
-         bvrA==
-X-Forwarded-Encrypted: i=1; AKwUvBwHXV3f5exVdgoWkvgI+RA4/g1GUWxg4nU0WgO7KC5FrsQDnB+g1I77yE8MXsOeX2cfKrvzKbdDahdV@vger.kernel.org
-X-Gm-Message-State: AFq9FYIXhv+/mGiiKKrKXh8kD+nXU8i0DWWLFMY5bPXpaHtoSSGfTgea
-	FInLM8UFBc3Vqa0GYiHPZRcA953I0CyOLQGDAn52kLADP+GC/2lbe54=
-X-Gm-Gg: AYBFou3P1VxbMdMzwfBgQQsi+fF2u7zBCRXIDfpRTi1FdM4WwFdBKWwMSdiaSpPtOB3
-	koTiaMB6IEgkb9flVnhNodJ9fAqeUnrF/6CAmW3ApTeFJCVb7gRLIJTRGHLprgsGFID2Xg4GFml
-	0OyzjK3WFuCW1wkKh07xqIDY5kQD9EQY1Rmh2DdoYMAg/j5/0IlpmaMmJ1gSjZpwUHdi761IMvz
-	6/x9k/Eo68JWZOKApyhdjKYtlJy2qjI6aE0XdzyChR+bXh94rFxp216dLdoshlgQBjlitQIRrXI
-	qwZOHL0SuscgQvkZSnC/4lZSImqpQJlSAwFXlJc8EOQ1im1/X5jzmNOodnclj8QSY71r9Mh52Vv
-	6BXoSBLFjAict8S8J99hRzxOR0RzNeZTuSP5R3yAkJrvnegXlqIKh41cHX7bdmy2OZucLLv2RVm
-	SNhhsa/2uVoGkkOBW8LUwRliyALkcY2uAmRt+Fs4tqQ7hSyQVSdJ/ebYo5y3blFeijPOPbAkIWO
-	GJ73HB3p9jll38fNaKtpQKsQi86grU=
-X-Received: by 2002:a05:701b:280d:b0:16b:fdbf:4a9d with SMTP id a92af1059eb24-16bfdbf4ff5mr28145542c88.27.1792097099604;
-        Thu, 15 Oct 2026 13:44:59 -0700 (PDT)
-Received: from at-Standard-PC-Q35-ICH9-2009 ([27.60.25.242])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1831b75be5esm130114c88.16.2026.10.15.13.44.55
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 15 Oct 2026 13:44:58 -0700 (PDT)
-From: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>
-To: 
-Cc: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH RESEND] ACPI: processor: Use Apple-specific methods for P/C-states
-Date: Thu, 15 Oct 2026 16:44:47 -0400
-Message-ID: <20261015204450.1270-1-atharvatiwarilinuxdev@gmail.com>
-X-Mailer: git-send-email 2.55.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="N4Hj8kNE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E253A1F000CA
+	for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 20:48:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792097318;
+	bh=a7yiMjjkdLQO3PNrhwbNdhn6qAcJaSjM3V5hz1K+dJI=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=N4Hj8kNExJ+JrnujyZgbMsvOCoHJkVG+LP1Cs5qQYG2SzdxPEJ5FCtLWEbQsyHgXI
+	 9clxLwV3a4NKbgPdCIZEwhx8L++HUAZUm31eT3Hy3+pUqllHtdGjuzActhIuBR0xzY
+	 Lk/A+aTOZa30skPjWB4GlhBhVkf+5z9NtYCr0HOoNbLnNWO6I/iTBnQk0uNEWpJhV6
+	 K//dzvwd9eyVITmdoBN5Dd9KY/Ba1KpyCudTZvkSBzOPkhNqD4aEioNzd8wsmvI/dI
+	 V71pqFEUFimqYwFxiyHEoN54iyC5H+0+071j00kVQfIXVqBM7KvRBstXI7Go9NP2hL
+	 oo3fry8DJiLLw==
+Received: by mail-lf1-f47.google.com with SMTP id 2adb3069b0e04-5ba3fba0080so4089962e87.1
+        for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 13:48:38 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBzUC13wBcXnpc+EhqX1iUIuPHGrV9auzFeZPKqoHTDov3FUIk9/eWtp/J+G3HRWk9B3u4oQs7ZMuhE0@vger.kernel.org
+X-Gm-Message-State: AFq9FYIJhcrChP2fMfuxJ7wGaG+konWcJlDK8IwREzWclkHs3ot0aFNT
+	pL2VmfX6bYRAxYO7NL9Z3qO1Udhu0haeDIUW1tNQEAIwDMkaBvxDeRrXvUZnj7QKfF7nUZpimF6
+	KLiYfObMLYpwFQm3LB+viznJnC6hlVnU=
+X-Received: by 2002:a05:6512:2c99:b0:5be:456e:7bf5 with SMTP id
+ 2adb3069b0e04-5be456e7d65mr691240e87.2.1792097317209; Thu, 15 Oct 2026
+ 13:48:37 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260925-acpi-static-table-irq-probe-defer-v1-0-2c62125d0085@kernel.org>
+ <20260925-acpi-static-table-irq-probe-defer-v1-2-2c62125d0085@kernel.org>
+ <arZDwutoadki7tiZ@ashevche-desk.local> <arZNL9BnTGK0Klwc@red-moon>
+ <arZS4vwxps01dGb7@ashevche-desk.local> <arqSqcoWAkhy-8do@red-moon>
+ <d1720b63-65bf-4019-bc19-1852555f7993@arm.com> <asieTvinZ7c2QpQm@red-moon>
+In-Reply-To: <asieTvinZ7c2QpQm@red-moon>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Thu, 15 Oct 2026 22:46:26 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0hVLSJs1j8J1TV3yJ8Psyaf=B_0UfHsYSMtM5xTup0B_Q@mail.gmail.com>
+X-Gm-Features: AclHuK-DuoXI-ze6OR_y67J91aOnhT8WYRNmJVSaRmfvir6JKBEzZ6K-TrcO_zw
+Message-ID: <CAJZ5v0hVLSJs1j8J1TV3yJ8Psyaf=B_0UfHsYSMtM5xTup0B_Q@mail.gmail.com>
+Subject: Re: [PATCH RFC 02/11] ACPI: Introduce irq_get() for static fwnodes
+To: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Cc: Robin Murphy <robin.murphy@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, 
+	Marc Zyngier <maz@kernel.org>, Daniel Lezcano <daniel.lezcano@kernel.org>, 
+	Thomas Gleixner <tglx@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, 
+	Sudeep Holla <sudeep.holla@kernel.org>, Wim Van Sebroeck <wim@linux-watchdog.org>, 
+	Guenter Roeck <linux@roeck-us.net>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Will Deacon <will@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	driver-core@lists.linux.dev, linux-watchdog@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Use APSS and ACST instead of _PSS and _CST when available on Intel Macs.
-These methods are used in X86PlatformPlugin.kext, and when not found we
-fallback to generic _PSS and _CST methods.
+Sorry for the delay.
 
-Signed-off-by: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>
----
- drivers/acpi/acpi_processor.c    | 22 +++++++++++++++++-----
- drivers/acpi/processor_perflib.c | 10 ++++++++++
- 2 files changed, 27 insertions(+), 5 deletions(-)
+On Fri, Oct 9, 2026 at 9:57=E2=80=AFAM Lorenzo Pieralisi <lpieralisi@kernel=
+.org> wrote:
+>
+> On Tue, Oct 06, 2026 at 05:19:23PM +0100, Robin Murphy wrote:
+> > On 28/09/2026 5:15 pm, Lorenzo Pieralisi wrote:
+> > > On Fri, Sep 25, 2026 at 01:54:26PM +0300, Andy Shevchenko wrote:
+> > > > On Fri, Sep 25, 2026 at 12:30:07PM +0200, Lorenzo Pieralisi wrote:
+> > > > > On Fri, Sep 25, 2026 at 12:49:54PM +0300, Andy Shevchenko wrote:
+> > > > > > On Fri, Sep 25, 2026 at 09:48:01AM +0200, Lorenzo Pieralisi wro=
+te:
+> > > >
+> > > > ...
+> > > >
+> > > > > > > +static int acpi_static_fwnode_read_u32_prop_index(const stru=
+ct fwnode_handle *fwnode,
+> > > > > > > +                                             const char *pro=
+pname,
+> > > > > > > +                                             unsigned int in=
+dex, u32 *value)
+> > > > > > > +{
+> > > > > > > +   u32 *values;
+> > > > > > > +   int ret, count;
+> > > > > > > +
+> > > > > > > +   count =3D fwnode_property_count_u32(fwnode, propname);
+> > > > > > > +   if (count < 0)
+> > > > > > > +           return count;
+> > > > > > > +
+> > > > > > > +   if (index >=3D count)
+> > > > > > > +           return -ENOENT;
+> > > > > > > +
+> > > > > > > +   values =3D kcalloc(count, sizeof(*values), GFP_KERNEL);
+> > > > > > > +   if (!values)
+> > > > > > > +           return -ENOMEM;
+> > > > > > > +
+> > > > > > > +   ret =3D fwnode_property_read_u32_array(fwnode, propname, =
+values, count);
+> > > > > > > +   if (!ret)
+> > > > > > > +           *value =3D values[index];
+> > > > > >
+> > > > > > Use standard pattern, id est
+> > > > > >
+> > > > > >       if (ret)
+> > > > > >               ...
+> > > > > >
+> > > > > > > +   kfree(values);
+> > > > > >
+> > > > > > You want to use __free()
+> > > > > >
+> > > > > > > +   return ret;
+> > > > > > > +}
+> > > > > >
+> > > > > > I believe the whole approach is suboptimal, if you wish get ind=
+exed value (but why?)
+> > > > >
+> > > > > Why what (that's what the irq_get() interface requires ?) I agree=
+ it is
+> > > > > suboptimal - the whole point of the series is an RFC on using pro=
+perties
+> > > > > to store GSI number/flags, then how to read them we will optimize=
+ it
+> > I>>> when/if we agree that's the approach to be taken.
+> > > >
+> > > > Why to have indexed APIs. The callers usually do not want a single =
+item from an
+> > > > array, they want all of them or a big pile (exception is the array =
+of strings,
+> > > > but we have matching functions for that).
+> > > >
+> > > > As per approach, this patch is against device property and I don't =
+think we are
+> > > > going to agree on the approach taken in *this* patch.
+> > >
+> > > Coming back to this, what is needed here is a way to stash the GSI nu=
+mber,
+> > > flags and name in stardard storage (like OF nodes IRQ properties, ACP=
+I objects
+> > > _CRS, etc).
+> > >
+> > > To give you some background, I thought about adding an array of:
+> > >
+> > > GSI [number, flags, name]
+> > >
+> > > to the ACPI static fwnode itself. Then basically the irq_get() API ha=
+s got
+> > > all the information it needs from the primary fwnode; while doing tha=
+t I
+> > > thought that this might have been a bit like reinventing software nod=
+es
+> > > (granted, software node properties are ways more general that what I =
+suggest
+> > > above and I don't expect any other property to be ever added to stati=
+c fwnodes)
+> > > that's why I put together the series as it is, precisely to understan=
+d what's
+> > > best.
+> > >
+> > > When you say "against device property", what do you mean precisely ?
+> > >
+> > > I suppose you mean that this approach goes against software node prop=
+erties
+> > > usage guidelines ?
+> > >
+> > > Anyway, again, it is just to provide some context, we are talking abo=
+ut
+> > > a bunch of platform devices, it is nice to have a generic solution bu=
+t
+> > > it has to be simple enough too given its scope, I understand very wel=
+l
+> > > your concern with this approach as-is - it is there to find a way
+> > > forward together and show what the problem is.
+> >
+> > I guess software node properties look inviting in theory since they're =
+a
+> > ready-made mechanism for effectively attaching arbitrary data to a fwno=
+de,
+> > however looking at patches 6-7 and the amount of boilerplate involved i=
+n the
+> > reality, I'm inclined to think that a dedicated structure for static no=
+des
+> > is probably the best and most efficient compromise here. The redundancy
+> > argument rather falls apart once we end up creating copies of those
+> > contentiously-made-up property name strings for every node, especially =
+given
+> > that any one of those alone is probably already more than the amount of
+> > actual data we need per node...
+> >
+> > Perhaps the "purest" option might be to just store a function pointer i=
+n the
+> > fwnode wrapper for each static table type to provide its own internal
+> > irq_get() callback, so not stashing intermediate GSI data at all, but I
+> > suspect that might end up being more work overall.
+>
+> Hi Rafael, Robin,
+>
+> I have not started prototyping it yet but I have got a question as a
+> follow-up to our chat at LPC about crafting an ACPI device for the static
+> table entries and sort out the probe dependencies using autodep.
+>
+> After spur of the moment reaction during the session, I now remember I
+> thought about crafting an ACPI device for the static table entries and
+> started digging then bumped into acpi_add_single_object() as you
+> suggested.
+>
+> The point though is: what about the acpi_handle and the AML required to
+> sort out the dependencies using the _CRS ? We have got the info to fill
+> the _CRS coming from static table entries (MMIO, GSI) but I am not sure h=
+ow I
+> can form a full-fledged ACPI namespace object in the kernel, without
+> that in place I am not sure how the autodep mechanism can possibly
+> work.
 
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 5fbab5417..782676ef7 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -18,6 +18,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/pci.h>
-+#include <linux/platform_data/x86/apple.h>
- #include <linux/platform_device.h>
- 
- #include <acpi/processor.h>
-@@ -837,27 +838,38 @@ int acpi_processor_evaluate_cst(acpi_handle handle, u32 cpu,
- 	acpi_status status;
- 	u64 count;
- 	int last_index = 0;
--	int i, ret = 0;
-+	int i, ret = 0, base = 0;
- 
-+	if (x86_apple_machine) {
-+		status = acpi_evaluate_object(handle, "ACST", NULL, &buffer);
-+		if (ACPI_SUCCESS(status)) {
-+			base = 1; /* ACST is a 4 field variable we need to skip the first field */
-+			goto success;
-+		}
-+
-+		buffer.length = ACPI_ALLOCATE_BUFFER;
-+		buffer.pointer = NULL;
-+	}
- 	status = acpi_evaluate_object(handle, "_CST", NULL, &buffer);
- 	if (ACPI_FAILURE(status)) {
- 		acpi_handle_debug(handle, "No _CST\n");
- 		return -ENODEV;
- 	}
-+success:
- 
- 	cst = buffer.pointer;
- 
- 	/* There must be at least 2 elements. */
--	if (!cst || cst->type != ACPI_TYPE_PACKAGE || cst->package.count < 2) {
-+	if (!cst || cst->type != ACPI_TYPE_PACKAGE || cst->package.count < base + 2) {
- 		acpi_handle_warn(handle, "Invalid _CST output\n");
- 		ret = -EFAULT;
- 		goto end;
- 	}
- 
--	count = cst->package.elements[0].integer.value;
-+	count = cst->package.elements[base].integer.value;
- 
- 	/* Validate the number of C-states. */
--	if (count < 1 || count != cst->package.count - 1) {
-+	if (count < 1 || count != cst->package.count - 1 - base) {
- 		acpi_handle_warn(handle, "Inconsistent _CST data\n");
- 		ret = -EFAULT;
- 		goto end;
-@@ -882,7 +894,7 @@ int acpi_processor_evaluate_cst(acpi_handle handle, u32 cpu,
- 
- 		memset(&cx, 0, sizeof(cx));
- 
--		element = &cst->package.elements[i];
-+		element = &cst->package.elements[base + i];
- 		if (element->type != ACPI_TYPE_PACKAGE) {
- 			acpi_handle_info(handle, "_CST C%d type(%x) is not package, skip...\n",
- 					 i, element->type);
-diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-index 9e25d6124..b4b36e60d 100644
---- a/drivers/acpi/processor_perflib.c
-+++ b/drivers/acpi/processor_perflib.c
-@@ -17,6 +17,7 @@
- #include <linux/cpufreq.h>
- #include <linux/slab.h>
- #include <linux/acpi.h>
-+#include <linux/platform_data/x86/apple.h>
- #include <acpi/processor.h>
- #ifdef CONFIG_X86
- #include <asm/cpufeature.h>
-@@ -324,11 +325,20 @@ static int acpi_processor_get_performance_states(struct acpi_processor *pr)
- 	int i;
- 	int last_invalid = -1;
- 
-+	if (x86_apple_machine) {
-+		status = acpi_evaluate_object(pr->handle, "APSS", NULL, &buffer);
-+		if (ACPI_SUCCESS(status))
-+			goto success;
-+
-+		buffer.length = ACPI_ALLOCATE_BUFFER;
-+		buffer.pointer = NULL;
-+	}
- 	status = acpi_evaluate_object(pr->handle, "_PSS", NULL, &buffer);
- 	if (ACPI_FAILURE(status)) {
- 		acpi_evaluation_failure_warn(pr->handle, "_PSS", status);
- 		return -ENODEV;
- 	}
-+success:
- 
- 	pss = buffer.pointer;
- 	if (!pss || pss->type != ACPI_TYPE_PACKAGE) {
--- 
-2.55.0
+The missing ACPI handle is not a hard part IMV, it is a matter of
+modifying struct acpi_dep_data to be able to hold struct acpi_device
+pointers instead of ACPI handles in case the devices in question have
+no ACPI handles and adjusting the code using it.
 
+Finding the dependencies is harder.  I guess it may involve walking
+the namespace and looking up a device object with a specific device ID
+or similar.
+
+Note that the dependencies can be added to acpi_dep_list after
+creating a struct acpi_device with acpi_add_single_object() and
+acpi_scan_add_dep() is not really suitable for that, but it should be
+doable if the dependencies can be found.
+
+> I need to have a deeper look into this next week but I wanted to ask firs=
+t
+> whether there was something I missed - most likely.
+
+Well, it is not really straightforward.
+
+I'm still not sure why you can't represent all devices in the ACPI
+namespace in addition to describing some of them in static tables.  I
+guess that would work for everybody, wouldn't it?
