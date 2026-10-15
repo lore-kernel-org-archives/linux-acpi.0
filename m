@@ -1,302 +1,186 @@
-Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58FCD52E079
-	for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 14:21:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.43
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792074088; cv=pass; b=RySAjTQKztIymQtIxYY83lWnpBwSzcNeQ6h8RUf+pyQnhuufIPJ4RsSkGTDfyuKRjdau4lEB5ZrYkfIrBnaYHJlgD7avqhGPrA3E0S3Irs7eYgeZ0xoelV+HGsMnH0ht+cLWzbkfquvUsYcFbB8g5Pv7DdNuRH2kiQEZXjjQZt8=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792074088; c=relaxed/simple;
-	bh=HayAmmLBI/WF/AkMleopvPrrdy1dOmE7xAMyDaxUghs=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=rqbB3CWNrlReAovcPZOXZvJ6fOLYBR14EdzJiePOZXjFKhX+YNzjzF+4xzvSWIAte0V04Dfnc8fGEh8VskH7Qi2yi8bkksAUbRoENwTLHtVu6JHISWR/t9yjOSfvsD1EnjhLwucZR7uhrhKFcG/hgfFtRnuycI7MY2IPN/D+2L4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=a9t4XZf4; arc=pass smtp.client-ip=209.85.218.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6819D3E9584
+	for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 14:46:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792075608; cv=none; b=nqI8YUIjaw3hT3fj+OnYX173s66ZvOeNZHzd/JP/21mqc8ZRXkl9YWLjIl3uGJc7WAo8x4xCHeKUsACXHmTi6oRofU9c8qyYLcF3EdrOcR1O3oZ35chI5c9vOcH8jixQBeZhaUCyOCwVD0TwrcKl24xqIEkKQRUEMp4EursMS7Q=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792075608; c=relaxed/simple;
+	bh=NHgIRIYeSxxBM4Z2O/FYMoXHETZQ8rwvjZE3GOfWUQc=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=bvy0N/exllRfmiVFU1bGKaGgTOqGbPbr+AxGTD//1ohdi0oEab5T6siY7MQuZ9Diq/1ShZU5FPQZTPb4AzM576n7LIzvItBB0e1TGmJRw/WbkKwUS1yJ3sr0YUhnbS1clSZQL7VSVH8npShjWNOStAHFh6fOmi9+9obqNrjdnR0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com; spf=pass smtp.mailfrom=oss.qualcomm.com; dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b=EqmVQKLG; dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b=I8r3fDGc; arc=none smtp.client-ip=205.220.180.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="a9t4XZf4"
-Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-c263415982eso695610866b.0
-        for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 07:21:26 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1792074084; cv=none;
-        d=google.com; s=arc-20260327;
-        b=MbrEJi7sO15FENxWw/KaNxOiLEJuT/zsU5zQywcoe8RnJZoWAExZD+WbsZS3Gy1AEX
-         7O6zAS2T51TJWrgkYIQ9BaI84u8P4EMcegsYW8IYprPYG9E9+XSJElkapKvVlOTq05zJ
-         Lfcms7xzsPA7uRnR6r16Z5Gub2fKfs4xb9a+oW/Wjne/hX0PFst626u3jm5O7DHMfBqa
-         sHAFB1MOQE7ybD7uvQDzDzrNVkMzpAjs0xHrMwZWDOz9JhkwXl9y3gKoatq4b2xKJWcb
-         oq90ihzAgUI0VsN6aP08xhWWcEus1wcM2m3cESmvXwAi+HuVA3fSqxnTBKknQ6jGHMb3
-         i/jQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
-        bh=/8EK0KxjKp+jZTxkjps+lH3/bw/OLb+7lXjV6iL/Kg0=;
-        fh=hM5OexnVYy/8jq6aX4MvEuDpUUNLQgdoWzpAFEHH3y0=;
-        b=gMAGNFmHffIA5O0fdUGppDLkghR2Plvwp3N/o0CensldN2Bt7QksWORBBNblRF7H4P
-         N/uHehWllCKtEpgsUxWJcaxe4TzVX8pA+eKKsUa+SPVdypAQTulr8hBTLXaGlO0VHDkG
-         qMKs8OFzNEzfx58jtLFjZhJLIhkeIVnk21lnVV3s3fpBf0eln3T6zeRuzj6S7zMFR1Yj
-         +4JC6QycFSotANhUqWGNdfi6uOJ3jWZKEXWFG5BaesPlMO/ne+5NATpIUWgBn3Ye6Jls
-         CFkEPNMC8ddGY1opq0BVC96aZzjH0LpS0uUgK98Cs/IUpGpdO+ijUuFLRU/FvidUiUlC
-         R3KQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="EqmVQKLG";
+	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.b="I8r3fDGc"
+Received: from pps.filterd (m0279869.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69F9joLU3408870
+	for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 14:46:45 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:message-id
+	:mime-version:subject:to; s=qcppdkim1; bh=u/nlLAyrIY971jI97tgUiI
+	dOKUIdrmUXPoG94AIgOqI=; b=EqmVQKLG6kmBa3f0f+xOOJQCVN3EpYtnoes67G
+	oiup/ZJJhnXDxfxd4OqlkzX0k79nVGrC1Fr7F7VvtfBbyhbS5HtKHq/7xgMnDejk
+	P2k9Ya9ao0hl+z8xOwR+panrEL5/tMh6D5GgczradBvJAJPD8Q8Z7AOBkI9sd2sR
+	XOcDFj54Mi0WTI4PU0MDRqpJZ6wwvJeej5itid90GhT0njk3qEp+sJJD/JPncXQH
+	5saLnS22rO7/WbrtyHSwFVXqNeoFENL1dJSyA59/4fPzzYkJ5ceAwo28FQqcM3OA
+	jv2O+8ut3eORaJWLFAzhgS6KPX88+ani+Me7Z+mlR3P++J3Q==
+Received: from mail-vk1-f197.google.com (mail-vk1-f197.google.com [209.85.221.197])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hakwn39sg-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 14:46:45 +0000 (GMT)
+Received: by mail-vk1-f197.google.com with SMTP id 71dfb90a1353d-5ea71263f4dso175526e0c.1
+        for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2026 07:46:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792074084; x=1792678884; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=/8EK0KxjKp+jZTxkjps+lH3/bw/OLb+7lXjV6iL/Kg0=;
-        b=a9t4XZf4lD2RH6Opnxarq8DY5cG8RuKSSxlox17uQS16Q1eTCERhSxvhLUPsiFVY/f
-         2AQI7VRn7qPkDK+U8qg7Ch0yWttplnGd91uu1yYM1uCqcFo0/Nhxodg8OTgOps649y71
-         q+g6QY0RlacumowbPGNj4m/JvCtA++xWMxxpXvTld8gtjTWCC6GumNaCSzxiOTIcC2nG
-         TMu5r/6RrUgRRK91kFx4fnzueF0RQlJrDbaGOVC1/JMeDfpwwMOLbwMddjg9ztlCOTAH
-         C2zgFqGRrRgx6ag6Gmsb/0oBDV/SyncCiJKM20np9K2b/lqEDe3Bd8rsNDuteF2nO1mk
-         7sQw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792074084; x=1792678884;
-        h=content-type:cc:to:subject:message-id:date:from:mime-version
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+        d=oss.qualcomm.com; s=google; t=1792075604; x=1792680404; darn=vger.kernel.org;
+        h=cc:to:content-transfer-encoding:content-type:mime-version
+         :message-id:date:subject:from:from:to:cc:subject:date:message-id
          :reply-to:content-type;
-        bh=/8EK0KxjKp+jZTxkjps+lH3/bw/OLb+7lXjV6iL/Kg0=;
-        b=hMR59A3YyQ0W9RaunVOqalihKKR28D4NC/ufO70k0dFMw6GFcZZw5ds6qnaGOcNDY8
-         tehrqxjC+fzGoF0C5NAeHESZ/63oC+kcphl5BVTOaJvhEDRdlSFOkWsW3raHbgdiJgTy
-         Kz++67dOFeTapxe7UTK8iI4ye2RC1+hapMwVI9gInuLDgVubKA+tHgR6DQ5R4OVeo3s4
-         S3lxWnwS59dA6nrHPyv36INNuuBAMV32PL/KihpWYfx5IhiRQ33T1qKBwSwH5Zg1Mktf
-         8Pj2UscipaDGBAA52cV5Uhgujq08HDwVvhDZvqXwI7bpOTkixQJi7kPEAUpuxj1XrpKx
-         tDRw==
-X-Forwarded-Encrypted: i=1; AKwUvByNRPNdvhjqDDxzHzoOY9dbewmE/Dho09YyxgCO3txetkK+LsHvY9BmcJB3aWDdDclgrQ5IWrIbvd8+@vger.kernel.org
-X-Gm-Message-State: AFq9FYJjorCHhUnZvpn2/HcdVEd2hKGk54/7E2NDHlHBpSf6vgJ7t6PW
-	gtdIHOgedcTUvLnQpH6jP2gnBD/Rw6rHvtU9XnUXX4Wr1w8q8s9wHHptt6LlHaU3BwYQob4KpaV
-	5OEcQYsh6ZlOdsdYbTkf46aciLsOmE0s=
-X-Gm-Gg: AYBFou1cuK/Mq/553vkssQQ76dGXnHXF0UOwj2UZQ5hFfgge7SIb8F215pIsI4YllOL
-	k+to2QSXQsUUOsJ/vz3fXGUIfn0OumXFKQHXW8LP851GBtHOUGpjo5NclRIM2E5fhtfH8I4xPSN
-	0xK8b0M/61j4WuGtNcRSt5/YS6/4fGTOJgYUuOev2VpF2xYZFzva9J9AEjMh7fz6ObPV7r0VAAZ
-	PrQGYm3BGuMSbl7jcZpSvsUe71/OFA8r8G5MTzME6blOGooIp/zH6sGJjx7PEbhiYmV33cGv0dH
-	9YN3l9dyv1efa8IUolT/HjnWH1FLilC1vM33vYpTecjqUoTmautyQ0bOOZksXQau088NHiA44lO
-	rryvc8Q6vCg==
-X-Received: by 2002:a17:907:7ba3:b0:c29:f5d5:5aa1 with SMTP id
- a640c23a62f3a-c31aa097acdmr1897928666b.43.1792074084318; Thu, 15 Oct 2026
- 07:21:24 -0700 (PDT)
+        bh=u/nlLAyrIY971jI97tgUiIdOKUIdrmUXPoG94AIgOqI=;
+        b=I8r3fDGcYcbdUMh3ZZinwq0DYI/ayV3p4LtS/kyHV9YUNM4BnG+6jKiORjejPfM4GN
+         zvITZ4rOMHF4ljmXqqpEWOsrnPlqXrmck9yeS/9Wr1V/lmTAbSsszMT61oOaIc7MQm4F
+         ULOkI0KmLlTUkAkxtSPeGmrl+q2LOEjJVAlZhGa4Fb67s9WgvTXXxbv1hn5XU86I3waI
+         FNh/6cL3tNsvfKIld7kQReBbk73tIK5QtjnyyPBC5zrOzEwrm2bjrPD6n1iEkWBYKkvQ
+         U1tS6FfRmb30b5bPZ56/UIhseALxL2gHp2wbd9ip3l3eprnt8+13fu8OwERyzjEbZCfi
+         Aybw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792075604; x=1792680404;
+        h=cc:to:content-transfer-encoding:content-type:mime-version
+         :message-id:date:subject:from:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=u/nlLAyrIY971jI97tgUiIdOKUIdrmUXPoG94AIgOqI=;
+        b=pTvun+7708U6Ag5jK1A/uj3doNuPvt/abUoFDbFKDDQGz06dHgvxaHbkF0xWJqxa0s
+         cruev1uDpR34FQ6HYOW2Gm+nbd2OuvVo4zpz/43FKXHboWD9hUKrAA5odzbo2StNy567
+         CBmQHsV1y5Ysi7nrSCWIyHcfe+p7fJoYfsBskrNyfQAQceQaw1Dt0yDyQRmoYx6FpaYF
+         a5jwD5pge0zIoM1vlMcNZuiBgrrajWmlVi/XUKimfw1/+ysoT++DcWGdyi1SZrEZq81M
+         wkfOniiZC9D5r5+BQI4yxoBiZzSg003Rx8g6iKGVHKLdIpU/2Jp20X65hFu8FAsRSbRp
+         /jEw==
+X-Forwarded-Encrypted: i=1; AKwUvBwmVjmpKGaQpDfkXBIWMYPTVlKbz19I0NE2mlZTBxs59a+9ceO/XFhMUHfJw/dlkt71oCXloq44/hIN@vger.kernel.org
+X-Gm-Message-State: AFq9FYIAh06V2HNOg9rQ/0AujV6E0/5FmawJbDL37zzhfpsDxwX9VTDy
+	Og3OpWVzhnwa/IfpmI+N4cmHP/Ih8eFc/MKsMJaGTPtDaxvuc8080PlR+Hah/9oa1expHoqUxi4
+	5aGJBgS54DbgZ3kgPQAAzoTjHiXKwa20+7EkxapYC9i2a4t1M3uvNhMFyn9FI2J0Z
+X-Gm-Gg: AYBFou3L+PrvwS/Eb99Q47ONQHlzv2+S6+zRggflotQKDRqk0lOtrGoMMHr7ZsewDrS
+	E6SobkzRPtjvIgWjlaBvf9T4u722UZRmdixd1BkbWXACiwAR7kaNCE8BA2Tba0DVoi9yCU3Efyf
+	ZOrue06YCdjp5sQ7lsTsZ8rhydIeA7kmBGg1MhBVQDysoy+Ps31u27yeJZRqp/BCQ+XDWyDE0H8
+	D3n60tSSzqruobx3kupE30PNjlfs+8ARBqI1ucNxtZonzGNW46OaqP/67vMd/R8i0zVI+NYS9F2
+	+eTyIJiJvuoI8seFahO0Fcf4PHR3aknCuP4FvvR76HVnpGO++LXayqYxzKo5OeFTBIG9n5tC1Jh
+	tLjErX24N7nTBmpJQyN1ZEr02Ov1z
+X-Received: by 2002:a05:6122:1828:b0:5c7:a9ee:dcfb with SMTP id 71dfb90a1353d-5e91f46ca9amr6094207e0c.5.1792075604375;
+        Thu, 15 Oct 2026 07:46:44 -0700 (PDT)
+X-Received: by 2002:a05:6122:1828:b0:5c7:a9ee:dcfb with SMTP id 71dfb90a1353d-5e91f46ca9amr6094164e0c.5.1792075603775;
+        Thu, 15 Oct 2026 07:46:43 -0700 (PDT)
+Received: from brgl-qcom.local ([2a01:cb1d:dc:7e00:8916:7b9b:97a2:6c96])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a1bd9b8ebdsm86840625e9.10.2026.10.15.07.46.40
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 15 Oct 2026 07:46:41 -0700 (PDT)
+From: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Subject: [PATCH 0/3] driver core: fix unbalanced reference counting for
+ software nodes
+Date: Thu, 15 Oct 2026 16:46:21 +0200
+Message-Id: <20261015-swnode-dev-notify-balance-v1-0-9e7537bd2869@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: Nikodem Sanecki <nikodemsanecki@gmail.com>
-Date: Thu, 15 Oct 2026 15:21:11 +0100
-X-Gm-Features: AclHuK-uMeM2OT-1SvHDE5B8L4CFd9ifGhVLzzenOjl_5vJC1fOzzee1rHAuyPI
-Message-ID: <CAAUQFROUNCJo7EUn4eiDxSTd6pfPcQDP1_ma0G2k73DJtMnNVw@mail.gmail.com>
-Subject: Hello, I'm reporting a Caps Lock LED issue on my Lenovo ThinkPad L13
- Gen 2 AMD running Arch Linux. I found a workaround that completely fixes it,
- and I hope the findings might help implement a permanent kernel fix. **A
- quick note:** This is my first time using Linux, and I'm a complete beginner
- when it comes to kernel development. I used ChatGPT (GPT-6) to guide the
- troubleshooting process, analyse my laptop's ACPI firmware, and interpret the
- results. I personally ran the diagnostic commands and verified the observed
- behaviour, but the technical explanation below is AI-assisted. Please correct
- me if any of the analysis is inaccurate. ## Problem Under Linux, the physical
- Caps Lock indicator LED never illuminates, even though the Caps Lock key
- itself works normally. The LED works correctly under Windows and during
- certain stages of boot, so the hardware itself is functional. After
- investigating, GPT-6 identified what appears to be a conflict involving GPIO
- 11 on the AMD AMDI0...
-To: westeri@kernel.org, andriy.shevchenko@linux.intel.com
-Cc: linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAD3n0GoC/x3MQQqDMBBG4avIrB0wogF7ldJFNH90QCYlEW0R7
+ 25w+S3eOykjCTK9qpMSdskStcDUFU2L0xksvpjaprWmMT3nQ6MHe+yscZPw59GtTicwbOhtGAf
+ X2YFK/00I8nve78913cqYpxFrAAAA
+X-Change-ID: 20261015-swnode-dev-notify-balance-e6f56fb9a469
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daniel Scally <djrscally@gmail.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Eduardo Ruiz Duarte <toorandom@gmail.com>,
+        Bartosz Golaszewski <brgl@kernel.org>
+Cc: driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        linux-acpi@vger.kernel.org,
+        Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+        stable@vger.kernel.org
+X-Mailer: b4 0.14.2
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1334;
+ i=bartosz.golaszewski@oss.qualcomm.com; h=from:subject:message-id;
+ bh=NHgIRIYeSxxBM4Z2O/FYMoXHETZQ8rwvjZE3GOfWUQc=;
+ b=owEBbQKS/ZANAwAKAQWdLsv/NoTDAcsmYgBq0OdGNQea/ZaQSE8NoGK5ssTDV3i6Yf8dWQp6K
+ pyopKVXJwiJAjMEAAEKAB0WIQSR5RMt5bVGHXuiZfwFnS7L/zaEwwUCatDnRgAKCRAFnS7L/zaE
+ w6x3D/4uzSSogfkEUqLZ2YYdjMOaAL7tIC5eATXPw7a/Wemsnjuwdv5Su5A9tLJXIKi5WY74Xeg
+ 95BMcLZR8h0F3aLL31c103khzaSKRvRqUo5EZHjjxVNiOwwu32B0khfs4gnD+ikiV3Tw5m0k2KW
+ pzktdOuPz00z8akz6CAhuU5DwkFPIZXFeGEekgGZ2jJaF2oTnTUWQ7kod3JMbDCCsWScirMNWx8
+ a9mCXPuZlgqAPvYZxS1rrBPkbjiXW5qbxbwz0k3JfmSIMi9dtunW4Aye5RDFDeXMVOAiCN4BQzT
+ ciTcVp8j33yP6bT7XQpNvheuBYSiXtK2TDepKwXktsZxGa5e6rVNUnanFRogVpG1e1p7TqWle3P
+ KhA6YfLPiLqRDSBnpAJeMeYMf8QjyBXSpLCawPbyHXBxxKgu55IEy7dlgGLqhtmCrb2DIDH9DhO
+ vYyBtg1sHWDFvDxR+5nNYCFf2g3WepcqVybJAyl3mXwBlV3zmIyMjF6yAeYC8Uc0x9yXBK+XbAu
+ /qf6NDR40SfsL4mJY51ylo1f7g6s+RHpGHY/CMa9ssAxYFeDKsv4rIZTw72LLXeRsICx/65Durt
+ /pX6f/rfQxFr7614teLoIrqaSRA6FcCgjpAP3OAkBgAHsEL2hb+luTtDxCwItitOzMpZeTKC65Y
+ zxwsOX1iKlAMNNw==
+X-Developer-Key: i=bartosz.golaszewski@oss.qualcomm.com; a=openpgp;
+ fpr=169DEB6C0BC3C46013D2C79F11A72EA01471D772
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDE1MDA1OCBTYWx0ZWRfX27/58mapThIt
+ vcDV54GBtAMBdBVglxDRTXGDf+QRS+uSf9XWvN8aC9yVspEnN1wSMR7uUU/UD5PSNVWbNhp/96B
+ 0GqmX+yJfMhdSKZN0L3JuPulNgF1HFKtAN/JHOiXwiBUQ/1hNs1z4992tuZf139+5LmtuGRP0x+
+ /oikKTWKYLfr27SUk2mSDwaBT6eCDCjftvzooYDjlc4CBmzvL+lni5Gupql941ZZQ+qHwMKhpPi
+ 7YDrY7TNWTQLR3FpwtmNG1I9cSrXoZZp7TSRMYLnEdRAB8b+dXDF739IBTgHR7aR68QdTldRGOD
+ XYbQvt25cfxfe0OPiQVlWksizwBvrrdVvxA7dxOBjc/monsQ1AabS69UX3atJofBe6cgGZRcTXy
+ /oblV3K+0z5DNGot0s5yRxCpSEmoKTZEMIaP6ugzgpuLBdbHBn9DIDipD2t4ZiQhds/e/rtPK3S
+ WFHtWfwNxPhVqKKpwGQ==
+X-Proofpoint-GUID: TrPcUi7nr__PnHdRWeJErJ4MJDhACJ3D
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDE1MDA1OCBTYWx0ZWRfX8GQCOPMrS+f6
+ kFz9M20beFA0AlRyg2e6wkcHYoNTQC8NXgKTGCozmAPv+O1Ueo9GMSBwrTnZSPyx+IWyxZdS+XY
+ h+lEYaOwYEF33p5+POYEObeUXkvCePI=
+X-Authority-Analysis: v=2.4 cv=BqUIUoX5 c=1 sm=1 tr=0 ts=6ad0e755 cx=c_pps
+ a=JIY1xp/sjQ9K5JH4t62bdg==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
+ a=660iZSQnnn4A:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=u7WPNUs3qKkmUXheDGA7:22 a=_glEPmIy2e8OvE2BGh3C:22 a=EUspDBNiAAAA:8
+ a=kTkK-H-Q3wn9DOHkRvoA:9 a=QEXdDO2ut3YA:10 a=tNoRWFLymzeba-QzToBc:22
+X-Proofpoint-ORIG-GUID: TrPcUi7nr__PnHdRWeJErJ4MJDhACJ3D
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-10-14_01,2026-10-14_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ impostorscore=0 adultscore=0 spamscore=0 bulkscore=0 suspectscore=0
+ clxscore=1011 malwarescore=0 phishscore=0 lowpriorityscore=0
+ priorityscore=1501 classifier=typeunknown authscore=0 authtc= authcc=
+ route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2610080000
+ definitions=main-2610150058
+
+Eduardo reported an issue with reference underflow when setting a
+software node with set_secondary_fwnode() and then repeatedly destroying
+and re-creating a device. This is caused by the fact that
+software_node_notify() takes a reference to the software node which is
+unconditionally dropped in software_node_notify_remove(). However the
+software node can be assigned after device_add() so the latter should
+only do it if it was bumped by the former.
+
+This series proposes a fix in driver core. The first two patches extend
+the device flag API with a new accessor and value. The third is the
+actual fix in swnode.c and should be backported to stable (along the
+first two as dependencies).
+
+Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+---
+Bartosz Golaszewski (3):
+      driver core: provide a test-and-clear device flag accessor
+      driver core: provide new device flag - DEV_FLAG_SWNODE_NOTIFIER
+      software node: fix unbalanced reference counting
+
+ drivers/base/swnode.c  |  5 ++++-
+ include/linux/device.h | 10 ++++++++++
+ 2 files changed, 14 insertions(+), 1 deletion(-)
+---
+base-commit: d419d682257d813f6cb7a28e42b35d0edf4ad038
+change-id: 20261015-swnode-dev-notify-balance-e6f56fb9a469
+
+Best regards,
+-- 
+Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 
-Resending this report in plain text because my original email was
-rejected by the linux-gpio and linux-kernel mailing lists for
-containing HTML formatting. Apologies if you received the original
-message twice.
-
-
-Hello,
-
-I'm reporting a Caps Lock LED issue on my Lenovo ThinkPad L13 Gen 2
-AMD running Arch Linux. I found a workaround that completely fixes it,
-and I hope the findings might help implement a permanent kernel fix.
-
-A quick note: This is my first time using Linux, and I'm a complete
-beginner when it comes to kernel development. I used ChatGPT (GPT-6)
-to guide the troubleshooting process, analyse my laptop's ACPI
-firmware, and interpret the results. I personally ran the diagnostic
-commands and verified the observed behaviour, but the technical
-explanation below is AI-assisted. Please correct me if any of the
-analysis is inaccurate.
-
-Problem
-
-Under Linux, the physical Caps Lock indicator LED never illuminates,
-even though the Caps Lock key itself works normally.
-
-The LED works correctly under Windows and during certain stages of
-boot, so the hardware itself is functional.
-
-After investigating, GPT-6 identified what appears to be a conflict
-involving GPIO 11 on the AMD AMDI0030 controller.
-
-Booting Arch Linux with this kernel parameter completely fixes the problem:
-
-gpiolib_acpi.ignore_interrupt=AMDI0030:00@11
-
-The Caps Lock LED now works normally, and I haven't noticed any other
-hardware issues.
-
-System information
-
-Device: Lenovo ThinkPad L13 Gen 2 AMD
-
-DMI product name: 21AB004LSP
-
-DMI product version/family: ThinkPad L13 Gen 2a
-
-DMI vendor: LENOVO
-
-DMI product SKU: LENOVO_MT_21AB_BU_Think_FM_ThinkPad L13 Gen 2a
-
-Kernel: 7.2.9-arch1-1
-
-Distribution: Arch Linux
-
-BIOS: R1QET54W (1.40)
-
-BIOS date: 2026-04-14
-
-DSDT OEM ID: LENOVO
-
-DSDT OEM Table ID: TP-R1Q
-
-Diagnostic findings
-
-The following is GPT-6's analysis of the diagnostic output and
-decompiled ACPI tables.
-
-1. Linux sends the correct keyboard LED commands
-
-Using bpftrace, we observed that atkbd_set_leds() consistently returned 0.
-
-Tracing ps2_command() for command 0x10ED produced:
-
-SETLEDS: value=4, caps=1
-SETLEDS: value=0, caps=0
-SETLEDS: value=4, caps=1
-SETLEDS: value=0, caps=0
-
-The driver reports success and sends the expected Caps Lock states,
-but the physical indicator stays off.
-
-2. The embedded controller tracks Caps Lock correctly
-
-The DSDT defines the CPLS field at EC offset 0x0F, bit 7.
-
-Reading that byte through the read-only ec_sys interface showed it
-changing from 0x00 to 0x80 when Caps Lock was toggled.
-
-Enabling dynamic debugging in drivers/acpi/ec.c confirmed that each
-Caps Lock press triggered EC query 0x78, which was scheduled, started
-and stopped successfully.
-
-3. Lenovo's firmware controls GPIO 11
-
-The DSDT contains:
-
-Method (_Q78, 0, NotSerialized)
-{
-    If (CPLS)
-    {
-        WFIO (0x0B, 0x00)
-    }
-    Else
-    {
-        WFIO (0x0B, 0x01)
-    }
-}
-
-The WFIO method writes bit 22 using WMEM(), targeting address
-0xFED81500 + (11 * 4) = 0xFED8152C.
-
-This appears to control the Caps Lock indicator using GPIO 11.
-
-4. The same GPIO is declared as an ACPI interrupt
-
-In SSDT12, _SB.GPIO._AEI declares GPIO 11 as an edge-triggered,
-active-low, exclusive wake interrupt.
-
-Its _EVT handler includes:
-
-Case (0x0B)
-{
-    MSTP (0x3911)
-    Notify (\_SB.PCI0.GPP1, 0x00) // Bus Check
-}
-
-This appears to conflict with the firmware's use of GPIO 11 as an output.
-
-5. GPIO registers confirm the suspected conflict
-
-Without the workaround, /sys/kernel/debug/gpio showed:
-
-#11 ... input ... 0x457a00
-#11 ... input ... 0x057a00
-
-Pressing Caps Lock changed bit 22, but bit 23 (output enable) remained cleared.
-
-After booting with:
-
-gpiolib_acpi.ignore_interrupt=AMDI0030:00@11
-
-The result was:
-
-#11 ... output ... 0xc50000
-
-The output-enable bit was now set, and the physical Caps Lock LED
-worked flawlessly.
-
-The system was already using atkbd.reset=1 for a separate
-keyboard-backlight problem. That parameter alone had not fixed the
-Caps Lock LED.
-
-Possible explanation
-
-GPT-6's interpretation is that Linux's ACPI GPIO handling configures
-GPIO 11 as an interrupt input because of the firmware's _AEI
-declaration.
-
-That disables the output driver, even though the firmware continues
-updating the GPIO output-value bit when Caps Lock changes.
-
-Ignoring the interrupt allows the pin to remain configured as an
-output, restoring the indicator.
-
-Related upstream fix
-
-This seems very similar to the Acer Nitro V 16S AI issue addressed by:
-
-6da1f3437435c82eaa15b121022474bb358ffe20
-
-"gpiolib: acpi: Ignore GPIO 11 interrupt on Acer Nitro V 16S AI"
-
-https://lists.openwall.net/linux-kernel/2026/10/02/1029
-
-However, there is an important difference.
-
-On my ThinkPad, the GPIO 11 _EVT handler issues a PCIe bus-check
-notification. I therefore don't know whether permanently ignoring the
-interrupt could interfere with PCIe-related events, hot-plugging or
-wake behaviour.
-
-So far, normal use with the workaround appears unaffected, but I
-haven't exhaustively tested those scenarios.
-
-Question
-
-Would a DMI-specific gpiolib ACPI quirk be appropriate for this
-ThinkPad, or should the conflicting GPIO declaration be handled
-differently because of the PCIe notification?
-
-I can provide the relevant decompiled DSDT/SSDT excerpts, additional
-diagnostic logs, or test a proposed fix if that would help.
-
-Thanks very much for your time, and apologies if I've misunderstood
-any of the technical details. I'm happy to run further tests with
-guidance.
-
-Best regards
