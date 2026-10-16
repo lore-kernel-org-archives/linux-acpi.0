@@ -1,298 +1,210 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from SN4PR2101CU001.outbound.protection.outlook.com (mail-southcentralusazon11012000.outbound.protection.outlook.com [40.93.195.0])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4C203CFF4C;
-	Fri, 16 Oct 2026 08:40:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792140007; cv=none; b=PtvjKfAdGJkG4KlClgGJbyQ8QbLUkMXVTU+EEzeOnp4JZGzBNgxl8mfXo8G+XpRA4qiDfE3u89eajydOZRdMluLf67biIIjFSNKk/o6vt8fS8T9E2ScB2t/Hj5O5QiCYUCH2xnj1IzZVg3agIrcRpKw0ZPg221d79PKcmmTl/6I=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792140007; c=relaxed/simple;
-	bh=QQI6AOUeC3xCwgD1ZTWLfBAf2ShWkVN9x4VjallQlMY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=WNZ/xVOlLgt7f8DvWHr4htRETsVg0xpAC9X9antvPiKLnPmQRxMFdqSJ7u8d9xbxEmWB+GnO6CS2GeuC9kghOGokFN45nmzjl4e4giwG7rceM/3ejwgCRKK4nTC3ctBl0Huggd2NClMYAd6ZWdW9o/kKdvdbbQ/OJGMmyAwcXX0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=J85uWx/a; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AD781DF98F;
+	Fri, 16 Oct 2026 08:44:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.93.195.0
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792140294; cv=fail; b=pRZq3C7OXx1NLrNxunNV0zsU3VPWaAc1qPSnCg7r8hTol30IInnMzQUQV6tqFa1/oYw0/nrR1RHe8d64IuUM7xPNOJj98gk0ZH/A/XVTQ8wDNEqrxG+v7edcd8P152KNRJCAvomeiLKP2WDDRNitokS0+K3XbOOtGeJ0VZIyqd0=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792140294; c=relaxed/simple;
+	bh=ysJUznFCTCT8+Ee1SaSLloSVLG0bbxJ4NdjwRlUxMu0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=kO0aCY10d+qg4Xx9kLi6qEgaFyM+sS/XeapRCs/iGYFdMQvY72l78OVFAZPvf5Olq6gauYhMi35lD9iuqiJq0drXg1E69Ux8O7Hy2EycVhMxR39qikXiqgGYzx/j4AzZ/TGwgssyYXDvJgmgW/Y/R6dvNU7OjDIB8bahvLI5Mn8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=YyHCk+BK; arc=fail smtp.client-ip=40.93.195.0
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="J85uWx/a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 228DA1F000C4;
-	Fri, 16 Oct 2026 08:39:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792140004;
-	bh=yF0+t8VmLxprbVJ7vonZo5vnvDwO+uiWBRkMfVhzMqc=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=J85uWx/a02s+shYbLJY23WbGfaxqgttPQltnCy+/EDBY9+Ebv0ucI6u90Aof+1WXf
-	 /NxAckxUqrukfLods4pyq18A1lKBnB5P8nN9ry813gc6/aJuOJOd18bOx8Is2a+NHO
-	 W7AGbpDWF93z9wkPjNIenWFQcOHNeO85gQhro5ZGdiN7ciRmzJYANLYluy0TxB/h6v
-	 TcG1/Z8h9b7//vn26dDEFGrtiPK4Pmb/vS74yeLH+oXlOGj5gf8gj69QFnXVpifPqL
-	 hZgAOaULWV5tSJFpa4h/Ip7lnVyL3k3j7jFA5wJVC5wmR/BaDQ5NQ1pxYlT/4q895n
-	 QB2xLAjTvQnmg==
-Message-ID: <7ed85b95-603c-4afe-acec-633feb3cdd88@kernel.org>
-Date: Fri, 16 Oct 2026 10:39:58 +0200
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="YyHCk+BK"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=LuBGJQ/ISbzuwoMgGYQ1vDpZNzygSS8lcupzS0oMuXRBtvPhi8T912+WuRQdcPsUo7odgbheOTU7UK3mvsdxSXYvr78FvK9lhIvxxbFmPoPrX8J53ful26+SaaK6CXV7m3wMpG0A2+r6yYUrccc/YNcUS809ICJ7xhkA7yhUQWJE8YMgUM9cyVZjMaPhQwiMv5MXvhYnRuticYs03UQL66CqGPjMdxc5pclUVf3WOlQ2N21nrqyDptQtpghJyn4sRIX4DXKX0VnPYSqDmt9YvDYRlYUKvMf3kxY96yxiKORcevbgrPnZwRJUhBJA13leOwRNJ/o9Sli0RqsdHhuaDA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=EueZt/DJnfcBw2ZFNVz533fnPN4CBFraG3GzBl1L1Dw=;
+ b=iD8FxbmakN81xnOyfS41QQNyvP4c2oFWjzI0KyIqM+0wEqhNisMAuRL7Dr6cZ5tSu7rmQr9p3yvDbl7+HwUiY1gB4NGL3RecVaM0rn33Ml9ekWywQrzGz266aZ2k3elesM+BHHj26PVlWCo4EQSv35oRlmXvJEHotJpOJGTDR2GSGPuzh5f1gmJNXJad3hFLwHMdFoqv2apzu3HYG81UHFDH0uDEvMc9KSJDSJoaFH5r72TgjtBg/rdRn+mPOBJ6mzXVObBz/tTvjYKIM1YzP+5F8twtwtFRTwFaMbzk7m9a+7E1xr1qMCH5pyRd/GbTadqkws2j2BcWnRG3lNlIhw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=EueZt/DJnfcBw2ZFNVz533fnPN4CBFraG3GzBl1L1Dw=;
+ b=YyHCk+BK8BdyVqTrVq710Th/QElpPkx58MOKGTx9Thn+ABxT8VQE17mMgkGypcWmCLCH/zmS4lmgvwj633qCl+QyQkDZEL7TroKjKUFeUEUwU76x+FlSr6E0hgWLnU5hlsBWKjMSx7XcdBw+DclEyAayT36e9IE6dMLbgFHLJIiS0Djatd3VnGGAA+nYsfv+mRRdkVcsWCDdZXuLkJOkZhJq13YO+MQ4OpyAwNAo5BaBRUQhRMeeIl/UgTooFrg3ZLaI9tTrGmKLj5Cl6tTyyeoz9CU5qwWAAJEREwvlmymoHAtdV36V5hwLJbCxPWgtwJudv3g7VCLMeccuuN2rCA==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from PH7PR12MB5974.namprd12.prod.outlook.com (2603:10b6:510:1d9::19)
+ by PH7PR12MB6491.namprd12.prod.outlook.com (2603:10b6:510:1f4::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.496.23; Fri, 16 Oct
+ 2026 08:44:47 +0000
+Received: from PH7PR12MB5974.namprd12.prod.outlook.com
+ ([fe80::f5a5:bbc3:e9da:f8a0]) by PH7PR12MB5974.namprd12.prod.outlook.com
+ ([fe80::f5a5:bbc3:e9da:f8a0%3]) with mapi id 15.21.0522.012; Fri, 16 Oct 2026
+ 08:44:47 +0000
+From: Adrian Ambrozewicz <aambrozewicz@nvidia.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jeremy Kerr <jk@codeconstruct.com.au>,
+	Donald Shannon <donalds@nvidia.com>,
+	Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Conor Dooley <conor+dt@kernel.org>,
+	Linus Walleij <linusw@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Lee Jones <lee@kernel.org>,
+	Pavel Machek <pavel@kernel.org>,
+	Andi Shyti <andi.shyti@kernel.org>,
+	Mark Brown <broonie@kernel.org>,
+	Jiri Slaby <jirislaby@kernel.org>,
+	Corey Minyard <corey@minyard.net>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans de Goede <hansg@kernel.org>,
+	Lixu Zhang <lixu.zhang@intel.com>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Johan Hovold <johan@kernel.org>,
+	Oliver Neukum <oneukum@suse.com>,
+	Quan Nguyen <quan@os.amperecomputing.com>,
+	Andrew Jeffery <andrew@codeconstruct.com.au>,
+	linux-usb@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	linux-gpio@vger.kernel.org,
+	linux-leds@vger.kernel.org,
+	linux-i2c@vger.kernel.org,
+	linux-spi@vger.kernel.org,
+	linux-serial@vger.kernel.org,
+	openipmi-developer@lists.sourceforge.net,
+	linux-acpi@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 00/11] Add NVIDIA LSTP USB adapter drivers
+Date: Fri, 16 Oct 2026 11:44:42 +0300
+Message-ID: <20261016084443.1972351-1-aambrozewicz@nvidia.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <2026101355-species-glance-9ff8@gregkh>
+References: <20261012-lstp-usb-adapter-v1-0-aambrozewicz@nvidia.com> <2026101355-species-glance-9ff8@gregkh>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: TLZP290CA0003.ISRP290.PROD.OUTLOOK.COM
+ (2603:1096:950:9::17) To PH7PR12MB5974.namprd12.prod.outlook.com
+ (2603:10b6:510:1d9::19)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 8/8] PCI/quirks: Avoid certain address on Genoa systems
-To: Mario Limonciello <mario.limonciello@amd.com>,
- Bjorn Helgaas <helgaas@kernel.org>
-Cc: =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
- Maciej Grochowski <Maciej.Grochowski@sony.com>,
- Nikolas Joshua Britton <nbritton@exabit.io>,
- Geramy Loveless <gloveless@jqluv.com>, Eric Auger <eauger@redhat.com>,
- Alexey Fomenko <alexey.fomenko@intel.com>,
- Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org,
- Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rob Herring
- <robh@kernel.org>, =?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kw@linux.com>,
- Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
- Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
- x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
- LKML <linux-kernel@vger.kernel.org>, Bradley Morgan <brads@mainlining.org>,
- Kai-Heng Feng <kaihengf@nvidia.com>,
- Andy Shevchenko <andriy.shevchenko@intel.com>, linux-acpi@vger.kernel.org
-References: <20261013224010.GA1589480@bhelgaas>
- <f823d264-8b9d-422e-bfaf-388957fbc2fa@kernel.org>
- <da239633-c789-41b6-ab92-ed1575f0d19c@amd.com>
-From: Hans de Goede <hansg@kernel.org>
-Content-Language: en-US, nl
-In-Reply-To: <da239633-c789-41b6-ab92-ed1575f0d19c@amd.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH7PR12MB5974:EE_|PH7PR12MB6491:EE_
+X-MS-Office365-Filtering-Correlation-Id: 6fc6f89c-1e77-41ad-6200-08df2b61bba1
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|366016|376014|7416014|23010399003|6133799003|22082099003|10067099003|3023799007|18002099003|11063799006|4143699003|5023799004|261009223027099003|56012099006;
+X-Microsoft-Antispam-Message-Info:
+	1Wjg1cMo1Ikfy/UkJN8iE6JliVgTmXfqXM1XzUO3aL+6thOt7HJN1e/+LPfh3YP5SW2l4/aZ55l9Ae4in4YkDrFn2ypHZd25PL0NJudYxgFMnIJ09O1r8SoVb+WvBZDli0HsyycpOVU7m/pb1txkMpY4bVz4mrHQYHO0xm7OZpGPkiJbLI+ZQ5BkmqMKsEqgmxCd3hUGmnZujpxKTHDDZLhfA9htyHETcUaSbQ7154MGDZzToVu1v8yOcoHFYiXngAFnujQort6Ld68WkgAF4DgHGoa87OVZMGdmoNk83OUErr1/6Gq9wse2E3kknIBSKpIheDf0HKhX66m0/1YF/cGufkYfEV4BE3SlxSCUnzFEMGwTispqXNFs0YjXI7RuyVtadLU/NlNNLdjmpYKm8uGNDZ2tvYOh8yQqvumE0zuetInFYxpERDR9oTZcHHTlB9zuPAEkta9/YWaOChu4VnUH5XSgRtKPKA/hqLNY2RoTsOORA29V7C3pwXyamvmy8SELN4hAV1/XWRKRV2xzFc/RKugi95meWaqlHaNjthC8CoIMQTmlqeNg+cbQPdI5uiuMDGEccLBcd+4jw3nVpPPrttzyTB81wGIen/tQKFpZUzrfHg4I5bidhayAY0/e8dKL29/WQouemBjqPxvoA1NuUcXRp3GkvQIeTcK8rZQ=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR12MB5974.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(7416014)(23010399003)(6133799003)(22082099003)(10067099003)(3023799007)(18002099003)(11063799006)(4143699003)(5023799004)(261009223027099003)(56012099006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?3zXTc0GsMQEF2TSmDxZh5gX0rIshgh8lqRlC0hrQXUcFjUE6bS33mBrrBHLa?=
+ =?us-ascii?Q?hwznllBNoV0KjLONxNaJBj6vPhCBZwMoHMRmxITBzclF0U1YXX15wEnJzkkm?=
+ =?us-ascii?Q?aPsI7T1gvpvG2NrWHX3BSP7V+tT1v6rX1s/aIhhOKTQXzIUTRxSo8so+9HNs?=
+ =?us-ascii?Q?clqluMR4Zfi8AhpugIbf/ryNO4jkQD3VGm3z5tdtWIv1R6hE6KX3XxSdT2IP?=
+ =?us-ascii?Q?d0iLB0CXhCPwZy0KbCwodcje3w4AVZuOdHvJWPp4SyBeKQ/cXU4DeziQpTbH?=
+ =?us-ascii?Q?Gqx74iMHhYR7WnX88H11DCExfqwxzFXZ0smY01+Aq2J5mSWFMHDYm+E35tlz?=
+ =?us-ascii?Q?KWbHrUnpjFMJKPoIvOyieZHYpw9K9DIrGpglfxPDlfGpZHBPOk6SXZN/ZNYy?=
+ =?us-ascii?Q?7i7Umy8xnkkmRz2tttsoiM9fOrhTNqmbMPzZDoh9vJprR8WWtO43DZ32bkQd?=
+ =?us-ascii?Q?PMpy444t/xVNCeYG7z7xtzrZ8E7ur+WkoIklQQvsVMJ5mbV0yPj/sd3B4uHw?=
+ =?us-ascii?Q?+/IHkhUSzYhshg/Q+3vHMDHnfClKqJ06kJwbHR0PgZVWiUgurTOzU8hKToS1?=
+ =?us-ascii?Q?fjjGpt98QCNs3v0cQZDqCE0Ep/qEohsZx/dzZcGAtgu9c2z3aOkr3F6dom6O?=
+ =?us-ascii?Q?h5MpioZQbsXrIul4D1xMm27hsY0SLpnhEehTaF/TSaUwOYCe98scZy9yLuC4?=
+ =?us-ascii?Q?/A7203loenhXZvaWfKOJ81Cf3fz4pA4FcmtgF2HdzngxcIJxGSUp9PlGh3LY?=
+ =?us-ascii?Q?VQCTPjDm0XOU/9LzWHAV/uBItVhM5BKDxwTh09UJnUCVxx9JDyluXb4sYTRB?=
+ =?us-ascii?Q?JOKD/WHSnF53SEhtqvzAyM9EDrR9N7X+nib3n+oSKSO3SKStVSKvs/KzR+gl?=
+ =?us-ascii?Q?b/bEaQF66l73WXuGUwvwb78U799mQIolzbOotEaykyfuewHjSEkstTnHNg7C?=
+ =?us-ascii?Q?/lBr8hEOqmDcrNVPl913HasyiQTtiSyqOTvJB1ZzoqHFZb30ImxBdlU54w8T?=
+ =?us-ascii?Q?/IPVU0fgt2AQG79hvNf07fOvxYlgb2+aecERUwg8eDWc7u/DWCBOZ2VFbKIC?=
+ =?us-ascii?Q?m7DCwpYUUsuQHbODgpGYFIYHEjHU7efjCCfxQ4NGxZJngbIpDsRILLu93tk+?=
+ =?us-ascii?Q?Xqd8MONIbYvA4UZ8Erh+XC5aCSdeZYi1OQul5CZ79Hs9g6mMiNEa7s1RVWN6?=
+ =?us-ascii?Q?ofohGSZ9C3tiHIp25D79zPItDStUU0KDqRVE/06UbK6lzZO00R2RfBvQy8fU?=
+ =?us-ascii?Q?Jf4ohu6HwHLHqDIYcjq+stxKeR5T/5pQRfkb2dlzqGVzB2Pp1aWZ3lDr0uES?=
+ =?us-ascii?Q?mmQoflcMnMHQBiwpj9TEqCkFWLdil30mmaMEal4F0t0MV4kxnprJqKrfC1J8?=
+ =?us-ascii?Q?pgCouzzM23b4ald49WHtD3ycsVIyIRJEtvE8O94ZWTBg6J86zkcbES0gKsYc?=
+ =?us-ascii?Q?LtT9hU07H2Yg8sf9JJ04jkiK7eR0z4Pj+9LPV4m1ktzsOzGFjA+TY9qgBYEf?=
+ =?us-ascii?Q?3yU/hpvzWmwPNbsODSXzPxt+p9bjq/SEshhXz9ICv+MC9qyOs8afnxsbBmuu?=
+ =?us-ascii?Q?Yue9GDtaOj7X9pGEJ2TkcSt2HdGW55QMQjP2YXp4lyoLsEFT+IcSOzv00zEn?=
+ =?us-ascii?Q?VwMYEWXyH6zIKRhXZX3CBGQHoLucrf93kbeSs2YmGL0AmjdigR6NRL2I+lWd?=
+ =?us-ascii?Q?L/OZGH+xVQCxzAQHK4Nll0pcgF73SHVb0BG5ChX6hj/5WoVm+QZaGqkGM8dc?=
+ =?us-ascii?Q?kTu1SGmROw=3D=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6fc6f89c-1e77-41ad-6200-08df2b61bba1
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR12MB5974.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Oct 2026 08:44:47.0855
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: XcasrPEVX5r/lPDTX9eVkuQM2OPG4jAWmoUfWgQ6znUyIrq6uqihHYwa6hflfndqI2NAhLN+tior9kvEliI3rA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB6491
 
-Hi,
+Hi Greg,
 
-On 14-Oct-26 22:37, Mario Limonciello wrote:
-> 
-> 
-> On 10/14/26 04:34, Hans de Goede wrote:
->> Hi,
->>
->> On 14-Oct-26 00:40, Bjorn Helgaas wrote:
->>> [+cc Hans, Kai-Heng, Andy, linux-acpi]
->>>
->>> On Tue, Oct 13, 2026 at 01:59:23PM -0500, Mario Limonciello wrote:
->>>> On 10/13/26 12:26, Ilpo Järvinen wrote:
->>>>> On Tue, 13 Oct 2026, Mario Limonciello wrote:
->>>>>> On 10/13/26 12:00, Mario Limonciello wrote:
->>>>>>> On 10/13/26 08:09, Ilpo Järvinen wrote:
->>>>>>>> While testing the resource placement changes, tests hit a case where
->>>>>>>> igb fails to probe when BAR 0 is placed at 0x9c000000:
->>>>>>>>
->>>>>>>>       90000000-9cffffff : PCI Bus 0000:a0
->>>>>>>>      -  90000000-902fffff : PCI Bus 0000:a1
->>>>>>>>      -    90000000-900fffff : 0000:a1:00.0
->>>>>>>>      -      90000000-900fffff : igb
->>>>>>>>      -    90100000-901fffff : 0000:a1:00.0
->>>>>>>>      -    90200000-90203fff : 0000:a1:00.0
->>>>>>>>      -      90200000-90203fff : igb
->>>>>>>>      +  9be00000-9c0fffff : PCI Bus 0000:a1
->>>>>>>>      +    9be00000-9befffff : 0000:a1:00.0
->>>>>>>>      +    9bf00000-9bf03fff : 0000:a1:00.0
->>>>>>>>      +    9c000000-9c0fffff : 0000:a1:00.0
->>>>>>>>         9c100000-9c17ffff : amd_iommu
->>>>>>>>         9c180000-9c1803ff : IOAPIC 8
->>>>>>>>
->>>>>>>>      -       Region 0: Memory at 90000000 (32-bit, non-prefetchable)
->>>>>>>> [size=1M]
->>>>>>>>      -       Region 3: Memory at 90200000 (32-bit, non-prefetchable)
->>>>>>>> [size=16K]
->>>>>>>>      -       Expansion ROM at 90100000 [disabled] [size=1M]
->>>>>>>>      +       Region 0: Memory at 9c000000 (32-bit, non-prefetchable)
->>>>>>>> [size=1M]
->>>>>>>>      +       Region 3: Memory at 9bf00000 (32-bit, non-prefetchable)
->>>>>>>> [size=16K]
->>>>>>>>      +       Expansion ROM at 9be00000 [disabled] [size=1M]
->>>>>>>>
->>>>>>>> igb 0000:a1:00.0 0000:a1:00.0 (uninitialized): PCIe link lost
->>>>>>>> ------------[ cut here ]------------
->>>>>>>> igb: Failed to read reg 0x18!
->>>>>>>> WARNING: drivers/net/ethernet/intel/igb/igb_main.c:724 at
->>>>>>>> igb_rd32.cold+0x3c/0x4f [igb], CPU#32: kworker/32:1/706
->>>>>>>> ...
->>>>>>>>     igb_get_invariants_82575+0xff/0xf00 [igb]
->>>>>>>>     igb_probe+0x3c8/0x1190 [igb]
->>>>>>>>     local_pci_probe+0x3b/0x80
->>>>>>>>
->>>>>>>> It turns out there is a 64kB iomem black hole at 9c000000 that returns
->>>>>>>> ~0 and this is where igb's BAR 0 resides. If another BAR of the same
->>>>>>>> card is placed into that address, it is similarly black holed.
->>>>>>>>
->>>>>>>> Mark the problematic 64kB range reserved using a quirk bound to the
->>>>>>>> bridge found in the problematic system.
->>>>>>>>
->>>>>>>> Closes: https://bugzilla.kernel.org/show_bug.cgi?id=222074
->>>>>>>> Suggested-by: Mario Limonciello <mario.limonciello@amd.com>
->>>>>>>> Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
->>>>>>>> ---
->>>>>>>> Cc: Borislav Petkov <bp@alien8.de>
->>>>>>>>
->>>>>>>> As an alternative to this, I've also tested reverting the commit
->>>>>>>> 07eab0901ede ("efi/x86: Remove EfiMemoryMappedIO from E820 map") and
->>>>>>>> that also resolves the issue by retaining "9c000000-9cffffff : Reserved"
->>>>>>>> entry in the resource tree.
->>>>>>>>
->>>>>>>> ---
->>>>>>>>     arch/x86/pci/fixup.c | 36 ++++++++++++++++++++++++++++++++++++
->>>>>>>>     1 file changed, 36 insertions(+)
->>>>>>>>
->>>>>>>> diff --git a/arch/x86/pci/fixup.c b/arch/x86/pci/fixup.c
->>>>>>>> index b301c6c8df75..cc463bf492b6 100644
->>>>>>>> --- a/arch/x86/pci/fixup.c
->>>>>>>> +++ b/arch/x86/pci/fixup.c
->>>>>>>> @@ -822,6 +822,42 @@ DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_AMD, 0x1571,
->>>>>>>> pci_amd_enable_64bit_bar);
->>>>>>>>     DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_AMD, 0x15b1,
->>>>>>>> pci_amd_enable_64bit_bar);
->>>>>>>>     DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_AMD, 0x1601,
->>>>>>>> pci_amd_enable_64bit_bar);
->>>>>>>> +/*
->>>>>>>> + * TODO: Remove when/if root cause is found.
->>>>>>>> + *
->>>>>>>> + * Genoa appears to have a 64kB iomem black hole starting at 0x9c000000
->>>>>>>> + * address for which all reads return ~0 blocking an overlapping BAR from
->>>>>>>> + * working.
->>>>>>>> + *
->>>>>>>> + * Work around the problem by reserving the space prior to making any
->>>>>>>> iomem
->>>>>>>> + * allocations that could overlap with the black hole.
->>>>>>>> + */
->>>>>>>> +static struct resource genoa_black_hole =
->>>>>>>> DEFINE_RES_MEM_NAMED(0x9c000000,
->>>>>>>> +                                   SZ_64K,
->>>>>>>> +                                   "reserved");
->>>>>>>> +
->>>>>>>> +static void genoa_iomem_black_hole(struct pci_dev *dev)
->>>>>>>> +{
->>>>>>>> +    struct resource *r;
->>>>>>>> +
->>>>>>>> +    pci_bus_for_each_resource(dev->bus, r) {
->>>>>>>> +        if (!r || !r->flags || !resource_assigned(r))
->>>>>>>> +            continue;
->>>>>>>> +
->>>>>>>> +        if (!__resource_contains_unbound(r, &genoa_black_hole))
->>>>>>>> +            continue;
->>>>>>>> +
->>>>>>>> +        if (resource_assigned(&genoa_black_hole))
->>>>>>>> +            pci_dbg(dev, "iomem black hole workaround already
->>>>>>>> applied\n");
->>>>>>>> +        else if (!insert_resource(r, &genoa_black_hole))
->>>>>>>> +            pci_info(dev, "iomem black hole workaround enabled\n");
->>>>>>>> +        else
->>>>>>>> +            pci_dbg(dev, "iomem black hole workaround add failed\n");
->>>>>>>> +        return;
->>>>>>>> +    }
->>>>>>>> +}
->>>>>>>> +DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_AMD, 0x14ab,
->>>>>>>> genoa_iomem_black_hole);
->>>>>>>> +
->>>>>>>>     #define RS690_LOWER_TOP_OF_DRAM2    0x30
->>>>>>>>     #define RS690_LOWER_TOP_OF_DRAM2_VALID    0x1
->>>>>>>>     #define RS690_UPPER_TOP_OF_DRAM2    0x31
->>>>>>>
->>>>>>> I guess it's good we know the root cause is 07eab0901ede. If we're going
->>>>>>> down the path of making holes in that we may well put the hole in
->>>>>>> efi_remove_e820_mmio() like this (attached).
->>>>>>
->>>>>> I don't really like that though.  If Genoa is affected I would expect plenty
->>>>>> of other machines are too they just haven't been found yet.
->>>>>
->>>>> That's what I'm worried as well. My own testing can only cover very little
->>>>> ground here.
->>>>>
->>>>>> Can we roll back 07eab0901ede and add quirks for the busted machines instead?
->>>>
->>>> I had an agent dig through all the reports linked in 07eab0901ede and
->>>> drafted up what should be the remaining quirks for a revert.
->>>>
->>>> https://git.kernel.org/pub/scm/linux/kernel/git/superm1/linux.git/log/?h=superm1/genoa-mess
->>>>
->>>> Bjorn, thoughts on this?  I'll send it out if that's the way we want
->>>> to go (or Ilpo feel free to subsume into your series as it's only
->>>> really exposed by your series at the moment)
->>>
->>> I would LOVE it if we can use those patches because it's way less
->>> magic than 07eab0901ede is.
->>>
->>> But I'm frankly terrified to touch it because I'm skeptical that two
->>> more quirks are enough.  I just expect that whatever strategy BIOS
->>> uses to build these maps is likely to be used on many models.  I do
->>> hate 07eab0901ede though, so I would love to see it gone.
->>
->> It has been about 4 years since we came up with 07eab0901ede IIRC we
->> had a huge email thread with a whole bunch of attempts at fixing
->> the issue in a generic manner.
->>
->> IIRC some of those attempts tried to identify the exact problematic
->> issue the quirks try to fix where there is an EFI MMIO reservation
->> covering the entire bridge window.
->>
->> Maybe we can dig through the old thread and see if with the knowledge
->> we have now one of the previous attempts of fixing it from the thread
->> is better?
->>
->> I agree that needing to go back to quirks is likely going to be painful
->> and break a whole bunch of other systems. IIRC 07eab0901ede fixed
->> a whole bunch of laptops having issues around the time not just
->> the Clevo NL4XLU and Lenovo Yoga C940. But this info might be spread
->> over various bugzilla entries, etc. + some models where likely never
->> reported but just fixed in time for users to not report things.
->>
-> 
-> So I did have an agent at least dig into all the linked bugzillas.
-> That's how the quirk list came up.
+Sorry for answering in pieces. The DT question came up again in
+Krzysztof's review of the bindings, so I'd like to answer that part on
+its own. Jeremy asked much the same from the other side, why LSTP
+needs static configuration. The rest of your review (one function per
+interface, greybus) will follow once we have aligned internally, as I
+wrote earlier.
 
-I see, that is good t know.
-> Whether or not this series is going to help any of those systems I think is a totally separately question.
-> 
-> Could we perhaps loop in a all of the reporters from those bugzillas and ask them to test Ilpo's v3 series + the revert?
+On Tue, Oct 13, 2026 at 01:37:11PM +0200, Greg Kroah-Hartman wrote:
+> Why would a USB device have anything to do with device tree?
 
-I'm afraid I do no have time to do that myself. With that said
-I do think this is a good idea. For privacy reasons (bugzilla
-email addresses or not really public) this should probably be
-done through a comment in the relevant bugzilla tickets.
+[...]
 
-> BTW - I think we would want to roll back all the e820 quirks for the purpose of this test.
-> 
-> Even if it doesn't help we might be able to get a "live" failure from someone to iterate on trying to find a better solution.
-> 
->> I also wonder if given we only have this magic black-hole on geneo/zen4
->> if it would not be better to go with Mario's original approach here ?
->> Esp. since Mario's quirk is chipset based where as the other problems
->> seem to be model/product based so that is 1 quirk vs many quirks.
->>
-> As Boris said - it was found on Genoa, but there is no reason it *should* be Genoa only.
-> 
-> IMV the firmware on that Genoa system advertised not to use the region but 07eab0901ede says ignore the firmware and use it anyway.  So we're adding hacks on top of hacks if we go that direction.
+> USB devices do not have DT bindings.  It's a dynamic bus, with
+> self-describing devices, don't make the mistake of thinking this is
+> giong to work.
 
-This depends in your reading of what an MMIO reservation in the EFI memmap
-actually means. Some BIOSes put an MMIO reservation over the entire
-PCI bridge window. So there an MMIO reservation basically means
-"this is MMIO not RAM" it does not mean "do not touch".
+The device itself is self-describing: the driver reads the channel
+table from it, and the channels work without any firmware description.
+What DT (or ACPI on host systems) adds is the board wiring behind the
+channels, which the device cannot describe, the same as for any other
+I2C or GPIO controller:
 
-> Our ("collective") goal should be to get rid of unscable tech debt not add more that's even harder to peel back.
+- I2C channels carry devices the kernel has to instantiate: PMBus
+  voltage regulator controllers, EEPROMs, GPIO expanders. Userspace can
+  add a client with new_device, but only with a name and an address, no
+  interrupt, GPIO or other properties, and only on a bus number that
+  changes with USB enumeration. It would also have to repeat that every
+  time the adapter re-enumerates; the kernel does it on its own when the
+  channel appears.
 
-I complete agree, but 07eab0901ede was added exactly to do that, well to
-not need to end an endless amount of quirks. I'm afraid reverting it
-will cause lots of breakage putting users off of using Linux and if we
-end up fixing all that breakage with quirks this may result in lots of
-quirks.
+- GPIO lines get board-specific names from gpio-line-names. The adapter
+  firmware reports generic pin names, the same firmware is used on
+  different boards, and BMC userspace (power control, GPIO monitoring)
+  looks lines up by name.
 
-We know the issue worked-around by 07eab0901ede was seen on many laptop
-models. Where as the current problem so far has only shown on Genoa.
+- A GPIO channel can be the interrupt controller, or the GPIO provider,
+  for another device on the board. Such references between devices have
+  no userspace interface at all.
 
-Note I'm not necessarily against reverting 07eab0901ede I'm just trying
-to get across that this is a tricky issue. When we hit the issue which
-lead to 07eab0901ede I spend weeks going through bug-reports / dmesg
-outputs to try and come up with a solution.
+On those boards the adapter is part of the board, not something a user
+plugs in, which is the case the generic USB device binding
+(Documentation/devicetree/bindings/usb/usb-device.yaml) covers; the
+LSTP nodes sit below that node.
 
-Anyway I've said what I want to say and this time around I do not have
-a whole lot of time to spend on this issue, so I which you all the best
-of luck with whatever approach you chose.
+The DT part probably deserves its own thread with the DT maintainers
+rather than being buried in this one. The RFC posted with the series
+[1] has the open DT questions; I suggest we continue there, or in a new
+thread if you prefer.
 
-Regards,
+[1] https://lore.kernel.org/r/20261012-lstp-dt-rfc-v1-aambrozewicz@nvidia.com
 
-Hans
-
-
+Thanks,
+Adrian
