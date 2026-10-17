@@ -1,145 +1,216 @@
-Received: from sender6-op-o12.zoho.com (sender6-op-o12.zoho.com [165.173.180.12])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f41.google.com (mail-oo1-f41.google.com [209.85.161.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FD54362154;
-	Sat, 17 Oct 2026 18:29:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=165.173.180.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 186843AE713
+	for <linux-acpi@vger.kernel.org>; Sat, 17 Oct 2026 19:16:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.161.41
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792261796; cv=pass; b=Q56H2dAZ6+YwKHldAziddCIQoBzICdLtoWoeZh9ysclSvCZjpZqw5CJZtPn7NB8TgUUX6evn7hTKBHls38pc+N2lpqFiK6+zdlYNTKFCGyIpF0s3Yj5dDoNGAU5aNwMILS0p6Nv1qWhTM7YEu9YOzQG/2uKM99w/kVEoMGjW0Gg=
+	t=1792264584; cv=pass; b=ReUoF4HW9xqUWYPT237q7aCoN6gUA9pvd43i692UkcjJrKUGGmwqkaBOP8Cd++OPkOuiHbZiOxwfafVKD/txLtikjNV7lomlrUzJUfWpl2NbDUcCV1hTx0gUs3lK2k89+K1niXDF/ZDapWryCrhR2lOB4vZy4IXp0JOkLXCy1tM=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792261796; c=relaxed/simple;
-	bh=49Y3TWwT6jzURnREaPoE86F9UtFvuQ4XzPRvFHCmZFE=;
-	h=Message-ID:Subject:From:To:Cc:In-Reply-To:References:Content-Type:
-	 Date:MIME-Version; b=RaI3VwmQV55PBWmnIerbjOA7HHw6DECas5zlft+l7JwR4e2PyKt0lNXFeEisyXctpbHDT3Bsw0XU9FSTvCTPRqREg5soz+D8j72NvmMAbDKb1s76F6dWAVSzHPxsmLI8gNZ9lus2HZcR6eqtnveOQxLUIhuMZhE4XxetTsmS00M=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=rong.moe; spf=pass smtp.mailfrom=rong.moe; dkim=pass (2048-bit key) header.d=rong.moe header.i=i@rong.moe header.b=SSddNJ8O; arc=pass smtp.client-ip=165.173.180.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=rong.moe
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rong.moe
+	s=arc-20240116; t=1792264584; c=relaxed/simple;
+	bh=Z4OyXcJagBnFQn/ViOZVUwTX8x9tggUpZX39gqflrPo=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=ghkOwsPbU4MoygOnEuSFb62tk0RAxhjWttATQh5Sufpp9SRhND/IBtz98E1ScbxDFcoeGtnB2ieCoollkEtOfPUktsFASiiG5Xs6VHFFjaPZbXKfMtFMzRUncNJMtvlio9dhdjsojngMjQWn2ELWiU0VTQEWslO7R6aWJvHS2qs=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ABzC3x+e; arc=pass smtp.client-ip=209.85.161.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=rong.moe header.i=i@rong.moe header.b="SSddNJ8O"
-ARC-Seal: i=1; a=rsa-sha256; t=1792261760; cv=none; 
-	d=zohomail.com; s=zohoarc; 
-	b=k7Ox22qBO8gmNsbzWTL9E210GjMKlGBLi12Un/zckWdANCfnWjMT0cTr+5+f1dk5VX9sg2VMnXh5AIMneOdjiRA50uG8xMdsZ2TW8Y9J7cWHQloeEBLYaRddevTupcy89w/vWs5XDi2uKknEkbVi4nQsiqgfd6Uc5JxYxUTRQNU=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1792261760; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=NbLgjZCbwJNl+PL3kYhc1bvwnDPQCgz9nTMZiJVd3eI=; 
-	b=lnn79/eeLp0uPmNpLf3u7cPKYpYEbdtTobOX8oFqnFvkFg18AddAyvyWnu1vS6NQg7OlgCvKX2Iv/UY9AbOM2CRY/MtD76aaim085PRDOQH6DgEWuuKug8cOyvrx5YR1uE/uJGjkN7zwfhTEH2i3ExmcwBpjK0CtoAGAAjNHqWo=
-ARC-Authentication-Results: i=1; mx.zohomail.com;
-	dkim=pass  header.i=rong.moe;
-	spf=pass  smtp.mailfrom=i@rong.moe;
-	dmarc=pass header.from=<i@rong.moe>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1792261760;
-	s=zmail2048; d=rong.moe; i=i@rong.moe;
-	h=Message-ID:Subject:Subject:From:From:To:To:Cc:Cc:In-Reply-To:Content-Type:Content-Transfer-Encoding:Date:Date:MIME-Version:Message-Id:Reply-To;
-	bh=NbLgjZCbwJNl+PL3kYhc1bvwnDPQCgz9nTMZiJVd3eI=;
-	b=SSddNJ8Osk/9ZlFE+NVH5+ILPZWiUbcSV3tvPVIfHlmv196dQJoYvlS7kiF3G0pd
-	Hj9D8eTAXflaqwViDrLhtBXLwp7eJQCk5YGhrA0Stx7irsdo5ZpLwTy/a+6mE5z4KZu
-	cxyJtoEQUaSCstLLxteVmXYiS9ihRmJ7/E9S/Lm73mbOFXoKhvQivkfrjYSW1UQcdRq
-	Fv4JTg2A9FV6SXYluhPyqpw38Fvp9jUAeCrJP/dr9CQfLS/S9Lukb0VuKSVIZYdoDwu
-	R4BSNYirHDzrJ37Y6Lun53M/SFOIFxHQUzYtAhrNqJVG7FEbFhbsyQqc+2paWMk3JhE
-	KHiOXC3EBQ==
-Received: by smtp.zohomail.com with SMTPS id 1792261759316393.94545613618743;
-	Sat, 17 Oct 2026 11:29:19 -0700 (PDT)
-Message-ID: <9fbc5d0f232f231102437b3682ead619cac30f64.camel@rong.moe>
-Subject: Re: [PATCH v2 0/4] ACPI: Serialize battery, INT3403 _TMP and
- ideapad methods
-From: Rong Zhang <i@rong.moe>
-To: Ali Ahmet =?gb2312?Q?Memi=810=946?= <aliamemis@disroot.org>, "Rafael J
- . Wysocki" <rafael@kernel.org>
-Cc: Hans de Goede <johannes.goede@oss.qualcomm.com>, Len Brown
- <lenb@kernel.org>,  Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui
- <rui.zhang@intel.com>, Lukasz Luba <lukasz.luba@arm.com>,  Ilpo
- =?ISO-8859-1?Q?J=E4rvinen?=	 <ilpo.jarvinen@linux.intel.com>, Ike Panhc
- <ikepanhc@gmail.com>, "Derek J . Clark" <derekjohn.clark@gmail.com>, Mark
- Pearson <mpearson-lenovo@squebb.ca>, Armin Wolf	 <W_Armin@gmx.de>, Charis
- Stratakis <c.stratakis@proton.me>, Avraham Hollander	
- <anhollander516@gmail.com>, Jeffrey =?ISO-8859-1?Q?W=E4lti?=	
- <jeffrey@waelti.dev>, Rick <rickk1166@gmail.com>,
- linux-acpi@vger.kernel.org, 	linux-pm@vger.kernel.org,
- platform-driver-x86@vger.kernel.org, 	acpica-devel@lists.linux.dev,
- linux-kernel@vger.kernel.org
-In-Reply-To: <d0da648567bc15ccac06d9429b46142e241df1a8.camel@rong.moe>
-References: <20261017130652.318778-1-aliamemis@disroot.org>
-	 <d0da648567bc15ccac06d9429b46142e241df1a8.camel@rong.moe>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Date: Sun, 18 Oct 2026 02:24:11 +0800
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ABzC3x+e"
+Received: by mail-oo1-f41.google.com with SMTP id 006d021491bc7-6dd7070699eso571027eaf.3
+        for <linux-acpi@vger.kernel.org>; Sat, 17 Oct 2026 12:16:22 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1792264582; cv=none;
+        d=google.com; s=arc-20260327;
+        b=S5yf5iER50sHP4bDXYgLu0GonmHA8VV+Wv2ItXa30JO+4Fesas9GH6zLosJOYIUrAV
+         gc1CV8ZHpJZDRdJIzJuaOLnnm+7qcWBd1FghrISTVtEK11YEWWT6uCcc38oY+TYCwV8B
+         S3RPoxWdLRJkHQCoLz6mliJCRCAuVNMMsb4tA0J4Qow8Hv74pjoDogTwRTlDEGKxExc3
+         K9g8ce+tJ8TN3tQKEXumVT3PBMunm3uzeMspsenbjOYjUmglJs778r4902VzDhiFlysb
+         chK+QBanJq3Mn/AVPcEyuw3MxMUqJFVs103/Rn26mnD98AxQJiBkoR58ogqH9f59U/+h
+         UJuA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=3kpX1qw8aI9g0XRNJfIyX0LLMiylk567EvCY0vBBCeU=;
+        fh=vVnUwq/ARgJ6xPXpIBsLrwoB0kohVi355hyZ2armnSE=;
+        b=BqUW66vyiXVXyHBjuoS0J5lUX9BaT4exdWp3ehlWKVpTGUzlO4Gie5zCohYiSJG8q1
+         TpoFc7uInLiCqceLHR9bOhGeNMMMPLgDPbzfmS7QzqoRL7XODMCw33qw9698PheD0oBB
+         Hv2cB4SZb4ca5EAC+M8i8jiqn7jsHHAGpxW8kWOVeub01nqdIaWA3DM3LHk8DOAcitwD
+         NDbUlBwD0xZklhRZhSMojI5CLfqzowdHebXOzHJDLyBnlLF47GFSV49gBOQfMR+8JXkM
+         tPov0tFW3433CWIUr8aRL+ApJXSMIOXhBzxjn6/AFtbGNVGRxF4aidqb0tG9vM9ntoga
+         Pwjw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1792264582; x=1792869382; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=3kpX1qw8aI9g0XRNJfIyX0LLMiylk567EvCY0vBBCeU=;
+        b=ABzC3x+eqbR9370JWhcy+T35IkvABJwTI4joPbmTSu7XFYvG5o/9IkZlIZwYpDD9Ei
+         U1/HbNyEDc1xvAbClcNOLOU/m0sTG01fPTXr+Bo+az0/sWMECqQvYcINioieCFNpZM1E
+         2P1TppDcHBLVUdPfOweBsEf6mW/hwx44wXFZxy9lFMvxAvKTkQkXeww057yXhK2ETdd+
+         X/GCmboLnIaA/YXk/9kY9b/WvLyphOOkKrOSry/MtWCxDojcJ+5NxYDcb4QZRpBUofxt
+         IklrOF/FWd71zmPkP79swdjfepFXjAlsOKExtFYs2/f/1GuWf2wguRJXuJS2jUVMUSNv
+         /cMQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792264582; x=1792869382;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=3kpX1qw8aI9g0XRNJfIyX0LLMiylk567EvCY0vBBCeU=;
+        b=q9X654EnX4Y7v9BIMjtZElqc4E28bYMd9V1RZEc0j9Nv+kuHbKBKyAcgzhQKOx/NSM
+         +ZLYVNWDKRVaXyRpyzkDbr6CsVeCIbeiuXGLyXpNoTS5c9Xvl4H0lomRv+CQ1da5C4Tv
+         O7gPgx0ZXRlFX7+VDvwAis8ps+fY96zQFdZABIeN4nC7O2kaEtLqKbf5ZE3hKS0PZrev
+         eIN7h5yBDop+soCJsEspAhfLuGQ56VjA0FADiL1NkoXGNlmZXS1+d1dvhVuSE8oI33ox
+         BQzx9z60aZWhOCsHA0IboW12cIohl3aKmjoyPlpSFo3BRMdjvVcNZI8mYB8+W0wgqF3C
+         nAyQ==
+X-Forwarded-Encrypted: i=1; AKwUvBw0com4ZlGMB7xw2N5w3M6wvzl47YE5MNyNrKr+JFEmgkfL/t6kBLN5gVqfqrf5VeXHF6K/GeYA4w8/@vger.kernel.org
+X-Gm-Message-State: AFq9FYJnLtmJ6eCw1FFEun6hhYagIxdKv+EeKah9IOUCdIoem3910J5j
+	M1w2WVv7Us0aNkYsF/Iw3MB9Ej4VXnpjY1DjENkbuR21HiYFKb4mciX2TiOX9JMjb7jAX886F48
+	o1/2NBXI7KL/XUN9n5rcLU8ua6TJQdMA=
+X-Gm-Gg: AYBFou1cKUFl9WQZ3YkI4mNte9m11cpdjt0d4/MomVocLuJKPzOsgi9cOVsLE+ciJKn
+	YMevRd8pW0mVE40llT4CQ2cWy1g/nEelPxlomtKFa9pfZ2ynM/1M0Wwc1ROR84eaer33CipEJVm
+	h6gQb9PIxhpJUZVpT7DdTVg0BmBzWUQa0uEeSEZT3GCCYiyo91mW2LQ9G9xm1K/Apk/BQ4aIwnh
+	sDRR7idaDFStn9iaZqu74xAUT8c2Yti00vj+tsQj2JSgv6LScuXTkbuIhjurQLtFrAQk8IM8iTo
+	3A/PoUiNjdmX4oIiZ5sKEV1FsuFGjRQGEsupv8E+vIzTEWqpGPsVLDo=
+X-Received: by 2002:a05:6820:208d:b0:702:96cf:69ae with SMTP id
+ 006d021491bc7-70357f996a6mr2222268eaf.73.1792264581908; Sat, 17 Oct 2026
+ 12:16:21 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Evolution 3.56.2-10+b1 
-X-ZohoMailClient: External
+References: <20260726212812.89266-1-shijujose2008@gmail.com>
+ <20260807055952.GIanV0WDlB9-eP9VdV@fat_crate.local> <CAG4KcRJcpLREkbmOEEw7nGD+_PNOd+fWHkODqfWo1M8hmxA_Bg@mail.gmail.com>
+ <20261017042204.GAatL37AhysV7BZBod@fat_crate.local>
+In-Reply-To: <20261017042204.GAatL37AhysV7BZBod@fat_crate.local>
+From: Shiju Jose <shijujose2008@gmail.com>
+Date: Sat, 17 Oct 2026 20:16:09 +0100
+X-Gm-Features: AclHuK9ltyMIoKi-tNdGjK3uKrWCnIWl5RP71EvNz5XG4osLNZC_K9K1LqvUxuM
+Message-ID: <CAG4KcR+9mHBBOpAw=_kN5Smd+KNCA=5-Fd5nkFgVRi5XC7Yf-A@mail.gmail.com>
+Subject: Re: [PATCH v23 0/2] ACPI: Add support for ACPI RAS2 feature table
+To: Borislav Petkov <bp@alien8.de>
+Cc: rafael@kernel.org, akpm@linux-foundation.org, rppt@kernel.org, 
+	dferguson@amperecomputing.com, linux-edac@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-doc@vger.kernel.org, 
+	tony.luck@intel.com, lenb@kernel.org, Yazen.Ghannam@amd.com, 
+	mchehab@kernel.org, ashok.raj@oss.qualcomm.com, jic23@kernel.org, 
+	linuxarm@huawei.com, rientjes@google.com, jiaqiyan@google.com, 
+	Jon.Grimm@amd.com, dave.hansen@linux.intel.com, naoya.horiguchi@nec.com, 
+	james.morse@arm.com, jthoughton@google.com, somasundaram.a@hpe.com, 
+	erdemaktas@google.com, pgonda@google.com, duenwen@google.com, 
+	gthelen@google.com, wschwartz@amperecomputing.com, wbs@os.amperecomputing.com, 
+	nifan.cxl@gmail.com, tanxiaofei@huawei.com, prime.zeng@hisilicon.com, 
+	roberto.sassu@huawei.com, kangkang.shen@futurewei.com, 
+	wanghuiqiang@huawei.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Sun, 2026-10-18 at 02:06 +0800, Rong Zhang wrote:
-> Hi Ali,
->=20
-> On Sat, 2026-10-17 at 16:06 +0300, Ali Ahmet Memi=C5=9F wrote:
-> > On ThinkPad P1 Gen2 and P53, INT3403 _TMP switches the EC page selector
-> > without taking the mutex the battery methods use.  On some Lenovo
-> > IdeaPad and Yoga models, the battery _BIX and the ideapad GBMD take the
-> > EC mutex and a serialized method in opposite order and deadlock until
-> > an AML mutex times out.
-> >=20
-> > As discussed in [1], add exclusive variants of the AML evaluation
-> > helpers and use them for the battery, INT3403 _TMP=C2=A0
-> >=20
->=20
-> int3403_add() seems to be another call site of INT3403 _TMP, but PATCH 3
-> didn't touch it. Is it intended?
+On Sat, Oct 17, 2026 at 5:22=E2=80=AFAM Borislav Petkov <bp@alien8.de> wrot=
+e:
+>
+> On Sun, Aug 09, 2026 at 05:21:35PM +0100, Shiju Jose wrote:
+> > > +static int ras2_update_patrol_scrub_params_cache(struct ras2_mem_ctx=
+ *ras2_ctx)
+> > > +{
+> > [ ... ]
+> > > + if  (ioread32(&ps_sm->params.flags) & RAS2_PS_FLAG_SCRUB_RUNNING) {
+> > > + ras2_ctx->od_scrub =3D true;
+> > > + ras2_ctx->base =3D ioread64(&ps_sm->params.actl_addr_range[0]);
+> > > + ras2_ctx->size =3D ioread64(&ps_sm->params.actl_addr_range[1]);
+> > > + } else {
+> > > + ras2_ctx->od_scrub =3D false;
+> > > + }
+> > > +
+> > > + return 0;
+> > > +}
+> > Does this logic misidentify a pre-existing background scrub as a demand
+> > scrub?
+> > If the platform firmware has background scrubbing enabled prior to driv=
+er
+> > initialization,
+>
+> First of all, when and how can that even happen?
+>
+> How can it happen that the platform has enabled background scrubbing befo=
+re
+> the driver loads?
+Firmware can start the background scrubbing before the driver loads.
 
-If the device is probed through PCI, proc_thermal_add() may be relevant,
-too.
+>
+> And if that behind the driver enabling is legitimate, the driver should l=
+oad
+> and ask the hw what scrubbing is currently enabled and mirror that in its
+> internal structures tracking those settings, right?
+Yes .This is done in the ras2_mem_drv_probe() by calling
+ret =3D ras2_update_patrol_scrub_params_cache(ras2_ctx);
+
+>
+> I haven't looked in detail yet so perhaps you're doing it already. I need=
+ to
+> clean up that code first, though, because it is very hard to read.
+>
+> > ioread32() will read RAS2_PS_FLAG_SCRUB_RUNNING. Because
+> > the driver's internal bg_scrub state is initialized to false, this assu=
+mes
+> > the active scrub is a demand scrub and sets od_scrub =3D true.
+> > Would this prevent the user from controlling hardware memory scrubbing =
+via
+> > sysfs, since writing to enable_background might return -EBUSY and
+> > writing to enable_demand might return -EOPNOTSUPP?
+> >
+> > Shiju:  This is not a valid comment.
+> > Please find a description from the spec.ACPI spec 6.5 RAS2
+> > Table 5.87: Parameter Block Structure for PATROL_SCRUB:
+> > Flags (OUTPUT) : The platform returns this value in response to
+> > GET_PATROL_PARAMETERS:
+> > Bit [0]: Will be set if memory scrubber is already running for address
+> > range specified in =E2=80=9CActual Address
+>
+> Which memory scrubber? The background one?
+Hi Boris,
+
+demand scrubbing. Please see the reply below for more details.
+
+>
+> > Range=E2=80=9D.Bits [31:1]: Reserved, must be zero.
+> >
+> >  ioread32(&ps_sm->params.flags) & RAS2_PS_FLAG_SCRUB_RUNNING
+> >  ACPI spec 6.5 RAS2 Table 5.87: Parameter Block Structure for PATROL_SC=
+RUB
+> >   Field: Flags (OUTPUT): bit[0] - returns status for demand scrub only,
+>
+> You lost me here. Where is that stated in that table 5.87?
+>
+> Confused just like the AI :)
+Please see three fields in the ACPI spec 6.5 RAS2 "Table 5.87:
+Parameter Block Structure for PATROL_SCRUB"
+
+"Requested Range(INPUT)"  & "Actual Address Range (OUT-PUT)"  -
+(Description) "If OSPM requests default scrubbing through Bit 0 of
+the Configure patrol scrubbing (background scrubbing) field, then
+"this field must be ignored" by the platform".
+
+Note: This states that both "address range" fields are valid for
+demand scrubbing only.
+
+Flags (OUTPUT) - (Description)The platform returns this value in
+response to GET_PATROL_PARAMETERS:
+Bit [0]: Will be set if memory scrubber is already running for address
+range specified in =E2=80=9CActual Address
+Range=E2=80=9D.
+Note:  This states that  Bit [0]: of the "Flags" field is valid for
+demand scrubbing only.
 
 Thanks,
-Rong
-
->=20
-> > and ideapad methods.
-> > Patches 2-4 depend on patch 1.
-> >=20
-> > Changes in v2:
-> > - Merge the follow-up series [2] and drop its EC query and UCSI patches
-> >   until they are shown to help
-> > - Add acpi_execute_simple_method_exclusive() for _BTP and ideapad
-> > - Make the helpers wrappers that take the lock around the existing ones
->=20
-> You dropped Hans' R-b from PATCH 1 due to the massive change. The next
-> time you do the similar, please add a note to the changelog.
->=20
-> > - Join lines up to 100 columns, add a Link: for Suggested-by:
-> >=20
-> > Link: https://lore.kernel.org/all/CAJZ5v0gS4agVUkCO6M=3DVW4Wi2y1-s+k23b=
-pzmX9aAZ0Rsv4z9Q@mail.gmail.com/ [1]
-> > Link: https://lore.kernel.org/all/20261014190544.150093-1-aliamemis@dis=
-root.org/ [2]
-> > Link: https://bugzilla.kernel.org/show_bug.cgi?id=3D221065
-> > v1: https://lore.kernel.org/all/20261014132703.93355-1-aliamemis@disroo=
-t.org/
->=20
-> The series is now neat to me.
->=20
-> With int3403_add() fixed (or explained), for the series:
->=20
->    Reviewed-by: Rong Zhang <i@rong.moe>
->=20
-> Thanks,
-> Rong
->=20
-> >=20
-> > Ali Ahmet Memi=C5=9F (4):
-> >   ACPI: utils: Add exclusive AML evaluation helpers
-> >   ACPI: battery: Evaluate battery methods exclusively
-> >   thermal: intel: int340x: Evaluate _TMP exclusively
-> >   platform/x86: ideapad-laptop: Evaluate ACPI methods exclusively
-> >=20
-> >  drivers/acpi/battery.c                        | 12 +++---
-> >  drivers/acpi/utils.c                          | 41 +++++++++++++++++++
-> >  drivers/platform/x86/lenovo/ideapad-laptop.c  | 12 ++++--
-> >  .../int340x_thermal/int340x_thermal_zone.c    |  6 ++-
-> >  include/acpi/acpi_bus.h                       |  7 ++++
-> >  5 files changed, 66 insertions(+), 12 deletions(-)
-> >=20
-> >=20
-> > base-commit: 24a19b953e2a3d0ea5a8c4951a0ab8f32720c907
+Shiju
+>
+> The rest later.
+>
+> --
+> Regards/Gruss,
+>     Boris.
+>
+> https://people.kernel.org/tglx/notes-about-netiquette
