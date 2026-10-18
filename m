@@ -1,140 +1,158 @@
-Received: from layka.disroot.org (layka.disroot.org [178.21.23.139])
+Received: from mail-yx1-f52.google.com (mail-yx1-f52.google.com [74.125.224.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C2CC3AFB18;
-	Sun, 18 Oct 2026 12:24:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.21.23.139
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792326242; cv=none; b=rb19/8AX2vUM1F+jdFY3bbY1CmbfogH17bKX9Gk3M38Y5A1FjIIfQlGQt1SZ77ze4FDkDKOCEBNV6ckOOcoxhHVrDFYq3hs6aW7pBO706M5YZof5sJ7cnzKoQAJv4j2cNDx1UKzi7P9PvxK6d4XmJnKXQW9Zm6vfYv6aQzIo8GA=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792326242; c=relaxed/simple;
-	bh=LC9roefQGdqOuXRvNPJd9fVIE9ORPK+Pcq4mi1yoc9s=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=QTyzavoHTIFQj7zaonaKxaukQmNAv2RPItzJmWDkELSy4lFyyPvtzOOUVTdB8anD7O2nbrzV/4aNp4V1uLjhZRrD9MjO8U0xO9B7Yz7NbzSgmMoD+ioH1Mcgzg0TkYMTuFwQkFIWS5MKQ9uz/xiKKYCF3EpOEZAhaoAcIW2M+JQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org; spf=pass smtp.mailfrom=disroot.org; dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b=ACquAOX4; arc=none smtp.client-ip=178.21.23.139
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=disroot.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=disroot.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51A1446F495
+	for <linux-acpi@vger.kernel.org>; Sun, 18 Oct 2026 14:54:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.52
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792335266; cv=pass; b=bYIawiB6XS/Fqm7SVgKQYgIGhMk829UKTEWVbg5sDq7Gd7RFrfS8IjWrUOogpV1ds5ImAgEO97L4W6LW0sKlQetoYtUz6RY59NgBdVKrLRyrroYcxyRpWGexEvu93wXE4yOr1V3186/OIBwIOl6bM8aWNTmytadIBH9CBUoTD9g=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792335266; c=relaxed/simple;
+	bh=us5iu7Xf4jbhJWzNY5zatJGie2iJ2wd4i8aHGpW0qSs=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=R8KnBxdtohY5SKEJIavLA3/kqUkpj+gMYvgyBl97NcGnypWN2+uyBBCCMjh8nRR0G6dBwNkwCr8N+pQphofrgx7f3fURXmZy1jbRrOQtWj9U0X0rE4dbv86DeL9bbtDID+zxDDiVsEAtWmz3Tq8pnOWYAAHJ59HVA6Z+QQQPoq4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LC6ffU6w; arc=pass smtp.client-ip=74.125.224.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=disroot.org header.i=@disroot.org header.b="ACquAOX4"
-Received: from mail01.layka.lan (localhost [127.0.0.1])
-	by disroot.org (Postfix) with ESMTP id 9B70A80A5B;
-	Sun, 18 Oct 2026 14:23:59 +0200 (CEST)
-X-Virus-Scanned: SPAM Filter at disroot.org
-Received: from layka.disroot.org ([127.0.0.1])
- by localhost (disroot.org [127.0.0.1]) (amavis, port 10024) with ESMTP
- id ffbvdOvjqr9P; Sun, 18 Oct 2026 14:23:58 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=disroot.org; s=mail;
-	t=1792326238; bh=LC9roefQGdqOuXRvNPJd9fVIE9ORPK+Pcq4mi1yoc9s=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=ACquAOX4OiwnUvvxjM7pnBVKnSCBTZSGWlqi2RZfGG/PvqhJIbRASqKGIA0Gs5AAl
-	 OjbSGPP1VgfoddGq9RdytAtVtqHeAjfrNzPcibhSkCmlfjfG65pT3EN3fz8wSVBTCw
-	 qPiBdaWqwDWJ19CuAuB3KsxfDN2Ne4vNLxgovTJw3LX4pvCvJUFZrM2EdNZ7hL9zEf
-	 C3xhvs306YVGPXAcK2mCXnoE4rDJQkG94srIL8VSCVC1HrvEdzrwnowEaK9J2EN5Oe
-	 IFKvCL7I/PIh49Zg9p8D+iUnILCIROuy/MebSOrMVaj7pELD47u7RoZm12EIC2DXmV
-	 qkid9RkhPk5dQ==
-From: =?UTF-8?q?Ali=20Ahmet=20Memi=C5=9F?= <aliamemis@disroot.org>
-To: "Rafael J . Wysocki" <rafael@kernel.org>
-Cc: Hans de Goede <johannes.goede@oss.qualcomm.com>,
-	Rong Zhang <i@rong.moe>,
-	Len Brown <lenb@kernel.org>,
-	Daniel Lezcano <daniel.lezcano@kernel.org>,
-	Zhang Rui <rui.zhang@intel.com>,
-	Lukasz Luba <lukasz.luba@arm.com>,
-	=?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	Ike Panhc <ikepanhc@gmail.com>,
-	"Derek J . Clark" <derekjohn.clark@gmail.com>,
-	Mark Pearson <mpearson-lenovo@squebb.ca>,
-	Armin Wolf <W_Armin@gmx.de>,
-	Charis Stratakis <c.stratakis@proton.me>,
-	Avraham Hollander <anhollander516@gmail.com>,
-	=?UTF-8?q?Jeffrey=20W=C3=A4lti?= <jeffrey@waelti.dev>,
-	Rick <rickk1166@gmail.com>,
-	linux-acpi@vger.kernel.org,
-	linux-pm@vger.kernel.org,
-	platform-driver-x86@vger.kernel.org,
-	acpica-devel@lists.linux.dev,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v3 4/4] platform/x86: ideapad-laptop: Evaluate ACPI methods exclusively
-Date: Sun, 18 Oct 2026 15:23:48 +0300
-Message-ID: <20261018122348.679126-1-aliamemis@disroot.org>
-In-Reply-To: <20261018122220.678822-1-aliamemis@disroot.org>
-References: <20261018122220.678822-1-aliamemis@disroot.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LC6ffU6w"
+Received: by mail-yx1-f52.google.com with SMTP id 956f58d0204a3-679a2b5fe87so1142787d50.3
+        for <linux-acpi@vger.kernel.org>; Sun, 18 Oct 2026 07:54:25 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1792335264; cv=none;
+        d=google.com; s=arc-20260327;
+        b=fFOMcV5fts1A2NDA0dvuddPE3Y0qEs+7M8Mmfly+kMo5B7BgOXbFfCBnpsKDvbWQlU
+         m04OS66+9EjM9bdqW+/O++uCTS3xHWyomDezo5K34z6e7Zwrqr03Km1qXW+PzXArcGRF
+         nQHxY7GQ999VjR/ydf0nX0eEbQ0nEKz1l1dd9Ax9nctwt9qRsuHdJNL4biX6EYr1/Yrp
+         NWDLpOI8rlK7j4MeKk1gr35Lrmpg5OX8jcysvzbJGH1QtjxuC6lHtYBAGrfAG3Up8CvR
+         ywq5dYVCURncoD/rrMYaANNJtI8bpLVhBQ0NyoJ6O+pB5nS5vuXk4hLje01dOwgqwX4L
+         vKiw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :mime-version:dkim-signature;
+        bh=27GANpvUaytbvILRLXHlHUpLnChBxOoM+toFOE7EJG0=;
+        fh=64/UrBDGMBH5NtiAJk2BWI/QNj6U23coLuL2o/vnHDg=;
+        b=Q8tz0jF87ulELkY9ElC6xYj+wzCo/ZIWW0xRSUBG6G9FY6HXaG7Ne6THcqxVLjCRgq
+         7bMKiTab+SyG+dveFy6Kc2Z7fmD1yxjfZN1KAVsZ59H+Ei5lx4aVQAxpGsDLIoDfb5JZ
+         VUOT4EIJrY+AkQmkvMzYxrTTwPH/acCdAUOO25KFYt/mIyxAE8JLPKe0mWhjPUB/Maw6
+         RXXM5BYpdK4Eu64F1+uNurtxn6ObApJ1kASYovSHT0h2qFOOm+zO5sBtiyCwCIPc2ndZ
+         BtXfRgm7jrg8DbBRG10xH9KPgjwS3bkjPM+uPIHDSZRInQp5N869OoPt+MMUY1yrPnYk
+         UDKA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1792335264; x=1792940064; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=27GANpvUaytbvILRLXHlHUpLnChBxOoM+toFOE7EJG0=;
+        b=LC6ffU6wm6TWGaxhjR4boPQaPY2zXc2utXfHb1HoHKRwvhis6tnyY8z73VSpYVK7K2
+         kwblqhGHKb84lWPjUIREhiWQ41sAfFUvQ6SK35kpWqY9PGiDtfNZbHhnxv9W7Z+vs9iO
+         ELa72neDlS7HxtRlkaiVFfcBro3eY+9KKJTXebrL4MW/7xbPFbb4IGzmsP7iOiOqUkk0
+         WagLLMkPMjoBexSr/IkmnekeP1oANR8O4LJ56D3zERpU3EhMNPvup9yTwix7tU5T8fei
+         3RmXOcYdqQIef7eeCscwl72aoRKIzsDpMKX3cOztLKql2Iz+2mhmv8hN+cNyhFXQEgBJ
+         Uc4g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792335264; x=1792940064;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=27GANpvUaytbvILRLXHlHUpLnChBxOoM+toFOE7EJG0=;
+        b=njNvkwhF68mu3DcbeyYMF02qrLST6SoH9Vr7WLfU0BCoh6UNEAbMJ0xwfiMoEe1NSS
+         WOjOhjUpGCdCWvVjOJhoUMkc7Ohzk8eWcyJgTR8OUv6rvRe3Eskwdgq1RuNoO/PMqh0C
+         lc4JWeipjCfGcW35v+GbocSAAD5lXtiTbZwBxLWr19O229xs3FTGVS9fspBhqAdWs+4I
+         hz0WF1mx8rzhzxW64HQAYl5DnE6JnbmXUMh0zoCUuh0G0+rFFJrZwVT16MF/oyHcVlUR
+         2NKpnFEKQrNVRAaQAzH5UKWjXKbwA4+hnnNYiudrqPFQ2SL7qAnjZqPBxGe5xj1j9Y8n
+         4Nuw==
+X-Gm-Message-State: AFq9FYLTg5kEUId7NYssBac37n4CfQziDOK6NLPzfTRXq/9x8SVlwb6X
+	jlWuFWsVzu5VwuxLz0xigXDYACw7ZVHZjPK90ag7meX6CPSHuZ2CMXMWxgkGOIvDdRaTHuxwUwX
+	xxF5csHosIqT4SFczA4F4mCalFkaArP8=
+X-Gm-Gg: AYBFou2GbYrzmoFA4KHQqi+4fRpa0OoDqaooiE064hiZJeDs06xar6dYGn0frq/7TOI
+	ZBm+3RdUMxg5b2jJghs7p7Xm0TzvdoQ1UVOWQcOkujYuqEdsqycxCmqPzVjAsvydzrqwHyTpK0w
+	musRG2XRkvwIduX+EpVARRZwzFDSprFQPDDinn+ey67ChXf6lmH1PBROx8BIVnELvoBuR24i1v+
+	qZ9n7MDx0TFM9eBp/3ZT/HuNGMrh1ayTvd1jVZtjoiGHevVovOERf6baqJxSxlaWpymXLSIJEFL
+	vevmO7FMGM763Sm5g1UkQ4SAULboWiPgdyqh9qYm8iaaWQVqzaTC
+X-Received: by 2002:a05:690c:c58d:b0:8b0:f116:11fe with SMTP id
+ 00721157ae682-8b0f21b53ddmr11613087b3.50.1792335263774; Sun, 18 Oct 2026
+ 07:54:23 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Zhang DM <jixianqiang1540@gmail.com>
+Date: Sun, 18 Oct 2026 22:54:11 +0800
+X-Gm-Features: AclHuK8ilgUfNnbLioZxoVOUsVo2jNQ8742md6YglSbmB-20JRYe7veeKgjVBvg
+Message-ID: <CAKtWk0YJS_+Wonysfo1DB41stP30FMm824vdp5DTjO=bVT_oLw@mail.gmail.com>
+Subject: Re: [PATCH v1 1/4] platform profile: Separate handler locking from
+ sysfs lifetime
+To: Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On some Lenovo IdeaPad and Yoga models, the battery _BIX takes the EC
-AML mutex and then calls the serialized RDER through RDIF, while GBMD
-calls RDER first and then takes the EC mutex. When the two run
-interleaved they deadlock until the mutex acquisition in RDER times
-out, and GBMD returns garbage that is reported as both charge types
-being enabled.
+Hi Daniel,
 
-Evaluate all methods with the exclusive helpers, so that GBMD never runs
-interleaved with the battery methods.
+Confirming the lock/lifetime inversion this series fixes is reachable in
+production: we hit it as a hard, SIGKILL-immune D-state wedge, 3/3 boots,
+on 7.3.0-rc6 (AMD Zen, CachyOS build of stock rc6) =E2=80=94 three days aft=
+er v1
+was posted.
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=221065
-Link: https://lore.kernel.org/all/58586fa666f09c209f9d7fe8c692a8bdda6d4410.camel@rong.moe/
-Signed-off-by: Ali Ahmet Memiş <aliamemis@disroot.org>
-Reviewed-by: Rong Zhang <i@rong.moe>
----
- drivers/platform/x86/lenovo/ideapad-laptop.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+Trigger and cycle, matching your 1/4 analysis exactly:
 
-diff --git a/drivers/platform/x86/lenovo/ideapad-laptop.c b/drivers/platform/x86/lenovo/ideapad-laptop.c
-index 8213524504ee..1335f4e48870 100644
---- a/drivers/platform/x86/lenovo/ideapad-laptop.c
-+++ b/drivers/platform/x86/lenovo/ideapad-laptop.c
-@@ -297,12 +297,16 @@ static void ideapad_shared_exit(struct ideapad_private *priv)
- #define IDEAPAD_EC_POLL_MIN_US 150
- #define IDEAPAD_EC_POLL_MAX_US 300
- 
-+/*
-+ * On some models GBMD and the battery _BIX take the EC mutex and a
-+ * serialized method in opposite order, so evaluate all methods exclusively.
-+ */
- static int eval_int(acpi_handle handle, const char *name, unsigned long *res)
- {
- 	unsigned long long result;
- 	acpi_status status;
- 
--	status = acpi_evaluate_integer(handle, (char *)name, NULL, &result);
-+	status = acpi_evaluate_integer_exclusive(handle, (char *)name, NULL, &result);
- 	if (ACPI_FAILURE(status))
- 		return -EIO;
- 
-@@ -324,7 +328,7 @@ static int eval_int_with_arg(acpi_handle handle, const char *name, unsigned long
- 	in_obj.type = ACPI_TYPE_INTEGER;
- 	in_obj.integer.value = arg;
- 
--	status = acpi_evaluate_integer(handle, (char *)name, &params, &result);
-+	status = acpi_evaluate_integer_exclusive(handle, (char *)name, &params, &result);
- 	if (ACPI_FAILURE(status))
- 		return -EIO;
- 
-@@ -336,7 +340,7 @@ static int eval_int_with_arg(acpi_handle handle, const char *name, unsigned long
- 
- static int exec_simple_method(acpi_handle handle, const char *name, unsigned long arg)
- {
--	acpi_status status = acpi_execute_simple_method(handle, (char *)name, arg);
-+	acpi_status status = acpi_execute_simple_method_exclusive(handle, (char *)name, arg);
- 
- 	return ACPI_FAILURE(status) ? -EIO : 0;
- }
-@@ -394,7 +398,7 @@ static int eval_vpcw(acpi_handle handle, unsigned long cmd, unsigned long data)
- 	in_obj[1].type = ACPI_TYPE_INTEGER;
- 	in_obj[1].integer.value = data;
- 
--	status = acpi_evaluate_object(handle, "VPCW", &params, NULL);
-+	status = acpi_evaluate_object_exclusive(handle, "VPCW", &params, NULL);
- 	if (ACPI_FAILURE(status))
- 		return -EIO;
- 
--- 
-2.55.0
+  Writing `dynamic` to policyX/energy_performance_preference runs
+  store_energy_performance_preference under down_write(&policy->rwsem)
+  (cpufreq core store wrapper, guard(cpufreq_policy_write)). On the
+  non-dynamic->dynamic transition, amd_pstate_set_dynamic_epp() calls
+  platform_profile_register() from under that rwsem. platform_profile_
+  register() holds profile_lock across device_register(), sysfs_notify()
+  and sysfs_update_group(); the update removes/recreates the
+  `platform_profile` attribute, and kernfs_drain() then waits for the
+  =E2=86=93 the repo goes public now. please add reference to the draft
+                                       22:45
+ =E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=
+=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=
+=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=
+=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=
+=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=
+=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=
+=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=
+=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=
+=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=
+=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=
+=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=
+=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=
+=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=
+=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80=E2=96=80
+  immediately before the update wakes inotify watchers of
+  /sys/firmware/acpi/platform_profile (asusd here) that enter the file
+  inside the window. The store never returns, policy->rwsem stays
+  write-held, and every cpufreq/platform_profile/power_supply sysfs user
+  wedges in TASK_UNINTERRUPTIBLE. Same cycle exists in
+  platform_profile_remove().
 
+So: ABBA between profile_lock and the kernfs active-ref drain, exactly as
+described in your patch; we believe 1/4 is the right fix (separate
+registration lock, unlink under profile_lock before device_unregister,
+drop the mutex before anything that can drain active refs).
+
+Secondary ask, for amd-pstate (not your patch's problem, but it is why
+this bug is so destructive here): amd_pstate_set_dynamic_epp()/
+clear_dynamic_epp() do blocking device/sysfs registration plus
+power_supply_(un)reg_notifier from inside the cpufreq store callback,
+i.e. long, lock-heavy work under a hot per-policy rwsem. Deferring that
+registration to a workqueue (or to cpu init/exit) would take
+policy->rwsem out of the blast radius.
+
+Evidence: reproduced 3/3 boots with a concurrent platform_profile
+watcher at register time, 0/1 without; lockdep is off in this config
+(no splat). Full write-up, public in ZhangDM-520/system-tuning:
+  attribution (source <-> vmlinux mapping):
+    https://github.com/ZhangDM-520/system-tuning/blob/master/docs/research/=
+2026-10-17-epp-deadlock-kernel-attribution.md
+  boot journals and initial forensics:
+    https://github.com/ZhangDM-520/system-tuning/blob/master/docs/research/=
+2026-10-17-boot-epp-deadlock-report.md
+
+Thanks,
+ZhangDM
