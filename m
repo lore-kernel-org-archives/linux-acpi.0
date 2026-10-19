@@ -1,51 +1,62 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EBBF4EC665;
-	Mon, 19 Oct 2026 13:12:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1D234F799F;
+	Mon, 19 Oct 2026 13:30:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792415557; cv=none; b=Wy0YM56VqqC1qwxQfH9yK/77tURn451shsRzGfSbBvrz+dpDa2Zv0crpjaCIJU2k+KYGLC0k/QejPDvlQhxwuXQBH3ZDKoWlAvf9+x7CHQDVIeL0ejFludbr69l1rb+AYTx8K/8Fb34hqPP8AuYvmWcZB5WwsANDhhVVc/P9LZ8=
+	t=1792416653; cv=none; b=guXJBm2kkI5hsBHlPo9G2Jnf2lYD+VMxMhmit8azhNRo9LHWs07yqz6YPB64NvjoOaFc6BDbaYK2CjDGJJgfX3IYoT1kqg2lirDmEka47WI+iGo40ixq7696iseMUdlELVMCTr7nhQIh1JRF0Vmsk2MATw/Xvtv058LAGuSc3wU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792415557; c=relaxed/simple;
-	bh=odzFymFz98XdH2rVjddDufFkvKVVlBD5K9QVTchdDhA=;
+	s=arc-20240116; t=1792416653; c=relaxed/simple;
+	bh=NICBlbvM48ZtCIEZlB+lOpD2bf1G/B+sFnO1Us3u1vg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=f2I6Vest4rK2uJecFmVMnxNg4hPOqBclNTOErtFweSHWKLcwVCnl2ikT0I7a268yEn5n+S9b7R51AtV5GEYOjDuOw5EMW4/+xyIYrYaThkczN1trT1BxbnN9JzVl2zT5iudyxSzmCdKD4dyMpnrG93CaSIU6vWKrgIRk+7y9b9s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PiJCjhso; arc=none smtp.client-ip=100.103.45.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=PCFWJt2o7Tcp3pPVfHDKcs0091ZlVz8W9M5yRW82bNDDvrJzjxfOsVAnUL3oeSv2ApTrL2as1THz2rcHI17rczSZ4gpoC2qBPbP6X9SNB3DdUTdYrs56n1tMWCjA174sl3WCu5pnhLEOBBTT0TpWIOWXpS1gjjj21V+BbwIbGws=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ZDbTzUV2; arc=none smtp.client-ip=192.198.163.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PiJCjhso"
-Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 4424D1F000C4;
-	Mon, 19 Oct 2026 13:12:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792415555;
-	bh=PDZO6ZUZ9dPn9nc2jnwVKTXnRmt7E2e4VwZk+WnthNI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=PiJCjhsoidTunUUjZJWh1tHJd3EJwms2CTCTo3cv6C1a5tV61yPOfJJ/HUGZBVg08
-	 35q7iCZWoPZO+UZD3ijN94IaQ3HCUPXLJnMwkAKbItm8p6nR1fuoGnqx63S7x5d0X2
-	 LReB/unyIMvIGupOxmHva33X63TKBPaS18F2sVhyP0i9/x3cCxRQ7n88uJvz+qCdQK
-	 gdFJFKDmaU7XJaUSv82240r6pBCXTgrebHmkcS7MFdIh798Sw97r0F9FzAOda8b97H
-	 LAGLUKa+c2qpn09CTWcA1SdPcntMVqhi4gozgORbf1a10pTLeB9taOQcnuakLD90ao
-	 GPcU8VwAxDSpQ==
-Date: Mon, 19 Oct 2026 16:12:32 +0300
-From: Jarkko Sakkinen <jarkko@kernel.org>
-To: Sean Meadows <Hellfire@unspacy.com>
-Cc: Mario Limonciello <mario.limonciello@amd.com>,
-	linux-integrity@vger.kernel.org, peterhuewe@gmx.de, jgg@ziepe.ca,
-	rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org,
-	Adam Alves <adamoa@gmail.com>
-Subject: Re: [BUG] tpm_crb/Intel PTT: Late S3/S5/Reboot ACPI power management
- deadlock
-Message-ID: <atYXQF68D_SL4fGT@kernel.org>
-References: <araNsEodZ3NXf9qT@kernel.org>
- <0e8f93d0-3da9-4af0-ac12-b3670acdcf79@unspacy.com>
- <arw609M6mDiqhQwJ@kernel.org>
- <723ff551-7852-4d57-ab1e-787a1a195759@unspacy.com>
- <asfXObGNaZ9Z8CwN@kernel.org>
- <ca2d299b-4153-4b0b-a60e-7fe64f9dbdef@amd.com>
- <2db92c1a-815c-4db2-adfa-3708152ec8f2@unspacy.com>
- <asqUgaKpEJbo8g87@kernel.org>
- <24255490-d0b6-4793-aa7c-2954bd52383e@unspacy.com>
- <atYWR_DUQlYupk03@kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ZDbTzUV2"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1792416652; x=1823952652;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=NICBlbvM48ZtCIEZlB+lOpD2bf1G/B+sFnO1Us3u1vg=;
+  b=ZDbTzUV2NvWx0oHOIKzPm22Cfqepk6SyIFHcyBcetJQwTwShkmu+INyx
+   GxgJDvXAMoOt+XurYkEozD+zfWBzro6vPiDqqShYrjvTlledJToPbsECV
+   SZrWKi4Uc8Rpqd3nGfoxHM/hHtdic7wjpGiXDPNKBaNXo7MppeMVTYlqY
+   o2+k8rMpMSKfh0UzQfsirE+6Hn3Id+mtWZ2hPp+PKyFsKLAG7P4q5H2LG
+   gsRdQwtVJdW0RFLX/QTRIEodLIzlVKQyeGzYXmxSfNyb0Tfb/n0a3JsRN
+   7bYs9NFisXfeuqGnkNpNuzJ0NwPJEVgLgx0Q02mDuRWbQLgU+DJJbGjqv
+   A==;
+X-CSE-ConnectionGUID: xAs1Sx7BQzanoxcyRuW10A==
+X-CSE-MsgGUID: /g2wJqD8TcOKF8sO8BXAWQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11940"; a="992379"
+X-IronPort-AV: E=Sophos;i="6.27,167,1787036400"; 
+   d="scan'208";a="992379"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Oct 2026 06:29:16 -0700
+X-CSE-ConnectionGUID: KFJG4IO2QwKHVrAoUn1LNQ==
+X-CSE-MsgGUID: SdPv2i5VQ/aJUVz6/JJSig==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,167,1787036400"; 
+   d="scan'208";a="2637797"
+Received: from pgcooper-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.245.209])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Oct 2026 06:29:14 -0700
+Date: Mon, 19 Oct 2026 16:29:11 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Mika Westerberg <westeri@kernel.org>,
+	Abduvaliy Abdulazizov <abduvaliy.hbai@gmail.com>,
+	linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org,
+	Linus Walleij <linusw@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>, linux-kernel@vger.kernel.org,
+	Trijan Koju <trijankoju11@gmail.com>
+Subject: Re: [PATCH] gpiolib: acpi: Ignore GPIO 11 interrupt on Acer Nitro
+ 16S AI
+Message-ID: <atYbJ4ByzDb1mlOQ@ashevche-desk.local>
+References: <20261007120944.1705014-1-abduvaliy.hbai@gmail.com>
+ <179239686600.5748.7808377662325552771.b4-ty@oss.qualcomm.com>
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -54,46 +65,30 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <atYWR_DUQlYupk03@kernel.org>
+In-Reply-To: <179239686600.5748.7808377662325552771.b4-ty@oss.qualcomm.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Mon, Oct 19, 2026 at 04:08:27PM +0300, Jarkko Sakkinen wrote:
-> On Mon, Oct 19, 2026 at 03:05:42AM -0400, Sean Meadows wrote:
-> > 
-> > On 10/10/26 15:39, Jarkko Sakkinen wrote:
-> > > 
-> > > So the gist why I believe that this might have effect is that every
-> > > transmit reverts the state to the initial state. That should erase any
-> > > weird state that firmware might be in (usually not that great quality
-> > > code).
-> > > 
-> > > I think Mario's patch is good overall for the stability. It looks to me
-> > > that we are catching some weird state inside firmware where we don't
-> > > have direct visibility. Or this is my guess at least.
-> > > 
-> > > Br, Jarkko
-> > 
-> > 7.3.0-rc6-g587527648af0 with cherry-pick
-> > 9154aa6c4b789d23e59d599c330cab2c4e915401
-> > 
-> > strings /lib/modules/$(uname -r)/build/vmlinux | grep "cmd_ready"
-> > Used to validate crb_cmd_ready responses.
-> > 
-> > The patch failed at 201 hours, on the ninth drop into S3. While this
-> > represents an all-time high for uptime, the failure demonstrates that
-> > the Intel PTT can still enter a corrupt state.
-> > 
-> > Where do we go from here?
+On Mon, Oct 19, 2026 at 10:01:08AM +0200, Bartosz Golaszewski wrote:
+> On Wed, 07 Oct 2026 17:09:44 +0500, Abduvaliy Abdulazizov wrote:
+> > The Acer Nitro 16S AI (AN16S-61) has the same problem as the Acer Nitro
+> > V 16S AI: the firmware powers the internal USB camera (0408:4059)
+> > through GPIO 11 of AMDI0030, but also lists that pin in _AEI. Requesting
+> > it as an input cuts the power, so the camera never enumerates. On this
+> > model the same rail also powers the internal microphones, so they do
+> > not work either.
+
+[...]
+
+> Applied, thanks!
 > 
-> I don't know. I'd even consider finding the channel to report the
-> possible firmware bug to Intel.
-> 
-> I don't have resources to do this but getting Windows CRB register
-> state captured could help. And then writing perhaps bpftrace script
-> to dump the live register state of tpm_crb (because you should
-> never trust reading code when you measure).
+> [1/1] gpiolib: acpi: Ignore GPIO 11 interrupt on Acer Nitro 16S AI
+>       https://git.kernel.org/brgl/c/5a088d1b7266249e7701a94fc90fc829d1ad5ba1
 
-This leaves room open though on whether Windows does something with
-TPM on suspend. Probably nothing but just mentioning for completeness
-to point out where there is room for error.
+You actually applied my PT to for-next instead of for-current...
 
-Br, Jarkko
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
