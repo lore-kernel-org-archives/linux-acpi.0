@@ -1,60 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=109.224.244.27
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792445724;
-	b=oVtJogscrpYQFtgFZe66zCHZhv3rGEqDr8aj+cUAgJ60/3tyWtiCjNwKvg9NNOjP8izz
-	 Bmm1t9JFP1PN3Rc37hp5IeXnn/R2aGkAUxNjCzu0phUL/zlYN3PTR4J2gCEkomkcpg2Si
-	 h0ee/Q1kD1TDoBnMfB9cR16OvDMEY7w/Pk+dYZDtL7V1VpHkOF8TEwa4SyD+tVTwZ4LZ/
-	 40DLHirdwc2S9davJgyxo4JFKtBffiBVZAOZYUNeNAVp7tCwyNmjg8BI/uUdPbZ01U3mz
-	 CEV2Dncqzr7D6xYwOMKp5KDF0Fj7UOLy6MycJ3gH2BmZUvICtMH0g4RTmCsExo1UohA==
+	t=1792448364;
+	b=pLFcbDadZVX7BJMonpAMQLi3GCzDOvUo09Tz2sXcRUrNbM2ghhs7XVOiLaVNRv8Mjbdu
+	 kCT7bdGmrIcdW08Y5es0VuNvgzjDsVu0ydstTwgsaN7bFOKPpgsOBLXNUn0yismRvUBK2
+	 FSXoz+M1behB9iZ8683pOinCDviHxEO6+/ShiOHhm3Y29QuJn3fyDZEXWiL6SYo9GoXmQ
+	 J/hmgHsQ/b//AwNQaidSVWALuU4pw9A/h8lMMEVDxZQYEChURDN9DoX5/WLozOSQp5/kt
+	 K8CsmaISHKDPGCsTilOzDmzYgagV7Rh2lmkBp+DI8T59VQC4YNXCeC/B4o0oEG/Khng==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792445724;
-	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
-	 In-Reply-To:References:Feedback-ID:X-Pm-Message-ID:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=vHL+OCLoMPPykU/EzZkExlVkKDRpQnrt5ls5P4riEHI=;
-	b=mpBjYF7AvUDfQ9213QI48cEm4/t6g3jLqVB8Okn0fi+776fLtCvjVfFZRMhY+R76W5cS
-	 +E+87U9oF5GCO3CCxbmW9/n3AJIWnBp/cd/+wFjcHn/vhX7nveJq7IV+wGeKAtCEUAPhl
-	 0fjD3QN3WEqw1sXkeXLj+6v0Gd0eZz68ERfVijdqYn9XZwFq0jxi23BGHBEw/T3az1Qwj
-	 xKQiYq+ClUPZUL2lqK7FzOpNNGC9M84BFBUOvSPaH32Aa6dD7+egetedHg0Wki2swMGKH
-	 YY6noMQ65TGL5+Bdy9vup2/lo2aGNhQjgHKTS1ThFSTIJjVxcRAhzjbwOQCXitS+a8g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792448364;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=wWC3BH4/cWXsuzoVyhQyHpYGPRVcQltrEpBHrAWJKKs=;
+	b=x+Tw0rqXpGZtP2cltOM8TCozngiZqKFgMV2ynvJQ8tBeELfqQ8AbdQeCqonpC5KbChc8
+	 S7tMqnLlSU/9ZVBswIgIRRrZ+4GP5Ho/mUzFFX0JYCz1XGfrl3XEHoGagpXH2ZlbHSixX
+	 2TCHBluPTvPEIZERu8pv+A3IYRlEJtumeh1LyqDbS0lMHzz6evQDH9/hMcXsoYL5xvXPv
+	 A0fg1SJuUVHUo7m5k7l5WK4cOit3c0Mo08A9sbnostcJrZj6af+uJZMT77qSO5x9lJylo
+	 h6m4q+zbtPypkOvXwCLAs5ZuJT7x/SgxUui9QRKPvvlaapkA3kCE3BczUCwXANyxLAQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=proton.me;
-	spf=pass smtp.mailfrom=proton.me;
-	dkim=pass header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=yuh7i5iribccpkngmjosjkrl4i.protonmail2 header.b=sxObmSJd;
-	arc=none smtp.remote-ip=109.224.244.27
-Received: from mail-24427.protonmail.ch (mail-24427.protonmail.ch [109.224.244.27])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iTvO1QY1;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 620D8606A31C
-	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 21:35:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 620D8606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7803606A319;
+	Mon, 19 Oct 2026 22:19:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=yuh7i5iribccpkngmjosjkrl4i.protonmail2 header.b=sxObmSJd
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
-	s=yuh7i5iribccpkngmjosjkrl4i.protonmail2; t=1792445720;
-	x=1792704920; bh=vHL+OCLoMPPykU/EzZkExlVkKDRpQnrt5ls5P4riEHI=;
-	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
-	 Message-ID:BIMI-Selector;
-	b=sxObmSJdvY5lQ5WfR+Lqln6YArQoAfFjxQr850X/3sv+dBDn+fAJlB95L9wv679Bl
-	 SAF8/kN+LXZX61PXvUF3QiTKDEQEL0DKs8/c3SVaYiNP5+fhnwyRfFbEg7NGNS2CQc
-	 3yrYzu9cwPvbMFE0jQwSDAsRMm5K8obM2lfuaIWJRrVDUfCGhl/WMMyA+sdehqis10
-	 YVfYnQ+UadYhEwoZWoLaF0uaWzbejBY9EjlbjugLVclDsk9q4CS4ku3qENA2vcxmA1
-	 +IjvfM4/ZD6f4TozjCEAggOsyVzplWoTbogFlQ51uRCw1x4fMk/kC+GLXaf2dhrux/
-	 j3GXPNTtipBtA==
-Date: Mon, 19 Oct 2026 21:35:15 +0000
-To: Lyndon Sanche <lsanche@lyndeno.ca>
-From: verazimmerman1987 <verazimmerman1987@proton.me>
-Cc: "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "rafael@kernel.org" <rafael@kernel.org>, "daniel.lezcano@kernel.org" <daniel.lezcano@kernel.org>, "rui.zhang@intel.com" <rui.zhang@intel.com>, "superm1@kernel.org" <superm1@kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
-Subject: Re: platform_profile: power-saver lost on Panther Lake when SoC Power Slider and dell-pc are both bound (low-power vs quiet)
-Message-ID: <BZwCwyE08uZUOYVbDR8jIYn6pG9aKdn5VG6e5EzDnlo6KgYEmMA2szkOBVrXMbbDclud59u4DWTPP5h9tr2IqM43QL3tDXUnGs03TqgcGJw=@proton.me>
-In-Reply-To: <DM8T7ELISJJB.2MKMPBE1BELFC@lyndeno.ca>
-References: <UPfoGdnS1R04q8uekSMTyes9PbDuvsGeBE42zHmsjD2xIdfPYx7ejdcpZhrxWFq6uwoMvClHTuHbrwaCh3yxD0Rw7OarNABC4dZsDra44mk=@proton.me> <DM8T7ELISJJB.2MKMPBE1BELFC@lyndeno.ca>
-Feedback-ID: 187400468:user:proton
-X-Pm-Message-ID: 55d50284c3692d3dddaf569c107074e03854b4b6
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iTvO1QY1
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D1731F000C5;
+	Mon, 19 Oct 2026 22:19:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792448363;
+	bh=wWC3BH4/cWXsuzoVyhQyHpYGPRVcQltrEpBHrAWJKKs=;
+	h=Date:From:To:Cc:Subject:In-Reply-To;
+	b=iTvO1QY1bsW2g2qybhLxqMhYde4lg3yiDwQEGJcKC/orAHO5J5SDY7xhAy230dGfG
+	 SpxKfvrQs8NYF6j7S6f/l1RJqFXv9xz/hW3E1nxY4lrNUxijKXKQHOEs5ORWl+KoB3
+	 P1WY0M+WK1LUo3nloxvxs+ye1W0V1xw5bmuaLAQJaZMcqfqxUpB92qED8ccCDUuEuQ
+	 t3PcSJ3OF/BkuytNzo+aJSfZGISpl8ZHhVPAP1kXIMkEP2kqfuqWGZGLR4co/GAQo+
+	 /tyY1u841ODG5ON9OJQXEkT1+dtW1g0TIvsdBGRgMZf6HfmO0tgE+4302qR38UcQpV
+	 E+OccXZja9EYg==
+Date: Mon, 19 Oct 2026 17:19:22 -0500
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Mario Limonciello <mario.limonciello@amd.com>
+Cc: alexander.deucher@amd.com, christian.koenig@amd.com, airlied@gmail.com,
+	simona@ffwll.ch, bhelgaas@google.com,
+	Reza Nikzad Chaleshori <rezanikzadch@gmail.com>,
+	amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+	linux-pci@vger.kernel.org, Alex Williamson <alex@shazbot.org>,
+	Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>,
+	Lukas Wunner <lukas@wunner.de>, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH] drm/amdgpu: Gate VFCT bus fallback on pci=realloc
+Message-ID: <20261019221922.GA2275522@bhelgaas>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -64,84 +60,100 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4284d6d4-244d-4d49-bbdb-f1bda89fc1e8@amd.com>
 
+On Thu, Oct 15, 2026 at 03:25:17PM -0500, Mario Limonciello wrote:
+> On 10/15/26 14:48, Bjorn Helgaas wrote:
+> > [+cc Alex, Ilpo, Lukas, linux-acpi]
+> > 
+> > On Thu, Oct 15, 2026 at 07:48:42AM -0500, Mario Limonciello wrote:
+> > > The soft filter system introduced by commit 11c141672045f ("drm/amdgpu:
+> > > Fix VFCT bus number matching with soft filter") has a deficiency that
+> > > it won't work when there are multiple GPUs of the exact same model.
+> > > 
+> > > As it was introduced specifically to help the case of pci=realloc, gate
+> > > it to only run when that's in use.
+> > > 
+> > > Fixes: 11c141672045f ("drm/amdgpu: Fix VFCT bus number matching with soft filter")
+> > > Reported-by: Reza Nikzad Chaleshori <rezanikzadch@gmail.com>
+> > > Closes: https://lore.kernel.org/amd-gfx/20261014080523.186533-1-rezanikzadch@gmail.com/
+> > > Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+> > > ---
+> > >   drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c | 15 ++++++++-------
+> > >   drivers/pci/setup-bus.c                  |  5 +++++
+> > >   include/linux/pci.h                      |  1 +
+> > >   3 files changed, 14 insertions(+), 7 deletions(-)
+> > > 
+> > > diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c
+> > > index 08ed1eb695586..75af9a59671ae 100644
+> > > --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c
+> > > +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c
+> > > @@ -384,12 +384,10 @@ static bool amdgpu_read_disabled_bios(struct amdgpu_device *adev)
+> > >    * @vhdr: VFCT image header to check
+> > >    *
+> > >    * VFCT entries contain the PCI bus number as recorded during BIOS POST.
+> > > - * On systems where the kernel renumbers PCI buses (e.g. pci=realloc or
+> > > - * resource conflicts), the runtime bus number may differ from the POST
+> > > - * value.  Match by device identity (vendor + device + function) and use
+> > > - * the bus number as a preference: exact bus match is preferred, but when
+> > > - * the bus numbers disagree we accept the entry if the device identity
+> > > - * matches.
+> > > + * On systems where the user requested PCI resource reallocation, the
+> > > + * runtime bus number may differ from the POST value. Match by device
+> > > + * identity (vendor + device + function), but only treat the bus number as
+> > > + * a preference when pci=realloc was explicitly requested.
+> > 
+> > This is a generic problem, isn't it?
+> > 
+> > I think any table from firmware that has PCI bus numbers in it could
+> > trip over issues like this.  Seems like we need a more generic
+> > solution.
+> 
+> Yeah; it's a generic issue which was triggered by pci=realloc which is why I
+> did a soft filter in 11c141672045f.
+> 
+> But this causes problems when you have two (or more) of the exact same
+> device.  You might match the wrong thing.
+> 
+> > >    *
+> > >    * Returns: 0 on match, -ENODEV on no match
+> > >    */
+> > > @@ -409,7 +407,10 @@ static int amdgpu_acpi_vfct_match(struct amdgpu_device *adev,
+> > >   	if (vhdr->PCIBus == adev->pdev->bus->number)
+> > >   		return 0;
+> > > -	/* Bus mismatch but device identity matches (PCI renumbering case) */
+> > > +	/* Allow bus renumbering only when the user requested pci=realloc. */
+> > > +	if (!pci_realloc_enabled_by_user())
+> > > +		return -ENODEV;
+> > > +
+> > >   	dev_notice(adev->dev,
+> > >   		   "VFCT bus number mismatch: table %u != runtime %u, matching by device identity (vendor 0x%04x device 0x%04x)\n",
+> > >   		   vhdr->PCIBus, adev->pdev->bus->number,
+> > > diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+> > > index ed16ef7c26fa7..d9450585082c0 100644
+> > > --- a/drivers/pci/setup-bus.c
+> > > +++ b/drivers/pci/setup-bus.c
+> > > @@ -1799,6 +1799,11 @@ static bool pci_realloc_enabled(enum enable_type enable)
+> > >   	return enable >= user_enabled;
+> > >   }
+> > > +bool pci_realloc_enabled_by_user(void)
+> > > +{
+> > > +	return pci_realloc_enable == user_enabled;
+> > > +}
+> > 
+> > I don't like this.  I think the same bus renumbering can happen in the
+> > "auto_enabled" case, and I don't think we set pci_realloc_enable in
+> > that case.
+> > 
+> > But more generally, I think ultimately the PCI core should be able to
+> > reassign bus numbers arbitrarily to accommodate hotplugs (given the
+> > appropriate driver support to tolerate that, of course).
+> 
+> Could we keep track of the original perhaps?  Then drivers can know
+> what it was reassigned from?
 
-Hi Lyndon,
-
-Thanks for looking at this.
-
-> What if platform_profile itself was changed to separate the user/system
-> choice: the "desired" profile, from the "actual" profile(s)?
-
-From the user side this sounds right, and it matches what I would
-expect as a user: I pick one profile, each driver does the closest
-thing it can. A few observations from testing on this machine:
-
-1. The legacy /sys/firmware/acpi/platform_profile is where it actually
-   breaks today. When I set dell-pc=3Dquiet and the SoC slider=3Dlow-power
-   by hand, the legacy file reports "custom", and power-profiles-daemon
-   treats that as an external change and falls back to "balanced". If
-   the legacy file reported the desired profile instead of "custom",
-   the main userspace consumer would keep working.
-
-2. On the ordering: low-power / quiet / balanced / performance fit a
-   linear scale well. "cool" is less clear. On this Dell its DTT table
-   has the same PL1 range as quiet (15-19 W) but a lower skin
-   temperature target (40 vs 42 C), so it is more of a thermal
-   preference than a power level. Placing it next to quiet, or letting
-   drivers declare it as an alias of the nearest level, would probably
-   be good enough.
-
-3. Ties and gaps: when a driver has no exact match, rounding towards
-   the lower-power side seems the safer default (e.g. desired quiet ->
-   low-power on the SoC slider rather than balanced).
-
-As an interim step, the hidden-choice approach would fix power-saver
-on current Panther Lake Dell systems with a small, backportable
-change. Another user on the same model (XPS 14 DA14260) hit the same
-power-saver -> balanced fallback independently:
-https://github.com/omacom/omarchy/issues/14174
-
-I'm happy to test either approach on this hardware.
-
-Thanks,
-Vera
-
--------- Original Message --------
-On Monday, 10/19/26 at 15:21 Lyndon Sanche <lsanche@lyndeno.ca> wrote:
-Hello, thank you for reporting this.
-
-To me there are a number of ways we could handle this.
-
-On Fri Oct 16, 2026 at 1:10 PM EDT, verazimmerman1987 wrote:
-> This looks like the same class of problem as amd-pmf + asus-wmi,
-> which was solved by adding "quiet" as a hidden choice in amd-pmf
-> (commit 44e94fece517, "platform/x86/amd: pmf: Add 'quiet' to hidden
-> choices"). Would a similar hidden "quiet" (and perhaps "cool") choice
-> for the Intel SoC Power Slider, mapped to its low-power setting, be
-> acceptable? I'm happy to test patches.
-
-This certainly would fix the immediate issue: platform_profile providing
-consistent choices across handlers to allow selecting a range of
-profiles exposed by the system. I feel like there is a better way to
-handle this besides adding hidden profiles.
-
-What if platform_profile itself was changed to separate the user/system
-choice: the "desired" profile, from the "actual" profile(s)? In this
-scenario, different drivers expose different possible profiles, the
-system tries to apply the closest possible profile per-driver to the
-user's choice. The possible profiles would have an index to indicate
-where on a linear scale it lays. If I request quiet (2), but the Intel
-SoC slider only implements power-saver (3), the system chooses 3 for
-that driver.
-
-I am only thinking out loud and would find comments on this to be
-useful. I realize the behaviour of some profiles do not exactly fall on
-a linear scale so this would need consideration as well.
-
-Thanks,
-
-Lyndon
-
+I think the only thing that can change is the bus number, and saving
+the original bus number in a struct pci_bus or similar might be
+practical?
