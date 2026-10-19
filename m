@@ -1,57 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=10.30.226.211
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1792421678;
-	b=zK9TZKZCq03HLrDEuRoDYnCe23pJ7MYH9x5fHSYygPsGQbypoBLgbRF4Qr6M2p1iayZZ
-	 J6FdSoS+S663ft612f3zjzbeQbCpIqN3blODBXG6KJiJgryPj5R0yMLkap6G6f/0ApckH
-	 rajD//iIfRjumJ2IQrmt/e6Eg846lcqRjTZENLh2sjuDHTYqsm+OtUKfvqgCvqCMINmOE
-	 dsPHxLTwOX/Le66AlbaBJ20D61B2hRFXLAJiPsCniUBrIfnsiL1bYtbG/TB0/QLPCs/am
-	 jyHizuQlTisMBq4ydFdH/QLiI31vC1AGbYoV7e48AHJwMeLaBLyBG/nmW7Ar840C34A==
+	t=1792421676;
+	b=WpI9S6jIgrKMzBAoJr8IEKh40JK4WRYs09fX48BpBpHwoh4holrgwnMQAzGQlr5Jy46/
+	 HNSt4KjHbLmowmgkFX+PCD+Ss/M8bW5yKMAxRwYZXkbBrhL1+cX7jfKXrq7mv/fQZOvum
+	 0vUDi3HxMzuGsk4V/bYhSKkwUErR/t4kP1+3laNLlmUWNiEbpmrNokEnaum9GbkidHtkN
+	 b+6wP2TBW2ZnWb9DpL569rXq47+Oc2AE6j2E7YUb9r3b2f1rdYVRxL+jfleibQsWG0Jvs
+	 LX+Zt4OyI+WzejZp2Rt5uAEO0EROACFQvyY9sl6/+LEiR295YyZlH9qWBNitKMh7Nag==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792421678;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792421676;
 	h=Received:Received:Received:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Rspamd-Bar:X-Rspamd-Report:X-Rspamd-Score:
-	 DKIM-Signature;
-	bh=xOumFf8QovRxhD1eGGAGpu54ZcAWxs2MC729deNVVtU=;
-	b=l7JeS3KSkJO9NwYAu6yE5qzLujC0xsIlS7jvBLJiokMO8wiB72ngqTQNEZpDxBw9kxX8
-	 BRqtI8z21OB0skxLentWqZxp2bO8xB+1GqiOLHk7kPv7fM0cXE/0fYm/27CH8jXrtx//r
-	 zP9rgVz93jWPhoKioHaqA3+C3FisK8MxxeCjxg+10ufuiWLtEIPm0p0SEYwfd2CfyY7mp
-	 VYEKwBDTDXNo6YnvrLy8VA06eF0Huybu1jlSqxOyiNN5MNBZaYJi+5nY/Xy8F+uKQpQEh
-	 ggxu3joqR/uM1jipTsjeAQ1QY9fuALoiS6/U3oApXTOecmazLYgxnX9wkbQNI8T0onw==
+	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
+	 X-Rspamd-Bar:X-Rspamd-Report:X-Rspamd-Score:DKIM-Signature;
+	bh=WkQB7qDFPVZGub3RTV6RHc3gNA986fIdMZHw4FaBpKE=;
+	b=PqbsBc0mBpUz03mLELEt7Jo/5wxXtxw8/f6BGGt2L2l/G/qIA6kpBvfe7Q/O9v6g67Ra
+	 fjN1nXS56N2OQxMTTrHwMWZmoCMPKozeyYfAqEQHEqJLYc+OqmeX+Jj8YOS0epfSNpmCS
+	 lGhcWBtIQRVa84lm3I3tImfF6gcyorNU/m5z9VIhmy49kSSz9dv0mfqdeJ8R1cgvfxcel
+	 eh84EJG5VmwuO4Q33GmzTpqeJJvROVbDt0dh316zeifI3+nkgl58Fu7jqX69Rj5U96z9c
+	 rXXAlt/D2mcezPyNIr09gvuQ0bCMN2xYOKXnJeB+g3lC8iHHC9fAzLb/NjZgO6b1ZOg==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=G34Zwobk;
+	dkim=pass header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=Q1FxhUA2;
 	dmarc=pass header.from=lausen.nl;
 	spf=pass smtp.mailfrom=lausen.nl;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=10.30.226.211
 Received: from aws-us-west-2-korg-listserv-1.web.codeaurora.org (ip-10-30-226-211.us-west-2.compute.internal [10.30.226.211])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id AACD4606DA76
-	for <linux-acpi.vger.kernel.org@localhost.mlmmj>; Mon, 19 Oct 2026 14:54:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8DD5B606DA6F
+	for <linux-acpi.vger.kernel.org@localhost.mlmmj>; Mon, 19 Oct 2026 14:54:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key, unprotected) header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=G34Zwobk
+	dkim=pass (4096-bit key, unprotected) header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=Q1FxhUA2
 Received: from mailgate01.uberspace.is (mailgate01.uberspace.is [95.143.172.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D17634C8461
-	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 14:54:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4828A3FDC18
+	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 14:54:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.143.172.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792421678; cv=none; b=lgikfT6EbBVKOUslH+dlp+gnpuNcZWUQlvMdqYCsDRV+0o/FW+wFpRZ7EfurpuTzR7Zg5DXtYSknGSP+HQY8l1zjsI7aUGCDmjkJCpJkjIPGLj7SW9nQnn89HIVhXjB45+QsPOT4gTEEBGY0By+DptNmE75YAipoQXj1bazH9FA=
+	t=1792421676; cv=none; b=D+Gceat42qACmYLZvB8HDBBAiz6jPyUthD9OxeZYxsOnlc9WSUUiNn6/imS6Dko4UyvKq0vMIG7x8Fg/5d5hLvBDW++H9nDyyoR0PeNFR9SynYQ+TfSbhrPFQKxJ0Klh6KwVMYzIqpmd9n7mnt74zuEgMDOhvBS+PcoOHYyL8/0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792421678; c=relaxed/simple;
-	bh=Hipy/KE3TsEelU94kP3nCg+Z58+mCcvF4l6Qeuvkmms=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=EO09gdI20sJDNtCctVxH1mNhisFEfbMIiM+2Z2vOGNSsL957hM7Vhd+jaZ6JOegCt8dTEs/SYnikEzDaBHf5E6MnUPLAuqjwJqjVT/wTtUeNVfy0oAwiqRPORALAxQUTkC9YQ61dWO7p5VhJrxCyXvqV9hsdOfG4rcpe3diY4vs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lausen.nl; spf=pass smtp.mailfrom=lausen.nl; dkim=pass (4096-bit key) header.d=lausen.nl header.i=@lausen.nl header.b=G34Zwobk; arc=none smtp.client-ip=95.143.172.20
+	s=arc-20240116; t=1792421676; c=relaxed/simple;
+	bh=7XMXx1Y7exmnq8CDw6ZcXKJ1xd2nrPwkUnm6kz2V26M=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=KfXPQdhf5fzHq/XCDeIhuOds7id8IPZK7DaLCpt4zofGa5qCwAxQZgM5TQzLq7XCQgv/zASNNFUZa2cicwDnb7b1DUrXbSADGkRhorI8ce+Irl7FZ/+Ngz3Hqj8y7GocrxXsPgUpzzAImlk7yYJ7oieB4447I3vQ6DTWE1VcQMw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lausen.nl; spf=pass smtp.mailfrom=lausen.nl; dkim=pass (4096-bit key) header.d=lausen.nl header.i=@lausen.nl header.b=Q1FxhUA2; arc=none smtp.client-ip=95.143.172.20
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lausen.nl
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lausen.nl
 Received: from devico.uberspace.de (devico.uberspace.de [185.26.156.185])
-	by mailgate01.uberspace.is (Postfix) with ESMTPS id 3EB1761147
-	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 16:54:35 +0200 (CEST)
-Received: (qmail 28350 invoked by uid 990); 19 Oct 2026 14:54:35 -0000
+	by mailgate01.uberspace.is (Postfix) with ESMTPS id 8136261134
+	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 16:54:32 +0200 (CEST)
+Received: (qmail 28266 invoked by uid 990); 19 Oct 2026 14:54:32 -0000
 Authentication-Results: devico.uberspace.de;
 	auth=pass (plain)
 Received: from unknown (HELO unknown) (::1)
-	by devico.uberspace.de (Haraka/3.1.1) with ESMTPSA; Mon, 19 Oct 2026 16:54:34 +0200
+	by devico.uberspace.de (Haraka/3.1.1) with ESMTPSA; Mon, 19 Oct 2026 16:54:32 +0200
 From: Leonard Lausen <leonard@lausen.nl>
 To: linux-acpi@vger.kernel.org,
 	"Rafael J. Wysocki" <rafael@kernel.org>
@@ -64,12 +62,10 @@ Cc: leonard@lausen.nl,
 	Ivan Hu <ivan.hu@canonical.com>,
 	Joshua Grisham <josh@joshuagrisham.com>,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH 1/3] ACPICA: Initialize ParserState.AmlEnd in AcpiInstallMethod
-Date: Mon, 19 Oct 2026 16:54:17 +0200
-Message-ID: <20261019145421.47181-2-leonard@lausen.nl>
+Subject: [PATCH 0/3] ACPI: Work around Samsung Galaxy Book 930XDB firmware errors
+Date: Mon, 19 Oct 2026 16:54:16 +0200
+Message-ID: <20261019145421.47181-1-leonard@lausen.nl>
 X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20261019145421.47181-1-leonard@lausen.nl>
-References: <20261019145421.47181-1-leonard@lausen.nl>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -80,71 +76,74 @@ List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Rspamd-Bar: -----
-X-Rspamd-Report: REPLY(-4) BAYES_HAM(-2.97699) MID_CONTAINS_FROM(1) MIME_GOOD(-0.1) R_MISSING_CHARSET(0.5)
-X-Rspamd-Score: -5.57699
+X-Rspamd-Bar: -
+X-Rspamd-Report: MID_CONTAINS_FROM(1) BAYES_HAM(-2.999969) MIME_GOOD(-0.1) R_MISSING_CHARSET(0.5)
+X-Rspamd-Score: -1.599969
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
 	d=lausen.nl; s=uberspace;
 	h=from:to:cc:subject:date;
-	bh=Hipy/KE3TsEelU94kP3nCg+Z58+mCcvF4l6Qeuvkmms=;
-	b=G34Zwobk7+jTQBscFXiVl0wGO6Tg694XtvV7EdCgNByMswpXAAHkC/NWoS2OHCCmmc4Wx9aC08
-	f9GuU5l6gfqtWFwQ/elECYEZhu1HPdedLFG/2IeOv0gmoTaz/n76FjaNvQbblViulMw+UOVgzcRz
-	20ndPfGyGVhYSuYRc/QmLtVRwr3ZZZnSYHsjedOTyC6LnyUu5eEtkWtSEND+7ZOe+omi6z7KIooQ
-	wroZrKtbzgISr/hCm7jRhUhIV1R9KfsO16VzW69N48yJlIkCWuM/61tte2qrzzEdkVtoxDwurYok
-	w1alnWRJN1rAqFA3JJGyzK5G5CgpoTMugQnarBVGA+uIdYlKL1K6Uz2LqiFxAZtgw0IcruSiW669
-	4An0xXHOJb8/W9hTbNYzlNCNLuLfdaKUstzBI03uSKQJ3Y+XSMw1Hd/2/vPnjLmbOQQNZpGfTrrh
-	s+qkcFWI9mIqZmk9Smxjc578MaAHK2c5ikFCUhmEuQa1YXVZsX52pNCHvz8SMwGX47oWWhXmJl6F
-	uf3WoBUzgjhXqt1pdehm0q0TyAZVuZaexC/4VZq/idZ7tcvgH1TLaIH/HsfyYoR0495PxzyyvTrE
-	9oep4yW+QlozYICzBmA84E4GO20dkv9dJQSw2kE+56GZ3Ra8XLmUnHkcch3gSOxSi/Guu6+KbAAm
-	8=
+	bh=7XMXx1Y7exmnq8CDw6ZcXKJ1xd2nrPwkUnm6kz2V26M=;
+	b=Q1FxhUA2qSv9UrISvCXPVWNroaQCDNyfK9oPlpMB/PtstW3V4rLHIes4mUnbwdz03uUd+/seiV
+	TbF4zY1mxPLpUwLNgZ+iphBvVDOvGPEz1/9RYzb+njjOrKiGW+6Sww/rJfCvNck8EfNxC4KrY7zK
+	doSk1dRfuiBjaRj+sjzE7OvUictr6gpuKP3YZ+wIznMOlVFq5HN6zPlhK9+Iz8MpbLp7CJ/D/jsS
+	mFeuNl/TbvSWrWTKqccjMh+44dIi5OAqwxZFJ5wE+z4Wa7E65ESywbo6s0wDc36xuWvuTbtkHw+H
+	BFU280bjc3h225cBZ98xN0Y243n/r7NkcU/VJbetcFiasPcbr9m3Lg8YkMfYwClIUmCW9wRxRcXw
+	L0O6Tawqo8QraIPxkKS9LCmwN1+oLRmsF0PRIICCi3xC0B8GpVVseUqnw9nhfJZJbqVnXLOlHV6/
+	V5DMGXverJFdSfaxz52E8R7Dr62M1eGmWgCqFyouLD3AP8swjhCr4zKzSvelX2yNuJ7qa9wm2JN/
+	etJ73HrcN7/AnPSN9EJVZcsLWVucDfX6W42B8O3FCjyrKBcsxlc7Jnhvu+RbX++OCrIgd7nDX7+3
+	tFb8IdRzI41Oqng6Gm729DZdOPeTLQmH+xyaVizZMgmCFqotGfoqSiqxSCs6r4BE/+FrXe7GaQxp
+	4=
 
-From: Ivan Hu <ivan.hu@canonical.com>
+This series addresses two firmware errors on my Samsung Galaxy Book
+930XDB (NP930XDB-KF2US): repeated FAN0._FST errors when the fan is running,
+and a wrong namespace lookup in PEG0._STA.
 
-In AcpiInstallMethod(), the local ParserState is stack-allocated and
-only ParserState.Aml was initialized. Parser helpers called by this path
-read ParserState.AmlEnd for bounds checking: AcpiPsPeekOpcode() reads it
-before validating the first AML opcode, and AcpiPsGetNextPackageEnd()
-reads it indirectly via AcpiPsGetNextPackageLength(). The subsequent
-package-limit check also compares against ParserState.AmlEnd. Because
-AmlEnd was never set, these checks operated on an uninitialized value,
-which Coverity flagged as an uninitialized read (CID 1684785) and which
-could lead to incorrect parser bounds decisions.
+The tested system identifies itself as:
+  System vendor: SAMSUNG ELECTRONICS CO., LTD.
+  Product name: 930XDB/931XDB/930XDY
+  BIOS version: P11RFX.067.230331.SP (03/31/2023)
 
-Coverity report:
+Patch 1 ports Ivan Hu's already accepted ACPICA parser fix [1]. This is a
+prerequisite for patch 3, which uses acpi_install_method() to replace
+PEG0._STA before namespace initialization evaluates it. Patch 2 skips the
+broken fan status method and its notification handling while preserving
+legacy fan control. Both firmware quirks match the vendor and full DMI
+product string.
 
-*** CID 1684785:         Memory - illegal accesses  (UNINIT)
-/src/acpica/source/components/namespace/nsxfname.c: 712             in AcpiInstallMethod()
-        ParserState.Aml += AcpiPsGetOpcodeSize (Opcode);
->>>     CID 1684785:         Memory - illegal accesses  (UNINIT)
->>>     Using uninitialized value "ParserState.AmlEnd" when calling
-        "AcpiPsGetNextPackageEnd".
-        ParserState.PkgEnd = AcpiPsGetNextPackageEnd (&ParserState);
+Testing on this machine includes a successful Linux 7.3 (7.3.0+) boot
+with both quirks enabled. I have also been running the original versions
+of these fixes during general laptop use, including suspend/resume, and
+fan behavior has been fine.
 
-Initialize ParserState.AmlEnd to the end of the table
-(Buffer + Table->Length) so the parser bounds checks operate on a valid
-limit.
+Additional validation during preparation:
+  - All five changed C files build on x86_64 with W=1.
+  - All patches pass scripts/checkpatch.pl --strict.
+  - acpiexec fixtures reproduce the original PEG0 lookup error and verify
+    that the replacement returns 0 or 0x0f according to the root PG0E field.
+  - A fixture of FAN0._FST reproduces the reference/Add error at nonzero
+    speed and confirms that the zero-speed path can succeed.
 
-Link: https://github.com/open-acpica/acpica/commit/19429ef91ebfb2144c918038dce13e297b4ef051
-Fixes: bdc357540129 ("ACPICA: add boundary checks in two places")
-Signed-off-by: Ivan Hu <ivan.hu@canonical.com>
-Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Signed-off-by: Leonard Lausen <leonard@lausen.nl>
----
- drivers/acpi/acpica/nsxfname.c | 1 +
- 1 file changed, 1 insertion(+)
+A separate platform/x86 patch accepts notification 0x71 in the Samsung
+Galaxy Book driver. It has no dependency on this ACPI series.
 
-diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfname.c
-index b6534187cd43..fcd94947fedb 100644
---- a/drivers/acpi/acpica/nsxfname.c
-+++ b/drivers/acpi/acpica/nsxfname.c
-@@ -503,6 +503,7 @@ acpi_status acpi_install_method(u8 *buffer)
- 	/* First AML opcode in the table must be a control method */
- 
- 	parser_state.aml = buffer + sizeof(struct acpi_table_header);
-+	parser_state.aml_end = buffer + table->length;
- 	opcode = acpi_ps_peek_opcode(&parser_state);
- 	if (opcode != AML_METHOD_OP) {
- 		return (AE_BAD_PARAMETER);
+[1] https://github.com/open-acpica/acpica/commit/19429ef91ebfb2144c918038dce13e297b4ef051
+
+Ivan Hu (1):
+  ACPICA: Initialize ParserState.AmlEnd in AcpiInstallMethod
+
+Leonard Lausen (2):
+  ACPI: fan: Ignore broken _FST on Samsung Galaxy Book 930XDB
+  ACPI: x86: Repair broken PEG0._STA on Samsung Galaxy Book 930XDB
+
+ drivers/acpi/acpica/nsxfname.c |  1 +
+ drivers/acpi/bus.c             |  2 ++
+ drivers/acpi/fan_core.c        | 31 +++++++++++++++++---
+ drivers/acpi/x86/utils.c       | 53 ++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h        |  2 ++
+ 5 files changed, 85 insertions(+), 4 deletions(-)
+
+
+base-commit: c03c1a14507dfaf8b856c2608f9ac216021fc222
 -- 
 2.55.0
 
