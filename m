@@ -1,352 +1,104 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
+Received: from canpmsgout04.his.huawei.com (canpmsgout04.his.huawei.com [113.46.200.219])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFC644A384A;
-	Mon, 19 Oct 2026 08:51:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5390447DD44;
+	Mon, 19 Oct 2026 08:52:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.219
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792399890; cv=none; b=EQRL5s8sbrYyQxxvWtfKISu+KvOtXcvt7tbup+bUw+SKO6EXEo44xEZxWmWqG1vFybAIqmtD6ud+z6PTmWhByfgkJbMxXCKvthQrk4g7M/UGiDCUHukcSrBitPL0vt6WwLF8Mqh6IjudCVqkpzKI16cEP0FZY2ZI37MNjuNcf+c=
+	t=1792399935; cv=none; b=nvFrYrxe64NiGQS67N/EAUAnLuq3WAkWwSZzTz+xZd+BD3hTjoJt2JtEiuD2iiTgo0rl9k7SmMhk+n7I2cTMW5PfMvL1MYam3PL223lhFjKKrHe4LyBgj8ixgGSOge7bfSailw/at2A2NJaQSyvEUWotdZAZAjHM5e4hVG2EZR4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792399890; c=relaxed/simple;
-	bh=2NSqRpEuX7v4Xg6GlQD2CRZRzWslpUrxuvy9cVQX8KA=;
-	h=From:Date:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=o/45fPUTakJGwko3WzQecXC6Ah4/RoaStGNxmY7oXVzSi6DN/HcEOEKCcOFxXse2jvTOOseXuiH4cWLDzxnUsNIj1h/keZzgw0kww1nmmP4Hx6viJ9rWhqyTktvTz4d9sdyqsDvPjzmMasHluzLYrH0zGMsfusySPo52myQ19dk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ZU/Ytda9; arc=none smtp.client-ip=192.198.163.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1792399935; c=relaxed/simple;
+	bh=MUCbYR8v18SbB6OH/HVYNU3LttmfdwnVvjpPi4IMhV0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=P3ZTGbRmsWE/URLWHAiL+Vh9CLk3hxAadxeiJQuB/zzyZpSbefOurNGCEFVXAmTe40I0bmjzvKliurPX7YEsJmXMR8gO2kPPSJNi4pgSBIVd/0DrDkg7GEJT3wEP0z2cVQT9fXz2jXnR3pTWO8tQjxwz6t2w9kIuAIsLFz+NF48=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=GT1bZLoW; arc=none smtp.client-ip=113.46.200.219
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ZU/Ytda9"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1792399889; x=1823935889;
-  h=from:date:to:cc:subject:in-reply-to:message-id:
-   references:mime-version;
-  bh=2NSqRpEuX7v4Xg6GlQD2CRZRzWslpUrxuvy9cVQX8KA=;
-  b=ZU/Ytda98a15JME8b7XfeFYCF+rMiC1EOQFoyAZv3igQd93AxpHJhr0N
-   jSkOnYBHjgswa9HWj5KvuEk/LHu/KLz9MbGMihIzeTnr3VLNrG6w6MfZo
-   cJDV1L0aWKZfCaVL0KgCHD3Bz+vYdpeHOFWSE7KLylbXSts84Qjb+ruSD
-   2xbdxjt8LeN2d8idDfXGppTTcMopPzwhLFlXVdnresDGyYTBOdjwIN8J1
-   BlbfcKsd54xuijH/7NUDXqI/Dhz8ibPbzAOcGrXDAk7vQ0bzjJvjWnkU0
-   f0emVCaKEMXyDXOb7O7RFVJftyDEZ1xSvdgJnXNOUPiatJG1sk6Jg7Fxs
-   w==;
-X-CSE-ConnectionGUID: K0+cD5I9Qi2bf4ETsBrW7w==
-X-CSE-MsgGUID: 2nJnt8ONQciwEddG5LPw3A==
-X-IronPort-AV: E=McAfee;i="6800,10657,11939"; a="1100550"
-X-IronPort-AV: E=Sophos;i="6.27,167,1787036400"; 
-   d="scan'208";a="1100550"
-Received: from fmviesa012.fm.intel.com ([10.60.135.152])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Oct 2026 01:51:09 -0700
-X-CSE-ConnectionGUID: Ks/3HmzpQyy4sifFt1K2aA==
-X-CSE-MsgGUID: 9uRHwIj9TzqlaBf9HksSbw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,167,1787036400"; 
-   d="scan'208";a="4239543"
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.177])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Oct 2026 01:51:01 -0700
-From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Date: Mon, 19 Oct 2026 11:50:56 +0300 (EEST)
-To: Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
-cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
-    Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
-    Viresh Kumar <viresh.kumar@linaro.org>, Hans de Goede <hansg@kernel.org>, 
-    Maximilian Luz <luzmaximilian@gmail.com>, 
-    Shyam Sundar S K <Shyam-sundar.S-k@amd.com>, 
-    Mark Pearson <mpearson-lenovo@squebb.ca>, 
-    "Derek J. Clark" <derekjohn.clark@gmail.com>, 
-    Daniel Lezcano <daniel.lezcano@kernel.org>, 
-    Zhang Rui <rui.zhang@intel.com>, Lukasz Luba <lukasz.luba@arm.com>, 
-    Armin Wolf <W_Armin@gmx.de>, Jai Luthra <jai.luthra@ideasonboard.com>, 
-    Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-    "Mario Limonciello (AMD)" <superm1@kernel.org>, 
-    Jack Wu <jackbb_wu@compal.com>, 
-    Mario Limonciello <mario.limonciello@amd.com>, 
-    Zhang DM <jixianqiang1540@gmail.com>, linux-acpi@vger.kernel.org, 
-    LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org, 
-    linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] platform profile: Separate handler locking from
- sysfs lifetime
-In-Reply-To: <20261019073930.2352283-2-daniel.lezcano@oss.qualcomm.com>
-Message-ID: <2818716f-3502-aa4b-0b7b-4efc61e46f6c@linux.intel.com>
-References: <20261019073930.2352283-1-daniel.lezcano@oss.qualcomm.com> <20261019073930.2352283-2-daniel.lezcano@oss.qualcomm.com>
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="GT1bZLoW"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=9RA/hcHJY3Xat3tCcIdPXsEW1mdR/MAvb3pTyuaKtH8=;
+	b=GT1bZLoWEeUhVI9pHxVGG5Ih5t07PJ7PhNfPRlbaE6gxZFAUryRnYskkR/n2v4K6+kzhR3gNZ
+	GFY97Pdf5N+UsxDTpm2dJa7f5PXuLu/jkhwrISX8RblokF3/07EYt7DotxFJMl8Kpy6VH79B1q0
+	qJGqGHYJkgZmEVNFdymwEF4=
+Received: from mail.maildlp.com (unknown [172.19.162.223])
+	by canpmsgout04.his.huawei.com (SkyGuard) with ESMTPS id 4j7TnJ4Sr4z1prlN;
+	Mon, 19 Oct 2026 16:52:04 +0800 (CST)
+Received: from kwepemk300013.china.huawei.com (unknown [7.202.194.231])
+	by mail.maildlp.com (Postfix) with ESMTPS id 47EFD40575;
+	Mon, 19 Oct 2026 16:52:07 +0800 (CST)
+Received: from [10.67.121.183] (10.67.121.183) by
+ kwepemk300013.china.huawei.com (7.202.194.231) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Mon, 19 Oct 2026 16:52:05 +0800
+Message-ID: <9eb6e0fe-5d8a-499c-b19b-ce73fe982451@huawei.com>
+Date: Mon, 19 Oct 2026 16:52:04 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC 00/12] arm64: Add support for TLBI domains
+To: =?UTF-8?Q?Kristina_Mart=C5=A1enko?= <kristina.martsenko@arm.com>,
+	<linux-arm-kernel@lists.infradead.org>, <linux-acpi@vger.kernel.org>,
+	<kvmarm@lists.linux.dev>, <linux-efi@vger.kernel.org>
+CC: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>, Ryan Roberts <ryan.roberts@arm.com>,
+	David Hildenbrand <david@kernel.org>, Lorenzo Stoakes <ljs@kernel.org>, Linu
+ Cherian <linu.cherian@arm.com>, Anshuman Khandual
+	<anshuman.khandual@arm.com>, Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+	Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>, Fuad Tabba
+	<fuad.tabba@linux.dev>, Joey Gouly <joey.gouly@arm.com>, Steffen Eiden
+	<seiden@linux.ibm.com>, Suzuki K Poulose <suzuki.poulose@arm.com>, Zenghui Yu
+	<yuzenghui@huawei.com>, Ard Biesheuvel <ardb@kernel.org>, Ilias Apalodimas
+	<ilias.apalodimas@linaro.org>
+References: <20261001110655.461473-1-kristina.martsenko@arm.com>
+From: Jinqian Yang <yangjinqian1@huawei.com>
+In-Reply-To: <20261001110655.461473-1-kristina.martsenko@arm.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
+ kwepemk300013.china.huawei.com (7.202.194.231)
 
-On Mon, 19 Oct 2026, Daniel Lezcano wrote:
+Hi,
 
-> Registration and removal currently hold profile_lock across
-> device_unregister() and sysfs_update_group(). These operations can remove
-> sysfs attributes and wait for their active callbacks to finish. The
-> profile read and write callbacks acquire profile_lock themselves, so a
-> concurrent access can deadlock:
+On 2026/10/1 19:06, Kristina Martšenko wrote:
+> Hi,
 > 
->   Removal/update path             Active sysfs callback
->   -------------------             ---------------------
->   acquire profile_lock            hold kernfs active reference
->   remove a sysfs attribute         wait for profile_lock
->   wait for its active references
+> This series allows the kernel to use TLBI domains. TLBI domains (FEAT_TLBID) is
+> an Arm architecture feature that enables a TLB invalidation to target a subset
+> of CPUs instead of the whole system. It can improve performance on systems with
+> many CPUs. TLBID is not yet part of the Arm Architecture Reference Manual but
+> some of it is described in the latest XML [1].
 > 
-> The removal path cannot finish until the callback returns, and the
-> callback cannot return until the removal path releases profile_lock.
-> This applies both to per-provider device teardown and to updates of the
-> legacy aggregate attribute group.
+> The goal of this series is to send TLBI commands only to the CPUs where a
+> process has run (i.e. where its page tables have been installed). The last
+> patch explains a bit about how it works. This is an RFC since I'm not familiar
+> with the kernel's TLB/mm code and I'd like feedback on whether the general
+> approach is correct.
 > 
-> Commit 041142d7d252 ("ACPI: platform-profile: Fix possible deadlock in
-> platform_profile_remove()") previously fixed this lock ordering by moving
-> sysfs_remove_group() outside profile_lock. Commit 55b1e68134bf ("ACPI:
-> platform_profile: Use guard(mutex) for register/unregister") reintroduced
-> the issue by extending the mutex guard over sysfs_remove_group(). Later,
-> commit 77be5cacb2c2 ("ACPI: platform_profile: Create class for ACPI
-> platform profile") replaced that teardown with device_unregister() and
-> sysfs_update_group(), still under the same mutex, extending the problem
-> to class-device teardown and aggregate attribute updates.
-> 
-> Simply dropping profile_lock around these operations is insufficient.
-> Aggregate operations currently discover providers through the class
-> device list. A provider being unregistered could therefore still be
-> selected for an aggregate read, write or cycle while its sysfs files are
-> being torn down. Concurrent registrations and removals would also race
-> when updating aggregate attribute visibility.
-> 
-> Introduce profile_registration_lock to serialize registration, removal
-> and aggregate sysfs updates. Sysfs callbacks never acquire this mutex.
-> Retain profile_lock for profile operations and use it to protect an
-> explicit list of handlers participating in the aggregate interface.
-> 
-> Add a handler to that list only after device_register() succeeds. On
-> removal, unlink it under profile_lock before calling device_unregister().
-> Acquiring profile_lock first waits for any aggregate operation already
-> using the handler to complete; unlinking prevents later aggregate
-> operations from finding it. Release profile_lock before draining sysfs
-> callbacks, allowing active per-provider callbacks to complete before the
-> device is released. Apply the same unlink-before-unregister ordering to
-> registration error cleanup.
-> 
-> Walk this list for aggregate reads, writes and profile cycling, and use
-> its emptiness to determine aggregate attribute visibility. The class
-> devices remain the per-provider userspace interface.
-> 
-> There can now be an interval between removing the last handler from the
-> list and removing the aggregate attributes. Explicitly reject choices
-> reads and writes during that interval: the intersection bitmap starts
-> with every bit set, so an empty traversal must not advertise all profiles
-> or report a successful write without updating a provider.
-> 
-> This separates aggregate membership from class device teardown while
-> preserving the existing class and ACPI sysfs interfaces.
-> 
-> Fixes: 55b1e68134bf ("ACPI: platform_profile: Use guard(mutex) for register/unregister")
-> Assisted-by: OpenCode:gpt-6.1-sol
-> Signed-off-by: Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
-> ---
->  drivers/acpi/platform_profile.c | 75 ++++++++++++++++++---------------
->  1 file changed, 42 insertions(+), 33 deletions(-)
-> 
-> diff --git a/drivers/acpi/platform_profile.c b/drivers/acpi/platform_profile.c
-> index 79d2e92e5c28..f98ce4cda02c 100644
-> --- a/drivers/acpi/platform_profile.c
-> +++ b/drivers/acpi/platform_profile.c
-> @@ -8,6 +8,7 @@
->  #include <linux/bits.h>
->  #include <linux/cleanup.h>
->  #include <linux/init.h>
-> +#include <linux/list.h>
->  #include <linux/mutex.h>
->  #include <linux/platform_profile.h>
->  #include <linux/sysfs.h>
-> @@ -15,8 +16,12 @@
->  #define to_pprof_handler(d)	(container_of(d, struct platform_profile_handler, dev))
->  
->  static DEFINE_MUTEX(profile_lock);
 
-Should definitely add comment to this lock as well to explain what it 
-protects.
+Thanks for posting this series.
 
-> +/* Serialize registration and sysfs updates without blocking sysfs callbacks. */
-> +static DEFINE_MUTEX(profile_registration_lock);
-> +static LIST_HEAD(profile_handlers);
+I'm working on the KVM side of TLBID, and have a series that
+virtualizes TLBI domains for guests. It includes:
 
--- 
- i.
+  - per-vCPU vDomain configuration via a new capability and
+    two ioctls
+  - VTLBID_EL2 programming at vCPU load/put, mapping vDomains
+    to physical domains
+  - a guest visible TLBIDIDR_EL1 with virtual domain counts,
+    and conditional exposure of ID_AA64MMFR4_EL1.TLBID
 
+You mentioned you planned to look at KVM support in your next
+version. Would it be OK for us to post this as an RFC on top
+of your series? :)
 
->  struct platform_profile_handler {
-> +	struct list_head node;
->  	const char *name;
->  	struct device dev;
->  	int minor;
-> @@ -44,6 +49,22 @@ static_assert(ARRAY_SIZE(profile_names) == PLATFORM_PROFILE_LAST);
->  
->  static DEFINE_IDA(platform_profile_ida);
->  
-> +static int profile_walk_handlers(void *data,
-> +				 int (*fn)(struct device *dev, void *data))
-> +{
-> +	struct platform_profile_handler *handler;
-> +	int ret;
-> +
-> +	lockdep_assert_held(&profile_lock);
-> +	list_for_each_entry(handler, &profile_handlers, node) {
-> +		ret = fn(&handler->dev, data);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  /**
->   * _commmon_choices_show - Show the available profile choices
->   * @choices: The available profile choices
-> @@ -306,20 +327,18 @@ static ssize_t platform_profile_choices_show(struct kobject *kobj,
->  	int err;
->  
->  	scoped_cond_guard(mutex_intr, return -ERESTARTSYS, &profile_lock) {
-> -		err = class_for_each_device(&platform_profile_class, NULL,
-> -					    &data, _aggregate_choices);
-> +		err = profile_walk_handlers(&data, _aggregate_choices);
->  		if (err)
->  			return err;
->  		if (data.count == 1) {
-> -			err = class_for_each_device(&platform_profile_class, NULL,
-> -						    &data, _remove_hidden_choices);
-> +			err = profile_walk_handlers(&data, _remove_hidden_choices);
->  			if (err)
->  				return err;
->  		}
->  	}
->  
->  	/* no profile handler registered any more */
-> -	if (bitmap_empty(data.aggregate, PLATFORM_PROFILE_LAST))
-> +	if (!data.count || bitmap_empty(data.aggregate, PLATFORM_PROFILE_LAST))
->  		return -EINVAL;
->  
->  	return _commmon_choices_show(data.aggregate, buf);
-> @@ -384,8 +403,7 @@ static ssize_t platform_profile_show(struct kobject *kobj,
->  	int err;
->  
->  	scoped_cond_guard(mutex_intr, return -ERESTARTSYS, &profile_lock) {
-> -		err = class_for_each_device(&platform_profile_class, NULL,
-> -					    &profile, _aggregate_profiles);
-> +		err = profile_walk_handlers(&profile, _aggregate_profiles);
->  		if (err)
->  			return err;
->  	}
-> @@ -423,15 +441,13 @@ static ssize_t platform_profile_store(struct kobject *kobj,
->  		return -EINVAL;
->  
->  	scoped_cond_guard(mutex_intr, return -ERESTARTSYS, &profile_lock) {
-> -		ret = class_for_each_device(&platform_profile_class, NULL,
-> -					    &data, _aggregate_choices);
-> +		ret = profile_walk_handlers(&data, _aggregate_choices);
->  		if (ret)
->  			return ret;
-> -		if (!test_bit(i, data.aggregate))
-> +		if (!data.count || !test_bit(i, data.aggregate))
->  			return -EOPNOTSUPP;
->  
-> -		ret = class_for_each_device(&platform_profile_class, NULL, &i,
-> -					    _store_and_notify);
-> +		ret = profile_walk_handlers(&i, _store_and_notify);
->  		if (ret)
->  			return ret;
->  	}
-> @@ -450,22 +466,11 @@ static struct attribute *platform_profile_attrs[] = {
->  	NULL
->  };
->  
-> -static int profile_class_registered(struct device *dev, const void *data)
-> -{
-> -	return 1;
-> -}
-> -
->  static umode_t profile_class_is_visible(struct kobject *kobj, struct attribute *attr, int idx)
->  {
-> -	struct device *dev;
-> -
-> -	dev = class_find_device(&platform_profile_class, NULL, NULL, profile_class_registered);
-> -	if (!dev)
-> -		return 0;
-> -
-> -	put_device(dev);
-> +	guard(mutex)(&profile_lock);
->  
-> -	return attr->mode;
-> +	return list_empty(&profile_handlers) ? 0 : attr->mode;
->  }
->  
->  static const struct attribute_group platform_profile_group = {
-> @@ -502,8 +507,7 @@ int platform_profile_cycle(void)
->  	int err;
->  
->  	scoped_cond_guard(mutex_intr, return -ERESTARTSYS, &profile_lock) {
-> -		err = class_for_each_device(&platform_profile_class, NULL,
-> -					    &profile, _aggregate_profiles);
-> +		err = profile_walk_handlers(&profile, _aggregate_profiles);
->  		if (err)
->  			return err;
->  
-> @@ -512,8 +516,7 @@ int platform_profile_cycle(void)
->  		    profile == PLATFORM_PROFILE_LAST)
->  			return -EINVAL;
->  
-> -		err = class_for_each_device(&platform_profile_class, NULL,
-> -					    &data, _aggregate_choices);
-> +		err = profile_walk_handlers(&data, _aggregate_choices);
->  		if (err)
->  			return err;
->  
-> @@ -525,8 +528,7 @@ int platform_profile_cycle(void)
->  					  PLATFORM_PROFILE_LAST,
->  					  profile + 1);
->  
-> -		err = class_for_each_device(&platform_profile_class, NULL, &next,
-> -					    _store_and_notify);
-> +		err = profile_walk_handlers(&next, _store_and_notify);
->  
->  		if (err)
->  			return err;
-> @@ -583,7 +585,7 @@ struct device *platform_profile_register(struct device *dev, const char *name,
->  		}
->  	}
->  
-> -	guard(mutex)(&profile_lock);
-> +	guard(mutex)(&profile_registration_lock);
->  
->  	/* create class interface for individual handler */
->  	minor = ida_alloc(&platform_profile_ida, GFP_KERNEL);
-> @@ -604,6 +606,8 @@ struct device *platform_profile_register(struct device *dev, const char *name,
->  		put_device(ppdev);
->  		goto cleanup_ida;
->  	}
-> +	scoped_guard(mutex, &profile_lock)
-> +		list_add_tail(&to_pprof_handler(ppdev)->node, &profile_handlers);
->  
->  	sysfs_notify(acpi_kobj, NULL, "platform_profile");
->  
-> @@ -614,6 +618,8 @@ struct device *platform_profile_register(struct device *dev, const char *name,
->  	return ppdev;
->  
->  cleanup_cur:
-> +	scoped_guard(mutex, &profile_lock)
-> +		list_del(&to_pprof_handler(ppdev)->node);
->  	device_unregister(ppdev);
->  
->  cleanup_ida:
-> @@ -636,7 +642,10 @@ void platform_profile_remove(struct device *dev)
->  
->  	pprof = to_pprof_handler(dev);
->  
-> -	guard(mutex)(&profile_lock);
-> +	guard(mutex)(&profile_registration_lock);
-> +
-> +	scoped_guard(mutex, &profile_lock)
-> +		list_del(&pprof->node);
->  
->  	ida_free(&platform_profile_ida, pprof->minor);
->  	device_unregister(&pprof->dev);
-> 
+Thanks,
+Jinqian
+
