@@ -1,155 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=2 smtp.remote-ip=52.101.69.61
-ARC-Seal: i=3; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1792432555;
-	b=IWL9gylBPire8JvdMYXC7EA2wj2eUjMv9UW6Gv6H3wYprewk60SZmCXjauMvHCYUrY1M
-	 YsHPBaaDfIbfIoQ132ATWMq8kLCNGZCqZ8CnwN97n8R+iLOcrsMPSI1LcEh9va6a+9V0n
-	 fHIs/QOyAUgAIrXLRZr/yWBicrFTlYiUPOPQZttJxj98Q3ZfILuLwpMtqFqd+/V205bTI
-	 XiucSIVs0mCRyj1qx8XmyAtCtgFeYackNp2IzftpL5v0G6phYLpHQypTIud1ZFsTKz/LH
-	 Xarpx10FoMuBt26pNRLhTmzsoIdH7hHk9TmoFpHewYwqdQ81KyIRHXM8PhgmISHyGig==
-ARC-Message-Signature: i=3; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792432555;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:
-	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:
-	 DKIM-Signature:Authentication-Results-Original:Received:Received:
-	 Message-ID:Date:User-Agent:Subject:To:Cc:References:Content-Language:
-	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-	 X-ClientProxiedBy:MIME-Version:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-LD-Processed:
-	 x-checkrecipientrouted:NoDisclaimer:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam-Untrusted:
-	 X-Microsoft-Antispam-Message-Info-Original:
-	 X-Forefront-Antispam-Report-Untrusted:X-Exchange-RoutingPolicyChecked:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped:
-	 X-EOPAttributedMessage:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStripped:
-	 X-MS-PublicTrafficType:X-MS-Office365-Filtering-Correlation-Id-Prvs:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-Id:
-	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=s2fS3+jw3JUH1jkWKlZ7UavWq+1ufeUzkz/USutmL4k=;
-	b=Ds0HSDIjMyWjeapgc3lwGTNS3Lw2uobQ9hXc90BCVqEoPtsh3A/jfvIO52hvJTnXgkPY
-	 tjnhD7adbqOaPgkr1r08DCGpA9h3Y6aWIAM/KdRVuDgAs1uGXPl2Fh0+BAlV3EXxgCJSX
-	 DRVk+IqcJqfmyyuVJ6NlSzYpx4GLbcjfnD/ETT+HC7EIUsMLUkDTt85uMvKg/JpsN8Akm
-	 XfM8H3PUmeMWbrPYQfi1Tl2A30blBNyMbMsRMwbA9BbGTYTMjR1Up5FbuumjOVrYq786m
-	 78S1+mbQ+l+KkeSRBSxC0run3t9WUx6zOCICu0loTaSJGpPuuidE+/V1sDVIaZiZAUw==
-ARC-Authentication-Results: i=3; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=arm.com;
-	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=selector1 header.b="Kn1/J8yw";
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=selector1 header.b="Kn1/J8yw";
-	arc=pass header.oldest-pass=2 smtp.remote-ip=52.101.69.61
-Received: from AM0PR83CU005.outbound.protection.outlook.com (mail-westeuropeazon11010061.outbound.protection.outlook.com [52.101.69.61])
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1792433288;
+	b=AOk+0NEGvW58//LaqTcRl0zsUsxzF516CQfGO7a1iyoiE65Saq8t90KJMlFZ1KROlYxn
+	 HvmHpdJOxOLAI+fMOA4vKUrGE9upLylYir5WoWfd75+kZbLlFI6/hyg3YAgowo+16pUDi
+	 oY7Ss+ZisC6OVtcQZ/o9O/F45TjuVdMcZ/ArisDBA21fZhN4V73Oi82Wc/GwxOofCOm5/
+	 7XMcInESQ+4KQtv7emTMQiHKvKnE7mJ/H6vCPYXlTgGcuXcF54iULfNJ/WLVJpNiHPoNq
+	 iJ4a/DwMPlmlZJwL870tCR0/q6Lqc0/jnHHHnKZ/rucmcgmY1/26FZqylZI4DhgePwA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792433288;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=0yJvOwPfZ5d2rGhnowwpIR6yBLsjsRPjCVACsCnz6cw=;
+	b=QUrEYptb9xqaRziBMTnP+nmdOGjc9vYM/Z8wlKF32YPG3EpHHDsweNFf/qqC7gamwHcx
+	 4NbIt/pIbI/ltoJQokIOucJanLqMKXNU3euxNgTnN3kZspxMyhUjwzWjiT9HlN18cUswz
+	 3mr3ykgthTXjjdxdvyKIt99HUd8LSV3JhPa4IAMPwVBhakRr4bTdY1dEr2aWCY2E4TK6z
+	 +dHr8EXmBinDb9K/WGSKn+u8lMtBCjIpiVIAk1Fr+srlLk/Uji/LL45d7GriWMKoThbgp
+	 WHiynGT8Sl4EBoluX5eFK6cDW+UKNLue9aBOvUQByVcEDhFA/NExmreKvRMCdoVYZiw==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WJ6naX2y;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 881D6606A31B;
-	Mon, 19 Oct 2026 17:55:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 881D6606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35DAF606A31B
+	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 18:08:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=selector1 header.b=Kn1/J8yw;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=selector1 header.b=Kn1/J8yw
-ARC-Seal: i=2; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=pass;
- b=d8S7+V1JXKXNb84rCWRBjzxFeI21XkTiprLuJBDhpvdNtpu6Qi4dJ2bf67u1+vBt08uvjGocox1MwOZV0bxPZeSF2fkaI+x7jVE18utW4E6Tl5j86Q+RB0qYDGLMUudEcEDeng2e6/uTec2uFfxAqEresGqH+05tfOe6hrEtR5IQeGFTMlI3iQ1Cvu38O1GgNn6utNjCFpPQ/DJ4Nbn6y6TLnqhIeWxTuiNbxc6aUKsWTeX/Ii+J03JYU8Y4NtnPPYJldPrLNjIltGfXV9qZU4RnC0VzJ0e56yKI+b/hgbfmJOqfnus04yVtz4/qGFxjF/mibHOveVCddM8+LHgRaA==
-ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=s2fS3+jw3JUH1jkWKlZ7UavWq+1ufeUzkz/USutmL4k=;
- b=bOGLqHsv9LNKHL6M/yuOKdHJVLzoKWny+Q1m4vv0S9RoB21hNvCLDoenUNp1QICi6TCso1VyZM1dYgxhM5ZZz2qvhIt45bhdsIuCNr+1Z20gOdSXg/DbUCxHw5JaR0jMoXIACECjQuoEZ9FWAj9DQQbKFhf3pYLwM33DrRJCjlRBIiH+g1AOQhuho+5vsjq26bpefCJVdLA6DMi3vakrxKSk62gLsMK2+huwgm6wtML3ARx2yB7+jnh61/MbO5zf59saKXLNTZzSzukfbSEvgtOmpmBfLyDLP6VA+LLnAfQAi89D6CPI3+cjNzDw2SHTgPkC0SYrnqE6RgZ58SMgYA==
-ARC-Authentication-Results: i=2; mx.microsoft.com 1; spf=pass (sender ip is
- 4.158.2.129) smtp.rcpttodomain=oss.qualcomm.com smtp.mailfrom=arm.com;
- dmarc=pass (p=none sp=none pct=100) action=none header.from=arm.com;
- dkim=pass (signature was verified) header.d=arm.com; arc=pass (0 oda=1 ltdi=1
- spf=[1,1,smtp.mailfrom=arm.com] dkim=[1,1,header.d=arm.com]
- dmarc=[1,1,header.from=arm.com])
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arm.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=s2fS3+jw3JUH1jkWKlZ7UavWq+1ufeUzkz/USutmL4k=;
- b=Kn1/J8ywCqgZZFiSO3rNvT4jt7FoGJgWTMpjIogxDKVXZZecjWQSBgQrzDJWGOY4lYwUTbNoq/jJGlnCMqPtF0pywBo5PMgzUsfc88SGVHXG7qqHq9pCUQxSr9pApQP32BRWub384aTF+X3BZnoBT48sCSzX7AVLdkDV1xxACtU=
-Received: from DUZPR01CA0215.eurprd01.prod.exchangelabs.com
- (2603:10a6:10:4b4::9) by DU0PR08MB8229.eurprd08.prod.outlook.com
- (2603:10a6:10:3a7::22) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.546.14; Mon, 19 Oct
- 2026 17:55:47 +0000
-Received: from DU2PEPF00028D0C.eurprd03.prod.outlook.com
- (2603:10a6:10:4b4:cafe::ad) by DUZPR01CA0215.outlook.office365.com
- (2603:10a6:10:4b4::9) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.522.19 via Frontend Transport; Mon,
- 19 Oct 2026 17:55:47 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 4.158.2.129) smtp.mailfrom=arm.com; dkim=pass (signature was verified)
- header.d=arm.com;dmarc=pass action=none header.from=arm.com;
-Received-SPF: Pass (protection.outlook.com: domain of arm.com designates
- 4.158.2.129 as permitted sender) receiver=protection.outlook.com;
- client-ip=4.158.2.129; helo=outbound-uk1.az.dlp.m.darktrace.com; pr=C
-Received: from outbound-uk1.az.dlp.m.darktrace.com (4.158.2.129) by
- DU2PEPF00028D0C.mail.protection.outlook.com (10.167.242.20) with Microsoft
- SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.522.6
- via Frontend Transport; Mon, 19 Oct 2026 17:55:46 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=v+fw9RqrsKNt4CuAPclwqBOA4FZNGsWGoN5SGdHUA4CKZmJ2hZphOKKyZZSQ1t9qM0oRFv6/9rQ+2ynhd3MMXZeL8Qa7kIJNjg98BlWdodgACXgu3GOLexIuUBpdOYtW01ZOKS17FB7t14W8a9X+LFp0VUMH8P9+rGor3YMDQgQb2xkqDeSdpS9NE7RjZz66sipXUO6E4DO1mR+saEDTLOApw/NBrh63ppR9Ld9qWe/NFaFA4bUVzZH+8tCQF5fpwjzH3OuieRa743bqpeWzZKq+fL5jAa9JgfDI54FEJQyNiXPUIcIpNze1+UcbLknmk0Ngm5O27mZkz1vxLkJAKA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=s2fS3+jw3JUH1jkWKlZ7UavWq+1ufeUzkz/USutmL4k=;
- b=EfzrQYaNH1/9UZTDgt8+m60ToCzWutOGS+CtNCIcuOBDC0ypHti76pQhaArlCwgDbdm1uHGowUwEh2euQSQ/vblPnUi/2yKB8W2kDcrot/cnT38dwsOb/XuIuVSRqpAu4gQz7fN9giTZPMPiTfPGK3M50GwrkuVVYY8OGWaTVZXJ1ADy4jGcf1W6xLsR8v8AEj1eeRNLpupiDmhzWbOJY5ETVduu5+ktFKNCm1DhjgbpTBU4JuYQ1zDz1pMaQK+c7DBA6iHAKvUlpyFUWPNFCoG0T7J2zh4aVi+Fi3Dgpak6b7GNiE2iajNdEvZJgjldRhc0fUlo62HbiC002LAdnw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=arm.com; dmarc=pass action=none header.from=arm.com; dkim=pass
- header.d=arm.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arm.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=s2fS3+jw3JUH1jkWKlZ7UavWq+1ufeUzkz/USutmL4k=;
- b=Kn1/J8ywCqgZZFiSO3rNvT4jt7FoGJgWTMpjIogxDKVXZZecjWQSBgQrzDJWGOY4lYwUTbNoq/jJGlnCMqPtF0pywBo5PMgzUsfc88SGVHXG7qqHq9pCUQxSr9pApQP32BRWub384aTF+X3BZnoBT48sCSzX7AVLdkDV1xxACtU=
-Authentication-Results-Original: mx.microsoft.com 1; dkim=none (message not
- signed) header.d=none;dmarc=none action=none header.from=arm.com;
-Received: from BESPR08MB999898.eurprd08.prod.outlook.com
- (2603:10a6:b10:109::23) by DB3PR08MB9010.eurprd08.prod.outlook.com
- (2603:10a6:10:42b::8) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.6; Mon, 19 Oct
- 2026 17:55:13 +0000
-Received: from BESPR08MB999898.eurprd08.prod.outlook.com
- ([fe80::d62a:5300:bc89:9f62]) by BESPR08MB999898.eurprd08.prod.outlook.com
- ([fe80::d62a:5300:bc89:9f62%6]) with mapi id 15.21.0546.012; Mon, 19 Oct 2026
- 17:55:12 +0000
-Message-ID: <51d89cca-a519-4856-931d-328987585d11@arm.com>
-Date: Mon, 19 Oct 2026 19:55:10 +0200
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/6] ACPI: extlog: fix extlog_mem_event build issue
-To: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-Cc: linux-kernel@vger.kernel.org, James Morse <james.morse@arm.com>,
- Mark Brown <broonie@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>,
- Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>,
- Borislav Petkov <bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>,
- Mauro Carvalho Chehab <mchehab@kernel.org>,
- Shuai Xue <xueshuai@linux.alibaba.com>,
- Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
- Pawel Chmielewski <pawel.chmielewski@intel.com>,
- Dave Jiang <dave.jiang@intel.com>,
- "Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>,
- Breno Leitao <leitao@debian.org>, Terry Bowman <terry.bowman@amd.com>,
- Dan Williams <djbw@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
- Morduan Zang <zhangdandan@uniontech.com>, linux-acpi@vger.kernel.org,
- linux-edac@vger.kernel.org, acpica-devel@lists.linux.dev
-References: <20261019145643.1877246-1-pierre.gondois@arm.com>
- <20261019145643.1877246-2-pierre.gondois@arm.com>
- <20261019093648.00002db2@oss.qualcomm.com>
-Content-Language: en-US
-From: Pierre Gondois <pierre.gondois@arm.com>
-In-Reply-To: <20261019093648.00002db2@oss.qualcomm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: PR3P192CA0008.EURP192.PROD.OUTLOOK.COM
- (2603:10a6:102:56::13) To BESPR08MB999898.eurprd08.prod.outlook.com
- (2603:10a6:b10:109::23)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WJ6naX2y
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F33981F000CA
+	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 18:08:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792433288;
+	bh=0yJvOwPfZ5d2rGhnowwpIR6yBLsjsRPjCVACsCnz6cw=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=WJ6naX2y+idzEv0gJ1YxEYmR0YsFHjn6+3S92nABDj5DGDRxppocrDCtaIWTYy0qg
+	 pMa4EoFEdEUUAOKehkLV3kbSJmv4cPu7+d3YyOwLIoWdabVbd9sH558dnFIoUDE+5s
+	 MpmKU4s/fbovoDeLZBtziu0BXxZl+kHUwsjTzZb+Gov/uE5ZUO77dhH8lwoGhXA9Om
+	 ikrjc7FkO+josYTrzWYtHn+br8HOyppsNJVuY+KNcYbRz9muO+HP4gJ4HzDk5kZpdW
+	 zX95wyLip81coHgseUKy5h/hahn1/JuXUXWHuNbR6gNp2iy+4AaZaxd3camC3BGf9B
+	 I0DbFYTnFhMMg==
+Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5bccb867d6fso2197506e87.0
+        for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 11:08:07 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvByGg5m7k3LTEw8l8NM4EV4OMQw5rJi1GoLiJcuiU3/rPSL3o6Av8xKpfpmRO16yTS5URcjtG8fCwMti@vger.kernel.org
+X-Gm-Message-State: AFq9FYLrRxRmCVg6uYCA2khzmuQX1muR2R+SxAiy98fHZhhc8EnnfQnQ
+	+scunt6qfNN1vdcYMiBLfUd1/DGUwgARiyrFaTjs6P+7FoDfT+zQiNXiV1UHH3jUS5oBLG8w3Lu
+	K55qg2vnPXQA1Z4TdU/SkLRKmzgu8ZPQ=
+X-Received: by 2002:a05:6512:b95:b0:5be:52d8:f70a with SMTP id
+ 2adb3069b0e04-5be52d8f89emr2829793e87.34.1792433286328; Mon, 19 Oct 2026
+ 11:08:06 -0700 (PDT)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -159,71 +59,269 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-MS-TrafficTypeDiagnostic:
-	BESPR08MB999898:EE_|DB3PR08MB9010:EE_|DU2PEPF00028D0C:EE_|DU0PR08MB8229:EE_
-X-MS-Office365-Filtering-Correlation-Id: 583c3c02-2736-44b5-ea0b-08df2e0a3422
-X-LD-Processed: f34e5979-57d9-4aaa-ad4d-b122a662184d,ExtAddr,ExtAddr
-x-checkrecipientrouted: true
-NoDisclaimer: true
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam-Untrusted:
- BCL:0;ARA:13230040|23010399003|10070799003|366016|376014|7416014|1800799024|56012099006|11063799006|4143699003|18002099003|10067099003|22082099003|261009223027099003;
-X-Microsoft-Antispam-Message-Info-Original:
- 6VqBOX80R9ibDyPMvb4XerdkpOZOTzksaX6249qBPY8RxQaZ0c0KtEn70i3q9RoXBy/HeJEMDjdOJNrCvso4i+3iQmUTpiE+YKh91LiG9Csy1ZL3l6gl+vkX/qiyVqbZzqEr0XQjLbZwDoWGPb+E4TC8K/yAJj5GoBS6JIkEvY9AErw1b94J4GERb5cIiijlki44k1T7OVqcuvYTG3JECnrnGV0zO9iILlSMKS3KrxSJQ2T2U+Zdd4FchGa39vgPQipFb1S84XcIEjB9qc4AH0WCodxS1/r8Dhv/MzpMOibK0xWIEz01Yk6P0a6SjOk5YaWaE9mpcUY4ifP3dcak9iCiuCNnCWIYubiYd6AjGTv5jD/Oi/xJVKRwzKGTnrLRxblpGxI9jVMH0dE1pyqRIVFXEY8AnkEk4SAhmgrsUnvDEToj9wBV95MRb8N2WbZdT+QZVJu3iLNB5XRDLtRyTyPEfQ20WsIl0lQfwrjb2hTmlBpjdAhvUaoMNGiIV7QehdCdDmUAGObiGV5CcLU6cgoqz4DX9pSAjSeZqi1Rzhm3LNXU/pnOT+mO7w2YopdugE/R4wG0xFC2I/mLZsiRIi7kc7n/rdDldHRe5Ob9Ui1qTgFOs82SGr9E3q7nugB1Z5tAmZ8q4IfSk+LixtKaqQaDAwT+wqgc8tC9R4FhBtY=
-X-Forefront-Antispam-Report-Untrusted:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BESPR08MB999898.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(10070799003)(366016)(376014)(7416014)(1800799024)(56012099006)(11063799006)(4143699003)(18002099003)(10067099003)(22082099003)(261009223027099003);DIR:OUT;SFP:1101;
-X-Exchange-RoutingPolicyChecked:
- B9Ry6LW7ToJBf4hNTxumzSXdDse6zDVrqtSmdcVioorbj/fDWUFMxZ/BzSPI02PgkiEKCbCuwyezJvu2yRPus1zSoW5TpxLhxW0dEsokZOXJKj9+bbQMerUhf338/n+s28jdRasR7Yze/OSSnzr6EsAFtUWkRh/Jq4myQcEruvNJcNUCd6UU/AJPvfrfWld37Acz3IZmB/Ix4yYIRbKrsIIFkIONYjtIO5mlQVPJf+oCytM7MJJ8iG5a8nbCY2b+CBPmJSmpAl3TiOK5iEJSrgknO8upcyhgewJQaPSkYD9RQV+QdVnCA5lXZBAQ/Npk0u2MfMRaz/vS1qgEWraYnA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB3PR08MB9010
-X-EOPAttributedMessage: 0
-X-MS-Exchange-Transport-CrossTenantHeadersStripped:
- DU2PEPF00028D0C.eurprd03.prod.outlook.com
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id-Prvs:
-	8e4c786a-b99e-44c8-e9fd-08df2e0a1f9c
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|14060799003|23010399003|1800799024|35042699022|7416014|376014|82310400026|36860700016|56012099006|4143699003|11063799006|261009223027099003|10067099003|18002099003|22082099003;
-X-Microsoft-Antispam-Message-Info:
-	g24TpS8L5DwuZt99eP+h/WOAxlPEwicR2VU2a1uXe34DyBKzl8BMXegjI9AwqGNxbYohDvrax8wlmI0cFTpGlOPQE2pISROWYtXTUqrcUOZh50HJCuqFXLI77kjdCCr1v5gvRa2HMtQ7Y/2+IdjnELrZXTs8I9g0b5gMKiaf8dMpk/VkSIa6RyE088o/FUYWgCkTa/O7evjH4qkx66lmXaW2cdqmTP2fqsNPmpAHuqMdmRulk0RlS7EkXhrFHauOthoBXKrxgjZb8FZEp3JtiLb83IplRPNvR/x/zUD/wNeGRpSc/kNZYXrRLHgOAMUtjOnNJIkFARsBF+iPhm+jvkMhxbqgDCC8Zs8MwCb2AAGQF+fgH4kvbf8j+usobGlSfBuWVEyFKZbN53FU97P89ghWRexfnGTCDe0INnLlP6cwCah2cN1wUIFKS5mnkV0VlHw51YudFtAv5VILfYh+fdKZFe0yPXxdKA68oreef7ofVrlzftuSe93EddkFc0irvkTNuQP8HqSxCQgFQ49E1D5Ug9U7imuvESoRNIi0Exj22XxRVxbRl7P9EnReb0PZXzUrrP/Bi5GW0bTjbuFiVrfdfG2NUaLxavN6/H24DvjQ9G7HkB7AcnrMKwEhqo/SyT/nw00Kdn83pFp2AxzUiGnG4SanxXyG4TD7dxVqF/br4MDYc7dQlzfOUdJ3phY92K85q1H+4Ah4ouJ4lmOcUQ==
-X-Forefront-Antispam-Report:
-	CIP:4.158.2.129;CTRY:GB;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:outbound-uk1.az.dlp.m.darktrace.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(14060799003)(23010399003)(1800799024)(35042699022)(7416014)(376014)(82310400026)(36860700016)(56012099006)(4143699003)(11063799006)(261009223027099003)(10067099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	GfFmN2lHVF9g2BG4PK/L6lZbJmV3WSK/ii5NCUR9sXYpfd1S7I5SA7chguqd0L+ZPzUZcP9S9bT2Wr3Xec050kmn+GZObLTo9l9R0QEC/St2fMbV6qx22z97VbTdnW5yph8SrhD9y8UcBxFYvyRI6+vwfxNhAFPYx33wZX4EMwVZhxV3X9wWD4v69C7up+PFAvq55moSzpWPYHnca6WKhTuM/AE5i3+9+4xbsHvH2ieuWi+pHLgw6Q4x0r0D3sqP/nUEsdo7D2vuZCCwNfGXJIcEcbdPfWme05CFlV4NocXK3mt1IQ0Z7luJ9DwLf65UWmAXDo0l/qmZvCZWKrDmxuWpJHxOpdMTLj6FAmb3FRn6k4r6G+FRFKOsGy0jOpCguDDRbW0eyuOuyPIlpZRNJaQUKoNHphmnqgM7Q1UxWG6foJib+zHsD8uBYOgO4mlf
-X-OriginatorOrg: arm.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Oct 2026 17:55:46.8186
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 583c3c02-2736-44b5-ea0b-08df2e0a3422
-X-MS-Exchange-CrossTenant-Id: f34e5979-57d9-4aaa-ad4d-b122a662184d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f34e5979-57d9-4aaa-ad4d-b122a662184d;Ip=[4.158.2.129];Helo=[outbound-uk1.az.dlp.m.darktrace.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	DU2PEPF00028D0C.eurprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DU0PR08MB8229
+References: <20260925-acpi-static-table-irq-probe-defer-v1-0-2c62125d0085@kernel.org>
+ <20260925-acpi-static-table-irq-probe-defer-v1-2-2c62125d0085@kernel.org>
+ <arZDwutoadki7tiZ@ashevche-desk.local> <arZNL9BnTGK0Klwc@red-moon>
+ <arZS4vwxps01dGb7@ashevche-desk.local> <arqSqcoWAkhy-8do@red-moon>
+ <d1720b63-65bf-4019-bc19-1852555f7993@arm.com> <asieTvinZ7c2QpQm@red-moon>
+ <CAJZ5v0hVLSJs1j8J1TV3yJ8Psyaf=B_0UfHsYSMtM5xTup0B_Q@mail.gmail.com> <atXyIadz1TEKSodg@red-moon>
+In-Reply-To: <atXyIadz1TEKSodg@red-moon>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Mon, 19 Oct 2026 20:05:50 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0joJBZg==DWPsNviPfL7Jo=qupRhb6GinqOLoHXGnvevg@mail.gmail.com>
+X-Gm-Features: AclHuK9KYDE64m8huu2HeNgeVrCBa6dkbPQ8_E7l8BP-IVa43wPKwt6awgXhlNs
+Message-ID: <CAJZ5v0joJBZg==DWPsNviPfL7Jo=qupRhb6GinqOLoHXGnvevg@mail.gmail.com>
+Subject: Re: [PATCH RFC 02/11] ACPI: Introduce irq_get() for static fwnodes
+To: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Robin Murphy <robin.murphy@arm.com>, 
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, 
+	Marc Zyngier <maz@kernel.org>, Daniel Lezcano <daniel.lezcano@kernel.org>, 
+	Thomas Gleixner <tglx@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Danilo Krummrich <dakr@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, 
+	Sudeep Holla <sudeep.holla@kernel.org>, Wim Van Sebroeck <wim@linux-watchdog.org>, 
+	Guenter Roeck <linux@roeck-us.net>, Catalin Marinas <catalin.marinas@arm.com>, 
+	Will Deacon <will@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	driver-core@lists.linux.dev, linux-watchdog@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Mon, Oct 19, 2026 at 12:34=E2=80=AFPM Lorenzo Pieralisi
+<lpieralisi@kernel.org> wrote:
+>
+> On Thu, Oct 15, 2026 at 10:46:26PM +0200, Rafael J. Wysocki (Intel) wrote=
+:
+> > Sorry for the delay.
+>
+> Thanks for chiming in.
+>
+> > On Fri, Oct 9, 2026 at 9:57=E2=80=AFAM Lorenzo Pieralisi <lpieralisi@ke=
+rnel.org> wrote:
+> > >
+> > > On Tue, Oct 06, 2026 at 05:19:23PM +0100, Robin Murphy wrote:
+> > > > On 28/09/2026 5:15 pm, Lorenzo Pieralisi wrote:
+> > > > > On Fri, Sep 25, 2026 at 01:54:26PM +0300, Andy Shevchenko wrote:
+> > > > > > On Fri, Sep 25, 2026 at 12:30:07PM +0200, Lorenzo Pieralisi wro=
+te:
+> > > > > > > On Fri, Sep 25, 2026 at 12:49:54PM +0300, Andy Shevchenko wro=
+te:
+> > > > > > > > On Fri, Sep 25, 2026 at 09:48:01AM +0200, Lorenzo Pieralisi=
+ wrote:
+> > > > > >
+> > > > > > ...
+> > > > > >
+> > > > > > > > > +static int acpi_static_fwnode_read_u32_prop_index(const =
+struct fwnode_handle *fwnode,
+> > > > > > > > > +                                             const char =
+*propname,
+> > > > > > > > > +                                             unsigned in=
+t index, u32 *value)
+> > > > > > > > > +{
+> > > > > > > > > +   u32 *values;
+> > > > > > > > > +   int ret, count;
+> > > > > > > > > +
+> > > > > > > > > +   count =3D fwnode_property_count_u32(fwnode, propname)=
+;
+> > > > > > > > > +   if (count < 0)
+> > > > > > > > > +           return count;
+> > > > > > > > > +
+> > > > > > > > > +   if (index >=3D count)
+> > > > > > > > > +           return -ENOENT;
+> > > > > > > > > +
+> > > > > > > > > +   values =3D kcalloc(count, sizeof(*values), GFP_KERNEL=
+);
+> > > > > > > > > +   if (!values)
+> > > > > > > > > +           return -ENOMEM;
+> > > > > > > > > +
+> > > > > > > > > +   ret =3D fwnode_property_read_u32_array(fwnode, propna=
+me, values, count);
+> > > > > > > > > +   if (!ret)
+> > > > > > > > > +           *value =3D values[index];
+> > > > > > > >
+> > > > > > > > Use standard pattern, id est
+> > > > > > > >
+> > > > > > > >       if (ret)
+> > > > > > > >               ...
+> > > > > > > >
+> > > > > > > > > +   kfree(values);
+> > > > > > > >
+> > > > > > > > You want to use __free()
+> > > > > > > >
+> > > > > > > > > +   return ret;
+> > > > > > > > > +}
+> > > > > > > >
+> > > > > > > > I believe the whole approach is suboptimal, if you wish get=
+ indexed value (but why?)
+> > > > > > >
+> > > > > > > Why what (that's what the irq_get() interface requires ?) I a=
+gree it is
+> > > > > > > suboptimal - the whole point of the series is an RFC on using=
+ properties
+> > > > > > > to store GSI number/flags, then how to read them we will opti=
+mize it
+> > > > I>>> when/if we agree that's the approach to be taken.
+> > > > > >
+> > > > > > Why to have indexed APIs. The callers usually do not want a sin=
+gle item from an
+> > > > > > array, they want all of them or a big pile (exception is the ar=
+ray of strings,
+> > > > > > but we have matching functions for that).
+> > > > > >
+> > > > > > As per approach, this patch is against device property and I do=
+n't think we are
+> > > > > > going to agree on the approach taken in *this* patch.
+> > > > >
+> > > > > Coming back to this, what is needed here is a way to stash the GS=
+I number,
+> > > > > flags and name in stardard storage (like OF nodes IRQ properties,=
+ ACPI objects
+> > > > > _CRS, etc).
+> > > > >
+> > > > > To give you some background, I thought about adding an array of:
+> > > > >
+> > > > > GSI [number, flags, name]
+> > > > >
+> > > > > to the ACPI static fwnode itself. Then basically the irq_get() AP=
+I has got
+> > > > > all the information it needs from the primary fwnode; while doing=
+ that I
+> > > > > thought that this might have been a bit like reinventing software=
+ nodes
+> > > > > (granted, software node properties are ways more general that wha=
+t I suggest
+> > > > > above and I don't expect any other property to be ever added to s=
+tatic fwnodes)
+> > > > > that's why I put together the series as it is, precisely to under=
+stand what's
+> > > > > best.
+> > > > >
+> > > > > When you say "against device property", what do you mean precisel=
+y ?
+> > > > >
+> > > > > I suppose you mean that this approach goes against software node =
+properties
+> > > > > usage guidelines ?
+> > > > >
+> > > > > Anyway, again, it is just to provide some context, we are talking=
+ about
+> > > > > a bunch of platform devices, it is nice to have a generic solutio=
+n but
+> > > > > it has to be simple enough too given its scope, I understand very=
+ well
+> > > > > your concern with this approach as-is - it is there to find a way
+> > > > > forward together and show what the problem is.
+> > > >
+> > > > I guess software node properties look inviting in theory since they=
+'re a
+> > > > ready-made mechanism for effectively attaching arbitrary data to a =
+fwnode,
+> > > > however looking at patches 6-7 and the amount of boilerplate involv=
+ed in the
+> > > > reality, I'm inclined to think that a dedicated structure for stati=
+c nodes
+> > > > is probably the best and most efficient compromise here. The redund=
+ancy
+> > > > argument rather falls apart once we end up creating copies of those
+> > > > contentiously-made-up property name strings for every node, especia=
+lly given
+> > > > that any one of those alone is probably already more than the amoun=
+t of
+> > > > actual data we need per node...
+> > > >
+> > > > Perhaps the "purest" option might be to just store a function point=
+er in the
+> > > > fwnode wrapper for each static table type to provide its own intern=
+al
+> > > > irq_get() callback, so not stashing intermediate GSI data at all, b=
+ut I
+> > > > suspect that might end up being more work overall.
+> > >
+> > > Hi Rafael, Robin,
+> > >
+> > > I have not started prototyping it yet but I have got a question as a
+> > > follow-up to our chat at LPC about crafting an ACPI device for the st=
+atic
+> > > table entries and sort out the probe dependencies using autodep.
+> > >
+> > > After spur of the moment reaction during the session, I now remember =
+I
+> > > thought about crafting an ACPI device for the static table entries an=
+d
+> > > started digging then bumped into acpi_add_single_object() as you
+> > > suggested.
+> > >
+> > > The point though is: what about the acpi_handle and the AML required =
+to
+> > > sort out the dependencies using the _CRS ? We have got the info to fi=
+ll
+> > > the _CRS coming from static table entries (MMIO, GSI) but I am not su=
+re how I
+> > > can form a full-fledged ACPI namespace object in the kernel, without
+> > > that in place I am not sure how the autodep mechanism can possibly
+> > > work.
+> >
+> > The missing ACPI handle is not a hard part IMV, it is a matter of
+> > modifying struct acpi_dep_data to be able to hold struct acpi_device
+> > pointers instead of ACPI handles in case the devices in question have
+> > no ACPI handles and adjusting the code using it.
+> >
+> > Finding the dependencies is harder.  I guess it may involve walking
+> > the namespace and looking up a device object with a specific device ID
+> > or similar.
+>
+> All we need to find dependencies is a GSI number, the question though
+> is what are we really solving by creating a dependency (and where
+> that GSI number will be stored eventually so that the platform driver
+> at probe - when dependencies are cleared, can retrieve it).
+>
+> I think that what we want is preventing a platform device to be created
+> (ie we don't create platform devices at static table init time anymore
+> but we let ACPI core do it at acpi_bus_attach(adev)/enumeration time ?)
 
-On 10/19/26 18:36, Jonathan Cameron wrote:
-> On Mon, 19 Oct 2026 16:56:08 +0200
-> Pierre Gondois <pierre.gondois@arm.com> wrote:
+Basically, yes, the idea is to defer the creation of the platform
+device until the dependency is met.
+
+> till the dependencies are cleared but then, without a _CRS, where will
+> the consumer driver find the platform device resources ?
+
+Well, good question.
+
+> There are multiple facets in this issue and possibly some of them have
+> been already solved but I need to pull them together.
 >
->> With CONFIG_ACPI_EXTLOG=n and with the following command:
->> make -j4 drivers/acpi/acpi_extlog.o drivers/acpi/
->>
->> trace_extlog_mem_event() is not defined. Add a extlog_mem_err_event()
->> wrapper to fix the build issue.
->>
->> Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
-> I'm lost.  This file is normally only built if
-> CONFIG_ACPI_EXTLOG is not = "n" so how do you get to this code.
-> Ah you are forcing build of a file...
+> > Note that the dependencies can be added to acpi_dep_list after
+> > creating a struct acpi_device with acpi_add_single_object() and
+> > acpi_scan_add_dep() is not really suitable for that, but it should be
+> > doable if the dependencies can be found.
+> >
+> > > I need to have a deeper look into this next week but I wanted to ask =
+first
+> > > whether there was something I missed - most likely.
+> >
+> > Well, it is not really straightforward.
 >
-> If you do need to do this sort of ifdefery it belongs in a header with
-> the function cleanly stubbed rather than in here.
+> Yes it is getting messy. This RFC, with all its flaws, does not transpare=
+ntly
+> prevents enumeration but rather relies on -EPROBE_DEFER to sort out
+> dependencies - though it does so by adding more stuff into ACPI static fw=
+node
+> that to be honest I'd rather see gone.
+
+I think what you need is a notification mechanism that will trigger
+when a specific device (enumerated via the ACPI Namespace) becomes
+operational.  It doesn't look like any of the existing ones (platform
+device probe deferral or ACPI device dependencies tracking) is really
+suitable for your use case.
+
+> > I'm still not sure why you can't represent all devices in the ACPI
+> > namespace in addition to describing some of them in static tables.  I
+> > guess that would work for everybody, wouldn't it?
 >
-> Anyhow, far as I can tell this doesn't make any sense for
-> upstream.
->
-> J
-Ok sure this will be dropped.
+> That's a fair point - though then code will have to work with firmware
+> that does NOT explicitly require those devices in the namespace (ie: firm=
+ware
+> as it is specified _now_); it can turn out to be a mess even less
+> manageable than this discussion ;-)
+
+If it has to work under these conditions anyway, then adding stuff to
+the namespace is rather pointless.
