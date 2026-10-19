@@ -1,44 +1,46 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E60E05AA68A;
-	Mon, 19 Oct 2026 14:00:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5729C5AA687;
+	Mon, 19 Oct 2026 14:00:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792418436; cv=none; b=LO3j13YALZZSDj5PL8GueIR8+mTfuAR6YHVgLCLsdsQzCaenxemkY+gV6A3GkE5QWT+jCIqCkvVaa92LS0oS0pqWVn+DHo+cXDGYC0p1QtqjuVvQfCWcJTX2oFm2QHJNOKp85vdVJC9j6YA0L+TnRX/hb+QFArUpaa26XPxr5Qc=
+	t=1792418459; cv=none; b=ILfaVhQIhrU5ma4LDdszqSda9dA/yx8evkG+jAIfRyeoxwjAjBcf0cJnagG3OGOxlNDfIpCJ0m/h8Jk1qsVzuNfuhP7RN7QDfTM46zSnCpyrf5MnJIvS8D2RxJi3cwCumaKSgze8HOfBvt2Bmc8Y1UvXgn1X4CtycxyyYgGsarA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792418436; c=relaxed/simple;
-	bh=pRdL3eeVH4nJXPcyPGW0LeZ1SRCE9MRWIMjuU1PvaEU=;
+	s=arc-20240116; t=1792418459; c=relaxed/simple;
+	bh=oj/PYRedChixZdNo0sWbXqQF5HOFwV2RZigFF4G3wsw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=kLHsS0wr8lo3WTKFwCB6ZAlLEAb/zZJcq6YpX1aZtj6vJcl3rLhvqPrZeAjRCfzi1zd9Yc3CFdtNIlF4DIPCz66xPLYHDM1t/ceE6r1hJ/J1xK7wWd0/oFFnNMhIzjTmnwuqmb/rTpX2K7OwxPaKZDUb/xTlCCkamrYQkwNeylc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g/ZwjNUq; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=Fr3zQ38aF117av6vxV9D2ZcbjvCzVeT7C2BifZIwngSdy0DmnoPpbMfUYWuuQrLK13Ousyl6sGUYbwNix1z4+EmmCKAXSUNYeUHDq9ffDTRyKEnmcKy2KwToFveWm/BulPphIsN7LqMatZBEmFzlFCieyTxd/woQUszviPfBceI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nwQ97jbY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g/ZwjNUq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBBD81F000C4;
-	Mon, 19 Oct 2026 14:00:32 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nwQ97jbY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E17251F000C8;
+	Mon, 19 Oct 2026 14:00:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792418433;
-	bh=GIhegACar7qq6FyDZloFTRjPXKaowz8sFORDAk9qvW0=;
+	s=k20260515; t=1792418457;
+	bh=4ZOtBPIgms5nlKbJiJRido7CLqFqpIsZ01pQt1kHqMs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=g/ZwjNUqxexixvcuAO97cbxYc1MjsfI7zpe2frsi3/TiTRi45w94Fiw2OFzyZurbH
-	 I+BuS+WLG533HICJwEs7KFmVPCGV6Axd9aOz/UL6IWqVdP9mgz+bSGqE7uxfjHCWhC
-	 Ynx7/nBsZru41cGP1dMqvtQe3Aoooq+jxaj7IRkrWlOXnY96C+93gqEmWxBOLzxn5B
-	 bFdjOsEJyYv2D/TXt2GvNFzPDtlTCGzKfUD5loniCkPM+kSMQuYEnvnQNmo8hwIClw
-	 x4xe/m/LDZe0kPjnddPL5TlH4az1wjsQld4oBCEjeRpwKVdjacwkF0XyowlNWoQB+a
-	 kRvVwN/hrB0+g==
+	b=nwQ97jbYU5sB+c/QjBinViZs0bjP3t0Z2MM1u2tIkuqq2atiw8PUFc+/budBCvjyG
+	 sgyR5d5p7VrPk8q6+IkcLgXRJmNocJ1/FM/9vjqisiXoL78wQllt1QfJtKCCQ9aW/F
+	 YaW/QHdu7oXP/qvR4yQqbqyFOcx//G2DbXHK9Biif1A7DX5aPNqZTYX+HCuyDDOJPg
+	 GVxuJ9pLLy4MhRKeew0efFH8pb2IWezrrjGcqk0lw4OX/zAVGjA2O93A//XC4+wcJ0
+	 FV5wtH4I+UFytMKXnRFa4IMVTry0L/7lGPnWBN63bQ3BjIkV2GCIcxTEIAwciOYS/I
+	 EI4VEgl8XZtlg==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
-Cc: Kate Hsuan <hpa@redhat.com>,
-	Mark Pearson <mpearson-lenovo@squebb.ca>,
+Cc: Junhao He <hejunhao3@h-partners.com>,
+	Wupeng Ma <mawupeng1@huawei.com>,
+	Shuai Xue <xueshuai@linux.alibaba.com>,
+	Tony Luck <tony.luck@intel.com>,
 	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
 	Sasha Levin <sashal@kernel.org>,
 	rafael@kernel.org,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-6.12] ACPI: battery: Sanitise model_number by dropping unprintable characters
-Date: Mon, 19 Oct 2026 09:48:57 -0400
-Message-ID: <20261019135441.1420968-246-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.18-5.10] ACPI: APEI: Handle repeated SEA error storms
+Date: Mon, 19 Oct 2026 09:49:13 -0400
+Message-ID: <20261019135441.1420968-262-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20261019135441.1420968-1-sashal@kernel.org>
 References: <20261019135441.1420968-1-sashal@kernel.org>
@@ -48,534 +50,455 @@ List-Id: <linux-acpi.vger.kernel.org>
 List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
 X-stable-base: Linux 6.18.57
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Kate Hsuan <hpa@redhat.com>
+From: Junhao He <hejunhao3@h-partners.com>
 
-[ Upstream commit 6587dd87595cfae6bf1304cd0cd1df2274424e42 ]
+[ Upstream commit e61487226b7df39e5f4683b036ee6aa7a5039d7b ]
 
-The battery Embedded Controller (EC) may return the model name with
-trailing unprintable or non-ASCII characters. For example, on some
-systems:
+When hardware memory corruption occurs and a user process accesses the
+corrupted page, the CPU triggers a Synchronous External Abort (SEA).
+The kernel invokes do_sea() to handle the exception, which calls
+memory_failure() to handle the faulty page.
 
-$ cat /sys/class/power_supply/BAT0/model_name
-LNV-5B10W51864��
+Scenario 1: Memory Error Interrupt First, then SEA
+The page is already poisoned by the memory error interrupt path. The
+subsequent SEA handler sends a SIGBUS to the task, which accesses the
+poisoned page. This flow is correct.
 
-If a non-ASCII or an unprintable character is found, it will be
-replaced with '\0' to ensure the model_number is a valid string.
+Scenario 2: SEA first, then memory error interrupt (problematic scenario)
+If a user task directly accesses corrupted memory through a PFNMAP-style
+mapping (e.g., devmem), the page may still be in the free-buddy state when
+SEA is handled. In this case, memory_failure() will poison the page without
+invoking kill_accessing_process(), and then takes the free-buddy recovery
+path.
 
-If left intact, the malformed string prevents udev rules and hwdb
-working correctly.
+After the CPU returns to the task context, the task re-enters the SEA
+handler due to the same access. However, ghes_estatus_cached() suppresses
+all subsequent entries during the 10-second window, preventing
+ghes_do_proc() from being called. This suppression blocks the
+MF_ACTION_REQUIRED-based SIGBUS delivery, causing the kernel to fail to
+kill the task immediately. Consequently, the process keeps re-entering
+the SEA handler, leading to an SEA storm. Later, the memory error
+interrupt path also cannot kill the task, leaving the system stuck in
+this repeated loop.
 
-Link: https://gitlab.freedesktop.org/upower/upower/-/work_items/345
-Signed-off-by: Kate Hsuan <hpa@redhat.com>
-Reviewed-by: Mark Pearson <mpearson-lenovo@squebb.ca>
-[ rjw: Subject tweak ]
-Link: https://patch.msgid.link/20260710125122.1621877-1-hpa@redhat.com
+The following error logs are explained using the devmem process:
+  NOTICE:  SEA Handle
+  [Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 9
+  [Hardware Error]: event severity: recoverable
+  [Hardware Error]:   section_type: ARM processor error
+  [Hardware Error]:    physical fault address: 0x0000001000093c00
+  [T54990] Memory failure: 0x1000093: recovery action for free buddy page: Recovered
+  [ T9955] EDAC MC0: 1 UE Multi-bit ECC on unknown memory
+           (page:0x1000093 offset:0xc00 grain:1 - APEI location: ...)
+  NOTICE:  SEA Handle
+  NOTICE:  SEA Handle
+  ...
+  ...        ---> SEA storm
+  ...
+  NOTICE:  SEA Handle
+  [ T9955] Memory failure: 0x1000093: already hardware poisoned
+  ghes_print_estatus: 1 callbacks suppressed
+  [Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 9
+  [Hardware Error]: event severity: recoverable
+  [Hardware Error]:   section_type: ARM processor error
+  [Hardware Error]:    physical fault address: 0x0000001000093c00
+  [T54990] Memory failure: 0x1000093: already hardware poisoned
+  [T54990] 0x1000093: Sending SIGBUS to devmem:54990 due to hardware memory corruption
+
+To resolve this, return an error when encountering the same SEA again.
+The subsequent SEA handler invocation uses arm64_notify_die() to send a
+SIGBUS signal to the task, which terminates the process and prevents it
+from re-entering the handler loop.
+
+Signed-off-by: Junhao He <hejunhao3@h-partners.com>
+Reviewed-by: Wupeng Ma <mawupeng1@huawei.com>
+Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com>
+Reviewed-by: Tony Luck <tony.luck@intel.com>
+Link: https://patch.msgid.link/20260527082707.2013499-1-hejunhao3@h-partners.com
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-# Stable Backport Analysis: ACPI battery model_number sanitization
+The local tree is **pending-6.18** (kernel **6.18.53**). The buggy GHES
+cache-hit path is present here, the patch applies cleanly, and this is a
+real ARM64 SEA-storm hang, so it should be backported.
 
-Local tree: **v7.3-rc4** (`7.3.0-rc4`, HEAD `f0100363d8c37`). Commit
-under review: `6587dd87595cfae6bf1304cd0cd1df2274424e42`.
+===============================================================
+PHASE 1: COMMIT MESSAGE FORENSICS
+===============================================================
 
-This is a mainline 7.3-rc checkout. The verdict is whether this fix has
-the technical merit to be backported from this tree into stable, given
-that the ACPI battery driver and the unsanitized `model_number` path
-exist here.
+Step 1.1: PARSE THE SUBJECT LINE
+Record: [ACPI: APEI] [Handle] [Stop repeated SEA aborts from looping
+when GHES cache suppresses a duplicate error]
 
----
-
-## PHASE 1: COMMIT MESSAGE FORENSICS
-
-**Step 1.1: PARSE THE SUBJECT LINE**
-
-Record: **[ACPI battery] [Sanitise] [drop unprintable/non-ASCII bytes
-from `model_number` so sysfs `model_name` is a usable C string]**
-
-**Step 1.2: PARSE ALL COMMIT MESSAGE TAGS**
-
+Step 1.2: PARSE ALL COMMIT MESSAGE TAGS
 Record:
-- **Fixes:** none (expected for this review)
-- **Reported-by:** none
-- **Tested-by:** none
-- **Reviewed-by:** Mark Pearson `<mpearson-lenovo@squebb.ca>` (Lenovo)
-- **Acked-by:** none
-- **Link:**
-  https://gitlab.freedesktop.org/upower/upower/-/work_items/345 (UPower
-  work item)
-- **Link:**
-  https://patch.msgid.link/20260710125122.1621877-1-hpa@redhat.com (v2
-  submission)
-- **Cc: stable:** none (expected; not a negative)
-- **Signed-off-by:** Kate Hsuan `<hpa@redhat.com>` (author, Red Hat);
-  Rafael J. Wysocki `<rafael.j.wysocki@intel.com>` (ACPI maintainer)
-- **Other:** `[ rjw: Subject tweak ]`
+- Reviewed-by: Wupeng Ma <mawupeng1@huawei.com>
+- Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com> (ACPI APEI
+  reviewer in MAINTAINERS)
+- Reviewed-by: Tony Luck <tony.luck@intel.com> (ACPI APEI reviewer /
+  RAS)
+- Link: https://patch.msgid.link/20260527082707.2013499-1-hejunhao3@h-
+  partners.com
+- Signed-off-by: Junhao He <hejunhao3@h-partners.com>
+- Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com> (ACPI
+  maintainer)
+- No Fixes: tag (expected)
+- No Cc: stable (expected)
+- No Reported-by / Tested-by / syzbot
+- Ignore pipeline SOBs such as Sasha Levin
 
-Notable: Lenovo Reviewed-by plus a Red Hat author. No syzbot/KASAN.
-
-**Step 1.3: ANALYZE THE COMMIT BODY TEXT**
-
+Step 1.3: ANALYZE THE COMMIT BODY TEXT
 Record:
-- **Bug:** Battery EC/`_BIF`/`_BIX` returns a model string with trailing
-  unprintable or non-ASCII bytes. Example: `LNV-5B10W51864` plus
-  replacement characters in sysfs.
-- **Symptom:** `/sys/class/power_supply/BAT0/model_name` is not a clean
-  ASCII string; **udev rules and hwdb cannot match** it.
-- **Failure mode:** Userspace battery identification fails (UPower, hwdb
-  quirks, udev `ATTR{model_name}` rules). Not a kernel oops.
-- **Version info:** none in the message. Driver and field are old (see
-  Phase 3).
-- **Root cause (author):** firmware/EC returns garbage; kernel copies it
-  into `model_number` unchanged.
+- Bug: On ARM64 firmware-first SEA, if a userspace PFNMAP access
+  (devmem) hits corrupted memory while the page is still a free buddy,
+  `memory_failure()` poisons it as recovered and does not kill the task.
+  The task retries the same access. `ghes_estatus_cached()` then drops
+  duplicates for 10s (`GHES_ESTATUS_IN_CACHE_MAX_NSEC`), so
+  `ghes_do_proc()` never runs again and SIGBUS is not delivered. The CPU
+  loops in SEA. Firmware logs show a ~10s storm, then SIGBUS only after
+  the cache expires.
+- Symptom: exception storm / system stuck; related APEI commits note
+  firmware threshold reboot or hard lockup from the same class of loop.
+- Version info: none in the message. Logs are from a real ARM platform
+  (APEI GHES source 9, EDAC MC0).
+- Root cause: cache-hit path in `ghes_in_nmi_queue_one_entry()` returns
+  success (`rc == 0`), so `apei_claim_sea()` claims the abort and
+  `do_sea()` returns without `arm64_notify_die()`.
 
-**Step 1.4: DETECT HIDDEN BUG FIXES**
+Step 1.4: DETECT HIDDEN BUG FIXES
+Record: Not disguised. This is an explicit hang/storm fix, not cleanup.
 
-Record: **Not a disguised cleanup.** The subject/body describe a
-firmware-string sanitization so userspace matching works. It is a
-**hardware quirk / firmware workaround**, not a crash fix.
+===============================================================
+PHASE 2: DIFF ANALYSIS - LINE BY LINE
+===============================================================
 
----
-
-## PHASE 2: DIFF ANALYSIS - LINE BY LINE
-
-**Step 2.1: INVENTORY THE CHANGES**
-
+Step 2.1: INVENTORY THE CHANGES
 Record:
-- **File:** `drivers/acpi/battery.c` only — **+14 / −0**
-- **Functions:** new `acpi_battery_clean_unprintable_chars()`; call
-  added at the end of `extract_battery_info()`
-- **Also:** `#include <linux/ctype.h>`
-- **Scope:** single-file surgical change
+- File: `drivers/acpi/apei/ghes.c` only (+9 / -1)
+- Function: `ghes_in_nmi_queue_one_entry()`
+- Scope: single-file surgical fix
 
-**Step 2.2: UNDERSTAND THE CODE FLOW CHANGE**
-
+Step 2.2: UNDERSTAND THE CODE FLOW CHANGE
 Record:
-- **Before:** `extract_package()` `strscpy()`s ACPI string/buffer into
-  `battery->model_number`. That value is exported as
-  `POWER_SUPPLY_PROP_MODEL_NAME` (`val->strval =
-  battery->model_number`). Trailing non-ASCII/unprintable bytes stay in
-  the sysfs string.
-- **After:** On successful extract (`!result`), walk `model_number` and
-  replace the first non-ASCII or non-printable byte with `'\0'`
-  (truncate). `isprint('\0')` is false, so an existing terminator also
-  stops the loop.
-- **Path:** initialization/update when `_BIF`/`_BIX` is parsed
-  (`acpi_battery_get_info()` → `extract_battery_info()`), not a hot I/O
-  path.
+- Before: cached estatus → `goto no_work` with `rc` still 0 → callers
+  treat it as “successfully handled.”
+- After: cached + `is_hest_sync_notify(ghes)` (HEST notify type SEA) →
+  `rc = -ECANCELED` → `ghes_notify_sea()` / `apei_claim_sea()` fail →
+  `do_sea()` falls through to `arm64_notify_die()` and SIGBUS.
+- Path affected: duplicate synchronous SEA only. NMI/SDEI cache hits
+  stay `rc = 0`.
 
-**Step 2.3: IDENTIFY THE BUG MECHANISM**
-
+Step 2.3: IDENTIFY THE BUG MECHANISM
 Record:
-- **Category:** **hardware workaround / firmware string sanitization**
-  (logic/correctness of exported sysfs string)
-- **Mechanism:** EC returns trailing garbage; kernel treated it as a C
-  string and exported it. Truncating at the first bad byte makes
-  `model_name` matchable by udev/hwdb.
-- **Not:** UAF, leak, race, NULL deref, overflow, deadlock.
+- Category: logic / correctness in RAS exception handling (hang /
+  exception storm).
+- Mechanism: success-on-cache-hit hid an incomplete recovery (free-buddy
+  poison without kill). Returning an error unclaims the SEA so the arch
+  handler can kill the task.
 
-**Step 2.4: ASSESS THE FIX QUALITY**
+Verified supporting code in this tree:
+- `action_result(MF_RECOVERED)` returns 0 (`mm/memory-failure.c`).
+- `memory_failure_cb()` returns without SIGBUS if `!ret`.
+- Free-buddy path never calls `kill_accessing_process()`.
+- `79a5ae3c4c5eb` only `force_sig(SIGBUS)` when `sync && !queued`; the
+  first SEA *does* queue work, so that fallback does not fire.
 
+Step 2.4: ASSESS THE FIX QUALITY
 Record:
-- **Quality:** Small and easy to verify. Loop is bounded by
-  `ARRAY_SIZE(battery->model_number)` (64). Stops at NUL or first bad
-  byte. Matches the “trailing garbage” report.
-- **Regression risk:** Low. Sysfs `model_name` changes from a garbage-
-  suffixed string to the printable prefix — that is the intended ABI
-  cleanup. Unlikely udev rules match the unprintable suffix. Theoretical
-  risk: a legitimate non-ASCII model name would be truncated; ACPI
-  `_BIF`/`_BIX` model strings in practice are ASCII (Lenovo example
-  `LNV-5B10W51864`). Only `model_number` is cleaned, not
-  `serial_number`/`oem_info` — incomplete vs a full sanitizer, but
-  matches the reported bug.
-- **v1 vs v2:** v1 stripped unprintables in the middle and kept the
-  rest; v2 truncates. v2 is what landed; Lenovo reviewed it as good.
+- Obviously correct for the single-source SEA case that matches the
+  logs.
+- Minimal; no API/data-structure change.
+- Regression risk is low: gated by `is_hest_sync_notify()` so x86 NMI /
+  SDEI behavior is unchanged.
+- Known limitation (discussed on-list, accepted by Tony Luck): if
+  several GHES SEA sources are on the list and one still returns 0,
+  `-ECANCELED` is discarded. Author: a true multi-source storm is a
+  different failure. Not a reason to withhold the single-source fix.
+- KVM: `kvm_handle_guest_sea()` currently claims a duplicate SEA
+  (`apei_claim_sea() == 0`). After this, it injects SError into the
+  guest instead of leaving the host looping. That is an improvement, not
+  a new API.
 
----
+===============================================================
+PHASE 3: GIT HISTORY INVESTIGATION
+===============================================================
 
-## PHASE 3: GIT HISTORY INVESTIGATION
-
-**Step 3.1: BLAME THE CHANGED LINES**
-
+Step 3.1: BLAME THE CHANGED LINES
 Record:
-- New helper is entirely this commit (`6587dd87595cfa`).
-- `extract_battery_info()` exists since **Dave Lambley, 2016**
-  (`2d09af4a88d99a`).
-- `model_number[]` and copy-from-ACPI go back to the old ACPI battery
-  driver (**~2007–2009**; `c67fcd670b55e` added `_BIX` in 2009).
-  Unsanitized export has been present for many LTS generations.
-- String copy uses `strscpy` from Armin Wolf, 2023 (`a1a32ded2887fd`) —
-  that only changed copy safety, not sanitization.
+- Cache skip introduced in `d9f608dc156487` (“ACPI / APEI: Only use
+  queued estatus entry during in_nmi_queue_one_entry()”, 2019-01-29).
+  Present in this tree.
+- `is_hest_sync_notify()` from `a70297d221325` (2023-12-18). Present.
 
-**Step 3.2: FOLLOW THE FIXES: TAG**
+Step 3.2: FOLLOW THE FIXES: TAG
+Record: No Fixes: tag. Not applicable. The bug is interaction among the
+2019 cache, long-standing free-buddy recovery, and SEA claim returning
+success.
 
-Record: **No Fixes: tag.** Nothing to follow. Bug is long-standing
-firmware/EC behavior, not a recent regression from a specific commit.
+Step 3.3: CHECK FILE HISTORY FOR RELATED CHANGES
+Record: Related commits already in this tree:
+- `a70297d221325` — MF_ACTION_REQUIRED on sync events
+- `79a5ae3c4c5eb` — SIGBUS if sync error is not queued
+- `c1f1fda141373` — run `memory_failure()` in task work for sync SEA
+This patch is a remaining hole after those two 2025 SIGBUS fixes: queued
+free-buddy recovery still does not kill, then cache blocks the retry.
 
-**Step 3.3: CHECK FILE HISTORY FOR RELATED CHANGES**
+Standalone. Not “patch X/Y”.
 
-Record: Recent `drivers/acpi/battery.c` commits after this one (mutex
-split, notification merge, charging-status check) are **independent**.
-No prerequisite series. Standalone.
+Step 3.4: CHECK THE AUTHOR'S OTHER COMMITS
+Record: Junhao He has HiSilicon PMU commits here, not APEI. Reviewers
+are the APEI/RAS people. Weight is from review, not authorship.
 
-**Step 3.4: CHECK THE AUTHOR'S OTHER COMMITS**
+Step 3.5: CHECK FOR DEPENDENT/PREREQUISITE COMMITS
+Record: Needs `is_hest_sync_notify()` and the existing
+`ghes_in_nmi_queue_one_entry()` cache check. Both are in this tree. Can
+apply standalone.
 
-Record: Kate Hsuan (Red Hat) has this one ACPI battery commit plus other
-hardware-enablement work (Lenovo cameras, power-supply LEDs). Not the
-ACPI maintainer. ACPI maintainer (Rafael) applied it. Lenovo’s Mark
-Pearson reviewed it.
+===============================================================
+PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
+===============================================================
 
-**Step 3.5: CHECK FOR DEPENDENT/PREREQUISITE COMMITS**
-
-Record: Uses `isascii`/`isprint` from `linux/ctype.h` (long-standing).
-`extract_battery_info()` and `model_number[MAX_STRING_LENGTH]` exist in
-this tree and in old kernels. **Standalone; no extra commits required.**
-
----
-
-## PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
-
-**Step 4.1: FIND THE ORIGINAL PATCH DISCUSSION**
-
+Step 4.1: FIND THE ORIGINAL PATCH DISCUSSION
 Record:
-- **b4 dig:**
-  https://patch.msgid.link/20260710125122.1621877-1-hpa@redhat.com
-- **Revisions:** v1 `20260708070732.578046-1-hpa@redhat.com`
-  (2026-07-08); **v2** (committed) 2026-07-10. v1 compacted by dropping
-  unprintables; v2 truncates at first bad byte.
-- **Review:** Mark Pearson: “this impacts a few of our platforms”;
-  “Implementation looks good to me.” **Reviewed-by** given.
-- **Maintainer:** Rafael: **“Applied as 7.3 material, thanks!”** No NAK.
-  No `Cc: stable` request in the v2 thread (mbox).
-- lore.kernel.org HTTP **403**; thread recovered via **b4 mbox** and
-  openwall.
+- v1 msgid: `20251030071321.2763224-1-hejunhao3@h-partners.com`
+  (2025-10-30), 12 messages. Returned `-EAGAIN` on every cache hit,
+  including NMI/SDEI.
+- v2 msgid: `20260527082707.2013499-1-hejunhao3@h-partners.com`
+  (2026-05-27), 10 messages. This is the applied version: only SEA via
+  `is_hest_sync_notify()`.
+- Applied version is v2 (latest).
+- No NAKs. Rafael required an APEI-reviewer ACK; Tony Luck then
+  Reviewed-by. Rafael: “Applied as 7.3 material.”
+- No reviewer Cc: stable.
 
-**Step 4.2: CHECK WHO REVIEWED THE PATCH**
+Step 4.2: CHECK WHO REVIEWED THE PATCH
+Record: Recipients/reviewers included ACPI APEI maintainers/reviewers
+(Rafael, Tony Luck, Shuai Xue). Shuai asked for an x86 look because the
+helper is shared; v2’s SEA-only gate was the answer. Tony Luck R-b after
+that explanation.
 
-Record (b4 -w): Kate Hsuan, Mark Pearson (Lenovo), Rafael J. Wysocki,
-Len Brown, linux-acpi@, linux-kernel@. Right maintainers were on Cc.
-Rafael applied it.
+Step 4.3: SEARCH FOR THE BUG REPORT
+Record: No bugzilla/syzbot. Author included production-style firmware +
+kernel logs (`devmem` task, free buddy Recovered, then 10s of “SEA
+Handle”, then SIGBUS). Real hardware reproduction, not theoretical.
 
-**Step 4.3: SEARCH FOR THE BUG REPORT**
+Step 4.4: CHECK FOR RELATED PATCHES AND SERIES
+Record: Single patch. v2 changelog: (1) commit message per Shuai Xue,
+(2) SEA-only so other NMI-type GHES handlers are not affected.
 
-Record: UPower work item
-https://gitlab.freedesktop.org/upower/upower/-/work_items/345 — **GitLab
-returned 403; body UNVERIFIED**. Commit + Lenovo review still establish
-real udev/hwdb/UPower impact on some Lenovo platforms.
+Step 4.5: CHECK STABLE MAILING LIST HISTORY
+Record: lore.kernel.org HTTP was 403/Anubis. Thread retrieved with `b4
+mbox`. No stable@ discussion found in those threads. UNVERIFIED: other
+independent stable-list threads beyond these two.
 
-**Step 4.4: CHECK FOR RELATED PATCHES AND SERIES**
+===============================================================
+PHASE 5: CODE SEMANTIC ANALYSIS
+===============================================================
 
-Record: Standalone (not N/M). No follow-up in this tree extending
-sanitization to serial/oem.
+Step 5.1: IDENTIFY KEY FUNCTIONS IN THE DIFF
+Record: `ghes_in_nmi_queue_one_entry()`; uses `ghes_estatus_cached()`,
+`is_hest_sync_notify()`.
 
-**Step 4.5: CHECK STABLE MAILING LIST HISTORY**
-
-Record: lore.kernel.org/stable search **403**. **UNVERIFIED** whether
-stable@ discussed this. No evidence in the ACPI thread of a stable
-nomination or a rejection.
-
----
-
-## PHASE 5: CODE SEMANTIC ANALYSIS
-
-semcode MCP was **not available**. Used `rg` and file reads.
-
-**Step 5.1: IDENTIFY KEY FUNCTIONS**
-
-Record: `acpi_battery_clean_unprintable_chars()` (new);
-`extract_battery_info()` (caller added).
-
-**Step 5.2: TRACE CALLERS**
-
+Step 5.2: TRACE CALLERS
 Record:
-- `extract_battery_info()` ← `acpi_battery_get_info()`
-- `acpi_battery_get_info()` ← `acpi_battery_update()` (probe/update when
-  `!update_time`), `acpi_battery_refresh()`, `battery_notify()` post-
-  suspend path
-- `model_number` read in `acpi_battery_get_property()` for
-  `POWER_SUPPLY_PROP_MODEL_NAME` → sysfs `model_name`
+- `ghes_in_nmi_spool_from_list()` ← `ghes_notify_sea()` (SEA) and NMI
+  list
+- `__ghes_sdei_callback()` (SDEI)
+- `ghes_notify_sea()` ← `apei_claim_sea()` ← `do_sea()` (user_mode only)
+  and `kvm_handle_guest_sea()`
+NMI/SDEI: `is_hest_sync_notify()` is false, so no behavior change.
 
-Calling context: ACPI battery probe/update/resume, process context with
-`property_lock`. Not IRQ. Userspace reads sysfs (udev, UPower, desktop
-power applets).
+Step 5.3: TRACE CALLEES
+Record: Cache lookup, `gen_pool_free` on `no_work`, no new locks/allocs
+on the new path.
 
-**Step 5.3: TRACE CALLEES**
+Step 5.4: FOLLOW THE CALL CHAIN
+Record: Userspace load/store to poisoned PFNMAP memory → SEA → `do_sea`
+→ `apei_claim_sea` → GHES. Reachable from userspace (`/dev/mem` in the
+logs). Unprivileged trigger depends on who can map that physical page
+(typically privileged), but once it fires the host loops. Firmware-first
+ARM64 servers are the population.
 
-Record: `isascii()`, `isprint()` only. No alloc, no locks, no I/O.
+Step 5.5: SEARCH FOR SIMILAR PATTERNS
+Record: `ghes_proc()` still calls `ghes_do_proc()` even when cached (IRQ
+path). Only the NMI-queue path skips processing on cache hit. That is
+unique to this helper; no sibling copy of the same bug.
 
-**Step 5.4: FOLLOW THE CALL CHAIN**
+===============================================================
+PHASE 6: CROSS-REFERENCING AGAINST THE LOCAL TREE
+===============================================================
 
-Record: Firmware `_BIF`/`_BIX` → extract → sysfs `model_name` →
-udev/hwdb/UPower. **Reachable on any ACPI-battery laptop at boot.**
-Trigger is broken EC data on affected Lenovo (and similar) machines.
+Step 6.1: DOES THE BUGGY CODE EXIST IN THIS TREE?
+Record: Yes. `drivers/acpi/apei/ghes.c:1373-1375` is still:
 
-**Step 5.5: SEARCH FOR SIMILAR PATTERNS**
+```
+if (ghes_estatus_cached(estatus))
+    goto no_work;
+```
 
-Record: Same `!isascii || !isprint` pattern in ath10k/11k/12k SMBIOS
-BDF, ipw2100/2200, sound/ump. Kernel already sanitizes firmware strings
-this way. This patch does **not** sanitize
-`serial_number`/`type`/`oem_info` in the same driver.
+`is_hest_sync_notify()` exists. `CONFIG_ACPI_APEI_SEA` is default y on
+ARM64. Bug class present since the 2019 queue path; this 6.18 tree also
+has the 2025 task-work SIGBUS series that still misses free-buddy.
 
----
+Step 6.2: CHECK FOR BACKPORT COMPLICATIONS
+Record: Exact hunk matches this file. Expected apply: clean.
 
-## PHASE 6: CROSS-REFERENCING AGAINST THE LOCAL TREE
+Step 6.3: CHECK IF RELATED FIXES ARE ALREADY HERE
+Record: `c1f1fda141373` and `79a5ae3c4c5eb` are in HEAD; they do not
+cover this cache-hit + free-buddy case. This commit is not in HEAD (`git
+log --grep` on the file found nothing).
 
-**Step 6.1: DOES THE BUGGY CODE EXIST IN THIS TREE?**
+===============================================================
+PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
+===============================================================
 
-Record: **Yes.** `drivers/acpi/battery.c` has
-`model_number[MAX_STRING_LENGTH]` (64), `extract_package()` `strscpy`
-into it, and sysfs export via `POWER_SUPPLY_PROP_MODEL_NAME`. The bug is
-unsanitized firmware text; that behavior is ancient. Approximate
-introduction: ACPI battery driver **2.6 era (~2007)**. This 7.3 tree
-already contains the fix (`git merge-base --is-ancestor 6587dd87595cfa
-HEAD` → yes). Evaluation is still whether the **fix itself** belongs on
-stable, not whether it is already applied here.
+Step 7.1: IDENTIFY THE SUBSYSTEM AND ITS CRITICALITY
+Record: ACPI APEI / GHES RAS. IMPORTANT for ARM64 firmware-first
+platforms (servers, Huawei/Kunpeng-class). Not core-mm, but memory-error
+handling on those machines.
 
-**Step 6.2: CHECK FOR BACKPORT COMPLICATIONS**
+Step 7.2: ASSESS SUBSYSTEM ACTIVITY
+Record: Actively maintained (CXL CPER, ARM CPER bounds, task-work SEA).
+Mature SEA queue dates to 2019.
 
-Record: **Clean/minor.** The hunk is a new helper + 4-line call +
-include. `extract_battery_info()` surrounding quirk code
-(`ACPI_BATTERY_QUIRK_*`) has been stable for years. Later 7.3-only
-changes (`property_lock`, kfifo notify) sit **elsewhere** and are not
-required. `for (unsigned int i = 0; ...)` is valid in current kernel C;
-very old compilers on ancient LTS could need `unsigned int i;` moved out
-— not an issue for this 7.3-based evaluation.
+===============================================================
+PHASE 8: IMPACT AND RISK ASSESSMENT
+===============================================================
 
-**Step 6.3: CHECK IF RELATED FIXES ARE ALREADY HERE**
+Step 8.1: DETERMINE WHO IS AFFECTED
+Record: ARM64 + ACPI APEI GHES SEA + memory failure. Driver/platform-
+specific, not universal. Typical of enterprise ARM RAS.
 
-Record: This is the only `model_number` sanitization in `battery.c`. No
-earlier equivalent fix.
+Step 8.2: DETERMINE THE TRIGGER CONDITIONS
+Record: Hardware UE/poison + userspace access via PFNMAP while page is
+free buddy, SEA before (or instead of useful) async kill. Not every
+boot. When it hits, it repeats until the 10s cache expires or firmware
+reboots. Unprivileged users generally cannot open `/dev/mem`; still a
+host-stability bug for RAS/error-injection and any PFNMAP consumer.
 
----
+Step 8.3: DETERMINE THE FAILURE MODE SEVERITY
+Record: Exception storm / stuck task; related APEI text: firmware
+threshold reboot or hard lockup. Severity: CRITICAL/HIGH. Logs prove the
+10s storm (`1419.78` → `1429.81`).
 
-## PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
-
-**Step 7.1: IDENTIFY THE SUBSYSTEM AND ITS CRITICALITY**
-
-Record: **ACPI battery driver** (`drivers/acpi/battery.c`).
-**IMPORTANT** for ACPI laptops (power sysfs, udev, UPower), not core
-mm/VFS. Not staging.
-
-**Step 7.2: ASSESS SUBSYSTEM ACTIVITY**
-
-Record: Moderately active (locking, notify coalescing, charge-status).
-Mature driver; this is a firmware quirk, not a new subsystem.
-
----
-
-## PHASE 8: IMPACT AND RISK ASSESSMENT
-
-**Step 8.1: DETERMINE WHO IS AFFECTED**
-
-Record: **Driver/hardware-specific.** ACPI battery users whose EC
-returns garbage in the model string. Confirmed: **some Lenovo
-platforms** (Mark Pearson). Red Hat authored it, so it showed up on a
-distro kernel. Not universal.
-
-**Step 8.2: DETERMINE THE TRIGGER CONDITIONS**
-
-Record: Every boot on affected hardware (sysfs populated from
-`_BIF`/`_BIX`). Unprivileged users can **read** `model_name`; they
-cannot trigger a kernel crash. udev runs as root and fails to match.
-Common on those machines, rare globally.
-
-**Step 8.3: DETERMINE THE FAILURE MODE SEVERITY**
-
-Record: **Failure mode:** udev/hwdb/UPower cannot match `model_name` →
-battery quirks, identification, and distro rules do not apply.
-**Severity: MEDIUM** (functional userspace integration, not
-oops/corruption/deadlock). Official stable rules explicitly include
-**hardware quirks**.
-
-**Step 8.4: CALCULATE RISK-BENEFIT RATIO**
-
+Step 8.4: CALCULATE RISK-BENEFIT RATIO
 Record:
-- **Benefit:** High for affected Lenovo/ACPI laptops on stable/LTS: hwdb
-  and udev start working. Matches the hardware-quirk exception.
-- **Risk:** Very low — 14 lines, no locking/alloc, truncates a firmware
-  string already copied with `strscpy`.
-- **Ratio:** Benefit outweighs risk for stable.
+- Benefit: high for ARM64 RAS — stops a documented SEA storm and
+  delivers SIGBUS immediately.
+- Risk: low — ~9 lines, SEA-only, no new ABI, clean apply.
+- Ratio: benefit ≫ risk.
 
----
+===============================================================
+PHASE 9: FINAL SYNTHESIS
+===============================================================
 
-## PHASE 9: FINAL SYNTHESIS
+Step 9.1: COMPILE THE EVIDENCE
+FOR:
+- Real hang/storm with hardware logs
+- Small, obviously correct, SEA-gated
+- Applies cleanly to this 6.18 tree; helper already present
+- Prior APEI SIGBUS fixes in this tree leave this hole
+- Reviewed by APEI reviewers (Luck, Xue) and applied by Rafael
 
-**Step 9.1: COMPILE THE EVIDENCE**
+AGAINST:
+- Trigger is RAS/PFNMAP, not every machine
+- No Fixes:/Cc: stable (not a negative per rules)
+- Incomplete if multiple concurrent distinct SEA sources all stay cached
+  (accepted on-list)
 
-**FOR backporting:**
-- Real firmware bug on shipping Lenovo platforms (Lenovo Reviewed-by; “a
-  few of our platforms”).
-- Documented UPower/udev/hwdb breakage.
-- Official stable rules: *“hardware quirk”* is an accepted class
-  (`Documentation/process/stable-kernel-rules.rst`).
-- 14 lines, single file, obviously correct, no new API.
-- ACPI maintainer applied it; Lenovo reviewed it; Red Hat authored it.
-- Driver and unsanitized `model_number` exist far back; no missing
-  prerequisites.
-- Same sanitization pattern as other firmware-string handling in-tree.
+UNRESOLVED:
+- Could not HTTP-fetch lore (403); used `b4 mbox` instead
+- UNVERIFIED: later mainline follow-ups after this commit
+- UNVERIFIED: independent stable@ threads besides v1/v2
 
-**AGAINST:**
-- Not a crash, UAF, deadlock, or CVE.
-- Changes userspace-visible `model_name` (intentional).
-- Rafael labeled it “7.3 material,” not an explicit stable nomination.
-- Userspace *could* strip the bytes (kernel is still the right place, as
-  with other firmware sanitizers).
-- Only `model_number` is cleaned.
+Step 9.2: APPLY THE STABLE RULES CHECKLIST
+1. Obviously correct and tested? PASS — v2 after review; logs; R-b from
+   Luck/Xue/Ma
+2. Fixes a real bug that affects users? PASS — documented SEA storm on
+   devmem/PFNMAP
+3. Important issue? PASS — hang / exception storm / possible firmware
+   reboot
+4. Small and contained? PASS — one function, ~9 lines
+5. No new features or APIs? PASS
+6. Can apply to the local tree? PASS — hunk present, helper present, not
+   already applied
 
-**UNRESOLVED:**
-- UPower work item body (GitLab 403).
-- v1 review text beyond the v1/v2 diff (lore 403).
-- Whether stable@ already discussed it (lore 403).
+Step 9.3: CHECK FOR EXCEPTION CATEGORIES
+Record: None (not a device ID/quirk/DT/build/doc exception). Qualifies
+as a normal important bugfix.
 
-**Step 9.2: APPLY THE STABLE RULES CHECKLIST**
-
-1. Obviously correct and tested? **PASS** — bounded truncate; Lenovo
-   review; maintainer applied.
-2. Fixes a real bug that affects users? **PASS** — udev/hwdb/UPower fail
-   on real Lenovo batteries.
-3. Important issue? **PASS** as **hardware quirk** (explicitly listed in
-   stable-kernel-rules.rst). Severity MEDIUM, not oops-level.
-4. Small and contained? **PASS** — +14 lines, one file.
-5. No new features or APIs? **PASS** — sanitizes an existing sysfs
-   string.
-6. Can apply to the local tree? **PASS** — driver and
-   `extract_battery_info()` are present; hunk is self-contained.
-
-**Step 9.3: CHECK FOR EXCEPTION CATEGORIES**
-
-Record: **Hardware quirk / firmware workaround** (sanitize broken EC
-model string). Analogous to USB/PCI/codec quirks: small, device-
-specific, makes existing userspace matching work.
-
-**Step 9.4: MAKE YOUR DECISION**
-
-This is a small, reviewed firmware sanitization that fixes a real
-udev/hwdb failure on Lenovo ACPI batteries. It is not a kernel crash,
-but stable rules treat hardware quirks as in-scope, and the risk is very
-low. It should be backported.
-
----
-
-## What the commit solves and why it matters to stable users
-
-On some systems the battery EC returns a model name with trailing non-
-ASCII/unprintable bytes. That string is exported as
-`/sys/class/power_supply/BAT0/model_name`. udev rules and hwdb match on
-that attribute; garbage bytes prevent matches, so UPower and distro
-battery quirks do not apply. Stable/LTS laptop users (enterprise,
-Fedora, Ubuntu) stay on these kernels for years; they need the same
-identification to work.
-
-## Stable rules, risk vs benefit, concerns
-
-Meets the written rules: obviously correct, real user-visible bug,
-hardware quirk, 14 lines, no new API. Benefit is restored udev/hwdb
-matching on affected machines; risk is a one-time sysfs string cleanup
-with no locking or allocation. No extra commits are required. Later 7.3
-battery locking/notify work is unrelated.
-
----
+Step 9.4: MAKE YOUR DECISION
+This should be backported to this 6.18 tree. It closes a remaining ARM64
+GHES SEA loop after the task-work SIGBUS work already in 6.18, with
+negligible regression risk.
 
 Verification:
-- [Phase 1] Parsed tags: Reviewed-by Mark Pearson (Lenovo); SOB Kate
-  Hsuan (Red Hat) and Rafael J. Wysocki; Link to UPower work item 345
-  and patch.msgid v2; no Fixes:/Reported-by/Cc:stable
-- [Phase 1] Body: example `LNV-5B10W51864` plus unprintable suffix;
-  udev/hwdb matching failure
-- [Phase 2] Diff: +14 `drivers/acpi/battery.c`; new
-  `acpi_battery_clean_unprintable_chars()`; call in
-  `extract_battery_info()` when `!result`; `#include <linux/ctype.h>`
-- [Phase 2] Confirmed `isprint`/`isascii` in `include/linux/ctype.h`;
-  `isprint('\0')` is false so loop stops at NUL
-- [Phase 2] `MAX_STRING_LENGTH` is 64;
-  `ARRAY_SIZE(battery->model_number)` matches
-- [Phase 3] Blame: helper is 6587dd87595cfa; `extract_battery_info` from
-  2d09af4a88d99a (2016); `strscpy` from a1a32ded2887fd (2023);
-  model_number field long-standing
-- [Phase 3] No Fixes: tag; git log on `drivers/acpi/battery.c` shows no
-  prerequisite series
-- [Phase 3] `git merge-base --is-ancestor 6587dd87595cfa HEAD` succeeded
-  (commit is in this tree)
-- [Phase 4] `b4 dig -c 6587dd87595cfa`: v2 at
-  patch.msgid.link/20260710125122.1621877-1-hpa@redhat.com
-- [Phase 4] `b4 dig -a`: v1 2026-07-08 (strip-in-place), v2 2026-07-10
-  (truncate) — committed version is v2
-- [Phase 4] `b4 dig -w`: Rafael, Len Brown, linux-acpi, Mark Pearson on
-  the original To/Cc
-- [Phase 4] b4 mbox: Pearson “impacts a few of our platforms”; Rafael
-  “Applied as 7.3 material”; no NAK, no Cc:stable in thread
-- [Phase 4] lore.kernel.org and GitLab 403 — UPower issue body and
-  stable@ history UNVERIFIED
-- [Phase 5] Callers: `acpi_battery_get_info` from `acpi_battery_update`,
-  `acpi_battery_refresh`, `battery_notify`; property
-  `POWER_SUPPLY_PROP_MODEL_NAME` → sysfs
-- [Phase 5] Similar isascii/isprint sanitization in ath1x k SMBIOS and
-  ipw2x00
-- [Phase 6] `git describe HEAD`: v7.3-rc4-27-gf0100363d8c37; `make
-  kernelversion`: 7.3.0-rc4
-- [Phase 6] Parent of fix still copies `model_number` via `strscpy` with
-  no sanitization
-- [Phase 7] Subsystem ACPI battery; official rules quote: hardware quirk
-  is in-scope
-- [Phase 8] Failure mode: udev/hwdb mismatch, severity MEDIUM; not
-  oops/UAF
-- UNVERIFIED: UPower work item 345 details; v1 mailing-list review
-  comments; any prior stable@ discussion
-
-The patch is a 14-line firmware quirk that restores battery `model_name`
-matching for real Lenovo hardware, with negligible regression risk.
+- [Phase 1] Parsed tags: 3 Reviewed-by (Ma, Xue, Luck), Link msgid,
+  Rafael SOB; no Fixes/Cc:stable/syzbot
+- [Phase 2] Diff: +9/-1 in `ghes_in_nmi_queue_one_entry()`; `-ECANCELED`
+  only if cached && `is_hest_sync_notify()`
+- [Phase 2] Confirmed `action_result(MF_RECOVERED)` returns 0;
+  `memory_failure_cb` skips SIGBUS; free-buddy path skips
+  `kill_accessing_process`
+- [Phase 2] Confirmed `79a5ae3c4c5eb` force-kill is `sync && !queued`
+  only, so first SEA that queues work is not covered
+- [Phase 3] blame: cache skip `d9f608dc156487` (2019);
+  `is_hest_sync_notify` `a70297d221325`; both ancestors of HEAD
+- [Phase 3] `git merge-base --is-ancestor` : a70297, c1f1fda, 79a5ae3,
+  d9f608dc all in this tree
+- [Phase 3] `git log --grep='repeated SEA'` on `drivers/acpi/`: empty —
+  commit not here
+- [Phase 4] `b4 am`/`b4 mbox`: v1 12 msgs (2025-10-30), v2 10 msgs
+  (2026-05-27); v2 is applied version
+- [Phase 4] Tony Luck questioned SDEI vs SEA callers; author said SEA-
+  only; Luck R-b; Rafael applied as 7.3 material
+- [Phase 4] lore HTTP 403; discussion taken from b4 mboxes
+- [Phase 5] callers: `ghes_in_nmi_spool_from_list`,
+  `__ghes_sdei_callback`; user path `do_sea` → `apei_claim_sea`; KVM
+  `kvm_handle_guest_sea`
+- [Phase 6] `git describe HEAD` = p-6.18-1-g03b85e06ca9bf; `make
+  kernelversion` = 6.18.53
+- [Phase 6] exact old hunk still in `ghes.c:1373-1375`; new hunk absent
+- [Phase 8] Failure mode: SEA storm ~10s (log timestamps 1419 → 1429),
+  then SIGBUS; severity HIGH/CRITICAL
+- UNVERIFIED: follow-up commits after this one in later mainline; other
+  stable@ threads
 
 **YES**
 
- drivers/acpi/battery.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/acpi/apei/ghes.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 296c2981b1a73..0b922aceb28d1 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -10,6 +10,7 @@
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 5b52455d86e02..1a77aba0475be 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -1371,8 +1371,16 @@ static int ghes_in_nmi_queue_one_entry(struct ghes *ghes,
+ 	ghes_clear_estatus(ghes, &tmp_header, buf_paddr, fixmap_idx);
  
- #define pr_fmt(fmt) "ACPI: battery: " fmt
- 
-+#include <linux/ctype.h>
- #include <linux/delay.h>
- #include <linux/dmi.h>
- #include <linux/jiffies.h>
-@@ -486,6 +487,15 @@ static int acpi_battery_get_status(struct acpi_battery *battery)
- 	return 0;
- }
- 
-+static void acpi_battery_clean_unprintable_chars(char *str, size_t length)
-+{
-+	for (unsigned int i = 0; i < length; i++) {
-+		if (!isascii(str[i]) || !isprint(str[i])) {
-+			str[i] = '\0';
-+			break;
-+		}
+ 	/* This error has been reported before, don't process it again. */
+-	if (ghes_estatus_cached(estatus))
++	if (ghes_estatus_cached(estatus)) {
++		/*
++		 * Return failure on duplicate SEA entries so that the
++		 * subsequent SEA handler invocation sends a SIGBUS signal to
++		 * the task to prevent it from re-entering the handler loop.
++		 */
++		if (is_hest_sync_notify(ghes))
++			rc = -ECANCELED;
+ 		goto no_work;
 +	}
-+}
  
- static int extract_battery_info(const int use_bix,
- 			 struct acpi_battery *battery,
-@@ -527,6 +537,10 @@ static int extract_battery_info(const int use_bix,
- 	    battery->capacity_now > battery->full_charge_capacity)
- 		battery->capacity_now = battery->full_charge_capacity;
- 
-+	if (!result)
-+		acpi_battery_clean_unprintable_chars(battery->model_number,
-+					ARRAY_SIZE(battery->model_number));
-+
- 	return result;
- }
+ 	llist_add(&estatus_node->llnode, &ghes_estatus_llist);
  
 -- 
 2.53.0
