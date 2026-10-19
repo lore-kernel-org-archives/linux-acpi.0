@@ -1,55 +1,155 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792430351;
-	b=gYLfpUzGczN8FlUwfgLOUwjBFS8J646cGkbzvoQJKNlOp8BMjZp1vgKoq6dpueN4iW2j
-	 niW85aZl0hsVwO8jGBkNQRFqye58K6lcDaHGH1551VJLdb/4LGrbWVAdMG4OMOdJCx6pZ
-	 30G3LzA6+zUShDGv5a7rLAxZpWM7G3n8fz8NRSGfH7MsVXlb8mZ9TPH3MRV0gv/0xS/o6
-	 BtUZRwzOPYWsB8/uEPuc2U88l5CpBwUvne45GlEOIBttpKX03sGd1PYr4Lemx1wVTVVKe
-	 zK1JJ7ppsDAdVTDwX+uuY5Nu9C4HTIA6r84M3yVdsZi9yOpGiLGn8aXCd3NdpSjCiVQ==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792430351;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:From:Date:
-	 X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:Subject:To:Cc:
-	 Content-Type;
-	bh=HOGnm7X9nMlXyGl5n2SGeHSm4rPfGqodKOsi9mGsl6s=;
-	b=JB2iz+sy8Na2kADJoH1hMOxEIyhR7MoPZXr2HY21lAKan6sJxLrHufOcaHMueKamxh13
-	 Qr95CWrM9/5aWJ2pZfwe7QSTJmHLOzl4CUwtQbURz7UJNgIqqb+KXisJpQ6KLdgivHG/Y
-	 9VeJg6yoLRWANMgDwbMqbIgXbk1HRhKxyugtGa0fVazz/C70OL+nltpwx48BRmDcMNF0V
-	 FdM4y4TP3lv1ShVaq7q7vTARawyPjg7WSackLvzLG7cV790aohwHjInnOpihr4/Xk2VSP
-	 p5U01Ga1jWn4K+sZ6FC70SWOg9stxmsgPU5weMIiKObM9QozXnCAqxB1VWJkE340JVg==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CoqUZAEn;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=2 smtp.remote-ip=52.101.69.61
+ARC-Seal: i=3; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1792432555;
+	b=IWL9gylBPire8JvdMYXC7EA2wj2eUjMv9UW6Gv6H3wYprewk60SZmCXjauMvHCYUrY1M
+	 YsHPBaaDfIbfIoQ132ATWMq8kLCNGZCqZ8CnwN97n8R+iLOcrsMPSI1LcEh9va6a+9V0n
+	 fHIs/QOyAUgAIrXLRZr/yWBicrFTlYiUPOPQZttJxj98Q3ZfILuLwpMtqFqd+/V205bTI
+	 XiucSIVs0mCRyj1qx8XmyAtCtgFeYackNp2IzftpL5v0G6phYLpHQypTIud1ZFsTKz/LH
+	 Xarpx10FoMuBt26pNRLhTmzsoIdH7hHk9TmoFpHewYwqdQ81KyIRHXM8PhgmISHyGig==
+ARC-Message-Signature: i=3; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792432555;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:
+	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:
+	 DKIM-Signature:Authentication-Results-Original:Received:Received:
+	 Message-ID:Date:User-Agent:Subject:To:Cc:References:Content-Language:
+	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding:
+	 X-ClientProxiedBy:MIME-Version:X-MS-TrafficTypeDiagnostic:
+	 X-MS-Office365-Filtering-Correlation-Id:X-LD-Processed:
+	 x-checkrecipientrouted:NoDisclaimer:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam-Untrusted:
+	 X-Microsoft-Antispam-Message-Info-Original:
+	 X-Forefront-Antispam-Report-Untrusted:X-Exchange-RoutingPolicyChecked:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped:
+	 X-EOPAttributedMessage:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStripped:
+	 X-MS-PublicTrafficType:X-MS-Office365-Filtering-Correlation-Id-Prvs:
+	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+	 X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-Id:
+	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=s2fS3+jw3JUH1jkWKlZ7UavWq+1ufeUzkz/USutmL4k=;
+	b=Ds0HSDIjMyWjeapgc3lwGTNS3Lw2uobQ9hXc90BCVqEoPtsh3A/jfvIO52hvJTnXgkPY
+	 tjnhD7adbqOaPgkr1r08DCGpA9h3Y6aWIAM/KdRVuDgAs1uGXPl2Fh0+BAlV3EXxgCJSX
+	 DRVk+IqcJqfmyyuVJ6NlSzYpx4GLbcjfnD/ETT+HC7EIUsMLUkDTt85uMvKg/JpsN8Akm
+	 XfM8H3PUmeMWbrPYQfi1Tl2A30blBNyMbMsRMwbA9BbGTYTMjR1Up5FbuumjOVrYq786m
+	 78S1+mbQ+l+KkeSRBSxC0run3t9WUx6zOCICu0loTaSJGpPuuidE+/V1sDVIaZiZAUw==
+ARC-Authentication-Results: i=3; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=arm.com;
+	spf=pass smtp.mailfrom=arm.com;
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=selector1 header.b="Kn1/J8yw";
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=selector1 header.b="Kn1/J8yw";
+	arc=pass header.oldest-pass=2 smtp.remote-ip=52.101.69.61
+Received: from AM0PR83CU005.outbound.protection.outlook.com (mail-westeuropeazon11010061.outbound.protection.outlook.com [52.101.69.61])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E57A1606A31E
-	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 17:19:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 881D6606A31B;
+	Mon, 19 Oct 2026 17:55:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 881D6606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CoqUZAEn
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C2131F000C4
-	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 17:19:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792430350;
-	bh=HOGnm7X9nMlXyGl5n2SGeHSm4rPfGqodKOsi9mGsl6s=;
-	h=From:Date:Subject:To:Cc;
-	b=CoqUZAEn8v9tNv4iJNFDOm/FmxFd7FMuhrDGbhecfdEgCFj3H+bVxoAPloz323qLi
-	 jFH/usXrcSjlqm3LPZegCJ+UVrabuKwWSyvLma3pCCQFioACgAyz5ocsbihCbIbPMs
-	 M8h9//XGmVPygX8f5gyDIQUSHvadhhhiGvzkcoW2NSPAfRJiJzi/jAv6wGDSq+/s9w
-	 s89JB+MVIlfc6kRiB1zzk1mcZoTTHxbJe62xqiGlTQxfElM4h8N936B20ba0vvtmtr
-	 VkDvdXHwCBcqK41by+/+fcMsO2FvnYSNPBM/LJyW8Ys/ysmcw41XNHGj92pAIv92RE
-	 rUWB1CofxsJQw==
-Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-5b8f5e2ce5eso2441434e87.0
-        for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 10:19:10 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBwqu20mP4mOBdFXNfH/A4ZpUiZncmaRhUUVmnDvIhyhhGfVAdH0st7SOOpWoCb5ybpJoQRL0w/dya8u@vger.kernel.org
-X-Gm-Message-State: AFq9FYK5AwEzlBRSKVvF18m24q8nHgpMqk4Vr4gkD5h5iZuFoHYWq0Ti
-	TV61uETMHotuRE9OWmpvS9EBGDiyYQj+BcGAvIu8Rw8qmKx7xyPTvO6vhKg4GJYnti257q+pY1V
-	V9ZCK2/MKarjMSvXDdLM27Bz2UZRkmBU=
-X-Received: by 2002:a05:6512:10c1:b0:5ba:3d48:e47e with SMTP id
- 2adb3069b0e04-5be50a4fff1mr2435955e87.37.1792430348950; Mon, 19 Oct 2026
- 10:19:08 -0700 (PDT)
+	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=selector1 header.b=Kn1/J8yw;
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=selector1 header.b=Kn1/J8yw
+ARC-Seal: i=2; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=pass;
+ b=d8S7+V1JXKXNb84rCWRBjzxFeI21XkTiprLuJBDhpvdNtpu6Qi4dJ2bf67u1+vBt08uvjGocox1MwOZV0bxPZeSF2fkaI+x7jVE18utW4E6Tl5j86Q+RB0qYDGLMUudEcEDeng2e6/uTec2uFfxAqEresGqH+05tfOe6hrEtR5IQeGFTMlI3iQ1Cvu38O1GgNn6utNjCFpPQ/DJ4Nbn6y6TLnqhIeWxTuiNbxc6aUKsWTeX/Ii+J03JYU8Y4NtnPPYJldPrLNjIltGfXV9qZU4RnC0VzJ0e56yKI+b/hgbfmJOqfnus04yVtz4/qGFxjF/mibHOveVCddM8+LHgRaA==
+ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=s2fS3+jw3JUH1jkWKlZ7UavWq+1ufeUzkz/USutmL4k=;
+ b=bOGLqHsv9LNKHL6M/yuOKdHJVLzoKWny+Q1m4vv0S9RoB21hNvCLDoenUNp1QICi6TCso1VyZM1dYgxhM5ZZz2qvhIt45bhdsIuCNr+1Z20gOdSXg/DbUCxHw5JaR0jMoXIACECjQuoEZ9FWAj9DQQbKFhf3pYLwM33DrRJCjlRBIiH+g1AOQhuho+5vsjq26bpefCJVdLA6DMi3vakrxKSk62gLsMK2+huwgm6wtML3ARx2yB7+jnh61/MbO5zf59saKXLNTZzSzukfbSEvgtOmpmBfLyDLP6VA+LLnAfQAi89D6CPI3+cjNzDw2SHTgPkC0SYrnqE6RgZ58SMgYA==
+ARC-Authentication-Results: i=2; mx.microsoft.com 1; spf=pass (sender ip is
+ 4.158.2.129) smtp.rcpttodomain=oss.qualcomm.com smtp.mailfrom=arm.com;
+ dmarc=pass (p=none sp=none pct=100) action=none header.from=arm.com;
+ dkim=pass (signature was verified) header.d=arm.com; arc=pass (0 oda=1 ltdi=1
+ spf=[1,1,smtp.mailfrom=arm.com] dkim=[1,1,header.d=arm.com]
+ dmarc=[1,1,header.from=arm.com])
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arm.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=s2fS3+jw3JUH1jkWKlZ7UavWq+1ufeUzkz/USutmL4k=;
+ b=Kn1/J8ywCqgZZFiSO3rNvT4jt7FoGJgWTMpjIogxDKVXZZecjWQSBgQrzDJWGOY4lYwUTbNoq/jJGlnCMqPtF0pywBo5PMgzUsfc88SGVHXG7qqHq9pCUQxSr9pApQP32BRWub384aTF+X3BZnoBT48sCSzX7AVLdkDV1xxACtU=
+Received: from DUZPR01CA0215.eurprd01.prod.exchangelabs.com
+ (2603:10a6:10:4b4::9) by DU0PR08MB8229.eurprd08.prod.outlook.com
+ (2603:10a6:10:3a7::22) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.546.14; Mon, 19 Oct
+ 2026 17:55:47 +0000
+Received: from DU2PEPF00028D0C.eurprd03.prod.outlook.com
+ (2603:10a6:10:4b4:cafe::ad) by DUZPR01CA0215.outlook.office365.com
+ (2603:10a6:10:4b4::9) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.21.522.19 via Frontend Transport; Mon,
+ 19 Oct 2026 17:55:47 +0000
+X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
+ is 4.158.2.129) smtp.mailfrom=arm.com; dkim=pass (signature was verified)
+ header.d=arm.com;dmarc=pass action=none header.from=arm.com;
+Received-SPF: Pass (protection.outlook.com: domain of arm.com designates
+ 4.158.2.129 as permitted sender) receiver=protection.outlook.com;
+ client-ip=4.158.2.129; helo=outbound-uk1.az.dlp.m.darktrace.com; pr=C
+Received: from outbound-uk1.az.dlp.m.darktrace.com (4.158.2.129) by
+ DU2PEPF00028D0C.mail.protection.outlook.com (10.167.242.20) with Microsoft
+ SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.21.522.6
+ via Frontend Transport; Mon, 19 Oct 2026 17:55:46 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=v+fw9RqrsKNt4CuAPclwqBOA4FZNGsWGoN5SGdHUA4CKZmJ2hZphOKKyZZSQ1t9qM0oRFv6/9rQ+2ynhd3MMXZeL8Qa7kIJNjg98BlWdodgACXgu3GOLexIuUBpdOYtW01ZOKS17FB7t14W8a9X+LFp0VUMH8P9+rGor3YMDQgQb2xkqDeSdpS9NE7RjZz66sipXUO6E4DO1mR+saEDTLOApw/NBrh63ppR9Ld9qWe/NFaFA4bUVzZH+8tCQF5fpwjzH3OuieRa743bqpeWzZKq+fL5jAa9JgfDI54FEJQyNiXPUIcIpNze1+UcbLknmk0Ngm5O27mZkz1vxLkJAKA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=s2fS3+jw3JUH1jkWKlZ7UavWq+1ufeUzkz/USutmL4k=;
+ b=EfzrQYaNH1/9UZTDgt8+m60ToCzWutOGS+CtNCIcuOBDC0ypHti76pQhaArlCwgDbdm1uHGowUwEh2euQSQ/vblPnUi/2yKB8W2kDcrot/cnT38dwsOb/XuIuVSRqpAu4gQz7fN9giTZPMPiTfPGK3M50GwrkuVVYY8OGWaTVZXJ1ADy4jGcf1W6xLsR8v8AEj1eeRNLpupiDmhzWbOJY5ETVduu5+ktFKNCm1DhjgbpTBU4JuYQ1zDz1pMaQK+c7DBA6iHAKvUlpyFUWPNFCoG0T7J2zh4aVi+Fi3Dgpak6b7GNiE2iajNdEvZJgjldRhc0fUlo62HbiC002LAdnw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=arm.com; dmarc=pass action=none header.from=arm.com; dkim=pass
+ header.d=arm.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arm.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=s2fS3+jw3JUH1jkWKlZ7UavWq+1ufeUzkz/USutmL4k=;
+ b=Kn1/J8ywCqgZZFiSO3rNvT4jt7FoGJgWTMpjIogxDKVXZZecjWQSBgQrzDJWGOY4lYwUTbNoq/jJGlnCMqPtF0pywBo5PMgzUsfc88SGVHXG7qqHq9pCUQxSr9pApQP32BRWub384aTF+X3BZnoBT48sCSzX7AVLdkDV1xxACtU=
+Authentication-Results-Original: mx.microsoft.com 1; dkim=none (message not
+ signed) header.d=none;dmarc=none action=none header.from=arm.com;
+Received: from BESPR08MB999898.eurprd08.prod.outlook.com
+ (2603:10a6:b10:109::23) by DB3PR08MB9010.eurprd08.prod.outlook.com
+ (2603:10a6:10:42b::8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.522.6; Mon, 19 Oct
+ 2026 17:55:13 +0000
+Received: from BESPR08MB999898.eurprd08.prod.outlook.com
+ ([fe80::d62a:5300:bc89:9f62]) by BESPR08MB999898.eurprd08.prod.outlook.com
+ ([fe80::d62a:5300:bc89:9f62%6]) with mapi id 15.21.0546.012; Mon, 19 Oct 2026
+ 17:55:12 +0000
+Message-ID: <51d89cca-a519-4856-931d-328987585d11@arm.com>
+Date: Mon, 19 Oct 2026 19:55:10 +0200
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/6] ACPI: extlog: fix extlog_mem_event build issue
+To: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+Cc: linux-kernel@vger.kernel.org, James Morse <james.morse@arm.com>,
+ Mark Brown <broonie@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>,
+ Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>,
+ Borislav Petkov <bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>,
+ Mauro Carvalho Chehab <mchehab@kernel.org>,
+ Shuai Xue <xueshuai@linux.alibaba.com>,
+ Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
+ Pawel Chmielewski <pawel.chmielewski@intel.com>,
+ Dave Jiang <dave.jiang@intel.com>,
+ "Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>,
+ Breno Leitao <leitao@debian.org>, Terry Bowman <terry.bowman@amd.com>,
+ Dan Williams <djbw@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
+ Morduan Zang <zhangdandan@uniontech.com>, linux-acpi@vger.kernel.org,
+ linux-edac@vger.kernel.org, acpica-devel@lists.linux.dev
+References: <20261019145643.1877246-1-pierre.gondois@arm.com>
+ <20261019145643.1877246-2-pierre.gondois@arm.com>
+ <20261019093648.00002db2@oss.qualcomm.com>
+Content-Language: en-US
+From: Pierre Gondois <pierre.gondois@arm.com>
+In-Reply-To: <20261019093648.00002db2@oss.qualcomm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: PR3P192CA0008.EURP192.PROD.OUTLOOK.COM
+ (2603:10a6:102:56::13) To BESPR08MB999898.eurprd08.prod.outlook.com
+ (2603:10a6:b10:109::23)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,355 +159,71 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Mon, 19 Oct 2026 19:16:52 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0igpXbgU7i0x87GZwhAOmMXeT4A4fnKC7y0MPB_CSv6eg@mail.gmail.com>
-X-Gm-Features: AclHuK8jHNDT0xYIiv-DmntIJkyG5ionc-8qiQX7w2p--t26cIUWuyToVOA7oAA
-Message-ID: <CAJZ5v0igpXbgU7i0x87GZwhAOmMXeT4A4fnKC7y0MPB_CSv6eg@mail.gmail.com>
-Subject: [GIT PULL] Power management updates for 7.4-rc1
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, 
-	ACPI Devel Maling List <linux-acpi@vger.kernel.org>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, 
-	Mario Limonciello <superm1@kernel.org>, Christian Loehle <christian.loehle@arm.com>
-Content-Type: text/plain; charset="UTF-8"
-
-Hi Linus,
-
-Please pull from the tag
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm-7.4-rc1
-
-with top-most commit 6c326a54b0738ec3b2cc89e1da953a3586c6a8c4
-
- Merge branches 'pm-sleep', 'pm-em', 'pm-cpu', 'pm-misc' and 'pm-tools'
-
-on top of commit 24a19b953e2a3d0ea5a8c4951a0ab8f32720c907
-
- Linux 7.3-rc7
-
-to receive power management updates for 7.4-rc1.
-
-This time, the most visible part are the ACPI CPPC updates from
-Christian Loehle, including CPPC cpufreq driver changes, even though
-updates of cpufreq drivers proper are still the largest topic group.
-However, the updates of cpufreq drivers depend on the ACPI CPPC updates,
-so they should really be counted together and that is well over 1/2 of
-the total commit count.
-
-Interestingly enough, almost all of the updates included here are fixes
-or cleanups, with some new feature support in the amd-pstate cpufreq driver
-and IPQ9650 support in the qcom-nvmem cpufreq driver.  The runtime PM
-documentation improvements from Brian Norris can also be mostly regarded
-as fixes, but a new kunit test goes along with them.
-
-Specifics:
-
- - Fix multiple issues related to input validation, synchronization,
-   access safety, memory layout and register field validation, and error
-   handling in the ACPI CPPC library (Christian Loehle and Sumit Gupta)
-
- - Select the frequency-invariance callback per CPU in the CPPC cpufreq
-   driver and create the FIE worker before enabling PCC callbacks in it
-   to avoid queueing work through a missing worker and dereferencing a
-   NULL pointer (Christian Loehle)
-
- - Update the CPPC cpufreq driver entry in MAINTAINERS and add a new
-   entry for the ACPI CPPC library (Christian Loehle)
-
- - Minor fixes in various cpufreq drivers (Alexander Koskovich, Daniel
-   Schwierzeck, Frank Zhang, Haotian Zhang, Kathiravan Thirumoorthy,
-   Sumeet Pawnikar, and Xueqin Luo)
-
- - Fix wrong behaviors on multi-node servers in the Loongson cpufreq
-   driver (Huacai Chen)
-
- - Reject NULL from cpufreq_cpu_get() in the Rust code (Mehmet Koseoglu)
-
- - Add suspend OPP to mediatek cpufreq driver and DT (Ryan Brue)
-
- - Fixups for a few bugs identified by Sashiko in the amd-pstate cpufreq
-   driver (Mario Limoncielloi, Wentao Guan)
-
- - Initial support for maximum frequency capacity handling on Zen6
-   client in amd-pstate (Mario Limonciello)
-
- - Fix for amd-pstate-ut with 'Requested CPU Min frequency' BIOS option
-   (K Prateek Nayak)
-
- - New Zen6 tuning values for EPP in amd-pstate (Mario Limonciello,
-   Vishal Badole)
-
- - amd-pstate documentation fix (Karl Mehltretter)
-
- - Restrict deferred downscaling to low load for shared policies in the
-   conservative cpufreq governor to avoid undesirable CPU frequency
-   reduction in some cases (Shengming Hu)
-
- - Serialize sugov_start() against rate limit updates in the schedutil
-   cpufreq governor to avoid using a stale rate limit value (Hui Su)
-
- - Prevent cpuidle governors menu and teo from returning idle state 0
-   after it has been disabled (Xueqin Luo)
-
- - Replace min_t() with the better alternatives in the intel_idle driver
-   and make it use 2-argument strscpy() (Andy Shevchenko)
-
- - Fix two repeated phrase instances in cpuidle (Hemanth Selam, Syazwina
-   Fazrul)
-
- - Add rugged Panther Lake support to the intel_rapl power capping
-   driver and make it use %pe for printing error pointers (Srinivas
-   Pandruvada and Sumeet Pawnikar)
-
- - Update and improve runtime PM documentation and add a kunit test for
-   supplier idle/suspend (Brian Norris)
-
- - Add a pm_runtime_dont_use_autosuspend() call to pm_runtime_reinit()
-   to ensure autosuspend disabling on driver teardown (Joshua Crofts)
-
- - Ignore page-zero RAM in E820 checksum during hibernation on x86 to
-   avoid rejecting images created after kexec() (Matthias Goergens)
-
- - Add resume event mapping for PMSG_POWEROFF to the PM core to allow it
-   to carry out device shutdown in the future (Mario Limonciello)
-
- - Add DPM watchdog to prepare/late/early/noirq/complete phases of
-   device suspend and resume (Mayank Rungta)
-
- - Update swsusp.txt references to swsusp.rst in hibernation
-   documentation (Li Jun)
-
- - Fix use-after-free of perf domain in netlink doit handlers for energy
-   models (Fan Wu)
-
- - Add synchronize_rcu() back to cpu_pm_unregister_notifier() after it
-   was removed inadvertently in previous development cycles to avoid
-   use-after-free (Bradley Morgan)
-
- - Unregister CPU PM notifier outside the timer lock in the timer-ti-dm
-   clocksource driver (Bradley Morgan)
-
- - Fix typo "sucessfully" in a comment in pm_clk_add_clk() kerneldoc
-   comment and typo "hierachy" in a comment in pm-graph (Hemanth Selam)
-
- - Fix the return value in dev_pm_opp_get_of_node() kernel-doc (Karl
-   Mehltretter)
-
-Thanks!
-
-
----------------
-
-Alexander Koskovich (1):
-      cpufreq: Add Milos to cpufreq-dt-platdev blocklist
-
-Andy Shevchenko (2):
-      intel_idle: Replace min_t() with the better alternatives
-      intel_idle: Use 2-argument strscpy()
-
-Bradley Morgan (2):
-      clocksource/drivers/timer-ti-dm: Unregister CPU PM notifier
-outside of the timer lock
-      PM: CPU: Restore synchronize_rcu() to cpu_pm_unregister_notifier()
-
-Brian Norris (14):
-      PM: runtime: Only queue an idle check for RPM-linked suppliers
-      PM: runtime: Add kunit test for supplier idle/suspend
-      PM: runtime: kerneldoc fixes
-      PM: runtime: Improve set_{status,active,suspended} docs
-      PM: runtime: kerneldoc wording improvements
-      PM: runtime: Pull API docs from kerneldoc
-      PM: core: Document struct dev_pm_info with kerneldoc
-      PM: runtime: Correct pm_runtime_autosuspend_expiration() doc
-      PM: runtime: More kerneldoc formatting
-      PM: runtime: Misc improvements to runtime_pm.rst
-      PM: runtime: Add "Section" hyperlinks
-      PM: runtime: Clarify ->runtime_idle() callback return value handling
-      PM: runtime: Clarify driver callback expectations and structure Section 2
-      PM: runtime: Expand introduction with core concepts and structure
-
-Christian Loehle (21):
-      ACPI: CPPC: Validate the _CPC package header
-      ACPI: CPPC: Validate _CPC entry and control semantics
-      ACPI: CPPC: Propagate performance-control write errors
-      ACPI: CPPC: Serialize PCC single-register payload updates
-      ACPI: CPPC: Serialize PCC EPP payload updates
-      ACPI: CPPC: Release CPC descriptors through kobject
-      ACPI: CPPC: Release PCC data after probe failures
-      ACPI: CPPC: Reject unsafe cross-CPU SystemMemory RMW
-      ACPI: CPPC: Reject direct reads of write-only controls
-      ACPI: CPPC: Validate and access PCC register layouts
-      ACPI: CPPC: Validate SystemIO register layouts
-      ACPI: CPPC: Validate PCC overlaps across processors
-      ACPI: CPPC: Validate SystemIO overlaps across processors
-      ACPI: CPPC: Clear Performance Limited without a stale read
-      ACPI: CPPC: Validate FFH register fields before hardware access
-      ACPI: CPPC: Propagate errors from cross-CPU FFH calls
-      ACPI: CPPC: Accept requests to retain immutable autonomous selection
-      cpufreq: CPPC: Select the frequency-invariance callback per CPU
-      cpufreq: CPPC: Create the FIE worker before enabling PCC callbacks
-      MAINTAINERS: cpufreq: Replace CPPC reviewer
-      MAINTAINERS: ACPI: Add a separate CPPC entry
-
-Daniel Schwierzeck (1):
-      cpufreq: airoha: fix probe failure with correct error check
-
-Fan Wu (1):
-      PM: EM: Fix use-after-free of perf domain in netlink doit handlers
-
-Frank Zhang (1):
-      rust: rcpufreq_dt: add module alias
-
-Haotian Zhang (1):
-      cpufreq: qcom-cpufreq-hw: fix device node refcount leak in phandle parsing
-
-Hemanth Selam (3):
-      cpuidle: tegra: fix repeated word 'that' in comment
-      tools: power: pm-graph: fix typo "hierachy" in comment
-      PM: clk: fix typo "sucessfully" in comment
-
-Huacai Chen (5):
-      cpufreq: loongson3: Make this driver depend on MACH_LOONGSON64
-      cpufreq: loongson3: Adjust the width of id and val in smc_message
-      cpufreq: loongson3: Replace per-package mutex with per-node
-      cpufreq: loongson3: Use global physical CPU ID in get/target callbacks
-      cpufreq: loongson3: Replace IOCSR read/write with MMIO ones
-
-Hui Su (1):
-      cpufreq: schedutil: Serialize sugov_start() against rate limit updates
-
-Joshua Crofts (1):
-      PM: runtime: call pm_runtime_dont_use_autosuspend() on reinit()
-
-K Prateek Nayak (1):
-      cpufreq/amd-pstate-ut: Fix amd_pstate_ut_check_freq failure with
-'Requested CPU Min frequency' BIOS option
-
-Karl Mehltretter (2):
-      cpufreq/amd-pstate: Remove obsolete amd_dynamic_epp documentation
-      OPP: Fix the return value in dev_pm_opp_get_of_node() kernel-doc
-
-Kathiravan Thirumoorthy (1):
-      cpufreq: qcom-nvmem: Add IPQ9650 support
-
-Li Jun (1):
-      PM: hibernate: docs: update swsusp.txt references to swsusp.rst
-
-Mario Limonciello (11):
-      cpufreq/amd-pstate: Show a warning if missing EPP tunings
-      cpufreq/amd-pstate: Fix TOCTOU when changing driver mode via sysfs
-      ACPI: CPPC: Refactor boost ratio handling
-      cpufreq/acpi-cpufreq: Use amd_get_boost_ratio()
-      cpufreq/amd-pstate: Get Highest Freq for a CPU
-      cpufreq: amd-pstate: Restore previous mode when changing driver mode fails
-      cpufreq: amd-pstate: Propagate cppc_set_auto_sel() errors on mode change
-      cpufreq: amd-pstate-ut: Fix max_freq and EPP test failures on Zen6
-      cpufreq/amd-pstate: Add per SoC and per core type EPP tuning values
-      cpufreq/amd-pstate: Add EPP tunings for Zen6 client platforms
-      PM: sleep: Add resume event mapping for PMSG_POWEROFF
-
-Matthias Goergens (1):
-      x86/hibernate: Ignore page-zero RAM in E820 checksum
-
-Mayank Rungta (1):
-      PM: sleep: Add DPM watchdog to prepare/late/early/noirq/complete phases
-
-Mehmet Koseoglu (1):
-      rust: cpufreq: reject NULL from cpufreq_cpu_get()
-
-Ryan Brue (2):
-      cpufreq: mediatek: Enter system sleep at the suspend OPP
-      arm64: dts: mediatek: mt8173: Mark the lowest CPU OPPs for suspend
-
-Shengming Hu (1):
-      cpufreq: conservative: Restrict deferred downscaling to low load
-
-Srinivas Pandruvada (1):
-      powercap: intel_rapl: Add rugged Panther Lake support
-
-Sumeet Pawnikar (2):
-      powercap: intel_rapl: Use %pe to print error pointers symbolically
-      cpufreq: Use %pe to print error pointers symbolically
-
-Sumit Gupta (1):
-      ACPI: CPPC: Keep Performance Limited clearable on NVIDIA T41
-
-Syazwina Fazrul (1):
-      Documentation: power/cpuidle: Fix repeating phrase
-
-Vishal Badole (1):
-      cpufreq: amd-pstate: Update Zen6 client EPP tuning values
-
-Wentao Guan (1):
-      cpufreq/amd-pstate: Skip auto_sel write when it already matches the mode
-
-Xueqin Luo (6):
-      cpuidle: menu: Do not return a disabled idle state
-      cpuidle: teo: Do not return a disabled idle state
-      cpufreq/amd-pstate: Restore previous EPP if profile_name allocation fails
-      cpufreq: sparc-us2e: fix frequency table index copy-paste error
-      cpufreq: tegra194: fix double-pointer error in get_cpu_ndiv
-      cpufreq: sti: avoid NULL dereference in dev_err()
-
----------------
-
- Documentation/ABI/testing/sysfs-devices-system-cpu |   16 +-
- Documentation/admin-guide/kernel-parameters.txt    |    7 -
- Documentation/admin-guide/pm/amd-pstate.rst        |    6 -
- Documentation/admin-guide/pm/cpuidle.rst           |    2 +-
- Documentation/power/runtime_pm.rst                 |  595 ++----
- Documentation/power/userland-swsusp.rst            |    4 +-
- MAINTAINERS                                        |   13 +-
- arch/arm64/boot/dts/mediatek/mt8173.dtsi           |    2 +
- arch/arm64/kernel/topology.c                       |   14 +-
- arch/x86/kernel/acpi/cppc.c                        |  180 +-
- arch/x86/power/hibernate.c                         |   51 +-
- drivers/acpi/cppc_acpi.c                           | 2209 +++++++++++++++++---
- drivers/acpi/riscv/cppc.c                          |   26 +-
- drivers/acpi/utils.c                               |   13 +-
- drivers/base/power/clock_ops.c                     |    2 +-
- drivers/base/power/main.c                          |   32 +-
- drivers/base/power/runtime-test.c                  |   57 +
- drivers/base/power/runtime.c                       |  109 +-
- drivers/clocksource/timer-ti-dm.c                  |    9 +-
- drivers/cpufreq/Kconfig                            |    1 +
- drivers/cpufreq/acpi-cpufreq.c                     |   17 +-
- drivers/cpufreq/airoha-cpufreq.c                   |    2 +-
- drivers/cpufreq/amd-pstate-ut.c                    |   77 +-
- drivers/cpufreq/amd-pstate.c                       |  347 ++-
- drivers/cpufreq/amd-pstate.h                       |   60 +
- drivers/cpufreq/bmips-cpufreq.c                    |    4 +-
- drivers/cpufreq/cppc_cpufreq.c                     |   74 +-
- drivers/cpufreq/cpufreq-dt-platdev.c               |    2 +
- drivers/cpufreq/cpufreq_conservative.c             |    8 +-
- drivers/cpufreq/cpufreq_governor.c                 |   29 +-
- drivers/cpufreq/cpufreq_governor.h                 |    2 +
- drivers/cpufreq/loongson3_cpufreq.c                |   73 +-
- drivers/cpufreq/mediatek-cpufreq.c                 |    2 +
- drivers/cpufreq/qcom-cpufreq-hw.c                  |    3 +
- drivers/cpufreq/qcom-cpufreq-nvmem.c               |    9 +
- drivers/cpufreq/qoriq-cpufreq.c                    |    3 +-
- drivers/cpufreq/rcpufreq_dt.rs                     |    1 +
- drivers/cpufreq/s3c64xx-cpufreq.c                  |    5 +-
- drivers/cpufreq/sparc-us2e-cpufreq.c               |   11 +-
- drivers/cpufreq/sti-cpufreq.c                      |    4 +-
- drivers/cpufreq/tegra194-cpufreq.c                 |    2 +-
- drivers/cpuidle/cpuidle-tegra.c                    |    2 +-
- drivers/cpuidle/governors/menu.c                   |    8 +-
- drivers/cpuidle/governors/teo.c                    |   11 +
- drivers/idle/intel_idle.c                          |   12 +-
- drivers/opp/of.c                                   |    2 +-
- drivers/powercap/intel_rapl_msr.c                  |    5 +-
- include/acpi/cppc_acpi.h                           |   32 +-
- include/linux/pm.h                                 |   93 +
- include/linux/pm_runtime.h                         |  409 ++--
- kernel/cpu_pm.c                                    |    9 +-
- kernel/power/em_netlink.c                          |  122 +-
- kernel/power/em_netlink.h                          |    8 +-
- kernel/power/energy_model.c                        |    8 +-
- kernel/sched/cpufreq_schedutil.c                   |   14 +-
- rust/kernel/cpufreq.rs                             |   22 +-
- tools/power/pm-graph/sleepgraph.py                 |    2 +-
- 57 files changed, 3470 insertions(+), 1372 deletions(-)
+X-MS-TrafficTypeDiagnostic:
+	BESPR08MB999898:EE_|DB3PR08MB9010:EE_|DU2PEPF00028D0C:EE_|DU0PR08MB8229:EE_
+X-MS-Office365-Filtering-Correlation-Id: 583c3c02-2736-44b5-ea0b-08df2e0a3422
+X-LD-Processed: f34e5979-57d9-4aaa-ad4d-b122a662184d,ExtAddr,ExtAddr
+x-checkrecipientrouted: true
+NoDisclaimer: true
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam-Untrusted:
+ BCL:0;ARA:13230040|23010399003|10070799003|366016|376014|7416014|1800799024|56012099006|11063799006|4143699003|18002099003|10067099003|22082099003|261009223027099003;
+X-Microsoft-Antispam-Message-Info-Original:
+ 6VqBOX80R9ibDyPMvb4XerdkpOZOTzksaX6249qBPY8RxQaZ0c0KtEn70i3q9RoXBy/HeJEMDjdOJNrCvso4i+3iQmUTpiE+YKh91LiG9Csy1ZL3l6gl+vkX/qiyVqbZzqEr0XQjLbZwDoWGPb+E4TC8K/yAJj5GoBS6JIkEvY9AErw1b94J4GERb5cIiijlki44k1T7OVqcuvYTG3JECnrnGV0zO9iILlSMKS3KrxSJQ2T2U+Zdd4FchGa39vgPQipFb1S84XcIEjB9qc4AH0WCodxS1/r8Dhv/MzpMOibK0xWIEz01Yk6P0a6SjOk5YaWaE9mpcUY4ifP3dcak9iCiuCNnCWIYubiYd6AjGTv5jD/Oi/xJVKRwzKGTnrLRxblpGxI9jVMH0dE1pyqRIVFXEY8AnkEk4SAhmgrsUnvDEToj9wBV95MRb8N2WbZdT+QZVJu3iLNB5XRDLtRyTyPEfQ20WsIl0lQfwrjb2hTmlBpjdAhvUaoMNGiIV7QehdCdDmUAGObiGV5CcLU6cgoqz4DX9pSAjSeZqi1Rzhm3LNXU/pnOT+mO7w2YopdugE/R4wG0xFC2I/mLZsiRIi7kc7n/rdDldHRe5Ob9Ui1qTgFOs82SGr9E3q7nugB1Z5tAmZ8q4IfSk+LixtKaqQaDAwT+wqgc8tC9R4FhBtY=
+X-Forefront-Antispam-Report-Untrusted:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BESPR08MB999898.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(10070799003)(366016)(376014)(7416014)(1800799024)(56012099006)(11063799006)(4143699003)(18002099003)(10067099003)(22082099003)(261009223027099003);DIR:OUT;SFP:1101;
+X-Exchange-RoutingPolicyChecked:
+ B9Ry6LW7ToJBf4hNTxumzSXdDse6zDVrqtSmdcVioorbj/fDWUFMxZ/BzSPI02PgkiEKCbCuwyezJvu2yRPus1zSoW5TpxLhxW0dEsokZOXJKj9+bbQMerUhf338/n+s28jdRasR7Yze/OSSnzr6EsAFtUWkRh/Jq4myQcEruvNJcNUCd6UU/AJPvfrfWld37Acz3IZmB/Ix4yYIRbKrsIIFkIONYjtIO5mlQVPJf+oCytM7MJJ8iG5a8nbCY2b+CBPmJSmpAl3TiOK5iEJSrgknO8upcyhgewJQaPSkYD9RQV+QdVnCA5lXZBAQ/Npk0u2MfMRaz/vS1qgEWraYnA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DB3PR08MB9010
+X-EOPAttributedMessage: 0
+X-MS-Exchange-Transport-CrossTenantHeadersStripped:
+ DU2PEPF00028D0C.eurprd03.prod.outlook.com
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id-Prvs:
+	8e4c786a-b99e-44c8-e9fd-08df2e0a1f9c
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|14060799003|23010399003|1800799024|35042699022|7416014|376014|82310400026|36860700016|56012099006|4143699003|11063799006|261009223027099003|10067099003|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	g24TpS8L5DwuZt99eP+h/WOAxlPEwicR2VU2a1uXe34DyBKzl8BMXegjI9AwqGNxbYohDvrax8wlmI0cFTpGlOPQE2pISROWYtXTUqrcUOZh50HJCuqFXLI77kjdCCr1v5gvRa2HMtQ7Y/2+IdjnELrZXTs8I9g0b5gMKiaf8dMpk/VkSIa6RyE088o/FUYWgCkTa/O7evjH4qkx66lmXaW2cdqmTP2fqsNPmpAHuqMdmRulk0RlS7EkXhrFHauOthoBXKrxgjZb8FZEp3JtiLb83IplRPNvR/x/zUD/wNeGRpSc/kNZYXrRLHgOAMUtjOnNJIkFARsBF+iPhm+jvkMhxbqgDCC8Zs8MwCb2AAGQF+fgH4kvbf8j+usobGlSfBuWVEyFKZbN53FU97P89ghWRexfnGTCDe0INnLlP6cwCah2cN1wUIFKS5mnkV0VlHw51YudFtAv5VILfYh+fdKZFe0yPXxdKA68oreef7ofVrlzftuSe93EddkFc0irvkTNuQP8HqSxCQgFQ49E1D5Ug9U7imuvESoRNIi0Exj22XxRVxbRl7P9EnReb0PZXzUrrP/Bi5GW0bTjbuFiVrfdfG2NUaLxavN6/H24DvjQ9G7HkB7AcnrMKwEhqo/SyT/nw00Kdn83pFp2AxzUiGnG4SanxXyG4TD7dxVqF/br4MDYc7dQlzfOUdJ3phY92K85q1H+4Ah4ouJ4lmOcUQ==
+X-Forefront-Antispam-Report:
+	CIP:4.158.2.129;CTRY:GB;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:outbound-uk1.az.dlp.m.darktrace.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(14060799003)(23010399003)(1800799024)(35042699022)(7416014)(376014)(82310400026)(36860700016)(56012099006)(4143699003)(11063799006)(261009223027099003)(10067099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	GfFmN2lHVF9g2BG4PK/L6lZbJmV3WSK/ii5NCUR9sXYpfd1S7I5SA7chguqd0L+ZPzUZcP9S9bT2Wr3Xec050kmn+GZObLTo9l9R0QEC/St2fMbV6qx22z97VbTdnW5yph8SrhD9y8UcBxFYvyRI6+vwfxNhAFPYx33wZX4EMwVZhxV3X9wWD4v69C7up+PFAvq55moSzpWPYHnca6WKhTuM/AE5i3+9+4xbsHvH2ieuWi+pHLgw6Q4x0r0D3sqP/nUEsdo7D2vuZCCwNfGXJIcEcbdPfWme05CFlV4NocXK3mt1IQ0Z7luJ9DwLf65UWmAXDo0l/qmZvCZWKrDmxuWpJHxOpdMTLj6FAmb3FRn6k4r6G+FRFKOsGy0jOpCguDDRbW0eyuOuyPIlpZRNJaQUKoNHphmnqgM7Q1UxWG6foJib+zHsD8uBYOgO4mlf
+X-OriginatorOrg: arm.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Oct 2026 17:55:46.8186
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 583c3c02-2736-44b5-ea0b-08df2e0a3422
+X-MS-Exchange-CrossTenant-Id: f34e5979-57d9-4aaa-ad4d-b122a662184d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f34e5979-57d9-4aaa-ad4d-b122a662184d;Ip=[4.158.2.129];Helo=[outbound-uk1.az.dlp.m.darktrace.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	DU2PEPF00028D0C.eurprd03.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DU0PR08MB8229
+
+
+On 10/19/26 18:36, Jonathan Cameron wrote:
+> On Mon, 19 Oct 2026 16:56:08 +0200
+> Pierre Gondois <pierre.gondois@arm.com> wrote:
+>
+>> With CONFIG_ACPI_EXTLOG=n and with the following command:
+>> make -j4 drivers/acpi/acpi_extlog.o drivers/acpi/
+>>
+>> trace_extlog_mem_event() is not defined. Add a extlog_mem_err_event()
+>> wrapper to fix the build issue.
+>>
+>> Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
+> I'm lost.  This file is normally only built if
+> CONFIG_ACPI_EXTLOG is not = "n" so how do you get to this code.
+> Ah you are forcing build of a file...
+>
+> If you do need to do this sort of ifdefery it belongs in a header with
+> the function cleanly stubbed rather than in here.
+>
+> Anyhow, far as I can tell this doesn't make any sense for
+> upstream.
+>
+> J
+Ok sure this will be dropped.
