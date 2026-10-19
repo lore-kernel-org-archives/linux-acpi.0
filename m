@@ -1,30 +1,40 @@
-Received: from mail2.g24.pair.com (mail2.g24.pair.com [216.92.166.58])
+Received: from canpmsgout04.his.huawei.com (canpmsgout04.his.huawei.com [113.46.200.219])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9643B488231;
-	Mon, 19 Oct 2026 07:15:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.92.166.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 707CD48875D;
+	Mon, 19 Oct 2026 07:38:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.219
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792394145; cv=none; b=epGG+4X+YJ0xueB5L0JqebuHRPnI1XWUac5RSOjb8BRk2Kxoc+6FQ8XhmtUosC5rXfte5jqKutifvCEwZ//i6y/5Oybn1HRx4aCwSmb09b5jkw/1VPmcBRwkIirNxFK07AxeGQqIoU6zawJQpfzvU6N9W7y0IwOMtOC247F8J+A=
+	t=1792395489; cv=none; b=g8/JZH1YOjuq1vyRSzvMWZvqh50Xcvhtugg6Yn78nhS0TlWqBPcQPzdI+6sgnCGnJ85MdJk/xON3M8QtKOeKmcvsexb6H9l33xWFN4ociQtZZabYUJtapLw/hWW8pcw3DwDSj0zvSoIHRM8+WAV7e/5jNReQ+Bju9lRfVGGmwYE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792394145; c=relaxed/simple;
-	bh=UMZUR7gUCfjNCY9orYLVit8W+HlozrZrt+Fr2OQk2nQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Ith5OIyMwZq8PV08HU5Q/JmNuOZ+kUFkhlaTxaSI49JGb3gTOXWnkgSrDimq+7mFO9oOevSlTrSXldhNv4ZZIYvuWl4Y6VU9JuLRLbvY0zVNhc5G5rzDI7PjhugdygzPqjWHqqNfsIz6927V2L9+ZKjVn3zObR3WGkcAVcpvHLo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=unspacy.com; spf=pass smtp.mailfrom=unspacy.com; arc=none smtp.client-ip=216.92.166.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=unspacy.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=unspacy.com
-Received: from mail2.g24.pair.com (localhost [127.0.0.1])
-	by mail2.g24.pair.com (Postfix) with ESMTP id E4DE4164A0D;
-	Mon, 19 Oct 2026 03:05:43 -0400 (EDT)
-Received: from [192.168.0.71] (1969776-static.lxtnkyaa.metronetinc.net [217.180.199.234])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mail2.g24.pair.com (Postfix) with ESMTPSA id 790CB1649F0;
-	Mon, 19 Oct 2026 03:05:43 -0400 (EDT)
-Message-ID: <24255490-d0b6-4793-aa7c-2954bd52383e@unspacy.com>
-Date: Mon, 19 Oct 2026 03:05:42 -0400
+	s=arc-20240116; t=1792395489; c=relaxed/simple;
+	bh=EALUpi89F8vG8tau0PZutc7ETFh24LQ10NG5a1YgYP0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=lqKE3mhCdRRLeM5Hr5mS8ECwFJ22OWufk5vZXCXFUv3sBazMoxjMe+c/5tMalcvZ3IfWaIpuZFxEwopeU951FcIUSIWDBpowIkBybe2le27ww+x/6q6TuqbQVT2WOyMZkzB4IMVFsqmGHKUmjqJAoSTInejCFnKUAiaG0gQG5eo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=oUtFqMPX; arc=none smtp.client-ip=113.46.200.219
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="oUtFqMPX"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=dl5RLVgDUnKMmfwkyYpV+I64OLaYgtn2GgeN1aSXzxk=;
+	b=oUtFqMPX256inh7nC7a+6PjRlRe1sqcp+mWOt6JQZCRkpGSMf5H8qLiMbX8sCSKJoI+nPSTnr
+	fPGZUtnBPFPu/404GHMvOpJF0YS9cvIRkEaXNv/uKSuyEpoWhXRD+/9jcT1PqkfkYXW7vduDrv4
+	rtVICoS3BdIIXxZ0JSxO/D0=
+Received: from mail.maildlp.com (unknown [172.19.162.223])
+	by canpmsgout04.his.huawei.com (SkyGuard) with ESMTPS id 4j7S7s1VHnz1prRJ;
+	Mon, 19 Oct 2026 15:38:01 +0800 (CST)
+Received: from kwepemk300013.china.huawei.com (unknown [7.202.194.231])
+	by mail.maildlp.com (Postfix) with ESMTPS id D70DB40575;
+	Mon, 19 Oct 2026 15:38:03 +0800 (CST)
+Received: from [10.67.121.183] (10.67.121.183) by
+ kwepemk300013.china.huawei.com (7.202.194.231) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Mon, 19 Oct 2026 15:38:02 +0800
+Message-ID: <49e48aac-8d84-4786-9e3e-04e1c2fef020@huawei.com>
+Date: Mon, 19 Oct 2026 15:38:01 +0800
 Precedence: bulk
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -32,54 +42,99 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [BUG] tpm_crb/Intel PTT: Late S3/S5/Reboot ACPI power management
- deadlock
-To: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: Mario Limonciello <mario.limonciello@amd.com>,
- linux-integrity@vger.kernel.org, peterhuewe@gmx.de, jgg@ziepe.ca,
- rafael@kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org,
- Adam Alves <adamoa@gmail.com>
-References: <bf3a9544-6e49-4d5d-a01a-f1912b717d08@unspacy.com>
- <aqyTpzk3jcarEMVS@kernel.org>
- <54425edf-3ca1-4f99-9166-40f9cc3dfff6@unspacy.com>
- <araNsEodZ3NXf9qT@kernel.org>
- <0e8f93d0-3da9-4af0-ac12-b3670acdcf79@unspacy.com>
- <arw609M6mDiqhQwJ@kernel.org>
- <723ff551-7852-4d57-ab1e-787a1a195759@unspacy.com>
- <asfXObGNaZ9Z8CwN@kernel.org> <ca2d299b-4153-4b0b-a60e-7fe64f9dbdef@amd.com>
- <2db92c1a-815c-4db2-adfa-3708152ec8f2@unspacy.com>
- <asqUgaKpEJbo8g87@kernel.org>
-Content-Language: en-US
-From: Sean Meadows <Hellfire@unspacy.com>
-In-Reply-To: <asqUgaKpEJbo8g87@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Scanned-By: mailmunge 3.10 on 216.92.166.58
+Subject: Re: [RFC 06/12] ACPI: TLBI: Parse domains from table
+To: =?UTF-8?Q?Kristina_Mart=C5=A1enko?= <kristina.martsenko@arm.com>,
+	<linux-arm-kernel@lists.infradead.org>, <linux-acpi@vger.kernel.org>,
+	<kvmarm@lists.linux.dev>, <linux-efi@vger.kernel.org>
+CC: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>, Ryan Roberts <ryan.roberts@arm.com>,
+	David Hildenbrand <david@kernel.org>, Lorenzo Stoakes <ljs@kernel.org>, Linu
+ Cherian <linu.cherian@arm.com>, Anshuman Khandual
+	<anshuman.khandual@arm.com>, Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>, Sudeep Holla <sudeep.holla@kernel.org>,
+	Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>, Fuad Tabba
+	<fuad.tabba@linux.dev>, Joey Gouly <joey.gouly@arm.com>, Steffen Eiden
+	<seiden@linux.ibm.com>, Suzuki K Poulose <suzuki.poulose@arm.com>, Zenghui Yu
+	<yuzenghui@huawei.com>, Ard Biesheuvel <ardb@kernel.org>, Ilias Apalodimas
+	<ilias.apalodimas@linaro.org>
+References: <20261001110655.461473-1-kristina.martsenko@arm.com>
+ <20261001110655.461473-7-kristina.martsenko@arm.com>
+From: Jinqian Yang <yangjinqian1@huawei.com>
+In-Reply-To: <20261001110655.461473-7-kristina.martsenko@arm.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
+ kwepemk300013.china.huawei.com (7.202.194.231)
 
+Hi,
 
-On 10/10/26 15:39, Jarkko Sakkinen wrote:
-> 
-> So the gist why I believe that this might have effect is that every 
-> transmit reverts the state to the initial state. That should erase any
-> weird state that firmware might be in (usually not that great quality
-> code).
-> 
-> I think Mario's patch is good overall for the stability. It looks to me
-> that we are catching some weird state inside firmware where we don't
-> have direct visibility. Or this is my guess at least.
-> 
-> Br, Jarkko
+On 2026/10/1 19:06, Kristina Martšenko wrote:
+> +static int __init parse_tlbi_table(void)
+> +{
+> +	struct acpi_table_header *table __free(acpi_put_table) =
+> +		acpi_get_table_pointer(ACPI_SIG_TLBI, 0);
+> +	u32 offset;
+> +	int ret;
+> +
+> +	if (IS_ERR(table))
+> +		return PTR_ERR(table);
+> +
+> +	tlbi = (struct acpi_table_tlbi *)table;
+> +	if (tlbi->header.length < sizeof(*tlbi) ||
+> +	    tlbi->domain_count > MAX_TLBI_DOMAINS)
+> +		return -EINVAL;
+> +	if (!tlbi->domain_count)
+> +		return -ENOENT;
+> +
+> +	domain_count = tlbi->domain_count;
+> +	domains = kcalloc(domain_count, sizeof(*domains), GFP_KERNEL);
+> +	if (!domains)
+> +		return -ENOMEM;
+> +
+> +	offset = tlbi->domains_offset;
+> +
+> +	for (int i = 0; i < domain_count; i++) {
+> +		struct acpi_tlbi_domain *domain = tlbi_get_domain(offset);
+> +
+> +		if (!domain || domain->id > U16_MAX)
+> +			return -EINVAL;
+> +
+> +		domains[i].id = domain->id;
+> +		if (!zalloc_cpumask_var(&domains[i].cpus, GFP_KERNEL))
+> +			return -ENOMEM;
+> +
+> +		ret = parse_tlbi_domain(domain, domains[i].cpus, 0);
+> +		if (ret)
+> +			return ret;
+> +
+> +		offset += domain->length;
+> +	}
+> +
+> +	ret = validate_tlbi_domains();
+> +	if (ret)
+> +		return ret;
+> +
+> +	return 0;
+> +}
+> +
+> +void __init acpi_tlbi_init(void)
+> +{
+> +	int ret;
+> +
+> +	if (!cpus_have_final_cap(ARM64_HAS_TLBID))
+> +		return;
+> +
+> +	ret = parse_tlbi_table();
+> +	if (ret) {
+> +		if (ret != -ENOENT)
+> +			pr_err("Failed to parse ACPI table\n");
+> +		return;
+> +	}
+> +}
 
-7.3.0-rc6-g587527648af0 with cherry-pick
-9154aa6c4b789d23e59d599c330cab2c4e915401
+The error paths in parse_tlbi_table() return without freeing
+"domains" or the cpumask already allocated.
 
-strings /lib/modules/$(uname -r)/build/vmlinux | grep "cmd_ready"
-Used to validate crb_cmd_ready responses.
+Thanks,
+Jinqian
 
-The patch failed at 201 hours, on the ninth drop into S3. While this
-represents an all-time high for uptime, the failure demonstrates that
-the Intel PTT can still enter a corrupt state.
-
-Where do we go from here?
-
-Sean
