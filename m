@@ -1,55 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792433288;
-	b=AOk+0NEGvW58//LaqTcRl0zsUsxzF516CQfGO7a1iyoiE65Saq8t90KJMlFZ1KROlYxn
-	 HvmHpdJOxOLAI+fMOA4vKUrGE9upLylYir5WoWfd75+kZbLlFI6/hyg3YAgowo+16pUDi
-	 oY7Ss+ZisC6OVtcQZ/o9O/F45TjuVdMcZ/ArisDBA21fZhN4V73Oi82Wc/GwxOofCOm5/
-	 7XMcInESQ+4KQtv7emTMQiHKvKnE7mJ/H6vCPYXlTgGcuXcF54iULfNJ/WLVJpNiHPoNq
-	 iJ4a/DwMPlmlZJwL870tCR0/q6Lqc0/jnHHHnKZ/rucmcgmY1/26FZqylZI4DhgePwA==
+	t=1792433690;
+	b=tMGQQ65+PqZHyncMhzCzsMYYgiNUEy2taAZ/7ock3Nq//9gJ5sbkN8k75JNgbklHSsfk
+	 mP4pzOrQanZC1K6Z4vh0aVLEDXFW7VR5ILkohJB4o+MDA5+GQUZzRt0p+K996xmndEN1x
+	 D1XklYxM07/BWgdSCIpJRcSxDTOKpSoVPMl8DFt4E3xtSJJ1OAzGIUnbxdsauq+EQt01Y
+	 2YbnXClgWOF5vYFIS/PQ6Ee15xdFCJ63xBHNF9otwBTelUGSfepxUmtvZajoHwDQQqSMH
+	 oucRoHeUpf6G1GBLORQ8NBXnvx7zb0YyXM5diopLJvRt7qV3nu6TRiBZyP2kOALeVeg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792433288;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792433690;
 	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
 	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
 	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
 	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=0yJvOwPfZ5d2rGhnowwpIR6yBLsjsRPjCVACsCnz6cw=;
-	b=QUrEYptb9xqaRziBMTnP+nmdOGjc9vYM/Z8wlKF32YPG3EpHHDsweNFf/qqC7gamwHcx
-	 4NbIt/pIbI/ltoJQokIOucJanLqMKXNU3euxNgTnN3kZspxMyhUjwzWjiT9HlN18cUswz
-	 3mr3ykgthTXjjdxdvyKIt99HUd8LSV3JhPa4IAMPwVBhakRr4bTdY1dEr2aWCY2E4TK6z
-	 +dHr8EXmBinDb9K/WGSKn+u8lMtBCjIpiVIAk1Fr+srlLk/Uji/LL45d7GriWMKoThbgp
-	 WHiynGT8Sl4EBoluX5eFK6cDW+UKNLue9aBOvUQByVcEDhFA/NExmreKvRMCdoVYZiw==
+	bh=XNapb0FlYNiMzf484coWRZ4BJd0SDLSUVPDu3zsHX/s=;
+	b=gksLgbeBKbJ7aG0Iw0vCxijU+TuMQscTVouak0bAGbfxlDh8zXuk7vxW2yQ+6xZZjK7k
+	 t18xaG705pm1+KeQjybwqQKZGcYPcxawayBsPOH8T2Odi92XFqnxjzrZ8F/UpTiVpJXWs
+	 Mnn7uTB+5z2UTQLYYKu87yJj8jZrGpi0H1EdvGg54r4LbA2qNAkYJtrgjE5zMbPBeqc43
+	 WswXKVzzFNa9vHTd6pkwWApogIB2QEyDzU42gD/FcgfmqXWNUfA6GOYp66vc5kv3P4aeb
+	 y2voLCMZdFmeD/174Evt/wCwl51Ipc103PIDn4StrJtDL+U3FF4RRSBohzz56F2APdA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WJ6naX2y;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NQDWYFj4;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35DAF606A31B
-	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 18:08:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2848606A31B
+	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 18:14:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=WJ6naX2y
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F33981F000CA
-	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 18:08:07 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NQDWYFj4
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72CE71F000CF
+	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 18:14:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792433288;
-	bh=0yJvOwPfZ5d2rGhnowwpIR6yBLsjsRPjCVACsCnz6cw=;
+	s=k20260515; t=1792433688;
+	bh=XNapb0FlYNiMzf484coWRZ4BJd0SDLSUVPDu3zsHX/s=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=WJ6naX2y+idzEv0gJ1YxEYmR0YsFHjn6+3S92nABDj5DGDRxppocrDCtaIWTYy0qg
-	 pMa4EoFEdEUUAOKehkLV3kbSJmv4cPu7+d3YyOwLIoWdabVbd9sH558dnFIoUDE+5s
-	 MpmKU4s/fbovoDeLZBtziu0BXxZl+kHUwsjTzZb+Gov/uE5ZUO77dhH8lwoGhXA9Om
-	 ikrjc7FkO+josYTrzWYtHn+br8HOyppsNJVuY+KNcYbRz9muO+HP4gJ4HzDk5kZpdW
-	 zX95wyLip81coHgseUKy5h/hahn1/JuXUXWHuNbR6gNp2iy+4AaZaxd3camC3BGf9B
-	 I0DbFYTnFhMMg==
-Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5bccb867d6fso2197506e87.0
-        for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 11:08:07 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvByGg5m7k3LTEw8l8NM4EV4OMQw5rJi1GoLiJcuiU3/rPSL3o6Av8xKpfpmRO16yTS5URcjtG8fCwMti@vger.kernel.org
-X-Gm-Message-State: AFq9FYLrRxRmCVg6uYCA2khzmuQX1muR2R+SxAiy98fHZhhc8EnnfQnQ
-	+scunt6qfNN1vdcYMiBLfUd1/DGUwgARiyrFaTjs6P+7FoDfT+zQiNXiV1UHH3jUS5oBLG8w3Lu
-	K55qg2vnPXQA1Z4TdU/SkLRKmzgu8ZPQ=
-X-Received: by 2002:a05:6512:b95:b0:5be:52d8:f70a with SMTP id
- 2adb3069b0e04-5be52d8f89emr2829793e87.34.1792433286328; Mon, 19 Oct 2026
- 11:08:06 -0700 (PDT)
+	b=NQDWYFj4tlQAKIbvMKzC8saEpDDmYogW6KW98HNxWn3ZxQVGlMuUm3MPDj3Tknw55
+	 0t0rSSfAzUeUr9Q8pbgej8rMCexrZF7DqN8UP7nsAIl/5pjFaxRvg9+8mXyQBDMbLV
+	 mmjzJj1BNaNU6HupMHtInohiSI1yWct8jmjNR5VZrZr8osKz8T1HaHvnVOU2QmHd52
+	 x8rTXR6/NyIPF++bhTKtlvdDW2Kl7bDoJA0v3/doU5PkfQMFHXEMl97dXyFQijXCzf
+	 qeask0Veh5thSBFmVS7YBkNs4EVXwFeOr1GBjqu3Y0u14l4j+6YgJiXm1LpbBnDGyn
+	 1WnVn9QCNfPyw==
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5be42ae8eb1so1658053e87.2
+        for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 11:14:48 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBwmWCCAPd3/2KrScFPOoqArqyiNgR+YBjtYUFx0ikhEFjYjFypNDZb4td7qBOnLG2AhWxIB1qPmRG3B@vger.kernel.org
+X-Gm-Message-State: AFq9FYJlfuTIBRweR8ZIA1H3hBWsMcgZnptR+x4SKqMqb2W7c1wUaMbk
+	ySPkD4NH6QZy6WFQUXXLV5XI7FIn0eJt+/GLXLjvv8G2f8/qReUUglHyvEXf0em2cLWfgekUAK9
+	/uedmpF9qYzAr7Q/RlBHdDxpy7Q/L0Bw=
+X-Received: by 2002:a05:6512:3050:b0:5ba:3d82:3bbf with SMTP id
+ 2adb3069b0e04-5be50a6a8f8mr2852643e87.40.1792433686787; Mon, 19 Oct 2026
+ 11:14:46 -0700 (PDT)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,269 +59,144 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20260925-acpi-static-table-irq-probe-defer-v1-0-2c62125d0085@kernel.org>
- <20260925-acpi-static-table-irq-probe-defer-v1-2-2c62125d0085@kernel.org>
- <arZDwutoadki7tiZ@ashevche-desk.local> <arZNL9BnTGK0Klwc@red-moon>
- <arZS4vwxps01dGb7@ashevche-desk.local> <arqSqcoWAkhy-8do@red-moon>
- <d1720b63-65bf-4019-bc19-1852555f7993@arm.com> <asieTvinZ7c2QpQm@red-moon>
- <CAJZ5v0hVLSJs1j8J1TV3yJ8Psyaf=B_0UfHsYSMtM5xTup0B_Q@mail.gmail.com> <atXyIadz1TEKSodg@red-moon>
-In-Reply-To: <atXyIadz1TEKSodg@red-moon>
+References: <20261019073930.2352283-1-daniel.lezcano@oss.qualcomm.com>
+ <20261019073930.2352283-2-daniel.lezcano@oss.qualcomm.com> <2818716f-3502-aa4b-0b7b-4efc61e46f6c@linux.intel.com>
+In-Reply-To: <2818716f-3502-aa4b-0b7b-4efc61e46f6c@linux.intel.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Mon, 19 Oct 2026 20:05:50 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0joJBZg==DWPsNviPfL7Jo=qupRhb6GinqOLoHXGnvevg@mail.gmail.com>
-X-Gm-Features: AclHuK9KYDE64m8huu2HeNgeVrCBa6dkbPQ8_E7l8BP-IVa43wPKwt6awgXhlNs
-Message-ID: <CAJZ5v0joJBZg==DWPsNviPfL7Jo=qupRhb6GinqOLoHXGnvevg@mail.gmail.com>
-Subject: Re: [PATCH RFC 02/11] ACPI: Introduce irq_get() for static fwnodes
-To: Lorenzo Pieralisi <lpieralisi@kernel.org>
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Robin Murphy <robin.murphy@arm.com>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, 
-	Marc Zyngier <maz@kernel.org>, Daniel Lezcano <daniel.lezcano@kernel.org>, 
-	Thomas Gleixner <tglx@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, 
-	Sudeep Holla <sudeep.holla@kernel.org>, Wim Van Sebroeck <wim@linux-watchdog.org>, 
-	Guenter Roeck <linux@roeck-us.net>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Will Deacon <will@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	driver-core@lists.linux.dev, linux-watchdog@vger.kernel.org
+Date: Mon, 19 Oct 2026 20:12:30 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0iRDbPEQWL+gXO1zd_7SZtHLmwhwtmF3A-z9r0VXHAcRA@mail.gmail.com>
+X-Gm-Features: AclHuK9h8u8T4xQ7W0VEcO3CuHD6d-ur3g7Fnq_OHExwJkfacOxWTJ5OSEtGnw4
+Message-ID: <CAJZ5v0iRDbPEQWL+gXO1zd_7SZtHLmwhwtmF3A-z9r0VXHAcRA@mail.gmail.com>
+Subject: Re: [PATCH v2 1/5] platform profile: Separate handler locking from
+ sysfs lifetime
+To: =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+	Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, Hans de Goede <hansg@kernel.org>, 
+	Maximilian Luz <luzmaximilian@gmail.com>, Shyam Sundar S K <Shyam-sundar.S-k@amd.com>, 
+	Mark Pearson <mpearson-lenovo@squebb.ca>, "Derek J. Clark" <derekjohn.clark@gmail.com>, 
+	Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>, 
+	Lukasz Luba <lukasz.luba@arm.com>, Armin Wolf <W_Armin@gmx.de>, 
+	Jai Luthra <jai.luthra@ideasonboard.com>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Mario Limonciello (AMD)" <superm1@kernel.org>, 
+	Jack Wu <jackbb_wu@compal.com>, Mario Limonciello <mario.limonciello@amd.com>, 
+	Zhang DM <jixianqiang1540@gmail.com>, linux-acpi@vger.kernel.org, 
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org, 
+	linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 19, 2026 at 12:34=E2=80=AFPM Lorenzo Pieralisi
-<lpieralisi@kernel.org> wrote:
+On Mon, Oct 19, 2026 at 10:51=E2=80=AFAM Ilpo J=C3=A4rvinen
+<ilpo.jarvinen@linux.intel.com> wrote:
 >
-> On Thu, Oct 15, 2026 at 10:46:26PM +0200, Rafael J. Wysocki (Intel) wrote=
-:
-> > Sorry for the delay.
+> On Mon, 19 Oct 2026, Daniel Lezcano wrote:
 >
-> Thanks for chiming in.
->
-> > On Fri, Oct 9, 2026 at 9:57=E2=80=AFAM Lorenzo Pieralisi <lpieralisi@ke=
-rnel.org> wrote:
-> > >
-> > > On Tue, Oct 06, 2026 at 05:19:23PM +0100, Robin Murphy wrote:
-> > > > On 28/09/2026 5:15 pm, Lorenzo Pieralisi wrote:
-> > > > > On Fri, Sep 25, 2026 at 01:54:26PM +0300, Andy Shevchenko wrote:
-> > > > > > On Fri, Sep 25, 2026 at 12:30:07PM +0200, Lorenzo Pieralisi wro=
-te:
-> > > > > > > On Fri, Sep 25, 2026 at 12:49:54PM +0300, Andy Shevchenko wro=
-te:
-> > > > > > > > On Fri, Sep 25, 2026 at 09:48:01AM +0200, Lorenzo Pieralisi=
- wrote:
-> > > > > >
-> > > > > > ...
-> > > > > >
-> > > > > > > > > +static int acpi_static_fwnode_read_u32_prop_index(const =
-struct fwnode_handle *fwnode,
-> > > > > > > > > +                                             const char =
-*propname,
-> > > > > > > > > +                                             unsigned in=
-t index, u32 *value)
-> > > > > > > > > +{
-> > > > > > > > > +   u32 *values;
-> > > > > > > > > +   int ret, count;
-> > > > > > > > > +
-> > > > > > > > > +   count =3D fwnode_property_count_u32(fwnode, propname)=
-;
-> > > > > > > > > +   if (count < 0)
-> > > > > > > > > +           return count;
-> > > > > > > > > +
-> > > > > > > > > +   if (index >=3D count)
-> > > > > > > > > +           return -ENOENT;
-> > > > > > > > > +
-> > > > > > > > > +   values =3D kcalloc(count, sizeof(*values), GFP_KERNEL=
-);
-> > > > > > > > > +   if (!values)
-> > > > > > > > > +           return -ENOMEM;
-> > > > > > > > > +
-> > > > > > > > > +   ret =3D fwnode_property_read_u32_array(fwnode, propna=
-me, values, count);
-> > > > > > > > > +   if (!ret)
-> > > > > > > > > +           *value =3D values[index];
-> > > > > > > >
-> > > > > > > > Use standard pattern, id est
-> > > > > > > >
-> > > > > > > >       if (ret)
-> > > > > > > >               ...
-> > > > > > > >
-> > > > > > > > > +   kfree(values);
-> > > > > > > >
-> > > > > > > > You want to use __free()
-> > > > > > > >
-> > > > > > > > > +   return ret;
-> > > > > > > > > +}
-> > > > > > > >
-> > > > > > > > I believe the whole approach is suboptimal, if you wish get=
- indexed value (but why?)
-> > > > > > >
-> > > > > > > Why what (that's what the irq_get() interface requires ?) I a=
-gree it is
-> > > > > > > suboptimal - the whole point of the series is an RFC on using=
- properties
-> > > > > > > to store GSI number/flags, then how to read them we will opti=
-mize it
-> > > > I>>> when/if we agree that's the approach to be taken.
-> > > > > >
-> > > > > > Why to have indexed APIs. The callers usually do not want a sin=
-gle item from an
-> > > > > > array, they want all of them or a big pile (exception is the ar=
-ray of strings,
-> > > > > > but we have matching functions for that).
-> > > > > >
-> > > > > > As per approach, this patch is against device property and I do=
-n't think we are
-> > > > > > going to agree on the approach taken in *this* patch.
-> > > > >
-> > > > > Coming back to this, what is needed here is a way to stash the GS=
-I number,
-> > > > > flags and name in stardard storage (like OF nodes IRQ properties,=
- ACPI objects
-> > > > > _CRS, etc).
-> > > > >
-> > > > > To give you some background, I thought about adding an array of:
-> > > > >
-> > > > > GSI [number, flags, name]
-> > > > >
-> > > > > to the ACPI static fwnode itself. Then basically the irq_get() AP=
-I has got
-> > > > > all the information it needs from the primary fwnode; while doing=
- that I
-> > > > > thought that this might have been a bit like reinventing software=
- nodes
-> > > > > (granted, software node properties are ways more general that wha=
-t I suggest
-> > > > > above and I don't expect any other property to be ever added to s=
-tatic fwnodes)
-> > > > > that's why I put together the series as it is, precisely to under=
-stand what's
-> > > > > best.
-> > > > >
-> > > > > When you say "against device property", what do you mean precisel=
-y ?
-> > > > >
-> > > > > I suppose you mean that this approach goes against software node =
-properties
-> > > > > usage guidelines ?
-> > > > >
-> > > > > Anyway, again, it is just to provide some context, we are talking=
- about
-> > > > > a bunch of platform devices, it is nice to have a generic solutio=
-n but
-> > > > > it has to be simple enough too given its scope, I understand very=
- well
-> > > > > your concern with this approach as-is - it is there to find a way
-> > > > > forward together and show what the problem is.
-> > > >
-> > > > I guess software node properties look inviting in theory since they=
-'re a
-> > > > ready-made mechanism for effectively attaching arbitrary data to a =
-fwnode,
-> > > > however looking at patches 6-7 and the amount of boilerplate involv=
-ed in the
-> > > > reality, I'm inclined to think that a dedicated structure for stati=
-c nodes
-> > > > is probably the best and most efficient compromise here. The redund=
-ancy
-> > > > argument rather falls apart once we end up creating copies of those
-> > > > contentiously-made-up property name strings for every node, especia=
-lly given
-> > > > that any one of those alone is probably already more than the amoun=
-t of
-> > > > actual data we need per node...
-> > > >
-> > > > Perhaps the "purest" option might be to just store a function point=
-er in the
-> > > > fwnode wrapper for each static table type to provide its own intern=
-al
-> > > > irq_get() callback, so not stashing intermediate GSI data at all, b=
-ut I
-> > > > suspect that might end up being more work overall.
-> > >
-> > > Hi Rafael, Robin,
-> > >
-> > > I have not started prototyping it yet but I have got a question as a
-> > > follow-up to our chat at LPC about crafting an ACPI device for the st=
-atic
-> > > table entries and sort out the probe dependencies using autodep.
-> > >
-> > > After spur of the moment reaction during the session, I now remember =
-I
-> > > thought about crafting an ACPI device for the static table entries an=
-d
-> > > started digging then bumped into acpi_add_single_object() as you
-> > > suggested.
-> > >
-> > > The point though is: what about the acpi_handle and the AML required =
-to
-> > > sort out the dependencies using the _CRS ? We have got the info to fi=
-ll
-> > > the _CRS coming from static table entries (MMIO, GSI) but I am not su=
-re how I
-> > > can form a full-fledged ACPI namespace object in the kernel, without
-> > > that in place I am not sure how the autodep mechanism can possibly
-> > > work.
+> > Registration and removal currently hold profile_lock across
+> > device_unregister() and sysfs_update_group(). These operations can remo=
+ve
+> > sysfs attributes and wait for their active callbacks to finish. The
+> > profile read and write callbacks acquire profile_lock themselves, so a
+> > concurrent access can deadlock:
 > >
-> > The missing ACPI handle is not a hard part IMV, it is a matter of
-> > modifying struct acpi_dep_data to be able to hold struct acpi_device
-> > pointers instead of ACPI handles in case the devices in question have
-> > no ACPI handles and adjusting the code using it.
+> >   Removal/update path             Active sysfs callback
+> >   -------------------             ---------------------
+> >   acquire profile_lock            hold kernfs active reference
+> >   remove a sysfs attribute         wait for profile_lock
+> >   wait for its active references
 > >
-> > Finding the dependencies is harder.  I guess it may involve walking
-> > the namespace and looking up a device object with a specific device ID
-> > or similar.
->
-> All we need to find dependencies is a GSI number, the question though
-> is what are we really solving by creating a dependency (and where
-> that GSI number will be stored eventually so that the platform driver
-> at probe - when dependencies are cleared, can retrieve it).
->
-> I think that what we want is preventing a platform device to be created
-> (ie we don't create platform devices at static table init time anymore
-> but we let ACPI core do it at acpi_bus_attach(adev)/enumeration time ?)
-
-Basically, yes, the idea is to defer the creation of the platform
-device until the dependency is met.
-
-> till the dependencies are cleared but then, without a _CRS, where will
-> the consumer driver find the platform device resources ?
-
-Well, good question.
-
-> There are multiple facets in this issue and possibly some of them have
-> been already solved but I need to pull them together.
->
-> > Note that the dependencies can be added to acpi_dep_list after
-> > creating a struct acpi_device with acpi_add_single_object() and
-> > acpi_scan_add_dep() is not really suitable for that, but it should be
-> > doable if the dependencies can be found.
+> > The removal path cannot finish until the callback returns, and the
+> > callback cannot return until the removal path releases profile_lock.
+> > This applies both to per-provider device teardown and to updates of the
+> > legacy aggregate attribute group.
 > >
-> > > I need to have a deeper look into this next week but I wanted to ask =
-first
-> > > whether there was something I missed - most likely.
+> > Commit 041142d7d252 ("ACPI: platform-profile: Fix possible deadlock in
+> > platform_profile_remove()") previously fixed this lock ordering by movi=
+ng
+> > sysfs_remove_group() outside profile_lock. Commit 55b1e68134bf ("ACPI:
+> > platform_profile: Use guard(mutex) for register/unregister") reintroduc=
+ed
+> > the issue by extending the mutex guard over sysfs_remove_group(). Later=
+,
+> > commit 77be5cacb2c2 ("ACPI: platform_profile: Create class for ACPI
+> > platform profile") replaced that teardown with device_unregister() and
+> > sysfs_update_group(), still under the same mutex, extending the problem
+> > to class-device teardown and aggregate attribute updates.
 > >
-> > Well, it is not really straightforward.
+> > Simply dropping profile_lock around these operations is insufficient.
+> > Aggregate operations currently discover providers through the class
+> > device list. A provider being unregistered could therefore still be
+> > selected for an aggregate read, write or cycle while its sysfs files ar=
+e
+> > being torn down. Concurrent registrations and removals would also race
+> > when updating aggregate attribute visibility.
+> >
+> > Introduce profile_registration_lock to serialize registration, removal
+> > and aggregate sysfs updates. Sysfs callbacks never acquire this mutex.
+> > Retain profile_lock for profile operations and use it to protect an
+> > explicit list of handlers participating in the aggregate interface.
+> >
+> > Add a handler to that list only after device_register() succeeds. On
+> > removal, unlink it under profile_lock before calling device_unregister(=
+).
+> > Acquiring profile_lock first waits for any aggregate operation already
+> > using the handler to complete; unlinking prevents later aggregate
+> > operations from finding it. Release profile_lock before draining sysfs
+> > callbacks, allowing active per-provider callbacks to complete before th=
+e
+> > device is released. Apply the same unlink-before-unregister ordering to
+> > registration error cleanup.
+> >
+> > Walk this list for aggregate reads, writes and profile cycling, and use
+> > its emptiness to determine aggregate attribute visibility. The class
+> > devices remain the per-provider userspace interface.
+> >
+> > There can now be an interval between removing the last handler from the
+> > list and removing the aggregate attributes. Explicitly reject choices
+> > reads and writes during that interval: the intersection bitmap starts
+> > with every bit set, so an empty traversal must not advertise all profil=
+es
+> > or report a successful write without updating a provider.
+> >
+> > This separates aggregate membership from class device teardown while
+> > preserving the existing class and ACPI sysfs interfaces.
+> >
+> > Fixes: 55b1e68134bf ("ACPI: platform_profile: Use guard(mutex) for regi=
+ster/unregister")
+> > Assisted-by: OpenCode:gpt-6.1-sol
+> > Signed-off-by: Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
+> > ---
+> >  drivers/acpi/platform_profile.c | 75 ++++++++++++++++++---------------
+> >  1 file changed, 42 insertions(+), 33 deletions(-)
+> >
+> > diff --git a/drivers/acpi/platform_profile.c b/drivers/acpi/platform_pr=
+ofile.c
+> > index 79d2e92e5c28..f98ce4cda02c 100644
+> > --- a/drivers/acpi/platform_profile.c
+> > +++ b/drivers/acpi/platform_profile.c
+> > @@ -8,6 +8,7 @@
+> >  #include <linux/bits.h>
+> >  #include <linux/cleanup.h>
+> >  #include <linux/init.h>
+> > +#include <linux/list.h>
+> >  #include <linux/mutex.h>
+> >  #include <linux/platform_profile.h>
+> >  #include <linux/sysfs.h>
+> > @@ -15,8 +16,12 @@
+> >  #define to_pprof_handler(d)  (container_of(d, struct platform_profile_=
+handler, dev))
+> >
+> >  static DEFINE_MUTEX(profile_lock);
 >
-> Yes it is getting messy. This RFC, with all its flaws, does not transpare=
-ntly
-> prevents enumeration but rather relies on -EPROBE_DEFER to sort out
-> dependencies - though it does so by adding more stuff into ACPI static fw=
-node
-> that to be honest I'd rather see gone.
+> Should definitely add comment to this lock as well to explain what it
+> protects.
 
-I think what you need is a notification mechanism that will trigger
-when a specific device (enumerated via the ACPI Namespace) becomes
-operational.  It doesn't look like any of the existing ones (platform
-device probe deferral or ACPI device dependencies tracking) is really
-suitable for your use case.
++1
 
-> > I'm still not sure why you can't represent all devices in the ACPI
-> > namespace in addition to describing some of them in static tables.  I
-> > guess that would work for everybody, wouldn't it?
->
-> That's a fair point - though then code will have to work with firmware
-> that does NOT explicitly require those devices in the namespace (ie: firm=
-ware
-> as it is specified _now_); it can turn out to be a mess even less
-> manageable than this discussion ;-)
+> > +/* Serialize registration and sysfs updates without blocking sysfs cal=
+lbacks. */
+> > +static DEFINE_MUTEX(profile_registration_lock);
+> > +static LIST_HEAD(profile_handlers);
 
-If it has to work under these conditions anyway, then adding stuff to
-the namespace is rather pointless.
+Also, I think that the rest of the series is not going to get into 7.4
+in any shape or form, so my suggestion would be to address the above
+and send a new version of the $subject patch as a separate fix, and
+defer the other patches in the series until 7.4-rc1 is out.
