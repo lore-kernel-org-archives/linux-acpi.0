@@ -1,55 +1,75 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792422579;
-	b=rRRe/g7nlPg78gBMPsPEnE3oGtsWBLOrtTClnBjcv4t+qkriADH/uzjAM3Gb+xQr9ege
-	 24FYTxher0jaEa32FmIHxHxk9KBthmUQBsck4BI1XjTqOllylPJAWRcnyYpKdKoXEnMWg
-	 UREEbQt5YnJVpXcPrjU/5Si5U0YOXFuOheXtAIDjq+wqxriW3b7rcvQ+TlIaqC7/IgQSF
-	 /pkMiC6BXRt8rerubenlupErYPlHZsQaHw4ja77Gxrxtv5rIrYAINBtNcuGdwLklIRCd0
-	 yUh+UQ9P5E0mMrG4yyRMMrP0vBusX8qyAoGn4TFpUWZQf0dUVJM3mRH2xpYaXizaoQw==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792422579;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=DcaRX8WmJPVt0V9NBQwfZlgs6OPdeiawbVeR4WtEcD4=;
-	b=yXs24a6gPYd4cuR56duLm+uBiqJS74xnrrFhcCohcC6ZbBZpi03EcuI8zeGN9WgJvMGR
-	 ApGnFTz0HirSbAijRuDUsfuOFRawOf7JGamp5v9KO95FQ6ZwCKe9ToNXBInEPBA0S0VPZ
-	 qgF2iMCysh8p5NJBKPgaBFFm0xwORqlPb5aMi3sJFvnmPUkqbrWmBGIM3iHYDF+TmMM66
-	 5bdLUrI3qKOF+pDULQuC09NzowqbxWsvVQPE+A50xv5oTltP5omfYSKkoEqpzUlx1T9Hu
-	 iNEkG2eVWpuEdzkqCei6j2G6m+PA8FsPBb1PEwFC27XThlF1fNY7CFr9rzoullLLB0w==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JL3nPFns;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D0436087497
-	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 15:09:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=10.30.226.211
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1792421678;
+	b=zK9TZKZCq03HLrDEuRoDYnCe23pJ7MYH9x5fHSYygPsGQbypoBLgbRF4Qr6M2p1iayZZ
+	 J6FdSoS+S663ft612f3zjzbeQbCpIqN3blODBXG6KJiJgryPj5R0yMLkap6G6f/0ApckH
+	 rajD//iIfRjumJ2IQrmt/e6Eg846lcqRjTZENLh2sjuDHTYqsm+OtUKfvqgCvqCMINmOE
+	 dsPHxLTwOX/Le66AlbaBJ20D61B2hRFXLAJiPsCniUBrIfnsiL1bYtbG/TB0/QLPCs/am
+	 jyHizuQlTisMBq4ydFdH/QLiI31vC1AGbYoV7e48AHJwMeLaBLyBG/nmW7Ar840C34A==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792421678;
+	h=Received:Received:Received:Received:From:To:Cc:Subject:Date:
+	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-Rspamd-Bar:X-Rspamd-Report:X-Rspamd-Score:
+	 DKIM-Signature;
+	bh=xOumFf8QovRxhD1eGGAGpu54ZcAWxs2MC729deNVVtU=;
+	b=l7JeS3KSkJO9NwYAu6yE5qzLujC0xsIlS7jvBLJiokMO8wiB72ngqTQNEZpDxBw9kxX8
+	 BRqtI8z21OB0skxLentWqZxp2bO8xB+1GqiOLHk7kPv7fM0cXE/0fYm/27CH8jXrtx//r
+	 zP9rgVz93jWPhoKioHaqA3+C3FisK8MxxeCjxg+10ufuiWLtEIPm0p0SEYwfd2CfyY7mp
+	 VYEKwBDTDXNo6YnvrLy8VA06eF0Huybu1jlSqxOyiNN5MNBZaYJi+5nY/Xy8F+uKQpQEh
+	 ggxu3joqR/uM1jipTsjeAQ1QY9fuALoiS6/U3oApXTOecmazLYgxnX9wkbQNI8T0onw==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dkim=pass header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=G34Zwobk;
+	dmarc=pass header.from=lausen.nl;
+	spf=pass smtp.mailfrom=lausen.nl;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=10.30.226.211
+Received: from aws-us-west-2-korg-listserv-1.web.codeaurora.org (ip-10-30-226-211.us-west-2.compute.internal [10.30.226.211])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id AACD4606DA76
+	for <linux-acpi.vger.kernel.org@localhost.mlmmj>; Mon, 19 Oct 2026 14:54:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JL3nPFns
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B59F01F000C7
-	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 15:09:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792422578;
-	bh=DcaRX8WmJPVt0V9NBQwfZlgs6OPdeiawbVeR4WtEcD4=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=JL3nPFnsx5fj0TdOFUuVKt2df9puKuJ+bt6fE2dWfhS9Y6hgRyaruYXJb1aM89Ugk
-	 uoJw4NLTu+GodxZ/OfdRwTY7oJpJuAvPMhJvD8ZpjdSYLQsfR4baXIhMAj0sba8R9l
-	 DObaXWyjhJLZuzG6mAo05cHmiJx1p/KTjmtn/pmzicdX4H4JOI6fKb68plUvdFwbNS
-	 eFbYmtSJ7T82yJV7Hu3mVz6nbAzM/dUSGEHnojp9501IJv1XZR8/39U9CtCsjXVGYt
-	 kyXKqCD84eSx/dNUHFsx2+d2MY4uY64aVgniO4j1L32y/wuE4ScFghX/skBYyWarep
-	 UGn6Bb4NJp82Q==
-Received: by mail-lf1-f46.google.com with SMTP id 2adb3069b0e04-5be3d5927ceso1775242e87.3
-        for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 08:09:38 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBy+wpUJ5v1mDf6uhGqcY/Mlfya5rYQ5KUxv1rRf1S0UIEQ4ozNwNb2B52/jzajSzlO3EnEOcX2NoZNg@vger.kernel.org
-X-Gm-Message-State: AFq9FYJ66/qIkhoKWaKWstVZtBlfr05vPjGsVuqa7pM/oo0dJd86Zwze
-	KTasUAKxCzXeRTis/zSaT9aRLo9KwvaoJVzC2tjtY6Vc5ZdS+l96mnZ0UjZbMMyAI/f54uw6SEk
-	34JUdfsbBfZ7yqgSimjYeoWTf2uuxIiwl1mbwXVvaiQ==
-X-Received: by 2002:a05:6512:b95:b0:5be:52d8:f70a with SMTP id
- 2adb3069b0e04-5be52d8f89emr2639653e87.34.1792422577308; Mon, 19 Oct 2026
- 08:09:37 -0700 (PDT)
+	dkim=pass (4096-bit key, unprotected) header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=G34Zwobk
+Received: from mailgate01.uberspace.is (mailgate01.uberspace.is [95.143.172.20])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D17634C8461
+	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 14:54:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.143.172.20
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792421678; cv=none; b=lgikfT6EbBVKOUslH+dlp+gnpuNcZWUQlvMdqYCsDRV+0o/FW+wFpRZ7EfurpuTzR7Zg5DXtYSknGSP+HQY8l1zjsI7aUGCDmjkJCpJkjIPGLj7SW9nQnn89HIVhXjB45+QsPOT4gTEEBGY0By+DptNmE75YAipoQXj1bazH9FA=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792421678; c=relaxed/simple;
+	bh=Hipy/KE3TsEelU94kP3nCg+Z58+mCcvF4l6Qeuvkmms=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=EO09gdI20sJDNtCctVxH1mNhisFEfbMIiM+2Z2vOGNSsL957hM7Vhd+jaZ6JOegCt8dTEs/SYnikEzDaBHf5E6MnUPLAuqjwJqjVT/wTtUeNVfy0oAwiqRPORALAxQUTkC9YQ61dWO7p5VhJrxCyXvqV9hsdOfG4rcpe3diY4vs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lausen.nl; spf=pass smtp.mailfrom=lausen.nl; dkim=pass (4096-bit key) header.d=lausen.nl header.i=@lausen.nl header.b=G34Zwobk; arc=none smtp.client-ip=95.143.172.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lausen.nl
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lausen.nl
+Received: from devico.uberspace.de (devico.uberspace.de [185.26.156.185])
+	by mailgate01.uberspace.is (Postfix) with ESMTPS id 3EB1761147
+	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 16:54:35 +0200 (CEST)
+Received: (qmail 28350 invoked by uid 990); 19 Oct 2026 14:54:35 -0000
+Authentication-Results: devico.uberspace.de;
+	auth=pass (plain)
+Received: from unknown (HELO unknown) (::1)
+	by devico.uberspace.de (Haraka/3.1.1) with ESMTPSA; Mon, 19 Oct 2026 16:54:34 +0200
+From: Leonard Lausen <leonard@lausen.nl>
+To: linux-acpi@vger.kernel.org,
+	"Rafael J. Wysocki" <rafael@kernel.org>
+Cc: leonard@lausen.nl,
+	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
+	Pawel Chmielewski <pawel.chmielewski@intel.com>,
+	acpica-devel@lists.linux.dev,
+	Len Brown <lenb@kernel.org>,
+	Armin Wolf <W_Armin@gmx.de>,
+	Ivan Hu <ivan.hu@canonical.com>,
+	Joshua Grisham <josh@joshuagrisham.com>,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 1/3] ACPICA: Initialize ParserState.AmlEnd in AcpiInstallMethod
+Date: Mon, 19 Oct 2026 16:54:17 +0200
+Message-ID: <20261019145421.47181-2-leonard@lausen.nl>
+X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20261019145421.47181-1-leonard@lausen.nl>
+References: <20261019145421.47181-1-leonard@lausen.nl>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,51 +79,72 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261007120944.1705014-1-abduvaliy.hbai@gmail.com>
- <179239686600.5748.7808377662325552771.b4-ty@oss.qualcomm.com> <atYbJ4ByzDb1mlOQ@ashevche-desk.local>
-In-Reply-To: <atYbJ4ByzDb1mlOQ@ashevche-desk.local>
-From: Bartosz Golaszewski <brgl@kernel.org>
-Date: Mon, 19 Oct 2026 17:09:25 +0200
-X-Gmail-Original-Message-ID: <CAMRc=MfOf7MYAYr=xJXn2vcYJs0sYt2VGr_F1vP-4p+28xz8YA@mail.gmail.com>
-X-Gm-Features: AclHuK_RRJ5XU_fvS1zUiO3BR-YUAl9UaAuV9O5438UByi52Rf9gHtwIqajdDvA
-Message-ID: <CAMRc=MfOf7MYAYr=xJXn2vcYJs0sYt2VGr_F1vP-4p+28xz8YA@mail.gmail.com>
-Subject: Re: [PATCH] gpiolib: acpi: Ignore GPIO 11 interrupt on Acer Nitro 16S AI
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>, 
-	Mika Westerberg <westeri@kernel.org>, Abduvaliy Abdulazizov <abduvaliy.hbai@gmail.com>, 
-	linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	Linus Walleij <linusw@kernel.org>, linux-kernel@vger.kernel.org, 
-	Trijan Koju <trijankoju11@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-Rspamd-Bar: -----
+X-Rspamd-Report: REPLY(-4) BAYES_HAM(-2.97699) MID_CONTAINS_FROM(1) MIME_GOOD(-0.1) R_MISSING_CHARSET(0.5)
+X-Rspamd-Score: -5.57699
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+	d=lausen.nl; s=uberspace;
+	h=from:to:cc:subject:date;
+	bh=Hipy/KE3TsEelU94kP3nCg+Z58+mCcvF4l6Qeuvkmms=;
+	b=G34Zwobk7+jTQBscFXiVl0wGO6Tg694XtvV7EdCgNByMswpXAAHkC/NWoS2OHCCmmc4Wx9aC08
+	f9GuU5l6gfqtWFwQ/elECYEZhu1HPdedLFG/2IeOv0gmoTaz/n76FjaNvQbblViulMw+UOVgzcRz
+	20ndPfGyGVhYSuYRc/QmLtVRwr3ZZZnSYHsjedOTyC6LnyUu5eEtkWtSEND+7ZOe+omi6z7KIooQ
+	wroZrKtbzgISr/hCm7jRhUhIV1R9KfsO16VzW69N48yJlIkCWuM/61tte2qrzzEdkVtoxDwurYok
+	w1alnWRJN1rAqFA3JJGyzK5G5CgpoTMugQnarBVGA+uIdYlKL1K6Uz2LqiFxAZtgw0IcruSiW669
+	4An0xXHOJb8/W9hTbNYzlNCNLuLfdaKUstzBI03uSKQJ3Y+XSMw1Hd/2/vPnjLmbOQQNZpGfTrrh
+	s+qkcFWI9mIqZmk9Smxjc578MaAHK2c5ikFCUhmEuQa1YXVZsX52pNCHvz8SMwGX47oWWhXmJl6F
+	uf3WoBUzgjhXqt1pdehm0q0TyAZVuZaexC/4VZq/idZ7tcvgH1TLaIH/HsfyYoR0495PxzyyvTrE
+	9oep4yW+QlozYICzBmA84E4GO20dkv9dJQSw2kE+56GZ3Ra8XLmUnHkcch3gSOxSi/Guu6+KbAAm
+	8=
 
-On Mon, Oct 19, 2026 at 3:30=E2=80=AFPM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Mon, Oct 19, 2026 at 10:01:08AM +0200, Bartosz Golaszewski wrote:
-> > On Wed, 07 Oct 2026 17:09:44 +0500, Abduvaliy Abdulazizov wrote:
-> > > The Acer Nitro 16S AI (AN16S-61) has the same problem as the Acer Nit=
-ro
-> > > V 16S AI: the firmware powers the internal USB camera (0408:4059)
-> > > through GPIO 11 of AMDI0030, but also lists that pin in _AEI. Request=
-ing
-> > > it as an input cuts the power, so the camera never enumerates. On thi=
-s
-> > > model the same rail also powers the internal microphones, so they do
-> > > not work either.
->
-> [...]
->
-> > Applied, thanks!
-> >
-> > [1/1] gpiolib: acpi: Ignore GPIO 11 interrupt on Acer Nitro 16S AI
-> >       https://git.kernel.org/brgl/c/5a088d1b7266249e7701a94fc90fc829d1a=
-d5ba1
->
-> You actually applied my PT to for-next instead of for-current...
->
+From: Ivan Hu <ivan.hu@canonical.com>
 
-Yes, by mistake but I sent out the PR anyway and it'll get upstream
-all the same (faster in fact. No worries.
+In AcpiInstallMethod(), the local ParserState is stack-allocated and
+only ParserState.Aml was initialized. Parser helpers called by this path
+read ParserState.AmlEnd for bounds checking: AcpiPsPeekOpcode() reads it
+before validating the first AML opcode, and AcpiPsGetNextPackageEnd()
+reads it indirectly via AcpiPsGetNextPackageLength(). The subsequent
+package-limit check also compares against ParserState.AmlEnd. Because
+AmlEnd was never set, these checks operated on an uninitialized value,
+which Coverity flagged as an uninitialized read (CID 1684785) and which
+could lead to incorrect parser bounds decisions.
 
-Bart
+Coverity report:
+
+*** CID 1684785:         Memory - illegal accesses  (UNINIT)
+/src/acpica/source/components/namespace/nsxfname.c: 712             in AcpiInstallMethod()
+        ParserState.Aml += AcpiPsGetOpcodeSize (Opcode);
+>>>     CID 1684785:         Memory - illegal accesses  (UNINIT)
+>>>     Using uninitialized value "ParserState.AmlEnd" when calling
+        "AcpiPsGetNextPackageEnd".
+        ParserState.PkgEnd = AcpiPsGetNextPackageEnd (&ParserState);
+
+Initialize ParserState.AmlEnd to the end of the table
+(Buffer + Table->Length) so the parser bounds checks operate on a valid
+limit.
+
+Link: https://github.com/open-acpica/acpica/commit/19429ef91ebfb2144c918038dce13e297b4ef051
+Fixes: bdc357540129 ("ACPICA: add boundary checks in two places")
+Signed-off-by: Ivan Hu <ivan.hu@canonical.com>
+Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
+Signed-off-by: Leonard Lausen <leonard@lausen.nl>
+---
+ drivers/acpi/acpica/nsxfname.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfname.c
+index b6534187cd43..fcd94947fedb 100644
+--- a/drivers/acpi/acpica/nsxfname.c
++++ b/drivers/acpi/acpica/nsxfname.c
+@@ -503,6 +503,7 @@ acpi_status acpi_install_method(u8 *buffer)
+ 	/* First AML opcode in the table must be a control method */
+ 
+ 	parser_state.aml = buffer + sizeof(struct acpi_table_header);
++	parser_state.aml_end = buffer + table->length;
+ 	opcode = acpi_ps_peek_opcode(&parser_state);
+ 	if (opcode != AML_METHOD_OP) {
+ 		return (AE_BAD_PARAMETER);
+-- 
+2.55.0
+
