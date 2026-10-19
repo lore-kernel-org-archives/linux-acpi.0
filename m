@@ -1,47 +1,142 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.180.131
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792436551;
-	b=Fw9+eOJ7gUMNifr4be44N2W2RBzj9xUB1ApTZ5hIVL9kmMPwz/XsMDfKcvYZOyJ0fesG
-	 m5ZyzA+ItcYW+72QC2hScwnXxDRKMYhI7Ks+8XVMbxa8IMGHisF472yRj9dsrQ0c7Bn37
-	 SsMOrJe793GWStL80afGzx+JyAoOq9ho4qyRYHGm9/8nBH7KUqJyWaF3nfQOiBaUGl+j+
-	 nngrJulQwEHBK4ST8Sb6gQpU3Rd3hhJflG3VECQVYJN0TZY/Y0ORhX6PcUtLurpbCHwsm
-	 tnU0Y3W9fOtESPvowVP382FzGDHcgIOQ3w1W1ZE6pIPdwbA4caiEc6WZwtwRukX4tvg==
+	t=1792437194;
+	b=5Cx5BjcS0xYALJS4ZILVxgTmxWwiR28kzXqnXcYPaQpaLjEYJjAIJIFFl4cjrTiQegWr
+	 BLOZhVUzwaTYcuthG6bhkSGtqMhAkFf2DLSrZyUUXNE0CHqxXD57u7gSbpzbrRv0MQbBF
+	 OVSZOsmxlELj+Oua68RUlu7Uc1dIRyB8ldgeCaqUzoLZKLQK0Ly8KfajHWKvzYnmFVrIh
+	 W59OwTcAqnsHvEhkgIi+So9RRNUW76lJq91PHI/c53YsQu/fCyEHagDG7vgM2I5j6ddCV
+	 B0gB+LYGeXE9w/6J5RMovBKAMO7LjTXQHh2GzBiDzKRjS1+v9v/r7XeXK1BQ0/yBgng==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792436551;
-	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:Content-Language:To:Cc:References:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=+idouJd8yKJTP+et7afpjbqgYs2V8q4MRoUN7rJZ0V0=;
-	b=MEdHaYYlEhxcwzBlOdAbVHHRKi0p5qY7KV+RwAFT8ns1R7HN5SJWKanB74ACgEkO7GO+
-	 jKiO8t+xStQzq3KYritbjpPsEXcTnBrDK9S4F/DeAmJLohcsrW0U4e2p5ppEk6FKRgCpT
-	 j4lUQJaqBG2f1FP7dVwT4lPtaIIXPCUn4GNKWkTFawJ97QbflVnJ4BAEeI4dsS23NBvbd
-	 WzGJDM8hBirVp8JbsSAphThxu3hrjqmVS/7LnWtneVRDwX/9e+F/vWB7ONiPYfEfcjdQW
-	 CPSuh12rEgCXdj79AaNozdLBHl9aD8FWIV5TwcOccOP4/hpqyZX/fTmwxW1ZUsqGS5A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792437194;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
+	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:Date:From:
+	 To:Cc:Subject:Message-ID:In-Reply-To:References:Organization:X-Mailer:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Spam-Info:
+	 X-Proofpoint-ORIG-GUID:X-Authority-Analysis:X-Proofpoint-GUID:
+	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
+	bh=jS+Bq8s7EUDu4GSq8520KkV5KJNW6foagnSih0NwpR0=;
+	b=MPy/JlQgMXunyKSJydIadWW4iKqFVEvAc8tWnzpjM7dXdOpaZvJHAzDw5MiXFG7W1uI2
+	 xWJZ0XkMK7euV12NM9fcwsXBfvdESS18GSZ80U9WekL8ghMEjsixMozjzs73Vye9jfy6i
+	 4Fp1hU0uvCiPRTNRo6iDBRDoB4zG5FV0ZsQCP0rp+S0f+IbuuYNHY7ne27x+iBIJwD6p3
+	 YTz+Bb+DGYRdF3rFENoAp/ydGkkguyxq6XOGV6s3J27qcdI9u32SDRlmpGC2kxH3fnAHJ
+	 +pF6Kv6OhkueTlgeu8c9udEIBNppigCg7GKrIARYDx/TY2GF5YveacT3GWIKPkRdFaA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QjIhKZ+Q;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=oss.qualcomm.com;
+	spf=pass smtp.mailfrom=oss.qualcomm.com;
+	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=M0fMUZ6F;
+	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=kUTNr9WD;
+	arc=none smtp.remote-ip=205.220.180.131
+Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61FE6606A33D;
-	Mon, 19 Oct 2026 19:02:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1ACE606A331
+	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 19:13:13 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A1ACE606A331
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QjIhKZ+Q
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3EBC1F000C4;
-	Mon, 19 Oct 2026 19:02:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792436549;
-	bh=+idouJd8yKJTP+et7afpjbqgYs2V8q4MRoUN7rJZ0V0=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=QjIhKZ+QHHIiP9nhnbAbuQBwS6cxuuZZHmGGS46rFvOwhUSwVKvh/rk3t6skOTlna
-	 nVruQcbmeTGUCUW+IvzcpeYhemOhBPYgjdp4IQW6XeQCuxT7DXlisEpTFMDx3LTeKp
-	 b8RcBUutHkYdZ74tXJ40RK36+1lFNxtqHEd9ZdiRox3Iyc7PIDa/2zl+ywqYVZfKCq
-	 bRi+ZiaGAxnOmvKSeRuB9/sWpMsas8Suvd63OWc4zq+LZI1Ey8DLFCbqBRVlN14naM
-	 P/WpnUSABn/C0mF7AR61LMw8s5BG8JwaT0/4AUZUoTtNF/T1FSM9nV83v3lva8iVLc
-	 boGl/R9H6YLMg==
-Message-ID: <f70456fc-9ca0-4086-80a2-0d704526f2b2@kernel.org>
-Date: Mon, 19 Oct 2026 14:02:25 -0500
+	dkim=pass (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=M0fMUZ6F;
+	dkim=pass (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=kUTNr9WD
+Received: from pps.filterd (m0279871.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69JJ6MWl4161439
+	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 19:13:12 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	jS+Bq8s7EUDu4GSq8520KkV5KJNW6foagnSih0NwpR0=; b=M0fMUZ6Fb4oNf5TM
+	zLzNK2cgNvEfObJYq99kohKPazYP4z8CkhpecWaWG4uSRg/lDykGnxTofvOJFGij
+	6is1UhUrjNIFLkzLYxGvLgo7s3t3+ymqXPoigLv8NYw+gIBI26wSaQofbhJO//Xk
+	MozR5BsMBJ/nYXNnm68HrQpH9gKFKePu0KbV341ILBBDE/A2hKbmUOjIXFXJVUaj
+	D8FEAJkg0Hvb0l/YgQtt3EO8IVJtweE1cWzips2vKQ8gh94OUoXisX85WicpcHZw
+	ql7bYEGXh4GI+31H2fl2IDU/DEn1sq4QlnIW0AnbBxaF/NEQySYRHPltk6LadYNt
+	hPasyw==
+Received: from mail-dy1-f198.google.com (mail-dy1-f198.google.com [74.125.82.198])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hdf48ju9v-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 19:13:12 +0000 (GMT)
+Received: by mail-dy1-f198.google.com with SMTP id 5a478bee46e88-3510d0baf63so6222813eec.1
+        for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 12:13:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1792437191; x=1793041991; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:organization
+         :references:in-reply-to:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=jS+Bq8s7EUDu4GSq8520KkV5KJNW6foagnSih0NwpR0=;
+        b=kUTNr9WDAlUs7CLCDh3NOYzcnijYDxF5hGtkLTnqt17Dgjjro1z1UF42lk3VRwjWfN
+         4p6I/uDgSH+0NJZmYt+7xzkxN2O6MQ830qAi301uQ7zHMV9uwhcEcNVAvuywyIIGCek0
+         KxNGWKWi1M2cI2DZXgXjLKZeJkgyfAknGtQnqkqUmBKJqEWnT9T8/il+0PP6HQy2T5O1
+         sYuTa2MNmNPQ5MwV299tCvmrCdb/W4n92ZOU9/WNaErWNkkougYjXNKdBvoi+38uRz2p
+         Y8mfnIbCZ7Orm4SKMbx/bK1P1MZXyhOkthmGSYtvU0tDXr9ZVUJpm9Zqm9KezhN45SPb
+         RdvA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792437191; x=1793041991;
+        h=content-transfer-encoding:content-type:mime-version:organization
+         :references:in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=jS+Bq8s7EUDu4GSq8520KkV5KJNW6foagnSih0NwpR0=;
+        b=byXs5n8l/3Q40VabZBioWMuh+1c3WBVssc8hlryPYDqSopg7/zLtjkUP+bGGTpP+vv
+         6p5iRKWq6xWN+wSUmLFMpfDFf9RnT8loJohon2ZD4tSjsLaxn6gtuCzv63ZBx+HnD9Gd
+         etdYxVvHq29pWAKoHJyBOqqDLX2hetnGhDFIylzlRKou1Ghc5oethOGsDXkGA1q/y+oz
+         36eq5uoZGN4m21HLn9V/xYWwBZmilxZwy3xylfG8K4KTkSUAvZtErqHmVyYT+7y/uREF
+         6QGeaqL5e6bqasWUNTsq+kmEuLF94I6s4OZFf3ohks/TrX9GRGahi5g87gkgVkxT2aeU
+         ZOwg==
+X-Forwarded-Encrypted: i=1; AKwUvBx9rtB8XYI57ic3f4ahlCLKY1BohEkNHt+Z7ufHHnvXtZRZMzzQ9pv9TpGVebUOYSrW+/F/beygh7bP@vger.kernel.org
+X-Gm-Message-State: AFq9FYLkIuxr9YYK8SkFQkT3/R/JtAiyEbo0KE8CwdFdxzBGg6if5FET
+	j05VSPtGJDvKQY3lPsbsjrBnqadEVgtNC9Jc9g7wfTfGB2RTD3WRBDfLAdAMc3WHRcbkZrrrAMF
+	VoF1Syhn3tXLYiG0ZXPyzfNa4X1jtJ4w7kFrAMGlkzl/MK9Dht7X9hs+oV2IswXpv
+X-Gm-Gg: AYBFou2CPQCPHDk5DL2+YELj+FXBzIdu+cCvDs4CBzLYLQCddcrpYc8T26MuPxpqRcu
+	sCx8Z2fvAmh+atHdHfKRSdCFSHznc80Bxcjo4FtKQTyyAk7Y9M0S5UcOnGH1yflbILMNKZT+EJx
+	V7aS7J3OB4PabUksHGqzE+Pz9c1FrMqFdbKLLN0hCWt9xfgBjV1QG97e+t/AFhaY67UWa4Xqofq
+	uLb7DZSf8aqCzc4hr5ut3Wk6VoLPUDUwFbIMM6neyd4DWddX4Yd1gMLtsFves/Xpxj3UAtbDRk8
+	411DUWYqcDt2cyjjZWzb8NHPqboTDA2p+FBeWCdZLO5FJsWws9R2YjSrSMRGuTXQhPg9MRRV0sK
+	3+hjfPdly2mliV8+PPpUKDJFlYZSO1Jbs1GqWLhwNnQ==
+X-Received: by 2002:a05:693c:87ca:b0:35b:c1d2:eab9 with SMTP id 5a478bee46e88-361a2e3d3abmr11230573eec.39.1792437191353;
+        Mon, 19 Oct 2026 12:13:11 -0700 (PDT)
+X-Received: by 2002:a05:693c:87ca:b0:35b:c1d2:eab9 with SMTP id 5a478bee46e88-361a2e3d3abmr11230522eec.39.1792437190619;
+        Mon, 19 Oct 2026 12:13:10 -0700 (PDT)
+Received: from localhost (i-global254.qualcomm.com. [199.106.103.254])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3608258aa66sm42939717eec.20.2026.10.19.12.13.08
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 19 Oct 2026 12:13:09 -0700 (PDT)
+Date: Mon, 19 Oct 2026 12:13:05 -0700
+From: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+To: Pierre Gondois <pierre.gondois@arm.com>
+Cc: linux-kernel@vger.kernel.org, James Morse <james.morse@arm.com>,
+        Mark
+ Brown <broonie@kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>, Len
+ Brown <lenb@kernel.org>,
+        Tony Luck <tony.luck@intel.com>, Borislav Petkov
+ <bp@alien8.de>,
+        Hanjun Guo <guohanjun@huawei.com>,
+        Mauro Carvalho Chehab
+ <mchehab@kernel.org>,
+        Shuai Xue <xueshuai@linux.alibaba.com>,
+        Maciej
+ Wieczor-Retman <maciej.wieczor-retman@intel.com>,
+        Pawel Chmielewski
+ <pawel.chmielewski@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        "Fabio M.
+ De Francesco" <fabio.m.de.francesco@linux.intel.com>,
+        Breno Leitao
+ <leitao@debian.org>, Dan Williams <djbw@kernel.org>,
+        Terry Bowman
+ <terry.bowman@amd.com>, Ard Biesheuvel <ardb@kernel.org>,
+        Morduan Zang
+ <zhangdandan@uniontech.com>, linux-acpi@vger.kernel.org,
+        linux-edac@vger.kernel.org, acpica-devel@lists.linux.dev
+Subject: Re: [PATCH 4/6] cper: add helpers to handle Memory Error Section 2
+Message-ID: <20261019121305.0000433f@oss.qualcomm.com>
+In-Reply-To: <20261019145643.1877246-5-pierre.gondois@arm.com>
+References: <20261019145643.1877246-1-pierre.gondois@arm.com>
+	<20261019145643.1877246-5-pierre.gondois@arm.com>
+Organization: Qualcomm
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.51; x86_64-w64-mingw32)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -51,390 +146,178 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 5/5] platform profile: Make legacy ACPI aggregate
- interface optional
-Content-Language: en-US
-To: Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>, rafael@kernel.org
-Cc: Len Brown <lenb@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
- Shuah Khan <skhan@linuxfoundation.org>,
- Viresh Kumar <viresh.kumar@linaro.org>, Hans de Goede <hansg@kernel.org>,
- =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
- Maximilian Luz <luzmaximilian@gmail.com>,
- Shyam Sundar S K <Shyam-sundar.S-k@amd.com>,
- Mark Pearson <mpearson-lenovo@squebb.ca>,
- "Derek J. Clark" <derekjohn.clark@gmail.com>,
- Daniel Lezcano <daniel.lezcano@kernel.org>, Zhang Rui <rui.zhang@intel.com>,
- Lukasz Luba <lukasz.luba@arm.com>, Armin Wolf <W_Armin@gmx.de>,
- Jai Luthra <jai.luthra@ideasonboard.com>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Jack Wu <jackbb_wu@compal.com>, Mario Limonciello
- <mario.limonciello@amd.com>, Zhang DM <jixianqiang1540@gmail.com>,
- linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-doc@vger.kernel.org, linux-pm@vger.kernel.org,
- platform-driver-x86@vger.kernel.org,
- Andrew Morton <akpm@linux-foundation.org>, Jakub Kicinski <kuba@kernel.org>,
- Jonathan Cameron <Jonathan.Cameron@huawei.com>,
- Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-References: <20261019073930.2352283-1-daniel.lezcano@oss.qualcomm.com>
- <20261019073930.2352283-6-daniel.lezcano@oss.qualcomm.com>
-From: Mario Limonciello <superm1@kernel.org>
-In-Reply-To: <20261019073930.2352283-6-daniel.lezcano@oss.qualcomm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDE5MDA3NiBTYWx0ZWRfX/CSiBaPQlR2M
+ i59OExlTbnIbgBwdJaR6SHFCLwa3q/po23jyhY6GE4ZWhNzrQJ173tMpTPxhyPEqi5B0v1McO65
+ DXURmOz1WvBEUxWiffoJ4s4Su6UmcMYY58oTNzmLW92J3CIF06KNMo8jKnTWAObGD+VhU6twOUz
+ WMc+8/RSl856gdZcSxQn2uC8mTAAlX2wl1OmxrSzwQuN5jBV3by5h5MhEqx2vnf/OQOrExEdPvT
+ Jnev4RJvfbI9MRcX6z2cLun3S120MHyWF2dk0ZF2jiaD6gnVX+TERUEQqR+eZ+2WwQGfE3wsdoz
+ E2G+6iDCBYf9zvMY+Bdu0KDRy8US2x03crfuR4DoBrjmDaep1QgP9KtWnX1o9k6e2AHaM0Sg36N
+ I00lqmWdrxDatD0XWQz+Nd6/sbc1931rBJPUZ5DXLgDJYxsHXcCjOR1HGF9l2F7elQMLz+rgf2a
+ AbPTI+HmeNTBdxlI/RA==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDE5MDA3NiBTYWx0ZWRfXzh0IGqCpZnrK
+ gz3QbT3BjmfAFr/LMUVwQDUOyiYZEOIfD8WjDnFB/YX9vXQHjvzYWshuHUNOl23+wnG9BP8WgHb
+ 0Snoauh/+Q76Xc6V7ZSskX93MhbX6B0=
+X-Proofpoint-ORIG-GUID: 3GQRLJacSEc6eOZmq_PYKLsg8krtw222
+X-Authority-Analysis: v=2.4 cv=Qr/LTlyd c=1 sm=1 tr=0 ts=6ad66bc8 cx=c_pps
+ a=wEP8DlPgTf/vqF+yE6f9lg==:117 a=JYp8KDb2vCoCEuGobkYCKw==:17
+ a=kj9zAlcOel0A:10 a=660iZSQnnn4A:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=3WHJM1ZQz_JShphwDgj5:22
+ a=7CQSdrXTAAAA:8 a=EUspDBNiAAAA:8 a=sh56xHOc4yr7ZHq0_TkA:9 a=CjuIK1q_8ugA:10
+ a=bBxd6f-gb0O0v-kibOvt:22 a=a-qgeE7W1pNrGK8U0ZQC:22
+X-Proofpoint-GUID: 3GQRLJacSEc6eOZmq_PYKLsg8krtw222
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-10-19_05,2026-10-19_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ clxscore=1015 phishscore=0 priorityscore=1501 lowpriorityscore=0 bulkscore=0
+ impostorscore=0 spamscore=0 adultscore=0 malwarescore=0 suspectscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2610080000 definitions=main-2610190076
 
-On 10/19/26 02:39, Daniel Lezcano wrote:
-> The aggregate attributes under /sys/firmware/acpi/ are retained
-> for backwards compatibility. Firmware-independent userspace can already
-> discover providers through /sys/class/platform-profile/ and control each
-> provider using its choices and profile attributes.
+On Mon, 19 Oct 2026 16:56:11 +0200
+Pierre Gondois <pierre.gondois@arm.com> wrote:
+
+> Add separate location and printing helpers for Memory Error
+> Section 2:
+> - cper_mem_err2_location()
+> - cper_dimm_err2_location()
+> - cper_print_mem2()
 > 
-> Add PLATFORM_PROFILE_LEGACY, a boolean depending on PLATFORM_PROFILE and
-> ACPI, to control the legacy aggregate sysfs interface. Default it to y so
-> existing userspace continues to work when updating its configuration.
+> Similar functions/logic exists for Memory Error Section (1),
+> but require a compact version of the record. To avoid relying
+> and propagating a non-standard record format, the new functions
+> diretly rely on struct cper_sec_mem_err2.
 > 
-> Compile the ACPI adapter and legacy sysfs callbacks only when the option
-> is enabled. Keep common aggregation helpers in the core because kernel
-> hotkey users still need platform_profile_cycle(). Class devices and their
-> notifications remain available regardless of the legacy option.
-> 
-> Document the compatibility option and recommend individual class devices
-> for new userspace. No daemon changes are included in this kernel series.
-> Move the legacy ABI documentation to obsolete/, retain its original
-> creation dates and attribute descriptions, identify the replacement class
-> attributes, and update its MAINTAINERS entry.
-> 
-> Mark the legacy ABI deprecated and document removal after the 2028 LTS
-> kernel, conditional on userspace migration. Keep the enabled default
-> until class-device support has been released and deployed in userspace.
-> Emit one shared pr_notice_once() when either legacy attribute is read or
-> the profile is written, identifying actual legacy use rather than warning
-> merely because the compatibility code was loaded.
-> 
-> Validate ARM64 without ACPI and x86 module builds with the option enabled
-> and disabled. With ACPI active and the option disabled, QEMU tests confirm
-> that the legacy attributes are absent while class controls, notifications,
-> kernel cycling and concurrent registration/removal continue to work.
-> 
-> Assisted-by: OpenCode:gpt-6.1-sol
-> Signed-off-by: Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
+> Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
+A few comments but they are about spec confusion or trivial.
+
+Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+
 > ---
->   .../{testing => obsolete}/sysfs-platform_profile   | 12 ++++
->   .../userspace-api/sysfs-platform_profile.rst       | 17 +++--
->   MAINTAINERS                                        |  2 +-
->   drivers/platform/Kconfig                           | 23 ++++++-
->   drivers/platform/profile/Makefile                  |  2 +-
->   drivers/platform/profile/core.c                    | 72 ++++++++++++++++++----
->   drivers/platform/profile/profile.h                 |  2 +-
->   7 files changed, 109 insertions(+), 21 deletions(-)
+>  drivers/firmware/efi/cper.c | 108 ++++++++++++++++++++++++++++++++++++
+>  include/linux/cper.h        |   3 +
+>  2 files changed, 111 insertions(+)
 > 
-> diff --git a/Documentation/ABI/testing/sysfs-platform_profile b/Documentation/ABI/obsolete/sysfs-platform_profile
-> similarity index 70%
-> rename from Documentation/ABI/testing/sysfs-platform_profile
-> rename to Documentation/ABI/obsolete/sysfs-platform_profile
-> index 125324ab53a9..c001c8641a3a 100644
-> --- a/Documentation/ABI/testing/sysfs-platform_profile
-> +++ b/Documentation/ABI/obsolete/sysfs-platform_profile
-> @@ -2,6 +2,12 @@ What:		/sys/firmware/acpi/platform_profile_choices
->   Date:		October 2020
->   Contact:	Hans de Goede <hdegoede@redhat.com>
->   Description:	This file contains a space-separated list of profiles supported for this device.
-> +		Available with CONFIG_PLATFORM_PROFILE_LEGACY on active ACPI
-> +		systems for backwards compatibility. New userspace should use
-I don't think "new" vs old is a good distinction for documentation.
-
-Just say "Userspace should use"
-
-> +		/sys/class/platform-profile/platform-profile-X/choices instead.
-> +		This interface is deprecated, with removal intended after the
-> +		2028 LTS kernel once userspace migration is complete. Accessing
-> +		either legacy attribute emits a one-time deprecation notice.
->   
->   		Drivers must use the following standard profile-names:
->   
-> @@ -27,6 +33,12 @@ Description:	Reading this file gives the current selected profile for this
->   		device. Writing this file with one of the strings from
->   		platform_profile_choices changes the profile to the new value.
->   
-> +		This legacy interface requires CONFIG_PLATFORM_PROFILE_LEGACY.
-> +		Individual class devices remain available without that option.
-> +		Use /sys/class/platform-profile/platform-profile-X/profile
-> +		instead. This interface is deprecated, with removal intended
-> +		after the 2028 LTS kernel once userspace migration is complete.
-> +
->   		This file can be monitored for changes by polling for POLLPRI,
->   		POLLPRI will be signalled on any changes, independent of those
->   		changes coming from a userspace write; or coming from another
-> diff --git a/Documentation/userspace-api/sysfs-platform_profile.rst b/Documentation/userspace-api/sysfs-platform_profile.rst
-> index a85ede3fb8e5..a3fc1ee20832 100644
-> --- a/Documentation/userspace-api/sysfs-platform_profile.rst
-> +++ b/Documentation/userspace-api/sysfs-platform_profile.rst
-> @@ -26,11 +26,20 @@ The firmware-independent userspace interface is available under
->   ``/sys/class/platform-profile/platform-profile-X/``, with ``name``,
->   ``choices`` and ``profile`` attributes for each registered provider.
->   
-> -On ACPI systems, ``/sys/firmware/acpi/platform_profile_choices`` and
-> +On ACPI systems with ``CONFIG_PLATFORM_PROFILE_LEGACY`` enabled,
-> +``/sys/firmware/acpi/platform_profile_choices`` and
->   ``/sys/firmware/acpi/platform_profile`` remain available as compatibility
->   interfaces for aggregate profile selection across registered providers.
-> -On non-ACPI systems, userspace selects profiles through the individual
-> -provider class devices.
-> +New userspace should select profiles through the individual provider class
-Similar comment.> +devices. These remain available when the legacy 
-interface is disabled and
-> +on non-ACPI systems. Kernel profile cycling also remains available without
-> +the legacy interface.
-> +
-> +The legacy aggregate interface is deprecated. Removal is intended after the
-> +2028 LTS kernel, once userspace has migrated to released software using the
-> +class devices. Compatibility remains enabled by default during the migration;
-> +the date alone does not trigger removal. Accessing either legacy attribute
-> +emits a one-time kernel notice directing userspace to the class interface.
->   
->   Note that this API is only for selecting the platform profile, it is
->   NOT a goal of this API to allow monitoring the resulting performance
-> @@ -70,7 +79,7 @@ Multiple driver support
->   When multiple drivers on a system advertise a platform profile handler, the
->   platform profile handler core will only advertise the profiles that are
->   common between all drivers to the ``/sys/firmware/acpi`` interfaces, when
-> -ACPI is active.
-> +ACPI is active and ``CONFIG_PLATFORM_PROFILE_LEGACY`` is enabled.
->   
->   This is to ensure there is no ambiguity on what the profile names mean when
->   all handlers don't support a profile.
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 929e1e095f17..47b7724f20ea 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -283,10 +283,10 @@ S:	Supported
->   Q:	https://patchwork.kernel.org/project/linux-acpi/list/
->   B:	https://bugzilla.kernel.org
->   T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
-> +F:	Documentation/ABI/obsolete/sysfs-platform_profile
->   F:	Documentation/ABI/testing/configfs-acpi
->   F:	Documentation/ABI/testing/sysfs-bus-acpi
->   F:	Documentation/ABI/testing/sysfs-class-platform-profile
-> -F:	Documentation/ABI/testing/sysfs-platform_profile
->   F:	Documentation/firmware-guide/acpi/
->   F:	Documentation/userspace-api/sysfs-platform_profile.rst
->   F:	arch/x86/kernel/acpi/
-> diff --git a/drivers/platform/Kconfig b/drivers/platform/Kconfig
-> index 395b75f2edf0..7270f24a3b6e 100644
-> --- a/drivers/platform/Kconfig
-> +++ b/drivers/platform/Kconfig
-> @@ -9,12 +9,31 @@ config PLATFORM_PROFILE
->   
->   	  The core exposes per-provider controls under /sys/class/platform-profile/.
->   	  A provider driver must register before profile attributes become
-> -	  available. ACPI is not required; on ACPI systems the legacy system-wide
-> -	  interface under /sys/firmware/acpi/ is also provided.
-> +	  available. ACPI is not required. The legacy system-wide interface under
-> +	  /sys/firmware/acpi/ can be enabled separately for existing userspace.
->   
->   	  To compile this as a module, choose M here: the module will be called
->   	  platform_profile.
->   
-> +config PLATFORM_PROFILE_LEGACY
-> +	bool "Legacy ACPI platform profile sysfs interface (DEPRECATED)"
-> +	depends on PLATFORM_PROFILE && ACPI
-> +	default y
-> +	help
-> +	  Expose platform_profile and platform_profile_choices under
-> +	  /sys/firmware/acpi/ for compatibility with existing userspace. These
-> +	  attributes aggregate the profiles of all registered providers.
-> +
-> +	  This interface is deprecated and is intended for removal after the
-> +	  2028 LTS kernel, once userspace has migrated to the class interface.
-> +	  It remains enabled by default until replacement userspace releases
-> +	  are available and have had time to reach users.
-> +
-> +	  New userspace should use the individual devices under
-> +	  /sys/class/platform-profile/ instead. Disabling this option removes
-> +	  the legacy sysfs interface but retains class devices and kernel
-> +	  profile cycling. If unsure, say Y to preserve compatibility.
-> +
->   source "drivers/platform/mips/Kconfig"
->   
->   source "drivers/platform/loongarch/Kconfig"
-> diff --git a/drivers/platform/profile/Makefile b/drivers/platform/profile/Makefile
-> index ae95ba09383c..787fc9bc961a 100644
-> --- a/drivers/platform/profile/Makefile
-> +++ b/drivers/platform/profile/Makefile
-> @@ -2,4 +2,4 @@
->   obj-$(CONFIG_PLATFORM_PROFILE) += platform_profile.o
->   
->   platform_profile-y := core.o
-> -platform_profile-$(CONFIG_ACPI) += acpi.o
-> +platform_profile-$(CONFIG_PLATFORM_PROFILE_LEGACY) += acpi.o
-> diff --git a/drivers/platform/profile/core.c b/drivers/platform/profile/core.c
-> index 320a5a964fea..1bffca947157 100644
-> --- a/drivers/platform/profile/core.c
-> +++ b/drivers/platform/profile/core.c
-> @@ -25,12 +25,16 @@ static DEFINE_MUTEX(profile_lock);
->   /* Serialize registration and sysfs updates without blocking sysfs callbacks. */
->   static DEFINE_MUTEX(profile_registration_lock);
->   static LIST_HEAD(profile_handlers);
-> +#ifdef CONFIG_PLATFORM_PROFILE_LEGACY
->   static struct kobject *compat_kobj;
-> +#endif
->   
->   static void profile_notify(void)
->   {
-> +#ifdef CONFIG_PLATFORM_PROFILE_LEGACY
->   	if (compat_kobj)
->   		sysfs_notify(compat_kobj, NULL, "platform_profile");
-> +#endif
->   }
->   
->   static int profile_update(void);
-> @@ -304,6 +308,12 @@ static int _aggregate_choices(struct device *dev, void *arg)
->   	return 0;
->   }
->   
-> +#ifdef CONFIG_PLATFORM_PROFILE_LEGACY
-> +static void profile_legacy_notice(void)
+> diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
+> index 06b4fdb59917..5c9b832b67a1 100644
+> --- a/drivers/firmware/efi/cper.c
+> +++ b/drivers/firmware/efi/cper.c
+> @@ -445,6 +445,106 @@ static void cper_print_mem(const char *pfx, const struct cper_sec_mem_err *mem,
+>  		printk("%s%s\n", pfx, rcd_decode_str);
+>  }
+>  
+> +int cper_mem_err2_location(const struct cper_sec_mem_err2 *mem, char *msg)
 > +{
-> +	pr_notice_once("The ACPI platform_profile sysfs interface is deprecated and planned for removal after the 2028 LTS kernel once userspace has migrated; use /sys/class/platform-profile/ instead\n");
-
-I would just leave userspace out.  Maybe just:
-
-"The ACPI platform_profile sysfs interface is deprecated with a planned 
-removal in 2028".
-
-> +}
+> +	u32 len, n;
 > +
->   /**
->    * _remove_hidden_choices - Remove hidden choices from aggregate data
->    * @dev: The device
-> @@ -342,6 +352,8 @@ static ssize_t platform_profile_choices_show(struct kobject *kobj,
->   	};
->   	int err;
->   
-> +	profile_legacy_notice();
-> +
->   	scoped_cond_guard(mutex_intr, return -ERESTARTSYS, &profile_lock) {
->   		err = profile_walk_handlers(&data, _aggregate_choices);
->   		if (err)
-> @@ -359,6 +371,7 @@ static ssize_t platform_profile_choices_show(struct kobject *kobj,
->   
->   	return _commmon_choices_show(data.aggregate, buf);
->   }
-> +#endif
->   
->   /**
->    * _aggregate_profiles - Aggregate the profiles across providers
-> @@ -403,6 +416,7 @@ static int _store_and_notify(struct device *dev, void *data)
->   	return _notify_class_profile(dev, NULL);
->   }
->   
-> +#ifdef CONFIG_PLATFORM_PROFILE_LEGACY
->   /**
->    * platform_profile_show - Show the current aggregate profile
->    * @kobj: The kobject
-> @@ -418,6 +432,8 @@ static ssize_t platform_profile_show(struct kobject *kobj,
->   	enum platform_profile_option profile = PLATFORM_PROFILE_LAST;
->   	int err;
->   
-> +	profile_legacy_notice();
-> +
->   	scoped_cond_guard(mutex_intr, return -ERESTARTSYS, &profile_lock) {
->   		err = profile_walk_handlers(&profile, _aggregate_profiles);
->   		if (err)
-> @@ -451,6 +467,8 @@ static ssize_t platform_profile_store(struct kobject *kobj,
->   	int ret;
->   	int i;
->   
-> +	profile_legacy_notice();
-> +
->   	/* Scan for a matching profile */
->   	i = sysfs_match_string(profile_names, buf);
->   	if (i < 0 || i == PLATFORM_PROFILE_CUSTOM)
-> @@ -502,6 +520,44 @@ static int profile_update(void)
->   	return 0;
->   }
->   
-> +static int profile_compat_init(void)
-> +{
-> +	int err;
-> +
-> +	compat_kobj = platform_profile_compat_kobj();
-> +	if (!compat_kobj)
+> +	if (!msg)
 > +		return 0;
 > +
-> +	err = sysfs_create_group(compat_kobj, &platform_profile_group);
-> +	if (err)
-> +		kobject_put(compat_kobj);
+> +	n = 0;
+> +	len = CPER_REC_LEN;
+> +	if (mem->validation_bits & CPER_MEM2_VALID_NODE)
+> +		n += scnprintf(msg + n, len - n, "node:%d ", mem->node);
+> +	if (mem->validation_bits & CPER_MEM2_VALID_CARD)
+> +		n += scnprintf(msg + n, len - n, "card:%d ", mem->card);
+> +	if (mem->validation_bits & CPER_MEM2_VALID_MODULE)
+> +		n += scnprintf(msg + n, len - n, "module:%d ", mem->module);
+> +	if (mem->validation_bits & CPER_MEM2_VALID_RANK_NUMBER)
+> +		n += scnprintf(msg + n, len - n, "rank:%u ", mem->rank);
+> +	if (mem->validation_bits & CPER_MEM2_VALID_BANK)
+> +		n += scnprintf(msg + n, len - n, "bank:%d ", mem->bank);
+> +	if (mem->validation_bits & CPER_MEM2_VALID_BANK_GROUP)
+> +		n += scnprintf(msg + n, len - n, "bank_group:%d ",
+> +			       mem->bank >> CPER_MEM_BANK_GROUP_SHIFT);
+> +	if (mem->validation_bits & CPER_MEM2_VALID_BANK_ADDRESS)
+> +		n += scnprintf(msg + n, len - n, "bank_address:%d ",
+> +			       mem->bank & CPER_MEM_BANK_ADDRESS_MASK);
+
+I guess this makes sense. I couldn't figure out from the spec if there
+are rules that say whether expected that VALID_BANK is not set when
+VALID_BANK_GROUP and/or VALID_BANK_ADDRESS are set.
+Safer to just over print than read stuff into the spec that isn't there.
+
+> +	if (mem->validation_bits & CPER_MEM2_VALID_DEVICE)
+> +		n += scnprintf(msg + n, len - n, "device:%u ", mem->device);
+> +	if (mem->validation_bits & CPER_MEM2_VALID_ROW)
+> +		n += scnprintf(msg + n, len - n, "row:%u ", mem->row);
+> +	if (mem->validation_bits & CPER_MEM2_VALID_COLUMN)
+> +		n += scnprintf(msg + n, len - n, "column:%u ", mem->column);
+> +	if (mem->validation_bits & CPER_MEM2_VALID_BIT_POSITION)
+> +		n += scnprintf(msg + n, len - n, "bit_position:%u ",
+> +			       mem->bit_pos);
+> +	if (mem->validation_bits & CPER_MEM2_VALID_REQUESTOR_ID)
+> +		n += scnprintf(msg + n, len - n, "requestor_id:0x%016llx ",
+> +			       mem->requestor_id);
+> +	if (mem->validation_bits & CPER_MEM2_VALID_RESPONDER_ID)
+> +		n += scnprintf(msg + n, len - n, "responder_id:0x%016llx ",
+> +			       mem->responder_id);
+> +	if (mem->validation_bits & CPER_MEM2_VALID_TARGET_ID)
+> +		n += scnprintf(msg + n, len - n, "target_id:0x%016llx ",
+> +			       mem->target_id);
+> +	if (mem->validation_bits & CPER_MEM2_VALID_CHIP_ID)
+> +		n += scnprintf(msg + n, len - n, "chip_id:%d ",
+> +			       mem->chip_id);
 > +
-> +	return err;
+> +	return n;
 > +}
+> +EXPORT_SYMBOL_GPL(cper_mem_err2_location);
 > +
-> +static void profile_compat_exit(void)
+> +int cper_dimm_err2_location(const struct cper_sec_mem_err2 *mem, char *msg)
 > +{
-> +	if (compat_kobj) {
-> +		sysfs_remove_group(compat_kobj, &platform_profile_group);
-> +		kobject_put(compat_kobj);
-> +	}
-> +}
-> +#else
-> +static int profile_update(void)
-> +{
-> +	return 0;
-> +}
+> +	u32 len, n;
+> +	const char *bank = NULL, *device = NULL;
 > +
-> +static int profile_compat_init(void)
-> +{
-> +	return 0;
-> +}
+> +	if (!msg || !(mem->validation_bits & CPER_MEM2_VALID_MODULE_HANDLE))
+> +		return 0;
 > +
-> +static void profile_compat_exit(void)
-> +{
-> +}
-> +#endif
+> +	len = CPER_REC_LEN;
+
+I'd move this to...
+
+> +	/* SMBIOS handles are 16 bits; never truncate a Section 2 handle. */
+> +	if (mem->mem_dev_handle <= U16_MAX)
+> +		dmi_memdev_name(mem->mem_dev_handle, &bank, &device);
+> +	else
+> +		pr_warn(FW_WARN "Memory Error Section 2 module handle 0x%x exceeds SMBIOS range\n",
+> +			mem->mem_dev_handle);
+
+here just because it isn't used until down here.
+
+> +	if (bank && device)
+> +		n = snprintf(msg, len, "DIMM location: %s %s ", bank, device);
+> +	else
+> +		n = snprintf(msg, len,
+> +			     "DIMM location: not present. DMI handle: 0x%.8x ",
+> +			     mem->mem_dev_handle);
 > +
->   /**
->    * platform_profile_notify - Notify the provider and aggregate sysfs interfaces
->    * @dev: The class device
-> @@ -728,24 +784,16 @@ static int __init platform_profile_init(void)
->   	if (err)
->   		return err;
->   
-> -	compat_kobj = platform_profile_compat_kobj();
-> -	if (compat_kobj) {
-> -		err = sysfs_create_group(compat_kobj, &platform_profile_group);
-> -		if (err) {
-> -			kobject_put(compat_kobj);
-> -			class_unregister(&platform_profile_class);
-> -		}
-> -	}
-> +	err = profile_compat_init();
-> +	if (err)
-> +		class_unregister(&platform_profile_class);
->   
->   	return err;
->   }
->   
->   static void __exit platform_profile_exit(void)
->   {
-> -	if (compat_kobj) {
-> -		sysfs_remove_group(compat_kobj, &platform_profile_group);
-> -		kobject_put(compat_kobj);
-> -	}
-> +	profile_compat_exit();
->   	class_unregister(&platform_profile_class);
->   }
->   subsys_initcall_sync(platform_profile_init);
-> diff --git a/drivers/platform/profile/profile.h b/drivers/platform/profile/profile.h
-> index 910c9f7da6a0..362eb8cc4592 100644
-> --- a/drivers/platform/profile/profile.h
-> +++ b/drivers/platform/profile/profile.h
-> @@ -5,7 +5,7 @@
->   #include <linux/kconfig.h>
->   #include <linux/kobject.h>
->   
-> -#ifdef CONFIG_ACPI
-> +#ifdef CONFIG_PLATFORM_PROFILE_LEGACY
->   struct kobject *platform_profile_compat_kobj(void);
->   #else
->   static inline struct kobject *platform_profile_compat_kobj(void)
+> +	return n;
+> +}
+> +EXPORT_SYMBOL_GPL(cper_dimm_err2_location);
+> +
+> +static void cper_print_mem2(const char *pfx, const struct cper_sec_mem_err2 *mem)
+> +{
+> +	char rcd_decode_str[CPER_REC_LEN];
+> +
+> +	if (mem->validation_bits & CPER_MEM2_VALID_ERROR_STATUS)
+> +		printk("%serror_status: %s (0x%016llx)\n", pfx,
+> +		       cper_mem_err_status_str(mem->error_status), mem->error_status);
+> +	if (mem->validation_bits & CPER_MEM2_VALID_PA)
+> +		printk("%sphysical_address: 0x%016llx\n", pfx, mem->physical_addr);
+> +	if (mem->validation_bits & CPER_MEM2_VALID_PA_MASK)
+> +		printk("%sphysical_address_mask: 0x%016llx\n", pfx,
+> +		       mem->physical_addr_mask);
+> +	if (cper_mem_err2_location(mem, rcd_decode_str))
+> +		printk("%s%s\n", pfx, rcd_decode_str);
+> +	if (mem->validation_bits & CPER_MEM2_VALID_ERROR_TYPE)
+> +		printk("%serror_type: %u, %s\n", pfx, mem->error_type,
+> +		       cper_mem_err_type_str(mem->error_type));
+> +	if (mem->validation_bits & CPER_MEM2_VALID_STATUS)
+> +		printk("%sstatus: 0x%02x\n", pfx, mem->status);
+> +	if (cper_dimm_err2_location(mem, rcd_decode_str))
+> +		printk("%s%s\n", pfx, rcd_decode_str);
+> +}
+
 
