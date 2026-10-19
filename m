@@ -1,78 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=109.224.244.27
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792442428;
-	b=Hc41nLw0N5yruAOz9D+6gx5hz4IwXtDNpKHnhCEE72hta3KK8NJ5BpOU66Z+DIGDxbZL
-	 lz35NJAu701oMnESytYy7+7RYHFz2sa1IuZumda/qrUxsVnTeU0rgTsGryWPxLpmfCLfh
-	 eNLJQHRApmZKJt5rD7inCF4XFHvR3+Y9usRZCqaRZHEEylHUJTelFjfAbfQHfiKMR7uFl
-	 pBdPB27pQ6BNSnblZbMWzVY4cg2vswM5iFoHqbUMSmpSMUGybCz6j7zlZnxe6xWezzCAU
-	 tLYdx9/ssd/FlBcXiYTkQkICmY+X8nrwOq+yDeANwptWbVnP6TX3NKUz0sAvP1w5dMA==
+	t=1792445724;
+	b=oVtJogscrpYQFtgFZe66zCHZhv3rGEqDr8aj+cUAgJ60/3tyWtiCjNwKvg9NNOjP8izz
+	 Bmm1t9JFP1PN3Rc37hp5IeXnn/R2aGkAUxNjCzu0phUL/zlYN3PTR4J2gCEkomkcpg2Si
+	 h0ee/Q1kD1TDoBnMfB9cR16OvDMEY7w/Pk+dYZDtL7V1VpHkOF8TEwa4SyD+tVTwZ4LZ/
+	 40DLHirdwc2S9davJgyxo4JFKtBffiBVZAOZYUNeNAVp7tCwyNmjg8BI/uUdPbZ01U3mz
+	 CEV2Dncqzr7D6xYwOMKp5KDF0Fj7UOLy6MycJ3gH2BmZUvICtMH0g4RTmCsExo1UohA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792442428;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=2/7A38RNtD7RQ/YyFo6ODsiOAHnMtbezT9OG2lOi13g=;
-	b=uSjVfvOwQGIdOG5/kkNtdbDoRSzdyU0+VdKcPlRVIQY2y6njOK00yi8cDzOCyV5mljyA
-	 rZt+CaQhlPHBNwzTEkMU+pHUKrVER477LusgKbH4WrRhWMixueBDxrz41CDrGlVDLO2J+
-	 1xuTyQqsXnqn5wqc7Zo5ikyyUvaeYKDKY4HKYEGVvlnGhc6XD00m2etczEspubtQqkyhK
-	 dlCe8PZt103KFw+rurPcKIvirBK3qB8wteWUZSBPawFVY2SFJWvrNNNGd9VbXVuEEmS/w
-	 0u4m4D7MxfJ6FI3OzUh2cNAkIZp0M9HHgo/6ez7cXo4Ue7XchWpLXceRl6/3liu1oaQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792445724;
+	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
+	 In-Reply-To:References:Feedback-ID:X-Pm-Message-ID:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=vHL+OCLoMPPykU/EzZkExlVkKDRpQnrt5ls5P4riEHI=;
+	b=mpBjYF7AvUDfQ9213QI48cEm4/t6g3jLqVB8Okn0fi+776fLtCvjVfFZRMhY+R76W5cS
+	 +E+87U9oF5GCO3CCxbmW9/n3AJIWnBp/cd/+wFjcHn/vhX7nveJq7IV+wGeKAtCEUAPhl
+	 0fjD3QN3WEqw1sXkeXLj+6v0Gd0eZz68ERfVijdqYn9XZwFq0jxi23BGHBEw/T3az1Qwj
+	 xKQiYq+ClUPZUL2lqK7FzOpNNGC9M84BFBUOvSPaH32Aa6dD7+egetedHg0Wki2swMGKH
+	 YY6noMQ65TGL5+Bdy9vup2/lo2aGNhQjgHKTS1ThFSTIJjVxcRAhzjbwOQCXitS+a8g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=arm.com;
-	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=R9RL4vxr;
-	arc=none smtp.remote-ip=217.140.110.172
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4355B606A31C;
-	Mon, 19 Oct 2026 20:40:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4355B606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	dmarc=pass header.from=proton.me;
+	spf=pass smtp.mailfrom=proton.me;
+	dkim=pass header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=yuh7i5iribccpkngmjosjkrl4i.protonmail2 header.b=sxObmSJd;
+	arc=none smtp.remote-ip=109.224.244.27
+Received: from mail-24427.protonmail.ch (mail-24427.protonmail.ch [109.224.244.27])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 620D8606A31C
+	for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2026 21:35:22 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 620D8606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=R9RL4vxr
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 97C1720E3;
-	Mon, 19 Oct 2026 13:40:18 -0700 (PDT)
-Received: from e135073.arm.com (unknown [10.57.53.5])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 244DE3F673;
-	Mon, 19 Oct 2026 13:40:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1792442421; bh=mZdsZZ0eMnFYwFad0DranBP838NOpNxdeiDGOK0U3Nw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=R9RL4vxrXA/kXCqTFAOPXOCh/FTqLTtZp8lxKbhtF6PiMlu3pfNy3OM6DNSfq4Nd1
-	 aGjqqL1irL5mcb6WJZeC4U8CXreAj8ylH2tnF/l24uUBmyvQu8IzdCQDfHY/yYjixW
-	 33OT3QU241AQhslqOlqYFUEmPmH8imvqQb/2pj1g=
-From: Pierre Gondois <pierre.gondois@arm.com>
-To: linux-kernel@vger.kernel.org
-Cc: James Morse <james.morse@arm.com>,
-	Mark Brown <broonie@kernel.org>,
-	Pierre Gondois <pierre.gondois@arm.com>,
-	Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Tony Luck <tony.luck@intel.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Shuai Xue <xueshuai@linux.alibaba.com>,
-	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	Pawel Chmielewski <pawel.chmielewski@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	"Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>,
-	Breno Leitao <leitao@debian.org>,
-	Dan Williams <djbw@kernel.org>,
-	Terry Bowman <terry.bowman@amd.com>,
-	Ard Biesheuvel <ardb@kernel.org>,
-	Morduan Zang <zhangdandan@uniontech.com>,
-	linux-acpi@vger.kernel.org,
-	linux-edac@vger.kernel.org,
-	acpica-devel@lists.linux.dev
-Subject: [PATCH v2 6/6] ACPI: extlog: add Memory Error Section 2 trace event
-Date: Mon, 19 Oct 2026 22:38:45 +0200
-Message-ID: <20261019203915.2019037-7-pierre.gondois@arm.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261019203915.2019037-1-pierre.gondois@arm.com>
-References: <20261019203915.2019037-1-pierre.gondois@arm.com>
+	dkim=pass (2048-bit key, unprotected) header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=yuh7i5iribccpkngmjosjkrl4i.protonmail2 header.b=sxObmSJd
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
+	s=yuh7i5iribccpkngmjosjkrl4i.protonmail2; t=1792445720;
+	x=1792704920; bh=vHL+OCLoMPPykU/EzZkExlVkKDRpQnrt5ls5P4riEHI=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=sxObmSJdvY5lQ5WfR+Lqln6YArQoAfFjxQr850X/3sv+dBDn+fAJlB95L9wv679Bl
+	 SAF8/kN+LXZX61PXvUF3QiTKDEQEL0DKs8/c3SVaYiNP5+fhnwyRfFbEg7NGNS2CQc
+	 3yrYzu9cwPvbMFE0jQwSDAsRMm5K8obM2lfuaIWJRrVDUfCGhl/WMMyA+sdehqis10
+	 YVfYnQ+UadYhEwoZWoLaF0uaWzbejBY9EjlbjugLVclDsk9q4CS4ku3qENA2vcxmA1
+	 +IjvfM4/ZD6f4TozjCEAggOsyVzplWoTbogFlQ51uRCw1x4fMk/kC+GLXaf2dhrux/
+	 j3GXPNTtipBtA==
+Date: Mon, 19 Oct 2026 21:35:15 +0000
+To: Lyndon Sanche <lsanche@lyndeno.ca>
+From: verazimmerman1987 <verazimmerman1987@proton.me>
+Cc: "srinivas.pandruvada@linux.intel.com" <srinivas.pandruvada@linux.intel.com>, "rafael@kernel.org" <rafael@kernel.org>, "daniel.lezcano@kernel.org" <daniel.lezcano@kernel.org>, "rui.zhang@intel.com" <rui.zhang@intel.com>, "superm1@kernel.org" <superm1@kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
+Subject: Re: platform_profile: power-saver lost on Panther Lake when SoC Power Slider and dell-pc are both bound (low-power vs quiet)
+Message-ID: <BZwCwyE08uZUOYVbDR8jIYn6pG9aKdn5VG6e5EzDnlo6KgYEmMA2szkOBVrXMbbDclud59u4DWTPP5h9tr2IqM43QL3tDXUnGs03TqgcGJw=@proton.me>
+In-Reply-To: <DM8T7ELISJJB.2MKMPBE1BELFC@lyndeno.ca>
+References: <UPfoGdnS1R04q8uekSMTyes9PbDuvsGeBE42zHmsjD2xIdfPYx7ejdcpZhrxWFq6uwoMvClHTuHbrwaCh3yxD0Rw7OarNABC4dZsDra44mk=@proton.me> <DM8T7ELISJJB.2MKMPBE1BELFC@lyndeno.ca>
+Feedback-ID: 187400468:user:proton
+X-Pm-Message-ID: 55d50284c3692d3dddaf569c107074e03854b4b6
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -82,162 +64,84 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Add a separate handling for Memory Error Section 2 trace events.
-The fields of the record are individually printed so userspace
-can discover the layout more dynamically if a new field is added.
 
-Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
----
- drivers/acpi/acpi_extlog.c |   6 +++
- drivers/ras/ras.c          |   1 +
- include/ras/ras_event.h    | 102 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 109 insertions(+)
+Hi Lyndon,
 
-diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
-index 7ad3b36013cc..9e4d16e06244 100644
---- a/drivers/acpi/acpi_extlog.c
-+++ b/drivers/acpi/acpi_extlog.c
-@@ -231,6 +231,12 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
- 			if (gdata->error_data_length >= sizeof(*mem))
- 				trace_extlog_mem_event(mem, err_seq, fru_id, fru_text,
- 						       (u8)gdata->error_severity);
-+		} else if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM2)) {
-+			struct cper_sec_mem_err2 *mem = acpi_hest_get_payload(gdata);
-+
-+			if (gdata->error_data_length >= sizeof(*mem))
-+				trace_extlog_mem2_event(mem, err_seq, fru_id, fru_text,
-+						      	(u8)gdata->error_severity);
- 		} else if (guid_equal(sec_type, &CPER_SEC_CXL_PROT_ERR)) {
- 			struct cxl_cper_sec_prot_err *prot_err =
- 				acpi_hest_get_payload(gdata);
-diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
-index 03df3db62334..c6b14202a5e9 100644
---- a/drivers/ras/ras.c
-+++ b/drivers/ras/ras.c
-@@ -111,6 +111,7 @@ subsys_initcall(ras_init);
- 
- #if defined(CONFIG_ACPI_EXTLOG) || defined(CONFIG_ACPI_EXTLOG_MODULE)
- EXPORT_TRACEPOINT_SYMBOL_GPL(extlog_mem_event);
-+EXPORT_TRACEPOINT_SYMBOL_GPL(extlog_mem2_event);
- #endif
- EXPORT_TRACEPOINT_SYMBOL_GPL(mc_event);
- EXPORT_TRACEPOINT_SYMBOL_GPL(non_standard_event);
-diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
-index fdb785fa4613..0c0dbe068dc8 100644
---- a/include/ras/ras_event.h
-+++ b/include/ras/ras_event.h
-@@ -74,6 +74,108 @@ TRACE_EVENT(extlog_mem_event,
- 		  &__entry->fru_id,
- 		  __get_str(fru_text))
- );
-+
-+/*
-+ * Memory Error Section 2 exposes each field separately so userspace can
-+ * discover its layout. Validation bits use the UEFI Section 2 assignments.
-+ */
-+TRACE_EVENT(extlog_mem2_event,
-+	TP_PROTO(const struct cper_sec_mem_err2 *mem,
-+		 u32 err_seq,
-+		 const guid_t *fru_id,
-+		 const char *fru_text,
-+		 u8 sev),
-+
-+	TP_ARGS(mem, err_seq, fru_id, fru_text, sev),
-+
-+	TP_STRUCT__entry(
-+		__field(u32, err_seq)
-+		__field(u8, sev)
-+		__field_struct(guid_t, fru_id)
-+		__string(fru_text, fru_text)
-+		__field(u64, validation_bits)
-+		__field(u64, error_status)
-+		__field(u64, physical_addr)
-+		__field(u64, physical_addr_mask)
-+		__field(u16, node)
-+		__field(u16, card)
-+		__field(u16, module)
-+		__field(u16, bank)
-+		__field(u32, device)
-+		__field(u32, row)
-+		__field(u32, column)
-+		__field(u32, rank)
-+		__field(u32, bit_pos)
-+		__field(u8, chip_id)
-+		__field(u8, error_type)
-+		__field(u8, status)
-+		__field(u64, requestor_id)
-+		__field(u64, responder_id)
-+		__field(u64, target_id)
-+		__field(u32, mem_array_handle)
-+		__field(u32, mem_dev_handle)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->err_seq = err_seq;
-+		__entry->sev = sev;
-+		__entry->fru_id = *fru_id;
-+		__assign_str(fru_text);
-+		__entry->validation_bits = mem->validation_bits;
-+		__entry->error_status = mem->error_status;
-+		__entry->physical_addr = mem->physical_addr;
-+		__entry->physical_addr_mask = mem->physical_addr_mask;
-+		__entry->node = mem->node;
-+		__entry->card = mem->card;
-+		__entry->module = mem->module;
-+		__entry->bank = mem->bank;
-+		__entry->device = mem->device;
-+		__entry->row = mem->row;
-+		__entry->column = mem->column;
-+		__entry->rank = mem->rank;
-+		__entry->bit_pos = mem->bit_pos;
-+		__entry->chip_id = mem->chip_id;
-+		__entry->error_type = mem->error_type;
-+		__entry->status = mem->status;
-+		__entry->requestor_id = mem->requestor_id;
-+		__entry->responder_id = mem->responder_id;
-+		__entry->target_id = mem->target_id;
-+		__entry->mem_array_handle = mem->mem_array_handle;
-+		__entry->mem_dev_handle = mem->mem_dev_handle;
-+	),
-+
-+	TP_printk("{%u} %s error: validation_bits: 0x%llx "
-+		  "error_status: 0x%llx physical_addr: 0x%llx "
-+		  "physical_addr_mask: 0x%llx node: %u card: %u "
-+		  "module: %u bank: %u device: %u row: %u column: %u "
-+		  "rank: %u bit_pos: %u chip_id: %u error_type: %u "
-+		  "status: 0x%x requestor_id: 0x%llx responder_id: 0x%llx "
-+		  "target_id: 0x%llx mem_array_handle: 0x%x "
-+		  "mem_dev_handle: 0x%x FRU: %pUl %.20s",
-+		  __entry->err_seq, cper_severity_str(__entry->sev),
-+		  __entry->validation_bits,
-+		  __entry->error_status,
-+		  __entry->physical_addr,
-+		  __entry->physical_addr_mask,
-+		  __entry->node,
-+		  __entry->card,
-+		  __entry->module,
-+		  __entry->bank,
-+		  __entry->device,
-+		  __entry->row,
-+		  __entry->column,
-+		  __entry->rank,
-+		  __entry->bit_pos,
-+		  __entry->chip_id,
-+		  __entry->error_type,
-+		  __entry->status,
-+		  __entry->requestor_id,
-+		  __entry->responder_id,
-+		  __entry->target_id,
-+		  __entry->mem_array_handle,
-+		  __entry->mem_dev_handle,
-+		  &__entry->fru_id, __get_str(fru_text))
-+);
- #endif
- 
- /*
--- 
-2.43.0
+Thanks for looking at this.
+
+> What if platform_profile itself was changed to separate the user/system
+> choice: the "desired" profile, from the "actual" profile(s)?
+
+From the user side this sounds right, and it matches what I would
+expect as a user: I pick one profile, each driver does the closest
+thing it can. A few observations from testing on this machine:
+
+1. The legacy /sys/firmware/acpi/platform_profile is where it actually
+   breaks today. When I set dell-pc=3Dquiet and the SoC slider=3Dlow-power
+   by hand, the legacy file reports "custom", and power-profiles-daemon
+   treats that as an external change and falls back to "balanced". If
+   the legacy file reported the desired profile instead of "custom",
+   the main userspace consumer would keep working.
+
+2. On the ordering: low-power / quiet / balanced / performance fit a
+   linear scale well. "cool" is less clear. On this Dell its DTT table
+   has the same PL1 range as quiet (15-19 W) but a lower skin
+   temperature target (40 vs 42 C), so it is more of a thermal
+   preference than a power level. Placing it next to quiet, or letting
+   drivers declare it as an alias of the nearest level, would probably
+   be good enough.
+
+3. Ties and gaps: when a driver has no exact match, rounding towards
+   the lower-power side seems the safer default (e.g. desired quiet ->
+   low-power on the SoC slider rather than balanced).
+
+As an interim step, the hidden-choice approach would fix power-saver
+on current Panther Lake Dell systems with a small, backportable
+change. Another user on the same model (XPS 14 DA14260) hit the same
+power-saver -> balanced fallback independently:
+https://github.com/omacom/omarchy/issues/14174
+
+I'm happy to test either approach on this hardware.
+
+Thanks,
+Vera
+
+-------- Original Message --------
+On Monday, 10/19/26 at 15:21 Lyndon Sanche <lsanche@lyndeno.ca> wrote:
+Hello, thank you for reporting this.
+
+To me there are a number of ways we could handle this.
+
+On Fri Oct 16, 2026 at 1:10 PM EDT, verazimmerman1987 wrote:
+> This looks like the same class of problem as amd-pmf + asus-wmi,
+> which was solved by adding "quiet" as a hidden choice in amd-pmf
+> (commit 44e94fece517, "platform/x86/amd: pmf: Add 'quiet' to hidden
+> choices"). Would a similar hidden "quiet" (and perhaps "cool") choice
+> for the Intel SoC Power Slider, mapped to its low-power setting, be
+> acceptable? I'm happy to test patches.
+
+This certainly would fix the immediate issue: platform_profile providing
+consistent choices across handlers to allow selecting a range of
+profiles exposed by the system. I feel like there is a better way to
+handle this besides adding hidden profiles.
+
+What if platform_profile itself was changed to separate the user/system
+choice: the "desired" profile, from the "actual" profile(s)? In this
+scenario, different drivers expose different possible profiles, the
+system tries to apply the closest possible profile per-driver to the
+user's choice. The possible profiles would have an index to indicate
+where on a linear scale it lays. If I request quiet (2), but the Intel
+SoC slider only implements power-saver (3), the system chooses 3 for
+that driver.
+
+I am only thinking out loud and would find comments on this to be
+useful. I realize the behaviour of some profiles do not exactly fall on
+a linear scale so this would need consideration as well.
+
+Thanks,
+
+Lyndon
 
