@@ -1,58 +1,47 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=10.30.226.211
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1792421829;
-	b=BoaU54HUQS5MHZALrOvNgEHz8IlijgL1skXaGqISEn7DCmeYlBeIs/d1fKIwkkly97lA
-	 zsm4TttDfYNil3ZVFzjccmENcaHxLZAZzji/XwFIJ+stoFfvTI+OrkcJs/RFz/jTluKJE
-	 ettQ6Dbc6yDlkRX3rTj/rx4lD77ehCQg1ci9Zzg//2MFB+WZSTzFiJ7JgzCieEKqDiVjC
-	 4NAfMAUjF3bYx077mzqvIR+8Lo+MdUhtal8WQZrXBguGV6GtkE4v4rWEgpRILsCDdw2ga
-	 E4S9L132TYsgnMQE+ENmU6EioqyUdt1u54DQhLEyaTLLWYUUGqNnm2nITkxNWvmfpyw==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792421829;
-	h=Received:Received:Received:DKIM-Signature:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1792421863;
+	b=0iKjtUqD0VbnUQ2LYO/uze0AumF77/BadGYja3Ky8eKO4rOB6gLkLNwjeviYjEKlqoCr
+	 0UF0CGCC+lMsSINKfp12cole82wlnllsv5sN//Uriw+DyXayx7TICmhN945UL186InhZV
+	 1+QbwSn8rTcACiT5M4fPYIpZ0hoqCL0tZPdTuJ9rW1aPbtreLbcVB/vjldXaIALr7OEVE
+	 fcwj+tUJHZZXO+SJGf94IG3Al6O3JhCeGto8NRWOz5y+ADxVq+9iitRb+/a9xR7pDbHsl
+	 q3kbLbwi1+4mcGiD62aUt9gWLArEkgTv5JBMgRxtQJZKnSObKZ9a0JJe810emJa78ng==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792421863;
+	h=DMARC-Filter:Received:Received:DKIM-Signature:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=VCgwC73CEIkR5p1wAPzHafgllwFVQaoLyQhXqaXGVnk=;
-	b=dRY7RYev8/gaGOgIEOS5RAxDD3P7WmUSOir2aYt4KP16gQsbOtIlpSM8ZaOSGZRp4LSv
-	 h1TLZdyl0rof1GqRKQhW+fXAsN7Mgo0Ur8Ht4wue21l+agNUYLIqSS4Aa/OV/T16PmtR3
-	 h51Oeng0uMrdOvDldFpMa/3eStfVkeyXbX1SDCmlH9g6yjUL2vjbQYZCUpWF4dEYmqR6U
-	 27Ma2ZcPuakwQ8LlvaJ7mV00UQAypPD/ko+4v9CQzC0+xtZXC30OWo5VlBIJP7NS/AyeH
-	 OF0oNUUaUJ4p79FIsLp3Q4QNWEkzIDi9ZOSVWYYXz9FVSkf3IwUU6QTgQkFTn6q4nkQ==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=kmO6KxO0;
+	bh=UzY0WV17KtoguFGC5HPs6JnZnsTzj7BsHSqpC9j8C1s=;
+	b=S7yPnW7Wb8gzvQQIIgjDxN7xhWhR0DIWc74jr2jtck/r6RtFs9VJmGwT9LsM18xluT7w
+	 7iq/xKdxHzZ6osSBJHa+faSekmtgE4BQuEX7ACqtHwLsGZYqkX1oXWO/uxXDIKNjIbW3F
+	 O89NP3b+B0FQ4uj6nu9kg86VmBYdV7ptNTFB9lcaM5h1xT0YwlQXVTIH/hc19N+GozQ7H
+	 /lNa9S14N1dvEbQ0sj5QXqWPPPGjFaj5cFRNsoeYX+aihE1eMgX0LlmadNS0hrECk4eRW
+	 Jy719oSpcq28HTS6WyrkOxQkd1iPJoakoIzpZcJAljkRra4WOq072xLLCM1USVnIunA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=arm.com;
 	spf=pass smtp.mailfrom=arm.com;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=10.30.226.211
-Received: from aws-us-west-2-korg-listserv-1.web.codeaurora.org (ip-10-30-226-211.us-west-2.compute.internal [10.30.226.211])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id BEE206074095;
-	Mon, 19 Oct 2026 14:57:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=kmO6KxO0
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=CqqIcGKZ;
+	arc=none smtp.remote-ip=217.140.110.172
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4F7FC6513FF;
-	Mon, 19 Oct 2026 14:57:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792421829; cv=none; b=fdS1wquQYSdBMqJm4rspcZC1A5mpxtYDrwC8cO/MtR4gnMQGW23/1mB1+2vczzFKRwNQSrRCM8AR5TkNJYd/Bg7C2Jbs4Tmitf+iS7LcdfWoQz/dbaMKquQiQdF8g+Wacxu2T/l/gzKAXB+I5AAKoJXke6mZ9Ic2zsDoHWNqqqY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792421829; c=relaxed/simple;
-	bh=YlaWlYaZIkAnlD2LKt78HyIT9RVMdmLuS6Ccg2ZGCLU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jtf8ti1aauayl3xP1b0silwqDJCiE7sepjGYUHawEqQvW6Qqwg6H/pmSdRxTUHERKFmEA1vK77GnNDAWnoEWy/FOQyJZOSp+9av45LtHVID9g51yXTygk0JG6b7q/nZlF4Qp4pdExvpni/QDd0W4jcbTNjrVHDXZId/U3YsI1vg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=kmO6KxO0; arc=none smtp.client-ip=217.140.110.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id F17246075500;
+	Mon, 19 Oct 2026 14:57:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F17246075500
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=CqqIcGKZ
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 7E16E1D34;
-	Mon, 19 Oct 2026 07:57:04 -0700 (PDT)
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 237471F91;
+	Mon, 19 Oct 2026 07:57:38 -0700 (PDT)
 Received: from e135073.nice.Arm.com (e135073.arm.com [10.34.111.131])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 99A763F673;
-	Mon, 19 Oct 2026 07:57:03 -0700 (PDT)
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 626AD3F673;
+	Mon, 19 Oct 2026 07:57:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1792421827; bh=YlaWlYaZIkAnlD2LKt78HyIT9RVMdmLuS6Ccg2ZGCLU=;
+	t=1792421861; bh=xsAU47rIG+fvtnlYzCeM96L00uwBVp59abpxrB9Ib0U=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=kmO6KxO0EaT2UX7XQwEqVTYJDoqisGCaBNf49e9mWIIU090eRvJ4LbuYMZ+lkWJ52
-	 jh8Sd9Z7Tj4QgtvLHKai+ACKt9MPl+sdTOou5BpHyBQ+/Ipgfl2HZRRdL+EU5KHJjH
-	 /iM9CYyMaNTNhJwd0oCJ7A1AYKHeB2nalvjwIcsQ=
+	b=CqqIcGKZnza3kQ+PgaE2l08cnDrkf4UuPxLndNBM3jADzYCqNXCnijbJAn7MaonUV
+	 JYcy5vuCaSg1cqx/G2cPFNFDcE39N+P173GcMlfSIiHpMF+hzHJtzd+fw2kgvS/Rzv
+	 awbOmMaN8zd49nahNx8ALUFR8L6SYA5ScSNcB3eE=
 From: Pierre Gondois <pierre.gondois@arm.com>
 To: linux-kernel@vger.kernel.org
 Cc: James Morse <james.morse@arm.com>,
@@ -78,9 +67,9 @@ Cc: James Morse <james.morse@arm.com>,
 	linux-acpi@vger.kernel.org,
 	linux-edac@vger.kernel.org,
 	acpica-devel@lists.linux.dev
-Subject: [PATCH 1/6] ACPI: extlog: fix extlog_mem_event build issue
-Date: Mon, 19 Oct 2026 16:56:08 +0200
-Message-ID: <20261019145643.1877246-2-pierre.gondois@arm.com>
+Subject: [PATCH 5/6] ACPI: APEI: add separate Memory Error Section 2 handlers
+Date: Mon, 19 Oct 2026 16:56:12 +0200
+Message-ID: <20261019145643.1877246-6-pierre.gondois@arm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261019145643.1877246-1-pierre.gondois@arm.com>
 References: <20261019145643.1877246-1-pierre.gondois@arm.com>
@@ -95,49 +84,288 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-With CONFIG_ACPI_EXTLOG=n and with the following command:
-make -j4 drivers/acpi/acpi_extlog.o drivers/acpi/
-
-trace_extlog_mem_event() is not defined. Add a extlog_mem_err_event()
-wrapper to fix the build issue.
+Add dedicated GHES and EDAC callbacks for Memory Error Section 2
+records. Use a separate GHES notifier chain so existing consumers
+continue to receive legacy memory error sections.
 
 Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
 ---
- drivers/acpi/acpi_extlog.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ drivers/acpi/apei/ghes.c |  49 ++++++++++++-
+ drivers/edac/ghes_edac.c | 150 +++++++++++++++++++++++++++++++++++++++
+ include/acpi/ghes.h      |   2 +
+ 3 files changed, 200 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
-index 7ad3b36013cc..e764d61f71ca 100644
---- a/drivers/acpi/acpi_extlog.c
-+++ b/drivers/acpi/acpi_extlog.c
-@@ -180,6 +180,15 @@ extlog_cxl_cper_handle_prot_err(struct cxl_cper_sec_prot_err *prot_err,
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index fe10ab0e02f6..c7fb15543b56 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -101,6 +101,7 @@
  #endif
+ 
+ static ATOMIC_NOTIFIER_HEAD(ghes_report_chain);
++static ATOMIC_NOTIFIER_HEAD(ghes_report_mem2_chain);
+ 
+ static inline bool is_hest_type_generic_v2(struct ghes *ghes)
+ {
+@@ -551,6 +552,29 @@ static bool ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata,
+ 	return false;
  }
  
-+static void
-+extlog_mem_err_event(struct cper_sec_mem_err *mem, u32 err_seq,
-+		     const guid_t *fru_id, const char *fru_text, u8 sev)
++static bool ghes_handle_memory_failure2(struct acpi_hest_generic_data *gdata,
++					int sev, bool sync)
 +{
-+#if defined(CONFIG_ACPI_EXTLOG) || defined(CONFIG_ACPI_EXTLOG_MODULE)
-+	trace_extlog_mem_event(mem, err_seq, fru_id, fru_text, sev);
-+#endif
++	int flags = -1;
++	int sec_sev = ghes_severity(gdata->error_severity);
++	struct cper_sec_mem_err2 *mem_err = acpi_hest_get_payload(gdata);
++
++	if (!(mem_err->validation_bits & CPER_MEM2_VALID_PA))
++		return false;
++
++	/* iff following two events can be handled properly by now */
++	if (sec_sev == GHES_SEV_CORRECTED &&
++	    (gdata->flags & CPER_SEC_ERROR_THRESHOLD_EXCEEDED))
++		flags = MF_SOFT_OFFLINE;
++	if (sev == GHES_SEV_RECOVERABLE && sec_sev == GHES_SEV_RECOVERABLE)
++		flags = sync ? MF_ACTION_REQUIRED : 0;
++
++	if (flags != -1)
++		return ghes_do_memory_failure(mem_err->physical_addr, flags);
++
++	return false;
 +}
 +
- static int extlog_print(struct notifier_block *nb, unsigned long val,
- 			void *data)
+ static bool ghes_handle_arm_hw_error(struct acpi_hest_generic_data *gdata,
+ 				     int sev, bool sync)
  {
-@@ -229,8 +238,9 @@ static int extlog_print(struct notifier_block *nb, unsigned long val,
- 			struct cper_sec_mem_err *mem = acpi_hest_get_payload(gdata);
+@@ -915,7 +939,8 @@ static void ghes_log_hwerr(int sev, guid_t *sec_type)
+ 		return;
+ 	}
  
- 			if (gdata->error_data_length >= sizeof(*mem))
--				trace_extlog_mem_event(mem, err_seq, fru_id, fru_text,
--						       (u8)gdata->error_severity);
-+				extlog_mem_err_event(mem, err_seq, fru_id,
-+						     fru_text,
-+						     (u8)gdata->error_severity);
- 		} else if (guid_equal(sec_type, &CPER_SEC_CXL_PROT_ERR)) {
- 			struct cxl_cper_sec_prot_err *prot_err =
- 				acpi_hest_get_payload(gdata);
+-	if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM)) {
++	if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM) ||
++	    guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM2)) {
+ 		hwerr_log_error_type(HWERR_RECOV_MEMORY);
+ 		return;
+ 	}
+@@ -952,6 +977,16 @@ static void ghes_do_proc(struct ghes *ghes,
+ 
+ 			arch_apei_report_mem_error(sev, mem_err);
+ 			queued = ghes_handle_memory_failure(gdata, sev, sync);
++		} else if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM2)) {
++			struct cper_sec_mem_err2 *mem_err = acpi_hest_get_payload(gdata);
++
++			if (gdata->error_data_length < sizeof(*mem_err)) {
++				pr_warn(FW_WARN "Memory Error Section 2 length is too small\n");
++				continue;
++			}
++
++			atomic_notifier_call_chain(&ghes_report_mem2_chain, sev, mem_err);
++			queued = ghes_handle_memory_failure2(gdata, sev, sync);
+ 		} else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
+ 			ghes_handle_aer(gdata);
+ 		} else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
+@@ -1973,3 +2008,15 @@ void ghes_unregister_report_chain(struct notifier_block *nb)
+ 	atomic_notifier_chain_unregister(&ghes_report_chain, nb);
+ }
+ EXPORT_SYMBOL_GPL(ghes_unregister_report_chain);
++
++void ghes_register_report_mem2_chain(struct notifier_block *nb)
++{
++	atomic_notifier_chain_register(&ghes_report_mem2_chain, nb);
++}
++EXPORT_SYMBOL_GPL(ghes_register_report_mem2_chain);
++
++void ghes_unregister_report_mem2_chain(struct notifier_block *nb)
++{
++	atomic_notifier_chain_unregister(&ghes_report_mem2_chain, nb);
++}
++EXPORT_SYMBOL_GPL(ghes_unregister_report_mem2_chain);
+diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
+index d80c88818691..b18460ba8f40 100644
+--- a/drivers/edac/ghes_edac.c
++++ b/drivers/edac/ghes_edac.c
+@@ -386,6 +386,154 @@ static struct notifier_block ghes_edac_mem_err_nb = {
+ 	.priority	= 0,
+ };
+ 
++static int print_mem_error2_other_detail(const struct cper_sec_mem_err2 *mem, char *msg,
++					 const char *location, unsigned int len)
++{
++	u32 n;
++
++	if (!msg)
++		return 0;
++
++	n = 0;
++	len -= 1;
++
++	n += scnprintf(msg + n, len - n, "APEI location: %s ", location);
++
++	if (mem->validation_bits & CPER_MEM2_VALID_ERROR_STATUS) {
++		n += scnprintf(msg + n, len - n, "status(0x%016llx): ", mem->error_status);
++		n += scnprintf(msg + n, len - n, "%s ",
++			       cper_mem_err_status_str(mem->error_status));
++	}
++	if (mem->validation_bits & CPER_MEM2_VALID_STATUS)
++		n += scnprintf(msg + n, len - n, "section_status:0x%02x ",
++			       mem->status);
++
++	msg[n] = '\0';
++
++	return n;
++}
++
++static int ghes_edac_report_mem_error2(struct notifier_block *nb,
++				       unsigned long val, void *data)
++{
++	struct cper_sec_mem_err2 *mem_err = data;
++	struct edac_raw_error_desc *e;
++	struct mem_ctl_info *mci;
++	unsigned long sev = val;
++	struct ghes_pvt *pvt;
++	unsigned long flags;
++	char *p;
++
++	/*
++	 * We can do the locking below because GHES defers error processing
++	 * from NMI to IRQ context. Whenever that changes, we'd at least
++	 * know.
++	 */
++	if (WARN_ON_ONCE(in_nmi()))
++		return NOTIFY_OK;
++
++	spin_lock_irqsave(&ghes_lock, flags);
++
++	pvt = ghes_pvt;
++	if (!pvt)
++		goto unlock;
++
++	mci = pvt->mci;
++	e = &mci->error_desc;
++
++	/* Cleans the error report buffer */
++	memset(e, 0, sizeof(*e));
++	e->error_count = 1;
++	e->grain = 1;
++	e->msg = pvt->msg;
++	e->other_detail = pvt->other_detail;
++	e->top_layer = -1;
++	e->mid_layer = -1;
++	e->low_layer = -1;
++	*pvt->other_detail = '\0';
++	*pvt->msg = '\0';
++
++	switch (sev) {
++	case GHES_SEV_CORRECTED:
++		e->type = HW_EVENT_ERR_CORRECTED;
++		break;
++	case GHES_SEV_RECOVERABLE:
++		e->type = HW_EVENT_ERR_UNCORRECTED;
++		break;
++	case GHES_SEV_PANIC:
++		e->type = HW_EVENT_ERR_FATAL;
++		break;
++	default:
++	case GHES_SEV_NO:
++		e->type = HW_EVENT_ERR_INFO;
++	}
++
++	edac_dbg(1, "error validation_bits: 0x%08llx\n",
++		 (long long)mem_err->validation_bits);
++
++	/* Error type, mapped on e->msg */
++	if (mem_err->validation_bits & CPER_MEM2_VALID_ERROR_TYPE) {
++		u8 etype = mem_err->error_type;
++
++		p = pvt->msg;
++		p += snprintf(p, sizeof(pvt->msg), "%s", cper_mem_err_type_str(etype));
++	} else {
++		strscpy(pvt->msg, "unknown error");
++	}
++
++	/* Error address */
++	if (mem_err->validation_bits & CPER_MEM2_VALID_PA) {
++		e->page_frame_number = PHYS_PFN(mem_err->physical_addr);
++		e->offset_in_page = offset_in_page(mem_err->physical_addr);
++	}
++
++	/* Error grain */
++	if (mem_err->validation_bits & CPER_MEM2_VALID_PA_MASK)
++		e->grain = ~mem_err->physical_addr_mask + 1;
++
++	/* Memory error location, mapped on e->location */
++	p = e->location;
++	p += cper_mem_err2_location(mem_err, p);
++
++	if (mem_err->validation_bits & CPER_MEM2_VALID_MODULE_HANDLE) {
++		struct dimm_info *dimm = NULL;
++
++		p += cper_dimm_err2_location(mem_err, p);
++		if (mem_err->mem_dev_handle <= U16_MAX)
++			dimm = find_dimm_by_handle(mci, mem_err->mem_dev_handle);
++		else
++			pr_warn(FW_WARN "Memory Error Section 2 module handle 0x%x exceeds SMBIOS range\n",
++				mem_err->mem_dev_handle);
++		if (dimm) {
++			e->top_layer = dimm->idx;
++			strscpy(e->label, dimm->label);
++		}
++	}
++	if (p > e->location)
++		*(p - 1) = '\0';
++
++	if (!*e->label)
++		strscpy(e->label, "unknown memory");
++
++	/* All other fields are mapped on e->other_detail */
++	p = pvt->other_detail;
++	p += print_mem_error2_other_detail(mem_err, p, e->location, OTHER_DETAIL_LEN);
++	if (p > pvt->other_detail)
++		*(p - 1) = '\0';
++
++	edac_raw_mc_handle_error(e);
++
++unlock:
++	spin_unlock_irqrestore(&ghes_lock, flags);
++
++	return NOTIFY_OK;
++}
++
++static struct notifier_block ghes_edac_mem_err2_nb = {
++	.notifier_call	= ghes_edac_report_mem_error2,
++	.priority	= 0,
++};
++
+ static int ghes_edac_register(struct device *dev)
+ {
+ 	bool fake = false;
+@@ -490,6 +638,7 @@ static int ghes_edac_register(struct device *dev)
+ 	spin_unlock_irqrestore(&ghes_lock, flags);
+ 
+ 	ghes_register_report_chain(&ghes_edac_mem_err_nb);
++	ghes_register_report_mem2_chain(&ghes_edac_mem_err2_nb);
+ 
+ 	/* only set on success */
+ 	refcount_set(&ghes_refcount, 1);
+@@ -533,6 +682,7 @@ static void ghes_edac_unregister(struct ghes *ghes)
+ 	if (mci)
+ 		edac_mc_free(mci);
+ 
++	ghes_unregister_report_mem2_chain(&ghes_edac_mem_err2_nb);
+ 	ghes_unregister_report_chain(&ghes_edac_mem_err_nb);
+ 
+ unlock:
+diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+index 8d7e5caef3f1..73d099a4ea7d 100644
+--- a/include/acpi/ghes.h
++++ b/include/acpi/ghes.h
+@@ -143,4 +143,6 @@ static inline int ghes_notify_sea(void) { return -ENOENT; }
+ struct notifier_block;
+ extern void ghes_register_report_chain(struct notifier_block *nb);
+ extern void ghes_unregister_report_chain(struct notifier_block *nb);
++extern void ghes_register_report_mem2_chain(struct notifier_block *nb);
++extern void ghes_unregister_report_mem2_chain(struct notifier_block *nb);
+ #endif /* GHES_H */
 -- 
 2.43.0
 
