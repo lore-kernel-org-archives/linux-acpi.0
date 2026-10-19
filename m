@@ -1,44 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FA305A0AC2;
-	Mon, 19 Oct 2026 13:55:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FDFE596089;
+	Mon, 19 Oct 2026 13:59:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792418136; cv=none; b=daOriezcbecSYswAwd+yKiYpxIai5ea1CxScQBULt05qZpNaTFfAjwoDjRsyJA6doMLCZ+OMre0rYhaLZjFehWTJpikYR1wKXGbwJAr7Zl3xhVt8qnh5sQDy1XTuiu+nhQHApeeLhyq8/looxzoimpOoit1FJda/FTF+tKQdAHA=
+	t=1792418343; cv=none; b=ZJfrSfFH1sK1kVLjuTu4v8Hk74gkVbYM8XoNihOkxWjeNdkmLze5e2aJVVnEp/RX0BLrPSoHVZ7+hG6NO4e8TmXFewQ3GbBH4qbW+mqObFknO46i/mtCmwqVMx4A/Pa/BUi2JyG3DVbcPIlEArOg22AbC58JiIPZRowjM8WwyNo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792418136; c=relaxed/simple;
-	bh=wEBBmhxucJ3n5jb832F4l1kVSLkrTKPyrndN37O3NeE=;
+	s=arc-20240116; t=1792418343; c=relaxed/simple;
+	bh=eXPkSbZty3nJgx67BUK5Exqfe2uKhV5SjWL73GvIeKs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=K5ohQ6zLvhNdguIKQpNFvdOzLLv3GnLuAngIYk4ISk0s4MCTdcucmI4kFy0RTvnkIP0P/u5eMla7m2/hMDvGupFnV2XBfF0D3/gGOORTCvYGmyNNcre/SUv2qcbpngraOvH3oNEKPaH7PYn9sd8CfkwCTMjFkbWnbGHxe8laIew=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RucyaPFT; arc=none smtp.client-ip=100.103.45.18
+	 MIME-Version:Content-Type; b=gbCChLtH/zb31fotrzXGmHYRccX/TCTbul+QquQ05mRMG+OjS+XNAbz2jOWD/AUEQmlCXK+C26VcCl/MSMICktnrQxRjMvC2S4reoLcvXe+Sy7gQ4rkV5emEweLbk+f/8UjCVxMlP228YLgbXu+1DCDjKCEjt7V/siLrlsBqtTo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nExBARQ7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RucyaPFT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B6251F000C6;
-	Mon, 19 Oct 2026 13:55:32 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nExBARQ7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8D8E1F000C8;
+	Mon, 19 Oct 2026 13:58:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792418133;
-	bh=Clz/JsIAWIaB4hcXgGGWbflHNAFrM7MQmWlusGb1bFM=;
+	s=k20260515; t=1792418340;
+	bh=ydWsISwGVhAYduRngYKtRJeZzj1G2o3+akZSzVQmqWA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=RucyaPFTMTNAJM149WTgzqCF11+VYLmD9HqEmU9pe8iWxw8iTnygZi0euDdxQqBax
-	 T6/QEBJdVNcJgAZ5VxxgCKT04yte4lhbsvCuvsv4Q5XyWjL5WwbJswIACtdQUzsZqB
-	 Q37qMbKRaVw6WVlhTceMvqse0n7R0y1ns7KeLKlRf6zbRhIyc/0Ilrlwb8IdTuRmKn
-	 xsLHyEDQ7/U5d6WlBxmeaEfQtKfidnxHOgpS25G12xSXceBgg5VFgDd192bSWxJyL9
-	 ReTTXNKjb5/ENdGpfDACXF0SUxTEuD7l9BrxwXwyNZ8YSYPFebUFDpkUJPlnmVO/OM
-	 cuAevt0VB2KqQ==
+	b=nExBARQ7627TYLL+NmYef9ik0FN4HVzhZsVOHprdNBocvcFnxjiO+OqBzc+VHIWuD
+	 ahS+b63x4qhg6qX9j9SqD2UdsLjjq5VIgcmK+msJh6Jr6Neg2IS1Jl1+o/PjoY+ORZ
+	 MPXv4i20YCudYAlKZfswkW6ljkYM6nBhsjbiZxU4/MZNa3YTzuN1IBUesEL0QRJTJz
+	 X8T1MgzmINMV+UjQjkq0QM3alopAL5zJjjhdqkIpyUkednkNqUv5qhj5NAFg8HzhMc
+	 Y3cWXSQU+31PZB9rLBylwUBxKW5HUoWhTdXh0me264qWkksqJkQj+0KzDWpv89Rlu/
+	 unGL/3nvQ+Eyg==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
-Cc: Thomas Renninger <trenn@suse.de>,
-	Michal Suchanek <msuchanek@suse.com>,
+Cc: Robin Everaars <robineveraars@pm.me>,
 	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
 	Sasha Levin <sashal@kernel.org>,
 	rafael@kernel.org,
 	linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.18-6.12] ACPI: sysfs: Properly map BERT and CCEL data to their ACPI tables
-Date: Mon, 19 Oct 2026 09:45:26 -0400
-Message-ID: <20261019135441.1420968-35-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.18-5.10] ACPI: button: Add DMI quirk for Razer Blade Pro 17 early 2020 lid switch
+Date: Mon, 19 Oct 2026 09:47:49 -0400
+Message-ID: <20261019135441.1420968-178-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20261019135441.1420968-1-sashal@kernel.org>
 References: <20261019135441.1420968-1-sashal@kernel.org>
@@ -54,545 +53,423 @@ X-stable-base: Linux 6.18.57
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Thomas Renninger <trenn@suse.de>
+From: Robin Everaars <robineveraars@pm.me>
 
-[ Upstream commit e45ee607ca6f9f97a2f97be356d844a912971a16 ]
+[ Upstream commit 415125669c2ddc773c579a60df108f75712dfa83 ]
 
-In the case of multiple BERT ACPI tables, one gets:
+The lid switch reports "close" but can miss the matching "open", leaving
+_LID closed after resume. systemd-logind then suspends the system again
+roughly every 35 seconds.
 
-sysfs: cannot create duplicate filename '/firmware/acpi/tables/data/BERT'
+Reading the embedded controller's PSTA byte while _LID is stale shows that
+bit 0x04 is set, which the DSDT treats as open. The DSDT returns the cached
+LIDS byte from _LID. Its wake path aborts in RTEC on an unhandled
+SystemCMOS region before copying PSTA to LIDS.
 
-This is because both:
+Initialize the lid state to open on resume, matching the existing quirk
+for the Razer Blade Stealth 13 late 2019. With
+button.lid_init_state=open, a physical close suspended once and resume
+reported open without another suspend.
 
-/firmware/acpi/tables/BERT1
-/firmware/acpi/tables/BERT2
-
-are attempted to be mapped to the same data table:
-
-/firmware/acpi/tables/data/BERT
-
-Address this problem by passing and using the same filename for data
-tables.
-
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-Reported-by: Michal Suchanek <msuchanek@suse.com>
-Closes: https://bugzilla.suse.com/show_bug.cgi?id=1270211
-[ rjw: Subject and changelog edits ]
-Link: https://patch.msgid.link/20260717065129.72924-3-trenn@suse.de
+Signed-off-by: Robin Everaars <robineveraars@pm.me>
+Link: https://patch.msgid.link/20260817141414.213075-1-robineveraars@pm.me
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-## Local tree
+I have enough to decide: this is a DMI-scoped lid quirk, the buggy path
+exists in 6.12, and the patch applies here.
 
-This checkout is **mainline 7.3.0-rc4** (`v7.3-rc4-27-gf0100363d8c37`,
-`VERSION=7 PATCHLEVEL=3 SUBLEVEL=0 EXTRAVERSION=-rc4`). The commit under
-review is already an ancestor of `HEAD` as `e45ee607ca6f9`. The verdict
-is whether this fix is suitable to backport, based on the code and
-history in this tree.
+===============================================================
+PHASE 1: COMMIT MESSAGE FORENSICS
+===============================================================
 
----
+Step 1.1: PARSE THE SUBJECT LINE
+Record: [ACPI] [Add] [DMI quirk for Razer Blade Pro 17 early 2020 lid
+switch]
+Subsystem prefix: `ACPI: button:`. Action verb: **Add**. Claimed intent:
+add a DMI match so this laptop initializes lid state as open, matching
+an existing Razer quirk.
 
-## PHASE 1: COMMIT MESSAGE FORENSICS
-
-**Step 1.1: PARSE THE SUBJECT LINE**
-
-Record: **[ACPI sysfs] [Properly map] BERT and CCEL data sysfs names to
-the same instance filenames as the parent ACPI tables.** Subsystem
-prefix `ACPI: sysfs:`. “Properly map” is a correctness/fix verb even
-without “fix”.
-
-**Step 1.2: PARSE ALL COMMIT MESSAGE TAGS**
-
+Step 1.2: PARSE ALL COMMIT MESSAGE TAGS
 Record:
-- **Fixes:** none (expected for this review pipeline)
-- **Reported-by:** Michal Suchanek `<msuchanek@suse.com>` (real distro
-  report)
-- **Closes:** `https://bugzilla.suse.com/show_bug.cgi?id=1270211`
-- **Link:**
-  `https://patch.msgid.link/20260717065129.72924-3-trenn@suse.de` (patch
-  2/2 of a series)
-- **Cc: stable:** absent (expected; not a negative signal)
-- **Signed-off-by:** Thomas Renninger `<trenn@suse.de>` (author); Rafael
-  J. Wysocki `<rafael.j.wysocki@intel.com>` (ACPI maintainer)
-- **[ rjw: Subject and changelog edits ]** — maintainer edited the
-  changelog before applying
-- No Tested-by, Reviewed-by, Acked-by, or syzbot tags
+- Signed-off-by: Robin Everaars <robineveraars@pm.me> (author)
+- Link:
+  https://patch.msgid.link/20260817141414.213075-1-robineveraars@pm.me
+- Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com> (ACPI
+  maintainer)
+- No Fixes:, Reported-by:, Tested-by:, Reviewed-by:, Acked-by:, or Cc:
+  stable (absence expected for this review)
+- Ignore any pipeline "Upstream commit" / "Signed-off-by: Sasha Levin"
+  markers
 
-**Step 1.3: ANALYZE THE COMMIT BODY TEXT**
+Notable: ACPI maintainer applied it. No syzbot/KASAN. Hardware-quirk
+report from the machine owner.
 
+Step 1.3: ANALYZE THE COMMIT BODY TEXT
 Record:
-- **Bug:** With more than one BERT table, sysfs tries to create
-  `/firmware/acpi/tables/data/BERT` twice.
-- **Symptom:** `sysfs: cannot create duplicate filename
-  '/firmware/acpi/tables/data/BERT'`. Table files are `BERT1`/`BERT2`;
-  data files were all named `BERT`.
-- **Failure mode:** `sysfs_warn_dup()` prints that warning and calls
-  `dump_stack()` at boot. The second BERT (or CCEL) error region is
-  never exported.
-- **Version info:** none in the message.
-- **Root cause:** `acpi_bert_data_init` / `acpi_ccel_data_init` hard-
-  coded the bin-attribute name to `"BERT"` / `"CCEL"` instead of using
-  the instance filename already computed for the table.
+- Bug: lid reports "close" but can miss the matching "open"; `_LID`
+  stays closed after resume.
+- Symptom: systemd-logind re-suspends roughly every 35 seconds (suspend
+  loop).
+- Root cause (firmware): EC PSTA bit 0x04 is set (DSDT treats that as
+  open), but `_LID` returns cached LIDS. Wake path aborts in RTEC on an
+  unhandled SystemCMOS region before copying PSTA to LIDS.
+- Fix: DMI quirk `ACPI_BUTTON_LID_INIT_OPEN`, same as Razer Blade
+  Stealth 13 late 2019.
+- Test: with `button.lid_init_state=open`, a physical close suspended
+  once; resume reported open; no second suspend.
+- Version info: none in the message. Commit is in v7.3-rc1 (`git
+  describe --contains` → `v7.3-rc1~39^2^3`).
 
-Cover letter (from the lore mbox) shows real firmware with two BERT
-tables:
+Step 1.4: DETECT HIDDEN BUG FIXES
+Record: Not a disguised cleanup. It is an explicit hardware quirk for a
+firmware lid bug. The "Add" verb here is the standard DMI-quirk
+exception, not a new feature.
 
-```
-ACPI: BERT ... (v01 AMD    AMD BERT ...)
-ACPI: BERT ... (v01 AMI    AMI.BERT ...)
-sysfs: cannot create duplicate filename
-'/firmware/acpi/tables/data/BERT'
-```
+===============================================================
+PHASE 2: DIFF ANALYSIS - LINE BY LINE
+===============================================================
 
-**Step 1.4: DETECT HIDDEN BUG FIXES**
-
-Record: **Not hidden.** This is an explicit sysfs-name collision fix. It
-is not cleanup, refactor, or a new feature.
-
----
-
-## PHASE 2: DIFF ANALYSIS
-
-**Step 2.1: INVENTORY THE CHANGES**
-
+Step 2.1: INVENTORY THE CHANGES
 Record:
-- **File:** `drivers/acpi/sysfs.c` only — **+5 / −4** (9 lines).
-- **Functions:** `acpi_bert_data_init`, `acpi_ccel_data_init`,
-  `acpi_table_data_init`, `acpi_tables_sysfs_init`.
-- **Struct:** `acpi_data_attr` gains `filename[]`.
-- **Scope:** single-file surgical fix.
+- File: `drivers/acpi/button.c` (+11 / -0)
+- Function/data: `dmi_lid_quirks[]` only
+- Scope: single-file surgical DMI table addition
+- Commit: `415125669c2ddc773c579a60df108f75712dfa83`
 
-**Step 2.2: UNDERSTAND THE CODE FLOW CHANGE**
-
+Step 2.2: UNDERSTAND THE CODE FLOW CHANGE
 Record:
-- **Before:** `acpi_table_attr_init()` already builds `BERT` vs
-  `BERT1`/`BERT2`. `acpi_table_data_init()` then created data files with
-  a hard-coded `"BERT"` / `"CCEL"` name.
-- **After:** `acpi_table_data_init(th, table_attr)` copies
-  `table_attr->filename` into `data_attr->filename` and uses that as the
-  sysfs name. Data nodes match table nodes (`BERT`, or `BERT1`/`BERT2`).
-- **Path:** boot-time ACPI sysfs init only (`acpi_tables_sysfs_init`).
-  Return value of `acpi_table_data_init` is still ignored (pre-
-  existing).
+- Before: this DMI identity is unmatched;
+  `acpi_button_register_driver()` sets `lid_init_state =
+  ACPI_BUTTON_LID_INIT_METHOD` (evaluate `_LID`).
+- After: match vendor `"Razer"` + product `"Blade Pro 17 (Early 2020) -
+  RZ09-0329"` → `ACPI_BUTTON_LID_INIT_OPEN`.
+- Affected path: lid init on first userspace open
+  (`acpi_lid_input_open`) and on resume (`acpi_button_resume` →
+  `acpi_lid_initialize_state` → `acpi_lid_notify_state(device, 1)`).
+- Other machines: unchanged (`dmi_first_match` is exact).
 
-**Step 2.3: IDENTIFY THE BUG MECHANISM**
+Step 2.3: IDENTIFY THE BUG MECHANISM
+Record: [Hardware workaround / DMI quirk]
+Broken: firmware `_LID` stuck closed after resume; userspace treats that
+as lid-closed and suspends again.
+Fix: report lid open on init/resume for this DMI ID, same as existing
+Razer/Medion/Samsung entries.
 
-Record: **[Logic / correctness]** Hard-coded sysfs names collide when
-ACPI has multiple tables of the same signature. Fix: reuse the already-
-instanced filename. Same pattern for BERT and CCEL.
+Step 2.4: ASSESS THE FIX QUALITY
+Record: Obviously correct and minimal. Regression risk is confined to
+this DMI string. If the lid is truly closed at resume from another
+wakeup source, init-open can delay one close report until the next close
+notify; that is the established tradeoff for this quirk class (Stealth
+13 late 2019, Medion, Samsung). No API/locking/refcount changes.
 
-**Step 2.4: ASSESS THE FIX QUALITY**
+===============================================================
+PHASE 3: GIT HISTORY INVESTIGATION
+===============================================================
 
+Step 3.1: BLAME THE CHANGED LINES
+Record: Insertion is between:
+- `0528904926aab` (2020-01-02) Razer Blade Stealth 13 late 2019, same
+  `ACPI_BUTTON_LID_INIT_OPEN` pattern
+- `8fa73ee44daef` (2024-10-20) Samsung Galaxy Book2, same pattern, `Cc:
+  All applicable <stable@vger.kernel.org>`
+- Table exists since `d7cd08231a7fa` (2019-10-28)
+The "bug" is firmware on a 2020 laptop; the kernel quirk table has been
+in this driver for years.
+
+Step 3.2: FOLLOW THE FIXES: TAG
+Record: No Fixes: tag. Not applicable. Firmware defect, not a kernel
+regression from a specific SHA.
+
+Step 3.3: CHECK FILE HISTORY FOR RELATED CHANGES
+Record (this tree, last 20 on `drivers/acpi/button.c`): other DMI lid
+quirks (Lenovo Yoga 9, Medion E2228T, Nextbook Ares 8A, Samsung Galaxy
+Book2) plus unrelated notify/input_free_device changes. No prerequisite
+refactor required for this table entry.
+Standalone, not patch X/Y.
+
+Step 3.4: CHECK THE AUTHOR'S OTHER COMMITS
+Record: `git log --author='Robin Everaars' -- drivers/acpi/` is empty in
+this tree. Author is a hardware reporter, not the ACPI maintainer.
+Weight comes from Rafael applying it and from matching an existing
+quirk.
+
+Step 3.5: CHECK FOR DEPENDENT/PREREQUISITE COMMITS
+Record: Depends only on `dmi_lid_quirks[]` and
+`ACPI_BUTTON_LID_INIT_OPEN`, both present. Later mainline converted
+`acpi_button_add` → `acpi_button_probe`; that is after 6.12 and not
+required. A later mailing-list patch for Blade Stealth 13 Early 2020
+(RZ09-0310) is a sibling quirk, not a dependency. Can apply standalone.
+
+===============================================================
+PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
+===============================================================
+
+Step 4.1: FIND THE ORIGINAL PATCH DISCUSSION
 Record:
-- **Quality:** obviously correct. `acpi_table_attr_init()` runs first
-  and fills `table_attr->filename`; then `acpi_table_data_init()` copies
-  it. `attr.name` points at the heap `data_attr->filename` buffer, which
-  lives as long as the bin attribute (same lifetime as the old string-
-  literal names).
-- **Single-table ABI:** unchanged. Instance suffix is added only when a
-  second table exists (`instance > 1` or `acpi_get_table(..., 2, ...)`
-  succeeds), so a lone BERT still appears as
-  `/firmware/acpi/tables/data/BERT`.
-- **Regression risk:** very low. No locking, no public API, no new sysfs
-  files in the common case.
-- **Not introduced here:** if `sysfs_create_bin_file()` fails,
-  `data_attr` is still leaked (return value ignored). This patch avoids
-  the duplicate-name failure; it does not add that leak.
+- `b4 dig -c 415125669c2dd`:
+  https://patch.msgid.link/20260817141414.213075-1-robineveraars@pm.me
+- `b4 dig -a`: v1 msgid `20260817133259.195548-1-robineveraars@pm.me`,
+  v2 same code; v1 was unapplicable because Proton OpenPGP/MIME inserted
+  line breaks. No logic review changes.
+- Rafael: "Applied as 7.3-rc material, thanks!" No NAK, no stable
+  discussion in-thread.
+- lore.kernel.org WebFetch returned 403; discussion recovered via b4,
+  Patchew, and openwall.
 
----
+Step 4.2: CHECK WHO REVIEWED THE PATCH
+Record (`b4 dig -w`): To/Cc Rafael J. Wysocki, Len Brown, linux-acpi,
+linux-kernel. Maintainer applied it. No extra Reviewed-by.
 
-## PHASE 3: GIT HISTORY INVESTIGATION
+Step 4.3: SEARCH FOR THE BUG REPORT
+Record: No bugzilla/syzbot Link. Evidence is the author's firmware
+analysis (PSTA vs LIDS/RTEC) and the `lid_init_state=open` test. Same
+class as the 2020 Stealth 13 quirk ("systemd continuously re-suspend the
+laptop every 30s"). UserBenchmark/Geekbench and linux-hardware.org Razer
+probes support the product-name form `Blade … - RZ09-xxxx` with vendor
+`Razer`.
 
-**Step 3.1: BLAME THE CHANGED LINES**
+Step 4.4: CHECK FOR RELATED PATCHES AND SERIES
+Record: Standalone v2. Related later proposal: Ian Gallagher, Blade
+Stealth 13 Early 2020 RZ09-0310, which cites this Pro 17 entry as
+already in tree. Not required for this backport.
 
+Step 4.5: CHECK STABLE MAILING LIST HISTORY
+Record: WebSearch of lore.kernel.org/stable for this model found no
+prior stable request or rejection. UNVERIFIED at the individual-message
+level because lore WebFetch is 403.
+
+===============================================================
+PHASE 5: CODE SEMANTIC ANALYSIS
+===============================================================
+
+Step 5.1: IDENTIFY KEY FUNCTIONS IN THE DIFF
+Record: No function body changed. Data: `dmi_lid_quirks[]`. Consumers:
+`acpi_button_register_driver()`, `acpi_lid_initialize_state()`.
+
+Step 5.2: TRACE CALLERS
 Record:
-- BERT data sysfs: **`7dae6326ed764`** (“ACPI / sysfs: Extend ACPI sysfs
-  to provide access to boot error region”), Tony Luck, **v4.14-rc1**.
-  Hard-coded `"BERT"` is from that commit.
-- CCEL: **`4f855dcead6c5`** (“ACPI: sysfs: Enable ACPI sysfs support for
-  CCEL records”), **v6.4-rc1**. Copied the same hard-coded-name pattern.
-- Table instance filenames: `acpi_table_attr.filename` since
-  **`1c8fce27e275fd`** (v2.6.36-era sysfs) / **`3278675567dfb9`**
-  (ACPI_NAMESEG_SIZE rename, 2019).
-- Buggy pattern has been in tree for years, not last-month code.
+- `acpi_button_register_driver()`: module/driver init;
+  `dmi_first_match(dmi_lid_quirks)` if `lid_init_state == -1`.
+- `acpi_lid_initialize_state()`: from `acpi_button_resume()`
+  (CONFIG_PM_SLEEP) and `acpi_lid_input_open()` (userspace opens
+  `/dev/input` lid switch).
+- Not IRQ/hot-path; boot and resume/open.
 
-**Step 3.2: FOLLOW THE FIXES: TAG**
+Step 5.3: TRACE CALLEES
+Record: `ACPI_BUTTON_LID_INIT_OPEN` → `acpi_lid_notify_state(device, 1)`
+reports SW_LID open. No alloc/new locks.
 
-Record: **No Fixes: tag.** Introducer is `7dae6326ed764` (BERT, v4.14)
-and `4f855dcead6c5` (CCEL, v6.4). Both are ancestors of this HEAD (`git
-merge-base --is-ancestor` exit 0).
+Step 5.4: FOLLOW THE CALL CHAIN
+Record: Userspace-reachable: logind/systemd reads the lid input device
+and acts on SW_LID. Trigger is close-lid suspend then resume with lid
+open — normal laptop use. Unprivileged user can trigger by closing the
+lid.
 
-**Step 3.3: CHECK FILE HISTORY FOR RELATED CHANGES**
+Step 5.5: SEARCH FOR SIMILAR PATTERNS
+Record: Same `ACPI_BUTTON_LID_INIT_OPEN` DMI entries already in this
+tree for Lenovo 82BG, Medion E2215T/E2228T, Razer Stealth 13 Late 2019,
+Samsung 750XED. This is another instance of a known firmware class, not
+a new mechanism.
 
+===============================================================
+PHASE 6: CROSS-REFERENCING AGAINST THE LOCAL TREE
+===============================================================
+
+Step 6.1: DOES THE BUGGY CODE EXIST IN THIS TREE?
 Record:
-- Immediate parent: **`f45c999e67120`** — series patch 1/2, BERT
-  `sizeof` check (`acpi_hest_generic_status` → `acpi_bert_region`).
-  Independent; this patch does not need it.
-- No later commits on `drivers/acpi/sysfs.c` after `e45ee607ca6f9` (no
-  follow-up revert or fix).
-- **Standalone** as a 2/2 series member: patch 1 is a separate size-
-  check fix.
+- Tree: `pending-6.12`, `git describe HEAD` = `p-6.12-3-gc504cf0baa3d8`,
+  `make kernelversion` = **6.12.111**
+- `dmi_lid_quirks[]` present; Stealth 13 quirk present; **no**
+  `RZ09-0329` / Blade Pro 17 entry
+- `git merge-base --is-ancestor 415125669c2dd HEAD` → not an ancestor
+  (not in this tree)
+- Quirk infrastructure since 2019; bug is firmware on 2020 hardware,
+  relevant to 6.12
 
-**Step 3.4: CHECK THE AUTHOR'S OTHER COMMITS**
+Step 6.2: CHECK FOR BACKPORT COMPLICATIONS
+Record: `git show 415125669c2dd | git apply --check` succeeded (hunk at
+line 130, offset -3). Difference vs mainline is later
+`acpi_button_probe` conversion, not the DMI table. Expected: **clean
+apply**.
 
-Record: Thomas Renninger is a long-time ACPI contributor (SUSE). Same-
-day sibling is only the BERT sizeof patch. Merged by ACPI maintainer
-Rafael J. Wysocki.
+Step 6.3: CHECK IF RELATED FIXES ARE ALREADY HERE
+Record: No RZ09-0329 match. No other 6.12 commit with this subject (`git
+log --grep='Razer Blade Pro 17' -- drivers/acpi/button.c` empty).
+Samsung/Stealth 13 quirks are related pattern, not a substitute for this
+DMI ID.
 
-**Step 3.5: CHECK FOR DEPENDENT/PREREQUISITE COMMITS**
+===============================================================
+PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
+===============================================================
 
-Record: **None required for the naming fix.** It uses existing
-`table_attr->filename`, `strscpy`, and `acpi_table_attr_init`.
-`kzalloc_obj` in surrounding lines is later mainline allocation API and
-is **not** introduced by this diff. On older trees the same hunks apply
-around `kzalloc`. `strscpy` has been in the kernel since v4.3.
+Step 7.1: IDENTIFY THE SUBSYSTEM AND ITS CRITICALITY
+Record: [ACPI button / laptop lid] [IMPORTANT]
+`CONFIG_ACPI_BUTTON` default y. Lid events drive suspend on essentially
+all ACPI laptops. Not mm/core, but suspend-loop is user-visible
+stability.
 
----
+Step 7.2: ASSESS SUBSYSTEM ACTIVITY
+Record: This 6.12 file is mature (quirks since 2019). Mainline later did
+a large button.c rework (platform device, devres); that churn is **not**
+in this tree. The DMI table is the stable part.
 
-## PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
+===============================================================
+PHASE 8: IMPACT AND RISK ASSESSMENT
+===============================================================
 
-**Step 4.1: FIND THE ORIGINAL PATCH DISCUSSION**
+Step 8.1: DETERMINE WHO IS AFFECTED
+Record: Driver-specific / DMI-specific: Razer Blade Pro 17 Early 2020
+(RZ09-0329) only. ACPI button is default-y, so those laptops on 6.12 are
+in scope.
 
+Step 8.2: DETERMINE THE TRIGGER CONDITIONS
+Record: Close lid → suspend → open lid/resume. Common laptop path.
+Unprivileged user can trigger. Not a narrow error path.
+
+Step 8.3: DETERMINE THE FAILURE MODE SEVERITY
+Record: [Suspend loop ~every 35s] [HIGH]
+Not a panic, but the machine cannot stay awake after lid-wake. Matches
+historical "systemd re-suspend every 30s" reports. Data-loss risk if
+unsaved work is interrupted by repeated suspend.
+
+Step 8.4: CALCULATE RISK-BENEFIT RATIO
 Record:
-- **b4 dig:** series at
-  `https://patch.msgid.link/20260717065129.72924-3-trenn@suse.de`
-- Cover: `[PATCH 0/2] Fix sysfs duplicate filename if multiple BERT
-  tables exist`
-- This commit is **[PATCH 2/2]** (msgid `...72924-3...`). Subject on the
-  list differed slightly from the applied subject (rjw edited it).
-- **v2:** cover says previously sent to linux-pm; v2 stopped using
-  `acpi_get_table` inside data init and instead passes `table_attr`.
-  Applied version is that v2.
-- **Reviewer:** Rafael: “Applied (with some modifications in
-  subjects/changelogs) as 7.3 material, thanks!” No NAK.
-- **Stable nomination in review:** none found.
-- lore.kernel.org WebFetch returned **403**; thread recovered via `b4
-  dig -m`.
-
-**Step 4.2: CHECK WHO REVIEWED THE PATCH**
-
-Record: **b4 dig -w** recipients: Thomas Renninger, `linux-
-acpi@vger.kernel.org`, Saket Dumbre (Intel ACPI), Michal Suchanek
-(reporter). ACPI maintainer applied it. No separate Reviewed-by.
-
-**Step 4.3: SEARCH FOR THE BUG REPORT**
-
-Record: SUSE bugzilla 1270211 WebFetch **403** (likely login-walled).
-Cover letter includes the reporter’s dmesg: two BERT tables (AMD + AMI)
-and the exact sysfs duplicate warning. That is enough to treat it as a
-real distro hit, not theoretical.
-
-**Step 4.4: CHECK FOR RELATED PATCHES AND SERIES**
-
-Record: 2-patch series. Patch 1/2 (`f45c999e67120`) is an independent
-BERT region-size check. This 2/2 patch does not depend on it.
-
-**Step 4.5: CHECK STABLE MAILING LIST HISTORY**
-
-Record: No stable@ discussion found (lore WebFetch 403; web search did
-not turn up a stable thread). **UNVERIFIED** whether anyone later asked
-for or rejected it on stable@.
-
----
-
-## PHASE 5: CODE SEMANTIC ANALYSIS
-
-**Step 5.1: KEY FUNCTIONS**
-
-Record: `acpi_bert_data_init`, `acpi_ccel_data_init`,
-`acpi_table_data_init`, `acpi_tables_sysfs_init`. Struct field added on
-`acpi_data_attr`.
-
-**Step 5.2: TRACE CALLERS**
-
-Record:
-- `acpi_table_data_init` — only caller: `acpi_tables_sysfs_init`
-- `acpi_tables_sysfs_init` — only caller: `acpi_sysfs_init`
-  (`drivers/acpi/sysfs.c`)
-- `acpi_sysfs_init` — called from `acpi_bus_init()` in
-  `drivers/acpi/bus.c` during ACPI boot
-- `acpi_sysfs_table_handler` (hot-added tables) does **not** call
-  `acpi_table_data_init`; BERT/CCEL data nodes are boot-only. Confirmed
-  with grep: only those two sites.
-
-**Step 5.3: TRACE CALLEES**
-
-Record: `kzalloc_obj` / `sysfs_attr_init` / `strscpy` /
-`sysfs_create_bin_file` / `acpi_os_map_iomem` (read path). Init-time
-sysfs creation, then userspace reads of BERT/CCEL error regions.
-
-**Step 5.4: FOLLOW THE CALL CHAIN**
-
-Record: ACPI boot → `acpi_bus_init` → `acpi_sysfs_init` →
-`acpi_tables_sysfs_init` → per-table `acpi_table_data_init`. Triggered
-on every ACPI boot that has BERT or CCEL. Userspace RAS tools read
-`/sys/firmware/acpi/tables/data/`. Unprivileged users typically cannot
-read these (mode `0400`). The **warning/dump_stack** happens in kernel
-init regardless.
-
-**Step 5.5: SEARCH FOR SIMILAR PATTERNS**
-
-Record: Only BERT and CCEL are in `acpi_data_objs[]`. Both had the same
-hard-coded name. No other ACPI data table types in this file.
-
----
-
-## PHASE 6: CROSS-REFERENCING AGAINST THE LOCAL TREE
-
-**Step 6.1: DOES THE BUGGY CODE EXIST IN THIS TREE?**
-
-Record: **Yes.** BERT data sysfs since v4.14 (`7dae6326ed764`,
-ancestor). CCEL since v6.4 (`4f855dcead6c5`, ancestor). The fix is
-already applied here as `e45ee607ca6f9`. The bug is old, not introduced
-after 7.3 branched.
-
-**Step 6.2: CHECK FOR BACKPORT COMPLICATIONS**
-
-Record: **Clean / minor context.** Hunks are localized. Older trees may
-still use `kzalloc` instead of `kzalloc_obj` (adjacent lines only).
-Pre-v6.4 trees have no CCEL function; BERT hunks still apply. `strscpy`
-and `filename` on `acpi_table_attr` are present in long-term stables.
-
-**Step 6.3: CHECK IF RELATED FIXES ARE ALREADY HERE**
-
-Record: This is the fix. No earlier equivalent. No later follow-up on
-this file.
-
----
-
-## PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
-
-**Step 7.1: IDENTIFY THE SUBSYSTEM**
-
-Record: **ACPI sysfs** (`drivers/acpi/sysfs.c`). **IMPORTANT** (not
-mm/core, but ACPI boot sysfs on essentially all x86 and many ARM
-servers). BERT is RAS/boot-error; CCEL is confidential-computing event
-log.
-
-**Step 7.2: ASSESS SUBSYSTEM ACTIVITY**
-
-Record: Mature. BERT data mapping has been stable since 2017. Occasional
-sysfs/BERT/CCEL fixes, not high churn.
-
----
-
-## PHASE 8: IMPACT AND RISK ASSESSMENT
-
-**Step 8.1: WHO IS AFFECTED**
-
-Record: **Firmware-specific.** Systems with **two or more BERT** (or
-CCEL) tables. Cover letter shows a real AMD + AMI dual-BERT OEM
-firmware. Single-table systems are unaffected (same sysfs name as
-before). CONFIG_ACPI.
-
-**Step 8.2: TRIGGER CONDITIONS**
-
-Record: **Every boot** on affected firmware. Not a race. Not
-unprivileged-triggerable for the data read (0400), but the kernel
-`dump_stack()` is automatic at init.
-
-**Step 8.3: FAILURE MODE SEVERITY**
-
-Record:
-- `sysfs_warn_dup()` → `pr_warn` + **`dump_stack()`**
-  (`fs/sysfs/dir.c`). Looks like a kernel bug in dmesg; `panic_on_warn`
-  would panic (unverified whether any of these machines set that).
-- Second BERT/CCEL error region is not in sysfs, so RAS tools can miss
-  boot errors.
-- Boot continues; `acpi_table_data_init` return is ignored.
-- **Severity: MEDIUM** (boot warning + missing diagnostic RAS data). Not
-  oops/corruption/deadlock, but a real distro-reported “oh, that’s not
-  good” bug.
-
-**Step 8.4: RISK-BENEFIT RATIO**
-
-Record:
-- **Benefit:** medium-high for dual-BERT firmware (every boot warning
-  gone; both error regions exported). Zero change for the common single-
-  table case.
-- **Risk:** very low (5 insertions / 4 deletions, init-only naming).
-- **Ratio:** favorable.
-
----
-
-## PHASE 9: FINAL SYNTHESIS
-
-**Step 9.1: COMPILE THE EVIDENCE**
-
-**For backporting:**
-- Real bug on real hardware (AMD BERT + AMI BERT), SUSE bugzilla +
-  dmesg.
-- `dump_stack()` on every boot; second error region missing from sysfs.
-- Tiny, obviously correct, ACPI-maintainer merged, v2 after review.
-- Bug present since v4.14 (BERT) / v6.4 (CCEL).
-- No new APIs; single-table sysfs ABI unchanged.
-- Standalone; does not need series patch 1/2.
-- Matches stable-kernel-rules: a real bug that bothers distro users, and
-  an “oh, that’s not good” sysfs warning.
-
-**Against:**
-- Not a panic, UAF, deadlock, or data-corruption bug in normal configs.
-- Only dual BERT/CCEL firmware hits it (uncommon, but not fictional).
-- No `Cc: stable` (not a negative signal here).
-- Rafael called it “7.3 material” without mentioning stable.
-
-**Unresolved:**
-- SUSE bugzilla body (403).
-- Whether stable@ ever discussed this (403 / no hits).
-- Whether affected machines use `panic_on_warn`.
-
-**Step 9.2: STABLE RULES CHECKLIST**
-
-1. Obviously correct and tested? **PASS** — naming logic is local and
-   matches existing instance filenames; maintainer applied v2; reporter
-   provided dmesg.
-2. Fixes a real bug that affects users? **PASS** — distro report,
-   dump_stack, missing BERT data node.
-3. Important issue? **PASS** (medium) — boot `dump_stack` plus
-   inaccessible RAS region; rules explicitly include “oh, that’s not
-   good” and distro-reported issues.
-4. Small and contained? **PASS** — 9 lines, one file.
-5. No new features or APIs? **PASS** — corrects names of existing sysfs
-   nodes.
-6. Can apply to the local tree? **PASS** — already in this 7.3-rc4 tree;
-   backport to older stables is clean or BERT-only on pre-CCEL trees.
-
-**Step 9.3: EXCEPTION CATEGORIES**
-
-Record: None (not a device ID, quirk, DT, build, or docs patch).
-Qualifies as a normal small bugfix.
-
-**Step 9.4: DECISION**
-
-This is a small, correct fix for a user-visible boot warning and a real
-RAS sysfs hole on multi-BERT firmware. The code has been wrong since
-v4.14, the patch is surgical, and the common single-table ABI is
-unchanged. That meets stable criteria.
-
----
-
-## What the commit solves (for stable users)
-
-On machines whose firmware publishes **two BERT tables** (seen with AMD
-+ AMI), the kernel already creates `/sys/firmware/acpi/tables/BERT1` and
-`BERT2`, but both data mappings used the name `BERT`.
-`sysfs_create_bin_file()` fails, `sysfs_warn_dup()` dumps a stack at
-every boot, and the second boot-error region is never exposed. The same
-bug exists for multiple CCEL tables. The fix copies the table’s instance
-filename onto the data node.
-
-## Risk vs benefit
-
-Benefit is removing a boot `dump_stack` and exporting all BERT/CCEL
-regions on affected firmware. Risk is negligible: init-only string copy,
-no locking, no ABI change when there is only one table.
-
-## Concerns
-
-Older stables without CCEL need the CCEL hunk dropped; BERT hunks still
-apply. Adjacent `kzalloc_obj` is not part of this patch. Series patch
-1/2 is optional, not a prerequisite.
-
----
-
-## Verification
-
-- **[Phase 1]** Parsed tags: Reported-by Michal Suchanek (SUSE), Closes
-  bugzilla 1270211, Link patch 2/2, SOB author + Rafael; no
-  Fixes/stable/syzbot.
-- **[Phase 2]** `git show e45ee607ca6f9`: `drivers/acpi/sysfs.c` +5/−4;
-  add `filename`, stop hard-coding `"BERT"`/`"CCEL"`, pass `table_attr`.
-- **[Phase 2]** Read `acpi_table_attr_init` (instance suffix) and
-  `acpi_tables_sysfs_init` (attr_init then data_init).
-- **[Phase 2]** Read `sysfs_warn_dup` in `fs/sysfs/dir.c`: `pr_warn` +
-  `dump_stack()`.
-- **[Phase 3]** Blame: BERT data `7dae6326ed764` (v4.14-rc1), CCEL
-  `4f855dcead6c5` (v6.4-rc1).
-- **[Phase 3]** `git merge-base --is-ancestor 7dae6326ed764 HEAD` and
-  `4f855dcead6c5 HEAD` and `e45ee607ca6f9 HEAD`: all 0 (present).
-- **[Phase 3]** Sibling `f45c999e67120` is independent sizeof fix; no
-  later sysfs.c commits after this one.
-- **[Phase 4]** `b4 dig -c e45ee607ca6f9`: lore thread; v2 cover +
-  dmesg; Rafael applied as 7.3 material; no NAK.
-- **[Phase 4]** `b4 dig -w`: linux-acpi, Saket Dumbre, reporter on CC.
-- **[Phase 4]** `b4 dig -m`: full mbox; WebFetch lore/bugzilla 403.
-- **[Phase 5]** grep: `acpi_table_data_init` only from
-  `acpi_tables_sysfs_init`; `acpi_sysfs_init` from `acpi_bus_init`.
-- **[Phase 6]** `git describe HEAD` → `v7.3-rc4-27-gf0100363d8c37`;
-  `make kernelversion` → 7.3.0-rc4; buggy BERT/CCEL code in this
-  lineage.
-- **[Phase 8]** Failure mode: boot dump_stack + missing second data
-  node; severity MEDIUM.
-- **UNVERIFIED:** full SUSE bugzilla text; stable@ archives;
-  `panic_on_warn` on affected hosts.
-
-The patch is obviously correct, fixes a real distro-reported boot
-warning and missing RAS sysfs data, is nine lines in one file, and does
-not add features.
+- Benefit: HIGH for that model (fixes unusable suspend/resume)
+- Risk: VERY LOW (11-line DMI entry, no other machines)
+- Ratio: strongly favors backport
+
+===============================================================
+PHASE 9: FINAL SYNTHESIS
+===============================================================
+
+Step 9.1: COMPILE THE EVIDENCE
+
+FOR:
+- Real user-visible bug: lid stuck closed → logind suspend loop
+- Hardware quirk exception (DMI table), explicitly allowed in stable
+- Same mechanism as Stealth 13 late 2019 (in this tree since 2020) and
+  Samsung Galaxy Book2 (`Cc: stable`)
+- 11 lines, one file, no APIs
+- Applies cleanly to 6.12.111
+- ACPI maintainer applied as 7.3-rc
+- Author tested `lid_init_state=open`
+- DMI product string matches later Razer naming (`Blade … - RZ09-xxxx`)
+
+AGAINST:
+- Affects one laptop model, not all users
+- No Fixes:/Cc: stable in the commit (expected; not a negative)
+- Author tested the module param; DMI match correctness is inferred from
+  the string they submitted (if wrong, quirk is a no-op, not a
+  regression)
+
+UNRESOLVED:
+- lore.kernel.org HTTP 403; thread recovered via b4/Patchew/openwall
+- No independent kernel bugzilla duplicate found
+- Stable list not confirmed message-by-message (search found nothing)
+
+Step 9.2: APPLY THE STABLE RULES CHECKLIST
+1. Obviously correct and tested? **PASS** — copy of existing quirk;
+   author + maintainer
+2. Fixes a real bug that affects users? **PASS** — suspend loop after
+   resume
+3. Important issue? **PASS** — HIGH: system re-suspends every ~35s
+   (hang/unusable, not a panic)
+4. Small and contained? **PASS** — +11 lines, one DMI entry
+5. No new features or APIs? **PASS** — quirk table only
+6. Can apply to the local tree? **PASS** — `git apply --check` clean;
+   table present
+
+Step 9.3: CHECK FOR EXCEPTION CATEGORIES
+Record: **Hardware quirk/workaround** (DMI lid_init_state). Automatic
+stable-qualifier.
+
+Step 9.4: MAKE YOUR DECISION
+This tree is 6.12.111. The quirk table and `ACPI_BUTTON_LID_INIT_OPEN`
+exist; the RZ09-0329 entry does not. The patch is a small, model-scoped
+workaround for a firmware lid bug that leaves the laptop in a suspend
+loop. That is exactly the class of DMI quirk stable already carries for
+this driver.
+
+What it solves for 6.12 users: after closing the lid, resume can leave
+`_LID` closed while the lid is open; systemd-logind then suspends again.
+The quirk reports open on resume for this DMI ID only.
+
+Risk vs benefit: benefit is restoring normal lid/suspend on this 2020
+Razer; risk is a no-op on every other machine.
+
+No dependencies, no backport rework, no new API.
+
+Verification:
+- [Phase 1] Parsed tags: author SOB, Rafael SOB, Link msgid
+  `20260817141414.213075-1-robineveraars@pm.me`; no Fixes/Reported-
+  by/Cc: stable
+- [Phase 1] Body: `_LID` stale closed after resume; logind re-suspend
+  ~35s; PSTA/LIDS/RTEC firmware explanation; tested
+  `button.lid_init_state=open`
+- [Phase 2] Diff: +11 lines in `dmi_lid_quirks[]` only;
+  `ACPI_BUTTON_LID_INIT_OPEN` for Razer / `Blade Pro 17 (Early 2020) -
+  RZ09-0329`
+- [Phase 2] Local `acpi_lid_initialize_state()` OPEN case calls
+  `acpi_lid_notify_state(device, 1)`; resume and `acpi_lid_input_open`
+  both call it
+- [Phase 3] Blame: Stealth 13 quirk `0528904926aab` (2020); Samsung
+  `8fa73ee44daef` (2024, Cc: stable); table from `d7cd08231a7fa` (2019)
+- [Phase 3] No Fixes: tag; standalone; no Robin Everaars history in this
+  ACPI tree
+- [Phase 4] `b4 dig -c 415125669c2dd`: v2 URL; `b4 dig -a`: v1→v2, PGP
+  wrapping only; `b4 dig -w`: Rafael, Len Brown, linux-acpi
+- [Phase 4] Patchew: Rafael "Applied as 7.3-rc material, thanks!"; no
+  NAK
+- [Phase 4] lore WebFetch 403; UNVERIFIED raw lore HTML
+- [Phase 5] Callers: `acpi_button_register_driver` (init),
+  `acpi_button_resume`, `acpi_lid_input_open`; userspace lid/logind path
+- [Phase 5] Similar OPEN quirks already in this file for
+  Lenovo/Medion/Razer/Samsung
+- [Phase 6] `git describe HEAD` p-6.12-3-gc504cf0baa3d8; kernelversion
+  6.12.111; `merge-base --is-ancestor 415125669c2dd HEAD` false
+- [Phase 6] `git apply --check` succeeded at offset -3
+- [Phase 6] Grep: no RZ09-0329 in this tree
+- [Phase 7] MAINTAINERS ACPI: Rafael Wysocki; `CONFIG_ACPI_BUTTON`
+  default y
+- [Phase 8] Failure mode: suspend loop; severity HIGH; DMI-scoped; risk
+  very low
+- [Phase 3/4] Commit `415125669c2dd` is `v7.3-rc1~39^2^3` on
+  origin/master
+- UNVERIFIED: individual stable@ thread bodies (lore 403); exact
+  dmidecode dump of the author's machine (string is consistent with
+  other 2020+ Razer DMI names)
 
 **YES**
 
- drivers/acpi/sysfs.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/acpi/button.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index e596224302f4c..d8d04437f63d6 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -316,6 +316,7 @@ struct acpi_table_attr {
- struct acpi_data_attr {
- 	struct bin_attribute attr;
- 	u64	addr;
-+	char filename[ACPI_NAMESEG_SIZE+ACPI_INST_SIZE];
- };
- 
- static ssize_t acpi_table_show(struct file *filp, struct kobject *kobj,
-@@ -453,7 +454,6 @@ static int acpi_bert_data_init(void *th, struct acpi_data_attr *data_attr)
- 	}
- 	data_attr->addr = bert->address;
- 	data_attr->attr.size = bert->region_length;
--	data_attr->attr.attr.name = "BERT";
- 
- 	return sysfs_create_bin_file(tables_data_kobj, &data_attr->attr);
- }
-@@ -469,7 +469,6 @@ static int acpi_ccel_data_init(void *th, struct acpi_data_attr *data_attr)
- 	}
- 	data_attr->addr = ccel->log_area_start_address;
- 	data_attr->attr.size = ccel->log_area_minimum_length;
--	data_attr->attr.attr.name = "CCEL";
- 
- 	return sysfs_create_bin_file(tables_data_kobj, &data_attr->attr);
- }
-@@ -484,7 +483,7 @@ static struct acpi_data_obj {
- 
- #define NUM_ACPI_DATA_OBJS ARRAY_SIZE(acpi_data_objs)
- 
--static int acpi_table_data_init(struct acpi_table_header *th)
-+static int acpi_table_data_init(struct acpi_table_header *th, struct acpi_table_attr *table_attr)
- {
- 	struct acpi_data_attr *data_attr;
- 	int i;
-@@ -497,6 +496,8 @@ static int acpi_table_data_init(struct acpi_table_header *th)
- 			sysfs_attr_init(&data_attr->attr.attr);
- 			data_attr->attr.read = acpi_data_show;
- 			data_attr->attr.attr.mode = 0400;
-+			strscpy(data_attr->filename, table_attr->filename);
-+			data_attr->attr.attr.name = data_attr->filename;
- 			return acpi_data_objs[i].fn(th, data_attr);
- 		}
- 	}
-@@ -543,7 +544,7 @@ static int acpi_tables_sysfs_init(void)
- 			return ret;
- 		}
- 		list_add_tail(&table_attr->node, &acpi_table_attr_list);
--		acpi_table_data_init(table_header);
-+		acpi_table_data_init(table_header, table_attr);
- 	}
- 
- 	kobject_uevent(tables_kobj, KOBJ_ADD);
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 384caea90ce5f..4ddaee8955c30 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -132,6 +132,17 @@ static const struct dmi_system_id dmi_lid_quirks[] = {
+ 		},
+ 		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
+ 	},
++	{
++		/*
++		 * Razer Blade Pro 17 early 2020, notification of the LID device
++		 * only happens on close, not on open and _LID keeps returning closed.
++		 */
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Razer"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "Blade Pro 17 (Early 2020) - RZ09-0329"),
++		},
++		.driver_data = (void *)(long)ACPI_BUTTON_LID_INIT_OPEN,
++	},
+ 	{
+ 		/*
+ 		 * Samsung galaxybook2 ,initial _LID device notification returns
 -- 
 2.53.0
 
