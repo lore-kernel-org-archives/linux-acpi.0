@@ -1,76 +1,75 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.14
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792505523;
-	b=S8OITriMA2xk3dLO7Yz9X7K0JWhTUTvpjCNNYDxHQ/7NN7PLi20Lk2oYnZb6tYiOITS+
-	 AgcVu0dHqkqFeT/ijahGr6LF7PJD5PCm/G9znhShtxWe2sdTkzpvLxRbWGJcI0ZhHQqS9
-	 ugiCVN6C/Mf7eTHujtZekQ6hdfJnNlnEFuKajmCEjQ6q/4KqDjyQzri1ySOuFlVLFLD6y
-	 2F51syxPX30LmF+yN8rSKax9Nw7pU3scEUpfhjNKW4yFYQBhNKJmJQ5wEqAI4rb9vk8/7
-	 0OAz3IInS+8nxZ5B/N8LWku/GsfALINtFd0PJ7gOkudcaFt94GJwbdAHCH3UsVUfFrg==
+	t=1792505519;
+	b=hqaPRqh7Tn+D+bRGLjA4kHWHVdbMh2o5w4jk3f8Riiw8PAx3Kf2Wn1bQCUntT+nIDyU+
+	 ckLVsUbv8TNlWpbV8dVABvg1DOpoZnsHfvFcbvNdC9AzTo9d5zWfbFvibNXi7FnLwRiCv
+	 tWVF46hBAMEQ6N5a8VDzLqPMxcuAWyNf6eHQZRXWtIIukb24yxSHGhtdP9V7oeZpuy+4s
+	 fSKuTNWWugTIgvrp1Bw0/44owlLzbbTeo2jxyUPdRko4djMibqBtJt7SY1QDge9zCfS42
+	 hVKU6lDJPUpfBiMIm23qRbnq3AsG78SP/mJCjDPezmbESQGiQ8xfvb21afuAYo6/y7w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792505523;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792505519;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
 	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
 	 Date:Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=Zh+CrKCMD7sj/2o1zGTgtKgyJX55Z3YCtyMy1QKVrcw=;
-	b=qCF9hf/1npUl5hFW1c7qlBPXlNCqCih2ZtdpfzljjxQhm/RgL/lQwmjMA9s33sGLF2ia
-	 Gs/S5hAZ8RLA8xTul9nH0AK46lSBEXy1305IDhix79p/Enulox1ZpIg152qBU2t2v1GIc
-	 3FQtkrB9/CnLfH6zNSDaWBVftYgPU3MPgbBm5auI00VMihyhkGJgkbTXXVnM9XD8fJ4fc
-	 eYqx//L8AowhUU+SIYf6R2rEQU0jh5QjaWfOGPDnQ5p1UrDeOOxkhEADiOGA1A8ICfGQk
-	 O6bI3Gokz9bFRJ5Eu1eU6kJXvSQACqBtr1BJfXKkhCa6WAAdMZCFRKQbDayz7Bde6pA==
+	bh=mjj/N/IW6W5rLe1E2ulLBABFXrxMVmw8rULzGCm6H34=;
+	b=R8HeM/rTHX8xtFJiAjhHldhRSAYsszO1YIlJAMmUjKRHcpFjdOd+nKIicAOgOBU9ja2K
+	 lkCu2/Ma8KqhhamHSesPaoiSSulqkhLMOCfmLc0V5atLmZB8Zm3+AYq13zdpufOQpic5e
+	 80TOrxxni5midHWeOEJ/RL6WkDCgMYcA/6o6g+mDYW9jnQeO1VjrwjprQaSoxGCOIpnKd
+	 J+YCCt5lnYU6aZtebALgVz7HBJm3GgCjtoAvaBOQ13ojanPZTSi8xsiqPs5JYTeD9mA2N
+	 SOlB4kZeQDoUtCrSony3EyuqoJI9/FQ7Onm//UQoEAS+MBx8g/0wLZUAYVFVfI4Rgkw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=intel.com;
 	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=HivJl5AZ;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=MzD+aDRF;
 	arc=none smtp.remote-ip=192.198.163.14
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C0DD606AA09;
-	Tue, 20 Oct 2026 14:12:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7C0DD606AA09
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E90EC60A5BC6;
+	Tue, 20 Oct 2026 14:11:45 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E90EC60A5BC6
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=HivJl5AZ
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=MzD+aDRF
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1792505523; x=1824041523;
+  t=1792505507; x=1824041507;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=+2pwMYfRQEbaPtH+nuj1lUbTV7cvPt2H1juZnuVoff8=;
-  b=HivJl5AZhF/YZzhRXqged1xnAIPELoRfSU4mjnl8LG21KV+P7Q7O0iaJ
-   eFp6VvwZKxgwiR7Uf2akHDqKLhK3iKHkMYxnmV9S03l7j4pTRub07zqPI
-   iODe0HoqBPxzIKUsqQm+oLrQeuvuIcsMXrXVxAwbBL4tgBx8spgtus0Tn
-   HH0l+GQFb9mR3VC2Qe04TkkXVX1jLXyv/bZFVlv1ARrXah6L2ZXbWZHP4
-   ZmaSGBKGOzn7KGTcdml/mLEdU8MhKkbwj83z9ksgG8YFlePPXxw6jwlWd
-   wQwERak3sQBCTicPXJVNdiSHNK4z1vQCz7Ncya38Rsi8XoC/IgOUyDM9A
-   g==;
-X-CSE-ConnectionGUID: rY/r/CnnQ96ZUTJRgU5b2g==
-X-CSE-MsgGUID: YrvYUQoLTRqhETf4GQm9lA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11941"; a="1222323"
+  bh=fTmumLRcwjYpM0vFKTiyuvshvUKJA5pTbWfCdmMx2qM=;
+  b=MzD+aDRFK4Ht+W5dB7XLInWo1wMVsf9a51R7RJYSa4gJkgJJco0kmVkH
+   Ok2/0yNqMnn15GHkpG+FNGe6RhZtkAYZDcpY3PeDPhQ1WUe0GYazgc8y4
+   RVOe8cYVAoifMQUQiMdZBxAnAGAlMm9TqkqpVbk7B366cwzgcadkqTBNu
+   PDOJIsET/61lDktm9oYnxuZmdf1fUnkXga5RAuvC70OqIeBJW2yMvnZB+
+   IXtBDGkCTt3O4RDlsgGO/K8OPkBKIJ6G9g6E5ceIc0Ix+lW/8RzYjI4Ae
+   vJAtwnAvOS2n+LMUMQIOCPNnzE9KVXzbVhG5Sx98dpzXR76Xygrm255Ji
+   A==;
+X-CSE-ConnectionGUID: VY7XIpuZTZ+tDaSU4u4qmw==
+X-CSE-MsgGUID: ozmh2QnWRT28JpcCv/eUbA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11941"; a="1222279"
 X-IronPort-AV: E=Sophos;i="6.27,168,1787036400"; 
-   d="scan'208";a="1222323"
+   d="scan'208";a="1222279"
 Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 07:12:03 -0700
-X-CSE-ConnectionGUID: GMcbuG1IQJ28W062TCBhqA==
-X-CSE-MsgGUID: Q9B3Te7vQXeQ4bR8MmzgEQ==
+  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 07:11:46 -0700
+X-CSE-ConnectionGUID: 66Tc5YBpRqW1sHN+u26YmA==
+X-CSE-MsgGUID: s+ojw+84TWiVYHliC5Vwhg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,168,1787036400"; 
-   d="scan'208";a="2888081"
+   d="scan'208";a="2887998"
 Received: from igk-lkp-server01.igk.intel.com ([10.211.93.152])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 07:12:01 -0700
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 07:11:44 -0700
 From: Pawel Chmielewski <pawel.chmielewski@intel.com>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
 	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	Breno Leitao <leitao@debian.org>,
-	"Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+	Dot Slash <jyjuykuytweg@gmail.com>,
 	Pawel Chmielewski <pawel.chmielewski@intel.com>
-Subject: [PATCH v1 29/30] ACPICA: dispatcher: Allocate the PCC internal buffer only once per region
-Date: Tue, 20 Oct 2026 16:10:50 +0200
-Message-Id: <20261020141051.2194123-30-pawel.chmielewski@intel.com>
+Subject: [PATCH v1 19/30] ACPICA: executer: Fix NULL pointer dereference in AcpiExStoreObjectToIndex()
+Date: Tue, 20 Oct 2026 16:10:40 +0200
+Message-Id: <20261020141051.2194123-20-pawel.chmielewski@intel.com>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20261020141051.2194123-1-pawel.chmielewski@intel.com>
 References: <20261020141051.2194123-1-pawel.chmielewski@intel.com>
@@ -85,52 +84,60 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Breno Leitao <leitao@debian.org>
+From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 
-AcpiDsCreateField() allocates InternalPccBuffer for operation regions in
-the PCC address space. It runs once per Field() operator, so a second
-Field() naming the same region overwrites the pointer and orphans the
-buffer the first one allocated. The matching ACPI_FREE() in
-AcpiUtDeleteInternalObj() only ever sees the last one.
+Fix a possible NULL pointer dereference when trying to store an empty
+buffer into an indexed string or buffer. Source-buffers are only
+allocated if the Length is non-zero.
 
-Every field unit of a PCC region reads and writes through
-RegionObj->Field.InternalPccBuffer, so one buffer per region is enough.
-Skip the allocation when the region object already has one.
+Similarly to AcpiExConvertToInteger() reject empty buffers with an
+error.
 
-Reproduced with a table declaring two Field() operators on one PCC
-region. Before, acpiexec reports the orphaned buffer at exit:
-
-  0x4a09b0 Length 0x00C0   dsfield-0705 [Not a Descriptor]
-  ACPI Error: 5 (0x5) Outstanding cache allocations
-
-After, that allocation is gone and field access is unchanged.
-
-On Linux, this is detected by kmemleak, as shown in [1].
-
-Link: https://github.com/acpica/acpica/commit/c71849d476bb
-Link: https://lore.kernel.org/all/20260813-acpica-pcc-field-leak-v1-1-3d6c5f0eb557@debian.org/ [1]
-Link: https://github.com/open-acpica/acpica/pull/1218
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Link: https://github.com/acpica/acpica/commit/077d74a42549
+Reported-by: Dot Slash <jyjuykuytweg@gmail.com>
+Closes: https://github.com/open-acpica/acpica/issues/1193
+Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 Signed-off-by: Pawel Chmielewski <pawel.chmielewski@intel.com>
 ---
- drivers/acpi/acpica/dsfield.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/acpi/acpica/exstore.c | 20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpica/dsfield.c b/drivers/acpi/acpica/dsfield.c
-index d916ff6dd501..28f8293da6a7 100644
---- a/drivers/acpi/acpica/dsfield.c
-+++ b/drivers/acpi/acpica/dsfield.c
-@@ -528,7 +528,8 @@ acpi_ds_create_field(union acpi_parse_object *op,
- 	}
+diff --git a/drivers/acpi/acpica/exstore.c b/drivers/acpi/acpica/exstore.c
+index 86be6bce1648..cd60fc366b08 100644
+--- a/drivers/acpi/acpica/exstore.c
++++ b/drivers/acpi/acpica/exstore.c
+@@ -295,13 +295,29 @@ acpi_ex_store_object_to_index(union acpi_operand_object *source_desc,
+ 			break;
  
- 	if (info.region_node->object->region.space_id ==
--	    ACPI_ADR_SPACE_PLATFORM_COMM) {
-+		    ACPI_ADR_SPACE_PLATFORM_COMM &&
-+	    !region_node->object->field.internal_pcc_buffer) {
- 		region_node->object->field.internal_pcc_buffer =
- 		    ACPI_ALLOCATE_ZEROED(info.region_node->object->region.
- 					 length);
+ 		case ACPI_TYPE_BUFFER:
+-		case ACPI_TYPE_STRING:
+ 
+-			/* Note: Takes advantage of common string/buffer fields */
++			/*
++			 * A zero-length buffer has no first element and a NULL
++			 * Pointer (see acpi_ut_create_buffer_object). Reject it, as is
++			 * done for the buffer-to-integer conversion.
++			 */
++			if (!source_desc->buffer.length) {
++				ACPI_BIOS_EXCEPTION((
++					AE_INFO, AE_AML_BUFFER_LIMIT,
++					"Source is a zero-length buffer, no data to store"));
++				return_ACPI_STATUS(AE_AML_BUFFER_LIMIT);
++			}
+ 
+ 			value = source_desc->buffer.pointer[0];
+ 			break;
+ 
++		case ACPI_TYPE_STRING:
++
++			/* A String always has a pointer; a null string stores a zero */
++
++			value = (u8)source_desc->string.pointer[0];
++			break;
++
+ 		default:
+ 
+ 			/* All other types are invalid */
 -- 
 2.50.1
 
