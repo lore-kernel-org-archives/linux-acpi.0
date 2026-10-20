@@ -1,75 +1,75 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.14
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792505505;
-	b=W0kDpUdeFhyI6/e4yTF92hxKZtYvDyI1Nzk2NJHkT7CWFaVBiAPNGQNdeo0bLld9nO75
-	 0KbfOlWsvPQtfPNE06tMw4XnkKqa3G/0HYa7fTlDyGqmDBCiNf2VLzdWMIaaMHQGmp5wQ
-	 sXIgkxRcckAi3DcCLgCIPN2u/bcnA7tE1C6249+CbpEldLEqcgHj+11TDglPh6obcgAn7
-	 Yw3ISP39dp1A7edFnolN0YFUw5JSYl7ZxyJfjvHBZc0SkDpjKLk6Xe5d5LN+TL+2gsBbW
-	 A2PItO7fhCXmq5MTlmTLBCNtS93Rg546EeemCTT0lr31J/AWGfz3hW0GvLoJXkrsCzA==
+	t=1792505507;
+	b=FayDoJ1uSSoWxQUBCvx7z4AxYysgIwBsLY1tlp04HZ9z47RweETzrETRFWXeJTNXZm0g
+	 fvUfsC8XfmEilArJYqXfi0P4Y3AQkjfz6rd2HGlO9BBaMfWGtrOUtK6QpWPohoNbj2A3w
+	 ZWoH50w88g+IIDK1nh5QXtELRz02YpsiJhfKgUGXYQjnEtBnbYEoVP9JviTY8qFcIw+92
+	 Y4MRrSYReqaHh6Tn1CVnN+WqQrL5okoMQax+jBe2Sdo3FQTXB7ysEnL7Ia8uAdgmPHff2
+	 U1igCSjvQKpRMrmPBZ7MwCIaaO5WR/D4rVAhTZFXUBunjZ4O9SkL/0XiUA0ZbvhZ2XQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792505505;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792505507;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
 	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
 	 Date:Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=TZY9caKXcqsaBuEoFOnS5/c+6IHqGxVaFNV1zoy0ywo=;
-	b=ErDVNx5b2YswxKpMlo1HOEITiYm7v39uADuSSVoW1hSRAeXQ0CAMylWU2jPUyr/Mr0hH
-	 8omYOppeLohtDkJRZr85neMh4w5Q0Ox1flQxWwTaJDie5SlKdr3h7ZoRUY7Ch5aue/v1r
-	 mp5u/tdY9rWLwqkIKzA/GFuR3yfln3ItR+yi4p9Er3nYFqyQh5apI3orjobqe/XVU0vjF
-	 CmWrGtXq1jiQWO24YPwPHp0xyVuw7XJaIXTEu7d7GnJxn3aRLga3z9FxURHzD5V454Wq9
-	 tvB3BIsWUqz9/XRc4i9IFKaTeom+D2tbP2a/ybUrMAwv6v6D/pCYGJMYfvQR95Z81bw==
+	bh=qCiEp6obcdDHlYvRbGEFkKJC2SmZ9yBcCS11F46SXFk=;
+	b=o1GDiZUoSNZhxX30SmcfpCgPjl0EsvOiukeT+bnFKlyY99/RT1w64h9Hfpilmhh2SLuD
+	 xV2MVmZzK1Xr8f9Tw8le7t7DO1gKZKxjQnoNSuIGedOguigh0ZenGdNo78MgkJME6Pkmo
+	 LZ2+NaXCS5VDbLE9D2sgweaDSwNYgnWDv1vbRvzIPTvAadVjUXDfeE+kZBuTse5EwSmNf
+	 N2Tjfmzy2Q51rnw3nWLwp9ogbO1DRd5yJzHtPSg04SHAG6ZlDgHkusgMT3eZoYXx58xcQ
+	 fzbC2EVrY0pQiabHx2e4v/MopVkxlVexA0TI1NYAe1NRILbuJz40F0I5/a4CNjSqiEA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=intel.com;
 	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=cS9kEuL8;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=bGPWd7on;
 	arc=none smtp.remote-ip=192.198.163.14
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2214C60A3823;
-	Tue, 20 Oct 2026 14:11:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2214C60A3823
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33BE460A263B;
+	Tue, 20 Oct 2026 14:11:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 33BE460A263B
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=cS9kEuL8
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=bGPWd7on
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1792505504; x=1824041504;
+  t=1792505508; x=1824041508;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=AKgMAdmjgsYVamwCMOcXhqNjaTprDeujz4xLsPho/GM=;
-  b=cS9kEuL8xU1nbkyexZoZiNVUmPMGmGdUr1m+kh/60VqBdAiIhCDRqyT5
-   t3Bny+2b81/IUsSL5vxNlBaQjSHNq2D3+IafRbgPayL1coj+labK02S4A
-   pk63Ok4IYxkCX6ufvPtNmsD2RmZ63IQKh7SlIXxvBqGwfN7FkjW8DO/2u
-   Qw/yQA2Xzz6jd9Kr7LHq9b0Cy0CD1ciX3MMzCnX8qzalSIkxnO+QMUTwB
-   ib7Vz9Io9k5r10d9SCyNRh5XbbAloT2chKKjeGSL/gXHf/43LjUt1uvI9
-   N5pMNT479oO/cOKmYVkMqFzmLuR7BHH9g8zi8Y7KkSqlVzFI6nbN1uVIP
-   w==;
-X-CSE-ConnectionGUID: /Slzo6XfSqOhrmp5icWPtg==
-X-CSE-MsgGUID: 848lgIgqQcOfbYqZqvzMGA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11941"; a="1222270"
+  bh=q1Mt346quxM/k1Kl9TlJ8hHKZiUqxcige+Kq/v9n6ho=;
+  b=bGPWd7onYE7OkY6YL2f2yY1Q+NyRtWvto5p1shuQrweCM7M2pZNPE5mJ
+   vDtlRcNopHwkvzb9kI1zRWjx1OIJmaXAq1hptXh9zbamPX+pnBz2lnrK8
+   qQ25mcna7rJ1jDZz3eGhbSpO7IHfs5gXHrj5jV0ft6JfdfqBVH61g9o1A
+   OdwevdhxG20LCW6SksW/jRUePf0yRVk43UCZVDVhwKmp3NisH85WjVCqJ
+   do7pP50V1/1n4u0ueNLVE+/30OhIT2byvGHASU29i28wKAu60SGfo0gsn
+   MFywk6PXVsC+BnRz71UfFt2NG3juxLgxfNxJwRPhnl58tgwspRWZAdPqg
+   Q==;
+X-CSE-ConnectionGUID: U1wpmziMQcmxjYiic1Y6Xw==
+X-CSE-MsgGUID: iIRCQygVS0GEZIp8y6r//g==
+X-IronPort-AV: E=McAfee;i="6800,10657,11941"; a="1222282"
 X-IronPort-AV: E=Sophos;i="6.27,168,1787036400"; 
-   d="scan'208";a="1222270"
+   d="scan'208";a="1222282"
 Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 07:11:43 -0700
-X-CSE-ConnectionGUID: fEt9UmA7R/m2QXIPYXRbIA==
-X-CSE-MsgGUID: cqB21BkSS6e9ghw4w1v8ew==
+  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 07:11:48 -0700
+X-CSE-ConnectionGUID: MDx845v9QWutjXXJPtcL8A==
+X-CSE-MsgGUID: DFh0xxc8ShS4Cy1BxaCBpQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,168,1787036400"; 
-   d="scan'208";a="2887989"
+   d="scan'208";a="2888007"
 Received: from igk-lkp-server01.igk.intel.com ([10.211.93.152])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 07:11:41 -0700
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 07:11:46 -0700
 From: Pawel Chmielewski <pawel.chmielewski@intel.com>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
 	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	Xianglai Li <lixianglai@loongson.cn>,
+	Ivan Hu <ivan.hu@canonical.com>,
 	Pawel Chmielewski <pawel.chmielewski@intel.com>
-Subject: [PATCH v1 17/30] ACPICA: actbl2: Add bit constants of the Flags field in the IOVT IOMMU structure
-Date: Tue, 20 Oct 2026 16:10:38 +0200
-Message-Id: <20261020141051.2194123-18-pawel.chmielewski@intel.com>
+Subject: [PATCH v1 20/30] ACPICA: Namespace: Initialize ParserState.AmlEnd in AcpiInstallMethod
+Date: Tue, 20 Oct 2026 16:10:41 +0200
+Message-Id: <20261020141051.2194123-21-pawel.chmielewski@intel.com>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20261020141051.2194123-1-pawel.chmielewski@intel.com>
 References: <20261020141051.2194123-1-pawel.chmielewski@intel.com>
@@ -84,56 +84,55 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Xianglai Li <lixianglai@loongson.cn>
+From: Ivan Hu <ivan.hu@canonical.com>
 
-According to the IOVT specification,
-define macros for each bit of the Flags field in the IOVT IOMMU structure:
+In AcpiInstallMethod(), the local ParserState is stack-allocated and
+only ParserState.Aml was initialized. Parser helpers called by this path
+read ParserState.AmlEnd for bounds checking: AcpiPsPeekOpcode() reads it
+before validating the first AML opcode, and AcpiPsGetNextPackageEnd()
+reads it indirectly via AcpiPsGetNextPackageLength(). The subsequent
+package-limit check also compares against ParserState.AmlEnd. Because
+AmlEnd was never set, these checks operated on an uninitialized value,
+which Coverity flagged as an uninitialized read (CID 1684785) and which
+could lead to incorrect parser bounds decisions.
 
-Bit 0: PCI device flag.
-	1: The IOMMU is a PCI device.
-	0: The IOMMU is a platform device.
+Coverity report:
 
-Bit 1: Proximity domain valid.
-Bit 2: Whether the devices managed by the IOMMU can be classified by
-the PCI segment.
-	1: All devices under the root PCI bridge can be managed.
-	0: Manageable devices are placed in the device entry list.
+*** CID 1684785:         Memory - illegal accesses  (UNINIT)
+/src/acpica/source/components/namespace/nsxfname.c: 712             in
+AcpiInstallMethod()
+        ParserState.Aml += AcpiPsGetOpcodeSize (Opcode);
+>>>     CID 1684785:         Memory - illegal accesses  (UNINIT)
+>>>     Using uninitialized value "ParserState.AmlEnd" when calling
+"AcpiPsGetNextPackageEnd".
+        ParserState.PkgEnd = AcpiPsGetNextPackageEnd (&ParserState);
 
-Bit3: Hardware capability support.
-Bit4: MSI interrupt address bypass supported.
-Bit5-31: Reserved, must be zero.
+Initialize ParserState.AmlEnd to the end of the table
+(Buffer + Table->Length) so the parser bounds checks operate on a
+valid limit.
 
-The bit constants are used in a linux kernel driver outside of the
-ACPICA code.
-
-Link: https://github.com/acpica/acpica/commit/352f750e4cc0
-Link: https://lore.kernel.org/all/20260717063713.3638059-3-maobibo@loongson.cn/
-Signed-off-by: Xianglai Li <lixianglai@loongson.cn>
+Link: https://github.com/acpica/acpica/commit/19429ef91ebf
+Link: https://github.com/open-acpica/acpica/pull/1216
+Fixes: bdc357540129 ("ACPICA: add boundary checks in two places")
+Signed-off-by: Ivan Hu <ivan.hu@canonical.com>
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 Signed-off-by: Pawel Chmielewski <pawel.chmielewski@intel.com>
 ---
- include/acpi/actbl2.h | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/acpi/acpica/nsxfname.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index baef525367b5..acbd46243736 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -919,6 +919,14 @@ struct acpi_iovt_iommu {
- 	u32 device_entry_offset;
- };
+diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfname.c
+index b6534187cd43..fcd94947fedb 100644
+--- a/drivers/acpi/acpica/nsxfname.c
++++ b/drivers/acpi/acpica/nsxfname.c
+@@ -503,6 +503,7 @@ acpi_status acpi_install_method(u8 *buffer)
+ 	/* First AML opcode in the table must be a control method */
  
-+/* Masks for Flags field above */
-+
-+#define ACPI_IOVT_IOMMU_PCI_DEVICE (1 << 0)
-+#define ACPI_IOVT_IOMMU_PXM_VALID (1 << 1)
-+#define ACPI_IOVT_IOMMU_MAGAGE_BY_SEGMENT (1 << 2)
-+#define ACPI_IOVT_IOMMU_HW_CAP_SUPPORT (1 << 3)
-+#define ACPI_IOVT_IOMMU_MSI_INT_BYPASS (1 << 4)
-+
- struct acpi_iovt_device_entry {
- 	u8 type;
- 	u8 length;
+ 	parser_state.aml = buffer + sizeof(struct acpi_table_header);
++	parser_state.aml_end = buffer + table->length;
+ 	opcode = acpi_ps_peek_opcode(&parser_state);
+ 	if (opcode != AML_METHOD_OP) {
+ 		return (AE_BAD_PARAMETER);
 -- 
 2.50.1
 
