@@ -1,55 +1,49 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792512156;
-	b=Ifdm98B2923Hw4AgzPJf/bxqhW5uMBS9qyWBoKspbYExxw2H/rJ8dSdfPQJUoZJJ4MQo
-	 Hizu2+EMwAv+KiBoETvCTGZfWT9KaEeyKS+DN5OEZh0Wm8dtVVepHCH574TrjDIdXnv/N
-	 uPXvYirPeepc3AklIZIUq9sXKXDYiOx+EOpIWHPGR7P3io8hmLwJ+kZu+MH+lKkrj7KM6
-	 KhGqwjf4MDjz7lBAc5AcbeTVsXnTqZg4PzkQTugV/DMiLLikxXn6wnWXeTUv8W8NNJV+M
-	 nPbxVbTIsF/hwHyT47ddxHYM42Z87zpyiu8udYVc/VX7FxfJDlgPOdTl9uH/eHba4bQ==
+	t=1792512627;
+	b=T6gTyGnPKLt/Rfhh79sIcYlzZsf4mq+aVCqOXUYBgTTDYQNwXo2CHgy8XPx5g/GTTysV
+	 wMSCGRMtbEo4kEU/vI+kyaxI9Bqick4Tgzydpky6OpPMWRrZf0VKs6M83s9Eol53bjFPQ
+	 1aCncrmjn4zQ5cguOCPkDIZJsjLMiFXi3Ez5bjglhLqpGy4WZc+4jxaj1hAMx46myd9jb
+	 4ANFQaJcljIqhyeIyTatJPIt7zgegLqOhZkd3tGiusZqq9LQ+rucYCxdAQSGiXJ9fsjux
+	 xe8N33+cHvbnI9kIGieYGvJYF0GZn4GhAJbjvO+ugN+lMjFrBbrHqeXM2B+eMUF2SVQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792512156;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=T6Xn0GgbQ2LS6M/ihkwGknyXfBAZO+tMr2iX2I+xIjg=;
-	b=giQEa23wJybReQMN6cKLoIhIn97cS0CfKn9etZ2x1+X75JIcsmh/mrRu5h6T8rHSKwTn
-	 eN70veJ1BcGwm9mDbhkE6gLfbcSVjTfWMFEy4On94S/M6yiGM2alEG3wUgAeUtr58bocj
-	 0QkBbKnOQfkwhGOrnq3JDbGIBt6GEzt5Z7piMc3oN/HETEk5mgL8ISskFnlkO5tvBfHyo
-	 r+qyhlFc9BREi77QVm+/WYitx3LnAUb6q5xV5nvpX5KjS/HpiwtuynhMEO3F5eV7KNgL+
-	 BlafN/dfv6V15+7ZttlshxRZfcxHOPgrBTuhNKxDmFt4Bghk5WSMKfHdsSUEmNZMWbQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792512627;
+	h=DMARC-Filter:Received:Received:DKIM-Signature:Message-ID:Date:
+	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
+	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	bh=2sNC3P1QUDjhawHsX037Mh7iiW1QRpYfhgHxBh43ZB8=;
+	b=qqLcxwQ61zw7q0svkZpgItJybpRFpwzNWqj0xL+9ylWgZvsI2f9UUOtC0O+4bqt8LDHy
+	 Zq8TUudqW6DDRwq4nhj2d1axeFFvchx9hQRF1xKKnssiP4W+Khj3maMlZsJvcTFTI7UYM
+	 BaAgsH67A0S6eEd4bvsE0j1LXvmI3dCmw3ifTryDNWFligM+zMpjEVJ8aeMxN2rjWcR29
+	 9OqEJHnwVyrbpqB+Rfh3KRenrvrFNVknBo/YLdcerBms/y9VVodCIPbG2fFz67UonXq9O
+	 5AohGdYL3h9DV8ar8K9b4hUf5FWXffitGh6wNpn9tsoY1E8XLIFRaK5ZYoJ+IGacVlw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hQXgQn4e;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9531D606A322
-	for <linux-acpi@vger.kernel.org>; Tue, 20 Oct 2026 16:02:36 +0000 (UTC)
+	dmarc=pass header.from=arm.com;
+	spf=pass smtp.mailfrom=arm.com;
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=Wpg1QRCw;
+	arc=none smtp.remote-ip=217.140.110.172
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9C72D606A322;
+	Tue, 20 Oct 2026 16:10:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9C72D606A322
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hQXgQn4e
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14D9D1F000C5
-	for <linux-acpi@vger.kernel.org>; Tue, 20 Oct 2026 16:02:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792512156;
-	bh=T6Xn0GgbQ2LS6M/ihkwGknyXfBAZO+tMr2iX2I+xIjg=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=hQXgQn4ewnepe4JFUB901d+7zgzryWjv+w0+AOTfu1bd07Pgtzi6EXfoZOm+PpXAc
-	 4zL2826NeSBOuXr4JfS1En7Uij/H1mZWVZ4AL/Bl+mqSOOUZywoDIkdK8ByW0TxRw5
-	 BicSp+BOkhokcLMBqEWgn+ctufzKk7J5szwnElWuWUeXZ4ZCJW/Hyo+KhUG1uFJ9Qn
-	 h+DyOjO7QoePaM/bsER1mozCDfeXOOh5UkjvvG9YhOhfk3HTiKPzkDkra0QMZphTKu
-	 Jkk072dp97G5TEFYTDWYCDGECVjnBnHXsMWfBl5SDze6aZEzW4+2QkRXL7hl3dPK4a
-	 +wxVemH6t53jw==
-Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5ba328513b9so3042317e87.1
-        for <linux-acpi@vger.kernel.org>; Tue, 20 Oct 2026 09:02:36 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBwS9XsRYyRsKcJSnlc6+QBkHryrp+Y7czJ+U2RgL8vF4lKclkGCnHeWetjAKZFPtkXiMF1TuvVSvnMO@vger.kernel.org
-X-Gm-Message-State: AFq9FYKn6zCLwYL94H3rxQrWtxdwm4MExu+lqZMgaYuUfSx9lP3QxqgY
-	7gnHbmx0C7fDG1rJyDgeA6U/Fjbe8f/100joYwUF4+jNMlUu2LH1h+gc6GOmlvdr4DMPHyoGqhG
-	yASTjC58Y5kuegjGhbaHpnvffil1mJRk=
-X-Received: by 2002:a05:6512:3d8c:b0:5bc:d9d6:6a98 with SMTP id
- 2adb3069b0e04-5be50a471cbmr3402594e87.10.1792512142493; Tue, 20 Oct 2026
- 09:02:22 -0700 (PDT)
+	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=Wpg1QRCw
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id A54EA16F8;
+	Tue, 20 Oct 2026 09:10:21 -0700 (PDT)
+Received: from [10.0.128.106] (e127648.arm.com [10.0.128.106])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A37363F7D8;
+	Tue, 20 Oct 2026 09:10:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1792512624; bh=fFFeUkThSorzl329T6P7JxtDbQyoTEDiDnc+J8On6Z8=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=Wpg1QRCwrOGPvXhZR9FUxX0VozNLTRjvQMuTNcNxjc2uomp6cGJHly9jixh89Y6gH
+	 utJFT62aL2HxPBqVJUD/aBbDQVjsQ1+VD8ex7Vnj9dNfLl6IjPre9LaU6bpml3Zrfr
+	 BkHCl+6I6TS+t4ZGjzsT4Xglp0OemzXxzeFbtnEg=
+Message-ID: <1cfcfd24-f0ad-4b9d-ae29-8a7bc5832294@arm.com>
+Date: Tue, 20 Oct 2026 17:10:17 +0100
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,93 +53,161 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20260925-acpi-static-table-irq-probe-defer-v1-2-2c62125d0085@kernel.org>
- <arZDwutoadki7tiZ@ashevche-desk.local> <arZNL9BnTGK0Klwc@red-moon>
- <arZS4vwxps01dGb7@ashevche-desk.local> <arqSqcoWAkhy-8do@red-moon>
- <d1720b63-65bf-4019-bc19-1852555f7993@arm.com> <asieTvinZ7c2QpQm@red-moon>
- <CAJZ5v0hVLSJs1j8J1TV3yJ8Psyaf=B_0UfHsYSMtM5xTup0B_Q@mail.gmail.com>
- <atXyIadz1TEKSodg@red-moon> <CAJZ5v0joJBZg==DWPsNviPfL7Jo=qupRhb6GinqOLoHXGnvevg@mail.gmail.com>
- <ateI-JcExDyfXKrs@red-moon>
-In-Reply-To: <ateI-JcExDyfXKrs@red-moon>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 20 Oct 2026 18:00:04 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0h+S3z3YqpJYCwcZXpPNEawedSof1z4+ydWn=tZbL8L6g@mail.gmail.com>
-X-Gm-Features: AclHuK8HDf2yPjcd4rawrCfnLbX27pb5S5MNqmvyCllH3hG9fIPbIUdmHBI-lNo
-Message-ID: <CAJZ5v0h+S3z3YqpJYCwcZXpPNEawedSof1z4+ydWn=tZbL8L6g@mail.gmail.com>
-Subject: Re: [PATCH RFC 02/11] ACPI: Introduce irq_get() for static fwnodes
-To: Lorenzo Pieralisi <lpieralisi@kernel.org>
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Robin Murphy <robin.murphy@arm.com>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mark Rutland <mark.rutland@arm.com>, 
-	Marc Zyngier <maz@kernel.org>, Daniel Lezcano <daniel.lezcano@kernel.org>, 
-	Thomas Gleixner <tglx@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, 
-	Sudeep Holla <sudeep.holla@kernel.org>, Wim Van Sebroeck <wim@linux-watchdog.org>, 
-	Guenter Roeck <linux@roeck-us.net>, Catalin Marinas <catalin.marinas@arm.com>, 
-	Will Deacon <will@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	driver-core@lists.linux.dev, linux-watchdog@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v6 3/5] ACPI: CPPC: Make autonomous selection helpers take
+ a u64
+To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
+ viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
+ zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, lenb@kernel.org,
+ ray.huang@amd.com, mario.limonciello@amd.com, perry.yuan@amd.com,
+ kprateek.nayak@amd.com, maciej.wieczor-retman@intel.com,
+ pawel.chmielewski@intel.com, linux-pm@vger.kernel.org,
+ linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
+ linux-kernel@vger.kernel.org
+Cc: linux-tegra@vger.kernel.org, treding@nvidia.com, jonathanh@nvidia.com,
+ vsethi@nvidia.com, ksitaraman@nvidia.com, sanjayc@nvidia.com,
+ mochs@nvidia.com, bbasu@nvidia.com
+References: <20261020121846.691218-1-sumitg@nvidia.com>
+ <20261020121846.691218-4-sumitg@nvidia.com>
+Content-Language: en-US
+From: Christian Loehle <christian.loehle@arm.com>
+In-Reply-To: <20261020121846.691218-4-sumitg@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Tue, Oct 20, 2026 at 5:30=E2=80=AFPM Lorenzo Pieralisi <lpieralisi@kerne=
-l.org> wrote:
->
-> On Mon, Oct 19, 2026 at 08:05:50PM +0200, Rafael J. Wysocki (Intel) wrote=
-:
-> > On Mon, Oct 19, 2026 at 12:34=E2=80=AFPM Lorenzo Pieralisi
-> > <lpieralisi@kernel.org> wrote:
->
-> [...]
->
-> > Basically, yes, the idea is to defer the creation of the platform
-> > device until the dependency is met.
-> >
-> > > till the dependencies are cleared but then, without a _CRS, where wil=
-l
-> > > the consumer driver find the platform device resources ?
-> >
-> > Well, good question.
-> >
-> > > There are multiple facets in this issue and possibly some of them hav=
-e
-> > > been already solved but I need to pull them together.
-> > >
-> > > > Note that the dependencies can be added to acpi_dep_list after
-> > > > creating a struct acpi_device with acpi_add_single_object() and
-> > > > acpi_scan_add_dep() is not really suitable for that, but it should =
-be
-> > > > doable if the dependencies can be found.
-> > > >
-> > > > > I need to have a deeper look into this next week but I wanted to =
-ask first
-> > > > > whether there was something I missed - most likely.
-> > > >
-> > > > Well, it is not really straightforward.
-> > >
-> > > Yes it is getting messy. This RFC, with all its flaws, does not trans=
-parently
-> > > prevents enumeration but rather relies on -EPROBE_DEFER to sort out
-> > > dependencies - though it does so by adding more stuff into ACPI stati=
-c fwnode
-> > > that to be honest I'd rather see gone.
-> >
-> > I think what you need is a notification mechanism that will trigger
-> > when a specific device (enumerated via the ACPI Namespace) becomes
-> > operational.  It doesn't look like any of the existing ones (platform
-> > device probe deferral or ACPI device dependencies tracking) is really
-> > suitable for your use case.
->
-> Yes. It might just be a notification from ACPI core to say "the driver fo=
-r
-> this ACPI device probed, go create platform devices that depends on it".
+On 10/20/26 13:18, Sumit Gupta wrote:
+> cppc_get_auto_sel()/cppc_set_auto_sel() use a bool, unlike the other
+> CPPC register get/set helpers which use a u64.
+> 
+> The next patch in this series saves and restores the OSPM-set registers
+> across CPU hotplug and driver unload through a common table of register
+> get/set helpers that all take a u64. The bool autonomous selection
+> helpers cannot be added to that table.
+> 
+> Change cppc_get_auto_sel()/cppc_set_auto_sel() to take a u64 so the
+> autonomous selection register fits alongside the others, and update
+> their callers.
+> 
+> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
+> Reviewed-by: K Prateek Nayak <kprateek.nayak@amd.com>
+> Tested-by: K Prateek Nayak <kprateek.nayak@amd.com>
 
-The ACPI core doesn't know about driver probing, so this notification
-would need to come from the driver of that specific device.
+Reviewed-by: Christian Loehle <christian.loehle@arm.com>
 
-In the regular _DEP dependencies case, the drivers that provide
-dependencies generally need to call acpi_dev_clear_dependencies()
-which triggers a dependency list walk.
+> ---
+>  drivers/acpi/cppc_acpi.c       | 20 ++++----------------
+>  drivers/cpufreq/amd-pstate.c   |  2 +-
+>  drivers/cpufreq/cppc_cpufreq.c |  4 ++--
+>  include/acpi/cppc_acpi.h       |  8 ++++----
+>  4 files changed, 11 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 8d38924e0750..11a895fa9199 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -3304,23 +3304,11 @@ EXPORT_SYMBOL_GPL(cppc_set_auto_act_window);
+>  /**
+>   * cppc_get_auto_sel() - Read autonomous selection register.
+>   * @cpu: CPU from which to read register.
+> - * @enable: Return address.
+> + * @enable: Return address, set to 0 or 1.
+>   */
+> -int cppc_get_auto_sel(int cpu, bool *enable)
+> +int cppc_get_auto_sel(int cpu, u64 *enable)
+>  {
+> -	u64 auto_sel;
+> -	int ret;
+> -
+> -	if (enable == NULL)
+> -		return -EINVAL;
+> -
+> -	ret = cppc_get_reg_val(cpu, AUTO_SEL_ENABLE, &auto_sel);
+> -	if (ret)
+> -		return ret;
+> -
+> -	*enable = (bool)auto_sel;
+> -
+> -	return 0;
+> +	return cppc_get_reg_val(cpu, AUTO_SEL_ENABLE, enable);
+>  }
+>  EXPORT_SYMBOL_GPL(cppc_get_auto_sel);
+>  
+> @@ -3351,7 +3339,7 @@ EXPORT_SYMBOL_GPL(cppc_auto_sel_is_immutable);
+>   * @cpu    : CPU to which to write register.
+>   * @enable : the desired value of autonomous selection resiter to be updated.
+>   */
+> -int cppc_set_auto_sel(int cpu, bool enable)
+> +int cppc_set_auto_sel(int cpu, u64 enable)
+>  {
+>  	return cppc_set_reg_val(cpu, AUTO_SEL_ENABLE, enable);
+>  }
+> diff --git a/drivers/cpufreq/amd-pstate.c b/drivers/cpufreq/amd-pstate.c
+> index 4bedfbfc18b6..bf7d25e89d2a 100644
+> --- a/drivers/cpufreq/amd-pstate.c
+> +++ b/drivers/cpufreq/amd-pstate.c
+> @@ -546,7 +546,7 @@ static int shmem_init_perf(struct amd_cpudata *cpudata)
+>  	struct cppc_perf_caps cppc_perf;
+>  	union perf_cached perf = READ_ONCE(cpudata->perf);
+>  	u64 numerator;
+> -	bool auto_sel;
+> +	u64 auto_sel;
+>  
+>  	int ret = cppc_get_perf_caps(cpudata->cpu, &cppc_perf);
+>  	if (ret)
+> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+> index 7448ca43b363..9e1214e1cb0d 100644
+> --- a/drivers/cpufreq/cppc_cpufreq.c
+> +++ b/drivers/cpufreq/cppc_cpufreq.c
+> @@ -1059,7 +1059,7 @@ static ssize_t show_freqdomain_cpus(struct cpufreq_policy *policy, char *buf)
+>  
+>  static ssize_t show_auto_select(struct cpufreq_policy *policy, char *buf)
+>  {
+> -	bool val;
+> +	u64 val;
+>  	int ret;
+>  
+>  	ret = cppc_get_auto_sel(policy->cpu, &val);
+> @@ -1071,7 +1071,7 @@ static ssize_t show_auto_select(struct cpufreq_policy *policy, char *buf)
+>  	if (ret)
+>  		return ret;
+>  
+> -	return sysfs_emit(buf, "%d\n", val);
+> +	return sysfs_emit(buf, "%llu\n", val);
+>  }
+>  
+>  static ssize_t store_auto_select(struct cpufreq_policy *policy,
+> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+> index 4495ee4ab71e..a5545fd3f8bd 100644
+> --- a/include/acpi/cppc_acpi.h
+> +++ b/include/acpi/cppc_acpi.h
+> @@ -197,9 +197,9 @@ extern int cppc_set_epp_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls, bool e
+>  extern int cppc_set_epp(int cpu, u64 epp_val);
+>  extern int cppc_get_auto_act_window(int cpu, u64 *auto_act_window);
+>  extern int cppc_set_auto_act_window(int cpu, u64 auto_act_window);
+> -extern int cppc_get_auto_sel(int cpu, bool *enable);
+> +extern int cppc_get_auto_sel(int cpu, u64 *enable);
+>  bool cppc_auto_sel_is_immutable(int cpu);
+> -extern int cppc_set_auto_sel(int cpu, bool enable);
+> +extern int cppc_set_auto_sel(int cpu, u64 enable);
+>  extern int cppc_get_perf_limited(int cpu, u64 *perf_limited);
+>  extern int cppc_set_perf_limited(int cpu, u64 bits_to_clear);
+>  extern int amd_get_highest_perf(unsigned int cpu, u32 *highest_perf);
+> @@ -298,7 +298,7 @@ static inline int cppc_set_auto_act_window(int cpu, u64 auto_act_window)
+>  {
+>  	return -EOPNOTSUPP;
+>  }
+> -static inline int cppc_get_auto_sel(int cpu, bool *enable)
+> +static inline int cppc_get_auto_sel(int cpu, u64 *enable)
+>  {
+>  	return -EOPNOTSUPP;
+>  }
+> @@ -308,7 +308,7 @@ static inline bool cppc_auto_sel_is_immutable(int cpu)
+>  	return false;
+>  }
+>  
+> -static inline int cppc_set_auto_sel(int cpu, bool enable)
+> +static inline int cppc_set_auto_sel(int cpu, u64 enable)
+>  {
+>  	return -EOPNOTSUPP;
+>  }
 
-I guess driver_bound() could do something like that in principle (it
-does a similar thing already for deferred probing), but I'm not sure
-how generic it needs to be for this particular use case.
