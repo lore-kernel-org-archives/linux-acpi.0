@@ -1,49 +1,142 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.168.131
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792512711;
-	b=wgc1A2g1Tl6CwstomOy4qFXWFWxXMMeuNZ2FVyrJhhX+LsGFY+YERLpywqK//Tbtgypt
-	 SLgtXrjo5+BSnn67Zrin+Fenfs4RP3Kaoeu9IY2VcCSU31igPZoKMnZAuv+cn2xXBhJTK
-	 g9RanlzYD+mLTfhjWKHfTa9YI68U3YPn2sPTi+7qmatyn49okIG/WUacF0XfLnk6pbmTq
-	 L3+fDy8z+AAQC1E1U5xLueTrxmDmG/Ddfnt12PRDbtofahX7amT/2anw9Y6loz+QIFeZa
-	 oSnR01jkigoX8zT+FEyVL46pdLpFL+TupdCr/Ys8yTfTM29A/Ix61L/rbRv+OTa4yZQ==
+	t=1792516184;
+	b=fpynzb0EcsO+aKgdu+SRyFM91XuoutJM+raPRtWMQHX2M/uxi7uTXgL2muGcMuGRDDEp
+	 jpWpiOhEu38/srLa0pkcONsTj5wwkgKCdwqmv9hzVNDAwRsLvQyHOdlsIbfPrmtJp9Aqn
+	 ZFv9poRPi0hluO+ce7p2zB57NnMdmiKYCGiDxGHYG+5RxjerdAUAlVTmLxRoqWTuRkgxq
+	 j50TncDb0NGGNxLnG8B4KcRkyvLpsGRWm9xj25+X5RqCJDGUTFwSYi/vojVuS/tQgjnAR
+	 HqKOTJKdxoT4951VH3J//gZVpiLk56oP0TUBJHDDaXXXmCUjJNHduPul0sV0BoJ1Zaw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792512711;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
-	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	bh=Qd6+I1Wz5bOCO3hAh5nu1qluklfJQVsCoEPG0kv9fa4=;
-	b=gU6uLxoTIyzgPpOgGaI//7yjnpvhCo1ylf6x6RpaTB5Ob+DmxTVtM/J1UXNYJPT0FVw/
-	 rg98LLLCGoE6dEhTFmyI1c52mcbF/m/P/+mcE/FBgOGuLjyvDL+PHvF3g+B/gqtk9R+et
-	 msdQfG67LDMAM1hG+aUpWMvwA4qkPE/k7OCxf4TryDNnBzgASED2gxbqxY0AAfIsH1AjY
-	 Kf08WJl5jKJqafG9/NLAe0HVPtT8z1moOXt15T45a5wNNfvokS7N8B82vRL2F5efbXiiK
-	 JfvOQ9mV2xgNuvzI3e/RpNKRrwgXYklS7EptPv5PeSJ0xNSyn2vIVZ7lDLi3S39wBOQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792516184;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
+	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:Date:From:
+	 To:Cc:Subject:Message-ID:In-Reply-To:References:Organization:X-Mailer:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding:X-Proofpoint-GUID:
+	 X-Authority-Analysis:X-Proofpoint-Spam-Details-Enc:
+	 X-Proofpoint-Spam-Info:X-Proofpoint-ORIG-GUID:
+	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
+	bh=ohKpVZsSLKBqP3rLFRPbU8Ml4RClO3TAOr5rDUCda/w=;
+	b=dotfbFFhXr1g4SpMeHi0B3+FfY2b4YDrP34nadleprjuHv9N48fexrzT9brb8Cs/6wQ0
+	 qM9DkpFcRTD00m8wtEMKE078plxO9iqiYQ0zF4nAiQOHXBCJBs6xL2Ccq/OGlKGUlH5oS
+	 zJuYCk3tP5zHuPwsZiPmKFjd/hwsi1ZDOuYlFnjRWaLZke6RhZT39AYi8YVw1sNhfDghi
+	 7A4urXyYAfp/ueFhPStjeqJxJ6gNQhbaydj8IxKXs1MHN+sNfzCiU/vp8KvVNYHgvmmZU
+	 B15qivFH1fvKAQcp4GhJTv6WLzgIlQp6jEc5dl4/ewVWuoKzCK4KCo69YkwFJnJakxQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=arm.com;
-	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b="Ylv/EMm1";
-	arc=none smtp.remote-ip=217.140.110.172
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0EED3606A31E;
-	Tue, 20 Oct 2026 16:11:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0EED3606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	dmarc=pass header.from=oss.qualcomm.com;
+	spf=pass smtp.mailfrom=oss.qualcomm.com;
+	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b="Q/srjOz3";
+	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=Nfnimphx;
+	arc=none smtp.remote-ip=205.220.168.131
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 031D9606A319
+	for <linux-acpi@vger.kernel.org>; Tue, 20 Oct 2026 17:09:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 031D9606A319
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=Ylv/EMm1
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 273E82103;
-	Tue, 20 Oct 2026 09:11:47 -0700 (PDT)
-Received: from [10.0.128.106] (e127648.arm.com [10.0.128.106])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 3A3FF3F7D8;
-	Tue, 20 Oct 2026 09:11:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1792512710; bh=JvYp5A9GETNlfpQxlRjSH9/++M7IGKhy58KqiTyx1fs=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=Ylv/EMm1/P1GVqg6OHUXHzq3X8PhUt5hV70PB/zh0g5qc8LQcjqj+e4Jp54IoK7WN
-	 KXZTHfJNPvs7ipTULxQRLULDfWGHNIzwGZsoDfByEXvmqSVjWS9maeRDgSxqjALrY4
-	 7kDK3M96Vq3RJtwMQEWUUCkNkJUzjYfNWbVHNDP0=
-Message-ID: <cf4e3153-ff80-4d0d-94f7-572a26f369c1@arm.com>
-Date: Tue, 20 Oct 2026 17:11:43 +0100
+	dkim=pass (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=Q/srjOz3;
+	dkim=pass (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=Nfnimphx
+Received: from pps.filterd (m0279862.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69KGteEh1706500
+	for <linux-acpi@vger.kernel.org>; Tue, 20 Oct 2026 17:09:43 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	ohKpVZsSLKBqP3rLFRPbU8Ml4RClO3TAOr5rDUCda/w=; b=Q/srjOz30TRKb0h+
+	4i5NmNJzhXLuqckNdw/mg0I4BdzGglVTPPTqazzLFsx/Egq97m2DlLg9ue++z7ip
+	6WVn7ZjlY/g7VfeucNdjyKyQZBNhpJucWzQD5lIZza3YJBHioVSU/aQsJG5snWE+
+	Im9EeDhgIeH6Tr6y7/Qg5R1Kx+t3F746jDmWcVzfNxurlDL8JrmGFSL4mbP/TR6Z
+	aQTdpZjm32+Rfs1bQ91lVPuoYRNQ+jDPXKIX7UfBMgGyReFum7adrZOaF813VB8E
+	Zsna3eTyugakMRuQrPgQRVqqJkEknK00/GysSDNSK6Mzns/CW3C2UlGAMBjbAmPT
+	68aWnQ==
+Received: from mail-dy1-f199.google.com (mail-dy1-f199.google.com [74.125.82.199])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hdw5pbk5k-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Tue, 20 Oct 2026 17:09:43 +0000 (GMT)
+Received: by mail-dy1-f199.google.com with SMTP id 5a478bee46e88-30c0d568830so7539286eec.1
+        for <linux-acpi@vger.kernel.org>; Tue, 20 Oct 2026 10:09:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1792516183; x=1793120983; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:organization
+         :references:in-reply-to:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=ohKpVZsSLKBqP3rLFRPbU8Ml4RClO3TAOr5rDUCda/w=;
+        b=NfnimphxzgfsO/GkUvcaO4SumU3i9GpUDe4RfT6pGXGqUBtDmLwb+DW1MbhTST0ekv
+         WCPZb7Z9LZeKWrSovuhSbww/g7nd+4s6N+CWpMjqlBw6eOR0yA64jTFZamVdhpevlTI5
+         341I7ZpmY+wQxmjT/YD6ujimF8Q2Rn3O5Um5DnDToAjWLwQhjjJzRs7LrwNvMUqsVJfS
+         w6kWPm7REJdUtdjUael+6OQleEH0XekiZoA85/AEA2L/z+4lq9fVmXmV5JtfgqfufZJk
+         GsmrgQ1MoiMMXhpj8t+yyEk1K7IVpZuLW1vyxgMgPYuvrMMSme4n9I8fkS5hyB2FCKQF
+         3BdA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792516183; x=1793120983;
+        h=content-transfer-encoding:content-type:mime-version:organization
+         :references:in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=ohKpVZsSLKBqP3rLFRPbU8Ml4RClO3TAOr5rDUCda/w=;
+        b=zIlgQtxbmFFzCqpzjuR/jC56gikIEPfktiWzjsucbUoxwmzOphYxaXk9dWGCRxHXAi
+         2Yl6VyP6YU4XuIipQDcWNYCGdTrHlg/PTAtEabNnvrTtgsuuYQxMjigZzXAGBXk5wzoT
+         F4zPwuG8taPf4TReE3OW3dYIV1dYuoFEHQ+OzBDbtjFyHLMFJN5tkqbUx3N0kpAPWdXX
+         YAmz9EDIqI7fWvvcX5y4tgyeIVxvjfgFoWjC9I5aA1NTzXSc1mKgNOwZE9TtwXRBNAX2
+         +TOmIZe1qmSF/Sd7ofc+3P0YhITctUOK61y1fJiTT78ITA0YXgX7TN4z6NgOVaH3C4n4
+         3f/Q==
+X-Forwarded-Encrypted: i=1; AKwUvBzpXTYWcOV0UJpjFGAMUJI7yjb5zJNySgxJDmGDNGvKyAHtdYYa1ObL/1SlnCEtMuWE3zFegLUMsT1W@vger.kernel.org
+X-Gm-Message-State: AFq9FYIfPPBH0EAQEA0SpJxHRWZBSPqLUsOm0P2EbcrqflAe3vJEvxNa
+	5GuQLgm4Zy9+Jm9ujQxT2bo1Th8+s2YGd+AS9zSsyDNzyAZPXdaOaik+QIzsifedUxPVS3gSMnv
+	vpVTS+wt+y+luHXIoS4WCUCOetMoUI6ufZC+xxy6psUhmVg1Y54Fl9dvfBdoPrGUC
+X-Gm-Gg: AYBFou3yn0bJdeYamh7UYRtzEakcKH1Gyvx1IsJ+DDuXlUIAVNXZKt+g9hBbvSz0bfO
+	KQVlqHNqrsVH+aRrly1HWIXSPHm/fGIkzYUBOAnSAO4w1X8s/KyPZ1dl/ZZk3PQlTXhaop36ZFe
+	X32s1Ly+uVPa63bgy5PjiIZxc1NUF80x/ZFpe6TsO8sy0XLENwXVh8AEXLHuTxR39VPrEvY9huG
+	nu6YKHXTRJFHI/NHfojCyQddiADiFhKIbZ/ygV89w7B4/BExwEat7JpUjJmFZSp/eSPtzXtvHzN
+	HQ42MHKBnpjH/k5jfNk1w3gyCyk+qsroPZA6mSb4A7Cc07Vu8zH3haJnWydnkBvNgpjlRDbudae
+	us48pHAJQx5XdrN+i4qCI1Cw9qrOSUlZjcC7lxcsxIVE=
+X-Received: by 2002:a05:7300:10d:b0:351:1e89:66ab with SMTP id 5a478bee46e88-361a0e85fc5mr16354990eec.7.1792516182370;
+        Tue, 20 Oct 2026 10:09:42 -0700 (PDT)
+X-Received: by 2002:a05:7300:10d:b0:351:1e89:66ab with SMTP id 5a478bee46e88-361a0e85fc5mr16354944eec.7.1792516181614;
+        Tue, 20 Oct 2026 10:09:41 -0700 (PDT)
+Received: from localhost (i-global254.qualcomm.com. [199.106.103.254])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3673b1d0ab7sm123492eec.0.2026.10.20.10.09.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 20 Oct 2026 10:09:41 -0700 (PDT)
+Date: Tue, 20 Oct 2026 10:09:37 -0700
+From: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+To: Pierre Gondois <pierre.gondois@arm.com>
+Cc: linux-kernel@vger.kernel.org, James Morse <james.morse@arm.com>,
+        Mark
+ Brown <broonie@kernel.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>, Len
+ Brown <lenb@kernel.org>,
+        Tony Luck <tony.luck@intel.com>, Borislav Petkov
+ <bp@alien8.de>,
+        Hanjun Guo <guohanjun@huawei.com>,
+        Mauro Carvalho Chehab
+ <mchehab@kernel.org>,
+        Shuai Xue <xueshuai@linux.alibaba.com>,
+        Maciej
+ Wieczor-Retman <maciej.wieczor-retman@intel.com>,
+        Pawel Chmielewski
+ <pawel.chmielewski@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        "Fabio M.
+ De Francesco" <fabio.m.de.francesco@linux.intel.com>,
+        Breno Leitao
+ <leitao@debian.org>, Terry Bowman <terry.bowman@amd.com>,
+        Dan Williams
+ <djbw@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
+        Morduan Zang
+ <zhangdandan@uniontech.com>, linux-acpi@vger.kernel.org,
+        linux-edac@vger.kernel.org, acpica-devel@lists.linux.dev
+Subject: Re: [PATCH v2 4/6] EDAC/ghes: Extract error report initialization
+Message-ID: <20261020100937.00000d06@oss.qualcomm.com>
+In-Reply-To: <20261019203915.2019037-5-pierre.gondois@arm.com>
+References: <20261019203915.2019037-1-pierre.gondois@arm.com>
+	<20261019203915.2019037-5-pierre.gondois@arm.com>
+Organization: Qualcomm
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.51; x86_64-w64-mingw32)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -53,285 +146,157 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v6 4/5] cpufreq: CPPC: Preserve OSPM-set registers across
- hotplug and unload
-To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
- viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
- zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, lenb@kernel.org,
- ray.huang@amd.com, mario.limonciello@amd.com, perry.yuan@amd.com,
- kprateek.nayak@amd.com, maciej.wieczor-retman@intel.com,
- pawel.chmielewski@intel.com, linux-pm@vger.kernel.org,
- linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
- linux-kernel@vger.kernel.org
-Cc: linux-tegra@vger.kernel.org, treding@nvidia.com, jonathanh@nvidia.com,
- vsethi@nvidia.com, ksitaraman@nvidia.com, sanjayc@nvidia.com,
- mochs@nvidia.com, bbasu@nvidia.com
-References: <20261020121846.691218-1-sumitg@nvidia.com>
- <20261020121846.691218-5-sumitg@nvidia.com>
-Content-Language: en-US
-From: Christian Loehle <christian.loehle@arm.com>
-In-Reply-To: <20261020121846.691218-5-sumitg@nvidia.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+X-Proofpoint-GUID: b7BSbpEcKU6_CNSfsfH6J6cqN3rjhH23
+X-Authority-Analysis: v=2.4 cv=fb84WEQF c=1 sm=1 tr=0 ts=6ad7a057 cx=c_pps
+ a=cFYjgdjTJScbgFmBucgdfQ==:117 a=JYp8KDb2vCoCEuGobkYCKw==:17
+ a=kj9zAlcOel0A:10 a=660iZSQnnn4A:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=_K5XuSEh1TEqbUxoQ0s3:22
+ a=7CQSdrXTAAAA:8 a=rxnY8KSqnLZGKI4wGMoA:9 a=CjuIK1q_8ugA:10
+ a=scEy_gLbYbu1JhEsrz4S:22 a=a-qgeE7W1pNrGK8U0ZQC:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDIwMDA2OCBTYWx0ZWRfX92n25xjAP4te
+ UFwyBNGgGrSvE3ixFhHzAomKg2obq+B2mDqNdrQ2S3gOGaAavQaxBLTGzC7wQobMWP0XTxxoAfZ
+ DAvhmdaGGHtB/o9AbCDWsUkj4eAgrNWuwER+yndGXQV1Ajb8Yl/JjOS//XoiFaBGo4RhF+DzYxF
+ 1aM0Z025vTVkjFk2WTUp8tp82It5L8e6NzkL1/7z+HjC9Qi/T1GSVEEhz2Eb8x+3A73UVQh8ntr
+ 4iS+s1ifFYMppQ/9IpsumDF6YmIw7292Y7VmwFPigOk5+vk/dJA+dBxloT3RbGZCX+xlXKJ6q9d
+ yo73qXD04rm9B6wueSwB0bPLSHzh5cZUnWua24Y+y72LU9LvlzBJxSppQEfuqpCiq1r2Imtezgc
+ JiW9W5YIcBOS9hZO0+aunTKeRtuzcMbkOEasghluOukQyHLph9svxW4x39zRt4XGkKpcsSxClJa
+ IWExsxU8B2M16P/fQkg==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDIwMDA2OCBTYWx0ZWRfX91UFWTCx8CQg
+ ICeWN1b4QqffgILyMi7VW+9y/2BWApneilWZR7zg2GJ2AuqxEA0K+Pzh8KEStwnlgmqRedfQ74h
+ Y8BWlKxmzdWnrEWniZMoGFtMZFjqXDo=
+X-Proofpoint-ORIG-GUID: b7BSbpEcKU6_CNSfsfH6J6cqN3rjhH23
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.134,FMLib:17.12.100.49
+ definitions=2026-10-20_03,2026-10-19_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ impostorscore=0 malwarescore=0 lowpriorityscore=0 suspectscore=0 adultscore=0
+ phishscore=0 clxscore=1015 bulkscore=0 spamscore=0 priorityscore=1501
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2610190000 definitions=main-2610200068
 
-On 10/20/26 13:18, Sumit Gupta wrote:
-> Values written to OSPM-set CPPC registers via sysfs can be lost in two
-> ways:
-> 
->   - Across CPU hotplug: the platform may reset a CPU's registers while it
->     is offline.
->   - On driver unload: the value the driver wrote is left in the register
->     instead of returning to its pre-driver state.
-> 
-> Add a small table-driven mechanism that handles both:
-> 
->   - On init(), capture each register's firmware value before the
->     driver programs anything.
->   - On offline(), read back each register's current value (whatever was
->     last set via sysfs) so it can be reapplied, then restore the firmware
->     value.
+On Mon, 19 Oct 2026 22:38:43 +0200
+Pierre Gondois <pierre.gondois@arm.com> wrote:
 
-Sorry for the late suggestion, but all the ospm-set registers I think we can
-save ourselves some headache by just saving these at sysfs_store (and not deal
-with potential read-errors during offline/suspend (which actually may happen!).
-
->   - On online(), reapply the value captured at offline() after
->     reprogramming the performance controls. A failed write to the controls
->     does not skip the reapply, as no other path restores these registers.
->   - On exit(), nothing is needed, as the core calls offline() first, which
->     already restored the firmware values.
+> Extract a ghes_edac_init_error() function to prepare for
+> Memory Error Section 2 support (and re-usage).
 > 
-> Cover the Autonomous Selection (auto_sel), Energy Performance Preference
-> (EPP) and Autonomous Activity Window (auto_act_window) registers. Writes
-> to EPP and auto_act_window only have meaning while auto_sel is enabled,
-> so write auto_sel before them when enabling it and after them when
-> disabling it. While autonomous selection stays disabled, the platform may
-> ignore those writes.
+> Also use a guard in the caller ghes_edac_report_mem_error()
+> function for code simplification.
 > 
-> Suggested-by: Pierre Gondois <pierre.gondois@arm.com>
-> Link: https://lore.kernel.org/all/86780f97-29ee-4a72-b311-38c89434b707@arm.com/
-> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
+> Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
 > ---
->  drivers/cpufreq/cppc_cpufreq.c | 176 ++++++++++++++++++++++++++++++++-
->  1 file changed, 173 insertions(+), 3 deletions(-)
+>  drivers/edac/ghes_edac.c | 66 +++++++++++++++++++++-------------------
+>  1 file changed, 35 insertions(+), 31 deletions(-)
 > 
-> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-> index 9e1214e1cb0d..1b733f15d641 100644
-> --- a/drivers/cpufreq/cppc_cpufreq.c
-> +++ b/drivers/cpufreq/cppc_cpufreq.c
-> @@ -29,6 +29,166 @@
+> diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
+> index d80c88818691..b90150c67f4b 100644
+> --- a/drivers/edac/ghes_edac.c
+> +++ b/drivers/edac/ghes_edac.c
+> @@ -267,37 +267,14 @@ static int print_mem_error_other_detail(const struct cper_sec_mem_err *mem, char
+>  	return n;
+>  }
 >  
->  static struct cpufreq_driver cppc_cpufreq_driver;
+> -static int ghes_edac_report_mem_error(struct notifier_block *nb,
+> -				      unsigned long val, void *data)
+> +/* Caller must hold ghes_lock. */
+> +static struct edac_raw_error_desc *
+> +ghes_edac_init_error(struct ghes_pvt *pvt, unsigned long sev)
+
+Slightly unusual to have an init function that doesn't directly take the thing
+being initialized. I'd pass it in. The clearly of pvt->msg and pvt->other_detail
+is also a bit of a surprise for a function that claims to be initializing something
+else so I'd do those outside of the helper.
+
+Or maybe rename helper to something like
+ghes_edac_fill_error_from_pvt() 
+Not sure that really conveys the modification of pvt data hidden in here though.
+
+Perhaps this refactor was a bad suggestion from me and better to just duplicate
+the code.  What do ACPI maintainers think?
+
+
+
+>  {
+> -	struct cper_sec_mem_err *mem_err = (struct cper_sec_mem_err *)data;
+> -	struct cper_mem_err_compact cmem;
+> -	struct edac_raw_error_desc *e;
+> -	struct mem_ctl_info *mci;
+> -	unsigned long sev = val;
+> -	struct ghes_pvt *pvt;
+> -	unsigned long flags;
+> -	char *p;
+> -
+> -	/*
+> -	 * We can do the locking below because GHES defers error processing
+> -	 * from NMI to IRQ context. Whenever that changes, we'd at least
+> -	 * know.
+> -	 */
+> -	if (WARN_ON_ONCE(in_nmi()))
+> -		return NOTIFY_OK;
+> -
+> -	spin_lock_irqsave(&ghes_lock, flags);
+> -
+> -	pvt = ghes_pvt;
+> -	if (!pvt)
+> -		goto unlock;
+> -
+> -	mci = pvt->mci;
+> -	e = &mci->error_desc;
+> +	struct edac_raw_error_desc *e = &pvt->mci->error_desc;
 >  
-> +/*
-> + * OSPM-set CPPC registers tracked for save/restore. A value the OS wrote is
-> + * reapplied from online() across CPU hotplug, and the firmware value is
-> + * restored from offline().
-> + *
-> + * Autonomous Selection (auto_sel) is kept first, as the registers after it
-> + * only have meaning while it is enabled.
-> + */
-> +enum cppc_saved_reg_id {
-> +	CPPC_SAVED_AUTO_SEL,
-> +	CPPC_SAVED_EPP,
-> +	CPPC_SAVED_AUTO_ACT_WINDOW,
-> +	CPPC_NR_SAVED_REGS,
-> +};
-> +
-> +struct cppc_saved_reg {
-> +	const char *name;
-> +	int (*get)(int cpu, u64 *val);
-> +	int (*set)(int cpu, u64 val);
-> +};
-> +
-> +static const struct cppc_saved_reg cppc_saved_regs[CPPC_NR_SAVED_REGS] = {
-> +	[CPPC_SAVED_AUTO_SEL] = {
-> +		.name = "auto_sel",
-> +		.get = cppc_get_auto_sel,
-> +		.set = cppc_set_auto_sel,
-> +	},
-> +	[CPPC_SAVED_EPP] = {
-> +		.name = "epp",
-> +		.get = cppc_get_epp_perf,
-> +		.set = cppc_set_epp,
-> +	},
-> +	[CPPC_SAVED_AUTO_ACT_WINDOW] = {
-> +		.name = "auto_act_window",
-> +		.get = cppc_get_auto_act_window,
-> +		.set = cppc_set_auto_act_window,
-> +	},
-> +};
-> +
-> +enum cppc_saved_type {
-> +	CPPC_SAVED_FIRMWARE,
-> +	CPPC_SAVED_REQUESTED,
-> +	CPPC_NR_SAVED_TYPES,
-> +};
-> +
-> +/*
-> + * Per-policy values saved for each register in cppc_saved_regs[], U64_MAX
-> + * if there is none:
-> + *   CPPC_SAVED_FIRMWARE  - value before the driver touched it, captured at
-> + *                          init() and written back when the policy goes
-> + *                          offline
-> + *   CPPC_SAVED_REQUESTED - value in effect when the policy last went offline,
-> + *                          reapplied at online()
-> + */
-> +struct cppc_policy_state {
-> +	u64 regs[CPPC_NR_SAVED_REGS][CPPC_NR_SAVED_TYPES];
-> +};
-> +
-> +static DEFINE_PER_CPU(struct cppc_policy_state, cppc_policy_state);
-> +
-> +/*
-> + * Per-policy state is kept in the per-CPU variable of the first CPU the policy
-> + * manages. related_cpus (the policy's full set of CPUs) never changes while the
-> + * policy exists, so this CPU (unlike policy->cpu) stays the same across CPU
-> + * hotplug, and every callback reaches the same copy.
-> + */
-> +static struct cppc_policy_state *
-> +cppc_cpufreq_policy_state(struct cpufreq_policy *policy)
-> +{
-> +	const struct cpumask *policy_cpus = policy->related_cpus;
-> +
-> +	/*
-> +	 * related_cpus is empty until the core fills it in after init(), so
-> +	 * fall back to policy->cpus, which has the same first CPU.
-> +	 */
-> +	if (cpumask_empty(policy_cpus))
-> +		policy_cpus = policy->cpus;
-> +
-> +	return &per_cpu(cppc_policy_state, cpumask_first(policy_cpus));
-> +}
-> +
-> +/*
-> + * Save each register's current value, either as the firmware value, captured
-> + * before the driver programs anything, or as the requested value, to reapply
-> + * at online().
-> + */
-> +static void cppc_cpufreq_save_regs(struct cpufreq_policy *policy,
-> +				   enum cppc_saved_type saved_type)
-> +{
-> +	struct cppc_policy_state *st = cppc_cpufreq_policy_state(policy);
-> +	unsigned int cpu = policy->cpu;
-> +	u64 val;
-> +	int i;
-> +
-> +	for (i = 0; i < CPPC_NR_SAVED_REGS; i++) {
-> +		if (cppc_saved_regs[i].get(cpu, &val))
-> +			val = U64_MAX;
-> +
-> +		st->regs[i][saved_type] = val;
-> +		if (saved_type == CPPC_SAVED_FIRMWARE)
-> +			st->regs[i][CPPC_SAVED_REQUESTED] = U64_MAX;
-> +	}
-> +}
-> +
-> +/*
-> + * Write one tracked register, skipping it when there is no saved value.
-> + * A register the platform does not allow writing is not an error.
-> + */
-> +static void cppc_cpufreq_write_saved_reg(unsigned int cpu,
-> +					 enum cppc_saved_reg_id reg, u64 val,
-> +					 enum cppc_saved_type saved_type)
-> +{
-> +	const char *op = (saved_type == CPPC_SAVED_FIRMWARE) ?
-> +			 "restore firmware" : "reapply saved";
-> +	int ret;
-> +
-> +	if (val == U64_MAX)
-> +		return;
-> +
-> +	ret = cppc_saved_regs[reg].set(cpu, val);
-> +	if (ret == -EOPNOTSUPP)
-> +		return;
-> +	if (ret)
-> +		pr_debug("Failed to %s %s=%llu on CPU%u (%d)\n", op,
-> +			 cppc_saved_regs[reg].name, val, cpu, ret);
-> +}
-> +
-> +/*
-> + * Apply the saved firmware or requested value to each tracked register.
-> + *
-> + * Write auto_sel first when the value being applied enables autonomous
-> + * selection and last when it disables it, so the writes to the dependent
-> + * registers can still take effect. While autonomous selection stays disabled,
-> + * the platform may ignore those writes. Do not enable it temporarily to force
-> + * them through.
-> + */
-> +static void cppc_cpufreq_apply_saved_regs(struct cpufreq_policy *policy,
-> +					  enum cppc_saved_type saved_type)
-> +{
-> +	const struct cppc_policy_state *st = cppc_cpufreq_policy_state(policy);
-> +	unsigned int cpu = policy->cpu;
-> +	u64 auto_sel, val;
-> +	int i;
-> +
-> +	auto_sel = st->regs[CPPC_SAVED_AUTO_SEL][saved_type];
-> +
-> +	if (auto_sel)
-> +		cppc_cpufreq_write_saved_reg(cpu, CPPC_SAVED_AUTO_SEL, auto_sel,
-> +					     saved_type);
-> +
-> +	for (i = CPPC_SAVED_AUTO_SEL + 1; i < CPPC_NR_SAVED_REGS; i++) {
-> +		val = st->regs[i][saved_type];
-> +		cppc_cpufreq_write_saved_reg(cpu, i, val, saved_type);
-> +	}
-> +
-> +	if (!auto_sel)
-> +		cppc_cpufreq_write_saved_reg(cpu, CPPC_SAVED_AUTO_SEL, auto_sel,
-> +					     saved_type);
-> +}
-> +
->  #ifdef CONFIG_ACPI_CPPC_CPUFREQ_FIE
->  static enum {
->  	FIE_UNSET = -1,
-> @@ -800,6 +960,8 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
->  	policy->cur = cppc_perf_to_khz(caps, desired_perf);
->  	cpu_data->perf_ctrls.desired_perf = desired_perf;
->  
-> +	cppc_cpufreq_save_regs(policy, CPPC_SAVED_FIRMWARE);
-> +
->  	ret = cppc_set_perf(cpu, &cpu_data->perf_ctrls);
->  	if (ret) {
->  		pr_debug("Err setting perf value:%d on CPU:%d. ret:%d\n",
-> @@ -843,12 +1005,14 @@ static void cppc_cpufreq_cpu_exit(struct cpufreq_policy *policy)
->   *
->   * The platform may have disabled CPPC and reset the performance controls
->   * (desired, min and max performance) while the CPU was offline, so re-enable
-> - * CPPC and reprogram them.
-> + * CPPC and reprogram them. Also reapply the OSPM-set registers that offline()
-> + * reset to firmware values.
->   *
->   * Report failures without returning them, or the core would free the policy and
->   * leave the CPU without cpufreq. A failed write to the performance controls is
-> - * not fatal, as the governor's next request programs them again. A failed CPPC
-> - * enable stops the restore, as the writes that follow may not reach the
-> + * not fatal, as the governor's next request programs them again. The OSPM-set
-> + * registers are reapplied even then, as no other path restores them. A failed
-> + * CPPC enable skips both restores, as the writes that follow may not reach the
->   * platform.
->   */
->  static int cppc_cpufreq_cpu_online(struct cpufreq_policy *policy)
-> @@ -896,6 +1060,8 @@ static int cppc_cpufreq_cpu_online(struct cpufreq_policy *policy)
->  		WRITE_ONCE(cpu_data->perf_limits_valid, true);
+>  	/* Cleans the error report buffer */
+> -	memset(e, 0, sizeof (*e));
+> +	memset(e, 0, sizeof(*e));
+>  	e->error_count = 1;
+>  	e->grain = 1;
+>  	e->msg = pvt->msg;
+> @@ -323,6 +300,36 @@ static int ghes_edac_report_mem_error(struct notifier_block *nb,
+>  		e->type = HW_EVENT_ERR_INFO;
 >  	}
 >  
-> +	cppc_cpufreq_apply_saved_regs(policy, CPPC_SAVED_REQUESTED);
+> +	return e;
+> +}
 > +
->  out_fie:
->  	/* Restart what offline() stopped, with a new counter snapshot. */
->  	cppc_cpufreq_cpu_fie_init(policy);
-> @@ -915,6 +1081,10 @@ static int cppc_cpufreq_cpu_offline(struct cpufreq_policy *policy)
->  	unsigned int cpu = policy->cpu;
->  	int ret;
+> +static int ghes_edac_report_mem_error(struct notifier_block *nb,
+> +				      unsigned long val, void *data)
+> +{
+> +	struct cper_sec_mem_err *mem_err = (struct cper_sec_mem_err *)data;
+> +	struct cper_mem_err_compact cmem;
+> +	struct edac_raw_error_desc *e;
+> +	struct mem_ctl_info *mci;
+> +	struct ghes_pvt *pvt;
+> +	char *p;
+> +
+> +	/*
+> +	 * We can do the locking below because GHES defers error processing
+> +	 * from NMI to IRQ context. Whenever that changes, we'd at least
+> +	 * know.
+> +	 */
+> +	if (WARN_ON_ONCE(in_nmi()))
+> +		return NOTIFY_OK;
+> +
+> +	guard(spinlock_irqsave)(&ghes_lock);
+> +
+> +	pvt = ghes_pvt;
+> +	if (!pvt)
+> +		return NOTIFY_OK;
+> +
+> +	mci = pvt->mci;
+> +	e = ghes_edac_init_error(pvt, val);
+> +
+>  	edac_dbg(1, "error validation_bits: 0x%08llx\n",
+>  		 (long long)mem_err->validation_bits);
 >  
-> +	/* Save what the OS set, and leave the platform in its pre-driver state. */
-> +	cppc_cpufreq_save_regs(policy, CPPC_SAVED_REQUESTED);
-> +	cppc_cpufreq_apply_saved_regs(policy, CPPC_SAVED_FIRMWARE);
-> +
->  	/*
->  	 * Stop the frequency invariance updates and cancel the pending work, so
->  	 * that no sample spans the offline window. online() restarts them with
+> @@ -375,9 +382,6 @@ static int ghes_edac_report_mem_error(struct notifier_block *nb,
+>  
+>  	edac_raw_mc_handle_error(e);
+>  
+> -unlock:
+> -	spin_unlock_irqrestore(&ghes_lock, flags);
+> -
+>  	return NOTIFY_OK;
+>  }
+>  
 
