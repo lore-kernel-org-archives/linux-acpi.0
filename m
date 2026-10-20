@@ -1,75 +1,76 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.14
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792505522;
-	b=F5sLDUfLAN46WjbEMGQKcBV0px+y5b4b+qEppoHZdDVVicb4QfbOiBh/3E++FG/+96eX
-	 tIndTrbb+KP5VjS3FMVernaOpslduuMuevlcmHQLCSm70d8Dvw+C/HJ9qwfOBQ0xC7rxU
-	 +EQXrUsAqoAy/QyJgzD5qq4q8QmefpfPhh8ULAwuyMZigyjtfTZrtThdMVKX/ulh23Crp
-	 3qeFhgCD/7jzsgACmx9OpnDX1lAwVYd6hZtwLoxpaW2UzCvKOtL4DORJN/q7JGSi7M+ri
-	 1TDyWrArSUl/V4Go3zKa7n1lMR9RkX9l44U1Xu54U12jBRYu0AamquXhRojvK8lENUQ==
+	t=1792505523;
+	b=S8OITriMA2xk3dLO7Yz9X7K0JWhTUTvpjCNNYDxHQ/7NN7PLi20Lk2oYnZb6tYiOITS+
+	 AgcVu0dHqkqFeT/ijahGr6LF7PJD5PCm/G9znhShtxWe2sdTkzpvLxRbWGJcI0ZhHQqS9
+	 ugiCVN6C/Mf7eTHujtZekQ6hdfJnNlnEFuKajmCEjQ6q/4KqDjyQzri1ySOuFlVLFLD6y
+	 2F51syxPX30LmF+yN8rSKax9Nw7pU3scEUpfhjNKW4yFYQBhNKJmJQ5wEqAI4rb9vk8/7
+	 0OAz3IInS+8nxZ5B/N8LWku/GsfALINtFd0PJ7gOkudcaFt94GJwbdAHCH3UsVUfFrg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792505522;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792505523;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
 	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
 	 Date:Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=/RGMtPsTm/8QaP5dJUjKtkf6ssaRNcEBC9Nb0rlpySw=;
-	b=whVqjPOBd4peCyZD5d4aSHeVc2PS4KnyxoOcmq2J+zHQLjIZ8CWOzBK9RgW40uglcAcd
-	 mKPnXGpV9/+mIRA0k3HiRCFiolZHwCYO6dx3tEskPzmRRoZf+7mZMzTHIzLO7uTqf5/IO
-	 fnUmudgpCDfAcVJXQXEPYypxjDsOTD++ZQt8ZYpQZQgh9pEBmD8+So7lyVfKAicYZpQpU
-	 ly9i6wChOKikrTBH7TbF6Yuv2+zSRJppSPrKVIm09MiZ/oPinKBDlgtb9NrViWd6kZRq1
-	 hwezCqrykiaJz8WaQjsQdMf82kzQBuo3p1IxA0OboFItqFJ3XoGA7C9wq4y6J03o7Ww==
+	bh=Zh+CrKCMD7sj/2o1zGTgtKgyJX55Z3YCtyMy1QKVrcw=;
+	b=qCF9hf/1npUl5hFW1c7qlBPXlNCqCih2ZtdpfzljjxQhm/RgL/lQwmjMA9s33sGLF2ia
+	 Gs/S5hAZ8RLA8xTul9nH0AK46lSBEXy1305IDhix79p/Enulox1ZpIg152qBU2t2v1GIc
+	 3FQtkrB9/CnLfH6zNSDaWBVftYgPU3MPgbBm5auI00VMihyhkGJgkbTXXVnM9XD8fJ4fc
+	 eYqx//L8AowhUU+SIYf6R2rEQU0jh5QjaWfOGPDnQ5p1UrDeOOxkhEADiOGA1A8ICfGQk
+	 O6bI3Gokz9bFRJ5Eu1eU6kJXvSQACqBtr1BJfXKkhCa6WAAdMZCFRKQbDayz7Bde6pA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=intel.com;
 	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=QfeeOsni;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=HivJl5AZ;
 	arc=none smtp.remote-ip=192.198.163.14
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CB9D606AA10;
-	Tue, 20 Oct 2026 14:12:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1CB9D606AA10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C0DD606AA09;
+	Tue, 20 Oct 2026 14:12:02 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7C0DD606AA09
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=QfeeOsni
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=HivJl5AZ
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1792505522; x=1824041522;
+  t=1792505523; x=1824041523;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=zQD3hbIPnpgaLY5T8/cjBzLo9/tZJaTRDyNNHF0TFMA=;
-  b=QfeeOsniZHdBBLuiKyzN37b4HB3pW4N16j/gijVdRdMpGvJJvtWsIwwW
-   Gw/ML+BCG/kcdvfcgUnUCbfDYuHQGwKS7HrnYoU+MPXY0yrjjZgI9rE41
-   iOFAXZS++E5oQ0G0WoIJLcway9EwlmcglkwbqhwjCgm5B237vtSzf3Guz
-   pHIMFs+SVV9Ra1FExEpu9bvHWAb0Yekc7hRpK7ufJlAXfXPcXjNE9eJxB
-   GzxxG+tS08BfRGQtTxA9cAcJftzPvDEvy+UqmBEOChAQipUrZTZzR10ts
-   9rSfXb/QSnX2fpzbSjzjr6kQjwLIxVXJuyyDtJMyuIigQ+Bu1IcbjEhMQ
-   Q==;
-X-CSE-ConnectionGUID: ZOX05/T4QUS9vsElPw5Jgg==
-X-CSE-MsgGUID: cYhpew1gQ1yR1KmK2Q84oA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11941"; a="1222320"
+  bh=+2pwMYfRQEbaPtH+nuj1lUbTV7cvPt2H1juZnuVoff8=;
+  b=HivJl5AZhF/YZzhRXqged1xnAIPELoRfSU4mjnl8LG21KV+P7Q7O0iaJ
+   eFp6VvwZKxgwiR7Uf2akHDqKLhK3iKHkMYxnmV9S03l7j4pTRub07zqPI
+   iODe0HoqBPxzIKUsqQm+oLrQeuvuIcsMXrXVxAwbBL4tgBx8spgtus0Tn
+   HH0l+GQFb9mR3VC2Qe04TkkXVX1jLXyv/bZFVlv1ARrXah6L2ZXbWZHP4
+   ZmaSGBKGOzn7KGTcdml/mLEdU8MhKkbwj83z9ksgG8YFlePPXxw6jwlWd
+   wQwERak3sQBCTicPXJVNdiSHNK4z1vQCz7Ncya38Rsi8XoC/IgOUyDM9A
+   g==;
+X-CSE-ConnectionGUID: rY/r/CnnQ96ZUTJRgU5b2g==
+X-CSE-MsgGUID: YrvYUQoLTRqhETf4GQm9lA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11941"; a="1222323"
 X-IronPort-AV: E=Sophos;i="6.27,168,1787036400"; 
-   d="scan'208";a="1222320"
+   d="scan'208";a="1222323"
 Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 07:12:01 -0700
-X-CSE-ConnectionGUID: hx9ijRoyQ4+S64Vn60Ucdw==
-X-CSE-MsgGUID: LqACVQSYT7CA8kkf1G/Yhg==
+  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 07:12:03 -0700
+X-CSE-ConnectionGUID: GMcbuG1IQJ28W062TCBhqA==
+X-CSE-MsgGUID: Q9B3Te7vQXeQ4bR8MmzgEQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,168,1787036400"; 
-   d="scan'208";a="2888076"
+   d="scan'208";a="2888081"
 Received: from igk-lkp-server01.igk.intel.com ([10.211.93.152])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 07:11:59 -0700
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 07:12:01 -0700
 From: Pawel Chmielewski <pawel.chmielewski@intel.com>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
 	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	abhinavmir <atg271@gmail.com>,
+	Breno Leitao <leitao@debian.org>,
+	"Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
 	Pawel Chmielewski <pawel.chmielewski@intel.com>
-Subject: [PATCH v1 28/30] ACPICA: iASL: Fix the truncated count of external control methods
-Date: Tue, 20 Oct 2026 16:10:49 +0200
-Message-Id: <20261020141051.2194123-29-pawel.chmielewski@intel.com>
+Subject: [PATCH v1 29/30] ACPICA: dispatcher: Allocate the PCC internal buffer only once per region
+Date: Tue, 20 Oct 2026 16:10:50 +0200
+Message-Id: <20261020141051.2194123-30-pawel.chmielewski@intel.com>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20261020141051.2194123-1-pawel.chmielewski@intel.com>
 References: <20261020141051.2194123-1-pawel.chmielewski@intel.com>
@@ -84,51 +85,52 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
+From: Breno Leitao <leitao@debian.org>
 
-AcpiGbl_NumExternalMethods counts the external control methods that the
-disassembler finds in a table. Its type is BOOLEAN, which is an unsigned
-char, so the counter wraps at 256. A table with more than 255 external
-control methods gets a wrong count.
+AcpiDsCreateField() allocates InternalPccBuffer for operation regions in
+the PCC address space. It runs once per Field() operator, so a second
+Field() naming the same region overwrites the pointer and orphans the
+buffer the first one allocated. The matching ACPI_FREE() in
+AcpiUtDeleteInternalObj() only ever sees the last one.
 
-The wrong count makes the disassembler print a bogus warning.
-AcpiGbl_ResolvedExternalMethods is a UINT32 and keeps the correct value.
-The two counts then differ, even when the disassembler resolves every
-method. AcpiDmUnresolvedWarning() subtracts the counts to get the number
-of unresolved methods. That unsigned subtraction wraps and gives a very
-large number. A table with 300 externals, all of them resolved, reports
-"There were 44 external control methods found during disassembly, but
-only 300 were resolved (4294967040 unresolved)".
+Every field unit of a PCC region reads and writes through
+RegionObj->Field.InternalPccBuffer, so one buffer per region is enough.
+Skip the allocation when the region object already has one.
 
-A count that is an exact multiple of 256 truncates to zero. In that case
-AcpiDmUnresolvedWarning() returns early and prints no warning at all,
-even when methods stay unresolved.
+Reproduced with a table declaring two Field() operators on one PCC
+region. Before, acpiexec reports the orphaned buffer at exit:
 
-Change the type of AcpiGbl_NumExternalMethods to UINT32, which is the
-type of AcpiGbl_ResolvedExternalMethods.
+  0x4a09b0 Length 0x00C0   dsfield-0705 [Not a Descriptor]
+  ACPI Error: 5 (0x5) Outstanding cache allocations
 
-Link: https://github.com/acpica/acpica/commit/36a5217a09bd
-Link: https://github.com/open-acpica/acpica/pull/1221
-Originally-by: abhinavmir <atg271@gmail.com>
-Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
+After, that allocation is gone and field access is unchanged.
+
+On Linux, this is detected by kmemleak, as shown in [1].
+
+Link: https://github.com/acpica/acpica/commit/c71849d476bb
+Link: https://lore.kernel.org/all/20260813-acpica-pcc-field-leak-v1-1-3d6c5f0eb557@debian.org/ [1]
+Link: https://github.com/open-acpica/acpica/pull/1218
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Pawel Chmielewski <pawel.chmielewski@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpica/dsfield.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 08b8270b10de..5294983a6795 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -294,7 +294,7 @@ ACPI_INIT_GLOBAL(ACPI_PARSE_OBJECT_LIST, *acpi_gbl_temp_list_head, NULL);
+diff --git a/drivers/acpi/acpica/dsfield.c b/drivers/acpi/acpica/dsfield.c
+index d916ff6dd501..28f8293da6a7 100644
+--- a/drivers/acpi/acpica/dsfield.c
++++ b/drivers/acpi/acpica/dsfield.c
+@@ -528,7 +528,8 @@ acpi_ds_create_field(union acpi_parse_object *op,
+ 	}
  
- ACPI_GLOBAL(u8, acpi_gbl_dm_opt_disasm);
- ACPI_GLOBAL(u8, acpi_gbl_dm_opt_listing);
--ACPI_GLOBAL(u8, acpi_gbl_num_external_methods);
-+ACPI_GLOBAL(u32, acpi_gbl_num_external_methods);
- ACPI_GLOBAL(u32, acpi_gbl_resolved_external_methods);
- ACPI_GLOBAL(struct acpi_external_list *, acpi_gbl_external_list);
- ACPI_GLOBAL(struct acpi_external_file *, acpi_gbl_external_file_list);
+ 	if (info.region_node->object->region.space_id ==
+-	    ACPI_ADR_SPACE_PLATFORM_COMM) {
++		    ACPI_ADR_SPACE_PLATFORM_COMM &&
++	    !region_node->object->field.internal_pcc_buffer) {
+ 		region_node->object->field.internal_pcc_buffer =
+ 		    ACPI_ALLOCATE_ZEROED(info.region_node->object->region.
+ 					 length);
 -- 
 2.50.1
 
