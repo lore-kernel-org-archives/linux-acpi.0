@@ -1,75 +1,74 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.14
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792505519;
-	b=hqaPRqh7Tn+D+bRGLjA4kHWHVdbMh2o5w4jk3f8Riiw8PAx3Kf2Wn1bQCUntT+nIDyU+
-	 ckLVsUbv8TNlWpbV8dVABvg1DOpoZnsHfvFcbvNdC9AzTo9d5zWfbFvibNXi7FnLwRiCv
-	 tWVF46hBAMEQ6N5a8VDzLqPMxcuAWyNf6eHQZRXWtIIukb24yxSHGhtdP9V7oeZpuy+4s
-	 fSKuTNWWugTIgvrp1Bw0/44owlLzbbTeo2jxyUPdRko4djMibqBtJt7SY1QDge9zCfS42
-	 hVKU6lDJPUpfBiMIm23qRbnq3AsG78SP/mJCjDPezmbESQGiQ8xfvb21afuAYo6/y7w==
+	t=1792505525;
+	b=gGQd5R0NjF7vCl5FLvQP5TiBsDTj9I5CUA8OdFrfSzeM/Qr1mBwtE8hm3LgtGLCA4H/d
+	 aXei6DswhAACnsMOFNMKgKNOPQD4sBRGTtjK5Izg3QBw9xQA6KDWElinaVRvZVMAtkbld
+	 3114NoGoH4LDN3P1YSE90AJuut89Xh2bO5fHoS42/H2hHNZJVRUOv2ux4hcCCdrSZauGC
+	 kSsA0kOL/OdorBUmsjkHrjmg+XgXNRZxGS0a7y9Pgk+Q8ZQUJmix2ZLbca8Bbcp7j4s88
+	 dMxvAF6mI7YbcY6+1kZXWDPKIIyGm5WxZ3mCsoOi5f8GrssviatXLqrlsN+PGEDrB6g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792505519;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792505525;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
 	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
 	 Date:Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=mjj/N/IW6W5rLe1E2ulLBABFXrxMVmw8rULzGCm6H34=;
-	b=R8HeM/rTHX8xtFJiAjhHldhRSAYsszO1YIlJAMmUjKRHcpFjdOd+nKIicAOgOBU9ja2K
-	 lkCu2/Ma8KqhhamHSesPaoiSSulqkhLMOCfmLc0V5atLmZB8Zm3+AYq13zdpufOQpic5e
-	 80TOrxxni5midHWeOEJ/RL6WkDCgMYcA/6o6g+mDYW9jnQeO1VjrwjprQaSoxGCOIpnKd
-	 J+YCCt5lnYU6aZtebALgVz7HBJm3GgCjtoAvaBOQ13ojanPZTSi8xsiqPs5JYTeD9mA2N
-	 SOlB4kZeQDoUtCrSony3EyuqoJI9/FQ7Onm//UQoEAS+MBx8g/0wLZUAYVFVfI4Rgkw==
+	bh=WHGoCidqFSyi/pUScArPHnmY62JmBnz40/TVqc3BEQU=;
+	b=MDa60y+RwCxewArbpmwAFa4SVaY1SlY11Wwjq9cY6oXckuHUMXPSwjdEYosc6RyErDRk
+	 +1OlwnBRqcrqKXsreoe/6yLRtUCaZYxOLEIn/ELgcQ6DJdP4Sm0ZlBibHzfwJ8boq3ihF
+	 rZyF/GC0MnEcle56CKI9yx3/uj6UOWCi6LqmyzZKewnQNRampDbHDQRpmijgqaUmm9VwY
+	 QUSAtMEZPXXyVWeU94SitCgZTcs/NSBDahmBjsix+osQjH5GtomHP8lX8AtHp7WZXULf2
+	 U2Y2dmyMqM0fte+JRIZr/0zhu9PbffTbGapvlylBhgl3U+MwAsseSZ9jPuA5o6PAGtw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=intel.com;
 	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=MzD+aDRF;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b="RAUQj/0g";
 	arc=none smtp.remote-ip=192.198.163.14
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E90EC60A5BC6;
-	Tue, 20 Oct 2026 14:11:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E90EC60A5BC6
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07F63606AA34;
+	Tue, 20 Oct 2026 14:12:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 07F63606AA34
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=MzD+aDRF
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=RAUQj/0g
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1792505507; x=1824041507;
+  t=1792505525; x=1824041525;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=fTmumLRcwjYpM0vFKTiyuvshvUKJA5pTbWfCdmMx2qM=;
-  b=MzD+aDRFK4Ht+W5dB7XLInWo1wMVsf9a51R7RJYSa4gJkgJJco0kmVkH
-   Ok2/0yNqMnn15GHkpG+FNGe6RhZtkAYZDcpY3PeDPhQ1WUe0GYazgc8y4
-   RVOe8cYVAoifMQUQiMdZBxAnAGAlMm9TqkqpVbk7B366cwzgcadkqTBNu
-   PDOJIsET/61lDktm9oYnxuZmdf1fUnkXga5RAuvC70OqIeBJW2yMvnZB+
-   IXtBDGkCTt3O4RDlsgGO/K8OPkBKIJ6G9g6E5ceIc0Ix+lW/8RzYjI4Ae
-   vJAtwnAvOS2n+LMUMQIOCPNnzE9KVXzbVhG5Sx98dpzXR76Xygrm255Ji
-   A==;
-X-CSE-ConnectionGUID: VY7XIpuZTZ+tDaSU4u4qmw==
-X-CSE-MsgGUID: ozmh2QnWRT28JpcCv/eUbA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11941"; a="1222279"
+  bh=Cw+iEn6H4Xjb0C/nRsSqQor1kcEUPNaTGXaJvFuVa3M=;
+  b=RAUQj/0grmmwy/VLqL6o5Dpv5ObHaelMZf8lbPfyn1C2ISzp8VCCw594
+   7pYCtwOg/jyXDvscn9jTdHY/4y2Ae+P461qNB/RYM4N43WjxKXgfWe/x8
+   vh1vAHNuD6Y4Xj2iq9rwLa3Pu0Zi5JPddscgeb7BD7I8A3zN/4NKS05KV
+   85upocY3YWLgmexRCScMIkP81YYtbWUuz5SlZy3IpaqNyeN79BpSCdQj4
+   MTr1tAIXzgMImI2eJk6n6ecQghyFEbmVkUMvCIyW1j69ky7j7YiL79BI6
+   FlhWEc4A+YhOr5Bl5FTlNsiQB2tOtQFPvzDFAMYpllUfvg0A1ycYh1PLL
+   w==;
+X-CSE-ConnectionGUID: rFnC6IbgTcyx1pMcdliz+Q==
+X-CSE-MsgGUID: WBkbh07RRJCwuW7vjf5nuw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11941"; a="1222327"
 X-IronPort-AV: E=Sophos;i="6.27,168,1787036400"; 
-   d="scan'208";a="1222279"
+   d="scan'208";a="1222327"
 Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 07:11:46 -0700
-X-CSE-ConnectionGUID: 66Tc5YBpRqW1sHN+u26YmA==
-X-CSE-MsgGUID: s+ojw+84TWiVYHliC5Vwhg==
+  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 07:12:04 -0700
+X-CSE-ConnectionGUID: BuA52f2wTGeZCIMMPzYRQQ==
+X-CSE-MsgGUID: WjnonV9YRU2Dyze8oyOa9A==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,168,1787036400"; 
-   d="scan'208";a="2887998"
+   d="scan'208";a="2888093"
 Received: from igk-lkp-server01.igk.intel.com ([10.211.93.152])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 07:11:44 -0700
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 07:12:02 -0700
 From: Pawel Chmielewski <pawel.chmielewski@intel.com>
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>,
 	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	Dot Slash <jyjuykuytweg@gmail.com>,
 	Pawel Chmielewski <pawel.chmielewski@intel.com>
-Subject: [PATCH v1 19/30] ACPICA: executer: Fix NULL pointer dereference in AcpiExStoreObjectToIndex()
-Date: Tue, 20 Oct 2026 16:10:40 +0200
-Message-Id: <20261020141051.2194123-20-pawel.chmielewski@intel.com>
+Subject: [PATCH v1 30/30] ACPICA: release: Update version to 20260930
+Date: Tue, 20 Oct 2026 16:10:51 +0200
+Message-Id: <20261020141051.2194123-31-pawel.chmielewski@intel.com>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20261020141051.2194123-1-pawel.chmielewski@intel.com>
 References: <20261020141051.2194123-1-pawel.chmielewski@intel.com>
@@ -86,58 +85,30 @@ Content-Transfer-Encoding: 8bit
 
 From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 
-Fix a possible NULL pointer dereference when trying to store an empty
-buffer into an indexed string or buffer. Source-buffers are only
-allocated if the Length is non-zero.
+Write most relevant changes that happened since the last release. Move
+the release notes to a markdown file for nice formatting compared to the
+currently used txt file. Finally update the release number.
 
-Similarly to AcpiExConvertToInteger() reject empty buffers with an
-error.
-
-Link: https://github.com/acpica/acpica/commit/077d74a42549
-Reported-by: Dot Slash <jyjuykuytweg@gmail.com>
-Closes: https://github.com/open-acpica/acpica/issues/1193
+Link: https://github.com/acpica/acpica/commit/e85aa3bebaae
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 Signed-off-by: Pawel Chmielewski <pawel.chmielewski@intel.com>
 ---
- drivers/acpi/acpica/exstore.c | 20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ include/acpi/acpixf.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/exstore.c b/drivers/acpi/acpica/exstore.c
-index 86be6bce1648..cd60fc366b08 100644
---- a/drivers/acpi/acpica/exstore.c
-+++ b/drivers/acpi/acpica/exstore.c
-@@ -295,13 +295,29 @@ acpi_ex_store_object_to_index(union acpi_operand_object *source_desc,
- 			break;
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 9557462e0be8..051ea76b7f5d 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -12,7 +12,7 @@
  
- 		case ACPI_TYPE_BUFFER:
--		case ACPI_TYPE_STRING:
+ /* Current ACPICA subsystem version in YYYYMMDD format */
  
--			/* Note: Takes advantage of common string/buffer fields */
-+			/*
-+			 * A zero-length buffer has no first element and a NULL
-+			 * Pointer (see acpi_ut_create_buffer_object). Reject it, as is
-+			 * done for the buffer-to-integer conversion.
-+			 */
-+			if (!source_desc->buffer.length) {
-+				ACPI_BIOS_EXCEPTION((
-+					AE_INFO, AE_AML_BUFFER_LIMIT,
-+					"Source is a zero-length buffer, no data to store"));
-+				return_ACPI_STATUS(AE_AML_BUFFER_LIMIT);
-+			}
+-#define ACPI_CA_VERSION                 0x20260408
++#define ACPI_CA_VERSION                 0x20260930
  
- 			value = source_desc->buffer.pointer[0];
- 			break;
- 
-+		case ACPI_TYPE_STRING:
-+
-+			/* A String always has a pointer; a null string stores a zero */
-+
-+			value = (u8)source_desc->string.pointer[0];
-+			break;
-+
- 		default:
- 
- 			/* All other types are invalid */
+ #include <acpi/acconfig.h>
+ #include <acpi/actypes.h>
 -- 
 2.50.1
 
