@@ -1,62 +1,63 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.2
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=220.197.31.3
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792594963;
-	b=wQbEVOaVwU1u3HE+L2PTtxWwsKTS+3zyZkpl9HMTgFIaj5jL0RBC7k/rsnBtbduXQ96b
-	 MLD5sxsgaxRypFEqZM7iZzmZZ5wzQZLCiJbtAdCW0NTF1ic6NusnWtzK1s+KDJqUpJl5k
-	 0pLWqrmKIHBvuCP/fWsr0NxtIwkKpcEjKqmIXymXuecePzwS3w1HdmUVQ0kcTOkUcL3Z+
-	 ue2oy6ya/UsXwgjOx+pPsoeb3cRVBonpxf7NrfMdtgrvyVkMDP+E+ar2DgIl3LwJEd2UO
-	 uohX3ym3Ij7SPCuwS5+UIOPWQYPymYUGOTyyCfa2slqx3Nb0wZhRh4+5lzk8nbEAuDw==
+	t=1792595090;
+	b=L/CvUiDP/+lciT/X2AolBe5nfmWc3BAPod0qRY+FagiGuFhWOQjvHApOhm/QXyYn0AJY
+	 FA8WAQPD7AZr8X1WyRIXtbUCBw9EqOc6YmHx0fkSXMcJ6npIksuedyyj+cVTfEjS7wCu/
+	 qof5NPHnbIzDFWZePqNfl9/1C7HGzwes1UPYE5FTqaUDEcvEu/RoJoOBPqOT0az4+wvfo
+	 WpgZIIj5x6Zo7QZthWaKpdSZ+3QP48steECiGzKy7x/JTiohypknya+qSknKpDYq7N3ST
+	 xBJp4kXnB+N+g28lRhrxj3vsQL79tmOrYfaHtaK6HF3PeNLZzLls8YHepzYEnKM5RzQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792594963;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-CM-TRANSID:X-Coremail-Antispam:X-CM-SenderInfo;
-	bh=d5JxF9k90cA5rrayOyNwrmjTdjOiAyML1KCzl9Ju/xA=;
-	b=3OIebkuvAZyap7msg53kZ6vMHyYQOAij+ALW7UJKToB9/LVHnXswjD5SorQDGIkIu+pN
-	 X4o42jNUqGG7bM0tk8ak7t696WyNFnduKtmOYSPfQJlZ2W7mzTvn8crSgfgamY/ciKVIm
-	 xsrWC9J+JLwl8nk+xOzt2b/MwRDU9Vp9pL8ZwXwwQND3TLD07mmT9DqvHEM2sPt4+LQZ7
-	 8LqArc+1TEbdGTdWku5e25I1FE41zR+fCxEp1DbNhm5oKDqMDsVtHoE289Z/A9rPrUE/p
-	 2eGiMH3JjoaZFWaeKsViWBQU1JmzvG7M4Qjk032gB7DxO3YeyZrZBlywbhLdJhoeE5Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792595090;
+	h=DMARC-Filter:DKIM-Signature:Date:From:To:Cc:Subject:X-Priority:
+	 X-Mailer:In-Reply-To:References:X-NTES-SC:Content-Transfer-Encoding:
+	 Content-Type:MIME-Version:Message-ID:X-Coremail-Locale:X-CM-TRANSID:
+	 X-CM-SenderInfo:X-Coremail-Antispam;
+	bh=8T+G7Q1w12+FTvzcXtLFnt6A23468XnwYVbQ1vgJF1U=;
+	b=A+huqX0Y6e0uWOl9NH+lnHl8ESG5PwoSpa//Q50vj7yjym1Ak7Bp0s1N8FE/Ltega6N3
+	 WevlNslGLjBa5TVYFPJDWJN0aIRY8eqbL58CTQPvy6Mz/+y0LzLhJAAnLwfC41YCXUzwa
+	 obZhOWIbEe0BpwVIbAYy+x25ySMzTyYSiUPDZON4EC8qIjqE6uBjWckkgDETuoYmmu6Gd
+	 CXS6Wx4MxVOCdYIX8qag6r99hBAtVpPpLFouM9uTkc7tUBMx/M7kI3a5YAiQUBT8tR7LF
+	 rNBAHr9bj6rcWO4z78nIryweuAdnWndLFEHbgnZSFmvkcGoY5+piM5ZhSVOq0HSEjdw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=163.com;
 	spf=pass smtp.mailfrom=163.com;
-	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=Kb5CqPro;
-	arc=none smtp.remote-ip=117.135.210.2
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.2])
+	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=mcG7Nd6g;
+	arc=none smtp.remote-ip=220.197.31.3
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.3])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B95E6606A319;
-	Wed, 21 Oct 2026 15:02:40 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B95E6606A319
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DF5E606A31B;
+	Wed, 21 Oct 2026 15:04:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2DF5E606A31B
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=Kb5CqPro
+	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=mcG7Nd6g
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=d5
-	JxF9k90cA5rrayOyNwrmjTdjOiAyML1KCzl9Ju/xA=; b=Kb5CqProWoljNLQKNL
-	rLEqQpNjBOGWopPeGnGtvBdhzY9Ot8ton/Ijr65VxBdXJ4WKze3+dL9yIN6Mpj8h
-	GjptTPNp2B9Au8pRW7cQWZB6WBj2wZUSEQ3UJbiQV0+Ac1nvQnEY9MxThluIJsPT
-	dQnUAXz4ufk5Zg26OtFJSvENY=
-Received: from pc.localdomain (unknown [])
-	by gzga-smtp-mtada-g1-2 (Coremail) with SMTP id _____wD3_8ro09hqpMAiBg--.20706S2;
-	Wed, 21 Oct 2026 23:02:03 +0800 (CST)
-From: Jiale Yao <yaojiale02@163.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Keith Busch <kbusch@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: stable@vger.kernel.org,
-	Dave Jiang <dave.jiang@intel.com>
-Subject: [PATCH v2] lib/firmware_table: validate subtable bounds
-Date: Wed, 21 Oct 2026 23:01:59 +0800
-Message-Id: <20261021150159.399043-1-yaojiale02@163.com>
-X-Mailer: git-send-email 2.34.1
+	s=s110527; h=Date:From:To:Subject:Content-Type:MIME-Version:
+	Message-ID; bh=8T+G7Q1w12+FTvzcXtLFnt6A23468XnwYVbQ1vgJF1U=; b=m
+	cG7Nd6ge2s6/IFaIVw8tn3Su7pqOJXDgx3CPYCqWBsHZkR3mSL4aNvIcOfKlnC7G
+	SG5m7UtzKqGEBPCNeYSd1J65ooiraZaP3O7GhJ7EyYBhE+mLOW/dIpzWA9KN5c70
+	/maWeMsfX42LGhMOh7rSe6Y/7VVH1Eq/ENkk3QWcuM=
+Date: Wed, 21 Oct 2026 23:04:23 +0800 (CST)
+From: "jiale yao" <19888972804@163.com>
+To: "Dave Jiang" <dave.jiang@intel.com>
+Cc: "Andrew Morton" <akpm@linux-foundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	"Len Brown" <lenb@kernel.org>, linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org
+Subject: Re:Re: [PATCH] lib/firmware_table: validate subtable bounds
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version 2023.4-cmXT build
+ 20260511(2e539873) Copyright (c) 2002-2026 www.mailtech.cn 163com
+In-Reply-To: <10926256-ce32-4403-9f45-84f42fefe29c@intel.com>
+References: <20261016144154.2818962-1-yaojiale02@163.com>
+ <20261016161547.bc418897d11f3f19924065b4@linux-foundation.org>
+ <10926256-ce32-4403-9f45-84f42fefe29c@intel.com>
+X-NTES-SC: AL_Qu2SAPmSukgt5SKaZekcn08ShO49XMOyvfoi2YFTc+AEnyzt4CYNekNFJlbR4NixDT6PtCCIYido2OlHUoR6sXcqme3QhY/LPdOMDp6b5A==
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=GBK
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -66,74 +67,81 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wD3_8ro09hqpMAiBg--.20706S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW7CF1Dur1UGF4kuFykuw4kZwb_yoW8tw4rpF
-	1fK3s8trWFqFy7Xrn7J3WFyF4YvrW7W3ZxAFyxKr18twn8ZF1rWFy3G3sFqFZ3ZrWxWF4Y
-	gayjqry8Cr4kAaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07UhL0OUUUUU=
-X-CM-SenderInfo: x1dryxhdohiji6rwjhhfrp/xtbC7wsAOmrY0+tkOAAA3I
+Message-ID: <748c0fc7.9d0c.1a15efdf1bc.Coremail.19888972804@163.com>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID:aygvCgDnzz531Nhqz4ddAA--.902W
+X-CM-SenderInfo: x1dryxhdohiji6rwjhhfrp/xtbC7xcjXWrY1HdxIAAA3G
+X-Coremail-Antispam: 1U5529EdanIXcx71UUUUU7vcSsGvfC2KfnxnUU==
 
-The generic firmware table walker dispatches matching entries after only
-checking that a generic subtable header is present. A record whose
-declared length is shorter than its header or extends past the table can
-therefore reach a handler before its bounds have been established.
-
-Once a complete generic header is available, validate the declared record
-range before looking up or invoking a handler. This rejects zero-length
-and truncated records while preserving the existing behavior of ignoring
-trailing table data too short to contain another subtable header.
-
-Fixes: 60574d1e05b0 ("acpi: Create subtable parsing infrastructure")
-Cc: stable@vger.kernel.org
-Cc: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Jiale Yao <yaojiale02@163.com>
----
-Changes in v2:
-- Preserve support for trailing padding shorter than a subtable header.
-- Add the stable and code-author Cc trailers.
----
- lib/fw_table.c | 20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
-
-diff --git a/lib/fw_table.c b/lib/fw_table.c
-index 16291814450e..40846044e01b 100644
---- a/lib/fw_table.c
-+++ b/lib/fw_table.c
-@@ -172,7 +172,15 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
- 	    ((unsigned long)table_header + table_size);
- 	subtable_len = acpi_get_subtable_header_length(&entry);
- 
--	while (((unsigned long)entry.hdr) + subtable_len < table_end) {
-+	while ((unsigned long)entry.hdr + subtable_len <= table_end) {
-+		entry_len = acpi_get_entry_length(&entry);
-+		if (entry_len < subtable_len ||
-+		    entry_len > table_end - (unsigned long)entry.hdr) {
-+			pr_err("[%4.4s:0x%02lx] Invalid length %lu\n", id,
-+			       acpi_get_entry_type(&entry), entry_len);
-+			return -EINVAL;
-+		}
-+
- 		for (i = 0; i < proc_num; i++) {
- 			if (acpi_get_entry_type(&entry) != proc[i].id)
- 				continue;
-@@ -186,16 +194,6 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
- 			break;
- 		}
- 
--		/*
--		 * If entry->length is 0, break from this loop to avoid
--		 * infinite loop.
--		 */
--		entry_len = acpi_get_entry_length(&entry);
--		if (entry_len == 0) {
--			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, proc->id);
--			return -EINVAL;
--		}
--
- 		entry.hdr = (union acpi_subtable_headers *)
- 		    ((unsigned long)entry.hdr + entry_len);
- 	}
--- 
-2.34.1
-
+QXQgMjAyNi0xMC0xOSAyMzoyOTo1NywgIkRhdmUgSmlhbmciIDxkYXZlLmppYW5nQGludGVsLmNv
+bT4gd3JvdGU6Cj4KPgo+T24gMTAvMTYvMjYgNDoxNSBQTSwgQW5kcmV3IE1vcnRvbiB3cm90ZToK
+Pj4gT24gRnJpLCAxNiBPY3QgMjAyNiAyMjo0MTo1NCArMDgwMCBKaWFsZSBZYW8gPHlhb2ppYWxl
+MDJAMTYzLmNvbT4gd3JvdGU6Cj4+IAo+Pj4gVGhlIGdlbmVyaWMgZmlybXdhcmUgdGFibGUgd2Fs
+a2VyIGRpc3BhdGNoZXMgbWF0Y2hpbmcgZW50cmllcyBhZnRlciBvbmx5Cj4+PiBjaGVja2luZyB0
+aGF0IGEgZ2VuZXJpYyBzdWJ0YWJsZSBoZWFkZXIgaXMgcHJlc2VudC4gQSByZWNvcmQgd2hvc2UK
+Pj4+IGRlY2xhcmVkIGxlbmd0aCBpcyBzaG9ydGVyIHRoYW4gaXRzIGhlYWRlciBvciBleHRlbmRz
+IHBhc3QgdGhlIHRhYmxlIGNhbgo+Pj4gdGhlcmVmb3JlIHJlYWNoIGEgaGFuZGxlciBiZWZvcmUg
+aXRzIGJvdW5kcyBoYXZlIGJlZW4gZXN0YWJsaXNoZWQuCj4+Pgo+Pj4gVmFsaWRhdGUgdGhlIGNv
+bXBsZXRlIGdlbmVyaWMgaGVhZGVyIGFuZCB0aGUgZGVjbGFyZWQgcmVjb3JkIHJhbmdlCj4+PiBi
+ZWZvcmUgbG9va2luZyB1cCBvciBpbnZva2luZyBhIGhhbmRsZXIuIFRoaXMgYWxzbyByZWplY3Rz
+IHplcm8tbGVuZ3RoCj4+PiByZWNvcmRzIGFuZCBwcmV2ZW50cyBtYWxmb3JtZWQgbGVuZ3RocyBm
+cm9tIGFkdmFuY2luZyB0aGUgY3Vyc29yIG91dHNpZGUKPj4+IHRoZSB0YWJsZS4KPj4gCj4+IFRo
+YW5rcy4KPj4gCj4+IGdldF9tYWludGFpbmVyIGlzIHF1aXRlIHVucmVsaWFibGUgd2l0aCBsaWIv
+IGZpbGVzLiAgUGxlYXNlIGFsd2F5cyB1c2UKPj4gZ2l0LWJsYW1lIHdoZW4gZGV0ZXJtaW5pbmcg
+d2hvIHNob3VsZCBiZSBjYydlZC4KPj4gCj4+IERhdmUsIGNhbiB5b3UgcGxlYXNlIHRha2UgYSBs
+b29rPwo+PiAKPj4+IC0tLSBhL2xpYi9md190YWJsZS5jCj4+PiArKysgYi9saWIvZndfdGFibGUu
+Ywo+Pj4gQEAgLTE3Miw3ICsxNzIsMjAgQEAgYWNwaV9wYXJzZV9lbnRyaWVzX2FycmF5KGNoYXIg
+KmlkLCB1bnNpZ25lZCBsb25nIHRhYmxlX3NpemUsCj4+PiAgCSAgICAoKHVuc2lnbmVkIGxvbmcp
+dGFibGVfaGVhZGVyICsgdGFibGVfc2l6ZSk7Cj4+PiAgCXN1YnRhYmxlX2xlbiA9IGFjcGlfZ2V0
+X3N1YnRhYmxlX2hlYWRlcl9sZW5ndGgoJmVudHJ5KTsKPj4+ICAKPj4+IC0Jd2hpbGUgKCgodW5z
+aWduZWQgbG9uZyllbnRyeS5oZHIpICsgc3VidGFibGVfbGVuIDwgdGFibGVfZW5kKSB7Cj4+PiAr
+CXdoaWxlICgodW5zaWduZWQgbG9uZyllbnRyeS5oZHIgPCB0YWJsZV9lbmQpIHsKPj4+ICsJCWlm
+ICh0YWJsZV9lbmQgLSAodW5zaWduZWQgbG9uZyllbnRyeS5oZHIgPCBzdWJ0YWJsZV9sZW4pIHsK
+Pj4+ICsJCQlwcl9lcnIoIlslNC40c10gSW52YWxpZCBzdWJ0YWJsZSBoZWFkZXJcbiIsIGlkKTsK
+Pj4+ICsJCQlyZXR1cm4gLUVJTlZBTDsKPj4+ICsJCX0KPj4+ICsKPj4+ICsJCWVudHJ5X2xlbiA9
+IGFjcGlfZ2V0X2VudHJ5X2xlbmd0aCgmZW50cnkpOwo+Pj4gKwkJaWYgKGVudHJ5X2xlbiA8IHN1
+YnRhYmxlX2xlbiB8fAo+Pj4gKwkJICAgIGVudHJ5X2xlbiA+IHRhYmxlX2VuZCAtICh1bnNpZ25l
+ZCBsb25nKWVudHJ5Lmhkcikgewo+Pj4gKwkJCXByX2VycigiWyU0LjRzOjB4JTAybHhdIEludmFs
+aWQgbGVuZ3RoICVsdVxuIiwgaWQsCj4+PiArCQkJICAgICAgIGFjcGlfZ2V0X2VudHJ5X3R5cGUo
+JmVudHJ5KSwgZW50cnlfbGVuKTsKPj4+ICsJCQlyZXR1cm4gLUVJTlZBTDsKPj4+ICsJCX0KPj4+
+ICsKPj4+ICAJCWZvciAoaSA9IDA7IGkgPCBwcm9jX251bTsgaSsrKSB7Cj4+PiAgCQkJaWYgKGFj
+cGlfZ2V0X2VudHJ5X3R5cGUoJmVudHJ5KSAhPSBwcm9jW2ldLmlkKQo+Pj4gIAkJCQljb250aW51
+ZTsKPj4+IEBAIC0xODYsMTYgKzE5OSw2IEBAIGFjcGlfcGFyc2VfZW50cmllc19hcnJheShjaGFy
+ICppZCwgdW5zaWduZWQgbG9uZyB0YWJsZV9zaXplLAo+Pj4gIAkJCWJyZWFrOwo+Pj4gIAkJfQo+
+Pj4gIAo+Pj4gLQkJLyoKPj4+IC0JCSAqIElmIGVudHJ5LT5sZW5ndGggaXMgMCwgYnJlYWsgZnJv
+bSB0aGlzIGxvb3AgdG8gYXZvaWQKPj4+IC0JCSAqIGluZmluaXRlIGxvb3AuCj4+PiAtCQkgKi8K
+Pj4+IC0JCWVudHJ5X2xlbiA9IGFjcGlfZ2V0X2VudHJ5X2xlbmd0aCgmZW50cnkpOwo+Pj4gLQkJ
+aWYgKGVudHJ5X2xlbiA9PSAwKSB7Cj4+PiAtCQkJcHJfZXJyKCJbJTQuNHM6MHglMDJ4XSBJbnZh
+bGlkIHplcm8gbGVuZ3RoXG4iLCBpZCwgcHJvYy0+aWQpOwo+Pj4gLQkJCXJldHVybiAtRUlOVkFM
+Owo+Pj4gLQkJfQo+Pj4gLQo+Pj4gIAkJZW50cnkuaGRyID0gKHVuaW9uIGFjcGlfc3VidGFibGVf
+aGVhZGVycyAqKQo+Pj4gIAkJICAgICgodW5zaWduZWQgbG9uZyllbnRyeS5oZHIgKyBlbnRyeV9s
+ZW4pOwo+Pj4gIAl9Cj4+PiAtLSAKPj4+IDIuMzQuMQo+Cj5DYW4gdGhpcyB0dXJuIGEgcHJldmlv
+dXNseSBhY2NlcHRlZCB0YWJsZSBpbnRvIGEgZmF0YWwgcGFyc2UgZXJyb3I/IE15Cj5tYWluIGNv
+bmNlcm4gaXMgYnJlYWtpbmcgcHJldmlvdXNseSB0b2xlcmF0ZWQgYmVoYXZpb3IgYW5kIHdlIGVu
+ZCB1cAo+YnJlYWtpbmcgZGVwbG95ZWQgc3lzdGVtcy4gR2l2ZW4gdGhpcyBjb2RlIGhhcyBiZWVu
+IGFyb3VuZCBhIGxvbmcgdGltZS4KPk1heWJlIFJhZmFlbCBvciBMZW4gY2FuIGNvbW1lbnQuCj4K
+PlRoZSBvbGQgbG9vcCBzdG9wcGVkIHF1aWV0bHkgd2hlbiBzdWJ0YWJsZV9sZW4gb3IgZmV3ZXIg
+Ynl0ZXMgcmVtYWluZWQKPmFmdGVyIHRoZSBsYXN0IGVudHJ5LiBIZXJlIHN1YnRhYmxlX2xlbiBp
+cyBzaXplb2YoKSB0aGUgc3VidGFibGUgaGVhZGVyCj5zdHJ1Y3R1cmUsIDIgYnl0ZXMgZm9yIE1B
+RFQgb3IgNCBmb3IgQ0RBVCwgbm90IHRoZSBlbnRyeSdzIGxlbmd0aCBmaWVsZC4KPgo+Tm93IGZl
+d2VyIHRoYW4gc3VidGFibGVfbGVuIGxlZnRvdmVyIGJ5dGVzIHJldHVybiAtRUlOVkFMLiBFeGFj
+dGx5Cj5zdWJ0YWJsZV9sZW4gbGVmdG92ZXIgYnl0ZXMgYXJlIHJlYWQgYXMgYSBoZWFkZXIsIGFu
+ZCBmYWlsIHRoZSBlbnRyeV9sZW4KPmNoZWNrIGJlbG93IHVubGVzcyB0aGV5IGhhcHBlbiB0byBo
+b2xkIGEgdmFsaWQgb25lLiBBIHRhYmxlIHdpdGggYSBmZXcKPmJ5dGVzIG9mIHBhZGRpbmcgYWZ0
+ZXIgdGhlIGxhc3QgZW50cnkgbm93IGZhaWxzIHRoZSB3aG9sZSBwYXJzZS4KPgo+T24geDg2IHRo
+YXQgZXJyb3IgaXMgbm90IGNvbnRhaW5lZCB0byBvbmUgZW50cnkgdHlwZToKPgo+ZWFybHlfYWNw
+aV9wcm9jZXNzX21hZHQoKQo+ICBlYXJseV9hY3BpX3BhcnNlX21hZHRfbGFwaWNfYWRkcl9vdnIo
+KQo+ICAgIGFjcGlfdGFibGVfcGFyc2VfbWFkdChBQ1BJX01BRFRfVFlQRV9MT0NBTF9BUElDX09W
+RVJSSURFLCAuLi4pCj4gICAgICAtPiAtRUlOVkFMCj4KPglpZiAoZXJyb3IgPT0gLUVJTlZBTCkg
+ewo+CQkuLi4KPgkJcHJfZXJyKCJJbnZhbGlkIEJJT1MgTUFEVCwgZGlzYWJsaW5nIEFDUElcbiIp
+Owo+CQlkaXNhYmxlX2FjcGkoKTsKPgl9Cj4KPldvdWxkIGl0IGJlIHNhZmVyIHRvIGtlZXAgdG9s
+ZXJhdGluZyBsZWZ0b3ZlciBieXRlcyB0b28gc21hbGwgdG8gaG9sZCBhCj5zdWJ0YWJsZSBoZWFk
+ZXIsIGFuZCByZWplY3Qgb25seSBlbnRyaWVzIHdob3NlIGRlY2xhcmVkIGxlbmd0aCBpcwo+aW52
+YWxpZD8gVGhlIGxvb3AgY29uZGl0aW9uIGNhbiBlbmQgdGhlIHdhbGsgaW4gdGhhdCBjYXNlIHdp
+dGhvdXQgYQo+c2VwYXJhdGUgY2hlY2s6Cj4KPgl3aGlsZSAoKHVuc2lnbmVkIGxvbmcpZW50cnku
+aGRyICsgc3VidGFibGVfbGVuIDw9IHRhYmxlX2VuZCkgewo+CQllbnRyeV9sZW4gPSBhY3BpX2dl
+dF9lbnRyeV9sZW5ndGgoJmVudHJ5KTsKPgkJaWYgKGVudHJ5X2xlbiA8IHN1YnRhYmxlX2xlbiB8
+fAo+CQkgICAgZW50cnlfbGVuID4gdGFibGVfZW5kIC0gKHVuc2lnbmVkIGxvbmcpZW50cnkuaGRy
+KSB7Cj4JCQkuLi4KPgkJCXJldHVybiAtRUlOVkFMOwo+CQl9ClRoYW5rcyBmb3IgeW91ciByZXZp
+ZXcsCmhvdyBhYm91dCB0aGlzIG9uZSwgaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvYWxsLzIwMjYx
+MDIxMTUwMTU5LjM5OTA0My0xLXlhb2ppYWxlMDJAMTYzLmNvbQoKSmlhbGUK
