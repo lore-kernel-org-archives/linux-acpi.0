@@ -1,76 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.17
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792545141;
-	b=RqYWhTewdmd0qCTNCNJ44TMLYEELWgyLLkdwMmmHPskrR5liCalVU4+GV+S/obwtJ5yM
-	 vFW0uT8Ny9Un3RaFhnZvZkH4TJhfouZd6zatLM2alrhY5mQZLsaeRr0NuyASryXgegmK5
-	 BxyPmEs6tglCxRAOj22zvTtOpR1TswGAJMLcldLpL3TvrJ6hDiY6io1UPzT9yVaWeoXgL
-	 tuhT0BXHUYzUACL1pgkemNigRr7uVANDhwOMWFNaR//SBPKl1xBXE46zmfr9KVYeSKSpF
-	 pye2iMsb2a3hRLXquQkGiHraoQRF+3074dsq5Ljg3gbzzBFGBkbMQd+5/aBKIJpR+0w==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792545141;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:User-Agent;
-	bh=WEGNaxJcoitnt3C6W0gIalaRt1sxv5/ptmrm7PtgSW8=;
-	b=q1XBT866xp4t7viqtYBn5yZelGSssSy8yCHq6l9A98O7XLjV8In8CqxEpIOHHmQfgQXJ
-	 4wdiya/q2mZXt18/YsVPhIsH0Ffl6RWUYqr98MuNjHTsjn+RVy4oIv6mQN+b628VfL44F
-	 /zaKD9uOK17WNSP+piq5bxmRcJ73ZrFVzCNaJtCo9odgucNLXj9Ro8RuVgcm0Q8G02LBb
-	 dSq3IWCvSo9r9GE3qFyjVbXOPkz8HRqUrwZmvzcrQjqDTLlfZkGu6JbDEeR30MXWmNoZT
-	 MYS8NiKcXRYWB38eZxdHGcV8PD4G39m4NHq7SE3oQ+vCkCSuExiZ411QkZ1Hh9oB54w==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=DStf41WP;
-	arc=none smtp.remote-ip=192.198.163.17
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.47
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1792558722;
+	b=uvlaJqzhlEzf5PucMnDElgk2u47SVp7RHhfHBCEajt4iuamvkr08L594dWNreRohr7f0
+	 xyBacr/dbFJZl3A1sEGb6TbYfI1VzDxKNPHnHJEibKxfuKt8lY0Jovj/6ZhvYb8Q+QdpD
+	 yKugDE6+F8Z0wnaXUxQ2YoF8V8LsNljM+acdNcUlRSNRSbz6ZLdWx+f/Hpqlos3tStz2N
+	 kSfBNIZf3dpiQd6VblInGn0RLuqtBPaKGnA6bbQAf6FNz9e0TlmNYuLfbfq6pMG5Prh1K
+	 L0MCXiv2INnQvDcEyZNKSvuPlpPoMCchaZHyAxaEWZu7CGyoeqr0OY2XpVxOeL3jKIw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792558722;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:MIME-Version:From:Date:
+	 X-Gm-Features:Message-ID:Subject:To:Cc:Content-Type;
+	bh=1A5vWPfzXmURnJh3IOMTPK7uEh1Ro9Aj0hKW+NQ7k5M=;
+	b=fDzZYQesnArgapxmG/tl0zFqzvkQaOmVLbYx3JvmDsfHXdelhnIfSxVrmKEXh6cz4cDE
+	 FZHE4cCa52CSfmy6/6T4ubetrV3iaW4srNQT9ylmfZy1wCKOY376YP4KJlqYGmX1WK2+5
+	 K6rfvsKkvyx9UmvJI1ERAhvTbT330sKVdY7xM8Bg6xFLNmH6xhB/x8Evu3ZgtoK60HwTF
+	 j/oUTnOWRuOWWXVNya+e578LpagtiwUx7qN6vjyL0dNxmLKJ4XI7Z7P10mMnNIxEmWD5S
+	 Xuam56czsVmv21VfrxA9/bOPh2vzJrIUOhlqlCLYUuWZf7fMahO6/V7jcOzq5Y9kdLQ==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b="GDe/NFTj";
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.208.47
+Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CEC7606A319;
-	Wed, 21 Oct 2026 01:12:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9CEC7606A319
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAE43606A31B
+	for <linux-acpi@vger.kernel.org>; Wed, 21 Oct 2026 04:58:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EAE43606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=DStf41WP
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1792545139; x=1824081139;
-  h=date:from:to:cc:subject:message-id;
-  bh=KBkX6ZXbiqc28IqHQRknF9oyGe+bjVwUANOYsEYpgIE=;
-  b=DStf41WP0/HhgXvFunWY/Z8RnakplahZk4kQ1e6UeYFBJ8S+hYm/XIWy
-   0odmT4ZOGzc/0plyt0gou4Dg4nIA0Z5wcJygj5+4n3V9jABE7EvgG6P4m
-   6Ydhew/YaIF3UjCGqOApEfEOOFK4kT+F2mXVX6fvqbKvqVmsFh5Mae2id
-   DzrLqCNdLsOIx1lDN+ridN2bJQIY2UYYheEZEaJ4S3DduG0JE8lYmks5X
-   4Ww1vy2S5TYQkQUbg12fgRw8Hyo93Xma0Hz26Sk//R56vgm3tkX/SwGPW
-   NFGpfTrmaHhRadQUyHpaq2j2n/CNSwtm+TEFw9izP0eVli32QrEJl5YNs
-   A==;
-X-CSE-ConnectionGUID: +4JHPfKVTY6u5qtYUvG4fg==
-X-CSE-MsgGUID: NnD7nV+BRaWoRezH2POb7w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11941"; a="1262641"
-X-IronPort-AV: E=Sophos;i="6.27,169,1787036400"; 
-   d="scan'208";a="1262641"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2026 18:12:19 -0700
-X-CSE-ConnectionGUID: /6k4Wr7tS6WkzTTJLVvdZg==
-X-CSE-MsgGUID: 1H4NaqUHScSTof20rh6mng==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,169,1787036400"; 
-   d="scan'208";a="2903596"
-Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
-  by orviesa002.jf.intel.com with ESMTP; 20 Oct 2026 18:12:17 -0700
-Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xJKsI-00000000Olo-1d8D;
-	Wed, 21 Oct 2026 01:12:14 +0000
-Date: Wed, 21 Oct 2026 09:11:20 +0800
-From: kernel test robot <lkp@intel.com>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Subject: [rafael-pm:bleeding-edge] BUILD SUCCESS
- a7b81d2593fc90a93e108441a04e3b258d19f074
-Message-ID: <202610210917.ChrHHfpc-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=GDe/NFTj
+Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-6a0a4aa99bdso337674a12.1
+        for <linux-acpi@vger.kernel.org>; Tue, 20 Oct 2026 21:58:41 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1792558720; cv=none;
+        d=google.com; s=arc-20260327;
+        b=gkA04Updqdeviyg2SyorDOyz1dg3fxIeL+MdiP3u/r0ohWwjDBfqguYDhSji4vzB2/
+         SEkVf7FixeEi1K9ej/CXN1MA5IAjx/KW9bf0NPNCK4dAG+UDRoCp9L4b2zjHDvIkKRWb
+         pNkEZHBdQx7Z05/whNFVwuDQi/v2ESzAMJERTae/KNXOcs8/ZDrDgdEW8/ujbrGh2Q2T
+         4Y7DBRV2QEnLJgAgUS4CXhSCMJJiogsAhNM8S9xts+9b8JwPIk4mezy0KHQy0SjFZnZM
+         Lkvvl/1Y5Nw4FLCNYiYpl9CdSucVeRULrjyi2R7rult/G7VRZBp1jP5zSm06BDA4Qi+p
+         cM/g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=1A5vWPfzXmURnJh3IOMTPK7uEh1Ro9Aj0hKW+NQ7k5M=;
+        fh=QWb+bMVM57RCf6O5oWQcwJ3IipT5bV1f0adVi0mFSK0=;
+        b=LT6kIaR3y3N/ztytvt5H3T5495e/3wptsyNwWnNCvnmlnNNFjudK7OUPJA6jLJTKfl
+         34fYC5xtrC4g3DsA6Q4xl7FCrAwmO3OeiHLn5GzxdcMsc767EucnIF4Sdx+1WSKXiYBv
+         OUZXlU+BeMFL1hX4d6CuXlhrzAafxBJ1vIQ9TmYPlRKPSo8IPQDq8fHvsSItPXQWsL1O
+         QMrAEdluzOZr70zQPwNOfpBaBQxutPikow8tas4TtQH1rBax3Thf3pmjlLZCL1mKXLFa
+         hBECbcT0IJTyU9U6G9c3ja4JVebadFwrez5HOVgPcCPrhuLbhFihQNvEKGJDOIXpLUw+
+         C6JQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1792558720; x=1793163520; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=1A5vWPfzXmURnJh3IOMTPK7uEh1Ro9Aj0hKW+NQ7k5M=;
+        b=GDe/NFTj9YIGLIgeB3tlXXf5gmjIk8gSzbebF6kz4aN2YuDoVRytx09zHP+24DnniS
+         Rbx7pU4+aS/HAgkuBdP+C4xoeqnBiHdUJHvwWV+Rs/y8R5WpgR1ju8TX2b2TdvUEcUqy
+         ZxjXk/sy4XyfsuBhoZUozCwmR1TyCh5pJ8LyKyvOYERkU8QiXAwMmaKKrMwme1T/ASxT
+         IepWKEvLA1et+mZoNfLj8ImLnSHopiESMNZVnxzIzyMTUO7DnwZyh9/4NONn3o+XzF6i
+         ODjAMjLVepguf8vMPoTQbN4wPQoX9ORj1ogXm3zUlxunx1sgCoJbxGj4wBklcXlhlLbf
+         IFcQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792558720; x=1793163520;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=1A5vWPfzXmURnJh3IOMTPK7uEh1Ro9Aj0hKW+NQ7k5M=;
+        b=ZbbOtro1tzZQjLOCdpyK3HbJwUCFZWUh6ohB/QON+Mo4KX8AZrMvIHj4GE2ajETVtm
+         +G2nhMN81DY1R91MSs7dj80sw+ZbZab4AkLuFVvtrRVlhX7ssksTEa9KZdl2u7goU20X
+         OdYCfnGpoytfaojQdtAL//CpgeW3mot+sat+ffnQ4o1xQWBMI6DkpV+UgPBUlQl2ekmO
+         jRXu8iTnLvXTC9WGT+Hu3a4INNUEk/5CkXCJNLZzTk/IYRX9v8Td6pmn4rGUcYyLz28L
+         lAFuXRCAldndgP2NkkOc/ahQLW5Bmd0/YYg64dWs2Txk0auvS0RWev3RxrcOjd7EfuE9
+         uI4A==
+X-Gm-Message-State: AFq9FYJtDdlumfH/lOExHsFhoQAjkLGQyRIHX1s9NLIqul+gcKK1BdM1
+	kXtwL56cZ0Vre6d7EbnKTVttOEE5efThVEdCH3FtwbK6K6raAS3PNtCB4OWxXXxQwJNs/bBjq2v
+	l0S4+Zx3JWHQ+TXsUwcklHALS2TizTjVulTTE
+X-Gm-Gg: AYBFou1NfbzUWivfjQPtygk5qh6xVp11fyxH34KCy9QCKxqBjVNW4fQO313YdJPVIbw
+	gjaZAb7GPwzjY9nfTV4umNNqzi1C267RCtebzKIBjj8A5JyGxcoJ3b/uDI2pxXLoZOBXMlrUlht
+	HytXWJg4010vS9L2j14NWnJWlGhfs1NBnR3FrabDFe92VCUQkcURgBfUeieT6fxMT0H6zMmVEKm
+	ij8MQR1EeidwRZ6yptDgpM8WA2oXAES0k+qmVW4OSU5JnRDqvUWZ+DVO90Xy8S7ypVtv9V1kU+e
+	OVuZaZLbBvpvPuPLSDu/OyltlHDM7sGqcoj8YLmgRp6WjdkKZZo5DH8ho3EPP22kWUvVLkmicT4
+	Knvjz481GNyCyreLq8Gmim9ktrfpnApN2I9V9
+X-Received: by 2002:a05:6402:461a:b0:6ac:7868:b690 with SMTP id
+ 4fb4d7f45d1cf-6b408ea0819mr370267a12.8.1792558720180; Tue, 20 Oct 2026
+ 21:58:40 -0700 (PDT)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -79,192 +98,133 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+From: Sneako <dogg123456789@gmail.com>
+Date: Wed, 21 Oct 2026 00:58:24 -0400
+X-Gm-Features: AclHuK9BwCRQ9D5n7cgXqtTagXZ0FVJpq2wT9TZyouAzuCvT-oX37znOxUsdfVw
+Message-ID: <CABXKy5Ln7m_ixqn_hi4WRH8N4Jx7FFn9GMqTzkKz-FamCf0ZaQ@mail.gmail.com>
+Subject: [BUG] ACPI: s2idle: Microsoft LPS0 _DSM revision mismatch prevents EC
+ standby on Acer PHN16S-71
+To: linux-acpi@vger.kernel.org
+Cc: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-branch HEAD: a7b81d2593fc90a93e108441a04e3b258d19f074  Merge tag 'thermal-7.4-rc1' into bleeding-edge
+Hello,
 
-elapsed time: 1327m
+I would like to report a reproducible ACPI suspend-to-idle problem on
+the Acer Predator PHN16S-71, for which I have identified and
+experimentally verified a specific firmware compatibility issue in
+drivers/acpi/x86/s2idle.c.
 
-configs tested: 172
-configs skipped: 5
+Hardware and software
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+Acer Predator PHN16S-71, Intel Core Ultra 9 275HX (Arrow Lake-HX)
 
-tested configs:
-alpha                              allnoconfig    gcc-16.2.0
-alpha                             allyesconfig    gcc-16.2.0
-alpha                                defconfig    gcc-16.2.0
-arc                               allmodconfig    clang-24
-arc                                allnoconfig    gcc-16.2.0
-arc                               allyesconfig    gcc-16.2.0
-arc                                  defconfig    gcc-16.2.0
-arc                   randconfig-1000-20261020    gcc-10.5.0
-arc                   randconfig-1001-20261020    gcc-10.5.0
-arm                                allnoconfig    gcc-16.2.0
-arm                               allyesconfig    clang-24
-arm                                  defconfig    gcc-16.2.0
-arm                   randconfig-1000-20261020    gcc-10.5.0
-arm                   randconfig-1001-20261020    gcc-10.5.0
-arm                   randconfig-1002-20261020    gcc-10.5.0
-arm                   randconfig-1003-20261020    gcc-10.5.0
-arm64                              allnoconfig    gcc-16.2.0
-arm64                                defconfig    gcc-16.2.0
-arm64                 randconfig-1000-20261020    gcc-8.5.0
-arm64                 randconfig-1001-20261020    gcc-8.5.0
-arm64                 randconfig-1002-20261020    gcc-8.5.0
-arm64                 randconfig-1003-20261020    gcc-8.5.0
-csky                              alldefconfig    gcc-16.2.0
-csky                              allmodconfig    gcc-16.2.0
-csky                               allnoconfig    gcc-16.2.0
-csky                                 defconfig    gcc-16.2.0
-csky                  randconfig-1000-20261020    gcc-8.5.0
-csky                  randconfig-1001-20261020    gcc-8.5.0
-hexagon                           allmodconfig    gcc-16.2.0
-hexagon                            allnoconfig    gcc-16.2.0
-hexagon                              defconfig    gcc-16.2.0
-hexagon               randconfig-1000-20261020    clang-17
-hexagon               randconfig-1001-20261020    clang-17
-i386                              allmodconfig    clang-22
-i386                               allnoconfig    gcc-16.2.0
-i386                              allyesconfig    clang-22
-i386        buildonly-randconfig-1000-20261020    clang-22
-i386        buildonly-randconfig-1001-20261020    clang-22
-i386        buildonly-randconfig-1002-20261020    clang-22
-i386        buildonly-randconfig-1003-20261020    clang-22
-i386        buildonly-randconfig-1004-20261020    clang-22
-i386        buildonly-randconfig-1005-20261020    clang-22
-i386                                 defconfig    gcc-16.2.0
-i386                  randconfig-1000-20261020    gcc-14
-i386                  randconfig-1001-20261020    gcc-14
-i386                  randconfig-1002-20261020    gcc-14
-i386                  randconfig-1003-20261020    gcc-14
-i386                  randconfig-1004-20261020    gcc-14
-i386                  randconfig-1005-20261020    gcc-14
-i386                  randconfig-1006-20261020    gcc-14
-i386                  randconfig-1007-20261020    gcc-14
-i386                  randconfig-1008-20261020    gcc-14
-i386                  randconfig-1009-20261020    gcc-14
-i386                  randconfig-1010-20261020    gcc-14
-i386                  randconfig-1011-20261020    gcc-14
-i386                  randconfig-1012-20261020    gcc-14
-i386                  randconfig-1013-20261020    gcc-14
-loongarch                          allnoconfig    gcc-16.2.0
-loongarch                            defconfig    clang-24
-loongarch             randconfig-1000-20261020    clang-17
-loongarch             randconfig-1001-20261020    clang-17
-m68k                              allmodconfig    gcc-16.2.0
-m68k                               allnoconfig    gcc-16.2.0
-m68k                              allyesconfig    clang-24
-m68k                                 defconfig    clang-24
-microblaze                         allnoconfig    gcc-16.2.0
-microblaze                        allyesconfig    gcc-16.2.0
-microblaze                           defconfig    clang-24
-mips                              allmodconfig    gcc-16.2.0
-mips                               allnoconfig    gcc-16.2.0
-mips                              allyesconfig    gcc-16.2.0
-mips                 malta_qemu_32r6_defconfig    gcc-16.2.0
-nios2                             allmodconfig    clang-20
-nios2                              allnoconfig    clang-24
-nios2                                defconfig    clang-24
-nios2                 randconfig-1000-20261020    clang-17
-nios2                 randconfig-1001-20261020    clang-17
-openrisc                          allmodconfig    clang-20
-openrisc                           allnoconfig    clang-24
-openrisc                             defconfig    gcc-16.2.0
-parisc                            allmodconfig    gcc-16.2.0
-parisc                             allnoconfig    clang-24
-parisc                            allyesconfig    clang-17
-parisc                               defconfig    gcc-16.2.0
-parisc                randconfig-1000-20261020    clang-17
-parisc                randconfig-1001-20261020    clang-17
-parisc64                             defconfig    clang-24
-powerpc                           allmodconfig    gcc-16.2.0
-powerpc                            allnoconfig    clang-24
-powerpc                       arches_defconfig    gcc-16.2.0
-powerpc                      mpc83xx_defconfig    gcc-16.2.0
-powerpc               randconfig-1000-20261020    clang-17
-powerpc               randconfig-1001-20261020    clang-17
-powerpc64             randconfig-1000-20261020    clang-17
-powerpc64             randconfig-1001-20261020    clang-17
-riscv                              allnoconfig    clang-24
-riscv                             allyesconfig    clang-24
-riscv                                defconfig    gcc-16.2.0
-riscv                 randconfig-1000-20261020    gcc-11.5.0
-riscv                 randconfig-1001-20261020    gcc-11.5.0
-s390                              allmodconfig    clang-17
-s390                               allnoconfig    clang-24
-s390                              allyesconfig    gcc-16.2.0
-s390                                 defconfig    gcc-16.2.0
-s390                  randconfig-1000-20261020    gcc-11.5.0
-s390                  randconfig-1001-20261020    gcc-11.5.0
-sh                                allmodconfig    gcc-16.2.0
-sh                                 allnoconfig    clang-24
-sh                                allyesconfig    clang-17
-sh                          ap325rxa_defconfig    gcc-16.2.0
-sh                                   defconfig    gcc-14
-sh                          ecovec24_defconfig    gcc-16.2.0
-sh                    randconfig-1000-20261020    gcc-11.5.0
-sh                    randconfig-1001-20261020    gcc-11.5.0
-sh                           sdk7780_defconfig    gcc-16.2.0
-sh                    secureedge5410_defconfig    gcc-16.2.0
-sparc                              allnoconfig    clang-24
-sparc                                defconfig    gcc-16.2.0
-sparc                 randconfig-1000-20261020    clang-20
-sparc                 randconfig-1001-20261020    clang-20
-sparc64                           allmodconfig    clang-20
-sparc64                              defconfig    gcc-14
-sparc64               randconfig-1000-20261020    clang-20
-sparc64               randconfig-1001-20261020    clang-20
-um                                allmodconfig    clang-17
-um                                 allnoconfig    clang-24
-um                                allyesconfig    gcc-16.2.0
-um                                   defconfig    gcc-14
-um                              i386_defconfig    gcc-14
-um                    randconfig-1000-20261020    clang-20
-um                    randconfig-1001-20261020    clang-20
-um                            x86_64_defconfig    gcc-14
-x86_64                            allmodconfig    clang-22
-x86_64                             allnoconfig    clang-24
-x86_64                            allyesconfig    clang-22
-x86_64      buildonly-randconfig-1000-20261020    gcc-14
-x86_64      buildonly-randconfig-1001-20261020    gcc-14
-x86_64      buildonly-randconfig-1002-20261020    gcc-14
-x86_64      buildonly-randconfig-1003-20261020    gcc-14
-x86_64      buildonly-randconfig-1004-20261020    gcc-14
-x86_64      buildonly-randconfig-1005-20261020    gcc-14
-x86_64                               defconfig    gcc-14
-x86_64                                   kexec    clang-22
-x86_64                randconfig-1000-20261020    clang-22
-x86_64                randconfig-1001-20261020    clang-22
-x86_64                randconfig-1002-20261020    clang-22
-x86_64                randconfig-1003-20261020    clang-22
-x86_64                randconfig-1004-20261020    clang-22
-x86_64                randconfig-1005-20261020    clang-22
-x86_64                randconfig-1006-20261020    gcc-14
-x86_64                randconfig-1007-20261020    gcc-14
-x86_64                randconfig-1008-20261020    gcc-14
-x86_64                randconfig-1009-20261020    gcc-14
-x86_64                randconfig-1010-20261020    gcc-14
-x86_64                randconfig-1011-20261020    gcc-14
-x86_64                randconfig-1012-20261020    clang-22
-x86_64                randconfig-1013-20261020    clang-22
-x86_64                randconfig-1014-20261020    clang-22
-x86_64                randconfig-1015-20261020    clang-22
-x86_64                randconfig-1016-20261020    clang-22
-x86_64                randconfig-1017-20261020    clang-22
-x86_64                                rhel-9.4    clang-22
-x86_64                            rhel-9.4-bpf    gcc-14
-x86_64                           rhel-9.4-func    clang-22
-x86_64                     rhel-9.4-kselftests    clang-22
-x86_64                          rhel-9.4-kunit    gcc-14
-x86_64                            rhel-9.4-ltp    gcc-14
-x86_64                           rhel-9.4-rust    clang-22
-xtensa                             allnoconfig    clang-24
-xtensa                            allyesconfig    clang-20
-xtensa                randconfig-1000-20261020    clang-20
-xtensa                randconfig-1001-20261020    clang-20
+Acer/Insyde BIOS version 1.28
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+CachyOS kernel 7.2.11-1-cachyos
+
+Suspend-to-idle (S0ix); no ACPI S3 support
+
+Problem
+
+On Linux, suspend blanks the display but leaves the fans, power
+indicator and performance-mode lighting active. Windows correctly
+shuts these components down.
+
+The Microsoft Modern Standby _DSM interface (UUID
+11e00d56-ce64-47ce-837b-1f898f9aa461) is detected, and the kernel
+reports successful sleep-entry and sleep-exit notifications.
+
+However, kprobe traces of acpi_evaluate_dsm() show:
+
+revision=1 function=7  (sleep entry)
+revision=1 function=8  (sleep exit)
+
+Simultaneous tracing of acpi_os_write_port() shows none of the
+expected EC commands during these callbacks.
+
+Firmware investigation
+
+I extracted and decompiled the laptop's BIOS 1.28 DSDT.
+
+The Microsoft _DSM implementation executes its function dispatch only
+when ToInteger(Arg1) == Zero.
+
+Function 7 performs:
+
+EC0.E3CS(0xEC)
+PGPI.SGOV(0x00160C8B, 0)
+EC0.E3CS(0xE4)
+
+Function 8 reverses the GPIO state and calls EC0.E3CS(0xE5).
+
+E3CS writes to an ACPI SystemIO region at physical port 0x6E.
+
+Suspected kernel issue
+
+In lps0_device_attach(), the Microsoft _DSM is probed using revision
+0. However, the shared rev_id variable is subsequently set to 1 for
+Intel's separate LPS0 interface.
+
+acpi_sleep_run_lps0_dsm() uses this same variable when invoking both interfaces.
+
+Microsoft's Modern Standby firmware notification documentation
+explicitly specifies revision 0 for functions 3 through 9.
+
+Consequently, Acer's Microsoft _DSM receives revision 1 and returns
+without executing its EC sleep commands.
+
+Experimental confirmation
+
+I constructed a temporary Linux early-initramfs DSDT override,
+changing only the Microsoft _DSM revision condition to accept
+revisions 0 and 1.
+
+With that override:
+
+All affected fans and lights shut off during suspend.
+
+The system wakes normally and the fans and lighting restore correctly.
+
+The same machine, without the override, retains the original faulty
+physical standby behavior.
+
+No BIOS flash, direct EC commands, or fan-control manipulation was involved.
+
+This provides strong evidence that the revision mismatch is
+responsible for the missing platform standby behavior.
+
+Proposed fix
+
+Use revision 0 when invoking the Microsoft platform-agnostic _DSM,
+while retaining the existing revision selection for Intel- and
+AMD-specific _DSM interfaces.
+
+I believe a generic UUID-specific fix may be preferable to a
+machine-specific DMI quirk, since the Microsoft interface documents
+revision 0. I would appreciate the maintainers' assessment of
+compatibility implications.
+
+Separate NVMe issue
+
+This laptop independently requires nvme.noacpi=1 to accumulate Intel
+S0ix residency. With the DSDT override but without that parameter,
+fans and lights correctly turn off, but S0ix residency remains
+essentially zero. With both changes, physical standby behavior and
+Intel S0ix residency work.
+
+I am treating the NVMe issue separately; the proposed _DSM fix is not
+claimed to resolve it.
+
+I can provide the original ACPI tables, kprobe traces, before/after
+Intel PMC captures, and the precise DSDT override.
+
+The issue was reproduced with a CachyOS kernel, and the revision
+mismatch was independently confirmed in upstream source. I have not
+yet boot-tested a kernel rebuilt with the proposed source change.
+
+Microsoft specification:
+https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/modern-standby-firmware-notifications
+
+Thank you for your consideration.
