@@ -1,60 +1,64 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=79.135.106.28
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792601085;
-	b=juSLDqpqve8NDxqz5nH5ykh+ALW4jl8SzzYK20fhmpsTLo11dfPgAqNOiH2qMg/3MHE0
-	 j1HaGG06M095OLbWBOHUshfa1F/6XUJigCEePQsYXVoQhKYWEE6kuRBBSr+mWYY1W7aco
-	 BXDP0mhobRUrjZWn7x5Pt2FLkRrAn6vikriFOeaVZma2MBzl3KMaOkoLzKYS5JdXWKamQ
-	 tusXDXevXPr19JXKMYxowCS5DQcBy0KRC3qk3a5Ub9TvXyaRhqN6cowoiLCUp+Srccy6V
-	 LKrn5OLCUBOVOiNeQ4SIJ6QbkDGZKNmtzz5z8iTA41TV3qQ5IGDR1N8eBTsaD/rCl/w==
+	t=1792620797;
+	b=hP4PUF3HBrsKGlP1Y/GWAWHyXS3icjqIOCFd2+GVuUzZJ4UhH8tecL1Cw+guLbwyzVDH
+	 0N2yqRNaaBrFKZ3RoBIl2PAwubrW11huGlZKSbuR9+0Ilo2EIDpW0T3kokB/fsdZHbknT
+	 VjuByLcL9SaQZ21Wu0g35CCb/j6V1AWawU1/BYIHGKLFH9sYoHYHleTV9OwacWSRrOWu4
+	 JdS4IfMmCOw5jFumadu0biXmOYGLF9bRn5rdqERjSg2WPt5yrz5pQ/GnCFcQ8dL2Z1mll
+	 Gj6wJKgDsTQVVVjy94dP2mjP45GGWeG9ayljPN3OPea4InfLtcjb8DTfrlfno8+jJ+g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792601085;
-	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
-	 In-Reply-To:References:Feedback-ID:X-Pm-Message-ID:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=sF2WgK8kQja2/TCLOQWF9mZEvN3dP13/o7DoaVwiz+E=;
-	b=27cDCiV50Dudf0yeJqaV28pH6TIh6Syzy9VDOPeWpTD4EBJhaMtf/ESr0hyEfOrT/Rnj
-	 QYCVse0pNSL5FtailUZYNrA8pBvmSzmzB4JHlPzX16opUR5KzgRgHCj4InJU7yyRpofRW
-	 5OuLSc8P/mZdLkWz0zYlNkm2tXNg8sZyE8WkEugZsoeauIr3Zs5UeCQwb8lJQMkDePCqP
-	 HwvfwDP1vF44RtS7COmHi2KnW6T3mggwHg9BbqNhPcDELFJhcC22Ksz3QIHieRAHMKXOj
-	 ePCHxNvDNbUei1bxKWxpBG5IdsnT/rj8HApj5B33PefjmmLppCrzKzDx3wuPlSU9IyQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792620797;
+	h=Received:DKIM-Signature:Received:Subject:From:In-Reply-To:References:
+	 X-PR-Tracked-List-Id:X-PR-Tracked-Message-Id:X-PR-Tracked-Remote:
+	 X-PR-Tracked-Commit-Id:X-PR-Merge-Tree:X-PR-Merge-Refname:
+	 X-PR-Merge-Commit-Id:Message-Id:Date:To:Cc;
+	bh=WPzjtOdhZ9CVHVWEYS7wn8WlD7K/zNfSQnHa3pzQl1k=;
+	b=XicPAe1QAyiOe2gFZku3TJvRtasbnPDKRh7lWMAHOdFnALgxhCa4VWyvrOup7CJmmf/E
+	 2ZyUinwOR24Xf1acHva1wURZdDeKnUD9OdaCVX37FemIo9SURXFGWrVqSIAw09scjBe2O
+	 O0vrMzFsp3rJeNzJpmV4IqVkk1l6qpXeIb9okGNWLZa6PzEi1YZ8Bl22wT1V96pv9Qqov
+	 f4bli1CI9ccYi9S+l540PPNWPAqhgud3HjY5B+gFicqtvn3EzRii2inDN/mMZheE5ecB/
+	 IckOjzFqhQZcf8c8t8sEP85hOqgSBAtlcOT3aMiw0wMmPPkLY7w/QFGegqaiVELw1Xg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=proton.me;
-	spf=pass smtp.mailfrom=proton.me;
-	dkim=pass header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=protonmail2 header.b=eAGI52zg;
-	arc=none smtp.remote-ip=79.135.106.28
-Received: from mail-10628.protonmail.ch (mail-10628.protonmail.ch [79.135.106.28])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=C+gwll3B;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC080606A31B
-	for <linux-acpi@vger.kernel.org>; Wed, 21 Oct 2026 16:44:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AC080606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4D8B606A31D;
+	Wed, 21 Oct 2026 22:13:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=protonmail2 header.b=eAGI52zg
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
-	s=protonmail2; t=1792601081; x=1792860281;
-	bh=sF2WgK8kQja2/TCLOQWF9mZEvN3dP13/o7DoaVwiz+E=;
-	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
-	 Message-ID:BIMI-Selector;
-	b=eAGI52zgXiCnFEdHpLNEetEFydnXmAkH3srKqtDjzkdi4u7+QkyLFd3WhcH6rFyzr
-	 hYM194XuN4D5HgldWHzVF8Sc1bXVK+RtcstbS2GaR8nhC9p6/72136AsjqEjVH15Tn
-	 9vkR8a7a5pMOgTkaEEMDDZ8Mr8W6bsPiSzV4f3oiwJ78ehDEo6NagBk6fm8RWJTHQs
-	 Z9cHetvTx2vFniPZy+zX7QUhQcZbiOg5luxOczrbXzQWZcZX14sDx9yRWcJJBvdjPY
-	 f1Cwwo5HeENkSOSx2vFDr5XS/tV7nfsL+KBdvuerLkl8o2wtuP9jBvEVsmqAmfA2Ao
-	 GC9tcqq8bxRAQ==
-Date: Wed, 21 Oct 2026 16:44:35 +0000
-To: Thorsten Leemhuis <regressions@leemhuis.info>
-From: Mikkel Sejdelin <mikkel.sejdelin@proton.me>
-Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>, "regressions@lists.linux.dev" <regressions@lists.linux.dev>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rafael@kernel.org" <rafael@kernel.org>, "sashal@kernel.org" <sashal@kernel.org>
-Subject: Sv: Re: [REGRESSION] 6.18.57: resume from s2idle triggers poweroff and hangs when tiny_power_button is built as a module
-Message-ID: <725HsmAf_bFINWdMxvCiH7SJLNdQs2iY1BiueqlOgIFrbkyv0Anc_2XPYLlkH_l0UVA5IueS_SeZFAe78qbvO-DjcR38vtRixBZTK_jmf1U=@proton.me>
-In-Reply-To: <e8e153c8-2c09-4b86-8991-a8eed56526cb@leemhuis.info>
-References: <1kU98bgDqqEMGUcpGahaBYlaPiP2ssSCZj1uIKq1MEaGpNv2exGeJc3VWzXxB8-VJQ1Uk62W19oByt2KC-v1bSA4Sux9fBhnlA_IHWjV2Zw=@proton.me> <e8e153c8-2c09-4b86-8991-a8eed56526cb@leemhuis.info>
-Feedback-ID: 151291767:user:proton
-X-Pm-Message-ID: dd500dd4ad8dbdc1d41ebb52ee9dbacf3c24a56d
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=C+gwll3B
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 453941F000C1;
+	Wed, 21 Oct 2026 22:13:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792620796;
+	bh=WPzjtOdhZ9CVHVWEYS7wn8WlD7K/zNfSQnHa3pzQl1k=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc;
+	b=C+gwll3BSsD2AlyvS8KJbOlZgc6WwPApO3cA3HGyFnuNpJGQKhNhBPGLFz76KdtJ/
+	 Esd5gVLFVm2ZGBX/1ilyvwL1iWaACqHjmTchyCV+EHCEGr3PKTQukQLMYRujK0sagG
+	 LZekJ6Awjv/jYQ2R9vbm2C0nMLMiZek0kD7qxFdOywMFlV+ujuKA+mm2GZH4NrX1D6
+	 JvH/hB0J44lSuBzmsj4ZVZxAed1JDdA0YLT5prqFANy0K3M+bpS74nxhJYKCOSKA1k
+	 c8/RjpCQQXwxP409aHmdPXW83TKi6QrK+e3B2MwEgOj61aSZJYxRKEhbuRwKg967sb
+	 EcMLi6uC51u2A==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 3A3C2380A962;
+	Wed, 21 Oct 2026 22:13:16 +0000 (UTC)
+Subject: Re: [GIT PULL] ACPI support updates for 7.4-rc1
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <CAJZ5v0jh159XME50-=dm7s7-HbE_kffbhbze-fDPi7RE+pepLg@mail.gmail.com>
+References: <CAJZ5v0jh159XME50-=dm7s7-HbE_kffbhbze-fDPi7RE+pepLg@mail.gmail.com>
+X-PR-Tracked-List-Id: <linux-acpi.vger.kernel.org>
+X-PR-Tracked-Message-Id: <CAJZ5v0jh159XME50-=dm7s7-HbE_kffbhbze-fDPi7RE+pepLg@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-7.4-rc1
+X-PR-Tracked-Commit-Id: 84c4409e8566549d0f21f25e2bac9327dc279d23
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 4df4d2a577db2d3d57b888bcfb1206fc74661d16
+Message-Id: <179262079480.1335980.10558636473814564101.pr-tracker-bot@kernel.org>
+Date: Wed, 21 Oct 2026 22:13:14 +0000
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -63,37 +67,16 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 
-On 10/21/26 15:53, Thorsten Leemhuis wrote:
-> Maybe your request to pick up f4203ec64e1155 ("ACPI: tiny-power-button:
-> Convert the driver to a platform one") is enough to make the stable team
-> pick this up for 6.18.y. Ideally you would try if this really fix this;
-> or have you and I missed this in your mail?
+The pull request you sent on Mon, 19 Oct 2026 19:14:06 +0200:
 
-I had not tested it yet, now I have: f4203ec64e1155 alone on top of
-6.18.57 fixes it. It applies cleanly.
+> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-7.4-rc1
 
-6.18.57 + f4203ec64e1155, tiny_power_button loaded (not blacklisted):
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/4df4d2a577db2d3d57b888bcfb1206fc74661d16
 
-  /sys/bus/platform/devices/PNP0C0C:00/driver -> acpi-button
-  /sys/bus/platform/drivers/acpi-tiny-power-button/ -> (no devices)
+Thank you!
 
-  3/3 suspend/resume cycles OK (lid close, systemctl suspend woken by
-  the power button, systemctl suspend woken by the keyboard). No
-  SIGRTMIN+4, no poweroff, no hang.
-
-With both drivers on the platform bus they compete for PNP0C0C:00 again and=
- only button binds, as it did in 6.18.56.
-
-So please pick up for 6.18.y:
-
-  f4203ec64e11 ("ACPI: tiny-power-button: Convert the driver to a platform =
-one")
-
-6.18.58 is still affected (no ACPI changes in it).
-
-Thanks,
-Mikkel
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
