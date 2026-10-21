@@ -1,89 +1,108 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792587382;
-	b=Jk0xqB4yvP3nL2G+m0KfoJ107/U61yZeUkV7mZukx2xFnQXWYTMwJe1OnMoXM3hiQwuI
-	 HqMJ3F4ECQrDd6driiJWNCl8rZ1jFnSo0Ys5yTPf/zPUpgXMqkekR5aEFlYiKAQ92pW6h
-	 ujMvJxJZMfV/z6dxRoMy7QZ8Drbctzx9cAILvDD+DtE1pmoX+7vW6bwHwlWaDGHDGTsJL
-	 rbpB0I3WnsnTH2bufRM8riWh4rJH2tlKZYxprWYfiSDOsY75H7LJraSjRRvVQjl8oHo1Y
-	 J4Dy3NATrfNq/LgJBCDXrkgIlopViTb+0KL0efph02bmhXHBhGKHMJsohhho7CGW2yg==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792587382;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:Date:To:cc:
-	 Subject:In-Reply-To:Message-ID:References:MIME-Version:Content-Type;
-	bh=zE0wPrOhPgdDBuZiyfrszzR2mLBGoUO+vXgswwY1qW4=;
-	b=vvS8jMh5d9L1uwtFAXE/7/tm48TkB+EFOjfK5bruEndqmYME5Ee99bgTKGpzS9oGgFY2
-	 nXcXSgdpkEMdFAL5sthG64K/QgyO+pgs9TSU8Ycq0xZjUQuTGTkXLsv/DvDldXerWJzub
-	 o3C68EHsU9JnT6bFLT0WjVIB0pXEOw1MGS3KXkedJ+VbMtVuRnwAJPTlZRw4ODH7ftZ/r
-	 bkefgf+bEKd1+zB6izz0cZPBF9TnOSzt8qZkfblUdiAMveValVcDGhqHMkrLsr89nA71E
-	 Cs9v8qXPZFitr5RRuaq0EpbIeAyNttmm3EwCO7iyoiGV4+DSZN1FWeXBvwD5JlcCQ+g==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=H93b7reb;
-	arc=none smtp.remote-ip=192.198.163.18
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.85.33
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1792590002;
+	b=r0aCYhBVZG7BaWdPygA5NiBdHEBd5I0GZLnEDD92+iD8M08Y1+t9hF6e7LxP2RAZjwJV
+	 HDS5GB9TbZqOcWQ5a1cv3tOzCu3ecpMcrr/Smv4c+/InMxbqt7MgscCCPi89JOQrvBjr6
+	 HnBD7kCOjIO3kyvSlFvAg+AxeKzYW3alUQCMONE0NpBZQlQQmofxZLp68EOwrxCKmt3px
+	 o4XfSiBEamzn4EEOy7OXj+uF44VjM/V0bYi8594WMhOGUuExZ/z+B1NKGtqaBpLaWvhZ6
+	 i1BCDaiOonlnkDJ+x0veFPXhD2V05w/SOE/hBzq2k5dM+UdxAhAOKZqylP8O7BBIGiA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792590002;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
+	 User-Agent:Subject:Content-Language:To:Cc:References:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-ClientProxiedBy:MIME-Version:
+	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
+	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
+	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
+	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+	 X-MS-Exchange-CrossTenant-UserPrincipalName:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=/6FM7QolNfHrrPK8nvEjjXkbVjguY4vVbCJlAeDVT3Y=;
+	b=yjLn2jaz0cfdcC/zwoD+yEXInDpLINWqHkh6KmJlKbvga1pVUkeSYE3PlLcVidaQSQvA
+	 tOwQLQFdfBmk5cm2SskC8w8jWDJti4YA8pnnWG4Dg7yPKJCacm7sY+a4ST537/CIKu+0G
+	 2flJ5G1lzWSKL935kQ2ylWJReVUn9obYVN3ZX+ENMQjm1v4mJc58u2rcWAVa0UVNXxnbw
+	 bIlQYfF8i2FN6n3I3zHhEl3DLe6RsCgls71HCspgLzhccs6IcM9nRH0GZ6BVi8btCfcpt
+	 qMDXeGqaEiegfe4UeBoC+7DYuRboMbDZCTd2tIZo3+wuWE/GJ4W91uXxd4HZIxLQwNg==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=amd.com;
+	spf=fail smtp.mailfrom=amd.com;
+	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=Ao4L+vtX;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.85.33
+Received: from BYAPR05CU005.outbound.protection.outlook.com (mail-westusazon11010033.outbound.protection.outlook.com [52.101.85.33])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1286606A319;
-	Wed, 21 Oct 2026 12:56:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F1286606A319
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B1A0606A319;
+	Wed, 21 Oct 2026 13:40:01 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2B1A0606A319
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=H93b7reb
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1792587382; x=1824123382;
-  h=from:date:to:cc:subject:in-reply-to:message-id:
-   references:mime-version;
-  bh=UwleBUfevokjeMBFYNGacuzxhYWtpsd+7UaNr3cdTfI=;
-  b=H93b7rebWBf90uxi7mP/ZFSXyAS1tYyrhWv6y+Bdq7Sr24At0hoRXYMa
-   7fRHvFg18n24k8FnA2r0VsvNe6p7Cf4z+l8Ghn8jK/nzT/gvJrrNMiVrr
-   CQwvD5R1QawWgqv0/FnecwdQ6YG5Z2y6sujjNO2J0tNHhG3OL+NpD83hx
-   P2Hjhi/nIWkwf+od10r7S7KwAPpnHqqVZXtC/wDLuLZpiXXdR3NGXWvWz
-   tbvQGu1bySGglrAwJQ+fhTytrytbANyDd4QF5bj+DZ0a0hFIxcsT2b6nq
-   w1OeZWM21kcLznayTseIbYfLxbGhBOO2roMhhePkpGpE/v2aQAhIffOqp
-   w==;
-X-CSE-ConnectionGUID: 6k7iS0ZcQQ+acBT5oNMU6w==
-X-CSE-MsgGUID: SR4Zi5ziSJuVZyOsiR7R1w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11941"; a="1342780"
-X-IronPort-AV: E=Sophos;i="6.27,170,1787036400"; 
-   d="scan'208";a="1342780"
-Received: from fmviesa012.fm.intel.com ([10.60.135.152])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Oct 2026 05:56:21 -0700
-X-CSE-ConnectionGUID: d9GQnnMIQWO72CuJQ1KxSw==
-X-CSE-MsgGUID: mBatNI4bS72ngTVJhbnyiw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,170,1787036400"; 
-   d="scan'208";a="4845032"
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.75])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Oct 2026 05:56:14 -0700
-From: =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Date: Wed, 21 Oct 2026 15:56:08 +0300 (EEST)
-To: linux-pci@vger.kernel.org
-cc: Hans de Goede <hansg@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, 
-    Mario Limonciello <mario.limonciello@amd.com>, 
-    Maciej Grochowski <Maciej.Grochowski@sony.com>, 
-    Nikolas Joshua Britton <nbritton@exabit.io>, 
-    Geramy Loveless <gloveless@jqluv.com>, Eric Auger <eauger@redhat.com>, 
-    Alexey Fomenko <alexey.fomenko@intel.com>, 
-    Bjorn Helgaas <bhelgaas@google.com>, 
-    Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, 
-    Rob Herring <robh@kernel.org>, 
-    =?ISO-8859-2?Q?Krzysztof_Wilczy=F1ski?= <kw@linux.com>, 
-    Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>, 
-    Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, 
-    x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, 
-    LKML <linux-kernel@vger.kernel.org>, Bradley Morgan <brads@mainlining.org>, 
-    Kai-Heng Feng <kaihengf@nvidia.com>, 
-    Andy Shevchenko <andriy.shevchenko@intel.com>, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v3 8/8] PCI/quirks: Avoid certain address on Genoa
- systems
-In-Reply-To: <b9f0ac77-079c-2383-a572-73ad649af0c8@linux.intel.com>
-Message-ID: <69e5be12-b107-bd7c-8cd0-1db29319bf6b@linux.intel.com>
-References: <20261013224010.GA1589480@bhelgaas> <f823d264-8b9d-422e-bfaf-388957fbc2fa@kernel.org> <b9f0ac77-079c-2383-a572-73ad649af0c8@linux.intel.com>
+	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=Ao4L+vtX
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=ivkUHr3ua/ao1WrUjTHl4MvCmh4eOthrSX5bUEpqxGSUpCuI657ZkQOagZc8p5Cld5SVznb8Y7znBsKvUTsOyft5W5EyN6e+xU/XOCVMKXdqDdH3ch10GBq5oS9WlTAjmjtYwn52QMYvBW6nZyabpLN11r8ed7zdEpMCk2wUDYwiIiyApRoG/ho6MP60Eg4zg/bNB5CbWMFodoVU9vPPCYX/lDmChFRA7GkDRyr9LfHTiljYUHRmMaMh2PILflnKxOvELrCBkoF0teXy16SJnwf4byW2CVRWEez3Gcb9RfyOtv1Q2DW90clBpX01sPT+36zVie/dVRgekGUos60+0w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=/6FM7QolNfHrrPK8nvEjjXkbVjguY4vVbCJlAeDVT3Y=;
+ b=OlOl/e4sz9C18UriFzKsEcS5z1ZKARbxRF66ppgCeUFtQLUvx50Wli4Go0rVcWrAk/VAk1POfCUSl8NuJZeLjUaLuwCYPL2hTsoXLAX9HiK9WeDiANvL8RCegkDNdWHWFFAXBcD6PqM/n52yx5CcLnNCQCELVQGZyA7ZdwDxahXEpkyf31qnTRYc6MwF4vvsrj3s/WRwEjHB/3Kownl+AqYc7UIzupTp30ygBWyNQh8csTIZR5SVZ3fEhgggOOE6ct7YNrICpMJKPTKqdheklCbI0ZDIiqBjr6KNJqx9h5RmFy7Qq0ub9bs0j6l4kvwxTmAUwL0Mp7TsI+Fmkp8kNg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=/6FM7QolNfHrrPK8nvEjjXkbVjguY4vVbCJlAeDVT3Y=;
+ b=Ao4L+vtXvgQqwP56nB2RmcG9tmjebnXzrUhh0KYCYwYbc2bvmJ53AlBwEoPLrC0578zPjaxsn/b8qEP6OQnVvayMhlTA+SejZ9RnUE4xPvv+uznmgOZoHDnnuGALMDMzNqKY6ao8cjmFaoCtDFtSStu7S7Vmi9dMMTnavWP12C4=
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from PH8PR12MB6914.namprd12.prod.outlook.com (2603:10b6:510:1cb::21)
+ by PH0PR12MB8776.namprd12.prod.outlook.com (2603:10b6:510:26f::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.546.15; Wed, 21 Oct
+ 2026 13:39:54 +0000
+Received: from PH8PR12MB6914.namprd12.prod.outlook.com
+ ([fe80::2893:177a:72b0:6000]) by PH8PR12MB6914.namprd12.prod.outlook.com
+ ([fe80::2893:177a:72b0:6000%7]) with mapi id 15.21.0522.017; Wed, 21 Oct 2026
+ 13:39:54 +0000
+Message-ID: <24cb6ea3-eaee-4682-afda-dabc7f347fc2@amd.com>
+Date: Wed, 21 Oct 2026 08:39:51 -0500
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 8/8] PCI/quirks: Avoid certain address on Genoa systems
+Content-Language: en-US
+To: =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+ linux-pci@vger.kernel.org
+Cc: Hans de Goede <hansg@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>,
+ Maciej Grochowski <Maciej.Grochowski@sony.com>,
+ Nikolas Joshua Britton <nbritton@exabit.io>,
+ Geramy Loveless <gloveless@jqluv.com>, Eric Auger <eauger@redhat.com>,
+ Alexey Fomenko <alexey.fomenko@intel.com>,
+ Bjorn Helgaas <bhelgaas@google.com>,
+ Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Rob Herring
+ <robh@kernel.org>, =?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kw@linux.com>,
+ Thomas Gleixner <tglx@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
+ x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
+ LKML <linux-kernel@vger.kernel.org>, Bradley Morgan <brads@mainlining.org>,
+ Kai-Heng Feng <kaihengf@nvidia.com>,
+ Andy Shevchenko <andriy.shevchenko@intel.com>, linux-acpi@vger.kernel.org
+References: <20261013224010.GA1589480@bhelgaas>
+ <f823d264-8b9d-422e-bfaf-388957fbc2fa@kernel.org>
+ <b9f0ac77-079c-2383-a572-73ad649af0c8@linux.intel.com>
+ <69e5be12-b107-bd7c-8cd0-1db29319bf6b@linux.intel.com>
+From: Mario Limonciello <mario.limonciello@amd.com>
+In-Reply-To: <69e5be12-b107-bd7c-8cd0-1db29319bf6b@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: SA1PR05CA0002.namprd05.prod.outlook.com
+ (2603:10b6:806:2d2::8) To PH8PR12MB6914.namprd12.prod.outlook.com
+ (2603:10b6:510:1cb::21)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -93,267 +112,94 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="8323328-1302103120-1792587368=:1258"
-
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---8323328-1302103120-1792587368=:1258
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-Hi all,
-
-I've sent v4 of this series to address a few comments sashiko had for=20
-b3 [1]. v4 does not contain my version of the quirk as it seemed least=20
-likely to be selected among the proposed solutions and the decision is=20
-largely independent from rest of the resource placement series.
-
-[1] https://lore.kernel.org/linux-pci/20261021124956.4250-1-ilpo.jarvinen@l=
-inux.intel.com/
-
---=20
- i.
-
-On Thu, 15 Oct 2026, Ilpo J=E4rvinen wrote:
-
-> On Wed, 14 Oct 2026, Hans de Goede wrote:
->=20
-> > Hi,
-> >=20
-> > On 14-Oct-26 00:40, Bjorn Helgaas wrote:
-> > > [+cc Hans, Kai-Heng, Andy, linux-acpi]
-> > >=20
-> > > On Tue, Oct 13, 2026 at 01:59:23PM -0500, Mario Limonciello wrote:
-> > >> On 10/13/26 12:26, Ilpo J=E4rvinen wrote:
-> > >>> On Tue, 13 Oct 2026, Mario Limonciello wrote:
-> > >>>> On 10/13/26 12:00, Mario Limonciello wrote:
-> > >>>>> On 10/13/26 08:09, Ilpo J=E4rvinen wrote:
-> > >>>>>> While testing the resource placement changes, tests hit a case w=
-here
-> > >>>>>> igb fails to probe when BAR 0 is placed at 0x9c000000:
-> > >>>>>>
-> > >>>>>>  =A0=A0=A0 90000000-9cffffff : PCI Bus 0000:a0
-> > >>>>>>  =A0=A0 -=A0 90000000-902fffff : PCI Bus 0000:a1
-> > >>>>>>  =A0=A0 -=A0=A0=A0 90000000-900fffff : 0000:a1:00.0
-> > >>>>>>  =A0=A0 -=A0=A0=A0=A0=A0 90000000-900fffff : igb
-> > >>>>>>  =A0=A0 -=A0=A0=A0 90100000-901fffff : 0000:a1:00.0
-> > >>>>>>  =A0=A0 -=A0=A0=A0 90200000-90203fff : 0000:a1:00.0
-> > >>>>>>  =A0=A0 -=A0=A0=A0=A0=A0 90200000-90203fff : igb
-> > >>>>>>  =A0=A0 +=A0 9be00000-9c0fffff : PCI Bus 0000:a1
-> > >>>>>>  =A0=A0 +=A0=A0=A0 9be00000-9befffff : 0000:a1:00.0
-> > >>>>>>  =A0=A0 +=A0=A0=A0 9bf00000-9bf03fff : 0000:a1:00.0
-> > >>>>>>  =A0=A0 +=A0=A0=A0 9c000000-9c0fffff : 0000:a1:00.0
-> > >>>>>>  =A0=A0=A0=A0=A0 9c100000-9c17ffff : amd_iommu
-> > >>>>>>  =A0=A0=A0=A0=A0 9c180000-9c1803ff : IOAPIC 8
-> > >>>>>>
-> > >>>>>>  =A0=A0 -=A0=A0=A0=A0=A0=A0 Region 0: Memory at 90000000 (32-bit=
-, non-prefetchable)
-> > >>>>>> [size=3D1M]
-> > >>>>>>  =A0=A0 -=A0=A0=A0=A0=A0=A0 Region 3: Memory at 90200000 (32-bit=
-, non-prefetchable)
-> > >>>>>> [size=3D16K]
-> > >>>>>>  =A0=A0 -=A0=A0=A0=A0=A0=A0 Expansion ROM at 90100000 [disabled]=
- [size=3D1M]
-> > >>>>>>  =A0=A0 +=A0=A0=A0=A0=A0=A0 Region 0: Memory at 9c000000 (32-bit=
-, non-prefetchable)
-> > >>>>>> [size=3D1M]
-> > >>>>>>  =A0=A0 +=A0=A0=A0=A0=A0=A0 Region 3: Memory at 9bf00000 (32-bit=
-, non-prefetchable)
-> > >>>>>> [size=3D16K]
-> > >>>>>>  =A0=A0 +=A0=A0=A0=A0=A0=A0 Expansion ROM at 9be00000 [disabled]=
- [size=3D1M]
-> > >>>>>>
-> > >>>>>> igb 0000:a1:00.0 0000:a1:00.0 (uninitialized): PCIe link lost
-> > >>>>>> ------------[ cut here ]------------
-> > >>>>>> igb: Failed to read reg 0x18!
-> > >>>>>> WARNING: drivers/net/ethernet/intel/igb/igb_main.c:724 at
-> > >>>>>> igb_rd32.cold+0x3c/0x4f [igb], CPU#32: kworker/32:1/706
-> > >>>>>> ...
-> > >>>>>>  =A0 igb_get_invariants_82575+0xff/0xf00 [igb]
-> > >>>>>>  =A0 igb_probe+0x3c8/0x1190 [igb]
-> > >>>>>>  =A0 local_pci_probe+0x3b/0x80
-> > >>>>>>
-> > >>>>>> It turns out there is a 64kB iomem black hole at 9c000000 that r=
-eturns
-> > >>>>>> ~0 and this is where igb's BAR 0 resides. If another BAR of the =
-same
-> > >>>>>> card is placed into that address, it is similarly black holed.
-> > >>>>>>
-> > >>>>>> Mark the problematic 64kB range reserved using a quirk bound to =
-the
-> > >>>>>> bridge found in the problematic system.
-> > >>>>>>
-> > >>>>>> Closes: https://bugzilla.kernel.org/show_bug.cgi?id=3D222074
-> > >>>>>> Suggested-by: Mario Limonciello <mario.limonciello@amd.com>
-> > >>>>>> Signed-off-by: Ilpo J=E4rvinen <ilpo.jarvinen@linux.intel.com>
-> > >>>>>> ---
-> > >>>>>> Cc: Borislav Petkov <bp@alien8.de>
-> > >>>>>>
-> > >>>>>> As an alternative to this, I've also tested reverting the commit
-> > >>>>>> 07eab0901ede ("efi/x86: Remove EfiMemoryMappedIO from E820 map")=
- and
-> > >>>>>> that also resolves the issue by retaining "9c000000-9cffffff : R=
-eserved"
-> > >>>>>> entry in the resource tree.
-> > >>>>>>
-> > >>>>>> ---
-> > >>>>>>  =A0 arch/x86/pci/fixup.c | 36 +++++++++++++++++++++++++++++++++=
-+++
-> > >>>>>>  =A0 1 file changed, 36 insertions(+)
-> > >>>>>>
-> > >>>>>> diff --git a/arch/x86/pci/fixup.c b/arch/x86/pci/fixup.c
-> > >>>>>> index b301c6c8df75..cc463bf492b6 100644
-> > >>>>>> --- a/arch/x86/pci/fixup.c
-> > >>>>>> +++ b/arch/x86/pci/fixup.c
-> > >>>>>> @@ -822,6 +822,42 @@ DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_AMD,=
- 0x1571,
-> > >>>>>> pci_amd_enable_64bit_bar);
-> > >>>>>>  =A0 DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_AMD, 0x15b1,
-> > >>>>>> pci_amd_enable_64bit_bar);
-> > >>>>>>  =A0 DECLARE_PCI_FIXUP_RESUME(PCI_VENDOR_ID_AMD, 0x1601,
-> > >>>>>> pci_amd_enable_64bit_bar);
-> > >>>>>> +/*
-> > >>>>>> + * TODO: Remove when/if root cause is found.
-> > >>>>>> + *
-> > >>>>>> + * Genoa appears to have a 64kB iomem black hole starting at 0x=
-9c000000
-> > >>>>>> + * address for which all reads return ~0 blocking an overlappin=
-g BAR from
-> > >>>>>> + * working.
-> > >>>>>> + *
-> > >>>>>> + * Work around the problem by reserving the space prior to maki=
-ng any
-> > >>>>>> iomem
-> > >>>>>> + * allocations that could overlap with the black hole.
-> > >>>>>> + */
-> > >>>>>> +static struct resource genoa_black_hole =3D
-> > >>>>>> DEFINE_RES_MEM_NAMED(0x9c000000,
-> > >>>>>> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 SZ_64K,
-> > >>>>>> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 "reserved");
-> > >>>>>> +
-> > >>>>>> +static void genoa_iomem_black_hole(struct pci_dev *dev)
-> > >>>>>> +{
-> > >>>>>> +=A0=A0=A0 struct resource *r;
-> > >>>>>> +
-> > >>>>>> +=A0=A0=A0 pci_bus_for_each_resource(dev->bus, r) {
-> > >>>>>> +=A0=A0=A0=A0=A0=A0=A0 if (!r || !r->flags || !resource_assigned=
-(r))
-> > >>>>>> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 continue;
-> > >>>>>> +
-> > >>>>>> +=A0=A0=A0=A0=A0=A0=A0 if (!__resource_contains_unbound(r, &geno=
-a_black_hole))
-> > >>>>>> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 continue;
-> > >>>>>> +
-> > >>>>>> +=A0=A0=A0=A0=A0=A0=A0 if (resource_assigned(&genoa_black_hole))
-> > >>>>>> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 pci_dbg(dev, "iomem black hol=
-e workaround already
-> > >>>>>> applied\n");
-> > >>>>>> +=A0=A0=A0=A0=A0=A0=A0 else if (!insert_resource(r, &genoa_black=
-_hole))
-> > >>>>>> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 pci_info(dev, "iomem black ho=
-le workaround enabled\n");
-> > >>>>>> +=A0=A0=A0=A0=A0=A0=A0 else
-> > >>>>>> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 pci_dbg(dev, "iomem black hol=
-e workaround add failed\n");
-> > >>>>>> +=A0=A0=A0=A0=A0=A0=A0 return;
-> > >>>>>> +=A0=A0=A0 }
-> > >>>>>> +}
-> > >>>>>> +DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_AMD, 0x14ab,
-> > >>>>>> genoa_iomem_black_hole);
-> > >>>>>> +
-> > >>>>>>  =A0 #define RS690_LOWER_TOP_OF_DRAM2=A0=A0=A0 0x30
-> > >>>>>>  =A0 #define RS690_LOWER_TOP_OF_DRAM2_VALID=A0=A0=A0 0x1
-> > >>>>>>  =A0 #define RS690_UPPER_TOP_OF_DRAM2=A0=A0=A0 0x31
-> > >>>>>
-> > >>>>> I guess it's good we know the root cause is 07eab0901ede. If we'r=
-e going
-> > >>>>> down the path of making holes in that we may well put the hole in
-> > >>>>> efi_remove_e820_mmio() like this (attached).
-> > >>>>
-> > >>>> I don't really like that though.  If Genoa is affected I would exp=
-ect plenty
-> > >>>> of other machines are too they just haven't been found yet.
-> > >>>
-> > >>> That's what I'm worried as well. My own testing can only cover very=
- little
-> > >>> ground here.
-> > >>>
-> > >>>> Can we roll back 07eab0901ede and add quirks for the busted machin=
-es instead?
-> > >>
-> > >> I had an agent dig through all the reports linked in 07eab0901ede an=
-d
-> > >> drafted up what should be the remaining quirks for a revert.
-> > >>
-> > >> https://git.kernel.org/pub/scm/linux/kernel/git/superm1/linux.git/lo=
-g/?h=3Dsuperm1/genoa-mess
-> > >>
-> > >> Bjorn, thoughts on this?  I'll send it out if that's the way we want
-> > >> to go (or Ilpo feel free to subsume into your series as it's only
-> > >> really exposed by your series at the moment)
-> > >=20
-> > > I would LOVE it if we can use those patches because it's way less
-> > > magic than 07eab0901ede is.
-> > >=20
-> > > But I'm frankly terrified to touch it because I'm skeptical that two
-> > > more quirks are enough.  I just expect that whatever strategy BIOS
-> > > uses to build these maps is likely to be used on many models.  I do
-> > > hate 07eab0901ede though, so I would love to see it gone.
-> >=20
-> > It has been about 4 years since we came up with 07eab0901ede IIRC we
-> > had a huge email thread with a whole bunch of attempts at fixing
-> > the issue in a generic manner.
-> >=20
-> > IIRC some of those attempts tried to identify the exact problematic
-> > issue the quirks try to fix where there is an EFI MMIO reservation
-> > covering the entire bridge window.
-> >=20
-> > Maybe we can dig through the old thread and see if with the knowledge
-> > we have now one of the previous attempts of fixing it from the thread
-> > is better?
-> >=20
-> > I agree that needing to go back to quirks is likely going to be painful
-> > and break a whole bunch of other systems. IIRC 07eab0901ede fixed
-> > a whole bunch of laptops having issues around the time not just
-> > the Clevo NL4XLU and Lenovo Yoga C940. But this info might be spread
-> > over various bugzilla entries, etc. + some models where likely never
-> > reported but just fixed in time for users to not report things.
-> >=20
-> > I also wonder if given we only have this magic black-hole on geneo/zen4
->=20
-> That might be because my PCI resource placement series has not (yet) been=
-=20
-> tested on that many systems.
->=20
-> I think it's the other way around. While my testing is quite extensive, i=
-t=20
-> can only cover relatively little ground, but already that was enough to=
-=20
-> find one issue. Why should we assume I managed to hit the "only" problem?=
-!=20
-> More likely explanation is there are many problematic addresses, enough=
-=20
-> for me to stumble on one of them.
->=20
-> The new generalized resource placement does have a tendencity to place=20
-> resources at the right edge of the window (to keep the left edge availabl=
-e=20
-> as it typically provides higher aligning order for the remaining free=20
-> space). I expected that to lead us to largely uncharted territory though
-> Andy seemed to suggest Windows might actually be using top-down ordering
-> for its allocations so it could be that it's better charted than I've
-> assumed.
->=20
-> > if it would not be better to go with Mario's original approach here ?
-> > Esp. since Mario's quirk is chipset based where as the other problems
-> > seem to be model/product based so that is 1 quirk vs many quirks.
->=20
-> I'm somewhat skeptical it will be the only problematic case but it's hard=
-=20
-> to guess which case would require more quirks in the end.
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH8PR12MB6914:EE_|PH0PR12MB8776:EE_
+X-MS-Office365-Filtering-Correlation-Id: b224ed41-f5a5-42ca-336f-08df2f78ca3a
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|23010399003|1800799024|376014|7416014|366016|22082099003|18002099003|4143699003|11063799006|261009223027099003|10067099003|56012099006;
+X-Microsoft-Antispam-Message-Info:
+	M1ZNVVUIjRm81UZ5mCvw5qMHhRgb0PeP6ZK31E9UiX+KB37MPA3MlnDfLowWF+Rd+eH8ukTo0kTugcr7ATXkLoFuiBxH69Fypi7nhkgNHXTzv9ECI0yF8HethG4exb+mSTiOe2VmgVEnzWtYrk5SyGuNUNWoqeDvy+fN/L18lu9qYPHCUqyWok8qsQYfRjM1GVq791FPKJb0+u+bMOq7ZVTSZtUCNivcVCbqdNoeW2bMUz+rD4sRcw7zEcpARQ4+tA48fDiPapTutNdNS4CyEe6k4GAu+RqairDB1hirvQLNiXZqNcdBQsVgURezVeHk6O6C1Af/tTP/y1jbWi1DHYyRWu9HzY2HTLTnXPW+lfOFP6l2NuBzjLelPFu7Pgu8xau+d3u350roUwo7RjXx716xLcjDFitImW3ToakZbJo+ipsjas0GAT70KgUx14kiuV1jqwhq0RgJCg6g4kz4SJZbJD7QoAQBpYPlXjaiMSbzsOBJGw4qj+Kd4390pJkRdEqImZ8u8jDNYFjdcfhxJ9KngiK5sOSOF4WxzwJG/41yTX/Ju4e1h5kDwS9hwqyxxHq7mDJ7IgpLaaiCYQgWWZDE1yc6v/1dbrwXpozHaA3TnYa6+aiRB36jJZc8sjrq
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR12MB6914.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(1800799024)(376014)(7416014)(366016)(22082099003)(18002099003)(4143699003)(11063799006)(261009223027099003)(10067099003)(56012099006);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?ZnU2dnY4Rlo5M1Vlc0pPZjRnMXQxZzJXR1h1TW5BTng5ZnV2U1R6UUZncllh?=
+ =?utf-8?B?TGExVnVmdnVzalJVVzdJblRkQzNoeThxS2lzNjBreEliNjlIKzNQbGNGSUJQ?=
+ =?utf-8?B?M1VzMVBOcXlIbmx3SDRvaHFvSmJzNTliblBJTDRCNndNbFVrQk9LTC9xQ3ZT?=
+ =?utf-8?B?YnF1c3gzQmczUWwrRmg2N1FTVERkeWwzTmxJeDU5QXJDbEJUelhjb0ExVnpv?=
+ =?utf-8?B?N0dlL3VPZXF3ZkZiS3J1V2RDaDRWN3U5dENGblA3eVRoVHdJVWVHeFJGMVdF?=
+ =?utf-8?B?NVg5YXJTSWxXMEs0akpQSGs2K08vRFd2WjFRRHh0a3FBb3hpN2RrUmtpNVlv?=
+ =?utf-8?B?SGZPRVA5bldzYW9LNE5MK2pjUHMyN2IyWkRTYytVdnlRdno2SWtNd1dKR0ph?=
+ =?utf-8?B?M3JqUmFsN3NMWlByRktKeWxLL2tJc3dTYnNkb2dOS2M5R1VkbTMvVmwrM3BQ?=
+ =?utf-8?B?bHRIbkxFNkk2OHFrd1ErNlR4R0ZXWENLUUFNTXB3TkZTcnBTM2hIMVM0SVVz?=
+ =?utf-8?B?OURWYlRtU1psNzlUdE5hMU1OUEZ1TGJIQVl4akxLSTFzUVNJcFFHVnIrK0pz?=
+ =?utf-8?B?am9qeWR0Nm43bEtya09rRTJvWkNnRHp3QjdieFhMd003TGJrcDZ2aFVyT3dW?=
+ =?utf-8?B?SFhGTTI0b1NZekRyZUdNNWVUMnZRYWthOXNuK0d0VHF6TjhYdUN2THI3ZXVC?=
+ =?utf-8?B?SngxZlhDd2pSN09ObGNSTUh2QURXb2NMcEg0TEV6cmZEUWNKSThadUpKcHlF?=
+ =?utf-8?B?NzVKWlNrTHhibEhhVkZXMEh0L0FvakNDMHJTajNNZll0WDhqaFNXdFhZYjg0?=
+ =?utf-8?B?L1orQkJZUzk4TGtsZ3ZxRFJBZFVTb2FwV1hJUmJsNFJiQXRQdjF4VWE4ZnNu?=
+ =?utf-8?B?WVBxRUFXNHlkckpNbTAxQ1ZWdEZHK1hydGRoeS9TYnJWSmpsTWdIM3p5dWty?=
+ =?utf-8?B?aGtmWUdpSCtYY2hSRU41amtWZ2VaQnZJTmliSWVjZDQyd25CNWFoRkdjMm1T?=
+ =?utf-8?B?dHdRcG9WWTlWQjlzcHhwZkdua3EraWcwUHpTK1NWdXZwZVpOSmgrQlFBTFJh?=
+ =?utf-8?B?ZE93S3ZqY0VLUktiSENVQVJDekxvU2hXNnU2ZGx4bTcwbE1ORjRpQ0VlUmFp?=
+ =?utf-8?B?eUZURkh5V1JMZTBsWHFhYm9vZmNvSjhLY3NhNmM4c00xZ2lDaDVEUEk1N2Uw?=
+ =?utf-8?B?M2JDOGZkM1pBaVFmMzhOSlVXK0FaYW9KWllScTRYSi9obHB4cmYwek1LTXlB?=
+ =?utf-8?B?Y3ZMZENDbEZNNGxYN2dCdXl0V1FSVGFUNWRHTVNkbURGTkFkbzdzQVpWcXlF?=
+ =?utf-8?B?MENFbFdXZ3dHWTJ1dU5xS0JmYjh4eUhNcDlTc000enRYWXZ3dWRsVXlQditN?=
+ =?utf-8?B?dGJqajJ0aWFlYnJLNlZVdzVyeFRSQUp5SjMvUGQ3WEJIUFptS1c5SEI5eW53?=
+ =?utf-8?B?cGkyWjZURkZxNFNOUkdMZ0JobktVaEltS3hQL1BWWUl4elZoREtlN0xqQ3di?=
+ =?utf-8?B?OUpsRnRQUnFzb1B2bTNBU2ZIckVWQ2ZBaGx1TVVmYkk4Y0RNb3pxNXlwYUlq?=
+ =?utf-8?B?TjVXTWlLOCtrSFF2YURLY2tHaXl0RlJtUUQ2MlpaM0hmbDg3VHRjdEJUQytn?=
+ =?utf-8?B?Tk5NMDFGOTFOOTliWStnaWhiQXFMYkNlSjdxeUJqS0p0bUp0ZDNjZG1Nekgx?=
+ =?utf-8?B?ZmFTQVI0bkRnYlhyWVFEaEthYzBSclNCaEZob043ZUVsZS9ZUUMwM1BQQ2lp?=
+ =?utf-8?B?cUZCM1lQUDlwakxXdmpoZm9xTFlWZEMrbmxxenFrc0NhZXZUNG9penBTTjRR?=
+ =?utf-8?B?TEZmV3ROWEhsRUMvWmRkT05mMlZmRzVsUFN3bDROMVN3V3Vqd2x1L0N1NnhJ?=
+ =?utf-8?B?RVZ4aVg4SW5KUnpPYjBYeXAyTUExRWs4WStRai9DbHg2N1NkS3FiTDlnUWty?=
+ =?utf-8?B?bUFtdStab2pDRjl3WkE3TnNTaHJ5MEc2a3JOaTRDeXE1M2QrWXZYS1FYU0tq?=
+ =?utf-8?B?UjF2SmdHSzlBNTVtZUlBUDh4WTYvUzlNdlRYYnYzZ2M0a0ZTZEdNSW56eHlX?=
+ =?utf-8?B?M3BSeFMrNVArV29YcUw1SW83L0w2UllLSnErUnhRdFp2d2dFeFlMZkJIR3Rj?=
+ =?utf-8?B?c1RDRlZVaXdNbWRsL04xMHpiT2JHc1Z3RHpRQ1hBUEs4SUtsM2hidGNFZzRt?=
+ =?utf-8?B?WmRmeEhvLy9pRzFDa3FYV3RRZUJqOERPaVl6a05kRmcxQ2VIdnlhU0V5SnVF?=
+ =?utf-8?B?dzAyZVVicktlRzIvZXpTb3IxVndpbjdTaCtvRHVUUXYwd1R3UHluM1oyc1FD?=
+ =?utf-8?Q?vTeK40CMVDTPwzsipY?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: b224ed41-f5a5-42ca-336f-08df2f78ca3a
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR12MB6914.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Oct 2026 13:39:54.6632
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: T9VvBDIOpcSiue+0c1GuTYndjKo+qZqmnsSN5sYfV8pPuZiLF2vFTD8mVd5B65yPTbj6kVPFes0IyADLwd5xxA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR12MB8776
 
 
---8323328-1302103120-1792587368=:1258--
+
+On 10/21/26 07:56, Ilpo Järvinen wrote:
+> Hi all,
+> 
+> I've sent v4 of this series to address a few comments sashiko had for
+> b3 [1]. v4 does not contain my version of the quirk as it seemed least
+> likely to be selected among the proposed solutions and the decision is
+> largely independent from rest of the resource placement series.
+> 
+> [1] https://lore.kernel.org/linux-pci/20261021124956.4250-1-ilpo.jarvinen@linux.intel.com/
+> 
+
+ From your perspective is v4 applied on top of 7.3 a good test for 
+people?  I'm unsure how closely it relies on pci.git/next.
+
+It all cleanly applies and builds (result here):
+
+https://git.kernel.org/pub/scm/linux/kernel/git/superm1/linux.git/log/?h=superm1/genoa-mess 
+
+
+If that's a good test in your view I'm fine starting up a thread with 
+all the previous folks complaining to get testing of your changes with 
+the revert and quirks.
+
+If you think it's too dependent on pci.git/next we can wait until 
+7.4-rc1 to start this thread.
