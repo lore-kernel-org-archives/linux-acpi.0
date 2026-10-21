@@ -1,57 +1,76 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.70.43.22
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792571754;
-	b=RJ50CRaeKNiHJ2Rp34t+S1rveJaSWqxmahoXDSxK/U2uFc/Ljhdo3o3HU1gfVTxx5EIw
-	 dRwuh0haNxrYZ2s64f0kSj45KFtFBWZbN4uI8ODb5flwQxPRwf1mjnMtQr1wcDR56aAGg
-	 /R2rZm6QfAESNQp6GxOh+kwY0GB/08mxsM25tLuIZMqf8PcuQdoYXFGj6BsU+o4hCdmi1
-	 7B4BrGO9wHaZWRz9egNTFuyIvn1bd4tH+Bali9SSE8zZrzxjN7ISBjJWPTznUkrG9ePWn
-	 KkTdu7SiKUycnGTxvhpZcOYjgR42zNOx9g/x7ds85Vv1X0EyjkEI7/tSBAPK7Vh1Z6Q==
+	t=1792573601;
+	b=YBhq+x/Z3XfPZwd9BbqaeAvMh9xlr5fi1tV2XLNhy0oU2OMaWWIu5xIhh6BxE697Vibk
+	 rmEAN63By0K9uKaF7H0o8asP4atTfVwPOm5Kqztmshunbe/3VbwAQjQGg7aTaWyvmTwXU
+	 knFN4L3mPmwbEifGYsqs6rbbCf9TeR5irqTvk2Wbt8J/1gkymNX3srxrVSIpPeQsFXB+1
+	 vpn46j0w8c8RAZTBAvu00FXK/upnjsMHlSInfSa7h9Mz+E+jrY045R+L+AWpt08mx1/jU
+	 roVPA9JQ9v8W7V8k3h/8yoehMJ6hZwHtxFpa5S7RI8rum5grUz9ozsJJmHSRWHxbbPg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792571754;
-	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
-	 Feedback-ID:X-Pm-Message-ID:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=KbJGV4k1la3/kWX07RtAQM/FAs2mIBBziR5mEoX6Iw8=;
-	b=JGoPyM5h60uT/JHakfNo08m4f9nzvalhBFDxj9Cbl2q5LUZmJJVOBRErwOAQWkXfOKtw
-	 4ASwxymDLyHAdTUoylx8L8IJGs1a6RDxVzroVkQsOmx1BoZN+oH5zMUFJAhAwHHUUsDAc
-	 6jv2HETSsOrKe1Rl2gHXzDVTvgTn9BDERW6NjnSjaIEJeyZJ8f5Eyv1BvvuEhu6BB7uHY
-	 WY4GTPqQ5tPSI6LQuRZ8ClASQQXjDmpXe4tefCh93AoK+/wCgjAVUVBVl67sI2bjiSpev
-	 l8L6RkdMUgJwPN25IBlkAXsoiYM796cU5XR82EAS79+m0F8yvqFM1I0ktIXBCCtlOVA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792573601;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:
+	 Content-Transfer-Encoding:In-Reply-To;
+	bh=vSS1WWn/ggetKOBLUbWaNnFFsMjByCm0f95BaaBVfMk=;
+	b=rqtgRWh9hj7V4V3a6njR5ImWLlv45iBkQ05RJxA+LZ/N43uItbULYPTE1SwjDWgyyrzr
+	 okzVJpb98TXZ01ar4OQlBoIHIcCC0haZocaUGwq25kWWpwGsJ73+BDfi9567Sw97V3TNt
+	 lf8zlh16rYmgxZVmscv0IQtKbxqHCrtRjGab1nxt4FdZTVU5vsRBOtZ74NizD6NiKqy7S
+	 +sFR2hpnVDBgs8D6Zd0XBRk+M30YkT6J6mcBvlFxPHfhA7lXQjzd0i2QcLhAwcJKcf7nX
+	 VJa4y0V0MFTPvsyGkdVakHU2tHHlNSKTCO0JFEVt0UCF5O4jXhFWAIuMItQirF9gG8Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=proton.me;
-	spf=pass smtp.mailfrom=proton.me;
-	dkim=pass header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=protonmail2 header.b=DOZo10LZ;
-	arc=none smtp.remote-ip=185.70.43.22
-Received: from mail-4322.protonmail.ch (mail-4322.protonmail.ch [185.70.43.22])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lSEshD96;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2598F606A31D
-	for <linux-acpi@vger.kernel.org>; Wed, 21 Oct 2026 08:35:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2598F606A31D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2DA3606A319;
+	Wed, 21 Oct 2026 09:06:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=protonmail2 header.b=DOZo10LZ
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
-	s=protonmail2; t=1792571752; x=1792830952;
-	bh=KbJGV4k1la3/kWX07RtAQM/FAs2mIBBziR5mEoX6Iw8=;
-	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
-	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
-	b=DOZo10LZ3lcaNwh/8+Iy7PE9Gxk5Vxfl3eJirctRgpX7StmMVs3Gg1o5qHCIBGLO0
-	 KOT9hq+lbML1THVsvFPXrH3kXxyIaFfHtd4z7h1zrF2cYsfyQCgG1EXWjbP58Y8RnT
-	 POnTewqZXHlq0VoTl25i0FFNxyZNhVEFU6HEZ3tNpAG6q4fnT4BvaWr9HNy5l9skid
-	 7X0CAY610F76QH/jRSrF8Os3wFB+qAcv+4gjLtYvtExgRI9BBI7bfncwiKJJg4zndg
-	 +7i7AqQqkp+rormrrZMim/6zXHjN4pTO797fVdDZ6Sgho6In12WM7VDRxsh3dVK8yx
-	 S3PExlE5G3vvg==
-Date: Wed, 21 Oct 2026 08:35:49 +0000
-To: "stable@vger.kernel.org" <stable@vger.kernel.org>
-From: Mikkel Sejdelin <mikkel.sejdelin@proton.me>
-Cc: "regressions@lists.linux.dev" <regressions@lists.linux.dev>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rafael@kernel.org" <rafael@kernel.org>, "sashal@kernel.org" <sashal@kernel.org>
-Subject: [REGRESSION] 6.18.57: resume from s2idle triggers poweroff and hangs when tiny_power_button is built as a module
-Message-ID: <1kU98bgDqqEMGUcpGahaBYlaPiP2ssSCZj1uIKq1MEaGpNv2exGeJc3VWzXxB8-VJQ1Uk62W19oByt2KC-v1bSA4Sux9fBhnlA_IHWjV2Zw=@proton.me>
-Feedback-ID: 151291767:user:proton
-X-Pm-Message-ID: a7ec0184fdfbb41669f23160cf20756961af0e72
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lSEshD96
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3D3D1F000C9;
+	Wed, 21 Oct 2026 09:06:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792573600;
+	bh=vSS1WWn/ggetKOBLUbWaNnFFsMjByCm0f95BaaBVfMk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=lSEshD96KlFwImuJmXbsSDz9RmF0KKXIJsHAGH+hysJab6kr07dWIyuLKc296ew57
+	 exkHOAROwJYlBTZmHlyYSpSU5zCOeBEkyLFSr/4fEAYLWjf1UU+ICQVij7n/FuiRxp
+	 3rAhTZccZFhIuwT45vXWRDE+M43MDdkseb1l9brVVIQf0tE17wR7KC7PV1324QKOW9
+	 R8Xyn/7+c2fXU/4sLvGaCo3++d1704GiODuR9neuTZPbh4jSOVZXsWdtbpoIMpd51l
+	 OYUsH9tHVeNuWg7EZFY01nlyljTDYStuTyRUK+eSrdGJoFAx5EJT3CapxbkRqFn0lv
+	 F9o1DAxACZqyg==
+Date: Wed, 21 Oct 2026 11:06:33 +0200
+From: Lorenzo Pieralisi <lpieralisi@kernel.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <maz@kernel.org>,
+	Daniel Lezcano <daniel.lezcano@kernel.org>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Wim Van Sebroeck <wim@linux-watchdog.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	driver-core@lists.linux.dev, linux-watchdog@vger.kernel.org
+Subject: Re: [PATCH RFC 02/11] ACPI: Introduce irq_get() for static fwnodes
+Message-ID: <atiAmZSPiRNBAO5O@red-moon>
+References: <arZNL9BnTGK0Klwc@red-moon>
+ <arZS4vwxps01dGb7@ashevche-desk.local>
+ <arqSqcoWAkhy-8do@red-moon>
+ <d1720b63-65bf-4019-bc19-1852555f7993@arm.com>
+ <asieTvinZ7c2QpQm@red-moon>
+ <CAJZ5v0hVLSJs1j8J1TV3yJ8Psyaf=B_0UfHsYSMtM5xTup0B_Q@mail.gmail.com>
+ <atXyIadz1TEKSodg@red-moon>
+ <CAJZ5v0joJBZg==DWPsNviPfL7Jo=qupRhb6GinqOLoHXGnvevg@mail.gmail.com>
+ <ateI-JcExDyfXKrs@red-moon>
+ <athimRqtDvQu1ZzA@ashevche-desk.local>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -62,91 +81,82 @@ List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <athimRqtDvQu1ZzA@ashevche-desk.local>
 
-Resending as plain text; the previous copy was rejected by the lists for co=
-ntaining HTML.
+On Wed, Oct 21, 2026 at 09:58:33AM +0300, Andy Shevchenko wrote:
+> On Tue, Oct 20, 2026 at 05:30:00PM +0200, Lorenzo Pieralisi wrote:
+> > On Mon, Oct 19, 2026 at 08:05:50PM +0200, Rafael J. Wysocki (Intel) wrote:
+> > > On Mon, Oct 19, 2026 at 12:34 PM Lorenzo Pieralisi
+> > > <lpieralisi@kernel.org> wrote:
+> 
+> [...]
+> 
+> > > Basically, yes, the idea is to defer the creation of the platform
+> > > device until the dependency is met.
+> > > 
+> > > > till the dependencies are cleared but then, without a _CRS, where will
+> > > > the consumer driver find the platform device resources ?
+> > > 
+> > > Well, good question.
+> > > 
+> > > > There are multiple facets in this issue and possibly some of them have
+> > > > been already solved but I need to pull them together.
+> > > >
+> > > > > Note that the dependencies can be added to acpi_dep_list after
+> > > > > creating a struct acpi_device with acpi_add_single_object() and
+> > > > > acpi_scan_add_dep() is not really suitable for that, but it should be
+> > > > > doable if the dependencies can be found.
+> > > > >
+> > > > > > I need to have a deeper look into this next week but I wanted to ask first
+> > > > > > whether there was something I missed - most likely.
+> > > > >
+> > > > > Well, it is not really straightforward.
+> > > >
+> > > > Yes it is getting messy. This RFC, with all its flaws, does not transparently
+> > > > prevents enumeration but rather relies on -EPROBE_DEFER to sort out
+> > > > dependencies - though it does so by adding more stuff into ACPI static fwnode
+> > > > that to be honest I'd rather see gone.
+> > > 
+> > > I think what you need is a notification mechanism that will trigger
+> > > when a specific device (enumerated via the ACPI Namespace) becomes
+> > > operational.  It doesn't look like any of the existing ones (platform
+> > > device probe deferral or ACPI device dependencies tracking) is really
+> > > suitable for your use case.
+> > 
+> > Yes. It might just be a notification from ACPI core to say "the driver for
+> > this ACPI device probed, go create platform devices that depends on it".
+> > 
+> > We can check and track the dependency in code that does create those
+> > devices today.
+> > 
+> > I will think about this to see how bad this might look like.
+> 
+> Don't we do something similar in drivers/acpi/x86/lpss.c?
 
+I suppose I can add a notifier that checks whether the device whose
+companion represents the ACPI device a given platform device IRQ depends
+on was bound to its driver and then map the IRQ and add the platform device
+_then_ - after all that's what acpi_dev_clear_dependencies() does (similar
+at least).
 
+There is still the question - where the GSI number, flags should be
+stashed so that the notifier can grab them in a uniform way. We
+could simply attach platform data storing those values to a pdev, either on
+a per static table basis or generalize the data so that a single notifier
+would be able to deal with it.
 
-Hi,
+That or I can just piggyback on acpi_dev_clear_dependencies() and add
+a separate dep mechanism to acpi_dep_data that instead of being acpi_handle
+based the consumer is fwnode based (something Rafael mentioned before).
 
-Since 6.18.57, my laptop never comes back from suspend-to-idle: on resume
-init receives SIGRTMIN+4 and starts a poweroff, the display stays off, and
-the machine hangs until it is forced off. 6.18.56 works fine.
+I will have a stab at this and see what's the least bad solution I can
+come up with.
 
-Hardware: Lenovo IdeaPad Pro 5 16AKP10 (83JN), BIOS R1CN59WW, AMD, s2idle o=
-nly
-Distro: =C2=A0 NixOS 26.05 (distro kernel, CONFIG_ACPI_BUTTON=3Dm,
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 CONFIG_ACPI_TINY_POWER_BUTTON=3Dm, CONFI=
-G_ACPI_TINY_POWER_BUTTON_SIGNAL=3D38)
+I suppose we are scrapping the -EPROBE_DEFER solution (ie this set),
+what we are talking about above won't need to defer anything other
+than the time when platform devices are added.
 
-On every resume, the journal on 6.18.57 shows:
-
-=C2=A0 kernel: PM: suspend entry (s2idle)
-=C2=A0 systemd[1]: Received SIGRTMIN+4.
-=C2=A0 systemd-sleep: System returned from sleep operation 'suspend'.
-=C2=A0 kernel: PM: suspend exit
-=C2=A0 systemd-sleep: Failed to thaw unit 'user.slice': Unit has a pending =
-job
-
-followed by:
-
-=C2=A0 systemd[1]: Activating special unit System Power Off...
-=C2=A0 systemd[1]: Cannot stop frozen unit Session 3 of User mikke.
-=C2=A0 ...
-=C2=A0 systemd-shutdown[1]: Sending SIGTERM to remaining processes...
-
-after which the journal stops and the machine hangs with the display off
-(SIGRTMIN+4 =3D poweroff.target in systemd). A bpftrace probe on signal
-delivery to PID 1 shows the signal comes from a kernel worker, i.e. the
-ACPI notify path, not from userspace:
-
-=C2=A0 sig=3D38 code=3D128 from pid=3D296 comm=3Dkworker/6:2
-
-Cause:
-
-6.18.57 contains 38c79dacc806 ("ACPI: button: Convert the driver to a
-platform one", upstream 52d864019636), backported as a Stable-dep-of
-fe80251152fe ("ACPI: button: Fix ACPI GPE handler leak during removal").
-The matching upstream conversion of tiny-power-button, f4203ec64e11
-("ACPI: tiny-power-button: Convert the driver to a platform one"), was
-not backported.
-
-Before the backport, both drivers were acpi_drivers matching PNP0C0C,
-so only one could bind; button wins on this machine and tiny-power-button
-stays unbound. After it, button binds to the platform device and
-tiny-power-button binds to the ACPI companion of the same device, so both
-install notify handlers on PWRB. tiny-power-button calls
-kill_cad_pid(SIGRTMIN+4) for any notify, including the wake notification
-on s2idle resume, which button itself filters out.
-
-Verification on the same machine:
-
-=C2=A0 6.18.56 (no blacklist):
-=C2=A0 =C2=A0 /sys/bus/acpi/drivers/button/ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0-> PNP0C0C:00, PNP0C0D:00
-=C2=A0 =C2=A0 /sys/bus/acpi/drivers/tiny-power-button/ -> (no devices)
-=C2=A0 =C2=A0 3/3 suspend/resume cycles OK (systemctl suspend; woken by pow=
-er
-=C2=A0 =C2=A0 button and by keyboard). No SIGRTMIN+4.
-
-=C2=A0 6.18.57 (no blacklist):
-=C2=A0 =C2=A0 button bound to platform device PNP0C0C:00, tiny-power-button
-=C2=A0 =C2=A0 loaded; 2/2 resumes ended in SIGRTMIN+4, an attempted powerof=
-f
-=C2=A0 =C2=A0 and a hang.
-
-=C2=A0 6.18.57 with tiny_power_button blacklisted:
-=C2=A0 =C2=A0 suspend/resume works.
-
-Suggested fix: backport f4203ec64e11 together with 52d864019636, or
-revert 38c79dacc806 (and its dependents) from 6.18.y. Note that the same
-backport also appears to lose fixed-event power buttons (LNXPWRBN)
-without ab06eb920401 ("ACPI: scan: Register platform devices for fixed
-event buttons"), reported at
-https://github.com/siderolabs/talos/issues/14657
-
-#regzbot introduced: 38c79dacc806
-
-Thanks,Mikkel
+Thanks,
+Lorenzo
