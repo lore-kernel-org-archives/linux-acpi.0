@@ -1,71 +1,61 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=220.197.31.3
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.2
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792593978;
-	b=mJzySO36KCgpmxW91zH6FvrTwcYu02kYdOh9PZrQ8XLA6CcmuPgAgJQP0cXyZIMjAHFN
-	 MwscsAF8HQ1mEqGrabKxGCHsi2tJYJwyw3+UekTrCU9BUODfblmKLUdavarlPFV+ouZL6
-	 3pHD7EiaDrNVNMMXf7yt8WhcOZaoiRfS4ouC2Gy6NqxosShTVYHRBBq7MFmDJIImx4Db/
-	 6VHuFY+70IZLyEON8rgjR2yjKeBnt4eUnIcgcNEzvLAg1r6NN42IJxnhMt0Jg79pTQ4XR
-	 ga1HAHwgHw+3Scyt4fi4PJ7XB2STIZjO5otKlUY5rrbunQsUljN3D2ybEyIHDUmuYvg==
+	t=1792594963;
+	b=wQbEVOaVwU1u3HE+L2PTtxWwsKTS+3zyZkpl9HMTgFIaj5jL0RBC7k/rsnBtbduXQ96b
+	 MLD5sxsgaxRypFEqZM7iZzmZZ5wzQZLCiJbtAdCW0NTF1ic6NusnWtzK1s+KDJqUpJl5k
+	 0pLWqrmKIHBvuCP/fWsr0NxtIwkKpcEjKqmIXymXuecePzwS3w1HdmUVQ0kcTOkUcL3Z+
+	 ue2oy6ya/UsXwgjOx+pPsoeb3cRVBonpxf7NrfMdtgrvyVkMDP+E+ar2DgIl3LwJEd2UO
+	 uohX3ym3Ij7SPCuwS5+UIOPWQYPymYUGOTyyCfa2slqx3Nb0wZhRh4+5lzk8nbEAuDw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792593978;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-Id:
-	 X-Mailer:MIME-Version:Content-Transfer-Encoding:X-CM-TRANSID:
-	 X-Coremail-Antispam:X-CM-SenderInfo;
-	bh=MatOHa22WtG+l0uamrIjaG0NC2JllSJQL/SZcG1SYnk=;
-	b=Msk8prsDJHYSXWDMZwWFzVcgIuXA3jBzske3sWhqKRaznNWh3ssPRBrQj6M+mFYvjLro
-	 9UMRvT4SAMwQ3VVYmUgafjy6aaJI/vx4oA/Dv99hd3/RD/JpPj1cC0ffWfxeacAZnHLJW
-	 ptBkgtmV3Dd1ZaDKs71s+41Mt2JTT04mDFhM4XoH3Tjg6AWv2njHV60TNPMXT2Dpr2tex
-	 eILZ96aiMvFnhtQgx0tj4duZsQW8ijhvjDISV5vRKfVbicF86HZ7YeVzWyWkk2ElfXFnB
-	 /WqYhmk7mK+G+t1GkIZlqbP8m1PjdUVkwjm3l6b9spgtnYzPsBriY/Ly2ilmgGNSSkg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792594963;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
+	 Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding:
+	 X-CM-TRANSID:X-Coremail-Antispam:X-CM-SenderInfo;
+	bh=d5JxF9k90cA5rrayOyNwrmjTdjOiAyML1KCzl9Ju/xA=;
+	b=3OIebkuvAZyap7msg53kZ6vMHyYQOAij+ALW7UJKToB9/LVHnXswjD5SorQDGIkIu+pN
+	 X4o42jNUqGG7bM0tk8ak7t696WyNFnduKtmOYSPfQJlZ2W7mzTvn8crSgfgamY/ciKVIm
+	 xsrWC9J+JLwl8nk+xOzt2b/MwRDU9Vp9pL8ZwXwwQND3TLD07mmT9DqvHEM2sPt4+LQZ7
+	 8LqArc+1TEbdGTdWku5e25I1FE41zR+fCxEp1DbNhm5oKDqMDsVtHoE289Z/A9rPrUE/p
+	 2eGiMH3JjoaZFWaeKsViWBQU1JmzvG7M4Qjk032gB7DxO3YeyZrZBlywbhLdJhoeE5Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=163.com;
 	spf=pass smtp.mailfrom=163.com;
-	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=C7dnPns2;
-	arc=none smtp.remote-ip=220.197.31.3
-Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.3])
+	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=Kb5CqPro;
+	arc=none smtp.remote-ip=117.135.210.2
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.2])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0995606A323;
-	Wed, 21 Oct 2026 14:46:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A0995606A323
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B95E6606A319;
+	Wed, 21 Oct 2026 15:02:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B95E6606A319
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=C7dnPns2
+	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=Kb5CqPro
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=Ma
-	tOHa22WtG+l0uamrIjaG0NC2JllSJQL/SZcG1SYnk=; b=C7dnPns2P32vgzywFe
-	bpTQKcDN75V5x/VBveIBCSruYf8OzOrgR262scCIwAvYaqs+0+tdTr8ohNNM3Av4
-	07sh41SFyfhUji91XZ6dAxI93JFYQUxVLj69+zwqs1ioP/IS//+UZWolm3OKG+f1
-	W2uMr0gGy7vTtktpeCdobykE4=
+	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=d5
+	JxF9k90cA5rrayOyNwrmjTdjOiAyML1KCzl9Ju/xA=; b=Kb5CqProWoljNLQKNL
+	rLEqQpNjBOGWopPeGnGtvBdhzY9Ot8ton/Ijr65VxBdXJ4WKze3+dL9yIN6Mpj8h
+	GjptTPNp2B9Au8pRW7cQWZB6WBj2wZUSEQ3UJbiQV0+Ac1nvQnEY9MxThluIJsPT
+	dQnUAXz4ufk5Zg26OtFJSvENY=
 Received: from pc.localdomain (unknown [])
-	by gzga-smtp-mtada-g0-0 (Coremail) with SMTP id _____wD3998G0NhqjItXBw--.10228S2;
-	Wed, 21 Oct 2026 22:45:27 +0800 (CST)
+	by gzga-smtp-mtada-g1-2 (Coremail) with SMTP id _____wD3_8ro09hqpMAiBg--.20706S2;
+	Wed, 21 Oct 2026 23:02:03 +0800 (CST)
 From: Jiale Yao <yaojiale02@163.com>
 To: "Rafael J. Wysocki" <rafael@kernel.org>,
 	Len Brown <lenb@kernel.org>,
-	Marc Zyngier <maz@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Radu Rendec <radu@rendec.net>,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Huacai Chen <chenhuacai@kernel.org>,
-	WANG Xuerui <kernel@xen0n.name>,
-	Jiaxun Yang <jiaxun.yang@flygoat.com>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Tomasz Nowicki <tn@semihalf.com>,
-	Christoffer Dall <christoffer.dall@linaro.org>,
-	Julien Grall <julien.grall@arm.com>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Jianmin Lv <lvjianmin@loongson.cn>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Keith Busch <kbusch@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	loongarch@lists.linux.dev,
-	linux-mips@vger.kernel.org
-Subject: [PATCH v2 0/6] irqchip: validate ACPI MADT entries before use
-Date: Wed, 21 Oct 2026 22:45:18 +0800
-Message-Id: <20261021144524.364143-1-yaojiale02@163.com>
+	linux-kernel@vger.kernel.org
+Cc: stable@vger.kernel.org,
+	Dave Jiang <dave.jiang@intel.com>
+Subject: [PATCH v2] lib/firmware_table: validate subtable bounds
+Date: Wed, 21 Oct 2026 23:01:59 +0800
+Message-Id: <20261021150159.399043-1-yaojiale02@163.com>
 X-Mailer: git-send-email 2.34.1
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -77,55 +67,73 @@ List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wD3998G0NhqjItXBw--.10228S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW7Ar15XFWUXr1UtF18uFW7Jwb_yoW8CrWxpF
-	W5KayYvr4fGrW7Arn3Aw4UXFy5Ja95JrW7tFWfta45ur1rK3WDXay2yFWYqF13Ar13G3ZF
-	9r4jqF1xuFZ8AaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jeLvNUUUUU=
-X-CM-SenderInfo: x1dryxhdohiji6rwjhhfrp/xtbCzQcGQGrY0Aci1gAA3d
+X-CM-TRANSID:_____wD3_8ro09hqpMAiBg--.20706S2
+X-Coremail-Antispam: 1Uf129KBjvJXoW7CF1Dur1UGF4kuFykuw4kZwb_yoW8tw4rpF
+	1fK3s8trWFqFy7Xrn7J3WFyF4YvrW7W3ZxAFyxKr18twn8ZF1rWFy3G3sFqFZ3ZrWxWF4Y
+	gayjqry8Cr4kAaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07UhL0OUUUUU=
+X-CM-SenderInfo: x1dryxhdohiji6rwjhhfrp/xtbC7wsAOmrY0+tkOAAA3I
 
-IRQ chip ACPI probing receives MADT records supplied by firmware. The
-common probe path does not currently verify that the complete declared
-entry is contained in the table, and several callbacks access fixed-size
-or version-dependent records without checking their minimum size.
-Malformed entries can therefore cause out-of-bounds reads during early
-boot.
+The generic firmware table walker dispatches matching entries after only
+checking that a generic subtable header is present. A record whose
+declared length is shorter than its header or extends past the table can
+therefore reach a handler before its bounds have been established.
 
-Add the common declared-range check first, then validate the concrete ITS,
-GIC, LIO-PIC, and BIO-PIC records in their respective callbacks. Each patch
-remains independently buildable and limits its changes to one parser
-implementation.
+Once a complete generic header is available, validate the declared record
+range before looking up or invoking a handler. This rejects zero-length
+and truncated records while preserving the existing behavior of ignoring
+trailing table data too short to contain another subtable header.
 
-The series was checked with scripts/checkpatch.pl. Each patch was also
-checked individually and in series for application to the base commit
-below.
-
-Jiale Yao (6):
-  ACPI: irqchip: validate MADT entry bounds before probing
-  irqchip/gic-v3-its: validate MADT ITS entries
-  irqchip/gic-v3: validate MADT records before use
-  irqchip/gic-v5-its: validate MADT translate frames
-  irqchip/loongarch-cpu: validate MADT LIO-PIC entries
-  irqchip/loongson-eiointc: validate MADT BIO-PIC entries
-
+Fixes: 60574d1e05b0 ("acpi: Create subtable parsing infrastructure")
+Cc: stable@vger.kernel.org
+Cc: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Jiale Yao <yaojiale02@163.com>
 ---
 Changes in v2:
-- Use BAD_MADT_GICC_ENTRY() for version-dependent GICC records.
-- Replace the open-coded distributor size check with BAD_MADT_ENTRY().
-- Remove the redundant distributor check from gic_acpi_init().
-- Add Fixes and Cc: stable@vger.kernel.org trailers.
-- Rebase the series on the current tree.
+- Preserve support for trailing padding shorter than a subtable header.
+- Add the stable and code-author Cc trailers.
+---
+ lib/fw_table.c | 20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
- drivers/acpi/scan.c                    |  7 +++++++
- drivers/irqchip/irq-gic-v3-its.c       |  3 +++
- drivers/irqchip/irq-gic-v3.c           | 15 +++++++++++++++
- drivers/irqchip/irq-gic-v5-its.c       |  3 +++
- drivers/irqchip/irq-loongarch-cpu.c    |  3 +++
- drivers/irqchip/irq-loongson-eiointc.c | 10 ++++++++--
- 6 files changed, 39 insertions(+), 2 deletions(-)
-
-
-base-commit: a804c5742bff224d4cb4d25dd383554d598be32b
+diff --git a/lib/fw_table.c b/lib/fw_table.c
+index 16291814450e..40846044e01b 100644
+--- a/lib/fw_table.c
++++ b/lib/fw_table.c
+@@ -172,7 +172,15 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 	    ((unsigned long)table_header + table_size);
+ 	subtable_len = acpi_get_subtable_header_length(&entry);
+ 
+-	while (((unsigned long)entry.hdr) + subtable_len < table_end) {
++	while ((unsigned long)entry.hdr + subtable_len <= table_end) {
++		entry_len = acpi_get_entry_length(&entry);
++		if (entry_len < subtable_len ||
++		    entry_len > table_end - (unsigned long)entry.hdr) {
++			pr_err("[%4.4s:0x%02lx] Invalid length %lu\n", id,
++			       acpi_get_entry_type(&entry), entry_len);
++			return -EINVAL;
++		}
++
+ 		for (i = 0; i < proc_num; i++) {
+ 			if (acpi_get_entry_type(&entry) != proc[i].id)
+ 				continue;
+@@ -186,16 +194,6 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 			break;
+ 		}
+ 
+-		/*
+-		 * If entry->length is 0, break from this loop to avoid
+-		 * infinite loop.
+-		 */
+-		entry_len = acpi_get_entry_length(&entry);
+-		if (entry_len == 0) {
+-			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, proc->id);
+-			return -EINVAL;
+-		}
+-
+ 		entry.hdr = (union acpi_subtable_headers *)
+ 		    ((unsigned long)entry.hdr + entry_len);
+ 	}
 -- 
 2.34.1
 
