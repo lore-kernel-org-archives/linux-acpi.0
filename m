@@ -1,67 +1,49 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.127.231.112
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792575255;
-	b=DsKyn1Z8CAKuOTmnCY6Mwl7NtQMJvzrHmy07DbazP9hauEAtnr2PraKo1+vAPy/eCCEV
-	 TYqrO7wxWfkjUeaG1r2glKNHueTVVrYnP1AUHuby5KpAoKMdlKgJHdv4cICOenj1jGM5v
-	 Xrhe+ojwAt3gYxY+S/d0DcAIYPGME1MLB37UT+TTAXU7F4J/BuZcPeUlnp1uozak4+zE/
-	 a7oM4woO9t+qpEAwMP5aNR/DGB9BwJS+/fQtyqDgOqv4BWb7ScJ6h9cDyQcmreskHHJ6s
-	 LkgXRl1L+OKeZ+Oy2FbjV5S2zst2apqhBHu8dPs5JK69ZXZe23whqXRlprdsO/RbJBw==
+	t=1792581534;
+	b=2LYq6rVew8oEuS02vBE6t5vhz2nAiZGMtK5E+GK4+kmp1w4kg6n9VFp3P7/iD1xxwzli
+	 iKB238f7qnJW0/Qu54n5CHMCa6FihpzEHdftnvwO/oA6CegIm29KYV/Ww1Z3kAgCqVZ66
+	 zf32wwHXSDMLleFwY2KKmJyTivjZ7lxXzYdnl3DDu/+YEJgbDgu80vpTF53+Vbpipiwsl
+	 hwxjU2tSy55f1d8KCjdW6Ccl1tNYjEa5dE9v1zad+JALHFVpgHwchYImVNEuVDExNqm/n
+	 RbJ6SiROGGcHoTe/rb/tXK3SY5LgfTf7bf7IMEnIK+tQDXc3IexVPlKOMvF0gBRqCFQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792575255;
-	h=DMARC-Filter:DKIM-Signature:X-Lms-Return-Path:Subject:Date:
-	 In-Reply-To:User-Agent:Content-Type:X-Original-From:
-	 Content-Transfer-Encoding:To:Cc:From:Message-Id:Mime-Version:
-	 References;
-	bh=coNWzQ5GIYQq0sPIsYUvWDSkWqhCl1jRcwfPQzxcsYs=;
-	b=GmKgSP2nIGhXmBVFx6IiDf7JhhusYTnNvsfUQCw5f4pJFh4Hcf7PJ098xvBOb1jJIcaN
-	 0gHWXqFuqkxRyFLgrLBS+sFnuWCdlWK9e6vIpOT3oCafTgxyO/ZlOSzE3HaJkqBttCTWW
-	 QKRhu86EwUbrekY8Kg5VbKxjEszFodS+lkAlc7/faE6NenPTh1JxxIStHKWQ5iOhTbSur
-	 NeA09q6GUjWiNYZgX+Pg/hsNRO4CXq2cBiOkemSYhGwMTyyyWgdy3ypwQQMXSA2mseK0y
-	 OFYrr0gdvprzELopoa4cnCqQO756HGHkOClcOhBNPoOj99cH2wKYcsqyj5XC8jN5Kig==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792581534;
+	h=DMARC-Filter:Received:Received:DKIM-Signature:Message-ID:Date:
+	 MIME-Version:User-Agent:Subject:To:Cc:References:From:
+	 Content-Language:In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	bh=RUVSPvOusEPDcxbKoxUzwI+i0SOx4REoavCHaUCGKS8=;
+	b=4Q1AU68bx+6QPWQzo4dIYCCj3JdgvKxe3kCB8FxU7AAr6IW7cvqAeiKB+xR8t9EQeIL5
+	 zZtzZydHZzSaLBemD8QbNhXsQNNwklMV76N0tWdAzao48jmL70tnHisVIFdYxLgy3Nh6M
+	 DkP8n5g/ynTTLz269URO93L4VXMFbvDRDYRmWpJras+gFimJmfBm3V1rr+/EP55uHerws
+	 aXd8oiogDjn8d+VRz+sSUzsne8Jr5l8dBCIlkPEjdf6J2Ay2NEfk2q1vIltYdWP8W+YDv
+	 YDiGqQnvJlckJtoLBirrpJhY3YUsgzoQqsH5dz1Uep863PrhOk1zViC5ITSNxOEyEkA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=bytedance.com;
-	spf=pass smtp.mailfrom=bytedance.com;
-	dkim=pass header.d=bytedance.com header.i=@bytedance.com header.a=rsa-sha256 header.s=2212171451 header.b=ccvoIXh7;
-	arc=none smtp.remote-ip=209.127.231.112
-Received: from va-2-112.ptr.blmpb.com (va-2-112.ptr.blmpb.com [209.127.231.112])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8BA2606A322
-	for <linux-acpi@vger.kernel.org>; Wed, 21 Oct 2026 09:34:13 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E8BA2606A322
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
+	dmarc=pass header.from=arm.com;
+	spf=pass smtp.mailfrom=arm.com;
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=Nzihi9PT;
+	arc=none smtp.remote-ip=217.140.110.172
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 28AF8606A319;
+	Wed, 21 Oct 2026 11:18:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 28AF8606A319
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=bytedance.com header.i=@bytedance.com header.a=rsa-sha256 header.s=2212171451 header.b=ccvoIXh7
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
- s=2212171451; d=bytedance.com; t=1792575248; h=from:subject:
- mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
- mime-version:in-reply-to:message-id;
- bh=coNWzQ5GIYQq0sPIsYUvWDSkWqhCl1jRcwfPQzxcsYs=;
- b=ccvoIXh7oTjSziKOA6CLkKOftjqBtbQ/HZCtfXQBoaX7llsMqJ8i5XR/sTJ0r7YV70udCU
- x6jPBuL6mPNvszHK7m549UDVETqYNPf5FNG5fCvLfSo7rftcJpMQ2M6utGRADEUdhmJhPH
- ca1N2IQ6aC4qr98eGi45+aHbPYnzj+Fcr4PQRwekEaEFXeT9ha2xALGNlSiSA1nw6GjZKj
- OCssEO/OfwOc2E1IrlBEsMvQO2xvXmmbWoO4k1zvfjJPYeTu2loUCNxFDeb59tOV9lw6Pe
- EpjjCZuTvg29c/TtsRDBJhwWy0JBkClw6YKuA2hHnmP17UUX5SnEOHiNxYCOlQ==
-X-Lms-Return-Path: <lba+26ad8870e+6ab876+vger.kernel.org+qirui.001@bytedance.com>
-Subject: Re: [PATCH v5 2/9] riscv: Define arch_apei_get_mem_attribute for RISC-V
-Date: Wed, 21 Oct 2026 17:33:45 +0800
-In-Reply-To: <20260924073714.1650588-3-himanshu.chauhan@oss.qualcomm.com>
-User-Agent: Mozilla Thunderbird
-Content-Type: text/plain; charset=UTF-8
-X-Original-From: Rui Qi <qirui.001@bytedance.com>
-Content-Transfer-Encoding: 7bit
-To: "Himanshu Chauhan" <himanshu.chauhan@oss.qualcomm.com>, 
-	<linux-riscv@lists.infradead.org>, <linux-kernel@vger.kernel.org>, 
-	<linux-acpi@vger.kernel.org>, <linux-efi@vger.kernel.org>
-Cc: <acpica-devel@lists.linux.dev>, <anup.patel@oss.qualcomm.com>, 
-	<ardb@kernel.org>, <conor@kernel.org>, <james.morse@arm.com>, 
-	<lenb@kernel.org>, <palmer@dabbelt.com>, <paul.walmsley@sifive.com>, 
-	<robert.moore@intel.com>, <sunilvl@oss.qualcomm.com>, 
-	<tony.luck@intel.com>, <zhangzhanpeng.jasper@bytedance.com>
-From: "Rui Qi" <qirui.001@bytedance.com>
-Message-Id: <98fe9db7-f22c-483d-9811-939263595004@bytedance.com>
+	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=Nzihi9PT
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C926016F8;
+	Wed, 21 Oct 2026 04:18:48 -0700 (PDT)
+Received: from [10.57.78.129] (unknown [10.57.78.129])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 1324E3F7D8;
+	Wed, 21 Oct 2026 04:18:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1792581532; bh=9asrnmphDtRD/Xpr13UrW46SqE+vWmkJ5y1evI5+R6M=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=Nzihi9PT0ig+89d5JTsqKKaFfSwnuT/hEwWjYN5I8yaqpIgMwHjjgbhJm55Chfqix
+	 1vaBGhJmt3z21nuaXtVGMXVIgVWgAl4bF5AqWGryVVwQ9WkLuPx6vwy/G6aOG/wN1/
+	 Gv4eo9vyvP8GpUA46s9cC5wD742tzJPBBdAN+jxc=
+Message-ID: <7f077fd3-9c67-409a-b46f-7f28a55c180b@arm.com>
+Date: Wed, 21 Oct 2026 12:18:39 +0100
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -70,105 +52,117 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-References: <20260924073714.1650588-1-himanshu.chauhan@oss.qualcomm.com> <20260924073714.1650588-3-himanshu.chauhan@oss.qualcomm.com>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH RFC 02/11] ACPI: Introduce irq_get() for static fwnodes
+To: Lorenzo Pieralisi <lpieralisi@kernel.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>,
+ Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <maz@kernel.org>,
+ Daniel Lezcano <daniel.lezcano@kernel.org>, Thomas Gleixner
+ <tglx@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Danilo Krummrich <dakr@kernel.org>, Hanjun Guo <guohanjun@huawei.com>,
+ Sudeep Holla <sudeep.holla@kernel.org>,
+ Wim Van Sebroeck <wim@linux-watchdog.org>, Guenter Roeck
+ <linux@roeck-us.net>, Catalin Marinas <catalin.marinas@arm.com>,
+ Will Deacon <will@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>,
+ linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, driver-core@lists.linux.dev,
+ linux-watchdog@vger.kernel.org
+References: <arZNL9BnTGK0Klwc@red-moon> <arZS4vwxps01dGb7@ashevche-desk.local>
+ <arqSqcoWAkhy-8do@red-moon> <d1720b63-65bf-4019-bc19-1852555f7993@arm.com>
+ <asieTvinZ7c2QpQm@red-moon>
+ <CAJZ5v0hVLSJs1j8J1TV3yJ8Psyaf=B_0UfHsYSMtM5xTup0B_Q@mail.gmail.com>
+ <atXyIadz1TEKSodg@red-moon>
+ <CAJZ5v0joJBZg==DWPsNviPfL7Jo=qupRhb6GinqOLoHXGnvevg@mail.gmail.com>
+ <ateI-JcExDyfXKrs@red-moon> <athimRqtDvQu1ZzA@ashevche-desk.local>
+ <atiAmZSPiRNBAO5O@red-moon>
+From: Robin Murphy <robin.murphy@arm.com>
+Content-Language: en-GB
+In-Reply-To: <atiAmZSPiRNBAO5O@red-moon>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On 9/24/26 3:37 PM, Himanshu Chauhan wrote:
-> ghes_map function uses arch_apei_get_mem_attribute to get the
-> protection bits for a given physical address. These protection
-> bits are then used to map the physical address.
+On 2026-10-21 10:06 am, Lorenzo Pieralisi wrote:
+> On Wed, Oct 21, 2026 at 09:58:33AM +0300, Andy Shevchenko wrote:
+>> On Tue, Oct 20, 2026 at 05:30:00PM +0200, Lorenzo Pieralisi wrote:
+>>> On Mon, Oct 19, 2026 at 08:05:50PM +0200, Rafael J. Wysocki (Intel) wrote:
+>>>> On Mon, Oct 19, 2026 at 12:34 PM Lorenzo Pieralisi
+>>>> <lpieralisi@kernel.org> wrote:
+>>
+>> [...]
+>>
+>>>> Basically, yes, the idea is to defer the creation of the platform
+>>>> device until the dependency is met.
+>>>>
+>>>>> till the dependencies are cleared but then, without a _CRS, where will
+>>>>> the consumer driver find the platform device resources ?
+>>>>
+>>>> Well, good question.
+>>>>
+>>>>> There are multiple facets in this issue and possibly some of them have
+>>>>> been already solved but I need to pull them together.
+>>>>>
+>>>>>> Note that the dependencies can be added to acpi_dep_list after
+>>>>>> creating a struct acpi_device with acpi_add_single_object() and
+>>>>>> acpi_scan_add_dep() is not really suitable for that, but it should be
+>>>>>> doable if the dependencies can be found.
+>>>>>>
+>>>>>>> I need to have a deeper look into this next week but I wanted to ask first
+>>>>>>> whether there was something I missed - most likely.
+>>>>>>
+>>>>>> Well, it is not really straightforward.
+>>>>>
+>>>>> Yes it is getting messy. This RFC, with all its flaws, does not transparently
+>>>>> prevents enumeration but rather relies on -EPROBE_DEFER to sort out
+>>>>> dependencies - though it does so by adding more stuff into ACPI static fwnode
+>>>>> that to be honest I'd rather see gone.
+>>>>
+>>>> I think what you need is a notification mechanism that will trigger
+>>>> when a specific device (enumerated via the ACPI Namespace) becomes
+>>>> operational.  It doesn't look like any of the existing ones (platform
+>>>> device probe deferral or ACPI device dependencies tracking) is really
+>>>> suitable for your use case.
+>>>
+>>> Yes. It might just be a notification from ACPI core to say "the driver for
+>>> this ACPI device probed, go create platform devices that depends on it".
+>>>
+>>> We can check and track the dependency in code that does create those
+>>> devices today.
+>>>
+>>> I will think about this to see how bad this might look like.
+>>
+>> Don't we do something similar in drivers/acpi/x86/lpss.c?
 > 
-> Reviewed-by: Sunil V L <sunilvl@oss.qualcomm.com>
-> Signed-off-by: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
-> ---
->  arch/riscv/include/asm/acpi.h | 16 ++++++++++++++++
->  arch/riscv/kernel/acpi.c      | 12 ++++++++++++
->  2 files changed, 28 insertions(+)
+> I suppose I can add a notifier that checks whether the device whose
+> companion represents the ACPI device a given platform device IRQ depends
+> on was bound to its driver and then map the IRQ and add the platform device
+> _then_ - after all that's what acpi_dev_clear_dependencies() does (similar
+> at least).
 > 
-> diff --git a/arch/riscv/include/asm/acpi.h b/arch/riscv/include/asm/acpi.h
-> index cdefa1f2d67d..c7dee956cdb1 100644
-> --- a/arch/riscv/include/asm/acpi.h
-> +++ b/arch/riscv/include/asm/acpi.h
-> @@ -16,6 +16,7 @@
->  
->  /* Basic configuration for ACPI */
->  #ifdef CONFIG_ACPI
-> +pgprot_t __acpi_get_mem_attribute(phys_addr_t addr);
->  
->  typedef u64 phys_cpuid_t;
->  #define PHYS_CPUID_INVALID INVALID_HARTID
-> @@ -29,6 +30,21 @@ extern int acpi_disabled;
->  extern int acpi_noirq;
->  extern int acpi_pci_disabled;
->  
-> +#ifdef	CONFIG_ACPI_APEI
-> +/*
-> + * acpi_disable_cmcff to disable IA-32 Corrected Machine Check (CMC)
-> + * Firmware-First mode. It is not required in RISC-V architecture
-> + * and is present for compatibility
-> + */
-> +#define acpi_disable_cmcff 1
-> +static inline pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
-> +{
-> +	return  __acpi_get_mem_attribute(addr);
-> +}
-> +#else /* CONFIG_ACPI_APEI */
-> +#define acpi_disable_cmcff 0
-> +#endif /* !CONFIG_ACPI_APEI */
-> +
->  static inline void disable_acpi(void)
->  {
->  	acpi_disabled = 1;
-> diff --git a/arch/riscv/kernel/acpi.c b/arch/riscv/kernel/acpi.c
-> index efd52a5d05b5..d1e472ce0878 100644
-> --- a/arch/riscv/kernel/acpi.c
-> +++ b/arch/riscv/kernel/acpi.c
-> @@ -204,6 +204,18 @@ struct acpi_madt_rintc *acpi_cpu_get_madt_rintc(int cpu)
->  	return &cpu_madt_rintc[cpu];
->  }
->  
-> +pgprot_t __acpi_get_mem_attribute(phys_addr_t addr)
-> +{
-> +	u64 attr;
-> +
-> +	attr = efi_mem_attributes(addr);
-> +	if (attr & EFI_MEMORY_WB)
-> +		return PAGE_KERNEL;
-> +	if ((attr & EFI_MEMORY_WC) || (attr & EFI_MEMORY_WT))
-> +		return pgprot_writecombine(PAGE_KERNEL);
-> +	return PAGE_KERNEL;
-> +}
+> There is still the question - where the GSI number, flags should be
+> stashed so that the notifier can grab them in a uniform way. We
+> could simply attach platform data storing those values to a pdev, either on
+> a per static table basis or generalize the data so that a single notifier
+> would be able to deal with it.
+> 
+> That or I can just piggyback on acpi_dev_clear_dependencies() and add
+> a separate dep mechanism to acpi_dep_data that instead of being acpi_handle
+> based the consumer is fwnode based (something Rafael mentioned before).
+> 
+> I will have a stab at this and see what's the least bad solution I can
+> come up with.
+> 
+> I suppose we are scrapping the -EPROBE_DEFER solution (ie this set),
+> what we are talking about above won't need to defer anything other
+> than the time when platform devices are added.
 
-
-Hi Himanshu,
-
-
-
-Could you clarify why PAGE_KERNEL is used as the fallback here?
-
-When none of EFI_MEMORY_WB, EFI_MEMORY_WC or EFI_MEMORY_WT is
-present, including the case where only EFI_MEMORY_UC is advertised,
-this returns PAGE_KERNEL.
-
-With standard Svpbmt, PAGE_KERNEL leaves PBMT at zero and therefore
-relies on the underlying PMA. In comparison, the existing RISC-V
-acpi_os_ioremap() starts with PAGE_KERNEL_IO and retains it when none
-of WB/WC/WT is present.
-
-Is relying on the platform PMA intentional for the GHES error status
-block mapped by ghes_map()? If so, is there a platform guarantee that
-the PMA provides the appropriate memory type for every address reaching
-this path?
-
-Otherwise, would PAGE_KERNEL_IO be a more appropriate fallback here,
-consistent with acpi_os_ioremap()? A comment documenting the intended
-PMA dependency would also help clarify the difference between the two
-mapping paths.
+I dunno, that seems pretty drastic for some use-cases - the fact that a 
+GSI is described in a table doesn't necessarily mean it is critical to 
+device operation. If we don't even create the device until all possible 
+resources are available, then its driver never has any chance to decide 
+whether it's happy to ignore the deferral and just use MSIs or polling 
+instead...
 
 Thanks,
-Qirui
-
-> +
->  /*
->   * __acpi_map_table() will be called before paging_init(), so early_ioremap()
->   * or early_memremap() should be called here to for ACPI table mapping.
+Robin.
