@@ -1,55 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.70.43.22
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792677771;
-	b=VoanBmd06xdUN128Zlq6mYDjLBYpDhj7OsrmreB/ovZ1B6uOvosFYj40UcmZD+M0X+00
-	 h2FVvw/6A0GzaIjSATNGfBvEoZcKvwINBI81uDsgcztf637ntZrCHsy67htz8noUiATra
-	 08oeMdzqr70y8AAkOyppx2qLtpGpMPDN7mwBzal61FZr9G9+lQeFyzHwpTu/zNzY7AVdN
-	 0UAdThXrCQoCAExaiGbzvO9kvDDBUXavv147cktWerD806ptgEVu8dkECro59OymHz6rt
-	 kOL8agBJFvqV3jOARuXGPIw/8TpBrEkGVjBIvv2r43y2Y12VQ5T+mztzrq6zPKXWZ6A==
+	t=1792686424;
+	b=N3vJU58R4zqiufw+akltyFL42PWg1ZHIGNfU613LOtIfzsF2jJyBl/u2QgMCJV15CfEf
+	 wsnMYDCGgPbp4CgUaSbs5CHyOggRidkLFUmEDvlxDFyGrB3FuPlANGHY9DDPuK+tcWrH6
+	 NWZ21zdn+dHEE7RS2eAXI60JBbl9uKFP2sa0n3OUbY+Q011S9500yKWAjiOU2W4RVAaL7
+	 dnHuRXtx2PJUCJJfx64eoUUJANeXKWl40UzYbj2fELNpYfaXIiUCCmJ/Cd/UiO9sm34+A
+	 AZjs3QIfx+gbtfnwb3MPD9WZCDbm/jRFcT8a+c0Qn0z0nBt7pOcYWPh8X+EW+D21dUA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792677771;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=89oFWpy7/fXqqbrfoJkdUcmDMlD4RYJFfDd35c+oJhg=;
-	b=rjy5cDzOqvBeoZ8UKN/XgPtZsPhg+spf+Hp7wGax62ztRFXlkOZRJaPcBXvZoAcu34/d
-	 0HfT7XmCCW6MC3mMk0B4MAVHo+2zsT3Cu6QGwKocND1zciN+uSz4CiI6zG29S/y+1U/O7
-	 FcAHv+Mof1rBeR2aPbcMfHU1xCKsUNSkRAJKsZD3FbCA4Agq9yG13jNmLICWic4lGnqM8
-	 gDFHoTXqjR7a9d8goToE19P1ASVAwZeh4tfaEcBK2mYlBZ3zB09+O0L6JpQHdZQW7d8kw
-	 7JPGOIQxOFs1Fnw+OJ3VtZ5Vsd/HM+jZnmstN6m+746Z46TSzuJRUWlPgGe1ua4aFdw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792686424;
+	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
+	 Feedback-ID:X-Pm-Message-ID:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=54LAz2yiMw1ZfC35z33LposRAamRb5F8Xp2rr4ddzGw=;
+	b=Mm9LCB3Ue9pNfjZ/fl7S/65W2wwHo5aKvgQEbFP1JIhg3H0Gdt+01EX4D67mMA+7hOih
+	 9LeNTQ9KEQPB4KLUHG13e74SZahBdeGhgmR+/4gkxfhCHj74t0DFwNqHWd21LX0mntEPT
+	 JvKPCE5Iesi8O0QteYzkiVbeVoOYH3BN/WUcvJcOSnbTswcsitGk5CwrirK1gFb1AnVwL
+	 i5wht6N1YzwX6rylsSocWHtYAvWwlQ3f8vh2OAA0/NHgXvYOGt+OnucAcmQ944sJbYS9Z
+	 eD7IqdIDHY7jw9qo2AR9gnx2r2O2WSiqhPXL/f4IB8qv2IlSovwnzCpHh577V865Ppw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JgE1FJhG;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=protonmail.com;
+	spf=pass smtp.mailfrom=protonmail.com;
+	dkim=pass header.d=protonmail.com header.i=@protonmail.com header.a=rsa-sha256 header.s=protonmail3 header.b=SbaSGjfj;
+	arc=none smtp.remote-ip=185.70.43.22
+Received: from mail-4322.protonmail.ch (mail-4322.protonmail.ch [185.70.43.22])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB16A606A31B
-	for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2026 14:02:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41691606A319;
+	Thu, 22 Oct 2026 16:27:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 41691606A319
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JgE1FJhG
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C9171F000C4
-	for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2026 14:02:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792677770;
-	bh=89oFWpy7/fXqqbrfoJkdUcmDMlD4RYJFfDd35c+oJhg=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=JgE1FJhGZy2aDKaJ0gRpV8e6diMaQy+ymqNl1hxg4Veesrqdj9MG88vGrWP/w7Lni
-	 gxtqGd7yTFX9TubnCDOA1wGdRXThlRDaf6PfFFVVwYW/Qt+dfgCAdy0HIYcPQvvHOa
-	 HBZEofbWDI7GiWKPq09NCMjoS7Vaql37BGLw87JVj3AlemrEZrNfyHfG3pREOw8FIu
-	 9h9skjbTqfzI/0g5fdEb+XjR65yeOnSZS6hoVEFJRXvmJJCwhO9pTD85zCDAk2ITiV
-	 EFjw0RV1cY1m2vgZ0bHbjFWI0rC0lStqVQmhwFCHgnFQN1qDBK2C6QumDLiqszJrn/
-	 YhyHqnB6faQhw==
-Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-5be4d648aacso1534652e87.3
-        for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2026 07:02:50 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBx/SzU1PaLusLDe+TmNYizP7iPwcfvbE64L/R/sia3pyx99tJrso0eyh9TnjYKoNzsCGpdXbEtHdDg5@vger.kernel.org
-X-Gm-Message-State: AFq9FYJk4AP2LjFHh/0GuYViOLdJfbbw8S7+4MOJ99MclW9syvlGrGG8
-	FiDhoFG4+IR4uQRAZJR5AaHgEgRIdqlxCqNkQIssGjVR90cZNdxXv/SVoZY/BevRlKx2YtyJHR0
-	G1U+Zx+tHfp2fjhEcz4EHkGt3xqktxl0=
-X-Received: by 2002:a05:6512:31cd:b0:5be:42c0:6ce4 with SMTP id
- 2adb3069b0e04-5bfa1be92b4mr2034800e87.17.1792677768810; Thu, 22 Oct 2026
- 07:02:48 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=protonmail.com header.i=@protonmail.com header.a=rsa-sha256 header.s=protonmail3 header.b=SbaSGjfj
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail3; t=1792686421; x=1792945621;
+	bh=54LAz2yiMw1ZfC35z33LposRAamRb5F8Xp2rr4ddzGw=;
+	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
+	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
+	b=SbaSGjfjdiUNo5BWiQKZEx2VunsfJzLFoSWPl8LUClqPiwiOENOXmIvmLIVftfqum
+	 VMuneIS1poXWE4MiITDzEIAZ0aIKz9+/njp7b1k2SlkgIyyPIBHO1pHDJYjUEvb9uY
+	 4zodON2m9AfjQqhjQPB09RlX0mYOoAHjiSFjTODZTkJkGa73aLhToarXM/d2HA72Hk
+	 mMjSufKpzMG9R7A5I3DJ3irM9lg/d/6YgoVkmnCT+4Br3gfjcmZvTEe99/6PvEW5LQ
+	 KtO+LPgn0Vt3GC1PtlfPTEQyIgmaTGmIrHwYAvvNOi46wrvp/1TBM0un79XpoUExsA
+	 G3AANRJh2w6sg==
+Date: Thu, 22 Oct 2026 16:26:57 +0000
+To: stable@vger.kernel.org
+From: Frederic MARIE-JOSEPH <fredericmariejoseph@protonmail.com>
+Cc: linux-acpi@vger.kernel.org, regressions@lists.linux.dev, "Rafael J . Wysocki" <rafael@kernel.org>, Sasha Levin <sashal@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [REGRESSION] 6.18.57: ACPI fixed power button no longer bound, ACPI power-off ignored
+Message-ID: <20261022162655.231431-1-fredericmariejoseph@protonmail.com>
+Feedback-ID: 23950738:user:proton
+X-Pm-Message-ID: 68cd0915601fe67b695201b30ee4d8b7804178c8
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,113 +61,148 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261020121846.691218-1-sumitg@nvidia.com> <20261020121846.691218-5-sumitg@nvidia.com>
- <cf4e3153-ff80-4d0d-94f7-572a26f369c1@arm.com> <51747329-abe1-406a-aeae-94ebb7a35bf4@nvidia.com>
- <85da866f-4fbb-4cf2-9376-3f7405e049ef@arm.com>
-In-Reply-To: <85da866f-4fbb-4cf2-9376-3f7405e049ef@arm.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Thu, 22 Oct 2026 16:00:28 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iXip_5Ywk3EkrGL_u2w_hOcGKA1XvrubLPb3diWHx5Lw@mail.gmail.com>
-X-Gm-Features: AclHuK-vTfvlIZ3lOGv_EwwgmPMlFSmRAOWiMov9GEuALAEDP0Pgfx35UBoLgu8
-Message-ID: <CAJZ5v0iXip_5Ywk3EkrGL_u2w_hOcGKA1XvrubLPb3diWHx5Lw@mail.gmail.com>
-Subject: Re: [PATCH v6 4/5] cpufreq: CPPC: Preserve OSPM-set registers across
- hotplug and unload
-To: Christian Loehle <christian.loehle@arm.com>, Sumit Gupta <sumitg@nvidia.com>
-Cc: viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com, 
-	zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, ray.huang@amd.com, 
-	mario.limonciello@amd.com, perry.yuan@amd.com, kprateek.nayak@amd.com, 
-	maciej.wieczor-retman@intel.com, pawel.chmielewski@intel.com, 
-	linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	acpica-devel@lists.linux.dev, linux-tegra@vger.kernel.org, treding@nvidia.com, 
-	jonathanh@nvidia.com, vsethi@nvidia.com, ksitaraman@nvidia.com, 
-	sanjayc@nvidia.com, mochs@nvidia.com, bbasu@nvidia.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Oct 22, 2026 at 3:23=E2=80=AFPM Christian Loehle
-<christian.loehle@arm.com> wrote:
->
-> On 10/22/26 11:10, Sumit Gupta wrote:
-> > Hi Christian,
-> >
-> >
-> > On 20/10/26 21:41, Christian Loehle wrote:
-> >> External email: Use caution opening links or attachments
-> >>
-> >>
-> >> On 10/20/26 13:18, Sumit Gupta wrote:
-> >>> Values written to OSPM-set CPPC registers via sysfs can be lost in tw=
-o
-> >>> ways:
-> >>>
-> >>>    - Across CPU hotplug: the platform may reset a CPU's registers whi=
-le it
-> >>>      is offline.
-> >>>    - On driver unload: the value the driver wrote is left in the regi=
-ster
-> >>>      instead of returning to its pre-driver state.
-> >>>
-> >>> Add a small table-driven mechanism that handles both:
-> >>>
-> >>>    - On init(), capture each register's firmware value before the
-> >>>      driver programs anything.
-> >>>    - On offline(), read back each register's current value (whatever =
-was
-> >>>      last set via sysfs) so it can be reapplied, then restore the fir=
-mware
-> >>>      value.
-> >>
-> >> Sorry for the late suggestion, but all the ospm-set registers I think =
-we can
-> >> save ourselves some headache by just saving these at sysfs_store (and =
-not deal
-> >> with potential read-errors during offline/suspend (which actually may =
-happen!).
-> >>
-> >
-> > v1 [1] saved the values at store time. In v2 I switched to reading
-> > them in offline(), following the flow discussed in [2]. One read there
-> > covers every store handler and the pending boot parameter series.
->
-> Ah right!
->
-> >
-> > But a read error in offline() or suspend() drops the request. A failed
-> > reapply in online() can also leave the register at its firmware or rese=
-t
-> > value, which the next offline() or suspend() then saves over the
-> > request. Saving at store time keeps the request in both cases.
->
-> Yup, that's more reasonable IMO
+Hello,
 
-Yes, please!
+Since 6.18.57, a machine whose FADT describes a fixed-hardware power
+button (QEMU's q35 machine, so Incus and other QEMU virtual machines)
+ignores an ACPI power-off request.
 
-Cache stuff at store time.
+On 6.18.57 (x86_64, CONFIG_ACPI_BUTTON=3Dy, CONFIG_INPUT_EVDEV=3Dy), in an
+Incus 7.5.1 virtual machine:
 
-> >
-> > We could combine the two. Keep the policy across hotplug and the
-> > firmware restore in offline() from v2, and save the requested values
-> > at store time as in v1:
-> >  - init() saves the firmware values and uses them as the initial
-> >    requested values.
->
-> Yes, I guess if we cannot read the initial values at init() (or first
-> autosel enable?) there's no point in letting the driver initialize
-> (or allowing autosel=3D1 respectively)?
->
-> >  - Each sysfs store updates the requested value after it succeeds.
->    The boot parameter series will do the same.
-> >  - offline() and suspend() restore the firmware values without
-> >    reading the registers.
-> >  - online() and resume() reapply the requested values. If that fails,
-> >    the request is kept for a later online().
-> >
-> > Does this sound fine and keep the intent of the earlier discussion?
-> > I will respin accordingly.
->
->
-> To me it does,
+- /proc/bus/input/devices lists no "Power Button";
+- /sys/bus/acpi/devices/LNXPWRBN:00 exists, with no driver and no
+  physical node;
+- /sys/bus/platform/drivers/acpi-button exists and is bound to nothing;
+- no platform device exists for LNXPWRBN;
+- QEMU's system_powerdown ("incus stop") has no effect in the guest.
 
-+1
+6.18.57 took "ACPI: button: Convert the driver to a platform one"
+(stable commit 38c79dacc8063ff8a0d75ce2a900fbaff82ad94c, upstream
+52d86401963666423cb9a56d117136c846093db0) as a Stable-dep-of
+fe80251152fe ("ACPI: button: Fix ACPI GPE handler leak during removal").
+The platform driver needs the fixed button objects to be platform
+devices, but 6.18.57's acpi_bus_scan_fixed() in drivers/acpi/scan.c
+still attaches them on the ACPI bus with device_attach(), where no button
+driver is left; and acpi_create_platform_device() would fail on them
+anyway, because acpi_dev_get_resources() returns -EINVAL for an object
+without a namespace handle.
 
-Thanks!
+Mainline handles this (as of 7.1.8): acpi_bus_scan_fixed() calls
+acpi_bus_add_fixed_device_object(), which uses acpi_default_enumeration(),
+and acpi_create_platform_device() looks up resources only for
+ACPI_BUS_TYPE_DEVICE objects. Those two changes, backported to 6.18.57 as
+below, restore the Power Button input device, and an ACPI power-off then
+shuts the guest down cleanly ("reboot: Power down" within a second of the
+request). 6.18.58's ChangeLog has no fix.
+
+I could not identify the mainline commit(s) that introduced
+acpi_bus_add_fixed_device_object() and the ACPI_BUS_TYPE_DEVICE check;
+picking them for 6.18.y, or reverting 52d864019636 and its dependants
+there, would fix it. The diff below is offered for testing and as a
+pointer, not for applying as is.
+
+The analysis and the backport were prepared with an AI assistant
+(Claude, Anthropic) and checked on the hardware above.
+
+#regzbot introduced: 38c79dacc8063ff8a0d75ce2a900fbaff82ad94c
+
+Thanks,
+Frederic MARIE-JOSEPH
+
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -137,22 +137,26 @@
+ =09=09}
+ =09}
+=20
+-=09INIT_LIST_HEAD(&resource_list);
+-=09count =3D acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
+-=09if (count < 0)
+-=09=09return NULL;
+-=09if (count > 0) {
+-=09=09resources =3D kcalloc(count, sizeof(*resources), GFP_KERNEL);
+-=09=09if (!resources) {
++=09count =3D 0;
++=09/* A fixed event button has no namespace object, so no resources. */
++=09if (adev->device_type =3D=3D ACPI_BUS_TYPE_DEVICE) {
++=09=09INIT_LIST_HEAD(&resource_list);
++=09=09count =3D acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
++=09=09if (count < 0)
++=09=09=09return NULL;
++=09=09if (count > 0) {
++=09=09=09resources =3D kcalloc(count, sizeof(*resources), GFP_KERNEL);
++=09=09=09if (!resources) {
++=09=09=09=09acpi_dev_free_resource_list(&resource_list);
++=09=09=09=09return ERR_PTR(-ENOMEM);
++=09=09=09}
++=09=09=09count =3D 0;
++=09=09=09list_for_each_entry(rentry, &resource_list, node)
++=09=09=09=09acpi_platform_fill_resource(adev, rentry->res,
++=09=09=09=09=09=09=09    &resources[count++]);
++
+ =09=09=09acpi_dev_free_resource_list(&resource_list);
+-=09=09=09return ERR_PTR(-ENOMEM);
+ =09=09}
+-=09=09count =3D 0;
+-=09=09list_for_each_entry(rentry, &resource_list, node)
+-=09=09=09acpi_platform_fill_resource(adev, rentry->res,
+-=09=09=09=09=09=09    &resources[count++]);
+-
+-=09=09acpi_dev_free_resource_list(&resource_list);
+ =09}
+=20
+ =09memset(&pdevinfo, 0, sizeof(pdevinfo));
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -2631,33 +2631,22 @@
+ }
+ EXPORT_SYMBOL_GPL(acpi_bus_register_early_device);
+=20
+-static void acpi_bus_scan_fixed(void)
++static void acpi_bus_add_fixed_device_object(enum acpi_bus_device_type typ=
+e)
+ {
+-=09if (!(acpi_gbl_FADT.flags & ACPI_FADT_POWER_BUTTON)) {
+-=09=09struct acpi_device *adev =3D NULL;
++=09struct acpi_device *adev =3D NULL;
+=20
+-=09=09acpi_add_single_object(&adev, NULL, ACPI_BUS_TYPE_POWER_BUTTON,
+-=09=09=09=09       false);
+-=09=09if (adev) {
+-=09=09=09adev->flags.match_driver =3D true;
+-=09=09=09if (device_attach(&adev->dev) >=3D 0)
+-=09=09=09=09device_init_wakeup(&adev->dev, true);
+-=09=09=09else
+-=09=09=09=09dev_dbg(&adev->dev, "No driver\n");
+-=09=09}
+-=09}
++=09acpi_add_single_object(&adev, NULL, type, false);
++=09if (adev)
++=09=09acpi_default_enumeration(adev);
++}
+=20
+-=09if (!(acpi_gbl_FADT.flags & ACPI_FADT_SLEEP_BUTTON)) {
+-=09=09struct acpi_device *adev =3D NULL;
++static void acpi_bus_scan_fixed(void)
++{
++=09if (!(acpi_gbl_FADT.flags & ACPI_FADT_POWER_BUTTON))
++=09=09acpi_bus_add_fixed_device_object(ACPI_BUS_TYPE_POWER_BUTTON);
+=20
+-=09=09acpi_add_single_object(&adev, NULL, ACPI_BUS_TYPE_SLEEP_BUTTON,
+-=09=09=09=09       false);
+-=09=09if (adev) {
+-=09=09=09adev->flags.match_driver =3D true;
+-=09=09=09if (device_attach(&adev->dev) < 0)
+-=09=09=09=09dev_dbg(&adev->dev, "No driver\n");
+-=09=09}
+-=09}
++=09if (!(acpi_gbl_FADT.flags & ACPI_FADT_SLEEP_BUTTON))
++=09=09acpi_bus_add_fixed_device_object(ACPI_BUS_TYPE_SLEEP_BUTTON);
+ }
+=20
+ static void __init acpi_get_spcr_uart_addr(void)
+
