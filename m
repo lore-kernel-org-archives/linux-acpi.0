@@ -1,100 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.160.44
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1792636000;
-	b=crwqXrjNFgrswsNmvwAXfYbh+r18avA1NCWl2E5aM2l3+5QsKcXJLLTJIOd9Y/5sDnZ9
-	 eRKlHxeO+UCPajXH+VXMStx0U9jqTLXa7tOJ1sn9v7CHIxzQGrwflFDgAyJDsZ4djRcoq
-	 kh+sqcXuiHgL4X0hpH6GJ+NtKv5fwTXUqnjTKfgwvQZVGCk4hzIhV4DHtq9YpKbg8V9dS
-	 /DCIfl6Pm8oNq1m1jtpECjtA6d4pWu5uuV/71E3wI2buuN+TU/lxpXv5ZBETTZhe6CVcZ
-	 nDau1DhjqPpTLPJKtNOZiRBcxlDJlRRaChbQfZ515196JqF/vVBzbD2s9RqKrE99Mcg==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792636000;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=RkEzU0XAuh1vSOwF/onrhvMr4uvIUAAzgM9QJxDqjro=;
-	b=2fs5YgaoiX1kFUtpIUKydwUjmBamfiNAfONrVMtfjYCsc1AGHxleJ1hhRguZP0PKfVEz
-	 RI+FEVwhNvVJpOlO7jCiz5MED7cnJfkpLDD5ej+6evS7gqQO5Qn1NLstBZLey68vplQxn
-	 vFbUapM+WWSuUjZoNrFzXhBWHW6cDa54llqAzrWqwg73PbQPlBwGb2ur65acPB08x9QSw
-	 uUurOcHX8kzY6bI/NiPYDCq2gr+pq6KZl4xWCVm32fgH2gbsnfVfRvAOulwa89pyBXnR2
-	 /Z9XUdustJTlehWNUUpiXYa+TYQN+GRmDgoFeuT0e0jcnf9gnl1pzmpTwHF0YsGJUQw==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=nq1uL+F9;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.160.44
-Received: from mail-oa1-f44.google.com (mail-oa1-f44.google.com [209.85.160.44])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=220.197.31.3
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1792636950;
+	b=wwe3IZT7bJqPImfUM/UHB9dZQhMaeBT3hSqU1Qhk/gxtoL5kXoB+uBgQstz7B1hl2cRk
+	 5bS9bvEf6DT9HJ2J63b6fI7/4F+wbKu4FmWIfIYa7rrtAx4SrMu64KbrGtuqRfxe2CF4t
+	 WiUcgoEqnNOLnFJeqE7D3hz4HH4sOoXmypnMx7Qr3AP+9X+ysj71cXat7lKGo4SpnllHN
+	 SlS+XwCztyRaDHkny7LmXQxpK4XxuyIuUTK1sPMfEttSS294XS2jAnS5J5ynRincqAy2j
+	 AWj7JlFeZamlKNZWcb2ipGPHJ9oupj6VEBxLz28Z7Gzifx3Zkv/eO68o6J4IBxD+Ryw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792636950;
+	h=DMARC-Filter:DKIM-Signature:Date:From:To:Cc:Subject:X-Priority:
+	 X-Mailer:In-Reply-To:References:X-NTES-SC:Content-Transfer-Encoding:
+	 Content-Type:MIME-Version:Message-ID:X-Coremail-Locale:X-CM-TRANSID:
+	 X-CM-SenderInfo:X-Coremail-Antispam;
+	bh=laBQvw5GW3RbeF4QBvSEmgW8J/10y342VbeJsKDBX5Q=;
+	b=WXe9UzRcZ9JvZagoi0CcRxr9p9d1RKxtMkB4XXilODFWUDXAxfSkxTw9YK8xyY/nRyk1
+	 WPFteK9F8e1raArYIVSnKPw7/iRZgyUCJCm6K1mN75aqU9cgX1axe2UXOzDFIrWxV03IH
+	 MAcEgVlC94Km6jrgGyG4CwUu/kqtuVSN0fW7rLT6U/LocrbB+3xsVlOhGoKmiDEqCV+bp
+	 5yB8ZdspXRyAqOy5Be69bcPS9BqA44McPc3EsVjMlPWfmY2yqgHT4Yo24ybe3KMql/QaF
+	 HEDUNb5nGkHLUoLXOKiCjjOMCDVnaBqiqQ8F2IMSbWOrkWk4t6n4AVvNcceGeGUe5vg==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=163.com;
+	spf=pass smtp.mailfrom=163.com;
+	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=HD9PlHzG;
+	arc=none smtp.remote-ip=220.197.31.3
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.3])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B27AA606A31A
-	for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2026 02:26:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B27AA606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B842E606A31A;
+	Thu, 22 Oct 2026 02:42:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B842E606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=nq1uL+F9
-Received: by mail-oa1-f44.google.com with SMTP id 586e51a60fabf-4a77dcc4ca0so727465fac.2
-        for <linux-acpi@vger.kernel.org>; Wed, 21 Oct 2026 19:26:39 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1792635999; cv=none;
-        d=google.com; s=arc-20260327;
-        b=lcZha3HzfdHPC9NKFDK7enlzi0HX2sSWF+PiIkPgLE7VGixtslib95bOYsinOtk7UH
-         c9I5iRi4oxFaZIbhbP8qWqq9VC3KQbINM28izA7ZDw1rlM19TjsNl17hHQSX08k+KVnA
-         LK0LSCXkKaMDISunl/RE2DYf6lewUi41h1bOD8eXhLI12w6JtlJh8d0G4i3gosl3jsav
-         UxrME48qGVWatFvUr+erX7GsE5hDbTfjO0HPTYIX4k1PyTw21WDNCuAUfudQWTq0pP/S
-         X/IT5WEK1mW55p30hDVJP5gyHz3KWQ52IKtd5crI9oTuli+V4S1CAdDxMfy5xRx/yoAY
-         YoRg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=RkEzU0XAuh1vSOwF/onrhvMr4uvIUAAzgM9QJxDqjro=;
-        fh=7khfBheXSdFcGi9VfpXDLNlP+JuSg/kRetVyLn34vdw=;
-        b=U2ZQLTha+VHLosgMABfC2KPwre2u3carlPfKfTGw4QYsQZ3GohjMjM+epk0LlKuBdS
-         YBFnD0eymNPUWIXDrrBNDuUOhyU2XBJutPcORaWzs0j7hu210VeCEhbZkZu03KXnlvAM
-         yEtrEZ8pCYzFOgLwbbS/EOSQppTSU8ZfWx2vdlvI3tPmIfbJSsJiK+IM/JZ3NklPQug0
-         hWzm+lTi5YRFdgRjwjdYWc4n1mWVGIlr7RJTD9PMdd/v+VfKEl6K5kG6uwfQlgFs1qvO
-         PgcEItsUiVuj8AypuWvTQ+5i5ZWoh75FG8f4y2QzTYhPqT7AhNGNBz4uZiu1Otg3fLj1
-         DoQA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792635999; x=1793240799; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=RkEzU0XAuh1vSOwF/onrhvMr4uvIUAAzgM9QJxDqjro=;
-        b=nq1uL+F9Okn1CXc8t4yx1SbF4+JT8PrpTHkqnecA4IjbVzJJj409gqdQ+Khkji8m7N
-         xXD7luovmX1tTZG92UrAOK+L3HkBnaCzTrcZJCykO/IBNse0Xpw19j5HCgj8Eoilsu1o
-         FNJv0z+XYe9XXz9v3dFsZXcfiCxwf8nXiDT9hPPxJxRRsxx1NDkrvhY0wQnZR9jmTq+i
-         C+yNT5smNGpJ0ivjw3ZyqmafevZBSN+9E3EoGCHqq/O3eOS7t1cfk8U+dgJPNPMBSjeG
-         kZmhoUH1/30oPxszThf2xVtrA6WRUfKekQyNll14BiL9vLNiUVLio1JGM7Xtut0U5hpf
-         3Mzg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792635999; x=1793240799;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=RkEzU0XAuh1vSOwF/onrhvMr4uvIUAAzgM9QJxDqjro=;
-        b=vwHpDWs5/7K/kiQxjrt93wC1msIz8RLqL/XqhVG1/yO0NqIwPLzcnuICXnlZFlKV8T
-         vMTOaVPQ1d3HIecv95k1WMXm0BR8FBKmoBz0Ne5ZUU3aCG3ht1MVCHqKWPl8/yTbyQBO
-         6SChXArd/i+vQys2Y9Gp0fIzrfepej12wZjMOIrR1xiNPYdU9kILRvGJT9Tg487rMbOv
-         KBtdI78QuPBxuzO9NBmpunYxs/O4TIjklNk6ww9YFuP233omzb3ulMQbFMAJVVYTS3zt
-         n0U+UPqgooS0OcnzC0GlJfnBm3QStkZc67dEam6fjJQgBLC+IwW+hXditSV7FfV/pIGD
-         o9Rw==
-X-Forwarded-Encrypted: i=1; AKwUvBxNToKigtd2BwlHTBrvlPY/FOTvVuaye0Il7utHEc1FD9nT20hNJ6sf4lfSxM163GKMuwfII6+koWm0@vger.kernel.org
-X-Gm-Message-State: AFq9FYK86UAHgxE2lCYh7hhlPqnvqPf7o+gRJjzS0Vrq1Oeg62O+zApB
-	RBNcQ2MBbCny0w5FgpUX2rWunDnxJUh24rFas/s4RaY93nv2X8Y91XYfq0KYNdNbmw/oW11PJJA
-	Ds7C0hVvq0d3GYdmsLbsK9z6Ha51+C2M=
-X-Gm-Gg: AYBFou3x32ihQkJpD76kI+yT2J7yRWQ/4dVey5g3lXtpBpETCGZnl997jOsQQ/eTbeZ
-	gmHLCHIV27tvKTkDBLD9xV6nS/8b5uFTefCQ+RErP/LMfpttSOLLBwWcOL1uj/907ZKHGYp9qS0
-	kho0JN2L1lSM2lKC3qbloIulnPS6AOU2RH4ZGXBTp0/AZzytHjMreBnEE0SMHiEBFrrJHMAYZAq
-	pO5dO0mBAiLV20T7KOiNxQZnfwQr71Vuv8MvlVqBjE/GICf+pqIv+mrCPKwaEbrsz2dO3iDZDt4
-	9KWz4A3Mrk0RhK17otoM2hEhHuwazFYPQmTjscQ/nu1gVFrVnaQH6qCLPc/73Cwxwi9hNZRHMOa
-	DbPYPtqFMeEpAFbK3rw3ZKFd01FvDu9yo18tF
-X-Received: by 2002:a05:6871:714:b0:49d:c9c2:b770 with SMTP id
- 586e51a60fabf-4a7dc1b09cdmr2662108fac.18.1792635998696; Wed, 21 Oct 2026
- 19:26:38 -0700 (PDT)
+	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=HD9PlHzG
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=Date:From:To:Subject:Content-Type:MIME-Version:
+	Message-ID; bh=laBQvw5GW3RbeF4QBvSEmgW8J/10y342VbeJsKDBX5Q=; b=H
+	D9PlHzGOqDvu7RRLxy1KwyWXQZt2X1Yu1ZXvSOL9zqAbX5LcSyqIDUb0AfvE9NQ7
+	AgcnMtAtY2GUdfCiimByE9GRmCVA+9kDcgtC/MX7FnKtbgKACo/7ieTNbGe11Dzh
+	9l7IPm7NYE5l0835JDMB0CALv5R/eKH8/FGWxNQ27U=
+Date: Thu, 22 Oct 2026 10:42:19 +0800 (CST)
+From: "jiale yao" <19888972804@163.com>
+To: "Jassi Brar" <jassisinghbrar@gmail.com>
+Cc: "Sudeep Holla" <sudeep.holla@kernel.org>, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re:Re: [PATCH] mailbox: pcc: validate PCCT subspaces before parsing
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version 2023.4-cmXT build
+ 20260511(2e539873) Copyright (c) 2002-2026 www.mailtech.cn 163com
+In-Reply-To: <CABb+yY0s=eHDyW-=5++9zetFid_oVGCQkhqSWBQs+ty4Bnb-EA@mail.gmail.com>
+References: <20261016141530.2795073-1-yaojiale02@163.com>
+ <CABb+yY0s=eHDyW-=5++9zetFid_oVGCQkhqSWBQs+ty4Bnb-EA@mail.gmail.com>
+X-NTES-SC: AL_Qu2SAPqYuUEo7yCYZekcn08ShO49XMOyvfoi2YFTc/kEvQnB6jE7QmNRBl7k/dywKwG9qSeNezlj1NZbcaRaFWD3Sqbu67zydhJyp1U/wg==
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -104,98 +64,68 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261016141530.2795073-1-yaojiale02@163.com>
-In-Reply-To: <20261016141530.2795073-1-yaojiale02@163.com>
-From: Jassi Brar <jassisinghbrar@gmail.com>
-Date: Wed, 21 Oct 2026 21:26:27 -0500
-X-Gm-Features: AclHuK-jXqJkBjkEEmv9deo3rIxZRsdXYZM_Ept_W2pqwSlhYahgFGW5jEMZIdc
-Message-ID: <CABb+yY0s=eHDyW-=5++9zetFid_oVGCQkhqSWBQs+ty4Bnb-EA@mail.gmail.com>
-Subject: Re: [PATCH] mailbox: pcc: validate PCCT subspaces before parsing
-To: Jiale Yao <yaojiale02@163.com>
-Cc: Sudeep Holla <sudeep.holla@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Message-ID: <35886acd.272d.1a1617ceb00.Coremail.19888972804@163.com>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID:bygvCgDnjwoLeNlqTT5eAA--.17W
+X-CM-SenderInfo: x1dryxhdohiji6rwjhhfrp/xtbCzgsxa2rZeAv0pAAA3P
+X-Coremail-Antispam: 1U5529EdanIXcx71UUUUU7vcSsGvfC2KfnxnUU==
 
-On Fri, Oct 16, 2026 at 9:15=E2=80=AFAM Jiale Yao <yaojiale02@163.com> wrot=
-e:
->
-> The PCC mailbox probe walks PCCT entries by their declared lengths
-> without checking that each entry is contained in the table. It also
-> passes generic headers to type-specific parsers without establishing the
-> required record size. Malformed firmware can therefore move the cursor
-> outside the PCCT or cause out-of-bounds field reads.
->
-> Validate the table header, each subspace range, and the minimum size for
-> supported subspace types during both the counting and probe passes.
->
-> Signed-off-by: Jiale Yao <yaojiale02@163.com>
-> ---
->  drivers/mailbox/pcc.c | 53 ++++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 52 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-> index 9888dab64639..37b2ddb44bda 100644
-> --- a/drivers/mailbox/pcc.c
-> +++ b/drivers/mailbox/pcc.c
-> @@ -553,6 +553,42 @@ static const struct mbox_chan_ops pcc_chan_ops =3D {
->         .last_tx_done =3D pcc_last_tx_done,
->  };
->
-> +static bool pcc_subspace_is_valid(struct acpi_subtable_header *entry,
-> +                                 unsigned long end)
-> +{
-> +       unsigned long start =3D (unsigned long)entry;
-> +       size_t length, min_length;
-> +
-> +       if (start >=3D end || end - start < sizeof(*entry))
-> +               return false;
-
-(end - start < sizeof(*entry)) is implied by the two length  checks
-below, so only "start >=3D end" is needed here.
-
-> +       length =3D entry->length;
-> +       if (length < sizeof(*entry) || length > end - start)
-> +               return false;
-> +
-> +       switch (entry->type) {
-> +       case ACPI_PCCT_TYPE_GENERIC_SUBSPACE:
-> +               min_length =3D sizeof(struct acpi_pcct_subspace);
-> +               break;
-> +       case ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE:
-> +               min_length =3D sizeof(struct acpi_pcct_hw_reduced);
-> +               break;
-> +       case ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2:
-> +               min_length =3D sizeof(struct acpi_pcct_hw_reduced_type2);
-> +               break;
-> +       case ACPI_PCCT_TYPE_EXT_PCC_MASTER_SUBSPACE:
-> +               min_length =3D sizeof(struct acpi_pcct_ext_pcc_master);
-> +               break;
-> +       case ACPI_PCCT_TYPE_EXT_PCC_SLAVE_SUBSPACE:
-> +               min_length =3D sizeof(struct acpi_pcct_ext_pcc_slave);
-> +               break;
-> +       default:
-> +               return false;
-> +       }
-> +
-> +       return length >=3D min_length;
-
-How about something like
-
-static const u16 pcc_subspace_min_len[ACPI_PCCT_TYPE_RESERVED] =3D {
-    [ACPI_PCCT_TYPE_GENERIC_SUBSPACE] =3D
-    sizeof(struct acpi_pcct_subspace),
-    [ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE] =3D
-    sizeof(struct acpi_pcct_hw_reduced),
-    [ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2] =3D
-    sizeof(struct acpi_pcct_hw_reduced_type2),
-    [ACPI_PCCT_TYPE_EXT_PCC_MASTER_SUBSPACE] =3D
-    sizeof(struct acpi_pcct_ext_pcc_master),
-    [ACPI_PCCT_TYPE_EXT_PCC_SLAVE_SUBSPACE] =3D
-    sizeof(struct acpi_pcct_ext_pcc_slave),
-};
-
-return entry->length >=3D pcc_subspace_min_len[entry->type];
-
-Cheers
-Jassi
+SGkgSmFzc2ksCkF0IDIwMjYtMTAtMjIgMTA6MjY6MjcsICJKYXNzaSBCcmFyIiA8amFzc2lzaW5n
+aGJyYXJAZ21haWwuY29tPiB3cm90ZToKPk9uIEZyaSwgT2N0IDE2LCAyMDI2IGF0IDk6MTXigK9B
+TSBKaWFsZSBZYW8gPHlhb2ppYWxlMDJAMTYzLmNvbT4gd3JvdGU6Cj4+Cj4+IFRoZSBQQ0MgbWFp
+bGJveCBwcm9iZSB3YWxrcyBQQ0NUIGVudHJpZXMgYnkgdGhlaXIgZGVjbGFyZWQgbGVuZ3Rocwo+
+PiB3aXRob3V0IGNoZWNraW5nIHRoYXQgZWFjaCBlbnRyeSBpcyBjb250YWluZWQgaW4gdGhlIHRh
+YmxlLiBJdCBhbHNvCj4+IHBhc3NlcyBnZW5lcmljIGhlYWRlcnMgdG8gdHlwZS1zcGVjaWZpYyBw
+YXJzZXJzIHdpdGhvdXQgZXN0YWJsaXNoaW5nIHRoZQo+PiByZXF1aXJlZCByZWNvcmQgc2l6ZS4g
+TWFsZm9ybWVkIGZpcm13YXJlIGNhbiB0aGVyZWZvcmUgbW92ZSB0aGUgY3Vyc29yCj4+IG91dHNp
+ZGUgdGhlIFBDQ1Qgb3IgY2F1c2Ugb3V0LW9mLWJvdW5kcyBmaWVsZCByZWFkcy4KPj4KPj4gVmFs
+aWRhdGUgdGhlIHRhYmxlIGhlYWRlciwgZWFjaCBzdWJzcGFjZSByYW5nZSwgYW5kIHRoZSBtaW5p
+bXVtIHNpemUgZm9yCj4+IHN1cHBvcnRlZCBzdWJzcGFjZSB0eXBlcyBkdXJpbmcgYm90aCB0aGUg
+Y291bnRpbmcgYW5kIHByb2JlIHBhc3Nlcy4KPj4KPj4gU2lnbmVkLW9mZi1ieTogSmlhbGUgWWFv
+IDx5YW9qaWFsZTAyQDE2My5jb20+Cj4+IC0tLQo+PiAgZHJpdmVycy9tYWlsYm94L3BjYy5jIHwg
+NTMgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLQo+PiAgMSBmaWxl
+IGNoYW5nZWQsIDUyIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkKPj4KPj4gZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvbWFpbGJveC9wY2MuYyBiL2RyaXZlcnMvbWFpbGJveC9wY2MuYwo+PiBpbmRl
+eCA5ODg4ZGFiNjQ2MzkuLjM3YjJkZGI0NGJkYSAxMDA2NDQKPj4gLS0tIGEvZHJpdmVycy9tYWls
+Ym94L3BjYy5jCj4+ICsrKyBiL2RyaXZlcnMvbWFpbGJveC9wY2MuYwo+PiBAQCAtNTUzLDYgKzU1
+Myw0MiBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IG1ib3hfY2hhbl9vcHMgcGNjX2NoYW5fb3BzID0g
+ewo+PiAgICAgICAgIC5sYXN0X3R4X2RvbmUgPSBwY2NfbGFzdF90eF9kb25lLAo+PiAgfTsKPj4K
+Pj4gK3N0YXRpYyBib29sIHBjY19zdWJzcGFjZV9pc192YWxpZChzdHJ1Y3QgYWNwaV9zdWJ0YWJs
+ZV9oZWFkZXIgKmVudHJ5LAo+PiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdW5z
+aWduZWQgbG9uZyBlbmQpCj4+ICt7Cj4+ICsgICAgICAgdW5zaWduZWQgbG9uZyBzdGFydCA9ICh1
+bnNpZ25lZCBsb25nKWVudHJ5Owo+PiArICAgICAgIHNpemVfdCBsZW5ndGgsIG1pbl9sZW5ndGg7
+Cj4+ICsKPj4gKyAgICAgICBpZiAoc3RhcnQgPj0gZW5kIHx8IGVuZCAtIHN0YXJ0IDwgc2l6ZW9m
+KCplbnRyeSkpCj4+ICsgICAgICAgICAgICAgICByZXR1cm4gZmFsc2U7Cj4KPihlbmQgLSBzdGFy
+dCA8IHNpemVvZigqZW50cnkpKSBpcyBpbXBsaWVkIGJ5IHRoZSB0d28gbGVuZ3RoICBjaGVja3MK
+PmJlbG93LCBzbyBvbmx5ICJzdGFydCA+PSBlbmQiIGlzIG5lZWRlZCBoZXJlLgo+Cj4+ICsgICAg
+ICAgbGVuZ3RoID0gZW50cnktPmxlbmd0aDsKPj4gKyAgICAgICBpZiAobGVuZ3RoIDwgc2l6ZW9m
+KCplbnRyeSkgfHwgbGVuZ3RoID4gZW5kIC0gc3RhcnQpCj4+ICsgICAgICAgICAgICAgICByZXR1
+cm4gZmFsc2U7Cj4+ICsKPj4gKyAgICAgICBzd2l0Y2ggKGVudHJ5LT50eXBlKSB7Cj4+ICsgICAg
+ICAgY2FzZSBBQ1BJX1BDQ1RfVFlQRV9HRU5FUklDX1NVQlNQQUNFOgo+PiArICAgICAgICAgICAg
+ICAgbWluX2xlbmd0aCA9IHNpemVvZihzdHJ1Y3QgYWNwaV9wY2N0X3N1YnNwYWNlKTsKPj4gKyAg
+ICAgICAgICAgICAgIGJyZWFrOwo+PiArICAgICAgIGNhc2UgQUNQSV9QQ0NUX1RZUEVfSFdfUkVE
+VUNFRF9TVUJTUEFDRToKPj4gKyAgICAgICAgICAgICAgIG1pbl9sZW5ndGggPSBzaXplb2Yoc3Ry
+dWN0IGFjcGlfcGNjdF9od19yZWR1Y2VkKTsKPj4gKyAgICAgICAgICAgICAgIGJyZWFrOwo+PiAr
+ICAgICAgIGNhc2UgQUNQSV9QQ0NUX1RZUEVfSFdfUkVEVUNFRF9TVUJTUEFDRV9UWVBFMjoKPj4g
+KyAgICAgICAgICAgICAgIG1pbl9sZW5ndGggPSBzaXplb2Yoc3RydWN0IGFjcGlfcGNjdF9od19y
+ZWR1Y2VkX3R5cGUyKTsKPj4gKyAgICAgICAgICAgICAgIGJyZWFrOwo+PiArICAgICAgIGNhc2Ug
+QUNQSV9QQ0NUX1RZUEVfRVhUX1BDQ19NQVNURVJfU1VCU1BBQ0U6Cj4+ICsgICAgICAgICAgICAg
+ICBtaW5fbGVuZ3RoID0gc2l6ZW9mKHN0cnVjdCBhY3BpX3BjY3RfZXh0X3BjY19tYXN0ZXIpOwo+
+PiArICAgICAgICAgICAgICAgYnJlYWs7Cj4+ICsgICAgICAgY2FzZSBBQ1BJX1BDQ1RfVFlQRV9F
+WFRfUENDX1NMQVZFX1NVQlNQQUNFOgo+PiArICAgICAgICAgICAgICAgbWluX2xlbmd0aCA9IHNp
+emVvZihzdHJ1Y3QgYWNwaV9wY2N0X2V4dF9wY2Nfc2xhdmUpOwo+PiArICAgICAgICAgICAgICAg
+YnJlYWs7Cj4+ICsgICAgICAgZGVmYXVsdDoKPj4gKyAgICAgICAgICAgICAgIHJldHVybiBmYWxz
+ZTsKPj4gKyAgICAgICB9Cj4+ICsKPj4gKyAgICAgICByZXR1cm4gbGVuZ3RoID49IG1pbl9sZW5n
+dGg7Cj4KPkhvdyBhYm91dCBzb21ldGhpbmcgbGlrZQo+Cj5zdGF0aWMgY29uc3QgdTE2IHBjY19z
+dWJzcGFjZV9taW5fbGVuW0FDUElfUENDVF9UWVBFX1JFU0VSVkVEXSA9IHsKPiAgICBbQUNQSV9Q
+Q0NUX1RZUEVfR0VORVJJQ19TVUJTUEFDRV0gPQo+ICAgIHNpemVvZihzdHJ1Y3QgYWNwaV9wY2N0
+X3N1YnNwYWNlKSwKPiAgICBbQUNQSV9QQ0NUX1RZUEVfSFdfUkVEVUNFRF9TVUJTUEFDRV0gPQo+
+ICAgIHNpemVvZihzdHJ1Y3QgYWNwaV9wY2N0X2h3X3JlZHVjZWQpLAo+ICAgIFtBQ1BJX1BDQ1Rf
+VFlQRV9IV19SRURVQ0VEX1NVQlNQQUNFX1RZUEUyXSA9Cj4gICAgc2l6ZW9mKHN0cnVjdCBhY3Bp
+X3BjY3RfaHdfcmVkdWNlZF90eXBlMiksCj4gICAgW0FDUElfUENDVF9UWVBFX0VYVF9QQ0NfTUFT
+VEVSX1NVQlNQQUNFXSA9Cj4gICAgc2l6ZW9mKHN0cnVjdCBhY3BpX3BjY3RfZXh0X3BjY19tYXN0
+ZXIpLAo+ICAgIFtBQ1BJX1BDQ1RfVFlQRV9FWFRfUENDX1NMQVZFX1NVQlNQQUNFXSA9Cj4gICAg
+c2l6ZW9mKHN0cnVjdCBhY3BpX3BjY3RfZXh0X3BjY19zbGF2ZSksCj59OwoKU291bmRzIGdyZWF0
+LCBJIHdpbGwgc3VibWl0IHYyLgoKVGhhbmtzIGZvciB5b3VyIHJldmlldy4KCj4KPnJldHVybiBl
+bnRyeS0+bGVuZ3RoID49IHBjY19zdWJzcGFjZV9taW5fbGVuW2VudHJ5LT50eXBlXTsKPgo+Q2hl
+ZXJzCj5KYXNzaQo=
