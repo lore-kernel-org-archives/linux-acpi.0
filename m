@@ -1,103 +1,166 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.41
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792688340;
-	b=yfUZCLlJAod6QVBu/lM0Q5obVtI7WOLcFg+wG6fIW7Y3Pddb6kyJW3kovR7Yrr0PCYw9
-	 xmOC8WPY2kmXGOki/afDZEI1/8vEqkQ+N6UXjBU37rTU7Z0pjJWa/AJTQMlRz2i5hK9vu
-	 vy2scmyFd/Vi40LSYz1XJaVS1aFFXBpSzNP8ViGk0/gf+0uaKOerdm0msGN2fDAYiGALe
-	 Q9kdLxReBLHRsjaexKqaXglv/UU0kjU/hsmYiJnQGaoYyrmM5FFA0gnf4k9fyX0VXOsxD
-	 2TsaC+YZ59H6K3YitjYmnidSJtlqkbWDDdLZ9hqLNeWC+p5Ma+fNBJHLkg3KCynA6fA==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792688340;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=W7YeOGCoo/KQR6RPp5t3iOKduMWVKWg0EO1FIafOrtU=;
-	b=KmXzVRaSYHPs9G77bu9Xq/WVZlJGfl4L3esbO75zocPwh77IahkzxFvkybg5ZYhblkWE
-	 Jc0k0pP2oy1UoEFtIeU6ssmkt/PWIT4HWV36q14PIXNkMNpRXCPvI/RGdj4UXtjKSwLit
-	 WVXaV2YSBuw8cMM3hxJobzIhKrD5HotVCWq4pOe9OKYkU+3HPNZWkBBfX9dNh8U2Tr7q8
-	 M02KrROL9bkLx5JkOHBrjuC4O9cH9ur2jBhTb1BnmxC0O4GgD5jxQ8XQdfS84AVyaRDqA
-	 Gw612//SkS0vNKO4ggVYdKgJ2KUw0e4xGON6JguCaxoi3C4ifsunFzYi30b25oyLWfg==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=arista.com;
-	spf=pass smtp.mailfrom=arista.com;
-	dkim=pass header.d=arista.com header.i=@arista.com header.a=rsa-sha256 header.s=google header.b=dpn9gq5h;
-	arc=none smtp.remote-ip=74.125.82.41
-Received: from mail-dl1-f41.google.com (mail-dl1-f41.google.com [74.125.82.41])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.103.13.37
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1792689260;
+	b=1kon/QUuOtlJfHfbIzX91NwT6sFb1OXLr444NhoeUVRpRO5AS+nQjDEml0BwaE94Df1a
+	 fJbp6PPlo53Av60xqoPuhiVeyuj6fFTH3mlin2GKCNfcUnqvHW82QKWqy7axLawQNTV69
+	 CCkeTnGRlfhF5K8b6d93H9oAqC8IxXv4OxvSRXCAuk1SkZq2bJykIbi7O4JvMGsw7w/nG
+	 zMOUyKbeMlwKuscqTf80RumG3g+6WfvgR/CjNB8m9n7FmD+ZRJjhpJ9HK45Ai6et3c3Fy
+	 JgLDqMkKMIBD7JkQvVJVPKV0cuTOIPqVNmanffxMZL9HGPPg6jEotGBpBNyHYbeEg+g==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792689260;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:From:To:CC:Subject:
+	 Thread-Topic:Thread-Index:Date:Message-ID:References:In-Reply-To:
+	 Accept-Language:Content-Language:X-MS-Has-Attach:X-MS-TNEF-Correlator:
+	 x-ms-publictraffictype:x-ms-traffictypediagnostic:
+	 x-ms-office365-filtering-correlation-id:x-microsoft-antispam:
+	 x-microsoft-antispam-message-info:
+	 x-ms-exchange-antispam-messagedata-chunkcount:
+	 x-ms-exchange-antispam-messagedata-0:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-AuthAs:X-MS-Exchange-CrossTenant-AuthSource:
+	 X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-originalarrivaltime:
+	 X-MS-Exchange-CrossTenant-fromentityheader:
+	 X-MS-Exchange-CrossTenant-id:
+	 X-MS-Exchange-CrossTenant-rms-persistedconsumerorg:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=Yt6NwdyizH0hVgKOVvheeMX5SX7bFdYckrAhyNFXUUQ=;
+	b=HRCZ5W1HN3gE/5+/nZPncBd+DfLTKTmXw8Oycbi6i6nbfAMamcpPyC0dS2hAdhux1pv7
+	 723iRW2Nm/sAHTEiRHftOnhf7wTeYBVg7eQix9tXSQsmQNW/jnZL1gUa2fN/IC/uUmPLi
+	 Cr9teFbS7P8BcgdW762SD458TEvpC/rzfltK2PKUgolRL0BflrMHWJQjbMXTfUFDINlJf
+	 YaroRBY9lTk17GXhJ2raIq/ObIu+W7eWjrkWhRXl6/nC51E+HkK5DUuAFVfQYA0Ktxnra
+	 y1a+mY5IA9jWKLmUg8fhbmOaIr0uVn8ucAjyGmdkrsttk1ky8PqMNRLkONnL49ebj/A==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=outlook.com;
+	spf=pass smtp.mailfrom=outlook.com;
+	dkim=pass header.d=outlook.com header.i=@outlook.com header.a=rsa-sha256 header.s=selector1 header.b="PW/bRjh/";
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.103.13.37
+Received: from DM5PR21CU001.outbound.protection.outlook.com (mail-centralusazolkn19011037.outbound.protection.outlook.com [52.103.13.37])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3821A60A2602
-	for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2026 16:59:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3821A60A2602
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=arista.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arista.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20363606A31D;
+	Thu, 22 Oct 2026 17:14:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 20363606A31D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=outlook.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=outlook.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=arista.com header.i=@arista.com header.a=rsa-sha256 header.s=google header.b=dpn9gq5h
-Received: by mail-dl1-f41.google.com with SMTP id a92af1059eb24-1517bda04a0so2408337c88.0
-        for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2026 09:59:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=arista.com; s=google; t=1792688339; x=1793293139; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=W7YeOGCoo/KQR6RPp5t3iOKduMWVKWg0EO1FIafOrtU=;
-        b=dpn9gq5htbaMk/l/KS6BiZ1h0XAxEXikL/PJf8H8bLVRQq20aX1P6P2u0RClTS2QpU
-         9J3xWf3nveXQosolCjfJgnuzv22ou0AdIoE7EgcWx6rNYAi+FARCEvXCWJ93z2a8Q/MK
-         U3F0AITZ+7lcN0Eit87LhztoLMx/1CkTmkAy+q6uExJWESNnLZ25H/xhKwoE+8eP3U4B
-         MtlR/cvyHcDxSmxl1eZ7SNSdkBCnHZKAxV9BIxZ94O9txDA/ahsIesTEAXJ5QL0m/3xZ
-         5Ni9PxEmqtjdWCInC4hfz0qi/TPkXzkwjsvOr/yZ7zwSCe/XO35FRp5+lrCwOEJQcpzv
-         GAaA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792688339; x=1793293139;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=W7YeOGCoo/KQR6RPp5t3iOKduMWVKWg0EO1FIafOrtU=;
-        b=N8/8rg8hJazAqG6nSEC5XFwzkGb14LLMQpQneHY54/ca6KmtS7NZGApcMVplXLyJWW
-         1eue7Aco9FatkDMpoizEn41HM/q8+MxSFQUs9ZPJ3oiG1p79Rmho1qZCkVjB02OrQmF2
-         QYG/8pd4B+2jNvs3cFKIZNeFeOSos2BUTYQHp4QOWzeUzrhi72qvLU7iA/KOEE3CqAIs
-         jDcLBmHOSOMEX/QqqEW6wgTjEhjNNeC47Pex2aSDvVHGxE70yLNdmFOJTbiXJPNNyrmE
-         /uygVwvBiiCpQfm3hV0xcdi92f56YjzJSwk6kEBrNzpun48Ckl596M34btzNFEUd7rOC
-         SNgw==
-X-Forwarded-Encrypted: i=1; AKwUvBz5SjTA2cMysG+jiyoi169G9VKFRHJIy1HP0TpLeBVLvtjp8dyXAOXEJ6o6HqNL0FwHwCJcOsNua4xW@vger.kernel.org
-X-Gm-Message-State: AFq9FYKB2Mm8oVOTFQL4lTARoU+5/AuQdJRcEX+5PKlGBo18+bGV4MVq
-	SUeOBgUPJme7C7BczlwjcF8Ctg6NsvvIGAH7TKANsfCYr7CtePKLdEje+e9cAEb4Pg==
-X-Gm-Gg: AYBFou1d0xYhcpTXFii+R3+hCW29iYlu2zQ72K29wf9S6pWtwgzP+drt5ageN58pXSj
-	uTYdg24Lxa37+AQfmdX/KmZDcTYLUrLYsj/mf9kTHlGATMvoPe4X5Dza7NcBVCvOs1nVlWgelHo
-	wklusj0ssD3jgp+ZkuKivjpjdQe7Bwib3JhwL3Zke8GKsNh6n009n/we3NDGhP1lDIN+muCWYUU
-	4VuSGJp72LQPpCaoqJ/DFat4hV6bpNFwjT5Ph6L5XzacbUbl8Kk2IzGo7jkOLVvHfXQPw/cakeA
-	3ghhvEgIQN47ZvQcfYsyYMNicBS881YVAnWgsHZbla5kDaRzrlpaj0uEE2XE9N1yTpVbCocdEPp
-	V5W+CoDRtaxePXis8Ir13WrUYN5VV6O+xEAfRKS8kaihL2sNZ53TJuPr4/75HIX8H/lssH9F3sJ
-	F9DFbTYTivV5nGQpPn2jmQ14eWzTVsL+N21qyPvo/0AX+qdUgwF55WJaquT0Hsv4ualAy0yXEbD
-	4UoQlXZIk4RPIkf37JJUzn/GP5RXYXqEEOg1FV7RsZfr2uAvqGbsLJPIaYaLeywRXYTmD9Sia1t
-	6feq+5Yx2TZDyP6iK+sqiwYK6OArTHAfcYQ=
-X-Received: by 2002:a05:7022:618:b0:14c:1f57:3e86 with SMTP id a92af1059eb24-190a7e0c437mr10112891c88.47.1792688338953;
-        Thu, 22 Oct 2026 09:58:58 -0700 (PDT)
-Received: from yurypm-home-4hjc6.sjc.aristanetworks.com ([74.123.28.13])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1903d3ae06fsm15951151c88.19.2026.10.22.09.58.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 22 Oct 2026 09:58:58 -0700 (PDT)
-From: Yury Murashka <yurypm@arista.com>
-To: bhelgaas@google.com
-Cc: rafael@kernel.org,
-	lenb@kernel.org,
-	corbet@lwn.net,
-	skhan@linuxfoundation.org,
-	rdunlap@infradead.org,
-	mahesh@linux.ibm.com,
-	oohall@gmail.com,
-	linux-pci@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org
-Subject: [PATCH v3 2/2] PCI: Add pci=nodpc kernel boot option
-Date: Thu, 22 Oct 2026 16:58:42 +0000
-Message-ID: <20261022165842.1463451-3-yurypm@arista.com>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20261022165842.1463451-1-yurypm@arista.com>
-References: <20261022165842.1463451-1-yurypm@arista.com>
+	dkim=pass (2048-bit key, unprotected) header.d=outlook.com header.i=@outlook.com header.a=rsa-sha256 header.s=selector1 header.b=PW/bRjh/
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=JsrJ83Yd4eG95N2WzjmI2Aiogu7j9xnNPqG7l7Rkk+8s/kaWCMRJGw8y5LymaZT5RjZHjN9sGKhCQBWEGe34KXS8lALdEEC+wlw3Ucy6tP/YZ532Tz5Gjh7iO1TZrYxQdF0INnzmAaQYXFZnXQmv5zWPV8mcGuB0KPDNn+nHuEdZ25kSloL6bsKLCDpPjJrQ9a//N72JOyM+/Wcym8kjUnCIy1Y+aaPHTIBAB5zenKhu9DzGIICMGvRT5UYslQpKXpigPepqfsg34e4j6a4/Og3q70/pKVrvukaHUUIkRNjKmw5UYsKw3lrr6xUfFYlcqyvRgvmXdQVnFWiBf39Ksg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Yt6NwdyizH0hVgKOVvheeMX5SX7bFdYckrAhyNFXUUQ=;
+ b=YZtAUkVuRvl6yPPBL/ZXvRJtgZwMrMG1Jn4WC8+tupPI4NoOcLpHib1n2uNwg800VYN3IUjYeDEr5igXGePDjYhPxDT83LteoMxOsPNlKu3wuC8wDqdqtLKbm9DHoa/5RRcLjVKmB8WVKiZjzjVUJjuBsMAw40qIheVdS+K6dYm7OpA4PkPNc0IzWdGlU+RKkojcsl/Q/tWe4v/Mh0bK/D+wu00z34cObKdNjJEMhmgeN3fvgZfVuYvD3sD8bT8a9abtYyU5Fs3OYkahOYOqW+oC1/N5o8aJ+LmeHve7xlitpd45WVIpynzM4tByjfXDBpMbVsBAiJ5Uym4u9I0Fbw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=outlook.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Yt6NwdyizH0hVgKOVvheeMX5SX7bFdYckrAhyNFXUUQ=;
+ b=PW/bRjh/n3O7oG3FWI6rdwDFWyNXd9oaQ7NS2amt3FT4raZtGubL1N74yXbI2vYNLhzat9widARbVoE3Qw7fOXAKso+SJSHX2hFijZvbeDY7ViKJKt302DNKXhe7Xi8bB4bfEV/zRT9Wdg9GNYRknApDhOWQVgSFyD0hj+/l3AjGZ4yDU1BgIvFHjJNHCCGKJHV+jQELB7KjoQj9pgXF6R/yNmqiHwGPSIeUmOEBhw1VEql7Wz6uMe13KfkV+S9dWZD5bH2SE8TRt2G0acR/EuoK/NkUr88VWzu44QvliBSScJNBuQAMF1/Rb0ggTMvXgn4QNiUlkVSV1vReN1L6eQ==
+Received: from MN2PR02MB6863.namprd02.prod.outlook.com (2603:10b6:208:1d7::20)
+ by CH2PR02MB6663.namprd02.prod.outlook.com (2603:10b6:610:7e::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.546.16; Thu, 22 Oct
+ 2026 17:14:12 +0000
+Received: from MN2PR02MB6863.namprd02.prod.outlook.com
+ ([fe80::da67:fd0f:d96d:ac53]) by MN2PR02MB6863.namprd02.prod.outlook.com
+ ([fe80::da67:fd0f:d96d:ac53%4]) with mapi id 15.21.0546.016; Thu, 22 Oct 2026
+ 17:14:12 +0000
+From: Michael Kelley <mhklinux@outlook.com>
+To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+CC: "lenb@kernel.org" <lenb@kernel.org>, "bhelgaas@google.com"
+	<bhelgaas@google.com>, "linux-acpi@vger.kernel.org"
+	<linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org"
+	<linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>, "linux-hyperv@vger.kernel.org"
+	<linux-hyperv@vger.kernel.org>
+Subject: RE: [PATCH 1/1] PCI/ACPI: Remove Hyper-V special case in
+ pcibios_root_bridge_prepare()
+Thread-Topic: [PATCH 1/1] PCI/ACPI: Remove Hyper-V special case in
+ pcibios_root_bridge_prepare()
+Thread-Index: AQMKc6wfiOMUtLj22A3qCpjii9PqxgKK3s6DtJtSwyA=
+Date: Thu, 22 Oct 2026 17:14:12 +0000
+Message-ID:
+ <MN2PR02MB6863A57660077B2466B77FB8D4652@MN2PR02MB6863.namprd02.prod.outlook.com>
+References: <20260929181056.4746-1-mhklinux@outlook.com>
+ <CAJZ5v0jNJBCK1Zj0cVuTK3mtyJFF3MbEH8HKvTNKCa84eMUdmQ@mail.gmail.com>
+In-Reply-To:
+ <CAJZ5v0jNJBCK1Zj0cVuTK3mtyJFF3MbEH8HKvTNKCa84eMUdmQ@mail.gmail.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: MN2PR02MB6863:EE_|CH2PR02MB6663:EE_
+x-ms-office365-filtering-correlation-id: e51a493b-d89c-4f7a-7ac4-08df305fe4a0
+x-microsoft-antispam:
+ BCL:0;ARA:14566002|13091999003|15080799012|25010399006|37011999003|51005399006|41001999006|12121999013|8060799015|8062599012|19110799012|24021099003|55001999006|31061999003|102099032|3412199025|440099028|40105399003;
+x-microsoft-antispam-message-info:
+ =?utf-8?B?cG5PWU5aOFJEZjN6TjJSaDNnOU1ZOXR4OGZnajhGazZhcHlHZ01HQjRmbTE4?=
+ =?utf-8?B?Nzk3WGppbzEwTzZGcE4yRkJTM0NqT1ZXelNDWEp0TmZhZU9FV2c4R25OeFh6?=
+ =?utf-8?B?ZDFxQlJsa29iUUYyUzFYVitYZXV4YTdpTEdoZmkrWHlId0ZYdFV6d2htcWRU?=
+ =?utf-8?B?cjgyeUlKOUlPWUlmb1ArVUNwVHBWbFJjUDRYQWxvWE43eHdYeEUrOGpvaVpo?=
+ =?utf-8?B?MHREdEdzalBJQkJKUG1WTFd5TmlnbEN0YyttWHJzbGRJSFhOQ2NrT1d6ZXFk?=
+ =?utf-8?B?TDNvWmVrT3hJWTZiZjdwNHY3WkxCdlFoVWJWYU9sNXh0b2pMV1dhUUZ4UnVR?=
+ =?utf-8?B?ZFRUTEdwejJjY2I0Ry9rTGxNdTk2SFI4Ly9hMXUycW5mY2YxM2FjRmxJanVv?=
+ =?utf-8?B?ejMyU09BQU5WanJpWlRmR1k1M2pKYWlQeExldlUrT1V4YXJLVTRiUDM3REZJ?=
+ =?utf-8?B?aVQ3UzAvNUloK0IremhhUmdlM0NvNGlBTTlWQVQrS0MzSDhoVklacFFWSGZF?=
+ =?utf-8?B?NmdEQzNESGhxRks0WE14WjBxMFd5QkNaN1hUbU5oUG91aE5ybVhpWTVqVUNn?=
+ =?utf-8?B?VDFEd2dwU3E1bi9SbkQrd0Y5SlZReEFnT0pmSHRvaFdQTkxlVnJnazY3eXFE?=
+ =?utf-8?B?dFZFYW1kSlJLMUdER3JqV0hUSzVCQ3pTUTVlL3F1OVM1czdEblViZzlPc05x?=
+ =?utf-8?B?YVZRS0xmeVgyb2Uzb0d6RlZhTTYrL1BjTXNqRW5kYW9IV3JYb0NNcEpucVdU?=
+ =?utf-8?B?NWNtUU52aWtsalF4UjM0OGs1TWg2NnljemFzRjVLYWJQS1plMEMwUUhQL05u?=
+ =?utf-8?B?WjRURkZUclFvaURrSkhuK0V1d3VOR3NVNmFKVDVacjdLSy8xUUt2MXUrNlJl?=
+ =?utf-8?B?cUN4RTJCaHRmaEtncWphV3lhMTV4bTNBYWN4U1JPR1VNUzRiOUxLOWhlM1Bw?=
+ =?utf-8?B?a1ZHeVhaUzdmSm9PNWJiY1pNRUc1bUFzTUxWZWFRM2M0NG82V3c2bE1aK2U0?=
+ =?utf-8?B?TlZ5aWZvS09seExGb2xOVkR1NEhOZnZua3QxUW4rNUZhci9RN3JjSDMyWGov?=
+ =?utf-8?B?WU1FcTZ2aGZicm5qU0lpbHJBUW5wdXRHQmc2K08xeEJyamxGbmxqVkppMFF6?=
+ =?utf-8?B?TGwxeEthTmRwK0lNdXo5RjZOeXYvdkRSUkFsRVRzYUN4MWRSV281bnpjT21J?=
+ =?utf-8?B?M2hxcitVZHBNWHVTTVZtb1I3QTgrWkxlSnFRa0JUK2JnZ2syU2RmdGRWcFJo?=
+ =?utf-8?B?L1MwQmozL1dzaUhFY3dLeVB0MFpjbzV4bmZTVEhWUHl5Vi9IcHZpdHNmSlBo?=
+ =?utf-8?B?Y01xN0luTjNjWktVVHdOZENzV3JZZFNkWjViUmRSUENaeTM2bUJ3MlVYQlFE?=
+ =?utf-8?B?OStBemdXU29QeXRmekhvY04yRzl2Uk9XQjNVcDIwelZXbGxKeUVFSXpsdTYz?=
+ =?utf-8?B?YlIvMzJWVE5FaDRCbFZ4Vko0RjNyRjdsUU1HVDJyR0hoRmNPTld1OG11Unl3?=
+ =?utf-8?Q?/+xLII=3D?=
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?utf-8?B?N2hxSEJvMjhUdHIrdkVTWUpxa1RFOURPck5zdXFHQk1NeVNBSlcwa05IVWZm?=
+ =?utf-8?B?LzRHdjk2c3hIK2RhRlczb2FBK1BnbVJydVZFYi9ydGI5cnlIcVJpVy9CMnUr?=
+ =?utf-8?B?MnBISERSb3JoOVNxQ0x3WW81QzI4V3Q2TTMwWlRRYVJud0I1OXdZa2VuMVdx?=
+ =?utf-8?B?amh3NHI5R2E0L3FNbzVoYmlwNEpTbDQ1UFZyMXdUS3NvVk4rOHBJV3lkVUVL?=
+ =?utf-8?B?cjBjT0Q5OGhVRU1oUEVIS21HWUdRbmdhWk9wQnJTNlhQMmFiN2Rva2tGVnlH?=
+ =?utf-8?B?Z2xENy8vT1RhRyticFFGQkNQVld3ZVpMMm13K2VSbzJ2UktUVmI0T2ZaT1ha?=
+ =?utf-8?B?ZmtNYkZEbFBPZ0hBODF5NSt3T1ZBMGhON2VSZWxMNGVLL1pHcmR2dVpsL3ZU?=
+ =?utf-8?B?Skx2RzJYUEVGRnR5Y0JtN0pxODBMUlhkTTJUUWxSY3cvaEJyNkh2c2x1SkdH?=
+ =?utf-8?B?Zi9hVXkxaW1RR2FkbEhEejlrWlI2VHk4dElNRlVNT0JuZzZRMXcvYUthU0Q2?=
+ =?utf-8?B?cGNOc2RXS2VHRTh0MVhqbHJwUGdBMSsycHp4SFdYaXVuZ0NLMG5jcmVYSG13?=
+ =?utf-8?B?MHp0UVFSTkJBNXZFWVZIRGIwWC9TYk1LWlIrelVOd0lCNDJLb1I0Si9wRDhu?=
+ =?utf-8?B?WXZYVUhLdmdOR2p4bVFSV3Zpdmp5UDlpR0lRdnRPdjBzbXBXcEJNUVZaS1RX?=
+ =?utf-8?B?Y1NCcml3WTgxM2dUcGxPSkZRQ1A3U3VNUzUzQ0FBam9WS0FDNnNBYisxWHJr?=
+ =?utf-8?B?ZjdjYlFXVURLQWZhd05Nd1pBS0xWaEpCRXRCdWk4aHJJaXB1UGdUdkE0VnU4?=
+ =?utf-8?B?bzM2a0g5U3Btc2lNSmRrdFc3dzdVODh0WVhlbEsveFRaQ2k1elhEd2d4Nk9a?=
+ =?utf-8?B?MzFQZFdDV1Y3dlF6TFA5Rmx0ZHlCR0NaRHhYOFJTR2VXY3ZGMTNlOThhZk1F?=
+ =?utf-8?B?UHhQMmhOb0Z6UmoxQVVPWTg3NWRHajljOFQ1dTBMWmMrZktkZ1RRc0NHV0Rp?=
+ =?utf-8?B?dHo3ZkwzZ2lkcGQxQVVLcWVxVHo2NGpYSkdIRmllMUNsYm5SR1JYc2pYT1lP?=
+ =?utf-8?B?eWtlclpaMHFVdXUyZEl3a1pRTzVRbm8rcXVlbVFXRGVqNFVTOHc2ZldoMGln?=
+ =?utf-8?B?Z1BYaTE0cFQ1Sk82dGoyVHZOeUVGK05WTkd1QnNjQ2xUdndrK1ROS25aWTEr?=
+ =?utf-8?B?Y0U3U3MyT21CTi9ERll2Vm5NMW1iM0hIUThkN0dqeDN5MW8xTjltSUk2TnBs?=
+ =?utf-8?B?Rys4NWpNTTRaZFRrYWptSVBsMitWQmtwcW5XMDBPMWtlNVMwMjcwbHFrNjI3?=
+ =?utf-8?B?dzc5ZDN0bmxOZXAwUjR6YkZRT2R6VUJIdkZWNHJHcjhNRWVQQlM5UTJhOC9p?=
+ =?utf-8?B?OUJldW9KMjlMcFd5dDlHVGRxYXprR2RpWDlyOHVTb2ZkOWJQREZudk4rMEM1?=
+ =?utf-8?B?a1lOMFpRNDhRNzlmMklyMFJOQzVMeUU0OVM1VlVPdEt1V09JZzJrWTZydENU?=
+ =?utf-8?B?TEVoRG9DS1k0blkzU3IzbHhEdyswdmpZVzc4bkFpdHBJakpLTDJ4aGdVbTFW?=
+ =?utf-8?B?NW1CSjNNZlNlQ29sMHhaQjZlOEo4SkhPVWlTMVZYN1RkbFNCSEh5aEEzVjNB?=
+ =?utf-8?B?bDZqam4rZnNldU9ocCs2aThkLy90Tmgyc2ZBdE04VU5VVGkxZmR5S2dmZW5h?=
+ =?utf-8?B?ZS9SM2xyc05YL0RXbWFjcHROVWRYdFlRQU9vSFowdDhGT2JSNE91YzZSWkJY?=
+ =?utf-8?B?OU1DM3BPYkVidmFSdktYcnc0YUJhMmVIS1hKOFM0cjl5UTNDSDBwd1ZsSDNa?=
+ =?utf-8?Q?h3eLen0yQyKTDLUTvi9SnD04zeCaO1vhZz59k=3D?=
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -107,250 +170,55 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-OriginatorOrg: outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: MN2PR02MB6863.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg: 00000000-0000-0000-0000-000000000000
+X-MS-Exchange-CrossTenant-Network-Message-Id: e51a493b-d89c-4f7a-7ac4-08df305fe4a0
+X-MS-Exchange-CrossTenant-originalarrivaltime: 22 Oct 2026 17:14:12.5617
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
+X-MS-Exchange-CrossTenant-rms-persistedconsumerorg: 00000000-0000-0000-0000-000000000000
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH2PR02MB6663
 
-Add pci=nodpc to let Linux opt out of Downstream Port Containment (DPC)
-and Error Disconnect Recover (EDR) support on systems where userspace
-manages PCIe errors.
-
-Skip DPC initialization, state operations, hotplug recovery checks, and
-port service registration when disabled. Expose pci_dpc_available() so
-ACPI negotiation and PCIe port service discovery honor the same policy.
-Do not advertise EDR support or request DPC control through _OSC, and
-prevent native-port overrides from reintroducing DPC ownership.
-
-Skip EDR notifier installation before the DPC-enabling _DSM call. Merely
-skipping the native DPC driver would allow EDR to enable hardware DPC
-while the handler lacks the capability information needed to recover.
-
-The option disables Linux participation in DPC and EDR; it does not turn
-off firmware-owned DPC hardware. AER reporting and recovery remain
-independent and can be controlled with their own boot options.
-
-Signed-off-by: Yury Murashka <yurypm@arista.com>
----
-Changes in v3:
-- Add pci_dpc_available() and use it for ACPI DPC/EDR negotiation.
-- Skip EDR notifier registration and its DPC-enabling _DSM call.
-- Gate DPC service discovery and prevent forced native DPC ownership.
-- Clarify the firmware boundary and rebase onto PCI next.
-
-v2: https://lore.kernel.org/linux-pci/20260709185429.627968-3-yurypm@arista.com/
-Review: https://lore.kernel.org/linux-pci/20260709190730.E19A11F000E9@smtp.kernel.org/
-
- .../admin-guide/kernel-parameters.txt         |  4 ++++
- drivers/acpi/pci_root.c                       |  9 +++++--
- drivers/pci/pci.c                             |  2 ++
- drivers/pci/pci.h                             |  2 ++
- drivers/pci/pcie/dpc.c                        | 24 ++++++++++++++++---
- drivers/pci/pcie/edr.c                        |  5 +++-
- drivers/pci/pcie/portdrv.c                    |  3 ++-
- include/linux/pci.h                           |  6 +++++
- 8 files changed, 48 insertions(+), 7 deletions(-)
-
-diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 6047efd3c..f98486d4d 100644
---- a/Documentation/admin-guide/kernel-parameters.txt
-+++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -5115,6 +5115,10 @@ Kernel parameters
- 				through ports 0xC000-0xCFFF).
- 				See http://wiki.osdev.org/PCI for more info
- 				on the configuration access mechanisms.
-+		nodpc		[PCIE] Disable Linux DPC and EDR support. Linux
-+				neither requests DPC control from firmware nor
-+				enables DPC through EDR. Firmware-owned DPC
-+				settings are not changed. Requires CONFIG_PCIE_DPC.
- 		noaer		[PCIE] If the PCIEAER kernel config parameter is
- 				enabled, this kernel boot option can be used to
- 				disable the use of PCIE advanced error reporting.
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index a1a9c0601..6bca8206c 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -438,7 +438,7 @@ static u32 calculate_support(void)
- 		support |= OSC_PCI_ASPM_SUPPORT | OSC_PCI_CLOCK_PM_SUPPORT;
- 	if (pci_msi_enabled())
- 		support |= OSC_PCI_MSI_SUPPORT;
--	if (IS_ENABLED(CONFIG_PCIE_EDR))
-+	if (IS_ENABLED(CONFIG_PCIE_EDR) && pci_dpc_available())
- 		support |= OSC_PCI_EDR_SUPPORT;
- 
- 	return support;
-@@ -517,7 +517,7 @@ static u32 calculate_control(void)
- 	 * OSC_PCI_EXPRESS_DPC_CONTROL indicates the OS supports both DPC
- 	 * and EDR.
- 	 */
--	if (IS_ENABLED(CONFIG_PCIE_DPC) && IS_ENABLED(CONFIG_PCIE_EDR))
-+	if (pci_dpc_available() && IS_ENABLED(CONFIG_PCIE_EDR))
- 		control |= OSC_PCI_EXPRESS_DPC_CONTROL;
- 
- 	return control;
-@@ -1064,6 +1064,11 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
- 	else if (pcie_ports_dpc_native)
- 		override = OSC_PCI_EXPRESS_DPC_CONTROL & ~ctrl;
- 
-+	if (!pci_dpc_available()) {
-+		ctrl &= ~OSC_PCI_EXPRESS_DPC_CONTROL;
-+		override &= ~OSC_PCI_EXPRESS_DPC_CONTROL;
-+	}
-+
- 	if (override) {
- 		decode_osc_control(root, pcie_ports_native ?
- 				   "OS forcing control (\"pcie_ports=native\") of" :
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index 9ca8d3fbb..c2a6aacc5 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -6838,6 +6838,8 @@ static int __init pci_setup(char *str)
- 			} else if (!strncmp(str, "noats", 5)) {
- 				pr_info("PCIe: ATS is disabled\n");
- 				pcie_ats_disabled = true;
-+			} else if (!strcmp(str, "nodpc")) {
-+				pci_no_dpc();
- 			} else if (!strcmp(str, "noaer")) {
- 				pci_no_aer();
- 			} else if (!strcmp(str, "noaer_recovery")) {
-diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-index ccc6a678c..ae8fc06e5 100644
---- a/drivers/pci/pci.h
-+++ b/drivers/pci/pci.h
-@@ -934,6 +934,7 @@ struct rcec_ea {
- #endif
- 
- #ifdef CONFIG_PCIE_DPC
-+void pci_no_dpc(void);
- void pci_save_dpc_state(struct pci_dev *dev);
- void pci_restore_dpc_state(struct pci_dev *dev);
- void pci_dpc_init(struct pci_dev *pdev);
-@@ -942,6 +943,7 @@ pci_ers_result_t dpc_reset_link(struct pci_dev *pdev);
- bool pci_dpc_recovered(struct pci_dev *pdev);
- unsigned int dpc_tlp_log_len(struct pci_dev *dev);
- #else
-+static inline void pci_no_dpc(void) { }
- static inline void pci_save_dpc_state(struct pci_dev *dev) { }
- static inline void pci_restore_dpc_state(struct pci_dev *dev) { }
- static inline void pci_dpc_init(struct pci_dev *pdev) { }
-diff --git a/drivers/pci/pcie/dpc.c b/drivers/pci/pcie/dpc.c
-index 2b779bd1d..fbafc3ca0 100644
---- a/drivers/pci/pcie/dpc.c
-+++ b/drivers/pci/pcie/dpc.c
-@@ -43,12 +43,24 @@ static const char * const rp_pio_error_string[] = {
- 	"Memory Request Completion Timeout",		 /* Bit Position 18 */
- };
- 
-+static bool pcie_dpc_disable;
-+
-+void pci_no_dpc(void)
-+{
-+	pcie_dpc_disable = true;
-+}
-+
-+bool pci_dpc_available(void)
-+{
-+	return !pcie_dpc_disable;
-+}
-+
- void pci_save_dpc_state(struct pci_dev *dev)
- {
- 	struct pci_cap_saved_state *save_state;
- 	u16 *cap;
- 
--	if (!pci_is_pcie(dev))
-+	if (!pci_dpc_available() || !pci_is_pcie(dev))
- 		return;
- 
- 	save_state = pci_find_saved_ext_cap(dev, PCI_EXT_CAP_ID_DPC);
-@@ -64,7 +76,7 @@ void pci_restore_dpc_state(struct pci_dev *dev)
- 	struct pci_cap_saved_state *save_state;
- 	u16 *cap;
- 
--	if (!pci_is_pcie(dev))
-+	if (!pci_dpc_available() || !pci_is_pcie(dev))
- 		return;
- 
- 	save_state = pci_find_saved_ext_cap(dev, PCI_EXT_CAP_ID_DPC);
-@@ -104,7 +116,7 @@ bool pci_dpc_recovered(struct pci_dev *pdev)
- {
- 	struct pci_host_bridge *host;
- 
--	if (!pdev->dpc_cap)
-+	if (!pci_dpc_available() || !pdev->dpc_cap)
- 		return false;
- 
- 	/*
-@@ -404,6 +416,9 @@ void pci_dpc_init(struct pci_dev *pdev)
- {
- 	u16 cap;
- 
-+	if (!pci_dpc_available())
-+		return;
-+
- 	pdev->dpc_cap = pci_find_ext_capability(pdev, PCI_EXT_CAP_ID_DPC);
- 	if (!pdev->dpc_cap)
- 		return;
-@@ -532,5 +547,8 @@ static struct pcie_port_service_driver dpcdriver = {
- 
- int __init pcie_dpc_init(void)
- {
-+	if (!pci_dpc_available())
-+		return 0;
-+
- 	return pcie_port_service_register(&dpcdriver);
- }
-diff --git a/drivers/pci/pcie/edr.c b/drivers/pci/pcie/edr.c
-index e86298dbb..8567dd1d5 100644
---- a/drivers/pci/pcie/edr.c
-+++ b/drivers/pci/pcie/edr.c
-@@ -223,6 +223,9 @@ void pci_acpi_add_edr_notifier(struct pci_dev *pdev)
- 	struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
- 	acpi_status status;
- 
-+	if (!pci_dpc_available())
-+		return;
-+
- 	if (!adev) {
- 		pci_dbg(pdev, "No valid ACPI node, skipping EDR init\n");
- 		return;
-@@ -246,7 +249,7 @@ void pci_acpi_remove_edr_notifier(struct pci_dev *pdev)
- {
- 	struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
- 
--	if (!adev)
-+	if (!pci_dpc_available() || !adev)
- 		return;
- 
- 	acpi_remove_notify_handler(adev->handle, ACPI_SYSTEM_NOTIFY,
-diff --git a/drivers/pci/pcie/portdrv.c b/drivers/pci/pcie/portdrv.c
-index 32fc623dd..aa1c57e33 100644
---- a/drivers/pci/pcie/portdrv.c
-+++ b/drivers/pci/pcie/portdrv.c
-@@ -262,7 +262,8 @@ static int get_port_device_capability(struct pci_dev *dev)
- 	 * With dpc-native, allow Linux to use DPC even if it doesn't have
- 	 * permission to use AER.
- 	 */
--	if (pci_find_ext_capability(dev, PCI_EXT_CAP_ID_DPC) &&
-+	if (pci_dpc_available() &&
-+	    pci_find_ext_capability(dev, PCI_EXT_CAP_ID_DPC) &&
- 	    pci_aer_available() &&
- 	    (pcie_ports_dpc_native || host->native_aer))
- 		services |= PCIE_PORT_SERVICE_DPC;
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index f3e9c6c9c..dd667223b 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -1984,6 +1984,12 @@ bool pci_aer_available(void);
- static inline bool pci_aer_available(void) { return false; }
- #endif
- 
-+#ifdef CONFIG_PCIE_DPC
-+bool pci_dpc_available(void);
-+#else
-+static inline bool pci_dpc_available(void) { return false; }
-+#endif
-+
- bool pci_ats_disabled(void);
- 
- #define PCIE_PTM_CONTEXT_UPDATE_AUTO 0
--- 
-2.51.0
-
+RnJvbTogUmFmYWVsIEouIFd5c29ja2kgKEludGVsKSA8cmFmYWVsQGtlcm5lbC5vcmc+IFNlbnQ6
+IFR1ZXNkYXksIFNlcHRlbWJlciAyOSwgMjAyNiAxMToyMyBBTQ0KPiANCj4gT24gVHVlLCBTZXAg
+MjksIDIwMjYgYXQgODoxMeKAr1BNIE1pY2hhZWwgS2VsbGV5IDxtaGtlbGxleTU4QGdtYWlsLmNv
+bT4gd3JvdGU6DQo+ID4NCj4gPiBwY2liaW9zX3Jvb3RfYnJpZGdlX3ByZXBhcmUoKSBjdXJyZW50
+bHkgaGFzIGNvZGUgdG8gaGFuZGxlIEh5cGVyLVYNCj4gPiBndWVzdCByb290IGJyaWRnZXMgd2l0
+aCB0aGUgc3lzZGF0YSBwYXJlbnQgZmllbGQgc2V0IHRvIE5VTEwuIFdoaWxlDQo+ID4gdGhpcyBz
+cGVjaWFsIGNhc2UgZXhpc3RlZCB3aGVuIGNvbW1pdCA3ZDQwYzBmNzBkOTIgKCJhcm02NDogUENJ
+Og0KPiA+IFN1cHBvcnQgcm9vdCBicmlkZ2UgcHJlcGFyYXRpb24gZm9yIEh5cGVyLVYiKSB3YXMg
+YWNjZXB0ZWQsIG1vcmUNCj4gPiByZWNlbnQgY29tbWl0IDhkMjE3MzI0NzVjNiAoIlBDSTogaHY6
+IFByb3BhZ2F0ZSBjb2hlcmVuY2UgZnJvbSBWTWJ1cw0KPiA+IGRldmljZSB0byBQQ0kgZGV2aWNl
+IikgYWx3YXlzIHNldHMgdGhlIHN5c2RhdGEgcGFyZW50IGZpZWxkIHRvIGENCj4gPiBub24tTlVM
+TCB2YWx1ZS4NCj4gPg0KPiA+IE5vIGhhcm0gaXMgY2F1c2VkIGJ5IGxlYXZpbmcgdGhlIHNwZWNp
+YWwgY2FzZSBpbiBwbGFjZSwgZXZlbg0KPiA+IHRob3VnaCBpdCBpcyBubyBsb25nZXIgbmVlZGVk
+LiBCdXQgaW4gdGhlIGludGVyZXN0IG9mIG92ZXJhbGwNCj4gPiBjb2RlIGNsZWFubGluZXNzLCBy
+ZW1vdmUgaXQuDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBNaWNoYWVsIEtlbGxleSA8bWhrbGlu
+dXhAb3V0bG9vay5jb20+DQo+IA0KPiBBY2tlZC1ieTogUmFmYWVsIEouIFd5c29ja2kgKEludGVs
+KSA8cmFmYWVsQGtlcm5lbC5vcmc+DQoNCklzIGFueXRoaW5nIGVsc2UgbmVlZGVkIGZvciB0aGlz
+IHBhdGNoPyAgSSBwcmVzdW1lIGl0IHNob3VsZA0KYmUgcGlja2VkIHVwIGluIHRoZSBQQ0kgdHJl
+ZS4NCg0KTWljaGFlbA0KDQo+IA0KPiA+IC0tLQ0KPiA+IFRoaXMgcGF0Y2ggZG9lcyBub3QganVz
+dCBkbyBhIHJldmVydCBvZiA3ZDQwYzBmNzBkOTIgYmVjYXVzZQ0KPiA+IGFuIGludGVydmVuaW5n
+IGNvbW1pdCBtb3ZlZCB0aGUgY29kZSB0byBhIG5ldyBzb3VyY2UgY29kZQ0KPiA+IGZpbGUuDQo+
+ID4NCj4gPiAgZHJpdmVycy9wY2kvcGNpLWFjcGkuYyB8IDEyICstLS0tLS0tLS0tLQ0KPiA+ICAx
+IGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDExIGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4g
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvcGNpL3BjaS1hY3BpLmMgYi9kcml2ZXJzL3BjaS9wY2ktYWNw
+aS5jDQo+ID4gaW5kZXggNDJkNTQ1ZWRkN2ZhLi40NTJhOTAzMTdjNTggMTAwNjQ0DQo+ID4gLS0t
+IGEvZHJpdmVycy9wY2kvcGNpLWFjcGkuYw0KPiA+ICsrKyBiL2RyaXZlcnMvcGNpL3BjaS1hY3Bp
+LmMNCj4gPiBAQCAtMTU3MiwxNyArMTU3Miw3IEBAIGludCBwY2liaW9zX3Jvb3RfYnJpZGdlX3By
+ZXBhcmUoc3RydWN0IHBjaV9ob3N0X2JyaWRnZSAqYnJpZGdlKQ0KPiA+ICAgICAgICAgICAgICAg
+ICByZXR1cm4gMDsNCj4gPg0KPiA+ICAgICAgICAgY2ZnID0gYnJpZGdlLT5idXMtPnN5c2RhdGE7
+DQo+ID4gLQ0KPiA+IC0gICAgICAgLyoNCj4gPiAtICAgICAgICAqIE9uIEh5cGVyLVYgdGhlcmUg
+aXMgbm8gY29ycmVzcG9uZGluZyBBQ1BJIGRldmljZSBmb3IgYSByb290IGJyaWRnZSwNCj4gPiAt
+ICAgICAgICAqIHRoZXJlZm9yZSAtPnBhcmVudCBpcyBzZXQgYXMgTlVMTCBieSB0aGUgZHJpdmVy
+LiBBbmQgc2V0ICdhZGV2JyBhcw0KPiA+IC0gICAgICAgICogTlVMTCBpbiB0aGlzIGNhc2UgYmVj
+YXVzZSB0aGVyZSBpcyBubyBwcm9wZXIgQUNQSSBkZXZpY2UuDQo+ID4gLSAgICAgICAgKi8NCj4g
+PiAtICAgICAgIGlmICghY2ZnLT5wYXJlbnQpDQo+ID4gLSAgICAgICAgICAgICAgIGFkZXYgPSBO
+VUxMOw0KPiA+IC0gICAgICAgZWxzZQ0KPiA+IC0gICAgICAgICAgICAgICBhZGV2ID0gdG9fYWNw
+aV9kZXZpY2UoY2ZnLT5wYXJlbnQpOw0KPiA+IC0NCj4gPiArICAgICAgIGFkZXYgPSB0b19hY3Bp
+X2RldmljZShjZmctPnBhcmVudCk7DQo+ID4gICAgICAgICBidXNfZGV2ID0gJmJyaWRnZS0+YnVz
+LT5kZXY7DQo+ID4NCj4gPiAgICAgICAgIEFDUElfQ09NUEFOSU9OX1NFVCgmYnJpZGdlLT5kZXYs
+IGFkZXYpOw0KPiA+IC0tDQo+ID4gMi4yNS4xDQo+ID4NCg0K
