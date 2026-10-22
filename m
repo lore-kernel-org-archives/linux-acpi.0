@@ -1,60 +1,76 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=220.197.31.3
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792636950;
-	b=wwe3IZT7bJqPImfUM/UHB9dZQhMaeBT3hSqU1Qhk/gxtoL5kXoB+uBgQstz7B1hl2cRk
-	 5bS9bvEf6DT9HJ2J63b6fI7/4F+wbKu4FmWIfIYa7rrtAx4SrMu64KbrGtuqRfxe2CF4t
-	 WiUcgoEqnNOLnFJeqE7D3hz4HH4sOoXmypnMx7Qr3AP+9X+ysj71cXat7lKGo4SpnllHN
-	 SlS+XwCztyRaDHkny7LmXQxpK4XxuyIuUTK1sPMfEttSS294XS2jAnS5J5ynRincqAy2j
-	 AWj7JlFeZamlKNZWcb2ipGPHJ9oupj6VEBxLz28Z7Gzifx3Zkv/eO68o6J4IBxD+Ryw==
+	t=1792651436;
+	b=pLuP1cHlgh8LYe5zLZHHPR06kv3FunjMa20QSPTTKBzveOkiE3fpZeSIcdd592Z/I7Fk
+	 /URsqs3nHSnr0QW8C51cJMZiPIDzXDRjK9qgXMIIkQKxnY3KsIXtb5abt6W7C0CU7fLHP
+	 nHaTfrFTouP7G0TJXToi/UCYlUJDIEqepRoHjAlcmb8Z4egbZ/hIDZp2KfAcjc/MisnuD
+	 KcS3zzZUbdfzi9NEExt14gTQ2Yv3l8QeAN2k2zjLgnblOuokoOtm4auZoyucexK17SNbK
+	 yFNlRUfY3+VKv+2BpRzJvrFTBEd9XXbXnckMyl0RYdaaCNIbyGq4Q6fyUeu8Ir5Z27Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792636950;
-	h=DMARC-Filter:DKIM-Signature:Date:From:To:Cc:Subject:X-Priority:
-	 X-Mailer:In-Reply-To:References:X-NTES-SC:Content-Transfer-Encoding:
-	 Content-Type:MIME-Version:Message-ID:X-Coremail-Locale:X-CM-TRANSID:
-	 X-CM-SenderInfo:X-Coremail-Antispam;
-	bh=laBQvw5GW3RbeF4QBvSEmgW8J/10y342VbeJsKDBX5Q=;
-	b=WXe9UzRcZ9JvZagoi0CcRxr9p9d1RKxtMkB4XXilODFWUDXAxfSkxTw9YK8xyY/nRyk1
-	 WPFteK9F8e1raArYIVSnKPw7/iRZgyUCJCm6K1mN75aqU9cgX1axe2UXOzDFIrWxV03IH
-	 MAcEgVlC94Km6jrgGyG4CwUu/kqtuVSN0fW7rLT6U/LocrbB+3xsVlOhGoKmiDEqCV+bp
-	 5yB8ZdspXRyAqOy5Be69bcPS9BqA44McPc3EsVjMlPWfmY2yqgHT4Yo24ybe3KMql/QaF
-	 HEDUNb5nGkHLUoLXOKiCjjOMCDVnaBqiqQ8F2IMSbWOrkWk4t6n4AVvNcceGeGUe5vg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792651436;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:
+	 Content-Transfer-Encoding:In-Reply-To;
+	bh=aFucjpuwH0j10r8rB0xRq98gv+GUqPboTiWqHPsU1AY=;
+	b=NnORHSoOHIQoo/jbA1GFigcHjgMoiMBpAnP3rnkFSEDgYgKBB1CxZRxJL2Y3xwqoiFjq
+	 vIhdMRvAxXOenr+tdBxN9RbRLOMfVJXDcUOpvS0pNQric77wswx1gNFElNpqajpusT8cZ
+	 mmsK3iTjUkfFhct+RSkeklvunn8YLRDfvgQEB3tNAYWuf6XDAiS8BMazSgYLWXq+f1gN0
+	 Fi7OF5/5jzIpE+LCQrJ4tisqCr0+LJ8G8q/tm2eYd+rB2OrYESn78zdh6vXkoajJXI/jw
+	 8bC/r1oR+UzgB13irsoyG2ei9qBD3cKB+VDXDHHpSLtopaeXaWzl5wHyC9tiRS9rURA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=163.com;
-	spf=pass smtp.mailfrom=163.com;
-	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=HD9PlHzG;
-	arc=none smtp.remote-ip=220.197.31.3
-Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.3])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cePFW3Pc;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B842E606A31A;
-	Thu, 22 Oct 2026 02:42:28 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B842E606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCBB2606A31B;
+	Thu, 22 Oct 2026 06:43:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=HD9PlHzG
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=Date:From:To:Subject:Content-Type:MIME-Version:
-	Message-ID; bh=laBQvw5GW3RbeF4QBvSEmgW8J/10y342VbeJsKDBX5Q=; b=H
-	D9PlHzGOqDvu7RRLxy1KwyWXQZt2X1Yu1ZXvSOL9zqAbX5LcSyqIDUb0AfvE9NQ7
-	AgcnMtAtY2GUdfCiimByE9GRmCVA+9kDcgtC/MX7FnKtbgKACo/7ieTNbGe11Dzh
-	9l7IPm7NYE5l0835JDMB0CALv5R/eKH8/FGWxNQ27U=
-Date: Thu, 22 Oct 2026 10:42:19 +0800 (CST)
-From: "jiale yao" <19888972804@163.com>
-To: "Jassi Brar" <jassisinghbrar@gmail.com>
-Cc: "Sudeep Holla" <sudeep.holla@kernel.org>, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re:Re: [PATCH] mailbox: pcc: validate PCCT subspaces before parsing
-X-Priority: 3
-X-Mailer: Coremail Webmail Server Version 2023.4-cmXT build
- 20260511(2e539873) Copyright (c) 2002-2026 www.mailtech.cn 163com
-In-Reply-To: <CABb+yY0s=eHDyW-=5++9zetFid_oVGCQkhqSWBQs+ty4Bnb-EA@mail.gmail.com>
-References: <20261016141530.2795073-1-yaojiale02@163.com>
- <CABb+yY0s=eHDyW-=5++9zetFid_oVGCQkhqSWBQs+ty4Bnb-EA@mail.gmail.com>
-X-NTES-SC: AL_Qu2SAPqYuUEo7yCYZekcn08ShO49XMOyvfoi2YFTc/kEvQnB6jE7QmNRBl7k/dywKwG9qSeNezlj1NZbcaRaFWD3Sqbu67zydhJyp1U/wg==
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset=UTF-8
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cePFW3Pc
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 959781F000C1;
+	Thu, 22 Oct 2026 06:43:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792651435;
+	bh=aFucjpuwH0j10r8rB0xRq98gv+GUqPboTiWqHPsU1AY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=cePFW3Pc8RdsHIvENQO8gtCTXKpiGowW/j+CGwDXbGb/ag+JPQF5T4OgKFgQ9t1hP
+	 E5TZPEcE9TrkVjThtJ4uPlsL2X07kyz7LXakl5kd5wCwol2K6l5BsyApt4ZXv/a5Pe
+	 5vzQl/ZYcmDUkZk1g2oYPQR33zF7oBMLsDAaN48bfdujQUjMdNV83CBRuQLKeCan9y
+	 MeNrm7Sv13nsv8SAOP2oBhxPZEZOawRSHAju8oFOU4KlPq4o0sp7jqxBZDFGrJYkpT
+	 EfVU6yHKMOnfZQkIGjnX5ZHBa3UDA63FdwG6zzv8viGOqxuutEuKWZu7JBrZZ/kclb
+	 OZWpQCnhjgfWA==
+Date: Thu, 22 Oct 2026 08:43:47 +0200
+From: Lorenzo Pieralisi <lpieralisi@kernel.org>
+To: Robin Murphy <robin.murphy@arm.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	"Rafael J. Wysocki (Intel)" <rafael@kernel.org>,
+	Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <maz@kernel.org>,
+	Daniel Lezcano <daniel.lezcano@kernel.org>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Wim Van Sebroeck <wim@linux-watchdog.org>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	driver-core@lists.linux.dev, linux-watchdog@vger.kernel.org
+Subject: Re: [PATCH RFC 02/11] ACPI: Introduce irq_get() for static fwnodes
+Message-ID: <atmwo3Bpi62kB8_n@red-moon>
+References: <arqSqcoWAkhy-8do@red-moon>
+ <d1720b63-65bf-4019-bc19-1852555f7993@arm.com>
+ <asieTvinZ7c2QpQm@red-moon>
+ <CAJZ5v0hVLSJs1j8J1TV3yJ8Psyaf=B_0UfHsYSMtM5xTup0B_Q@mail.gmail.com>
+ <atXyIadz1TEKSodg@red-moon>
+ <CAJZ5v0joJBZg==DWPsNviPfL7Jo=qupRhb6GinqOLoHXGnvevg@mail.gmail.com>
+ <ateI-JcExDyfXKrs@red-moon>
+ <athimRqtDvQu1ZzA@ashevche-desk.local>
+ <atiAmZSPiRNBAO5O@red-moon>
+ <7f077fd3-9c67-409a-b46f-7f28a55c180b@arm.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -64,68 +80,103 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Message-ID: <35886acd.272d.1a1617ceb00.Coremail.19888972804@163.com>
-X-Coremail-Locale: zh_CN
-X-CM-TRANSID:bygvCgDnjwoLeNlqTT5eAA--.17W
-X-CM-SenderInfo: x1dryxhdohiji6rwjhhfrp/xtbCzgsxa2rZeAv0pAAA3P
-X-Coremail-Antispam: 1U5529EdanIXcx71UUUUU7vcSsGvfC2KfnxnUU==
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <7f077fd3-9c67-409a-b46f-7f28a55c180b@arm.com>
 
-SGkgSmFzc2ksCkF0IDIwMjYtMTAtMjIgMTA6MjY6MjcsICJKYXNzaSBCcmFyIiA8amFzc2lzaW5n
-aGJyYXJAZ21haWwuY29tPiB3cm90ZToKPk9uIEZyaSwgT2N0IDE2LCAyMDI2IGF0IDk6MTXigK9B
-TSBKaWFsZSBZYW8gPHlhb2ppYWxlMDJAMTYzLmNvbT4gd3JvdGU6Cj4+Cj4+IFRoZSBQQ0MgbWFp
-bGJveCBwcm9iZSB3YWxrcyBQQ0NUIGVudHJpZXMgYnkgdGhlaXIgZGVjbGFyZWQgbGVuZ3Rocwo+
-PiB3aXRob3V0IGNoZWNraW5nIHRoYXQgZWFjaCBlbnRyeSBpcyBjb250YWluZWQgaW4gdGhlIHRh
-YmxlLiBJdCBhbHNvCj4+IHBhc3NlcyBnZW5lcmljIGhlYWRlcnMgdG8gdHlwZS1zcGVjaWZpYyBw
-YXJzZXJzIHdpdGhvdXQgZXN0YWJsaXNoaW5nIHRoZQo+PiByZXF1aXJlZCByZWNvcmQgc2l6ZS4g
-TWFsZm9ybWVkIGZpcm13YXJlIGNhbiB0aGVyZWZvcmUgbW92ZSB0aGUgY3Vyc29yCj4+IG91dHNp
-ZGUgdGhlIFBDQ1Qgb3IgY2F1c2Ugb3V0LW9mLWJvdW5kcyBmaWVsZCByZWFkcy4KPj4KPj4gVmFs
-aWRhdGUgdGhlIHRhYmxlIGhlYWRlciwgZWFjaCBzdWJzcGFjZSByYW5nZSwgYW5kIHRoZSBtaW5p
-bXVtIHNpemUgZm9yCj4+IHN1cHBvcnRlZCBzdWJzcGFjZSB0eXBlcyBkdXJpbmcgYm90aCB0aGUg
-Y291bnRpbmcgYW5kIHByb2JlIHBhc3Nlcy4KPj4KPj4gU2lnbmVkLW9mZi1ieTogSmlhbGUgWWFv
-IDx5YW9qaWFsZTAyQDE2My5jb20+Cj4+IC0tLQo+PiAgZHJpdmVycy9tYWlsYm94L3BjYy5jIHwg
-NTMgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLQo+PiAgMSBmaWxl
-IGNoYW5nZWQsIDUyIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkKPj4KPj4gZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvbWFpbGJveC9wY2MuYyBiL2RyaXZlcnMvbWFpbGJveC9wY2MuYwo+PiBpbmRl
-eCA5ODg4ZGFiNjQ2MzkuLjM3YjJkZGI0NGJkYSAxMDA2NDQKPj4gLS0tIGEvZHJpdmVycy9tYWls
-Ym94L3BjYy5jCj4+ICsrKyBiL2RyaXZlcnMvbWFpbGJveC9wY2MuYwo+PiBAQCAtNTUzLDYgKzU1
-Myw0MiBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IG1ib3hfY2hhbl9vcHMgcGNjX2NoYW5fb3BzID0g
-ewo+PiAgICAgICAgIC5sYXN0X3R4X2RvbmUgPSBwY2NfbGFzdF90eF9kb25lLAo+PiAgfTsKPj4K
-Pj4gK3N0YXRpYyBib29sIHBjY19zdWJzcGFjZV9pc192YWxpZChzdHJ1Y3QgYWNwaV9zdWJ0YWJs
-ZV9oZWFkZXIgKmVudHJ5LAo+PiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdW5z
-aWduZWQgbG9uZyBlbmQpCj4+ICt7Cj4+ICsgICAgICAgdW5zaWduZWQgbG9uZyBzdGFydCA9ICh1
-bnNpZ25lZCBsb25nKWVudHJ5Owo+PiArICAgICAgIHNpemVfdCBsZW5ndGgsIG1pbl9sZW5ndGg7
-Cj4+ICsKPj4gKyAgICAgICBpZiAoc3RhcnQgPj0gZW5kIHx8IGVuZCAtIHN0YXJ0IDwgc2l6ZW9m
-KCplbnRyeSkpCj4+ICsgICAgICAgICAgICAgICByZXR1cm4gZmFsc2U7Cj4KPihlbmQgLSBzdGFy
-dCA8IHNpemVvZigqZW50cnkpKSBpcyBpbXBsaWVkIGJ5IHRoZSB0d28gbGVuZ3RoICBjaGVja3MK
-PmJlbG93LCBzbyBvbmx5ICJzdGFydCA+PSBlbmQiIGlzIG5lZWRlZCBoZXJlLgo+Cj4+ICsgICAg
-ICAgbGVuZ3RoID0gZW50cnktPmxlbmd0aDsKPj4gKyAgICAgICBpZiAobGVuZ3RoIDwgc2l6ZW9m
-KCplbnRyeSkgfHwgbGVuZ3RoID4gZW5kIC0gc3RhcnQpCj4+ICsgICAgICAgICAgICAgICByZXR1
-cm4gZmFsc2U7Cj4+ICsKPj4gKyAgICAgICBzd2l0Y2ggKGVudHJ5LT50eXBlKSB7Cj4+ICsgICAg
-ICAgY2FzZSBBQ1BJX1BDQ1RfVFlQRV9HRU5FUklDX1NVQlNQQUNFOgo+PiArICAgICAgICAgICAg
-ICAgbWluX2xlbmd0aCA9IHNpemVvZihzdHJ1Y3QgYWNwaV9wY2N0X3N1YnNwYWNlKTsKPj4gKyAg
-ICAgICAgICAgICAgIGJyZWFrOwo+PiArICAgICAgIGNhc2UgQUNQSV9QQ0NUX1RZUEVfSFdfUkVE
-VUNFRF9TVUJTUEFDRToKPj4gKyAgICAgICAgICAgICAgIG1pbl9sZW5ndGggPSBzaXplb2Yoc3Ry
-dWN0IGFjcGlfcGNjdF9od19yZWR1Y2VkKTsKPj4gKyAgICAgICAgICAgICAgIGJyZWFrOwo+PiAr
-ICAgICAgIGNhc2UgQUNQSV9QQ0NUX1RZUEVfSFdfUkVEVUNFRF9TVUJTUEFDRV9UWVBFMjoKPj4g
-KyAgICAgICAgICAgICAgIG1pbl9sZW5ndGggPSBzaXplb2Yoc3RydWN0IGFjcGlfcGNjdF9od19y
-ZWR1Y2VkX3R5cGUyKTsKPj4gKyAgICAgICAgICAgICAgIGJyZWFrOwo+PiArICAgICAgIGNhc2Ug
-QUNQSV9QQ0NUX1RZUEVfRVhUX1BDQ19NQVNURVJfU1VCU1BBQ0U6Cj4+ICsgICAgICAgICAgICAg
-ICBtaW5fbGVuZ3RoID0gc2l6ZW9mKHN0cnVjdCBhY3BpX3BjY3RfZXh0X3BjY19tYXN0ZXIpOwo+
-PiArICAgICAgICAgICAgICAgYnJlYWs7Cj4+ICsgICAgICAgY2FzZSBBQ1BJX1BDQ1RfVFlQRV9F
-WFRfUENDX1NMQVZFX1NVQlNQQUNFOgo+PiArICAgICAgICAgICAgICAgbWluX2xlbmd0aCA9IHNp
-emVvZihzdHJ1Y3QgYWNwaV9wY2N0X2V4dF9wY2Nfc2xhdmUpOwo+PiArICAgICAgICAgICAgICAg
-YnJlYWs7Cj4+ICsgICAgICAgZGVmYXVsdDoKPj4gKyAgICAgICAgICAgICAgIHJldHVybiBmYWxz
-ZTsKPj4gKyAgICAgICB9Cj4+ICsKPj4gKyAgICAgICByZXR1cm4gbGVuZ3RoID49IG1pbl9sZW5n
-dGg7Cj4KPkhvdyBhYm91dCBzb21ldGhpbmcgbGlrZQo+Cj5zdGF0aWMgY29uc3QgdTE2IHBjY19z
-dWJzcGFjZV9taW5fbGVuW0FDUElfUENDVF9UWVBFX1JFU0VSVkVEXSA9IHsKPiAgICBbQUNQSV9Q
-Q0NUX1RZUEVfR0VORVJJQ19TVUJTUEFDRV0gPQo+ICAgIHNpemVvZihzdHJ1Y3QgYWNwaV9wY2N0
-X3N1YnNwYWNlKSwKPiAgICBbQUNQSV9QQ0NUX1RZUEVfSFdfUkVEVUNFRF9TVUJTUEFDRV0gPQo+
-ICAgIHNpemVvZihzdHJ1Y3QgYWNwaV9wY2N0X2h3X3JlZHVjZWQpLAo+ICAgIFtBQ1BJX1BDQ1Rf
-VFlQRV9IV19SRURVQ0VEX1NVQlNQQUNFX1RZUEUyXSA9Cj4gICAgc2l6ZW9mKHN0cnVjdCBhY3Bp
-X3BjY3RfaHdfcmVkdWNlZF90eXBlMiksCj4gICAgW0FDUElfUENDVF9UWVBFX0VYVF9QQ0NfTUFT
-VEVSX1NVQlNQQUNFXSA9Cj4gICAgc2l6ZW9mKHN0cnVjdCBhY3BpX3BjY3RfZXh0X3BjY19tYXN0
-ZXIpLAo+ICAgIFtBQ1BJX1BDQ1RfVFlQRV9FWFRfUENDX1NMQVZFX1NVQlNQQUNFXSA9Cj4gICAg
-c2l6ZW9mKHN0cnVjdCBhY3BpX3BjY3RfZXh0X3BjY19zbGF2ZSksCj59OwoKU291bmRzIGdyZWF0
-LCBJIHdpbGwgc3VibWl0IHYyLgoKVGhhbmtzIGZvciB5b3VyIHJldmlldy4KCj4KPnJldHVybiBl
-bnRyeS0+bGVuZ3RoID49IHBjY19zdWJzcGFjZV9taW5fbGVuW2VudHJ5LT50eXBlXTsKPgo+Q2hl
-ZXJzCj5KYXNzaQo=
+On Wed, Oct 21, 2026 at 12:18:39PM +0100, Robin Murphy wrote:
+> On 2026-10-21 10:06 am, Lorenzo Pieralisi wrote:
+> > On Wed, Oct 21, 2026 at 09:58:33AM +0300, Andy Shevchenko wrote:
+> > > On Tue, Oct 20, 2026 at 05:30:00PM +0200, Lorenzo Pieralisi wrote:
+> > > > On Mon, Oct 19, 2026 at 08:05:50PM +0200, Rafael J. Wysocki (Intel) wrote:
+> > > > > On Mon, Oct 19, 2026 at 12:34 PM Lorenzo Pieralisi
+> > > > > <lpieralisi@kernel.org> wrote:
+> > > 
+> > > [...]
+> > > 
+> > > > > Basically, yes, the idea is to defer the creation of the platform
+> > > > > device until the dependency is met.
+> > > > > 
+> > > > > > till the dependencies are cleared but then, without a _CRS, where will
+> > > > > > the consumer driver find the platform device resources ?
+> > > > > 
+> > > > > Well, good question.
+> > > > > 
+> > > > > > There are multiple facets in this issue and possibly some of them have
+> > > > > > been already solved but I need to pull them together.
+> > > > > > 
+> > > > > > > Note that the dependencies can be added to acpi_dep_list after
+> > > > > > > creating a struct acpi_device with acpi_add_single_object() and
+> > > > > > > acpi_scan_add_dep() is not really suitable for that, but it should be
+> > > > > > > doable if the dependencies can be found.
+> > > > > > > 
+> > > > > > > > I need to have a deeper look into this next week but I wanted to ask first
+> > > > > > > > whether there was something I missed - most likely.
+> > > > > > > 
+> > > > > > > Well, it is not really straightforward.
+> > > > > > 
+> > > > > > Yes it is getting messy. This RFC, with all its flaws, does not transparently
+> > > > > > prevents enumeration but rather relies on -EPROBE_DEFER to sort out
+> > > > > > dependencies - though it does so by adding more stuff into ACPI static fwnode
+> > > > > > that to be honest I'd rather see gone.
+> > > > > 
+> > > > > I think what you need is a notification mechanism that will trigger
+> > > > > when a specific device (enumerated via the ACPI Namespace) becomes
+> > > > > operational.  It doesn't look like any of the existing ones (platform
+> > > > > device probe deferral or ACPI device dependencies tracking) is really
+> > > > > suitable for your use case.
+> > > > 
+> > > > Yes. It might just be a notification from ACPI core to say "the driver for
+> > > > this ACPI device probed, go create platform devices that depends on it".
+> > > > 
+> > > > We can check and track the dependency in code that does create those
+> > > > devices today.
+> > > > 
+> > > > I will think about this to see how bad this might look like.
+> > > 
+> > > Don't we do something similar in drivers/acpi/x86/lpss.c?
+> > 
+> > I suppose I can add a notifier that checks whether the device whose
+> > companion represents the ACPI device a given platform device IRQ depends
+> > on was bound to its driver and then map the IRQ and add the platform device
+> > _then_ - after all that's what acpi_dev_clear_dependencies() does (similar
+> > at least).
+> > 
+> > There is still the question - where the GSI number, flags should be
+> > stashed so that the notifier can grab them in a uniform way. We
+> > could simply attach platform data storing those values to a pdev, either on
+> > a per static table basis or generalize the data so that a single notifier
+> > would be able to deal with it.
+> > 
+> > That or I can just piggyback on acpi_dev_clear_dependencies() and add
+> > a separate dep mechanism to acpi_dep_data that instead of being acpi_handle
+> > based the consumer is fwnode based (something Rafael mentioned before).
+> > 
+> > I will have a stab at this and see what's the least bad solution I can
+> > come up with.
+> > 
+> > I suppose we are scrapping the -EPROBE_DEFER solution (ie this set),
+> > what we are talking about above won't need to defer anything other
+> > than the time when platform devices are added.
+> 
+> I dunno, that seems pretty drastic for some use-cases - the fact that a GSI
+> is described in a table doesn't necessarily mean it is critical to device
+> operation. If we don't even create the device until all possible resources
+> are available, then its driver never has any chance to decide whether it's
+> happy to ignore the deferral and just use MSIs or polling instead...
+
+I agree with you (but that's what we do for ACPI autodep and AFAICS OF
+devlinks - though there there might be opt-outs).
+
+To make -EPROBE_DEFER work I have to pursue the approach undertaken in this
+set and apply requested changes - I don't see any other way.
+
+Are we willing to accept the approach taken in this patchset (I can remove
+software nodes and make the whole thing ACPI static nodes self-contained) ?
+
+One way or another this ought to be sorted, please all let me know your
+take on this.
+
+Thanks,
+Lorenzo
