@@ -1,55 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792694681;
-	b=gNo959y0oDY7Gx9I2ok0on6iIsb3LlYMZU62edxiZVADKYWxuKbHzHw/SHT6jUfKOQT5
-	 nrcEAOALTXMCM9vNNeVbOZMM0JOhvkjz0kT2epDjrNvHFmuSqHH3NOjn76kH6Y8dNPSoZ
-	 sEvyot8clkb0PjhStCwO5ywwu5/ldW2Gd4cCOrAMt4e55xFAD+M4YUD9a8ol9YKPyF0rh
-	 zCf4e6Bo4+XgBcVXd4qxwXXDGQIgHpnWuVfuTS7KDCV1Fam4AKV6mNSYjNlfiroE5Jq02
-	 EW6iQAZDblDbKqfQJO8pgq4LaXxGPFo6YP7y2e+D9nlG73Vn/Ek88vw1iNUavXLyXUg==
+	t=1792694791;
+	b=rhjRbCRErZug4jbLFciYn7hlCQuuQd+0h84zjvV1I+Hpnuv2n9HgSoTJve/LWLDAA89d
+	 3wwqL6CrgxsM0050qbEwnVCo8ySUWNinvhlJDseF5W9IQaKsSZt6u0AHFpZyACw3MMJMB
+	 YvwwV+FQcPX9VwgAh+Kyr5j8SQ9uJJNXaTA+Qqv48jtj3AcKsc+uI81YBPIExo+51/Ve0
+	 wqEnl7QWCYdTI+I7m1v+VSrqPNZRQEbtyg5tje1+rgdG4s96DOVMNH4uLPHMRRKjMrag+
+	 AO2nYpKOJyL9cfYCCaYvLADscbixl3REGuTp6F0YtF6n1yb1yAs/U/snJjRUOQQrk7Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792694681;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792694791;
 	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
 	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
 	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
 	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=g2LfIwDxVBmR9BMyADZLLYuuWNtJdFL8FAUPTERMtU8=;
-	b=df6pv5YY7zr42B0pxdzxHcf1jRSQ3cQVYPlObwWIpRwr/8D0/TbInQkdqjmuqB9i79Ed
-	 EJBdRVIFT85wOBofTktSILg+0ih5rkZeQXOWvlzwf8xKzg26tOr/PlYzA5TKJyxN6zRIh
-	 IUVbltn1Dw5/IGcO2Vzff0RUoD9qcJdtKZb6uLXvviYphePwOUU0IUcS0FjT78BQ68Gl5
-	 2zyuz0aC1vse9l46nfg11XRo4hfNkzD48uD88DW1SY19Z+PWx86k1Pzc+1sgCbtQ0BGKn
-	 0b3RntFX5kjQ4jAX0Dze4kNcMzOTXbtSBG9LhGv0BNB8r3HMBxrjWPNEt+DIwwsLm6A==
+	bh=GF88O9P5M6CE3jxSeAPzPZTVPbIUcNEdcAmUJ5UkidY=;
+	b=y6oHeyBJ5IgJNZe/6IwaxU7ZVAzi//kZXGnPYRcwV7AG/coNoyokaslw2BUsaK6aLKmA
+	 5EaqYph+8cZ3TZnFoI1ISxGAdl5KuokC84rv8SGBmfMBcAv0GfQKd6Lmcdsc+GZ65hw+U
+	 s8/njMpTKRfpEuudOtvpDKYnQnZCnC7UoNpNTyYwiQsdbUXKfeUm/88fMsYPycfFujiOx
+	 dyAu3SeM3XDk1IDsG9L+f+/DCWQJJShUfc3wytKOB9FV4MXyMeFJ282wtMP2LyeZ5BbL4
+	 Wkp6KIMd34elLY8oHqIrn78JwheOsR3ay7jYRFo3zEnUI5r7UtmRmE4xKSPdcf8qa9Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Od/13cqW";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gBVjRIlz;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C75E3606A31A
-	for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2026 18:44:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C29AF606A31B
+	for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2026 18:46:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Od/13cqW
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B3711F01825
-	for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2026 18:44:40 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gBVjRIlz
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F8A41F031E2
+	for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2026 18:46:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792694680;
-	bh=g2LfIwDxVBmR9BMyADZLLYuuWNtJdFL8FAUPTERMtU8=;
+	s=k20260515; t=1792694790;
+	bh=GF88O9P5M6CE3jxSeAPzPZTVPbIUcNEdcAmUJ5UkidY=;
 	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=Od/13cqWMRUeTGz+uowEVhEOkpveKmzT+5c8EG2HZpytg+C1uowtXjUQK4Q2FQ20N
-	 oyFtQd0cX6dozkuzXy/a+V9L/k7SSJzeWyym+tcDSbtAtKvdg9dZDkV8UycCOfzu7/
-	 jpYreTLAkJ8jYEM02hbu5pviztpWJEgLfjG5OqvrZFLNERYch8wRHXVlJ73rkPncsK
-	 vKQ02b/jeKHAbSgdNUQTw8Aji+X73on1NpmhGuZVdhSOs1lYFqJyQHoJ9A+7RwjUGc
-	 D57xJAbTQRkWlv/zNssM1EZcVnf6kac7XuskhHAQgxmpiseezcqQezW9PZTEnvlTkm
-	 uMVI9ed9DP/vA==
-Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-5bcb0f245e0so13372e87.3
-        for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2026 11:44:40 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBycnEz4MsOTfxcsSmsxTAUweZhCSABom7yYNyxwZx9idqnwEuKUjZIDgJ8yja2n77ndVbgjRiIAGpj5@vger.kernel.org
-X-Gm-Message-State: AFq9FYI11uew72sGEfX2ZU800CIL0WhcI70LpRweLQH5Qghbifqa6R7y
-	+Z/tCQfByE20Amn4l3g0I7CYlZORjhPMvFIdMtL6R508te932VMCJfL9vqQh7yeT9kNkOnBJr/I
-	ZVq+L0PVsDsis5fN9uV5u+pSaa78Igxg=
-X-Received: by 2002:a05:6512:3b0b:b0:5be:5196:9591 with SMTP id
- 2adb3069b0e04-5bfa1c4f787mr2669620e87.59.1792694678773; Thu, 22 Oct 2026
- 11:44:38 -0700 (PDT)
+	b=gBVjRIlz1a1Pa+sUEfCPBjwms5GxRC047MyA2ToTxLJg6esyG83Ea2AkbIuwtXUKc
+	 bB/IHycsqrnY1SCxdrrBSE3L49BKaJ5k+gTZW2WpcqB2o6IXm6x1yjUVQ12MxwvB2M
+	 sdA/Th+xYFEgpZd98v1XOnjGbMWy9lXTofhApGs+Pc6t1Lumcv98v37J76c/GfJ5cn
+	 6E4g2ywkBxga14JQMXJJCShOPRyz8CQMimA8wGno6XltyKvtTANnajpzbum5bJ0tgA
+	 I6Z7gX8JNRTV1G8WScjLTqZlzWZ2P1D1hhE220M4frUA3td60HTLMTF6S/LemAe6F0
+	 v9W+1vOMiE+2g==
+Received: by mail-lj1-f176.google.com with SMTP id 38308e7fff4ca-3ab27b4924aso16524521fa.2
+        for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2026 11:46:30 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvByWugGOFGY3/IxV/qcp34lWALYMZnNQvCfIb0CeKCVm+N+ZzoJjWjkQ88cwI3k2zo42ZT128VH6DYsf@vger.kernel.org
+X-Gm-Message-State: AFq9FYJdTvGmFx1150aesvmB2jglmQYF3skMg0uUHxKvBAw7UE/EUnhF
+	QJCod8Keaz/Da+mneiTTerXRM1pCdId4X1p/riqoLMsSsApOGb7lye1Kd8dWzjfqv8hx/b+/3wZ
+	A9tFwe5e35oJhzcrw2QtM1FvPij4busM=
+X-Received: by 2002:a05:6512:39d1:b0:5be:590e:ea86 with SMTP id
+ 2adb3069b0e04-5bfa1cf13e4mr2704376e87.41.1792694788688; Thu, 22 Oct 2026
+ 11:46:28 -0700 (PDT)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,14 +59,14 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261013180728.957618-1-jamien@nvidia.com>
-In-Reply-To: <20261013180728.957618-1-jamien@nvidia.com>
+References: <20261013193900.1258808-1-jamien@nvidia.com>
+In-Reply-To: <20261013193900.1258808-1-jamien@nvidia.com>
 From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Thu, 22 Oct 2026 20:42:18 +0200
-X-Gmail-Original-Message-ID: <CAJZ5v0iwUo6OmDEVBCoSp4Gtopntp3w1gw6s4yTTKFygmsrONQ@mail.gmail.com>
-X-Gm-Features: AclHuK86uxd2cAvIMmFetJsl2IEyYqV7HJXL18Dj7Ear_GON0bDSDngEWudD6a4
-Message-ID: <CAJZ5v0iwUo6OmDEVBCoSp4Gtopntp3w1gw6s4yTTKFygmsrONQ@mail.gmail.com>
-Subject: Re: [PATCH] ACPI: sysfs: Map only the requested range in acpi_data_show()
+Date: Thu, 22 Oct 2026 20:44:08 +0200
+X-Gmail-Original-Message-ID: <CAJZ5v0jzfS3npCjmmGg+GQkoHMz1Fvp5aiZzRroVTVYLwzv9GQ@mail.gmail.com>
+X-Gm-Features: AclHuK-7_LmOsA3cxfxBK1gEpqDKJON_N1oV80uzP5wNz2fGx98s01m9Jcd-gQ0
+Message-ID: <CAJZ5v0jzfS3npCjmmGg+GQkoHMz1Fvp5aiZzRroVTVYLwzv9GQ@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: sysfs: Finish sysfs init when creating a table file fails
 To: Jamie Nguyen <jamien@nvidia.com>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, 
 	Punit Agrawal <punitagrawal@gmail.com>, linux-acpi@vger.kernel.org, 
@@ -74,86 +74,72 @@ Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Tony L
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 13, 2026 at 8:08=E2=80=AFPM Jamie Nguyen <jamien@nvidia.com> wr=
+On Tue, Oct 13, 2026 at 9:39=E2=80=AFPM Jamie Nguyen <jamien@nvidia.com> wr=
 ote:
 >
-> acpi_data_show() maps the whole data region on every read(), although
-> it copies at most count bytes and sysfs passes at most PAGE_SIZE bytes
-> per call. acpi_os_unmap_iomem() defers the iounmap until after an RCU
-> grace period, so a process reading one of these files in a loop keeps
-> many full-size mappings in flight.
+> If creating the file for a table fails, acpi_tables_sysfs_init()
+> returns without sending the uevents for the tables directories, and
+> acpi_sysfs_init() returns before creating the hotplug and pm_profile
+> files.
 >
-> Map only the range being read. acpi_os_map_iomem() rounds the mapping
-> to page boundaries, so each mapping is now at most two pages, whatever
-> the size of the region.
->
-> A malformed table can describe a region that wraps around the end of
-> the physical address space. acpi_os_map_iomem() doesn't check for that,
-> and its lookup of existing mappings then matches an unrelated mapping,
-> with or without this change. Fail reads of such a region before mapping
-> anything.
+> Stop creating table files at that point, but finish the rest of the
+> initialization. Skipping only the failed table would give its file
+> name to the next table with the same signature, so reading that file
+> would return the failed table.
 >
 > Assisted-by: LLM
 > Signed-off-by: Jamie Nguyen <jamien@nvidia.com>
 > ---
-> As discussed on the BDAT v2 thread:
-> https://lore.kernel.org/r/CAJZ5v0ixQ_5jmrfm4mz50tZtCEq6nJt1b2eMoBdhr0f3AY=
-+k7w@mail.gmail.com
+> This was noted in the review of the BDAT v1 patch:
+> https://lore.kernel.org/r/CAJZ5v0hM+6RvyXwG89Jyyu48jxSejNwsDt-H=3D2Y2dkt-=
+-af2QA@mail.gmail.com.
+> Handling it as a standalone patch here.
 >
-> This doesn't depend on that series and applies on its own.
+> Tested on an arm64 server with test-only changes that make creating
+> one table's file fail at boot (FPDT, or the second SSDT). Without this
+> patch, pm_profile and hotplug are missing. With it, they are created,
+> and every table file created before the failure matches a normal boot.
 >
-> Tested on an arm64 server with 4K and 64K pages, with the BDAT v2
-> series applied:
->
-> - The BERT and BDAT data files match /dev/mem when read whole, byte by
->   byte, page by page, and across page boundaries.
-> - Each read maps at most two pages. With 4K pages, looping full reads
->   of the 90754-byte BDAT file kept at most 167 MiB of vmalloc space
->   mapped (1740 MiB before), and looping 1-byte reads at most 355 MiB
->   (3090 MiB before).
-> - Malformed BERT tables loaded via initrd table upgrade, with regions
->   that wrap around the end of the physical address space, fail every
->   read with -EINVAL.
->
->  drivers/acpi/sysfs.c | 11 ++++++++---
->  1 file changed, 8 insertions(+), 3 deletions(-)
+>  drivers/acpi/sysfs.c | 9 +++------
+>  1 file changed, 3 insertions(+), 6 deletions(-)
 >
 > diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-> index dd4a99f09efea65..138009659a7b55f 100644
+> index dd4a99f09efea65..7dfbb19238ad906 100644
 > --- a/drivers/acpi/sysfs.c
 > +++ b/drivers/acpi/sysfs.c
-> @@ -419,6 +419,7 @@ static ssize_t acpi_data_show(struct file *filp, stru=
-ct kobject *kobj,
->         struct acpi_data_attr *data_attr;
->         void __iomem *base;
->         ssize_t size;
-> +       u64 end;
+> @@ -510,7 +510,6 @@ static int acpi_tables_sysfs_init(void)
+>         struct acpi_table_header *table_header =3D NULL;
+>         int table_index;
+>         acpi_status status;
+> -       int ret;
 >
->         data_attr =3D container_of(bin_attr, struct acpi_data_attr, attr)=
-;
->         size =3D data_attr->attr.size;
-> @@ -432,13 +433,17 @@ static ssize_t acpi_data_show(struct file *filp, st=
-ruct kobject *kobj,
->         if (count > size - offset)
->                 count =3D size - offset;
+>         tables_kobj =3D kobject_create_and_add("tables", acpi_kobj);
+>         if (!tables_kobj)
+> @@ -535,13 +534,11 @@ static int acpi_tables_sysfs_init(void)
 >
-> -       base =3D acpi_os_map_iomem(data_attr->addr, size);
-> +       /* acpi_os_map_iomem() can't handle a range that wraps around */
-> +       if (check_add_overflow(data_attr->addr, size, &end))
-> +               return -EINVAL;
-> +
-> +       base =3D acpi_os_map_iomem(data_attr->addr + offset, count);
->         if (!base)
->                 return -ENOMEM;
+>                 table_attr =3D kzalloc_obj(*table_attr);
+>                 if (!table_attr)
+> -                       return -ENOMEM;
+> +                       break;
 >
-> -       memcpy_fromio(buf, base + offset, count);
-> +       memcpy_fromio(buf, base, count);
->
-> -       acpi_os_unmap_iomem(base, size);
-> +       acpi_os_unmap_iomem(base, count);
->
->         return count;
->  }
+> -               ret =3D acpi_table_attr_init(tables_kobj,
+> -                                          table_attr, table_header);
+> -               if (ret) {
+> +               if (acpi_table_attr_init(tables_kobj, table_attr, table_h=
+eader)) {
+>                         kfree(table_attr);
+> -                       return ret;
+> +                       break;
+>                 }
+>                 list_add_tail(&table_attr->node, &acpi_table_attr_list);
+>                 acpi_table_data_init(table_header, table_attr);
 > --
 
-Applied as 7.4-rc material, thanks!
+Sashiko has some feedback on this:
+
+https://sashiko.dev/#/patchset/20261013193900.1258808-1-jamien%40nvidia.com
+
+but that's about a pre-existing issue AFAICS, so applied as 7.4-rc material=
+.
+
+Thanks!
