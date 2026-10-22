@@ -1,57 +1,101 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.70.43.22
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.50
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792686424;
-	b=N3vJU58R4zqiufw+akltyFL42PWg1ZHIGNfU613LOtIfzsF2jJyBl/u2QgMCJV15CfEf
-	 wsnMYDCGgPbp4CgUaSbs5CHyOggRidkLFUmEDvlxDFyGrB3FuPlANGHY9DDPuK+tcWrH6
-	 NWZ21zdn+dHEE7RS2eAXI60JBbl9uKFP2sa0n3OUbY+Q011S9500yKWAjiOU2W4RVAaL7
-	 dnHuRXtx2PJUCJJfx64eoUUJANeXKWl40UzYbj2fELNpYfaXIiUCCmJ/Cd/UiO9sm34+A
-	 AZjs3QIfx+gbtfnwb3MPD9WZCDbm/jRFcT8a+c0Qn0z0nBt7pOcYWPh8X+EW+D21dUA==
+	t=1792688331;
+	b=bXHB4gF2GKDOeIHe/lHVwSgVPTCujxssUaGATJ4X7v3m3vpBrApFSJeFx3CaqW9Dal9w
+	 TPN/RNtUaaZ0Pp/reUFNd5jId+FCtcjXsRFVUH/L66VNw5oM0a0vER2ccraS6zYj3gtIK
+	 N71vjQtiUyKAU/kmTXn/ylsBjWYaLc+N8NMSnOT+oi3VAK1muURF/RXevVxCWkolZ+B+v
+	 QcFlv0XHpuPxZ48x1Z0regQKpBK5k9kt++xe5XLlv2z4t++sPYYAsVOekBreRaRwahlcf
+	 CGMo0cGx8WU0moKWsf22nBBsAEig6X08k6kvtn9n2aDI/HHMFeyHr3t8tzYHHh2BYug==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792686424;
-	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
-	 Feedback-ID:X-Pm-Message-ID:MIME-Version:Content-Type:
+	a=rsa-sha256; c=relaxed/relaxed; t=1792688331;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=54LAz2yiMw1ZfC35z33LposRAamRb5F8Xp2rr4ddzGw=;
-	b=Mm9LCB3Ue9pNfjZ/fl7S/65W2wwHo5aKvgQEbFP1JIhg3H0Gdt+01EX4D67mMA+7hOih
-	 9LeNTQ9KEQPB4KLUHG13e74SZahBdeGhgmR+/4gkxfhCHj74t0DFwNqHWd21LX0mntEPT
-	 JvKPCE5Iesi8O0QteYzkiVbeVoOYH3BN/WUcvJcOSnbTswcsitGk5CwrirK1gFb1AnVwL
-	 i5wht6N1YzwX6rylsSocWHtYAvWwlQ3f8vh2OAA0/NHgXvYOGt+OnucAcmQ944sJbYS9Z
-	 eD7IqdIDHY7jw9qo2AR9gnx2r2O2WSiqhPXL/f4IB8qv2IlSovwnzCpHh577V865Ppw==
+	bh=kpOt4UmE34zQC/DX62zHDyPBfP69CykHM4P4Um1qwuM=;
+	b=kJmojoOy6xtue6pH7xvJe3Gjffqc2HZpa4oozlK2QVwPM7VCVCaMHTaIaIxxl2r/rOVn
+	 q6EiOzRw4bJaaUcfD9qxDlrq1VOl7stA1eQth1GuB3I1gZe3h0gP8JrYWeGtvaHWfsquM
+	 /IVlUS+L84YjgdC04YUvyHj0O3DyFpCfdQ50WvQhusNKYLYwLjvTVE1y9tkH0UvF4oge1
+	 C1Mw+U5ieVjbDrJn4wzTItyfUC/gYcrdq+AtWTdfUPDy9ZTdbP4mG/AA5K20dHa5+vjGY
+	 8FpzXmkWp4mkWKlD21PcLC/uRYNgnE+Z2qtnbSzEw48vUn4esy2fCyzBDxUMzrAYX4Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=protonmail.com;
-	spf=pass smtp.mailfrom=protonmail.com;
-	dkim=pass header.d=protonmail.com header.i=@protonmail.com header.a=rsa-sha256 header.s=protonmail3 header.b=SbaSGjfj;
-	arc=none smtp.remote-ip=185.70.43.22
-Received: from mail-4322.protonmail.ch (mail-4322.protonmail.ch [185.70.43.22])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=arista.com;
+	spf=pass smtp.mailfrom=arista.com;
+	dkim=pass header.d=arista.com header.i=@arista.com header.a=rsa-sha256 header.s=google header.b=eQRcHZvR;
+	arc=none smtp.remote-ip=74.125.82.50
+Received: from mail-dl1-f50.google.com (mail-dl1-f50.google.com [74.125.82.50])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41691606A319;
-	Thu, 22 Oct 2026 16:27:03 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 41691606A319
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 136FD606A323
+	for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2026 16:58:50 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 136FD606A323
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=arista.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arista.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=protonmail.com header.i=@protonmail.com header.a=rsa-sha256 header.s=protonmail3 header.b=SbaSGjfj
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
-	s=protonmail3; t=1792686421; x=1792945621;
-	bh=54LAz2yiMw1ZfC35z33LposRAamRb5F8Xp2rr4ddzGw=;
-	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
-	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
-	b=SbaSGjfjdiUNo5BWiQKZEx2VunsfJzLFoSWPl8LUClqPiwiOENOXmIvmLIVftfqum
-	 VMuneIS1poXWE4MiITDzEIAZ0aIKz9+/njp7b1k2SlkgIyyPIBHO1pHDJYjUEvb9uY
-	 4zodON2m9AfjQqhjQPB09RlX0mYOoAHjiSFjTODZTkJkGa73aLhToarXM/d2HA72Hk
-	 mMjSufKpzMG9R7A5I3DJ3irM9lg/d/6YgoVkmnCT+4Br3gfjcmZvTEe99/6PvEW5LQ
-	 KtO+LPgn0Vt3GC1PtlfPTEQyIgmaTGmIrHwYAvvNOi46wrvp/1TBM0un79XpoUExsA
-	 G3AANRJh2w6sg==
-Date: Thu, 22 Oct 2026 16:26:57 +0000
-To: stable@vger.kernel.org
-From: Frederic MARIE-JOSEPH <fredericmariejoseph@protonmail.com>
-Cc: linux-acpi@vger.kernel.org, regressions@lists.linux.dev, "Rafael J . Wysocki" <rafael@kernel.org>, Sasha Levin <sashal@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [REGRESSION] 6.18.57: ACPI fixed power button no longer bound, ACPI power-off ignored
-Message-ID: <20261022162655.231431-1-fredericmariejoseph@protonmail.com>
-Feedback-ID: 23950738:user:proton
-X-Pm-Message-ID: 68cd0915601fe67b695201b30ee4d8b7804178c8
+	dkim=pass (2048-bit key, unprotected) header.d=arista.com header.i=@arista.com header.a=rsa-sha256 header.s=google header.b=eQRcHZvR
+Received: by mail-dl1-f50.google.com with SMTP id a92af1059eb24-1931ff67a29so2702806c88.1
+        for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2026 09:58:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=arista.com; s=google; t=1792688330; x=1793293130; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=kpOt4UmE34zQC/DX62zHDyPBfP69CykHM4P4Um1qwuM=;
+        b=eQRcHZvR2vd9ZIlpOH12y640m9H2xfPxm9TswHnMTQdHUoqdFjEZvYpAfUxySnpznM
+         Ct1fnWck5tZHcH7DYwVIplagroS9AML3MEcIMtLvNhXbYfkcpdb7rSh0KVyGspQsNq2I
+         iiN6n7n0TPoO3XUj79+oKa6ESqi+hbfz4hGZTfsEpJR4tdT5TpvgXioAab2N8zXDW40q
+         Cx7vcalkW9o7vGWXWChDD5/FTlp28bUydovKVNvaL6aoBmTh5fYbFnztkjeldTE9vk/F
+         lzcSi8cpTvUBHeomTbKmOAqhZHRxjDlRPZ9ZOPiaiGUuF1+8XSRXz0V7WjCKA6ugdwSZ
+         m7pw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792688330; x=1793293130;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=kpOt4UmE34zQC/DX62zHDyPBfP69CykHM4P4Um1qwuM=;
+        b=2Jf1OAi95TRhRiZEayWgAVLE4lRWbNN9HKxfSU3kxuX/PLgMj46HbrFTSkja3jQfvT
+         wbF22MrbwE6M+EHG1n/CaY7QoVqJebubGW10f+lRY3XsNM4oNEw0C6nYNG2ZVcU5R9pz
+         XFE3Z4a8ZSR6+6Gu/GepNL0JAUx/6wct8XoXAigYLJw7sCe9oBLGHHWejbd5CSzC0pJ2
+         dpLSICXXpv6PQu8m3QyizB1jQlEvRkpkhibRIMaJLRglDS5Hr8TVCiXOgcVIfbOUHs5e
+         WMvjEW5egES01+Rt17ekhXqaFTziee5TgCvLBZkI+IVOn3Qd/5nyO43+QbyO65FcHQ3G
+         Xceg==
+X-Forwarded-Encrypted: i=1; AKwUvBwxO6sIp9RRE22x5Ii1y7MQKdhMCgDG/ppshrTPPYW1qG+PA7Es2amcMWkPWkOQcsZxYBVrnuwcbCXX@vger.kernel.org
+X-Gm-Message-State: AFq9FYJKb/yOXG3tA6JuE/5ednwoqDNCxN3RksTX63/fijQ1b8/XasJZ
+	ZHyy2bMoqRDJs6UUvfK63PbzAmv1yqWv2HPXWHeKHacxAKLtFrJiEq9H2VK8mcCz73KDATd243p
+	W5cnX0h3/
+X-Gm-Gg: AYBFou2joigbh4yFp+6DRqgZup22I5eys2JQK8MIXVQ/utenHIkigVYypue6sl4jNSZ
+	f3eYvKUod2X6wA/xFNv2CAri5zPZvi6q9SiHEJ4ALNEcJdSPdUDFjs0Z2oSXNmRu5Cb7LCUJe8R
+	cKlkKvE/gAQYWNClWlDvyqtCBzN10VBVaZVqo8OaTINf4snyvHAL8JHsMY14d266zm01mRDZoOH
+	CyAp1s5ymTwZ2iXFv8AlpO2cmtKNHoNz/Wcd7DxUcytZ+EVD3IbZELYrRBURXhhNVuSY1y0uFze
+	Vh2xYjDTlKW6VAUQx00kufFBLjJBG2DtUO51ZYOnDsMeuwcygFxxVAFs5lZWJ+whxLbwe11rrM4
+	rz4duEf4gXx8ryOPDtHNW4loEBEV1zlV692mAH0MqFtxE8gdt0bDP2P1Keczk7qaHyWJQqkRKhE
+	AS2A2SfyT9GccSIMo98BJ4s94jc7jYqSKkmCEXHn+YrD8Dp+om4COd8HhkqBxzeB5ggz7xT+iVo
+	HTqH3flDqqHP4EYhJBBS/cb7WfwGplNh0pOc9skhQdj3vys7ET4gzY/sZzluRZsBnPqhW/1t2vH
+	3u4+AU83PqvSEnTxF/+rdbIscV6+uZWRX1w=
+X-Received: by 2002:a05:7023:a81:b0:168:3243:c911 with SMTP id a92af1059eb24-195a0effa19mr34185c88.37.1792688329950;
+        Thu, 22 Oct 2026 09:58:49 -0700 (PDT)
+Received: from yurypm-home-4hjc6.sjc.aristanetworks.com ([74.123.28.13])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1903d3ae06fsm15951151c88.19.2026.10.22.09.58.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 22 Oct 2026 09:58:48 -0700 (PDT)
+From: Yury Murashka <yurypm@arista.com>
+To: bhelgaas@google.com
+Cc: rafael@kernel.org,
+	lenb@kernel.org,
+	corbet@lwn.net,
+	skhan@linuxfoundation.org,
+	rdunlap@infradead.org,
+	mahesh@linux.ibm.com,
+	oohall@gmail.com,
+	linux-pci@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org
+Subject: [PATCH v3 0/2] PCI: Add boot options to disable DPC and AER recovery
+Date: Thu, 22 Oct 2026 16:58:40 +0000
+Message-ID: <20261022165842.1463451-1-yurypm@arista.com>
+X-Mailer: git-send-email 2.51.0
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -61,148 +105,54 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Hello,
+On large modular systems with a complex PCIe topology, allow userspace to
+inspect uncorrectable AER errors before Linux attempts recovery and to
+opt out of Linux DPC and EDR support.
 
-Since 6.18.57, a machine whose FADT describes a fixed-hardware power
-button (QEMU's q35 machine, so Incus and other QEMU virtual machines)
-ignores an ACPI power-off request.
+This series adds two PCI kernel boot options:
 
-On 6.18.57 (x86_64, CONFIG_ACPI_BUTTON=3Dy, CONFIG_INPUT_EVDEV=3Dy), in an
-Incus 7.5.1 virtual machine:
+  pci=noaer_recovery  - Retain AER logging and correctable handling, but
+                       skip uncorrectable AER recovery, including CXL RCH
+                       callbacks and recovery of GHES-reported errors.
+  pci=nodpc          - Disable Linux DPC and EDR participation, including
+                       ACPI negotiation and EDR's DPC-enabling _DSM call.
 
-- /proc/bus/input/devices lists no "Power Button";
-- /sys/bus/acpi/devices/LNXPWRBN:00 exists, with no driver and no
-  physical node;
-- /sys/bus/platform/drivers/acpi-button exists and is bound to nothing;
-- no platform device exists for LNXPWRBN;
-- QEMU's system_powerdown ("incus stop") has no effect in the guest.
+Firmware-owned DPC settings and firmware error recovery remain under
+firmware control. The two options can be selected independently.
 
-6.18.57 took "ACPI: button: Convert the driver to a platform one"
-(stable commit 38c79dacc8063ff8a0d75ce2a900fbaff82ad94c, upstream
-52d86401963666423cb9a56d117136c846093db0) as a Stable-dep-of
-fe80251152fe ("ACPI: button: Fix ACPI GPE handler leak during removal").
-The platform driver needs the fixed button objects to be platform
-devices, but 6.18.57's acpi_bus_scan_fixed() in drivers/acpi/scan.c
-still attaches them on the ACPI bus with device_attach(), where no button
-driver is left; and acpi_create_platform_device() would fail on them
-anyway, because acpi_dev_get_resources() returns -EINVAL for an object
-without a namespace handle.
+Changes in v3:
+  - Patch 1: Check the recovery option before dispatching CXL RCH and
+    ordinary PCIe errors, addressing the CXL callback bypass.
+  - Patch 1: Preserve current GHES cleanup and device-reference release.
+  - Patch 2: Add pci_dpc_available() and use it for DPC services, ACPI
+    DPC/EDR negotiation, and EDR notifier installation/removal.
+  - Patch 2: Skip the entire EDR registration path before its enabling
+    _DSM, and prevent native-port overrides from defeating nodpc.
+  - Clarify the Linux-only scope and rebase onto the PCI next branch.
 
-Mainline handles this (as of 7.1.8): acpi_bus_scan_fixed() calls
-acpi_bus_add_fixed_device_object(), which uses acpi_default_enumeration(),
-and acpi_create_platform_device() looks up resources only for
-ACPI_BUS_TYPE_DEVICE objects. Those two changes, backported to 6.18.57 as
-below, restore the Power Button input device, and an ACPI power-off then
-shuts the guest down cleanly ("reboot: Power down" within a second of the
-request). 6.18.58's ChangeLog has no fix.
+v2: https://lore.kernel.org/linux-pci/20260709185429.627968-1-yurypm@arista.com/
+AER review: https://lore.kernel.org/linux-pci/20260709190616.DF0CF1F000E9@smtp.kernel.org/
+DPC review: https://lore.kernel.org/linux-pci/20260709190730.E19A11F000E9@smtp.kernel.org/
 
-I could not identify the mainline commit(s) that introduced
-acpi_bus_add_fixed_device_object() and the ACPI_BUS_TYPE_DEVICE check;
-picking them for 6.18.y, or reverting 52d864019636 and its dependants
-there, would fix it. The diff below is offered for testing and as a
-pointer, not for applying as is.
+Yury Murashka (2):
+  PCI: Add pci=noaer_recovery kernel boot option
+  PCI: Add pci=nodpc kernel boot option
 
-The analysis and the backport were prepared with an AI assistant
-(Claude, Anthropic) and checked on the hardware above.
+ .../admin-guide/kernel-parameters.txt         |  9 +++++++
+ drivers/acpi/pci_root.c                       |  9 +++++--
+ drivers/pci/pci.c                             |  4 ++++
+ drivers/pci/pci.h                             |  4 ++++
+ drivers/pci/pcie/aer.c                        | 13 ++++++++--
+ drivers/pci/pcie/dpc.c                        | 24 ++++++++++++++++---
+ drivers/pci/pcie/edr.c                        |  5 +++-
+ drivers/pci/pcie/portdrv.c                    |  3 ++-
+ include/linux/pci.h                           |  6 +++++
+ 9 files changed, 68 insertions(+), 9 deletions(-)
 
-#regzbot introduced: 38c79dacc8063ff8a0d75ce2a900fbaff82ad94c
 
-Thanks,
-Frederic MARIE-JOSEPH
-
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -137,22 +137,26 @@
- =09=09}
- =09}
-=20
--=09INIT_LIST_HEAD(&resource_list);
--=09count =3D acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
--=09if (count < 0)
--=09=09return NULL;
--=09if (count > 0) {
--=09=09resources =3D kcalloc(count, sizeof(*resources), GFP_KERNEL);
--=09=09if (!resources) {
-+=09count =3D 0;
-+=09/* A fixed event button has no namespace object, so no resources. */
-+=09if (adev->device_type =3D=3D ACPI_BUS_TYPE_DEVICE) {
-+=09=09INIT_LIST_HEAD(&resource_list);
-+=09=09count =3D acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
-+=09=09if (count < 0)
-+=09=09=09return NULL;
-+=09=09if (count > 0) {
-+=09=09=09resources =3D kcalloc(count, sizeof(*resources), GFP_KERNEL);
-+=09=09=09if (!resources) {
-+=09=09=09=09acpi_dev_free_resource_list(&resource_list);
-+=09=09=09=09return ERR_PTR(-ENOMEM);
-+=09=09=09}
-+=09=09=09count =3D 0;
-+=09=09=09list_for_each_entry(rentry, &resource_list, node)
-+=09=09=09=09acpi_platform_fill_resource(adev, rentry->res,
-+=09=09=09=09=09=09=09    &resources[count++]);
-+
- =09=09=09acpi_dev_free_resource_list(&resource_list);
--=09=09=09return ERR_PTR(-ENOMEM);
- =09=09}
--=09=09count =3D 0;
--=09=09list_for_each_entry(rentry, &resource_list, node)
--=09=09=09acpi_platform_fill_resource(adev, rentry->res,
--=09=09=09=09=09=09    &resources[count++]);
--
--=09=09acpi_dev_free_resource_list(&resource_list);
- =09}
-=20
- =09memset(&pdevinfo, 0, sizeof(pdevinfo));
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -2631,33 +2631,22 @@
- }
- EXPORT_SYMBOL_GPL(acpi_bus_register_early_device);
-=20
--static void acpi_bus_scan_fixed(void)
-+static void acpi_bus_add_fixed_device_object(enum acpi_bus_device_type typ=
-e)
- {
--=09if (!(acpi_gbl_FADT.flags & ACPI_FADT_POWER_BUTTON)) {
--=09=09struct acpi_device *adev =3D NULL;
-+=09struct acpi_device *adev =3D NULL;
-=20
--=09=09acpi_add_single_object(&adev, NULL, ACPI_BUS_TYPE_POWER_BUTTON,
--=09=09=09=09       false);
--=09=09if (adev) {
--=09=09=09adev->flags.match_driver =3D true;
--=09=09=09if (device_attach(&adev->dev) >=3D 0)
--=09=09=09=09device_init_wakeup(&adev->dev, true);
--=09=09=09else
--=09=09=09=09dev_dbg(&adev->dev, "No driver\n");
--=09=09}
--=09}
-+=09acpi_add_single_object(&adev, NULL, type, false);
-+=09if (adev)
-+=09=09acpi_default_enumeration(adev);
-+}
-=20
--=09if (!(acpi_gbl_FADT.flags & ACPI_FADT_SLEEP_BUTTON)) {
--=09=09struct acpi_device *adev =3D NULL;
-+static void acpi_bus_scan_fixed(void)
-+{
-+=09if (!(acpi_gbl_FADT.flags & ACPI_FADT_POWER_BUTTON))
-+=09=09acpi_bus_add_fixed_device_object(ACPI_BUS_TYPE_POWER_BUTTON);
-=20
--=09=09acpi_add_single_object(&adev, NULL, ACPI_BUS_TYPE_SLEEP_BUTTON,
--=09=09=09=09       false);
--=09=09if (adev) {
--=09=09=09adev->flags.match_driver =3D true;
--=09=09=09if (device_attach(&adev->dev) < 0)
--=09=09=09=09dev_dbg(&adev->dev, "No driver\n");
--=09=09}
--=09}
-+=09if (!(acpi_gbl_FADT.flags & ACPI_FADT_SLEEP_BUTTON))
-+=09=09acpi_bus_add_fixed_device_object(ACPI_BUS_TYPE_SLEEP_BUTTON);
- }
-=20
- static void __init acpi_get_spcr_uart_addr(void)
+base-commit: f4319f548f7d8cb595ac1c91bfd459876399eeb3
+-- 
+2.51.0
 
