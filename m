@@ -1,127 +1,87 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.193.7
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1792665637;
-	b=pqdPDwrUvN8rBoLcT0ZCozdsth6YFT2u1JhNvZFvlT+BkhUzvOBBKsNQ1CYHcGkSAxJz
-	 nObMRFvfAD/h2yMoECSiQNNfQS+91+dhd34f0pQ1joiB19P7+IdhFEW7zNLrgW39lpS7n
-	 h3cGC3m0TVplKYgY+7ee1crTT/Nq2qxaDKSse19tC3Y9xUHQyU+1N7NJ2OGpAvuuIfFIU
-	 5p7xoku6N+g4FAUuvkszf6YHlVpJ66TAwH1id/a4/TivPUSqMdc2IzB3cX7HvReO3uH/5
-	 S/dkcVMpD5A7jzHPCwgM4TFmVrYS6LCE+85SYK5i0YtCWNNCEKWAmGoJTGkm3xraWkQ==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792665637;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:
-	 Content-Transfer-Encoding:Content-Type:X-ClientProxiedBy:MIME-Version:
-	 X-MS-PublicTrafficType:X-MS-TrafficTypeDiagnostic:
-	 X-MS-Office365-Filtering-Correlation-Id:X-MS-Exchange-SenderADCheck:
-	 X-MS-Exchange-AntiSpam-Relay:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=kboHgt19Dz1TK6Pl0RY67RPVWyrBDrK2fm2eftb+nXQ=;
-	b=cEZzoSCZ8WAQij0SKZcFUDeYx1LXNP864n5hJPgRJyfTPEcoGrJRUwtSQY5tDxLEULkS
-	 CTRcLfkFWai9ChOi22sWPJ2G30UVOP6eESM1pX7wYPQR1ESexO/ko2+4TDX5YPlXg4pOG
-	 HjI+3BG/QM0s7FwjTIQRpFS86wuQE4mvK7BKbH2DSDYC/Zx2IKTmnI8q2D7w90eADvLhg
-	 /ARKIbB0u9/5X1iV3XmEhKjvQz0iw/fXMBZrEuOy4dGLtAiYTYkmrUAwc/NnL/JulPxiD
-	 YmQT9+Zdu2cxm1j1ipWkxxYRNrBMSGxSaoqrYEoo2QXedkNmLGamzU/kobIPzljcuMg==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nvidia.com;
-	spf=fail smtp.mailfrom=nvidia.com;
-	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=pfJe5FLa;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.193.7
-Received: from CH1PR05CU001.outbound.protection.outlook.com (mail-northcentralusazon11010007.outbound.protection.outlook.com [52.101.193.7])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.127.230.111
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1792669994;
+	b=Ozve4TxdXs6PNXWZ48vGZp6MMLdWlBqMmjAzN7lWfo5RsBNqoAPhfRoz0kJFPz5Ghy4B
+	 lhC9flwglv3XPsb4p4itYsOEgE+a/KB/mkkB9Ol8HhSfD3E/tqGqqCADRVgOtKHeWyURb
+	 naxmahyPv/oo4WDbip6jWCU62pXBwJ/yfu7+mWngZ2dhOEjCuoEmrASxAiVdbjioAlBWC
+	 pOf0BNqfzgAIsVGT26R02ilAVZx4EbB0nlbyAAVRCTWUs6TAS8EubhwWb63dLQQVCqkd6
+	 xHfOvlerfj4SnoKxquO08NFDlVZMELEV2NToR/RkXKfDoq4JQferBoeQ7id+uP9WrHA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792669994;
+	h=DMARC-Filter:DKIM-Signature:Subject:Date:To:
+	 Content-Transfer-Encoding:X-Lms-Return-Path:Content-Type:Message-Id:
+	 X-Mailer:Cc:From:Mime-Version:X-Original-From;
+	bh=wwNZsqH4WwjIxo3V+udGCSsZZgNsNxQdDxK8sok/lF0=;
+	b=EGEoBPVptByXUYe1nJnUYg1YCLJaO7FQWq+sbr1XLq/ZaTkd0iv/XI8MASvn/0gHxAru
+	 9fU+/sviEys51QTZiOF6h4tQ3TOsqfrd3Rw6jNboDS824AUVyVtX8sg46elTlWAxGpjzN
+	 KTVTJHvxV/p8cjdQt+4sp4FgTr30ssn4pL37bOUYY6R3esdKhTd7Yn7Gi2Cb17HiKu8s1
+	 48AKunP037ZGUzXcqNsvYl4Pc5v2ot+4VcFd1mLzDmHD4DNk3meYtA+YcZc2bXbNJVC/X
+	 RqkhV3O2+kD+GiANntMlC98dm/oOo0chcozfvsyWZ+gQROe0F4tQqP+AxkLMf8Am9iA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=bytedance.com;
+	spf=pass smtp.mailfrom=bytedance.com;
+	dkim=pass header.d=bytedance.com header.i=@bytedance.com header.a=rsa-sha256 header.s=2212171451 header.b="d7E87zM/";
+	arc=none smtp.remote-ip=209.127.230.111
+Received: from va-1-111.ptr.blmpb.com (va-1-111.ptr.blmpb.com [209.127.230.111])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7326B606A319;
-	Thu, 22 Oct 2026 10:40:36 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7326B606A319
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F34C606A319
+	for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2026 11:53:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6F34C606A319
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=pfJe5FLa
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=cCp5t3GM2v2uPmKoOGUHKtsHWMMgGMRTz8b4AGmOykXPzxMXj/Y2D+Lu9cO/krumh7BGfOGG9QhMmaS69yVTmhYcybN7hOikcG3aE2kUWOi1kzY3jOBZgck7kXZfejavYZ/miAp+2oX7pIwy+xpLxVmcjZI1PuEJKQ8si2nclfpPbKybn0xH+W0xcL3fwCQVXLKceC3xkRtp6Hb/Mh7vxuuCvYbc7ddeN6/Utg8FmM2VJdlkEgTxFAWHQKN5Hh6xKdBY5hJWXMvXYK6NwIprTSd9h6I7wu/O0pDXSr2Yp7iJpPuF8PPIojOH+xlig45c3CX2a8nus17IsHd3xJb62w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=kboHgt19Dz1TK6Pl0RY67RPVWyrBDrK2fm2eftb+nXQ=;
- b=R4sqdSdiDw5X9jJpB6lWJO+7e5C7p0QYFT90g1FlvAcCliQRpPqX3RjudXmcmpu/DPL5SKnCFwtrA5feIk4VarLn+4AS4PclJ1/M5MfLR4FAW7FxtV8b6JBPemeFfYKZSEhj0wG/4X6s9yvjLGbmIKzwRyWgJRS9DdfpLmWRcTGIUc7B0tt8PkrbrZjWkv18Zm8GN3FG8T/JPsenzNsWIVJWp0pDlGZxZNlyz030IyFFyG6JfuGAT+6J+7PDMZCIliOCux9yeGOW164vXb5a96pT1Gn21c1VYid4/z59KEw594U4JmQhB82jzCadNLu0WNhvsO2v3GFl0UQ9UQ1VDg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=kboHgt19Dz1TK6Pl0RY67RPVWyrBDrK2fm2eftb+nXQ=;
- b=pfJe5FLakhkUWA+yf6vlQpMVWMKzlYC/+qCSP5+L7UBphGYUKDSOam46D3mgMspLFmrfxVfeWXrBNodzZREhLWBfaE2RHl3PIGhjwixxr/M/Da9ngyjmApv5CZsKAAXOAIRQkRpoOgUDTXhzpewxB7T5EkmbbqzHpgpVAeCa5YDwJSDv//lJZxOjGklvwryCvVRTB2RwuxkS+S3o1qIoUBtuHfyc/OfTbVKiaqpHlV6ZsHF6Ad7X1QF9LaCJueNqqQBUxWOF6911PLg5Tom0Pn0yPu3mOtUr6ln+OKEFjHJv/6GTyEXbqa4rdrXP2j6Hc/HcOsq2sMXxwaf2Vwk5Qw==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from PH7PR12MB5974.namprd12.prod.outlook.com (2603:10b6:510:1d9::19)
- by MW4PR12MB6756.namprd12.prod.outlook.com (2603:10b6:303:1e9::7) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.546.15; Thu, 22 Oct
- 2026 10:40:30 +0000
-Received: from PH7PR12MB5974.namprd12.prod.outlook.com
- ([fe80::f5a5:bbc3:e9da:f8a0]) by PH7PR12MB5974.namprd12.prod.outlook.com
- ([fe80::f5a5:bbc3:e9da:f8a0%3]) with mapi id 15.21.0546.016; Thu, 22 Oct 2026
- 10:40:30 +0000
-From: Adrian Ambrozewicz <aambrozewicz@nvidia.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Donald Shannon <donalds@nvidia.com>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Linus Walleij <linusw@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Lee Jones <lee@kernel.org>,
-	Pavel Machek <pavel@kernel.org>,
-	Andi Shyti <andi.shyti@kernel.org>,
-	Mark Brown <broonie@kernel.org>,
-	Jiri Slaby <jirislaby@kernel.org>,
-	Corey Minyard <corey@minyard.net>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans de Goede <hansg@kernel.org>,
-	Lixu Zhang <lixu.zhang@intel.com>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Johan Hovold <johan@kernel.org>,
-	Oliver Neukum <oneukum@suse.com>,
-	Quan Nguyen <quan@os.amperecomputing.com>,
-	Andrew Jeffery <andrew@codeconstruct.com.au>,
-	Jeremy Kerr <jk@codeconstruct.com.au>,
-	linux-usb@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	linux-gpio@vger.kernel.org,
-	linux-leds@vger.kernel.org,
-	linux-i2c@vger.kernel.org,
-	linux-spi@vger.kernel.org,
-	linux-serial@vger.kernel.org,
-	openipmi-developer@lists.sourceforge.net,
-	linux-acpi@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 00/11] Add NVIDIA LSTP USB adapter drivers
-Date: Thu, 22 Oct 2026 13:40:26 +0300
-Message-ID: <20261022104025.3956402-3-aambrozewicz@nvidia.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <2026101355-species-glance-9ff8@gregkh>
-References: <20261012-lstp-usb-adapter-v1-0-aambrozewicz@nvidia.com> <2026101355-species-glance-9ff8@gregkh>
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: FR2P281CA0143.DEUP281.PROD.OUTLOOK.COM
- (2603:10a6:d10:98::16) To PH7PR12MB5974.namprd12.prod.outlook.com
- (2603:10b6:510:1d9::19)
+	dkim=pass (2048-bit key, unprotected) header.d=bytedance.com header.i=@bytedance.com header.a=rsa-sha256 header.s=2212171451 header.b=d7E87zM/
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+ s=2212171451; d=bytedance.com; t=1792669987; h=from:subject:
+ mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
+ mime-version:in-reply-to:message-id;
+ bh=wwNZsqH4WwjIxo3V+udGCSsZZgNsNxQdDxK8sok/lF0=;
+ b=d7E87zM/6FdiVORDFZWdsuHKrPpU8g8xdVn/gJZuU562umHDoiDbM6IKttUKAFMjnOtJJt
+ /e5tMyDUtVUeCXhuxJwOSSaJ8P7gTuQJj/OqIL/UlbQfrV1VOCldN5rg2saYo+sM0zVeN6
+ zmWj67F3x9uMSKBQPykCIiXU7p0dsGRwVq6hEelO0DYYIuNxj0UVqCrKHsvZcOV2NBvFwK
+ E69RW/onzw6a/Vu0Jchdc0tYuUniHnY4+LD7SMUUedI0G7EZpstGOqZWrcCkPj3RauZ+Nl
+ LO1TzgaLelUSDjn2Go1PU5iwx8aqOjC3DLqAOxahzoIy/0MG2c7VMnk2GiE+1w==
+Subject: [PATCH] ACPI: APEI: GHES: Cache EFI memory attributes
+Date: Thu, 22 Oct 2026 19:52:06 +0800
+To: <rafael@kernel.org>
+Content-Transfer-Encoding: 7bit
+X-Lms-Return-Path: <lba+26ad9f921+6c335c+vger.kernel.org+qirui.001@bytedance.com>
+Content-Type: text/plain; charset=UTF-8
+Message-Id: <20261022115218.1937861-1-qirui.001@bytedance.com>
+X-Mailer: git-send-email 2.20.1
+Cc: "Rui Qi" <qirui.001@bytedance.com>, 
+	"Catalin Marinas" <catalin.marinas@arm.com>, 
+	"Will Deacon" <will@kernel.org>, "Mark Rutland" <mark.rutland@arm.com>, 
+	"Paul Walmsley" <pjw@kernel.org>, "Palmer Dabbelt" <palmer@dabbelt.com>, 
+	"Albert Ou" <aou@eecs.berkeley.edu>, "Alexandre Ghiti" <alex@ghiti.fr>, 
+	"Thomas Gleixner" <tglx@kernel.org>, "Ingo Molnar" <mingo@redhat.com>, 
+	"Borislav Petkov" <bp@alien8.de>, 
+	"Dave Hansen" <dave.hansen@linux.intel.com>, 
+	"maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, 
+	"H. Peter Anvin" <hpa@zytor.com>, "Tony Luck" <tony.luck@intel.com>, 
+	"Hanjun Guo" <guohanjun@huawei.com>, 
+	"Mauro Carvalho Chehab" <mchehab@kernel.org>, 
+	"Shuai Xue" <xueshuai@linux.alibaba.com>, "Len Brown" <lenb@kernel.org>, 
+	"Chengwen Feng" <fengchengwen@huawei.com>, 
+	"Jonathan Cameron" <jic23@kernel.org>, 
+	"Punit Agrawal" <punit.agrawal@oss.qualcomm.com>, 
+	"Osama Abdelkader" <osama.abdelkader@gmail.com>, 
+	"mrigendrachaubey" <mrigendra.chaubey@gmail.com>, 
+	"Peixin Xie" <peixin.xie@linux.spacemit.com>, 
+	"Vivian Wang" <wangruikang@iscas.ac.cn>, 
+	"Lorenzo Pieralisi" <lpieralisi@kernel.org>, 
+	"Ricardo Neri" <ricardo.neri-calderon@linux.intel.com>, 
+	"Dexuan Cui" <dexuan@kernel.org>, "Dave Jiang" <dave.jiang@intel.com>, 
+	"Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>, 
+	"Breno Leitao" <leitao@debian.org>, 
+	"Terry Bowman" <terry.bowman@amd.com>, "Dan Williams" <djbw@kernel.org>, 
+	"moderated list:ARM64 PORT (AARCH64 ARCHITECTURE)" <linux-arm-kernel@lists.infradead.org>, 
+	"open list" <linux-kernel@vger.kernel.org>, 
+	"open list:RISC-V ARCHITECTURE" <linux-riscv@lists.infradead.org>, 
+	"open list:ACPI APEI" <linux-acpi@vger.kernel.org>
+From: "Rui Qi" <qirui.001@bytedance.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -130,89 +90,180 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH7PR12MB5974:EE_|MW4PR12MB6756:EE_
-X-MS-Office365-Filtering-Correlation-Id: f3f1465f-9a94-45e1-e61d-08df3028e4a3
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|23010399003|1800799024|7416014|366016|10067099003|18002099003|22082099003|261021123027099003|261009223027099003|4143699003|11063799006|56012099006;
-X-Microsoft-Antispam-Message-Info:
-	+OnPK/ZkKADamwuB/xW7WSQqdzcrb/H0j5vW+0COGwU6r3VdZcZF91SL8N9riWodjFYbEWrxGHL/u2er0vCr2xaVWb+dJMP2l+L0AvzRcP+iolS5oqaiWgUXrLbncFoY+MB4NB4GiDCD9liRmUyp95whTvJGfMwezF94eu5GM1ch9pG4tGLVpnINM38sDV8BE8/4OhXa4YaeLr6iDe6luItBZbNzrVNFboZVIAWwWv2uxmAoh/hAf/VOydGVKDBRiD7+oEj9pY6I4b0fACqY4j9dbQwxgsr0tJaYCpMFZHkyb6FgqXDlYhNUmY3+smUAOjFUSwXp3zB0Miq/4kMwC3C+q6dZZ3GtYOdE3oUaMwe0ym9xQ+rgwOdKFJfRthaBf1B3hyov5VyywkrkiGsg1nqmTUWrVFLLAup7zcJhYDPISILKskt7IskHsnXj2PKdp4Oy3d8JC2hKVJ8a3oI0pCEWiKDmiWT/snYaoXjUUOZqwkQiq1jOF3cwHD0wpqm/AND7kbA7t7Z5aytRKrh8tBT5C2NLbJnAqSC+vIZWiTCnjYK4oBWvbAdOpiKXyKiNGDdb2+AD56sYfn0X0U071YszKun2mgTBOJSa52cibGx93cYeFhoTrUxoQFbsjJLGrf99W1/MyVsoW9iQXlyaxkZA9YyqBHlsjlZThM/bStQ=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR12MB5974.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(23010399003)(1800799024)(7416014)(366016)(10067099003)(18002099003)(22082099003)(261021123027099003)(261009223027099003)(4143699003)(11063799006)(56012099006);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?gVYd9T3606e6+ZUoYrgJQDFtt74E1gp+2mZ1QyAEiz6aOuf9oJYPSfBAO1y1?=
- =?us-ascii?Q?3upxoEvhNE/6rCiNNJIH+H9Ma9a0jpIuZS88v2B9lltVZhkoAVyFkzHFQ6Fz?=
- =?us-ascii?Q?TqPD1B5ZmexGR3NhaJw6w8ntDnCB5x11LFIKHzjCvfXxp3u3Grh8HoY5oa/S?=
- =?us-ascii?Q?aDDXqkxAdvIKdjR96Su0QliIrQ4O7UWX5/xhiuwXPF8tZqpVZh46K56YygqW?=
- =?us-ascii?Q?L7Am0rZkf+Ff0Yb/VomPai+Mn1lLPCpGTwybGhHh/oAqa176IZvtxTWkquCa?=
- =?us-ascii?Q?Aua9ajpwWlay5GVfRLZdIJ6gAUWL7yGAIRNaWd42LoYuFsBwKCs3ui1n//xU?=
- =?us-ascii?Q?JLHfCQbBWTPLMcSkKD71Nrv2Imy3jAnFaRqafPrevvbaXsslA57uTx7H5rvb?=
- =?us-ascii?Q?nhPBRmoG/Yf+nwMAg42W/g99Gw/RKAJdLc8ILerP1lS+8ZjGUhT8M6Dh35Dk?=
- =?us-ascii?Q?53p4AM8fNVsmN9jiIYzuJbq3Uql8mEapfVc0o2K4NfpnID1HZa6Qd0yssKno?=
- =?us-ascii?Q?s1eU8hunxc2gDofOwLuvVl/YLzfBQbX1jH2E4dvIfUqpYBDCJTQ4SBGQq0aq?=
- =?us-ascii?Q?iSbV3MQk7nuIUn/CZRePksIQOgr4pYrIx2qnNzv7s6TjSEW00dWFHLdngzm1?=
- =?us-ascii?Q?5iDvMtYjsufgevTklSgokourIfqpos3YqOebqyPgeuiPre3AJ/qwZCzcBttI?=
- =?us-ascii?Q?EmE+FB9qMR33Alote3Qgfi87mieYWyR8A23ZFnmFB874SITanrNUAiqoMzGI?=
- =?us-ascii?Q?1SO9oJiPZKTodv7mam0tqWxgkXN4SGalVH72WWfkgUt3ZhC9A9taYid/H6p5?=
- =?us-ascii?Q?w0zdrOSeJqUKDxV+QPq0nzMcxrcQXC/2B+20HoFdyEN3G+/dpxUsoTAzeC4m?=
- =?us-ascii?Q?+0YEMrTUEaY9ou6XjDdohOma2LQpbFtdE1bRckcnAGVz53BfxZiOSSttpPGW?=
- =?us-ascii?Q?w1YAzadBtfajXb8APTz7cIxv1sLWSiUZUHzxNq2v/PhC/BJYL2NhChplgIfh?=
- =?us-ascii?Q?QFDZwBPlbOOiX+gCadzZlzo6Qshew/NZ77bH/Ff2xOJXha6Qk2oYnZClIj/6?=
- =?us-ascii?Q?pYVvzyyFqY9+jak3D1iQlYc1GDCctZ7ccNBCjRk0/blY7nIog3hxvuFlPrzN?=
- =?us-ascii?Q?COXjpEZCBeElncg/ALwwqTtOV7h3QNjG1DCIHzQ5DWIeMlOVahPG0oyTIb3X?=
- =?us-ascii?Q?mVvBxh7DeVEdlu0TlBkgWH8YPbXC/PhMyhyIFKWu7XQUypQ7XYURTQQcw0sp?=
- =?us-ascii?Q?6gzbXifnTJgGG51PPduAeNt2zFyTDOMRmJMLBZm2RhWnRRZY4Gnzl/mfhqSC?=
- =?us-ascii?Q?VGmGWHILAF04HyV95WTPtj9RnvV9vqWxBLnyaSy1e5Lsu5bB3HwixnkftWfc?=
- =?us-ascii?Q?A0NoJyNFL0g30ucOhTy+uuphxDAk8iTybi84J6FUFZiFJlfWRW0k2O2qDHCO?=
- =?us-ascii?Q?WzB5zf91qFw3QCqV1IC6VJgM8oYnph0MsFSGLWVum9MY7qCK/xxgNPvqABbG?=
- =?us-ascii?Q?2nIf50IZP+/Mewx2rEFqiUi5REUyZzN4mq7GMWeOkDOko+0KF517ydg2QIvj?=
- =?us-ascii?Q?I7iowG1MnrkVj3ilwiAWZsUhvxwMwSecIoAI1zV5SjsjNRT4rPLRBcjF14qT?=
- =?us-ascii?Q?2AQ23Xzq99k/ENcKkMF7W/8sWyABdD/OeWu+nRv2TTBBzbmsXv9O9KBr3yo1?=
- =?us-ascii?Q?Uzlw6snIBKQZ0ck8XBTaM5w3fZlqPvc1GBTkTPo7gdfzniyMF/DbOef3GAJ1?=
- =?us-ascii?Q?lVV3jxI6Lg=3D=3D?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f3f1465f-9a94-45e1-e61d-08df3028e4a3
-X-MS-Exchange-CrossTenant-AuthSource: PH7PR12MB5974.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Oct 2026 10:40:30.5211
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: ryGnCtbVz5eGlNgsfw9MqyG4REoD0G8hTFbkwRbDISxH2zP0uHTAXYLzNUr5LuKEovHbvR9LkB7iipUPee8ghQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB6756
+Mime-Version: 1.0
+X-Original-From: Rui Qi <qirui.001@bytedance.com>
 
-On Tue, Oct 13, 2026 at 01:37:11PM +0200, Greg Kroah-Hartman wrote:
-> > Why the auxiliary bus, and why not MFD
-> > --------------------------------------
->
-> Neither is ok for USB devices, that's not an argument either way.
+GHES copies error status blocks through a fixmap because the physical
+address of the firmware buffer may only be known from IRQ, timer or
+other atomic notification contexts. On arm64, each fixmap update asks
+the architecture code to derive the mapping attributes from the EFI
+memory map.
 
-Here USB only carries the traffic. The I2C, SPI and GPIO channels are
-ordinary controllers on the board, and their drivers register with
-those subsystems; hosts describe what is wired to them with ACPI, BMCs
-with device tree [1].
+efi_mem_desc_lookup() scans the EFI descriptor map. A multi-page CPER
+record can therefore repeat the same descriptor search for adjacent
+pages while ghes_notify_lock_irq is held and interrupts are disabled.
+GHES records are bounded, so this is not normally a hot path, but
+corrected error storms on systems with fragmented EFI memory maps can
+amplify that latency.
 
-usb-ljca is a recent driver for a very similar device, so we modelled
-the core on it: one interface carries GPIO, I2C and SPI, and the core
-creates an auxiliary device per function and attaches its ACPI node.
-LSTP extends that model to device tree.
+Return the end of the matching EFI descriptor through the APEI memory
+attribute hook and let GHES reuse the computed page protection while
+copying pages covered by the same descriptor.
 
-Whether the next version stays LSTP or becomes a set of divergences
-from an OBMF-ICP driver, as Jeremy suggested, the need is the same: a
-device behind a tunnelled channel is described like one wired straight
-to the BMC, so a board can move between the two without rewriting its
-description.
+Signed-off-by: Rui Qi <qirui.001@bytedance.com>
+---
+ arch/arm64/include/asm/acpi.h |  7 ++++---
+ arch/arm64/kernel/acpi.c      | 11 ++++++++---
+ arch/riscv/include/asm/acpi.h |  5 ++++-
+ arch/x86/include/asm/acpi.h   |  5 ++++-
+ drivers/acpi/apei/ghes.c      | 25 +++++++++++++++++++++----
+ 5 files changed, 41 insertions(+), 12 deletions(-)
 
-We don't see an architecture that fits better. If you would rather see
-this done differently, what would you suggest? One function per
-interface I'll answer separately.
-
-[1] https://lore.kernel.org/r/20261016084443.1972351-1-aambrozewicz@nvidia.com
-
-Thanks,
-Adrian
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index 8a54ca6ba602..055205f52f9f 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -66,7 +66,7 @@ static inline unsigned int arch_get_idle_state_flags(u32 arch_flags)
+ 
+ /* Basic configuration for ACPI */
+ #ifdef	CONFIG_ACPI
+-pgprot_t __acpi_get_mem_attribute(phys_addr_t addr);
++pgprot_t __acpi_get_mem_attribute(phys_addr_t addr, phys_addr_t *end);
+ 
+ /* ACPI table mapping after acpi_permanent_mmap is set */
+ void __iomem *acpi_os_ioremap(acpi_physical_address phys, acpi_size size);
+@@ -155,9 +155,10 @@ static __always_inline const char *acpi_get_enable_method(int cpu)
+  * for compatibility.
+  */
+ #define acpi_disable_cmcff 1
+-static inline pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
++static inline pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr,
++						   phys_addr_t *end)
+ {
+-	return __acpi_get_mem_attribute(addr);
++	return __acpi_get_mem_attribute(addr, end);
+ }
+ #endif /* CONFIG_ACPI_APEI */
+ 
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index 681aa2bbc399..b3097f6e0ea8 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -270,7 +270,7 @@ static pgprot_t __acpi_get_writethrough_mem_attribute(void)
+ 	return __pgprot(PROT_NORMAL_NC);
+ }
+ 
+-pgprot_t __acpi_get_mem_attribute(phys_addr_t addr)
++pgprot_t __acpi_get_mem_attribute(phys_addr_t addr, phys_addr_t *end)
+ {
+ 	/*
+ 	 * According to "Table 8 Map: EFI memory types to AArch64 memory
+@@ -280,9 +280,14 @@ pgprot_t __acpi_get_mem_attribute(phys_addr_t addr)
+ 	 * of a memory region.
+ 	 */
+ 
+-	u64 attr;
++	efi_memory_desc_t md;
++	u64 attr = 0;
+ 
+-	attr = efi_mem_attributes(addr);
++	if (!efi_mem_desc_lookup(addr, &md)) {
++		attr = md.attribute;
++		if (end)
++			*end = md.phys_addr + (md.num_pages << EFI_PAGE_SHIFT);
++	}
+ 	if (attr & EFI_MEMORY_WB)
+ 		return PAGE_KERNEL;
+ 	if (attr & EFI_MEMORY_WC)
+diff --git a/arch/riscv/include/asm/acpi.h b/arch/riscv/include/asm/acpi.h
+index c11fc0fa9bee..882ed5433214 100644
+--- a/arch/riscv/include/asm/acpi.h
++++ b/arch/riscv/include/asm/acpi.h
+@@ -121,8 +121,11 @@ static inline void acpi_map_cpus_to_nodes(void) { }
+  * RISC-V does not have CMC, so always disable it.
+  */
+ #define acpi_disable_cmcff 1
+-static inline pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
++static inline pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr,
++						   phys_addr_t *end)
+ {
++	if (end)
++		*end = (phys_addr_t)-1;
+ 	return PAGE_KERNEL;
+ }
+ #endif /* CONFIG_ACPI_APEI */
+diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+index c4e6459bd56b..a3f1f1b0a9f7 100644
+--- a/arch/x86/include/asm/acpi.h
++++ b/arch/x86/include/asm/acpi.h
+@@ -227,7 +227,8 @@ extern int x86_acpi_numa_init(void);
+ struct cper_ia_proc_ctx;
+ 
+ #ifdef CONFIG_ACPI_APEI
+-static inline pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
++static inline pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr,
++						   phys_addr_t *end)
+ {
+ 	/*
+ 	 * We currently have no way to look up the EFI memory map
+@@ -242,6 +243,8 @@ static inline pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
+ 	 * is active, the ACPI information will not be encrypted,
+ 	 * so return PAGE_KERNEL_NOENC until we know differently.
+ 	 */
++	if (end)
++		*end = (phys_addr_t)-1;
+ 	return PAGE_KERNEL_NOENC;
+ }
+ 
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 663dc2e601cf..b4cd95d3e697 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -176,13 +176,12 @@ static struct gen_pool *ghes_estatus_pool;
+ static struct ghes_estatus_cache __rcu *ghes_estatus_caches[GHES_ESTATUS_CACHES_SIZE];
+ static atomic_t ghes_estatus_cache_alloced;
+ 
+-static void __iomem *ghes_map(u64 pfn, enum fixed_addresses fixmap_idx)
++static void __iomem *ghes_map(u64 pfn, enum fixed_addresses fixmap_idx,
++			      pgprot_t prot)
+ {
+ 	phys_addr_t paddr;
+-	pgprot_t prot;
+ 
+ 	paddr = PFN_PHYS(pfn);
+-	prot = arch_apei_get_mem_attribute(paddr);
+ 	__set_fixmap(fixmap_idx, paddr, prot);
+ 
+ 	return (void __iomem *) __fix_to_virt(fixmap_idx);
+@@ -345,10 +344,28 @@ static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
+ 	void __iomem *vaddr;
+ 	u64 offset;
+ 	u32 trunk;
++	phys_addr_t prot_end = 0;
++	pgprot_t prot = __pgprot(0);
+ 
+ 	while (len > 0) {
+ 		offset = paddr - (paddr & PAGE_MASK);
+-		vaddr = ghes_map(PHYS_PFN(paddr), fixmap_idx);
++		/*
++		 * Cache the page protection to avoid an EFI descriptor
++		 * lookup on every page.  prot is valid for all addresses
++		 * below prot_end.
++		 */
++		if (paddr >= prot_end) {
++			prot = arch_apei_get_mem_attribute(paddr, &prot_end);
++			/*
++			 * If the EFI lookup fails, *end is not written and
++			 * prot_end stays at a stale value <= paddr.  Restore
++			 * the invariant prot_end > paddr so the cached prot
++			 * remains valid for the current page.
++			 */
++			if (prot_end <= paddr)
++				prot_end = paddr + PAGE_SIZE;
++		}
++		vaddr = ghes_map(PHYS_PFN(paddr), fixmap_idx, prot);
+ 		trunk = PAGE_SIZE - offset;
+ 		trunk = min(trunk, len);
+ 		if (from_phys)
+-- 
+2.20.1
