@@ -1,59 +1,89 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.45
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792703595;
-	b=2zkcowjoC2DErEVWDD/kayFRLCzMPmkT2Mim6VAsPpTF9wBc6xgspXFav7SK9Ql9gZZ9
-	 X3pPGsOQPiacZyCZLTZINkJt+ns/6WQZ6yjZsLV2WJdKdF2u4+bxslqq9gvjQh0pml6kr
-	 CEJLTe0lhdtXdZftzGSM6f3xjAZgfVNuIS2sG1THqXv8IRiAm3C5V5ToUYu2IQSxpahqP
-	 +HvUPz5co6lSBTgBPmRJXnk0Pyn/bIOPkN3Xzp3JSmOMQ/Y34HyHc4ti6dHbtiF4ZWFJg
-	 Kx/ufUqVKA0lfNGVPghxILJIaEkzsbQO6pv/qY+yDOKN+Rvpyqu+u9KC9GabACtFBUg==
+	t=1792727924;
+	b=f/7BLfMpBf77GMkFgv0aVIsE6CXUkDq2juIZabupT3cixLCMTW/osqBO29hFb1OF465x
+	 6NAzcBDWECIc/gZZcUXbbWSEd4LdRj3/c8Fo2opmBYQcDKRqMIkYVwl6bkrIDSyLx3vqn
+	 nAWl0bzFCTTt3dv3iW07zD5kYCw7QTpzR4Yc3Fzl7OWVJ1Kb9TDIewvf8Xuf8vkaxeYYI
+	 VwMb82vUg/2qlLC8YUUY0O2R7Cbw6ErHtQG3SUpj6oCky5yTbGUILxYsdWpbakJ7ej469
+	 AjkPGcLg+i9EHUra5F+BBkSmOFoKaJnL2rdXJLKcdKh5zr5e/2o6ZX3FDSdLI5OC6NA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792703595;
-	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=Ach3hL2Srzfu+a6M+3ZUllFO4YG7jNYVYfsD1QvzpSw=;
-	b=FS7uyJ8OTBiJIqrkaiIm6K0tTHrZRLgGlbIomqBRysHTDWgkVc7as8P6GUiungMySO9+
-	 /0vjWe/Hp7WiNhEY4LwPf71ydH9CPToRmDfUCmXyDUQnVzcuIRW7G8k6RmKcq7fmuxat9
-	 mLDo0whq8qoUEKs5xoZTS51ESK18Gb7OrMdiIEVyXn6cUZMFjcecVo5T9AxDh+0IkZOp/
-	 GVop0rGzE2Q3Ln5fKC3K34Fs11p75QwPKmf7sn3DN1DqKXIU76iLCWIdJF5kIU2D+E+pa
-	 +hAjaJ5jRuM3V+nQq2BmikaBl5DkOtvEgSE7N2ZU4XTzCYExqtS/Qu62wVJp7tKCoLw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792727924;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=NwQB+K0m+GVHe1I8OheGGsFKNnF6rubBvY7XUeZM4Hk=;
+	b=h7hMTNaANKCk/iycbRSQZDVFSi4t4GAQLNctjZIcFMMl9NlcXgCjQJdjh4QCWMeAtA+X
+	 7NSTbBFpOreLDUT0F8nFtqZDsROxm2i8hdJEZcx0qrILlRhA2Ohr+CIERjY3lznUymS9/
+	 MpfDUwj6bIsMqJrCbVx4TjTh/MXzNTVG74mFsqgGe6v+KuIr9uzjB33xX6mQfZOIPjiUt
+	 qnZVvZUlxw/9EHVeCtQau8kP+IaM9zILwdV7Y7wZFdbU1kiWn4Al43cGUn3PaZJ45kGvO
+	 qjfLYay83JcqZWjnUggUmATiklAmMYNi8WmWbFYjb0jNmeXJoTrtfXDiQVJ6vrOpuEA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.microsoft.com;
-	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=m19zDvon;
-	arc=none smtp.remote-ip=13.77.154.182
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2D4FF606A31B;
-	Thu, 22 Oct 2026 21:13:15 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2D4FF606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=UNDqVvlC;
+	arc=none smtp.remote-ip=209.85.218.45
+Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com [209.85.218.45])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8562A606A31D
+	for <linux-acpi@vger.kernel.org>; Fri, 23 Oct 2026 03:58:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8562A606A31D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=m19zDvon
-Received: by linux.microsoft.com (Postfix, from userid 1216)
-	id 9172820B7166; Thu, 22 Oct 2026 14:13:06 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 9172820B7166
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1792703586;
-	bh=Ach3hL2Srzfu+a6M+3ZUllFO4YG7jNYVYfsD1QvzpSw=;
-	h=From:To:Cc:Subject:Date:From;
-	b=m19zDvoniUbLgmQyGS/jD2Dk3YMVInWpfLB6326M8aCRpyKVLIC9bK1wjnp8CuLlW
-	 atgUsnO31fdHcRz0lRfEZ7frLjI15x8j4iGOE6VT9lWTt9WJ0I3gUZ8yF8Y44muLej
-	 TUbnHTPKWMFxtkLiJyZ3gQzr9XVMrcjDGogwAkwk=
-From: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-To: linux-acpi@vger.kernel.org,
-	linux-efi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Ard Biesheuvel <ardb@kernel.org>,
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
-	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	Pawel Chmielewski <pawel.chmielewski@intel.com>,
-	acpica-devel@lists.linux.dev,
-	Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-Subject: [PATCH 1/2] ACPI: TAD: introduce acpi_tad_rtc_available()
-Date: Thu, 22 Oct 2026 17:13:03 -0400
-Message-ID: <20261022211304.2285792-1-hamzamahfooz@linux.microsoft.com>
-X-Mailer: git-send-email 2.43.7
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=UNDqVvlC
+Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-c43373ae89aso64144266b.3
+        for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2026 20:58:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1792727923; x=1793332723; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:message-id:date
+         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=NwQB+K0m+GVHe1I8OheGGsFKNnF6rubBvY7XUeZM4Hk=;
+        b=UNDqVvlCh+ujQq78hHk9kK7DGfZhW22U4Vq8+6bM3GH7ESYm1AotpckF8FmOF8vfLb
+         vXsQr6/KewQia7yHh4Jz2CTM3rxxYQeYmt2zlm5/+BWjztRyZ/CKgUQOOATFJwwgSFb+
+         gZgKX/GrlYKahLRfQM7Gw9LJttmffFkpqBZg/WrEbd0UNq8Q5xAGryDn94WfFm1AxTNI
+         qk3DT+VbW3/gNGeOh20YpbNsiDjjCUsKGEgB7mqDR0SMaH8nQFjsuUhIvIiXulY6/7MH
+         qy9qaEU7I6dU1212oavFHfBw/C0HbjdKvT8eSXPbHDmug9IY2qaLJs3MG4aswbTZtSry
+         LYWg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792727923; x=1793332723;
+        h=content-transfer-encoding:content-type:mime-version:message-id:date
+         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=NwQB+K0m+GVHe1I8OheGGsFKNnF6rubBvY7XUeZM4Hk=;
+        b=S7SI43tNRtJHisjhG+R3RCKI4WMcI6ScHk712z0O/ly6TPLn3XJ82CW7xDgyXXZMVR
+         Kti4KG5PwU7Z/DhtpdRx058IG9RLALsEG29fp0zZo7Tsks82BXFSS6s5UKzCdLKKTddV
+         yZkg3xg44PUBQXxmSKVkAWZ1VE+MToEkphr46sHtHGHbCAoa9+ToVm/g8DKb2sADarwA
+         6Gr+/YVHa5AuzP62MZCeZxAuJvNKB0RzLsJ7L6v3/OX+kNmHYggtuJbaHizbZGMW+vZK
+         DXJB+Iv0aPW0Rlu2uZwoxZEHVpmt1n0828aSc6vwfGtaWKCg6EkTe4yFZ/GIQGkdGHI5
+         2tvA==
+X-Forwarded-Encrypted: i=1; AKwUvBxeaDV67gMIdQXvVykVw6WMXgP9N+YxHT3vNtbciQpJXfGqKFBTBaRjC+vo2dBk2IGiz5tryWf+J/sD@vger.kernel.org
+X-Gm-Message-State: AFq9FYK9OE+5WNovPdXRXGlzQ0Tw7pRVpePEw2Avr3oHEI6qCCUy7JEj
+	EKcXa8f1UkgvNe9lHF5yWSE6sQfsZKZgzwN7oKczsH/C7iloR4YSJWIl
+X-Gm-Gg: AYBFou0YuS+CfokI7SH08B0c6niGiEb4L2I1wQDuUNKLl6lLPxCcZDivYf7ooINTmBh
+	nHrK5OGtzWr+jEDgJCybBzXyvQCdmp+f2GHzvu20VImmkzLdrNQTtM1G2Ex2G//TmRV04SizFfZ
+	ge30pz8B7QNp2/mLMwfjkeqHZC96IPHDiqrVs8U+sFwelFyBLQoXvfr7mJH+9vme3FNV9fbrCU7
+	WwovNW1mldxGanHM4CG9p07+h+iTJfbl1Ki9tRea9KslriE0kmivj7IGev8Zao/dQhGRd9zvYWc
+	ZjWz5bYhyeWhb/md8sYkQa3OaO9qlfFXcvxD9a3k16ho6LGmlLKM80vh4uq5Dm9jIzpIH1FmDMj
+	BsJDkW7LXYAb62r648KoiZF88ULV5FGd1CTGgwDh03EqxBHCMvtECks+Q5NRc+IFu76Eaz5U8/+
+	+aBJR4n2PKE6nJ/zZtGGQW93HVgI/8x3wXcDfrxUFjQsabjKYwmcglvMoRdWpVu0KNQ533GwFoM
+	BjJnUFsnSDO8ck1Fg8zzC+O8h3s4u00/w3IfR3pmjKcRYojERLEPg8O36KQSDqgXYAQtKd8kG8T
+	2rIKT6lkCkID06VBegg8Ga3KXerrFP9r
+X-Received: by 2002:a17:906:c10c:b0:c40:38b5:d784 with SMTP id a640c23a62f3a-c46a91fa71emr168512066b.22.1792727922729;
+        Thu, 22 Oct 2026 20:58:42 -0700 (PDT)
+Received: from [10.30.2.99] ([194.224.86.20])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c46a5c81c1bsm55431866b.44.2026.10.22.20.58.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 22 Oct 2026 20:58:42 -0700 (PDT)
+From: Victor Carreras <vicajilau@gmail.com>
+To: Bjorn Helgaas <bhelgaas@google.com>, Rafael J. Wysocki <rafael@kernel.org>
+Cc: Lukas Wunner <lukas@wunner.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Victor Carreras <vicajilau@gmail.com>
+Subject: [PATCH] PCI: Disable ACPI wakeup on MSI MS-1592 and MS-1594 dGPU root port
+Date: Fri, 23 Oct 2026 05:58:39 +0200
+Message-ID: <179272791966.20251.3697951431087014523@gmail.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -63,139 +93,116 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Code outside of the TAD driver, such as the EFI subsystem, may need to
-know whether or not the RTC can be driven via the ACPI TAD, for example
-to avoid registering a redundant RTC.
+On MSI Summit E16 Flip A12UCT (motherboard MS-1592, BIOS E1592IMS.111)
+and MSI Prestige 16 Studio A13VE / Summit E16 Flip A13VET (motherboard
+MS-1594, BIOS E1594IMS.115), the I2C touchpad (ELAN0305:00, 04F3:31FD)
+permanently stops generating interrupts as soon as the discrete NVIDIA
+GPU (0000:01:00.0) and its parent PCIe Root Port (0000:00:06.0,
+\_SB.PC00.PEG0) enter D3cold.
 
-For this purpose, add a new header, include/acpi/acpi_tad.h, containing
-a define for the TAD's hardware ID, the TAD capability flags moved there
-from the driver, and a helper, acpi_tad_rtc_available(), that returns
-whether or not acpi-tad will register an RTC class device for a TAD.
+In the platform's SSDT (MSI_NB / AdlP_Rvp), \_SB.PC00.PEG0 sets its wake
+GPIO (WAKG) from the BIOS NVS variable P1WP, which erroneously points to
+GPP_A20 (INTC1055:00 pin 62) -- the GPIO interrupt line wired to the
+touchpad.
 
-acpi-tad does that for a TAD that implements the Get/Set Real Time
-methods, as advertised by bit 2 of its _GCP return value, but only if
-the TAD has been enumerated as a platform device, so make the helper
-check both.
+During boot, \_SB.PC00.PEG0.PON() calls \_SB.SHPO(WAKG, One), setting
+PAD_CFG0_GPP_A20.GPIROUTSCI = 0 and HostSwOwn = 1 so the OS GPIO driver
+owns the pin. However, when the root port runtime-suspends to D3cold,
+Linux enables ACPI wakeup via \_SB.PC00.PEG0._DSW(1, 0, 3), which sets
+WKEN = 1. Subsequent evaluation of \_SB.PC00.PEG0.PXP._OFF -> POFF()
+executes:
 
-Signed-off-by: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+  If (CondRefOf (WAKG))
+  {
+      If (((WAKG != Zero) && WKEN))
+      {
+          \_SB.SHPO (WAKG, Zero)
+      }
+  }
+
+This switches GPP_A20 ownership to ACPI GPE mode (HostSwOwn = 0,
+GPIROUTSCI = 1), silencing the touchpad interrupt until the dGPU wakes
+back up to D0. Under Windows, _DSW is not armed for S0 D3cold on this
+root port, leaving WKEN = 0 so POFF() powers off the dGPU (\PIN.OFF(PWRG))
+without touching GPP_A20.
+
+Add a PCI quirk for boards MS-1592 and MS-1594 on root port 0000:00:06.0
+(8086:464d on 12th Gen Alder Lake-P and 8086:a74d on 13th Gen Raptor
+Lake-P/H) to disable ACPI wakeup capability. This keeps WKEN = 0 so the
+root port and dGPU still reach D3cold normally while leaving GPP_A20
+owned by the GPIO driver.
+
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=220725
+Cc: stable@vger.kernel.org
+Signed-off-by: Victor Carreras <vicajilau@gmail.com>
 ---
- drivers/acpi/acpi_tad.c | 15 ++-------
- include/acpi/acpi_tad.h | 67 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 70 insertions(+), 12 deletions(-)
- create mode 100644 include/acpi/acpi_tad.h
+ drivers/pci/quirks.c | 50 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
 
-diff --git a/drivers/acpi/acpi_tad.c b/drivers/acpi/acpi_tad.c
-index 45459a4ca..5fb978523 100644
---- a/drivers/acpi/acpi_tad.c
-+++ b/drivers/acpi/acpi_tad.c
-@@ -33,21 +33,12 @@
- #include <linux/rtc.h>
- #include <linux/suspend.h>
- 
-+#include <acpi/acpi_tad.h>
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+index 1aa87a3..4e26674 100644
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -3941,6 +3941,56 @@ static void quirk_apple_poweroff_thunderbolt(struct pci_dev *dev)
+ DECLARE_PCI_FIXUP_SUSPEND_LATE(PCI_VENDOR_ID_INTEL,
+ 			       PCI_DEVICE_ID_INTEL_CACTUS_RIDGE_4C,
+ 			       quirk_apple_poweroff_thunderbolt);
 +
- MODULE_DESCRIPTION("ACPI Time and Alarm (TAD) Device Driver");
- MODULE_LICENSE("GPL v2");
- MODULE_AUTHOR("Rafael J. Wysocki");
- 
--/* ACPI TAD capability flags (ACPI 6.6, Section 9.17.2) */
--#define ACPI_TAD_AC_WAKE	BIT(0)
--#define ACPI_TAD_DC_WAKE	BIT(1)
--#define ACPI_TAD_RT		BIT(2)
--#define ACPI_TAD_RT_IN_MS	BIT(3)
--#define ACPI_TAD_S4_S5__GWS	BIT(4)
--#define ACPI_TAD_AC_S4_WAKE	BIT(5)
--#define ACPI_TAD_AC_S5_WAKE	BIT(6)
--#define ACPI_TAD_DC_S4_WAKE	BIT(7)
--#define ACPI_TAD_DC_S5_WAKE	BIT(8)
--
- /* ACPI TAD alarm timer selection */
- #define ACPI_TAD_AC_TIMER	(u32)0
- #define ACPI_TAD_DC_TIMER	(u32)1
-@@ -895,7 +886,7 @@ static int acpi_tad_probe(struct platform_device *pdev)
- }
- 
- static const struct acpi_device_id acpi_tad_ids[] = {
--	{"ACPI000E", 0},
-+	{ACPI_TAD_HID, 0},
- 	{}
- };
- 
-diff --git a/include/acpi/acpi_tad.h b/include/acpi/acpi_tad.h
-new file mode 100644
-index 000000000..4825e10e9
---- /dev/null
-+++ b/include/acpi/acpi_tad.h
-@@ -0,0 +1,67 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
 +/*
-+ * ACPI Time and Alarm Device (TAD) definitions (ACPI 6.6, Section 9.17)
++ * On MSI Summit E16 Flip A12UCT (board MS-1592) and MSI Prestige 16 Studio
++ * A13VE / Summit E16 Flip A13VET (board MS-1594), the BIOS SSDT (MSI_NB /
++ * AdlP_Rvp) assigns the touchpad's GPIO interrupt pin (GPP_A20) as the PCIe
++ * wake GPIO (WAKG / P1WP) for the dGPU root port (\_SB.PC00.PEG0, 0000:00:06.0).
++ *
++ * When ACPI wakeup is armed on this root port via _DSW (setting WKEN = 1),
++ * subsequent D3cold transitions (\_SB.PC00.PEG0.PXP._OFF -> POFF) call
++ * \_SB.SHPO(WAKG, Zero), switching GPP_A20 ownership from GPIO driver mode
++ * to ACPI GPE mode and permanently freezing the I2C touchpad (ELAN0305:00).
++ *
++ * Disable ACPI wakeup on this root port so _DSW is not armed and WKEN
++ * remains zero during D3cold transitions.
 + */
-+#ifndef __ACPI_TAD_H
-+#define __ACPI_TAD_H
++static const struct dmi_system_id msi_peg0_no_wakeup_dmi_table[] = {
++	{
++		.ident = "MSI MS-1592",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "Micro-Star International Co., Ltd."),
++			DMI_MATCH(DMI_BOARD_NAME, "MS-1592"),
++		},
++	},
++	{
++		.ident = "MSI MS-1594",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "Micro-Star International Co., Ltd."),
++			DMI_MATCH(DMI_BOARD_NAME, "MS-1594"),
++		},
++	},
++	{ }
++};
 +
-+#include <linux/acpi.h>
-+#include <linux/bits.h>
-+#include <linux/platform_device.h>
-+#include <linux/types.h>
-+
-+#define ACPI_TAD_HID		"ACPI000E"
-+
-+/* ACPI TAD capability flags (ACPI 6.6, Section 9.17.2) */
-+#define ACPI_TAD_AC_WAKE	BIT(0)
-+#define ACPI_TAD_DC_WAKE	BIT(1)
-+#define ACPI_TAD_RT		BIT(2)
-+#define ACPI_TAD_RT_IN_MS	BIT(3)
-+#define ACPI_TAD_S4_S5__GWS	BIT(4)
-+#define ACPI_TAD_AC_S4_WAKE	BIT(5)
-+#define ACPI_TAD_AC_S5_WAKE	BIT(6)
-+#define ACPI_TAD_DC_S4_WAKE	BIT(7)
-+#define ACPI_TAD_DC_S5_WAKE	BIT(8)
-+
-+#if IS_ENABLED(CONFIG_ACPI_TAD) && IS_ENABLED(CONFIG_RTC_CLASS)
-+/**
-+ * acpi_tad_rtc_available - Check if the RTC can be driven via the ACPI TAD
-+ *
-+ * Check if there is a TAD that the acpi-tad driver will register an RTC class
-+ * device for.
-+ *
-+ * Context: Process context, after the ACPI namespace has been scanned.
-+ *
-+ * Return: %true if acpi-tad will provide an RTC, %false otherwise.
-+ */
-+static inline bool acpi_tad_rtc_available(void)
++static void quirk_msi_peg0_no_wakeup(struct pci_dev *dev)
 +{
-+	struct acpi_device *adev;
-+	unsigned long long caps;
-+	struct device *dev;
-+	acpi_status status;
++	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
 +
-+	adev = acpi_dev_get_first_match_dev(ACPI_TAD_HID, NULL, -1);
-+	if (!adev)
-+		return false;
++	if (!adev || pci_dev_id(dev) != PCI_DEVID(0, PCI_DEVFN(6, 0)))
++		return;
 +
-+	dev = bus_find_device_by_acpi_dev(&platform_bus_type, adev);
-+	if (!dev) {
-+		acpi_dev_put(adev);
-+		return false;
-+	}
-+	put_device(dev);
++	if (!dmi_check_system(msi_peg0_no_wakeup_dmi_table))
++		return;
 +
-+	status = acpi_evaluate_integer(adev->handle, "_GCP", NULL, &caps);
-+	acpi_dev_put(adev);
-+
-+	return ACPI_SUCCESS(status) && (caps & ACPI_TAD_RT);
++	pci_info(dev, FW_BUG "Disabling ACPI wakeup to avoid touchpad GPIO (GPP_A20) takeover in D3cold\n");
++	device_wakeup_disable(&dev->dev);
++	device_set_wakeup_capable(&dev->dev, false);
++	adev->wakeup.flags.valid = 0;
 +}
-+#else
-+static inline bool acpi_tad_rtc_available(void)
-+{
-+	return false;
-+}
-+#endif /* CONFIG_ACPI_TAD && CONFIG_RTC_CLASS */
-+
-+#endif /* __ACPI_TAD_H */
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x464d, quirk_msi_peg0_no_wakeup);
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0xa74d, quirk_msi_peg0_no_wakeup);
+ #endif
+ 
+ /*
 -- 
-2.56.0
+2.55.0
 
