@@ -1,54 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792765473;
-	b=CvLs6Qw+ijbYsVYkHWXHpI5wpev7xMalGAGmVQ97f/evLqQlVOzjL8TMCzlXeXIVlh89
-	 +E+tcDPmblZZnUzBSlGyvXLzLxynwkiOMtxhCeM4i9K00Pw3cD9dxZ2L4BQtSpd9Ed/BQ
-	 Ny/MCL8SHQlYzthL30zmxP+/T5TrYvpaRHKpCVr/D5BVEHpzSFe3Ets+FjtgxmQpU5qPr
-	 sxXd/O5LIM14feW6wREbXQ4Rz2JqjpYilIobhD85NwuNpZeNImRbTgjBcVFbEXjqQPdZa
-	 GL9onxbnIFRWRKBPYthf/uh7auAmUYKOwk6x/IcufaCHDnb7ruYdQLGNAS3O1y/oXQQ==
+	t=1792790564;
+	b=sYuOpZ0Nl2lZD/OhRrWV5Z4UZjnRiDwiuTkRyhdNjar/YIPReC2H4/uVrksw8OdLH9We
+	 3CYusckFrVj0yDB32uIrBQOSntZrP8cxzjSapd15a3STEpqtkdBeFNsrF6Qyhrg/pDxSJ
+	 mWhXg+XD+g3QVfLDUQaQWo2A4QjCYdG5WE0TVl0Js2Zx8OPc3XKeFdV+z3/sH7gRw2P+z
+	 WPUrtEgnHIR4SHPZ3bYj+A1LZOANoEWsMgm+PEa/kX+PD9QwZ9HAKM35+1qsiwlf8gsJ6
+	 u86ZXqSeaffArGwBHof4Uz09DkpXYB8Ar+tyzurNQc/+oUanXYwhfDST4tmN8McbtQA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792765473;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=vGF3dziQtL5cdnG8KAdMP8sfNkmuXivsEV6t1rhjwuo=;
-	b=oak6C3KaYOdFQxBlgvMS18OugMISmyky5oTuZRFAI4PbYZyLe2Y8a4O5Z5OxhcDpSQJP
-	 Oi/xsDS7e60EP/2b9nMqIVvXNN1W7S1cwp+Y2vzHua9WFdlUfY5ynZi/0xuopnB1xnRh2
-	 pSiGYNKGEP3qcDzRFPyZUAQSTnYMuH1bQjEabQaEwD4pVqGkvLSfQLFxZG4xsjTF9dZVK
-	 UUuxM+4rXZCtW8lPdM/uKNQviwaGJghtY8kRinFQzY43exl1XOXcaQOFyXTNLl00y9+lO
-	 XwCmzHRBE1ivpxXE+woj4tBhQcaZOsyRzAQ6l1FLi+3oonVHfkogUVwDZE3bz2Ljt7w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792790564;
+	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=ke0XSiZ4oYSlaCCW2Fthf7wat5z6FbusnAW3kB6VH78=;
+	b=FrmQEljHZ8uvQBOrSr5X3TU0lTRY8aZKJhjOZ3Poh6GV+9l9KMo/64tTZwJiljbW4QT3
+	 l6Fq8817HXblQ6ExrEdlJot/K5IVk8uVJgUnm3ckjDUai8BVkaX77Voq+vOCYyQVrljlR
+	 7AuSNfoC4YO+m1D1zCezw4KqzqzBER/f1+xMnuLkh1QRfoV+fRzCXavpj+u4Mk0e9uCR8
+	 XcgWg08YAtrDfaR/aUPFXa+Z/A+50t8DHd8QZ6lNlavor5hFpbu+q50Hn6Io/Gh6XrN5A
+	 JKf2f4nwZq2EBbhkSGt/yNqWkQZC0QK+Ye/Oe/RIzeJSX5beZo/Xh2goGbDYEUKVaGw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=N0Vtw8q0;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE429606A31A;
-	Fri, 23 Oct 2026 14:24:32 +0000 (UTC)
+	dmarc=pass header.from=linux.microsoft.com;
+	spf=pass smtp.mailfrom=linux.microsoft.com;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b="dn/UjKYP";
+	arc=none smtp.remote-ip=13.77.154.182
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B6FC8606A31A;
+	Fri, 23 Oct 2026 21:22:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B6FC8606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=N0Vtw8q0
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAC8C1F01828;
-	Fri, 23 Oct 2026 14:24:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792765472;
-	bh=vGF3dziQtL5cdnG8KAdMP8sfNkmuXivsEV6t1rhjwuo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=N0Vtw8q0MgiIoKJa5LLDQm/285F2wwjCnYpIURlyedB3OWNGPVczB9/jWjqoUETH1
-	 BSEWeAry5ofq1KdPIg6Ypwmmcypbchg4/MnVWrGcPs6v6jjei041JCvpCUCLmD/Sma
-	 G1+tNlGn2VvRjycHE3NdP7Mcg//xu3Hesu6r9+dYRmCTHF4YLeYbGL9IZQpYqyEJFF
-	 l1Wn01PsXmOSs2nJlukkHKa5CQshB/W2auRU21bLaKuVkGaQNt4MhYnuDj2extfgRu
-	 4lUF+rUStKP0TazYWhs/LDxGkb2eRC7kOyC1Qafm5+gfjEs6pdOkuQ+ET9lN6+owr+
-	 ZwlZcAvMlJ0Gw==
-Date: Fri, 23 Oct 2026 15:24:28 +0100
-From: Sudeep Holla <sudeep.holla@kernel.org>
-To: Jiale Yao <yaojiale02@163.com>
-Cc: Jassi Brar <jassisinghbrar@gmail.com>, Mark Brown <broonie@kernel.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Sudeep Holla <sudeep.holla@kernel.org>, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH v2] mailbox: pcc: validate PCCT subspaces before parsing
-Message-ID: <20261023-invincible-satisfied-dragon-c3dc50@sudeepholla>
-References: <20261023093839.715037-1-yaojiale02@163.com>
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=dn/UjKYP
+Received: by linux.microsoft.com (Postfix, from userid 1216)
+	id 97E8820B7166; Fri, 23 Oct 2026 14:22:34 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 97E8820B7166
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1792790554;
+	bh=ke0XSiZ4oYSlaCCW2Fthf7wat5z6FbusnAW3kB6VH78=;
+	h=From:To:Cc:Subject:Date:From;
+	b=dn/UjKYPl4TfT1qzxKnwayzRTwujFj4EKyMeXZU91Wp/YmB/TerV6SELC554+vxGK
+	 hvMvXO+gRnjEHpycN0LzPv+P/s+s4JJPT6JHy6vE1rhDeKqamV7LJBmztKqQDm+nHw
+	 8gR5MOYeWjwNoZHQblgzY6uvR/+kXTmpHVFLVVgg=
+From: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+To: linux-acpi@vger.kernel.org,
+	linux-rtc@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Alexandre Belloni <alexandre.belloni@bootlin.com>,
+	Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>,
+	Ard Biesheuvel <ardb@kernel.org>
+Subject: [PATCH v2 1/2] ACPI: TAD: introduce acpi_has_rtc()
+Date: Fri, 23 Oct 2026 17:22:17 -0400
+Message-ID: <20261023212218.2568858-1-hamzamahfooz@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.7
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -58,150 +60,101 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261023093839.715037-1-yaojiale02@163.com>
+Content-Transfer-Encoding: 8bit
 
-(For some reason you domain gets blocked for me, so please wait until
-I check response manually on lore)
+The same RTC may also be accessible by other means, like the EFI
+GetTime() and SetTime() runtime services used by rtc-efi, which are best
+avoided if there is a native ACPI interface to the RTC.
 
-On Fri, Oct 23, 2026 at 05:38:39PM +0800, Jiale Yao wrote:
-> The PCC mailbox probe walks PCCT entries by their declared lengths
-> without checking that each entry is contained in the table. It also
-> passes generic headers to type-specific parsers without establishing the
-> required record size. Malformed firmware can therefore move the cursor
-> outside the PCCT or cause out-of-bounds field reads.
-> 
-> Validate the table header, each subspace range, and the minimum size for
-> supported subspace types during both the counting and probe passes.
-> 
-> Fixes: 86c22f8c9a3b ("Mailbox: Add support for Platform Communication Channel")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Jiale Yao <yaojiale02@163.com>
-> ---
-> 
-> Notes:
->     Changes in v2:
->     - Replace the type switch with a minimum-length lookup table.
->     - Remove the redundant remaining-header-size check.
->     - Keep an explicit type bound check before indexing the table.
-> 
->  drivers/mailbox/pcc.c | 49 ++++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 48 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-> index 9888dab64639..91cef0ee3391 100644
-> --- a/drivers/mailbox/pcc.c
-> +++ b/drivers/mailbox/pcc.c
-> @@ -553,6 +553,38 @@ static const struct mbox_chan_ops pcc_chan_ops = {
->  	.last_tx_done = pcc_last_tx_done,
->  };
->  
-> +static const u16 pcc_subspace_min_len[ACPI_PCCT_TYPE_RESERVED] = {
-> +	[ACPI_PCCT_TYPE_GENERIC_SUBSPACE] =
-> +		sizeof(struct acpi_pcct_subspace),
-> +	[ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE] =
-> +		sizeof(struct acpi_pcct_hw_reduced),
-> +	[ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2] =
-> +		sizeof(struct acpi_pcct_hw_reduced_type2),
-> +	[ACPI_PCCT_TYPE_EXT_PCC_MASTER_SUBSPACE] =
-> +		sizeof(struct acpi_pcct_ext_pcc_master),
-> +	[ACPI_PCCT_TYPE_EXT_PCC_SLAVE_SUBSPACE] =
-> +		sizeof(struct acpi_pcct_ext_pcc_slave),
+To allow other RTC drivers to stand down in that case, add an exported
+helper, acpi_has_rtc(), that returns true if there is a TAD the driver
+will register an RTC class device for.
 
-Please add Type 5 details here as well so that it doesn't escape the
-size validation. As is, its zero-initialized and lets every non 0-byte
-record pass validation.
+The helper looks for a platform device matching the driver's ID table
+whose _GCP indicates real time support, like acpi_tad_probe() checks,
+instead of checking whether the driver has bound to such a device, so
+that callers need not depend on the order in which drivers are probed.
 
-> +};
-> +
-> +static bool pcc_subspace_is_valid(struct acpi_subtable_header *entry,
-> +				  unsigned long end)
-> +{
-> +	unsigned long start = (unsigned long)entry;
-> +	size_t length;
-> +
-> +	if (start >= end)
-> +		return false;
-> +
-> +	length = entry->length;
-> +	if (length < sizeof(*entry) || length > end - start)
-> +		return false;
-> +
-> +	if (entry->type >= ACPI_PCCT_TYPE_RESERVED)
-> +		return false;
-> +
+Suggested-by: Ard Biesheuvel <ardb@kernel.org>
+Signed-off-by: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+---
+v1: https://lore.kernel.org/r/20261022211304.2285792-1-hamzamahfooz@linux.microsoft.com/
+v2:
+- Rename acpi_tad_rtc_available() to acpi_has_rtc(), move it to within
+  acpi-tad (which allows us to simplify it quite a bit) and declare it
+  in linux/acpi.h. (Ard)
+- Add acpi_disabled check. (Ard)
+---
+ drivers/acpi/acpi_tad.c | 38 ++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h    |  6 ++++++
+ 2 files changed, 44 insertions(+)
 
-You can drop the above check if parse_pcc_subspace() does this first.
-
-> +	return length >= pcc_subspace_min_len[entry->type];
-> +}
-> +
->  /**
->   * parse_pcc_subspace - Count PCC subspaces defined
->   * @header: Pointer to the ACPI subtable header under the PCCT.
-> @@ -568,6 +600,9 @@ static int parse_pcc_subspace(union acpi_subtable_headers *header,
->  {
->  	struct acpi_pcct_subspace *ss = (struct acpi_pcct_subspace *) header;
->  
-> +	if (!pcc_subspace_is_valid(&ss->header, end))
-> +		return -EINVAL;
-> +
-
-So this will take care of validation as part of acpi_probe() itself which is
-good but see my question below.
-
->  	if (ss->header.type < ACPI_PCCT_TYPE_RESERVED)
->  		return 0;
->  
-
-Make this the first check(need to reverse it to return error now) and
-drop the above check as mentioned.
-
-> @@ -812,6 +847,7 @@ static int pcc_mbox_probe(struct platform_device *pdev)
->  	struct acpi_table_header *pcct_tbl;
->  	struct acpi_subtable_header *pcct_entry;
->  	struct acpi_table_pcct *acpi_pcct_tbl;
-> +	unsigned long table_end;
->  	acpi_status status = AE_OK;
->  	int i, rc, count = pcc_chan_count;
->  
-> @@ -821,6 +857,13 @@ static int pcc_mbox_probe(struct platform_device *pdev)
->  	if (ACPI_FAILURE(status) || !pcct_tbl)
->  		return -ENODEV;
->  
-> +	acpi_pcct_tbl = (struct acpi_table_pcct *)pcct_tbl;
-> +	if (pcct_tbl->length < sizeof(*acpi_pcct_tbl)) {
-> +		rc = -EINVAL;
-> +		goto err;
-> +	}
-> +	table_end = (unsigned long)pcct_tbl + pcct_tbl->length;
-> +
->  	pcc_mbox_channels = devm_kcalloc(dev, count, sizeof(*pcc_mbox_channels),
->  					 GFP_KERNEL);
->  	if (!pcc_mbox_channels) {
-> @@ -844,7 +887,6 @@ static int pcc_mbox_probe(struct platform_device *pdev)
->  	pcct_entry = (struct acpi_subtable_header *) (
->  		(unsigned long) pcct_tbl + sizeof(struct acpi_table_pcct));
->  
-> -	acpi_pcct_tbl = (struct acpi_table_pcct *) pcct_tbl;
->  	if (acpi_pcct_tbl->flags & ACPI_PCCT_DOORBELL) {
->  		pcc_mbox_ctrl->txdone_irq = true;
->  		pcc_mbox_ctrl->txdone_poll = false;
-> @@ -856,6 +898,11 @@ static int pcc_mbox_probe(struct platform_device *pdev)
->  	for (i = 0; i < count; i++) {
->  		struct pcc_chan_info *pchan = chan_info + i;
->  
-> +		if (!pcc_subspace_is_valid(pcct_entry, table_end)) {
-> +			rc = -EINVAL;
-> +			goto err;
-> +		}
-> +
-
-Why do we need to re-validate the subspace if it is already taken care
-before pcc_mbox_probe() as part of acpi_probe(). IMO the changes in
-pcc_mbox_probe() can be dropped.
-
+diff --git a/drivers/acpi/acpi_tad.c b/drivers/acpi/acpi_tad.c
+index 45459a4ca..eea4d2123 100644
+--- a/drivers/acpi/acpi_tad.c
++++ b/drivers/acpi/acpi_tad.c
+@@ -899,6 +899,44 @@ static const struct acpi_device_id acpi_tad_ids[] = {
+ 	{}
+ };
+ 
++static int acpi_tad_rtc_match(struct device *dev, const void *data)
++{
++	unsigned long long caps;
++	acpi_status status;
++
++	if (!acpi_match_device(acpi_tad_ids, dev))
++		return 0;
++
++	status = acpi_evaluate_integer(ACPI_HANDLE(dev), "_GCP", NULL, &caps);
++
++	return ACPI_SUCCESS(status) && (caps & ACPI_TAD_RT);
++}
++
++/**
++ * acpi_has_rtc - Check if the RTC should be driven via the ACPI TAD
++ *
++ * Check if there is a TAD implementing the real time methods that this driver
++ * will register an RTC class device for.
++ *
++ * Return: %true if the RTC should be driven via the ACPI TAD, %false otherwise.
++ */
++bool acpi_has_rtc(void)
++{
++	struct device *dev;
++
++	if (acpi_disabled || !IS_ENABLED(CONFIG_RTC_CLASS))
++		return false;
++
++	dev = bus_find_device(&platform_bus_type, NULL, NULL,
++			      acpi_tad_rtc_match);
++	if (!dev)
++		return false;
++
++	put_device(dev);
++	return true;
++}
++EXPORT_SYMBOL_GPL(acpi_has_rtc);
++
+ static struct platform_driver acpi_tad_driver = {
+ 	.driver = {
+ 		.name = "acpi-tad",
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 9d3f039eb..636e5218c 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1548,6 +1548,12 @@ extern bool acpi_has_watchdog(void);
+ static inline bool acpi_has_watchdog(void) { return false; }
+ #endif
+ 
++#if IS_REACHABLE(CONFIG_ACPI_TAD)
++bool acpi_has_rtc(void);
++#else
++static inline bool acpi_has_rtc(void) { return false; }
++#endif
++
+ #ifdef CONFIG_ACPI_SPCR_TABLE
+ extern bool qdf2400_e44_present;
+ int acpi_parse_spcr(bool enable_earlycon, bool enable_console);
 -- 
-Regards,
-Sudeep
+2.56.0
+
