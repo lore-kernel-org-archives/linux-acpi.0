@@ -1,59 +1,70 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792790895;
-	b=gcUmtdK5drKfCD5kl2D3vJKCELqWrzeSJZuLKvwOKg603JoKUToAOylHaZV3MmrwPstx
-	 xcfIjvL0Doscw5jW0f+kwiQ0gKXWc8VrMGCSlJRK6YuL2cqLCBhYaUOCGbHghvU03R54P
-	 WYEk9I9SBKFqN71g4+mYecDpR04+f/BE5hSqfQyrZzRxArJFbZq6ksUY9UCCVaWMbl5n7
-	 PklF8w8AVTDSYJU/BRt8ADZ+mOyLWTs17y2zbsJMEvpfoeOgOKkMCMillMqQ0EDUw5ZZu
-	 tpaeW7qu4t3vnOAE7/eI0bXL0wMYUpY+yBYK+wj2nQ+ec9e1ITM8Jv0CftC1qt7IboA==
+	t=1792795240;
+	b=M/bHWXwSQN2gwSJaNY/T4bazmtwl0m/hvonBaJjQ05aEWcjUgIgwBt77lbwDC/nj0cfh
+	 GbQjr0w14UVoI4XT/ABClyOG+4k1fgW4WYl0bSFePA4wUkitglpawl8SCMErQd+xpVe+s
+	 WR4txDs4CQ6wnU4DrViwQhnR6FIruJmz8kCocvnZyNN3dOC3XxyX6qCAlUauad8iyYY9i
+	 PwTEnvfBHDP4Wu8SgYmKWe6KezFex7UqjBqq6SAOsGTLNJMdgglvkhXHlGBIcB8bSXJZF
+	 e2N1lVSGIbVcpczPkbd6PQb8HmENhm0DvW2daO11DRlZRkiUJha/KFU6etAvqw79Vgw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792790895;
-	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:Date:From:To:Cc:
-	 Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To;
-	bh=er4qv3iW6ReEviLeQ7+Y/klQYMZb0hBjkTnny5nEesc=;
-	b=SaxxL2pvt0YPTHK8f+0wfJugOpc95gAMpxRI8bwDAO59EqbGk8fgMP4KGTUZcrOD+TwD
-	 5CYLgc1EhewFaZX1C8j7Ac+OvXh/iwXR6UmdN2BlNIQuRFwNZy5fIJlTlaO6fIK1nYOyg
-	 aSQMuKkg1m7Qn+5HBK13+8wZ7KWNJ0fg0q7LDXbsutDbxSo7wOrTtcG/yLRIsSLYV2l2a
-	 Rt5+bFj4tqbZs2aFpm/dL+154LnCRfbFsGK8rveRazF1GQXt4okZr8ds4NtQetcJ2K1ur
-	 eS7U3X2QteRRn8WWt4MADUkdWV5exVO6BCVQRFWlv73zItWwL3oF/ixg8JYGnQmejzw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792795240;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=toaJDSs62ZHNYBOfBOHKWkIdx7+IHlsjRBQrBLBAFDE=;
+	b=w7N14hWB6sArk9MZef5FZldr2Mv8BPinIevxQALssaXWGXiNMf++Hb9zNtmwWQmrtcAU
+	 9XgygK9Y3jqgg7+zfV5yVLj1vbLvuoniYt495NbyP0tw4wfOH7ChI2pBwY0BB/ewRmjmK
+	 uIp5UUmLflFdN98x8xwDBh3oGjhXJ+zMQdle1ClSaH47fAGcEQVZMeVb4dTmfMsrNVlxd
+	 /Zl2bR1pD+avxwrwI8LEdQwLNA6KIswYaOCBAVWxjrLaWu7ZiWQ6svlZ361SmmxqW+ViU
+	 AMTNJbmYNYAvgMuH4J6KJS5u0BdO02GZHQdhD/aD5DoGBGMp4DcKAIXbY/gst54b/AA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.microsoft.com;
-	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=SAGAM0GM;
-	arc=none smtp.remote-ip=13.77.154.182
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 46F8C606A31A;
-	Fri, 23 Oct 2026 21:28:15 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 46F8C606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ea3kK4WE;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F960606A31A;
+	Fri, 23 Oct 2026 22:40:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=SAGAM0GM
-Received: by linux.microsoft.com (Postfix, from userid 1216)
-	id 2E9BF20B7166; Fri, 23 Oct 2026 14:28:06 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 2E9BF20B7166
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1792790886;
-	bh=er4qv3iW6ReEviLeQ7+Y/klQYMZb0hBjkTnny5nEesc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=SAGAM0GMPN5hY/uqsyBVf+tch0AHWQ2N1FNAQlF6AMkVYNgkss+DhI+eS72EJS8IK
-	 lBN2pTJrLNJtxpvvpbT0XFmh5ltHnU1HRYv7H+vOb7dpPROLZ9q4Y+4eMhXgX0cWh3
-	 G6sQeJjRANWv/Y4HJe1u3rz2JkTac68el+sK1r+Y=
-Date: Fri, 23 Oct 2026 17:28:06 -0400
-From: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-To: Ard Biesheuvel <ardb@kernel.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
-	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
-	Pawel Chmielewski <pawel.chmielewski@intel.com>,
-	acpica-devel@lists.linux.dev
-Subject: Re: [PATCH 1/2] ACPI: TAD: introduce acpi_tad_rtc_available()
-Message-ID: <atvRZteFnxElaBhE@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
-References: <20261022211304.2285792-1-hamzamahfooz@linux.microsoft.com>
- <70ca0757-f72d-4e9b-bcdf-c5a4a0ee7124@app.fastmail.com>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ea3kK4WE
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FBD81F01825;
+	Fri, 23 Oct 2026 22:40:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792795240;
+	bh=toaJDSs62ZHNYBOfBOHKWkIdx7+IHlsjRBQrBLBAFDE=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=Ea3kK4WEjuDq3KDnc9t7CEhlvCJXCApwvtLbMUVJUoMYUvWGbI/udd7sr5Z+v7YQc
+	 vO4HhHEK5qgz7080ok/JUUcQozb2i307NRB9LszUvd0/D/RFWI5RBNDhztb2ajOy6G
+	 PlpWuwh2E/uzjh8aYLbkp93svf7TTvBr+aj38yRSjze1pTCVqdoxHSJPHgMAyVijzv
+	 RP58s3+3UxJWyS7IG/OHY9jGDytD9zJIwbNxg46mX9qPZPkAkdWJJPTGPDO4SXlWq5
+	 8yp8jXgwLgHM/J/7qORCeGUN1qdHqbM2zyzwEZXKK5bNPzLuL3RWMVWCYjVTIRO0Nu
+	 s6PgQp7Z46EOQ==
+Date: Sat, 24 Oct 2026 00:40:33 +0200
+From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+To: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+Cc: Pierre Gondois <pierre.gondois@arm.com>, Tony Luck
+ <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
+ linux-kernel@vger.kernel.org, James Morse <james.morse@arm.com>, Mark Brown
+ <broonie@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown
+ <lenb@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, Shuai Xue
+ <xueshuai@linux.alibaba.com>, Maciej Wieczor-Retman
+ <maciej.wieczor-retman@intel.com>, Pawel Chmielewski
+ <pawel.chmielewski@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Fabio M.
+ De Francesco" <fabio.m.de.francesco@linux.intel.com>, Breno Leitao
+ <leitao@debian.org>, Dan Williams <djbw@kernel.org>, Terry Bowman
+ <terry.bowman@amd.com>, Ard Biesheuvel <ardb@kernel.org>, Morduan Zang
+ <zhangdandan@uniontech.com>, linux-acpi@vger.kernel.org,
+ linux-edac@vger.kernel.org, acpica-devel@lists.linux.dev, Ashok Raj
+ <ashok.raj@oss.qualcomm.com>
+Subject: Re: [PATCH v2 0/6] CPER: Add Memory Error Section 2 support
+Message-ID: <20261024003917.283b890d@foz.lan>
+In-Reply-To: <20261023142621.00007051@oss.qualcomm.com>
+References: <20261019203915.2019037-1-pierre.gondois@arm.com>
+	<20261020101048.00000186@oss.qualcomm.com>
+	<0817615d-5e96-4a3a-b39e-3e5d1b88e716@arm.com>
+	<20261023142621.00007051@oss.qualcomm.com>
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-redhat-linux-gnu)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -63,182 +74,90 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <70ca0757-f72d-4e9b-bcdf-c5a4a0ee7124@app.fastmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Hi Ard,
+On Fri, 23 Oct 2026 14:26:21 -0700
+Jonathan Cameron <jonathan.cameron@oss.qualcomm.com> wrote:
 
-On Fri, Oct 23, 2026 at 03:50:20PM +0200, Ard Biesheuvel wrote:
-> Hello Hamza,
+> On Thu, 22 Oct 2026 09:07:25 +0200
+> Pierre Gondois <pierre.gondois@arm.com> wrote:
 > 
-> On Thu, 22 Oct 2026, at 23:13, Hamza Mahfooz wrote:
-> > Code outside of the TAD driver, such as the EFI subsystem, may need to
-> > know whether or not the RTC can be driven via the ACPI TAD, for example
-> > to avoid registering a redundant RTC.
-> >
-> > For this purpose, add a new header, include/acpi/acpi_tad.h, containing
-> > a define for the TAD's hardware ID, the TAD capability flags moved there
-> > from the driver, and a helper, acpi_tad_rtc_available(), that returns
-> > whether or not acpi-tad will register an RTC class device for a TAD.
-> >
-> > acpi-tad does that for a TAD that implements the Get/Set Real Time
-> > methods, as advertised by bit 2 of its _GCP return value, but only if
-> > the TAD has been enumerated as a platform device, so make the helper
-> > check both.
-> >
-> > Signed-off-by: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-> > ---
-> >  drivers/acpi/acpi_tad.c | 15 ++-------
-> >  include/acpi/acpi_tad.h | 67 +++++++++++++++++++++++++++++++++++++++++
-> >  2 files changed, 70 insertions(+), 12 deletions(-)
-> >  create mode 100644 include/acpi/acpi_tad.h
-> >
-> > diff --git a/drivers/acpi/acpi_tad.c b/drivers/acpi/acpi_tad.c
-> > index 45459a4ca..5fb978523 100644
-> > --- a/drivers/acpi/acpi_tad.c
-> > +++ b/drivers/acpi/acpi_tad.c
-> > @@ -33,21 +33,12 @@
-> >  #include <linux/rtc.h>
-> >  #include <linux/suspend.h>
+> > On 10/20/26 19:10, Jonathan Cameron wrote:  
+> > > On Mon, 19 Oct 2026 22:38:39 +0200
+> > > Pierre Gondois <pierre.gondois@arm.com> wrote:
+> > >    
+> > >> The support is mostly duplicated from Memory Error Section handling.
+> > >> Other than differences coming from the content of  Memory Error
+> > >> Section 1 and 2, differences in the support are:
+> > >>
+> > >> - v2 do not rely on a compact "struct cper_mem_err_compact" struct.
+> > >> This structure was used to support older versions of the Memory
+> > >> Error Section (1). This is not needed for the new structure.
+> > >>
+> > >> - The compact version is also used by the tracing framework.
+> > >> To avoid relying and propagating a non-standard record format,
+> > >> through trace event (cf. extlog_mem event) the new trace event
+> > >> prints each field individually.
+> > >>
+> > >> The last patch of the serie was only build-tested due to the
+> > >> absence of relevant hardware. apei_mce_report_mem_error() and
+> > >> arch_apei_report_mem_error() implementations were also removed since
+> > >> last version.
+> > >>
+> > >> It will also require a proper handling from the rasdaemon. Applying
+> > >> this last patch without rasdaemon support will silent the reports of
+> > >> Memory Error Section 2 error, cf. ras_userspace_consumers() check.    
+> > > Hi Pierre,
+> > >
+> > > I'd slow down a bit.  We are mid merge window and convention is normally
+> > > one version a week or so anyway.  Better to gather up feedback from
+> > > a number of folk and spin only one revision to cover it all.
+> > >    
+> > Hello Jonathan,
 > > 
-> > +#include <acpi/acpi_tad.h>
-> > +
-> >  MODULE_DESCRIPTION("ACPI Time and Alarm (TAD) Device Driver");
-> >  MODULE_LICENSE("GPL v2");
-> >  MODULE_AUTHOR("Rafael J. Wysocki");
+> > Ok sure, as the v1 was reviewed quickly I thought there was a chance
+> > of having the serie accepted quickly aswell. I ll wait a bit more.
 > > 
-> > -/* ACPI TAD capability flags (ACPI 6.6, Section 9.17.2) */
-> > -#define ACPI_TAD_AC_WAKE	BIT(0)
-> > -#define ACPI_TAD_DC_WAKE	BIT(1)
-> > -#define ACPI_TAD_RT		BIT(2)
-> > -#define ACPI_TAD_RT_IN_MS	BIT(3)
-> > -#define ACPI_TAD_S4_S5__GWS	BIT(4)
-> > -#define ACPI_TAD_AC_S4_WAKE	BIT(5)
-> > -#define ACPI_TAD_AC_S5_WAKE	BIT(6)
-> > -#define ACPI_TAD_DC_S4_WAKE	BIT(7)
-> > -#define ACPI_TAD_DC_S5_WAKE	BIT(8)
-> > -
-> >  /* ACPI TAD alarm timer selection */
-> >  #define ACPI_TAD_AC_TIMER	(u32)0
-> >  #define ACPI_TAD_DC_TIMER	(u32)1
-> > @@ -895,7 +886,7 @@ static int acpi_tad_probe(struct platform_device *pdev)
-> >  }
+> > Thanks for the review,
 > > 
-> >  static const struct acpi_device_id acpi_tad_ids[] = {
-> > -	{"ACPI000E", 0},
-> > +	{ACPI_TAD_HID, 0},
-> >  	{}
-> >  };
-> > 
-> > diff --git a/include/acpi/acpi_tad.h b/include/acpi/acpi_tad.h
-> > new file mode 100644
-> > index 000000000..4825e10e9
-> > --- /dev/null
-> > +++ b/include/acpi/acpi_tad.h
-> > @@ -0,0 +1,67 @@
-> > +/* SPDX-License-Identifier: GPL-2.0 */
-> > +/*
-> > + * ACPI Time and Alarm Device (TAD) definitions (ACPI 6.6, Section 9.17)
-> > + */
-> > +#ifndef __ACPI_TAD_H
-> > +#define __ACPI_TAD_H
-> > +
-> > +#include <linux/acpi.h>
-> > +#include <linux/bits.h>
-> > +#include <linux/platform_device.h>
-> > +#include <linux/types.h>
-> > +
-> > +#define ACPI_TAD_HID		"ACPI000E"
-> > +
-> > +/* ACPI TAD capability flags (ACPI 6.6, Section 9.17.2) */
-> > +#define ACPI_TAD_AC_WAKE	BIT(0)
-> > +#define ACPI_TAD_DC_WAKE	BIT(1)
-> > +#define ACPI_TAD_RT		BIT(2)
-> > +#define ACPI_TAD_RT_IN_MS	BIT(3)
-> > +#define ACPI_TAD_S4_S5__GWS	BIT(4)
-> > +#define ACPI_TAD_AC_S4_WAKE	BIT(5)
-> > +#define ACPI_TAD_AC_S5_WAKE	BIT(6)
-> > +#define ACPI_TAD_DC_S4_WAKE	BIT(7)
-> > +#define ACPI_TAD_DC_S5_WAKE	BIT(8)
-> > +
-> > +#if IS_ENABLED(CONFIG_ACPI_TAD) && IS_ENABLED(CONFIG_RTC_CLASS)
-> > +/**
-> > + * acpi_tad_rtc_available - Check if the RTC can be driven via the ACPI TAD
-> > + *
-> > + * Check if there is a TAD that the acpi-tad driver will register an RTC class
-> > + * device for.
-> > + *
-> > + * Context: Process context, after the ACPI namespace has been scanned.
-> > + *
-> > + * Return: %true if acpi-tad will provide an RTC, %false otherwise.
-> > + */
-> > +static inline bool acpi_tad_rtc_available(void)
-> > +{
-> > +	struct acpi_device *adev;
-> > +	unsigned long long caps;
-> > +	struct device *dev;
-> > +	acpi_status status;
-> > +
+> > Pierre
+> >   
 > 
-> This needs a acpi_disabled check I think
+> A general question that came up in a related thread with one of
+> our RAS architects. How does firmware decide what to send?  As far as
+> I can tell firwmare has no way to know whether the OS understands the CPER
+> Memory Section 2. 
 > 
-> > +	adev = acpi_dev_get_first_match_dev(ACPI_TAD_HID, NULL, -1);
-> > +	if (!adev)
-> > +		return false;
-> > +
-> > +	dev = bus_find_device_by_acpi_dev(&platform_bus_type, adev);
-> > +	if (!dev) {
-> > +		acpi_dev_put(adev);
-> > +		return false;
-> > +	}
-> > +	put_device(dev);
-> > +
-> > +	status = acpi_evaluate_integer(adev->handle, "_GCP", NULL, &caps);
-> > +	acpi_dev_put(adev);
-> > +
-> > +	return ACPI_SUCCESS(status) && (caps & ACPI_TAD_RT);
-> > +}
-> > +#else
-> > +static inline bool acpi_tad_rtc_available(void)
-> > +{
-> > +	return false;
-> > +}
-> > +#endif /* CONFIG_ACPI_TAD && CONFIG_RTC_CLASS */
-> > +
-> > +#endif /* __ACPI_TAD_H */
-> 
-> I get that the mutual exclusion is a bit tricky to model here, but
-> I'm not crazy about the general shape of this patch.
-> 
-> Can we make this look more like 'acpi_has_watchdog()' today, i.e.,
-> move this into the acpi-tad driver and export it, and call it from
-> the rtc-efi driver? That will make rtc-efi.ko depend on acpi-tad.ko
-> when both are built as modules, which is what we actually want to
-> happen in this case because we might get stuck without an RTC
-> otherwise if the module is denylisted etc.
-> 
-> E.g., add this to linux/acpi.h
-> 
-> #if IS_REACHABLE(CONFIG_ACPI_TAD)
-> bool acpi_has_rtc(void);
-> #else
-> static inline bool acpi_has_rtc(void) { return false; }
-> #endif
-> 
-> and decline the rtc-efi driver probe if it returns true.
-> 
-> We'll need to add a rule to RTC_EFI to ensure that both
-> drivers are available, i.e.,
-> 
-> depends on !ACPI || ACPI_TAD
-> 
-> Even nicer would be if we could unbind acpi-tad from ACPI000E:00
-> and bind rtc-efi instead at runtime, but that would require acpi_has_rtc()
-> to take into account whether anything is bound to the driver, so I'm
-> not sure if that is feasible.
+> So options that come to mind.
+> 1. Firmware must send a CPER with both Memory Section and Memory Section 2.
 
-I did look into this suggestion but I couldn't think of a clean way to
-implement it. Also, it appears that we would have to switch rtc-efi from
-module_platform_driver_probe() to module_platform_driver() (of which I
-don't know if there is an appetite for). So, I've left it be for now.
+Please don't do this: this would require either Kernespace or userspace to
+discard one of the reports, only if the other one is there, which can be
+tricky. Could be done more easily at userspace, but only if some database 
+support is enabled, but, at least on rasdaemon, this is an optional module.
+
+> 2. For whatever other reason a platform knows it doesn't work with old kernel
+>    so can assume support in kernel and hopefully userspace got updated too.
+> 
+> 3. We propose some additional discoverability (quickly - code first) to ACPI
+>    so that it can be a negotiated contract between OS and firmware.
+>    Until the OS confirms it understands Memory Section 2, firmware has to send
+>    the older one (or risk the record not being understood).  After that
+>    negotiation it can do what it likes - probably send the Memory Section 2 form.
+> 
+> Option 1 and 2 are ugly at best.
+> 
+> Obvious path to me for option 3 is an _OSC like the one for generic initiators
+> that we discovered a need for whilst implementing that years ago.
+> 
+> Anyhow have a better idea?  The above doesn't solve the end to end problem as
+> maybe userspace still has no idea what this new tracepoint is, but at least gets
+> us past hop 1 (so through the kernel). 
+> 
+> If we conclude _OSC plan works I'll draft a code first proposal.
+> 
+> Jonathan
+
+Regards,
+Mauro
