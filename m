@@ -1,13 +1,13 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.168.131
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792882588;
-	b=rb/Q9uZ6wdtCOzzqpjxOmLbAqo0qO9wLAc+Da+T1FOCtDLmK+iJ9JbhER10etfQY+pH7
-	 U0gYdvXC48hIYYvjYfvnfMXe8d2GuoVqd2/ArlTWPs/ZGIPkrZZWipfytbg+r/xl3SHBH
-	 Kv1Tkw/2FmJqG2KFYWLEzvsNNcdldTdTw3+em5irT5MDqkI27y123HhuT0MSuKND9qXVv
-	 rBRlsu2mi5je3nU1p2EhNy3g2GubrUe4QW550QC4H2FohfuZO2BZFqfbtE4/cNd3f9qkH
-	 NMcvnPuKPuzHFll+T0Nprug9L8hZlEgK/0voet9OLG0TwCkIvJypMaO+f+cr8QSRtSw==
+	t=1792882604;
+	b=vsSiBuDMzeWkWQIFvTLDNbzuTtU6HLOu7qvKuBIFdoui9lIG/+R+ZHIWu9cLmz5FCw8A
+	 e6tQGB+rVVDv2kDB9n39U4JSLFQl48sPJmdMfbAio/G9Ph8oxSIk3nPh7gRFul7PslUbF
+	 Mi6G48unwyV3qGpamOlZ+ayllwmc9W0wHKPJ08G2eHS7GMsUvn4jOcRFuKReeRS5NPGGj
+	 KVxruCuWjkgKOdiuRoZD4lBqk9AFwccIXne3gOzbWnpTZyASiehToNHyN78FSPqUzBrSy
+	 sdE/2M227ZRWa+CwOj+7J9rqaAXtN0I9sO/DGxI0c3WNCbYdwU06Y50B0slV2ddo8ag==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792882588;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792882604;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
 	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:From:To:Cc:
@@ -16,90 +16,90 @@ ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Spam-Info:
 	 X-Authority-Analysis:X-Proofpoint-GUID:X-Proofpoint-Virus-Version:
 	 X-Proofpoint-Spam-Details;
-	bh=8fvxyNQZ5b4bLD4RC7y6CYqh2r/ByifqUJni81S43tk=;
-	b=TTnAQfhZYlSJtgtS7SfH2/ZlJ8ijTA50QKNvq0aB/sx+DcCLAWCIPHmX3Nk311VAquFd
-	 eHGYLeQ3qv9Wrr9WweiSoLrVTzjYokYFllQo7KLtC/FgS+I5bEluWz3TzePq+aUtdWEp6
-	 A7YMM6Vg5Bb9aAzLJE1Va9o2exhT8LAljtrHImZHmh4nqy8w2ZF6SICuM9C1wxucjDpmm
-	 dmgllY2r/GKXdSihCSCPeuNErgy18LxZJpe0q7A9TEYTlQ2V22KzD6PbmlKY0G2cFsQGi
-	 E9iidxHteII9h7TgtEUDVCILvRhJ4Cl85Z3eSLUsDHwYSbuOljxFp4APmnVU4XrcwAQ==
+	bh=KZkTpDbUwC0fq2vu8+gU0Jyh9+/zPfcLoyDt0p9UsAM=;
+	b=oW/qUUAinxTCq5ajgeruF+lPVy//3kbuFo4GbuqbXscKZVkexOnYzcHFaQ2NErBrrQI2
+	 3amObMzW55jo1jx3JUuUGEaCKflJWF1HSnTb2VxLR3al4w6n4YgVdIN4zDNST5g8DPE8t
+	 WqOBgqj+LEvdY054uPxJMGec3bKkfMRODtAEkPhPiGQipU8RTdDWrtLb56bFogeHVsrLQ
+	 PBtXOdeCchJA3s0p4MrsypKD+3Djb9KoVYQ57CdoWrmp4AZYrHJdc2RXYkc9LGANDw7Eo
+	 r56i4ASqSU/mLfRAE1jes10jeRu61oT2KSJ7n6O0Bp89LE0CFykvQr9TP+2qL2eELgQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=oss.qualcomm.com;
 	spf=pass smtp.mailfrom=oss.qualcomm.com;
-	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=jEwLjJxc;
-	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=D6cJ82w0;
+	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=OXQK9vDo;
+	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=ESDqtqLb;
 	arc=none smtp.remote-ip=205.220.168.131
 Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F886606A31A
-	for <linux-acpi@vger.kernel.org>; Sat, 24 Oct 2026 22:56:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2F886606A31A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE667606A31B
+	for <linux-acpi@vger.kernel.org>; Sat, 24 Oct 2026 22:56:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BE667606A31B
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=jEwLjJxc;
-	dkim=pass (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=D6cJ82w0
+	dkim=pass (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=OXQK9vDo;
+	dkim=pass (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=ESDqtqLb
 Received: from pps.filterd (m0279865.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69OLb60K3751166
-	for <linux-acpi@vger.kernel.org>; Sat, 24 Oct 2026 22:56:26 GMT
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69OLb60L3751166
+	for <linux-acpi@vger.kernel.org>; Sat, 24 Oct 2026 22:56:43 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
 	cc:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=qcppdkim1; bh=8fvxyNQZ5b4
-	bLD4RC7y6CYqh2r/ByifqUJni81S43tk=; b=jEwLjJxcdtlV02+oQg+kPxFjrHQ
-	Y0Cr6i9yYap1AzhLgTW8O+54JotFeSHa5zXYz4sRiI2sCIA8uDrj0B1A0J5s3ME5
-	2AdgbRqgQgVHt5T/WxMfVAHcopDiN7DMXrKZIZMluRFEqsbExdtbpkTaAbDOMSff
-	dsB4bIt4eOv/bYbdvlGy/zn/dRIi1QgFOhiAufpJg9Yk6nQmalYoOWhHPMDrgx/p
-	rlR0SFUK2gtrR742/LSuu4Rp+8uiH4RjWBdkHhV1fkEJNb3E5oddLJwKxB+m/+N3
-	teNPonjz5yHIQ7RpAnr3csbUMncZ2flBkMXzM4Qu4AavdJ5wJkcohZvrH1A==
-Received: from mail-qv1-f70.google.com (mail-qv1-f70.google.com [209.85.219.70])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hgkmsa3sr-1
+	:mime-version:references:subject:to; s=qcppdkim1; bh=KZkTpDbUwC0
+	fq2vu8+gU0Jyh9+/zPfcLoyDt0p9UsAM=; b=OXQK9vDok0Pd2zTnDDYPnwVhRNM
+	rb6IymPRqMdqH9PZaM8eGQU5nHcEwWPsSRIlEbrqiFOk+FeNUlnpAeAu7BgJ6qCs
+	x1Q2pg4ARFeAAAmCKH0o+XXOTR3g/8bPLtGhAEUuWOZl5ofRnDu/pOtOB81HxWAY
+	J+Au4v1CAIbadmDanQFpTqSfhR8B8qE6AQ/u3BwLzFRt1BZmtCAirp0x4UcStOf0
+	5vW5/EXdQzTkaJK6i/FOF05da2/o4EFomOSQlCz/IZFoHRvBIV6JB4nJqou5wuqU
+	LdMSsg7G3G/Rp8eN0DizluCgnZafQlCxG7d2GygbsgISlJQ6lAYqshwqf1g==
+Received: from mail-qk1-f197.google.com (mail-qk1-f197.google.com [209.85.222.197])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hgkmsa3tf-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Sat, 24 Oct 2026 22:56:26 +0000 (GMT)
-Received: by mail-qv1-f70.google.com with SMTP id 6a1803df08f44-91b861c0618so32691066d6.0
-        for <linux-acpi@vger.kernel.org>; Sat, 24 Oct 2026 15:56:26 -0700 (PDT)
+	for <linux-acpi@vger.kernel.org>; Sat, 24 Oct 2026 22:56:43 +0000 (GMT)
+Received: by mail-qk1-f197.google.com with SMTP id af79cd13be357-93f1f2fafeaso266256885a.2
+        for <linux-acpi@vger.kernel.org>; Sat, 24 Oct 2026 15:56:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1792882585; x=1793487385; darn=vger.kernel.org;
+        d=oss.qualcomm.com; s=google; t=1792882602; x=1793487402; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=8fvxyNQZ5b4bLD4RC7y6CYqh2r/ByifqUJni81S43tk=;
-        b=D6cJ82w0LxHM3BBAsXr7TOzjq0dnbkJ+8qUNEx1M6ME+yR6D8aIlmgfOag1nPqpst6
-         7aHm/ir5bIe43np3f8wDNlARdLndNBy/xasmYGHfMTr8WBw39CQRy7i8LxzzW4/TnRhq
-         D+Lpg1yDiArT+9BsDVA3g7Dz7uCDiSDNgN6FZYCwKAbSp/cMt0ZLsKnL23TFBnuTqn52
-         1sxyukZi6nRPXBadUAxhDWzcdS6BfAF0ZF4q0Ixcbyq48YEFB+StqBjdFWoMWFPxt7py
-         nK++7uPGopWhorZeuMbwYI79J/cBm7L/haTQNXx0K7pJCGT5TgODytyvjS5NcxZJcD4E
-         nXRg==
+        bh=KZkTpDbUwC0fq2vu8+gU0Jyh9+/zPfcLoyDt0p9UsAM=;
+        b=ESDqtqLbejAC85WsQ5ky2Qy47VtT168us8dQyGXebe0vSlEwYWYcM9Km/M/C09loww
+         fVzTA4kopAboMiR9jXnwHBAMLSR0M1vzRwTKVsuP1xM85ZTGgP9nIOOIaG9f6I1kr9xH
+         gQ4V/bNKI8HUaErVqukwzDZNMYwvZQOhHPwO/1Rz+Yd14dYQtqynR8xvG2oVxIVbQp3p
+         uvXPwy9xrqqEagMHU1ml9HcdA1bHCm8d6C43hJf9JlNqtkBwRnZhTsmnvVsoVTAuMTgg
+         2y3q8JPJfh3HYf8q1Z5u84/ii9H43WGF7XAzhY/uuDcnYawrW5GI7Fu4ZHKExGNRycfB
+         wxVQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792882585; x=1793487385;
+        d=1e100.net; s=20260707; t=1792882602; x=1793487402;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=8fvxyNQZ5b4bLD4RC7y6CYqh2r/ByifqUJni81S43tk=;
-        b=JfmHsiH69IVm1tZ5Y+u3E4NKRXyQzvjXb/5bt0Ad4z9ViPsxRMkg4k6PA8llWJVz7Q
-         5JQ/XluLmGdsybCiiB/6SxcHXUtZBsdcpNFIv2vTJPRjk+P8VO19gwV3rIDNxqg92VvJ
-         wo7ffJWWWgJmhs2mb7o7E9RxCG9Ws8PZ96o11yKV4BCHHSdqbwDN9uFDHnefD/lUpIYC
-         fJz9vqTpafALpxeCUpYmZvY0gjb01edVl64lwCVmjU4zEsW4NTQVv41boFpPTAUOnmeR
-         u/5xmzUxKxRJCth3aZZPU1NIu0RnreS0aty6wkihY4uKZvyoYRH0tJ8txfds+WExfF9j
-         GIBQ==
-X-Forwarded-Encrypted: i=1; AKwUvByUoVhw7MBj3sBsBL/Az0g8wD+yH5PD9r8rG+0pobJH9rnw/o+zO2Xv4MXrFkjKdNzaa9G4iDuj/ZMb@vger.kernel.org
-X-Gm-Message-State: AFq9FYJsGRTP1z1zjMxSCqj0eWd2oFVaSxeFEDMWeauhICLwlpa3sx+/
-	viEmH7QigUvz7UpwXGuBLqkT7ctFb9rIvityRTNCffRICL02xQW5SASbCjhJrDwncQe79+DxrWL
-	mcD8yiBr71GPuwlnS5yQbAAJCmIzbH3Cw8alRzFs2PiEMu/yptuXf5Sx7uAq+YpDK
-X-Gm-Gg: AYBFou3lVNJA9vjtKafmIAGrNWtyR+YCeoYE4DjgiVMfoukX5SjqDiKvnx/ej+OayX6
-	kg+diUE633hU8BodQphqvRwJKseZuNx2XeM3sjorfkUGlHaAG2PTnqwDtLD0elVpaFpOyYL+kDJ
-	0Q7DGQYS6bnvURXzBTvfaXI5JoVhT8oGqhi9zo+O0vWWbfJKYUOva8xuC7XzJGrAMUzIvulJhx3
-	tH4/cwfAh6zqpgIAWv2HmX3LdWSe0FXgQp4JHSqyEHRlf4lGjl0IkmwrOkil4Q/8MDyRFVV8Ddi
-	MRTVi/JJwBlLet6rid28xpmByaNhY9avSSwEPN7Wl3PEFbYBXwJJUzQg6gHpC47AIUzhOdLnrY8
-	W1c2oWzTVELBNN8BFS+OJQ6hemaA=
-X-Received: by 2002:a05:620a:3910:b0:93f:3bb5:545d with SMTP id af79cd13be357-940ef914f1cmr445005585a.27.1792882585113;
-        Sat, 24 Oct 2026 15:56:25 -0700 (PDT)
-X-Received: by 2002:a05:620a:3910:b0:93f:3bb5:545d with SMTP id af79cd13be357-940ef914f1cmr445001085a.27.1792882584462;
-        Sat, 24 Oct 2026 15:56:24 -0700 (PDT)
+        bh=KZkTpDbUwC0fq2vu8+gU0Jyh9+/zPfcLoyDt0p9UsAM=;
+        b=0qhgAyLTOqO+fxYsLjTXSH+kYYpGBM6AzuCb1LijfeTzI3IXEyq+RGjp9aV17c1vXG
+         +9ywvy+hKzddwaxeGEghZuVo6NIifFOYW/XrGqlxbH9S3KjdQCa7+QSgO+nBiwQFJ6Ac
+         KhzcoksBdfvNPIgXV43Zur2eZaoJlSI0f4TlCeI5ZaxNQXQTHzde/Pqjt1IXF2MjDhfO
+         2+Fmk/z5j0KTHsOE/kA+DL7Yvs2UluNukaG5sUI+VoUwgisNLvEE/q6S/xPX0sL4D+UE
+         BAka5NK52QSiKYnayQwfML3tgzKhKtZvkwRlrckcayGeHuFSTE+QFvJCJAGMQvCdtrwV
+         TLYw==
+X-Forwarded-Encrypted: i=1; AKwUvByBDTae46gGkOkSeaATNACk4VeFkyvA25X8toBM9hAFOcgLUdu+CVsIthdcWQyM11eAhcSMvocbHeqI@vger.kernel.org
+X-Gm-Message-State: AFq9FYLetNTH/RW6tP3j26oe5pHcqyZU8LwvpJhn+FJdnRmDXV4/15Mv
+	Al5ydsUzr0CzJSz19abZRfyE6JU86g8Dw04+LM3mWYetf3+oakzz3EyXtgJERrMEXSdADAwJYeQ
+	9qa/rLqTgSCMKJpN5ORa7Nq0QTOs3PhmaWEgN9A4VGVTh0rqGTszsVsm2XzvqxMws
+X-Gm-Gg: AYBFou0PXj+nL/jxkje//qEfr5OvDtuksyna6qqpITs+FVS2DPyYCkmaFjhfDVzbQJu
+	4vfbfOdFVD/rGuwV9ke6ROwHMbzmikcqI3BVvBzIQMJcB235Ou21MY3VtNNqoUi0kj98EZXnn24
+	BHf/0BQUqLtSNwndgd0p/nPN/kdcoKJV56t+QQUCp8RbaX+wbp3Yr7oFAEqdMlPZr9zxztb3hfv
+	ddcO8OFowzERTz2T6Ib7xcfS8mOnkuirWbfHzA8cYGE1K8rdEArpvt59oKhLlEe22lFNy4htBId
+	zNxu8+Lf4OAOPEuRAUUSjYcC6qO8QHMEYpMsucAHc61fyc3alCh6h5DA003DbmGiWXCEuoypDML
+	/0fuAl9Xxxg5YcIOBjz+0XwRokAE=
+X-Received: by 2002:a05:620a:4414:b0:93c:aff9:52c with SMTP id af79cd13be357-940ef99b527mr438932285a.60.1792882601834;
+        Sat, 24 Oct 2026 15:56:41 -0700 (PDT)
+X-Received: by 2002:a05:620a:4414:b0:93c:aff9:52c with SMTP id af79cd13be357-940ef99b527mr438928385a.60.1792882601319;
+        Sat, 24 Oct 2026 15:56:41 -0700 (PDT)
 Received: from mai.box.freepro.com ([2a05:6e02:1041:c10:7d20:e20f:a77f:4ef7])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a359ff2189sm98564145e9.1.2026.10.24.15.56.23
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a359ff2189sm98564145e9.1.2026.10.24.15.56.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 24 Oct 2026 15:56:23 -0700 (PDT)
+        Sat, 24 Oct 2026 15:56:40 -0700 (PDT)
 From: Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
 To: rafael@kernel.org
 Cc: Len Brown <lenb@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
@@ -120,10 +120,14 @@ Cc: Len Brown <lenb@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
         "Mario Limonciello (AMD)" <superm1@kernel.org>,
         linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-doc@vger.kernel.org, linux-pm@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org
-Subject: [PATCH v3 1/4] platform profile: Extract the core from ACPI
-Date: Sun, 25 Oct 2026 00:34:26 +0200
-Message-ID: <20261024223501.1420953-2-daniel.lezcano@oss.qualcomm.com>
+        platform-driver-x86@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+Subject: [PATCH v3 3/4] platform profile: Document firmware-independent profile selection
+Date: Sun, 25 Oct 2026 00:34:28 +0200
+Message-ID: <20261024223501.1420953-4-daniel.lezcano@oss.qualcomm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261024223501.1420953-1-daniel.lezcano@oss.qualcomm.com>
 References: <20261024223501.1420953-1-daniel.lezcano@oss.qualcomm.com>
@@ -137,24 +141,24 @@ List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Proofpoint-ORIG-GUID: QRw-zujGwmzzYxbzgJuA8dJFuByaF_v8
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDI0MDA5MSBTYWx0ZWRfX6apn8/+XWFRD
- 9OMMrhvqskSgAKXKk+1IoTUgMQ5Hh6NpcIdK6Dh9PLPPL/sGVkoLilJ+6W0theYrILK20FiqgHr
- KpKPGfWiX93iry2lBiXaaBWPbovrAC1ypyPAzb/7HNBJNHnqqadFwTZ3cQR9NL8UbEXYqtbu3YI
- iW1EK3X4b+zApAM7R4g7buoku0iehvzQifaSsyeAL7B6kuY5slgxNPdGzHCnQhRDTHCnc7NdkDV
- axT443ZbM/+9fDJ/AIrj9xs5uTaBqLvf7vYFrceIYtMwXroZRRyIcMVt7EOr5sVCt5coH3TDs4t
- GuzmL/UxXEJuNnIgvOAzBbEwd5LDcuy/Sqb3ebaBOJXG3ZJ9JH3y6hI2dTor9Cq8wsBC1C70GVN
- I8wl7WOh4IpOQYuNp4hmrwkPA/ysjFxhm85ykNas6iOx6OnuobMHP9gfpwYwY25G+rzkH/BAqyp
- ZS9xcgJRfya2xzHjbzA==
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDI0MDA5MSBTYWx0ZWRfX/Y3fhyw9LO8L
- nSMo29uqOSLsJS4ZrEfSXz0z9x478ENHCUN9LDl0T896N500GIoK8rSpFd9N+iptlEGmGUh5ful
- ZXyea88IqQZ5/yzS+tk9IGscicA7QpM=
-X-Authority-Analysis: v=2.4 cv=UqX2pOwB c=1 sm=1 tr=0 ts=6add379a cx=c_pps
- a=oc9J++0uMp73DTRD5QyR2A==:117 a=xqWC_Br6kY4A:10 a=660iZSQnnn4A:10
+X-Proofpoint-ORIG-GUID: u6etkxpIHiXnTwtYMzaLFp35pkVhN9TG
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDI0MDA5MSBTYWx0ZWRfX4shZcFdil0vG
+ R9X3VfzN0HWEw6aserVfr5UJeZK9tZ+W65SehmDATkhgHFfn/5z8bUNJmX6lc2E/zUHu8waJhqY
+ WIeCKyoy8N5R+OjuG6MlBMLfQfDe8A2fqMXKZKZqFdAeGJwOgbs54fUyCrzssFIALgzSkpj7rO/
+ qTEs0+5LuGL5FByi75I2VZilveF/nVem5AF06u56GYByhswEdaTRdTcvKpDS4ILN2JkOOQvTH+N
+ Px55NbfaFpuuFeDKe/eVJxg4frszv0nL8OJsSkg9z5nJIViKygYYhEFuUKxxZDf5w1xJU/eBDgX
+ 3W2gAFFJwHRve/shZG9ZisvWSInErXvdrj+XHoltTH6lKsDloG8H17qGU86xh4SnnmC1tnBvfvi
+ bjI8NGGVPJrNBjT/SpNEDHzHZjjhjxXqQ47XYY3q4WW6Pqt7BerkRtIVGIh1YNvlKabKoyciTEM
+ tHphrbm/Vssnn3ce7XQ==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDI0MDA5MSBTYWx0ZWRfX3G5iZb0aowbt
+ QC0X9mMRuMr3ZJ98aM8X7KC5pCj4QEvg1zuIZEeSSj0kJFQsOHb79G7wKqfreVI1pMn926DiWA2
+ bkgmS7/yX7ZMr6uCE6l7aVM9bqQxF20=
+X-Authority-Analysis: v=2.4 cv=UqX2pOwB c=1 sm=1 tr=0 ts=6add37ab cx=c_pps
+ a=50t2pK5VMbmlHzFWWp8p/g==:117 a=xqWC_Br6kY4A:10 a=660iZSQnnn4A:10
  a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=Um2Pa8k9VHT-vaBCBUpS:22 a=EUspDBNiAAAA:8 a=8k6WQxmsAAAA:8
- a=H7UWxkn5qGMa_TAHyjEA:9 a=-Z-CRQebJS9Ciu3_:21 a=iYH6xdkBrDN1Jqds4HTS:22
-X-Proofpoint-GUID: QRw-zujGwmzzYxbzgJuA8dJFuByaF_v8
+ a=Um2Pa8k9VHT-vaBCBUpS:22 a=VwQbUJbxAAAA:8 a=EUspDBNiAAAA:8
+ a=uEqVyaLVsi9FIuCuvY4A:9 a=IoWCM6iH3mJn3m4BftBB:22
+X-Proofpoint-GUID: u6etkxpIHiXnTwtYMzaLFp35pkVhN9TG
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
  definitions=2026-10-24_04,2026-10-21_02,2025-10-01_01
@@ -165,502 +169,157 @@ X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
  route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2610190000
  definitions=main-2610240091
 
-Platform profile providers already use device-based callbacks and do not
-need ACPI types. The core is nevertheless confined to the ACPI build and
-refuses to initialize when ACPI is disabled.
+Describe the existing per-provider class devices as the firmware-neutral
+userspace interface. Explain that providers can use any firmware transport
+or implement profiles in software, without an ACPI companion or firmware
+node on their parent device.
 
-Move the implementation to drivers/platform/profile and introduce the
-firmware-independent PLATFORM_PROFILE symbol. Update all provider
-selectors. Keep provider-specific ACPI dependencies and the
-platform_profile module name.
+Retain the ACPI paths as compatibility interfaces for aggregate selection.
+Clarify that non-ACPI userspace selects individual providers and document
+the sequential application of aggregate writes and their partial-failure
+behavior. No new userspace ABI is introduced.
 
-Isolate access to the legacy ACPI kobject in an optional compatibility
-object linked into the same module. Retain the legacy ABI on active ACPI
-systems, and initialize the class even when ACPI is absent or disabled.
-
-Use subsys_initcall_sync so the class is ready before built-in thermal
-and CPUFreq providers, but after ACPI has initialized its compatibility
-kobject.
+Correct the per-provider choices attribute reference and extend existing
+ACPI maintainer coverage to the extracted core and its interfaces.
 
 Signed-off-by: Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
 ---
- drivers/acpi/Kconfig                          |  3 -
- drivers/acpi/Makefile                         |  1 -
- drivers/cpufreq/Kconfig.x86                   |  2 +-
- drivers/platform/Kconfig                      | 16 +++++
- drivers/platform/Makefile                     |  2 +
- drivers/platform/profile/Makefile             |  5 ++
- drivers/platform/profile/acpi.c               | 15 +++++
- .../profile/core.c}                           | 64 +++++++++++++------
- drivers/platform/profile/profile.h            | 17 +++++
- drivers/platform/surface/Kconfig              |  6 +-
- drivers/platform/x86/Kconfig                  | 10 +--
- drivers/platform/x86/amd/pmf/Kconfig          |  2 +-
- drivers/platform/x86/dell/Kconfig             |  4 +-
- drivers/platform/x86/hp/Kconfig               |  2 +-
- drivers/platform/x86/lenovo/Kconfig           |  6 +-
- drivers/thermal/intel/int340x_thermal/Kconfig |  2 +-
- 16 files changed, 118 insertions(+), 39 deletions(-)
- create mode 100644 drivers/platform/profile/Makefile
- create mode 100644 drivers/platform/profile/acpi.c
- rename drivers/{acpi/platform_profile.c => platform/profile/core.c} (94%)
- create mode 100644 drivers/platform/profile/profile.h
+ .../ABI/testing/sysfs-class-platform-profile  |  2 +-
+ .../userspace-api/sysfs-platform_profile.rst  | 46 ++++++++++++++-----
+ MAINTAINERS                                   |  5 ++
+ include/linux/platform_profile.h              |  3 ++
+ 4 files changed, 43 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index f165d14cf61a..dd00312217de 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -351,9 +351,6 @@ config ACPI_THERMAL
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called thermal.
+diff --git a/Documentation/ABI/testing/sysfs-class-platform-profile b/Documentation/ABI/testing/sysfs-class-platform-profile
+index fcab26894ec3..75e0f6e2c128 100644
+--- a/Documentation/ABI/testing/sysfs-class-platform-profile
++++ b/Documentation/ABI/testing/sysfs-class-platform-profile
+@@ -35,7 +35,7 @@ Date:		March 2025
+ KernelVersion:	6.14
+ Description:	Reading this file gives the current selected profile for this
+ 		device. Writing this file with one of the strings from
+-		platform_profile_choices changes the profile to the new value.
++		choices changes the profile to the new value.
  
--config ACPI_PLATFORM_PROFILE
--	tristate
--
- config ACPI_CUSTOM_DSDT_FILE
- 	string "Custom DSDT Table file to include"
- 	default ""
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index d1b0affb844f..f8af27341805 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -91,7 +91,6 @@ obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
- obj-$(CONFIG_ACPI)		+= container.o
- obj-$(CONFIG_ACPI_THERMAL_LIB)	+= thermal_lib.o
- obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
--obj-$(CONFIG_ACPI_PLATFORM_PROFILE) 	+= platform_profile.o
- obj-$(CONFIG_ACPI_NFIT)		+= nfit/
- obj-$(CONFIG_ACPI_NHLT)		+= nhlt.o
- obj-$(CONFIG_ACPI_NUMA)		+= numa/
-diff --git a/drivers/cpufreq/Kconfig.x86 b/drivers/cpufreq/Kconfig.x86
-index d6190b8dde4b..9e1e3391a084 100644
---- a/drivers/cpufreq/Kconfig.x86
-+++ b/drivers/cpufreq/Kconfig.x86
-@@ -39,7 +39,7 @@ config X86_AMD_PSTATE
- 	select ACPI_PROCESSOR
- 	select ACPI_CPPC_LIB if X86_64
- 	select CPU_FREQ_GOV_SCHEDUTIL if SMP
--	select ACPI_PLATFORM_PROFILE
-+	select PLATFORM_PROFILE
- 	select POWER_SUPPLY
- 	help
- 	  This driver adds a CPUFreq driver which utilizes a fine grain
-diff --git a/drivers/platform/Kconfig b/drivers/platform/Kconfig
-index 312788f249c9..395b75f2edf0 100644
---- a/drivers/platform/Kconfig
-+++ b/drivers/platform/Kconfig
-@@ -1,4 +1,20 @@
- # SPDX-License-Identifier: GPL-2.0-only
-+config PLATFORM_PROFILE
-+	tristate "Platform profile support"
-+	help
-+	  Provide a common sysfs interface for selecting platform power,
-+	  performance and cooling profiles. Platform-specific provider drivers
-+	  map their operating modes onto standard profile names, independently
-+	  of the firmware interface they use.
+ 		This file can be monitored for changes by polling for POLLPRI,
+ 		POLLPRI will be signaled on any changes, independent of those
+diff --git a/Documentation/userspace-api/sysfs-platform_profile.rst b/Documentation/userspace-api/sysfs-platform_profile.rst
+index 6613e188242a..a85ede3fb8e5 100644
+--- a/Documentation/userspace-api/sysfs-platform_profile.rst
++++ b/Documentation/userspace-api/sysfs-platform_profile.rst
+@@ -1,6 +1,8 @@
+-=====================================================================
+-Platform Profile Selection (e.g. /sys/firmware/acpi/platform_profile)
+-=====================================================================
++.. SPDX-License-Identifier: GPL-2.0
 +
-+	  The core exposes per-provider controls under /sys/class/platform-profile/.
-+	  A provider driver must register before profile attributes become
-+	  available. ACPI is not required; on ACPI systems the legacy system-wide
-+	  interface under /sys/firmware/acpi/ is also provided.
-+
-+	  To compile this as a module, choose M here: the module will be called
-+	  platform_profile.
-+
- source "drivers/platform/mips/Kconfig"
++==========================
++Platform Profile Selection
++==========================
  
- source "drivers/platform/loongarch/Kconfig"
-diff --git a/drivers/platform/Makefile b/drivers/platform/Makefile
-index fa322e7f8716..b6732f2f3c85 100644
---- a/drivers/platform/Makefile
-+++ b/drivers/platform/Makefile
-@@ -3,6 +3,8 @@
- # Makefile for linux/drivers/platform
- #
+ On modern systems the platform performance, temperature, fan and other
+ hardware related characteristics are often dynamically configurable. The
+@@ -15,6 +17,21 @@ operation or towards performance.
+ The purpose of the platform_profile attribute is to offer a generic sysfs
+ API for selecting the platform profile of these automatic mechanisms.
  
-+obj-$(CONFIG_PLATFORM_PROFILE)	+= profile/
++The framework is independent of the firmware interface used by a provider.
++Drivers can implement profile selection using ACPI, an embedded controller,
++or another platform-specific mechanism. The core does not discover providers
++or interpret firmware descriptions.
 +
- obj-$(CONFIG_X86)		+= x86/
- obj-$(CONFIG_LOONGARCH)		+= loongarch/
- obj-$(CONFIG_MELLANOX_PLATFORM)	+= mellanox/
-diff --git a/drivers/platform/profile/Makefile b/drivers/platform/profile/Makefile
-new file mode 100644
-index 000000000000..ae95ba09383c
---- /dev/null
-+++ b/drivers/platform/profile/Makefile
-@@ -0,0 +1,5 @@
-+# SPDX-License-Identifier: GPL-2.0
-+obj-$(CONFIG_PLATFORM_PROFILE) += platform_profile.o
++The firmware-independent userspace interface is available under
++``/sys/class/platform-profile/platform-profile-X/``, with ``name``,
++``choices`` and ``profile`` attributes for each registered provider.
 +
-+platform_profile-y := core.o
-+platform_profile-$(CONFIG_ACPI) += acpi.o
-diff --git a/drivers/platform/profile/acpi.c b/drivers/platform/profile/acpi.c
-new file mode 100644
-index 000000000000..ff925dedacaf
---- /dev/null
-+++ b/drivers/platform/profile/acpi.c
-@@ -0,0 +1,15 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+/* Compatibility with the original ACPI platform profile sysfs ABI. */
++On ACPI systems, ``/sys/firmware/acpi/platform_profile_choices`` and
++``/sys/firmware/acpi/platform_profile`` remain available as compatibility
++interfaces for aggregate profile selection across registered providers.
++On non-ACPI systems, userspace selects profiles through the individual
++provider class devices.
 +
-+#include <linux/acpi.h>
-+#include <linux/kobject.h>
-+
-+#include "profile.h"
-+
-+struct kobject *platform_profile_compat_kobj(void)
-+{
-+	if (acpi_disabled)
-+		return NULL;
-+
-+	return kobject_get(acpi_kobj);
-+}
-diff --git a/drivers/acpi/platform_profile.c b/drivers/platform/profile/core.c
-similarity index 94%
-rename from drivers/acpi/platform_profile.c
-rename to drivers/platform/profile/core.c
-index b4c91d57f3d4..57c3dad2732b 100644
---- a/drivers/acpi/platform_profile.c
-+++ b/drivers/platform/profile/core.c
-@@ -4,15 +4,21 @@
+ Note that this API is only for selecting the platform profile, it is
+ NOT a goal of this API to allow monitoring the resulting performance
+ characteristics. Monitoring performance is best done with device/vendor
+@@ -52,13 +69,14 @@ Multiple driver support
+ =======================
+ When multiple drivers on a system advertise a platform profile handler, the
+ platform profile handler core will only advertise the profiles that are
+-common between all drivers to the ``/sys/firmware/acpi`` interfaces.
++common between all drivers to the ``/sys/firmware/acpi`` interfaces, when
++ACPI is active.
  
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ This is to ensure there is no ambiguity on what the profile names mean when
+ all handlers don't support a profile.
  
--#include <linux/acpi.h>
-+#include <linux/bitmap.h>
- #include <linux/bits.h>
- #include <linux/cleanup.h>
- #include <linux/init.h>
-+#include <linux/idr.h>
-+#include <linux/kobject.h>
- #include <linux/list.h>
-+#include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/platform_profile.h>
-+#include <linux/slab.h>
- #include <linux/sysfs.h>
+-Individual drivers will register a 'platform_profile' class device that has
+-similar semantics as the ``/sys/firmware/acpi/platform_profile`` interface.
++Individual drivers register a ``platform-profile`` class device with
++``name``, ``choices`` and ``profile`` attributes.
  
-+#include "profile.h"
+ To discover which driver is associated with a platform profile handler the
+ user can read the ``name`` attribute of the class device.
+@@ -71,10 +89,14 @@ by writing to the ``profile`` attribute of the driver's class device.
+ 
+ This will allow users to set different profiles for different drivers on the
+ same system. If the selected profile by individual drivers differs the
+-platform profile handler core will display the profile 'custom' to indicate
+-that the profiles are not the same.
++ACPI aggregate interface will display the profile 'custom' to indicate that
++the profiles are not the same.
 +
- #define to_pprof_handler(d)	(container_of(d, struct platform_profile_handler, dev))
++While the ACPI ``platform_profile`` attribute has the value ``custom``,
++writing a common profile from ``platform_profile_choices`` to it will set
++the profile for all drivers. ``custom`` cannot be written to this aggregate
++interface.
  
+-While the ``platform_profile`` attribute has the value ``custom``, writing a
+-common profile from ``platform_profile_choices`` to the platform_profile
+-attribute of the platform profile handler core will set the profile for all
+-drivers.
++Aggregate profile changes are applied to providers sequentially. If a provider
++returns an error, providers updated earlier are not rolled back. Userspace can
++read the per-provider interfaces to determine their resulting state.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 0e9fe9c2a39b..ecb3bf5fdafc 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -285,10 +285,14 @@ B:	https://bugzilla.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+ F:	Documentation/ABI/testing/configfs-acpi
+ F:	Documentation/ABI/testing/sysfs-bus-acpi
++F:	Documentation/ABI/testing/sysfs-class-platform-profile
++F:	Documentation/ABI/testing/sysfs-platform_profile
+ F:	Documentation/firmware-guide/acpi/
++F:	Documentation/userspace-api/sysfs-platform_profile.rst
+ F:	arch/x86/kernel/acpi/
+ F:	arch/x86/pci/acpi.c
+ F:	drivers/acpi/
++F:	drivers/platform/profile/
+ F:	drivers/pci/*/*acpi*
+ F:	drivers/pci/*acpi*
+ F:	drivers/pnp/pnpacpi/
+@@ -296,6 +300,7 @@ F:	include/acpi/
+ F:	include/linux/acpi.h
+ F:	include/linux/fwnode.h
+ F:	include/linux/fw_table.h
++F:	include/linux/platform_profile.h
+ F:	lib/fw_table.c
+ F:	rust/kernel/acpi.rs
+ F:	tools/power/acpi/
+diff --git a/include/linux/platform_profile.h b/include/linux/platform_profile.h
+index 855b28340e95..f23f9827eac6 100644
+--- a/include/linux/platform_profile.h
++++ b/include/linux/platform_profile.h
+@@ -2,6 +2,9 @@
  /*
-@@ -24,6 +30,15 @@ static DEFINE_MUTEX(profile_lock);
- /* Serialize registration and sysfs updates without blocking sysfs callbacks. */
- static DEFINE_MUTEX(profile_registration_lock);
- static LIST_HEAD(profile_handlers);
-+static struct kobject *compat_kobj;
-+
-+static void profile_notify(void)
-+{
-+	if (compat_kobj)
-+		sysfs_notify(compat_kobj, NULL, "platform_profile");
-+}
-+
-+static int profile_update(void);
- 
- struct platform_profile_handler {
- 	struct list_head node;
-@@ -243,7 +258,7 @@ static ssize_t profile_store(struct device *dev,
- 			return ret;
- 	}
- 
--	sysfs_notify(acpi_kobj, NULL, "platform_profile");
-+	profile_notify();
- 
- 	return count;
- }
-@@ -458,7 +473,7 @@ static ssize_t platform_profile_store(struct kobject *kobj,
- 			return ret;
- 	}
- 
--	sysfs_notify(acpi_kobj, NULL, "platform_profile");
-+	profile_notify();
- 
- 	return count;
- }
-@@ -484,6 +499,14 @@ static const struct attribute_group platform_profile_group = {
- 	.is_visible = profile_class_is_visible,
- };
- 
-+static int profile_update(void)
-+{
-+	if (compat_kobj)
-+		return sysfs_update_group(compat_kobj, &platform_profile_group);
-+
-+	return 0;
-+}
-+
- /**
-  * platform_profile_notify - Notify class device and legacy sysfs interface
-  * @dev: The class device
-@@ -493,7 +516,7 @@ void platform_profile_notify(struct device *dev)
- 	scoped_cond_guard(mutex_intr, return, &profile_lock) {
- 		_notify_class_profile(dev, NULL);
- 	}
--	sysfs_notify(acpi_kobj, NULL, "platform_profile");
-+	profile_notify();
- }
- EXPORT_SYMBOL_GPL(platform_profile_notify);
- 
-@@ -540,7 +563,7 @@ int platform_profile_cycle(void)
- 			return err;
- 	}
- 
--	sysfs_notify(acpi_kobj, NULL, "platform_profile");
-+	profile_notify();
- 
- 	return 0;
- }
-@@ -615,9 +638,9 @@ struct device *platform_profile_register(struct device *dev, const char *name,
- 	scoped_guard(mutex, &profile_lock)
- 		list_add_tail(&to_pprof_handler(ppdev)->node, &profile_handlers);
- 
--	sysfs_notify(acpi_kobj, NULL, "platform_profile");
-+	profile_notify();
- 
--	err = sysfs_update_group(acpi_kobj, &platform_profile_group);
-+	err = profile_update();
- 	if (err)
- 		goto cleanup_cur;
- 
-@@ -657,8 +680,8 @@ void platform_profile_remove(struct device *dev)
- 	ida_free(&platform_profile_ida, pprof->minor);
- 	device_unregister(&pprof->dev);
- 
--	sysfs_notify(acpi_kobj, NULL, "platform_profile");
--	sysfs_update_group(acpi_kobj, &platform_profile_group);
-+	profile_notify();
-+	profile_update();
- }
- EXPORT_SYMBOL_GPL(platform_profile_remove);
- 
-@@ -706,28 +729,33 @@ static int __init platform_profile_init(void)
- {
- 	int err;
- 
--	if (acpi_disabled)
--		return -EOPNOTSUPP;
--
- 	err = class_register(&platform_profile_class);
- 	if (err)
- 		return err;
- 
--	err = sysfs_create_group(acpi_kobj, &platform_profile_group);
--	if (err)
--		class_unregister(&platform_profile_class);
-+	compat_kobj = platform_profile_compat_kobj();
-+	if (compat_kobj) {
-+		err = sysfs_create_group(compat_kobj, &platform_profile_group);
-+		if (err) {
-+			kobject_put(compat_kobj);
-+			class_unregister(&platform_profile_class);
-+		}
-+	}
- 
- 	return err;
- }
- 
- static void __exit platform_profile_exit(void)
- {
--	sysfs_remove_group(acpi_kobj, &platform_profile_group);
-+	if (compat_kobj) {
-+		sysfs_remove_group(compat_kobj, &platform_profile_group);
-+		kobject_put(compat_kobj);
-+	}
- 	class_unregister(&platform_profile_class);
- }
--module_init(platform_profile_init);
-+subsys_initcall_sync(platform_profile_init);
- module_exit(platform_profile_exit);
- 
- MODULE_AUTHOR("Mark Pearson <markpearson@lenovo.com>");
--MODULE_DESCRIPTION("ACPI platform profile sysfs interface");
-+MODULE_DESCRIPTION("Platform profile sysfs interface");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/platform/profile/profile.h b/drivers/platform/profile/profile.h
-new file mode 100644
-index 000000000000..910c9f7da6a0
---- /dev/null
-+++ b/drivers/platform/profile/profile.h
-@@ -0,0 +1,17 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+#ifndef _PLATFORM_PROFILE_INTERNAL_H
-+#define _PLATFORM_PROFILE_INTERNAL_H
-+
-+#include <linux/kconfig.h>
-+#include <linux/kobject.h>
-+
-+#ifdef CONFIG_ACPI
-+struct kobject *platform_profile_compat_kobj(void);
-+#else
-+static inline struct kobject *platform_profile_compat_kobj(void)
-+{
-+	return NULL;
-+}
-+#endif
-+
-+#endif
-diff --git a/drivers/platform/surface/Kconfig b/drivers/platform/surface/Kconfig
-index f775c6ca1ec1..08f15f72f8ed 100644
---- a/drivers/platform/surface/Kconfig
-+++ b/drivers/platform/surface/Kconfig
-@@ -203,12 +203,12 @@ config SURFACE_PLATFORM_PROFILE
- 	tristate "Surface Platform Profile Driver"
- 	depends on ACPI
- 	depends on SURFACE_AGGREGATOR_REGISTRY
--	select ACPI_PLATFORM_PROFILE
-+	select PLATFORM_PROFILE
- 	help
--	  Provides support for the ACPI platform profile on 5th- and later
-+	  Provides support for platform profiles on 5th- and later
- 	  generation Microsoft Surface devices.
- 
--	  More specifically, this driver provides ACPI platform profile support
-+	  More specifically, this driver provides platform profile support
- 	  on Microsoft Surface devices with a Surface System Aggregator Module
- 	  (SSAM) connected via the Surface Serial Hub (SSH / SAM-over-SSH). In
- 	  other words, this driver provides platform profile support on the
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 4851bf45157d..b560982d2378 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -120,7 +120,7 @@ config BITLAND_MIFS_WMI
- 	depends on INPUT
- 	depends on LEDS_CLASS
- 	depends on POWER_SUPPLY
--	select ACPI_PLATFORM_PROFILE
-+	select PLATFORM_PROFILE
- 	select INPUT_SPARSEKMAP
- 	help
- 	  This is a driver for Bitland MiInterface based laptops.
-@@ -180,7 +180,7 @@ config ACER_WMI
- 	select INPUT_SPARSEKMAP
- 	select LEDS_CLASS
- 	select NEW_LEDS
--	select ACPI_PLATFORM_PROFILE
-+	select PLATFORM_PROFILE
- 	help
- 	  This is a driver for newer Acer (and Wistron) laptops. It adds
- 	  wireless radio and bluetooth control, and on some laptops,
-@@ -279,7 +279,7 @@ config ASUS_WMI
- 	select INPUT_SPARSEKMAP
- 	select LEDS_CLASS
- 	select NEW_LEDS
--	select ACPI_PLATFORM_PROFILE
-+	select PLATFORM_PROFILE
- 	help
- 	  Say Y here if you have a WMI aware Asus laptop (like Eee PCs or new
- 	  Asus Notebooks).
-@@ -646,7 +646,7 @@ config SAMSUNG_GALAXYBOOK
- 	depends on INPUT
- 	depends on LEDS_CLASS
- 	depends on SERIO_I8042
--	select ACPI_PLATFORM_PROFILE
-+	select PLATFORM_PROFILE
- 	select FW_ATTR_CLASS
- 	help
- 	  This is a driver for Samsung Galaxy Book series notebooks. It adds
-@@ -905,7 +905,7 @@ config TOUCHSCREEN_DMI
- config INSPUR_PLATFORM_PROFILE
- 	tristate "Inspur WMI platform profile driver"
- 	depends on ACPI_WMI
--	select ACPI_PLATFORM_PROFILE
-+	select PLATFORM_PROFILE
- 	help
- 	This will allow users to determine and control the platform modes
- 	between low-power, balanced and performance modes.
-diff --git a/drivers/platform/x86/amd/pmf/Kconfig b/drivers/platform/x86/amd/pmf/Kconfig
-index ad4faf18de47..31e13d6d7e75 100644
---- a/drivers/platform/x86/amd/pmf/Kconfig
-+++ b/drivers/platform/x86/amd/pmf/Kconfig
-@@ -8,7 +8,7 @@ config AMD_PMF
- 	depends on ACPI && PCI
- 	depends on POWER_SUPPLY
- 	depends on AMD_NODE
--	select ACPI_PLATFORM_PROFILE
-+	select PLATFORM_PROFILE
- 	depends on TEE && AMDTEE
- 	depends on AMD_SFH_HID
- 	depends on HAS_IOMEM
-diff --git a/drivers/platform/x86/dell/Kconfig b/drivers/platform/x86/dell/Kconfig
-index 9f0016056d7e..f6acf1cc2a2f 100644
---- a/drivers/platform/x86/dell/Kconfig
-+++ b/drivers/platform/x86/dell/Kconfig
-@@ -44,7 +44,7 @@ config ALIENWARE_WMI_WMAX
- 	bool "Alienware WMAX WMI device driver"
- 	default y
- 	depends on ALIENWARE_WMI
--	select ACPI_PLATFORM_PROFILE
-+	select PLATFORM_PROFILE
- 	help
- 	 Alienware WMI driver with AlienFX LED, HDMI, amplifier, deep sleep and
- 	 AWCC thermal control capabilities.
-@@ -120,7 +120,7 @@ config DELL_PC
- 	depends on ACPI
- 	depends on DMI
- 	depends on DELL_SMBIOS
--	select ACPI_PLATFORM_PROFILE
-+	select PLATFORM_PROFILE
- 	help
- 	This driver adds support for controlling the fan modes via platform_profile
- 	on supported Dell systems regardless of formfactor.
-diff --git a/drivers/platform/x86/hp/Kconfig b/drivers/platform/x86/hp/Kconfig
-index dd51491b9bcd..81a52194ff42 100644
---- a/drivers/platform/x86/hp/Kconfig
-+++ b/drivers/platform/x86/hp/Kconfig
-@@ -43,7 +43,7 @@ config HP_WMI
- 	depends on RFKILL || RFKILL = n
- 	select POWER_SUPPLY
- 	select INPUT_SPARSEKMAP
--	select ACPI_PLATFORM_PROFILE
-+	select PLATFORM_PROFILE
- 	select HWMON
- 	help
- 	  Say Y here if you want to support WMI-based hotkeys on HP laptops and
-diff --git a/drivers/platform/x86/lenovo/Kconfig b/drivers/platform/x86/lenovo/Kconfig
-index 516594993073..2291e1d48d13 100644
---- a/drivers/platform/x86/lenovo/Kconfig
-+++ b/drivers/platform/x86/lenovo/Kconfig
-@@ -12,7 +12,7 @@ config IDEAPAD_LAPTOP
- 	depends on BACKLIGHT_CLASS_DEVICE
- 	depends on ACPI_VIDEO || ACPI_VIDEO = n
- 	depends on ACPI_WMI || ACPI_WMI = n
--	select ACPI_PLATFORM_PROFILE
-+	select PLATFORM_PROFILE
- 	select INPUT_SPARSEKMAP
- 	select NEW_LEDS
- 	select LEDS_CLASS
-@@ -77,7 +77,7 @@ config THINKPAD_ACPI
- 	depends on BACKLIGHT_CLASS_DEVICE
- 	depends on I2C
- 	depends on DRM
--	select ACPI_PLATFORM_PROFILE
-+	select PLATFORM_PROFILE
- 	select DRM_PRIVACY_SCREEN
- 	select HWMON
- 	select NVRAM
-@@ -264,7 +264,7 @@ config LENOVO_WMI_GAMEZONE
- 	tristate "Lenovo GameZone WMI Driver"
- 	depends on ACPI_WMI
- 	depends on DMI
--	select ACPI_PLATFORM_PROFILE
-+	select PLATFORM_PROFILE
- 	select LENOVO_WMI_EVENTS
- 	select LENOVO_WMI_HELPERS
- 	help
-diff --git a/drivers/thermal/intel/int340x_thermal/Kconfig b/drivers/thermal/intel/int340x_thermal/Kconfig
-index 4ced7bdcd62c..3026a0a8d073 100644
---- a/drivers/thermal/intel/int340x_thermal/Kconfig
-+++ b/drivers/thermal/intel/int340x_thermal/Kconfig
-@@ -12,7 +12,7 @@ config INT340X_THERMAL
- 	select ACPI_THERMAL_LIB
- 	select INTEL_SOC_DTS_IOSF_CORE
- 	select INTEL_TCC
--	select ACPI_PLATFORM_PROFILE
-+	select PLATFORM_PROFILE
- 	select PROC_THERMAL_MMIO_RAPL if POWERCAP
- 	help
- 	  Newer laptops and tablets that use ACPI may have thermal sensors and
+  * Platform profile sysfs interface
+  *
++ * Providers may use any firmware interface or implement profiles in software.
++ * The parent device does not need an ACPI companion or a firmware node.
++ *
+  * See Documentation/userspace-api/sysfs-platform_profile.rst for more
+  * information.
+  */
 -- 
 2.43.0
