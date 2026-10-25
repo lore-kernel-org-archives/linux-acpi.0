@@ -1,88 +1,87 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.47
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.182
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792896528;
-	b=PPfCfY8DT9ghi9XMJmBEbisqXNGfAw+kIKwxxQyoLTss7QN7/jtb+Jys8hsVZDfoqiri
-	 N/+0r+j7nkaknLyqgFqazlUAD+KPSQr2cI8PVLQjPD1A+98ma/uzI19uz4xoC7chI5ao2
-	 7+XTwhrdlsDiE5OUu1Mz9txNuLlWHz0arrBCLATZkwKA40Iyza40H1pITuXRXL5nEqI0G
-	 HrMyoGf+h6gUm8T2J6DmsVghNi+2T4KAw4arWxnp9taguqLcs1eDzowqfr5nUzgHSJm/3
-	 kJsxW5XjEPJI5RFyU+E99q9uUUrUEeGYHQgSNy2527JWAoU2maVoOQ7+u3PnRLSoA9Q==
+	t=1792896529;
+	b=v8bhymKuQgY/xPcVbyehOrfQZH5FlVK22wDiZAg91AsfxcprS0sWWDhJtxo9ZK7eX+cg
+	 Ay/3Fk2TjDpMCsOOx/+eqZSkXWfWlXV+DDwoafB6D4Lm9I2RmDY/rblVmxtAxlKAhMSkK
+	 vIa+LDmo+EtVZ2zojPNQ4CH5WqpJLrPcZoFU9q/9PnsUeTV1L0C1IGcAAY3xt2/RpjV+0
+	 BRVfleBAGqS1f82Th+V+7u+aCrB/cqD88tJVU/pw8rshX/deJSkmOwxPi36Wd5lNZXXTd
+	 PFYiFvgOTtVMtjtPhhXTgWlRniH+VRUNuSFWOj+zIxSJNXmfFazc689X921m1jlh4mA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792896528;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792896529;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:Subject:Date:Message-Id:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer;
-	bh=zUKQcLBNuUzfdigPpCeMKgQJglhu7H0OTyY8O85pHlA=;
-	b=3ql9o1UFFzi4m20icJypU/dh8foHlIQKYWvsadcC+5RUU497K88vOk0dUwR5cu6xdstY
-	 RjSVFwvk9A2v7yYEVo3xeFfIFyyI8WB5s/zV47/vRvzCLwX9pYV16+SU0S3FN7JAYo9PH
-	 8bm8yipANk83lpRtHWeXRA5u0xXSzPnynOHfgZliIcIk89biautwAXBi1pPzWLz9UB6B2
-	 rUCGB7WwEUMLoGnPJNTSjojLkJ9k0j5USexQ6sA6IzI0eiBUZrR2QJXEBcEVE8HL8P3hD
-	 qepnlMG0FPR0Ij95o7foDPyb5Ys0Md4ciHN9oZYgCt0cbjZ5jITFfh47vdzWtHjEqag==
+	 From:Date:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer;
+	bh=FRxwvjYywW2EDj8EBeP8mrgqVWNhsI+cL4nt5lpU7sA=;
+	b=WR08BIRtqMarmxOuwJts1iZozPc9tMnpd3lYKWnV564DkpV9CPN3KxLKv0ucFDvttnLY
+	 In/CnaShtf+JXvQrIoDrIZQ91R5gkcfwwB+8S18USJeYhcQJA2IqNJVIU5FH92gWQAp+T
+	 r/IHqiyUg5MPvbpGoH8e0CcwXayvOAsO8KC2V43IYuiWaSIqtAFyQO4Z8K08vI6z767lh
+	 7hHebhYMOLjZGvEyKbt1ydYUbheqEnQOnqOiaKBGjr9Kg8o3DWH30QiI1YZ6MLlK+wQvj
+	 oQ3fhjqVQp5trxoNaML9wrjIAuioTMcu6GPMZS5aEKcyGEx4aJdA/u7rkw5qZLCR3sg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=BnZdFL02;
-	arc=none smtp.remote-ip=74.125.82.47
-Received: from mail-dl1-f47.google.com (mail-dl1-f47.google.com [74.125.82.47])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=TpxwA813;
+	arc=none smtp.remote-ip=74.125.82.182
+Received: from mail-dy1-f182.google.com (mail-dy1-f182.google.com [74.125.82.182])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2118B606A31F
-	for <linux-acpi@vger.kernel.org>; Sun, 25 Oct 2026 02:48:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2118B606A31F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 659BD606A330
+	for <linux-acpi@vger.kernel.org>; Sun, 25 Oct 2026 02:48:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 659BD606A330
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=BnZdFL02
-Received: by mail-dl1-f47.google.com with SMTP id a92af1059eb24-156cbe59622so1277102c88.0
-        for <linux-acpi@vger.kernel.org>; Sat, 24 Oct 2026 19:48:47 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=TpxwA813
+Received: by mail-dy1-f182.google.com with SMTP id 5a478bee46e88-35f1f76ea84so3384200eec.1
+        for <linux-acpi@vger.kernel.org>; Sat, 24 Oct 2026 19:48:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792896527; x=1793501327; darn=vger.kernel.org;
-        h=cc:to:content-transfer-encoding:content-type:mime-version
-         :message-id:date:subject:from:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=zUKQcLBNuUzfdigPpCeMKgQJglhu7H0OTyY8O85pHlA=;
-        b=BnZdFL02ObgqDdlRhZQVGeDOr1hl5bQP9RSCGMuwGhcWXvjsvfQYDrj4Wf5qsZVtKh
-         JQnQODsdbE3HCc9RLQwb8IeYH5EU0Tb8v8PDXsVtXh9DbxKkEd8/NP1ZJNfsT+F/SUij
-         ugaMNlo5N9Kwqhfz/8O4RQNlBNNk2Dg7f1KyRuS62mV46ZHB5WNFwNBR3GYD3/DLzRue
-         tct6QOYLVfYERH51QLZAZTmGuZwrbIAzMjtSOqKuzdZtKGEjXUNP7xQC7v2cvVYDV6u2
-         6aVciLAG/ooH6QwJDJqHo2G04nyKzPj69t99i3U0TjdkfAmpXc5aaRGwrGjQdkz+7XrU
-         OQkQ==
+        d=gmail.com; s=20251104; t=1792896528; x=1793501328; darn=vger.kernel.org;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=FRxwvjYywW2EDj8EBeP8mrgqVWNhsI+cL4nt5lpU7sA=;
+        b=TpxwA813+P5znsifZUJ8deji2Cfy3YNYm07xUH+eLP83aZg54OT8spSktYMe6uqGRE
+         iQECHez5gjvBbx6xLGeVbfT8DSZ1k8Qt62vdK8EaDhI3b1+wztqIkJbaJlCtnuCA5esL
+         QRH/IaQA0IS4/4rwKKtRZShp/VJZY5B2CGAQ4+oQP9868SHQzHcsRMqbIUIJIrKAZ80n
+         lruFtXxmDd9FsV8X+PllJ668rF3ZZJTTNnl5/6dcw99NfAg8N0Yo5T4C0J1RuHQYX1ve
+         +cFbn2eSkjaZFV55MBT+LCMMz8FPEg4aiNN52QkcwWnlvHZrZ4/6zCg7MfQQ7POzh5gG
+         lE8w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792896527; x=1793501327;
-        h=cc:to:content-transfer-encoding:content-type:mime-version
-         :message-id:date:subject:from:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=zUKQcLBNuUzfdigPpCeMKgQJglhu7H0OTyY8O85pHlA=;
-        b=LYeBP5h9eGJ+BlcLMPBy0ZmhvYsV210nwA6oNTQtCS805k5zWcZQiDryUVwk1H+ssc
-         hl+T4MLoZzfVRM8XExlN7EyEC5lLC3LLTbyDPymEB13s75xNGLofnLwkG7mu3b7IHImx
-         +t556tnecE5lOkDUof3YNtJYfc9+TqmgNlFtGUJIRVcUWnSRPx4F2+egamrrP8haxhDN
-         RRr957rKYaVCCBaytbRS8o5rG3wah/UpXZX8dPf3h/yGRTKVvBcyunSqjyjm3JAuXXgZ
-         S1cDXdwTCnGjt2mFIwizbVpABNY6YvYtkYueC68phYYCNlKGSqUH7hpcPG4AhcUl9Kf3
-         xLQQ==
-X-Forwarded-Encrypted: i=1; AKwUvBxtFyyIgmXmmT2rp69KdLVjTPRGZJK86bV+Fuvm7aUn0sz3HBOHfvP3jXkJ+K0rVPX3jbhQy7ZQw0gp@vger.kernel.org
-X-Gm-Message-State: AFq9FYIkJm/kXWLuzZYXnXsNX1WhQDpRsaKi9r6JXfoO63XiMi0xXebi
-	vZcW0bk10MqMmRGCtMm6B37bWu5dCU64ovRMaY+RqCIqvCTiqh2QaT3m
-X-Gm-Gg: AYBFou0wz3MJ8c0OobWSBFVIjn9JmGRyW2+ixDzb8jC4q6rCCXuQslz2EFPEndavgvO
-	X8SR6PyuUnVaBjY/+B93ogBxJzsIlH+JFNpAtaVcsMdR7/uredNBOvZj3t1KVWskpfcD1uoeDcE
-	SCrpU9eEPz3zooL091csL3hpqmlokmv4GDcrX+4/MIXYFxY/6C7qbU7M/xFxRSC/UJz+Mu3jrZs
-	Lum9GLCI1RY5/0+mvSyp0+3rUqUHxV2uSC2MJQm4wEABvSQoInEaUJQ+mH2HgnwTOdUjhEYVQWR
-	d7BFovn0KLrupmTJiHmzaMxTmmY32cTxYVBbHqC0GC54XnwKx1a7WX4wq1Hz0Iygi1cXH0Od970
-	K5Z1O6gN9XFSEeJW6OwTsG+GNeF4KWLs1R4Cnby6Cn31lWODetOfR07uJj+Cs5tm8BOjCWJfGzI
-	Od4ILMNgmvl00f2kaseNhkwbG0y/0vWLSaZ4doWFu1/E9VtO0cT7Gp8I1LyVqX7Vk4l+CKV4t8d
-	a3U2UaOB5b0BHkx5Q6h2rebKcRjBkMy/DxcuzCuft0hiyDzrwLLg8CkLFOLk9JHejQu09VMXHuW
-	KAD/+on0/M4tSKQCb3c/HeumTp3tIW1uiv7C5QT15kg=
-X-Received: by 2002:a05:701b:2414:b0:14c:d84c:7182 with SMTP id a92af1059eb24-199356256c7mr3987099c88.22.1792896526990;
-        Sat, 24 Oct 2026 19:48:46 -0700 (PDT)
+        d=1e100.net; s=20260707; t=1792896528; x=1793501328;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=FRxwvjYywW2EDj8EBeP8mrgqVWNhsI+cL4nt5lpU7sA=;
+        b=FtyAkmseJXJYcFXYenVtTSfqpWibIE/G3j/VSqdafxpzEJ5qt20Hvv6R5+TKUxv9wW
+         g1bd10CrPHBZ5vHYUxJGIuOk2PZ0Ct2sNQo/tFyqypLJqVO2BIb0lizx0oC4COJRfuT0
+         WAeI8Iyg+eDc/sKzHz3WjtR6/YeBEodPOnqJQ5fIVhqFgyXz6L05ErRIaunoEzMSl4/0
+         AwnYIyJPKfU3O4S7ED7VH8IjEij3g2e9YO5toZEosZbWJKa+UJxEZE7vQwmoSM1f4Bgz
+         EPNwQPPvk6HSxCxtxrjmuEoSzuJnnjVX5gj3SreBMPlG3v54jLAyYwczPdho4TbL7z3H
+         Bvkg==
+X-Forwarded-Encrypted: i=1; AKwUvBwZ+QHEE+7ig4lp4HuMsRChZocvVblCel30IPc4bso1gZS0HNgWdwThAc9pSF8rXoZlOip6iHrUmkbE@vger.kernel.org
+X-Gm-Message-State: AFq9FYIN+cF8IrJf6H1FVPpMVJOqVSvXgkhbaOZHN70sG73Tn79Qi0GB
+	zxxdQrz3BI9L7bo3CZO9d5NkTdaacZNkeTo/hyMjhmy5cQm7sekRvUsY
+X-Gm-Gg: AYBFou2q1cy+UVvrF5aNqVkIKmMYM5PKAJMpOgmCJ2BNgh/NJaFyX6WkjtL9iAuSI0v
+	epzA9b0HVno/zp0sSA7ZRyqiYz9MG1zY365elBKX90V5kJKVBjek6x3ZV/kw4XC3n9CGl6/w543
+	3EXFcz4+X5amORmTVXUMrWEHZM5+6adXNAv6hARMST3NUZFkZaPdb/gjfkQyVyy5qkMHTrGLxFl
+	dI6KEc/SUP+QINENPNt8Ht5S2nfDgvsrH+oas/Jl6fgp7YUDhFGkeL259hzNOgEq4C6I+T733HZ
+	peju5GqwYOjXa8DxkjBtuO1jVZd3fM3p6On8jQ++oi+LlnkMZMw4ttIVM506Dy05doKZWWRPo1E
+	E48HhBc+YyPzeK3ALc8KPwidCV+O6DJd4IKdTGwz8k5el3lMBiYPBHNMsob8Re7SaGEXm5Wru9s
+	bcJtYuu7QtIBZuavUJaK8VaTn0WyngM13kzBXDY5cKgNY3IJFjGobD+HRGpWYa34qUDhKO8Wdte
+	dnRJulYDD8l/X2LnrjUQL/2yYnwpiQL922TrrHO/zTdsr90RoUZ83DN72wlUGxe/MNU+uwibLW6
+	zRuT4TLKuHNfR5Ii670L5Ui18RLlR6NH4sir6sUmEow=
+X-Received: by 2002:a05:7022:1087:b0:17d:7b45:f905 with SMTP id a92af1059eb24-19937025befmr4633321c88.31.1792896528487;
+        Sat, 24 Oct 2026 19:48:48 -0700 (PDT)
 Received: from dtor-ws.sjc.corp.google.com ([2a00:79e0:2ebe:8:8fe4:693:7158:24de])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-198a2e32479sm10521272c88.21.2026.10.24.19.48.45
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-198a2e32479sm10521272c88.21.2026.10.24.19.48.47
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 24 Oct 2026 19:48:46 -0700 (PDT)
+        Sat, 24 Oct 2026 19:48:47 -0700 (PDT)
 From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: [PATCH 0/8] i2c: convert i2c_smbus_read_block_data() users to pass
- buffer length
-Date: Sat, 24 Oct 2026 19:48:40 -0700
-Message-Id: <20261024-i2c-smbus-read-block-data-v1-0-19bb97467982@gmail.com>
+Date: Sat, 24 Oct 2026 19:48:41 -0700
+Subject: [PATCH 1/8] i2c: acpi: use 4-argument i2c_smbus_read_block_data()
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -94,10 +93,9 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAAhu3WoC/yXMTQ6CQAxA4auQrm0yFDDqVQyL6UzB+gNkCsSEc
- HdHXX6L9zYwSSoGl2KDJKuajkNGeSgg3PzQC2rMBnJ0LB0RKgW0Fy+GSXxEfo7hgdHPHtnVVdM
- 4Pp3rCnI/Jen0/Xtf279t4buE+TuEff8AdQ4tLn0AAAA=
-X-Change-ID: 20261022-i2c-smbus-read-block-data-b043550b8943
+Message-Id: <20261024-i2c-smbus-read-block-data-v1-1-19bb97467982@gmail.com>
+References: <20261024-i2c-smbus-read-block-data-v1-0-19bb97467982@gmail.com>
+In-Reply-To: <20261024-i2c-smbus-read-block-data-v1-0-19bb97467982@gmail.com>
 To: Mika Westerberg <westeri@kernel.org>, 
  Andi Shyti <andi.shyti@kernel.org>, Corey Minyard <corey@minyard.net>, 
  Hans de Goede <hansg@kernel.org>, 
@@ -109,56 +107,28 @@ Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org,
  platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org
 X-Mailer: b4 0.17-dev-e56a4
 
-Convert callers of i2c_smbus_read_block_data() across input, ACPI,
-IPMI, platform, and power supply drivers to pass destination buffer
-sizes, adopting the 4-argument form introduced in commit 68f382641f8c
-("i2c: smbus: make i2c_smbus_read_block_data() safer").
-
-Because the prerequisite commit 68f382641f8c is in mainline now,
-subsystem maintainers are encouraged to pick up their respective
-patches directly into their trees.
-
-The hwmon subsystem conversions will be sent out in a separate series.
-
-In cyapa_gen3 and rmi_smbus, passing the requested chunk size bounds
-the transfer and avoids potential out-of-bounds writes when reading
-blocks smaller than the SMBus maximum of 32 bytes.
-
-In vexia_atla10_ec, the redundant intermediate bounce buffer and
-memcpy() are removed so the response is read directly into the caller
-buffer.
-
-Additional conversions update callers in ipmi_ssif, i2c-core-acpi,
-elan_i2c_smbus, and sbs-battery to provide explicit buffer lengths,
-and update the prototype in Documentation/i2c/writing-clients.rst.
+Pass I2C_SMBUS_BLOCK_MAX to i2c_smbus_read_block_data() in
+i2c_acpi_space_handler().
 
 Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 ---
-Dmitry Torokhov (8):
-      i2c: acpi: use 4-argument i2c_smbus_read_block_data()
-      i2c: docs: update i2c_smbus_read_block_data() prototype in writing-clients
-      Input: cyapa - use 4-argument i2c_smbus_read_block_data()
-      Input: elan_i2c - use 4-argument i2c_smbus_read_block_data()
-      Input: synaptics-rmi4 - use 4-argument i2c_smbus_read_block_data()
-      ipmi: ssif: use 4-argument i2c_smbus_read_block_data()
-      platform/x86: x86-android-tablets: use 4-argument i2c_smbus_read_block_data()
-      power: supply: sbs-battery: use 4-argument i2c_smbus_read_block_data()
+ drivers/i2c/i2c-core-acpi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- Documentation/i2c/writing-clients.rst              |  2 +-
- drivers/char/ipmi/ipmi_ssif.c                      | 39 ++++++++++++----------
- drivers/i2c/i2c-core-acpi.c                        |  2 +-
- drivers/input/mouse/cyapa_gen3.c                   |  8 +++--
- drivers/input/mouse/elan_i2c_smbus.c               | 36 ++++++++++++--------
- drivers/input/rmi4/rmi_smbus.c                     |  4 +--
- .../x86/x86-android-tablets/vexia_atla10_ec.c      |  4 +--
- drivers/power/supply/sbs-battery.c                 |  8 +++--
- 8 files changed, 60 insertions(+), 43 deletions(-)
----
-base-commit: 20a33c6b6cbe7e4805dfb6cd68816937443aa148
-change-id: 20261022-i2c-smbus-read-block-data-b043550b8943
-
-Thanks.
+diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+index 84841ed13487..4acce685457f 100644
+--- a/drivers/i2c/i2c-core-acpi.c
++++ b/drivers/i2c/i2c-core-acpi.c
+@@ -751,7 +751,7 @@ i2c_acpi_space_handler(u32 function, acpi_physical_address command,
+ 	case ACPI_GSB_ACCESS_ATTRIB_BLOCK:
+ 		if (action == ACPI_READ) {
+ 			status = i2c_smbus_read_block_data(client, command,
+-					gsb->data);
++					I2C_SMBUS_BLOCK_MAX, gsb->data);
+ 			if (status >= 0) {
+ 				gsb->len = status;
+ 				status = 0;
 
 -- 
-Dmitry
+2.56.0.257.gf7497c7d27-goog
 
