@@ -1,136 +1,88 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.180.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.47
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792882621;
-	b=rSB05CIho8ui4i10N7VCoQQNL80jPj7d2a2z+6DX8/ju95JhJmv82iRqYrQ2WzaVSlrs
-	 Ni1Kv+xe8au8M8BldA64yFCmcDTx/NdQem+wE31OCH2EN9/R+i8B/o4x5NBvOR87NDC1H
-	 c5DUZ7Xuvok6XLky4Bjd4uA6YEXHp+dT23R2m68x56H29PrLebCHV7ylQtwcYy2KWCFQI
-	 l6QiM76y3lcy7eXAK8dApN2OA8MJQgO2xmMHgw0xTY96pc2xhHPjPRkSQdHLWDn7mY8hD
-	 ng4Rtzx7V5lTh37QLoU1Tu3UiQJ0Z/EyLnp2VBJ7xvxivn+eJ5qJPceDddeKZ8RJ7eA==
+	t=1792896528;
+	b=PPfCfY8DT9ghi9XMJmBEbisqXNGfAw+kIKwxxQyoLTss7QN7/jtb+Jys8hsVZDfoqiri
+	 N/+0r+j7nkaknLyqgFqazlUAD+KPSQr2cI8PVLQjPD1A+98ma/uzI19uz4xoC7chI5ao2
+	 7+XTwhrdlsDiE5OUu1Mz9txNuLlWHz0arrBCLATZkwKA40Iyza40H1pITuXRXL5nEqI0G
+	 HrMyoGf+h6gUm8T2J6DmsVghNi+2T4KAw4arWxnp9taguqLcs1eDzowqfr5nUzgHSJm/3
+	 kJsxW5XjEPJI5RFyU+E99q9uUUrUEeGYHQgSNy2527JWAoU2maVoOQ7+u3PnRLSoA9Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792882621;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
-	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:From:To:Cc:
-	 Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Proofpoint-Spam-Info:X-Proofpoint-GUID:
-	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-ORIG-GUID:
-	 X-Authority-Analysis:X-Proofpoint-Virus-Version:
-	 X-Proofpoint-Spam-Details;
-	bh=HpbYb8eRqOeaJi8iytaCoDJ7Hh78oub5X6mnHB74uWE=;
-	b=ydR3NlAAEY+ECWDxkABguIWALPmChCDLgMTA/SEQp/1kI3nuqP8MHupkYzoalCWVIwyc
-	 4Tmn0qH4Lcw0Kc67p5QDgvq/8PX4kZi6WBml9A5UiURdDRNZ/QPFkZBF1C5ZFi0tUmmWO
-	 GKgurCeFmaUF9sfiRAyipMAB8FT2qsBooJeG0Lc4cJ1suZbuIuiljpzfnQJ5Lh0gdanAw
-	 GsR3cHOg92i3GeMJRXEhON3GjR4h/fo9Nlu537ol1q3S2VXk7CsqXK4Hx/uqDiWYFQdXt
-	 /vVJ/n0mR5zdJnjVACAFtkOiKPp/9Qjn1I/kelmrJ+TU9s1PiiR/cHOpcKtL1PxSEQw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1792896528;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:Subject:Date:Message-Id:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer;
+	bh=zUKQcLBNuUzfdigPpCeMKgQJglhu7H0OTyY8O85pHlA=;
+	b=3ql9o1UFFzi4m20icJypU/dh8foHlIQKYWvsadcC+5RUU497K88vOk0dUwR5cu6xdstY
+	 RjSVFwvk9A2v7yYEVo3xeFfIFyyI8WB5s/zV47/vRvzCLwX9pYV16+SU0S3FN7JAYo9PH
+	 8bm8yipANk83lpRtHWeXRA5u0xXSzPnynOHfgZliIcIk89biautwAXBi1pPzWLz9UB6B2
+	 rUCGB7WwEUMLoGnPJNTSjojLkJ9k0j5USexQ6sA6IzI0eiBUZrR2QJXEBcEVE8HL8P3hD
+	 qepnlMG0FPR0Ij95o7foDPyb5Ys0Md4ciHN9oZYgCt0cbjZ5jITFfh47vdzWtHjEqag==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=oss.qualcomm.com;
-	spf=pass smtp.mailfrom=oss.qualcomm.com;
-	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=WVxV+J7o;
-	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=HOq9kM1V;
-	arc=none smtp.remote-ip=205.220.180.131
-Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=BnZdFL02;
+	arc=none smtp.remote-ip=74.125.82.47
+Received: from mail-dl1-f47.google.com (mail-dl1-f47.google.com [74.125.82.47])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 189CA606A31B
-	for <linux-acpi@vger.kernel.org>; Sat, 24 Oct 2026 22:57:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 189CA606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2118B606A31F
+	for <linux-acpi@vger.kernel.org>; Sun, 25 Oct 2026 02:48:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2118B606A31F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=WVxV+J7o;
-	dkim=pass (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=HOq9kM1V
-Received: from pps.filterd (m0279873.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69OLb9Va2681764
-	for <linux-acpi@vger.kernel.org>; Sat, 24 Oct 2026 22:56:59 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:date:from:in-reply-to:message-id
-	:mime-version:references:subject:to; s=qcppdkim1; bh=HpbYb8eRqOe
-	aJi8iytaCoDJ7Hh78oub5X6mnHB74uWE=; b=WVxV+J7oyyuHJOHkPnGWXycQI7Y
-	IGIwrrnrnWZ+lQZfWJBeRTiipyuOmBEetgXlgwdUgr+82w11EYGVb8+1xogIVGnu
-	PrEjNgieOuXdgZnOXxTWoe2rHLUKqn3YYVxbtG1apaw9wdhHLSBgWhrj7Gbo+iUs
-	xiZ81JwH3JyoH/wbafaMl81q5wi8EFeGJAWFR1yQkWMMqcvSqcqo9pyqW6nKSdUM
-	sM6gJ6cxNRmjdghBP7ThPMFRVg9dPGNmW8vjV7dpsDd/Zx+PmreSTX3FzGEQ7rbm
-	edxPjx6UUZcMyraSMCZrRGY9Be/Pe5W5saaHtjb3TNNzxhLv4tdjbijZSMQ==
-Received: from mail-qk1-f197.google.com (mail-qk1-f197.google.com [209.85.222.197])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hgj1pab50-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Sat, 24 Oct 2026 22:56:59 +0000 (GMT)
-Received: by mail-qk1-f197.google.com with SMTP id af79cd13be357-93f62934ef6so116781785a.3
-        for <linux-acpi@vger.kernel.org>; Sat, 24 Oct 2026 15:56:58 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=BnZdFL02
+Received: by mail-dl1-f47.google.com with SMTP id a92af1059eb24-156cbe59622so1277102c88.0
+        for <linux-acpi@vger.kernel.org>; Sat, 24 Oct 2026 19:48:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1792882618; x=1793487418; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=HpbYb8eRqOeaJi8iytaCoDJ7Hh78oub5X6mnHB74uWE=;
-        b=HOq9kM1VUyxj1rOz341+hqKZ624czo/Etpppo187Y5lcDui5UsVq0UuSgeVC+j4OqE
-         cXwsJD0W2GL+WmntSaIRIm3MtWRZZO62B/uYXV0Xp2JAgrL18lmAmH601qpmrWt/oMP1
-         xbdKwQz1HoKzk3EGDfNd0WtyStrsbqkxYm9vPz8lA4jvMzJSbwoDmI9cLhYg3ErDwmy0
-         Vbr0psE463YtV/eBDzzCYKuFs928iKUpPwSY4+wi5M12m9JgWnMAoPbPomZNN6heHp53
-         VRvAe4XlGZhhjtvp8s+uTfN/b3nfAd/BV2LJFejtqMm8SQe9dsJgFvSgqa6gqV/7PPsJ
-         NWLA==
+        d=gmail.com; s=20251104; t=1792896527; x=1793501327; darn=vger.kernel.org;
+        h=cc:to:content-transfer-encoding:content-type:mime-version
+         :message-id:date:subject:from:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=zUKQcLBNuUzfdigPpCeMKgQJglhu7H0OTyY8O85pHlA=;
+        b=BnZdFL02ObgqDdlRhZQVGeDOr1hl5bQP9RSCGMuwGhcWXvjsvfQYDrj4Wf5qsZVtKh
+         JQnQODsdbE3HCc9RLQwb8IeYH5EU0Tb8v8PDXsVtXh9DbxKkEd8/NP1ZJNfsT+F/SUij
+         ugaMNlo5N9Kwqhfz/8O4RQNlBNNk2Dg7f1KyRuS62mV46ZHB5WNFwNBR3GYD3/DLzRue
+         tct6QOYLVfYERH51QLZAZTmGuZwrbIAzMjtSOqKuzdZtKGEjXUNP7xQC7v2cvVYDV6u2
+         6aVciLAG/ooH6QwJDJqHo2G04nyKzPj69t99i3U0TjdkfAmpXc5aaRGwrGjQdkz+7XrU
+         OQkQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792882618; x=1793487418;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=HpbYb8eRqOeaJi8iytaCoDJ7Hh78oub5X6mnHB74uWE=;
-        b=xUNNxK8A9wk7dVt+9CzSms6gnQLd8SCsnnKvfqPyXwXmQ2bvipLOs8W4BWLdJpmp1P
-         IYZC5/yzZ0F989ChliPzHa87rqji/wj66nhQr7wWBxBuqBvg69xjJSrFC/vRghwFv8O4
-         +6QaIfRpwkQVkd6VrU8Be3RYoq36CmGXVpHH+K6kPQES5i8HnmkxdlZY76VLmNnId2Yo
-         0+6A7ToFnqgn0CjpGdiju3IdRFSqOOkqR8FIbr6WDqSRF+JQIIkQODivynH4H6jYLD7s
-         RcxDGkorxFliyG/V+5A1Qm6p+irIceIPS4NX7pnFKxh2T9buHfrSZJlty53O1RLvHxLu
-         KtHg==
-X-Forwarded-Encrypted: i=1; AKwUvBxUPGwD2nJOoFtRSwE8hGX2t9oZTgcP3atwZLkz4e0gsk9zwbWaCDE89FzQ2d8WUrcFoTKxPBI68dgr@vger.kernel.org
-X-Gm-Message-State: AFq9FYKk8eEAbFlnTFXQOI+Ng9AVhvPyeWKek6n8d8jt3eBKY6uYpIhP
-	bEIwm6V1n6cdCLhvJJfH+2PURL4+20jstBmxysArhOniDmX3XYx0sw5SIquYqhkbaH5w9SqCvOz
-	EpKcqNVr1PjniioJrQ+wAPMKexkfWpE3rWhVWY9ky1i6Xd17T+QKXagx0JRzUT2VD
-X-Gm-Gg: AYBFou00o2lzDvgvd8I7g3/rfMUx11S7PPnTzsNYbwcHZI4e6NN0r5TPqKq9/wWtPJH
-	nzTVyL2tn8vUdjhLFfSimb7JPjJV7af8ezcrIhNni/CMQyUYklEbGLxESVFaxeJtDGGqaWF4eqA
-	arOko8bI6A/PxfptJ2IRo8C6eIbdp/9LFDlfuI17U3qjlue/WlZXOAYAE/L+yVEJi9eoDEx5f/0
-	qCKBSJbD+waIGhVn7xV7J0QtnKXY+I5d1WfGwY9enBnjzdSixRsyw4MxQ88PMenXoaizB8TsJ1W
-	gfFaAEyJV2ERnDl5qoetXLTXcptgtqWtFm+Pj7eMrikdP9sTQnIyWKg1oFkaI6xypzx0gMMGAdf
-	PrJglZoCiG1ZFcI0WqvJKBeF09k4=
-X-Received: by 2002:a05:620a:1a05:b0:93e:6620:bde7 with SMTP id af79cd13be357-940ef8ae2bdmr471176085a.20.1792882618120;
-        Sat, 24 Oct 2026 15:56:58 -0700 (PDT)
-X-Received: by 2002:a05:620a:1a05:b0:93e:6620:bde7 with SMTP id af79cd13be357-940ef8ae2bdmr471173685a.20.1792882617573;
-        Sat, 24 Oct 2026 15:56:57 -0700 (PDT)
-Received: from mai.box.freepro.com ([2a05:6e02:1041:c10:7d20:e20f:a77f:4ef7])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a359ff2189sm98564145e9.1.2026.10.24.15.56.56
+        d=1e100.net; s=20260707; t=1792896527; x=1793501327;
+        h=cc:to:content-transfer-encoding:content-type:mime-version
+         :message-id:date:subject:from:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=zUKQcLBNuUzfdigPpCeMKgQJglhu7H0OTyY8O85pHlA=;
+        b=LYeBP5h9eGJ+BlcLMPBy0ZmhvYsV210nwA6oNTQtCS805k5zWcZQiDryUVwk1H+ssc
+         hl+T4MLoZzfVRM8XExlN7EyEC5lLC3LLTbyDPymEB13s75xNGLofnLwkG7mu3b7IHImx
+         +t556tnecE5lOkDUof3YNtJYfc9+TqmgNlFtGUJIRVcUWnSRPx4F2+egamrrP8haxhDN
+         RRr957rKYaVCCBaytbRS8o5rG3wah/UpXZX8dPf3h/yGRTKVvBcyunSqjyjm3JAuXXgZ
+         S1cDXdwTCnGjt2mFIwizbVpABNY6YvYtkYueC68phYYCNlKGSqUH7hpcPG4AhcUl9Kf3
+         xLQQ==
+X-Forwarded-Encrypted: i=1; AKwUvBxtFyyIgmXmmT2rp69KdLVjTPRGZJK86bV+Fuvm7aUn0sz3HBOHfvP3jXkJ+K0rVPX3jbhQy7ZQw0gp@vger.kernel.org
+X-Gm-Message-State: AFq9FYIkJm/kXWLuzZYXnXsNX1WhQDpRsaKi9r6JXfoO63XiMi0xXebi
+	vZcW0bk10MqMmRGCtMm6B37bWu5dCU64ovRMaY+RqCIqvCTiqh2QaT3m
+X-Gm-Gg: AYBFou0wz3MJ8c0OobWSBFVIjn9JmGRyW2+ixDzb8jC4q6rCCXuQslz2EFPEndavgvO
+	X8SR6PyuUnVaBjY/+B93ogBxJzsIlH+JFNpAtaVcsMdR7/uredNBOvZj3t1KVWskpfcD1uoeDcE
+	SCrpU9eEPz3zooL091csL3hpqmlokmv4GDcrX+4/MIXYFxY/6C7qbU7M/xFxRSC/UJz+Mu3jrZs
+	Lum9GLCI1RY5/0+mvSyp0+3rUqUHxV2uSC2MJQm4wEABvSQoInEaUJQ+mH2HgnwTOdUjhEYVQWR
+	d7BFovn0KLrupmTJiHmzaMxTmmY32cTxYVBbHqC0GC54XnwKx1a7WX4wq1Hz0Iygi1cXH0Od970
+	K5Z1O6gN9XFSEeJW6OwTsG+GNeF4KWLs1R4Cnby6Cn31lWODetOfR07uJj+Cs5tm8BOjCWJfGzI
+	Od4ILMNgmvl00f2kaseNhkwbG0y/0vWLSaZ4doWFu1/E9VtO0cT7Gp8I1LyVqX7Vk4l+CKV4t8d
+	a3U2UaOB5b0BHkx5Q6h2rebKcRjBkMy/DxcuzCuft0hiyDzrwLLg8CkLFOLk9JHejQu09VMXHuW
+	KAD/+on0/M4tSKQCb3c/HeumTp3tIW1uiv7C5QT15kg=
+X-Received: by 2002:a05:701b:2414:b0:14c:d84c:7182 with SMTP id a92af1059eb24-199356256c7mr3987099c88.22.1792896526990;
+        Sat, 24 Oct 2026 19:48:46 -0700 (PDT)
+Received: from dtor-ws.sjc.corp.google.com ([2a00:79e0:2ebe:8:8fe4:693:7158:24de])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-198a2e32479sm10521272c88.21.2026.10.24.19.48.45
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 24 Oct 2026 15:56:56 -0700 (PDT)
-From: Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
-To: rafael@kernel.org
-Cc: Len Brown <lenb@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
-        Shuah Khan <skhan@linuxfoundation.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        Hans de Goede <hansg@kernel.org>,
-        =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-        Maximilian Luz <luzmaximilian@gmail.com>,
-        Shyam Sundar S K <Shyam-sundar.S-k@amd.com>,
-        Mark Pearson <mpearson-lenovo@squebb.ca>,
-        "Derek J. Clark" <derekjohn.clark@gmail.com>,
-        Daniel Lezcano <daniel.lezcano@kernel.org>,
-        Zhang Rui <rui.zhang@intel.com>, Lukasz Luba <lukasz.luba@arm.com>,
-        Armin Wolf <W_Armin@gmx.de>, Jai Luthra <jai.luthra@ideasonboard.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jack Wu <jackbb_wu@compal.com>,
-        "Mario Limonciello (AMD)" <superm1@kernel.org>,
-        linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-pm@vger.kernel.org,
-        platform-driver-x86@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-Subject: [PATCH v3 4/4] platform profile: Make legacy ACPI aggregate interface optional
-Date: Sun, 25 Oct 2026 00:34:29 +0200
-Message-ID: <20261024223501.1420953-5-daniel.lezcano@oss.qualcomm.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261024223501.1420953-1-daniel.lezcano@oss.qualcomm.com>
-References: <20261024223501.1420953-1-daniel.lezcano@oss.qualcomm.com>
+        Sat, 24 Oct 2026 19:48:46 -0700 (PDT)
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: [PATCH 0/8] i2c: convert i2c_smbus_read_block_data() users to pass
+ buffer length
+Date: Sat, 24 Oct 2026 19:48:40 -0700
+Message-Id: <20261024-i2c-smbus-read-block-data-v1-0-19bb97467982@gmail.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -140,375 +92,73 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDI0MDA5MSBTYWx0ZWRfX9vU3tSSzUC39
- /McKiX77M4x4jrvF1bba4iK2ZYSITab6AVhpHtNF7+7f3HaSxNS88F7KfkkDUR3zDGU79JK39xQ
- kGcEXhmgvsRSiiTn5axwUBfKQLLdEDs=
-X-Proofpoint-GUID: Dk-LE6JNPBQqS5TKROs_ySVJguLJmx3W
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDI0MDA5MSBTYWx0ZWRfX6FQnoyN8adk1
- QQVM5HWtaezBM8zN7xxDMfCpl7drfzrKRktFSPldlD/dDgKjZKO3vBAVOsBuAZ1olDmb9NFcmtx
- DD3Ze5y/klaI0JDfEwtlSIQUB5EwnZsazd9SCy16eVkLxBNBGSf/V5As40bbk4Wq6dkW4+s/LTQ
- CL9naH/5gnUQsn269hgXyzq74OXRCPrniPkqqSzZOK9swVS+yFdjUm5HVbKPgpiTS3S5B+fZ6oW
- bGtQ/DCZZiZsnWVwvqaIU5ctl+/3knDZfPKI6nwjpZmtbPGQzneCRwUSE4IHHh+mR7ziAXbxPc9
- nD5gY5RTCWuJaVuN8R/Y/7IFxLkjCKZyMhcXIevCnn9L9E4I29wg67OgqAtt1k9nmjFng3C2iPb
- H44g8CaWw2Em0W1pOvqysOrmLxmuYYCdvcTxjJ8YTYe1bIPrPiNQJQ+mSDBU917JIEYLia0d1d7
- Co5jVAIbOaYozC2IFUw==
-X-Proofpoint-ORIG-GUID: Dk-LE6JNPBQqS5TKROs_ySVJguLJmx3W
-X-Authority-Analysis: v=2.4 cv=D5vSufRj c=1 sm=1 tr=0 ts=6add37bb cx=c_pps
- a=50t2pK5VMbmlHzFWWp8p/g==:117 a=xqWC_Br6kY4A:10 a=660iZSQnnn4A:10
- a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
- a=rJkE3RaqiGZ5pbrm-msn:22 a=VwQbUJbxAAAA:8 a=EUspDBNiAAAA:8 a=20KFwNOVAAAA:8
- a=B7gyEwpuI2iDi5sUgSMA:9 a=IoWCM6iH3mJn3m4BftBB:22
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-10-24_04,2026-10-21_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- clxscore=1015 adultscore=0 lowpriorityscore=0 bulkscore=0 malwarescore=0
- impostorscore=0 phishscore=0 spamscore=0 priorityscore=1501 suspectscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2610190000 definitions=main-2610240091
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAAhu3WoC/yXMTQ6CQAxA4auQrm0yFDDqVQyL6UzB+gNkCsSEc
+ HdHXX6L9zYwSSoGl2KDJKuajkNGeSgg3PzQC2rMBnJ0LB0RKgW0Fy+GSXxEfo7hgdHPHtnVVdM
+ 4Pp3rCnI/Jen0/Xtf279t4buE+TuEff8AdQ4tLn0AAAA=
+X-Change-ID: 20261022-i2c-smbus-read-block-data-b043550b8943
+To: Mika Westerberg <westeri@kernel.org>, 
+ Andi Shyti <andi.shyti@kernel.org>, Corey Minyard <corey@minyard.net>, 
+ Hans de Goede <hansg@kernel.org>, 
+ =?utf-8?q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
+ Sebastian Reichel <sre@kernel.org>
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, 
+ openipmi-developer@lists.sourceforge.net, 
+ platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org
+X-Mailer: b4 0.17-dev-e56a4
 
-The aggregate attributes under /sys/firmware/acpi/ are retained
-for backwards compatibility. Firmware-independent userspace can already
-discover providers through /sys/class/platform-profile/ and control each
-provider using its choices and profile attributes.
+Convert callers of i2c_smbus_read_block_data() across input, ACPI,
+IPMI, platform, and power supply drivers to pass destination buffer
+sizes, adopting the 4-argument form introduced in commit 68f382641f8c
+("i2c: smbus: make i2c_smbus_read_block_data() safer").
 
-Add PLATFORM_PROFILE_LEGACY, a boolean depending on PLATFORM_PROFILE and
-ACPI, to control the legacy aggregate sysfs interface. Default it to y so
-existing userspace continues to work when updating its configuration.
+Because the prerequisite commit 68f382641f8c is in mainline now,
+subsystem maintainers are encouraged to pick up their respective
+patches directly into their trees.
 
-Compile the ACPI adapter and legacy sysfs callbacks only when the option
-is enabled. Keep common aggregation helpers in the core because kernel
-hotkey users still need platform_profile_cycle(). Class devices and their
-notifications remain available regardless of the legacy option.
+The hwmon subsystem conversions will be sent out in a separate series.
 
-Document the compatibility option and recommend individual class devices
-for new userspace. No daemon changes are included in this kernel series.
-Move the legacy ABI documentation to obsolete/, retain its original
-creation dates and attribute descriptions, identify the replacement class
-attributes, and update its MAINTAINERS entry.
+In cyapa_gen3 and rmi_smbus, passing the requested chunk size bounds
+the transfer and avoids potential out-of-bounds writes when reading
+blocks smaller than the SMBus maximum of 32 bytes.
 
-Mark the legacy ABI deprecated and document removal after the 2028 LTS
-kernel, conditional on userspace migration. Keep the enabled default
-until class-device support has been released and deployed in userspace.
-Emit one shared pr_notice_once() when either legacy attribute is read or
-the profile is written, identifying actual legacy use rather than warning
-merely because the compatibility code was loaded.
+In vexia_atla10_ec, the redundant intermediate bounce buffer and
+memcpy() are removed so the response is read directly into the caller
+buffer.
 
-Validate ARM64 without ACPI and x86 module builds with the option enabled
-and disabled. With ACPI active and the option disabled, QEMU tests confirm
-that the legacy attributes are absent while class controls, notifications,
-kernel cycling and concurrent registration/removal continue to work.
+Additional conversions update callers in ipmi_ssif, i2c-core-acpi,
+elan_i2c_smbus, and sbs-battery to provide explicit buffer lengths,
+and update the prototype in Documentation/i2c/writing-clients.rst.
 
-Signed-off-by: Daniel Lezcano <daniel.lezcano@oss.qualcomm.com>
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 ---
- .../sysfs-platform_profile                    | 12 ++++
- .../userspace-api/sysfs-platform_profile.rst  | 17 +++--
- MAINTAINERS                                   |  2 +-
- drivers/platform/Kconfig                      | 23 +++++-
- drivers/platform/profile/Makefile             |  2 +-
- drivers/platform/profile/core.c               | 72 +++++++++++++++----
- drivers/platform/profile/profile.h            |  2 +-
- 7 files changed, 109 insertions(+), 21 deletions(-)
- rename Documentation/ABI/{testing => obsolete}/sysfs-platform_profile (70%)
+Dmitry Torokhov (8):
+      i2c: acpi: use 4-argument i2c_smbus_read_block_data()
+      i2c: docs: update i2c_smbus_read_block_data() prototype in writing-clients
+      Input: cyapa - use 4-argument i2c_smbus_read_block_data()
+      Input: elan_i2c - use 4-argument i2c_smbus_read_block_data()
+      Input: synaptics-rmi4 - use 4-argument i2c_smbus_read_block_data()
+      ipmi: ssif: use 4-argument i2c_smbus_read_block_data()
+      platform/x86: x86-android-tablets: use 4-argument i2c_smbus_read_block_data()
+      power: supply: sbs-battery: use 4-argument i2c_smbus_read_block_data()
 
-diff --git a/Documentation/ABI/testing/sysfs-platform_profile b/Documentation/ABI/obsolete/sysfs-platform_profile
-similarity index 70%
-rename from Documentation/ABI/testing/sysfs-platform_profile
-rename to Documentation/ABI/obsolete/sysfs-platform_profile
-index 125324ab53a9..c001c8641a3a 100644
---- a/Documentation/ABI/testing/sysfs-platform_profile
-+++ b/Documentation/ABI/obsolete/sysfs-platform_profile
-@@ -2,6 +2,12 @@ What:		/sys/firmware/acpi/platform_profile_choices
- Date:		October 2020
- Contact:	Hans de Goede <hdegoede@redhat.com>
- Description:	This file contains a space-separated list of profiles supported for this device.
-+		Available with CONFIG_PLATFORM_PROFILE_LEGACY on active ACPI
-+		systems for backwards compatibility. New userspace should use
-+		/sys/class/platform-profile/platform-profile-X/choices instead.
-+		This interface is deprecated, with removal intended after the
-+		2028 LTS kernel once userspace migration is complete. Accessing
-+		either legacy attribute emits a one-time deprecation notice.
- 
- 		Drivers must use the following standard profile-names:
- 
-@@ -27,6 +33,12 @@ Description:	Reading this file gives the current selected profile for this
- 		device. Writing this file with one of the strings from
- 		platform_profile_choices changes the profile to the new value.
- 
-+		This legacy interface requires CONFIG_PLATFORM_PROFILE_LEGACY.
-+		Individual class devices remain available without that option.
-+		Use /sys/class/platform-profile/platform-profile-X/profile
-+		instead. This interface is deprecated, with removal intended
-+		after the 2028 LTS kernel once userspace migration is complete.
-+
- 		This file can be monitored for changes by polling for POLLPRI,
- 		POLLPRI will be signalled on any changes, independent of those
- 		changes coming from a userspace write; or coming from another
-diff --git a/Documentation/userspace-api/sysfs-platform_profile.rst b/Documentation/userspace-api/sysfs-platform_profile.rst
-index a85ede3fb8e5..a3fc1ee20832 100644
---- a/Documentation/userspace-api/sysfs-platform_profile.rst
-+++ b/Documentation/userspace-api/sysfs-platform_profile.rst
-@@ -26,11 +26,20 @@ The firmware-independent userspace interface is available under
- ``/sys/class/platform-profile/platform-profile-X/``, with ``name``,
- ``choices`` and ``profile`` attributes for each registered provider.
- 
--On ACPI systems, ``/sys/firmware/acpi/platform_profile_choices`` and
-+On ACPI systems with ``CONFIG_PLATFORM_PROFILE_LEGACY`` enabled,
-+``/sys/firmware/acpi/platform_profile_choices`` and
- ``/sys/firmware/acpi/platform_profile`` remain available as compatibility
- interfaces for aggregate profile selection across registered providers.
--On non-ACPI systems, userspace selects profiles through the individual
--provider class devices.
-+New userspace should select profiles through the individual provider class
-+devices. These remain available when the legacy interface is disabled and
-+on non-ACPI systems. Kernel profile cycling also remains available without
-+the legacy interface.
-+
-+The legacy aggregate interface is deprecated. Removal is intended after the
-+2028 LTS kernel, once userspace has migrated to released software using the
-+class devices. Compatibility remains enabled by default during the migration;
-+the date alone does not trigger removal. Accessing either legacy attribute
-+emits a one-time kernel notice directing userspace to the class interface.
- 
- Note that this API is only for selecting the platform profile, it is
- NOT a goal of this API to allow monitoring the resulting performance
-@@ -70,7 +79,7 @@ Multiple driver support
- When multiple drivers on a system advertise a platform profile handler, the
- platform profile handler core will only advertise the profiles that are
- common between all drivers to the ``/sys/firmware/acpi`` interfaces, when
--ACPI is active.
-+ACPI is active and ``CONFIG_PLATFORM_PROFILE_LEGACY`` is enabled.
- 
- This is to ensure there is no ambiguity on what the profile names mean when
- all handlers don't support a profile.
-diff --git a/MAINTAINERS b/MAINTAINERS
-index ecb3bf5fdafc..33fafd213a31 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -283,10 +283,10 @@ S:	Supported
- Q:	https://patchwork.kernel.org/project/linux-acpi/list/
- B:	https://bugzilla.kernel.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
-+F:	Documentation/ABI/obsolete/sysfs-platform_profile
- F:	Documentation/ABI/testing/configfs-acpi
- F:	Documentation/ABI/testing/sysfs-bus-acpi
- F:	Documentation/ABI/testing/sysfs-class-platform-profile
--F:	Documentation/ABI/testing/sysfs-platform_profile
- F:	Documentation/firmware-guide/acpi/
- F:	Documentation/userspace-api/sysfs-platform_profile.rst
- F:	arch/x86/kernel/acpi/
-diff --git a/drivers/platform/Kconfig b/drivers/platform/Kconfig
-index 395b75f2edf0..7270f24a3b6e 100644
---- a/drivers/platform/Kconfig
-+++ b/drivers/platform/Kconfig
-@@ -9,12 +9,31 @@ config PLATFORM_PROFILE
- 
- 	  The core exposes per-provider controls under /sys/class/platform-profile/.
- 	  A provider driver must register before profile attributes become
--	  available. ACPI is not required; on ACPI systems the legacy system-wide
--	  interface under /sys/firmware/acpi/ is also provided.
-+	  available. ACPI is not required. The legacy system-wide interface under
-+	  /sys/firmware/acpi/ can be enabled separately for existing userspace.
- 
- 	  To compile this as a module, choose M here: the module will be called
- 	  platform_profile.
- 
-+config PLATFORM_PROFILE_LEGACY
-+	bool "Legacy ACPI platform profile sysfs interface (DEPRECATED)"
-+	depends on PLATFORM_PROFILE && ACPI
-+	default y
-+	help
-+	  Expose platform_profile and platform_profile_choices under
-+	  /sys/firmware/acpi/ for compatibility with existing userspace. These
-+	  attributes aggregate the profiles of all registered providers.
-+
-+	  This interface is deprecated and is intended for removal after the
-+	  2028 LTS kernel, once userspace has migrated to the class interface.
-+	  It remains enabled by default until replacement userspace releases
-+	  are available and have had time to reach users.
-+
-+	  New userspace should use the individual devices under
-+	  /sys/class/platform-profile/ instead. Disabling this option removes
-+	  the legacy sysfs interface but retains class devices and kernel
-+	  profile cycling. If unsure, say Y to preserve compatibility.
-+
- source "drivers/platform/mips/Kconfig"
- 
- source "drivers/platform/loongarch/Kconfig"
-diff --git a/drivers/platform/profile/Makefile b/drivers/platform/profile/Makefile
-index ae95ba09383c..787fc9bc961a 100644
---- a/drivers/platform/profile/Makefile
-+++ b/drivers/platform/profile/Makefile
-@@ -2,4 +2,4 @@
- obj-$(CONFIG_PLATFORM_PROFILE) += platform_profile.o
- 
- platform_profile-y := core.o
--platform_profile-$(CONFIG_ACPI) += acpi.o
-+platform_profile-$(CONFIG_PLATFORM_PROFILE_LEGACY) += acpi.o
-diff --git a/drivers/platform/profile/core.c b/drivers/platform/profile/core.c
-index a850942131cd..148f14a5fbe8 100644
---- a/drivers/platform/profile/core.c
-+++ b/drivers/platform/profile/core.c
-@@ -30,12 +30,16 @@ static DEFINE_MUTEX(profile_lock);
- /* Serialize registration and sysfs updates without blocking sysfs callbacks. */
- static DEFINE_MUTEX(profile_registration_lock);
- static LIST_HEAD(profile_handlers);
-+#ifdef CONFIG_PLATFORM_PROFILE_LEGACY
- static struct kobject *compat_kobj;
-+#endif
- 
- static void profile_notify(void)
- {
-+#ifdef CONFIG_PLATFORM_PROFILE_LEGACY
- 	if (compat_kobj)
- 		sysfs_notify(compat_kobj, NULL, "platform_profile");
-+#endif
- }
- 
- static int profile_update(void);
-@@ -310,6 +314,12 @@ static int _aggregate_choices(struct device *dev, void *arg)
- 	return 0;
- }
- 
-+#ifdef CONFIG_PLATFORM_PROFILE_LEGACY
-+static void profile_legacy_notice(void)
-+{
-+	pr_notice_once("The ACPI platform_profile sysfs interface is deprecated and planned for removal after the 2028 LTS kernel once userspace has migrated; use /sys/class/platform-profile/ instead\n");
-+}
-+
- /**
-  * _remove_hidden_choices - Remove hidden choices from aggregate data
-  * @dev: The device
-@@ -348,6 +358,8 @@ static ssize_t platform_profile_choices_show(struct kobject *kobj,
- 	};
- 	int err;
- 
-+	profile_legacy_notice();
-+
- 	scoped_cond_guard(mutex_intr, return -ERESTARTSYS, &profile_lock) {
- 		err = profile_for_each_handler(&data, _aggregate_choices);
- 		if (err)
-@@ -365,6 +377,7 @@ static ssize_t platform_profile_choices_show(struct kobject *kobj,
- 
- 	return _commmon_choices_show(data.aggregate, buf);
- }
-+#endif
- 
- /**
-  * _aggregate_profiles - Aggregate the profiles across providers
-@@ -409,6 +422,7 @@ static int _store_and_notify(struct device *dev, void *data)
- 	return _notify_class_profile(dev, NULL);
- }
- 
-+#ifdef CONFIG_PLATFORM_PROFILE_LEGACY
- /**
-  * platform_profile_show - Show the current aggregate profile
-  * @kobj: The kobject
-@@ -424,6 +438,8 @@ static ssize_t platform_profile_show(struct kobject *kobj,
- 	enum platform_profile_option profile = PLATFORM_PROFILE_LAST;
- 	int err;
- 
-+	profile_legacy_notice();
-+
- 	scoped_cond_guard(mutex_intr, return -ERESTARTSYS, &profile_lock) {
- 		err = profile_for_each_handler(&profile, _aggregate_profiles);
- 		if (err)
-@@ -457,6 +473,8 @@ static ssize_t platform_profile_store(struct kobject *kobj,
- 	int ret;
- 	int i;
- 
-+	profile_legacy_notice();
-+
- 	/* Scan for a matching profile */
- 	i = sysfs_match_string(profile_names, buf);
- 	if (i < 0 || i == PLATFORM_PROFILE_CUSTOM)
-@@ -508,6 +526,44 @@ static int profile_update(void)
- 	return 0;
- }
- 
-+static int profile_compat_init(void)
-+{
-+	int err;
-+
-+	compat_kobj = platform_profile_compat_kobj();
-+	if (!compat_kobj)
-+		return 0;
-+
-+	err = sysfs_create_group(compat_kobj, &platform_profile_group);
-+	if (err)
-+		kobject_put(compat_kobj);
-+
-+	return err;
-+}
-+
-+static void profile_compat_exit(void)
-+{
-+	if (compat_kobj) {
-+		sysfs_remove_group(compat_kobj, &platform_profile_group);
-+		kobject_put(compat_kobj);
-+	}
-+}
-+#else
-+static int profile_update(void)
-+{
-+	return 0;
-+}
-+
-+static int profile_compat_init(void)
-+{
-+	return 0;
-+}
-+
-+static void profile_compat_exit(void)
-+{
-+}
-+#endif
-+
- /**
-  * platform_profile_notify - Notify the provider and aggregate sysfs interfaces
-  * @dev: The class device
-@@ -735,24 +791,16 @@ static int __init platform_profile_init(void)
- 	if (err)
- 		return err;
- 
--	compat_kobj = platform_profile_compat_kobj();
--	if (compat_kobj) {
--		err = sysfs_create_group(compat_kobj, &platform_profile_group);
--		if (err) {
--			kobject_put(compat_kobj);
--			class_unregister(&platform_profile_class);
--		}
--	}
-+	err = profile_compat_init();
-+	if (err)
-+		class_unregister(&platform_profile_class);
- 
- 	return err;
- }
- 
- static void __exit platform_profile_exit(void)
- {
--	if (compat_kobj) {
--		sysfs_remove_group(compat_kobj, &platform_profile_group);
--		kobject_put(compat_kobj);
--	}
-+	profile_compat_exit();
- 	class_unregister(&platform_profile_class);
- }
- subsys_initcall_sync(platform_profile_init);
-diff --git a/drivers/platform/profile/profile.h b/drivers/platform/profile/profile.h
-index 910c9f7da6a0..362eb8cc4592 100644
---- a/drivers/platform/profile/profile.h
-+++ b/drivers/platform/profile/profile.h
-@@ -5,7 +5,7 @@
- #include <linux/kconfig.h>
- #include <linux/kobject.h>
- 
--#ifdef CONFIG_ACPI
-+#ifdef CONFIG_PLATFORM_PROFILE_LEGACY
- struct kobject *platform_profile_compat_kobj(void);
- #else
- static inline struct kobject *platform_profile_compat_kobj(void)
+ Documentation/i2c/writing-clients.rst              |  2 +-
+ drivers/char/ipmi/ipmi_ssif.c                      | 39 ++++++++++++----------
+ drivers/i2c/i2c-core-acpi.c                        |  2 +-
+ drivers/input/mouse/cyapa_gen3.c                   |  8 +++--
+ drivers/input/mouse/elan_i2c_smbus.c               | 36 ++++++++++++--------
+ drivers/input/rmi4/rmi_smbus.c                     |  4 +--
+ .../x86/x86-android-tablets/vexia_atla10_ec.c      |  4 +--
+ drivers/power/supply/sbs-battery.c                 |  8 +++--
+ 8 files changed, 60 insertions(+), 43 deletions(-)
+---
+base-commit: 20a33c6b6cbe7e4805dfb6cd68816937443aa148
+change-id: 20261022-i2c-smbus-read-block-data-b043550b8943
+
+Thanks.
+
 -- 
-2.43.0
+Dmitry
+
