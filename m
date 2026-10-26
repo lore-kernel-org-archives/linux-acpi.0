@@ -1,81 +1,47 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=162.62.57.49
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793013987;
-	b=rbiJhYMPxQaYYzh6uZcAYz3a4+wMXfHBR4eM9mpDWTFRrRpMpTiOIDK3ydmvHisKnnIE
-	 +Zq/n9+5Ep8fPZGlmNUeIEnBeBFuyeZu0ZaYRoDh9LyWiz2jOnxo1QRNvQRkKc7qANylf
-	 e7iU9bbrfjsCw3k4lSMxXCvvLmSgrbWtYfyN8mUokvAILD1AezEVyXnPs8tH3Q77k55O+
-	 rDdeR80sm9UfQn8BlW9KY5feNsdZTDCMZMeDYiWe+/wANc1VXP0ta6+wosAkdDzJiwhua
-	 dmLSUJ+KBXwgr9j6iqodSi4n6VRk6rEd6J0pY7Okl2qtUU4OTH6dCpQGED71GudESCw==
+	t=1793015310;
+	b=iBlBs4cFFxW8MGe5+vOfFR+SE9gQDsfe3G06latn3bi/2WxMsqYb/l20NAXlUMVtoJKS
+	 yUmyCXPO3inrsV6ovr1DJnOro1Kl9gTIsEMVVZ1ALom6TFuL6zSnRq0dusbuvgr+yFiqQ
+	 c57FyNmuPINay023Y3FSg7nzz+QrnHI/cBt+kXOUW+GycHF9E8OtuSUOHTxpk6+ISeuwr
+	 57yHAZnMlbGyFvvoIoLlA2wYYL03yJviR8i55Vdzgx+mFVp8Es67xrSoJyyprYrDjxkqc
+	 h4vXxUHlWWWVnSeHU5vbAaU9va0O2rfuWpxv9BQwXef1h29hRbIvBLNZZ48Eiw+gcTw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793013987;
-	h=DMARC-Filter:DKIM-Signature:Received:X-QQ-mid:Message-ID:
-	 X-QQ-XMAILINFO:X-QQ-XMRINFO:From:To:Cc:Subject:Date:X-OQ-MSGID:
-	 In-Reply-To:References:Content-Type:Content-Transfer-Encoding:
-	 MIME-Version;
-	bh=oTYGQvk36iQGPAlAArLgeHGW+UcTBSjIc8OCZrUQJSg=;
-	b=XAInfvBKbfQg5rax1qC9tGb/yyZGnX/Rt/p3uQiEczfv66ZqqGcAnB/k9n66Pm5dOZcs
-	 zNJ9IQRTh7DBovZ55cUNM5foMBH9k129KhlScwmKSyl9PibMgfn1OszYEyWpM57Q/93Dr
-	 E1dNk2JfbkDVWlip9fAs4snti8q50PfPlJkZvGZjaQxFbagqnala/aFbEe4KXV90s+3OL
-	 SjJG4k2m5UGp/wIfJllSgn2//j42OO0ZgftbJ6exdoluwtjMgGOpXcZUvnxNrD72a+ycY
-	 e4MTVoRDL08aKtmGvSqVKjGCmCGTCB/c0u7ArJpCboXIha77h6vGvzwpFq6C454Zp8A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793015310;
+	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:From:Content-Language:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=8VwqPR7o/pIdUz5IDnlKbeGGBhSmMQN6xR1k/yCPgMc=;
+	b=4+sVxttfcfU0uorOuEGvzinShih+cpzlry5vsTjS0ethe04hWkIcCk0RPSerW87onIx0
+	 uph73ufRQLhLeihh5rzRA5Qm+CF+vJcd7fz4QQ0vFmroLRCm0xuichBRp4y2IsU86dOjd
+	 yycAO4MQvnW9gEMCzIgQefAmTmqhf05XAJmrvvKRhj3lyedMZZMpw9DKgF+X896x3npkt
+	 Q3GYCSFS+Noy/UZqjT0o2Y9bywde8wUHI29kUXMybbq05zy8J1WQr+bNv3NDhhaHRUTHa
+	 t2qpBcDbcKtid8tLfBhbGTh3B8xzjbA7jRE+886Q0QF7ewjUf1oVxbH5aVH1N+fC3DA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=foxmail.com;
-	spf=pass smtp.mailfrom=foxmail.com;
-	dkim=pass header.d=foxmail.com header.i=@foxmail.com header.a=rsa-sha256 header.s=s201512 header.b="AlGM3/DT";
-	arc=none smtp.remote-ip=162.62.57.49
-Received: from out162-62-57-49.mail.qq.com (out162-62-57-49.mail.qq.com [162.62.57.49])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TweK6ymc;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 073A8606A32A;
-	Mon, 26 Oct 2026 11:26:24 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 073A8606A32A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=foxmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=foxmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A55D8606A31A;
+	Mon, 26 Oct 2026 11:48:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=foxmail.com header.i=@foxmail.com header.a=rsa-sha256 header.s=s201512 header.b=AlGM3/DT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=foxmail.com;
-	s=s201512; t=1793013975;
-	bh=oTYGQvk36iQGPAlAArLgeHGW+UcTBSjIc8OCZrUQJSg=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=AlGM3/DTQl8HQ0H8jmo94nD6wg0E62hQzjo7Y7FZd6M5x9M7/qsbNjVBAzNB67d3s
-	 gHftWMyTipQ3MtfrBQHjDg7Utxv2BmQbqsKhZ6mqFEUNio7CPWNIS3Ip6lbtdrrY5n
-	 VJAcUsuasU1ql+b3srox4LINp3YTQotHcyIdP/7Y=
-Received: from [127.0.1.1] ([223.66.54.214])
-	by newxmesmtplogicsvrszc50-0.qq.com (NewEsmtp) with SMTP
-	id 68D934A9; Mon, 26 Oct 2026 19:26:13 +0800
-X-QQ-mid: xmsmtpt1793013973tnyplsmk1
-Message-ID: <tencent_93C673CDC6262B2846538214B73AC191A009@qq.com>
-X-QQ-XMAILINFO: MrjVnytwTg24VGTozIpzo9+ldJFFUEHqgm3e1KHsSKGw2bSVWLWPbpvlmeVtwq
-	 qsnuH0nxVxzhztVonbBixjM1txagmGv/3xyM28HUUr/oLd11majlebeXtt5SehtlUIJCxHy51TgW
-	 5rNS3uezDY/ojEibc94Du3LThviGQ4B5d4iJ2yGdVzq1pxVZeC0/z0KcAXX6PO1j9GN43PW8GPZ7
-	 z0WETsiN+JtxqJEkSGlrwe92POZRCTsAtugP7DPr1bMtYjylcg7ROZrOnNuQ91Zt9V/nNRcpPHch
-	 oYAxbsV/+M8TBd8uTipTkQav4ZaqQBIL71dGH8XY9wxwM9pCOuVNVZpLyu4d/q1cn1IN/BDKsys0
-	 4ZMSdHUuy7xC+aOh9o6U4Qr9q1FW2E4K8Murcqax1oKXa31M5t+UPO10Qd6FD47VJ23Dl59Tw2Tv
-	 a6Q7Yg8Q751pc8rcYYR/WWG1KwK76TtU5NxPG059q9KJGRL6c/SuRlONIW6wQ4c4H17OroYq0Ti6
-	 +YVxLP/yyc6gYqe2sMmsnryPA6uPbi0KFiKXFfYkaI8/Fs1knNNGVRXmf9FptHYq0yoenLUHy0GR
-	 3T06uEe3q8NxyETx+7miEUd4DEKVgNoYC0tKsVw9xEOelE694GYKh59AZAdwxAE7ZwrbpSJP/yi6
-	 3TdAjNhZi2v6mmGsVnDbeB7WwE+M6AeSX4dqPd4Ew+Ee66zmIbOFWFbebjX2Z2KPN6a3zD/Xf626
-	 9WJoVCH5/3TFSzz7HazII4wpk3Zv03KSA+qR27q1S47pzTBQJDIir0puYqsQ0q/8pQVY5Ug0dXYg
-	 j2MHr7kN4sk/p1aWx3fLNOYXVZAR0qJRU8CcaMlSnj7PFaDr9y9wdq+YJAZDphjw537ZNrolsapt
-	 pwflI07QXCpGS0i/H37wenqbESzErGC2Lk1aI2Q929Apt2qu8Pt7v9//6RVZSekW4NKNL/nI5eNH
-	 qYto066gGbPa7/5Ah97/HtoFTsPuKyK1w/UR0CH6zba/FFkDQFLQCbqKeOS26HIdx0fw502CNfsR
-	 fyQC5zZ1ZKbMTr9sL4lit7oB1WByjO5cYwjFEar2fTri2UiWqc3zWP99Kk5jeI7bPSEITPFfgx35
-	 AdUm8RKaEyfrO7A0IqqH6BOIUDFA==
-X-QQ-XMRINFO: OD9hHCdaPRBwH5bRRRw8tsiH4UAatJqXfg==
-From: Wu Zhipeng <zepwu@foxmail.com>
-To: Alex Yeo <alexyeo362@gmail.com>
-Cc: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org,
- Ilpo =?utf-8?q?J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
- Hans de Goede <hansg@kernel.org>, Kenneth Chan <kenneth.t.chan@gmail.com>
-Subject:
- [PATCH] platform/x86: panasonic-laptop: Add CF-SV1-2 platform_profile entry
-Date: Mon, 26 Oct 2026 19:26:13 +0800
-X-OQ-MSGID: <179301397370.9696.11423986312935963476@foxmail.com>
-In-Reply-To: <20261025191300.1259541-1-alexyeo362@gmail.com>
-References: <20261025191300.1259541-1-alexyeo362@gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TweK6ymc
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C9961F01825;
+	Mon, 26 Oct 2026 11:48:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793015310;
+	bh=8VwqPR7o/pIdUz5IDnlKbeGGBhSmMQN6xR1k/yCPgMc=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=TweK6ymcW0yP+juYkqnQinqOuF2Hn80Nd479g49VgpqRQNr2yi/hIzuHotusf3o2y
+	 C9XApIg0V7CyvIfYfmXd8G1Crll6U9ngsxk9gOXLSIw1TLGv2nys9TtP1OeH7ZFEcP
+	 QgWiHo/WJfollYGrwAH3A4SGlCGNhxIkvwMLF74IKc6RIuSOCWki8q3Own3ZxmgqRT
+	 +0QarU8ImpVYVRg4q1jqgd2UVfxxQ+1KIt2KR70ukrI7VCEBNDBZ3eubGwHzg6Cb60
+	 pcrBskM13RCZtS8h35Rl0im1Pux3O/ebmyDJ0UPIYHreDYVrnIaCjGQ1ec4JMenTEO
+	 zyWMKtXb0etwA==
+Message-ID: <c4bd90f8-cdc3-4812-8e36-e438b17c048a@kernel.org>
+Date: Mon, 26 Oct 2026 12:48:26 +0100
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -85,62 +51,70 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 7/8] platform/x86: x86-android-tablets: use 4-argument
+ i2c_smbus_read_block_data()
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+ Mika Westerberg <westeri@kernel.org>, Andi Shyti <andi.shyti@kernel.org>,
+ Corey Minyard <corey@minyard.net>,
+ =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+ Sebastian Reichel <sre@kernel.org>
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-input@vger.kernel.org,
+ openipmi-developer@lists.sourceforge.net,
+ platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org
+References: <20261024-i2c-smbus-read-block-data-v1-0-19bb97467982@gmail.com>
+ <20261024-i2c-smbus-read-block-data-v1-7-19bb97467982@gmail.com>
+From: Hans de Goede <hansg@kernel.org>
+Content-Language: en-US, nl
+In-Reply-To: <20261024-i2c-smbus-read-block-data-v1-7-19bb97467982@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-The CF-SV1-2 exposes the same CEFM/EPLE fan/TDP policy pair as the
-CF-SR4, with the same boolean mapping (cool =3D active + locked, quiet =3D
-passive + locked, performance =3D active + unlocked), so reuse
-quirk_cf_sr4 and add only a DMI entry.  The remaining combination
-(passive + unlocked) is reported as CUSTOM by get().
+Hi
 
-Measured on the unit (BIOS V2.00L24, i5-1145G7, EPP=3Dperformance, turbo
-on, no userspace fan governor): the TDP toggle is the power lever (~10 W
-locked vs ~26 W unlocked) and the fan toggle is a temperature lever at
-essentially equal package power (active+locked 9.96 W / 50 C,
-passive+locked 9.95 W / 60 C, active+unlocked 26.32 W / 84 C).
+On 25-Oct-26 3:48 AM, Dmitry Torokhov wrote:
+> Pass the expected response length and destination buffer directly to
+> i2c_smbus_read_block_data() in atla10_ec_cmd() instead of copying
+> through an intermediate buffer.
+> 
+> Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-Notes for this model, because they do not generalise: the SEFM curve
-bytes behind the boolean differ from CF-SR4 (0x00 cool / 0x05 quiet /
-0x02 in S0i3), EPLE/SEPL select an IETM table PL rather than a fixed TDP
-cap, _FST[1] is a fan setpoint and not RPM, a nonzero TFN1._FSL override
-masks a profile change until released, and the EC boots at CEFM=3D0 /
-EPLE=3D1 (active + locked / COOL).
+Thanks, patch looks good to me:
 
-Alex Yeo confirmed the cool/quiet/performance mapping for this model on
-2026-10-26.
+Reviewed-by: Hans de Goede <johannes.goede@oss.qualcomm.com>
 
-Link: https://lore.kernel.org/platform-driver-x86/20261025191300.1259541-1-al=
-exyeo362@gmail.com/
-Link: https://github.com/numuly/cf-sv1-2-platform-profile-evidence
-Signed-off-by: Wu Zhipeng <zepwu@foxmail.com>
----
-Applies on top of RFC v4 (20261025191300.1259541-1-alexyeo362@gmail.com);
-the pre-image is the v4 post-image.
+Regards,
 
- drivers/platform/x86/panasonic-laptop.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Hans
 
-diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform/x86/p=
-anasonic-laptop.c
-index e929d2527fb9e04b0f9fed1abae0ed0684d9698c..69d255a0c3b07241290359bcdc7e0=
-caf92c9804c 100644
---- a/drivers/platform/x86/panasonic-laptop.c
-+++ b/drivers/platform/x86/panasonic-laptop.c
-@@ -329,6 +329,14 @@ static const struct dmi_system_id pcc_profile_quirks[] =
-=3D {
- 		},
- 		.driver_data =3D &quirk_cf_sr4,
- 	},
-+	{
-+		.ident =3D "Panasonic Corporation CFSV1-2",
-+		.matches =3D {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Panasonic Corporation"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "CFSV1-2"),
-+		},
-+		.driver_data =3D &quirk_cf_sr4,
-+	},
- 	{
- 		.ident =3D "Panasonic Corporation CFQV9-1",
- 		.matches =3D {
---=20
-2.47.3
+
+
+> ---
+>  drivers/platform/x86/x86-android-tablets/vexia_atla10_ec.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/drivers/platform/x86/x86-android-tablets/vexia_atla10_ec.c b/drivers/platform/x86/x86-android-tablets/vexia_atla10_ec.c
+> index 67dba9aa51f6..bbfa040cd4ec 100644
+> --- a/drivers/platform/x86/x86-android-tablets/vexia_atla10_ec.c
+> +++ b/drivers/platform/x86/x86-android-tablets/vexia_atla10_ec.c
+> @@ -65,16 +65,14 @@ struct atla10_ec_data {
+>  static int atla10_ec_cmd(struct atla10_ec_data *data, u8 cmd, u8 len, u8 *values)
+>  {
+>  	struct device *dev = &data->client->dev;
+> -	u8 buf[I2C_SMBUS_BLOCK_MAX];
+>  	int ret;
+>  
+> -	ret = i2c_smbus_read_block_data(data->client, cmd, buf);
+> +	ret = i2c_smbus_read_block_data(data->client, cmd, len, values);
+>  	if (ret != len) {
+>  		dev_err(dev, "I2C command 0x%02x error: %d\n", cmd, ret);
+>  		return -EIO;
+>  	}
+>  
+> -	memcpy(values, buf, len);
+>  	return 0;
+>  }
+>  
+> 
 
