@@ -1,60 +1,63 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.3
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=220.197.31.5
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793083751;
-	b=uD0W/yr+++x/wQzYqbrEVwjJgWYWQK0kveVZ3XOPoMEJ/UPEyWP9SH0iBdpdPeyUAybw
-	 tyehyYn8kwXXgrCdKI4x2GAJiqgz56eINcrhYFz1XvF5/BPBYqtTHMHs6NLQZ5XtZ20s7
-	 foR1N2UGVNYSnGDSCVG14+ch086oSbwgm9aDfSPXqO1kGrPVtEh76fGYbCStTqOTwNLQB
-	 BLg43HeGeKVlpIkJUccTI8dAMvj2QkI3pTxXZm9/vTm2pT4rzX8ZqOnclT0ZOpofyOffr
-	 tYQlAFWqVL+96K163Z0nvGmJgjDygQurUUXVclg7ZcSBnbdtWbXqg/k0xYa1guM3mag==
+	t=1793083871;
+	b=RkQiE7IbnUZCcuCNPU1awSHP/wrP79K7HtdOZ1nW/TqnpgX9lSl+OjaDD67QGOPZmtoI
+	 8qMAoedJhf8W7ftksEpXvSz0E8i+NaAaXCIzNTEOQmuLMgQ8dPlCD3+PnF6RgYGdTlH6B
+	 4nU4FZ+JCMAfEuaCh4mT3EcFwhPM3Q9P3SSp9EpYg1Wr6zFzUExdmStIRGIkMItjZ6y+L
+	 3iXL/TmRscoICk/ZnCCtQ8dsulwX0qvZO3jEvnJ7Dx89hDvAOPI483iXdtbKgB85KliFq
+	 VcpmPimZjcPLxY4JApuiF/kGmnNRIluYr8dwK5R3/dCHLM2b7MkwC75C78VvtXE9MMA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793083751;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-CM-TRANSID:X-Coremail-Antispam:X-CM-SenderInfo;
-	bh=gpEAWVIxbWupLzv90UrOrrFdVYEi/6hmO1ydhABKc4g=;
-	b=M0sJcXfzdkl3MiDGIbE79ev7TPXqLO9EO0TCQkLzIxHBH/xWuJPYD3C2BIh2bl75fnni
-	 Cw34TbPXUy+CK0hgWCottVJOdCtZtjYRWrGv9FUMXwpfcxe5Ab5DLH8K9PvXV+q0B6/mZ
-	 onXuoMHI30lA/9BTKZG7tTWbPfWwbUoTSMOLg1tqc4s+SWDmjf5OR78smYXKLQeGdjKf8
-	 8frhhZwHMfXOvqmlTGOBmvOP026niYc8C7NoVTGWiFlPqH6VxsBnCDgcdDUDuZq/Po5ZX
-	 s2gP8jEP2UY77Up4W7vjc0bn6SpdMOV50KAmboaZh2ANWioRA5YWvpB7oeoOPI7+P5Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793083871;
+	h=DMARC-Filter:DKIM-Signature:Date:From:To:Cc:Subject:X-Priority:
+	 X-Mailer:In-Reply-To:References:X-NTES-SC:Content-Transfer-Encoding:
+	 Content-Type:MIME-Version:Message-ID:X-Coremail-Locale:X-CM-TRANSID:
+	 X-CM-SenderInfo:X-Coremail-Antispam;
+	bh=T7GMpbDuEdomDKncFT3yYy8syZ+MfWolkM+DO91ddA4=;
+	b=vxgu7ah4ssdYyZQjWnOg3Of5ki0vTmHb95J6ST+4MOpApwkmXMlVGSWXmKX3UU15+cBw
+	 h9aG87Cu9KR3L/SNbjlU+hh4aS9KLC5Lmqz/OJMQIiBheIJkJPECr34piN6DezFo/YnOA
+	 6DIW3dcqHFLh1F0IuZqqcM5OObAy0gkywe18Kvc22TRyY6BdHHXoDTi+4pRqgMvDqOC1G
+	 FoQFYPZZuF/b6rU4aHI+/H188Ti1Y8BslqQjG6SIevqPxWoBoGytgHcgVylFQ9yM1e3Nt
+	 up+YsOP9rmNk0tEPYS25HeOE8scKwq2G3EXHRFFqU5fZoQYlYjBsWzRCRBK9SggOmfg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=163.com;
 	spf=pass smtp.mailfrom=163.com;
-	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=HKKmRv+g;
-	arc=none smtp.remote-ip=117.135.210.3
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.3])
+	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=N7tkItcO;
+	arc=none smtp.remote-ip=220.197.31.5
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.5])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6649A606A31B;
-	Tue, 27 Oct 2026 06:49:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6649A606A31B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C48B606A334;
+	Tue, 27 Oct 2026 06:51:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2C48B606A334
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=HKKmRv+g
+	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=N7tkItcO
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=gp
-	EAWVIxbWupLzv90UrOrrFdVYEi/6hmO1ydhABKc4g=; b=HKKmRv+g8Z/PAAXJV8
-	owYL14OEAqJkAZ2zwkiKg5sNdw704YfZa0+Bhp3wEb6shByHoO0hD8kR0WvPT0HB
-	ghao3680vTORxfDv2+joN7cDoLjYiZgsKGTS1YDpu6NHIrs7EWZX3fdcuKdnt34m
-	xkedVKESwTT8X+eERTUm5Se0Y=
-Received: from pc.localdomain (unknown [])
-	by gzsmtp4 (Coremail) with SMTP id PygvCgBnk4tESeBqAJpjCQ--.31930S2;
-	Tue, 27 Oct 2026 14:48:37 +0800 (CST)
-From: Jiale Yao <yaojiale02@163.com>
-To: Sudeep Holla <sudeep.holla@kernel.org>,
-	Jassi Brar <jassisinghbrar@gmail.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Mark Brown <broonie@kernel.org>,
-	Ashwin Chaugule <ashwin.chaugule@linaro.org>,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: stable@vger.kernel.org
-Subject: [PATCH v3] mailbox: pcc: validate PCCT subspaces before parsing
-Date: Tue, 27 Oct 2026 14:48:35 +0800
-Message-Id: <20261027064835.2264459-1-yaojiale02@163.com>
-X-Mailer: git-send-email 2.34.1
+	s=s110527; h=Date:From:To:Subject:Content-Type:MIME-Version:
+	Message-ID; bh=T7GMpbDuEdomDKncFT3yYy8syZ+MfWolkM+DO91ddA4=; b=N
+	7tkItcOAJBFYJOpTHkz+a5Uur8gwRX0IYqacuVKvGYhfmjNwobJDyU+Oo0FHlMIP
+	IbJv+ILgqqYt5961K2QTmoAQRCTGKvNoVsxtEss5Dmz64tK6Bbb6zrW7QaTInIR+
+	8o2Qhfw0eYPIw5f7cmZOxOfy67khNJICM9jQEIp4oA=
+Date: Tue, 27 Oct 2026 14:50:49 +0800 (CST)
+From: "jiale yao" <19888972804@163.com>
+To: "Sudeep Holla" <sudeep.holla@kernel.org>
+Cc: "Jassi Brar" <jassisinghbrar@gmail.com>,
+	"Mark Brown" <broonie@kernel.org>, "Arnd Bergmann" <arnd@arndb.de>,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: Re:Re: [PATCH v2] mailbox: pcc: validate PCCT subspaces before
+ parsing
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version 2023.4-cmXT build
+ 20260511(2e539873) Copyright (c) 2002-2026 www.mailtech.cn 163com
+In-Reply-To: <20261023-invincible-satisfied-dragon-c3dc50@sudeepholla>
+References: <20261023093839.715037-1-yaojiale02@163.com>
+ <20261023-invincible-satisfied-dragon-c3dc50@sudeepholla>
+X-NTES-SC: AL_Qu2SAfyTvEAv7ymbYekcn08ShO49XMOyvfoi2YFTc8EFhwzy3T8rZFVlLHfY28mULw+2ux6vQhhcw+doWoNAEsXTXuVpb4zAhBF5dsEARg==
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=GBK
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -64,105 +67,103 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:PygvCgBnk4tESeBqAJpjCQ--.31930S2
-X-Coremail-Antispam: 1Uf129KBjvJXoWxAr1kAry7KFW5Cr1UGrW7Arb_yoW5ZFWxpF
-	WY9a9IywsxAa13Wry2vws5AFyfCws7ZFyUKrWfGa42qwsrGF45XFy0k3yjgr98Jrs29F1a
-	van0gF1DCrWqyF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07UdkuxUUUUU=
-X-CM-SenderInfo: x1dryxhdohiji6rwjhhfrp/xtbCzQU2cGrgSUUXAQAA3e
+Message-ID: <6b05ec89.55fd.1a17c203cd6.Coremail.19888972804@163.com>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID:gigvCgDnj8HKSeBqi_xgAA--.1500W
+X-CM-SenderInfo: x1dryxhdohiji6rwjhhfrp/xtbCzQpXkWrgScol-wAA3S
+X-Coremail-Antispam: 1U5529EdanIXcx71UUUUU7vcSsGvfC2KfnxnUU==
 
-The PCC mailbox driver counts PCCT entries before its probe walks the
-same records by their declared lengths and passes them to type-specific
-parsers.  The counting pass currently accepts entries based only on their
-type, so a malformed entry can move the probe cursor outside the table or
-cause an out-of-bounds field read.
-
-Validate each entry against the table boundary and the minimum size of
-its PCCT subspace type during the initial ACPI parsing pass.  This also
-covers Type 5 hardware register communication subspaces before the same
-immutable table is consumed by the mailbox probe.
-
-Fixes: 86c22f8c9a3b ("Mailbox: Add support for Platform Communication Channel")
-Cc: stable@vger.kernel.org
-Signed-off-by: Jiale Yao <yaojiale02@163.com>
----
-
-Notes:
-    Changes in v3:
-    - Add the minimum size for Type 5 hardware register communication
-      subspaces.
-    - Reject unsupported types before indexing the minimum-length table.
-    - Drop duplicate validation from pcc_mbox_probe(), since the entries are
-      already validated by the initial ACPI parsing pass.
-    
-    Changes in v2:
-    - Replace the type switch with a minimum-length lookup table.
-    - Remove the redundant remaining-header-size check.
-    - Keep an explicit type bound check before indexing the table.
-
- drivers/mailbox/pcc.c | 40 +++++++++++++++++++++++++++++++++++++---
- 1 file changed, 37 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index 14dc4a187bfc..5d20c5a6d183 100644
---- a/drivers/mailbox/pcc.c
-+++ b/drivers/mailbox/pcc.c
-@@ -560,6 +560,37 @@ static const struct mbox_chan_ops pcc_chan_ops = {
- 	.last_tx_done = pcc_last_tx_done,
- };
- 
-+static const u16 pcc_subspace_min_len[ACPI_PCCT_TYPE_RESERVED] = {
-+	[ACPI_PCCT_TYPE_GENERIC_SUBSPACE] =
-+		sizeof(struct acpi_pcct_subspace),
-+	[ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE] =
-+		sizeof(struct acpi_pcct_hw_reduced),
-+	[ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2] =
-+		sizeof(struct acpi_pcct_hw_reduced_type2),
-+	[ACPI_PCCT_TYPE_EXT_PCC_MASTER_SUBSPACE] =
-+		sizeof(struct acpi_pcct_ext_pcc_master),
-+	[ACPI_PCCT_TYPE_EXT_PCC_SLAVE_SUBSPACE] =
-+		sizeof(struct acpi_pcct_ext_pcc_slave),
-+	[ACPI_PCCT_TYPE_HW_REG_COMM_SUBSPACE] =
-+		sizeof(struct acpi_pcct_hw_reg),
-+};
-+
-+static bool pcc_subspace_is_valid(struct acpi_subtable_header *entry,
-+				  unsigned long end)
-+{
-+	unsigned long start = (unsigned long)entry;
-+	size_t length;
-+
-+	if (start >= end)
-+		return false;
-+
-+	length = entry->length;
-+	if (length < sizeof(*entry) || length > end - start)
-+		return false;
-+
-+	return length >= pcc_subspace_min_len[entry->type];
-+}
-+
- /**
-  * parse_pcc_subspace - Count PCC subspaces defined
-  * @header: Pointer to the ACPI subtable header under the PCCT.
-@@ -575,10 +606,13 @@ static int parse_pcc_subspace(union acpi_subtable_headers *header,
- {
- 	struct acpi_pcct_subspace *ss = (struct acpi_pcct_subspace *) header;
- 
--	if (ss->header.type < ACPI_PCCT_TYPE_RESERVED)
--		return 0;
-+	if (ss->header.type >= ACPI_PCCT_TYPE_RESERVED)
-+		return -EINVAL;
- 
--	return -EINVAL;
-+	if (!pcc_subspace_is_valid(&ss->header, end))
-+		return -EINVAL;
-+
-+	return 0;
- }
- 
- static int
--- 
-2.34.1
-
+QXQgMjAyNi0xMC0yMyAyMjoyNDoyOCwgIlN1ZGVlcCBIb2xsYSIgPHN1ZGVlcC5ob2xsYUBrZXJu
+ZWwub3JnPiB3cm90ZToKPihGb3Igc29tZSByZWFzb24geW91IGRvbWFpbiBnZXRzIGJsb2NrZWQg
+Zm9yIG1lLCBzbyBwbGVhc2Ugd2FpdCB1bnRpbAo+SSBjaGVjayByZXNwb25zZSBtYW51YWxseSBv
+biBsb3JlKQo+Cj5PbiBGcmksIE9jdCAyMywgMjAyNiBhdCAwNTozODozOVBNICswODAwLCBKaWFs
+ZSBZYW8gd3JvdGU6Cj4+IFRoZSBQQ0MgbWFpbGJveCBwcm9iZSB3YWxrcyBQQ0NUIGVudHJpZXMg
+YnkgdGhlaXIgZGVjbGFyZWQgbGVuZ3Rocwo+PiB3aXRob3V0IGNoZWNraW5nIHRoYXQgZWFjaCBl
+bnRyeSBpcyBjb250YWluZWQgaW4gdGhlIHRhYmxlLiBJdCBhbHNvCj4+IHBhc3NlcyBnZW5lcmlj
+IGhlYWRlcnMgdG8gdHlwZS1zcGVjaWZpYyBwYXJzZXJzIHdpdGhvdXQgZXN0YWJsaXNoaW5nIHRo
+ZQo+PiByZXF1aXJlZCByZWNvcmQgc2l6ZS4gTWFsZm9ybWVkIGZpcm13YXJlIGNhbiB0aGVyZWZv
+cmUgbW92ZSB0aGUgY3Vyc29yCj4+IG91dHNpZGUgdGhlIFBDQ1Qgb3IgY2F1c2Ugb3V0LW9mLWJv
+dW5kcyBmaWVsZCByZWFkcy4KPj4gCj4+IFZhbGlkYXRlIHRoZSB0YWJsZSBoZWFkZXIsIGVhY2gg
+c3Vic3BhY2UgcmFuZ2UsIGFuZCB0aGUgbWluaW11bSBzaXplIGZvcgo+PiBzdXBwb3J0ZWQgc3Vi
+c3BhY2UgdHlwZXMgZHVyaW5nIGJvdGggdGhlIGNvdW50aW5nIGFuZCBwcm9iZSBwYXNzZXMuCj4+
+IAo+PiBGaXhlczogODZjMjJmOGM5YTNiICgiTWFpbGJveDogQWRkIHN1cHBvcnQgZm9yIFBsYXRm
+b3JtIENvbW11bmljYXRpb24gQ2hhbm5lbCIpCj4+IENjOiBzdGFibGVAdmdlci5rZXJuZWwub3Jn
+Cj4+IFNpZ25lZC1vZmYtYnk6IEppYWxlIFlhbyA8eWFvamlhbGUwMkAxNjMuY29tPgo+PiAtLS0K
+Pj4gCj4+IE5vdGVzOgo+PiAgICAgQ2hhbmdlcyBpbiB2MjoKPj4gICAgIC0gUmVwbGFjZSB0aGUg
+dHlwZSBzd2l0Y2ggd2l0aCBhIG1pbmltdW0tbGVuZ3RoIGxvb2t1cCB0YWJsZS4KPj4gICAgIC0g
+UmVtb3ZlIHRoZSByZWR1bmRhbnQgcmVtYWluaW5nLWhlYWRlci1zaXplIGNoZWNrLgo+PiAgICAg
+LSBLZWVwIGFuIGV4cGxpY2l0IHR5cGUgYm91bmQgY2hlY2sgYmVmb3JlIGluZGV4aW5nIHRoZSB0
+YWJsZS4KPj4gCj4+ICBkcml2ZXJzL21haWxib3gvcGNjLmMgfCA0OSArKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKystCj4+ICAxIGZpbGUgY2hhbmdlZCwgNDggaW5zZXJ0
+aW9ucygrKSwgMSBkZWxldGlvbigtKQo+PiAKPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWFpbGJv
+eC9wY2MuYyBiL2RyaXZlcnMvbWFpbGJveC9wY2MuYwo+PiBpbmRleCA5ODg4ZGFiNjQ2MzkuLjkx
+Y2VmMGVlMzM5MSAxMDA2NDQKPj4gLS0tIGEvZHJpdmVycy9tYWlsYm94L3BjYy5jCj4+ICsrKyBi
+L2RyaXZlcnMvbWFpbGJveC9wY2MuYwo+PiBAQCAtNTUzLDYgKzU1MywzOCBAQCBzdGF0aWMgY29u
+c3Qgc3RydWN0IG1ib3hfY2hhbl9vcHMgcGNjX2NoYW5fb3BzID0gewo+PiAgCS5sYXN0X3R4X2Rv
+bmUgPSBwY2NfbGFzdF90eF9kb25lLAo+PiAgfTsKPj4gIAo+PiArc3RhdGljIGNvbnN0IHUxNiBw
+Y2Nfc3Vic3BhY2VfbWluX2xlbltBQ1BJX1BDQ1RfVFlQRV9SRVNFUlZFRF0gPSB7Cj4+ICsJW0FD
+UElfUENDVF9UWVBFX0dFTkVSSUNfU1VCU1BBQ0VdID0KPj4gKwkJc2l6ZW9mKHN0cnVjdCBhY3Bp
+X3BjY3Rfc3Vic3BhY2UpLAo+PiArCVtBQ1BJX1BDQ1RfVFlQRV9IV19SRURVQ0VEX1NVQlNQQUNF
+XSA9Cj4+ICsJCXNpemVvZihzdHJ1Y3QgYWNwaV9wY2N0X2h3X3JlZHVjZWQpLAo+PiArCVtBQ1BJ
+X1BDQ1RfVFlQRV9IV19SRURVQ0VEX1NVQlNQQUNFX1RZUEUyXSA9Cj4+ICsJCXNpemVvZihzdHJ1
+Y3QgYWNwaV9wY2N0X2h3X3JlZHVjZWRfdHlwZTIpLAo+PiArCVtBQ1BJX1BDQ1RfVFlQRV9FWFRf
+UENDX01BU1RFUl9TVUJTUEFDRV0gPQo+PiArCQlzaXplb2Yoc3RydWN0IGFjcGlfcGNjdF9leHRf
+cGNjX21hc3RlciksCj4+ICsJW0FDUElfUENDVF9UWVBFX0VYVF9QQ0NfU0xBVkVfU1VCU1BBQ0Vd
+ID0KPj4gKwkJc2l6ZW9mKHN0cnVjdCBhY3BpX3BjY3RfZXh0X3BjY19zbGF2ZSksCj4KPlBsZWFz
+ZSBhZGQgVHlwZSA1IGRldGFpbHMgaGVyZSBhcyB3ZWxsIHNvIHRoYXQgaXQgZG9lc24ndCBlc2Nh
+cGUgdGhlCj5zaXplIHZhbGlkYXRpb24uIEFzIGlzLCBpdHMgemVyby1pbml0aWFsaXplZCBhbmQg
+bGV0cyBldmVyeSBub24gMC1ieXRlCj5yZWNvcmQgcGFzcyB2YWxpZGF0aW9uLgo+Cj4+ICt9Owo+
+PiArCj4+ICtzdGF0aWMgYm9vbCBwY2Nfc3Vic3BhY2VfaXNfdmFsaWQoc3RydWN0IGFjcGlfc3Vi
+dGFibGVfaGVhZGVyICplbnRyeSwKPj4gKwkJCQkgIHVuc2lnbmVkIGxvbmcgZW5kKQo+PiArewo+
+PiArCXVuc2lnbmVkIGxvbmcgc3RhcnQgPSAodW5zaWduZWQgbG9uZyllbnRyeTsKPj4gKwlzaXpl
+X3QgbGVuZ3RoOwo+PiArCj4+ICsJaWYgKHN0YXJ0ID49IGVuZCkKPj4gKwkJcmV0dXJuIGZhbHNl
+Owo+PiArCj4+ICsJbGVuZ3RoID0gZW50cnktPmxlbmd0aDsKPj4gKwlpZiAobGVuZ3RoIDwgc2l6
+ZW9mKCplbnRyeSkgfHwgbGVuZ3RoID4gZW5kIC0gc3RhcnQpCj4+ICsJCXJldHVybiBmYWxzZTsK
+Pj4gKwo+PiArCWlmIChlbnRyeS0+dHlwZSA+PSBBQ1BJX1BDQ1RfVFlQRV9SRVNFUlZFRCkKPj4g
+KwkJcmV0dXJuIGZhbHNlOwo+PiArCj4KPllvdSBjYW4gZHJvcCB0aGUgYWJvdmUgY2hlY2sgaWYg
+cGFyc2VfcGNjX3N1YnNwYWNlKCkgZG9lcyB0aGlzIGZpcnN0Lgo+Cj4+ICsJcmV0dXJuIGxlbmd0
+aCA+PSBwY2Nfc3Vic3BhY2VfbWluX2xlbltlbnRyeS0+dHlwZV07Cj4+ICt9Cj4+ICsKPj4gIC8q
+Kgo+PiAgICogcGFyc2VfcGNjX3N1YnNwYWNlIC0gQ291bnQgUENDIHN1YnNwYWNlcyBkZWZpbmVk
+Cj4+ICAgKiBAaGVhZGVyOiBQb2ludGVyIHRvIHRoZSBBQ1BJIHN1YnRhYmxlIGhlYWRlciB1bmRl
+ciB0aGUgUENDVC4KPj4gQEAgLTU2OCw2ICs2MDAsOSBAQCBzdGF0aWMgaW50IHBhcnNlX3BjY19z
+dWJzcGFjZSh1bmlvbiBhY3BpX3N1YnRhYmxlX2hlYWRlcnMgKmhlYWRlciwKPj4gIHsKPj4gIAlz
+dHJ1Y3QgYWNwaV9wY2N0X3N1YnNwYWNlICpzcyA9IChzdHJ1Y3QgYWNwaV9wY2N0X3N1YnNwYWNl
+ICopIGhlYWRlcjsKPj4gIAo+PiArCWlmICghcGNjX3N1YnNwYWNlX2lzX3ZhbGlkKCZzcy0+aGVh
+ZGVyLCBlbmQpKQo+PiArCQlyZXR1cm4gLUVJTlZBTDsKPj4gKwo+Cj5TbyB0aGlzIHdpbGwgdGFr
+ZSBjYXJlIG9mIHZhbGlkYXRpb24gYXMgcGFydCBvZiBhY3BpX3Byb2JlKCkgaXRzZWxmIHdoaWNo
+IGlzCj5nb29kIGJ1dCBzZWUgbXkgcXVlc3Rpb24gYmVsb3cuCj4KPj4gIAlpZiAoc3MtPmhlYWRl
+ci50eXBlIDwgQUNQSV9QQ0NUX1RZUEVfUkVTRVJWRUQpCj4+ICAJCXJldHVybiAwOwo+PiAgCj4K
+Pk1ha2UgdGhpcyB0aGUgZmlyc3QgY2hlY2sobmVlZCB0byByZXZlcnNlIGl0IHRvIHJldHVybiBl
+cnJvciBub3cpIGFuZAo+ZHJvcCB0aGUgYWJvdmUgY2hlY2sgYXMgbWVudGlvbmVkLgo+Cj4+IEBA
+IC04MTIsNiArODQ3LDcgQEAgc3RhdGljIGludCBwY2NfbWJveF9wcm9iZShzdHJ1Y3QgcGxhdGZv
+cm1fZGV2aWNlICpwZGV2KQo+PiAgCXN0cnVjdCBhY3BpX3RhYmxlX2hlYWRlciAqcGNjdF90Ymw7
+Cj4+ICAJc3RydWN0IGFjcGlfc3VidGFibGVfaGVhZGVyICpwY2N0X2VudHJ5Owo+PiAgCXN0cnVj
+dCBhY3BpX3RhYmxlX3BjY3QgKmFjcGlfcGNjdF90Ymw7Cj4+ICsJdW5zaWduZWQgbG9uZyB0YWJs
+ZV9lbmQ7Cj4+ICAJYWNwaV9zdGF0dXMgc3RhdHVzID0gQUVfT0s7Cj4+ICAJaW50IGksIHJjLCBj
+b3VudCA9IHBjY19jaGFuX2NvdW50Owo+PiAgCj4+IEBAIC04MjEsNiArODU3LDEzIEBAIHN0YXRp
+YyBpbnQgcGNjX21ib3hfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPj4gIAlp
+ZiAoQUNQSV9GQUlMVVJFKHN0YXR1cykgfHwgIXBjY3RfdGJsKQo+PiAgCQlyZXR1cm4gLUVOT0RF
+VjsKPj4gIAo+PiArCWFjcGlfcGNjdF90YmwgPSAoc3RydWN0IGFjcGlfdGFibGVfcGNjdCAqKXBj
+Y3RfdGJsOwo+PiArCWlmIChwY2N0X3RibC0+bGVuZ3RoIDwgc2l6ZW9mKCphY3BpX3BjY3RfdGJs
+KSkgewo+PiArCQlyYyA9IC1FSU5WQUw7Cj4+ICsJCWdvdG8gZXJyOwo+PiArCX0KPj4gKwl0YWJs
+ZV9lbmQgPSAodW5zaWduZWQgbG9uZylwY2N0X3RibCArIHBjY3RfdGJsLT5sZW5ndGg7Cj4+ICsK
+Pj4gIAlwY2NfbWJveF9jaGFubmVscyA9IGRldm1fa2NhbGxvYyhkZXYsIGNvdW50LCBzaXplb2Yo
+KnBjY19tYm94X2NoYW5uZWxzKSwKPj4gIAkJCQkJIEdGUF9LRVJORUwpOwo+PiAgCWlmICghcGNj
+X21ib3hfY2hhbm5lbHMpIHsKPj4gQEAgLTg0NCw3ICs4ODcsNiBAQCBzdGF0aWMgaW50IHBjY19t
+Ym94X3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4+ICAJcGNjdF9lbnRyeSA9
+IChzdHJ1Y3QgYWNwaV9zdWJ0YWJsZV9oZWFkZXIgKikgKAo+PiAgCQkodW5zaWduZWQgbG9uZykg
+cGNjdF90YmwgKyBzaXplb2Yoc3RydWN0IGFjcGlfdGFibGVfcGNjdCkpOwo+PiAgCj4+IC0JYWNw
+aV9wY2N0X3RibCA9IChzdHJ1Y3QgYWNwaV90YWJsZV9wY2N0ICopIHBjY3RfdGJsOwo+PiAgCWlm
+IChhY3BpX3BjY3RfdGJsLT5mbGFncyAmIEFDUElfUENDVF9ET09SQkVMTCkgewo+PiAgCQlwY2Nf
+bWJveF9jdHJsLT50eGRvbmVfaXJxID0gdHJ1ZTsKPj4gIAkJcGNjX21ib3hfY3RybC0+dHhkb25l
+X3BvbGwgPSBmYWxzZTsKPj4gQEAgLTg1Niw2ICs4OTgsMTEgQEAgc3RhdGljIGludCBwY2NfbWJv
+eF9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+PiAgCWZvciAoaSA9IDA7IGkg
+PCBjb3VudDsgaSsrKSB7Cj4+ICAJCXN0cnVjdCBwY2NfY2hhbl9pbmZvICpwY2hhbiA9IGNoYW5f
+aW5mbyArIGk7Cj4+ICAKPj4gKwkJaWYgKCFwY2Nfc3Vic3BhY2VfaXNfdmFsaWQocGNjdF9lbnRy
+eSwgdGFibGVfZW5kKSkgewo+PiArCQkJcmMgPSAtRUlOVkFMOwo+PiArCQkJZ290byBlcnI7Cj4+
+ICsJCX0KPj4gKwo+Cj5XaHkgZG8gd2UgbmVlZCB0byByZS12YWxpZGF0ZSB0aGUgc3Vic3BhY2Ug
+aWYgaXQgaXMgYWxyZWFkeSB0YWtlbiBjYXJlCj5iZWZvcmUgcGNjX21ib3hfcHJvYmUoKSBhcyBw
+YXJ0IG9mIGFjcGlfcHJvYmUoKS4gSU1PIHRoZSBjaGFuZ2VzIGluCj5wY2NfbWJveF9wcm9iZSgp
+IGNhbiBiZSBkcm9wcGVkLgoKVGhhbmtzIGZvciB5b3VyIHJldmlldywgdGhlIHVwZGF0ZSBvbmUg
+aXMgaGVyZSwKCmh0dHBzOi8vbG9yZS5rZXJuZWwub3JnL2FsbC8yMDI2MTAyNzA2NDgzNS4yMjY0
+NDU5LTEteWFvamlhbGUwMkAxNjMuY29tCgo+Cj4tLSAKPlJlZ2FyZHMsCj5TdWRlZXAK
