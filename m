@@ -1,122 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.3
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793079140;
-	b=rbKbdXMUnUfW35bpfHtb0Spjpn6r8kOOuCE0U36NpztGopcTQJ8OjF1v2LPVlrAMxeQC
-	 Nn7VdzxT80x6I4U5ew6cGLav6U0n8n9N4/mAhgiBr9rBQhDbJd2yLLx7F33QPTA3DDe62
-	 IKt2812cfYSE5iLdc2uAz38DzwzIPsdrk1Payve4Ry6P0XKRoAM+POPpOvHhiXyEqBAyJ
-	 ibYjAzXwVdSp15wBbV8HLWOYoZNpAW0slOcy0DgTFe9Y+DPUAXuSPKljGgQW/f+/J4NGD
-	 UnmL5KwYqJV1rrf9XvvCc53tdciW+m3uIB4EIHvpvmP8M2DDgRBRQZZyhqup2g2XFMg==
+	t=1793083751;
+	b=uD0W/yr+++x/wQzYqbrEVwjJgWYWQK0kveVZ3XOPoMEJ/UPEyWP9SH0iBdpdPeyUAybw
+	 tyehyYn8kwXXgrCdKI4x2GAJiqgz56eINcrhYFz1XvF5/BPBYqtTHMHs6NLQZ5XtZ20s7
+	 foR1N2UGVNYSnGDSCVG14+ch086oSbwgm9aDfSPXqO1kGrPVtEh76fGYbCStTqOTwNLQB
+	 BLg43HeGeKVlpIkJUccTI8dAMvj2QkI3pTxXZm9/vTm2pT4rzX8ZqOnclT0ZOpofyOffr
+	 tYQlAFWqVL+96K163Z0nvGmJgjDygQurUUXVclg7ZcSBnbdtWbXqg/k0xYa1guM3mag==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793079140;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
-	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:Date:From:
-	 To:Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To:X-Proofpoint-ORIG-GUID:
-	 X-Proofpoint-GUID:X-Authority-Analysis:X-Proofpoint-Spam-Details-Enc:
-	 X-Proofpoint-Spam-Info:X-Proofpoint-Virus-Version:
-	 X-Proofpoint-Spam-Details;
-	bh=VpHSucyNN1LDa5ApCaatg77B1Q+sqWuq080vIR/b0Fs=;
-	b=DaS2LP0PaTv3X6vVNBFA6uvFv4J/0zis7rWBs3zfDhVGfynmWt/oHx2X5YPRnL4TVmYb
-	 cw3icZlK+Qb4XeB3Zvm518FQu3UicUyb5fwGrKQwqhvpq58bygMLVAO707kYio0XyiiXb
-	 TxDJhlFW8pXvUpEVsPuWXfl7ySSQu553aIQapFxlsPuSJF9jBe70wdC99p0vli7pfom7d
-	 NEMSYFRNGIVKo51iC3nExzPnbOVzQjlUROWzeseaAFY9BRDvUGtTc0nx2fbxh8eFopbZy
-	 jJYlJ/C0rlNZ0ToXWff/vV93MxP9JhFUCspqvqJZb+cMQxyM8XWdg6CyAIucwRXckFg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793083751;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
+	 Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding:
+	 X-CM-TRANSID:X-Coremail-Antispam:X-CM-SenderInfo;
+	bh=gpEAWVIxbWupLzv90UrOrrFdVYEi/6hmO1ydhABKc4g=;
+	b=M0sJcXfzdkl3MiDGIbE79ev7TPXqLO9EO0TCQkLzIxHBH/xWuJPYD3C2BIh2bl75fnni
+	 Cw34TbPXUy+CK0hgWCottVJOdCtZtjYRWrGv9FUMXwpfcxe5Ab5DLH8K9PvXV+q0B6/mZ
+	 onXuoMHI30lA/9BTKZG7tTWbPfWwbUoTSMOLg1tqc4s+SWDmjf5OR78smYXKLQeGdjKf8
+	 8frhhZwHMfXOvqmlTGOBmvOP026niYc8C7NoVTGWiFlPqH6VxsBnCDgcdDUDuZq/Po5ZX
+	 s2gP8jEP2UY77Up4W7vjc0bn6SpdMOV50KAmboaZh2ANWioRA5YWvpB7oeoOPI7+P5Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=oss.qualcomm.com;
-	spf=pass smtp.mailfrom=oss.qualcomm.com;
-	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=S5u+X6ID;
-	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=bpI4Rkce;
-	arc=none smtp.remote-ip=205.220.168.131
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+	dmarc=pass header.from=163.com;
+	spf=pass smtp.mailfrom=163.com;
+	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=HKKmRv+g;
+	arc=none smtp.remote-ip=117.135.210.3
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.3])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 314DB606A31B
-	for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2026 05:32:19 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 314DB606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6649A606A31B;
+	Tue, 27 Oct 2026 06:49:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6649A606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=S5u+X6ID;
-	dkim=pass (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=bpI4Rkce
-Received: from pps.filterd (m0279863.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69R2FGfS867632
-	for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2026 05:32:19 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=qcppdkim1; bh=VpHSucyNN1LDa5ApCaatg77B
-	1Q+sqWuq080vIR/b0Fs=; b=S5u+X6IDdAqSFMJ/sWFXego0TywOvH3i2WaDBwXL
-	mfDX8VulUGbMrrfYuEcCZ1izjFgzaIrtWd9yxtNA0qeqD7VOsM4ia5hN2HGXcOml
-	uTQb9ugVR7xpwkYbLrCl6fiksvHkkO3Dd5ubaWPUyuxgkBtpIiw/h/Di7Lbko6as
-	j/UPCPe3ww0utvfbRS54B5/lukNbt4BfwSkRCc6Yr4gmm9g2ggWG1idnUE+APZtG
-	OHifiAhrl9MpdF6EFICaQa9Ufp7aMytkMHUCmcpLhjgnZvisX5hrbi6HSsSRWE25
-	AksywJxYyO7jNCA0Y1dQSI6nbsRFx2rf/pb1AFANpAhyqQ==
-Received: from mail-dl1-f69.google.com (mail-dl1-f69.google.com [74.125.82.69])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hj79xu8h6-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2026 05:32:19 +0000 (GMT)
-Received: by mail-dl1-f69.google.com with SMTP id a92af1059eb24-147be78cd56so2087394c88.1
-        for <linux-acpi@vger.kernel.org>; Mon, 26 Oct 2026 22:32:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1793079139; x=1793683939; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=VpHSucyNN1LDa5ApCaatg77B1Q+sqWuq080vIR/b0Fs=;
-        b=bpI4RkceNKUc2NF0b7jmDkvKf5yHbHtt+mPy5Spyf/y7Cs2iFHyz3/9u4RScEuN8tl
-         2mRXi/82SFU1A3/V3EU7DYuw04iS/cineFp7t5kdx2ZznsfTT2iEMIzk4XsVVGdGjENP
-         /advAMN1d/Cm4vGH288m3RtRZ+BSKkcvJ3cw/Ich09XhUZS9ZSLVOAM5UN4idV1ffDx5
-         Lh37qDxoGdpzjKWbgMwKD2l3ecVGZOLAvyGd6HwdtfrmFn/CpMur+hhbyUn5ub0YwFIW
-         k/glP9Jw397nqZnB3iBDj/HElOMZR3AgeJFWIclGwovmhPeF1SlG0LQu7JWGTkkXHeRH
-         dYHQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793079139; x=1793683939;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=VpHSucyNN1LDa5ApCaatg77B1Q+sqWuq080vIR/b0Fs=;
-        b=bSuZ/DypE6lPl9tocccF9OeUVn8lYVAxbYBgZktUBKaWaDyOcDhENY/16brjh1Xyjg
-         W8/G/NstPIDqg8/uFblZT8PgMiPR0YWI9nzvydoad6ENxIx5asabqp1C4F8BRbZYmE9F
-         VyG/ryQDx4cLJP7wB2ZG3lEhDCMm7L82ppVyWGiwZeLtmjEBSPGnlXFSHlKYM1omaEal
-         OSFyHOzWy0dytzvDu8CyAZgKAr9QGvVg6sixpOIrEtA0SRmvX8JhYmxexcED8VXGIG2C
-         WqW4iTJOkK6GfwV70wL+AGz/68EaOgEaJ4bWnabn2Qz0cbEHoLcm3jUdkMfP6NV8JVN9
-         HBeA==
-X-Forwarded-Encrypted: i=1; AKwUvBwpqlFQHbjjXK5Dcqb2SYRPRgPe0odjXJ1CSbrvSqPobMGVfcF5UiVgb0G8hGtQIMwU8D3dfHVsrxda@vger.kernel.org
-X-Gm-Message-State: AFq9FYKT1VyDIbwle8GSV0tZSafvoe0EAtYiAvgyL7IMYTA7dQdyDj46
-	VHW/NsPI8UN3+QnT/pe1WCEEiAuAe2lF4ehupVpdlNVzR70XjhPWrWoN6F0lEVW6cmtTs8o2tTQ
-	ylWtif0fAF1yS+JX5Pbb8Ne1e7hdFjmbYoMCW2wkgARh3YnIhNovVZD6jw8aVWJZP
-X-Gm-Gg: AYBFou0cMsosEpYKgy1pB6WJ/8DhaAH8B5G9AMOQ8iKag7sfpNODHFx/SmXGj8fFTmw
-	EqhhsTlaa2Pfjq+xCVqUB/S7hIhSDGUJ0T6NyT4Y2ohA0lEmlrmIfNJDPZe/atbtb2fP7MRYRiz
-	mnzbcaznN5KgfGmDvzSXZd44KDAD3wogOsDCDFs5cv8xghj9ldqroUSqDyH6wGVsrlT8uHR8c/L
-	inq0CAm5BSxL2NH1XFoTXaxeILvKPwmTPorThAfV7iV3rvbzd4mcyupL90N963KSlLYwnmmY1XR
-	UpiE3XQyzVUTKl5pegOdXhDZ6n2o9Vy4yv0tfp7ALc7uTt0UtsIzrK8J3ZBoytklW33WdBHMqdJ
-	pcggWayxvFjd9hwOen4PN0Sl7tG4KMXWrO6+fBPpq5qfDHU2lzmNugo3w2KkIljBura78pAPNBq
-	vq+wBTbXPZA1/XQ1g4UVTSES8=
-X-Received: by 2002:a05:7022:68f:b0:1a4:c892:b130 with SMTP id a92af1059eb24-1a4c892b30emr987460c88.15.1793079138457;
-        Mon, 26 Oct 2026 22:32:18 -0700 (PDT)
-X-Received: by 2002:a05:7022:68f:b0:1a4:c892:b130 with SMTP id a92af1059eb24-1a4c892b30emr987444c88.15.1793079137877;
-        Mon, 26 Oct 2026 22:32:17 -0700 (PDT)
-Received: from hu-himchau-blr.qualcomm.com (blr-bdr-fw-01_GlobalNAT_AllZones-Outside.qualcomm.com. [103.229.18.19])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-198a37c88aasm27316225c88.23.2026.10.26.22.32.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 26 Oct 2026 22:32:17 -0700 (PDT)
-Date: Tue, 27 Oct 2026 11:02:09 +0530
-From: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
-To: linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org,
-        rafael@kernel.org
-Cc: acpica-devel@lists.linux.dev, anup.patel@oss.qualcomm.com, ardb@kernel.org,
-        conor@kernel.org, james.morse@arm.com, lenb@kernel.org,
-        palmer@dabbelt.com, paul.walmsley@sifive.com, robert.moore@intel.com,
-        sunilvl@oss.qualcomm.com, tony.luck@intel.com,
-        zhangzhanpeng.jasper@bytedance.com
-Subject: Re: [PATCH v5 3/9] Introduce a new HEST notification type for RISC-V
- SSE events.
-Message-ID: <auA3WZf5rLlx4Lve@hu-himchau-blr.qualcomm.com>
-References: <20260924073714.1650588-1-himanshu.chauhan@oss.qualcomm.com>
- <20260924073714.1650588-4-himanshu.chauhan@oss.qualcomm.com>
+	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=HKKmRv+g
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=gp
+	EAWVIxbWupLzv90UrOrrFdVYEi/6hmO1ydhABKc4g=; b=HKKmRv+g8Z/PAAXJV8
+	owYL14OEAqJkAZ2zwkiKg5sNdw704YfZa0+Bhp3wEb6shByHoO0hD8kR0WvPT0HB
+	ghao3680vTORxfDv2+joN7cDoLjYiZgsKGTS1YDpu6NHIrs7EWZX3fdcuKdnt34m
+	xkedVKESwTT8X+eERTUm5Se0Y=
+Received: from pc.localdomain (unknown [])
+	by gzsmtp4 (Coremail) with SMTP id PygvCgBnk4tESeBqAJpjCQ--.31930S2;
+	Tue, 27 Oct 2026 14:48:37 +0800 (CST)
+From: Jiale Yao <yaojiale02@163.com>
+To: Sudeep Holla <sudeep.holla@kernel.org>,
+	Jassi Brar <jassisinghbrar@gmail.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Mark Brown <broonie@kernel.org>,
+	Ashwin Chaugule <ashwin.chaugule@linaro.org>,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: stable@vger.kernel.org
+Subject: [PATCH v3] mailbox: pcc: validate PCCT subspaces before parsing
+Date: Tue, 27 Oct 2026 14:48:35 +0800
+Message-Id: <20261027064835.2264459-1-yaojiale02@163.com>
+X-Mailer: git-send-email 2.34.1
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -126,74 +64,105 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260924073714.1650588-4-himanshu.chauhan@oss.qualcomm.com>
-X-Proofpoint-ORIG-GUID: f6zgDBM6erzP4RndcT3qx5OODe4x4b5x
-X-Proofpoint-GUID: f6zgDBM6erzP4RndcT3qx5OODe4x4b5x
-X-Authority-Analysis: v=2.4 cv=FPyOVOos c=1 sm=1 tr=0 ts=6ae03763 cx=c_pps
- a=kVLUcbK0zfr7ocalXnG1qA==:117 a=Ou0eQOY4+eZoSc0qltEV5Q==:17
- a=kj9zAlcOel0A:10 a=660iZSQnnn4A:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=yOCtJkima9RkubShWh1s:22
- a=NEAV23lmAAAA:8 a=EUspDBNiAAAA:8 a=wNwvQHF-ByPSNzcBtQ4A:9 a=CjuIK1q_8ugA:10
- a=vr4QvYf-bLy2KjpDp97w:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDI3MDAyMSBTYWx0ZWRfX33ENilJVImNG
- YAZxbHwC3qpjX+PSmvmwQIS+zLOLDllopU8ZGFhGRHgvOCWjsU70Tx5fgZDQNelaUMf4ITkOH0C
- ez+89fqpN4h2mTtMBrGvnBFv7svW4dpYkNzUMt0FpBlL5CXKQtsf6oF9TX+bypDE4jZmvewFIRr
- OWK7tAiyyH+Cn8xhO+phLHrGdc+x9oLRQpHMEWO/5UzP3GwcoSYexmlNtktW95wFQEIs/mOh715
- rPAVhXkjjssC8Uyf8ZWi45IRcKSFA0WXT5VXyAmys8p/z+f7N/BzUVJ+YesrygV2aIPju99V0ql
- uoNyQUWmwRyC//8q0TQliWONlGJHOAQKmYw/dMeDmiXVnpnWKGn2FVacg1YaGEEieY+cMYkFvFw
- 4JylnYWKdK8V73doHSgOYzXHvqIojF/CEdNbPXj02OxvlYhMHQjzm+2XxTfzaQQCcjiO+tHZaC2
- LoRVRly5+dAccaQTqWw==
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDI3MDAyMSBTYWx0ZWRfX2OJkm2XTckKF
- uD0GVgROct93yqNpyuB32R0/nw2ISwVLgEkHZDQBtvme4zWTwNqOfSiuvA1AZLhWU/uHMck3M4G
- d3hIqS81qC3P5oByaMZaVKX7fD67nvQ=
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-10-27_01,2026-10-21_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- bulkscore=0 clxscore=1015 spamscore=0 priorityscore=1501 suspectscore=0
- phishscore=0 adultscore=0 malwarescore=0 impostorscore=0 lowpriorityscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2610190000 definitions=main-2610270021
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:PygvCgBnk4tESeBqAJpjCQ--.31930S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxAr1kAry7KFW5Cr1UGrW7Arb_yoW5ZFWxpF
+	WY9a9IywsxAa13Wry2vws5AFyfCws7ZFyUKrWfGa42qwsrGF45XFy0k3yjgr98Jrs29F1a
+	van0gF1DCrWqyF7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07UdkuxUUUUU=
+X-CM-SenderInfo: x1dryxhdohiji6rwjhhfrp/xtbCzQU2cGrgSUUXAQAA3e
 
-On Thu, Sep 24, 2026 at 01:07:08PM +0530, Himanshu Chauhan wrote:
-> The GHES entry's notification structure contains the notification
-> to be used for a given error source. For error sources delivering
-> events over SSE, it should contain the new SSE notification type.
-> acpi: Introduce SSE in HEST notification types
-> 
-> ACPICA commit f73f39352c1170464afe812cc96b20cc9db1d822
+The PCC mailbox driver counts PCCT entries before its probe walks the
+same records by their declared lengths and passes them to type-specific
+parsers.  The counting pass currently accepts entries based only on their
+type, so a malformed entry can move the probe cursor outside the table or
+cause an out-of-bounds field read.
 
-Hi Rafael,
+Validate each entry against the table boundary and the minimum size of
+its PCCT subspace type during the initial ACPI parsing pass.  This also
+covers Type 5 hardware register communication subspaces before the same
+immutable table is consumed by the mailbox probe.
 
-This is merged in ACPICA. Could you please pick it up for Linux kernel?
-Once you do that I will drop this patch from here.
+Fixes: 86c22f8c9a3b ("Mailbox: Add support for Platform Communication Channel")
+Cc: stable@vger.kernel.org
+Signed-off-by: Jiale Yao <yaojiale02@163.com>
+---
 
-Regards
-Himanshu
+Notes:
+    Changes in v3:
+    - Add the minimum size for Type 5 hardware register communication
+      subspaces.
+    - Reject unsupported types before indexing the minimum-length table.
+    - Drop duplicate validation from pcc_mbox_probe(), since the entries are
+      already validated by the initial ACPI parsing pass.
+    
+    Changes in v2:
+    - Replace the type switch with a minimum-length lookup table.
+    - Remove the redundant remaining-header-size check.
+    - Keep an explicit type bound check before indexing the table.
 
-> 
-> Link: https://github.com/open-acpica/acpica/commit/f73f3935
-> Signed-off-by: Himanshu Chauhan <himanshu.chauhan@oss.qualcomm.com>
-> ---
->  include/acpi/actbl1.h | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-> index d824838cb7af..105fd51f83ec 100644
-> --- a/include/acpi/actbl1.h
-> +++ b/include/acpi/actbl1.h
-> @@ -1798,7 +1798,8 @@ enum acpi_hest_notify_types {
->  	ACPI_HEST_NOTIFY_SEI = 9,	/* ACPI 6.1 */
->  	ACPI_HEST_NOTIFY_GSIV = 10,	/* ACPI 6.1 */
->  	ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED = 11,	/* ACPI 6.2 */
-> -	ACPI_HEST_NOTIFY_RESERVED = 12	/* 12 and greater are reserved */
-> +	ACPI_HEST_NOTIFY_SSE = 12, /* RISCV SSE */
-> +	ACPI_HEST_NOTIFY_RESERVED = 13	/* 13 and greater are reserved */
->  };
->  
->  /* Values for config_write_enable bitfield above */
-> -- 
-> 2.43.0
-> 
+ drivers/mailbox/pcc.c | 40 +++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 37 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index 14dc4a187bfc..5d20c5a6d183 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -560,6 +560,37 @@ static const struct mbox_chan_ops pcc_chan_ops = {
+ 	.last_tx_done = pcc_last_tx_done,
+ };
+ 
++static const u16 pcc_subspace_min_len[ACPI_PCCT_TYPE_RESERVED] = {
++	[ACPI_PCCT_TYPE_GENERIC_SUBSPACE] =
++		sizeof(struct acpi_pcct_subspace),
++	[ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE] =
++		sizeof(struct acpi_pcct_hw_reduced),
++	[ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2] =
++		sizeof(struct acpi_pcct_hw_reduced_type2),
++	[ACPI_PCCT_TYPE_EXT_PCC_MASTER_SUBSPACE] =
++		sizeof(struct acpi_pcct_ext_pcc_master),
++	[ACPI_PCCT_TYPE_EXT_PCC_SLAVE_SUBSPACE] =
++		sizeof(struct acpi_pcct_ext_pcc_slave),
++	[ACPI_PCCT_TYPE_HW_REG_COMM_SUBSPACE] =
++		sizeof(struct acpi_pcct_hw_reg),
++};
++
++static bool pcc_subspace_is_valid(struct acpi_subtable_header *entry,
++				  unsigned long end)
++{
++	unsigned long start = (unsigned long)entry;
++	size_t length;
++
++	if (start >= end)
++		return false;
++
++	length = entry->length;
++	if (length < sizeof(*entry) || length > end - start)
++		return false;
++
++	return length >= pcc_subspace_min_len[entry->type];
++}
++
+ /**
+  * parse_pcc_subspace - Count PCC subspaces defined
+  * @header: Pointer to the ACPI subtable header under the PCCT.
+@@ -575,10 +606,13 @@ static int parse_pcc_subspace(union acpi_subtable_headers *header,
+ {
+ 	struct acpi_pcct_subspace *ss = (struct acpi_pcct_subspace *) header;
+ 
+-	if (ss->header.type < ACPI_PCCT_TYPE_RESERVED)
+-		return 0;
++	if (ss->header.type >= ACPI_PCCT_TYPE_RESERVED)
++		return -EINVAL;
+ 
+-	return -EINVAL;
++	if (!pcc_subspace_is_valid(&ss->header, end))
++		return -EINVAL;
++
++	return 0;
+ }
+ 
+ static int
+-- 
+2.34.1
+
