@@ -1,102 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.217.50
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793129750;
-	b=hb2Chq8w5eZ5qPMfHWLZ8MvXliggU9PqnMOWJnBWLS2J8R++EF7vdrVbh8T8PqBMTxQg
-	 6lU29uwrboK0KAI8YnBpVA1Itoc0qzRWiU1wa7TbCJ8YTkQ69SQwURtcamX3YPoXIc7Cw
-	 pNJeJLdVtzzTYRU+TzxvSVNHsrLBYB+Imd/+/l3N7+QHKE+E1Vsi3XAUIqjXs5HOHjOK3
-	 1xCpQqVQ31xyPNfI73001cpKVLSpZ+AVWxXKyBJYjxeeZYkiL4xXP6ULWSflRfDgFyvZM
-	 INvcC0WFramT0hdzvLz/DRC50Hc8LWiph+NOQuqQfIDjvd4suQIbgJjbiOmTmvNfyXw==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793129750;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Received:MIME-Version:From:Date:X-Gm-Features:Message-ID:Subject:To:
-	 Cc:Content-Type;
-	bh=Kr25tb8aKKVDsSBMDxMVqNwU3+3CPJTi/YKdbs6iD7s=;
-	b=kVWuvwBlcZnxZtKPRjuNB6DctyYygPVtKWXToj8x4k1wChXiTq1SKGpf+t9iiMpGs05/
-	 Mrn6VXC23yaUsu2Eu8To/vzDjkMOSDXc/m5ycnPxDmgSPkMEiSefwwdxEZiLoUQjWWh30
-	 9QRHus+4/Z2T/tuaCGF84eLsgA7/TGWm709G5OqId9Gwvo7/clrkF8/Jr8orMN4Gst30B
-	 LkYdorsRQl0c3+thFJJ8BEl+eyl0X2xeqvbVqkfulCUo55AkyZdTcbZp7k7+hUeOWTtvz
-	 3/lM7goSJPejtURxWB7E83FwF7MQmBHey57oD0tZbbgPzufzwIg2WrKa28B9AplTJmA==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=incrediblybased.co;
-	spf=pass smtp.mailfrom=incrediblybased.co;
-	dkim=pass header.d=incrediblybased-co.20260707.gappssmtp.com header.i=@incrediblybased-co.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=KxYvUv5K;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.217.50
-Received: from mail-vs1-f50.google.com (mail-vs1-f50.google.com [209.85.217.50])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47679606A320
-	for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2026 19:35:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 47679606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=incrediblybased.co
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=incrediblybased.co
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793138764;
+	b=L4taPPkjix2gMeLWYkYyNXy5v7cgwXNwVQTdUHJiSy+I2m01ZCmDA6GzpmWUX3Mu3wuo
+	 VG7EfUKxCrvQ3OsxK82BsqbaaAdy/RksEWKksEfT47yfy7bdR5ExvkS4ivWjeb353Gils
+	 HVyTPp1lEzr8UZZvAZPAED8Fq0FwyRkpeTLm3l6ZLhMGd60sZ77OSWBNXcfBlhvsDksVn
+	 37UO24MD4PQObXXxEihOiwSamyIEWfY0mYgzWYdIYl8osc5BzByESGU02Fmsr5zPIVSA/
+	 5bIs49ByaC5b6o7EP/mFSYYUfxXxyWXM+11aPVBUCa24FaUBo8x+C6caDDtQ/YEbTNw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793138764;
+	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=vySLIQQrOpRA/y5UBuyEyI6yVPpsYFavFBurV9vS+EM=;
+	b=UB91gI335HMe6WS6oekbGK0ijD8RnUvw8PAqpqkdvVEupY1pnLdJLbQVeUcKIvAPgEW2
+	 /aoNDDrofwJAoBhFlNnrk5kz+XD9Ck7d6CGO8brdZNfgtkF4O00dx5ojZJf3YAAaubOhC
+	 VAvGscsiB0nIFVIQFua0ghWri9xw+fwNQkTY/N2O08j1fryPxE2HwZpHJtpjohnTqHKju
+	 63DcYfJuOyX173vXYKbvUQ2lPz/asy7kuXPHw1i6r7njWxnBMa+42GlChZZzFgWU/vV7z
+	 OS0OSeh+W/tjVg+C0kO4AE0PEhIux8YWnlCIhFIx0ZMFOMq1AJcS6jS6eKa/VR6F20A==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=linux.microsoft.com;
+	spf=pass smtp.mailfrom=linux.microsoft.com;
+	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=DF3QAxMp;
+	arc=none smtp.remote-ip=13.77.154.182
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D5AE0606A31A;
+	Tue, 27 Oct 2026 22:06:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D5AE0606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=incrediblybased-co.20260707.gappssmtp.com header.i=@incrediblybased-co.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=KxYvUv5K
-Received: by mail-vs1-f50.google.com with SMTP id ada2fe7eead31-7ccae9f1a9eso97139137.1
-        for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2026 12:35:49 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1793129748; cv=none;
-        d=google.com; s=arc-20260327;
-        b=dwwE4O/2bCeqKIrUtUItP884hgCGr/FtEcwLlIR5R4GANLTjtDqPFVN0WL6IH+tStU
-         T49WmPqqfEevJ3JoJWLx6ysjgXpOVZwQ7ZWwXJozHW8hD31IJ6XVQhwGhD2237MUu5k6
-         5JZ5gHRry44Ir/6flMiv6iM0yJXvxs9m2iceh9CHkUrx02McoipguiLLEMmhRMQXbbvH
-         rvGte8Ro+IOvBkVImWavVAMqf+vKPp8HlUFugN1zNOlZjD19OmMx3SRaL/T89RngXyEW
-         fHTbHmvSYLWYi6GW/2fvIgahTi+nndWCof5dAsw0dDqjAr3/UZPANFtEq1KvOnmO361C
-         w4Rw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
-        bh=Kr25tb8aKKVDsSBMDxMVqNwU3+3CPJTi/YKdbs6iD7s=;
-        fh=satiiEOh1zFosGbYUT/k1pFzDkKNspz2fV/Ete2d+B4=;
-        b=lpiJgQmSuCVFO2gvLKw/t6lXph8Vb4qg6fwYaDVfB++1dNzL8oq7/31WuGkjG8mGMR
-         kHRoc6PASsSrLJbDIPrJ4cDkl0KGCbI5uwv+XCkFAYkk/4+a815rU7fp3ukw/yt+s7VD
-         zpFzyigyClxk/4Ft9DaIVthxbuvgYh1ziTd/rvERRc7bORc2FPw46mqDRzBNER11pbLK
-         fuiHAhRhOMESsaF32SFWgAapEzRE7WiGrtRnux7OlFUr5PzPKPbajWuFPlis1Pr7Fi6J
-         snjljrRRppvV2mhOOWzOhXJpwWuncHShN1rlVP18nQjn84ZboIQQfPXVOOTA8cvQ3l3h
-         IT7A==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=incrediblybased-co.20260707.gappssmtp.com; s=20260707; t=1793129748; x=1793734548; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Kr25tb8aKKVDsSBMDxMVqNwU3+3CPJTi/YKdbs6iD7s=;
-        b=KxYvUv5K9QguqtqNL8eVfLEmUODylQ/dB/hJ9ZrwwE5dcmCGtZ+Fe5QsbE3FaLePZO
-         ou0p2UF3NeoTpJqCJEIyYqqxCv4/C6T5GSMMr51QHVR/PKeP6UTcZLVSZ5RrWNAwuOLx
-         beqxAcf44758Li+wL33TeOu/qSPbebBio5z2CVNlj2lCXODrj17RuOrJzqQggCCJfuUj
-         8K6njBh0M5qDq61NEeioWEojSmivakZTJ5mgy8bq7I7kOrARG4zDqnwo6hmnmTVgEwuU
-         DFnlqSHGpl9teYUCoDrb9/Sagig1QcraBn3cLwYid8l4rC1YK8L6iEYUcMIXjpqBJYVd
-         hyuA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793129748; x=1793734548;
-        h=content-type:cc:to:subject:message-id:date:from:mime-version
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=Kr25tb8aKKVDsSBMDxMVqNwU3+3CPJTi/YKdbs6iD7s=;
-        b=kc5wG09Jo9swkEyYAO5GFz63ZN6l1QYAspxkWFjSIJGe61JmfZ1ibyOTyWR79Y5on3
-         kNkE0Y9ZE2UeLMmQayad2fYXrNz0v2IsKbtbC/pDfrAYSt1wpca6fcG6nhuJ4DnMDvjP
-         WjwpPCw8qWy61LpO0716k+WK0pvvpGEd6Qe9yFvVXJjsWvh9gNwdBlgLYUdrn3FzvGuw
-         wA4AZcS8WUKKHQCmL2G9atOrbiwy7EUrNY9RDdqIPEE1AYZ2dmTTQoRlQFBdV9oTEsQW
-         qrT8+DjF7vrASsvvK66lVT6eMaJt3El9fGGZ0WApmGtE4006Y1cZMExBpKgEW1mercFc
-         bq+g==
-X-Forwarded-Encrypted: i=1; AKwUvBx7NoWKZhpjL73o/CWTDi9hRCQCmi1jlnOrnhf5oSQj2/j8zb7XoxtmxOHJSRDv7pxOJWlkeykNrbtf@vger.kernel.org
-X-Gm-Message-State: AFq9FYJ0c9j25QML4tS2XkoQwmAVL25ZXQwkmXwb6ZrKZWQddxPAZnHD
-	mm5OafktRvHGDjNW3uL1trXbtu8eGdZHu36i19Z6egpdNm4yZCkksQ6jISf8tVSGbqwZWXKF6pU
-	6AX4Dps0C5BX09yuA3qNfbWDgHPUA0rl+3HD4m8dUXTE=
-X-Gm-Gg: AYBFou05JP8cmxkxT7T22KKfbWmt4Em+rGUVVZOZrdcOCZAWAUcYwDr5mDZY02bYzKu
-	rEu6XjkW0kNObC+l9qVveGj0nFgpbdGwGoV03X7ugGsskbzfWh9P+XrYTp9cEzhjWzRuRiOGYH1
-	5xpoFzoF2wQO3Kk+o0QpfhvwV5vtBqGEfk3ZfcyONiYcC5wYnMC6SfyIlvQePCddSNrT8LvHzcX
-	FY2Jkq2dKMVdJkdj2807006MxOgM6e4B1xYtjZ7VUJiwgNYzyngbrznqMKr/tX06NR4U16y+0Nu
-	Ky+M7EEyqLlYARV2SOhW+QbA1NmMXrrr9s9Oxt7rdfXlELXnxvzVeVVoFCsFBznQvXHHDYr9O1j
-	sNlFzH4n418JVmwDWwwy6mt0tMx77d5u3zux16FNGtC1SQSajfH/pUAqun6xTWRvRG9kby9Epoh
-	GOT4E=
-X-Received: by 2002:a05:6102:149a:b0:7a7:198a:c2bc with SMTP id
- ada2fe7eead31-7d03a59fea6mr162128137.36.1793129748205; Tue, 27 Oct 2026
- 12:35:48 -0700 (PDT)
-Received: from 313336824172 named unknown by gmailapi.google.com with
- HTTPREST; Tue, 27 Oct 2026 12:35:47 -0700
-Received: from 313336824172 named unknown by gmailapi.google.com with
- HTTPREST; Tue, 27 Oct 2026 12:35:03 -0700
+	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=DF3QAxMp
+Received: by linux.microsoft.com (Postfix, from userid 1216)
+	id A60F620B7167; Tue, 27 Oct 2026 15:05:52 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A60F620B7167
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1793138752;
+	bh=vySLIQQrOpRA/y5UBuyEyI6yVPpsYFavFBurV9vS+EM=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=DF3QAxMp0/D36bfmk6H5BrtWgkH6wJgWDEKu7XxzbMFe8TtG42fJrz+wFK12odAN/
+	 1qpaDuPG6KNuHHUDr7nlUVQvIwhc+y5n9zeozRY52vVgQUyyeIcwaXKA4QrJhLPHvr
+	 3RYWc/Ujb3bpu/5QJx0PXmInwq/VoKN//Cwbjm4U=
+From: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+To: linux-acpi@vger.kernel.org,
+	linux-rtc@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Alexandre Belloni <alexandre.belloni@bootlin.com>,
+	Ard Biesheuvel <ardb@kernel.org>,
+	Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+Subject: [PATCH v4 1/2] ACPI: TAD: introduce acpi_has_rtc()
+Date: Tue, 27 Oct 2026 18:05:35 -0400
+Message-ID: <20261027220537.3443104-2-hamzamahfooz@linux.microsoft.com>
+X-Mailer: git-send-email 2.43.7
+In-Reply-To: <20261027220537.3443104-1-hamzamahfooz@linux.microsoft.com>
+References: <20261027220537.3443104-1-hamzamahfooz@linux.microsoft.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -106,157 +63,115 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-From: Jeff Bindel <jeff@incrediblybased.co>
-Date: Tue, 27 Oct 2026 12:35:47 -0700
-X-Gm-Features: AclHuK_JRDhmAsbTrBJKBFBIlVAFfkWr8asW316WCB9c_98yS14f4BTiZSAq9k8
-Message-ID: <CAGsrLdZqyqW24RGx_RyztkN4jkb9MvODY0x935B=6arrx_zVuA@mail.gmail.com>
-Subject: [PATCH] ACPICA: Do not abandon reference count update on allocation failure
-To: rafael@kernel.org
-Cc: lenb@kernel.org, maciej.wieczor-retman@intel.com, 
-	pawel.chmielewski@intel.com, tao1.yu@intel.com, linux-acpi@vger.kernel.org, 
-	acpica-devel@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	syzbot+5725792ce6a9938d1b24@syzkaller.appspotmail.com
-Content-Type: multipart/mixed; boundary="000000000000add736065ed78d6e"
+Content-Transfer-Encoding: 8bit
 
---000000000000add736065ed78d6e
-Content-Type: text/plain; charset="UTF-8"
+The same RTC may also be accessible by other means, like the EFI
+GetTime() and SetTime() runtime services used by rtc-efi, which are best
+avoided if there is a native ACPI interface to the RTC.
 
-Hello,
+To allow other RTC drivers to stand down in that case, add an exported
+helper, acpi_has_rtc(), that returns true if there is a TAD the driver
+will register an RTC class device for.
 
-This patch fixes the syzbot KASAN use-after-free in
-acpi_ns_get_attached_object (extid 5725792ce6a9938d1b24). syzbot has
-tested it and the reproducer did not trigger any issue.
+The helper looks for a platform device matching the driver's ID table
+whose _GCP indicates real time support, like acpi_tad_probe() checks,
+instead of checking whether the driver has bound to such a device, so
+that callers need not depend on the order in which drivers are probed.
 
-The same change is being opened as an ACPICA GitHub PR as well.
+Suggested-by: Ard Biesheuvel <ardb@kernel.org>
+Reviewed-by: Ard Biesheuvel <ardb@kernel.org> (v3)
+Signed-off-by: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+---
+ drivers/acpi/acpi_tad.c | 48 ++++++++++++++++++++++++++++++++++++-----
+ include/linux/acpi.h    |  6 ++++++
+ 2 files changed, 49 insertions(+), 5 deletions(-)
 
-Please find the patch attached.
+diff --git a/drivers/acpi/acpi_tad.c b/drivers/acpi/acpi_tad.c
+index 45459a4ca..a07f4f4fd 100644
+--- a/drivers/acpi/acpi_tad.c
++++ b/drivers/acpi/acpi_tad.c
+@@ -622,9 +622,52 @@ static const struct attribute_group acpi_tad_group = {
+ 
+ __ATTRIBUTE_GROUPS(acpi_tad);
+ 
++static const struct acpi_device_id acpi_tad_ids[] = {
++	{"ACPI000E", 0},
++	{}
++};
++
+ #ifdef CONFIG_RTC_CLASS
+ /* RTC class device interface */
+ 
++static int acpi_tad_rtc_match(struct device *dev, const void *data)
++{
++	unsigned long long caps;
++	acpi_status status;
++
++	if (!acpi_match_device(acpi_tad_ids, dev))
++		return 0;
++
++	status = acpi_evaluate_integer(ACPI_HANDLE(dev), "_GCP", NULL, &caps);
++
++	return ACPI_SUCCESS(status) && (caps & ACPI_TAD_RT);
++}
++
++/**
++ * acpi_has_rtc - Check if the RTC should be driven via the ACPI TAD
++ *
++ * Check if there is a TAD implementing the real time methods that this driver
++ * will register an RTC class device for.
++ *
++ * Return: %true if the RTC should be driven via the ACPI TAD, %false otherwise.
++ */
++bool acpi_has_rtc(void)
++{
++	struct device *dev;
++
++	if (acpi_disabled)
++		return false;
++
++	dev = bus_find_device(&platform_bus_type, NULL, NULL,
++			      acpi_tad_rtc_match);
++	if (!dev)
++		return false;
++
++	put_device(dev);
++	return true;
++}
++EXPORT_SYMBOL_GPL(acpi_has_rtc);
++
+ static void acpi_tad_rt_to_tm(struct acpi_tad_rt *rt, struct rtc_time *tm)
+ {
+ 	tm->tm_year = rt->year - 1900;
+@@ -894,11 +937,6 @@ static int acpi_tad_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static const struct acpi_device_id acpi_tad_ids[] = {
+-	{"ACPI000E", 0},
+-	{}
+-};
+-
+ static struct platform_driver acpi_tad_driver = {
+ 	.driver = {
+ 		.name = "acpi-tad",
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index ddacac812..74c60b8e8 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1553,6 +1553,12 @@ extern bool acpi_has_watchdog(void);
+ static inline bool acpi_has_watchdog(void) { return false; }
+ #endif
+ 
++#if IS_REACHABLE(CONFIG_ACPI_TAD) && IS_ENABLED(CONFIG_RTC_CLASS)
++bool acpi_has_rtc(void);
++#else
++static inline bool acpi_has_rtc(void) { return false; }
++#endif
++
+ #ifdef CONFIG_ACPI_SPCR_TABLE
+ extern bool qdf2400_e44_present;
+ int acpi_parse_spcr(bool enable_earlycon, bool enable_console);
+-- 
+2.56.0
 
-Thanks,
-Jeff
-
---000000000000add736065ed78d6e
-Content-Type: text/x-patch; charset="US-ASCII"; 
-	name="0001-ACPICA-Do-not-abandon-reference-count-update-on-allo.patch"
-Content-Disposition: attachment; 
-	filename="0001-ACPICA-Do-not-abandon-reference-count-update-on-allo.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: 865e2a461a5738ba_0.1
-
-RnJvbSAzMmJhN2RlZWY3MGUxNzg3MDA5NGI0YmZmNGZjOWU5NmMyZDdlMzZhIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBKZWZmIEJpbmRlbCA8amVmZkBpbmNyZWRpYmx5YmFzZWQuY28+
-CkRhdGU6IFR1ZSwgMjcgT2N0IDIwMjYgMTA6NDY6NDEgLTA1MDAKU3ViamVjdDogW1BBVENIXSBB
-Q1BJQ0E6IERvIG5vdCBhYmFuZG9uIHJlZmVyZW5jZSBjb3VudCB1cGRhdGUgb24gYWxsb2NhdGlv
-bgogZmFpbHVyZQoKYWNwaV91dF91cGRhdGVfb2JqZWN0X3JlZmVyZW5jZSgpIHdhbGtzIGEgY29t
-cGxleCBvYmplY3QgYW5kIGl0cwpzdWItb2JqZWN0cyB3aXRoIGFuIGV4cGxpY2l0IHN0YWNrIG9m
-IHVwZGF0ZSBzdGF0ZXMuIEVhY2ggY29tcGxleApzdWItb2JqZWN0IChhIG5lc3RlZCBwYWNrYWdl
-LCBhIGxvY2FsIHJlZmVyZW5jZSwgYSBiYW5rL2luZGV4IGZpZWxkCnJlZ2lvbiBvciBkYXRhIG9i
-amVjdCwgLi4uKSBpcyBwdXNoZWQgd2l0aAphY3BpX3V0X2NyZWF0ZV91cGRhdGVfc3RhdGVfYW5k
-X3B1c2goKSwgd2hpY2ggYWxsb2NhdGVzLiBJZiB0aGF0CmFsbG9jYXRpb24gZmFpbHMsIHRoZSBm
-dW5jdGlvbiBqdW1wcyB0byBlcnJvcl9leGl0IGFuZCByZXR1cm5zLgoKVGhlIG9iamVjdCdzIG93
-biBjb3VudCBpcyB1cGRhdGVkIG9ubHkgYWZ0ZXIgaXRzIHN1Yi1vYmplY3RzIGhhdmUgYmVlbgpo
-YW5kbGVkLiBBIGZhaWxlZCBwdXNoIHRoZXJlZm9yZSBsZWF2ZXMgdGhlIHRyZWUgaGFsZi11cGRh
-dGVkOiB0aGUKc3ViLW9iamVjdHMgdmlzaXRlZCBzbyBmYXIgaGF2ZSBiZWVuIGNoYW5nZWQsIHdo
-aWxlIHRoZSBvYmplY3QgaXRzZWxmCmFuZCBldmVyeSBzdWItb2JqZWN0IG5vdCB5ZXQgdmlzaXRl
-ZCBoYXZlIG5vdC4gQWxsIHRocmVlIGNhbGxlcnMKaWdub3JlIHRoZSByZXR1cm4gdmFsdWUgKGFj
-cGlfdXRfYWRkX3JlZmVyZW5jZSgpIGFuZAphY3BpX3V0X3JlbW92ZV9yZWZlcmVuY2UoKSBjYXN0
-IGl0IHRvIHZvaWQsIGFuZCBzbyBkb2VzCmFjcGlfcHNfZXhlY3V0ZV9tZXRob2QoKSkuIFRoZXkg
-aGF2ZSBubyB3YXkgdG8gdGVsbCBob3cgbXVjaCBvZiB0aGUKd2FsayB3YXMgZG9uZSBhbmQgbm8g
-d2F5IHRvIHVuZG8gaXQuCgpzeXpib3QgaGl0cyB0aGlzIHRocm91Z2ggX1BSVCwgd2hpY2ggb24g
-UUVNVSBxMzUgcmV0dXJucyBhIG5hbWVkCnBhY2thZ2UgKFBSVEEvUFJUUCkgd2l0aCBvbmUgc3Vi
-LXBhY2thZ2UgcGVyIHJvdXRpbmcgZW50cnk6CgogMS4gUmV0dXJuIChQUlRBKSBjYWxscyBhY3Bp
-X2V4X3Jlc29sdmVfbm9kZV90b192YWx1ZSgpLCB3aGljaCB0YWtlcyBhCiAgICByZWZlcmVuY2Ug
-b24gdGhlIG5hbWVzcGFjZS1vd25lZCBwYWNrYWdlIHdpdGgKICAgIGFjcGlfdXRfYWRkX3JlZmVy
-ZW5jZSgpLgogMi4gRmF1bHQgaW5qZWN0aW9uIGZhaWxzIHRoZSBzdGF0ZSBhbGxvY2F0aW9uIGZv
-ciBvbmUgb2YgdGhlCiAgICBzdWItcGFja2FnZXMuIFRoZSB3YWxrIGlzIGFiYW5kb25lZCwgYW5k
-IFBSVEEgbmV2ZXIgZ2V0cyBpdHMKICAgIGluY3JlbWVudC4KIDMuIGFjcGlfcnNfZ2V0X3BydF9t
-ZXRob2RfZGF0YSgpIGlzIGRvbmUgd2l0aCB0aGUgcmV0dXJuZWQgb2JqZWN0IGFuZAogICAgY2Fs
-bHMgYWNwaV91dF9yZW1vdmVfcmVmZXJlbmNlKCkuIFRoYXQgZGVjcmVtZW50IHdhbGsgY29tcGxl
-dGVzLAogICAgZHJvcHMgUFJUQSBmcm9tIDEgdG8gMCBhbmQgZnJlZXMgaXQgd2hpbGUgaXQgaXMg
-c3RpbGwgYXR0YWNoZWQgdG8KICAgIHRoZSBcX1NCLlBDSTAuUFJUQSBuYW1lc3BhY2Ugbm9kZS4K
-IDQuIFRoZSBuZXh0IF9QUlQgZXZhbHVhdGlvbiByZWFkcyBub2RlLT5vYmplY3QuIFJlcHJvZHVj
-ZWQgbG9jYWxseSBvbgogICAgbWFpbmxpbmUgd2l0aCBLQVNBTiBhbmQgZmFpbC1udGggdW5kZXIg
-UUVNVSBxMzUgKHRoZSBzdGFja3MgbWF0Y2gKICAgIHRoZSBzeXpib3QgcmVwb3J0KToKCiAgQlVH
-OiBLQVNBTjogc2xhYi11c2UtYWZ0ZXItZnJlZSBpbiBhY3BpX25zX2dldF9hdHRhY2hlZF9vYmpl
-Y3QrMHgxMDUvMHgxNjAKICBSZWFkIG9mIHNpemUgMSBhdCBhZGRyIGZmMTEwMDAwMDFlN2FhMzAg
-YnkgdGFzayBwcnRmYXVsdC84MgogICBhY3BpX25zX2dldF9hdHRhY2hlZF9vYmplY3QKICAgYWNw
-aV9leF9yZXNvbHZlX25vZGVfdG9fdmFsdWUKICAgYWNwaV9leF9yZXNvbHZlX3RvX3ZhbHVlCiAg
-IGFjcGlfZHNfZXZhbHVhdGVfbmFtZV9wYXRoCiAgIGFjcGlfZHNfZXhlY19lbmRfb3AKICAgYWNw
-aV9wc19wYXJzZV9sb29wCiAgIGFjcGlfcHNfcGFyc2VfYW1sCiAgIGFjcGlfcHNfZXhlY3V0ZV9t
-ZXRob2QKICAgYWNwaV9uc19ldmFsdWF0ZQogICBhY3BpX3V0X2V2YWx1YXRlX29iamVjdAogICBh
-Y3BpX3JzX2dldF9wcnRfbWV0aG9kX2RhdGEKICAgYWNwaV9nZXRfaXJxX3JvdXRpbmdfdGFibGUK
-ICAgYWNwaV9wY2lfaXJxX2ZpbmRfcHJ0X2VudHJ5CiAgQWxsb2NhdGVkIGJ5IHRhc2sgMToKICAg
-YWNwaV9kc19jcmVhdGVfbm9kZQogICBhY3BpX2RzX2V4ZWNfZW5kX29wCiAgIC4uLgogICBhY3Bp
-X25zX2xvYWRfdGFibGUKICAgYWNwaV9sb2FkX3RhYmxlcwogICBhY3BpX2luaXQKICBGcmVlZCBi
-eSB0YXNrIDgyOgogICBhY3BpX3V0X2RlbGV0ZV9vYmplY3RfZGVzYwogICBhY3BpX3V0X3VwZGF0
-ZV9yZWZfY291bnQKICAgYWNwaV91dF91cGRhdGVfb2JqZWN0X3JlZmVyZW5jZQogICBhY3BpX3Jz
-X2dldF9wcnRfbWV0aG9kX2RhdGEKICAgYWNwaV9nZXRfaXJxX3JvdXRpbmdfdGFibGUKICAgYWNw
-aV9wY2lfaXJxX2ZpbmRfcHJ0X2VudHJ5CiAgIGFjcGlfcGNpX2lycV9lbmFibGUKICAgZG9fcGNp
-X2VuYWJsZV9kZXZpY2UKICBUaGUgYnVnZ3kgYWRkcmVzcyBiZWxvbmdzIHRvIHRoZSBvYmplY3Qg
-YXQgZmYxMTAwMDAwMWU3YWEyOAogICB3aGljaCBiZWxvbmdzIHRvIHRoZSBjYWNoZSBBY3BpLU9w
-ZXJhbmQgb2Ygc2l6ZSA3MgoKVGhlIHNhbWUgZmFpbHVyZSBkdXJpbmcgYSBkZWNyZW1lbnQgd2Fs
-ayBpcyBub3Qgc2FmZSBlaXRoZXI6IGl0IGxlYXZlcwp0aGUgb2JqZWN0IGFuZCBpdHMgcmVtYWlu
-aW5nIHN1Yi1vYmplY3RzIG92ZXItcmVmZXJlbmNlZCwgc28gdGhleSBhcmUKbmV2ZXIgZnJlZWQu
-IE1ha2luZyBjYWxsZXJzIGhhbmRsZSBhbiBlcnJvciB3b3VsZCBub3QgaGVscCwgYmVjYXVzZSBh
-CnBhcnRpYWwgd2FsayBjYW5ub3QgYmUgcm9sbGVkIGJhY2sgcmVsaWFibHkgdW5kZXIgbWVtb3J5
-IHByZXNzdXJlLgoKTWFrZSB0aGUgd2FsayBhbHdheXMgY29tcGxldGUgaW5zdGVhZC4gV2hlbiBh
-IHN1Yi1vYmplY3QgY2Fubm90IGJlCmRlZmVycmVkIHRvIHRoZSBzdGF0ZSBzdGFjaywgdXBkYXRl
-IGl0IGltbWVkaWF0ZWx5IGJ5IGNhbGxpbmcKYWNwaV91dF91cGRhdGVfb2JqZWN0X3JlZmVyZW5j
-ZSgpIG9uIGl0LiBSZWN1cnNpb24gaGFwcGVucyBvbmx5IHdoZW4gYW4KYWxsb2NhdGlvbiBoYXMg
-anVzdCBmYWlsZWQsIGFuZCBlYWNoIGV4dHJhIGxldmVsIG5lZWRzIGFub3RoZXIgZmFpbGVkCmFs
-bG9jYXRpb24gZm9yIGEgc3ViLW9iamVjdCBuZXN0ZWQgb25lIGxldmVsIGRlZXBlciwgc28gdGhl
-IGRlcHRoIGlzCmJvdW5kZWQgYnkgdGhlIG5lc3RpbmcgZGVwdGggb2YgdGhlIG9iamVjdC4gUmVh
-bCBmaXJtd2FyZSBuZXN0cwpwYWNrYWdlcyBvbmx5IGEgZmV3IGxldmVscyBkZWVwLiAoQW4gb2Jq
-ZWN0IHRoYXQgcmVmZXJzIGJhY2sgdG8gaXRzZWxmCmFscmVhZHkgbWFrZXMgdGhpcyB3YWxrIGxv
-b3AgZm9yZXZlciwgd2l0aCBvciB3aXRob3V0IHRoaXMgY2hhbmdlLikKV2l0aCBlcnJvcl9leGl0
-IGdvbmUgdGhlcmUgaXMgbm90aGluZyBsZWZ0IHRvIGRyYWluIGZyb20gdGhlIHN0YXRlCnN0YWNr
-IG9uIGZhaWx1cmUsIHNvIHJlbW92ZSBpdC4KClRhbyBZdSBhbmFseXNlZCB0aGlzIHJlcG9ydCBm
-aXJzdC4gSGlzIHN5emJvdCBwYXRjaCB0ZXN0cyBzaG93ZWQgdGhhdAp0YWtpbmcgYW4gZXh0cmEg
-cmVmZXJlbmNlIG9uIHJldXNlZCBwYWNrYWdlIGVsZW1lbnRzIGluIGRzcGtnaW5pdC5jCmRvZXMg
-bm90IGZpeCBpdCwgd2hpY2ggcG9pbnRlZCBhd2F5IGZyb20gdGhlIGVsZW1lbnRzIGFuZCB0byB0
-aGUgbmFtZWQKcGFja2FnZSBpdHNlbGYgYXMgdGhlIGZyZWVkIG9iamVjdC4KCkZpeGVzOiAxZGEx
-NzdlNGMzZjQgKCJMaW51eC0yLjYuMTItcmMyIikKUmVwb3J0ZWQtYnk6IHN5emJvdCs1NzI1Nzky
-Y2U2YTk5MzhkMWIyNEBzeXprYWxsZXIuYXBwc3BvdG1haWwuY29tClRlc3RlZC1ieTogc3l6Ym90
-KzU3MjU3OTJjZTZhOTkzOGQxYjI0QHN5emthbGxlci5hcHBzcG90bWFpbC5jb20KQ2xvc2VzOiBo
-dHRwczovL3N5emthbGxlci5hcHBzcG90LmNvbS9idWc/ZXh0aWQ9NTcyNTc5MmNlNmE5OTM4ZDFi
-MjQKQ2M6IFRhbyBZdSA8dGFvMS55dUBpbnRlbC5jb20+ClNpZ25lZC1vZmYtYnk6IEplZmYgQmlu
-ZGVsIDxqZWZmQGluY3JlZGlibHliYXNlZC5jbz4KLS0tCiBkcml2ZXJzL2FjcGkvYWNwaWNhL3V0
-ZGVsZXRlLmMgfCAzMiArKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0tLQogMSBmaWxlIGNo
-YW5nZWQsIDE1IGluc2VydGlvbnMoKyksIDE3IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvYWNwaS9hY3BpY2EvdXRkZWxldGUuYyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvdXRkZWxl
-dGUuYwppbmRleCBlODE4MDA5Li4yOGExM2YwIDEwMDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvYWNw
-aWNhL3V0ZGVsZXRlLmMKKysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS91dGRlbGV0ZS5jCkBAIC01
-NTgsMTIgKzU1OCwxOCBAQCBhY3BpX3V0X3VwZGF0ZV9vYmplY3RfcmVmZXJlbmNlKHVuaW9uIGFj
-cGlfb3BlcmFuZF9vYmplY3QgKm9iamVjdCwgdTE2IGFjdGlvbikKIAkJCQkJLyoKIAkJCQkJICog
-Rm9yIGNvbXBsZXggc3ViLW9iamVjdHMsIHB1c2ggdGhlbSBvbnRvIHRoZSBzdGFjawogCQkJCQkg
-KiBmb3IgbGF0ZXIgcHJvY2Vzc2luZyAodGhpcyBlbGltaW5hdGVzIHJlY3Vyc2lvbi4pCisJCQkJ
-CSAqIElmIG5vIHN0YXRlIGNhbiBiZSBhbGxvY2F0ZWQsIHVwZGF0ZSB0aGUgc3ViLW9iamVjdAor
-CQkJCQkgKiByaWdodCBhd2F5LiBBYmFuZG9uaW5nIHRoZSB3YWxrIGhlcmUgd291bGQgbGVhdmUK
-KwkJCQkJICogdGhpcyBvYmplY3QgYW5kIHRoZSByZW1haW5pbmcgc3ViLW9iamVjdHMgd2l0aAor
-CQkJCQkgKiB1bmJhbGFuY2VkIHJlZmVyZW5jZSBjb3VudHMuCiAJCQkJCSAqLwogCQkJCQlzdGF0
-dXMgPQogCQkJCQkgICAgYWNwaV91dF9jcmVhdGVfdXBkYXRlX3N0YXRlX2FuZF9wdXNoCiAJCQkJ
-CSAgICAobmV4dF9vYmplY3QsIGFjdGlvbiwgJnN0YXRlX2xpc3QpOwogCQkJCQlpZiAoQUNQSV9G
-QUlMVVJFKHN0YXR1cykpIHsKLQkJCQkJCWdvdG8gZXJyb3JfZXhpdDsKKwkJCQkJCSh2b2lkKQor
-CQkJCQkJICAgIGFjcGlfdXRfdXBkYXRlX29iamVjdF9yZWZlcmVuY2UKKwkJCQkJCSAgICAobmV4
-dF9vYmplY3QsIGFjdGlvbik7CiAJCQkJCX0KIAkJCQkJYnJlYWs7CiAJCQkJfQpAQCAtNTg3LDcg
-KzU5MywxMCBAQCBhY3BpX3V0X3VwZGF0ZV9vYmplY3RfcmVmZXJlbmNlKHVuaW9uIGFjcGlfb3Bl
-cmFuZF9vYmplY3QgKm9iamVjdCwgdTE2IGFjdGlvbikKIAkJCQkJCQkJIGFjdGlvbiwKIAkJCQkJ
-CQkJICZzdGF0ZV9saXN0KTsKIAkJCWlmIChBQ1BJX0ZBSUxVUkUoc3RhdHVzKSkgewotCQkJCWdv
-dG8gZXJyb3JfZXhpdDsKKwkJCQkodm9pZClhY3BpX3V0X3VwZGF0ZV9vYmplY3RfcmVmZXJlbmNl
-KG9iamVjdC0+CisJCQkJCQkJCSAgICAgIGJhbmtfZmllbGQuCisJCQkJCQkJCSAgICAgIHJlZ2lv
-bl9vYmosCisJCQkJCQkJCSAgICAgIGFjdGlvbik7CiAJCQl9CiAJCQlicmVhazsKIApAQCAtNjAx
-LDcgKzYxMCwxMCBAQCBhY3BpX3V0X3VwZGF0ZV9vYmplY3RfcmVmZXJlbmNlKHVuaW9uIGFjcGlf
-b3BlcmFuZF9vYmplY3QgKm9iamVjdCwgdTE2IGFjdGlvbikKIAkJCQkJCQkJIGFjdGlvbiwKIAkJ
-CQkJCQkJICZzdGF0ZV9saXN0KTsKIAkJCWlmIChBQ1BJX0ZBSUxVUkUoc3RhdHVzKSkgewotCQkJ
-CWdvdG8gZXJyb3JfZXhpdDsKKwkJCQkodm9pZClhY3BpX3V0X3VwZGF0ZV9vYmplY3RfcmVmZXJl
-bmNlKG9iamVjdC0+CisJCQkJCQkJCSAgICAgIGluZGV4X2ZpZWxkLgorCQkJCQkJCQkgICAgICBk
-YXRhX29iaiwKKwkJCQkJCQkJICAgICAgYWN0aW9uKTsKIAkJCX0KIAkJCWJyZWFrOwogCkBAIC02
-NDUsMjAgKzY1Nyw2IEBAIGFjcGlfdXRfdXBkYXRlX29iamVjdF9yZWZlcmVuY2UodW5pb24gYWNw
-aV9vcGVyYW5kX29iamVjdCAqb2JqZWN0LCB1MTYgYWN0aW9uKQogCX0KIAogCXJldHVybiAoQUVf
-T0spOwotCi1lcnJvcl9leGl0OgotCi0JQUNQSV9FWENFUFRJT04oKEFFX0lORk8sIHN0YXR1cywK
-LQkJCSJDb3VsZCBub3QgdXBkYXRlIG9iamVjdCByZWZlcmVuY2UgY291bnQiKSk7Ci0KLQkvKiBG
-cmVlIGFueSBzdGFja2VkIFVwZGF0ZSBTdGF0ZSBvYmplY3RzICovCi0KLQl3aGlsZSAoc3RhdGVf
-bGlzdCkgewotCQlzdGF0ZSA9IGFjcGlfdXRfcG9wX2dlbmVyaWNfc3RhdGUoJnN0YXRlX2xpc3Qp
-OwotCQlhY3BpX3V0X2RlbGV0ZV9nZW5lcmljX3N0YXRlKHN0YXRlKTsKLQl9Ci0KLQlyZXR1cm4g
-KHN0YXR1cyk7CiB9CiAKIC8qKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqCi0tIAoyLjQ3LjMKCg==
---000000000000add736065ed78d6e--
