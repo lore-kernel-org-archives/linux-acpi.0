@@ -1,79 +1,87 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793074774;
-	b=NfQsfp0CuTLCasyI+ry/h1dGbjbkHxRzIqbVMMp1QUwNcKIkfqOt0iRkiDYV+mWnlHz6
-	 6sqkZC44NmM77Xbg8mPkJaxyV4xppQA+PABD/mifcneCE6HTIkclyKgVjQll53JbJlisx
-	 mEBWKW5IoBYyU1UqxPp1ygRthiY8hq+yGk4xbgcipboMiWncwPYa8jQZRtzNjvtxK+/1c
-	 P1UsPO7c1UsjlP5Fy7qgA52h3LZKDf7LwZWDgOc1DYb0ZDFXStqCzKATge/jM1VJx34gW
-	 V7QfCOcO7iY+P3bmi13ne2U6fMcR6NJn4JNpXgQWKMHV4f2RgT4Vwef+G9fFFAIRbsQ==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793074774;
-	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
-	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
-	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=jYcNSFJWQbwV7tmw1X4E/Xs+jDT2nnzKGwLhUUyePPY=;
-	b=d1uwsZkqpZO6ThK8Xf3DbujUZoMliEBumoLmCOvV60JNrbuWBk0AqhNQFNI8h6nhvLsi
-	 QY8hQRSHZi8G0y//pyFmb6bqqDtBBJtwmMEC4c7Cr3GOVB5YOBYxr4kJKi02x3BI/9Edy
-	 6jsYijOlJRbYV8u/4Mu71gBb+taCTbwujCIYg/r6GAI1eDVn8GaWpJ6P/ezUYXTAs1Hxf
-	 4brjFmEulnnsZ3o5tpGwJA6UZO6Bv1uAkiM+c5Zygliudu+Oh0Y3QldBMYnWMUi/CwOuk
-	 fG0vmaUUpAqGXZnNDOT4Z0fvjYR1Hipbko1hgbWO8Qlic9MtdJnLclH9UeLJJnXMMvw==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EPIWvMIb;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.17
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793079045;
+	b=J6DTmRJIub9QTGSDggXvjo45CbratGv/A8t9jD2a7Ts7sWQfDpsC5HuypoICnNsIyCKt
+	 DizFuRDjGUuh0uG9V32ir7DW35HC5lON1H0C4QeKbUed1XJTHJk54BB9MsdMgFsa8Q5QI
+	 L8yfo2x3XN4qyxlHn0erdDYDH2QnrQUJoOb90+DBmVSxRBLmwIRE9+nK/cgaPofJEPVNL
+	 AJHVOzyN7ONrMQ0LihD2VJKXOhyMhKkK3CrsYqFIetjZizZAKfTJgA3CQWB133YDPhPfN
+	 pyRo+9uRkn+D0gu7x8yHMBUtap74owoA2sUjtVN38SkS6EcN6Rw7dhhWK+EkpUyIWVg==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793079045;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=bI0ZDEugVfoInLkWTnkv29Sk5KHKc3K9ILUm+SD/dc8=;
+	b=CtVPUKlAK+xUjWOkiOZxb2ZZTKAwHPHrduA9tVF+iliUvBw5P62K36jwjF9mRDCMw8Jg
+	 FY7YH1uz4H6/h2gIzh4fGYEhjxS1NPZqe75hg5ljlKlNfQsVEDHHChXp192D8XIBcPgI9
+	 EewvhOqhyj/0Qyu00FPG8AE7hHXhhg2G2TwNeCrmLPFIkZ6rXSVF5/6g6bsSkNzFr7h3V
+	 L51RvLuYT56bi9VLnCoAV6OQfucOyAbRLgjLKjLQRBtFhGfd0Q6CFhSm/vZuhNp7nToKA
+	 ahU3OiBxm96WK1z71AwZLhe9wzR23WiTM04ubTPEEAGvJLw5d8/7Ibk4ky9fCHTXcQQ==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=linux.intel.com;
+	spf=pass smtp.mailfrom=linux.intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b="kK1oCF/w";
+	arc=none smtp.remote-ip=192.198.163.17
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5764160A2604;
-	Tue, 27 Oct 2026 04:19:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB62A606A31B;
+	Tue, 27 Oct 2026 05:30:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DB62A606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EPIWvMIb
-Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
-ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1793074771;
-	b=JVeg7OGDbZo9O7CPmke7HtJFerB2okRXlmzTB74fat6ZYAteBDCUGYzr261w51Zif7Vo
-	 wFCA1+6NBukDjPDUshC4boyEORkEVNrdeVLvedVtLFZwsQ21ozbGlq3aFP2ovC2rPTtv5
-	 GuZj2tdj+kowPm6PdrB+Vi4GU1lwomaHBU+YvPKSye0p6ew3bRvAWfLPVirpEah07mlBW
-	 IKkDjEkJQ9nb8B4EJR+P2uhw5Ob1tm5bM4qnVIiSmfiIE4wCMSDyoTcn2enGGgLpJR4zO
-	 /5Z5YUW/Wd9OcdFTWEe6iLH+ch6Ph/i0lXaOvX+lCmF2OKAUB9U8VjA9Uz0VPdfaOxQ==
-ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1793074771;
-	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
-	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
-	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=jYcNSFJWQbwV7tmw1X4E/Xs+jDT2nnzKGwLhUUyePPY=;
-	b=vK7f1GGV2esi7wWeYt4iBJexEBJovsuX/ISRlUIA+BjFaaB2dw0l7/sNwI+U/sO5IK9p
-	 /0ljRN1GKjtZxHFw+cwyHi43wlPp4MAznDS5OrvXZleGo7dPJa+sEAs+l/fbIyt/8lexQ
-	 rtpb1bhN8vd5vz2F+GmxB4mAqslc6ArN0EOqg7uLRACXGEGac4yhqqccSBqEAfrsQHC6A
-	 OmHObQsvS9YK+zyG2wsXhlwSEFn6sOy7wIbr1WjdO99euTGcW2YUhOcqqoRCGX4y/1FVw
-	 KrFBbvcGyNqNo+PlTqviAaJqdls8W8sn/sTa9rWo6KZCZ6nfJ2xXvg99xseol32CDlQ==
-ARC-Authentication-Results: i=1; smtp.kernel.org; 
-	arc=none smtp.remote-ip=100.80.115.77
-Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id 399271F01829;
-	Tue, 27 Oct 2026 04:19:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793074771;
-	bh=jYcNSFJWQbwV7tmw1X4E/Xs+jDT2nnzKGwLhUUyePPY=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=EPIWvMIb+alRJ1DidTrsZYyTjMjjrMVeL71ZGHeuZW1xJe0aqbRi3ggmv3pGKqesR
-	 cYgkhX33HIGjSwfw2sbhaOpBKV7ltrkErQjMXQTc6dZU6uAc4NXKrgAiTPzQswUuvx
-	 KPPkDvuFV5VaEp//sfrxJXEv4w5DiWbuC7c7+D2ksKZ9sqK4abauBWSfSRt60AbAAm
-	 CfDWSTOrpKDXpvaIHg7vXJfxkmnFibxND2ROoly9Mk9+9rTRZdVPpffdPDrKH9VRhN
-	 1l2QnSg2x80baPdzSq7rkWdH6hEmc5OJUBeYK2g08ML/IsXTTJbzIDI5s2M8wJSMkr
-	 ba8Jb+Vp9xyEg==
-Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id EC8E744F9C;
-	Tue, 27 Oct 2026 04:19:26 +0000 (UTC)
-From: Long Zhao via B4 Relay <devnull+longzhao.ambarella.com@kernel.org>
-Date: Tue, 27 Oct 2026 12:18:55 +0800
-Subject: [PATCH v12 08/11] gpiolib: request ACPI GPIO events for external
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=kK1oCF/w
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1793079044; x=1824615044;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=2WpjaTFHROeNXncH1sB7DMvCxdj1XpNG8d7YiGokm/8=;
+  b=kK1oCF/wY9JGdW1etPEL0kpVGrkOrJ0GUHOU9yzvC+V0h0Mb1T8/V7J5
+   Sj/S38c57eUn4IE4ILDClCGZfSAKhaA83M3EtS5/2p/x2v2uWV3b/JUIV
+   l0KZ8AawTfhGTJO/VZShTBOvuJqViY5ngAFqUoQY08T75v00VZABvoe1v
+   lROlo8uEqCYgMvd/VxrJbEyieH8wD5difJBHLYB7rwL9EtXyMjKMnjVfR
+   sskPseG9NnIRmPwt5qD/3+Ug431HUEY5o+mq6BIKzhF6BLMqN9H8DixTm
+   sAOs3yfa1gQYn0sWLDpM4gdOQoKExGqVUCrfIj76QFeC7V4jZbC3X90CD
+   Q==;
+X-CSE-ConnectionGUID: ZFM7za1GTZ64o9wqqAXXfA==
+X-CSE-MsgGUID: QKTLVurTSgGJlXQXuSZWZw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11947"; a="1780757"
+X-IronPort-AV: E=Sophos;i="6.27,180,1787036400"; 
+   d="scan'208";a="1780757"
+Received: from orviesa008.jf.intel.com ([10.64.159.148])
+  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Oct 2026 22:29:58 -0700
+X-CSE-ConnectionGUID: XidpNHlySEySvMSHywRj4g==
+X-CSE-MsgGUID: kzsLSwvqSuGockY+XdVgYQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,180,1787036400"; 
+   d="scan'208";a="4326428"
+Received: from black.igk.intel.com ([10.91.253.5])
+  by orviesa008.jf.intel.com with ESMTP; 26 Oct 2026 22:29:55 -0700
+Received: by black.igk.intel.com (Postfix, from userid 1001)
+	id B7BB399; Tue, 27 Oct 2026 06:29:53 +0100 (CET)
+Date: Tue, 27 Oct 2026 06:29:53 +0100
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+To: longzhao@ambarella.com
+Cc: Bartosz Golaszewski <brgl@kernel.org>, linux-gpio@vger.kernel.org,
+	Linus Walleij <linusw@kernel.org>,
+	Michael Walle <mwalle@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Rob Herring <robh@kernel.org>,
+	Krzysztof Kozlowski <krzk@kernel.org>,
+	Krzysztof Kozlowski <krzk+dt@kernel.org>,
+	Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>,
+	Conor Dooley <conor+dt@kernel.org>, devicetree@vger.kernel.org,
+	Long Zhao <zl020895@163.com>, linux-kernel@vger.kernel.org,
+	Mika Westerberg <westeri@kernel.org>, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v12 08/11] gpiolib: request ACPI GPIO events for external
  IRQ domains
+Message-ID: <20261027052953.GH158991@black.igk.intel.com>
+References: <20261027-cv75-gpio-v12-0-c22555400e18@ambarella.com>
+ <20261027-cv75-gpio-v12-8-c22555400e18@ambarella.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -83,75 +91,59 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261027-cv75-gpio-v12-8-c22555400e18@ambarella.com>
-References: <20261027-cv75-gpio-v12-0-c22555400e18@ambarella.com>
-In-Reply-To: <20261027-cv75-gpio-v12-0-c22555400e18@ambarella.com>
-To: Bartosz Golaszewski <brgl@kernel.org>, linux-gpio@vger.kernel.org
-Cc: Linus Walleij <linusw@kernel.org>, Michael Walle <mwalle@kernel.org>, 
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, 
- Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>, 
- Conor Dooley <conor+dt@kernel.org>, devicetree@vger.kernel.org, 
- Long Zhao <longzhao@ambarella.com>, Long Zhao <zl020895@163.com>, 
- linux-kernel@vger.kernel.org, Mika Westerberg <westeri@kernel.org>, 
- linux-acpi@vger.kernel.org
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1793074764; l=1248;
- i=longzhao@ambarella.com; s=20260730; h=from:subject:message-id;
- bh=nRKox4n5iPzr9D86wqfw40/IYELOR8mAjPAN763uXlM=;
- b=n8NPaJtugvlc/KLICQTtIdT1uALWO3MuMEpVE1pRqulhwW49hhmuelqnTMqNvQAZxO6nQuXyH
- KS3nVrY7uk0DNnujuKhMp7Nv9oL+MkcnKxdkvgfp3mvflRIpAa1N5rs
-X-Developer-Key: i=longzhao@ambarella.com; a=ed25519;
- pk=/xGhPTOX0/eYsyTWzyjjgAIW1Z/YD+IlnOnvcdRozow=
-X-Endpoint-Received: by B4 Relay for longzhao@ambarella.com/20260730 with
- auth_id=903
-X-Original-From: Long Zhao <longzhao@ambarella.com>
-Reply-To: longzhao@ambarella.com
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20261027-cv75-gpio-v12-8-c22555400e18@ambarella.com>
 
-From: Long Zhao <longzhao@ambarella.com>
+On Tue, Oct 27, 2026 at 12:18:55PM +0800, Long Zhao via B4 Relay wrote:
+> From: Long Zhao <longzhao@ambarella.com>
+> 
+> gpiochip_add_irqchip() requests GPIO-signaled ACPI events after
+> installing the irqchip. A gpiochip that gets its IRQ domain through
+> gpiochip_irqchip_add_domain() never goes through that path, so _AEI
+> events, such as the power button on ARM64 ACPI platforms, are not
+> requested.
+> 
+> Request them here as well. gpiochip_remove() already calls
+> acpi_gpiochip_free_interrupts().
+> 
+> Cc: Mika Westerberg <westeri@kernel.org>
 
-gpiochip_add_irqchip() requests GPIO-signaled ACPI events after
-installing the irqchip. A gpiochip that gets its IRQ domain through
-gpiochip_irqchip_add_domain() never goes through that path, so _AEI
-events, such as the power button on ARM64 ACPI platforms, are not
-requested.
+One tiny comment below, other than that looks good to me,
 
-Request them here as well. gpiochip_remove() already calls
-acpi_gpiochip_free_interrupts().
+Acked-by: Mika Westerberg (Intel) <westeri@kernel.org>
 
-Cc: Mika Westerberg <westeri@kernel.org>
-Cc: linux-acpi@vger.kernel.org
-Signed-off-by: Long Zhao <longzhao@ambarella.com>
----
- drivers/gpio/gpiolib.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+> Cc: linux-acpi@vger.kernel.org
+> Signed-off-by: Long Zhao <longzhao@ambarella.com>
+> ---
+>  drivers/gpio/gpiolib.c | 10 +++++++++-
+>  1 file changed, 9 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+> index e5fb60111151..63c51d9ee0bf 100644
+> --- a/drivers/gpio/gpiolib.c
+> +++ b/drivers/gpio/gpiolib.c
+> @@ -2353,7 +2353,15 @@ static void gpiochip_irqchip_remove(struct gpio_chip *gc)
+>  int gpiochip_irqchip_add_domain(struct gpio_chip *gc,
+>  				struct irq_domain *domain)
+>  {
+> -	return gpiochip_irqchip_add_allocated_domain(gc, domain, true);
+> +	int ret;
+> +
+> +	ret = gpiochip_irqchip_add_allocated_domain(gc, domain, true);
+> +	if (ret)
+> +		return ret;
+> +
+> +	acpi_gpiochip_request_interrupts(gc);
+> +
 
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index e5fb60111151..63c51d9ee0bf 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -2353,7 +2353,15 @@ static void gpiochip_irqchip_remove(struct gpio_chip *gc)
- int gpiochip_irqchip_add_domain(struct gpio_chip *gc,
- 				struct irq_domain *domain)
- {
--	return gpiochip_irqchip_add_allocated_domain(gc, domain, true);
-+	int ret;
-+
-+	ret = gpiochip_irqchip_add_allocated_domain(gc, domain, true);
-+	if (ret)
-+		return ret;
-+
-+	acpi_gpiochip_request_interrupts(gc);
-+
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(gpiochip_irqchip_add_domain);
- 
+Looks better if you drop this empty line.
 
--- 
-2.34.1
-
-
+> +	return 0;
+>  }
+>  EXPORT_SYMBOL_GPL(gpiochip_irqchip_add_domain);
+>  
+> 
+> -- 
+> 2.34.1
+> 
