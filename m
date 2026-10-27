@@ -1,59 +1,92 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=82.195.75.108
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.48
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793114802;
-	b=alNkdVTzDamDqIewsE6u8y5TYJHtExhq1I4gQa2EZ4nT0e15mqqE0+kTxqiBTMTDvR7J
-	 t2JzWcL3J61UM2EkRdCXzFUpjh/M99XJH99/Mg174mGvmtnbVc3tmsqfnnWS7nv+Bi6yX
-	 rfJitsIOH0tIbDE47Bs0r8uKCuVjN2EY3TU0ASB7dt/1kZ+klYM8uLmNWodUl4s23RWIs
-	 bKt3g3Dc107AqkLU0AdCBVZ9pQhxBk2SGL5+dFm9NhKsCTDixZmdeWQRpDjrYUKpldhx2
-	 5mrHH9Ikew0du8JLpeGe16TSHDvQo3aDFogIaVX4yVUReHgJSuAvz/BxIK5TT9BJbJQ==
+	t=1793117817;
+	b=1gQZ/3NTisfxmp9XdJE/Fh9ScodgWyqDTGQL4JTSQFRrJVd16m9RPiRdrKOOevHfKbeC
+	 ENWUDm0bSl+FBecIn0o/1xe3S6G/49JhnlkGmEwZ0M4K4XozOBmR5hhuCIPvZJ+OePkiT
+	 BpQkDgMk7K1di/hKzLufjpXNOyumr1Mtp4i3NhsWjysqN3ylzXj+RTko7L3EPuhqht59l
+	 ClGoNWZ6q6O9nHWmZi0FrdfUzH7Rfra8ySqrJLTJBJ/lBhfZmXotYNayKJp/tkXSymQ0l
+	 JNjoaxeLqnSF3Wq30Z2IPKkQ97shBPIBzzWezhbcAUxNgMobgKtySkI9oa5KiCaMagQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793114802;
-	h=DMARC-Filter:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:Message-Id:X-B4-Tracking:
-	 X-Change-ID:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key:
-	 X-Debian-User;
-	bh=8rPXHlRjc/KL3pUvSAM710RL9aTYgfwMkHA+b32wY5A=;
-	b=M7uNi/afQNWC7JGU9TRGFhRgG1mUBHdcCPVoxKqOWakR37s8XMGqEE78ZVKpDT1bFZ/m
-	 dQajB660a3emZgPEauAjuiOre1bHUZNlEc9c3jKmBvRssp2aYAIq2yzi72+lVKYa0l/4E
-	 iEVXmXf81qwy6wnD6dpXHuJYufieH1kq1b6VP8KKbPKg9c0UNWwXVZXui+GBhsYMI9UUR
-	 cKKPep3oNmL07QuPOO+GPKRojxK77NxYAz4qQfOH7vkuw2+imm7pMjuEzXSRzV0D7Pqmf
-	 NZYVylPxtN1mo1OAQoJdPvSBkEA9Nin5xEz+H7VgB/+2oo8xznDoX8vA9Ik5zpAH24w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793117817;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:X-Google-Original-From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=cPCyqMaKTCMcPIZaD/DpSt+b55Xb3f31eMSeD9/YiJM=;
+	b=Qwgc3qwQaENQQbR83RJoFSThZfsiYdKKCTWKB6m1ykDL7zLjNIvR6WiKz5RHDhn53Ut3
+	 b7iHajWn7s44Fr5O53+UIvF5Mrsjeh/HEzbROECk6o09IV5Qxr9xh7Dbq3p6MeW9pKoXY
+	 WlUgAhI6Ppz+JGBDtJsiCPJpYW9KCBJxvIhBI3Ct143UAdPy/6x+rqHtc+SIN2EU8AAtd
+	 dapR4IVodQGZxTuxEjitXc342fQXrvjRPPcjElIdT37e6v7zAHDzDUE1RH0E8dYpsQHnk
+	 LPTSBjVCe19pk4FxTbkpm0oWzd78edkeU7QeEfPM4SeygpdVW5k1iYtMffiT1qDVJag==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=debian.org;
-	spf=pass smtp.mailfrom=debian.org;
-	dkim=pass header.d=debian.org header.i=@debian.org header.a=rsa-sha256 header.s=smtpauto.stravinsky header.b=fhFulz9h;
-	arc=none smtp.remote-ip=82.195.75.108
-Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=qZUTYq4j;
+	arc=none smtp.remote-ip=209.85.128.48
+Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A51CD606A320;
-	Tue, 27 Oct 2026 15:26:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A51CD606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debian.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31F4B606A324
+	for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2026 16:16:57 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 31F4B606A324
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=debian.org header.i=@debian.org header.a=rsa-sha256 header.s=smtpauto.stravinsky header.b=fhFulz9h
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
-	s=smtpauto.stravinsky; h=X-Debian-User:Cc:To:Message-Id:
-	Content-Transfer-Encoding:Content-Type:MIME-Version:Subject:Date:From:
-	Reply-To:Content-ID:Content-Description:In-Reply-To:References;
-	bh=8rPXHlRjc/KL3pUvSAM710RL9aTYgfwMkHA+b32wY5A=; b=fhFulz9hNNpsZAjM0R00zwyio5
-	/AgtiXls3rwE6QSoIm2STvTJvie5vRJfNClxneCGVRtHmcKh51lUprwG9QckgrkKX7fz8g3y1K4hL
-	edbinFr1KB/gCzUjVQfTDDL+oHdcQ5EzjXVcvOmZ5QxuHDgbsEHDi6gHW6cfxcm5jv/ejTCF3AruS
-	FR6n0/8qR8mmt6lvfUvM7vBzTGHkFM6bFg1/4VJiZBg7gQHrVeLggUg/UL1oBdnHbmEV/lvIX7iyM
-	PwA0UdxQFGZ1NQTZPGxOsZs/n/jOJjnBHWcTboN8Wg4Ll0altWjlRSBmFPupVfcYP2Q4xmqhLCQMk
-	h703HYZQ==;
-Received: from authenticated-user
-	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-	(Exim 4.96)
-	(envelope-from <leitao@debian.org>)
-	id 1xLj4P-001YPI-2w;
-	Tue, 27 Oct 2026 15:26:38 +0000
-From: Breno Leitao <leitao@debian.org>
-Date: Tue, 27 Oct 2026 08:19:14 -0700
-Subject: [PATCH] mailbox: pcc: Complete the transfer when the platform
- flags an error
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=qZUTYq4j
+Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-4a35a60499eso284465e9.0
+        for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2026 09:16:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793117816; x=1793722616; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=cPCyqMaKTCMcPIZaD/DpSt+b55Xb3f31eMSeD9/YiJM=;
+        b=qZUTYq4jWuhlp5D7gKVp1d8huuo/rVtE5YFvyEvvMtnZMFOAAU5lSpyqhfb1kNkXZQ
+         lrixdFFqke4HgiNc3dGkWfXMJxDtDnbqFd3xh3UdSQAToTTethCybrMJKZBj88M+uJ5H
+         OwoKT/felqMYVOaJQ+7/ql74bUD8rAWmlU3NPvygMdNk9xbv7MHF0ycmz0oovQ2BbkBj
+         j7T4sGUvYJziH3uqZF/b5pgTS8/Q2pvh7YeqX/XxekKs2PhVD7S//EKKjxZBcZRPb6AN
+         KO0yRxMV/PSm3GorLG4hL9GcHu65evuRNWUdRY7FhyD5LBO1Az9Fui7W8ntX+9z/cF2n
+         BxOw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793117816; x=1793722616;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=cPCyqMaKTCMcPIZaD/DpSt+b55Xb3f31eMSeD9/YiJM=;
+        b=H2cr1tSxuDrs7OhMIrK/pqll97Iy5v9DcwP2/FxD8XTrJdi2gG8zA72GjKt6GzdhAF
+         BitM377D8xo2w9pBHsbwzAcs1mVsT+YCJVX32pULCSu7dTc6RPjFtiDxEChP08X4VNYM
+         cq5OxDw14iCHcwkVEOcYp23JhDC3u93T3eZviCFyvv/evfirvB1bUkVWghkwjBsaCNYy
+         ncuBKRW7K6/hwc80DRHDDXZoCCpPPHYQw32SPz5bnTKXSpBkZC5SWjKdkjxuFVC9cvw0
+         DNANPVfRu6lwEeieKJG2CoPVvwIcup1B9FQL6Llt+134K8vTsC0d/jlUmt3KhzScAcpp
+         s2VA==
+X-Forwarded-Encrypted: i=1; AKwUvBzXSyfHARyv4KrU+VQZ3BDNinBNgM8PJf8ERwDnkXLBnKOXsIyFdhBHJSffBJY/xQWX8xGp/WZFFNEW@vger.kernel.org
+X-Gm-Message-State: AFq9FYIuAFxfT994degQmSdz4LvYFh/wCc3nd2bhqc8+eZy9ddASivxc
+	tewMjC9yJgDgn66J8Y4uBypJ3GwNFw0ugyx0Jz94zQ+ExO0dHr0B9vRBMoQs3Q==
+X-Gm-Gg: AYBFou19gxEKz2HgKhEN6z+OqXWQAyvb927S05EIes2p5W/hrLVXxPEMXDZY0+x3Knz
+	Kjt3lXdaGRRzdKis9DNiYHG8BmK58vBr4nfqoAHMc5c9NMrxzshL1TleFQkS3p+gU+BWlg5uKpW
+	HCPWqZI7B00Uqt5y3QILpl1jPKVmwd298iCUFr2MPWlrZyp4Y/Ilwou/OhY5DTAG/BJUAnOpYea
+	M6cLLgmunOSVyleqIJnfg0SL1afSS0UTATcVHh7rqlxPkoyKeeXK4nU6z2q8Djm4daLk8PnileD
+	mbCAnfq5PpeodmjlZPAk6jEsC9C+MCN4t4nBzcM64F5bOdB46YhlMvNK+GKm1GwD6OOdWoQPep/
+	OcTJ3NUd5gOoUwxin59i5YccgWmwSMmxuypNlCpVgK1Qzktk9Y/u3tnhBCuVDaQ9aDpHU7rsOsp
+	fDT+gx4RgnQYVrANzoRDP43bHUVMpkr1D/p3YDdW1rsFw11qBoUWrGfp4j9CVzUgBr3vohCyb33
+	pkcZAXbQb2Tb1tt8DHtPWGIa8wePX03Wn095Uq2G0vX4g==
+X-Received: by 2002:a05:600c:4e0e:b0:4a2:397:73f6 with SMTP id 5b1f17b1804b1-4a35ac9d227mr200480015e9.8.1793117814801;
+        Tue, 27 Oct 2026 09:16:54 -0700 (PDT)
+Received: from fedora ([2a02:587:85d1:a500:5135:1deb:a9ab:fb3f])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a928c50222sm1765075e9.1.2026.10.27.09.16.53
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 27 Oct 2026 09:16:54 -0700 (PDT)
+From: George Karagounis <taterraster@gmail.com>
+X-Google-Original-From: George Karagounis <mail@taterr.org>
+To: "Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Len Brown <lenb@kernel.org>,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	mail@taterr.org
+Subject: [PATCH] ACPI: fan: add missing MODULE_DESCRIPTION()
+Date: Tue, 27 Oct 2026 18:16:50 +0200
+Message-ID: <20261027161650.59170-1-mail@taterr.org>
+X-Mailer: git-send-email 2.56.0
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -63,114 +96,31 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261027-pcc_error_txdone-v1-1-2f8cfbb36d90@debian.org>
-X-B4-Tracking: v=1; b=H4sIAPrA4GoC/x3MQQqDMBAF0KsMf20gCTJtc5UiInHU2SQyKSKId
- xf6DvAuNDGVhkQXTA5tWgsShY6Qt6ms4nRGIkQfOfj4cnvOo5hVG3/nXIu4T7/078zBMzM6wm6
- y6Pkvv8N9P8JiFm5iAAAA
-X-Change-ID: 20261027-pcc_error_txdone-94f48c610666
-To: Sudeep Holla <sudeep.holla@kernel.org>, 
- Jassi Brar <jassisinghbrar@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
- kernel-team@meta.com, stable@vger.kernel.org, 
- Michael van der Westhuizen <rmikey@meta.com>, 
- Breno Leitao <leitao@debian.org>
-X-Mailer: b4 0.17-dev-ce4c1
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2941; i=leitao@debian.org;
- h=from:subject:message-id; bh=8VvKEi077C3DgqMyLzbKzwZn1Bd27N9nRzv9ISQrZBE=;
- b=owEBbQKS/ZANAwAIATWjk5/8eHdtAcsmYgBq4MKpArfCfIRsuX+/OQTkHBl1ORnbLpkYmdHk3
- cXvOGuIIBuJAjMEAAEIAB0WIQSshTmm6PRnAspKQ5s1o5Of/Hh3bQUCauDCqQAKCRA1o5Of/Hh3
- bftDEACP+IJOfNEijl/sIWguAToYBtVx7TXpboYtbGXkiVzg6UpuNLpUJ7ru9Qej7tLAvWMvohx
- 7IHg1nOZ2TvYxDYhXx9wl31H3ZYM7u3lLhMtIHE0vAJFyRLLBDL1NaWpA/XY17XWCQTMcbXPvJY
- 19D5eKG+mxEQOUAefwylTYRMOWpXAGA4S4b6jh7BE/knu2DmqD6rzUEXWkUcLZG/gxAURvyYYs4
- vIWgNN11FnWZs7eTwxuUdSmcLU84rdI5+/EHeaPiJzU/pKcqNE1KxOiGDNIjoTlmQtEtT15sdXB
- lF13kHnzAnJeLrY3WmO4g1yjyzNB39Q2j/Eg3dGCE1lQmcgOAAzG9jTRM3QzL7HKkB6rjDcTL32
- ahIU1IEBagRcvGY+E7mz3RXx0mqXU6nqXiZrHOp01pbCBxpwJLr4HrTWHuA4bQhEtazWg/k16BD
- R+SWap7uuZb2YF2jUxLEym1rDlrGGc1JEXBAXR6XGt4F8eufEflTL54k11jx2th0bll5ovox4IV
- v42s9kfy50ifEazJ4A8zzDLr0FRK6I5FKYFm57rY3Z5FJGedSQYesuL5mNDJhU9GEKK+2COQeq1
- pNSX0M2VUDlFPVMPDT0ULdc2UhaDIujwhtIC1mE45HeXI7XDeJYb6qWk0d5exRCGiCy/bxiuf9N
- 5W7jFSMXWsjDwDA==
-X-Developer-Key: i=leitao@debian.org; a=openpgp;
- fpr=AC8539A6E8F46702CA4A439B35A3939FFC78776D
-X-Debian-User: leitao
+Content-Transfer-Encoding: 8bit
 
-A single error reported by the platform stops all later traffic on a
-PCC channel whose client relies on the controller to complete
-transfers, such as the SCMI PCC transport. Every later request on the
-channel times out.
+modpost now warns about modules without a MODULE_DESCRIPTION macro.
 
-When the platform completes a command and sets a bit in the Error
-Status register, pcc_mbox_irq() acks the platform interrupt, clears the
-error and returns IRQ_NONE without calling mbox_chan_txdone().
+Add one for the ACPI fan driver to silence the warning and provide
 
-No other interrupt arrives for that transfer, so the mailbox core keeps
-it as the active request and holds back every later message.
+proper module metadata.
 
-The chan_in_use flag also stays set, so on a shared interrupt line the
-next interrupt raised for another subspace passes the checks in
-pcc_mbox_irq(), since Command Complete is still set, and runs the
-success path on the failed transfer.
-
-Log the error and complete the transfer with -EIO instead, clearing
-chan_in_use first as the success path does. Skip
-mbox_chan_received_data(), as the shared memory holds no valid response.
-Use -EIO rather than the helper's return value, which is a positive
-acpi_status when the register read fails.
-
-Clients that wait for the rx callback still time out on the failed
-transfer, but the channel works again afterwards.
-
-Fixes: 9c753f7c953c ("mailbox: pcc: Mark Tx as complete in PCC IRQ handler")
-Cc: stable@vger.kernel.org
-Suggested-by: Michael van der Westhuizen <rmikey@meta.com>
-Signed-off-by: Breno Leitao <leitao@debian.org>
+Signed-off-by: George Karagounis <mail@taterr.org>
 ---
- drivers/mailbox/pcc.c | 17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ drivers/acpi/fan_attr.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index 14dc4a187bfc67..e5df604b367a4a 100644
---- a/drivers/mailbox/pcc.c
-+++ b/drivers/mailbox/pcc.c
-@@ -315,6 +315,7 @@ static irqreturn_t pcc_mbox_irq(int irq, void *p)
+diff --git a/drivers/acpi/fan_attr.c b/drivers/acpi/fan_attr.c
+index 9b7fa52f3c2a..6b3d91c14f5c 100644
+--- a/drivers/acpi/fan_attr.c
++++ b/drivers/acpi/fan_attr.c
+@@ -15,6 +15,7 @@
+ #include "fan.h"
+ 
+ MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("Extra sysfs attributes for the ACPI fan driver");
+ 
+ static ssize_t show_state(struct device *dev, struct device_attribute *attr, char *buf)
  {
- 	struct pcc_chan_info *pchan;
- 	struct mbox_chan *chan = p;
-+	int ret;
- 
- 	pchan = chan->con_priv;
- 
-@@ -333,8 +334,20 @@ static irqreturn_t pcc_mbox_irq(int irq, void *p)
- 	if (!pcc_mbox_cmd_complete_check(pchan))
- 		return IRQ_NONE;
- 
--	if (pcc_mbox_error_check_and_clear(pchan))
--		return IRQ_NONE;
-+	ret = pcc_mbox_error_check_and_clear(pchan);
-+	if (ret) {
-+		/*
-+		 * No other interrupt arrives for this transfer, so complete
-+		 * it here or the channel stalls. Skip the rx callback, as the
-+		 * shared memory holds no valid response.
-+		 */
-+		dev_err_ratelimited(chan->mbox->dev,
-+				    "PCC subspace %td: transfer error %d\n",
-+				    pchan - chan_info, ret);
-+		WRITE_ONCE(pchan->chan_in_use, false);
-+		mbox_chan_txdone(chan, -EIO);
-+		return IRQ_HANDLED;
-+	}
- 
- 	/*
- 	 * Clear this flag after updating the interrupt ack register and before
-
----
-base-commit: f1ac44c32cba88ad65dcecd4a279661d14e93651
-base-tree: git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git master
-change-id: 20261027-pcc_error_txdone-94f48c610666
-
-Best regards,
---  
-Breno Leitao <leitao@debian.org>
+-- 
+2.56.0
 
