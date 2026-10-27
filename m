@@ -1,54 +1,66 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793102002;
-	b=kLQz749U+Il/wbqihhCTqf8X4CjjKxP1CKn7kYowfnJQT1GawU/oeC3XIVnjPJPsrgSn
-	 DbxhoGCGJITDzZ4kJcHBVmIyzW3GSSTiPFUDciqEsL9zjH9qkHzrRqUsgDitDsJR5Sglb
-	 czhFrzsSRArSL6UZxSQW2TqEomId9yDyd1Z6uC3qwv3HuNiA851K9mV7nrcHOV1zhStME
-	 8rutz/KVPjFSW5XWHM/9BTh45226L5NUf06T7YZ05+LEZjnuc+qioSt6FixMvA4W7mpLC
-	 HlbNV8EuLoAjGbZ4FQSEnS9h1HD+ZI+ze49TJzicDVciXtxkRJwgkOF4YdXGgMM9Ftg==
+	t=1793110986;
+	b=uT6IAJal2SDj70J7AxEDStP3l5b1+O3Pp81epYl7vHPMtb3LtuZX1OCjLtPAaoMcOULK
+	 Jb9q19E0MQOqfRi9XDjaJTUE0KmM6vpkTQNzjQqO+NfiIt8P66njhm/hXcXxgVnBL/IK0
+	 pRTtL3RSn9yFAwRrLjs//ioZvILN4KD+7r7p2r9L62RbPAmbQ38+jWqqHHYtlti+J+wyn
+	 FNjVDcgSdojNXA+5HDZcMBzSVyYx65yWNkSNJMC5kD40znD92JUlUYQ+jQVaMtEKHT+t8
+	 pecMCJWvNMEwXkCLZDERd0OKZ3C0zLZe0pgqlJ216GW9KW40Y0WQwNFLU5j0sou2Qkg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793102002;
-	h=Received:DKIM-Signature:Received:X-Gm-Message-State:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:
-	 X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:Subject:To:Cc:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=eW571iO5qUDWhqnb/V2rwsfuoMvwgati36UAaHCNbvk=;
-	b=DFCH+d1ANLrZXjrSQuLjHTHfAaFzm8SDcUo7ArCxOQJL56mrLSWKIqlF/j0FLWxqNW02
-	 EUFQxRSeXpbA5gcKErztsCdhjkRSUtVuLCW0iJFsvY098pvBHJf4BNaORL88CuMnDz/2s
-	 M1QBpBImKytFlfGUG3rJ/57TDwZFrnNWzwZQvsjKn5ifAKwPumVo71QYFWYAmm5FkCp8N
-	 NDy9DyKz2cCyGo8lKrg6r35zBtzUiHwNlH80tmX/rVqq/ir/Vw9NtUjBL4AXG3bKSr8KT
-	 oS1fW1F2uZVOm9RuHFSiNLJUC4PKjicEzid11oC6z2DG7Wt+EhU4WVdoA+etUhVB6hQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793110986;
+	h=DMARC-Filter:Received:Received:DKIM-Signature:Date:From:To:Cc:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:Content-Transfer-Encoding:In-Reply-To;
+	bh=YCM1R6dVVWvuIH+UBR6TH5CMJ3bKt8HZdVGd2g1zmYs=;
+	b=z9AeNlRFon0u9D0Q1fpxdUaEYGJ10tAMWD64dG6KaE1qszoVwT9P/K+4vYCbw1T/8JXa
+	 mXQK3E+ttRGS5QRV5q/UeByfEEeTkijuEsSqi6E6gpFHmrnml1tdOu3E+U1Zc+5GIFa6q
+	 Q6isp1N+qjsijWUBi96XPgqbyYaK+8vCL1SqL5AWudtelyVHpJkhgNaZQL4ATd0aZurk2
+	 uO7BdsztJE18x/YO72/QIy0biVI9UobXvVkgTqOinup2IMdvsFJhNqX1kx6S4sYhsiNZk
+	 McOtwxguxd0j5Up/XM0ALANp3r7QEMV2GTbgTp1LSUdkIeLDWDZi7hIqSQX9mkdhSOg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ofM0RcTa;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25633606A31B
-	for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2026 11:53:21 +0000 (UTC)
+	dmarc=pass header.from=arm.com;
+	spf=pass smtp.mailfrom=arm.com;
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=Y1y72I7Z;
+	arc=none smtp.remote-ip=217.140.110.172
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 281AE606A31A;
+	Tue, 27 Oct 2026 14:23:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 281AE606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ofM0RcTa
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7ECD1F031E8
-	for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2026 11:53:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793102001;
-	bh=eW571iO5qUDWhqnb/V2rwsfuoMvwgati36UAaHCNbvk=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=ofM0RcTa0CwBxEvlJOqowo/YO17DqYJ6necpPeND9VQ/86GbNxcpw1bdV1UY3kVqk
-	 3bm6WhatvEfxQ2CF040xXt5MmkN8x/mNKjkglvn2VvWugS62o8f2Ks0miZTyk7Povl
-	 o18DoyHmI5YPa808QCyTV3IGOvwCYplAiM1jPoEjb/gsPkxG/kpBsdr3lAitC/v79A
-	 0CbrDv4pBbI/sPhtOcCLgknsXaDI7Xcrl42QtR9fYk4Fz2Vcxo94X/5Mh7XkO8Qreb
-	 xU+Rnr9qCttHe5wqCJkOdJB4iPfaVw5onwlbHmft9bqN3Anf3sN0awKg0sC2TM3mI7
-	 HCfdX/68S4Mew==
-Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-5bcb440d1cbso725634e87.1
-        for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2026 04:53:21 -0700 (PDT)
-X-Gm-Message-State: AFq9FYJAuOU26C5k1tryeguCHmGYDrh9+z95qM+npjwFkdi4UnCmYVQ7
-	gYNLAq9V1+7kydXf8v1oWBGXZBDzrO0b71MV4A9RIhFqY1G18fuCy5pzpgjKla2SPqBOazhUDiG
-	CDAR8kFcjp9HSgiVIwEIDpEa/eAKPl5E=
-X-Received: by 2002:a05:6512:318d:b0:5bf:c79d:68f with SMTP id
- 2adb3069b0e04-5bfc79d06f3mr475833e87.2.1793102000095; Tue, 27 Oct 2026
- 04:53:20 -0700 (PDT)
+	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=Y1y72I7Z
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D4A8F15A1;
+	Tue, 27 Oct 2026 07:23:00 -0700 (PDT)
+Received: from e142392.arm.com (e142392.arm.com [10.2.213.23])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 7565A3F7B4;
+	Tue, 27 Oct 2026 07:23:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1793110984; bh=5oj/0Olu6P0vOlAuhliwwyRovCufR2SAkrdb83vbrEU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Y1y72I7ZZgHOwDZ52neOkUJTOFHLGM6SpPrLJVlApi2ONKuPpXy5gvo/YDy6bjRdY
+	 UjZ8l/7y5kF6noVILXl0H6e+7Nb7KYz93CLjCCr7D1N2FQkJe6kC1ZNYqjb4NZfw1c
+	 kqwUht3UItiP8Y9UtMdtZaMB+dEp84ku6EU01etY=
+Date: Tue, 27 Oct 2026 14:22:50 +0000
+From: Kristina =?utf-8?Q?Mart=C5=A1enko?= <kristina.martsenko@arm.com>
+To: Jinqian Yang <yangjinqian1@huawei.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, 
+	kvmarm@lists.linux.dev, linux-efi@vger.kernel.org, 
+	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
+	Mark Rutland <mark.rutland@arm.com>, Ryan Roberts <ryan.roberts@arm.com>, 
+	David Hildenbrand <david@kernel.org>, Lorenzo Stoakes <ljs@kernel.org>, 
+	Linu Cherian <linu.cherian@arm.com>, Anshuman Khandual <anshuman.khandual@arm.com>, 
+	Lorenzo Pieralisi <lpieralisi@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, 
+	Sudeep Holla <sudeep.holla@kernel.org>, Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>, 
+	Fuad Tabba <fuad.tabba@linux.dev>, Joey Gouly <joey.gouly@arm.com>, 
+	Steffen Eiden <seiden@linux.ibm.com>, Suzuki K Poulose <suzuki.poulose@arm.com>, 
+	Zenghui Yu <yuzenghui@huawei.com>, Ard Biesheuvel <ardb@kernel.org>, 
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>
+Subject: Re: [RFC 00/12] arm64: Add support for TLBI domains
+Message-ID: <cs3tsczrky7egqzde6gnsf7l22t53jit3cygtwe56yfeka5ue7@zesz6zptww3v>
+References: <20261001110655.461473-1-kristina.martsenko@arm.com>
+ <9eb6e0fe-5d8a-499c-b19b-ce73fe982451@huawei.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -58,132 +70,59 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261026152103.3109313-1-hamzamahfooz@linux.microsoft.com>
-In-Reply-To: <20261026152103.3109313-1-hamzamahfooz@linux.microsoft.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Tue, 27 Oct 2026 12:53:07 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0g0B7HC5SV_VpBNnS0UffJn8w9_gsXpATkYhHFOBkAasg@mail.gmail.com>
-X-Gm-Features: AclHuK-sPybzziVNvnjpKHMy_0ZM8EP9Kiy6CfDmwTeb6pCFjhVTy3qaKz6xdf8
-Message-ID: <CAJZ5v0g0B7HC5SV_VpBNnS0UffJn8w9_gsXpATkYhHFOBkAasg@mail.gmail.com>
-Subject: Re: [PATCH v3 1/2] ACPI: TAD: introduce acpi_has_rtc()
-To: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-Cc: linux-acpi@vger.kernel.org, linux-rtc@vger.kernel.org, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
-	Alexandre Belloni <alexandre.belloni@bootlin.com>, Ard Biesheuvel <ardb@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <9eb6e0fe-5d8a-499c-b19b-ce73fe982451@huawei.com>
 
-On Mon, Oct 26, 2026 at 4:21=E2=80=AFPM Hamza Mahfooz
-<hamzamahfooz@linux.microsoft.com> wrote:
->
-> The same RTC may also be accessible by other means, like the EFI
-> GetTime() and SetTime() runtime services used by rtc-efi, which are best
-> avoided if there is a native ACPI interface to the RTC.
->
-> To allow other RTC drivers to stand down in that case, add an exported
-> helper, acpi_has_rtc(), that returns true if there is a TAD the driver
-> will register an RTC class device for.
->
-> The helper looks for a platform device matching the driver's ID table
-> whose _GCP indicates real time support, like acpi_tad_probe() checks,
-> instead of checking whether the driver has bound to such a device, so
-> that callers need not depend on the order in which drivers are probed.
->
-> Suggested-by: Ard Biesheuvel <ardb@kernel.org>
-> Signed-off-by: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-> ---
-> v1: https://lore.kernel.org/r/20261022211304.2285792-1-hamzamahfooz@linux=
-.microsoft.com/
-> v2:
-> - Rename acpi_tad_rtc_available() to acpi_has_rtc(), move it to within
->   acpi-tad (which allows us to simplify it quite a bit) and declare it
->   in linux/acpi.h. (Ard)
-> - Add acpi_disabled check. (Ard)
-> ---
->  drivers/acpi/acpi_tad.c | 38 ++++++++++++++++++++++++++++++++++++++
->  include/linux/acpi.h    |  6 ++++++
->  2 files changed, 44 insertions(+)
->
-> diff --git a/drivers/acpi/acpi_tad.c b/drivers/acpi/acpi_tad.c
-> index 45459a4ca..eea4d2123 100644
-> --- a/drivers/acpi/acpi_tad.c
-> +++ b/drivers/acpi/acpi_tad.c
-> @@ -899,6 +899,44 @@ static const struct acpi_device_id acpi_tad_ids[] =
-=3D {
->         {}
->  };
->
-> +static int acpi_tad_rtc_match(struct device *dev, const void *data)
-> +{
-> +       unsigned long long caps;
-> +       acpi_status status;
-> +
-> +       if (!acpi_match_device(acpi_tad_ids, dev))
-> +               return 0;
-> +
-> +       status =3D acpi_evaluate_integer(ACPI_HANDLE(dev), "_GCP", NULL, =
-&caps);
-> +
-> +       return ACPI_SUCCESS(status) && (caps & ACPI_TAD_RT);
-> +}
-> +
-> +/**
-> + * acpi_has_rtc - Check if the RTC should be driven via the ACPI TAD
-> + *
-> + * Check if there is a TAD implementing the real time methods that this =
-driver
-> + * will register an RTC class device for.
-> + *
-> + * Return: %true if the RTC should be driven via the ACPI TAD, %false ot=
-herwise.
-> + */
-> +bool acpi_has_rtc(void)
-> +{
-> +       struct device *dev;
-> +
-> +       if (acpi_disabled || !IS_ENABLED(CONFIG_RTC_CLASS))
-> +               return false;
+On Mon, Oct 19, 2026 at 04:52:04PM +0800, Jinqian Yang wrote:
+> Hi,
+> 
+> On 2026/10/1 19:06, Kristina Martšenko wrote:
+> > Hi,
+> > 
+> > This series allows the kernel to use TLBI domains. TLBI domains (FEAT_TLBID) is
+> > an Arm architecture feature that enables a TLB invalidation to target a subset
+> > of CPUs instead of the whole system. It can improve performance on systems with
+> > many CPUs. TLBID is not yet part of the Arm Architecture Reference Manual but
+> > some of it is described in the latest XML [1].
+> > 
+> > The goal of this series is to send TLBI commands only to the CPUs where a
+> > process has run (i.e. where its page tables have been installed). The last
+> > patch explains a bit about how it works. This is an RFC since I'm not familiar
+> > with the kernel's TLB/mm code and I'd like feedback on whether the general
+> > approach is correct.
+> > 
+> 
+> Thanks for posting this series.
+> 
+> I'm working on the KVM side of TLBID, and have a series that
+> virtualizes TLBI domains for guests. It includes:
+> 
+>  - per-vCPU vDomain configuration via a new capability and
+>    two ioctls
+>  - VTLBID_EL2 programming at vCPU load/put, mapping vDomains
+>    to physical domains
+>  - a guest visible TLBIDIDR_EL1 with virtual domain counts,
+>    and conditional exposure of ID_AA64MMFR4_EL1.TLBID
+> 
+> You mentioned you planned to look at KVM support in your next
+> version. Would it be OK for us to post this as an RFC on top
+> of your series? :)
 
-You may as well put these new functions under the existing
-CONFIG_RTC_CLASS #ifdef so they don't get compiled unnecessarily, and
-add an empty stub for acpi_has_rtc() in the !CONFIG_RTC_CLASS case.
+Thanks for sharing.
 
-The IS_ENABLED(CONFIG_RTC_CLASS) check above will not be necessary any
-more then.
+I’m starting to look at KVM support but I’m not working on exposing
+domains to guests. I’m looking at if we can track which CPUs a guest has
+run on and transparently redirect all of a guest’s TLBIs to a single
+domain that contains those CPUs. This could be a fallback in case the
+guest is not configured to have virtual domains itself (which your
+series enables).
 
-Apart from the above, the patch looks fine to me.
+I think there is some overlap between what we’re doing (e.g. configuring
+VTLBID), but also lots of separate parts. So no objection from my side,
+please feel free to post your series.
 
-> +
-> +       dev =3D bus_find_device(&platform_bus_type, NULL, NULL,
-> +                             acpi_tad_rtc_match);
-> +       if (!dev)
-> +               return false;
-> +
-> +       put_device(dev);
-> +       return true;
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_has_rtc);
-> +
->  static struct platform_driver acpi_tad_driver =3D {
->         .driver =3D {
->                 .name =3D "acpi-tad",
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index ddacac812..71524a821 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -1553,6 +1553,12 @@ extern bool acpi_has_watchdog(void);
->  static inline bool acpi_has_watchdog(void) { return false; }
->  #endif
->
-> +#if IS_REACHABLE(CONFIG_ACPI_TAD)
-> +bool acpi_has_rtc(void);
-> +#else
-> +static inline bool acpi_has_rtc(void) { return false; }
-> +#endif
-> +
->  #ifdef CONFIG_ACPI_SPCR_TABLE
->  extern bool qdf2400_e44_present;
->  int acpi_parse_spcr(bool enable_earlycon, bool enable_console);
-> --
-> 2.56.0
->
+Thanks,
+Kristina
+
