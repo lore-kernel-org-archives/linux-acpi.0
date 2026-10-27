@@ -1,59 +1,72 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.199
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793138765;
-	b=wuRHucHiWvxsdK/RtprvFoDnUKPlVs3JR6beVQlc4NXBI9iSRIXG66YwgzgPfZgLFz8q
-	 6Vl010BQzjRPpav3XdlIQxthAtxJwDREaLkXHz7VKvuxp0EYOrgJGyRuOnO6ge62ypDp7
-	 diWTRnZCObIt0Jpgt4q6XNVFMGlc6N3eifw3I4XGDkd+89jDGb7iWtSqjYzTEe+/PmW6h
-	 /X8i5Vu89Fzylm6YOF9gOQreCqOxYOO2QFvVcksDXA72Z0LFb+xWxf5jQYIu8iQe4HPPl
-	 l1vFQRb++2reHUVxaviEl7giH1Rv9F68fsBijqsQbrfrf0WMpr1TK+fdwrGAa9USuYQ==
+	t=1793140751;
+	b=tNAZXWVVD+GmO5AXcYxer/f9phg6SedqKDgA8R0fNEckTr63wmvgMBXqR8jCm7licdKR
+	 yIE7P+hehP6pQFulOLMJz5Vb39tvFe9iGuXTNgxKfgs/Yq2Sjjl/SOJ0oRoQN5UCSs+ZE
+	 frtF/wpHcTGltcrIfeaXpYCkYbdqgNr00oRiO8Z5alFoNOmzstQwn232ozBSjWTHL7r7/
+	 tMFXDqlFzcjosS4vBefhY4PooEbOPh/vxNxenaQWCdhcW9eg8Ow4tj+DXZ6k3dNEPxgFG
+	 ZgfUhXLm/AnFC5dWhT3OB9zr45V6DsKYDrt+MBx8CPTfV3tKxQ3iBrGmP/RAPYv5ieQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793138765;
-	h=DMARC-Filter:Received:DKIM-Filter:DKIM-Signature:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=EdTGR0aS5MtrIn073ZxWN4yoNDx+hkXtcxsXCc7onhI=;
-	b=DRCMzZVZ844087Xy6UaX5iqXZuKT6TzIiYfOmQKEigokyA/8yxr+eVx0i5KRrZgdKMsf
-	 Snl+goxxlbdIOCxjOrSmVoCzQLkD47M5eIYzlBQD5H1RGDtV04uP8imIOJTItWU/dCjLm
-	 Q0IVk2w/X7dnJG62Lz3Bc9+umL153leaWjV1B1BV2KHSLooOPU4QOoXQcqdwsV5RVSdgq
-	 YsuFlrh+5WPBkFHMaSRIeoqqwTaR7UEpotXfR6Jxge0adVXrcpmmO1G4xS5MkCYHaZyG1
-	 9jg9NkS3D9kk+6NiuZBbPkhiKQ8bPdlGTOYzwD7ux/0t6FyN2iLz4fuZvbhnAqVj/1A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793140751;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Received:Date:Mime-Version:
+	 X-Mailer:Message-ID:Subject:From:To:Cc:Content-Type;
+	bh=pEmx5PL3tlnBiGr2rjVOl0G+YHkBW7VB5cziBEiH9l0=;
+	b=FDY1p2yQh97OvWZkQSa1zmVIzkSIRsRtjN8Tj9917HOGI/v4Y1xiyHsy/0xhrGCnPnpq
+	 t4dpJIwxqFBVhPSHdNB7KNqSU0GUchx+pW58HNYmwfKxIQq1/DML2CYyYI5ABgkcAI+Z5
+	 BfHNfmHO7qlRB+ynryqjxxzpup/ujs2E7oS9RkCCP8SywfQ8sVt1JmGLhY9bai4xfv9Kk
+	 dRehqHr8lCTH7P3L845lIQbmjTNBaj09hTHYGuuvsW/4ycqBkvhQuAaGyWIqhPrPLfTFV
+	 ypTv9zcO9Ag5/TE2/l+WDh0AApV+iHE2+pSerne2iZRJYRpNwD5vFA6DQidRhs1Sugg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.microsoft.com;
-	spf=pass smtp.mailfrom=linux.microsoft.com;
-	dkim=pass header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=UrwHp2UG;
-	arc=none smtp.remote-ip=13.77.154.182
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D5C22606A31E;
-	Tue, 27 Oct 2026 22:06:03 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D5C22606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	dmarc=pass header.from=google.com;
+	spf=pass smtp.mailfrom=flex--irogers.bounces.google.com;
+	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=WwyADfSB;
+	arc=none smtp.remote-ip=74.125.82.199
+Received: from mail-dy1-f199.google.com (mail-dy1-f199.google.com [74.125.82.199])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38CAC606A31E
+	for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2026 22:39:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 38CAC606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--irogers.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.a=rsa-sha256 header.s=default header.b=UrwHp2UG
-Received: by linux.microsoft.com (Postfix, from userid 1216)
-	id B2BFA20B7168; Tue, 27 Oct 2026 15:05:52 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com B2BFA20B7168
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1793138752;
-	bh=EdTGR0aS5MtrIn073ZxWN4yoNDx+hkXtcxsXCc7onhI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=UrwHp2UG5iy5ntvyM2xpfRPvREqNWE+uC9uNjupp5m3W6eUnqUZemg0Wyf/LAkyYu
-	 pB9rSMn/ZKHomr2l+jBxkgqU5E1MqWsNnqfDlPmWfcaPKHqzjwU2Y3Bv9yHoEN9+kY
-	 /LpjQi/FXBEXq2sSeNapgpOsR1S0wrbJRKktKXss=
-From: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-To: linux-acpi@vger.kernel.org,
-	linux-rtc@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Alexandre Belloni <alexandre.belloni@bootlin.com>,
-	Ard Biesheuvel <ardb@kernel.org>,
-	Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-Subject: [PATCH v4 2/2] rtc: efi: defer to the ACPI TAD if it can drive the RTC
-Date: Tue, 27 Oct 2026 18:05:36 -0400
-Message-ID: <20261027220537.3443104-3-hamzamahfooz@linux.microsoft.com>
-X-Mailer: git-send-email 2.43.7
-In-Reply-To: <20261027220537.3443104-1-hamzamahfooz@linux.microsoft.com>
-References: <20261027220537.3443104-1-hamzamahfooz@linux.microsoft.com>
+	dkim=pass (2048-bit key, unprotected) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=WwyADfSB
+Received: by mail-dy1-f199.google.com with SMTP id 5a478bee46e88-33c35f5ca6cso579218eec.1
+        for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2026 15:39:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20260707; t=1793140749; x=1793745549; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=pEmx5PL3tlnBiGr2rjVOl0G+YHkBW7VB5cziBEiH9l0=;
+        b=WwyADfSBKnfQhnWY2Vcc6CNZLTbO+rAle5B1hKwX8je30uuwYFtB/vLJcoE5YY8g3l
+         ZP1V0bwQMghUb9OH8d+nqaUwuF0QhBserXEYkJY30hDkrjNFMmDQV+NHMsvOfzeO5Smj
+         W3fOXMl0JNgZhE7FX+6rfE0FyfvCs0KmuVF9AJhs4u5xFwJMb+jaWfil9w878EOrRsZY
+         CUqereYX0RsTxyE2KJ/ls1UGDevHByw15KWdqkK8Ms8Ozs9o6RT8cmJwBsNQm2eQleg+
+         e1ohgzf4BQQIJO/4X/jZBsZEqtoprO5FOBgNNOSI0iyC+HNFg11Ynpnkv5fSF/W9aYty
+         crcQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793140749; x=1793745549;
+        h=content-type:cc:to:from:subject:message-id:mime-version:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=pEmx5PL3tlnBiGr2rjVOl0G+YHkBW7VB5cziBEiH9l0=;
+        b=f+j8qYZQnrhNbz+HfoMUspEe7eopuX2jPXzJrD6QiB1Nj1b7zMt4S4L7UFkVvLEYuW
+         II+PI5oN9GUBwJfNP5d8GATHnyWPq8Knjpp+B0eT7UdE5xNCZwiCckdDkPsQyNn8kDte
+         dFyMPCrHWda048QbCFWB16rDl8H/AgRJUsQCo7k7ChvuyzVJb3m1ytfw1WD976M8Qgqr
+         NkYeKiJqq7dfE0xONokXm8tr3cZEYi5cfcLNENGpchLGQD/QZRZ0WmeL/hbyqsbE4Q/2
+         WLVxOqoj7QkczL1DjMNFh1WiR0XqA6lVndZCM8S+2TfA5DI3Ijdh6r2ghAjr5U+Cgb4a
+         fYpQ==
+X-Forwarded-Encrypted: i=1; AKwUvBwmPiqM81F9nT2PZniZGjXzGUvLFRw04+PZpQlGhi4MTA1qq7irQPiDDHGTAGq3m5gvmPJE9m/AHFbd@vger.kernel.org
+X-Gm-Message-State: AFq9FYLAoSKr5XbcUqqz06mfIMaxPZ9u6751J6AT5qlWsnPXcYPsoti/
+	5Qd2i6Gz4wD7PmKTYx3ZPSN3ZUDQe8ZaVjzJE9J9x6o3yfTe8Qc7NoDMiMGQQl+u9c1rOSxtsMp
+	CGx/n9xvvoQ==
+X-Received: from dli9.prod.google.com ([2002:a05:7022:289:b0:1a1:da78:f9b9])
+ (user=irogers job=prod-delivery.src-stubby-dispatcher) by 2002:a05:7022:6989:b0:165:90af:a25f
+ with SMTP id a92af1059eb24-1a6cfa0c447mr941563c88.41.1793140748444; Tue, 27
+ Oct 2026 15:39:08 -0700 (PDT)
+Date: Tue, 27 Oct 2026 15:38:35 -0700
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -62,72 +75,152 @@ List-Subscribe: <mailto:linux-acpi+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.56.0.313.g2479322e68-goog
+Message-ID: <20261027223847.652884-1-irogers@google.com>
+Subject: [PATCH v2 0/9] Add __must_init and require explicit kobj_type::release
+From: Ian Rogers <irogers@google.com>
+To: Kees Cook <kees@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Miguel Ojeda <ojeda@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>, Nick Desaulniers <ndesaulniers@google.com>, 
+	Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>, 
+	"=?UTF-8?q?Christian=20K=C3=B6nig?=" <christian.koenig@amd.com>, Zhihao Cheng <chengzhihao1@huawei.com>, 
+	Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>, Sumanth Korikkar <sumanthk@linux.ibm.com>, 
+	Bill Wendling <morbo@google.com>, Justin Stitt <justinstitt@google.com>, driver-core@lists.linux.dev, 
+	llvm@lists.linux.dev, linux-hardening@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, 
+	linux-s390@vger.kernel.org, gfs2@lists.linux.dev, 
+	xen-devel@lists.xenproject.org, linux-mtd@lists.infradead.org, 
+	amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, 
+	linux-kernel@vger.kernel.org, Ian Rogers <irogers@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-EFI runtime services are best avoided where possible, and ACPI defines a
-standard interface to the RTC in the form of the Time and Alarm Device
-(TAD), which the acpi-tad driver has been exposing as an RTC class
-device since commit 8a1e7f4b1764 ("ACPI: TAD: Add RTC class device
-interface").
+Clang supports the 'require_explicit_initialization' attribute on struct
+fields to enforce that the field is explicitly initialized when an
+aggregate object is constructed, emitting -Wuninitialized-explicit-init
+(enabled by default) if the field is omitted.
 
-So, make rtc-efi decline to probe, before calling GetTime(), if
-acpi_has_rtc() says that the RTC can be driven via the TAD.
+Following discussion at the Linux Plumbers Conference [1], patch 1 adds
+the attribute to include/linux/compiler_attributes.h as __must_init. In
+v1 it was called __require_explicit_initialization. Kees picked up that
+patch with a first seq_file user [2], and in that thread Greg suggested
+the shorter __must_init spelling, which Kees and Miguel agreed to. As
+the attribute did not land in the v7.4 merge window, Kees asked that
+this series carry the renamed attribute. The Acked-by/Reviewed-by tags
+on patch 1 were given for the original spelling; the rename is
+mechanical.
 
-Also, to ensure that acpi_has_rtc() is always reachable from rtc-efi
-when ACPI_TAD is enabled, make RTC_DRV_EFI depend on
-ACPI_TAD || !ACPI_TAD.
+As Documentation/core-api/kobject.rst notes:
+  "One important point cannot be overstated: every kobject must have a
+  release() method, and the kobject must persist (in a consistent state)
+  until that method is called. If these constraints are not met, the
+  code is flawed."
 
-Suggested-by: Ard Biesheuvel <ardb@kernel.org>
-Reviewed-by: Ard Biesheuvel <ardb@kernel.org>
-Signed-off-by: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
----
- drivers/rtc/Kconfig   | 5 +++++
- drivers/rtc/rtc-efi.c | 4 ++++
- 2 files changed, 9 insertions(+)
+Annotating struct kobj_type::release caught struct kobj_type definitions
+across the tree that omitted .release:
+- Patches 2-8 fix struct kobj_type definitions where dynamically
+  allocated kobjects, ksets, or enclosing structures were either leaked
+  on kobject_put(), freed prematurely before kobject release, or missing
+  proper static initializers.
+- Patch 9 annotates struct kobj_type::release with __must_init and
+  explicitly sets .release = NULL (with explanatory comments prefixed
+  with "Pre-existing:") on the remaining legacy struct kobj_type
+  definitions whose kobjects are static, per-CPU, permanent firmware
+  structures, or embedded in devm- or parent-managed structures.
 
-diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
-index 1e863f1d3..5b7e9d2a8 100644
---- a/drivers/rtc/Kconfig
-+++ b/drivers/rtc/Kconfig
-@@ -1262,10 +1262,15 @@ config RTC_DRV_DA9063
- config RTC_DRV_EFI
- 	tristate "EFI RTC"
- 	depends on EFI && !X86
-+	depends on ACPI_TAD || !ACPI_TAD
- 	help
- 	  If you say yes here you will get support for the EFI
- 	  Real Time Clock.
- 
-+	  On ACPI systems, the ACPI Time and Alarm Device (TAD) driver
-+	  is used instead of this one if the TAD can drive the RTC (assuming
-+	  it's enabled).
-+
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-efi.
- 
-diff --git a/drivers/rtc/rtc-efi.c b/drivers/rtc/rtc-efi.c
-index b4f44999e..545b21b17 100644
---- a/drivers/rtc/rtc-efi.c
-+++ b/drivers/rtc/rtc-efi.c
-@@ -10,6 +10,7 @@
- 
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
-+#include <linux/acpi.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/stringify.h>
-@@ -192,6 +193,9 @@ static int __init efi_rtc_probe(struct platform_device *dev)
- 	efi_time_t eft;
- 	efi_time_cap_t cap;
- 
-+	if (acpi_has_rtc())
-+		return -ENODEV;
-+
- 	/* First check if the RTC is usable */
- 	if (efi.get_time(&eft, &cap) != EFI_SUCCESS)
- 		return -ENODEV;
+Note on tool use: An LLM coding assistant was used to help audit the
+compiler diagnostics across the tree, draft the fixes and changelog
+descriptions, and verify builds and review feedback.
+
+Changes in v2:
+- Rebased on v7.3-16928-g83f32c773255 (v7.4 merge window).
+- Patch 1: Rename __require_explicit_initialization to __must_init per
+  Greg Kroah-Hartman; document the Clang >= 20 requirement per Miguel
+  Ojeda; note the Clang gap for file-scope objects without an
+  initializer reported by Kees Cook; add tags from v1 and from Kees's
+  posting.
+- Move LLM assistance attribution from Assisted-by tags to this cover
+  letter per commit 1e035297ffda ("docs: remove Assisted-by
+  references").
+- Patch 4 (cpufreq): Use "cpufreq: governor:" prefix, drop Fixes tag,
+  fix typo, and remove the redundant runtime assignment in
+  cpufreq_dbs_governor_init() per Zhongqiu Han.
+- Dropped v1 patch 5 (ACPI: CPPC), already fixed upstream by
+  commit 27954e29d7de ("ACPI: CPPC: Release CPC descriptors through
+  kobject").
+- Patch 5 (dlm): Call kobject_del() before dlm_recoverd_stop() in
+  release_lockspace() and the new_lockspace() error path, and wait on a
+  new ls_kobj_done completion before freeing the lockspace or dropping
+  the module reference, avoiding races with delayed kobject release.
+- Dropped v1 patch 8 (s390/sclp_mem) per Sumanth Korikkar: the
+  /sys/firmware/memory/memoryX kobjects are permanent, so sclp_mem.c is
+  folded into patch 9 with .release = NULL.
+- Patch 7 (ubifs): Add Tested-by and Reviewed-by from Zhihao Cheng.
+- Patch 8 (drm/amdkfd): Check q->kobj.state_in_sysfs before
+  kobject_del() in kfd_procfs_del_queue().
+- Patch 9 (kobject): Cover sclp_mem.c and the new amdgpu_ualink.c
+  ualink_xcp_info_ktype, fix the overlay-sysfs.c comment, and prefix
+  legacy .release = NULL comments with "Pre-existing:".
+- Patch 9 (kobject): The ioat, kunpeng_hccs and omapfb display comments
+  now say that the existing teardown can use-after-free under
+  CONFIG_DEBUG_KOBJECT_RELEASE (reported by Sashiko). Fixing those
+  drivers is left to follow-up patches.
+
+v1: https://lore.kernel.org/all/20261013223946.1836757-1-irogers@google.com/
+[1] https://lpc.events/event/20/contributions/2392/
+[2] https://lore.kernel.org/lkml/20261014225811.i.852-kees@kernel.org/
+
+Ian Rogers (9):
+  Compiler Attributes: Add __must_init macro
+  powerpc/secvar: Add missing kobject release callback to secvar_ktype
+  sh: sq: Add missing kobject release callback to ktype_percpu_entry
+  cpufreq: governor: Initialize kobj_type release callback statically
+  dlm: Free dlm_ls in kobject release callback
+  xen/sys-hypervisor: Add release callback to hyp_sysfs_kobj_type
+  ubifs: sysfs: Use kset_create_and_add() for ubifs_kset
+  drm/amdkfd: Free queue in procfs_queue_type kobject release callback
+  kobject: Require explicit initialization of struct kobj_type::release
+
+ Documentation/conf.py                         |  1 +
+ arch/arm64/kernel/cpuinfo.c                   |  5 ++++
+ arch/powerpc/kernel/secvar-sysfs.c            |  6 +++++
+ arch/sh/kernel/cpu/sh4/sq.c                   |  6 +++++
+ drivers/acpi/sysfs.c                          |  2 ++
+ drivers/cpufreq/cpufreq_conservative.c        |  5 +++-
+ drivers/cpufreq/cpufreq_governor.c            |  4 +--
+ drivers/cpufreq/cpufreq_governor.h            |  1 +
+ drivers/cpufreq/cpufreq_ondemand.c            |  5 +++-
+ drivers/dma/ioat/sysfs.c                      |  7 +++++
+ drivers/gpu/drm/amd/amdgpu/amdgpu_ualink.c    |  5 ++++
+ drivers/gpu/drm/amd/amdgpu/amdgpu_xcp.c       | 10 +++++++
+ drivers/gpu/drm/amd/amdkfd/kfd_process.c      | 12 ++++++---
+ drivers/gpu/drm/amd/amdkfd/kfd_queue.c        |  5 +++-
+ drivers/infiniband/hw/hfi1/sysfs.c            |  5 ++++
+ drivers/infiniband/hw/usnic/usnic_ib_sysfs.c  |  2 ++
+ drivers/parisc/pdc_stable.c                   |  5 ++++
+ drivers/power/supply/ab8500_fg.c              |  5 ++++
+ drivers/s390/char/sclp_mem.c                  |  2 ++
+ drivers/soc/hisilicon/kunpeng_hccs.c          | 21 +++++++++++++++
+ .../fbdev/omap2/omapfb/dss/display-sysfs.c    |  7 +++++
+ .../fbdev/omap2/omapfb/dss/manager-sysfs.c    |  5 ++++
+ .../fbdev/omap2/omapfb/dss/overlay-sysfs.c    |  5 ++++
+ drivers/xen/sys-hypervisor.c                  |  6 +++++
+ fs/dlm/dlm_internal.h                         |  1 +
+ fs/dlm/lockspace.c                            | 26 ++++++++++++++-----
+ fs/erofs/sysfs.c                              | 10 +++++++
+ fs/f2fs/sysfs.c                               | 15 +++++++++++
+ fs/ocfs2/cluster/masklog.c                    |  5 ++++
+ fs/ubifs/sysfs.c                              | 24 +++++------------
+ include/linux/compiler_attributes.h           | 12 +++++++++
+ include/linux/kobject.h                       |  2 +-
+ scripts/checkpatch.pl                         |  1 +
+ tools/lib/python/kdoc/xforms_lists.py         |  1 +
+ 34 files changed, 202 insertions(+), 32 deletions(-)
+
+
+base-commit: 83f32c773255720a661aa45d83e36278135f23f5
 -- 
-2.56.0
+2.56.0.313.g2479322e68-goog
 
