@@ -1,73 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793204055;
-	b=XWjqOw/N4W5WD5U7Z0F6xlop8+4voa/bEcMqV49ZgYRSG7I2ip6XFLdMz0PJWhFJ9AkA
-	 Cp0CrObovSi1vRXfrrkSroJW5WvnLD052mKkbVyACBCxADhtV3KEc6fHKXTXWDdPy7lKa
-	 eK2RA526MFWjV8UyW3RsMeSH+io84yfUy6pnVRYUNaXSnuOOjhoo8iHuM2TB9td6FXBVC
-	 qpneaMK4yXb2AUqauVR85DSjl84ktMzNd+SvEu+/Dy8Ye1r08osrq4cKzDHw2QR8FvOzG
-	 Qjru2tGBICz6DrFaC2hGCon+q+UqIT/utc/l7ToNl1EVG5rS8ldP2wF1B7hkEU88hpw==
+	t=1793204163;
+	b=uaTqA7Mhrkr/17jFCHusj7XmEN0k1mqu8nIE++v3f13KVTItFWocZR2iouH84r7vN/kq
+	 UtWUKCsvfAeWHpClmpYKb7j0VUCFabtUy7rFNg+UxZcUrj/6DK5rNlJMEhutOflgrlEFt
+	 wsxmKHBkpaioEdhhF+yDaeAP9az5qZSuYuyNof3NWuYjFExVylM7lml9ONm/nFRSEJXqr
+	 pMJZZUIv7oozlN531TiQLgP8PZ/6ITsMG1L6TortDEiHZ6sRR6+GHZA5KLVGGY7a34ixd
+	 lgSKCOZ78e6JZ2OutwCFzBSR09TLah7LQghVgLN3kB1eapN8MXlVud+hkFE9v/svOJw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793204055;
-	h=Received:DKIM-Signature:Received:Received:X-ME-Sender:
-	 X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:Received:X-Mailer:
-	 MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type:Content-Transfer-Encoding;
-	bh=WOVU8i6VSaQSMlgwSIaOiPPhD4QfVwgPNsYdPg6cYCU=;
-	b=GWAOh7CHUh2okJcNN3Rh4voXi7XlkRemcPZmfxDQcWV8nNfAw7y/uhjR4frwebBzUZvE
-	 hgKGBLIKSb5PnVnt3aX8bDwBYyWlfccOw8Rrx6Dbo7MCLAKHfbtL6TM07dblxXp6KZo0t
-	 3jfRTM7E0czsl0pkM3H4vHkD/k9fHL646OZDbQ8cbKSW03krwAHmFXWGswaHiNNkhe6xs
-	 f5jHS+NiexxdR0ZvNj0QYTjFOKqc6QbcjjrbWmYPdhUASgmVhi4jYHpNlk/tvqrULflvl
-	 9a6jM85SQABP4kiXiNVpowYRhCqA1q9Y91NLVrAQtkanJlKM4Tbh3KaXP9yQsB7Y63g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793204163;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=xbWRnn6RNjBklw3X9Nkee9wTnt8ta4yhANwXs66hsPs=;
+	b=JAeucs283Q1o/JoSCrZii8JhgdYE/5P/uBTg+67KEdz3fubEEZH3hsiPMSWFOXa8nm6d
+	 ysBcU90QnqA/IdYlb3QCn+vcZFGt8lhbcLCVXFNVOh84/vYk76we4kKGxJifmp0uN9+es
+	 yUBcfcpaL8Rdwcq+sTBIxu9GyItfbcARJOHAd5DMPeTSupp00EDy2pvSFD8fo/F7MA7qm
+	 O5GGsZj4SdqvtEkcNw/+FbwMQQJCTalk0JcdjApaVwbUx53eSCg9B1YkHiVFoENRN7A8l
+	 ns6FWhuX/R8Y+1Jb4rv0pZe3gmTWP2ZyIYRBnVasgCxHUXjMzbXtZeLqt6AITtFnweg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RnWD0tqP;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dyD1+iWb;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC387606A31A
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 16:14:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 368C2606A31A;
+	Wed, 28 Oct 2026 16:16:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RnWD0tqP
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 832EC1F01825;
-	Wed, 28 Oct 2026 16:14:13 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dyD1+iWb
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D64791F01825;
+	Wed, 28 Oct 2026 16:16:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793204054;
-	bh=WOVU8i6VSaQSMlgwSIaOiPPhD4QfVwgPNsYdPg6cYCU=;
-	h=Date:From:To:Cc:In-Reply-To:References:Subject;
-	b=RnWD0tqP0Rx76Hd3Lt0R6BXS06e06K3a9AfaAYA1Mrj1Ce6ttkV/Z6/VIpHdWFOVb
-	 RE8ZRHhoI5GT8bvE3ZyuCDItxrEK8ooi3qnmQr1p0SnR2SzhMIbr7TqTxrQX8QITti
-	 /HQCuwxfiHOcWdksoGPI6nMLVsRh8Y8LXkoF9qHAsiiS+GPQq/XlrT7qQ7dwT8mg7T
-	 dHLgDs3KQ/Z+Rl7TB0oJskZRQhuplP1y5xZr+xh4X6POxL/m7b74SS3dp4jUGeliau
-	 GAaS2yxJH96rpsz+nVuQZJsWqWDie9HI0z50pjAPgiiMTBDRoFeE5zRy4yAcutqM4F
-	 mXB/xaDD8rOAg==
-Received: from ams-compute-02.internal (ams-compute-02.internal [10.64.2.62])
-	by mailfauth.ams.internal (Postfix) with ESMTP id CF775198005A;
-	Wed, 28 Oct 2026 12:14:11 -0400 (EDT)
-Received: from ams-imap-11 ([10.64.2.31])
-  by ams-compute-02.internal (MEProxy); Wed, 28 Oct 2026 12:14:11 -0400
-X-ME-Sender: <xms:UR_iar2J6I9p2Ig3QvaWcsNcwnVB6gNqitW2_cUp8h0_YIuJJ5uGzg>
-    <xme:UR_iak5Hje25aokA0qrV-XYpWJxNpK4-Ac47sZYXltw9zii6TjerO6O8V0yQqN69q
-    7LR-g9-4646Y7Fz2Rx0dNoyz82HeQfkzb5F2IajuUF1BNH-uHnqIWO_>
-X-ME-Proxy-Cause: dmFkZTGYb6kzeLfSbFhlwQe1a1zYe5/Mo+zrZNnKMGIQueQ1a7i4SRFPcAejSS2+Khllz0
-    xAoR1Qnia36Ov+e5UBqH1FPnGs6xHJZU+D7viG3zqmLxO8RwmIEGn7x/YYIGUdcoRE+v5i
-    3ZMJ41Y5OzQvRG5OMzvUv/h/TzDy4NKA6qOHtcUgsKK3ZR1rGlHfwRgO41EFTCw2xV6YFr
-    Dr0bypCtmpxUh+GMuNfthe+Des+PnVRHA4M8Lb3Wt7cw7aqGewD/Xz8mKSZHqQ9od1k1B4
-    yWGNOEeXLCcPAry7eMZmOyc2w4L8uH3eCvJ60b9Xbw7dix6QwzYHEqYBXa+DylEJzINeJb
-    dKxN2RLCm0WOzERroc3Y4XVCb1L212yfgSGn+psQOXSLLNNe2yGg1d+zkQraPWCx10Clw9
-    x/JdizrcTU2WGLgHCz15EB+M0bEBCkymtTSIGTvLne6uke7bOuYmtUO7Sok8Ct7rNVRaUP
-    HQvoayfFWbXln8ISiGT6hF0PcR6w9RKgMOx/IWm6AxtgefLR5+lHzdZNbfaMp4V6S9wip+
-    P8HSnqgk36yfhs7rVDrW0ufNSYyoFX8Zm4WF2ZLQgt3UKmssMTDgKOXymaCTWiDsri2JdQ
-    NPJYITZq3XGM6OkXqDTKTmTfQ52MfTJQtGxW6AbohZ7aODkxXrO9Gb3M3Nnw
-X-ME-Proxy: <xmx:Ux_iajBl35FxRc0NNVREa6rg_J7fcmXCV_oIJfizRMSzrhabBpF2Yw>
-    <xmx:Ux_iagyDvoCEhlOZaVtMGScMw6hYf4cav2BpGxM7NHpsjWoX69_4Ag>
-    <xmx:Ux_iapfbamI2AGk2KXXMbpUqzl2T4NkhabAS6cL9hCwU_WJeeK63hg>
-    <xmx:Ux_ialuxZ2mATC45EJrRC_J5F2S63LgXVqIW5m-hYtGIaCroSeDhog>
-    <xmx:Ux_iauCEgBI4aSOf_0NbqTfMiLFmK3Q__6DogFQRjbtyA4koUygkc-iH>
-Feedback-ID: ice86485a:Fastmail
-Received: by mailuser.ams.internal (Postfix, from userid 501)
-	id CD7ADF80090; Wed, 28 Oct 2026 12:14:09 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	s=k20260515; t=1793204162;
+	bh=xbWRnn6RNjBklw3X9Nkee9wTnt8ta4yhANwXs66hsPs=;
+	h=From:To:Cc:Subject:Date;
+	b=dyD1+iWbCFgR+Q/kV0YX/ajhyUxlTMv8PhTe6NYWPiKm0C1mt0Eb63oTHThKYtBHQ
+	 qZkrrvFXDkwiYI2M0cgsDbs4Ubj0l6S7RMHAqy2dSY8upj3c/7U9gWn1AjDEAn7MH0
+	 X+DRH0BvSoOa/aXj5kFePKaLcHWf050hSmJSspaNMBrlmeQcBxidd7zUhFKzDGnwgs
+	 Cf7XMP5SpW/CamicfkL0FQ/3hJ54jZ+P3WY60PuPhcNEhGzK2MW9EbjwJcyGSQHNEm
+	 RMgVSQC88/3hG3zhohFHlN3xxuFhVRrSY74M3B3gN0E77sEsyQ+RaiEdasSkQX/0uG
+	 Qj/HJzggfVGRg==
+From: Sasha Levin <sashal@kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Sasha Levin <sashal@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	syzbot+cea7285bc17b76ffe39f@syzkaller.appspotmail.com,
+	syzbot+a265816368571f78ab88@syzkaller.appspotmail.com,
+	syzkaller-bugs@googlegroups.com
+Subject: [PATCH] ACPI: scan: Do not hold physical_node_lock across device_offline() and device_online()
+Date: Wed, 28 Oct 2026 12:16:00 -0400
+Message-ID: <20261028161600.1524682-1-sashal@kernel.org>
+X-Mailer: git-send-email 2.53.0
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -77,68 +61,239 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Date: Wed, 28 Oct 2026 17:13:49 +0100
-From: "Ard Biesheuvel" <ardb@kernel.org>
-To: "Hans de Goede" <johannes.goede@oss.qualcomm.com>,
- "Rafael J . Wysocki" <rafael@kernel.org>,
- "Bjorn Andersson" <andersson@kernel.org>,
- "Konrad Dybcio" <konradybcio@kernel.org>
-Cc: "Srinivas Kandagatla" <srini@kernel.org>,
- "Krzysztof Kozlowski" <krzk+dt@kernel.org>,
- "Dmitry Baryshkov" <lumag@kernel.org>,
- "Bartosz Golaszewski" <bartosz.golaszewski@oss.qualcomm.com>,
- "Abel Vesa" <abel.vesa@oss.qualcomm.com>, linux-arm-msm@vger.kernel.org,
- devicetree@vger.kernel.org, "Linux ACPI" <linux-acpi@vger.kernel.org>
-Message-Id: <4b41b061-1c0a-4c00-8263-2e14076c0864@app.fastmail.com>
-In-Reply-To: <20260623145225.143218-1-johannes.goede@oss.qualcomm.com>
-References: <20260623145225.143218-1-johannes.goede@oss.qualcomm.com>
-Subject: Re: [RFC 00/12] RFC: Devicetree-ACPI hybrid mode
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-Hello Hans,
+acpi_bus_offline() and acpi_bus_online() hold the physical_node_lock of
+the ACPI device being hot-removed while they call device_offline() and
+device_online() for its physical nodes.  Offlining a CPU this way takes
+cpu_add_remove_lock and the CPU hotplug lock under physical_node_lock,
+and lockdep connects that to the uevent attribute of platform devices,
+whose store method takes physical_node_lock in
+acpi_primary_dev_companion():
 
-On Tue, 23 Jun 2026, at 16:52, Hans de Goede wrote:
-> Hi All,
->
-> Currently as soon as the kernel boots with a populated DT provided then
-> the arch/arm64 code sets acpi_disabled=1 and the complete ACPI subsystem
-> gets disabled. On WoA Snapdragon laptops where the factory Windows OS
-> actually boots using these tables this is not necessarily desirable.
->
-> It might still be interesting to at least parse the ACPI tables and make
-> the ACPI fwnodes available for device-drivers to use. I call this DT-ACPI
-> hybrid mode.
->
-> This mainly is an experiment for now and possibly a method for accelerating
-> the ongoing effort to run Linux on currently available Snapdragon laptops.
->
-> On current laptops Linux cannot boot using ACPI due to some information
-> missing from the ACPI tables. People are working on changing this so that
-> for future WoA Snapdragon laptops Linux can boot using ACPI only without
-> requiring Devicetree.
->
+  physical_node_lock (acpi_bus_offline())
+    -> cpu_add_remove_lock -> cpu_hotplug_lock
+    -> cpuhp_state-down (mce_cpu_pre_down() unregistering a device)
+    -> device_links_lock (device_links_purge())
+    -> kn->active of a uevent attribute (device link unregistration)
+    -> physical_node_lock (uevent_store() -> acpi_companion_match())
 
-I was present at your LPC presentation.
+syzbot has reported this cycle twice.  The uevent attribute waited for in
+the link unregistration is the device link's, not a platform device's,
+and the physical_node_lock taken at the end is that of the platform
+device's ACPI companion, not of the processor being ejected, so lockdep
+only connects them because they share lock classes and this is unlikely
+to deadlock.  However, lockdep turns itself off after reporting it.
 
-I agree that exposing the firmware tables even when booting via DT
-is reasonable - it is conceptually similar to SMBIOS tables, which
-the arm64 kernel mostly ignores too (as opposed to x86, which relies
-on it heavily for quirks from very early in the boot)
+It can be reproduced in a QEMU guest by writing to the uevent attribute
+of an ACPI-enumerated platform device, reading the uevent attribute of a
+device link while the link is removed, offlining a CPU and ejecting one
+through sysfs.
 
-The examples you provided are straight-forward enough: I2C devices with
-_STA methods that reflect whether the peripheral in question is present,
-and all actual I2C transaction handling taken care of by the native I2C
-host driver, which is exposed as an OpRegion.
+physical_node_lock only needs to protect the list of physical nodes, so
+drop it around device_offline() and device_online().  Mark the nodes to
+offline with a new offline_pending flag, hold a reference to each device
+while the lock is dropped, and look its node up again afterwards to
+record whether it needs to be put back online, because it may have been
+unbound in the meantime.  Physical nodes added while the lock is not
+held are not offlined by the current pass, which is no different from
+adding them right after it.
 
-I suspect, though, that things get hairy really quickly when things like
-DMA, interrupts (both wired and MSI) and SMMUs enter the picture, and so
-the extent to which ACPI device descriptions can be used on a DT boot is
-rather limited.
+Since acpi_container_offline() no longer runs under the container's
+physical_node_lock, the nesting annotation added to
+acpi_scan_is_offline() by commit 4c533c801d1c ("ACPI / scan: Annotate
+physical_node_lock in acpi_scan_is_offline()") is not needed anymore, so
+drop it.
 
-Do you see any use for this hybrid mode beyond I2C input devices etc?
+Fixes: 683058e315f0 ("ACPI / hotplug: Use device offline/online for graceful hot-removal")
+Reported-by: syzbot+cea7285bc17b76ffe39f@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/r/6ae18ed0.6200f071.51519.0f60.GAE@google.com
+Reported-by: syzbot+a265816368571f78ab88@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/r/6adf293a.67317f00.38c4bc.00af.GAE@google.com
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/acpi/scan.c     | 112 ++++++++++++++++++++++++++++++++--------
+ include/acpi/acpi_bus.h |   1 +
+ 2 files changed, 92 insertions(+), 21 deletions(-)
 
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 0b17a7e519569..3a6420872651f 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -114,11 +114,7 @@ bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent)
+ 	bool offline = true;
+ 	char *envp[] = { "EVENT=offline", NULL };
+ 
+-	/*
+-	 * acpi_container_offline() calls this for all of the container's
+-	 * children under the container's physical_node_lock lock.
+-	 */
+-	mutex_lock_nested(&adev->physical_node_lock, SINGLE_DEPTH_NESTING);
++	mutex_lock(&adev->physical_node_lock);
+ 
+ 	list_for_each_entry(pn, &adev->physical_node_list, node)
+ 		if (device_supports_offline(pn->dev) && !dev_offline(pn->dev)) {
+@@ -133,6 +129,59 @@ bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent)
+ 	return offline;
+ }
+ 
++static struct acpi_device_physical_node *
++acpi_find_physical_node(struct acpi_device *adev, struct device *dev)
++{
++	struct acpi_device_physical_node *pn;
++
++	lockdep_assert_held(&adev->physical_node_lock);
++
++	list_for_each_entry(pn, &adev->physical_node_list, node)
++		if (pn->dev == dev)
++			return pn;
++
++	return NULL;
++}
++
++/*
++ * Find the first physical node of @adev that is still to be offlined, clear its
++ * offline_pending flag and return its device with a reference held.
++ */
++static struct device *acpi_next_offline_pending(struct acpi_device *adev)
++{
++	struct acpi_device_physical_node *pn;
++
++	lockdep_assert_held(&adev->physical_node_lock);
++
++	list_for_each_entry(pn, &adev->physical_node_list, node)
++		if (pn->offline_pending) {
++			pn->offline_pending = false;
++			return get_device(pn->dev);
++		}
++
++	return NULL;
++}
++
++/*
++ * Find the first physical node of @adev that has been offlined by
++ * acpi_bus_offline(), clear its put_online flag and return its device with a
++ * reference held.
++ */
++static struct device *acpi_next_put_online(struct acpi_device *adev)
++{
++	struct acpi_device_physical_node *pn;
++
++	lockdep_assert_held(&adev->physical_node_lock);
++
++	list_for_each_entry(pn, &adev->physical_node_list, node)
++		if (pn->put_online) {
++			pn->put_online = false;
++			return get_device(pn->dev);
++		}
++
++	return NULL;
++}
++
+ static acpi_status acpi_bus_offline(acpi_handle handle, u32 lvl, void *data,
+ 				    void **ret_p)
+ {
+@@ -140,6 +189,7 @@ static acpi_status acpi_bus_offline(acpi_handle handle, u32 lvl, void *data,
+ 	struct acpi_device_physical_node *pn;
+ 	bool second_pass = (bool)data;
+ 	acpi_status status = AE_OK;
++	struct device *dev;
+ 
+ 	if (!device)
+ 		return AE_OK;
+@@ -152,25 +202,44 @@ static acpi_status acpi_bus_offline(acpi_handle handle, u32 lvl, void *data,
+ 	mutex_lock(&device->physical_node_lock);
+ 
+ 	list_for_each_entry(pn, &device->physical_node_list, node) {
+-		int ret;
+-
+ 		if (second_pass) {
+ 			/* Skip devices offlined by the first pass. */
+-			if (pn->put_online)
+-				continue;
++			pn->offline_pending = !pn->put_online;
+ 		} else {
++			pn->offline_pending = true;
+ 			pn->put_online = false;
+ 		}
+-		ret = device_offline(pn->dev);
++	}
++
++	/*
++	 * Drop physical_node_lock around device_offline(), because the latter
++	 * acquires locks, like the CPU hotplug ones, that must not nest under
++	 * it.
++	 */
++	while ((dev = acpi_next_offline_pending(device))) {
++		int ret;
++
++		mutex_unlock(&device->physical_node_lock);
++		ret = device_offline(dev);
++		mutex_lock(&device->physical_node_lock);
++
++		/* The device may have been unbound in the meantime. */
++		pn = acpi_find_physical_node(device, dev);
+ 		if (ret >= 0) {
+-			pn->put_online = !ret;
++			if (pn)
++				pn->put_online = !ret;
+ 		} else {
+-			*ret_p = pn->dev;
+-			if (second_pass) {
++			*ret_p = pn ? pn->dev : &device->dev;
++			if (second_pass)
+ 				status = AE_ERROR;
+-				break;
+-			}
+ 		}
++
++		mutex_unlock(&device->physical_node_lock);
++		put_device(dev);
++		if (ACPI_FAILURE(status))
++			return status;
++
++		mutex_lock(&device->physical_node_lock);
+ 	}
+ 
+ 	mutex_unlock(&device->physical_node_lock);
+@@ -182,18 +251,19 @@ static acpi_status acpi_bus_online(acpi_handle handle, u32 lvl, void *data,
+ 				   void **ret_p)
+ {
+ 	struct acpi_device *device = acpi_fetch_acpi_dev(handle);
+-	struct acpi_device_physical_node *pn;
++	struct device *dev;
+ 
+ 	if (!device)
+ 		return AE_OK;
+ 
+ 	mutex_lock(&device->physical_node_lock);
+ 
+-	list_for_each_entry(pn, &device->physical_node_list, node)
+-		if (pn->put_online) {
+-			device_online(pn->dev);
+-			pn->put_online = false;
+-		}
++	while ((dev = acpi_next_put_online(device))) {
++		mutex_unlock(&device->physical_node_lock);
++		device_online(dev);
++		put_device(dev);
++		mutex_lock(&device->physical_node_lock);
++	}
+ 
+ 	mutex_unlock(&device->physical_node_lock);
+ 
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index a755b15af9db9..29c59ea1e3e48 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -320,6 +320,7 @@ struct acpi_device_physical_node {
+ 	struct device *dev;
+ 	unsigned int node_id;
+ 	bool put_online:1;
++	bool offline_pending:1;
+ };
+ 
+ struct acpi_device_properties {
 -- 
-Ard.
-
+2.53.0
 
