@@ -1,103 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.47
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793215863;
-	b=c3HWi0Hw8Q54GsuM9VUeqiDQimPKhuTNwQAlBGj9aGWYnml6OV1q2W3dcKIQ+QIb72MF
-	 ntM9zTqWdQXoomfr/bVyQIWnRfLQWZhoIOsCdo/ptsMm169oIWAU9NX4NG4v5L3Y1EdAO
-	 QVgNDJONj0n8sZCqqw722K6muFBZ1XEpKAbPWBKdaXxR5UkgiF/fbR1aLSBToUvfhjUeQ
-	 HwlHuY8Xrdyc2KyduxYVm9YFQJHVAVu+AXaesdFkbekGzsVYRBlZmb//k7Vj42Q1u0mTk
-	 TIeAbRNKIirkn3LVCBPvZ5G2RFiTF//44DYRj2VLMXa1odb6dP/WzS1/wySatLgEtRQ==
+	t=1793217851;
+	b=nLnVs0E97azg7GvWMVn8lxMGbv1G8iAXcxzlzfQnlejcymcaqb4iLeQAajmVy2YxuFuP
+	 HACcpWIhIszqFR+/CEZFSj6iADczvn4m2JN9wjsv1SBDLFPJ8rJYJ4bg13Ity3c/nXcKM
+	 FImoPO6SsSewCmDH7DfoBzkGLEfCigF7O41OhT5R9iuoWbxlJdPEmW/VYoO79uEXrSc5M
+	 gHdQRfduDLNuhIswRWczP49dQxTMbxk/hzx4Nc/PeoblS39eAQ6zb1zR7695/4I0nFwej
+	 bKnxll4Q7SaGOcjQnVj0sFeqT/Aw50p76yH4RCDS8NlSy53twMXePN0sIst2d23x5Og==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793215863;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Date:From:To:Cc:Subject:Message-ID:Reply-To:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=hpULEwBzMr2yjpqrT2e1UdgumWStkpKL7baBkCqpHVM=;
-	b=yNVuSJF2zUnDKjEN0JKUiFA4OEt6BeNAGkLpx7ZMONYOdbAK+x/yzKf1yPmzDB50vvRP
-	 sD2zf+jFGnSZ3ymTgOb/rq6tBnETYZnOIDyJRObEyR/emlhb8ZVJiBpL9fGUsbuTnmlXH
-	 aG+8S6bSy+9lthbtxPElIWIjEDmgr0B4HZDPm5C/ZbrvuIoxuzqgRAXxwe5nMztoLk2T0
-	 gXJXSkEmMoC2fGePaMWmVVIdEiVxwTACVQjHF+swBGSBUN2nxZwEp8vmsnEFohApufDie
-	 jbolOIX23JFkMydp7/wSWocUnS8JYpKKCV8Ap//KbCEM58bKcME3Ad4VODbCZhaSGbQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793217851;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=2bnS+i1A2R6WWfvOUxIqn6sk4AKrMLFDgy0fzgSFpbc=;
+	b=DisuvNGypvKVamW2ND9ZVEcukdft3I6RsLL1g7SJDu85+IcHuZRyORF29uHMvFWlWdZQ
+	 i/hGYmyF5NNsai27304LJgR6JuvyfmuIelV+0uVx5UIsGM96nUXo0AdD5GVxjKZw8on35
+	 JjCSONTLdsFMQk9D+Hz6dgcPbukibb0lEV6aX73tVsyqiFr8frGy0gjapnn01JnbKkmNp
+	 nBHtYV1efqV3enaPapFSmYa6dPf2NtTl1HPuk63EiVs7I6oSSMUZErFy+Qrg9jTWICHoM
+	 9/jVwk89tE7MxPtCkIlueOBWOk6d09y2xog20BbUb6dYzg0Mng2SVxWCJg6M9Lwb69Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=minyard.net;
-	spf=pass smtp.mailfrom=minyard.net;
-	dkim=pass header.d=minyard.net header.i=@minyard.net header.a=rsa-sha256 header.s=google header.b=gC36719i;
-	arc=none smtp.remote-ip=209.85.160.47
-Received: from mail-oa1-f47.google.com (mail-oa1-f47.google.com [209.85.160.47])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="hC12/Gk+";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61F69606A325
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 19:31:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 61F69606A325
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=minyard.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=minyard.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 291B9606A31C
+	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 20:04:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=minyard.net header.i=@minyard.net header.a=rsa-sha256 header.s=google header.b=gC36719i
-Received: by mail-oa1-f47.google.com with SMTP id 586e51a60fabf-4a6f2825dd6so410093fac.2
-        for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 12:31:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=minyard.net; s=google; t=1793215861; x=1793820661; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:reply-to:message-id:subject:cc:to:from:date:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=hpULEwBzMr2yjpqrT2e1UdgumWStkpKL7baBkCqpHVM=;
-        b=gC36719iCpac+J0uMgq776jeOZj6OFfT5UfXAAu8QRjqm8ZgwVM5w6YXhN3q9KyUXc
-         UGImKfuKxj2xH2QGxCT0ozcu2XUDWhOrxBvqfGLLunODjP4c9GS11CQx8voF+sRxcalE
-         7S4ObHLYVH4+CpL+UZyeET/2rX8tn/qqqm3VZC6LSFoa+343pmRwDGuEC1NWm2iWEhRe
-         cHxwobq9jYGveOpMguxfPZVZkJIBsc0Xv6Z1asVJ6kZuWNYhYvqV7Ohyg09+WCESkW5O
-         IY/QLHxaICp8xiYXFy2t3R0S49kIPN1px7zdW4RenyjdzgXzlWoklwmhmNFNvuL8z1rH
-         x/Vw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793215861; x=1793820661;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:reply-to:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=hpULEwBzMr2yjpqrT2e1UdgumWStkpKL7baBkCqpHVM=;
-        b=UwZ8Szei6ldkKmULAvp2OYUgCt1AjKAe9yDpg9Y5LIE5SdrBvraQM4FJstBAwgbugY
-         vJVyxIt1w/AVQJe6fKsEjHzFLbbNjK12ORDoSzTP7aytWjUx3ejlsh4xN3ZhcmP14WMZ
-         bxXYkmMWjIbQz56lwSUcZTQshGAGnmB9RfRJiZq/sA818Pyk9iYFlsV5y0BEkqNJxAf3
-         XQ/ny3BsmC2J+UBRcbzyFe4yJ0kNQVcb0OqdbWZX/tup+qzwRJj9IoekY5H1kl/i7M+G
-         pE8sxuXLjZm8Wa0UE4WtjAFDVVflZozSi1nct9oU6ZbkU4vNed7L1pMDF6wTqf+1IHe7
-         /ANg==
-X-Forwarded-Encrypted: i=1; AKwUvBwsk0ISe6JyvbypQgofd+Mrt8kcBEWNsCkZ3MgVdOu+/i1I5gX82a8qr8hB3whBYHHKviKXPfb562oZ@vger.kernel.org
-X-Gm-Message-State: AFq9FYIJzU51pY7w6uyMoWUPMj2IptG/jr5XBhDhp/cKMVNDSHJQXgE3
-	dKxvitt8X/DGi0gMwQIrbo1GhOK5f7EvNB/Ii03gIKw6Gc/aeHQ4L55dcTAiVT7LhcA=
-X-Gm-Gg: AYBFou22y4XJZ9c8O5pWGlYDoDtHPK/XmnLWivBL//M++tZzbCUKS9WVZg1ECcoQDx/
-	ghRNx63PQMuI+cPyBfmRjsU1itPkGCvxi5rgkVjXdoN3JOjejRLyU9C8eS+uRllhuYa1U/vjoRq
-	OfeQoDkPUsiIhAmWCLBbNaoH1qTWHMmUzuLBg1e19pXdsHhTm3RVcYGIeby2+pf4Mh9xG2LRnGk
-	peysKXSoqKPK29wXuv74R92UP3nd/tP3T6JHhasuBZA7LmlxL6jYwy0xU/n3RRQq+zt+OhDrVng
-	qqFMNHaJeGZArY7XOsYH0O5eFExZGDm8/excAia7e6z73E46MG8P9rjkpIrL3fV16zvK4oU9USw
-	e9/28u8ogCTrKrt1GM6t+4d7eTHiiuenjYCvSkCoQOf0hwB7ddOVQ6mhfw14Dlmsd4cXNKmajYd
-	zbaFZxRj0xfXCEAEkTq+vxsNJRz6cfcIbrN+S7wkMrdGG7sDRG9QQzyQlO+KWid2ATWnO256Zvh
-	X0bjhYLTGV2PDl95XOHP+Dhf7BFQrPQxFNjcrB1hMC430puHSZaBGX7XzyzkxqBuCrrUxtcVNFH
-	/AYGs7wfdnC24NHo+3NAf+FstQsmSgxSw+FwYwtXpuyrhr4944vJ1WvDDw1H5amPLJ2yXryzVnZ
-	jnhDlCztVHH0PJ4Cbm323Z9BbM5lyXZC6HqLny34Sak7Wn8AAyGY81y3C5NF9705ritge4ms=
-X-Received: by 2002:a05:6870:9e08:b0:45e:54a3:b8ca with SMTP id 586e51a60fabf-4a8bb427d08mr2615315fac.19.1793215861021;
-        Wed, 28 Oct 2026 12:31:01 -0700 (PDT)
-Received: from mail.minyard.net ([2001:470:b8f6:1b:2f32:e466:d3ef:5b82])
-        by smtp.gmail.com with ESMTPSA id 586e51a60fabf-4a8b78de44esm3375499fac.11.2026.10.28.12.30.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 28 Oct 2026 12:31:00 -0700 (PDT)
-Date: Wed, 28 Oct 2026 14:30:56 -0500
-From: Corey Minyard <corey@minyard.net>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Mika Westerberg <westeri@kernel.org>,
-	Andi Shyti <andi.shyti@kernel.org>,
-	Hans de Goede <hansg@kernel.org>,
-	Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>,
-	Sebastian Reichel <sre@kernel.org>, linux-i2c@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-input@vger.kernel.org,
-	openipmi-developer@lists.sourceforge.net,
-	platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org
-Subject: Re: [PATCH 6/8] ipmi: ssif: use 4-argument
- i2c_smbus_read_block_data()
-Message-ID: <auJNcEiVgwCW5D1Y@mail.minyard.net>
-Reply-To: corey@minyard.net
-References: <20261024-i2c-smbus-read-block-data-v1-0-19bb97467982@gmail.com>
- <20261024-i2c-smbus-read-block-data-v1-6-19bb97467982@gmail.com>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hC12/Gk+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCDFF1F031E0
+	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 20:04:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793217850;
+	bh=2bnS+i1A2R6WWfvOUxIqn6sk4AKrMLFDgy0fzgSFpbc=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=hC12/Gk+aUxV/mKxa6+e83vNWtY6DVKjvu4qsqZ57tO415R2JFEOivW9W0Ab+pv33
+	 kADj8lXMFuRaIYOupKJLsrKm2ITYKSYNWD3lQTMH5GWrQUTthrzVNdMlUVZwt5Tunj
+	 YMvOmHSYRYClV+K8PalwpgmAlWE2IdCIVWusgc+fWuLchBJNZYTMz7wuD8dRqYEbUL
+	 hy9vHAh5APGOyQ+woMQMX1UrehRf9u3VBwrw65jlUIAvtcEbYQp8zZxzgADntToBUZ
+	 k8GSSNMRlsqzdHcMVK+Q7ldKsQOMkpGtl0/bCNJ09adMNiB4evmT+Zh/qYomv2EWsT
+	 FTWMeIEb+7s7Q==
+Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5bfc346401aso1015797e87.0
+        for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 13:04:10 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBysuu0cfeozmj5kRe7NHUpCSUo6o/Nev2Lp2M1N8X59zEShao6+TYVmERjzozrsqK88IcT4u6ygcH5s@vger.kernel.org
+X-Gm-Message-State: AFq9FYK7MbOhz8I2ZKqK95zOG9hMrVuJpx1CTdGj3wRy4vIJb+NSrMNa
+	84yej9XNxUOZYgbmJnZKk373dja9hKp5pgzR9SHAt1V8R7jQJwjjgNeTFAioTLLLJHsgkAXIyu0
+	yFlQwCCe5JDrJOl7mVbjLvkbcSEt5UIg=
+X-Received: by 2002:a05:6512:3983:b0:5bf:cabe:23b5 with SMTP id
+ 2adb3069b0e04-5bfcad7124dmr1477992e87.60.1793217849285; Wed, 28 Oct 2026
+ 13:04:09 -0700 (PDT)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -107,205 +59,299 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261024-i2c-smbus-read-block-data-v1-6-19bb97467982@gmail.com>
+References: <20261028161600.1524682-1-sashal@kernel.org>
+In-Reply-To: <20261028161600.1524682-1-sashal@kernel.org>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Wed, 28 Oct 2026 21:03:57 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0h9JGSHyP3omJYqsJjwC6gMHMtQnJ38Nct_UorSHpyyRg@mail.gmail.com>
+X-Gm-Features: AclHuK9TTxKVP1w6H492LN-rJYOEhMKsUdisrO-t6GbmynxpR0xTebDQa9Z6DBY
+Message-ID: <CAJZ5v0h9JGSHyP3omJYqsJjwC6gMHMtQnJ38Nct_UorSHpyyRg@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: scan: Do not hold physical_node_lock across
+ device_offline() and device_online()
+To: Sasha Levin <sashal@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, 
+	syzbot+cea7285bc17b76ffe39f@syzkaller.appspotmail.com, 
+	syzbot+a265816368571f78ab88@syzkaller.appspotmail.com, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Sat, Oct 24, 2026 at 07:48:46PM -0700, Dmitry Torokhov wrote:
-> Pass the receive buffer capacity to i2c_smbus_read_block_data() in
-> ipmi_ssif_thread() via the i2c_size field, and update ssif_i2c_send()
-> callers to pass the receive buffer size.
-> 
-> Update read_response(), do_cmd(), and test_multipart_messages() to
-> accept the response buffer length, clamping the transfer size to
-> I2C_SMBUS_BLOCK_MAX when reading from the device.
+On Wed, Oct 28, 2026 at 5:16=E2=80=AFPM Sasha Levin <sashal@kernel.org> wro=
+te:
+>
+> acpi_bus_offline() and acpi_bus_online() hold the physical_node_lock of
+> the ACPI device being hot-removed while they call device_offline() and
+> device_online() for its physical nodes.  Offlining a CPU this way takes
+> cpu_add_remove_lock and the CPU hotplug lock under physical_node_lock,
+> and lockdep connects that to the uevent attribute of platform devices,
+> whose store method takes physical_node_lock in
+> acpi_primary_dev_companion():
+>
+>   physical_node_lock (acpi_bus_offline())
+>     -> cpu_add_remove_lock -> cpu_hotplug_lock
+>     -> cpuhp_state-down (mce_cpu_pre_down() unregistering a device)
+>     -> device_links_lock (device_links_purge())
+>     -> kn->active of a uevent attribute (device link unregistration)
+>     -> physical_node_lock (uevent_store() -> acpi_companion_match())
+>
+> syzbot has reported this cycle twice.  The uevent attribute waited for in
+> the link unregistration is the device link's, not a platform device's,
+> and the physical_node_lock taken at the end is that of the platform
+> device's ACPI companion, not of the processor being ejected, so lockdep
+> only connects them because they share lock classes and this is unlikely
+> to deadlock.  However, lockdep turns itself off after reporting it.
 
-This is in my for-next tree.  It passes all tests.
+Yeah, fair enough, and thanks for the patch!
 
-The reuse of the "size" parameter to ssif_i2c_send() is ok.  That's not
-really what it was originally meant for, it was the transaction type,
-but it wasn't used, so all is good.
+> It can be reproduced in a QEMU guest by writing to the uevent attribute
+> of an ACPI-enumerated platform device, reading the uevent attribute of a
+> device link while the link is removed, offlining a CPU and ejecting one
+> through sysfs.
+>
+> physical_node_lock only needs to protect the list of physical nodes,
 
--corey
+There is somewhat more to it because acpi_unbind_one() blocks on
+physical_node_lock of the device's ACPI companion, so holding it
+prevents device_offline() from running in parallel with whatever
+happens after acpi_unbind_one().  I don't think this would be a
+problem in practice though.
 
-> 
-> Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> so drop it around device_offline() and device_online().  Mark the nodes t=
+o
+> offline with a new offline_pending flag, hold a reference to each device
+> while the lock is dropped, and look its node up again afterwards to
+> record whether it needs to be put back online, because it may have been
+> unbound in the meantime.  Physical nodes added while the lock is not
+> held are not offlined by the current pass, which is no different from
+> adding them right after it.
+>
+> Since acpi_container_offline() no longer runs under the container's
+> physical_node_lock, the nesting annotation added to
+> acpi_scan_is_offline() by commit 4c533c801d1c ("ACPI / scan: Annotate
+> physical_node_lock in acpi_scan_is_offline()") is not needed anymore, so
+> drop it.
+>
+> Fixes: 683058e315f0 ("ACPI / hotplug: Use device offline/online for grace=
+ful hot-removal")
+> Reported-by: syzbot+cea7285bc17b76ffe39f@syzkaller.appspotmail.com
+> Closes: https://lore.kernel.org/r/6ae18ed0.6200f071.51519.0f60.GAE@google=
+.com
+> Reported-by: syzbot+a265816368571f78ab88@syzkaller.appspotmail.com
+> Closes: https://lore.kernel.org/r/6adf293a.67317f00.38c4bc.00af.GAE@googl=
+e.com
+> Signed-off-by: Sasha Levin <sashal@kernel.org>
 > ---
->  drivers/char/ipmi/ipmi_ssif.c | 39 +++++++++++++++++++++------------------
->  1 file changed, 21 insertions(+), 18 deletions(-)
-> 
-> diff --git a/drivers/char/ipmi/ipmi_ssif.c b/drivers/char/ipmi/ipmi_ssif.c
-> index 2361103c5edc..9c0aebec2946 100644
-> --- a/drivers/char/ipmi/ipmi_ssif.c
-> +++ b/drivers/char/ipmi/ipmi_ssif.c
-> @@ -503,7 +503,7 @@ static int ipmi_ssif_thread(void *data)
->  		} else {
->  			result = i2c_smbus_read_block_data(
->  				ssif_info->client, ssif_info->i2c_command,
-> -				ssif_info->i2c_data);
-> +				ssif_info->i2c_size, ssif_info->i2c_data);
->  			if (result < 0)
->  				ssif_info->done_handler(ssif_info, result,
->  							NULL, 0);
-> @@ -541,7 +541,7 @@ static void start_get(struct ssif_info *ssif_info)
->  
->  	ssif_i2c_send(ssif_info, msg_done_handler, I2C_SMBUS_READ,
->  		  SSIF_IPMI_RESPONSE,
-> -		  ssif_info->recv, I2C_SMBUS_BLOCK_DATA);
-> +		  ssif_info->recv, sizeof(ssif_info->recv));
+>  drivers/acpi/scan.c     | 112 ++++++++++++++++++++++++++++++++--------
+>  include/acpi/acpi_bus.h |   1 +
+>  2 files changed, 92 insertions(+), 21 deletions(-)
+>
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 0b17a7e519569..3a6420872651f 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -114,11 +114,7 @@ bool acpi_scan_is_offline(struct acpi_device *adev, =
+bool uevent)
+>         bool offline =3D true;
+>         char *envp[] =3D { "EVENT=3Doffline", NULL };
+>
+> -       /*
+> -        * acpi_container_offline() calls this for all of the container's
+> -        * children under the container's physical_node_lock lock.
+> -        */
+> -       mutex_lock_nested(&adev->physical_node_lock, SINGLE_DEPTH_NESTING=
+);
+> +       mutex_lock(&adev->physical_node_lock);
+>
+>         list_for_each_entry(pn, &adev->physical_node_list, node)
+>                 if (device_supports_offline(pn->dev) && !dev_offline(pn->=
+dev)) {
+> @@ -133,6 +129,59 @@ bool acpi_scan_is_offline(struct acpi_device *adev, =
+bool uevent)
+>         return offline;
 >  }
->  
->  static void start_resend(struct ssif_info *ssif_info);
-> @@ -669,7 +669,7 @@ static void msg_done_handler(struct ssif_info *ssif_info, int result,
->  
->  		ssif_i2c_send(ssif_info, msg_done_handler, I2C_SMBUS_READ,
->  			 SSIF_IPMI_MULTI_PART_RESPONSE_MIDDLE,
-> -			 ssif_info->recv, I2C_SMBUS_BLOCK_DATA);
-> +			 ssif_info->recv, sizeof(ssif_info->recv));
->  		return;
->  	} else if (ssif_info->multi_pos) {
->  		/* Middle of multi-part read.  Start the next transaction. */
-> @@ -736,7 +736,7 @@ static void msg_done_handler(struct ssif_info *ssif_info, int result,
->  				  I2C_SMBUS_READ,
->  				  SSIF_IPMI_MULTI_PART_RESPONSE_MIDDLE,
->  				  ssif_info->recv,
-> -				  I2C_SMBUS_BLOCK_DATA);
-> +				  sizeof(ssif_info->recv));
->  			return;
->  		}
->  	}
-> @@ -1314,12 +1314,15 @@ static void ssif_remove(struct i2c_client *client)
->  	kfree(ssif_info);
->  }
->  
-> -static int read_response(struct i2c_client *client, unsigned char *resp)
-> +static int read_response(struct i2c_client *client, unsigned char *resp,
-> +			 size_t resp_length)
+>
+> +static struct acpi_device_physical_node *
+> +acpi_find_physical_node(struct acpi_device *adev, struct device *dev)
+> +{
+> +       struct acpi_device_physical_node *pn;
+> +
+> +       lockdep_assert_held(&adev->physical_node_lock);
+> +
+> +       list_for_each_entry(pn, &adev->physical_node_list, node)
+> +               if (pn->dev =3D=3D dev)
+> +                       return pn;
+> +
+> +       return NULL;
+> +}
+> +
+> +/*
+> + * Find the first physical node of @adev that is still to be offlined, c=
+lear its
+> + * offline_pending flag and return its device with a reference held.
+> + */
+
+I'd slightly prefer this comment to go into the function body, next to
+the loop (and analogously for the next one).
+
+> +static struct device *acpi_next_offline_pending(struct acpi_device *adev=
+)
+> +{
+> +       struct acpi_device_physical_node *pn;
+> +
+> +       lockdep_assert_held(&adev->physical_node_lock);
+> +
+> +       list_for_each_entry(pn, &adev->physical_node_list, node)
+> +               if (pn->offline_pending) {
+> +                       pn->offline_pending =3D false;
+> +                       return get_device(pn->dev);
+> +               }
+> +
+> +       return NULL;
+> +}
+> +
+> +/*
+> + * Find the first physical node of @adev that has been offlined by
+> + * acpi_bus_offline(), clear its put_online flag and return its device w=
+ith a
+> + * reference held.
+> + */
+> +static struct device *acpi_next_put_online(struct acpi_device *adev)
+> +{
+> +       struct acpi_device_physical_node *pn;
+> +
+> +       lockdep_assert_held(&adev->physical_node_lock);
+> +
+> +       list_for_each_entry(pn, &adev->physical_node_list, node)
+> +               if (pn->put_online) {
+> +                       pn->put_online =3D false;
+> +                       return get_device(pn->dev);
+> +               }
+> +
+> +       return NULL;
+> +}
+> +
+>  static acpi_status acpi_bus_offline(acpi_handle handle, u32 lvl, void *d=
+ata,
+>                                     void **ret_p)
 >  {
->  	int ret = -ENODEV, retry_cnt = SSIF_RECV_RETRIES;
->  
->  	while (retry_cnt > 0) {
->  		ret = i2c_smbus_read_block_data(client, SSIF_IPMI_RESPONSE,
-> +						min_t(size_t, resp_length,
-> +						      I2C_SMBUS_BLOCK_MAX),
->  						resp);
->  		if (ret > 0)
->  			break;
-> @@ -1333,7 +1336,7 @@ static int read_response(struct i2c_client *client, unsigned char *resp)
->  }
->  
->  static int do_cmd(struct i2c_client *client, int len, unsigned char *msg,
-> -		  int *resp_len, unsigned char *resp)
-> +		  int *resp_len, unsigned char *resp, size_t resp_length)
+> @@ -140,6 +189,7 @@ static acpi_status acpi_bus_offline(acpi_handle handl=
+e, u32 lvl, void *data,
+>         struct acpi_device_physical_node *pn;
+>         bool second_pass =3D (bool)data;
+>         acpi_status status =3D AE_OK;
+> +       struct device *dev;
+>
+>         if (!device)
+>                 return AE_OK;
+> @@ -152,25 +202,44 @@ static acpi_status acpi_bus_offline(acpi_handle han=
+dle, u32 lvl, void *data,
+>         mutex_lock(&device->physical_node_lock);
+>
+>         list_for_each_entry(pn, &device->physical_node_list, node) {
+> -               int ret;
+> -
+>                 if (second_pass) {
+>                         /* Skip devices offlined by the first pass. */
+> -                       if (pn->put_online)
+> -                               continue;
+> +                       pn->offline_pending =3D !pn->put_online;
+>                 } else {
+> +                       pn->offline_pending =3D true;
+>                         pn->put_online =3D false;
+>                 }
+> -               ret =3D device_offline(pn->dev);
+> +       }
+> +
+> +       /*
+> +        * Drop physical_node_lock around device_offline(), because the l=
+atter
+> +        * acquires locks, like the CPU hotplug ones, that must not nest =
+under
+> +        * it.
+> +        */
+> +       while ((dev =3D acpi_next_offline_pending(device))) {
+> +               int ret;
+> +
+> +               mutex_unlock(&device->physical_node_lock);
+> +               ret =3D device_offline(dev);
+> +               mutex_lock(&device->physical_node_lock);
+> +
+> +               /* The device may have been unbound in the meantime. */
+> +               pn =3D acpi_find_physical_node(device, dev);
+>                 if (ret >=3D 0) {
+> -                       pn->put_online =3D !ret;
+> +                       if (pn)
+> +                               pn->put_online =3D !ret;
+>                 } else {
+> -                       *ret_p =3D pn->dev;
+> -                       if (second_pass) {
+> +                       *ret_p =3D pn ? pn->dev : &device->dev;
+
+Returning pn->dev via ret_p and then using it for printing messages is
+bogus both here and in the original code (sorry about that) because in
+theory the device may be gone by the time the message gets printed.
+It would be good to fix that beforehand and then you won't need to
+return &device->dev here if pn is NULL which is a bit confusing.
+
+> +                       if (second_pass)
+>                                 status =3D AE_ERROR;
+> -                               break;
+> -                       }
+>                 }
+> +
+> +               mutex_unlock(&device->physical_node_lock);
+
+Does the lock really need to be dropped here?
+
+put_device() can be called from under it and substituting "break" for
+"return status" below should take care of the loop termination.
+
+> +               put_device(dev);
+> +               if (ACPI_FAILURE(status))
+> +                       return status;
+> +
+> +               mutex_lock(&device->physical_node_lock);
+>         }
+>
+>         mutex_unlock(&device->physical_node_lock);
+> @@ -182,18 +251,19 @@ static acpi_status acpi_bus_online(acpi_handle hand=
+le, u32 lvl, void *data,
+>                                    void **ret_p)
 >  {
->  	int retry_cnt;
->  	int ret;
-> @@ -1350,14 +1353,14 @@ static int do_cmd(struct i2c_client *client, int len, unsigned char *msg,
->  		return -ENODEV;
->  	}
->  
-> -	ret = read_response(client, resp);
-> +	ret = read_response(client, resp, resp_length);
->  	if (ret > 0) {
->  		/* Validate that the response is correct. */
->  		if (ret < 3 ||
->  		    (resp[0] != (msg[0] | (1 << 2))) ||
->  		    (resp[1] != msg[1]))
->  			ret = -EINVAL;
-> -		else if (ret > IPMI_MAX_MSG_LENGTH) {
-> +		else if (ret > resp_length) {
->  			ret = -E2BIG;
->  		} else {
->  			*resp_len = ret;
-> @@ -1382,7 +1385,7 @@ static int ssif_detect(struct i2c_client *client, struct i2c_board_info *info)
->  	/* Do a Get Device ID command, since it is required. */
->  	msg[0] = IPMI_NETFN_APP_REQUEST << 2;
->  	msg[1] = IPMI_GET_DEVICE_ID_CMD;
-> -	rv = do_cmd(client, 2, msg, &len, resp);
-> +	rv = do_cmd(client, 2, msg, &len, resp, IPMI_MAX_MSG_LENGTH);
->  	if (rv)
->  		rv = -ENODEV;
->  	else {
-> @@ -1523,7 +1526,7 @@ static int start_multipart_test(struct i2c_client *client,
->  
->  static void test_multipart_messages(struct i2c_client *client,
->  				    struct ssif_info *ssif_info,
-> -				    unsigned char *resp)
-> +				    unsigned char *resp, size_t resp_length)
->  {
->  	unsigned char msg[65];
->  	int ret;
-> @@ -1572,7 +1575,7 @@ static void test_multipart_messages(struct i2c_client *client,
->  					 1, msg + 64);
->  
->  	if (!ret)
-> -		ret = read_response(client, resp);
-> +		ret = read_response(client, resp, resp_length);
->  
->  	if (ret > 0) {
->  		/* End transactions work, we are good. */
-> @@ -1590,7 +1593,7 @@ static void test_multipart_messages(struct i2c_client *client,
->  					 SSIF_IPMI_MULTI_PART_REQUEST_MIDDLE,
->  					 0, msg + 64);
->  	if (!ret)
-> -		ret = read_response(client, resp);
-> +		ret = read_response(client, resp, resp_length);
->  	if (ret > 0)
->  		/* Zero-size end parts work, use those. */
->  		return;
-> @@ -1748,7 +1751,7 @@ static int ssif_probe(struct i2c_client *client)
->  	msg[0] = IPMI_NETFN_APP_REQUEST << 2;
->  	msg[1] = IPMI_GET_SYSTEM_INTERFACE_CAPABILITIES_CMD;
->  	msg[2] = 0; /* SSIF */
-> -	rv = do_cmd(client, 3, msg, &len, resp);
-> +	rv = do_cmd(client, 3, msg, &len, resp, IPMI_MAX_MSG_LENGTH);
->  	if (!rv && (len >= 3) && (resp[2] == 0)) {
->  		if (len < 7) {
->  			if (ssif_dbg_probe)
-> @@ -1800,13 +1803,13 @@ static int ssif_probe(struct i2c_client *client)
->  		ssif_info->supports_pec = 0;
->  	}
->  
-> -	test_multipart_messages(client, ssif_info, resp);
-> +	test_multipart_messages(client, ssif_info, resp, IPMI_MAX_MSG_LENGTH);
->  
->  	/* Make sure the NMI timeout is cleared. */
->  	msg[0] = IPMI_NETFN_APP_REQUEST << 2;
->  	msg[1] = IPMI_CLEAR_MSG_FLAGS_CMD;
->  	msg[2] = WDT_PRE_TIMEOUT_INT;
-> -	rv = do_cmd(client, 3, msg, &len, resp);
-> +	rv = do_cmd(client, 3, msg, &len, resp, IPMI_MAX_MSG_LENGTH);
->  	if (rv || (len < 3) || (resp[2] != 0))
->  		dev_warn(&ssif_info->client->dev,
->  			 "Unable to clear message flags: %d %d %2.2x\n",
-> @@ -1815,7 +1818,7 @@ static int ssif_probe(struct i2c_client *client)
->  	/* Attempt to enable the event buffer. */
->  	msg[0] = IPMI_NETFN_APP_REQUEST << 2;
->  	msg[1] = IPMI_GET_BMC_GLOBAL_ENABLES_CMD;
-> -	rv = do_cmd(client, 2, msg, &len, resp);
-> +	rv = do_cmd(client, 2, msg, &len, resp, IPMI_MAX_MSG_LENGTH);
->  	if (rv || (len < 4) || (resp[2] != 0)) {
->  		dev_warn(&ssif_info->client->dev,
->  			 "Error getting global enables: %d %d %2.2x\n",
-> @@ -1835,7 +1838,7 @@ static int ssif_probe(struct i2c_client *client)
->  	msg[0] = IPMI_NETFN_APP_REQUEST << 2;
->  	msg[1] = IPMI_SET_BMC_GLOBAL_ENABLES_CMD;
->  	msg[2] = ssif_info->global_enables | IPMI_BMC_EVT_MSG_BUFF;
-> -	rv = do_cmd(client, 3, msg, &len, resp);
-> +	rv = do_cmd(client, 3, msg, &len, resp, IPMI_MAX_MSG_LENGTH);
->  	if (rv || (len < 2)) {
->  		dev_warn(&ssif_info->client->dev,
->  			 "Error setting global enables: %d %d %2.2x\n",
-> @@ -1857,7 +1860,7 @@ static int ssif_probe(struct i2c_client *client)
->  	msg[0] = IPMI_NETFN_APP_REQUEST << 2;
->  	msg[1] = IPMI_SET_BMC_GLOBAL_ENABLES_CMD;
->  	msg[2] = ssif_info->global_enables | IPMI_BMC_RCV_MSG_INTR;
-> -	rv = do_cmd(client, 3, msg, &len, resp);
-> +	rv = do_cmd(client, 3, msg, &len, resp, IPMI_MAX_MSG_LENGTH);
->  	if (rv || (len < 2)) {
->  		dev_warn(&ssif_info->client->dev,
->  			 "Error setting global enables: %d %d %2.2x\n",
-> 
-> -- 
-> 2.56.0.257.gf7497c7d27-goog
-> 
+>         struct acpi_device *device =3D acpi_fetch_acpi_dev(handle);
+> -       struct acpi_device_physical_node *pn;
+> +       struct device *dev;
+>
+>         if (!device)
+>                 return AE_OK;
+>
+>         mutex_lock(&device->physical_node_lock);
+>
+> -       list_for_each_entry(pn, &device->physical_node_list, node)
+> -               if (pn->put_online) {
+> -                       device_online(pn->dev);
+> -                       pn->put_online =3D false;
+> -               }
+> +       while ((dev =3D acpi_next_put_online(device))) {
+> +               mutex_unlock(&device->physical_node_lock);
+> +               device_online(dev);
+> +               put_device(dev);
+> +               mutex_lock(&device->physical_node_lock);
+> +       }
+>
+>         mutex_unlock(&device->physical_node_lock);
+>
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index a755b15af9db9..29c59ea1e3e48 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -320,6 +320,7 @@ struct acpi_device_physical_node {
+>         struct device *dev;
+>         unsigned int node_id;
+>         bool put_online:1;
+> +       bool offline_pending:1;
+>  };
+>
+>  struct acpi_device_properties {
+> --
