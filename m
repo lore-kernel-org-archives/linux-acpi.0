@@ -1,55 +1,73 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793203780;
-	b=rm2J0fdQsiYPkyPm2nL+YqB+5BtCFfbC4/44YSoIicorHqfDOvlqareSojkgvlPDddvF
-	 86JC39UFbDuwozfyIAUkbS3KOaosaR4DWnWVxdwbTfDKv+dMmSlmWrw993hCdpqHWuuFT
-	 GfDHfrkKRgi2MdI4Z5PvjfGb/uyDVacU8cMOVu0KGdVILCUk8j5pdGh4K5OBBUDwW2ysZ
-	 TSLUo7KzI2dHWwAqHDnwsp6NZDWJtQS/85SwdVXku+XGk6BJhx+D3Gd0RI4tEbjCDD8JV
-	 x5f46yL159TOZoPLbJt7bGz20vCBfP6Za4CXGGA5IjimULX8KuQa1k6bPZSMBLrGVHg==
+	t=1793204055;
+	b=XWjqOw/N4W5WD5U7Z0F6xlop8+4voa/bEcMqV49ZgYRSG7I2ip6XFLdMz0PJWhFJ9AkA
+	 Cp0CrObovSi1vRXfrrkSroJW5WvnLD052mKkbVyACBCxADhtV3KEc6fHKXTXWDdPy7lKa
+	 eK2RA526MFWjV8UyW3RsMeSH+io84yfUy6pnVRYUNaXSnuOOjhoo8iHuM2TB9td6FXBVC
+	 qpneaMK4yXb2AUqauVR85DSjl84ktMzNd+SvEu+/Dy8Ye1r08osrq4cKzDHw2QR8FvOzG
+	 Qjru2tGBICz6DrFaC2hGCon+q+UqIT/utc/l7ToNl1EVG5rS8ldP2wF1B7hkEU88hpw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793203780;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=zNxy4TxKEn9W0ao1LVIid/JgYPfZELsjFwGZuxfMh4E=;
-	b=3cqXq49canyTc/Ws6WzqcAmzpxtAji/gNeXXR/X9Gv4RCX/oFSRRubfJTR0BpIQhz4dY
-	 z1BscI7PBudLBaetE4Oik0I9q6F05AcczXbvAU0IP5UyACBLF2yguRbtH50zegEokR+n6
-	 TqEakGSvEFAdR+euJ6Mkidvunn3j9V3aAQ90JRJCfxULQ1+5NQVx+m/0WNjS0j3IGtzVQ
-	 U1zMHzAnORhrwmEr68pkos+/TkLEh7aVMS5AE56TCavHiV4lmo/+n0d3PKHyjeWZx6eLy
-	 iLWRBu++qH28jeosqgMRxOkPN88VMSe5OSgoRmt+AX3XQFLd3h4FeO0yGenpc+IBgnQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793204055;
+	h=Received:DKIM-Signature:Received:Received:X-ME-Sender:
+	 X-ME-Proxy-Cause:X-ME-Proxy:Feedback-ID:Received:X-Mailer:
+	 MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type:Content-Transfer-Encoding;
+	bh=WOVU8i6VSaQSMlgwSIaOiPPhD4QfVwgPNsYdPg6cYCU=;
+	b=GWAOh7CHUh2okJcNN3Rh4voXi7XlkRemcPZmfxDQcWV8nNfAw7y/uhjR4frwebBzUZvE
+	 hgKGBLIKSb5PnVnt3aX8bDwBYyWlfccOw8Rrx6Dbo7MCLAKHfbtL6TM07dblxXp6KZo0t
+	 3jfRTM7E0czsl0pkM3H4vHkD/k9fHL646OZDbQ8cbKSW03krwAHmFXWGswaHiNNkhe6xs
+	 f5jHS+NiexxdR0ZvNj0QYTjFOKqc6QbcjjrbWmYPdhUASgmVhi4jYHpNlk/tvqrULflvl
+	 9a6jM85SQABP4kiXiNVpowYRhCqA1q9Y91NLVrAQtkanJlKM4Tbh3KaXP9yQsB7Y63g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BCbi5gX6;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RnWD0tqP;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D8FB606A31E
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 16:09:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC387606A31A
+	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 16:14:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BCbi5gX6
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D074E1F01303
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 16:09:39 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RnWD0tqP
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 832EC1F01825;
+	Wed, 28 Oct 2026 16:14:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793203779;
-	bh=zNxy4TxKEn9W0ao1LVIid/JgYPfZELsjFwGZuxfMh4E=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=BCbi5gX6+ASNOLCcSx55hoaYyYBWW0Cb1GBSeTpC9W9Lj6yvTBmk6n9XF6HlQpTae
-	 yK8NjGTO6CMH2MCf3ShVLEp0YlTLQBjnHw3gDtNQ9aHjMh3JaXrylWbGOqrU2G52yH
-	 /SCI4HD6l73515cSoPu3Fzsgp+ALMg7d3xNojCF+TVJSZPDsVqOnYwIKqmhRechG6e
-	 8J9hkRdo+XheIqbBcMPGBikm45XnznxhPIMbGBSMbsuv4/2stxz/0y83Lu/kgDPFlH
-	 bsUr0xcakhuPipi/0puXuhDX6wbuCaVcNdzxpQnsrGOILOcv5ii85jnBXjPw9lr5Ld
-	 Hm3kGpVQ/dC0Q==
-Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-5be4a2d94adso1244437e87.0
-        for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 09:09:39 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBy63FkmNW0bRXB26aCzKZF6qwCyaXALaPZ4PyP86y/bgt1XF7CyrvmkwpMz/nAXBQypb7htReOSa7C5@vger.kernel.org
-X-Gm-Message-State: AFq9FYImzbCDQ3Z+MX/oXfbcA7fjQeVf64W3bkEkRDI2+jRHuegdR1XC
-	HX6aGUC3sVKAk4EpY3Vf38sHJc/OKcCoxcJzHdMTxxNOPuMEftACG5XzuQv99xvBGQgANOLok0d
-	53W+Gm6g9yqE74ET7HVq6fbHEeQFiSxM=
-X-Received: by 2002:a05:6512:618a:b0:5bf:a172:db38 with SMTP id
- 2adb3069b0e04-5bfcad74135mr1174502e87.59.1793203778257; Wed, 28 Oct 2026
- 09:09:38 -0700 (PDT)
+	s=k20260515; t=1793204054;
+	bh=WOVU8i6VSaQSMlgwSIaOiPPhD4QfVwgPNsYdPg6cYCU=;
+	h=Date:From:To:Cc:In-Reply-To:References:Subject;
+	b=RnWD0tqP0Rx76Hd3Lt0R6BXS06e06K3a9AfaAYA1Mrj1Ce6ttkV/Z6/VIpHdWFOVb
+	 RE8ZRHhoI5GT8bvE3ZyuCDItxrEK8ooi3qnmQr1p0SnR2SzhMIbr7TqTxrQX8QITti
+	 /HQCuwxfiHOcWdksoGPI6nMLVsRh8Y8LXkoF9qHAsiiS+GPQq/XlrT7qQ7dwT8mg7T
+	 dHLgDs3KQ/Z+Rl7TB0oJskZRQhuplP1y5xZr+xh4X6POxL/m7b74SS3dp4jUGeliau
+	 GAaS2yxJH96rpsz+nVuQZJsWqWDie9HI0z50pjAPgiiMTBDRoFeE5zRy4yAcutqM4F
+	 mXB/xaDD8rOAg==
+Received: from ams-compute-02.internal (ams-compute-02.internal [10.64.2.62])
+	by mailfauth.ams.internal (Postfix) with ESMTP id CF775198005A;
+	Wed, 28 Oct 2026 12:14:11 -0400 (EDT)
+Received: from ams-imap-11 ([10.64.2.31])
+  by ams-compute-02.internal (MEProxy); Wed, 28 Oct 2026 12:14:11 -0400
+X-ME-Sender: <xms:UR_iar2J6I9p2Ig3QvaWcsNcwnVB6gNqitW2_cUp8h0_YIuJJ5uGzg>
+    <xme:UR_iak5Hje25aokA0qrV-XYpWJxNpK4-Ac47sZYXltw9zii6TjerO6O8V0yQqN69q
+    7LR-g9-4646Y7Fz2Rx0dNoyz82HeQfkzb5F2IajuUF1BNH-uHnqIWO_>
+X-ME-Proxy-Cause: dmFkZTGYb6kzeLfSbFhlwQe1a1zYe5/Mo+zrZNnKMGIQueQ1a7i4SRFPcAejSS2+Khllz0
+    xAoR1Qnia36Ov+e5UBqH1FPnGs6xHJZU+D7viG3zqmLxO8RwmIEGn7x/YYIGUdcoRE+v5i
+    3ZMJ41Y5OzQvRG5OMzvUv/h/TzDy4NKA6qOHtcUgsKK3ZR1rGlHfwRgO41EFTCw2xV6YFr
+    Dr0bypCtmpxUh+GMuNfthe+Des+PnVRHA4M8Lb3Wt7cw7aqGewD/Xz8mKSZHqQ9od1k1B4
+    yWGNOEeXLCcPAry7eMZmOyc2w4L8uH3eCvJ60b9Xbw7dix6QwzYHEqYBXa+DylEJzINeJb
+    dKxN2RLCm0WOzERroc3Y4XVCb1L212yfgSGn+psQOXSLLNNe2yGg1d+zkQraPWCx10Clw9
+    x/JdizrcTU2WGLgHCz15EB+M0bEBCkymtTSIGTvLne6uke7bOuYmtUO7Sok8Ct7rNVRaUP
+    HQvoayfFWbXln8ISiGT6hF0PcR6w9RKgMOx/IWm6AxtgefLR5+lHzdZNbfaMp4V6S9wip+
+    P8HSnqgk36yfhs7rVDrW0ufNSYyoFX8Zm4WF2ZLQgt3UKmssMTDgKOXymaCTWiDsri2JdQ
+    NPJYITZq3XGM6OkXqDTKTmTfQ52MfTJQtGxW6AbohZ7aODkxXrO9Gb3M3Nnw
+X-ME-Proxy: <xmx:Ux_iajBl35FxRc0NNVREa6rg_J7fcmXCV_oIJfizRMSzrhabBpF2Yw>
+    <xmx:Ux_iagyDvoCEhlOZaVtMGScMw6hYf4cav2BpGxM7NHpsjWoX69_4Ag>
+    <xmx:Ux_iapfbamI2AGk2KXXMbpUqzl2T4NkhabAS6cL9hCwU_WJeeK63hg>
+    <xmx:Ux_ialuxZ2mATC45EJrRC_J5F2S63LgXVqIW5m-hYtGIaCroSeDhog>
+    <xmx:Ux_iauCEgBI4aSOf_0NbqTfMiLFmK3Q__6DogFQRjbtyA4koUygkc-iH>
+Feedback-ID: ice86485a:Fastmail
+Received: by mailuser.ams.internal (Postfix, from userid 501)
+	id CD7ADF80090; Wed, 28 Oct 2026 12:14:09 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,200 +77,68 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <d4aaa5e8-7366-461c-94b1-ccf3631c8bf9@6bit.com>
- <b859285b-e43e-43f2-a4f7-af82705d3513@6bit.com> <CAJZ5v0h8ke_CE1Y_nesgOU8L-R6WcPaoxFjjRp0rfyRdg+Lj1Q@mail.gmail.com>
- <c9672648-d01d-4063-b0e2-df38c3868eea@6bit.com> <CAJZ5v0i0XL0iBHE0OcM0sw8_KKBAapinJ-ZOqztn9-8=RCgxQw@mail.gmail.com>
-In-Reply-To: <CAJZ5v0i0XL0iBHE0OcM0sw8_KKBAapinJ-ZOqztn9-8=RCgxQw@mail.gmail.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 28 Oct 2026 17:09:26 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0hOCtJMdH8VuTcMXV112JwonZg07oUrJXCHZ6JqtRHo3w@mail.gmail.com>
-X-Gm-Features: AclHuK9dMc6H2Y7UBbksEDryxAqR0SF-1y3j70LPpwOIopLFtjIzaVV7ErV8brc
-Message-ID: <CAJZ5v0hOCtJMdH8VuTcMXV112JwonZg07oUrJXCHZ6JqtRHo3w@mail.gmail.com>
-Subject: =?UTF-8?Q?Re=3A_=5BREGRESSION_6=2E16=5D_r8169_RTL8168h=2F8111h_fails_to_?=
-	=?UTF-8?Q?probe_=E2=80=94_=22Unable_to_change_power_state_from_D3cold_to_D0=22_?=
-	=?UTF-8?Q?=E2=80=94_bisected_to_4d4c10f763d7?=
-To: linux-pci@vger.kernel.org
-Cc: Josh Perry <josh@6bit.com>, Mario Limonciello <superm1@kernel.org>, mario.limonciello@amd.com, 
-	bhelgaas@google.com, hkallweit1@gmail.com, nic_swsd@realtek.com, 
-	netdev@vger.kernel.org, regressions@lists.linux.dev, 
-	Keng-Yu Lin <keng-yu.lin@hpe.com>, Linux PM <linux-pm@vger.kernel.org>, 
-	ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Date: Wed, 28 Oct 2026 17:13:49 +0100
+From: "Ard Biesheuvel" <ardb@kernel.org>
+To: "Hans de Goede" <johannes.goede@oss.qualcomm.com>,
+ "Rafael J . Wysocki" <rafael@kernel.org>,
+ "Bjorn Andersson" <andersson@kernel.org>,
+ "Konrad Dybcio" <konradybcio@kernel.org>
+Cc: "Srinivas Kandagatla" <srini@kernel.org>,
+ "Krzysztof Kozlowski" <krzk+dt@kernel.org>,
+ "Dmitry Baryshkov" <lumag@kernel.org>,
+ "Bartosz Golaszewski" <bartosz.golaszewski@oss.qualcomm.com>,
+ "Abel Vesa" <abel.vesa@oss.qualcomm.com>, linux-arm-msm@vger.kernel.org,
+ devicetree@vger.kernel.org, "Linux ACPI" <linux-acpi@vger.kernel.org>
+Message-Id: <4b41b061-1c0a-4c00-8263-2e14076c0864@app.fastmail.com>
+In-Reply-To: <20260623145225.143218-1-johannes.goede@oss.qualcomm.com>
+References: <20260623145225.143218-1-johannes.goede@oss.qualcomm.com>
+Subject: Re: [RFC 00/12] RFC: Devicetree-ACPI hybrid mode
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-On Fri, Oct 23, 2026 at 9:33=E2=80=AFPM Rafael J. Wysocki (Intel)
-<rafael@kernel.org> wrote:
->
-> On Thu, Oct 22, 2026 at 11:33=E2=80=AFPM Josh Perry <josh@6bit.com> wrote=
-:
-> >
-> > On 10/22/26 04:50, Rafael J. Wysocki (Intel) wrote:
-> > > On Thu, Oct 22, 2026 at 3:37=E2=80=AFAM Josh Perry <josh@6bit.com> wr=
-ote:
-> > >>
-> > >> On 6/11/26 19:07, Josh Perry wrote:
-> > >>> #regzbot introduced: 4d4c10f763d7
-> > >>>
-> > >>> Since v6.16 one of two onboard RTL8168h/8111h NICs on this board fa=
-ils
-> > >>> to probe on boot; the device drops to D3cold and the driver can't b=
-ring
-> > >>> it back:
-> > >>>
-> > >>>     r8169 0000:02:00.0 eth0: RTL8168h/8111h, 00:2b:67:48:40:01, XID=
- 541,
-> > >>> IRQ 137
-> > >>>     r8169 0000:04:00.0: Unable to change power state from D3cold to=
- D0,
-> > >>> device inaccessible
-> > >>>     r8169 0000:04:00.0: Mem-Wr-Inval unavailable
-> > >>>     r8169 0000:04:00.0: error -EIO: PCI read failed
-> > >>>     r8169 0000:04:00.0: probe with driver r8169 failed with error -=
-5
-> > >>>
-> > >>> The board has two identical RTL8168h NICs (both XID 541): 0000:02:0=
-0.0
-> > >>> and 0000:04:00.0. Only 04:00.0 fails =E2=80=94 its sibling 02:00.0,=
- on a
-> > >>> different root port, probes and works normally on the very same ker=
-nel
-> > >>> and boot. The failing NIC then does not appear (no enp4s0), taking =
-the
-> > >>> machine's WAN offline. This strongly suggests the problem is port/
-> > >>> topology-specific rather than device- or driver-specific: the upstr=
-eam
-> > >>> port behind 04:00.0 is placed in D3cold and the endpoint cannot be
-> > >>> resumed to D0.
-> > >>>
-> > >>> Hardware: RTL8168h/8111h, XID 541, PCI 04:00.0 (onboard 1GbE).
-> > >>> Platform: Lenovo ThinkCentre M90n-1 (11AHS0B200), BIOS M2AKT49A
-> > >>> (2026-03-25, latest available). Firmware is current, so this is not=
- a
-> > >>> platform-firmware issue.
-> > >>>
-> > >>> Bisection: v6.15 good, v6.16 bad (verified by booting both). I then
-> > >>> reverted 4d4c10f763d7 ("PCI: Explicitly put devices into D0 when
-> > >>> initializing") together with its follow-up 907a7a2e5bf4 ("PCI/PM: S=
-et up
-> > >>> runtime PM even for devices without PCI PM") on top of 6.16.7: the =
-NIC
-> > >>> probes and links at 1Gbps/Full normally, with no workaround:
-> > >>>
-> > >>>     r8169 0000:04:00.0 eth1: RTL8168h/8111h, 00:2b:67:48:40:02, XID=
- 541,
-> > >>> IRQ 138
-> > >>>     r8169 0000:04:00.0 enp4s0: Link is Up - 1Gbps/Full - flow contr=
-ol rx/tx
-> > >>>
-> > >>> Workaround: booting an unmodified v6.16+ kernel with pcie_port_pm=
-=3Doff
-> > >>> also restores the NIC, which is consistent with the upstream port b=
-eing
-> > >>> placed in D3cold and the device failing to resume to D0 after the
-> > >>> explicit-D0 init change.
-> > >>>
-> > >>> The follow-up 907a7a2e5bf4 does not fix this resume case: v6.18.33 =
-is
-> > >>> still affected (retested today on current firmware).
-> > >>>
-> > >>> Happy to test patches or provide full dmesg / lspci.
-> > >>
-> > >>
-> > >> Hey guys,
-> > >>
-> > >> Thanks, and apologies for the slow follow-up. Multiple of you asked =
-me
-> > >> to test on the latest mainline.
-> > >>
-> > >> I had a chance to do just that today with the latest mainline v7.3.
-> > >> Verdict is that it's still broken, same messages as in the original
-> > >> report. pcie_port_pm=3Doff on the same build still works around it.
-> > >>
-> > >> dmesg, "sudo lspci -vvv" and the sysfs PM state for both boots (same
-> > >> v7.3 build, only the command line differs) are attached here:
-> > >>
-> > >>     https://bugzilla.kernel.org/show_bug.cgi?id=3D222179
-> > >>
-> > >> New detail from the failing boot: the root port above the dead NIC
-> > >> (00:1d.3) is in D0 but its link shows DLActive-, and the endpoint's
-> > >> config space reads all-ones ("Unknown header type 7f"). With
-> > >> pcie_port_pm=3Doff the port shows DLActive+ and the NIC is in D0 at
-> > >> 2.5GT/s x1. So the port seems to come back but the link to 04:00.0
-> > >> doesn't retrain.
-> > >>
-> > >> #regzbot link: https://bugzilla.kernel.org/show_bug.cgi?id=3D222179
-> > >
-> > > Please also try v7.3 with this patch applied:
-> > >
-> > > https://lore.kernel.org/linux-pci/20261015020811.1132314-1-keng-yu.li=
-n@hpe.com/raw
-> >
-> > No dice, unfortunately. Same issue:
-> >
-> >    r8169 0000:04:00.0: Unable to change power state from D3cold to D0,
-> > device inaccessible
-> >    r8169 0000:04:00.0: Mem-Wr-Inval unavailable
-> >    r8169 0000:04:00.0: error -EIO: PCI read failed
-> >    r8169 0000:04:00.0: probe with driver r8169 failed with error -5
-> >
-> > Same state as unpatched v7.3: root port 00:1d.3 in D0 with LnkSta
-> > DLActive- and ASPM L1 enabled, 04:00.0 config space reads all-ones
-> > ("Unknown header type 7f"), and the correctable RxErr on 00:1d.3 at
-> > ~9.7s. The PCI/r8169 dmesg lines match the unpatched boot line for line=
-.
-> >
-> > I attached the same info for the patch run to the bugzilla ticket.
->
-> Thanks for the info!
->
-> Let's see what can be deduced from it.
->
-> First of all, the device is clearly accessible in pci_pm_init() and
-> then it somehow drops off the bus.  However, the complaint about the
-> failing power state change is not from the initial power-up.  It is
-> printed after setting the driver for the device, so most likely it
-> comes from pci_enable_device() triggered by rtl_init_one().
-> Interestingly enough, that message also says that the device's power
-> state before the attempted transition to D0 is D3cold, but that is not
-> the power state in which the initial power-up leaves it.  Had the
-> initial power-up left the device in D3cold, it would have printed an
-> "Unable to change power state" message which it doesn't do, so most
-> likely right after the initial power-up the device is actually in D0.
->
-> Since pcie_port_pm=3Doff makes a difference, the problem is most likely
-> related to what happens to the failing device's parent port.  Namely,
-> pcie_port_pm=3Doff simply prevents the port from going into D3cold which
-> indicates that the failing device drops off the bus because its parent
-> port goes into D3cold.  Indeed, that may be happening because the port
-> probes after the failing device has been initialized and if user space
-> flips the "power/control" attribute of the failing device from "on" to
-> "auto" after probing the port and before probing the device itself,
-> the port will suspend and go into D3cold.  Moreover, the device under
-> it is still in D0 when that happens because pci_pm_runtime_suspend()
-> does not change the power states of unbound devices (there is even a
-> comment in that function regarding the parent of an unbound device
-> possibly going into D3cold while the device is still in D0).  If that
-> happens, the pci_update_current_state() call in
-> pci_enable_device_flags() will update current_state for the device to
-> D3cold.
->
-> Of course, I'm not sure if this is what really happens and it still
-> needs to be figured out why things started to fail after introducing
-> the initial power-up.  I'd prefer to use the BZ ticket for
-> investigating it though.
+Hello Hans,
 
-And so it turns out that turning off an ACPI power resource associated
-with a PCIe root port other than the one holding the affected NIC
-causes the clock of that NIC to be gated which means that this is a
-platform firmware issue (the shared clock should be represented as a
-shared power resource in the ACPI tables).  The older kernels hide
-this issue because they never flip the ACPI power resource in question
-on and off in the default configuration, but it can be provoked with
-the help of the runtime PM sysfs interface of the PCIe root port in
-question.
+On Tue, 23 Jun 2026, at 16:52, Hans de Goede wrote:
+> Hi All,
+>
+> Currently as soon as the kernel boots with a populated DT provided then
+> the arch/arm64 code sets acpi_disabled=1 and the complete ACPI subsystem
+> gets disabled. On WoA Snapdragon laptops where the factory Windows OS
+> actually boots using these tables this is not necessarily desirable.
+>
+> It might still be interesting to at least parse the ACPI tables and make
+> the ACPI fwnodes available for device-drivers to use. I call this DT-ACPI
+> hybrid mode.
+>
+> This mainly is an experiment for now and possibly a method for accelerating
+> the ongoing effort to run Linux on currently available Snapdragon laptops.
+>
+> On current laptops Linux cannot boot using ACPI due to some information
+> missing from the ACPI tables. People are working on changing this so that
+> for future WoA Snapdragon laptops Linux can boot using ACPI only without
+> requiring Devicetree.
+>
 
-A patch from Mario to add a quirk preventing D3cold from being used
-for root ports on the affected system is available:
+I was present at your LPC presentation.
 
-https://bugzilla.kernel.org/attachment.cgi?id=3D311295&action=3Ddiff&collap=
-sed=3D&headers=3D1&format=3Draw
+I agree that exposing the firmware tables even when booting via DT
+is reasonable - it is conceptually similar to SMBIOS tables, which
+the arm64 kernel mostly ignores too (as opposed to x86, which relies
+on it heavily for quirks from very early in the boot)
+
+The examples you provided are straight-forward enough: I2C devices with
+_STA methods that reflect whether the peripheral in question is present,
+and all actual I2C transaction handling taken care of by the native I2C
+host driver, which is exposed as an OpRegion.
+
+I suspect, though, that things get hairy really quickly when things like
+DMA, interrupts (both wired and MSI) and SMMUs enter the picture, and so
+the extent to which ACPI device descriptions can be used on a DT boot is
+rather limited.
+
+Do you see any use for this hybrid mode beyond I2C input devices etc?
+
+-- 
+Ard.
+
+
