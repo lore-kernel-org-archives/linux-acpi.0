@@ -1,55 +1,54 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793201991;
-	b=AYH1xa9RsGOGMCCPCeI22wWfAYBJD9wH+pv2sqSbJ6OLACssV2dw1Wx2iFOhSEaoF5s+
-	 J+9XaFG1Dvi2xOzLBSo/KIg2pgSefAgLENnI7u6Xwtg5KfMhko5GIx2uI4WZmAPbtxUku
-	 IknC83PgIiInHva1UC4O4ZWeZqfnALo9MDbtcFrqo81TXNr2vnt1H9pbfSLBSdmpxjODw
-	 nxzyGEpcD/xCdSPRn7dylhzY/f/0lsb6aP8cBJr1s2v5ufeuOOq9jubwhf2LI1RtYpwqa
-	 2P1oJbrTjbmiVBNeJ6CebX4g+xxZPl7s3oD2rlk/hqKt9y/kpalbseJR/+yPVQXt2vA==
+	t=1793202530;
+	b=MFpHGPoOr29x/oQL3XE+pgLE4HQhPw3f15TvaxwFN/JrGf4QsEC5+kagmHjFfCwbCFKK
+	 q5RUI8Ryqq1z5Ydyqr6t3GxSxZtpQzl21YTHN6BErZPco+NDHAgMjBaYxwDGqGVpg3Bjg
+	 yVoghEx35CXfsudptdQyKT3upwk9ZQQBwIjuPx0201l0C6YIJpOaNfojM8XMOZBPJi3mp
+	 jCFND2jhVDOqIuFGzoGQ7s2GseXH4okL6RbGBEpmeXU3804OU4ZtYXx4PeUta03i/RF4h
+	 y1qdmwzZGMTSXcNNME5w4/sd1mPflPESQK7Ehjp2NJbTIApkAIRxtSq7zSORRzJlj6g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793201991;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=v/GrfVBE9REqGlviMjMV9KYA8baC9D3Z4PFL9rDyJNI=;
-	b=U9DXsAutyhO2bIljmtQiwTw4PM0xv3fiynJBQqm+CZeWs0dOrvhAirAav0JPI8rPqLCL
-	 MS3S5exASqc8g6slXkZ7OGJOhBewaXg2uPkU5VW29C+8Nc8M9kMXZ2cbJV2PzXSBndEyx
-	 QS7XN0lb4YBZ4f22hen5/upE8mpyAmFOfbhLRvx5J2NorPHH2tgCDJKD/ynef3xc6cxjo
-	 ZEruVk9r+gD0SqX7tFMWfLmo3IuMu7qczDFxRGiUs+xxrclO39PR45Is9ImWyLq2MrFdg
-	 JQf5/lx2csVL/fDVPVVHQWlTTNHKw2BDlomV516x+cRjlHJpTBH7T5eDuREtMKnsrGw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793202530;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=eRgpmD7iw9ZEu6haYupaH8oCiIl9sAcEeSCI7eZ9LnA=;
+	b=Hqg5X3kEjiSLgLASvfa6pnd8pZxMdhNl7zx584Dm1KlM6d5Orw1l42L99CsjANYNJOoq
+	 o8gnmdA3pmYbXwIJqTzB5Af0mNZdsnCbOdZJnz2MPnS02Znd8Xaxl3CAXtruCE+fDzpZO
+	 rr96i25/vw4naXE+10PxbpoBnfB9YAz87f0/VoYJL0KMR0mpQmxqFtWGtLOoct7RjKJns
+	 VI43ip+yRMUwwmzSnGUkm9hIDSZfWIbJWF+xunNw19wVbO7cgZd2Qwt0junCJqWt1UFsA
+	 WIfrm/qk0IGav70H3HdO105FD/1TpJrRdwWz/YAYJm9++XzTApNUovIGCEuAzd0ggGQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="VHtM/wzi";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oDbUNs0+;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F991606A326
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 15:39:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72A2D606A333;
+	Wed, 28 Oct 2026 15:48:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VHtM/wzi
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0DCB1F031F3
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 15:39:50 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oDbUNs0+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 142E01F01828;
+	Wed, 28 Oct 2026 15:48:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793201990;
-	bh=v/GrfVBE9REqGlviMjMV9KYA8baC9D3Z4PFL9rDyJNI=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=VHtM/wzid4Vjpi1ahtkrCTunBXdpMk588+yxAl/Zt7jPzQ9CgDIh+PYPt+lW+RHtD
-	 XBF1ITpY/oCCREN/r3GxTTiasnxkbYCm2mrSb3zmMn23c5zknBvNx/dV5SfeyYM827
-	 m45G9IzvrUp2GsXITO1BPz91FS4SrBTRct5fIYPvHF7/uja6GCRbMQHJlEDtcLZFBR
-	 bBqsTOILPojBkbqP9c5uFYFLXwvDa2XYT2SFUMxRTuB6ZQzLNkssif/6urHzHO00fk
-	 Skgn+ptvjMSTS3VMBezq8yREZJPVwbZdc9I441ADP3crdeclpWj7HnR60MZ9kaBb89
-	 e8j26jTotaK2A==
-Received: by mail-lj1-f169.google.com with SMTP id 38308e7fff4ca-3ab30b3212aso8871371fa.0
-        for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 08:39:50 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBz0zLToNrm5yryPYXqapJeObJJnJYarAgQOzMlJU0gebJhANenWEpwO+ZG3CR8KhGfhIO5SFwaPHLLy@vger.kernel.org
-X-Gm-Message-State: AFq9FYKABPJoy6o01wl+6aFeV4ZRDcaKRp1AR7H7eUlj2GSd+6A+g3Va
-	NaEzAdp7yVR4rLhrcavEBO/NN8I5PZtyOU/1yBXinRDs+Jh9JRxEcINJpZY/4Sd6Hzs5QnfdRTo
-	J/OJKFtjNUiYxKaBLVIdu7SauAIBrgYc=
-X-Received: by 2002:a05:6512:33cb:b0:5bf:ba43:f2f1 with SMTP id
- 2adb3069b0e04-5bfcad8c081mr1232361e87.34.1793201988873; Wed, 28 Oct 2026
- 08:39:48 -0700 (PDT)
+	s=k20260515; t=1793202530;
+	bh=eRgpmD7iw9ZEu6haYupaH8oCiIl9sAcEeSCI7eZ9LnA=;
+	h=From:To:Cc:Subject:Date;
+	b=oDbUNs0+7qn9M4nngcFORGhBNHcDJXtW60DY94r8SW75XZBGGBQa8s0svMaAiXS0s
+	 /oIQV49Tx/AnZlTmLcy2/4DjZR5MLLLgWbHxGTavvgck+ge4tj9M0SwHT6eT6eWDiB
+	 KqGet74ehfdZrY0ug1zMV4JpXGS8R6sXzMfLXfvrS0hAsMSpjvUvHN5EQaJc//DfD/
+	 +ndJXfOIBb2DTlIYURdB7Ze9aCqCkxp4K3nJVTMt7JAdpwD9gPqlFcNb1Iwmz/XWjZ
+	 NF/K5UKvKu/PPPhpgm+lNPzT/sGm9FqR8lELzSkG7FCi5Zel4SWtNH2ea/esZz2K61
+	 MpwI54t6YVqLA==
+From: Sudeep Holla <sudeep.holla@kernel.org>
+To: linux-kernel@vger.kernel.org,
+	linux-acpi@vger.kernel.org
+Cc: Sudeep Holla <sudeep.holla@kernel.org>,
+	Jassi Brar <jassisinghbrar@gmail.com>,
+	Sashiko <sashiko-bot@kernel.org>
+Subject: [PATCH] mailbox: pcc: Release probe resources on failure
+Date: Wed, 28 Oct 2026 15:48:41 +0000
+Message-ID: <20261028154841.3315321-1-sudeep.holla@kernel.org>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,175 +58,109 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261027223847.652884-1-irogers@google.com> <20261027223847.652884-5-irogers@google.com>
- <CAJZ5v0juvZ2ZVRBkY6FxBM=NhPt9vMA3+yRugXc5u=U1jO9AXg@mail.gmail.com> <CAP-5=fWVZ=7-qDRODiEQzRzhpQqribv9Morj=OoAXW_6uaW2dA@mail.gmail.com>
-In-Reply-To: <CAP-5=fWVZ=7-qDRODiEQzRzhpQqribv9Morj=OoAXW_6uaW2dA@mail.gmail.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 28 Oct 2026 16:39:37 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0i0YoOW+ueh_aZJdYVS0etuCqfrf_S0NTKzCE9_6oKxPQ@mail.gmail.com>
-X-Gm-Features: AclHuK-jtq7opXKWd_89haXf76RntnjsmSewB7PcsqPK44QRbhInXeBo-GT0LQw
-Message-ID: <CAJZ5v0i0YoOW+ueh_aZJdYVS0etuCqfrf_S0NTKzCE9_6oKxPQ@mail.gmail.com>
-Subject: Re: [PATCH v2 4/9] cpufreq: governor: Initialize kobj_type release
- callback statically
-To: Ian Rogers <irogers@google.com>
-Cc: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>, Kees Cook <kees@kernel.org>, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Miguel Ojeda <ojeda@kernel.org>, 
-	Danilo Krummrich <dakr@kernel.org>, Nathan Chancellor <nathan@kernel.org>, 
-	Nick Desaulniers <ndesaulniers@google.com>, Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>, 
-	=?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
-	Zhihao Cheng <chengzhihao1@huawei.com>, Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>, 
-	Sumanth Korikkar <sumanthk@linux.ibm.com>, Bill Wendling <morbo@google.com>, 
-	Justin Stitt <justinstitt@google.com>, driver-core@lists.linux.dev, llvm@lists.linux.dev, 
-	linux-hardening@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-pm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
-	linux-sh@vger.kernel.org, linux-s390@vger.kernel.org, gfs2@lists.linux.dev, 
-	xen-devel@lists.xenproject.org, linux-mtd@lists.infradead.org, 
-	amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, 
-	linux-kernel@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Wed, Oct 28, 2026 at 4:36=E2=80=AFPM Ian Rogers <irogers@google.com> wro=
-te:
->
-> On Wed, Oct 28, 2026 at 4:39=E2=80=AFAM Rafael J. Wysocki (Intel)
-> <rafael@kernel.org> wrote:
-> >
-> > On Tue, Oct 27, 2026 at 11:39=E2=80=AFPM Ian Rogers <irogers@google.com=
-> wrote:
-> > >
-> > > Export cpufreq_dbs_data_release() and set .kobj_type.release statical=
-ly
-> > > in the ondemand and conservative governors so their gov_attr_set
-> > > kobjects have a valid release callback statically initialized, matchi=
-ng
-> > > cpufreq_governor_dbs. Remove the redundant runtime assignment in
-> > > cpufreq_dbs_governor_init().
-> > >
-> > > This prepares for annotating struct kobj_type::release with
-> > > __must_init.
-> > >
-> > > Signed-off-by: Ian Rogers <irogers@google.com>
-> >
-> > Do you want stuff to be picked up by maintainers, or do you want to
-> > route it yourself?
->
-> Hi Rafael,
->
-> Just a quick note: I agree with Zhongqiu's feedback and the commit
-> message needs a fix.
->
-> Regarding merging the patches, the issue with maintainers picking up
-> fixes is that the series will break the clang/llvm build without them.
-> So the maintainers need to either merge the patches (and the series be
-> rebased on top of them) or merge the series as a unit. Perhaps since
-> the patches align, merge conflicts won't happen, so maintainers
-> merging and landing the series is okay. I don't have the experience to
-> know.
+PCC probe maps register addresses and registers platform GSIs as it
+initializes subspaces. When a later step fails, the error path only
+releases the PCCT reference, leaving those mappings and GSIs behind.
 
-I'd expect the driver core to pick up the series as a whole then, so
-please feel free to add
+Record each registered GSI and unwind all resources acquired for every
+started subspace, including the partially initialized one.
 
-Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org> # cpufreq
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Closes: https://sashiko.dev/#/bug/linux-d17640d2-d890-497b-9888-783c8b23208e
+Fixes: 800cda7b63f2 ("mailbox: pcc: Add PCC register bundle and associated accessor functions")
+Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
+---
+ drivers/mailbox/pcc.c | 32 +++++++++++++++++++++++++++-----
+ 1 file changed, 27 insertions(+), 5 deletions(-)
 
-to the next version of this patch.
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index 14dc4a187bfc..18925cbf472d 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -90,6 +90,7 @@ struct pcc_chan_reg {
+  * @cmd_update: PCC register bundle for the command complete update register
+  * @error: PCC register bundle for the error status register
+  * @plat_irq: platform interrupt
++ * @plat_gsi: ACPI GSI registered for the platform interrupt
+  * @type: PCC subspace type
+  * @plat_irq_flags: platform interrupt flags
+  * @chan_in_use: lockless flag used by type 3 initiator subspaces to filter
+@@ -106,6 +107,7 @@ struct pcc_chan_info {
+ 	struct pcc_chan_reg cmd_update;
+ 	struct pcc_chan_reg error;
+ 	int plat_irq;
++	u32 plat_gsi;
+ 	u8 type;
+ 	unsigned int plat_irq_flags;
+ 	bool chan_in_use;
+@@ -606,6 +608,22 @@ pcc_chan_reg_init(struct pcc_chan_reg *reg, struct acpi_generic_address *gas,
+ 	return 0;
+ }
+ 
++static void pcc_release_subspace(struct pcc_chan_info *pchan)
++{
++	if (pchan->error.vaddr)
++		iounmap(pchan->error.vaddr);
++	if (pchan->cmd_update.vaddr)
++		iounmap(pchan->cmd_update.vaddr);
++	if (pchan->cmd_complete.vaddr)
++		iounmap(pchan->cmd_complete.vaddr);
++	if (pchan->db.vaddr)
++		iounmap(pchan->db.vaddr);
++	if (pchan->plat_irq_ack.vaddr)
++		iounmap(pchan->plat_irq_ack.vaddr);
++	if (pchan->plat_irq > 0)
++		acpi_unregister_gsi(pchan->plat_gsi);
++}
++
+ /**
+  * pcc_parse_subspace_irq - Parse the PCC IRQ and PCC ACK register
+  *
+@@ -636,6 +654,7 @@ static int pcc_parse_subspace_irq(struct pcc_chan_info *pchan,
+ 		       pcct_ss->platform_interrupt);
+ 		return -EINVAL;
+ 	}
++	pchan->plat_gsi = pcct_ss->platform_interrupt;
+ 	pchan->plat_irq_flags = pcct_ss->flags;
+ 
+ 	if (pcct_ss->header.type == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
+@@ -820,7 +839,7 @@ static int pcc_mbox_probe(struct platform_device *pdev)
+ 	struct acpi_subtable_header *pcct_entry;
+ 	struct acpi_table_pcct *acpi_pcct_tbl;
+ 	acpi_status status = AE_OK;
+-	int i, rc, count = pcc_chan_count;
++	int idx = 0, rc, count = pcc_chan_count;
+ 
+ 	/* Search for PCCT */
+ 	status = acpi_get_table(ACPI_SIG_PCCT, 0, &pcct_tbl);
+@@ -860,11 +879,12 @@ static int pcc_mbox_probe(struct platform_device *pdev)
+ 		pcc_mbox_ctrl->txdone_poll = true;
+ 	}
+ 
+-	for (i = 0; i < count; i++) {
+-		struct pcc_chan_info *pchan = chan_info + i;
++	while (idx < count) {
++		struct pcc_chan_info *pchan = chan_info + idx;
++		struct mbox_chan *chan = &pcc_mbox_channels[idx++];
+ 
+-		pcc_mbox_channels[i].con_priv = pchan;
+-		pchan->chan.mchan = &pcc_mbox_channels[i];
++		chan->con_priv = pchan;
++		pchan->chan.mchan = chan;
+ 
+ 		if (pcct_entry->type == ACPI_PCCT_TYPE_EXT_PCC_SLAVE_SUBSPACE &&
+ 		    !pcc_mbox_ctrl->txdone_irq) {
+@@ -904,6 +924,8 @@ static int pcc_mbox_probe(struct platform_device *pdev)
+ 	else
+ 		return 0;
+ err:
++	while (idx > 0)
++		pcc_release_subspace(&chan_info[--idx]);
+ 	acpi_put_table(pcct_tbl);
+ 	return rc;
+ }
+-- 
+2.43.0
 
-Thanks!
-
-> > > ---
-> > >  drivers/cpufreq/cpufreq_conservative.c | 5 ++++-
-> > >  drivers/cpufreq/cpufreq_governor.c     | 4 ++--
-> > >  drivers/cpufreq/cpufreq_governor.h     | 1 +
-> > >  drivers/cpufreq/cpufreq_ondemand.c     | 5 ++++-
-> > >  4 files changed, 11 insertions(+), 4 deletions(-)
-> > >
-> > > diff --git a/drivers/cpufreq/cpufreq_conservative.c b/drivers/cpufreq=
-/cpufreq_conservative.c
-> > > index 02bfd46543e9..146a2353b1a2 100644
-> > > --- a/drivers/cpufreq/cpufreq_conservative.c
-> > > +++ b/drivers/cpufreq/cpufreq_conservative.c
-> > > @@ -318,7 +318,10 @@ static void cs_limits(struct cpufreq_policy *pol=
-icy)
-> > >
-> > >  static struct dbs_governor cs_governor =3D {
-> > >         .gov =3D CPUFREQ_DBS_GOVERNOR_INITIALIZER("conservative"),
-> > > -       .kobj_type =3D { .default_groups =3D cs_groups },
-> > > +       .kobj_type =3D {
-> > > +               .release =3D cpufreq_dbs_data_release,
-> > > +               .default_groups =3D cs_groups,
-> > > +       },
-> > >         .gov_dbs_update =3D cs_dbs_update,
-> > >         .alloc =3D cs_alloc,
-> > >         .free =3D cs_free,
-> > > diff --git a/drivers/cpufreq/cpufreq_governor.c b/drivers/cpufreq/cpu=
-freq_governor.c
-> > > index f3bd3dbe7c41..f8b5aca09b6b 100644
-> > > --- a/drivers/cpufreq/cpufreq_governor.c
-> > > +++ b/drivers/cpufreq/cpufreq_governor.c
-> > > @@ -419,7 +419,7 @@ static void free_policy_dbs_info(struct policy_db=
-s_info *policy_dbs,
-> > >         gov->free(policy_dbs);
-> > >  }
-> > >
-> > > -static void cpufreq_dbs_data_release(struct kobject *kobj)
-> > > +void cpufreq_dbs_data_release(struct kobject *kobj)
-> > >  {
-> > >         struct dbs_data *dbs_data =3D to_dbs_data(to_gov_attr_set(kob=
-j));
-> > >         struct dbs_governor *gov =3D dbs_data->gov;
-> > > @@ -427,6 +427,7 @@ static void cpufreq_dbs_data_release(struct kobje=
-ct *kobj)
-> > >         gov->exit(dbs_data);
-> > >         kfree(dbs_data);
-> > >  }
-> > > +EXPORT_SYMBOL_GPL(cpufreq_dbs_data_release);
-> > >
-> > >  int cpufreq_dbs_governor_init(struct cpufreq_policy *policy)
-> > >  {
-> > > @@ -488,7 +489,6 @@ int cpufreq_dbs_governor_init(struct cpufreq_poli=
-cy *policy)
-> > >         policy->governor_data =3D policy_dbs;
-> > >
-> > >         gov->kobj_type.sysfs_ops =3D &governor_sysfs_ops;
-> > > -       gov->kobj_type.release =3D cpufreq_dbs_data_release;
-> > >         ret =3D kobject_init_and_add(&dbs_data->attr_set.kobj, &gov->=
-kobj_type,
-> > >                                    get_governor_parent_kobj(policy),
-> > >                                    "%s", gov->gov.name);
-> > > diff --git a/drivers/cpufreq/cpufreq_governor.h b/drivers/cpufreq/cpu=
-freq_governor.h
-> > > index 806d8fb4dff1..1026712bb79b 100644
-> > > --- a/drivers/cpufreq/cpufreq_governor.h
-> > > +++ b/drivers/cpufreq/cpufreq_governor.h
-> > > @@ -150,6 +150,7 @@ static inline struct dbs_governor *dbs_governor_o=
-f(struct cpufreq_policy *policy
-> > >  }
-> > >
-> > >  /* Governor callback routines */
-> > > +void cpufreq_dbs_data_release(struct kobject *kobj);
-> > >  int cpufreq_dbs_governor_init(struct cpufreq_policy *policy);
-> > >  void cpufreq_dbs_governor_exit(struct cpufreq_policy *policy);
-> > >  int cpufreq_dbs_governor_start(struct cpufreq_policy *policy);
-> > > diff --git a/drivers/cpufreq/cpufreq_ondemand.c b/drivers/cpufreq/cpu=
-freq_ondemand.c
-> > > index 9942dbb38dae..7386d043c665 100644
-> > > --- a/drivers/cpufreq/cpufreq_ondemand.c
-> > > +++ b/drivers/cpufreq/cpufreq_ondemand.c
-> > > @@ -374,7 +374,10 @@ static struct od_ops od_ops =3D {
-> > >
-> > >  static struct dbs_governor od_dbs_gov =3D {
-> > >         .gov =3D CPUFREQ_DBS_GOVERNOR_INITIALIZER("ondemand"),
-> > > -       .kobj_type =3D { .default_groups =3D od_groups },
-> > > +       .kobj_type =3D {
-> > > +               .release =3D cpufreq_dbs_data_release,
-> > > +               .default_groups =3D od_groups,
-> > > +       },
-> > >         .gov_dbs_update =3D od_dbs_update,
-> > >         .alloc =3D od_alloc,
-> > >         .free =3D od_free,
-> > > --
-> > > 2.56.0.313.g2479322e68-goog
-> > >
-> > >
->
