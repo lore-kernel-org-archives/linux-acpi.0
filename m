@@ -1,75 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=194.59.206.189
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793179849;
-	b=FoPZC0hkm37HcptHt8dHMZPtnYpQG/Ap4bEChLE6tq+Wxcj0UnH60Bd9bCmDurjGZ2WG
-	 p5pmMg8IBTDnm4Y8LmoO8dUwqT1D93pu6eZKDPud98WXOjFFeOFVzKSM1UddcmjIJQp8K
-	 tb6U8IhUJSBJKxibqfhbVhjMaa/uuJfCV2OdoQOAiNs5UClSxk+2CAVpp/w4whwudrYX5
-	 /68wS0z1ox/2rWwATjWpFrzu2PGVoUtdvLha3Sm2P5eeXPO5bbt3R6ktuvY9IFdVLK5Hz
-	 h5UaWowaqPJIL7PniiLf8l8wjkddJLk7I8poWPBsZSOfgyQa0yxtsksi7j2qY39Pq8A==
+	t=1793187551;
+	b=YrOBOKNSIB1LjFujpQr6RaGVPpC5XXwxpDo7cbAT9WG6BnzdHxHcbNfwagWN3RP85OjB
+	 rzkXHcM/V3JZW8XWfG2inH98Pk/yLpIhbGKrj4eawKBhWklWfL67Mw9+IF+Pb4oNe4PhW
+	 vqlwHkZTP2Q5Dd62NauJJNCjVvNH+2+1YZYWAdWsBTofovKrQcqNSZbwCcRA2EjYx9Y69
+	 smFcb2QeLTp1ZpWQ0PLnnXQ7TzN6SMqjjIxNiA5Vi2MawgqWcQUgXI1zWd9wKGREPN0pw
+	 QsiwJUvPqKRT70jmBVx2i+0241tKP+EDp3Vh4kR0gKCLMTm1SIU1k6jCKcFMnehOKFA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793179849;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:X-Virus-Scanned:
-	 X-Spam-Flag:X-Spam-Score:X-Spam-Level:X-Spam-Status:Received:Received:
-	 Received-SPF:Message-ID:Date:MIME-Version:User-Agent:Subject:To:Cc:
-	 References:From:Content-Language:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:X-PPP-Message-ID:X-Rspamd-Server:
-	 X-Rspamd-Queue-Id:X-NC-CID;
-	bh=Yz76oOmF8BT8+08e1VGZ0CzES0UkXP8ivIRndu1Jn+I=;
-	b=WnX6HI79anIws+LWcyMbekYKSH+yjZlhkz3zhCbroU/0s/3gbm2BAnMLTBK12NMcQj5P
-	 n0AkLCk/AbNrwqVXc7ExV2UmNRcEfnqTWj3S3BDnnekHqaMoBPwuDFMqGCX4/tEzM/vMs
-	 B1zOv76TIbOhl+qZMbaQRtZsFlMIhwe2KBLIT6EJm9hMQMwa3bfyfHA+uUXK8c0f1Mr8L
-	 N7WHYZAqdJSOpawdaljlih3EYQfOmFbfE2aE6jxszOMblYOZfhRWIr8LoNhmMImEAkIfm
-	 zSCAwGtLwkNNBdFiI5yA/EnXGdQgA4KOgHt0vSy5RdvKXnlnmwypslBbXBwrQAqaYOQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793187551;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=sOScShlNJOoFQgumDsqaC2sVgmpV4+y6Yzg+EW5P6X4=;
+	b=2mzLVXYWrXXoJMh9nuN+Nu4Oo75BQCNYhAIVSmVcCzK4XrO6QgQ/kYznoCjTMYIYi/ot
+	 7mA3CKh2mDAXphveJ7uzOxTglfFesMJIv9oV3h2959p0et4/aITpP07hp4AtyiGU7G0A/
+	 BIV/TeB+IIHMCKLlE70rFcto3uRfBTxgTvNnw5/zONLMI3g3AlVxqgvSey9cKIeCWXSKB
+	 crYSlqqmbnX+dD5mXU/ja/GcJa3fXS2XbFrtDfvjfN9FOZVxMSksvfhdEQ9viJnukoWvE
+	 q8BC947P0XB3In2SrL6TQfgf+cyveu5cEDVQ14KFex+T5l/aZGJ7Kfv3ujxHh508K8Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=leemhuis.info;
-	spf=pass smtp.mailfrom=leemhuis.info;
-	dkim=pass header.d=leemhuis.info header.i=@leemhuis.info header.a=rsa-sha256 header.s=key2 header.b=XXOkfy8f;
-	arc=none smtp.remote-ip=194.59.206.189
-Received: from relay.yourmailgateway.de (relay.yourmailgateway.de [194.59.206.189])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=V3aBNqqF;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA4E560A2605;
-	Wed, 28 Oct 2026 09:30:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BA4E560A2605
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=leemhuis.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=leemhuis.info
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8E7E606A31E
+	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 11:39:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=leemhuis.info header.i=@leemhuis.info header.a=rsa-sha256 header.s=key2 header.b=XXOkfy8f
-Received: from relay02-mors.netcup.net (localhost [127.0.0.1])
-	by relay02-mors.netcup.net (Postfix) with ESMTPS id 4jF2Cg4wlZz4gB3;
-	Wed, 28 Oct 2026 10:30:39 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=leemhuis.info;
-	s=key2; t=1793179839;
-	bh=b98VBHicFPHHWx0A6xKSF3YDtQW4jPChJfnqgGAgdKc=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=XXOkfy8fZr3BIlV3qgmG8ps5OhHwzPHvJpy0Ier9Bf9UswfxqJDtmuWYNKux+ouA+
-	 aIH/1NCvf6WUFtwIxReelu6Yjq9ES7osjoM/Uz/V5OJI4x0Q0tl9dgCMn5vtJyXGnd
-	 g9eDe77cwur6eIgHjwaWM4V0U2xHdEVjjCxwiVcRTnKe25vvSw3zXlpUwAt7BrKJyr
-	 zHSjbnWZPIqNX+mBoUTjR1p5EuzrD96cMQEnNzoTCTenxXm5wsEB+WWGDPCoK2r4O/
-	 IFcSL1rD3uPw+qhk+qSqVz7081OVeyB4ZFK1NLAOWhBN8IZNqOc3vJryBVhaXIS4y+
-	 RTfUtpH081gLQ==
-Received: from policy01-mors.netcup.net (unknown [46.38.225.35])
-	by relay02-mors.netcup.net (Postfix) with ESMTPS id 4jF2Cg4FHXz7yvw;
-	Wed, 28 Oct 2026 10:30:39 +0100 (CET)
-X-Virus-Scanned: Debian amavisd-new at policy01-mors.netcup.net
-X-Spam-Flag: NO
-X-Spam-Score: -2.898
-X-Spam-Level: 
-Received: from mxe9fb.netcup.net (unknown [10.243.12.53])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by policy01-mors.netcup.net (Postfix) with ESMTPS id 4jF2Cd4rrqz8thr;
-	Wed, 28 Oct 2026 10:30:37 +0100 (CET)
-Received: from [IPV6:2a02:8108:8984:1d00:a0cf:1912:4be:477f] (unknown [IPv6:2a02:8108:8984:1d00:a0cf:1912:4be:477f])
-	by mxe9fb.netcup.net (Postfix) with ESMTPSA id 533C85F8B3;
-	Wed, 28 Oct 2026 10:30:36 +0100 (CET)
-Authentication-Results: mxe9fb;
-        spf=pass (sender IP is 2a02:8108:8984:1d00:a0cf:1912:4be:477f) smtp.mailfrom=regressions@leemhuis.info smtp.helo=[IPV6:2a02:8108:8984:1d00:a0cf:1912:4be:477f]
-Received-SPF: pass (mxe9fb: connection is authenticated)
-Message-ID: <fe5a4a48-3054-4a53-8487-d968b3983d89@leemhuis.info>
-Date: Wed, 28 Oct 2026 10:30:35 +0100
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=V3aBNqqF
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A66361F01825
+	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 11:39:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793187550;
+	bh=sOScShlNJOoFQgumDsqaC2sVgmpV4+y6Yzg+EW5P6X4=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=V3aBNqqFFHK8/iCpvfjUC4nqv71d4gzLapwxCef4YXC24PEvK5vHB+xdOeL7szLll
+	 P+FI7kOVX15iyVgW6L5BqB5j66cUsU58EFNBVc4ed1gRumoqiCbC4e+4/fMtoPPsBi
+	 389uKh3znOcDxhFOO4xeIVuJHUWRavRXaxLHJn2UManYPCHBMECjV9wAGJYHfg7uRm
+	 oE9BZ712DtB2yvqohWmRmnKolH9LeojudIZ3GAkE5g2bjpf6/E/ujmhxw0Acr5Ue7J
+	 /SryS8fSPLV7LahdfJR0nny8tZNZQ0l6lyXB4kclXqeLy9UOpL1SeAi4UciWGJrnY9
+	 J8Z5+YeM8O4VQ==
+Received: by mail-lf1-f53.google.com with SMTP id 2adb3069b0e04-5be4c78e8caso903749e87.1
+        for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 04:39:10 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvByIK7h5TmwK0bRn9psb4+Ve94aooG67XebTXILGd4SwlDTot4+nVwjnJkWEhMK6Wj2tfHusV1HkshZD@vger.kernel.org
+X-Gm-Message-State: AFq9FYLqSQqr7rcvxCYvJSax8aYq89oi9CmoDt+9R9W+d5IqxZYwQiHd
+	Uq2Q09lDqdI8s72u3LJlb3/LXzSEV7B+rfpirgZEUPW/5VXmhFK6U3v2N97fIV+e0IQyw/l7hxy
+	1mrlaso0aEzO9iYEdnJUea7LjKX9nVsg=
+X-Received: by 2002:a05:6512:1111:b0:5b9:6603:d451 with SMTP id
+ 2adb3069b0e04-5bfcad31c8emr697328e87.3.1793187548999; Wed, 28 Oct 2026
+ 04:39:08 -0700 (PDT)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -79,58 +59,141 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [REGRESSION] 6.18.57: resume from s2idle triggers poweroff and
- hangs when tiny_power_button is built as a module
-To: Mikkel Sejdelin <mikkel.sejdelin@proton.me>,
- Sasha Levin <sashal@kernel.org>
-Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>,
- "regressions@lists.linux.dev" <regressions@lists.linux.dev>,
- "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
- "rafael@kernel.org" <rafael@kernel.org>, Ting-Han Hou <ue081723@gmail.com>
-References: 
- <1kU98bgDqqEMGUcpGahaBYlaPiP2ssSCZj1uIKq1MEaGpNv2exGeJc3VWzXxB8-VJQ1Uk62W19oByt2KC-v1bSA4Sux9fBhnlA_IHWjV2Zw=@proton.me>
- <20261024-rc-reply-0001-tiny-power-button-s2idle@kernel.org>
- <dyJyEj-TY1YtRVdDYPD4xnYF_aIP78z9wliSc3251tj6aZEZxux0c81AiZAFPpZvbg6rjgqivtHTFfY29YHTS9WZmw569IbyVF0NPVTxqrA=@proton.me>
-From: Thorsten Leemhuis <regressions@leemhuis.info>
-Content-Language: de-DE, en-US
-In-Reply-To: 
- <dyJyEj-TY1YtRVdDYPD4xnYF_aIP78z9wliSc3251tj6aZEZxux0c81AiZAFPpZvbg6rjgqivtHTFfY29YHTS9WZmw569IbyVF0NPVTxqrA=@proton.me>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-PPP-Message-ID: <179317983672.1123909.5267239163159569902@mxe9fb.netcup.net>
-X-Rspamd-Server: rspamd-worker-8404
-X-Rspamd-Queue-Id: 533C85F8B3
-X-NC-CID: 8BhwjSnzVcSoDK9NTl/C+VSzlBdyli9V1RllZ+Cn/TkMRJGgSi8=
+References: <20261027223847.652884-1-irogers@google.com> <20261027223847.652884-5-irogers@google.com>
+In-Reply-To: <20261027223847.652884-5-irogers@google.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Wed, 28 Oct 2026 12:38:56 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0juvZ2ZVRBkY6FxBM=NhPt9vMA3+yRugXc5u=U1jO9AXg@mail.gmail.com>
+X-Gm-Features: AclHuK-NXF3tWCMDzaNjIN417c7ZMuQGYjVHoQ_x6BSITeW_KdKoI_jbnClXt6k
+Message-ID: <CAJZ5v0juvZ2ZVRBkY6FxBM=NhPt9vMA3+yRugXc5u=U1jO9AXg@mail.gmail.com>
+Subject: Re: [PATCH v2 4/9] cpufreq: governor: Initialize kobj_type release
+ callback statically
+To: Ian Rogers <irogers@google.com>
+Cc: Kees Cook <kees@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Miguel Ojeda <ojeda@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
+	Nathan Chancellor <nathan@kernel.org>, Nick Desaulniers <ndesaulniers@google.com>, 
+	Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>, 
+	=?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
+	Zhihao Cheng <chengzhihao1@huawei.com>, Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>, 
+	Sumanth Korikkar <sumanthk@linux.ibm.com>, Bill Wendling <morbo@google.com>, 
+	Justin Stitt <justinstitt@google.com>, driver-core@lists.linux.dev, llvm@lists.linux.dev, 
+	linux-hardening@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-pm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	linux-sh@vger.kernel.org, linux-s390@vger.kernel.org, gfs2@lists.linux.dev, 
+	xen-devel@lists.xenproject.org, linux-mtd@lists.infradead.org, 
+	amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, 
+	linux-kernel@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 10/28/26 10:15, Mikkel Sejdelin wrote:
-> On Sat, Oct 24, 2026 at 10:26:52 -0400, Sasha Levin wrote:
->> I have dropped f4203ec64e11 ("ACPI: tiny-power-button: Convert the
->> driver to a platform one") from the 6.18 queue. It cannot go out without
->> ab06eb920401 ("ACPI: scan: Register platform devices for fixed event
->> buttons")
-> 
-> Now that ab06eb920401 is queued for 6.18 again [1], could f4203ec64e11
-> be queued with it? ab06eb920401 alone does not fix this report: on my
-> machine (control-method power button, PNP0C0C) it changes nothing, and
-> tiny-power-button keeps binding next to button until it is a platform
-> driver too. 6.18.59 is still affected.
-> 
-> I tested v6.18.58 + ab06eb920401 (with Ting-Han's 2/3 and 3/3) +
-> f4203ec64e11 on this laptop: platform devices and bindings unchanged
-> from 6.18.57, acpi-button binds PNP0C0C:00, acpi-tiny-power-button
-> stays unbound, 3/3 s2idle resumes OK, no SIGRTMIN+4.
-> 
-> Tested-by: Mikkel Sejdelin <mikkel.sejdelin@proton.me>
-> 
-> Thorsten: regzbot has ab06eb920401 as the fix for this report, but it
-> needs f4203ec64e11 as well:
-> 
-> #regzbot fix: ACPI: tiny-power-button: Convert the driver to a platform one
-> 
-> [1] https://lore.kernel.org/all/20261024105710.593-2-ue081723@gmail.com/
-Thx for fixing this up -- and sorry, my fault, got that wrong, the cover
-letter from Ting-Han Hou (now CCed) sounded to me like f4203ec64e11
-would not be needed anymore.
+On Tue, Oct 27, 2026 at 11:39=E2=80=AFPM Ian Rogers <irogers@google.com> wr=
+ote:
+>
+> Export cpufreq_dbs_data_release() and set .kobj_type.release statically
+> in the ondemand and conservative governors so their gov_attr_set
+> kobjects have a valid release callback statically initialized, matching
+> cpufreq_governor_dbs. Remove the redundant runtime assignment in
+> cpufreq_dbs_governor_init().
+>
+> This prepares for annotating struct kobj_type::release with
+> __must_init.
+>
+> Signed-off-by: Ian Rogers <irogers@google.com>
 
-Ciao, Thorsten
+Do you want stuff to be picked up by maintainers, or do you want to
+route it yourself?
+
+> ---
+>  drivers/cpufreq/cpufreq_conservative.c | 5 ++++-
+>  drivers/cpufreq/cpufreq_governor.c     | 4 ++--
+>  drivers/cpufreq/cpufreq_governor.h     | 1 +
+>  drivers/cpufreq/cpufreq_ondemand.c     | 5 ++++-
+>  4 files changed, 11 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/cpufreq/cpufreq_conservative.c b/drivers/cpufreq/cpu=
+freq_conservative.c
+> index 02bfd46543e9..146a2353b1a2 100644
+> --- a/drivers/cpufreq/cpufreq_conservative.c
+> +++ b/drivers/cpufreq/cpufreq_conservative.c
+> @@ -318,7 +318,10 @@ static void cs_limits(struct cpufreq_policy *policy)
+>
+>  static struct dbs_governor cs_governor =3D {
+>         .gov =3D CPUFREQ_DBS_GOVERNOR_INITIALIZER("conservative"),
+> -       .kobj_type =3D { .default_groups =3D cs_groups },
+> +       .kobj_type =3D {
+> +               .release =3D cpufreq_dbs_data_release,
+> +               .default_groups =3D cs_groups,
+> +       },
+>         .gov_dbs_update =3D cs_dbs_update,
+>         .alloc =3D cs_alloc,
+>         .free =3D cs_free,
+> diff --git a/drivers/cpufreq/cpufreq_governor.c b/drivers/cpufreq/cpufreq=
+_governor.c
+> index f3bd3dbe7c41..f8b5aca09b6b 100644
+> --- a/drivers/cpufreq/cpufreq_governor.c
+> +++ b/drivers/cpufreq/cpufreq_governor.c
+> @@ -419,7 +419,7 @@ static void free_policy_dbs_info(struct policy_dbs_in=
+fo *policy_dbs,
+>         gov->free(policy_dbs);
+>  }
+>
+> -static void cpufreq_dbs_data_release(struct kobject *kobj)
+> +void cpufreq_dbs_data_release(struct kobject *kobj)
+>  {
+>         struct dbs_data *dbs_data =3D to_dbs_data(to_gov_attr_set(kobj));
+>         struct dbs_governor *gov =3D dbs_data->gov;
+> @@ -427,6 +427,7 @@ static void cpufreq_dbs_data_release(struct kobject *=
+kobj)
+>         gov->exit(dbs_data);
+>         kfree(dbs_data);
+>  }
+> +EXPORT_SYMBOL_GPL(cpufreq_dbs_data_release);
+>
+>  int cpufreq_dbs_governor_init(struct cpufreq_policy *policy)
+>  {
+> @@ -488,7 +489,6 @@ int cpufreq_dbs_governor_init(struct cpufreq_policy *=
+policy)
+>         policy->governor_data =3D policy_dbs;
+>
+>         gov->kobj_type.sysfs_ops =3D &governor_sysfs_ops;
+> -       gov->kobj_type.release =3D cpufreq_dbs_data_release;
+>         ret =3D kobject_init_and_add(&dbs_data->attr_set.kobj, &gov->kobj=
+_type,
+>                                    get_governor_parent_kobj(policy),
+>                                    "%s", gov->gov.name);
+> diff --git a/drivers/cpufreq/cpufreq_governor.h b/drivers/cpufreq/cpufreq=
+_governor.h
+> index 806d8fb4dff1..1026712bb79b 100644
+> --- a/drivers/cpufreq/cpufreq_governor.h
+> +++ b/drivers/cpufreq/cpufreq_governor.h
+> @@ -150,6 +150,7 @@ static inline struct dbs_governor *dbs_governor_of(st=
+ruct cpufreq_policy *policy
+>  }
+>
+>  /* Governor callback routines */
+> +void cpufreq_dbs_data_release(struct kobject *kobj);
+>  int cpufreq_dbs_governor_init(struct cpufreq_policy *policy);
+>  void cpufreq_dbs_governor_exit(struct cpufreq_policy *policy);
+>  int cpufreq_dbs_governor_start(struct cpufreq_policy *policy);
+> diff --git a/drivers/cpufreq/cpufreq_ondemand.c b/drivers/cpufreq/cpufreq=
+_ondemand.c
+> index 9942dbb38dae..7386d043c665 100644
+> --- a/drivers/cpufreq/cpufreq_ondemand.c
+> +++ b/drivers/cpufreq/cpufreq_ondemand.c
+> @@ -374,7 +374,10 @@ static struct od_ops od_ops =3D {
+>
+>  static struct dbs_governor od_dbs_gov =3D {
+>         .gov =3D CPUFREQ_DBS_GOVERNOR_INITIALIZER("ondemand"),
+> -       .kobj_type =3D { .default_groups =3D od_groups },
+> +       .kobj_type =3D {
+> +               .release =3D cpufreq_dbs_data_release,
+> +               .default_groups =3D od_groups,
+> +       },
+>         .gov_dbs_update =3D od_dbs_update,
+>         .alloc =3D od_alloc,
+>         .free =3D od_free,
+> --
+> 2.56.0.313.g2479322e68-goog
+>
+>
