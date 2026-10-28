@@ -1,112 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.167.200
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793158587;
-	b=mfDU5Dtxa4hGLb7BHzT6bgBwJhQvB+ihfolt2vu7OxG8OkoCNz8xYTwc+kZYHiB9CVtY
-	 WEIPXLKPZeSLPVCFhs6Luj7kI6s+c+wGsNthbYmQdR/zLrTfD6yE4s8l8EZ8gFWs2WyZw
-	 HZvcEChjvhb7qfwUKTdw9HQDoFsi8nBMPVkLUemmVipigY3vioMZY8wFRAMz50IiTq4Y0
-	 JjVypM1sB1xSHXogIcUvxXnaX3Wu+fJDviSeNbJ6+0SQbcNNGzXwCZLNL7EZgesYOiVHc
-	 n5eqO2Pq+lgYgHt5rqB04zMopeJvksgrY7kZ0BTH7+tRO0HItDcEC/lmBpmVZL+53GA==
+	t=1793167058;
+	b=1nJA6THO0f98CXxmUqtsdSbOXtGmenGjGIq958s1WVtTwworgpP4jlPvy30FzuPFZc6G
+	 hwBQoQYY2N8yjg/ec6KjOgWuCMN9vzO8NqmFeFKh6ACrMM4rcMeIA4X0MTUdQkoJZ/kXi
+	 fwvIsdW2gVYxeHxeFtURBaU7F8I5TPFnJ31aEPPz/qFj9NZJcsRqaU3PWQDTS5e84oFPl
+	 VypqWt+3sWRimc/ogAsYqCu77zXM/EY784AuuuUPB12cD84DmJIuRk/dR9b6z57IUXmAa
+	 fiS0y9rYU7Hx2erpSdWlWx/bj1JlLvLmU6ElvJr9pvXrU7oVQ1D9onXcnYTV2N5afWw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793158587;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
-	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:Message-ID:
-	 Date:MIME-Version:User-Agent:Subject:To:Cc:References:
-	 Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:X-Proofpoint-Spam-Details-Enc:
-	 X-Proofpoint-ORIG-GUID:X-Proofpoint-GUID:X-Proofpoint-Spam-Info:
-	 X-Authority-Analysis:X-Proofpoint-Virus-Version:
-	 X-Proofpoint-Spam-Details;
-	bh=/wKdshZSDdNYlVlGGww1CWjddpjIdb7CUnZ1PObkTB4=;
-	b=vXcF8iy9S66iILZEPIdfT7nDglh9VKr56sUKNYXsljWGQu+QepVmQ+T0CllnovVhohGS
-	 pmnVLPhV78sibgHmAJj1dekVijNKGwWR6/r4h2xKZnnxGlXNnNqp9RdPU6QSxlMdBeHtC
-	 BuIh2rS+hnK0Q+tUxH67FCGueSldxJdC611vPcXp5VSOu9RhPtetQixuIy4LDCYsShNOr
-	 3FHJwLvAmjmRBb90XRtYiqR+5PB2lxVn/6o8OHhM5UR6ye1Du1WjMQxV0+5lmKPyvgOfy
-	 TK22MA//ZroyDjJ323/TUhlf0oxxjPnH31obf4WjjebNXg8RiCPsfGsSL0BCPEZiplg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793167058;
+	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:MIME-Version:X-Received:Date:
+	 X-Google-Appengine-App-Id:X-Google-Appengine-App-Id-Alias:Message-ID:
+	 Subject:From:To:Content-Type;
+	bh=+2bdNlDkN10oDjIbb35R3tdxbUezY5B5W/AihEWxSmU=;
+	b=ZrHd6H2FygLzQz8yXp5pOdm06bCuI3HHNTAKA/jXRM80Pd4aRnYzlJ94/29xu4kjXPTW
+	 EzIvevJQgbl8LxAoRYXNWoDHMpGLA5YnDQCZITknkNBSXpZ50Xt7WViXecicvJZq5xjth
+	 qhaMn8osuziNqnl9bjtT6qlQ68mJbfWHqwbonH9sQCEUJApt+tespMejn+tob3w/8aRDl
+	 FIOHzSIJ0GQ5//4wjOw3ES2E39YHU+cFmizeRwvvfGOaUDhYG+0Er2gcA1/J4UAh3OLUq
+	 UO/TMbh+7bZf7SzeIUnBtrectXtVtX8uIt4ozijbUM/SJKUT44wYPXXDIU+n2ROG6Aw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=oss.qualcomm.com;
-	spf=pass smtp.mailfrom=oss.qualcomm.com;
-	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=Jve2qMQH;
-	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=BBE0FowR;
-	arc=none smtp.remote-ip=205.220.168.131
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=fail header.from=syzkaller.appspotmail.com;
+	spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com;
+	arc=none smtp.remote-ip=209.85.167.200
+Received: from mail-oi1-f200.google.com (mail-oi1-f200.google.com [209.85.167.200])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DF40606A321
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 03:36:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8DF40606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=Jve2qMQH;
-	dkim=pass (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=BBE0FowR
-Received: from pps.filterd (m0279867.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69S0jG0B658221
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 03:36:25 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	/wKdshZSDdNYlVlGGww1CWjddpjIdb7CUnZ1PObkTB4=; b=Jve2qMQHUqrEssgK
-	LflW6/l7KZ234zJVmm5v4avWWbV1TcUiioz11IU7xNAS3yhP+6JpgpsoOMhZWZvJ
-	IPei/BNfJ7ExWg/tShStITm6QZsRQXDRsGswXFZFnq+o9ga6nmbSa33m3OhRLXWT
-	jNycF1Ub6eUUeiAVgYu5ZaX6svI7KSL3EU6+K53Rnc/d554YMUVQJALzktVCxxiV
-	q+Kz86xf3mp9SK5/sBZk8qiecR2lpX8aT+GhaHVmok95F2t7X+5DAAukw34dJtRr
-	PnVGLMYR/XaeQ9zEg45sqiPgK2kxAakvx9jugL9konNgiu/4GNvqT3B3MXccU96s
-	aGnIQQ==
-Received: from mail-pf1-f200.google.com (mail-pf1-f200.google.com [209.85.210.200])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hjyjpt5b9-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 03:36:25 +0000 (GMT)
-Received: by mail-pf1-f200.google.com with SMTP id d2e1a72fcca58-89fb6a45c48so753977b3a.1
-        for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2026 20:36:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1793158585; x=1793763385; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=/wKdshZSDdNYlVlGGww1CWjddpjIdb7CUnZ1PObkTB4=;
-        b=BBE0FowRfn7sN6MDFhJ7FmlNiB3uKdW4e+cRAtWrblI7hD+YFhxqnPOU7tpzisVisJ
-         fmEeD90BQvftfZDOccNtAFeLrBTZKfsyegXHwyV0wKlVgLTtCjMFc6HwG5NhJjm3k/C+
-         ad5+gAf9zgyISIfOxIIRVunXhv207IDJQjB94mq7+VI9MJMYMNRfO7jOns7wsvAz4bM9
-         5ba3tSHhD20XqsJaFz3v6Bl7rN6ldLh2ubAgecoEHWvl0MLS0obmwycPGmr2w1CBLAOI
-         eJGZP1D+i5UMtAu5I0NHNr4aAyku+DE5UMfSHnXgokB2sdHVO6EIN0G+P9MH7O/MCHCQ
-         6nMA==
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEDA7606A31A
+	for <linux-acpi@vger.kernel.org>; Wed, 28 Oct 2026 05:57:37 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CEDA7606A31A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oi1-f200.google.com with SMTP id 5614622812f47-4ab4f652f9bso528380b6e.0
+        for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2026 22:57:37 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793158585; x=1793763385;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=/wKdshZSDdNYlVlGGww1CWjddpjIdb7CUnZ1PObkTB4=;
-        b=yyo1zFmWKHZKBSJy2rJ8m/ENcIM1qQayizCmaaZFjM7SAG05RjZUQ65l/zbFSzZLCH
-         3IzpzvzMiIpEEK4R0DMHZnM7lzLiEX+ueLO15eG/Lwj8ZEmw2DE0MGnHpOyWVfQaPWWx
-         Up/7lZ4gAgOLAreMkkpELz/w9rog1tazhoT1d3u1fKKwNsP4ITsZ3JlCYye1kE+Rew2Y
-         R8vQ6DUz/WxF/4aXQ/wfI689crlPYb/+Fc+HSYsLJTchxk80vTJGirUzBS4ZLe6agyuD
-         mSWtxw55Q2KcSQgPOqhGEYHXA5OyuHN2bjei7BO8v5VIgl1YsyzKR32xjQQ6fdRU0CVE
-         9tkQ==
-X-Forwarded-Encrypted: i=1; AKwUvBzKj2EuuJ2k4wEFBb3PSmTPAKc4ViMgyTKecobR2VLLDBWoSA4kmXYogrFTQRLQXaoLV4Dz41ZoUj01@vger.kernel.org
-X-Gm-Message-State: AFq9FYK6lbO81n8sLANdp49i+m/uA9c2tcz4gw5vBIGAkC4rXSakZPxQ
-	E9lNlYjQPo3le1cXjv7KLwzWgTxM0nuytX3jprPp3Z1eyiszhBpXmZPvvmhJa/ISFbKHsehbzsQ
-	v8GtUFzM3n2NfuKbOCHStGm/iHIkceDTZ5KZmwtyEsd1uq8NWWkQ7trFbOCn5//I3
-X-Gm-Gg: AYBFou3yXn4MR2W8Ouj468WeWniNphVt9SqcFbk+1WGwuyMIfGSqS9JSIZ7ELMz9CrB
-	IdsnA76Qp0ZmrKsVyj7KkZyygcqAHn35sqi95/ra96yXi2sdcUUeLRurA/61zgP5ah29unhfa+I
-	4L284xzjMEGxblsXkaT20Ieegnr8eCmXk2B7fx5PN1Dry9wBAy3hhR3kYraBx8AUYwPwXuT3kEN
-	T8QzbsYPSD4bQjh8aZtuUei+Hi6HTI7+e5jMB0n3D3ezeL4AT067yWG0iOkEh/KLZM5+91QqsO+
-	LYXW1LDxq1m0I+WDYbvFG8tVHca8qUejbHLjf5dhGfPTfbfKgq6leaGP9N0+er0zoxPCncR153X
-	pmEzZ3LrDPuN0Uqz7wBXF9Y0D3OWVp6R0nAmSFDQwAY1MTyCvO7W4fvU//fFK3uRDVWgVI0vZOQ
-	eQPmOkFu/+csboJNuJph0KXwKVXCe+3Q68gO709YaCnGQ=
-X-Received: by 2002:a17:90b:5863:b0:3ac:b3ff:b476 with SMTP id 98e67ed59e1d1-3ae581836a6mr818168a91.38.1793158584990;
-        Tue, 27 Oct 2026 20:36:24 -0700 (PDT)
-X-Received: by 2002:a17:90b:5863:b0:3ac:b3ff:b476 with SMTP id 98e67ed59e1d1-3ae581836a6mr818144a91.38.1793158584441;
-        Tue, 27 Oct 2026 20:36:24 -0700 (PDT)
-Received: from [10.133.33.27] (tpe-colo-wan-fw-bordernet.qualcomm.com. [103.229.16.4])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3ae5a48ec90sm899533a91.6.2026.10.27.20.36.18
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 27 Oct 2026 20:36:24 -0700 (PDT)
-Message-ID: <e5bd0521-36d1-447d-b71a-94a2e07414e2@oss.qualcomm.com>
-Date: Wed, 28 Oct 2026 11:36:16 +0800
+        d=1e100.net; s=20260707; t=1793167057; x=1793771857;
+        h=content-type:to:from:subject:message-id:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=+2bdNlDkN10oDjIbb35R3tdxbUezY5B5W/AihEWxSmU=;
+        b=bEL0bVWF+DuX6t0m1/t8pxpXoO5JdDmCwhdcGAtLOeq4rdrSyGposb2VhAljHrOgc2
+         zcjLJdR7rK/9lQAXwKyWOyOO0IJO94f7b+9T/TUUQO4YALAaQv/i1BO6WILVj37f7K/8
+         VccVzO6lgPn7WNPXcHNc8QL+H7plmQtS/QT7GUWwtM+lC4UUhcDNF2UGUy+JyipP5wUq
+         gbSSsON/1VfGc/7uBo2AP1wzFM6FU59iaDru0pB9UQn07KwW1qkUHaNrXBeX8FzFbLtD
+         J5DaESTgZffEHSiEkENwRg5nGmpEQv5BfVuyRguDPTTdW3pId7Gd2VpO/dmpLYzZf/Gj
+         /wxQ==
+X-Forwarded-Encrypted: i=1; AKwUvBxmlRLIeMA/LPvx5kemhW63ztFnC08lf1HT3cx2SO8qDRxmE1CyOPeVP8EH0YTwh4110HzGg7NKpkNu@vger.kernel.org
+X-Gm-Message-State: AFq9FYIvZB/xWiAgXGAhlpjglphnpOux2EevTOu9/N+8pSvzuPGLCq5z
+	s/V/Tx/cAV9F+iNjamV2JrpB32swjoW58E+6TVX3Uwrhv6+EoUNdQSwQEVALgMZMNMI9yCQmHh4
+	Z1luESPSY0N7Etjq3CDvlPCoYIa/QmGItwYfMPVSYyfJ0jycKArbmGS4b128=
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -116,181 +58,291 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 4/9] cpufreq: governor: Initialize kobj_type release
- callback statically
-To: Ian Rogers <irogers@google.com>, Kees Cook <kees@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Miguel Ojeda <ojeda@kernel.org>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Danilo Krummrich <dakr@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>,
-        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
-        Zhihao Cheng <chengzhihao1@huawei.com>,
-        Sumanth Korikkar <sumanthk@linux.ibm.com>,
-        Bill Wendling <morbo@google.com>,
-        Justin Stitt <justinstitt@google.com>, driver-core@lists.linux.dev,
-        llvm@lists.linux.dev, linux-hardening@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
-        linux-s390@vger.kernel.org, gfs2@lists.linux.dev,
-        xen-devel@lists.xenproject.org, linux-mtd@lists.infradead.org,
-        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>,
-        zhongqiu.han@oss.qualcomm.com
-References: <20261027223847.652884-1-irogers@google.com>
- <20261027223847.652884-5-irogers@google.com>
-Content-Language: en-US
-From: Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
-In-Reply-To: <20261027223847.652884-5-irogers@google.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDI4MDAxNCBTYWx0ZWRfX3evkbL0cGRyn
- Ey7NM+8l2b0h5IavDR67869sAQXsndBCxU8urERgTjYGOJ0tdiEDnJ9m8Co7z7ZM8i071xrHKhY
- qTdmx71o3PtOar/4hIMiu6t2RQD6mfL9nc6hNNhiwzSDL8Rl7C3l6zrSiFocUDhdJP+2fmt+X46
- bLj082zSZ3Ix+CzkU8MwksqZKZC06jCaMkuIoBrLxDiqQjXUuNxaGo+fsBvBDv8TpJeW3ubsO9K
- X358E6OCTvqVZDsqC8N0sGkldljHjkZvbQczGGB2gBbJauDiLA1D9QEizekkL6txGFG64xibz7s
- 6/pKHKTJX96V3nryUTDxjl3OltzbeVGslj8enyiHYIU5vhPxnML+b65/6cXfs+o/hxM9Wsl8UAE
- AMwcio0U9SKAQCRy6uGdLEd6CVh/f/mTMpefm1tb9Y7zz9hPZQ8946D0mYJWH5XY56frCyiXldx
- NOY7B1yfzh9ioSDVkeA==
-X-Proofpoint-ORIG-GUID: 6Ed8Ft2iEGATOYLmMuDJe5hS42zdviE-
-X-Proofpoint-GUID: 6Ed8Ft2iEGATOYLmMuDJe5hS42zdviE-
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDI4MDAxNCBTYWx0ZWRfX5GmMqys+32a/
- eeX7lVShqxR1NapGDzIsvlrj/XNNPGGm1qAI5MtaJkcsHXGJCOatFCmZaaCMFK9v77oyefssCLc
- 80730LBSwnwrsLwGm0ahEMmX7VMkOLA=
-X-Authority-Analysis: v=2.4 cv=JodkP84C c=1 sm=1 tr=0 ts=6ae16db9 cx=c_pps
- a=mDZGXZTwRPZaeRUbqKGCBw==:117 a=nuhDOHQX5FNHPW3J6Bj6AA==:17
- a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=eoimf2acIAo5FJnRuUoq:22
- a=EUspDBNiAAAA:8 a=1XWaLZrsAAAA:8 a=MbyaxBA4Lnn_ULkWIDkA:9 a=QEXdDO2ut3YA:10
- a=zc0IvFSfCIW2DFIPzwfm:22
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-10-28_01,2026-10-21_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- impostorscore=0 clxscore=1015 malwarescore=0 bulkscore=0 suspectscore=0
- priorityscore=1501 spamscore=0 adultscore=0 lowpriorityscore=0 phishscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2610190000 definitions=main-2610280014
+X-Received: by 2002:a05:6808:4f62:b0:4d6:9232:b3bc with SMTP id
+ 5614622812f47-56383a8e14fmr876455b6e.51.1793167056863; Tue, 27 Oct 2026
+ 22:57:36 -0700 (PDT)
+Date: Tue, 27 Oct 2026 22:57:36 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6ae18ed0.6200f071.51519.0f60.GAE@google.com>
+Subject: [syzbot] [acpi?] possible deadlock in cpu_device_down
+From: syzbot <syzbot+cea7285bc17b76ffe39f@syzkaller.appspotmail.com>
+To: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	rafael@kernel.org, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Ian,
+Hello,
 
-Thanks for the update.
+syzbot found the following issue on:
 
-On 10/28/2026 6:38 AM, Ian Rogers wrote:
-> Export cpufreq_dbs_data_release() and set .kobj_type.release statically
-> in the ondemand and conservative governors so their gov_attr_set
-> kobjects have a valid release callback statically initialized, matching
-> cpufreq_governor_dbs. Remove the redundant runtime assignment in
+HEAD commit:    4da9dedf3fc5 Merge tag 'iommu-updates-v7.4' of git://git.k..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=13058459580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=cd00d0b501e8d973
+dashboard link: https://syzkaller.appspot.com/bug?extid=cea7285bc17b76ffe39f
+compiler:       gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44
 
-"matching cpufreq_governor_dbs" is a bit confusing to me
-(cpufreq_governor_dbs() was removed back in v4.8 by commit e788892ba3cc
-("cpufreq: governor: Get rid of governor events")), as it doesn't
-seem to refer to anything in the tree. Perhaps we could just drop it,
-e.g.:
+Unfortunately, I don't have any reproducer for this issue yet.
 
-Export cpufreq_dbs_data_release() and initialize .kobj_type.release
-statically in the ondemand and conservative governors instead of
-assigning it at runtime in cpufreq_dbs_governor_init().
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/86361da34cc2/disk-4da9dedf.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/8afe65c41dcc/vmlinux-4da9dedf.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/ef091f7d9636/bzImage-4da9dedf.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+cea7285bc17b76ffe39f@syzkaller.appspotmail.com
+
+======================================================
+WARNING: possible circular locking dependency detected
+syzkaller #0 Tainted: G             L      
+------------------------------------------------------
+kworker/u8:4/62 is trying to acquire lock:
+ffffffff8fe7a7a0 (cpu_add_remove_lock){+.+.}-{4:4}, at: cpu_maps_update_begin kernel/cpu.c:468 [inline]
+ffffffff8fe7a7a0 (cpu_add_remove_lock){+.+.}-{4:4}, at: cpu_down kernel/cpu.c:1490 [inline]
+ffffffff8fe7a7a0 (cpu_add_remove_lock){+.+.}-{4:4}, at: cpu_device_down+0x46/0xc0 kernel/cpu.c:1508
+
+but task is already holding lock:
+ffff88802528c760 (&device->physical_node_lock){+.+.}-{4:4}, at: acpi_bus_offline+0x156/0x550 drivers/acpi/scan.c:152
+
+which lock already depends on the new lock.
 
 
-The code change itself looks good to me. With the changelog updated
-(in a respin if the series needs one for other reasons, or when
-applying):
+the existing dependency chain (in reverse order) is:
 
-Reviewed-by: Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
+-> #5 (&device->physical_node_lock){+.+.}-{4:4}:
+       lock_acquire kernel/locking/lockdep.c:5942 [inline]
+       lock_acquire+0x1d1/0x380 kernel/locking/lockdep.c:5899
+       __mutex_lock_common kernel/locking/mutex.c:646 [inline]
+       __mutex_lock+0x19f/0x1c10 kernel/locking/mutex.c:821
+       class_mutex_constructor include/linux/mutex.h:253 [inline]
+       acpi_primary_dev_companion drivers/acpi/bus.c:817 [inline]
+       acpi_companion_match+0xc0/0x180 drivers/acpi/bus.c:873
+       acpi_device_uevent_modalias+0x19/0x30 drivers/acpi/device_sysfs.c:280
+       platform_uevent+0x51/0xc0 drivers/base/platform.c:1474
+       dev_uevent+0x1de/0x870 drivers/base/core.c:2766
+       kobject_uevent_env+0x6eb/0x18b0 lib/kobject_uevent.c:576
+       kobject_synth_uevent+0x679/0x7d0 lib/kobject_uevent.c:207
+       uevent_store+0x24/0x50 drivers/base/core.c:2847
+       dev_attr_store+0x58/0x80 drivers/base/core.c:2509
+       sysfs_kf_write+0xf2/0x150 fs/sysfs/file.c:145
+       kernfs_fop_write_iter+0x3e0/0x5f0 fs/kernfs/file.c:345
+       new_sync_write fs/read_write.c:595 [inline]
+       vfs_write+0x6af/0x1050 fs/read_write.c:687
+       ksys_write+0x12a/0x250 fs/read_write.c:739
+       do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
+       do_syscall_64+0x123/0x790 arch/x86/entry/syscall_64.c:84
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
 
-> cpufreq_dbs_governor_init().
-> 
-> This prepares for annotating struct kobj_type::release with
-> __must_init.
-> 
-> Signed-off-by: Ian Rogers <irogers@google.com>
-> ---
->   drivers/cpufreq/cpufreq_conservative.c | 5 ++++-
->   drivers/cpufreq/cpufreq_governor.c     | 4 ++--
->   drivers/cpufreq/cpufreq_governor.h     | 1 +
->   drivers/cpufreq/cpufreq_ondemand.c     | 5 ++++-
->   4 files changed, 11 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/cpufreq/cpufreq_conservative.c b/drivers/cpufreq/cpufreq_conservative.c
-> index 02bfd46543e9..146a2353b1a2 100644
-> --- a/drivers/cpufreq/cpufreq_conservative.c
-> +++ b/drivers/cpufreq/cpufreq_conservative.c
-> @@ -318,7 +318,10 @@ static void cs_limits(struct cpufreq_policy *policy)
->   
->   static struct dbs_governor cs_governor = {
->   	.gov = CPUFREQ_DBS_GOVERNOR_INITIALIZER("conservative"),
-> -	.kobj_type = { .default_groups = cs_groups },
-> +	.kobj_type = {
-> +		.release = cpufreq_dbs_data_release,
-> +		.default_groups = cs_groups,
-> +	},
->   	.gov_dbs_update = cs_dbs_update,
->   	.alloc = cs_alloc,
->   	.free = cs_free,
-> diff --git a/drivers/cpufreq/cpufreq_governor.c b/drivers/cpufreq/cpufreq_governor.c
-> index f3bd3dbe7c41..f8b5aca09b6b 100644
-> --- a/drivers/cpufreq/cpufreq_governor.c
-> +++ b/drivers/cpufreq/cpufreq_governor.c
-> @@ -419,7 +419,7 @@ static void free_policy_dbs_info(struct policy_dbs_info *policy_dbs,
->   	gov->free(policy_dbs);
->   }
->   
-> -static void cpufreq_dbs_data_release(struct kobject *kobj)
-> +void cpufreq_dbs_data_release(struct kobject *kobj)
->   {
->   	struct dbs_data *dbs_data = to_dbs_data(to_gov_attr_set(kobj));
->   	struct dbs_governor *gov = dbs_data->gov;
-> @@ -427,6 +427,7 @@ static void cpufreq_dbs_data_release(struct kobject *kobj)
->   	gov->exit(dbs_data);
->   	kfree(dbs_data);
->   }
-> +EXPORT_SYMBOL_GPL(cpufreq_dbs_data_release);
->   
->   int cpufreq_dbs_governor_init(struct cpufreq_policy *policy)
->   {
-> @@ -488,7 +489,6 @@ int cpufreq_dbs_governor_init(struct cpufreq_policy *policy)
->   	policy->governor_data = policy_dbs;
->   
->   	gov->kobj_type.sysfs_ops = &governor_sysfs_ops;
-> -	gov->kobj_type.release = cpufreq_dbs_data_release;
->   	ret = kobject_init_and_add(&dbs_data->attr_set.kobj, &gov->kobj_type,
->   				   get_governor_parent_kobj(policy),
->   				   "%s", gov->gov.name);
-> diff --git a/drivers/cpufreq/cpufreq_governor.h b/drivers/cpufreq/cpufreq_governor.h
-> index 806d8fb4dff1..1026712bb79b 100644
-> --- a/drivers/cpufreq/cpufreq_governor.h
-> +++ b/drivers/cpufreq/cpufreq_governor.h
-> @@ -150,6 +150,7 @@ static inline struct dbs_governor *dbs_governor_of(struct cpufreq_policy *policy
->   }
->   
->   /* Governor callback routines */
-> +void cpufreq_dbs_data_release(struct kobject *kobj);
->   int cpufreq_dbs_governor_init(struct cpufreq_policy *policy);
->   void cpufreq_dbs_governor_exit(struct cpufreq_policy *policy);
->   int cpufreq_dbs_governor_start(struct cpufreq_policy *policy);
-> diff --git a/drivers/cpufreq/cpufreq_ondemand.c b/drivers/cpufreq/cpufreq_ondemand.c
-> index 9942dbb38dae..7386d043c665 100644
-> --- a/drivers/cpufreq/cpufreq_ondemand.c
-> +++ b/drivers/cpufreq/cpufreq_ondemand.c
-> @@ -374,7 +374,10 @@ static struct od_ops od_ops = {
->   
->   static struct dbs_governor od_dbs_gov = {
->   	.gov = CPUFREQ_DBS_GOVERNOR_INITIALIZER("ondemand"),
-> -	.kobj_type = { .default_groups = od_groups },
-> +	.kobj_type = {
-> +		.release = cpufreq_dbs_data_release,
-> +		.default_groups = od_groups,
-> +	},
->   	.gov_dbs_update = od_dbs_update,
->   	.alloc = od_alloc,
->   	.free = od_free,
+-> #4 (kn->active#5){++++}-{0:0}:
+       lock_acquire kernel/locking/lockdep.c:5942 [inline]
+       lock_acquire+0x1d1/0x380 kernel/locking/lockdep.c:5899
+       kernfs_drain+0x4eb/0x600 fs/kernfs/dir.c:534
+       __kernfs_remove+0x34c/0xbc0 fs/kernfs/dir.c:1578
+       kernfs_remove_by_name_ns+0x7c/0x120 fs/kernfs/dir.c:1796
+       sysfs_remove_file include/linux/sysfs.h:780 [inline]
+       device_remove_file drivers/base/core.c:3146 [inline]
+       device_remove_file drivers/base/core.c:3142 [inline]
+       device_del+0x361/0x9b0 drivers/base/core.c:3963
+       device_unregister+0x1d/0xe0 drivers/base/core.c:4006
+       kref_put include/linux/kref.h:65 [inline]
+       device_link_put_kref drivers/base/core.c:1022 [inline]
+       device_link_put_kref+0x156/0x1b0 drivers/base/core.c:1019
+       device_link_remove+0xbb/0x110 drivers/base/core.c:1065
+       destroy_regulator+0x417/0x510 drivers/regulator/core.c:2650
+       _regulator_put+0xf2/0x1b0 drivers/regulator/core.c:2682
+       regulator_put+0x23/0x30 drivers/regulator/core.c:2699
+       release_nodes+0xa5/0x120 drivers/base/devres.c:546
+       devres_release_group+0x1c2/0x2d0 drivers/base/devres.c:739
+       i2c_device_probe+0x70c/0xd10 drivers/i2c/i2c-core-base.c:612
+       call_driver_probe drivers/base/dd.c:628 [inline]
+       really_probe+0x241/0xa60 drivers/base/dd.c:706
+       __driver_probe_device+0x210/0x460 drivers/base/dd.c:868
+       driver_probe_device+0x4a/0x140 drivers/base/dd.c:898
+       __device_attach_driver+0x1df/0x320 drivers/base/dd.c:1026
+       bus_for_each_drv+0x159/0x1e0 drivers/base/bus.c:503
+       __device_attach+0x1e4/0x4d0 drivers/base/dd.c:1098
+       device_initial_probe+0xaf/0xd0 drivers/base/dd.c:1153
+       bus_probe_device+0x64/0x160 drivers/base/bus.c:623
+       device_add+0x121d/0x1970 drivers/base/core.c:3776
+       i2c_new_client_device+0x660/0xd30 drivers/i2c/i2c-core-base.c:1020
+       new_device_store+0x20f/0x420 drivers/i2c/i2c-core-base.c:1308
+       dev_attr_store+0x58/0x80 drivers/base/core.c:2509
+       sysfs_kf_write+0xf2/0x150 fs/sysfs/file.c:145
+       kernfs_fop_write_iter+0x3e0/0x5f0 fs/kernfs/file.c:345
+       new_sync_write fs/read_write.c:595 [inline]
+       vfs_write+0x6af/0x1050 fs/read_write.c:687
+       ksys_write+0x12a/0x250 fs/read_write.c:739
+       do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
+       do_syscall_64+0x123/0x790 arch/x86/entry/syscall_64.c:84
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+-> #3 (device_links_lock){+.+.}-{4:4}:
+       lock_acquire kernel/locking/lockdep.c:5942 [inline]
+       lock_acquire+0x1d1/0x380 kernel/locking/lockdep.c:5899
+       __mutex_lock_common kernel/locking/mutex.c:646 [inline]
+       __mutex_lock+0x19f/0x1c10 kernel/locking/mutex.c:821
+       device_links_write_lock drivers/base/core.c:322 [inline]
+       device_links_purge drivers/base/core.c:1704 [inline]
+       device_del+0x3d7/0x9b0 drivers/base/core.c:3969
+       device_unregister+0x1d/0xe0 drivers/base/core.c:4006
+       mce_device_remove arch/x86/kernel/cpu/mce/core.c:2715 [inline]
+       mce_cpu_pre_down+0x325/0x620 arch/x86/kernel/cpu/mce/core.c:2776
+       cpuhp_invoke_callback+0x3b4/0x9a0 kernel/cpu.c:194
+       cpuhp_thread_fun+0x3e9/0x7c0 kernel/cpu.c:1109
+       smpboot_thread_fn+0x41f/0xb90 kernel/smpboot.c:162
+       kthread+0x373/0x450 kernel/kthread.c:436
+       ret_from_fork+0x730/0xd60 arch/x86/kernel/process.c:158
+       ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+
+-> #2 (cpuhp_state-down){+.+.}-{0:0}:
+       lock_acquire kernel/locking/lockdep.c:5942 [inline]
+       lock_acquire+0x1d1/0x380 kernel/locking/lockdep.c:5899
+       cpuhp_lock_acquire kernel/cpu.c:103 [inline]
+       cpuhp_kick_ap_work+0xa4/0xbd0 kernel/cpu.c:1188
+       _cpu_down+0x47d/0x1020 kernel/cpu.c:1436
+       cpu_down_maps_locked kernel/cpu.c:1483 [inline]
+       cpu_down kernel/cpu.c:1491 [inline]
+       cpu_device_down+0x82/0xc0 kernel/cpu.c:1508
+       device_offline drivers/base/core.c:4283 [inline]
+       device_offline+0x2f4/0x400 drivers/base/core.c:4267
+       online_store+0xd1/0x180 drivers/base/core.c:2883
+       dev_attr_store+0x58/0x80 drivers/base/core.c:2509
+       sysfs_kf_write+0xf2/0x150 fs/sysfs/file.c:145
+       kernfs_fop_write_iter+0x3e0/0x5f0 fs/kernfs/file.c:345
+       new_sync_write fs/read_write.c:595 [inline]
+       vfs_write+0x6af/0x1050 fs/read_write.c:687
+       ksys_write+0x12a/0x250 fs/read_write.c:739
+       do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
+       do_syscall_64+0x123/0x790 arch/x86/entry/syscall_64.c:84
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+-> #1 (cpu_hotplug_lock){++++}-{0:0}:
+       lock_acquire kernel/locking/lockdep.c:5942 [inline]
+       lock_acquire+0x1d1/0x380 kernel/locking/lockdep.c:5899
+       percpu_down_write+0x4e/0x3d0 kernel/locking/percpu-rwsem.c:232
+       cpus_write_lock kernel/cpu.c:508 [inline]
+       _cpu_up+0x68/0x960 kernel/cpu.c:1622
+       cpu_up+0x1ba/0x230 kernel/cpu.c:1706
+       cpuhp_bringup_mask+0xf8/0x180 kernel/cpu.c:1772
+       cpuhp_bringup_cpus_parallel kernel/cpu.c:1850 [inline]
+       bringup_nonboot_cpus+0xd9/0x1b0 kernel/cpu.c:1876
+       smp_init+0x32/0x150 kernel/smp.c:1151
+       kernel_init_freeable+0x44b/0x7b0 init/main.c:1728
+       kernel_init+0x21/0x1e0 init/main.c:1626
+       ret_from_fork+0x730/0xd60 arch/x86/kernel/process.c:158
+       ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+
+-> #0 (cpu_add_remove_lock){+.+.}-{4:4}:
+       check_prev_add+0xeb/0xe60 kernel/locking/lockdep.c:3209
+       check_prevs_add kernel/locking/lockdep.c:3328 [inline]
+       validate_chain kernel/locking/lockdep.c:3952 [inline]
+       __lock_acquire+0x1528/0x1f40 kernel/locking/lockdep.c:5288
+       lock_acquire kernel/locking/lockdep.c:5942 [inline]
+       lock_acquire+0x1d1/0x380 kernel/locking/lockdep.c:5899
+       __mutex_lock_common kernel/locking/mutex.c:646 [inline]
+       __mutex_lock+0x19f/0x1c10 kernel/locking/mutex.c:821
+       cpu_maps_update_begin kernel/cpu.c:468 [inline]
+       cpu_down kernel/cpu.c:1490 [inline]
+       cpu_device_down+0x46/0xc0 kernel/cpu.c:1508
+       device_offline drivers/base/core.c:4283 [inline]
+       device_offline+0x2f4/0x400 drivers/base/core.c:4267
+       acpi_bus_offline+0x3c7/0x550 drivers/acpi/scan.c:164
+       acpi_scan_try_to_offline drivers/acpi/scan.c:227 [inline]
+       acpi_scan_hot_remove drivers/acpi/scan.c:329 [inline]
+       acpi_generic_hotplug_event drivers/acpi/scan.c:432 [inline]
+       acpi_device_hotplug+0x627/0xbe0 drivers/acpi/scan.c:456
+       acpi_hotplug_work_fn+0x5e/0x90 drivers/acpi/osl.c:1194
+       process_one_work+0xac7/0x1b10 kernel/workqueue.c:3495
+       process_scheduled_works kernel/workqueue.c:3578 [inline]
+       worker_thread+0x5ef/0xe50 kernel/workqueue.c:3659
+       kthread+0x373/0x450 kernel/kthread.c:436
+       ret_from_fork+0x730/0xd60 arch/x86/kernel/process.c:158
+       ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+
+other info that might help us debug this:
+
+Chain exists of:
+  cpu_add_remove_lock --> kn->active#5 --> &device->physical_node_lock
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&device->physical_node_lock);
+                               lock(kn->active#5);
+                               lock(&device->physical_node_lock);
+  lock(cpu_add_remove_lock);
+
+ *** DEADLOCK ***
+
+locks held by kworker/u8:4/62: 6, last CPU#1:
+ #0: ffff8880226a5148 ((wq_completion)kacpi_hotplug){+.+.}-{0:0}, at: process_one_work+0x1461/0x1b10 kernel/workqueue.c:3470
+ #1: ffffc9000203fd08 ((work_completion)(&hpw->work)){+.+.}-{0:0}, at: process_one_work+0xa2c/0x1b10 kernel/workqueue.c:3471
+ #2: ffffffff910363e0 (device_hotplug_lock){+.+.}-{4:4}, at: acpi_device_hotplug+0x7e/0xbe0 drivers/acpi/scan.c:442
+ #3: ffffffff90d09b40 (acpi_scan_lock){+.+.}-{4:4}, at: acpi_device_hotplug+0x8c/0xbe0 drivers/acpi/scan.c:443
+ #4: ffff88802528c760 (&device->physical_node_lock){+.+.}-{4:4}, at: acpi_bus_offline+0x156/0x550 drivers/acpi/scan.c:152
+ #5: ffff8880b8138650 (&dev->mutex){....}-{4:4}, at: device_lock include/linux/device.h:1104 [inline]
+ #5: ffff8880b8138650 (&dev->mutex){....}-{4:4}, at: device_offline drivers/base/core.c:4278 [inline]
+ #5: ffff8880b8138650 (&dev->mutex){....}-{4:4}, at: device_offline+0x1c5/0x400 drivers/base/core.c:4267
+
+stack backtrace:
+CPU: 1 UID: 0 PID: 62 Comm: kworker/u8:4 Tainted: G             L       syzkaller #0 PREEMPT(full) 
+Tainted: [L]=SOFTLOCKUP
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/15/2026
+Workqueue: kacpi_hotplug acpi_hotplug_work_fn
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:94 [inline]
+ dump_stack_lvl+0x100/0x190 lib/dump_stack.c:120
+ print_circular_bug.cold+0x178/0x1be kernel/locking/lockdep.c:2087
+ check_noncircular+0x146/0x160 kernel/locking/lockdep.c:2219
+ check_prev_add+0xeb/0xe60 kernel/locking/lockdep.c:3209
+ check_prevs_add kernel/locking/lockdep.c:3328 [inline]
+ validate_chain kernel/locking/lockdep.c:3952 [inline]
+ __lock_acquire+0x1528/0x1f40 kernel/locking/lockdep.c:5288
+ lock_acquire kernel/locking/lockdep.c:5942 [inline]
+ lock_acquire+0x1d1/0x380 kernel/locking/lockdep.c:5899
+ __mutex_lock_common kernel/locking/mutex.c:646 [inline]
+ __mutex_lock+0x19f/0x1c10 kernel/locking/mutex.c:821
+ cpu_maps_update_begin kernel/cpu.c:468 [inline]
+ cpu_down kernel/cpu.c:1490 [inline]
+ cpu_device_down+0x46/0xc0 kernel/cpu.c:1508
+ device_offline drivers/base/core.c:4283 [inline]
+ device_offline+0x2f4/0x400 drivers/base/core.c:4267
+ acpi_bus_offline+0x3c7/0x550 drivers/acpi/scan.c:164
+ acpi_scan_try_to_offline drivers/acpi/scan.c:227 [inline]
+ acpi_scan_hot_remove drivers/acpi/scan.c:329 [inline]
+ acpi_generic_hotplug_event drivers/acpi/scan.c:432 [inline]
+ acpi_device_hotplug+0x627/0xbe0 drivers/acpi/scan.c:456
+ acpi_hotplug_work_fn+0x5e/0x90 drivers/acpi/osl.c:1194
+ process_one_work+0xac7/0x1b10 kernel/workqueue.c:3495
+ process_scheduled_works kernel/workqueue.c:3578 [inline]
+ worker_thread+0x5ef/0xe50 kernel/workqueue.c:3659
+ kthread+0x373/0x450 kernel/kthread.c:436
+ ret_from_fork+0x730/0xd60 arch/x86/kernel/process.c:158
+ ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+ </TASK>
+smpboot: CPU 1 is now offline
+ACPI: \_SB_.CP01: Eject incomplete - status 0xf
 
 
--- 
-Thx and BRs,
-Zhongqiu Han
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
