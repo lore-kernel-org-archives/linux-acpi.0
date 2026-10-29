@@ -1,79 +1,78 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793260090;
-	b=sZ/f3FMePltkSbcYgWlo7q226h19UUf+uH7f0rcM942CiQn8saBiIzGNsYUE0w+N87ZO
-	 DjKiXdLDauotFnXWGwMlS1O4HrClVHPptkD5/I6+mU9pzOryIRyMUm+4askEmQdP6u1df
-	 FnrwiK/akopWQos61Q7szV7gKbGhCdiBv8hGnQSSx6YqFZ4Nqw4EQMt9o/HkyKP+Lmxlj
-	 KnB3C2MPdYXVzvYWchNI9GPbXoZ5Xe/3BECqN7Nv67XIbq/5OQ2sEFHsQljUPjQwzoNl2
-	 TkFtqzgP+szJ6gUe4av3e4V19Q4EFqt7U8Cd6v/rsfvGMy3WMoUi/HdSgRQj2nYDmtA==
+	t=1793260091;
+	b=vBtE9YZuVyShyi6qSmrKaOumXK9TQZ7glbGw8mZ11yGSHDA9sVwfcXy+Isr+76mkUn4H
+	 jFGkl5emROpJPidwpNtTMXZiElVQUe4w+e+5nL8T5yrG2h8t6yBjDfngRmXjYj8WX6bfE
+	 Ots85cV26BP6npnzxWgWeKTO/Oht4E5wGbBvwIQV50wsLCYrq6vjkP8D5w11fMyHD4fBV
+	 6Ygmdx3YnEkTsEaAZ5poELHe5zgI0FYqMAZfiMgeTI2SOeuoP7yCYD6Hbe+v1z7MtDjSV
+	 zaHH5wxfHv1xBAauoCNIPC+GJQsem/yBFv/96gfY7ZOmiERhVq7var7IJu79Won5YyQ==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793260090;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793260091;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=SjgYrqjCeEhzZ3+ZUGSzmwcmSxwdLG+H5+w7yS0bMQg=;
-	b=b0n9OLRhv97oOaT0mb1DpwKnCd9oRCogjXOpXNtseh+d3cGdLgAWnNQgRIRG4xSGR1YS
-	 CF6PIs3Zaq0HOb3OQlQ8Xxg4ybtDugaVcTgYcwQnUbr38miQMOjRKf29maHnMlxBuIl+B
-	 qqoZ5Bykpp4TlZWZiNf9Kiz1g7fdi8gbAwIyxUnlaGGkaMvD03mIkMP0YALpMFzmENJH/
-	 VTpXDBcmEMtYpJAEbionpXpfB6X0OAUukh0+OfC82mb2c7tsXTXJ8ELxWhW7baJwSg7e/
-	 vrLhzxO4utb0VnDX1rdTpfpuvQUrZYQeoQk5SQV0rgMZB/V3inkCvMsnTJt1DwvQkMQ==
+	bh=kLPsObaT6f/PPOqYyCA0kMg08YEwAESLQry3ZVb28XY=;
+	b=l8JeMmCJUAVKohtb1yFCTrTQKLVLLz81hyMkOQWBC13p3WaVcGEA2Bpi1oedmK/Jbe5Q
+	 lMM8ihZUDSdY4r84OC5X3g7X6GyEbMApOGc2unsz6nAsXMYzhI2/Usbw5iJlCauNq2leI
+	 nUbwT9a0d3C3ApkT3+T3oeki4Ns78VSdL0zrynOQHxqInKFSGVOxb1Yu68oeDWk7ZmjE3
+	 iInOOy/03WfbjN1d/yfPyt6iedFJamvd64bY0Yyw/hPixgjzNNXMr0IQcY9uXgcfKG01B
+	 DpTztPhypHd/Uo4zYucxeEhD3KlIghCLNnon/xRpBEJOfLFD24FXn+2UFHaEqwoF72Q==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="iI25es/h";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nXGvRbc0;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76432606A31E;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76382606A31D;
 	Thu, 29 Oct 2026 07:48:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iI25es/h
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nXGvRbc0
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
 	t=1793260090;
-	b=kI+fYPlq8FyItCXxfWuPHthyzD+XmZMSY1X1kZu9nzT1RWYfCBArkB3LwNDfoQMkThMY
-	 XGss79I5qjYUHKSP8TZOnGOqCEVEStgCGb7kBpKltm4FC7vM+2wmfDaQM51T+nf1ltTn/
-	 BRO7AWAGc7hEaaZNeITPj+DyIACYm75CPC5i2lZz6994saO4Bi0PrkFWX4r/jtJKTqbH0
-	 XBD+5gvLIWsk6GA6alWhiPnz+8U2Abon5PpH0YNfjZu6HITW8zslaP8LpsFzjFMkUKUwz
-	 /SkhTDIxUOB6nTDJaqccFNzPOng7YntTMPDcF3IMHAAYbRDX3ByRzkYONFl0BQh15gA==
+	b=g8YN6WcNBE/WeUSixnomOIge6T+yjJcmw+EPPjh34EhOdgwQpWJQS2kLE6Y3QoHJfH2N
+	 NBBY3EeTCyLsclfPJdcgoWDmN5vPJxyBdmIXHK2sNm7Wt9Wnp64VswfH8wxQXgq9T6heV
+	 84kEDcAc7rec0EbBsgKT2GF16fzJ/K7+GKoIs7lupxwE3Rxd3u4hLUb2d3JiEIWC6K0tP
+	 +Mr9NTwzfR4mTV1e2PkNjP1YlPnUv40fhQy6dV6L3Y2oQQVkdJwFP62sW9DnUpx2wn4YI
+	 oX/6lVV/CPOP2kAlpH0qJE9hJZEjJr+BkWN6bCn80f28h0mJbYxIHdAOX+Wg4GTIt4w==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
 	c=relaxed/relaxed; t=1793260090;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=SjgYrqjCeEhzZ3+ZUGSzmwcmSxwdLG+H5+w7yS0bMQg=;
-	b=Qe+OuMXlS2pWEdw5Wgk0rungK5g28IBlY5YVSgC9Lp/qZfX1LVd/QgGVlRhjLJtpOgvZ
-	 Gag6E7xoLhn4+w4WN7cuuAbtdMhS+M6soTfcSNauCQIr3QLw3uCWI2/x33XyBEiA4uo5h
-	 yENWxATvYWDtVtSxSrhiTG8P9sEvHjbVq/CY277iIayb9jbu7iRgcpfUKpAFIBU8r+BN8
-	 c7mc4DYrNYpSW21sMsobswR0+s4gYWQHPMwfcvIsG0HrWp7Gg755Z/jbmB/u4uG/DSUKo
-	 R5bbVFED2nUkl8ta1fyjY4n+t+8gHAO9o2xJwcyLYB5OojSqKtCWVVbqvQS3sfIAJLA==
+	bh=kLPsObaT6f/PPOqYyCA0kMg08YEwAESLQry3ZVb28XY=;
+	b=ocLdFtbGOaVqmTwooG/HhkMAsN3qDUOhr8oI97lO/pSTfGPqFEfy8mK99CGul2GIG5B9
+	 qo6EbiY3cNF+tYFW1AKzBca/Q7/oyZpYvV/sWaprs/tVwBQZ8dWa8DFPW+lE86BP7ofGw
+	 aHRf76EG9EZ8LztvcFhC/zZ6mqyw+9wEGbK+y9lOG76bGwKi4CuOscGzqmfoNW6/ZM6PT
+	 Mb24S+QfUfIA9aOdZWK9hJiMt5nld3rzdA4DxPQkrbB9jMYMaUknfER06LSow8Wy4zmQn
+	 8CPUgV99zMtf7TP9QdmyBU+WnOWQgJ8AvrJ3Zg2NTUwrZSeG5q9RZdvWGX3pCGCzXAA==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id 217941F01828;
+	by smtp.kernel.org (Postfix) with ESMTPS id 217E01F01829;
 	Thu, 29 Oct 2026 07:48:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793260089;
-	bh=SjgYrqjCeEhzZ3+ZUGSzmwcmSxwdLG+H5+w7yS0bMQg=;
+	s=k20260515; t=1793260090;
+	bh=kLPsObaT6f/PPOqYyCA0kMg08YEwAESLQry3ZVb28XY=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=iI25es/hIG1VLNyAjygiTlskPkIRb9Yi50mJsc7UwVc4fZ3rIWQpBXinCBtRwIPLK
-	 pEIAp9n0auPqNztYpS1h/g/mN5yZFWhpifq0x8ak+FQCFPWI2dcQqrIEfvtdU96DGe
-	 7pzisfbhEg1XeCdLTWYj8YdKr4Yht4knVrXXD8Y9WjLbE+wVolxFvEG9jagIIzkLla
-	 sTH9Q96S+fVcu1H0hyFlf96JK+jOpno+aTCU/6QsEA6m9XDBzM5A+xhUo5IMZGEmyf
-	 piECVXn/+XiVuvccWLZcU73C6R1RUfgYEzhggKBNx6td2OpHAoJhqX6F8TzW5XA939
-	 voos9Qf25fv5A==
+	b=nXGvRbc0lQvqE8SMg05FrZECiXSMuoPggUsUNQ2k3RhR4SpD9gPnzCgNGat5lyUGU
+	 9j5fIjUsMWX4OELOnDqqceKJu0BvHpwf0cZqMv+NHvWdrPos6ZoDTm8j1y5JM4CXI3
+	 WkGLnWCQCMkA7lqKhf4RsEPIlorWuk6AtW58ZLbBFyQLuw1uXx6m0sdeGVjMVOhOhN
+	 ZbD63SfPin0ZdKZd99RW6EqyxDYkrbF3sJPQcJCNPGJSxEbZ1EikoVBL3tXOXUzy6J
+	 B6cHk99SbMDkO3Y4aXgme5oulxcLqzvDq3YhBKuMti0qJ2nhlKMzOlSL0hDuVKMLOB
+	 wLEEvI0wG9bhg==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 9828745773;
+	by lkml.kernel.org (Postfix) with ESMTP id 88CBE4571A;
 	Thu, 29 Oct 2026 07:48:08 +0000 (UTC)
 From: Remy Demangeot via B4 Relay <devnull+remy.demangeot.net@kernel.org>
-Date: Thu, 29 Oct 2026 08:48:03 +0100
-Subject: [PATCH v2 2/2] hwmon: (asus-ec-sensors) add water temperatures for
- MAXIMUS IX EXTREME
+Date: Thu, 29 Oct 2026 08:48:02 +0100
+Subject: [PATCH v2 1/2] ACPI: EC: allow drivers to create a polled EC
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -84,7 +83,7 @@ List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261029-m9e-ec2-v2-2-e9c4e2ba8415@demangeot.net>
+Message-Id: <20261029-m9e-ec2-v2-1-e9c4e2ba8415@demangeot.net>
 References: <20261029-m9e-ec2-v2-0-e9c4e2ba8415@demangeot.net>
 In-Reply-To: <20261029-m9e-ec2-v2-0-e9c4e2ba8415@demangeot.net>
 To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
@@ -94,280 +93,182 @@ Cc: Armin Wolf <W_Armin@gmx.de>, linux-acpi@vger.kernel.org,
  linux-kernel@vger.kernel.org, linux-hwmon@vger.kernel.org, 
  Remy Demangeot <remy@demangeot.net>
 X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1793260087; l=10014;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1793260087; l=5632;
  i=remy@demangeot.net; s=20261015; h=from:subject:message-id;
- bh=bUddSZOomQug0bdUPvkiczwVgRtc9pjFwg8Y2RnEwlc=;
- b=6/E6I0xBfvQBa8TMBSI7k6fv/DBNQgk0reaYz2Di/ZGUZH5W4MpUvksdOlH559kKQm7GOOBTz
- Ipl9J9oS2A4D1WhjwHnZZaJ8d3f4ZvR5YLAKUKmBKdM5sJGSFZru8cH
+ bh=/cs87yafgZ1YRaT6jFA1fah9Em8PNXk59oRg4Wxln8U=;
+ b=SJGYtPngqwrsMY4JTdkpDFBhIAECWlUUIsYKw5585DN4UsoU7Fx7Mt6Jv/SYCNPECjwUwVhtG
+ gquoTchcIAhBHpIF/H8nWPTyU1qNGX4VmBFZIFINuLY0Cz6BTD7ifuf
 X-Developer-Key: i=remy@demangeot.net; a=ed25519;
  pk=h/s5N2ZlgZ0m+8FpMhSaCNJt0jvb9whRBAdJwpC+VAo=
 X-Endpoint-Received: by B4 Relay for remy@demangeot.net/20261015 with
  auth_id=1194
 X-Original-From: Remy Demangeot <remy@demangeot.net>
 Reply-To: remy@demangeot.net
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 
 From: Remy Demangeot <remy@demangeot.net>
 
-The MAXIMUS IX EXTREME has a second EC (firmware ID "RGE2-Z270-0109"),
-not described in the ACPI tables, at I/O ports 0x68 (data) and 0x6c
-(command/status). It uses the standard EC protocol and the same bank
-register (0xff). Its bank 1 holds the water temperatures: WATER_IN
-0x0d, WATER_OUT 0x0b, WATER_IN2 0x13 and WATER_OUT2 0x11, as signed
-degrees Celsius with -60 for an absent probe. Water_In and Water_Out
-are at the same offsets as on the AMD 400-series boards.
+Some boards have a second embedded controller that uses the standard EC
+protocol but is not described in the ACPI tables. For example, the ASUS
+ROG MAXIMUS IX EXTREME has one at I/O ports 0x68/0x6c that holds the
+water temperature sensors. Its DSDT has no EC device for it: only a WMI
+method writes to these ports directly.
 
-Describe registers of the second EC by setting ASUS_EC2_BANK_FLAG in
-the sensor bank. Banks are sorted, so such registers are read last;
-the second EC bank is saved and restored like the first one, under the
-same hardware access mutex. The second EC is accessed through
-acpi_ec_create_polled(), only for boards using these sensors.
+Add acpi_ec_create_polled() and acpi_ec_destroy_polled() so that a
+driver can create a struct acpi_ec for such a controller, and
+acpi_ec_read_byte() and acpi_ec_write_byte() to access it. The EC is
+used in busy polling mode, like the boot EC before its GPE handler is
+installed: no GPE, no IRQ, no query events and no address space handler.
 
-Sort banks as unsigned values, otherwise a bank with
-ASUS_EC2_BANK_FLAG set would be sorted first.
-
-Add Water_In 2 and Water_Out 2 sensors and enable the four water
-temperatures for the board. Tested on that board: the readings match
-HWiNFO 8.54, a second EC transaction takes about 1.4 ms and a full
-update about 110 ms, mostly spent on the first EC.
+An EC with neither a GPE nor an IRQ must not touch any interrupt when
+its events are masked or unmasked, so check ec->irq there too.
 
 Signed-off-by: Remy Demangeot <remy@demangeot.net>
 ---
- drivers/hwmon/asus-ec-sensors.c | 108 ++++++++++++++++++++++++++++++++++------
- 1 file changed, 94 insertions(+), 14 deletions(-)
+ drivers/acpi/ec.c    | 89 ++++++++++++++++++++++++++++++++++++++++++++++++++--
+ include/linux/acpi.h |  8 +++++
+ 2 files changed, 95 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/hwmon/asus-ec-sensors.c b/drivers/hwmon/asus-ec-sensors.c
-index 11dd7f587530d640b6ccc9b7952dc9da47e11c19..5e59117ee332bee87cda71260630bf34a22df736 100644
---- a/drivers/hwmon/asus-ec-sensors.c
-+++ b/drivers/hwmon/asus-ec-sensors.c
-@@ -45,6 +45,16 @@ static char *mutex_path_override;
-  * group of registers reports (e.g. one of the fans of the fan extension card).
-  */
- #define ASUS_EC_SELECT_REGISTER	0x43
-+
-+/*
-+ * Some boards have a second EC, not described in the ACPI tables, at these
-+ * I/O ports. It uses the standard EC protocol and the same bank register.
-+ * Its registers are described by sensors whose bank is ASUS_EC2_BANK(n).
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index a89f10256dbb85768b86a2a970c75a7d8e3814fa..48e83e84cfdb64c28adedcb77fce29affc956e4c 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -401,7 +401,7 @@ static void acpi_ec_mask_events(struct acpi_ec *ec)
+ 	if (!test_bit(EC_FLAGS_EVENTS_MASKED, &ec->flags)) {
+ 		if (ec->gpe >= 0)
+ 			acpi_ec_disable_gpe(ec, false);
+-		else
++		else if (ec->irq >= 0)
+ 			disable_irq_nosync(ec->irq);
+ 
+ 		ec_dbg_drv("Polling enabled");
+@@ -415,7 +415,7 @@ static void acpi_ec_unmask_events(struct acpi_ec *ec)
+ 		clear_bit(EC_FLAGS_EVENTS_MASKED, &ec->flags);
+ 		if (ec->gpe >= 0)
+ 			acpi_ec_enable_gpe(ec, false);
+-		else
++		else if (ec->irq >= 0)
+ 			enable_irq(ec->irq);
+ 
+ 		ec_dbg_drv("Polling disabled");
+@@ -934,6 +934,34 @@ int ec_write(u8 addr, u8 val)
+ }
+ EXPORT_SYMBOL(ec_write);
+ 
++/**
++ * acpi_ec_read_byte - read a register of a given EC
++ * @ec: the EC, e.g. from acpi_ec_create_polled()
++ * @addr: register address
++ * @val: where to store the value
++ *
++ * Return: 0 on success, a negative error code otherwise.
 + */
-+#define ASUS_EC2_DATA_PORT	0x68
-+#define ASUS_EC2_CMD_PORT	0x6c
-+#define ASUS_EC2_BANK_FLAG	0x80
-+#define ASUS_EC2_BANK(bank)	(ASUS_EC2_BANK_FLAG | (bank))
- #define SENSOR_LABEL_LEN	16
- 
- /*
-@@ -176,6 +186,10 @@ enum ec_sensors {
- 	ec_sensor_fan_ext_1,
- 	ec_sensor_fan_ext_2,
- 	ec_sensor_fan_ext_3,
-+	/* "Water_In 2" temperature sensor reading [℃] */
-+	ec_sensor_temp_water_in_2,
-+	/* "Water_Out 2" temperature sensor reading [℃] */
-+	ec_sensor_temp_water_out_2,
- };
- 
- #define SENSOR_TEMP_CHIPSET BIT(ec_sensor_temp_chipset)
-@@ -208,6 +222,8 @@ enum ec_sensors {
- #define SENSOR_FAN_EXT_1 BIT(ec_sensor_fan_ext_1)
- #define SENSOR_FAN_EXT_2 BIT(ec_sensor_fan_ext_2)
- #define SENSOR_FAN_EXT_3 BIT(ec_sensor_fan_ext_3)
-+#define SENSOR_TEMP_WATER_IN_2 BIT(ec_sensor_temp_water_in_2)
-+#define SENSOR_TEMP_WATER_OUT_2 BIT(ec_sensor_temp_water_out_2)
- 
- /*
-  * The values for temperature sensor readings without physical sensors connected.
-@@ -221,7 +237,8 @@ static const s32 environment_temp_sensors =
- 	SENSOR_TEMP_WATER_IN | SENSOR_TEMP_WATER_OUT |
- 	SENSOR_TEMP_WATER_BLOCK_IN | SENSOR_TEMP_WATER_BLOCK_OUT |
- 	SENSOR_TEMP_T_SENSOR_2 | SENSOR_TEMP_SENSOR_EXTRA_1 |
--	SENSOR_TEMP_SENSOR_EXTRA_2 | SENSOR_TEMP_SENSOR_EXTRA_3;
-+	SENSOR_TEMP_SENSOR_EXTRA_2 | SENSOR_TEMP_SENSOR_EXTRA_3 |
-+	SENSOR_TEMP_WATER_IN_2 | SENSOR_TEMP_WATER_OUT_2;
- 
- enum board_family {
- 	family_unknown,
-@@ -397,6 +414,14 @@ static const struct ec_sensor_info sensors_family_intel_200[] = {
- 		EC_SENSOR_SELECT("EXT_FAN2", hwmon_fan, 2, 0x00, 0x57, 0x0b),
- 	[ec_sensor_fan_ext_3] =
- 		EC_SENSOR_SELECT("EXT_FAN3", hwmon_fan, 2, 0x00, 0x57, 0x0c),
-+	[ec_sensor_temp_water_out] =
-+		EC_SENSOR("Water_Out", hwmon_temp, 1, ASUS_EC2_BANK(0x01), 0x0b),
-+	[ec_sensor_temp_water_in] =
-+		EC_SENSOR("Water_In", hwmon_temp, 1, ASUS_EC2_BANK(0x01), 0x0d),
-+	[ec_sensor_temp_water_out_2] =
-+		EC_SENSOR("Water_Out 2", hwmon_temp, 1, ASUS_EC2_BANK(0x01), 0x11),
-+	[ec_sensor_temp_water_in_2] =
-+		EC_SENSOR("Water_In 2", hwmon_temp, 1, ASUS_EC2_BANK(0x01), 0x13),
- };
- 
- static const struct ec_sensor_info sensors_family_intel_300[] = {
-@@ -561,7 +586,9 @@ static const struct ec_board_info board_info_maximus_ix_extreme = {
- 	.sensors = SENSOR_TEMP_CHIPSET | SENSOR_TEMP_T_SENSOR |
- 		SENSOR_TEMP_VRM | SENSOR_TEMP_SENSOR_EXTRA_1 |
- 		SENSOR_TEMP_SENSOR_EXTRA_2 | SENSOR_TEMP_SENSOR_EXTRA_3 |
--		SENSOR_FAN_EXT_1 | SENSOR_FAN_EXT_2 | SENSOR_FAN_EXT_3,
-+		SENSOR_FAN_EXT_1 | SENSOR_FAN_EXT_2 | SENSOR_FAN_EXT_3 |
-+		SENSOR_SET_TEMP_WATER | SENSOR_TEMP_WATER_IN_2 |
-+		SENSOR_TEMP_WATER_OUT_2,
- 	.mutex_path = ASUS_HW_ACCESS_MUTEX_SB_PCI0_LPCB_SIO1_MUT0,
- 	.family = family_intel_200_series,
- };
-@@ -1116,6 +1143,8 @@ struct ec_sensors_data {
- 	/* in jiffies */
- 	u64 next_update;
- 	struct lock_data lock_data;
-+	/* second EC, if the board has sensors there */
-+	struct acpi_ec *ec2;
- 	/* number of board EC sensors */
- 	u8 nr_sensors;
- 	/*
-@@ -1180,7 +1209,7 @@ static int find_ec_sensor_index(const struct ec_sensors_data *ec,
- 
- static int bank_compare(const void *a, const void *b)
- {
--	return *((const s8 *)a) - *((const s8 *)b);
-+	return *((const u8 *)a) - *((const u8 *)b);
- }
- 
- static void setup_sensor_data(struct ec_sensors_data *ec)
-@@ -1263,27 +1292,47 @@ static int setup_lock_data(struct device *dev)
- 	return 0;
- }
- 
--static int asus_ec_bank_switch(u8 bank, u8 *old)
-+/* @bank may carry ASUS_EC2_BANK_FLAG to address the second EC */
-+static int asus_ec_read_byte(struct ec_sensors_data *ec, u8 bank, u8 index,
-+			     u8 *val)
++int acpi_ec_read_byte(struct acpi_ec *ec, u8 addr, u8 *val)
 +{
-+	if (bank & ASUS_EC2_BANK_FLAG)
-+		return acpi_ec_read_byte(ec->ec2, index, val);
-+	return ec_read(index, val);
++	return acpi_ec_read(ec, addr, val);
 +}
++EXPORT_SYMBOL_GPL(acpi_ec_read_byte);
 +
-+static int asus_ec_write_byte(struct ec_sensors_data *ec, u8 bank, u8 index,
-+			      u8 val)
++/**
++ * acpi_ec_write_byte - write a register of a given EC
++ * @ec: the EC, e.g. from acpi_ec_create_polled()
++ * @addr: register address
++ * @val: value to write
++ *
++ * Return: 0 on success, a negative error code otherwise.
++ */
++int acpi_ec_write_byte(struct acpi_ec *ec, u8 addr, u8 val)
 +{
-+	if (bank & ASUS_EC2_BANK_FLAG)
-+		return acpi_ec_write_byte(ec->ec2, index, val);
-+	return ec_write(index, val);
++	return acpi_ec_write(ec, addr, val);
 +}
++EXPORT_SYMBOL_GPL(acpi_ec_write_byte);
 +
-+static int asus_ec_bank_switch(struct ec_sensors_data *ec, u8 bank, u8 *old)
- {
- 	int status = 0;
- 
- 	if (old) {
--		status = ec_read(ASUS_EC_BANK_REGISTER, old);
-+		status = asus_ec_read_byte(ec, bank, ASUS_EC_BANK_REGISTER, old);
-+		if (!status)
-+			*old |= bank & ASUS_EC2_BANK_FLAG;
- 	}
- 	if (status || (old && (*old == bank)))
- 		return status;
--	return ec_write(ASUS_EC_BANK_REGISTER, bank);
-+	return asus_ec_write_byte(ec, bank, ASUS_EC_BANK_REGISTER,
-+				  bank & ~ASUS_EC2_BANK_FLAG);
+ int ec_transaction(u8 command,
+ 		   const u8 *wdata, unsigned wdata_len,
+ 		   u8 *rdata, unsigned rdata_len)
+@@ -1436,6 +1464,63 @@ static struct acpi_ec *acpi_ec_alloc(void)
+ 	return ec;
  }
  
- static int asus_ec_block_read(const struct device *dev,
- 			      struct ec_sensors_data *ec)
- {
- 	int ireg, ibank, status;
--	u8 bank, reg_bank, prev_bank, select, prev_select;
--	bool select_saved;
-+	u8 bank, reg_bank, prev_bank, prev_bank2, select, prev_select;
-+	bool select_saved, ec2_used = false;
- 
- 	bank = 0;
--	status = asus_ec_bank_switch(bank, &prev_bank);
-+	status = asus_ec_bank_switch(ec, bank, &prev_bank);
- 	if (status) {
- 		dev_warn(dev, "EC bank switch failed");
- 		return status;
-@@ -1299,7 +1348,14 @@ static int asus_ec_block_read(const struct device *dev,
- 	for (ibank = 0; ibank < ec->nr_banks; ibank++) {
- 		if (bank != ec->banks[ibank]) {
- 			bank = ec->banks[ibank];
--			if (asus_ec_bank_switch(bank, NULL)) {
-+			/* first bank of the second EC: save its bank too */
-+			if ((bank & ASUS_EC2_BANK_FLAG) && !ec2_used) {
-+				if (asus_ec_bank_switch(ec, bank, &prev_bank2)) {
-+					dev_warn(dev, "second EC bank switch failed");
-+					break;
-+				}
-+				ec2_used = true;
-+			} else if (asus_ec_bank_switch(ec, bank, NULL)) {
- 				dev_warn(dev, "EC bank switch to %d failed",
- 					 bank);
- 				break;
-@@ -1312,7 +1368,7 @@ static int asus_ec_block_read(const struct device *dev,
- 				continue;
- 			}
- 			select = register_select(ec->registers[ireg]);
--			if (select) {
-+			if (select && !(bank & ASUS_EC2_BANK_FLAG)) {
- 				if (!select_saved) {
- 					if (ec_read(ASUS_EC_SELECT_REGISTER,
- 						    &prev_select))
-@@ -1322,8 +1378,9 @@ static int asus_ec_block_read(const struct device *dev,
- 				if (ec_write(ASUS_EC_SELECT_REGISTER, select))
- 					continue;
- 			}
--			ec_read(register_index(ec->registers[ireg]),
--				ec->read_buffer + ireg);
-+			asus_ec_read_byte(ec, bank,
-+					  register_index(ec->registers[ireg]),
-+					  ec->read_buffer + ireg);
- 		}
- 		/* restore the selector while still in its bank */
- 		if (select_saved &&
-@@ -1331,7 +1388,10 @@ static int asus_ec_block_read(const struct device *dev,
- 			dev_warn(dev, "EC selector restore failed");
- 	}
- 
--	status = asus_ec_bank_switch(prev_bank, NULL);
-+	if (ec2_used && asus_ec_bank_switch(ec, prev_bank2, NULL))
-+		dev_warn(dev, "second EC bank restore failed");
-+
-+	status = asus_ec_bank_switch(ec, prev_bank, NULL);
- 	return status;
- }
- 
-@@ -1531,6 +1591,11 @@ static const struct ec_board_info *get_board_info(void)
- 	return dmi_entry ? dmi_entry->driver_data : NULL;
- }
- 
-+static void asus_ec2_destroy(void *ec2)
++/**
++ * acpi_ec_create_polled - create an EC that is not described by ACPI
++ * @command_addr: I/O port of the command/status register
++ * @data_addr: I/O port of the data register
++ * @name: name used to request the I/O ports
++ *
++ * Some boards have additional embedded controllers that use the standard
++ * EC protocol but are not described in the ACPI tables. This creates a
++ * struct acpi_ec for such a controller, to be used with acpi_ec_read_byte()
++ * and acpi_ec_write_byte(). It only works in busy polling mode: no GPE, no
++ * IRQ, no query events and no address space handler.
++ *
++ * Return: the new EC, or an ERR_PTR() on failure.
++ */
++struct acpi_ec *acpi_ec_create_polled(unsigned long command_addr,
++				      unsigned long data_addr,
++				      const char *name)
 +{
-+	acpi_ec_destroy_polled(ec2);
-+}
++	struct acpi_ec *ec;
 +
- static int asus_ec_probe(struct platform_device *pdev)
- {
- 	const struct hwmon_channel_info **ptr_asus_ec_ci;
-@@ -1612,6 +1677,21 @@ static int asus_ec_probe(struct platform_device *pdev)
- 	}
- 
- 	setup_sensor_data(ec_data);
-+
-+	/* banks are sorted: the second EC, if used, comes last */
-+	if (ec_data->nr_banks &&
-+	    (ec_data->banks[ec_data->nr_banks - 1] & ASUS_EC2_BANK_FLAG)) {
-+		ec_data->ec2 = acpi_ec_create_polled(ASUS_EC2_CMD_PORT,
-+						     ASUS_EC2_DATA_PORT,
-+						     dev_name(dev));
-+		if (IS_ERR(ec_data->ec2))
-+			return dev_err_probe(dev, PTR_ERR(ec_data->ec2),
-+					     "Failed to set up the second EC");
-+		status = devm_add_action_or_reset(dev, asus_ec2_destroy,
-+						  ec_data->ec2);
-+		if (status)
-+			return status;
++	if (!request_region(data_addr, 1, name))
++		return ERR_PTR(-EBUSY);
++	if (!request_region(command_addr, 1, name)) {
++		release_region(data_addr, 1);
++		return ERR_PTR(-EBUSY);
 +	}
- 	ec_data->registers = devm_kcalloc(dev, ec_data->nr_registers,
- 					  sizeof(*ec_data->registers), GFP_KERNEL);
- 	ec_data->read_buffer = devm_kcalloc(dev, ec_data->nr_registers,
++
++	ec = acpi_ec_alloc();
++	if (!ec) {
++		release_region(command_addr, 1);
++		release_region(data_addr, 1);
++		return ERR_PTR(-ENOMEM);
++	}
++	ec->command_addr = command_addr;
++	ec->data_addr = data_addr;
++	acpi_ec_start(ec, false);
++
++	return ec;
++}
++EXPORT_SYMBOL_GPL(acpi_ec_create_polled);
++
++/**
++ * acpi_ec_destroy_polled - destroy an EC created by acpi_ec_create_polled()
++ * @ec: the EC to destroy, may be NULL or an ERR_PTR()
++ */
++void acpi_ec_destroy_polled(struct acpi_ec *ec)
++{
++	if (IS_ERR_OR_NULL(ec))
++		return;
++
++	acpi_ec_stop(ec, false);
++	release_region(ec->command_addr, 1);
++	release_region(ec->data_addr, 1);
++	kfree(ec);
++}
++EXPORT_SYMBOL_GPL(acpi_ec_destroy_polled);
++
+ static acpi_status
+ acpi_ec_register_query_methods(acpi_handle handle, u32 level,
+ 			       void *context, void **return_value)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index ddacac81209473cfc5fc83047a0de91c07ceb7b5..d657a94aed5dd90c2ba0c8c2784c7a0cb0fb3bc2 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -432,6 +432,14 @@ extern int ec_transaction(u8 command,
+                           u8 *rdata, unsigned rdata_len);
+ extern acpi_handle ec_get_handle(void);
+ 
++struct acpi_ec;
++struct acpi_ec *acpi_ec_create_polled(unsigned long command_addr,
++				      unsigned long data_addr,
++				      const char *name);
++void acpi_ec_destroy_polled(struct acpi_ec *ec);
++int acpi_ec_read_byte(struct acpi_ec *ec, u8 addr, u8 *val);
++int acpi_ec_write_byte(struct acpi_ec *ec, u8 addr, u8 val);
++
+ extern bool acpi_is_pnp_device(struct acpi_device *);
+ 
+ #if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
 
 -- 
 2.47.3
