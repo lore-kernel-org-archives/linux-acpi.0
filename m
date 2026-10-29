@@ -1,44 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793245509;
-	b=4WNuKYDPdxZm/Ogqr81gUDcEMEkgMD1CPqvJitrtsQmxTOHZFNotkV8vFA6F96O8Imv1
-	 XMveSKoTqg6GrIQAfcTYWwIRI1+jUOQ+IheG7NUSbI3Fvcw8Y57kQ3pmi7UxkqQv0XvMy
-	 WMP7Ltuw3KY4OVuLvPjPafadbbuGI2NW016YZELWYUwvfOK/WNPbwYYP4Cak7vIdCcuaH
-	 e8lsorqXWnfY7chbj71ZrBIuNOQ/dJ9XieVKAvA1IQhgjKwDb4mPHNFmzz0DQiJ+Roun6
-	 F3Mib7TeIWoCr/kcNsEc6bvPsTMTjyeWosur+cYs5KXt0z3GG5NkAe9lpG6KfRMjbKA==
+	t=1793245511;
+	b=z11MdxPD+xoEU5GZ6YMJSvnsoWu8x39PeQhmhR471baW0UGcdJhZWIqdC1qR4qQ26Z9S
+	 RbsgUogbMDvv2GPYQdeVxcDW6yXNW8Uysg2Pruqhh+nDNBVUUXCtxfW7kEmOuLlgiammP
+	 UwD3vJS0rGi9pIW87qbhf9FfCe2d0eOYCnOxOMavQQe0gnjDTlnLk8H8jaOCaFSbFuqv9
+	 L0xrvcM5QLxz77HnA3rXfyaJ2a/3k4UEA0hfIA+O0GAeSQOzq8tQrGWshR6AhIQZ9Ognt
+	 WHO8NrtsXkBnSBJ5Ve079jUxDaqGV1SRIPq+D1lMTCUxpDt882cglxYFzUihVqzIMTA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793245509;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793245511;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=mLWRi7clyZ+2BRBX+H9GIcjpPPjDx5uTisgqIATOnMU=;
-	b=0hNlCn+aEPOyLrXPzpHIHsvjXD4fNVqxxUnLU6KQmVBA5NJh/PKJVJV0yeukcyo08XMl
-	 CyOev6eax4nffy6VZm7IOFs/Uy0SYGIz6h7W7qrKHb5beZ8hH9VSkn1oaf9tpqikBJrEL
-	 ETOKwByIa2kygaHVBuVClBJaK7KS6PFAt/rmgMqH49Bzm6R1Xgtx4ZJrtkN3I4t5AA+r7
-	 WvEfKKEKaZL0xeF/ZVfT0HVR8Lv/DilXgVFTEqbEi9ZHfcf/vXB5lPNaspS6WaFc6QVgB
-	 vdJHImfuHwb80GQ20msPlR4APzpZjaf8M+k8A97oWVYR+/RSHrYsxCtdYuPgN9zci1w==
+	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
+	bh=Cq9abNJR+zC2aByrci2PRQpyVzSNRhhQ+RwKh3gYJxk=;
+	b=O2yS5LuQ7gRDcxqymk9abw0TKQqh/0891wAAUzzkpSEXvTdYMf4OYhB51TP2M7bS3Wii
+	 3Xi3LW9HWizxFBRmhjPOzKysqMlkUZtYPUVZbWQxLdLKwRqF3DgK8ryu/TmVOo1O051hm
+	 vnLf//9/m5bc7G9nAex6XmvT9gGVuZytsCKGGXNpSI60AIxLIb2AWz3eO5Rt93bYe/Ew2
+	 dioyBui7HHg6T7G40XJnFGSgo9aNyQ62P+gFSDkXyA7+5SOLzdCKQBEfXIQ8x433geSEQ
+	 nNd2PwegbfaMoyiCcGvfjOabGZZFIhN4qbOE8Rs3dCmvQRS2le7qe1az2JtiqFJw+pA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FMfOwbqz;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=a1WQH5q0;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7034E606A31A;
-	Thu, 29 Oct 2026 03:45:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D193F606A31C;
+	Thu, 29 Oct 2026 03:45:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=FMfOwbqz
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CFC51F01825;
-	Thu, 29 Oct 2026 03:45:08 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=a1WQH5q0
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 875C51F031E1;
+	Thu, 29 Oct 2026 03:45:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793245509;
-	bh=mLWRi7clyZ+2BRBX+H9GIcjpPPjDx5uTisgqIATOnMU=;
-	h=From:To:Cc:Subject:Date;
-	b=FMfOwbqz73MnWDatkNOqsl3lcye24le8SkN4ZQjTQGDzNtSMpN53PSs2/fxmznou5
-	 4ZjQzNGCR9qnwUq4CpvIcxJbKUkqz5uY8ug+k3xyzNgtPl3S9aUmn7tERrK+BvvikG
-	 Yp4xxY0teHKFmse+gv44+NXoQHpXa7GVZX/2jvRcU0mOZCdKKAf57q5GpHrdmXSLZe
-	 jp3I6221fCGQ2bTJHOGcdJHnVR8nNZryPwbB6UfgtGwmM6TDMmGFE8fI9Gq/ivWLCs
-	 ksZQKVLXjtKKhzLsBv9wVm59hoa+/pNlZQGJMYdu7UnJzfEeNew2gfxQwIS/cgHRdq
-	 K4b/quBwV+EkQ==
+	s=k20260515; t=1793245510;
+	bh=Cq9abNJR+zC2aByrci2PRQpyVzSNRhhQ+RwKh3gYJxk=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=a1WQH5q0wibsYl6DzHlyceZVIwP8/cO79o8oBxQUGM5r5HRlPJ4W+jGKk5+rp2LPO
+	 N57299QxFO2M5RxaheJZ6IatKUc4a5y9lSmam9IwVDfU9tb0w+XONFvSL9QEDRkAvK
+	 7/a9bzw8xD08DtYCk2e33EukUdSQjbBZoONHPC/9vBiv/hlYMVEOGOesXRxRuTyheA
+	 o0xbdvK4lHSuvnXN+BGyY9EwuL5DaYVZbJU7L27tszVVo7so1SgKVWdoD4TFhE4NUd
+	 AwaYfIePcf01+TZoZq1sQhQjXJGEl1RzL0/e0Ca00RZ5LyNyPISH005/EeO7VQLkJL
+	 IMQCNZv3uCwHA==
 From: Sasha Levin <sashal@kernel.org>
 To: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Len Brown <lenb@kernel.org>,
@@ -48,10 +48,12 @@ Cc: Len Brown <lenb@kernel.org>,
 	syzbot+a265816368571f78ab88@syzkaller.appspotmail.com,
 	syzkaller-bugs@googlegroups.com,
 	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH v2 0/2] ACPI: scan: Do not hold physical_node_lock across device_offline() and device_online()
-Date: Wed, 28 Oct 2026 23:45:05 -0400
-Message-ID: <20261029034507.2721580-1-sashal@kernel.org>
+Subject: [PATCH v2 1/2] ACPI: scan: Print the offline failure message in acpi_bus_offline()
+Date: Wed, 28 Oct 2026 23:45:06 -0400
+Message-ID: <20261029034507.2721580-2-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20261029034507.2721580-1-sashal@kernel.org>
+References: <20261029034507.2721580-1-sashal@kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -63,43 +65,50 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-syzbot has reported a lockdep cycle between physical_node_lock and the
-CPU hotplug locks, which comes from acpi_bus_offline() holding the ACPI
-device's physical_node_lock while it offlines a CPU.  Patch 2 stops
-holding physical_node_lock across device_offline() and device_online().
+When a physical node of an ACPI device being hot-removed cannot be
+offlined, acpi_bus_offline() passes the physical device back to
+acpi_scan_try_to_offline() through ret_p and the latter prints
+"Offline failed." for it after the namespace walk.  By then
+physical_node_lock is not held anymore, so the device may have been
+unbound from its ACPI companion and freed in the meantime.
 
-Patch 1 is new in v2.  It makes acpi_bus_offline() print the
-"Offline failed." message itself, while the device cannot go away,
-instead of passing the device to acpi_scan_try_to_offline() for
-printing after the lock has been released.
+Print the message in acpi_bus_offline() when device_offline() fails in
+the second pass, while physical_node_lock keeps the device bound to its
+ACPI companion and so the reference taken by acpi_bind_one() is still
+held.  acpi_scan_try_to_offline() only needs to know that something
+could not be offlined, so pass the ACPI device back through ret_p
+instead, like in the "Offline disabled." case.
 
-Changes since v1:
- - New patch 1 (Rafael).
- - Patch 2: keep physical_node_lock held across put_device() and leave
-   the loop with break (Rafael).
- - Patch 2: move the comments of the helpers next to their loops
-   (Rafael).
- - Patch 2: the changelog no longer claims that physical_node_lock only
-   protects the list of physical nodes.
+Fixes: 303bfdb1a14d ("ACPI / scan: Add second pass of companion offlining to hot-remove code")
+Suggested-by: Rafael J. Wysocki <rafael@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/acpi/scan.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Tested in a QEMU q35 guest with lockdep: the reproducer no longer
-triggers the report, CPU and DIMM hot-removal through QMP and sysfs
-eject work, and when a DIMM cannot be removed because one of its memory
-blocks fails to go offline, the other blocks are put back online and
-"memory memory32: Offline failed." is printed, as before.
-
-v1: https://lore.kernel.org/r/20261028161600.1524682-1-sashal@kernel.org
-
-
-Sasha Levin (2):
-  ACPI: scan: Print the offline failure message in acpi_bus_offline()
-  ACPI: scan: Do not hold physical_node_lock across device_offline() and
-    device_online()
-
- drivers/acpi/scan.c     | 108 ++++++++++++++++++++++++++++++++--------
- include/acpi/acpi_bus.h |   1 +
- 2 files changed, 89 insertions(+), 20 deletions(-)
-
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 0b17a7e519569..07d32f118631e 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -165,8 +165,9 @@ static acpi_status acpi_bus_offline(acpi_handle handle, u32 lvl, void *data,
+ 		if (ret >= 0) {
+ 			pn->put_online = !ret;
+ 		} else {
+-			*ret_p = pn->dev;
++			*ret_p = &device->dev;
+ 			if (second_pass) {
++				dev_warn(pn->dev, "Offline failed.\n");
+ 				status = AE_ERROR;
+ 				break;
+ 			}
+@@ -235,7 +236,6 @@ static int acpi_scan_try_to_offline(struct acpi_device *device)
+ 					 (void **)&errdev);
+ 
+ 		if (errdev) {
+-			dev_warn(errdev, "Offline failed.\n");
+ 			acpi_bus_online(handle, 0, NULL, NULL);
+ 			acpi_walk_namespace(ACPI_TYPE_ANY, handle,
+ 					    ACPI_UINT32_MAX, acpi_bus_online,
 -- 
 2.53.0
 
