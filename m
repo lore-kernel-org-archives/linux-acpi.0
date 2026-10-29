@@ -1,61 +1,80 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.2
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793251070;
-	b=A1XSwf81jrcL0idZS1CMFoJ/U61av0KNMr1eLRQ8Cx9VsKk+6/qbDFnBcogvrXJlXphG
-	 STtI8uODTqc6Di6ETG7b40ssEVPFXZAFBESjHuL7pCoYJc1r9HYNNSwBxhPxhoXrPbciy
-	 oAmUV4qy2azyCWIEYnJIR9Q+EdeqSrYrf4DjRCfWCw13OnWYRjUJnlWBWl/cZJ7fJLQ7i
-	 vcVm5j+eUSdl9NWqmn5xyvznRtTR1tILljqHEhc5vWSdCdQcZxKiuoGoDkuHi895WHu/o
-	 OyUPmmfCRkBnC7nT9IfBRVo3rBAlZCmaCsvMWkvxXz6OUTL+UBad1lyLOZDd5cM6Jlg==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793251070;
-	h=DMARC-Filter:DKIM-Signature:Received:X-Originating-IP:Date:From:To:
-	 Subject:X-Priority:X-Mailer:In-Reply-To:References:X-NTES-SC:
-	 Content-Transfer-Encoding:Content-Type:MIME-Version:Message-ID:
-	 X-Coremail-Locale:X-CM-TRANSID:X-CM-SenderInfo:X-Coremail-Antispam;
-	bh=t1xm9AW6/bghYRN7GlNli50kEzxH6rG8Sj9T8X4880s=;
-	b=ruNfAqSvifvOjkhFFOJ+F8NDtn3kvuGcNaLsRkxUkaEOBOaHX0UtJnq6w17djUR++O0a
-	 wxMDZKr6LSOIsje8xcoFZw0agYR2GZJcqP0CxqBCzXV2by3uvTBoAVIMV0+F3Wm2w0Tn8
-	 Y0zg0J+SRHXMyzi7m1tdYrzK0usds3n6QVdCIqA2KbrTgJLmkwFf6SZcgWAvDqS7CMYJc
-	 TgTiN/S1RiNvrlvA1zYjU7s4lkuimuc9ZMfBrGBdTneIWkNiBav29B+wgqONzdJ8RsPCd
-	 hdzlPz3J4fpfFLJU2waxn/m1J4pXDJcRyv3VvJbIO8BLFg+XEIhDSJx7/dyJgv5DzZw==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=163.com;
-	spf=pass smtp.mailfrom=163.com;
-	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=AmnT1MKJ;
-	arc=none smtp.remote-ip=117.135.210.2
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.2])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793260090;
+	b=zaxRXBmU2ABlfMgu89PyMuzF1jMqHOqFQG5mxatDFEAOLE/+anb1NgGraA7k35tkaBHQ
+	 7++4bG03SsqGQPhX5K0Slhpb5zG3zeO8gTmUQe7Om0MnvxGpEVGumJUlvKhD7t3C0k2gZ
+	 w/gy9YAr00UtMBkEJPoOJQBEn7eBOJqETrfD5FJ5iqO8cDiRmZFBbW7A9fYgyLva2JC5I
+	 4CBKamm0Wgr4cLdvUJbYKDFxJlgm7uoOUcF890AsvdH6EJY8oMpatMPg2EmDqfiM79B4C
+	 ym8bReg+8oVAiBtlHZ23iC3yskUiuBB2foS+k1th2Zc22B7tN6eNyhYFnA38LVTPJcQ==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793260090;
+	h=Received:DKIM-Signature:Received:From:Subject:Date:Message-Id:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding:X-B4-Tracking:
+	 X-Change-ID:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key:
+	 X-Endpoint-Received:X-Original-From:Reply-To;
+	bh=Gbqjw6eFej6Wu2u2kOXe8fh2VRzTDqvSXr/mW0V0w/c=;
+	b=HUn+T0hABAxJgjqepaU4j/9MHwwCAd3ALFt+oHExeOQwxzTVhJJksPoG3JSdm2YgLNoJ
+	 t6SiJ0ZAhVyMbU+Wv1UKhEldjVbf9UPL2uTOwtf1TY3LlCMmCrQSq8JWZCt0YDTNiABRr
+	 2dFMDCdNMvJp/y3b1D84goq3Fl0Vp34fHqtMR5AyGYwwXwVcxbyXbPWgYOHg9j4gjre1B
+	 IuujSIWRaiDE5VwSve2pN5ZWudWqsWmwgxCR74Mz1wbDQ0DYIFNr0LHLXRFZky+5q4jIj
+	 Y0F4JAJ500ETRiUBA79ak361Ol/pQVqNDCroESgjta+0bkEIhF4VL0P3spjEtBvdjSg==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UPXvyEM5;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 764EC606A31F;
+	Thu, 29 Oct 2026 07:48:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UPXvyEM5
+Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
+ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
+	t=1793260089;
+	b=K595Bzl6eODethQ7eB/ZWRTbd2u7DM837FwgP8Iktfjxppdu4pd4Zm/+G4L60ClgGK1/
+	 QlCsj5OnwRe5Er+o2b+cazWJiCIYBKCENzhYBewfAgYG/7sj2y66GA4aKiqxxiu1SFJLy
+	 crmjkfq9KU1g6Mk/mpY7GWWzXz5EYJOjoKDeBIY8b/3XpmXlAYIrYZdhEs4keeZPG3gqi
+	 003BKYbWzWa73yT45X4kz35DQireFmDBxs7x70jhQqjJxrXpR+P8QiA4WJtvCEm7Dh+El
+	 3NzQp5ySqlnki76XQDua0x+Qnzon50n19fsGh3dPOAl2Lw514WTqbm5gPB71aojt7rQ==
+ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
+	c=relaxed/relaxed; t=1793260089;
+	h=DKIM-Signature:Received:From:Subject:Date:Message-Id:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding:X-B4-Tracking:X-Change-ID:To:
+	 Cc:X-Mailer:X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To;
+	bh=Gbqjw6eFej6Wu2u2kOXe8fh2VRzTDqvSXr/mW0V0w/c=;
+	b=t0zZNT0HMshPKWzkRgAvd2Emn/D7IPO0MA8Rj4zyrAMQ3tFx7Ds6wrLNfjaaxNcJzSvZ
+	 0rcHZggwPlVjRC5xnFMxDuMashIUx4VAc2KwA+spTovrml7VD6PxIyDbaGd5asDJH2JFs
+	 lvJRPV7DfQ+oVz1pnNrBVftuIsoEqDFUclwMXOEYJs5gxJXz3FGAVwceBOaNM6MiHSGAg
+	 GlOnYG+UjEvWpROfY2nGyQoElDOr9axBUDprRNVeSm+LwiWlUA0Q+i6jweFAqQlcdbRVd
+	 6om48iQnoe+HkLh8W58BoTtCvP49R+Xyja/Pae3WHEjo4iS1lskCrdeaF6/r6flB8PQ==
+ARC-Authentication-Results: i=1; smtp.kernel.org; 
+	arc=none smtp.remote-ip=100.80.115.77
+Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1D7C606A31A;
-	Thu, 29 Oct 2026 05:17:46 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C1D7C606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=AmnT1MKJ
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=Date:From:To:Subject:Content-Type:MIME-Version:
-	Message-ID; bh=t1xm9AW6/bghYRN7GlNli50kEzxH6rG8Sj9T8X4880s=; b=A
-	mnT1MKJ/G/1gyFuAbhldgsSDaUZ11c8ZDAvH4YvurACB7rSvBftuxzBi18wQaWIa
-	YVAOV5sdhz4fhxDW7BkArhx7EzQ8NytIU0+4N+YewZBdSnAToVCR/XZm1eKeFqY4
-	niT4sqWd51vJNOamZ6EY5XfdVPLlcyALqUnKCCQ2ak=
-Received: from 19888972804$163.com ( [2610:150:c001:16:64:b116:eb3c:4360] )
- by ajax-webmail-wmsvr-40-102 (Coremail) ; Thu, 29 Oct 2026 13:17:35 +0800
- (CST)
-Date: Thu, 29 Oct 2026 13:17:35 +0800 (CST)
-From: "jiale yao" <19888972804@163.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>, "Len Brown" <lenb@kernel.org>,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re:[PATCH] ACPI: processor: validate CPU mapping entries
-X-Priority: 3
-X-Mailer: Coremail Webmail Server Version 2023.4-cmXT build
- 20260511(2e539873) Copyright (c) 2002-2026 www.mailtech.cn 163com
-In-Reply-To: <20261016141440.2794000-1-yaojiale02@163.com>
-References: <20261016141440.2794000-1-yaojiale02@163.com>
-X-NTES-SC: AL_Qu2SAf6evkgu4yWZY+kcn08ShO49XMOyvfoi2YFTc+0EoDzV3BInXF1gPGDxz8mkDT2vlyCFSTp15+JbY6xACZ68+wPBCNcEMcia5hGXtQ==
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset=GBK
+	by smtp.kernel.org (Postfix) with ESMTPS id 215FF1F01825;
+	Thu, 29 Oct 2026 07:48:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793260089;
+	bh=Gbqjw6eFej6Wu2u2kOXe8fh2VRzTDqvSXr/mW0V0w/c=;
+	h=From:Subject:Date:To:Cc:Reply-To;
+	b=UPXvyEM5As1zUtapZpVKco1BuUc61No225u2CeoHx4IgE/IbIxIhCv79JQtzQZAGn
+	 DVRhVAY6X6zo2GQZTGxolgDub4oObTq44sNrhrVv6OH8p/x+HzyhpfEpAIahJjQAWg
+	 bT8J+kNSKJsCaSaO4ZMZ1JbOuCIQFW/0MXlKbfAbWvpQuu4mddtyZjxU7QfBCTbfpZ
+	 Yh54gfgWyb4PaC/MOu4R50k/twihh/NJMWXLyJnQSZUgWHZOGXY8m0HFtwT66Edye9
+	 duJzeqUw3rcDH48QJAkxw5NjpTyQQ2n/YvSKhi07TX28vIQ8QYj9/0KzLoghh8Ss2l
+	 r6c0Rb8AG5lxA==
+Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
+	by lkml.kernel.org (Postfix) with ESMTP id 74B464576F;
+	Thu, 29 Oct 2026 07:48:08 +0000 (UTC)
+From: Remy Demangeot via B4 Relay <devnull+remy.demangeot.net@kernel.org>
+Subject: [PATCH v2 0/2] ACPI: EC / hwmon: (asus-ec-sensors) use ec.c for
+ the MAXIMUS IX EXTREME second EC
+Date: Thu, 29 Oct 2026 08:48:01 +0100
+Message-Id: <20261029-m9e-ec2-v2-0-e9c4e2ba8415@demangeot.net>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -65,123 +84,79 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Message-ID: <6ef8af71.406c.1a1861797a5.Coremail.19888972804@163.com>
-X-Coremail-Locale: zh_CN
-X-CM-TRANSID:ZigvCgD3nw7w1uJq6yljAA--.2582W
-X-CM-SenderInfo: x1dryxhdohiji6rwjhhfrp/xtbCzhBFf2ri1vAycgAA3K
-X-Coremail-Antispam: 1U5529EdanIXcx71UUUUU7vcSsGvfC2KfnxnUU==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIADH64moC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyjHQUlJIzE
+ vPSU3UzU4B8JSMDIzNDAyNL3VzLVN3UZCNdM4u0xBSLZAOLFNNEJaDqgqLUtMwKsEnRsbW1AAc
+ o8PtZAAAA
+X-Change-ID: 20261029-m9e-ec2-68fad8c08d5a
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+ Eugene Shalygin <eugene.shalygin@gmail.com>, 
+ Guenter Roeck <linux@roeck-us.net>
+Cc: Armin Wolf <W_Armin@gmx.de>, linux-acpi@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, linux-hwmon@vger.kernel.org, 
+ Remy Demangeot <remy@demangeot.net>
+X-Mailer: b4 0.14.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1793260087; l=2311;
+ i=remy@demangeot.net; s=20261015; h=from:subject:message-id;
+ bh=z+w564HyFM1lLPV34H4icOPYBFIvAz6TuRX2u+dKWfU=;
+ b=aWrCl5x543W+pi92xTuPxHgyNVsc7khzeafqzXyDMClsGaoTgttfZh5kCWvPQjHsakxdKVYwG
+ 1l07sVkAwtUDr+Jz4jmLqS0nQHtgb5i4NJW44FZLOT2XlXr01giSvI3
+X-Developer-Key: i=remy@demangeot.net; a=ed25519;
+ pk=h/s5N2ZlgZ0m+8FpMhSaCNJt0jvb9whRBAdJwpC+VAo=
+X-Endpoint-Received: by B4 Relay for remy@demangeot.net/20261015 with
+ auth_id=1194
+X-Original-From: Remy Demangeot <remy@demangeot.net>
+Reply-To: remy@demangeot.net
 
-QXQgMjAyNi0xMC0xNiAyMjoxNDo0MCwgIkppYWxlIFlhbyIgPHlhb2ppYWxlMDJAMTYzLmNvbT4g
-d3JvdGU6Cj5DUFUgcGh5c2ljYWwgSUQgbG9va3VwIHdhbGtzIE1BRFQgc3VidGFibGVzIGRpcmVj
-dGx5IGFuZCBhbHNvIGFjY2VwdHMKPnJlY29yZHMgcmV0dXJuZWQgYnkgX01BVC4gQm90aCBwYXRo
-cyBjYW4gcGFzcyBhIHRydW5jYXRlZCB0eXBlZCByZWNvcmQKPnRvIGEgQ1BVLXNwZWNpZmljIG1h
-cHBlciwgYW5kIHRoZSBNQURUIHdhbGtlciBjYW4gYmUgc3RhbGxlZCBvciBtb3ZlZAo+b3V0c2lk
-ZSB0aGUgdGFibGUgYnkgYW4gaW52YWxpZCBsZW5ndGguCj4KPlZhbGlkYXRlIGdlbmVyaWMgcmVj
-b3JkIGJvdW5kcyBhbmQgdGhlIG1pbmltdW0gc2l6ZSByZXF1aXJlZCBieSBlYWNoCj5zdXBwb3J0
-ZWQgQ1BVIHJlY29yZCBiZWZvcmUgZGlzcGF0Y2hpbmcgaXQgb24gYm90aCBwcm92aWRlciBwYXRo
-cy4KClRlc3QgUmVwb3J0CgpJIGJ1aWx0IG1hbGZvcm1lZCBBQ1BJIGlucHV0cyBmb3IgYm90aCBw
-cm92aWRlciBwYXRocyB0aGF0IHRoaXMgcGF0Y2gKdmFsaWRhdGVzIGFuZCByYW4gdGhlbSBhZ2Fp
-bnN0IGFuIHVucGF0Y2hlZCBhbmQgYSBwYXRjaGVkIGtlcm5lbC4gIEJvdGgKaXNzdWVzIHJlcHJv
-ZHVjZSB3aXRob3V0IHRoZSBwYXRjaCBhbmQgZGlzYXBwZWFyIHdpdGggaXQuICBEZXRhaWxzIGFu
-ZApsb2dzIGJlbG93LgoKSSBob3BlIHRoaXMgaXMgdXNlZnVsIGZvciB0aGUgc2VyaWVzLgoKU3Vt
-bWFyeQo9PT09PT09CgpUd28gaW5kZXBlbmRlbnQgaW5wdXRzLCBvbmUgcGVyIHByb3ZpZGVyIHBh
-dGg6CgogIDEuIF9NQVQgcGF0aCAobWFwX21hdF9lbnRyeSk6IGEgcHJvY2Vzc29yIGRldmljZSB3
-aG9zZSBfTUFUIHJldHVybnMgYQogICAgIDItYnl0ZSBCdWZmZXIuICBtYXBfbWF0X2VudHJ5KCkg
-b25seSBjaGVja3MKICAgICBvYmotPmJ1ZmZlci5sZW5ndGggPj0gc2l6ZW9mKHN0cnVjdCBhY3Bp
-X3N1YnRhYmxlX2hlYWRlcikgYW5kIHRoZW4KICAgICBkaXNwYXRjaGVzIG9uIHRoZSBzdWJ0YWJs
-ZSB0eXBlOyBtYXBfZ2ljY19tcGlkcigpIHJlYWRzCiAgICAgZ2ljYy0+ZmxhZ3MgYXQgcmVjb3Jk
-IG9mZnNldCAxMiwgd2hpY2ggaXMgNCBieXRlcyBwYXN0IHRoZSBlbmQgb2YKICAgICB0aGUgQUNQ
-SUNBIHJlc3VsdCBhbGxvY2F0aW9uLiAgS0FTQU4gcmVwb3J0cwogICAgICJzbGFiLW91dC1vZi1i
-b3VuZHMgaW4gYWNwaV9nZXRfcGh5c19pZCIuCgogIDIuIE1BRFQgcGF0aCAobWFwX21hZHRfZW50
-cnkpOiBhIE1BRFQgc3VidGFibGUgd2l0aCBsZW5ndGggMC4gIFRoZQogICAgIHdhbGtlciBkb2Vz
-ICJlbnRyeSArPSBoZWFkZXItPmxlbmd0aCIgd2l0aG91dCB2YWxpZGF0aW5nIHRoZQogICAgIGxl
-bmd0aCwgc28gaXQgbmV2ZXIgYWR2YW5jZXM7IHRoZSBib290IHRocmVhZCBzcGlucyBpbgogICAg
-IG1hcF9tYWR0X2VudHJ5KCkgYW5kIHVzZXJzcGFjZSBpcyBuZXZlciByZWFjaGVkLgoKV2l0aCB0
-aGUgcGF0Y2ggYXBwbGllZCBuZWl0aGVyIGlucHV0IHByb2R1Y2VzIGEgcmVwb3J0OyB0aGUgZ3Vl
-c3QKYm9vdHMgbm9ybWFsbHkgaW4gYm90aCBjYXNlcy4KCgoKVGVzdCBlbnZpcm9ubWVudAo9PT09
-PT09PT09PT09PT09CgogIGtlcm5lbCAgICAgTGludXggNy4zLjAtcmM0LCBBUkNIPWxvb25nYXJj
-aCwgZGVmY29uZmlnIHdpdGgKICAgICAgICAgICAgIENPTkZJR19LQVNBTj15LCBDT05GSUdfQUNQ
-ST15LCBDT05GSUdfQUNQSV9QUk9DRVNTT1I9eSwKICAgICAgICAgICAgIENPTkZJR19BQ1BJX1RB
-QkxFX1VQR1JBREU9eSwgYnVpbHQgd2l0aCBjbGFuZyAxOC4xLjgKICAgICAgICAgICAgIChMTFZN
-PTEsIGxkLmxsZCkKICBtYWNoaW5lICAgIHFlbXUtc3lzdGVtLWxvb25nYXJjaDY0IDExLjAuOTIK
-ICAgICAgICAgICAgIC1NIHZpcnQgLWNwdSBtYXggLW0gMkcgLXNtcCAyCiAgICAgICAgICAgICAt
-YmlvcyBlZGsyLWxvb25nYXJjaDY0LWNvZGUuZmQKICBndWVzdCAgICAgIGEgZnJlZXN0YW5kaW5n
-IGluaXQgdGhhdCBtb3VudHMgc3lzZnMsIGR1bXBzIHRoZSBBQ1BJCiAgICAgICAgICAgICB0YWJs
-ZXMgYW5kIHBvd2VycyB0aGUgbWFjaGluZSBvZmYKICBjbWRsaW5lICAgIGNvbnNvbGU9dHR5UzAs
-MTE1MjAwIGVhcmx5Y29uPXVhcnQ4MjUwLG1taW8sMHgxZmUwMDFlMAogICAgICAgICAgICAgYWNw
-aT1mb3JjZSBub2thc2xyCgpUaGUgZmlybXdhcmUgaXMgcmVxdWlyZWQ6IFFFTVUncyBkaXJlY3Qg
-LWtlcm5lbCBib290IGZvciBsb29uZ2FyY2gKcGFzc2VzIG5vIFJTRFAsIHNvIEFDUEkgKGFuZCB0
-aGVyZWZvcmUgcHJvY2Vzc29yX2NvcmUuYykgaXMgb25seQpyZWFjaGFibGUgd2hlbiBhIGZpcm13
-YXJlIGluc3RhbGxzIHRoZSB0YWJsZXMuICBFREsyIGRvZXMgdGhhdCBmcm9tClFFTVUncyBmd19j
-ZmcgYmxvYnMuCgpCb3RoIGlucHV0cyByaWRlIG9uIHRoZSBkb2N1bWVudGVkIEFDUEkgdGFibGUg
-b3ZlcnJpZGUgaW50ZXJmYWNlOgoKICAqIFRoZSBTU0RUIGlzIHBsYWNlZCBpbiB0aGUgaW5pdHJk
-IGFzIGtlcm5lbC9maXJtd2FyZS9hY3BpL1NTRFQgKGFuCiAgICB1bmNvbXByZXNzZWQgY3Bpbzsg
-ZmluZF9jcGlvX2RhdGEoKSBkb2VzIG5vdCBkZWNvbXByZXNzKS4KICAgIGFjcGlfdGFibGVfaW5p
-dHJkX3NjYW4oKSBpbnN0YWxscyBpdCBiZWZvcmUgYWNwaV9sb2FkX3RhYmxlcygpLCBzbwogICAg
-aXQgaXMgcGFydCBvZiB0aGUgQUNQSSBuYW1lc3BhY2UuCgogICogVGhlIE1BRFQgaXMgcGxhY2Vk
-IGluIHRoZSBpbml0cmQgYXMga2VybmVsL2Zpcm13YXJlL2FjcGkvTUFEVCBhbmQKICAgIHJlcGxh
-Y2VzIHRoZSBmaXJtd2FyZSdzIE1BRFQgdGhyb3VnaCBhY3BpX3RhYmxlX3VwZ3JhZGUoKQogICAg
-KHNpZ25hdHVyZS9vZW1faWQvb2VtX3RhYmxlX2lkIG1hdGNoLCBvZW1fcmV2aXNpb24gaW5jcmVh
-c2VkKS4KCkluIGJvdGggY2FzZXMgdGhlIEFDUEkgbmFtZXNwYWNlIHNjYW4gdGhlbiBlbnVtZXJh
-dGVzIHRoZSBwcm9jZXNzb3IKZGV2aWNlIGFuZCBjYWxscyBhY3BpX3Byb2Nlc3Nvcl9nZXRfaW5m
-bygpIC0+IGFjcGlfZ2V0X3BoeXNfaWQoKS4KCgpJbnB1dCAxOiBfTUFUIHJldHVybnMgYSB0cnVu
-Y2F0ZWQgcmVjb3JkCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KClNT
-RFQgKDg2IGJ5dGVzLCBoYW5kLXdyaXR0ZW4gQU1MKToKCiAgICBTY29wZSAoXF9TQikgewogICAg
-ICAgIERldmljZSAoQ1BVOSkgewogICAgICAgICAgICBOYW1lIChfSElELCAiQUNQSTAwMDciKQog
-ICAgICAgICAgICBOYW1lIChfVUlELCA5KQogICAgICAgICAgICBNZXRob2QgKF9NQVQsIDApIHsK
-ICAgICAgICAgICAgICAgIFJldHVybiAoQnVmZmVyICgyKSB7IDB4MEIsIDB4MDIgfSkKICAgICAg
-ICAgICAgfQogICAgICAgIH0KICAgIH0KCiAgLSB0eXBlIDB4MEIgaXMgQUNQSV9NQURUX1RZUEVf
-R0VORVJJQ19JTlRFUlJVUFQgKEdJQ0MpLCB3aG9zZSBmaXJzdAogICAgdHlwZWQgYWNjZXNzIGlu
-IG1hcF9naWNjX21waWRyKCkgaXMgZ2ljYy0+ZmxhZ3MgYXQgb2Zmc2V0IDEyOwogIC0gbGVuZ3Ro
-IDIgaXMgdGhlIHNtYWxsZXN0IGJ1ZmZlciBtYXBfbWF0X2VudHJ5KCkgYWNjZXB0czsKICAtIF9V
-SUQgOSBkb2VzIG5vdCBjb2xsaWRlIHdpdGggdGhlIHJlYWwgQ1BVcyAoMC8xKS4KCktlcm5lbCBs
-b2csIHdpdGhvdXQgdGhlIHBhdGNoOgoKICAgIEJVRzogS0FTQU46IHNsYWItb3V0LW9mLWJvdW5k
-cyBpbiBhY3BpX2dldF9waHlzX2lkKzB4MmJjLzB4MzgwCiAgICBSZWFkIG9mIHNpemUgNCBhdCBh
-ZGRyIDkwMDAwMDAwMGUzNmJmZTQgYnkgdGFzayBzd2FwcGVyLzAvMQogICAgLi4uCiAgICAgYWNw
-aV9nZXRfcGh5c19pZCsweDJiOC8weDM4MAogICAgIGFjcGlfcHJvY2Vzc29yX2FkZCsweDNlYy8w
-eDk4MAogICAgIGFjcGlfYnVzX2F0dGFjaCsweDM3MC8weDQ4MAogICAgIGFjcGlfYnVzX3NjYW4r
-MHg3Yy8weDJhMAogICAgIGFjcGlfc2Nhbl9pbml0KzB4MTA0LzB4MjVjCiAgICAgYWNwaV9pbml0
-KzB4ZjgvMHgxMTgKICAgIC4uLgogICAgQWxsb2NhdGVkIGJ5IHRhc2sgMToKICAgICBfX2thc2Fu
-X2ttYWxsb2MKICAgICBfX2ttYWxsb2Nfbm9wcm9mCiAgICAgYWNwaV91dF9pbml0aWFsaXplX2J1
-ZmZlcisweDkwLzB4MTAwCiAgICAgYWNwaV9ldmFsdWF0ZV9vYmplY3QrMHg1MjQvMHg1ZTAKICAg
-ICBhY3BpX2dldF9waHlzX2lkKzB4NzgvMHgzODAKICAgICBhY3BpX3Byb2Nlc3Nvcl9hZGQrMHgz
-ZWMvMHg5ODAKICAgIC4uLgogICAgVGhlIGJ1Z2d5IGFkZHJlc3MgYmVsb25ncyB0byB0aGUgY2Fj
-aGUga21hbGxvYy0zMiBvZiBzaXplIDMyCiAgICBUaGUgYnVnZ3kgYWRkcmVzcyBpcyBsb2NhdGVk
-IDQgYnl0ZXMgdG8gdGhlIHJpZ2h0IG9mCiAgICBhbGxvY2F0ZWQgMzItYnl0ZSByZWdpb24KClRo
-ZSBhbGxvY2F0aW9uIGlzIHRoZSBBQ1BJX0FMTE9DQVRFX0JVRkZFUiByZXN1bHQ6IHNpemVvZih1
-bmlvbgphY3BpX29iamVjdCkgcm91bmRlZCB1cCBwbHVzIG9uZSBuYXRpdmUgd29yZCBvZiBidWZm
-ZXIgZGF0YS4gIFRoZQoyLWJ5dGUgYnVmZmVyIHNpdHMgYXQgdGhlIHN0YXJ0IG9mIHRoZSBkYXRh
-IGFyZWEsIHNvIHRoZSA0LWJ5dGUgcmVhZCBhdApkYXRhICsgMTIgbGFuZHMganVzdCBwYXN0IHRo
-ZSAzMi1ieXRlIG9iamVjdC4KCk9uZSBub3RlIG9uIG9ic2VydmFiaWxpdHk6IGEgMy1ieXRlIExP
-Q0FMX0FQSUMgX01BVCBidWZmZXIgZG9lcyBub3QKdHJpcCBLQVNBTiwgYmVjYXVzZSBtYXBfbGFw
-aWNfaWQoKSdzIGZpcnN0IGFjY2VzcyBpcyBhdCBvZmZzZXQgNCBhbmQKdGhhdCBzdGlsbCBmYWxs
-cyBpbnNpZGUgdGhlIHNhbWUgYWxsb2NhdGlvbi4gIFRoZSBHSUNDIHR5cGUgaXMgdXNlZApvbmx5
-IHRvIG1ha2UgdGhlIG91dC1vZi1ib3VuZHMgYWNjZXNzIHZpc2libGUgdG8gS0FTQU47IHRoZSBk
-ZWZlY3QgaXMKdGhlIHNhbWUgZm9yIGV2ZXJ5IHR5cGUuCgpLZXJuZWwgbG9nLCB3aXRoIHRoZSBw
-YXRjaCBhcHBsaWVkOiBubyByZXBvcnQgb2YgYW55IGtpbmQsIHRoZSBzY2FuCmNvbXBsZXRlcyBh
-bmQgdGhlIGd1ZXN0IGJvb3RzIHRvIHVzZXJzcGFjZSBhbmQgcG93ZXJzIG9mZi4KCklucHV0IDI6
-IE1BRFQgc3VidGFibGUgd2l0aCBsZW5ndGggMAo9PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT0KClRoZSBmaXJtd2FyZSBNQURUIHBsdXM6CgogICAgN2YgMDAgICAgdHlwZSAweDdm
-LCBsZW5ndGggMAogICAgN2YgMDIgICAgdHdvIG1vcmUgYnl0ZXMsIHNvIHRoZSBsb29wIGNvbmRp
-dGlvbiByZWFjaGVzIHRoZSByZWNvcmQKClRoZSBTU0RUIGFib3ZlIGlzIHVzZWQgd2l0aG91dCBf
-TUFULCBzbyBhY3BpX2dldF9waHlzX2lkKCkgZmFsbHMgYmFjawp0byBtYXBfbWFkdF9lbnRyeSgp
-IGZvciBfVUlEIDksIHdoaWNoIG1hdGNoZXMgbm8gQ09SRV9QSUMgZW50cnkgYW5kCnRoZXJlZm9y
-ZSB3YWxrcyB0aGUgd2hvbGUgdGFibGUuCgpLZXJuZWwgbG9nLCB3aXRob3V0IHRoZSBwYXRjaCAo
-d2l0aCBhIHRlbXBvcmFyeSBwcmludCBhZGRlZCB0byB0aGUgbG9vcApmb3IgdGhpcyB0ZXN0IG9u
-bHk7IHRoZSBwcmludCBpcyByYXRlLWxpbWl0ZWQgdG8gdGhyZWUgbGluZXMpOgoKICAgIFBPQy1X
-QUxLOiB6ZXJvLWxlbmd0aCBzdWJ0YWJsZSBhdCAweGZmZmY4MDAwODIwMjAwYzMgKHR5cGUgMTI3
-KTogZW50cnkgKz0gMCAtPiBzcGluCgpBZnRlciB0aGF0IGxpbmUgdGhlIGxvb3Agc3BpbnMgaW4g
-ZW50cnkgKz0gaGVhZGVyLT5sZW5ndGgsICJSdW4gL2luaXQiCmlzIG5ldmVyIHByaW50ZWQgYW5k
-IHRoZSBtYWNoaW5lIG5ldmVyIHJlYWNoZXMgdXNlcnNwYWNlLiAgVGhlIHNhbWUKcmVzdWx0IHdh
-cyBvYnNlcnZlZCB3aXRob3V0IHRoZSB0ZW1wb3JhcnkgcHJpbnQgKHRoZSBib290IHNpbXBseSBz
-dG9wcwpyaWdodCBhZnRlciB0aGUgQUNQSSBzY2FuKS4KCldpdGggdGhlIHBhdGNoIGFwcGxpZWQs
-IHRoZSBzYW1lIGlucHV0IGJvb3RzIG5vcm1hbGx5OiB0aGUgd2Fsa2VyIHN0b3BzCmF0IHRoZSBp
-bnZhbGlkIHJlY29yZCBiZWNhdXNlIHRoZSBsb29wIGNvbmRpdGlvbiBub3cgY2FsbHMKbWFkdF9j
-cHVfZW50cnlfaXNfdmFsaWQoKS4KClJlbGF0ZWQgb2JzZXJ2YXRpb246IHdpdGggdGhlIHRydW5j
-YXRlZCByZWNvcmQgcGxhY2VkIGF0IHRoZSBlbmQgb2YgYQpwYWdlLWFsaWduZWQgTUFEVCAoMy1i
-eXRlIExPQ0FMX0FQSUMpLCB0aGUgcmVhZCBkb2VzIG5vdCBmYXVsdCBvbiB0aGlzCm1hY2hpbmUu
-ICBMb29uZ0FyY2gncyBlYXJseSBBQ1BJIG1hcHBpbmcgaXMgdGhlIGlkZW50aXR5L2RpcmVjdCBt
-YXAgYW5kCnRoZSB0YWJsZSBsaXZlcyBpbiBSQU0sIHNvIHRoZSBvdXQtb2YtYm91bmRzIHJlYWQg
-aXMgc2lsZW50IGhlcmUuICBUaGUKImxlbmd0aCA+IGVuZCAtIHN0YXJ0IiBjaGVjayBpcyB3aGF0
-IGtlZXBzIHRoZSB3YWxrZXIgaW5zaWRlIHRoZSB0YWJsZTsKdGhhdCBwYXJ0IHdhcyB2ZXJpZmll
-ZCBieSBjb2RlIGluc3BlY3Rpb24sIG5vdCBieSBhIGZhdWx0Lgo=
+This replaces patch 3/3 of the series "hwmon: (asus-ec-sensors) more
+MAXIMUS IX EXTREME sensors" [1]. Patches 1/3 and 2/3 of that series
+only use the main EC and are unchanged.
+
+Eugene asked to operate the second EC through drivers/acpi/ec.c rather
+than re-implementing the EC protocol in the driver [2]. Patch 1 adds a
+small API to ec.c for an EC that is not described in the ACPI tables:
+acpi_ec_create_polled() / acpi_ec_destroy_polled() and byte accessors.
+Such an EC only uses busy polling: no GPE, no IRQ, no query events and
+no address space handler. Patch 2 uses it in asus-ec-sensors.
+
+To answer Armin's question [3]: no, this EC is not described in the
+ACPI tables of this board (BIOS 1501). There is no PNP0C09 device for
+it; only the WMI method \_SB.AMW0.WLDF writes to ports 0x68/0x6c
+directly, without taking any lock. The other PNP0C09 device, H_EC, is
+a reference-code stub whose _STA returns 0.
+
+Guenter, please drop v1 3/3: it sorted the sensor banks as signed
+values, so the second EC bank came first, the second EC was never set
+up, and no sensor of the board could be read anymore. This is fixed in
+patch 2 and was found while testing this series.
+
+Both patches were tested on a MAXIMUS IX EXTREME with Secure Boot
+enabled: the four water temperatures read correctly, 300
+consecutive reads gave no error, and the I/O ports are released and
+requested again when the module is reloaded.
+
+Patch 1 needs an ack from the ACPI side; patch 2 depends on it.
+
+[1] https://lore.kernel.org/r/20261026-b4-m9e-ext-sensors-v1-0-644d389b2de1@demangeot.net
+[2] https://lore.kernel.org/r/CAB95QAQaogxV6KO5kpv9RBpzhhmH_N3Dvvy=nqWHOG6qAQB_aw@mail.gmail.com
+[3] Armin Wolf, reply to v1 3/3, 28 Oct 2026
+
+---
+Remy Demangeot (2):
+      ACPI: EC: allow drivers to create a polled EC
+      hwmon: (asus-ec-sensors) add water temperatures for MAXIMUS IX EXTREME
+
+ drivers/acpi/ec.c               |  89 ++++++++++++++++++++++++++++++++-
+ drivers/hwmon/asus-ec-sensors.c | 108 ++++++++++++++++++++++++++++++++++------
+ include/linux/acpi.h            |   8 +++
+ 3 files changed, 189 insertions(+), 16 deletions(-)
+---
+base-commit: b27578907b9dd74db5e9b397bf063c43719c162b
+change-id: 20261029-m9e-ec2-68fad8c08d5a
+
+Best regards,
+-- 
+Remy Demangeot <remy@demangeot.net>
+
+
