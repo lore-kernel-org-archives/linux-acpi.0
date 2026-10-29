@@ -1,99 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.52
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793286874;
-	b=NpAByEIXdCACSWw9KZJbLH/RC+iQFVvENOGiKd3iod+Yebs47KgyvAJOW2rF1FODuyOk
-	 FcH2im64NrE1SI0c99H9b9rAf4Y/5AxE/Ib0twxhUgl51oZUMM9ze7h4tkuzPWc6lMhV6
-	 61EKyjytFU9FiYvvBiTYrGdrKhfSgoUbk69vUAffSPaBCGq/pWo2fRkhJoyaQ9P+9PE6q
-	 JJono1n/09csHa6fPSYc/wgQrCVG1H7VgIZpOtvihX4WT3+g4xVufslZ8j41dnIVtsvCI
-	 CyEMvIbzNcvnVMs+gNZQFEdiAx2G6CFuFdG6eadvje46TOliw2DFZGY/sB538HbXk8A==
+	t=1793286940;
+	b=Xa7iyFY9gIypiJWjq6Toy9McOafNZGXIetFrkXpxU/SYJ9+8PFEScifUtJvtH9BvjTG4
+	 hbkI7pavnONZtFrBvJnMjkDfLJj2e2rvtCRqVKABq1mHgpm7mbB/xVuttH83ldievgaz8
+	 5YwJbc1zbdYQotOrrMYAnSIr5EpvBtjUIbwlkv75mSuEblnthXIY28Bl4zZKBr/AeYDfF
+	 Gw0QhuHoW5TMdQZZWcDJ2RwO6bKCXwU4MXQSR0TcImN2ir7LBs8YcTDaqzeH0qfGc8A64
+	 96XkFKQUK0y5z5WnUOYfDKWS02xDGw8abrAnmZ6eTeZ9otMqGBRef4mB8ykitextj0g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793286874;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=656z9fhQ5cGnqtPuc95+Ef4gq6f7TVUGHYROSC69+kM=;
-	b=oq19YOAQJyc6kqrCDwlAQWAl415RiYubKHntCH1TywRqShrWz5t2IfE9zIJZcHZcmA9q
-	 KtOlGBXNuwAuOd1cAEnUDKlGlNy17LAgo4uORiBr1bWkjN0IxCLF9IhcQEJmpNs2guALa
-	 BGM8R62Cok45NRDeyPolZMCLwiCj+OrKl8xslIAyyYXPnPMj9lYh5hkhrsbffxNj1ey/F
-	 fH9abNRIKw2F8INRLwvMliRaUuPp3DmRjO7inUrDjkRZeLieX76VqhB/HGewT1evMMWqz
-	 NInHFysFIJNCq8g4aCG0YPTvOjzJg3hHfb/hg/7f6KpKa6JUH2pq/N6lkFHOifC+XbA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793286940;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=hl9lfwLuHEFaKD2DgLZgrLN/YtArxi+yA6ah0W4bMX4=;
+	b=Wdh4NW/2IWp/P/+XDHC5srh0syVztImwnn7hj07vKTa5ch6g082wPTnoAlBqG1Pd4qRO
+	 4lhHSH866hGnyTO67HEIaSMev3zggM1smaiJjiYHPTqu94YJ7OldVSE/pTH3f/E7vJnaL
+	 1eKR8vg9Vcgt8lhhkEO97eHRRHdWJZHzxLM+0rV0O5Ln4Ddn6c68nXSQ59gq1oCdU5UVi
+	 oSr6gtlW68x9Q0zh2vT8/2fQTq9uJoMehmew2FIQouurADTn0EdPrpoR4EBu3UwaWIiUH
+	 aaLBGb1vQ7evkZW2xSjRCn2CbaERDZlGO1NbHWFmLtKk2RcCR4fW3jczQvJ3xcEm1lQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=fireburn.co.uk;
-	spf=none smtp.mailfrom=fireburn.co.uk;
-	dkim=pass header.d=fireburn-co-uk.20260707.gappssmtp.com header.i=@fireburn-co-uk.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=Pplmasxf;
-	arc=none smtp.remote-ip=209.85.221.52
-Received: from mail-wr1-f52.google.com (mail-wr1-f52.google.com [209.85.221.52])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="eb/QGXzT";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB64C606A32C
-	for <linux-acpi@vger.kernel.org>; Thu, 29 Oct 2026 15:14:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BB64C606A32C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=fireburn.co.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=fireburn.co.uk
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C9F0606A31F
+	for <linux-acpi@vger.kernel.org>; Thu, 29 Oct 2026 15:15:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=fireburn-co-uk.20260707.gappssmtp.com header.i=@fireburn-co-uk.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=Pplmasxf
-Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-48afbd2c386so1315925f8f.3
-        for <linux-acpi@vger.kernel.org>; Thu, 29 Oct 2026 08:14:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fireburn-co-uk.20260707.gappssmtp.com; s=20260707; t=1793286872; x=1793891672; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=656z9fhQ5cGnqtPuc95+Ef4gq6f7TVUGHYROSC69+kM=;
-        b=PplmasxfMVqu/03omaiPwWqfYhc/HSspGiptKX9Jplg5TBCNzqTg6WUX4QhaNgtbbO
-         SUrL4uOWc5Qr/W5SQJy3L9OIMcirbqV1fJUAuEnIeu6ZOxAaylRpVT3WLImylqcpsmpA
-         zm5b7yM4fZgLSjF4BJvlgmVPiCoOvhKPFG8tOrlRe2zbN+Uxbsllg4fhpqcmVqTknyI2
-         2kLNYYGK4VvCJUBEIDSIrPzQ+09OFhLyh/uHu8PIJPxIU/lPQypNbcWGY/SRE5GrBx5h
-         YBhrAAqekmtMpYAYLhTS+QdCbSC71gfnIencqH7VFIBXWdzgLzNYi97GER3NZIYeNTgg
-         IvYw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793286872; x=1793891672;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=656z9fhQ5cGnqtPuc95+Ef4gq6f7TVUGHYROSC69+kM=;
-        b=H5YRovohA1fqtlx99Y3uV+pA4sXiA3B78nYmsoH5gLsSGl05/mLbmursG+a4XIV2Rt
-         evrA8r3NhYuKAn4z127l3uFwQejlXTgIK45Dgt0BM+o/L4q7JJBOJJNW8mtW9pDV1mVw
-         RNT+OJ68ucTcY8bLR3RgRkPoTB+jEPaxCFQIUSHj/TQot10mDxexf41T5JH4Fav0aRsI
-         vjPrtOMQ49HloPFsMikAN7Ds34yrFA2sqEzBURRU6ruu7NcNssM7OHag8u02M9JFKOKG
-         GJDEJlkhaZ1M98m6q124U04MdQ+Gi6q/h05o4fN7inn0mt/xDGDpDRaCP0AdCx+73TxW
-         snRw==
-X-Forwarded-Encrypted: i=1; AKwUvBzxf/CZXtx/8/3uZy1ME6iKK2X3sJybceW4ieUMqO7eNWZHeE7Mwz7zsiv6M5qPf+DrWJLn3tSpj50R@vger.kernel.org
-X-Gm-Message-State: AFq9FYKDkKZZYMo6rznHPRSyfLR2jJ6UYOMbO6gTkgtcgmvC/vFbUoFZ
-	4KPi909WsuuY2wPkj27Eg20sJCRff9/3oG7sN/oLnIBaBfE2vSWqYYlIovZTWjl/OLkQtruSHgW
-	12xAf/FR6
-X-Gm-Gg: AYBFou1wSL+9In2pLj5y11prQZ+QY324nhAsqOSA90eO/ZI04guDeFnJ++XNodMXF2W
-	ziVHVyh1PZ2lx9oDWZJmefnbVK2KmJfCewtYJzQVr+yVtb2WBCkdyY0fJbM06F8oejmevFELoZa
-	QhU9iz0k1pRZ40j2DHR2Pn9sOYJWX9C9jxNGsJXeSw3J8Nr/ndiAZ0R5LZkF+GukkYJIzE7herJ
-	hOxZ50cn2Mbe9lqElq0CMBVFrcwzVdw3WwssZ1IGiM4MRb8oNA7yHCTuKtPxrW93cLI2PyHZzPv
-	G5ORPU0KI2nkT+pPzVvm+WuVJh50iSRV5Q2nO/o4YhTV6a8I1c2ZwPEkmk6FnNPgpD9onK220J6
-	OKXBHdUrP0c7rCBDD1pKSDBQKaKg7UEB/bP0VZNhsXM4jvePJWxw1fuZe+fqXmo7Q+nGnOTKq9J
-	czClBNUxYcCKxQY0bBePYFVIl5rv63xoxcO4ezZKrNlz+QIC/XSDq+ZAONOCmHrg+x5PnT4H84T
-	aAWzpBlFPU8S6/uBZhT9CZeIDdiVKQddKvIORviAw7K2OVG3RH0Z66IkCgFBVvOzuBLw7LXZAXk
-	lmEQWJrqIxZx4eNPVD6NYASx1WelplzJcghsxHBZkKqPX70mNV11dgIz51CcERKdArr344AYOrp
-	ytngz9+mQNcZiHh/uQpZ7rw==
-X-Received: by 2002:a05:6000:161d:b0:48e:641b:477a with SMTP id ffacd0b85a97d-48e641b47bamr5341390f8f.52.1793286872058;
-        Thu, 29 Oct 2026 08:14:32 -0700 (PDT)
-Received: from axion.fireburn.co.uk ([2a01:4b00:d309:1c00:caf1:6b20:8531:818c])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48e3ebcb851sm30191373f8f.26.2026.10.29.08.14.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Oct 2026 08:14:31 -0700 (PDT)
-From: Mike Lothian <mike@fireburn.co.uk>
-To: amd-gfx@lists.freedesktop.org,
-	alexander.deucher@amd.com,
-	christian.koenig@amd.com
-Cc: superm1@kernel.org,
-	dri-devel@lists.freedesktop.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 2/2] drm/amdgpu: handle broken dGPU hotplug GPE on ASUS ROG Strix G513QY
-Date: Thu, 29 Oct 2026 15:14:22 +0000
-Message-ID: <20261029151422.56791-3-mike@fireburn.co.uk>
-X-Mailer: git-send-email 2.56.0
-In-Reply-To: <20261029151422.56791-1-mike@fireburn.co.uk>
-References: <20261029151422.56791-1-mike@fireburn.co.uk>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=eb/QGXzT
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18EA01F031E0
+	for <linux-acpi@vger.kernel.org>; Thu, 29 Oct 2026 15:15:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793286935;
+	bh=hl9lfwLuHEFaKD2DgLZgrLN/YtArxi+yA6ah0W4bMX4=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=eb/QGXzTOjsYyyO9gEdeK9O+EiB554RYGWgB4GcNUam8VNP7WTYV2oTEpDxQuxt1v
+	 yfM3HZfoi5mxiBMzBry+MqIEvQx4nc1SARi/Duw1ptmJ2QRRWx7I7vPxXfL90OUczc
+	 38feY+1ez+g57/bb/RgeXmtxDwXe8HERMmQLGgWO+RsEKp4KyWLY4jiSwdJEmP/gt/
+	 fql+8a3lu2C+aj67Z1g5AGpF+dtHGn+85cXxwOBI6W8wqCk7jDY5Xq7KVwd+zeizy3
+	 Ut118kjtD9IQtzuXb7QbexsX18VerSftE0TpqUctknfdRjkRtlge2pJCFEZOyifJO8
+	 bZHOg8LMItYgQ==
+Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-5bfa65c8617so1433276e87.0
+        for <linux-acpi@vger.kernel.org>; Thu, 29 Oct 2026 08:15:35 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AKwUvBy7aQmfbYMszYFvbzvMkyJfpajpTUXQN1RNHuR24I3yqpfwq3g4F8a7gELTQIuZjeD4TCa2OJX3OaHf@vger.kernel.org
+X-Gm-Message-State: AFq9FYKg7xD3kLpqTTYDhuG2Ydh8BcqUfQiGqeCpz9wKgk+NNlZFWsig
+	RTHTYWkeyaNjLCZ/9Cf7eIm0fADEYciGRfMk+1a9yrF8KjHaoaga0j5egPDJy7Epieyiy1IiLUT
+	4kNSGo026xqsa7xm/m9o2/MNTy3um2kw=
+X-Received: by 2002:a05:6512:230e:b0:5bf:b249:375c with SMTP id
+ 2adb3069b0e04-5bfcadc4e8emr2545141e87.13.1793286933521; Thu, 29 Oct 2026
+ 08:15:33 -0700 (PDT)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -103,197 +59,25 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20261015204450.1270-1-atharvatiwarilinuxdev@gmail.com> <20261029151051.1124-1-atharvatiwarilinuxdev@gmail.com>
+In-Reply-To: <20261029151051.1124-1-atharvatiwarilinuxdev@gmail.com>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Thu, 29 Oct 2026 16:15:21 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0jv9VQhZKbQcWYHEU0sQUPn5sLsRmqHzEtZ4T6GY0t3ZA@mail.gmail.com>
+X-Gm-Features: AclHuK_a1SI1w6G7Vs72CVoh28cwrTfqKIrzBtQ66drVFyZJNdoy668BuV1QZfM
+Message-ID: <CAJZ5v0jv9VQhZKbQcWYHEU0sQUPn5sLsRmqHzEtZ4T6GY0t3ZA@mail.gmail.com>
+Subject: Re: [PATCH RESEND] ACPI: processor: Use Apple-specific methods for P/C-states
+To: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	rafael@kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The AMD CPM D3cold table on the G513QY (BIOS 335) handles the dGPU
-hotplug GPE with:
+On Thu, Oct 29, 2026 at 4:11=E2=80=AFPM Atharva Tiwari
+<atharvatiwarilinuxdev@gmail.com> wrote:
+>
+> Hi can i please get a update on this, i sent this patch almost 15 days
+> ago.
 
-  Method (_L05) { Notify (\_SB.PCI0.GPP0.VGA, 0x81) }
-
-On this board the Navi 22 sits behind its on-package PCIe switch, so
-the dGPU node is \_SB.PCI0.GPP0.SWUS.SWDS.VGA_ and every hotplug on the
-USB-C DP alt mode port while the dGPU is in D3cold logs:
-
-  ACPI BIOS Error (bug): Could not resolve symbol [\_SB.PCI0.GPP0.VGA], AE_NOT_FOUND
-  ACPI Error: Aborting method \_GPE._L05 due to previous error (AE_NOT_FOUND)
-  ACPI Error: AE_NOT_FOUND, while evaluating GPE method [_L05]
-
-The notify is lost, the dGPU stays powered off and the external
-displays stay dark. Masking the GPE (acpi_mask_gpe=0x05), the usual
-workaround, removes the errors but also the hotplug.
-
-On boards listed in a DMI table, and only when the notify target does
-not resolve, install a handler for the GPE in place of the _Lxx method.
-It requests a runtime resume of the dGPU, which re-detects all links and
-sends a hotplug event, and re-arms the level-triggered GPE from a
-delayed work so it cannot storm while the dGPU powers up. If the
-firmware is fixed, or the path is supplied by an SSDT override, the
-firmware method is left in charge.
-
-Other boards using the same CPM table may need adding to the list.
-
-Link: https://forum.endeavouros.com/t/boots-into-black-screen-unresponsive-amd/49430
-Assisted-by: Claude:claude-opus-5-5
-Signed-off-by: Mike Lothian <mike@fireburn.co.uk>
----
- drivers/gpu/drm/amd/amdgpu/amdgpu.h      |   3 +
- drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c | 103 ++++++++++++++++++++++-
- 2 files changed, 105 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu.h b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-index deb63122828d..d8a7fea8be9a 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-@@ -642,6 +642,9 @@ struct amdgpu_device {
- 	bool				accel_working;
- 	struct notifier_block		acpi_nb;
- 	bool				acpi_dgpu_notify;
-+	bool				acpi_hpd_gpe_installed;
-+	u32				acpi_hpd_gpe;
-+	struct delayed_work		acpi_hpd_gpe_work;
- 	struct notifier_block		pm_nb;
- 	struct amdgpu_i2c_chan		*i2c_bus[AMDGPU_MAX_I2C_BUS];
- 	struct debugfs_blob_wrapper debugfs_vbios_blob;
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c
-index a4041f90b374..182791f4cc86 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c
-@@ -25,6 +25,7 @@
- #include <linux/pci.h>
- #include <linux/acpi.h>
- #include <linux/backlight.h>
-+#include <linux/dmi.h>
- #include <linux/slab.h>
- #include <linux/xarray.h>
- #include <linux/power_supply.h>
-@@ -1297,6 +1298,103 @@ static void amdgpu_acpi_dgpu_notify(acpi_handle handle, u32 event, void *data)
- 	pm_request_resume(adev->dev);
- }
- 
-+/*
-+ * Some AMD CPM D3cold tables handle the dGPU hotplug GPE with
-+ * Notify(\_SB.PCI0.GPP0.VGA, 0x81), but on boards where the dGPU sits behind
-+ * an on-package PCIe switch the node is \_SB.PCI0.GPP0.SWUS.SWDS.VGA_, so the
-+ * _Lxx method aborts with AE_NOT_FOUND and the dGPU is never woken. On those
-+ * boards take over the GPE and do what the notify would have done.
-+ */
-+struct amdgpu_acpi_hpd_gpe_quirk {
-+	const char *notify_path;
-+	u32 gpe;
-+};
-+
-+static const struct amdgpu_acpi_hpd_gpe_quirk g513qy_hpd_gpe = {
-+	.notify_path = "\\_SB.PCI0.GPP0.VGA",
-+	.gpe = 0x05,
-+};
-+
-+static const struct dmi_system_id amdgpu_acpi_hpd_gpe_quirks[] = {
-+	{
-+		.ident = "ASUS ROG Strix G513QY",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+			DMI_MATCH(DMI_BOARD_NAME, "G513QY"),
-+		},
-+		.driver_data = (void *)&g513qy_hpd_gpe,
-+	},
-+	{}
-+};
-+
-+/* GPE handlers run in interrupt context; the GPE stays disabled until the work re-arms it */
-+static u32 amdgpu_acpi_hpd_gpe_handler(acpi_handle gpe_device, u32 gpe, void *data)
-+{
-+	struct amdgpu_device *adev = data;
-+
-+	pm_request_resume(adev->dev);
-+	schedule_delayed_work(&adev->acpi_hpd_gpe_work, msecs_to_jiffies(500));
-+
-+	return 0;
-+}
-+
-+/*
-+ * Re-arm after a delay: the GPE is level triggered and may stay asserted
-+ * while the dGPU powers up, so this bounds the rate at which it refires.
-+ */
-+static void amdgpu_acpi_hpd_gpe_work(struct work_struct *work)
-+{
-+	struct amdgpu_device *adev =
-+		container_of(work, struct amdgpu_device, acpi_hpd_gpe_work.work);
-+
-+	acpi_finish_gpe(NULL, adev->acpi_hpd_gpe);
-+}
-+
-+static void amdgpu_acpi_hpd_gpe_init(struct amdgpu_device *adev)
-+{
-+	const struct amdgpu_acpi_hpd_gpe_quirk *quirk;
-+	const struct dmi_system_id *id;
-+	acpi_handle handle;
-+
-+	id = dmi_first_match(amdgpu_acpi_hpd_gpe_quirks);
-+	if (!id)
-+		return;
-+	quirk = id->driver_data;
-+
-+	/* Firmware (or a table override) already provides the notify target */
-+	if (ACPI_SUCCESS(acpi_get_handle(NULL, quirk->notify_path, &handle)))
-+		return;
-+
-+	adev->acpi_hpd_gpe = quirk->gpe;
-+	INIT_DELAYED_WORK(&adev->acpi_hpd_gpe_work, amdgpu_acpi_hpd_gpe_work);
-+	if (ACPI_FAILURE(acpi_install_gpe_handler(NULL, quirk->gpe,
-+						  ACPI_GPE_LEVEL_TRIGGERED,
-+						  amdgpu_acpi_hpd_gpe_handler,
-+						  adev)))
-+		return;
-+	if (ACPI_FAILURE(acpi_enable_gpe(NULL, quirk->gpe))) {
-+		acpi_remove_gpe_handler(NULL, quirk->gpe,
-+					amdgpu_acpi_hpd_gpe_handler);
-+		return;
-+	}
-+
-+	adev->acpi_hpd_gpe_installed = true;
-+	dev_info(adev->dev, "handling dGPU hotplug GPE 0x%02x (%s missing)\n",
-+		 quirk->gpe, quirk->notify_path);
-+}
-+
-+static void amdgpu_acpi_hpd_gpe_fini(struct amdgpu_device *adev)
-+{
-+	if (!adev->acpi_hpd_gpe_installed)
-+		return;
-+
-+	acpi_disable_gpe(NULL, adev->acpi_hpd_gpe);
-+	cancel_delayed_work_sync(&adev->acpi_hpd_gpe_work);
-+	acpi_remove_gpe_handler(NULL, adev->acpi_hpd_gpe,
-+				amdgpu_acpi_hpd_gpe_handler);
-+	adev->acpi_hpd_gpe_installed = false;
-+}
-+
- /* Call all ACPI methods here */
- /**
-  * amdgpu_acpi_init - init driver acpi support
-@@ -1343,12 +1441,14 @@ int amdgpu_acpi_init(struct amdgpu_device *adev)
- 	register_acpi_notifier(&adev->acpi_nb);
- 
- 	if (!(adev->flags & AMD_IS_APU) && ACPI_COMPANION(adev->dev) &&
--	    adev->pm.rpm_mode == AMDGPU_RUNPM_BOCO)
-+	    adev->pm.rpm_mode == AMDGPU_RUNPM_BOCO) {
- 		adev->acpi_dgpu_notify =
- 			!acpi_dev_install_notify_handler(ACPI_COMPANION(adev->dev),
- 							 ACPI_DEVICE_NOTIFY,
- 							 amdgpu_acpi_dgpu_notify,
- 							 adev);
-+		amdgpu_acpi_hpd_gpe_init(adev);
-+	}
- 
- 	return 0;
- }
-@@ -1369,6 +1469,7 @@ void amdgpu_acpi_get_backlight_caps(struct amdgpu_dm_backlight_caps *caps)
-  */
- void amdgpu_acpi_fini(struct amdgpu_device *adev)
- {
-+	amdgpu_acpi_hpd_gpe_fini(adev);
- 	if (adev->acpi_dgpu_notify) {
- 		acpi_dev_remove_notify_handler(ACPI_COMPANION(adev->dev),
- 					       ACPI_DEVICE_NOTIFY,
--- 
-2.56.0
-
+You haven't provided a motivation for the change and I know nothing
+about Apple platforms, sorry.
