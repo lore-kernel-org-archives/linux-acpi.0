@@ -1,47 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.218
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793287453;
-	b=Keti69F0oIz703PbqnF7HxvnKrvm6sEaoxvbXGduzj5QuPjMg4uWZqKIkpXIPsz66+Yc
-	 I8VKi0eOyYQs9wvKRN8kIE9aMzVjQNlMBIP2iu7Z1AcNYBvGsI2tDZ5QGYvxvrBsYDw/W
-	 +6NFJ5qOEu8Z5Uo0YoULvVakr/ekQhFj2UnaHypwACRhMKbzsPnwfIfQun9tu7sWfW5b1
-	 t/+SqkXTQVt4dGASCsIhPzl0o1IBeclL+D1IVMXdAmDDJ4I4/L0FyLWEIxg9OK1FC3mLe
-	 gLmOJ33WtD7U3JRpjlYHjutx4f3ogaNtedr2yxFkFQ5STy6pwzwcN/00qxtOYLYO6iw==
+	t=1793287574;
+	b=H5GpGH5nND0blJ60TTknlk8+OSDsBEkKxUWlD5EWgK3/bGo4qfg41dXcuXdcxoYShbt0
+	 WrtBfoQ1J4VdoTn6mahTgayUjVCceCNvMe4jCmcH9t1dWA/p03TyvMiHZQv6sLB1uZW+9
+	 EnD8b1Nsb0p+pMcBd0yYNC3Y0IN1i3wg/0a9hY0r3Ub5O45cVPD52ChrtBMMyZ5sJK7nc
+	 VnNlrrRmbCvrzErGWhC3fOPdfUuEdOOU97tKWQcOovEZhCL8hpNVPZ3nGddjYYUzt3k6D
+	 f8QuEguVq0aMT0trkXmyNHmc8krQPejH5sxCE5zQlpcXjyu0xMO6o0tp2Qm71MJ+ThQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793287453;
-	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:Content-Language:To:Cc:References:From:In-Reply-To:
+	a=rsa-sha256; c=relaxed/relaxed; t=1793287574;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:Content-Language:From:In-Reply-To:
 	 Content-Type:Content-Transfer-Encoding;
-	bh=Lgd8fgwbirjHQ+5iAWJuOW0Yf9aVXUfWyvj9lr8cQT0=;
-	b=JkRUYo4+eAb5a90M0Yc2cqSoeWj9qb35fdPdbgs8deG7qayzJT9baqyEefWodIOzlLpy
-	 FEd4T3Ezn092JH5huZDD2BEJX6dlCWDeBiU1fMTad0zH6k1lxAPuQpX7AFFGgWsJ2LE8D
-	 /B8/kZvKob9oHx+cXaaxYEm3r4D9zyz//9+xtu5zOfFTPmxXFWbBXAvbfTjwyUTC7o2oU
-	 m0UIQRPxIe4bPAT2YxS/Fz90Q1nymjNqqC7NBoIhqDGPeglA+42riTj2nQRKAmJS2QvAo
-	 3H1mLtKrlUSdrcD7hQfeGqXt2I5OzZfO/ifzdWBJbJew+JAxc4g4Y1dqJWZzSVavboA==
+	bh=mpW7Rx8PuBJeOKNX2dQ8d9XnAjnbB8743kHyv8YBQHw=;
+	b=CzoWViIqkJZZ6x8n32illCAUGnqUoBElMIdMOnsAv3OU08lVmlX8PiDASFKzOcFRds3V
+	 b7Ninb1vjn/g1u9ivSkA6PMZWaOAKy+2Wq3O3QiSl/TK9TefyBtO7BJnj2n3+8mA1x3yw
+	 BF5l3bodYT9uvIGwY1PieSejFNxH9r5VVmEDcX1WU6aR5HuYHZLQS8dLIFX7QLwiVCBm3
+	 AsUMEsYtDKQ/Ak+xYW6cBy4GLSLTDfPJbesQaE76MJI5Wmsx6e5zfDvzRuQxAVJhpR9Sn
+	 3NpY9o8LVPhcySqdaruu+ME+o9EpL/o2xBeGuxgD5L5gTIz6yj8UUtFQ+MZ11kVWFXg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kKLvXNsL;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b="CFHq/4I7";
+	arc=none smtp.remote-ip=95.215.58.218
+Received: from mta1.migadu.com (out-218.mta1.migadu.com [95.215.58.218])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98D79606A31A;
-	Thu, 29 Oct 2026 15:24:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80B5C606A321
+	for <linux-acpi@vger.kernel.org>; Thu, 29 Oct 2026 15:26:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 80B5C606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kKLvXNsL
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0A261F01816;
-	Thu, 29 Oct 2026 15:24:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793287452;
-	bh=Lgd8fgwbirjHQ+5iAWJuOW0Yf9aVXUfWyvj9lr8cQT0=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=kKLvXNsLO+fE5J0zqkf7bh1q34h/uaracZrMOO0K3Nnd4XGSdqCb674H9nak9UqR1
-	 f2+k+3yMnnw26oi4TIXUVgKiUAbM6rJVTtL+rQZlNQyIEAPv6BmrtA/IOtvNzIKrLf
-	 +UjYNgck5WIMGxfWcS4Bl+nnPwnuuQvYVFaYEQIVtw9CLC6o2D6+YweQUPFIN34tmw
-	 q231QBUuz9HvEfC0DE4+hsyd2wjaz+RNihWTtjKHofxaWFVsJiF5tpM4HAsR7KYGzv
-	 1aafBlUMu0Eea93KWYMHvJ1lFokNIuf+mHx2f1r3eOGhCz+9jStDYXCF1GUoiJkeUM
-	 BjS7UdqmI3n1A==
-Message-ID: <8072db9e-0df4-4fc5-b86a-cc50ac7934a9@kernel.org>
-Date: Thu, 29 Oct 2026 10:24:08 -0500
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=CFHq/4I7
+X-Envelope-To: linux-acpi@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=vYqatMBexbASiH/pDoDg+soUpC7jr6OsHv3SiCXY0DQ=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1793287570; v=1; x=1793892370;
+ b=CFHq/4I7/Ryp9pDrYCokipvX9Q3IBM65pbtpLZ0ZnxwtpVp4/KZergKO2A6hs85u2EgK1XI4
+ salYWiH7GwXrPHodZwh3cocV/ZBi2TKG3EyzBZ710vT60x7aM4qAx1NbVH12ki0e43SO8KIm1bB
+ HywAW1I7jNTMsiGuMH2y4/qo=
+X-Envelope-To: linux-acpi@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 7378328bbc0346d2;
+	Thu, 29 Oct 2026 15:26:09 +0000
+X-Mizu-Trace-ID: 7378328bbc0346d2
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <12988c8e-95ad-4989-a6de-e02af3c9ef1b@linux.dev>
+Date: Thu, 29 Oct 2026 20:55:53 +0530
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -52,217 +59,73 @@ List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 2/2] drm/amdgpu: handle broken dGPU hotplug GPE on ASUS
- ROG Strix G513QY
+Subject: Re: [RFC PATCH 14/14] mfd/macsmc: add ioctl to access smc keys
+To: Sasha Finkelstein <k@chaosmail.tech>,
+ Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>
+Cc: alexandre.belloni@bootlin.com, andy@kernel.org, asahi@lists.linux.dev,
+ bhelgaas@google.com, bp@alien8.de, brgl@kernel.org,
+ dave.hansen@linux.intel.com, dlechner@baylibre.com,
+ dmitry.kasatkin@gmail.com, eric.snowberg@oracle.com, griffin@kroah.com,
+ hansg@kernel.org, hpa@zytor.com, ilpo.jarvinen@linux.intel.com,
+ j@jannau.net, jarkko@kernel.org, jic23@kernel.org, jmorris@namei.org,
+ lee@kernel.org, lenb@kernel.org, linusw@kernel.org,
+ linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-gpio@vger.kernel.org, linux-hwmon@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
+ linux-pm@vger.kernel.org, linux-rtc@vger.kernel.org,
+ linux-watchdog@vger.kernel.org, linux@roeck-us.net, mfd@lists.linux.dev,
+ mingo@redhat.com, neal@gompa.dev, nuno.sa@analog.com, paul@paul-moore.com,
+ pavel@kernel.org, platform-driver-x86@vger.kernel.org, rafael@kernel.org,
+ roberto.sassu@huawei.com, serge@hallyn.com, sre@kernel.org, sven@kernel.org,
+ tglx@kernel.org, wim@linux-watchdog.org, x86@kernel.org, zohar@linux.ibm.com
+References: <525E5B4D-A947-4567-9FCD-5FFF2CA8B161@chaosmail.tech>
+ <20261029143926.1246-1-atharvatiwarilinuxdev@gmail.com>
+ <0683C803-C578-4C55-B893-BC03EBF9A9F1@chaosmail.tech>
 Content-Language: en-US
-To: Mike Lothian <mike@fireburn.co.uk>, amd-gfx@lists.freedesktop.org,
- alexander.deucher@amd.com, christian.koenig@amd.com,
- "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20261029151422.56791-1-mike@fireburn.co.uk>
- <20261029151422.56791-3-mike@fireburn.co.uk>
-From: Mario Limonciello <superm1@kernel.org>
-In-Reply-To: <20261029151422.56791-3-mike@fireburn.co.uk>
+From: Aditya Garg <aditya.garg@linux.dev>
+In-Reply-To: <0683C803-C578-4C55-B893-BC03EBF9A9F1@chaosmail.tech>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-+Rafael
 
-On 10/29/26 10:14, Mike Lothian wrote:
-> The AMD CPM D3cold table on the G513QY (BIOS 335) handles the dGPU
-> hotplug GPE with:
-> 
->    Method (_L05) { Notify (\_SB.PCI0.GPP0.VGA, 0x81) }
-> 
-> On this board the Navi 22 sits behind its on-package PCIe switch, so
-> the dGPU node is \_SB.PCI0.GPP0.SWUS.SWDS.VGA_ and every hotplug on the
-> USB-C DP alt mode port while the dGPU is in D3cold logs:
-> 
->    ACPI BIOS Error (bug): Could not resolve symbol [\_SB.PCI0.GPP0.VGA], AE_NOT_FOUND
->    ACPI Error: Aborting method \_GPE._L05 due to previous error (AE_NOT_FOUND)
->    ACPI Error: AE_NOT_FOUND, while evaluating GPE method [_L05]
-> 
-> The notify is lost, the dGPU stays powered off and the external
-> displays stay dark. Masking the GPE (acpi_mask_gpe=0x05), the usual
-> workaround, removes the errors but also the hotplug.
-> 
-> On boards listed in a DMI table, and only when the notify target does
-> not resolve, install a handler for the GPE in place of the _Lxx method.
-> It requests a runtime resume of the dGPU, which re-detects all links and
-> sends a hotplug event, and re-arms the level-triggered GPE from a
-> delayed work so it cannot storm while the dGPU powers up. If the
-> firmware is fixed, or the path is supplied by an SSDT override, the
-> firmware method is left in charge.
-> 
-> Other boards using the same CPM table may need adding to the list.
-> 
-> Link: https://forum.endeavouros.com/t/boots-into-black-screen-unresponsive-amd/49430
-> Assisted-by: Claude:claude-opus-5-5
-> Signed-off-by: Mike Lothian <mike@fireburn.co.uk>
 
-Can you please post an acpidump to a kernel bugzilla or drm bug 
-associated with this issue?
-
-This generally feels like an ACPI interpreter issue to me.
-
-> ---
->   drivers/gpu/drm/amd/amdgpu/amdgpu.h      |   3 +
->   drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c | 103 ++++++++++++++++++++++-
->   2 files changed, 105 insertions(+), 1 deletion(-)
+On 10/29/26 8:23 PM, Sasha Finkelstein wrote:
+> On Oct 29, 2026, at 15:39, Atharva Tiwari <atharvatiwarilinuxdev@gmail.com> wrote:
+>> 1. The patch is required, atleast on intel macs, as without writing GPU and CPU
+>> states to smc, the system gives PROCHOT signal under small load
+>> , and heats up a lot.
 > 
-> diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu.h b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-> index deb63122828d..d8a7fea8be9a 100644
-> --- a/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-> +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
-> @@ -642,6 +642,9 @@ struct amdgpu_device {
->   	bool				accel_working;
->   	struct notifier_block		acpi_nb;
->   	bool				acpi_dgpu_notify;
-> +	bool				acpi_hpd_gpe_installed;
-> +	u32				acpi_hpd_gpe;
-> +	struct delayed_work		acpi_hpd_gpe_work;
->   	struct notifier_block		pm_nb;
->   	struct amdgpu_i2c_chan		*i2c_bus[AMDGPU_MAX_I2C_BUS];
->   	struct debugfs_blob_wrapper debugfs_vbios_blob;
-> diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c
-> index a4041f90b374..182791f4cc86 100644
-> --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c
-> +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c
-> @@ -25,6 +25,7 @@
->   #include <linux/pci.h>
->   #include <linux/acpi.h>
->   #include <linux/backlight.h>
-> +#include <linux/dmi.h>
->   #include <linux/slab.h>
->   #include <linux/xarray.h>
->   #include <linux/power_supply.h>
-> @@ -1297,6 +1298,103 @@ static void amdgpu_acpi_dgpu_notify(acpi_handle handle, u32 event, void *data)
->   	pm_request_resume(adev->dev);
->   }
->   
-> +/*
-> + * Some AMD CPM D3cold tables handle the dGPU hotplug GPE with
-> + * Notify(\_SB.PCI0.GPP0.VGA, 0x81), but on boards where the dGPU sits behind
-> + * an on-package PCIe switch the node is \_SB.PCI0.GPP0.SWUS.SWDS.VGA_, so the
-> + * _Lxx method aborts with AE_NOT_FOUND and the dGPU is never woken. On those
-> + * boards take over the GPE and do what the notify would have done.
-> + */
-> +struct amdgpu_acpi_hpd_gpe_quirk {
-> +	const char *notify_path;
-> +	u32 gpe;
-> +};
-> +
-> +static const struct amdgpu_acpi_hpd_gpe_quirk g513qy_hpd_gpe = {
-> +	.notify_path = "\\_SB.PCI0.GPP0.VGA",
-> +	.gpe = 0x05,
-> +};
-> +
-> +static const struct dmi_system_id amdgpu_acpi_hpd_gpe_quirks[] = {
-> +	{
-> +		.ident = "ASUS ROG Strix G513QY",
-> +		.matches = {
-> +			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-> +			DMI_MATCH(DMI_BOARD_NAME, "G513QY"),
-> +		},
-> +		.driver_data = (void *)&g513qy_hpd_gpe,
-> +	},
-> +	{}
-> +};
-> +
-> +/* GPE handlers run in interrupt context; the GPE stays disabled until the work re-arms it */
-> +static u32 amdgpu_acpi_hpd_gpe_handler(acpi_handle gpe_device, u32 gpe, void *data)
-> +{
-> +	struct amdgpu_device *adev = data;
-> +
-> +	pm_request_resume(adev->dev);
-> +	schedule_delayed_work(&adev->acpi_hpd_gpe_work, msecs_to_jiffies(500));
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Re-arm after a delay: the GPE is level triggered and may stay asserted
-> + * while the dGPU powers up, so this bounds the rate at which it refires.
-> + */
-> +static void amdgpu_acpi_hpd_gpe_work(struct work_struct *work)
-> +{
-> +	struct amdgpu_device *adev =
-> +		container_of(work, struct amdgpu_device, acpi_hpd_gpe_work.work);
-> +
-> +	acpi_finish_gpe(NULL, adev->acpi_hpd_gpe);
-> +}
-> +
-> +static void amdgpu_acpi_hpd_gpe_init(struct amdgpu_device *adev)
-> +{
-> +	const struct amdgpu_acpi_hpd_gpe_quirk *quirk;
-> +	const struct dmi_system_id *id;
-> +	acpi_handle handle;
-> +
-> +	id = dmi_first_match(amdgpu_acpi_hpd_gpe_quirks);
-> +	if (!id)
-> +		return;
-> +	quirk = id->driver_data;
-> +
-> +	/* Firmware (or a table override) already provides the notify target */
-> +	if (ACPI_SUCCESS(acpi_get_handle(NULL, quirk->notify_path, &handle)))
-> +		return;
-> +
-> +	adev->acpi_hpd_gpe = quirk->gpe;
-> +	INIT_DELAYED_WORK(&adev->acpi_hpd_gpe_work, amdgpu_acpi_hpd_gpe_work);
-> +	if (ACPI_FAILURE(acpi_install_gpe_handler(NULL, quirk->gpe,
-> +						  ACPI_GPE_LEVEL_TRIGGERED,
-> +						  amdgpu_acpi_hpd_gpe_handler,
-> +						  adev)))
-> +		return;
-> +	if (ACPI_FAILURE(acpi_enable_gpe(NULL, quirk->gpe))) {
-> +		acpi_remove_gpe_handler(NULL, quirk->gpe,
-> +					amdgpu_acpi_hpd_gpe_handler);
-> +		return;
-> +	}
-> +
-> +	adev->acpi_hpd_gpe_installed = true;
-> +	dev_info(adev->dev, "handling dGPU hotplug GPE 0x%02x (%s missing)\n",
-> +		 quirk->gpe, quirk->notify_path);
-> +}
-> +
-> +static void amdgpu_acpi_hpd_gpe_fini(struct amdgpu_device *adev)
-> +{
-> +	if (!adev->acpi_hpd_gpe_installed)
-> +		return;
-> +
-> +	acpi_disable_gpe(NULL, adev->acpi_hpd_gpe);
-> +	cancel_delayed_work_sync(&adev->acpi_hpd_gpe_work);
-> +	acpi_remove_gpe_handler(NULL, adev->acpi_hpd_gpe,
-> +				amdgpu_acpi_hpd_gpe_handler);
-> +	adev->acpi_hpd_gpe_installed = false;
-> +}
-> +
->   /* Call all ACPI methods here */
->   /**
->    * amdgpu_acpi_init - init driver acpi support
-> @@ -1343,12 +1441,14 @@ int amdgpu_acpi_init(struct amdgpu_device *adev)
->   	register_acpi_notifier(&adev->acpi_nb);
->   
->   	if (!(adev->flags & AMD_IS_APU) && ACPI_COMPANION(adev->dev) &&
-> -	    adev->pm.rpm_mode == AMDGPU_RUNPM_BOCO)
-> +	    adev->pm.rpm_mode == AMDGPU_RUNPM_BOCO) {
->   		adev->acpi_dgpu_notify =
->   			!acpi_dev_install_notify_handler(ACPI_COMPANION(adev->dev),
->   							 ACPI_DEVICE_NOTIFY,
->   							 amdgpu_acpi_dgpu_notify,
->   							 adev);
-> +		amdgpu_acpi_hpd_gpe_init(adev);
-> +	}
->   
->   	return 0;
->   }
-> @@ -1369,6 +1469,7 @@ void amdgpu_acpi_get_backlight_caps(struct amdgpu_dm_backlight_caps *caps)
->    */
->   void amdgpu_acpi_fini(struct amdgpu_device *adev)
->   {
-> +	amdgpu_acpi_hpd_gpe_fini(adev);
->   	if (adev->acpi_dgpu_notify) {
->   		acpi_dev_remove_notify_handler(ACPI_COMPANION(adev->dev),
->   					       ACPI_DEVICE_NOTIFY,
+> In that case, why are you exposing a generic smc key interface instead
+> of one that just does that? If you think that this data should be set
+> from userspace - whitelist the set of keys that are needed.
+> 
+
+Whitelisting will create an endless cycle of upstreaming new keys. But 
+considering T2 no longer is receiving updates, Asahi would be happy to 
+send their keys they wish to be whitelisted right ;)>
+>> 2. the smc dosent expose keys of nature that can physically damage the system
+>> it only exposes power/volt data, and the most you can poke is reboot
+>> keys and gpu/cpu p-states.
+> 
+> Are you willing to make that claim for every smc-equipped device, not
+> just T2? Are you willing to make the same claim for future versions of
+> smc firmware?
+
+Fair enough. We can restrict it to T2 Macs, and Asahi can later adopt if 
+useful?>
+>> 3. If a person is randomly touching keys, Its their problem and not ours.
+>>
+>> 4. There are a lot of things that can mess the system way more and permanently
+>> than smc (undervolting for example), but they are not safe guarded, why
+>> should this be then?
+> 
+> I think it is inadvisable to leave a loaded footgun around and then
+> blame the user for using it. As an "OS Vendor" you have a duty of care
+> to your users.
+
+It would say the "duty of care" argument is more of a philosophical 
+thing than a technical argument here. Still, I respect that but there 
+needs to be a balance between adding features and respecting the duty. 
+It seems various vendors have different views in determining the 
+balance. The above 2 arguments look like a good balance. What do you think?
 
