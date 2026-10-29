@@ -1,55 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793286940;
-	b=Xa7iyFY9gIypiJWjq6Toy9McOafNZGXIetFrkXpxU/SYJ9+8PFEScifUtJvtH9BvjTG4
-	 hbkI7pavnONZtFrBvJnMjkDfLJj2e2rvtCRqVKABq1mHgpm7mbB/xVuttH83ldievgaz8
-	 5YwJbc1zbdYQotOrrMYAnSIr5EpvBtjUIbwlkv75mSuEblnthXIY28Bl4zZKBr/AeYDfF
-	 Gw0QhuHoW5TMdQZZWcDJ2RwO6bKCXwU4MXQSR0TcImN2ir7LBs8YcTDaqzeH0qfGc8A64
-	 96XkFKQUK0y5z5WnUOYfDKWS02xDGw8abrAnmZ6eTeZ9otMqGBRef4mB8ykitextj0g==
+	t=1793287238;
+	b=W88uKsaJ+PQroTcNRdGKnY1xl1iwUX/37GwvIor7HlMNC/w1fn3Q659mjd3yxdOSkIeg
+	 pcCwXash41qEMTK12EI1SHiZuRisQnVV1vXXdAclG8bO+LbxRL298E3S3jMpSxzQr4jDp
+	 0f2sid9p864RMSDtTUaHOljkh/RD11RxHkp0S3VSPd7KHIK3AnAgIFPtVxYsQn6JkAvBj
+	 Jc47LbuwUJEYUtk1qn8A5ClPg6dSIPpW3zFvGJkCkl+7+9LIeOqPqjgBCEP11qfVq0Hqv
+	 g/05JiSGaykisNHO/SfxuLnUqBskcf3YT+Hr7QUJnCX+l8lAetTKy87GqolJlmk08Qg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793286940;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=hl9lfwLuHEFaKD2DgLZgrLN/YtArxi+yA6ah0W4bMX4=;
-	b=Wdh4NW/2IWp/P/+XDHC5srh0syVztImwnn7hj07vKTa5ch6g082wPTnoAlBqG1Pd4qRO
-	 4lhHSH866hGnyTO67HEIaSMev3zggM1smaiJjiYHPTqu94YJ7OldVSE/pTH3f/E7vJnaL
-	 1eKR8vg9Vcgt8lhhkEO97eHRRHdWJZHzxLM+0rV0O5Ln4Ddn6c68nXSQ59gq1oCdU5UVi
-	 oSr6gtlW68x9Q0zh2vT8/2fQTq9uJoMehmew2FIQouurADTn0EdPrpoR4EBu3UwaWIiUH
-	 aaLBGb1vQ7evkZW2xSjRCn2CbaERDZlGO1NbHWFmLtKk2RcCR4fW3jczQvJ3xcEm1lQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793287238;
+	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:Content-Language:To:Cc:References:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=YNtzOHBIDefRhwkoBdu0VmuJr8iGnrmpv1C4RVrOtuI=;
+	b=nMM5BRobsMeG9noXtiIDzWt5xUgv2tkTlxejIbufzEDQMhdCULjCwNR+g6kE5XgIt5RW
+	 yj7p4HRYlV2G1/Mt5pvEkwVby5/mr0lcI3G+td0QMvYWlTJxkDhbsaMNGwNa2uLPGEDq0
+	 sc/MyY0XJePkr6AXPRf+6kT/gGZhFT2tyQxEVuDStiJnOgYCCtT/lAoBlbUbjpf2Ur6Kh
+	 nG5L8d3toeei5vwBQEst4S8Uxy/zNuKGF9NLOA1unuU7nmxAln98990IC7gjfLP7jST+D
+	 jy8JWlWRRqnq78v062sFKJ+Os86g5/VfpxDRwlNrDQ1scEuhAKUDGyo0Ab/v31DO/gg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="eb/QGXzT";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=l1+stCLG;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C9F0606A31F
-	for <linux-acpi@vger.kernel.org>; Thu, 29 Oct 2026 15:15:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDD87606A31A;
+	Thu, 29 Oct 2026 15:20:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=eb/QGXzT
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18EA01F031E0
-	for <linux-acpi@vger.kernel.org>; Thu, 29 Oct 2026 15:15:35 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=l1+stCLG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D20581F01824;
+	Thu, 29 Oct 2026 15:20:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793286935;
-	bh=hl9lfwLuHEFaKD2DgLZgrLN/YtArxi+yA6ah0W4bMX4=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=eb/QGXzTOjsYyyO9gEdeK9O+EiB554RYGWgB4GcNUam8VNP7WTYV2oTEpDxQuxt1v
-	 yfM3HZfoi5mxiBMzBry+MqIEvQx4nc1SARi/Duw1ptmJ2QRRWx7I7vPxXfL90OUczc
-	 38feY+1ez+g57/bb/RgeXmtxDwXe8HERMmQLGgWO+RsEKp4KyWLY4jiSwdJEmP/gt/
-	 fql+8a3lu2C+aj67Z1g5AGpF+dtHGn+85cXxwOBI6W8wqCk7jDY5Xq7KVwd+zeizy3
-	 Ut118kjtD9IQtzuXb7QbexsX18VerSftE0TpqUctknfdRjkRtlge2pJCFEZOyifJO8
-	 bZHOg8LMItYgQ==
-Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-5bfa65c8617so1433276e87.0
-        for <linux-acpi@vger.kernel.org>; Thu, 29 Oct 2026 08:15:35 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AKwUvBy7aQmfbYMszYFvbzvMkyJfpajpTUXQN1RNHuR24I3yqpfwq3g4F8a7gELTQIuZjeD4TCa2OJX3OaHf@vger.kernel.org
-X-Gm-Message-State: AFq9FYKg7xD3kLpqTTYDhuG2Ydh8BcqUfQiGqeCpz9wKgk+NNlZFWsig
-	RTHTYWkeyaNjLCZ/9Cf7eIm0fADEYciGRfMk+1a9yrF8KjHaoaga0j5egPDJy7Epieyiy1IiLUT
-	4kNSGo026xqsa7xm/m9o2/MNTy3um2kw=
-X-Received: by 2002:a05:6512:230e:b0:5bf:b249:375c with SMTP id
- 2adb3069b0e04-5bfcadc4e8emr2545141e87.13.1793286933521; Thu, 29 Oct 2026
- 08:15:33 -0700 (PDT)
+	s=k20260515; t=1793287237;
+	bh=YNtzOHBIDefRhwkoBdu0VmuJr8iGnrmpv1C4RVrOtuI=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=l1+stCLGuGuddp5FZgDLxWPrHt0I10EoPNtGNu/K6sNZ3Tj5kR1V21HhZT2vzYSpQ
+	 1z3Q/KeUl9P7480hTMMlGsx0C5mpsdlTLMyU5YmTXvloq2JRUmzHCWwIP++Xc1OzFh
+	 pUQI9IUWlF734zlTLjcwT8jM0AM+b+3e/AOxqi0iQsIs3tk488t9uPgkcxfWPCENGg
+	 F8uevdRAHUSAbasaP818alM170oDowB0UfAnMeVCOj95RCXgYzOf/0TImEqxIjfVAr
+	 VfAev2UAVQIqnEHoAE/nonbJeGcuazqSYP0kqwevB1j7qaOEG5Qv5T0qc8TciVlUI6
+	 jusRYhr7LXe5g==
+Message-ID: <06b18cb4-cd1d-48b8-8944-dd1139ad18ad@kernel.org>
+Date: Thu, 29 Oct 2026 10:20:33 -0500
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,25 +51,119 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261015204450.1270-1-atharvatiwarilinuxdev@gmail.com> <20261029151051.1124-1-atharvatiwarilinuxdev@gmail.com>
-In-Reply-To: <20261029151051.1124-1-atharvatiwarilinuxdev@gmail.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Thu, 29 Oct 2026 16:15:21 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0jv9VQhZKbQcWYHEU0sQUPn5sLsRmqHzEtZ4T6GY0t3ZA@mail.gmail.com>
-X-Gm-Features: AclHuK_a1SI1w6G7Vs72CVoh28cwrTfqKIrzBtQ66drVFyZJNdoy668BuV1QZfM
-Message-ID: <CAJZ5v0jv9VQhZKbQcWYHEU0sQUPn5sLsRmqHzEtZ4T6GY0t3ZA@mail.gmail.com>
-Subject: Re: [PATCH RESEND] ACPI: processor: Use Apple-specific methods for P/C-states
-To: Atharva Tiwari <atharvatiwarilinuxdev@gmail.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	rafael@kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 1/2] drm/amdgpu: runtime resume dGPU on ACPI notify from
+ its own node
+Content-Language: en-US
+To: Mike Lothian <mike@fireburn.co.uk>, amd-gfx@lists.freedesktop.org,
+ alexander.deucher@amd.com, christian.koenig@amd.com
+Cc: dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+References: <20261029151422.56791-1-mike@fireburn.co.uk>
+ <20261029151422.56791-2-mike@fireburn.co.uk>
+From: Mario Limonciello <superm1@kernel.org>
+In-Reply-To: <20261029151422.56791-2-mike@fireburn.co.uk>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Thu, Oct 29, 2026 at 4:11=E2=80=AFPM Atharva Tiwari
-<atharvatiwarilinuxdev@gmail.com> wrote:
->
-> Hi can i please get a update on this, i sent this patch almost 15 days
-> ago.
+On 10/29/26 10:14, Mike Lothian wrote:
+> On BOCO platforms the SBIOS can signal a display hotplug on a powered
+> off dGPU by notifying the dGPU's ACPI node. On the ASUS ROG Strix G513QY
+> the USB-C DP alt mode lanes are driven by the Navi 22, and the CPM
+> D3cold table handles the HPD GPE with only:
+> 
+>    Method (_L05) { Notify (\_SB.PCI0.GPP0.VGA, 0x81) }
+> 
+> Nothing in Linux listens on that node: ATIF is bound to the iGPU and the
+> dGPU node is not an ACPI video bus. If the dGPU is in D3cold when a dock
+> is attached it stays off, no hotplug reaches userspace, the external
+> displays stay dark, and the level-triggered GPE keeps firing until the
+> dock is removed.
+> 
+> Install an ACPI device notify handler on the dGPU's companion when BOCO
+> is used, and request a runtime resume on 0x81. Runtime resume already
+> re-detects all links and sends a hotplug event, so the new displays are
+> picked up; the device autosuspends again if nothing is enabled.
+> 
+> Assisted-by: Claude:claude-opus-5-5
+> Signed-off-by: Mike Lothian <mike@fireburn.co.uk>
+> ---
+>   drivers/gpu/drm/amd/amdgpu/amdgpu.h      |  1 +
+>   drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c | 31 ++++++++++++++++++++++++
+>   2 files changed, 32 insertions(+)
+> 
+> diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu.h b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
+> index 7974f9b7944f..deb63122828d 100644
+> --- a/drivers/gpu/drm/amd/amdgpu/amdgpu.h
+> +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
+> @@ -641,6 +641,7 @@ struct amdgpu_device {
+>   	bool				need_swiotlb;
+>   	bool				accel_working;
+>   	struct notifier_block		acpi_nb;
+> +	bool				acpi_dgpu_notify;
+>   	struct notifier_block		pm_nb;
+>   	struct amdgpu_i2c_chan		*i2c_bus[AMDGPU_MAX_I2C_BUS];
+>   	struct debugfs_blob_wrapper debugfs_vbios_blob;
+> diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c
+> index 7f5abb03be1b..a4041f90b374 100644
+> --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c
+> +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_acpi.c
+> @@ -1280,6 +1280,23 @@ static int amdgpu_acpi_event(struct notifier_block *nb,
+>   	return amdgpu_atif_handler(adev, entry);
+>   }
+>   
+> +/*
+> + * On BOCO platforms the SBIOS signals display hotplug on a powered-off dGPU
 
-You haven't provided a motivation for the change and I know nothing
-about Apple platforms, sorry.
+Although your system is a BOCO platform; I do think this same thing for 
+this signaling to wakeup could apply to a BACO system too.
+
+> + * (e.g. USB-C DP alt mode HPD wired to the dGPU) with Notify(<dGPU>, 0x81)
+> + * on the dGPU's own ACPI node. Nothing else listens there, so wake the
+> + * device; runtime resume re-detects all links and sends a hotplug event.
+> + */
+> +static void amdgpu_acpi_dgpu_notify(acpi_handle handle, u32 event, void *data)
+> +{
+> +	struct amdgpu_device *adev = data;
+> +
+> +	if (event != ACPI_VIDEO_NOTIFY_PROBE)
+> +		return;
+> +
+> +	dev_dbg(adev->dev, "ACPI notify 0x%x, requesting runtime resume\n", event);
+> +	pm_request_resume(adev->dev);
+> +}
+> +
+>   /* Call all ACPI methods here */
+>   /**
+>    * amdgpu_acpi_init - init driver acpi support
+> @@ -1325,6 +1342,14 @@ int amdgpu_acpi_init(struct amdgpu_device *adev)
+>   	adev->acpi_nb.notifier_call = amdgpu_acpi_event;
+>   	register_acpi_notifier(&adev->acpi_nb);
+>   
+> +	if (!(adev->flags & AMD_IS_APU) && ACPI_COMPANION(adev->dev) &&
+> +	    adev->pm.rpm_mode == AMDGPU_RUNPM_BOCO)
+
+I'd install the notifier for BACO as well.
+> +		adev->acpi_dgpu_notify =
+> +			!acpi_dev_install_notify_handler(ACPI_COMPANION(adev->dev),
+> +							 ACPI_DEVICE_NOTIFY,
+> +							 amdgpu_acpi_dgpu_notify,
+> +							 adev);
+> +
+>   	return 0;
+>   }
+>   
+> @@ -1344,6 +1369,12 @@ void amdgpu_acpi_get_backlight_caps(struct amdgpu_dm_backlight_caps *caps)
+>    */
+>   void amdgpu_acpi_fini(struct amdgpu_device *adev)
+>   {
+> +	if (adev->acpi_dgpu_notify) {
+> +		acpi_dev_remove_notify_handler(ACPI_COMPANION(adev->dev),
+> +					       ACPI_DEVICE_NOTIFY,
+> +					       amdgpu_acpi_dgpu_notify);
+> +		adev->acpi_dgpu_notify = false;
+> +	}
+>   	unregister_acpi_notifier(&adev->acpi_nb);
+>   }
+>   
+
