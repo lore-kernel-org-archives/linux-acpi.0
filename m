@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793371930;
-	b=IbHqBIX5Fdv5JPv5Eiwm164B8nZtJYe1rhQ6g98SA2EQGHTC4UdtsEcKrn/+YPxvGgTL
-	 CsWJnH0FTVD7JI9rJbGD7v0hHsqdqkLeUNsxcubbg96Qil5KyH/h1Mb6tXA3LB7EOSO3u
-	 cPNRXFILXaSR94RBPWDYhFekI2/jFBb/immb0poI0y79z+QgBeCmFDAmb4QOeBI6oCrHp
-	 L8doQ31rgWZuZywKoe+1Xmo/iEgallyWZN3d3hjH/fBgLYbddrA1MD3Z0zjZXKel+n48F
-	 2SIN9VQ2eW/xxBzzv39sr2YdqgFQGoMiei13hIn2CEZkjXw5yI8VvjzJIb878+cmqRA==
+	t=1793372156;
+	b=Hc4JZ/wNx7+gRtUrmPP4GPlS1gid4VDVf4pIg6fKPdDSWKH322YLxJEkYYt0V2DNtc1J
+	 aiPZRqbgcgH+ad3+F9UErMIdq2SAQ3mgknttb0770WAZDoedYvSwLg781CVWYomKgb6hN
+	 s6SFEIM5W28b3z55hSif9BzC2yQsoEkmNY0ip0B/pTRRVyoEgxaQU8k9MnW5ywnpu+96U
+	 Klqk54ThqRw8vtH6bu/f7F4XpjK4gg+BWv5tRbnAQwKum0+0PUwkpBDO4+nzOKg8L7Ngx
+	 TPArqTcUi7Aqpbl349HGARHvZM7gcl9ypYdbd0l/UCs55W8E4EoAdzv2kMyatlTpYEw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793371930;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793372156;
 	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
 	 Subject:Content-Language:To:Cc:References:From:In-Reply-To:
 	 Content-Type:Content-Transfer-Encoding;
-	bh=IynCA/CXHHxpvBVvDUwuv5p+dERMEHS5aKDO2xZbSGI=;
-	b=ANsKcV/UZ3ItdOhj5UzmupF7LigHJvv58Sq9Y6V3JYeRcU3O8c42dE0aCKDJL6JND5PP
-	 bYVv+2X02SNG9BOtHc7MIjd925RxX69NkLBT7xG+NVEZGVu3HSoRNHWctd+wRQrRVlGxk
-	 lMDjXQubJ18c0D8DYzJe1wJBBTw2sHqj9P6Z1tCzhKiZ1KWS8fB1SlRUU1IfGolfJvy4A
-	 C4ERqDpfhawhCfBPg1tQk4EtuAvROad9io6Mi9Iw5Cxo2VF5HnZqzQARzLUWt08kACOMr
-	 JRuaA/4jOd0qcZwGSXCtnRGknkvMd7ax4k3zy9dlbzKXUPQ4vhBbBSlVy2Aw1Lwz98g==
+	bh=UPDjS3wz2FnEuT+HHl36XN/pNdhynLSDtb+o3kgPntE=;
+	b=y+5UzHJjMR6UHbDu3VYBF3UBhbX2otxF99ywegvKYp34L+jkxQ7jOxTlDzbg4do3Xw0E
+	 oykdt+Ib3oFBFmgXyH4vaKKfEd35t6uobd/ooQPmv7PgAEe24EAVkzSypJ4L2xbeTPgxm
+	 w+61QHas6PlKy4KG39CIGP9N3oOye4KR3YSzT9XsHK6RegxxkD5D9z8/t3DVIFQCY3Urf
+	 cFZXhcSjjM8UtTyNODA3QtuTdI14mlJkYyiAYGRDM6DZYoLB2NBVldR3ETlsz9eXlCpKe
+	 DUTLMXg3ZZOKaxTi1rQV5yhzTZp0hwdHuSqxsarQQUAtsyfA3fiXhJSIikUJhyCBVUg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hIV366cj;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OEDO1U0A;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F17F1606A325;
-	Fri, 30 Oct 2026 14:52:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16FCE606A31A;
+	Fri, 30 Oct 2026 14:55:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hIV366cj
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D89331F00A02;
-	Fri, 30 Oct 2026 14:52:08 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OEDO1U0A
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52A541F000C1;
+	Fri, 30 Oct 2026 14:55:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793371929;
-	bh=IynCA/CXHHxpvBVvDUwuv5p+dERMEHS5aKDO2xZbSGI=;
+	s=k20260515; t=1793372155;
+	bh=UPDjS3wz2FnEuT+HHl36XN/pNdhynLSDtb+o3kgPntE=;
 	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=hIV366cjcNsvxIP7LxLTIg+RpNbiujGvx4EXw47fMFYNX+tjxcuEB+Mbt2xNJtb/6
-	 KuuSzmtIr0mrHfDyrMgLMdua+MtGvkCfI7/OSinyLYXuzV1r52JYt6l7zUGX5p7PXm
-	 mBpWGEilcuteN47a8ioT4ukPSCrp+sd00HICugXaSlYdjUOeL3lcSiSsk9Ns17vsNx
-	 SgkqzRD1KI2eeG7wwumI06PYgWF/8fWuXlLCorFRhnGNosYr2sy3Co4OGjaVuVl5Rk
-	 T/PIVxMiXGgd8PxnVP3O5KRBE+UVon3PdKiGpSR58R5sjmbMdO3OwXGd4H+kJJQChN
-	 CAgpMR8SPP+zA==
-Message-ID: <c018e549-6d31-40fc-9b82-05b53d4dac22@kernel.org>
-Date: Fri, 30 Oct 2026 09:52:08 -0500
+	b=OEDO1U0A9019x18y1u9ZJ2cuYYEETpk74W//i7K8221GcVf2WSzoUg1t8nIOE4w4i
+	 x6vTbaac+4XzUTlgecLH8JjgDdRhpVry/XWyabbeXOwKh7l1GMffT/bWaNHZsY4xT2
+	 25nrsrEVMMEjlZ+DgEDboae2tDZvS1edWH9Tnb5NUg279jXWVYJWBjKNFlW8f7yFP5
+	 k+r6tiJAZVzid1VKKI1b/QxqjVWLu4O+KdQV5vppDpw+6j6D6KNJMEHAe523zY3Rds
+	 O+uoWMoPPkWdyBGyvkIB6bdyvmf6kIYQgOaznzxb40nPnwffHXKjSWQ2EXJAXuNKCU
+	 4hRZgu+kQ1sZw==
+Message-ID: <320e0bd0-fc6b-4b71-9024-55a6af558fa3@kernel.org>
+Date: Fri, 30 Oct 2026 09:55:52 -0500
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -52,56 +52,41 @@ List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/2] drm/amdgpu: runtime resume dGPU on ACPI notify from
- its own node
+Subject: Re: [PATCH 2/2] drm/amdgpu: handle broken dGPU hotplug GPE on ASUS
+ ROG Strix G513QY
 Content-Language: en-US
-To: Mike Lothian <mike@fireburn.co.uk>, Alex Deucher <alexdeucher@gmail.com>
+To: Mike Lothian <mike@fireburn.co.uk>, "Rafael J. Wysocki"
+ <rafael@kernel.org>
 Cc: amd-gfx@lists.freedesktop.org, alexander.deucher@amd.com,
  christian.koenig@amd.com, dri-devel@lists.freedesktop.org,
  linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20261030075735.356811-1-mike@fireburn.co.uk>
+References: <20261030075743.356835-1-mike@fireburn.co.uk>
 From: Mario Limonciello <superm1@kernel.org>
-In-Reply-To: <20261030075735.356811-1-mike@fireburn.co.uk>
+In-Reply-To: <20261030075743.356835-1-mike@fireburn.co.uk>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 10/30/26 02:57, Mike Lothian wrote:
-> On Thu, 29 Oct 2026, Alex Deucher wrote:
->> I'm not sure about BACO.  In the BOCO case the OEM has a mux on the HPD
->> pins that redirects them to the EC when the dGPU is powered off.  For
->> BACO it's usually a PCIe add-in board so there is no way to redirect
->> the HPD pins.
+> On Thu, 29 Oct 2026, Mario Limonciello wrote:
+>> Can you please get an acpidump and put it on a kernel bugzilla or drm
+>> bug?  This generally feels like an ACPI interpreter issue to me.
 > 
-> Agreed, and I can't test BACO anyway, so I'll keep it BOCO only in v2
-> Mario, sorry, I'll leave your BACO suggestion out unless someone has a
-> board that needs it
-
-No problem.
-
+> Done: https://gitlab.freedesktop.org/drm/amd/-/work_items/6061
 > 
->> Mike Lothian does your system have ATIF?  This is already code to
->> handle this.  It sounds like it's just registering the wrong ACPI node.
->> You should be able to use the existing handler.
+> It has the errors and the tables from /sys/firmware/acpi/tables, minus my
+> local override SSDT.  I haven't got acpidump or iasl installed so it's the
+> raw files in a tarball rather than a real acpidump, I can redo it if you
+> want the proper format
 > 
-> It does, but only on the iGPU: ATIF is in SSDT7 under \_SB.PCI0.GP17.VGA_,
-> and the dGPU node (\_SB.PCI0.GPP0.SWUS.SWDS.VGA_) has none
-> 
-> What arrives here isn't an ATIF notification either.  _L05 in SSDT9 is
-> just Notify (\_SB.PCI0.GPP0.VGA, 0x81), and that path doesn't exist on
-> this board, so the interpreter aborts the method with AE_NOT_FOUND and no
-> Notify is delivered to anything.  I've put the tables and the errors in
-> a bug: https://gitlab.freedesktop.org/drm/amd/-/work_items/6061
-
-Yeah looking at the tables this does look like a BIOS bug.  So quirking 
-it somewhere feels appropriate.
-
-> 
-> What I haven't checked is whether the firmware would flag a dGPU display
-> event in the ATIF SBIOS requests if the Notify did arrive at the right
-> node.  If I alias the path so it resolves, I can turn on drm.debug and see
-> whether amdgpu_atif_handler() fires and what request flags come back, and
-> if ATIF_DGPU_DISPLAY_EVENT is set I'll use the existing handler rather
-> than add a new one.  I'll report back
+> On the interpreter question: _L05 is only Notify (\_SB.PCI0.GPP0.VGA,
+> 0x81), and \_SB.PCI0.GPP0.VGA doesn't exist on this board, the dGPU is
+> under GPP0.SWUS.SWDS.VGA_.  I don't know what the interpreter is meant to
+> do with a Notify to a path that doesn't resolve, which is why I put the
+> question in the bug.  Rafael, if there's a better place for it I'll move it
 > 
 > Mike
 
+I posted another approach for patch 2/2 to the bug where it's a quirk 
+outside of amdgpu (since this looks like a BIOS bug).
+
+I guess test that and then we can see where a quirk would best live.
