@@ -1,76 +1,99 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.46
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793338343;
-	b=Jv5MmAq41CW2+jzHii1Gy7aCs+fTcjx7Y39pL0b/iGjnN54/Rkz4z5zZ53UAujMKDrww
-	 Gpq3s2dQUtr7gx4u6ekhn+bPQsiLGJqJ6NOO5qSrYZ+Y4KvBnSYGnnZ85vIqolNLOk/OA
-	 Maj0dRzxpWFgY0swtDISETf7FdOpPaoymgveG1Eedso47okMcekk9y0d3FxPJIDzqgPZg
-	 eexSpveVTgn3OTut1s+uhSofKgy11FLrSGfAW0cDFDKhh2rpwTCyZCieYcl+34nPQn6qC
-	 hMzSw9w/Hdu8SH63FpUNAAbPuckgDifTzWOqPlZK1ijJOXhONFtC66N+pCZnjXebzRw==
+	t=1793347065;
+	b=ecH4zHe9REWEDfzbLFDW6N3V2akNM6ZYmm2176ckA3Uyh463Z1c9x3Dmqlr0SI+KMS0z
+	 xHqh4mdMoUVIXP82UFXqnPP4EqcTCZT4hlPjmpPATVMtQ1iZdgwiTMz8KXKVWzVHhNlSG
+	 80AanrQ61+WWFbcGu6g0Jla07EpqlyXiITZ97icG60WpCA5j/H1dWdtyUv9BGf5DMJU8j
+	 Waq6E9xDJBkn2e6xT5bTfki9bfDXHoOr62L7/LHVKgms9hyDiWRK2rky2FCgEd2FlNzaG
+	 g4GxpjA+TNaqbPfvL5hKx0ZEIkloVDroazJxyhN7abCDGSL9QZCt8Q2jokQ0Rmr46ig==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793338343;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=iqzvhuQcnt+M1uy6q8ZgEZg+92jJlmTF/zBz9tyaOXw=;
-	b=S11yUm6POSdMigMDjkWvkARK12OWAC4SWzols8nsit8fWpD7z36D9r6fz7LQOfYY7fOf
-	 /OOUMCu04Nu6NOX9rGL0JAMtDcqq2ppFz8oT4+UN2KNPzfWy43M6Pfvk+8dwzvONbcxjc
-	 sL1ugcvB+pdxsYbCYTvFBNn3wwk+s5j6e8cyFqzQ4O21dEX8eaSeyASXK6jdbWLWdHvpj
-	 Et5YcGfW7I1ApI4GvqQtrY2SV0GLi5zjaIlxYjFMTclwUvj/2D+qlLwLb9olmcNfJrh/X
-	 72DWM4z5rozfySf7Nr2ChCRWJy76XEIzeCCjTmmr2wPx3fqO788uqAIV50qJn4mrybw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793347065;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=ObLQIYquGzBiqCTd14UQGXrFZOGeRqctaF0y4LnV60Y=;
+	b=xp8mI6n6bd82+NPuKkhMblpkVUNuW9cFy68dGROC8xbNlAn4TAIPow1KHZ5IB9jlXXrp
+	 VpMbRMB80q+nP5mEApOUSk9I5DCyc1n/dlJwBNH7cogWOUgsFVS2OVjn51a2SKU5GjX2z
+	 Ll1dDTp7oMj9N+AlqnnBwLA1qow4FDBT+QPkdnv/SbUU1mRfFQbbtlZG9RdvHHHlI2vD1
+	 dlo4uPJnYSpnOkvDhEZKv79hyrbi53kZte+olvPjOlIZj1LADOToEKadHtjVma7ozkf/1
+	 Qj+Zmj4rQoDQ4v3w7ZzhrgM+kIXpz6PGsk3Djsb0EYcaa9N7wGeF8wRAgtY9MqIkLHQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linuxfoundation.org header.i=@linuxfoundation.org header.a=rsa-sha256 header.s=korg header.b=bB5zxCnA;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=none header.from=fireburn.co.uk;
+	spf=none smtp.mailfrom=fireburn.co.uk;
+	dkim=pass header.d=fireburn-co-uk.20260707.gappssmtp.com header.i=@fireburn-co-uk.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=mrFrWyUr;
+	arc=none smtp.remote-ip=209.85.221.46
+Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68390606A31A;
-	Fri, 30 Oct 2026 05:32:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6B4D606A31D
+	for <linux-acpi@vger.kernel.org>; Fri, 30 Oct 2026 07:57:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D6B4D606A31D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=fireburn.co.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=fireburn.co.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.a=rsa-sha256 header.s=korg header.b=bB5zxCnA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D7441F000C1;
-	Fri, 30 Oct 2026 05:32:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
-	s=korg; t=1793338341;
-	bh=iqzvhuQcnt+M1uy6q8ZgEZg+92jJlmTF/zBz9tyaOXw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=bB5zxCnAMbRDPFIf7fH+qrDq6h84IYsxZwVp/YP9NhScXxtWDfbNqfwjiKxGmNH6/
-	 LJbMP6M3xBtjNQz4LZ/Gfws6cMsl48OR4Uw+XmriiFRAMPHJ0IIEW0l/0BHbAAjG9X
-	 /GRLLc8J6d4wmcFL6VBaQHGcG5HCbgIsVWfyQ8fA=
-Date: Fri, 30 Oct 2026 06:32:18 +0100
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Jeremy Kerr <jk@codeconstruct.com.au>
-Cc: Adrian Ambrozewicz <aambrozewicz@nvidia.com>,
-	Donald Shannon <donalds@nvidia.com>, Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Linus Walleij <linusw@kernel.org>,
-	Bartosz Golaszewski <brgl@kernel.org>, Lee Jones <lee@kernel.org>,
-	Pavel Machek <pavel@kernel.org>, Andi Shyti <andi.shyti@kernel.org>,
-	Mark Brown <broonie@kernel.org>, Jiri Slaby <jirislaby@kernel.org>,
-	Corey Minyard <corey@minyard.net>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans de Goede <hansg@kernel.org>, Lixu Zhang <lixu.zhang@intel.com>,
-	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
-	Oliver Neukum <oneukum@suse.com>,
-	Quan Nguyen <quan@os.amperecomputing.com>,
-	Andrew Jeffery <andrew@codeconstruct.com.au>,
-	linux-usb@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-leds@vger.kernel.org,
-	linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org,
-	linux-serial@vger.kernel.org,
-	openipmi-developer@lists.sourceforge.net,
-	linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
-	Bart Van Assche <bvanassche@google.com>
-Subject: Re: [PATCH 00/11] Add NVIDIA LSTP USB adapter drivers
-Message-ID: <2026103015-stained-shudder-1582@gregkh>
-References: <20261012-lstp-usb-adapter-v1-0-aambrozewicz@nvidia.com>
- <2026101310-scuttle-unison-d4c3@gregkh>
- <c569c912141e9da7530121b8b2fc81527e0518a4.camel@codeconstruct.com.au>
- <f3f305a0f3195948bd25ca7eea4348113f998ee2.camel@codeconstruct.com.au>
+	dkim=pass (2048-bit key, unprotected) header.d=fireburn-co-uk.20260707.gappssmtp.com header.i=@fireburn-co-uk.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=mrFrWyUr
+Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-48afcfc4bf5so352702f8f.1
+        for <linux-acpi@vger.kernel.org>; Fri, 30 Oct 2026 00:57:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fireburn-co-uk.20260707.gappssmtp.com; s=20260707; t=1793347063; x=1793951863; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=ObLQIYquGzBiqCTd14UQGXrFZOGeRqctaF0y4LnV60Y=;
+        b=mrFrWyUrHxvEivP2DgRPPmSDKFqCjsC+pk1cnEIsYJPsRF9pO0/VTsznBFpxMPDtqa
+         n+Xyu2saCK9m4daJymY2sac3/5HA1IZvFQZ+izkSZviyMzn9Y0HIwjMiuAOyPCL/uB4K
+         5Ddmhwryl2+AYgeXMkrujLmCjO8nQdtKmDPJezSHH8HbKDl8UL9YcZbt57nCNC09Qu5t
+         rUDSoFR0WbyXZPphUmhJ2hiGrmXNrjF/FD4Bjte8VYvZJXF2Ukf+R6UtSk3eXi6gBxNA
+         dwBS/pN4EastSa/F619tYYkroBQc+QzbdhkGP6+xbkyaZrhJFI5Ibu7Lro0w2iI8mczA
+         kDyw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793347063; x=1793951863;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=ObLQIYquGzBiqCTd14UQGXrFZOGeRqctaF0y4LnV60Y=;
+        b=P70Q2RXlMCwESKqhyXx2MPIH3MSYdMviEG8/ZYV0sJy0FGjNi4zei2hzvAjvArRU9k
+         zs9LfvIrQALtgm//Csj99gxkLwT6mMGcqR3qCVYoeTJUqPOFEudV7ijXJ4P/sY4V3hFr
+         Sg3l809Ikc6jo/fKdrZTBIKdS/4SQjlwxulbwmx3/uC/191nttSdLocrdMl5+U1lWzXs
+         NPIJK6l4Ly0B0bEs8khKaktj9Bwj+y80lMejZW2JPcOhvf9/z3LZ5jZrBcNqyASQcvR+
+         BHea2/GbV1jtjZR/Kh/mTPbk+QjbDT+q1yNhpT4YA6exxK32OPE/djBaIkojyDoJRxxB
+         hsQw==
+X-Forwarded-Encrypted: i=1; AKwUvBxSNcy7id+rt01K7eHHFwarRZMKeE+z8g930ZJviR+GMuxq8rjtgxV757Q6HFPHKNwiTJpX7TUAcecx@vger.kernel.org
+X-Gm-Message-State: AFq9FYKu4a6J4pS1G1wVh9I1A0M2TBbY4omBWFBHXpRKUIdOLX3dxOtb
+	DxTgW1QuOYrGKMbwuPfB+Cmvs8VpVPmqJgpCuCeA7t1qGwnOv9Z0MmTexxDRLEq4PQ==
+X-Gm-Gg: AYBFou2ZizF+U628pzfcSF9R34aZf+R1XSEidUcsmowReBXt4oBvlA3UeHPqqkxdeRN
+	hi/worEM1Z2qk1OFbDxJlW/KVatDadi+mSezhKEUM26/gg8RXWgHFU8/iPxwAOB9enD0F3YjIkf
+	V15EOIeYVfGMPj+GixfxJ2g/Z2d3GYEvt9AAtCEbBd7XNGAZK/BnpR/qnjV9mKMMIpyXQxoDMzC
+	a9H+JcsFcdWE3qGuBiMLUGt36yBdaYJ5vCuaKs1rpPXPjRmgLUzLzbWQfZnqKCI8jzMvfBxV/MM
+	yGmIm4uek2LzJ/mQndrdQL9aOtubZ7kecr5+pue7TUEnZINkb/4POqPDjTsNnPsJontIS3fuZ1w
+	BTHOMOxpo9Q7QFer57fG1kqiOyb6FQ6lS0Dh+352f7xTasJEagtDuEZ3VjFKvg2U3x3KNHh8xmo
+	fxamybLz/TOmm0N7kO6eNoF3ik+mETmXH3gffTYPxRBg4ae+uYx9TU+SI4CvEZ0hgjs8UV/A0bR
+	ADJ4Fss97LcSLfneDo5pw4e2tJZNx77QYraS5i7lmqQvXKDr6A6zsAdCw/2jALRy2tHB2RPr9Ov
+	vxEKsz6OUdaJnHx5tBQ5AM0mcLQOgHlqVQj7rLaujkY66i9eXNx67p7w+8jjPg4xMkD1+hQEZG2
+	a
+X-Received: by 2002:a05:6000:4a19:b0:48c:4442:54e with SMTP id ffacd0b85a97d-48e6e4f4405mr3497370f8f.30.1793347063048;
+        Fri, 30 Oct 2026 00:57:43 -0700 (PDT)
+Received: from axion.fireburn.co.uk ([2a01:4b00:d309:1c00:caf1:6b20:8531:818c])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48e71b8bd8esm1675411f8f.42.2026.10.30.00.57.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 30 Oct 2026 00:57:42 -0700 (PDT)
+From: Mike Lothian <mike@fireburn.co.uk>
+To: Alex Deucher <alexdeucher@gmail.com>,
+	Mario Limonciello <superm1@kernel.org>
+Cc: amd-gfx@lists.freedesktop.org,
+	alexander.deucher@amd.com,
+	christian.koenig@amd.com,
+	dri-devel@lists.freedesktop.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2] drm/amdgpu: runtime resume dGPU on ACPI notify from its own node
+Date: Fri, 30 Oct 2026 07:57:35 +0000
+Message-ID: <20261030075735.356811-1-mike@fireburn.co.uk>
+X-Mailer: git-send-email 2.56.0
+In-Reply-To: <CADnq5_PbewORwc3Wsqw3VQESz3RNAKJy+KdnWHx9J1rKg35-Hw@mail.gmail.com>
+References: 
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -80,114 +103,36 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <f3f305a0f3195948bd25ca7eea4348113f998ee2.camel@codeconstruct.com.au>
+Content-Transfer-Encoding: 8bit
 
-On Fri, Oct 30, 2026 at 12:06:15PM +0800, Jeremy Kerr wrote:
-> Hi Greg,
-> 
-> > FWIW, we did raise greybus as an approach to various HW vendors; I
-> > assume there were reasons behind OBMF-ICP, and assume some prior-art
-> > assesment was involved, but I don't have specifics for those reasons.
-> >
-> > HW peeps: This would be an excellent opportunity for elaboration on the
-> > motivation there, either for LSTP or OBMF-OCP.
-> 
-> I have been doing some asking around, and a few items came up around
-> motivations for OBMC-ICP over Greybus. My motivation here is entirely
-> around OBMF-ICP; the NVIDIA contributions for LSTP somewhat comes under
-> this, and so we're working on composing a unified solution.
-> 
-> Collating some of those items here:
-> 
-> As a bit of background, the typical use case for OBMF-ICP is for
-> platform pre-boot environments, with limitations in capabilities of both
-> the hardware and software stack. Microcontroller and mask-ROM
-> implementations of either side of the protocol are potential targets.
->
-> This leads to the structure of OBMF-ICP being intentionally
-> light-weight; the channel configuration (ie, definition of the
-> encapsulated devices) is static, and the channel-level messaging is kept
-> simple, mainly through a requirement of only one message in flight per
-> channel.
+On Thu, 29 Oct 2026, Alex Deucher wrote:
+> I'm not sure about BACO.  In the BOCO case the OEM has a mux on the HPD
+> pins that redirects them to the EC when the dGPU is powered off.  For
+> BACO it's usually a PCIe add-in board so there is no way to redirect
+> the HPD pins.
 
-greybus is very light-weight, you don't need to have more than one
-message in flight.  That's not a real answer :)
+Agreed, and I can't test BACO anyway, so I'll keep it BOCO only in v2
+Mario, sorry, I'll leave your BACO suggestion out unless someone has a
+board that needs it
 
-> [Greg, this is related to one of your points around why not use a
-> multi-function USB device for individual, separate devices: the typical
-> device-side hardware does not have support for enough USB endpoints to
-> do so. Like greybus, the intention is to be able to support multiple
-> downstream peripherals without constraints from USB hardware on existing
-> SoC devices]
+> Mike Lothian does your system have ATIF?  This is already code to
+> handle this.  It sounds like it's just registering the wrong ACPI node.
+> You should be able to use the existing handler.
 
-That's for LSTP, and USB devices are dirt cheap, multi-endpoint ones
-should also be very cheap compared to the system they are attempting to
-control here.  Don't place this on a "it would cost too much so we are
-going to fix that by making the software a complex beast and having
-someone else solve our problem for us" solution driven by a hardware
-designer.  That's not acceptable these days, you all know that...
+It does, but only on the iGPU: ATIF is in SSDT7 under \_SB.PCI0.GP17.VGA_,
+and the dGPU node (\_SB.PCI0.GPP0.SWUS.SWDS.VGA_) has none
 
-> There are a few design points that lead to the preference for OBMF-ICP:
-> 
-> The front-loaded configuration mechanism means less state to manage on
-> both sides of the protocol; the channel set and channel-specific
-> parameters (like individual GPIO descriptors and flash geometry) being
-> stable over the lifetime of the device means simpler core protocol
-> support and channel driver implementations.
+What arrives here isn't an ATIF notification either.  _L05 in SSDT9 is
+just Notify (\_SB.PCI0.GPP0.VGA, 0x81), and that path doesn't exist on
+this board, so the interpreter aborts the method with AE_NOT_FOUND and no
+Notify is delivered to anything.  I've put the tables and the errors in
+a bug: https://gitlab.freedesktop.org/drm/amd/-/work_items/6061
 
-What state needs to be managed here for Greybus?  And given that there
-is firware and kernel code for greybus already written and working for
-10+ years, that feels simpler to me.
+What I haven't checked is whether the firmware would flag a dGPU display
+event in the ATIF SBIOS requests if the Notify did arrive at the right
+node.  If I alias the path so it resolves, I can turn on drm.debug and see
+whether amdgpu_atif_handler() fires and what request flags come back, and
+if ATIF_DGPU_DISPLAY_EVENT is set I'll use the existing handler rather
+than add a new one.  I'll report back
 
-> The simpler channel communication protocol is better suited to
-> lower-complexity interfaces that are needed for the pre-boot
-> environments (GPIO control, uart, IPMI, flash access) than the greybus
-> targets for mobile device runtime, with higher-bandwidth communication
-> requirements (camera, audio, display). For example, typical platform
-> management functions generally involve a lot of short i2c operations -
-> ICP messages for these are around half the length of greybus
-> equivalents.
-
-You don't have to do the high-bandwidth devices, just be a low-bandwidth
-device.  and "size" of an operation doesn't make sense here, it's just
-bytes in a buffer that you have plenty of on both sides of the
-connection.
-
-> For the platform-boot use-cases, we would need to provide a bunch of new
-> channel definitions for greybus. This certainly isn't a showstopper in
-> itself, but the specification does not appear to be in active
-> development; last change was 10 years ago, and the spec repository has
-> since been archived as far as I can tell (and so is read-only).
-
-There are new proposals for the spec, see the mailing list.  And what is
-missing for your needs that isn't currently present?
-
-I haven't read all of OBMF, as obviously that isn't what is being
-proposed here, I was just complaining about the madness of attempting to
-create a device tree representation for a single USB device that wanted
-to be carved up into different virtual devices because no one decided to
-learn from history.
-
-I have other objections about OBMF-ICP, but that's not what this thread
-is about, sorry.  Please propose your own patch series for that and I'll
-be glad to criticize it there.
-
-And all of these seem to be OMBC answers, not LSTP answers.  There's
-still no excuse for LSTP to be designed like this :)
-
-> With OBMF-ICP's super-minimal core protocol, and the use-case
-> appropriate channels, seems like a suitable approach to me.
-> 
-> The USB-IF has a class ID allocated for OBMF-ICP interface descriptors,
-> with the intention that we have multiple vendor implementations of the
-> common protocol; we would like Linux to be one of those.
-
-It's always fun to make a new spec and protocol, but getting an ID
-doesn't mean that usb-if says "this is how it shoudl be done."  Anyone
-can get an ID :)
-
-sorry,
-
-greg k-h
+Mike
