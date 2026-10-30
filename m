@@ -1,115 +1,84 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.181
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=203.29.241.158
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793333155;
-	b=n/7hxH+YwEsQMdunNf6+toqw7LzT4N4GwTVIb3FjYjqNWRIptgWLuNMYQ1bt8kipBmli
-	 DR3f65SLHXRhhYTX4MbuYn1aub82Yw5cwBMB2TJWi4NHNQbjph9SaVLb+jnqV7JeeaB/A
-	 aPtne6/7iU5EvsZQA8SylixHAiyVXk74oLw5TCpfjzus1jSvm2Ew7edpuoe8LIm4jhHDf
-	 jqDhqkElUXOxmOnxvg3d3VC2raMY2FSXqR7KmwRBIJ0iSD1ArSD8bYn6/lQln8x51yqPy
-	 k4rP1RGp8Q2ubS3Z23KUsj/Znh/HymbBd83MkhLQMvcKFjdOcAg98GXyCpZprt6BhKQ==
+	t=1793333186;
+	b=nhJNCfRsCGodx0/DCc2AH9WdxAI1FKGGIYskSwSIgqv9D0k1QcndYc4mtqzU8dpv7lIM
+	 PvcdfgYNXolGwyCp3fyl4D13PjNg5j9+dO0iBrQNIbbRDYZMpJiKZTLw3pVJ6OAwj5LeA
+	 ADsby87dcFGrkmHnbGcUBS0QxNTg4znOiypNvIdzupkjgFT+20nzTfJhFY4LbOdGQ24Q3
+	 Xgpu3ovWK5mE9RhetQ1ZhtqQQk348JRjRBJIYhKJYWpKRl+3EsUeNfKi2T9SrbIcaNxQ0
+	 9uWiXdCHFaT2bnjF/UPKihCHn78TKiogdCiciUB7SSyn60S6n1DHU5HQ+3trH8czZVA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793333155;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=9CvywPHpjrCT0zo2JhnH11M0JaZbySgNZTi9n8+NQFc=;
-	b=YLGMxJb6Hssb9HXaW+mAVSw+d3zbSURnEDgNjUaQalBc6dXP/NwUaRfeEMZe1k4HmCHO
-	 wk5ZqtF1t44gRceeXgDXnq1O7F1Bq78z5fDkm2+E7ydUrYVYowBwxc6X5DDqgPYy3Xu7a
-	 NoK7//f4u5w1BR4X+4mZqsKOHnnBpO/dN+BrUHxeqPnS/7g/cYulhhJke7i2IBxGS5ADp
-	 C5oje0wVjVzAmXaiCKjCojCQdqNlE5CnV6JeXxRDGkIrz0z9PeEZrYS6nHY6dby/486Fs
-	 6/9PI8e2dM9FwL2HPAZlMIzJ8C5wxNLGhRRj44CGB4Ro7SLJ7mcNpnqp/5uoFFdJVYw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793333186;
+	h=DMARC-Filter:DKIM-Signature:Received:Message-ID:Subject:From:To:Cc:
+	 Date:In-Reply-To:References:Content-Type:Content-Transfer-Encoding:
+	 User-Agent:MIME-Version;
+	bh=grdHjhMd7QvaUC0XVPHxOaowqqDmcsmw2rXkQG3QSuY=;
+	b=p5IwRt9xXXFcUVbokMtt8i2NuT7ezLxx+tiNvYyB9bnADr2xxI5LUbgVmCeyvy0cUV/L
+	 4uSpsmGSmuBruijVgiyl9OFB2nBCv1xSMMdUSxvxTsNm2Bh3PKt2qZiWbmNAH3GCt3G8S
+	 U48ZJeSAzKoNO2frzp/2r1tN4p+1/F5bYMxcUORKazl8/LC98pYd4A1Y/pIvedpIKUqyU
+	 MrRXet0MIh+9tvPQJsyhOKsSrtv9dtlpu3VrM1i6oyeh1dzGPC9DZFUnZrkAoo+SVM9kG
+	 6JbpLbj40mX42eTcBzEhduCgq+pB5o9aDN2d2bB9ykkFao6gFo6r5NE8HKPQ+tuYGLg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linaro.org;
-	spf=pass smtp.mailfrom=linaro.org;
-	dkim=pass header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b="cZUI88/L";
-	arc=none smtp.remote-ip=74.125.82.181
-Received: from mail-dy1-f181.google.com (mail-dy1-f181.google.com [74.125.82.181])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=pass header.from=codeconstruct.com.au;
+	spf=pass smtp.mailfrom=codeconstruct.com.au;
+	dkim=pass header.d=codeconstruct.com.au header.i=@codeconstruct.com.au header.a=rsa-sha256 header.s=2022a header.b=gP4O6XbB;
+	arc=none smtp.remote-ip=203.29.241.158
+Received: from codeconstruct.com.au (pi.codeconstruct.com.au [203.29.241.158])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D067606A31C
-	for <linux-acpi@vger.kernel.org>; Fri, 30 Oct 2026 04:05:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8D067606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C9C6606A31C;
+	Fri, 30 Oct 2026 04:06:24 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2C9C6606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=codeconstruct.com.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=codeconstruct.com.au
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=cZUI88/L
-Received: by mail-dy1-f181.google.com with SMTP id 5a478bee46e88-3514b90bb89so632134eec.1
-        for <linux-acpi@vger.kernel.org>; Thu, 29 Oct 2026 21:05:54 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=codeconstruct.com.au header.i=@codeconstruct.com.au header.a=rsa-sha256 header.s=2022a header.b=gP4O6XbB
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1793333154; x=1793937954; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=9CvywPHpjrCT0zo2JhnH11M0JaZbySgNZTi9n8+NQFc=;
-        b=cZUI88/L9F1F6vaHkoJiPubaFvpBx9ZOZoFIH4WzYEl9uT8+1501kBXRQ+iQnW1rG/
-         4Fw7u6pK2bhGr83aiABmILWeko3myUezgpD4yxFu1q8ofu7DAw3nd3xwaeMW+dOR7WjW
-         fF2I6XSi4uBYslctXHDwkVQCwzAYXH2+VEB4ld4ijUFXCUVYiKPoDWGSOArpmY2b6MgQ
-         9ZvnqUJjjMcJdZxPtAbFTkDp6O48lwLVb7JSCvyQcehPpzJbJ6jeHUnZCR3iOiOfxhs1
-         cwBXgsfbLoMorO9ZFOLAr33BI+k9rnycgZilL+r2ECnd+fRbSczk3whlomOJkp24wZFS
-         GQAw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793333154; x=1793937954;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=9CvywPHpjrCT0zo2JhnH11M0JaZbySgNZTi9n8+NQFc=;
-        b=cRUNi+QWG365gkGVQyFXRSFGV8OztaSemTL9A5zQiNoZn8VBcLc3vL8uGbexIkTpQS
-         wyV0oD9moo0bon8oIqCNeZxGEk/DZOSN3WtyFRkkmkyGHzwa2aW8yFHLQPwNt5fxiS4W
-         S4hHWHquNZQOdm9+9iGldmwPJUbk7tyxHJoKpzdrgMf9o/vH6HV/PJsjXxrG0KtAPCO6
-         n5Jy94a8YoN7x6+exyXKktB0QrQgrjH0dZsHtWYwvyPX7hjUXExH1inwXKkvX0xaKZ8K
-         eMjIj69rDrddO8bhsN2X7c9qn7NsenM6XZmqTwr1UnHnz/IFYoWgj6gYEl7BCOElBmQD
-         p2kQ==
-X-Forwarded-Encrypted: i=1; AKwUvBz4PwA7RcDPYsL6eFQI8bs3YEu2lCUMQbgSLq+8TabmIcrdHbxagqmcjHaOCT/sjQrCgijMkhxLWBPW@vger.kernel.org
-X-Gm-Message-State: AFq9FYJKISi10ssq1019gsQPF9mNtKoU0hcWxik7LfEQk+K1/NRQ/CyW
-	0uEiIz4KKkRpW5hHpqehqCgdsV3tG+pYYgnyUnzWBNU8ndfe3dh4B/FVTesihls1A3w=
-X-Gm-Gg: AYBFou0GY8UxEbCbObNDVjlOsE2AnCWANLqQPqWis5G0fxerSLikN8JI7OmGtrR8u4c
-	D/BwWoKrKYT3vvGX+RIirIO7vBtxt1rQ3sAjhT9+aIa54MNwtIcu1BPBksxXIZST2Zjm9MqV30l
-	o4Sksb2pI3bsvyY2HcS6NudD2Bnxo2+iRkQ2V6CYrtXVjOjrYhVtKsYCNQw7HP3zAw6PhIW+RD+
-	LnpSElfGDa0E84tEjw9k9X0TaPeigB73DQvzqwdPNIpc4BgVgFPLnJlC4lOa+loPjKxEzcw3IKe
-	C7+DIRf+IVcX2TtQ31Ref5vcb6IE3Ub4eM9hy3McqgN05AS+cPMUqBYfAtwH858GwYeX3ok7yz3
-	jj23tB7JzxVQHaoAxpZiy8KqJEC4X7vB5IaqO3mTFaXIklfOjMH+tqlyCSJFH58br+bqUUq0Bc5
-	lFCeuh9OQVUsjjQndbJF64DoflGeO1zapzwcIIsP879bgWD+4/f7fGjvxLVAgW+5UI7VBw35JGO
-	M6npBFDOeegwWZTcYSyNmO0wrEOCoHwaxdAZGYQWNYM3sWqNFG0ewwh0zeYU0d1Lm/A+2KgVKPn
-	yn6RHFiV6U6mtJ5kU8ReMbtJp7703r8=
-X-Received: by 2002:a05:7301:53cb:b0:35c:e696:2d4a with SMTP id 5a478bee46e88-36a423ea99dmr1772736eec.24.1793333153319;
-        Thu, 29 Oct 2026 21:05:53 -0700 (PDT)
-Received: from localhost ([122.172.82.240])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-36a4291e38fsm3512579eec.15.2026.10.29.21.05.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Oct 2026 21:05:52 -0700 (PDT)
-Date: Fri, 30 Oct 2026 09:35:49 +0530
-From: Viresh Kumar <viresh.kumar@linaro.org>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: Ian Rogers <irogers@google.com>, Kees Cook <kees@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Miguel Ojeda <ojeda@kernel.org>, Danilo Krummrich <dakr@kernel.org>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Nick Desaulniers <ndesaulniers@google.com>,
-	Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>,
-	Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
-	Zhihao Cheng <chengzhihao1@huawei.com>,
-	Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>,
-	Sumanth Korikkar <sumanthk@linux.ibm.com>,
-	Bill Wendling <morbo@google.com>,
-	Justin Stitt <justinstitt@google.com>, driver-core@lists.linux.dev,
-	llvm@lists.linux.dev, linux-hardening@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
-	linux-s390@vger.kernel.org, gfs2@lists.linux.dev,
-	xen-devel@lists.xenproject.org, linux-mtd@lists.infradead.org,
-	amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 4/9] cpufreq: governor: Initialize kobj_type release
- callback statically
-Message-ID: <auQXnep2xKpuNJOF@vireshk-B250M-D3H>
-References: <20261027223847.652884-1-irogers@google.com>
- <20261027223847.652884-5-irogers@google.com>
- <CAJZ5v0juvZ2ZVRBkY6FxBM=NhPt9vMA3+yRugXc5u=U1jO9AXg@mail.gmail.com>
- <CAP-5=fWVZ=7-qDRODiEQzRzhpQqribv9Morj=OoAXW_6uaW2dA@mail.gmail.com>
- <CAJZ5v0i0YoOW+ueh_aZJdYVS0etuCqfrf_S0NTKzCE9_6oKxPQ@mail.gmail.com>
+	d=codeconstruct.com.au; s=2022a; t=1793333177;
+	bh=grdHjhMd7QvaUC0XVPHxOaowqqDmcsmw2rXkQG3QSuY=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=gP4O6XbBNP3E0tCn55RYSkni7rxRKdrPd+cAyKq7Q7ka6AX+fl+13CnYSbEz7qfEV
+	 LUM/eSwndXbzayTZMnEAp911V2klLbt5RdolBTtGj9AJTcE18qFP1hOh1I7GA16LN9
+	 PECOUTfLQgdUDd06Osrb37D8zntZ+Lgd9AICm5Z3Z9dkLnvotzrpcjxQseRVizJ4Ja
+	 5Ht44VRDHFQXUOgBigtuRcLyXFEmMcx7oavVBo3fsC6Yih5Gp6XxAiuSXecPSpLKUg
+	 lTfO1PMhHtvMi6NObu4pDTT21lbh/vev1DcBDlJCjrCS0cRbkFOrTlFJFvpNXcQ1Jn
+	 7NZqQTlVp2x1w==
+Received: from pecola.lan (unknown [159.196.93.152])
+	by mail.codeconstruct.com.au (Postfix) with ESMTPSA id 8496470E87;
+	Fri, 30 Oct 2026 12:06:15 +0800 (AWST)
+Message-ID: <f3f305a0f3195948bd25ca7eea4348113f998ee2.camel@codeconstruct.com.au>
+Subject: Re: [PATCH 00/11] Add NVIDIA LSTP USB adapter drivers
+From: Jeremy Kerr <jk@codeconstruct.com.au>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Adrian Ambrozewicz
+	 <aambrozewicz@nvidia.com>
+Cc: Donald Shannon <donalds@nvidia.com>, Rob Herring <robh@kernel.org>, 
+ Krzysztof Kozlowski	 <krzk+dt@kernel.org>, Conor Dooley
+ <conor+dt@kernel.org>, Linus Walleij	 <linusw@kernel.org>, Bartosz
+ Golaszewski <brgl@kernel.org>, Lee Jones	 <lee@kernel.org>, Pavel Machek
+ <pavel@kernel.org>, Andi Shyti	 <andi.shyti@kernel.org>, Mark Brown
+ <broonie@kernel.org>, Jiri Slaby	 <jirislaby@kernel.org>, Corey Minyard
+ <corey@minyard.net>, "Rafael J. Wysocki"	 <rafael@kernel.org>, Len Brown
+ <lenb@kernel.org>, Jonathan Corbet <corbet@lwn.net>,  Ilpo
+ =?ISO-8859-1?Q?J=E4rvinen?=	 <ilpo.jarvinen@linux.intel.com>, Sakari Ailus
+ <sakari.ailus@linux.intel.com>,  Hans de Goede <hansg@kernel.org>, Lixu
+ Zhang <lixu.zhang@intel.com>, Danilo Krummrich <dakr@kernel.org>,  Johan
+ Hovold <johan@kernel.org>, Oliver Neukum <oneukum@suse.com>, Quan Nguyen
+ <quan@os.amperecomputing.com>,  Andrew Jeffery
+ <andrew@codeconstruct.com.au>, linux-usb@vger.kernel.org,
+ devicetree@vger.kernel.org, 	linux-gpio@vger.kernel.org,
+ linux-leds@vger.kernel.org, 	linux-i2c@vger.kernel.org,
+ linux-spi@vger.kernel.org, 	linux-serial@vger.kernel.org,
+ openipmi-developer@lists.sourceforge.net, 	linux-acpi@vger.kernel.org,
+ linux-doc@vger.kernel.org, 	driver-core@lists.linux.dev,
+ linux-kernel@vger.kernel.org, Bart Van Assche	 <bvanassche@google.com>
+Date: Fri, 30 Oct 2026 12:06:15 +0800
+In-Reply-To: <c569c912141e9da7530121b8b2fc81527e0518a4.camel@codeconstruct.com.au>
+References: <20261012-lstp-usb-adapter-v1-0-aambrozewicz@nvidia.com>
+		 <2026101310-scuttle-unison-d4c3@gregkh>
+	 <c569c912141e9da7530121b8b2fc81527e0518a4.camel@codeconstruct.com.au>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2-0+deb13u1 
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -119,17 +88,72 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0i0YoOW+ueh_aZJdYVS0etuCqfrf_S0NTKzCE9_6oKxPQ@mail.gmail.com>
 
-On 28-10-26, 16:39, Rafael J. Wysocki (Intel) wrote:
-> I'd expect the driver core to pick up the series as a whole then, so
-> please feel free to add
-> 
-> Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org> # cpufreq
+Hi Greg,
 
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+> FWIW, we did raise greybus as an approach to various HW vendors; I
+> assume there were reasons behind OBMF-ICP, and assume some prior-art
+> assesment was involved, but I don't have specifics for those reasons.
+>
+> HW peeps: This would be an excellent opportunity for elaboration on the
+> motivation there, either for LSTP or OBMF-OCP.
 
--- 
-viresh
+I have been doing some asking around, and a few items came up around
+motivations for OBMC-ICP over Greybus. My motivation here is entirely
+around OBMF-ICP; the NVIDIA contributions for LSTP somewhat comes under
+this, and so we're working on composing a unified solution.
+
+Collating some of those items here:
+
+As a bit of background, the typical use case for OBMF-ICP is for
+platform pre-boot environments, with limitations in capabilities of both
+the hardware and software stack. Microcontroller and mask-ROM
+implementations of either side of the protocol are potential targets.
+
+This leads to the structure of OBMF-ICP being intentionally
+light-weight; the channel configuration (ie, definition of the
+encapsulated devices) is static, and the channel-level messaging is kept
+simple, mainly through a requirement of only one message in flight per
+channel.
+
+[Greg, this is related to one of your points around why not use a
+multi-function USB device for individual, separate devices: the typical
+device-side hardware does not have support for enough USB endpoints to
+do so. Like greybus, the intention is to be able to support multiple
+downstream peripherals without constraints from USB hardware on existing
+SoC devices]
+
+There are a few design points that lead to the preference for OBMF-ICP:
+
+The front-loaded configuration mechanism means less state to manage on
+both sides of the protocol; the channel set and channel-specific
+parameters (like individual GPIO descriptors and flash geometry) being
+stable over the lifetime of the device means simpler core protocol
+support and channel driver implementations.
+
+The simpler channel communication protocol is better suited to
+lower-complexity interfaces that are needed for the pre-boot
+environments (GPIO control, uart, IPMI, flash access) than the greybus
+targets for mobile device runtime, with higher-bandwidth communication
+requirements (camera, audio, display). For example, typical platform
+management functions generally involve a lot of short i2c operations -
+ICP messages for these are around half the length of greybus
+equivalents.
+
+For the platform-boot use-cases, we would need to provide a bunch of new
+channel definitions for greybus. This certainly isn't a showstopper in
+itself, but the specification does not appear to be in active
+development; last change was 10 years ago, and the spec repository has
+since been archived as far as I can tell (and so is read-only).
+
+With OBMF-ICP's super-minimal core protocol, and the use-case
+appropriate channels, seems like a suitable approach to me.
+
+The USB-IF has a class ID allocated for OBMF-ICP interface descriptors,
+with the intention that we have multiple vendor implementations of the
+common protocol; we would like Linux to be one of those.
+
+Cheers,
+
+
+Jeremy
