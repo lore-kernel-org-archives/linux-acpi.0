@@ -1,58 +1,70 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.67.36.65
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=80.241.56.161
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793479949;
-	b=MQyTuRlAbbzSFKICr6Zn17J4lizI0YiLvrFTQolrLHHp7pvvZDhhCMtgm6C1OOvhpoFF
-	 Rtjya9RIZV6Q/vNjwcXhobnImZ2GrEEPhUBBQZgxSsFEJEdHXL27XdGPUwYlXDzGINsdn
-	 haNcXjjL9CejU3uRzfTmpZyKXhyac64Z09csSVFOimLVhmeJDzt4/8oXaS+GFB/xXWzrz
-	 DK2j8wSAexJ/hqX4pX4QgjEPPOC7do/bKaOzL8fYXLWHGQtkpM4Xbvm0UWXeX5trAdXLQ
-	 4QfpFAwNHp1RFYSYn2R8sPD9/VM1ty6ETb3U/nFwFg6XzO2dielChEMBFVbPK6Dsc5Q==
+	t=1793481585;
+	b=lovFeAztL9IV3iB7S072jfo+tnnpr5OeMO/K4UiBvW3I0T6TXrsECVVgb1fMhO8kmwE+
+	 +G4m+42pgtcgGasvy+kv+716GVduWacVF/o7jJNLbH7jYY81TgMFpHi7PQOdkqVrOL+Em
+	 oC6ZiNR4PrMDx1xG+ZYCMwiM3ZdH+6jGcmQVpLLib4kNHOcDGTcG6V2vSWA5dNeELzWNB
+	 4dIvRk4KAri3OjeNO/sN3/2MH01RPm/OBroRkp1a84f2NH90dV7U81+c4ou0ZxnwRpB1B
+	 niN8LyKtwNWl/NCvjuA+YAK3cXBRxajU3i+rtxlUCsVYbb1TSO/Q12ruI+HSs6B0nAg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793479949;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:From:Date:Subject:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:To:Cc:
-	 X-Developer-Signature:X-Developer-Key:Autocrypt:OpenPGP;
-	bh=4KZfnZZWUgpacNaNvWb37H6nYeezWlIgqRQQEVtr3Zc=;
-	b=bzTulF/VK2Dxdxm/GAbeYZYTdQ35MAQPSQq/JsJFRRbSud/SYFexLj91o5ZoVAsM1YzP
-	 bF6Ha5+tKrrMCSkOh5jfZwh6vP9BsJAwhQ8cUiH/pDoatlO042suNc0IkN36JsPfsqQ/t
-	 stXNjSirGNpdy9qlq9+pNAlL7SwMpLcU31tR02BiQICiwLaKphM7qKPIOCGyO9GDva/kg
-	 VQ/gUGnF0nIUihLB9Jp73gFAvnAbEIHNjPfdGocJFjPwj6U9tdRNWbKZUfvOIHueHyQlv
-	 gOU1AiGkHFGq3Rk//xxJbjTel1hV9lF4FMBqshnMivKCDTmV8EyKx8Z1XTPTaiUl2Jg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793481585;
+	h=DMARC-Filter:Received:DKIM-Signature:From:To:Cc:Subject:Date:
+	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-Rspamd-Queue-Id;
+	bh=TVqsR35WozbLQWISeo2x6pd7V/DMSF3VB/0ejZyMr9g=;
+	b=T6NLPzlAgSMKkPTtnGHxGr2pVK2+6vC6j0m0BZcxmygBbBLA7q2XCSnFIQBfLXSNNj5F
+	 cke9wASdf0p1LFGX2kscAwqCYpfxNOiLNadhbrQZFJ6ual0cANd1urebDIfz+P6OigECk
+	 KWvM9frcnWoVw7r1DGFtVRgIFgvmAKEvhUCg7nQeHwKhXZW4I6037AK0zA52vbXSwi/Gg
+	 HknWbDqBT3j5GClN6WW3gUJs/nTLs9qJf7ad6Q44IbQ+1qqWPP4LVEouxBDFzIiYZJcco
+	 kVbB4E+/Z6pWuKQzIj8OdlqGMdRl2bh/gJ8VJlIzpSdceZrPH26l+CB81zDxa+F+wMQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=posteo.de;
-	spf=pass smtp.mailfrom=posteo.de;
-	dkim=pass header.d=posteo.de header.i=@posteo.de header.a=rsa-sha256 header.s=1984.8680eb header.b=YoHrchRv;
-	arc=none smtp.remote-ip=185.67.36.65
-Received: from mout01.posteo.de (mout01.posteo.de [185.67.36.65])
+	dmarc=pass header.from=hsal.es;
+	spf=pass smtp.mailfrom=hsal.es;
+	dkim=pass header.d=hsal.es header.i=@hsal.es header.a=rsa-sha256 header.s=MBO0001 header.b=nVO+XZGu;
+	arc=none smtp.remote-ip=80.241.56.161
+Received: from mout-p-103.mailbox.org (mout-p-103.mailbox.org [80.241.56.161])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E60B9606A31A
-	for <linux-acpi@vger.kernel.org>; Sat, 31 Oct 2026 20:52:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E60B9606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=posteo.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=posteo.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 872FF606A329;
+	Sat, 31 Oct 2026 21:19:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 872FF606A329
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=hsal.es
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hsal.es
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=posteo.de header.i=@posteo.de header.a=rsa-sha256 header.s=1984.8680eb header.b=YoHrchRv
-Received: from submission (posteo.de [185.67.36.169]) 
-	by mout01.posteo.de (Postfix) with ESMTPS id AA421240029
-	for <linux-acpi@vger.kernel.org>; Sat, 31 Oct 2026 21:52:25 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=posteo.de;
-	s=1984.8680eb; t=1793479945;
-	bh=4KZfnZZWUgpacNaNvWb37H6nYeezWlIgqRQQEVtr3Zc=;
-	h=From:Date:Subject:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:Message-Id:To:Cc:Autocrypt:OpenPGP:From;
-	b=YoHrchRvfgv8ULgnbU9kzaZ4GHaHsxSqfdC1b9VIRQOe+W0EzypBcXbRttoWIMbaZ
-	 9Yta8xAk0nad8Ts6vcefhnIKQCtAv9u4sdGYXgXYnf3rKPl++uRZ1zMKnBa2mjIAny
-	 SyI6ZqipahKd4eO7cYX79U93MH+z369UXbQNwxbJXKVdAuHJJlMTGaF9r4EPXRafOC
-	 wMxjeLvMdsnkxyAe2OwtqgcZvXJMDMpkEpiIoHJYYm40NBfT61YXdpPZGMTnqmcfM/
-	 dwMDKKeUkYPdR8pQkMDtvbC3dVCtyo6idoqvC9bNhNujviKLvostU1SHuZYib/z4c7
-	 zVfN4F+8vqw/g==
-Received: from customer (localhost [127.0.0.1])
-	by submission (posteo.de) with ESMTPSA id 4jH9Bw4kDFz6txn;
-	Sat, 31 Oct 2026 21:52:24 +0100 (CET)
-From: Markus Probst <markus.probst@posteo.de>
-Date: Sat, 31 Oct 2026 20:52:25 +0000
-Subject: [PATCH RESEND v4] ACPI: SPCR: Support UART clock frequency field
+	dkim=pass (2048-bit key, unprotected) header.d=hsal.es header.i=@hsal.es header.a=rsa-sha256 header.s=MBO0001 header.b=nVO+XZGu
+Received: from smtp2.mailbox.org (smtp2.mailbox.org [IPv6:2001:67c:2050:b231:465::2])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519MLKEM768 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mout-p-103.mailbox.org (Postfix) with ESMTPS id 4jH9pQ0YjWzKmyK;
+	Sat, 31 Oct 2026 22:19:42 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=hsal.es; s=MBO0001;
+	t=1793481582;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=TVqsR35WozbLQWISeo2x6pd7V/DMSF3VB/0ejZyMr9g=;
+	b=nVO+XZGuXZW3rWSDx7c0JxpFvc+oiZDDvS1fN72r9OHRHKcuIexCJD7otMspcT56083bAW
+	AEotlQOj6wbvay/Mvxu/usXAiSjveukhc4eUbFuhASK5+w2eTqFTG9o4lMNdHOwKdnUgZW
+	sBJfjOrXTjarBt7qqlsI2V4hA1YDpkskqImXCR0llYg9OgErb6Bm7udSEIWkyK4ZKi+S9Y
+	bmKu2a++mc8E1peXLp3McvNnMbpE3JV14eAQczi0Tumguy9s9YZ5+VTEIkeoHROLUqd8Uz
+	bzqrS60z819fWZ7YXDMeYQnq2KknkAxypJxIXbH2o+IXlUi1YrIV9D6/vXN3Cg==
+Authentication-Results: outgoing_mbo_mout;
+	dkim=none;
+	spf=pass (outgoing_mbo_mout: domain of hugo@hsal.es designates 2001:67c:2050:b231:465::2 as permitted sender) smtp.mailfrom=hugo@hsal.es
+From: Hugo Sales <hugo@hsal.es>
+To: "Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 2/2] ACPI: AC: Add sleep quirk for ASUS ROG Flow X13 GV301Q
+Date: Sat, 31 Oct 2026 21:19:38 +0000
+Message-ID: <20261031211938.581230-3-hugo@hsal.es>
+X-Mailer: git-send-email 2.56.0
+In-Reply-To: <20261031211938.581230-1-hugo@hsal.es>
+References: <20261031211938.581230-1-hugo@hsal.es>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -62,224 +74,82 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261031-acpi_spcr-v4-1-c14f00a4f33f@posteo.de>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
- Jiri Slaby <jirislaby@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
- Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, 
- linux-acpi@vger.kernel.org, Markus Probst <markus.probst@posteo.de>
-X-Developer-Signature: v=1; a=openpgp-sha256; l=6200;
- i=markus.probst@posteo.de; h=from:subject:message-id;
- bh=GF3qJ28po4tzQKhOOmc1ZjYhXtmA/fVN39S6nEBHPRI=;
- b=owEBiQJ2/ZANAwAIATR2H/jnrUPSAcsmYgBq5lT/9e9Wv1jgcQFzLHb76R8d9Cx1gqYAt3AgV
- zAc+lQWQbSJAk8EAAEIADkWIQSCdBjE9KxY53IwxHM0dh/4561D0gUCauZU/xsUgAAAAAAEAA5t
- YW51MiwyLjUrMS4xMiwyLDIACgkQNHYf+OetQ9KPIg/+Ib4CuK7eUQ/ugaSi/2dld/ZMMxa6I9t
- 0XkVCIodTP9jUAcm3paeZ+ZATtXCAqYxdn4jpybl+EQ+TZKGpcH3AK1DIhZhp8DS6YN8Zwe+B+R
- Vj8JeoiiAHPD+EimV0befB+SxNSXNEjg/RMGbENBpgtlcyXqbIhFTKLP6FK6igzz+iDHfouRTo4
- JSbRSAENg075pFmN9XQQT40JqDyebyEvN5hbJR6NXJjUnyNHcwiW9DQerY7xR3EdbjyrwUtjcJj
- MvjZsnLq2bTXwIB5Y+Irrs26gKA2OUc+N25JQBDrvF/7El5Sn5D39gGyTgMynvMM38lqRb0f1VP
- 82cZkne9hdbvZ1VRFEnYTkY4JK/8o2fCWClEnSzgMhFrdvbeKH5hQVP/F7F02db2jF7By4ndTMA
- P8Vo9xF3Zs076+NJkKYg2HLv6sTm49c/Y3dYockjQNntedaAAbFcfeT3hGzcnjHTaHH6wB0T8aU
- OK7rVMz7HeeBwQBa4UK1OtQlGBqZUoq/dm/fHHrQrKAlGkZ4j0dkglD6XhzjrtVEChRn/x3LPR1
- +LPU163vAn6wf31pe9hjj4xQXwh6FulQwomdb1QtzPBkgrMnLUEdyum98YnBw4uWTs1E2a89wNH
- 3hq0wIuIXF/c7l2S5+aP7uXRUs2w3GBjQEvC5yqkRH5DjKpTPTX8=
-X-Developer-Key: i=markus.probst@posteo.de; a=openpgp;
- fpr=827418C4F4AC58E77230C47334761FF8E7AD43D2
-Autocrypt: addr=markus.probst@posteo.de; prefer-encrypt=mutual;
-  keydata=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
-  aBeNN4ijKZchBXHPgVx+YtWRHfcm4l8=
-OpenPGP: url=https://posteo.de/keys/markus.probst@posteo.de.asc; preference=encrypt
+Content-Transfer-Encoding: 8bit
+X-Rspamd-Queue-Id: 4jH9pQ0YjWzKmyK
 
-Prior to this patch, we assume the uart clock frequency is 1843200 Hz in
-the early console. This behaviour results in garbage console output if the
-actual uart clock frequency differs.
+On a plug-in, this laptop's EC handler notifies AC0 once, before the
+adapter status bit that _PSR reads is set. The driver reports the
+adapter offline and no second notify follows, so user space that
+switches power profiles on the AC uevent, such as asusd, stays on its
+battery settings. Unplugging is not affected
 
-The UART Clock Frequency field was added in the Microsoft Serial Port
-Console Redirection (SPCR) specification revision 1.08. If present, use it
-to configure the serial port with the correct uart clock frequency.
-Fallback to old behaviour if missing.
+Add the machine to ac_dmi_table with ac_sleep_quirk(), the 1s delay
+already used for the ThinkPad E530
 
-Add function `setup_earlycon_with_uartclk` to set uart clock frequency
-while still allowing to reuse the same console string with
-`add_preferred_console`.
-
-Link: https://learn.microsoft.com/en-us/windows-hardware/drivers/serports/serial-port-console-redirection-table
-Signed-off-by: Markus Probst <markus.probst@posteo.de>
+Signed-off-by: Hugo Sales <hugo@hsal.es>
 ---
-Changes in v4:
-- merge patches together
-- rewrite commit message
-- Link to v3: https://patch.msgid.link/20260615-acpi_spcr-v3-0-9a59ebad74ea@posteo.de
+The EC's plug-in handler, from iasl, without the EC locking and the
+ASUS WMI event calls, and with its two sleeps merged:
 
-Changes in v3:
-- add separate function for earlycon with uartclk
-- Link to v2: https://patch.msgid.link/20260525-acpi_spcr-v2-0-c042089d73ca@posteo.de
-
-Changes in v2:
-- fix uart_clk_freq possibly being interpreted as parity/bits/flow
-- Link to v1: https://patch.msgid.link/20260505-acpi_spcr-v1-1-fd4bc6f4eb53@posteo.de
----
- drivers/acpi/spcr.c           |  3 ++-
- drivers/tty/serial/earlycon.c | 17 ++++++++++++-----
- include/linux/serial_core.h   | 11 +++++++++--
- 3 files changed, 23 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-index 73cb933fdc89..c79c809f49d4 100644
---- a/drivers/acpi/spcr.c
-+++ b/drivers/acpi/spcr.c
-@@ -228,7 +228,8 @@ int __init acpi_parse_spcr(bool enable_earlycon, bool enable_console)
- 	pr_info("console: %s\n", opts);
- 
- 	if (enable_earlycon)
--		setup_earlycon(opts);
-+		setup_earlycon_with_uartclk(opts,
-+					    table->header.revision >= 3 ? table->uart_clk_freq : 0);
- 
- 	if (enable_console)
- 		err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
-diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
-index ab9af37f6cda..5a20fe9e3fb6 100644
---- a/drivers/tty/serial/earlycon.c
-+++ b/drivers/tty/serial/earlycon.c
-@@ -135,11 +135,14 @@ static int __init parse_options(struct earlycon_device *device, char *options)
- 	return 0;
- }
- 
--static int __init register_earlycon(char *buf, const struct earlycon_id *match)
-+static int __init register_earlycon(char *buf, unsigned int uart_clk_freq,
-+				    const struct earlycon_id *match)
+ Method (_QA0, 0, NotSerialized)
  {
- 	int err;
- 	struct uart_port *port = &early_console_dev.port;
- 
-+	port->uartclk = uart_clk_freq;
-+
- 	/* On parsing error, pass the options buf to the setup function */
- 	if (buf && !parse_options(&early_console_dev, buf))
- 		buf = NULL;
-@@ -163,8 +166,9 @@ static int __init register_earlycon(char *buf, const struct earlycon_id *match)
+     If (ACPS ()) { ACPF = One } Else { ACPF = Zero }
+     Notify (AC0, 0x80)
+     Sleep (0x6E)
+     NBAT (0x80)
  }
- 
- /**
-- *	setup_earlycon - match and register earlycon console
-- *	@buf:	earlycon param string
-+ *	setup_earlycon_with_uartclk - match and register earlycon console
-+ *	@buf:			      earlycon param string
-+ *	@uart_clk_freq:		      uart clock frequency in Hz or 0 for BASE_BAUD*16
-  *
-  *	Registers the earlycon console matching the earlycon specified
-  *	in the param string @buf. Acceptable param strings are of the form
-@@ -177,10 +181,13 @@ static int __init register_earlycon(char *buf, const struct earlycon_id *match)
-  *	<options> string in the 'options' parameter; all other forms set
-  *	the parameter to NULL.
-  *
-+ *	If the uart clock frequency is specified in the 'options' parameter,
-+ *	the value of the param @uart_clk_freq will be ignored.
-+ *
-  *	Returns 0 if an attempt to register the earlycon was made,
-  *	otherwise negative error code
-  */
--int __init setup_earlycon(char *buf)
-+int __init setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq)
- {
- 	const struct earlycon_id *match;
- 	bool empty_compatible = true;
-@@ -209,7 +216,7 @@ int __init setup_earlycon(char *buf)
- 		} else
- 			buf = NULL;
- 
--		return register_earlycon(buf, match);
-+		return register_earlycon(buf, uart_clk_freq, match);
- 	}
- 
- 	if (empty_compatible) {
-diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-index bdc214386e4a..9b2bcd4295a9 100644
---- a/include/linux/serial_core.h
-+++ b/include/linux/serial_core.h
-@@ -1099,11 +1099,18 @@ int of_setup_earlycon(const struct earlycon_id *match, unsigned long node,
- 
- #ifdef CONFIG_SERIAL_EARLYCON
- extern bool earlycon_acpi_spcr_enable __initdata;
--int setup_earlycon(char *buf);
-+int setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq);
- #else
- static const bool earlycon_acpi_spcr_enable EARLYCON_USED_OR_UNUSED;
--static inline int setup_earlycon(char *buf) { return 0; }
-+static inline int setup_earlycon_with_uartclk(char *buf, unsigned int uart_clk_freq)
-+{
-+	return 0;
-+}
- #endif
-+static inline int setup_earlycon(char *buf)
-+{
-+	return setup_earlycon_with_uartclk(buf, 0);
-+}
- 
- /* Variant of uart_console_registered() when the console_list_lock is held. */
- static inline bool uart_console_registered_locked(struct uart_port *port)
 
+ACPS() returns bit 0 of an EC status register, and _PSR reads the same
+bit. Polling the online attribute put the change 392ms after the
+uevent. The battery handler _QA3 notifies AC0 too on some paths, which
+hid the quirk now and then. On an unplug the bit is already clear when
+_QA0 runs, so the notify reports the right state
+
+With the quirk, both plug-in and unplug events reach user space 1s
+later, with the right state
+
+The delay runs in the notify handler on kacpi_notify_wq, as it does on
+the E530. acpi_s2idle_wake() flushes that queue after dispatching the
+EC GPE, so an AC event during s2idle keeps the CPU out of idle for up
+to 1s, and a suspend or resume right after an AC event can take up to
+1s longer
+
+Tested on a GV301QH (BIOS 418). The match covers every product name
+containing "ROG Flow X13 GV301Q", which includes the 2021 GV301QC and
+GV301QE: a public DSDT dump of the GV301QE (BIOS 413) has the same _QA0,
+ACPS() and AC0._PSR line for line [1]. I found no table dump for the
+GV301QC, but a GV301QH board has been seen labelled "gv301qc", so they
+appear to share it. The 2022 GV301R and the later GV302 have different
+product names, so the quirk doesn't apply to them
+
+[1] https://github.com/andrewrabert/asus-flow-x13-linux/tree/main/dsdt
 ---
-base-commit: 237a1c39e8dfd3e1c6f1f023eea37a48ec04cc63
-change-id: 20260430-acpi_spcr-61902fd923f2
------BEGIN PGP SIGNATURE-----
+ drivers/acpi/ac.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-iQJPBAABCAA5FiEEgnQYxPSsWOdyMMRzNHYf+OetQ9IFAmqOIQQbFIAAAAAABAAO
-bWFudTIsMi41KzEuMTIsMiwyAAoJEDR2H/jnrUPSt08QALWMim65nIIS428BheYg
-aq6BqxDGGqORhlf7aCFGTtNaeNDsu1Tny7sNTe+TEXpKl+AwoFTJ+4+bxl50AYyp
-8Niod0JGjEoxkQKsU/aScvCvEvMuPXOABfUGFtzieNpfswU2n6LHjywy+RP1mTEn
-aPP1arQGGGhe5b5lvolREN0VbGvymtiLr6P+qOhs76ib/dkOegq2/njBX7UlQ7Fy
-dIQo1A/NayUn5F7VWQKUz6ZHLX9bVZYSe2gstKpl5C8Ybwfaj/HgeT1TAdMoQ2K/
-KG0HgcWwIyoIaIms+yED6WSQKJwexx4zn/t2w/Qi2eSVF6WSqNdY3rrHf3sY3luj
-g5wYs2AvNnGjQU6iNGs7DLwwasHgqwZcOwRIdTvY8z3UP5Wpj5y01a+dJJG378zR
-cZhEQUmDn21jBlJvpqSKUoNRZc1L/8uNfQLbnOMVBNOUBXIQ9Z29j2IkqGsYeTG8
-uUndjyA/2SlEU29w2G6/MnJykNiW4oMxryXabXvh8dXc+SPQkUIM71ivo4y2/HgM
-3XGz9l+cgJk61F0oAHtzie7MorsEGVLMA2n4TpibkUCLRIjK3e5QvEBDHZILWHPA
-k2b8dkF2cdu8Q4nbI3PzXUFzuq/rsBpncSvYd/zDQrEMxzhNUVmuX7B9Ws7I0P36
-VKkGQqUFJNNx7LLynD7XaJ7l
-=nupY
------END PGP SIGNATURE-----
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 1cd7482bc0246..b014028555de9 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -172,6 +172,18 @@ static int __init ac_only_quirk(const struct dmi_system_id *d)
+ 
+ /* Please keep this list alphabetically sorted */
+ static const struct dmi_system_id ac_dmi_table[]  __initconst = {
++	{
++		/*
++		 * ASUS ROG Flow X13 GV301Q notifies AC on a plug-in about 400ms
++		 * before _PSR reports it online. Seen on the GV301QH, and the
++		 * GV301QE runs the same EC handler
++		 */
++		.callback = ac_sleep_quirk,
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "ROG Flow X13 GV301Q"),
++		},
++	},
+ 	{
+ 		/* Kodlix GK45 returning incorrect state */
+ 		.callback = ac_only_quirk,
 -- 
-Markus Probst <markus.probst@posteo.de>
+2.56.0
 
