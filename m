@@ -1,91 +1,116 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.43
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.169
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793457681;
-	b=n2zO5f9HTOyV4ih8dp/eyj1RXJYaH4mfXup56500O0eaQG9KcRyA0MVjtGKwhs6J3rxo
-	 EF9ooFjPgjbklTyBbMg3sa4/wlfR8Ye/JtN2OTADWWDmZxSLwuPbv0OIEia/2tmYjVQPA
-	 emtnkd85C9RMnChuXETUKIV6ArncNd2q/PxZNlNarI6JO7kefZACqa31VpNzPk/OLJBcB
-	 8W8WMegWokZmnh3OZnFMfQ01vpLfuAP3VYIfToQYRFWWlHR3RFhwzu651DHTQJoQ1pBVr
-	 QM8obWFFREAgQoUEgcF3GuiF/llcJEgABanf0mnNNxRJalBBgYaegdnhPTV3tfoPvgA==
+	t=1793473831;
+	b=Q4xiAXSHMmFsLeFXt7zHxNUHIeHE7CpVbEyLZm7RQGfz5a5waEihSznS38U58z6IrVX+
+	 JvfI+wOToKT+XI1C1PJZhJdppFONdwFn1Qx+vPGsav0ZFbUfpePV2us0icKoqBLTZ8mjm
+	 2H+Gtdt9Fs+zdDYXCXTm/hgbd3wG5PKHknyXUC1ectEobHSC388GtKT8N5WfgtfrThNEV
+	 UAuzP98mmsh588HFVg8X/Kw3MnwE32/eKaTHgYOGGrumWEqEWK3zjxEXY9+ufI8dDAMl8
+	 AamPm0PsKszyr4P31h8cP++d5iijW+oF6CWQ/V2ww0AAqXd7IThXY9tblgwrnmI8Tpw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793457681;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793473831;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=oCTOQEu19vJBXJZSzplSgZ0tLJZz7jYyxcdF5qx0J8A=;
-	b=A4fUzdGtvea1pRnb+fxeBedqrQ3ellzMaDx4V95GygslH7U36f7pdR3hc6CShapL/ozh
-	 ov1GH+0egtJcLK2MW0qMrTt5GAjOUwS7Ud4epu0oovIip6sn+rQgsil7tZ/cVM7PCwFQA
-	 VTCf+66RfiJ1JVmWCrRdzjKemKTc1QbbmNI3lz1lnd7QatSEjHG/Qb0odlONoNswWYulH
-	 mcMqRY/KLYPC2d9pN+cn0gzvxGAlVdN2WenALnZPtbbHwkIyMAVgNMyn+0ZNkIkiZaDEg
-	 hj8IdTYemIMpt7hjtT3n+N67HDUo4Ly2RXTyDLN1IeuOwRXUQ8Yld3UERR9V6OjduEg==
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Content-Type:Date:Message-Id:Cc:Subject:From:To:In-Reply-To:
+	 References:MIME-Version:Content-Transfer-Encoding;
+	bh=P15p9Hb5w1tBvsdlJFg638wJNRLHIyW6DyqlyUCSHFc=;
+	b=UbNndoIZTaVo0M5P50AjjmryezJehHJdpGWcy/c/893olrxHPR2LxZJn4wQzOxPrr/7S
+	 vKHl9N2zlXtdseVSFIX/XRe4rGL0PSTlg9bx+SAq27F6/xxZGFqVSN7vFZiMDHrun2Pnw
+	 OgE6IdSAY+Gc5sT1hMkgtRgwUWLm1fD70Ce9llEia8wjm/012k+lXUDn8n9f+MZBp85+Q
+	 l08H4w+qrZSMIt8BAf/20XeeUpWim1B5jZJGaj1Jn/g6qfSacus5Qq1GxCRKKCtDL3Jds
+	 5mq/rE8sq2/laMwV/XQVWjfNLzxMAr9z3eUmqWwl+klbYqnyb1T0/LYB6KX/7r6EkUw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=F+0Zn6Lp;
-	arc=none smtp.remote-ip=209.85.128.43
-Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
+	dmarc=pass header.from=nexthop.ai;
+	spf=pass smtp.mailfrom=nexthop.ai;
+	arc=none smtp.remote-ip=74.125.82.169
+Received: from mail-dy1-f169.google.com (mail-dy1-f169.google.com [74.125.82.169])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2016606A31E
-	for <linux-acpi@vger.kernel.org>; Sat, 31 Oct 2026 14:41:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D2016606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=F+0Zn6Lp
-Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-4a7992e2f7dso17537815e9.3
-        for <linux-acpi@vger.kernel.org>; Sat, 31 Oct 2026 07:41:20 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A847B606A31E
+	for <linux-acpi@vger.kernel.org>; Sat, 31 Oct 2026 19:10:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A847B606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nexthop.ai
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nexthop.ai
+Received: by mail-dy1-f169.google.com with SMTP id 5a478bee46e88-36a0f27c9f4so3123688eec.1
+        for <linux-acpi@vger.kernel.org>; Sat, 31 Oct 2026 12:10:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793457679; x=1794062479; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=oCTOQEu19vJBXJZSzplSgZ0tLJZz7jYyxcdF5qx0J8A=;
-        b=F+0Zn6LpVJkO0s9itSEl6vzhKyFlbNanlpwhwgkV95PMhEQYnpfvCMwa8aXCaV7/C2
-         b2s6hpnG07tyt6seYAbyNM7h4of6LC+dOWMG1XfIs1uoPUlRa5/WUtxpdyk+1hcqZJ6S
-         yo/cuiIQ82FH2/MzEkAoq1BGGhXsws1Tsva85OiEYDyl1sm4cs2IFxBQ6QqkLJldCAcM
-         IGGP3zyq8IVStMNZ2+ETWO0g8XNRdpo4inmSaGgNahygeF+nOnfqfGTudVtt6iVv6ocU
-         YAzS9Dfj5uPrio9CTuKUOI/AY74t3jIeiqw0wbRT1d+KjM0K9WOKZi7kv7J8gVojnZmn
-         xo2g==
+        d=nexthop.ai; s=google; t=1793473825; x=1794078625; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to:to
+         :from:subject:cc:message-id:date:content-type:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=P15p9Hb5w1tBvsdlJFg638wJNRLHIyW6DyqlyUCSHFc=;
+        b=M0iRGKX4ZakyHPXgwlWKQuWrbvUmrEt1k4+8j+Da6Dso/Dh7GSCRhGjVKtDYwfzJrj
+         2HEAllh00C24MUCD82TGUaZz4bWnjiMTRhAzuWXvWqNUwh9NIMyFAIxSoJmQ4tgmhnAF
+         F245HULIR/4UBpfnm4XNgJVWo0HiMpt1bXAuHbkJDG9vLis8pelTxr1WpUiwasUmrW+0
+         9tOkzQntOI0UA8bT96YYn1nh7WxQBJCWb1rCljfbu4Ofk4oPQ7yUkax5ncCroyqti4PR
+         O+aX72UPS59IWB8w+y+J4RXBJLyCiSRq72tVighCAw7INgBmnyi41FWHKGgDOpB397rH
+         f/EA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793457679; x=1794062479;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=oCTOQEu19vJBXJZSzplSgZ0tLJZz7jYyxcdF5qx0J8A=;
-        b=MaRXQvQpwr1bTFutDn0DPHnLXlHdZt1Fr6oMxk81d/rEY466u9uN+yUIFrDYF0kM7j
-         1VP0qtGtBsYQpot0B2atngYU2zECz7nFnDOj1k7nxuqh9K6+l5Hp2WRYBVN1wH+MWc7L
-         EchBXME5o3R7NmHlLgLWrhfj/Q1rJXY+lUkMfqqcM/WfpGC/hT/WnL6yvfKHrh+64m9j
-         xAWBGQ1T0NPDbg2bCjSYwPkOoHqD6tPGKhPw118xEx9LnJREbQRSmnb78Oly2pvJLJ1E
-         c9PjKTuqvYlJMMK/UmrZM8eLOztThxbbSOUJh8PyfZodkbCzi9HYDK7bks5DClRYjSqK
-         V3XQ==
-X-Gm-Message-State: AFq9FYKW+CdwsMuLkT46SdkJxiFoSmouo8sdUa9ykGJp7AATCbrVE830
-	XjaTeN+T9yvwqMbV41HItjBJyCkQtuWZQbczoTBj8AiiEUt0OMXnAMIv5uYg/ESp2KdwyWVm
-X-Gm-Gg: AYBFou145+5eE8qw1PQF2pPUS3L32NCWE4tKTplkcoCSAXLWmr2UcmyRvgdBdlwQobv
-	qJJVhP+wSKSs1vvFgXRqpQsg6JtQ8cskrh1NFD4YulF0Bynh7J1v+uTS+S1IwbqwJI6LqbfQbC8
-	X0gtoLfZ33E6/sBvUwm3U0mJ7V1kcl5TZC8Pm62t+MMk6/QDElP2FzbDi0x6912B2hBmMDnylmK
-	wUj1M4m3auhHL6MuUrFgfUd4lZ9YhAA46us/RirslvJvYQ5fIdgrThgX0MoJ/jQBYaf4z6322N9
-	3hVA1ZmHJ+ishgr9p6h4xk3C76ofuhqm/PVcedYjyCWfUXOVGYkayalfqQpgmeRg90jmSlc1y65
-	VocVJJjY5wzOAMRUUeDWLqtBLD3h30t8h7dCQER1MaZP53OevSNiUGD/omIYwgnqRSCI3e0LglK
-	Sq1Q6PKDwXs9o7/6v/oM8i6AUBfzJiIBky4NAkDJIj2SGJwPyPkp7YPdaQQx77XnPgVlWarW3UU
-	n/CB0AzL1Myxkv8U87LavB9/XIRuRLXsUYD+c4yUoo3rZdRejPivAm3LFa4uWVD6hPaBJRILRBM
-	h3dHL4IFYhbX2veto+GGFJNGWMzIpl5yHYjTMhwwBvCZ
-X-Received: by 2002:a05:600c:4e12:b0:4a2:a9:ed87 with SMTP id 5b1f17b1804b1-4ac1765cf2cmr129879855e9.19.1793457678846;
-        Sat, 31 Oct 2026 07:41:18 -0700 (PDT)
-Received: from localhost.netbird.cloud ([94.242.199.166])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4abf67aab10sm132090535e9.9.2026.10.31.07.41.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 31 Oct 2026 07:41:18 -0700 (PDT)
-From: Andrei Galiant <zakat1984@gmail.com>
-To: linux-acpi@vger.kernel.org
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	stable@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Andrei Galiant <zakat1984@gmail.com>
-Subject: [PATCH] ACPI: resource: Do IRQ override on MECHREV GM7RG7M
-Date: Sat, 31 Oct 2026 17:41:15 +0300
-Message-ID: <20261031144115.4189-1-zakat1984@gmail.com>
-X-Mailer: git-send-email 2.56.0
+        d=1e100.net; s=20260707; t=1793473825; x=1794078625;
+        h=content-transfer-encoding:mime-version:references:in-reply-to:to
+         :from:subject:cc:message-id:date:content-type:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=P15p9Hb5w1tBvsdlJFg638wJNRLHIyW6DyqlyUCSHFc=;
+        b=Zfi43noeZsV3jKIwAF5IeUtn/dATrgIGnpqjcPizgc8wxRJ4wraEcI7MgXsoebKGnp
+         5iS6nc6sRFx5LRPvPOT49dHMcChOqnuhajnf47e60P6qur1UyJ/a5vVnKlQj/ZinYJUX
+         QnbzBycCOMOBoAQLb4rgS3wpo4l4TN66lQjIVKpmTr2lzGlzn7+zU4X06W+95jefXL37
+         SrMnAMFsL+591gLqJImtnXwsoVbD49UU/QMS7UYMq8UP67kwUfFWWMNwmmBkqwCAut/A
+         CRJ2BR7MJBhsmVGSASXQhK+ciW1BSyGrVt9KLg1idDfKvNz4OKGdX1KYujtMvQbd237+
+         Hh2g==
+X-Forwarded-Encrypted: i=1; AKwUvBw2z3fguhorvh4XrpN2so8RzTNDE11jfbPMPFrnQSIN/IH/Ju41UddqaRJszeca5oIPqoO8wzJmtpBT@vger.kernel.org
+X-Gm-Message-State: AFq9FYIaTRf9JLgecfKbPBmzJAh/+hhYdXfc60tPaJJYvhvfkIadKmMK
+	5Ej4XM6wLlLgKC2nMiWA7BikJnSxeI/u7AlZyjKNnE9zqb0H8yC7oEShFKBNdDbSyyI=
+X-Gm-Gg: AYBFou1VUZTeHSAj4z8eIEOVg8Kg7gIGUnmMySCNR5RK5It923hVSc6sNYKDSzBuQDh
+	X2GmCczrBCOu3tPVE1tdQy5h1/9P3QWxe88TKBG/MIhY69LkoEq3GOGki0Y7YDvhGEI3YespS7K
+	RHHW5d1aDg7k4Ea2CXG72NaS7rBqsCQNW5dRhk3Kqjtm6xoDgZ6RhK4ZYd1bUdxkx4aRpUIJY0E
+	Rn6Sq/xuFp3FYY/Xt8SZz3eyBxxznQp4sEmlU9NPeAb3Maedkcm02yJEQU5fiWGZxWvRJMmOxsy
+	wncCs5tiDI41/epSl+C1439poRTCqwMEplh+3Zy+jgDTbHtwvUt02k/6hcBFaZNqiWgqhSSqqRn
+	Z0ATYFUQzmgh1Gi5VOH1FxpOKOfQyMZoKRuL56iPdVuhbzbvuDSfLVhJaxS7thwDP443c/hoK5g
+	369SBvCNcg0qClGjE1Vy41pBLSQV2YCSErAfSaOp+jeRWP4CeSs7LV8rA+Nw0YfMaWZ1bSRA22V
+	j6efkbDECRTfV3v2bAOg1hnxh7PMSEfDhB3/GCzbBlYmlQeHGTvzvDe0Mlt+oWx4e33Yyt8oev7
+	P+mBZvOhv0HHZao1mudjTq5ZiIXhfVQcqH0hdcKZgimDooxglnw=
+X-Received: by 2002:a05:701b:4515:20b0:166:5552:780a with SMTP id a92af1059eb24-1ac5b028b11mr7948547c88.8.1793473824427;
+        Sat, 31 Oct 2026 12:10:24 -0700 (PDT)
+Received: from localhost ([50.145.100.174])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1ac1b38ac58sm17384804c88.23.2026.10.31.12.10.23
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 31 Oct 2026 12:10:23 -0700 (PDT)
+Content-Type: text/plain; charset=UTF-8
+Date: Sat, 31 Oct 2026 12:10:22 -0700
+Message-Id: <DMJ9ERWOMF5G.3KVDIP2QE3A7J@nexthop.ai>
+Cc: "Richard Cheng" <icheng@nvidia.com>, "Andrew Lunn" <andrew@lunn.ch>,
+ "Rob Herring" <robh@kernel.org>, "Saravana Kannan" <saravanak@kernel.org>,
+ "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>, "Rafael J. Wysocki"
+ <rafael@kernel.org>, "Danilo Krummrich" <dakr@kernel.org>, "Bjorn Helgaas"
+ <bhelgaas@google.com>, "Charles Keepax" <ckeepax@opensource.cirrus.com>,
+ "Richard Fitzgerald" <rf@opensource.cirrus.com>, "David Rhodes"
+ <david.rhodes@cirrus.com>, "Linus Walleij" <linusw@kernel.org>, "Andy
+ Shevchenko" <andriy.shevchenko@linux.intel.com>, "Daniel Scally"
+ <djrscally@gmail.com>, "Heikki Krogerus" <heikki.krogerus@linux.intel.com>,
+ "Sakari Ailus" <sakari.ailus@linux.intel.com>, "Bartosz Golaszewski"
+ <brgl@kernel.org>, "Len Brown" <lenb@kernel.org>, "Davidlohr Bueso"
+ <dave@stgolabs.net>, "Jonathan Cameron" <jic23@kernel.org>, "Dave Jiang"
+ <dave.jiang@intel.com>, "Alison Schofield" <alison.schofield@intel.com>,
+ "Vishal Verma" <vishal.l.verma@intel.com>, "Dan Williams"
+ <djbw@kernel.org>, "Ira Weiny" <iweiny@kernel.org>, "Li Ming"
+ <ming.li@zohomail.com>, "Lizhi Hou" <lizhi.hou@amd.com>,
+ <driver-core@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
+ <linux-pci@vger.kernel.org>, <linux-sound@vger.kernel.org>,
+ <patches@opensource.cirrus.com>, <linux-gpio@vger.kernel.org>,
+ <linux-acpi@vger.kernel.org>, <linux-cxl@vger.kernel.org>, "Allan Nielsen"
+ <allan.nielsen@microchip.com>, "Horatiu Vultur"
+ <horatiu.vultur@microchip.com>, "Daniel Machon"
+ <daniel.machon@microchip.com>, "Steen Hegelund"
+ <steen.hegelund@microchip.com>, "Luca Ceresoli"
+ <luca.ceresoli@bootlin.com>, "Thomas Petazzoni"
+ <thomas.petazzoni@bootlin.com>
+Subject: Re: [PATCH v13 00/10] lan966x pci device: Add support for SFPs, PCI
+ part
+From: "Abdurrahman Hussain" <abdurrahman@nexthop.ai>
+To: "Herve Codina" <herve.codina@bootlin.com>
+In-Reply-To: <20261012142826.159178-1-herve.codina@bootlin.com>
+References: <20261012142826.159178-1-herve.codina@bootlin.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -97,50 +122,32 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The MECHREV Jiaolong17 Series GM7RG7M (TongFang GM7RG7M, Ryzen 7
-6800H) describes the PS/2 keyboard interrupt in its DSDT as
-edge-triggered, active-low and shared:
+Hi Herve,
 
-    IRQ (Edge, ActiveLow, Shared) {1}
+On Mon, Oct 12, 2026 at 04:28:14PM +0200, Herve Codina wrote:
+> Patches 8 and 9 fix fw_devlink issues specific to PCI and the
+> device-tree nodes created during enumeration.
 
-The keyboard controller actually asserts IRQ 1 active-high.  On AMD
-Zen systems acpi_dev_irq_override() skips the ACPI IRQ override for
-GSI 1, so the IO-APIC redirection entry is programmed with the DSDT's
-active-low polarity and the interrupt is never delivered: the embedded
-controller still scans the matrix and places scancodes in port 0x60,
-but atkbd_receive_byte() is never called and the internal keyboard is
-dead under Linux, while it works in the firmware setup, in GRUB and in
-Windows.
+We hit exactly this on x86 switch platforms with
+CONFIG_PCI_DYNAMIC_OF_NODES. A driver applies a device-tree overlay
+onto each Xilinx FPGA PCI endpoint and populates I2C controllers
+(xiic), watchdogs and GPIO blocks. Their interrupts go through small
+chained irqchips that are themselves fed by the FPGA's MSI vectors.
 
-Add the board to irq1_edge_low_force_override[] so that the standard
-edge/high override is applied, matching the already-listed sibling
-GM7XG0M (Jiaolong17KS).
+Without this series, fw_devlink drops every supplier link under the
+synthesized PCI root bridge node ("Not linking ... might never become
+dev"), so the irqchips end up with no consumers. Unbinding one of them
+frees IRQ descriptors that the I2C controllers and the watchdog still
+hold. We get a remove_proc_entry "removing non-empty directory 'irq/N'"
+WARNING per IRQ, and the I2C controllers are dead until reboot.
 
-Fixes: 9946e39fe8d0 ("ACPI: resource: skip IRQ override on AMD Zen platforms")
-Cc: stable@vger.kernel.org
-Tested-by: Andrei Galiant <zakat1984@gmail.com>
-Signed-off-by: Andrei Galiant <zakat1984@gmail.com>
----
- drivers/acpi/resource.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+With the series applied on v7.3, the device links are created (up to
+32 consumers per irqchip), and unbinding an irqchip now unbinds its
+consumers first. I tested on two platforms, with 2 and 3 FPGAs (4 and
+7 irqchips). Repeated unload/reload of the irqchip driver was clean
+every time, and everything probed again afterwards.
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 56df459..0a944ba 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -553,6 +553,12 @@ static const struct dmi_system_id irq1_edge_low_force_override[] = {
- 			DMI_MATCH(DMI_BOARD_NAME, "GM7XG0M"),
- 		},
- 	},
-+	{
-+		/* MECHREVO Jiaolong17 Series GM7RG7M */
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "GM7RG7M"),
-+		},
-+	},
- 	{
- 		/* XMG APEX 17 (M23) */
- 		.matches = {
--- 
-2.56.0
+Tested-by: Abdurrahman Hussain <abdurrahman@nexthop.ai>
 
+Thanks,
+Abdurrahman
