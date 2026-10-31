@@ -1,78 +1,64 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.17
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793422233;
-	b=cPCecnxkTHChYNtBckycF9jJQ9sYxclCQDI/GM4QGWfAkJHTfpJT95BEDIRhGWBhX3L+
-	 uunwZ2kWG25zUzj90q3Q2OrTL/9bYV3f3tP0UfhwdcOWy4c7eU8pTB+KwWNQNLvJ2owSn
-	 MnAMwqiI8sBvioo/uj6QZ5dcIUOkvcVNRONB0Aex+1KZXdz8ip79xJP042EwhmWgJnFL9
-	 tjlDm1QO/qXUuERE8OWQ/bCYkV5ppbpkhYXghtNgM5rgo8EbhRzJq4gVpLN6C06yU+RIz
-	 t5h0SLOKWXt+1FfEmBR6AmpkXFtBAyeuIPon2jc2kaRicGuw/aXzxd6AA0uYXS3omeA==
+	t=1793444460;
+	b=TJBCVQX1naDgg3G5RJbmjTTdk5c09flWR5xEqTpNC9B5Ly5zONYYV+MNX2CDEiAzfhHh
+	 W95Trbk1pUlx3QfxYpeLo/myW6tlPWqzhIBxRQSyG70EbC7AHeTST95oabyTTUIKN95RY
+	 itbgJ555At+9uqGJ6jKgl1Ark+KZykAh6Cq97IATp7aQKat65rMn0kiI83f1/8vxEKQ4P
+	 ZWCRbuX1Fa1pO2MzoDhAbErqzqCX0wyEnin+0BT7TV5bBdm0Hu4yI3DvV8SXvHNq5CnzO
+	 rpOmh9v2RqGFlw8dXhoCLmACGibIaYljBDNKWZygwM+uvg/y/cnwJm3a+gxaSIA46+w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793422233;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To;
-	bh=U0ah+/mdXfppCcH+FdTlHAr5Y6FK4dmXjWDNtY24zT8=;
-	b=LSQqm+uN11LcbgO7uOCMBE4IL/l58/MVoO6ZUHeEkeR0vfq4LujkSu3lmrgS+5XKaXLV
-	 6EwD4xn+ABWShsgDd1fnCF+D66mUm9C7UE/iXjuOpjN3zY1hQGR/rwxSC/zSrO0NTzB/+
-	 rkdaXwsRuIo+sqnUQxqocDcq6cNn4/m85dDI7BQ9CKbMsjsdlPAHUUBYnSFNApl0Zp1z1
-	 pdaVUFihDGylHxkMJXiOaeqhKGpoK5jLGyRAx+3BKBVRCIGvyVmlemllvZgYr+b7uXmUb
-	 XXhsz4VPrvzwveEtnqD4C08OFke28GhujHZX/TUkeZ+3wNPodEDcsTubAd2KXPWGwUw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793444460;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=bYKG5RgnATZ1B22wMaO0FmpK08dnO5PC7Iw5zWUVYBQ=;
+	b=nLIfTUMFHZrcTa+Zb5SQXovVG+esOrTUdUxYgcB1LhZXNMdop6RqQteouOHqO6z1jUHv
+	 HLO2/3gXZOoq5YEm3JMqrtadPuC865ZDh22lBmQEktTCf4D2E2I7Ceb4REZPEfTlGtmeC
+	 F8QSdkgJvPgQlk+zZezCr4EgyOEJMdqnhqh7XgyNhR51Iw+rJ8GFZo7Ud7cmEnp3nJE32
+	 WRpOcfYEbGzX9FY8GsrW27qw3krMZm1rs+IDYPMJnuDB2X8h1m0TbTsFZ4qPo4y4gXTtT
+	 1pCe6+ZcnFwJsmz3pMrRWzqLdHc52fAm3HuNcR8yeuLcy+cKZhwPdnzgOBr4e98qWfw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=RVVpX0zH;
-	arc=none smtp.remote-ip=198.175.65.17
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=MALobg8B;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBC73606A31A;
-	Sat, 31 Oct 2026 04:50:31 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BBC73606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0CF0606A31A;
+	Sat, 31 Oct 2026 11:00:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=RVVpX0zH
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793422232; x=1824958232;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=VQIxThp1B2mpWnsX0MaSqLPhRU+ui0ShDgvVHR25dYQ=;
-  b=RVVpX0zHVF2NYfL9h4VgwAQN0n0qBEKkVQgcKRBSKd0N/QoOKfDW9XaB
-   oHXNmo0uMBpqgYJxY1CfhaMFDwFT0nihK5cP5YsCOeANuygFs47TMS2Yu
-   B6CKGpAd+2FMi+6pa0xrNfLhy5Kg3rxkxujV/wn0SZ4aYbLb5jnsu0lm+
-   boZDMBZAkqADlKqbTt1tSMWul0b/f9D0uvGbqK8WIEz0KK208FeBti/Qv
-   V6nCDm4g0HFpczY0tjEJYdQ8UuTW6MHdLpuoyS7JBOzKI70dWIlrNM6j4
-   SZMdrZTj2zT0+omgZQxXVVaY2HttGBFP0SlIf6/837tTrYOgmoltgYwWj
-   g==;
-X-CSE-ConnectionGUID: Gd7xGkt8SniTi2EMU8bJGQ==
-X-CSE-MsgGUID: kHmBInVYQSWX4uw6IRDe3w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11951"; a="2199117"
-X-IronPort-AV: E=Sophos;i="6.27,186,1787036400"; 
-   d="scan'208";a="2199117"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2026 21:50:31 -0700
-X-CSE-ConnectionGUID: jh76AprFT1i2+5WyacK76w==
-X-CSE-MsgGUID: aWxndDEHTM6RBXMZz9Yrew==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,186,1787036400"; 
-   d="scan'208";a="5481267"
-Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
-  by orviesa005.jf.intel.com with ESMTP; 30 Oct 2026 21:50:30 -0700
-Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xN12x-00000000cXk-2XEz;
-	Sat, 31 Oct 2026 04:50:27 +0000
-Date: Sat, 31 Oct 2026 12:49:32 +0800
-From: kernel test robot <lkp@intel.com>
-To: Saranya Gopal <saranya.gopal@intel.com>, linux-acpi@vger.kernel.org
-Cc: oe-kbuild-all@lists.linux.dev, linux-pm@vger.kernel.org,
-	linux-kernel@vger.kernel.org, rafael.j.wysocki@intel.com
-Subject: Re: [PATCH] ACPI: s2idle: Handle shared _Ixx GPEs without an EC
-Message-ID: <202610311242.kB7pRXhy-lkp@intel.com>
-References: <20261030030515.3127310-1-saranya.gopal@intel.com>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=MALobg8B
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA92F1F000C1;
+	Sat, 31 Oct 2026 11:00:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793444459;
+	bh=bYKG5RgnATZ1B22wMaO0FmpK08dnO5PC7Iw5zWUVYBQ=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=MALobg8Bu9F/3yIq/k9Mn82q/PkyNtskHEivWNnu2umOmma1+Vk+AdKxj95fgmhwt
+	 xkBOG4pueys1OWzX9DTplvBKmEDT6JSDX97Ru1u8MAM9bJ5CJwTwygHqSJKPKtz5M5
+	 RGCmcHZHH4gm9CXcm/HjV1G+JDFlnvom9ak/u0jN4IRDmdo0vVZykMd3VrOnkVYgLg
+	 UZd+AtmsDO3CA5ASwp6SgbuUEor3uiKoyUJW79M4aGRY8dPBx68bsNcxYqz4mBBoZK
+	 A3kL9dnsY1pW6dO1ao42KW2usn9KKtvYIgW8of2Jcpgf6U9Ip+VYaNezEtw+vozDIu
+	 SmUJRu2qr1vfA==
+Date: Sat, 31 Oct 2026 12:00:53 +0100
+From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+To: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+Cc: Pierre Gondois <pierre.gondois@arm.com>, Tony Luck
+ <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
+ linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, "Rafael J.
+ Wysocki" <rafael@kernel.org>, linux-edac@vger.kernel.org, Vikram Sethi
+ <vsethi@nvidia.com>, Ashok Raj <ashok.raj@oss.qualcomm.com>, James Morse
+ <james.morse@arm.com>, Len Brown <lenb@kernel.org>, Shuai Xue
+ <xueshuai@linux.alibaba.com>, Maciej Wieczor-Retman
+ <maciej.wieczor-retman@intel.com>, Pawel Chmielewski
+ <pawel.chmielewski@intel.com>, Breno Leitao <leitao@debian.org>, Ard
+ Biesheuvel <ardb@kernel.org>, wanghuiqiang@huawei.com
+Subject: Re: RFC: ACPI code first proposal, _OSC to negotiate use of Memory
+ Section 2 CPER.
+Message-ID: <20261031120053.0141d7ab@foz.lan>
+In-Reply-To: <20261030143802.0000231d@oss.qualcomm.com>
+References: <20261030143802.0000231d@oss.qualcomm.com>
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.52; x86_64-redhat-linux-gnu)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -82,64 +68,124 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261030030515.3127310-1-saranya.gopal@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Hi Saranya,
+On Fri, 30 Oct 2026 14:38:02 -0700
+Jonathan Cameron <jonathan.cameron@oss.qualcomm.com> wrote:
 
-kernel test robot noticed the following build warnings:
+> Hi All,
+>=20
+> In the discussion of Pierre's patch #1 the question of how a firmware
+> could know to send the newer Memory Error Section 2 CPER rather than the
+> older record given it currently has no way of knowing what the OS support=
+s.
+>=20
+> Having discussed the problem inside Qualcomm, we can to the same conclusi=
+on
+> as in Pierre's thread - an _OSC is probably the easiest way to solve this.
+> Andrei then drew up a code first ECN proposal.  The text is below, tweaked
+> for plain text rendering. Link to proposal #2
+>=20
+> Please draw the attention of others to this. Feedback welcome either on
+> this thread, Pierre's thread or directly on the tianocore ticket.
 
-[auto build test WARNING on rafael-pm/linux-next]
-[also build test WARNING on rafael-pm/bleeding-edge amd-pstate/linux-next amd-pstate/bleeding-edge linus/master next-20261030]
-[cannot apply to v7.3]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+This sounds to be the best approach on my eyes.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Saranya-Gopal/ACPI-s2idle-Handle-shared-_Ixx-GPEs-without-an-EC/20261030-083515
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-patch link:    https://lore.kernel.org/r/20261030030515.3127310-1-saranya.gopal%40intel.com
-patch subject: [PATCH] ACPI: s2idle: Handle shared _Ixx GPEs without an EC
-config: x86_64-buildonly-randconfig-1000-20261031 (https://download.01.org/0day-ci/archive/20261031/202610311242.kB7pRXhy-lkp@intel.com/config)
-compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261031/202610311242.kB7pRXhy-lkp@intel.com/reproduce)
+>=20
+> thanks,
+>=20
+> Jonathan
+>=20
+>=20
+> # Title: OS support for CPER Memory Error Section 2 records
+> ## Status: Draft
+> ## Document: ACPI Specification Version 6.6
+> ## License: SPDX-License-Identifier: CC-BY-4.0
+> ## Submitters: Qualcomm
+>=20
+> ## Summary of the change
+> Reserves an additional Platform-Wide OSPM Capability bit to negotiate sup=
+ported CPER
+> record format for Memory Error Section (older MES vs newer and richer MES=
+2).
+> Memory Error Section 2 records are defined in UEFI 2.11, Section N.2.6 (A=
+ppendix N, page
+> 2171).
+>=20
+> ## Benefits of the change
+> Memory Error Section 2 (MES2) records were added in UEFI Specification 2.=
+11, yet no
+> mechanism to negotiate OSPM support for the new record type (Linux kernel=
+ support is still
+> being added upstream at the moment).
+>=20
+> This change proposes using a new Platform-Wide OSPM Capability to negotia=
+te between
+> firmware and the OS for enabling the new format. Until the added _OSC bit=
+ is reported by
+> OSPM, the older Memory Error Section records will be used. Although this =
+means a platform
+> may in practice have to support generating both record formats, this is s=
+een as a better than
+> always emitting old- and new- style records which would leave the
+> deduplication/reconciliation up to OSPM.
+>=20
+> ## Impact of the change
+> Platform firmware should only generate CPER MES2 records if OSPM declared=
+ support for
+> MES2 records. Otherwise, platform firmware should only generate the older=
+ MES records.
+>=20
+> ## Detailed description of the change [normative updates]
+>=20
+>=20
+> 6.2.11.2 Platform-Wide OSPM Capabilities
+> =E2=80=A6
+>=20
+> Table 6.13: Platform-Wide _OSC Capabilities DWORD 2
+> +---------+--------------------------+-----------------------------------=
+---------------+
+> | Bits    | Field Name               | Definition                        =
+               |
+> +---------+--------------------------+-----------------------------------=
+---------------+
+> | =E2=80=A6       |                          |                           =
+                       |
+> +---------+--------------------------+-----------------------------------=
+---------------+
+> | 22      | Functional Fixed         | The OS sets this bit to indicate s=
+upport for     |
+> |         | Hardware                 | the usage of Functional FixedHardw=
+are            |
+> |         |                          | (FFixedHW) OperationRegions.      =
+               |
+> +---------+--------------------------+-----------------------------------=
+---------------+
+> | 23      | CPER Memory Error        | The OS sets this bit to indicate s=
+upport for     |
+> |         | Section 2 Support        | MES2 CPER records. If not set, OS =
+support for    |
+> |         |                          | older CPER MES records is assumed.=
+               |
+> +---------+--------------------------+-----------------------------------=
+---------------+
+> | 31:24   |                          | Reserved (must be 0)              =
+               |
+> +---------+--------------------------+-----------------------------------=
+---------------+
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202610311242.kB7pRXhy-lkp@intel.com/
+My only concern is that it may run out of bits soon if we use those
+for each new incompatible types on CPER records.
 
-All warnings (new ones prefixed by >>):
-
-   In file included from drivers/acpi/sleep.c:26:
-   drivers/acpi/internal.h: In function 'acpi_ec_dispatch_gpe':
-   drivers/acpi/internal.h:262:17: error: 'ENOTSUP' undeclared (first use in this function); did you mean 'ENOTSUPP'?
-     262 |         return -ENOTSUP;
-         |                 ^~~~~~~
-         |                 ENOTSUPP
-   drivers/acpi/internal.h:262:17: note: each undeclared identifier is reported only once for each function it appears in
->> drivers/acpi/internal.h:263:1: warning: control reaches end of non-void function [-Wreturn-type]
-     263 | }
-         | ^
-
-Kconfig warnings: (for reference only)
-   WARNING: unmet direct dependencies detected for PM_GENERIC_DOMAINS_OF
-   Depends on [n]: PM_GENERIC_DOMAINS [=y] && OF [=n]
-   Selected by [y]:
-   - COMMON_CLK_MT8173_MFGTOP [=y] && COMMON_CLK [=y] && (ARCH_MEDIATEK || COMPILE_TEST [=y]) && COMMON_CLK_MT8173 [=y] && PM [=y]
+>=20
+> [1] https://lore.kernel.org/all/20261019203915.2019037-1-pierre.gondois@a=
+rm.com/
+> [2] https://github.com/tianocore/edk2/issues/13430
+>=20
+>=20
 
 
-vim +263 drivers/acpi/internal.h
 
-a6021aa24f64174 Arnd Bergmann 2024-10-11  258  
-a6021aa24f64174 Arnd Bergmann 2024-10-11  259  static inline void acpi_ec_flush_work(void) {}
-c644e4b14c9cb08 Saranya Gopal 2026-10-30  260  static inline int acpi_ec_dispatch_gpe(void)
-a6021aa24f64174 Arnd Bergmann 2024-10-11  261  {
-c644e4b14c9cb08 Saranya Gopal 2026-10-30  262  	return -ENOTSUP;
-a6021aa24f64174 Arnd Bergmann 2024-10-11 @263  }
-a6021aa24f64174 Arnd Bergmann 2024-10-11  264  
-
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Thanks,
+Mauro
