@@ -1,68 +1,120 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.15
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793651911;
-	b=E0pmZquRDDIPRjKtlbx+n4KgF9VVFJX4q0gQcVbYo8qc+57rUdPaW9jVV8B00Er8C/5D
-	 2l6opTXpoDNYNve2JwdncIZque0Z4/kfqts5QD5FyRHwidLyw42b8X04UQ4WA868Rizer
-	 eaV8/bX7pCwYjnF0B8Fdsat8Q12yYwgVF/y+vckMNmL/rzAX9L1Uvpz8g+O1/GQ+jiDRm
-	 Vo07t8zpl1LFxHDczUePk/0CqaLwSxtrGuQhNFkIHgCBvdhbMKZsJ/zQMabeB7CYUDcmr
-	 509R+HPhPZWCSY5LXwzoVOyqmQxuKBIcQGcGFFzO2vTXHcY6vdi4SX6JSfmkChdnMdQ==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793651911;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
-	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	bh=5LcGYg3nNUzRJnQm+K7RIrUIxDPgKMPd8NQr+QV64IA=;
-	b=rt//lZwKusPzuAImpeXPyi+fOrAvTC0ydGNAa0d/6xyBjEYbnRSsx6fKCd8kJ1jvAg8u
-	 qPryr+8lIfUoHjGojS8EuxsMJX45PTuj9QJozHAp5bHtfGH2KrdgJ+xUewEgqYIHr2z5c
-	 chKbKfCLN+bgba+LamZE7ckjlJuwzS1TSebHdEvqgy2PQO1fE7u0/vK1sJhEMFRWpJyJK
-	 v07Qqd9COUGSOWVBob4U9EotqNLffX2kItxlLWxCbv/MMzoCM2Xu2r4YxegXUhUejeP7G
-	 NU/LkCrvD6ZbkInUpGR1xoYs8KPU88r7V2dD1n1Sb8FCBlB5sd9TrA4KuBcQn3IaJdQ==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=bRty8RaI;
-	arc=none smtp.remote-ip=198.175.65.15
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=170.10.133.124
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793652794;
+	b=D6P/UPsAnqdPVrvVxeML3VKtb5nEXwcEN8PrCZY1ULFYbExqF77A0t/9GBxHYgq6dmY2
+	 6fCuJy12AcyzJCLMgoJJAduRlu2zTbZpvU4WspU/yZ41PDqqe3c8Cq4fw2/8qIyKNwniq
+	 14qSVVf04GdSWFxHyETt9x/RLGkEyAa1YKZWVR7bCUso2zz0y2//dtk12gySjTXXiQTvZ
+	 kvLPlJMJoDfkAuUoG8l4qXpVU6QjxRnEjjgi5H1lLRoN9IPOgZdxeHmrbkvbOjuUn+Bup
+	 K8lwC5kWc5uON43XTfis7EnRP8PJb22fvmArLi2JR7Ql1ZdRS7auYVWS/vFGFtXlnKg==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793652794;
+	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
+	 X-Mimecast-MFC-AGG-ID:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 X-Received:MIME-Version:References:In-Reply-To:From:Date:
+	 X-Gm-Features:Message-ID:Subject:To:Cc:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=117yBiLwKENKL+3PiWG/U5OMCVmGd5cgD5S+cpkVimE=;
+	b=MQiHq7A6R1DQboWHCZtXqfzX/6d18KTzCMTz6VE1SCbclxjcnoW7fYHPim6KWr51pOkr
+	 GjEm/UV8NaI5Dphz2fi8tGzV7VOwG5UVhKmzowVU2hYlzMEoG3wbr5sk9Oq+XMgiHBVeH
+	 8B9FpyhJLHUoa7U5la2E0RgzZO6Pg3lGyF0Am3Zn+JZmpCd1Ahk5rS6n83o0s0MnKurjH
+	 epoM5ql5/FNvzfcZqi2xNowEZm4BkDPTmEukr0u4bPI2FXnRqLwPzaF3BalFZCcxDzPNp
+	 r3xQ8k6qw0Wl5Hy4nLik4GMUdl6qkybYYstRFDDCkpFej+t/QmYTBeYIia19f9TCV4A==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=redhat.com;
+	spf=pass smtp.mailfrom=redhat.com;
+	dkim=temperror header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=JrjqNRqP;
+	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=ILbC3qNV;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=170.10.133.124
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C78D0606A335;
-	Mon,  2 Nov 2026 20:38:29 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C78D0606A335
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20293606A32C
+	for <linux-acpi@vger.kernel.org>; Mon,  2 Nov 2026 20:53:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 20293606A32C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=bRty8RaI
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793651909; x=1825187909;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=BsPUYQg3UGlRUHhqrv/48JCqsDbQofqrAk+YJKsHA40=;
-  b=bRty8RaIKGLjcZPNfFKOb8TbxunK96n6g/dydFON/lGD2OH3wk7QWIe7
-   YFighgPuvN31wQ8ygFbeOX1HoT3kT9RuzNwVk9Nh6/hJWXuJpenpn16Dt
-   EzAGGFoUQBVzNSiBfinEfwuqu6XkxHUF3evf/kP76o+tBxzGRar+U6ATg
-   8lbxw1HAu6KW/moyjP2JnKHt3tg9MKCNEWq59f+DjffrJtz7PVs9gLksN
-   sxJaiU+xX1DlZnIcz1Sol6fbjBJwDfW4cS2GGU4ikINSF28zaskAusuAJ
-   VpswA/UsQEOSikBGDs+Dronz4s43DPgGsmf76DX6lqwaQ8/rE31Ysqk86
-   w==;
-X-CSE-ConnectionGUID: 35FUIAI4QGebNUG2UgmwUQ==
-X-CSE-MsgGUID: uc6DL1yESb6drhsPgsJc1A==
-X-IronPort-AV: E=McAfee;i="6800,10657,11954"; a="2367856"
-X-IronPort-AV: E=Sophos;i="6.27,191,1787036400"; 
-   d="scan'208";a="2367856"
-Received: from fmviesa012.fm.intel.com ([10.60.135.152])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2026 12:38:29 -0800
-X-CSE-ConnectionGUID: lQ3qwfmDS+ak5HNmktJEew==
-X-CSE-MsgGUID: EigDHSgfT1WmnFjrAgSXFQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,191,1787036400"; 
-   d="scan'208";a="7998587"
-Received: from soc-pf446t5c.clients.intel.com (HELO [10.24.80.90]) ([10.24.80.90])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2026 12:38:29 -0800
-Message-ID: <840c7598-f988-428a-8bea-4d66b0f4f4d7@linux.intel.com>
-Date: Mon, 2 Nov 2026 12:38:28 -0800
+	dkim=temperror header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=JrjqNRqP;
+	dkim=pass (2048-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=ILbC3qNV
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1793652792;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=117yBiLwKENKL+3PiWG/U5OMCVmGd5cgD5S+cpkVimE=;
+	b=JrjqNRqP10lz+xwTaT1N5hOMraQMewbNcL6ZPtYs/6qBeMDZq5lyggz1hz5TUE2wvCqKwM
+	IXQbQRbVn/7mLpXXty1C0A86MwLFP717upzSrzHF5Nt1PiF43MqFrw00/Vf94oFs2+EMGE
+	o+EsfhfOm9/h5ijPwHR98WSryq3gxtk=
+Received: from mail-lj1-f199.google.com (mail-lj1-f199.google.com
+ [209.85.208.199]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-648-2i_AJ8PnO9OAYm78qOk1ww-1; Mon, 02 Nov 2026 15:53:09 -0500
+X-MC-Unique: 2i_AJ8PnO9OAYm78qOk1ww-1
+X-Mimecast-MFC-AGG-ID: 2i_AJ8PnO9OAYm78qOk1ww_1793652788
+Received: by mail-lj1-f199.google.com with SMTP id 38308e7fff4ca-3ab3061668eso242301fa.1
+        for <linux-acpi@vger.kernel.org>; Mon, 02 Nov 2026 12:53:09 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1793652788; cv=none;
+        d=google.com; s=arc-20260327;
+        b=r0F0qPytueVZUdht6XNvkr6MxMa+8tG8Gb6Eq6iHQGg98LMbj4fTF9O5kip9leYYsE
+         SYGFQM/28KbaCKEnTqm9yd9QA/dvV4mmGIFjEimK3rV3AQtsViI1czzbVH9oxzE7tdQJ
+         Q3uZLlms+5o4wYGwm3mde0YScQD7bwYd/DmBOm7hZPkmKKF9uWid19X6YiV/c18GGbUG
+         sxdXUGbMv7f1YqfOTvoiRBorKGTAra9tTWxLyj3TVqvvaFVefaUr4iPnsaoeF+0aXExJ
+         8afO0jVEzI8gt6FyH7zrVlp80bDykkDZFoDPZmAmx9sgL7Z8r25DBv8vG5Nw/DpVMEGV
+         BJHw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=117yBiLwKENKL+3PiWG/U5OMCVmGd5cgD5S+cpkVimE=;
+        fh=loV/ISOJDG8g0YHcLbxNAxkNcuSLKspTr+IvmG+4ims=;
+        b=frs9WluB/z3Ob1qwzJvkbposoeb8NLXTJKqfPqLBcALr9Z73Kw/NAMw8gIP4Z0e42n
+         Uon+lyuWwEY8FWWNs/fkCajLR9Z5ELvzj0cOmRPH7pwQApx4xdx92A+JvIdyIeCPlWSh
+         AWBuBZsJ0FzP0i2uO39TtR+RPGoVeC1BS1VUB87god3aFWvBg7V7RfjY3Sx7Y8CApRtN
+         ziGMM601YTHaUSzhjWihsiqq/Ktwid9N3ioNQcPQ6dGSldxhSE9cHe0TWkdGCht3F+fR
+         LruCjexTgahgISxJxEg4PUBBJkqtUaCH7v381kJo+gQZaknSePOHpG5rFKiYhTun6UyO
+         ZJfg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=redhat.com; s=google; t=1793652788; x=1794257588; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=117yBiLwKENKL+3PiWG/U5OMCVmGd5cgD5S+cpkVimE=;
+        b=ILbC3qNVxcxSfLLqiEMczm2K9EWJDHjQ3jtHiRo8lvs7xOcCBk9KViZKbMYNn3rDyD
+         1nRBZKRZevJudcNGThw44x8q3rGE46+/V3Lp15cYzXfiXGQHqy3zvhO0o48B5BncA5Or
+         KbQ3kcHqkQQMolwwbUP9ub3434QutGVu8nmoCGzc2PCEhLmjOocqh+8d4XwIGdidYoBZ
+         1xLTej5dBNXaVOsg0H9ykUYcbsfyfY1xRAFquEOh1DF007rqhduAsvbJpJIrCtz2kQKk
+         jbQ0GJtS49pjk16tDcdcdHiHPoCzeSh4Rpt4Z21PkzyRrg6RuTlgqDQLYpdpsCCp4Dam
+         yDGQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793652788; x=1794257588;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=117yBiLwKENKL+3PiWG/U5OMCVmGd5cgD5S+cpkVimE=;
+        b=SxM5mKLOK5wcteAfcyvCG0JEsr3LG75UNhyBNfxtTeiv8inUDH/ZYCtxTbVxErVimo
+         dhkSmX2fsyDf6qTEYDXhnjFiVx/nctYNpiU3/CyP0Hm+RIkzOJBNOZqcJQAhHSqg2ORp
+         R0BLe0aIKPttPlRMhqxmpYEIrK07uliRp2TwhJ6Mqwj3BgqAiHyzN9iyCJWvPKjcj0gW
+         94FNvKd+4FchgDescBmXiQpafilv9eS1V2cPgnwvyDpUHkQgZnAveY7irlyrGSHJP6S0
+         Om3nrBZ3B3oI5rTLtg0vWjUUrr33GDej134UPFVXH9+MMx/2doFQeR02/JhuAY0k99VJ
+         Ao5A==
+X-Forwarded-Encrypted: i=1; AKwUvBzcbk5T7G/bu+6L55DGOd7PFaYcaJ9JQBND4xJsUNgQwbeQnp+ZFFEnVnjKqeHnFOWU/xK+QmPeIQFY@vger.kernel.org
+X-Gm-Message-State: APuU4Z9VK3EeUWSmsPW3sQsq9vo7n4E5LiaUMZfcEQa2Z/qorCMT+Uji
+	9PxkWUMKZrIJIvqthsaDErXCuvae1L3a107Byx1idfAwz+68kzRRxuHCXsjNIO/uYhGgni5NpSA
+	/YTiYsbD1REcU4ffBt/X062B5QanVMfasTkv4GOkp/dZTBJRgGiYL2/N7ztMcA634dYnerpu2or
+	FJMP9tstG2E5oJRvL84nLGFuq2MfuRvtfYjz9VTQ==
+X-Gm-Gg: AYBFou2RvJkgIZWS+n8XY/eshdlhwYgP+UzIWH53StvkUMoZWiR7hZM7NWUUabEC2c0
+	EPIq0prPAKWdbROZRf+TdEYZCtlYGZobXosl3i8sKDal6W7T0gvkTNSbRhTO0kCuS3OkjeK9Mv7
+	zJLTYH5pI3LZPIOXKrhZuM9icSI5FC8czR2MYKFNoYJgEvltjfHe/5ORlH
+X-Received: by 2002:a05:651c:a14e:b0:3ac:4b79:573b with SMTP id 38308e7fff4ca-3acb7aa83b1mr20499211fa.13.1793652788265;
+        Mon, 02 Nov 2026 12:53:08 -0800 (PST)
+X-Received: by 2002:a05:651c:a14e:b0:3ac:4b79:573b with SMTP id
+ 38308e7fff4ca-3acb7aa83b1mr20499011fa.13.1793652787872; Mon, 02 Nov 2026
+ 12:53:07 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -72,110 +124,63 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v15 1/4] PCI: Assume control of portdrv-related features
- only when portdrv enabled
-To: Lukas Wunner <lukas@wunner.de>
-Cc: bhelgaas@google.com, linux-pci@vger.kernel.org,
- linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rafael@kernel.org,
- terry.bowman@amd.com, kanie@linux.alibaba.com, olof@lixom.net
-References: <20261002211828.1293177-1-sathyanarayanan.kuppuswamy@linux.intel.com>
- <20261002211828.1293177-2-sathyanarayanan.kuppuswamy@linux.intel.com>
- <aujwl45XrkVT-zUx@wunner.de>
-Content-Language: en-US
-From: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-In-Reply-To: <aujwl45XrkVT-zUx@wunner.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20261027223847.652884-1-irogers@google.com> <20261027223847.652884-6-irogers@google.com>
+In-Reply-To: <20261027223847.652884-6-irogers@google.com>
+From: Alexander Aring <aahringo@redhat.com>
+Date: Mon, 2 Nov 2026 15:52:55 -0500
+X-Gm-Features: AclHuK8pGzNf4aGPekLa6NQcs521xOugw8djA3E8ZMCjZ7yn89XzG5j_wIaQNFk
+Message-ID: <CAK-6q+j-MS_5St04YFU11LG_Cjf1jOuS3q33qk_iK=7TE-iuBg@mail.gmail.com>
+Subject: Re: [PATCH v2 5/9] dlm: Free dlm_ls in kobject release callback
+To: Ian Rogers <irogers@google.com>
+Cc: Kees Cook <kees@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Miguel Ojeda <ojeda@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>, Danilo Krummrich <dakr@kernel.org>, 
+	Nathan Chancellor <nathan@kernel.org>, Nick Desaulniers <ndesaulniers@google.com>, 
+	Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>, 
+	=?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
+	Zhihao Cheng <chengzhihao1@huawei.com>, Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>, 
+	Sumanth Korikkar <sumanthk@linux.ibm.com>, Bill Wendling <morbo@google.com>, 
+	Justin Stitt <justinstitt@google.com>, driver-core@lists.linux.dev, llvm@lists.linux.dev, 
+	linux-hardening@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-pm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	linux-sh@vger.kernel.org, linux-s390@vger.kernel.org, gfs2@lists.linux.dev, 
+	xen-devel@lists.xenproject.org, linux-mtd@lists.infradead.org, 
+	amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, 
+	linux-kernel@vger.kernel.org, David Teigland <teigland@redhat.com>, 
+	Greg Kroah-Hartman <gregkh@suse.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+Hi,
 
+On Tue, Oct 27, 2026 at 6:39=E2=80=AFPM Ian Rogers <irogers@google.com> wro=
+te:
+>
+> struct dlm_ls embeds a struct kobject (ls_kobj), but dlm_ktype lacked a
+> .release callback and dlm freed the lockspace structure directly via
+> kfree(ls). With CONFIG_DEBUG_KOBJECT_RELEASE=3Dy, freeing ls before the
+> delayed kobject release runs causes a use-after-free, and unloading the
+> module while the delayed release is pending results in an instruction
+> page fault.
+>
+> Add a completion ls_kobj_done and dlm_ls_release() to complete it when
+> the last kobject reference is dropped, waiting for it in free_lockspace()
+> before kfree(ls) and in the new_lockspace() error path before module_put(=
+).
+> Also delete the kobject via kobject_del() before stopping dlm_recoverd
+> to close the window where concurrent sysfs writes could wake the stopped
+> recovery task.
+>
+> Fixes: 3514faca19a6 ("kobject: remove struct kobj_type from struct kset")
+> Signed-off-by: Ian Rogers <irogers@google.com>
 
-On 11/2/2026 12:20 PM, Lukas Wunner wrote:
-> On Fri, Oct 02, 2026 at 02:18:25PM -0700, Kuppuswamy Sathyanarayanan wrote:
->> Native control of PME, AER, DPC, and PCIe hotplug depends on the portdrv,
->> so default to native handling of them only when CONFIG_PCIEPORTBUS is
->> enabled.
->>
->> Native control of LTR and SHPC hotplug does not depend on portdrv, so keep
->> defaulting those to native regardless.
->>
->> [bhelgaas: commit log]
->> Link: https://lore.kernel.org/r/fcbe8a624166a1101a755edfef44a185d32ff493.1603766889.git.sathyanarayanan.kuppuswamy@linux.intel.com
->> Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
->> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-> 
-> This is now commit 6347fd9aee19 in Linus' tree and I think there's a problem:
-> 
->> +++ b/drivers/pci/probe.c
->> @@ -658,6 +658,8 @@ static const struct device_type pci_host_bridge_type = {
->>  
->>  static void pci_init_host_bridge(struct pci_host_bridge *bridge)
->>  {
->> +	bool port_services = IS_ENABLED(CONFIG_PCIEPORTBUS);
->> +
->>  	INIT_LIST_HEAD(&bridge->windows);
->>  	INIT_LIST_HEAD(&bridge->dma_ranges);
->>  	INIT_LIST_HEAD(&bridge->ports);
->> @@ -668,12 +670,12 @@ static void pci_init_host_bridge(struct pci_host_bridge *bridge)
->>  	 * may implement its own AER handling and use _OSC to prevent the
->>  	 * OS from interfering.
->>  	 */
->> -	bridge->native_aer = 1;
->> -	bridge->native_pcie_hotplug = 1;
->> +	bridge->native_aer = port_services;
->> +	bridge->native_pcie_hotplug = port_services;
-> 
-> The commit is setting the native_pcie_hotplug bit up front based on
-> CONFIG_PCIEPORTBUS.
-> 
-> But there's an if-clause at the top of get_port_device_capability() which
-> adds PCIE_PORT_SERVICE_HP to the port services used by a given PCIe port.
-> 
-> Inside the if-clause is code to disable hotplug interrupts if the BIOS
-> left them enable.
-> 
-> Since the commit, if CONFIG_PCIEPORTBUS=n, the if-clause is no longer
-> entered and so the interrupts are no longer disabled.
+A somewhat "big change" for just a debug functionality. Althrough I
+agree we shout call "kobject_del()" early to avoid additional sysfs
+changes during removal.
 
-I don't think this case changed. get_port_device_capability() is in
-portdrv.c, which is only built with CONFIG_PCIEPORTBUS=y:
+Acked-by: Alexander Aring <aahringo@redhat.com>
 
-  obj-$(CONFIG_PCIEPORTBUS)	+= pcieportdrv.o bwctrl.o
+Thanks.
 
-So with CONFIG_PCIEPORTBUS=n, the if-clause was never entered, before or
-after this commit.
-
-With CONFIG_PCIEPORTBUS=y, native_pcie_hotplug still starts out as 1,
-so the clause still disables the hotplug interrupts when
-CONFIG_HOTPLUG_PCI_PCIE=n.
-
-Your patch was about setting native_pcie_hotplug from CONFIG_HOTPLUG_PCI_PCIE. 
-That would break the PCIEPORTBUS=y, HOTPLUG_PCI_PCIE=n case, as you said. 
-This commit uses CONFIG_PCIEPORTBUS instead.
-
-Did you see a case where the interrupts stay enabled with this commit?
-
-
-> 
-> I'm amazed sashiko didn't flag this.  I didn't spot it during review
-> either, but noticed it when rebasing my development branch.  I still
-> have a patch on that branch which I developed last year but which
-> was ultimately not accepted (for good reasons).  Back then I already
-> noticed that the interrupt disablement issue prevented simplification
-> of native_pcie_hotplug initialization.  I forgot about it but had to
-> revisit the patch when rebasing the development branch on top of your
-> patches:
-> 
-> https://lore.kernel.org/r/5eae82776d695e589b89aad500d8208b980347e5.1752390102.git.lukas@wunner.de
-> 
-> Now what?  The offending patch is the first one in a series of three.
-> Revert all three or can we somehow salvage this?
-> 
-> Thanks,
-> 
-> Lukas
-
--- 
-Sathyanarayanan Kuppuswamy
-Linux Kernel Developer
+- Alex
 
