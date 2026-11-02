@@ -1,73 +1,86 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.5
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=203.29.241.158
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793589944;
-	b=x6x7UyBRXkpveEsA71sb+AG9rHsoProwGAhT6BNCAx7zE0QHOemC7JOu0rPNAn/W4pYY
-	 coLh0JnQvvR/5KQEv4+uAOfs9evFoD6k7S2PoHhIyLKR+kd0aD4wwAZI3wn6itqV8q+Md
-	 ujyXshIoY4n5bD6EbZ+oi++QqfiWlnKKhJayE28TfczXBMYPooOAM7htvDLapU66nFeby
-	 1UxpaBGMCDpzUS5HyZKMLvMjTqYdRTvAOvwVIDla+ku/qUGGEX8EV2Yb5g+Q3rQAhvqc8
-	 BdT8a2W1FkeSS8RBh230ejhaaZoC36EyXJiyzfibEJ5d7KNb8cbtFFfIHnr/2zjto/A==
+	t=1793598962;
+	b=YavxbU5EMo1ezAd4Cj3l8VBm4jRbc+w+2nJCDUqF7BApcpVMNppvjcDvKpAzBb++nwsq
+	 mvjJxwP7e/4xrt1U4luzeAZYrYzB9eSNnlMGKmP8krumpu8sW/DU548stjQNUX5rz9hrh
+	 fbadN7rbs9zW7nyU+zDORh6K6ryHrOFAFteAvE7i2W5XPny9JwF6c103OlRFwIO514rIe
+	 zE0Jl0+00iYELKUbxHgJAISJuIRKFeCYEuJQiJtwMJzkZeDX+brt6LfAElaL3bsVKw292
+	 ITomeniGyHb+1veNHQtPWWQeSRrDwWRicjVQ4tfzaCM0WMaMZNWIYL2fCAkh37M/wVQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793589944;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-CM-TRANSID:X-Coremail-Antispam:Sender:X-CM-SenderInfo;
-	bh=veZDpRBvsFIvF/XJwen4k9bmxlWJry4e0api1yU19lY=;
-	b=kGEkcfQwlS5mDhdStaWZ8vKJE4ZH8ont7aUaca2ubC339tb4pqmyh67LaeLTR3EvwSsn
-	 0F9iXRhzlMfGCdFd1W7ktmZzSCHqnPdo3enawWftD999Teso6FaNcv6jRiyo7tsrkj9u3
-	 Cqm3s0+I6ply/aH8lgFjxPl4T0l75Bh6+0x9QSG1Ws+MfvF7Rfmsn6GWPkXPO/3BtxmCM
-	 jEzxq6LiamLMAytu2dpR4qI5cKSX5Ui/4Myq/r66dZvVEOTKYq0xVt5eRNGUvn7elZkhH
-	 a4FIitOVuGKhBK0mbkJRt8ZMfjNiEe6QogKbIM0MuB+xEOfagbPxFuuQUg8YNQBIZCA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793598962;
+	h=DMARC-Filter:DKIM-Signature:Received:Message-ID:Subject:From:To:Cc:
+	 Date:In-Reply-To:References:Content-Type:Content-Transfer-Encoding:
+	 User-Agent:MIME-Version;
+	bh=galmyEn4LbKSLuawhs4ZGQeiueItg3W/HcKq5KP6Bgs=;
+	b=vzkMZdVvmgQyjU5YcZ01n0KmtEVBlLrTtZxF/afaprf07O57UsshoN1T6bqH2ts4/O8T
+	 8W/ZYio3AKMohrNDA0hYdgrNeMaUEiwYpugTCmrsR+q2YWnGSIPwD9Rnh2SGhncQCskjA
+	 srrm+R+RgmsBCnYDpRHJwnzUhavayJH7fB7tiHBOrYyplbILYR9neHQ/3dmi3gIWsTXXr
+	 i+VO1Uxq6+j9mP5hGNo5sWhjGLU15L6acyRnoypPfAWoetXc3Gz0Y63n5b57j3nu5cGNy
+	 royho+hP6GnIcuF3apjkTT+ddD4DzsQ7RalOC7qu6KgBGmp14uYqsTF+3A6oWypWcYQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=kylinos.cn;
-	spf=pass smtp.mailfrom=163.com;
-	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=hurb2bK1;
-	arc=none smtp.remote-ip=117.135.210.5
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.5])
+	dmarc=pass header.from=codeconstruct.com.au;
+	spf=pass smtp.mailfrom=codeconstruct.com.au;
+	dkim=pass header.d=codeconstruct.com.au header.i=@codeconstruct.com.au header.a=rsa-sha256 header.s=2022a header.b=joEgN+t6;
+	arc=none smtp.remote-ip=203.29.241.158
+Received: from codeconstruct.com.au (pi.codeconstruct.com.au [203.29.241.158])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83697606A324;
-	Mon,  2 Nov 2026 03:25:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 83697606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BCA3606A326;
+	Mon,  2 Nov 2026 05:56:01 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8BCA3606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=codeconstruct.com.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=codeconstruct.com.au
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=hurb2bK1
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=ve
-	ZDpRBvsFIvF/XJwen4k9bmxlWJry4e0api1yU19lY=; b=hurb2bK1wnF/7c1yiM
-	Qd+ryg1SzmOwRJdYq8Z4ImzlMSv18EA8wEmL6GktXhkA2yzv5qZuTEhxmHiVflFj
-	7ZxiH4l2vZdt5jTMzYnOMmcJ/jYQ9vDNyxUPMzF/qdSMrFv68U4IhsgrCDnUC+zu
-	7lhpyHbWNmAUDHLA8u+j+8pB0=
-Received: from localhost.localdomain (unknown [])
-	by gzsmtp3 (Coremail) with SMTP id PigvCgDX30V0AuhqjnIJDg--.46362S2;
-	Mon, 02 Nov 2026 11:24:45 +0800 (CST)
-From: Yongxin Yang <yangyongxin@kylinos.cn>
-To: Davidlohr Bueso <dave@stgolabs.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Ira Weiny <iweiny@kernel.org>,
-	Dan Williams <djbw@kernel.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Hanjun Guo <guohanjun@huawei.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Shuai Xue <xueshuai@linux.alibaba.com>,
-	Len Brown <lenb@kernel.org>,
-	Li Ming <ming.li@zohomail.com>,
-	Ben Cheatham <benjamin.cheatham@amd.com>,
-	linux-cxl@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Yongxin Yang <yangyongxin@kylinos.cn>,
-	stable@vger.kernel.org
-Subject: [PATCH v5] cxl/core: Create einj_types regardless of EINJ init order
-Date: Mon,  2 Nov 2026 11:24:36 +0800
-Message-Id: <20261102032436.230945-1-yangyongxin@kylinos.cn>
-X-Mailer: git-send-email 2.25.1
+	dkim=pass (2048-bit key, unprotected) header.d=codeconstruct.com.au header.i=@codeconstruct.com.au header.a=rsa-sha256 header.s=2022a header.b=joEgN+t6
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=codeconstruct.com.au; s=2022a; t=1793598959;
+	bh=galmyEn4LbKSLuawhs4ZGQeiueItg3W/HcKq5KP6Bgs=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=joEgN+t6NvoovW7oKCyZDr2eqdix+/duqp4PMFPCW3+RRwMNBkk04YEGTrQqXFBfa
+	 tCJu2UBAyLCb6xV2/OxjkIAgqYEwt8p4FKq7NIXZ8waf1xyRvl97ugJ8Az60PQtVde
+	 NvMCCJ2xvX1Y80yfKQIMFQPgliXk6vJBrQiVp8GlhsxUBGqyqXyFYipUEdra2x9jW6
+	 7tbTiIxaXd9V6tZX11NmuzG84SPnnozNpGRH4UM+InMJfNnB/aLnlIf/7VxlhdH9xn
+	 720JtOYjZ6d7n7DjPBBG7Dva9h3DRuPJgRgoxCI6V889anGcx67nbuYl1n0zXg5WFV
+	 FmmJo+qfQ9KKA==
+Received: from [192.168.72.161] (210-10-213-150.per.static-ipl.aapt.com.au [210.10.213.150])
+	by mail.codeconstruct.com.au (Postfix) with ESMTPSA id 6A55B648DC;
+	Mon,  2 Nov 2026 13:55:57 +0800 (AWST)
+Message-ID: <06e25064f8a5455c12b47033a1a62b94100e7590.camel@codeconstruct.com.au>
+Subject: Re: [PATCH 00/11] Add NVIDIA LSTP USB adapter drivers
+From: Jeremy Kerr <jk@codeconstruct.com.au>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Adrian Ambrozewicz <aambrozewicz@nvidia.com>, Donald Shannon	
+ <donalds@nvidia.com>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski	
+ <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Linus Walleij	
+ <linusw@kernel.org>, Bartosz Golaszewski <brgl@kernel.org>, Lee Jones	
+ <lee@kernel.org>, Pavel Machek <pavel@kernel.org>, Andi Shyti	
+ <andi.shyti@kernel.org>, Mark Brown <broonie@kernel.org>, Jiri Slaby	
+ <jirislaby@kernel.org>, Corey Minyard <corey@minyard.net>, "Rafael J.
+ Wysocki"	 <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Jonathan Corbet
+ <corbet@lwn.net>,  Ilpo =?ISO-8859-1?Q?J=E4rvinen?=	
+ <ilpo.jarvinen@linux.intel.com>, Sakari Ailus
+ <sakari.ailus@linux.intel.com>,  Hans de Goede <hansg@kernel.org>, Lixu
+ Zhang <lixu.zhang@intel.com>, Danilo Krummrich <dakr@kernel.org>,  Johan
+ Hovold <johan@kernel.org>, Oliver Neukum <oneukum@suse.com>, Quan Nguyen
+ <quan@os.amperecomputing.com>,  Andrew Jeffery
+ <andrew@codeconstruct.com.au>, linux-usb@vger.kernel.org,
+ devicetree@vger.kernel.org, 	linux-gpio@vger.kernel.org,
+ linux-leds@vger.kernel.org, 	linux-i2c@vger.kernel.org,
+ linux-spi@vger.kernel.org, 	linux-serial@vger.kernel.org,
+ openipmi-developer@lists.sourceforge.net, 	linux-acpi@vger.kernel.org,
+ linux-doc@vger.kernel.org, 	driver-core@lists.linux.dev,
+ linux-kernel@vger.kernel.org, Bart Van Assche	 <bvanassche@google.com>
+Date: Mon, 02 Nov 2026 13:55:56 +0800
+In-Reply-To: <2026103015-stained-shudder-1582@gregkh>
+References: <20261012-lstp-usb-adapter-v1-0-aambrozewicz@nvidia.com>
+	 <2026101310-scuttle-unison-d4c3@gregkh>
+	 <c569c912141e9da7530121b8b2fc81527e0518a4.camel@codeconstruct.com.au>
+	 <f3f305a0f3195948bd25ca7eea4348113f998ee2.camel@codeconstruct.com.au>
+	 <2026103015-stained-shudder-1582@gregkh>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2-0+deb13u1 
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -77,92 +90,38 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:PigvCgDX30V0AuhqjnIJDg--.46362S2
-X-Coremail-Antispam: 1Uf129KBjvJXoWxWFykZrWxXrW8WrykWw4fuFg_yoWrJw1fpa
-	yDurnYyrykAF4IyrsxA34UZa4Fgws5WayDCryDW343Zan8urnYyF10yFWY9a1kGFWkJa40
-	qwn8Ar12kayjkrJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07j5KsUUUUUU=
-Sender: yang_yongxin123@163.com
-X-CM-SenderInfo: 51dqwsp1rqw5tlqrjji6rwjhhfrp/xtbDAB50EmroAn4PiQAA3A
 
-The einj_types file under the CXL debugfs directory is never created when
-cxl_core is built in.  cxl_core_init() runs at subsys_initcall level, while
-einj_init() registers EINJ at device_initcall level, so the
-einj_cxl_is_initialized() check in cxl_core_init() always sees EINJ as not
-up yet and the debugfs_create_file() below it is never reached.  With
-cxl_core as a module, module dependencies make sure it is loaded after EINJ
-is up and the file is created.
+Hi Greg,
 
-Create the file unconditionally instead, gated only on the CXL error
-injection support being compiled in, and have
-einj_cxl_available_error_type_show() return -ENODEV until EINJ is up.  This
-single check in cxl_core_init() covers every combination of built-in and
-modular cxl_core, cxl_acpi and EINJ, with no extra hooks.
+> I haven't read all of OBMF, as obviously that isn't what is being
+> proposed here, I was just complaining about the madness of attempting to
+> create a device tree representation for a single USB device that wanted
+> to be carved up into different virtual devices because no one decided to
+> learn from history.
+>=20
+> I have other objections about OBMF-ICP, but that's not what this thread
+> is about, sorry.=C2=A0 Please propose your own patch series for that and =
+I'll
+> be glad to criticize it there.
 
-The check in the show callback is required, not cosmetic: einj_tab is
-NULL until einj_init() runs, so einj_get_available_error_type() would
-dereference a NULL pointer.
+OK, fair enough - I'll defer this for an OBMF-ICP submission, rather
+than piling it on to this LSTP thread.
+=20
+> > With OBMF-ICP's super-minimal core protocol, and the use-case
+> > appropriate channels, seems like a suitable approach to me.
+> >=20
+> > The USB-IF has a class ID allocated for OBMF-ICP interface descriptors,
+> > with the intention that we have multiple vendor implementations of the
+> > common protocol; we would like Linux to be one of those.
+>=20
+> It's always fun to make a new spec and protocol,
 
-This restores the discovery of the supported error types only.  On a fully
-built-in RCH/RCD hierarchy the inject files below the dport directory are
-still not created: cxl_debugfs_create_dport_dir() has the same early return
-and the only dport there comes from cxl_acpi_probe() at
-subsys_initcall_sync level, before EINJ is up.
+We seem to have different definitions of "fun" :D
 
-Fixes: 8039804cfa73 ("cxl/core: Add CXL EINJ debugfs files")
-Cc: <stable@vger.kernel.org>
-Suggested-by: Dave Jiang <dave.jiang@intel.com>
-Suggested-by: Ben Cheatham <benjamin.cheatham@amd.com>
-Link: https://lore.kernel.org/all/de14c4ef-e3d8-432f-9ce8-87c468d6d2ad@amd.com/
-Link: https://lore.kernel.org/all/7a22cc6a-deba-40e6-8033-97d1234420ba@amd.com/
-Signed-off-by: Yongxin Yang <yangyongxin@kylinos.cn>
----
-Changes in v5:
-- Rework per Dave's suggestion, agreed by Ben: create einj_types from
-  cxl_core_init() without looking at the runtime EINJ state, and return
-  -ENODEV from einj_cxl_available_error_type_show() while EINJ is not
-  initialized, instead of creating the file from three separate hooks.
-  This drops the mutex, the exported helper and the cached dentry.
-- Drop the cxl_acpi_probe() hook: host bridge dports, RCH included, already
-  go through __devm_cxl_add_dport() -> cxl_debugfs_create_dport_dir() in the
-  same probe, so the hook added nothing.
-- Gate the creation on CONFIG_ACPI_APEI_EINJ_CXL rather than on the runtime
-  EINJ state.
-- Dropped the Reviewed-by tag as the approach changed significantly.
+Thanks for the discussion so far, I'll follow up again when we have a
+series to propose. That shouldn't be too long.
 
- drivers/acpi/apei/einj-cxl.c | 4 ++++
- drivers/cxl/core/port.c      | 2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+Cheers,
 
-diff --git a/drivers/acpi/apei/einj-cxl.c b/drivers/acpi/apei/einj-cxl.c
-index e70a416ec925..3090c7649ed2 100644
---- a/drivers/acpi/apei/einj-cxl.c
-+++ b/drivers/acpi/apei/einj-cxl.c
-@@ -30,6 +30,10 @@ int einj_cxl_available_error_type_show(struct seq_file *m, void *v)
- 	int cxl_err, rc;
- 	u32 available_error_type = 0;
- 
-+	/* einj_tab stays NULL until EINJ is initialized, don't read it. */
-+	if (!einj_cxl_is_initialized())
-+		return -ENODEV;
-+
- 	rc = einj_get_available_error_type(&available_error_type, ACPI_EINJ_GET_ERROR_TYPE);
- 	if (rc)
- 		return rc;
-diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-index 625e4aa427db..d4ed1cc7c480 100644
---- a/drivers/cxl/core/port.c
-+++ b/drivers/cxl/core/port.c
-@@ -2515,7 +2515,7 @@ static __init int cxl_core_init(void)
- 
- 	cxl_debugfs = debugfs_create_dir("cxl", NULL);
- 
--	if (einj_cxl_is_initialized())
-+	if (IS_ENABLED(CONFIG_ACPI_APEI_EINJ_CXL))
- 		debugfs_create_file("einj_types", 0400, cxl_debugfs, NULL,
- 				    &einj_cxl_available_error_type_fops);
- 
--- 
-2.25.1
 
+Jeremy
