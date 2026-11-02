@@ -1,74 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.19
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793601419;
-	b=fEydpt0C3mTMuyH+S3NY/26pfYqMRqWWCsR9LRGFoR9Kxv+dZaKvVoyIGdi3KP6doRaV
-	 PNziPIM+DlAfLzQGA59K/igLx35xCSDJYtbTG65v1HLshc63HKR+xCATkuo7s888a2LU8
-	 sVdB/Qi7n/0tdD8VxalV4nPiDojd03YFy3qtGU1bJFtvMM3i/W7Gt5/KiMLvPA1pIwuEz
-	 kZ4ONCTUwJspfcipGPgPYf11SmFSIkiL3lYmnZskRpCt35Pcb55UsP1u6fHKzZhFbaVaW
-	 8IpYywEp4Xks8v2nfgzVQm2H760TdX0wRMu3oYewHmOYDtdgy3UVIt0fvVTUsko+GUQ==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793601419;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:From:To:Cc:Subject:
-	 Date:Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=FIoy2Z3OD2zk6sZ28SkCKEoda0zBofnG2s9KCkyZzbw=;
-	b=d4UdSUtkqleTdSgd8rvS4ckkWnv1yferwhxxy8j76ii/gaN6GUcA+ohdKQxovC3V7URT
-	 J3ug318YENABD0MjDLqkOHAjyEgXmtTM3+QPcUHbML4tn0tU9zC2nbqMogtZ4OLltKYx3
-	 4TNLAHR8ceCFV/j7n7lq5fc+x4b4WQAGX6zdgCEbvpyL6+qN18s9Nmnezlw+jd8ObzGFY
-	 H6oRBPsDAdDjQFZeH1hanqEW/ZgccWlocaOqn8KnTPKdjVRKuXoU68ZdQq4amAEZNp9gz
-	 EZkyra3Tno/x+x+ZwoQITyWj/Q5XfPiYpf1sq/T8mKzmya4210Hh6A4s2XBjUaD0eHw==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=QwF7aUMn;
-	arc=none smtp.remote-ip=198.175.65.19
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793602018;
+	b=Iq1cWvAqQbHHSeLpeU36qPkYVThJ3pXO24IQwlc4WuAbniDBoQHkl/B5Zp9PsZQaLiZS
+	 LLU62TjLgIvAMpig+tduYvbGKNzmcj01L6fpoPEQ0atw2l6E+swcBuEdNah4P8720aJZA
+	 RXPQB4ehpTq9OgBe1FWnhagV7cRoCLVMR8o+/BSyfQbqJ+ufhk55+qQBoDeolR4InXvSV
+	 aMjVk2GYMd1csRQxLWf/j6JOAfDTKZykEySDc13y2laE5Zy3CXV3GUyNUvZIR8RncWJtx
+	 eahaBN2QVVIHbWJQDjJZAqKsNjp4w8SxqavB7zXf5Xomigj3AB/YGA2H14z5wuczBIw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793602018;
+	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
+	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=4qv9GBI/rff/ofiL+Z9pE00Rlu1w4yrYAER5h1S95vo=;
+	b=GWFzOD1fjmMPeQ01ad2oDT0LSwT4IExlpZaZobH6W4n9HsmOXUuE5sWjLgRHWPbXRa0b
+	 iAo2vobmGY8FqJY2H2ylrbP+XqzBe9kaQBPxJTAvyVtdtIcMvJ674oXDnPu68oVKxL+PF
+	 kS6FxTqk80/Wu5LEZclal9D1hMLJqpEIYEoQsU4NbOPU5FsPD2I17CC+/5Hl2RsrQBGgo
+	 PO9voi/74Hbvoq9JDaHGnCOxQqC9lYE6PC2e0z49yIgJfNnZBD4fwZC0QWztliO1A/mdB
+	 azL10O0HVnZeZtfqSC0Dh+WkwVR9+ktGNwVwAhAV8g9H3RI2jHnapl8MhuS7eKo0TMg==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dOEPvOFs;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8488606A324;
-	Mon,  2 Nov 2026 06:36:55 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D8488606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B264606A339;
+	Mon,  2 Nov 2026 06:46:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=QwF7aUMn
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793601417; x=1825137417;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=Mj8Zo7ZDsS9A32QqDBR8EvgwoDbt2Mi1IV0DCLUNXMc=;
-  b=QwF7aUMn5Pb6IrIrIqxmo91Swi2F10vpZZKj01tLsp7SWbYXHN3pxhWv
-   s1gMmLV5g8gsPDbrNGhcw2Z9fM+7pAdjvColL5THIWElqGVN6X1ID8+GP
-   DLGme9q3LsM0iulmcu4nM4Eev8YQE/P0ulR4w99+E2zECsMtTA4iPPSDr
-   PgAYtt6yaet5kQpr6qWR35OIl842/USXujNKS5q5ti6BKeNqb2+9IYTJd
-   +atw6tpIc3qITZH8YN4xvgRWPOa8L1t/Y5XVOUX7RwY/pr6hbzyWhdpFv
-   hg7aARvYRCpX/Qhx/xjxgW2tKdn20NuHmcFoPuDNDoNAnnHNG+/OgCQhm
-   Q==;
-X-CSE-ConnectionGUID: zuOk2r+qSG62z5CcPgTXCg==
-X-CSE-MsgGUID: 5w5f0q3+SQmojHCqB5w5yw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11953"; a="2309966"
-X-IronPort-AV: E=Sophos;i="6.27,191,1787036400"; 
-   d="scan'208";a="2309966"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Nov 2026 22:36:56 -0800
-X-CSE-ConnectionGUID: jWvrhJ9mQZmFpHDYt09xqg==
-X-CSE-MsgGUID: MAWPaxLXTZG1xnX/0hsmow==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,191,1787036400"; 
-   d="scan'208";a="6025253"
-Received: from senthil-nuc10i7fnh.iind.intel.com ([10.223.163.42])
-  by orviesa002.jf.intel.com with ESMTP; 01 Nov 2026 22:36:53 -0800
-From: Saranya Gopal <saranya.gopal@intel.com>
-To: linux-acpi@vger.kernel.org
-Cc: linux-pm@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	rafael.j.wysocki@intel.com
-Subject: [PATCH v2] ACPI: s2idle: Handle shared _Ixx GPEs without an EC
-Date: Mon,  2 Nov 2026 12:06:10 +0530
-Message-Id: <20261102063610.3242714-1-saranya.gopal@intel.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dOEPvOFs
+Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
+ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
+	t=1793602018;
+	b=BE0+7aO7EsGzHDcR/NsX8gLXEt8qHJGg3o+Uw4e9SCK6z4JFfWX2tA6nm5B+TMmVQ5Qs
+	 aMovJgWIk9NWaBuTDY6UMaBnJjfNhlLE5wrQBk3jc8JXXfuqiIfdQznAGJVWPX1SAtrQl
+	 vw3R2VlwyzIgrQogPQy11fsCTBbONo7paRufUQ4FkivAFtJufHQL8d5dBGsppNG0UxWl9
+	 cg4qx1GNsSFwE7fxeph39THfeGOXEq30Rml7RI64JorFO5Kvyg6GB4uOm1vJkcpikSF6a
+	 FzVuJhulAUtIIK4dCY0QUKmHQ/b3B2TB84DW72XFuHKwcCvqfrVFkHUbh6vx2HP5Ivw==
+ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
+	c=relaxed/relaxed; t=1793602018;
+	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
+	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=4qv9GBI/rff/ofiL+Z9pE00Rlu1w4yrYAER5h1S95vo=;
+	b=yxKY1dU3J+8ciiSWspBgF0bVSfXh+YW5FMMqy2KMw6R9IoNm1Ff3MxExLuxS4B7fSClr
+	 ojRjoqaHud/vBj6G4zPeHqlgrLHUdtxV+wgLtMtEgeQk/72YXB5bpAIwM59wnLKD+DdoA
+	 P9gD/6JvjVtkT3XtDl1epnjzpQ/sl1MjB185myz+LFAWihyf/NJsoaIuzsY0o6ZSwJDLX
+	 9rAjREWJofzm2BUQCv6Tvg7kvMNWFb7Iic7iABH3ALJL2iMEw/1QS5IkIJiGAez1Z8fdN
+	 E+mMjYRt+v3K53eXyH5KxsLy9INPNXgojsocDG8w1C/F6Wef3IDM0EPLOJlJYHIyMpg==
+ARC-Authentication-Results: i=1; smtp.kernel.org; 
+	arc=none smtp.remote-ip=100.80.115.77
+Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.kernel.org (Postfix) with ESMTPS id 39AEE1F00A17;
+	Mon,  2 Nov 2026 06:46:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793602018;
+	bh=4qv9GBI/rff/ofiL+Z9pE00Rlu1w4yrYAER5h1S95vo=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
+	b=dOEPvOFsacP2DngJ+KyehB+Pdzx/l4p1oZeSjqgEBY9BAFDQeRZM3TmCPVreESegD
+	 oMkgGn0edA0FdWq6QaxwZayizSkwHmxoCyzTZYwh6Agmm0gP4XkAtO+uedqz05VBR7
+	 uhS4Pu5b+KTt6AJe/FAsR6mhiqkBjNuPvyGUVxPzpS1K6KGfM4qo2DxSXgzYHqPown
+	 ktXZzbimx4Nf0Uj6F9Rnijsedyeh00mInszqiFCh8oRlQyTo/db7PJGgKApVvrAfA+
+	 gSi3OxJRaKlYnATTrFYNzHHToKCNCdwmYPUQM76gNCyFr/ZXYuQUrH1GnhgRDM/Ytv
+	 lSwaJ/MhjvGkg==
+Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
+	by lkml.kernel.org (Postfix) with ESMTP id B822F463BB;
+	Mon,  2 Nov 2026 06:46:55 +0000 (UTC)
+From: Long Zhao via B4 Relay <devnull+longzhao.ambarella.com@kernel.org>
+Date: Mon, 02 Nov 2026 14:45:58 +0800
+Subject: [PATCH v13 05/13] gpio: pl061: use IRQ_TYPE_LEVEL_MASK and
+ IRQ_TYPE_EDGE_BOTH
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -78,224 +83,72 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <20261102-cv75-gpio-v13-5-4f93114ea204@ambarella.com>
+References: <20261102-cv75-gpio-v13-0-4f93114ea204@ambarella.com>
+In-Reply-To: <20261102-cv75-gpio-v13-0-4f93114ea204@ambarella.com>
+To: Bartosz Golaszewski <brgl@kernel.org>, linux-gpio@vger.kernel.org
+Cc: Linus Walleij <linusw@kernel.org>, Michael Walle <mwalle@kernel.org>, 
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, 
+ Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>, 
+ Conor Dooley <conor+dt@kernel.org>, Mika Westerberg <westeri@kernel.org>, 
+ linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, 
+ Long Zhao <longzhao@ambarella.com>, Long Zhao <zl020895@163.com>, 
+ linux-kernel@vger.kernel.org
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1793602013; l=1433;
+ i=longzhao@ambarella.com; s=20260730; h=from:subject:message-id;
+ bh=qYs7A+3O2UQ/LJH+vQzcUZYSnBtFDMS1HvLlsWFL8rw=;
+ b=HOFWnJUFa+nGTw1RNUWuQvQYphvDTDWJaYLxAhCs3PMvTugGAYLmqIWq9cV+gUJ80RWaBPt/n
+ HRGME5PGzn6AZPflBYFh4ct9fDwPJC1D1WSzDh71wKdwOU2PzxeAtPB
+X-Developer-Key: i=longzhao@ambarella.com; a=ed25519;
+ pk=/xGhPTOX0/eYsyTWzyjjgAIW1Z/YD+IlnOnvcdRozow=
+X-Endpoint-Received: by B4 Relay for longzhao@ambarella.com/20260730 with
+ auth_id=903
+X-Original-From: Long Zhao <longzhao@ambarella.com>
+Reply-To: longzhao@ambarella.com
+Content-Transfer-Encoding: 7bit
 
-When first_ec is NULL, acpi_ec_dispatch_gpe() previously treated any
-active GPE as a wake source. On platforms where an _Ixx GPE is shared
-by user-wakeup and background events, that can cause unnecessary
-wakeups.
+From: Long Zhao <longzhao@ambarella.com>
 
-Return -ENODEV when no EC instance is available so the s2idle wake
-path can handle that case. On x86, check active GPEs against those
-registered from _Ixx methods. Preserve immediate wakeup for active
-non-_Ixx GPEs; otherwise cancel the SCI wake request and dispatch
-active _Ixx GPEs. The common s2idle path then synchronizes event
-processing and checks whether a driver requested wakeup. Lookup or
-dispatch failures conservatively request wakeup.
+Use the standard IRQ_TYPE_LEVEL_MASK and IRQ_TYPE_EDGE_BOTH helpers
+instead of open-coded edge and level comparisons.
 
-The non-x86 fallback retains the previous any-GPE status check.
-
-Fixes: 46767b17fda3 ("ACPI: PM: s2idle: Add _Ixx GPE wake indicator support")
-Signed-off-by: Saranya Gopal <saranya.gopal@intel.com>
+Reviewed-by: Linus Walleij <linusw@kernel.org>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Long Zhao <longzhao@ambarella.com>
 ---
- drivers/acpi/ec.c         | 10 ++++-----
- drivers/acpi/internal.h   |  6 +++---
- drivers/acpi/sleep.c      | 18 +++++++++-------
- drivers/acpi/sleep.h      |  8 ++++++++
- drivers/acpi/x86/s2idle.c | 43 +++++++++++++++++++++++++++++++++++++++
- 5 files changed, 70 insertions(+), 15 deletions(-)
+ drivers/gpio/gpio-pl061.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 64ad4cfa6208..8be572af4115 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -2155,19 +2155,19 @@ static bool acpi_ec_work_in_progress(struct acpi_ec *ec)
- 	return ec->events_in_progress + ec->queries_in_progress > 0;
- }
+diff --git a/drivers/gpio/gpio-pl061.c b/drivers/gpio/gpio-pl061.c
+index 781bef987339..e0ac8335bae4 100644
+--- a/drivers/gpio/gpio-pl061.c
++++ b/drivers/gpio/gpio-pl061.c
+@@ -167,9 +167,7 @@ static int pl061_irq_type(struct irq_data *d, unsigned trigger)
+ 	if (offset < 0 || offset >= PL061_GPIO_NR)
+ 		return -EINVAL;
  
--bool acpi_ec_dispatch_gpe(void)
-+int acpi_ec_dispatch_gpe(void)
- {
- 	bool work_in_progress = false;
+-	if ((trigger & (IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW)) &&
+-	    (trigger & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING)))
+-	{
++	if ((trigger & IRQ_TYPE_LEVEL_MASK) && (trigger & IRQ_TYPE_EDGE_BOTH)) {
+ 		dev_err(gc->parent,
+ 			"trying to configure line %d for both level and edge "
+ 			"detection, choose one!\n",
+@@ -184,7 +182,7 @@ static int pl061_irq_type(struct irq_data *d, unsigned trigger)
+ 	regmap_read(pl061->regmap, GPIOIS, &gpiois);
+ 	regmap_read(pl061->regmap, GPIOIBE, &gpioibe);
  
- 	if (!first_ec)
--		return acpi_any_gpe_status_set(U32_MAX);
-+		return -ENODEV;
+-	if (trigger & (IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW)) {
++	if (trigger & IRQ_TYPE_LEVEL_MASK) {
+ 		bool polarity = trigger & IRQ_TYPE_LEVEL_HIGH;
  
- 	/*
- 	 * Report wakeup if the status bit is set for any enabled GPE other
- 	 * than the EC one.
- 	 */
- 	if (acpi_any_gpe_status_set(first_ec->gpe))
--		return true;
-+		return 1;
- 
- 	/*
- 	 * Cancel the SCI wakeup and process all pending events in case there
-@@ -2195,7 +2195,7 @@ bool acpi_ec_dispatch_gpe(void)
- 	spin_unlock_irq(&first_ec->lock);
- 
- 	if (!work_in_progress)
--		return false;
-+		return 0;
- 
- 	pm_pr_dbg("ACPI EC GPE dispatched\n");
- 
-@@ -2212,7 +2212,7 @@ bool acpi_ec_dispatch_gpe(void)
- 		spin_unlock_irq(&first_ec->lock);
- 	} while (work_in_progress && !pm_wakeup_pending());
- 
--	return false;
-+	return 0;
- }
- #endif /* CONFIG_PM_SLEEP */
- 
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 40f875b265a9..d5435338d6ca 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -236,7 +236,7 @@ void acpi_ec_register_opregions(struct acpi_device *adev);
- 
- #ifdef CONFIG_PM_SLEEP
- void acpi_ec_flush_work(void);
--bool acpi_ec_dispatch_gpe(void);
-+int acpi_ec_dispatch_gpe(void);
- #endif
- 
- #else
-@@ -256,9 +256,9 @@ static inline void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit
- static inline void acpi_ec_register_opregions(struct acpi_device *adev) {}
- 
- static inline void acpi_ec_flush_work(void) {}
--static inline bool acpi_ec_dispatch_gpe(void)
-+static inline int acpi_ec_dispatch_gpe(void)
- {
--	return false;
-+	return -EOPNOTSUPP;
- }
- 
- #endif
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 132a9df98471..9366c3d927c2 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -787,13 +787,17 @@ bool acpi_s2idle_wake(void)
- 			return true;
- 		}
- 
--		/*
--		 * Check non-EC GPE wakeups and if there are none, cancel the
--		 * SCI-related wakeup and dispatch the EC GPE.
--		 */
--		if (acpi_ec_dispatch_gpe()) {
--			pm_pr_dbg("ACPI non-EC GPE wakeup\n");
--			return true;
-+		/* Check EC handling and other GPE wake sources. */
-+		{
-+			int ret = acpi_ec_dispatch_gpe();
-+
-+			if (ret == -ENODEV) {
-+				if (acpi_x86_s2idle_check_ixx_gpes())
-+					return true;
-+			} else if (ret > 0) {
-+				pm_pr_dbg("ACPI non-EC GPE wakeup\n");
-+				return true;
-+			}
- 		}
- 
- 		acpi_os_wait_events_complete();
-diff --git a/drivers/acpi/sleep.h b/drivers/acpi/sleep.h
-index 9c3cb109c5d2..955e9c22bf0d 100644
---- a/drivers/acpi/sleep.h
-+++ b/drivers/acpi/sleep.h
-@@ -20,6 +20,14 @@ extern int acpi_s2idle_prepare(void);
- extern bool acpi_s2idle_wake(void);
- extern void acpi_s2idle_restore(void);
- extern void acpi_s2idle_end(void);
-+#if defined(CONFIG_X86) && defined(CONFIG_SUSPEND)
-+extern bool acpi_x86_s2idle_check_ixx_gpes(void);
-+#else
-+static inline bool acpi_x86_s2idle_check_ixx_gpes(void)
-+{
-+	return acpi_any_gpe_status_set(U32_MAX);
-+}
-+#endif
- 
- extern void acpi_s2idle_setup(void);
- 
-diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-index c278ea14c0b3..979684950f24 100644
---- a/drivers/acpi/x86/s2idle.c
-+++ b/drivers/acpi/x86/s2idle.c
-@@ -16,6 +16,7 @@
-  */
- 
- #include <linux/acpi.h>
-+#include <linux/bitmap.h>
- #include <linux/device.h>
- #include <linux/dmi.h>
- #include <linux/suspend.h>
-@@ -24,6 +25,8 @@
- 
- #ifdef CONFIG_SUSPEND
- 
-+static DECLARE_BITMAP(acpi_s2idle_ixx_gpes, 256);
-+
- static void acpi_setup_ixx_gpes(void)
- {
- 	acpi_handle gpe_root;
-@@ -47,11 +50,51 @@ static void acpi_setup_ixx_gpes(void)
- 
- 		acpi_mark_gpe_for_wake(NULL, i);
- 		acpi_set_gpe_wake_mask(NULL, i, ACPI_GPE_ENABLE);
-+		set_bit(i, acpi_s2idle_ixx_gpes);
- 
- 		pm_pr_dbg("ACPI: GPE0x%02x armed for wake via %s\n", i, gpe_nr_str);
- 	}
- }
- 
-+bool acpi_x86_s2idle_check_ixx_gpes(void)
-+{
-+	acpi_handle gpe_device;
-+	acpi_event_status status;
-+	u32 gpe;
-+
-+	for (gpe = 0; gpe < acpi_current_gpe_count; gpe++) {
-+		if (ACPI_FAILURE(acpi_get_gpe_device(gpe, &gpe_device)))
-+			return true;
-+
-+		if (!gpe_device && gpe < 256 &&
-+		    test_bit(gpe, acpi_s2idle_ixx_gpes))
-+			continue;
-+
-+		if (ACPI_FAILURE(acpi_get_gpe_status(gpe_device, gpe, &status)))
-+			return true;
-+
-+		if ((status & ACPI_EVENT_FLAG_STATUS_SET) &&
-+		    (status & ACPI_EVENT_FLAG_ENABLE_SET))
-+			return true;
-+	}
-+
-+	pm_system_cancel_wakeup();
-+
-+	for_each_set_bit(gpe, acpi_s2idle_ixx_gpes, 256) {
-+		if (ACPI_FAILURE(acpi_get_gpe_status(NULL, gpe, &status)))
-+			return true;
-+		if (!(status & ACPI_EVENT_FLAG_STATUS_SET) ||
-+		    !(status & ACPI_EVENT_FLAG_ENABLE_SET))
-+			continue;
-+
-+		pm_pr_dbg("ACPI _Ixx GPE 0x%02x status set\n", gpe);
-+		if (acpi_dispatch_gpe(NULL, gpe) != ACPI_INTERRUPT_HANDLED)
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
- static bool sleep_no_lps0 __read_mostly;
- module_param(sleep_no_lps0, bool, 0644);
- MODULE_PARM_DESC(sleep_no_lps0, "Do not use the special LPS0 device interface");
+ 		/* Disable edge detection */
+
 -- 
 2.34.1
+
 
