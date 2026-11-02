@@ -1,78 +1,73 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=80.241.56.151
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.5
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793559504;
-	b=GzFda6x3yb10lGJbJiWkz5mxTVgWeihohABE9sMjW9fbWwQvMQwUYA3IRXTEwnELSVI6
-	 B3kqA+ilrxvyegfG0n0kYLC3jhwrRDY8cronb/+vrRSyO+0hckXAyHN/3b47DjqGSKY5o
-	 ueNlv05DI/gAiNvXy8YngEB75nHifra0tj9RWynAq3Eu7c4XAIesuFu87DF8ThFET6WWd
-	 0+qkVX8IpYBzBd1XK6h5S1YXbq7bDnEMZK/MVRITIKU4vFByin57hf8sC+Xu/CBbgXI/V
-	 lLQc63aT/hMm2g5z50oc/zGcPpYcF//7sJN+UZc4ZJ4l81ZEQJ7AGJz052fLVcyDqCw==
+	t=1793589944;
+	b=x6x7UyBRXkpveEsA71sb+AG9rHsoProwGAhT6BNCAx7zE0QHOemC7JOu0rPNAn/W4pYY
+	 coLh0JnQvvR/5KQEv4+uAOfs9evFoD6k7S2PoHhIyLKR+kd0aD4wwAZI3wn6itqV8q+Md
+	 ujyXshIoY4n5bD6EbZ+oi++QqfiWlnKKhJayE28TfczXBMYPooOAM7htvDLapU66nFeby
+	 1UxpaBGMCDpzUS5HyZKMLvMjTqYdRTvAOvwVIDla+ku/qUGGEX8EV2Yb5g+Q3rQAhvqc8
+	 BdT8a2W1FkeSS8RBh230ejhaaZoC36EyXJiyzfibEJ5d7KNb8cbtFFfIHnr/2zjto/A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793559504;
-	h=DMARC-Filter:Received:DKIM-Signature:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Rspamd-Queue-Id;
-	bh=gxV8jWkJrL5x4Ukev9pRL/MqZOjbjDyS7hPKdWYrOlw=;
-	b=f/kvtl1gcW1V3TAGSYg9bb/FK39RegkZ260dlu4WnMT9Llf2tCRI+B0YuLAEoj4C01dC
-	 9ppBGJe1vpq3784GnJZEepHA2gUXrCwuqy31/voIa+bu6bwy9KD9JBY7hdCcu9ldFC5PD
-	 gK7LpkH7ouzNfC90VS1+IvFgP6l4bE3o5kjK0DM/t6azwZ8abgYoTXfAWfrLyUTV+mhI1
-	 K3N6sN7VDETPxHj+0CbSjt48OJ5M540wPnzRmi81S/T/fD540koNSE6X4gZccuAhGSSbd
-	 vjFxBtIDlPgE6kATB07UzTgOLNevA0cmAL4asmnz4RKb+3tH5S6+STBj1tzx51BthAQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793589944;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
+	 Message-Id:X-Mailer:MIME-Version:Content-Transfer-Encoding:
+	 X-CM-TRANSID:X-Coremail-Antispam:Sender:X-CM-SenderInfo;
+	bh=veZDpRBvsFIvF/XJwen4k9bmxlWJry4e0api1yU19lY=;
+	b=kGEkcfQwlS5mDhdStaWZ8vKJE4ZH8ont7aUaca2ubC339tb4pqmyh67LaeLTR3EvwSsn
+	 0F9iXRhzlMfGCdFd1W7ktmZzSCHqnPdo3enawWftD999Teso6FaNcv6jRiyo7tsrkj9u3
+	 Cqm3s0+I6ply/aH8lgFjxPl4T0l75Bh6+0x9QSG1Ws+MfvF7Rfmsn6GWPkXPO/3BtxmCM
+	 jEzxq6LiamLMAytu2dpR4qI5cKSX5Ui/4Myq/r66dZvVEOTKYq0xVt5eRNGUvn7elZkhH
+	 a4FIitOVuGKhBK0mbkJRt8ZMfjNiEe6QogKbIM0MuB+xEOfagbPxFuuQUg8YNQBIZCA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=hsal.es;
-	spf=pass smtp.mailfrom=hsal.es;
-	dkim=pass header.d=hsal.es header.i=@hsal.es header.a=rsa-sha256 header.s=MBO0001 header.b=kUtDzGLi;
-	arc=none smtp.remote-ip=80.241.56.151
-Received: from mout-p-101.mailbox.org (mout-p-101.mailbox.org [80.241.56.151])
+	dmarc=none header.from=kylinos.cn;
+	spf=pass smtp.mailfrom=163.com;
+	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=hurb2bK1;
+	arc=none smtp.remote-ip=117.135.210.5
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.5])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C310606A324;
-	Sun,  1 Nov 2026 18:58:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9C310606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=hsal.es
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hsal.es
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83697606A324;
+	Mon,  2 Nov 2026 03:25:39 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 83697606A324
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=hsal.es header.i=@hsal.es header.a=rsa-sha256 header.s=MBO0001 header.b=kUtDzGLi
-Received: from smtp202.mailbox.org (smtp202.mailbox.org [IPv6:2001:67c:2050:b231:465::202])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519MLKEM768 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mout-p-101.mailbox.org (Postfix) with ESMTPS id 4jHkcg3Scbz8sqQ;
-	Sun, 01 Nov 2026 19:58:11 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=hsal.es; s=MBO0001;
-	t=1793559491;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=gxV8jWkJrL5x4Ukev9pRL/MqZOjbjDyS7hPKdWYrOlw=;
-	b=kUtDzGLiq53XNm9bS/34T0NPC61clhCez7wX0EXj0fT3fHhdabwUMZRQoLFJL7f9K3vf40
-	T8KnWY5YnGJv9Xb4IR1B6YNPCHeKr52zQN7O4VfU7QWac5LEa1RAx2rYkNML6dM7M7BMtt
-	plTLjYIu+mEffAbjeV36POVYvRxv5TjsIWfT3wgVcOq7m51LPw4Tskf1+KNaJP4j+1rKyd
-	frDIBhew5rkNgdR8qhcx6em5Vzwxd61P9NwIgEb2pt1QkS7Sw6YRInnSweW1FYIIDiU8xB
-	6kXUYDH6aYXts4JGniQ88R+9enzDQ23eEmzsv/9pIXB+JSdQOVjiN/F7ihIufw==
-Authentication-Results: outgoing_mbo_mout;
-	dkim=none;
-	spf=pass (outgoing_mbo_mout: domain of hugo@hsal.es designates 2001:67c:2050:b231:465::202 as permitted sender) smtp.mailfrom=hugo@hsal.es
-From: Hugo Sales <hugo@hsal.es>
-To: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Len Brown <lenb@kernel.org>,
-	Zhang Rui <rui.zhang@intel.com>,
-	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	"Ashton A." <me@ashtonantila.com>,
-	linux-pm@vger.kernel.org,
+	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=hurb2bK1
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=ve
+	ZDpRBvsFIvF/XJwen4k9bmxlWJry4e0api1yU19lY=; b=hurb2bK1wnF/7c1yiM
+	Qd+ryg1SzmOwRJdYq8Z4ImzlMSv18EA8wEmL6GktXhkA2yzv5qZuTEhxmHiVflFj
+	7ZxiH4l2vZdt5jTMzYnOMmcJ/jYQ9vDNyxUPMzF/qdSMrFv68U4IhsgrCDnUC+zu
+	7lhpyHbWNmAUDHLA8u+j+8pB0=
+Received: from localhost.localdomain (unknown [])
+	by gzsmtp3 (Coremail) with SMTP id PigvCgDX30V0AuhqjnIJDg--.46362S2;
+	Mon, 02 Nov 2026 11:24:45 +0800 (CST)
+From: Yongxin Yang <yangyongxin@kylinos.cn>
+To: Davidlohr Bueso <dave@stgolabs.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Ira Weiny <iweiny@kernel.org>,
+	Dan Williams <djbw@kernel.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Shuai Xue <xueshuai@linux.alibaba.com>,
+	Len Brown <lenb@kernel.org>,
+	Li Ming <ming.li@zohomail.com>,
+	Ben Cheatham <benjamin.cheatham@amd.com>,
+	linux-cxl@vger.kernel.org,
 	linux-acpi@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [RFC PATCH 1/4] cpufreq: Add a CPUFREQ_UPDATE_CPUINFO policy notifier event
-Date: Sun,  1 Nov 2026 18:58:04 +0000
-Message-ID: <20261101185807.112449-2-hugo@hsal.es>
-X-Mailer: git-send-email 2.56.0
-In-Reply-To: <20261101185807.112449-1-hugo@hsal.es>
-References: <20261101185807.112449-1-hugo@hsal.es>
+	linux-kernel@vger.kernel.org,
+	Yongxin Yang <yangyongxin@kylinos.cn>,
+	stable@vger.kernel.org
+Subject: [PATCH v5] cxl/core: Create einj_types regardless of EINJ init order
+Date: Mon,  2 Nov 2026 11:24:36 +0800
+Message-Id: <20261102032436.230945-1-yangyongxin@kylinos.cn>
+X-Mailer: git-send-email 2.25.1
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -83,109 +78,91 @@ List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Rspamd-Queue-Id: 4jHkcg3Scbz8sqQ
+X-CM-TRANSID:PigvCgDX30V0AuhqjnIJDg--.46362S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxWFykZrWxXrW8WrykWw4fuFg_yoWrJw1fpa
+	yDurnYyrykAF4IyrsxA34UZa4Fgws5WayDCryDW343Zan8urnYyF10yFWY9a1kGFWkJa40
+	qwn8Ar12kayjkrJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07j5KsUUUUUU=
+Sender: yang_yongxin123@163.com
+X-CM-SenderInfo: 51dqwsp1rqw5tlqrjji6rwjhhfrp/xtbDAB50EmroAn4PiQAA3A
 
-Turning boost on or off changes policy->cpuinfo.max_freq in the
-->set_boost() callbacks of amd-pstate, cppc_cpufreq and the drivers that
-use cpufreq_boost_set_sw(). Users that derive a QoS request from
-cpuinfo.max_freq have no way to learn about it. The ACPI processor
-thermal code is one: its throttling steps are fixed fractions of
-cpuinfo.max_freq, computed only when the cooling state is written
+The einj_types file under the CXL debugfs directory is never created when
+cxl_core is built in.  cxl_core_init() runs at subsys_initcall level, while
+einj_init() registers EINJ at device_initcall level, so the
+einj_cxl_is_initialized() check in cxl_core_init() always sees EINJ as not
+up yet and the debugfs_create_file() below it is never reached.  With
+cxl_core as a module, module dependencies make sure it is loaded after EINJ
+is up and the file is created.
 
-Its freq QoS notifiers don't help, since they only fire when the
-aggregate limit changes. While a thermal cap is lower than both maximums,
-turning boost on changes boost_freq_req but not the aggregate
+Create the file unconditionally instead, gated only on the CXL error
+injection support being compiled in, and have
+einj_cxl_available_error_type_show() return -ENODEV until EINJ is up.  This
+single check in cxl_core_init() covers every combination of built-in and
+modular cxl_core, cxl_acpi and EINJ, with no extra hooks.
 
-Add a CPUFREQ_UPDATE_CPUINFO policy notifier event and send it from
-policy_set_boost() once the driver has updated cpuinfo. The helper that
-sends it is global, so a driver that changes cpuinfo.max_freq outside
-->set_boost() can send it too
+The check in the show callback is required, not cosmetic: einj_tab is
+NULL until einj_init() runs, so einj_get_available_error_type() would
+dereference a NULL pointer.
 
-Signed-off-by: Hugo Sales <hugo@hsal.es>
+This restores the discovery of the supported error types only.  On a fully
+built-in RCH/RCD hierarchy the inject files below the dport directory are
+still not created: cxl_debugfs_create_dport_dir() has the same early return
+and the only dport there comes from cxl_acpi_probe() at
+subsys_initcall_sync level, before EINJ is up.
+
+Fixes: 8039804cfa73 ("cxl/core: Add CXL EINJ debugfs files")
+Cc: <stable@vger.kernel.org>
+Suggested-by: Dave Jiang <dave.jiang@intel.com>
+Suggested-by: Ben Cheatham <benjamin.cheatham@amd.com>
+Link: https://lore.kernel.org/all/de14c4ef-e3d8-432f-9ce8-87c468d6d2ad@amd.com/
+Link: https://lore.kernel.org/all/7a22cc6a-deba-40e6-8033-97d1234420ba@amd.com/
+Signed-off-by: Yongxin Yang <yangyongxin@kylinos.cn>
 ---
- Documentation/cpu-freq/core.rst |  9 ++++++---
- drivers/cpufreq/cpufreq.c       | 16 ++++++++++++++++
- include/linux/cpufreq.h         |  2 ++
- 3 files changed, 24 insertions(+), 3 deletions(-)
+Changes in v5:
+- Rework per Dave's suggestion, agreed by Ben: create einj_types from
+  cxl_core_init() without looking at the runtime EINJ state, and return
+  -ENODEV from einj_cxl_available_error_type_show() while EINJ is not
+  initialized, instead of creating the file from three separate hooks.
+  This drops the mutex, the exported helper and the cached dentry.
+- Drop the cxl_acpi_probe() hook: host bridge dports, RCH included, already
+  go through __devm_cxl_add_dport() -> cxl_debugfs_create_dport_dir() in the
+  same probe, so the hook added nothing.
+- Gate the creation on CONFIG_ACPI_APEI_EINJ_CXL rather than on the runtime
+  EINJ state.
+- Dropped the Reviewed-by tag as the approach changed significantly.
 
-diff --git a/Documentation/cpu-freq/core.rst b/Documentation/cpu-freq/core.rst
-index 4ceef8e7217c3..946913c024121 100644
---- a/Documentation/cpu-freq/core.rst
-+++ b/Documentation/cpu-freq/core.rst
-@@ -49,11 +49,14 @@ transition notifiers.
- 2.1 CPUFreq policy notifiers
- ----------------------------
- 
--These are notified when a new policy is created or removed.
-+These are notified when a new policy is created or removed, and when boost
-+is turned on or off or the driver reports a change of cpuinfo.max_freq.
- 
- The phase is specified in the second argument to the notifier.  The phase is
--CPUFREQ_CREATE_POLICY when the policy is first created and it is
--CPUFREQ_REMOVE_POLICY when the policy is removed.
-+CPUFREQ_CREATE_POLICY when the policy is first created, it is
-+CPUFREQ_REMOVE_POLICY when the policy is removed and it is
-+CPUFREQ_UPDATE_CPUINFO when boost has been turned on or off or the driver
-+reports that cpuinfo.max_freq has changed.
- 
- The third argument, a ``void *pointer``, points to a struct cpufreq_policy
- consisting of several values, including min, max (the lower and upper
-diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-index 54dde8419bdc4..4d974dac4dff5 100644
---- a/drivers/cpufreq/cpufreq.c
-+++ b/drivers/cpufreq/cpufreq.c
-@@ -594,6 +594,8 @@ static int policy_set_boost(struct cpufreq_policy *policy, bool enable)
- 		return ret;
- 	}
- 
-+	cpufreq_notify_cpuinfo_update(policy);
-+
- 	return 0;
- }
- 
-@@ -1184,6 +1186,20 @@ void refresh_frequency_limits(struct cpufreq_policy *policy)
- }
- EXPORT_SYMBOL(refresh_frequency_limits);
- 
-+/**
-+ * cpufreq_notify_cpuinfo_update - Notify policy notifiers of a cpuinfo change
-+ * @policy: Policy whose cpuinfo limits have changed
-+ *
-+ * Send CPUFREQ_UPDATE_CPUINFO to the policy notifiers, so that QoS requests
-+ * derived from @policy->cpuinfo can be recomputed. An inactive policy is
-+ * notified too, since its QoS requests stay until CPUFREQ_REMOVE_POLICY
-+ */
-+void cpufreq_notify_cpuinfo_update(struct cpufreq_policy *policy)
-+{
-+	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,
-+				     CPUFREQ_UPDATE_CPUINFO, policy);
-+}
-+
- static void handle_update(struct work_struct *work)
- {
- 	struct cpufreq_policy *policy =
-diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
-index d3d0d9d02aa4a..f3acdcee7183f 100644
---- a/include/linux/cpufreq.h
-+++ b/include/linux/cpufreq.h
-@@ -249,6 +249,7 @@ void disable_cpufreq(void);
- u64 get_cpu_idle_time(unsigned int cpu, u64 *wall, int io_busy);
- 
- void refresh_frequency_limits(struct cpufreq_policy *policy);
-+void cpufreq_notify_cpuinfo_update(struct cpufreq_policy *policy);
- void cpufreq_update_policy(unsigned int cpu);
- void cpufreq_update_limits(unsigned int cpu);
- bool have_governor_per_policy(void);
-@@ -536,6 +537,7 @@ static inline void cpufreq_resume(void) {}
- /* Policy Notifiers  */
- #define CPUFREQ_CREATE_POLICY		(0)
- #define CPUFREQ_REMOVE_POLICY		(1)
-+#define CPUFREQ_UPDATE_CPUINFO		(2)
- 
- #ifdef CONFIG_CPU_FREQ
- int cpufreq_register_notifier(struct notifier_block *nb, unsigned int list);
+ drivers/acpi/apei/einj-cxl.c | 4 ++++
+ drivers/cxl/core/port.c      | 2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-base-commit: 5854d2ce4b0b9ccb37b154319d8283bad889a694
+diff --git a/drivers/acpi/apei/einj-cxl.c b/drivers/acpi/apei/einj-cxl.c
+index e70a416ec925..3090c7649ed2 100644
+--- a/drivers/acpi/apei/einj-cxl.c
++++ b/drivers/acpi/apei/einj-cxl.c
+@@ -30,6 +30,10 @@ int einj_cxl_available_error_type_show(struct seq_file *m, void *v)
+ 	int cxl_err, rc;
+ 	u32 available_error_type = 0;
+ 
++	/* einj_tab stays NULL until EINJ is initialized, don't read it. */
++	if (!einj_cxl_is_initialized())
++		return -ENODEV;
++
+ 	rc = einj_get_available_error_type(&available_error_type, ACPI_EINJ_GET_ERROR_TYPE);
+ 	if (rc)
+ 		return rc;
+diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+index 625e4aa427db..d4ed1cc7c480 100644
+--- a/drivers/cxl/core/port.c
++++ b/drivers/cxl/core/port.c
+@@ -2515,7 +2515,7 @@ static __init int cxl_core_init(void)
+ 
+ 	cxl_debugfs = debugfs_create_dir("cxl", NULL);
+ 
+-	if (einj_cxl_is_initialized())
++	if (IS_ENABLED(CONFIG_ACPI_APEI_EINJ_CXL))
+ 		debugfs_create_file("einj_types", 0400, cxl_debugfs, NULL,
+ 				    &einj_cxl_available_error_type_fops);
+ 
 -- 
-2.56.0
+2.25.1
 
