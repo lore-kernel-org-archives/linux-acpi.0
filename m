@@ -1,95 +1,83 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.208.29
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793655137;
-	b=xBXWAZDb1m904F08ZV/Cotv8i1t01G7zhc/eLKBzDCmTluMfVXBAre/PBc9scJcFtiVi
-	 8Hx5QgCMDo/vULRbyvrjYoOyEeSD4GO9KsjVyUh7xc5oU5FPD5ZhUX1OsWiDCLLXW3YB7
-	 kONYorifkMORS9DvSmUJKLLpKignalfb0rDt7dT93eFR8LK5deEPoO0hFCV7cmpeOVVNI
-	 uWDW8ETDAhslJzkew+7YRN2Le/jdNLUE5yVQUFMXp1tbsQ0xZX6FUF6yLy+Z9l5MWSWGp
-	 IA7LxJNP9dWE8Ln8EDz4aFXROrvc7EqASl97pFIl1Su6fJk9J0YScR5Y58JREP3nyNQ==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793655137;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:
-	 X-MS-Exchange-Authentication-Results:Received-SPF:Received:Received:
-	 Message-ID:Date:MIME-Version:User-Agent:Subject:To:CC:References:
-	 Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:X-Originating-IP:X-ClientProxiedBy:
-	 X-EOPAttributedMessage:X-MS-PublicTrafficType:
-	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
-	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-Id:
-	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=J7nIxLEKPJH78lPVgN5beRlgz71TkDF1YEbnyEcUTlk=;
-	b=YED94A+B0s8oqG9viJw8M0ybAsbkDMwZNQZj/nPrz9nO4dQud2td37t64b5ZoffHMVUA
-	 rXBNvMrzmOHtfsCrAsqADn6E6JBagXG5r2QGXGIo6jiZKB9aa3SNiznVR2DKCjBZBqCrC
-	 VJDdHjOmsRD1kA5K6qoN6v8uHRi6907u6UaGRK4TJ48OgIm/1NTwWWxhbtvEZNElybQSp
-	 QqLsG7jL80XNn2oa2btu1ggcVTyLXJlvCDyq+IDkXdq9v4wzP0s68Bed9FgMvqAKsj4WT
-	 REljXLRGlUMj9vdXsH8EdsR+SE6Uhl7XQ8Qij7/NFjM01akxla619xFMN/yZyoA6uUw==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=amd.com;
-	spf=fail smtp.mailfrom=amd.com;
-	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b="0Uhg/fYm";
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.208.29
-Received: from PH0PR06CU001.outbound.protection.outlook.com (mail-westus3azon11011029.outbound.protection.outlook.com [40.107.208.29])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.15
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793656080;
+	b=zrBIKhCeGr59zS/xfq4CpOYeNoTa/Fwk6mrOu6H0VyPPhyteMhguguqLBZ9CaR0BWBSn
+	 bHjA32l/1LWt6pwJY6uRGs/UMmTkoHHWeO9n4yUYETLN4RFgB6y4rIfMDNy5bs8bkOX3y
+	 yRK9Pyzc3IgmzGIr3lEIxuXt491j35PloBxy0VIxR8d/3WBihCGeTK/9aOkd80mQi9+2+
+	 AcCVRfW5/KHMFTy1YMIFKc0ELvpR+W3i3jHt4vfeejm2yZPxU473ehJ5arChBTpgBUvar
+	 wOIQuEVuqfMqTLsgb4gjzfDC+COWRitbHmJ2Vwf99mQnUgUlFOTYenXZ5ue5Vj1udcg==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793656080;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=aUDLACHlyrxhpmZGNWGB4QTE3dHwiL05kQfWOo8WH70=;
+	b=Jc36XTc+CaxH8tB6QyHS7QVzm3JFthLB+u46gvUOASbF7EQVxw5HhofqkozHsYJXjTdN
+	 Cm8JvoTVH9uOmi0Ej3+G3EV0eYNKFaPyKBR9XAe70j3Uz1voO7AaAb6CNOVJ3LrXji94H
+	 g3QwjczcwuMjCYJ05ZARYJVtLBRs0LDKBJnQxOKsnh3NSXhCMVkaYyqFkI/ra1OR1r6CG
+	 /eVEDDJyyxxczdcEUhqWF0MHCfzbBYSNFErsdurxuwMhPRHXk9JxwHcm5kB2cd9vtciN6
+	 HsLPrQ35OXe5Rx5OKEfxLrWjs4aAquqfNhffDZMecXM718n4Pdp1S8avERtMR0ElhdA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=dCakfed5;
+	arc=none smtp.remote-ip=198.175.65.15
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1BD3606A324;
-	Mon,  2 Nov 2026 21:32:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B1BD3606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D6F1606A327;
+	Mon,  2 Nov 2026 21:47:59 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9D6F1606A327
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=0Uhg/fYm
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=G8JtnuPhTPV0XA2mML6MXanKWQB1ulmRBx+WkLQc9YxErGtXXVGDdLKPcUqlqqGfxXL3u6Q0G6e4J/CUEb4wIYHi83lGc6UDVIL1udG69QY6BrB2dR6Ui4JczfuRflldEewfIJYZ44S2/FvrpeWzwvtgroyPBW5AtLDCRcTZ7cRJzYtRSmRYKTTUTxmv2MSboj7RumQQhSWGorfebHR/AHRFn1W+kqn2v1t+NvxbN5V/bDcr054PPk45ZR/dtAhHUZBzrtPwqRVDZ+TfWGrzWzqv7jhYlBhASgCKTAfj+Yi8ecaRqQOdHAVquX+8ubbkuoVMEDLpobufVgfqWAHPrA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=J7nIxLEKPJH78lPVgN5beRlgz71TkDF1YEbnyEcUTlk=;
- b=Yq/sOsNlkMe1J3Md2YxNBYs5TRyL6MV9lfM3psOj4WKoUUCAoQVeq4lqgkyK9g6fP1dp8rbhbHgw9wALCAj4Y65szFIyZNLeFtptzEq7bc0pP/C9jQg/ze+j3XJZlpfpIaYXBkUvCvt/Xro8L959P12pD1QxuowAjc7aOyG2uIV73RV1xpCyBKUFCFx9lxS0DBuF4RIxu/MAth0p1eXPhTm1JnnxU/zuiGrrlhOgNYLmb5gWKeHTL0GqVPRdvRlq0cdpWtWBhbWVz5I+bsM2CIa/NPSn3VXgtyvaJcpkjg+3Cwk7cATqHgwYBL9rQIWIT+vEG4jfC+6yASoqaZ8F3Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=kylinos.cn smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=J7nIxLEKPJH78lPVgN5beRlgz71TkDF1YEbnyEcUTlk=;
- b=0Uhg/fYmERtBzh0MjBNn0+bAX4f4wtkmdvtQMvCqNkQrf8AiCRNj/HmFCWECZbA9Xhesvr22JDox/ZThgiZKplZPORaH1qCYGeGK0OrBC6+BmbplXBJoI0wHQ8vosP/u4dWquPvh7Jp0Udg72HmA9LV//Nkb8bouNw9NUZ+MLzk=
-Received: from BY3PR10CA0023.namprd10.prod.outlook.com (2603:10b6:a03:255::28)
- by LV2PR12MB5918.namprd12.prod.outlook.com (2603:10b6:408:174::21) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.12; Mon, 2 Nov
- 2026 21:32:07 +0000
-Received: from MWH0EPF000C6190.namprd02.prod.outlook.com
- (2603:10b6:a03:255:cafe::27) by BY3PR10CA0023.outlook.office365.com
- (2603:10b6:a03:255::28) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.569.12 via Frontend Transport; Mon, 2
- Nov 2026 21:32:06 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 165.204.84.17) smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=satlexmb07.amd.com; pr=C
-Received: from satlexmb07.amd.com (165.204.84.17) by
- MWH0EPF000C6190.mail.protection.outlook.com (10.167.249.101) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.592.5 via Frontend Transport; Mon, 2 Nov 2026 21:32:06 +0000
-Received: from [192.168.86.111] (10.180.168.240) by satlexmb07.amd.com
- (10.181.42.216) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.53; Mon, 2 Nov
- 2026 15:32:04 -0600
-Message-ID: <63e782a6-e33a-46ce-a455-5d207a60661f@amd.com>
-Date: Mon, 2 Nov 2026 15:32:03 -0600
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=dCakfed5
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1793656079; x=1825192079;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=+k5sFKZYE6g5VogYmHeXbYF3Ix0grhxDoNMr2/mr34A=;
+  b=dCakfed58714ri75L3jIu4VD2nyt3TxhKZ7JpQJnkATEghqT9tYpeza3
+   iTdBb2okQc/k+Rw76YFzkxm165+euZVW/j2V8cuOIVZFwQsZRh6gUcYO4
+   bUXkXBNsCFkOB3997+x5BV9Czz0R/zXXIntABTr9+PwJ+vUT++H6MSZi5
+   LmFffW/Fob1eR52Io/Mwoc1IGqauttGtff8qfX5Pb6hV+fb/0XJviHnCv
+   e164CERPLqo2MnEinN263dwEC4Jy2JKTIdUoCkBSiYiI9IxkANBkS1K+R
+   h3FbXRyXxytzxcCBs2LAUat+s+yu8FkOAMqWMJdIegOMo2KxQQN93gUbc
+   g==;
+X-CSE-ConnectionGUID: duLhCtfpTUat+gcZ6oIhDQ==
+X-CSE-MsgGUID: 8FdEYz7iTG2N58h+TzmMOA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11954"; a="2373261"
+X-IronPort-AV: E=Sophos;i="6.27,192,1787036400"; 
+   d="scan'208";a="2373261"
+Received: from fmviesa013.fm.intel.com ([10.60.135.153])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2026 13:47:59 -0800
+X-CSE-ConnectionGUID: wkZDEhLfRpyproKLtvzocw==
+X-CSE-MsgGUID: ZcDCcwAfR72GqeNUK/o4Cg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,192,1787036400"; 
+   d="scan'208";a="8069525"
+Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
+  by fmviesa013.fm.intel.com with ESMTP; 02 Nov 2026 13:47:57 -0800
+Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xNzsg-00000000htI-0DiS;
+	Mon, 02 Nov 2026 21:47:54 +0000
+Date: Tue, 3 Nov 2026 05:47:16 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Baorui.Liu" <baorliu@amd.com>,
+	"Rafael J . Wysocki" <rafael@kernel.org>
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	acpica-devel@lists.linuxfoundation.org,
+	kernel test robot <lkp@intel.com>, "Baorui . Liu" <baorliu@amd.com>
+Subject: Re: [PATCH v6] ACPI: button: Report wakeup key only for power button
+ wakeups
+Message-ID: <202611030545.3st9p1ha-lkp@intel.com>
+References: <20261102091049.856-1-baorliu@amd.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -99,169 +87,166 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5] cxl/core: Create einj_types regardless of EINJ init
- order
-To: Yongxin Yang <yangyongxin@kylinos.cn>, Davidlohr Bueso
-	<dave@stgolabs.net>, Jonathan Cameron <jic23@kernel.org>, Dave Jiang
-	<dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>, Vishal
- Verma <vishal.l.verma@intel.com>, Ira Weiny <iweiny@kernel.org>, Dan Williams
-	<djbw@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>
-CC: Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Hanjun
- Guo <guohanjun@huawei.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Shuai
- Xue <xueshuai@linux.alibaba.com>, Len Brown <lenb@kernel.org>, Li Ming
-	<ming.li@zohomail.com>, <linux-cxl@vger.kernel.org>,
-	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<stable@vger.kernel.org>
-References: <20261102032436.230945-1-yangyongxin@kylinos.cn>
-Content-Language: en-US
-From: "Cheatham, Benjamin" <benjamin.cheatham@amd.com>
-In-Reply-To: <20261102032436.230945-1-yangyongxin@kylinos.cn>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: satlexmb08.amd.com (10.181.42.217) To satlexmb07.amd.com
- (10.181.42.216)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000C6190:EE_|LV2PR12MB5918:EE_
-X-MS-Office365-Filtering-Correlation-Id: edfe55f1-8d6f-409e-c7ad-08df3928be2a
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|36860700016|82310400026|7416014|1800799024|376014|261021121427099003|261021123027099003|261022105027099003|261022075727099003|261009223027099003|261026140227099003|261026121527099003|261028144727099003|11063799006|5023799004|56012099006|22082099003|18002099003|261102123227099003|13003099007|10067099003|261102130727099003;
-X-Microsoft-Antispam-Message-Info:
-	HFmxWT5VmGuDUeekkJAUlVH8DLGmdrdr5Fa3ofRfF5x7gz9uIcPnT9A4qM57KfyYdWu1TAnAcG1tTZfJ1e78csC98YO1o+SDSjLedQEswDKwx9BelVXPS0fr1bsoIPmsrPQnDjBPoqNLBf4UhoQ1RH2wCzPBTxnReq9+AZZVJs3bwAzZgtoW3d3vtpgzrPDfguREDPE9mEKXb5tHqOj6Y0zsPTZD4qIu6oukC822Bkdv/TpZjJZgu0+o0k8mstB3usURQjBpcza8JZ9t3dNGM3YJhOmLiwDat68nvwv5R5i2jOXKlRdk0f4BU4wPiEEqdFUZzOoFEYaaSZteCfb8wnnce9MC7lp+YnbaLrM/M7TeYNmgiwkb/fzwVMFa9lKfLcOHo+iX16oH2u3doCS0BvtiJMVea3f6DQwN9bLp5/TZiJxyZwICQd5KW+jMa/9bqvEWa/LuxKvP/EXP56NCzk3EUslZaGwqZSy49+WsuUQR5VwJPdLeVL+sSRaO+xkKID91VHZNHHXnWcsFF4+5W6VkRhoVyEU1U4x/EomxG/3RIrf91jSCIFPGjoBUSABwlXEVWNQZ8J1QObPWcMI2a2+LM9IDrh+W263ZJbfXIIK416apnbniiv/HyjNJgl98FweEJD7aj5RjJfPKRkm/CsLFyvXsm/gNq/zORP6LUxA=
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:satlexmb07.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(23010399003)(36860700016)(82310400026)(7416014)(1800799024)(376014)(261021121427099003)(261021123027099003)(261022105027099003)(261022075727099003)(261009223027099003)(261026140227099003)(261026121527099003)(261028144727099003)(11063799006)(5023799004)(56012099006)(22082099003)(18002099003)(261102123227099003)(13003099007)(10067099003)(261102130727099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	vKkz23gyu9RkvGKigfYsN/873v/H7y2vZWuQUNbVjMi05UbtotA5N1LoYhoU7GBXiSnAfQVYBR7beFLPw4oiv4GhGeg97NxgRsrBvJw0xYrZxTFZR/w6VELK/ZY9NQpBBy5E8PtqwqHKm4UFlb1OmnyvgiaVV9bOsfSRqDKLiMYpmMe/WTcusQgbjEvuX+TfIJoZuj+6lalIIuAP9gEPaOzQ9Sea5pDOJdEaBqvs0//IZJHY41i7y+7XW1iOJJ6+bFSEdYOwEXoFKnUX/P5HAuLU4uYOPcGR/YqwvcU6By9emMkp8j0fVlWvpPtHdbJ9Fwu27sca9iXlS+UDTQq9Fvo2Av1L1md7wXW+9fJi7Fkey7OxuUQJwa204PhT60pyxNgnKsjDFZcGs6O2KhAI6u5lDmG+Bc21UcLPcQDeCC5mB5FpOIrPGTxpq3oCRz9+
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Nov 2026 21:32:06.0748
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: edfe55f1-8d6f-409e-c7ad-08df3928be2a
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[satlexmb07.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	MWH0EPF000C6190.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV2PR12MB5918
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261102091049.856-1-baorliu@amd.com>
 
-On 11/1/2026 9:24 PM, Yongxin Yang wrote:
-> [You don't often get email from yangyongxin@kylinos.cn. Learn why this is important at https://aka.ms/LearnAboutSenderIdentification ]
-> 
-> The einj_types file under the CXL debugfs directory is never created when
-> cxl_core is built in.  cxl_core_init() runs at subsys_initcall level, while
-> einj_init() registers EINJ at device_initcall level, so the
-> einj_cxl_is_initialized() check in cxl_core_init() always sees EINJ as not
-> up yet and the debugfs_create_file() below it is never reached.  With
-> cxl_core as a module, module dependencies make sure it is loaded after EINJ
-> is up and the file is created.
-> 
-> Create the file unconditionally instead, gated only on the CXL error
-> injection support being compiled in, and have
-> einj_cxl_available_error_type_show() return -ENODEV until EINJ is up.  This
-> single check in cxl_core_init() covers every combination of built-in and
-> modular cxl_core, cxl_acpi and EINJ, with no extra hooks.
+Hi Baorui.Liu,
 
-The first sentence makes no sense, it says it is created unconditionally and
-then lists a condition for it to be created XD. Second sentence in unnecessary
-as well, you already mentioned the module case is fine above. I'd change to
-something like: "Change the file creation condition from EINJ being initialized
-to a compile time check for ACPI_APEI_EINJ_CXL and return -ENODEV until EINJ
-is up."
-> 
-> The check in the show callback is required, not cosmetic: einj_tab is
-> NULL until einj_init() runs, so einj_get_available_error_type() would
-> dereference a NULL pointer.
-> 
+kernel test robot noticed the following build errors:
 
-This is pretty self-explanatory in the code, I'd remove this part.
+[auto build test ERROR on rafael-pm/linux-next]
+[also build test ERROR on rafael-pm/bleeding-edge linus/master v7.3 next-20261030]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-> This restores the discovery of the supported error types only.  On a fully
-> built-in RCH/RCD hierarchy the inject files below the dport directory are
-> still not created: cxl_debugfs_create_dport_dir() has the same early return
-> and the only dport there comes from cxl_acpi_probe() at
-> subsys_initcall_sync level, before EINJ is up.
+url:    https://github.com/intel-lab-lkp/linux/commits/Baorui-Liu/ACPI-button-Report-wakeup-key-only-for-power-button-wakeups/20261102-171049
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+patch link:    https://lore.kernel.org/r/20261102091049.856-1-baorliu%40amd.com
+patch subject: [PATCH v6] ACPI: button: Report wakeup key only for power button wakeups
+config: arm64-randconfig-1001-20261102 (https://download.01.org/0day-ci/archive/20261103/202611030545.3st9p1ha-lkp@intel.com/config)
+compiler: clang version 19.1.7 (https://github.com/llvm/llvm-project cd708029e0b2869e80abe31ddb175f7c35361f90)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261103/202611030545.3st9p1ha-lkp@intel.com/reproduce)
 
-I'm looking at this now and this doesn't need to be the case. We can do the same
-thing in cxl_debugfs_create_dport_dir() and replace the "if (!einj_cxl_is_initialized())"
-with "if (IS_ENABLED(CONFIG_ACPI_APEI_EINJ_CXL))", then modify cxl_einj_inject() to do
-check einj_cxl_is_initialized() before doing anything.
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202611030545.3st9p1ha-lkp@intel.com/
 
-Also, this function isn't broken for RCH ports specifically, it's all downstream ports...
-> 
-> Fixes: 8039804cfa73 ("cxl/core: Add CXL EINJ debugfs files")
-> Cc: <stable@vger.kernel.org>
+All errors (new ones prefixed by >>):
 
-I don't think this is big enough to be backported to stable. This functionality isn't very
-heavily used, and the config where it's broken isn't what most people use AFAIK.
-> Suggested-by: Dave Jiang <dave.jiang@intel.com>
-> Suggested-by: Ben Cheatham <benjamin.cheatham@amd.com>
+   In file included from drivers/gpu/drm/nouveau/nouveau_connector.c:27:
+   include/acpi/button.h:28:15: error: unknown type name 'bool'
+      28 | static inline bool acpi_sleep_pwr_btn_wakeup_pending(void)
+         |               ^
+   include/acpi/button.h:30:9: error: use of undeclared identifier 'false'; did you mean 'else'?
+      30 |         return false;
+         |                ^~~~~
+         |                else
+>> include/acpi/button.h:30:9: error: expected expression
+   In file included from drivers/gpu/drm/nouveau/nouveau_connector.c:29:
+   In file included from include/linux/pm_runtime.h:11:
+   In file included from include/linux/device.h:32:
+   In file included from include/linux/device/driver.h:21:
+   In file included from include/linux/module.h:20:
+   In file included from include/linux/elf.h:6:
+   In file included from arch/arm64/include/asm/elf.h:133:
+   In file included from include/linux/fs.h:5:
+   In file included from include/linux/fs/super.h:5:
+   In file included from include/linux/fs/super_types.h:13:
+   In file included from include/linux/percpu-rwsem.h:7:
+   In file included from include/linux/rcuwait.h:6:
+   In file included from include/linux/sched/signal.h:7:
+   include/linux/signal.h:98:11: warning: array index 3 is past the end of the array (that has type 'unsigned long[1]') [-Warray-bounds]
+      98 |                 return (set->sig[3] | set->sig[2] |
+         |                         ^        ~
+   include/uapi/asm-generic/signal.h:62:2: note: array 'sig' declared here
+      62 |         unsigned long sig[_NSIG_WORDS];
+         |         ^
+   In file included from drivers/gpu/drm/nouveau/nouveau_connector.c:29:
+   In file included from include/linux/pm_runtime.h:11:
+   In file included from include/linux/device.h:32:
+   In file included from include/linux/device/driver.h:21:
+   In file included from include/linux/module.h:20:
+   In file included from include/linux/elf.h:6:
+   In file included from arch/arm64/include/asm/elf.h:133:
+   In file included from include/linux/fs.h:5:
+   In file included from include/linux/fs/super.h:5:
+   In file included from include/linux/fs/super_types.h:13:
+   In file included from include/linux/percpu-rwsem.h:7:
+   In file included from include/linux/rcuwait.h:6:
+   In file included from include/linux/sched/signal.h:7:
+   include/linux/signal.h:98:25: warning: array index 2 is past the end of the array (that has type 'unsigned long[1]') [-Warray-bounds]
+      98 |                 return (set->sig[3] | set->sig[2] |
+         |                                       ^        ~
+   include/uapi/asm-generic/signal.h:62:2: note: array 'sig' declared here
+      62 |         unsigned long sig[_NSIG_WORDS];
+         |         ^
+   In file included from drivers/gpu/drm/nouveau/nouveau_connector.c:29:
+   In file included from include/linux/pm_runtime.h:11:
+   In file included from include/linux/device.h:32:
+   In file included from include/linux/device/driver.h:21:
+   In file included from include/linux/module.h:20:
+   In file included from include/linux/elf.h:6:
+   In file included from arch/arm64/include/asm/elf.h:133:
+   In file included from include/linux/fs.h:5:
+   In file included from include/linux/fs/super.h:5:
+   In file included from include/linux/fs/super_types.h:13:
+   In file included from include/linux/percpu-rwsem.h:7:
+   In file included from include/linux/rcuwait.h:6:
+   In file included from include/linux/sched/signal.h:7:
+   include/linux/signal.h:99:4: warning: array index 1 is past the end of the array (that has type 'unsigned long[1]') [-Warray-bounds]
+      99 |                         set->sig[1] | set->sig[0]) == 0;
+         |                         ^        ~
+   include/uapi/asm-generic/signal.h:62:2: note: array 'sig' declared here
+      62 |         unsigned long sig[_NSIG_WORDS];
+         |         ^
+   In file included from drivers/gpu/drm/nouveau/nouveau_connector.c:29:
+   In file included from include/linux/pm_runtime.h:11:
+   In file included from include/linux/device.h:32:
+   In file included from include/linux/device/driver.h:21:
+   In file included from include/linux/module.h:20:
+   In file included from include/linux/elf.h:6:
+   In file included from arch/arm64/include/asm/elf.h:133:
+   In file included from include/linux/fs.h:5:
+   In file included from include/linux/fs/super.h:5:
+   In file included from include/linux/fs/super_types.h:13:
+   In file included from include/linux/percpu-rwsem.h:7:
+   In file included from include/linux/rcuwait.h:6:
+   In file included from include/linux/sched/signal.h:7:
+   include/linux/signal.h:101:11: warning: array index 1 is past the end of the array (that has type 'unsigned long[1]') [-Warray-bounds]
+     101 |                 return (set->sig[1] | set->sig[0]) == 0;
+         |                         ^        ~
+   include/uapi/asm-generic/signal.h:62:2: note: array 'sig' declared here
+      62 |         unsigned long sig[_NSIG_WORDS];
+         |         ^
+   In file included from drivers/gpu/drm/nouveau/nouveau_connector.c:29:
+   In file included from include/linux/pm_runtime.h:11:
+   In file included from include/linux/device.h:32:
+   In file included from include/linux/device/driver.h:21:
+   In file included from include/linux/module.h:20:
+   In file included from include/linux/elf.h:6:
+   In file included from arch/arm64/include/asm/elf.h:133:
+   In file included from include/linux/fs.h:5:
+   In file included from include/linux/fs/super.h:5:
+   In file included from include/linux/fs/super_types.h:13:
+   In file included from include/linux/percpu-rwsem.h:7:
+   In file included from include/linux/rcuwait.h:6:
+   In file included from include/linux/sched/signal.h:7:
+   include/linux/signal.h:114:11: warning: array index 3 is past the end of the array (that has type 'const unsigned long[1]') [-Warray-bounds]
+     114 |                 return  (set1->sig[3] == set2->sig[3]) &&
+         |                          ^         ~
+   include/uapi/asm-generic/signal.h:62:2: note: array 'sig' declared here
+      62 |         unsigned long sig[_NSIG_WORDS];
+         |         ^
+   In file included from drivers/gpu/drm/nouveau/nouveau_connector.c:29:
+   In file included from include/linux/pm_runtime.h:11:
+   In file included from include/linux/device.h:32:
+   In file included from include/linux/device/driver.h:21:
+   In file included from include/linux/module.h:20:
 
-Suggested-by tags are for when the original change was suggested by the party, not
-when they have review suggestions.
 
-> Link: https://lore.kernel.org/all/de14c4ef-e3d8-432f-9ce8-87c468d6d2ad@amd.com/
-> Link: https://lore.kernel.org/all/7a22cc6a-deba-40e6-8033-97d1234420ba@amd.com/
+vim +30 include/acpi/button.h
 
-These probably shouldn't be here, you can put links to the past revisions under the git marker ("---")
-below though if you feel so inclined.
-> Signed-off-by: Yongxin Yang <yangyongxin@kylinos.cn>
-> ---
-> Changes in v5:
-> - Rework per Dave's suggestion, agreed by Ben: create einj_types from
->   cxl_core_init() without looking at the runtime EINJ state, and return
->   -ENODEV from einj_cxl_available_error_type_show() while EINJ is not
->   initialized, instead of creating the file from three separate hooks.
->   This drops the mutex, the exported helper and the cached dentry.
-> - Drop the cxl_acpi_probe() hook: host bridge dports, RCH included, already
->   go through __devm_cxl_add_dport() -> cxl_debugfs_create_dport_dir() in the
->   same probe, so the hook added nothing.
-> - Gate the creation on CONFIG_ACPI_APEI_EINJ_CXL rather than on the runtime
->   EINJ state.
-> - Dropped the Reviewed-by tag as the approach changed significantly.
-> 
->  drivers/acpi/apei/einj-cxl.c | 4 ++++
->  drivers/cxl/core/port.c      | 2 +-
->  2 files changed, 5 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/apei/einj-cxl.c b/drivers/acpi/apei/einj-cxl.c
-> index e70a416ec925..3090c7649ed2 100644
-> --- a/drivers/acpi/apei/einj-cxl.c
-> +++ b/drivers/acpi/apei/einj-cxl.c
-> @@ -30,6 +30,10 @@ int einj_cxl_available_error_type_show(struct seq_file *m, void *v)
->         int cxl_err, rc;
->         u32 available_error_type = 0;
-> 
-> +       /* einj_tab stays NULL until EINJ is initialized, don't read it. */
+    17	
+    18	/*
+    19	 * Set in acpi_suspend_enter() when the fixed power-button status bit is
+    20	 * observed (IRQ-disabled context). Consumed by the button driver on resume
+    21	 * so KEY_WAKEUP can be reported without calling into the button driver from
+    22	 * that early path. Implemented in sleep.c (built-in); safe when
+    23	 * CONFIG_ACPI_BUTTON=m.
+    24	 */
+    25	#ifdef CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT
+    26	bool acpi_sleep_pwr_btn_wakeup_pending(void);
+    27	#else
+    28	static inline bool acpi_sleep_pwr_btn_wakeup_pending(void)
+    29	{
+  > 30		return false;
+    31	}
+    32	#endif
+    33	
 
-Remove this comment, it's redundant in this situation.
-
-Thanks,
-Ben
-
-> +       if (!einj_cxl_is_initialized())
-> +               return -ENODEV;
-> +
->         rc = einj_get_available_error_type(&available_error_type, ACPI_EINJ_GET_ERROR_TYPE);
->         if (rc)
->                 return rc;
-> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> index 625e4aa427db..d4ed1cc7c480 100644
-> --- a/drivers/cxl/core/port.c
-> +++ b/drivers/cxl/core/port.c
-> @@ -2515,7 +2515,7 @@ static __init int cxl_core_init(void)
-> 
->         cxl_debugfs = debugfs_create_dir("cxl", NULL);
-> 
-> -       if (einj_cxl_is_initialized())
-> +       if (IS_ENABLED(CONFIG_ACPI_APEI_EINJ_CXL))
->                 debugfs_create_file("einj_types", 0400, cxl_debugfs, NULL,
->                                     &einj_cxl_available_error_type_fops);
-> 
-> --
-> 2.25.1
-> 
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
