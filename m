@@ -1,69 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=83.223.78.233
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793650644;
-	b=d8/NSfDtGEq3pRv468NtTNEyPARE4wJTUQZIMsqVnjfp0eVj+ckUYnBkO+HHU5g1CKBH
-	 rQ8FsmzAAFLehLw/j8Gbn4zP9MgMAqXO+XUEbeJJ15lqYNBYhaW2Qs5upFM8IRkJX7M7F
-	 5GOfU2nACMAHEJ8h0dGL5eM1RWTVdRj4W2a+lXxCozj7mklz/lQMz00eBC0Pixu1siim0
-	 8ShvscoZUkycn7flsEIwPBhmJidS6EzXiIsEYgEaNxJfl0/7queEUyThwazPXFjAm8g+q
-	 bIwLHqnlhb7LAajIrVdBgAAu/quAYi1QBGlTcKe4jGHtg16DVlelNB3q/fnn6ZML2ZA==
+	t=1793650849;
+	b=Z+sDEE9M8pdC1rm2WEXUnu4q/wDwDf23G8a48CdH3pOfcHKYaBCpiiAmKkpHAB7Ys+1V
+	 U8E5VdJGokdkXPOiLueYs6iJ2yP47LQgbMKSo7XKIxfthyPfz0wh433KxT9RJD2tp/I7T
+	 Ze3VfRsgHj+4V391cJ8AdqDXSbe1t8Gm77iVSSl5mWoxe3Tc2ujR6Eoz9pLJZzSqwq3J2
+	 PynWNwGhwIcCrY//WRecflFdOCIlzKCRooMMJpDGTBbVo9dxTUB+tEORraH66UESyOwEt
+	 M/OWTx9OA4qhFoWS0K53PaVvOjOyqn8WeuNfnZVzDAXmumBcvcBD6wrmwzAXg+Yen5w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793650644;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:X-Patch-Reply:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=aWwgMQI+hwqIrnO83Bai38J313zuKR0Qykwm63oLTJw=;
-	b=UibaBeIhClR/JlmIUZMX0Ez4c68rQqy6uJCOh/u5ZF/XAOZXu+QD4Pblvzwb1NljyLj2
-	 G3EsLJvIS+XIkpHg4SK3Xo7LA1mNPGoInO+Xdyj/KfLW1yk4Qd1doK45lHvgh4ac3EpEW
-	 xMFx6gEV1eOJbKEiFQZAMlyKXCE5xbD+1YfGUGrcxYmKk6u6N7lyeJc+BwD++0ax+amV1
-	 w0nPgdJZON+avJqpyE+zRyONRKpt4ZnO5Sg6SwqpK42LdvSdCB9x3/4vMsrbJXH42Ii7T
-	 U+oYRS2JL+n7lOuACXuwPph4hhb15dURKFWv53AxcNI/66eGJXQ+0GyLDk7mNwyQaGQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793650849;
+	h=DMARC-Filter:Received:Received:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=OTRmHEj02TtZoL+kyiWN5B6jSVLuuf5zLZHpzWRlffQ=;
+	b=WXWa7ETrbFD2lwgHlgIdfM+3H+PEZPE3Y8fPpQ8Y68iPWiHpB55Tb/ILLBNs4ZzB8irU
+	 ExqHgWI1QriqgSNuVvVE3Riw63UT8jVlqtuA/i6xtYaUT7voek9s4Yns8Sn/TwxKDtKNz
+	 Bv87J8eZ5HNxiTvYx2e05K0qNStkRF5u5izvUVHt8HgozYHEsasX9LsjEm1Ge4dTsLPN9
+	 UcF69dTOTZcbstRpKAA5d9n6Os4ePKE5qaWk4PPEfYl5WbIXKXQLXPqNP83RHyMOAV6Dk
+	 ggXV4IQjnQL9cBt5SYYI05RdkZK71eJUZEPXmkPoiu9lwaDUGFxdWi/Em77NO0DV9QA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Z1hVOWzD;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=none header.from=wunner.de;
+	spf=pass smtp.mailfrom=wunner.de;
+	arc=none smtp.remote-ip=83.223.78.233
+Received: from mailout2.hostsharing.net (mailout2.hostsharing.net [83.223.78.233])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7C1E606A324;
-	Mon,  2 Nov 2026 20:17:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Z1hVOWzD
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1659B1F00A16;
-	Mon,  2 Nov 2026 20:17:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793650643;
-	bh=aWwgMQI+hwqIrnO83Bai38J313zuKR0Qykwm63oLTJw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Z1hVOWzD94SQG8YzuVqEgQTekqTYFh2IWUEdatbml5WHeb7wGt4MZpWOM6cryQb2x
-	 eolGuJDtsgJXI/FLHj8lB6cvHr/IQpPCqhpgfwp7hRJDuAAy6bX+bZi5xm6JdISoTZ
-	 ZrhbKpruTvnS6xB4TpdGiXkjyuHTqo6gkV/V2BoIDAkUldBcB2dV91pP8KsT1kJYAo
-	 cTyOFBZ/rPz+2hA5tqPTEw2eCG6hfl6LgYddhk0RS0QZ3WPStF8aQemBeQQt3fU+Ea
-	 nCHgl+FMxTxo2RRfek4SO72MguxRvqxIJjRx72WfL/hZeRtNQnhqqYZapD7N1A9FMK
-	 W9l07sJLWcxSw==
-From: Danilo Krummrich <dakr@kernel.org>
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Johan Hovold <johan@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Eduardo Ruiz Duarte <toorandom@gmail.com>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	"Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
-	linux-acpi@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [PATCH v2 0/3] driver core: fix unbalanced reference counting for software nodes
-Date: Mon,  2 Nov 2026 21:15:17 +0100
-Message-ID: <20261102201517.3305902-1-dakr@kernel.org>
-X-Mailer: git-send-email 2.56.0
-In-Reply-To: <20261023-swnode-dev-notify-balance-v2-0-948d920a79f6@oss.qualcomm.com>
-References: <20261023-swnode-dev-notify-balance-v2-0-948d920a79f6@oss.qualcomm.com>
-X-Patch-Reply: applied
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC47C606A324;
+	Mon,  2 Nov 2026 20:20:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EC47C606A324
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=wunner.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wunner.de
+Received: from h08.hostsharing.net (h08.hostsharing.net [IPv6:2a01:37:1000::53df:5f1c:0])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange x25519 server-signature ECDSA (secp384r1) server-digest SHA384
+	 client-signature ECDSA (secp384r1) client-digest SHA384)
+	(Client CN "*.hostsharing.net", Issuer "GlobalSign GCC R6 AlphaSSL CA 2025" (verified OK))
+	by mailout2.hostsharing.net (Postfix) with ESMTPS id 6CFAA78C3;
+	Mon, 02 Nov 2026 21:20:39 +0100 (CET)
+Received: by h08.hostsharing.net (Postfix, from userid 100393)
+	id 59103610CD9F; Mon,  2 Nov 2026 21:20:39 +0100 (CET)
+Date: Mon, 2 Nov 2026 21:20:39 +0100
+From: Lukas Wunner <lukas@wunner.de>
+To: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+Cc: bhelgaas@google.com, linux-pci@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	rafael@kernel.org, terry.bowman@amd.com, kanie@linux.alibaba.com,
+	olof@lixom.net
+Subject: Re: [PATCH v15 1/4] PCI: Assume control of portdrv-related features
+ only when portdrv enabled
+Message-ID: <aujwl45XrkVT-zUx@wunner.de>
+References: <20261002211828.1293177-1-sathyanarayanan.kuppuswamy@linux.intel.com>
+ <20261002211828.1293177-2-sathyanarayanan.kuppuswamy@linux.intel.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -73,30 +59,70 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261002211828.1293177-2-sathyanarayanan.kuppuswamy@linux.intel.com>
 
-On Fri, 23 Oct 2026 12:14:02 +0200, Bartosz Golaszewski wrote:
-> [PATCH v2 0/3] driver core: fix unbalanced reference counting for software nodes
+On Fri, Oct 02, 2026 at 02:18:25PM -0700, Kuppuswamy Sathyanarayanan wrote:
+> Native control of PME, AER, DPC, and PCIe hotplug depends on the portdrv,
+> so default to native handling of them only when CONFIG_PCIEPORTBUS is
+> enabled.
+> 
+> Native control of LTR and SHPC hotplug does not depend on portdrv, so keep
+> defaulting those to native regardless.
+> 
+> [bhelgaas: commit log]
+> Link: https://lore.kernel.org/r/fcbe8a624166a1101a755edfef44a185d32ff493.1603766889.git.sathyanarayanan.kuppuswamy@linux.intel.com
+> Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 
-Applied, thanks!
+This is now commit 6347fd9aee19 in Linus' tree and I think there's a problem:
 
-  Branch: driver-core-testing
-  Tree:   git://git.kernel.org/pub/scm/linux/kernel/git/driver-core/driver-core.git
+> +++ b/drivers/pci/probe.c
+> @@ -658,6 +658,8 @@ static const struct device_type pci_host_bridge_type = {
+>  
+>  static void pci_init_host_bridge(struct pci_host_bridge *bridge)
+>  {
+> +	bool port_services = IS_ENABLED(CONFIG_PCIEPORTBUS);
+> +
+>  	INIT_LIST_HEAD(&bridge->windows);
+>  	INIT_LIST_HEAD(&bridge->dma_ranges);
+>  	INIT_LIST_HEAD(&bridge->ports);
+> @@ -668,12 +670,12 @@ static void pci_init_host_bridge(struct pci_host_bridge *bridge)
+>  	 * may implement its own AER handling and use _OSC to prevent the
+>  	 * OS from interfering.
+>  	 */
+> -	bridge->native_aer = 1;
+> -	bridge->native_pcie_hotplug = 1;
+> +	bridge->native_aer = port_services;
+> +	bridge->native_pcie_hotplug = port_services;
 
-[1/3] driver core: provide a test-and-clear device flag accessor
-      commit: a03f144a4a12
-[2/3] driver core: provide new device flag - DEV_FLAG_SWNODE_NOTIFIED
-      commit: 2d2dbe2f1bf7
+The commit is setting the native_pcie_hotplug bit up front based on
+CONFIG_PCIEPORTBUS.
 
-      [ Fix typo in the commit subject --
-        s/DEV_FLAG_SWNODE_NOTIFIER/DEV_FLAG_SWNODE_NOTIFIED/. - Danilo ]
+But there's an if-clause at the top of get_port_device_capability() which
+adds PCIE_PORT_SERVICE_HP to the port services used by a given PCIe port.
 
-[3/3] software node: fix unbalanced reference counting
-      commit: 071bbeab6aad
+Inside the if-clause is code to disable hotplug interrupts if the BIOS
+left them enable.
 
-The patches will appear in the next linux-next integration (typically within 24
-hours on weekdays).
+Since the commit, if CONFIG_PCIEPORTBUS=n, the if-clause is no longer
+entered and so the interrupts are no longer disabled.
 
-The patches are in the driver-core-testing branch and will be promoted to
-driver-core-next after validation.
+I'm amazed sashiko didn't flag this.  I didn't spot it during review
+either, but noticed it when rebasing my development branch.  I still
+have a patch on that branch which I developed last year but which
+was ultimately not accepted (for good reasons).  Back then I already
+noticed that the interrupt disablement issue prevented simplification
+of native_pcie_hotplug initialization.  I forgot about it but had to
+revisit the patch when rebasing the development branch on top of your
+patches:
+
+https://lore.kernel.org/r/5eae82776d695e589b89aad500d8208b980347e5.1752390102.git.lukas@wunner.de
+
+Now what?  The offending patch is the first one in a series of three.
+Revert all three or can we somehow salvage this?
+
+Thanks,
+
+Lukas
