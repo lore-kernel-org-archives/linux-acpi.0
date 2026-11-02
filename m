@@ -1,65 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=83.223.95.204
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793657471;
-	b=s82CSoZa9J+8zXu3BymFC+VdAFi9KSJIUm0drny7Acq10/duIN15OtJbsYQALTYIbKtq
-	 2/i9JMnHpf1H06Pco+VEb9bTycRkKlLOitG7kxz8EY17VeOrn2YAoRdTvxRdskfg5+ENJ
-	 fWlGEUXKbi+DvlwSO8JesRpyo6HsuzKLJDAr/L5F5Qccnh6jXXztmR6ncXWZf0OGwF7vM
-	 GIh1Qz+vHM8OfKl0lMQ9w+996CFbOzJ2dFhxtQ6cPAyzQympxJbwuMH3ixysEvG8eRIiX
-	 6e9Y3C5TtCLhJBiP7huO7Qd3o6S4oj1uD6dGIav6GkiPQelcxKcpnfMwmthAgqd8zLw==
+	t=1793661376;
+	b=PgAtQMJyuhMscgWAQYFpvHFMdzAM53wn9CXm/wkyYFlb/kiGT0bC2Zr5MLLM06BEP/uO
+	 lJ45qGd4V+5aoSOrHEb2Utg72ux8X31sP4a3Teamkw0Q0cW1OaIy75AKJQunbPBto+zmb
+	 NwVYR7dUGgp+VFv5kivrElvBrE3KNdgvjvOqt63fhtkuTyw/frdgXIxCxe34llvWOFE1Z
+	 nn9CYj3DpRp74nyepIKXiHj0EhYW0hAsGMr20Cp0zW/Rv57BzHGGunRoQRPFja/En4SLX
+	 BEaqTI2bw/iD1GZJ5VKc9RUTe4oDOKQrtBfCrAvpI40udB7NnS1eZV6dD3LWQjjJKAQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793657471;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:X-Patch-Reply:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=e32Jv6OMDQacI9jPsThqVE/mXf3/ercHeftE9RCjEf8=;
-	b=cNG1auofEA0qifcINz7vkjriUmvwtl9JoSIXRS8QZSTSVFxygUOZKur7AU3uTn8tmOLU
-	 cADtQ7K9/nBakLl5nlaUBaPriI3b3Kd4npUOKk/Ca9njSznHLlcik7qtwwLDngLm9Mrdr
-	 rJysVrd11BG5CAAjLcte9VO7TvEY7rc1ifl6XIWP54G8nC5TyDtWquKvIgN7R7H/7lTie
-	 p7FvDfx507rxWOJdBxiuabmz/ro5o/LoAHbUsUWaBBSY69SpueIJOhyEXdglzHGTtFVE2
-	 UcihH7mA4MFThEmJyFK6HYXw5TheyAT+0v053rsL9DTnIZY0Q0UdMaoMDYpeOaeTFjg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793661376;
+	h=DMARC-Filter:Received:Received:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=UcjCzXz5IJVcuXeXUDQ9tzNpo2Te/iR+ykAFbn2DRuk=;
+	b=BOzEZWHP1GYVjBe3yCI/rrZyTBqaACX1h6L5Iy/lb6NHnFpcD2S/GRMR1hg3mYxN1HOe
+	 1sWvuj4HinM9ACFFg8ofd7jDftYGSCHRDuXWmfNJncEiFP9Sskqox3efLSR+HN/SmXrxc
+	 iXQ26pj7gp0IhwkGnUGdaqfJx7ABSv3/nGirDnlR41Zb13uRZUobmz8cJoj5Y2e37LlmP
+	 feDpJDTiGceXnI8OBFgDfuflW24sWdCyfYNrHmhQ3ycOxVmpe5Mubd5UnY8DISBtrdoJn
+	 /gc1OGmobPmS20mjGAgWCPOZLfV2i2n6sPLPO9aM8sV2zmKghOx/ZIH//w4u3msQAHg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BP50mL5M;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=none header.from=wunner.de;
+	spf=pass smtp.mailfrom=wunner.de;
+	arc=none smtp.remote-ip=83.223.95.204
+Received: from mailout1.hostsharing.net (mailout1.hostsharing.net [83.223.95.204])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53AC3606A326;
-	Mon,  2 Nov 2026 22:11:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BP50mL5M
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 096DF1F00A16;
-	Mon,  2 Nov 2026 22:11:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793657469;
-	bh=e32Jv6OMDQacI9jPsThqVE/mXf3/ercHeftE9RCjEf8=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=BP50mL5MzYIAP8MKKb3se8x9Evd2NDvgf/5BOzKLWDZaAcv9IrG1bJwahktyPmmcj
-	 MdPXGCoSFO1f7mi36/7txPLe/50Ecv6xUOoKqMp+j6p7al6Ag41aa80WpV5pJUmdf0
-	 W/ovBKgARJiEtLKf0xxDKVdM/yHNn8CaXqePUS1M9mobWWxVYLYnLM7Iyt+Hvnm40+
-	 87RWtPIC0J1BOZxS+PU3k34gzH+rm89ZNu7umBcJ13f7wZEMi4nrb5uMoT2DePgy3y
-	 cSz+RXRzH8z1KvwbfZqWNPYORiLi291+Mjx76r+RjsXPiBtgeQZSEEwZ/Pe6neTvhs
-	 HYukF9DRoO2tg==
-From: Danilo Krummrich <dakr@kernel.org>
-To: Johan Hovold <johan@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	driver-core@lists.linux.dev,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: (subset) [PATCH 0/2] driver core: platform: fix sw node use-after-free on device release
-Date: Mon,  2 Nov 2026 23:11:03 +0100
-Message-ID: <20261102221103.3356593-1-dakr@kernel.org>
-X-Mailer: git-send-email 2.56.0
-In-Reply-To: <20261102111420.1330760-1-johan@kernel.org>
-References: <20261102111420.1330760-1-johan@kernel.org>
-X-Patch-Reply: applied
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8372B606A326;
+	Mon,  2 Nov 2026 23:16:14 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8372B606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=wunner.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wunner.de
+Received: from h08.hostsharing.net (h08.hostsharing.net [IPv6:2a01:37:1000::53df:5f1c:0])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange x25519 server-signature ECDSA (secp384r1) server-digest SHA384
+	 client-signature ECDSA (secp384r1) client-digest SHA384)
+	(Client CN "*.hostsharing.net", Issuer "GlobalSign GCC R6 AlphaSSL CA 2025" (verified OK))
+	by mailout1.hostsharing.net (Postfix) with ESMTPS id 184161D4E;
+	Tue, 03 Nov 2026 00:16:07 +0100 (CET)
+Received: by h08.hostsharing.net (Postfix, from userid 100393)
+	id 016E2602D909; Tue,  3 Nov 2026 00:16:06 +0100 (CET)
+Date: Tue, 3 Nov 2026 00:16:06 +0100
+From: Lukas Wunner <lukas@wunner.de>
+To: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+Cc: bhelgaas@google.com, linux-pci@vger.kernel.org,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	rafael@kernel.org, terry.bowman@amd.com, kanie@linux.alibaba.com,
+	olof@lixom.net
+Subject: Re: [PATCH v15 1/4] PCI: Assume control of portdrv-related features
+ only when portdrv enabled
+Message-ID: <aukZtm4aLMuH_JIB@wunner.de>
+References: <20261002211828.1293177-1-sathyanarayanan.kuppuswamy@linux.intel.com>
+ <20261002211828.1293177-2-sathyanarayanan.kuppuswamy@linux.intel.com>
+ <aujwl45XrkVT-zUx@wunner.de>
+ <840c7598-f988-428a-8bea-4d66b0f4f4d7@linux.intel.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -69,22 +61,40 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <840c7598-f988-428a-8bea-4d66b0f4f4d7@linux.intel.com>
 
-On Mon,  2 Nov 2026 12:14:18 +0100, Johan Hovold wrote:
-> [PATCH 0/2] driver core: platform: fix sw node use-after-free on device release
+On Mon, Nov 02, 2026 at 12:38:28PM -0800, Kuppuswamy Sathyanarayanan wrote:
+> On 11/2/2026 12:20 PM, Lukas Wunner wrote:
+> > This is now commit 6347fd9aee19 in Linus' tree and I think there's a problem:
+[...]
+> > The commit is setting the native_pcie_hotplug bit up front based on
+> > CONFIG_PCIEPORTBUS.
+> > 
+> > But there's an if-clause at the top of get_port_device_capability() which
+> > adds PCIE_PORT_SERVICE_HP to the port services used by a given PCIe port.
+> > 
+> > Inside the if-clause is code to disable hotplug interrupts if the BIOS
+> > left them enable.
+> > 
+> > Since the commit, if CONFIG_PCIEPORTBUS=n, the if-clause is no longer
+> > entered and so the interrupts are no longer disabled.
+> 
+> I don't think this case changed. get_port_device_capability() is in
+> portdrv.c, which is only built with CONFIG_PCIEPORTBUS=y:
+> 
+>   obj-$(CONFIG_PCIEPORTBUS)	+= pcieportdrv.o bwctrl.o
+> 
+> So with CONFIG_PCIEPORTBUS=n, the if-clause was never entered, before or
+> after this commit.
 
-Applied, thanks!
+Okay, that convinces me, thanks for the explanation.
 
-  Branch: driver-core-testing
-  Tree:   git://git.kernel.org/pub/scm/linux/kernel/git/driver-core/driver-core.git
+> Did you see a case where the interrupts stay enabled with this commit?
 
-[1/2] driver core: platform: fix sw node use-after-free on device release
-      commit: c4cd09d29529
+Nope, just thought "this looks fishy" when I rebased my development branch.
 
-The patch will appear in the next linux-next integration (typically within 24
-hours on weekdays).
+Thanks!
 
-The patch is in the driver-core-testing branch and will be promoted to
-driver-core-next after validation.
+Lukas
