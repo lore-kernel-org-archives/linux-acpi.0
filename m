@@ -1,107 +1,75 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.246.85.4
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793721465;
-	b=K25jHwdYO3PZnvGa6EnGN4CMu/hQdLk8dtbtD0UElX6TkxsJYFkAvDO31+SXhjlzAgNy
-	 mZ8Qv2M5Vbtz/TBmOtmwBiYpGvcAUWDwbFGhQXkSbwrvDGsm71aXZBTll6ZL11JWXCyOd
-	 bVR0lLMwE2ixNW0AKM4DY7vg/71BRtmENln+t0yWvwV2/a8naQvmwqgDFBr/AXQYFonpc
-	 voUHOS73ua0JhndvvDY7bb894wtkwadlXh61yDCNpqDLCUCvTBgk8GPYD/uUUoyQuvy9L
-	 TkRrYub+4l9OHMbksYVE5foRUwAOXm9GqlFmSjE/0GD75TDlZpqpf2Z8P0Q2TFGq1Ng==
+	t=1793723196;
+	b=de0t5tAyrnyXAbkQbiTZ2C+cbAYfDQs2cTyl/SqxKfDJG3XHdMeMj3022Ufe+mERdVAT
+	 +ZzygmdJOITO18ZCTcF6Hze1dneVPtjYSJLLNNOZ4bq4JZQoTyhfB2H4OWGAlSDtbAp8X
+	 lMw+lQb0HBhfuqekU6sPU6XOcgN62V2BzWtztyYNkR5lDMcxukdlo1ZJ+1pazOpZmQLfn
+	 yWXqCMjxYFEfYAIrmYqyKPh7vya7mLyXWm99lwJ3Yunl0DlePoZ15H46ZKsOVXA5XjajR
+	 amsBuX0CyCvpY0OOus2YL65Do0Uox5LMAGQG9R6+YMBItQrG2k2yVSvVPsokIp2mzZA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793721465;
-	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:From:To:Cc:
-	 Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Last-TLS-Session-Version;
-	bh=9vOjCX6A8KlOv8+60INNSNfdhFOQHUnmR2fmD9y/9R4=;
-	b=5tvYt6Jg8T49fF3a6NDga1MYA6D1e+nzGSKCGP2P/ekqwodTkmV5LZ+Ji1KvMkqQq9FF
-	 w4Z7GN/UZzJ11M5nQR/vcB7nGvk0B7WNqKG7WOxho6qYQsAYzBumCX+pIuEORcWblUkz2
-	 ZzxsBqo/75Z6meoJ4G1Net6ENUkxGZnhJNIv49Trsxr91em7epjS/TPdECkn40nzNmEBj
-	 a7YT5GdKcoomp2o1/23TG23DZRnBleVff1MnBRiqzqpHfR+jlt9JoSuXVxujpVWFFM0fH
-	 tMemwZIaftPEM7bDh2O8HLGZ9NkLa177qbkI1qC6Jlt/wxPgJK2IGGTomR0AOyiLUew==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793723196;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=88x5nWCU4/5DUnm5J75+/44oJREtwTCj+m3lJcaJoNE=;
+	b=tdawQlYfgDrb3alGEDfr439O5Cw+xIZMzgxuDQTvu1eq98R7olpfgWnXNElxe+6RNneW
+	 +WtM6uldUVExM54iZpuquygLBgV4ss9v1DdlPrhBRgjlpJsdA9htasb5VqBuKI9xdRRZQ
+	 mXNqPuVznzoA01sj3DERKYaelKX3fIa36NpOutkvXGqh8Mxsj0eSKWhsIaJedFVEQIxti
+	 n7X9odVx6mncFTtIw7BeW8JUrJIaRC0dbILM11QFF47/8afyZkTDuml9E/fnFFfGtarJY
+	 +ME6FErInGL9MCUfBY7Ykc5Ds6s17BJZSRUQzGoG5BB1MPpvwHhtpkwzrDzTAt0asVQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=bootlin.com;
-	spf=pass smtp.mailfrom=bootlin.com;
-	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=24twimcI;
-	arc=none smtp.remote-ip=185.246.85.4
-Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HyDteQG2;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E59A160A3832;
-	Tue,  3 Nov 2026 15:57:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E59A160A3832
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 259F4606A327;
+	Tue,  3 Nov 2026 16:26:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=24twimcI
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-03.galae.net (Postfix) with ESMTPS id B94614E413DC;
-	Tue,  3 Nov 2026 15:57:43 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id 894EC6046C;
-	Tue,  3 Nov 2026 15:57:43 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id B8A3C103291E1;
-	Tue,  3 Nov 2026 16:57:31 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1793721456; h=from:subject:date:message-id:to:cc:mime-version:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=9vOjCX6A8KlOv8+60INNSNfdhFOQHUnmR2fmD9y/9R4=;
-	b=24twimcIPGZqM2pDpl4WGCAj5H02h6XyDzLRE5lxqRtTJzdHSLWeRPlDwW2df1NeSOn7Kc
-	OzJ4rMNJ3qIW7BosJwv1T7yCbYVlAMlIu+QriJVVzbSVygTcyr+dGofWtZ1126V/XdHJK+
-	UYx4D8RWNFMbf1mi+SvMFrTpadcWawk9ce/ipNTo3txLZhvxi4rYL9CaZZVO4VV7pqo+6F
-	lsX/Hh1JgarJcdnFfk772lY6FxDDk9a3SD8ftA213NzznymnQg+8lAptMyPZ91FBs0ZYNs
-	GXs0b/2ksTHs1Um2lhpzE4SqkokInstPGRmHbUyJv1HSB5WA5CBc+wshcYewZg==
-From: Herve Codina <herve.codina@bootlin.com>
-To: Abdurrahman Hussain <abdurrahman@nexthop.ai>,
-	Richard Cheng <icheng@nvidia.com>,
-	Andrew Lunn <andrew@lunn.ch>,
-	Rob Herring <robh@kernel.org>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Johan Hovold <johan@kernel.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	David Rhodes <david.rhodes@cirrus.com>,
-	Richard Fitzgerald <rf@opensource.cirrus.com>,
-	Charles Keepax <ckeepax@opensource.cirrus.com>,
-	Linus Walleij <linusw@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dan Williams <djbw@kernel.org>,
-	Ira Weiny <iweiny@kernel.org>,
-	Li Ming <ming.li@zohomail.com>,
-	Herve Codina <herve.codina@bootlin.com>,
-	Lizhi Hou <lizhi.hou@amd.com>
-Cc: driver-core@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	linux-pci@vger.kernel.org,
-	linux-sound@vger.kernel.org,
-	patches@opensource.cirrus.com,
-	linux-gpio@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-cxl@vger.kernel.org,
-	Allan Nielsen <allan.nielsen@microchip.com>,
-	Horatiu Vultur <horatiu.vultur@microchip.com>,
-	Daniel Machon <daniel.machon@microchip.com>,
-	Steen Hegelund <steen.hegelund@microchip.com>,
-	Luca Ceresoli <luca.ceresoli@bootlin.com>,
-	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-	stable+noautosel@kernel.org
-Subject: [PATCH v14 10/10] PCI: of: Avoid np->data usage for the node changeset
-Date: Tue,  3 Nov 2026 16:55:16 +0100
-Message-ID: <20261103155540.365294-11-herve.codina@bootlin.com>
-X-Mailer: git-send-email 2.56.0
-In-Reply-To: <20261103155540.365294-1-herve.codina@bootlin.com>
-References: <20261103155540.365294-1-herve.codina@bootlin.com>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HyDteQG2
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09A721F000C1;
+	Tue,  3 Nov 2026 16:26:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793723195;
+	bh=88x5nWCU4/5DUnm5J75+/44oJREtwTCj+m3lJcaJoNE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=HyDteQG2VBDz2pwudxJvRFZ3NzuhMM1n/qoJyRpSIEa+4sIo8qfNjCKCMkx9fqPnu
+	 PTXEB3HB8c+csEYJbUqrD18YNji+Wb3P0nPR4rCDriU41qd0d35Q951xfxtaew6zqD
+	 xTRV7HQa/evoV4YEWVb3yEGxlVh8/pDAOnR650sPVOaA2QtXNMiUjYtFVGzVyuFmxJ
+	 cuqSFcaDMPcPNDAwdq/HarCHKLW8nQ/TcudxBJnTO/IQN1HpQ6LTm2xHx92xHn7YRV
+	 9GYQVIg2n29fkajQrtiWC1hueIuFYRrAfwMXbzDr3+UFxfeou5MMiBIFbN+ZYhp4th
+	 RFlMkVbcaKQDw==
+Date: Tue, 3 Nov 2026 17:26:21 +0100
+From: Christian Brauner <brauner@kernel.org>
+To: Chuck Lever <cel@kernel.org>
+Cc: linux-fsdevel@vger.kernel.org, 
+	Linus Torvalds <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, 
+	Eric Dumazet <edumazet@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
+	Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados <joel.granados@kernel.org>, 
+	Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
+	linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kselftest@vger.kernel.org, linux-s390@vger.kernel.org, 
+	"linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, 
+	Linuxppc Dev <linuxppc-dev@lists.ozlabs.org>, netdev@vger.kernel.org, ntfs3@lists.linux.dev, 
+	platform-driver-x86@vger.kernel.org, coreteam@netfilter.org, kexec@lists.infradead.org, 
+	linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net, 
+	jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, linux-fbdev@vger.kernel.org, 
+	linux-hwmon@vger.kernel.org, linux-mm@kvack.org, linux-sh@vger.kernel.org, 
+	linux-usb@vger.kernel.org, samba-technical@lists.samba.org, sparclinux@vger.kernel.org, 
+	linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, linux-serial@vger.kernel.org, 
+	linux-atm-general@lists.sourceforge.net, Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, 
+	linux-raid@vger.kernel.org, linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, 
+	linux-debuggers@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH RFC 27/38] sunrpc: make queue_wait a global wait queue
+ again
+Message-ID: <20261103-lufttemperatur-absondern-zweifach-31d272ad55ab@brauner>
+References: <20261102-work-procfs-bugfixes-v1-0-59422ed3e465@kernel.org>
+ <20261102-work-procfs-bugfixes-v1-27-59422ed3e465@kernel.org>
+ <16f91f93-16b4-49b1-b7fa-cec69759c349@app.fastmail.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -111,182 +79,72 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Last-TLS-Session-Version: TLSv1.3
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <16f91f93-16b4-49b1-b7fa-cec69759c349@app.fastmail.com>
 
-of_pci_remove_node() and of_pci_remove_host_bridge_node() check
-whether the node is dynamic but not whether it has valid private data.
+On Mon, Nov 02, 2026 at 10:12:12AM -0500, Chuck Lever wrote:
+> 
+> 
+> On Mon, Nov 2, 2026, at 9:21 AM, Christian Brauner wrote:
+> > Since commit 552d0e17ea04 ("sunrpc: convert queue_wait from global to
+> > per-cache-detail waitqueue") poll() and epoll queue their waiters for a
+> > channel file on the queue_wait head in struct cache_detail. But the
+> > cache_detail can be freed while its channel file is still open and
+> > waited on.
+> >
+> > The procfs channel files of a network namespace are removed when the
+> > namespace goes away. Removing a procfs file waits for the callers that
+> > are in one of its methods right now and then calls ->release on every
+> > file that is still open (cf. close_pdeo()). The waiters that poll() and
+> > epoll left on the head stay queued until their file is really closed.
+> > So:
+> >
+> >   sunrpc_exit_net()
+> >   -> ip_map_cache_destroy()
+> >      -> cache_unregister_net()
+> >         -> remove_cache_proc_entries()
+> >            -> proc_remove()      // ->release, the waiters stay queued
+> >      -> cache_destroy_net()      // kfree(cd)
+> >
+> > and when poll() returns remove_wait_queue() writes to the freed
+> > cache_detail:
+> >
+> >   BUG: KASAN: slab-use-after-free in _raw_spin_lock_irqsave+0x4b/0xa0
+> >   Read of size 1 at addr ff110001131bb570 by task sunrpc-poll-uaf/242
+> >   Call Trace:
+> >    remove_wait_queue+0x22/0x1c0
+> >    poll_freewait+0xc2/0x230
+> >    do_sys_poll+0x9ba/0xd50
+> >    __x64_sys_poll+0x165/0x470
+> >   Freed by task 12:
+> >    kfree+0x267/0x620
+> >    sunrpc_exit_net+0x34/0x80
+> >    ops_undo_list+0x271/0x8d0
+> >    cleanup_net+0x3f3/0x860
+> >
+> > Closing an epoll instance that watches the file gets there through
+> > ep_unregister_pollwait() instead.
+> >
+> > The channel files of a network namespace belong to the root of its
+> > user namespace and cache_open() doesn't check for a capability. So an
+> > unprivileged user can open the channel file of a namespace of its own
+> > from the outside, poll it and let the namespace die.
+> >
+> > Go back to a single static wait queue that never goes away. A wakeup
+> > for one cache wakes the waiters of all caches again but cache_poll()
+> > reports per cache_detail so that's just a spurious wakeup. procfs
+> > should really own the wait queue of its files like kernfs does but
+> > that's nothing for stable.
+> >
+> > Reported-by: Chris Mason <mason@kernel.org>
+> > Fixes: 552d0e17ea04 ("sunrpc: convert queue_wait from global to 
+> > per-cache-detail waitqueue")
+> > Cc: stable@vger.kernel.org
+> > Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+> 
+> Acked-by: Chuck Lever <cel@kernel.org>
 
-During the node creation, an OF changeset is used and this changeset is
-stored in np->data to be available for removal functions.
-
-If, for instance, a PCI host bridge is created using a device-tree
-overlay, the related node will have the dynamic flag set but np->data
-will be NULL. This leads to NULL pointer dereferences.
-
-Checking for a non-NULL np->data pointer to determine if the node has
-been created by the PCI node creation process is not enough. Indeed,
-on some platforms like PowerPC, the OF_RECONFIG_ATTACH_NODE notifier
-(e.g., in the pci_dn_reconfig_notifier() function) intercepts node
-additions and populates np->data with its own structure, such as a
-struct pci_dn. In that case, np->data is not NULL but it is not related
-to our changeset stored during the PCI node process creation.
-
-Avoid the usage of np->data to store the changeset used during the PCI
-node creation. Store our changeset in a more relevant structure: either
-struct pci_dev when the node is created for a PCI device or struct
-pci_host_bridge when the node is created for the PCI host bridge.
-
-With that done, no ambiguity remains on removal. Indeed, this changeset,
-if non-NULL, is the one used during PCI node creation. Check and use
-this changeset on the removal process.
-
-Fixes: 407d1a51921e ("PCI: Create device tree node for bridge")
-Fixes: 1f340724419e ("PCI: of: Create device tree PCI host bridge node")
-Cc: <stable+noautosel@kernel.org> # Issue not triggered but could be a problem
-Signed-off-by: Herve Codina <herve.codina@bootlin.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
----
- drivers/pci/of.c    | 32 ++++++++++++++++++++------------
- include/linux/pci.h | 11 +++++++++++
- 2 files changed, 31 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/pci/of.c b/drivers/pci/of.c
-index 0a5797652e18..fbed24a244d0 100644
---- a/drivers/pci/of.c
-+++ b/drivers/pci/of.c
-@@ -732,15 +732,20 @@ void of_pci_remove_node(struct pci_dev *pdev)
- {
- 	struct device_node *np;
- 
-+	if (!pdev->cset)
-+		return;
-+
- 	np = pci_device_to_OF_node(pdev);
--	if (!np || !of_node_check_flag(np, OF_DYNAMIC))
-+	if (!np)
- 		return;
- 
- 	fw_devlink_set_device(&np->fwnode, NULL);
- 	device_remove_of_node(&pdev->dev);
--	of_changeset_revert(np->data);
--	of_changeset_destroy(np->data);
-+	of_changeset_revert(pdev->cset);
-+	of_changeset_destroy(pdev->cset);
- 	of_node_put(np);
-+	kfree(pdev->cset);
-+	pdev->cset = NULL;
- }
- 
- void of_pci_make_dev_node(struct pci_dev *pdev)
-@@ -800,18 +805,17 @@ void of_pci_make_dev_node(struct pci_dev *pdev)
- 	if (ret)
- 		goto out_clear_devlink_dev;
- 
--	np->data = cset;
--
- 	ret = device_add_of_node(&pdev->dev, np);
- 	if (ret)
- 		goto out_revert_cset;
- 
-+	pdev->cset = cset;
-+
- 	kfree(name);
- 
- 	return;
- 
- out_revert_cset:
--	np->data = NULL;
- 	of_changeset_revert(cset);
- out_clear_devlink_dev:
- 	fw_devlink_set_device(&np->fwnode, NULL);
-@@ -828,16 +832,21 @@ void of_pci_remove_host_bridge_node(struct pci_host_bridge *bridge)
- {
- 	struct device_node *np;
- 
-+	if (!bridge->cset)
-+		return;
-+
- 	np = pci_bus_to_OF_node(bridge->bus);
--	if (!np || !of_node_check_flag(np, OF_DYNAMIC))
-+	if (!np)
- 		return;
- 
- 	fw_devlink_set_device(&np->fwnode, NULL);
- 	device_remove_of_node(&bridge->bus->dev);
- 	device_remove_of_node(&bridge->dev);
--	of_changeset_revert(np->data);
--	of_changeset_destroy(np->data);
-+	of_changeset_revert(bridge->cset);
-+	of_changeset_destroy(bridge->cset);
- 	of_node_put(np);
-+	kfree(bridge->cset);
-+	bridge->cset = NULL;
- }
- 
- void of_pci_make_host_bridge_node(struct pci_host_bridge *bridge)
-@@ -899,8 +908,6 @@ void of_pci_make_host_bridge_node(struct pci_host_bridge *bridge)
- 	if (ret)
- 		goto out_clear_devlink_dev;
- 
--	np->data = cset;
--
- 	/* Add the of_node to host bridge and the root bus */
- 	ret = device_add_of_node(&bridge->dev, np);
- 	if (ret)
-@@ -910,6 +917,8 @@ void of_pci_make_host_bridge_node(struct pci_host_bridge *bridge)
- 	if (ret)
- 		goto out_remove_bridge_dev_of_node;
- 
-+	bridge->cset = cset;
-+
- 	kfree(name);
- 
- 	return;
-@@ -917,7 +926,6 @@ void of_pci_make_host_bridge_node(struct pci_host_bridge *bridge)
- out_remove_bridge_dev_of_node:
- 	device_remove_of_node(&bridge->dev);
- out_revert_cset:
--	np->data = NULL;
- 	of_changeset_revert(cset);
- out_clear_devlink_dev:
- 	fw_devlink_set_device(&np->fwnode, NULL);
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index aa3765a20a96..05cf42278650 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -339,6 +339,9 @@ struct pcie_link_state;
- struct pci_sriov;
- struct pci_p2pdma;
- struct rcec_ea;
-+#ifdef CONFIG_PCI_DYNAMIC_OF_NODES
-+struct of_changeset;
-+#endif
- 
- /* struct pci_dev - describes a PCI device
-  *
-@@ -599,6 +602,10 @@ struct pci_dev {
- 	u8		tph_mode;	/* TPH mode */
- 	u8		tph_req_type;	/* TPH requester type */
- #endif
-+
-+#ifdef CONFIG_PCI_DYNAMIC_OF_NODES
-+	struct of_changeset *cset; /* Changeset used for OF node creation */
-+#endif
- };
- 
- static inline struct pci_dev *pci_physfn(struct pci_dev *dev)
-@@ -674,6 +681,10 @@ struct pci_host_bridge {
- 	unsigned int	broken_l1ss_resume:1;	/* Resuming from L1SS during
- 						   system suspend is broken */
- 
-+#ifdef CONFIG_PCI_DYNAMIC_OF_NODES
-+	struct of_changeset *cset; /* Changeset used for OF node creation */
-+#endif
-+
- 	/* Resource alignment requirements */
- 	resource_size_t (*align_resource)(struct pci_dev *dev,
- 			const struct resource *res,
--- 
-2.56.0
-
+Fwiw, I have a patch series on top of this that makes procfs own the
+waitqueue and then this whole UAF issues goes away structurally and you
+get to elide that global thing here.
