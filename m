@@ -1,63 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793716700;
-	b=Nql7gnDmHsX3YWota187uEUfVuHSeRvBRC6RB9CwdZLCCU7L6J95V2VQZ97pNLwzoGnP
-	 Tw+LixpCM/spS9SxeLuOPdu4WiLJTYeK+qosX18+xqWkWBXC5lnhOLM060ZozYe0vqY9c
-	 gDkUS/rPSKAoe+HSYmf6Fb+4aDbbLrKacWmjxLRyCKTLnqc6iKQ0Hj2v898InD0oU+KEA
-	 X+ZQnsylxJsX7Uz3DYlKAHLc3KvToJucoymOJ3IPMQyM4/T40asMcwMjLZLXrSmcQX6vf
-	 aG/p147v8Wg3H067bhzARZx62h//X+8w2xW2x8Zvqlo+ZLVL2E4V+GLXK/ohuhLmBUw==
+	t=1793717066;
+	b=BP1j3lkZOLZxaiyA7pHLD9muw850cPrZfUHpDpqiHbTNqzpXMk1KZXltMMcaMvjWr4zI
+	 ObL+09l4hO5Or43f6EULnUgBzAVRm8Y0EvMoZFmE6THp5Ge9gQoIhykqyc3f5PuayEHXj
+	 U1WOMW1tOlVbrL+2RYkWPQCTfK0xNxgTB8w+vCCzgu59aE5wk0ap8JaRaiK9v4BHIbwhD
+	 iN4lbE3PhpXPbx1seKBibQ0HEMSOQ8M2UsDLIVc31m+q4s+Kwd1jENw26XyxnFu7BOpR0
+	 1A1HACp+5UJSE6WnG0v+HeJawPDbuXIN15AH4KIi4FUwzmbqK8IAD4/+1tpon3eiWpg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793716700;
-	h=Received:DKIM-Signature:Received:Date:From:To:Cc:Subject:Message-ID:
+	a=rsa-sha256; c=relaxed/relaxed; t=1793717066;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=ATFBiGGLJ6j4Bf1/ztZfgLS8UNvULPw9KJ8xxTWy52o=;
-	b=fw0Ued4e7bxaO2Ndb6cjF3+D41DXmjwIjGvPM6+RvfBVEub2BfP1fZ9M48+2h/cSSNCU
-	 94jnHZE9WHY6MR5z9rQ8rf09oQQAtYyc5aiDT0NAQwBmf6UlYp/b2IlrBowbsmDlvr8jL
-	 f6RmfvaiHaqP+VqdOWQL7PTW9IXcue5L0rbMum2995pEnhw/1rBgrVJ3KBFhJrlMYB/X9
-	 drfjuOQrBiD7+AjKe/J0GUVwGF5EJozmkjWSSNWY5YHbPplUiq9cT3OjmSwSQ4DPxRRwE
-	 RsgzFVpMmuLubrRaj589p540CUFlWqTYUpuPa9C0DSBQU6sCEB+dYwQLkQjT7Rt75mQ==
+	bh=KaGxOIDUSLDrhNtJZX8c9f03J0fEHiNZw1qU0QBhoYc=;
+	b=WOiD3NQ0awfiwsyt7c89fe96FewIrrJlZbpfNjZiNYtSto8JSMtUk0zE4LVXijwSBZqs
+	 xSW/4CIgL90rbUxyBO3uQwcKggvT+SLk6CfKB9nvOBEdrPjoNr7s8cfIJzC/Qfol5/31N
+	 2Z8lYggU4HuBh7/nvg8MTr0MV8SgYO9/9jsnRqrvXu8abWTqdWipvTrAgst4Wo4yOuChp
+	 aGBMLln/KLpOaxokozP3zaumWV0kquWz6N4TU3VNqpi95jz5w9pJAYqPfu81jEGsjYtbR
+	 6HDIYlfTJBD64ThWpl5+1H+6lrTDMLf7ET9+0o6d4dFzaNFOIlouu3mbMVOqmnfU+6g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JR5No3V4;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dBZHsAMi;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D14DF606A326;
-	Tue,  3 Nov 2026 14:38:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 342D4606A324;
+	Tue,  3 Nov 2026 14:44:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JR5No3V4
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A6471F000C1;
-	Tue,  3 Nov 2026 14:38:19 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dBZHsAMi
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F99E1F000C1;
+	Tue,  3 Nov 2026 14:44:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793716699;
-	bh=ATFBiGGLJ6j4Bf1/ztZfgLS8UNvULPw9KJ8xxTWy52o=;
+	s=k20260515; t=1793717065;
+	bh=KaGxOIDUSLDrhNtJZX8c9f03J0fEHiNZw1qU0QBhoYc=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=JR5No3V4dWQhddK0QnWaBXxFko/Ya92j5S2rJbLhCQKMr7CglSIQNQOz/EPTsM8+6
-	 dvFt30wIuHAqFTQdSK4Oxli5YOYWVwCLswtcO1unkcEtGKEp2cpgabN8XdmA3H9xR4
-	 aA4YM+R38zeKiOhHf18PFpCaM+5QLUfmamcbSj/OguX/MWmzPqhSB0MaGyK0FjIGH6
-	 dkFb/wyifffy+8Mb+6XUUQukDifyqhC95ud4zY9lMB35QVXczrA3HkgyNuWrNuQKgk
-	 RYzr6o+bfTQYpivT7cbVst5D61QUr5eGQaryihoak/TuWAUKdmHW/objRGQRgZ934N
-	 SO7gCI8wQY5dg==
-Received: from johan by xi.lan with local (Exim 4.100.1)
-	(envelope-from <johan@kernel.org>)
-	id 1xOFeS-00000006dfQ-34Ca;
-	Tue, 03 Nov 2026 15:38:16 +0100
-Date: Tue, 3 Nov 2026 15:38:16 +0100
-From: Johan Hovold <johan@kernel.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>, driver-core@lists.linux.dev,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 0/2] driver core: platform: fix sw node use-after-free on
- device release
-Message-ID: <aunx2B_OgODKZdVw@hovoldconsulting.com>
-References: <20261102111420.1330760-1-johan@kernel.org>
+	b=dBZHsAMiJ+/PGPEom3ti3bETufGkQzi2dhXzD+07ycVN49yX4KekU4AIxvAaTOy8A
+	 50yWGwqZxKKcpEr2leVlYVLngMKbBGp2hdScXLCyTPGdCCpUSTuYUHuaBTkWCBDIYe
+	 D7WDxL8V9RH3ZXUk/lsd+cCYZl5eVAadFkMkcJrN3xLS0U/bmOXrofOrQkOOPQAEEC
+	 hlfVtMo/+6YbLzAXRNdVzlk9EjSuY6zilZXNzPFyEv9B4OOOBz7kQHaiY6RHTjFu4x
+	 cmvEMDXgGVXIo8toz1CX76Juf7ITWlO9rrCDS4ghbbK+aXlU177nZKQIX+ZyAm8JES
+	 Z9/e14ef+8fug==
+Date: Tue, 3 Nov 2026 15:44:20 +0100
+From: Lorenzo Pieralisi <lpieralisi@kernel.org>
+To: Jiale Yao <yaojiale02@163.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Marc Zyngier <Marc.Zyngier@arm.com>,
+	Hanjun Guo <guohanjun@huawei.com>, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH v2 01/20] ACPI: irqchip: validate MADT entry bounds
+ before probing
+Message-ID: <aunzRO9rxFUlC0Ym@red-moon>
+References: <20261029035253.2333852-1-yaojiale02@163.com>
+ <20261029035253.2333852-2-yaojiale02@163.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -69,23 +63,68 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261102111420.1330760-1-johan@kernel.org>
+In-Reply-To: <20261029035253.2333852-2-yaojiale02@163.com>
 
-On Mon, Nov 02, 2026 at 12:14:18PM +0100, Johan Hovold wrote:
-> Sashiko noted a new use-after-free issue when freeing platform device
-> which has a software node as its primary fw node.
+On Thu, Oct 29, 2026 at 11:52:32AM +0800, Jiale Yao wrote:
+> IRQ chip probing invokes validation and probe callbacks after the common
+> table walker has only established that a generic subtable header is
+> readable. A malformed length can leave callback field accesses outside
+> the MADT.
 > 
-> Turns out that can cause trouble also when drivers or subsystems remove
-> software nodes themselves.
+> Validate the generic header length and ensure the complete declared
+> entry is contained in the table before invoking IRQ chip callbacks.
+> 
+> Fixes: e647b532275b ("ACPI: Add early device probing infrastructure")
+> Cc: stable@vger.kernel.org
 
-Hmm. The subtleties of the software node implementation got the better
-of both the LLM and its operator it seems.
+I don't think this patch fixes anything (actually you don't know, it
+might break kernels that are currently booting).
 
-Clearing the secondary node when the device has only a software node
-does indeed clear the fwnode pointer so there was never any UAF here.
+Remove the stable tag (on the whole series, though others might have a
+different opinion). If this gets merged, goes to stable and then
+we discover it triggers a regression (on existing platforms whose
+ACPI tables are broken but the system is working) it would be very
+annoying.
 
-I've dropped the first patch from the driver core testing branch.
+> Signed-off-by: Jiale Yao <yaojiale02@163.com>
+> ---
+>  drivers/acpi/scan.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 0b17a7e51956..10e8d736f44b 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -2896,6 +2896,13 @@ static DEFINE_MUTEX(acpi_probe_mutex);
+>  static int __init acpi_match_madt(union acpi_subtable_headers *header,
+>  				  const unsigned long end)
+>  {
+> +	unsigned long start = (unsigned long)header;
+> +
+> +	if (start >= end || end - start < sizeof(header->common) ||
+> +	    header->common.length < sizeof(header->common) ||
+> +	    header->common.length > end - start)
+> +		return -EINVAL;
 
-Sorry for the noise.
+This is a check that AFAICS could be done in acpi_parse_entries_array() once
+for all (where you also know header->common is what you need checking, btw). 
 
-Johan
+Actually, what's missing there to avoid peppering the kernel with
+BAD_MADT_ENTRY checks is the entry size (that we could add with a LUT).
+
+The downsize is that by centralizing it, if anything breaks (which is
+possible) we have to revert it and therefore remove the check for all
+consumers.
+
+I don't know. Rafael, all, thoughts on this ?
+
+Thanks,
+Lorenzo
+
+> +
+>  	if (!ape->subtable_valid || ape->subtable_valid(&header->common, ape))
+>  		if (!ape->probe_subtbl(header, end))
+>  			acpi_probe_count++;
+> -- 
+> 2.34.1
+> 
