@@ -1,128 +1,49 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.remote-ip=198.175.65.15
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=fail;
-	t=1793725569;
-	b=p8Jxp1R6HactHs5FP7/4k31EA6JX0BAvnl7aAF9BiRjLrugVFzZn5IaqMH6L7qbPIVYS
-	 3/kkqXa0ICY1BbLCDSRyagf61rCebmyWxzUPR41dhM2me6ZLROp/2f0AWJ+AVrPcIDQbI
-	 HgarU0zanOGzECKjoY4dTNRIZ6otpRZuOtWxS4phiohL+Zl0/lXfyPAzoCaz2nCloNLmx
-	 JUr2RkSbCPHhy3ptrTbezlO0JdxuDzC1ZV3uliaW7ntom3YE6LKoFjaJFNVsqcQc15r4B
-	 YdCyZKl/DGX0VlX7jMHgX5gq0I37E9oIEuNsZIcx7Mkn5x+JGWkBszF0g46xIQbEoJQ==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793725569;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Received:
-	 Received:Received:Received:Date:From:To:CC:Subject:Message-ID:
-	 References:Content-Type:Content-Disposition:In-Reply-To:
-	 X-ClientProxiedBy:MIME-Version:X-MS-PublicTrafficType:
-	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
-	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-Exchange-RoutingPolicyChecked:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
-	bh=l873VninDBUiKeh1WHAl+Vibl6xopVLfKVt0iMRQubw=;
-	b=GbtB1DIRkCXFVMcKR4abWcm8Pz8sNv9Yw9NMFgDGRB1/BfMfi1tSAwYTl9IP7wtNQNOU
-	 9dD3swLuWCY+ZbenWwefxhVG5rasFmqx0lXIh1tnlTIC+tj7mb+vhaNFABUFxBVp0MNoo
-	 mrb3EcK1aYw2CHnzfU4E4WLN28WpxBTNUau1Y1TFJNaruCrJRDGgYqEKogLOeRsVnom9J
-	 wRQWGG60mYhteBc2Q4664baLx9AmNqZNrN35sRaQstQpKj4I33j1HWAaxAk1Rw9tWpFW8
-	 mm+Vm94OWX7kQs0AI3/TQM7r+eM4SlXOCmJ/XQSTxVxQdRcC38AFplGdOwKzY49q2dw==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=Bt1mctYa;
-	arc=fail smtp.remote-ip=198.175.65.15
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFF0F606A324;
-	Tue,  3 Nov 2026 17:06:06 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EFF0F606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793725960;
+	b=eOjmlbOXFCuUL8VvSc8cOYHcfGJF59dbGwVFmajjnTpzbMWTYwdvP+Cn1G2fV9+HCL+2
+	 +lRO+O3Z5ypQCYlOT0RJ5IfzXlBEERCrY9RL7EToTYIx1Fsby7J/atJCo4OzvFqbQZ5pj
+	 0N1vDQEYiAvvk04QD6F+pTc30PO8vrNOKKFPOjNsD9ZmRBIy0XPrL8c6jrhQm4LaV4+I0
+	 wkO5xXSXjPwRpf9Jy+yyWOCEq6EojXDHSNokWiN65AXP3cdQG/dUA4G88k//SbOmNUpiv
+	 UzZM454761hioQO4gIFE7Zi7FamRB61EDWJd4QJZvX1ZiR1jHx46ZjuaOFfgq3SlG5g==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793725960;
+	h=DMARC-Filter:Received:Received:DKIM-Signature:Message-ID:Date:
+	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
+	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	bh=jMBi/O/YxdS3DpA1FgfPHgEkTg0rXr4CLzlctrff388=;
+	b=mUtblZ4DcyEWpi3DBfkZq1ghmyNHshp7lxUOYwaKy+Kwbzh9L3VTVwcE+gXi0WW3g9U0
+	 FfgS0MjwegdcbAAlvcV0PeaNWf2MJptrHIZpojKbitj185g1Tk5118FBCfObHVKz9qgrd
+	 Z5n/4C7tag0qZAuwBym7qxY7m2GX2xsje7KhMSLYVCKVLuSWqWEGehtdAStED5LQsZq90
+	 Da8QnFUNjJVLMa1+Agn9d31EIwQNcy+6fe4pCYJ+XKzN3kzt6SPufvkp5A23tW1D2GEEk
+	 buKp9V9BFdl6kj6ThJv79K+prdIKm4socwgvXdATsxAGtnIJ+qpvSp+G+Fe7Kg7vThA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=arm.com;
+	spf=pass smtp.mailfrom=arm.com;
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b="gL//k96O";
+	arc=none smtp.remote-ip=217.140.110.172
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 404F0606A329;
+	Tue,  3 Nov 2026 17:12:37 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 404F0606A329
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=Bt1mctYa
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793725567; x=1825261567;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=Ppz/73dqWgbClPw7a/kwE9g5IzvJiy8nr36629DoINE=;
-  b=Bt1mctYateBbD+++u8Mi0iVvWvCkPBOVOFjwipH9QJ2YON/sc0tEqYWy
-   qvVxHp03c0BsFRWsC3eYbatWqlHjweOzkhMA8RRWe1ylAXGN0c/yT2/9J
-   gYuka8nCsfjErJRbtNnLjd7VS6Buv/xTq6PHW7C7U+hkZOMxI6JF9o2Q5
-   b3ybnfrf/ljLTxQ8O/5jhNP+KN7ygTr+1cuh5T7zK1BGI5eNjediG5mNi
-   5n5WZ9JZN/6NZdXwkBAGg3sBtInyjwMRWUh4wl2KSa+COeyt3zXU/xSyX
-   yI4IBCt/T6jfRq0EeZvyZLO7Oewozp96HjNoRV/7SBIaK5V24728Z+UPE
-   w==;
-X-CSE-ConnectionGUID: H2lMBep0SXeCMWT2RK+qhA==
-X-CSE-MsgGUID: ipklqMNKTaazPiLGKUlCvg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11955"; a="2467471"
-X-IronPort-AV: E=Sophos;i="6.27,193,1787036400"; 
-   d="scan'208";a="2467471"
-Received: from fmviesa013.fm.intel.com ([10.60.135.153])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2026 09:05:38 -0800
-X-CSE-ConnectionGUID: 2KvPU0AhSSOFvD3xopmgpA==
-X-CSE-MsgGUID: R8UiEvPcTOSpx03goyodVA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,193,1787036400"; 
-   d="scan'208";a="8324892"
-Received: from orsmsx902.amr.corp.intel.com ([10.22.229.24])
-  by fmviesa013.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2026 09:05:37 -0800
-Received: from ORSMSX902.amr.corp.intel.com (10.22.229.24) by
- ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.56; Tue, 3 Nov 2026 09:05:36 -0800
-Received: from ORSEDG901.ED.cps.intel.com (10.7.248.11) by
- ORSMSX902.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.56 via Frontend Transport; Tue, 3 Nov 2026 09:05:36 -0800
-Received: from BN8PR05CU002.outbound.protection.outlook.com (52.101.57.18) by
- edgegateway.intel.com (134.134.137.111) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.56; Tue, 3 Nov 2026 09:05:36 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=TZoWKJc3h1p95p1ickBPGrSqamAUED1ujQEBSk3xGefd3qXETWuvl4E2FPHCtJlc+wvgpUjTHhEJOT32T/Z81+9STILR8kXXoxywXcgl26UUMHFdytttyyy3qm9XXtjJEmKAQnPmQWoSvxMjFOb+fHA/MtZBpVe3VpuC9UfpV0EuJfxFesV4oJtW6NnNOsgRgbGHxYKA/IAKaXLIZ3HkezoMicQTt6eqm/bEVDriv6+txhwM1X1avFrhdZ6NZhdP7bJ0S4YsfihezaX/tst27eQQdM+fUZmpAyxVErm5QQOWKw8LIiOBRLtK+rUB2Gvvcc+p51K/HAupgPK0TXTjyA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=l873VninDBUiKeh1WHAl+Vibl6xopVLfKVt0iMRQubw=;
- b=BnS96dOkPHkSgnRpyAwoePrxIjP92XBZ4iPyRBxsALW/okgiPewuCWrjrmov/GohooGBLIwbkamMQzIiXQtKeaAJ/ZCGi7lIVQbNvxOVZaXN/3qFFFfdwffN1nsYExUvujcrwhRqPKGCTJWzlib5LbTXb2fBEJ2Nt66KF5uCPt03EG+VybToLL/7Avg1omSQaBr4LhtNKAnYT7Kjzgf9nzphSLXpoIe021nXlHoC3RhX8/ox51MD/aJ87L3VErVdIbitavdnsfU9wKipEs7y2P5oKhhBSKG4tzvvKiJ29A5tGtYiKBn9xnPVajV8wlAndOau2yIVgnH4abHulRRMag==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from CH8PR11MB403433.namprd11.prod.outlook.com
- (2603:10b6:610:32f::10) by DS4PPFE70B31BEF.namprd11.prod.outlook.com
- (2603:10b6:f:fc02::5a) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.12; Tue, 3 Nov
- 2026 17:05:28 +0000
-Received: from CH8PR11MB403433.namprd11.prod.outlook.com
- ([fe80::b087:96e4:50ea:b5de]) by CH8PR11MB403433.namprd11.prod.outlook.com
- ([fe80::b087:96e4:50ea:b5de%4]) with mapi id 15.21.0592.007; Tue, 3 Nov 2026
- 17:05:28 +0000
-Date: Tue, 3 Nov 2026 09:05:26 -0800
-From: "Luck, Tony" <tony.luck@intel.com>
-To: Kang Chen <k.chen@smail.nju.edu.cn>
-CC: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
-	Borislav Petkov <bp@suse.de>, <linux-acpi@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] ACPI: ADXL: verify component name types
-Message-ID: <auoUVk7-jBYwmvvB@agluck-desk3>
-References: <20261103114149.76010-1-k.chen@smail.nju.edu.cn>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20261103114149.76010-1-k.chen@smail.nju.edu.cn>
-X-ClientProxiedBy: SJ0PR03CA0082.namprd03.prod.outlook.com
- (2603:10b6:a03:331::27) To CH8PR11MB403433.namprd11.prod.outlook.com
- (2603:10b6:610:32f::10)
+	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=gL//k96O
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 2C8B31595;
+	Tue,  3 Nov 2026 09:12:34 -0800 (PST)
+Received: from [10.0.130.179] (e127648.arm.com [10.0.130.179])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 0E5A03F673;
+	Tue,  3 Nov 2026 09:12:33 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1793725957; bh=HOLibGofC98lvxbmB9jkoaGkEuerTzovkAzWL27zyT0=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=gL//k96ODEAV5z9zf6lbjzVwL0/flZwigUfsB9vUmLF9edRnJHr7P5phCYWFnJW5q
+	 39MJhmJkZZ5OjZbAmOn75rhS5EnhvjJSUi/eaEjAML6+UIWU+svPKzBNVLcxgk5nVm
+	 FbrQZaYOmg+JXwlEghKTyajxNPatAYuf0y+E++eM=
+Message-ID: <6392b2cb-0cbf-455a-8c05-c273535b2c10@arm.com>
+Date: Tue, 3 Nov 2026 17:12:32 +0000
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -132,111 +53,203 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CH8PR11MB403433:EE_|DS4PPFE70B31BEF:EE_
-X-MS-Office365-Filtering-Correlation-Id: 819ee725-6f94-4fd3-5f20-08df39cca926
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|376014|23010399003|18002099003|10067099003|56012099006|22082099003|261009223027099003|261022075727099003|261022105027099003|261021123027099003|261021121427099003|261102123227099003|11063799006|261028144727099003|261026140227099003;
-X-Microsoft-Antispam-Message-Info: hEh6yOX2iNKgOSDfoLsOyR0qjbpwR+yoxpP62l7R1JsMkTyyC0TPIrujwPhMgz8ko7+tucIF/cxVzlruMdfjRNpq1MYm1+NS34g6yqNAhSJcrkiqah7DdTLv6R8h8GMIFX7syDoySkUvWw4ZylNAGM+t5Sm9UySWKynOwdRQAm42E4xyoefZEG01+onEaxXOOzbkAAiwql4Y2pYJR2ulJmrJViH7Pfm2fMbLOtCNmSmdaB+MwPgSScm6nwBrnR+CFV5+gFjA2IgVhAAdCp33dcmqeoClexAqA5wLhINKSplPvaJTwDBKf9SsKq11D9EWUR5y2Hjiq/L0OboZ+TOoAdkLEhKpfydvQdIONj1Evd1Kbvq2fGgg53XIhi2thyBMlhjpaAL8BiiWz6gMYHnhMHOHLU32LYMaZkiINRn8R2O2/FdM6WRFq/F3riOwXbt8iNTPs1qkwbHMUAot8gNfeijuFEJ6fuxIYbCgvhMqsVY8RyocBu7pNlbkdkVTaq1fcQ45SvygjupnMnvYEw92qiQOQ96NmjUQjhOJoCXxyeZ7bCjzMvR1/rL3t+csHNHyPXm0XVY71nHB7Kv9RVDsd8WgWZMHcad6DEoEfWTdIpw+GmM6APt8S4NTqUtUhWRmVOGdm6WMYhOfUYTAVQLJfThnVd+02nw2r+MWuQ/5c3w=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH8PR11MB403433.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014)(23010399003)(18002099003)(10067099003)(56012099006)(22082099003)(261009223027099003)(261022075727099003)(261022105027099003)(261021123027099003)(261021121427099003)(261102123227099003)(11063799006)(261028144727099003)(261026140227099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?nfAxd1BI0P1p7n8FFJoMHTrGmEEn8wTyETCZy8aPDxO7CoN1SDisHSNFGXIQ?=
- =?us-ascii?Q?MZ0Vyc7MP8BEXWNAhE+TnNZ92S7WJXgT3H3gFVpapfWgLuzeyuJiFwyuwMvi?=
- =?us-ascii?Q?+opXv/Zk/hR6KOZqj9H/JcnCY8p+1XxcQYQnFf5T0wm0wUU6A8ySA7OfByoT?=
- =?us-ascii?Q?CXhK2vwwmTSnWI31rQfsj8yiPfL6PA1GzrNBcrMLoP4WPsXTd7HIoAd7aF99?=
- =?us-ascii?Q?rVe2O9nChEB2/I+U2E2TAGhNciS6TtYeAFwOv9OPGTqPwEcWKsv3ehLrVbHG?=
- =?us-ascii?Q?6/L7RqHjmtFHNkTHgCanaiwLGUS1ZG6scAOVRPWA5z17f/gYJr7zdJWvaWQu?=
- =?us-ascii?Q?QVWRNWhMj730Ts+OXlkMI5fpVM/FbaEkWGLP++RQ2LH6JwzXLuOLUaVMgbpT?=
- =?us-ascii?Q?McIsutRyY11oQZ8OdBxiHQvSCiL+uXi2YINZkMHr84nwKz91IzoUVoDpqJU3?=
- =?us-ascii?Q?hTRrvbosZWuX4yfmCcW8uxZ+ipi6lAuvCgH0NC40vNXwqG8ETGHaKOWJwN4i?=
- =?us-ascii?Q?QGnbGnOvknbQa/znX9Lo+Sn91Cp9ngneShDmTaWLzF0kPD1LtBErvqRreVjR?=
- =?us-ascii?Q?IY5J/sVgfTGqIYo6OyxIB0M2XsXIRrWgdT8zN3ozDnW+62F4/vsUnikakkC3?=
- =?us-ascii?Q?Y7DzUXVKkTxm8RME/6s/n7xPX8vodbCDqgqfutVkskd3dA1XURbabseeylec?=
- =?us-ascii?Q?7/elZsZ+4Dw9C6EvVvuTyCzvEyese2NAPfutefy6wqqrgn7zkcEgTr/+bFD1?=
- =?us-ascii?Q?pHPwrpfMQ06u/sh95gxps2vDW8Di7TDHKD+QWDCpSofTwfRsD/l2K9WQJ0NK?=
- =?us-ascii?Q?h8QdiOBjtupSMgobepFNKA0uh5JhlsEjcIwW3Tw41UB8mQL0lYY2n7Fo71ET?=
- =?us-ascii?Q?EYKHNvfbr0+4hROB/THE8xv6Q+HFxS+wLQ/WncZ49yTiie8kCCxyC+uhYbWu?=
- =?us-ascii?Q?+dq0sm4Me0vH6a2BwaUjZTYs6ww9/YPe3dR6z3uQrsUA+B9xnco00F6VHIAV?=
- =?us-ascii?Q?QBZnh6A6Kpp12GQEsXQYspho8di67R7RwotGL3Z0Zj2LL8LoC5l8+Fvn7NwJ?=
- =?us-ascii?Q?Ta7VoBRzmCVyLylSCpGelGf3jLIc2TZW8umXR5EFywps4NBNbbOFzK0/bLYL?=
- =?us-ascii?Q?qty8vCINDN2xOWSHsLe3Hh89/VaAw3fLK+IaANDyrrXinfKPXJqG9BANq69k?=
- =?us-ascii?Q?cbnE6ykD0UIJmjbEqC5fqlYTNePmBteuHjFFHAczKlrqIJcnfVjQBKh6cvpt?=
- =?us-ascii?Q?/CHMIdPOmkjkE+4L1YUpLDefbW/wWxsrqgSDC5rrYwX2qbSpzz9XFtdlJnZa?=
- =?us-ascii?Q?vG6JKQxivmr9Ym1Wta6Aqde8Yhzj2qjsXDR0ZvMf4t6P8P/rSAoSsylhZzSP?=
- =?us-ascii?Q?Zp+Xctl+ts3HhEzQPaW9zkP3zFHexAK9ce7TbKJRd4WYOBeUe8Omzd22sHvB?=
- =?us-ascii?Q?PzumuB0YSZ9sKAPFivrHZiaJmhS5qasVLFXl158D+B+93L3Avl86qyZ8V74X?=
- =?us-ascii?Q?alND/Sc66FyRGB70GeObR7uErs5DbJ+mgltagZx7B57vb5pLLsXUzcGXtadd?=
- =?us-ascii?Q?NHs+LCdExpnlIEs7dyMtQaE48WXp1K26Fu2fOAGjdPLm/90GYAQ2HZXfqpv6?=
- =?us-ascii?Q?QUYvuLVcze/SSQsJmlJm+QYAKBzAO5JkVQwolT/MwMuz9RXSAjLyMJAU5OU0?=
- =?us-ascii?Q?xK/wvzq4KfC91l/gW1Y8YnyyFpTmK4hnWKAQpS7sO3IVVDFz11CXIfnrFxqF?=
- =?us-ascii?Q?o1v7iUKm6Q=3D=3D?=
-X-Exchange-RoutingPolicyChecked: VkJ7yhy80l3o/KQCnXP3KicFYqCPOSFYFaTBZKy2SDyh5S1KCUKkMCtU0x0+Ur6zwoQkvlhf4DVHNhP1XGDAPnIuZKWklmi+bfVc2aoxakGGekmB7jb5IC7EfaArvOPNS1b6Afud9D8qKX83zVjLQQgL49pq6pAqxs/ZMmEeWqFLj5q0gTSiLM3Yywe1XHq0eBtyaB9yJMjtQr5n59zzZKAmoQm3d8BZ9mtobOV/ES+DEpo13cH7Yr9IozGpqDB29s+3mFntzNSMpqjpEU7Ns8gXN4AH/jfD1z0goGF5H7qcyDoJu0bPia2ml2a8tyl1kEej60q8KgeIJ4LdRS7LSA==
-X-MS-Exchange-CrossTenant-Network-Message-Id: 819ee725-6f94-4fd3-5f20-08df39cca926
-X-MS-Exchange-CrossTenant-AuthSource: CH8PR11MB403433.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Nov 2026 17:05:28.4663
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 1GmF69ZnnQECEP2tMw7jt1OkXR/wxzvyygMwXUygSvDwwXRTk7/QO/3oezoDYxUptVUYqmFrLMFHKN9bHvLuKw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS4PPFE70B31BEF
-X-OriginatorOrg: intel.com
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v8 3/3] cpufreq: CPPC: Reflect the OSPM nominal in boost
+ and limits
+To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
+ viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
+ zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, lenb@kernel.org,
+ mario.limonciello@amd.com, maciej.wieczor-retman@intel.com,
+ pawel.chmielewski@intel.com, linux-pm@vger.kernel.org,
+ linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
+ linux-kernel@vger.kernel.org
+Cc: linux-tegra@vger.kernel.org, treding@nvidia.com, jonathanh@nvidia.com,
+ vsethi@nvidia.com, ksitaraman@nvidia.com, sanjayc@nvidia.com,
+ mochs@nvidia.com, bbasu@nvidia.com
+References: <20261030172745.2045743-1-sumitg@nvidia.com>
+ <20261030172745.2045743-4-sumitg@nvidia.com>
+Content-Language: en-US
+From: Christian Loehle <christian.loehle@arm.com>
+In-Reply-To: <20261030172745.2045743-4-sumitg@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 03, 2026 at 07:41:49PM +0800, Kang Chen wrote:
-> adxl_init() stores p[i].string.pointer for every component name
-> without checking that the element is a string.  An integer element
-> makes the pointer the integer value, which adxl_decode() consumers
-> dereference with strcmp() and %s, causing a wild read during boot on
-> machines with an ADXL object.
+On 10/30/26 17:27, Sumit Gupta wrote:
+> Boost is the performance range above nominal, so lowering the OSPM
+> Nominal Performance enlarges the boost range and drops the non-boost
+> ceiling. Keep the policy limits consistent with the register.
 > 
-> Reject the interface if any component name is not a string.
-
-Has this ever happened on a real system? Or is this just an:
-
-	"AI told me there was a *potential* bug" 
-
-issue?
-
-
+> Add cppc_cpufreq_effective_nominal(), which returns the OSPM Nominal
+> Performance when set and the platform nominal otherwise. Use it for the
+> non-boost ceiling in set_boost(), and to update the policy limits when
+> ospm_nominal_freq is written.
 > 
-> Fixes: 4cf841e39850 ("ACPI/ADXL: Add address translation interface using an ACPI DSM")
-> Signed-off-by: Kang Chen <k.chen@smail.nju.edu.cn>
+> The cpufreq core caps scaling_max_freq with a per-policy QoS request,
+> boost_freq_req, that it sets to cpuinfo.max_freq and refreshes only when
+> boost is toggled. A write to ospm_nominal_freq changes cpuinfo.max_freq
+> without toggling boost, so cppc_cpufreq_update_nominal_limits() updates
+> the request itself, rather than leaving scaling_max_freq at the old
+> nominal.
+> 
+> When boost is enabled the ceiling is highest_perf, not the nominal, so
+> the update is skipped. set_boost() applies the new nominal when boost is
+> turned off.
+> 
+> A platform with highest_perf == nominal_perf has no boost range at boot.
+> Lowering the OSPM nominal from sysfs can create one. The core, however,
+> adds its boost FREQ_QOS_MAX request only at policy setup, and only if
+> boost_supported is already set. Set boost_supported in init() when the
+> OSPM register is supported and highest_perf > lowest_perf. Boost can
+> then be enabled after the nominal is lowered.
+> 
+> Suggested-by: Pierre Gondois <pierre.gondois@arm.com>
+> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
+
+Thinking out loud here:
+I'm curious if there's actually a use-case for this, presumably once we
+let userspace effectively dictate boost allocation, we practically expect
+userspace to sort out scheduling, too (e.g. by pinning?) and therefore this
+becomes largely irrelevant?
+
 > ---
->  drivers/acpi/acpi_adxl.c | 11 ++++++++++-
->  1 file changed, 10 insertions(+), 1 deletion(-)
+>  .../ABI/testing/sysfs-devices-system-cpu      |  4 ++
+>  drivers/cpufreq/cppc_cpufreq.c                | 72 ++++++++++++++++++-
+>  2 files changed, 73 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/acpi/acpi_adxl.c b/drivers/acpi/acpi_adxl.c
-> index 13c8f7b50c46..de646b312eba 100644
-> --- a/drivers/acpi/acpi_adxl.c
-> +++ b/drivers/acpi/acpi_adxl.c
-> @@ -184,8 +184,17 @@ static int __init adxl_init(void)
->  		return -ENOMEM;
->  	}
+> diff --git a/Documentation/ABI/testing/sysfs-devices-system-cpu b/Documentation/ABI/testing/sysfs-devices-system-cpu
+> index 6af7fa86e44c..d219fc27a0c9 100644
+> --- a/Documentation/ABI/testing/sysfs-devices-system-cpu
+> +++ b/Documentation/ABI/testing/sysfs-devices-system-cpu
+> @@ -362,6 +362,10 @@ Description:	OSPM Nominal Performance (kHz)
+>  		Write a value in kHz, between the frequencies corresponding to
+>  		Lowest Performance and Nominal Performance.
 >  
-> -	for (i = 0; i < adxl_count; i++)
-> +	for (i = 0; i < adxl_count; i++) {
-> +		if (p[i].type != ACPI_TYPE_STRING) {
-> +			pr_info("Bad component name type %d\n", p[i].type);
-
-If this really happens, then Linux has a way to point a finger at the
-source of the problem:
-
-			pr_info(FW_BUG "Bad component name type %d\n", p[i].type);
-
-> +			kfree(adxl_component_names);
-> +			adxl_component_names = NULL;
-> +			ACPI_FREE(params);
-> +			params = NULL;
-> +			return -ENODEV;
-> +		}
->  		adxl_component_names[i] = p[i].string.pointer;
-> +	}
+> +		While boost is disabled, cpuinfo_max_freq is set to this value
+> +		and scaling_max_freq cannot go above it. While boost is
+> +		enabled, cpuinfo_max_freq is the Highest Performance frequency.
+> +
+>  		The register cannot be read back, so a read returns the last
+>  		value written, rounded to a performance level. It returns
+>  		"<unset>" before the first write. Reads and writes fail with
+> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+> index 662397526433..7cac31de7325 100644
+> --- a/drivers/cpufreq/cppc_cpufreq.c
+> +++ b/drivers/cpufreq/cppc_cpufreq.c
+> @@ -915,6 +915,29 @@ static void cppc_cpufreq_put_cpu_data(struct cpufreq_policy *policy)
+>  	policy->driver_data = NULL;
+>  }
+>  
+> +/*
+> + * Return the non-boost performance ceiling. This is the OSPM Nominal
+> + * Performance the driver last requested, or the platform-reported Nominal
+> + * Performance if none was requested.
+> + *
+> + * The register is write-only, so the requested value comes from the
+> + * software-tracked state rather than from hardware.
+> + */
+> +static u32 cppc_cpufreq_effective_nominal(struct cpufreq_policy *policy)
+> +{
+> +	const struct cppc_policy_state *st = cppc_cpufreq_policy_state(policy);
+> +	struct cppc_cpudata *cpu_data = policy->driver_data;
+> +	u64 ospm_nominal;
+> +
+> +	ospm_nominal = st->regs[CPPC_SAVED_OSPM_NOMINAL_PERF][CPPC_SAVED_REQUESTED];
+> +
+> +	/* U64_MAX means OSPM has not selected a nominal level. */
+> +	if (ospm_nominal == U64_MAX)
+> +		return cpu_data->perf_caps.nominal_perf;
+> +
+> +	return (u32)ospm_nominal;
+> +}
+> +
+>  static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
+>  {
+>  	unsigned int cpu = policy->cpu;
+> @@ -974,9 +997,14 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
+>  
+>  	/*
+>  	 * If 'highest_perf' is greater than 'nominal_perf', we assume CPU Boost
+> -	 * is supported.
+> +	 * is supported. A writable OSPM Nominal Performance register can also
+> +	 * open a boost range at runtime by lowering the nominal, so assume
+> +	 * boost is supported in that case too, letting the core register its
+> +	 * QoS request up front.
+>  	 */
+> -	if (caps->highest_perf > caps->nominal_perf)
+> +	if (caps->highest_perf > caps->nominal_perf ||
+> +	    (caps->highest_perf > caps->lowest_perf &&
+> +	     cppc_ospm_nominal_perf_supported(cpu)))
+>  		policy->boost_supported = true;
+>  
+>  	/*
+> @@ -1280,11 +1308,12 @@ static int cppc_cpufreq_set_boost(struct cpufreq_policy *policy, int state)
+>  {
+>  	struct cppc_cpudata *cpu_data = policy->driver_data;
+>  	struct cppc_perf_caps *caps = &cpu_data->perf_caps;
+> +	u32 nominal = cppc_cpufreq_effective_nominal(policy);
+>  
+>  	if (state)
+>  		policy->cpuinfo.max_freq = cppc_perf_to_khz(caps, caps->highest_perf);
+>  	else
+> -		policy->cpuinfo.max_freq = cppc_perf_to_khz(caps, caps->nominal_perf);
+> +		policy->cpuinfo.max_freq = cppc_perf_to_khz(caps, nominal);
 >  
 >  	return 0;
 >  }
-> -- 
-> 2.34.1
-> 
--Tony
+> @@ -1494,6 +1523,41 @@ static int cppc_get_perf_limited_filtered(int cpu, u64 *perf_limited)
+>  CPPC_CPUFREQ_ATTR_RW_U64(perf_limited, cppc_get_perf_limited_filtered,
+>  			 cppc_set_perf_limited)
+>  
+> +/*
+> + * While boost is disabled, the nominal is the ceiling. Set cpuinfo.max_freq to
+> + * it and update the core's boost_freq_req to match. The core only syncs
+> + * boost_freq_req when boost is enabled or disabled, so a plain nominal change
+> + * must update it here. Without that, raising the nominal again would leave the
+> + * stale request capping the policy.
+> + *
+> + * Refresh the limits directly rather than leave it to the QoS notifier, which
+> + * only schedules the update, so the new ceiling is in place once the write
+> + * returns. The sysfs store path holds policy->rwsem, which the refresh needs.
+
+Interestingly the global boost toggle doesn't seem to hold policy->rwsem when iterating
+over the policies. That seems to be an oversight, I'll send a patch.
+
+The rest looks okay to me FWIW.
+
+> + */
+> +static void cppc_cpufreq_update_nominal_limits(struct cpufreq_policy *policy)
+> +{
+> +	struct cppc_cpudata *cpu_data = policy->driver_data;
+> +	u32 nominal;
+> +	int ret;
+> +
+> +	if (policy->boost_enabled)
+> +		return;
+> +
+> +	nominal = cppc_cpufreq_effective_nominal(policy);
+> +	policy->cpuinfo.max_freq = cppc_perf_to_khz(&cpu_data->perf_caps,
+> +						    nominal);
+> +
+> +	if (freq_qos_request_active(&policy->boost_freq_req)) {
+> +		ret = freq_qos_update_request(&policy->boost_freq_req,
+> +					      policy->cpuinfo.max_freq);
+> +		if (ret < 0)
+> +			pr_debug("Failed to update boost limit on CPU%u (%d)\n",
+> +				 policy->cpu, ret);
+> +	}
+> +
+> +	refresh_frequency_limits(policy);
+> +}> +
+>  static ssize_t show_ospm_nominal_freq(struct cpufreq_policy *policy, char *buf)
+>  {
+>  	const struct cppc_policy_state *st = cppc_cpufreq_policy_state(policy);
+> @@ -1552,6 +1616,8 @@ static ssize_t store_ospm_nominal_freq(struct cpufreq_policy *policy,
+>  	st->regs[CPPC_SAVED_OSPM_NOMINAL_PERF][CPPC_SAVED_FIRMWARE] =
+>  		cpu_data->perf_caps.nominal_perf;
+>  
+> +	cppc_cpufreq_update_nominal_limits(policy);
+> +
+>  	return count;
+>  }
+>  
+
