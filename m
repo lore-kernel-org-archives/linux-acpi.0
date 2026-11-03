@@ -1,84 +1,49 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.17
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.143.172.20
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793707138;
-	b=LYVpsuI+5cSg05tUaEuTIujp8kSGtY7S3Epmupftjgttuf0BfGAIghCFUruAIOWZtYFH
-	 7dz0a6nePW6UkC1g+mzobUqm8FNWtdhgOhj5XPwFJKqdsZJ66OTf+SMt+wohrnE+fg0EZ
-	 ZRLoU+K3oVR10kdv17nGia8/ZiCHNxrQvLcSkte8wU3+x4cj7Nwjj26jIF4WHZHCUe/XO
-	 WBoOJPDRIAgOX6wm4bJJIo/3+mlH3KzW8zUUnyh69DLaS+Vb7Yhze62QUI5lnkxPjMyit
-	 BaHstyuSyznZLK7OfLhLLC7mbwFRNfd9+Mx8OZk3gYbbilmsGQlYHHHAtWMvjV5svpg==
+	t=1793708015;
+	b=dAl2R4tHxN/s1isoTxEKtKmHSENnMSqaqL/CSXYQkyvjvRTFn7TutcCn4bE0OPs6FBT5
+	 Mw7tNlfuDURMnEBfwvOz/7SHoZShzjDVNNTdY4y06To8xj2FWDJ8lp3BTrqQCW4OFhVjD
+	 pV8pfUY9C0c8hkfeQW5E23MHpIjId1SXYSjr5AUQMuAelF/PmhravK0eQSmHf/d6TFJi9
+	 rKCJL3bc23d+0xINzUbfrJYFYnYyXBeWPlDZibZMc7Nwo2b3rDywVCdwsrb5hiBB6VHxy
+	 iLwu36iuCy4Jz4vBUpGVLwYbUV4JmR8xHK5YBEKHjrmZbbLqayZhbJEmKa+gyaKLdIw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793707138;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
-	 Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To:Organization;
-	bh=qpvyviXlID8uNVyHZE6wnGhYmpIoIVVOIzz6sMnLrv8=;
-	b=VlViKkqnPpygvY7ebozyPAqXqY55DN8Hriju1YPNOAoyZ/L7vLZrD1Nh8nWWQv+oYjTS
-	 8lAlnhLdqMBYm8f+qbQchbNBIsgKLhH/nFaGw7d9UCN/NJ1dSLkw6V1vBAZUUkwhXLoUb
-	 3cElvG8x8GJRNQ8XCmbFMUTBDdvcJoSuKRXZRDRp8SQv6VwbLECGBZfPjhHmYPHLcnbgI
-	 GjZR3n4VDW3Caddh+agKPkLkvU1Uyt9FK1nI+FBKQmaVQim0Zu34t+gzyKcIH2Ovd2oa0
-	 iqzLU74qzOjNl36BQTlUoqk1HtOVtWK7wPaMn8FR7sjCQPv9j8p57SvwYZTMUK8p31g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793708015;
+	h=DMARC-Filter:Received:Received:Received:Message-ID:Date:MIME-Version:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-Rspamd-Bar:X-Rspamd-Report:
+	 X-Rspamd-Score:DKIM-Signature;
+	bh=/I0hAkMQgEgSd/xEHJ8QwOI6UalZqq8sg18/Exn5d68=;
+	b=QFkNK08nRfWkjaRQ6LgVmrSXbGUk+3WFqvJhAiyWBrBwESYkxvyU85dryZNxeGmPhJC1
+	 lOQJKfvPQaeebYYi/JUiZvq047az/KLy4T3F8kYMz92b+eIDxuuiVQcy8Ezg0krOpSEvv
+	 ZUn2DR3tOV0ej0AZmmYxU92V50ZOVnmIJeWxMuvnK+AOXHDtLQ0rbB67qokEBB6fhrO2n
+	 xuEtHUeEthXLYPA4h4OoH5uM3zhyrIPtgKXcd/i8XXZFITnw1dd/r6HbPPSR4AX35EFq1
+	 gA5Acie8jlm7e61HX3jVAxOxykSArEkS2PLR7vcJAV3DoyM07Of7Dumn3xuAYj6k/jg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=QyaiQLen;
-	arc=none smtp.remote-ip=192.198.163.17
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=lausen.nl;
+	spf=pass smtp.mailfrom=lausen.nl;
+	dkim=pass header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=oZ+ZZuKG;
+	arc=none smtp.remote-ip=95.143.172.20
+Received: from mailgate01.uberspace.is (mailgate01.uberspace.is [95.143.172.20])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89E5E606A326;
-	Tue,  3 Nov 2026 11:58:57 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 89E5E606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5503A606A324
+	for <linux-acpi@vger.kernel.org>; Tue,  3 Nov 2026 12:13:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5503A606A324
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lausen.nl
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lausen.nl
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=QyaiQLen
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793707138; x=1825243138;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=LjepnItfHAR2JK8YVXjy9fiac3M0l5w1kC9Wmf6b8vM=;
-  b=QyaiQLenJwpmF/4iCNFeXVh2YXFuKl+VoFntVAXG4nFEYBujdAOQXEcm
-   uLRTx5sh52Etxu+AgqHncW7Ew1c0OBvzy36KLWSC2AAdyzLdjyw0wxbYK
-   iIdQmOVsIBIyxYe29bnWa7jiG9WK/Ti0h+ekFIC5k68N/SRut2CKnssY9
-   rkZkf0+8/BVEot6CX7HMzoQE5L4zKaFMRAzTTNvUYm+StdEKhLaPhCR9l
-   B1cllJM8xQAxhRcW3kPwXTVIAOYeSsTz7WSCAUr0rODn6ZcnNPuO6e3Ok
-   ATjwzZ433qTHB2132IX5KUD/gaQw9ct4lqgay3VFXFDkOHP4jCkfqwmfE
-   w==;
-X-CSE-ConnectionGUID: yT6mX2MVQjaShrriMtPjpw==
-X-CSE-MsgGUID: J4sc4oFPQWajw1MpbRRGJQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11954"; a="2437418"
-X-IronPort-AV: E=Sophos;i="6.27,193,1787036400"; 
-   d="scan'208";a="2437418"
-Received: from fmviesa013.fm.intel.com ([10.60.135.153])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2026 03:58:56 -0800
-X-CSE-ConnectionGUID: cE4qeZEiSLCzv7/JTLVHuA==
-X-CSE-MsgGUID: FFpnA7LXSua669K6W4eriw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,193,1787036400"; 
-   d="scan'208";a="8253668"
-Received: from ettammin-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.245.108])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2026 03:58:52 -0800
-Date: Tue, 3 Nov 2026 13:58:49 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: longzhao@ambarella.com
-Cc: Bartosz Golaszewski <brgl@kernel.org>, linux-gpio@vger.kernel.org,
-	Linus Walleij <linusw@kernel.org>,
-	Michael Walle <mwalle@kernel.org>, Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Mika Westerberg <westeri@kernel.org>, linux-acpi@vger.kernel.org,
-	devicetree@vger.kernel.org, Long Zhao <zl020895@163.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v13 09/13] gpiolib: request ACPI GPIO events for external
- IRQ domains
-Message-ID: <aunMedCPibzJsfUi@ashevche-desk.local>
-References: <20261102-cv75-gpio-v13-0-4f93114ea204@ambarella.com>
- <20261102-cv75-gpio-v13-9-4f93114ea204@ambarella.com>
+	dkim=pass (4096-bit key, unprotected) header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=oZ+ZZuKG
+Received: from devico.uberspace.de (devico.uberspace.de [185.26.156.185])
+	by mailgate01.uberspace.is (Postfix) with ESMTPS id 26F1A6175E
+	for <linux-acpi@vger.kernel.org>; Tue, 03 Nov 2026 13:13:31 +0100 (CET)
+Received: (qmail 32635 invoked by uid 990); 3 Nov 2026 12:13:31 -0000
+Authentication-Results: devico.uberspace.de;
+	auth=pass (plain)
+Received: from unknown (HELO unknown) (::1)
+	by devico.uberspace.de (Haraka/3.1.1) with ESMTPSA; Tue, 03 Nov 2026 13:13:30 +0100
+Message-ID: <88ccf8fa-be8d-46cb-b0ba-87e94b50a49c@lausen.nl>
+Date: Tue, 3 Nov 2026 13:13:28 +0100
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -88,56 +53,53 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261102-cv75-gpio-v13-9-4f93114ea204@ambarella.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 2/3] ACPI: fan: Ignore broken _FST on Samsung Galaxy Book
+ 930XDB
+To: Armin Wolf <W_Armin@gmx.de>, linux-acpi@vger.kernel.org,
+ "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
+ Pawel Chmielewski <pawel.chmielewski@intel.com>,
+ acpica-devel@lists.linux.dev, Len Brown <lenb@kernel.org>,
+ Ivan Hu <ivan.hu@canonical.com>, Joshua Grisham <josh@joshuagrisham.com>,
+ linux-kernel@vger.kernel.org
+References: <20261019145421.47181-1-leonard@lausen.nl>
+ <20261019145421.47181-3-leonard@lausen.nl>
+ <35c80ebb-fb5c-45cd-b6e9-d6b73e305432@gmx.de>
+Content-Language: en-US
+From: Leonard Lausen <leonard@lausen.nl>
+In-Reply-To: <35c80ebb-fb5c-45cd-b6e9-d6b73e305432@gmx.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Rspamd-Bar: ---
+X-Rspamd-Report: BAYES_HAM(-2.996116) XM_UA_NO_VERSION(0.01) MIME_GOOD(-0.1)
+X-Rspamd-Score: -3.086116
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+	d=lausen.nl; s=uberspace;
+	h=from:to:cc:subject:date;
+	bh=7+y8nX4RnZWTX2otTR1L4cVl1f0lsJaVlnzPUfbmz4w=;
+	b=oZ+ZZuKGwFnulPzF/2nmJD3pMaG6lgDDPFFf9RaDfpEyr4fKjw6SScrsa+6S6Wkuiq7TzTIKRR
+	3eZ6hqpH+yfcaIxxn+h9opICMxEteqhPxvDiQtn7cV9Tt6bGdxjaiFhOYGhVduJvKFbxspuc+ubo
+	uFsGjC9BZ2RK6kvCSC2FkobIwUVK++Uwbw5xPuOdHA9ldl+MGf0Cjsl+xUAWAvCyP8DAOSTF0z6V
+	kHiQXdpxWOpwQ+eZnjGbWMj0r/UEgsa7vTRdDqewF6gp1YjWYHBN1sN1IoQqYits/5An5mT50p+4
+	oukF/jAtoodP1dtU0m4mmjbD0jEmx7tyAJpjrR9/HBoZARHx9gZN/wGpgglndo6L0rjXygJ41CHL
+	BiBbNndR34k5HS17PwcsUOzXX4zeIjzRQ2mhmWWqPZCIhtwwodnssjF0qycgnfS9I1rNyb4KPWZo
+	1InMyOYPedZC8xBOgqFGvAmvQ2DeBXr0H3Fu49BL3ZCCoZFKqyowXFGZs4Cbl4ZW+sDprjmae7TG
+	6sHAggdlxmjW0mjJH8LmgT+YByrE0m+3N4Po4Dsd7sEreBjBhro0Y/+hzHhm/e2OJ8xp0peZwLpL
+	SFaguyXtqkhCtfRtvWQQmm98wUBqB20HjBvRsHVGyebjwIOoXVDLYOdHL2GVagNDX0WijRE0Rxm8
+	8=
 
-On Mon, Nov 02, 2026 at 02:46:02PM +0800, Long Zhao via B4 Relay wrote:
-
-> gpiochip_add_irqchip() requests GPIO-signaled ACPI events after
-> installing the irqchip. A gpiochip that gets its IRQ domain through
-> gpiochip_irqchip_add_domain() never goes through that path, so _AEI
-> events, such as the power button on ARM64 ACPI platforms, are not
-> requested.
+> This is very likely connected to https://github.com/open-acpica/acpica/ 
+> issues/908. The ACPI spec says that Increment/Decrement is "Equivalent 
+> to Add (Addend, 1, Addend)", so i suspect that Add() should try to 
+> automatically dereference the reference.
 > 
-> Request them here as well. gpiochip_remove() already calls
-> acpi_gpiochip_free_interrupts().
+> I would suggest that you report this issue to the ACPICA guys instead.
 
-> Cc: Mika Westerberg <westeri@kernel.org>
+Thank you for the pointer, Armin. Maciej and me fixed the issue in 
+ACPICA and it is now in upstream pending branch. 
+https://github.com/open-acpica/acpica/commit/8854b938571e4f780c2673b3f7df440694ac4229 
+I'm not sure when it will make it's way to the kernel.
 
-First of all, Cc is a dup when other trailer for the same person is present.
-
-> Cc: linux-acpi@vger.kernel.org
-
-Second, move Cc: list to be after the '---' line, it will reduce the noise in
-the commit message while sending to the same list of people.
-
-> Acked-by: Mika Westerberg (Intel) <westeri@kernel.org>
-> Signed-off-by: Long Zhao <longzhao@ambarella.com>
-
-...
-
->  int gpiochip_irqchip_add_domain(struct gpio_chip *gc,
->  				struct irq_domain *domain)
->  {
-> -	return gpiochip_irqchip_add_allocated_domain(gc, domain, true);
-> +	int ret;
-> +
-> +	ret = gpiochip_irqchip_add_allocated_domain(gc, domain, true);
-> +	if (ret)
-> +		return ret;
-> +
-> +	acpi_gpiochip_request_interrupts(gc);
-
-In such a case where is the freeing these requested interrupts?
-
-> +	return 0;
->  }
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+Best regards
+Leonard
