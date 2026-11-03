@@ -1,85 +1,85 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.41
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793728209;
-	b=atmBmr1oDR1uXFr3u0Y/U5ubgQUHv7InuwDyXnmUBfRpQhnduTWTEtWev5yubRjFU/8Y
-	 EkVUtyteaHnOXHk8E7V56MRvCavklPrMp6oW37VaCB5hyChVpNtMCy/e5F6mGT0kPyvUu
-	 TAP58Cf1VijHwbUl20kQlWrXxqvLmH6zrvy3HsLv5wp8SVOzdRE/fCAunkAuhQ7yfsSSo
-	 iQ9FlDCzHf4MyzO0buPx2wkqfV7ZDMqugIyqCXzX15sJ56JpJNEfBWVNWBfIQ+dD/7+4U
-	 6rcrjPTN0kZAF07jC14TRSIW1N7kGyCrv0m7TrI/rdOvzU/pfn5QfgaeLdXamqcud2A==
+	t=1793729993;
+	b=0Se9xlYq9bCGd8WVbF0tnr1wyRljrdkGurQy5wb57PYhM0ZqfkfGEcEBBkelhjEAT4fq
+	 +bxofnAoAjj8jmjC3lmpSzV6k4hvuV+6kaBGH9fPlOq+EHW+5TWFRpMkpM5zYW7NqVBHc
+	 sglVfHllXobLO+PvNW6UZxSk7Rt4Mn/coHXokbJN2K+TM6NTQgdITeco7h7I3TXc6PL8W
+	 4XPuRmO2j+WhmfzsbReekl5Gdq5pVcRT31AhShyMV5/K1a5VP4CJsff/BvYrypmM0O7UA
+	 7EP9Al5gf66Eeubjy0ljnbDK+6M3GxSEseLzboNWdqjiSpzgXnEMdNStCpz0W2hPcAQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793728209;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
-	 Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To:Organization;
-	bh=rK8Oyi1EVEyMMt2fZfOKvUCg++w38odpzGTd7OnPeuY=;
-	b=SXyoTG+f1s4PCLyTWfzhlkOi/GVdLAp4Vo/a1ZmJ291qxzrHJXMH5UramVaUR4hB+cBD
-	 2sR15tZ+rB20BO0uD4Qw8RgK2Q8dCRCAZZ2n3r1lcS3DgTIVD4i8XV9gZlWwFcnKERvEw
-	 yERk2ZFCdEgoO5NqZltHRtPFagegOdY45138fDUUJW4ugosAQuPCbpBPN79pDOZaTQMXF
-	 v2LwjyI2ZmAlIezeSnpIYGg5jArt4EbUcYWCpG8WtOn2pTq5CvbXQLHscN2t6GmSbdrMM
-	 0uEIOX/eP4pov2MkY4Y1uoHBshcISUKrJnX6T3O2LTvFq5bsCs7+lO+cyG3AxdSK39g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793729993;
+	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:Message-ID:Date:From:
+	 To:Cc:Subject:In-Reply-To:References:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=CxPmNkrdL66AIfJyn1xViBqXlyUc1HsQv2fthprM7Ng=;
+	b=wOh0uuwaSwqDBWNClGp8+6L9Ui18QobqDEShug/A6qYS1jQR/Z5kwVv7+A1IlMuJltA8
+	 bQqHKGgoS9F/fdvWpMFL9xWB6U7xKQYzMrJQjWcEkA07BxvSG5BNyrOuvGy0BMfv50RD1
+	 /s/atBnpbjlvzpeQoFOnL4ikCXM/k9e/eRQtg/MgUZdoQqB+49z45xnjoNz1sgunc2l43
+	 QHl166IZF9rlQJad6DYbvohCtO5+h7wGjKWRcN4Yb8ufbf03mBZXn8Afqdrwx611nsGcB
+	 zf6DpEfrG8TbnP5Bedzq7fRKbfc9RnnTGytgvssTZuk7Juutt+J5lVhbWFfRFS84kBQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=EgCZqgSw;
-	arc=none smtp.remote-ip=192.198.163.8
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	arc=none smtp.remote-ip=209.85.128.41
+Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com [209.85.128.41])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87612606A31B;
-	Tue,  3 Nov 2026 17:50:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 87612606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=EgCZqgSw
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793728209; x=1825264209;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=vkMUZ8Mg4qCpdEUhz5E8ZLoH+xJDC3jv0x1a8OM3Wfo=;
-  b=EgCZqgSwBiLhoz9mBgCyJjlKqSf6B/ddfjCx515MgmLiE6mj7yPJqdZ5
-   jugw8TxvaF4OSU7YiZDm5zGl8m9YInT1xxQPPOTH4DB27ckRjhjgvOz0I
-   5qFs/FSpvi15BISXxyJnHOFP6wiastKoP1NRT8SRUdt0GPsY9GeyLlYDZ
-   Lrahl+ASodxa5XLDFh9E/oENTvUWtE/mjZbifREktxYTTd4J48c8XdpbE
-   CVZqpW24sWaIJJc60xsmLv/KW5tEzKHwC9u7A9BsrBfxcA5BVWrDmhRI7
-   ygFgEO8gvcbUV9wqfB2eTgfKH9yf/dfDJnu2udgHeQFSiYoI4yIBiDttS
-   w==;
-X-CSE-ConnectionGUID: SgwUSJDRTHuHfYVIz7swfw==
-X-CSE-MsgGUID: i721Eu2VS8+n7EzYjMQSKg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11955"; a="2354121"
-X-IronPort-AV: E=Sophos;i="6.27,193,1787036400"; 
-   d="scan'208";a="2354121"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2026 09:50:08 -0800
-X-CSE-ConnectionGUID: W8U5kkjERKmmqPh8cg97YQ==
-X-CSE-MsgGUID: U12cYMDXTpeSN9n2zbd3/g==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,193,1787036400"; 
-   d="scan'208";a="7014913"
-Received: from ettammin-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.245.108])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2026 09:50:04 -0800
-Date: Tue, 3 Nov 2026 19:50:02 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Michael Walle <mwalle@kernel.org>
-Cc: longzhao@ambarella.com, Bartosz Golaszewski <brgl@kernel.org>,
-	linux-gpio@vger.kernel.org, Linus Walleij <linusw@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Mika Westerberg <westeri@kernel.org>, linux-acpi@vger.kernel.org,
-	devicetree@vger.kernel.org, Long Zhao <zl020895@163.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v13 08/13] gpio: regmap: remove gpiochip before tearing
- down irqchip
-Message-ID: <auoeysEHqGemmuhO@ashevche-desk.local>
-References: <20261102-cv75-gpio-v13-0-4f93114ea204@ambarella.com>
- <20261102-cv75-gpio-v13-8-4f93114ea204@ambarella.com>
- <DMKL43ZCOSQ3.3TAJL8BRQ6ZTH@kernel.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D0C7606A328
+	for <linux-acpi@vger.kernel.org>; Tue,  3 Nov 2026 18:19:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4D0C7606A328
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-wm1-f41.google.com with SMTP id 5b1f17b1804b1-4a5087a5348so36584245e9.0
+        for <linux-acpi@vger.kernel.org>; Tue, 03 Nov 2026 10:19:53 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793729992; x=1794334792;
+        h=mime-version:content-transfer-encoding:content-type:references
+         :in-reply-to:subject:cc:to:from:date:message-id:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=CxPmNkrdL66AIfJyn1xViBqXlyUc1HsQv2fthprM7Ng=;
+        b=FYeWvrVnhNyfXIof3H/rpuqGxEml9axxZS02huBivMhLQS/JEvKVRu4q1tq5GVW+OW
+         6yubyJDRXdQ0yNaNEL0YosbE3PY6nrt7YgaRCRsOTzO+pZ+8L3Pb5nf8AxGxZvV98rgM
+         TVWL9s7qHCm9POlB1GiMSF8Wk5VbhkqpGbtPG7+MkQ5lnPDgvG40bGEG+vkz36jnANCv
+         Ci1iZilToPJ35Cmrdc9njb6g1brMU59AF29IojQZqIz7UZty86XMBUqGR+9ZxNd0jSjh
+         V3UP8tDHxJqHl5MreqxccDiCrvUy/ocAtGD2AkzcQJOlloUA79wytJUK3WjULnxNP1J2
+         a/4Q==
+X-Forwarded-Encrypted: i=1; AKwUvBxmDoGm+KodAQy5qYMpjB2R2lR1nwXTkR9OTZvQc2U8M2vNs1VAxN5hIKWTMw0+j4sEfGglTMph2yyx@vger.kernel.org
+X-Gm-Message-State: APuU4Z93r6LWEKcn5ICAI7BCMRnlXKnIzDlX//WZsxmF+LR1L/Y7DfER
+	YfsrRIhXCzh0HQezANnvQyU5nbMPsCrRy6+LG/rNqkRNQryonIO9HVE=
+X-Gm-Gg: AYBFou1KV+dMJI3OJTlj+l7RSHZ7v+LStOUdX73qSC1KxIPQ+5bZhZ5VQhGlmZ871RY
+	n3xkbZUXWlGCp8pPGkaT8IoUMZS+AivyAMaEfICrUfJ6MNvgbsJ6B/Q3F/f0jL6fkOPkm7SqIc0
+	/9CDID81Tm7JiaHSuAbT85CZdISV92oKdYuM4614Vmr/l/FRs840qE6UKK5+NHB78O91DsoMbhi
+	fshe1ndYa8C6ODAAbO8/z0x3KPO611Dpt4sF5D7QG1+g3iOimBMR4CSiEnpxtlhPzQMD5a6Wypy
+	3hj4fP0k12PmxN6kHOgFZU3hqGen7m8/NQ4OKkmeq4bW0JTsc+09jx9Z8bDQqmn7A4W0BWjfyrz
+	fVjBK6giXFCFliRhJmuNT+bRXen/igLuXJTeQj7YFuMqwi+r0W5WMV5pGlbhZyEeOCkAXrYeVGv
+	xk3EhWusjBAdQa2m5bfK4C5rMj2yJgU3MLfc1c81W85sFiGoG4nccXcg8H21Dh1MW1AGkYAvS1h
+	IjqZ86ANYOA55/UDvWU7MFxCTobaogFVUgfva14mYvjkgioJYlKlxA71mKd4Lm5mA7W+sb092KT
+	jWzcAnK1jF1nYNKZJXdMlvfTSzOuK3rcJ0lq6FRW
+X-Received: by 2002:a05:600c:350b:b0:4a3:2f35:38aa with SMTP id 5b1f17b1804b1-4ac1932bac0mr284037035e9.29.1793729991346;
+        Tue, 03 Nov 2026 10:19:51 -0800 (PST)
+Received: from [127.0.1.1] (84.124.213.91.dyn.user.ono.com. [84.124.213.91])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4b411de95b4sm777745e9.0.2026.11.03.10.19.50
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 03 Nov 2026 10:19:50 -0800 (PST)
+Message-ID: <6aea25c6.9efe04cf.11c115.259a@mx.google.com>
+Date: Tue, 03 Nov 2026 10:19:50 -0800 (PST)
+From: D. Manresa <dmanresa@gmail.com>
+To: brgl@kernel.org, bartosz.golaszewski@oss.qualcomm.com
+Cc: gregkh@linuxfoundation.org, rafael@kernel.org,
+ andriy.shevchenko@linux.intel.com, sakari.ailus@linux.intel.com,
+ driver-core@lists.linux.dev, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 0/3] driver core: fix unbalanced reference counting for
+ software nodes
+In-Reply-To:
+ <20261023-swnode-dev-notify-balance-v2-0-948d920a79f6@oss.qualcomm.com>
+References:
+ <20261023-swnode-dev-notify-balance-v2-0-948d920a79f6@oss.qualcomm.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -89,41 +89,23 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <DMKL43ZCOSQ3.3TAJL8BRQ6ZTH@kernel.org>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Mon, Nov 02, 2026 at 09:33:20AM +0100, Michael Walle wrote:
-> On Mon Nov 2, 2026 at 7:46 AM CET, Long Zhao via B4 Relay wrote:
-> >
-> > gpio_regmap_unregister() currently calls regmap_del_irq_chip() before
-> > gpiochip_remove(). That disposes the mapped virtual IRQs and frees the
-> > irq_domain while ACPI GPIO-signaled events may still be requested and
-> > while gpiod_free_irqs() still needs gc->irq.domain.
-> 
-> Maybe Andy have an opinion here. But that deviated from the usual
-> cleanup in the reverse order and at least deserves a comment in the
-> code.
+Tested your v2 on a Surface Pro 7+, where ipu-bridge attaches the IPU's
+software node with set_secondary_fwnode() after device_add(), which is
+the case the series is about. Reading the node's kobject reference count
+directly across a PCI remove of 0000:00:05.0:
 
-Yeah, this is unfortunate. I think to make it work as proposed the IRQ domain
-handling in GPIOLIB should be revisited. So, at least a good comment is a must,
-indeed.
+  6.19.8, unpatched:  4 bound, 3 while removed, stuck at 3
+  7.3 + this series:  4 bound, 4 while removed
 
-> > Remove the gpio_chip first so ACPI teardown and USED_AS_IRQ cleanup run
-> > against a live domain, then delete the regmap irqchip. Use the same
-> > order on the registration error path, which previously leaked the
-> > irqchip when gpiochip_irqchip_add_domain() failed after
-> > regmap_add_irq_chip_fwnode().
-> 
-> This should be split into a seperate patch with a Fixes: tag.
+The 4 is one registration reference plus three child port nodes. No
+refcount_t, KASAN or other splats either way.
 
-Not sure if we need a separate change here as two are coupled.
-I leave it to Bart to decide.
+How much that covers: the rescan does not re-probe, because mainline
+ipu-bridge only unregisters its IPU HID node on the error path of
+ipu_bridge_init(), so the next software_node_register() hits -EEXIST.
+Separate leak, unrelated to your patch, but it means only the first
+cycle really exercises the fixed path.
 
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+Tested-by: D. Manresa <dmanresa@gmail.com>
+Assisted-by: LLM
