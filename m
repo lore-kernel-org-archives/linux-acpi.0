@@ -1,67 +1,67 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.9
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793724821;
-	b=eujMbAg8TguHhHHhB6nBEtHPZB9Nkux0YwF2U9thDJVczG1vYP7fXKL5G0+kksE7/lco
-	 BTPgmwZ4FWv0xVDxdt8UEL0v4hraKFHPz7FHdWUOV08pFzUi9n5bZ36tIRkBeF6sLE3In
-	 ltA1lBmDchMOf/cgNZt+AYyW+7tjzlOkLpcG9MFKITFggXgfvv1himf8eG5ZDtf29wvuk
-	 i8u6fh7s7tBibMobLKjhSji5tSUNKLupAzVoiRQfqPvfOWfxomt6Kbl8E9ZmlRdcKgAHM
-	 H3pjg3/JyTTisff5JnRGD0CEjD7rK01ba/K7AfiWV5aUI8wrLWm6n+pPMS3J/A1PzWw==
+	t=1793724873;
+	b=UQTcl6mhkFK/oLrpkR05vaibzW3BHqvbQAvVbXDiIR+JrkJ2rwBv+Uzp/lfV2jtF/Jq8
+	 HEbpc7Z0U5l4zHfhH56bmQq/QMjBTaiXdo6y/FELTbLeJiC4G+TjRfhCKH3JEKGAkfuom
+	 bjdDZMijcUC/kGHzT/hVS+CYP56b/OEz9FvwJPSqDoipHht92eW2rsSc2WP8Qm2KrohrA
+	 GLYI6hpuujekeBRmi1fV05uFBdgrbIS9pYQKkZGI/nNFZ3cODYPRM8AE4xRgQpm/vsTKY
+	 XegDEo5q0A/LuLVIv73UMcq2sxWjDNoJrLTSqK/YCJbDDLq04Rno/dxU1ufQOYglI2Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793724821;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793724873;
 	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
 	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
 	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
 	 Subject:Message-ID:References:MIME-Version:Content-Type:
 	 Content-Disposition:In-Reply-To:Organization;
-	bh=rmqYW8Kc0HAXG5a+0ph9BSq3YXy1p7rzWa8/VSlzA28=;
-	b=k8U9OwMyTz7gCO1JWwaQ1v0VS6BOqPjJBAsaEiqv+M/eCcfmYNteHhd4cPRaykuAi9Xo
-	 XCkHyWtTzOvkYagEoJNdMSxoa248FoSScnjiVSgHmKJ+X4vOHIpVTzD2nCCudnfzT+aPb
-	 dpUNhXD5CDJ1og+aX8jCzDr3pesi0baGoG62QOKAJo0I8t5dB+msf+LHsaTWXuGYSLIUo
-	 t72BpbQ4mP6nY2cvTbsfQ9zx98hQ94w33/l4JJz2TXJ2BFDBFKShXkie5vDRNjvJ92JBr
-	 z/I8B4MsEFXOciX4iflgOzYPW6Xp1jSanfBy0rBdLrXKC2p2j63dAJDoGVttnzFAuaA==
+	bh=WD2GWrHxGNQECop37VP/Xf/Pf2MMXPl5ygD4L+CMi9g=;
+	b=bdnJpvXheVJAxPyC2YTUd1wggYWDg+WWAEj+3h669kcTn1WjdqrUb8EAAIdQbSIJOxUf
+	 6+Ykv3+zRR25UOMNucIRtSF02aCZyT7j5jfKQbmx0zWLxSETPcY6moJRcewRIMjp057gT
+	 +jWP4kZfBMaM+AloWwVeWURbUe7h7m0Lcs5QE35uYpjOK5NXZy5bwlgLWZNt0QXYDVQg1
+	 3U5HsbtOP6M4dNNRYFai9i0iA5wprud3kAI1SKxGJOG7K7buxqc1X0TN8B/qYDXhX3Pcp
+	 6t0do5/Lqp4hMWQ6hTeKtyeMNlLHP7z4xzBECy4snX/JqcH1hTCVTaa5BRNG0HFc+rg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.intel.com;
 	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=J5KEEFSI;
-	arc=none smtp.remote-ip=192.198.163.12
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=J2F6WBWX;
+	arc=none smtp.remote-ip=198.175.65.9
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B60AC606A327;
-	Tue,  3 Nov 2026 16:53:40 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B60AC606A327
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 559A6606EEAA;
+	Tue,  3 Nov 2026 16:54:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 559A6606EEAA
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=J5KEEFSI
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=J2F6WBWX
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793724821; x=1825260821;
+  t=1793724872; x=1825260872;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=oCEs8Ovg62dvJLD8k7Bo92+4CZGt4Q8SfQHR+EpgFgM=;
-  b=J5KEEFSIwVuyJ821alZiyGkiuUyEyh4f1dw2QV5vbiKhiluBRPvtHEtQ
-   J8leXz4AQNxOCSOCj7LGT6blVpbfv3fUVZgJD15TL2pNRpzpQ4UqzxIzg
-   H1756b1B++RxfQtrWnlIm9FiE3MuCkbWfEj0sGt/wM68YbiYMzE71MBXf
-   17gj0zStb/andSmZ7voCLPvvd8petCJsqkfmRSaflnZbKb7R4N1dOc71T
-   1sL57x7pEIGbyEmeecbjBuIOYKLrACx/ztj74gZPaxADSKyBKF/167jS0
-   f8LjXCLXI9aNRFMZDpR5a+7O8Tm6isDyY0Ze/PCi3GehD/xeWf7545fCE
-   w==;
-X-CSE-ConnectionGUID: wrLA3UZ7SGWJJ+rr52W/gg==
-X-CSE-MsgGUID: 8QZCRoJCRMuu4TWtSoG31w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11955"; a="2351469"
+  bh=zGItpx+XsrdALmEsBycV8i25IwA6vjMLwIUqW81fqJE=;
+  b=J2F6WBWXbLJBR3spy1VtPiKGfQHYqglx4SRwTyZcMCxoN5kTy13sXsNf
+   OMpMErJgMqwUTCPC77csGYChFdhOBt5MlCxqAhmhuaQ1SUmaZzIKvSgsX
+   kwKxual7/eiviTSTofES6H2mKWmixxVRT57Voh7DEphtF0dIAxkTG+e79
+   tgCZPcRw8kwwShXX9+hokix2WKSX4sw5hVwWusVjMGYvGUHaThILIgxzQ
+   eOQPOv19+ouRWGnLTI+mSp9GlLV3PvfTAgB6mw1K/cOYh+29V++a9mNVc
+   g98yZR73h18ybHxKp1AhvFJL3fNtbphgRPxBtUWEtLmSvfXgzdD3YwX4p
+   g==;
+X-CSE-ConnectionGUID: p7I1yhG3SkOLtjgI5kdRWg==
+X-CSE-MsgGUID: JLZ6G3ACT2mqTCy9K18QLg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11955"; a="2351112"
 X-IronPort-AV: E=Sophos;i="6.27,193,1787036400"; 
-   d="scan'208";a="2351469"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2026 08:53:40 -0800
-X-CSE-ConnectionGUID: d3oS5R9pSwC0Nfydqp0ePg==
-X-CSE-MsgGUID: owIiRPy5TmqRi6+PRh5HvA==
+   d="scan'208";a="2351112"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2026 08:54:32 -0800
+X-CSE-ConnectionGUID: ElKpCDeGRoGMohprU6iHYA==
+X-CSE-MsgGUID: 8ERzto85RWWYdWBfMOrcTg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.27,193,1787036400"; 
-   d="scan'208";a="6379488"
+   d="scan'208";a="6820418"
 Received: from ettammin-mobl3.ger.corp.intel.com (HELO localhost) ([10.245.245.108])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2026 08:53:36 -0800
-Date: Tue, 3 Nov 2026 18:53:34 +0200
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2026 08:54:27 -0800
+Date: Tue, 3 Nov 2026 18:54:24 +0200
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: longzhao@ambarella.com
 Cc: Bartosz Golaszewski <brgl@kernel.org>, linux-gpio@vger.kernel.org,
@@ -74,10 +74,11 @@ Cc: Bartosz Golaszewski <brgl@kernel.org>, linux-gpio@vger.kernel.org,
 	Mika Westerberg <westeri@kernel.org>, linux-acpi@vger.kernel.org,
 	devicetree@vger.kernel.org, Long Zhao <zl020895@163.com>,
 	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v13 12/13] gpio: pl061: tidy up IRQ trigger logging
-Message-ID: <auoRjh2g7ckSlAhm@ashevche-desk.local>
+Subject: Re: [PATCH v13 13/13] gpio: pl061: use string_choices helpers for
+ IRQ trigger logging
+Message-ID: <auoRwOBuoxz94haW@ashevche-desk.local>
 References: <20261102-cv75-gpio-v13-0-4f93114ea204@ambarella.com>
- <20261102-cv75-gpio-v13-12-4f93114ea204@ambarella.com>
+ <20261102-cv75-gpio-v13-13-4f93114ea204@ambarella.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -89,16 +90,17 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261102-cv75-gpio-v13-12-4f93114ea204@ambarella.com>
+In-Reply-To: <20261102-cv75-gpio-v13-13-4f93114ea204@ambarella.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
  krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Mon, Nov 02, 2026 at 02:46:05PM +0800, Long Zhao via B4 Relay wrote:
+On Mon, Nov 02, 2026 at 02:46:06PM +0800, Long Zhao via B4 Relay wrote:
 
-> Join the level-and-edge dev_err() into one string literal so a grep
-> for "edge detection" finds it.
+> Add str_rising_falling() next to the other str_* helpers and use
+> str_high_low() / str_rising_falling() for the level and edge debug
+> lines.
 
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+It should be two separate patches. Otherwise LGTM.
 
 -- 
 With Best Regards,
