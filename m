@@ -1,63 +1,64 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=54.206.34.216
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=54.254.200.128
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793706105;
-	b=HXMWT/8zPgGxlHybE77jMk1PEb396dwOSVHASlv8JS6rTH4uf0yS11C4YeNha6N4qLXc
-	 4ZZHYWcQarp4oP1S6b7AqTvakNHE7M5dfEi8cQk4x2Zr3PUJTj0CyJwcfBDXfyNlBfoq2
-	 SazLlSGccxg22PC59aRuxU4oga7x+9MZKzfR4O0tinDQiwspmXwXhhySQHcKfPZm+lWe8
-	 Aa1qcRLlqugXgsJNyJM5NM1CjVkJj/xuB08SCjZt6yscdDayi6Tq6vmY3QL0tsDvdye+j
-	 55p9drmlm77Y5/8ya2xMx+TP94+ziAN3yNLA/qwVGJU14zHvqnLd7Q1XclbN1rOhKFQ==
+	t=1793706112;
+	b=l1igByY2kjHH9E05fCsHsA6wXF0j1zfy1RWNDWjP/6E6Rn/I2b9t3JIndwPe6bdvwpWX
+	 5SehVqpnYJPLKjl2f7ObuNimOXt//lE+NzDhSM3Wx8/1Ja6wOKPNjOBTX1kYg5jShh0Jc
+	 Zo9wLLmFcXMmPuA86HO4b+0lNMCQvGRID286lm7GGXZOXmVr5gCWHD12S5iMwLO2pa6oH
+	 AZ2/fYWUaC8JfCrKgNImCkztxqSH9Z+676ep3JolSXonDIcqPYOeBHBDUsbeZcf9kgAxU
+	 zuyRKh+dDlhYkpEmLE/giK47QCjR6bjqMgIpOasBG0QRAqStd3mEl4JU8u9QdxrccEA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793706105;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793706112;
 	h=DMARC-Filter:DKIM-Signature:X-QQ-mid:X-QQ-Originating-IP:Received:
 	 X-QQ-SSF:X-QQ-GoodBg:X-BIZMAIL-ID:From:To:Cc:Subject:Date:Message-Id:
 	 X-Mailer:MIME-Version:Content-Transfer-Encoding:X-QQ-SENDSIZE:
 	 Feedback-ID:X-QQ-XMAILINFO:X-QQ-XMRINFO:X-QQ-RECHKSPAM;
-	bh=LcrJ+vMNoTjg4uRtGzESkteVkPhmfOtH+UHqc3pLZPc=;
-	b=KRNuE+EnwALh26hIfLFisIiEFrP6Ru89RWIaBOhFEYgEtUahRzlmfKiVaZuGpcvNDOZD
-	 +BwF0U9qQ2VZXC+e4nC19BhMLhUTz9yCVSElypdE4BTMIBE7vDHT9z4xDM4NIfKWxHjLv
-	 aFKr1m5CU+gtPNbk7cmCairJdPWFuKfCj7G9OQO7JaD1oM7k4w2uXH0OJZfPNBxwhR4CF
-	 7kv2AvsjA7k4xP1mshL2u3f4YMww6/sVbqLGO7pDsKJE2IpDn4D3HVpk3/oRnkzf/iCc5
-	 b0hFIlgsdBK+USoO6DEoaYHRxfla8GpT7TWQo7WkTeZHDsKexlHrgoaeMH0Rj6FYA8A==
+	bh=dMgNV0jBP386c1M5k8fbE4FD70hbCVrb4DRYRoUJnEQ=;
+	b=jZeqk1B8A1seYjMJoZ9XF88qQxCQ3EIE5NlDqIOjOp77xsVOPjn1T3csbZGber8XD8vX
+	 3k/ZJ/lZOY0KPh5cxYIA+XsFQB/h8Acf6bpB3sNlOTpDFVhXHLUWM0o3B1KPZsuoKMHj8
+	 fDLnuhK6aM8/oEYgmdJchj+a7Y+zQ5nUNftMhShW4eiU/7whOR1cNr0qx9m72WiQHmIAU
+	 I8i9pcgii1WecJW7zZwRZTzSRBgx3xt+B1x408SSgx9Jfy1D+GoXmwdrNZ49RAuUCB0rb
+	 4BUEB/0oCY0HA2MasYA82Nfsh+1Kg4fP0DhIfh/cOtnyvHbgeSlFKiphoR/gxD+DKHA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=smail.nju.edu.cn;
 	spf=pass smtp.mailfrom=smail.nju.edu.cn;
-	dkim=pass header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.a=rsa-sha256 header.s=iohv2404 header.b=k98LtYpn;
-	arc=none smtp.remote-ip=54.206.34.216
-Received: from smtpbgau2.qq.com (smtpbgau2.qq.com [54.206.34.216])
+	dkim=pass header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.a=rsa-sha256 header.s=iohv2404 header.b="oudu/DTJ";
+	arc=none smtp.remote-ip=54.254.200.128
+Received: from smtpbgsg2.qq.com (smtpbgsg2.qq.com [54.254.200.128])
 	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33072606D81C;
-	Tue,  3 Nov 2026 11:41:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 33072606D81C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D87BA606EEB7;
+	Tue,  3 Nov 2026 11:41:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D87BA606EEB7
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=smail.nju.edu.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=smail.nju.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.a=rsa-sha256 header.s=iohv2404 header.b=k98LtYpn
+	dkim=pass (1024-bit key, unprotected) header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.a=rsa-sha256 header.s=iohv2404 header.b=oudu/DTJ
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=smail.nju.edu.cn;
-	s=iohv2404; t=1793706084;
-	bh=LcrJ+vMNoTjg4uRtGzESkteVkPhmfOtH+UHqc3pLZPc=;
+	s=iohv2404; t=1793706075;
+	bh=dMgNV0jBP386c1M5k8fbE4FD70hbCVrb4DRYRoUJnEQ=;
 	h=From:To:Subject:Date:Message-Id:MIME-Version;
-	b=k98LtYpnWJbrX+oJoDZHmh6zFPGTnHvyARPy6KmTfYQQG31rhonvi6qiCJO/H6TsG
-	 VCqmoiWaY1JN15xSVjFI1JjYVjCaAl/GrZ99P9HgrrnoAlbkVTn5FGvYfabbR8FOrR
-	 b52exMIAMf2Bv9ODjbOgx+YX6d5p1COt9W8q3gzE=
-X-QQ-mid: zesmtpip4t1793706080t70eba3ef
-X-QQ-Originating-IP: +5hLSLUr4nMGZDSvY3IQk+ELRYhn41bK2RyuiEcRuGo=
+	b=oudu/DTJr7fOtFbUz7u1RaI5Uv/yjL8IdJCU2vRKcmy+Wt3x+GLFVRqNhA9LKUq+d
+	 D+BqWcz8FRNiXwbLAHNNOM7R/dKoeN/ZQ69u2iEHZ6dsmXjxwElNdur+o+LvpfWIcM
+	 Ad+7uD5ttITsg0c61y4XUwviqvMYJuWQegZbScB8=
+X-QQ-mid: zesmtpip4t1793706074ta9a1284a
+X-QQ-Originating-IP: 3BL24A0JtZi4/sPLoqmnloKswGieoAbx0hCHNQPU2qo=
 Received: from workstation-Precision-7920-Towe ( [localhost])
 	by bizesmtp.qq.com (ESMTP) with 
-	id ; Tue, 03 Nov 2026 19:41:18 +0800 (CST)
+	id ; Tue, 03 Nov 2026 19:41:12 +0800 (CST)
 X-QQ-SSF: 0000000000000000000000000000000
-X-QQ-GoodBg: 0
-X-BIZMAIL-ID: 14287579684144608040
+X-QQ-GoodBg: 1
+X-BIZMAIL-ID: 3521924657254701755
 From: Kang Chen <k.chen@smail.nju.edu.cn>
 To: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Len Brown <lenb@kernel.org>,
-	Aaron Lu <aaron.lu@intel.com>,
-	Danny Baumann <dannybaumann@web.de>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Alexandru Gagniuc <mr.nuke.me@gmail.com>,
 	linux-acpi@vger.kernel.org,
+	linux-pci@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH] ACPI: video: reject out-of-range _BQC indexes
-Date: Tue,  3 Nov 2026 19:41:18 +0800
-Message-Id: <20261103114118.74782-1-k.chen@smail.nju.edu.cn>
+Subject: [PATCH] PCI/ACPI: validate _HPX type 3 record lengths
+Date: Tue,  3 Nov 2026 19:41:12 +0800
+Message-Id: <20261103114112.74527-1-k.chen@smail.nju.edu.cn>
 X-Mailer: git-send-email 2.34.1
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
@@ -71,70 +72,105 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-QQ-SENDSIZE: 520
 Feedback-ID: zesmtpip:smail.nju.edu.cn:qybglogicsvrgz:qybglogicsvrgz5b-1
-X-QQ-XMAILINFO: MIB/1UGyXKa7XkhcLSzvPSildxfvFUQIdw87cUYGHbQpBYQW2HqeEQjG
-	rh2JOlBPPQLaTS03vYUXCHh1qiUaM50m19WXDofBKGtUXVaoJTm9/Q06vsNyWkCktbTsL8F
-	kVxoygnIzwIdxNB6IoQNZlDCpad7mfV31zL/FZMQEp3pSgqZeeMyjHaPFWPUWqwenih1Jh0
-	ilOtDa4sJv7ohAhZp77+MzaHniw7ATwFoA+hnCFwO06o3QniiLCvFqBduuJbRBBeGt9T9NC
-	038vVJn5bpAuaAZ/NfHBaw+fb6DG/X31F0M/6v0YI3v92gJbarHj8PlJQ+8zdAaoE3vqTeT
-	fISBKnFkGafQ4dy0cd1pnMz2zuifPI1JuTwgEzyx/Zu0T1BT36x224Ld8yVdA6FMz6VrGF1
-	9eAwPTG0onsHEA5RzUBbmb+1tU9v9Q6k9I/4U2cOw29y43nuNVp2g4O6lDZlEaPbo2RbeZt
-	tytOSGFpFgdda6DBFSSlOOCPMMhhChkBmIUPy6i/ESpAWT1idGs3mXu/xNRjSuDYbofdF57
-	m/xlcOTkzvfAU6AxDlpNzaxum0+OU695HoEH6DRmGKcIrTr0pqyXLDswKw+jalRfStmsGIa
-	zCLZ0QJLerUCs/5q09l8WtC6ddcLVHdgXrIRilfnoXgXMy0hJP0WMVgzmkKcRBjpN/sFkm5
-	AG9cjSz64W/jb9PQ6vOgj/nXKJRL4baHxyrDbOOL/95yB4v47AdVERqydiYmkzfqKAM7uWc
-	Ei0jHejwkTLMqzU6mUn+E4xx91ITmjlv5uBKDllFS6MtXzrfxFFs6HGnJmgttijsPYoSo6Q
-	VvATp1Fgi9L9iaI7l1e0IT5ojMjtQJ0iNjRrWQ6sOBJhQMkBCKl8EaE4YU/7roSpKPYsweG
-	U4gDApcriW4kpHgjZqWSC39KnBqB5YEzx0p1HK5lMxBs9FppW7OWldivLEiLR6nuGOkOSgX
-	ngl6ZyALVNrGaZEBLusHCbBVlexMB+659GWvFA9C8cffU5P06UjqiD8bh464k+0E38f1q61
-	d5RjKU16Rtd2wUHi9fPqLMsfpo/xTY0Kt1I92DldGwq4hKEU9EaWrt5AyVKmA=
+X-QQ-XMAILINFO: NC2sbZ2AMa4K/5QaqY9IqFZKdgWxhFwts5rSSc+QERjqHcc07YgRn+24
+	Vgyd+SirP00+ZTYAKOY1wx6yE2at43eReYt8IohLpG/eBGru+QeWlVNgZHg08NJ4bWfabFv
+	XyBBjLKkP7r12GtUS2qciMv2/4IRodH1ZW2tg+D+Vf8i/G4HaTD1rOkwKNgy1t6Cs/IqNiY
+	kM6Edhg0n1HQt7xKKIwI6MP7BhIE+HgCaXgVThK0YG/KP4/8/1XyCuj5vfHRcYOAuTrm9Rz
+	YetefDnsRcJ5Ysmpw7qR+BD6EYKsXVlbYdmuz4NupSlJs1SsIcYNwTjcK51XJi4SsWosk/6
+	n+U9ZovIWNE+RWHeUSXBjd0OYYjqxioqZFrdDIvS/vFfnrPhTJq2pZ1AIFIipwM7zVrvSYI
+	oUrct10RcqMOqWt9i55cq7bZ5DgNxJSH9KZMGWItqk1PfnRmY2l2X3YcVuEdRyyYH0fzBq6
+	JtDa2U0qLYTAV50HLX9Wt0KSAGrWAJSVKvCUrqWGQtrkHOtNOV34kBClCX2ymN1Nwd+yuAm
+	qiEOa+7HtDoHJqy57LguPxu0fpsh+QJ8mnqiZS9SL/cJ7a9N9vZ/lO/hl5rtIgTxFmcO5tK
+	d07zEATQpb2fqG5TScX+DRdlaM3p9tkYSEc3YeLUwmp0s+sy6odWgNj8PDqiK3e3vY5ezEM
+	O64G3TSrQ8uF/H+E582i0PfRjSR1J2BBm9rLuet1GOjKjNntPG+Q84cKTmxdvjR1H4SnXZY
+	nFgP70ezQGpcS5htNPW234a9kngBIaN6tMCjXJs3BH+0g7P8sBS8zMKTb4Oe42iJqE1MllO
+	LxboHrctKNLMVDcEe/0GlD3Q2qZUzCDUxUDknxbC+Ph4lpWM1y8KwzZHc63HH2XFL0zyhHy
+	fn/bcuU0DNlPJc1XU372QCVkf2ATDcHTpxTvxT/1hR0QDSDAtfHTnrihFNA4wYF+bhQ1pXH
+	gOI9enM0m9icCA0yJK25ks9rMdHOJi65Z7/jyGxAXRxsH3qBObgngj4ciX3LzsaSVgYtC1b
+	gvqrAGJTSbhJBxQo/TSbyHQ1I8PUfPZowMZE9K2XekxClp3gPq
 X-QQ-XMRINFO: Mp0Kj//9VHAxzExpfF+O8yhSrljjwrznVg==
 X-QQ-RECHKSPAM: 0
 
-acpi_video_bqc_value_to_level() indexes brightness->levels[] with the
-value returned by _BQC once the index quirk has been armed, but does
-not verify that the value is inside the array.  A firmware that behaves
-consistently during the quirk detection and then returns a large value
-can make the driver read out of bounds; the reversed branch also
-underflows before indexing.
+program_type3_hpx_record() computes the expected record length as
+3 + desc_count * 14 in 32 bits.  A firmware-provided desc_count of
+0x80000000 makes this wrap to 3, so the package count check passes for
+a three-element record and the loop then walks far beyond the elements
+array, feeding out-of-bounds data into PCI config space writes.  The
+record is also indexed at fields[1] and fields[2] before its length has
+been checked.
 
-Return an invalid level when the index is out of range, so that the
-existing callers disable _BQC.  Also guard against a brightness table
-with no usable levels, and tighten the range check in the quirk
-detection before its reversed subtraction.
+Reject records with fewer than three elements, verify that fields[1]
+and fields[2] are integers, and reject desc_count values for which the
+expected length would overflow.  Reject revision or descriptor count
+values that do not fit in 32 bits instead of silently truncating them.
+Use an unsigned loop index and advance the register pointer explicitly
+so the walk cannot overflow either.  In acpi_run_hpx(), reject records
+that do not have at least the two elements needed to read the type and
+revision.
 
-Fixes: 994fa63c5b12 ("ACPI / video: Fix applying indexed initial brightness value.")
+Fixes: f873c51a155a ("PCI/ACPI: Implement _HPX Type 3 Setting Record")
 Signed-off-by: Kang Chen <k.chen@smail.nju.edu.cn>
 ---
- drivers/acpi/acpi_video.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/pci/pci-acpi.c | 24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 2a2822516665..44af7ffb9a81 100644
---- a/drivers/acpi/acpi_video.c
-+++ b/drivers/acpi/acpi_video.c
-@@ -533,6 +533,13 @@ acpi_video_bqc_value_to_level(struct acpi_video_device *device,
- 		 * items with special meaning (see enum acpi_video_level_idx),
- 		 * so we need to compensate for that by offsetting ourselves
- 		 */
-+		if (device->brightness->count <= ACPI_VIDEO_FIRST_LEVEL)
-+			return U64_MAX;
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index 1150f2fbabf4..b15700523810 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -607,12 +607,28 @@ static acpi_status program_type3_hpx_record(struct pci_dev *dev,
+ 	u32 desc_count, expected_length, revision;
+ 	union acpi_object *reg_fields;
+ 	struct hpx_type3 hpx3;
+-	int i;
++	u32 i;
 +
-+		if (bqc_value >= device->brightness->count -
-+				 ACPI_VIDEO_FIRST_LEVEL)
-+			return U64_MAX;
++	if (record->package.count < 3)
++		return AE_ERROR;
 +
- 		if (device->brightness->flags._BCL_reversed)
- 			bqc_value = device->brightness->count -
- 				ACPI_VIDEO_FIRST_LEVEL - 1 - bqc_value;
-@@ -781,7 +788,7 @@ static int acpi_video_bqc_quirk(struct acpi_video_device *device,
++	if (fields[1].type != ACPI_TYPE_INTEGER ||
++	    fields[2].type != ACPI_TYPE_INTEGER)
++		return AE_ERROR;
++
++	if (fields[1].integer.value > U32_MAX)
++		return AE_ERROR;
  
- 	if (level != test_level) {
- 		/* buggy _BQC found, need to find out if it uses index */
--		if (level < br->count) {
-+		if (level < br->count - ACPI_VIDEO_FIRST_LEVEL) {
- 			if (br->flags._BCL_reversed)
- 				level = br->count - ACPI_VIDEO_FIRST_LEVEL - 1 - level;
- 			if (br->levels[level + ACPI_VIDEO_FIRST_LEVEL] == test_level)
+ 	revision = fields[1].integer.value;
+ 	switch (revision) {
+ 	case 1:
++		if (fields[2].integer.value > U32_MAX)
++			return AE_ERROR;
++
+ 		desc_count = fields[2].integer.value;
++		if (desc_count > (UINT_MAX - 3) / 14)
++			return AE_ERROR;
++
+ 		expected_length = 3 + desc_count * 14;
+ 
+ 		if (record->package.count != expected_length)
+@@ -622,10 +638,11 @@ static acpi_status program_type3_hpx_record(struct pci_dev *dev,
+ 			if (fields[i].type != ACPI_TYPE_INTEGER)
+ 				return AE_ERROR;
+ 
++		reg_fields = fields + 3;
+ 		for (i = 0; i < desc_count; i++) {
+-			reg_fields = fields + 3 + i * 14;
+ 			parse_hpx3_register(&hpx3, reg_fields);
+ 			program_hpx_type3(dev, &hpx3);
++			reg_fields += 14;
+ 		}
+ 
+ 		break;
+@@ -661,7 +678,8 @@ static acpi_status acpi_run_hpx(struct pci_dev *dev, acpi_handle handle)
+ 
+ 	for (i = 0; i < package->package.count; i++) {
+ 		record = &package->package.elements[i];
+-		if (record->type != ACPI_TYPE_PACKAGE) {
++		if (record->type != ACPI_TYPE_PACKAGE ||
++		    record->package.count < 2) {
+ 			status = AE_ERROR;
+ 			goto exit;
+ 		}
 -- 
 2.34.1
 
