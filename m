@@ -1,95 +1,143 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.201.11
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793738800;
-	b=RJwBvckVJs2kdzf/m2tW2///7B1LHGakCyJzlbPiiNaCE04TaCpiT4oBpZhJzSuGcjmn
-	 P7CAtPTNUQSiwt1wizhXEqMfaqQ2OGD6rgsJH0uP+LDDbTG6LAoeLBrb6dVAPceOnsopH
-	 KQykaRW7rIlRdi8xBUodMnD1wjghfg2ErTwLkZJcYxk3x0HQ/l3mNIE0IMs8ef2p1Wznm
-	 SksCCGB5Atu7c7cLciRW2hVeF63hO/JaLEtNdf8fZvW2RDCuh39ofnLLSxnVWznkyrehd
-	 NCT1cSAEV+4x2eqsmCjRLhG/967P69R2thJ0B78BHlcvpCnV3FC+/T1s9B8L8cJF1+Q==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793738800;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Date:From:To:Cc:
-	 Subject:Message-ID:References:Content-Type:Content-Disposition:
-	 In-Reply-To:X-ClientProxiedBy:MIME-Version:X-MS-PublicTrafficType:
-	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
-	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=rXgEukCXQ23VnpL4XvqiFxjjqEXWYb45d2+w7FRTOxI=;
-	b=Ft1SzNY98gYNTQHN0+Yjy62sjcV7Z7N45rVHpXGPicGTMN5UG1s8oRUic/E1UjjL0oAB
-	 43xzRS83FZWGQEM7BgZ4M+qQaOXjJ5oJRyns6NwPG5jX156OClHSos56Q+3Tv9cIF6YYf
-	 dDJNnoknbvyIt0/otAflPFJ5RpZ0jxB0Do/dGUGUsqaoncgM1Jvh9KrclA5BXmtHR3Br7
-	 Rz+ZeDmr0u0XG56TbCgcS8gjOcWrPUosElJFJmjZx6g071ffpEKZ1G73FmRR3t6d15nRH
-	 X05QMquLOzA0rUvOkSffri7TPEANneXvWCOhklyE3tEBFqJ5Fgywu2F3v+gc7JXVFQg==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=amd.com;
-	spf=fail smtp.mailfrom=amd.com;
-	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=tCCZq4sc;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.93.201.11
-Received: from CY3PR05CU001.outbound.protection.outlook.com (mail-westcentralusazon11013011.outbound.protection.outlook.com [40.93.201.11])
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.168.131
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793739647;
+	b=jLQ8kpPNRBeXs8TggIGXaSpZJJ8NFzYQeQAYgmdrZB//LEA4KPU8OSYZTL6JWo73HE/2
+	 UeKL86WbPc3JYoNU9NM+mw7BIVkmOEpmisodoZ38t1dY+XitEt3Op7vjWc9I8309b8UpN
+	 IA2Zw5GCNisMMQHQuQUQSxCvfUdxu2yli4fKOTVTUAhq4K/nnjH9nroZCflCHTXESzYUF
+	 lM+XIbtrcR+qMIgZLry0ANxJdwfzOocLEG6jC3G11tRmBw5EgzR3gONmAyb3ddZUt7wXY
+	 hGpPmJsnVkBuk87dz/SPhAM+x48X5QlBrZRRJiIdXEj/RbeaeTsMM9wBgFWcAT6H5sw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793739647;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
+	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:Date:From:
+	 To:Cc:Subject:Message-ID:In-Reply-To:References:Organization:X-Mailer:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-GUID:
+	 X-Proofpoint-ORIG-GUID:X-Proofpoint-Spam-Info:X-Authority-Analysis:
+	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
+	bh=8+TGSDQ9SyPrcH/PQA7dWzaDsqGof4ZchVSIqxBGMHE=;
+	b=jvXPA9u3RCcturZrE/OJ6g3wmQOn7ONQlP+DdL82yXYAB7wA5kUvw7BDHR3alh22w/KV
+	 1m6qOCLdz3TDiAFqxyZ52e0wwAdeQciLS7uvceDctRaVSQmDEEcNsn+cxBuMjlGy9EsJO
+	 jOc4IZ0/i1QYDzR+fpRdYnIw85NAjThnJmOm2MN14Y8FLRX8KOBKLgntRoSR9Dg8hTE3D
+	 mO5cxV4IN0SbK7WY+93WP9hbqdOOjpBUvWveQ6KSQnNXjM8+Q3ahECFaaW6GplM2xlh/f
+	 Hn9oR89DuIid/iVW7R4KGvXgrjDeMmKDjX+4XT4wf0/HeiZdBsDWJPa/4PSEds4TRbw==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=oss.qualcomm.com;
+	spf=pass smtp.mailfrom=oss.qualcomm.com;
+	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=DQDZ6Ikd;
+	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=g9E+gh9W;
+	arc=none smtp.remote-ip=205.220.168.131
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68570606A326;
-	Tue,  3 Nov 2026 20:46:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 68570606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 662BF606A324
+	for <linux-acpi@vger.kernel.org>; Tue,  3 Nov 2026 21:00:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 662BF606A324
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=tCCZq4sc
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=QMieqdJQ4voVM4SrQgWWDgSpJoTfOcNn2jKVinCaFYcK4iEy34k2qKAKJKjDNPz/0kUy5OcxKbESqzRGIdTTeDUqww541jn0xBOJx5/gZ89NS6pbDN1KNxAjy+aUaq0P7hmjd85CT291Llt/hryl9tVwiQFvcgBHL7BZOwC8a7p4+fcK1b8CKrBDZYKWZGnaRjoysNX+IpzvSp7JbRKaAaw8K7Lsu2438pknnmPh7sFioVUnSKp8WjG7QRFcS0yFx8hezMaN1L8k/VzYzHehcrxdVHLRs4fL56y64+FaQy4qGb+3siuea4JJ2kEhs9fVsvmzfl+oAOVwLT9Y7LzXHQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=rXgEukCXQ23VnpL4XvqiFxjjqEXWYb45d2+w7FRTOxI=;
- b=KVM0ANfKG8KKNIzyoEcBpmeaNB8ywIdRgApjIOCrEhYXWA0d+HqVpRWCkrzDwQrzrJP4GqoxQq0mVMlqF+WpbwZPrATi21ZdzBP4CQNBRGAhiJ04TuYNQ0r6iv3IsP2gotaW5d+lxRk6h/fBx4IVD0pjS2fn2bVmOiVtml987Y0h8AXb9BHQHmCVPEDk8w9Owm/YPnKcqHeOZmDKOkTUoMvooW8zWg1tAamQ+o0g8b9hj1937iK4wnBW+HoPOTNWJGX7p4OEeed50mewlZQyTSwN2uTqrk1mayyOOV4uB9z0RoPtGyIcnSaE9vHywP7bl9eJm9E5B8QC98q3Eu9zNg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=rXgEukCXQ23VnpL4XvqiFxjjqEXWYb45d2+w7FRTOxI=;
- b=tCCZq4scCteJHg0fwUZCRliYvvsZgyUO1yBKnYLz0BO3sFW9Rbxy10yg8V96Y0ZaoXc/IT40MqOdkIKz35cdsYmVtHWHA9oFWIDk595YBV00hmhdEtgbp7HHWyBimCVq3dz/OTBmzDZfkM2iTjgWBVHinG7T4KNpRpLtE/uqJ9I=
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from DM4PR12MB6374.namprd12.prod.outlook.com (2603:10b6:8:a3::18) by
- PH8PR12MB6865.namprd12.prod.outlook.com (2603:10b6:510:1c8::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.12; Tue, 3 Nov
- 2026 20:46:35 +0000
-Received: from DM4PR12MB6374.namprd12.prod.outlook.com
- ([fe80::af35:a7a6:6ca:7fcf]) by DM4PR12MB6374.namprd12.prod.outlook.com
- ([fe80::af35:a7a6:6ca:7fcf%5]) with mapi id 15.21.0592.007; Tue, 3 Nov 2026
- 20:46:25 +0000
-Date: Tue, 3 Nov 2026 15:46:17 -0500
-From: Yazen Ghannam <yazen.ghannam@amd.com>
-To: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Lukas Wunner <lukas@wunner.de>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
-	Oliver O'Halloran <oohall@gmail.com>, Len Brown <lenb@kernel.org>,
-	linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 3/6] PCI/EDR: Remove CONFIG_PCIE_EDR
-Message-ID: <20261103204617.GC314988@yaz-khff2.amd.com>
-References: <20261020181924.3003553-1-sathyanarayanan.kuppuswamy@linux.intel.com>
- <20261020181924.3003553-4-sathyanarayanan.kuppuswamy@linux.intel.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261020181924.3003553-4-sathyanarayanan.kuppuswamy@linux.intel.com>
-X-ClientProxiedBy: BL1PR13CA0374.namprd13.prod.outlook.com
- (2603:10b6:208:2c0::19) To DM4PR12MB6374.namprd12.prod.outlook.com
- (2603:10b6:8:a3::18)
+	dkim=pass (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=DQDZ6Ikd;
+	dkim=pass (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=g9E+gh9W
+Received: from pps.filterd (m0279867.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6A3IZ1Fi445336
+	for <linux-acpi@vger.kernel.org>; Tue, 3 Nov 2026 21:00:46 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	8+TGSDQ9SyPrcH/PQA7dWzaDsqGof4ZchVSIqxBGMHE=; b=DQDZ6IkdTD4TfR4h
+	QABB8e7VWCWMVOZKatz5cG2ZupT8OhMFcFFMfNvjLbnU2huxsEnt9PzMbYcmwcKM
+	rcXOmWW9SJO1ALJ4CZePlEKys80gzfsq2L2grwlmh8AUlKdVFXWJir5s4L6f0XDE
+	EUukTfuK7BC61i0YYggix5dQibhKnM6eZNfv4Vu/fgiZ+J2DUHawdtOILn+DByLj
+	UzT2IVNmZdakkqpm6UABaWZwMTxa+cmy0E4TEJNLcGvFrCN1x/YAsGJSh/3sOklz
+	6liZgZJpwvdrivGuzDimPxa0mduchuvgSs0uBLsNzGIkFNKmnm4941/e76DqSYCO
+	k87QCg==
+Received: from mail-dy1-f199.google.com (mail-dy1-f199.google.com [74.125.82.199])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hqm2pgtdt-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-acpi@vger.kernel.org>; Tue, 03 Nov 2026 21:00:46 +0000 (GMT)
+Received: by mail-dy1-f199.google.com with SMTP id 5a478bee46e88-3692c5b061bso12316473eec.1
+        for <linux-acpi@vger.kernel.org>; Tue, 03 Nov 2026 13:00:46 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=oss.qualcomm.com; s=google; t=1793739646; x=1794344446; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:organization
+         :references:in-reply-to:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to:content-type;
+        bh=8+TGSDQ9SyPrcH/PQA7dWzaDsqGof4ZchVSIqxBGMHE=;
+        b=g9E+gh9WOr1y+hZ6ZkhOEwDoltB1mXoy48+bWDVg4Kp+hdmwP7XL3bxvAhNQIyDtkc
+         sP0CnnJ9P5krTnb3PWknKl7VpjEn1Ts5jY+iuT0MuMDnqubIeQmeVhReXetxOB/PDXHg
+         KN2V+uQq3RWujTy3qfpM2brSEzC9mWGp2nBkHchaXgSlZrwq16RDpACMGdBNo7DjyXtf
+         dP9FVy0hi2rahnzDy9VoopWqMvVchUK7N106prWd/tQmusB/Zhugomy98bZMNhKQqp46
+         NeXMNiW8zr3hXSAgjTpBbwlKuef4L/DemYPHk454Szw4DJXBlvjEVyfp7Z2wwhlGJePp
+         8WCA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793739646; x=1794344446;
+        h=content-transfer-encoding:content-type:mime-version:organization
+         :references:in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=8+TGSDQ9SyPrcH/PQA7dWzaDsqGof4ZchVSIqxBGMHE=;
+        b=SkTTQXhs2WA8I2X/b7rdCbSLII/Vl7XrBtuJx3ETR/VjslTzutDy6z7Rg9oBFREIws
+         Sof+0tA2b934Q3Zk/JEiPuIMhZ+aadEGyttmumfPEYC23MHHKdtRzWIHqzeCfTbsURdu
+         DXo/eu/uPPIWUt6QASVCirvzRqgQmqYtSKxPNP92BPr8pfALQv4o3l4mCzi5wo8qRr7L
+         Q3waJDJJOlKiWe4DsUpgs03PdOfCwzSJaJ8RRICZKn+3iGAuuw12uDPHQL1QLTcNmyd5
+         HpBPGIUJNw487608v/zZzDZehGjk9Tgt5yEjxrIZ6ZTtT5Ted3h0SZT/Mj0+1xpc1Uhk
+         bocw==
+X-Forwarded-Encrypted: i=1; AKwUvBxSH3KQnl1l5I+ClsDbYZc8zzot7zHbx90qfwNYG9n7jWvHfZNSN0sxojKDrKfaDZ+ZQkEeubC+y2DM@vger.kernel.org
+X-Gm-Message-State: APuU4Z/2G+mclUP4a1wbzi8IBBQNLFVD/FABmC+hOr/JQBmFU1VZZm46
+	JPaNA6cKKgHQ1tbvFvApL1v+tDhb8enurxY+zloXTRQIGJH2kpb9w8vcsuZgSmt+Poci8EGIsbt
+	tu47HZD7hNAkob42IQb4N1eb2aZLjb9bJtIz/Y1ikXq535jU0nuIk59VaRzBPyBS3
+X-Gm-Gg: AYBFou0l8FJ84nhP6z3uiDCaVaoUip58xs9+1CaUbZLmhPlkbPcmIPYb1ePG6wX2h3b
+	a5DBN1c7wutVbn0kVN3ndE7htP7ZmHXxsQNhFPmlec5F1gdHKvnCAaVEkZ4S+75uEX0WGrDIn27
+	+wB30/eQyN+vDNumYkfcHf8145m7g1kV5ccb8HQGxUg31WNffeLQSmMrAGVO1eOJh+fKzHe4XrH
+	7v0gZjTKwYu6jXuCtAj21PyC2HV4CGl65wD1tQalMfGpn+YikvejrZHV7irkg+ulY9H5kOn4Wmm
+	LZiRgBdo8BRvrZfUhlLK0ev+Ifyl4N7aPelHC4BM0Po6ClZ92aTmCLNmMrVZvEmyDYCbQLloAqU
+	KS54MDvU6WNZKcMmntQy9qydudeJEXafLMQBDnI6iJ/huXgFXHEuKTe9xXvZO5j5ppNnwGCEH7e
+	3/ciML+Q/EYEbiz63Ez99++IL0aQ==
+X-Received: by 2002:a05:693c:83cf:10b0:36a:1427:3933 with SMTP id 5a478bee46e88-36a4236e7bemr23432964eec.16.1793739645646;
+        Tue, 03 Nov 2026 13:00:45 -0800 (PST)
+X-Received: by 2002:a05:693c:83cf:10b0:36a:1427:3933 with SMTP id 5a478bee46e88-36a4236e7bemr23432898eec.16.1793739644957;
+        Tue, 03 Nov 2026 13:00:44 -0800 (PST)
+Received: from localhost (i-global254.qualcomm.com. [199.106.103.254])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-36ca3981ff0sm706469eec.24.2026.11.03.13.00.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 03 Nov 2026 13:00:44 -0800 (PST)
+Date: Tue, 3 Nov 2026 13:00:38 -0800
+From: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+To: Breno Leitao <leitao@debian.org>
+Cc: Pierre Gondois <pierre.gondois@arm.com>, linux-kernel@vger.kernel.org,
+        James Morse <james.morse@arm.com>, Mark Brown <broonie@kernel.org>,
+        "Rafael
+ J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+        Tony Luck
+ <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>,
+        Hanjun Guo
+ <guohanjun@huawei.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Shuai
+ Xue <xueshuai@linux.alibaba.com>,
+        Maciej Wieczor-Retman
+ <maciej.wieczor-retman@intel.com>,
+        Pawel Chmielewski
+ <pawel.chmielewski@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        "Fabio M.
+ De Francesco" <fabio.m.de.francesco@linux.intel.com>,
+        Dan Williams
+ <djbw@kernel.org>, Terry Bowman <terry.bowman@amd.com>,
+        Ard Biesheuvel
+ <ardb@kernel.org>,
+        Morduan Zang <zhangdandan@uniontech.com>, linux-acpi@vger.kernel.org,
+        linux-edac@vger.kernel.org, acpica-devel@lists.linux.dev
+Subject: Re: [PATCH v2 2/6] cper: add Memory Error Section 2 structures
+Message-ID: <20261103130038.00000f77@oss.qualcomm.com>
+In-Reply-To: <aunhE1aeSfk6YDgj@gmail.com>
+References: <20261019203915.2019037-1-pierre.gondois@arm.com>
+	<20261019203915.2019037-3-pierre.gondois@arm.com>
+	<aunhE1aeSfk6YDgj@gmail.com>
+Organization: Qualcomm
+X-Mailer: Claws Mail 4.4.0 (GTK 3.24.51; x86_64-w64-mingw32)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -99,171 +147,47 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM4PR12MB6374:EE_|PH8PR12MB6865:EE_
-X-MS-Office365-Filtering-Correlation-Id: 7b7a908d-9b57-4967-7af1-08df39eb8719
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|23010399003|366016|7416014|376014|1800799024|261021123027099003|261021121427099003|261022105027099003|261009223027099003|261022075727099003|11063799006|261026140227099003|261026121527099003|261028144727099003|4143699003|10067099003|22082099003|56012099006|261102123227099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	ZGEmf/O7gQh58eAfCkbPvSM/0vuZYTAmFYAMnQiQXu8HqvHzA2hRfbJmfBJf63zM3MfIYO5HoMbpAOuSXFK/9t5QMzpvlgT//SiQIozvx7cYX1en14FOwi0WS1MJ82pr11pzabva22h0MuvDh4H6zYsLmrDaz3lq16IWcXbARddVB9gN0XHWFa4ayKCRJWu5k95EXAnEiSKa5tk7RT9oGg4cECHxUU1iUX053VVuK5C3Ythn4i1cBV02Vft8eXze81S8JNcKpedk9HnGv1untE7dXN9y7KarM1GkT+nSkq14ESexVgpi6raLBGOYacjqJjbaUK9LnOu2G1/0BZ6hqWYRICgit54wLBxlazSSMPDZh/is8bL53MSz+nrq87YXngZaRUPSqekxkaF/8pBS0PQpx9EJvQENNNNHOaaqCKJIqj8y+7ysuxFQasrTOwgnH0pO9gZ/kmVc38lWD6VlYgHczexgL5nTEmpCq9Ni3A2o8zTwc+bqCxZT3/s6s4CoeoyCvjc3MD6arqfaMeNChpLQcw8WpblrNVfZpDKSIAF4ghK2u3eZeLuuLdVAb4B4hk6NYqNHu/ivU/Jwr8Uotgepqu2QCD1JJW/PonlY1Q4K2YxcgjNtA0Z8VoWOcTC5uyLIN78/Q0xa/2cRf1rzHgWar0gaTaZKjoJyAdCcHPE=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR12MB6374.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(23010399003)(366016)(7416014)(376014)(1800799024)(261021123027099003)(261021121427099003)(261022105027099003)(261009223027099003)(261022075727099003)(11063799006)(261026140227099003)(261026121527099003)(261028144727099003)(4143699003)(10067099003)(22082099003)(56012099006)(261102123227099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?wGeEqv2UCf/CCIjE8CqMQN+vWE5EPr8eEckhQyQvYhJPxk56nasPbP26jdg6?=
- =?us-ascii?Q?zWWkJoF2RmWuZICSYYfokSo3aa6RiGtl2rX+7YRI4WhUPGSVC2A2d+8BcA2P?=
- =?us-ascii?Q?qfa/438MJoQUVE5CD7Bgtw9Pgd48UTpyTkIn1jhofOMknUKNLOrHAycbhECT?=
- =?us-ascii?Q?XmUFyBU7jbcWvMqFCy2ltb0cuy743jXKZxPC+PLYC3sYuB6LAYcI/Dc9zlq2?=
- =?us-ascii?Q?InYkggYrIZ3fMmWg5JxxVm9S3O1PPdm9/Dw3BfnW2Zfe7pC+Ye+APg4l3jon?=
- =?us-ascii?Q?E4JmzTatKLG2AoEG92w+KpqhrtIXn8ZHh3kXqGUiEMx/6u6fFCoYjgJZdgf4?=
- =?us-ascii?Q?8+MBppl3ebPu6FHJlasKipzmQ7FV9X11jgdlbj/3UooDnva1yF9QMTI0o6ft?=
- =?us-ascii?Q?2f4ib4hA/eF/e+nTF4wPMBBVUPFj9YFxeitAKK7UJ7KfyI5HUTMCjLdskb6S?=
- =?us-ascii?Q?tCxSwAK4yw8BLT2QANvySJR+AhmSeOvcNG0+8HRsFeKGRh7WBut3ryMaMHOy?=
- =?us-ascii?Q?gtlzYEsidlk6J7rv0or092FkOzKn9gBAGQ03JO/ZFDHGvkdbY9W5+z+E55gW?=
- =?us-ascii?Q?NyvWBt3IPx/5GhixcnCSRKQ2ivGjt4phqSGpnEFzX7gB0bp3vYOZ16EYm9Aj?=
- =?us-ascii?Q?7xpCIleKSMTlNP1iGk1AQuvUBrljzM1YEzl+2Zjn524TYNg8nYyBToeSAGs3?=
- =?us-ascii?Q?yWdbgqeQrbvnwv89jk7pLRW0pLY0p04sSoyJAuvXrRCGQn4GEc+RqAWTORri?=
- =?us-ascii?Q?Ovlcq4e2fo+sQhPhFmdcRXoD18dUH3BSYQJ19XysCCnFEkmKpvvZDs39f6eW?=
- =?us-ascii?Q?vo3psqKiHNSec4JYNbR3Q3vREU420cYbd6YKh7sqz6HdV/mi+Qe0HYfxVOwb?=
- =?us-ascii?Q?FiK+uxEnxJ4ESuaL4dE8nJ4hnwl+mRFTBbwfSo//lTh+CsdBfgWtN+SZ9+oI?=
- =?us-ascii?Q?NT5Mi+U+qqE3aQzs48MC2geQfnKD2z+QcCVoeaZuDRpxauU4aVb2OYJvsltb?=
- =?us-ascii?Q?rbvW/Cabpo6c/ohibS68wCgPtNfIT5qkIKgs/PADmXwtCzLu1onmUjcddHHQ?=
- =?us-ascii?Q?ERgIyIFngqmxFbrr/iweHDv0tkrnEzId5wPjCGXjdfTABRRnw+TDtWrixKQu?=
- =?us-ascii?Q?rjczGcD32ejYsWuIxz7QgtcrPfjp65BJ7pP95c2SrPJRXuQbqS/WxnM5LtQn?=
- =?us-ascii?Q?OLo/mbzVIPTVIEyj7/WiIUtsG454xgQMCBWfpP3PlJatKH4rIyax18UP81p7?=
- =?us-ascii?Q?N0q0opHx6ffNPpeuEKzxcHLejDqNyj2JaZwkkUYOCm+nPbjF9wR7j47in7+9?=
- =?us-ascii?Q?gHbnbp9xlZimPe1uUyYHMS68xu/bbZw31liiqCk0xhpm0IGi0Rg5tVTFnGRY?=
- =?us-ascii?Q?9rVpi2twvxFDqmD4tOx43vS3cp9qmDLsCOg/Ua1I1MSaZPSM/bjboGiMZrZl?=
- =?us-ascii?Q?c9Vwr7XUsTmStELpFAQ2KeGKM7d+YaEN9IqFBp/ipiQhEFGrP/RDFG4mE+ny?=
- =?us-ascii?Q?s6U3bMeJTl2WcHzssplOrqDR2DteDB38oNpcsz1AW8aUY19+IQl39ERv3VUP?=
- =?us-ascii?Q?bL26YIPGPYvemNZLd9lL1aEH+yUpa+x1HNlWV+WNvj4IpsZ2n8ILiGABRdss?=
- =?us-ascii?Q?u8JYCD+Ujr2kYHDJxnyLbsRH7cCfQ0v15/W7GmnfSDQmNbAaUKmdQnWuMJV7?=
- =?us-ascii?Q?O/hjvTateE2Z7A8hjjNP3X+XjLT4s3YKhcUn/7fTl7SDs/b1?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7b7a908d-9b57-4967-7af1-08df39eb8719
-X-MS-Exchange-CrossTenant-AuthSource: DM4PR12MB6374.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Nov 2026 20:46:25.8839
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: rTN7E7jA4CagsyqbDOPvDVBqtoTDMnMVM8kae2ojtcZFcya4DPfT6T0OapFfK787luoId7JNBjPuLzI96nNerw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR12MB6865
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTAzMDA4MyBTYWx0ZWRfX1aDxWzif04+p
+ /W6vo8ds29NE5m4v+ftl195AJsS/vn+mN+wcEM7jJ6K/1KngAfCmrLLlIHlFv0Ql0VZmvHhedUj
+ dHdOf1UN3RadloxswluMRBxsvbXYh8xndbmA5AhH670TxBTXV2up3vyiPZd6oC2Z+NWpB9wiaGE
+ M0YGndboJIfm1RSGTO5VxkImfxn+tez5DTQNfynawKv7EHf3hA7thWDgNhCxr2EcEoZTKXFAu9w
+ TsxzlOqECyuJAu0nBhp6BYD9iKwvsYQQsEcSvchh53NJtG9EVBNkN2VDnqKDvVZLyBAqtJPLIbQ
+ sTE/ADQIL+oWkbcsGkJCxwBQJA73TZ9xESf6cbyJ/2GrqFgUWO/yC0qnYbj5WzUr/GlHgP+hArT
+ l/IKd32aeLV4Qs8VgTXylbnJR2WbwZQtZisVLMiZvMVX2WU1FJDGQh8EkifRCeaeBzuGr1e0lxu
+ 1VzGhCZkzM+mFQJBHow==
+X-Proofpoint-GUID: 64R_fp6mr03T799gaBTIJuwozIYf4UXR
+X-Proofpoint-ORIG-GUID: 64R_fp6mr03T799gaBTIJuwozIYf4UXR
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTAzMDA4MyBTYWx0ZWRfX6JS3brge+Etk
+ GEuwyS37dRTHWY9EdkpK4B7T6AG7d134CG0Dhzgn+ueUopbUuhpFxUjwHhpOAiF/RcgTj7xAAY5
+ 9UH53lXm9drhSeVMhoUDUxGpyuBeFOk=
+X-Authority-Analysis: v=2.4 cv=c64+0h9l c=1 sm=1 tr=0 ts=6aea4b7e cx=c_pps
+ a=cFYjgdjTJScbgFmBucgdfQ==:117 a=JYp8KDb2vCoCEuGobkYCKw==:17
+ a=kj9zAlcOel0A:10 a=zJRp6_cAMcgA:10 a=s4-Qcg_JpJYA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=eoimf2acIAo5FJnRuUoq:22
+ a=xNf9USuDAAAA:8 a=EUspDBNiAAAA:8 a=7CQSdrXTAAAA:8 a=bZ_CbDB1LfDrNmofISYA:9
+ a=CjuIK1q_8ugA:10 a=scEy_gLbYbu1JhEsrz4S:22 a=a-qgeE7W1pNrGK8U0ZQC:22
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-11-03_04,2026-11-03_04,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ impostorscore=0 spamscore=0 adultscore=0 malwarescore=0 bulkscore=0
+ lowpriorityscore=0 phishscore=0 suspectscore=0 clxscore=1015
+ priorityscore=1501 classifier=typeunknown authscore=0 authtc= authcc=
+ route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2610300000
+ definitions=main-2611030083
 
-On Tue, Oct 20, 2026 at 11:19:20AM -0700, Kuppuswamy Sathyanarayanan wrote:
-> Error Disconnect Recover (EDR) is the ACPI half of the hybrid DPC model,
-> where firmware owns DPC and notifies the OS of containment events.
+On Tue, 3 Nov 2026 05:27:02 -0800
+Breno Leitao <leitao@debian.org> wrote:
+
+> On Mon, Oct 19, 2026 at 10:38:41PM +0200, Pierre Gondois wrote:
+> > Add CPER Memory Error Section 2 definitions to the CPER headers.
+> > 
+> > Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
+> > Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>  
 > 
-> CONFIG_PCIE_EDR made EDR optional on top of CONFIG_PCIE_DPC.  This adds
-> another knob to the decision to request DPC control in _OSC.  The OS
-> requests DPC control only if it also supports EDR, so with
-> CONFIG_PCIE_EDR=n it never requests DPC control.  There is little reason
-> to build DPC without EDR on ACPI systems.
-> 
-> Remove the option and build edr.c whenever CONFIG_PCIE_DPC and
-> CONFIG_ACPI are both enabled.
-> 
-> Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-> ---
->  drivers/acpi/pci_root.c   | 6 +++---
->  drivers/pci/pcie/Kconfig  | 9 ---------
->  drivers/pci/pcie/Makefile | 5 ++++-
->  drivers/pci/pcie/dpc.c    | 5 +++--
->  include/linux/pci-acpi.h  | 4 ++--
->  5 files changed, 12 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index a1a9c06012f8..b0e0b33e3254 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -438,7 +438,7 @@ static u32 calculate_support(void)
->  		support |= OSC_PCI_ASPM_SUPPORT | OSC_PCI_CLOCK_PM_SUPPORT;
->  	if (pci_msi_enabled())
->  		support |= OSC_PCI_MSI_SUPPORT;
-> -	if (IS_ENABLED(CONFIG_PCIE_EDR))
-> +	if (IS_ENABLED(CONFIG_PCIE_DPC))
->  		support |= OSC_PCI_EDR_SUPPORT;
->  
->  	return support;
-> @@ -515,9 +515,9 @@ static u32 calculate_control(void)
->  	 * Per the Downstream Port Containment Related Enhancements ECN to
->  	 * the PCI Firmware Spec, r3.2, sec 4.5.1, table 4-5,
->  	 * OSC_PCI_EXPRESS_DPC_CONTROL indicates the OS supports both DPC
-> -	 * and EDR.
-> +	 * and EDR.  EDR is always built with DPC on ACPI systems.
->  	 */
-> -	if (IS_ENABLED(CONFIG_PCIE_DPC) && IS_ENABLED(CONFIG_PCIE_EDR))
-> +	if (IS_ENABLED(CONFIG_PCIE_DPC))
->  		control |= OSC_PCI_EXPRESS_DPC_CONTROL;
->  
->  	return control;
-> diff --git a/drivers/pci/pcie/Kconfig b/drivers/pci/pcie/Kconfig
-> index 207c2deae35f..de4ea33b4524 100644
-> --- a/drivers/pci/pcie/Kconfig
-> +++ b/drivers/pci/pcie/Kconfig
-> @@ -137,12 +137,3 @@ config PCIE_PTM
->  	  This is only useful if you have devices that support PTM, but it
->  	  is safe to enable even if you don't.
->  
-> -config PCIE_EDR
-> -	bool "PCI Express Error Disconnect Recover support"
-> -	depends on PCIE_DPC && ACPI
-> -	help
-> -	  This option adds Error Disconnect Recover support as specified
-> -	  in the Downstream Port Containment Related Enhancements ECN to
-> -	  the PCI Firmware Specification r3.2.  Enable this if you want to
-> -	  support hybrid DPC model which uses both firmware and OS to
-> -	  implement DPC.
+> Reviewd-by: Breno Leitao <leitao@debian.org>
+Typo.  Just in case Pierre is using b4 or other automation!
 
-What about keeping 'PCIE_EDR' and using it like 'PCIE_PME'?
 
-IOW, remove the user-visible parts have it default to (PCIE_DPC &&
-ACPI)?
-
-I understand EDR as its own feature on top of DPC. So I think there's
-value in having the EDR bits clearly distinct from the DPC bits.
-
-Also, it would reduce the changes in this patch.
-
-> diff --git a/drivers/pci/pcie/Makefile b/drivers/pci/pcie/Makefile
-> index b0b43a18c304..46b24311f659 100644
-> --- a/drivers/pci/pcie/Makefile
-> +++ b/drivers/pci/pcie/Makefile
-> @@ -13,4 +13,7 @@ obj-$(CONFIG_PCIEAER_INJECT)	+= aer_inject.o
->  obj-$(CONFIG_PCIE_PME)		+= pme.o
->  obj-$(CONFIG_PCIE_DPC)		+= dpc.o
->  obj-$(CONFIG_PCIE_PTM)		+= ptm.o
-> -obj-$(CONFIG_PCIE_EDR)		+= edr.o
-> +
-> +ifdef CONFIG_ACPI
-> +obj-$(CONFIG_PCIE_DPC)		+= edr.o
-> +endif
-> diff --git a/drivers/pci/pcie/dpc.c b/drivers/pci/pcie/dpc.c
-> index 104ff2b91f1f..71adc0e94bca 100644
-> --- a/drivers/pci/pcie/dpc.c
-> +++ b/drivers/pci/pcie/dpc.c
-> @@ -109,10 +109,11 @@ bool pci_dpc_recovered(struct pci_dev *pdev)
->  
->  	/*
->  	 * Synchronization between hotplug and DPC is not supported
-> -	 * if DPC is owned by firmware and EDR is not enabled.
-> +	 * if DPC is owned by firmware and there is no EDR, i.e., on
-> +	 * non-ACPI systems.
->  	 */
->  	host = pci_find_host_bridge(pdev->bus);
-> -	if (!host->native_dpc && !IS_ENABLED(CONFIG_PCIE_EDR))
-> +	if (!host->native_dpc && !IS_ENABLED(CONFIG_ACPI))
->  		return false;
->  
-
-This seems like dead code, and it was deleted in an older version.
-
-The conditions seem to be mutually exclusive.
-
-Maybe it should just be removed in a pre-patch?
-
-Thanks,
-Yazen
