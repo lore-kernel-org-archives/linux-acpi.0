@@ -1,49 +1,77 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.143.172.20
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793708015;
-	b=dAl2R4tHxN/s1isoTxEKtKmHSENnMSqaqL/CSXYQkyvjvRTFn7TutcCn4bE0OPs6FBT5
-	 Mw7tNlfuDURMnEBfwvOz/7SHoZShzjDVNNTdY4y06To8xj2FWDJ8lp3BTrqQCW4OFhVjD
-	 pV8pfUY9C0c8hkfeQW5E23MHpIjId1SXYSjr5AUQMuAelF/PmhravK0eQSmHf/d6TFJi9
-	 rKCJL3bc23d+0xINzUbfrJYFYnYyXBeWPlDZibZMc7Nwo2b3rDywVCdwsrb5hiBB6VHxy
-	 iLwu36iuCy4Jz4vBUpGVLwYbUV4JmR8xHK5YBEKHjrmZbbLqayZhbJEmKa+gyaKLdIw==
+	t=1793708685;
+	b=fXr+R30FwqZG8SPbvzPVO1his1UrpHwMTMwWmsprkDo20lk4nhmud2rQxaSJjpp6ujue
+	 QinzGqmG7ybon0E7bt33lymyKV+0KNnfLEZO9xxm20F8Tdv73kil/GQz7Il/hgkUSrDyT
+	 i3ClIbOCBVDqBr9sm8c6pnhVDz1nGJrAhuP9M1qPQ4TcWXpkep3GDu7spkzcbM0DZFR4K
+	 FwRLivBjgO80Zr6/LnnXlsVT5etd+1R7M2YGRdL2kyfwdo5v2bkxBPI5qnIr82Grdpy1B
+	 HfBKB+aCOhQyuMb8/yF+xqd/g51VzGDYqIjN4aVEmufMD3mt1kWWKBAo5o3ULbnKOWg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793708015;
-	h=DMARC-Filter:Received:Received:Received:Message-ID:Date:MIME-Version:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-Rspamd-Bar:X-Rspamd-Report:
-	 X-Rspamd-Score:DKIM-Signature;
-	bh=/I0hAkMQgEgSd/xEHJ8QwOI6UalZqq8sg18/Exn5d68=;
-	b=QFkNK08nRfWkjaRQ6LgVmrSXbGUk+3WFqvJhAiyWBrBwESYkxvyU85dryZNxeGmPhJC1
-	 lOQJKfvPQaeebYYi/JUiZvq047az/KLy4T3F8kYMz92b+eIDxuuiVQcy8Ezg0krOpSEvv
-	 ZUn2DR3tOV0ej0AZmmYxU92V50ZOVnmIJeWxMuvnK+AOXHDtLQ0rbB67qokEBB6fhrO2n
-	 xuEtHUeEthXLYPA4h4OoH5uM3zhyrIPtgKXcd/i8XXZFITnw1dd/r6HbPPSR4AX35EFq1
-	 gA5Acie8jlm7e61HX3jVAxOxykSArEkS2PLR7vcJAV3DoyM07Of7Dumn3xuAYj6k/jg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793708685;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:
+	 Content-Transfer-Encoding:In-Reply-To;
+	bh=2DQ96R/0ulhMhCPuDty/w5YNIxZWO7PXWDO3bMU5BOI=;
+	b=Ip6E2j857ix97JXJu4uigVh4ksPNxv4W0fQllqJu6J6GMdOMsIbqzXrWkG1BIOk5emr9
+	 KIwEKwkgux6R2Fdt576scKlr8q+q5iruCa6J8DLtVZ454k6Z21cYcyFw43zVamwT1OCQt
+	 6qjPybwlsckujvLI6UNLzLa1Pr6szzIIIOBbXTMIqnOGTEn9heLtUm7cXxqtzdh09B35s
+	 5HwW/Df7c8OVRBvxztspJtA9dBATYv+6t0UmqT0biAMqIsVswMA2iB0jJw2cwJ36HWkmE
+	 GaHWe5UWRI9Xi2Y7XLDFG715H6Y2B9kGxUSZhucpeeiqXXrfM/2jMdOzDenUCNwCODQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=lausen.nl;
-	spf=pass smtp.mailfrom=lausen.nl;
-	dkim=pass header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=oZ+ZZuKG;
-	arc=none smtp.remote-ip=95.143.172.20
-Received: from mailgate01.uberspace.is (mailgate01.uberspace.is [95.143.172.20])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Y2DPOtoe;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5503A606A324
-	for <linux-acpi@vger.kernel.org>; Tue,  3 Nov 2026 12:13:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5503A606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lausen.nl
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lausen.nl
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id AEBFE606A326;
+	Tue,  3 Nov 2026 12:24:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key, unprotected) header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=oZ+ZZuKG
-Received: from devico.uberspace.de (devico.uberspace.de [185.26.156.185])
-	by mailgate01.uberspace.is (Postfix) with ESMTPS id 26F1A6175E
-	for <linux-acpi@vger.kernel.org>; Tue, 03 Nov 2026 13:13:31 +0100 (CET)
-Received: (qmail 32635 invoked by uid 990); 3 Nov 2026 12:13:31 -0000
-Authentication-Results: devico.uberspace.de;
-	auth=pass (plain)
-Received: from unknown (HELO unknown) (::1)
-	by devico.uberspace.de (Haraka/3.1.1) with ESMTPSA; Tue, 03 Nov 2026 13:13:30 +0100
-Message-ID: <88ccf8fa-be8d-46cb-b0ba-87e94b50a49c@lausen.nl>
-Date: Tue, 3 Nov 2026 13:13:28 +0100
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Y2DPOtoe
+Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 5D33F1F00919;
+	Tue,  3 Nov 2026 12:24:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793708684;
+	bh=2DQ96R/0ulhMhCPuDty/w5YNIxZWO7PXWDO3bMU5BOI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Y2DPOtoeBhQC9H3iDa32ycCqijeUsQyOWUtRGHIYLH0dXLxZUgEjv6SLfXFJy1+yx
+	 REGyvcQMfuo3sZnBFrDxClG/MkMaDIKnK90l7RtK0PDTXjGL6CaKqpsTGr1H383bgl
+	 4TyhCnpi2mmiJ18g5WO9YEH6HMlaMgnH5EIfxQ78ETdDfCbW0Nq7FnvPdbMq/lkRzu
+	 YVxjlkUTO+w5EzhvM5yynGpZ7GDn2zzh6C78NzGOnNAyoUN8QGMgJIfas682UgvcoY
+	 za6RIYThdNdxsriG9j3+KBkt/9fGZF5z8OM8R3azJs/Dg4hZMYuSZR8c3Kxw2uTAo8
+	 Un2lK6ZcYoQzw==
+Date: Tue, 3 Nov 2026 13:24:40 +0100
+From: Bartosz Golaszewski <brgl@kernel.org>
+To: Uwe =?utf-8?Q?Kleine-K=C3=B6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>
+Cc: Linus Walleij <linusw@kernel.org>, Andy Shevchenko <andy@kernel.org>, 
+	linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Lixu Zhang <lixu.zhang@intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, Florian Fainelli <florian.fainelli@broadcom.com>, 
+	Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>, Frank Li <Frank.Li@nxp.com>, 
+	Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
+	Fabio Estevam <festevam@gmail.com>, Imre Kaloz <kaloz@kernel.org>, 
+	Conor Dooley <conor.dooley@microchip.com>, Valentina Fernandez <valentina.fernandezalanis@microchip.com>, 
+	Daire McNamara <daire.mcnamara@microchip.com>, Daniel Palmer <daniel@thingy.jp>, 
+	Romain Perier <romain.perier@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, imx@lists.linux.dev, 
+	linux-arm-kernel@lists.infradead.org, linux-riscv@lists.infradead.org, 
+	Hoan Tran <hoan@os.amperecomputing.com>, Alan Borzeszkowski <alan.borzeszkowski@linux.intel.com>, 
+	Mika Westerberg <westeri@kernel.org>, Hans de Goede <hansg@kernel.org>, 
+	Nuno =?utf-8?B?U8Oh?= <nuno.sa@analog.com>, linux-hwmon@vger.kernel.org, 
+	Matti Vaittinen <mazziesaccount@gmail.com>, "Enrico Weigelt, metux IT consult" <info@metux.net>, 
+	Viresh Kumar <vireshk@kernel.org>, virtualization@lists.linux.dev, Yinbo Zhu <zhuyinbo@loongson.cn>, 
+	Thierry Reding <thierry.reding@kernel.org>, Jonathan Hunter <jonathanh@nvidia.com>, 
+	linux-tegra@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, Srinivas Neeli <srinivas.neeli@amd.com>, 
+	Michal Simek <michal.simek@amd.com>, linux-aspeed@lists.ozlabs.org, asahi@lists.linux.dev, 
+	linux-mediatek@lists.infradead.org, openbmc@lists.ozlabs.org, linux-omap@vger.kernel.org, 
+	linux-renesas-soc@vger.kernel.org, linux-unisoc@lists.infradead.org, 
+	linux-rockchip@lists.infradead.org, linux-stm32@st-md-mailman.stormreply.com, 
+	Michael Buesch <m@bues.ch>, William Breathitt Gray <wbg@kernel.org>, 
+	Robert Richter <rric@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v4 00/23] gpio: Improvements around device-id arrays
+Message-ID: <oiwdi2r7fbay3dsghfaqzejpv7d5dpuerh5jy2vsw3kjyhvhdm@hyrpff5ytihz>
+References: <cover.1793097104.git.u.kleine-koenig@baylibre.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -53,53 +81,37 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 2/3] ACPI: fan: Ignore broken _FST on Samsung Galaxy Book
- 930XDB
-To: Armin Wolf <W_Armin@gmx.de>, linux-acpi@vger.kernel.org,
- "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
- Pawel Chmielewski <pawel.chmielewski@intel.com>,
- acpica-devel@lists.linux.dev, Len Brown <lenb@kernel.org>,
- Ivan Hu <ivan.hu@canonical.com>, Joshua Grisham <josh@joshuagrisham.com>,
- linux-kernel@vger.kernel.org
-References: <20261019145421.47181-1-leonard@lausen.nl>
- <20261019145421.47181-3-leonard@lausen.nl>
- <35c80ebb-fb5c-45cd-b6e9-d6b73e305432@gmx.de>
-Content-Language: en-US
-From: Leonard Lausen <leonard@lausen.nl>
-In-Reply-To: <35c80ebb-fb5c-45cd-b6e9-d6b73e305432@gmx.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Rspamd-Bar: ---
-X-Rspamd-Report: BAYES_HAM(-2.996116) XM_UA_NO_VERSION(0.01) MIME_GOOD(-0.1)
-X-Rspamd-Score: -3.086116
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-	d=lausen.nl; s=uberspace;
-	h=from:to:cc:subject:date;
-	bh=7+y8nX4RnZWTX2otTR1L4cVl1f0lsJaVlnzPUfbmz4w=;
-	b=oZ+ZZuKGwFnulPzF/2nmJD3pMaG6lgDDPFFf9RaDfpEyr4fKjw6SScrsa+6S6Wkuiq7TzTIKRR
-	3eZ6hqpH+yfcaIxxn+h9opICMxEteqhPxvDiQtn7cV9Tt6bGdxjaiFhOYGhVduJvKFbxspuc+ubo
-	uFsGjC9BZ2RK6kvCSC2FkobIwUVK++Uwbw5xPuOdHA9ldl+MGf0Cjsl+xUAWAvCyP8DAOSTF0z6V
-	kHiQXdpxWOpwQ+eZnjGbWMj0r/UEgsa7vTRdDqewF6gp1YjWYHBN1sN1IoQqYits/5An5mT50p+4
-	oukF/jAtoodP1dtU0m4mmjbD0jEmx7tyAJpjrR9/HBoZARHx9gZN/wGpgglndo6L0rjXygJ41CHL
-	BiBbNndR34k5HS17PwcsUOzXX4zeIjzRQ2mhmWWqPZCIhtwwodnssjF0qycgnfS9I1rNyb4KPWZo
-	1InMyOYPedZC8xBOgqFGvAmvQ2DeBXr0H3Fu49BL3ZCCoZFKqyowXFGZs4Cbl4ZW+sDprjmae7TG
-	6sHAggdlxmjW0mjJH8LmgT+YByrE0m+3N4Po4Dsd7sEreBjBhro0Y/+hzHhm/e2OJ8xp0peZwLpL
-	SFaguyXtqkhCtfRtvWQQmm98wUBqB20HjBvRsHVGyebjwIOoXVDLYOdHL2GVagNDX0WijRE0Rxm8
-	8=
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <cover.1793097104.git.u.kleine-koenig@baylibre.com>
 
-> This is very likely connected to https://github.com/open-acpica/acpica/ 
-> issues/908. The ACPI spec says that Increment/Decrement is "Equivalent 
-> to Add (Addend, 1, Addend)", so i suspect that Add() should try to 
-> automatically dereference the reference.
+On Tue, Oct 27, 2026 at 11:48:37AM +0100, Uwe Kleine-König (The Capable Hub) wrote:
+> Hello,
 > 
-> I would suggest that you report this issue to the ACPICA guys instead.
+> the original motivation for this series are the patches that convert the
+> arrays to use named initializers, see
+> https://lore.kernel.org/all/cover.1780048925.git.u.kleine-koenig@baylibre.com/
+> for the idea behind it. Looking left and right a bit while implementing
+> that, the series grew a bit.
+> 
+> Changes since v3 (available at
+> https://lore.kernel.org/all/cover.1793030820.git.u.kleine-koenig@baylibre.com):
+> 
+>  - Picked up review tags (b4 even found some from v2)
+>  - Add a 2nd MODULE_DEVICE_TABLE(of, ...) in drivers/gpio/gpio-mpc5200.c
+>    (My grep didn't handle >1 driver per file well), noticed by Sashiko
+>  - New patch to use named initializers for auxiliary_device_id arrays
+>  - Fix code style of of_device_id array in drivers/gpio/gpio-grgpio.c
+>    (My script doesn't handle of_device_id::name) and
+>    drivers/gpio/gpio-ppc44x.c (didn't exist yet when I sent v2 and
+>    failed to notice that for v3)
+>  - Fix code style of auxiliary_device_id array in
+>    drivers/gpio/gpio-shared-proxy.c, missed as I didn't have a script
+>    for auxiliary_device_id before.
+>  - Dropped a few broken email addresses from Cc:
+> 
 
-Thank you for the pointer, Armin. Maciej and me fixed the issue in 
-ACPICA and it is now in upstream pending branch. 
-https://github.com/open-acpica/acpica/commit/8854b938571e4f780c2673b3f7df440694ac4229 
-I'm not sure when it will make it's way to the kernel.
+If there are no objections, I'll queue it by the end of this week.
 
-Best regards
-Leonard
+Bart
