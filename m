@@ -1,57 +1,103 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.246.84.56
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793717066;
-	b=BP1j3lkZOLZxaiyA7pHLD9muw850cPrZfUHpDpqiHbTNqzpXMk1KZXltMMcaMvjWr4zI
-	 ObL+09l4hO5Or43f6EULnUgBzAVRm8Y0EvMoZFmE6THp5Ge9gQoIhykqyc3f5PuayEHXj
-	 U1WOMW1tOlVbrL+2RYkWPQCTfK0xNxgTB8w+vCCzgu59aE5wk0ap8JaRaiK9v4BHIbwhD
-	 iN4lbE3PhpXPbx1seKBibQ0HEMSOQ8M2UsDLIVc31m+q4s+Kwd1jENw26XyxnFu7BOpR0
-	 1A1HACp+5UJSE6WnG0v+HeJawPDbuXIN15AH4KIi4FUwzmbqK8IAD4/+1tpon3eiWpg==
+	t=1793721378;
+	b=TkigxGTq3rEtHvnFBK+onMmINsrjNBywpoZwp4UyK1jrOvIR2VjSBOB+OIyt3PZfhEkl
+	 q+b0xxM4+WpaknNxN3n28FQRyQTL5L5nr8yBktyNrDHJomVN7BNMlTn26yKo4YF3I3pgR
+	 S/rKALhGuZA1JF42issJ+mMOVuOwq+BQu3k9j3X0gRF4jcNAK2VLjIRE3DuY1wcoROTpm
+	 Gfqlxl1qbmCE0zSSrOsLDumRnOTh2AiQLDqy/GhNj+Kh0OlOeGx1mgKxFY82pRm1CKwjr
+	 BiDfS42uCzUCR0CJtmVnOLPz7FsXhchRV6FroQ6H3KESmwzfRncfIi6QyHmsZAAkhiA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793717066;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=KaGxOIDUSLDrhNtJZX8c9f03J0fEHiNZw1qU0QBhoYc=;
-	b=WOiD3NQ0awfiwsyt7c89fe96FewIrrJlZbpfNjZiNYtSto8JSMtUk0zE4LVXijwSBZqs
-	 xSW/4CIgL90rbUxyBO3uQwcKggvT+SLk6CfKB9nvOBEdrPjoNr7s8cfIJzC/Qfol5/31N
-	 2Z8lYggU4HuBh7/nvg8MTr0MV8SgYO9/9jsnRqrvXu8abWTqdWipvTrAgst4Wo4yOuChp
-	 aGBMLln/KLpOaxokozP3zaumWV0kquWz6N4TU3VNqpi95jz5w9pJAYqPfu81jEGsjYtbR
-	 6HDIYlfTJBD64ThWpl5+1H+6lrTDMLf7ET9+0o6d4dFzaNFOIlouu3mbMVOqmnfU+6g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793721378;
+	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:From:To:Cc:
+	 Subject:Date:Message-ID:X-Mailer:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:X-Last-TLS-Session-Version;
+	bh=eVE0ejZ3ci2yxPN6jCZmDS8n1PcFDNfCthsFocfpEwA=;
+	b=xH+K7gI4mfmPquvv25ktkBX9vEm+OxTUZ1ov/uGeqzGjsNFcpsXo3Y7k8jlRcDUHtwEe
+	 14XJWBGbASHZ9/O9xsrssQ2f8fxbOcjPLuT0/4N+B+qLqKp+5ZAwSmHrA+0p1katKa8wg
+	 +IkcVBOZekjaJ6nSb1vX4EnPbhhfKNJuPmozjgKkckr+cPtbz9AUd5TAHGIHs6P1bNOFi
+	 DuXkbPB0lYVIIW5AxAn2QRfqJF7JvRHwG8/MR+cPhs58ptBJkuaRlMVdvFYMKOju/24SV
+	 dWgNR/B7jC6rX+Mzo3p2ZTQm4AM2IUwuAyTZ0ThBlTIe5GJTQmh8QMFLezC/DoWZggw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dBZHsAMi;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=bootlin.com;
+	spf=pass smtp.mailfrom=bootlin.com;
+	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=ENgVUUZy;
+	arc=none smtp.remote-ip=185.246.84.56
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 342D4606A324;
-	Tue,  3 Nov 2026 14:44:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB11B606D80D
+	for <linux-acpi@vger.kernel.org>; Tue,  3 Nov 2026 15:56:15 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AB11B606D80D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dBZHsAMi
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F99E1F000C1;
-	Tue,  3 Nov 2026 14:44:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793717065;
-	bh=KaGxOIDUSLDrhNtJZX8c9f03J0fEHiNZw1qU0QBhoYc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=dBZHsAMiJ+/PGPEom3ti3bETufGkQzi2dhXzD+07ycVN49yX4KekU4AIxvAaTOy8A
-	 50yWGwqZxKKcpEr2leVlYVLngMKbBGp2hdScXLCyTPGdCCpUSTuYUHuaBTkWCBDIYe
-	 D7WDxL8V9RH3ZXUk/lsd+cCYZl5eVAadFkMkcJrN3xLS0U/bmOXrofOrQkOOPQAEEC
-	 hlfVtMo/+6YbLzAXRNdVzlk9EjSuY6zilZXNzPFyEv9B4OOOBz7kQHaiY6RHTjFu4x
-	 cmvEMDXgGVXIo8toz1CX76Juf7ITWlO9rrCDS4ghbbK+aXlU177nZKQIX+ZyAm8JES
-	 Z9/e14ef+8fug==
-Date: Tue, 3 Nov 2026 15:44:20 +0100
-From: Lorenzo Pieralisi <lpieralisi@kernel.org>
-To: Jiale Yao <yaojiale02@163.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Marc Zyngier <Marc.Zyngier@arm.com>,
-	Hanjun Guo <guohanjun@huawei.com>, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH v2 01/20] ACPI: irqchip: validate MADT entry bounds
- before probing
-Message-ID: <aunzRO9rxFUlC0Ym@red-moon>
-References: <20261029035253.2333852-1-yaojiale02@163.com>
- <20261029035253.2333852-2-yaojiale02@163.com>
+	dkim=pass (2048-bit key, unprotected) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=ENgVUUZy
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id EE1C11A1435;
+	Tue,  3 Nov 2026 15:56:13 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id BA2D06046C;
+	Tue,  3 Nov 2026 15:56:13 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 4AE71103291E1;
+	Tue,  3 Nov 2026 16:55:56 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1793721370; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding; bh=eVE0ejZ3ci2yxPN6jCZmDS8n1PcFDNfCthsFocfpEwA=;
+	b=ENgVUUZywDfvbrAKMBEOf/3VPdoxopBV5nEzTM5Vj2CPKkOqinuuuiU2HLjlRyNpKIMRe2
+	y1KsG2q9tX0Zx4jTtO9So1iLEtT4yyDzQiugA9rIadmmyH8vN4pABb4gnLmH3E1zsdiebD
+	yiaF04vnpPDPQ/5c+Sh3jKHe4j9GD9C00L2EPQSV7TbGmeE/NZ91j7p4zEFEcFqU/+7zTd
+	UXUjl0pjlpQ2HYQaFhGmn52V1wOpbh83X09mPZjCQI5sH+1PevdXNKQ9RWtKdiC2Q0GGQ+
+	xr7xUVmALdFV898oJKdz8KinfU5MMcvmjoimFmyknmW/dYllXYHrGPK5EYACag==
+From: Herve Codina <herve.codina@bootlin.com>
+To: Abdurrahman Hussain <abdurrahman@nexthop.ai>,
+	Richard Cheng <icheng@nvidia.com>,
+	Andrew Lunn <andrew@lunn.ch>,
+	Rob Herring <robh@kernel.org>,
+	Saravana Kannan <saravanak@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Johan Hovold <johan@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	David Rhodes <david.rhodes@cirrus.com>,
+	Richard Fitzgerald <rf@opensource.cirrus.com>,
+	Charles Keepax <ckeepax@opensource.cirrus.com>,
+	Linus Walleij <linusw@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Len Brown <lenb@kernel.org>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dan Williams <djbw@kernel.org>,
+	Ira Weiny <iweiny@kernel.org>,
+	Li Ming <ming.li@zohomail.com>,
+	Herve Codina <herve.codina@bootlin.com>,
+	Lizhi Hou <lizhi.hou@amd.com>
+Cc: driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	linux-pci@vger.kernel.org,
+	linux-sound@vger.kernel.org,
+	patches@opensource.cirrus.com,
+	linux-gpio@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-cxl@vger.kernel.org,
+	Allan Nielsen <allan.nielsen@microchip.com>,
+	Horatiu Vultur <horatiu.vultur@microchip.com>,
+	Daniel Machon <daniel.machon@microchip.com>,
+	Steen Hegelund <steen.hegelund@microchip.com>,
+	Luca Ceresoli <luca.ceresoli@bootlin.com>,
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Subject: [PATCH v14 00/10] lan966x pci device: Add support for SFPs, PCI part
+Date: Tue,  3 Nov 2026 16:55:06 +0100
+Message-ID: <20261103155540.365294-1-herve.codina@bootlin.com>
+X-Mailer: git-send-email 2.56.0
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -61,70 +107,189 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261029035253.2333852-2-yaojiale02@163.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-Last-TLS-Session-Version: TLSv1.3
 
-On Thu, Oct 29, 2026 at 11:52:32AM +0800, Jiale Yao wrote:
-> IRQ chip probing invokes validation and probe callbacks after the common
-> table walker has only established that a generic subtable header is
-> readable. A malformed length can leave callback field accesses outside
-> the MADT.
-> 
-> Validate the generic header length and ensure the complete declared
-> entry is contained in the table before invoking IRQ chip callbacks.
-> 
-> Fixes: e647b532275b ("ACPI: Add early device probing infrastructure")
-> Cc: stable@vger.kernel.org
+Hi,
 
-I don't think this patch fixes anything (actually you don't know, it
-might break kernels that are currently booting).
+Previously, I sent a big picture series adding support for SFP ports
+available on the LAN966x PCI device [0].
 
-Remove the stable tag (on the whole series, though others might have a
-different opinion). If this gets merged, goes to stable and then
-we discover it triggers a regression (on existing platforms whose
-ACPI tables are broken but the system is working) it would be very
-annoying.
+In this series patches touch several parts and sub-system in the kernel.
+Reviews have be done and it makes sense to split the series and send
+parts separately.
 
-> Signed-off-by: Jiale Yao <yaojiale02@163.com>
-> ---
->  drivers/acpi/scan.c | 7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 0b17a7e51956..10e8d736f44b 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -2896,6 +2896,13 @@ static DEFINE_MUTEX(acpi_probe_mutex);
->  static int __init acpi_match_madt(union acpi_subtable_headers *header,
->  				  const unsigned long end)
->  {
-> +	unsigned long start = (unsigned long)header;
-> +
-> +	if (start >= end || end - start < sizeof(header->common) ||
-> +	    header->common.length < sizeof(header->common) ||
-> +	    header->common.length > end - start)
-> +		return -EINVAL;
+This current series is the extraction of patches related to issues in
+the PCI subsystem. It has to be seen as a continuation of the big
+picture series but related to this specific core part.
 
-This is a check that AFAICS could be done in acpi_parse_entries_array() once
-for all (where you also know header->common is what you need checking, btw). 
+Patches 1 to 6 introduce and use fw_devlink_set_device() in already
+existing code. No functional change but the introduction of the
+fw_devlink_set_device() wrapper.
 
-Actually, what's missing there to avoid peppering the kernel with
-BAD_MADT_ENTRY checks is the entry size (that we could add with a LUT).
+Patch 7 avoids a dangling pointer.
 
-The downsize is that by centralizing it, if anything breaks (which is
-possible) we have to revert it and therefore remove the check for all
-consumers.
+Patches 8 and 9 fix fw_devlink issues specific to PCI and the
+device-tree nodes created during enumeration.
 
-I don't know. Rafael, all, thoughts on this ?
+Patch 10 avoids the usage of np->data and adds guards to prevent
+incorrect nodes removal.
 
-Thanks,
-Lorenzo
+[0] https://lore.kernel.org/all/20260325143555.451852-1-herve.codina@bootlin.com/
 
-> +
->  	if (!ape->subtable_valid || ape->subtable_valid(&header->common, ape))
->  		if (!ape->probe_subtbl(header, end))
->  			acpi_probe_count++;
-> -- 
-> 2.34.1
-> 
+Best regards,
+Hervé
+
+Changes:
+
+v13 -> v14
+  v13: https://lore.kernel.org/all/20261012142826.159178-1-herve.codina@bootlin.com/
+
+  Rebase on top of v7.4-rc1
+
+  - Patches 1, 2, 6, 8, 9
+    Add 'Tested-by: Abdurrahman Hussain'
+
+  - Patch 10:
+    Add 'Acked-by: Bjorn Helgaas'
+
+  - Other patches:
+    No changes
+
+v12 -> v13
+  v12: https://lore.kernel.org/all/20261001142815.277550-1-herve.codina@bootlin.com/
+
+  - Patches 1 to 9
+    No changes
+
+  - Patch 10
+    Split a test condition into two distinct checks as suggested by
+    Andy. No functional change but readability improvement. Split done
+    in both of_pci_remove_node() and of_pci_remove_host_bridge_node().
+
+v11 -> v12
+  v11: https://lore.kernel.org/all/20260909080114.591938-1-herve.codina@bootlin.com/
+
+  - Patches 1 to 7
+    Add 'Reviewed-by: Bartosz Golaszewski'
+
+  - Patches 8 and 9
+    No changes
+
+  - Patch 10
+    Add a NULL check for the retrieved OF node in removal functions to
+    avoid any NULL pointer dereferences.
+    Robustify the guard setting cset to NULL after freeing it.
+    Those issues have been reported by Shashiko:
+    https://lore.kernel.org/all/20260909081755.444E91F00A3A@smtp.kernel.org/
+
+v10 -> v11
+  v10: https://lore.kernel.org/all/20260717145147.823749-1-herve.codina@bootlin.com/
+
+  Rebase on top of v7.3-rc1
+
+  - Patches 1 to 5
+    Add 'Reviewed-by: Richard Cheng'
+
+  - Patches 6, 7 and 8
+    Add 'Reviewed-by: Richard Cheng'
+    Add 'Acked-by: Manivannan Sadhasivam'
+
+  - Patch 9
+    Add 'Reviewed-by: Richard Cheng'
+
+  - Patch 10
+    Rework removing np->data usage in the PCI devicetree node creation
+    and removal.
+
+v9 -> v10
+  v9: https://lore.kernel.org/all/20260708100302.517792-1-herve.codina@bootlin.com/
+
+  - Patches 1 to 6
+    No changes
+
+  - Patch 7
+    Clear fwnode->dev also on error path.
+
+  - Patch 8
+    Clear fwnode->dev also on error path.
+
+  - Patch 9
+    No changes
+
+  - Patch 10 (New patch in v10)
+    Guard against node removal with incorrect np->data.
+
+v8 -> v9
+  v8: https://lore.kernel.org/all/20260630102804.413563-1-herve.codina@bootlin.com/
+
+  - Patch 7 (new patch in v9)
+    Clear fwnode->dev during root bridge node removal (avoid a dangling
+    pointer).
+
+  - Patch 8 (patch 7 in v8)
+    Clear fwnode->dev during PCI device node removal.
+
+v7 -> v8
+  v7: https://lore.kernel.org/all/20260511155930.34604-1-herve.codina@bootlin.com/
+
+  Rebase on top of v7.2-rc1
+
+  - patches 4 and 5
+    Add 'Reviewed-by: Andy Shevchenko'
+
+  - Other Patches
+    No other changes
+
+v6 -> v7
+
+  Rebase on top of v7.1-rc1
+
+  - Patch 1
+     Add Cc stable. Needed for patches 11 and 12
+
+  - Patches 2 to 5
+    No changes
+
+  - Patch 6
+     Add Cc stable. Needed for patch 13
+     Add 'Acked-by: Bjorn Helgaas'
+
+  - Patch 7
+     Fix a typo in commit log
+     Add Fixes tag + Cc stable
+     Add 'Acked-by: Bjorn Helgaas'
+
+  - Patch 8
+     Add Fixes tag + Cc stable
+     Add 'Acked-by: Bjorn Helgaas'
+Older iterations:
+  Patches 6 to 13 in the big picture series
+  https://lore.kernel.org/all/20260325143555.451852-1-herve.codina@bootlin.com/
+
+Herve Codina (10):
+  driver core: fw_devlink: Introduce fw_devlink_set_device()
+  drivers: core: Use fw_devlink_set_device()
+  pinctrl: cs42l43: Use fw_devlink_set_device()
+  cxl/test: Use device_set_node()
+  cxl/test: Use fw_devlink_set_device()
+  PCI: of: Use fw_devlink_set_device()
+  PCI: of: Clear fwnode->dev during root bridge node removal and error
+    path
+  PCI: of: Set fwnode device of newly created PCI device nodes
+  PCI: of: Remove fwnode_dev_initialized() call for a PCI root bridge
+    node
+  PCI: of: Avoid np->data usage for the node changeset
+
+ drivers/base/core.c                      |  4 +-
+ drivers/pci/of.c                         | 52 ++++++++++++++++--------
+ drivers/pinctrl/cirrus/pinctrl-cs42l43.c |  2 +-
+ include/linux/fwnode.h                   |  6 +++
+ include/linux/pci.h                      | 11 +++++
+ tools/testing/cxl/test/cxl.c             |  4 +-
+ 6 files changed, 58 insertions(+), 21 deletions(-)
+
+-- 
+2.56.0
+
