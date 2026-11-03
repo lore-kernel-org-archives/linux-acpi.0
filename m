@@ -1,57 +1,75 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=83.223.95.204
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.4
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793661376;
-	b=PgAtQMJyuhMscgWAQYFpvHFMdzAM53wn9CXm/wkyYFlb/kiGT0bC2Zr5MLLM06BEP/uO
-	 lJ45qGd4V+5aoSOrHEb2Utg72ux8X31sP4a3Teamkw0Q0cW1OaIy75AKJQunbPBto+zmb
-	 NwVYR7dUGgp+VFv5kivrElvBrE3KNdgvjvOqt63fhtkuTyw/frdgXIxCxe34llvWOFE1Z
-	 nn9CYj3DpRp74nyepIKXiHj0EhYW0hAsGMr20Cp0zW/Rv57BzHGGunRoQRPFja/En4SLX
-	 BEaqTI2bw/iD1GZJ5VKc9RUTe4oDOKQrtBfCrAvpI40udB7NnS1eZV6dD3LWQjjJKAQ==
+	t=1793684249;
+	b=l7kfgVpbCQZSnJzwiZqHgtNEmqBCWdRAtRSD5XpcUV5OUQgqIv1pfD66Qvi98eA7xWuW
+	 d5COJSe2poilxRYGrGfEh0pkn7ljHcrSXsINYq8n16MoFzwu89NiLuQZs+I7nKcVsjk9j
+	 3VQAgwiOUHIu+Rp6gfg1FhH6VHdes+KYjpZswlVup/QeEkOJCUk0Qy+B99RYVc+Nig2Vy
+	 03FbpNNlG9Zo9BS1fspME0TBrXbu0W0ho1sCm+8MEd1jbVXfOKkCA6kcqXrP72BVsgiM0
+	 1dUlBWTYSMgsXPOArw65/DUf9MzHCCgb+5Br0el33ZdQY+A1XnoKQRu7GooMRW/sEaQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793661376;
-	h=DMARC-Filter:Received:Received:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=UcjCzXz5IJVcuXeXUDQ9tzNpo2Te/iR+ykAFbn2DRuk=;
-	b=BOzEZWHP1GYVjBe3yCI/rrZyTBqaACX1h6L5Iy/lb6NHnFpcD2S/GRMR1hg3mYxN1HOe
-	 1sWvuj4HinM9ACFFg8ofd7jDftYGSCHRDuXWmfNJncEiFP9Sskqox3efLSR+HN/SmXrxc
-	 iXQ26pj7gp0IhwkGnUGdaqfJx7ABSv3/nGirDnlR41Zb13uRZUobmz8cJoj5Y2e37LlmP
-	 feDpJDTiGceXnI8OBFgDfuflW24sWdCyfYNrHmhQ3ycOxVmpe5Mubd5UnY8DISBtrdoJn
-	 /gc1OGmobPmS20mjGAgWCPOZLfV2i2n6sPLPO9aM8sV2zmKghOx/ZIH//w4u3msQAHg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793684249;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
+	 Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-CM-TRANSID:X-Coremail-Antispam:Sender:
+	 X-CM-SenderInfo;
+	bh=1SUHukhOZD2PvxvVE654q0jDC0/+kYhMEDgWdq91p3s=;
+	b=heiP7pU56KqXnx1iwXrr9fbMHycHbo30wXREOqIdRfYxGjvXTZJgzQBttAC+7RtdqKr2
+	 LT9tzgyHYXc2S5wCKu+viyfXEuYY3N4iswksEnh3G5g+UYBzPFMjkOF4PnRpYO06flmwY
+	 aAIbVVsuy/y9mPqFFUNhqgcjquMZ8M+tXu7Zy7jqJBUQFzQ8m3NWsjg0GdQwYaqPggSyF
+	 IclDPoFSm01daAT+9fpc16X7WIJ8x9QxeFBLS65Iw5aXpjLohxVWf8vg3pdjqdf8r32cy
+	 0POi5xGpAb9LsrQzjPyqXiSkC2rsn3QneKVp48TO+idMTbKIRv9jzpmL7gDG9DrrpCQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=wunner.de;
-	spf=pass smtp.mailfrom=wunner.de;
-	arc=none smtp.remote-ip=83.223.95.204
-Received: from mailout1.hostsharing.net (mailout1.hostsharing.net [83.223.95.204])
+	dmarc=none header.from=kylinos.cn;
+	spf=pass smtp.mailfrom=163.com;
+	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=Z+jH3h5+;
+	arc=none smtp.remote-ip=117.135.210.4
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.4])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8372B606A326;
-	Mon,  2 Nov 2026 23:16:14 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8372B606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=wunner.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wunner.de
-Received: from h08.hostsharing.net (h08.hostsharing.net [IPv6:2a01:37:1000::53df:5f1c:0])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange x25519 server-signature ECDSA (secp384r1) server-digest SHA384
-	 client-signature ECDSA (secp384r1) client-digest SHA384)
-	(Client CN "*.hostsharing.net", Issuer "GlobalSign GCC R6 AlphaSSL CA 2025" (verified OK))
-	by mailout1.hostsharing.net (Postfix) with ESMTPS id 184161D4E;
-	Tue, 03 Nov 2026 00:16:07 +0100 (CET)
-Received: by h08.hostsharing.net (Postfix, from userid 100393)
-	id 016E2602D909; Tue,  3 Nov 2026 00:16:06 +0100 (CET)
-Date: Tue, 3 Nov 2026 00:16:06 +0100
-From: Lukas Wunner <lukas@wunner.de>
-To: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
-Cc: bhelgaas@google.com, linux-pci@vger.kernel.org,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	rafael@kernel.org, terry.bowman@amd.com, kanie@linux.alibaba.com,
-	olof@lixom.net
-Subject: Re: [PATCH v15 1/4] PCI: Assume control of portdrv-related features
- only when portdrv enabled
-Message-ID: <aukZtm4aLMuH_JIB@wunner.de>
-References: <20261002211828.1293177-1-sathyanarayanan.kuppuswamy@linux.intel.com>
- <20261002211828.1293177-2-sathyanarayanan.kuppuswamy@linux.intel.com>
- <aujwl45XrkVT-zUx@wunner.de>
- <840c7598-f988-428a-8bea-4d66b0f4f4d7@linux.intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B4B4606A324;
+	Tue,  3 Nov 2026 05:37:24 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6B4B4606A324
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=Z+jH3h5+
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=1S
+	UHukhOZD2PvxvVE654q0jDC0/+kYhMEDgWdq91p3s=; b=Z+jH3h5+Mqutwxst4m
+	qYje7Uo1OEQ+LrKJjtfbVj173XF4EzTZGSkhcmr5DKs4vpI85aTyXzHGnn9eNQFs
+	Jseca0Orfh2lkWEtRuH/ZOYmFpWN71IrtJWnyXCHakmCGtCjrGgY3sIDOLPhtGQB
+	kr6fCwq3RQCoehqTJdOokbcOk=
+Received: from localhost.localdomain (unknown [])
+	by gzsmtp5 (Coremail) with SMTP id QCgvCgCXSZPSculq7ZSvDg--.17660S2;
+	Tue, 03 Nov 2026 13:36:34 +0800 (CST)
+From: Yongxin Yang <yangyongxin@kylinos.cn>
+To: Davidlohr Bueso <dave@stgolabs.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Ira Weiny <iweiny@kernel.org>,
+	Dan Williams <djbw@kernel.org>,
+	"Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Shuai Xue <xueshuai@linux.alibaba.com>,
+	Len Brown <lenb@kernel.org>,
+	Li Ming <ming.li@zohomail.com>,
+	Robert Richter <rrichter@amd.com>,
+	Ben Cheatham <benjamin.cheatham@amd.com>,
+	linux-cxl@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v6] cxl/core: Create EINJ debugfs files regardless of EINJ init order
+Date: Tue,  3 Nov 2026 13:36:18 +0800
+Message-Id: <20261103053618.884065-1-yangyongxin@kylinos.cn>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20261102032436.230945-1-yangyongxin@kylinos.cn>
+References: <20261102032436.230945-1-yangyongxin@kylinos.cn>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -61,40 +79,95 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <840c7598-f988-428a-8bea-4d66b0f4f4d7@linux.intel.com>
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:QCgvCgCXSZPSculq7ZSvDg--.17660S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxWFykZrW8Jw45ArW7uFy5XFb_yoW5ZFyrpa
+	1DC3sYy3y8Cay3Cry3Aa4UZFySqwn5Wa47Ar98u343AF4kCrn8GFn5ArWY9ayDWFs8Ja4F
+	q3WYyr1DCr1Ykr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07jTUDJUUUUU=
+Sender: yang_yongxin123@163.com
+X-CM-SenderInfo: 51dqwsp1rqw5tlqrjji6rwjhhfrp/xtbC4wPph2rpcuPufwAA3N
 
-On Mon, Nov 02, 2026 at 12:38:28PM -0800, Kuppuswamy Sathyanarayanan wrote:
-> On 11/2/2026 12:20 PM, Lukas Wunner wrote:
-> > This is now commit 6347fd9aee19 in Linus' tree and I think there's a problem:
-[...]
-> > The commit is setting the native_pcie_hotplug bit up front based on
-> > CONFIG_PCIEPORTBUS.
-> > 
-> > But there's an if-clause at the top of get_port_device_capability() which
-> > adds PCIE_PORT_SERVICE_HP to the port services used by a given PCIe port.
-> > 
-> > Inside the if-clause is code to disable hotplug interrupts if the BIOS
-> > left them enable.
-> > 
-> > Since the commit, if CONFIG_PCIEPORTBUS=n, the if-clause is no longer
-> > entered and so the interrupts are no longer disabled.
-> 
-> I don't think this case changed. get_port_device_capability() is in
-> portdrv.c, which is only built with CONFIG_PCIEPORTBUS=y:
-> 
->   obj-$(CONFIG_PCIEPORTBUS)	+= pcieportdrv.o bwctrl.o
-> 
-> So with CONFIG_PCIEPORTBUS=n, the if-clause was never entered, before or
-> after this commit.
+The einj_types file under the CXL debugfs directory is never created when
+cxl_core is built in.  cxl_core_init() runs at subsys_initcall level, while
+einj_init() registers EINJ at device_initcall level, so the
+einj_cxl_is_initialized() check in cxl_core_init() always sees EINJ as not
+up yet and the debugfs_create_file() below it is never reached.
 
-Okay, that convinces me, thanks for the explanation.
+Change the file creation condition from EINJ being initialized to a compile
+time check for ACPI_APEI_EINJ_CXL and return -ENODEV until EINJ is up.
 
-> Did you see a case where the interrupts stay enabled with this commit?
+The same check also guards the inject files under every downstream port
+directory, not just the RCH ones.  Gate that directory creation on
+CONFIG_ACPI_APEI_EINJ_CXL as well, and check einj_cxl_is_initialized() in
+cxl_einj_inject() to reject writes until EINJ is up.
 
-Nope, just thought "this looks fishy" when I rebased my development branch.
+Fixes: 8039804cfa73 ("cxl/core: Add CXL EINJ debugfs files")
+Signed-off-by: Yongxin Yang <yangyongxin@kylinos.cn>
+---
+Link: https://lore.kernel.org/all/de14c4ef-e3d8-432f-9ce8-87c468d6d2ad@amd.com/
+Link: https://lore.kernel.org/all/7a22cc6a-deba-40e6-8033-97d1234420ba@amd.com/
 
-Thanks!
+Changes in v6:
+- Apply the same compile time check to cxl_debugfs_create_dport_dir() and
+  move the runtime check into cxl_einj_inject(), so the inject files under
+  the downstream ports are created as well.  This is not RCH specific, all
+  downstream ports are affected.
+- Reword the commit log as suggested and drop the parts that the code makes
+  obvious.
+- Drop Cc: stable and both Suggested-by tags, move the lore links below the
+  git marker.
 
-Lukas
+ drivers/acpi/apei/einj-cxl.c | 3 +++
+ drivers/cxl/core/port.c      | 7 +++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/apei/einj-cxl.c b/drivers/acpi/apei/einj-cxl.c
+index e70a416ec925..22a7eb4dc75e 100644
+--- a/drivers/acpi/apei/einj-cxl.c
++++ b/drivers/acpi/apei/einj-cxl.c
+@@ -30,6 +30,9 @@ int einj_cxl_available_error_type_show(struct seq_file *m, void *v)
+ 	int cxl_err, rc;
+ 	u32 available_error_type = 0;
+ 
++	if (!einj_cxl_is_initialized())
++		return -ENODEV;
++
+ 	rc = einj_get_available_error_type(&available_error_type, ACPI_EINJ_GET_ERROR_TYPE);
+ 	if (rc)
+ 		return rc;
+diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+index 625e4aa427db..a949228de936 100644
+--- a/drivers/cxl/core/port.c
++++ b/drivers/cxl/core/port.c
+@@ -806,6 +806,9 @@ static int cxl_einj_inject(void *data, u64 type)
+ {
+ 	struct cxl_dport *dport = data;
+ 
++	if (!einj_cxl_is_initialized())
++		return -ENODEV;
++
+ 	if (dport->rch)
+ 		return einj_cxl_inject_rch_error(dport->rcrb.base, type);
+ 
+@@ -819,7 +822,7 @@ static void cxl_debugfs_create_dport_dir(struct cxl_dport *dport)
+ 	struct cxl_port *parent = parent_port_of(dport->port);
+ 	struct dentry *dir;
+ 
+-	if (!einj_cxl_is_initialized())
++	if (!IS_ENABLED(CONFIG_ACPI_APEI_EINJ_CXL))
+ 		return;
+ 
+ 	/*
+@@ -2515,7 +2518,7 @@ static __init int cxl_core_init(void)
+ 
+ 	cxl_debugfs = debugfs_create_dir("cxl", NULL);
+ 
+-	if (einj_cxl_is_initialized())
++	if (IS_ENABLED(CONFIG_ACPI_APEI_EINJ_CXL))
+ 		debugfs_create_file("einj_types", 0400, cxl_debugfs, NULL,
+ 				    &einj_cxl_available_error_type_fops);
+ 
+-- 
+2.25.1
+
