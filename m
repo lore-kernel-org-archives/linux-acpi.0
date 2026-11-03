@@ -1,44 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793727561;
-	b=pGB/WpEOSw1cyYHR6ZWTuHfrwyUE7vFvMs3C2TJ63T5uoJ8luSy1FQCeEmZY2nTQqIE0
-	 za1/FP2LtlBOP8zwnpJUMrhmb0f8MGlho0QCylhrusKz++mqam95WrUv2Zyx25YqfwFY+
-	 3Xq5UTLjEVnVDPYvNDtQ4CpiW4ZXuCuiKKsDgVLnhY86ZgP7CCX6ZaT/Qoy1iNzm+uWwt
-	 OTexFPLpYnTumwmD63R9r5fej5+j1NN+HXGmn8YhqgP168k2+gxTGqeo02F/OIPZcLEG8
-	 Uf46qDNLJ3wVgDT1OPHkQRb4v/0QBNN7ssFJsLSlZiGg1RUjc+I0tsqLLiGpVlVyT3A==
+	t=1793727563;
+	b=B2LZJOGwRcVOdKxB6oIbcFD3DNv8T87pCYXgcEMaOMWzj4e8Tz3eR+k1oX3vFsTgQ6VT
+	 udLRq+vUjertF931P0+CyykX8Y4kwu/jJxyT4CQD7rVdLEdTkfvk47DVKwTZ4nuvE6duI
+	 /W1QRDvu8U2DqTFcUl8/j3MdJDO5Z9qV6aeCx0CW+7uERodKjblVoU3tTgwIpaBQ5UYJP
+	 aazqX1zutIDGDgrT/qOFwPdCgk3nw7jFNz7P2Wtyh0n/5zTYU5PM2t/TjnffKFZ508TZu
+	 MfuDFXtes3aIzrhglHPx9hcYICEjdlurDDbQZvxxwfNWrKSU/HzmdqpSjFYgPKjQVsw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793727561;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793727563;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=WczHqXUJBDQkZnx7jmS64w/SIgD/rxh/pcaReuBDRzc=;
-	b=BhQk+AA5grIyu7upjYcIFeynzZ+O4RPaCGhRNCtViUV5h14rEpBmDEE61SPtHuiO4Irv
-	 2dvwUS237sl6jJLWdksclwI6nlqioLhjFRa3Y64y75XJ9qUgR7YR/4WUpvbC6zvpmsuXs
-	 XtQJxgo+TaBjLT1xuR7sh8D7fZ63cCyPc4RuFj2JnlLN1K4sDx/4Q3tqOHvM90aOdI2op
-	 YHXVdkFmd5VvewfGjg6WxZq277IvSV1LtHQy3CcDB/7ovrgDVyDuekPgZgFISapbwsijY
-	 SPktUJhCnZzhIO0dXfXa2FnvgBBrJcEJQVz2PFniukaw7StwH/RLfYNxvjVUiby9Arg==
+	bh=iV25/DxKsnhun2yvINfOyLlr7WgOgBvCKI0Z9NP64MY=;
+	b=mqEyHwouk26zXsqI+PVFrWbT9NscHXs+0a+mF6oidHtfaBcpOaUo4rHjZMWfzha1XoQ5
+	 t9cQauokcAe2/ANJnDqDWpyuqBUe5+/Ztk6TbltOqUUdkm+DhVnvH3k4XuSQYs7lSvwan
+	 DmAKw8OLDYQouqKxKQodVNy2nSxuM3g27M2V4JDLtofM7E7jL1N8BAs66+yxI2UO+vXhN
+	 Hh5Qqra7qo3FiLojDZyszonjgZ1dSS/1Jz8DfzowDWm0YS+AhXTkaY1nEO4uwFmUhx1x/
+	 lmo5bE48NOMHG3B5fIlqJy5vCvDzcNKUPVkck/SIgPbuJ7uhQj3fzdBFKuJSZAJZ1xQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=KFCBFM6U;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aa6MOMUB;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF5B6606A33A
-	for <linux-acpi@vger.kernel.org>; Tue,  3 Nov 2026 17:39:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA453606A31B
+	for <linux-acpi@vger.kernel.org>; Tue,  3 Nov 2026 17:39:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=KFCBFM6U
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D14001F00A16;
-	Tue,  3 Nov 2026 17:39:18 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aa6MOMUB
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D272F1F00A18;
+	Tue,  3 Nov 2026 17:39:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793727560;
-	bh=WczHqXUJBDQkZnx7jmS64w/SIgD/rxh/pcaReuBDRzc=;
+	s=k20260515; t=1793727562;
+	bh=iV25/DxKsnhun2yvINfOyLlr7WgOgBvCKI0Z9NP64MY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=KFCBFM6UhOeoYoWIudd1p3yLoRUDhAwaLeyIoLQszPZYwv2wo6rNZAFv9fA6Jv/ct
-	 A90k05Od6LzVOhhu+ltLnTdsH61+I0PhC/M683aVdC3rO1Iamj6yWF+UCDLQodZU4S
-	 ZonXFqovlG/uuk5U6lotG0Heqfp6oJpAlHyZ45Yd3zDggF2brsRGJnMCVf7xckAs4S
-	 Fq0jGGYd4U1mqQeJR+2NGtsvbWhJOsS3nJn8Szq0gpV5vLyHjBTbsPKCWhzcMibivL
-	 iCZOj/VO28FQ54HUMaRT+5a7fPz1ZgdPQeCj3YVX14AixGOmQrGV0sGjB/L6N0kLbZ
-	 RET83U73rdd9A==
+	b=aa6MOMUBf7iSGSrxcNlAfcSxSSBoSw+ekqQszz/BLj2hawXhy3YxCAMvLGLC+CD2z
+	 YgH4eqs7q3y73yMW4JczrzA5kswETdXlN1D+mrva48LdPm7a8bP+7PacOo1Q5tH8BV
+	 n3xvgm8xIxPdRkxHu6LhBU2MpVURqMYar/cm4OtrATpP1LBppqEEXMuwVz+Y5h/9w3
+	 ACJE7ClLvBnnpI1fys0HkbrIKU+ZaQnwycgbsFw3oy25rPzNgoBgOOnzLoE6pApPIf
+	 moIhlnr9brm4IvbOaRDfh6aZNMMGHSdFZK7ftx5QAMHKPcDuguwwZXg/KlrYJ/P7OV
+	 A0oLi1Waq+5BA==
 From: Sudeep Holla <sudeep.holla@kernel.org>
 To: linux-acpi@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org
@@ -49,9 +49,9 @@ Cc: Sudeep Holla <sudeep.holla@kernel.org>,
 	Catalin Marinas <catalin.marinas@arm.com>,
 	Will Deacon <will@kernel.org>,
 	Dat Mach <dmach@nvidia.com>
-Subject: [PATCH 1/2] firmware: arm_ffa: Share FF-A register field definitions
-Date: Tue,  3 Nov 2026 17:39:06 +0000
-Message-ID: <20261103173907.1996118-2-sudeep.holla@kernel.org>
+Subject: [PATCH 2/2] ACPI: FFH: Support FF-A direct request 2 calls
+Date: Tue,  3 Nov 2026 17:39:07 +0000
+Message-ID: <20261103173907.1996118-3-sudeep.holla@kernel.org>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261103173907.1996118-1-sudeep.holla@kernel.org>
 References: <20261103173907.1996118-1-sudeep.holla@kernel.org>
@@ -66,184 +66,282 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-ACPI FFH and the FF-A transport driver interpret the same
-PARTITION_INFO_GET_REGS metadata and pack endpoint IDs using the same
-bit fields. Define these fields once in arm_ffa.h instead of keeping
-private copies.
+Arm Functional Fixed Hardware specification v1.3 defines FFH
+OperationRegion offset 2 for issuing FFA_MSG_SEND_DIRECT_REQ2 calls.
+The arm64 FFH handler currently supports only generic 32-bit and 64-bit
+SMCCC calls, so it cannot implement this standardized interface.
 
-Use the shared masks in the transport driver and check descriptor
-lengths against the same minimum used by ACPI FFH. This keeps the ABI
-encoding consistent between the two users.
+Add a standalone FF-A path using the existing SMCCC conduit. Negotiate
+FF-A v1.2, discover the sender endpoint with FFA_ID_GET, and use either
+the receiver supplied by firmware or resolve a unique receiver from the
+service UUID with FFA_PARTITION_INFO_GET_REGS.
+
+Convert the ACPI ToUUID representation to the FF-A register encoding,
+construct the direct request, resume interrupted or yielded calls with
+FFA_RUN, and return the defined FFH status codes to AML.
+
+Register-based partition discovery avoids RX/TX buffer ownership and
+keeps the FFH implementation independent of the Arm FF-A transport
+driver.
 
 Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
 ---
- drivers/firmware/arm_ffa/driver.c | 48 +++++++++++--------------------
- include/linux/arm_ffa.h           | 19 ++++++++++++
- 2 files changed, 36 insertions(+), 31 deletions(-)
+ drivers/acpi/arm64/ffh.c | 227 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 227 insertions(+)
 
-diff --git a/drivers/firmware/arm_ffa/driver.c b/drivers/firmware/arm_ffa/driver.c
-index 28abc808fd32..babc5d62bdd2 100644
---- a/drivers/firmware/arm_ffa/driver.c
-+++ b/drivers/firmware/arm_ffa/driver.c
-@@ -52,13 +52,6 @@
- #define FFA_MIN_VERSION		FFA_VERSION_1_0
- #define FFA_PLATFORM_NAME	"arm-ffa"
- 
--#define SENDER_ID_MASK		GENMASK(31, 16)
--#define RECEIVER_ID_MASK	GENMASK(15, 0)
--#define SENDER_ID(x)		((u16)(FIELD_GET(SENDER_ID_MASK, (x))))
--#define RECEIVER_ID(x)		((u16)(FIELD_GET(RECEIVER_ID_MASK, (x))))
--#define PACK_TARGET_INFO(s, r)		\
--	(FIELD_PREP(SENDER_ID_MASK, (s)) | FIELD_PREP(RECEIVER_ID_MASK, (r)))
--
- #define RXTX_MAP_MIN_BUFSZ_MASK	GENMASK(1, 0)
- #define RXTX_MAP_MAX_BUFSZ_MASK	GENMASK(31, 16)
- #define RXTX_MAP_MIN_BUFSZ(x)	(FIELD_GET(RXTX_MAP_MIN_BUFSZ_MASK, (x)))
-@@ -320,24 +313,16 @@ __ffa_partition_info_get(u32 uuid0, u32 uuid1, u32 uuid2, u32 uuid3,
- 	return count;
- }
- 
--#define LAST_INDEX_MASK		GENMASK(15, 0)
--#define CURRENT_INDEX_MASK	GENMASK(31, 16)
--#define UUID_INFO_TAG_MASK	GENMASK(47, 32)
--#define PARTITION_INFO_SZ_MASK	GENMASK(63, 48)
--#define PARTITION_COUNT(x)	((u16)(FIELD_GET(LAST_INDEX_MASK, (x))) + 1)
--#define CURRENT_INDEX(x)	((u16)(FIELD_GET(CURRENT_INDEX_MASK, (x))))
--#define UUID_INFO_TAG(x)	((u16)(FIELD_GET(UUID_INFO_TAG_MASK, (x))))
--#define PARTITION_INFO_SZ(x)	((u16)(FIELD_GET(PARTITION_INFO_SZ_MASK, (x))))
--#define PART_INFO_ID_MASK	GENMASK(15, 0)
--#define PART_INFO_EXEC_CXT_MASK	GENMASK(31, 16)
--#define PART_INFO_PROPS_MASK	GENMASK(63, 32)
-+#define PARTITION_COUNT(x)	((u16)(FIELD_GET(FFA_PART_INFO_LAST_IDX_MASK, (x))) + 1)
-+#define CURRENT_INDEX(x)	((u16)(FIELD_GET(FFA_PART_INFO_CUR_IDX_MASK, (x))))
-+#define UUID_INFO_TAG(x)	((u16)(FIELD_GET(FFA_PART_INFO_UUID_TAG_MASK, (x))))
-+#define PARTITION_INFO_SZ(x)	((u16)(FIELD_GET(FFA_PART_INFO_DESC_SIZE_MASK, (x))))
- #define FFA_PART_INFO_GET_REGS_FIRST_REG	3
--#define FFA_PART_INFO_GET_REGS_MIN_REGS_PER_DESC	3
- #define FFA_PART_INFO_GET_REGS_NUM_REGS \
- 	(sizeof(ffa_value_t) / sizeof_field(ffa_value_t, a0))
--#define PART_INFO_ID(x)		((u16)(FIELD_GET(PART_INFO_ID_MASK, (x))))
--#define PART_INFO_EXEC_CXT(x)	((u16)(FIELD_GET(PART_INFO_EXEC_CXT_MASK, (x))))
--#define PART_INFO_PROPERTIES(x)	((u32)(FIELD_GET(PART_INFO_PROPS_MASK, (x))))
-+#define PART_INFO_ID(x)		((u16)(FIELD_GET(FFA_PART_INFO_ID_MASK, (x))))
-+#define PART_INFO_EXEC_CXT(x)	((u16)(FIELD_GET(FFA_PART_INFO_EXEC_CXT_MASK, (x))))
-+#define PART_INFO_PROPERTIES(x)	((u32)(FIELD_GET(FFA_PART_INFO_PROPS_MASK, (x))))
- static int
- __ffa_partition_info_get_regs(u32 uuid0, u32 uuid1, u32 uuid2, u32 uuid3,
- 			      struct ffa_partition_info *buffer, int num_parts)
-@@ -375,9 +360,9 @@ __ffa_partition_info_get_regs(u32 uuid0, u32 uuid1, u32 uuid2, u32 uuid3,
- 		if (buf_sz % sizeof(*regs))
- 			return -EINVAL;
- 
--		regs_per_desc = buf_sz / sizeof(*regs);
--		if (regs_per_desc < FFA_PART_INFO_GET_REGS_MIN_REGS_PER_DESC)
-+		if (buf_sz < FFA_PART_INFO_MIN_DESC_SIZE)
- 			return -EINVAL;
-+		regs_per_desc = buf_sz / sizeof(*regs);
- 
- 		nr_desc = cur_idx - start_idx + 1;
- 		max_desc = (FFA_PART_INFO_GET_REGS_NUM_REGS -
-@@ -493,7 +478,7 @@ static inline void ffa_msg_send_wait_for_completion(ffa_value_t *ret)
- static int ffa_msg_send_direct_req(u16 src_id, u16 dst_id, bool mode_32bit,
- 				   struct ffa_send_direct_data *data)
- {
--	u32 req_id, resp_id, src_dst_ids = PACK_TARGET_INFO(src_id, dst_id);
-+	u32 req_id, resp_id, src_dst_ids = ffa_pack_target_info(src_id, dst_id);
- 	ffa_value_t ret;
- 
- 	if (mode_32bit) {
-@@ -529,7 +514,7 @@ static int ffa_msg_send_direct_req(u16 src_id, u16 dst_id, bool mode_32bit,
- 
- static int ffa_msg_send2(struct ffa_device *dev, u16 src_id, void *buf, size_t sz)
- {
--	u32 src_dst_ids = PACK_TARGET_INFO(src_id, dev->vm_id);
-+	u32 src_dst_ids = ffa_pack_target_info(src_id, dev->vm_id);
- 	struct ffa_indirect_msg_hdr *msg;
- 	ffa_value_t ret;
- 	int retval = 0;
-@@ -563,7 +548,7 @@ static int ffa_msg_send2(struct ffa_device *dev, u16 src_id, void *buf, size_t s
- static int ffa_msg_send_direct_req2(u16 src_id, u16 dst_id, const uuid_t *uuid,
- 				    struct ffa_send_direct_data2 *data)
- {
--	u32 src_dst_ids = PACK_TARGET_INFO(src_id, dst_id);
-+	u32 src_dst_ids = ffa_pack_target_info(src_id, dst_id);
- 	union {
- 		uuid_t uuid;
- 		__le64 regs[2];
-@@ -889,7 +874,7 @@ enum notify_type {
- #define RECEIVER_VCPU_MASK		GENMASK(31, 16)
- #define PACK_NOTIFICATION_GET_RECEIVER_INFO(vcpu_r, r) \
- 	(FIELD_PREP(RECEIVER_VCPU_MASK, (vcpu_r)) | \
--	 FIELD_PREP(RECEIVER_ID_MASK, (r)))
-+	 FIELD_PREP(FFA_TARGET_INFO_RECEIVER_MASK, (r)))
- 
- #define NOTIFICATION_INFO_GET_MORE_PEND_MASK	BIT(0)
- #define NOTIFICATION_INFO_GET_ID_COUNT		GENMASK(11, 7)
-@@ -920,7 +905,7 @@ static int ffa_notification_bind_common(u16 dst_id, u64 bitmap,
- 					u32 flags, bool is_bind)
- {
- 	ffa_value_t ret;
--	u32 func, src_dst_ids = PACK_TARGET_INFO(dst_id, drv_info->vm_id);
-+	u32 func, src_dst_ids = ffa_pack_target_info(dst_id, drv_info->vm_id);
- 
- 	func = is_bind ? FFA_NOTIFICATION_BIND : FFA_NOTIFICATION_UNBIND;
- 
-@@ -942,7 +927,7 @@ static
- int ffa_notification_set(u16 src_id, u16 dst_id, u32 flags, u64 bitmap)
- {
- 	ffa_value_t ret;
--	u32 src_dst_ids = PACK_TARGET_INFO(dst_id, src_id);
-+	u32 src_dst_ids = ffa_pack_target_info(dst_id, src_id);
- 
- 	invoke_ffa_fn((ffa_value_t) {
- 		  .a0 = FFA_NOTIFICATION_SET, .a1 = src_dst_ids, .a2 = flags,
-@@ -1542,7 +1527,8 @@ static void handle_fwk_notif_callbacks(u32 bitmap)
- 			return;
- 		}
- 
--		target = SENDER_ID(msg->send_recv_id);
-+		target = FIELD_GET(FFA_TARGET_INFO_SENDER_MASK,
-+				   msg->send_recv_id);
- 		if (offset >= sizeof(*msg))
- 			uuid_copy(&uuid, &msg->uuid);
- 		else
-diff --git a/include/linux/arm_ffa.h b/include/linux/arm_ffa.h
-index e71d83ee0aef..3831fbe244c1 100644
---- a/include/linux/arm_ffa.h
-+++ b/include/linux/arm_ffa.h
-@@ -130,6 +130,15 @@
- #define FFA_FEAT_RXTX_MIN_SZ_16K	2
- #define FFA_FEAT_RXTX_MIN_SZ_MASK	GENMASK(1, 0)
- 
-+#define FFA_TARGET_INFO_SENDER_MASK	GENMASK(31, 16)
-+#define FFA_TARGET_INFO_RECEIVER_MASK	GENMASK(15, 0)
+diff --git a/drivers/acpi/arm64/ffh.c b/drivers/acpi/arm64/ffh.c
+index 04380bab193d..3f8cecc8ab22 100644
+--- a/drivers/acpi/arm64/ffh.c
++++ b/drivers/acpi/arm64/ffh.c
+@@ -1,7 +1,22 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ #include <linux/acpi.h>
++#include <linux/arm_ffa.h>
+ #include <linux/arm-smccc.h>
++#include <linux/delay.h>
++#include <linux/mutex.h>
+ #include <linux/slab.h>
++#include <linux/unaligned.h>
 +
-+static inline u32 ffa_pack_target_info(u16 sender, u16 receiver)
++#define FFH_FFA_CALL_FAILED		1
++#define FFH_FFA_SUCCESS			0
++#define FFH_FFA_NOT_SUPPORTED		-1
++#define FFH_FFA_INVALID_PARAMETERS	-2
++#define FFH_FFA_OUT_OF_MEMORY		-3
++#define FFH_FFA_UNSPECIFIED_ERROR	-4
++
++#define FFH_FFA_MIN_LEN			(5 * sizeof(u64))
++#define FFH_FFA_MAX_LEN			(18 * sizeof(u64))
++#define FFH_FFA_UUID_OFFSET		(2 * sizeof(u64))
+ 
+ /*
+  * Implements ARM64 specific callbacks to support ACPI FFH Operation Region as
+@@ -19,6 +34,216 @@ struct acpi_ffh_data {
+ 				struct arm_smccc_1_2_regs *res);
+ };
+ 
++static DEFINE_MUTEX(acpi_ffh_ffa_lock);
++static bool acpi_ffh_ffa_version_negotiated;
++static bool acpi_ffh_ffa_initialized;
++static u16 acpi_ffh_ffa_sender_id;
++
++static void acpi_ffh_ffa_invoke(struct acpi_ffh_data *ffh_ctxt,
++				const struct arm_smccc_1_2_regs *args,
++				struct arm_smccc_1_2_regs *res)
 +{
-+	return FIELD_PREP(FFA_TARGET_INFO_SENDER_MASK, sender) |
-+	       FIELD_PREP(FFA_TARGET_INFO_RECEIVER_MASK, receiver);
++	ffh_ctxt->invoke_ffh64_fn(args, res);
 +}
 +
- /* FFA Bus/Device/Driver related */
- struct ffa_device {
- 	u32 id;
-@@ -228,6 +237,16 @@ extern const struct bus_type ffa_bus_type;
- /* The FF-A 1.0 partition structure lacks the uuid[4] */
- #define FFA_1_0_PARTITON_INFO_SZ	(8)
- 
-+/* FFA_PARTITION_INFO_GET_REGS response fields */
-+#define FFA_PART_INFO_LAST_IDX_MASK	GENMASK_ULL(15, 0)
-+#define FFA_PART_INFO_CUR_IDX_MASK	GENMASK_ULL(31, 16)
-+#define FFA_PART_INFO_UUID_TAG_MASK	GENMASK_ULL(47, 32)
-+#define FFA_PART_INFO_DESC_SIZE_MASK	GENMASK_ULL(63, 48)
-+#define FFA_PART_INFO_MIN_DESC_SIZE	24
-+#define FFA_PART_INFO_ID_MASK		GENMASK_ULL(15, 0)
-+#define FFA_PART_INFO_EXEC_CXT_MASK	GENMASK_ULL(31, 16)
-+#define FFA_PART_INFO_PROPS_MASK		GENMASK_ULL(63, 32)
++static int acpi_ffh_ffa_features(struct acpi_ffh_data *ffh_ctxt, u32 fid)
++{
++	struct arm_smccc_1_2_regs args = {
++		.a0 = FFA_FEATURES,
++		.a1 = fid,
++	};
++	struct arm_smccc_1_2_regs res;
 +
- /* FFA transport related */
- struct ffa_partition_info {
- 	u16 id;
++	acpi_ffh_ffa_invoke(ffh_ctxt, &args, &res);
++	if (res.a0 == FFA_ERROR) {
++		if ((s32)res.a2 == FFA_RET_NOT_SUPPORTED)
++			return -EOPNOTSUPP;
++		return -EINVAL;
++	}
++
++	return res.a0 == FFA_SUCCESS ? 0 : -EIO;
++}
++
++static int acpi_ffh_ffa_init(struct acpi_ffh_data *ffh_ctxt)
++{
++	struct arm_smccc_1_2_regs args = { }, res;
++	u32 version;
++	int ret = 0;
++
++	mutex_lock(&acpi_ffh_ffa_lock);
++	if (acpi_ffh_ffa_initialized)
++		goto out;
++
++	if (!acpi_ffh_ffa_version_negotiated) {
++		args.a0 = FFA_VERSION;
++		args.a1 = FFA_VERSION_1_2;
++		acpi_ffh_ffa_invoke(ffh_ctxt, &args, &res);
++		version = res.a0;
++		if ((s32)version == SMCCC_RET_NOT_SUPPORTED ||
++		    FFA_MAJOR_VERSION(version) != 1 ||
++		    version < FFA_VERSION_1_2) {
++			ret = -EOPNOTSUPP;
++			goto out;
++		}
++		acpi_ffh_ffa_version_negotiated = true;
++	}
++
++	ret = acpi_ffh_ffa_features(ffh_ctxt, FFA_MSG_SEND_DIRECT_REQ2);
++	if (ret)
++		goto out;
++
++	ret = acpi_ffh_ffa_features(ffh_ctxt, FFA_MSG_SEND_DIRECT_RESP2);
++	if (ret)
++		goto out;
++
++	ret = acpi_ffh_ffa_features(ffh_ctxt, FFA_PARTITION_INFO_GET_REGS);
++	if (ret)
++		goto out;
++
++	args = (struct arm_smccc_1_2_regs) { .a0 = FFA_ID_GET };
++	acpi_ffh_ffa_invoke(ffh_ctxt, &args, &res);
++	if (res.a0 == FFA_ERROR) {
++		ret = (s32)res.a2 == FFA_RET_NOT_SUPPORTED ?
++		      -EOPNOTSUPP : -EIO;
++		goto out;
++	}
++	if (res.a0 != FFA_SUCCESS) {
++		ret = -EIO;
++		goto out;
++	}
++
++	acpi_ffh_ffa_sender_id = (u16)res.a2;
++	acpi_ffh_ffa_initialized = true;
++out:
++	mutex_unlock(&acpi_ffh_ffa_lock);
++	return ret;
++}
++
++static void acpi_ffh_ffa_uuid_convert(const u8 *guid, u8 *uuid)
++{
++	/* ACPI ToUUID uses GUID byte order while FF-A uses UUID byte order. */
++	uuid[0] = guid[3];
++	uuid[1] = guid[2];
++	uuid[2] = guid[1];
++	uuid[3] = guid[0];
++	uuid[4] = guid[5];
++	uuid[5] = guid[4];
++	uuid[6] = guid[7];
++	uuid[7] = guid[6];
++	memcpy(uuid + 8, guid + 8, UUID_SIZE - 8);
++}
++
++static int acpi_ffh_ffa_receiver_id(struct acpi_ffh_data *ffh_ctxt,
++				    u64 uuid_lo, u64 uuid_hi, u16 *receiver_id)
++{
++	struct arm_smccc_1_2_regs args = {
++		.a0 = FFA_PARTITION_INFO_GET_REGS,
++		.a1 = uuid_lo,
++		.a2 = uuid_hi,
++	};
++	struct arm_smccc_1_2_regs res;
++	u32 properties;
++
++	acpi_ffh_ffa_invoke(ffh_ctxt, &args, &res);
++	if (res.a0 != FFA_FN64_SUCCESS)
++		return -EINVAL;
++
++	if (FIELD_GET(FFA_PART_INFO_LAST_IDX_MASK, res.a2) ||
++	    FIELD_GET(FFA_PART_INFO_CUR_IDX_MASK, res.a2) ||
++	    FIELD_GET(FFA_PART_INFO_DESC_SIZE_MASK, res.a2) <
++		    FFA_PART_INFO_MIN_DESC_SIZE)
++		return -EINVAL;
++
++	properties = FIELD_GET(FFA_PART_INFO_PROPS_MASK, res.a3);
++	if (!(properties & FFA_PARTITION_DIRECT_REQ2_RECV))
++		return -EINVAL;
++
++	*receiver_id = FIELD_GET(FFA_PART_INFO_ID_MASK, res.a3);
++	return 0;
++}
++
++static int acpi_ffh_ffa_status(int error)
++{
++	switch (error) {
++	case -EOPNOTSUPP:
++		return FFH_FFA_NOT_SUPPORTED;
++	case -EINVAL:
++		return FFH_FFA_INVALID_PARAMETERS;
++	case -ENOMEM:
++		return FFH_FFA_OUT_OF_MEMORY;
++	default:
++		return FFH_FFA_UNSPECIFIED_ERROR;
++	}
++}
++
++static int acpi_ffh_ffa_direct_req2(acpi_integer *value,
++				    struct acpi_ffh_data *ffh_ctxt)
++{
++	struct arm_smccc_1_2_regs args = { }, res;
++	u64 *buf = (u64 *)value;
++	u64 uuid_lo, uuid_hi;
++	u16 receiver_id = (u16)buf[1];
++	uuid_t uuid;
++	size_t len = ffh_ctxt->info.length;
++	int ret;
++
++	if (len < FFH_FFA_MIN_LEN || len > FFH_FFA_MAX_LEN ||
++	    !IS_ALIGNED(len - 4 * sizeof(u64), sizeof(u64))) {
++		buf[0] = FFH_FFA_INVALID_PARAMETERS;
++		return AE_OK;
++	}
++
++	acpi_ffh_ffa_uuid_convert((u8 *)value + FFH_FFA_UUID_OFFSET, uuid.b);
++	if (uuid_is_null(&uuid)) {
++		buf[0] = FFH_FFA_INVALID_PARAMETERS;
++		return AE_OK;
++	}
++
++	ret = acpi_ffh_ffa_init(ffh_ctxt);
++	if (ret) {
++		buf[0] = acpi_ffh_ffa_status(ret);
++		return AE_OK;
++	}
++
++	uuid_lo = get_unaligned_le64(uuid.b);
++	uuid_hi = get_unaligned_le64(uuid.b + sizeof(uuid_lo));
++	if (!receiver_id) {
++		ret = acpi_ffh_ffa_receiver_id(ffh_ctxt, uuid_lo, uuid_hi,
++					       &receiver_id);
++		if (ret) {
++			buf[0] = FFH_FFA_INVALID_PARAMETERS;
++			return AE_OK;
++		}
++	}
++
++	args.a0 = FFA_MSG_SEND_DIRECT_REQ2;
++	args.a1 = ffa_pack_target_info(acpi_ffh_ffa_sender_id, receiver_id);
++	args.a2 = uuid_lo;
++	args.a3 = uuid_hi;
++	memcpy(&args.a4, &buf[4], len - 4 * sizeof(u64));
++
++	acpi_ffh_ffa_invoke(ffh_ctxt, &args, &res);
++	while (res.a0 == FFA_INTERRUPT || res.a0 == FFA_YIELD) {
++		if (res.a0 == FFA_YIELD)
++			fsleep(1000);
++
++		args = (struct arm_smccc_1_2_regs) {
++			.a0 = FFA_RUN,
++			.a1 = res.a1,
++		};
++		acpi_ffh_ffa_invoke(ffh_ctxt, &args, &res);
++	}
++
++	memcpy(buf, &res, len);
++	if (res.a0 == FFA_MSG_SEND_DIRECT_RESP2 || res.a0 == FFA_SUCCESS ||
++	    res.a0 == FFA_FN64_SUCCESS)
++		buf[0] = FFH_FFA_SUCCESS;
++	else
++		buf[0] = FFH_FFA_CALL_FAILED;
++
++	return AE_OK;
++}
++
+ int acpi_ffh_address_space_arch_setup(void *handler_ctxt, void **region_ctxt)
+ {
+ 	enum arm_smccc_conduit conduit;
+@@ -99,6 +324,8 @@ int acpi_ffh_address_space_arch_handler(acpi_integer *value, void *region_contex
+ 			ffh_ctxt->invoke_ffh64_fn(r, r);
+ 			memcpy(value, r, ffh_ctxt->info.length);
+ 		}
++	} else if (ffh_ctxt->info.offset == 2) {
++		ret = acpi_ffh_ffa_direct_req2(value, ffh_ctxt);
+ 	} else {
+ 		ret = AE_ERROR;
+ 	}
 -- 
 2.43.0
 
