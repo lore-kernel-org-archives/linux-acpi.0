@@ -1,64 +1,49 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=54.254.200.92
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793706148;
-	b=WiVHjFa1VzxTpyDbbuNYDk22sWZoBT6ZlBvm70X5uAs2t71iw4J/Nt5h4Zy3ISxpM3tY
-	 P6RqDVf+C2iisnU7pve76uENaFN9a6vPB5Wgz/jit4mhj2RZhKQHMJq9qKPsCi5DK3iYR
-	 AeYYRVHVMRXsli7V94OpzlWQbZMjQNC9sTsPQCcvfSOlwQ/k8XctA2hkO3a9FwZC4zyzE
-	 +CjPOhsXkDGKcrDl1WIQ5FZuVmTG7E/7TVHVpqKZgH8rhVRy6JzowQ5QZhhmiKWhDEfRu
-	 7paF5nT+HpigqMQkEXwVQ9I/eRioKMdQvuXvyU755D4N1cnZUhliK0p92o4k807G4jA==
+	t=1793706610;
+	b=1sOoxBKgazNF7PbmmdbPjXzh3Wgn8lffxrBhwzWISCOwtVWkNUD8ygUSg6miVOUUho09
+	 Gd27zOAvy5GtI5Avibf2qnbKVtfwhVUg7PyCmwlwnCu5cdurA+ffCeTD5ZHVpCIa4vQpy
+	 AIpB5/qWKCLyeAIbG1X/MvNckn8ktszbsTsPdUWIiRTV6oBwlRKMW+aSokZA1+FgfGQup
+	 Fics2lajGncvw3SOxbBNcEcpw1ATv65HJPBokw3M4RNtOXzGYvBcdHjaAsZPcOzLcNzye
+	 EqF9jT7dkXk4L6LuthuOspgfJ1cppDCGEIPqw6t6QaoNX1GR3dQZCMg4Zs/lL9KXSZA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793706148;
-	h=DMARC-Filter:DKIM-Signature:X-QQ-mid:X-QQ-Originating-IP:Received:
-	 X-QQ-SSF:X-QQ-GoodBg:X-BIZMAIL-ID:From:To:Cc:Subject:Date:Message-Id:
-	 X-Mailer:MIME-Version:Content-Transfer-Encoding:X-QQ-SENDSIZE:
-	 Feedback-ID:X-QQ-XMAILINFO:X-QQ-XMRINFO:X-QQ-RECHKSPAM;
-	bh=nBjLutV06GCjyZ468QVvrXnGy9+G8niQ/DRLI4NdwVM=;
-	b=ieuhHCHqh03CsxgMj4bst8giVApXC2+q+PDDIQDVjQjDELdxHd74JRvIz4a7FlYjeoPh
-	 5UepGafNPdkaC75zSzmw1NVEpuB8jFTcMvlgwUZ5QtPWGMd74G8knKibX+fa7u03vJ2eR
-	 rHo8TgetBbKbn/p90dFXk0MCGKvi/Yy7tsNGrTpBDiEisYJyh0XXKPSKhowrMAon35X4v
-	 TsE78sHTrbhfamAYE9GP5RTlKQH33tsg5BxJvtyiEi0W6aLC11Gzcb710kaNUFQxI3Ktd
-	 NZUvR5zR8Mw8b2tajh1cq3WYQxoYXvevbzvlhr47DuqQxihs3P7gvFBfobw9rH/1hDQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793706610;
+	h=DMARC-Filter:Received:Received:DKIM-Signature:Message-ID:Date:
+	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
+	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	bh=cM3f2k+WSJWTtnrVcHisib2bjevVmgFckszk6cXF/14=;
+	b=uDGXvmmSnmW+nRR7o9xxtxNRKalmGjMFJJEvwBZDKoyw4wDl3kVhPUIX3h6tU0oa5DBc
+	 7hkCpZmlw4LIbxqT4N24bH4tpfaa+zBJSwN/HyLqcxQHFDGBbRJkkLcPBQR0qrjtmdsTK
+	 mvpZqP4pG2AtAE9qWad250pYUHQ+TJMua4TZWLQY7F05DrzNPI8lmNRSZQfurqlkNtuR4
+	 U65DNqmpdEEhO1F1sBLYQ4x0WN3G64PWNwzPCVVqnGFDyPCLpfpMqSKLNOIFr2uFTEr90
+	 yLGqU90EaJLoJvMP+HLDPn4se9gUYcwlDzOlmtRP1RGMyA5j+mtLX7HpH0MPrBXeQJw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=smail.nju.edu.cn;
-	spf=pass smtp.mailfrom=smail.nju.edu.cn;
-	dkim=pass header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.a=rsa-sha256 header.s=iohv2404 header.b=ZD2NAtna;
-	arc=none smtp.remote-ip=54.254.200.92
-Received: from smtpbgsg1.qq.com (smtpbgsg1.qq.com [54.254.200.92])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C19CA606EE89;
-	Tue,  3 Nov 2026 11:42:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C19CA606EE89
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=smail.nju.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=smail.nju.edu.cn
+	dmarc=pass header.from=arm.com;
+	spf=pass smtp.mailfrom=arm.com;
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=m4n8FRl5;
+	arc=none smtp.remote-ip=217.140.110.172
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 28009606A32C;
+	Tue,  3 Nov 2026 11:50:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 28009606A32C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=smail.nju.edu.cn header.i=@smail.nju.edu.cn header.a=rsa-sha256 header.s=iohv2404 header.b=ZD2NAtna
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=smail.nju.edu.cn;
-	s=iohv2404; t=1793706112;
-	bh=nBjLutV06GCjyZ468QVvrXnGy9+G8niQ/DRLI4NdwVM=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version;
-	b=ZD2NAtnaql957jg5fEQMzwp7pMUjtxVE1Yi4395Sr9vk6zjkGutb5BESwAfUKmdKv
-	 gVQbkQDd8AQqdELHpcVX3dybMVCC+0r3oJkxodtctxlmaejJ6AJdfJNyDW1oHqBo2k
-	 Xmd9fe11PyqGvDWGBsrC4NkfA3G73zGyyqt8ncJo=
-X-QQ-mid: zesmtpip4t1793706111ta085392d
-X-QQ-Originating-IP: RFz0t0K9zQcM29B2jlMJtyHx68cxFrQ7MIrgtCL3pL4=
-Received: from workstation-Precision-7920-Towe ( [localhost])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Tue, 03 Nov 2026 19:41:49 +0800 (CST)
-X-QQ-SSF: 0000000000000000000000000000000
-X-QQ-GoodBg: 0
-X-BIZMAIL-ID: 15564578138357114516
-From: Kang Chen <k.chen@smail.nju.edu.cn>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Len Brown <lenb@kernel.org>,
-	Tony Luck <tony.luck@intel.com>,
-	Borislav Petkov <bp@suse.de>,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] ACPI: ADXL: verify component name types
-Date: Tue,  3 Nov 2026 19:41:49 +0800
-Message-Id: <20261103114149.76010-1-k.chen@smail.nju.edu.cn>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=m4n8FRl5
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id DF3AE16A3;
+	Tue,  3 Nov 2026 03:50:04 -0800 (PST)
+Received: from [10.0.130.179] (unknown [10.0.130.179])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 1F2BD3F632;
+	Tue,  3 Nov 2026 03:50:03 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1793706608; bh=mqnypz3yUy2oaNu2KMv651MQpITkWlXP906E1NPRi1Q=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=m4n8FRl5JZGVBwxBto5bGH8HZMPf+8GNaTvk/pKXtl014K6accIPlTne9nMgvqMwI
+	 mirYuXyo6LyzvzYFrZ+ZW9KgWZw/69JRx+VsNfFE5Ep6Sy6etGA6YxN0ARlF2zFGOF
+	 jUY1Z9UwF31APVER3ltzbP0VO23TSw669NuNAXq4=
+Message-ID: <b56fe695-e626-4335-878d-07a6298954ac@arm.com>
+Date: Tue, 3 Nov 2026 11:50:02 +0000
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -68,65 +53,207 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-QQ-SENDSIZE: 520
-Feedback-ID: zesmtpip:smail.nju.edu.cn:qybglogicsvrgz:qybglogicsvrgz5b-1
-X-QQ-XMAILINFO: NXJos0iVVM8XK7Y6GpaH/bWqNwYx90fJ0x+zbQOviv3ayGPF+Pzbv9uP
-	c6PbJyDbW9Ww0LaEgaAC0UZ6OXS6ZeJz8PAO+W7M2PaaUUJ3TsTCc77v6/988roAagOvXwi
-	WHuv4Piq23N2AoFEwYls4PxKlpAmkMrA7InyRRpUs3Bu5PfBdBJTDioZN/jtogvJh3PE3JW
-	SdDwmsIwELnvWEp1UE9DAKRyitN4lNlz/6piM8nBuuIiVkDVzfRmqAtGVr+fo4mnlAwsW0S
-	ylUxQbTkbgVAdCuEF3n+AYKqCmNckM+QIJ9zZMuRSYQp+guUJXyoVOC+VgwTokZKD86R9zT
-	OHaSFzoPdoE7SFnnWCBEI9rGjtb6+4OY3CFYN7tozSk9d0EfF7AorzuyZqHivfTCwmW8Vhi
-	NVAcuvsBivw55TM0Dq9xCB1KN63IVWBJg7L+KKkAGRKy2yjnoKs5Uglhfm65apn3w9PUKKr
-	OV6mVy5SV2kFkdhY4bLsGmTsP7asmTysS0GuuOM7qplEynQFVrcnreuSLAdkuFtDtl4Vfsh
-	+fka0csLo1KJOafHdGnTQsc1weUN0ErvQzoPK/onS8wNsg/f0Jmkbtw6ptDZzt9Xhz2p30g
-	19R3Z4VrWaLdod7omobhrn11iSGI84VNSbK1awNk8/CUjwDqNsYIz3fzoDtXhZrSRwtnx25
-	lk30EYAnNlqs7GWenqhCgHw/Ak2GL7Q+FYPbEieBDJanakFDjI6Uxb4/lAyw0jflXig0Fbo
-	96oy2Wl9cfnEV4IA23MjLlVdypx02MajzKrVJBKVflxJFZrTfJgMObL8vvlfF9f5ilOOhZN
-	mVDyKgHpU1tw47XYHbajUKzM3UaROLsP1uRaSYGxdbG2I71iYjjVF9n5HivO0xbhzoQNgEn
-	Gco39JFKDu/h3b+y+ea8v6jIxKNyHgtRb04q1N9GqSgzvv2MywqpY3Qsve71Y4T3Pxwz2Z3
-	gOtNyp6YNzOvEiYIfYU+DKfxtLSbr8bZeG+tw27VD6TQZsFY7IWl2TQgGwih03e7Vi1/0S6
-	G8hMk45rYiWtEC04vTrjP60jKCxtd/U0TFEmBcFQxKS/cohw/WU853kIvQZ4Y=
-X-QQ-XMRINFO: M/715EihBoGS47X28/vv4NpnfpeBLnr4Qg==
-X-QQ-RECHKSPAM: 0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v7 2/5] cpufreq: CPPC: Keep the policy across CPU hotplug
+To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
+ viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
+ zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, lenb@kernel.org,
+ ray.huang@amd.com, mario.limonciello@amd.com, perry.yuan@amd.com,
+ kprateek.nayak@amd.com, maciej.wieczor-retman@intel.com,
+ pawel.chmielewski@intel.com, linux-pm@vger.kernel.org,
+ linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
+ linux-kernel@vger.kernel.org
+Cc: linux-tegra@vger.kernel.org, treding@nvidia.com, jonathanh@nvidia.com,
+ vsethi@nvidia.com, ksitaraman@nvidia.com, sanjayc@nvidia.com,
+ mochs@nvidia.com, bbasu@nvidia.com
+References: <20261030092416.1993889-1-sumitg@nvidia.com>
+ <20261030092416.1993889-2-sumitg@nvidia.com>
+Content-Language: en-US
+From: Christian Loehle <christian.loehle@arm.com>
+In-Reply-To: <20261030092416.1993889-2-sumitg@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-adxl_init() stores p[i].string.pointer for every component name
-without checking that the element is a string.  An integer element
-makes the pointer the integer value, which adxl_decode() consumers
-dereference with strcmp() and %s, causing a wild read during boot on
-machines with an ADXL object.
+On 10/30/26 09:24, Sumit Gupta wrote:
+> Without online()/offline() callbacks, the cpufreq core calls exit() when
+> a policy's last online CPU goes down. That drops the driver's per-policy
+> data, which init() rebuilds when a CPU comes back.
+> 
+> Add lightweight online()/offline() callbacks so the core instead keeps
+> the policy active and reuses the driver's cpu_data across CPU hotplug.
+> init() then runs once instead of on every hotplug, making CPU hotplug
+> faster.
+> 
+> This also lets offline() and online() restore and reapply register
+> values across CPU hotplug. A later patch in this series uses this to
+> preserve the OSPM-set registers.
+> 
+> Move what init() and exit() did on hotplug into the new callbacks:
+> 
+>   - offline() requests the lowest performance and stops the frequency
+>     invariance updates, as exit() did. It also sets MIN to the lowest
+>     performance, so that Desired is not below MIN while the CPU is
+>     offline.
+>   - online() re-enables CPPC and restores the performance controls, as
+>     the platform may have reset them. Failures are logged, not returned,
+>     as the core would free the policy. It also restarts the frequency
+>     invariance updates with a new counter snapshot, as init() did, so
+>     that no sample spans the offline window.
+>   - exit() now only frees the driver data, as the core calls offline()
+>     before it.
+> 
+> The driver keeps a copy of the MIN and MAX it last wrote, so that
+> fast_switch() can skip writing them again. online() marks that copy out
+> of date before the restore, as the platform may have reset the limits,
+> and updates it once the restore succeeds.
+> 
+> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
 
-Reject the interface if any component name is not a string.
+Reviewed-by: Christian Loehle <christian.loehle@arm.com>
 
-Fixes: 4cf841e39850 ("ACPI/ADXL: Add address translation interface using an ACPI DSM")
-Signed-off-by: Kang Chen <k.chen@smail.nju.edu.cn>
----
- drivers/acpi/acpi_adxl.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/acpi_adxl.c b/drivers/acpi/acpi_adxl.c
-index 13c8f7b50c46..de646b312eba 100644
---- a/drivers/acpi/acpi_adxl.c
-+++ b/drivers/acpi/acpi_adxl.c
-@@ -184,8 +184,17 @@ static int __init adxl_init(void)
- 		return -ENOMEM;
- 	}
- 
--	for (i = 0; i < adxl_count; i++)
-+	for (i = 0; i < adxl_count; i++) {
-+		if (p[i].type != ACPI_TYPE_STRING) {
-+			pr_info("Bad component name type %d\n", p[i].type);
-+			kfree(adxl_component_names);
-+			adxl_component_names = NULL;
-+			ACPI_FREE(params);
-+			params = NULL;
-+			return -ENODEV;
-+		}
- 		adxl_component_names[i] = p[i].string.pointer;
-+	}
- 
- 	return 0;
- }
--- 
-2.34.1
+> ---
+>  drivers/cpufreq/cppc_cpufreq.c | 106 ++++++++++++++++++++++++++++++---
+>  1 file changed, 97 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+> index ded4f935638e..2cf250b38633 100644
+> --- a/drivers/cpufreq/cppc_cpufreq.c
+> +++ b/drivers/cpufreq/cppc_cpufreq.c
+> @@ -209,7 +209,7 @@ static void cppc_cpufreq_cpu_fie_exit(struct cpufreq_policy *policy)
+>  	if (fie_disabled)
+>  		return;
+>  
+> -	/* policy->cpus will be empty here, use related_cpus instead */
+> +	/* policy->cpus has only the online CPUs, so use related_cpus */
+>  	topology_clear_scale_freq_source(SCALE_FREQ_SOURCE_CPPC, policy->related_cpus);
+>  
+>  	for_each_cpu(cpu, policy->related_cpus) {
+> @@ -807,24 +807,110 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
+>  }
+>  
+>  static void cppc_cpufreq_cpu_exit(struct cpufreq_policy *policy)
+> +{
+> +	/*
+> +	 * The core always calls offline() first, so only the driver data is
+> +	 * left to free.
+> +	 */
+> +	cppc_cpufreq_put_cpu_data(policy);
+> +}
+> +
+> +/*
+> + * Run when the policy's first CPU comes back online, the counterpart of
+> + * offline().
+> + *
+> + * The platform may have disabled CPPC and reset the performance controls
+> + * (desired, min and max performance) while the CPU was offline. Re-enable
+> + * CPPC and reprogram the controls.
+> + *
+> + * Log failures but do not return them, as the core would free the policy.
+> + * Continue after a failure to enable CPPC, as the writes that follow fail
+> + * on their own if the platform does not take them. A failed controls write
+> + * is not fatal, as the next frequency change writes the controls again.
+> + */
+> +static int cppc_cpufreq_cpu_online(struct cpufreq_policy *policy)
+>  {
+>  	struct cppc_cpudata *cpu_data = policy->driver_data;
+> -	struct cppc_perf_caps *caps = &cpu_data->perf_caps;
+> +	u32 desired_perf, min_perf, max_perf;
+> +	struct cppc_perf_ctrls perf_ctrls = {};
+> +	unsigned int cpu = policy->cpu;
+> +	int ret;
+> +
+> +	/*
+> +	 * The platform may have reset MIN and MAX, so mark the copy that
+> +	 * fast_switch() uses as out of date until the restore below succeeds.
+> +	 */
+> +	WRITE_ONCE(cpu_data->perf_limits_valid, false);
+> +
+> +	ret = cppc_set_enable(cpu, true);
+> +	if (ret && ret != -EOPNOTSUPP)
+> +		pr_warn("Failed to re-enable CPPC for CPU%u (%d)\n", cpu, ret);
+> +
+> +	/*
+> +	 * Recompute min/max from the policy, clamp the last request into range,
+> +	 * and reprogram the performance controls. Update the driver's copy only
+> +	 * if the write succeeds. Otherwise the next frequency change writes the
+> +	 * limits again.
+> +	 */
+> +	cppc_cpufreq_get_perf_limits(cpu_data, policy, &min_perf, &max_perf);
+> +	desired_perf = clamp_t(u32, cpu_data->perf_ctrls.desired_perf,
+> +			       min_perf, max_perf);
+> +
+> +	perf_ctrls.desired_perf = desired_perf;
+> +	perf_ctrls.min_perf = min_perf;
+> +	perf_ctrls.max_perf = max_perf;
+> +	perf_ctrls.min_perf_valid = true;
+> +
+> +	ret = cppc_set_perf(cpu, &perf_ctrls);
+> +	if (ret) {
+> +		pr_debug("Failed to restore perf controls on CPU%u (%d)\n",
+> +			 cpu, ret);
+> +	} else {
+> +		WRITE_ONCE(cpu_data->perf_ctrls.desired_perf, desired_perf);
+> +		WRITE_ONCE(cpu_data->perf_ctrls.min_perf, min_perf);
+> +		WRITE_ONCE(cpu_data->perf_ctrls.max_perf, max_perf);
+> +		WRITE_ONCE(cpu_data->perf_limits_valid, true);
+> +	}
+> +
+> +	/* Restart what offline() stopped, with a new counter snapshot. */
+> +	cppc_cpufreq_cpu_fie_init(policy);
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * Run when the policy's last online CPU goes down, the counterpart of online().
+> + * Having offline() makes the core keep the policy rather than call exit().
+> + */
+> +static int cppc_cpufreq_cpu_offline(struct cpufreq_policy *policy)
+> +{
+> +	struct cppc_cpudata *cpu_data = policy->driver_data;
+> +	struct cppc_perf_ctrls perf_ctrls = cpu_data->perf_ctrls;
+>  	unsigned int cpu = policy->cpu;
+>  	int ret;
+>  
+> +	/*
+> +	 * Stop the frequency invariance updates and cancel the pending work, so
+> +	 * that no sample spans the offline window. online() restarts them with
+> +	 * a new counter snapshot.
+> +	 */
+>  	cppc_cpufreq_cpu_fie_exit(policy);
+>  
+> -	cpu_data->perf_ctrls.desired_perf = caps->lowest_perf;
+> -	cpu_data->perf_ctrls.min_perf = caps->lowest_perf;
+> -	cpu_data->perf_ctrls.min_perf_valid = true;
+> +	/*
+> +	 * Request the lowest performance while the policy has no online CPU,
+> +	 * lowering MIN with it so that the request stays a valid tuple. MAX
+> +	 * keeps the value the policy last programmed.
+> +	 */
+> +	perf_ctrls.desired_perf = cpu_data->perf_caps.lowest_perf;
+> +	perf_ctrls.min_perf = cpu_data->perf_caps.lowest_perf;
+> +	perf_ctrls.min_perf_valid = true;
+>  
+> -	ret = cppc_set_perf(cpu, &cpu_data->perf_ctrls);
+> +	ret = cppc_set_perf(cpu, &perf_ctrls);
+>  	if (ret)
+> -		pr_debug("Err setting perf value:%d on CPU:%d. ret:%d\n",
+> -			 caps->lowest_perf, cpu, ret);
+> +		pr_debug("Err setting perf value:%u on CPU:%u. ret:%d\n",
+> +			 cpu_data->perf_caps.lowest_perf, cpu, ret);
+>  
+> -	cppc_cpufreq_put_cpu_data(policy);
+> +	return 0;
+>  }
+>  
+>  static int cppc_cpufreq_cpu_resume(struct cpufreq_policy *policy)
+> @@ -1141,6 +1227,8 @@ static struct cpufreq_driver cppc_cpufreq_driver = {
+>  	.fast_switch = cppc_cpufreq_fast_switch,
+>  	.init = cppc_cpufreq_cpu_init,
+>  	.exit = cppc_cpufreq_cpu_exit,
+> +	.online = cppc_cpufreq_cpu_online,
+> +	.offline = cppc_cpufreq_cpu_offline,
+>  	.resume = cppc_cpufreq_cpu_resume,
+>  	.set_boost = cppc_cpufreq_set_boost,
+>  	.attr = cppc_cpufreq_attr,
 
