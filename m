@@ -1,110 +1,111 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.180.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.168.131
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793801085;
-	b=NsU/YNwGeVaI/fRJny2WIUBfCJMpgJOp1+3EJMc8IRETFTX+bOG+4hNU9SLz/432/Ahr
-	 7du3g2sTVbe5Xm6hAKubA+WbkubSAtPd5ysDjzB4Zm9KPLp8v7QOxf7Zh0vf/UzSzmK1E
-	 /iwbyoF13QKvJ/3wjI44tJZb1QbJNV5Az28JsWqo9TtQL03FbSPYBZqSLQMU7ME3Y4J2L
-	 GObMqhIuutFmkQu7hzVJtSQOmPhOGDqfk+G1mzKHBvsnkFn2Fwf8g0ajNrjd6d4pE9swp
-	 4mXGVNCX/pxnL0W44So2RMqPDJ5wh4lduBZa1EQoepCz7lRXJj6d1+y7vGrInrN5wCQ==
+	t=1793801080;
+	b=b1iIvjbd64xCMSxgfsP+y7u9ksOb8sxvzZ+wMaxOdAXdk+xxuW1lafibn4wengv3LE++
+	 GoTXRZgSBRb8zRnYCu+bOrE/uj+pRbI5GmYNIf4B0alSX2LdjzkUKiXj8ZerAcQINu4HZ
+	 YA5zKyLZyDBANl/AOVkwXvz6+LVy8C2UHHp5iB4q1zUddfvi9Ym6ji9L+Tzfo4yfEZrbb
+	 aQhynDL3YvVQkUcFO8Vpsu90LQKhNJEV/EjUTZCvEY6Dq+d+bFAxsVHshxzel4lgi8LBD
+	 rLLtlVa6gLqFn7VNqzwk674iCFxNA3vtxdJbBzxoRdRCSa96n/9SPaB+ov5Qg2w4wag==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793801085;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793801080;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
 	 DKIM-Signature:X-Google-DKIM-Signature:X-Gm-Message-State:X-Gm-Gg:
 	 X-Received:X-Received:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Content-Transfer-Encoding:Message-Id:References:
 	 In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key:
-	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-GUID:X-Authority-Analysis:
-	 X-Proofpoint-Spam-Info:X-Proofpoint-ORIG-GUID:
+	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Spam-Info:
+	 X-Proofpoint-GUID:X-Proofpoint-ORIG-GUID:X-Authority-Analysis:
 	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
-	bh=CvpiuG2v7LqsgYioH9W2BL0A18x1i9O8dQ1j4rntT/0=;
-	b=czhZe8oAJeahLhNIDWfPBmolYhuWbGP/KfywRk+4ZAPVpZ1tSnTHJgE+cdO88+MihPt2
-	 dZKbfIeaYaEMzCbCvG5S+BM0dtOY2tI6pGlrlgybeo9inKCNSjH6qaaFVzjYOvJUk8bxJ
-	 yb/d1xjzPR4SCoO+LGo/Yv+m2pzPtCmf34HdYsFHHvE7T/L9R1YHRAz2K8WXeUQjiFAPK
-	 XYYVy8m6n9rmQik5qbVxHLajyDw6ppvm2IMYfDZOgDAyou9wGWUKxAsCVrHGE+NaUmGFh
-	 ynHRvWh02zIcNm7yDnsTd+mkUBRsr0DBRM1MC/d1gIagAb+WUAEtHiob7iW4sNZAU7g==
+	bh=RA2CSJdL7Exblpp4WzRIxFOf+cFemPFyxHbTRFzm9pI=;
+	b=0pCD+Lm4ivdh1ficoVhvUinHg07jgpWWdMGOG2GOepcFhcJ6XfyXJjFloHD0Q8dpOUf9
+	 JaYRy9nVxFkcvDMc6PDEd+aA6fbLxfq7I5Ahsa+BqxsDVjMilAzt5zJsUlKOm+YgEIe59
+	 yjqfsXt5xDlOFQXR0gOutwB5IY8vLR47gDhCOMMvajp26H8wggQJeFdEwSkUMpDF6S3sl
+	 jRw8H95sooWGi+5yHOEHqHJ4+7ybgFlRNRcbtyZ3/TIB0nSQwcWBgoPsa7uDHZoHt2O5e
+	 e6PvMhPOGuxUD65AGXIvg01Tqppw58W6W9g1UYvwSSCsMI0xG18HCbL4QdKcStdbuqQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=oss.qualcomm.com;
 	spf=pass smtp.mailfrom=oss.qualcomm.com;
-	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=c5t4RPmy;
-	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=ezWqZaom;
-	arc=none smtp.remote-ip=205.220.180.131
-Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
+	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=n6BlCfAp;
+	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b="NvbfJL/y";
+	arc=none smtp.remote-ip=205.220.168.131
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4E1D606D822
-	for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2026 14:04:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C4E1D606D822
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1011A606EEAF
+	for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2026 14:04:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1011A606EEAF
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=c5t4RPmy;
-	dkim=pass (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=ezWqZaom
-Received: from pps.filterd (m0279870.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6A4C1RBP1764274
-	for <linux-acpi@vger.kernel.org>; Wed, 4 Nov 2026 14:04:43 GMT
+	dkim=pass (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=n6BlCfAp;
+	dkim=pass (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=NvbfJL/y
+Received: from pps.filterd (m0279863.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6A4Ba0sv1667658
+	for <linux-acpi@vger.kernel.org>; Wed, 4 Nov 2026 14:04:39 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
 	cc:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	CvpiuG2v7LqsgYioH9W2BL0A18x1i9O8dQ1j4rntT/0=; b=c5t4RPmysFcyTYBU
-	gl3xLV5rm95mUnO2g888eol71FJq/lJnSkg+q27jKn6y1IrIH5wJ1XcVx+Ved10L
-	VPr+KnEzZI/Zr0xU/Q3GzaWj2N7jM3HzhXoGWcg6XsPvsjFn/mHrYVJiR2tccSy1
-	9jdXY7BHNogQPf6oFPXcMOReKGsUOlrnLVGgFhEeVHCtznJOJAcBNMR97EV51Dpf
-	OBf/ZpgNdweXsCyXC+xxL2WT0lky8qI6cLbpmGeP3Jpv3M5iJAbTk3K4MhQJ/sZZ
-	v9WPQRCZ3rYHYjv/2spmuT0H5P+XQSN3ic9Q1iZMTUBHqRiN97H/eoRZDeGOXP4s
-	kLzJcA==
-Received: from mail-vk1-f199.google.com (mail-vk1-f199.google.com [209.85.221.199])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hr4bn0f5d-1
+	RA2CSJdL7Exblpp4WzRIxFOf+cFemPFyxHbTRFzm9pI=; b=n6BlCfAplDkRIGJY
+	OtZvEiHnmJxfVXUqgCmbQ3HY4qMos58f49uoPT2qpuxiyvNqXiZUg3EAZ5KwManW
+	X/P1irYdeYwkWlRqhibdk0ToPW3KLNnTBRwQTibR6cnH0c2CL3909RF2qxFC5T4z
+	MRmi9u6ZWWSk4u5RY207c56jDfI53aj3If+toqprwFx9Ltygiea/igBKX3yIXB1z
+	2ASo1yVQ/7vqLDwKgTyjFS0FLODgtQOWhBH3BwSI9kvYT9eMd0/0Aucly+AJ/ijl
+	ncAoe+ZbTi4hAD4DoJLZaXlEQGcrbpqC04GepOi+liW37GrSLDaBhRL1d4h7xKaf
+	1U6CiQ==
+Received: from mail-vk1-f197.google.com (mail-vk1-f197.google.com [209.85.221.197])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hqn8nm4d5-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2026 14:04:43 +0000 (GMT)
-Received: by mail-vk1-f199.google.com with SMTP id 71dfb90a1353d-5eaf1553b78so70772e0c.1
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2026 06:04:43 -0800 (PST)
+	for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2026 14:04:39 +0000 (GMT)
+Received: by mail-vk1-f197.google.com with SMTP id 71dfb90a1353d-5eab0467c89so810762e0c.2
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2026 06:04:39 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1793801083; x=1794405883; darn=vger.kernel.org;
+        d=oss.qualcomm.com; s=google; t=1793801078; x=1794405878; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=CvpiuG2v7LqsgYioH9W2BL0A18x1i9O8dQ1j4rntT/0=;
-        b=ezWqZaomCipUIxZRKXnpY8uhf7IjnJFuEIOYxYzRoAEYHYeDhZA4buWShJCDhDojF5
-         0Fg0KOER+KVzb8kPWH5bzhC3tqvjLqHNGCCdnulD8YZi/R2TDv19977Pp6rda9gyJF2t
-         +FsOIvBNjLN1IlXMd/hqzl52Kn+67Q7c+kSmhPKlCnaKLW3BKz+Qly3oFbVgp4SUcAfe
-         v5s04n1TpQErTFmLmJyxCwh+AI98kClCkkHjtP7kLilaRZ2kK7/sp75DHpuqmkdjaJqe
-         qOjqM2TZ5pkROtqiUS1ujOHnhGas/6v6NZzIKXZ4jSgc00Xx9ZckJe7Yu3+QfHgxqQpW
-         KjHQ==
+        bh=RA2CSJdL7Exblpp4WzRIxFOf+cFemPFyxHbTRFzm9pI=;
+        b=NvbfJL/yWxdly0mzMB6/yTHY5+E/Ed5Ks5a5IdsMVPNmio7uI50dSuB7OPdrgmR/iJ
+         YzLCDOysbwjZmCAMywp1x1GvF13tF2X9QjMhslJc25ut4RmcRt3DBjP11Xc4iBGPT5LG
+         JsLzl1Qqh0aprVLr0n6i/Iz2oVbOVnPXml+LGzbZAn4dCjd8QOkXq+DVyI9bAuKnncvh
+         eR4x0xTwt5J1NK2j1Ee6jnMv1eRQMybnj0OIj4P59aWcz7CRxzpPSI4hP9tVhkKr7JsB
+         PudwoIpfe0kOpaNwiJeTBEvECxLxzoKJhXYEuT3MFMed7j/Nt4xx2Q93r/0kRIZOZUrj
+         wE7g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793801083; x=1794405883;
+        d=1e100.net; s=20260707; t=1793801078; x=1794405878;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=CvpiuG2v7LqsgYioH9W2BL0A18x1i9O8dQ1j4rntT/0=;
-        b=rG6+bH+K/J9Bi1QE3ZbxmW/w0VUb4MdUhfDw+4tD/bRZq1xK4eEbvNtjjZEU24LAC+
-         qnFvxlHzLbERqF10CDN47t8Fejsca6M4uoggGMv05tLEeFqRWnT4wozXSE87PhaVmot3
-         JeqnfZjCl7HUVLMS/GuycVJpnk8a9lzzlIqCVWCyY0ur9koQDTt7ZVdzVJheHwj8UpNL
-         WyFtO1CRKsyw51P+c4wiaeLX3Ofk6i5CZ3hkG46Jxi2YPYLEj6/DlOeLVx8QbRkJesY8
-         w7S8EE1Df0B0XqNMV3kdVJQgf0YYP66ARZ9x7qbBhidu0gLBNNkjlnVma2q+G1Ww5bR2
-         akIQ==
-X-Gm-Message-State: APuU4Z93ySBgw6621dhOhjcUlGOAxPmolx2aW2ymRZjXkgZSkUIrKw6E
-	aeDQTsP3oN1DN9aERurk6YOvJCTAOuo7Oi+jiwqKgG6mgqBIa9hReqgnmf/UBi1V2RZUtqQl33D
-	30WkX72CHwAFSt1CMdTnx4IaDHZL9+kXEJSU01aBCZOpW88aXgzXwy/tUdO7QCXE3
-X-Gm-Gg: AYBFou2cx/8cv85jCaadWUSxkPzbEFuC8axHUOutCgFMQYltC44qkMlPQkT7Y0jiLYn
-	SBFWwbgof1y1+Al0+z38EpCfCT/H0RjRIDtz+FaDW2kVb4gPNcNj4/MJu9mpIfZ/XP45D5oSPG9
-	fkxOqa4eaxLhgsKVdxL+zdS/DaUFcK0s3u9tkJ3to24ggGC2Wrh7Xdju1dgd3xJ4PrdWqzN95fW
-	04/dgLX5wAISF6jFA9tXH49aFaJ9UIQtrNCiblN0jUNZ8iKK6GrJjUB8SyzIEHJpsBdDgasfoca
-	d+f+L3i35ANFe+l3vLJItRR3QoEd154S7jAJhuVyYlyWsm9V33qhs0oDHyuv/NOhXiuT+uhN0Is
-	lxYqrQpJpPpFMQaBROgVd4omDHTINuSq+PHukv/Bhm9QdDJrfk8UmMAqmIGWL6WPLYR9NKEKJpA
-	uU8g==
-X-Received: by 2002:a05:6122:3c54:b0:5ea:c11b:432c with SMTP id 71dfb90a1353d-5ec68971961mr7027638e0c.15.1793801082542;
-        Wed, 04 Nov 2026 06:04:42 -0800 (PST)
-X-Received: by 2002:a05:6122:3c54:b0:5ea:c11b:432c with SMTP id 71dfb90a1353d-5ec68971961mr7027502e0c.15.1793801081438;
-        Wed, 04 Nov 2026 06:04:41 -0800 (PST)
+        bh=RA2CSJdL7Exblpp4WzRIxFOf+cFemPFyxHbTRFzm9pI=;
+        b=p0XIf2lhwkvUXQO0pIEvsoyddos+KgWUjOH2GEDdjt3VCTWoUHk1OZG56EuASoGq/l
+         LHvFB0NGa643MWBUUqDVExafZkxecNiQ7SfzqqAT8vFmBL7ZdFylr01mI0oxiQF4yv0C
+         ZQoqRYnNaa0ipJ9X/0/TvWNTvWRdFU9sI3Mxi8ZvG16Ia0tRp3Kz7+WaXUOFlLDzvvsK
+         yay2RKXYZGsxzWipES91+Jf7G158LApJiNAtogVph7CnvJFcYUGxJJXrHp1zn0QYPsz6
+         M6VszmiHa8wlKzAW/PBZS+Q4bcAM/57R97tAPIMyRiw7Hog5ldMcz6x/AdCgbtg8wc+W
+         2GmQ==
+X-Gm-Message-State: APuU4Z+VzpX4Dh9Z/Q0Qa/wBdNBxdZdbzSDWZR+LKJrnmno25G++GLmN
+	+LrikcBbdjIVhgqGMbSI2eKXhzVBwmrABP+4ILorh1jwX1MMXiH5CxdZhLo3d4n+KOfleY0h11N
+	QItDI43sptsz4utMq5mD8I7zbCKr5WvPSCmtIr28pKK0stQ+3pzBlRFfmrRFHUhkW
+X-Gm-Gg: AYBFou2o8zKaga3ERwb1uvJ4YKBpPQ/MpWgyTjx6bkgO7QIqYTEOtPncAmdTEPkROq6
+	f1MaFS3jfghlBBbZ61c3zgIcxZf/KPgbDExAUJld/Hq5XgINAibZbg4BcM0NK0zj2q2VMINlv1V
+	3unhjxz0q2TXwlmeDVgAk6i4GM80xAD8uwGc6VZrWTQ4WwHFKRoROZfzaex8BdZ35fsJqZlm6Sc
+	4mTJTnOGBN1tyg3VZe4U9EHHcBZAQGdYdqBigKqBsJSUQpvvppDQmpS4LBrzePWXPZcA4KYvT8f
+	R3bzbevK0zfNEl6T5PyaH9P4rDrudRW6YPTXcHGLR19CDfo8867YOiL1uaDNqMyc1zkxn8Y7I+F
+	a+Njvc+m/mRyHeM6UjIUHawaSQ7LzpXx/RwhqhckTwjaaipekTTPMLX3wWheReeYEFVwRFynAQ1
+	s5jg==
+X-Received: by 2002:a05:6122:c89:b0:5c9:c60e:3a48 with SMTP id 71dfb90a1353d-5ec689f696dmr7593990e0c.20.1793801078335;
+        Wed, 04 Nov 2026 06:04:38 -0800 (PST)
+X-Received: by 2002:a05:6122:c89:b0:5c9:c60e:3a48 with SMTP id 71dfb90a1353d-5ec689f696dmr7593898e0c.20.1793801077646;
+        Wed, 04 Nov 2026 06:04:37 -0800 (PST)
 Received: from brgl-qcom.local ([2a01:cb1d:dc:7e00:8916:7b9b:97a2:6c96])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48fec8d87b5sm3968358f8f.11.2026.11.04.06.04.37
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48fec8d87b5sm3968358f8f.11.2026.11.04.06.04.34
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Nov 2026 06:04:39 -0800 (PST)
+        Wed, 04 Nov 2026 06:04:35 -0800 (PST)
 From: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Date: Wed, 04 Nov 2026 15:03:51 +0100
-Subject: [PATCH 9/9] gpio: shared: generalize most code to firmware nodes
+Date: Wed, 04 Nov 2026 15:03:50 +0100
+Subject: [PATCH 8/9] of: property: implement the count_references() fwnode
+ operation
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -116,7 +117,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261104-fwnode-for-each-prop-v1-9-6e28fe1c72c4@oss.qualcomm.com>
+Message-Id: <20261104-fwnode-for-each-prop-v1-8-6e28fe1c72c4@oss.qualcomm.com>
 References: <20261104-fwnode-for-each-prop-v1-0-6e28fe1c72c4@oss.qualcomm.com>
 In-Reply-To: <20261104-fwnode-for-each-prop-v1-0-6e28fe1c72c4@oss.qualcomm.com>
 To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -138,390 +139,83 @@ Cc: linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
         devicetree@vger.kernel.org, linux-gpio@vger.kernel.org,
         Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=10683;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1446;
  i=bartosz.golaszewski@oss.qualcomm.com; h=from:subject:message-id;
- bh=WAePSYcqwmx9zFDVEtTkMdht35rLwyfSp8xtwHJeP9A=;
- b=owEBbQKS/ZANAwAKAQWdLsv/NoTDAcsmYgBq6ztTe/ygpY5Gk49WKX0BfmDIFYf0/pLuvhnEn
- bpip+H0OCKJAjMEAAEKAB0WIQSR5RMt5bVGHXuiZfwFnS7L/zaEwwUCaus7UwAKCRAFnS7L/zaE
- w1d2EACOyKpj5dhBJMlbVVapisSgNcGsb4M7PItzp/Lx9O7KynE4un8oyXXsZBuFyLWSC8lP+yV
- I/tysH+DWRbKEmIuMgCxjZVRWURerYG5oPKtmlnal2D6JF+exsSkm0++B+wu1SLMlicRS0oaAta
- MIMd0krCpM3V3DV1ucIE/hQ8QgV48uKx3dfJQ+/byirds98knrhqFq5wUeNyvLzyPF21TuGAyYv
- JKtPh+Mv+aZfPc7pp93EurC0VA7C2ziPqPdBl5rjrX8rHS+wWTnKravvLXsHEPvmvsYuFnr6Zwn
- zD7OK07UB+gXKSRqQO8te1pnQsYg9ny20ozpzdGUSvw2nBFlDz8oBW3OSLAxxcJhYAlBwfKT2QV
- LSqpbHtxmU8t5atIp55nrLV4O+jF+cLB+zydST+v5xsMAQ3qfVTVhFVkNPQbd2UCoOd6/DdEW00
- iTOiPgQuYoWtWcYnev5tmQwZfpuKP0hWYBcNecvfAM/xqV6XfC/yLx4JX6tTxvJNHhO23tvfmw6
- +U4F9ofABssgmBf5L8q1AbcGkKG+/kxgs11ZNY1AyW3gSYJqxHIFpPLP0gMRF3T20O6aG2P5yPp
- 7lPrjHWWLmHw9FkEGzmMwB6clhkpiKyfcwTtMzfZ0tFpb+bw34caFXqYMrXS7wBY4NthrPvUB0Y
- RUEyG2TYSTqRmmw==
+ bh=jfcJL94RVspgN8CyK/snZo0rp9b0uidqlV9W3mfnsrY=;
+ b=owEBbQKS/ZANAwAKAQWdLsv/NoTDAcsmYgBq6ztSrVGZJPcf5ImbusE8w0YzObuzDwHNwk2vf
+ XWwfHOBNamJAjMEAAEKAB0WIQSR5RMt5bVGHXuiZfwFnS7L/zaEwwUCaus7UgAKCRAFnS7L/zaE
+ w2USD/9+/oAE3ozJ0woCpNJfEKxkKc6OkP+Fp13bf7ApUWvG71blBdfNz430uIpxhii9lx9NSHF
+ H5yKot93opIVe4f8X7I07vIwVAQBfP1dtTdnVWavMAELyhSWVOIQX2Lp3EFd4Rtky9afjzaw5CJ
+ n2zulXoabInrDbALeCiYXy7xfflbtsynqdIjm6SLgnLpb4SURUSTbySU1yoF6hIZLyU9GmQ+Zm/
+ A5D4lBHWrYNUZL0OIcWQvWX2Rq/S98QJJAzublBzvLUImTHuwL2SuDBQA/qMIjc8oKlukqHP+/l
+ QGKLXZ/T5ru2K9z8VOZXMD6tyZBzMrVvhZSIBS3UqsgNlS5FSNVGiBR5bWprnwdgXI59W5smAKT
+ toEgXdyTdb5o5ZUIziSIfpQabmoln4rKHRISWIGZQ8WuqucOi1iVa2XCEQKsUkLiy82wmALNRKD
+ uPDnmLZQVGnDdSWcMrHPAQ/qWTFNV4K1lClnzSLHITbCd5uM4piou2+lxdYgbR9X36K5wP2jxS4
+ areuRfuUDSYwSS/3EZBlTtUolLcKcPFlfrgY+TPvIuh8EPLSKz5Dc+BGF15ed3UqLsy8M2yU5GU
+ GxstGJJLPGB+wYvlupd0Y9JXoZFvF0wuLIWD1XqR7FCCgW3to2+DXgWre+0LHZF5xUFVpyD9SjA
+ YNWIV37TclMW99Q==
 X-Developer-Key: i=bartosz.golaszewski@oss.qualcomm.com; a=openpgp;
  fpr=169DEB6C0BC3C46013D2C79F11A72EA01471D772
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTA0MDA1NiBTYWx0ZWRfX2kktatNVQHiY
- 33rjr3xBBb3yFMVFWCRJwcsE8pyukOD3R3R8lJUj3Qjl1nKbTevCg2wZk7aabRP9AWJ211OYrzf
- fR+I/H8NSUkQSGM+q7gFVxLlrY0WDJHfkREzXE6CeGKXUlsTAMjDKfgzxmBZB8Nalfwl6EDKzE9
- vMDzuxrvEFGg0VlGD42MAs1pgRFlNNh5qdllIszGMDwmcIWTDqwR5xapyLK5Obp+uSWfU/+zpcD
- iZl4zd//jJXt3uz5+GUdIB3AZjaPktVZ1dmBBnlsoIns3UuAsElHMtqQP7EukAcu5Flm//sflzn
- bUjZWKqtwrHNErTmCQsIeBsbDnmAGGnLweA0ce1M4HeNOpaFaSSPYzpXzKWhhA64lRg4XOmTK1e
- nbdXpwD6k038qyRpErNnx9R3cfkBbb2/Ftxdyd6bknYrnpRG46B/68tVjMI6RQfx8BqBeyTT7g+
- W5u9EUu9KScgzttk1fw==
-X-Proofpoint-GUID: muykOAIIvZJyGO8Jwrcu4HkIAZvnO-BT
-X-Authority-Analysis: v=2.4 cv=IcUSymqa c=1 sm=1 tr=0 ts=6aeb3b7b cx=c_pps
- a=+D9SDfe9YZWTjADjLiQY5g==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTA0MDA1NSBTYWx0ZWRfX7Cybh1kTRuRo
+ AhekKiIunGIIXa//4nmMm5VCosbTWOQkdmVHGtf8yloy3CkRrtqxvC7N1snvWaKYvUIaI48pUwz
+ GnTkphGHr70UzPMNm6dL5Oe/WWmCx5y5KTONF8I17kn7TLdWkkp1ZrL2gCSMlmJb+ZNclrRS5SS
+ 6Ig0XFEoesHdLRc1gqal2xK08s7ZxLA7IEQi9TDoJXH7UIP/AUqS8gSOb+k5PSZi1TwaF3mS9fm
+ gz9mXTWqpm2dFv9ncLMD0QlYfKzKK/25gmiTda17FYThjh99sm1VTk+yNPRu6BUBfJze9gp+uac
+ cXS7He7fcVxpj17jhRecnXYoYMWgUZFSAixOwUXaEizpGeEUcLwuZxhfuz2jIQMLY5mzlXCUWL9
+ zD68hPlr75j5GEXSPFNfnQeh98bKuT1RAZH0rIBsBO9QcFsUGdchJAUw5J0XyC7ZywlY8cbPuuR
+ 0M6P2TXC/vwg2GL4y5w==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTA0MDA1NSBTYWx0ZWRfXwq3HkoGGC/1t
+ 6uAapGGfN2QaW5mYuQoHU607wYR+WwVnaEQNuSkuEM0ZmSwsuOzhafNBuflpjEcaz945yWXFjvg
+ ZwysxfSgrnAEBC2d6U3EzQ8yvDffBt8=
+X-Proofpoint-GUID: KM36cyN20dYv_BTCOe-Xs936TwlTdbZO
+X-Proofpoint-ORIG-GUID: KM36cyN20dYv_BTCOe-Xs936TwlTdbZO
+X-Authority-Analysis: v=2.4 cv=As17T+9P c=1 sm=1 tr=0 ts=6aeb3b77 cx=c_pps
+ a=JIY1xp/sjQ9K5JH4t62bdg==:117 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10
  a=zJRp6_cAMcgA:10 a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=u7WPNUs3qKkmUXheDGA7:22 a=gowsoOTTUOVcmtlkKump:22 a=EUspDBNiAAAA:8
- a=ziVQ5hnd3nnfPSIR4FkA:9 a=QEXdDO2ut3YA:10 a=vmgOmaN-Xu0dpDh8OwbV:22
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTA0MDA1NiBTYWx0ZWRfX/fCBZ0wwEVxW
- FyEECR0g0S5d3ZyPHjPDDtHD8X/HzHK7dtsKWQ1/tz/h6a3XmD2qnWxkmCbybb9ssJv5xcbeRcH
- FAIVSg8kMg4OLmobMpUDDqEeIBCV82o=
-X-Proofpoint-ORIG-GUID: muykOAIIvZJyGO8Jwrcu4HkIAZvnO-BT
+ a=u7WPNUs3qKkmUXheDGA7:22 a=yOCtJkima9RkubShWh1s:22 a=EUspDBNiAAAA:8
+ a=zSBz9IY8uK3Zdpgw7pcA:9 a=QEXdDO2ut3YA:10 a=tNoRWFLymzeba-QzToBc:22
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
  definitions=2026-11-04_04,2026-11-03_04,2025-10-01_01
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 bulkscore=0 lowpriorityscore=0 impostorscore=0
- adultscore=0 clxscore=1015 suspectscore=0 phishscore=0 malwarescore=0
- spamscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
- adjust=0 reason=mlx scancount=1 engine=8.22.0-2610300000
- definitions=main-2611040056
+ suspectscore=0 bulkscore=0 spamscore=0 priorityscore=1501 lowpriorityscore=0
+ malwarescore=0 adultscore=0 clxscore=1015 impostorscore=0 phishscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2610300000 definitions=main-2611040055
 
-Ahead of adding support for sharing of GPIOs for other types of firmware
-nodes, convert as much code in gpiolib-shared.c as possible to using
-fwnode APIs and guard the remaining OF-specific bits with CONFIG_OF
-guards.
+Implement the property_count_references() fwnode operation for OF nodes
+by wrapping the existing of_count_phandle_with_args().
 
 Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
 ---
- drivers/gpio/gpiolib-shared.c | 241 +++++++++++++++++++++++-------------------
- 1 file changed, 131 insertions(+), 110 deletions(-)
+ drivers/of/property.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/gpio/gpiolib-shared.c b/drivers/gpio/gpiolib-shared.c
-index 8c9ac9d9330490b17fb3936b8758beb97a308a15..58ac049bb603e2946c81e67a047b4788d39213b4 100644
---- a/drivers/gpio/gpiolib-shared.c
-+++ b/drivers/gpio/gpiolib-shared.c
-@@ -23,6 +23,7 @@
- #include <linux/property.h>
- #include <linux/slab.h>
- #include <linux/string.h>
-+#include <linux/string_helpers.h>
- 
- #include "gpiolib.h"
- #include "gpiolib-shared.h"
-@@ -63,7 +64,7 @@ struct gpio_shared_entry {
- static LIST_HEAD(gpio_shared_list);
- static DEFINE_IDA(gpio_shared_ida);
- 
--#if IS_ENABLED(CONFIG_OF)
-+
- static struct gpio_shared_entry *
- gpio_shared_find_entry(struct fwnode_handle *controller_node,
- 		       unsigned int offset)
-@@ -133,158 +134,162 @@ static int gpio_shared_setup_reset_proxy(struct gpio_shared_entry *entry,
+diff --git a/drivers/of/property.c b/drivers/of/property.c
+index 16c9c307633bdc7c9343782b1cd3bdb845552c6a..ae2561479e2382b241fd87dcddf52dc7f52a950e 100644
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -1231,6 +1231,12 @@ of_fwnode_get_reference_args(const struct fwnode_handle *fwnode,
+ 	return 0;
  }
  
- /* Handle all special nodes that we should ignore. */
--static bool gpio_shared_of_node_ignore(struct device_node *node)
-+static bool gpio_shared_fwnode_ignore(struct fwnode_handle *fwnode)
- {
- 	/* Ignore disabled devices. */
--	if (!of_device_is_available(node))
-+	if (!fwnode_device_is_available(fwnode))
- 		return true;
- 
- 	/*
--	 * __symbols__ is a special, internal node and should not be considered
--	 * when scanning for shared GPIOs.
-+	 * On OF-systems __symbols__ is a special, internal node and should not
-+	 * be considered when scanning for shared GPIOs.
- 	 */
--	if (of_node_name_eq(node, "__symbols__"))
-+	if (fwnode_name_eq(fwnode, "__symbols__"))
- 		return true;
- 
- 	/*
- 	 * GPIO hogs have a "gpios" property which is not a phandle and can't
- 	 * possibly refer to a shared GPIO.
- 	 */
--	if (of_property_present(node, "gpio-hog"))
-+	if (fwnode_property_present(fwnode, "gpio-hog"))
- 		return true;
- 
- 	return false;
- }
- 
--static int gpio_shared_of_traverse(struct device_node *curr)
-+static int gpio_shared_fwnode_scan_property(struct fwnode_handle *curr,
-+					    const char *propname)
- {
-+	struct fwnode_reference_args args;
- 	struct gpio_shared_entry *entry;
- 	size_t con_id_len, suffix_len;
- 	struct fwnode_handle *fwnode;
--	struct of_phandle_args args;
- 	struct gpio_shared_ref *ref;
--	struct property *prop;
- 	unsigned int offset;
- 	const char *suffix;
--	int ret, count, i;
-+	int ret, i, count;
- 
--	if (gpio_shared_of_node_ignore(curr))
-+	/*
-+	 * The standard name for a GPIO property is "foo-gpios"
-+	 * or "foo-gpio". Some bindings also use "gpios" or "gpio".
-+	 * There are some legacy device-trees which have a different
-+	 * naming convention and for which we have rename quirks in
-+	 * place in gpiolib-of.c. I don't think any of them require
-+	 * support for shared GPIOs so for now let's just ignore
-+	 * them. We can always just export the quirk list and
-+	 * iterate over it here.
-+	 */
-+	if (!strends(propname, "-gpios") && !strends(propname, "-gpio") &&
-+	    strcmp(propname, "gpios") != 0 && strcmp(propname, "gpio") != 0)
- 		return 0;
- 
--	for_each_property_of_node(curr, prop) {
--		/*
--		 * The standard name for a GPIO property is "foo-gpios"
--		 * or "foo-gpio". Some bindings also use "gpios" or "gpio".
--		 * There are some legacy device-trees which have a different
--		 * naming convention and for which we have rename quirks in
--		 * place in gpiolib-of.c. I don't think any of them require
--		 * support for shared GPIOs so for now let's just ignore
--		 * them. We can always just export the quirk list and
--		 * iterate over it here.
--		 */
--		if (!strends(prop->name, "-gpios") &&
--		    !strends(prop->name, "-gpio") &&
--		    strcmp(prop->name, "gpios") != 0 &&
--		    strcmp(prop->name, "gpio") != 0)
--			continue;
--
--		count = of_count_phandle_with_args(curr, prop->name,
--						   "#gpio-cells");
--		if (count <= 0)
--			continue;
-+	count = fwnode_property_count_references(curr, propname, "#gpio-cells");
-+	if (count <= 0)
-+		return 0;
- 
--		for (i = 0; i < count; i++) {
--			struct device_node *np __free(device_node) = NULL;
--			char *con_id __free(kfree) = NULL;
-+	for (i = 0; i < count; i++) {
-+		struct fwnode_handle *ctrl __free(fwnode_handle) = NULL;
-+		char *con_id __free(kfree) = NULL;
- 
--			ret = of_parse_phandle_with_args(curr, prop->name,
--							 "#gpio-cells", i,
-+		ret = fwnode_property_get_reference_args(curr, propname,
-+							 "#gpio-cells", 0, i,
- 							 &args);
--			if (ret)
--				continue;
-+		if (ret)
-+			continue;
- 
--			np = args.np;
-+		ctrl = args.fwnode;
- 
--			if (!of_property_present(np, "gpio-controller"))
--				continue;
-+		if (!fwnode_property_present(ctrl, "gpio-controller"))
-+			continue;
- 
--			/*
--			 * We support 1, 2 and 3 cell GPIO bindings in the
--			 * kernel currently. There's only one old MIPS dts that
--			 * has a one-cell binding but there's no associated
--			 * consumer so it may as well be an error. There don't
--			 * seem to be any 3-cell users of non-exclusive GPIOs,
--			 * so we can skip this as well. Let's occupy ourselves
--			 * with the predominant 2-cell binding with the first
--			 * cell indicating the hardware offset of the GPIO and
--			 * the second defining the GPIO flags of the request.
--			 */
--			if (args.args_count != 2)
--				continue;
-+		/*
-+		 * We support 1, 2 and 3 cell GPIO bindings in the
-+		 * kernel currently. There's only one old MIPS dts that
-+		 * has a one-cell binding but there's no associated
-+		 * consumer so it may as well be an error. There don't
-+		 * seem to be any 3-cell users of non-exclusive GPIOs,
-+		 * so we can skip this as well. Let's occupy ourselves
-+		 * with the predominant 2-cell binding with the first
-+		 * cell indicating the hardware offset of the GPIO and
-+		 * the second defining the GPIO flags of the request.
-+		 */
-+		if (args.nargs != 2)
-+			continue;
- 
--			fwnode = of_fwnode_handle(args.np);
--			offset = args.args[0];
-+		fwnode = ctrl;
-+		offset = args.args[0];
- 
--			entry = gpio_shared_find_entry(fwnode, offset);
--			if (!entry) {
--				entry = kzalloc_obj(*entry);
--				if (!entry)
--					return -ENOMEM;
-+		entry = gpio_shared_find_entry(fwnode, offset);
-+		if (!entry) {
-+			entry = kzalloc_obj(*entry);
-+			if (!entry)
-+				return -ENOMEM;
- 
--				entry->fwnode = fwnode_handle_get(fwnode);
--				entry->offset = offset;
--				entry->index = count;
--				INIT_LIST_HEAD(&entry->refs);
--				mutex_init(&entry->lock);
-+			entry->fwnode = fwnode_handle_get(fwnode);
-+			entry->offset = offset;
-+			entry->index = count;
-+			INIT_LIST_HEAD(&entry->refs);
-+			mutex_init(&entry->lock);
- 
--				list_add_tail(&entry->list, &gpio_shared_list);
--			}
-+			list_add_tail(&entry->list, &gpio_shared_list);
-+		}
- 
--			if (strends(prop->name, "gpios"))
--				suffix = "-gpios";
--			else if (strends(prop->name, "gpio"))
--				suffix = "-gpio";
--			else
--				suffix = NULL;
--			if (!suffix)
--				continue;
-+		if (strends(propname, "gpios"))
-+			suffix = "-gpios";
-+		else if (strends(propname, "gpio"))
-+			suffix = "-gpio";
-+		else
-+			suffix = NULL;
-+		if (!suffix)
-+			continue;
- 
--			/* We only set con_id if there's actually one. */
--			if (strcmp(prop->name, "gpios") && strcmp(prop->name, "gpio")) {
--				con_id = kstrdup(prop->name, GFP_KERNEL);
--				if (!con_id)
--					return -ENOMEM;
-+		/* We only set con_id if there's actually one. */
-+		if (strcmp(propname, "gpios") && strcmp(propname, "gpio")) {
-+			con_id = kstrdup(propname, GFP_KERNEL);
-+			if (!con_id)
-+				return -ENOMEM;
- 
--				con_id_len = strlen(con_id);
--				suffix_len = strlen(suffix);
-+			con_id_len = strlen(con_id);
-+			suffix_len = strlen(suffix);
- 
--				con_id[con_id_len - suffix_len] = '\0';
--			}
-+			con_id[con_id_len - suffix_len] = '\0';
-+		}
- 
--			struct fwnode_handle *curr_fwnode =
--				fwnode_handle_get(of_fwnode_handle(curr));
--			ref = gpio_shared_make_ref(curr_fwnode, con_id, args.args[1]);
--			if (!ref) {
--				fwnode_handle_put(curr_fwnode);
--				return -ENOMEM;
--			}
-+		ref = gpio_shared_make_ref(fwnode_handle_get(curr), con_id, args.args[1]);
-+		if (!ref) {
-+			fwnode_handle_put(curr);
-+			return -ENOMEM;
-+		}
- 
--			if (!list_empty(&entry->refs))
--				pr_debug("GPIO %u at %s is shared by multiple firmware nodes\n",
--					 entry->offset, fwnode_get_name(entry->fwnode));
-+		if (!list_empty(&entry->refs))
-+			pr_debug("GPIO %u at %s is shared by multiple firmware nodes\n",
-+				 entry->offset, fwnode_get_name(entry->fwnode));
- 
--			list_add_tail(&ref->list, &entry->refs);
-+		list_add_tail(&ref->list, &entry->refs);
- 
--			if (strcmp(prop->name, "reset-gpios") == 0) {
--				ret = gpio_shared_setup_reset_proxy(entry, args.args[1]);
--				if (ret)
--					return ret;
--			}
-+		if (strcmp(propname, "reset-gpios") == 0) {
-+			ret = gpio_shared_setup_reset_proxy(entry, args.args[1]);
-+			if (ret)
-+				return ret;
- 		}
- 	}
- 
--	for_each_child_of_node_scoped(curr, child) {
--		ret = gpio_shared_of_traverse(child);
-+	return 0;
++static int of_fwnode_count_references(const struct fwnode_handle *fwnode,
++				      const char *prop, const char *nargs_prop)
++{
++	return of_count_phandle_with_args(to_of_node(fwnode), prop, nargs_prop);
 +}
 +
-+static int gpio_shared_fwnode_scan_properties(struct fwnode_handle *curr)
-+{
-+	char **props;
-+	int ret, i;
-+
-+	ret = fwnode_property_get_names(curr, &props);
-+	if (ret <= 0)
-+		return ret;
-+
-+	CLASS(strarray, names)(props, ret);
-+
-+	for (i = 0; i < names.size; i++) {
-+		ret = gpio_shared_fwnode_scan_property(curr, names.array[i]);
- 		if (ret)
- 			return ret;
- 	}
-@@ -292,19 +297,35 @@ static int gpio_shared_of_traverse(struct device_node *curr)
- 	return 0;
- }
- 
--static int gpio_shared_of_scan(void)
-+static int gpio_shared_fwnode_traverse(struct fwnode_handle *curr)
- {
--	if (of_root)
--		return gpio_shared_of_traverse(of_root);
-+	int ret;
-+
-+	if (gpio_shared_fwnode_ignore(curr))
-+		return 0;
-+
-+	ret = gpio_shared_fwnode_scan_properties(curr);
-+	if (ret)
-+		return ret;
-+
-+	fwnode_for_each_child_node_scoped(curr, child) {
-+		ret = gpio_shared_fwnode_traverse(child);
-+		if (ret)
-+			return ret;
-+	}
- 
- 	return 0;
- }
--#else
-+
- static int gpio_shared_of_scan(void)
- {
-+#if IS_ENABLED(CONFIG_OF)
-+	if (of_root)
-+		return gpio_shared_fwnode_traverse(of_fwnode_handle(of_root));
-+#endif
-+
- 	return 0;
- }
--#endif /* CONFIG_OF */
- 
- static void gpio_shared_adev_release(struct device *dev)
- {
+ static struct fwnode_handle *
+ of_fwnode_graph_get_next_endpoint(const struct fwnode_handle *fwnode,
+ 				  struct fwnode_handle *prev)
+@@ -1747,6 +1753,7 @@ const struct fwnode_operations of_fwnode_ops = {
+ 	.get_parent = of_fwnode_get_parent,
+ 	.get_next_child_node = of_fwnode_get_next_child_node,
+ 	.get_named_child_node = of_fwnode_get_named_child_node,
++	.count_references = of_fwnode_count_references,
+ 	.get_reference_args = of_fwnode_get_reference_args,
+ 	.graph_get_next_endpoint = of_fwnode_graph_get_next_endpoint,
+ 	.graph_get_remote_endpoint = of_fwnode_graph_get_remote_endpoint,
 
 -- 
 2.47.3
