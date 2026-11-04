@@ -1,111 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793814727;
-	b=04psKz3oFnaw9KvvY31divS79/JyDGGJfLFkj67gCo0d6v+nO1Pc0ThqmdPBAm27UcBe
-	 /cR3RNli93JzKghmJexVloSN1vFlOH7XeFKXFjWEzuXUpn1pI1vCYU2rmpnigkcv+eLWH
-	 G/+76i/J4WA2YGNQRSXhmH/RSk2vorhELPXn3bBzv0y1ElZgN+QORXfS16vdXT30mlsD8
-	 KHvHWko3+GDGmrwuqT5e5TrupynbNprQcpvvV0SvLWlE7CCjqfBkMjuw9Sp30TwgxqilM
-	 DLJDjnnuKQFDWXS7uW6N6E91jNLOm7i64WNaGUMtGN1Y+DRXzvU0pY1ta+mvfnQz6Lg==
+	t=1793814729;
+	b=oQVFQU0jyc2o0V7UhZXuwgElziGZejM0GwL4u3vitdsWH4HRAowSKz2bwQ4sQsjbduxm
+	 S5uVta9b+wCcNg9LiEMVV4mCfh7jda/wb6O6tiFGT1YA2Thp415k87GaRE173b3yxcAQ6
+	 ysLBHz84kG429rTosVQSY/mIVzHTSqyr5a42OZzFfW0VmTCa3OVEGBNeTusr3RJ5HHZYW
+	 +aQOCtb/cAHxCjrhONfgi32KXky7Yg2RpQIDO9W2kHoHuOVPkQzn0hNv9OeZAgdBfT07F
+	 qtN/O6bp4nTi00B/s9EbJAdci7qnvE5AIpBw1XK/CV23u/ttaOQorcfs8pdNcG9+Cvw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793814727;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
-	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:Content-Transfer-Encoding;
-	bh=S8IXtzTL1USde6aV/lVKsFPWulIUW0ciUvC5Tm4lMm4=;
-	b=3dqbY6nkb2V/eu689wLaf84Wpe1M/x452PN++BEq1m9ihuiRnd8uN/+Elm3+EJWvYSeZ
-	 bgxlP+6JXPV7SsBrP+NbyqBNShzE8mhhaLxVgO6tYwiJr8Px8x+qh/jPW8a77NhH+vImb
-	 ap66JlLuEEO3uuJr88xuTuVzFW5pgoJCuzai6q7JbnP6WF2gRRZqZVk/qBXnteMQM+l0w
-	 X3yXjTaP3Kd1vcU/ChKfzl85JW6mM9AtRchHW4r+oKgr7iWcbTeEoAfbikfLfCwdwpN14
-	 7K14qkYng2vVUr+09A0IhoebFrs6/dUGM/qWOj3ipqulsAuqUoLbBgrB858CaV6JyUg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793814729;
+	h=Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To:X-Cookie;
+	bh=ac1TdzMdRVAfu/3pdJwOc0sC5HEYhrnVimqwcvhMZuY=;
+	b=nq3/BN/r/GoFzzuEPTbQqKtFNjLWNLIpdWJbV17pc28U2dnSOkMFkybW68jlvc2m3UUV
+	 Pp4y5++f9imWxZFP23VZ5VQX/9RCLNyc2if2lSEuqKD8fuN0NsAbg6NgO00l6VNDZ5c4G
+	 QyMAWWcJPri9WZdVlq8l/SgPyvTdzw7WSH/o5yb+5W96WR83Gp8UauJjuVTLZswavYudz
+	 YaofRNdEqd2VcZqyq5Bghlh/JoKTbE6KFGRjZPpAIgrgPTHERDpWlU+KQE420fkycjhfi
+	 Pisbuit1GbdBN3T5iADWQrhoB/DsavntJmqVu7Fo0nGeAq4spCDUOfoYaLSDo679KnQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Mf50A7c4;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4768360716A7;
-	Wed,  4 Nov 2026 17:52:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Mf50A7c4
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A12B1F00A15;
-	Wed,  4 Nov 2026 17:51:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793814727;
-	bh=S8IXtzTL1USde6aV/lVKsFPWulIUW0ciUvC5Tm4lMm4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Mf50A7c4fpaWARlrfltAJNXBhTSZuGrfKtFtGImZQJqXW3N9v7Y1OQFxFmkFkK5Ct
-	 bapsswn/j1rtyZQs4yPKDUvsPIf5PDmdksaztU62PPad3Jkbs8dRzSiZVJ+Ai4/9A7
-	 TOu/Cu4dvVAHo5CKEYiXGvTJnnQShxT00W42Aojf1ls84KBw0r2BVE/YpDekWmtN8L
-	 TKNaSWXmrlOTNpBzznkpl/BqVQ3rVQSmt0pyyR+1Vz/bjCdzyITaMgfaSUm99mamzI
-	 je3hQ99LqYBMj8gFmNEHVbqfHXEiVCfrmKNAjKbdNUHX9zYW2a8uoSL2qV2eT6wKro
-	 prddoqpdnGVCA==
-From: Christian Brauner <brauner@kernel.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Jann Horn <jannh@google.com>,
-	Josef Bacik <josef@toxicpanda.com>,
-	Chris Mason <mason@kernel.org>,
-	Jeff Layton <jlayton@kernel.org>,
-	NeilBrown <neil@brown.name>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Christoph Hellwig <hch@lst.de>,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	Joel Granados <joel.granados@kernel.org>,
-	Kees Cook <kees@kernel.org>,
-	Jan Kara <jack@suse.cz>,
-	Jan Kara <jack@suse.com>,
-	linux-kernel@vger.kernel.org,
-	linux-nfs@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kselftest@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	linux-scsi@vger.kernel.org,
-	linux-um@lists.infradead.org,
-	linux-wireless@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	netdev@vger.kernel.org,
-	ntfs3@lists.linux.dev,
-	platform-driver-x86@vger.kernel.org,
-	coreteam@netfilter.org,
-	kexec@lists.infradead.org,
-	linux-pci@vger.kernel.org,
-	linux-sound@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	ibm-acpi-devel@lists.sourceforge.net,
-	jfs-discussion@lists.sourceforge.net,
-	linux-alpha@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-cifs@vger.kernel.org,
-	linux-fbdev@vger.kernel.org,
-	linux-hwmon@vger.kernel.org,
-	linux-mm@kvack.org,
-	linux-sh@vger.kernel.org,
-	linux-usb@vger.kernel.org,
-	samba-technical@lists.samba.org,
-	sparclinux@vger.kernel.org,
-	linux-m68k@lists.linux-m68k.org,
-	linux-doc@vger.kernel.org,
-	linux-serial@vger.kernel.org,
-	linux-atm-general@lists.sourceforge.net,
-	Takashi Iwai <tiwai@suse.de>,
-	linux-input@vger.kernel.org,
-	linux-raid@vger.kernel.org,
-	linux-ext4@vger.kernel.org,
-	linux-modules@vger.kernel.org,
-	linux-debuggers@vger.kernel.org,
-	"Christian Brauner (Amutable)" <brauner@kernel.org>,
-	Chuck Lever <cel@kernel.org>,
-	stable@vger.kernel.org
-Subject: [PATCH v2 26/51] scsi: core: NUL-terminate what is written to the host proc files
-Date: Wed,  4 Nov 2026 18:47:12 +0100
-Message-ID: <20261104-work-procfs-bugfixes-v2-26-bbf7d5546809@kernel.org>
-In-Reply-To: <20261104-work-procfs-bugfixes-v2-0-bbf7d5546809@kernel.org>
-References: <20261104-work-procfs-bugfixes-v2-0-bbf7d5546809@kernel.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C22D46071F41;
+	Wed,  4 Nov 2026 17:52:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E57251F000C1;
+	Wed,  4 Nov 2026 17:51:51 +0000 (UTC)
+Date: Wed, 4 Nov 2026 17:51:45 +0000
+From: Mark Brown <broonie@debian.org>
+To: Pierre Gondois <pierre.gondois@arm.com>
+Cc: linux-kernel@vger.kernel.org, James Morse <james.morse@arm.com>,
+	Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>,
+	Borislav Petkov <bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Shuai Xue <xueshuai@linux.alibaba.com>,
+	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
+	Pawel Chmielewski <pawel.chmielewski@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	"Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>,
+	Breno Leitao <leitao@debian.org>, Dan Williams <djbw@kernel.org>,
+	Terry Bowman <terry.bowman@amd.com>,
+	Ard Biesheuvel <ardb@kernel.org>,
+	Morduan Zang <zhangdandan@uniontech.com>,
+	linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org,
+	acpica-devel@lists.linux.dev
+Subject: Re: [PATCH v3 6/7] ACPI: APEI: add separate Memory Error Section 2
+ handlers
+Message-ID: <94b213b2-dabc-46b4-8d21-a5dc8e8e51bb@sirena.org.uk>
+References: <20261104110355.1437249-1-pierre.gondois@arm.com>
+ <20261104110355.1437249-7-pierre.gondois@arm.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -115,38 +60,79 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1011; i=brauner@kernel.org; h=from:subject:message-id; bh=jBwXVCCRpDjmnAajxR/zAvEvmAtZKAE0jCj6+Cnx3v0=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS9zrv3a4XNr8e6d1tDr0b7KBzIWafbojAr+fDFhXfE9 vg02md3dpSyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAEzk4g5Ghh8f/uzl4px+y8Ir 7Jr5ATWGvLtVV5S3nzBgvC4T9mgf8xtGhl0p83Un1Eie5LavWZ4U5lee5LyI7VCWQtVx3w8B4jw qjAA=
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="8UKtglv2OUYLjMwF"
+Content-Disposition: inline
+In-Reply-To: <20261104110355.1437249-7-pierre.gondois@arm.com>
+X-Cookie: All rights reserved.
 
-proc_scsi_host_write() copies what is written into a page and hands it
-to ->write_info() without terminating it. ppa and imm parse it with
-strncmp() and simple_strtoul(), which read on past what was written into
-whatever the page held before. Terminate the copy. A write is at most
-PROC_BLOCK_SIZE bytes, so the page always has room for that.
 
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Cc: stable@vger.kernel.org
-Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
----
- drivers/scsi/scsi_proc.c | 1 +
- 1 file changed, 1 insertion(+)
+--8UKtglv2OUYLjMwF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/scsi/scsi_proc.c b/drivers/scsi/scsi_proc.c
-index fdc355d783da..dbd03360b5a4 100644
---- a/drivers/scsi/scsi_proc.c
-+++ b/drivers/scsi/scsi_proc.c
-@@ -80,6 +80,7 @@ static ssize_t proc_scsi_host_write(struct file *file, const char __user *buf,
- 		ret = -EFAULT;
- 		if (copy_from_user(page, buf, count))
- 			goto out;
-+		page[count] = '\0';
- 		ret = shost->hostt->write_info(shost, page, count);
- 	}
- out:
+On Wed, Nov 04, 2026 at 12:03:14PM +0100, Pierre Gondois wrote:
+> Add dedicated GHES and EDAC callbacks for Memory Error Section 2
+> records. Use a separate GHES notifier chain so existing consumers
+> continue to receive legacy memory error sections.
 
--- 
-2.53.0
+> @@ -1008,6 +1021,16 @@ static void ghes_do_proc(struct ghes *ghes,
+> =20
+>  			arch_apei_report_mem_error(sev, mem_err);
+>  			queued |=3D ghes_handle_memory_failure(gdata, sev, sync);
+> +		} else if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM2)) {
+> +			struct cper_sec_mem_err2 *mem_err =3D acpi_hest_get_payload(gdata);
+> +
+> +			if (gdata->error_data_length < sizeof(*mem_err)) {
+> +				pr_warn(FW_WARN "Memory Error Section 2 length is too small\n");
 
+The v1 code uses pr_warn_ratelimited() which seems sensible.
+
+> +static int ghes_edac_report_mem_error2(struct notifier_block *nb,
+> +				       unsigned long val, void *data)
+> +{
+> +	struct cper_sec_mem_err2 *mem_err =3D data;
+> +	struct edac_raw_error_desc *e;
+> +	struct mem_ctl_info *mci;
+> +	struct ghes_pvt *pvt;
+> +	char *p;
+
+> +	/* Memory error location, mapped on e->location */
+> +	p =3D e->location;
+> +	p +=3D cper_mem_err2_location(mem_err, p);
+> +
+> +	if (mem_err->validation_bits & CPER_MEM2_VALID_MODULE_HANDLE) {
+> +		struct dimm_info *dimm =3D NULL;
+> +
+> +		p +=3D cper_dimm_err2_location(mem_err, p);
+
+Do we need to raise the size of e->location?  It's 256 bytes and
+there's an awful ot of potential fields that could be decoded here,
+including some with 64 bit IDs.
+
+> +		if (mem_err->mem_dev_handle <=3D U16_MAX)
+> +			dimm =3D find_dimm_by_handle(mci, mem_err->mem_dev_handle);
+> +		else
+> +			pr_warn(FW_WARN "Memory Error Section 2 module handle 0x%x exceeds SM=
+BIOS range\n",
+> +				mem_err->mem_dev_handle);
+
+There's an equivalent print in cper_dimm_err2_location().
+
+--8UKtglv2OUYLjMwF
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmrrcLAACgkQJNaLcl1U
+h9Cbiwf8CL414tJA0b71RDfEqi+/59cDTX6lTkzXJzKGchYn2YCqF5pNEgaNIP4L
+U8b9QzaaMJSQ7bwzHIZ8op0nj/yMBG47ggbuj0DEweeu9004HssW1o0DS3epuFps
+ccL0B2DpwfoqfNtKL/N4kwTzZgZGEwxF1jJ02Up4H/nQ3DoX4D0h0SExGpJK/Aqo
+pb9cDiTpII+1YMP8bw1Sd4CihbraxI30q313c4CCMkSDUGq85NLYZ4K85IwwATZF
+Y2+bX8uL1Hd5jm+xsPTrDOdtT40Wr/mMUAKa0IxlzDCK3kGoYXlMeoYm7e1HI4KO
+Oce91tEKWOpPveVa1U3hVyyHRvJI7w==
+=0wR+
+-----END PGP SIGNATURE-----
+
+--8UKtglv2OUYLjMwF--
