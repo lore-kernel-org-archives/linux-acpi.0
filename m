@@ -1,75 +1,58 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793783863;
-	b=Mp/cCq9dDUkW6x5kXXovUkU7J2Ex+2BqH69nJ8KhkeNbPD/7prSSk650FUwGrH8lOyLp
-	 DLUKUJJGIMlfk2qSqAmZ/79JddkC6q2vyUYRZMho57P0tgyJb5IbwLTDrbszeDlWXNztD
-	 Gja1FcEBx3NRAJSk+p5KUFPBlfef033sxwY0NreKWyNSaJuJGbZDdwIiB3L7duz0On+6C
-	 615q4ErCCEnxaZzLq9savxhB882DouhijwqN1Nfgxo170QqtMIzPKK5exJfPjdn+LmbV6
-	 SlJLqer8eJaJHAFTkyouKkld5rcONdezwYqmvMHy9LU8sNBpddBCF2OVfjO9cBOD4Qg==
+	t=1793785213;
+	b=fYj37B1PyaxCIBGXIzO7sUEfAJRsrc6O3i8xB1NKpn+iluGA5XII6ZFlANvAw6DU4bZF
+	 6YPTCOR11+O+dmGpe3tIK1PQ+Db6U6q7RSyuFalXhD4s31sMT+QTdb8OU6xww+6THipns
+	 wR/+6VKQvAfd8XLygIOxic0lmjy+tK1lH5LKYrws7F9y/apxz2ZL+Q3KM3rKiPsoxa1yA
+	 oVEGF5u7K6k4MZOr72xRjwh3Xx7doRHr6BVD4wp+WgxOsxQWviR6Bh6awU6cItr42/eQp
+	 cElFeZJOL7v8DN7mo/cDYu5dq2dyp33DSKGI5KkLUbhUUWO9BkhH3K1hpBSlMzm+ICA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793783863;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793785213;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=vFLCfIpQzvj87maXuJncKjZMHxfbMjkVEErOwSrEMzQ=;
-	b=sFWKpBwLggaRTm8knp6AldUbYKl9CFDvHYpYxQ0aIYOK66knpWkwBJGQ6MrbCws4tUW5
-	 /9wYQlWzbbdct9yJklGSVNfw1Qeq5cFbORaIa5K5rluZFtqQOTrVIPaSU4CZtYHG0jcb+
-	 xMaxR5g4+0UmnzCKSr1qjjRNJN3steQAoDhNvG2fi2N/XYXPYtmBGpgeA06dgoa1P/1iT
-	 g+uT2q5j3TNWVFjsOSYaNjz0fftSURMmT1Jn/EFO7OnjczO9MBjHSYgydQl8PmosW8/m6
-	 dEDYZPS0Ljyow+DwVy65NwlNnPA2quntRu/FjrvBzizeDghFWwhhmsSlf+NdH31xglA==
+	bh=AH9jbyRyqYQM8uXEqlVbbyuWAkQCPVJGJ6rXheEFJ/Q=;
+	b=0gH0KL98unMqyLWTq0Ugt1IjxqqhrwupKzK6prxe0uoSdS4S18LPmSwf/iuJOaWaJhss
+	 R3EwL/SQAOvVko6Jg56k5omvZ+znjrq6uGUEB9bkekXP+vTHxy8LH8IRJ5Glmw+J8rdKQ
+	 z1EYf9HGXcYlFNksOg2yUXDupTLrj82Lf0Wxv5QdT4z8xiO3AnKlh8r/b8Mx22ZUOjphn
+	 snQk6xGuZNbWeQiHdAekh9SNKMlwd53rZKEhUsRvdFiCiq1CLWa3mV/Fncb8JFW6fzUF2
+	 7Bmp6oVYMrYbgDowYbk5rXyCP2PeckS/ybhtZk5+/u8UUzOrxr21AT8Iphj9NM6TMRg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AkGIp68v;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RqUIW910;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54C20606A31B;
-	Wed,  4 Nov 2026 09:17:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3689D606A330
+	for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2026 09:40:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AkGIp68v
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9461A1F000C1;
-	Wed,  4 Nov 2026 09:17:30 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=RqUIW910
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 342E31F00A17;
+	Wed,  4 Nov 2026 09:40:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793783862;
-	bh=vFLCfIpQzvj87maXuJncKjZMHxfbMjkVEErOwSrEMzQ=;
+	s=k20260515; t=1793785212;
+	bh=AH9jbyRyqYQM8uXEqlVbbyuWAkQCPVJGJ6rXheEFJ/Q=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=AkGIp68vobiZwB2XixXdCJHgtF8bS2InhigVuwsdqp6n5/W+M82eXJQmgMDIXncGQ
-	 ZsgLev6upKoTph4wRGMw/6Rt8tdd4yiEe0QTNTPemQ626tgZDkM1GcZGQlIINcGmX1
-	 rweyg/M+elK322suBIlSSUF7Ca/phJp24NGzpraEYkCKjrptZL+chTq0rR5ps9q2f2
-	 buSjg3t9Zzbjt9a55NJ2t3tMIsF7dtK6fdeAh04poa02hll2Rco50kbc8I+oEfsxAS
-	 NzUPxVvIxDSaOzz7ERaAm3QpoNHvfOUNEKEQothQH0rTaYd4IAl0SGRh52pJdJDENe
-	 eaiECSjcPGAaQ==
-Date: Wed, 4 Nov 2026 10:17:28 +0100
-From: Christian Brauner <brauner@kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-fsdevel@vger.kernel.org, Jann Horn <jannh@google.com>, 
-	Josef Bacik <josef@toxicpanda.com>, Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, 
-	NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>, 
-	Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
-	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
-	Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados <joel.granados@kernel.org>, 
-	Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
-	linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-kselftest@vger.kernel.org, linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
-	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
-	netdev@vger.kernel.org, ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org, 
-	coreteam@netfilter.org, kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
-	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
-	ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net, 
-	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
-	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
-	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, samba-technical@lists.samba.org, 
-	sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
-	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
-	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
-	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org, 
-	Chuck Lever <cel@kernel.org>, stable@vger.kernel.org
-Subject: Re: [PATCH RFC 01/38] PCI/proc: don't truncate the position of
- config space accesses
-Message-ID: <20261104-beugt-kapern-geehrt-19e2e2dd58f6@brauner>
-References: <20261102-work-procfs-bugfixes-v1-0-59422ed3e465@kernel.org>
- <20261102-work-procfs-bugfixes-v1-1-59422ed3e465@kernel.org>
- <CAHk-=wiSA7-mqmAjTQDaU7UjUyWt0TxYwXHafL8ZAPudy+B_uQ@mail.gmail.com>
+	b=RqUIW910dsKAi0PXWO/dMXKS3N7RyvNVQ4qmdXxmLKX5SERn0RLcNeLf8bOQ9WSik
+	 ThX4WduNIwDacCxsUSk7lkHcG0W2MO0+cRuMKrsm7ztdTcNfSYfjzYiap8PxHlH+tY
+	 9e6QpxChceyBUVV9u/TWPN5U6sdRdW6yfZJfGXfiqevDx+TiqxOA58Io8AShz0qkAd
+	 OTMI93uhbQsXCEegJdvz7jp7TJmsmuT4dUt0MsLUEpeuSYlliDzr8t1sjvZE7MlsPm
+	 Fuv/IP5YdByBjn1Si7evZHCb3cc9wv/UXxpg6WX1n+L1JJpREEGujQKxFOxF9rj/Rb
+	 zUdMFPEEBpGPQ==
+Date: Wed, 4 Nov 2026 09:40:08 +0000
+From: Sudeep Holla <sudeep.holla@kernel.org>
+To: Jamie Nguyen <jamien@nvidia.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Sudeep Holla <sudeep.holla@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>, Dat Mach <dmach@nvidia.com>
+Subject: Re: [PATCH 2/2] ACPI: FFH: Support FF-A direct request 2 calls
+Message-ID: <20261104-poetic-durable-jaguar-cdf3ee@sudeepholla>
+References: <20261103173907.1996118-1-sudeep.holla@kernel.org>
+ <20261103173907.1996118-3-sudeep.holla@kernel.org>
+ <20261103211136.4122648-1-jamien@nvidia.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -79,28 +62,56 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAHk-=wiSA7-mqmAjTQDaU7UjUyWt0TxYwXHafL8ZAPudy+B_uQ@mail.gmail.com>
+In-Reply-To: <20261103211136.4122648-1-jamien@nvidia.com>
 
-On Mon, Nov 02, 2026 at 09:58:51AM -0800, Linus Torvalds wrote:
-> I think this would actually be better with rw_verify_area() just
-> checking a per-file maxbytes.
->
-> We already have that logic for lseek and friends - using that fairly
-> hacky combination of s_maxbytes and !unsigned_offsets().
->
-> We should combine s_maxbytes and unsigned_offsets() at file open time
-> into f_maxbytes and check that not just at lseek but in
-> rw_verify_area.
->
-> And then things like proc_bus_pci could set it's size limit in one single place.
+On Tue, Nov 03, 2026 at 01:11:36PM -0800, Jamie Nguyen wrote:
+> On Tue, Nov 03, 2026 at 05:39:07PM +0000, Sudeep Holla wrote:
+> [...]
+> > +	if (!acpi_ffh_ffa_version_negotiated) {
+> > +		args.a0 = FFA_VERSION;
+> > +		args.a1 = FFA_VERSION_1_2;
+> 
+> Same question as on the earlier thread: how does this work if the
+> transport driver has already negotiated a version?
+> 
 
-Yeah, I like that.
+Handling this coordination is difficult, which prompted my earlier query about
+requiring v1.3 as a baseline. On ACPI platforms, this initialization conflict
+is already an inherent issue, as the UEFI or early bootloader might negotiate
+a version before the kernel FF-A driver probes. I welcome any feedback or
+proposals on how we might cleanly resolve or track this pre-negotiated state.
 
-Hm, maybe we should keep this and the isapnp thing small and do that
-change on top.
+> [...]
+> > +	ret = acpi_ffh_ffa_features(ffh_ctxt, FFA_PARTITION_INFO_GET_REGS);
+> > +	if (ret)
+> > +		goto out;
+> 
+> I think REGS is only needed when X1 is zero, and if I understand
+> correctly it's optional at the Non-secure physical instance. Would it
+> make sense to check it in the lookup path instead, so an explicit
+> receiver ID still works without it?
+> 
 
-This also might mean a change in behavior. Because a read past the end
-returns 0 for proc_bus_pci and for a regular file past s_maxbytes. So
-that would potentially need some more changes.
+That is good point. I completely forgot why I didn't add this check in
+the RFC patch. Thank you for catching it; I will make sure to include
+the proper fallback implementation in the next revision.
+
+> [...]
+> > +	memcpy(&args.a4, &buf[4], len - 4 * sizeof(u64));
+> 
+> I believe this would trip FORTIFY_SOURCE's field-spanning write check.
+> So I suggest:
+> 
+> 	memcpy((void *)&args + offsetof(struct arm_smccc_1_2_regs, a4),
+> 	       &buf[4], len - 4 * sizeof(u64));
+
+
+Apologies for the oversight, as I remember you pointing this out before. I was
+rushing to get these patches sent out, but I will make sure it is corrected in
+the next revision.
+
+-- 
+Regards,
+Sudeep
