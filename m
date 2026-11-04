@@ -1,49 +1,68 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793805371;
-	b=KnnIScQMnxFc6mi65hkPvDfwx7ifvAxRXVRMtRCE0OUPFCbSUNZAOemSKyDPlp9JOjtc
-	 2V8rWC00WY2QKDkK0zmSbAy+ofMyuMBkngI6iitscSBe3Ba59so2gTVwiLcxUosGEQBIN
-	 cHRV0ZyKhrxZn6XmkxFb3cSc/1bqeKJgBEHLo0Wv3x1RHdEa7Ye9riFS0k8EMYWTNk856
-	 dei7PE9JderYiC5b5//U/KxNguJlRHut8zr6nJO5zTnl6NvWNaKb8hOLoMJyXiwriw7J3
-	 Y3NUFHf6wCHoFoCkGLfdmHEGTlsH249GRIpSuzcEcX5Ch2WbYI/CMlIbXaxvN42gBOg==
+	t=1793806385;
+	b=JNrnti+9SSRmO3wEXGhqBdWwlNAlHCzFp3jV2l+cKgbZvNTRZP4sD44WtpuHBZMVti3F
+	 hQsC+ZWcMoMBfiywiqSyKz1O6wtrY42tDuAdhufN30Tdz3xNekPI0urstvfAZEEbK1Ce4
+	 gwIUl6IvtvZZ9bWDIZHdTaZa8clBTQA5b5pr2n3p3f0z6TqvzpXGrxRuvBnSiuFLJHeVi
+	 kmR3zhpZ/ZQVFNJKe2P6GxoS25HdyoaFWBNHZGCdPmLDOPeXYeOkJKH0ulnRRUaC/N1Vq
+	 wv8apKilYMcPy9U5dU0E/XuBASpH7jkDaRx6ZY7wrkSi9uKjMImEg06nf8N8gekhAeQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793805371;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
-	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	bh=6BzJTf+9zOj6b1DI2tW45vlOMvFFlfpqxjqXrxOY85Q=;
-	b=RPdaGs6hf237UiFI5b55rY+rFlHHi84FoEAsbLub1MMOGdUUA3aPUgoo69mvhxzLWofm
-	 amC40KRp/t99Kkegwf2k735GYilCePCnwsLj0iuN2IeHkuLZi/gymi7NVqTMMGhPtUpyQ
-	 cL+FEeE+d3dcBscGclxEjGCWXqEFuz66LzzXxGeglfrcivNs9rHCEwdFm9aMJHCJDM9oM
-	 mJ6uscfZSEqEUqByX5wuNUNednfuUQuYXKQm/noqA6TNiOqTQTPikfVTNO4YMkrK/fEOG
-	 QDgta259uSoEo4JydRicnQ1+b/DgqZXMn4l8VRJEYQCQXX1mpyqd0sy5KxuemmjrtLw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793806385;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=b/x6zpD9OBHa7oB2g2wm+0IAQx4iGRhspWzCqvvaFww=;
+	b=gDv/W+TH4n2vTw0/2U4xfMfz1gy0yX3CIxzFIQu4csMDt2QH7STauaTRfcgMd6FgrwKF
+	 zUgEf6ABwciF/Ytvxr6rDT1BScfZnolAKb/+AXcge4gK9KijQ1S/pfGcHHq1f5srZgSwT
+	 2pnJctfhfrBrCRbWEh1maE8t8AVeB3b8RUiOumE5BucgmPXjavSuMDi5YGafHSVbW7BKl
+	 Yx3dis54BbvP+VyhfpJUQ9iOWdD+s40qeoIR30OGAz23BaUN0hsvzSfYPamQt8zuD7z4M
+	 MgAtLbrTzVKrP2CcgdA2I/r5j54GVm3pCanzPSFmLPAD0AMhViQU0O7HTCIdiNmwLdg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=arm.com;
-	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=e0fUJcYt;
-	arc=none smtp.remote-ip=217.140.110.172
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 653B86082BE9;
-	Wed,  4 Nov 2026 15:16:10 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 653B86082BE9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="R+bri8M/";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B6F2606A32D;
+	Wed,  4 Nov 2026 15:33:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=e0fUJcYt
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 63D131576;
-	Wed,  4 Nov 2026 07:16:06 -0800 (PST)
-Received: from [10.0.130.179] (e127648.arm.com [10.0.130.179])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 4722F3F632;
-	Wed,  4 Nov 2026 07:16:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1793805369; bh=R3BE3Js5qTxa0hvvmDnseDfPGZ0ejh2HVouUW0zy5/c=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=e0fUJcYt12inwf8RZGmraI6jvQ2p7fdaOI9jFqHE181GTnyzQdb7oO9dLU0znMeZO
-	 ZzkX5lVQC4u7kbxEBBMtIDtGV0RkGwbP/yrcLNB4yirnvz1CueIrDPnvIFYOO2s80n
-	 Wvk2JrbqAYwCRNLIsaiOC2Zc4NRwbv60Xmt2Vqck=
-Message-ID: <79700c48-e031-422a-a6b6-8c4118131e98@arm.com>
-Date: Wed, 4 Nov 2026 15:16:02 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=R+bri8M/
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 018791F000C1;
+	Wed,  4 Nov 2026 15:33:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793806385;
+	bh=b/x6zpD9OBHa7oB2g2wm+0IAQx4iGRhspWzCqvvaFww=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=R+bri8M//bIxpp/85z/gG/q9NtoELwrxjLtJK0FqUgNTr0KgUDF7WBeQxi0rzs80U
+	 hvcpjFPDVy0IK+REsAD9RH8621T3uNvROTsO3dERub2j1A4zCMG37xcHSToep/Vcdo
+	 Wo9FkSkY11ZyuXKTzVzqLRSV/Et2Mw6aUdUqebLzaVqFrzjb4tDaA9e8xMoDHb13Ms
+	 ziQF7+6d/8XpI8kIYGg1B2xUr120I/EAEQszkccnDUgKm4nDcjzF3x2TOs20JOsJfo
+	 7wVDFturzzuEjSeyEr7M1C2g4UWtSSIh8aj7EBJT76lV9EzMXGFO+x0UcSybQIyE0A
+	 sv0xtIiZCYwlQ==
+Date: Wed, 4 Nov 2026 09:33:03 -0600
+From: Rob Herring <robh@kernel.org>
+To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
+	Hans Verkuil <hverkuil@kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kees Cook <kees@kernel.org>, Andy Shevchenko <andy@kernel.org>,
+	Len Brown <lenb@kernel.org>, Saravana Kannan <saravanak@kernel.org>,
+	Linus Walleij <linusw@kernel.org>, linux-acpi@vger.kernel.org,
+	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
+	linux-hardening@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-gpio@vger.kernel.org
+Subject: Re: [PATCH 8/9] of: property: implement the count_references()
+ fwnode operation
+Message-ID: <20261104153303.GC3951195-robh@kernel.org>
+References: <20261104-fwnode-for-each-prop-v1-0-6e28fe1c72c4@oss.qualcomm.com>
+ <20261104-fwnode-for-each-prop-v1-8-6e28fe1c72c4@oss.qualcomm.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -53,83 +72,17 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v8 3/3] cpufreq: CPPC: Reflect the OSPM nominal in boost
- and limits
-To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
- viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
- zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, lenb@kernel.org,
- mario.limonciello@amd.com, maciej.wieczor-retman@intel.com,
- pawel.chmielewski@intel.com, linux-pm@vger.kernel.org,
- linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
- linux-kernel@vger.kernel.org
-Cc: linux-tegra@vger.kernel.org, treding@nvidia.com, jonathanh@nvidia.com,
- vsethi@nvidia.com, ksitaraman@nvidia.com, sanjayc@nvidia.com,
- mochs@nvidia.com, bbasu@nvidia.com
-References: <20261030172745.2045743-1-sumitg@nvidia.com>
- <20261030172745.2045743-4-sumitg@nvidia.com>
- <6392b2cb-0cbf-455a-8c05-c273535b2c10@arm.com>
- <4d9aa879-316c-4188-bc5a-71e3b65e8a3b@nvidia.com>
-Content-Language: en-US
-From: Christian Loehle <christian.loehle@arm.com>
-In-Reply-To: <4d9aa879-316c-4188-bc5a-71e3b65e8a3b@nvidia.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261104-fwnode-for-each-prop-v1-8-6e28fe1c72c4@oss.qualcomm.com>
 
-On 11/4/26 15:08, Sumit Gupta wrote:
-> Hi Christian,
+On Wed, Nov 04, 2026 at 03:03:50PM +0100, Bartosz Golaszewski wrote:
+> Implement the property_count_references() fwnode operation for OF nodes
+> by wrapping the existing of_count_phandle_with_args().
 > 
-> 
-> On 03/11/26 22:42, Christian Loehle wrote:
->> External email: Use caution opening links or attachments
->>
->>
->> On 10/30/26 17:27, Sumit Gupta wrote:
->>> Boost is the performance range above nominal, so lowering the OSPM
->>> Nominal Performance enlarges the boost range and drops the non-boost
->>> ceiling. Keep the policy limits consistent with the register.
->>>
->>> Add cppc_cpufreq_effective_nominal(), which returns the OSPM Nominal
->>> Performance when set and the platform nominal otherwise. Use it for the
->>> non-boost ceiling in set_boost(), and to update the policy limits when
->>> ospm_nominal_freq is written.
->>>
->>> The cpufreq core caps scaling_max_freq with a per-policy QoS request,
->>> boost_freq_req, that it sets to cpuinfo.max_freq and refreshes only when
->>> boost is toggled. A write to ospm_nominal_freq changes cpuinfo.max_freq
->>> without toggling boost, so cppc_cpufreq_update_nominal_limits() updates
->>> the request itself, rather than leaving scaling_max_freq at the old
->>> nominal.
->>>
->>> When boost is enabled the ceiling is highest_perf, not the nominal, so
->>> the update is skipped. set_boost() applies the new nominal when boost is
->>> turned off.
->>>
->>> A platform with highest_perf == nominal_perf has no boost range at boot.
->>> Lowering the OSPM nominal from sysfs can create one. The core, however,
->>> adds its boost FREQ_QOS_MAX request only at policy setup, and only if
->>> boost_supported is already set. Set boost_supported in init() when the
->>> OSPM register is supported and highest_perf > lowest_perf. Boost can
->>> then be enabled after the nominal is lowered.
->>>
->>> Suggested-by: Pierre Gondois <pierre.gondois@arm.com>
->>> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
->>
->> Thinking out loud here:
->> I'm curious if there's actually a use-case for this, presumably once we
->> let userspace effectively dictate boost allocation, we practically expect
->> userspace to sort out scheduling, too (e.g. by pinning?) and therefore this
->> becomes largely irrelevant?
->>
-> 
-> I think it is still needed. Lowering the OSPM nominal puts the levels
-> between it and the platform nominal into the boost range.
-> Without this patch, boost=0 still allows those levels. Userspace would
-> then need an extra frequency cap to stay out of boost. This patch makes
-> boost=0 cap the policy at the OSPM nominal.
+> Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+> ---
+>  drivers/of/property.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
 
-Duh of course, I was somehow too focused on the cpufreq capacity pressure
-to not see the obvious one, nevermind and sorry for the noise.
-
-Reviewed-by: Christian Loehle <christian.loehle@arm.com>
-
+Acked-by: Rob Herring (Arm) <robh@kernel.org>
