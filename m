@@ -1,55 +1,49 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793813667;
-	b=eYjDCdB89Qx6mKRhh7U24mmQ/RQjUT40EiJiU1Z5dLN0RvZhxgX6t7IZYubDJKpZ7dKO
-	 znpoAVgQjnLJJSRB4AFpDaclVHTst1ujDgP7P9wQzBp2LZJk5pX4zhPXqpkIS4a8a0+Ma
-	 Uss4gDTxvTPDm2KEHsWKX95cc6DymE75x+IWLunjUcz6JgpVQkVvvGl9XR4zOCOHxE+av
-	 ymtun0wEdzJzB0ysnXwkMWOEGJwDQGVYmTF1lluXMLpvp5PEL783shQ94JJXP2E1ze4A9
-	 jrOSBByfnqdw400g+vqwYsB+GxSaruLPIYLvOrndJBbwnZUi4v6Y+E89WTiKNuWxUFQ==
+	t=1793813957;
+	b=cHqss5bdygOV69kcpOTHvb2EM1P5FQzdQA0fhmC0QEaE4pVGUGXXMzMZlliH/wZHlyrh
+	 Xv0QGPRgzRw6mhmiOcKY3gwCJ/OaQ4lNiX41T7jS49yEWxHBQEnZjmtYJGMOcmR5fP/uI
+	 n2Jbwy5JTq23lJdHcWfG6cWucD8Iwcj4LjJ3Qu1JAVraf+AdndpRysCUlJc24wkVMznWX
+	 NLC7azRz2xl1OzgCpwEL9aDop/x2kENYf2lzUKgaZlebfH5YGyj/AJsZqRweyWtstHEnU
+	 ngWpA9mLS/S9yeh3j9mz1EOkL0tT6NtAZlfJESpvv6McRmiirv9VR0RVLjR5e7q44XQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793813667;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=AMOD33XmGyHm36xJWMnYgDFAfU9OylqTMFKngAIWEtA=;
-	b=mmem5vrV0VpMuKWEqiBEyz4Vh4cS2lY5cCdS9XAZ/bATt0YbaTLM2PRypBjlMtZaogiV
-	 hOsdHP9IBV28DFQwPkNwVPsNdjD3Cx2PXd5qV/TVw7aFnAWXJOWeUBy53SqPuJJBns6jt
-	 yYgccygDwZTn5mS1lPZbG2/9oLaciUdfjwnd3Llx5cj7UL2EsrhOTIt4ffu8aXWqDSM6l
-	 drspAflUvG7CvKu8WBqWHFCTskCOxOYzmUMWYM8wC9ZsMe3nDvvRGJkBnUNuY4ACgtE9X
-	 z3UcOqNvcx8ZdFj6jwJCB9HENZRTyoSjIKywnDOmNpDqQuH6d4Sud1jxO1VZoAk3NmA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793813957;
+	h=DMARC-Filter:Received:Received:DKIM-Signature:Message-ID:Date:
+	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
+	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	bh=9CcDkjihi+yiVBZ4yDcPql+O9dE6UXuwMcC+J0dZmUE=;
+	b=cxOxJURE5/qGyCAv4MTD8oE3hv9Sd8qcmkM934IgZJhCemLJmWW6pjpgJkEtYxBjbr26
+	 ATJWLi4f9rpFf4ynwMlFv+VJOGaXGeRZKFjK2UzIVSYDqIXnOakFLeI/4Xg4xq07iKXYl
+	 mQBEW49Tk0I65CrLN3YneaWP6J3+CKZeYLIKBN+08GaQVpLHQOyVFYIVQ3uoDpD+KsGzX
+	 99leoN4g1kXSrFLO/TAkrPlN9411whkYTjRlGB8n9SJ2Jsp+ddgsK7TnddCjecTDVOh2z
+	 mrthd8J7FlG7i0zCANThlcRL04ds8fY8ppvRkzETJ8RCKNlBRa3JmXxAUkprW9enjew==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TuIdEGHN;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A87B4606A93B
-	for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2026 17:34:26 +0000 (UTC)
+	dmarc=pass header.from=arm.com;
+	spf=pass smtp.mailfrom=arm.com;
+	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=DVRMrYGo;
+	arc=none smtp.remote-ip=217.140.110.172
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id DCB32606A32E;
+	Wed,  4 Nov 2026 17:39:16 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DCB32606A32E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TuIdEGHN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4ACC01F00A02
-	for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2026 17:34:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793813666;
-	bh=AMOD33XmGyHm36xJWMnYgDFAfU9OylqTMFKngAIWEtA=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=TuIdEGHN+tlSpGP2tguvWW7kLlUQWLPYjJKJSOdpszP2pLOR7WrjdSkZZ/grMbqbK
-	 +lTr56mLL+WOdircBkePq+AP1VJ8IkK1jD+a+/cNVkOM5lTrA3ra2sVKICfCT0wVFa
-	 G7aUxkwbEYQTgmz4D8gML0l5sd+AeXfF/B+yunRHPHSfp3DhyhKMZ2MO8cmr1H2mgR
-	 d2oAbezChMlOpKySp6bD7YhtrL6rY8cs9aS9v0EePA62cXO8uXedgf6WJ2JQI3RfVB
-	 sVx/vx3dq4DLpiMPLoF4zMVjw7jCtMETWhYAirt1guo5pK4CX4JT893wQit46xG65K
-	 Y99CMV8/O64SQ==
-Received: by mail-vk1-f179.google.com with SMTP id 71dfb90a1353d-5eafb65e169so599082e0c.1
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2026 09:34:26 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AKwUvByOHGDo7F1osbsh9dVQaw999KeNWzonxIcy2ppocUQn8gTFQnSp9scuJDu/yLsUlQGqHh1NNqKFFWqE@vger.kernel.org
-X-Gm-Message-State: APuU4Z+32rFNhnUG3juC6hXZeH0UUkeFtlcQgGp0r08IlZuM/MVoXzIT
-	XreSr7ar4/WGKBsNXjIsBnqcz+4MJHzcyX6u/nidwCjjpMx+10uX/y2ZmCVYDJ2q7AhL4TLXoN1
-	hmTcOUDYzjJtiwLflON+JuXtKN5+AFHw=
-X-Received: by 2002:a05:6122:180a:b0:5ec:5f1b:f725 with SMTP id
- 71dfb90a1353d-5ec689c4d7fmr8231097e0c.23.1793813664918; Wed, 04 Nov 2026
- 09:34:24 -0800 (PST)
+	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=DVRMrYGo
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id ED35B1BB0;
+	Wed,  4 Nov 2026 09:39:12 -0800 (PST)
+Received: from [10.0.130.179] (e127648.arm.com [10.0.130.179])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id D7CD13F673;
+	Wed,  4 Nov 2026 09:39:11 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1793813956; bh=/kyJGjVyWY310MgT5Xs9DoLM2JJz9yZzou7eKEpHhQ0=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=DVRMrYGopu7hfbBwieaIEXe7c7Z92PBAzHy7ulMbhJD+hoaYTBXEyH2ha7GUBsGBf
+	 zrurxqeaIA2Qs7md8EwI8Mv4t8mFutsixlKN6TlziDNGZREfw1mmJ90aRttF+MaFiI
+	 GGPPF+opoDATNdEYtaU7YNgBD8aOH5Dq3oXltZCs=
+Message-ID: <4b7d65dd-6103-4363-ac9b-cbcd2ece905b@arm.com>
+Date: Wed, 4 Nov 2026 17:39:10 +0000
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,162 +53,145 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261104-work-procfs-bugfixes-v2-0-bbf7d5546809@kernel.org> <20261104-work-procfs-bugfixes-v2-4-bbf7d5546809@kernel.org>
-In-Reply-To: <20261104-work-procfs-bugfixes-v2-4-bbf7d5546809@kernel.org>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 4 Nov 2026 18:34:10 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0gnefKDcBnLzxxXPLJkYRHN9pbYH9WVFAoUGuCSOPcW1A@mail.gmail.com>
-X-Gm-Features: AclHuK8WGpfSf3TpV-YfKcvDlenGAnmL4yQTyeV9z6QpHJtyVq4G8L84EjJ5Q2g
-Message-ID: <CAJZ5v0gnefKDcBnLzxxXPLJkYRHN9pbYH9WVFAoUGuCSOPcW1A@mail.gmail.com>
-Subject: Re: [PATCH v2 04/51] PNP: isapnp: don't go on when isapnp_cfg_begin() fails
-To: Christian Brauner <brauner@kernel.org>
-Cc: linux-fsdevel@vger.kernel.org, 
-	Linus Torvalds <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>, 
-	Josef Bacik <josef@toxicpanda.com>, Chris Mason <mason@kernel.org>, 
-	Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>, 
-	Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
-	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, Greg Kroah-Hartman <gregkh@suse.de>, 
-	Joel Granados <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, 
-	Jan Kara <jack@suse.com>, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org, 
-	linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
-	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, ntfs3@lists.linux.dev, 
-	platform-driver-x86@vger.kernel.org, coreteam@netfilter.org, 
-	kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
-	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net, 
-	jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
-	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
-	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, 
-	samba-technical@lists.samba.org, sparclinux@vger.kernel.org, 
-	linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
-	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
-	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
-	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, 
-	linux-debuggers@vger.kernel.org, Chuck Lever <cel@kernel.org>, stable@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v8 1/3] ACPI: CPPC: Add ospm_nominal_perf support
+To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
+ viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
+ zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, lenb@kernel.org,
+ mario.limonciello@amd.com, maciej.wieczor-retman@intel.com,
+ pawel.chmielewski@intel.com, linux-pm@vger.kernel.org,
+ linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
+ linux-kernel@vger.kernel.org
+Cc: linux-tegra@vger.kernel.org, treding@nvidia.com, jonathanh@nvidia.com,
+ vsethi@nvidia.com, ksitaraman@nvidia.com, sanjayc@nvidia.com,
+ mochs@nvidia.com, bbasu@nvidia.com
+References: <20261030172745.2045743-1-sumitg@nvidia.com>
+ <20261030172745.2045743-2-sumitg@nvidia.com>
+Content-Language: en-US
+From: Christian Loehle <christian.loehle@arm.com>
+In-Reply-To: <20261030172745.2045743-2-sumitg@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Wed, Nov 4, 2026 at 6:30=E2=80=AFPM Christian Brauner <brauner@kernel.or=
-g> wrote:
->
-> isapnp_cfg_begin() refuses a logical device number above 10 and a bad
-> card number with -EINVAL before it takes isapnp_cfg_mutex. The callers
-> that read and write the device's configuration, the proc file included,
-> don't look at that: they go on talking to whatever device the card
-> currently has selected and then unlock a mutex they never took in
-> isapnp_cfg_end(). isapnp_create_device() hands out logical device
-> numbers without a bound, so a card with twelve or more logical devices
-> gets there. Return the error instead.
->
-> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+On 10/30/26 17:27, Sumit Gupta wrote:
+> Expose the OSPM Nominal Performance register (ACPI 6.6, Section
+> 8.4.6.1.2.6), which conveys the nominal performance level at which the
+> platform may run. Unlike the read-only Nominal Performance register, it
+> is writable, so OSPM can ask for a nominal level below the
+> platform-reported one, which then becomes the boundary between boosted
+> and throttled operation.
+> 
+> Add cppc_set_ospm_nominal_perf() to write the register. Per the spec,
+> the value must lie in [Lowest Performance, Nominal Performance], which
+> the caller is responsible for validating.
+> 
+> Add cppc_ospm_nominal_perf_supported() to report whether the platform
+> implements the register as writable, since a write-only register cannot
+> be probed by reading it. It uses the same cpc_is_writable() test as the
+> setter, so support is never reported for a register that a write would
+> reject, and takes cpc_desc_lock while looking the descriptor up.
+> 
+> The register also joins the writable set that the SystemMemory overlap
+> validation uses, as the driver now writes it and can compete with
+> another control sharing an access unit.
+> 
+> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
 
-Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+Reviewed-by: Christian Loehle <christian.loehle@arm.com>
 
 > ---
->  drivers/pnp/isapnp/core.c | 16 ++++++++++++----
->  drivers/pnp/isapnp/proc.c |  5 ++++-
->  sound/isa/es18xx.c        |  6 +++++-
->  3 files changed, 21 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/pnp/isapnp/core.c b/drivers/pnp/isapnp/core.c
-> index 219f96f2aaaf..3591a2791c1a 100644
-> --- a/drivers/pnp/isapnp/core.c
-> +++ b/drivers/pnp/isapnp/core.c
-> @@ -853,7 +853,9 @@ static int isapnp_get_resources(struct pnp_dev *dev)
->
->         pnp_dbg(&dev->dev, "get resources\n");
->         pnp_init_resources(dev);
-> -       isapnp_cfg_begin(dev->card->number, dev->number);
-> +       ret =3D isapnp_cfg_begin(dev->card->number, dev->number);
-> +       if (ret)
-> +               return ret;
->         dev->active =3D isapnp_read_byte(ISAPNP_CFG_ACTIVATE);
->         if (!dev->active)
->                 goto __end;
-> @@ -887,10 +889,12 @@ __end:
->  static int isapnp_set_resources(struct pnp_dev *dev)
->  {
->         struct resource *res;
-> -       int tmp;
-> +       int tmp, ret;
->
->         pnp_dbg(&dev->dev, "set resources\n");
-> -       isapnp_cfg_begin(dev->card->number, dev->number);
-> +       ret =3D isapnp_cfg_begin(dev->card->number, dev->number);
-> +       if (ret)
-> +               return ret;
->         dev->active =3D 1;
->         for (tmp =3D 0; tmp < ISAPNP_MAX_PORT; tmp++) {
->                 res =3D pnp_get_resource(dev, IORESOURCE_IO, tmp);
-> @@ -936,9 +940,13 @@ static int isapnp_set_resources(struct pnp_dev *dev)
->
->  static int isapnp_disable_resources(struct pnp_dev *dev)
->  {
-> +       int ret;
+>  drivers/acpi/cppc_acpi.c | 44 ++++++++++++++++++++++++++++++++++++++++
+>  include/acpi/cppc_acpi.h | 10 +++++++++
+>  2 files changed, 54 insertions(+)
+> 
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 5a1f84fddb7f..3a0ecdd1ab11 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -463,6 +463,7 @@ static bool cpc_reg_is_writable(unsigned int reg_idx)
+>  	case AUTO_SEL_ENABLE:
+>  	case AUTO_ACT_WINDOW:
+>  	case ENERGY_PERF:
+> +	case OSPM_NOMINAL_PERF:
+>  		return true;
+>  	default:
+>  		return false;
+> @@ -3232,6 +3233,49 @@ int cppc_set_epp(int cpu, u64 epp_val)
+>  }
+>  EXPORT_SYMBOL_GPL(cppc_set_epp);
+>  
+> +/**
+> + * cppc_set_ospm_nominal_perf() - Write OSPM Nominal Performance register.
+> + * @cpu: CPU on which to write register.
+> + * @ospm_nominal_perf: Value to write to the OSPM Nominal Performance register.
+> + *
+> + * OSPM Nominal Performance conveys the desired nominal performance level
+> + * at which the platform may run. Per ACPI 6.6, s8.4.6.1.2.6, the value
+> + * must lie within [Lowest Performance, Nominal Performance] and may be
+> + * set independently of Minimum, Maximum and Desired performance. The
+> + * caller is responsible for validating the range.
+> + *
+> + * Return: 0 on success, -EOPNOTSUPP if the platform does not implement the
+> + * register as writable, or another negative error code.
+> + */
+> +int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf)
+> +{
+> +	return cppc_set_reg_val(cpu, OSPM_NOMINAL_PERF, ospm_nominal_perf);
+> +}
+> +EXPORT_SYMBOL_GPL(cppc_set_ospm_nominal_perf);
 > +
->         if (!dev->active)
->                 return -EINVAL;
-> -       isapnp_cfg_begin(dev->card->number, dev->number);
-> +       ret =3D isapnp_cfg_begin(dev->card->number, dev->number);
-> +       if (ret)
-> +               return ret;
->         isapnp_deactivate(dev->number);
->         dev->active =3D 0;
->         isapnp_cfg_end();
-> diff --git a/drivers/pnp/isapnp/proc.c b/drivers/pnp/isapnp/proc.c
-> index c1f6e6bd0eb2..b3abab24050b 100644
-> --- a/drivers/pnp/isapnp/proc.c
-> +++ b/drivers/pnp/isapnp/proc.c
-> @@ -25,6 +25,7 @@ static ssize_t isapnp_proc_bus_read(struct file *file, =
-char __user * buf,
->         struct pnp_dev *dev =3D pde_data(file_inode(file));
->         int pos =3D *ppos;
->         int cnt, size =3D 256;
-> +       int ret;
->
->         if (pos >=3D size)
->                 return 0;
-> @@ -37,7 +38,9 @@ static ssize_t isapnp_proc_bus_read(struct file *file, =
-char __user * buf,
->         if (!access_ok(buf, cnt))
->                 return -EINVAL;
->
-> -       isapnp_cfg_begin(dev->card->number, dev->number);
-> +       ret =3D isapnp_cfg_begin(dev->card->number, dev->number);
-> +       if (ret)
-> +               return ret;
->         for (; pos < 256 && cnt > 0; pos++, buf++, cnt--) {
->                 unsigned char val;
->                 val =3D isapnp_read_byte(pos);
-> diff --git a/sound/isa/es18xx.c b/sound/isa/es18xx.c
-> index 3cadbf7cf238..de1eda5a0656 100644
-> --- a/sound/isa/es18xx.c
-> +++ b/sound/isa/es18xx.c
-> @@ -1950,7 +1950,11 @@ static int snd_audiodrive_pnp_init_main(int dev, s=
-truct pnp_dev *pdev)
->         /* ok. hack using Vendor-Defined Card-Level registers */
->         /* skip csn and logdev initialization - already done in isapnp_co=
-nfigure */
->         if (pnp_device_is_isapnp(pdev)) {
-> -               isapnp_cfg_begin(isapnp_card_number(pdev), isapnp_csn_num=
-ber(pdev));
-> +               int ret =3D isapnp_cfg_begin(isapnp_card_number(pdev),
-> +                                          isapnp_csn_number(pdev));
+> +/**
+> + * cppc_ospm_nominal_perf_supported() - Check OSPM Nominal Performance support.
+> + * @cpu: CPU to query.
+> + *
+> + * The OSPM Nominal Performance register is write-only, so its value
+> + * cannot be read back. This only reports whether the platform implements
+> + * it as a writable register.
+> + *
+> + * Context: Process context.
+> + * Return: true if the register is supported, false otherwise.
+> + */
+> +bool cppc_ospm_nominal_perf_supported(int cpu)
+> +{
+> +	struct cpc_desc *cpc_desc;
 > +
-> +               if (ret)
-> +                       return ret;
->                 isapnp_write_byte(0x27, pnp_irq(pdev, 0));      /* Hardwa=
-re Volume IRQ Number */
->                 if (mpu_port[dev] !=3D SNDRV_AUTO_PORT)
->                         isapnp_write_byte(0x28, pnp_irq(pdev, 0)); /* MPU=
--401 IRQ Number */
->
-> --
-> 2.53.0
->
->
+> +	guard(mutex)(&cpc_desc_lock);
+> +	cpc_desc = per_cpu(cpc_desc_ptr, cpu);
+> +
+> +	return cpc_desc &&
+> +	       cpc_is_writable(&cpc_desc->cpc_regs[OSPM_NOMINAL_PERF]);
+> +}
+> +EXPORT_SYMBOL_GPL(cppc_ospm_nominal_perf_supported);
+> +
+>  /**
+>   * cppc_get_auto_act_window() - Read autonomous activity window register.
+>   * @cpu: CPU from which to read register.
+> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+> index a5545fd3f8bd..2cec54b4d2e2 100644
+> --- a/include/acpi/cppc_acpi.h
+> +++ b/include/acpi/cppc_acpi.h
+> @@ -195,6 +195,8 @@ extern int cpc_write_ffh(int cpunum, struct cpc_reg *reg, u64 val);
+>  extern int cppc_get_epp_perf(int cpunum, u64 *epp_perf);
+>  extern int cppc_set_epp_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls, bool enable);
+>  extern int cppc_set_epp(int cpu, u64 epp_val);
+> +extern int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf);
+> +extern bool cppc_ospm_nominal_perf_supported(int cpu);
+>  extern int cppc_get_auto_act_window(int cpu, u64 *auto_act_window);
+>  extern int cppc_set_auto_act_window(int cpu, u64 auto_act_window);
+>  extern int cppc_get_auto_sel(int cpu, u64 *enable);
+> @@ -290,6 +292,14 @@ static inline int cppc_set_epp(int cpu, u64 epp_val)
+>  {
+>  	return -EOPNOTSUPP;
+>  }
+> +static inline int cppc_set_ospm_nominal_perf(int cpu, u64 ospm_nominal_perf)
+> +{
+> +	return -EOPNOTSUPP;
+> +}
+> +static inline bool cppc_ospm_nominal_perf_supported(int cpu)
+> +{
+> +	return false;
+> +}
+>  static inline int cppc_get_auto_act_window(int cpu, u64 *auto_act_window)
+>  {
+>  	return -EOPNOTSUPP;
+
