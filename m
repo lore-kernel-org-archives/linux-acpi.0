@@ -1,90 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.11
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793812088;
-	b=Jqhzm6pc7afzgp6EMj09e7H84NIasioHhXCDLKA1APdMlqve6sNqcWe1Kulyvwoihe1H
-	 PpPWHarhJQL+a/OTvAv/s82EYlxg0h0PQXnG0xKTYM/KYVq428oninTrLPxuToaKYjwO9
-	 8Z11u3syIy8apc6Y8IK5Phnph4qymDW2JpR47YULuDuptZ8OOy4XMivKbj+uMWpzZlfyj
-	 ENV35f+1tKWxuIh2WalmT8VcdMXsKsEm4fk1jbn6jaQ+owbFKjYJFB23m7l3ZL5E8UdYU
-	 tZb5NwXg32Es/615eUXcWxfsqTL2G1Y6E5R2rKrZPoF40kkCN1/5Lk7qpuuqZvDh2RQ==
+	t=1793813166;
+	b=KFbjl+qIcOvfncK2aJNJGYN1xPoT12b4POIB00QqNKBWeA+OBTnDZrQ57ncE8etiIzQq
+	 PJchODY+HP/OxFp48RIApUET5TvppZkJR3KVvKdrMdQbvATPxH9ip6LKnwa1/mjm9D5Kr
+	 zdlXfUvWHBNCL3E4iG/BFoPSIh0HhQK/gN8kZ3tJwnNVA04QuEfiCFf399+v10MOwD2kh
+	 9H9mKGj4Pxjd35IuSYsh+vlTyZvDp1Ui2V28aM6pI6Ne4G4Tte87C7TSt/Kv2SUb+acYK
+	 hxd0m+Lv3z3xXisojRsgvR+/VTQHxzK/zVerXETs1PL//fQxm4pRjm3cZS3PxjeRyqQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793812088;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
-	 Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:Content-Transfer-Encoding:In-Reply-To:
-	 Organization;
-	bh=HM1X62uqqSW8+dQdfDbaF9vMh4Xi6tzQU0GrJjMKdtg=;
-	b=ZX6ZzipgzOELB0xD2M0yOE0uvxop26e9/LTxxLT2dk0hX1E5uUiGwV6l8BQD9ZSu1LkN
-	 J6uT/aMZd7icSt7MBiFdRoqwLM68S8jg0vLRpNe9+KQj8U3eqwId8aqDN8qE45cvCXxjn
-	 cwEzfDJkU5UXFp6Lp4/4/U0m1I5xDVrvzybdQOQVuDLeRoXC+2rAeQ5V5HoZb5dLO5Mw/
-	 4vHSbySly/eqM/IgdYig9TgVDb7qz4ekQZBHUjPI3arfGibUSXuF9NMXvZhrSdXhjmeTT
-	 TD/tuxEjEaeM2S8cMeMMNFCq/zzPlExs83mnasXbY6wBWn8gdH+kV18/eu/gOz1Kg9g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793813166;
+	h=Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To:X-Cookie;
+	bh=x9ff6M0sp5VgSXGtim1j8WATytOjQDQzXjDY2PMCYn4=;
+	b=z2b7StmoojIMJC8gNZU/LhhGYCHwX8vppCCTpQ0WgAYNP/owv0KpPmIByd6UxG+JEaM5
+	 SCTDIdFkgRZTFVqCQjKPlqxHHdcx1X59S7knUHcXQqHO22MgeXTobwnJjoWyOUhmoAPnT
+	 zPWkH/S9wPXEvWtessbnCs7NsOZiKS1yxm9BuyN0rchce15E8NFfB2sJ709G6Ad8RT7+k
+	 RwXQJlOgTYXQ1Nq3SRTVJ7JtX/Ciutk79tC4GmN69wkMbwMd/0Hq3nd+k6tmLGQoRI0fL
+	 Do08OdxMfzT5qmLjr3U/A/DSUgYydtmuKvJZ3ke/SNvZvDFqyYy3p0oNefbgx4Es/Bg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=YvTm5R0s;
-	arc=none smtp.remote-ip=192.198.163.11
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90F89606A31B;
-	Wed,  4 Nov 2026 17:08:07 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 90F89606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=YvTm5R0s
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793812088; x=1825348088;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=ft8VhpNUkwAoJ7C9+JE583msFXwVNKOM2x9mwVzGgq4=;
-  b=YvTm5R0snyRyUa0/zKz4x+hZp2SuKFh8UigZycDNenL1viGBmk7/xcDp
-   1Fy9MqEozFP3l35dAyyEs/b/dM/uRIIqYAxr818fwWqpoiR6wXxvNnYOj
-   Q4abgHHjJ5BfeT7PY3SK7P9CKWrG3/DqB5O1NhqrinUOK/Y2Ro6yTLJLH
-   DQm19zHT03jFc5vVCzKxtgeX/y9m5Oqnz/qVNpy+6AUZO24m8yA/nyM1i
-   bEHJcUL5wZJ4ZRwKcoQ5eSSjSCty99/b7A9pMYH6rbIZE6l9zv46OuECM
-   TYgoKGXhwGsdNUspYq8DbR82bgAIH/EwaahCvpO4O6vxaeLTP4Mi5z/Ek
-   g==;
-X-CSE-ConnectionGUID: MIwE9zsJRKejEmMSafZJuw==
-X-CSE-MsgGUID: q/w64WIjT2KpcI4Fz1ACyA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11956"; a="2483178"
-X-IronPort-AV: E=Sophos;i="6.27,195,1787036400"; 
-   d="scan'208";a="2483178"
-Received: from fmviesa004.fm.intel.com ([10.60.135.144])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2026 09:08:07 -0800
-X-CSE-ConnectionGUID: hp/hoIyeSCK3mj/fpTGilw==
-X-CSE-MsgGUID: npWrMFopRXuq3g6GQJvZnw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,195,1787036400"; 
-   d="scan'208";a="6781883"
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.24])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2026 09:08:03 -0800
-Date: Wed, 4 Nov 2026 19:08:01 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Cc: Thierry Reding <thierry.reding@kernel.org>,
-	Arnd Bergmann <arnd@arndb.de>, arm <arm@kernel.org>, soc@kernel.org,
-	Jon Hunter <jonathanh@nvidia.com>, linux-tegra@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>,
-	linux-acpi@vger.kernel.org,
-	Lorenzo Pieralisi <lpieralisi@kernel.org>,
-	Sudeep Holla <sudeep.holla@arm.com>,
-	Hans de Goede <hansg@kernel.org>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Mika Westerberg <westeri@kernel.org>,
-	Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Subject: Re: [GIT PULL 4/7] firmware/tegra: Changes for v7.4-rc1
-Message-ID: <autmcaraWcXIoRfZ@ashevche-desk.local>
-References: <20261003095924.1370238-1-thierry.reding@kernel.org>
- <20261003095924.1370238-4-thierry.reding@kernel.org>
- <928b3eaf-32da-43a9-9ca5-d59ef8a3b330@app.fastmail.com>
- <auslF5pwDHtcNoCy@orome>
- <bcad1d7e-387d-4251-8974-7f0dcd2f9734@app.fastmail.com>
- <autADOKsSVVMn6r9@orome>
- <CAJZ5v0iyaHGj2b7H8g0nqrxvz8GpXiE6hkVp9RM7KF+KDckjrA@mail.gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63458606A32F;
+	Wed,  4 Nov 2026 17:26:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 640CF1F00A02;
+	Wed,  4 Nov 2026 17:26:01 +0000 (UTC)
+Date: Wed, 4 Nov 2026 17:25:58 +0000
+From: Mark Brown <broonie@debian.org>
+To: Pierre Gondois <pierre.gondois@arm.com>
+Cc: linux-kernel@vger.kernel.org, James Morse <james.morse@arm.com>,
+	Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>,
+	Borislav Petkov <bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Shuai Xue <xueshuai@linux.alibaba.com>,
+	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>,
+	Pawel Chmielewski <pawel.chmielewski@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	"Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>,
+	Breno Leitao <leitao@debian.org>,
+	Terry Bowman <terry.bowman@amd.com>, Dan Williams <djbw@kernel.org>,
+	Ard Biesheuvel <ardb@kernel.org>,
+	Morduan Zang <zhangdandan@uniontech.com>,
+	linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org,
+	acpica-devel@lists.linux.dev
+Subject: Re: [PATCH v3 3/7] cper: add helpers to handle Memory Error Section 2
+Message-ID: <6016f3f4-7bf7-4b71-9b8f-06a7f31095b0@sirena.org.uk>
+References: <20261104110355.1437249-1-pierre.gondois@arm.com>
+ <20261104110355.1437249-4-pierre.gondois@arm.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -94,129 +59,65 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="YNGke8jv/OA0HEod"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJZ5v0iyaHGj2b7H8g0nqrxvz8GpXiE6hkVp9RM7KF+KDckjrA@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
-
-On Wed, Nov 04, 2026 at 05:28:18PM +0100, Rafael J. Wysocki (Intel) wrote:
-> On Wed, Nov 4, 2026 at 3:41 PM Thierry Reding <thierry.reding@kernel.org> wrote:
-> > On Wed, Nov 04, 2026 at 03:11:09PM +0100, Arnd Bergmann wrote:
-> > > On Wed, Nov 4, 2026, at 13:42, Thierry Reding wrote:
-> > > > On Tue, Oct 13, 2026 at 07:22:23PM +0200, Arnd Bergmann wrote:
-> > > >> On Sat, Oct 3, 2026, at 11:59, Thierry Reding wrote:
-> > > >>
-> > > >> Where is the ACPI binding documentation for this driver, and who is
-> > > >> responsible for reviewing it?
-> > > >
-> > > > Sorry for the late reply, this fell through the cracks.
-> > > >
-> > > > Admittedly there's not much of a formal process here at all. Anything
-> > > > I've received up to now seemed to be fairly straightforward support
-> > > > extensions like this where the ACPI tables basically provide the same
-> > > > information as the DT via standard resources like register ranges.
-> > > >
-> > > > I suppose for anything beyond this, we'll want better documentation and
-> > > > broader review.
-> > > >
-> > > > Is there anything in particular that you're looking for? Should I guide
-> > > > people internally to always Cc linux-acpi for anything that concerns
-> > > > ACPI?
-> > >
-> > > I don't know, I'm also still learning about how this is done, I
-> > > was hoping that there was already an established way.
-> >
-> > Yeah, me too. Maybe Rafael and Len can provide some guidance here.
-> 
-> I cannot speak for Len, and he has not been actively involved in the
-> maintenance of ACPI support in the kernel for several years.
-> 
-> As far as I'm concerned, the code maintained by me is mostly located
-> in drivers/acpi/ (as per the relevant MAINTAINERS entries) and it is
-> mostly generic code related to ACPI support.  I generally don't
-> maintain device drivers using ACPI support except for the ones under
-> drivers/acpi/ which mostly bind to devices representing interfaces
-> defined in the ACPI specification (which is kind of a special case).
-> 
-> But there is more.  There is ACPI support code in other places (like
-> for instance gpiolib-acpi maintained by Andy and Mika, or platform-x86
-> drivers maintained by Ilpo) and there are experienced kernel
-> developers in the ARM ecosystem with quite a bit of ACPI-related
-> knowledge (Hans, Jonathan, Sudeep, Lorenzo - all CCed) who can be
-> reached out to for guidance (and arguably they have more experience
-> with ARM platforms than I do).
-> 
-> > I don't know how ACPI on more traditional platforms works, but I imagine
-> > that it's a lot of the same anyway, except perhaps that people have more
-> > experience with the spec and today might be doing a good job already.
-> 
-> If you have any specific questions, I think I should be able to answer
-> at least some of them, but I'm afraid I cannot give you general
-> guidance on how to do ACPI support in device drivers that would be
-> universally useful.  Different drivers have different needs.
-> 
-> There are things in ACPI that are not present in DT and vice versa.
-> It also depends on what bus types we're talking about (platform vs PCI
-> vs USB etc).
-
-And don't forget the big player(s) such as Microsoft that from time to time
-creates an "extension" to the ACPI (in means of additional tables or how some
-of the existing data should be interpreted if it's not clear from the ACPI
-specification). For instance, above mentioned USB ACPI support for some cases
-heavily relies on the MS "extensions". Or earlycon support for ACPI is based
-on MS defined SPCR table. And so on...
-
-> > > Having a review done by the ACPI maintainers would definitely
-> 
-> So as per the above, who exactly do you mean by "ACPI maintainers"?
-> If you mean "the people maintaining the code in drivers/acpi/", that's
-> just me and quite frankly, I'm not sure if my review, specifically,
-> would be super-useful for driver development (the fact that my review
-> bandwidth is almost completely saturated nowadays aside).
-> 
-> My recommendation would be to ask other people within the ARM
-> ecosystem who have more experience with ACPI for help.
-> 
-> > > help from my point of view, but I'm not sure whether they are
-> > > set up for that, in case there are a lot of new drivers.
-> 
-> I am not and had I been trying to do it, it wouldn't have scaled anyway.
-> 
-> > I think platform maintainers need to be a first line of defense here
-> > since they sit at the intersection of a lot of this. At least that's the
-> > case for me. Also, I'm eager to learn how to do this right, but I'm
-> > often at a loss of where to start. The spec is a bit daunting, and then
-> > there's various extensions, too. Maybe the AI genies can help me ramp
-> > up.
-> 
-> My advice would be to reach out to people within your ecosystem in the
-> first place.
-> 
-> > > I assume there is a knowledge gap in both subsystem maintainers
-> > > regarding ACPI (certainly this is the case for me for drivers/bus,
-> > > drivers/firmware, drivers/soc, etc) and ACPI maintainers regarding
-> > > many of the subsystems that we support with DT.
-> >
-> > Agreed. I've seen some patches where the ACPI support was as simple as
-> > just adding an ID table entry and the rest was all standard, but I think
-> > once we move beyond standard resources things might get a bit more
-> > complicated. I imagine that ACPI may not even have specs for certain
-> > aspects that we currently handle in DT...
-> 
-> That certainly is true, but the ACPI specification is under active
-> development and pieces that are missing can be added to it.  There is
-> a process for that in place and ARM people take part in it.
+In-Reply-To: <20261104110355.1437249-4-pierre.gondois@arm.com>
+X-Cookie: All rights reserved.
 
 
-On top of the above in Linux we also developed some "extensions", for instance
-how I²C muxes are described, or how some multi-functional devices are being
-enumerated. These specifics we usually document under
-Documentation/firmware-guide/acpi/ (see i2c-muxes.rst for the mentioned case).
+--YNGke8jv/OA0HEod
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
--- 
-With Best Regards,
-Andy Shevchenko
+On Wed, Nov 04, 2026 at 12:03:11PM +0100, Pierre Gondois wrote:
+> Add separate location and printing helpers for Memory Error
+> Section 2:
+> - cper_mem_err2_location()
+> - cper_dimm_err2_location()
+> - cper_print_mem2()
 
+> +int cper_dimm_err2_location(const struct cper_sec_mem_err2 *mem, char *msg)
+> +{
+> +	u32 len, n;
+> +	const char *bank = NULL, *device = NULL;
+> +
+> +	if (!msg || !(mem->validation_bits & CPER_MEM2_VALID_MODULE_HANDLE))
+> +		return 0;
+> +
+> +	/* SMBIOS handles are 16 bits; never truncate a Section 2 handle. */
+> +	if (mem->mem_dev_handle <= U16_MAX)
+> +		dmi_memdev_name(mem->mem_dev_handle, &bank, &device);
+> +	else
+> +		pr_warn(FW_WARN "Memory Error Section 2 module handle 0x%x exceeds SMBIOS range\n",
+> +			mem->mem_dev_handle);
 
+Should this be rate limited?
+
+> +	len = CPER_REC_LEN;
+> +	if (bank && device)
+> +		n = snprintf(msg, len, "DIMM location: %s %s ", bank, device);
+> +	else
+> +		n = snprintf(msg, len,
+> +			     "DIMM location: not present. DMI handle: 0x%.8x ",
+> +			     mem->mem_dev_handle);
+
+Shouldn't this be scnprintf(), especially in the first case where the
+strings come from the firmware?
+
+--YNGke8jv/OA0HEod
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmrraqYACgkQJNaLcl1U
+h9AajAf/W7R0CEUqtpIYoBl2hZk1nuGn9tkyTqfdf9mJWE4vi9igIzfRMj75lpki
+tgacOw5Dggxv6jSV6YoNll9CUeJy9h+OUFf/N7/IRFO1R/EpdtFJZjX3sX8AlKwS
+2OgJFjrKBU6Ei4+9hKoUYr4eWuibp+zZ+0FOgT75l3jk1ro+VFnums5/kmsutjVd
+ysMyZPaUj8HMLzqXnx3Zf/pmDG0NHukEAC02hPy/QqPNGhD2o+OzXLTW5jwH83zh
+5yVaCX18ZoN+E6dWl2Ii+I+6XjJV/wDxfqnZcOnPv76KYsLQidPRqywHwHMz+Tt6
+HZHePjuzQwwJJiWOhDhb+xKVIOXocA==
+=6Yex
+-----END PGP SIGNATURE-----
+
+--YNGke8jv/OA0HEod--
