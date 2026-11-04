@@ -1,49 +1,110 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793813976;
-	b=05tIe2rZcqnqG0AL85Ps+DKIMCYGI+RJ740xsf9vsEbbRRs1GpD3t/QAif2dFFzxrpcj
-	 7FhlYbyfIKfyeFEYKCHFaFVLjNhACRPuCbDFoJGqiO70xrO/oiF8zDlhPR8B5twJZYEUc
-	 /la2nfGh8yDg1JD7vTw9PCCDrn8Tu5QfZbsuBbWqkVPrm4vk5ReXR+0MF8wCEfnJb065X
-	 81Vo26FnvYT3wTuPOgewLKXOjJL5oNC6lDvsyK8OB1+aLiG2HSMuooNX3vyGsFPlmv1wm
-	 O6lxCMA8NUNqFwv0AxaZNga4+zYh+k6cgG58hTLjQSpoA3WTcNUhDm0+rEiA34Ju5sQ==
+	t=1793814381;
+	b=5MG+YJQ/uiSIWSjn5832Gc5BjqKYg9WlsvLRGUgdDKNF1hl84DFb2hCAnLXBJ90sxHZr
+	 d9e8na6YKC/XxQG0EFlV58L6s30au7D4/VRxsYacxXiqUTQbQ8YIFVW0gGHxPlQP9OU1Z
+	 FtTF3bmt7m9UGoa9ymsKxM6jOzvk9dHPM+EORe9WgjD8byZJ7r0RDsEGjpb/pj/BnR+AG
+	 qcSjLzkvWOxo1wBje/B9dl5MIWfQ+/bgnQgJLgUcIdLqveXWCXPywrAWMs+PtmaH11vDy
+	 ioitRQMnG6EszUF3w+b235RqezPhZZddO9263Hzmgmy4hb+BP7VuOjmdpY6MNkn1fTQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793813976;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:To:Cc:References:Content-Language:
-	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	bh=ZRKlMChbObdDIR4yRgSAznCCf8n/+N94KMVWhJg4P/c=;
-	b=EQzYpjRLYraIBdSQLa01QJ+jUVde7nnPgCkWeLAgB3g/m7XKBejOiCjau/T9TGz3Ndy8
-	 yLXmmAVPn7kWjlSlQhOcTu7VsP6HdAfvlNkdkZAZKyoETNQmF6Zf9aI/u9yL5rwx3lcOD
-	 UHKO7XBu88OQlJouB+agYJ97Xu36H+VXaFTwQ2x8Mp+wZumSwQ2BWx1JAFeRZrBzY/2DJ
-	 By2kCrDy7gTTb4h1v0oii0kyO3b1qqVnDk+ZSLnLYw5dzokuE9tPhzx5PkRhhIVsKoHaN
-	 LtfWZvAGqLci6MgSuHXgArhe/IGpknbETzu0siGzH5lSFgu03jfSSjLlX444vrEf0cw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793814381;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
+	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:Content-Transfer-Encoding;
+	bh=mdnthwMs9LvqnLJy6kPpeiwqrlhi6ADC7izliWiN2IE=;
+	b=E/6EnKvKHE11CYhPPq9/x8sL5n8zZ+0rf37Ey6EqLwXNZJQKSK4WBnK673H4F4WKTgb5
+	 SOxlGN/PmgVcH2lY3TKsoK/j+9DfEwvK0wLVWehG2r5KtfwfDD2KG2ORJ7cKCYWgiVfSz
+	 JC7Oh5HZVnfiiE8lVDRQDkE0rTq0RqHMw9rTGp6aWr4LJ//Ue6+wwsNOLO5d7QFJu5KDq
+	 g3SxGjC41iwsz79QHiYzYd6cV6qAKzzzxLpsNcfSQHuzSGQp3zcc0ToYYsmYiZDbBT3Ia
+	 EjKR8BlZRSuwn2V5EntSvPWAE4E/31hF45IyTC3NuqGb21EJgQa5hu3y5elgnvDwj5A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=arm.com;
-	spf=pass smtp.mailfrom=arm.com;
-	dkim=pass header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=qT5ZPMUW;
-	arc=none smtp.remote-ip=217.140.110.172
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D657D606A32C;
-	Wed,  4 Nov 2026 17:39:35 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D657D606A32C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="IUyU/T8J";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECDCD606A328;
+	Wed,  4 Nov 2026 17:46:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=arm.com header.i=@arm.com header.a=rsa-sha256 header.s=foss header.b=qT5ZPMUW
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 334831BB0;
-	Wed,  4 Nov 2026 09:39:32 -0800 (PST)
-Received: from [10.0.130.179] (e127648.arm.com [10.0.130.179])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 4CCDB3F673;
-	Wed,  4 Nov 2026 09:39:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1793813975; bh=PyfAlFhsPQ8iAO3hNEf2+zQIfdM2JyqpLxshBsMkr8M=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=qT5ZPMUW+6XHss/1mzVLtw3ZoufepZXQsy7i6cOLqZ+ZAIJjG5CaRxYGxXLaTrvdV
-	 H5iitWPD/U6DLy5A9Bj7hJIrQTsFl2YAE+P7mG5WQcLIpLsAW/DN6AfxywqTalNo7C
-	 eU0uCkbVjzF4o52wsTfxlRUTlCaWGG3m4Agzj6v0=
-Message-ID: <8be9a4f7-1b9a-4372-9751-6e5074305a5c@arm.com>
-Date: Wed, 4 Nov 2026 17:39:29 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IUyU/T8J
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A0831F00919;
+	Wed,  4 Nov 2026 17:46:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793814380;
+	bh=mdnthwMs9LvqnLJy6kPpeiwqrlhi6ADC7izliWiN2IE=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=IUyU/T8JanEUeWb8OLvnBOF7mcsDaYX0yn50MMyhywpzR+Xd73lI68b+Z0EjhqK7z
+	 bkEkttde6fJvRPVGGA2MZkA0GbASE8FC1nT+84ODvZFzTbBCjYw8IWtatNsrtMoyrH
+	 KXUF53QFRfDUagwA56DH/VxXp+wT5/pJfjV3gzlKef2KUiN1HSYpnfrnWdn1nbnNKf
+	 O/7xCRN+TNpny8Le4H87j8uBb2tQPjPggOwQvaiPHTFrUkQgsfx/jAR3vQ6vrxrWe7
+	 JaBxG35YdcKRtCdLtOxgMygQkmiRV8AYLKhLlP/iKh/wi1njtDUmOUna6ss0EP8ecg
+	 vvOH1vOWWni9g==
+From: Christian Brauner <brauner@kernel.org>
+To: linux-fsdevel@vger.kernel.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Jann Horn <jannh@google.com>,
+	Josef Bacik <josef@toxicpanda.com>,
+	Chris Mason <mason@kernel.org>,
+	Jeff Layton <jlayton@kernel.org>,
+	NeilBrown <neil@brown.name>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Al Viro <viro@zeniv.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Christoph Hellwig <hch@lst.de>,
+	Greg Kroah-Hartman <gregkh@suse.de>,
+	Joel Granados <joel.granados@kernel.org>,
+	Kees Cook <kees@kernel.org>,
+	Jan Kara <jack@suse.cz>,
+	Jan Kara <jack@suse.com>,
+	linux-kernel@vger.kernel.org,
+	linux-nfs@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kselftest@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	linux-scsi@vger.kernel.org,
+	linux-um@lists.infradead.org,
+	linux-wireless@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	netdev@vger.kernel.org,
+	ntfs3@lists.linux.dev,
+	platform-driver-x86@vger.kernel.org,
+	coreteam@netfilter.org,
+	kexec@lists.infradead.org,
+	linux-pci@vger.kernel.org,
+	linux-sound@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	ibm-acpi-devel@lists.sourceforge.net,
+	jfs-discussion@lists.sourceforge.net,
+	linux-alpha@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-cifs@vger.kernel.org,
+	linux-fbdev@vger.kernel.org,
+	linux-hwmon@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-sh@vger.kernel.org,
+	linux-usb@vger.kernel.org,
+	samba-technical@lists.samba.org,
+	sparclinux@vger.kernel.org,
+	linux-m68k@lists.linux-m68k.org,
+	linux-doc@vger.kernel.org,
+	linux-serial@vger.kernel.org,
+	linux-atm-general@lists.sourceforge.net,
+	Takashi Iwai <tiwai@suse.de>,
+	linux-input@vger.kernel.org,
+	linux-raid@vger.kernel.org,
+	linux-ext4@vger.kernel.org,
+	linux-modules@vger.kernel.org,
+	linux-debuggers@vger.kernel.org,
+	"Christian Brauner (Amutable)" <brauner@kernel.org>,
+	Chuck Lever <cel@kernel.org>
+Subject: [PATCH v2 12/51] powerpc/rtas: consume the whole write to /proc/powerpc/rtas/progress
+Date: Wed,  4 Nov 2026 18:45:55 +0100
+Message-ID: <20261104-work-procfs-bugfixes-v2-12-bbf7d5546809@kernel.org>
+In-Reply-To: <20261104-work-procfs-bugfixes-v2-0-bbf7d5546809@kernel.org>
+References: <20261104-work-procfs-bugfixes-v2-0-bbf7d5546809@kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -53,257 +114,45 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v8 2/3] cpufreq: CPPC: Add ospm_nominal_freq attribute
-To: Sumit Gupta <sumitg@nvidia.com>, rafael@kernel.org,
- viresh.kumar@linaro.org, pierre.gondois@arm.com, ionela.voinescu@arm.com,
- zhenglifeng1@huawei.com, zhanjie9@hisilicon.com, lenb@kernel.org,
- mario.limonciello@amd.com, maciej.wieczor-retman@intel.com,
- pawel.chmielewski@intel.com, linux-pm@vger.kernel.org,
- linux-acpi@vger.kernel.org, acpica-devel@lists.linux.dev,
- linux-kernel@vger.kernel.org
-Cc: linux-tegra@vger.kernel.org, treding@nvidia.com, jonathanh@nvidia.com,
- vsethi@nvidia.com, ksitaraman@nvidia.com, sanjayc@nvidia.com,
- mochs@nvidia.com, bbasu@nvidia.com
-References: <20261030172745.2045743-1-sumitg@nvidia.com>
- <20261030172745.2045743-3-sumitg@nvidia.com>
-Content-Language: en-US
-From: Christian Loehle <christian.loehle@arm.com>
-In-Reply-To: <20261030172745.2045743-3-sumitg@nvidia.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+X-Mailer: b4 0.17-dev
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1217; i=brauner@kernel.org; h=from:subject:message-id; bh=uNEn+pHXbIRRMkqtNF6NnFXDW3eMy9Pk3SJ7wJuNwck=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS9zjsreObfmrOX1obn3tw0N6WpU3RvwOStvn2i0U5yp rEGLx+odpSyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAEwk8Agjw1Z5rj/rEq/Xb9Zi nJlScTdg1ruoGZHGhW11TVmdwqnc0xgZOpo+NM6qs41edOyOUPc3kzd2G/9GyxwJqc6SeXR2q9J OfgA=
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 
-On 10/30/26 17:27, Sumit Gupta wrote:
-> OSPM Nominal Performance (ACPI 6.6, Section 8.4.6.1.2.6) lets the OS
-> request a nominal performance level below the platform-reported one. The
-> platform treats performance above that level as boosted and below it as
-> throttled. A lower value moves that boundary down, so more levels count
-> as boost.
-> 
-> Expose it as a per-policy cpufreq attribute in kHz, matching the unit
-> convention of the other frequency attributes:
-> 
->   /sys/devices/system/cpu/cpuX/cpufreq/ospm_nominal_freq
-> 
-> Writes are converted with cppc_khz_to_perf() and rejected unless they
-> fall in [Lowest Performance, Nominal Performance]. The register cannot
-> be read back, so a read returns the last value written, or "<unset>"
-> before the first write.
-> 
-> Also track the register in the OSPM-set save/restore table, so a
-> requested value survives CPU hotplug and suspend/resume. The store
-> handler records the request rather than init() capturing a firmware
-> value, so the driver writes the register only once the OS has set it.
-> CPU offline and driver unload write the platform-reported Nominal
-> Performance to the register.
-> 
-> Signed-off-by: Sumit Gupta <sumitg@nvidia.com>
+ppc_rtas_progress_write() shows the first 255 bytes of a write and
+returns that many, so a writer that loops until everything is written
+shows the rest as a second message. Return the whole count, the rest is
+ignored.
 
-Reviewed-by: Christian Loehle <christian.loehle@arm.com>
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+---
+ arch/powerpc/kernel/rtas-proc.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-> ---
->  .../ABI/testing/sysfs-devices-system-cpu      |  27 +++++
->  drivers/cpufreq/cppc_cpufreq.c                | 101 ++++++++++++++++--
->  2 files changed, 121 insertions(+), 7 deletions(-)
-> 
-> diff --git a/Documentation/ABI/testing/sysfs-devices-system-cpu b/Documentation/ABI/testing/sysfs-devices-system-cpu
-> index 545687ebadcc..6af7fa86e44c 100644
-> --- a/Documentation/ABI/testing/sysfs-devices-system-cpu
-> +++ b/Documentation/ABI/testing/sysfs-devices-system-cpu
-> @@ -350,6 +350,33 @@ Description:	Performance Limited
->  
->  		This file is only present if the cppc-cpufreq driver is in use.
->  
-> +What:		/sys/devices/system/cpu/cpuX/cpufreq/ospm_nominal_freq
-> +Date:		October 2026
-> +Contact:	linux-pm@vger.kernel.org
-> +Description:	OSPM Nominal Performance (kHz)
-> +
-> +		OSPM uses this attribute to request a nominal performance level
-> +		lower than the platform-reported nominal. The platform treats
-> +		performance above this level as boost and below as throttle.
-> +
-> +		Write a value in kHz, between the frequencies corresponding to
-> +		Lowest Performance and Nominal Performance.
-> +
-> +		The register cannot be read back, so a read returns the last
-> +		value written, rounded to a performance level. It returns
-> +		"<unset>" before the first write. Reads and writes fail with
-> +		-EOPNOTSUPP if the platform does not implement the register.
-> +
-> +		Note that tasks may be migrated from one CPU to another by the
-> +		scheduler's load-balancing algorithm, and if different OSPM
-> +		Nominal Performance values are set for those CPUs (through
-> +		different cpufreq policies), that may lead to undesirable
-> +		outcomes. To avoid such issues it is better to set the same
-> +		value across all policies, or to pin every task potentially
-> +		sensitive to it to a specific CPU.
-> +
-> +		This file is only present if the cppc-cpufreq driver is in use.
-> +
->  What:		/sys/devices/system/cpu/cpu*/cache/index3/cache_disable_{0,1}
->  Date:		August 2008
->  KernelVersion:	2.6.27
-> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-> index 76cb803617f5..662397526433 100644
-> --- a/drivers/cpufreq/cppc_cpufreq.c
-> +++ b/drivers/cpufreq/cppc_cpufreq.c
-> @@ -34,11 +34,13 @@ static struct cpufreq_driver cppc_cpufreq_driver;
->   * reapplied from online() across CPU hotplug, and the firmware value is
->   * restored from offline().
->   *
-> - * Autonomous Selection (auto_sel) is kept first, as the registers after it
-> - * only have meaning while it is enabled.
-> + * Autonomous Selection (auto_sel) splits the list: the registers before it are
-> + * independent of it, and those after it have meaning only while autonomous
-> + * selection is enabled. Place a new register on the matching side.
->   */
->  enum cppc_saved_reg_id {
-> -	CPPC_SAVED_AUTO_SEL,
-> +	CPPC_SAVED_OSPM_NOMINAL_PERF,
-> +	CPPC_SAVED_AUTO_SEL,	/* Entries below need auto_sel enabled. */
->  	CPPC_SAVED_EPP,
->  	CPPC_SAVED_AUTO_ACT_WINDOW,
->  	CPPC_NR_SAVED_REGS,
-> @@ -51,6 +53,11 @@ struct cppc_saved_reg {
->  };
->  
->  static const struct cppc_saved_reg cppc_saved_regs[CPPC_NR_SAVED_REGS] = {
-> +	/* The register is write-only, so the driver tracks the requested value. */
-> +	[CPPC_SAVED_OSPM_NOMINAL_PERF] = {
-> +		.name = "ospm_nominal_perf",
-> +		.set = cppc_set_ospm_nominal_perf,
-> +	},
->  	[CPPC_SAVED_AUTO_SEL] = {
->  		.name = "auto_sel",
->  		.get = cppc_get_auto_sel,
-> @@ -83,6 +90,9 @@ enum cppc_saved_type {
->   *   CPPC_SAVED_REQUESTED - value the OS asked for, reapplied at online().
->   *                          It starts as the firmware value and changes only
->   *                          when a write from the OS succeeds.
-> + *
-> + * A write-only register cannot be read back. init() leaves both values unset,
-> + * and its store handler sets them.
->   */
->  struct cppc_policy_state {
->  	u64 regs[CPPC_NR_SAVED_REGS][CPPC_NR_SAVED_TYPES];
-> @@ -135,11 +145,19 @@ static int cppc_cpufreq_save_firmware_regs(struct cpufreq_policy *policy)
->  	int i, ret;
->  
->  	for (i = 0; i < CPPC_NR_SAVED_REGS; i++) {
-> -		ret = cppc_saved_regs[i].get(cpu, &val);
-> -		if (ret == -EOPNOTSUPP)
-> +		const struct cppc_saved_reg *reg = &cppc_saved_regs[i];
-> +
-> +		if (!reg->get) {
-> +			/* A write-only register has no value to read. */
->  			val = U64_MAX;
-> -		else if (ret)
-> -			return ret;
-> +		} else {
-> +			ret = reg->get(cpu, &val);
-> +			/* Leave a register the platform does not implement unset. */
-> +			if (ret == -EOPNOTSUPP)
-> +				val = U64_MAX;
-> +			else if (ret)
-> +				return ret;
-> +		}
->  
->  		st->regs[i][CPPC_SAVED_FIRMWARE] = val;
->  		st->regs[i][CPPC_SAVED_REQUESTED] = val;
-> @@ -198,6 +216,12 @@ static void cppc_cpufreq_apply_saved_regs(struct cpufreq_policy *policy,
->  	u64 auto_sel, val;
->  	int i;
->  
-> +	/* Registers before auto_sel do not depend on it. */
-> +	for (i = 0; i < CPPC_SAVED_AUTO_SEL; i++) {
-> +		val = st->regs[i][saved_type];
-> +		cppc_cpufreq_write_saved_reg(cpu, i, val, saved_type);
-> +	}
-> +
->  	auto_sel = st->regs[CPPC_SAVED_AUTO_SEL][saved_type];
->  
->  	if (auto_sel)
-> @@ -1470,11 +1494,73 @@ static int cppc_get_perf_limited_filtered(int cpu, u64 *perf_limited)
->  CPPC_CPUFREQ_ATTR_RW_U64(perf_limited, cppc_get_perf_limited_filtered,
->  			 cppc_set_perf_limited)
->  
-> +static ssize_t show_ospm_nominal_freq(struct cpufreq_policy *policy, char *buf)
-> +{
-> +	const struct cppc_policy_state *st = cppc_cpufreq_policy_state(policy);
-> +	struct cppc_cpudata *cpu_data = policy->driver_data;
-> +	u64 perf;
-> +
-> +	if (!cppc_ospm_nominal_perf_supported(policy->cpu))
-> +		return -EOPNOTSUPP;
-> +
-> +	/* The register cannot be read back, so report the tracked request. */
-> +	perf = st->regs[CPPC_SAVED_OSPM_NOMINAL_PERF][CPPC_SAVED_REQUESTED];
-> +	if (perf == U64_MAX)
-> +		return sysfs_emit(buf, "<unset>\n");
-> +
-> +	return sysfs_emit(buf, "%u\n",
-> +			  cppc_perf_to_khz(&cpu_data->perf_caps, perf));
-> +}
-> +
-> +static ssize_t store_ospm_nominal_freq(struct cpufreq_policy *policy,
-> +				       const char *buf, size_t count)
-> +{
-> +	struct cppc_cpudata *cpu_data = policy->driver_data;
-> +	struct cppc_policy_state *st;
-> +	unsigned int freq_khz;
-> +	u32 perf;
-> +	int ret;
-> +
-> +	ret = kstrtouint(buf, 0, &freq_khz);
-> +	if (ret)
-> +		return ret;
-> +
-> +	perf = cppc_khz_to_perf(&cpu_data->perf_caps, freq_khz);
-> +	if (perf < cpu_data->perf_caps.lowest_perf ||
-> +	    perf > cpu_data->perf_caps.nominal_perf)
-> +		return -EINVAL;
-> +
-> +	ret = cppc_set_ospm_nominal_perf(policy->cpu, perf);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/*
-> +	 * The OS can write this register but cannot read it back.
-> +	 *
-> +	 * The register lets the OS ask for a nominal level below the platform
-> +	 * Nominal Performance. offline() and driver unload write the platform
-> +	 * Nominal in place of the requested value. This removes the lower
-> +	 * level the OS asked for. The value from before the first OS write
-> +	 * cannot be read, so the driver cannot restore it. online() writes
-> +	 * the requested value again.
-> +	 *
-> +	 * Set both values here and not at init(). The driver then writes the
-> +	 * register only after the OS has set it.
-> +	 */
-> +	st = cppc_cpufreq_policy_state(policy);
-> +	st->regs[CPPC_SAVED_OSPM_NOMINAL_PERF][CPPC_SAVED_REQUESTED] = perf;
-> +	st->regs[CPPC_SAVED_OSPM_NOMINAL_PERF][CPPC_SAVED_FIRMWARE] =
-> +		cpu_data->perf_caps.nominal_perf;
-> +
-> +	return count;
-> +}
-> +
->  cpufreq_freq_attr_ro(freqdomain_cpus);
->  cpufreq_freq_attr_rw(auto_select);
->  cpufreq_freq_attr_rw(auto_act_window);
->  cpufreq_freq_attr_rw(energy_performance_preference_val);
->  cpufreq_freq_attr_rw(perf_limited);
-> +cpufreq_freq_attr_rw(ospm_nominal_freq);
->  
->  static struct freq_attr *cppc_cpufreq_attr[] = {
->  	&freqdomain_cpus,
-> @@ -1482,6 +1568,7 @@ static struct freq_attr *cppc_cpufreq_attr[] = {
->  	&auto_act_window,
->  	&energy_performance_preference_val,
->  	&perf_limited,
-> +	&ospm_nominal_freq,
->  	NULL,
->  };
->  
+diff --git a/arch/powerpc/kernel/rtas-proc.c b/arch/powerpc/kernel/rtas-proc.c
+index f38df72e64b8..89b165986851 100644
+--- a/arch/powerpc/kernel/rtas-proc.c
++++ b/arch/powerpc/kernel/rtas-proc.c
+@@ -311,6 +311,7 @@ static int ppc_rtas_poweron_show(struct seq_file *m, void *v)
+ static ssize_t ppc_rtas_progress_write(struct file *file,
+ 		const char __user *buf, size_t count, loff_t *ppos)
+ {
++	size_t len = count;
+ 	unsigned long hex;
+ 
+ 	if (count >= MAX_LINELENGTH)
+@@ -324,7 +325,7 @@ static ssize_t ppc_rtas_progress_write(struct file *file,
+ 	hex = simple_strtoul(progress_led, NULL, 10);
+ 
+ 	rtas_progress ((char *)progress_led, hex);
+-	return count;
++	return len;
+ 
+ 	/* clear the line */
+ 	/* rtas_progress("                   ", 0xffff);*/
+
+-- 
+2.53.0
 
