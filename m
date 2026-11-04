@@ -1,54 +1,107 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793818692;
-	b=kHhlYU2c6mcji/xruGEYOMCniedIzV5X3UTnSUAxzUOkqcASFcOlrBpDqVn1yAIrIG0W
-	 cOFb7q44tMQktkL0U60sQGWq1LCWOEEyQJ2N6AS4zmhs7f7mCFQP8+fjbaCvAYXQq/Cod
-	 X4EpJrGq7t0zMbFjs7+lT1qLXyea6yHIVdneCEE4QAeLTTTZAcKyZxR5hcPchqK7JpJfe
-	 IcRNWxhMpgrYQQwqIuq9W1TFAIt2lm+LSnCRilmf4ZiUSHuNCsEFzBTSaCvc92uzDXmoc
-	 riwZFPrRY8bUvoP2HrWLmwggHKTsrwZT0bpuAQyNDOxwN+P16j16TL1m3AkvELHr8Mg==
+	t=1793819080;
+	b=pguKUzgu7/iFGHYRpmGZjf5UM7EVvax0Q7mY9ZLIy2BF1ERcs25S4EmfHAMM463iQNtk
+	 rrw+lHg0JSjvzfO44FvrWco6zWEbQj3MdVoEC6ojY2C37j9ofitZJ1u8cdy5keTwbU3sj
+	 fy00tMvWU8/9aveWXvBT2WwqgCFyLjE8HYfYNlGhoPJmbYdt81BYlZUZreFXt3EBdK9hK
+	 4Fh5KjRTLNOPntDPMNggQGz7zTHerW4UQAAxnYJkgmZiiwwSmmFetRAHoQ3PGuBSkin2E
+	 zg6pVCVU2V+y9q/TVUTcFHyZThlSp3e3WiRgCB8r4sA34lb2urnXsZoCU+qG10MOJOg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793818692;
-	h=Received:DKIM-Signature:Received:X-Gm-Message-State:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:
-	 X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:Subject:To:Cc:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=d1+wstvYt5ENfOYnNtU8qau41RWVGGt4+X4si2AOuLo=;
-	b=Zwy/KtJJFKHsO1jNk7txtmNi7qjNRKvZmqBwDDfS7YsAqz08wxkH+aMmZky/gMoogHkg
-	 zeb51x0BNIddGKjQ8UZTFIPgwTeJtWwOBK7guQhruO1N1OTgbw6LK40xkyXfA+HIufoqo
-	 VezMALAQv8+H+Ys4FuGOTG4M6h7q+J1e24baWv9x1acZNPT/ZaQBEtBMR58dKJhMSTtnY
-	 aBYhPKRuyUjl8F3i5VSMsHzwFgn2iiTm8LhNLEtwtyZIF49wtMhBEn//GsYCVYu2qWZk7
-	 6HkGEh3+EX6gPy7PwUK0g+5K52Zbe8tsRPEGfRD6ZosX3Hsv7lH71ydBGqkq2KAO9Yw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793819080;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
+	 MIME-Version:Content-Type:X-Developer-Signature:X-Developer-Key:
+	 Content-Transfer-Encoding;
+	bh=lAdqJZq7DckAfewXRPAVCUONZuQAofOCOPOWHFZTOPQ=;
+	b=03aQMa+HCJ28vBZBwhiOVdXANJJ9oJpjtYLQ3KApJxxqjqcLYqmIaPr5AAhwEQxUIX7K
+	 KWqJSPubBkDp0XGJBjDB4FluSQjeb5WNgqVHU+a7fF6V1LJ3A17PgJVrTCmFvDFbarDV2
+	 PUTp5Py5ljei0GOllurm2NEZaJW/9sGHb5j3HzV/nKW5opR0QZCMU5eiFrTSpano3KuJ5
+	 U+H/fLATaNC9WCQS0L7bnIIuyGiWJhZNylZ87uFyYOZ903LrDq6nWdqPen5VCj2NwWwSp
+	 itHL7e3BNHxqTl8jnuprPAUVdQmUsGnDGPEytdbN69r+Y8LDyLiLF+SL1yk3uYWH6uQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UR6iXRcq;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DiXkLasn;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55A1B606A32D
-	for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2026 18:58:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42A7C606A33F;
+	Wed,  4 Nov 2026 19:04:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=UR6iXRcq
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFB181F00919
-	for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2026 18:58:11 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DiXkLasn
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED65F1F00A1A;
+	Wed,  4 Nov 2026 19:04:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793818691;
-	bh=d1+wstvYt5ENfOYnNtU8qau41RWVGGt4+X4si2AOuLo=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=UR6iXRcq1/ELznnhempiS1KYwZ8aJRiAhsuZ6IfkMmwc8IhpsGplEOFfknVvj4XQT
-	 +ah1FqOS53UrvYuRVj/fgC1Mgn/qezU7+nQNER44LBp3SUAAqVQnv1PIk0CT/5gznx
-	 HqieFI3Pqm5mudINODGnR7Bfk/uqCSytzf/3ZWuhg0H+x7a9LIcK0k9S6aL6GUMZ1w
-	 TTR9Nb3IkSXw/dpO5oD7dkD78zmTThJP11/o3NNcRTcq1VC5H1Oxby1dgtO+Ia9jIf
-	 iWArTs5ifYK5htczPfvs6TP2HYnFUbPvOLy3mTxRrrj9UthuOf8itcOVODrTe35yDy
-	 6ASrWgMjf0qOQ==
-Received: by mail-lj1-f174.google.com with SMTP id 38308e7fff4ca-3ac99992373so9089701fa.3
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2026 10:58:11 -0800 (PST)
-X-Gm-Message-State: APuU4Z/lvEGeLdDg77wWeKJdB+woGvlpz7U0tDt1m3P38QBzOUx83oJG
-	OGDRop8jE04yw2V+7bC8KNaeiw4Oy0YZPAjGZnEf17SkmmbQpE8fUK3cDeHLfbsO+5hdfWEeErd
-	fV9NxNtXLDsnH4VKCRfcefy0ERnpnZac=
-X-Received: by 2002:a05:6512:4007:b0:5bf:d653:ff04 with SMTP id
- 2adb3069b0e04-5bfd9583e89mr5276949e87.60.1793818690241; Wed, 04 Nov 2026
- 10:58:10 -0800 (PST)
+	s=k20260515; t=1793819079;
+	bh=lAdqJZq7DckAfewXRPAVCUONZuQAofOCOPOWHFZTOPQ=;
+	h=From:To:Cc:Subject:Date;
+	b=DiXkLasnKkCazgXjtl0yo39sGV+Bs41jy0U9vc9qazA5CkiKT/iBgZ8fEt5z2eEi9
+	 oolsufKOcX9//0g1iNEISwDqdj0AJv/jYiRaklcfSgZPROKW3M/UHZ5YJlCQnarqEi
+	 2HOIRavJO+g9paB/C2YYlAYVqmb2kgiut60CyfNdCFnL6BADsAW86gE+rCJv3jhKEU
+	 xhyHkA5QFEeZxb/jz3ezU8fpueKF4UZ9OCtOjslPoDhqLrhjroAW4ZVXzKIkJz9Hyg
+	 6s+UivkH9tasMyPtuGG54ILYcFnrqgSpO4qCMaV233B/QiysszNJThZr4+Y++vVfYT
+	 4RJQDhDv+jwNQ==
+From: Christian Brauner <brauner@kernel.org>
+To: linux-fsdevel@vger.kernel.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Jann Horn <jannh@google.com>,
+	Josef Bacik <josef@toxicpanda.com>,
+	Chris Mason <mason@kernel.org>,
+	Jeff Layton <jlayton@kernel.org>,
+	NeilBrown <neil@brown.name>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Thomas Gleixner <tglx@kernel.org>,
+	Al Viro <viro@zeniv.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Christoph Hellwig <hch@lst.de>,
+	Greg Kroah-Hartman <gregkh@suse.de>,
+	Joel Granados <joel.granados@kernel.org>,
+	Kees Cook <kees@kernel.org>,
+	Jan Kara <jack@suse.cz>,
+	Jan Kara <jack@suse.com>,
+	linux-kernel@vger.kernel.org,
+	linux-nfs@vger.kernel.org,
+	linux-acpi@vger.kernel.org,
+	linux-kselftest@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	linux-scsi@vger.kernel.org,
+	linux-um@lists.infradead.org,
+	linux-wireless@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	netdev@vger.kernel.org,
+	ntfs3@lists.linux.dev,
+	platform-driver-x86@vger.kernel.org,
+	coreteam@netfilter.org,
+	kexec@lists.infradead.org,
+	linux-pci@vger.kernel.org,
+	linux-sound@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	ibm-acpi-devel@lists.sourceforge.net,
+	jfs-discussion@lists.sourceforge.net,
+	linux-alpha@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-cifs@vger.kernel.org,
+	linux-fbdev@vger.kernel.org,
+	linux-hwmon@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-sh@vger.kernel.org,
+	linux-usb@vger.kernel.org,
+	samba-technical@lists.samba.org,
+	sparclinux@vger.kernel.org,
+	linux-m68k@lists.linux-m68k.org,
+	linux-doc@vger.kernel.org,
+	linux-serial@vger.kernel.org,
+	linux-atm-general@lists.sourceforge.net,
+	Chuck Lever <chuck.lever@oracle.com>,
+	Takashi Iwai <tiwai@suse.de>,
+	linux-input@vger.kernel.org,
+	linux-raid@vger.kernel.org,
+	linux-ext4@vger.kernel.org,
+	linux-modules@vger.kernel.org,
+	linux-debuggers@vger.kernel.org
+Subject: [PATCH RESEND v2 0/7] proc: move procfs to what kernfs does
+Date: Wed,  4 Nov 2026 20:04:22 +0100
+Message-ID: <20261104-work-procfs-v2-0-b45cd5789ac5@brauner>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -58,284 +111,141 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261102063610.3242714-1-saranya.gopal@intel.com>
-In-Reply-To: <20261102063610.3242714-1-saranya.gopal@intel.com>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 4 Nov 2026 19:57:57 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0jWfj7utWdLrv24hqAW7SG7qvzmtk3V4ep8TxaGuFVzpw@mail.gmail.com>
-X-Gm-Features: AclHuK_B-1zFCyuTynmSU0b0tyNcIeGKP3AG5cyyvteFV6CKQTJod8msLV_24A4
-Message-ID: <CAJZ5v0jWfj7utWdLrv24hqAW7SG7qvzmtk3V4ep8TxaGuFVzpw@mail.gmail.com>
-Subject: Re: [PATCH v2] ACPI: s2idle: Handle shared _Ixx GPEs without an EC
-To: Saranya Gopal <saranya.gopal@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, rafael.j.wysocki@intel.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=6699; i=brauner@kernel.org; h=from:subject:message-id; bh=vwrWu4QhJtoloSbOepgjr6FTno3vPTd4Ym/VDTikOkw=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS9bnTbzPPv56/PPZvrYp9W3z2QLB/JVrf+pVOeIXfyv BPyhavzOkpZGMS4GGTFFFkc2k3C5ZbzVGw2ytSAmcPKBDKEgYtTACby9y8jQ7vUhZjCtt8GL9Re MV4waA022Jc6RTTePbMrWSRxcvj9NYwMH5UzLmm1J8flNhaGGEtmzxJlNtGal3R0vXBtFP/N2H5 GAA==
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 
-On Mon, Nov 2, 2026 at 7:37=E2=80=AFAM Saranya Gopal <saranya.gopal@intel.c=
-om> wrote:
->
-> When first_ec is NULL, acpi_ec_dispatch_gpe() previously treated any
-> active GPE as a wake source. On platforms where an _Ixx GPE is shared
-> by user-wakeup and background events, that can cause unnecessary
-> wakeups.
->
-> Return -ENODEV when no EC instance is available so the s2idle wake
-> path can handle that case. On x86, check active GPEs against those
-> registered from _Ixx methods. Preserve immediate wakeup for active
-> non-_Ixx GPEs; otherwise cancel the SCI wake request and dispatch
-> active _Ixx GPEs. The common s2idle path then synchronizes event
-> processing and checks whether a driver requested wakeup. Lookup or
-> dispatch failures conservatively request wakeup.
->
-> The non-x86 fallback retains the previous any-GPE status check.
->
-> Fixes: 46767b17fda3 ("ACPI: PM: s2idle: Add _Ixx GPE wake indicator suppo=
-rt")
-> Signed-off-by: Saranya Gopal <saranya.gopal@intel.com>
+This series aims to get rid of copying to and from userspace while pinning
+procfs entries allowing userspace to delay removal as long as it wants.
 
-First, please see Sashiko's feedback on this:
+In essence, it aligns procfs with what kernfs is already doing. That
+gets rid of a big attack surface and a whole bug class in one go. The
+bounce buffer will come with some costs but luckily some codepaths (like
+readdir) have been so criminally slow and buggy that massaging them ends
+up speeding things up or at least leaving them on par with mainline even
+with a bounce buffer in the mix.
 
-https://sashiko.dev/#/patchset/20261102063610.3242714-1-saranya.gopal%40int=
-el.com
+There was a hackish and very narrow AI solution to a small part of this
+bug class which was sent off-list. In essence, it used a second
+buffering mechanism on top of seqfiles which was really nasty. It also
+didn't address any of the non-seqfile users.
 
-and let me know what you think about it.
+If we want to get rid of the this whole bug class we need a bigger
+hammer. That means reworking how procfs handles data. So I tried to work
+through all of that. The series is now in a decent shape (I'm not saying
+"glorious" as there's so so many warts. If they were ironed out it could
+be a lot nicer but that's for another day.).
 
-> ---
->  drivers/acpi/ec.c         | 10 ++++-----
->  drivers/acpi/internal.h   |  6 +++---
->  drivers/acpi/sleep.c      | 18 +++++++++-------
->  drivers/acpi/sleep.h      |  8 ++++++++
->  drivers/acpi/x86/s2idle.c | 43 +++++++++++++++++++++++++++++++++++++++
->  5 files changed, 70 insertions(+), 15 deletions(-)
->
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index 64ad4cfa6208..8be572af4115 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -2155,19 +2155,19 @@ static bool acpi_ec_work_in_progress(struct acpi_=
-ec *ec)
->         return ec->events_in_progress + ec->queries_in_progress > 0;
->  }
->
-> -bool acpi_ec_dispatch_gpe(void)
-> +int acpi_ec_dispatch_gpe(void)
->  {
->         bool work_in_progress =3D false;
->
->         if (!first_ec)
-> -               return acpi_any_gpe_status_set(U32_MAX);
-> +               return -ENODEV;
->
->         /*
->          * Report wakeup if the status bit is set for any enabled GPE oth=
-er
->          * than the EC one.
->          */
->         if (acpi_any_gpe_status_set(first_ec->gpe))
-> -               return true;
-> +               return 1;
->
->         /*
->          * Cancel the SCI wakeup and process all pending events in case t=
-here
-> @@ -2195,7 +2195,7 @@ bool acpi_ec_dispatch_gpe(void)
->         spin_unlock_irq(&first_ec->lock);
->
->         if (!work_in_progress)
-> -               return false;
-> +               return 0;
->
->         pm_pr_dbg("ACPI EC GPE dispatched\n");
->
-> @@ -2212,7 +2212,7 @@ bool acpi_ec_dispatch_gpe(void)
->                 spin_unlock_irq(&first_ec->lock);
->         } while (work_in_progress && !pm_wakeup_pending());
->
-> -       return false;
-> +       return 0;
->  }
->  #endif /* CONFIG_PM_SLEEP */
->
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index 40f875b265a9..d5435338d6ca 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -236,7 +236,7 @@ void acpi_ec_register_opregions(struct acpi_device *a=
-dev);
->
->  #ifdef CONFIG_PM_SLEEP
->  void acpi_ec_flush_work(void);
-> -bool acpi_ec_dispatch_gpe(void);
-> +int acpi_ec_dispatch_gpe(void);
->  #endif
->
->  #else
-> @@ -256,9 +256,9 @@ static inline void acpi_ec_remove_query_handler(struc=
-t acpi_ec *ec, u8 query_bit
->  static inline void acpi_ec_register_opregions(struct acpi_device *adev) =
-{}
->
->  static inline void acpi_ec_flush_work(void) {}
-> -static inline bool acpi_ec_dispatch_gpe(void)
-> +static inline int acpi_ec_dispatch_gpe(void)
->  {
-> -       return false;
-> +       return -EOPNOTSUPP;
->  }
->
->  #endif
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index 132a9df98471..9366c3d927c2 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -787,13 +787,17 @@ bool acpi_s2idle_wake(void)
->                         return true;
->                 }
->
-> -               /*
-> -                * Check non-EC GPE wakeups and if there are none, cancel=
- the
-> -                * SCI-related wakeup and dispatch the EC GPE.
-> -                */
-> -               if (acpi_ec_dispatch_gpe()) {
-> -                       pm_pr_dbg("ACPI non-EC GPE wakeup\n");
-> -                       return true;
-> +               /* Check EC handling and other GPE wake sources. */
-> +               {
-> +                       int ret =3D acpi_ec_dispatch_gpe();
-> +
-> +                       if (ret =3D=3D -ENODEV) {
-> +                               if (acpi_x86_s2idle_check_ixx_gpes())
-> +                                       return true;
-> +                       } else if (ret > 0) {
-> +                               pm_pr_dbg("ACPI non-EC GPE wakeup\n");
-> +                               return true;
-> +                       }
+I understand it's big but I think it is nicer to be able to look at the
+end result since we have some transitory states that are gone at the end
+of the series.
 
-I would rewrite the above as
+I have polished this a bit more and have sorted out a few more bugs and
+tried to clean up some codepaths given the current constraints. Again, I
+think we could go a lot further there if we wanted to but I think that
+blows this out of proportion and at some point it becomes difficult to
+grasp the scope.
 
-if (ret > 0) {
-    pm_pr_dbg("ACPI non-EC GPE wakeup\n");
-    return true;
-} else if (ret < 0 && acpi_x86_s2idle_check_ixx_gpes() {
-    return true;
-}
+So, remove_proc_entry() waits until every call into the procfs entry has
+returned. Most of those calls copy to or from userspace with the entry
+pinned.
 
->                 }
->
->                 acpi_os_wait_events_complete();
-> diff --git a/drivers/acpi/sleep.h b/drivers/acpi/sleep.h
-> index 9c3cb109c5d2..955e9c22bf0d 100644
-> --- a/drivers/acpi/sleep.h
-> +++ b/drivers/acpi/sleep.h
-> @@ -20,6 +20,14 @@ extern int acpi_s2idle_prepare(void);
->  extern bool acpi_s2idle_wake(void);
->  extern void acpi_s2idle_restore(void);
->  extern void acpi_s2idle_end(void);
-> +#if defined(CONFIG_X86) && defined(CONFIG_SUSPEND)
-> +extern bool acpi_x86_s2idle_check_ixx_gpes(void);
-> +#else
-> +static inline bool acpi_x86_s2idle_check_ixx_gpes(void)
-> +{
-> +       return acpi_any_gpe_status_set(U32_MAX);
-> +}
-> +#endif
->
->  extern void acpi_s2idle_setup(void);
->
-> diff --git a/drivers/acpi/x86/s2idle.c b/drivers/acpi/x86/s2idle.c
-> index c278ea14c0b3..979684950f24 100644
-> --- a/drivers/acpi/x86/s2idle.c
-> +++ b/drivers/acpi/x86/s2idle.c
-> @@ -16,6 +16,7 @@
->   */
->
->  #include <linux/acpi.h>
-> +#include <linux/bitmap.h>
->  #include <linux/device.h>
->  #include <linux/dmi.h>
->  #include <linux/suspend.h>
-> @@ -24,6 +25,8 @@
->
->  #ifdef CONFIG_SUSPEND
->
-> +static DECLARE_BITMAP(acpi_s2idle_ixx_gpes, 256);
-> +
->  static void acpi_setup_ixx_gpes(void)
->  {
->         acpi_handle gpe_root;
-> @@ -47,11 +50,51 @@ static void acpi_setup_ixx_gpes(void)
->
->                 acpi_mark_gpe_for_wake(NULL, i);
->                 acpi_set_gpe_wake_mask(NULL, i, ACPI_GPE_ENABLE);
-> +               set_bit(i, acpi_s2idle_ixx_gpes);
->
->                 pm_pr_dbg("ACPI: GPE0x%02x armed for wake via %s\n", i, g=
-pe_nr_str);
->         }
->  }
->
-> +bool acpi_x86_s2idle_check_ixx_gpes(void)
-> +{
-> +       acpi_handle gpe_device;
-> +       acpi_event_status status;
-> +       u32 gpe;
-> +
+A reader or writer can induce a page fault in that copy take as long as
+it wants. For example, with userfaultfd or by punching holes into a
+memfd over and over. Plus, the callers of remove_proc_entry() like to
+hold locks while they wait. For example, addrconf holds RTNL when it
+removes /proc/net/dev_snmp6/<dev> and xt_hashlimit holds a mutex that
+all network namespaces share.
 
-It would be good to add a comment describing what happens here.
+So every network device with IPv6 gets a /proc/net/dev_snmp6/<dev> that
+everyone can read, and addrconf_ifdown() removes it with RTNL held. So
+any local user can keep RTNL for as long as their read stays stalled.
+Until then no device can be registered, removed or renamed and no
+network namespace can be created or torn down.
 
-> +       for (gpe =3D 0; gpe < acpi_current_gpe_count; gpe++) {
-> +               if (ACPI_FAILURE(acpi_get_gpe_device(gpe, &gpe_device)))
-> +                       return true;
+If the caller lacks privileges for userfaultfd a FUSE mount in a user
+namespace whose daemon never answers is enough to stall the copy.
+Killing the reader ends it, but until then whoever removes the file sits
+in D state.
 
-Why does it return true on errors (here and below)?
+xt_hashlimit removes the proc file of a table with hashlimit_mutex
+held. Every rule insert in every network namespace takes that mutex and
+so does network namespace cleanup. cleanup_net() runs on a single
+workqueue with pernet_ops_rwsem held, so a stalled reader also stops
+every later network namespace teardown and every module load that
+registers pernet operations. xt_recent does the same with recent_mutex.
 
-It will cause a system wakeup to happen on errors occurring here, so
-what's the rationale?
+And of course, it's not specific to networking. remove_proc_entry(),
+proc_remove() and remove_proc_subtree() have over 200 callers and plenty
+of them hold locks. For example, a stalled reader of
+/proc/fs/ext4/<dev>/options holds up the unmount of that filesystem with
+s_umount held, and every sync(2) with it. The same goes for PCI
+hot-removal, for freeing IRQ descriptors, which CPU bring-up waits on,
+and for unplugging a USB sound card.
 
-> +
-> +               if (!gpe_device && gpe < 256 &&
-> +                   test_bit(gpe, acpi_s2idle_ixx_gpes))
-> +                       continue;
-> +
-> +               if (ACPI_FAILURE(acpi_get_gpe_status(gpe_device, gpe, &st=
-atus)))
-> +                       return true;
-> +
-> +               if ((status & ACPI_EVENT_FLAG_STATUS_SET) &&
-> +                   (status & ACPI_EVENT_FLAG_ENABLE_SET))
-> +                       return true;
-> +       }
+And btw, syzbot has hit removal under locks before (cf. [1]), and the
+xt_recent deadlock fixed in (1) below is another one.
 
-You'd need a variant of acpi_any_gpe_status_set() to do the above
-properly AFAICS.
+Stalling the kernel in a copy to or from userspace is a well-known
+exploitation primitive. It's why unprivileged userfaultfd can't do it
+by default anymore since v5.11 (d0d4730ac2e4), and FUSE has been used
+the same way.
 
-> +
-> +       pm_system_cancel_wakeup();
+This series touches just about every ->proc_read(), ->proc_write() and
+->proc_ioctl() in the tree, so I've split it up into seven series. They
+go out as replies to this mail:
 
-What is the role of this call?
+Part 1/7: proc: fix a few old bugs in /proc handlers (51 patches)
 
-> +
-> +       for_each_set_bit(gpe, acpi_s2idle_ixx_gpes, 256) {
-> +               if (ACPI_FAILURE(acpi_get_gpe_status(NULL, gpe, &status))=
-)
-> +                       return true;
-> +               if (!(status & ACPI_EVENT_FLAG_STATUS_SET) ||
-> +                   !(status & ACPI_EVENT_FLAG_ENABLE_SET))
-> +                       continue;
-> +
-> +               pm_pr_dbg("ACPI _Ixx GPE 0x%02x status set\n", gpe);
-> +               if (acpi_dispatch_gpe(NULL, gpe) !=3D ACPI_INTERRUPT_HAND=
-LED)
-> +                       return true;
-> +       }
-> +
-> +       return false;
-> +}
-> +
->  static bool sleep_no_lps0 __read_mostly;
->  module_param(sleep_no_lps0, bool, 0644);
->  MODULE_PARM_DESC(sleep_no_lps0, "Do not use the special LPS0 device inte=
-rface");
-> --
+    Bugs in the handlers and in procfs itself that are a lot older than
+    the conversion and that reviewing it turned up. Most of them are for
+    stable. They come first so they can go there on their own and the
+    conversion doesn't have to bother with that crap.
+
+Part 2/7: proc: let procfs own the data path (23 patches)
+
+    The procfs side. procfs owns the seq_file of an entry, copies in
+    writes, copies out reads and copies ioctl arguments in and out, and
+    only calls into an entry with it pinned. The open files procfs has
+    to know and the wait queue a pollable entry is polled on live in an
+    open node that only those entries get, the entry is pinned around
+    the vm_operations of its mappings, and lockdep checks the pin.
+    proc_create_seq() and friends and the plain seq_file users are
+    switched over here too.
+
+Part 3/7: proc: convert the arch and platform entries (23 patches)
+Part 4/7: proc: convert the driver entries (26 patches)
+Part 5/7: proc: convert the fs, kernel and mm entries (30 patches)
+Part 6/7: proc: convert the net entries and the kfifo samples (13 patches)
+
+Part 7/7: proc: drop the __user methods (6 patches)
+
+    Drops the old methods. kcore, kmsg and the kpage files, which are
+    never removed and keep reading straight into userspace, get
+    file_operations of their own, so nothing in struct proc_ops takes a
+    __user pointer anymore, and the new methods get the names kernfs
+    uses, ->proc_read(), ->proc_write() and ->proc_ioctl(). The last
+    patch takes the poll_table away from ->proc_poll(). This needs all
+    four conversion series.
+
+Parts 1 and 2 are the base. Parts 3 to 6 go on top of part 2 in any
+order and don't depend on each other. Part 7 needs all four.
+
+The series should all indicate cleanly what dependencies they have so b4
+should be able to pull it for review.
+
+With all of it on a KASAN and lockdep kernel the removal selftests of
+every part pass, the proc, pktgen and allocinfo selftests behave like
+without it and the bugs from (1) that reproduce in a VM are gone. Every
+patch builds on its own on x86_64 and i386, and with W=1 on the
+architectures it touches.
+
+[1]: https://lore.kernel.org/r/000000000000f24f4705b6988f3e@google.com
+[2]: https://lore.kernel.org/r/20231109212251.213873-7-johannes@sipsolutions.net
+
+---
+Link to v1: https://patch.msgid.link/20261102-defizit-jobaussicht-kurios-7016c6e67442@brauner
+
+-- 
+Christian Brauner <brauner@kernel.org>
