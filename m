@@ -1,64 +1,75 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793783217;
-	b=fhb01zI/pkmMw2Hc49Ldu/oE7PdW76IUAgY6IHvPiEvS2xI23MKu2Zxp6b4xI/F+bUZa
-	 1qpWqHZ8/PCTFbVg6Gjzm9EBHPxA8zlB1q9KYJ/+vQJiR05gCi7aiejz6DoKgaJ/5Vcom
-	 +LE2aZy1uqhH6FgAfUimUF1A9GobUvgF4T3JOBYRsTq+w/e6B8Dk758jwAmDGL4GgkQ1T
-	 06GaVHilERXLVk/XJX/bb6kx6UV7h2Hra+BxWLJUmU/FqX7rZ7AJzDA9xB+a5uAAHHfwQ
-	 gRnbfA71wh6iK2KN3kbCeRl1cdFp/BAus6CbpzVbDu+npKh37F1Suo2ewrxbN2rIpDQ==
+	t=1793783736;
+	b=heY8DZfjs596eoeBD5Z2sDOUU9B1ozsiyIw9Ub5j5NN18cL3ACo/mUb+8fdUQxz5eknT
+	 AGHLKCBcM82NzD0fuSMaukcw6smbGvzmBLwxSSuq5fKTgnyFK3wIgZtHAwOfjsyOLGNUl
+	 EiCrjnO3XhFFGMySJ3xCOCLWogk3C1BrrMYba4ksBCT8888DurqYn6Vt6hFNjwvkESbOU
+	 /ilzQS+Bmzpgc8XaQVtUdl3qH0LHiLromofkdHAcDZgzYez5ObWIz+6D+m3kF3Mt6fzkT
+	 kzuU+alJ51HWmnUBCnfr72czmjbMxJZizh+ZFsMPXlAwFP7C4rrf0/Ct+Mu9O4f6a7Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793783217;
-	h=Received:DKIM-Signature:Received:Date:From:To:Cc:Subject:Message-ID:
+	a=rsa-sha256; c=relaxed/relaxed; t=1793783736;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=alSw+YCq5jBCd26VFvMWxYM2tXvWXkq7k6eTa+3KF/s=;
-	b=IdOvkNf5LrWknnQzHSDSA6MSdRnHx+uyWC3pnH19k7pbHNt78WBAHCzaQpCTUiEHRdtj
-	 p43wXD69cSqJVg94NwOqzyLYirTfKFin74iaNPl5y9AEw9tEFrKOIXcTINorofUkOC0lT
-	 WrcPmyozdolx5unhnfOuoEN+lfPwkCDX9SInYv156S485XxKiS9U8nTs4wFR9bU7uVVW4
-	 69bdwkE+BpDwfwaA+0vSAvfHY5aRQWLrdYsmMAJcbiT0G+9JOzvq8TbE5zqxGVRgxdCI2
-	 wZzVwn5zIkUKL/gyAfq02tq+8qOMo4Yt0Kp9mg5fSO2fXukCDRy9sZXSxD0ZzIDQ59A==
+	bh=tun3DxnivT6n8ykyvHDle1jgjloMyn9wMMyaVwUBJtE=;
+	b=xmcr7yec+WPhYpeNieSszKshZJXr/3jZlrcW8PLnr+8Zh4T2kyeXJvf1i/aGPlwa+qVS
+	 R6xPzgd1Ro2Z+SaMXtkyN6ZxEdLAAtVN6DqR2QjzGXvdlwahqdhv6qUOiaQl1kLdUMPPo
+	 svBQYusftCZ8mNsJ9Le9tpJsm1Jf6NSf+sX3zXiHp5gTlqJVORtB3x1oNI6PIm6r1kdGV
+	 PolVhj4xUkvFWlKwY7Lk1oM+acc8YBO0v7qi0n7xFCNGfHNKesXbXw7JqXVKcphP3VWel
+	 PHCWI5ukpuhM5nNOHoVBztxqRAXPCZbK895HWGrw28um8DVKOXnYgI8YqQOODf7vdeA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VofD3o9I;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QF98rpjB;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 680FB606A31B;
-	Wed,  4 Nov 2026 09:06:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1070606A31B;
+	Wed,  4 Nov 2026 09:15:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=VofD3o9I
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 071981F000C1;
-	Wed,  4 Nov 2026 09:06:57 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=QF98rpjB
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 786C51F000C1;
+	Wed,  4 Nov 2026 09:15:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793783217;
-	bh=alSw+YCq5jBCd26VFvMWxYM2tXvWXkq7k6eTa+3KF/s=;
+	s=k20260515; t=1793783735;
+	bh=tun3DxnivT6n8ykyvHDle1jgjloMyn9wMMyaVwUBJtE=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=VofD3o9IOxjAjvhafodNQh4sENhL2O4abQJwPECc9+bQQ4M8oLZ1lwjI8WrbfQBIq
-	 huv3D0JavosznmX6RYN6Zv5chtXFDdxeJndgOaw8YXnl52TsJJ/VvTY2w5faCPy6SL
-	 /Tkfnm2kMP/URFG289kgqkTbtk0BEh7mD7ZMH6dNd+wRBFQe27FFYX4Y+WoWIIcuOT
-	 W1yTwnwAEiBDnWauLkBaAsXoFy3/nxnT8B1Gcn6nLzBMw3z3Mw950tUp1QHwQ6Ary3
-	 aLIQ+ik+jIZs0gnTKyjHhecMSKsfOaX9tcEDiWUy8h63BYrDOJMFl9A6N3jHCuGv8u
-	 3VyJOGslMFEOw==
-Received: from johan by xi.lan with local (Exim 4.100.1)
-	(envelope-from <johan@kernel.org>)
-	id 1xOWxK-000000074uN-0rWu;
-	Wed, 04 Nov 2026 10:06:54 +0100
-Date: Wed, 4 Nov 2026 10:06:54 +0100
-From: Johan Hovold <johan@kernel.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>, driver-core@lists.linux.dev,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 0/2] driver core: platform: fix sw node use-after-free on
- device release
-Message-ID: <aur1rt91oE5Kcrvc@hovoldconsulting.com>
-References: <20261102111420.1330760-1-johan@kernel.org>
- <aunx2B_OgODKZdVw@hovoldconsulting.com>
+	b=QF98rpjBzH7nX1jmz4Zo8ykeu0WPbxz0HGt6XxCXrOQ4V4PB3P/wbn5sluIzZ3bgP
+	 woOpkCVq06Ek6V7bKkHEP2phdvrGGARxXAl1OBE0IhgkRUa/IQ935AFbXxh1YUY5bJ
+	 utfjbIjp7LtybAhtZNGHqFcIoDw2mhpfxaUaUe5IHuBCvHt5tgYAPu/YfrtEAf4jWd
+	 v5zbJS1rE1Hby/io2vM2SNwmccLVR3w7pjdFYCtf7rR4Wu4skeBeZ5GH0Q1ajKmHHR
+	 yetiYqpJqieJOdcKUSYdWCjNW5p22mqd+bHsoVYbOTO4y8Ft2ybe6f5kRc5h/hiSzc
+	 /PiiXfUYZ7Gcw==
+Date: Wed, 4 Nov 2026 10:15:18 +0100
+From: Christian Brauner <brauner@kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: linux-fsdevel@vger.kernel.org, 
+	Linus Torvalds <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, 
+	Eric Dumazet <edumazet@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
+	Al Viro <viro@zeniv.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
+	Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados <joel.granados@kernel.org>, 
+	Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
+	linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kselftest@vger.kernel.org, linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
+	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	netdev@vger.kernel.org, ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org, 
+	coreteam@netfilter.org, kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
+	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+	ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net, 
+	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
+	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
+	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, samba-technical@lists.samba.org, 
+	sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
+	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
+	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
+	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org, 
+	Chuck Lever <cel@kernel.org>, stable@vger.kernel.org
+Subject: Re: [PATCH RFC 03/38] netfilter: xt_recent: don't remove the proc
+ entries under a spinlock
+Message-ID: <20261104-entgangen-nettigkeiten-intuitiv-f39521735261@brauner>
+References: <20261102-work-procfs-bugfixes-v1-0-59422ed3e465@kernel.org>
+ <20261102-work-procfs-bugfixes-v1-3-59422ed3e465@kernel.org>
+ <auig_zhd3L0HEis3@strlen.de>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -68,27 +79,12 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aunx2B_OgODKZdVw@hovoldconsulting.com>
+In-Reply-To: <auig_zhd3L0HEis3@strlen.de>
 
-On Tue, Nov 03, 2026 at 03:38:16PM +0100, Johan Hovold wrote:
-> On Mon, Nov 02, 2026 at 12:14:18PM +0100, Johan Hovold wrote:
-> > Sashiko noted a new use-after-free issue when freeing platform device
-> > which has a software node as its primary fw node.
-> > 
-> > Turns out that can cause trouble also when drivers or subsystems remove
-> > software nodes themselves.
-> 
-> Hmm. The subtleties of the software node implementation got the better
-> of both the LLM and its operator it seems.
-> 
-> Clearing the secondary node when the device has only a software node
-> does indeed clear the fwnode pointer so there was never any UAF here.
+On Mon, Nov 02, 2026 at 03:41:03PM +0100, Florian Westphal wrote:
+> Yes, but note that this change is already part of a pending nf -> net
+> merge request.
 
-Except when the software node is indeed primary... Then the UAF issue is
-real.
-
-I'll send a v2.
-
-Johan
+Dropped.
