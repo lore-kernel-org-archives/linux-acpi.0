@@ -1,49 +1,69 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=115.124.30.113
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=117.135.210.5
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793755010;
-	b=zxaYug/DtDCa3v8FGVbiD9ZsMkhOPLPwyTac75wVHcwz0B74rbP1S5ri9buhB1TobtlS
-	 g2StdxnXNT2FyS/d+K+WbfKKRRrfIaDiedkvgVAI5jB4WH+pTKRFuWDXDuvS0HeVC0Wi0
-	 kw3IFlN3sVAwj1FZkrcF1zoNRLLIBfSyryPqp9HzIOBlLnwXWttkOljUEJWfz4WDXfKXn
-	 Fzh4LzlU1Fzr5mYWSWYQA15HfDJ3ckYqMEMiJ1yQhFh7yIOypz7HE142p13vIQH/HR2Hd
-	 UYKW8Ng/DhE6tyx6s9/acYz8IZdNXnZqGpJm7Nx23yW51ZHBnCPPtSS8jiKjZWsxkCA==
+	t=1793767967;
+	b=lBQnKe7eR6AsVuwqXYkWsXY8fXs8a2BqAVEVVWMb2+RT+O4CklYBeLvwNgpntr0Sj9h1
+	 bQZ2HY6yEJO6z6zrMxxkx+kgkHst8MfXYnCGlb93yMOqzBbAnYZwdqXiNsTzRxM+SF7ke
+	 F77H9W0MhBmQh67q+XoubbJAjjwjOQvoJsi86WIvd48+fqcyJ26P2zYthXy8sEq+Mkl/i
+	 ar+5Wx6PCLhqfUbZHvPB2c/1NHuXPsDuF3nzE/zGIpgGD4tslKtDb33TuNdxNUU8PpgBv
+	 GOAXYzTdGKiPQAsAcOG6feieL8XC8a8Q653ZYoKLytj5qshwY2FocWYzrVIV2b/RVWw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793755010;
-	h=DMARC-Filter:DKIM-Signature:X-Alimail-AntiSpam:Received:Message-ID:
-	 Date:MIME-Version:User-Agent:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	bh=eIaKQbs2CvZNewKzz55AgGEgPZrnYFruF5iAPjXWtxM=;
-	b=0NX3txVc9X5/RktGCLVPYbZUMw7JKxLeHjNSH0ujK3EzGJ9Z7WAHEKLpSGz/8QTL6tjc
-	 GvXT1fd8SZnWY05bzfR+Pw2dneJUcZ011GWoF8HjE2JNqfBMtI4AGvNY7NHZUvwLF+DPp
-	 ugLKsQZxDeaH8KtQkDU5HxUSP9D9SEiwNCEiBJdrdoeu0KpFvd0oFjM6sj6bpmTnnVyQw
-	 660Ogq0AdzTET0imjkiepFVrEbFqc/Dy3ZfIuQchgqJ2QBtOTt4JF71l3M2IE1pvpef5o
-	 rvjTXiU1f7yv8AQ5pNLa54q0rbX5aRiSL8g7yFfULfGVm/HHvE/42xVIM4YXvuk5CoQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793767967;
+	h=DMARC-Filter:DKIM-Signature:Date:From:To:Cc:Subject:X-Priority:
+	 X-Mailer:In-Reply-To:References:X-NTES-SC:Content-Transfer-Encoding:
+	 Content-Type:MIME-Version:Message-ID:X-Coremail-Locale:X-CM-TRANSID:
+	 X-CM-SenderInfo:X-Coremail-Antispam;
+	bh=9s30YauoSh2f/s/qdcNGmaBQfPClCcjdMNaF5cdDkAs=;
+	b=KIMnU5wSkVRoRRID3eU8hlJUnJauxYKFAMwjszgmM71j2xqDpruuhBbU0kVnTz37jahf
+	 lKE/r8kN6CR0Npz04v5gu22v0evKSRig+xp3UqvJKlpbiu0wRoFU3z3T5UewFMhA9NdAk
+	 UO9Ce/LjfXt/JFKP/jDTFgG974PtfK4PxP+yQD6wVumUCD7J52eKJr8uIaLB2sAv2fY5B
+	 49nrt3MA6cqoZrjJQ/pVq1mfqjzIHv2oQrt4goXu0MjxvOOqetqK/UzhPzFycAsfKIr0O
+	 n2uVSeQoWzdduZt+dJk8BNugMFKP7RPTYTuC3MjS6X8ScYX+NBWymSIGUWPxwR/EL8g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.alibaba.com;
-	spf=pass smtp.mailfrom=linux.alibaba.com;
-	dkim=pass header.d=linux.alibaba.com header.i=@linux.alibaba.com header.a=rsa-sha256 header.s=default header.b=oDA9WYyX;
-	arc=none smtp.remote-ip=115.124.30.113
-Received: from out30-113.freemail.mail.aliyun.com (out30-113.freemail.mail.aliyun.com [115.124.30.113])
+	dmarc=pass header.from=163.com;
+	spf=pass smtp.mailfrom=163.com;
+	dkim=pass header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=BlJLjDoL;
+	arc=none smtp.remote-ip=117.135.210.5
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.5])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 932B9606A31B;
-	Wed,  4 Nov 2026 01:16:48 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 932B9606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B313606A31B;
+	Wed,  4 Nov 2026 04:52:42 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1B313606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.a=rsa-sha256 header.s=default header.b=oDA9WYyX
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1793755006; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
-	bh=eIaKQbs2CvZNewKzz55AgGEgPZrnYFruF5iAPjXWtxM=;
-	b=oDA9WYyXQodTF6FRQ5mmAt9m8uITF3vC9re449gr8iZL4Ga243eQFkr/gVSm4rDf74rbRnYp52Vu5zJg+vbBkSLYhUtXm77/ruxpb9XV8N76aiOXXqwfVQR3UEYsCDb7ezGCrkDHzZqpg5iUqlGBDES3o4c91HMAs1gZVtL6eHY=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R901e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033032089153;MF=xueshuai@linux.alibaba.com;NM=1;PH=DS;RN=12;SR=0;TI=SMTPD_---0XE45k6._1793755004;
-Received: from 30.246.177.186(mailfrom:xueshuai@linux.alibaba.com fp:SMTPD_---0XE45k6._1793755004 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Wed, 04 Nov 2026 09:16:45 +0800
-Message-ID: <9a375554-57ee-4cf4-8d84-60511c96d8ea@linux.alibaba.com>
-Date: Wed, 4 Nov 2026 09:16:44 +0800
+	dkim=pass (1024-bit key, unprotected) header.d=163.com header.i=@163.com header.a=rsa-sha256 header.s=s110527 header.b=BlJLjDoL
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=Date:From:To:Subject:Content-Type:MIME-Version:
+	Message-ID; bh=9s30YauoSh2f/s/qdcNGmaBQfPClCcjdMNaF5cdDkAs=; b=B
+	lJLjDoLmEplJfrB1HCGzhw/okIN4KzaMQiHdUeXaue9uj5zjqSxb2Pi4+qwpnM3+
+	WGp1SH+XQpeqhqv0ahqZ3rDt7NyX+wnx8vi1sqTFArTMrE4RWGEBq6kn81LuJjhs
+	xIsQy4HrCm3G1Gek4yOdx82ol6oC3X3YrKDbwddE8o=
+Date: Wed, 4 Nov 2026 12:52:06 +0800 (CST)
+From: zl020895  <zl020895@163.com>
+To: "Andy Shevchenko" <andriy.shevchenko@linux.intel.com>
+Cc: longzhao@ambarella.com, "Bartosz Golaszewski" <brgl@kernel.org>,
+	linux-gpio@vger.kernel.org, "Linus Walleij" <linusw@kernel.org>,
+	"Michael Walle" <mwalle@kernel.org>, "Rob Herring" <robh@kernel.org>,
+	"Krzysztof Kozlowski" <krzk@kernel.org>,
+	"Krzysztof Kozlowski" <krzk+dt@kernel.org>,
+	"Krzysztof Kozlowski" <krzysztof.kozlowski@oss.qualcomm.com>,
+	"Conor Dooley" <conor+dt@kernel.org>,
+	"Mika Westerberg" <westeri@kernel.org>, linux-acpi@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re:Re: [PATCH v13 09/13] gpiolib: request ACPI GPIO events for
+ external IRQ domains
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version 2023.4-cmXT build
+ 20260511(2e539873) Copyright (c) 2002-2026 www.mailtech.cn 163com
+In-Reply-To: <aunMedCPibzJsfUi@ashevche-desk.local>
+References: <20261102-cv75-gpio-v13-0-4f93114ea204@ambarella.com>
+ <20261102-cv75-gpio-v13-9-4f93114ea204@ambarella.com>
+ <aunMedCPibzJsfUi@ashevche-desk.local>
+X-NTES-SC: AL_Qu2SAfuduEEp4CScZOkdnUoTj+Y/XMK0uvwk1YdVc/MEowHJxQIGWnRdNkvU8OC1DCKOgD2oSz9X5e9rXqZ/2JrJBen1cEeledNqWLtO5A==
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=GBK
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -53,76 +73,24 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] ACPI: APEI: GHES: Fix severity check in ghes_log_hwerr()
-To: Breno Leitao <leitao@debian.org>, "Rafael J. Wysocki"
- <rafael@kernel.org>, Tony Luck <tony.luck@intel.com>,
- Borislav Petkov <bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>,
- Mauro Carvalho Chehab <mchehab@kernel.org>, Len Brown <lenb@kernel.org>,
- Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
- kernel-team@meta.com, stable@vger.kernel.org
-References: <20261030-ghes-hwerr-sev-v1-1-145ceb996c77@debian.org>
-From: Shuai Xue <xueshuai@linux.alibaba.com>
-In-Reply-To: <20261030-ghes-hwerr-sev-v1-1-145ceb996c77@debian.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Message-ID: <479263db.3fa7.1a1a4e66ab1.Coremail.zl020895@163.com>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID:eCgvCgC3__P2uepqcRlnAA--.574W
+X-CM-SenderInfo: d2oqjiqyzvqiywtou0bp/xtbC7RYBcmrqufa+SAAA3x
+X-Coremail-Antispam: 1U5529EdanIXcx71UUUUU7vcSsGvfC2KfnxnUU==
 
-
-
-On 10/30/26 8:18 PM, Breno Leitao wrote:
-> ghes_log_hwerr() is meant to count recoverable GHES errors in
-> hwerror_data[], but it skips them and counts informational records
-> instead. As a result, recoverable CPU, memory, CXL and vendor-specific
-> errors reported through GHES never show up in a vmcore.
-> 
-> ghes_do_proc() passes ghes_log_hwerr() the record severity after
-> ghes_severity() has converted it to a GHES_SEV_* value.
-> ghes_log_hwerr() compares it against CPER_SEV_RECOVERABLE, which is 0
-> in the CPER enum and matches GHES_SEV_NO, so only informational records
-> pass and GHES_SEV_RECOVERABLE ones return early.
-> 
-> Compare against GHES_SEV_RECOVERABLE instead.
-> 
-> Recoverable PCIe errors that ghes_handle_aer() hands to AER are also
-> counted by pci_dev_aer_stats_incr(), so with the check fixed they are
-> counted twice under HWERR_RECOV_PCI. That is not addressed here.
-> 
-> Fixes: 3fa805c37dd4 ("vmcoreinfo: track and log recoverable hardware errors")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Breno Leitao <leitao@debian.org>
-> ---
->   drivers/acpi/apei/ghes.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 663dc2e601cf72..5d888c82efeaa3 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -899,7 +899,7 @@ EXPORT_SYMBOL_NS_GPL(cxl_cper_kfifo_get, "CXL");
->   
->   static void ghes_log_hwerr(int sev, guid_t *sec_type)
->   {
-> -	if (sev != CPER_SEV_RECOVERABLE)
-> +	if (sev != GHES_SEV_RECOVERABLE)
->   		return;
->   
->   	if (guid_equal(sec_type, &CPER_SEC_PROC_ARM) ||
-> 
-> ---
-> base-commit: a39c950806213f6861d00f90729acaaa21f2d95a
-> base-tree: git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git master
-> change-id: 20261030-ghes-hwerr-sev-e440624108b6
-> 
-> Best regards,
-> --
-> Breno Leitao <leitao@debian.org>
-
-
-LGTM.
-
-Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com>
-
-Thanks.
-Shuai
-
+CkF0IDIwMjYtMTEtMDMgMTk6NTg6NDksICJBbmR5IFNoZXZjaGVua28iIDxhbmRyaXkuc2hldmNo
+ZW5rb0BsaW51eC5pbnRlbC5jb20+IHdyb3RlOgo+PiArCWFjcGlfZ3Bpb2NoaXBfcmVxdWVzdF9p
+bnRlcnJ1cHRzKGdjKTsKPgo+SW4gc3VjaCBhIGNhc2Ugd2hlcmUgaXMgdGhlIGZyZWVpbmcgdGhl
+c2UgcmVxdWVzdGVkIGludGVycnVwdHM/CgpIaSBBbmR5LAoKZ3Bpb2NoaXBfcmVtb3ZlKCkgYWx3
+YXlzIGNhbGxzIGdwaW9jaGlwX2lycWNoaXBfcmVtb3ZlKCksIHdoaWNoIGZyZWVzCnRoZSBBQ1BJ
+IGV2ZW50cyBiZWZvcmUgaXQgbG9va3MgYXQgdGhlIGRvbWFpbjoKICAgIGdwaW9jaGlwX3JlbW92
+ZSgpCiAgICAgIC0+IGdwaW9jaGlwX2lycWNoaXBfcmVtb3ZlKCkKICAgICAgICAgICAtPiBhY3Bp
+X2dwaW9jaGlwX2ZyZWVfaW50ZXJydXB0cyhnYykKICAgICAgICAgICAtPiBpZiAoIWdjLT5pcnEu
+ZG9tYWluX2lzX2FsbG9jYXRlZF9leHRlcm5hbGx5KQogICAgICAgICAgICAgICAgICBkaXNwb3Nl
+IG1hcHBpbmdzIC8gcmVtb3ZlIGRvbWFpbgoKZG9tYWluX2lzX2FsbG9jYXRlZF9leHRlcm5hbGx5
+IG9ubHkgc2tpcHMgdGhlIGRvbWFpbiB0ZWFyZG93bi4gVGhlCmV2ZW50cyByZXF1ZXN0ZWQgaW4g
+Z3Bpb2NoaXBfaXJxY2hpcF9hZGRfZG9tYWluKCkgYXJlIHJlbGVhc2VkIG9uIHRoYXQKcGF0aC4g
+UEwwNjEgZ29lcyB0aHJvdWdoIGl0IHZpYSBncGlvX3JlZ21hcF91bnJlZ2lzdGVyKCkuCgpJIHdp
+bGwgZHJvcCB0aGUgZHVwbGljYXRlIENjIGZvciBNaWthIGFuZCBtb3ZlIHRoZSBDYyBsaXN0IGJl
+bG93IHRoZQonLS0tJyBtYXJrZXIgaW4gdjE0LgoKQmVzdCByZWdhcmRzLApMb25nIFpoYW8K
