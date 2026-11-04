@@ -1,89 +1,75 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.15
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793828045;
-	b=oNs++X7rpjqDPv55zzXB9wp+COlkMfl8zvVm6wLtDbnF0XYKKReowjyeIP25H2L39rJV
-	 rTdHtlL+O1Lz8wPHCCAf9q/TcBmBeVS/oBpTKQPHFfEKuEGYCMcWrnlJY9lY1th32pxnI
-	 vGEPmx64y9MCXoHY5XgbcpeNyxpGsYbSWRWp82CYooA7IGpANdXPylDkZmD5wCdtMBlu0
-	 XqxUKVwwSiYzptjsFwK/OScnVns4FjxfH131IFikHHBjSOEGASxT9q4A7LkymlGn/L2jo
-	 /S5kuRazVmG98dOxLWc7rY2sXBPryy9L206BkhXsVMmipkEGr6NgPrIt+TSemG56D0w==
+	t=1793832370;
+	b=GiPJj/b5IETTgaiAxC956zQaYbDdSyZGCxNYuLZCFetISqeOrO3uXvnnxHK/YH+Y5AdN
+	 4y8iWiN+H2uWkXG5NYIeMWDex1F6hAD7Iiwz8nY+Y/tgL3WlQEzCOoYI9bNEtMBe9C1VJ
+	 Z9NOIQQ9aeTnjEUWkEV93rwBqp+0i4UklS/GTPjExFt6z7o5tIVZHumYX25qS1/VXXXZo
+	 W/t6qH6hbIPDpGauq8KUwS60tWoCyzSZyhrKape3UE6/6HA5ZCLzUWE5ww0+Gbs2PdKIw
+	 bfE8s5rueKgjC9MAVHCQX4l3CO3W0PJYEIeu5pCJ7/8DoJ43V/TWU8KY+Kgw6AoKxOw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793828045;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
-	 Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To:Organization;
-	bh=9nKvJbaUcji5RiFFkvoszphTBDYEbMKLXoOUcUhjA9Y=;
-	b=bjQICjKS5FnXTFPUFmeZLuNVZag3Pijcv8E/OYuOSvSV+xb+gJBUn34Azy/yP7D/uRou
-	 Zt6aEE0zckN2C0dv1WTTWPv+v0hAiF5z6O3biXh2ZXWgdHGWp5Fi53AbwhkjFH+QmOlEs
-	 7GV3978d7h85Hc0nrwkjQ4p2+OUU6wEzvBK3mrjjVl8NI8M7eqcLCo/JlFE4YEMKuHLs9
-	 aqQ1E3ip45EgK0qbfXuxpqSHfXZetPzk41f/pxp6sGY1iHJypyoMPe5w3Hc9pxUuPWRIE
-	 /7yVl6VdjyuZTMclTDwUPRwGZgiM7pYQnM0u5VH0PdgnC9lpGrwrRnSU1OcRlhXVOHg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793832370;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=XBOw8umZc0PSygGL6ZhSsNEhyMPfzoczgqWFX+5YDNY=;
+	b=Re/6Rg9jSD9Xebvi70a84ZeMmu/I2lfDULXQp8gVW/rAcQgEQo7H7Bm2B45i/4cWD2Qz
+	 bA5PiYIc9GvM4LsvRra4bsZTC675SEPOrg8kMw2nb505Tv9nEXMOEXBmWOA2oIxYMgmqJ
+	 +lHWOwBIftcc35KCKzB0hLHvHE/OhEFsHLfPgbhC0Ts/pbORmj97PoUbWtjBounXmDjiB
+	 mQfvZZDBX4X96/9TtFlVhx528WLd9pGG+gUaWMkQQO/cRYvFd1uTPq/NWJKxb2Q0AZYRH
+	 dcHEjS7kMdFBNNoIBuEl1SVfzq//hK+nG7BkfvMxHJqFrp/DW75GAm8UPQXw5VfKfrw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b="El/1Rl9a";
-	arc=none smtp.remote-ip=198.175.65.15
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Y+guEyix;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C882606BA35;
-	Wed,  4 Nov 2026 21:34:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7C882606BA35
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F24D4606A31B;
+	Wed,  4 Nov 2026 22:46:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=El/1Rl9a
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793828044; x=1825364044;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=dSHD22sqoPeJn+6jn0TgmhqlpAHpJfnJ/nqGrnYSGlk=;
-  b=El/1Rl9a2hDoOzX1KY/EmvJKihDFF3W8O6fWO/I0jMFR8YAcjrvzFNYN
-   L2So0F6xSefrZQXMCfEyAWBZWosqwkhOZFtBf3BUVNEPETRLbNb+wMbjM
-   qletnCiq4BvTGah6PTzEYf/b64ShjpEDrqhYwhadLl89eTJDIEO3em+yI
-   L1NGV8jGX8nceTRcZStwAs2Ao3NIAGlISFH5KbfEknR9wZPQVBKbt3pZH
-   9PY+AAwCnZQNvLnsX0h5K626KAi82vAYjaaHOrW1l/BG9HLaLT2sGzaMu
-   9+A3MymaqZH+ezpQELVH5zikAqJy06ryGHRiXkjFgZXQYcUxwTdaF75xO
-   Q==;
-X-CSE-ConnectionGUID: cMaTYde5SL+vi4ZDRXWtCg==
-X-CSE-MsgGUID: tPDOqx38Th6lkhncZTTQiQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11956"; a="2605453"
-X-IronPort-AV: E=Sophos;i="6.27,195,1787036400"; 
-   d="scan'208";a="2605453"
-Received: from fmviesa011.fm.intel.com ([10.60.135.151])
-  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2026 13:34:03 -0800
-X-CSE-ConnectionGUID: KwuCGyO9ScCeYbqAy0WSvA==
-X-CSE-MsgGUID: d1PmHtYQSVS2sjsse1bh1w==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,195,1787036400"; 
-   d="scan'208";a="8605631"
-Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.24])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2026 13:33:59 -0800
-Date: Wed, 4 Nov 2026 23:33:56 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Daniel Scally <djrscally@gmail.com>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
-	Hans Verkuil <hverkuil@kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kees Cook <kees@kernel.org>, Andy Shevchenko <andy@kernel.org>,
-	Len Brown <lenb@kernel.org>, Rob Herring <robh@kernel.org>,
-	Saravana Kannan <saravanak@kernel.org>,
-	Linus Walleij <linusw@kernel.org>, linux-acpi@vger.kernel.org,
-	driver-core@lists.linux.dev, linux-kernel@vger.kernel.org,
-	linux-hardening@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-gpio@vger.kernel.org
-Subject: Re: [PATCH 9/9] gpio: shared: generalize most code to firmware nodes
-Message-ID: <auukxCs4Be4idQPj@ashevche-desk.local>
-References: <20261104-fwnode-for-each-prop-v1-0-6e28fe1c72c4@oss.qualcomm.com>
- <20261104-fwnode-for-each-prop-v1-9-6e28fe1c72c4@oss.qualcomm.com>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Y+guEyix
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6C1B1F000C1;
+	Wed,  4 Nov 2026 22:45:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793832369;
+	bh=XBOw8umZc0PSygGL6ZhSsNEhyMPfzoczgqWFX+5YDNY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=Y+guEyixDVYqpS8g3d4FmlRYq/qp1tQeGL16K2BSxNthPOaRsDL0VFTK+tjHByNf5
+	 UG3G3TR4IbDk5BaZwlgwVySr0HiRvL1WeYdDEujyS+zzG35LMJqu1Pm8BzfQ5Z+w4F
+	 3DGZwBGiTOYlKSVRIgaBstWj6LtjUlnMrGUfTY6AgB7LPx3pVl/0nxTfWzl1eRWVeu
+	 9SzZPPQ7yLUIbBzvzOD5olkzaVc7Od6fJQ93jvoDvEvbyLIezG28vK5PJuGqQJ/Zu+
+	 C/TFnkMniWMHftytXgdebgJiyvQu099dnGFvQXlwnwRKY6VGKt0bkFzVDUexAPr+Sm
+	 GvRbuyQmKti0Q==
+Date: Wed, 4 Nov 2026 23:45:55 +0100
+From: Christian Brauner <brauner@kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-fsdevel@vger.kernel.org, Jann Horn <jannh@google.com>, 
+	Josef Bacik <josef@toxicpanda.com>, Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, 
+	NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>, 
+	Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
+	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
+	Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados <joel.granados@kernel.org>, 
+	Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
+	linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kselftest@vger.kernel.org, linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
+	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	netdev@vger.kernel.org, ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org, 
+	coreteam@netfilter.org, kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
+	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+	ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net, 
+	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
+	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
+	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, samba-technical@lists.samba.org, 
+	sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
+	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
+	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
+	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org, 
+	Chuck Lever <cel@kernel.org>
+Subject: Re: [PATCH RESEND v2 00/30] proc: convert the fs, kernel and mm
+ entries (Part 5/7)
+Message-ID: <20261104-allein-bepacken-hitzig-5e517d3c129f@brauner>
+References: <20261104-work-procfs-v2-0-b45cd5789ac5@brauner>
+ <20261104-work-procfs-fs-v2-0-319e0f9a8aae@kernel.org>
+ <CAHk-=wj9Y9NcOesBBm+jhPjYa7qO00fD7g7uwX+H-k0-R2difA@mail.gmail.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -93,41 +79,20 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20261104-fwnode-for-each-prop-v1-9-6e28fe1c72c4@oss.qualcomm.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+In-Reply-To: <CAHk-=wj9Y9NcOesBBm+jhPjYa7qO00fD7g7uwX+H-k0-R2difA@mail.gmail.com>
 
-On Wed, Nov 04, 2026 at 03:03:51PM +0100, Bartosz Golaszewski wrote:
-> Ahead of adding support for sharing of GPIOs for other types of firmware
-> nodes, convert as much code in gpiolib-shared.c as possible to using
-> fwnode APIs and guard the remaining OF-specific bits with CONFIG_OF
-> guards.
+On Wed, Nov 04, 2026 at 12:05:08PM -0800, Linus Torvalds wrote:
+> On Wed, 4 Nov 2026 at 11:49, Christian Brauner <brauner@kernel.org> wrote:
+> >
+> > Part 5/7 of "proc: move procfs to what kernfs does", on top of part 2
+> 
+> Christian - way too many patches, re-sent much too often, cc'd to way
+> too many people.
+> 
+> Nobody is going to read these repeated resends, and all you are doing
+> is clogging up peoples mailboxes.
 
-...
-
->  #include <linux/string.h>
-> +#include <linux/string_helpers.h>
-
-As commented before...
-
-...
-
->  static LIST_HEAD(gpio_shared_list);
->  static DEFINE_IDA(gpio_shared_ida);
->  
-> -#if IS_ENABLED(CONFIG_OF)
-> +
-
-Do we need an extra blank line?
-
->  static struct gpio_shared_entry *
->  gpio_shared_find_entry(struct fwnode_handle *controller_node,
->  		       unsigned int offset)
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+I resent once after I cleaned things up post RFC and I don't plan on
+resending (one failed attempt due to my network dropping).
