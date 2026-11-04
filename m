@@ -1,54 +1,86 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=114.242.206.163
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.15
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793780977;
-	b=zIsAmNN1zvb1SDjLMUgQnJH9q9CRV6EnFoQNY2VhMWyJ8jEc5YrixxHVxT/v+sw6K1bu
-	 BJdrjPIxsQoFeBv/2+UT4GxujbdzypFF7Hwfxqnhm6hnM9HPORRwLdAfEyLfjpes3f0lw
-	 GEyQUvSbhoyTInpzieAaDAOL67b30jWnwsdhmyRI/Gdt0LOrtjlG0NCiH7WumF/w6MtVR
-	 j4TDytTg+oHr+VLwDhne4PKLo9gjUEvJX/yq7r32yJj+Ao31V5oJ8kSufpuMavJ6n4ZbR
-	 deVCVXOtQw/YlpiWI/P1hUyyVbtHY+GryuFpgHkCmcXL5MEIsX/QV3C/FXFyAVbsSOw==
+	t=1793781347;
+	b=qa35aGtlt8puGUQ8LT4dAKObqZixf9/ttAKnmxpn10+Pe6QqHz3rlaO7NKWM+mqs7mhG
+	 8ji3Nmko1zegn/ztGlBs3rM5Rb4SzgqPSi7eU6P20sLcJquFOnDGapXFx4Smd2tZDLpm8
+	 ErwosdFrOV0aUJI6f/AYgwmX4k9+vPcYvDyOaHpdSpnr+N/C4ozrBlbt07r5+3MJr5gHm
+	 GQK1XlGzjEONcVNA+iuQlNK9oMSjwM0Enck9ngaRofoI+fyugwL2fbqXn7ZGPSeMONgrP
+	 z0GWQnAMk1xhaxtOugVZDdG+qUGrrC8QMoj0dLSMavrFIMLTLQSzdUegWxmMzQLH/kQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793780977;
-	h=DMARC-Filter:Received:Received:Subject:To:Cc:References:From:
-	 Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:Content-Type:
-	 Content-Language:Content-Transfer-Encoding:X-CM-TRANSID:
-	 X-CM-SenderInfo:X-Coremail-Antispam;
-	bh=BdRyfiAiBhdEip/a7W+YtBi0UikVbecSudJU78nJFMQ=;
-	b=ItcKJjh3TBIuc1xcVdIVoyapudAZyfL2LpSbXGpN/S03VP4ftmUQxcaRJTAgVL1c4vvt
-	 5394z22TiEDMYx5cvPuUxHVyvpDh+9XYexbdoUTeUDdlPIFYk2qD1aD/NZH/cljeOmvGG
-	 L9O9JnpQ2TZZhQdCL8kptCfyBdsJsVuX0zZOnbjlgBXGANZOF1iHS0pd/J/gH9tOAcfEr
-	 BM8EQaghUcMhzTc6vzHURlYo6fVKn+J+ifI1zKDqaosOD6FCmRRFxBgKYXKZhcqAZ/mb1
-	 5VV6WY2F2uw7udN+ViEdn/ehe7oRMT2NXz68tJ4AAOZfHJ+BqG/EqxlCXmTEo4lrLng==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793781347;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To:Organization;
+	bh=/uMLBHxWohgE/F8ooDLhRcSeD3BAuoZ4IO/H8eSEi0E=;
+	b=p6lMkXa9GYYvR57foBj/x2zyMD9/UW4jmUTu0GMvwqQms2GL/EDQVlyxIGFTV5StM4ig
+	 g9qH/H56bhXYnrzm1kOYaIjOwXr2Ja/xr5bHze9YaluaYsw6NjD5l0HIVArs/K8GCwN3H
+	 fQBGpSjWGhPCA2BLGCgSx5UiXDMMWutuwpprJHKrj8ZOcieST9s3tq5D/lApYBcH5yWge
+	 uf0H3anr6tfAjOjZ0fTrsvv+16JmsmlMLIl07Jh3tF0wGtG1JJNgRCahhZ2Q4gikp0IDl
+	 exk82mEKhoTnIJMoQCvxqsPXherphg8fOYgSpNSpS58pHO5Sf36T1f6p0lXiwOadXJA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=loongson.cn;
-	spf=pass smtp.mailfrom=loongson.cn;
-	arc=none smtp.remote-ip=114.242.206.163
-Received: from mail.loongson.cn (mail.loongson.cn [114.242.206.163])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E9AA4606A329;
-	Wed,  4 Nov 2026 08:29:35 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E9AA4606A329
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=loongson.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=loongson.cn
-Received: from loongson.cn (unknown [10.20.42.62])
-	by gateway (Coremail) with SMTP id _____8CxfdLp7OpqkD0cAA--.16292S3;
-	Wed, 04 Nov 2026 16:29:29 +0800 (CST)
-Received: from [127.0.0.1] (unknown [127.0.0.1])
-	by front1 (Coremail) with SMTP id qMiowJBxpMzj7Opq10cyAA--.11207S2;
-	Wed, 04 Nov 2026 16:29:25 +0800 (CST)
-Subject: Re: [PATCH v4 1/4] ACPICA: actbl2.h: Add bit constants of the Flags
- field in the IOVT IOMMU structure
-To: Huacai Chen <chenhuacai@kernel.org>
-Cc: rafael@kernel.org, linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev, lenb@kernel.org, linux-kernel@vger.kernel.org,
- lixianglai@loongson.cn, loongarch@lists.linux.dev,
- maciej.wieczor-retman@intel.com, pawel.chmielewski@intel.com
-References: <20260922121058.972734-2-maobibo@loongson.cn>
- <10bd45f8-2d37-42f0-b7d2-a4a84933c9b3@loongson.cn>
- <CAAhV-H7Vq2ayLJNLRSo5RRiWOcmF2BXT_QOhEDg_jWOzYteqWw@mail.gmail.com>
-From: Bibo Mao <maobibo@loongson.cn>
-Message-ID: <7e7a61a3-eda7-8b22-0df1-648426492e30@loongson.cn>
-Date: Wed, 4 Nov 2026 16:30:40 +0800
-User-Agent: Mozilla/5.0 (X11; Linux loongarch64; rv:68.0) Gecko/20100101
- Thunderbird/68.7.0
+	dmarc=pass header.from=linux.intel.com;
+	spf=pass smtp.mailfrom=linux.intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=Ax2z4BTc;
+	arc=none smtp.remote-ip=192.198.163.15
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF9B1606A31B;
+	Wed,  4 Nov 2026 08:35:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DF9B1606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=Ax2z4BTc
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1793781348; x=1825317348;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=uKOSyayJx9+QMQNFXoH1UFqc1dN/TFUA+vdki/ypgVA=;
+  b=Ax2z4BTcJsZW5iId9Ba8RI7mhgVPfFeA7Iyp5eXhh4b4uLvhLt+dqskr
+   xIDHiISOHYotFpndRh+OErYnmK+uEZGfpVGK/ayQNhLEyQ4ybwKMcQNSt
+   p771caOP9CSp8OeCUU/Os9RodAEEfv5x5irH+YiFDYZiLUe5ugcFu/HJd
+   NVWGouyC3IHZACmJCxIrgHwVEnlCfneHgeDZh8JimIv9hnCgs37711pwx
+   6bqvKK8pq8ib2wojB9i0gS3mCg2UN/ssnEwENdVF4+1MZ6FUo1C3n+NE5
+   t/OjzWAv6I05xi3P3G2vZagVgV4snwQ9twkPSlBGtxkFUUctNJlc9g1GC
+   g==;
+X-CSE-ConnectionGUID: qLHR8Zg9TAGbwDKUxdRrSQ==
+X-CSE-MsgGUID: UP72V06RQ8uE2jnI5bncfQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11955"; a="2525259"
+X-IronPort-AV: E=Sophos;i="6.27,194,1787036400"; 
+   d="scan'208";a="2525259"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2026 00:35:47 -0800
+X-CSE-ConnectionGUID: Umcevaq5RXio3yCNslldBg==
+X-CSE-MsgGUID: hNKdN2YWRw+PUKv+CqpZNg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,194,1787036400"; 
+   d="scan'208";a="7217576"
+Received: from ijarvine-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.244.24])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2026 00:35:43 -0800
+Date: Wed, 4 Nov 2026 10:35:41 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "Vivekanandan, Balasubramani" <balasubramani.vivekanandan@intel.com>
+Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
+	Daniel Scally <djrscally@gmail.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>, Johan Hovold <johan@kernel.org>,
+	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+	linux-acpi@vger.kernel.org, driver-core@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] software node: only let the owner release a managed node
+Message-ID: <auruXXGTDMU1wcwU@ashevche-desk.local>
+References: <20261102-swnode-only-owner-release-v1-1-ee4c9022a629@oss.qualcomm.com>
+ <aurU5Z1CNl87uMrU@bvivekan-mobl1>
+ <aurqev-AgiGYo5DT@ashevche-desk.local>
+ <aursSlF3yRXrBPjH@bvivekan-mobl1>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -58,84 +90,38 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-In-Reply-To: <CAAhV-H7Vq2ayLJNLRSo5RRiWOcmF2BXT_QOhEDg_jWOzYteqWw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:qMiowJBxpMzj7Opq10cyAA--.11207S2
-X-CM-SenderInfo: xpdruxter6z05rqj20fqof0/
-X-Coremail-Antispam: 1Uk129KBj93XoW7CF1ftr48JFWxCryxurW5twc_yoW8WryxpF
-	s2ka18KFyDXr47Cw1vgw13GF1rt3yrCr1I9w1Igr42yr9Ikw1rtF4Uua1Y9F97urs5CF4I
-	yFy2qrWfWFyjvrXCm3ZEXasCq-sJn29KB7ZKAUJUUUUr529EdanIXcx71UUUUU7KY7ZEXa
-	sCq-sGcSsGvfJ3Ic02F40EFcxC0VAKzVAqx4xG6I80ebIjqfuFe4nvWSU5nxnvy29KBjDU
-	0xBIdaVrnRJUUUPIb4IE77IF4wAFF20E14v26r1j6r4UM7CY07I20VC2zVCF04k26cxKx2
-	IYs7xG6rWj6s0DM7CIcVAFz4kK6r1Y6r17M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48v
-	e4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Jr0_JF4l84ACjcxK6xIIjxv20xvEc7CjxVAFwI
-	0_Jr0_Gr1l84ACjcxK6I8E87Iv67AKxVW8Jr0_Cr1UM28EF7xvwVC2z280aVCY1x0267AK
-	xVW8Jr0_Cr1UM2kKe7AKxVWUXVWUAwAS0I0E0xvYzxvE52x082IY62kv0487Mc804VCY07
-	AIYIkI8VC2zVCFFI0UMc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWU
-	XVWUAwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcVAKI4
-	8JMxk0xIA0c2IEe2xFo4CEbIxvr21lc7CjxVAaw2AFwI0_JF0_Jw1l42xK82IYc2Ij64vI
-	r41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1l4IxYO2xFxVAFwI0_Jrv_JF1lx2IqxVAqx4xG67
-	AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r1q6r43MIIY
-	rxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14
-	v26r1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8
-	JwCI42IY6I8E87Iv6xkF7I0E14v26r1j6r4UYxBIdaVFxhVjvjDU0xZFpf9x07jOa93UUU
-	UU=
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aursSlF3yRXrBPjH@bvivekan-mobl1>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
+On Wed, Nov 04, 2026 at 01:56:50PM +0530, Vivekanandan, Balasubramani wrote:
+> On 04.11.2026 10:19, Andy Shevchenko wrote:
+> > On Wed, Nov 04, 2026 at 12:17:01PM +0530, Vivekanandan, Balasubramani wrote:
+> > > On 02.11.2026 16:25, Bartosz Golaszewski wrote:
 
+...
 
-On 2026/10/23 下午3:59, Huacai Chen wrote:
-> Bibo,
+> > > > Reported-by: Balasubramani Vivekanandan <balasubramani.vivekanandan@intel.com>
+> > > > Closes: https://lore.kernel.org/all/20261009164241.923756-2-balasubramani.vivekanandan@intel.com/
+> > 
+> > > > ---
+> > > > This is my approach at addressing the bug reported by Vivekanandan
+> > > > directly in driver core. Please test it if you can.
+> > > > ---
+> > 
+> > > Reviewed-by: Balasubramani Vivekanandan <balasubramani.vivekanandan@intel.com>
+> > 
+> > Thanks, would it be possible to test this?
 > 
-> Now I have applied this series but with some modifications, please
-> double check and test the code.
-> 
-> https://git.kernel.org/pub/scm/linux/kernel/git/chenhuacai/linux-loongson.git/log/?h=loongarch-next
+> Tested it already. Kernel crash is fixed.
 
-Thanks, it works well on 7.4.0-rc1 version.
+Thanks, but we expect a formal Tested-by tag. Reviewed-by is only about how
+we read the code.
 
-Regards
-Bibo Mao
-> 
-> Huacai
-> 
-> On Mon, Oct 12, 2026 at 3:16 PM Bibo Mao <maobibo@loongson.cn> wrote:
->>
->> This change is already merged in acpica tree.
->>
->> slightly ping.
->>
->> On Tue, Sep 22, 2026 at 08:10:55PM +0800, Bibo Mao wrote:
->>   > According to the IOVT specification, define macros for each bit of the
->>   > Flags field in the IOVT IOMMU structure.
->>   >
->>   > Link: https://github.com/open-acpica/acpica/commit/352f750e4cc0
->>   > Signed-off-by: Bibo Mao <maobibo@loongson.cn>
->>   > ---
->>   >  include/acpi/actbl2.h | 7 +++++++
->>   >  1 file changed, 7 insertions(+)
->>   >
->>   > diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
->>   > index baef525367b5..76e4a5bc79b4 100644
->>   > --- a/include/acpi/actbl2.h
->>   > +++ b/include/acpi/actbl2.h
->>   > @@ -919,6 +919,13 @@ struct acpi_iovt_iommu {
->>   >       u32 device_entry_offset;
->>   >  };
->>   >
->>   > +/* Masks for Flags field above */
->>   > +#define ACPI_IOVT_IOMMU_PCI_DEVICE           (1<<0)
->>   > +#define ACPI_IOVT_IOMMU_PXM_VALID            (1<<1)
->>   > +#define ACPI_IOVT_IOMMU_MAGAGE_BY_SEGMENT    (1<<2)
->>   > +#define ACPI_IOVT_IOMMU_HW_CAP_SUPPORT               (1<<3)
->>   > +#define ACPI_IOVT_IOMMU_MSI_INT_BYPASS               (1<<4)
->>   > +
->>   >  struct acpi_iovt_device_entry {
->>   >       u8 type;
->>   >       u8 length;
->>   > --
->>   > 2.39.3
->>   >
->>
+-- 
+With Best Regards,
+Andy Shevchenko
+
 
