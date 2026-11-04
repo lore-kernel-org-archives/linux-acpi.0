@@ -1,55 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793809713;
-	b=ZF4Ub8JO6Gfpz7pn6phWvio3hyqbv5CB4qDF1YAE0rvagZNu2bJ6CjONz/JLd9QB/Ypu
-	 OsRygkPfrT3/HK+r2jz0/Ywf6WZsgwK37mQnvlnmXKposc1s1d6F+ah/pBJ+LJb+e2Ec9
-	 ljNuC8bKF+0j219hPIjrz8gIcg+TyzeD2scERz2DTsoGQH+TP7eKM/b9MpyJtqXadIzuU
-	 GPajaycE73V1aTtabVoM/1kCGHNB9/2uOItRn/L3eFhJMNSIdg+VOJiMh3HnsbTphBmUa
-	 2Q4xR1C4S5oZPAmTdrZ4CJLtsjp0jMY+dgQPlO4cneI5bpjElSQ5KSIQkGRPKWAE9aw==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793809713;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=jfcE8CDgamiFwy3XoIjlQTqfdF2WZ6cuol7wMJuYXpM=;
-	b=ESpgTJQdg6h4rCsp/PSRlpnJ9oCl2E3IYpCZzLdhxdEON09liJAUBBC8/uDthswOZ5jJ
-	 BGoqzQ287ew4ektMXz601VdFXdXorHLRdRBw71UZ+s6xnCLAx1UiJ51nXV0TgW3ABmn60
-	 sGSbQihg3glS8EIIvPHonrNP0nYnd51PFbaK3YE2JNv7oeiOnaGa2nBHE093J3mMQiy7V
-	 cGkPCCxXFXvjDqFYtS0+vEgKNi1kVLFOvwFxeE9DOVLVzPsRS0b/PPS1V2dPTLktBFJVd
-	 fU6MepsCcM6QHFvO9Pe0OFf0ENb2Gd2UAAXAoT2duZwycoVzJXiwIT0LgzNzFwYJe1Q==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=F9O0i2Ee;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.201.48
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793810126;
+	b=WnJJxk3bGh6FsbtzBneKIj50jM6pFvnUdynTEmgMBrsAn+LHB4WadqLd+RCAzadkLQVm
+	 qXss0cH+IRiieyCohiys0SWKHvNeGGRHU94gi5tVN34sWLDN+c2bpn2MoshIkt3SV2Mmj
+	 eCFzZCuRRW5uYR+Wq/nomeh0yqSM04k3BbpNwC6AsWOcl9wCZGsnrpYQ6V3JP8dlFSAUx
+	 /D597sZ3ieThSOQgdBLDt1lAqWd12Y8ZRs1LRk+Q9VBrL83nMP+JK6K5TzBWvkHstSapP
+	 yr8+knFwuPlBV3wizGfISIcY63ToKtP3hjSJNvdsRCdmmDNi3pd/WkY+lKrRNDtfaOA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793810126;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Date:From:To:Cc:
+	 Subject:Message-ID:References:Content-Type:Content-Disposition:
+	 In-Reply-To:X-ClientProxiedBy:MIME-Version:X-MS-PublicTrafficType:
+	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
+	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
+	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+	 X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+	 X-MS-Exchange-CrossTenant-UserPrincipalName:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=WaOymruxxDakr9JxoACUT6zSivtOBfYMrBHoy9pW7bo=;
+	b=r1y3bQROc4/q+uZb1q6GmZAFF6MMOsZoNfceVzNA/JJuvRpNEcTnIzYFqF2o2CXvs/t5
+	 Q6mIstNnM5KMu31qCOBm+IYeNtTG5r1tYov8bRonjbUQlEqZafRcNkSIG5gdJKsqkPjoX
+	 f6NAtK8rzp9I3KtSCHaNxQxeVcrtb3hYQ9Tc1+zFKy1C4NDjFWqCRGwweWgzjADugIzNC
+	 cdAW+6Fqd76/kA+9kcUSz5OIDNqYVfASoJLvIrHs4moU4y/dMheGwE3BfK+wSG76HcQot
+	 Di9iFul7JMF7sPQUQ2SuxY31m35CDw4b+TvA2bjyXFdyBB/5dNAFxMaJuRoY8bPgSLg==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=amd.com;
+	spf=fail smtp.mailfrom=amd.com;
+	dkim=pass header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=dqwsf8YT;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.201.48
+Received: from CH4PR04CU002.outbound.protection.outlook.com (mail-northcentralusazon11013048.outbound.protection.outlook.com [40.107.201.48])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D832B606A326
-	for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2026 16:28:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB5AF606A32E;
+	Wed,  4 Nov 2026 16:35:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DB5AF606A32E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=F9O0i2Ee
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B52E21F00A02
-	for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2026 16:28:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793809712;
-	bh=jfcE8CDgamiFwy3XoIjlQTqfdF2WZ6cuol7wMJuYXpM=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=F9O0i2EeWYZLTUSNVhDoVubwkYnIPdxTEoHdsDPcx0xY73NGBvFXs31HuRiKVWhGy
-	 y6E6Wyxj9/CEzJ81ljQ1Bh6dN842w3JNw6AZSJP5a1iLtWGYYjH3FFQKdcYJDbyREq
-	 bVsqpMuW36ThESY87i37MEnaKCjL5dntBC8wb0VFCR8PB8L3btShPHrGAeYKvyr7UH
-	 jOTzQm+L1r6zMx2W+wEzp7L6eAcNh1d8Aja8rxdqTjC5HimkR2YFQPHDKzPdXGRQ32
-	 cbJvE26q0tougGzlZhAiUc+aHjzTtujE0PI+jla7Ome/rt7HlzeCEUl5heSrwaE1y/
-	 s4lagM4q0dn1Q==
-Received: by mail-lf1-f48.google.com with SMTP id 2adb3069b0e04-5be3ed646a5so1112536e87.1
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2026 08:28:32 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AKwUvBxp+AeWv490ysI2Kg2g0giF71BpRxSo+SBs4N1RVkzOh8VS7zIiJEkDRN7sLyFDljoxJIqJ6BfG6oro@vger.kernel.org
-X-Gm-Message-State: APuU4Z821c8KoHQQ+geCNqO94uZMdkUoaD5YIxjxAA39nK16XF0eSyKK
-	K3tQIODVhKPJMMqPeKHFTiu2/4PHFgrHoR4YXQt9jkD2zUuwRnXhi5TpiYWzEKEsjyq0mXW7Xg+
-	SCJpcqiLX7FJlCya54oXVxPhCW9pTqIw=
-X-Received: by 2002:a05:6512:130c:b0:5bf:e7d5:c22e with SMTP id
- 2adb3069b0e04-5bfe7d5c338mr3508206e87.65.1793809711135; Wed, 04 Nov 2026
- 08:28:31 -0800 (PST)
+	dkim=pass (1024-bit key, unprotected) header.d=amd.com header.i=@amd.com header.a=rsa-sha256 header.s=selector1 header.b=dqwsf8YT
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=hPGjGhjd6y353EHfObO38vk0qgZwJuNprkoax+ZHG+Y9kLmPoGpE03YsTtBNTU4Xe3eJPJxllXgjVglFxGRaSqxlJokeXwgk11xqcj3PdRD+j+A12EuEUG3BsDv9hYpKYHR9RQRy9tzx087mgpM+iZIfww5aICKYme6Tu8OMC6iXpjhXq60QzkPMMK8qWCB0XrU9brnClpPXlb8N8hlzhnMztchNbBltdWhe8wNqUoh9R2Ea959SxmKPIFyCHje5/lBMTNUJZOkkSnCEwONO9OZIbzoF/yvV/V2rfIvvRSA7DoSfCmC9ux/ipBVU0RggBZevnFfC0AIrB/BEH0hpXg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=WaOymruxxDakr9JxoACUT6zSivtOBfYMrBHoy9pW7bo=;
+ b=AEORHUnv1/m6ZnW7Z9bPh85MxCqKH1UQ309yTmXDCa3fZjE+4etuunOlIFUCkvvw3hTy130w1Pqrz45xZvjMt/wVrHdFp08X5nrxZ+lVux2DAYZO02GzCtaHoyxzyWWk3jACC9Qtau0bFbX0DPtuyz09l2o37bk7lBHUHmhbjfxy6JtkyPMHtRPTz91HmHnjmQL8qLTTeQYB8moKrtdmg1rPLduIvokwvNzZSRisArNGq1E8eCbL0NEWUIVgEwDioJJJraqwXDWnFqtgiYPgH3aQBl/bL4NNB1y5capSd2COuFeQi+4laryoPj3EBAoJ90xopyH0YcO6iHIq4lIM9w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=WaOymruxxDakr9JxoACUT6zSivtOBfYMrBHoy9pW7bo=;
+ b=dqwsf8YT4fj9EfzmMgqjoYKhkHd5zUY2m+jpHRfdGIu12nHnR0vBRxHzfsQlwShl2Zmj26djYJNUl9qXJstH/oHMu4sRMeew2Av7tgqlJC5pTEkD0yklAlKwx7DaTvzSrphLJLoOQz9+iFpETaFNWBBZG4OExwkI+2WOSmvORsc=
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from DM4PR12MB6374.namprd12.prod.outlook.com (2603:10b6:8:a3::18) by
+ SA0PR12MB4399.namprd12.prod.outlook.com (2603:10b6:806:98::17) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.21.592.10; Wed, 4 Nov 2026 16:35:23 +0000
+Received: from DM4PR12MB6374.namprd12.prod.outlook.com
+ ([fe80::af35:a7a6:6ca:7fcf]) by DM4PR12MB6374.namprd12.prod.outlook.com
+ ([fe80::af35:a7a6:6ca:7fcf%5]) with mapi id 15.21.0592.007; Wed, 4 Nov 2026
+ 16:35:22 +0000
+Date: Wed, 4 Nov 2026 11:35:14 -0500
+From: Yazen Ghannam <yazen.ghannam@amd.com>
+To: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Lukas Wunner <lukas@wunner.de>,
+	"Rafael J . Wysocki" <rafael@kernel.org>,
+	Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
+	Oliver O'Halloran <oohall@gmail.com>, Len Brown <lenb@kernel.org>,
+	linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 6/6] PCI/portdrv: Bind DPC service based on
+ host_bridge->native_dpc
+Message-ID: <20261104163514.GE716491@yaz-khff2.amd.com>
+References: <20261020181924.3003553-1-sathyanarayanan.kuppuswamy@linux.intel.com>
+ <20261020181924.3003553-7-sathyanarayanan.kuppuswamy@linux.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261020181924.3003553-7-sathyanarayanan.kuppuswamy@linux.intel.com>
+X-ClientProxiedBy: BN9PR03CA0313.namprd03.prod.outlook.com
+ (2603:10b6:408:112::18) To DM4PR12MB6374.namprd12.prod.outlook.com
+ (2603:10b6:8:a3::18)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -59,132 +99,157 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261003095924.1370238-1-thierry.reding@kernel.org>
- <20261003095924.1370238-4-thierry.reding@kernel.org> <928b3eaf-32da-43a9-9ca5-d59ef8a3b330@app.fastmail.com>
- <auslF5pwDHtcNoCy@orome> <bcad1d7e-387d-4251-8974-7f0dcd2f9734@app.fastmail.com>
- <autADOKsSVVMn6r9@orome>
-In-Reply-To: <autADOKsSVVMn6r9@orome>
-From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
-Date: Wed, 4 Nov 2026 17:28:18 +0100
-X-Gmail-Original-Message-ID: <CAJZ5v0iyaHGj2b7H8g0nqrxvz8GpXiE6hkVp9RM7KF+KDckjrA@mail.gmail.com>
-X-Gm-Features: AclHuK9jbg6mFv5SXKdFu2bSKH-sKGt4sGStSGUbedXh5N3Tvf8yZIcMh90hjQg
-Message-ID: <CAJZ5v0iyaHGj2b7H8g0nqrxvz8GpXiE6hkVp9RM7KF+KDckjrA@mail.gmail.com>
-Subject: Re: [GIT PULL 4/7] firmware/tegra: Changes for v7.4-rc1
-To: Thierry Reding <thierry.reding@kernel.org>, Arnd Bergmann <arnd@arndb.de>
-Cc: arm <arm@kernel.org>, soc@kernel.org, Jon Hunter <jonathanh@nvidia.com>, 
-	linux-tegra@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
-	Lorenzo Pieralisi <lpieralisi@kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, 
-	Hans de Goede <hansg@kernel.org>, Jonathan Cameron <jic23@kernel.org>, 
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <westeri@kernel.org>, 
-	=?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DM4PR12MB6374:EE_|SA0PR12MB4399:EE_
+X-MS-Office365-Filtering-Correlation-Id: 216f99c8-e59e-402b-bca3-08df3a919f2a
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|366016|23010399003|7416014|376014|4143699003|5023799004|11063799006|56012099006|261021123027099003|261021121427099003|261009223027099003|261102123227099003|261028144727099003|261022075727099003|261022105027099003|261026121527099003|261026140227099003|10067099003|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	yJrYbirHQ09Z9e1/PiT2y+bqd0jg+eLZZvQ9iuUie+2apQjhYKssW4I0T2GhVQ5LzjAbAPRyLHCOQDZ3cQ1gPYb8JqWfxhELJDa/ANK9XIp5RX5rt1mw2B6yfW8UlL6Ck2uWu6VqW11FTda4hWQV5iq17kdl6QgTuEwPY0ERvYHRq6FG4VJMI7WsoqZvYNUCbm+eU4e5AbE8vMxPGiPb/dtsY6y56zVuY5n+qc8EaBFvrJR73MzgyqzxqpzAdCvoSlKe+gmoZz8Qqtt6vNcFb/wgf/8t/CbDRasXI5r6zfgamL/EA79AxS9gOp6nwGp0CZs4LEx4Ni59rKLTsBuTFj9f5upc+xjQZbbTOGObQNHUbn14jiyicAVtbrgupttaU4lfaScSk5eXqRtcRtzF48ggMrCJcYY1CJDHodTaaRJECYXHTr2QeNeGfvVcIiVflOgfASiQePhr0dqti1Q8xM3X17Hm+c4ajr8za8cMZJU1ZUBuWT8ESNn0bVyyLebsjKKIWctl1Oh982cJrfgLIUudDrhshPPBfjc0qB3UCHQ80Q+ayRSWzpBopOq6CQTQSvb2yUew+QWEni4qD5c1wbb3ZFTCJb2+Cp6/nqWNS+IvgQTzojLQrDEyVpXVfDrobgaxFu2z8K0MlTKyaCWHapncZ05uvxB8l8ka373d/Wg=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR12MB6374.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(23010399003)(7416014)(376014)(4143699003)(5023799004)(11063799006)(56012099006)(261021123027099003)(261021121427099003)(261009223027099003)(261102123227099003)(261028144727099003)(261022075727099003)(261022105027099003)(261026121527099003)(261026140227099003)(10067099003)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?Nw4oN8Lf/lmB/Qmb7H5MHyCcMNM/9nbW0DUpIiqgAVKwGqxVuPS1HdlQJoZQ?=
+ =?us-ascii?Q?YjkP/hTs+jpHalf96LclC9L7O5JL32KzP7QP0t1kUBQrdQt5dTnic+WEU/QP?=
+ =?us-ascii?Q?UZbg1DK+RZWz9d/fmydR8jiIfKEn9/aAOVvjziBCqZF4WUT0ijCtG5YToul+?=
+ =?us-ascii?Q?pZji069xv1LN731VkHNk1YymQ5afaTXliArWwlxQzdrSO8zpN3jgdZxWcZTb?=
+ =?us-ascii?Q?Yck8M4fwYLTQ5Sjkw3HEV4settsyspVsN4NGMqqnyVv61X+/jA8jMijQ6D2d?=
+ =?us-ascii?Q?TxkhWQLW1pgKEJNRxhetvuijSZRUaEx/00eZM6k9SPvienMMDj0TvBr+0Uxy?=
+ =?us-ascii?Q?JO5OYjXOTKHbxlFgQ9XQZFWg+TCUEvd2boG87ZXfhryL4lf3qBgmMCELHAB9?=
+ =?us-ascii?Q?H16QZdQ+srsbMUgD+gojcnDwvjhOm0oNW6hMq+BASZkDj/QtH0YL9nR71+Mx?=
+ =?us-ascii?Q?Hv3rzcc7InikJjGi0GAmssxi0PoG+JR9k05WyNECtOVvwoyS3ZExeDKhyBuK?=
+ =?us-ascii?Q?QwbB22qvPv00CYoQ6/N2V1rD2O5CwsXOnUOFRG8HTWo51ScPylcJQEwGp8uc?=
+ =?us-ascii?Q?S91RwOkOM797YJhaPHJwBoKhfMo2P9upTl8gnTXy2a/z+zhq+XjlMphFcksm?=
+ =?us-ascii?Q?jm3GajScIUhSZL7nCLeiN41lMYcz8s3t7Tg/F+fASxf3ZwDRChKlVdT/HBcI?=
+ =?us-ascii?Q?FH/4ZS1+vyFllx9vhnOHOhafzBJ8WxVkw3Dn5ABzX54dn5D7X1005O724ziZ?=
+ =?us-ascii?Q?Ubk+QOGclbb8E05Zt6G/GMM6+jS3tACPZXWlrPnfhKzlJrTDJdiQ4YkU1aUf?=
+ =?us-ascii?Q?gNxsrCRN5emrUSYaX5axlzApHoCFRVDPV2oRHqWxmrNs2qL/DPZ9P8wAkN9L?=
+ =?us-ascii?Q?6vfV0ymFRXu8u1uHmEcwU8AvAtzamLiYbiAaQ7AVpl5PYqNk8h2mS9rlcfpi?=
+ =?us-ascii?Q?467zJ9UcmVhOTNFCQjqalLHWidsZQ37RQsVg4Joy9xgmCIuoOqTLbZkdNDL5?=
+ =?us-ascii?Q?B2Rq8bPYdj085jx9gES4iU7RlundtWCdPuMW7Y2PBEIXqeGrFvT7r6Mfz9OF?=
+ =?us-ascii?Q?g7BNlfIeBcF0bZsLfqRGbSgSp5H0oavDoSnW6L8Nrj2qWxLJVcIaIXmAS593?=
+ =?us-ascii?Q?p2AqFmQkrVSfPNSu9+nJpNcupp5EHThAY8+pF38bdaiYW1FhhDCFN4iUZ9Zg?=
+ =?us-ascii?Q?AxaPUv4IE6A2Dta/nLsL1gvshAn8Au+I4AGwZb82CtGsihA9/uH65ymHdG3m?=
+ =?us-ascii?Q?0ykBBCzMxAv3yrYvA+Dn9VSnjaeEDh0znWu5aClYzSkaLlQVx9c4Mrb8ZHX4?=
+ =?us-ascii?Q?Tf9m6qFnNeuKHL9PKou9M2lf3TPgBLAa2Hu2+rkzF58iURLV8/RkGWfUt26b?=
+ =?us-ascii?Q?kPgUL76wOD5ERnTKC3A4J/BhyfENvjkQ9ahUtOQCGXER67Sd3lHvQUqskXDl?=
+ =?us-ascii?Q?jJoA5EtEQPjaLL1Na0vzKZEcVl6KM5IReUhM3G8cSsaJN7vm2yPyEdyldBDl?=
+ =?us-ascii?Q?EpkxEbP/6QKycKiShUop/3AjRqBP/nizxzcgyIxDrZ12KdlK0GczgIeLnfMz?=
+ =?us-ascii?Q?IBI9bmwUq4A18/nkvXqBRHG8K+choKZZIFxJJMPHlfCqkXeZFW2vI5rBUYno?=
+ =?us-ascii?Q?mZG0SrOgbdFqiqqdxa7iQud7uFINPGSkBda9WFZMG5/SXjkWTeZFtxVqUcRo?=
+ =?us-ascii?Q?9Pq+au9L+cKI75kDerEORDUkSHEaoQd3MwqVTTFwtxkC08n+hR0KE7UuIH1G?=
+ =?us-ascii?Q?9TATkOOMjA=3D=3D?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 216f99c8-e59e-402b-bca3-08df3a919f2a
+X-MS-Exchange-CrossTenant-AuthSource: DM4PR12MB6374.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Nov 2026 16:35:22.7660
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: MFCg2YamxlYS/JkUjibg5KZ05P3F2EtZPgpcb2Efq4mwV8gjgO4G/yaUwHwDuNZ8By7ynFCZ2I5FnNRbY5+t+w==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA0PR12MB4399
 
-Thierry, Arnd,
+On Tue, Oct 20, 2026 at 11:19:23AM -0700, Kuppuswamy Sathyanarayanan wrote:
+> get_port_device_capability() binds the DPC service if the port has a DPC
+> capability and either "pcie_ports=dpc-native" was given or the OS
+> controls AER.  This repeats decisions that are already made elsewhere.
+> It also ignores host_bridge->native_dpc, which is meant to say whether
+> the OS owns DPC.
+> 
+> Make host_bridge->native_dpc the single decider:
+> 
+>   - In acpi_pci_root_create(), assume DPC control whenever _OSC grants
+>     AER control.  PCI Firmware r3.3, sec 4.5.2.4, requires platforms to
+>     retain AER if they retain DPC.  Put the other way, firmware that
+>     grants AER does not keep DPC.  PCIe r7.0 sec 6.2.11 recommends that
+>     the OS link control of DPC to control of AER.  Commit 97ca178c899d
+>     ("PCI/DPC: Allow DPC on all Downstream Ports when OS controls AER")
+>     relied on this link.  Keeping it means DPC still works with firmware
+>     that predates the _OSC DPC control bit.  Such firmware grants AER but
+>     masks DPC.  The OS cannot tell such firmware from firmware that
+>     retains DPC on purpose, so log a message when it assumes DPC control
+>     that _OSC did not grant.  Only do this if the OS requested DPC
+>     control, i.e., if CONFIG_PCIE_DPC is enabled.
+> 
+>   - "pcie_ports=native" and "pcie_ports=dpc-native" are already folded
+>     into the _OSC control mask, so they are reflected in native_dpc.
+> 
+> Then bind the DPC service if the port has a DPC capability and
+> host_bridge->native_dpc is set.
+> 
+> The only change in behavior is for firmware that grants DPC control but
+> retains AER control.  PCI Firmware r3.3, sec 4.5.2.4, does not forbid
+> this.  The OS now uses DPC there because firmware granted it.  Since
+> "PCI/DPC: Reinstate support for AER-incapable ports", dpc_probe() no
+> longer requires AER control.
+> 
+> Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+> ---
+>  drivers/acpi/pci_root.c    | 16 ++++++++++++++++
+>  drivers/pci/pcie/portdrv.c |  6 +-----
+>  2 files changed, 17 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 5c674d5b6bb8..b380b6d8874d 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -1056,6 +1056,22 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+>  	ctrl = root->osc_control_set;
+>  	ext_ctrl = root->osc_ext_control_set;
+>  
+> +	/*
+> +	 * PCI Firmware r3.3, sec 4.5.2.4, requires platforms to retain AER
+> +	 * if they retain DPC.  Put the other way, firmware that grants AER
+> +	 * does not keep DPC.  PCIe r7.0 sec 6.2.11 recommends that the OS
+> +	 * link control of DPC to control of AER.  Firmware that predates
+> +	 * the _OSC DPC control bit grants AER without DPC, so assume control
+> +	 * of DPC whenever we control AER.
+> +	 */
 
-On Wed, Nov 4, 2026 at 3:41=E2=80=AFPM Thierry Reding <thierry.reding@kerne=
-l.org> wrote:
->
-> On Wed, Nov 04, 2026 at 03:11:09PM +0100, Arnd Bergmann wrote:
-> > On Wed, Nov 4, 2026, at 13:42, Thierry Reding wrote:
-> > > On Tue, Oct 13, 2026 at 07:22:23PM +0200, Arnd Bergmann wrote:
-> > >> On Sat, Oct 3, 2026, at 11:59, Thierry Reding wrote:
-> > >>
-> > >> Where is the ACPI binding documentation for this driver, and who is
-> > >> responsible for reviewing it?
-> > >
-> > > Hi Arnd, Rafael, Len,
-> > >
-> > > Sorry for the late reply, this fell through the cracks.
-> > >
-> > > Admittedly there's not much of a formal process here at all. Anything
-> > > I've received up to now seemed to be fairly straightforward support
-> > > extensions like this where the ACPI tables basically provide the same
-> > > information as the DT via standard resources like register ranges.
-> > >
-> > > I suppose for anything beyond this, we'll want better documentation a=
-nd
-> > > broader review.
-> > >
-> > > Is there anything in particular that you're looking for? Should I gui=
-de
-> > > people internally to always Cc linux-acpi for anything that concerns
-> > > ACPI?
-> >
-> > I don't know, I'm also still learning about how this is done, I
-> > was hoping that there was already an established way.
->
-> Yeah, me too. Maybe Rafael and Len can provide some guidance here.
+Oh, I see now that this got rewritten.
 
-I cannot speak for Len, and he has not been actively involved in the
-maintenance of ACPI support in the kernel for several years.
+But it really does repeat the same info from the commit message. So IMO
+it can just be removed or summarized further.
 
-As far as I'm concerned, the code maintained by me is mostly located
-in drivers/acpi/ (as per the relevant MAINTAINERS entries) and it is
-mostly generic code related to ACPI support.  I generally don't
-maintain device drivers using ACPI support except for the ones under
-drivers/acpi/ which mostly bind to devices representing interfaces
-defined in the ACPI specification (which is kind of a special case).
+> +	if (IS_ENABLED(CONFIG_PCIE_DPC) &&
+> +	    (ctrl & OSC_PCI_EXPRESS_AER_CONTROL) &&
+> +	    !(ctrl & OSC_PCI_EXPRESS_DPC_CONTROL)) {
+> +		decode_osc_control(root, "OS assuming control (AER granted) of",
+> +				   OSC_PCI_EXPRESS_DPC_CONTROL);
+> +		ctrl |= OSC_PCI_EXPRESS_DPC_CONTROL;
+> +	}
+> +
+>  	/*
+>  	 * If the user specified "pcie_ports=native", use the PCIe port
+>  	 * services regardless of what _OSC says, i.e., proceed as though the
+> diff --git a/drivers/pci/pcie/portdrv.c b/drivers/pci/pcie/portdrv.c
+> index b77680fd3b75..f1beb440a3dc 100644
+> --- a/drivers/pci/pcie/portdrv.c
+> +++ b/drivers/pci/pcie/portdrv.c
+> @@ -258,12 +258,8 @@ static int get_port_device_capability(struct pci_dev *dev)
+>  		pcie_pme_interrupt_enable(dev, false);
+>  	}
+>  
+> -	/*
+> -	 * With dpc-native, allow Linux to use DPC even if it doesn't have
+> -	 * permission to use AER.
+> -	 */
+>  	if (pci_find_ext_capability(dev, PCI_EXT_CAP_ID_DPC) &&
+> -	    (pcie_ports_dpc_native || host->native_aer))
+> +	    host->native_dpc)
+>  		services |= PCIE_PORT_SERVICE_DPC;
+>  
+>  	/* Enable bandwidth control if more than one speed is supported. */
+> -- 
 
-But there is more.  There is ACPI support code in other places (like
-for instance gpiolib-acpi maintained by Andy and Mika, or platform-x86
-drivers maintained by Ilpo) and there are experienced kernel
-developers in the ARM ecosystem with quite a bit of ACPI-related
-knowledge (Hans, Jonathan, Sudeep, Lorenzo - all CCed) who can be
-reached out to for guidance (and arguably they have more experience
-with ARM platforms than I do).
+Besides my comment on the comment, looks good to me.
 
-> I don't know how ACPI on more traditional platforms works, but I imagine
-> that it's a lot of the same anyway, except perhaps that people have more
-> experience with the spec and today might be doing a good job already.
+Reviewed-by: Yazen Ghannam <yazen.ghannam@amd.com>
 
-If you have any specific questions, I think I should be able to answer
-at least some of them, but I'm afraid I cannot give you general
-guidance on how to do ACPI support in device drivers that would be
-universally useful.  Different drivers have different needs.
-
-There are things in ACPI that are not present in DT and vice versa.
-It also depends on what bus types we're talking about (platform vs PCI
-vs USB etc).
-
-> > Having a review done by the ACPI maintainers would definitely
-
-So as per the above, who exactly do you mean by "ACPI maintainers"?
-If you mean "the people maintaining the code in drivers/acpi/", that's
-just me and quite frankly, I'm not sure if my review, specifically,
-would be super-useful for driver development (the fact that my review
-bandwidth is almost completely saturated nowadays aside).
-
-My recommendation would be to ask other people within the ARM
-ecosystem who have more experience with ACPI for help.
-
-> > help from my point of view, but I'm not sure whether they are
-> > set up for that, in case there are a lot of new drivers.
-
-I am not and had I been trying to do it, it wouldn't have scaled anyway.
-
-> I think platform maintainers need to be a first line of defense here
-> since they sit at the intersection of a lot of this. At least that's the
-> case for me. Also, I'm eager to learn how to do this right, but I'm
-> often at a loss of where to start. The spec is a bit daunting, and then
-> there's various extensions, too. Maybe the AI genies can help me ramp
-> up.
-
-My advice would be to reach out to people within your ecosystem in the
-first place.
-
-> > I assume there is a knowledge gap in both subsystem maintainers
-> > regarding ACPI (certainly this is the case for me for drivers/bus,
-> > drivers/firmware, drivers/soc, etc) and ACPI maintainers regarding
-> > many of the subsystems that we support with DT.
->
-> Agreed. I've seen some patches where the ACPI support was as simple as
-> just adding an ID table entry and the rest was all standard, but I think
-> once we move beyond standard resources things might get a bit more
-> complicated. I imagine that ACPI may not even have specs for certain
-> aspects that we currently handle in DT...
-
-That certainly is true, but the ACPI specification is under active
-development and pieces that are missing can be added to it.  There is
-a process for that in place and ARM people take part in it.
+Thanks,
+Yazen
