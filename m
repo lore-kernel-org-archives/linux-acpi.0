@@ -1,110 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793820525;
-	b=DwtsAXtnTTWbqxFe/HyrJNPPvGdZsaNMXpB2xvZ9K9gSPQYxGsTE5/PNOudDLRZJ7Ei7
-	 wTYUcZkyPfn411IuYM+IrEHZn2bbjBq8vgWaUKYyq5jknEE84sMShhdJPncAw5UoPJlWV
-	 5KCEkYIOkyAbcqzu9k10QhXMVFAO18L7Y+oOfgEYeYTsPl66cUWqn4PAEguuXX1kVwNwC
-	 rAT/W4mqGafAeG3SBXMf2wWg5Hpiq/S9pbM58IILPdhJLnOvb+7jgkKki3QcIl3aJpZmJ
-	 rtOS/5RDBLL/jkVrm3UScV+jqb0Hj+2y/YUuAO+kwdgYNMbaWm2vWSTftZgQIiXqJ7Q==
+	t=1793820547;
+	b=1ON5AoaavyaGfwDR8spe76qMg7GQHGFEKIdpamPFpNuYol98sVamLPt1cAYh82ONlLbL
+	 X8dc5LdpxoeBnIrzs/WljKnk+JxmZ5IriwaWwcL3p3TxYRkr3Sw+074hofwBZYd5vf0Cz
+	 RZ4GjM7xu5S31njGIgBzShDE3vKwwh7BNswf0h7OB0Alsr4kS0BaAWZimg/T5qxXv6Bl2
+	 FBwjZekN8/EeQ0LrEbH6MHTh9RfIR/Wk++ehtgdeGBPHJu6zmlWob3LR96IKujngs5Qpw
+	 ZHF2cNQ242x785YSiNIjzH2NrxzWIeJKPy3umSZn5zTtnu9GIny+VmwLLA+dTbzcU7Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793820525;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
-	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:Content-Transfer-Encoding;
-	bh=KE0FjFLg86Wqg2LOdvIKebjks/LaCpUOq5x1mMvJN8E=;
-	b=40xIcFy5tLLNmYD0TxRpjO+ol9Fk5LWfIqWSV5+uBlWCVC+NPnald0wK/x0mu54N947+
-	 UBwoI4O1p5ETIj3bRqi5EDMFFOc76eoNG6+aUO/8b+1usa5lEnli+ae0f8s3zN8Vcj/Ec
-	 lcS5HXQez9lbwRqK6ahb9K4bbv2pEwhC58sTq8uwo/RbwVUQP3AF0Ul8QuML/ucDKaM24
-	 fpr0ZTyNsprDPige5hDKeRTtOJHhmArgSUT7xYqVXHpJVn0pcaofsnICuCemXELHsN3FB
-	 Z7eRZuZfqUjHPYRu0a9QKXrudiPZ3RMr1FOcR4ZDniDkUs7mIeOb0HVZ2i2kao0/plA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793820547;
+	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=NAVxLkX0a4bcfcFu61ZbxpmUsM8xwJUDmfjt4hb3NOg=;
+	b=L1OBmeQQpD+gHM4mVYfKewqQS37t0m3XYAMEoscVivHuF/rVbC6rdgAOoVjFwIxgDiFH
+	 /IASCg3kqtuFVF/co6wUfKtvBjIOo9X18QrlcXBUjROARYYvi7b/RECdUg0ODV7cqrptr
+	 AN/ZysivxqNUvK8dCo76+bmEAy/1V1ELdiF4fKuTv8VmuZD2XBNrnBlqHIEA/GBXgT7s5
+	 PUxn3+fn1bGBYw42CfiWOL+eh2Mkj4YqeauIH6oPPLJypLeieO5cLGbLSU+C1alwD6kbu
+	 n13HvtwKt/SxOmd1HRdUm96OzMhWCbJvnaz5Etq7Rq7kRLy4CpP1hUYrAiAhetq6F3Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NJukzHF4;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dJiu9wFw;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7542607524A;
-	Wed,  4 Nov 2026 19:28:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AC8B606B38D
+	for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2026 19:29:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NJukzHF4
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC5AB1F000C1;
-	Wed,  4 Nov 2026 19:28:28 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dJiu9wFw
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7AF21F00A15
+	for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2026 19:29:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793820520;
-	bh=KE0FjFLg86Wqg2LOdvIKebjks/LaCpUOq5x1mMvJN8E=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=NJukzHF4aV1KUnciVzdApjdNLx1CFG6CVAD2vCJ43JPCAnjjn1zUpxzmLM9SfrWre
-	 gCGPTz2pnkhsoLDD0ufQYz7LJbRa17CKdFnkfKWFZpzCvx3VornSWUNThr1WFvwPGn
-	 CADeWgCgoQP5K7ENKjJkvGY6u4437GknzfxpYekJnpL3cgHKr3XG5TRSEcefhaKP7V
-	 nX57prmegY0CCerzsNzag/fJkXOMUpt/ed2ZwMst0kUSU+NPQt8+F88n3teURVqhXg
-	 7vNgcQSCorU7kpZuBp2BFO4KHe0i6WajNcx/gISK920csNZ4jtjgQF1W1PAyzKkO5E
-	 yV22BOQaWeKsQ==
-From: Christian Brauner <brauner@kernel.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Jann Horn <jannh@google.com>,
-	Josef Bacik <josef@toxicpanda.com>,
-	Chris Mason <mason@kernel.org>,
-	Jeff Layton <jlayton@kernel.org>,
-	NeilBrown <neil@brown.name>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Thomas Gleixner <tglx@kernel.org>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Christoph Hellwig <hch@lst.de>,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	Joel Granados <joel.granados@kernel.org>,
-	Kees Cook <kees@kernel.org>,
-	Jan Kara <jack@suse.cz>,
-	Jan Kara <jack@suse.com>,
-	linux-kernel@vger.kernel.org,
-	linux-nfs@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-kselftest@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	linux-scsi@vger.kernel.org,
-	linux-um@lists.infradead.org,
-	linux-wireless@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org,
-	netdev@vger.kernel.org,
-	ntfs3@lists.linux.dev,
-	platform-driver-x86@vger.kernel.org,
-	coreteam@netfilter.org,
-	kexec@lists.infradead.org,
-	linux-pci@vger.kernel.org,
-	linux-sound@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	ibm-acpi-devel@lists.sourceforge.net,
-	jfs-discussion@lists.sourceforge.net,
-	linux-alpha@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-cifs@vger.kernel.org,
-	linux-fbdev@vger.kernel.org,
-	linux-hwmon@vger.kernel.org,
-	linux-mm@kvack.org,
-	linux-sh@vger.kernel.org,
-	linux-usb@vger.kernel.org,
-	samba-technical@lists.samba.org,
-	sparclinux@vger.kernel.org,
-	linux-m68k@lists.linux-m68k.org,
-	linux-doc@vger.kernel.org,
-	linux-serial@vger.kernel.org,
-	linux-atm-general@lists.sourceforge.net,
-	Takashi Iwai <tiwai@suse.de>,
-	linux-input@vger.kernel.org,
-	linux-raid@vger.kernel.org,
-	linux-ext4@vger.kernel.org,
-	linux-modules@vger.kernel.org,
-	linux-debuggers@vger.kernel.org,
-	"Christian Brauner (Amutable)" <brauner@kernel.org>,
-	Chuck Lever <cel@kernel.org>
-Subject: [PATCH RESEND v2 51/51] selftests/proc: check that a faulting readlink() doesn't hold up removal
-Date: Wed,  4 Nov 2026 20:28:26 +0100
-Message-ID: <20261104-work-procfs-bugfixes-v2-51-021c84d852e0@kernel.org>
-In-Reply-To: <20261104-work-procfs-bugfixes-v2-0-021c84d852e0@kernel.org>
-References: <20261104-work-procfs-bugfixes-v2-0-021c84d852e0@kernel.org>
+	s=k20260515; t=1793820545;
+	bh=NAVxLkX0a4bcfcFu61ZbxpmUsM8xwJUDmfjt4hb3NOg=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc;
+	b=dJiu9wFwHFqFy+VrcxAIDOcppy/ms4oszeBIbS2w3ARDb7FKT88vZf687qS61jvW1
+	 BirjTGYhMqCTNqxZ1AzXYMfKSPYCK92z7hqo2JDaftN+flR/+sNotW959s+I6vNjpK
+	 D37uxQLv7i0ve1Q5WNtWP7Vq5C8hXrEi9ySEACfeSZb7fzmpatEBt9ahiTIeorI/m7
+	 XXSsb/kQOzBuCrYbLeO1qj54OXKaXjroyqag0ip77rXQ9yaCNZ4gQI7FSr1DR3xG25
+	 7M3oVGJGzoipKEUEbwAiDh6xKzXVPlnDzRxOdPvvD4oyrV7u8Ntcz10BYTXey26h/X
+	 6X3WWSkmNnIHw==
+Received: by mail-lf1-f45.google.com with SMTP id 2adb3069b0e04-5bcb0f245e0so1035277e87.3
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2026 11:29:05 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AKwUvBxcMehXJvfZHylhLBw9c2uXJDX9JdN3bT7E9ZxESZMsnnlW1gEzGvI/vjWxTKVEOh/xPi3GaIoh1iLD@vger.kernel.org
+X-Gm-Message-State: APuU4Z8uI6wZNGKHVXZiJAMmhkZxNgaGdc/6dRGpeBd9rLlruh26x9Pu
+	RER3OyWVhjVuirAHy2WW3nLsRmA4D5WEETxPkRGgMsd9wycwkqJxKpjd8ZVFAj815HLmbnav3Dm
+	zgPV1psgiqBEUpW6uTHMeDRc5Ff2SYhM=
+X-Received: by 2002:a05:6512:124a:b0:5bf:d60c:9f98 with SMTP id
+ 2adb3069b0e04-5bfd9583912mr6468724e87.59.1793820544193; Wed, 04 Nov 2026
+ 11:29:04 -0800 (PST)
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -114,266 +59,74 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=7257; i=brauner@kernel.org; h=from:subject:message-id; bh=tBvbDpChuad7Gf34o7zrAy5GeGJ/8Uzeoj8ryWST3Tk=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWS9buLeeHbphO3/N55kVVv59tmN3VuetO2e/UrKp4azz iWph8NwQkcpC4MYF4OsmCKLQ7tJuNxynorNRpkaMHNYmUCGMHBxCsBEjIIZ/vAeD7jB+vdim/Jj tQ0hkWc2r77GNq27cuqvPzkuqa9flfYz/NOXCS3acGvTlZz++E+JTd/e+ny6wif2bUN30YcXfYm /q1kB
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
-Content-Transfer-Encoding: 8bit
+References: <20261029034507.2721580-1-sashal@kernel.org> <20261029034507.2721580-2-sashal@kernel.org>
+In-Reply-To: <20261029034507.2721580-2-sashal@kernel.org>
+From: "Rafael J. Wysocki (Intel)" <rafael@kernel.org>
+Date: Wed, 4 Nov 2026 20:28:50 +0100
+X-Gmail-Original-Message-ID: <CAJZ5v0hGA=sF2duyU3ijoc4Tx7KCjuJuaOz8Bhrx-qSSm85AEQ@mail.gmail.com>
+X-Gm-Features: AclHuK9iYrb5IlkXSdvE-hDJTa3sByHcfkzVSmMUA4_p8089h-1HcV4DodjfzXk
+Message-ID: <CAJZ5v0hGA=sF2duyU3ijoc4Tx7KCjuJuaOz8Bhrx-qSSm85AEQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] ACPI: scan: Print the offline failure message in acpi_bus_offline()
+To: Sasha Levin <sashal@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, 
+	syzbot+cea7285bc17b76ffe39f@syzkaller.appspotmail.com, 
+	syzbot+a265816368571f78ab88@syzkaller.appspotmail.com, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Add the symlink case:
+On Thu, Oct 29, 2026 at 4:45=E2=80=AFAM Sasha Levin <sashal@kernel.org> wro=
+te:
+>
+> When a physical node of an ACPI device being hot-removed cannot be
+> offlined, acpi_bus_offline() passes the physical device back to
+> acpi_scan_try_to_offline() through ret_p and the latter prints
+> "Offline failed." for it after the namespace walk.  By then
+> physical_node_lock is not held anymore, so the device may have been
+> unbound from its ACPI companion and freed in the meantime.
+>
+> Print the message in acpi_bus_offline() when device_offline() fails in
+> the second pass, while physical_node_lock keeps the device bound to its
+> ACPI companion and so the reference taken by acpi_bind_one() is still
+> held.  acpi_scan_try_to_offline() only needs to know that something
+> could not be offlined, so pass the ACPI device back through ret_p
+> instead, like in the "Offline disabled." case.
+>
+> Fixes: 303bfdb1a14d ("ACPI / scan: Add second pass of companion offlining=
+ to hot-remove code")
+> Suggested-by: Rafael J. Wysocki <rafael@kernel.org>
+> Signed-off-by: Sasha Levin <sashal@kernel.org>
+> ---
+>  drivers/acpi/scan.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 0b17a7e519569..07d32f118631e 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -165,8 +165,9 @@ static acpi_status acpi_bus_offline(acpi_handle handl=
+e, u32 lvl, void *data,
+>                 if (ret >=3D 0) {
+>                         pn->put_online =3D !ret;
+>                 } else {
+> -                       *ret_p =3D pn->dev;
+> +                       *ret_p =3D &device->dev;
+>                         if (second_pass) {
+> +                               dev_warn(pn->dev, "Offline failed.\n");
+>                                 status =3D AE_ERROR;
+>                                 break;
+>                         }
+> @@ -235,7 +236,6 @@ static int acpi_scan_try_to_offline(struct acpi_devic=
+e *device)
+>                                          (void **)&errdev);
+>
+>                 if (errdev) {
+> -                       dev_warn(errdev, "Offline failed.\n");
+>                         acpi_bus_online(handle, 0, NULL, NULL);
+>                         acpi_walk_namespace(ACPI_TYPE_ANY, handle,
+>                                             ACPI_UINT32_MAX, acpi_bus_onl=
+ine,
+> --
 
-- readlink() /proc/asound/<id> of a dummy card into a buffer backed by
-  userfaultfd
-
-- change the card's id through sysfs while the reader faults, which
-  removes the symlink with snd_card_mutex and info_mutex held
-
-- expect that to finish without waiting for the reader
-
-Skipped without snd-dummy.
-
-Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
----
- tools/testing/selftests/proc/.gitignore            |   1 +
- tools/testing/selftests/proc/Makefile              |   1 +
- tools/testing/selftests/proc/config                |   5 +
- .../selftests/proc/proc-remove-slow-readlink.c     | 191 +++++++++++++++++++++
- 4 files changed, 198 insertions(+)
-
-diff --git a/tools/testing/selftests/proc/.gitignore b/tools/testing/selftests/proc/.gitignore
-index 7b8133492782..3fa89f46b9c7 100644
---- a/tools/testing/selftests/proc/.gitignore
-+++ b/tools/testing/selftests/proc/.gitignore
-@@ -22,6 +22,7 @@
- /proc-uptime-002
- /proc-pidns
- /proc-remove-slow-sysctl
-+/proc-remove-slow-readlink
- /read
- /self
- /setns-dcache
-diff --git a/tools/testing/selftests/proc/Makefile b/tools/testing/selftests/proc/Makefile
-index bce6beca7274..df02699a3587 100644
---- a/tools/testing/selftests/proc/Makefile
-+++ b/tools/testing/selftests/proc/Makefile
-@@ -33,5 +33,6 @@ TEST_GEN_PROGS += proc-fsconfig-hidepid
- TEST_GEN_PROGS += proc-sysctl-readdir-churn
- TEST_GEN_PROGS += proc-pidns
- TEST_GEN_PROGS += proc-remove-slow-sysctl
-+TEST_GEN_PROGS += proc-remove-slow-readlink
- 
- include ../lib.mk
-diff --git a/tools/testing/selftests/proc/config b/tools/testing/selftests/proc/config
-index 052e365af5a9..1504a761b39b 100644
---- a/tools/testing/selftests/proc/config
-+++ b/tools/testing/selftests/proc/config
-@@ -3,3 +3,8 @@ CONFIG_NET_NS=y
- CONFIG_IPV6=y
- CONFIG_TUN=y
- CONFIG_USERFAULTFD=y
-+CONFIG_SOUND=y
-+CONFIG_SND=y
-+CONFIG_SND_DUMMY=m
-+CONFIG_MODULES=y
-+CONFIG_MODULE_UNLOAD=y
-diff --git a/tools/testing/selftests/proc/proc-remove-slow-readlink.c b/tools/testing/selftests/proc/proc-remove-slow-readlink.c
-new file mode 100644
-index 000000000000..3290225daecd
---- /dev/null
-+++ b/tools/testing/selftests/proc/proc-remove-slow-readlink.c
-@@ -0,0 +1,191 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * A readlink() that faults while copying out the link must not hold up
-+ * removal of the /proc symlink. Changing a sound card's id removes
-+ * /proc/asound/<id> with snd_card_mutex and info_mutex held.
-+ */
-+#define _GNU_SOURCE
-+#include <dirent.h>
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <limits.h>
-+#include <linux/userfaultfd.h>
-+#include <poll.h>
-+#include <pthread.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/ioctl.h>
-+#include <sys/mman.h>
-+#include <sys/syscall.h>
-+#include <unistd.h>
-+
-+#include "../kselftest_harness.h"
-+
-+#define CARD_ID		"Dummy"
-+#define NEW_ID		"procslow"
-+#define LINK_PATH	"/proc/asound/" CARD_ID
-+#define TIMEOUT_MS	5000
-+
-+struct reader {
-+	char *buf;
-+	size_t len;
-+	ssize_t ret;
-+};
-+
-+struct renamer {
-+	const char *id_path;
-+	const char *id;
-+	int done;
-+	int ret;
-+};
-+
-+static void *readlink_thread(void *arg)
-+{
-+	struct reader *r = arg;
-+
-+	r->ret = readlink(LINK_PATH, r->buf, r->len);
-+	return NULL;
-+}
-+
-+/* a new id removes the card's old /proc/asound/<id> link */
-+static int set_id(const char *id_path, const char *id)
-+{
-+	int fd, ret;
-+
-+	fd = open(id_path, O_WRONLY | O_CLOEXEC);
-+	if (fd < 0)
-+		return -errno;
-+	ret = write(fd, id, strlen(id)) < 0 ? -errno : 0;
-+	close(fd);
-+	return ret;
-+}
-+
-+static void *rename_thread(void *arg)
-+{
-+	struct renamer *r = arg;
-+	ssize_t ret;
-+
-+	r->ret = set_id(r->id_path, r->id);
-+	ret = write(r->done, "x", 1);
-+	return (void *)ret;
-+}
-+
-+/* the sysfs id file of the card with @id */
-+static int find_card(const char *id, char *id_path, size_t size)
-+{
-+	struct dirent *d;
-+	int ret = -1;
-+	DIR *dir;
-+
-+	dir = opendir("/sys/class/sound");
-+	if (!dir)
-+		return -1;
-+	while (ret && (d = readdir(dir))) {
-+		char cur[32];
-+		FILE *f;
-+
-+		if (strncmp(d->d_name, "card", 4))
-+			continue;
-+		snprintf(id_path, size, "/sys/class/sound/%s/id", d->d_name);
-+		f = fopen(id_path, "r");
-+		if (!f)
-+			continue;
-+		if (fgets(cur, sizeof(cur), f)) {
-+			cur[strcspn(cur, "\n")] = '\0';
-+			if (!strcmp(cur, id))
-+				ret = 0;
-+		}
-+		fclose(f);
-+	}
-+	closedir(dir);
-+	return ret;
-+}
-+
-+FIXTURE(dummy) {
-+	char id_path[PATH_MAX];
-+	bool renamed;
-+};
-+
-+FIXTURE_SETUP(dummy)
-+{
-+	self->renamed = false;
-+	if (access(LINK_PATH, F_OK) && system("modprobe -q snd-dummy"))
-+		SKIP(return, "no snd-dummy");
-+	if (access(LINK_PATH, F_OK))
-+		SKIP(return, LINK_PATH ": %s", strerror(errno));
-+	if (find_card(CARD_ID, self->id_path, sizeof(self->id_path)))
-+		SKIP(return, "no sysfs id file for " CARD_ID);
-+	if (access(self->id_path, W_OK))
-+		SKIP(return, "%s: %s", self->id_path, strerror(errno));
-+}
-+
-+FIXTURE_TEARDOWN(dummy)
-+{
-+	if (self->renamed && set_id(self->id_path, CARD_ID))
-+		TH_LOG("couldn't name the card " CARD_ID " again");
-+}
-+
-+TEST_F(dummy, remove_while_readlink_faults)
-+{
-+	struct uffdio_api api = { .api = UFFD_API };
-+	struct uffdio_register reg = {};
-+	struct uffdio_zeropage zero = {};
-+	long psz = sysconf(_SC_PAGESIZE);
-+	struct renamer rn = {};
-+	struct reader r = {};
-+	struct uffd_msg msg;
-+	struct pollfd pfd;
-+	pthread_t rt, nt;
-+	int uffd, done[2];
-+	char *buf;
-+
-+	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
-+	if (uffd < 0)
-+		SKIP(return, "userfaultfd: %s", strerror(errno));
-+	ASSERT_EQ(ioctl(uffd, UFFDIO_API, &api), 0);
-+
-+	buf = mmap(NULL, psz, PROT_READ | PROT_WRITE,
-+		   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	ASSERT_NE(buf, MAP_FAILED);
-+	reg.range.start = (unsigned long)buf;
-+	reg.range.len = psz;
-+	reg.mode = UFFDIO_REGISTER_MODE_MISSING;
-+	ASSERT_EQ(ioctl(uffd, UFFDIO_REGISTER, &reg), 0);
-+
-+	r.buf = buf;
-+	r.len = psz;
-+	ASSERT_EQ(pthread_create(&rt, NULL, readlink_thread, &r), 0);
-+
-+	/* The reader now sleeps in the copy of the link to userspace. */
-+	pfd = (struct pollfd){ .fd = uffd, .events = POLLIN };
-+	ASSERT_EQ(poll(&pfd, 1, TIMEOUT_MS), 1);
-+	ASSERT_EQ(read(uffd, &msg, sizeof(msg)), sizeof(msg));
-+	ASSERT_EQ(msg.event, UFFD_EVENT_PAGEFAULT);
-+
-+	/* Renaming the card removes the link that is being read. */
-+	ASSERT_EQ(pipe2(done, O_CLOEXEC), 0);
-+	rn.id_path = self->id_path;
-+	rn.id = NEW_ID;
-+	rn.done = done[1];
-+	self->renamed = true;
-+	ASSERT_EQ(pthread_create(&nt, NULL, rename_thread, &rn), 0);
-+	pfd = (struct pollfd){ .fd = done[0], .events = POLLIN };
-+	EXPECT_EQ(poll(&pfd, 1, TIMEOUT_MS), 1) {
-+		TH_LOG("removing " LINK_PATH " waited for the reader");
-+	}
-+
-+	zero.range.start = (unsigned long)buf;
-+	zero.range.len = psz;
-+	ASSERT_EQ(ioctl(uffd, UFFDIO_ZEROPAGE, &zero), 0);
-+	ASSERT_EQ(pthread_join(rt, NULL), 0);
-+	ASSERT_EQ(pthread_join(nt, NULL), 0);
-+	EXPECT_EQ(rn.ret, 0);
-+
-+	/* The link was read before it went away. */
-+	EXPECT_GT(r.ret, 0);
-+	EXPECT_EQ(readlink(LINK_PATH, buf, psz), -1);
-+	EXPECT_EQ(errno, ENOENT);
-+}
-+
-+TEST_HARNESS_MAIN
-
--- 
-2.53.0
-
+Applied along with the [2/2] as 7.4-rc material, thanks!
