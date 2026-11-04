@@ -1,90 +1,63 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.208.47
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793823222;
-	b=k8Lzk2+2wft6ReWjrPeMIsIGLPw1DozdqzN3daqrbLntxUNbcMTQZZDEXRXTMAR55Fb2
-	 nTiWpwHgSvHo2OJLded839jKM1C40JR9uidO4hCCbWJyDJBC7nh4oIhV1ZMxomD1R65Nu
-	 YzQWhnBvOj1wXn81IPu8vOwF3PvBumKYz5uNohb6lVMwBmQuwgm1r6ug/hy+aXY19nnpz
-	 FGRXZMovQgnPhyvspRaIkxhp06MRaql90ICjuG/fzDVgzOzsIRUrITaYXZErOksLN9ank
-	 8TcxTomBNGfbhsXlihA6p0JuGSpood1tmtCYNqpzl8m4BKDJR3czhYaEiQSyZzcT1zA==
+	t=1793823315;
+	b=soEVePC4JSoFSgSuVTDw9Lf+vl3i8QBbJyoOP4hUrBB9X801kf2cR15ToBy5F4G0u29F
+	 elACbxq+quYQC3GX5juJtc7xvG76EIyxL98harKjy3EVNVWNZMCKzyS2QZNTF6OYEietE
+	 RNJuqwK/qYsDxgPjPbWdzW0epnqWE3pSzNCTaEdykwmnYtn2ETqIBtIPcqIWCuXlce0aw
+	 fffcpoWoMlqFrJRgHaihrfw7RWqj1o/KpxP3YW0wqcAOCzmVc07hY02X/XhwrZztweInf
+	 89+1zQwhV1yIduOP0WLSYvp8VlNZuINm8j6xk9qLwXJEUN+pEo8ibob5mk6Xsm0P26Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793823222;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Received:X-Forwarded-Encrypted:X-Received:MIME-Version:References:
-	 In-Reply-To:From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type;
-	bh=LCqiLHf1DIbfKNXx3ccWkvqxBhOdwo3yYkazQxIGarg=;
-	b=KRoG/XN2dSja2wzYHwkJfL/eAreEnxtUILVSIe0qMMXZKKSd/zoWVOY44Ds5hYGw1CvJ
-	 yb2LOx4FPwZE0cbMWZ84cCHkBRQPK3hnmjZ77JfyWN1r7H630wyQGpBptfrv5MBkZtgqx
-	 RN5Y8djbIN7aKzW8y+gwq1O9hxIglvtil6M5w04ksQYqceBsLffPcvQbFFQHAryzCa3cK
-	 HC5Fj7vVwjEgtTj5ppq+hZEjGlzuUVTtja+GutG9Xcav9x7jZjpf8C27Srfr1hUWYbYGs
-	 bGb3dGuQ9jGfyy5pNwjzV7NDhtGoLHjYbKhPcSf+9om+J8VmZDTNx18Hr+Qjf2rkRlQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793823315;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
+	 Organization:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:Content-Type;
+	bh=8lSlQQ0eySOWPIi3f+Vi2MS1GtAaf8UmS47WUxgG3Uo=;
+	b=wvF57rDxA5KBly04qj05lbgtMLJYEHTL6nUKmqgFEpcO/+zrv54awFrQf3BVScvI6ftF
+	 7Irg1d/uSRZTu6dL9fyGqQLJTkVbsDvRUBpIcp0jWq5ecRQZ9UVGawTtBm8psD8HS11MT
+	 5bOUt54/rdd456DlD7lDn3T+PoCt5FxGrb9elVustQX+UtTA0l/0DkCP+8qEblt4eVjLQ
+	 VCWGelbk12REBEcZ90mGEmiJkHatn7COKTiPtSYn+r28a8UVsZekVMaMydYNoxIlr9Bmd
+	 U0sFvZ11GU+iuBcA+g8PNLpt6TypGujTu7/qaP57wgAPXu2XidCMY8+SBxQcg+XEYGw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=linux-foundation.org;
-	spf=pass smtp.mailfrom=linuxfoundation.org;
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=google header.b=N5PnK4TU;
-	arc=none smtp.remote-ip=209.85.208.47
-Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Ty1hxZ/0";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 536C9606D81E
-	for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2026 20:13:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 536C9606D81E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E54560A6F59;
+	Wed,  4 Nov 2026 20:15:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=google header.b=N5PnK4TU
-Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-6b579003f29so83758a12.0
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2026 12:13:42 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1793823221; x=1794428021; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=LCqiLHf1DIbfKNXx3ccWkvqxBhOdwo3yYkazQxIGarg=;
-        b=N5PnK4TUqH2zptNH4Su+5LwVFRUZEwQi1Z+wMNf/7H8XLSMP0pZVzNDYWgDKrWRwPC
-         m7HQUHn7+rLlFfif1u7e9kletsJjmpGBdTyTlD7FeubL7No0GM15gmHgR3Az58aZem39
-         vnbLoM0Uoh61r7nVj2IAtlzpdUM4+B/fPR3aU=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793823221; x=1794428021;
-        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
-         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=LCqiLHf1DIbfKNXx3ccWkvqxBhOdwo3yYkazQxIGarg=;
-        b=fqlf2dDNtGNntVPtk8KxnCtMyApmegFNdQqQ3v7cZkuOrJr5g9eMDuEXnJNdd4tE0H
-         oSj5ZApgbt43nWKpFErTC+ZLF4E9O+d18FP11t7xJButCLk4A/2qXG+xF0HwbP4MfPlq
-         tP5bDnHcrUl/YKmVF7CUxpgCqhTr5RZDNgjy9pf5vBIynHRwlDgju1tVSZVjDg0Doi+P
-         K3myrLxyhfX4a4eOzzhY8FQSEvWWeZJC1CCcKw2E3v7lQSZI711BCgu32Si5+ePhT2A2
-         ZmPRjJtkSjp94X4DNDOrIbs5ABmY8qnKQuKEcWBOtR5V5RC5/YPbjj6peOV8PT5AD8is
-         avDA==
-X-Forwarded-Encrypted: i=1; AKwUvBya23ATYDw4l2VmDqbGOJdFflND3W2EldLNKBawO+vZi+93/9I5hCcZHWllRXXnyWhc71/Qd1zuFGRH@vger.kernel.org
-X-Gm-Message-State: APuU4Z+r5RYA8zhCkNuFDlIe1Tg3v0GWBOl31MFPQofY6jQp1UiiPGAK
-	Pa/XosP2XHTWmZWopu6WKi6Q+L46lFOoJqftfpBFKs/P8bglnJqhMy66uKNeVAHrwb1TdsWA+Uz
-	1wXe+nPDRxg==
-X-Gm-Gg: AYBFou2f9mYo/pDcQP2JfvdgTu+pjfdtRy10QBckubiynBVX2VR/+wqr+zjmZHroFJo
-	kMYcoWzHAMEgwDxshidR4+yKETA0UhNmG2Ns1di8lEcgdkfEnNDWXRjCeNmU1Uq1wVg6Ae3F92j
-	Pw1PyBP2QN+/rBs+p977Q/ZAK0WaJ2Y6ZkDDN+R10xQ5G1LQcrfbo1AcB1ZK/Ih2WY9EY6PX3DE
-	6zGXb0O83GJIBt/nIQplkmnfvcJ9e+cp446zwyhSNUy8FFN/CNVw8yYppVR51Oa4RBEZmQ08ub0
-	mfW158zwi9M+36jZaN5ckcmr9PeFsTssL2k1QML83nVuxwk9rKfR8vg/I/lWRPThIpRI9Ag17gV
-	1ZQ2K4w0n1H42R6z7SVCX9VBlh0GFFV3kAMAGkzQTEFTu/Uq/AYsuFSJ1ERWLRLRtQBeNpmfyeb
-	YMMkapL7cUNpHIyLRzVGLqgSCzWcN3rIlxDQDRhCWv0ZBMs69Vp7C19eM3zdOtJbClO8hjUnGaw
-	iOGoEeZ/rnoOpeNktsAcYtYPxNS97lk8ZC33XOCBTq3BeJLliADnHGy5i58SEl0/hpzfH7zDF2A
-	vv/15Pxtfq1ZollNp9pqdt+yR7PL7J5jTE2GmDJCrFs95JEr9BwEBfe8/2tWar1HeZQSN10As4N
-	gJQ==
-X-Received: by 2002:a05:6402:a4ec:b0:6af:a64f:bd44 with SMTP id 4fb4d7f45d1cf-6b4d62c35c8mr9842922a12.45.1793823220771;
-        Wed, 04 Nov 2026 12:13:40 -0800 (PST)
-Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com. [209.85.218.45])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b55ac83d9esm1094921a12.32.2026.11.04.12.13.40
-        for <linux-acpi@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 04 Nov 2026 12:13:40 -0800 (PST)
-Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-c445c95d553so165110466b.1
-        for <linux-acpi@vger.kernel.org>; Wed, 04 Nov 2026 12:13:40 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AKwUvBwKRRO1govWN51onMuRfxaYAx4LEhNq85priRdR0ktTbh2n/lllNJHZSfZ5jk588YDVoWoaGs3jfh/7@vger.kernel.org
-X-Received: by 2002:a17:907:60c8:b0:c49:a4b1:9cb1 with SMTP id
- a640c23a62f3a-c4ca795fa50mr1973235866b.3.1793822725121; Wed, 04 Nov 2026
- 12:05:25 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ty1hxZ/0
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A6BF1F000C1;
+	Wed,  4 Nov 2026 20:15:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793823314;
+	bh=8lSlQQ0eySOWPIi3f+Vi2MS1GtAaf8UmS47WUxgG3Uo=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=Ty1hxZ/01RiO++N8fIKo3R7qjFmMwXCero4QLeTafahuTnUZXRGlRjswbEbdm49pI
+	 gumTFyLEnsnlsOfNVwkhax+cz9O219S7q2LZly497wtu96iSFTM0ejAempjs+BwKcN
+	 D1eXp0sjZdgGh9lMLx6/K++uYTEii8T5amItUU3gl+SB3uJLqiGCEy59WHcpKc7N/D
+	 kk4tC2ZIanOyjxwlgJX2DZPaPGm3wCEHc8GIgBm1eIKXm4g8DVs7fELmwYoU29scVZ
+	 +9VCQu2C02qfrWYE2QX9meun8Vin237wmGos1DixiQJhgFnNcxiBLYHQaJe8+aETFD
+	 KoCMnkirCDAnw==
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>,
+ David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
+ Andreas Noever <andreas.noever@gmail.com>,
+ Mika Westerberg <westeri@kernel.org>,
+ Yehezkel Bernat <YehezkelShB@gmail.com>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ dri-devel@lists.freedesktop.org, linux-usb@vger.kernel.org,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject:
+ [PATCH v1 3/3] ACPI: glue: Simplify struct acpi_dev_type and its usage
+Date: Wed, 04 Nov 2026 21:14:57 +0100
+Message-ID: <8036646.EvYhyI6sBW@rafael.j.wysocki>
+Organization: Linux Kernel Development - Intel
+In-Reply-To: <3471545.44csPzL39Z@rafael.j.wysocki>
+References: <3471545.44csPzL39Z@rafael.j.wysocki>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -94,51 +67,336 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261104-work-procfs-v2-0-b45cd5789ac5@brauner> <20261104-work-procfs-fs-v2-0-319e0f9a8aae@kernel.org>
-In-Reply-To: <20261104-work-procfs-fs-v2-0-319e0f9a8aae@kernel.org>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Wed, 4 Nov 2026 12:05:08 -0800
-X-Gmail-Original-Message-ID: <CAHk-=wj9Y9NcOesBBm+jhPjYa7qO00fD7g7uwX+H-k0-R2difA@mail.gmail.com>
-X-Gm-Features: AclHuK9j_YIgrwhhpWOlnull6heAULBd4dgTqoOhUQQjFm_MgoIgrL1vgPfefvI
-Message-ID: <CAHk-=wj9Y9NcOesBBm+jhPjYa7qO00fD7g7uwX+H-k0-R2difA@mail.gmail.com>
-Subject: Re: [PATCH RESEND v2 00/30] proc: convert the fs, kernel and mm
- entries (Part 5/7)
-To: Christian Brauner <brauner@kernel.org>
-Cc: linux-fsdevel@vger.kernel.org, Jann Horn <jannh@google.com>, 
-	Josef Bacik <josef@toxicpanda.com>, Chris Mason <mason@kernel.org>, 
-	Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>, 
-	Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
-	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, Greg Kroah-Hartman <gregkh@suse.de>, 
-	Joel Granados <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, 
-	Jan Kara <jack@suse.com>, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
-	linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org, 
-	linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
-	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, 
-	linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, ntfs3@lists.linux.dev, 
-	platform-driver-x86@vger.kernel.org, coreteam@netfilter.org, 
-	kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
-	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net, 
-	jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org, 
-	linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
-	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
-	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, 
-	samba-technical@lists.samba.org, sparclinux@vger.kernel.org, 
-	linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
-	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
-	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
-	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, 
-	linux-debuggers@vger.kernel.org, Chuck Lever <cel@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
 
-On Wed, 4 Nov 2026 at 11:49, Christian Brauner <brauner@kernel.org> wrote:
->
-> Part 5/7 of "proc: move procfs to what kernfs does", on top of part 2
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-Christian - way too many patches, re-sent much too often, cc'd to way
-too many people.
+All of the current users of struct acpi_dev_type match the device type
+in their .match() callbacks and all of them use const device type
+pointers for that which means that the structure can be simplified and
+used in a more straightforward way.
 
-Nobody is going to read these repeated resends, and all you are doing
-is clogging up peoples mailboxes.
+Namely, modify struct acpi_dev_type to contain a const device type
+pointer instead of the .match() callback and remove the name field
+from it.  Next, update the users of struct acpi_dev_type to register
+a separate object of that type for each device type that requires an
+ACPI companion lookup.
 
-             Linus
+Since the register_acpi_dev_type() and unregister_acpi_dev_type()
+function bodies are rewiritten entirely anyway, make them use
+guard(rwsem_write) instead of down_write()/up_write() pairs and
+print the messages under the semaphore to ensure that the struct
+acpi_dev_type objects they refer to will not be freed prematurely.
+
+No intentional functional impact beyond messaging.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/glue.c         | 33 ++++++++++--------
+ drivers/gpu/drm/drm_sysfs.c |  8 +----
+ drivers/thunderbolt/acpi.c  | 69 +++++++++++++++++--------------------
+ drivers/usb/core/usb-acpi.c | 47 ++++++++++---------------
+ include/acpi/acpi_bus.h     |  4 +--
+ 5 files changed, 72 insertions(+), 89 deletions(-)
+
+diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+index 51caaa73a43c..8b75a8c805a4 100644
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -31,29 +31,32 @@ static DECLARE_RWSEM(dev_type_sem);
+ 
+ void register_acpi_dev_type(struct acpi_dev_type *type)
+ {
+-	if (acpi_disabled)
++	if (acpi_disabled || !type)
+ 		return;
+ 
+-	if (type && type->match && type->find_companion) {
+-		down_write(&dev_type_sem);
+-		list_add_tail(&type->list, &dev_type_list);
+-		up_write(&dev_type_sem);
+-		pr_info("device type %s registered\n", type->name);
+-	}
++	INIT_LIST_HEAD(&type->list);
++
++	if (!type->dev_type || !type->find_companion)
++		return;
++
++	guard(rwsem_write)(&dev_type_sem);
++
++	list_add_tail(&type->list, &dev_type_list);
++
++	pr_info("Device type %s added to lookup list\n", type->dev_type->name);
+ }
+ EXPORT_SYMBOL_GPL(register_acpi_dev_type);
+ 
+ void unregister_acpi_dev_type(struct acpi_dev_type *type)
+ {
+-	if (acpi_disabled)
++	if (acpi_disabled || !type || !type->dev_type || !type->find_companion)
+ 		return;
+ 
+-	if (type) {
+-		down_write(&dev_type_sem);
+-		list_del_init(&type->list);
+-		up_write(&dev_type_sem);
+-		pr_info("device type %s unregistered\n", type->name);
+-	}
++	guard(rwsem_write)(&dev_type_sem);
++
++	list_del(&type->list);
++
++	pr_info("Device type %s removed from lookup list\n", type->dev_type->name);
+ }
+ EXPORT_SYMBOL_GPL(unregister_acpi_dev_type);
+ 
+@@ -69,7 +72,7 @@ static struct acpi_device *acpi_companion_lookup(struct device *dev)
+ 	list_for_each_entry(type, &dev_type_list, list) {
+ 		struct acpi_device *adev;
+ 
+-		if (!type->match(dev))
++		if (type->dev_type != dev->type)
+ 			continue;
+ 
+ 		adev = type->find_companion(dev);
+diff --git a/drivers/gpu/drm/drm_sysfs.c b/drivers/gpu/drm/drm_sysfs.c
+index 585b26515d49..63e0b07e9926 100644
+--- a/drivers/gpu/drm/drm_sysfs.c
++++ b/drivers/gpu/drm/drm_sysfs.c
+@@ -64,11 +64,6 @@ static struct device_type drm_sysfs_device_connector = {
+ struct class *drm_class;
+ 
+ #ifdef CONFIG_ACPI
+-static bool drm_connector_acpi_dev_type_match(struct device *dev)
+-{
+-	return dev->type == &drm_sysfs_device_connector;
+-}
+-
+ static struct acpi_device *drm_connector_acpi_find_companion(struct device *dev)
+ {
+ 	struct drm_connector *connector = to_drm_connector(dev);
+@@ -77,8 +72,7 @@ static struct acpi_device *drm_connector_acpi_find_companion(struct device *dev)
+ }
+ 
+ static struct acpi_dev_type drm_connector_acpi_dev_type = {
+-	.name = "drm_connector",
+-	.match = drm_connector_acpi_dev_type_match,
++	.dev_type = &drm_sysfs_device_connector,
+ 	.find_companion = drm_connector_acpi_find_companion,
+ };
+ 
+diff --git a/drivers/thunderbolt/acpi.c b/drivers/thunderbolt/acpi.c
+index 209419e3844f..05cc823a26bb 100644
+--- a/drivers/thunderbolt/acpi.c
++++ b/drivers/thunderbolt/acpi.c
+@@ -280,13 +280,9 @@ int tb_acpi_power_off_retimers(struct tb_port *port)
+ 	return tb_acpi_retimer_set_power(port, false);
+ }
+ 
+-static bool tb_acpi_dev_type_match(struct device *dev)
+-{
+-	return tb_is_switch(dev) || tb_is_usb4_port_device(dev);
+-}
+-
+-static struct acpi_device *tb_acpi_switch_find_companion(struct tb_switch *sw)
++static struct acpi_device *tb_acpi_switch_find_companion(struct device *dev)
+ {
++	struct tb_switch *sw = tb_to_switch(dev);
+ 	struct tb_switch *parent_sw = tb_switch_parent(sw);
+ 	struct acpi_device *adev = NULL;
+ 
+@@ -314,56 +310,55 @@ static struct acpi_device *tb_acpi_switch_find_companion(struct tb_switch *sw)
+ 	return adev;
+ }
+ 
+-static struct acpi_device *tb_acpi_find_companion(struct device *dev)
++static struct acpi_device *tb_acpi_usb4_port_find_companion(struct device *dev)
+ {
+-	/*
+-	 * The Thunderbolt/USB4 hierarchy looks like following:
+-	 *
+-	 * Device (NHI)
+-	 *   Device (HR)		// Host router _ADR == 0
+-	 *      Device (DFP0)		// Downstream port _ADR == lane 0 adapter
+-	 *        Device (DR)		// Device router _ADR == 0
+-	 *          Device (UFP)	// Upstream port _ADR == lane 0 adapter
+-	 *      Device (DFP1)		// Downstream port _ADR == lane 0 adapter number
+-	 *
+-	 * At the moment we bind the host router to the corresponding
+-	 * Linux device.
+-	 */
+-	if (tb_is_switch(dev))
+-		return tb_acpi_switch_find_companion(tb_to_switch(dev));
+-	if (tb_is_usb4_port_device(dev))
+-		return acpi_find_child_by_adr(ACPI_COMPANION(dev->parent),
+-					      tb_to_usb4_port_device(dev)->port->port);
+-	return NULL;
++	return acpi_find_child_by_adr(ACPI_COMPANION(dev->parent),
++				      tb_to_usb4_port_device(dev)->port->port);
+ }
+ 
+-static void tb_acpi_setup(struct device *dev)
++static void tb_acpi_usb4_port_setup(struct device *dev)
+ {
+ 	struct acpi_device *adev = ACPI_COMPANION(dev);
+ 	struct usb4_port *usb4 = tb_to_usb4_port_device(dev);
+ 
+-	if (!adev || !usb4)
+-		return;
+-
+ 	if (acpi_check_dsm(adev->handle, &retimer_dsm_guid, 1,
+ 			   BIT(RETIMER_DSM_QUERY_ONLINE_STATE) |
+ 			   BIT(RETIMER_DSM_SET_ONLINE_STATE)))
+ 		usb4->can_offline = true;
+ }
+ 
+-static struct acpi_dev_type tb_acpi_dev_type = {
+-	.name = "thunderbolt",
+-	.match = tb_acpi_dev_type_match,
+-	.find_companion = tb_acpi_find_companion,
+-	.setup = tb_acpi_setup,
++/*
++ * The Thunderbolt/USB4 hierarchy looks like following:
++ *
++ * Device (NHI)
++ *   Device (HR)		// Host router _ADR == 0
++ *      Device (DFP0)		// Downstream port _ADR == lane 0 adapter
++ *        Device (DR)		// Device router _ADR == 0
++ *          Device (UFP)	// Upstream port _ADR == lane 0 adapter
++ *      Device (DFP1)		// Downstream port _ADR == lane 0 adapter number
++ *
++ * At the moment we bind the host router to the corresponding
++ * Linux device.
++ */
++static struct acpi_dev_type tb_switch_acpi_dev_type = {
++	.dev_type = &tb_switch_type,
++	.find_companion = tb_acpi_switch_find_companion,
++};
++
++static struct acpi_dev_type tb_usb4_port_acpi_dev_type = {
++	.dev_type = &usb4_port_device_type,
++	.find_companion = tb_acpi_usb4_port_find_companion,
++	.setup = tb_acpi_usb4_port_setup,
+ };
+ 
+ void tb_acpi_init(void)
+ {
+-	register_acpi_dev_type(&tb_acpi_dev_type);
++	register_acpi_dev_type(&tb_switch_acpi_dev_type);
++	register_acpi_dev_type(&tb_usb4_port_acpi_dev_type);
+ }
+ 
+ void tb_acpi_exit(void)
+ {
+-	unregister_acpi_dev_type(&tb_acpi_dev_type);
++	unregister_acpi_dev_type(&tb_usb4_port_acpi_dev_type);
++	unregister_acpi_dev_type(&tb_switch_acpi_dev_type);
+ }
+diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
+index 05881260a4b7..d12eda176034 100644
+--- a/drivers/usb/core/usb-acpi.c
++++ b/drivers/usb/core/usb-acpi.c
+@@ -278,9 +278,9 @@ usb_acpi_get_companion_for_port(struct usb_port *port_dev)
+ 	return acpi_find_child_by_adr(adev, port1);
+ }
+ 
+-static struct acpi_device *
+-usb_acpi_find_companion_for_port(struct usb_port *port_dev)
++static struct acpi_device *usb_acpi_find_companion_for_port(struct device *dev)
+ {
++	struct usb_port *port_dev = to_usb_port(dev);
+ 	struct acpi_device *adev;
+ 
+ 	adev = usb_acpi_get_companion_for_port(port_dev);
+@@ -292,9 +292,9 @@ usb_acpi_find_companion_for_port(struct usb_port *port_dev)
+ 	return adev;
+ }
+ 
+-static struct acpi_device *
+-usb_acpi_find_companion_for_device(struct usb_device *udev)
++static struct acpi_device *usb_acpi_find_companion_for_device(struct device *dev)
+ {
++	struct usb_device *udev = to_usb_device(dev);
+ 	struct acpi_device *adev;
+ 	struct usb_port *port_dev;
+ 	struct usb_hub *hub;
+@@ -326,7 +326,17 @@ usb_acpi_find_companion_for_device(struct usb_device *udev)
+ 	return usb_acpi_get_companion_for_port(port_dev);
+ }
+ 
+-static struct acpi_device *usb_acpi_find_companion(struct device *dev)
++static struct acpi_dev_type usb_dev_acpi_dev_type = {
++	.dev_type = &usb_device_type,
++	.find_companion = usb_acpi_find_companion_for_device,
++};
++
++static struct acpi_dev_type usb_port_acpi_dev_type = {
++	.dev_type = &usb_port_device_type,
++	.find_companion = usb_acpi_find_companion_for_port,
++};
++
++void usb_acpi_register(void)
+ {
+ 	/*
+ 	 * The USB hierarchy like following:
+@@ -356,31 +366,12 @@ static struct acpi_device *usb_acpi_find_companion(struct device *dev)
+ 	 * devices yet, for that we would need to assign companions to
+ 	 * devices corresponding to USB interfaces.
+ 	 */
+-	if (is_usb_device(dev))
+-		return usb_acpi_find_companion_for_device(to_usb_device(dev));
+-	else if (is_usb_port(dev))
+-		return usb_acpi_find_companion_for_port(to_usb_port(dev));
+-
+-	return NULL;
+-}
+-
+-static bool usb_acpi_dev_type_match(struct device *dev)
+-{
+-	return is_usb_device(dev) || is_usb_port(dev);
+-}
+-
+-static struct acpi_dev_type usb_acpi_dev_type = {
+-	.name = "USB",
+-	.match = usb_acpi_dev_type_match,
+-	.find_companion = usb_acpi_find_companion,
+-};
+-
+-void usb_acpi_register(void)
+-{
+-	register_acpi_dev_type(&usb_acpi_dev_type);
++	register_acpi_dev_type(&usb_dev_acpi_dev_type);
++	register_acpi_dev_type(&usb_port_acpi_dev_type);
+ }
+ 
+ void usb_acpi_unregister(void)
+ {
+-	unregister_acpi_dev_type(&usb_acpi_dev_type);
++	unregister_acpi_dev_type(&usb_port_acpi_dev_type);
++	unregister_acpi_dev_type(&usb_dev_acpi_dev_type);
+ }
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index da2262d220e0..8edf82b46157 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -661,11 +661,11 @@ static inline bool acpi_device_enumerated(struct acpi_device *adev)
+  */
+ struct acpi_dev_type {
+ 	struct list_head list;
+-	const char *name;
+-	bool (*match)(struct device *dev);
++	const struct device_type *dev_type;
+ 	struct acpi_device * (*find_companion)(struct device *);
+ 	void (*setup)(struct device *);
+ };
++
+ void register_acpi_dev_type(struct acpi_dev_type *type);
+ void unregister_acpi_dev_type(struct acpi_dev_type *type);
+ int acpi_bind_one(struct device *dev, struct acpi_device *adev);
+-- 
+2.51.0
+
+
+
+
