@@ -1,73 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=82.195.75.108
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793787429;
-	b=Qqv8S+m5rWsPa3Vmz+iMCOysEIXG7cbevYtjnKCqhU60CeTQegUXf1bPMPwkSHbR8wey
-	 Y7GT5wHwrg1QRvF1y9Ayvl3mqTWpNSvnmnqjAeT9vOd6gE50aWwqCdtee2krtfVIW+APW
-	 V3pcR+x4+qWGjPwlUaCaAUQIgvsOugyeifYQu/PRH1w20zAMTCpJWvI/G2qXTVykTcQAr
-	 mBZubRUGIb94S2zquhHKGwUEt+DKjJfeK55g9xXMPUwU2Liphu3TH3I2BHF1fN2PUrgb0
-	 irQL9hhsFQQViL8F8cuZTDS9g7LekcBiF6zNIECgXv1WcSwnU838e+gKIzE54+48tug==
+	t=1793787584;
+	b=vHNXhRIsO818P6mP8mkZEYXFds51Tg6btXmLvA1uPLIYA0iP3HshNDOEldu2DB7C8nhZ
+	 0fnfu3MrGQwC+TgKHZF6HO82jJ6h4EemHCqYks5tol/9qckRoj9nj5G0mA5qVSIKvMHBV
+	 8Lap7M7tP3m0zZEfn0S6F7avuLdPSUvGyn/8Uk01zmPYdT3qUqDGk5OQvq5/KKRlAiv8v
+	 eFkjgK2mnWpXs2JqN4TNmO7l5UH1dwFA2rjZIlZpkwkmnrJmWg/g4hbxw7ZDiv9y98WxR
+	 4tZp1z0mAtlIsPE4bg1EdCpJVJ4B4N1i8hSCut5UjlBqGA5L3jYp35zMKgL+txC2DXQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793787429;
-	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Debian-User;
-	bh=Al/H5Lk1G7gzp9uPEa2FrG9UA88IUol0MBzQwOwuRLU=;
-	b=y16b9NBj4w/g73/h178yxKNkXjDmLvd7mrypoKu5nt1RmPoZifEXOBr+DdKdbRVzt39F
-	 PB55a7qauD5I5zjQCGlrF8mkdSjaDp2MnT4GI9heA4hTxsOvpqSMClpcMnX6IjkxUPgPJ
-	 Lq5K/y/ffwBDLg8iW76PE+n3XTdxkwJVxXH0ZhtDvInSVJ9OBBk4J5ETg941pZeAs8yf6
-	 ajW/ICjE9hHwLpagv/n1WOeV1dTgL0PNIlGWX7UtjWM/df0QQ/LA/REaG35waXEb5wB0+
-	 qXkPlwpwzDrrwF0C982paIzN8pUlTPZjreQsX1cefySg0Ix/ScAstLhvGHMkDfinHbg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793787584;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=Md52We6EawhTcuECQ8x+adEJlS+dU9v2Pis/Pu6Ub5A=;
+	b=x4JJgCxy04fl3XlaF/4DomCMsRnrFXqzKAm/tzFlD/4Fkcc4QLf6yV+C8hmHfU8GPUlS
+	 dI3EfIQ0l8/TaeiUuepY/hjUSA45yx35tsv8LOQ1ycXoTQChQdMHtr4Cfg5PKdGkBJlTf
+	 3B4PWJPsBVZw5lIF0nHMAy6ydMGG598ZrYEmACMDvoDgsOfPCzYkLh1I1n0/s+a44hvaX
+	 arjrelt3dj/cxLxWrirPw9yL0DAXs23PUMJDH1c+lBZg7oViBppd56C7/4zLzC216T8FI
+	 P/LZdHpu9aHRxwxekYMSlQuBg04FJwmEu06Pn+HPhPcLBEYb06nZDKODHE73AH9TcyQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=debian.org;
-	spf=pass smtp.mailfrom=debian.org;
-	dkim=pass header.d=debian.org header.i=@debian.org header.a=rsa-sha256 header.s=smtpauto.stravinsky header.b=WGvHrFXE;
-	arc=none smtp.remote-ip=82.195.75.108
-Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jYHnvV4I;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C90A606A328;
-	Wed,  4 Nov 2026 10:17:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5C90A606A328
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debian.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74EE1606A31B
+	for <linux-acpi@vger.kernel.org>; Wed,  4 Nov 2026 10:19:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=debian.org header.i=@debian.org header.a=rsa-sha256 header.s=smtpauto.stravinsky header.b=WGvHrFXE
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
-	s=smtpauto.stravinsky; h=X-Debian-User:In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=Al/H5Lk1G7gzp9uPEa2FrG9UA88IUol0MBzQwOwuRLU=; b=WGvHrFXEwU/Gh9gZh5p+vZjFh6
-	o7qoXyG9yVr30Qnm44NsQiMlZJO+uPJGdq7l+uxaE1UfFO8W9HjWoSGqIOsDHCsTC3Z50jnvBtGn4
-	AVG2Qec7tT7h/klfGNH/VUMeALufnDXfTkOXgO4YgochsWvn4fBRQx0hHAY73x7s6+q0vm4tl/vG7
-	/ClWzznW5tEbH4+wxP869vsD8cgsWqeGd333ORjSYHXTdFCB1wk49f/Ily0tVf+UBiw9Pxa936Fb5
-	kkTbA78SjoI0zJQIInJxGYad34XLMJqfEyF75vS67/EyYiDA2AvzTz5SfCDHMSJYFE8jt/zgbmdio
-	CJJakX1g==;
-Received: from authenticated-user
-	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-	(Exim 4.96)
-	(envelope-from <leitao@debian.org>)
-	id 1xOY32-007diH-1U;
-	Wed, 04 Nov 2026 10:16:52 +0000
-Date: Wed, 4 Nov 2026 02:16:46 -0800
-From: Breno Leitao <leitao@debian.org>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=jYHnvV4I
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B6191F00A16;
+	Wed,  4 Nov 2026 10:19:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793787584;
+	bh=Md52We6EawhTcuECQ8x+adEJlS+dU9v2Pis/Pu6Ub5A=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=jYHnvV4II77lPPk5cOSgv9l8j+UyOfgshMlcd60x60lvpLzogv3+5DEClbxxvT6hh
+	 wslnToi5rCVDwSJP+/utVblFObqgj2fBaYCwsxaDg8H45nsHJ2JuFWyvsoeBm46+hK
+	 gm2n7HZbCRxOZISGv+TuMkFqcR5O8m9Coz1Nk+qvCngxRcqyjauYjll1wO0V3Dorli
+	 Si3Miqlv4YmA4cXcs7gZdGz94nLbD1qNaYK6fJEQVWpc4HnncJsJpGrp3TylRFoxsW
+	 bv6RYCEJSMlxCSUYAdaCmd/BlA+yLDtoXZCfhwCSuceISSo4/1iqy1jeIB758VqoVb
+	 RmtU3qcLDKiCw==
+Date: Wed, 4 Nov 2026 10:19:40 +0000
+From: Sudeep Holla <sudeep.holla@kernel.org>
 To: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-Cc: Pierre Gondois <pierre.gondois@arm.com>, linux-kernel@vger.kernel.org, 
-	James Morse <james.morse@arm.com>, Mark Brown <broonie@kernel.org>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, 
-	Borislav Petkov <bp@alien8.de>, Hanjun Guo <guohanjun@huawei.com>, 
-	Mauro Carvalho Chehab <mchehab@kernel.org>, Shuai Xue <xueshuai@linux.alibaba.com>, 
-	Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>, Pawel Chmielewski <pawel.chmielewski@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, "Fabio M. De Francesco" <fabio.m.de.francesco@linux.intel.com>, 
-	Dan Williams <djbw@kernel.org>, Terry Bowman <terry.bowman@amd.com>, 
-	Ard Biesheuvel <ardb@kernel.org>, Morduan Zang <zhangdandan@uniontech.com>, 
-	linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, acpica-devel@lists.linux.dev
-Subject: Re: [PATCH v2 2/6] cper: add Memory Error Section 2 structures
-Message-ID: <ausF958TWhACbL9j@gmail.com>
-References: <20261019203915.2019037-1-pierre.gondois@arm.com>
- <20261019203915.2019037-3-pierre.gondois@arm.com>
- <aunhE1aeSfk6YDgj@gmail.com>
- <20261103130038.00000f77@oss.qualcomm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Jamie Nguyen <jamien@nvidia.com>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Hanjun Guo <guohanjun@huawei.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will@kernel.org>, Dat Mach <dmach@nvidia.com>
+Subject: Re: [PATCH 2/2] ACPI: FFH: Support FF-A direct request 2 calls
+Message-ID: <20261104-effective-wolverine-of-novelty-4e49fc@sudeepholla>
+References: <20261103173907.1996118-1-sudeep.holla@kernel.org>
+ <20261103173907.1996118-3-sudeep.holla@kernel.org>
+ <20261103145335.000026ea@oss.qualcomm.com>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -79,22 +64,39 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261103130038.00000f77@oss.qualcomm.com>
-X-Debian-User: leitao
+In-Reply-To: <20261103145335.000026ea@oss.qualcomm.com>
 
-On Tue, Nov 03, 2026 at 01:00:38PM -0800, Jonathan Cameron wrote:
-> On Tue, 3 Nov 2026 05:27:02 -0800
-> Breno Leitao <leitao@debian.org> wrote:
+On Tue, Nov 03, 2026 at 02:53:35PM -0800, Jonathan Cameron wrote:
+> On Tue,  3 Nov 2026 17:39:07 +0000
+> Sudeep Holla <sudeep.holla@kernel.org> wrote:
 > 
-> > On Mon, Oct 19, 2026 at 10:38:41PM +0200, Pierre Gondois wrote:
-> > > Add CPER Memory Error Section 2 definitions to the CPER headers.
-> > > 
-> > > Reviewed-by: Jonathan Cameron <jonathan.cameron@oss.qualcomm.com>
-> > > Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>  
+> > Arm Functional Fixed Hardware specification v1.3 defines FFH
+> > OperationRegion offset 2 for issuing FFA_MSG_SEND_DIRECT_REQ2 calls.
+> > The arm64 FFH handler currently supports only generic 32-bit and 64-bit
+> > SMCCC calls, so it cannot implement this standardized interface.
 > > 
-> > Reviewd-by: Breno Leitao <leitao@debian.org>
-> Typo.  Just in case Pierre is using b4 or other automation!
+> > Add a standalone FF-A path using the existing SMCCC conduit. Negotiate
+> > FF-A v1.2, discover the sender endpoint with FFA_ID_GET, and use either
+> > the receiver supplied by firmware or resolve a unique receiver from the
+> > service UUID with FFA_PARTITION_INFO_GET_REGS.
+> > 
+> > Convert the ACPI ToUUID representation to the FF-A register encoding,
+> > construct the direct request, resume interrupted or yielded calls with
+> > FFA_RUN, and return the defined FFH status codes to AML.
+> > 
+> > Register-based partition discovery avoids RX/TX buffer ownership and
+> > keeps the FFH implementation independent of the Arm FF-A transport
+> > driver.
+> > 
+> > Signed-off-by: Sudeep Holla <sudeep.holla@kernel.org>
+> Hi Sudeep,
+> 
+> I was curious so took a quick look. Some drive by comments inline.
+> 
 
-Sorry.
+All good point, will be updated accordingly in the next version. Thanks
+for the review.
 
-Reviewed-by: Breno Leitao <leitao@debian.org>
+-- 
+Regards,
+Sudeep
