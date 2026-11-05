@@ -1,93 +1,129 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.131
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793879018;
-	b=CC1u1H3ZLOSyNe8s4o4n4L1ohL9YeKgvcwa3KyKAoTZwuE6PLcDQ1+u18cVX9XYKVFqi
-	 XPYuHk3Q5ao6ZDX0zjXwKzHqX36LuKPWRui9bBS9yDeTakPkuUXmzWS+rvDGwlPo2+1wk
-	 5wDEu3oH99nCoP40E4Ib7QmAwMrGkLCaZUrMxseu8W6To2nFF/KFsemJ61bHAUJtfCm3f
-	 7w7ptGchduTT1zqaZO16DijTfTkKzRlfvQqgjzn3Yo2lI9rTaDuULEvHXrIPkwdHD50oC
-	 CvJK+Th4pXykWK8zIqx6YoJ8hnFYmV4q3D0SthJMVCjnAJIWyalSSXesWRnm6yW230A==
+	t=1793879572;
+	b=4JqbkshOdncYKl7cacrPwgBzufqc12Lk44fjHRichx049fAY1qLVLqUahSdWsiZ/fZW+
+	 mZhMN9kLdJjwd//Er1PVbCnKNr016ivN5TqHWZF8H7YVb+N69KjEqy4rAKjAmh5iuId6i
+	 bD2koLosDH/qm0AkvByIVKFfvSrLxRfUDT5/7h6CxsiR/4VX5VMZ7VZVhEgx7Jm1Lzkab
+	 658b/sfqZXz035pepENL+wCnv25c0l0rC38Xz749610RbE71Fzj8089HNIFCjjCXpHrMv
+	 PTLodlButNJH3Gfc7hcMGiEZ0Q4jMaNZbLMM0kGtmw5HtQYxYtZOktYSD/Abh82bI3g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793879018;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Type:X-Mailer:
-	 Content-Transfer-Encoding;
-	bh=t2tbrNTzTBb7SOH1qu4EnEUzLM1HndvW30ICEhou5U4=;
-	b=5YuLSOmPKmHEszin9v+uHW6xGT14yMCG47miMg0ErPMikwl/DwjcA+SZsoWgMeEaESjs
-	 7hNt3vb+3l9PhQi78pEpkPZ9Nhpw20iDXW8oglTngbEIOtiQGWcv7xRT56j2Fv5HrvcdJ
-	 lIbYXT3eJVIuDb8FgAfenXRdz8NlpdKFJ1CZAMB81oiCBGCDS/s7FXhXQOeUSHHinMTQc
-	 drAWUq34zk8s7iRgejoWXGG0WmgUZIpNrTO/aN5xkImVDgYbf3ZrwNJbOj3A4TwMqggsP
-	 +V8tozViho8Vst/Iumv8GvGZkL+aIQl0s9kGbsOGpF0FMBk6eAnTlLxGWc0sNg0mRig==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793879572;
+	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
+	 DKIM-Signature:Received:Received:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To:X-Spamd-Result:X-Rspamd-Server:X-Rspamd-Action:
+	 X-Spam-Flag:X-Spam-Score:X-Spam-Level:X-Rspamd-Queue-Id;
+	bh=XTBVvV1llMrY8oPUgGAOljMGttnFmdc1n4iSvCofGvk=;
+	b=bpbI65RtQw/CHNKvst6gx6u/5xAlZclCad2cXmhfIa/E+iVhCEUm2lbB24CpWi8HydGk
+	 zpvZAayd2Gzyi2D6O43V46cg7aMZEb8zkgacd4ZLyEnIkjd1VH1OqfvDmIJaCSwy7q5u1
+	 XvU7HPN7h967dINDKt6quRu8OE1TKeW06LoK0ARMXfCg+fsyfA+6akgehaJOoXTfjzgH4
+	 za5UaBzPrWA5Sg+eRfKMXz+03xHoqGoQzBvM+ChP2PSjEuNsnv5lgkj69oVAWdPyYLA3b
+	 pO2QGSet2rsG1pQ+q52POQpu9XfAMQ26CKnqH6LvblzpUD2UYd2xFpml7i3TT5pe1yQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZiNX5zc8;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=none header.from=suse.cz;
+	spf=pass smtp.mailfrom=suse.cz;
+	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=IlDc2Fvh;
+	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=vvDSWJYG;
+	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=IlDc2Fvh;
+	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=vvDSWJYG;
+	arc=none smtp.remote-ip=195.135.223.131
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A47DD606A31B;
-	Thu,  5 Nov 2026 11:43:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15BC0606A33C;
+	Thu,  5 Nov 2026 11:52:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 15BC0606A33C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ZiNX5zc8
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2ECBA1F00919;
-	Thu,  5 Nov 2026 11:43:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793879017;
-	bh=t2tbrNTzTBb7SOH1qu4EnEUzLM1HndvW30ICEhou5U4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=ZiNX5zc8uwNBhuWTAVNyYwSxcH697PB5GHkizTawgERBI/pICAewW6FnKEGj1anEX
-	 mCbUAr7iXQupakKGCitiNo9TF39xe+xB12Kilh4j/0mpTEMrOVZTG9ytbMJRFT4Pva
-	 RQFFbMxgxU9PV7vWZG46u6TNjfcgxrwBMkJgu5Rz6hHdgTOjzF5DGlbS/8M05wybxF
-	 wVJWYfgUFQFAHmyjpTE8CwnKaNlX7ovh6EWrR0UI5KWBbIniJkDwSyxY/DghEwzJxc
-	 BaIt98Uva8hlGa2U632mYbF4ukcGnTWRCCw1sX1J/NEpAoaooYygGD32xKZ6WDvpc1
-	 LrC/gjjjSu+Ug==
-From: Leon Romanovsky <leon@kernel.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Danilo Krummrich <dakr@kernel.org>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Andrew Lunn <andrew@lunn.ch>,
-	Heiner Kallweit <hkallweit1@gmail.com>,
-	Russell King <linux@armlinux.org.uk>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	"Joerg Roedel (AMD)" <joro@8bytes.org>,
-	Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
-	Vasant Hegde <vasant.hegde@amd.com>,
-	Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Lu Baolu <baolu.lu@linux.intel.com>,
-	Johan Hovold <johan@kernel.org>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Marcel Holtmann <marcel@holtmann.org>,
-	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
-	Nipun Gupta <nipun.gupta@amd.com>,
-	Nikhil Agarwal <nikhil.agarwal@amd.com>,
-	Pieter Jansen van Vuuren <pieter.jansen-van-vuuren@amd.com>
-Cc: linux-kernel@vger.kernel.org,
-	driver-core@lists.linux.dev,
-	linux-input@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-wireless@vger.kernel.org,
-	linux-usb@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org,
-	linux-acpi@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	linux-pci@vger.kernel.org,
-	iommu@lists.linux.dev,
-	Jason Gunthorpe <jgg@ziepe.ca>
-Subject: [PATCH 16/17] driver core: Document trust admission and initrd authorization
-Date: Thu,  5 Nov 2026 13:42:29 +0200
-Message-ID: <20261105-device-trust-core-v1-16-1e536825b4eb@nvidia.com>
-X-Mailer: git-send-email 2.56.0
-In-Reply-To: <20261105-device-trust-core-v1-0-1e536825b4eb@nvidia.com>
-References: <20261105-device-trust-core-v1-0-1e536825b4eb@nvidia.com>
+	dkim=pass (1024-bit key, unprotected) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=IlDc2Fvh;
+	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=vvDSWJYG;
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=IlDc2Fvh;
+	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=vvDSWJYG
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 090681F785;
+	Thu,  5 Nov 2026 11:52:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1793879570; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=XTBVvV1llMrY8oPUgGAOljMGttnFmdc1n4iSvCofGvk=;
+	b=IlDc2FvhESlDd8QXX4z/a9lq2dVMhaxW+HuiTJo6x+4vVVqrVz8k3f/Wr+Mze0vHlceBFP
+	JaL/+k/+YFdhkL/6vCq7Bg2Jyl3kffnaUQoNLw7CYQNpyydj2pmW97ukL1Mouho+skqqWs
+	9mNCq/qpRDGAphiHFTSprMwCLm6e0Vk=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1793879570;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=XTBVvV1llMrY8oPUgGAOljMGttnFmdc1n4iSvCofGvk=;
+	b=vvDSWJYGu2lVXhJVWrbpDbn5nEUGh3VUqLxrYRbdmdLlIIqOha94poMzPs0o88aMpXXTQC
+	GveF9mKsY1fCOgBQ==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=IlDc2Fvh;
+	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=vvDSWJYG
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1793879570; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=XTBVvV1llMrY8oPUgGAOljMGttnFmdc1n4iSvCofGvk=;
+	b=IlDc2FvhESlDd8QXX4z/a9lq2dVMhaxW+HuiTJo6x+4vVVqrVz8k3f/Wr+Mze0vHlceBFP
+	JaL/+k/+YFdhkL/6vCq7Bg2Jyl3kffnaUQoNLw7CYQNpyydj2pmW97ukL1Mouho+skqqWs
+	9mNCq/qpRDGAphiHFTSprMwCLm6e0Vk=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1793879570;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=XTBVvV1llMrY8oPUgGAOljMGttnFmdc1n4iSvCofGvk=;
+	b=vvDSWJYGu2lVXhJVWrbpDbn5nEUGh3VUqLxrYRbdmdLlIIqOha94poMzPs0o88aMpXXTQC
+	GveF9mKsY1fCOgBQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id CB5FC134F4;
+	Thu,  5 Nov 2026 11:52:49 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id FWlQIxFu7GoAAwAAD6G6ig
+	(envelope-from <jack@suse.cz>); Thu, 05 Nov 2026 11:52:49 +0000
+Received: by quack.suse.cz (Postfix, from userid 1000)
+	id 45F61B6C1; Thu, 05 Nov 2026 12:52:41 +0100 (CET)
+Date: Thu, 5 Nov 2026 12:52:41 +0100
+From: Jan Kara <jack@suse.cz>
+To: Christian Brauner <brauner@kernel.org>
+Cc: linux-fsdevel@vger.kernel.org, 
+	Linus Torvalds <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, 
+	Eric Dumazet <edumazet@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
+	Al Viro <viro@zeniv.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
+	Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados <joel.granados@kernel.org>, 
+	Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
+	linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kselftest@vger.kernel.org, linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
+	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	netdev@vger.kernel.org, ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org, 
+	coreteam@netfilter.org, kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
+	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+	ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net, 
+	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
+	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
+	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, samba-technical@lists.samba.org, 
+	sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
+	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
+	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
+	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org, 
+	Chuck Lever <cel@kernel.org>, stable@vger.kernel.org
+Subject: Re: [PATCH RFC 18/38] proc: don't WARN about a name that is already
+ registered
+Message-ID: <qaqawx4ajooiiqzu3ngxc46khpnq74u6sl5tz6az4uyssxzly4@346lsx342het>
+References: <20261102-work-procfs-bugfixes-v1-0-59422ed3e465@kernel.org>
+ <20261102-work-procfs-bugfixes-v1-18-59422ed3e465@kernel.org>
 X-Mailing-List: linux-acpi@vger.kernel.org
 List-Id: <linux-acpi.vger.kernel.org>
 List-Post: <mailto:linux-acpi@vger.kernel.org>
@@ -97,340 +133,113 @@ List-Unsubscribe: <mailto:linux-acpi+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-acpi+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Mailer: b4 0.15-dev-18f8f
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261102-work-procfs-bugfixes-v1-18-59422ed3e465@kernel.org>
+X-Spamd-Result: default: False [-11.51 / 50.00];
+	SUSE_INTERNAL_BYPASS(-9.00)[];
+	BAYES_HAM(-3.00)[100.00%];
+	SUSPICIOUS_RECIPS(1.50)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_RHS_NOT_FQDN(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	RCVD_TLS_LAST(0.00)[];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	RCVD_COUNT_THREE(0.00)[3];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	DKIM_TRACE(0.00)[suse.cz:+];
+	R_RATELIMIT(0.00)[to_ip_from(RLpnapcpkwxdkc5mopt1ezhhna)];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	TO_MATCH_ENVRCPT_SOME(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_DN_SOME(0.00)[];
+	RCPT_COUNT_GT_50(0.00)[60];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	MISSING_XM_UA(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.cz:email,suse.cz:dkim,suse.com:email,imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo]
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Rspamd-Action: no action
+X-Spam-Flag: NO
+X-Spam-Score: -11.51
+X-Spam-Level: 
+X-Rspamd-Queue-Id: 090681F785
 
-From: Leon Romanovsky <leonro@nvidia.com>
+On Mon 02-11-26 15:21:33, Christian Brauner wrote:
+> proc_register() WARNs when the directory already has an entry of the
+> same name and fails the registration. Callers that pick their names
+> themselves should never get there but some take names from userspace.
+> pktgen creates a file for each device a writer of "add_device" adds,
+> named after the device. A device can have any name, including "pgctrl"
+> or "kpktgend_0", the names of pktgen's own files:
+> 
+>   ip link set lo name pgctrl
+>   ip link set pgctrl up
+>   echo "add_device pgctrl" > /proc/net/pktgen/kpktgend_0
+> 
+>   proc_dir_entry 'pktgen/pgctrl' already registered
+>   WARNING: fs/proc/generic.c:404 at proc_register+0x555/0x8b0, CPU#0: bash/241
+>   Call Trace:
+>    proc_create_data+0x9f/0xf0
+>    pktgen_thread_write+0xd9b/0x1780
+>    proc_reg_write+0x1c2/0x3c0
+>    vfs_write+0x1cd/0xfa0
+> 
+> The files of a network namespace belong to the root of its user
+> namespace and none of this requires a capability. So once pktgen is
+> loaded an unprivileged user can taint the kernel, or crash it with
+> panic_on_warn, from namespaces of its own. pktgen itself copes with
+> the failed registration just fine.
+> 
+> So go back to what proc_register() did before commit 6c2f91e077f1
+> ("proc: use WARN() rather than printk+backtrace") and what
+> sysfs_warn_dup() does for sysfs: report the name with pr_warn() and
+> dump the stack. While at it, do that after dropping proc_subdir_lock
+> instead of printing a backtrace while holding the lock that every
+> lookup and readdir in procfs needs.
+> 
+> Reported-by: Chris Mason <mason@kernel.org>
+> Fixes: 6c2f91e077f1 ("proc: use WARN() rather than printk+backtrace")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 
-Policy agents and bus drivers need a shared definition of authorization,
-commitment and active trust across boot and device lifetime.
+Makes sense. Feel free to add:
 
-Document the admission state machine and disabled-to-authorized initrd
-sequence, including built-in probes and pending work. Explain DMA domain
-preparation, binding restrictions, device replacement and current userspace
-integration requirements. Distinguish attestation and containment from the
-permission to bind a functional driver.
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- .../driver-api/driver-model/device-trust.rst       | 294 +++++++++++++++++++++
- Documentation/driver-api/driver-model/index.rst    |   1 +
- 2 files changed, 295 insertions(+)
+								Honza
 
-diff --git a/Documentation/driver-api/driver-model/device-trust.rst b/Documentation/driver-api/driver-model/device-trust.rst
-new file mode 100644
-index 0000000000000..1013784daeaca
---- /dev/null
-+++ b/Documentation/driver-api/driver-model/device-trust.rst
-@@ -0,0 +1,294 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+============
-+Device trust
-+============
-+
-+Device trust controls how the kernel uses a device. It does not verify the
-+device's identity or firmware. Driver core tracks the requested policy,
-+permission to bind, and active trust level separately.
-+
-+Policy and active trust
-+=======================
-+
-+The writable ``trust_policy`` attribute accepts ``default``, ``disabled``,
-+``adversary``, or ``full``. The bus may set the initial policy; otherwise it
-+starts as ``default``. Boot options can override it for all devices, a
-+named driver, or an individual device. See `Boot policy`_ for precedence.
-+
-+The read-only ``trust`` attribute reports the active trust level:
-+
-+``DEVICE_TRUST_DISABLED`` (``disabled``)
-+  There is no active driver setup or binding. The requested policy decides
-+  whether a later bind is allowed.
-+
-+``DEVICE_TRUST_ADVERSARY`` (``adversary``)
-+  The kernel treats the device as potentially malicious. The bus and DMA
-+  layers must enforce the restrictions needed to operate it.
-+
-+``DEVICE_TRUST_FULL`` (``full``)
-+  The device uses the normal privileges allowed by the bus and DMA policy.
-+
-+Policy resolution
-+=================
-+
-+A bus can implement ``bus_type::trust_resolve`` to choose the active level
-+from the device, candidate driver, and requested policy. For ``default``,
-+it may use topology or firmware information. Other policies must resolve
-+to the matching level or fail.
-+
-+The callback must not enable the device or grant DMA access. Those steps
-+belong in setup callbacks, after resolution and before probe.
-+
-+Without this callback, ``default`` and ``full`` resolve to
-+``DEVICE_TRUST_FULL``, and ``adversary`` to ``DEVICE_TRUST_ADVERSARY``.
-+Explicit ``disabled`` blocks binding. The bus remains responsible for
-+enforcing the chosen level's restrictions.
-+
-+Admission and policy writes
-+===========================
-+
-+Authorization is userspace's choice of adversary or full for a disabled
-+device. Commitment happens when the kernel accepts a policy and operating
-+level, before starting driver setup. Both limit later policy changes.
-+
-+The states below are internal; they are not additional sysfs values.
-+``P`` is the requested policy and ``L`` is the committed operating level.
-+
-+.. list-table:: Admission states
-+   :header-rows: 1
-+   :widths: 25 40 35
-+
-+   * - State
-+     - Meaning
-+     - Policy writes
-+   * - SELECTABLE
-+     - The device has not been authorized or committed.
-+     - Any policy is allowed. Selecting disabled enters WAITING.
-+   * - WAITING
-+     - Policy is disabled - no operating level is committed.
-+     - Choose adversary or full to enter AUTHORIZED(P).
-+   * - AUTHORIZED(P)
-+     - Userspace has chosen adversary or full from WAITING.
-+     - The policy cannot change, even before setup begins.
-+   * - COMMITTED(P, L)
-+     - The kernel has accepted P and L for setup.
-+     - Neither the policy nor the operating level can change.
-+
-+Bus defaults and boot options set the initial state: disabled starts in
-+WAITING; other policies start in SELECTABLE. Driver boot rules apply later,
-+when a matching driver attempts to bind. They may still replace this
-+initial state, including WAITING, unless a per-device boot entry or a
-+successful policy write takes precedence.
-+
-+Userspace cannot move WAITING back to SELECTABLE by writing ``default``.
-+Choosing adversary or full from WAITING locks that policy immediately.
-+
-+After boot initialization, the state transitions are::
-+
-+  SELECTABLE ----select disabled----> WAITING
-+      |                                 |
-+      |                             authorize
-+      |                           adversary/full
-+      |                                 |
-+      |                                 v
-+      |                            AUTHORIZED(P)
-+      |                                 |
-+      +------ permitted resolution -----+
-+                       |
-+                       v
-+                 COMMITTED(P, L)
-+
-+Binding and device lifetime
-+============================
-+
-+A manual bind that reaches WAITING returns ``-EPERM`` before driver or DMA
-+setup. Automatic matching skips the rejected driver and tries the next
-+candidate. Repeated rejected attempts leave the policy writable for later
-+authorization.
-+
-+Active trust stays at L through DMA setup, probe, operation, removal, and
-+``bus_type::dma_cleanup``. It returns to disabled only after cleanup ends.
-+
-+The state lasts for the device object's lifetime, including the switch
-+from initrd to the root filesystem. Unbinding and rebinding a registered
-+device does not reset it. A removed device cannot be registered again; a
-+new object starts with bus and boot policy.
-+
-+A driver can claim a USB interface before it is registered. The claim fails
-+if the interface's own policy is disabled. A driver rule and other claims
-+are admitted when the interface is registered, and a refusal then releases
-+the claim. The policy of a claimed interface cannot be changed, and
-+registration does not admit it while ``drivers_autoprobe`` is disabled.
-+
-+Boot policy
-+===========
-+
-+Built-in drivers can probe before userspace starts. Use boot options to
-+set their initial policy. All three options accept default, disabled,
-+adversary, and full.
-+
-+``device_trust.default=`` sets policy for all devices. If omitted or set
-+to default, it preserves bus policy. Other values replace bus policy,
-+including topology and removability defaults. The last valid value wins;
-+invalid values are reported and ignored.
-+
-+``device_trust=`` sets policy for individual devices::
-+
-+  device_trust=pci:0000:01:00.0=adversary,pci:0000:02:00.0=disabled
-+
-+Each entry is ``<bus>:<device>=<policy>``. Names must match
-+``/sys/bus/<bus>/devices/<device>`` exactly. The first colon separates the
-+bus name; later colons are part of the device name. Names cannot contain
-+whitespace, control characters, commas, equals signs, or double quotes.
-+Wildcards are not supported.
-+
-+A device entry overrides driver rules, the global setting, and bus policy,
-+regardless of option order. Explicit default asks the bus or generic
-+resolver to choose a level, even if the global setting is disabled. The
-+last entry for a device wins. If the option is repeated, the last valid
-+list replaces all earlier lists. A malformed list is ignored in full,
-+with a warning.
-+
-+``device_trust.driver=`` sets policy by driver name::
-+
-+  device_trust.driver=pci:e1000=disabled,pci:nvme=full
-+
-+Each entry is ``<bus>:<driver>=<policy>``. Use exact names from
-+``/sys/bus/<bus>/drivers/<driver>``, not module names or aliases. The name
-+restrictions and list handling are the same as for device entries. The
-+two lists are independent. Driver rules cover built-in drivers, modules,
-+and hotplug.
-+
-+The first bind attempt with a matching driver rule applies it before
-+resolution and setup. It overrides bus and global defaults, including
-+global disabled. It cannot override a per-device entry, any successful
-+sysfs policy write, or an existing authorization or commitment. It applies
-+only once per device object, even if resolution or setup fails.
-+
-+After a disabled driver rule applies, rejected probes and driver changes
-+leave the device in WAITING until userspace authorizes it. Before any rule
-+applies, a driver with no matching rule may still bind. Use global or
-+per-device disabled to block every driver.
-+
-+For example, an initrd can hold all devices except one needed at boot::
-+
-+  device_trust.default=disabled device_trust=pci:0000:00:01.0=full
-+
-+Include exceptions for every device and supplier needed to reach the
-+initrd and perform attestation. These exceptions allow operation before
-+fresh initrd attestation. Unlisted devices stay disabled even if their
-+bus would normally choose adversary or full.
-+
-+Global and per-device rules apply before device registration. Buses that
-+need policy earlier call ``device_trust_init()`` after setting the bus,
-+name, and initial policy. PCI does this during discovery, before header
-+fixups, ACS setup, and IOMMU configuration. PCI applies topology and
-+removability defaults only to default policy. A child's explicit boot
-+entry overrides inherited policy. Driver rules wait until a candidate
-+driver is known and cannot change these earlier discovery choices.
-+
-+All boot rules remain available for newly discovered devices. Reapplying
-+initialization to an already registered device does not reset its state.
-+These options are not runtime controls or proof of hardware identity.
-+Disabled blocks early binding and allows later authorization. Adversary
-+and full permit early binding without fresh initrd attestation.
-+
-+DMA containment
-+===============
-+
-+Disabled blocks driver binding, not DMA that hardware starts on its own.
-+The bus and IOMMU must provide containment while a device waits for
-+authorization.
-+
-+For PCI devices whose policy is disabled or adversary at discovery, the
-+IOMMU core selects a strict translated default domain for the whole group.
-+AMD domain selection and Intel bypass checks apply the same restriction.
-+This prepares a disabled device for later adversary authorization without
-+granting permission to bind. Later full authorization may keep these
-+restrictions. PCI does not record the ATS capability of such a device, even
-+after a later full authorization, and sets ACS Translation Blocking for it
-+where the path supports it.
-+
-+Adversary does not require an IOMMU. Without an IOMMU group, or with IOMMU
-+support compiled out, binding uses the platform's normal DMA configuration.
-+Adversary policy alone does not provide DMA isolation.
-+
-+Binding does not check the IOMMU domain. Neither a driver rule nor a sysfs
-+policy write reconfigures it, so a policy selected after discovery may
-+bind with an identity or deferred-invalidation domain. Select the policy
-+with ``device_trust=`` or ``device_trust.default=`` for it to apply at
-+discovery. Outside PCI, discovery does not select a domain. Changing a
-+group's domain type through sysfs is not checked against trust. A setup
-+failure after commitment leaves the chosen mode fixed; it cannot fall back
-+to full.
-+
-+Adversarial IOMMU mappings that are not aligned to IOMMU pages need an
-+active SWIOTLB bounce-buffer pool. Low-memory x86 systems may need
-+``swiotlb=force`` to keep this pool available. Without it, mappings can fail
-+even after the driver binds.
-+
-+Drivers marked ``driver_managed_dma`` bypass the kernel DMA API's default
-+domain handling and must provide their own DMA containment. Drivers that
-+do not use DMA need no domain.
-+
-+Initrd attestation sequence
-+===========================
-+
-+For a device that uses normal driver attachment, such as a PCI function:
-+
-+1. Boot with ``device_trust.default=disabled`` to hold all devices, or
-+   ``device_trust=pci:0000:01:00.0=disabled`` to hold one. Add exceptions
-+   needed to reach the initrd and provide DMA containment while waiting.
-+   ``device_trust.driver=pci:e1000=disabled`` can instead hold a known
-+   driver; global disabled also covers other drivers. Disabled attempts
-+   remain in WAITING, including attempts by built-in drivers.
-+2. In the initrd, control probing and attest the current device through a
-+   transport that works without its functional driver. Keep policy disabled
-+   during verification and preparation. Leave it disabled if verification
-+   fails or is unavailable. Removal or replacement invalidates the result;
-+   a reused bus address is not proof of identity. Repeat attestation if a
-+   reset or preparation step invalidates the evidence.
-+3. Once all checks and preparation are complete, write adversary or full
-+   to ``trust_policy``. This locks the choice and allows binding.
-+4. Request binding through ``drivers_probe`` or another attach path. The
-+   kernel commits the operating level before setup. Retries keep the same
-+   policy and level. An attachment deferred before the driver's probe
-+   callback returns ``-EAGAIN``; retry later. A successful write does not
-+   guarantee that a driver bound, so check the device's ``driver`` link.
-+
-+Queued or concurrent probes may start as soon as step 3 completes, before
-+step 4. Evidence must still be valid when authorizing the device.
-+Boot exceptions that permit adversary or full allow early operation
-+without fresh initrd attestation.
-+
-+The kernel interface provides neither an attestation transport nor a verifier.
-+
-+Driver use and independent properties
-+=====================================
-+
-+Drivers read active trust with ``device_get_trust_level()`` or
-+``device_is_adversarial()``. They may cache it while bound, but must not
-+change requested policy or treat trust as proof of other security
-+properties. Use the adversary check for features such as peer-to-peer DMA,
-+device memory, PASID/SVA, or paths that bypass the DMA API. General DMA
-+containment belongs in bus and IOMMU code.
-+
-+Discovery code uses ``device_policy_is_adversarial()`` to check requested
-+policy before binding or after unbind. This helper does not resolve
-+default policy or report active trust.
-+
-+Code that needs the level fixed for the device's lifetime can use
-+``device_get_committed_trust_level()``. It returns disabled before
-+commitment and the fixed level afterwards, including after failed setup
-+or unbind. It does not permit operation while unbound.
-+
-+Trust does not describe transport protection, TDISP T=1/RUN, link
-+encryption, private MMIO, verified evidence, or access to private versus
-+shared memory. T=1 can use either adversary or full. In particular,
-+``force_dma_unencrypted()`` describes DMA addressability and must not be
-+derived from trust.
-+
-+Policy writes cannot revoke authorization or switch an operating device
-+between adversary and full. Stopping it requires a separate procedure to
-+quiesce the driver, tear down DMA, and contain the device on its bus.
-diff --git a/Documentation/driver-api/driver-model/index.rst b/Documentation/driver-api/driver-model/index.rst
-index abeb4b36636b6..af547cd13b2c4 100644
---- a/Documentation/driver-api/driver-model/index.rst
-+++ b/Documentation/driver-api/driver-model/index.rst
-@@ -9,6 +9,7 @@ Driver Model
-    bus
-    design-patterns
-    device
-+   device-trust
-    devres
-    driver
-    overview
-
+> ---
+>  fs/proc/generic.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/fs/proc/generic.c b/fs/proc/generic.c
+> index c560c96a64eb..ef804cd3ec45 100644
+> --- a/fs/proc/generic.c
+> +++ b/fs/proc/generic.c
+> @@ -401,9 +401,10 @@ struct proc_dir_entry *proc_register(struct proc_dir_entry *dir,
+>  	write_lock(&proc_subdir_lock);
+>  	dp->parent = dir;
+>  	if (pde_subdir_insert(dir, dp) == false) {
+> -		WARN(1, "proc_dir_entry '%s/%s' already registered\n",
+> -		     dir->name, dp->name);
+>  		write_unlock(&proc_subdir_lock);
+> +		pr_warn("proc_dir_entry '%s/%s' already registered\n",
+> +			dir->name, dp->name);
+> +		dump_stack();
+>  		goto out_free_inum;
+>  	}
+>  	write_unlock(&proc_subdir_lock);
+> 
+> -- 
+> 2.53.0
+> 
 -- 
-2.56.0
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
